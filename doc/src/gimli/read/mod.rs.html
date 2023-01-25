@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/gimli-0.26.2/src/read/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../gimli/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/gimli-0.27.0/src/read/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../gimli/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -819,6 +819,9 @@
 <a href="#819" id="819">819</a>
 <a href="#820" id="820">820</a>
 <a href="#821" id="821">821</a>
+<a href="#822" id="822">822</a>
+<a href="#823" id="823">823</a>
+<a href="#824" id="824">824</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Read DWARF debugging information.
 //!
 //! * [Example Usage](#example-usage)
@@ -990,93 +993,96 @@
 //! # fn main() {}
 //! ```
 
-</span><span class="kw">use </span>core::fmt::{<a class="self" href="https://doc.rust-lang.org/nightly/core/fmt/index.html">self</a>, <a href="https://doc.rust-lang.org/nightly/core/fmt/macros/derive.Debug.html">Debug</a>};
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/result/index.html">core::result</a>;
+</span><span class="kw">use </span>core::fmt::{<span class="self">self</span>, Debug};
+<span class="kw">use </span>core::result;
 <span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
 </span><span class="kw">use </span>std::{error, io};
 
-<span class="kw">use </span><span class="kw">crate</span>::common::{<a href="../common.rs.html#88">Register</a>, <a href="../common.rs.html#245">SectionId</a>};
-<span class="kw">use </span><a href="../lib.rs.html#57"><span class="kw">crate</span>::constants</a>;
+<span class="kw">use </span><span class="kw">crate</span>::common::{Register, SectionId};
+<span class="kw">use </span><span class="kw">crate</span>::constants;
 
-<span class="kw">mod </span><a href="util.rs.html#1-250">util</a>;
-<span class="kw">pub use </span><a href="#180">util</a>::<span class="kw-2">*</span>;
+<span class="kw">mod </span>util;
+<span class="kw">pub use </span>util::<span class="kw-2">*</span>;
 
-<span class="kw">mod </span><a href="addr.rs.html#1-128">addr</a>;
-<span class="kw">pub use </span><a href="#183"><span class="self">self</span>::addr</a>::<span class="kw-2">*</span>;
+<span class="kw">mod </span>addr;
+<span class="kw">pub use </span><span class="self">self</span>::addr::<span class="kw-2">*</span>;
 
-<span class="kw">mod </span><a href="cfi.rs.html#1-7585">cfi</a>;
-<span class="kw">pub use </span><a href="#186"><span class="self">self</span>::cfi</a>::<span class="kw-2">*</span>;
+<span class="kw">mod </span>cfi;
+<span class="kw">pub use </span><span class="self">self</span>::cfi::<span class="kw-2">*</span>;
 
 <span class="attr">#[cfg(feature = <span class="string">&quot;read&quot;</span>)]
-</span><span class="kw">mod </span><a href="dwarf.rs.html#1-1143">dwarf</a>;
+</span><span class="kw">mod </span>dwarf;
 <span class="attr">#[cfg(feature = <span class="string">&quot;read&quot;</span>)]
-</span><span class="kw">pub use </span><a href="#190"><span class="self">self</span>::dwarf</a>::<span class="kw-2">*</span>;
+</span><span class="kw">pub use </span><span class="self">self</span>::dwarf::<span class="kw-2">*</span>;
 
-<span class="kw">mod </span><a href="endian_slice.rs.html#1-350">endian_slice</a>;
-<span class="kw">pub use </span><a href="#194"><span class="self">self</span>::endian_slice</a>::<span class="kw-2">*</span>;
+<span class="kw">mod </span>endian_slice;
+<span class="kw">pub use </span><span class="self">self</span>::endian_slice::<span class="kw-2">*</span>;
 
 <span class="attr">#[cfg(feature = <span class="string">&quot;endian-reader&quot;</span>)]
 </span><span class="kw">mod </span>endian_reader;
 <span class="attr">#[cfg(feature = <span class="string">&quot;endian-reader&quot;</span>)]
 </span><span class="kw">pub use </span><span class="self">self</span>::endian_reader::<span class="kw-2">*</span>;
 
-<span class="kw">mod </span><a href="reader.rs.html#1-502">reader</a>;
-<span class="kw">pub use </span><a href="#202"><span class="self">self</span>::reader</a>::<span class="kw-2">*</span>;
+<span class="kw">mod </span>reader;
+<span class="kw">pub use </span><span class="self">self</span>::reader::<span class="kw-2">*</span>;
 
 <span class="attr">#[cfg(feature = <span class="string">&quot;read&quot;</span>)]
-</span><span class="kw">mod </span><a href="abbrev.rs.html#1-996">abbrev</a>;
+</span><span class="kw">mod </span>abbrev;
 <span class="attr">#[cfg(feature = <span class="string">&quot;read&quot;</span>)]
-</span><span class="kw">pub use </span><a href="#206"><span class="self">self</span>::abbrev</a>::<span class="kw-2">*</span>;
+</span><span class="kw">pub use </span><span class="self">self</span>::abbrev::<span class="kw-2">*</span>;
 
-<span class="kw">mod </span><a href="aranges.rs.html#1-660">aranges</a>;
-<span class="kw">pub use </span><a href="#210"><span class="self">self</span>::aranges</a>::<span class="kw-2">*</span>;
+<span class="kw">mod </span>aranges;
+<span class="kw">pub use </span><span class="self">self</span>::aranges::<span class="kw-2">*</span>;
 
-<span class="kw">mod </span><a href="index.rs.html#1-535">index</a>;
-<span class="kw">pub use </span><a href="#213"><span class="self">self</span>::index</a>::<span class="kw-2">*</span>;
-
-<span class="attr">#[cfg(feature = <span class="string">&quot;read&quot;</span>)]
-</span><span class="kw">mod </span><a href="line.rs.html#1-3030">line</a>;
-<span class="attr">#[cfg(feature = <span class="string">&quot;read&quot;</span>)]
-</span><span class="kw">pub use </span><a href="#217"><span class="self">self</span>::line</a>::<span class="kw-2">*</span>;
-
-<span class="kw">mod </span><a href="lists.rs.html#1-68">lists</a>;
-
-<span class="kw">mod </span><a href="loclists.rs.html#1-1514">loclists</a>;
-<span class="kw">pub use </span><a href="#223"><span class="self">self</span>::loclists</a>::<span class="kw-2">*</span>;
+<span class="kw">mod </span>index;
+<span class="kw">pub use </span><span class="self">self</span>::index::<span class="kw-2">*</span>;
 
 <span class="attr">#[cfg(feature = <span class="string">&quot;read&quot;</span>)]
-</span><span class="kw">mod </span><a href="lookup.rs.html#1-202">lookup</a>;
-
-<span class="kw">mod </span><a href="op.rs.html#1-4114">op</a>;
-<span class="kw">pub use </span><a href="#229"><span class="self">self</span>::op</a>::<span class="kw-2">*</span>;
+</span><span class="kw">mod </span>lazy;
 
 <span class="attr">#[cfg(feature = <span class="string">&quot;read&quot;</span>)]
-</span><span class="kw">mod </span><a href="pubnames.rs.html#1-141">pubnames</a>;
+</span><span class="kw">mod </span>line;
 <span class="attr">#[cfg(feature = <span class="string">&quot;read&quot;</span>)]
-</span><span class="kw">pub use </span><a href="#233"><span class="self">self</span>::pubnames</a>::<span class="kw-2">*</span>;
+</span><span class="kw">pub use </span><span class="self">self</span>::line::<span class="kw-2">*</span>;
+
+<span class="kw">mod </span>lists;
+
+<span class="kw">mod </span>loclists;
+<span class="kw">pub use </span><span class="self">self</span>::loclists::<span class="kw-2">*</span>;
 
 <span class="attr">#[cfg(feature = <span class="string">&quot;read&quot;</span>)]
-</span><span class="kw">mod </span><a href="pubtypes.rs.html#1-141">pubtypes</a>;
+</span><span class="kw">mod </span>lookup;
+
+<span class="kw">mod </span>op;
+<span class="kw">pub use </span><span class="self">self</span>::op::<span class="kw-2">*</span>;
+
 <span class="attr">#[cfg(feature = <span class="string">&quot;read&quot;</span>)]
-</span><span class="kw">pub use </span><a href="#238"><span class="self">self</span>::pubtypes</a>::<span class="kw-2">*</span>;
+</span><span class="kw">mod </span>pubnames;
+<span class="attr">#[cfg(feature = <span class="string">&quot;read&quot;</span>)]
+</span><span class="kw">pub use </span><span class="self">self</span>::pubnames::<span class="kw-2">*</span>;
 
-<span class="kw">mod </span><a href="rnglists.rs.html#1-1354">rnglists</a>;
-<span class="kw">pub use </span><a href="#242"><span class="self">self</span>::rnglists</a>::<span class="kw-2">*</span>;
+<span class="attr">#[cfg(feature = <span class="string">&quot;read&quot;</span>)]
+</span><span class="kw">mod </span>pubtypes;
+<span class="attr">#[cfg(feature = <span class="string">&quot;read&quot;</span>)]
+</span><span class="kw">pub use </span><span class="self">self</span>::pubtypes::<span class="kw-2">*</span>;
 
-<span class="kw">mod </span><a href="str.rs.html#1-321">str</a>;
-<span class="kw">pub use </span><a href="#245"><span class="self">self</span>::str</a>::<span class="kw-2">*</span>;
+<span class="kw">mod </span>rnglists;
+<span class="kw">pub use </span><span class="self">self</span>::rnglists::<span class="kw-2">*</span>;
+
+<span class="kw">mod </span>str;
+<span class="kw">pub use </span><span class="self">self</span>::str::<span class="kw-2">*</span>;
 
 <span class="doccomment">/// An offset into the current compilation or type unit.
 </span><span class="attr">#[derive(Debug, Clone, Copy, PartialEq, Eq, Ord, PartialOrd, Hash)]
-</span><span class="kw">pub struct </span>UnitOffset&lt;T = <a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>&gt;(<span class="kw">pub </span>T);
+</span><span class="kw">pub struct </span>UnitOffset&lt;T = usize&gt;(<span class="kw">pub </span>T);
 
 <span class="attr">#[cfg(feature = <span class="string">&quot;read&quot;</span>)]
-</span><span class="kw">mod </span><a href="unit.rs.html#1-6146">unit</a>;
+</span><span class="kw">mod </span>unit;
 <span class="attr">#[cfg(feature = <span class="string">&quot;read&quot;</span>)]
-</span><span class="kw">pub use </span><a href="#253"><span class="self">self</span>::unit</a>::<span class="kw-2">*</span>;
+</span><span class="kw">pub use </span><span class="self">self</span>::unit::<span class="kw-2">*</span>;
 
-<span class="kw">mod </span><a href="value.rs.html#1-1621">value</a>;
-<span class="kw">pub use </span><a href="#257"><span class="self">self</span>::value</a>::<span class="kw-2">*</span>;
+<span class="kw">mod </span>value;
+<span class="kw">pub use </span><span class="self">self</span>::value::<span class="kw-2">*</span>;
 
 <span class="doccomment">/// Indicates that storage should be allocated on heap.
 </span><span class="attr">#[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -1129,23 +1135,23 @@
     <span class="doccomment">/// Found an unknown reserved length value.
     </span>UnknownReservedLength,
     <span class="doccomment">/// Found an unknown DWARF version.
-    </span>UnknownVersion(<a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>),
+    </span>UnknownVersion(u64),
     <span class="doccomment">/// Found a record with an unknown abbreviation code.
     </span>UnknownAbbreviation,
     <span class="doccomment">/// Hit the end of input before it was expected.
-    </span>UnexpectedEof(<a href="reader.rs.html#19">ReaderOffsetId</a>),
+    </span>UnexpectedEof(ReaderOffsetId),
     <span class="doccomment">/// Read a null entry before it was expected.
     </span>UnexpectedNull,
     <span class="doccomment">/// Found an unknown standard opcode.
-    </span>UnknownStandardOpcode(<a href="../constants.rs.html#1002-1019">constants::DwLns</a>),
+    </span>UnknownStandardOpcode(constants::DwLns),
     <span class="doccomment">/// Found an unknown extended opcode.
-    </span>UnknownExtendedOpcode(<a href="../constants.rs.html#1021-1033">constants::DwLne</a>),
+    </span>UnknownExtendedOpcode(constants::DwLne),
     <span class="doccomment">/// The specified address size is not supported.
-    </span>UnsupportedAddressSize(<a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>),
+    </span>UnsupportedAddressSize(u8),
     <span class="doccomment">/// The specified offset size is not supported.
-    </span>UnsupportedOffsetSize(<a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>),
+    </span>UnsupportedOffsetSize(u8),
     <span class="doccomment">/// The specified field size is not supported.
-    </span>UnsupportedFieldSize(<a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>),
+    </span>UnsupportedFieldSize(u8),
     <span class="doccomment">/// The minimum instruction length must not be zero.
     </span>MinimumInstructionLengthZero,
     <span class="doccomment">/// The maximum operations per instruction must not be zero.
@@ -1163,7 +1169,7 @@
     <span class="doccomment">/// Expected to find a pointer to an FDE, but found a CIE instead.
     </span>NotFdePointer,
     <span class="doccomment">/// Invalid branch target for a DW_OP_bra or DW_OP_skip.
-    </span>BadBranchTarget(<a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>),
+    </span>BadBranchTarget(u64),
     <span class="doccomment">/// DW_OP_push_object_address used but no address passed in.
     </span>InvalidPushObjectAddress,
     <span class="doccomment">/// Not enough items on the stack when evaluating an expression.
@@ -1172,7 +1178,7 @@
     </span>TooManyIterations,
     <span class="doccomment">/// An unrecognized operation was found while parsing a DWARF
     /// expression.
-    </span>InvalidExpression(<a href="../constants.rs.html#1085-1270">constants::DwOp</a>),
+    </span>InvalidExpression(constants::DwOp),
     <span class="doccomment">/// An unsupported operation was found while evaluating a DWARF expression.
     </span>UnsupportedEvaluation,
     <span class="doccomment">/// The expression had a piece followed by an expression
@@ -1180,7 +1186,7 @@
     </span>InvalidPiece,
     <span class="doccomment">/// An expression-terminating operation was followed by something
     /// other than the end of the expression or a piece operation.
-    </span>InvalidExpressionTerminator(<a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>),
+    </span>InvalidExpressionTerminator(u64),
     <span class="doccomment">/// Division or modulus by zero when evaluating an expression.
     </span>DivisionByZero,
     <span class="doccomment">/// An expression operation used mismatching types.
@@ -1193,7 +1199,7 @@
     <span class="doccomment">/// The shift value in an expression must be a non-negative integer.
     </span>InvalidShiftExpression,
     <span class="doccomment">/// An unknown DW_CFA_* instruction.
-    </span>UnknownCallFrameInstruction(<a href="../constants.rs.html#142-185">constants::DwCfa</a>),
+    </span>UnknownCallFrameInstruction(constants::DwCfa),
     <span class="doccomment">/// The end of an address range was before the beginning.
     </span>InvalidAddressRange,
     <span class="doccomment">/// The end offset of a loc list entry was before the beginning.
@@ -1219,7 +1225,7 @@
     <span class="doccomment">/// We do not support the given pointer encoding yet.
     </span>UnsupportedPointerEncoding,
     <span class="doccomment">/// Registers larger than `u16` are not supported.
-    </span>UnsupportedRegister(<a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>),
+    </span>UnsupportedRegister(u64),
     <span class="doccomment">/// The CFI program defined more register rules than we have storage for.
     </span>TooManyRegisterRules,
     <span class="doccomment">/// Attempted to push onto the CFI or evaluation stack, but it was already
@@ -1254,153 +1260,153 @@
     </span>UnknownIndexSection,
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for </span><a href="#271">Error</a> {
+<span class="kw">impl </span>fmt::Display <span class="kw">for </span>Error {
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; ::core::result::Result&lt;(), <a href="https://doc.rust-lang.org/nightly/core/fmt/struct.Error.html">fmt::Error</a>&gt; {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#438">f</a>, <span class="string">&quot;{}&quot;</span>, <span class="self">self</span>.description())
+    </span><span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter) -&gt; ::core::result::Result&lt;(), fmt::Error&gt; {
+        <span class="macro">write!</span>(f, <span class="string">&quot;{}&quot;</span>, <span class="self">self</span>.description())
     }
 }
 
-<span class="kw">impl </span><a href="#271">Error</a> {
+<span class="kw">impl </span>Error {
     <span class="doccomment">/// A short description of the error.
-    </span><span class="kw">pub fn </span>description(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/core/primitive.str.html">str</a> {
-        <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="#445">self</a> </span>{
-            <a href="#273">Error::Io</a> =&gt; <span class="string">&quot;An I/O error occurred while reading.&quot;</span>,
-            <a href="#275">Error::PcRelativePointerButSectionBaseIsUndefined</a> =&gt; {
+    </span><span class="kw">pub fn </span>description(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>str {
+        <span class="kw">match </span><span class="kw-2">*</span><span class="self">self </span>{
+            Error::Io =&gt; <span class="string">&quot;An I/O error occurred while reading.&quot;</span>,
+            Error::PcRelativePointerButSectionBaseIsUndefined =&gt; {
                 <span class="string">&quot;Found a PC relative pointer, but the section base is undefined.&quot;
             </span>}
-            <a href="#277">Error::TextRelativePointerButTextBaseIsUndefined</a> =&gt; {
+            Error::TextRelativePointerButTextBaseIsUndefined =&gt; {
                 <span class="string">&quot;Found a `.text` relative pointer, but the `.text` base is undefined.&quot;
             </span>}
-            <a href="#279">Error::DataRelativePointerButDataBaseIsUndefined</a> =&gt; {
+            Error::DataRelativePointerButDataBaseIsUndefined =&gt; {
                 <span class="string">&quot;Found a data relative pointer, but the data base is undefined.&quot;
             </span>}
-            <a href="#282">Error::FuncRelativePointerInBadContext</a> =&gt; {
+            Error::FuncRelativePointerInBadContext =&gt; {
                 <span class="string">&quot;Found a function relative pointer in a context that does not have a function base.&quot;
             </span>}
-            <a href="#284">Error::CannotParseOmitPointerEncoding</a> =&gt; {
+            Error::CannotParseOmitPointerEncoding =&gt; {
                 <span class="string">&quot;Cannot parse a pointer with a `DW_EH_PE_omit` encoding.&quot;
             </span>}
-            <a href="#286">Error::BadUnsignedLeb128</a> =&gt; <span class="string">&quot;An error parsing an unsigned LEB128 value&quot;</span>,
-            <a href="#288">Error::BadSignedLeb128</a> =&gt; <span class="string">&quot;An error parsing a signed LEB128 value&quot;</span>,
-            <a href="#291">Error::AbbreviationTagZero</a> =&gt; {
+            Error::BadUnsignedLeb128 =&gt; <span class="string">&quot;An error parsing an unsigned LEB128 value&quot;</span>,
+            Error::BadSignedLeb128 =&gt; <span class="string">&quot;An error parsing a signed LEB128 value&quot;</span>,
+            Error::AbbreviationTagZero =&gt; {
                 <span class="string">&quot;An abbreviation declared that its tag is zero,
                  but zero is reserved for null records&quot;
             </span>}
-            <a href="#294">Error::AttributeFormZero</a> =&gt; {
+            Error::AttributeFormZero =&gt; {
                 <span class="string">&quot;An attribute specification declared that its form is zero,
                  but zero is reserved for null records&quot;
             </span>}
-            <a href="#297">Error::BadHasChildren</a> =&gt; {
+            Error::BadHasChildren =&gt; {
                 <span class="string">&quot;The abbreviation&#39;s has-children byte was not one of
                  `DW_CHILDREN_{yes,no}`&quot;
             </span>}
-            <a href="#299">Error::BadLength</a> =&gt; <span class="string">&quot;The specified length is impossible&quot;</span>,
-            <a href="#301">Error::UnknownForm</a> =&gt; <span class="string">&quot;Found an unknown `DW_FORM_*` type&quot;</span>,
-            <a href="#303">Error::ExpectedZero</a> =&gt; <span class="string">&quot;Expected a zero, found something else&quot;</span>,
-            <a href="#305">Error::DuplicateAbbreviationCode</a> =&gt; {
+            Error::BadLength =&gt; <span class="string">&quot;The specified length is impossible&quot;</span>,
+            Error::UnknownForm =&gt; <span class="string">&quot;Found an unknown `DW_FORM_*` type&quot;</span>,
+            Error::ExpectedZero =&gt; <span class="string">&quot;Expected a zero, found something else&quot;</span>,
+            Error::DuplicateAbbreviationCode =&gt; {
                 <span class="string">&quot;Found an abbreviation code that has already been used&quot;
             </span>}
-            <a href="#307">Error::DuplicateArange</a> =&gt; <span class="string">&quot;Found a duplicate arange&quot;</span>,
-            <a href="#309">Error::UnknownReservedLength</a> =&gt; <span class="string">&quot;Found an unknown reserved length value&quot;</span>,
-            <a href="#311">Error::UnknownVersion</a>(<span class="kw">_</span>) =&gt; <span class="string">&quot;Found an unknown DWARF version&quot;</span>,
-            <a href="#313">Error::UnknownAbbreviation</a> =&gt; <span class="string">&quot;Found a record with an unknown abbreviation code&quot;</span>,
-            <a href="#315">Error::UnexpectedEof</a>(<span class="kw">_</span>) =&gt; <span class="string">&quot;Hit the end of input before it was expected&quot;</span>,
-            <a href="#317">Error::UnexpectedNull</a> =&gt; <span class="string">&quot;Read a null entry before it was expected.&quot;</span>,
-            <a href="#319">Error::UnknownStandardOpcode</a>(<span class="kw">_</span>) =&gt; <span class="string">&quot;Found an unknown standard opcode&quot;</span>,
-            <a href="#321">Error::UnknownExtendedOpcode</a>(<span class="kw">_</span>) =&gt; <span class="string">&quot;Found an unknown extended opcode&quot;</span>,
-            <a href="#323">Error::UnsupportedAddressSize</a>(<span class="kw">_</span>) =&gt; <span class="string">&quot;The specified address size is not supported&quot;</span>,
-            <a href="#325">Error::UnsupportedOffsetSize</a>(<span class="kw">_</span>) =&gt; <span class="string">&quot;The specified offset size is not supported&quot;</span>,
-            <a href="#327">Error::UnsupportedFieldSize</a>(<span class="kw">_</span>) =&gt; <span class="string">&quot;The specified field size is not supported&quot;</span>,
-            <a href="#329">Error::MinimumInstructionLengthZero</a> =&gt; {
+            Error::DuplicateArange =&gt; <span class="string">&quot;Found a duplicate arange&quot;</span>,
+            Error::UnknownReservedLength =&gt; <span class="string">&quot;Found an unknown reserved length value&quot;</span>,
+            Error::UnknownVersion(<span class="kw">_</span>) =&gt; <span class="string">&quot;Found an unknown DWARF version&quot;</span>,
+            Error::UnknownAbbreviation =&gt; <span class="string">&quot;Found a record with an unknown abbreviation code&quot;</span>,
+            Error::UnexpectedEof(<span class="kw">_</span>) =&gt; <span class="string">&quot;Hit the end of input before it was expected&quot;</span>,
+            Error::UnexpectedNull =&gt; <span class="string">&quot;Read a null entry before it was expected.&quot;</span>,
+            Error::UnknownStandardOpcode(<span class="kw">_</span>) =&gt; <span class="string">&quot;Found an unknown standard opcode&quot;</span>,
+            Error::UnknownExtendedOpcode(<span class="kw">_</span>) =&gt; <span class="string">&quot;Found an unknown extended opcode&quot;</span>,
+            Error::UnsupportedAddressSize(<span class="kw">_</span>) =&gt; <span class="string">&quot;The specified address size is not supported&quot;</span>,
+            Error::UnsupportedOffsetSize(<span class="kw">_</span>) =&gt; <span class="string">&quot;The specified offset size is not supported&quot;</span>,
+            Error::UnsupportedFieldSize(<span class="kw">_</span>) =&gt; <span class="string">&quot;The specified field size is not supported&quot;</span>,
+            Error::MinimumInstructionLengthZero =&gt; {
                 <span class="string">&quot;The minimum instruction length must not be zero.&quot;
             </span>}
-            <a href="#331">Error::MaximumOperationsPerInstructionZero</a> =&gt; {
+            Error::MaximumOperationsPerInstructionZero =&gt; {
                 <span class="string">&quot;The maximum operations per instruction must not be zero.&quot;
             </span>}
-            <a href="#333">Error::LineRangeZero</a> =&gt; <span class="string">&quot;The line range must not be zero.&quot;</span>,
-            <a href="#335">Error::OpcodeBaseZero</a> =&gt; <span class="string">&quot;The opcode base must not be zero.&quot;</span>,
-            <a href="#337">Error::BadUtf8</a> =&gt; <span class="string">&quot;Found an invalid UTF-8 string.&quot;</span>,
-            <a href="#339">Error::NotCieId</a> =&gt; <span class="string">&quot;Expected to find the CIE ID, but found something else.&quot;</span>,
-            <a href="#341">Error::NotCiePointer</a> =&gt; <span class="string">&quot;Expected to find a CIE pointer, but found the CIE ID instead.&quot;</span>,
-            <a href="#343">Error::NotFdePointer</a> =&gt; {
+            Error::LineRangeZero =&gt; <span class="string">&quot;The line range must not be zero.&quot;</span>,
+            Error::OpcodeBaseZero =&gt; <span class="string">&quot;The opcode base must not be zero.&quot;</span>,
+            Error::BadUtf8 =&gt; <span class="string">&quot;Found an invalid UTF-8 string.&quot;</span>,
+            Error::NotCieId =&gt; <span class="string">&quot;Expected to find the CIE ID, but found something else.&quot;</span>,
+            Error::NotCiePointer =&gt; <span class="string">&quot;Expected to find a CIE pointer, but found the CIE ID instead.&quot;</span>,
+            Error::NotFdePointer =&gt; {
                 <span class="string">&quot;Expected to find an FDE pointer, but found a CIE pointer instead.&quot;
             </span>}
-            <a href="#345">Error::BadBranchTarget</a>(<span class="kw">_</span>) =&gt; <span class="string">&quot;Invalid branch target in DWARF expression&quot;</span>,
-            <a href="#347">Error::InvalidPushObjectAddress</a> =&gt; {
+            Error::BadBranchTarget(<span class="kw">_</span>) =&gt; <span class="string">&quot;Invalid branch target in DWARF expression&quot;</span>,
+            Error::InvalidPushObjectAddress =&gt; {
                 <span class="string">&quot;DW_OP_push_object_address used but no object address given&quot;
             </span>}
-            <a href="#349">Error::NotEnoughStackItems</a> =&gt; <span class="string">&quot;Not enough items on stack when evaluating expression&quot;</span>,
-            <a href="#351">Error::TooManyIterations</a> =&gt; <span class="string">&quot;Too many iterations to evaluate DWARF expression&quot;</span>,
-            <a href="#354">Error::InvalidExpression</a>(<span class="kw">_</span>) =&gt; <span class="string">&quot;Invalid opcode in DWARF expression&quot;</span>,
-            <a href="#356">Error::UnsupportedEvaluation</a> =&gt; <span class="string">&quot;Unsupported operation when evaluating expression&quot;</span>,
-            <a href="#359">Error::InvalidPiece</a> =&gt; {
+            Error::NotEnoughStackItems =&gt; <span class="string">&quot;Not enough items on stack when evaluating expression&quot;</span>,
+            Error::TooManyIterations =&gt; <span class="string">&quot;Too many iterations to evaluate DWARF expression&quot;</span>,
+            Error::InvalidExpression(<span class="kw">_</span>) =&gt; <span class="string">&quot;Invalid opcode in DWARF expression&quot;</span>,
+            Error::UnsupportedEvaluation =&gt; <span class="string">&quot;Unsupported operation when evaluating expression&quot;</span>,
+            Error::InvalidPiece =&gt; {
                 <span class="string">&quot;DWARF expression has piece followed by non-piece expression at end&quot;
             </span>}
-            <a href="#362">Error::InvalidExpressionTerminator</a>(<span class="kw">_</span>) =&gt; <span class="string">&quot;Expected DW_OP_piece or DW_OP_bit_piece&quot;</span>,
-            <a href="#364">Error::DivisionByZero</a> =&gt; <span class="string">&quot;Division or modulus by zero when evaluating expression&quot;</span>,
-            <a href="#366">Error::TypeMismatch</a> =&gt; <span class="string">&quot;Type mismatch when evaluating expression&quot;</span>,
-            <a href="#369">Error::IntegralTypeRequired</a> =&gt; <span class="string">&quot;Integral type expected when evaluating expression&quot;</span>,
-            <a href="#371">Error::UnsupportedTypeOperation</a> =&gt; {
+            Error::InvalidExpressionTerminator(<span class="kw">_</span>) =&gt; <span class="string">&quot;Expected DW_OP_piece or DW_OP_bit_piece&quot;</span>,
+            Error::DivisionByZero =&gt; <span class="string">&quot;Division or modulus by zero when evaluating expression&quot;</span>,
+            Error::TypeMismatch =&gt; <span class="string">&quot;Type mismatch when evaluating expression&quot;</span>,
+            Error::IntegralTypeRequired =&gt; <span class="string">&quot;Integral type expected when evaluating expression&quot;</span>,
+            Error::UnsupportedTypeOperation =&gt; {
                 <span class="string">&quot;An expression operation used types that are not supported&quot;
             </span>}
-            <a href="#373">Error::InvalidShiftExpression</a> =&gt; {
+            Error::InvalidShiftExpression =&gt; {
                 <span class="string">&quot;The shift value in an expression must be a non-negative integer.&quot;
             </span>}
-            <a href="#375">Error::UnknownCallFrameInstruction</a>(<span class="kw">_</span>) =&gt; <span class="string">&quot;An unknown DW_CFA_* instructiion&quot;</span>,
-            <a href="#377">Error::InvalidAddressRange</a> =&gt; {
+            Error::UnknownCallFrameInstruction(<span class="kw">_</span>) =&gt; <span class="string">&quot;An unknown DW_CFA_* instructiion&quot;</span>,
+            Error::InvalidAddressRange =&gt; {
                 <span class="string">&quot;The end of an address range must not be before the beginning.&quot;
             </span>}
-            <a href="#379">Error::InvalidLocationAddressRange</a> =&gt; {
+            Error::InvalidLocationAddressRange =&gt; {
                 <span class="string">&quot;The end offset of a location list entry must not be before the beginning.&quot;
             </span>}
-            <a href="#382">Error::CfiInstructionInInvalidContext</a> =&gt; {
+            Error::CfiInstructionInInvalidContext =&gt; {
                 <span class="string">&quot;Encountered a call frame instruction in a context in which it is not valid.&quot;
             </span>}
-            <a href="#385">Error::PopWithEmptyStack</a> =&gt; {
+            Error::PopWithEmptyStack =&gt; {
                 <span class="string">&quot;When evaluating call frame instructions, found a `DW_CFA_restore_state` stack pop \
                  instruction, but the stack was empty, and had nothing to pop.&quot;
             </span>}
-            <a href="#387">Error::NoUnwindInfoForAddress</a> =&gt; <span class="string">&quot;Do not have unwind info for the given address.&quot;</span>,
-            <a href="#389">Error::UnsupportedOffset</a> =&gt; {
+            Error::NoUnwindInfoForAddress =&gt; <span class="string">&quot;Do not have unwind info for the given address.&quot;</span>,
+            Error::UnsupportedOffset =&gt; {
                 <span class="string">&quot;An offset value was larger than the maximum supported value.&quot;
             </span>}
-            <a href="#391">Error::UnknownPointerEncoding</a> =&gt; {
+            Error::UnknownPointerEncoding =&gt; {
                 <span class="string">&quot;The given pointer encoding is either unknown or invalid.&quot;
             </span>}
-            <a href="#393">Error::NoEntryAtGivenOffset</a> =&gt; <span class="string">&quot;Did not find an entry at the given offset.&quot;</span>,
-            <a href="#395">Error::OffsetOutOfBounds</a> =&gt; <span class="string">&quot;The given offset is out of bounds.&quot;</span>,
-            <a href="#397">Error::UnknownAugmentation</a> =&gt; <span class="string">&quot;Found an unknown CFI augmentation.&quot;</span>,
-            <a href="#399">Error::UnsupportedPointerEncoding</a> =&gt; {
+            Error::NoEntryAtGivenOffset =&gt; <span class="string">&quot;Did not find an entry at the given offset.&quot;</span>,
+            Error::OffsetOutOfBounds =&gt; <span class="string">&quot;The given offset is out of bounds.&quot;</span>,
+            Error::UnknownAugmentation =&gt; <span class="string">&quot;Found an unknown CFI augmentation.&quot;</span>,
+            Error::UnsupportedPointerEncoding =&gt; {
                 <span class="string">&quot;We do not support the given pointer encoding yet.&quot;
             </span>}
-            <a href="#401">Error::UnsupportedRegister</a>(<span class="kw">_</span>) =&gt; <span class="string">&quot;Registers larger than `u16` are not supported.&quot;</span>,
-            <a href="#403">Error::TooManyRegisterRules</a> =&gt; {
+            Error::UnsupportedRegister(<span class="kw">_</span>) =&gt; <span class="string">&quot;Registers larger than `u16` are not supported.&quot;</span>,
+            Error::TooManyRegisterRules =&gt; {
                 <span class="string">&quot;The CFI program defined more register rules than we have storage for.&quot;
             </span>}
-            <a href="#406">Error::StackFull</a> =&gt; {
+            Error::StackFull =&gt; {
                 <span class="string">&quot;Attempted to push onto the CFI stack, but it was already at full capacity.&quot;
             </span>}
-            <a href="#409">Error::VariableLengthSearchTable</a> =&gt; {
+            Error::VariableLengthSearchTable =&gt; {
                 <span class="string">&quot;The `.eh_frame_hdr` binary search table claims to be variable-length encoded, \
                  which makes binary search impossible.&quot;
             </span>}
-            <a href="#411">Error::UnsupportedUnitType</a> =&gt; <span class="string">&quot;The `DW_UT_*` value for this unit is not supported yet&quot;</span>,
-            <a href="#413">Error::UnsupportedAddressIndex</a> =&gt; <span class="string">&quot;Ranges involving AddressIndex are not supported yet&quot;</span>,
-            <a href="#415">Error::UnsupportedSegmentSize</a> =&gt; <span class="string">&quot;Nonzero segment size not supported yet&quot;</span>,
-            <a href="#417">Error::MissingUnitDie</a> =&gt; {
+            Error::UnsupportedUnitType =&gt; <span class="string">&quot;The `DW_UT_*` value for this unit is not supported yet&quot;</span>,
+            Error::UnsupportedAddressIndex =&gt; <span class="string">&quot;Ranges involving AddressIndex are not supported yet&quot;</span>,
+            Error::UnsupportedSegmentSize =&gt; <span class="string">&quot;Nonzero segment size not supported yet&quot;</span>,
+            Error::MissingUnitDie =&gt; {
                 <span class="string">&quot;A compilation unit or type unit is missing its top level DIE.&quot;
             </span>}
-            <a href="#419">Error::UnsupportedAttributeForm</a> =&gt; <span class="string">&quot;A DIE attribute used an unsupported form.&quot;</span>,
-            <a href="#421">Error::MissingFileEntryFormatPath</a> =&gt; <span class="string">&quot;Missing DW_LNCT_path in file entry format.&quot;</span>,
-            <a href="#423">Error::ExpectedStringAttributeValue</a> =&gt; {
+            Error::UnsupportedAttributeForm =&gt; <span class="string">&quot;A DIE attribute used an unsupported form.&quot;</span>,
+            Error::MissingFileEntryFormatPath =&gt; <span class="string">&quot;Missing DW_LNCT_path in file entry format.&quot;</span>,
+            Error::ExpectedStringAttributeValue =&gt; {
                 <span class="string">&quot;Expected an attribute value to be a string form.&quot;
             </span>}
-            <a href="#425">Error::InvalidImplicitConst</a> =&gt; <span class="string">&quot;DW_FORM_implicit_const used in an invalid context.&quot;</span>,
-            <a href="#427">Error::InvalidIndexSectionCount</a> =&gt; <span class="string">&quot;Invalid section count in `.dwp` index.&quot;</span>,
-            <a href="#429">Error::InvalidIndexSlotCount</a> =&gt; <span class="string">&quot;Invalid slot count in `.dwp` index.&quot;</span>,
-            <a href="#431">Error::InvalidIndexRow</a> =&gt; <span class="string">&quot;Invalid hash row in `.dwp` index.&quot;</span>,
-            <a href="#433">Error::UnknownIndexSection</a> =&gt; <span class="string">&quot;Unknown section type in `.dwp` index.&quot;</span>,
+            Error::InvalidImplicitConst =&gt; <span class="string">&quot;DW_FORM_implicit_const used in an invalid context.&quot;</span>,
+            Error::InvalidIndexSectionCount =&gt; <span class="string">&quot;Invalid section count in `.dwp` index.&quot;</span>,
+            Error::InvalidIndexSlotCount =&gt; <span class="string">&quot;Invalid slot count in `.dwp` index.&quot;</span>,
+            Error::InvalidIndexRow =&gt; <span class="string">&quot;Invalid hash row in `.dwp` index.&quot;</span>,
+            Error::UnknownIndexSection =&gt; <span class="string">&quot;Unknown section type in `.dwp` index.&quot;</span>,
         }
     }
 }
@@ -1416,7 +1422,7 @@
 }
 
 <span class="doccomment">/// The result of a parse.
-</span><span class="kw">pub type </span><span class="prelude-ty">Result</span>&lt;T&gt; = result::Result&lt;T, <a href="#271">Error</a>&gt;;
+</span><span class="kw">pub type </span><span class="prelude-ty">Result</span>&lt;T&gt; = result::Result&lt;T, Error&gt;;
 
 <span class="doccomment">/// A convenience trait for loading DWARF sections from object files.  To be
 /// used like:
@@ -1432,62 +1438,62 @@
 /// ```
 </span><span class="kw">pub trait </span>Section&lt;R&gt;: From&lt;R&gt; {
     <span class="doccomment">/// Returns the section id for this type.
-    </span><span class="kw">fn </span>id() -&gt; <a href="../common.rs.html#245">SectionId</a>;
+    </span><span class="kw">fn </span>id() -&gt; SectionId;
 
     <span class="doccomment">/// Returns the ELF section name for this type.
-    </span><span class="kw">fn </span>section_name() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><a href="https://doc.rust-lang.org/nightly/core/primitive.str.html">str</a> {
-        <span class="self">Self</span>::id().<a href="../common.rs.html#294">name</a>()
+    </span><span class="kw">fn </span>section_name() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str {
+        <span class="self">Self</span>::id().name()
     }
 
     <span class="doccomment">/// Returns the ELF section name (if any) for this type when used in a dwo
     /// file.
-    </span><span class="kw">fn </span>dwo_section_name() -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><a href="https://doc.rust-lang.org/nightly/core/primitive.str.html">str</a>&gt; {
-        <span class="self">Self</span>::id().<a href="../common.rs.html#322">dwo_name</a>()
+    </span><span class="kw">fn </span>dwo_section_name() -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str&gt; {
+        <span class="self">Self</span>::id().dwo_name()
     }
 
     <span class="doccomment">/// Try to load the section using the given loader function.
     </span><span class="kw">fn </span>load&lt;F, E&gt;(f: F) -&gt; core::result::Result&lt;<span class="self">Self</span>, E&gt;
     <span class="kw">where
-        </span>F: FnOnce(<a href="../common.rs.html#245">SectionId</a>) -&gt; core::result::Result&lt;R, E&gt;,
+        </span>F: FnOnce(SectionId) -&gt; core::result::Result&lt;R, E&gt;,
     {
-        <a href="#628">f</a>(<span class="self">Self</span>::id()).map(<a href="https://doc.rust-lang.org/nightly/core/convert/trait.From.html">From::from</a>)
+        f(<span class="self">Self</span>::id()).map(From::from)
     }
 
     <span class="doccomment">/// Returns the `Reader` for this section.
     </span><span class="kw">fn </span>reader(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>R
     <span class="kw">where
-        </span>R: <a href="reader.rs.html#215">Reader</a>;
+        </span>R: Reader;
 
     <span class="doccomment">/// Returns the subrange of the section that is the contribution of
     /// a unit in a `.dwp` file.
-    </span><span class="kw">fn </span>dwp_range(<span class="kw-2">&amp;</span><span class="self">self</span>, offset: <a href="https://doc.rust-lang.org/nightly/core/primitive.u32.html">u32</a>, size: <a href="https://doc.rust-lang.org/nightly/core/primitive.u32.html">u32</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt;
+    </span><span class="kw">fn </span>dwp_range(<span class="kw-2">&amp;</span><span class="self">self</span>, offset: u32, size: u32) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt;
     <span class="kw">where
-        </span>R: <a href="reader.rs.html#215">Reader</a>,
+        </span>R: Reader,
     {
-        <span class="kw">let </span><span class="kw-2">mut </span>data = <a class="self" href="#642">self</a>.<a href="#636-638">reader</a>().<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
+        <span class="kw">let </span><span class="kw-2">mut </span>data = <span class="self">self</span>.reader().clone();
         data.skip(R::Offset::from_u32(offset))<span class="question-mark">?</span>;
         data.truncate(R::Offset::from_u32(size))<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(<a href="#646">data</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
+        <span class="prelude-val">Ok</span>(data.into())
     }
 
     <span class="doccomment">/// Returns the `Reader` for this section.
-    </span><span class="kw">fn </span>lookup_offset_id(<span class="kw-2">&amp;</span><span class="self">self</span>, id: <a href="reader.rs.html#19">ReaderOffsetId</a>) -&gt; <span class="prelude-ty">Option</span>&lt;(<a href="../common.rs.html#245">SectionId</a>, R::Offset)&gt;
+    </span><span class="kw">fn </span>lookup_offset_id(<span class="kw-2">&amp;</span><span class="self">self</span>, id: ReaderOffsetId) -&gt; <span class="prelude-ty">Option</span>&lt;(SectionId, R::Offset)&gt;
     <span class="kw">where
-        </span>R: <a href="reader.rs.html#215">Reader</a>,
+        </span>R: Reader,
     {
-        <a class="self" href="#653">self</a>.<a href="#636-638">reader</a>()
-            .<a href="reader.rs.html#246">lookup_offset_id</a>(<a href="#653">id</a>)
-            .map(|offset| (<span class="self">Self</span>::id(), <a href="#659">offset</a>))
+        <span class="self">self</span>.reader()
+            .lookup_offset_id(id)
+            .map(|offset| (<span class="self">Self</span>::id(), offset))
     }
 }
 
-<span class="kw">impl </span><a href="../common.rs.html#88">Register</a> {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>from_u64(x: <a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../common.rs.html#88">Register</a>&gt; {
-        <span class="kw">let </span>y = <a href="#664">x</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.u16.html">u16</a>;
+<span class="kw">impl </span>Register {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>from_u64(x: u64) -&gt; <span class="prelude-ty">Result</span>&lt;Register&gt; {
+        <span class="kw">let </span>y = x <span class="kw">as </span>u16;
         <span class="kw">if </span>u64::from(y) == x {
-            <span class="prelude-val">Ok</span>(<a href="../common.rs.html#88">Register</a>(<a href="#665">y</a>))
+            <span class="prelude-val">Ok</span>(Register(y))
         } <span class="kw">else </span>{
-            <span class="prelude-val">Err</span>(<a href="#401">Error::UnsupportedRegister</a>(<a href="#664">x</a>))
+            <span class="prelude-val">Err</span>(Error::UnsupportedRegister(x))
         }
     }
 }
@@ -1641,4 +1647,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="gimli" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="gimli" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `prusti-common/src/vir/optimizations/purification/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../../../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../../../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../../../../source-files.js"></script><script defer src="../../../../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../../../prusti_common/index.html"><img class="rust-logo" src="../../../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `prusti-common/src/vir/optimizations/purification/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../../../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../../../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../../../source-files.js"></script><script defer src="../../../../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../../../prusti_common/index.html"><img class="rust-logo" src="../../../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -481,44 +481,44 @@
 <a href="#481" id="481">481</a>
 <a href="#482" id="482">482</a>
 </pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::vir::polymorphic_vir::{
-    <a href="../../../../../prusti_common/vir/polymorphic_vir/ast/index.html">ast</a>, <a href="../../../../../prusti_common/vir/polymorphic_vir/cfg/index.html">cfg</a>, <a href="../../../../../prusti_common/vir/polymorphic_vir/fn.walk_method.html">utils::walk_method</a>, <a href="../../../../../prusti_common/vir/polymorphic_vir/enum.Expr.html">Expr</a>, <a href="../../../../../prusti_common/vir/polymorphic_vir/struct.Field.html">Field</a>, <a href="../../../../../prusti_common/vir/polymorphic_vir/struct.LocalVar.html">LocalVar</a>, <a href="../../../../../prusti_common/vir/polymorphic_vir/enum.Stmt.html">Stmt</a>, <a href="../../../../../prusti_common/vir/polymorphic_vir/enum.Type.html">Type</a>,
+    ast, cfg, utils::walk_method, Expr, Field, LocalVar, Stmt, Type,
 };
-<span class="kw">use </span><a href="../../../../../fxhash/type.FxHashSet.html">fxhash::FxHashSet</a>;
-<span class="kw">use </span><a href="../../../../../log/macro.debug.html">log::debug</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/collections/btree/set/struct.BTreeSet.html">std::collections::BTreeSet</a>;
+<span class="kw">use </span>fxhash::FxHashSet;
+<span class="kw">use </span>log::debug;
+<span class="kw">use </span>std::collections::BTreeSet;
 
 <span class="doccomment">/// This purifies local variables in a method body
 </span><span class="kw">pub fn </span>purify_methods(
-    <span class="kw-2">mut </span>methods: Vec&lt;<a href="../../../../../prusti_common/vir/polymorphic_vir/struct.CfgMethod.html">cfg::CfgMethod</a>&gt;,
-    predicates: <span class="kw-2">&amp;</span>[<a href="../../../../../prusti_common/vir/polymorphic_vir/enum.Predicate.html">ast::Predicate</a>],
-) -&gt; Vec&lt;<a href="../../../../../prusti_common/vir/polymorphic_vir/struct.CfgMethod.html">cfg::CfgMethod</a>&gt; {
+    <span class="kw-2">mut </span>methods: Vec&lt;cfg::CfgMethod&gt;,
+    predicates: <span class="kw-2">&amp;</span>[ast::Predicate],
+) -&gt; Vec&lt;cfg::CfgMethod&gt; {
     <span class="kw">for </span>method <span class="kw">in </span><span class="kw-2">&amp;mut </span>methods {
         purify_method(method, predicates);
     }
 
-    <a href="#10">methods</a>
+    methods
 }
 
-<span class="kw">pub fn </span>is_purifiable_type(ty: <span class="kw-2">&amp;</span><a href="../../../../../prusti_common/vir/polymorphic_vir/enum.Type.html">Type</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-    <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(<span class="kw">crate</span>::config::enable_purification_optimization());
-    <a href="#37">SUPPORTED_TYPES</a>.contains(<span class="kw-2">&amp;</span><a href="#20">ty</a>.name().as_str())
+<span class="kw">pub fn </span>is_purifiable_type(ty: <span class="kw-2">&amp;</span>Type) -&gt; bool {
+    <span class="macro">debug_assert!</span>(<span class="kw">crate</span>::config::enable_purification_optimization());
+    SUPPORTED_TYPES.contains(<span class="kw-2">&amp;</span>ty.name().as_str())
 }
 
-<span class="kw">fn </span>translate_type(typ: <span class="kw-2">&amp;</span><a href="../../../../../prusti_common/vir/polymorphic_vir/enum.Type.html">Type</a>) -&gt; <a href="../../../../../prusti_common/vir/polymorphic_vir/enum.Type.html">Type</a> {
-    <span class="kw">match </span><a href="#25">typ</a> {
-        Type::TypedRef(..) =&gt; <span class="kw">match </span><a href="#25">typ</a>.name().as_str() {
+<span class="kw">fn </span>translate_type(typ: <span class="kw-2">&amp;</span>Type) -&gt; Type {
+    <span class="kw">match </span>typ {
+        Type::TypedRef(..) =&gt; <span class="kw">match </span>typ.name().as_str() {
             <span class="string">&quot;i32&quot; </span>| <span class="string">&quot;isize&quot; </span>| <span class="string">&quot;usize&quot; </span>| <span class="string">&quot;u32&quot; </span>=&gt; Type::Int,
             <span class="string">&quot;bool&quot; </span>=&gt; Type::Bool,
-            <span class="kw">_ </span>=&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.todo.html">todo!</a>(<span class="string">&quot;{:?}&quot;</span>, typ),
+            <span class="kw">_ </span>=&gt; <span class="macro">todo!</span>(<span class="string">&quot;{:?}&quot;</span>, typ),
         },
         <span class="comment">// The type is already translated.
-        </span>typ =&gt; <a href="#33">typ</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+        </span>typ =&gt; typ.clone(),
     }
 }
 
-<span class="kw">static </span>SUPPORTED_TYPES: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>] = <span class="kw-2">&amp;</span>[<span class="string">&quot;bool&quot;</span>, <span class="string">&quot;i32&quot;</span>, <span class="string">&quot;isize&quot;</span>, <span class="string">&quot;usize&quot;</span>, <span class="string">&quot;u32&quot;</span>];
+<span class="kw">static </span>SUPPORTED_TYPES: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span>str] = <span class="kw-2">&amp;</span>[<span class="string">&quot;bool&quot;</span>, <span class="string">&quot;i32&quot;</span>, <span class="string">&quot;isize&quot;</span>, <span class="string">&quot;usize&quot;</span>, <span class="string">&quot;u32&quot;</span>];
 
-<span class="kw">fn </span>purify_method(method: <span class="kw-2">&amp;mut </span><a href="../../../../../prusti_common/vir/polymorphic_vir/struct.CfgMethod.html">cfg::CfgMethod</a>, predicates: <span class="kw-2">&amp;</span>[<a href="../../../../../prusti_common/vir/polymorphic_vir/enum.Predicate.html">ast::Predicate</a>]) {
+<span class="kw">fn </span>purify_method(method: <span class="kw-2">&amp;mut </span>cfg::CfgMethod, predicates: <span class="kw-2">&amp;</span>[ast::Predicate]) {
     <span class="kw">let </span><span class="kw-2">mut </span>candidates = FxHashSet::default();
     <span class="kw">for </span>var <span class="kw">in </span><span class="kw-2">&amp;</span>method.local_vars {
         <span class="kw">match </span><span class="kw-2">&amp;</span>var.typ {
@@ -528,15 +528,15 @@
             <span class="kw">_ </span>=&gt; {}
         };
     }
-    <span class="kw">let </span><span class="kw-2">mut </span>collector = PurifiableVariableCollector::new(<a href="#40">candidates</a>);
+    <span class="kw">let </span><span class="kw-2">mut </span>collector = PurifiableVariableCollector::new(candidates);
 
-    <a class="macro" href="../../../../../log/macro.debug.html">debug!</a>(
+    <span class="macro">debug!</span>(
         <span class="string">&quot;PurifiableVariableCollector for method {} before filtering {:?}&quot;</span>,
         method.name(),
         collector
     );
-    <a href="../../../../../prusti_common/vir/polymorphic_vir/fn.walk_method.html">walk_method</a>(<a href="#39">method</a>, <span class="kw-2">&amp;mut </span><a href="#49">collector</a>);
-    <a class="macro" href="../../../../../log/macro.debug.html">debug!</a>(
+    walk_method(method, <span class="kw-2">&amp;mut </span>collector);
+    <span class="macro">debug!</span>(
         <span class="string">&quot;PurifiableVariableCollector for method {} after filterng {:?}&quot;</span>,
         method.name(),
         collector
@@ -547,7 +547,7 @@
             var.typ = translate_type(<span class="kw-2">&amp;</span>var.typ);
         }
     }
-    <span class="kw">let </span><span class="kw-2">mut </span>p = Purifier::new(<a href="#49">collector</a>, <a href="#39">predicates</a>);
+    <span class="kw">let </span><span class="kw-2">mut </span>p = Purifier::new(collector, predicates);
 
     <span class="kw">for </span>block <span class="kw">in </span><span class="kw-2">&amp;mut </span>method.basic_blocks {
         <span class="kw">let </span>stmts = std::mem::take(<span class="kw-2">&amp;mut </span>block.stmts);
@@ -588,33 +588,33 @@
 /// without a field access.
 </span><span class="attr">#[derive(Debug)]
 </span><span class="kw">struct </span>PurifiableVariableCollector {
-    vars: FxHashSet&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt;,
+    vars: FxHashSet&lt;String&gt;,
 }
 
-<span class="kw">impl </span><a href="#108">PurifiableVariableCollector</a> {
-    <span class="kw">fn </span>new(initial_vars: FxHashSet&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt;) -&gt; <span class="self">Self </span>{
-        <a href="#108">PurifiableVariableCollector</a> { vars: <a href="#113">initial_vars</a> }
+<span class="kw">impl </span>PurifiableVariableCollector {
+    <span class="kw">fn </span>new(initial_vars: FxHashSet&lt;String&gt;) -&gt; <span class="self">Self </span>{
+        PurifiableVariableCollector { vars: initial_vars }
     }
 }
 
-<span class="kw">impl </span><a href="../../../../../prusti_common/vir/polymorphic_vir/trait.ExprWalker.html">ast::ExprWalker</a> <span class="kw">for </span><a href="#108">PurifiableVariableCollector</a> {
-    <span class="kw">fn </span>walk_local(<span class="kw-2">&amp;mut </span><span class="self">self</span>, <a href="../../../../../prusti_common/vir/polymorphic_vir/struct.Local.html">ast::Local</a> { variable, .. }: <span class="kw-2">&amp;</span><a href="../../../../../prusti_common/vir/polymorphic_vir/struct.Local.html">ast::Local</a>) {
+<span class="kw">impl </span>ast::ExprWalker <span class="kw">for </span>PurifiableVariableCollector {
+    <span class="kw">fn </span>walk_local(<span class="kw-2">&amp;mut </span><span class="self">self</span>, ast::Local { variable, .. }: <span class="kw-2">&amp;</span>ast::Local) {
         <span class="kw">if </span><span class="self">self</span>.vars.remove(<span class="kw-2">&amp;</span>variable.name) {
-            <a class="macro" href="../../../../../log/macro.debug.html">debug!</a>(<span class="string">&quot;Will not purify the variable {:?} &quot;</span>, variable)
+            <span class="macro">debug!</span>(<span class="string">&quot;Will not purify the variable {:?} &quot;</span>, variable)
         }
     }
 
-    <span class="kw">fn </span>walk_field(<span class="kw-2">&amp;mut </span><span class="self">self</span>, <a href="../../../../../prusti_common/vir/polymorphic_vir/struct.FieldExpr.html">ast::FieldExpr</a> { <span class="kw">box </span>base, .. }: <span class="kw-2">&amp;</span><a href="../../../../../prusti_common/vir/polymorphic_vir/struct.FieldExpr.html">ast::FieldExpr</a>) {
-        <span class="kw">match </span><a href="#125">base</a> {
+    <span class="kw">fn </span>walk_field(<span class="kw-2">&amp;mut </span><span class="self">self</span>, ast::FieldExpr { <span class="kw">box </span>base, .. }: <span class="kw-2">&amp;</span>ast::FieldExpr) {
+        <span class="kw">match </span>base {
             Expr::Local(<span class="kw">_</span>) =&gt; {}
-            <span class="kw">_ </span>=&gt; <a href="../../../../../prusti_common/vir/polymorphic_vir/trait.ExprWalker.html">ast::ExprWalker::walk</a>(<a class="self" href="#125">self</a>, <a href="#125">base</a>),
+            <span class="kw">_ </span>=&gt; ast::ExprWalker::walk(<span class="self">self</span>, base),
         }
     }
 }
 
-<span class="kw">impl </span><a href="../../../../../prusti_common/vir/polymorphic_vir/trait.StmtWalker.html">ast::StmtWalker</a> <span class="kw">for </span><a href="#108">PurifiableVariableCollector</a> {
-    <span class="kw">fn </span>walk_assign(<span class="kw-2">&amp;mut </span><span class="self">self</span>, <a href="../../../../../prusti_common/vir/polymorphic_vir/struct.Assign.html">ast::Assign</a> { source, .. }: <span class="kw-2">&amp;</span><a href="../../../../../prusti_common/vir/polymorphic_vir/struct.Assign.html">ast::Assign</a>) {
-        <a href="../../../../../prusti_common/vir/polymorphic_vir/trait.ExprWalker.html">ast::ExprWalker::walk</a>(<a class="self" href="#134">self</a>, <a href="#134">source</a>);
+<span class="kw">impl </span>ast::StmtWalker <span class="kw">for </span>PurifiableVariableCollector {
+    <span class="kw">fn </span>walk_assign(<span class="kw-2">&amp;mut </span><span class="self">self</span>, ast::Assign { source, .. }: <span class="kw-2">&amp;</span>ast::Assign) {
+        ast::ExprWalker::walk(<span class="self">self</span>, source);
     }
 }
 
@@ -622,29 +622,29 @@
 </span><span class="attr">#[derive(Debug)]
 </span><span class="kw">struct </span>Purifier&lt;<span class="lifetime">&#39;a</span>&gt; {
     <span class="doccomment">/// names of local variables that can be purified
-    </span>targets: BTreeSet&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt;,
+    </span>targets: BTreeSet&lt;String&gt;,
     <span class="doccomment">/// Viper predicates.
-    </span>predicates: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[<a href="../../../../../prusti_common/vir/polymorphic_vir/enum.Predicate.html">ast::Predicate</a>],
+    </span>predicates: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[ast::Predicate],
     <span class="doccomment">/// Purified PredicateAccessPredicates within an expression.
-    </span>purified_predicates: <span class="prelude-ty">Option</span>&lt;BTreeSet&lt;<a href="../../../../../prusti_common/vir/polymorphic_vir/struct.LocalVar.html">LocalVar</a>&gt;&gt;,
+    </span>purified_predicates: <span class="prelude-ty">Option</span>&lt;BTreeSet&lt;LocalVar&gt;&gt;,
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; Purifier&lt;<span class="lifetime">&#39;a</span>&gt; {
-    <span class="kw">fn </span>new(c: <a href="#108">PurifiableVariableCollector</a>, predicates: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[<a href="../../../../../prusti_common/vir/polymorphic_vir/enum.Predicate.html">ast::Predicate</a>]) -&gt; <span class="self">Self </span>{
+    <span class="kw">fn </span>new(c: PurifiableVariableCollector, predicates: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[ast::Predicate]) -&gt; <span class="self">Self </span>{
         <span class="kw">let </span><span class="kw-2">mut </span>targets = BTreeSet::new();
         <span class="kw">for </span>var <span class="kw">in </span>c.vars {
             targets.insert(var);
         }
 
-        <a href="#141">Purifier</a> {
-            <a href="#152">targets</a>,
-            <a href="#151">predicates</a>,
+        Purifier {
+            targets,
+            predicates,
             purified_predicates: <span class="prelude-val">None</span>,
         }
     }
     <span class="doccomment">/// Get the body of the struct predicate. If the predicate does not exist,
     /// or is a non-struct predicate, returns `None`.
-    </span><span class="kw">fn </span>find_predicate(<span class="kw-2">&amp;</span><span class="self">self</span>, predicate_type: <span class="kw-2">&amp;</span><a href="../../../../../prusti_common/vir/polymorphic_vir/enum.Type.html">Type</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="../../../../../prusti_common/vir/polymorphic_vir/enum.Expr.html">Expr</a>&gt; {
+    </span><span class="kw">fn </span>find_predicate(<span class="kw-2">&amp;</span><span class="self">self</span>, predicate_type: <span class="kw-2">&amp;</span>Type) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Expr&gt; {
         <span class="comment">// TODO: Replace with a HashMap or some more performant data structure.
         </span><span class="kw">for </span>predicate <span class="kw">in </span><span class="self">self</span>.predicates {
             <span class="kw">match </span>predicate {
@@ -658,309 +658,309 @@
     </span>}
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; <a href="../../../../../prusti_common/vir/polymorphic_vir/trait.StmtFolder.html">ast::StmtFolder</a> <span class="kw">for </span>Purifier&lt;<span class="lifetime">&#39;a</span>&gt; {
-    <span class="kw">fn </span>fold_expr(<span class="kw-2">&amp;mut </span><span class="self">self</span>, expr: <a href="../../../../../prusti_common/vir/polymorphic_vir/enum.Expr.html">Expr</a>) -&gt; <a href="../../../../../prusti_common/vir/polymorphic_vir/enum.Expr.html">Expr</a> {
-        <a href="../../../../../prusti_common/vir/polymorphic_vir/trait.ExprFolder.html">ast::ExprFolder::fold</a>(<a class="self" href="#180">self</a>, <a href="#180">expr</a>)
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; ast::StmtFolder <span class="kw">for </span>Purifier&lt;<span class="lifetime">&#39;a</span>&gt; {
+    <span class="kw">fn </span>fold_expr(<span class="kw-2">&amp;mut </span><span class="self">self</span>, expr: Expr) -&gt; Expr {
+        ast::ExprFolder::fold(<span class="self">self</span>, expr)
     }
 
     <span class="kw">fn </span>fold_assign(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        <a href="../../../../../prusti_common/vir/polymorphic_vir/struct.Assign.html">ast::Assign</a> {
+        ast::Assign {
             target,
             <span class="kw-2">mut </span>source,
             kind,
-        }: <a href="../../../../../prusti_common/vir/polymorphic_vir/struct.Assign.html">ast::Assign</a>,
-    ) -&gt; <a href="../../../../../prusti_common/vir/polymorphic_vir/enum.Stmt.html">Stmt</a> {
-        <span class="kw">if let </span>Expr::Local(<a href="../../../../../prusti_common/vir/polymorphic_vir/struct.Local.html">ast::Local</a> {
+        }: ast::Assign,
+    ) -&gt; Stmt {
+        <span class="kw">if let </span>Expr::Local(ast::Local {
             variable: local, ..
-        }) = <span class="kw-2">&amp;</span><a href="#187">target</a>
+        }) = <span class="kw-2">&amp;</span>target
         {
             <span class="kw">if </span><span class="self">self</span>.targets.contains(<span class="kw-2">&amp;</span>local.name) {
-                <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(<span class="macro">matches!</span>(source.get_type(), Type::TypedRef(..)));
-                <span class="kw">let </span>source_name = <a href="#188">source</a>.get_type().name();
-                <span class="kw">match </span><a href="#198">source_name</a>.as_str() {
+                <span class="macro">assert!</span>(<span class="macro">matches!</span>(source.get_type(), Type::TypedRef(..)));
+                <span class="kw">let </span>source_name = source.get_type().name();
+                <span class="kw">match </span>source_name.as_str() {
                     <span class="string">&quot;bool&quot; </span>=&gt; {
-                        <a href="#188">source</a> = <a href="#188">source</a>.field(<a href="../../../../../prusti_common/vir/polymorphic_vir/struct.Field.html">Field</a> {
-                            name: <span class="string">&quot;val_bool&quot;</span>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
+                        source = source.field(Field {
+                            name: <span class="string">&quot;val_bool&quot;</span>.into(),
                             typ: Type::Bool,
                         });
                     }
                     <span class="string">&quot;i32&quot; </span>| <span class="string">&quot;isize&quot; </span>| <span class="string">&quot;usize&quot; </span>| <span class="string">&quot;u32&quot; </span>=&gt; {
-                        <a href="#188">source</a> = <a href="#188">source</a>.field(<a href="../../../../../prusti_common/vir/polymorphic_vir/struct.Field.html">Field</a> {
-                            name: <span class="string">&quot;val_int&quot;</span>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
+                        source = source.field(Field {
+                            name: <span class="string">&quot;val_int&quot;</span>.into(),
                             typ: Type::Int,
                         });
                     }
-                    x =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(<span class="string">&quot;{}&quot;</span>, x),
+                    x =&gt; <span class="macro">unreachable!</span>(<span class="string">&quot;{}&quot;</span>, x),
                 }
             }
         }
-        Stmt::Assign(<a href="../../../../../prusti_common/vir/polymorphic_vir/struct.Assign.html">ast::Assign</a> {
-            target: <a href="../../../../../prusti_common/vir/polymorphic_vir/trait.ExprFolder.html">ast::ExprFolder::fold</a>(<a class="self" href="#185">self</a>, <a href="#187">target</a>),
-            source: <a href="../../../../../prusti_common/vir/polymorphic_vir/trait.ExprFolder.html">ast::ExprFolder::fold</a>(<a class="self" href="#185">self</a>, <a href="#188">source</a>),
-            <a href="#189">kind</a>,
+        Stmt::Assign(ast::Assign {
+            target: ast::ExprFolder::fold(<span class="self">self</span>, target),
+            source: ast::ExprFolder::fold(<span class="self">self</span>, source),
+            kind,
         })
     }
 
     <span class="kw">fn </span>fold_method_call(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        <a href="../../../../../prusti_common/vir/polymorphic_vir/struct.MethodCall.html">ast::MethodCall</a> {
+        ast::MethodCall {
             method_name,
             arguments,
             <span class="kw-2">mut </span>targets,
-        }: <a href="../../../../../prusti_common/vir/polymorphic_vir/struct.MethodCall.html">ast::MethodCall</a>,
-    ) -&gt; <a href="../../../../../prusti_common/vir/polymorphic_vir/enum.Stmt.html">Stmt</a> {
+        }: ast::MethodCall,
+    ) -&gt; Stmt {
         <span class="kw">if </span>method_name.starts_with(<span class="string">&quot;builtin$havoc&quot;</span>)
             &amp;&amp; targets.len() == <span class="number">1
             </span>&amp;&amp; <span class="self">self</span>.targets.contains(<span class="kw-2">&amp;</span>targets[<span class="number">0</span>].name)
         {
-            <a href="#466">generate_havoc</a>(<a href="#228">targets</a>.pop().unwrap())
+            generate_havoc(targets.pop().unwrap())
         } <span class="kw">else </span>{
-            Stmt::MethodCall(<a href="../../../../../prusti_common/vir/polymorphic_vir/struct.MethodCall.html">ast::MethodCall</a> {
-                <a href="#226">method_name</a>,
-                arguments: <a href="#227">arguments</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|e| <a class="self" href="#224">self</a>.<a href="../../../../../prusti_common/vir/polymorphic_vir/trait.StmtFolder.html">fold_expr</a>(<a href="#239">e</a>)).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>(),
-                <a href="#228">targets</a>,
+            Stmt::MethodCall(ast::MethodCall {
+                method_name,
+                arguments: arguments.into_iter().map(|e| <span class="self">self</span>.fold_expr(e)).collect(),
+                targets,
             })
         }
     }
 
     <span class="kw">fn </span>fold_fold(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        <a href="../../../../../prusti_common/vir/polymorphic_vir/struct.Fold.html">ast::Fold</a> {
+        ast::Fold {
             predicate: predicate_type,
             arguments,
             permission,
             enum_variant,
             position,
-        }: <a href="../../../../../prusti_common/vir/polymorphic_vir/struct.Fold.html">ast::Fold</a>,
-    ) -&gt; <a href="../../../../../prusti_common/vir/polymorphic_vir/enum.Stmt.html">Stmt</a> {
-        <span class="kw">if let </span>[Expr::Local(<a href="../../../../../prusti_common/vir/polymorphic_vir/struct.Local.html">ast::Local</a> { variable: l, .. })] = <a href="#249">arguments</a>.as_slice() {
+        }: ast::Fold,
+    ) -&gt; Stmt {
+        <span class="kw">if let </span>[Expr::Local(ast::Local { variable: l, .. })] = arguments.as_slice() {
             <span class="kw">if </span><span class="self">self</span>.targets.contains(<span class="kw-2">&amp;</span>l.name) {
-                <span class="kw">if let </span><span class="prelude-val">Some</span>(predicate) = <a class="self" href="#246">self</a>.<a href="#165">find_predicate</a>(<span class="kw-2">&amp;</span><a href="#248">predicate_type</a>) {
-                    <span class="kw">let </span>purified_predicate = <a href="#257">predicate</a>
-                        .<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(predicate) = <span class="self">self</span>.find_predicate(<span class="kw-2">&amp;</span>predicate_type) {
+                    <span class="kw">let </span>purified_predicate = predicate
+                        .clone()
                         .replace_place(
-                            <span class="kw-2">&amp;</span>LocalVar::new(<span class="string">&quot;self&quot;</span>, <a href="#248">predicate_type</a>).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
-                            <span class="kw-2">&amp;</span><a href="#255">l</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>().<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
+                            <span class="kw-2">&amp;</span>LocalVar::new(<span class="string">&quot;self&quot;</span>, predicate_type).into(),
+                            <span class="kw-2">&amp;</span>l.clone().into(),
                         )
                         .purify();
-                    <span class="kw">return </span>Stmt::Assert(<a href="../../../../../prusti_common/vir/polymorphic_vir/struct.Assert.html">ast::Assert</a> {
-                        expr: <a class="self" href="#246">self</a>.<a href="../../../../../prusti_common/vir/polymorphic_vir/trait.StmtFolder.html">fold_expr</a>(<a href="#258">purified_predicate</a>),
-                        <a href="#252">position</a>,
+                    <span class="kw">return </span>Stmt::Assert(ast::Assert {
+                        expr: <span class="self">self</span>.fold_expr(purified_predicate),
+                        position,
                     });
                 } <span class="kw">else </span>{
-                    <span class="kw">return </span>Stmt::comment(<span class="string">&quot;replaced fold&quot;</span>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
+                    <span class="kw">return </span>Stmt::comment(<span class="string">&quot;replaced fold&quot;</span>.to_string());
                 }
             }
         }
 
-        Stmt::Fold(<a href="../../../../../prusti_common/vir/polymorphic_vir/struct.Fold.html">ast::Fold</a> {
-            predicate: <a href="#248">predicate_type</a>,
-            arguments: <a href="#249">arguments</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|e| <a class="self" href="#246">self</a>.<a href="../../../../../prusti_common/vir/polymorphic_vir/trait.StmtFolder.html">fold_expr</a>(<a href="#277">e</a>)).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>(),
-            <a href="#250">permission</a>,
-            <a href="#251">enum_variant</a>,
-            <a href="#252">position</a>,
+        Stmt::Fold(ast::Fold {
+            predicate: predicate_type,
+            arguments: arguments.into_iter().map(|e| <span class="self">self</span>.fold_expr(e)).collect(),
+            permission,
+            enum_variant,
+            position,
         })
     }
 
     <span class="kw">fn </span>fold_unfold(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        <a href="../../../../../prusti_common/vir/polymorphic_vir/struct.Unfold.html">ast::Unfold</a> {
+        ast::Unfold {
             predicate: predicate_type,
             arguments,
             permission,
             enum_variant,
-        }: <a href="../../../../../prusti_common/vir/polymorphic_vir/struct.Unfold.html">ast::Unfold</a>,
-    ) -&gt; <a href="../../../../../prusti_common/vir/polymorphic_vir/enum.Stmt.html">Stmt</a> {
-        <span class="kw">if let </span>[Expr::Local(<a href="../../../../../prusti_common/vir/polymorphic_vir/struct.Local.html">ast::Local</a> { variable: l, .. })] = <a href="#288">arguments</a>.as_slice() {
+        }: ast::Unfold,
+    ) -&gt; Stmt {
+        <span class="kw">if let </span>[Expr::Local(ast::Local { variable: l, .. })] = arguments.as_slice() {
             <span class="kw">if </span><span class="self">self</span>.targets.contains(<span class="kw-2">&amp;</span>l.name) {
-                <span class="kw">if let </span><span class="prelude-val">Some</span>(predicate) = <a class="self" href="#285">self</a>.<a href="#165">find_predicate</a>(<span class="kw-2">&amp;</span><a href="#287">predicate_type</a>) {
-                    <span class="kw">let </span>purified_predicate = <a href="#295">predicate</a>
-                        .<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(predicate) = <span class="self">self</span>.find_predicate(<span class="kw-2">&amp;</span>predicate_type) {
+                    <span class="kw">let </span>purified_predicate = predicate
+                        .clone()
                         .replace_place(
-                            <span class="kw-2">&amp;</span>LocalVar::new(<span class="string">&quot;self&quot;</span>, <a href="#287">predicate_type</a>).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
-                            <span class="kw-2">&amp;</span><a href="#293">l</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>().<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
+                            <span class="kw-2">&amp;</span>LocalVar::new(<span class="string">&quot;self&quot;</span>, predicate_type).into(),
+                            <span class="kw-2">&amp;</span>l.clone().into(),
                         )
                         .purify();
-                    <span class="kw">return </span>Stmt::Inhale(<a href="../../../../../prusti_common/vir/polymorphic_vir/struct.Inhale.html">ast::Inhale</a> {
-                        expr: <a class="self" href="#285">self</a>.<a href="../../../../../prusti_common/vir/polymorphic_vir/trait.StmtFolder.html">fold_expr</a>(<a href="#296">purified_predicate</a>),
+                    <span class="kw">return </span>Stmt::Inhale(ast::Inhale {
+                        expr: <span class="self">self</span>.fold_expr(purified_predicate),
                     });
                 } <span class="kw">else </span>{
-                    <span class="kw">return </span>Stmt::comment(<span class="string">&quot;replaced unfold&quot;</span>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
+                    <span class="kw">return </span>Stmt::comment(<span class="string">&quot;replaced unfold&quot;</span>.to_string());
                 }
             }
         }
 
-        Stmt::Unfold(<a href="../../../../../prusti_common/vir/polymorphic_vir/struct.Unfold.html">ast::Unfold</a> {
-            predicate: <a href="#287">predicate_type</a>,
-            arguments: <a href="#288">arguments</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|e| <a class="self" href="#285">self</a>.<a href="../../../../../prusti_common/vir/polymorphic_vir/trait.StmtFolder.html">fold_expr</a>(<a href="#314">e</a>)).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>(),
-            <a href="#289">permission</a>,
-            <a href="#290">enum_variant</a>,
+        Stmt::Unfold(ast::Unfold {
+            predicate: predicate_type,
+            arguments: arguments.into_iter().map(|e| <span class="self">self</span>.fold_expr(e)).collect(),
+            permission,
+            enum_variant,
         })
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; <a href="../../../../../prusti_common/vir/polymorphic_vir/trait.ExprFolder.html">ast::ExprFolder</a> <span class="kw">for </span>Purifier&lt;<span class="lifetime">&#39;a</span>&gt; {
-    <span class="kw">fn </span>fold_local(<span class="kw-2">&amp;mut </span><span class="self">self</span>, <a href="../../../../../prusti_common/vir/polymorphic_vir/struct.Local.html">ast::Local</a> { variable, position }: <a href="../../../../../prusti_common/vir/polymorphic_vir/struct.Local.html">ast::Local</a>) -&gt; <a href="../../../../../prusti_common/vir/polymorphic_vir/enum.Expr.html">Expr</a> {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; ast::ExprFolder <span class="kw">for </span>Purifier&lt;<span class="lifetime">&#39;a</span>&gt; {
+    <span class="kw">fn </span>fold_local(<span class="kw-2">&amp;mut </span><span class="self">self</span>, ast::Local { variable, position }: ast::Local) -&gt; Expr {
         <span class="kw">if </span><span class="self">self</span>.targets.contains(<span class="kw-2">&amp;</span>variable.name) {
             Expr::local_with_pos(
-                LocalVar::new(<a href="#322">variable</a>.name, <a href="#25">translate_type</a>(<span class="kw-2">&amp;</span><a href="#322">variable</a>.typ)),
-                <a href="#322">position</a>,
+                LocalVar::new(variable.name, translate_type(<span class="kw-2">&amp;</span>variable.typ)),
+                position,
             )
         } <span class="kw">else </span>{
-            Expr::local_with_pos(<a href="#322">variable</a>, <a href="#322">position</a>)
+            Expr::local_with_pos(variable, position)
         }
     }
 
     <span class="kw">fn </span>fold_field(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        <a href="../../../../../prusti_common/vir/polymorphic_vir/struct.FieldExpr.html">ast::FieldExpr</a> {
+        ast::FieldExpr {
             base,
             field,
             position,
-        }: <a href="../../../../../prusti_common/vir/polymorphic_vir/struct.FieldExpr.html">ast::FieldExpr</a>,
-    ) -&gt; <a href="../../../../../prusti_common/vir/polymorphic_vir/enum.Expr.html">Expr</a> {
-        <span class="kw">let </span>rec = <a class="self" href="#334">self</a>.<a href="../../../../../prusti_common/vir/polymorphic_vir/trait.ExprFolder.html">fold_boxed</a>(<a href="#336">base</a>);
+        }: ast::FieldExpr,
+    ) -&gt; Expr {
+        <span class="kw">let </span>rec = <span class="self">self</span>.fold_boxed(base);
 
-        <span class="kw">if let </span>Expr::Local(<a href="../../../../../prusti_common/vir/polymorphic_vir/struct.Local.html">ast::Local</a> {
+        <span class="kw">if let </span>Expr::Local(ast::Local {
             variable: l,
             position: lp,
-        }) = <span class="kw-2">*</span><a href="#341">rec</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()
+        }) = <span class="kw-2">*</span>rec.clone()
         {
             <span class="kw">if </span><span class="self">self</span>.targets.contains(<span class="kw-2">&amp;</span>l.name) {
-                <span class="kw">return </span>Expr::local_with_pos(LocalVar::new(<a href="#344">l</a>.name, <a href="#25">translate_type</a>(<span class="kw-2">&amp;</span><a href="#344">l</a>.typ)), <a href="#345">lp</a>);
+                <span class="kw">return </span>Expr::local_with_pos(LocalVar::new(l.name, translate_type(<span class="kw-2">&amp;</span>l.typ)), lp);
             }
         }
 
-        Expr::Field(<a href="../../../../../prusti_common/vir/polymorphic_vir/struct.FieldExpr.html">ast::FieldExpr</a> {
-            base: <a href="#341">rec</a>,
-            <a href="#337">field</a>,
-            <a href="#338">position</a>,
+        Expr::Field(ast::FieldExpr {
+            base: rec,
+            field,
+            position,
         })
     }
 
     <span class="kw">fn </span>fold_predicate_access_predicate(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        <a href="../../../../../prusti_common/vir/polymorphic_vir/struct.PredicateAccessPredicate.html">ast::PredicateAccessPredicate</a> {
+        ast::PredicateAccessPredicate {
             predicate_type,
             argument,
             permission,
             position,
-        }: <a href="../../../../../prusti_common/vir/polymorphic_vir/struct.PredicateAccessPredicate.html">ast::PredicateAccessPredicate</a>,
-    ) -&gt; <a href="../../../../../prusti_common/vir/polymorphic_vir/enum.Expr.html">Expr</a> {
-        <span class="kw">if let </span>Expr::Local(<a href="../../../../../prusti_common/vir/polymorphic_vir/struct.Local.html">ast::Local</a> {
+        }: ast::PredicateAccessPredicate,
+    ) -&gt; Expr {
+        <span class="kw">if let </span>Expr::Local(ast::Local {
             variable: local, ..
-        }) = <span class="kw-2">*</span><a href="#364">argument</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()
+        }) = <span class="kw-2">*</span>argument.clone()
         {
             <span class="kw">if </span><span class="self">self</span>.targets.contains(<span class="kw-2">&amp;</span>local.name) {
-                <span class="kw">if let </span><span class="prelude-val">Some</span>(purified_predicates) = <span class="kw-2">&amp;mut </span><a class="self" href="#361">self</a>.purified_predicates {
-                    <a href="#374">purified_predicates</a>.insert(<a href="#370">local</a>);
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(purified_predicates) = <span class="kw-2">&amp;mut </span><span class="self">self</span>.purified_predicates {
+                    purified_predicates.insert(local);
                 }
-                <span class="kw">return </span><span class="bool-val">true</span>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>();
+                <span class="kw">return </span><span class="bool-val">true</span>.into();
             }
         }
 
-        Expr::PredicateAccessPredicate(<a href="../../../../../prusti_common/vir/polymorphic_vir/struct.PredicateAccessPredicate.html">ast::PredicateAccessPredicate</a> {
-            <a href="#363">predicate_type</a>,
-            argument: <a class="self" href="#361">self</a>.<a href="../../../../../prusti_common/vir/polymorphic_vir/trait.ExprFolder.html">fold_boxed</a>(<a href="#364">argument</a>),
-            <a href="#365">permission</a>,
-            <a href="#366">position</a>,
+        Expr::PredicateAccessPredicate(ast::PredicateAccessPredicate {
+            predicate_type,
+            argument: <span class="self">self</span>.fold_boxed(argument),
+            permission,
+            position,
         })
     }
 
     <span class="kw">fn </span>fold_field_access_predicate(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        <a href="../../../../../prusti_common/vir/polymorphic_vir/struct.FieldAccessPredicate.html">ast::FieldAccessPredicate</a> {
+        ast::FieldAccessPredicate {
             base: receiver,
             permission,
             position,
-        }: <a href="../../../../../prusti_common/vir/polymorphic_vir/struct.FieldAccessPredicate.html">ast::FieldAccessPredicate</a>,
-    ) -&gt; <a href="../../../../../prusti_common/vir/polymorphic_vir/enum.Expr.html">Expr</a> {
-        <span class="kw">if let </span>Expr::Field(<a href="../../../../../prusti_common/vir/polymorphic_vir/struct.FieldExpr.html">ast::FieldExpr</a> { base, .. }) = <span class="kw-2">*</span><a href="#392">receiver</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>() {
-            <span class="kw">if let </span>Expr::Local(<a href="../../../../../prusti_common/vir/polymorphic_vir/struct.Local.html">ast::Local</a> { variable: l, .. }) = <span class="kw-2">*</span><a href="#397">base</a> {
+        }: ast::FieldAccessPredicate,
+    ) -&gt; Expr {
+        <span class="kw">if let </span>Expr::Field(ast::FieldExpr { base, .. }) = <span class="kw-2">*</span>receiver.clone() {
+            <span class="kw">if let </span>Expr::Local(ast::Local { variable: l, .. }) = <span class="kw-2">*</span>base {
                 <span class="kw">if </span><span class="self">self</span>.targets.contains(<span class="kw-2">&amp;</span>l.name) {
-                    <span class="kw">return </span><span class="bool-val">true</span>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>();
+                    <span class="kw">return </span><span class="bool-val">true</span>.into();
                 }
             }
         }
 
-        Expr::FieldAccessPredicate(<a href="../../../../../prusti_common/vir/polymorphic_vir/struct.FieldAccessPredicate.html">ast::FieldAccessPredicate</a> {
-            base: <a href="#392">receiver</a>,
-            <a href="#393">permission</a>,
-            <a href="#394">position</a>,
+        Expr::FieldAccessPredicate(ast::FieldAccessPredicate {
+            base: receiver,
+            permission,
+            position,
         })
     }
 
     <span class="kw">fn </span>fold_unfolding(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        <a href="../../../../../prusti_common/vir/polymorphic_vir/struct.Unfolding.html">ast::Unfolding</a> {
+        ast::Unfolding {
             predicate,
             arguments,
             base,
             permission,
             variant,
             position,
-        }: <a href="../../../../../prusti_common/vir/polymorphic_vir/struct.Unfolding.html">ast::Unfolding</a>,
-    ) -&gt; <a href="../../../../../prusti_common/vir/polymorphic_vir/enum.Expr.html">Expr</a> {
-        <span class="kw">if let </span>[Expr::Local(<a href="../../../../../prusti_common/vir/polymorphic_vir/struct.Local.html">ast::Local</a> {
+        }: ast::Unfolding,
+    ) -&gt; Expr {
+        <span class="kw">if let </span>[Expr::Local(ast::Local {
             variable: local, ..
-        })] = <a href="#416">arguments</a>.as_slice()
+        })] = arguments.as_slice()
         {
             <span class="kw">if </span><span class="self">self</span>.targets.contains(<span class="kw-2">&amp;</span>local.name) {
-                <span class="kw">return </span><a href="../../../../../prusti_common/vir/polymorphic_vir/trait.ExprFolder.html">ast::ExprFolder::fold</a>(<a class="self" href="#413">self</a>, <span class="kw-2">*</span><a href="#417">base</a>);
+                <span class="kw">return </span>ast::ExprFolder::fold(<span class="self">self</span>, <span class="kw-2">*</span>base);
             }
         }
 
-        Expr::Unfolding(<a href="../../../../../prusti_common/vir/polymorphic_vir/struct.Unfolding.html">ast::Unfolding</a> {
-            <a href="#415">predicate</a>,
-            arguments: <a href="#416">arguments</a>
-                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
-                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|e| <a href="../../../../../prusti_common/vir/polymorphic_vir/trait.ExprFolder.html">ast::ExprFolder::fold</a>(<a class="self" href="#413">self</a>, <a href="#436">e</a>))
-                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>(),
-            base: <a class="self" href="#413">self</a>.<a href="../../../../../prusti_common/vir/polymorphic_vir/trait.ExprFolder.html">fold_boxed</a>(<a href="#417">base</a>),
-            <a href="#418">permission</a>,
-            <a href="#419">variant</a>,
-            <a href="#420">position</a>,
+        Expr::Unfolding(ast::Unfolding {
+            predicate,
+            arguments: arguments
+                .into_iter()
+                .map(|e| ast::ExprFolder::fold(<span class="self">self</span>, e))
+                .collect(),
+            base: <span class="self">self</span>.fold_boxed(base),
+            permission,
+            variant,
+            position,
         })
     }
 
     <span class="kw">fn </span>fold_labelled_old(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        <a href="../../../../../prusti_common/vir/polymorphic_vir/struct.LabelledOld.html">ast::LabelledOld</a> {
+        ast::LabelledOld {
             label,
             base,
             position,
-        }: <a href="../../../../../prusti_common/vir/polymorphic_vir/struct.LabelledOld.html">ast::LabelledOld</a>,
-    ) -&gt; <a href="../../../../../prusti_common/vir/polymorphic_vir/enum.Expr.html">Expr</a> {
-        <span class="kw">let </span>folded_body = <a class="self" href="#446">self</a>.<a href="../../../../../prusti_common/vir/polymorphic_vir/trait.ExprFolder.html">fold_boxed</a>(<a href="#449">base</a>);
+        }: ast::LabelledOld,
+    ) -&gt; Expr {
+        <span class="kw">let </span>folded_body = <span class="self">self</span>.fold_boxed(base);
         <span class="kw">if </span>folded_body.is_heap_dependent() {
-            Expr::LabelledOld(<a href="../../../../../prusti_common/vir/polymorphic_vir/struct.LabelledOld.html">ast::LabelledOld</a> {
-                <a href="#448">label</a>,
-                base: <a href="#453">folded_body</a>,
-                <a href="#450">position</a>,
+            Expr::LabelledOld(ast::LabelledOld {
+                label,
+                base: folded_body,
+                position,
             })
         } <span class="kw">else </span>{
-            <span class="kw-2">*</span><a href="#453">folded_body</a>
+            <span class="kw-2">*</span>folded_body
         }
     }
 }
 
-<span class="kw">fn </span>generate_havoc(variable: <a href="../../../../../prusti_common/vir/polymorphic_vir/struct.LocalVar.html">LocalVar</a>) -&gt; <a href="../../../../../prusti_common/vir/polymorphic_vir/enum.Stmt.html">Stmt</a> {
-    <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(<span class="macro">matches!</span>(variable.typ, Type::TypedRef(..)));
-    <span class="kw">let </span>target_name = <a href="#466">variable</a>.typ.name();
-    <span class="kw">match </span><a href="#468">target_name</a>.as_str() {
-        <span class="string">&quot;bool&quot; </span>=&gt; Stmt::MethodCall(<a href="../../../../../prusti_common/vir/polymorphic_vir/struct.MethodCall.html">ast::MethodCall</a> {
-            method_name: <span class="string">&quot;builtin$havoc_bool&quot;</span>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(),
+<span class="kw">fn </span>generate_havoc(variable: LocalVar) -&gt; Stmt {
+    <span class="macro">assert!</span>(<span class="macro">matches!</span>(variable.typ, Type::TypedRef(..)));
+    <span class="kw">let </span>target_name = variable.typ.name();
+    <span class="kw">match </span>target_name.as_str() {
+        <span class="string">&quot;bool&quot; </span>=&gt; Stmt::MethodCall(ast::MethodCall {
+            method_name: <span class="string">&quot;builtin$havoc_bool&quot;</span>.to_string(),
             arguments: Vec::new(),
-            targets: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[ast::LocalVar::new(variable.name, Type::Bool)],
+            targets: <span class="macro">vec!</span>[ast::LocalVar::new(variable.name, Type::Bool)],
         }),
-        <span class="string">&quot;i32&quot; </span>| <span class="string">&quot;isize&quot; </span>| <span class="string">&quot;usize&quot; </span>| <span class="string">&quot;u32&quot; </span>=&gt; Stmt::MethodCall(<a href="../../../../../prusti_common/vir/polymorphic_vir/struct.MethodCall.html">ast::MethodCall</a> {
-            method_name: <span class="string">&quot;builtin$havoc_int&quot;</span>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(),
+        <span class="string">&quot;i32&quot; </span>| <span class="string">&quot;isize&quot; </span>| <span class="string">&quot;usize&quot; </span>| <span class="string">&quot;u32&quot; </span>=&gt; Stmt::MethodCall(ast::MethodCall {
+            method_name: <span class="string">&quot;builtin$havoc_int&quot;</span>.to_string(),
             arguments: Vec::new(),
-            targets: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[ast::LocalVar::new(variable.name, Type::Int)],
+            targets: <span class="macro">vec!</span>[ast::LocalVar::new(variable.name, Type::Int)],
         }),
-        x =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(<span class="string">&quot;{}&quot;</span>, x),
+        x =&gt; <span class="macro">unreachable!</span>(<span class="string">&quot;{}&quot;</span>, x),
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../../" data-static-root-path="../../../../../static.files/" data-current-crate="prusti_common" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../../../" data-static-root-path="../../../../../static.files/" data-current-crate="prusti_common" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

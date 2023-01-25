@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `prusti-interface/src/environment/loops_utils.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>loops_utils.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../prusti_interface/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `prusti-interface/src/environment/loops_utils.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>loops_utils.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../prusti_interface/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -538,11 +538,11 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-</span><span class="kw">use </span><a href="mir_sets/place_set.rs.html#19"><span class="kw">super</span>::mir_sets::PlaceSet</a>;
-<span class="kw">use </span><a href="../lib.rs.html#24"><span class="kw">crate</span>::utils</a>;
-<span class="kw">use </span>log::{<a href="../../../log/macro.debug.html">debug</a>, <a href="../../../log/macro.trace.html">trace</a>};
-<span class="kw">use </span>prusti_rustc_interface::middle::{<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/index.html">mir</a>, <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/context/struct.TyCtxt.html">ty::TyCtxt</a>};
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">std::fmt</a>;
+</span><span class="kw">use </span><span class="kw">super</span>::mir_sets::PlaceSet;
+<span class="kw">use </span><span class="kw">crate</span>::utils;
+<span class="kw">use </span>log::{debug, trace};
+<span class="kw">use </span>prusti_rustc_interface::middle::{mir, ty::TyCtxt};
+<span class="kw">use </span>std::fmt;
 
 <span class="attr">#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 </span><span class="kw">pub enum </span>PermissionKind {
@@ -564,16 +564,16 @@
     </span><span class="prelude-val">None</span>,
 }
 
-<span class="kw">impl </span><a href="#14">PermissionKind</a> {
-    <span class="kw">pub fn </span>is_none(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">match </span><span class="self"><a href="#34">self</a> </span>{
-            <a href="#30">PermissionKind::None</a> =&gt; <span class="bool-val">true</span>,
+<span class="kw">impl </span>PermissionKind {
+    <span class="kw">pub fn </span>is_none(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="kw">match </span><span class="self">self </span>{
+            PermissionKind::None =&gt; <span class="bool-val">true</span>,
 
-            <a href="#16">PermissionKind::ReadNode</a>
-            | <a href="#19">PermissionKind::ReadSubtree</a>
-            | <a href="#21">PermissionKind::WriteNode</a>
-            | <a href="#24">PermissionKind::WriteSubtree</a>
-            | <a href="#27">PermissionKind::WriteNodeAndSubtree</a> =&gt; <span class="bool-val">false</span>,
+            PermissionKind::ReadNode
+            | PermissionKind::ReadSubtree
+            | PermissionKind::WriteNode
+            | PermissionKind::WriteSubtree
+            | PermissionKind::WriteNodeAndSubtree =&gt; <span class="bool-val">false</span>,
         }
     }
 }
@@ -598,13 +598,13 @@
 </span><span class="kw">pub enum </span>PermissionNode&lt;<span class="lifetime">&#39;tcx</span>&gt; {
     OwnedNode {
         place: mir::Place&lt;<span class="lifetime">&#39;tcx</span>&gt;,
-        kind: <a href="#14">PermissionKind</a>,
+        kind: PermissionKind,
         children: Vec&lt;PermissionNode&lt;<span class="lifetime">&#39;tcx</span>&gt;&gt;,
     },
     <span class="comment">// TODO: Make this the type only of the root node.
     </span>BorrowedNode {
         place: mir::Place&lt;<span class="lifetime">&#39;tcx</span>&gt;,
-        kind: <a href="#14">PermissionKind</a>,
+        kind: PermissionKind,
         child: Box&lt;PermissionNode&lt;<span class="lifetime">&#39;tcx</span>&gt;&gt;,
         <span class="comment">// / A list of locations from where this borrow may be borrowing.
         // TODO: Is this needed?
@@ -614,27 +614,27 @@
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;tcx</span>&gt; PermissionNode&lt;<span class="lifetime">&#39;tcx</span>&gt; {
     <span class="kw">pub fn </span>get_place(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; mir::Place&lt;<span class="lifetime">&#39;tcx</span>&gt; {
-        <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="#82">self</a> </span>{
-            <a href="#65">PermissionNode::OwnedNode</a> { place, .. } =&gt; <a href="#84">place</a>,
-            <a href="#71">PermissionNode::BorrowedNode</a> { place, .. } =&gt; <a href="#85">place</a>,
+        <span class="kw">match </span><span class="kw-2">*</span><span class="self">self </span>{
+            PermissionNode::OwnedNode { place, .. } =&gt; place,
+            PermissionNode::BorrowedNode { place, .. } =&gt; place,
         }
     }
 
-    <span class="kw">pub fn </span>set_permission_kind(<span class="kw-2">&amp;mut </span><span class="self">self</span>, permission_kind: <a href="#14">PermissionKind</a>) {
-        <span class="kw">match </span><span class="self"><a href="#89">self</a> </span>{
-            <a href="#65">PermissionNode::OwnedNode</a> { <span class="kw-2">ref mut </span>kind, .. } =&gt; {
-                <span class="kw-2">*</span><a href="#91">kind</a> = <a href="#89">permission_kind</a>;
+    <span class="kw">pub fn </span>set_permission_kind(<span class="kw-2">&amp;mut </span><span class="self">self</span>, permission_kind: PermissionKind) {
+        <span class="kw">match </span><span class="self">self </span>{
+            PermissionNode::OwnedNode { <span class="kw-2">ref mut </span>kind, .. } =&gt; {
+                <span class="kw-2">*</span>kind = permission_kind;
             }
-            <a href="#71">PermissionNode::BorrowedNode</a> { .. } =&gt; {
-                <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unimplemented.html">unimplemented!</a>();
+            PermissionNode::BorrowedNode { .. } =&gt; {
+                <span class="macro">unimplemented!</span>();
             }
         }
     }
 
-    <span class="kw">pub fn </span>get_permission_kind(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="#14">PermissionKind</a> {
-        <span class="kw">match </span><span class="self"><a href="#100">self</a> </span>{
-            <a href="#65">PermissionNode::OwnedNode</a> { kind, .. } | <a href="#71">PermissionNode::BorrowedNode</a> { kind, .. } =&gt; {
-                <span class="kw-2">*</span><a href="#102">kind</a>
+    <span class="kw">pub fn </span>get_permission_kind(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; PermissionKind {
+        <span class="kw">match </span><span class="self">self </span>{
+            PermissionNode::OwnedNode { kind, .. } | PermissionNode::BorrowedNode { kind, .. } =&gt; {
+                <span class="kw-2">*</span>kind
             }
         }
     }
@@ -642,40 +642,40 @@
     <span class="kw">pub fn </span>get_or_create_child(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         place: mir::Place&lt;<span class="lifetime">&#39;tcx</span>&gt;,
-        kind: <a href="#14">PermissionKind</a>,
+        kind: PermissionKind,
     ) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self </span>{
-        <span class="kw">match </span><span class="self"><a href="#109">self</a> </span>{
-            <a href="#65">PermissionNode::OwnedNode</a> { children, .. } =&gt; {
-                <span class="kw">let </span>index = <a href="#114">children</a>.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">position</a>(|child| <a href="#115">child</a>.<a href="#82">get_place</a>() == <a href="#110">place</a>);
-                <span class="kw">if let </span><span class="prelude-val">Some</span>(index) = <a href="#115">index</a> {
-                    <span class="kw">return </span><span class="kw-2">&amp;mut </span><a href="#114">children</a>[<a href="#116">index</a>];
+        <span class="kw">match </span><span class="self">self </span>{
+            PermissionNode::OwnedNode { children, .. } =&gt; {
+                <span class="kw">let </span>index = children.iter().position(|child| child.get_place() == place);
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(index) = index {
+                    <span class="kw">return </span><span class="kw-2">&amp;mut </span>children[index];
                 }
-                <span class="kw">let </span>child = <a href="#65">PermissionNode::OwnedNode</a> {
-                    <a href="#110">place</a>,
-                    <a href="#111">kind</a>,
+                <span class="kw">let </span>child = PermissionNode::OwnedNode {
+                    place,
+                    kind,
                     children: Vec::new(),
                 };
-                <a href="#114">children</a>.push(<a href="#119">child</a>);
-                <span class="kw">let </span>len = <a href="#114">children</a>.len();
-                <span class="kw-2">&amp;mut </span><a href="#114">children</a>[<a href="#125">len</a> - <span class="number">1</span>]
+                children.push(child);
+                <span class="kw">let </span>len = children.len();
+                <span class="kw-2">&amp;mut </span>children[len - <span class="number">1</span>]
             }
-            <a href="#71">PermissionNode::BorrowedNode</a> { .. } =&gt; {
-                <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unimplemented.html">unimplemented!</a>(); <span class="comment">// TODO: Change code so that we do not
+            PermissionNode::BorrowedNode { .. } =&gt; {
+                <span class="macro">unimplemented!</span>(); <span class="comment">// TODO: Change code so that we do not
                                   // have to deal with this case.
             </span>}
         }
     }
 
     <span class="kw">pub fn </span>get_child(<span class="kw-2">&amp;</span><span class="self">self</span>, place: mir::Place&lt;<span class="lifetime">&#39;tcx</span>&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>PermissionNode&lt;<span class="lifetime">&#39;tcx</span>&gt;&gt; {
-        <span class="kw">match </span><span class="self"><a href="#135">self</a> </span>{
-            <a href="#65">PermissionNode::OwnedNode</a> { children, .. } =&gt; {
-                <span class="kw">let </span>index = <a href="#137">children</a>.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">position</a>(|child| <a href="#138">child</a>.<a href="#82">get_place</a>() == <a href="#135">place</a>);
-                <span class="kw">if let </span><span class="prelude-val">Some</span>(index) = <a href="#138">index</a> {
-                    <span class="kw">return </span><span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><a href="#137">children</a>[<a href="#139">index</a>]);
+        <span class="kw">match </span><span class="self">self </span>{
+            PermissionNode::OwnedNode { children, .. } =&gt; {
+                <span class="kw">let </span>index = children.iter().position(|child| child.get_place() == place);
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(index) = index {
+                    <span class="kw">return </span><span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>children[index]);
                 }
             }
-            <a href="#71">PermissionNode::BorrowedNode</a> { .. } =&gt; {
-                <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unimplemented.html">unimplemented!</a>(); <span class="comment">// TODO: Change code so that we do not
+            PermissionNode::BorrowedNode { .. } =&gt; {
+                <span class="macro">unimplemented!</span>(); <span class="comment">// TODO: Change code so that we do not
                                   // have to deal with this case.
             </span>}
         }
@@ -683,29 +683,29 @@
     </span>}
 
     <span class="kw">pub fn </span>get_children(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Vec&lt;<span class="kw-2">&amp;</span>PermissionNode&lt;<span class="lifetime">&#39;tcx</span>&gt;&gt; {
-        <span class="kw">match </span><span class="self"><a href="#151">self</a> </span>{
-            <a href="#65">PermissionNode::OwnedNode</a> { <span class="kw-2">ref </span>children, .. } =&gt; <a href="#153">children</a>.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>(),
+        <span class="kw">match </span><span class="self">self </span>{
+            PermissionNode::OwnedNode { <span class="kw-2">ref </span>children, .. } =&gt; children.iter().collect(),
 
-            <a href="#71">PermissionNode::BorrowedNode</a> { <span class="kw">box </span><span class="kw-2">ref </span>child, .. } =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[child],
+            PermissionNode::BorrowedNode { <span class="kw">box </span><span class="kw-2">ref </span>child, .. } =&gt; <span class="macro">vec!</span>[child],
         }
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;tcx</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for </span>PermissionNode&lt;<span class="lifetime">&#39;tcx</span>&gt; {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <span class="kw">match </span><span class="self"><a href="#161">self</a> </span>{
-            <a href="#65">PermissionNode::OwnedNode</a> {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;tcx</span>&gt; fmt::Display <span class="kw">for </span>PermissionNode&lt;<span class="lifetime">&#39;tcx</span>&gt; {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter) -&gt; fmt::Result {
+        <span class="kw">match </span><span class="self">self </span>{
+            PermissionNode::OwnedNode {
                 place,
                 kind,
                 children,
             } =&gt; {
-                <span class="macro">write!</span>(f, <span class="string">&quot;acc({:?}, {:?})&quot;</span>, place, kind)<span class="question-mark">?</span>;
+                <span class="macro">write!</span>(f, <span class="string">&quot;acc({place:?}, {kind:?})&quot;</span>)<span class="question-mark">?</span>;
                 <span class="kw">for </span>child <span class="kw">in </span>children.iter() {
-                    <span class="macro">write!</span>(f, <span class="string">&quot; &amp;&amp; {}&quot;</span>, child)<span class="question-mark">?</span>;
+                    <span class="macro">write!</span>(f, <span class="string">&quot; &amp;&amp; {child}&quot;</span>)<span class="question-mark">?</span>;
                 }
             }
-            <a href="#71">PermissionNode::BorrowedNode</a> { .. } =&gt; {
-                <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unimplemented.html">unimplemented!</a>();
+            PermissionNode::BorrowedNode { .. } =&gt; {
+                <span class="macro">unimplemented!</span>();
             }
         }
         <span class="prelude-val">Ok</span>(())
@@ -718,9 +718,9 @@
     root: PermissionNode&lt;<span class="lifetime">&#39;tcx</span>&gt;,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;tcx</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span>PermissionTree&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;tcx</span>&gt; {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#188">f</a>, <span class="string">&quot;PermissionTree({:?})&quot;</span>, <span class="self">self</span>.root)
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;tcx</span>&gt; fmt::Debug <span class="kw">for </span>PermissionTree&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;tcx</span>&gt; {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter) -&gt; fmt::Result {
+        <span class="macro">write!</span>(f, <span class="string">&quot;PermissionTree({:?})&quot;</span>, <span class="self">self</span>.root)
     }
 }
 
@@ -734,18 +734,18 @@
     </span>WriteContents,
 }
 
-<span class="kw">impl </span><a href="#194">TargetType</a> {
-    <span class="kw">fn </span>is_write(<span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">match </span><span class="self"><a href="#204">self</a> </span>{
-            <a href="#196">TargetType::Read</a> =&gt; <span class="bool-val">false</span>,
-            <a href="#198">TargetType::WriteNode</a> | <a href="#200">TargetType::WriteContents</a> =&gt; <span class="bool-val">true</span>,
+<span class="kw">impl </span>TargetType {
+    <span class="kw">fn </span>is_write(<span class="self">self</span>) -&gt; bool {
+        <span class="kw">match </span><span class="self">self </span>{
+            TargetType::Read =&gt; <span class="bool-val">false</span>,
+            TargetType::WriteNode | TargetType::WriteContents =&gt; <span class="bool-val">true</span>,
         }
     }
-    <span class="kw">fn </span>to_permission_kind(<span class="self">self</span>) -&gt; <a href="#14">PermissionKind</a> {
-        <span class="kw">match </span><span class="self"><a href="#210">self</a> </span>{
-            <a href="#196">TargetType::Read</a> =&gt; <a href="#19">PermissionKind::ReadSubtree</a>,
-            <a href="#198">TargetType::WriteNode</a> =&gt; <a href="#27">PermissionKind::WriteNodeAndSubtree</a>,
-            <a href="#200">TargetType::WriteContents</a> =&gt; <a href="#24">PermissionKind::WriteSubtree</a>,
+    <span class="kw">fn </span>to_permission_kind(<span class="self">self</span>) -&gt; PermissionKind {
+        <span class="kw">match </span><span class="self">self </span>{
+            TargetType::Read =&gt; PermissionKind::ReadSubtree,
+            TargetType::WriteNode =&gt; PermissionKind::WriteNodeAndSubtree,
+            TargetType::WriteContents =&gt; PermissionKind::WriteSubtree,
         }
     }
 }
@@ -764,20 +764,20 @@
         tcx: TyCtxt&lt;<span class="lifetime">&#39;tcx</span>&gt;,
         place: mir::Place&lt;<span class="lifetime">&#39;tcx</span>&gt;,
         target_place: mir::Place&lt;<span class="lifetime">&#39;tcx</span>&gt;,
-        target_type: <a href="#194">TargetType</a>,
+        target_type: TargetType,
     ) -&gt; <span class="self">Self </span>{
-        <span class="kw">let </span>place = utils::VecPlace::new(<a href="#229">mir</a>, <a href="#230">tcx</a>, <a href="#231">place</a>);
-        <span class="kw">let </span><span class="kw-2">mut </span>place_iter = <a href="#235">place</a>.<a href="../utils.rs.html#191">iter</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">rev</a>();
-        <span class="kw">let </span>node_permission_kind = <a href="#233">target_type</a>.<a href="#210">to_permission_kind</a>();
-        <span class="kw">let </span><span class="kw-2">mut </span>node = <a href="#65">PermissionNode::OwnedNode</a> {
-            place: <a href="#236">place_iter</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>().unwrap().<a href="../utils.rs.html#157">get_mir_place</a>(),
-            kind: <a href="#237">node_permission_kind</a>,
+        <span class="kw">let </span>place = utils::VecPlace::new(mir, tcx, place);
+        <span class="kw">let </span><span class="kw-2">mut </span>place_iter = place.iter().rev();
+        <span class="kw">let </span>node_permission_kind = target_type.to_permission_kind();
+        <span class="kw">let </span><span class="kw-2">mut </span>node = PermissionNode::OwnedNode {
+            place: place_iter.next().unwrap().get_mir_place(),
+            kind: node_permission_kind,
             children: Vec::new(),
         };
         <span class="kw">let </span><span class="kw-2">mut </span>permission_kind = <span class="kw">if </span>node.get_place() == target_place || !target_type.is_write() {
-            <a href="#16">PermissionKind::ReadNode</a>
+            PermissionKind::ReadNode
         } <span class="kw">else </span>{
-            <a href="#21">PermissionKind::WriteNode</a>
+            PermissionKind::WriteNode
         };
         <span class="kw">for </span>component <span class="kw">in </span>place_iter {
             node = PermissionNode::OwnedNode {
@@ -790,9 +790,9 @@
             }
         }
         <span class="self">Self </span>{
-            <a href="#229">mir</a>,
-            <a href="#230">tcx</a>,
-            root: <a href="#238">node</a>,
+            mir,
+            tcx,
+            root: node,
         }
     }
 
@@ -802,27 +802,27 @@
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         place: mir::Place&lt;<span class="lifetime">&#39;tcx</span>&gt;,
         _target_place: mir::Place&lt;<span class="lifetime">&#39;tcx</span>&gt;,
-        target_type: <a href="#194">TargetType</a>,
+        target_type: TargetType,
     ) {
-        <span class="kw">let </span>place = utils::VecPlace::new(<a class="self" href="#268">self</a>.mir, <a class="self" href="#268">self</a>.tcx, <a href="#269">place</a>);
-        <span class="kw">let </span><span class="kw-2">mut </span>place_iter = <a href="#273">place</a>.<a href="../utils.rs.html#191">iter</a>();
-        <a href="#274">place_iter</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>(); <span class="comment">// Drop the root.
-        </span><a class="macro" href="../../../log/macro.debug.html">debug!</a>(<span class="string">&quot;place {:?}&quot;</span>, place);
-        <a class="macro" href="../../../log/macro.debug.html">debug!</a>(<span class="string">&quot;self.root {:?}&quot;</span>, <span class="self">self</span>.root);
-        <span class="kw">let </span><span class="kw-2">mut </span>component_count = <a href="#273">place</a>.<a href="../utils.rs.html#194">component_count</a>() - <span class="number">1</span>; <span class="comment">// Without root.
+        <span class="kw">let </span>place = utils::VecPlace::new(<span class="self">self</span>.mir, <span class="self">self</span>.tcx, place);
+        <span class="kw">let </span><span class="kw-2">mut </span>place_iter = place.iter();
+        place_iter.next(); <span class="comment">// Drop the root.
+        </span><span class="macro">debug!</span>(<span class="string">&quot;place {:?}&quot;</span>, place);
+        <span class="macro">debug!</span>(<span class="string">&quot;self.root {:?}&quot;</span>, <span class="self">self</span>.root);
+        <span class="kw">let </span><span class="kw-2">mut </span>component_count = place.component_count() - <span class="number">1</span>; <span class="comment">// Without root.
         </span><span class="kw">if </span>component_count == <span class="number">0 </span>{
             <span class="comment">// Because we add all write nodes before read nodes, it can
             // happen that we have a tree already for which we want to add
             // a read node. In this case we just ignore the node being added.
             // TODO: Check if we do not need to make sure to add all of
             // its children.
-            </span><a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(
+            </span><span class="macro">assert!</span>(
                 !target_type.is_write(),
                 <span class="string">&quot;Adding a write root node to an existing tree.&quot;
             </span>);
             <span class="kw">return</span>;
         }
-        <span class="kw">let </span><span class="kw-2">mut </span>current_parent_node = <span class="kw-2">&amp;mut </span><a class="self" href="#268">self</a>.root;
+        <span class="kw">let </span><span class="kw-2">mut </span>current_parent_node = <span class="kw-2">&amp;mut </span><span class="self">self</span>.root;
         <span class="kw">while </span>component_count &gt; <span class="number">1 </span>{
             <span class="kw">let </span>component = place_iter.next().unwrap();
             component_count -= <span class="number">1</span>;
@@ -833,24 +833,24 @@
             }
             current_parent_node = current_node;
         }
-        <span class="kw">let </span>component = <a href="#274">place_iter</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>().unwrap();
-        <span class="kw">let </span>kind = <a href="#271">target_type</a>.<a href="#210">to_permission_kind</a>();
+        <span class="kw">let </span>component = place_iter.next().unwrap();
+        <span class="kw">let </span>kind = target_type.to_permission_kind();
         <span class="kw">let </span><span class="kw-2">mut </span>_current_node =
-            <a href="#291">current_parent_node</a>.<a href="#108-112">get_or_create_child</a>(<a href="#302">component</a>.<a href="../utils.rs.html#157">get_mir_place</a>(), <a href="#303">kind</a>);
+            current_parent_node.get_or_create_child(component.get_mir_place(), kind);
     }
 
     <span class="kw">pub fn </span>get_root_place(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; mir::Place&lt;<span class="lifetime">&#39;tcx</span>&gt; {
-        <a class="self" href="#308">self</a>.root.<a href="#82">get_place</a>()
+        <span class="self">self</span>.root.get_place()
     }
 
     <span class="kw">pub fn </span>get_root(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>PermissionNode&lt;<span class="lifetime">&#39;tcx</span>&gt; {
-        <span class="kw-2">&amp;</span><a class="self" href="#312">self</a>.root
+        <span class="kw-2">&amp;</span><span class="self">self</span>.root
     }
 
-    <span class="kw">pub fn </span>get_permissions(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Vec&lt;(<a href="#14">PermissionKind</a>, mir::Place&lt;<span class="lifetime">&#39;tcx</span>&gt;)&gt; {
-        <a class="macro" href="../../../log/macro.trace.html">trace!</a>(<span class="string">&quot;[enter] get_permissions self={:?}&quot;</span>, <span class="self">self</span>);
-        <span class="kw">let </span><span class="kw-2">mut </span>visited = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[];
-        <span class="kw">let </span><span class="kw-2">mut </span>to_visit = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[<span class="kw-2">&amp;</span><span class="self">self</span>.root];
+    <span class="kw">pub fn </span>get_permissions(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Vec&lt;(PermissionKind, mir::Place&lt;<span class="lifetime">&#39;tcx</span>&gt;)&gt; {
+        <span class="macro">trace!</span>(<span class="string">&quot;[enter] get_permissions self={:?}&quot;</span>, <span class="self">self</span>);
+        <span class="kw">let </span><span class="kw-2">mut </span>visited = <span class="macro">vec!</span>[];
+        <span class="kw">let </span><span class="kw-2">mut </span>to_visit = <span class="macro">vec!</span>[<span class="kw-2">&amp;</span><span class="self">self</span>.root];
         <span class="kw">while let </span><span class="prelude-val">Some</span>(node) = to_visit.pop() {
             <span class="kw">let </span>kind = node.get_permission_kind();
             <span class="kw">for </span>child <span class="kw">in </span>node.get_children().iter() {
@@ -878,20 +878,20 @@
                 PermissionKind::ReadNode | PermissionKind::WriteNode | PermissionKind::None =&gt; {}
             }
         }
-        <a class="macro" href="../../../log/macro.trace.html">trace!</a>(<span class="string">&quot;[exit] get_permissions visited={:?}&quot;</span>, visited);
-        <a href="#318">visited</a>
+        <span class="macro">trace!</span>(<span class="string">&quot;[exit] get_permissions visited={:?}&quot;</span>, visited);
+        visited
     }
 
     <span class="kw">pub fn </span>get_children(<span class="kw-2">&amp;</span><span class="self">self</span>, parent_place: mir::Place&lt;<span class="lifetime">&#39;tcx</span>&gt;) -&gt; Vec&lt;mir::Place&lt;<span class="lifetime">&#39;tcx</span>&gt;&gt; {
-        <a class="macro" href="../../../log/macro.trace.html">trace!</a>(
+        <span class="macro">trace!</span>(
             <span class="string">&quot;[enter] get_children self={:?} parent_place={:?}&quot;</span>,
             <span class="self">self</span>,
             parent_place
         );
-        <span class="kw">let </span><span class="kw-2">mut </span>current_parent_node = <span class="kw-2">&amp;</span><a class="self" href="#351">self</a>.root;
-        <span class="kw">let </span>components = utils::VecPlace::new(<a class="self" href="#351">self</a>.mir, <a class="self" href="#351">self</a>.tcx, <a href="#351">parent_place</a>);
-        <span class="kw">let </span><span class="kw-2">mut </span>component_iter = <a href="#358">components</a>.<a href="../utils.rs.html#191">iter</a>();
-        <a href="#359">component_iter</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>();
+        <span class="kw">let </span><span class="kw-2">mut </span>current_parent_node = <span class="kw-2">&amp;</span><span class="self">self</span>.root;
+        <span class="kw">let </span>components = utils::VecPlace::new(<span class="self">self</span>.mir, <span class="self">self</span>.tcx, parent_place);
+        <span class="kw">let </span><span class="kw-2">mut </span>component_iter = components.iter();
+        component_iter.next();
         <span class="kw">for </span>component <span class="kw">in </span>component_iter {
             <span class="kw">if let </span><span class="prelude-val">Some</span>(tmp) = current_parent_node.get_child(component.get_mir_place()) {
                 current_parent_node = tmp;
@@ -900,8 +900,8 @@
             }
         }
 
-        <span class="kw">let </span><span class="kw-2">mut </span>visited = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[];
-        <span class="kw">let </span><span class="kw-2">mut </span>to_visit = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[current_parent_node];
+        <span class="kw">let </span><span class="kw-2">mut </span>visited = <span class="macro">vec!</span>[];
+        <span class="kw">let </span><span class="kw-2">mut </span>to_visit = <span class="macro">vec!</span>[current_parent_node];
         <span class="kw">while let </span><span class="prelude-val">Some</span>(node) = to_visit.pop() {
             <span class="kw">for </span><span class="kw-2">&amp;</span>child <span class="kw">in </span>node.get_children().iter() {
                 <span class="kw">if </span>child.get_permission_kind() != PermissionKind::None {
@@ -910,14 +910,14 @@
                 }
             }
         }
-        <a class="macro" href="../../../log/macro.trace.html">trace!</a>(<span class="string">&quot;[exit] get_children visited={:?}&quot;</span>, visited);
-        <a href="#369">visited</a>
+        <span class="macro">trace!</span>(<span class="string">&quot;[exit] get_children visited={:?}&quot;</span>, visited);
+        visited
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;tcx</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for </span>PermissionTree&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;tcx</span>&gt; {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#385">f</a>, <span class="string">&quot;{}&quot;</span>, <span class="self">self</span>.root)
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;tcx</span>&gt; fmt::Display <span class="kw">for </span>PermissionTree&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;tcx</span>&gt; {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter) -&gt; fmt::Result {
+        <span class="macro">write!</span>(f, <span class="string">&quot;{}&quot;</span>, <span class="self">self</span>.root)
     }
 }
 
@@ -939,7 +939,7 @@
         read_paths: <span class="kw-2">&amp;</span>[mir::Place&lt;<span class="lifetime">&#39;tcx</span>&gt;],
         all_places: <span class="kw-2">&amp;</span>PlaceSet&lt;<span class="lifetime">&#39;tcx</span>&gt;,
     ) -&gt; <span class="self">Self </span>{
-        <a class="macro" href="../../../log/macro.trace.html">trace!</a>(
+        <span class="macro">trace!</span>(
             <span class="string">&quot;[enter] PermissionForest::new(\
              write_paths={:?}, \
              mut_borrowed_paths={:?}, \
@@ -951,7 +951,7 @@
             all_places
         );
 
-        <span class="kw">let </span><span class="kw-2">mut </span>trees: Vec&lt;<a href="#181">PermissionTree</a>&gt; = Vec::new();
+        <span class="kw">let </span><span class="kw-2">mut </span>trees: Vec&lt;PermissionTree&gt; = Vec::new();
 
         <span class="doccomment">/// Take the intended place to add and compute the set of places
         /// to add that are definitely initialised.
@@ -959,7 +959,7 @@
             place: mir::Place&lt;<span class="lifetime">&#39;tcx</span>&gt;,
             all_places: <span class="kw-2">&amp;</span>PlaceSet&lt;<span class="lifetime">&#39;tcx</span>&gt;,
         ) -&gt; Vec&lt;(mir::Place&lt;<span class="lifetime">&#39;tcx</span>&gt;, mir::Place&lt;<span class="lifetime">&#39;tcx</span>&gt;)&gt; {
-            <a class="macro" href="../../../log/macro.trace.html">trace!</a>(
+            <span class="macro">trace!</span>(
                 <span class="string">&quot;[enter] compute_places_to_add(place={:?}, all_places={:?})&quot;</span>,
                 place,
                 all_places
@@ -978,8 +978,8 @@
                     found_target_prefix = <span class="bool-val">true</span>;
                 }
             }
-            <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(found_target_prefix || found_def_init_prefix);
-            <a href="#435">result</a>
+            <span class="macro">assert!</span>(found_target_prefix || found_def_init_prefix);
+            result
         }
 
         <span class="doccomment">/// Add places to the trees.
@@ -988,7 +988,7 @@
             tcx: TyCtxt&lt;<span class="lifetime">&#39;tcx</span>&gt;,
             paths: <span class="kw-2">&amp;</span>[mir::Place&lt;<span class="lifetime">&#39;tcx</span>&gt;],
             trees: <span class="kw-2">&amp;mut </span>Vec&lt;PermissionTree&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;tcx</span>&gt;&gt;,
-            target_type: <a href="#194">TargetType</a>,
+            target_type: TargetType,
             all_places: <span class="kw-2">&amp;</span>PlaceSet&lt;<span class="lifetime">&#39;tcx</span>&gt;,
         ) {
             <span class="kw">for </span>place <span class="kw">in </span>paths.iter() {
@@ -1011,35 +1011,35 @@
                 }
             }
         }
-        <a href="#452-459">add_paths</a>(
-            <a href="#401">mir</a>,
-            <a href="#402">tcx</a>,
-            <a href="#403">write_paths</a>,
-            <span class="kw-2">&amp;mut </span><a href="#420">trees</a>,
-            <a href="#198">TargetType::WriteNode</a>,
-            <a href="#406">all_places</a>,
+        add_paths(
+            mir,
+            tcx,
+            write_paths,
+            <span class="kw-2">&amp;mut </span>trees,
+            TargetType::WriteNode,
+            all_places,
         );
-        <a href="#452-459">add_paths</a>(
-            <a href="#401">mir</a>,
-            <a href="#402">tcx</a>,
-            <a href="#404">mut_borrowed_paths</a>,
-            <span class="kw-2">&amp;mut </span><a href="#420">trees</a>,
-            <a href="#200">TargetType::WriteContents</a>,
-            <a href="#406">all_places</a>,
+        add_paths(
+            mir,
+            tcx,
+            mut_borrowed_paths,
+            <span class="kw-2">&amp;mut </span>trees,
+            TargetType::WriteContents,
+            all_places,
         );
-        <a href="#452-459">add_paths</a>(
-            <a href="#401">mir</a>,
-            <a href="#402">tcx</a>,
-            <a href="#405">read_paths</a>,
-            <span class="kw-2">&amp;mut </span><a href="#420">trees</a>,
-            <a href="#196">TargetType::Read</a>,
-            <a href="#406">all_places</a>,
+        add_paths(
+            mir,
+            tcx,
+            read_paths,
+            <span class="kw-2">&amp;mut </span>trees,
+            TargetType::Read,
+            all_places,
         );
-        <span class="self">Self </span>{ <a href="#420">trees</a> }
+        <span class="self">Self </span>{ trees }
     }
 
     <span class="kw">pub fn </span>get_trees(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[PermissionTree&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;tcx</span>&gt;] {
-        <span class="kw-2">&amp;</span><a class="self" href="#507">self</a>.trees
+        <span class="kw-2">&amp;</span><span class="self">self</span>.trees
     }
 
     <span class="kw">pub fn </span>get_children(<span class="kw-2">&amp;</span><span class="self">self</span>, parent_place: mir::Place&lt;<span class="lifetime">&#39;tcx</span>&gt;) -&gt; Vec&lt;mir::Place&lt;<span class="lifetime">&#39;tcx</span>&gt;&gt; {
@@ -1052,8 +1052,8 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;tcx</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for </span>PermissionForest&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;tcx</span>&gt; {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;tcx</span>&gt; fmt::Display <span class="kw">for </span>PermissionForest&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;tcx</span>&gt; {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter) -&gt; fmt::Result {
         <span class="kw">let </span><span class="kw-2">mut </span>first = <span class="bool-val">true</span>;
         <span class="kw">for </span>tree <span class="kw">in </span><span class="self">self</span>.trees.iter() {
             <span class="kw">if </span>first {
@@ -1067,4 +1067,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="prusti_interface" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="prusti_interface" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

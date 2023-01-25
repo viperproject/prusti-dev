@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `analysis/src/domains/framing/analysis.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>analysis.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../../analysis/index.html"><img class="rust-logo" src="../../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `analysis/src/domains/framing/analysis.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>analysis.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../../analysis/index.html"><img class="rust-logo" src="../../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -146,46 +146,46 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 </span><span class="kw">use crate</span>::{
-    <a href="../../abstract_interpretation/fixpoint_engine.rs.html#15">abstract_interpretation::AnalysisResult</a>,
-    domains::{<a href="../definitely_accessible/analysis.rs.html#23">DefinitelyAccessibleAnalysis</a>, <a href="../definitely_accessible/state.rs.html#22">DefinitelyAccessibleState</a>, <a href="state.rs.html#16">FramingState</a>},
-    mir_utils::{<a href="../../mir_utils.rs.html#347">get_blocked_place</a>, <a href="../../mir_utils.rs.html#300-305">remove_place_from_set</a>},
-    <a href="../../pointwise_state.rs.html#12">PointwiseState</a>,
+    abstract_interpretation::AnalysisResult,
+    domains::{DefinitelyAccessibleAnalysis, DefinitelyAccessibleState, FramingState},
+    mir_utils::{get_blocked_place, remove_place_from_set},
+    PointwiseState,
 };
 <span class="kw">use </span>prusti_rustc_interface::{
     borrowck::BodyWithBorrowckFacts,
     middle::{
-        <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/index.html">mir</a>,
-        mir::visit::{<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/visit/enum.NonMutatingUseContext.html">NonMutatingUseContext</a>, <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/visit/enum.PlaceContext.html">PlaceContext</a>, <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/visit/trait.Visitor.html">Visitor</a>},
-        <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/context/struct.TyCtxt.html">ty::TyCtxt</a>,
+        mir,
+        mir::visit::{NonMutatingUseContext, PlaceContext, Visitor},
+        ty::TyCtxt,
     },
-    <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.DefId.html">span::def_id::DefId</a>,
+    span::def_id::DefId,
 };
 
 <span class="kw">pub struct </span>FramingAnalysis&lt;<span class="lifetime">&#39;mir</span>, <span class="lifetime">&#39;tcx</span>: <span class="lifetime">&#39;mir</span>&gt; {
     tcx: TyCtxt&lt;<span class="lifetime">&#39;tcx</span>&gt;,
-    def_id: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.DefId.html">DefId</a>,
+    def_id: DefId,
     body_with_facts: <span class="kw-2">&amp;</span><span class="lifetime">&#39;mir </span>BodyWithBorrowckFacts&lt;<span class="lifetime">&#39;tcx</span>&gt;,
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;mir</span>, <span class="lifetime">&#39;tcx</span>: <span class="lifetime">&#39;mir</span>&gt; FramingAnalysis&lt;<span class="lifetime">&#39;mir</span>, <span class="lifetime">&#39;tcx</span>&gt; {
     <span class="kw">pub fn </span>new(
         tcx: TyCtxt&lt;<span class="lifetime">&#39;tcx</span>&gt;,
-        def_id: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.DefId.html">DefId</a>,
+        def_id: DefId,
         body_with_facts: <span class="kw-2">&amp;</span><span class="lifetime">&#39;mir </span>BodyWithBorrowckFacts&lt;<span class="lifetime">&#39;tcx</span>&gt;,
     ) -&gt; <span class="self">Self </span>{
-        <a href="#23">FramingAnalysis</a> {
-            <a href="#31">tcx</a>,
-            <a href="#32">def_id</a>,
-            <a href="#33">body_with_facts</a>,
+        FramingAnalysis {
+            tcx,
+            def_id,
+            body_with_facts,
         }
     }
 
     <span class="kw">pub fn </span>run_analysis(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; AnalysisResult&lt;PointwiseState&lt;<span class="lifetime">&#39;mir</span>, <span class="lifetime">&#39;tcx</span>, FramingState&lt;<span class="lifetime">&#39;tcx</span>&gt;&gt;&gt; {
         <span class="kw">let </span>acc_analysis =
-            DefinitelyAccessibleAnalysis::new(<a class="self" href="#42">self</a>.tcx, <a class="self" href="#42">self</a>.def_id, <a class="self" href="#42">self</a>.body_with_facts);
+            DefinitelyAccessibleAnalysis::new(<span class="self">self</span>.tcx, <span class="self">self</span>.def_id, <span class="self">self</span>.body_with_facts);
         <span class="kw">let </span>accessibility = acc_analysis.run_analysis()<span class="question-mark">?</span>;
-        <span class="kw">let </span>body = <span class="kw-2">&amp;</span><a class="self" href="#42">self</a>.body_with_facts.body;
-        <span class="kw">let </span><span class="kw-2">mut </span>analysis_state = PointwiseState::default(<a href="#46">body</a>);
+        <span class="kw">let </span>body = <span class="kw-2">&amp;</span><span class="self">self</span>.body_with_facts.body;
+        <span class="kw">let </span><span class="kw-2">mut </span>analysis_state = PointwiseState::default(body);
 
         <span class="comment">// Set state_after_block
         </span><span class="kw">for </span>(block, block_data) <span class="kw">in </span>body.basic_blocks.iter_enumerated() {
@@ -196,7 +196,7 @@
                     statement_index,
                 };
                 <span class="kw">let </span>acc_before = accessibility.lookup_before(location).unwrap_or_else(|| {
-                    <span class="macro">panic!</span>(<span class="string">&quot;No &#39;accessibility&#39; state before location {:?}&quot;</span>, location)
+                    <span class="macro">panic!</span>(<span class="string">&quot;No &#39;accessibility&#39; state before location {location:?}&quot;</span>)
                 });
                 <span class="kw">let </span><span class="kw-2">mut </span>compute_framing = ComputeFramingState::initial(body, <span class="self">self</span>.tcx, acc_before);
                 <span class="kw">if let </span><span class="prelude-val">Some</span>(stmt) = body.stmt_at(location).left() {
@@ -213,7 +213,7 @@
             <span class="comment">// Leave empty the state after terminators
         </span>}
 
-        <span class="prelude-val">Ok</span>(<a href="#47">analysis_state</a>)
+        <span class="prelude-val">Ok</span>(analysis_state)
     }
 }
 
@@ -229,11 +229,11 @@
         tcx: TyCtxt&lt;<span class="lifetime">&#39;tcx</span>&gt;,
         acc: <span class="kw-2">&amp;</span>DefinitelyAccessibleState&lt;<span class="lifetime">&#39;tcx</span>&gt;,
     ) -&gt; <span class="self">Self </span>{
-        <span class="kw">let </span>state = <a href="state.rs.html#16">FramingState</a> {
-            framed_accessible: <a href="#89">acc</a>.<a href="../definitely_accessible/state.rs.html#31">get_definitely_accessible</a>().<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
-            framed_owned: <a href="#89">acc</a>.<a href="../definitely_accessible/state.rs.html#35">get_definitely_owned</a>().<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+        <span class="kw">let </span>state = FramingState {
+            framed_accessible: acc.get_definitely_accessible().clone(),
+            framed_owned: acc.get_definitely_owned().clone(),
         };
-        <a href="#79">ComputeFramingState</a> { <a href="#87">body</a>, <a href="#88">tcx</a>, <a href="#91">state</a> }
+        ComputeFramingState { body, tcx, state }
     }
 }
 
@@ -241,37 +241,37 @@
     <span class="kw">fn </span>visit_place(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         place: <span class="kw-2">&amp;</span>mir::Place&lt;<span class="lifetime">&#39;tcx</span>&gt;,
-        context: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/visit/enum.PlaceContext.html">PlaceContext</a>,
-        _location: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Location.html">mir::Location</a>,
+        context: PlaceContext,
+        _location: mir::Location,
     ) {
-        <span class="kw">let </span>place = (<span class="kw-2">*</span><a href="#102">place</a>).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>();
-        <span class="kw">match </span><a href="#103">context</a> {
-            PlaceContext::NonMutatingUse(NonMutatingUseContext::UniqueBorrow) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.todo.html">todo!</a>(),
+        <span class="kw">let </span>place = (<span class="kw-2">*</span>place).into();
+        <span class="kw">match </span>context {
+            PlaceContext::NonMutatingUse(NonMutatingUseContext::UniqueBorrow) =&gt; <span class="macro">todo!</span>(),
             PlaceContext::MutatingUse(<span class="kw">_</span>)
             | PlaceContext::NonMutatingUse(NonMutatingUseContext::Move) =&gt; {
                 <span class="comment">// No permission can be framed
-                </span><span class="kw">let </span>blocked_place = <a href="../../mir_utils.rs.html#347">get_blocked_place</a>(<a class="self" href="#101">self</a>.tcx, <a href="#106">place</a>);
-                <a href="../../mir_utils.rs.html#300-305">remove_place_from_set</a>(
-                    <a class="self" href="#101">self</a>.body,
-                    <a class="self" href="#101">self</a>.tcx,
-                    <a href="#112">blocked_place</a>,
-                    <span class="kw-2">&amp;mut </span><a class="self" href="#101">self</a>.state.framed_owned,
+                </span><span class="kw">let </span>blocked_place = get_blocked_place(<span class="self">self</span>.tcx, place);
+                remove_place_from_set(
+                    <span class="self">self</span>.body,
+                    <span class="self">self</span>.tcx,
+                    blocked_place,
+                    <span class="kw-2">&amp;mut </span><span class="self">self</span>.state.framed_owned,
                 );
-                <a href="../../mir_utils.rs.html#300-305">remove_place_from_set</a>(
-                    <a class="self" href="#101">self</a>.body,
-                    <a class="self" href="#101">self</a>.tcx,
-                    <a href="#112">blocked_place</a>,
-                    <span class="kw-2">&amp;mut </span><a class="self" href="#101">self</a>.state.framed_accessible,
+                remove_place_from_set(
+                    <span class="self">self</span>.body,
+                    <span class="self">self</span>.tcx,
+                    blocked_place,
+                    <span class="kw-2">&amp;mut </span><span class="self">self</span>.state.framed_accessible,
                 );
             }
             PlaceContext::NonMutatingUse(<span class="kw">_</span>) =&gt; {
                 <span class="comment">// Read permission can be framed
-                </span><span class="kw">let </span>frozen_place = <a href="../../mir_utils.rs.html#347">get_blocked_place</a>(<a class="self" href="#101">self</a>.tcx, <a href="#106">place</a>);
-                <a href="../../mir_utils.rs.html#300-305">remove_place_from_set</a>(
-                    <a class="self" href="#101">self</a>.body,
-                    <a class="self" href="#101">self</a>.tcx,
-                    <a href="#128">frozen_place</a>,
-                    <span class="kw-2">&amp;mut </span><a class="self" href="#101">self</a>.state.framed_owned,
+                </span><span class="kw">let </span>frozen_place = get_blocked_place(<span class="self">self</span>.tcx, place);
+                remove_place_from_set(
+                    <span class="self">self</span>.body,
+                    <span class="self">self</span>.tcx,
+                    frozen_place,
+                    <span class="kw-2">&amp;mut </span><span class="self">self</span>.state.framed_owned,
                 );
             }
             PlaceContext::NonUse(<span class="kw">_</span>) =&gt; {
@@ -281,4 +281,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="analysis" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="analysis" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

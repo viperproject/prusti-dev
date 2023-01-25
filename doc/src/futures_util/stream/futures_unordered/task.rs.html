@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/futures-util-0.3.25/src/stream/futures_unordered/task.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>task.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../../futures_util/index.html"><img class="rust-logo" src="../../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/futures-util-0.3.25/src/stream/futures_unordered/task.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>task.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../../futures_util/index.html"><img class="rust-logo" src="../../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -123,14 +123,14 @@
 <a href="#123" id="123">123</a>
 <a href="#124" id="124">124</a>
 <a href="#125" id="125">125</a>
-</pre><pre class="rust"><code><span class="kw">use </span>alloc::sync::{<a href="https://doc.rust-lang.org/nightly/alloc/sync/struct.Arc.html">Arc</a>, <a href="https://doc.rust-lang.org/nightly/alloc/sync/struct.Weak.html">Weak</a>};
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/cell/struct.UnsafeCell.html">core::cell::UnsafeCell</a>;
-<span class="kw">use </span>core::sync::atomic::Ordering::{<a class="self" href="https://doc.rust-lang.org/nightly/core/sync/atomic/enum.Ordering.html">self</a>, Relaxed, SeqCst};
-<span class="kw">use </span>core::sync::atomic::{<a href="https://doc.rust-lang.org/nightly/core/sync/atomic/struct.AtomicBool.html">AtomicBool</a>, <a href="https://doc.rust-lang.org/nightly/core/sync/atomic/struct.AtomicPtr.html">AtomicPtr</a>};
+</pre><pre class="rust"><code><span class="kw">use </span>alloc::sync::{Arc, Weak};
+<span class="kw">use </span>core::cell::UnsafeCell;
+<span class="kw">use </span>core::sync::atomic::Ordering::{<span class="self">self</span>, Relaxed, SeqCst};
+<span class="kw">use </span>core::sync::atomic::{AtomicBool, AtomicPtr};
 
-<span class="kw">use </span><a href="abort.rs.html#1"><span class="kw">super</span>::abort::abort</a>;
-<span class="kw">use </span><a href="ready_to_run_queue.rs.html#17"><span class="kw">super</span>::ReadyToRunQueue</a>;
-<span class="kw">use </span><span class="kw">crate</span>::task::{<a href="../../../../futures_util/task/fn.waker_ref.html">waker_ref</a>, <a href="../../../../futures_util/task/trait.ArcWake.html">ArcWake</a>, <a href="../../../../futures_util/task/struct.WakerRef.html">WakerRef</a>};
+<span class="kw">use </span><span class="kw">super</span>::abort::abort;
+<span class="kw">use </span><span class="kw">super</span>::ReadyToRunQueue;
+<span class="kw">use </span><span class="kw">crate</span>::task::{waker_ref, ArcWake, WakerRef};
 
 <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">struct </span>Task&lt;Fut&gt; {
     <span class="comment">// The future
@@ -146,7 +146,7 @@
     <span class="comment">// Length of the linked list tracking all active tasks when this node was
     // inserted (use `spin_next_all` to synchronize before reading when access
     // is shared across threads)
-    </span><span class="kw">pub</span>(<span class="kw">super</span>) len_all: UnsafeCell&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;,
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) len_all: UnsafeCell&lt;usize&gt;,
 
     <span class="comment">// Next pointer in ready to run queue
     </span><span class="kw">pub</span>(<span class="kw">super</span>) next_ready_to_run: AtomicPtr&lt;Task&lt;Fut&gt;&gt;,
@@ -155,12 +155,12 @@
     </span><span class="kw">pub</span>(<span class="kw">super</span>) ready_to_run_queue: Weak&lt;ReadyToRunQueue&lt;Fut&gt;&gt;,
 
     <span class="comment">// Whether or not this task is currently in the ready to run queue
-    </span><span class="kw">pub</span>(<span class="kw">super</span>) queued: <a href="https://doc.rust-lang.org/nightly/core/sync/atomic/struct.AtomicBool.html">AtomicBool</a>,
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) queued: AtomicBool,
 
     <span class="comment">// Whether the future was awoken during polling
     // It is possible for this flag to be set to true after the polling,
     // but it will be ignored.
-    </span><span class="kw">pub</span>(<span class="kw">super</span>) woken: <a href="https://doc.rust-lang.org/nightly/core/sync/atomic/struct.AtomicBool.html">AtomicBool</a>,
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) woken: AtomicBool,
 }
 
 <span class="comment">// `Task` can be sent across threads safely because it ensures that
@@ -168,17 +168,17 @@
 //
 // The parent (`super`) module is trusted not to access `future`
 // across different threads.
-</span><span class="kw">unsafe impl</span>&lt;Fut&gt; <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="kw">for </span>Task&lt;Fut&gt; {}
-<span class="kw">unsafe impl</span>&lt;Fut&gt; <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> <span class="kw">for </span>Task&lt;Fut&gt; {}
+</span><span class="kw">unsafe impl</span>&lt;Fut&gt; Send <span class="kw">for </span>Task&lt;Fut&gt; {}
+<span class="kw">unsafe impl</span>&lt;Fut&gt; Sync <span class="kw">for </span>Task&lt;Fut&gt; {}
 
-<span class="kw">impl</span>&lt;Fut&gt; <a href="../../../../futures_util/task/trait.ArcWake.html">ArcWake</a> <span class="kw">for </span>Task&lt;Fut&gt; {
+<span class="kw">impl</span>&lt;Fut&gt; ArcWake <span class="kw">for </span>Task&lt;Fut&gt; {
     <span class="kw">fn </span>wake_by_ref(arc_self: <span class="kw-2">&amp;</span>Arc&lt;<span class="self">Self</span>&gt;) {
-        <span class="kw">let </span>inner = <span class="kw">match </span><a href="#50">arc_self</a>.ready_to_run_queue.upgrade() {
-            <span class="prelude-val">Some</span>(inner) =&gt; <a href="#52">inner</a>,
+        <span class="kw">let </span>inner = <span class="kw">match </span>arc_self.ready_to_run_queue.upgrade() {
+            <span class="prelude-val">Some</span>(inner) =&gt; inner,
             <span class="prelude-val">None </span>=&gt; <span class="kw">return</span>,
         };
 
-        <a href="#50">arc_self</a>.woken.store(<span class="bool-val">true</span>, Relaxed);
+        arc_self.woken.store(<span class="bool-val">true</span>, Relaxed);
 
         <span class="comment">// It&#39;s our job to enqueue this task it into the ready to run queue. To
         // do this we set the `queued` flag, and if successful we then do the
@@ -192,10 +192,10 @@
         // implementation guarantees that if we set the `queued` flag that
         // there&#39;s a reference count held by the main `FuturesUnordered` queue
         // still.
-        </span><span class="kw">let </span>prev = <a href="#50">arc_self</a>.queued.swap(<span class="bool-val">true</span>, SeqCst);
+        </span><span class="kw">let </span>prev = arc_self.queued.swap(<span class="bool-val">true</span>, SeqCst);
         <span class="kw">if </span>!prev {
-            <a href="#51">inner</a>.<a href="ready_to_run_queue.rs.html#31">enqueue</a>(Arc::as_ptr(<a href="#50">arc_self</a>));
-            <a href="#51">inner</a>.waker.wake();
+            inner.enqueue(Arc::as_ptr(arc_self));
+            inner.waker.wake();
         }
     }
 }
@@ -203,7 +203,7 @@
 <span class="kw">impl</span>&lt;Fut&gt; Task&lt;Fut&gt; {
     <span class="doccomment">/// Returns a waker reference for this task without cloning the Arc.
     </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>waker_ref(this: <span class="kw-2">&amp;</span>Arc&lt;<span class="self">Self</span>&gt;) -&gt; WakerRef&lt;<span class="lifetime">&#39;_</span>&gt; {
-        <a href="../../../../futures_util/task/fn.waker_ref.html">waker_ref</a>(<a href="#80">this</a>)
+        waker_ref(this)
     }
 
     <span class="doccomment">/// Spins until `next_all` is no longer set to `pending_next_all`.
@@ -220,18 +220,18 @@
     </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>spin_next_all(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         pending_next_all: <span class="kw-2">*mut </span><span class="self">Self</span>,
-        ordering: <a href="https://doc.rust-lang.org/nightly/core/sync/atomic/enum.Ordering.html">Ordering</a>,
+        ordering: Ordering,
     ) -&gt; <span class="kw-2">*const </span><span class="self">Self </span>{
         <span class="kw">loop </span>{
-            <span class="kw">let </span>next = <a class="self" href="#96">self</a>.next_all.load(<a href="#98">ordering</a>);
+            <span class="kw">let </span>next = <span class="self">self</span>.next_all.load(ordering);
             <span class="kw">if </span>next != pending_next_all {
-                <span class="kw">return </span><a href="#101">next</a>;
+                <span class="kw">return </span>next;
             }
         }
     }
 }
 
-<span class="kw">impl</span>&lt;Fut&gt; <a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span>Task&lt;Fut&gt; {
+<span class="kw">impl</span>&lt;Fut&gt; Drop <span class="kw">for </span>Task&lt;Fut&gt; {
     <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="comment">// Since `Task&lt;Fut&gt;` is sent across all threads for any lifetime,
         // regardless of `Fut`, we, to guarantee memory safety, can&#39;t actually
@@ -243,10 +243,10 @@
         // a bug in that logic.
         </span><span class="kw">unsafe </span>{
             <span class="kw">if </span>(<span class="kw-2">*</span><span class="self">self</span>.future.get()).is_some() {
-                <a href="abort.rs.html#1">abort</a>(<span class="string">&quot;future still here when dropping&quot;</span>);
+                abort(<span class="string">&quot;future still here when dropping&quot;</span>);
             }
         }
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="futures_util" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="futures_util" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

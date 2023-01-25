@@ -1,5 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tracing-0.1.37/src/span.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>span.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../tracing/index.html">
-                        <img src="https://raw.githubusercontent.com/tokio-rs/tracing/master/assets/logo-type.png" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tracing-0.1.37/src/span.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>span.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../tracing/index.html">
+                        <img src="https://raw.githubusercontent.com/tokio-rs/tracing/master/assets/logo-type.png" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -1941,25 +1941,25 @@
 //! [`follows_from`]: Span::follows_from()
 //! [guard]: Entered
 //! [parent]: #span-relationships
-</span><span class="kw">pub use </span>tracing_core::span::{<a href="../../tracing/span/struct.Attributes.html">Attributes</a>, <a href="../../tracing/span/struct.Id.html">Id</a>, <a href="../../tracing/span/struct.Record.html">Record</a>};
+</span><span class="kw">pub use </span>tracing_core::span::{Attributes, Id, Record};
 
 <span class="kw">use </span><span class="kw">crate</span>::stdlib::{
-    <a href="https://doc.rust-lang.org/nightly/core/cmp/index.html">cmp</a>, <a href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">fmt</a>,
-    hash::{<a href="https://doc.rust-lang.org/nightly/core/hash/macros/derive.Hash.html">Hash</a>, <a href="https://doc.rust-lang.org/nightly/core/hash/trait.Hasher.html">Hasher</a>},
+    cmp, fmt,
+    hash::{Hash, Hasher},
     marker::PhantomData,
-    <a href="https://doc.rust-lang.org/nightly/core/mem/index.html">mem</a>,
-    <a href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.Deref.html">ops::Deref</a>,
+    mem,
+    ops::Deref,
 };
 <span class="kw">use crate</span>::{
-    dispatcher::{<a class="self" href="lib.rs.html#964">self</a>, <a href="../../tracing/struct.Dispatch.html">Dispatch</a>},
-    <a href="lib.rs.html#965">field</a>, <a href="../../tracing/struct.Metadata.html">Metadata</a>,
+    dispatcher::{<span class="self">self</span>, Dispatch},
+    field, Metadata,
 };
 
 <span class="doccomment">/// Trait implemented by types which have a span `Id`.
-</span><span class="kw">pub trait </span>AsId: <a href="lib.rs.html#1114"><span class="kw">crate</span>::sealed::Sealed</a> {
+</span><span class="kw">pub trait </span>AsId: <span class="kw">crate</span>::sealed::Sealed {
     <span class="doccomment">/// Returns the `Id` of the span that `self` corresponds to, or `None` if
     /// this corresponds to a disabled span.
-    </span><span class="kw">fn </span>as_id(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="../../tracing/span/struct.Id.html">Id</a>&gt;;
+    </span><span class="kw">fn </span>as_id(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Id&gt;;
 }
 
 <span class="doccomment">/// A handle representing a span, with the capability to enter the span if it
@@ -1973,7 +1973,7 @@
     <span class="doccomment">/// A handle used to enter the span when it is not executing.
     ///
     /// If this is `None`, then the span has either closed or was never enabled.
-    </span>inner: <span class="prelude-ty">Option</span>&lt;<a href="#366">Inner</a>&gt;,
+    </span>inner: <span class="prelude-ty">Option</span>&lt;Inner&gt;,
     <span class="doccomment">/// Metadata describing the span.
     ///
     /// This might be `Some` even if `inner` is `None`, in the case that the
@@ -1989,13 +1989,13 @@
 </span><span class="attr">#[derive(Debug)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>Inner {
     <span class="doccomment">/// The span&#39;s ID, as provided by `subscriber`.
-    </span>id: <a href="../../tracing/span/struct.Id.html">Id</a>,
+    </span>id: Id,
 
     <span class="doccomment">/// The subscriber that will receive events relating to this span.
     ///
     /// This should be the same subscriber that provided this span with its
     /// `id`.
-    </span>subscriber: <a href="../../tracing/struct.Dispatch.html">Dispatch</a>,
+    </span>subscriber: Dispatch,
 }
 
 <span class="doccomment">/// A guard representing a span which has been entered and is currently
@@ -2009,7 +2009,7 @@
 </span><span class="attr">#[derive(Debug)]
 #[must_use = <span class="string">&quot;once a span has been entered, it should be exited&quot;</span>]
 </span><span class="kw">pub struct </span>Entered&lt;<span class="lifetime">&#39;a</span>&gt; {
-    span: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="#348">Span</a>,
+    span: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Span,
 }
 
 <span class="doccomment">/// An owned version of [`Entered`], a guard representing a span which has been
@@ -2023,7 +2023,7 @@
 </span><span class="attr">#[derive(Debug)]
 #[must_use = <span class="string">&quot;once a span has been entered, it should be exited&quot;</span>]
 </span><span class="kw">pub struct </span>EnteredSpan {
-    span: <a href="#348">Span</a>,
+    span: Span,
 
     <span class="doccomment">/// ```compile_fail
     /// use tracing::span::*;
@@ -2031,19 +2031,19 @@
     ///
     /// impl AssertSend for EnteredSpan {}
     /// ```
-    </span>_not_send: <a href="#1594">PhantomNotSend</a>,
+    </span>_not_send: PhantomNotSend,
 }
 
 <span class="doccomment">/// `log` target for all span lifecycle (creation/enter/exit/close) records.
 </span><span class="attr">#[cfg(feature = <span class="string">&quot;log&quot;</span>)]
-</span><span class="kw">const </span>LIFECYCLE_LOG_TARGET: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> = <span class="string">&quot;tracing::span&quot;</span>;
+</span><span class="kw">const </span>LIFECYCLE_LOG_TARGET: <span class="kw-2">&amp;</span>str = <span class="string">&quot;tracing::span&quot;</span>;
 <span class="doccomment">/// `log` target for span activity (enter/exit) records.
 </span><span class="attr">#[cfg(feature = <span class="string">&quot;log&quot;</span>)]
-</span><span class="kw">const </span>ACTIVITY_LOG_TARGET: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> = <span class="string">&quot;tracing::span::active&quot;</span>;
+</span><span class="kw">const </span>ACTIVITY_LOG_TARGET: <span class="kw-2">&amp;</span>str = <span class="string">&quot;tracing::span::active&quot;</span>;
 
 <span class="comment">// ===== impl Span =====
 
-</span><span class="kw">impl </span><a href="#348">Span</a> {
+</span><span class="kw">impl </span>Span {
     <span class="doccomment">/// Constructs a new `Span` with the given [metadata] and set of
     /// [field values].
     ///
@@ -2057,8 +2057,8 @@
     /// [`Subscriber`]: super::subscriber::Subscriber
     /// [field values]: super::field::ValueSet
     /// [`follows_from`]: super::Span::follows_from
-    </span><span class="kw">pub fn </span>new(meta: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>Metadata&lt;<span class="lifetime">&#39;static</span>&gt;, values: <span class="kw-2">&amp;</span>field::ValueSet&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="#348">Span</a> {
-        <a href="../../tracing/dispatcher/fn.get_default.html">dispatcher::get_default</a>(|dispatch| <span class="self">Self</span>::new_with(<a href="#436">meta</a>, <a href="#436">values</a>, <a href="#437">dispatch</a>))
+    </span><span class="kw">pub fn </span>new(meta: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>Metadata&lt;<span class="lifetime">&#39;static</span>&gt;, values: <span class="kw-2">&amp;</span>field::ValueSet&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Span {
+        dispatcher::get_default(|dispatch| <span class="self">Self</span>::new_with(meta, values, dispatch))
     }
 
     <span class="attr">#[inline]
@@ -2066,10 +2066,10 @@
     </span><span class="kw">pub fn </span>new_with(
         meta: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>Metadata&lt;<span class="lifetime">&#39;static</span>&gt;,
         values: <span class="kw-2">&amp;</span>field::ValueSet&lt;<span class="lifetime">&#39;_</span>&gt;,
-        dispatch: <span class="kw-2">&amp;</span><a href="../../tracing/struct.Dispatch.html">Dispatch</a>,
-    ) -&gt; <a href="#348">Span</a> {
-        <span class="kw">let </span>new_span = Attributes::new(<a href="#443">meta</a>, <a href="#444">values</a>);
-        <span class="self">Self</span>::make_with(<a href="#443">meta</a>, <a href="#447">new_span</a>, <a href="#445">dispatch</a>)
+        dispatch: <span class="kw-2">&amp;</span>Dispatch,
+    ) -&gt; Span {
+        <span class="kw">let </span>new_span = Attributes::new(meta, values);
+        <span class="self">Self</span>::make_with(meta, new_span, dispatch)
     }
 
     <span class="doccomment">/// Constructs a new `Span` as the root of its own trace tree, with the
@@ -2081,8 +2081,8 @@
     /// [metadata]: super::Metadata
     /// [field values]: super::field::ValueSet
     /// [`follows_from`]: super::Span::follows_from
-    </span><span class="kw">pub fn </span>new_root(meta: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>Metadata&lt;<span class="lifetime">&#39;static</span>&gt;, values: <span class="kw-2">&amp;</span>field::ValueSet&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="#348">Span</a> {
-        <a href="../../tracing/dispatcher/fn.get_default.html">dispatcher::get_default</a>(|dispatch| <span class="self">Self</span>::new_root_with(<a href="#460">meta</a>, <a href="#460">values</a>, <a href="#461">dispatch</a>))
+    </span><span class="kw">pub fn </span>new_root(meta: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>Metadata&lt;<span class="lifetime">&#39;static</span>&gt;, values: <span class="kw-2">&amp;</span>field::ValueSet&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Span {
+        dispatcher::get_default(|dispatch| <span class="self">Self</span>::new_root_with(meta, values, dispatch))
     }
 
     <span class="attr">#[inline]
@@ -2090,10 +2090,10 @@
     </span><span class="kw">pub fn </span>new_root_with(
         meta: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>Metadata&lt;<span class="lifetime">&#39;static</span>&gt;,
         values: <span class="kw-2">&amp;</span>field::ValueSet&lt;<span class="lifetime">&#39;_</span>&gt;,
-        dispatch: <span class="kw-2">&amp;</span><a href="../../tracing/struct.Dispatch.html">Dispatch</a>,
-    ) -&gt; <a href="#348">Span</a> {
-        <span class="kw">let </span>new_span = Attributes::new_root(<a href="#467">meta</a>, <a href="#468">values</a>);
-        <span class="self">Self</span>::make_with(<a href="#467">meta</a>, <a href="#471">new_span</a>, <a href="#469">dispatch</a>)
+        dispatch: <span class="kw-2">&amp;</span>Dispatch,
+    ) -&gt; Span {
+        <span class="kw">let </span>new_span = Attributes::new_root(meta, values);
+        <span class="self">Self</span>::make_with(meta, new_span, dispatch)
     }
 
     <span class="doccomment">/// Constructs a new `Span` as child of the given parent span, with the
@@ -2106,29 +2106,29 @@
     /// [field values]: super::field::ValueSet
     /// [`follows_from`]: super::Span::follows_from
     </span><span class="kw">pub fn </span>child_of(
-        parent: <span class="kw">impl </span>Into&lt;<span class="prelude-ty">Option</span>&lt;<a href="../../tracing/span/struct.Id.html">Id</a>&gt;&gt;,
+        parent: <span class="kw">impl </span>Into&lt;<span class="prelude-ty">Option</span>&lt;Id&gt;&gt;,
         meta: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>Metadata&lt;<span class="lifetime">&#39;static</span>&gt;,
         values: <span class="kw-2">&amp;</span>field::ValueSet&lt;<span class="lifetime">&#39;_</span>&gt;,
-    ) -&gt; <a href="#348">Span</a> {
-        <span class="kw">let </span><span class="kw-2">mut </span>parent = <a href="#485">parent</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>();
-        <a href="../../tracing/dispatcher/fn.get_default.html">dispatcher::get_default</a>(<span class="kw">move </span>|dispatch| {
-            <span class="self">Self</span>::child_of_with(Option::take(<span class="kw-2">&amp;mut </span><a href="#489">parent</a>), <a href="#486">meta</a>, <a href="#487">values</a>, <a href="#490">dispatch</a>)
+    ) -&gt; Span {
+        <span class="kw">let </span><span class="kw-2">mut </span>parent = parent.into();
+        dispatcher::get_default(<span class="kw">move </span>|dispatch| {
+            <span class="self">Self</span>::child_of_with(Option::take(<span class="kw-2">&amp;mut </span>parent), meta, values, dispatch)
         })
     }
 
     <span class="attr">#[inline]
     #[doc(hidden)]
     </span><span class="kw">pub fn </span>child_of_with(
-        parent: <span class="kw">impl </span>Into&lt;<span class="prelude-ty">Option</span>&lt;<a href="../../tracing/span/struct.Id.html">Id</a>&gt;&gt;,
+        parent: <span class="kw">impl </span>Into&lt;<span class="prelude-ty">Option</span>&lt;Id&gt;&gt;,
         meta: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>Metadata&lt;<span class="lifetime">&#39;static</span>&gt;,
         values: <span class="kw-2">&amp;</span>field::ValueSet&lt;<span class="lifetime">&#39;_</span>&gt;,
-        dispatch: <span class="kw-2">&amp;</span><a href="../../tracing/struct.Dispatch.html">Dispatch</a>,
-    ) -&gt; <a href="#348">Span</a> {
-        <span class="kw">let </span>new_span = <span class="kw">match </span><a href="#498">parent</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>() {
-            <span class="prelude-val">Some</span>(parent) =&gt; Attributes::child_of(<a href="#504">parent</a>, <a href="#499">meta</a>, <a href="#500">values</a>),
-            <span class="prelude-val">None </span>=&gt; Attributes::new_root(<a href="#499">meta</a>, <a href="#500">values</a>),
+        dispatch: <span class="kw-2">&amp;</span>Dispatch,
+    ) -&gt; Span {
+        <span class="kw">let </span>new_span = <span class="kw">match </span>parent.into() {
+            <span class="prelude-val">Some</span>(parent) =&gt; Attributes::child_of(parent, meta, values),
+            <span class="prelude-val">None </span>=&gt; Attributes::new_root(meta, values),
         };
-        <span class="self">Self</span>::make_with(<a href="#499">meta</a>, <a href="#503">new_span</a>, <a href="#501">dispatch</a>)
+        <span class="self">Self</span>::make_with(meta, new_span, dispatch)
     }
 
     <span class="doccomment">/// Constructs a new disabled span with the given `Metadata`.
@@ -2140,10 +2140,10 @@
     /// `Subscriber` but _may_ record log messages if the `log` feature flag is
     /// enabled.
     </span><span class="attr">#[inline(always)]
-    </span><span class="kw">pub fn </span>new_disabled(meta: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>Metadata&lt;<span class="lifetime">&#39;static</span>&gt;) -&gt; <a href="#348">Span</a> {
+    </span><span class="kw">pub fn </span>new_disabled(meta: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>Metadata&lt;<span class="lifetime">&#39;static</span>&gt;) -&gt; Span {
         <span class="self">Self </span>{
             inner: <span class="prelude-val">None</span>,
-            meta: <span class="prelude-val">Some</span>(<a href="#519">meta</a>),
+            meta: <span class="prelude-val">Some</span>(meta),
         }
     }
 
@@ -2154,7 +2154,7 @@
     ///
     /// Entering, exiting, and recording values on this span will do nothing.
     </span><span class="attr">#[inline(always)]
-    </span><span class="kw">pub const fn </span>none() -&gt; <a href="#348">Span</a> {
+    </span><span class="kw">pub const fn </span>none() -&gt; Span {
         <span class="self">Self </span>{
             inner: <span class="prelude-val">None</span>,
             meta: <span class="prelude-val">None</span>,
@@ -2170,13 +2170,13 @@
     ///
     /// [considered by the `Subscriber`]:
     ///     super::subscriber::Subscriber::current_span
-    </span><span class="kw">pub fn </span>current() -&gt; <a href="#348">Span</a> {
-        <a href="../../tracing/dispatcher/fn.get_default.html">dispatcher::get_default</a>(|dispatch| {
-            <span class="kw">if let </span><span class="prelude-val">Some</span>((id, meta)) = <a href="#550">dispatch</a>.current_span().into_inner() {
-                <span class="kw">let </span>id = <a href="#550">dispatch</a>.clone_span(<span class="kw-2">&amp;</span><a href="#551">id</a>);
+    </span><span class="kw">pub fn </span>current() -&gt; Span {
+        dispatcher::get_default(|dispatch| {
+            <span class="kw">if let </span><span class="prelude-val">Some</span>((id, meta)) = dispatch.current_span().into_inner() {
+                <span class="kw">let </span>id = dispatch.clone_span(<span class="kw-2">&amp;</span>id);
                 <span class="self">Self </span>{
-                    inner: <span class="prelude-val">Some</span>(Inner::new(<a href="#552">id</a>, <a href="#550">dispatch</a>)),
-                    meta: <span class="prelude-val">Some</span>(<a href="#551">meta</a>),
+                    inner: <span class="prelude-val">Some</span>(Inner::new(id, dispatch)),
+                    meta: <span class="prelude-val">Some</span>(meta),
                 }
             } <span class="kw">else </span>{
                 <span class="self">Self</span>::none()
@@ -2187,18 +2187,18 @@
     <span class="kw">fn </span>make_with(
         meta: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>Metadata&lt;<span class="lifetime">&#39;static</span>&gt;,
         new_span: Attributes&lt;<span class="lifetime">&#39;_</span>&gt;,
-        dispatch: <span class="kw-2">&amp;</span><a href="../../tracing/struct.Dispatch.html">Dispatch</a>,
-    ) -&gt; <a href="#348">Span</a> {
-        <span class="kw">let </span>attrs = <span class="kw-2">&amp;</span><a href="#565">new_span</a>;
-        <span class="kw">let </span>id = <a href="#566">dispatch</a>.new_span(<a href="#568">attrs</a>);
-        <span class="kw">let </span>inner = <span class="prelude-val">Some</span>(Inner::new(<a href="#569">id</a>, <a href="#566">dispatch</a>));
+        dispatch: <span class="kw-2">&amp;</span>Dispatch,
+    ) -&gt; Span {
+        <span class="kw">let </span>attrs = <span class="kw-2">&amp;</span>new_span;
+        <span class="kw">let </span>id = dispatch.new_span(attrs);
+        <span class="kw">let </span>inner = <span class="prelude-val">Some</span>(Inner::new(id, dispatch));
 
         <span class="kw">let </span>span = <span class="self">Self </span>{
-            <a href="#570">inner</a>,
-            meta: <span class="prelude-val">Some</span>(<a href="#564">meta</a>),
+            inner,
+            meta: <span class="prelude-val">Some</span>(meta),
         };
 
-        <a class="macro" href="macros.rs.html#2466-2484">if_log_enabled! </a>{ <span class="kw-2">*</span>meta.level(), {
+        <span class="macro">if_log_enabled! </span>{ <span class="kw-2">*</span>meta.level(), {
             <span class="kw">let </span>target = <span class="kw">if </span>attrs.is_empty() {
                 LIFECYCLE_LOG_TARGET
             } <span class="kw">else </span>{
@@ -2212,7 +2212,7 @@
             );
         }}
 
-        <a href="#572">span</a>
+        span
     }
 
     <span class="doccomment">/// Enters this span, returning a guard that will exit the span when dropped.
@@ -2407,8 +2407,8 @@
     /// [`Id`]: super::Id
     </span><span class="attr">#[inline(always)]
     </span><span class="kw">pub fn </span>enter(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Entered&lt;<span class="lifetime">&#39;_</span>&gt; {
-        <a class="self" href="#785">self</a>.<a href="#1035">do_enter</a>();
-        <a href="#387">Entered</a> { span: <span class="self"><a href="#785">self</a> </span>}
+        <span class="self">self</span>.do_enter();
+        Entered { span: <span class="self">self </span>}
     }
 
     <span class="doccomment">/// Enters this span, consuming it and returning a [guard][`EnteredSpan`]
@@ -2517,11 +2517,11 @@
     /// [`Subscriber::exit`]: super::subscriber::Subscriber::exit()
     /// [`Id`]: super::Id
     </span><span class="attr">#[inline(always)]
-    </span><span class="kw">pub fn </span>entered(<span class="self">self</span>) -&gt; <a href="#401">EnteredSpan</a> {
-        <a class="self" href="#896">self</a>.<a href="#1035">do_enter</a>();
-        <a href="#401">EnteredSpan</a> {
-            span: <a class="self" href="#896">self</a>,
-            _not_send: <a href="#1599">PhantomNotSend</a>,
+    </span><span class="kw">pub fn </span>entered(<span class="self">self</span>) -&gt; EnteredSpan {
+        <span class="self">self</span>.do_enter();
+        EnteredSpan {
+            span: <span class="self">self</span>,
+            _not_send: PhantomNotSend,
         }
     }
 
@@ -2652,16 +2652,16 @@
         <span class="kw">if </span><span class="self">self</span>.is_disabled() {
             <span class="kw">return </span><span class="self">Self</span>::current();
         }
-        <span class="self"><a href="#1027">self</a>
+        <span class="self">self
     </span>}
 
     <span class="attr">#[inline(always)]
     </span><span class="kw">fn </span>do_enter(<span class="kw-2">&amp;</span><span class="self">self</span>) {
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(inner) = <a class="self" href="#1035">self</a>.inner.as_ref() {
-            <a href="#1036">inner</a>.subscriber.enter(<span class="kw-2">&amp;</span><a href="#1036">inner</a>.id);
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(inner) = <span class="self">self</span>.inner.as_ref() {
+            inner.subscriber.enter(<span class="kw-2">&amp;</span>inner.id);
         }
 
-        <a class="macro" href="macros.rs.html#2466-2484">if_log_enabled! </a>{ <span class="kw">crate</span>::Level::TRACE, {
+        <span class="macro">if_log_enabled! </span>{ <span class="kw">crate</span>::Level::TRACE, {
             <span class="kw">if let </span><span class="prelude-val">Some</span>(_meta) = <span class="self">self</span>.meta {
                 <span class="self">self</span>.log(ACTIVITY_LOG_TARGET, log::Level::Trace, <span class="macro">format_args!</span>(<span class="string">&quot;-&gt; {};&quot;</span>, _meta.name()));
             }
@@ -2674,11 +2674,11 @@
     // call means that spans may still be exited when unwinding.
     </span><span class="attr">#[inline(always)]
     </span><span class="kw">fn </span>do_exit(<span class="kw-2">&amp;</span><span class="self">self</span>) {
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(inner) = <a class="self" href="#1052">self</a>.inner.as_ref() {
-            <a href="#1053">inner</a>.subscriber.exit(<span class="kw-2">&amp;</span><a href="#1053">inner</a>.id);
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(inner) = <span class="self">self</span>.inner.as_ref() {
+            inner.subscriber.exit(<span class="kw-2">&amp;</span>inner.id);
         }
 
-        <a class="macro" href="macros.rs.html#2466-2484">if_log_enabled! </a>{ <span class="kw">crate</span>::Level::TRACE, {
+        <span class="macro">if_log_enabled! </span>{ <span class="kw">crate</span>::Level::TRACE, {
             <span class="kw">if let </span><span class="prelude-val">Some</span>(_meta) = <span class="self">self</span>.meta {
                 <span class="self">self</span>.log(ACTIVITY_LOG_TARGET, log::Level::Trace, <span class="macro">format_args!</span>(<span class="string">&quot;&lt;- {};&quot;</span>, _meta.name()));
             }
@@ -2722,27 +2722,27 @@
     /// let a_string = span.in_scope(hello_world);
     ///
     </span><span class="kw">pub fn </span>in_scope&lt;F: FnOnce() -&gt; T, T&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, f: F) -&gt; T {
-        <span class="kw">let </span>_enter = <a class="self" href="#1100">self</a>.<a href="#785">enter</a>();
-        <a href="#1100">f</a>()
+        <span class="kw">let </span>_enter = <span class="self">self</span>.enter();
+        f()
     }
 
     <span class="doccomment">/// Returns a [`Field`][super::field::Field] for the field with the
     /// given `name`, if one exists,
-    </span><span class="kw">pub fn </span>field&lt;Q: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, field: <span class="kw-2">&amp;</span>Q) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="../../tracing/field/struct.Field.html">field::Field</a>&gt;
+    </span><span class="kw">pub fn </span>field&lt;Q: <span class="question-mark">?</span>Sized&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, field: <span class="kw-2">&amp;</span>Q) -&gt; <span class="prelude-ty">Option</span>&lt;field::Field&gt;
     <span class="kw">where
-        </span>Q: <a href="field.rs.html#129">field::AsField</a>,
+        </span>Q: field::AsField,
     {
-        <a class="self" href="#1107">self</a>.<a href="#1325">metadata</a>().and_then(|meta| <a href="#1107">field</a>.<a href="field.rs.html#134">as_field</a>(<a href="#1111">meta</a>))
+        <span class="self">self</span>.metadata().and_then(|meta| field.as_field(meta))
     }
 
     <span class="doccomment">/// Returns true if this `Span` has a field for the given
     /// [`Field`][super::field::Field] or field name.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>has_field&lt;Q: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, field: <span class="kw-2">&amp;</span>Q) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>
+    </span><span class="kw">pub fn </span>has_field&lt;Q: <span class="question-mark">?</span>Sized&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, field: <span class="kw-2">&amp;</span>Q) -&gt; bool
     <span class="kw">where
-        </span>Q: <a href="field.rs.html#129">field::AsField</a>,
+        </span>Q: field::AsField,
     {
-        <a class="self" href="#1117">self</a>.<a href="#1107-1109">field</a>(<a href="#1117">field</a>).is_some()
+        <span class="self">self</span>.field(field).is_some()
     }
 
     <span class="doccomment">/// Records that the field described by `field` has the value `value`.
@@ -2815,33 +2815,33 @@
     ///
     /// [`field::Empty`]: super::field::Empty
     /// [`Metadata`]: super::Metadata
-    </span><span class="kw">pub fn </span>record&lt;Q: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>, V&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, field: <span class="kw-2">&amp;</span>Q, value: V) -&gt; <span class="kw-2">&amp;</span><span class="self">Self
+    </span><span class="kw">pub fn </span>record&lt;Q: <span class="question-mark">?</span>Sized, V&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, field: <span class="kw-2">&amp;</span>Q, value: V) -&gt; <span class="kw-2">&amp;</span><span class="self">Self
     </span><span class="kw">where
-        </span>Q: <a href="field.rs.html#129">field::AsField</a>,
-        V: <a href="../../tracing/trait.Value.html">field::Value</a>,
+        </span>Q: field::AsField,
+        V: field::Value,
     {
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(meta) = <a class="self" href="#1194">self</a>.meta {
-            <span class="kw">if let </span><span class="prelude-val">Some</span>(field) = <a href="#1194">field</a>.<a href="field.rs.html#134">as_field</a>(<a href="#1199">meta</a>) {
-                <a class="self" href="#1194">self</a>.<a href="#1213">record_all</a>(
-                    <span class="kw-2">&amp;</span><a href="#1199">meta</a>
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(meta) = <span class="self">self</span>.meta {
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(field) = field.as_field(meta) {
+                <span class="self">self</span>.record_all(
+                    <span class="kw-2">&amp;</span>meta
                         .fields()
-                        .value_set(<span class="kw-2">&amp;</span>[(<span class="kw-2">&amp;</span><a href="#1200">field</a>, <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><a href="#1194">value</a> <span class="kw">as </span><span class="kw-2">&amp;</span><span class="kw">dyn </span><a href="../../tracing/trait.Value.html">field::Value</a>))]),
+                        .value_set(<span class="kw-2">&amp;</span>[(<span class="kw-2">&amp;</span>field, <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>value <span class="kw">as </span><span class="kw-2">&amp;</span><span class="kw">dyn </span>field::Value))]),
                 );
             }
         }
 
-        <span class="self"><a href="#1194">self</a>
+        <span class="self">self
     </span>}
 
     <span class="doccomment">/// Records all the fields in the provided `ValueSet`.
     </span><span class="kw">pub fn </span>record_all(<span class="kw-2">&amp;</span><span class="self">self</span>, values: <span class="kw-2">&amp;</span>field::ValueSet&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <span class="kw-2">&amp;</span><span class="self">Self </span>{
-        <span class="kw">let </span>record = Record::new(<a href="#1213">values</a>);
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">ref </span>inner) = <a class="self" href="#1213">self</a>.inner {
-            <a href="#1215">inner</a>.<a href="#1505">record</a>(<span class="kw-2">&amp;</span><a href="#1214">record</a>);
+        <span class="kw">let </span>record = Record::new(values);
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">ref </span>inner) = <span class="self">self</span>.inner {
+            inner.record(<span class="kw-2">&amp;</span>record);
         }
 
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(_meta) = <a class="self" href="#1213">self</a>.meta {
-            <a class="macro" href="macros.rs.html#2466-2484">if_log_enabled! </a>{ <span class="kw-2">*</span>_meta.level(), {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(_meta) = <span class="self">self</span>.meta {
+            <span class="macro">if_log_enabled! </span>{ <span class="kw-2">*</span>_meta.level(), {
                 <span class="kw">let </span>target = <span class="kw">if </span>record.is_empty() {
                     LIFECYCLE_LOG_TARGET
                 } <span class="kw">else </span>{
@@ -2855,7 +2855,7 @@
             }}
         }
 
-        <span class="self"><a href="#1213">self</a>
+        <span class="self">self
     </span>}
 
     <span class="doccomment">/// Returns `true` if this span was disabled by the subscriber and does not
@@ -2865,8 +2865,8 @@
     ///
     /// [`is_none`]: Span::is_none()
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>is_disabled(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#1244">self</a>.inner.is_none()
+    </span><span class="kw">pub fn </span>is_disabled(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.inner.is_none()
     }
 
     <span class="doccomment">/// Returns `true` if this span was constructed by [`Span::none`] and is
@@ -2880,8 +2880,8 @@
     /// [`Span::none`]: Span::none()
     /// [`is_disabled`]: Span::is_disabled()
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>is_none(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#1259">self</a>.<a href="#1244">is_disabled</a>() &amp;&amp; <a class="self" href="#1259">self</a>.meta.is_none()
+    </span><span class="kw">pub fn </span>is_none(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.is_disabled() &amp;&amp; <span class="self">self</span>.meta.is_none()
     }
 
     <span class="doccomment">/// Indicates that the span with the given ID has an indirect causal
@@ -2931,51 +2931,51 @@
     /// let id = span.id();
     /// span.follows_from(id);
     /// ```
-    </span><span class="kw">pub fn </span>follows_from(<span class="kw-2">&amp;</span><span class="self">self</span>, from: <span class="kw">impl </span>Into&lt;<span class="prelude-ty">Option</span>&lt;<a href="../../tracing/span/struct.Id.html">Id</a>&gt;&gt;) -&gt; <span class="kw-2">&amp;</span><span class="self">Self </span>{
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">ref </span>inner) = <a class="self" href="#1310">self</a>.inner {
-            <span class="kw">if let </span><span class="prelude-val">Some</span>(from) = <a href="#1310">from</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>() {
-                <a href="#1311">inner</a>.<a href="#1496">follows_from</a>(<span class="kw-2">&amp;</span><a href="#1312">from</a>);
+    </span><span class="kw">pub fn </span>follows_from(<span class="kw-2">&amp;</span><span class="self">self</span>, from: <span class="kw">impl </span>Into&lt;<span class="prelude-ty">Option</span>&lt;Id&gt;&gt;) -&gt; <span class="kw-2">&amp;</span><span class="self">Self </span>{
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">ref </span>inner) = <span class="self">self</span>.inner {
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(from) = from.into() {
+                inner.follows_from(<span class="kw-2">&amp;</span>from);
             }
         }
-        <span class="self"><a href="#1310">self</a>
+        <span class="self">self
     </span>}
 
     <span class="doccomment">/// Returns this span&#39;s `Id`, if it is enabled.
-    </span><span class="kw">pub fn </span>id(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="../../tracing/span/struct.Id.html">Id</a>&gt; {
-        <a class="self" href="#1320">self</a>.inner.as_ref().map(Inner::id)
+    </span><span class="kw">pub fn </span>id(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Id&gt; {
+        <span class="self">self</span>.inner.as_ref().map(Inner::id)
     }
 
     <span class="doccomment">/// Returns this span&#39;s `Metadata`, if it is enabled.
     </span><span class="kw">pub fn </span>metadata(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>Metadata&lt;<span class="lifetime">&#39;static</span>&gt;&gt; {
-        <a class="self" href="#1325">self</a>.meta
+        <span class="self">self</span>.meta
     }
 
     <span class="attr">#[cfg(feature = <span class="string">&quot;log&quot;</span>)]
     #[inline]
-    </span><span class="kw">fn </span>log(<span class="kw-2">&amp;</span><span class="self">self</span>, target: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, level: <a href="../../log/enum.Level.html">log::Level</a>, message: fmt::Arguments&lt;<span class="lifetime">&#39;_</span>&gt;) {
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(meta) = <a class="self" href="#1331">self</a>.meta {
+    </span><span class="kw">fn </span>log(<span class="kw-2">&amp;</span><span class="self">self</span>, target: <span class="kw-2">&amp;</span>str, level: log::Level, message: fmt::Arguments&lt;<span class="lifetime">&#39;_</span>&gt;) {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(meta) = <span class="self">self</span>.meta {
             <span class="kw">if </span><span class="macro">level_to_log!</span>(<span class="kw-2">*</span>meta.level()) &lt;= log::max_level() {
-                <span class="kw">let </span>logger = <a href="../../log/fn.logger.html">log::logger</a>();
-                <span class="kw">let </span>log_meta = log::Metadata::builder().level(<a href="#1331">level</a>).target(<a href="#1331">target</a>).build();
+                <span class="kw">let </span>logger = log::logger();
+                <span class="kw">let </span>log_meta = log::Metadata::builder().level(level).target(target).build();
                 <span class="kw">if </span>logger.enabled(<span class="kw-2">&amp;</span>log_meta) {
-                    <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">ref </span>inner) = <a class="self" href="#1331">self</a>.inner {
-                        <a href="#1334">logger</a>.<a href="../../log/trait.Log.html">log</a>(
+                    <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">ref </span>inner) = <span class="self">self</span>.inner {
+                        logger.log(
                             <span class="kw-2">&amp;</span>log::Record::builder()
-                                .metadata(<a href="#1335">log_meta</a>)
-                                .module_path(<a href="#1332">meta</a>.module_path())
-                                .file(<a href="#1332">meta</a>.file())
-                                .line(<a href="#1332">meta</a>.line())
-                                .args(<a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.format_args.html">format_args!</a>(<span class="string">&quot;{} span={}&quot;</span>, message, inner.id.into_u64()))
+                                .metadata(log_meta)
+                                .module_path(meta.module_path())
+                                .file(meta.file())
+                                .line(meta.line())
+                                .args(<span class="macro">format_args!</span>(<span class="string">&quot;{} span={}&quot;</span>, message, inner.id.into_u64()))
                                 .build(),
                         );
                     } <span class="kw">else </span>{
-                        <a href="#1334">logger</a>.<a href="../../log/trait.Log.html">log</a>(
+                        logger.log(
                             <span class="kw-2">&amp;</span>log::Record::builder()
-                                .metadata(<a href="#1335">log_meta</a>)
-                                .module_path(<a href="#1332">meta</a>.module_path())
-                                .file(<a href="#1332">meta</a>.file())
-                                .line(<a href="#1332">meta</a>.line())
-                                .args(<a href="#1331">message</a>)
+                                .metadata(log_meta)
+                                .module_path(meta.module_path())
+                                .file(meta.file())
+                                .line(meta.line())
+                                .args(message)
                                 .build(),
                         );
                     }
@@ -2989,105 +2989,105 @@
     /// if this span is enabled, the provided function is called, and the result is returned.
     /// If the span is disabled, the function is not called, and this method returns `None`
     /// instead.
-    </span><span class="kw">pub fn </span>with_subscriber&lt;T&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw">impl </span>FnOnce((<span class="kw-2">&amp;</span><a href="../../tracing/span/struct.Id.html">Id</a>, <span class="kw-2">&amp;</span><a href="../../tracing/struct.Dispatch.html">Dispatch</a>)) -&gt; T) -&gt; <span class="prelude-ty">Option</span>&lt;T&gt; {
-        <a class="self" href="#1368">self</a>.inner
+    </span><span class="kw">pub fn </span>with_subscriber&lt;T&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw">impl </span>FnOnce((<span class="kw-2">&amp;</span>Id, <span class="kw-2">&amp;</span>Dispatch)) -&gt; T) -&gt; <span class="prelude-ty">Option</span>&lt;T&gt; {
+        <span class="self">self</span>.inner
             .as_ref()
-            .map(|inner| <a href="#1368">f</a>((<span class="kw-2">&amp;</span><a href="#1371">inner</a>.id, <span class="kw-2">&amp;</span><a href="#1371">inner</a>.subscriber)))
+            .map(|inner| f((<span class="kw-2">&amp;</span>inner.id, <span class="kw-2">&amp;</span>inner.subscriber)))
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/cmp/trait.PartialEq.html">cmp::PartialEq</a> <span class="kw">for </span><a href="#348">Span</a> {
-    <span class="kw">fn </span>eq(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">match </span>(<span class="kw-2">&amp;</span><a class="self" href="#1376">self</a>.meta, <span class="kw-2">&amp;</span><a href="#1376">other</a>.meta) {
+<span class="kw">impl </span>cmp::PartialEq <span class="kw">for </span>Span {
+    <span class="kw">fn </span>eq(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; bool {
+        <span class="kw">match </span>(<span class="kw-2">&amp;</span><span class="self">self</span>.meta, <span class="kw-2">&amp;</span>other.meta) {
             (<span class="prelude-val">Some</span>(this), <span class="prelude-val">Some</span>(that)) =&gt; {
-                <a href="#1378">this</a>.callsite() == <a href="#1378">that</a>.callsite() &amp;&amp; <a class="self" href="#1376">self</a>.inner == <a href="#1376">other</a>.inner
+                this.callsite() == that.callsite() &amp;&amp; <span class="self">self</span>.inner == other.inner
             }
             <span class="kw">_ </span>=&gt; <span class="bool-val">false</span>,
         }
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/hash/trait.Hash.html">Hash</a> <span class="kw">for </span><a href="#348">Span</a> {
-    <span class="kw">fn </span>hash&lt;H: <a href="https://doc.rust-lang.org/nightly/core/hash/trait.Hasher.html">Hasher</a>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, hasher: <span class="kw-2">&amp;mut </span>H) {
-        <a class="self" href="#1387">self</a>.inner.<a href="https://doc.rust-lang.org/nightly/core/hash/trait.Hash.html">hash</a>(<a href="#1387">hasher</a>);
+<span class="kw">impl </span>Hash <span class="kw">for </span>Span {
+    <span class="kw">fn </span>hash&lt;H: Hasher&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, hasher: <span class="kw-2">&amp;mut </span>H) {
+        <span class="self">self</span>.inner.hash(hasher);
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="#348">Span</a> {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <span class="kw">let </span><span class="kw-2">mut </span>span = <a href="#1393">f</a>.debug_struct(<span class="string">&quot;Span&quot;</span>);
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(meta) = <a class="self" href="#1393">self</a>.meta {
-            <a href="#1394">span</a>.field(<span class="string">&quot;name&quot;</span>, <span class="kw-2">&amp;</span><a href="#1395">meta</a>.name())
-                .field(<span class="string">&quot;level&quot;</span>, <span class="kw-2">&amp;</span><a href="#1395">meta</a>.level())
-                .field(<span class="string">&quot;target&quot;</span>, <span class="kw-2">&amp;</span><a href="#1395">meta</a>.target());
+<span class="kw">impl </span>fmt::Debug <span class="kw">for </span>Span {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        <span class="kw">let </span><span class="kw-2">mut </span>span = f.debug_struct(<span class="string">&quot;Span&quot;</span>);
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(meta) = <span class="self">self</span>.meta {
+            span.field(<span class="string">&quot;name&quot;</span>, <span class="kw-2">&amp;</span>meta.name())
+                .field(<span class="string">&quot;level&quot;</span>, <span class="kw-2">&amp;</span>meta.level())
+                .field(<span class="string">&quot;target&quot;</span>, <span class="kw-2">&amp;</span>meta.target());
 
-            <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">ref </span>inner) = <a class="self" href="#1393">self</a>.inner {
-                <a href="#1394">span</a>.field(<span class="string">&quot;id&quot;</span>, <span class="kw-2">&amp;</span><a href="#1400">inner</a>.<a href="#1501">id</a>());
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">ref </span>inner) = <span class="self">self</span>.inner {
+                span.field(<span class="string">&quot;id&quot;</span>, <span class="kw-2">&amp;</span>inner.id());
             } <span class="kw">else </span>{
-                <a href="#1394">span</a>.field(<span class="string">&quot;disabled&quot;</span>, <span class="kw-2">&amp;</span><span class="bool-val">true</span>);
+                span.field(<span class="string">&quot;disabled&quot;</span>, <span class="kw-2">&amp;</span><span class="bool-val">true</span>);
             }
 
-            <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">ref </span>path) = <a href="#1395">meta</a>.module_path() {
-                <a href="#1394">span</a>.field(<span class="string">&quot;module_path&quot;</span>, <span class="kw-2">&amp;</span><a href="#1406">path</a>);
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">ref </span>path) = meta.module_path() {
+                span.field(<span class="string">&quot;module_path&quot;</span>, <span class="kw-2">&amp;</span>path);
             }
 
-            <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">ref </span>line) = <a href="#1395">meta</a>.line() {
-                <a href="#1394">span</a>.field(<span class="string">&quot;line&quot;</span>, <span class="kw-2">&amp;</span><a href="#1410">line</a>);
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">ref </span>line) = meta.line() {
+                span.field(<span class="string">&quot;line&quot;</span>, <span class="kw-2">&amp;</span>line);
             }
 
-            <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">ref </span>file) = <a href="#1395">meta</a>.file() {
-                <a href="#1394">span</a>.field(<span class="string">&quot;file&quot;</span>, <span class="kw-2">&amp;</span><a href="#1414">file</a>);
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">ref </span>file) = meta.file() {
+                span.field(<span class="string">&quot;file&quot;</span>, <span class="kw-2">&amp;</span>file);
             }
         } <span class="kw">else </span>{
-            <a href="#1394">span</a>.field(<span class="string">&quot;none&quot;</span>, <span class="kw-2">&amp;</span><span class="bool-val">true</span>);
+            span.field(<span class="string">&quot;none&quot;</span>, <span class="kw-2">&amp;</span><span class="bool-val">true</span>);
         }
 
-        <a href="#1394">span</a>.finish()
+        span.finish()
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; From&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="#348">Span</a>&gt; <span class="kw">for </span><span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="../../tracing/span/struct.Id.html">Id</a>&gt; {
-    <span class="kw">fn </span>from(span: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="#348">Span</a>) -&gt; <span class="self">Self </span>{
-        <a href="#1426">span</a>.inner.as_ref().map(|inner| <span class="kw-2">&amp;</span><a href="#1427">inner</a>.id)
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; From&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Span&gt; <span class="kw">for </span><span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Id&gt; {
+    <span class="kw">fn </span>from(span: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Span) -&gt; <span class="self">Self </span>{
+        span.inner.as_ref().map(|inner| <span class="kw-2">&amp;</span>inner.id)
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; From&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="#348">Span</a>&gt; <span class="kw">for </span><span class="prelude-ty">Option</span>&lt;<a href="../../tracing/span/struct.Id.html">Id</a>&gt; {
-    <span class="kw">fn </span>from(span: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="#348">Span</a>) -&gt; <span class="self">Self </span>{
-        <a href="#1432">span</a>.inner.as_ref().map(Inner::id)
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; From&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Span&gt; <span class="kw">for </span><span class="prelude-ty">Option</span>&lt;Id&gt; {
+    <span class="kw">fn </span>from(span: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Span) -&gt; <span class="self">Self </span>{
+        span.inner.as_ref().map(Inner::id)
     }
 }
 
-<span class="kw">impl </span>From&lt;<a href="#348">Span</a>&gt; <span class="kw">for </span><span class="prelude-ty">Option</span>&lt;<a href="../../tracing/span/struct.Id.html">Id</a>&gt; {
-    <span class="kw">fn </span>from(span: <a href="#348">Span</a>) -&gt; <span class="self">Self </span>{
-        <a href="#1438">span</a>.inner.as_ref().map(Inner::id)
+<span class="kw">impl </span>From&lt;Span&gt; <span class="kw">for </span><span class="prelude-ty">Option</span>&lt;Id&gt; {
+    <span class="kw">fn </span>from(span: Span) -&gt; <span class="self">Self </span>{
+        span.inner.as_ref().map(Inner::id)
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; From&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="#401">EnteredSpan</a>&gt; <span class="kw">for </span><span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="../../tracing/span/struct.Id.html">Id</a>&gt; {
-    <span class="kw">fn </span>from(span: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="#401">EnteredSpan</a>) -&gt; <span class="self">Self </span>{
-        <a href="#1444">span</a>.inner.as_ref().map(|inner| <span class="kw-2">&amp;</span><a href="#1445">inner</a>.id)
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; From&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>EnteredSpan&gt; <span class="kw">for </span><span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Id&gt; {
+    <span class="kw">fn </span>from(span: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>EnteredSpan) -&gt; <span class="self">Self </span>{
+        span.inner.as_ref().map(|inner| <span class="kw-2">&amp;</span>inner.id)
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; From&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="#401">EnteredSpan</a>&gt; <span class="kw">for </span><span class="prelude-ty">Option</span>&lt;<a href="../../tracing/span/struct.Id.html">Id</a>&gt; {
-    <span class="kw">fn </span>from(span: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="#401">EnteredSpan</a>) -&gt; <span class="self">Self </span>{
-        <a href="#1450">span</a>.inner.as_ref().map(Inner::id)
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; From&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>EnteredSpan&gt; <span class="kw">for </span><span class="prelude-ty">Option</span>&lt;Id&gt; {
+    <span class="kw">fn </span>from(span: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>EnteredSpan) -&gt; <span class="self">Self </span>{
+        span.inner.as_ref().map(Inner::id)
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span><a href="#348">Span</a> {
+<span class="kw">impl </span>Drop <span class="kw">for </span>Span {
     <span class="attr">#[inline(always)]
     </span><span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(<a href="#366">Inner</a> {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(Inner {
             <span class="kw-2">ref </span>id,
             <span class="kw-2">ref </span>subscriber,
-        }) = <a class="self" href="#1457">self</a>.inner
+        }) = <span class="self">self</span>.inner
         {
-            <a href="#1460">subscriber</a>.try_close(<a href="#1459">id</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
+            subscriber.try_close(id.clone());
         }
 
-        <a class="macro" href="macros.rs.html#2466-2484">if_log_enabled! </a>{ <span class="kw">crate</span>::Level::TRACE, {
+        <span class="macro">if_log_enabled! </span>{ <span class="kw">crate</span>::Level::TRACE, {
             <span class="kw">if let </span><span class="prelude-val">Some</span>(meta) = <span class="self">self</span>.meta {
                 <span class="self">self</span>.log(
                     LIFECYCLE_LOG_TARGET,
@@ -3101,7 +3101,7 @@
 
 <span class="comment">// ===== impl Inner =====
 
-</span><span class="kw">impl </span><a href="#366">Inner</a> {
+</span><span class="kw">impl </span>Inner {
     <span class="doccomment">/// Indicates that the span with the given ID has an indirect causal
     /// relationship with this span.
     ///
@@ -3117,86 +3117,86 @@
     /// If this span is disabled, this function will do nothing. Otherwise, it
     /// returns `Ok(())` if the other span was added as a precedent of this
     /// span, or an error if this was not possible.
-    </span><span class="kw">fn </span>follows_from(<span class="kw-2">&amp;</span><span class="self">self</span>, from: <span class="kw-2">&amp;</span><a href="../../tracing/span/struct.Id.html">Id</a>) {
-        <a class="self" href="#1496">self</a>.subscriber.record_follows_from(<span class="kw-2">&amp;</span><a class="self" href="#1496">self</a>.id, <a href="#1496">from</a>)
+    </span><span class="kw">fn </span>follows_from(<span class="kw-2">&amp;</span><span class="self">self</span>, from: <span class="kw-2">&amp;</span>Id) {
+        <span class="self">self</span>.subscriber.record_follows_from(<span class="kw-2">&amp;</span><span class="self">self</span>.id, from)
     }
 
     <span class="doccomment">/// Returns the span&#39;s ID.
-    </span><span class="kw">fn </span>id(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../../tracing/span/struct.Id.html">Id</a> {
-        <a class="self" href="#1501">self</a>.id.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()
+    </span><span class="kw">fn </span>id(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Id {
+        <span class="self">self</span>.id.clone()
     }
 
     <span class="kw">fn </span>record(<span class="kw-2">&amp;</span><span class="self">self</span>, values: <span class="kw-2">&amp;</span>Record&lt;<span class="lifetime">&#39;_</span>&gt;) {
-        <a class="self" href="#1505">self</a>.subscriber.record(<span class="kw-2">&amp;</span><a class="self" href="#1505">self</a>.id, <a href="#1505">values</a>)
+        <span class="self">self</span>.subscriber.record(<span class="kw-2">&amp;</span><span class="self">self</span>.id, values)
     }
 
-    <span class="kw">fn </span>new(id: <a href="../../tracing/span/struct.Id.html">Id</a>, subscriber: <span class="kw-2">&amp;</span><a href="../../tracing/struct.Dispatch.html">Dispatch</a>) -&gt; <span class="self">Self </span>{
-        <a href="#366">Inner</a> {
-            <a href="#1509">id</a>,
-            subscriber: <a href="#1509">subscriber</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+    <span class="kw">fn </span>new(id: Id, subscriber: <span class="kw-2">&amp;</span>Dispatch) -&gt; <span class="self">Self </span>{
+        Inner {
+            id,
+            subscriber: subscriber.clone(),
         }
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/cmp/trait.PartialEq.html">cmp::PartialEq</a> <span class="kw">for </span><a href="#366">Inner</a> {
-    <span class="kw">fn </span>eq(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#1518">self</a>.id == <a href="#1518">other</a>.id
+<span class="kw">impl </span>cmp::PartialEq <span class="kw">for </span>Inner {
+    <span class="kw">fn </span>eq(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; bool {
+        <span class="self">self</span>.id == other.id
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/hash/trait.Hash.html">Hash</a> <span class="kw">for </span><a href="#366">Inner</a> {
-    <span class="kw">fn </span>hash&lt;H: <a href="https://doc.rust-lang.org/nightly/core/hash/trait.Hasher.html">Hasher</a>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, state: <span class="kw-2">&amp;mut </span>H) {
-        <a class="self" href="#1524">self</a>.id.<a href="https://doc.rust-lang.org/nightly/core/hash/trait.Hash.html">hash</a>(<a href="#1524">state</a>);
+<span class="kw">impl </span>Hash <span class="kw">for </span>Inner {
+    <span class="kw">fn </span>hash&lt;H: Hasher&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, state: <span class="kw-2">&amp;mut </span>H) {
+        <span class="self">self</span>.id.hash(state);
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> <span class="kw">for </span><a href="#366">Inner</a> {
+<span class="kw">impl </span>Clone <span class="kw">for </span>Inner {
     <span class="kw">fn </span>clone(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self </span>{
-        <a href="#366">Inner</a> {
-            id: <a class="self" href="#1530">self</a>.subscriber.clone_span(<span class="kw-2">&amp;</span><a class="self" href="#1530">self</a>.id),
-            subscriber: <a class="self" href="#1530">self</a>.subscriber.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+        Inner {
+            id: <span class="self">self</span>.subscriber.clone_span(<span class="kw-2">&amp;</span><span class="self">self</span>.id),
+            subscriber: <span class="self">self</span>.subscriber.clone(),
         }
     }
 }
 
 <span class="comment">// ===== impl Entered =====
 
-</span><span class="kw">impl </span><a href="#401">EnteredSpan</a> {
+</span><span class="kw">impl </span>EnteredSpan {
     <span class="doccomment">/// Returns this span&#39;s `Id`, if it is enabled.
-    </span><span class="kw">pub fn </span>id(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="../../tracing/span/struct.Id.html">Id</a>&gt; {
-        <a class="self" href="#1542">self</a>.inner.as_ref().map(Inner::id)
+    </span><span class="kw">pub fn </span>id(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Id&gt; {
+        <span class="self">self</span>.inner.as_ref().map(Inner::id)
     }
 
     <span class="doccomment">/// Exits this span, returning the underlying [`Span`].
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>exit(<span class="kw-2">mut </span><span class="self">self</span>) -&gt; <a href="#348">Span</a> {
+    </span><span class="kw">pub fn </span>exit(<span class="kw-2">mut </span><span class="self">self</span>) -&gt; Span {
         <span class="comment">// One does not simply move out of a struct with `Drop`.
-        </span><span class="kw">let </span>span = mem::replace(<span class="kw-2">&amp;mut </span><a class="self" href="#1548">self</a>.span, Span::none());
-        <a href="#1550">span</a>.<a href="#1052">do_exit</a>();
-        <a href="#1550">span</a>
+        </span><span class="kw">let </span>span = mem::replace(<span class="kw-2">&amp;mut </span><span class="self">self</span>.span, Span::none());
+        span.do_exit();
+        span
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.Deref.html">Deref</a> <span class="kw">for </span><a href="#401">EnteredSpan</a> {
-    <span class="kw">type </span>Target = <a href="#348">Span</a>;
+<span class="kw">impl </span>Deref <span class="kw">for </span>EnteredSpan {
+    <span class="kw">type </span>Target = Span;
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>deref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="#348">Span</a> {
-        <span class="kw-2">&amp;</span><a class="self" href="#1560">self</a>.span
+    </span><span class="kw">fn </span>deref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Span {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.span
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span>Entered&lt;<span class="lifetime">&#39;a</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; Drop <span class="kw">for </span>Entered&lt;<span class="lifetime">&#39;a</span>&gt; {
     <span class="attr">#[inline(always)]
     </span><span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <a class="self" href="#1567">self</a>.span.<a href="#1052">do_exit</a>()
+        <span class="self">self</span>.span.do_exit()
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span><a href="#401">EnteredSpan</a> {
+<span class="kw">impl </span>Drop <span class="kw">for </span>EnteredSpan {
     <span class="attr">#[inline(always)]
     </span><span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <a class="self" href="#1574">self</a>.span.<a href="#1052">do_exit</a>()
+        <span class="self">self</span>.span.do_exit()
     }
 }
 
@@ -3220,12 +3220,12 @@
 }
 
 <span class="attr">#[allow(non_upper_case_globals)]
-</span><span class="kw">const </span>PhantomNotSend: <a href="#1594">PhantomNotSend</a> = <a href="#1594">PhantomNotSend</a> { ghost: PhantomData };
+</span><span class="kw">const </span>PhantomNotSend: PhantomNotSend = PhantomNotSend { ghost: PhantomData };
 
 <span class="doccomment">/// # Safety
 ///
 /// Trivially safe, as `PhantomNotSend` doesn&#39;t have any API.
-</span><span class="kw">unsafe impl </span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> <span class="kw">for </span><a href="#1594">PhantomNotSend</a> {}
+</span><span class="kw">unsafe impl </span>Sync <span class="kw">for </span>PhantomNotSend {}
 
 <span class="attr">#[cfg(test)]
 </span><span class="kw">mod </span>test {
@@ -3246,4 +3246,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="tracing" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="tracing" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

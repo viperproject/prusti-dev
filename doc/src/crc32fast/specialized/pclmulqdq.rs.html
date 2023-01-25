@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/crc32fast-1.3.2/src/specialized/pclmulqdq.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>pclmulqdq.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../crc32fast/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/crc32fast-1.3.2/src/specialized/pclmulqdq.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>pclmulqdq.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../crc32fast/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -226,14 +226,14 @@
 </pre><pre class="rust"><code><span class="attr">#[cfg(target_arch = <span class="string">&quot;x86&quot;</span>)]
 </span><span class="kw">use </span>core::arch::x86 <span class="kw">as </span>arch;
 <span class="attr">#[cfg(target_arch = <span class="string">&quot;x86_64&quot;</span>)]
-</span><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/core_arch/arch/x86_64/index.html">core::arch::x86_64</a> <span class="kw">as </span>arch;
+</span><span class="kw">use </span>core::arch::x86_64 <span class="kw">as </span>arch;
 
 <span class="attr">#[derive(Clone)]
 </span><span class="kw">pub struct </span>State {
-    state: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>,
+    state: u32,
 }
 
-<span class="kw">impl </span><a href="#7">State</a> {
+<span class="kw">impl </span>State {
     <span class="attr">#[cfg(not(feature = <span class="string">&quot;std&quot;</span>))]
     </span><span class="kw">pub fn </span>new(state: u32) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt; {
         <span class="kw">if </span><span class="macro">cfg!</span>(target_feature = <span class="string">&quot;pclmulqdq&quot;</span>)
@@ -249,63 +249,63 @@
     }
 
     <span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
-    </span><span class="kw">pub fn </span>new(state: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt; {
+    </span><span class="kw">pub fn </span>new(state: u32) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt; {
         <span class="kw">if </span><span class="macro">is_x86_feature_detected!</span>(<span class="string">&quot;pclmulqdq&quot;</span>)
             &amp;&amp; <span class="macro">is_x86_feature_detected!</span>(<span class="string">&quot;sse2&quot;</span>)
             &amp;&amp; <span class="macro">is_x86_feature_detected!</span>(<span class="string">&quot;sse4.1&quot;</span>)
         {
             <span class="comment">// SAFETY: The conditions above ensure that all
             //         required instructions are supported by the CPU.
-            </span><span class="prelude-val">Some</span>(<span class="self">Self </span>{ <a href="#27">state</a> })
+            </span><span class="prelude-val">Some</span>(<span class="self">Self </span>{ state })
         } <span class="kw">else </span>{
             <span class="prelude-val">None
         </span>}
     }
 
-    <span class="kw">pub fn </span>update(<span class="kw-2">&amp;mut </span><span class="self">self</span>, buf: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) {
+    <span class="kw">pub fn </span>update(<span class="kw-2">&amp;mut </span><span class="self">self</span>, buf: <span class="kw-2">&amp;</span>[u8]) {
         <span class="comment">// SAFETY: The `State::new` constructor ensures that all
         //         required instructions are supported by the CPU.
-        </span><a class="self" href="#40">self</a>.state = <span class="kw">unsafe </span>{ <a href="#92">calculate</a>(<a class="self" href="#40">self</a>.state, <a href="#40">buf</a>) }
+        </span><span class="self">self</span>.state = <span class="kw">unsafe </span>{ calculate(<span class="self">self</span>.state, buf) }
     }
 
-    <span class="kw">pub fn </span>finalize(<span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
-        <a class="self" href="#46">self</a>.state
+    <span class="kw">pub fn </span>finalize(<span class="self">self</span>) -&gt; u32 {
+        <span class="self">self</span>.state
     }
 
     <span class="kw">pub fn </span>reset(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <a class="self" href="#50">self</a>.state = <span class="number">0</span>;
+        <span class="self">self</span>.state = <span class="number">0</span>;
     }
 
-    <span class="kw">pub fn </span>combine(<span class="kw-2">&amp;mut </span><span class="self">self</span>, other: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>, amount: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) {
-        <a class="self" href="#54">self</a>.state = <a href="../combine.rs.html#22">::combine::combine</a>(<a class="self" href="#54">self</a>.state, <a href="#54">other</a>, <a href="#54">amount</a>);
+    <span class="kw">pub fn </span>combine(<span class="kw-2">&amp;mut </span><span class="self">self</span>, other: u32, amount: u64) {
+        <span class="self">self</span>.state = ::combine::combine(<span class="self">self</span>.state, other, amount);
     }
 }
 
-<span class="kw">const </span>K1: <a href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a> = <span class="number">0x154442bd4</span>;
-<span class="kw">const </span>K2: <a href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a> = <span class="number">0x1c6e41596</span>;
-<span class="kw">const </span>K3: <a href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a> = <span class="number">0x1751997d0</span>;
-<span class="kw">const </span>K4: <a href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a> = <span class="number">0x0ccaa009e</span>;
-<span class="kw">const </span>K5: <a href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a> = <span class="number">0x163cd6124</span>;
-<span class="kw">const </span>K6: <a href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a> = <span class="number">0x1db710640</span>;
+<span class="kw">const </span>K1: i64 = <span class="number">0x154442bd4</span>;
+<span class="kw">const </span>K2: i64 = <span class="number">0x1c6e41596</span>;
+<span class="kw">const </span>K3: i64 = <span class="number">0x1751997d0</span>;
+<span class="kw">const </span>K4: i64 = <span class="number">0x0ccaa009e</span>;
+<span class="kw">const </span>K5: i64 = <span class="number">0x163cd6124</span>;
+<span class="kw">const </span>K6: i64 = <span class="number">0x1db710640</span>;
 
-<span class="kw">const </span>P_X: <a href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a> = <span class="number">0x1DB710641</span>;
-<span class="kw">const </span>U_PRIME: <a href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a> = <span class="number">0x1F7011641</span>;
+<span class="kw">const </span>P_X: i64 = <span class="number">0x1DB710641</span>;
+<span class="kw">const </span>U_PRIME: i64 = <span class="number">0x1F7011641</span>;
 
 <span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
-</span><span class="kw">unsafe fn </span>debug(s: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, a: <a href="https://doc.rust-lang.org/nightly/core/core_arch/x86/struct.__m128i.html">arch::__m128i</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/core_arch/x86/struct.__m128i.html">arch::__m128i</a> {
+</span><span class="kw">unsafe fn </span>debug(s: <span class="kw-2">&amp;</span>str, a: arch::__m128i) -&gt; arch::__m128i {
     <span class="kw">if </span><span class="bool-val">false </span>{
         <span class="kw">union </span>A {
-            a: <a href="https://doc.rust-lang.org/nightly/core/core_arch/x86/struct.__m128i.html">arch::__m128i</a>,
-            b: [<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="number">16</span>],
+            a: arch::__m128i,
+            b: [u8; <span class="number">16</span>],
         }
-        <span class="kw">let </span>x = <a href="#72">A</a> { <a href="#70">a</a> }.b;
-        <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.print.html">print!</a>(<span class="string">&quot; {:20} | &quot;</span>, s);
+        <span class="kw">let </span>x = A { a }.b;
+        <span class="macro">print!</span>(<span class="string">&quot; {:20} | &quot;</span>, s);
         <span class="kw">for </span>x <span class="kw">in </span>x.iter() {
             <span class="macro">print!</span>(<span class="string">&quot;{:02x} &quot;</span>, x);
         }
-        <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.println.html">println!</a>();
+        <span class="macro">println!</span>();
     }
-    <span class="kw">return </span><a href="#70">a</a>;
+    <span class="kw">return </span>a;
 }
 
 <span class="attr">#[cfg(not(feature = <span class="string">&quot;std&quot;</span>))]
@@ -314,24 +314,24 @@
 }
 
 <span class="attr">#[target_feature(enable = <span class="string">&quot;pclmulqdq&quot;</span>, enable = <span class="string">&quot;sse2&quot;</span>, enable = <span class="string">&quot;sse4.1&quot;</span>)]
-</span><span class="kw">unsafe fn </span>calculate(crc: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>, <span class="kw-2">mut </span>data: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
+</span><span class="kw">unsafe fn </span>calculate(crc: u32, <span class="kw-2">mut </span>data: <span class="kw-2">&amp;</span>[u8]) -&gt; u32 {
     <span class="comment">// In theory we can accelerate smaller chunks too, but for now just rely on
     // the fallback implementation as it&#39;s too much hassle and doesn&#39;t seem too
     // beneficial.
     </span><span class="kw">if </span>data.len() &lt; <span class="number">128 </span>{
-        <span class="kw">return </span><a href="../baseline.rs.html#30">::baseline::update_fast_16</a>(<a href="#92">crc</a>, <a href="#92">data</a>);
+        <span class="kw">return </span>::baseline::update_fast_16(crc, data);
     }
 
     <span class="comment">// Step 1: fold by 4 loop
-    </span><span class="kw">let </span><span class="kw-2">mut </span>x3 = <a href="#198">get</a>(<span class="kw-2">&amp;mut </span><a href="#92">data</a>);
-    <span class="kw">let </span><span class="kw-2">mut </span>x2 = <a href="#198">get</a>(<span class="kw-2">&amp;mut </span><a href="#92">data</a>);
-    <span class="kw">let </span><span class="kw-2">mut </span>x1 = <a href="#198">get</a>(<span class="kw-2">&amp;mut </span><a href="#92">data</a>);
-    <span class="kw">let </span><span class="kw-2">mut </span>x0 = <a href="#198">get</a>(<span class="kw-2">&amp;mut </span><a href="#92">data</a>);
+    </span><span class="kw">let </span><span class="kw-2">mut </span>x3 = get(<span class="kw-2">&amp;mut </span>data);
+    <span class="kw">let </span><span class="kw-2">mut </span>x2 = get(<span class="kw-2">&amp;mut </span>data);
+    <span class="kw">let </span><span class="kw-2">mut </span>x1 = get(<span class="kw-2">&amp;mut </span>data);
+    <span class="kw">let </span><span class="kw-2">mut </span>x0 = get(<span class="kw-2">&amp;mut </span>data);
 
     <span class="comment">// fold in our initial value, part of the incremental crc checksum
-    </span><a href="#101">x3</a> = arch::_mm_xor_si128(<a href="#101">x3</a>, arch::_mm_cvtsi32_si128(!<a href="#92">crc</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>));
+    </span>x3 = arch::_mm_xor_si128(x3, arch::_mm_cvtsi32_si128(!crc <span class="kw">as </span>i32));
 
-    <span class="kw">let </span>k1k2 = arch::_mm_set_epi64x(<a href="#60">K2</a>, <a href="#59">K1</a>);
+    <span class="kw">let </span>k1k2 = arch::_mm_set_epi64x(K2, K1);
     <span class="kw">while </span>data.len() &gt;= <span class="number">64 </span>{
         x3 = reduce128(x3, get(<span class="kw-2">&amp;mut </span>data), k1k2);
         x2 = reduce128(x2, get(<span class="kw-2">&amp;mut </span>data), k1k2);
@@ -339,17 +339,17 @@
         x0 = reduce128(x0, get(<span class="kw-2">&amp;mut </span>data), k1k2);
     }
 
-    <span class="kw">let </span>k3k4 = arch::_mm_set_epi64x(<a href="#62">K4</a>, <a href="#61">K3</a>);
-    <span class="kw">let </span><span class="kw-2">mut </span>x = <a href="#192">reduce128</a>(<a href="#101">x3</a>, <a href="#102">x2</a>, <a href="#117">k3k4</a>);
-    <a href="#118">x</a> = <a href="#192">reduce128</a>(<a href="#118">x</a>, <a href="#103">x1</a>, <a href="#117">k3k4</a>);
-    <a href="#118">x</a> = <a href="#192">reduce128</a>(<a href="#118">x</a>, <a href="#104">x0</a>, <a href="#117">k3k4</a>);
+    <span class="kw">let </span>k3k4 = arch::_mm_set_epi64x(K4, K3);
+    <span class="kw">let </span><span class="kw-2">mut </span>x = reduce128(x3, x2, k3k4);
+    x = reduce128(x, x1, k3k4);
+    x = reduce128(x, x0, k3k4);
 
     <span class="comment">// Step 2: fold by 1 loop
     </span><span class="kw">while </span>data.len() &gt;= <span class="number">16 </span>{
         x = reduce128(x, get(<span class="kw-2">&amp;mut </span>data), k3k4);
     }
 
-    <a href="#70">debug</a>(<span class="string">&quot;128 &gt; 64 init&quot;</span>, <a href="#118">x</a>);
+    debug(<span class="string">&quot;128 &gt; 64 init&quot;</span>, x);
 
     <span class="comment">// Perform step 3, reduction from 128 bits to 64 bits. This is
     // significantly different from the paper and basically doesn&#39;t follow it
@@ -369,62 +369,62 @@
     // It&#39;s not clear to me, reading the paper, where the xor operations are
     // happening or why things are shifting around. This implementation...
     // appears to work though!
-    </span><a href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>(<a href="#64">K6</a>);
+    </span>drop(K6);
     <span class="kw">let </span>x = arch::_mm_xor_si128(
-        arch::_mm_clmulepi64_si128(<a href="#118">x</a>, <a href="#117">k3k4</a>, <span class="number">0x10</span>),
-        arch::_mm_srli_si128(<a href="#118">x</a>, <span class="number">8</span>),
+        arch::_mm_clmulepi64_si128(x, k3k4, <span class="number">0x10</span>),
+        arch::_mm_srli_si128(x, <span class="number">8</span>),
     );
     <span class="kw">let </span>x = arch::_mm_xor_si128(
         arch::_mm_clmulepi64_si128(
-            arch::_mm_and_si128(<a href="#148">x</a>, arch::_mm_set_epi32(<span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, !<span class="number">0</span>)),
-            arch::_mm_set_epi64x(<span class="number">0</span>, <a href="#63">K5</a>),
+            arch::_mm_and_si128(x, arch::_mm_set_epi32(<span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, !<span class="number">0</span>)),
+            arch::_mm_set_epi64x(<span class="number">0</span>, K5),
             <span class="number">0x00</span>,
         ),
-        arch::_mm_srli_si128(<a href="#148">x</a>, <span class="number">4</span>),
+        arch::_mm_srli_si128(x, <span class="number">4</span>),
     );
-    <a href="#70">debug</a>(<span class="string">&quot;128 &gt; 64 xx&quot;</span>, <a href="#152">x</a>);
+    debug(<span class="string">&quot;128 &gt; 64 xx&quot;</span>, x);
 
     <span class="comment">// Perform a Barrett reduction from our now 64 bits to 32 bits. The
     // algorithm for this is described at the end of the paper, and note that
     // this also implements the &quot;bit reflected input&quot; variant.
-    </span><span class="kw">let </span>pu = arch::_mm_set_epi64x(<a href="#67">U_PRIME</a>, <a href="#66">P_X</a>);
+    </span><span class="kw">let </span>pu = arch::_mm_set_epi64x(U_PRIME, P_X);
 
     <span class="comment">// T1(x) = ⌊(R(x) % x^32)⌋ • μ
     </span><span class="kw">let </span>t1 = arch::_mm_clmulepi64_si128(
-        arch::_mm_and_si128(<a href="#152">x</a>, arch::_mm_set_epi32(<span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, !<span class="number">0</span>)),
-        <a href="#165">pu</a>,
+        arch::_mm_and_si128(x, arch::_mm_set_epi32(<span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, !<span class="number">0</span>)),
+        pu,
         <span class="number">0x10</span>,
     );
     <span class="comment">// T2(x) = ⌊(T1(x) % x^32)⌋ • P(x)
     </span><span class="kw">let </span>t2 = arch::_mm_clmulepi64_si128(
-        arch::_mm_and_si128(<a href="#168">t1</a>, arch::_mm_set_epi32(<span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, !<span class="number">0</span>)),
-        <a href="#165">pu</a>,
+        arch::_mm_and_si128(t1, arch::_mm_set_epi32(<span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, !<span class="number">0</span>)),
+        pu,
         <span class="number">0x00</span>,
     );
     <span class="comment">// We&#39;re doing the bit-reflected variant, so get the upper 32-bits of the
     // 64-bit result instead of the lower 32-bits.
     //
     // C(x) = R(x) ^ T2(x) / x^32
-    </span><span class="kw">let </span>c = arch::_mm_extract_epi32(arch::_mm_xor_si128(<a href="#152">x</a>, <a href="#174">t2</a>), <span class="number">1</span>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>;
+    </span><span class="kw">let </span>c = arch::_mm_extract_epi32(arch::_mm_xor_si128(x, t2), <span class="number">1</span>) <span class="kw">as </span>u32;
 
     <span class="kw">if </span>!data.is_empty() {
-        <a href="../baseline.rs.html#30">::baseline::update_fast_16</a>(!<a href="#183">c</a>, <a href="#92">data</a>)
+        ::baseline::update_fast_16(!c, data)
     } <span class="kw">else </span>{
-        !<a href="#183">c</a>
+        !c
     }
 }
 
-<span class="kw">unsafe fn </span>reduce128(a: <a href="https://doc.rust-lang.org/nightly/core/core_arch/x86/struct.__m128i.html">arch::__m128i</a>, b: <a href="https://doc.rust-lang.org/nightly/core/core_arch/x86/struct.__m128i.html">arch::__m128i</a>, keys: <a href="https://doc.rust-lang.org/nightly/core/core_arch/x86/struct.__m128i.html">arch::__m128i</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/core_arch/x86/struct.__m128i.html">arch::__m128i</a> {
-    <span class="kw">let </span>t1 = arch::_mm_clmulepi64_si128(<a href="#192">a</a>, <a href="#192">keys</a>, <span class="number">0x00</span>);
-    <span class="kw">let </span>t2 = arch::_mm_clmulepi64_si128(<a href="#192">a</a>, <a href="#192">keys</a>, <span class="number">0x11</span>);
-    arch::_mm_xor_si128(arch::_mm_xor_si128(<a href="#192">b</a>, <a href="#193">t1</a>), <a href="#194">t2</a>)
+<span class="kw">unsafe fn </span>reduce128(a: arch::__m128i, b: arch::__m128i, keys: arch::__m128i) -&gt; arch::__m128i {
+    <span class="kw">let </span>t1 = arch::_mm_clmulepi64_si128(a, keys, <span class="number">0x00</span>);
+    <span class="kw">let </span>t2 = arch::_mm_clmulepi64_si128(a, keys, <span class="number">0x11</span>);
+    arch::_mm_xor_si128(arch::_mm_xor_si128(b, t1), t2)
 }
 
-<span class="kw">unsafe fn </span>get(a: <span class="kw-2">&amp;mut &amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <a href="https://doc.rust-lang.org/nightly/core/core_arch/x86/struct.__m128i.html">arch::__m128i</a> {
-    <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(a.len() &gt;= <span class="number">16</span>);
-    <span class="kw">let </span>r = arch::_mm_loadu_si128(<a href="#198">a</a>.as_ptr() <span class="kw">as </span><span class="kw-2">*const </span><a href="https://doc.rust-lang.org/nightly/core/core_arch/x86/struct.__m128i.html">arch::__m128i</a>);
-    <span class="kw-2">*</span><a href="#198">a</a> = <span class="kw-2">&amp;</span><a href="#198">a</a>[<span class="number">16</span>..];
-    <span class="kw">return </span><a href="#200">r</a>;
+<span class="kw">unsafe fn </span>get(a: <span class="kw-2">&amp;mut &amp;</span>[u8]) -&gt; arch::__m128i {
+    <span class="macro">debug_assert!</span>(a.len() &gt;= <span class="number">16</span>);
+    <span class="kw">let </span>r = arch::_mm_loadu_si128(a.as_ptr() <span class="kw">as </span><span class="kw-2">*const </span>arch::__m128i);
+    <span class="kw-2">*</span>a = <span class="kw-2">&amp;</span>a[<span class="number">16</span>..];
+    <span class="kw">return </span>r;
 }
 
 <span class="attr">#[cfg(test)]
@@ -449,4 +449,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="crc32fast" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="crc32fast" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

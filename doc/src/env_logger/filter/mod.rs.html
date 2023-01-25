@@ -1,5 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/env_logger-0.9.3/src/filter/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="icon" href="https://www.rust-lang.org/static/images/favicon.ico"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../env_logger/index.html">
-                        <img src="https://www.rust-lang.org/logos/rust-logo-128x128-blk-v2.png" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/env_logger-0.10.0/src/filter/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="icon" href="https://www.rust-lang.org/static/images/favicon.ico"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../env_logger/index.html">
+                        <img src="https://www.rust-lang.org/logos/rust-logo-128x128-blk-v2.png" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -927,15 +927,15 @@
 //! [`Builder::parse`]: struct.Builder.html#method.parse
 //! [`Filter::matches`]: struct.Filter.html#method.matches
 
-</span><span class="kw">use </span>log::{<a href="../../../log/enum.Level.html">Level</a>, <a href="../../../log/enum.LevelFilter.html">LevelFilter</a>, <a href="../../../log/struct.Metadata.html">Metadata</a>, <a href="../../../log/struct.Record.html">Record</a>};
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/collections/hash/map/struct.HashMap.html">std::collections::HashMap</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/macro.env.html">std::env</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">std::fmt</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/mem/index.html">std::mem</a>;
+</span><span class="kw">use </span>log::{Level, LevelFilter, Metadata, Record};
+<span class="kw">use </span>std::collections::HashMap;
+<span class="kw">use </span>std::env;
+<span class="kw">use </span>std::fmt;
+<span class="kw">use </span>std::mem;
 
 <span class="attr">#[cfg(feature = <span class="string">&quot;regex&quot;</span>)]
 #[path = <span class="string">&quot;regex.rs&quot;</span>]
-</span><span class="kw">mod </span><a href="regex.rs.html#1-29">inner</a>;
+</span><span class="kw">mod </span>inner;
 
 <span class="attr">#[cfg(not(feature = <span class="string">&quot;regex&quot;</span>))]
 #[path = <span class="string">&quot;string.rs&quot;</span>]
@@ -949,8 +949,8 @@
 ///
 /// [`Builder`]: struct.Builder.html
 </span><span class="kw">pub struct </span>Filter {
-    directives: Vec&lt;<a href="#117">Directive</a>&gt;,
-    filter: <span class="prelude-ty">Option</span>&lt;<a href="regex.rs.html#8">inner::Filter</a>&gt;,
+    directives: Vec&lt;Directive&gt;,
+    filter: <span class="prelude-ty">Option</span>&lt;inner::Filter&gt;,
 }
 
 <span class="doccomment">/// A builder for a log filter.
@@ -977,18 +977,18 @@
 ///
 /// [`Filter`]: struct.Filter.html
 </span><span class="kw">pub struct </span>Builder {
-    directives: HashMap&lt;<span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt;, <a href="../../../log/enum.LevelFilter.html">LevelFilter</a>&gt;,
-    filter: <span class="prelude-ty">Option</span>&lt;<a href="regex.rs.html#8">inner::Filter</a>&gt;,
-    built: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
+    directives: HashMap&lt;<span class="prelude-ty">Option</span>&lt;String&gt;, LevelFilter&gt;,
+    filter: <span class="prelude-ty">Option</span>&lt;inner::Filter&gt;,
+    built: bool,
 }
 
 <span class="attr">#[derive(Debug)]
 </span><span class="kw">struct </span>Directive {
-    name: <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt;,
-    level: <a href="../../../log/enum.LevelFilter.html">LevelFilter</a>,
+    name: <span class="prelude-ty">Option</span>&lt;String&gt;,
+    level: LevelFilter,
 }
 
-<span class="kw">impl </span><a href="#82">Filter</a> {
+<span class="kw">impl </span>Filter {
     <span class="doccomment">/// Returns the maximum `LevelFilter` that this filter instance is
     /// configured to output.
     ///
@@ -1005,21 +1005,21 @@
     /// let filter = builder.build();
     /// assert_eq!(filter.filter(), LevelFilter::Info);
     /// ```
-    </span><span class="kw">pub fn </span>filter(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../../../log/enum.LevelFilter.html">LevelFilter</a> {
-        <a class="self" href="#139">self</a>.directives
+    </span><span class="kw">pub fn </span>filter(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; LevelFilter {
+        <span class="self">self</span>.directives
             .iter()
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|d| <a href="#142">d</a>.level)
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">max</a>()
+            .map(|d| d.level)
+            .max()
             .unwrap_or(LevelFilter::Off)
     }
 
     <span class="doccomment">/// Checks if this record matches the configured filter.
-    </span><span class="kw">pub fn </span>matches(<span class="kw-2">&amp;</span><span class="self">self</span>, record: <span class="kw-2">&amp;</span><a href="../../../log/struct.Record.html">Record</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+    </span><span class="kw">pub fn </span>matches(<span class="kw-2">&amp;</span><span class="self">self</span>, record: <span class="kw-2">&amp;</span>Record) -&gt; bool {
         <span class="kw">if </span>!<span class="self">self</span>.enabled(record.metadata()) {
             <span class="kw">return </span><span class="bool-val">false</span>;
         }
 
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(filter) = <a class="self" href="#148">self</a>.filter.as_ref() {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(filter) = <span class="self">self</span>.filter.as_ref() {
             <span class="kw">if </span>!filter.is_match(<span class="kw-2">&amp;</span>record.args().to_string()) {
                 <span class="kw">return </span><span class="bool-val">false</span>;
             }
@@ -1029,18 +1029,18 @@
     </span>}
 
     <span class="doccomment">/// Determines if a log message with the specified metadata would be logged.
-    </span><span class="kw">pub fn </span>enabled(<span class="kw-2">&amp;</span><span class="self">self</span>, metadata: <span class="kw-2">&amp;</span><a href="../../../log/struct.Metadata.html">Metadata</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">let </span>level = <a href="#163">metadata</a>.level();
-        <span class="kw">let </span>target = <a href="#163">metadata</a>.target();
+    </span><span class="kw">pub fn </span>enabled(<span class="kw-2">&amp;</span><span class="self">self</span>, metadata: <span class="kw-2">&amp;</span>Metadata) -&gt; bool {
+        <span class="kw">let </span>level = metadata.level();
+        <span class="kw">let </span>target = metadata.target();
 
-        <a href="#362">enabled</a>(<span class="kw-2">&amp;</span><a class="self" href="#163">self</a>.directives, <a href="#164">level</a>, <a href="#165">target</a>)
+        enabled(<span class="kw-2">&amp;</span><span class="self">self</span>.directives, level, target)
     }
 }
 
-<span class="kw">impl </span><a href="#110">Builder</a> {
+<span class="kw">impl </span>Builder {
     <span class="doccomment">/// Initializes the filter builder with defaults.
-    </span><span class="kw">pub fn </span>new() -&gt; <a href="#110">Builder</a> {
-        <a href="#110">Builder</a> {
+    </span><span class="kw">pub fn </span>new() -&gt; Builder {
+        Builder {
             directives: HashMap::new(),
             filter: <span class="prelude-val">None</span>,
             built: <span class="bool-val">false</span>,
@@ -1048,33 +1048,33 @@
     }
 
     <span class="doccomment">/// Initializes the filter builder from an environment.
-    </span><span class="kw">pub fn </span>from_env(env: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <a href="#110">Builder</a> {
+    </span><span class="kw">pub fn </span>from_env(env: <span class="kw-2">&amp;</span>str) -&gt; Builder {
         <span class="kw">let </span><span class="kw-2">mut </span>builder = Builder::new();
 
-        <span class="kw">if let </span><span class="prelude-val">Ok</span>(s) = env::var(<a href="#182">env</a>) {
-            <a href="#183">builder</a>.<a href="#216">parse</a>(<span class="kw-2">&amp;</span><a href="#185">s</a>);
+        <span class="kw">if let </span><span class="prelude-val">Ok</span>(s) = env::var(env) {
+            builder.parse(<span class="kw-2">&amp;</span>s);
         }
 
-        <a href="#183">builder</a>
+        builder
     }
 
     <span class="doccomment">/// Adds a directive to the filter for a specific module.
-    </span><span class="kw">pub fn </span>filter_module(<span class="kw-2">&amp;mut </span><span class="self">self</span>, module: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, level: <a href="../../../log/enum.LevelFilter.html">LevelFilter</a>) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self </span>{
-        <a class="self" href="#193">self</a>.<a href="#206">filter</a>(<span class="prelude-val">Some</span>(<a href="#193">module</a>), <a href="#193">level</a>)
+    </span><span class="kw">pub fn </span>filter_module(<span class="kw-2">&amp;mut </span><span class="self">self</span>, module: <span class="kw-2">&amp;</span>str, level: LevelFilter) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self </span>{
+        <span class="self">self</span>.filter(<span class="prelude-val">Some</span>(module), level)
     }
 
     <span class="doccomment">/// Adds a directive to the filter for all modules.
-    </span><span class="kw">pub fn </span>filter_level(<span class="kw-2">&amp;mut </span><span class="self">self</span>, level: <a href="../../../log/enum.LevelFilter.html">LevelFilter</a>) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self </span>{
-        <a class="self" href="#198">self</a>.<a href="#206">filter</a>(<span class="prelude-val">None</span>, <a href="#198">level</a>)
+    </span><span class="kw">pub fn </span>filter_level(<span class="kw-2">&amp;mut </span><span class="self">self</span>, level: LevelFilter) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self </span>{
+        <span class="self">self</span>.filter(<span class="prelude-val">None</span>, level)
     }
 
     <span class="doccomment">/// Adds a directive to the filter.
     ///
     /// The given module (if any) will log at most the specified level provided.
     /// If no module is provided then the filter will apply to all log messages.
-    </span><span class="kw">pub fn </span>filter(<span class="kw-2">&amp;mut </span><span class="self">self</span>, module: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt;, level: <a href="../../../log/enum.LevelFilter.html">LevelFilter</a>) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self </span>{
-        <a class="self" href="#206">self</a>.directives.insert(<a href="#206">module</a>.map(|s| <a href="#207">s</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>()), <a href="#206">level</a>);
-        <span class="self"><a href="#206">self</a>
+    </span><span class="kw">pub fn </span>filter(<span class="kw-2">&amp;mut </span><span class="self">self</span>, module: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>str&gt;, level: LevelFilter) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self </span>{
+        <span class="self">self</span>.directives.insert(module.map(|s| s.to_string()), level);
+        <span class="self">self
     </span>}
 
     <span class="doccomment">/// Parses the directives string.
@@ -1082,75 +1082,75 @@
     /// See the [Enabling Logging] section for more details.
     ///
     /// [Enabling Logging]: ../index.html#enabling-logging
-    </span><span class="kw">pub fn </span>parse(<span class="kw-2">&amp;mut </span><span class="self">self</span>, filters: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self </span>{
-        <span class="kw">let </span>(directives, filter) = <a href="#292">parse_spec</a>(<a href="#216">filters</a>);
+    </span><span class="kw">pub fn </span>parse(<span class="kw-2">&amp;mut </span><span class="self">self</span>, filters: <span class="kw-2">&amp;</span>str) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self </span>{
+        <span class="kw">let </span>(directives, filter) = parse_spec(filters);
 
-        <a class="self" href="#216">self</a>.filter = <a href="#217">filter</a>;
+        <span class="self">self</span>.filter = filter;
 
         <span class="kw">for </span>directive <span class="kw">in </span>directives {
             <span class="self">self</span>.directives.insert(directive.name, directive.level);
         }
-        <span class="self"><a href="#216">self</a>
+        <span class="self">self
     </span>}
 
     <span class="doccomment">/// Build a log filter.
-    </span><span class="kw">pub fn </span>build(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <a href="#82">Filter</a> {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(!<span class="self">self</span>.built, <span class="string">&quot;attempt to re-use consumed builder&quot;</span>);
-        <a class="self" href="#228">self</a>.built = <span class="bool-val">true</span>;
+    </span><span class="kw">pub fn </span>build(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; Filter {
+        <span class="macro">assert!</span>(!<span class="self">self</span>.built, <span class="string">&quot;attempt to re-use consumed builder&quot;</span>);
+        <span class="self">self</span>.built = <span class="bool-val">true</span>;
 
         <span class="kw">let </span><span class="kw-2">mut </span>directives = Vec::new();
         <span class="kw">if </span><span class="self">self</span>.directives.is_empty() {
             <span class="comment">// Adds the default filter if none exist
-            </span><a href="#232">directives</a>.push(<a href="#117">Directive</a> {
+            </span>directives.push(Directive {
                 name: <span class="prelude-val">None</span>,
                 level: LevelFilter::Error,
             });
         } <span class="kw">else </span>{
             <span class="comment">// Consume map of directives.
-            </span><span class="kw">let </span>directives_map = mem::take(<span class="kw-2">&amp;mut </span><a class="self" href="#228">self</a>.directives);
-            <a href="#232">directives</a> = <a href="#241">directives_map</a>
-                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
-                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|(name, level)| <a href="#117">Directive</a> { <a href="#244">name</a>, <a href="#244">level</a> })
-                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
+            </span><span class="kw">let </span>directives_map = mem::take(<span class="kw-2">&amp;mut </span><span class="self">self</span>.directives);
+            directives = directives_map
+                .into_iter()
+                .map(|(name, level)| Directive { name, level })
+                .collect();
             <span class="comment">// Sort the directives by length of their name, this allows a
             // little more efficient lookup at runtime.
-            </span><a href="#232">directives</a>.sort_by(|a, b| {
-                <span class="kw">let </span>alen = <a href="#248">a</a>.name.as_ref().map(|a| <a href="#249">a</a>.len()).unwrap_or(<span class="number">0</span>);
-                <span class="kw">let </span>blen = <a href="#248">b</a>.name.as_ref().map(|b| <a href="#250">b</a>.len()).unwrap_or(<span class="number">0</span>);
-                <a href="#249">alen</a>.<a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Ord.html">cmp</a>(<span class="kw-2">&amp;</span><a href="#250">blen</a>)
+            </span>directives.sort_by(|a, b| {
+                <span class="kw">let </span>alen = a.name.as_ref().map(|a| a.len()).unwrap_or(<span class="number">0</span>);
+                <span class="kw">let </span>blen = b.name.as_ref().map(|b| b.len()).unwrap_or(<span class="number">0</span>);
+                alen.cmp(<span class="kw-2">&amp;</span>blen)
             });
         }
 
-        <a href="#82">Filter</a> {
-            directives: mem::take(<span class="kw-2">&amp;mut </span><a href="#232">directives</a>),
-            filter: mem::replace(<span class="kw-2">&amp;mut </span><a class="self" href="#228">self</a>.filter, <span class="prelude-val">None</span>),
+        Filter {
+            directives: mem::take(<span class="kw-2">&amp;mut </span>directives),
+            filter: mem::replace(<span class="kw-2">&amp;mut </span><span class="self">self</span>.filter, <span class="prelude-val">None</span>),
         }
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for </span><a href="#110">Builder</a> {
+<span class="kw">impl </span>Default <span class="kw">for </span>Builder {
     <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
         Builder::new()
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="#82">Filter</a> {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a href="#269">f</a>.debug_struct(<span class="string">&quot;Filter&quot;</span>)
-            .field(<span class="string">&quot;filter&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="#269">self</a>.filter)
-            .field(<span class="string">&quot;directives&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="#269">self</a>.directives)
+<span class="kw">impl </span>fmt::Debug <span class="kw">for </span>Filter {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter) -&gt; fmt::Result {
+        f.debug_struct(<span class="string">&quot;Filter&quot;</span>)
+            .field(<span class="string">&quot;filter&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.filter)
+            .field(<span class="string">&quot;directives&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.directives)
             .finish()
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="#110">Builder</a> {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+<span class="kw">impl </span>fmt::Debug <span class="kw">for </span>Builder {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter) -&gt; fmt::Result {
         <span class="kw">if </span><span class="self">self</span>.built {
-            <a href="#278">f</a>.debug_struct(<span class="string">&quot;Filter&quot;</span>).field(<span class="string">&quot;built&quot;</span>, <span class="kw-2">&amp;</span><span class="bool-val">true</span>).finish()
+            f.debug_struct(<span class="string">&quot;Filter&quot;</span>).field(<span class="string">&quot;built&quot;</span>, <span class="kw-2">&amp;</span><span class="bool-val">true</span>).finish()
         } <span class="kw">else </span>{
-            <a href="#278">f</a>.debug_struct(<span class="string">&quot;Filter&quot;</span>)
-                .field(<span class="string">&quot;filter&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="#278">self</a>.filter)
-                .field(<span class="string">&quot;directives&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="#278">self</a>.directives)
+            f.debug_struct(<span class="string">&quot;Filter&quot;</span>)
+                .field(<span class="string">&quot;filter&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.filter)
+                .field(<span class="string">&quot;directives&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.directives)
                 .finish()
         }
     }
@@ -1158,21 +1158,21 @@
 
 <span class="doccomment">/// Parse a logging specification string (e.g: &quot;crate1,crate2::mod3,crate3::x=error/foo&quot;)
 /// and return a vector with log directives.
-</span><span class="kw">fn </span>parse_spec(spec: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; (Vec&lt;<a href="#117">Directive</a>&gt;, <span class="prelude-ty">Option</span>&lt;<a href="regex.rs.html#8">inner::Filter</a>&gt;) {
+</span><span class="kw">fn </span>parse_spec(spec: <span class="kw-2">&amp;</span>str) -&gt; (Vec&lt;Directive&gt;, <span class="prelude-ty">Option</span>&lt;inner::Filter&gt;) {
     <span class="kw">let </span><span class="kw-2">mut </span>dirs = Vec::new();
 
-    <span class="kw">let </span><span class="kw-2">mut </span>parts = <a href="#292">spec</a>.split(<span class="string">&#39;/&#39;</span>);
-    <span class="kw">let </span>mods = <a href="#295">parts</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>();
-    <span class="kw">let </span>filter = <a href="#295">parts</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>();
+    <span class="kw">let </span><span class="kw-2">mut </span>parts = spec.split(<span class="string">&#39;/&#39;</span>);
+    <span class="kw">let </span>mods = parts.next();
+    <span class="kw">let </span>filter = parts.next();
     <span class="kw">if </span>parts.next().is_some() {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.eprintln.html">eprintln!</a>(
+        <span class="macro">eprintln!</span>(
             <span class="string">&quot;warning: invalid logging spec &#39;{}&#39;, \
              ignoring it (too many &#39;/&#39;s)&quot;</span>,
             spec
         );
-        <span class="kw">return </span>(<a href="#293">dirs</a>, <span class="prelude-val">None</span>);
+        <span class="kw">return </span>(dirs, <span class="prelude-val">None</span>);
     }
-    <span class="kw">if let </span><span class="prelude-val">Some</span>(m) = <a href="#296">mods</a> {
+    <span class="kw">if let </span><span class="prelude-val">Some</span>(m) = mods {
         <span class="kw">for </span>s <span class="kw">in </span>m.split(<span class="string">&#39;,&#39;</span>).map(|ss| ss.trim()) {
             <span class="kw">if </span>s.is_empty() {
                 <span class="kw">continue</span>;
@@ -1216,19 +1216,19 @@
         }
     }
 
-    <span class="kw">let </span>filter = <a href="#297">filter</a>.and_then(|filter| <span class="kw">match </span>inner::Filter::new(<a href="#350">filter</a>) {
-        <span class="prelude-val">Ok</span>(re) =&gt; <span class="prelude-val">Some</span>(<a href="#351">re</a>),
+    <span class="kw">let </span>filter = filter.and_then(|filter| <span class="kw">match </span>inner::Filter::new(filter) {
+        <span class="prelude-val">Ok</span>(re) =&gt; <span class="prelude-val">Some</span>(re),
         <span class="prelude-val">Err</span>(e) =&gt; {
-            <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.eprintln.html">eprintln!</a>(<span class="string">&quot;warning: invalid regex filter - {}&quot;</span>, e);
+            <span class="macro">eprintln!</span>(<span class="string">&quot;warning: invalid regex filter - {}&quot;</span>, e);
             <span class="prelude-val">None
         </span>}
     });
 
-    (<a href="#293">dirs</a>, <a href="#350">filter</a>)
+    (dirs, filter)
 }
 
 <span class="comment">// Check whether a level and target are enabled by the set of directives.
-</span><span class="kw">fn </span>enabled(directives: <span class="kw-2">&amp;</span>[<a href="#117">Directive</a>], level: <a href="../../../log/enum.Level.html">Level</a>, target: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+</span><span class="kw">fn </span>enabled(directives: <span class="kw-2">&amp;</span>[Directive], level: Level, target: <span class="kw-2">&amp;</span>str) -&gt; bool {
     <span class="comment">// Search for the longest match, the vector is assumed to be pre-sorted.
     </span><span class="kw">for </span>directive <span class="kw">in </span>directives.iter().rev() {
         <span class="kw">match </span>directive.name {
@@ -1631,7 +1631,7 @@
     <span class="attr">#[test]
     </span><span class="kw">fn </span>parse_spec_blank_level_isolated_comma_only() {
         <span class="comment">// The spec should contain zero or more comma-separated string slices,
-        // so a comma-only string should be interpretted as two empty strings
+        // so a comma-only string should be interpreted as two empty strings
         // (which should both be treated as invalid, so ignored).
         </span><span class="kw">let </span>(dirs, filter) = parse_spec(<span class="string">&quot;,&quot;</span>); <span class="comment">// should be ignored
         </span><span class="macro">assert_eq!</span>(dirs.len(), <span class="number">0</span>);
@@ -1641,7 +1641,7 @@
     <span class="attr">#[test]
     </span><span class="kw">fn </span>parse_spec_blank_level_isolated_comma_blank() {
         <span class="comment">// The spec should contain zero or more comma-separated string slices,
-        // so this bogus spec should be interpretted as containing one empty
+        // so this bogus spec should be interpreted as containing one empty
         // string and one blank string. Both should both be treated as
         // invalid, so ignored.
         </span><span class="kw">let </span>(dirs, filter) = parse_spec(<span class="string">&quot;,     &quot;</span>); <span class="comment">// should be ignored
@@ -1652,7 +1652,7 @@
     <span class="attr">#[test]
     </span><span class="kw">fn </span>parse_spec_blank_level_isolated_blank_comma() {
         <span class="comment">// The spec should contain zero or more comma-separated string slices,
-        // so this bogus spec should be interpretted as containing one blank
+        // so this bogus spec should be interpreted as containing one blank
         // string and one empty string. Both should both be treated as
         // invalid, so ignored.
         </span><span class="kw">let </span>(dirs, filter) = parse_spec(<span class="string">&quot;     ,&quot;</span>); <span class="comment">// should be ignored
@@ -1736,4 +1736,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="env_logger" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="env_logger" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

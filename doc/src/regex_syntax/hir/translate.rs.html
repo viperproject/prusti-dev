@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-syntax-0.6.28/src/hir/translate.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>translate.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../regex_syntax/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-syntax-0.6.28/src/hir/translate.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>translate.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../regex_syntax/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -3209,43 +3209,43 @@
 Defines a translator that converts an `Ast` to an `Hir`.
 */
 
-</span><span class="kw">use </span>std::cell::{<a href="https://doc.rust-lang.org/nightly/core/cell/struct.Cell.html">Cell</a>, <a href="https://doc.rust-lang.org/nightly/core/cell/struct.RefCell.html">RefCell</a>};
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/result/index.html">std::result</a>;
+</span><span class="kw">use </span>std::cell::{Cell, RefCell};
+<span class="kw">use </span>std::result;
 
-<span class="kw">use </span><span class="kw">crate</span>::ast::{<a class="self" href="../lib.rs.html#165">self</a>, <a href="../ast/mod.rs.html#469">Ast</a>, <a href="../ast/mod.rs.html#323">Span</a>, <a href="../ast/visitor.rs.html#23">Visitor</a>};
-<span class="kw">use </span><span class="kw">crate</span>::hir::{<a class="self" href="../lib.rs.html#168">self</a>, <a href="mod.rs.html#26">Error</a>, <a href="mod.rs.html#57">ErrorKind</a>, <a href="mod.rs.html#175">Hir</a>};
-<span class="kw">use </span><span class="kw">crate</span>::unicode::{<a class="self" href="../lib.rs.html#170">self</a>, <a href="../unicode.rs.html#166">ClassQuery</a>};
+<span class="kw">use </span><span class="kw">crate</span>::ast::{<span class="self">self</span>, Ast, Span, Visitor};
+<span class="kw">use </span><span class="kw">crate</span>::hir::{<span class="self">self</span>, Error, ErrorKind, Hir};
+<span class="kw">use </span><span class="kw">crate</span>::unicode::{<span class="self">self</span>, ClassQuery};
 
-<span class="kw">type </span><span class="prelude-ty">Result</span>&lt;T&gt; = result::Result&lt;T, <a href="mod.rs.html#26">Error</a>&gt;;
+<span class="kw">type </span><span class="prelude-ty">Result</span>&lt;T&gt; = result::Result&lt;T, Error&gt;;
 
 <span class="doccomment">/// A builder for constructing an AST-&gt;HIR translator.
 </span><span class="attr">#[derive(Clone, Debug)]
 </span><span class="kw">pub struct </span>TranslatorBuilder {
-    allow_invalid_utf8: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-    flags: <a href="#1007">Flags</a>,
+    allow_invalid_utf8: bool,
+    flags: Flags,
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for </span><a href="#16">TranslatorBuilder</a> {
-    <span class="kw">fn </span>default() -&gt; <a href="#16">TranslatorBuilder</a> {
+<span class="kw">impl </span>Default <span class="kw">for </span>TranslatorBuilder {
+    <span class="kw">fn </span>default() -&gt; TranslatorBuilder {
         TranslatorBuilder::new()
     }
 }
 
-<span class="kw">impl </span><a href="#16">TranslatorBuilder</a> {
+<span class="kw">impl </span>TranslatorBuilder {
     <span class="doccomment">/// Create a new translator builder with a default c onfiguration.
-    </span><span class="kw">pub fn </span>new() -&gt; <a href="#16">TranslatorBuilder</a> {
-        <a href="#16">TranslatorBuilder</a> {
+    </span><span class="kw">pub fn </span>new() -&gt; TranslatorBuilder {
+        TranslatorBuilder {
             allow_invalid_utf8: <span class="bool-val">false</span>,
             flags: Flags::default(),
         }
     }
 
     <span class="doccomment">/// Build a translator using the current configuration.
-    </span><span class="kw">pub fn </span>build(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="#105">Translator</a> {
-        <a href="#105">Translator</a> {
-            stack: RefCell::new(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[]),
-            flags: Cell::new(<a class="self" href="#37">self</a>.flags),
-            allow_invalid_utf8: <a class="self" href="#37">self</a>.allow_invalid_utf8,
+    </span><span class="kw">pub fn </span>build(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Translator {
+        Translator {
+            stack: RefCell::new(<span class="macro">vec!</span>[]),
+            flags: Cell::new(<span class="self">self</span>.flags),
+            allow_invalid_utf8: <span class="self">self</span>.allow_invalid_utf8,
         }
     }
 
@@ -3260,43 +3260,43 @@ Defines a translator that converts an `Ast` to an `Hir`.
     /// word boundary (uttered as `(?-u:\B)` in the concrete syntax) will cause
     /// the parser to return an error. Namely, a negated ASCII word boundary
     /// can result in matching positions that aren&#39;t valid UTF-8 boundaries.
-    </span><span class="kw">pub fn </span>allow_invalid_utf8(<span class="kw-2">&amp;mut </span><span class="self">self</span>, yes: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="kw-2">&amp;mut </span><a href="#16">TranslatorBuilder</a> {
-        <a class="self" href="#56">self</a>.allow_invalid_utf8 = <a href="#56">yes</a>;
-        <span class="self"><a href="#56">self</a>
+    </span><span class="kw">pub fn </span>allow_invalid_utf8(<span class="kw-2">&amp;mut </span><span class="self">self</span>, yes: bool) -&gt; <span class="kw-2">&amp;mut </span>TranslatorBuilder {
+        <span class="self">self</span>.allow_invalid_utf8 = yes;
+        <span class="self">self
     </span>}
 
     <span class="doccomment">/// Enable or disable the case insensitive flag (`i`) by default.
-    </span><span class="kw">pub fn </span>case_insensitive(<span class="kw-2">&amp;mut </span><span class="self">self</span>, yes: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="kw-2">&amp;mut </span><a href="#16">TranslatorBuilder</a> {
-        <a class="self" href="#62">self</a>.flags.case_insensitive = <span class="kw">if </span>yes { <span class="prelude-val">Some</span>(<span class="bool-val">true</span>) } <span class="kw">else </span>{ <span class="prelude-val">None </span>};
-        <span class="self"><a href="#62">self</a>
+    </span><span class="kw">pub fn </span>case_insensitive(<span class="kw-2">&amp;mut </span><span class="self">self</span>, yes: bool) -&gt; <span class="kw-2">&amp;mut </span>TranslatorBuilder {
+        <span class="self">self</span>.flags.case_insensitive = <span class="kw">if </span>yes { <span class="prelude-val">Some</span>(<span class="bool-val">true</span>) } <span class="kw">else </span>{ <span class="prelude-val">None </span>};
+        <span class="self">self
     </span>}
 
     <span class="doccomment">/// Enable or disable the multi-line matching flag (`m`) by default.
-    </span><span class="kw">pub fn </span>multi_line(<span class="kw-2">&amp;mut </span><span class="self">self</span>, yes: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="kw-2">&amp;mut </span><a href="#16">TranslatorBuilder</a> {
-        <a class="self" href="#68">self</a>.flags.multi_line = <span class="kw">if </span>yes { <span class="prelude-val">Some</span>(<span class="bool-val">true</span>) } <span class="kw">else </span>{ <span class="prelude-val">None </span>};
-        <span class="self"><a href="#68">self</a>
+    </span><span class="kw">pub fn </span>multi_line(<span class="kw-2">&amp;mut </span><span class="self">self</span>, yes: bool) -&gt; <span class="kw-2">&amp;mut </span>TranslatorBuilder {
+        <span class="self">self</span>.flags.multi_line = <span class="kw">if </span>yes { <span class="prelude-val">Some</span>(<span class="bool-val">true</span>) } <span class="kw">else </span>{ <span class="prelude-val">None </span>};
+        <span class="self">self
     </span>}
 
     <span class="doccomment">/// Enable or disable the &quot;dot matches any character&quot; flag (`s`) by
     /// default.
     </span><span class="kw">pub fn </span>dot_matches_new_line(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        yes: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-    ) -&gt; <span class="kw-2">&amp;mut </span><a href="#16">TranslatorBuilder</a> {
-        <a class="self" href="#76">self</a>.flags.dot_matches_new_line = <span class="kw">if </span>yes { <span class="prelude-val">Some</span>(<span class="bool-val">true</span>) } <span class="kw">else </span>{ <span class="prelude-val">None </span>};
-        <span class="self"><a href="#76">self</a>
+        yes: bool,
+    ) -&gt; <span class="kw-2">&amp;mut </span>TranslatorBuilder {
+        <span class="self">self</span>.flags.dot_matches_new_line = <span class="kw">if </span>yes { <span class="prelude-val">Some</span>(<span class="bool-val">true</span>) } <span class="kw">else </span>{ <span class="prelude-val">None </span>};
+        <span class="self">self
     </span>}
 
     <span class="doccomment">/// Enable or disable the &quot;swap greed&quot; flag (`U`) by default.
-    </span><span class="kw">pub fn </span>swap_greed(<span class="kw-2">&amp;mut </span><span class="self">self</span>, yes: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="kw-2">&amp;mut </span><a href="#16">TranslatorBuilder</a> {
-        <a class="self" href="#84">self</a>.flags.swap_greed = <span class="kw">if </span>yes { <span class="prelude-val">Some</span>(<span class="bool-val">true</span>) } <span class="kw">else </span>{ <span class="prelude-val">None </span>};
-        <span class="self"><a href="#84">self</a>
+    </span><span class="kw">pub fn </span>swap_greed(<span class="kw-2">&amp;mut </span><span class="self">self</span>, yes: bool) -&gt; <span class="kw-2">&amp;mut </span>TranslatorBuilder {
+        <span class="self">self</span>.flags.swap_greed = <span class="kw">if </span>yes { <span class="prelude-val">Some</span>(<span class="bool-val">true</span>) } <span class="kw">else </span>{ <span class="prelude-val">None </span>};
+        <span class="self">self
     </span>}
 
     <span class="doccomment">/// Enable or disable the Unicode flag (`u`) by default.
-    </span><span class="kw">pub fn </span>unicode(<span class="kw-2">&amp;mut </span><span class="self">self</span>, yes: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="kw-2">&amp;mut </span><a href="#16">TranslatorBuilder</a> {
-        <a class="self" href="#90">self</a>.flags.unicode = <span class="kw">if </span>yes { <span class="prelude-val">None </span>} <span class="kw">else </span>{ <span class="prelude-val">Some</span>(<span class="bool-val">false</span>) };
-        <span class="self"><a href="#90">self</a>
+    </span><span class="kw">pub fn </span>unicode(<span class="kw-2">&amp;mut </span><span class="self">self</span>, yes: bool) -&gt; <span class="kw-2">&amp;mut </span>TranslatorBuilder {
+        <span class="self">self</span>.flags.unicode = <span class="kw">if </span>yes { <span class="prelude-val">None </span>} <span class="kw">else </span>{ <span class="prelude-val">Some</span>(<span class="bool-val">false</span>) };
+        <span class="self">self
     </span>}
 }
 
@@ -3311,17 +3311,17 @@ Defines a translator that converts an `Ast` to an `Hir`.
 </span><span class="attr">#[derive(Clone, Debug)]
 </span><span class="kw">pub struct </span>Translator {
     <span class="doccomment">/// Our call stack, but on the heap.
-    </span>stack: RefCell&lt;Vec&lt;<a href="#141">HirFrame</a>&gt;&gt;,
+    </span>stack: RefCell&lt;Vec&lt;HirFrame&gt;&gt;,
     <span class="doccomment">/// The current flag settings.
-    </span>flags: Cell&lt;<a href="#1007">Flags</a>&gt;,
+    </span>flags: Cell&lt;Flags&gt;,
     <span class="doccomment">/// Whether we&#39;re allowed to produce HIR that can match arbitrary bytes.
-    </span>allow_invalid_utf8: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
+    </span>allow_invalid_utf8: bool,
 }
 
-<span class="kw">impl </span><a href="#105">Translator</a> {
+<span class="kw">impl </span>Translator {
     <span class="doccomment">/// Create a new translator using the default configuration.
-    </span><span class="kw">pub fn </span>new() -&gt; <a href="#105">Translator</a> {
-        TranslatorBuilder::new().<a href="#37">build</a>()
+    </span><span class="kw">pub fn </span>new() -&gt; Translator {
+        TranslatorBuilder::new().build()
     }
 
     <span class="doccomment">/// Translate the given abstract syntax tree (AST) into a high level
@@ -3333,8 +3333,8 @@ Defines a translator that converts an `Ast` to an `Hir`.
     /// The original pattern string used to produce the `Ast` *must* also be
     /// provided. The translator does not use the pattern string during any
     /// correct translation, but is used for error reporting.
-    </span><span class="kw">pub fn </span>translate(<span class="kw-2">&amp;mut </span><span class="self">self</span>, pattern: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, ast: <span class="kw-2">&amp;</span><a href="../ast/mod.rs.html#469">Ast</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="mod.rs.html#175">Hir</a>&gt; {
-        <a href="../ast/visitor.rs.html#119">ast::visit</a>(<a href="#129">ast</a>, TranslatorI::new(<a class="self" href="#129">self</a>, <a href="#129">pattern</a>))
+    </span><span class="kw">pub fn </span>translate(<span class="kw-2">&amp;mut </span><span class="self">self</span>, pattern: <span class="kw-2">&amp;</span>str, ast: <span class="kw-2">&amp;</span>Ast) -&gt; <span class="prelude-ty">Result</span>&lt;Hir&gt; {
+        ast::visit(ast, TranslatorI::new(<span class="self">self</span>, pattern))
     }
 }
 
@@ -3349,11 +3349,11 @@ Defines a translator that converts an `Ast` to an `Hir`.
     <span class="doccomment">/// An arbitrary HIR expression. These get pushed whenever we hit a base
     /// case in the Ast. They get popped after an inductive (i.e., recursive)
     /// step is complete.
-    </span>Expr(<a href="mod.rs.html#175">Hir</a>),
+    </span>Expr(Hir),
     <span class="doccomment">/// A Unicode character class. This frame is mutated as we descend into
     /// the Ast of a character class (which is itself its own mini recursive
     /// structure).
-    </span>ClassUnicode(<a href="mod.rs.html#837">hir::ClassUnicode</a>),
+    </span>ClassUnicode(hir::ClassUnicode),
     <span class="doccomment">/// A byte-oriented character class. This frame is mutated as we descend
     /// into the Ast of a character class (which is itself its own mini
     /// recursive structure).
@@ -3361,7 +3361,7 @@ Defines a translator that converts an `Ast` to an `Hir`.
     /// Byte character classes are created when Unicode mode (`u`) is disabled.
     /// If `allow_invalid_utf8` is disabled (the default), then a byte
     /// character is only permitted to match ASCII text.
-    </span>ClassBytes(<a href="mod.rs.html#1080">hir::ClassBytes</a>),
+    </span>ClassBytes(hir::ClassBytes),
     <span class="doccomment">/// This is pushed on to the stack upon first seeing any kind of group,
     /// indicated by parentheses (including non-capturing groups). It is popped
     /// upon leaving a group.
@@ -3378,7 +3378,7 @@ Defines a translator that converts an `Ast` to an `Hir`.
         ///
         /// The &quot;active&quot; flags correspond to whatever flags are set in the
         /// Translator.
-        </span>old_flags: <a href="#1007">Flags</a>,
+        </span>old_flags: Flags,
     },
     <span class="doccomment">/// This is pushed whenever a concatenation is observed. After visiting
     /// every sub-expression in the concatenation, the translator&#39;s stack is
@@ -3390,21 +3390,21 @@ Defines a translator that converts an `Ast` to an `Hir`.
     </span>Alternation,
 }
 
-<span class="kw">impl </span><a href="#141">HirFrame</a> {
+<span class="kw">impl </span>HirFrame {
     <span class="doccomment">/// Assert that the current stack frame is an Hir expression and return it.
-    </span><span class="kw">fn </span>unwrap_expr(<span class="self">self</span>) -&gt; <a href="mod.rs.html#175">Hir</a> {
-        <span class="kw">match </span><span class="self"><a href="#188">self</a> </span>{
-            <a href="#145">HirFrame::Expr</a>(expr) =&gt; <a href="#190">expr</a>,
-            <span class="kw">_ </span>=&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(<span class="string">&quot;tried to unwrap expr from HirFrame, got: {:?}&quot;</span>, <span class="self">self</span>),
+    </span><span class="kw">fn </span>unwrap_expr(<span class="self">self</span>) -&gt; Hir {
+        <span class="kw">match </span><span class="self">self </span>{
+            HirFrame::Expr(expr) =&gt; expr,
+            <span class="kw">_ </span>=&gt; <span class="macro">panic!</span>(<span class="string">&quot;tried to unwrap expr from HirFrame, got: {:?}&quot;</span>, <span class="self">self</span>),
         }
     }
 
     <span class="doccomment">/// Assert that the current stack frame is a Unicode class expression and
     /// return it.
-    </span><span class="kw">fn </span>unwrap_class_unicode(<span class="self">self</span>) -&gt; <a href="mod.rs.html#837">hir::ClassUnicode</a> {
-        <span class="kw">match </span><span class="self"><a href="#197">self</a> </span>{
-            <a href="#149">HirFrame::ClassUnicode</a>(cls) =&gt; <a href="#199">cls</a>,
-            <span class="kw">_ </span>=&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(
+    </span><span class="kw">fn </span>unwrap_class_unicode(<span class="self">self</span>) -&gt; hir::ClassUnicode {
+        <span class="kw">match </span><span class="self">self </span>{
+            HirFrame::ClassUnicode(cls) =&gt; cls,
+            <span class="kw">_ </span>=&gt; <span class="macro">panic!</span>(
                 <span class="string">&quot;tried to unwrap Unicode class \
                  from HirFrame, got: {:?}&quot;</span>,
                 <span class="self">self
@@ -3414,10 +3414,10 @@ Defines a translator that converts an `Ast` to an `Hir`.
 
     <span class="doccomment">/// Assert that the current stack frame is a byte class expression and
     /// return it.
-    </span><span class="kw">fn </span>unwrap_class_bytes(<span class="self">self</span>) -&gt; <a href="mod.rs.html#1080">hir::ClassBytes</a> {
-        <span class="kw">match </span><span class="self"><a href="#210">self</a> </span>{
-            <a href="#157">HirFrame::ClassBytes</a>(cls) =&gt; <a href="#212">cls</a>,
-            <span class="kw">_ </span>=&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(
+    </span><span class="kw">fn </span>unwrap_class_bytes(<span class="self">self</span>) -&gt; hir::ClassBytes {
+        <span class="kw">match </span><span class="self">self </span>{
+            HirFrame::ClassBytes(cls) =&gt; cls,
+            <span class="kw">_ </span>=&gt; <span class="macro">panic!</span>(
                 <span class="string">&quot;tried to unwrap byte class \
                  from HirFrame, got: {:?}&quot;</span>,
                 <span class="self">self
@@ -3428,64 +3428,64 @@ Defines a translator that converts an `Ast` to an `Hir`.
     <span class="doccomment">/// Assert that the current stack frame is a group indicator and return
     /// its corresponding flags (the flags that were active at the time the
     /// group was entered).
-    </span><span class="kw">fn </span>unwrap_group(<span class="self">self</span>) -&gt; <a href="#1007">Flags</a> {
-        <span class="kw">match </span><span class="self"><a href="#224">self</a> </span>{
-            <a href="#161">HirFrame::Group</a> { old_flags } =&gt; <a href="#226">old_flags</a>,
+    </span><span class="kw">fn </span>unwrap_group(<span class="self">self</span>) -&gt; Flags {
+        <span class="kw">match </span><span class="self">self </span>{
+            HirFrame::Group { old_flags } =&gt; old_flags,
             <span class="kw">_ </span>=&gt; {
-                <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(<span class="string">&quot;tried to unwrap group from HirFrame, got: {:?}&quot;</span>, <span class="self">self</span>)
+                <span class="macro">panic!</span>(<span class="string">&quot;tried to unwrap group from HirFrame, got: {:?}&quot;</span>, <span class="self">self</span>)
             }
         }
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;t</span>, <span class="lifetime">&#39;p</span>&gt; <a href="../ast/visitor.rs.html#23">Visitor</a> <span class="kw">for </span>TranslatorI&lt;<span class="lifetime">&#39;t</span>, <span class="lifetime">&#39;p</span>&gt; {
-    <span class="kw">type </span>Output = <a href="mod.rs.html#175">Hir</a>;
-    <span class="kw">type </span><span class="prelude-val">Err </span>= <a href="mod.rs.html#26">Error</a>;
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;t</span>, <span class="lifetime">&#39;p</span>&gt; Visitor <span class="kw">for </span>TranslatorI&lt;<span class="lifetime">&#39;t</span>, <span class="lifetime">&#39;p</span>&gt; {
+    <span class="kw">type </span>Output = Hir;
+    <span class="kw">type </span><span class="prelude-val">Err </span>= Error;
 
-    <span class="kw">fn </span>finish(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="mod.rs.html#175">Hir</a>&gt; {
+    <span class="kw">fn </span>finish(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;Hir&gt; {
         <span class="comment">// ... otherwise, we should have exactly one HIR on the stack.
-        </span><a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert_eq.html">assert_eq!</a>(<span class="self">self</span>.trans().stack.borrow().len(), <span class="number">1</span>);
-        <span class="prelude-val">Ok</span>(<a class="self" href="#238">self</a>.<a href="#606">pop</a>().unwrap().<a href="#188">unwrap_expr</a>())
+        </span><span class="macro">assert_eq!</span>(<span class="self">self</span>.trans().stack.borrow().len(), <span class="number">1</span>);
+        <span class="prelude-val">Ok</span>(<span class="self">self</span>.pop().unwrap().unwrap_expr())
     }
 
-    <span class="kw">fn </span>visit_pre(<span class="kw-2">&amp;mut </span><span class="self">self</span>, ast: <span class="kw-2">&amp;</span><a href="../ast/mod.rs.html#469">Ast</a>) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
-        <span class="kw">match </span><span class="kw-2">*</span><a href="#244">ast</a> {
-            <a href="../ast/mod.rs.html#482">Ast::Class</a>(<a href="../ast/mod.rs.html#714">ast::Class::Bracketed</a>(<span class="kw">_</span>)) =&gt; {
+    <span class="kw">fn </span>visit_pre(<span class="kw-2">&amp;mut </span><span class="self">self</span>, ast: <span class="kw-2">&amp;</span>Ast) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+        <span class="kw">match </span><span class="kw-2">*</span>ast {
+            Ast::Class(ast::Class::Bracketed(<span class="kw">_</span>)) =&gt; {
                 <span class="kw">if </span><span class="self">self</span>.flags().unicode() {
                     <span class="kw">let </span>cls = hir::ClassUnicode::empty();
-                    <a class="self" href="#244">self</a>.<a href="#601">push</a>(<a href="#149">HirFrame::ClassUnicode</a>(<a href="#248">cls</a>));
+                    <span class="self">self</span>.push(HirFrame::ClassUnicode(cls));
                 } <span class="kw">else </span>{
                     <span class="kw">let </span>cls = hir::ClassBytes::empty();
-                    <a class="self" href="#244">self</a>.<a href="#601">push</a>(<a href="#157">HirFrame::ClassBytes</a>(<a href="#251">cls</a>));
+                    <span class="self">self</span>.push(HirFrame::ClassBytes(cls));
                 }
             }
-            <a href="../ast/mod.rs.html#486">Ast::Group</a>(<span class="kw-2">ref </span>x) =&gt; {
-                <span class="kw">let </span>old_flags = <a href="#255">x</a>
-                    .<a href="../ast/mod.rs.html#1196">flags</a>()
-                    .map(|ast| <a class="self" href="#244">self</a>.<a href="#622">set_flags</a>(<a href="#258">ast</a>))
-                    .unwrap_or_else(|| <a class="self" href="#244">self</a>.<a href="#616">flags</a>());
-                <a class="self" href="#244">self</a>.<a href="#601">push</a>(<a href="#161">HirFrame::Group</a> { <a href="#256">old_flags</a> });
+            Ast::Group(<span class="kw-2">ref </span>x) =&gt; {
+                <span class="kw">let </span>old_flags = x
+                    .flags()
+                    .map(|ast| <span class="self">self</span>.set_flags(ast))
+                    .unwrap_or_else(|| <span class="self">self</span>.flags());
+                <span class="self">self</span>.push(HirFrame::Group { old_flags });
             }
-            <a href="../ast/mod.rs.html#490">Ast::Concat</a>(<span class="kw-2">ref </span>x) <span class="kw">if </span><a href="#262">x</a>.asts.is_empty() =&gt; {}
-            <a href="../ast/mod.rs.html#490">Ast::Concat</a>(<span class="kw">_</span>) =&gt; {
-                <a class="self" href="#244">self</a>.<a href="#601">push</a>(<a href="#179">HirFrame::Concat</a>);
+            Ast::Concat(<span class="kw-2">ref </span>x) <span class="kw">if </span>x.asts.is_empty() =&gt; {}
+            Ast::Concat(<span class="kw">_</span>) =&gt; {
+                <span class="self">self</span>.push(HirFrame::Concat);
             }
-            <a href="../ast/mod.rs.html#488">Ast::Alternation</a>(<span class="kw-2">ref </span>x) <span class="kw">if </span><a href="#266">x</a>.asts.is_empty() =&gt; {}
-            <a href="../ast/mod.rs.html#488">Ast::Alternation</a>(<span class="kw">_</span>) =&gt; {
-                <a class="self" href="#244">self</a>.<a href="#601">push</a>(<a href="#183">HirFrame::Alternation</a>);
+            Ast::Alternation(<span class="kw-2">ref </span>x) <span class="kw">if </span>x.asts.is_empty() =&gt; {}
+            Ast::Alternation(<span class="kw">_</span>) =&gt; {
+                <span class="self">self</span>.push(HirFrame::Alternation);
             }
             <span class="kw">_ </span>=&gt; {}
         }
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="kw">fn </span>visit_post(<span class="kw-2">&amp;mut </span><span class="self">self</span>, ast: <span class="kw-2">&amp;</span><a href="../ast/mod.rs.html#469">Ast</a>) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
-        <span class="kw">match </span><span class="kw-2">*</span><a href="#275">ast</a> {
-            <a href="../ast/mod.rs.html#471">Ast::Empty</a>(<span class="kw">_</span>) =&gt; {
-                <a class="self" href="#275">self</a>.<a href="#601">push</a>(<a href="#145">HirFrame::Expr</a>(Hir::empty()));
+    <span class="kw">fn </span>visit_post(<span class="kw-2">&amp;mut </span><span class="self">self</span>, ast: <span class="kw-2">&amp;</span>Ast) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+        <span class="kw">match </span><span class="kw-2">*</span>ast {
+            Ast::Empty(<span class="kw">_</span>) =&gt; {
+                <span class="self">self</span>.push(HirFrame::Expr(Hir::empty()));
             }
-            <a href="../ast/mod.rs.html#473">Ast::Flags</a>(<span class="kw-2">ref </span>x) =&gt; {
-                <a class="self" href="#275">self</a>.<a href="#622">set_flags</a>(<span class="kw-2">&amp;</span><a href="#280">x</a>.flags);
+            Ast::Flags(<span class="kw-2">ref </span>x) =&gt; {
+                <span class="self">self</span>.set_flags(<span class="kw-2">&amp;</span>x.flags);
                 <span class="comment">// Flags in the AST are generally considered directives and
                 // not actual sub-expressions. However, they can be used in
                 // the concrete syntax like `((?i))`, and we need some kind of
@@ -3495,93 +3495,93 @@ Defines a translator that converts an `Ast` to an `Hir`.
                 // There can also be things like `(?i)+`, but we rule those out
                 // in the parser. In the future, we might allow them for
                 // consistency sake.
-                </span><a class="self" href="#275">self</a>.<a href="#601">push</a>(<a href="#145">HirFrame::Expr</a>(Hir::empty()));
+                </span><span class="self">self</span>.push(HirFrame::Expr(Hir::empty()));
             }
-            <a href="../ast/mod.rs.html#475">Ast::Literal</a>(<span class="kw-2">ref </span>x) =&gt; {
-                <a class="self" href="#275">self</a>.<a href="#601">push</a>(<a href="#145">HirFrame::Expr</a>(<span class="self">self</span>.hir_literal(x)<span class="question-mark">?</span>));
+            Ast::Literal(<span class="kw-2">ref </span>x) =&gt; {
+                <span class="self">self</span>.push(HirFrame::Expr(<span class="self">self</span>.hir_literal(x)<span class="question-mark">?</span>));
             }
-            <a href="../ast/mod.rs.html#477">Ast::Dot</a>(span) =&gt; {
-                <a class="self" href="#275">self</a>.<a href="#601">push</a>(<a href="#145">HirFrame::Expr</a>(<span class="self">self</span>.hir_dot(span)<span class="question-mark">?</span>));
+            Ast::Dot(span) =&gt; {
+                <span class="self">self</span>.push(HirFrame::Expr(<span class="self">self</span>.hir_dot(span)<span class="question-mark">?</span>));
             }
-            <a href="../ast/mod.rs.html#479">Ast::Assertion</a>(<span class="kw-2">ref </span>x) =&gt; {
-                <a class="self" href="#275">self</a>.<a href="#601">push</a>(<a href="#145">HirFrame::Expr</a>(<span class="self">self</span>.hir_assertion(x)<span class="question-mark">?</span>));
+            Ast::Assertion(<span class="kw-2">ref </span>x) =&gt; {
+                <span class="self">self</span>.push(HirFrame::Expr(<span class="self">self</span>.hir_assertion(x)<span class="question-mark">?</span>));
             }
-            <a href="../ast/mod.rs.html#482">Ast::Class</a>(<a href="../ast/mod.rs.html#710">ast::Class::Perl</a>(<span class="kw-2">ref </span>x)) =&gt; {
+            Ast::Class(ast::Class::Perl(<span class="kw-2">ref </span>x)) =&gt; {
                 <span class="kw">if </span><span class="self">self</span>.flags().unicode() {
                     <span class="kw">let </span>cls = <span class="self">self</span>.hir_perl_unicode_class(x)<span class="question-mark">?</span>;
-                    <span class="kw">let </span>hcls = <a href="mod.rs.html#785">hir::Class::Unicode</a>(<a href="#304">cls</a>);
-                    <a class="self" href="#275">self</a>.<a href="#601">push</a>(<a href="#145">HirFrame::Expr</a>(Hir::class(<a href="#305">hcls</a>)));
+                    <span class="kw">let </span>hcls = hir::Class::Unicode(cls);
+                    <span class="self">self</span>.push(HirFrame::Expr(Hir::class(hcls)));
                 } <span class="kw">else </span>{
-                    <span class="kw">let </span>cls = <a class="self" href="#275">self</a>.<a href="#894-897">hir_perl_byte_class</a>(<a href="#302">x</a>);
-                    <span class="kw">let </span>hcls = <a href="mod.rs.html#788">hir::Class::Bytes</a>(<a href="#308">cls</a>);
-                    <a class="self" href="#275">self</a>.<a href="#601">push</a>(<a href="#145">HirFrame::Expr</a>(Hir::class(<a href="#309">hcls</a>)));
+                    <span class="kw">let </span>cls = <span class="self">self</span>.hir_perl_byte_class(x);
+                    <span class="kw">let </span>hcls = hir::Class::Bytes(cls);
+                    <span class="self">self</span>.push(HirFrame::Expr(Hir::class(hcls)));
                 }
             }
-            <a href="../ast/mod.rs.html#482">Ast::Class</a>(<a href="../ast/mod.rs.html#708">ast::Class::Unicode</a>(<span class="kw-2">ref </span>x)) =&gt; {
-                <span class="kw">let </span>cls = <a href="mod.rs.html#785">hir::Class::Unicode</a>(<span class="self">self</span>.hir_unicode_class(x)<span class="question-mark">?</span>);
-                <a class="self" href="#275">self</a>.<a href="#601">push</a>(<a href="#145">HirFrame::Expr</a>(Hir::class(<a href="#314">cls</a>)));
+            Ast::Class(ast::Class::Unicode(<span class="kw-2">ref </span>x)) =&gt; {
+                <span class="kw">let </span>cls = hir::Class::Unicode(<span class="self">self</span>.hir_unicode_class(x)<span class="question-mark">?</span>);
+                <span class="self">self</span>.push(HirFrame::Expr(Hir::class(cls)));
             }
-            <a href="../ast/mod.rs.html#482">Ast::Class</a>(<a href="../ast/mod.rs.html#714">ast::Class::Bracketed</a>(<span class="kw-2">ref </span>ast)) =&gt; {
+            Ast::Class(ast::Class::Bracketed(<span class="kw-2">ref </span>ast)) =&gt; {
                 <span class="kw">if </span><span class="self">self</span>.flags().unicode() {
-                    <span class="kw">let </span><span class="kw-2">mut </span>cls = <a class="self" href="#275">self</a>.<a href="#606">pop</a>().unwrap().<a href="#197">unwrap_class_unicode</a>();
+                    <span class="kw">let </span><span class="kw-2">mut </span>cls = <span class="self">self</span>.pop().unwrap().unwrap_class_unicode();
                     <span class="self">self</span>.unicode_fold_and_negate(
                         <span class="kw-2">&amp;</span>ast.span,
                         ast.negated,
                         <span class="kw-2">&amp;mut </span>cls,
                     )<span class="question-mark">?</span>;
                     <span class="kw">if </span>cls.ranges().is_empty() {
-                        <span class="kw">return </span><span class="prelude-val">Err</span>(<a class="self" href="#275">self</a>.<a href="#611">error</a>(
-                            <a href="#317">ast</a>.span,
-                            <a href="mod.rs.html#83">ErrorKind::EmptyClassNotAllowed</a>,
+                        <span class="kw">return </span><span class="prelude-val">Err</span>(<span class="self">self</span>.error(
+                            ast.span,
+                            ErrorKind::EmptyClassNotAllowed,
                         ));
                     }
-                    <span class="kw">let </span>expr = Hir::class(<a href="mod.rs.html#785">hir::Class::Unicode</a>(<a href="#319">cls</a>));
-                    <a class="self" href="#275">self</a>.<a href="#601">push</a>(<a href="#145">HirFrame::Expr</a>(<a href="#331">expr</a>));
+                    <span class="kw">let </span>expr = Hir::class(hir::Class::Unicode(cls));
+                    <span class="self">self</span>.push(HirFrame::Expr(expr));
                 } <span class="kw">else </span>{
-                    <span class="kw">let </span><span class="kw-2">mut </span>cls = <a class="self" href="#275">self</a>.<a href="#606">pop</a>().unwrap().<a href="#210">unwrap_class_bytes</a>();
+                    <span class="kw">let </span><span class="kw-2">mut </span>cls = <span class="self">self</span>.pop().unwrap().unwrap_class_bytes();
                     <span class="self">self</span>.bytes_fold_and_negate(
                         <span class="kw-2">&amp;</span>ast.span,
                         ast.negated,
                         <span class="kw-2">&amp;mut </span>cls,
                     )<span class="question-mark">?</span>;
                     <span class="kw">if </span>cls.ranges().is_empty() {
-                        <span class="kw">return </span><span class="prelude-val">Err</span>(<a class="self" href="#275">self</a>.<a href="#611">error</a>(
-                            <a href="#317">ast</a>.span,
-                            <a href="mod.rs.html#83">ErrorKind::EmptyClassNotAllowed</a>,
+                        <span class="kw">return </span><span class="prelude-val">Err</span>(<span class="self">self</span>.error(
+                            ast.span,
+                            ErrorKind::EmptyClassNotAllowed,
                         ));
                     }
 
-                    <span class="kw">let </span>expr = Hir::class(<a href="mod.rs.html#788">hir::Class::Bytes</a>(<a href="#334">cls</a>));
-                    <a class="self" href="#275">self</a>.<a href="#601">push</a>(<a href="#145">HirFrame::Expr</a>(<a href="#347">expr</a>));
+                    <span class="kw">let </span>expr = Hir::class(hir::Class::Bytes(cls));
+                    <span class="self">self</span>.push(HirFrame::Expr(expr));
                 }
             }
-            <a href="../ast/mod.rs.html#484">Ast::Repetition</a>(<span class="kw-2">ref </span>x) =&gt; {
-                <span class="kw">let </span>expr = <a class="self" href="#275">self</a>.<a href="#606">pop</a>().unwrap().<a href="#188">unwrap_expr</a>();
-                <a class="self" href="#275">self</a>.<a href="#601">push</a>(<a href="#145">HirFrame::Expr</a>(<a class="self" href="#275">self</a>.<a href="#785">hir_repetition</a>(<a href="#351">x</a>, <a href="#352">expr</a>)));
+            Ast::Repetition(<span class="kw-2">ref </span>x) =&gt; {
+                <span class="kw">let </span>expr = <span class="self">self</span>.pop().unwrap().unwrap_expr();
+                <span class="self">self</span>.push(HirFrame::Expr(<span class="self">self</span>.hir_repetition(x, expr)));
             }
-            <a href="../ast/mod.rs.html#486">Ast::Group</a>(<span class="kw-2">ref </span>x) =&gt; {
-                <span class="kw">let </span>expr = <a class="self" href="#275">self</a>.<a href="#606">pop</a>().unwrap().<a href="#188">unwrap_expr</a>();
-                <span class="kw">let </span>old_flags = <a class="self" href="#275">self</a>.<a href="#606">pop</a>().unwrap().<a href="#224">unwrap_group</a>();
-                <a class="self" href="#275">self</a>.<a href="#596">trans</a>().flags.set(<a href="#357">old_flags</a>);
-                <a class="self" href="#275">self</a>.<a href="#601">push</a>(<a href="#145">HirFrame::Expr</a>(<a class="self" href="#275">self</a>.<a href="#769">hir_group</a>(<a href="#355">x</a>, <a href="#356">expr</a>)));
+            Ast::Group(<span class="kw-2">ref </span>x) =&gt; {
+                <span class="kw">let </span>expr = <span class="self">self</span>.pop().unwrap().unwrap_expr();
+                <span class="kw">let </span>old_flags = <span class="self">self</span>.pop().unwrap().unwrap_group();
+                <span class="self">self</span>.trans().flags.set(old_flags);
+                <span class="self">self</span>.push(HirFrame::Expr(<span class="self">self</span>.hir_group(x, expr)));
             }
-            <a href="../ast/mod.rs.html#490">Ast::Concat</a>(<span class="kw">_</span>) =&gt; {
-                <span class="kw">let </span><span class="kw-2">mut </span>exprs = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[];
+            Ast::Concat(<span class="kw">_</span>) =&gt; {
+                <span class="kw">let </span><span class="kw-2">mut </span>exprs = <span class="macro">vec!</span>[];
                 <span class="kw">while let </span><span class="prelude-val">Some</span>(HirFrame::Expr(expr)) = <span class="self">self</span>.pop() {
                     <span class="kw">if </span>!expr.kind().is_empty() {
                         exprs.push(expr);
                     }
                 }
-                <a href="#362">exprs</a>.reverse();
-                <a class="self" href="#275">self</a>.<a href="#601">push</a>(<a href="#145">HirFrame::Expr</a>(Hir::concat(<a href="#362">exprs</a>)));
+                exprs.reverse();
+                <span class="self">self</span>.push(HirFrame::Expr(Hir::concat(exprs)));
             }
-            <a href="../ast/mod.rs.html#488">Ast::Alternation</a>(<span class="kw">_</span>) =&gt; {
-                <span class="kw">let </span><span class="kw-2">mut </span>exprs = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[];
+            Ast::Alternation(<span class="kw">_</span>) =&gt; {
+                <span class="kw">let </span><span class="kw-2">mut </span>exprs = <span class="macro">vec!</span>[];
                 <span class="kw">while let </span><span class="prelude-val">Some</span>(HirFrame::Expr(expr)) = <span class="self">self</span>.pop() {
                     exprs.push(expr);
                 }
-                <a href="#372">exprs</a>.reverse();
-                <a class="self" href="#275">self</a>.<a href="#601">push</a>(<a href="#145">HirFrame::Expr</a>(Hir::alternation(<a href="#372">exprs</a>)));
+                exprs.reverse();
+                <span class="self">self</span>.push(HirFrame::Expr(Hir::alternation(exprs)));
             }
         }
         <span class="prelude-val">Ok</span>(())
@@ -3589,16 +3589,16 @@ Defines a translator that converts an `Ast` to an `Hir`.
 
     <span class="kw">fn </span>visit_class_set_item_pre(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        ast: <span class="kw-2">&amp;</span><a href="../ast/mod.rs.html#955">ast::ClassSetItem</a>,
+        ast: <span class="kw-2">&amp;</span>ast::ClassSetItem,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
-        <span class="kw">match </span><span class="kw-2">*</span><a href="#385">ast</a> {
-            <a href="../ast/mod.rs.html#975">ast::ClassSetItem::Bracketed</a>(<span class="kw">_</span>) =&gt; {
+        <span class="kw">match </span><span class="kw-2">*</span>ast {
+            ast::ClassSetItem::Bracketed(<span class="kw">_</span>) =&gt; {
                 <span class="kw">if </span><span class="self">self</span>.flags().unicode() {
                     <span class="kw">let </span>cls = hir::ClassUnicode::empty();
-                    <a class="self" href="#384">self</a>.<a href="#601">push</a>(<a href="#149">HirFrame::ClassUnicode</a>(<a href="#390">cls</a>));
+                    <span class="self">self</span>.push(HirFrame::ClassUnicode(cls));
                 } <span class="kw">else </span>{
                     <span class="kw">let </span>cls = hir::ClassBytes::empty();
-                    <a class="self" href="#384">self</a>.<a href="#601">push</a>(<a href="#157">HirFrame::ClassBytes</a>(<a href="#393">cls</a>));
+                    <span class="self">self</span>.push(HirFrame::ClassBytes(cls));
                 }
             }
             <span class="comment">// We needn&#39;t handle the Union case here since the visitor will
@@ -3610,136 +3610,136 @@ Defines a translator that converts an `Ast` to an `Hir`.
 
     <span class="kw">fn </span>visit_class_set_item_post(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        ast: <span class="kw-2">&amp;</span><a href="../ast/mod.rs.html#955">ast::ClassSetItem</a>,
+        ast: <span class="kw-2">&amp;</span>ast::ClassSetItem,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
-        <span class="kw">match </span><span class="kw-2">*</span><a href="#406">ast</a> {
-            <a href="../ast/mod.rs.html#961">ast::ClassSetItem::Empty</a>(<span class="kw">_</span>) =&gt; {}
-            <a href="../ast/mod.rs.html#963">ast::ClassSetItem::Literal</a>(<span class="kw-2">ref </span>x) =&gt; {
+        <span class="kw">match </span><span class="kw-2">*</span>ast {
+            ast::ClassSetItem::Empty(<span class="kw">_</span>) =&gt; {}
+            ast::ClassSetItem::Literal(<span class="kw-2">ref </span>x) =&gt; {
                 <span class="kw">if </span><span class="self">self</span>.flags().unicode() {
-                    <span class="kw">let </span><span class="kw-2">mut </span>cls = <a class="self" href="#405">self</a>.<a href="#606">pop</a>().unwrap().<a href="#197">unwrap_class_unicode</a>();
-                    <a href="#412">cls</a>.<a href="mod.rs.html#859">push</a>(hir::ClassUnicodeRange::new(<a href="#410">x</a>.c, <a href="#410">x</a>.c));
-                    <a class="self" href="#405">self</a>.<a href="#601">push</a>(<a href="#149">HirFrame::ClassUnicode</a>(<a href="#412">cls</a>));
+                    <span class="kw">let </span><span class="kw-2">mut </span>cls = <span class="self">self</span>.pop().unwrap().unwrap_class_unicode();
+                    cls.push(hir::ClassUnicodeRange::new(x.c, x.c));
+                    <span class="self">self</span>.push(HirFrame::ClassUnicode(cls));
                 } <span class="kw">else </span>{
-                    <span class="kw">let </span><span class="kw-2">mut </span>cls = <a class="self" href="#405">self</a>.<a href="#606">pop</a>().unwrap().<a href="#210">unwrap_class_bytes</a>();
+                    <span class="kw">let </span><span class="kw-2">mut </span>cls = <span class="self">self</span>.pop().unwrap().unwrap_class_bytes();
                     <span class="kw">let </span>byte = <span class="self">self</span>.class_literal_byte(x)<span class="question-mark">?</span>;
-                    <a href="#416">cls</a>.<a href="mod.rs.html#1102">push</a>(hir::ClassBytesRange::new(<a href="#417">byte</a>, <a href="#417">byte</a>));
-                    <a class="self" href="#405">self</a>.<a href="#601">push</a>(<a href="#157">HirFrame::ClassBytes</a>(<a href="#416">cls</a>));
+                    cls.push(hir::ClassBytesRange::new(byte, byte));
+                    <span class="self">self</span>.push(HirFrame::ClassBytes(cls));
                 }
             }
-            <a href="../ast/mod.rs.html#965">ast::ClassSetItem::Range</a>(<span class="kw-2">ref </span>x) =&gt; {
+            ast::ClassSetItem::Range(<span class="kw-2">ref </span>x) =&gt; {
                 <span class="kw">if </span><span class="self">self</span>.flags().unicode() {
-                    <span class="kw">let </span><span class="kw-2">mut </span>cls = <a class="self" href="#405">self</a>.<a href="#606">pop</a>().unwrap().<a href="#197">unwrap_class_unicode</a>();
-                    <a href="#424">cls</a>.<a href="mod.rs.html#859">push</a>(hir::ClassUnicodeRange::new(<a href="#422">x</a>.start.c, <a href="#422">x</a>.end.c));
-                    <a class="self" href="#405">self</a>.<a href="#601">push</a>(<a href="#149">HirFrame::ClassUnicode</a>(<a href="#424">cls</a>));
+                    <span class="kw">let </span><span class="kw-2">mut </span>cls = <span class="self">self</span>.pop().unwrap().unwrap_class_unicode();
+                    cls.push(hir::ClassUnicodeRange::new(x.start.c, x.end.c));
+                    <span class="self">self</span>.push(HirFrame::ClassUnicode(cls));
                 } <span class="kw">else </span>{
-                    <span class="kw">let </span><span class="kw-2">mut </span>cls = <a class="self" href="#405">self</a>.<a href="#606">pop</a>().unwrap().<a href="#210">unwrap_class_bytes</a>();
+                    <span class="kw">let </span><span class="kw-2">mut </span>cls = <span class="self">self</span>.pop().unwrap().unwrap_class_bytes();
                     <span class="kw">let </span>start = <span class="self">self</span>.class_literal_byte(<span class="kw-2">&amp;</span>x.start)<span class="question-mark">?</span>;
                     <span class="kw">let </span>end = <span class="self">self</span>.class_literal_byte(<span class="kw-2">&amp;</span>x.end)<span class="question-mark">?</span>;
-                    <a href="#428">cls</a>.<a href="mod.rs.html#1102">push</a>(hir::ClassBytesRange::new(<a href="#429">start</a>, <a href="#430">end</a>));
-                    <a class="self" href="#405">self</a>.<a href="#601">push</a>(<a href="#157">HirFrame::ClassBytes</a>(<a href="#428">cls</a>));
+                    cls.push(hir::ClassBytesRange::new(start, end));
+                    <span class="self">self</span>.push(HirFrame::ClassBytes(cls));
                 }
             }
-            <a href="../ast/mod.rs.html#967">ast::ClassSetItem::Ascii</a>(<span class="kw-2">ref </span>x) =&gt; {
+            ast::ClassSetItem::Ascii(<span class="kw-2">ref </span>x) =&gt; {
                 <span class="kw">if </span><span class="self">self</span>.flags().unicode() {
                     <span class="kw">let </span>xcls = <span class="self">self</span>.hir_ascii_unicode_class(x)<span class="question-mark">?</span>;
-                    <span class="kw">let </span><span class="kw-2">mut </span>cls = <a class="self" href="#405">self</a>.<a href="#606">pop</a>().unwrap().<a href="#197">unwrap_class_unicode</a>();
-                    <a href="#438">cls</a>.<a href="mod.rs.html#919">union</a>(<span class="kw-2">&amp;</span><a href="#437">xcls</a>);
-                    <a class="self" href="#405">self</a>.<a href="#601">push</a>(<a href="#149">HirFrame::ClassUnicode</a>(<a href="#438">cls</a>));
+                    <span class="kw">let </span><span class="kw-2">mut </span>cls = <span class="self">self</span>.pop().unwrap().unwrap_class_unicode();
+                    cls.union(<span class="kw-2">&amp;</span>xcls);
+                    <span class="self">self</span>.push(HirFrame::ClassUnicode(cls));
                 } <span class="kw">else </span>{
                     <span class="kw">let </span>xcls = <span class="self">self</span>.hir_ascii_byte_class(x)<span class="question-mark">?</span>;
-                    <span class="kw">let </span><span class="kw-2">mut </span>cls = <a class="self" href="#405">self</a>.<a href="#606">pop</a>().unwrap().<a href="#210">unwrap_class_bytes</a>();
-                    <a href="#443">cls</a>.<a href="mod.rs.html#1138">union</a>(<span class="kw-2">&amp;</span><a href="#442">xcls</a>);
-                    <a class="self" href="#405">self</a>.<a href="#601">push</a>(<a href="#157">HirFrame::ClassBytes</a>(<a href="#443">cls</a>));
+                    <span class="kw">let </span><span class="kw-2">mut </span>cls = <span class="self">self</span>.pop().unwrap().unwrap_class_bytes();
+                    cls.union(<span class="kw-2">&amp;</span>xcls);
+                    <span class="self">self</span>.push(HirFrame::ClassBytes(cls));
                 }
             }
-            <a href="../ast/mod.rs.html#969">ast::ClassSetItem::Unicode</a>(<span class="kw-2">ref </span>x) =&gt; {
+            ast::ClassSetItem::Unicode(<span class="kw-2">ref </span>x) =&gt; {
                 <span class="kw">let </span>xcls = <span class="self">self</span>.hir_unicode_class(x)<span class="question-mark">?</span>;
-                <span class="kw">let </span><span class="kw-2">mut </span>cls = <a class="self" href="#405">self</a>.<a href="#606">pop</a>().unwrap().<a href="#197">unwrap_class_unicode</a>();
-                <a href="#450">cls</a>.<a href="mod.rs.html#919">union</a>(<span class="kw-2">&amp;</span><a href="#449">xcls</a>);
-                <a class="self" href="#405">self</a>.<a href="#601">push</a>(<a href="#149">HirFrame::ClassUnicode</a>(<a href="#450">cls</a>));
+                <span class="kw">let </span><span class="kw-2">mut </span>cls = <span class="self">self</span>.pop().unwrap().unwrap_class_unicode();
+                cls.union(<span class="kw-2">&amp;</span>xcls);
+                <span class="self">self</span>.push(HirFrame::ClassUnicode(cls));
             }
-            <a href="../ast/mod.rs.html#971">ast::ClassSetItem::Perl</a>(<span class="kw-2">ref </span>x) =&gt; {
+            ast::ClassSetItem::Perl(<span class="kw-2">ref </span>x) =&gt; {
                 <span class="kw">if </span><span class="self">self</span>.flags().unicode() {
                     <span class="kw">let </span>xcls = <span class="self">self</span>.hir_perl_unicode_class(x)<span class="question-mark">?</span>;
-                    <span class="kw">let </span><span class="kw-2">mut </span>cls = <a class="self" href="#405">self</a>.<a href="#606">pop</a>().unwrap().<a href="#197">unwrap_class_unicode</a>();
-                    <a href="#457">cls</a>.<a href="mod.rs.html#919">union</a>(<span class="kw-2">&amp;</span><a href="#456">xcls</a>);
-                    <a class="self" href="#405">self</a>.<a href="#601">push</a>(<a href="#149">HirFrame::ClassUnicode</a>(<a href="#457">cls</a>));
+                    <span class="kw">let </span><span class="kw-2">mut </span>cls = <span class="self">self</span>.pop().unwrap().unwrap_class_unicode();
+                    cls.union(<span class="kw-2">&amp;</span>xcls);
+                    <span class="self">self</span>.push(HirFrame::ClassUnicode(cls));
                 } <span class="kw">else </span>{
-                    <span class="kw">let </span>xcls = <a class="self" href="#405">self</a>.<a href="#894-897">hir_perl_byte_class</a>(<a href="#454">x</a>);
-                    <span class="kw">let </span><span class="kw-2">mut </span>cls = <a class="self" href="#405">self</a>.<a href="#606">pop</a>().unwrap().<a href="#210">unwrap_class_bytes</a>();
-                    <a href="#462">cls</a>.<a href="mod.rs.html#1138">union</a>(<span class="kw-2">&amp;</span><a href="#461">xcls</a>);
-                    <a class="self" href="#405">self</a>.<a href="#601">push</a>(<a href="#157">HirFrame::ClassBytes</a>(<a href="#462">cls</a>));
+                    <span class="kw">let </span>xcls = <span class="self">self</span>.hir_perl_byte_class(x);
+                    <span class="kw">let </span><span class="kw-2">mut </span>cls = <span class="self">self</span>.pop().unwrap().unwrap_class_bytes();
+                    cls.union(<span class="kw-2">&amp;</span>xcls);
+                    <span class="self">self</span>.push(HirFrame::ClassBytes(cls));
                 }
             }
-            <a href="../ast/mod.rs.html#975">ast::ClassSetItem::Bracketed</a>(<span class="kw-2">ref </span>ast) =&gt; {
+            ast::ClassSetItem::Bracketed(<span class="kw-2">ref </span>ast) =&gt; {
                 <span class="kw">if </span><span class="self">self</span>.flags().unicode() {
-                    <span class="kw">let </span><span class="kw-2">mut </span>cls1 = <a class="self" href="#405">self</a>.<a href="#606">pop</a>().unwrap().<a href="#197">unwrap_class_unicode</a>();
+                    <span class="kw">let </span><span class="kw-2">mut </span>cls1 = <span class="self">self</span>.pop().unwrap().unwrap_class_unicode();
                     <span class="self">self</span>.unicode_fold_and_negate(
                         <span class="kw-2">&amp;</span>ast.span,
                         ast.negated,
                         <span class="kw-2">&amp;mut </span>cls1,
                     )<span class="question-mark">?</span>;
 
-                    <span class="kw">let </span><span class="kw-2">mut </span>cls2 = <a class="self" href="#405">self</a>.<a href="#606">pop</a>().unwrap().<a href="#197">unwrap_class_unicode</a>();
-                    <a href="#476">cls2</a>.<a href="mod.rs.html#919">union</a>(<span class="kw-2">&amp;</span><a href="#469">cls1</a>);
-                    <a class="self" href="#405">self</a>.<a href="#601">push</a>(<a href="#149">HirFrame::ClassUnicode</a>(<a href="#476">cls2</a>));
+                    <span class="kw">let </span><span class="kw-2">mut </span>cls2 = <span class="self">self</span>.pop().unwrap().unwrap_class_unicode();
+                    cls2.union(<span class="kw-2">&amp;</span>cls1);
+                    <span class="self">self</span>.push(HirFrame::ClassUnicode(cls2));
                 } <span class="kw">else </span>{
-                    <span class="kw">let </span><span class="kw-2">mut </span>cls1 = <a class="self" href="#405">self</a>.<a href="#606">pop</a>().unwrap().<a href="#210">unwrap_class_bytes</a>();
+                    <span class="kw">let </span><span class="kw-2">mut </span>cls1 = <span class="self">self</span>.pop().unwrap().unwrap_class_bytes();
                     <span class="self">self</span>.bytes_fold_and_negate(
                         <span class="kw-2">&amp;</span>ast.span,
                         ast.negated,
                         <span class="kw-2">&amp;mut </span>cls1,
                     )<span class="question-mark">?</span>;
 
-                    <span class="kw">let </span><span class="kw-2">mut </span>cls2 = <a class="self" href="#405">self</a>.<a href="#606">pop</a>().unwrap().<a href="#210">unwrap_class_bytes</a>();
-                    <a href="#487">cls2</a>.<a href="mod.rs.html#1138">union</a>(<span class="kw-2">&amp;</span><a href="#480">cls1</a>);
-                    <a class="self" href="#405">self</a>.<a href="#601">push</a>(<a href="#157">HirFrame::ClassBytes</a>(<a href="#487">cls2</a>));
+                    <span class="kw">let </span><span class="kw-2">mut </span>cls2 = <span class="self">self</span>.pop().unwrap().unwrap_class_bytes();
+                    cls2.union(<span class="kw-2">&amp;</span>cls1);
+                    <span class="self">self</span>.push(HirFrame::ClassBytes(cls2));
                 }
             }
             <span class="comment">// This is handled automatically by the visitor.
-            </span><a href="../ast/mod.rs.html#977">ast::ClassSetItem::Union</a>(<span class="kw">_</span>) =&gt; {}
+            </span>ast::ClassSetItem::Union(<span class="kw">_</span>) =&gt; {}
         }
         <span class="prelude-val">Ok</span>(())
     }
 
     <span class="kw">fn </span>visit_class_set_binary_op_pre(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        _op: <span class="kw-2">&amp;</span><a href="../ast/mod.rs.html#1063">ast::ClassSetBinaryOp</a>,
+        _op: <span class="kw-2">&amp;</span>ast::ClassSetBinaryOp,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
         <span class="kw">if </span><span class="self">self</span>.flags().unicode() {
             <span class="kw">let </span>cls = hir::ClassUnicode::empty();
-            <a class="self" href="#499">self</a>.<a href="#601">push</a>(<a href="#149">HirFrame::ClassUnicode</a>(<a href="#503">cls</a>));
+            <span class="self">self</span>.push(HirFrame::ClassUnicode(cls));
         } <span class="kw">else </span>{
             <span class="kw">let </span>cls = hir::ClassBytes::empty();
-            <a class="self" href="#499">self</a>.<a href="#601">push</a>(<a href="#157">HirFrame::ClassBytes</a>(<a href="#506">cls</a>));
+            <span class="self">self</span>.push(HirFrame::ClassBytes(cls));
         }
         <span class="prelude-val">Ok</span>(())
     }
 
     <span class="kw">fn </span>visit_class_set_binary_op_in(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        _op: <span class="kw-2">&amp;</span><a href="../ast/mod.rs.html#1063">ast::ClassSetBinaryOp</a>,
+        _op: <span class="kw-2">&amp;</span>ast::ClassSetBinaryOp,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
         <span class="kw">if </span><span class="self">self</span>.flags().unicode() {
             <span class="kw">let </span>cls = hir::ClassUnicode::empty();
-            <a class="self" href="#513">self</a>.<a href="#601">push</a>(<a href="#149">HirFrame::ClassUnicode</a>(<a href="#517">cls</a>));
+            <span class="self">self</span>.push(HirFrame::ClassUnicode(cls));
         } <span class="kw">else </span>{
             <span class="kw">let </span>cls = hir::ClassBytes::empty();
-            <a class="self" href="#513">self</a>.<a href="#601">push</a>(<a href="#157">HirFrame::ClassBytes</a>(<a href="#520">cls</a>));
+            <span class="self">self</span>.push(HirFrame::ClassBytes(cls));
         }
         <span class="prelude-val">Ok</span>(())
     }
 
     <span class="kw">fn </span>visit_class_set_binary_op_post(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        op: <span class="kw-2">&amp;</span><a href="../ast/mod.rs.html#1063">ast::ClassSetBinaryOp</a>,
+        op: <span class="kw-2">&amp;</span>ast::ClassSetBinaryOp,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
-        <span class="kw">use </span><a href="../ast/mod.rs.html#1080"><span class="kw">crate</span>::ast::ClassSetBinaryOpKind</a>::<span class="kw-2">*</span>;
+        <span class="kw">use </span><span class="kw">crate</span>::ast::ClassSetBinaryOpKind::<span class="kw-2">*</span>;
 
         <span class="kw">if </span><span class="self">self</span>.flags().unicode() {
-            <span class="kw">let </span><span class="kw-2">mut </span>rhs = <a class="self" href="#527">self</a>.<a href="#606">pop</a>().unwrap().<a href="#197">unwrap_class_unicode</a>();
-            <span class="kw">let </span><span class="kw-2">mut </span>lhs = <a class="self" href="#527">self</a>.<a href="#606">pop</a>().unwrap().<a href="#197">unwrap_class_unicode</a>();
-            <span class="kw">let </span><span class="kw-2">mut </span>cls = <a class="self" href="#527">self</a>.<a href="#606">pop</a>().unwrap().<a href="#197">unwrap_class_unicode</a>();
+            <span class="kw">let </span><span class="kw-2">mut </span>rhs = <span class="self">self</span>.pop().unwrap().unwrap_class_unicode();
+            <span class="kw">let </span><span class="kw-2">mut </span>lhs = <span class="self">self</span>.pop().unwrap().unwrap_class_unicode();
+            <span class="kw">let </span><span class="kw-2">mut </span>cls = <span class="self">self</span>.pop().unwrap().unwrap_class_unicode();
             <span class="kw">if </span><span class="self">self</span>.flags().case_insensitive() {
                 rhs.try_case_fold_simple().map_err(|<span class="kw">_</span>| {
                     <span class="self">self</span>.error(
@@ -3754,28 +3754,28 @@ Defines a translator that converts an `Ast` to an `Hir`.
                     )
                 })<span class="question-mark">?</span>;
             }
-            <span class="kw">match </span><a href="#528">op</a>.kind {
-                <a href="../ast/mod.rs.html#1082">Intersection</a> =&gt; <a href="#534">lhs</a>.<a href="mod.rs.html#925">intersect</a>(<span class="kw-2">&amp;</span><a href="#533">rhs</a>),
-                <a href="../ast/mod.rs.html#1084">Difference</a> =&gt; <a href="#534">lhs</a>.<a href="mod.rs.html#930">difference</a>(<span class="kw-2">&amp;</span><a href="#533">rhs</a>),
-                <a href="../ast/mod.rs.html#1088">SymmetricDifference</a> =&gt; <a href="#534">lhs</a>.<a href="mod.rs.html#942">symmetric_difference</a>(<span class="kw-2">&amp;</span><a href="#533">rhs</a>),
+            <span class="kw">match </span>op.kind {
+                Intersection =&gt; lhs.intersect(<span class="kw-2">&amp;</span>rhs),
+                Difference =&gt; lhs.difference(<span class="kw-2">&amp;</span>rhs),
+                SymmetricDifference =&gt; lhs.symmetric_difference(<span class="kw-2">&amp;</span>rhs),
             }
-            <a href="#535">cls</a>.<a href="mod.rs.html#919">union</a>(<span class="kw-2">&amp;</span><a href="#534">lhs</a>);
-            <a class="self" href="#527">self</a>.<a href="#601">push</a>(<a href="#149">HirFrame::ClassUnicode</a>(<a href="#535">cls</a>));
+            cls.union(<span class="kw-2">&amp;</span>lhs);
+            <span class="self">self</span>.push(HirFrame::ClassUnicode(cls));
         } <span class="kw">else </span>{
-            <span class="kw">let </span><span class="kw-2">mut </span>rhs = <a class="self" href="#527">self</a>.<a href="#606">pop</a>().unwrap().<a href="#210">unwrap_class_bytes</a>();
-            <span class="kw">let </span><span class="kw-2">mut </span>lhs = <a class="self" href="#527">self</a>.<a href="#606">pop</a>().unwrap().<a href="#210">unwrap_class_bytes</a>();
-            <span class="kw">let </span><span class="kw-2">mut </span>cls = <a class="self" href="#527">self</a>.<a href="#606">pop</a>().unwrap().<a href="#210">unwrap_class_bytes</a>();
+            <span class="kw">let </span><span class="kw-2">mut </span>rhs = <span class="self">self</span>.pop().unwrap().unwrap_class_bytes();
+            <span class="kw">let </span><span class="kw-2">mut </span>lhs = <span class="self">self</span>.pop().unwrap().unwrap_class_bytes();
+            <span class="kw">let </span><span class="kw-2">mut </span>cls = <span class="self">self</span>.pop().unwrap().unwrap_class_bytes();
             <span class="kw">if </span><span class="self">self</span>.flags().case_insensitive() {
-                <a href="#558">rhs</a>.<a href="mod.rs.html#1125">case_fold_simple</a>();
-                <a href="#559">lhs</a>.<a href="mod.rs.html#1125">case_fold_simple</a>();
+                rhs.case_fold_simple();
+                lhs.case_fold_simple();
             }
-            <span class="kw">match </span><a href="#528">op</a>.kind {
-                <a href="../ast/mod.rs.html#1082">Intersection</a> =&gt; <a href="#559">lhs</a>.<a href="mod.rs.html#1143">intersect</a>(<span class="kw-2">&amp;</span><a href="#558">rhs</a>),
-                <a href="../ast/mod.rs.html#1084">Difference</a> =&gt; <a href="#559">lhs</a>.<a href="mod.rs.html#1148">difference</a>(<span class="kw-2">&amp;</span><a href="#558">rhs</a>),
-                <a href="../ast/mod.rs.html#1088">SymmetricDifference</a> =&gt; <a href="#559">lhs</a>.<a href="mod.rs.html#1159">symmetric_difference</a>(<span class="kw-2">&amp;</span><a href="#558">rhs</a>),
+            <span class="kw">match </span>op.kind {
+                Intersection =&gt; lhs.intersect(<span class="kw-2">&amp;</span>rhs),
+                Difference =&gt; lhs.difference(<span class="kw-2">&amp;</span>rhs),
+                SymmetricDifference =&gt; lhs.symmetric_difference(<span class="kw-2">&amp;</span>rhs),
             }
-            <a href="#560">cls</a>.<a href="mod.rs.html#1138">union</a>(<span class="kw-2">&amp;</span><a href="#559">lhs</a>);
-            <a class="self" href="#527">self</a>.<a href="#601">push</a>(<a href="#157">HirFrame::ClassBytes</a>(<a href="#560">cls</a>));
+            cls.union(<span class="kw-2">&amp;</span>lhs);
+            <span class="self">self</span>.push(HirFrame::ClassBytes(cls));
         }
         <span class="prelude-val">Ok</span>(())
     }
@@ -3789,60 +3789,60 @@ Defines a translator that converts an `Ast` to an `Hir`.
 /// A TranslatorI exists for the time it takes to translate a single Ast.
 </span><span class="attr">#[derive(Clone, Debug)]
 </span><span class="kw">struct </span>TranslatorI&lt;<span class="lifetime">&#39;t</span>, <span class="lifetime">&#39;p</span>&gt; {
-    trans: <span class="kw-2">&amp;</span><span class="lifetime">&#39;t </span><a href="#105">Translator</a>,
-    pattern: <span class="kw-2">&amp;</span><span class="lifetime">&#39;p </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>,
+    trans: <span class="kw-2">&amp;</span><span class="lifetime">&#39;t </span>Translator,
+    pattern: <span class="kw-2">&amp;</span><span class="lifetime">&#39;p </span>str,
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;t</span>, <span class="lifetime">&#39;p</span>&gt; TranslatorI&lt;<span class="lifetime">&#39;t</span>, <span class="lifetime">&#39;p</span>&gt; {
     <span class="doccomment">/// Build a new internal translator.
-    </span><span class="kw">fn </span>new(trans: <span class="kw-2">&amp;</span><span class="lifetime">&#39;t </span><a href="#105">Translator</a>, pattern: <span class="kw-2">&amp;</span><span class="lifetime">&#39;p </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; TranslatorI&lt;<span class="lifetime">&#39;t</span>, <span class="lifetime">&#39;p</span>&gt; {
-        <a href="#584">TranslatorI</a> { <a href="#591">trans</a>, <a href="#591">pattern</a> }
+    </span><span class="kw">fn </span>new(trans: <span class="kw-2">&amp;</span><span class="lifetime">&#39;t </span>Translator, pattern: <span class="kw-2">&amp;</span><span class="lifetime">&#39;p </span>str) -&gt; TranslatorI&lt;<span class="lifetime">&#39;t</span>, <span class="lifetime">&#39;p</span>&gt; {
+        TranslatorI { trans, pattern }
     }
 
     <span class="doccomment">/// Return a reference to the underlying translator.
-    </span><span class="kw">fn </span>trans(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="#105">Translator</a> {
-        <span class="kw-2">&amp;</span><a class="self" href="#596">self</a>.trans
+    </span><span class="kw">fn </span>trans(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Translator {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.trans
     }
 
     <span class="doccomment">/// Push the given frame on to the call stack.
-    </span><span class="kw">fn </span>push(<span class="kw-2">&amp;</span><span class="self">self</span>, frame: <a href="#141">HirFrame</a>) {
-        <a class="self" href="#601">self</a>.<a href="#596">trans</a>().stack.borrow_mut().push(<a href="#601">frame</a>);
+    </span><span class="kw">fn </span>push(<span class="kw-2">&amp;</span><span class="self">self</span>, frame: HirFrame) {
+        <span class="self">self</span>.trans().stack.borrow_mut().push(frame);
     }
 
     <span class="doccomment">/// Pop the top of the call stack. If the call stack is empty, return None.
-    </span><span class="kw">fn </span>pop(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="#141">HirFrame</a>&gt; {
-        <a class="self" href="#606">self</a>.<a href="#596">trans</a>().stack.borrow_mut().pop()
+    </span><span class="kw">fn </span>pop(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;HirFrame&gt; {
+        <span class="self">self</span>.trans().stack.borrow_mut().pop()
     }
 
     <span class="doccomment">/// Create a new error with the given span and error type.
-    </span><span class="kw">fn </span>error(<span class="kw-2">&amp;</span><span class="self">self</span>, span: <a href="../ast/mod.rs.html#323">Span</a>, kind: <a href="mod.rs.html#57">ErrorKind</a>) -&gt; <a href="mod.rs.html#26">Error</a> {
-        <a href="mod.rs.html#26">Error</a> { <a href="#611">kind</a>, pattern: <a class="self" href="#611">self</a>.pattern.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(), <a href="#611">span</a> }
+    </span><span class="kw">fn </span>error(<span class="kw-2">&amp;</span><span class="self">self</span>, span: Span, kind: ErrorKind) -&gt; Error {
+        Error { kind, pattern: <span class="self">self</span>.pattern.to_string(), span }
     }
 
     <span class="doccomment">/// Return a copy of the active flags.
-    </span><span class="kw">fn </span>flags(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="#1007">Flags</a> {
-        <a class="self" href="#616">self</a>.<a href="#596">trans</a>().flags.get()
+    </span><span class="kw">fn </span>flags(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Flags {
+        <span class="self">self</span>.trans().flags.get()
     }
 
     <span class="doccomment">/// Set the flags of this translator from the flags set in the given AST.
     /// Then, return the old flags.
-    </span><span class="kw">fn </span>set_flags(<span class="kw-2">&amp;</span><span class="self">self</span>, ast_flags: <span class="kw-2">&amp;</span><a href="../ast/mod.rs.html#1261">ast::Flags</a>) -&gt; <a href="#1007">Flags</a> {
-        <span class="kw">let </span>old_flags = <a class="self" href="#622">self</a>.<a href="#616">flags</a>();
-        <span class="kw">let </span><span class="kw-2">mut </span>new_flags = Flags::from_ast(<a href="#622">ast_flags</a>);
-        <a href="#624">new_flags</a>.<a href="#1047">merge</a>(<span class="kw-2">&amp;</span><a href="#623">old_flags</a>);
-        <a class="self" href="#622">self</a>.<a href="#596">trans</a>().flags.set(<a href="#624">new_flags</a>);
-        <a href="#623">old_flags</a>
+    </span><span class="kw">fn </span>set_flags(<span class="kw-2">&amp;</span><span class="self">self</span>, ast_flags: <span class="kw-2">&amp;</span>ast::Flags) -&gt; Flags {
+        <span class="kw">let </span>old_flags = <span class="self">self</span>.flags();
+        <span class="kw">let </span><span class="kw-2">mut </span>new_flags = Flags::from_ast(ast_flags);
+        new_flags.merge(<span class="kw-2">&amp;</span>old_flags);
+        <span class="self">self</span>.trans().flags.set(new_flags);
+        old_flags
     }
 
-    <span class="kw">fn </span>hir_literal(<span class="kw-2">&amp;</span><span class="self">self</span>, lit: <span class="kw-2">&amp;</span><a href="../ast/mod.rs.html#605">ast::Literal</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="mod.rs.html#175">Hir</a>&gt; {
+    <span class="kw">fn </span>hir_literal(<span class="kw-2">&amp;</span><span class="self">self</span>, lit: <span class="kw-2">&amp;</span>ast::Literal) -&gt; <span class="prelude-ty">Result</span>&lt;Hir&gt; {
         <span class="kw">let </span>ch = <span class="kw">match </span><span class="self">self</span>.literal_to_char(lit)<span class="question-mark">? </span>{
-            byte @ <a href="mod.rs.html#751">hir::Literal::Byte</a>(<span class="kw">_</span>) =&gt; <span class="kw">return </span><span class="prelude-val">Ok</span>(Hir::literal(<a href="#632">byte</a>)),
-            <a href="mod.rs.html#749">hir::Literal::Unicode</a>(ch) =&gt; <a href="#633">ch</a>,
+            byte @ hir::Literal::Byte(<span class="kw">_</span>) =&gt; <span class="kw">return </span><span class="prelude-val">Ok</span>(Hir::literal(byte)),
+            hir::Literal::Unicode(ch) =&gt; ch,
         };
         <span class="kw">if </span><span class="self">self</span>.flags().case_insensitive() {
-            <a class="self" href="#630">self</a>.<a href="#674-678">hir_from_char_case_insensitive</a>(<a href="#630">lit</a>.span, <a href="#631">ch</a>)
+            <span class="self">self</span>.hir_from_char_case_insensitive(lit.span, ch)
         } <span class="kw">else </span>{
-            <a class="self" href="#630">self</a>.<a href="#667">hir_from_char</a>(<a href="#630">lit</a>.span, <a href="#631">ch</a>)
+            <span class="self">self</span>.hir_from_char(lit.span, ch)
         }
     }
 
@@ -3854,35 +3854,35 @@ Defines a translator that converts an `Ast` to an `Hir`.
     /// When Unicode mode is disabled, then a raw byte is returned. If that
     /// byte is not ASCII and invalid UTF-8 is not allowed, then this returns
     /// an error.
-    </span><span class="kw">fn </span>literal_to_char(<span class="kw-2">&amp;</span><span class="self">self</span>, lit: <span class="kw-2">&amp;</span><a href="../ast/mod.rs.html#605">ast::Literal</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="mod.rs.html#747">hir::Literal</a>&gt; {
+    </span><span class="kw">fn </span>literal_to_char(<span class="kw-2">&amp;</span><span class="self">self</span>, lit: <span class="kw-2">&amp;</span>ast::Literal) -&gt; <span class="prelude-ty">Result</span>&lt;hir::Literal&gt; {
         <span class="kw">if </span><span class="self">self</span>.flags().unicode() {
-            <span class="kw">return </span><span class="prelude-val">Ok</span>(<a href="mod.rs.html#749">hir::Literal::Unicode</a>(<a href="#650">lit</a>.c));
+            <span class="kw">return </span><span class="prelude-val">Ok</span>(hir::Literal::Unicode(lit.c));
         }
-        <span class="kw">let </span>byte = <span class="kw">match </span><a href="#650">lit</a>.<a href="../ast/mod.rs.html#617">byte</a>() {
-            <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="prelude-val">Ok</span>(<a href="mod.rs.html#749">hir::Literal::Unicode</a>(<a href="#650">lit</a>.c)),
-            <span class="prelude-val">Some</span>(byte) =&gt; <a href="#656">byte</a>,
+        <span class="kw">let </span>byte = <span class="kw">match </span>lit.byte() {
+            <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="prelude-val">Ok</span>(hir::Literal::Unicode(lit.c)),
+            <span class="prelude-val">Some</span>(byte) =&gt; byte,
         };
         <span class="kw">if </span>byte &lt;= <span class="number">0x7F </span>{
-            <span class="kw">return </span><span class="prelude-val">Ok</span>(<a href="mod.rs.html#749">hir::Literal::Unicode</a>(<a href="#654">byte</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>));
+            <span class="kw">return </span><span class="prelude-val">Ok</span>(hir::Literal::Unicode(byte <span class="kw">as </span>char));
         }
         <span class="kw">if </span>!<span class="self">self</span>.trans().allow_invalid_utf8 {
-            <span class="kw">return </span><span class="prelude-val">Err</span>(<a class="self" href="#650">self</a>.<a href="#611">error</a>(<a href="#650">lit</a>.span, <a href="mod.rs.html#63">ErrorKind::InvalidUtf8</a>));
+            <span class="kw">return </span><span class="prelude-val">Err</span>(<span class="self">self</span>.error(lit.span, ErrorKind::InvalidUtf8));
         }
-        <span class="prelude-val">Ok</span>(<a href="mod.rs.html#751">hir::Literal::Byte</a>(<a href="#654">byte</a>))
+        <span class="prelude-val">Ok</span>(hir::Literal::Byte(byte))
     }
 
-    <span class="kw">fn </span>hir_from_char(<span class="kw-2">&amp;</span><span class="self">self</span>, span: <a href="../ast/mod.rs.html#323">Span</a>, c: <a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="mod.rs.html#175">Hir</a>&gt; {
+    <span class="kw">fn </span>hir_from_char(<span class="kw-2">&amp;</span><span class="self">self</span>, span: Span, c: char) -&gt; <span class="prelude-ty">Result</span>&lt;Hir&gt; {
         <span class="kw">if </span>!<span class="self">self</span>.flags().unicode() &amp;&amp; c.len_utf8() &gt; <span class="number">1 </span>{
-            <span class="kw">return </span><span class="prelude-val">Err</span>(<a class="self" href="#667">self</a>.<a href="#611">error</a>(<a href="#667">span</a>, <a href="mod.rs.html#60">ErrorKind::UnicodeNotAllowed</a>));
+            <span class="kw">return </span><span class="prelude-val">Err</span>(<span class="self">self</span>.error(span, ErrorKind::UnicodeNotAllowed));
         }
-        <span class="prelude-val">Ok</span>(Hir::literal(<a href="mod.rs.html#749">hir::Literal::Unicode</a>(<a href="#667">c</a>)))
+        <span class="prelude-val">Ok</span>(Hir::literal(hir::Literal::Unicode(c)))
     }
 
     <span class="kw">fn </span>hir_from_char_case_insensitive(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        span: <a href="../ast/mod.rs.html#323">Span</a>,
-        c: <a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="mod.rs.html#175">Hir</a>&gt; {
+        span: Span,
+        c: char,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;Hir&gt; {
         <span class="kw">if </span><span class="self">self</span>.flags().unicode() {
             <span class="comment">// If case folding won&#39;t do anything, then don&#39;t bother trying.
             </span><span class="kw">let </span>map =
@@ -3890,232 +3890,232 @@ Defines a translator that converts an `Ast` to an `Hir`.
                     <span class="self">self</span>.error(span, ErrorKind::UnicodeCaseUnavailable)
                 })<span class="question-mark">?</span>;
             <span class="kw">if </span>!map {
-                <span class="kw">return </span><a class="self" href="#675">self</a>.<a href="#667">hir_from_char</a>(<a href="#676">span</a>, <a href="#677">c</a>);
+                <span class="kw">return </span><span class="self">self</span>.hir_from_char(span, c);
             }
             <span class="kw">let </span><span class="kw-2">mut </span>cls =
-                hir::ClassUnicode::new(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[hir::ClassUnicodeRange::new(
+                hir::ClassUnicode::new(<span class="macro">vec!</span>[hir::ClassUnicodeRange::new(
                     c, c,
                 )]);
             cls.try_case_fold_simple().map_err(|<span class="kw">_</span>| {
                 <span class="self">self</span>.error(span, ErrorKind::UnicodeCaseUnavailable)
             })<span class="question-mark">?</span>;
-            <span class="prelude-val">Ok</span>(Hir::class(<a href="mod.rs.html#785">hir::Class::Unicode</a>(<a href="#688">cls</a>)))
+            <span class="prelude-val">Ok</span>(Hir::class(hir::Class::Unicode(cls)))
         } <span class="kw">else </span>{
             <span class="kw">if </span>c.len_utf8() &gt; <span class="number">1 </span>{
-                <span class="kw">return </span><span class="prelude-val">Err</span>(<a class="self" href="#675">self</a>.<a href="#611">error</a>(<a href="#676">span</a>, <a href="mod.rs.html#60">ErrorKind::UnicodeNotAllowed</a>));
+                <span class="kw">return </span><span class="prelude-val">Err</span>(<span class="self">self</span>.error(span, ErrorKind::UnicodeNotAllowed));
             }
             <span class="comment">// If case folding won&#39;t do anything, then don&#39;t bother trying.
-            </span><span class="kw">match </span><a href="#677">c</a> {
+            </span><span class="kw">match </span>c {
                 <span class="string">&#39;A&#39;</span>..=<span class="string">&#39;Z&#39; </span>| <span class="string">&#39;a&#39;</span>..=<span class="string">&#39;z&#39; </span>=&gt; {}
-                <span class="kw">_ </span>=&gt; <span class="kw">return </span><a class="self" href="#675">self</a>.<a href="#667">hir_from_char</a>(<a href="#676">span</a>, <a href="#677">c</a>),
+                <span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="self">self</span>.hir_from_char(span, c),
             }
             <span class="kw">let </span><span class="kw-2">mut </span>cls =
-                hir::ClassBytes::new(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[hir::ClassBytesRange::new(
+                hir::ClassBytes::new(<span class="macro">vec!</span>[hir::ClassBytesRange::new(
                     c <span class="kw">as </span>u8, c <span class="kw">as </span>u8,
                 )]);
-            <a href="#705">cls</a>.<a href="mod.rs.html#1125">case_fold_simple</a>();
-            <span class="prelude-val">Ok</span>(Hir::class(<a href="mod.rs.html#788">hir::Class::Bytes</a>(<a href="#705">cls</a>)))
+            cls.case_fold_simple();
+            <span class="prelude-val">Ok</span>(Hir::class(hir::Class::Bytes(cls)))
         }
     }
 
-    <span class="kw">fn </span>hir_dot(<span class="kw-2">&amp;</span><span class="self">self</span>, span: <a href="../ast/mod.rs.html#323">Span</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="mod.rs.html#175">Hir</a>&gt; {
-        <span class="kw">let </span>unicode = <a class="self" href="#714">self</a>.<a href="#616">flags</a>().<a href="#1081">unicode</a>();
+    <span class="kw">fn </span>hir_dot(<span class="kw-2">&amp;</span><span class="self">self</span>, span: Span) -&gt; <span class="prelude-ty">Result</span>&lt;Hir&gt; {
+        <span class="kw">let </span>unicode = <span class="self">self</span>.flags().unicode();
         <span class="kw">if </span>!unicode &amp;&amp; !<span class="self">self</span>.trans().allow_invalid_utf8 {
-            <span class="kw">return </span><span class="prelude-val">Err</span>(<a class="self" href="#714">self</a>.<a href="#611">error</a>(<a href="#714">span</a>, <a href="mod.rs.html#63">ErrorKind::InvalidUtf8</a>));
+            <span class="kw">return </span><span class="prelude-val">Err</span>(<span class="self">self</span>.error(span, ErrorKind::InvalidUtf8));
         }
         <span class="prelude-val">Ok</span>(<span class="kw">if </span><span class="self">self</span>.flags().dot_matches_new_line() {
-            Hir::any(!<a href="#715">unicode</a>)
+            Hir::any(!unicode)
         } <span class="kw">else </span>{
-            Hir::dot(!<a href="#715">unicode</a>)
+            Hir::dot(!unicode)
         })
     }
 
-    <span class="kw">fn </span>hir_assertion(<span class="kw-2">&amp;</span><span class="self">self</span>, asst: <span class="kw-2">&amp;</span><a href="../ast/mod.rs.html#1093">ast::Assertion</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="mod.rs.html#175">Hir</a>&gt; {
-        <span class="kw">let </span>unicode = <a class="self" href="#726">self</a>.<a href="#616">flags</a>().<a href="#1081">unicode</a>();
-        <span class="kw">let </span>multi_line = <a class="self" href="#726">self</a>.<a href="#616">flags</a>().<a href="#1069">multi_line</a>();
-        <span class="prelude-val">Ok</span>(<span class="kw">match </span><a href="#726">asst</a>.kind {
-            <a href="../ast/mod.rs.html#1104">ast::AssertionKind::StartLine</a> =&gt; Hir::anchor(<span class="kw">if </span>multi_line {
-                <a href="mod.rs.html#1289">hir::Anchor::StartLine</a>
+    <span class="kw">fn </span>hir_assertion(<span class="kw-2">&amp;</span><span class="self">self</span>, asst: <span class="kw-2">&amp;</span>ast::Assertion) -&gt; <span class="prelude-ty">Result</span>&lt;Hir&gt; {
+        <span class="kw">let </span>unicode = <span class="self">self</span>.flags().unicode();
+        <span class="kw">let </span>multi_line = <span class="self">self</span>.flags().multi_line();
+        <span class="prelude-val">Ok</span>(<span class="kw">match </span>asst.kind {
+            ast::AssertionKind::StartLine =&gt; Hir::anchor(<span class="kw">if </span>multi_line {
+                hir::Anchor::StartLine
             } <span class="kw">else </span>{
-                <a href="mod.rs.html#1296">hir::Anchor::StartText</a>
+                hir::Anchor::StartText
             }),
-            <a href="../ast/mod.rs.html#1106">ast::AssertionKind::EndLine</a> =&gt; Hir::anchor(<span class="kw">if </span>multi_line {
-                <a href="mod.rs.html#1293">hir::Anchor::EndLine</a>
+            ast::AssertionKind::EndLine =&gt; Hir::anchor(<span class="kw">if </span>multi_line {
+                hir::Anchor::EndLine
             } <span class="kw">else </span>{
-                <a href="mod.rs.html#1299">hir::Anchor::EndText</a>
+                hir::Anchor::EndText
             }),
-            <a href="../ast/mod.rs.html#1108">ast::AssertionKind::StartText</a> =&gt; {
-                Hir::anchor(<a href="mod.rs.html#1296">hir::Anchor::StartText</a>)
+            ast::AssertionKind::StartText =&gt; {
+                Hir::anchor(hir::Anchor::StartText)
             }
-            <a href="../ast/mod.rs.html#1110">ast::AssertionKind::EndText</a> =&gt; Hir::anchor(<a href="mod.rs.html#1299">hir::Anchor::EndText</a>),
-            <a href="../ast/mod.rs.html#1112">ast::AssertionKind::WordBoundary</a> =&gt; {
+            ast::AssertionKind::EndText =&gt; Hir::anchor(hir::Anchor::EndText),
+            ast::AssertionKind::WordBoundary =&gt; {
                 Hir::word_boundary(<span class="kw">if </span>unicode {
-                    <a href="mod.rs.html#1310">hir::WordBoundary::Unicode</a>
+                    hir::WordBoundary::Unicode
                 } <span class="kw">else </span>{
-                    <a href="mod.rs.html#1316">hir::WordBoundary::Ascii</a>
+                    hir::WordBoundary::Ascii
                 })
             }
-            <a href="../ast/mod.rs.html#1114">ast::AssertionKind::NotWordBoundary</a> =&gt; {
+            ast::AssertionKind::NotWordBoundary =&gt; {
                 Hir::word_boundary(<span class="kw">if </span>unicode {
-                    <a href="mod.rs.html#1312">hir::WordBoundary::UnicodeNegate</a>
+                    hir::WordBoundary::UnicodeNegate
                 } <span class="kw">else </span>{
                     <span class="comment">// It is possible for negated ASCII word boundaries to
                     // match at invalid UTF-8 boundaries, even when searching
                     // valid UTF-8.
                     </span><span class="kw">if </span>!<span class="self">self</span>.trans().allow_invalid_utf8 {
                         <span class="kw">return </span><span class="prelude-val">Err</span>(
-                            <a class="self" href="#726">self</a>.<a href="#611">error</a>(<a href="#726">asst</a>.span, <a href="mod.rs.html#63">ErrorKind::InvalidUtf8</a>)
+                            <span class="self">self</span>.error(asst.span, ErrorKind::InvalidUtf8)
                         );
                     }
-                    <a href="mod.rs.html#1318">hir::WordBoundary::AsciiNegate</a>
+                    hir::WordBoundary::AsciiNegate
                 })
             }
         })
     }
 
-    <span class="kw">fn </span>hir_group(<span class="kw-2">&amp;</span><span class="self">self</span>, group: <span class="kw-2">&amp;</span><a href="../ast/mod.rs.html#1184">ast::Group</a>, expr: <a href="mod.rs.html#175">Hir</a>) -&gt; <a href="mod.rs.html#175">Hir</a> {
-        <span class="kw">let </span>kind = <span class="kw">match </span><a href="#769">group</a>.kind {
-            <a href="../ast/mod.rs.html#1227">ast::GroupKind::CaptureIndex</a>(idx) =&gt; {
-                <a href="mod.rs.html#1354">hir::GroupKind::CaptureIndex</a>(<a href="#771">idx</a>)
+    <span class="kw">fn </span>hir_group(<span class="kw-2">&amp;</span><span class="self">self</span>, group: <span class="kw-2">&amp;</span>ast::Group, expr: Hir) -&gt; Hir {
+        <span class="kw">let </span>kind = <span class="kw">match </span>group.kind {
+            ast::GroupKind::CaptureIndex(idx) =&gt; {
+                hir::GroupKind::CaptureIndex(idx)
             }
-            <a href="../ast/mod.rs.html#1229">ast::GroupKind::CaptureName</a>(<span class="kw-2">ref </span>capname) =&gt; {
-                <a href="mod.rs.html#1356">hir::GroupKind::CaptureName</a> {
-                    name: <a href="#774">capname</a>.name.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
-                    index: <a href="#774">capname</a>.index,
+            ast::GroupKind::CaptureName(<span class="kw-2">ref </span>capname) =&gt; {
+                hir::GroupKind::CaptureName {
+                    name: capname.name.clone(),
+                    index: capname.index,
                 }
             }
-            <a href="../ast/mod.rs.html#1231">ast::GroupKind::NonCapturing</a>(<span class="kw">_</span>) =&gt; <a href="mod.rs.html#1363">hir::GroupKind::NonCapturing</a>,
+            ast::GroupKind::NonCapturing(<span class="kw">_</span>) =&gt; hir::GroupKind::NonCapturing,
         };
-        Hir::group(<a href="mod.rs.html#1339">hir::Group</a> { <a href="#770">kind</a>, hir: Box::new(<a href="#769">expr</a>) })
+        Hir::group(hir::Group { kind, hir: Box::new(expr) })
     }
 
-    <span class="kw">fn </span>hir_repetition(<span class="kw-2">&amp;</span><span class="self">self</span>, rep: <span class="kw-2">&amp;</span><a href="../ast/mod.rs.html#1119">ast::Repetition</a>, expr: <a href="mod.rs.html#175">Hir</a>) -&gt; <a href="mod.rs.html#175">Hir</a> {
-        <span class="kw">let </span>kind = <span class="kw">match </span><a href="#785">rep</a>.op.kind {
-            <a href="../ast/mod.rs.html#1144">ast::RepetitionKind::ZeroOrOne</a> =&gt; <a href="mod.rs.html#1412">hir::RepetitionKind::ZeroOrOne</a>,
-            <a href="../ast/mod.rs.html#1146">ast::RepetitionKind::ZeroOrMore</a> =&gt; <a href="mod.rs.html#1414">hir::RepetitionKind::ZeroOrMore</a>,
-            <a href="../ast/mod.rs.html#1148">ast::RepetitionKind::OneOrMore</a> =&gt; <a href="mod.rs.html#1416">hir::RepetitionKind::OneOrMore</a>,
-            <a href="../ast/mod.rs.html#1150">ast::RepetitionKind::Range</a>(<a href="../ast/mod.rs.html#1157">ast::RepetitionRange::Exactly</a>(m)) =&gt; {
-                <a href="mod.rs.html#1418">hir::RepetitionKind::Range</a>(<a href="mod.rs.html#1425">hir::RepetitionRange::Exactly</a>(<a href="#790">m</a>))
+    <span class="kw">fn </span>hir_repetition(<span class="kw-2">&amp;</span><span class="self">self</span>, rep: <span class="kw-2">&amp;</span>ast::Repetition, expr: Hir) -&gt; Hir {
+        <span class="kw">let </span>kind = <span class="kw">match </span>rep.op.kind {
+            ast::RepetitionKind::ZeroOrOne =&gt; hir::RepetitionKind::ZeroOrOne,
+            ast::RepetitionKind::ZeroOrMore =&gt; hir::RepetitionKind::ZeroOrMore,
+            ast::RepetitionKind::OneOrMore =&gt; hir::RepetitionKind::OneOrMore,
+            ast::RepetitionKind::Range(ast::RepetitionRange::Exactly(m)) =&gt; {
+                hir::RepetitionKind::Range(hir::RepetitionRange::Exactly(m))
             }
-            <a href="../ast/mod.rs.html#1150">ast::RepetitionKind::Range</a>(<a href="../ast/mod.rs.html#1159">ast::RepetitionRange::AtLeast</a>(m)) =&gt; {
-                <a href="mod.rs.html#1418">hir::RepetitionKind::Range</a>(<a href="mod.rs.html#1427">hir::RepetitionRange::AtLeast</a>(<a href="#793">m</a>))
+            ast::RepetitionKind::Range(ast::RepetitionRange::AtLeast(m)) =&gt; {
+                hir::RepetitionKind::Range(hir::RepetitionRange::AtLeast(m))
             }
-            <a href="../ast/mod.rs.html#1150">ast::RepetitionKind::Range</a>(<a href="../ast/mod.rs.html#1161">ast::RepetitionRange::Bounded</a>(
+            ast::RepetitionKind::Range(ast::RepetitionRange::Bounded(
                 m,
                 n,
             )) =&gt; {
-                <a href="mod.rs.html#1418">hir::RepetitionKind::Range</a>(<a href="mod.rs.html#1429">hir::RepetitionRange::Bounded</a>(<a href="#797">m</a>, <a href="#798">n</a>))
+                hir::RepetitionKind::Range(hir::RepetitionRange::Bounded(m, n))
             }
         };
         <span class="kw">let </span>greedy =
-            <span class="kw">if </span><span class="self">self</span>.flags().swap_greed() { !<a href="#785">rep</a>.greedy } <span class="kw">else </span>{ <a href="#785">rep</a>.greedy };
-        Hir::repetition(<a href="mod.rs.html#1371">hir::Repetition</a> { <a href="#786">kind</a>, <a href="#803">greedy</a>, hir: Box::new(<a href="#785">expr</a>) })
+            <span class="kw">if </span><span class="self">self</span>.flags().swap_greed() { !rep.greedy } <span class="kw">else </span>{ rep.greedy };
+        Hir::repetition(hir::Repetition { kind, greedy, hir: Box::new(expr) })
     }
 
     <span class="kw">fn </span>hir_unicode_class(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        ast_class: <span class="kw-2">&amp;</span><a href="../ast/mod.rs.html#828">ast::ClassUnicode</a>,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="mod.rs.html#837">hir::ClassUnicode</a>&gt; {
-        <span class="kw">use </span><a href="../ast/mod.rs.html#863"><span class="kw">crate</span>::ast::ClassUnicodeKind</a>::<span class="kw-2">*</span>;
+        ast_class: <span class="kw-2">&amp;</span>ast::ClassUnicode,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;hir::ClassUnicode&gt; {
+        <span class="kw">use </span><span class="kw">crate</span>::ast::ClassUnicodeKind::<span class="kw-2">*</span>;
 
         <span class="kw">if </span>!<span class="self">self</span>.flags().unicode() {
             <span class="kw">return </span><span class="prelude-val">Err</span>(
-                <a class="self" href="#809">self</a>.<a href="#611">error</a>(<a href="#810">ast_class</a>.span, <a href="mod.rs.html#60">ErrorKind::UnicodeNotAllowed</a>)
+                <span class="self">self</span>.error(ast_class.span, ErrorKind::UnicodeNotAllowed)
             );
         }
-        <span class="kw">let </span>query = <span class="kw">match </span><a href="#810">ast_class</a>.kind {
-            <a href="../ast/mod.rs.html#865">OneLetter</a>(name) =&gt; <a href="../unicode.rs.html#169">ClassQuery::OneLetter</a>(<a href="#820">name</a>),
-            <a href="../ast/mod.rs.html#868">Named</a>(<span class="kw-2">ref </span>name) =&gt; <a href="../unicode.rs.html#175">ClassQuery::Binary</a>(<a href="#821">name</a>),
-            <a href="../ast/mod.rs.html#870">NamedValue</a> { <span class="kw-2">ref </span>name, <span class="kw-2">ref </span>value, .. } =&gt; <a href="../unicode.rs.html#179">ClassQuery::ByValue</a> {
-                property_name: <a href="#822">name</a>,
-                property_value: <a href="#822">value</a>,
+        <span class="kw">let </span>query = <span class="kw">match </span>ast_class.kind {
+            OneLetter(name) =&gt; ClassQuery::OneLetter(name),
+            Named(<span class="kw-2">ref </span>name) =&gt; ClassQuery::Binary(name),
+            NamedValue { <span class="kw-2">ref </span>name, <span class="kw-2">ref </span>value, .. } =&gt; ClassQuery::ByValue {
+                property_name: name,
+                property_value: value,
             },
         };
-        <span class="kw">let </span><span class="kw-2">mut </span>result = <a class="self" href="#809">self</a>.<a href="#918-922">convert_unicode_class_error</a>(
-            <span class="kw-2">&amp;</span><a href="#810">ast_class</a>.span,
-            <a href="../unicode.rs.html#288">unicode::class</a>(<a href="#819">query</a>),
+        <span class="kw">let </span><span class="kw-2">mut </span>result = <span class="self">self</span>.convert_unicode_class_error(
+            <span class="kw-2">&amp;</span>ast_class.span,
+            unicode::class(query),
         );
-        <span class="kw">if let </span><span class="prelude-val">Ok</span>(<span class="kw-2">ref mut </span>class) = <a href="#827">result</a> {
+        <span class="kw">if let </span><span class="prelude-val">Ok</span>(<span class="kw-2">ref mut </span>class) = result {
             <span class="self">self</span>.unicode_fold_and_negate(
                 <span class="kw-2">&amp;</span>ast_class.span,
                 ast_class.negated,
                 class,
             )<span class="question-mark">?</span>;
             <span class="kw">if </span>class.ranges().is_empty() {
-                <span class="kw">let </span>err = <span class="self"><a href="#809">self</a>
-                    </span>.<a href="#611">error</a>(<a href="#810">ast_class</a>.span, <a href="mod.rs.html#83">ErrorKind::EmptyClassNotAllowed</a>);
-                <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="#838">err</a>);
+                <span class="kw">let </span>err = <span class="self">self
+                    </span>.error(ast_class.span, ErrorKind::EmptyClassNotAllowed);
+                <span class="kw">return </span><span class="prelude-val">Err</span>(err);
             }
         }
-        <a href="#827">result</a>
+        result
     }
 
     <span class="kw">fn </span>hir_ascii_unicode_class(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        ast: <span class="kw-2">&amp;</span><a href="../ast/mod.rs.html#753">ast::ClassAscii</a>,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="mod.rs.html#837">hir::ClassUnicode</a>&gt; {
+        ast: <span class="kw-2">&amp;</span>ast::ClassAscii,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;hir::ClassUnicode&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>cls = hir::ClassUnicode::new(
-            <a href="#1095">ascii_class</a>(<span class="kw-2">&amp;</span><a href="#848">ast</a>.kind)
+            ascii_class(<span class="kw-2">&amp;</span>ast.kind)
                 .iter()
-                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|<span class="kw-2">&amp;</span>(s, e)| hir::ClassUnicodeRange::new(<a href="#853">s</a>, <a href="#853">e</a>)),
+                .map(|<span class="kw-2">&amp;</span>(s, e)| hir::ClassUnicodeRange::new(s, e)),
         );
         <span class="self">self</span>.unicode_fold_and_negate(<span class="kw-2">&amp;</span>ast.span, ast.negated, <span class="kw-2">&amp;mut </span>cls)<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(<a href="#850">cls</a>)
+        <span class="prelude-val">Ok</span>(cls)
     }
 
     <span class="kw">fn </span>hir_ascii_byte_class(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        ast: <span class="kw-2">&amp;</span><a href="../ast/mod.rs.html#753">ast::ClassAscii</a>,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="mod.rs.html#1080">hir::ClassBytes</a>&gt; {
+        ast: <span class="kw-2">&amp;</span>ast::ClassAscii,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;hir::ClassBytes&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>cls = hir::ClassBytes::new(
-            <a href="#1095">ascii_class</a>(<span class="kw-2">&amp;</span><a href="#861">ast</a>.kind)
+            ascii_class(<span class="kw-2">&amp;</span>ast.kind)
                 .iter()
-                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|<span class="kw-2">&amp;</span>(s, e)| hir::ClassBytesRange::new(<a href="#866">s</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>, <a href="#866">e</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>)),
+                .map(|<span class="kw-2">&amp;</span>(s, e)| hir::ClassBytesRange::new(s <span class="kw">as </span>u8, e <span class="kw">as </span>u8)),
         );
         <span class="self">self</span>.bytes_fold_and_negate(<span class="kw-2">&amp;</span>ast.span, ast.negated, <span class="kw-2">&amp;mut </span>cls)<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(<a href="#863">cls</a>)
+        <span class="prelude-val">Ok</span>(cls)
     }
 
     <span class="kw">fn </span>hir_perl_unicode_class(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        ast_class: <span class="kw-2">&amp;</span><a href="../ast/mod.rs.html#730">ast::ClassPerl</a>,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="mod.rs.html#837">hir::ClassUnicode</a>&gt; {
-        <span class="kw">use </span><a href="../ast/mod.rs.html#742"><span class="kw">crate</span>::ast::ClassPerlKind</a>::<span class="kw-2">*</span>;
+        ast_class: <span class="kw-2">&amp;</span>ast::ClassPerl,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;hir::ClassUnicode&gt; {
+        <span class="kw">use </span><span class="kw">crate</span>::ast::ClassPerlKind::<span class="kw-2">*</span>;
 
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(<span class="self">self</span>.flags().unicode());
-        <span class="kw">let </span>result = <span class="kw">match </span><a href="#874">ast_class</a>.kind {
-            <a href="../ast/mod.rs.html#744">Digit</a> =&gt; <a href="../unicode.rs.html#367">unicode::perl_digit</a>(),
-            <a href="../ast/mod.rs.html#746">Space</a> =&gt; <a href="../unicode.rs.html#343">unicode::perl_space</a>(),
-            <a href="../ast/mod.rs.html#748">Word</a> =&gt; <a href="../unicode.rs.html#325">unicode::perl_word</a>(),
+        <span class="macro">assert!</span>(<span class="self">self</span>.flags().unicode());
+        <span class="kw">let </span>result = <span class="kw">match </span>ast_class.kind {
+            Digit =&gt; unicode::perl_digit(),
+            Space =&gt; unicode::perl_space(),
+            Word =&gt; unicode::perl_word(),
         };
         <span class="kw">let </span><span class="kw-2">mut </span>class =
             <span class="self">self</span>.convert_unicode_class_error(<span class="kw-2">&amp;</span>ast_class.span, result)<span class="question-mark">?</span>;
         <span class="comment">// We needn&#39;t apply case folding here because the Perl Unicode classes
         // are already closed under Unicode simple case folding.
         </span><span class="kw">if </span>ast_class.negated {
-            <a href="#884">class</a>.<a href="mod.rs.html#914">negate</a>();
+            class.negate();
         }
-        <span class="prelude-val">Ok</span>(<a href="#884">class</a>)
+        <span class="prelude-val">Ok</span>(class)
     }
 
     <span class="kw">fn </span>hir_perl_byte_class(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        ast_class: <span class="kw-2">&amp;</span><a href="../ast/mod.rs.html#730">ast::ClassPerl</a>,
-    ) -&gt; <a href="mod.rs.html#1080">hir::ClassBytes</a> {
-        <span class="kw">use </span><a href="../ast/mod.rs.html#742"><span class="kw">crate</span>::ast::ClassPerlKind</a>::<span class="kw-2">*</span>;
+        ast_class: <span class="kw-2">&amp;</span>ast::ClassPerl,
+    ) -&gt; hir::ClassBytes {
+        <span class="kw">use </span><span class="kw">crate</span>::ast::ClassPerlKind::<span class="kw-2">*</span>;
 
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(!<span class="self">self</span>.flags().unicode());
-        <span class="kw">let </span><span class="kw-2">mut </span>class = <span class="kw">match </span><a href="#896">ast_class</a>.kind {
-            <a href="../ast/mod.rs.html#744">Digit</a> =&gt; <a href="#1086">hir_ascii_class_bytes</a>(<span class="kw-2">&amp;</span><a href="../ast/mod.rs.html#777">ast::ClassAsciiKind::Digit</a>),
-            <a href="../ast/mod.rs.html#746">Space</a> =&gt; <a href="#1086">hir_ascii_class_bytes</a>(<span class="kw-2">&amp;</span><a href="../ast/mod.rs.html#787">ast::ClassAsciiKind::Space</a>),
-            <a href="../ast/mod.rs.html#748">Word</a> =&gt; <a href="#1086">hir_ascii_class_bytes</a>(<span class="kw-2">&amp;</span><a href="../ast/mod.rs.html#791">ast::ClassAsciiKind::Word</a>),
+        <span class="macro">assert!</span>(!<span class="self">self</span>.flags().unicode());
+        <span class="kw">let </span><span class="kw-2">mut </span>class = <span class="kw">match </span>ast_class.kind {
+            Digit =&gt; hir_ascii_class_bytes(<span class="kw-2">&amp;</span>ast::ClassAsciiKind::Digit),
+            Space =&gt; hir_ascii_class_bytes(<span class="kw-2">&amp;</span>ast::ClassAsciiKind::Space),
+            Word =&gt; hir_ascii_class_bytes(<span class="kw-2">&amp;</span>ast::ClassAsciiKind::Word),
         };
         <span class="comment">// We needn&#39;t apply case folding here because the Perl ASCII classes
         // are already closed (under ASCII case folding).
         </span><span class="kw">if </span>ast_class.negated {
-            <a href="#901">class</a>.<a href="mod.rs.html#1133">negate</a>();
+            class.negate();
         }
-        <a href="#901">class</a>
+        class
     }
 
     <span class="doccomment">/// Converts the given Unicode specific error to an HIR translation error.
@@ -4124,20 +4124,20 @@ Defines a translator that converts an `Ast` to an `Hir`.
     /// occur.
     </span><span class="kw">fn </span>convert_unicode_class_error(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        span: <span class="kw-2">&amp;</span><a href="../ast/mod.rs.html#323">Span</a>,
-        result: unicode::Result&lt;<a href="mod.rs.html#837">hir::ClassUnicode</a>&gt;,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="mod.rs.html#837">hir::ClassUnicode</a>&gt; {
-        <a href="#921">result</a>.map_err(|err| {
-            <span class="kw">let </span>sp = <a href="#920">span</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
-            <span class="kw">match </span><a href="#923">err</a> {
-                <a href="../unicode.rs.html#20">unicode::Error::PropertyNotFound</a> =&gt; {
-                    <a class="self" href="#919">self</a>.<a href="#611">error</a>(<a href="#924">sp</a>, <a href="mod.rs.html#66">ErrorKind::UnicodePropertyNotFound</a>)
+        span: <span class="kw-2">&amp;</span>Span,
+        result: unicode::Result&lt;hir::ClassUnicode&gt;,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;hir::ClassUnicode&gt; {
+        result.map_err(|err| {
+            <span class="kw">let </span>sp = span.clone();
+            <span class="kw">match </span>err {
+                unicode::Error::PropertyNotFound =&gt; {
+                    <span class="self">self</span>.error(sp, ErrorKind::UnicodePropertyNotFound)
                 }
-                <a href="../unicode.rs.html#21">unicode::Error::PropertyValueNotFound</a> =&gt; {
-                    <a class="self" href="#919">self</a>.<a href="#611">error</a>(<a href="#924">sp</a>, <a href="mod.rs.html#69">ErrorKind::UnicodePropertyValueNotFound</a>)
+                unicode::Error::PropertyValueNotFound =&gt; {
+                    <span class="self">self</span>.error(sp, ErrorKind::UnicodePropertyValueNotFound)
                 }
-                <a href="../unicode.rs.html#24">unicode::Error::PerlClassNotFound</a> =&gt; {
-                    <a class="self" href="#919">self</a>.<a href="#611">error</a>(<a href="#924">sp</a>, <a href="mod.rs.html#73">ErrorKind::UnicodePerlClassNotFound</a>)
+                unicode::Error::PerlClassNotFound =&gt; {
+                    <span class="self">self</span>.error(sp, ErrorKind::UnicodePerlClassNotFound)
                 }
             }
         })
@@ -4145,9 +4145,9 @@ Defines a translator that converts an `Ast` to an `Hir`.
 
     <span class="kw">fn </span>unicode_fold_and_negate(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        span: <span class="kw-2">&amp;</span><a href="../ast/mod.rs.html#323">Span</a>,
-        negated: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-        class: <span class="kw-2">&amp;mut </span><a href="mod.rs.html#837">hir::ClassUnicode</a>,
+        span: <span class="kw-2">&amp;</span>Span,
+        negated: bool,
+        class: <span class="kw-2">&amp;mut </span>hir::ClassUnicode,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
         <span class="comment">// Note that we must apply case folding before negation!
         // Consider `(?i)[^x]`. If we applied negation field, then
@@ -4159,46 +4159,46 @@ Defines a translator that converts an `Ast` to an `Hir`.
             })<span class="question-mark">?</span>;
         }
         <span class="kw">if </span>negated {
-            <a href="#943">class</a>.<a href="mod.rs.html#914">negate</a>();
+            class.negate();
         }
         <span class="prelude-val">Ok</span>(())
     }
 
     <span class="kw">fn </span>bytes_fold_and_negate(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        span: <span class="kw-2">&amp;</span><a href="../ast/mod.rs.html#323">Span</a>,
-        negated: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-        class: <span class="kw-2">&amp;mut </span><a href="mod.rs.html#1080">hir::ClassBytes</a>,
+        span: <span class="kw-2">&amp;</span>Span,
+        negated: bool,
+        class: <span class="kw-2">&amp;mut </span>hir::ClassBytes,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
         <span class="comment">// Note that we must apply case folding before negation!
         // Consider `(?i)[^x]`. If we applied negation first, then
         // the result would be the character class that matched any
         // Unicode scalar value.
         </span><span class="kw">if </span><span class="self">self</span>.flags().case_insensitive() {
-            <a href="#964">class</a>.<a href="mod.rs.html#1125">case_fold_simple</a>();
+            class.case_fold_simple();
         }
         <span class="kw">if </span>negated {
-            <a href="#964">class</a>.<a href="mod.rs.html#1133">negate</a>();
+            class.negate();
         }
         <span class="kw">if </span>!<span class="self">self</span>.trans().allow_invalid_utf8 &amp;&amp; !class.is_all_ascii() {
-            <span class="kw">return </span><span class="prelude-val">Err</span>(<a class="self" href="#961">self</a>.<a href="#611">error</a>(<a href="#962">span</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), <a href="mod.rs.html#63">ErrorKind::InvalidUtf8</a>));
+            <span class="kw">return </span><span class="prelude-val">Err</span>(<span class="self">self</span>.error(span.clone(), ErrorKind::InvalidUtf8));
         }
         <span class="prelude-val">Ok</span>(())
     }
 
     <span class="doccomment">/// Return a scalar byte value suitable for use as a literal in a byte
     /// character class.
-    </span><span class="kw">fn </span>class_literal_byte(<span class="kw-2">&amp;</span><span class="self">self</span>, ast: <span class="kw-2">&amp;</span><a href="../ast/mod.rs.html#605">ast::Literal</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt; {
+    </span><span class="kw">fn </span>class_literal_byte(<span class="kw-2">&amp;</span><span class="self">self</span>, ast: <span class="kw-2">&amp;</span>ast::Literal) -&gt; <span class="prelude-ty">Result</span>&lt;u8&gt; {
         <span class="kw">match </span><span class="self">self</span>.literal_to_char(ast)<span class="question-mark">? </span>{
-            <a href="mod.rs.html#751">hir::Literal::Byte</a>(byte) =&gt; <span class="prelude-val">Ok</span>(<a href="#986">byte</a>),
-            <a href="mod.rs.html#749">hir::Literal::Unicode</a>(ch) =&gt; {
+            hir::Literal::Byte(byte) =&gt; <span class="prelude-val">Ok</span>(byte),
+            hir::Literal::Unicode(ch) =&gt; {
                 <span class="kw">if </span>ch &lt;= <span class="number">0x7F </span><span class="kw">as </span>char {
-                    <span class="prelude-val">Ok</span>(<a href="#987">ch</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>)
+                    <span class="prelude-val">Ok</span>(ch <span class="kw">as </span>u8)
                 } <span class="kw">else </span>{
                     <span class="comment">// We can&#39;t feasibly support Unicode in
                     // byte oriented classes. Byte classes don&#39;t
                     // do Unicode case folding.
-                    </span><span class="prelude-val">Err</span>(<a class="self" href="#984">self</a>.<a href="#611">error</a>(<a href="#984">ast</a>.span, <a href="mod.rs.html#60">ErrorKind::UnicodeNotAllowed</a>))
+                    </span><span class="prelude-val">Err</span>(<span class="self">self</span>.error(ast.span, ErrorKind::UnicodeNotAllowed))
                 }
             }
         }
@@ -4212,17 +4212,17 @@ Defines a translator that converts an `Ast` to an `Hir`.
 /// present but enabled.
 </span><span class="attr">#[derive(Clone, Copy, Debug, Default)]
 </span><span class="kw">struct </span>Flags {
-    case_insensitive: <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>&gt;,
-    multi_line: <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>&gt;,
-    dot_matches_new_line: <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>&gt;,
-    swap_greed: <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>&gt;,
-    unicode: <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>&gt;,
+    case_insensitive: <span class="prelude-ty">Option</span>&lt;bool&gt;,
+    multi_line: <span class="prelude-ty">Option</span>&lt;bool&gt;,
+    dot_matches_new_line: <span class="prelude-ty">Option</span>&lt;bool&gt;,
+    swap_greed: <span class="prelude-ty">Option</span>&lt;bool&gt;,
+    unicode: <span class="prelude-ty">Option</span>&lt;bool&gt;,
     <span class="comment">// Note that `ignore_whitespace` is omitted here because it is handled
     // entirely in the parser.
 </span>}
 
-<span class="kw">impl </span><a href="#1007">Flags</a> {
-    <span class="kw">fn </span>from_ast(ast: <span class="kw-2">&amp;</span><a href="../ast/mod.rs.html#1261">ast::Flags</a>) -&gt; <a href="#1007">Flags</a> {
+<span class="kw">impl </span>Flags {
+    <span class="kw">fn </span>from_ast(ast: <span class="kw-2">&amp;</span>ast::Flags) -&gt; Flags {
         <span class="kw">let </span><span class="kw-2">mut </span>flags = Flags::default();
         <span class="kw">let </span><span class="kw-2">mut </span>enable = <span class="bool-val">true</span>;
         <span class="kw">for </span>item <span class="kw">in </span><span class="kw-2">&amp;</span>ast.items {
@@ -4248,71 +4248,71 @@ Defines a translator that converts an `Ast` to an `Hir`.
                 ast::FlagsItemKind::Flag(ast::Flag::IgnoreWhitespace) =&gt; {}
             }
         }
-        <a href="#1019">flags</a>
+        flags
     }
 
-    <span class="kw">fn </span>merge(<span class="kw-2">&amp;mut </span><span class="self">self</span>, previous: <span class="kw-2">&amp;</span><a href="#1007">Flags</a>) {
+    <span class="kw">fn </span>merge(<span class="kw-2">&amp;mut </span><span class="self">self</span>, previous: <span class="kw-2">&amp;</span>Flags) {
         <span class="kw">if </span><span class="self">self</span>.case_insensitive.is_none() {
-            <a class="self" href="#1047">self</a>.case_insensitive = <a href="#1047">previous</a>.case_insensitive;
+            <span class="self">self</span>.case_insensitive = previous.case_insensitive;
         }
         <span class="kw">if </span><span class="self">self</span>.multi_line.is_none() {
-            <a class="self" href="#1047">self</a>.multi_line = <a href="#1047">previous</a>.multi_line;
+            <span class="self">self</span>.multi_line = previous.multi_line;
         }
         <span class="kw">if </span><span class="self">self</span>.dot_matches_new_line.is_none() {
-            <a class="self" href="#1047">self</a>.dot_matches_new_line = <a href="#1047">previous</a>.dot_matches_new_line;
+            <span class="self">self</span>.dot_matches_new_line = previous.dot_matches_new_line;
         }
         <span class="kw">if </span><span class="self">self</span>.swap_greed.is_none() {
-            <a class="self" href="#1047">self</a>.swap_greed = <a href="#1047">previous</a>.swap_greed;
+            <span class="self">self</span>.swap_greed = previous.swap_greed;
         }
         <span class="kw">if </span><span class="self">self</span>.unicode.is_none() {
-            <a class="self" href="#1047">self</a>.unicode = <a href="#1047">previous</a>.unicode;
+            <span class="self">self</span>.unicode = previous.unicode;
         }
     }
 
-    <span class="kw">fn </span>case_insensitive(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#1065">self</a>.case_insensitive.unwrap_or(<span class="bool-val">false</span>)
+    <span class="kw">fn </span>case_insensitive(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.case_insensitive.unwrap_or(<span class="bool-val">false</span>)
     }
 
-    <span class="kw">fn </span>multi_line(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#1069">self</a>.multi_line.unwrap_or(<span class="bool-val">false</span>)
+    <span class="kw">fn </span>multi_line(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.multi_line.unwrap_or(<span class="bool-val">false</span>)
     }
 
-    <span class="kw">fn </span>dot_matches_new_line(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#1073">self</a>.dot_matches_new_line.unwrap_or(<span class="bool-val">false</span>)
+    <span class="kw">fn </span>dot_matches_new_line(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.dot_matches_new_line.unwrap_or(<span class="bool-val">false</span>)
     }
 
-    <span class="kw">fn </span>swap_greed(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#1077">self</a>.swap_greed.unwrap_or(<span class="bool-val">false</span>)
+    <span class="kw">fn </span>swap_greed(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.swap_greed.unwrap_or(<span class="bool-val">false</span>)
     }
 
-    <span class="kw">fn </span>unicode(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#1081">self</a>.unicode.unwrap_or(<span class="bool-val">true</span>)
+    <span class="kw">fn </span>unicode(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.unicode.unwrap_or(<span class="bool-val">true</span>)
     }
 }
 
-<span class="kw">fn </span>hir_ascii_class_bytes(kind: <span class="kw-2">&amp;</span><a href="../ast/mod.rs.html#765">ast::ClassAsciiKind</a>) -&gt; <a href="mod.rs.html#1080">hir::ClassBytes</a> {
-    <span class="kw">let </span>ranges: Vec&lt;<span class="kw">_</span>&gt; = <a href="#1095">ascii_class</a>(<a href="#1086">kind</a>)
+<span class="kw">fn </span>hir_ascii_class_bytes(kind: <span class="kw-2">&amp;</span>ast::ClassAsciiKind) -&gt; hir::ClassBytes {
+    <span class="kw">let </span>ranges: Vec&lt;<span class="kw">_</span>&gt; = ascii_class(kind)
         .iter()
-        .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">cloned</a>()
-        .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|(s, e)| hir::ClassBytesRange::new(<a href="#1090">s</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>, <a href="#1090">e</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>))
-        .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
-    hir::ClassBytes::new(<a href="#1087">ranges</a>)
+        .cloned()
+        .map(|(s, e)| hir::ClassBytesRange::new(s <span class="kw">as </span>u8, e <span class="kw">as </span>u8))
+        .collect();
+    hir::ClassBytes::new(ranges)
 }
 
-<span class="kw">fn </span>ascii_class(kind: <span class="kw-2">&amp;</span><a href="../ast/mod.rs.html#765">ast::ClassAsciiKind</a>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>[(<a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>)] {
-    <span class="kw">use </span><a href="../ast/mod.rs.html#765"><span class="kw">crate</span>::ast::ClassAsciiKind</a>::<span class="kw-2">*</span>;
-    <span class="kw">match </span><span class="kw-2">*</span><a href="#1095">kind</a> {
-        <a href="../ast/mod.rs.html#767">Alnum</a> =&gt; <span class="kw-2">&amp;</span>[(<span class="string">&#39;0&#39;</span>, <span class="string">&#39;9&#39;</span>), (<span class="string">&#39;A&#39;</span>, <span class="string">&#39;Z&#39;</span>), (<span class="string">&#39;a&#39;</span>, <span class="string">&#39;z&#39;</span>)],
-        <a href="../ast/mod.rs.html#769">Alpha</a> =&gt; <span class="kw-2">&amp;</span>[(<span class="string">&#39;A&#39;</span>, <span class="string">&#39;Z&#39;</span>), (<span class="string">&#39;a&#39;</span>, <span class="string">&#39;z&#39;</span>)],
-        <a href="../ast/mod.rs.html#771">Ascii</a> =&gt; <span class="kw-2">&amp;</span>[(<span class="string">&#39;\x00&#39;</span>, <span class="string">&#39;\x7F&#39;</span>)],
-        <a href="../ast/mod.rs.html#773">Blank</a> =&gt; <span class="kw-2">&amp;</span>[(<span class="string">&#39;\t&#39;</span>, <span class="string">&#39;\t&#39;</span>), (<span class="string">&#39; &#39;</span>, <span class="string">&#39; &#39;</span>)],
-        <a href="../ast/mod.rs.html#775">Cntrl</a> =&gt; <span class="kw-2">&amp;</span>[(<span class="string">&#39;\x00&#39;</span>, <span class="string">&#39;\x1F&#39;</span>), (<span class="string">&#39;\x7F&#39;</span>, <span class="string">&#39;\x7F&#39;</span>)],
-        <a href="../ast/mod.rs.html#777">Digit</a> =&gt; <span class="kw-2">&amp;</span>[(<span class="string">&#39;0&#39;</span>, <span class="string">&#39;9&#39;</span>)],
-        <a href="../ast/mod.rs.html#779">Graph</a> =&gt; <span class="kw-2">&amp;</span>[(<span class="string">&#39;!&#39;</span>, <span class="string">&#39;~&#39;</span>)],
-        <a href="../ast/mod.rs.html#781">Lower</a> =&gt; <span class="kw-2">&amp;</span>[(<span class="string">&#39;a&#39;</span>, <span class="string">&#39;z&#39;</span>)],
-        <a href="../ast/mod.rs.html#783">Print</a> =&gt; <span class="kw-2">&amp;</span>[(<span class="string">&#39; &#39;</span>, <span class="string">&#39;~&#39;</span>)],
-        <a href="../ast/mod.rs.html#785">Punct</a> =&gt; <span class="kw-2">&amp;</span>[(<span class="string">&#39;!&#39;</span>, <span class="string">&#39;/&#39;</span>), (<span class="string">&#39;:&#39;</span>, <span class="string">&#39;@&#39;</span>), (<span class="string">&#39;[&#39;</span>, <span class="string">&#39;`&#39;</span>), (<span class="string">&#39;{&#39;</span>, <span class="string">&#39;~&#39;</span>)],
-        <a href="../ast/mod.rs.html#787">Space</a> =&gt; <span class="kw-2">&amp;</span>[
+<span class="kw">fn </span>ascii_class(kind: <span class="kw-2">&amp;</span>ast::ClassAsciiKind) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>[(char, char)] {
+    <span class="kw">use </span><span class="kw">crate</span>::ast::ClassAsciiKind::<span class="kw-2">*</span>;
+    <span class="kw">match </span><span class="kw-2">*</span>kind {
+        Alnum =&gt; <span class="kw-2">&amp;</span>[(<span class="string">&#39;0&#39;</span>, <span class="string">&#39;9&#39;</span>), (<span class="string">&#39;A&#39;</span>, <span class="string">&#39;Z&#39;</span>), (<span class="string">&#39;a&#39;</span>, <span class="string">&#39;z&#39;</span>)],
+        Alpha =&gt; <span class="kw-2">&amp;</span>[(<span class="string">&#39;A&#39;</span>, <span class="string">&#39;Z&#39;</span>), (<span class="string">&#39;a&#39;</span>, <span class="string">&#39;z&#39;</span>)],
+        Ascii =&gt; <span class="kw-2">&amp;</span>[(<span class="string">&#39;\x00&#39;</span>, <span class="string">&#39;\x7F&#39;</span>)],
+        Blank =&gt; <span class="kw-2">&amp;</span>[(<span class="string">&#39;\t&#39;</span>, <span class="string">&#39;\t&#39;</span>), (<span class="string">&#39; &#39;</span>, <span class="string">&#39; &#39;</span>)],
+        Cntrl =&gt; <span class="kw-2">&amp;</span>[(<span class="string">&#39;\x00&#39;</span>, <span class="string">&#39;\x1F&#39;</span>), (<span class="string">&#39;\x7F&#39;</span>, <span class="string">&#39;\x7F&#39;</span>)],
+        Digit =&gt; <span class="kw-2">&amp;</span>[(<span class="string">&#39;0&#39;</span>, <span class="string">&#39;9&#39;</span>)],
+        Graph =&gt; <span class="kw-2">&amp;</span>[(<span class="string">&#39;!&#39;</span>, <span class="string">&#39;~&#39;</span>)],
+        Lower =&gt; <span class="kw-2">&amp;</span>[(<span class="string">&#39;a&#39;</span>, <span class="string">&#39;z&#39;</span>)],
+        Print =&gt; <span class="kw-2">&amp;</span>[(<span class="string">&#39; &#39;</span>, <span class="string">&#39;~&#39;</span>)],
+        Punct =&gt; <span class="kw-2">&amp;</span>[(<span class="string">&#39;!&#39;</span>, <span class="string">&#39;/&#39;</span>), (<span class="string">&#39;:&#39;</span>, <span class="string">&#39;@&#39;</span>), (<span class="string">&#39;[&#39;</span>, <span class="string">&#39;`&#39;</span>), (<span class="string">&#39;{&#39;</span>, <span class="string">&#39;~&#39;</span>)],
+        Space =&gt; <span class="kw-2">&amp;</span>[
             (<span class="string">&#39;\t&#39;</span>, <span class="string">&#39;\t&#39;</span>),
             (<span class="string">&#39;\n&#39;</span>, <span class="string">&#39;\n&#39;</span>),
             (<span class="string">&#39;\x0B&#39;</span>, <span class="string">&#39;\x0B&#39;</span>),
@@ -4320,9 +4320,9 @@ Defines a translator that converts an `Ast` to an `Hir`.
             (<span class="string">&#39;\r&#39;</span>, <span class="string">&#39;\r&#39;</span>),
             (<span class="string">&#39; &#39;</span>, <span class="string">&#39; &#39;</span>),
         ],
-        <a href="../ast/mod.rs.html#789">Upper</a> =&gt; <span class="kw-2">&amp;</span>[(<span class="string">&#39;A&#39;</span>, <span class="string">&#39;Z&#39;</span>)],
-        <a href="../ast/mod.rs.html#791">Word</a> =&gt; <span class="kw-2">&amp;</span>[(<span class="string">&#39;0&#39;</span>, <span class="string">&#39;9&#39;</span>), (<span class="string">&#39;A&#39;</span>, <span class="string">&#39;Z&#39;</span>), (<span class="string">&#39;_&#39;</span>, <span class="string">&#39;_&#39;</span>), (<span class="string">&#39;a&#39;</span>, <span class="string">&#39;z&#39;</span>)],
-        <a href="../ast/mod.rs.html#793">Xdigit</a> =&gt; <span class="kw-2">&amp;</span>[(<span class="string">&#39;0&#39;</span>, <span class="string">&#39;9&#39;</span>), (<span class="string">&#39;A&#39;</span>, <span class="string">&#39;F&#39;</span>), (<span class="string">&#39;a&#39;</span>, <span class="string">&#39;f&#39;</span>)],
+        Upper =&gt; <span class="kw-2">&amp;</span>[(<span class="string">&#39;A&#39;</span>, <span class="string">&#39;Z&#39;</span>)],
+        Word =&gt; <span class="kw-2">&amp;</span>[(<span class="string">&#39;0&#39;</span>, <span class="string">&#39;9&#39;</span>), (<span class="string">&#39;A&#39;</span>, <span class="string">&#39;Z&#39;</span>), (<span class="string">&#39;_&#39;</span>, <span class="string">&#39;_&#39;</span>), (<span class="string">&#39;a&#39;</span>, <span class="string">&#39;z&#39;</span>)],
+        Xdigit =&gt; <span class="kw-2">&amp;</span>[(<span class="string">&#39;0&#39;</span>, <span class="string">&#39;9&#39;</span>), (<span class="string">&#39;A&#39;</span>, <span class="string">&#39;F&#39;</span>), (<span class="string">&#39;a&#39;</span>, <span class="string">&#39;f&#39;</span>)],
     }
 }
 
@@ -6413,4 +6413,4 @@ Defines a translator that converts an `Ast` to an `Hir`.
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="regex_syntax" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="regex_syntax" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

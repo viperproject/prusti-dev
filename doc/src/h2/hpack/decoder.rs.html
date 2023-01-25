@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/h2-0.3.15/src/hpack/decoder.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>decoder.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../h2/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/h2-0.3.15/src/hpack/decoder.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>decoder.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../h2/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -938,27 +938,27 @@
 <a href="#938" id="938">938</a>
 <a href="#939" id="939">939</a>
 <a href="#940" id="940">940</a>
-</pre><pre class="rust"><code><span class="kw">use super</span>::{<a href="header.rs.html#36">header::BytesStr</a>, <a href="mod.rs.html#4">huffman</a>, <a href="header.rs.html#11">Header</a>};
-<span class="kw">use </span><a href="../lib.rs.html#116"><span class="kw">crate</span>::frame</a>;
+</pre><pre class="rust"><code><span class="kw">use super</span>::{header::BytesStr, huffman, Header};
+<span class="kw">use </span><span class="kw">crate</span>::frame;
 
-<span class="kw">use </span>bytes::{<a href="../../../bytes/buf/buf_impl/trait.Buf.html">Buf</a>, <a href="../../../bytes/bytes/struct.Bytes.html">Bytes</a>, <a href="../../../bytes/bytes_mut/struct.BytesMut.html">BytesMut</a>};
-<span class="kw">use </span><a href="../../../http/header/index.html">http::header</a>;
-<span class="kw">use </span>http::method::{<a class="self" href="../../../http/method/index.html">self</a>, <a href="../../../http/method/struct.Method.html">Method</a>};
-<span class="kw">use </span>http::status::{<a class="self" href="../../../http/status/index.html">self</a>, <a href="../../../http/status/struct.StatusCode.html">StatusCode</a>};
+<span class="kw">use </span>bytes::{Buf, Bytes, BytesMut};
+<span class="kw">use </span>http::header;
+<span class="kw">use </span>http::method::{<span class="self">self</span>, Method};
+<span class="kw">use </span>http::status::{<span class="self">self</span>, StatusCode};
 
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/cmp/index.html">std::cmp</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/collections/vec_deque/struct.VecDeque.html">std::collections::VecDeque</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/io/cursor/struct.Cursor.html">std::io::Cursor</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/str/error/struct.Utf8Error.html">std::str::Utf8Error</a>;
+<span class="kw">use </span>std::cmp;
+<span class="kw">use </span>std::collections::VecDeque;
+<span class="kw">use </span>std::io::Cursor;
+<span class="kw">use </span>std::str::Utf8Error;
 
 <span class="doccomment">/// Decodes headers using HPACK
 </span><span class="attr">#[derive(Debug)]
 </span><span class="kw">pub struct </span>Decoder {
     <span class="comment">// Protocol indicated that the max table size will update
-    </span>max_size_update: <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;,
-    last_max_update: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-    table: <a href="#139">Table</a>,
-    buffer: <a href="../../../bytes/bytes_mut/struct.BytesMut.html">BytesMut</a>,
+    </span>max_size_update: <span class="prelude-ty">Option</span>&lt;usize&gt;,
+    last_max_update: usize,
+    table: Table,
+    buffer: BytesMut,
 }
 
 <span class="doccomment">/// Represents all errors that can be encountered while performing the decoding
@@ -974,7 +974,7 @@
     InvalidPseudoheader,
     InvalidMaxDynamicSize,
     IntegerOverflow,
-    NeedMore(<a href="#41">NeedMore</a>),
+    NeedMore(NeedMore),
 }
 
 <span class="attr">#[derive(Debug, Copy, Clone, PartialEq, Eq)]
@@ -1077,62 +1077,62 @@
 
 <span class="attr">#[derive(Debug)]
 </span><span class="kw">struct </span>Table {
-    entries: VecDeque&lt;<a href="header.rs.html#11">Header</a>&gt;,
-    size: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-    max_size: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+    entries: VecDeque&lt;Header&gt;,
+    size: usize,
+    max_size: usize,
 }
 
 <span class="kw">struct </span>StringMarker {
-    offset: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-    len: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-    string: <span class="prelude-ty">Option</span>&lt;<a href="../../../bytes/bytes/struct.Bytes.html">Bytes</a>&gt;,
+    offset: usize,
+    len: usize,
+    string: <span class="prelude-ty">Option</span>&lt;Bytes&gt;,
 }
 
 <span class="comment">// ===== impl Decoder =====
 
-</span><span class="kw">impl </span><a href="#16">Decoder</a> {
+</span><span class="kw">impl </span>Decoder {
     <span class="doccomment">/// Creates a new `Decoder` with all settings set to default values.
-    </span><span class="kw">pub fn </span>new(size: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a href="#16">Decoder</a> {
-        <a href="#16">Decoder</a> {
+    </span><span class="kw">pub fn </span>new(size: usize) -&gt; Decoder {
+        Decoder {
             max_size_update: <span class="prelude-val">None</span>,
-            last_max_update: <a href="#155">size</a>,
-            table: Table::new(<a href="#155">size</a>),
+            last_max_update: size,
+            table: Table::new(size),
             buffer: BytesMut::with_capacity(<span class="number">4096</span>),
         }
     }
 
     <span class="doccomment">/// Queues a potential size update
     </span><span class="attr">#[allow(dead_code)]
-    </span><span class="kw">pub fn </span>queue_size_update(<span class="kw-2">&amp;mut </span><span class="self">self</span>, size: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
-        <span class="kw">let </span>size = <span class="kw">match </span><a class="self" href="#166">self</a>.max_size_update {
-            <span class="prelude-val">Some</span>(v) =&gt; cmp::max(<a href="#168">v</a>, <a href="#166">size</a>),
-            <span class="prelude-val">None </span>=&gt; <a href="#166">size</a>,
+    </span><span class="kw">pub fn </span>queue_size_update(<span class="kw-2">&amp;mut </span><span class="self">self</span>, size: usize) {
+        <span class="kw">let </span>size = <span class="kw">match </span><span class="self">self</span>.max_size_update {
+            <span class="prelude-val">Some</span>(v) =&gt; cmp::max(v, size),
+            <span class="prelude-val">None </span>=&gt; size,
         };
 
-        <a class="self" href="#166">self</a>.max_size_update = <span class="prelude-val">Some</span>(<a href="#167">size</a>);
+        <span class="self">self</span>.max_size_update = <span class="prelude-val">Some</span>(size);
     }
 
     <span class="doccomment">/// Decodes the headers found in the given buffer.
     </span><span class="kw">pub fn </span>decode&lt;F&gt;(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        src: <span class="kw-2">&amp;mut </span>Cursor&lt;<span class="kw-2">&amp;mut </span><a href="../../../bytes/bytes_mut/struct.BytesMut.html">BytesMut</a>&gt;,
+        src: <span class="kw-2">&amp;mut </span>Cursor&lt;<span class="kw-2">&amp;mut </span>BytesMut&gt;,
         <span class="kw-2">mut </span>f: F,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="#27">DecoderError</a>&gt;
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), DecoderError&gt;
     <span class="kw">where
-        </span>F: FnMut(<a href="header.rs.html#11">Header</a>),
+        </span>F: FnMut(Header),
     {
-        <span class="kw">use </span><a href="#47"><span class="self">self</span>::Representation</a>::<span class="kw-2">*</span>;
+        <span class="kw">use </span><span class="self">self</span>::Representation::<span class="kw-2">*</span>;
 
         <span class="kw">let </span><span class="kw-2">mut </span>can_resize = <span class="bool-val">true</span>;
 
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(size) = <a class="self" href="#177">self</a>.max_size_update.take() {
-            <a class="self" href="#177">self</a>.last_max_update = <a href="#188">size</a>;
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(size) = <span class="self">self</span>.max_size_update.take() {
+            <span class="self">self</span>.last_max_update = size;
         }
 
-        <span class="kw">let </span>span = <a class="macro" href="../../../tracing/tracing/macro.trace_span.html">tracing::trace_span!</a>(<span class="string">&quot;hpack::decode&quot;</span>);
-        <span class="kw">let </span>_e = <a href="#192">span</a>.enter();
+        <span class="kw">let </span>span = <span class="macro">tracing::trace_span!</span>(<span class="string">&quot;hpack::decode&quot;</span>);
+        <span class="kw">let </span>_e = span.enter();
 
-        <a class="macro" href="../../../tracing/tracing/macro.trace.html">tracing::trace!</a>(<span class="string">&quot;decode&quot;</span>);
+        <span class="macro">tracing::trace!</span>(<span class="string">&quot;decode&quot;</span>);
 
         <span class="kw">while let </span><span class="prelude-val">Some</span>(ty) = peek_u8(src) {
             <span class="comment">// At this point we are always at the beginning of the next block
@@ -1190,34 +1190,34 @@
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="kw">fn </span>process_size_update(<span class="kw-2">&amp;mut </span><span class="self">self</span>, buf: <span class="kw-2">&amp;mut </span>Cursor&lt;<span class="kw-2">&amp;mut </span><a href="../../../bytes/bytes_mut/struct.BytesMut.html">BytesMut</a>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="#27">DecoderError</a>&gt; {
+    <span class="kw">fn </span>process_size_update(<span class="kw-2">&amp;mut </span><span class="self">self</span>, buf: <span class="kw-2">&amp;mut </span>Cursor&lt;<span class="kw-2">&amp;mut </span>BytesMut&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;(), DecoderError&gt; {
         <span class="kw">let </span>new_size = decode_int(buf, <span class="number">5</span>)<span class="question-mark">?</span>;
 
         <span class="kw">if </span>new_size &gt; <span class="self">self</span>.last_max_update {
-            <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="#35">DecoderError::InvalidMaxDynamicSize</a>);
+            <span class="kw">return </span><span class="prelude-val">Err</span>(DecoderError::InvalidMaxDynamicSize);
         }
 
-        <a class="macro" href="../../../tracing/tracing/macro.debug.html">tracing::debug!</a>(
+        <span class="macro">tracing::debug!</span>(
             from = <span class="self">self</span>.table.size(),
             to = new_size,
             <span class="string">&quot;Decoder changed max table size&quot;
         </span>);
 
-        <a class="self" href="#253">self</a>.table.<a href="#538">set_max_size</a>(<a href="#254">new_size</a>);
+        <span class="self">self</span>.table.set_max_size(new_size);
 
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="kw">fn </span>decode_indexed(<span class="kw-2">&amp;</span><span class="self">self</span>, buf: <span class="kw-2">&amp;mut </span>Cursor&lt;<span class="kw-2">&amp;mut </span><a href="../../../bytes/bytes_mut/struct.BytesMut.html">BytesMut</a>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="header.rs.html#11">Header</a>, <a href="#27">DecoderError</a>&gt; {
+    <span class="kw">fn </span>decode_indexed(<span class="kw-2">&amp;</span><span class="self">self</span>, buf: <span class="kw-2">&amp;mut </span>Cursor&lt;<span class="kw-2">&amp;mut </span>BytesMut&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;Header, DecoderError&gt; {
         <span class="kw">let </span>index = decode_int(buf, <span class="number">7</span>)<span class="question-mark">?</span>;
-        <a class="self" href="#271">self</a>.table.<a href="#509">get</a>(<a href="#272">index</a>)
+        <span class="self">self</span>.table.get(index)
     }
 
     <span class="kw">fn </span>decode_literal(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        buf: <span class="kw-2">&amp;mut </span>Cursor&lt;<span class="kw-2">&amp;mut </span><a href="../../../bytes/bytes_mut/struct.BytesMut.html">BytesMut</a>&gt;,
-        index: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="header.rs.html#11">Header</a>, <a href="#27">DecoderError</a>&gt; {
+        buf: <span class="kw-2">&amp;mut </span>Cursor&lt;<span class="kw-2">&amp;mut </span>BytesMut&gt;,
+        index: bool,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;Header, DecoderError&gt; {
         <span class="kw">let </span>prefix = <span class="kw">if </span>index { <span class="number">6 </span>} <span class="kw">else </span>{ <span class="number">4 </span>};
 
         <span class="comment">// Extract the table index for the name, or 0 if not indexed
@@ -1225,136 +1225,136 @@
 
         <span class="comment">// First, read the header name
         </span><span class="kw">if </span>table_idx == <span class="number">0 </span>{
-            <span class="kw">let </span>old_pos = <a href="#278">buf</a>.position();
+            <span class="kw">let </span>old_pos = buf.position();
             <span class="kw">let </span>name_marker = <span class="self">self</span>.try_decode_string(buf)<span class="question-mark">?</span>;
             <span class="kw">let </span>value_marker = <span class="self">self</span>.try_decode_string(buf)<span class="question-mark">?</span>;
-            <a href="#278">buf</a>.set_position(<a href="#288">old_pos</a>);
+            buf.set_position(old_pos);
             <span class="comment">// Read the name as a literal
-            </span><span class="kw">let </span>name = <a href="#289">name_marker</a>.<a href="#467">consume</a>(<a href="#278">buf</a>);
-            <span class="kw">let </span>value = <a href="#290">value_marker</a>.<a href="#467">consume</a>(<a href="#278">buf</a>);
-            Header::new(<a href="#293">name</a>, <a href="#294">value</a>)
+            </span><span class="kw">let </span>name = name_marker.consume(buf);
+            <span class="kw">let </span>value = value_marker.consume(buf);
+            Header::new(name, value)
         } <span class="kw">else </span>{
             <span class="kw">let </span>e = <span class="self">self</span>.table.get(table_idx)<span class="question-mark">?</span>;
             <span class="kw">let </span>value = <span class="self">self</span>.decode_string(buf)<span class="question-mark">?</span>;
 
-            <a href="#297">e</a>.<a href="header.rs.html#121">name</a>().<a href="header.rs.html#230">into_entry</a>(<a href="#298">value</a>)
+            e.name().into_entry(value)
         }
     }
 
     <span class="kw">fn </span>try_decode_string(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        buf: <span class="kw-2">&amp;mut </span>Cursor&lt;<span class="kw-2">&amp;mut </span><a href="../../../bytes/bytes_mut/struct.BytesMut.html">BytesMut</a>&gt;,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#145">StringMarker</a>, <a href="#27">DecoderError</a>&gt; {
-        <span class="kw">let </span>old_pos = <a href="#306">buf</a>.position();
-        <span class="kw">const </span>HUFF_FLAG: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a> = <span class="number">0b1000_0000</span>;
+        buf: <span class="kw-2">&amp;mut </span>Cursor&lt;<span class="kw-2">&amp;mut </span>BytesMut&gt;,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;StringMarker, DecoderError&gt; {
+        <span class="kw">let </span>old_pos = buf.position();
+        <span class="kw">const </span>HUFF_FLAG: u8 = <span class="number">0b1000_0000</span>;
 
         <span class="comment">// The first bit in the first byte contains the huffman encoded flag.
-        </span><span class="kw">let </span>huff = <span class="kw">match </span><a href="#450">peek_u8</a>(<a href="#306">buf</a>) {
-            <span class="prelude-val">Some</span>(hdr) =&gt; (<a href="#313">hdr</a> &amp; <a href="#309">HUFF_FLAG</a>) == <a href="#309">HUFF_FLAG</a>,
-            <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="#37">DecoderError::NeedMore</a>(<a href="#42">NeedMore::UnexpectedEndOfStream</a>)),
+        </span><span class="kw">let </span>huff = <span class="kw">match </span>peek_u8(buf) {
+            <span class="prelude-val">Some</span>(hdr) =&gt; (hdr &amp; HUFF_FLAG) == HUFF_FLAG,
+            <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(DecoderError::NeedMore(NeedMore::UnexpectedEndOfStream)),
         };
 
         <span class="comment">// Decode the string length using 7 bit prefix
         </span><span class="kw">let </span>len = decode_int(buf, <span class="number">7</span>)<span class="question-mark">?</span>;
 
         <span class="kw">if </span>len &gt; buf.remaining() {
-            <a class="macro" href="../../../tracing/tracing/macro.trace.html">tracing::trace!</a>(len, remaining = buf.remaining(), <span class="string">&quot;decode_string underflow&quot;</span>,);
-            <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="#37">DecoderError::NeedMore</a>(<a href="#44">NeedMore::StringUnderflow</a>));
+            <span class="macro">tracing::trace!</span>(len, remaining = buf.remaining(), <span class="string">&quot;decode_string underflow&quot;</span>,);
+            <span class="kw">return </span><span class="prelude-val">Err</span>(DecoderError::NeedMore(NeedMore::StringUnderflow));
         }
 
-        <span class="kw">let </span>offset = (<a href="#306">buf</a>.position() - <a href="#308">old_pos</a>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>;
+        <span class="kw">let </span>offset = (buf.position() - old_pos) <span class="kw">as </span>usize;
         <span class="kw">if </span>huff {
             <span class="kw">let </span>ret = {
-                <span class="kw">let </span>raw = <span class="kw-2">&amp;</span><a href="#306">buf</a>.<a href="../../../bytes/buf/buf_impl/trait.Buf.html">chunk</a>()[..<a href="#318">len</a>];
-                <a href="huffman/mod.rs.html#20">huffman::decode</a>(<a href="#328">raw</a>, <span class="kw-2">&amp;mut </span><a class="self" href="#305">self</a>.buffer).map(|buf| <a href="#145">StringMarker</a> {
-                    <a href="#325">offset</a>,
-                    <a href="#318">len</a>,
-                    string: <span class="prelude-val">Some</span>(BytesMut::freeze(<a href="#329">buf</a>)),
+                <span class="kw">let </span>raw = <span class="kw-2">&amp;</span>buf.chunk()[..len];
+                huffman::decode(raw, <span class="kw-2">&amp;mut </span><span class="self">self</span>.buffer).map(|buf| StringMarker {
+                    offset,
+                    len,
+                    string: <span class="prelude-val">Some</span>(BytesMut::freeze(buf)),
                 })
             };
 
-            <a href="#306">buf</a>.<a href="../../../bytes/buf/buf_impl/trait.Buf.html">advance</a>(<a href="#318">len</a>);
-            <a href="#327">ret</a>
+            buf.advance(len);
+            ret
         } <span class="kw">else </span>{
-            <a href="#306">buf</a>.<a href="../../../bytes/buf/buf_impl/trait.Buf.html">advance</a>(<a href="#318">len</a>);
-            <span class="prelude-val">Ok</span>(<a href="#145">StringMarker</a> {
-                <a href="#325">offset</a>,
-                <a href="#318">len</a>,
+            buf.advance(len);
+            <span class="prelude-val">Ok</span>(StringMarker {
+                offset,
+                len,
                 string: <span class="prelude-val">None</span>,
             })
         }
     }
 
-    <span class="kw">fn </span>decode_string(<span class="kw-2">&amp;mut </span><span class="self">self</span>, buf: <span class="kw-2">&amp;mut </span>Cursor&lt;<span class="kw-2">&amp;mut </span><a href="../../../bytes/bytes_mut/struct.BytesMut.html">BytesMut</a>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../../bytes/bytes/struct.Bytes.html">Bytes</a>, <a href="#27">DecoderError</a>&gt; {
-        <span class="kw">let </span>old_pos = <a href="#348">buf</a>.position();
+    <span class="kw">fn </span>decode_string(<span class="kw-2">&amp;mut </span><span class="self">self</span>, buf: <span class="kw-2">&amp;mut </span>Cursor&lt;<span class="kw-2">&amp;mut </span>BytesMut&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;Bytes, DecoderError&gt; {
+        <span class="kw">let </span>old_pos = buf.position();
         <span class="kw">let </span>marker = <span class="self">self</span>.try_decode_string(buf)<span class="question-mark">?</span>;
-        <a href="#348">buf</a>.set_position(<a href="#349">old_pos</a>);
-        <span class="prelude-val">Ok</span>(<a href="#350">marker</a>.<a href="#467">consume</a>(<a href="#348">buf</a>))
+        buf.set_position(old_pos);
+        <span class="prelude-val">Ok</span>(marker.consume(buf))
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for </span><a href="#16">Decoder</a> {
-    <span class="kw">fn </span>default() -&gt; <a href="#16">Decoder</a> {
+<span class="kw">impl </span>Default <span class="kw">for </span>Decoder {
+    <span class="kw">fn </span>default() -&gt; Decoder {
         Decoder::new(<span class="number">4096</span>)
     }
 }
 
 <span class="comment">// ===== impl Representation =====
 
-</span><span class="kw">impl </span><a href="#47">Representation</a> {
-    <span class="kw">pub fn </span>load(byte: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#47">Representation</a>, <a href="#27">DecoderError</a>&gt; {
-        <span class="kw">const </span>INDEXED: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a> = <span class="number">0b1000_0000</span>;
-        <span class="kw">const </span>LITERAL_WITH_INDEXING: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a> = <span class="number">0b0100_0000</span>;
-        <span class="kw">const </span>LITERAL_WITHOUT_INDEXING: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a> = <span class="number">0b1111_0000</span>;
-        <span class="kw">const </span>LITERAL_NEVER_INDEXED: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a> = <span class="number">0b0001_0000</span>;
-        <span class="kw">const </span>SIZE_UPDATE_MASK: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a> = <span class="number">0b1110_0000</span>;
-        <span class="kw">const </span>SIZE_UPDATE: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a> = <span class="number">0b0010_0000</span>;
+</span><span class="kw">impl </span>Representation {
+    <span class="kw">pub fn </span>load(byte: u8) -&gt; <span class="prelude-ty">Result</span>&lt;Representation, DecoderError&gt; {
+        <span class="kw">const </span>INDEXED: u8 = <span class="number">0b1000_0000</span>;
+        <span class="kw">const </span>LITERAL_WITH_INDEXING: u8 = <span class="number">0b0100_0000</span>;
+        <span class="kw">const </span>LITERAL_WITHOUT_INDEXING: u8 = <span class="number">0b1111_0000</span>;
+        <span class="kw">const </span>LITERAL_NEVER_INDEXED: u8 = <span class="number">0b0001_0000</span>;
+        <span class="kw">const </span>SIZE_UPDATE_MASK: u8 = <span class="number">0b1110_0000</span>;
+        <span class="kw">const </span>SIZE_UPDATE: u8 = <span class="number">0b0010_0000</span>;
 
         <span class="comment">// TODO: What did I even write here?
 
         </span><span class="kw">if </span>byte &amp; INDEXED == INDEXED {
-            <span class="prelude-val">Ok</span>(<a href="#61">Representation::Indexed</a>)
+            <span class="prelude-val">Ok</span>(Representation::Indexed)
         } <span class="kw">else if </span>byte &amp; LITERAL_WITH_INDEXING == LITERAL_WITH_INDEXING {
-            <span class="prelude-val">Ok</span>(<a href="#81">Representation::LiteralWithIndexing</a>)
+            <span class="prelude-val">Ok</span>(Representation::LiteralWithIndexing)
         } <span class="kw">else if </span>byte &amp; LITERAL_WITHOUT_INDEXING == <span class="number">0 </span>{
-            <span class="prelude-val">Ok</span>(<a href="#101">Representation::LiteralWithoutIndexing</a>)
+            <span class="prelude-val">Ok</span>(Representation::LiteralWithoutIndexing)
         } <span class="kw">else if </span>byte &amp; LITERAL_WITHOUT_INDEXING == LITERAL_NEVER_INDEXED {
-            <span class="prelude-val">Ok</span>(<a href="#120">Representation::LiteralNeverIndexed</a>)
+            <span class="prelude-val">Ok</span>(Representation::LiteralNeverIndexed)
         } <span class="kw">else if </span>byte &amp; SIZE_UPDATE_MASK == SIZE_UPDATE {
-            <span class="prelude-val">Ok</span>(<a href="#135">Representation::SizeUpdate</a>)
+            <span class="prelude-val">Ok</span>(Representation::SizeUpdate)
         } <span class="kw">else </span>{
-            <span class="prelude-val">Err</span>(<a href="#28">DecoderError::InvalidRepresentation</a>)
+            <span class="prelude-val">Err</span>(DecoderError::InvalidRepresentation)
         }
     }
 }
 
-<span class="kw">fn </span>decode_int&lt;B: <a href="../../../bytes/buf/buf_impl/trait.Buf.html">Buf</a>&gt;(buf: <span class="kw-2">&amp;mut </span>B, prefix_size: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="#27">DecoderError</a>&gt; {
+<span class="kw">fn </span>decode_int&lt;B: Buf&gt;(buf: <span class="kw-2">&amp;mut </span>B, prefix_size: u8) -&gt; <span class="prelude-ty">Result</span>&lt;usize, DecoderError&gt; {
     <span class="comment">// The octet limit is chosen such that the maximum allowed *value* can
     // never overflow an unsigned 32-bit integer. The maximum value of any
     // integer that can be encoded with 5 octets is ~2^28
-    </span><span class="kw">const </span>MAX_BYTES: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> = <span class="number">5</span>;
-    <span class="kw">const </span>VARINT_MASK: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a> = <span class="number">0b0111_1111</span>;
-    <span class="kw">const </span>VARINT_FLAG: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a> = <span class="number">0b1000_0000</span>;
+    </span><span class="kw">const </span>MAX_BYTES: usize = <span class="number">5</span>;
+    <span class="kw">const </span>VARINT_MASK: u8 = <span class="number">0b0111_1111</span>;
+    <span class="kw">const </span>VARINT_FLAG: u8 = <span class="number">0b1000_0000</span>;
 
     <span class="kw">if </span>prefix_size &lt; <span class="number">1 </span>|| prefix_size &gt; <span class="number">8 </span>{
-        <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="#29">DecoderError::InvalidIntegerPrefix</a>);
+        <span class="kw">return </span><span class="prelude-val">Err</span>(DecoderError::InvalidIntegerPrefix);
     }
 
     <span class="kw">if </span>!buf.has_remaining() {
-        <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="#37">DecoderError::NeedMore</a>(<a href="#43">NeedMore::IntegerUnderflow</a>));
+        <span class="kw">return </span><span class="prelude-val">Err</span>(DecoderError::NeedMore(NeedMore::IntegerUnderflow));
     }
 
     <span class="kw">let </span>mask = <span class="kw">if </span>prefix_size == <span class="number">8 </span>{
         <span class="number">0xFF
     </span>} <span class="kw">else </span>{
-        (<span class="number">1u8 </span>&lt;&lt; <a href="#391">prefix_size</a>).wrapping_sub(<span class="number">1</span>)
+        (<span class="number">1u8 </span>&lt;&lt; prefix_size).wrapping_sub(<span class="number">1</span>)
     };
 
-    <span class="kw">let </span><span class="kw-2">mut </span>ret = (<a href="#391">buf</a>.<a href="../../../bytes/buf/buf_impl/trait.Buf.html">get_u8</a>() &amp; <a href="#407">mask</a>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>;
+    <span class="kw">let </span><span class="kw-2">mut </span>ret = (buf.get_u8() &amp; mask) <span class="kw">as </span>usize;
 
     <span class="kw">if </span>ret &lt; mask <span class="kw">as </span>usize {
         <span class="comment">// Value fits in the prefix bits
-        </span><span class="kw">return </span><span class="prelude-val">Ok</span>(<a href="#413">ret</a>);
+        </span><span class="kw">return </span><span class="prelude-val">Ok</span>(ret);
     }
 
     <span class="comment">// The int did not fit in the prefix bits, so continue reading.
@@ -1384,58 +1384,58 @@
         }
     }
 
-    <span class="prelude-val">Err</span>(<a href="#37">DecoderError::NeedMore</a>(<a href="#43">NeedMore::IntegerUnderflow</a>))
+    <span class="prelude-val">Err</span>(DecoderError::NeedMore(NeedMore::IntegerUnderflow))
 }
 
-<span class="kw">fn </span>peek_u8&lt;B: <a href="../../../bytes/buf/buf_impl/trait.Buf.html">Buf</a>&gt;(buf: <span class="kw-2">&amp;mut </span>B) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt; {
+<span class="kw">fn </span>peek_u8&lt;B: Buf&gt;(buf: <span class="kw-2">&amp;mut </span>B) -&gt; <span class="prelude-ty">Option</span>&lt;u8&gt; {
     <span class="kw">if </span>buf.has_remaining() {
-        <span class="prelude-val">Some</span>(<a href="#450">buf</a>.<a href="../../../bytes/buf/buf_impl/trait.Buf.html">chunk</a>()[<span class="number">0</span>])
+        <span class="prelude-val">Some</span>(buf.chunk()[<span class="number">0</span>])
     } <span class="kw">else </span>{
         <span class="prelude-val">None
     </span>}
 }
 
-<span class="kw">fn </span>take(buf: <span class="kw-2">&amp;mut </span>Cursor&lt;<span class="kw-2">&amp;mut </span><a href="../../../bytes/bytes_mut/struct.BytesMut.html">BytesMut</a>&gt;, n: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a href="../../../bytes/bytes/struct.Bytes.html">Bytes</a> {
-    <span class="kw">let </span>pos = <a href="#458">buf</a>.position() <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>;
-    <span class="kw">let </span><span class="kw-2">mut </span>head = <a href="#458">buf</a>.get_mut().split_to(<a href="#459">pos</a> + <a href="#458">n</a>);
-    <a href="#458">buf</a>.set_position(<span class="number">0</span>);
-    <a href="#460">head</a>.<a href="../../../bytes/buf/buf_impl/trait.Buf.html">advance</a>(<a href="#459">pos</a>);
-    <a href="#460">head</a>.freeze()
+<span class="kw">fn </span>take(buf: <span class="kw-2">&amp;mut </span>Cursor&lt;<span class="kw-2">&amp;mut </span>BytesMut&gt;, n: usize) -&gt; Bytes {
+    <span class="kw">let </span>pos = buf.position() <span class="kw">as </span>usize;
+    <span class="kw">let </span><span class="kw-2">mut </span>head = buf.get_mut().split_to(pos + n);
+    buf.set_position(<span class="number">0</span>);
+    head.advance(pos);
+    head.freeze()
 }
 
-<span class="kw">impl </span><a href="#145">StringMarker</a> {
-    <span class="kw">fn </span>consume(<span class="self">self</span>, buf: <span class="kw-2">&amp;mut </span>Cursor&lt;<span class="kw-2">&amp;mut </span><a href="../../../bytes/bytes_mut/struct.BytesMut.html">BytesMut</a>&gt;) -&gt; <a href="../../../bytes/bytes/struct.Bytes.html">Bytes</a> {
-        <a href="#467">buf</a>.<a href="../../../bytes/buf/buf_impl/trait.Buf.html">advance</a>(<a class="self" href="#467">self</a>.offset);
-        <span class="kw">match </span><a class="self" href="#467">self</a>.string {
+<span class="kw">impl </span>StringMarker {
+    <span class="kw">fn </span>consume(<span class="self">self</span>, buf: <span class="kw-2">&amp;mut </span>Cursor&lt;<span class="kw-2">&amp;mut </span>BytesMut&gt;) -&gt; Bytes {
+        buf.advance(<span class="self">self</span>.offset);
+        <span class="kw">match </span><span class="self">self</span>.string {
             <span class="prelude-val">Some</span>(string) =&gt; {
-                <a href="#467">buf</a>.<a href="../../../bytes/buf/buf_impl/trait.Buf.html">advance</a>(<a class="self" href="#467">self</a>.len);
-                <a href="#470">string</a>
+                buf.advance(<span class="self">self</span>.len);
+                string
             }
-            <span class="prelude-val">None </span>=&gt; <a href="#458">take</a>(<a href="#467">buf</a>, <a class="self" href="#467">self</a>.len),
+            <span class="prelude-val">None </span>=&gt; take(buf, <span class="self">self</span>.len),
         }
     }
 }
 
-<span class="kw">fn </span>consume(buf: <span class="kw-2">&amp;mut </span>Cursor&lt;<span class="kw-2">&amp;mut </span><a href="../../../bytes/bytes_mut/struct.BytesMut.html">BytesMut</a>&gt;) {
+<span class="kw">fn </span>consume(buf: <span class="kw-2">&amp;mut </span>Cursor&lt;<span class="kw-2">&amp;mut </span>BytesMut&gt;) {
     <span class="comment">// remove bytes from the internal BytesMut when they have been successfully
     // decoded. This is a more permanent cursor position, which will be
     // used to resume if decoding was only partial.
-    </span><a href="#458">take</a>(<a href="#479">buf</a>, <span class="number">0</span>);
+    </span>take(buf, <span class="number">0</span>);
 }
 
 <span class="comment">// ===== impl Table =====
 
-</span><span class="kw">impl </span><a href="#139">Table</a> {
-    <span class="kw">fn </span>new(max_size: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a href="#139">Table</a> {
-        <a href="#139">Table</a> {
+</span><span class="kw">impl </span>Table {
+    <span class="kw">fn </span>new(max_size: usize) -&gt; Table {
+        Table {
             entries: VecDeque::new(),
             size: <span class="number">0</span>,
-            <a href="#489">max_size</a>,
+            max_size,
         }
     }
 
-    <span class="kw">fn </span>size(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="self" href="#497">self</a>.size
+    <span class="kw">fn </span>size(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+        <span class="self">self</span>.size
     }
 
     <span class="doccomment">/// Returns the entry located at the given index.
@@ -1446,42 +1446,42 @@
     ///
     /// This is according to the [HPACK spec, section 2.3.3.]
     /// (http://http2.github.io/http2-spec/compression.html#index.address.space)
-    </span><span class="kw">pub fn </span>get(<span class="kw-2">&amp;</span><span class="self">self</span>, index: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="header.rs.html#11">Header</a>, <a href="#27">DecoderError</a>&gt; {
+    </span><span class="kw">pub fn </span>get(<span class="kw-2">&amp;</span><span class="self">self</span>, index: usize) -&gt; <span class="prelude-ty">Result</span>&lt;Header, DecoderError&gt; {
         <span class="kw">if </span>index == <span class="number">0 </span>{
-            <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="#30">DecoderError::InvalidTableIndex</a>);
+            <span class="kw">return </span><span class="prelude-val">Err</span>(DecoderError::InvalidTableIndex);
         }
 
         <span class="kw">if </span>index &lt;= <span class="number">61 </span>{
-            <span class="kw">return </span><span class="prelude-val">Ok</span>(<a href="#619">get_static</a>(<a href="#509">index</a>));
+            <span class="kw">return </span><span class="prelude-val">Ok</span>(get_static(index));
         }
 
         <span class="comment">// Convert the index for lookup in the entries structure.
-        </span><span class="kw">match </span><a class="self" href="#509">self</a>.entries.get(<a href="#509">index</a> - <span class="number">62</span>) {
-            <span class="prelude-val">Some</span>(e) =&gt; <span class="prelude-val">Ok</span>(<a href="#520">e</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()),
-            <span class="prelude-val">None </span>=&gt; <span class="prelude-val">Err</span>(<a href="#30">DecoderError::InvalidTableIndex</a>),
+        </span><span class="kw">match </span><span class="self">self</span>.entries.get(index - <span class="number">62</span>) {
+            <span class="prelude-val">Some</span>(e) =&gt; <span class="prelude-val">Ok</span>(e.clone()),
+            <span class="prelude-val">None </span>=&gt; <span class="prelude-val">Err</span>(DecoderError::InvalidTableIndex),
         }
     }
 
-    <span class="kw">fn </span>insert(<span class="kw-2">&amp;mut </span><span class="self">self</span>, entry: <a href="header.rs.html#11">Header</a>) {
-        <span class="kw">let </span>len = <a href="#525">entry</a>.<a href="header.rs.html#105">len</a>();
+    <span class="kw">fn </span>insert(<span class="kw-2">&amp;mut </span><span class="self">self</span>, entry: Header) {
+        <span class="kw">let </span>len = entry.len();
 
-        <a class="self" href="#525">self</a>.<a href="#544">reserve</a>(<a href="#526">len</a>);
+        <span class="self">self</span>.reserve(len);
 
         <span class="kw">if </span><span class="self">self</span>.size + len &lt;= <span class="self">self</span>.max_size {
-            <a class="self" href="#525">self</a>.size += <a href="#526">len</a>;
+            <span class="self">self</span>.size += len;
 
             <span class="comment">// Track the entry
-            </span><a class="self" href="#525">self</a>.entries.push_front(<a href="#525">entry</a>);
+            </span><span class="self">self</span>.entries.push_front(entry);
         }
     }
 
-    <span class="kw">fn </span>set_max_size(<span class="kw-2">&amp;mut </span><span class="self">self</span>, size: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
-        <a class="self" href="#538">self</a>.max_size = <a href="#538">size</a>;
+    <span class="kw">fn </span>set_max_size(<span class="kw-2">&amp;mut </span><span class="self">self</span>, size: usize) {
+        <span class="self">self</span>.max_size = size;
         <span class="comment">// Make the table size fit within the new constraints.
-        </span><a class="self" href="#538">self</a>.<a href="#555">consolidate</a>();
+        </span><span class="self">self</span>.consolidate();
     }
 
-    <span class="kw">fn </span>reserve(<span class="kw-2">&amp;mut </span><span class="self">self</span>, size: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
+    <span class="kw">fn </span>reserve(<span class="kw-2">&amp;mut </span><span class="self">self</span>, size: usize) {
         <span class="kw">while </span><span class="self">self</span>.size + size &gt; <span class="self">self</span>.max_size {
             <span class="kw">match </span><span class="self">self</span>.entries.pop_back() {
                 <span class="prelude-val">Some</span>(last) =&gt; {
@@ -1514,255 +1514,255 @@
 
 <span class="comment">// ===== impl DecoderError =====
 
-</span><span class="kw">impl </span>From&lt;<a href="https://doc.rust-lang.org/nightly/core/str/error/struct.Utf8Error.html">Utf8Error</a>&gt; <span class="kw">for </span><a href="#27">DecoderError</a> {
-    <span class="kw">fn </span>from(<span class="kw">_</span>: <a href="https://doc.rust-lang.org/nightly/core/str/error/struct.Utf8Error.html">Utf8Error</a>) -&gt; <a href="#27">DecoderError</a> {
+</span><span class="kw">impl </span>From&lt;Utf8Error&gt; <span class="kw">for </span>DecoderError {
+    <span class="kw">fn </span>from(<span class="kw">_</span>: Utf8Error) -&gt; DecoderError {
         <span class="comment">// TODO: Better error?
-        </span><a href="#32">DecoderError::InvalidUtf8</a>
+        </span>DecoderError::InvalidUtf8
     }
 }
 
-<span class="kw">impl </span>From&lt;<a href="../../../http/header/value/struct.InvalidHeaderValue.html">header::InvalidHeaderValue</a>&gt; <span class="kw">for </span><a href="#27">DecoderError</a> {
-    <span class="kw">fn </span>from(<span class="kw">_</span>: <a href="../../../http/header/value/struct.InvalidHeaderValue.html">header::InvalidHeaderValue</a>) -&gt; <a href="#27">DecoderError</a> {
+<span class="kw">impl </span>From&lt;header::InvalidHeaderValue&gt; <span class="kw">for </span>DecoderError {
+    <span class="kw">fn </span>from(<span class="kw">_</span>: header::InvalidHeaderValue) -&gt; DecoderError {
         <span class="comment">// TODO: Better error?
-        </span><a href="#32">DecoderError::InvalidUtf8</a>
+        </span>DecoderError::InvalidUtf8
     }
 }
 
-<span class="kw">impl </span>From&lt;<a href="../../../http/header/name/struct.InvalidHeaderName.html">header::InvalidHeaderName</a>&gt; <span class="kw">for </span><a href="#27">DecoderError</a> {
-    <span class="kw">fn </span>from(<span class="kw">_</span>: <a href="../../../http/header/name/struct.InvalidHeaderName.html">header::InvalidHeaderName</a>) -&gt; <a href="#27">DecoderError</a> {
+<span class="kw">impl </span>From&lt;header::InvalidHeaderName&gt; <span class="kw">for </span>DecoderError {
+    <span class="kw">fn </span>from(<span class="kw">_</span>: header::InvalidHeaderName) -&gt; DecoderError {
         <span class="comment">// TODO: Better error
-        </span><a href="#32">DecoderError::InvalidUtf8</a>
+        </span>DecoderError::InvalidUtf8
     }
 }
 
-<span class="kw">impl </span>From&lt;<a href="../../../http/method/struct.InvalidMethod.html">method::InvalidMethod</a>&gt; <span class="kw">for </span><a href="#27">DecoderError</a> {
-    <span class="kw">fn </span>from(<span class="kw">_</span>: <a href="../../../http/method/struct.InvalidMethod.html">method::InvalidMethod</a>) -&gt; <a href="#27">DecoderError</a> {
+<span class="kw">impl </span>From&lt;method::InvalidMethod&gt; <span class="kw">for </span>DecoderError {
+    <span class="kw">fn </span>from(<span class="kw">_</span>: method::InvalidMethod) -&gt; DecoderError {
         <span class="comment">// TODO: Better error
-        </span><a href="#32">DecoderError::InvalidUtf8</a>
+        </span>DecoderError::InvalidUtf8
     }
 }
 
-<span class="kw">impl </span>From&lt;<a href="../../../http/status/struct.InvalidStatusCode.html">status::InvalidStatusCode</a>&gt; <span class="kw">for </span><a href="#27">DecoderError</a> {
-    <span class="kw">fn </span>from(<span class="kw">_</span>: <a href="../../../http/status/struct.InvalidStatusCode.html">status::InvalidStatusCode</a>) -&gt; <a href="#27">DecoderError</a> {
+<span class="kw">impl </span>From&lt;status::InvalidStatusCode&gt; <span class="kw">for </span>DecoderError {
+    <span class="kw">fn </span>from(<span class="kw">_</span>: status::InvalidStatusCode) -&gt; DecoderError {
         <span class="comment">// TODO: Better error
-        </span><a href="#32">DecoderError::InvalidUtf8</a>
+        </span>DecoderError::InvalidUtf8
     }
 }
 
-<span class="kw">impl </span>From&lt;<a href="#27">DecoderError</a>&gt; <span class="kw">for </span><a href="../frame/mod.rs.html#133">frame::Error</a> {
-    <span class="kw">fn </span>from(src: <a href="#27">DecoderError</a>) -&gt; <span class="self">Self </span>{
-        <a href="../frame/mod.rs.html#170">frame::Error::Hpack</a>(<a href="#613">src</a>)
+<span class="kw">impl </span>From&lt;DecoderError&gt; <span class="kw">for </span>frame::Error {
+    <span class="kw">fn </span>from(src: DecoderError) -&gt; <span class="self">Self </span>{
+        frame::Error::Hpack(src)
     }
 }
 
 <span class="doccomment">/// Get an entry from the static table
-</span><span class="kw">pub fn </span>get_static(idx: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a href="header.rs.html#11">Header</a> {
-    <span class="kw">use </span><a href="../../../http/header/value/struct.HeaderValue.html">http::header::HeaderValue</a>;
+</span><span class="kw">pub fn </span>get_static(idx: usize) -&gt; Header {
+    <span class="kw">use </span>http::header::HeaderValue;
 
-    <span class="kw">match </span><a href="#619">idx</a> {
-        <span class="number">1 </span>=&gt; <a href="header.rs.html#14">Header::Authority</a>(BytesStr::from_static(<span class="string">&quot;&quot;</span>)),
-        <span class="number">2 </span>=&gt; <a href="header.rs.html#15">Header::Method</a>(Method::GET),
-        <span class="number">3 </span>=&gt; <a href="header.rs.html#15">Header::Method</a>(Method::POST),
-        <span class="number">4 </span>=&gt; <a href="header.rs.html#17">Header::Path</a>(BytesStr::from_static(<span class="string">&quot;/&quot;</span>)),
-        <span class="number">5 </span>=&gt; <a href="header.rs.html#17">Header::Path</a>(BytesStr::from_static(<span class="string">&quot;/index.html&quot;</span>)),
-        <span class="number">6 </span>=&gt; <a href="header.rs.html#16">Header::Scheme</a>(BytesStr::from_static(<span class="string">&quot;http&quot;</span>)),
-        <span class="number">7 </span>=&gt; <a href="header.rs.html#16">Header::Scheme</a>(BytesStr::from_static(<span class="string">&quot;https&quot;</span>)),
-        <span class="number">8 </span>=&gt; <a href="header.rs.html#19">Header::Status</a>(StatusCode::OK),
-        <span class="number">9 </span>=&gt; <a href="header.rs.html#19">Header::Status</a>(StatusCode::NO_CONTENT),
-        <span class="number">10 </span>=&gt; <a href="header.rs.html#19">Header::Status</a>(StatusCode::PARTIAL_CONTENT),
-        <span class="number">11 </span>=&gt; <a href="header.rs.html#19">Header::Status</a>(StatusCode::NOT_MODIFIED),
-        <span class="number">12 </span>=&gt; <a href="header.rs.html#19">Header::Status</a>(StatusCode::BAD_REQUEST),
-        <span class="number">13 </span>=&gt; <a href="header.rs.html#19">Header::Status</a>(StatusCode::NOT_FOUND),
-        <span class="number">14 </span>=&gt; <a href="header.rs.html#19">Header::Status</a>(StatusCode::INTERNAL_SERVER_ERROR),
-        <span class="number">15 </span>=&gt; <a href="header.rs.html#12">Header::Field</a> {
+    <span class="kw">match </span>idx {
+        <span class="number">1 </span>=&gt; Header::Authority(BytesStr::from_static(<span class="string">&quot;&quot;</span>)),
+        <span class="number">2 </span>=&gt; Header::Method(Method::GET),
+        <span class="number">3 </span>=&gt; Header::Method(Method::POST),
+        <span class="number">4 </span>=&gt; Header::Path(BytesStr::from_static(<span class="string">&quot;/&quot;</span>)),
+        <span class="number">5 </span>=&gt; Header::Path(BytesStr::from_static(<span class="string">&quot;/index.html&quot;</span>)),
+        <span class="number">6 </span>=&gt; Header::Scheme(BytesStr::from_static(<span class="string">&quot;http&quot;</span>)),
+        <span class="number">7 </span>=&gt; Header::Scheme(BytesStr::from_static(<span class="string">&quot;https&quot;</span>)),
+        <span class="number">8 </span>=&gt; Header::Status(StatusCode::OK),
+        <span class="number">9 </span>=&gt; Header::Status(StatusCode::NO_CONTENT),
+        <span class="number">10 </span>=&gt; Header::Status(StatusCode::PARTIAL_CONTENT),
+        <span class="number">11 </span>=&gt; Header::Status(StatusCode::NOT_MODIFIED),
+        <span class="number">12 </span>=&gt; Header::Status(StatusCode::BAD_REQUEST),
+        <span class="number">13 </span>=&gt; Header::Status(StatusCode::NOT_FOUND),
+        <span class="number">14 </span>=&gt; Header::Status(StatusCode::INTERNAL_SERVER_ERROR),
+        <span class="number">15 </span>=&gt; Header::Field {
             name: header::ACCEPT_CHARSET,
             value: HeaderValue::from_static(<span class="string">&quot;&quot;</span>),
         },
-        <span class="number">16 </span>=&gt; <a href="header.rs.html#12">Header::Field</a> {
+        <span class="number">16 </span>=&gt; Header::Field {
             name: header::ACCEPT_ENCODING,
             value: HeaderValue::from_static(<span class="string">&quot;gzip, deflate&quot;</span>),
         },
-        <span class="number">17 </span>=&gt; <a href="header.rs.html#12">Header::Field</a> {
+        <span class="number">17 </span>=&gt; Header::Field {
             name: header::ACCEPT_LANGUAGE,
             value: HeaderValue::from_static(<span class="string">&quot;&quot;</span>),
         },
-        <span class="number">18 </span>=&gt; <a href="header.rs.html#12">Header::Field</a> {
+        <span class="number">18 </span>=&gt; Header::Field {
             name: header::ACCEPT_RANGES,
             value: HeaderValue::from_static(<span class="string">&quot;&quot;</span>),
         },
-        <span class="number">19 </span>=&gt; <a href="header.rs.html#12">Header::Field</a> {
+        <span class="number">19 </span>=&gt; Header::Field {
             name: header::ACCEPT,
             value: HeaderValue::from_static(<span class="string">&quot;&quot;</span>),
         },
-        <span class="number">20 </span>=&gt; <a href="header.rs.html#12">Header::Field</a> {
+        <span class="number">20 </span>=&gt; Header::Field {
             name: header::ACCESS_CONTROL_ALLOW_ORIGIN,
             value: HeaderValue::from_static(<span class="string">&quot;&quot;</span>),
         },
-        <span class="number">21 </span>=&gt; <a href="header.rs.html#12">Header::Field</a> {
+        <span class="number">21 </span>=&gt; Header::Field {
             name: header::AGE,
             value: HeaderValue::from_static(<span class="string">&quot;&quot;</span>),
         },
-        <span class="number">22 </span>=&gt; <a href="header.rs.html#12">Header::Field</a> {
+        <span class="number">22 </span>=&gt; Header::Field {
             name: header::ALLOW,
             value: HeaderValue::from_static(<span class="string">&quot;&quot;</span>),
         },
-        <span class="number">23 </span>=&gt; <a href="header.rs.html#12">Header::Field</a> {
+        <span class="number">23 </span>=&gt; Header::Field {
             name: header::AUTHORIZATION,
             value: HeaderValue::from_static(<span class="string">&quot;&quot;</span>),
         },
-        <span class="number">24 </span>=&gt; <a href="header.rs.html#12">Header::Field</a> {
+        <span class="number">24 </span>=&gt; Header::Field {
             name: header::CACHE_CONTROL,
             value: HeaderValue::from_static(<span class="string">&quot;&quot;</span>),
         },
-        <span class="number">25 </span>=&gt; <a href="header.rs.html#12">Header::Field</a> {
+        <span class="number">25 </span>=&gt; Header::Field {
             name: header::CONTENT_DISPOSITION,
             value: HeaderValue::from_static(<span class="string">&quot;&quot;</span>),
         },
-        <span class="number">26 </span>=&gt; <a href="header.rs.html#12">Header::Field</a> {
+        <span class="number">26 </span>=&gt; Header::Field {
             name: header::CONTENT_ENCODING,
             value: HeaderValue::from_static(<span class="string">&quot;&quot;</span>),
         },
-        <span class="number">27 </span>=&gt; <a href="header.rs.html#12">Header::Field</a> {
+        <span class="number">27 </span>=&gt; Header::Field {
             name: header::CONTENT_LANGUAGE,
             value: HeaderValue::from_static(<span class="string">&quot;&quot;</span>),
         },
-        <span class="number">28 </span>=&gt; <a href="header.rs.html#12">Header::Field</a> {
+        <span class="number">28 </span>=&gt; Header::Field {
             name: header::CONTENT_LENGTH,
             value: HeaderValue::from_static(<span class="string">&quot;&quot;</span>),
         },
-        <span class="number">29 </span>=&gt; <a href="header.rs.html#12">Header::Field</a> {
+        <span class="number">29 </span>=&gt; Header::Field {
             name: header::CONTENT_LOCATION,
             value: HeaderValue::from_static(<span class="string">&quot;&quot;</span>),
         },
-        <span class="number">30 </span>=&gt; <a href="header.rs.html#12">Header::Field</a> {
+        <span class="number">30 </span>=&gt; Header::Field {
             name: header::CONTENT_RANGE,
             value: HeaderValue::from_static(<span class="string">&quot;&quot;</span>),
         },
-        <span class="number">31 </span>=&gt; <a href="header.rs.html#12">Header::Field</a> {
+        <span class="number">31 </span>=&gt; Header::Field {
             name: header::CONTENT_TYPE,
             value: HeaderValue::from_static(<span class="string">&quot;&quot;</span>),
         },
-        <span class="number">32 </span>=&gt; <a href="header.rs.html#12">Header::Field</a> {
+        <span class="number">32 </span>=&gt; Header::Field {
             name: header::COOKIE,
             value: HeaderValue::from_static(<span class="string">&quot;&quot;</span>),
         },
-        <span class="number">33 </span>=&gt; <a href="header.rs.html#12">Header::Field</a> {
+        <span class="number">33 </span>=&gt; Header::Field {
             name: header::DATE,
             value: HeaderValue::from_static(<span class="string">&quot;&quot;</span>),
         },
-        <span class="number">34 </span>=&gt; <a href="header.rs.html#12">Header::Field</a> {
+        <span class="number">34 </span>=&gt; Header::Field {
             name: header::ETAG,
             value: HeaderValue::from_static(<span class="string">&quot;&quot;</span>),
         },
-        <span class="number">35 </span>=&gt; <a href="header.rs.html#12">Header::Field</a> {
+        <span class="number">35 </span>=&gt; Header::Field {
             name: header::EXPECT,
             value: HeaderValue::from_static(<span class="string">&quot;&quot;</span>),
         },
-        <span class="number">36 </span>=&gt; <a href="header.rs.html#12">Header::Field</a> {
+        <span class="number">36 </span>=&gt; Header::Field {
             name: header::EXPIRES,
             value: HeaderValue::from_static(<span class="string">&quot;&quot;</span>),
         },
-        <span class="number">37 </span>=&gt; <a href="header.rs.html#12">Header::Field</a> {
+        <span class="number">37 </span>=&gt; Header::Field {
             name: header::FROM,
             value: HeaderValue::from_static(<span class="string">&quot;&quot;</span>),
         },
-        <span class="number">38 </span>=&gt; <a href="header.rs.html#12">Header::Field</a> {
+        <span class="number">38 </span>=&gt; Header::Field {
             name: header::HOST,
             value: HeaderValue::from_static(<span class="string">&quot;&quot;</span>),
         },
-        <span class="number">39 </span>=&gt; <a href="header.rs.html#12">Header::Field</a> {
+        <span class="number">39 </span>=&gt; Header::Field {
             name: header::IF_MATCH,
             value: HeaderValue::from_static(<span class="string">&quot;&quot;</span>),
         },
-        <span class="number">40 </span>=&gt; <a href="header.rs.html#12">Header::Field</a> {
+        <span class="number">40 </span>=&gt; Header::Field {
             name: header::IF_MODIFIED_SINCE,
             value: HeaderValue::from_static(<span class="string">&quot;&quot;</span>),
         },
-        <span class="number">41 </span>=&gt; <a href="header.rs.html#12">Header::Field</a> {
+        <span class="number">41 </span>=&gt; Header::Field {
             name: header::IF_NONE_MATCH,
             value: HeaderValue::from_static(<span class="string">&quot;&quot;</span>),
         },
-        <span class="number">42 </span>=&gt; <a href="header.rs.html#12">Header::Field</a> {
+        <span class="number">42 </span>=&gt; Header::Field {
             name: header::IF_RANGE,
             value: HeaderValue::from_static(<span class="string">&quot;&quot;</span>),
         },
-        <span class="number">43 </span>=&gt; <a href="header.rs.html#12">Header::Field</a> {
+        <span class="number">43 </span>=&gt; Header::Field {
             name: header::IF_UNMODIFIED_SINCE,
             value: HeaderValue::from_static(<span class="string">&quot;&quot;</span>),
         },
-        <span class="number">44 </span>=&gt; <a href="header.rs.html#12">Header::Field</a> {
+        <span class="number">44 </span>=&gt; Header::Field {
             name: header::LAST_MODIFIED,
             value: HeaderValue::from_static(<span class="string">&quot;&quot;</span>),
         },
-        <span class="number">45 </span>=&gt; <a href="header.rs.html#12">Header::Field</a> {
+        <span class="number">45 </span>=&gt; Header::Field {
             name: header::LINK,
             value: HeaderValue::from_static(<span class="string">&quot;&quot;</span>),
         },
-        <span class="number">46 </span>=&gt; <a href="header.rs.html#12">Header::Field</a> {
+        <span class="number">46 </span>=&gt; Header::Field {
             name: header::LOCATION,
             value: HeaderValue::from_static(<span class="string">&quot;&quot;</span>),
         },
-        <span class="number">47 </span>=&gt; <a href="header.rs.html#12">Header::Field</a> {
+        <span class="number">47 </span>=&gt; Header::Field {
             name: header::MAX_FORWARDS,
             value: HeaderValue::from_static(<span class="string">&quot;&quot;</span>),
         },
-        <span class="number">48 </span>=&gt; <a href="header.rs.html#12">Header::Field</a> {
+        <span class="number">48 </span>=&gt; Header::Field {
             name: header::PROXY_AUTHENTICATE,
             value: HeaderValue::from_static(<span class="string">&quot;&quot;</span>),
         },
-        <span class="number">49 </span>=&gt; <a href="header.rs.html#12">Header::Field</a> {
+        <span class="number">49 </span>=&gt; Header::Field {
             name: header::PROXY_AUTHORIZATION,
             value: HeaderValue::from_static(<span class="string">&quot;&quot;</span>),
         },
-        <span class="number">50 </span>=&gt; <a href="header.rs.html#12">Header::Field</a> {
+        <span class="number">50 </span>=&gt; Header::Field {
             name: header::RANGE,
             value: HeaderValue::from_static(<span class="string">&quot;&quot;</span>),
         },
-        <span class="number">51 </span>=&gt; <a href="header.rs.html#12">Header::Field</a> {
+        <span class="number">51 </span>=&gt; Header::Field {
             name: header::REFERER,
             value: HeaderValue::from_static(<span class="string">&quot;&quot;</span>),
         },
-        <span class="number">52 </span>=&gt; <a href="header.rs.html#12">Header::Field</a> {
+        <span class="number">52 </span>=&gt; Header::Field {
             name: header::REFRESH,
             value: HeaderValue::from_static(<span class="string">&quot;&quot;</span>),
         },
-        <span class="number">53 </span>=&gt; <a href="header.rs.html#12">Header::Field</a> {
+        <span class="number">53 </span>=&gt; Header::Field {
             name: header::RETRY_AFTER,
             value: HeaderValue::from_static(<span class="string">&quot;&quot;</span>),
         },
-        <span class="number">54 </span>=&gt; <a href="header.rs.html#12">Header::Field</a> {
+        <span class="number">54 </span>=&gt; Header::Field {
             name: header::SERVER,
             value: HeaderValue::from_static(<span class="string">&quot;&quot;</span>),
         },
-        <span class="number">55 </span>=&gt; <a href="header.rs.html#12">Header::Field</a> {
+        <span class="number">55 </span>=&gt; Header::Field {
             name: header::SET_COOKIE,
             value: HeaderValue::from_static(<span class="string">&quot;&quot;</span>),
         },
-        <span class="number">56 </span>=&gt; <a href="header.rs.html#12">Header::Field</a> {
+        <span class="number">56 </span>=&gt; Header::Field {
             name: header::STRICT_TRANSPORT_SECURITY,
             value: HeaderValue::from_static(<span class="string">&quot;&quot;</span>),
         },
-        <span class="number">57 </span>=&gt; <a href="header.rs.html#12">Header::Field</a> {
+        <span class="number">57 </span>=&gt; Header::Field {
             name: header::TRANSFER_ENCODING,
             value: HeaderValue::from_static(<span class="string">&quot;&quot;</span>),
         },
-        <span class="number">58 </span>=&gt; <a href="header.rs.html#12">Header::Field</a> {
+        <span class="number">58 </span>=&gt; Header::Field {
             name: header::USER_AGENT,
             value: HeaderValue::from_static(<span class="string">&quot;&quot;</span>),
         },
-        <span class="number">59 </span>=&gt; <a href="header.rs.html#12">Header::Field</a> {
+        <span class="number">59 </span>=&gt; Header::Field {
             name: header::VARY,
             value: HeaderValue::from_static(<span class="string">&quot;&quot;</span>),
         },
-        <span class="number">60 </span>=&gt; <a href="header.rs.html#12">Header::Field</a> {
+        <span class="number">60 </span>=&gt; Header::Field {
             name: header::VIA,
             value: HeaderValue::from_static(<span class="string">&quot;&quot;</span>),
         },
-        <span class="number">61 </span>=&gt; <a href="header.rs.html#12">Header::Field</a> {
+        <span class="number">61 </span>=&gt; Header::Field {
             name: header::WWW_AUTHENTICATE,
             value: HeaderValue::from_static(<span class="string">&quot;&quot;</span>),
         },
-        <span class="kw">_ </span>=&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(),
+        <span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>(),
     }
 }
 
@@ -1879,4 +1879,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="h2" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="h2" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

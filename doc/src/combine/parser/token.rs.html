@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/combine-4.6.6/src/parser/token.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>token.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../combine/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/combine-4.6.6/src/parser/token.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>token.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../combine/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -702,13 +702,13 @@
 
 </span><span class="kw">use crate</span>::{
     error::{
-        <a class="self" href="../lib.rs.html#616">self</a>, <a href="../error.rs.html#44">ErrorInfo</a>, <a href="../error.rs.html#456">ParseError</a>,
-        ParseResult::{<a class="self" href="../error.rs.html#946">self</a>, <span class="kw-2">*</span>},
-        <a href="../error.rs.html#10">ResultExt</a>, <a href="../error.rs.html#367">StreamError</a>, <a href="../error.rs.html#926">Tracked</a>,
+        <span class="self">self</span>, ErrorInfo, ParseError,
+        ParseResult::{<span class="self">self</span>, <span class="kw-2">*</span>},
+        ResultExt, StreamError, Tracked,
     },
     lib::marker::PhantomData,
-    stream::{<a href="../stream/mod.rs.html#173-175">uncons</a>, <a href="../stream/mod.rs.html#163">Stream</a>, <a href="../stream/mod.rs.html#116">StreamOnce</a>},
-    <a href="mod.rs.html#84">Parser</a>,
+    stream::{uncons, Stream, StreamOnce},
+    Parser,
 };
 
 <span class="attr">#[derive(Copy, Clone)]
@@ -716,14 +716,14 @@
 
 <span class="kw">impl</span>&lt;Input&gt; Parser&lt;Input&gt; <span class="kw">for </span>Any&lt;Input&gt;
 <span class="kw">where
-    </span>Input: <a href="../stream/mod.rs.html#163">Stream</a>,
+    </span>Input: Stream,
 {
     <span class="kw">type </span>Output = Input::Token;
     <span class="kw">type </span>PartialState = ();
 
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>parse_lazy(<span class="kw-2">&amp;mut </span><span class="self">self</span>, input: <span class="kw-2">&amp;mut </span>Input) -&gt; ParseResult&lt;Input::Token, Input::Error&gt; {
-        <a href="../stream/mod.rs.html#173-175">uncons</a>(<a href="#25">input</a>)
+        uncons(input)
     }
 }
 
@@ -743,9 +743,9 @@
 /// ```
 </span><span class="kw">pub fn </span>any&lt;Input&gt;() -&gt; Any&lt;Input&gt;
 <span class="kw">where
-    </span>Input: <a href="../stream/mod.rs.html#163">Stream</a>,
+    </span>Input: Stream,
 {
-    <a href="#15">Any</a>(PhantomData)
+    Any(PhantomData)
 }
 
 <span class="attr">#[derive(Copy, Clone)]
@@ -756,33 +756,33 @@
 
 <span class="kw">fn </span>satisfy_impl&lt;Input, P, R&gt;(input: <span class="kw-2">&amp;mut </span>Input, <span class="kw-2">mut </span>predicate: P) -&gt; ParseResult&lt;R, Input::Error&gt;
 <span class="kw">where
-    </span>Input: <a href="../stream/mod.rs.html#163">Stream</a>,
+    </span>Input: Stream,
     P: FnMut(Input::Token) -&gt; <span class="prelude-ty">Option</span>&lt;R&gt;,
 {
-    <span class="kw">let </span>position = <a href="#57">input</a>.<a href="../stream/mod.rs.html#78">position</a>();
-    <span class="kw">match </span><a href="../stream/mod.rs.html#173-175">uncons</a>(<a href="#57">input</a>) {
-        <a href="../error.rs.html#952">PeekOk</a>(c) | <a href="../error.rs.html#949">CommitOk</a>(c) =&gt; <span class="kw">match </span><a href="#57">predicate</a>(<a href="#64">c</a>) {
-            <span class="prelude-val">Some</span>(c) =&gt; <a href="../error.rs.html#949">CommitOk</a>(<a href="#65">c</a>),
-            <span class="prelude-val">None </span>=&gt; <a href="../error.rs.html#956">PeekErr</a>(Input::Error::empty(<a href="#62">position</a>).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
+    <span class="kw">let </span>position = input.position();
+    <span class="kw">match </span>uncons(input) {
+        PeekOk(c) | CommitOk(c) =&gt; <span class="kw">match </span>predicate(c) {
+            <span class="prelude-val">Some</span>(c) =&gt; CommitOk(c),
+            <span class="prelude-val">None </span>=&gt; PeekErr(Input::Error::empty(position).into()),
         },
-        <a href="../error.rs.html#956">PeekErr</a>(err) =&gt; <a href="../error.rs.html#956">PeekErr</a>(<a href="#68">err</a>),
-        <a href="../error.rs.html#954">CommitErr</a>(err) =&gt; <a href="../error.rs.html#954">CommitErr</a>(<a href="#69">err</a>),
+        PeekErr(err) =&gt; PeekErr(err),
+        CommitErr(err) =&gt; CommitErr(err),
     }
 }
 
 <span class="kw">impl</span>&lt;Input, P&gt; Parser&lt;Input&gt; <span class="kw">for </span>Satisfy&lt;Input, P&gt;
 <span class="kw">where
-    </span>Input: <a href="../stream/mod.rs.html#163">Stream</a>,
-    P: FnMut(Input::Token) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
+    </span>Input: Stream,
+    P: FnMut(Input::Token) -&gt; bool,
 {
     <span class="kw">type </span>Output = Input::Token;
     <span class="kw">type </span>PartialState = ();
 
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>parse_lazy(<span class="kw-2">&amp;mut </span><span class="self">self</span>, input: <span class="kw-2">&amp;mut </span>Input) -&gt; ParseResult&lt;<span class="self">Self</span>::Output, Input::Error&gt; {
-        <a href="#57-60">satisfy_impl</a>(<a href="#82">input</a>, |c| {
+        satisfy_impl(input, |c| {
             <span class="kw">if </span>(<span class="self">self</span>.predicate)(c.clone()) {
-                <span class="prelude-val">Some</span>(<a href="#83">c</a>)
+                <span class="prelude-val">Some</span>(c)
             } <span class="kw">else </span>{
                 <span class="prelude-val">None
             </span>}
@@ -803,11 +803,11 @@
 /// ```
 </span><span class="kw">pub fn </span>satisfy&lt;Input, P&gt;(predicate: P) -&gt; Satisfy&lt;Input, P&gt;
 <span class="kw">where
-    </span>Input: <a href="../stream/mod.rs.html#163">Stream</a>,
-    P: FnMut(Input::Token) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
+    </span>Input: Stream,
+    P: FnMut(Input::Token) -&gt; bool,
 {
-    <a href="#52">Satisfy</a> {
-        <a href="#104">predicate</a>,
+    Satisfy {
+        predicate,
         _marker: PhantomData,
     }
 }
@@ -820,14 +820,14 @@
 
 <span class="kw">impl</span>&lt;Input, P, R&gt; Parser&lt;Input&gt; <span class="kw">for </span>SatisfyMap&lt;Input, P&gt;
 <span class="kw">where
-    </span>Input: <a href="../stream/mod.rs.html#163">Stream</a>,
+    </span>Input: Stream,
     P: FnMut(Input::Token) -&gt; <span class="prelude-ty">Option</span>&lt;R&gt;,
 {
     <span class="kw">type </span>Output = R;
     <span class="kw">type </span>PartialState = ();
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>parse_lazy(<span class="kw-2">&amp;mut </span><span class="self">self</span>, input: <span class="kw-2">&amp;mut </span>Input) -&gt; ParseResult&lt;<span class="self">Self</span>::Output, Input::Error&gt; {
-        <a href="#57-60">satisfy_impl</a>(<a href="#129">input</a>, <span class="kw-2">&amp;mut </span><a class="self" href="#129">self</a>.predicate)
+        satisfy_impl(input, <span class="kw-2">&amp;mut </span><span class="self">self</span>.predicate)
     }
 }
 
@@ -857,11 +857,11 @@
 /// ```
 </span><span class="kw">pub fn </span>satisfy_map&lt;Input, P, R&gt;(predicate: P) -&gt; SatisfyMap&lt;Input, P&gt;
 <span class="kw">where
-    </span>Input: <a href="../stream/mod.rs.html#163">Stream</a>,
+    </span>Input: Stream,
     P: FnMut(Input::Token) -&gt; <span class="prelude-ty">Option</span>&lt;R&gt;,
 {
-    <a href="#116">SatisfyMap</a> {
-        <a href="#158">predicate</a>,
+    SatisfyMap {
+        predicate,
         _marker: PhantomData,
     }
 }
@@ -869,8 +869,8 @@
 <span class="attr">#[derive(Copy, Clone)]
 </span><span class="kw">pub struct </span>Token&lt;Input&gt;
 <span class="kw">where
-    </span>Input: <a href="../stream/mod.rs.html#163">Stream</a>,
-    Input::Token: <a href="https://doc.rust-lang.org/nightly/core/cmp/trait.PartialEq.html">PartialEq</a>,
+    </span>Input: Stream,
+    Input::Token: PartialEq,
 {
     c: Input::Token,
     _marker: PhantomData&lt;Input&gt;,
@@ -878,18 +878,18 @@
 
 <span class="kw">impl</span>&lt;Input&gt; Parser&lt;Input&gt; <span class="kw">for </span>Token&lt;Input&gt;
 <span class="kw">where
-    </span>Input: <a href="../stream/mod.rs.html#163">Stream</a>,
-    Input::Token: <a href="https://doc.rust-lang.org/nightly/core/cmp/trait.PartialEq.html">PartialEq</a> + <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a>,
+    </span>Input: Stream,
+    Input::Token: PartialEq + Clone,
 {
     <span class="kw">type </span>Output = Input::Token;
     <span class="kw">type </span>PartialState = ();
 
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>parse_lazy(<span class="kw-2">&amp;mut </span><span class="self">self</span>, input: <span class="kw-2">&amp;mut </span>Input) -&gt; ParseResult&lt;Input::Token, Input::Error&gt; {
-        <a href="#57-60">satisfy_impl</a>(<a href="#188">input</a>, |c| <span class="kw">if </span>c == <span class="self">self</span>.c { <span class="prelude-val">Some</span>(<a href="#189">c</a>) } <span class="kw">else </span>{ <span class="prelude-val">None </span>})
+        satisfy_impl(input, |c| <span class="kw">if </span>c == <span class="self">self</span>.c { <span class="prelude-val">Some</span>(c) } <span class="kw">else </span>{ <span class="prelude-val">None </span>})
     }
     <span class="kw">fn </span>add_error(<span class="kw-2">&amp;mut </span><span class="self">self</span>, errors: <span class="kw-2">&amp;mut </span>Tracked&lt;&lt;Input <span class="kw">as </span>StreamOnce&gt;::Error&gt;) {
-        <a href="#191">errors</a>.error.<a href="../error.rs.html#492-494">add_expected</a>(<a href="../error.rs.html#126">error::Token</a>(<a class="self" href="#191">self</a>.c.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()));
+        errors.error.add_expected(error::Token(<span class="self">self</span>.c.clone()));
     }
 }
 
@@ -907,11 +907,11 @@
 /// ```
 </span><span class="kw">pub fn </span>token&lt;Input&gt;(c: Input::Token) -&gt; Token&lt;Input&gt;
 <span class="kw">where
-    </span>Input: <a href="../stream/mod.rs.html#163">Stream</a>,
-    Input::Token: <a href="https://doc.rust-lang.org/nightly/core/cmp/trait.PartialEq.html">PartialEq</a>,
+    </span>Input: Stream,
+    Input::Token: PartialEq,
 {
-    <a href="#170">Token</a> {
-        <a href="#208">c</a>,
+    Token {
+        c,
         _marker: PhantomData,
     }
 }
@@ -919,7 +919,7 @@
 <span class="attr">#[derive(Clone)]
 </span><span class="kw">pub struct </span>Tokens&lt;C, E, T, Input&gt;
 <span class="kw">where
-    </span>Input: <a href="../stream/mod.rs.html#163">Stream</a>,
+    </span>Input: Stream,
 {
     cmp: C,
     expected: E,
@@ -929,16 +929,16 @@
 
 <span class="kw">impl</span>&lt;Input, C, E, T&gt; Parser&lt;Input&gt; <span class="kw">for </span>Tokens&lt;C, E, T, Input&gt;
 <span class="kw">where
-    </span>C: FnMut(T::Item, Input::Token) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
+    </span>C: FnMut(T::Item, Input::Token) -&gt; bool,
     E: <span class="kw">for</span>&lt;<span class="lifetime">&#39;s</span>&gt; ErrorInfo&lt;<span class="lifetime">&#39;s</span>, Input::Token, Input::Range&gt;,
-    T: <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> + <a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">IntoIterator</a>,
-    Input: <a href="../stream/mod.rs.html#163">Stream</a>,
+    T: Clone + IntoIterator,
+    Input: Stream,
 {
     <span class="kw">type </span>Output = T;
     <span class="kw">type </span>PartialState = ();
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>parse_lazy(<span class="kw-2">&amp;mut </span><span class="self">self</span>, input: <span class="kw-2">&amp;mut </span>Input) -&gt; ParseResult&lt;T, Input::Error&gt; {
-        <span class="kw">let </span>start = <a href="#240">input</a>.<a href="../stream/mod.rs.html#78">position</a>();
+        <span class="kw">let </span>start = input.position();
         <span class="kw">let </span><span class="kw-2">mut </span>committed = <span class="bool-val">false</span>;
         <span class="kw">for </span>c <span class="kw">in </span><span class="self">self</span>.tokens.clone() {
             <span class="kw">match </span><span class="kw">crate</span>::stream::uncons(input) {
@@ -972,13 +972,13 @@
             }
         }
         <span class="kw">if </span>committed {
-            <a href="../error.rs.html#949">CommitOk</a>(<a class="self" href="#240">self</a>.tokens.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>())
+            CommitOk(<span class="self">self</span>.tokens.clone())
         } <span class="kw">else </span>{
-            <a href="../error.rs.html#952">PeekOk</a>(<a class="self" href="#240">self</a>.tokens.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>())
+            PeekOk(<span class="self">self</span>.tokens.clone())
         }
     }
     <span class="kw">fn </span>add_error(<span class="kw-2">&amp;mut </span><span class="self">self</span>, errors: <span class="kw-2">&amp;mut </span>Tracked&lt;&lt;Input <span class="kw">as </span>StreamOnce&gt;::Error&gt;) {
-        <a href="#280">errors</a>.error.<a href="../error.rs.html#492-494">add_expected</a>(<span class="kw-2">&amp;</span><a class="self" href="#280">self</a>.expected);
+        errors.error.add_expected(<span class="kw-2">&amp;</span><span class="self">self</span>.expected);
     }
 }
 
@@ -1009,14 +1009,14 @@
 /// ```
 </span><span class="kw">pub fn </span>tokens&lt;C, E, T, Input&gt;(cmp: C, expected: E, tokens: T) -&gt; Tokens&lt;C, E, T, Input&gt;
 <span class="kw">where
-    </span>C: FnMut(T::Item, Input::Token) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-    T: <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> + <a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">IntoIterator</a>,
-    Input: <a href="../stream/mod.rs.html#163">Stream</a>,
+    </span>C: FnMut(T::Item, Input::Token) -&gt; bool,
+    T: Clone + IntoIterator,
+    Input: Stream,
 {
-    <a href="#220">Tokens</a> {
-        <a href="#310">cmp</a>,
-        <a href="#310">expected</a>,
-        <a href="#310">tokens</a>,
+    Tokens {
+        cmp,
+        expected,
+        tokens,
         _marker: PhantomData,
     }
 }
@@ -1024,7 +1024,7 @@
 <span class="attr">#[derive(Clone)]
 </span><span class="kw">pub struct </span>TokensCmp&lt;C, T, Input&gt;
 <span class="kw">where
-    </span>Input: <a href="../stream/mod.rs.html#163">Stream</a>,
+    </span>Input: Stream,
 {
     cmp: C,
     tokens: T,
@@ -1033,16 +1033,16 @@
 
 <span class="kw">impl</span>&lt;Input, C, T&gt; Parser&lt;Input&gt; <span class="kw">for </span>TokensCmp&lt;C, T, Input&gt;
 <span class="kw">where
-    </span>C: FnMut(T::Item, Input::Token) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-    T: <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> + <a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">IntoIterator</a>,
-    Input: <a href="../stream/mod.rs.html#163">Stream</a>,
+    </span>C: FnMut(T::Item, Input::Token) -&gt; bool,
+    T: Clone + IntoIterator,
+    Input: Stream,
 {
     <span class="kw">type </span>Output = T;
     <span class="kw">type </span>PartialState = ();
 
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>parse_lazy(<span class="kw-2">&amp;mut </span><span class="self">self</span>, input: <span class="kw-2">&amp;mut </span>Input) -&gt; ParseResult&lt;T, Input::Error&gt; {
-        <span class="kw">let </span>start = <a href="#344">input</a>.<a href="../stream/mod.rs.html#78">position</a>();
+        <span class="kw">let </span>start = input.position();
         <span class="kw">let </span><span class="kw-2">mut </span>committed = <span class="bool-val">false</span>;
         <span class="kw">for </span>c <span class="kw">in </span><span class="self">self</span>.tokens.clone() {
             <span class="kw">match </span><span class="kw">crate</span>::stream::uncons(input) {
@@ -1075,9 +1075,9 @@
             }
         }
         <span class="kw">if </span>committed {
-            <a href="../error.rs.html#949">CommitOk</a>(<a class="self" href="#344">self</a>.tokens.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>())
+            CommitOk(<span class="self">self</span>.tokens.clone())
         } <span class="kw">else </span>{
-            <a href="../error.rs.html#952">PeekOk</a>(<a class="self" href="#344">self</a>.tokens.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>())
+            PeekOk(<span class="self">self</span>.tokens.clone())
         }
     }
 }
@@ -1109,13 +1109,13 @@
 /// ```
 </span><span class="kw">pub fn </span>tokens_cmp&lt;C, T, I&gt;(tokens: T, cmp: C) -&gt; TokensCmp&lt;C, T, I&gt;
 <span class="kw">where
-    </span>C: FnMut(T::Item, I::Token) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-    T: <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> + <a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">IntoIterator</a>,
-    I: <a href="../stream/mod.rs.html#163">Stream</a>,
+    </span>C: FnMut(T::Item, I::Token) -&gt; bool,
+    T: Clone + IntoIterator,
+    I: Stream,
 {
-    <a href="#325">TokensCmp</a> {
-        <a href="#410">cmp</a>,
-        <a href="#410">tokens</a>,
+    TokensCmp {
+        cmp,
+        tokens,
         _marker: PhantomData,
     }
 }
@@ -1123,21 +1123,21 @@
 <span class="attr">#[derive(Copy, Clone)]
 </span><span class="kw">pub struct </span>Position&lt;Input&gt;
 <span class="kw">where
-    </span>Input: <a href="../stream/mod.rs.html#163">Stream</a>,
+    </span>Input: Stream,
 {
     _marker: PhantomData&lt;Input&gt;,
 }
 
 <span class="kw">impl</span>&lt;Input&gt; Parser&lt;Input&gt; <span class="kw">for </span>Position&lt;Input&gt;
 <span class="kw">where
-    </span>Input: <a href="../stream/mod.rs.html#163">Stream</a>,
+    </span>Input: Stream,
 {
     <span class="kw">type </span>Output = Input::Position;
     <span class="kw">type </span>PartialState = ();
 
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>parse_lazy(<span class="kw-2">&amp;mut </span><span class="self">self</span>, input: <span class="kw-2">&amp;mut </span>Input) -&gt; ParseResult&lt;Input::Position, Input::Error&gt; {
-        <a href="../error.rs.html#952">PeekOk</a>(<a href="#439">input</a>.<a href="../stream/mod.rs.html#78">position</a>())
+        PeekOk(input.position())
     }
 }
 
@@ -1158,9 +1158,9 @@
 /// ```
 </span><span class="kw">pub fn </span>position&lt;Input&gt;() -&gt; Position&lt;Input&gt;
 <span class="kw">where
-    </span>Input: <a href="../stream/mod.rs.html#163">Stream</a>,
+    </span>Input: Stream,
 {
-    <a href="#424">Position</a> {
+    Position {
         _marker: PhantomData,
     }
 }
@@ -1168,7 +1168,7 @@
 <span class="attr">#[derive(Copy, Clone)]
 </span><span class="kw">pub struct </span>OneOf&lt;T, Input&gt;
 <span class="kw">where
-    </span>Input: <a href="../stream/mod.rs.html#163">Stream</a>,
+    </span>Input: Stream,
 {
     tokens: T,
     _marker: PhantomData&lt;Input&gt;,
@@ -1176,16 +1176,16 @@
 
 <span class="kw">impl</span>&lt;Input, T&gt; Parser&lt;Input&gt; <span class="kw">for </span>OneOf&lt;T, Input&gt;
 <span class="kw">where
-    </span>T: <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> + IntoIterator&lt;Item = Input::Token&gt;,
-    Input: <a href="../stream/mod.rs.html#163">Stream</a>,
-    Input::Token: <a href="https://doc.rust-lang.org/nightly/core/cmp/trait.PartialEq.html">PartialEq</a>,
+    </span>T: Clone + IntoIterator&lt;Item = Input::Token&gt;,
+    Input: Stream,
+    Input::Token: PartialEq,
 {
     <span class="kw">type </span>Output = Input::Token;
     <span class="kw">type </span>PartialState = ();
 
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>parse_lazy(<span class="kw-2">&amp;mut </span><span class="self">self</span>, input: <span class="kw-2">&amp;mut </span>Input) -&gt; ParseResult&lt;Input::Token, Input::Error&gt; {
-        <a href="#104-107">satisfy</a>(|c| <a class="self" href="#487">self</a>.tokens.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">any</a>(|t| <a href="#488">t</a> == <a href="#488">c</a>)).<a href="mod.rs.html#180-183">parse_lazy</a>(<a href="#487">input</a>)
+        satisfy(|c| <span class="self">self</span>.tokens.clone().into_iter().any(|t| t == c)).parse_lazy(input)
     }
 
     <span class="kw">fn </span>add_error(<span class="kw-2">&amp;mut </span><span class="self">self</span>, errors: <span class="kw-2">&amp;mut </span>Tracked&lt;&lt;Input <span class="kw">as </span>StreamOnce&gt;::Error&gt;) {
@@ -1208,12 +1208,12 @@
 /// ```
 </span><span class="kw">pub fn </span>one_of&lt;T, Input&gt;(tokens: T) -&gt; OneOf&lt;T, Input&gt;
 <span class="kw">where
-    </span>T: <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> + <a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">IntoIterator</a>,
-    Input: <a href="../stream/mod.rs.html#163">Stream</a>,
+    </span>T: Clone + IntoIterator,
+    Input: Stream,
     Input::Token: PartialEq&lt;T::Item&gt;,
 {
-    <a href="#469">OneOf</a> {
-        <a href="#509">tokens</a>,
+    OneOf {
+        tokens,
         _marker: PhantomData,
     }
 }
@@ -1221,7 +1221,7 @@
 <span class="attr">#[derive(Copy, Clone)]
 </span><span class="kw">pub struct </span>NoneOf&lt;T, Input&gt;
 <span class="kw">where
-    </span>Input: <a href="../stream/mod.rs.html#163">Stream</a>,
+    </span>Input: Stream,
 {
     tokens: T,
     _marker: PhantomData&lt;Input&gt;,
@@ -1229,16 +1229,16 @@
 
 <span class="kw">impl</span>&lt;Input, T&gt; Parser&lt;Input&gt; <span class="kw">for </span>NoneOf&lt;T, Input&gt;
 <span class="kw">where
-    </span>T: <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> + IntoIterator&lt;Item = Input::Token&gt;,
-    Input: <a href="../stream/mod.rs.html#163">Stream</a>,
-    Input::Token: <a href="https://doc.rust-lang.org/nightly/core/cmp/trait.PartialEq.html">PartialEq</a>,
+    </span>T: Clone + IntoIterator&lt;Item = Input::Token&gt;,
+    Input: Stream,
+    Input::Token: PartialEq,
 {
     <span class="kw">type </span>Output = Input::Token;
     <span class="kw">type </span>PartialState = ();
 
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>parse_lazy(<span class="kw-2">&amp;mut </span><span class="self">self</span>, input: <span class="kw-2">&amp;mut </span>Input) -&gt; ParseResult&lt;Input::Token, Input::Error&gt; {
-        <a href="#104-107">satisfy</a>(|c| <a class="self" href="#540">self</a>.tokens.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">all</a>(|t| <a href="#541">t</a> != <a href="#541">c</a>)).<a href="mod.rs.html#180-183">parse_lazy</a>(<a href="#540">input</a>)
+        satisfy(|c| <span class="self">self</span>.tokens.clone().into_iter().all(|t| t != c)).parse_lazy(input)
     }
 }
 
@@ -1266,12 +1266,12 @@
 /// ```
 </span><span class="kw">pub fn </span>none_of&lt;T, Input&gt;(tokens: T) -&gt; NoneOf&lt;T, Input&gt;
 <span class="kw">where
-    </span>T: <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> + <a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">IntoIterator</a>,
-    Input: <a href="../stream/mod.rs.html#163">Stream</a>,
+    </span>T: Clone + IntoIterator,
+    Input: Stream,
     Input::Token: PartialEq&lt;T::Item&gt;,
 {
-    <a href="#522">NoneOf</a> {
-        <a href="#567">tokens</a>,
+    NoneOf {
+        tokens,
         _marker: PhantomData,
     }
 }
@@ -1280,14 +1280,14 @@
 </span><span class="kw">pub struct </span>Value&lt;Input, T&gt;(T, PhantomData&lt;<span class="kw">fn</span>(Input) -&gt; Input&gt;);
 <span class="kw">impl</span>&lt;Input, T&gt; Parser&lt;Input&gt; <span class="kw">for </span>Value&lt;Input, T&gt;
 <span class="kw">where
-    </span>Input: <a href="../stream/mod.rs.html#163">Stream</a>,
-    T: <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a>,
+    </span>Input: Stream,
+    T: Clone,
 {
     <span class="kw">type </span>Output = T;
     <span class="kw">type </span>PartialState = ();
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>parse_lazy(<span class="kw-2">&amp;mut </span><span class="self">self</span>, <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Input) -&gt; ParseResult&lt;T, Input::Error&gt; {
-        <a href="../error.rs.html#952">PeekOk</a>(<a class="self" href="#589">self</a>.<span class="number">0</span>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>())
+        PeekOk(<span class="self">self</span>.<span class="number">0</span>.clone())
     }
 }
 
@@ -1305,24 +1305,24 @@
 /// ```
 </span><span class="kw">pub fn </span>value&lt;Input, T&gt;(v: T) -&gt; Value&lt;Input, T&gt;
 <span class="kw">where
-    </span>Input: <a href="../stream/mod.rs.html#163">Stream</a>,
-    T: <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a>,
+    </span>Input: Stream,
+    T: Clone,
 {
-    <a href="#580">Value</a>(<a href="#606">v</a>, PhantomData)
+    Value(v, PhantomData)
 }
 
 <span class="attr">#[derive(Copy, Clone)]
 </span><span class="kw">pub struct </span>Produce&lt;Input, F&gt;(F, PhantomData&lt;<span class="kw">fn</span>(Input) -&gt; Input&gt;);
 <span class="kw">impl</span>&lt;Input, F, R&gt; Parser&lt;Input&gt; <span class="kw">for </span>Produce&lt;Input, F&gt;
 <span class="kw">where
-    </span>Input: <a href="../stream/mod.rs.html#163">Stream</a>,
+    </span>Input: Stream,
     F: FnMut() -&gt; R,
 {
     <span class="kw">type </span>Output = R;
     <span class="kw">type </span>PartialState = ();
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>parse_lazy(<span class="kw-2">&amp;mut </span><span class="self">self</span>, <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Input) -&gt; ParseResult&lt;R, Input::Error&gt; {
-        <a href="../error.rs.html#952">PeekOk</a>((<a class="self" href="#624">self</a>.<span class="number">0</span>)())
+        PeekOk((<span class="self">self</span>.<span class="number">0</span>)())
     }
 }
 
@@ -1341,35 +1341,35 @@
 /// ```
 </span><span class="kw">pub fn </span>produce&lt;Input, F, R&gt;(f: F) -&gt; Produce&lt;Input, F&gt;
 <span class="kw">where
-    </span>Input: <a href="../stream/mod.rs.html#163">Stream</a>,
+    </span>Input: Stream,
     F: FnMut() -&gt; R,
 {
-    <a href="#615">Produce</a>(<a href="#642">f</a>, PhantomData)
+    Produce(f, PhantomData)
 }
 
 <span class="attr">#[derive(Copy, Clone)]
 </span><span class="kw">pub struct </span>Eof&lt;Input&gt;(PhantomData&lt;Input&gt;);
 <span class="kw">impl</span>&lt;Input&gt; Parser&lt;Input&gt; <span class="kw">for </span>Eof&lt;Input&gt;
 <span class="kw">where
-    </span>Input: <a href="../stream/mod.rs.html#163">Stream</a>,
+    </span>Input: Stream,
 {
     <span class="kw">type </span>Output = ();
     <span class="kw">type </span>PartialState = ();
 
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>parse_lazy(<span class="kw-2">&amp;mut </span><span class="self">self</span>, input: <span class="kw-2">&amp;mut </span>Input) -&gt; ParseResult&lt;(), Input::Error&gt; {
-        <span class="kw">let </span>before = <a href="#660">input</a>.<a href="../stream/mod.rs.html#148">checkpoint</a>();
-        <span class="kw">match </span><a href="#660">input</a>.<a href="../stream/mod.rs.html#132">uncons</a>() {
-            <span class="prelude-val">Err</span>(<span class="kw-2">ref </span>err) <span class="kw">if </span><a href="#663">err</a>.<a href="../error.rs.html#440">is_unexpected_end_of_input</a>() =&gt; <a href="../error.rs.html#952">PeekOk</a>(()),
+        <span class="kw">let </span>before = input.checkpoint();
+        <span class="kw">match </span>input.uncons() {
+            <span class="prelude-val">Err</span>(<span class="kw-2">ref </span>err) <span class="kw">if </span>err.is_unexpected_end_of_input() =&gt; PeekOk(()),
             <span class="kw">_ </span>=&gt; {
-                <a class="macro" href="../error.rs.html#25-38">ctry!</a>(input.reset(before).committed());
-                <a href="../error.rs.html#956">PeekErr</a>(&lt;Input <span class="kw">as </span>StreamOnce&gt;::Error::empty(<a href="#660">input</a>.<a href="../stream/mod.rs.html#78">position</a>()).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
+                <span class="macro">ctry!</span>(input.reset(before).committed());
+                PeekErr(&lt;Input <span class="kw">as </span>StreamOnce&gt;::Error::empty(input.position()).into())
             }
         }
     }
 
     <span class="kw">fn </span>add_error(<span class="kw-2">&amp;mut </span><span class="self">self</span>, errors: <span class="kw-2">&amp;mut </span>Tracked&lt;&lt;Input <span class="kw">as </span>StreamOnce&gt;::Error&gt;) {
-        <a href="#671">errors</a>.error.<a href="../error.rs.html#492-494">add_expected</a>(<span class="string">&quot;end of input&quot;</span>);
+        errors.error.add_expected(<span class="string">&quot;end of input&quot;</span>);
     }
 }
 
@@ -1394,9 +1394,9 @@
 /// ```
 </span><span class="kw">pub fn </span>eof&lt;Input&gt;() -&gt; Eof&lt;Input&gt;
 <span class="kw">where
-    </span>Input: <a href="../stream/mod.rs.html#163">Stream</a>,
+    </span>Input: Stream,
 {
-    <a href="#651">Eof</a>(PhantomData)
+    Eof(PhantomData)
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="combine" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="combine" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/openssl-0.10.42/src/dh.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>dh.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../openssl/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/openssl-0.10.45/src/dh.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>dh.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../openssl/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -412,19 +412,23 @@
 <a href="#412" id="412">412</a>
 <a href="#413" id="413">413</a>
 <a href="#414" id="414">414</a>
-</pre><pre class="rust"><code><span class="kw">use </span><a href="../../cfg_if/macro.cfg_if.html">cfg_if::cfg_if</a>;
-<span class="kw">use </span>foreign_types::{<a href="../../foreign_types_shared/trait.ForeignType.html">ForeignType</a>, <a href="../../foreign_types_shared/trait.ForeignTypeRef.html">ForeignTypeRef</a>};
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/mem/index.html">std::mem</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/ptr/index.html">std::ptr</a>;
+<a href="#415" id="415">415</a>
+<a href="#416" id="416">416</a>
+</pre><pre class="rust"><code><span class="doccomment">//! Diffie-Hellman key agreement.
 
-<span class="kw">use </span><span class="kw">crate</span>::bn::{<a href="bn.rs.html#123-155">BigNum</a>, <a href="bn.rs.html#123-155">BigNumRef</a>};
-<span class="kw">use </span><a href="error.rs.html#39"><span class="kw">crate</span>::error::ErrorStack</a>;
-<span class="kw">use </span><span class="kw">crate</span>::pkey::{<a href="pkey.rs.html#114">HasParams</a>, <a href="pkey.rs.html#128">HasPrivate</a>, <a href="pkey.rs.html#121">HasPublic</a>, <a href="pkey.rs.html#67">Params</a>, <a href="pkey.rs.html#73">Private</a>};
-<span class="kw">use crate</span>::{<a href="lib.rs.html#202">cvt</a>, <a href="lib.rs.html#193">cvt_p</a>};
-<span class="kw">use </span><a href="../../openssl_macros/attr.corresponds.html">openssl_macros::corresponds</a>;
+</span><span class="kw">use </span>cfg_if::cfg_if;
+<span class="kw">use </span>foreign_types::{ForeignType, ForeignTypeRef};
+<span class="kw">use </span>std::mem;
+<span class="kw">use </span>std::ptr;
 
-<a class="macro" href="macros.rs.html#165-270">generic_foreign_type_and_impl_send_sync! </a>{
-    <span class="kw">type </span>CType = <a href="../../openssl_sys/openssl/handwritten/types/enum.DH.html">ffi::DH</a>;
+<span class="kw">use </span><span class="kw">crate</span>::bn::{BigNum, BigNumRef};
+<span class="kw">use </span><span class="kw">crate</span>::error::ErrorStack;
+<span class="kw">use </span><span class="kw">crate</span>::pkey::{HasParams, HasPrivate, HasPublic, Params, Private};
+<span class="kw">use crate</span>::{cvt, cvt_p};
+<span class="kw">use </span>openssl_macros::corresponds;
+
+<span class="macro">generic_foreign_type_and_impl_send_sync! </span>{
+    <span class="kw">type </span>CType = ffi::DH;
     <span class="kw">fn </span>drop = ffi::DH_free;
 
     <span class="kw">pub struct </span>Dh&lt;T&gt;;
@@ -434,9 +438,9 @@
 
 <span class="kw">impl</span>&lt;T&gt; DhRef&lt;T&gt;
 <span class="kw">where
-    </span>T: <a href="pkey.rs.html#114">HasParams</a>,
+    </span>T: HasParams,
 {
-    <a class="macro" href="macros.rs.html#76-87">to_pem! </a>{
+    <span class="macro">to_pem! </span>{
         <span class="doccomment">/// Serializes the parameters into a PEM-encoded PKCS#3 DHparameter structure.
         ///
         /// The output will have a header of `-----BEGIN DH PARAMETERS-----`.
@@ -445,7 +449,7 @@
         ffi::PEM_write_bio_DHparams
     }
 
-    <a class="macro" href="macros.rs.html#89-103">to_der! </a>{
+    <span class="macro">to_der! </span>{
         <span class="doccomment">/// Serializes the parameters into a DER-encoded PKCS#3 DHparameter structure.
         </span><span class="attr">#[corresponds(i2d_DHparams)]
         </span>params_to_der,
@@ -453,18 +457,18 @@
     }
 }
 
-<span class="kw">impl </span>Dh&lt;<a href="pkey.rs.html#67">Params</a>&gt; {
-    <span class="kw">pub fn </span>from_params(p: <a href="bn.rs.html#123-155">BigNum</a>, g: <a href="bn.rs.html#123-155">BigNum</a>, q: <a href="bn.rs.html#123-155">BigNum</a>) -&gt; <span class="prelude-ty">Result</span>&lt;Dh&lt;<a href="pkey.rs.html#67">Params</a>&gt;, <a href="error.rs.html#39">ErrorStack</a>&gt; {
-        <span class="self">Self</span>::from_pqg(<a href="#43">p</a>, <span class="prelude-val">Some</span>(<a href="#43">q</a>), <a href="#43">g</a>)
+<span class="kw">impl </span>Dh&lt;Params&gt; {
+    <span class="kw">pub fn </span>from_params(p: BigNum, g: BigNum, q: BigNum) -&gt; <span class="prelude-ty">Result</span>&lt;Dh&lt;Params&gt;, ErrorStack&gt; {
+        <span class="self">Self</span>::from_pqg(p, <span class="prelude-val">Some</span>(q), g)
     }
 
     <span class="doccomment">/// Creates a DH instance based upon the given primes and generator params.
     </span><span class="attr">#[corresponds(DH_set0_pqg)]
     </span><span class="kw">pub fn </span>from_pqg(
-        prime_p: <a href="bn.rs.html#123-155">BigNum</a>,
-        prime_q: <span class="prelude-ty">Option</span>&lt;<a href="bn.rs.html#123-155">BigNum</a>&gt;,
-        generator: <a href="bn.rs.html#123-155">BigNum</a>,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;Dh&lt;<a href="pkey.rs.html#67">Params</a>&gt;, <a href="error.rs.html#39">ErrorStack</a>&gt; {
+        prime_p: BigNum,
+        prime_q: <span class="prelude-ty">Option</span>&lt;BigNum&gt;,
+        generator: BigNum,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;Dh&lt;Params&gt;, ErrorStack&gt; {
         <span class="kw">unsafe </span>{
             <span class="kw">let </span>dh = Dh::from_ptr(cvt_p(ffi::DH_new())<span class="question-mark">?</span>);
             cvt(DH_set0_pqg(
@@ -473,27 +477,27 @@
                 prime_q.as_ref().map_or(ptr::null_mut(), |q| q.as_ptr()),
                 generator.as_ptr(),
             ))<span class="question-mark">?</span>;
-            mem::forget((<a href="#50">prime_p</a>, <a href="#51">prime_q</a>, <a href="#52">generator</a>));
-            <span class="prelude-val">Ok</span>(<a href="#55">dh</a>)
+            mem::forget((prime_p, prime_q, generator));
+            <span class="prelude-val">Ok</span>(dh)
         }
     }
 
     <span class="doccomment">/// Sets the private key on the DH object and recomputes the public key.
-    </span><span class="kw">pub fn </span>set_private_key(<span class="self">self</span>, priv_key: <a href="bn.rs.html#123-155">BigNum</a>) -&gt; <span class="prelude-ty">Result</span>&lt;Dh&lt;<a href="pkey.rs.html#73">Private</a>&gt;, <a href="error.rs.html#39">ErrorStack</a>&gt; {
+    </span><span class="kw">pub fn </span>set_private_key(<span class="self">self</span>, priv_key: BigNum) -&gt; <span class="prelude-ty">Result</span>&lt;Dh&lt;Private&gt;, ErrorStack&gt; {
         <span class="kw">unsafe </span>{
-            <span class="kw">let </span>dh_ptr = <a class="self" href="#68">self</a>.<span class="number">0</span>;
+            <span class="kw">let </span>dh_ptr = <span class="self">self</span>.<span class="number">0</span>;
             cvt(DH_set0_key(dh_ptr, ptr::null_mut(), priv_key.as_ptr()))<span class="question-mark">?</span>;
-            mem::forget(<a href="#68">priv_key</a>);
+            mem::forget(priv_key);
 
             cvt(ffi::DH_generate_key(dh_ptr))<span class="question-mark">?</span>;
-            mem::forget(<a class="self" href="#68">self</a>);
-            <span class="prelude-val">Ok</span>(Dh::from_ptr(<a href="#70">dh_ptr</a>))
+            mem::forget(<span class="self">self</span>);
+            <span class="prelude-val">Ok</span>(Dh::from_ptr(dh_ptr))
         }
     }
 
     <span class="doccomment">/// Generates DH params based on the given `prime_len` and a fixed `generator` value.
     </span><span class="attr">#[corresponds(DH_generate_parameters_ex)]
-    </span><span class="kw">pub fn </span>generate_params(prime_len: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>, generator: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; <span class="prelude-ty">Result</span>&lt;Dh&lt;<a href="pkey.rs.html#67">Params</a>&gt;, <a href="error.rs.html#39">ErrorStack</a>&gt; {
+    </span><span class="kw">pub fn </span>generate_params(prime_len: u32, generator: u32) -&gt; <span class="prelude-ty">Result</span>&lt;Dh&lt;Params&gt;, ErrorStack&gt; {
         <span class="kw">unsafe </span>{
             <span class="kw">let </span>dh = Dh::from_ptr(cvt_p(ffi::DH_new())<span class="question-mark">?</span>);
             cvt(ffi::DH_generate_parameters_ex(
@@ -502,22 +506,22 @@
                 generator <span class="kw">as </span>i32,
                 ptr::null_mut(),
             ))<span class="question-mark">?</span>;
-            <span class="prelude-val">Ok</span>(<a href="#84">dh</a>)
+            <span class="prelude-val">Ok</span>(dh)
         }
     }
 
     <span class="doccomment">/// Generates a public and a private key based on the DH params.
     </span><span class="attr">#[corresponds(DH_generate_key)]
-    </span><span class="kw">pub fn </span>generate_key(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;Dh&lt;<a href="pkey.rs.html#73">Private</a>&gt;, <a href="error.rs.html#39">ErrorStack</a>&gt; {
+    </span><span class="kw">pub fn </span>generate_key(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;Dh&lt;Private&gt;, ErrorStack&gt; {
         <span class="kw">unsafe </span>{
-            <span class="kw">let </span>dh_ptr = <a class="self" href="#97">self</a>.<span class="number">0</span>;
+            <span class="kw">let </span>dh_ptr = <span class="self">self</span>.<span class="number">0</span>;
             cvt(ffi::DH_generate_key(dh_ptr))<span class="question-mark">?</span>;
-            mem::forget(<a class="self" href="#97">self</a>);
-            <span class="prelude-val">Ok</span>(Dh::from_ptr(<a href="#99">dh_ptr</a>))
+            mem::forget(<span class="self">self</span>);
+            <span class="prelude-val">Ok</span>(Dh::from_ptr(dh_ptr))
         }
     }
 
-    <a class="macro" href="macros.rs.html#120-132">from_pem! </a>{
+    <span class="macro">from_pem! </span>{
         <span class="doccomment">/// Deserializes a PEM-encoded PKCS#3 DHpararameters structure.
         ///
         /// The input should have a header of `-----BEGIN DH PARAMETERS-----`.
@@ -527,7 +531,7 @@
         ffi::PEM_read_bio_DHparams
     }
 
-    <a class="macro" href="macros.rs.html#105-118">from_der! </a>{
+    <span class="macro">from_der! </span>{
         <span class="doccomment">/// Deserializes a DER-encoded PKCS#3 DHparameters structure.
         </span><span class="attr">#[corresponds(d2i_DHparams)]
         </span>params_from_der,
@@ -538,121 +542,121 @@
     <span class="doccomment">/// Requires OpenSSL 1.0.2 or newer.
     </span><span class="attr">#[corresponds(DH_get_1024_160)]
     #[cfg(any(ossl102, ossl110))]
-    </span><span class="kw">pub fn </span>get_1024_160() -&gt; <span class="prelude-ty">Result</span>&lt;Dh&lt;<a href="pkey.rs.html#67">Params</a>&gt;, <a href="error.rs.html#39">ErrorStack</a>&gt; {
+    </span><span class="kw">pub fn </span>get_1024_160() -&gt; <span class="prelude-ty">Result</span>&lt;Dh&lt;Params&gt;, ErrorStack&gt; {
         <span class="kw">unsafe </span>{
-            <a href="../../openssl/fn.init.html">ffi::init</a>();
-            <a href="lib.rs.html#193">cvt_p</a>(ffi::DH_get_1024_160()).map(|p| Dh::from_ptr(<a href="#130">p</a>))
+            ffi::init();
+            cvt_p(ffi::DH_get_1024_160()).map(|p| Dh::from_ptr(p))
         }
     }
 
     <span class="doccomment">/// Requires OpenSSL 1.0.2 or newer.
     </span><span class="attr">#[corresponds(DH_get_2048_224)]
     #[cfg(any(ossl102, ossl110))]
-    </span><span class="kw">pub fn </span>get_2048_224() -&gt; <span class="prelude-ty">Result</span>&lt;Dh&lt;<a href="pkey.rs.html#67">Params</a>&gt;, <a href="error.rs.html#39">ErrorStack</a>&gt; {
+    </span><span class="kw">pub fn </span>get_2048_224() -&gt; <span class="prelude-ty">Result</span>&lt;Dh&lt;Params&gt;, ErrorStack&gt; {
         <span class="kw">unsafe </span>{
-            <a href="../../openssl/fn.init.html">ffi::init</a>();
-            <a href="lib.rs.html#193">cvt_p</a>(ffi::DH_get_2048_224()).map(|p| Dh::from_ptr(<a href="#140">p</a>))
+            ffi::init();
+            cvt_p(ffi::DH_get_2048_224()).map(|p| Dh::from_ptr(p))
         }
     }
 
     <span class="doccomment">/// Requires OpenSSL 1.0.2 or newer.
     </span><span class="attr">#[corresponds(DH_get_2048_256)]
     #[cfg(any(ossl102, ossl110))]
-    </span><span class="kw">pub fn </span>get_2048_256() -&gt; <span class="prelude-ty">Result</span>&lt;Dh&lt;<a href="pkey.rs.html#67">Params</a>&gt;, <a href="error.rs.html#39">ErrorStack</a>&gt; {
+    </span><span class="kw">pub fn </span>get_2048_256() -&gt; <span class="prelude-ty">Result</span>&lt;Dh&lt;Params&gt;, ErrorStack&gt; {
         <span class="kw">unsafe </span>{
-            <a href="../../openssl/fn.init.html">ffi::init</a>();
-            <a href="lib.rs.html#193">cvt_p</a>(ffi::DH_get_2048_256()).map(|p| Dh::from_ptr(<a href="#150">p</a>))
+            ffi::init();
+            cvt_p(ffi::DH_get_2048_256()).map(|p| Dh::from_ptr(p))
         }
     }
 }
 
 <span class="kw">impl</span>&lt;T&gt; Dh&lt;T&gt;
 <span class="kw">where
-    </span>T: <a href="pkey.rs.html#114">HasParams</a>,
+    </span>T: HasParams,
 {
     <span class="doccomment">/// Returns the prime `p` from the DH instance.
     </span><span class="attr">#[corresponds(DH_get0_pqg)]
-    </span><span class="kw">pub fn </span>prime_p(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="bn.rs.html#123-155">BigNumRef</a> {
+    </span><span class="kw">pub fn </span>prime_p(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>BigNumRef {
         <span class="kw">let </span><span class="kw-2">mut </span>p = ptr::null();
         <span class="kw">unsafe </span>{
-            <a href="../../openssl_sys/openssl/handwritten/dh/fn.DH_get0_pqg.html">DH_get0_pqg</a>(<a class="self" href="#161">self</a>.<a href="../../foreign_types_shared/trait.ForeignType.html">as_ptr</a>(), <span class="kw-2">&amp;mut </span><a href="#162">p</a>, ptr::null_mut(), ptr::null_mut());
-            BigNumRef::from_ptr(<a href="#162">p</a> <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>)
+            DH_get0_pqg(<span class="self">self</span>.as_ptr(), <span class="kw-2">&amp;mut </span>p, ptr::null_mut(), ptr::null_mut());
+            BigNumRef::from_ptr(p <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>)
         }
     }
 
     <span class="doccomment">/// Returns the prime `q` from the DH instance.
     </span><span class="attr">#[corresponds(DH_get0_pqg)]
-    </span><span class="kw">pub fn </span>prime_q(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="bn.rs.html#123-155">BigNumRef</a>&gt; {
+    </span><span class="kw">pub fn </span>prime_q(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>BigNumRef&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>q = ptr::null();
         <span class="kw">unsafe </span>{
-            <a href="../../openssl_sys/openssl/handwritten/dh/fn.DH_get0_pqg.html">DH_get0_pqg</a>(<a class="self" href="#171">self</a>.<a href="../../foreign_types_shared/trait.ForeignType.html">as_ptr</a>(), ptr::null_mut(), <span class="kw-2">&amp;mut </span><a href="#172">q</a>, ptr::null_mut());
+            DH_get0_pqg(<span class="self">self</span>.as_ptr(), ptr::null_mut(), <span class="kw-2">&amp;mut </span>q, ptr::null_mut());
             <span class="kw">if </span>q.is_null() {
                 <span class="prelude-val">None
             </span>} <span class="kw">else </span>{
-                <span class="prelude-val">Some</span>(BigNumRef::from_ptr(<a href="#172">q</a> <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>))
+                <span class="prelude-val">Some</span>(BigNumRef::from_ptr(q <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>))
             }
         }
     }
 
     <span class="doccomment">/// Returns the generator from the DH instance.
     </span><span class="attr">#[corresponds(DH_get0_pqg)]
-    </span><span class="kw">pub fn </span>generator(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="bn.rs.html#123-155">BigNumRef</a> {
+    </span><span class="kw">pub fn </span>generator(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>BigNumRef {
         <span class="kw">let </span><span class="kw-2">mut </span>g = ptr::null();
         <span class="kw">unsafe </span>{
-            <a href="../../openssl_sys/openssl/handwritten/dh/fn.DH_get0_pqg.html">DH_get0_pqg</a>(<a class="self" href="#185">self</a>.<a href="../../foreign_types_shared/trait.ForeignType.html">as_ptr</a>(), ptr::null_mut(), ptr::null_mut(), <span class="kw-2">&amp;mut </span><a href="#186">g</a>);
-            BigNumRef::from_ptr(<a href="#186">g</a> <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>)
+            DH_get0_pqg(<span class="self">self</span>.as_ptr(), ptr::null_mut(), ptr::null_mut(), <span class="kw-2">&amp;mut </span>g);
+            BigNumRef::from_ptr(g <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>)
         }
     }
 }
 
 <span class="kw">impl</span>&lt;T&gt; DhRef&lt;T&gt;
 <span class="kw">where
-    </span>T: <a href="pkey.rs.html#121">HasPublic</a>,
+    </span>T: HasPublic,
 {
     <span class="doccomment">/// Returns the public key from the DH instance.
     </span><span class="attr">#[corresponds(DH_get0_key)]
-    </span><span class="kw">pub fn </span>public_key(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="bn.rs.html#123-155">BigNumRef</a> {
+    </span><span class="kw">pub fn </span>public_key(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>BigNumRef {
         <span class="kw">let </span><span class="kw-2">mut </span>pub_key = ptr::null();
         <span class="kw">unsafe </span>{
-            <a href="../../openssl_sys/openssl/handwritten/dh/fn.DH_get0_key.html">DH_get0_key</a>(<a class="self" href="#200">self</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(), <span class="kw-2">&amp;mut </span><a href="#201">pub_key</a>, ptr::null_mut());
-            BigNumRef::from_ptr(<a href="#201">pub_key</a> <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>)
+            DH_get0_key(<span class="self">self</span>.as_ptr(), <span class="kw-2">&amp;mut </span>pub_key, ptr::null_mut());
+            BigNumRef::from_ptr(pub_key <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>)
         }
     }
 }
 
 <span class="kw">impl</span>&lt;T&gt; DhRef&lt;T&gt;
 <span class="kw">where
-    </span>T: <a href="pkey.rs.html#128">HasPrivate</a>,
+    </span>T: HasPrivate,
 {
     <span class="doccomment">/// Computes a shared secret from the own private key and the given `public_key`.
     </span><span class="attr">#[corresponds(DH_compute_key)]
-    </span><span class="kw">pub fn </span>compute_key(<span class="kw-2">&amp;</span><span class="self">self</span>, public_key: <span class="kw-2">&amp;</span><a href="bn.rs.html#123-155">BigNumRef</a>) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;, <a href="error.rs.html#39">ErrorStack</a>&gt; {
+    </span><span class="kw">pub fn </span>compute_key(<span class="kw-2">&amp;</span><span class="self">self</span>, public_key: <span class="kw-2">&amp;</span>BigNumRef) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;u8&gt;, ErrorStack&gt; {
         <span class="kw">unsafe </span>{
-            <span class="kw">let </span>key_len = ffi::DH_size(<a class="self" href="#215">self</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>());
-            <span class="kw">let </span><span class="kw-2">mut </span>key = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[<span class="number">0u8</span>; key_len <span class="kw">as </span>usize];
+            <span class="kw">let </span>key_len = ffi::DH_size(<span class="self">self</span>.as_ptr());
+            <span class="kw">let </span><span class="kw-2">mut </span>key = <span class="macro">vec!</span>[<span class="number">0u8</span>; key_len <span class="kw">as </span>usize];
             cvt(ffi::DH_compute_key(
                 key.as_mut_ptr(),
                 public_key.as_ptr(),
                 <span class="self">self</span>.as_ptr(),
             ))<span class="question-mark">?</span>;
-            <span class="prelude-val">Ok</span>(<a href="#218">key</a>)
+            <span class="prelude-val">Ok</span>(key)
         }
     }
 
     <span class="doccomment">/// Returns the private key from the DH instance.
     </span><span class="attr">#[corresponds(DH_get0_key)]
-    </span><span class="kw">pub fn </span>private_key(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="bn.rs.html#123-155">BigNumRef</a> {
+    </span><span class="kw">pub fn </span>private_key(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>BigNumRef {
         <span class="kw">let </span><span class="kw-2">mut </span>priv_key = ptr::null();
         <span class="kw">unsafe </span>{
-            <a href="../../openssl_sys/openssl/handwritten/dh/fn.DH_get0_key.html">DH_get0_key</a>(<a class="self" href="#230">self</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(), ptr::null_mut(), <span class="kw-2">&amp;mut </span><a href="#231">priv_key</a>);
-            BigNumRef::from_ptr(<a href="#231">priv_key</a> <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>)
+            DH_get0_key(<span class="self">self</span>.as_ptr(), ptr::null_mut(), <span class="kw-2">&amp;mut </span>priv_key);
+            BigNumRef::from_ptr(priv_key <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>)
         }
     }
 }
 
 <span class="macro">cfg_if! </span>{
     <span class="kw">if </span><span class="attr">#[cfg(any(ossl110, libressl270))] </span>{
-        <span class="kw">use </span>ffi::{<a href="../../openssl_sys/openssl/handwritten/dh/fn.DH_set0_pqg.html">DH_set0_pqg</a>, <a href="../../openssl_sys/openssl/handwritten/dh/fn.DH_get0_pqg.html">DH_get0_pqg</a>, <a href="../../openssl_sys/openssl/handwritten/dh/fn.DH_get0_key.html">DH_get0_key</a>, <a href="../../openssl_sys/openssl/handwritten/dh/fn.DH_set0_key.html">DH_set0_key</a>};
+        <span class="kw">use </span>ffi::{DH_set0_pqg, DH_get0_pqg, DH_get0_key, DH_set0_key};
     } <span class="kw">else </span>{
         <span class="attr">#[allow(bad_style)]
         </span><span class="kw">unsafe fn </span>DH_set0_pqg(
@@ -827,4 +831,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="openssl" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="openssl" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

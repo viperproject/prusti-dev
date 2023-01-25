@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/object-0.29.0/src/read/util.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>util.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../object/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/object-0.30.1/src/read/util.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>util.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../object/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -381,13 +381,13 @@
 <a href="#381" id="381">381</a>
 <a href="#382" id="382">382</a>
 <a href="#383" id="383">383</a>
-</pre><pre class="rust"><code><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">alloc::string::String</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/convert/trait.TryInto.html">core::convert::TryInto</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/fmt/index.html">core::fmt</a>;
+</pre><pre class="rust"><code><span class="kw">use </span>alloc::string::String;
+<span class="kw">use </span>core::convert::TryInto;
+<span class="kw">use </span>core::fmt;
 <span class="kw">use </span>core::marker::PhantomData;
 
-<span class="kw">use </span><span class="kw">crate</span>::pod::{<a href="../pod.rs.html#27">from_bytes</a>, <a href="../pod.rs.html#66">slice_from_bytes</a>, <a href="../pod.rs.html#21">Pod</a>};
-<span class="kw">use </span><a href="read_ref.rs.html#37"><span class="kw">crate</span>::ReadRef</a>;
+<span class="kw">use </span><span class="kw">crate</span>::pod::{from_bytes, slice_from_bytes, Pod};
+<span class="kw">use </span><span class="kw">crate</span>::ReadRef;
 
 <span class="doccomment">/// A newtype for byte slices.
 ///
@@ -396,25 +396,25 @@
 /// - convenience methods for `Pod` types
 /// - a useful `Debug` implementation
 </span><span class="attr">#[derive(Default, Clone, Copy, PartialEq, Eq)]
-</span><span class="kw">pub struct </span>Bytes&lt;<span class="lifetime">&#39;data</span>&gt;(<span class="kw">pub </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]);
+</span><span class="kw">pub struct </span>Bytes&lt;<span class="lifetime">&#39;data</span>&gt;(<span class="kw">pub </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[u8]);
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span>Bytes&lt;<span class="lifetime">&#39;data</span>&gt; {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, fmt: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a href="#171">debug_list_bytes</a>(<a class="self" href="#19">self</a>.<span class="number">0</span>, <a href="#19">fmt</a>)
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>&gt; fmt::Debug <span class="kw">for </span>Bytes&lt;<span class="lifetime">&#39;data</span>&gt; {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, fmt: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        debug_list_bytes(<span class="self">self</span>.<span class="number">0</span>, fmt)
     }
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>&gt; Bytes&lt;<span class="lifetime">&#39;data</span>&gt; {
     <span class="doccomment">/// Return the length of the byte slice.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="self" href="#27">self</a>.<span class="number">0</span>.len()
+    </span><span class="kw">pub fn </span>len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+        <span class="self">self</span>.<span class="number">0</span>.len()
     }
 
     <span class="doccomment">/// Return true if the byte slice is empty.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>is_empty(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#33">self</a>.<span class="number">0</span>.is_empty()
+    </span><span class="kw">pub fn </span>is_empty(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.<span class="number">0</span>.is_empty()
     }
 
     <span class="doccomment">/// Skip over the given number of bytes at the start of the byte slice.
@@ -423,14 +423,14 @@
     ///
     /// Returns an error if there are too few bytes.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>skip(<span class="kw-2">&amp;mut </span><span class="self">self</span>, offset: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), ()&gt; {
-        <span class="kw">match </span><a class="self" href="#43">self</a>.<span class="number">0</span>.get(<a href="#43">offset</a>..) {
+    </span><span class="kw">pub fn </span>skip(<span class="kw-2">&amp;mut </span><span class="self">self</span>, offset: usize) -&gt; <span class="prelude-ty">Result</span>&lt;(), ()&gt; {
+        <span class="kw">match </span><span class="self">self</span>.<span class="number">0</span>.get(offset..) {
             <span class="prelude-val">Some</span>(tail) =&gt; {
-                <a class="self" href="#43">self</a>.<span class="number">0 </span>= <a href="#45">tail</a>;
+                <span class="self">self</span>.<span class="number">0 </span>= tail;
                 <span class="prelude-val">Ok</span>(())
             }
             <span class="prelude-val">None </span>=&gt; {
-                <a class="self" href="#43">self</a>.<span class="number">0 </span>= <span class="kw-2">&amp;</span>[];
+                <span class="self">self</span>.<span class="number">0 </span>= <span class="kw-2">&amp;</span>[];
                 <span class="prelude-val">Err</span>(())
             }
         }
@@ -442,14 +442,14 @@
     ///
     /// Returns an error if there are too few bytes.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>read_bytes(<span class="kw-2">&amp;mut </span><span class="self">self</span>, count: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="prelude-ty">Result</span>&lt;Bytes&lt;<span class="lifetime">&#39;data</span>&gt;, ()&gt; {
-        <span class="kw">match </span>(<a class="self" href="#62">self</a>.<span class="number">0</span>.get(..<a href="#62">count</a>), <a class="self" href="#62">self</a>.<span class="number">0</span>.get(<a href="#62">count</a>..)) {
+    </span><span class="kw">pub fn </span>read_bytes(<span class="kw-2">&amp;mut </span><span class="self">self</span>, count: usize) -&gt; <span class="prelude-ty">Result</span>&lt;Bytes&lt;<span class="lifetime">&#39;data</span>&gt;, ()&gt; {
+        <span class="kw">match </span>(<span class="self">self</span>.<span class="number">0</span>.get(..count), <span class="self">self</span>.<span class="number">0</span>.get(count..)) {
             (<span class="prelude-val">Some</span>(head), <span class="prelude-val">Some</span>(tail)) =&gt; {
-                <a class="self" href="#62">self</a>.<span class="number">0 </span>= <a href="#64">tail</a>;
-                <span class="prelude-val">Ok</span>(<a href="#16">Bytes</a>(<a href="#64">head</a>))
+                <span class="self">self</span>.<span class="number">0 </span>= tail;
+                <span class="prelude-val">Ok</span>(Bytes(head))
             }
             <span class="kw">_ </span>=&gt; {
-                <a class="self" href="#62">self</a>.<span class="number">0 </span>= <span class="kw-2">&amp;</span>[];
+                <span class="self">self</span>.<span class="number">0 </span>= <span class="kw-2">&amp;</span>[];
                 <span class="prelude-val">Err</span>(())
             }
         }
@@ -459,9 +459,9 @@
     ///
     /// Returns an error if the offset is invalid or there are too few bytes.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>read_bytes_at(<span class="kw-2">mut </span><span class="self">self</span>, offset: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, count: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="prelude-ty">Result</span>&lt;Bytes&lt;<span class="lifetime">&#39;data</span>&gt;, ()&gt; {
+    </span><span class="kw">pub fn </span>read_bytes_at(<span class="kw-2">mut </span><span class="self">self</span>, offset: usize, count: usize) -&gt; <span class="prelude-ty">Result</span>&lt;Bytes&lt;<span class="lifetime">&#39;data</span>&gt;, ()&gt; {
         <span class="self">self</span>.skip(offset)<span class="question-mark">?</span>;
-        <a class="self" href="#79">self</a>.<a href="#62">read_bytes</a>(<a href="#79">count</a>)
+        <span class="self">self</span>.read_bytes(count)
     }
 
     <span class="doccomment">/// Return a reference to a `Pod` struct at the start of the byte slice.
@@ -470,14 +470,14 @@
     ///
     /// Returns an error if there are too few bytes or the slice is incorrectly aligned.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>read&lt;T: <a href="../pod.rs.html#21">Pod</a>&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>T, ()&gt; {
-        <span class="kw">match </span><a href="../pod.rs.html#27">from_bytes</a>(<a class="self" href="#90">self</a>.<span class="number">0</span>) {
+    </span><span class="kw">pub fn </span>read&lt;T: Pod&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>T, ()&gt; {
+        <span class="kw">match </span>from_bytes(<span class="self">self</span>.<span class="number">0</span>) {
             <span class="prelude-val">Ok</span>((value, tail)) =&gt; {
-                <a class="self" href="#90">self</a>.<span class="number">0 </span>= <a href="#92">tail</a>;
-                <span class="prelude-val">Ok</span>(<a href="#92">value</a>)
+                <span class="self">self</span>.<span class="number">0 </span>= tail;
+                <span class="prelude-val">Ok</span>(value)
             }
             <span class="prelude-val">Err</span>(()) =&gt; {
-                <a class="self" href="#90">self</a>.<span class="number">0 </span>= <span class="kw-2">&amp;</span>[];
+                <span class="self">self</span>.<span class="number">0 </span>= <span class="kw-2">&amp;</span>[];
                 <span class="prelude-val">Err</span>(())
             }
         }
@@ -487,9 +487,9 @@
     ///
     /// Returns an error if there are too few bytes or the offset is incorrectly aligned.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>read_at&lt;T: <a href="../pod.rs.html#21">Pod</a>&gt;(<span class="kw-2">mut </span><span class="self">self</span>, offset: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>T, ()&gt; {
+    </span><span class="kw">pub fn </span>read_at&lt;T: Pod&gt;(<span class="kw-2">mut </span><span class="self">self</span>, offset: usize) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>T, ()&gt; {
         <span class="self">self</span>.skip(offset)<span class="question-mark">?</span>;
-        <a class="self" href="#107">self</a>.<a href="#90">read</a>()
+        <span class="self">self</span>.read()
     }
 
     <span class="doccomment">/// Return a reference to a slice of `Pod` structs at the start of the byte slice.
@@ -498,14 +498,14 @@
     ///
     /// Returns an error if there are too few bytes or the offset is incorrectly aligned.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>read_slice&lt;T: <a href="../pod.rs.html#21">Pod</a>&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, count: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[T], ()&gt; {
-        <span class="kw">match </span><a href="../pod.rs.html#66">slice_from_bytes</a>(<a class="self" href="#118">self</a>.<span class="number">0</span>, <a href="#118">count</a>) {
+    </span><span class="kw">pub fn </span>read_slice&lt;T: Pod&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, count: usize) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[T], ()&gt; {
+        <span class="kw">match </span>slice_from_bytes(<span class="self">self</span>.<span class="number">0</span>, count) {
             <span class="prelude-val">Ok</span>((value, tail)) =&gt; {
-                <a class="self" href="#118">self</a>.<span class="number">0 </span>= <a href="#120">tail</a>;
-                <span class="prelude-val">Ok</span>(<a href="#120">value</a>)
+                <span class="self">self</span>.<span class="number">0 </span>= tail;
+                <span class="prelude-val">Ok</span>(value)
             }
             <span class="prelude-val">Err</span>(()) =&gt; {
-                <a class="self" href="#118">self</a>.<span class="number">0 </span>= <span class="kw-2">&amp;</span>[];
+                <span class="self">self</span>.<span class="number">0 </span>= <span class="kw-2">&amp;</span>[];
                 <span class="prelude-val">Err</span>(())
             }
         }
@@ -515,9 +515,9 @@
     ///
     /// Returns an error if there are too few bytes or the offset is incorrectly aligned.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>read_slice_at&lt;T: <a href="../pod.rs.html#21">Pod</a>&gt;(<span class="kw-2">mut </span><span class="self">self</span>, offset: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, count: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[T], ()&gt; {
+    </span><span class="kw">pub fn </span>read_slice_at&lt;T: Pod&gt;(<span class="kw-2">mut </span><span class="self">self</span>, offset: usize, count: usize) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[T], ()&gt; {
         <span class="self">self</span>.skip(offset)<span class="question-mark">?</span>;
-        <a class="self" href="#135">self</a>.<a href="#118">read_slice</a>(<a href="#135">count</a>)
+        <span class="self">self</span>.read_slice(count)
     }
 
     <span class="doccomment">/// Read a null terminated string.
@@ -525,16 +525,16 @@
     /// Does not assume any encoding.
     /// Reads past the null byte, but doesn&#39;t return it.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>read_string(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], ()&gt; {
-        <span class="kw">match </span>memchr::memchr(<span class="string">b&#39;\0&#39;</span>, <a class="self" href="#145">self</a>.<span class="number">0</span>) {
+    </span><span class="kw">pub fn </span>read_string(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[u8], ()&gt; {
+        <span class="kw">match </span>memchr::memchr(<span class="string">b&#39;\0&#39;</span>, <span class="self">self</span>.<span class="number">0</span>) {
             <span class="prelude-val">Some</span>(null) =&gt; {
                 <span class="comment">// These will never fail.
                 </span><span class="kw">let </span>bytes = <span class="self">self</span>.read_bytes(null)<span class="question-mark">?</span>;
                 <span class="self">self</span>.skip(<span class="number">1</span>)<span class="question-mark">?</span>;
-                <span class="prelude-val">Ok</span>(<a href="#149">bytes</a>.<span class="number">0</span>)
+                <span class="prelude-val">Ok</span>(bytes.<span class="number">0</span>)
             }
             <span class="prelude-val">None </span>=&gt; {
-                <a class="self" href="#145">self</a>.<span class="number">0 </span>= <span class="kw-2">&amp;</span>[];
+                <span class="self">self</span>.<span class="number">0 </span>= <span class="kw-2">&amp;</span>[];
                 <span class="prelude-val">Err</span>(())
             }
         }
@@ -544,35 +544,35 @@
     ///
     /// Does not assume any encoding. Does not return the null byte.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>read_string_at(<span class="kw-2">mut </span><span class="self">self</span>, offset: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], ()&gt; {
+    </span><span class="kw">pub fn </span>read_string_at(<span class="kw-2">mut </span><span class="self">self</span>, offset: usize) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[u8], ()&gt; {
         <span class="self">self</span>.skip(offset)<span class="question-mark">?</span>;
-        <a class="self" href="#164">self</a>.<a href="#145">read_string</a>()
+        <span class="self">self</span>.read_string()
     }
 }
 
 <span class="comment">// Only for Debug impl of `Bytes`.
-</span><span class="kw">fn </span>debug_list_bytes(bytes: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], fmt: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-    <span class="kw">let </span><span class="kw-2">mut </span>list = <a href="#171">fmt</a>.debug_list();
-    <a href="#172">list</a>.entries(<a href="#171">bytes</a>.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">take</a>(<span class="number">8</span>).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">copied</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<a href="#180">DebugByte</a>));
+</span><span class="kw">fn </span>debug_list_bytes(bytes: <span class="kw-2">&amp;</span>[u8], fmt: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+    <span class="kw">let </span><span class="kw-2">mut </span>list = fmt.debug_list();
+    list.entries(bytes.iter().take(<span class="number">8</span>).copied().map(DebugByte));
     <span class="kw">if </span>bytes.len() &gt; <span class="number">8 </span>{
-        <a href="#172">list</a>.entry(<span class="kw-2">&amp;</span><a href="#188">DebugLen</a>(<a href="#171">bytes</a>.len()));
+        list.entry(<span class="kw-2">&amp;</span>DebugLen(bytes.len()));
     }
-    <a href="#172">list</a>.finish()
+    list.finish()
 }
 
-<span class="kw">struct </span>DebugByte(<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>);
+<span class="kw">struct </span>DebugByte(u8);
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="#180">DebugByte</a> {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, fmt: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#183">fmt</a>, <span class="string">&quot;0x{:02x}&quot;</span>, <span class="self">self</span>.<span class="number">0</span>)
+<span class="kw">impl </span>fmt::Debug <span class="kw">for </span>DebugByte {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, fmt: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        <span class="macro">write!</span>(fmt, <span class="string">&quot;0x{:02x}&quot;</span>, <span class="self">self</span>.<span class="number">0</span>)
     }
 }
 
-<span class="kw">struct </span>DebugLen(<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>);
+<span class="kw">struct </span>DebugLen(usize);
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="#188">DebugLen</a> {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, fmt: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#191">fmt</a>, <span class="string">&quot;...; {}&quot;</span>, <span class="self">self</span>.<span class="number">0</span>)
+<span class="kw">impl </span>fmt::Debug <span class="kw">for </span>DebugLen {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, fmt: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        <span class="macro">write!</span>(fmt, <span class="string">&quot;...; {}&quot;</span>, <span class="self">self</span>.<span class="number">0</span>)
     }
 }
 
@@ -582,27 +582,27 @@
 ///
 /// Provides a `Debug` implementation that interprets the bytes as UTF-8.
 </span><span class="attr">#[derive(Default, Clone, Copy, PartialEq, Eq)]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>ByteString&lt;<span class="lifetime">&#39;data</span>&gt;(<span class="kw">pub </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]);
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>ByteString&lt;<span class="lifetime">&#39;data</span>&gt;(<span class="kw">pub </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[u8]);
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span>ByteString&lt;<span class="lifetime">&#39;data</span>&gt; {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, fmt: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#205">fmt</a>, <span class="string">&quot;\&quot;{}\&quot;&quot;</span>, String::from_utf8_lossy(<span class="self">self</span>.<span class="number">0</span>))
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>&gt; fmt::Debug <span class="kw">for </span>ByteString&lt;<span class="lifetime">&#39;data</span>&gt; {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, fmt: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        <span class="macro">write!</span>(fmt, <span class="string">&quot;\&quot;{}\&quot;&quot;</span>, String::from_utf8_lossy(<span class="self">self</span>.<span class="number">0</span>))
     }
 }
 
 <span class="attr">#[allow(dead_code)]
 #[inline]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>align(offset: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, size: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-    (<a href="#212">offset</a> + (<a href="#212">size</a> - <span class="number">1</span>)) &amp; !(<a href="#212">size</a> - <span class="number">1</span>)
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>align(offset: usize, size: usize) -&gt; usize {
+    (offset + (size - <span class="number">1</span>)) &amp; !(size - <span class="number">1</span>)
 }
 
 <span class="attr">#[allow(dead_code)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>data_range(
-    data: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
-    data_address: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>,
-    range_address: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>,
-    size: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>,
-) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt; {
+    data: <span class="kw-2">&amp;</span>[u8],
+    data_address: u64,
+    range_address: u64,
+    size: u64,
+) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>[u8]&gt; {
     <span class="kw">let </span>offset = range_address.checked_sub(data_address)<span class="question-mark">?</span>;
     data.get(offset.try_into().ok()<span class="question-mark">?</span>..)<span class="question-mark">?
         </span>.get(..size.try_into().ok()<span class="question-mark">?</span>)
@@ -612,42 +612,42 @@
 ///
 /// This is used for most file formats.
 </span><span class="attr">#[derive(Debug, Clone, Copy)]
-</span><span class="kw">pub struct </span>StringTable&lt;<span class="lifetime">&#39;data</span>, R = <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;
+</span><span class="kw">pub struct </span>StringTable&lt;<span class="lifetime">&#39;data</span>, R = <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[u8]&gt;
 <span class="kw">where
     </span>R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt;,
 {
     data: <span class="prelude-ty">Option</span>&lt;R&gt;,
-    start: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>,
-    end: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>,
+    start: u64,
+    end: u64,
     marker: PhantomData&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>()&gt;,
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>, R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt;&gt; StringTable&lt;<span class="lifetime">&#39;data</span>, R&gt; {
     <span class="doccomment">/// Interpret the given data as a string table.
-    </span><span class="kw">pub fn </span>new(data: R, start: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>, end: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) -&gt; <span class="self">Self </span>{
-        <a href="#232">StringTable</a> {
-            data: <span class="prelude-val">Some</span>(<a href="#244">data</a>),
-            <a href="#244">start</a>,
-            <a href="#244">end</a>,
+    </span><span class="kw">pub fn </span>new(data: R, start: u64, end: u64) -&gt; <span class="self">Self </span>{
+        StringTable {
+            data: <span class="prelude-val">Some</span>(data),
+            start,
+            end,
             marker: PhantomData,
         }
     }
 
     <span class="doccomment">/// Return the string at the given offset.
-    </span><span class="kw">pub fn </span>get(<span class="kw-2">&amp;</span><span class="self">self</span>, offset: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], ()&gt; {
-        <span class="kw">match </span><a class="self" href="#254">self</a>.data {
+    </span><span class="kw">pub fn </span>get(<span class="kw-2">&amp;</span><span class="self">self</span>, offset: u32) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[u8], ()&gt; {
+        <span class="kw">match </span><span class="self">self</span>.data {
             <span class="prelude-val">Some</span>(data) =&gt; {
                 <span class="kw">let </span>r_start = <span class="self">self</span>.start.checked_add(offset.into()).ok_or(())<span class="question-mark">?</span>;
-                <a href="#256">data</a>.<a href="read_ref.rs.html#52">read_bytes_at_until</a>(<a href="#257">r_start</a>..<a class="self" href="#254">self</a>.end, <span class="number">0</span>)
+                data.read_bytes_at_until(r_start..<span class="self">self</span>.end, <span class="number">0</span>)
             }
             <span class="prelude-val">None </span>=&gt; <span class="prelude-val">Err</span>(()),
         }
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>, R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt;&gt; <a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for </span>StringTable&lt;<span class="lifetime">&#39;data</span>, R&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>, R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt;&gt; Default <span class="kw">for </span>StringTable&lt;<span class="lifetime">&#39;data</span>, R&gt; {
     <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
-        <a href="#232">StringTable</a> {
+        StringTable {
             data: <span class="prelude-val">None</span>,
             start: <span class="number">0</span>,
             end: <span class="number">0</span>,
@@ -765,4 +765,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="object" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="object" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

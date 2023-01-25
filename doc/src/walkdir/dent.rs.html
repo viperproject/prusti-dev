@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/walkdir-2.3.2/src/dent.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>dent.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../walkdir/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/walkdir-2.3.2/src/dent.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>dent.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../walkdir/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -373,13 +373,13 @@
 <a href="#373" id="373">373</a>
 <a href="#374" id="374">374</a>
 <a href="#375" id="375">375</a>
-</pre><pre class="rust"><code><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsStr.html">std::ffi::OsStr</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">std::fmt</a>;
-<span class="kw">use </span>std::fs::{<a class="self" href="https://doc.rust-lang.org/nightly/std/fs/index.html">self</a>, <a href="https://doc.rust-lang.org/nightly/std/fs/struct.FileType.html">FileType</a>};
-<span class="kw">use </span>std::path::{<a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>, <a href="https://doc.rust-lang.org/nightly/std/path/struct.PathBuf.html">PathBuf</a>};
+</pre><pre class="rust"><code><span class="kw">use </span>std::ffi::OsStr;
+<span class="kw">use </span>std::fmt;
+<span class="kw">use </span>std::fs::{<span class="self">self</span>, FileType};
+<span class="kw">use </span>std::path::{Path, PathBuf};
 
-<span class="kw">use </span><a href="error.rs.html#28"><span class="kw">crate</span>::error::Error</a>;
-<span class="kw">use </span><a href="lib.rs.html#156"><span class="kw">crate</span>::Result</a>;
+<span class="kw">use </span><span class="kw">crate</span>::error::Error;
+<span class="kw">use </span><span class="kw">crate</span>::Result;
 
 <span class="doccomment">/// A directory entry.
 ///
@@ -412,17 +412,17 @@
     /// symbolic link).
     ///
     /// [`fs::ReadDir`]: https://doc.rust-lang.org/stable/std/fs/struct.ReadDir.html
-    </span>path: <a href="https://doc.rust-lang.org/nightly/std/path/struct.PathBuf.html">PathBuf</a>,
+    </span>path: PathBuf,
     <span class="doccomment">/// The file type. Necessary for recursive iteration, so store it.
-    </span>ty: <a href="https://doc.rust-lang.org/nightly/std/fs/struct.FileType.html">FileType</a>,
+    </span>ty: FileType,
     <span class="doccomment">/// Is set when this entry was created from a symbolic link and the user
     /// expects the iterator to follow symbolic links.
-    </span>follow_link: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
+    </span>follow_link: bool,
     <span class="doccomment">/// The depth at which this entry was generated relative to the root.
-    </span>depth: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+    </span>depth: usize,
     <span class="doccomment">/// The underlying inode number (Unix only).
     </span><span class="attr">#[cfg(unix)]
-    </span>ino: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>,
+    </span>ino: u64,
     <span class="doccomment">/// The underlying metadata (Windows only). We store this on Windows
     /// because this comes for free while reading a directory.
     ///
@@ -433,7 +433,7 @@
     </span>metadata: fs::Metadata,
 }
 
-<span class="kw">impl </span><a href="#35">DirEntry</a> {
+<span class="kw">impl </span>DirEntry {
     <span class="doccomment">/// The full path that this entry represents.
     ///
     /// The full path is created by joining the parents of this entry up to the
@@ -449,8 +449,8 @@
     /// [`WalkDir::new`]: struct.WalkDir.html#method.new
     /// [`path_is_symlink`]: struct.DirEntry.html#method.path_is_symlink
     /// [`std::fs::read_link`]: https://doc.rust-lang.org/stable/std/fs/fn.read_link.html
-    </span><span class="kw">pub fn </span>path(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a> {
-        <span class="kw-2">&amp;</span><a class="self" href="#77">self</a>.path
+    </span><span class="kw">pub fn </span>path(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Path {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.path
     }
 
     <span class="doccomment">/// The full path that this entry represents.
@@ -458,8 +458,8 @@
     /// Analogous to [`path`], but moves ownership of the path.
     ///
     /// [`path`]: struct.DirEntry.html#method.path
-    </span><span class="kw">pub fn </span>into_path(<span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/path/struct.PathBuf.html">PathBuf</a> {
-        <a class="self" href="#86">self</a>.path
+    </span><span class="kw">pub fn </span>into_path(<span class="self">self</span>) -&gt; PathBuf {
+        <span class="self">self</span>.path
     }
 
     <span class="doccomment">/// Returns `true` if and only if this entry was created from a symbolic
@@ -472,8 +472,8 @@
     /// [`path`]: struct.DirEntry.html#method.path
     /// [`follow_links`]: struct.WalkDir.html#method.follow_links
     /// [`std::fs::read_link(entry.path())`]: https://doc.rust-lang.org/stable/std/fs/fn.read_link.html
-    </span><span class="kw">pub fn </span>path_is_symlink(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#100">self</a>.ty.is_symlink() || <a class="self" href="#100">self</a>.follow_link
+    </span><span class="kw">pub fn </span>path_is_symlink(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.ty.is_symlink() || <span class="self">self</span>.follow_link
     }
 
     <span class="doccomment">/// Return the metadata for the file that this entry points to.
@@ -498,8 +498,8 @@
     /// [`follow_links`]: struct.WalkDir.html#method.follow_links
     /// [`std::fs::metadata`]: https://doc.rust-lang.org/std/fs/fn.metadata.html
     /// [`std::fs::symlink_metadata`]: https://doc.rust-lang.org/stable/std/fs/fn.symlink_metadata.html
-    </span><span class="kw">pub fn </span>metadata(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/fs/struct.Metadata.html">fs::Metadata</a>&gt; {
-        <a class="self" href="#126">self</a>.<a href="#141">metadata_internal</a>()
+    </span><span class="kw">pub fn </span>metadata(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;fs::Metadata&gt; {
+        <span class="self">self</span>.metadata_internal()
     }
 
     <span class="attr">#[cfg(windows)]
@@ -513,13 +513,13 @@
     }
 
     <span class="attr">#[cfg(not(windows))]
-    </span><span class="kw">fn </span>metadata_internal(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/fs/struct.Metadata.html">fs::Metadata</a>&gt; {
+    </span><span class="kw">fn </span>metadata_internal(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;fs::Metadata&gt; {
         <span class="kw">if </span><span class="self">self</span>.follow_link {
-            <a href="https://doc.rust-lang.org/nightly/std/fs/fn.metadata.html">fs::metadata</a>(<span class="kw-2">&amp;</span><a class="self" href="#141">self</a>.path)
+            fs::metadata(<span class="kw-2">&amp;</span><span class="self">self</span>.path)
         } <span class="kw">else </span>{
-            <a href="https://doc.rust-lang.org/nightly/std/fs/fn.symlink_metadata.html">fs::symlink_metadata</a>(<span class="kw-2">&amp;</span><a class="self" href="#141">self</a>.path)
+            fs::symlink_metadata(<span class="kw-2">&amp;</span><span class="self">self</span>.path)
         }
-        .map_err(|err| Error::from_entry(<a class="self" href="#141">self</a>, <a href="#147">err</a>))
+        .map_err(|err| Error::from_entry(<span class="self">self</span>, err))
     }
 
     <span class="doccomment">/// Return the file type for the file that this entry points to.
@@ -530,16 +530,16 @@
     /// This never makes any system calls.
     ///
     /// [`follow_links`]: struct.WalkDir.html#method.follow_links
-    </span><span class="kw">pub fn </span>file_type(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/fs/struct.FileType.html">fs::FileType</a> {
-        <a class="self" href="#158">self</a>.ty
+    </span><span class="kw">pub fn </span>file_type(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; fs::FileType {
+        <span class="self">self</span>.ty
     }
 
     <span class="doccomment">/// Return the file name of this entry.
     ///
     /// If this entry has no file name (e.g., `/`), then the full path is
     /// returned.
-    </span><span class="kw">pub fn </span>file_name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsStr.html">OsStr</a> {
-        <a class="self" href="#166">self</a>.path.file_name().unwrap_or_else(|| <a class="self" href="#166">self</a>.path.as_os_str())
+    </span><span class="kw">pub fn </span>file_name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>OsStr {
+        <span class="self">self</span>.path.file_name().unwrap_or_else(|| <span class="self">self</span>.path.as_os_str())
     }
 
     <span class="doccomment">/// Returns the depth at which this entry was created relative to the root.
@@ -547,8 +547,8 @@
     /// The smallest depth is `0` and always corresponds to the path given
     /// to the `new` function on `WalkDir`. Its direct descendents have depth
     /// `1`, and their descendents have depth `2`, and so on.
-    </span><span class="kw">pub fn </span>depth(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="self" href="#175">self</a>.depth
+    </span><span class="kw">pub fn </span>depth(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+        <span class="self">self</span>.depth
     }
 
     <span class="doccomment">/// Returns true if and only if this entry points to a directory.
@@ -564,8 +564,8 @@
 
     <span class="doccomment">/// Returns true if and only if this entry points to a directory.
     </span><span class="attr">#[cfg(not(windows))]
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>is_dir(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#192">self</a>.ty.is_dir()
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>is_dir(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.ty.is_dir()
     }
 
     <span class="attr">#[cfg(windows)]
@@ -591,20 +591,20 @@
 
     <span class="attr">#[cfg(unix)]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>from_entry(
-        depth: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-        ent: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/fs/struct.DirEntry.html">fs::DirEntry</a>,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#35">DirEntry</a>&gt; {
-        <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/os/unix/fs/trait.DirEntryExt.html">std::os::unix::fs::DirEntryExt</a>;
+        depth: usize,
+        ent: <span class="kw-2">&amp;</span>fs::DirEntry,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;DirEntry&gt; {
+        <span class="kw">use </span>std::os::unix::fs::DirEntryExt;
 
         <span class="kw">let </span>ty = ent
             .file_type()
             .map_err(|err| Error::from_path(depth, ent.path(), err))<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(<a href="#35">DirEntry</a> {
-            path: <a href="#220">ent</a>.path(),
-            ty: <a href="#224">ty</a>,
+        <span class="prelude-val">Ok</span>(DirEntry {
+            path: ent.path(),
+            ty: ty,
             follow_link: <span class="bool-val">false</span>,
-            depth: <a href="#219">depth</a>,
-            ino: <a href="#220">ent</a>.<a href="https://doc.rust-lang.org/nightly/std/os/unix/fs/trait.DirEntryExt.html">ino</a>(),
+            depth: depth,
+            ino: ent.ino(),
         })
     }
 
@@ -648,11 +648,11 @@
 
     <span class="attr">#[cfg(unix)]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>from_path(
-        depth: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-        pb: <a href="https://doc.rust-lang.org/nightly/std/path/struct.PathBuf.html">PathBuf</a>,
-        follow: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#35">DirEntry</a>&gt; {
-        <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/os/unix/fs/trait.MetadataExt.html">std::os::unix::fs::MetadataExt</a>;
+        depth: usize,
+        pb: PathBuf,
+        follow: bool,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;DirEntry&gt; {
+        <span class="kw">use </span>std::os::unix::fs::MetadataExt;
 
         <span class="kw">let </span>md = <span class="kw">if </span>follow {
             fs::metadata(<span class="kw-2">&amp;</span>pb)
@@ -661,12 +661,12 @@
             fs::symlink_metadata(<span class="kw-2">&amp;</span>pb)
                 .map_err(|err| Error::from_path(depth, pb.clone(), err))<span class="question-mark">?
         </span>};
-        <span class="prelude-val">Ok</span>(<a href="#35">DirEntry</a> {
-            path: <a href="#277">pb</a>,
-            ty: <a href="#282">md</a>.file_type(),
-            follow_link: <a href="#278">follow</a>,
-            depth: <a href="#276">depth</a>,
-            ino: <a href="#282">md</a>.<a href="https://doc.rust-lang.org/nightly/std/os/unix/fs/trait.MetadataExt.html">ino</a>(),
+        <span class="prelude-val">Ok</span>(DirEntry {
+            path: pb,
+            ty: md.file_type(),
+            follow_link: follow,
+            depth: depth,
+            ino: md.ino(),
         })
     }
 
@@ -692,7 +692,7 @@
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> <span class="kw">for </span><a href="#35">DirEntry</a> {
+<span class="kw">impl </span>Clone <span class="kw">for </span>DirEntry {
     <span class="attr">#[cfg(windows)]
     </span><span class="kw">fn </span>clone(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; DirEntry {
         DirEntry {
@@ -705,13 +705,13 @@
     }
 
     <span class="attr">#[cfg(unix)]
-    </span><span class="kw">fn </span>clone(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="#35">DirEntry</a> {
-        <a href="#35">DirEntry</a> {
-            path: <a class="self" href="#333">self</a>.path.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
-            ty: <a class="self" href="#333">self</a>.ty,
-            follow_link: <a class="self" href="#333">self</a>.follow_link,
-            depth: <a class="self" href="#333">self</a>.depth,
-            ino: <a class="self" href="#333">self</a>.ino,
+    </span><span class="kw">fn </span>clone(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; DirEntry {
+        DirEntry {
+            path: <span class="self">self</span>.path.clone(),
+            ty: <span class="self">self</span>.ty,
+            follow_link: <span class="self">self</span>.follow_link,
+            depth: <span class="self">self</span>.depth,
+            ino: <span class="self">self</span>.ino,
         }
     }
 
@@ -726,9 +726,9 @@
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="#35">DirEntry</a> {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#355">f</a>, <span class="string">&quot;DirEntry({:?})&quot;</span>, <span class="self">self</span>.path)
+<span class="kw">impl </span>fmt::Debug <span class="kw">for </span>DirEntry {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        <span class="macro">write!</span>(f, <span class="string">&quot;DirEntry({:?})&quot;</span>, <span class="self">self</span>.path)
     }
 }
 
@@ -737,16 +737,16 @@
 </span><span class="kw">pub trait </span>DirEntryExt {
     <span class="doccomment">/// Returns the underlying `d_ino` field in the contained `dirent`
     /// structure.
-    </span><span class="kw">fn </span>ino(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>;
+    </span><span class="kw">fn </span>ino(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u64;
 }
 
 <span class="attr">#[cfg(unix)]
-</span><span class="kw">impl </span><a href="#362">DirEntryExt</a> <span class="kw">for </span><a href="#35">DirEntry</a> {
+</span><span class="kw">impl </span>DirEntryExt <span class="kw">for </span>DirEntry {
     <span class="doccomment">/// Returns the underlying `d_ino` field in the contained `dirent`
     /// structure.
-    </span><span class="kw">fn </span>ino(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> {
-        <a class="self" href="#372">self</a>.ino
+    </span><span class="kw">fn </span>ino(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u64 {
+        <span class="self">self</span>.ino
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="walkdir" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="walkdir" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

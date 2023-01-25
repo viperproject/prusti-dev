@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.21.2/src/net/tcp/socket.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>socket.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../../tokio/index.html"><img class="rust-logo" src="../../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.23.0/src/net/tcp/socket.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>socket.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../../tokio/index.html"><img class="rust-logo" src="../../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -776,17 +776,17 @@
 <a href="#776" id="776">776</a>
 <a href="#777" id="777">777</a>
 <a href="#778" id="778">778</a>
-</pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::net::{<a href="listener.rs.html#55">TcpListener</a>, <a href="stream.rs.html#70">TcpStream</a>};
+</pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::net::{TcpListener, TcpStream};
 
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">std::fmt</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/io/index.html">std::io</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/net/socket_addr/enum.SocketAddr.html">std::net::SocketAddr</a>;
+<span class="kw">use </span>std::fmt;
+<span class="kw">use </span>std::io;
+<span class="kw">use </span>std::net::SocketAddr;
 
 <span class="attr">#[cfg(unix)]
-</span><span class="kw">use </span>std::os::unix::io::{<a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">AsRawFd</a>, <a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.FromRawFd.html">FromRawFd</a>, <a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.IntoRawFd.html">IntoRawFd</a>, <a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a>};
+</span><span class="kw">use </span>std::os::unix::io::{AsRawFd, FromRawFd, IntoRawFd, RawFd};
 <span class="attr">#[cfg(windows)]
 </span><span class="kw">use </span>std::os::windows::io::{AsRawSocket, FromRawSocket, IntoRawSocket, RawSocket};
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">std::time::Duration</a>;
+<span class="kw">use </span>std::time::Duration;
 
 <span class="macro">cfg_net! </span>{
     <span class="doccomment">/// A TCP socket that has not yet been converted to a `TcpStream` or
@@ -862,11 +862,11 @@
     /// [`socket2`]: https://docs.rs/socket2/
     </span><span class="attr">#[cfg_attr(docsrs, doc(alias = <span class="string">&quot;connect_std&quot;</span>))]
     </span><span class="kw">pub struct </span>TcpSocket {
-        inner: <a href="../../../../socket2/socket/struct.Socket.html">socket2::Socket</a>,
+        inner: socket2::Socket,
     }
 }
 
-<span class="kw">impl </span><a href="#86">TcpSocket</a> {
+<span class="kw">impl </span>TcpSocket {
     <span class="doccomment">/// Creates a new socket configured for IPv4.
     ///
     /// Calls `socket(2)` with `AF_INET` and `SOCK_STREAM`.
@@ -896,7 +896,7 @@
     ///     Ok(())
     /// }
     /// ```
-    </span><span class="kw">pub fn </span>new_v4() -&gt; io::Result&lt;<a href="#86">TcpSocket</a>&gt; {
+    </span><span class="kw">pub fn </span>new_v4() -&gt; io::Result&lt;TcpSocket&gt; {
         TcpSocket::new(socket2::Domain::IPV4)
     }
 
@@ -929,11 +929,11 @@
     ///     Ok(())
     /// }
     /// ```
-    </span><span class="kw">pub fn </span>new_v6() -&gt; io::Result&lt;<a href="#86">TcpSocket</a>&gt; {
+    </span><span class="kw">pub fn </span>new_v6() -&gt; io::Result&lt;TcpSocket&gt; {
         TcpSocket::new(socket2::Domain::IPV6)
     }
 
-    <span class="kw">fn </span>new(domain: <a href="../../../../socket2/struct.Domain.html">socket2::Domain</a>) -&gt; io::Result&lt;<a href="#86">TcpSocket</a>&gt; {
+    <span class="kw">fn </span>new(domain: socket2::Domain) -&gt; io::Result&lt;TcpSocket&gt; {
         <span class="kw">let </span>ty = socket2::Type::STREAM;
         <span class="attr">#[cfg(any(
             target_os = <span class="string">&quot;android&quot;</span>,
@@ -945,7 +945,7 @@
             target_os = <span class="string">&quot;netbsd&quot;</span>,
             target_os = <span class="string">&quot;openbsd&quot;
         </span>))]
-        </span><span class="kw">let </span>ty = <a href="#159">ty</a>.nonblocking();
+        </span><span class="kw">let </span>ty = ty.nonblocking();
         <span class="kw">let </span>inner = socket2::Socket::new(domain, ty, <span class="prelude-val">Some</span>(socket2::Protocol::TCP))<span class="question-mark">?</span>;
         <span class="attr">#[cfg(not(any(
             target_os = <span class="string">&quot;android&quot;</span>,
@@ -958,7 +958,7 @@
             target_os = <span class="string">&quot;openbsd&quot;
         </span>)))]
         </span>inner.set_nonblocking(<span class="bool-val">true</span>)<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(<a href="#86">TcpSocket</a> { <a href="#171">inner</a> })
+        <span class="prelude-val">Ok</span>(TcpSocket { inner })
     }
 
     <span class="doccomment">/// Allows the socket to bind to an in-use address.
@@ -987,8 +987,8 @@
     ///     Ok(())
     /// }
     /// ```
-    </span><span class="kw">pub fn </span>set_reuseaddr(<span class="kw-2">&amp;</span><span class="self">self</span>, reuseaddr: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; io::Result&lt;()&gt; {
-        <a class="self" href="#212">self</a>.inner.set_reuse_address(<a href="#212">reuseaddr</a>)
+    </span><span class="kw">pub fn </span>set_reuseaddr(<span class="kw-2">&amp;</span><span class="self">self</span>, reuseaddr: bool) -&gt; io::Result&lt;()&gt; {
+        <span class="self">self</span>.inner.set_reuse_address(reuseaddr)
     }
 
     <span class="doccomment">/// Retrieves the value set for `SO_REUSEADDR` on this socket.
@@ -1013,8 +1013,8 @@
     ///     Ok(())
     /// }
     /// ```
-    </span><span class="kw">pub fn </span>reuseaddr(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>&gt; {
-        <a class="self" href="#238">self</a>.inner.reuse_address()
+    </span><span class="kw">pub fn </span>reuseaddr(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;bool&gt; {
+        <span class="self">self</span>.inner.reuse_address()
     }
 
     <span class="doccomment">/// Allows the socket to bind to an in-use port. Only available for unix systems
@@ -1047,8 +1047,8 @@
         docsrs,
         doc(cfg(all(unix, not(target_os = <span class="string">&quot;solaris&quot;</span>), not(target_os = <span class="string">&quot;illumos&quot;</span>))))
     )]
-    </span><span class="kw">pub fn </span>set_reuseport(<span class="kw-2">&amp;</span><span class="self">self</span>, reuseport: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; io::Result&lt;()&gt; {
-        <a class="self" href="#272">self</a>.inner.set_reuse_port(<a href="#272">reuseport</a>)
+    </span><span class="kw">pub fn </span>set_reuseport(<span class="kw-2">&amp;</span><span class="self">self</span>, reuseport: bool) -&gt; io::Result&lt;()&gt; {
+        <span class="self">self</span>.inner.set_reuse_port(reuseport)
     }
 
     <span class="doccomment">/// Allows the socket to bind to an in-use port. Only available for unix systems
@@ -1082,15 +1082,15 @@
         docsrs,
         doc(cfg(all(unix, not(target_os = <span class="string">&quot;solaris&quot;</span>), not(target_os = <span class="string">&quot;illumos&quot;</span>))))
     )]
-    </span><span class="kw">pub fn </span>reuseport(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>&gt; {
-        <a class="self" href="#307">self</a>.inner.reuse_port()
+    </span><span class="kw">pub fn </span>reuseport(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;bool&gt; {
+        <span class="self">self</span>.inner.reuse_port()
     }
 
     <span class="doccomment">/// Sets the size of the TCP send buffer on this socket.
     ///
     /// On most operating systems, this sets the `SO_SNDBUF` socket option.
-    </span><span class="kw">pub fn </span>set_send_buffer_size(<span class="kw-2">&amp;</span><span class="self">self</span>, size: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; io::Result&lt;()&gt; {
-        <a class="self" href="#314">self</a>.inner.set_send_buffer_size(<a href="#314">size</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>)
+    </span><span class="kw">pub fn </span>set_send_buffer_size(<span class="kw-2">&amp;</span><span class="self">self</span>, size: u32) -&gt; io::Result&lt;()&gt; {
+        <span class="self">self</span>.inner.set_send_buffer_size(size <span class="kw">as </span>usize)
     }
 
     <span class="doccomment">/// Returns the size of the TCP send buffer for this socket.
@@ -1116,15 +1116,15 @@
     ///   &gt; value is returned by `getsockopt(2)`.
     ///
     /// [`set_send_buffer_size`]: #method.set_send_buffer_size
-    </span><span class="kw">pub fn </span>send_buffer_size(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>&gt; {
-        <a class="self" href="#341">self</a>.inner.send_buffer_size().map(|n| <a href="#342">n</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>)
+    </span><span class="kw">pub fn </span>send_buffer_size(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;u32&gt; {
+        <span class="self">self</span>.inner.send_buffer_size().map(|n| n <span class="kw">as </span>u32)
     }
 
     <span class="doccomment">/// Sets the size of the TCP receive buffer on this socket.
     ///
     /// On most operating systems, this sets the `SO_RCVBUF` socket option.
-    </span><span class="kw">pub fn </span>set_recv_buffer_size(<span class="kw-2">&amp;</span><span class="self">self</span>, size: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; io::Result&lt;()&gt; {
-        <a class="self" href="#348">self</a>.inner.set_recv_buffer_size(<a href="#348">size</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>)
+    </span><span class="kw">pub fn </span>set_recv_buffer_size(<span class="kw-2">&amp;</span><span class="self">self</span>, size: u32) -&gt; io::Result&lt;()&gt; {
+        <span class="self">self</span>.inner.set_recv_buffer_size(size <span class="kw">as </span>usize)
     }
 
     <span class="doccomment">/// Returns the size of the TCP receive buffer for this socket.
@@ -1150,8 +1150,8 @@
     ///   &gt; value is returned by `getsockopt(2)`.
     ///
     /// [`set_recv_buffer_size`]: #method.set_recv_buffer_size
-    </span><span class="kw">pub fn </span>recv_buffer_size(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>&gt; {
-        <a class="self" href="#375">self</a>.inner.recv_buffer_size().map(|n| <a href="#376">n</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>)
+    </span><span class="kw">pub fn </span>recv_buffer_size(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;u32&gt; {
+        <span class="self">self</span>.inner.recv_buffer_size().map(|n| n <span class="kw">as </span>u32)
     }
 
     <span class="doccomment">/// Sets the linger duration of this socket by setting the SO_LINGER option.
@@ -1162,8 +1162,8 @@
     ///
     /// If SO_LINGER is not specified, and the socket is closed, the system handles the call in a
     /// way that allows the process to continue as quickly as possible.
-    </span><span class="kw">pub fn </span>set_linger(<span class="kw-2">&amp;</span><span class="self">self</span>, dur: <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a>&gt;) -&gt; io::Result&lt;()&gt; {
-        <a class="self" href="#387">self</a>.inner.set_linger(<a href="#387">dur</a>)
+    </span><span class="kw">pub fn </span>set_linger(<span class="kw-2">&amp;</span><span class="self">self</span>, dur: <span class="prelude-ty">Option</span>&lt;Duration&gt;) -&gt; io::Result&lt;()&gt; {
+        <span class="self">self</span>.inner.set_linger(dur)
     }
 
     <span class="doccomment">/// Reads the linger duration for this socket by getting the `SO_LINGER`
@@ -1172,8 +1172,8 @@
     /// For more information about this option, see [`set_linger`].
     ///
     /// [`set_linger`]: TcpSocket::set_linger
-    </span><span class="kw">pub fn </span>linger(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;<span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a>&gt;&gt; {
-        <a class="self" href="#397">self</a>.inner.linger()
+    </span><span class="kw">pub fn </span>linger(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;<span class="prelude-ty">Option</span>&lt;Duration&gt;&gt; {
+        <span class="self">self</span>.inner.linger()
     }
 
     <span class="doccomment">/// Gets the value of the `IP_TOS` option for this socket.
@@ -1200,14 +1200,14 @@
             target_os = <span class="string">&quot;illumos&quot;</span>,
         ))))
     )]
-    </span><span class="kw">pub fn </span>tos(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>&gt; {
-        <a class="self" href="#425">self</a>.inner.tos()
+    </span><span class="kw">pub fn </span>tos(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;u32&gt; {
+        <span class="self">self</span>.inner.tos()
     }
 
     <span class="doccomment">/// Sets the value for the `IP_TOS` option on this socket.
     ///
-    /// This value sets the time-to-live field that is used in every packet sent
-    /// from this socket.
+    /// This value sets the type-of-service field that is used in every packet
+    /// sent from this socket.
     ///
     /// **NOTE:** On Windows, `IP_TOS` is only supported on [Windows 8+ or
     /// Windows Server 2012+.](https://docs.microsoft.com/en-us/windows/win32/winsock/ipproto-ip-socket-options)
@@ -1227,8 +1227,8 @@
             target_os = <span class="string">&quot;illumos&quot;</span>,
         ))))
     )]
-    </span><span class="kw">pub fn </span>set_tos(<span class="kw-2">&amp;</span><span class="self">self</span>, tos: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; io::Result&lt;()&gt; {
-        <a class="self" href="#452">self</a>.inner.set_tos(<a href="#452">tos</a>)
+    </span><span class="kw">pub fn </span>set_tos(<span class="kw-2">&amp;</span><span class="self">self</span>, tos: u32) -&gt; io::Result&lt;()&gt; {
+        <span class="self">self</span>.inner.set_tos(tos)
     }
 
     <span class="doccomment">/// Gets the value for the `SO_BINDTODEVICE` option on this socket
@@ -1239,8 +1239,8 @@
         docsrs,
         doc(cfg(any(target_os = <span class="string">&quot;android&quot;</span>, target_os = <span class="string">&quot;fuchsia&quot;</span>, target_os = <span class="string">&quot;linux&quot;</span>,)))
     )]
-    </span><span class="kw">pub fn </span>device(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;<span class="prelude-ty">Option</span>&lt;Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;&gt;&gt; {
-        <a class="self" href="#464">self</a>.inner.device()
+    </span><span class="kw">pub fn </span>device(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;<span class="prelude-ty">Option</span>&lt;Vec&lt;u8&gt;&gt;&gt; {
+        <span class="self">self</span>.inner.device()
     }
 
     <span class="doccomment">/// Sets the value for the `SO_BINDTODEVICE` option on this socket
@@ -1255,8 +1255,8 @@
         docsrs,
         doc(cfg(all(any(target_os = <span class="string">&quot;android&quot;</span>, target_os = <span class="string">&quot;fuchsia&quot;</span>, target_os = <span class="string">&quot;linux&quot;</span>))))
     )]
-    </span><span class="kw">pub fn </span>bind_device(<span class="kw-2">&amp;</span><span class="self">self</span>, interface: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;) -&gt; io::Result&lt;()&gt; {
-        <a class="self" href="#480">self</a>.inner.bind_device(<a href="#480">interface</a>)
+    </span><span class="kw">pub fn </span>bind_device(<span class="kw-2">&amp;</span><span class="self">self</span>, interface: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>[u8]&gt;) -&gt; io::Result&lt;()&gt; {
+        <span class="self">self</span>.inner.bind_device(interface)
     }
 
     <span class="doccomment">/// Gets the local address of this socket.
@@ -1281,13 +1281,13 @@
     ///     Ok(())
     /// }
     /// ```
-    </span><span class="kw">pub fn </span>local_addr(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/net/socket_addr/enum.SocketAddr.html">SocketAddr</a>&gt; {
-        <a class="self" href="#506">self</a>.inner.local_addr().and_then(<a href="#708">convert_address</a>)
+    </span><span class="kw">pub fn </span>local_addr(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;SocketAddr&gt; {
+        <span class="self">self</span>.inner.local_addr().and_then(convert_address)
     }
 
     <span class="doccomment">/// Returns the value of the `SO_ERROR` option.
-    </span><span class="kw">pub fn </span>take_error(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;<span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a>&gt;&gt; {
-        <a class="self" href="#511">self</a>.inner.take_error()
+    </span><span class="kw">pub fn </span>take_error(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;<span class="prelude-ty">Option</span>&lt;io::Error&gt;&gt; {
+        <span class="self">self</span>.inner.take_error()
     }
 
     <span class="doccomment">/// Binds the socket to the given address.
@@ -1318,8 +1318,8 @@
     ///     Ok(())
     /// }
     /// ```
-    </span><span class="kw">pub fn </span>bind(<span class="kw-2">&amp;</span><span class="self">self</span>, addr: <a href="https://doc.rust-lang.org/nightly/std/net/socket_addr/enum.SocketAddr.html">SocketAddr</a>) -&gt; io::Result&lt;()&gt; {
-        <a class="self" href="#543">self</a>.inner.bind(<span class="kw-2">&amp;</span><a href="#543">addr</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
+    </span><span class="kw">pub fn </span>bind(<span class="kw-2">&amp;</span><span class="self">self</span>, addr: SocketAddr) -&gt; io::Result&lt;()&gt; {
+        <span class="self">self</span>.inner.bind(<span class="kw-2">&amp;</span>addr.into())
     }
 
     <span class="doccomment">/// Establishes a TCP connection with a peer at the specified socket address.
@@ -1354,7 +1354,7 @@
     ///     Ok(())
     /// }
     /// ```
-    </span><span class="kw">pub async fn </span>connect(<span class="self">self</span>, addr: <a href="https://doc.rust-lang.org/nightly/std/net/socket_addr/enum.SocketAddr.html">SocketAddr</a>) -&gt; io::Result&lt;<a href="stream.rs.html#70">TcpStream</a>&gt; {
+    </span><span class="kw">pub async fn </span>connect(<span class="self">self</span>, addr: SocketAddr) -&gt; io::Result&lt;TcpStream&gt; {
         <span class="kw">if let </span><span class="prelude-val">Err</span>(err) = <span class="self">self</span>.inner.connect(<span class="kw-2">&amp;</span>addr.into()) {
             <span class="attr">#[cfg(unix)]
             </span><span class="kw">if </span>err.raw_os_error() != <span class="prelude-val">Some</span>(libc::EINPROGRESS) {
@@ -1419,14 +1419,14 @@
     ///     Ok(())
     /// }
     /// ```
-    </span><span class="kw">pub fn </span>listen(<span class="self">self</span>, backlog: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; io::Result&lt;<a href="listener.rs.html#55">TcpListener</a>&gt; {
+    </span><span class="kw">pub fn </span>listen(<span class="self">self</span>, backlog: u32) -&gt; io::Result&lt;TcpListener&gt; {
         <span class="self">self</span>.inner.listen(backlog <span class="kw">as </span>i32)<span class="question-mark">?</span>;
         <span class="attr">#[cfg(unix)]
         </span><span class="kw">let </span>mio = {
-            <span class="kw">use </span>std::os::unix::io::{<a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.FromRawFd.html">FromRawFd</a>, <a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.IntoRawFd.html">IntoRawFd</a>};
+            <span class="kw">use </span>std::os::unix::io::{FromRawFd, IntoRawFd};
 
-            <span class="kw">let </span>raw_fd = <a class="self" href="#644">self</a>.inner.<a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.IntoRawFd.html">into_raw_fd</a>();
-            <span class="kw">unsafe </span>{ mio::net::TcpListener::from_raw_fd(<a href="#650">raw_fd</a>) }
+            <span class="kw">let </span>raw_fd = <span class="self">self</span>.inner.into_raw_fd();
+            <span class="kw">unsafe </span>{ mio::net::TcpListener::from_raw_fd(raw_fd) }
         };
 
         <span class="attr">#[cfg(windows)]
@@ -1437,7 +1437,7 @@
             <span class="kw">unsafe </span>{ mio::net::TcpListener::from_raw_socket(raw_socket) }
         };
 
-        TcpListener::new(<a href="#647">mio</a>)
+        TcpListener::new(mio)
     }
 
     <span class="doccomment">/// Converts a [`std::net::TcpStream`] into a `TcpSocket`. The provided
@@ -1464,13 +1464,13 @@
     ///     Ok(())
     /// }
     /// ```
-    </span><span class="kw">pub fn </span>from_std_stream(std_stream: <a href="https://doc.rust-lang.org/nightly/std/net/tcp/struct.TcpStream.html">std::net::TcpStream</a>) -&gt; <a href="#86">TcpSocket</a> {
+    </span><span class="kw">pub fn </span>from_std_stream(std_stream: std::net::TcpStream) -&gt; TcpSocket {
         <span class="attr">#[cfg(unix)]
         </span>{
-            <span class="kw">use </span>std::os::unix::io::{<a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.FromRawFd.html">FromRawFd</a>, <a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.IntoRawFd.html">IntoRawFd</a>};
+            <span class="kw">use </span>std::os::unix::io::{FromRawFd, IntoRawFd};
 
-            <span class="kw">let </span>raw_fd = <a href="#689">std_stream</a>.<a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.IntoRawFd.html">into_raw_fd</a>();
-            <span class="kw">unsafe </span>{ TcpSocket::from_raw_fd(<a href="#694">raw_fd</a>) }
+            <span class="kw">let </span>raw_fd = std_stream.into_raw_fd();
+            <span class="kw">unsafe </span>{ TcpSocket::from_raw_fd(raw_fd) }
         }
 
         <span class="attr">#[cfg(windows)]
@@ -1483,9 +1483,9 @@
     }
 }
 
-<span class="kw">fn </span>convert_address(address: <a href="../../../../socket2/sockaddr/struct.SockAddr.html">socket2::SockAddr</a>) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/net/socket_addr/enum.SocketAddr.html">SocketAddr</a>&gt; {
-    <span class="kw">match </span><a href="#708">address</a>.as_socket() {
-        <span class="prelude-val">Some</span>(address) =&gt; <span class="prelude-val">Ok</span>(<a href="#710">address</a>),
+<span class="kw">fn </span>convert_address(address: socket2::SockAddr) -&gt; io::Result&lt;SocketAddr&gt; {
+    <span class="kw">match </span>address.as_socket() {
+        <span class="prelude-val">Some</span>(address) =&gt; <span class="prelude-val">Ok</span>(address),
         <span class="prelude-val">None </span>=&gt; <span class="prelude-val">Err</span>(io::Error::new(
             io::ErrorKind::InvalidInput,
             <span class="string">&quot;invalid address family (not IPv4 or IPv6)&quot;</span>,
@@ -1493,37 +1493,37 @@
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="#86">TcpSocket</a> {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, fmt: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="self" href="#719">self</a>.inner.<a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt</a>(<a href="#719">fmt</a>)
+<span class="kw">impl </span>fmt::Debug <span class="kw">for </span>TcpSocket {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, fmt: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        <span class="self">self</span>.inner.fmt(fmt)
     }
 }
 
 <span class="attr">#[cfg(unix)]
-</span><span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">AsRawFd</a> <span class="kw">for </span><a href="#86">TcpSocket</a> {
-    <span class="kw">fn </span>as_raw_fd(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a> {
-        <a class="self" href="#726">self</a>.inner.<a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">as_raw_fd</a>()
+</span><span class="kw">impl </span>AsRawFd <span class="kw">for </span>TcpSocket {
+    <span class="kw">fn </span>as_raw_fd(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; RawFd {
+        <span class="self">self</span>.inner.as_raw_fd()
     }
 }
 
 <span class="attr">#[cfg(unix)]
-</span><span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.FromRawFd.html">FromRawFd</a> <span class="kw">for </span><a href="#86">TcpSocket</a> {
+</span><span class="kw">impl </span>FromRawFd <span class="kw">for </span>TcpSocket {
     <span class="doccomment">/// Converts a `RawFd` to a `TcpSocket`.
     ///
     /// # Notes
     ///
     /// The caller is responsible for ensuring that the socket is in
     /// non-blocking mode.
-    </span><span class="kw">unsafe fn </span>from_raw_fd(fd: <a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a>) -&gt; <a href="#86">TcpSocket</a> {
-        <span class="kw">let </span>inner = socket2::Socket::from_raw_fd(<a href="#739">fd</a>);
-        <a href="#86">TcpSocket</a> { <a href="#740">inner</a> }
+    </span><span class="kw">unsafe fn </span>from_raw_fd(fd: RawFd) -&gt; TcpSocket {
+        <span class="kw">let </span>inner = socket2::Socket::from_raw_fd(fd);
+        TcpSocket { inner }
     }
 }
 
 <span class="attr">#[cfg(unix)]
-</span><span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.IntoRawFd.html">IntoRawFd</a> <span class="kw">for </span><a href="#86">TcpSocket</a> {
-    <span class="kw">fn </span>into_raw_fd(<span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a> {
-        <a class="self" href="#747">self</a>.inner.<a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.IntoRawFd.html">into_raw_fd</a>()
+</span><span class="kw">impl </span>IntoRawFd <span class="kw">for </span>TcpSocket {
+    <span class="kw">fn </span>into_raw_fd(<span class="self">self</span>) -&gt; RawFd {
+        <span class="self">self</span>.inner.into_raw_fd()
     }
 }
 
@@ -1555,4 +1555,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="tokio" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="tokio" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

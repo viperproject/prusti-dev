@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-automata-0.1.10/src/regex.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>regex.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../regex_automata/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-automata-0.1.10/src/regex.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>regex.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../regex_automata/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -771,7 +771,7 @@
 <a href="#771" id="771">771</a>
 </pre><pre class="rust"><code><span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
 </span><span class="kw">use </span>dense::{<span class="self">self</span>, DenseDFA};
-<span class="kw">use </span><a href="dfa.rs.html#19">dfa::DFA</a>;
+<span class="kw">use </span>dfa::DFA;
 <span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
 </span><span class="kw">use </span>error::Result;
 <span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
@@ -940,7 +940,7 @@
     }
 }
 
-<span class="kw">impl</span>&lt;D: <a href="dfa.rs.html#19">DFA</a>&gt; Regex&lt;D&gt; {
+<span class="kw">impl</span>&lt;D: DFA&gt; Regex&lt;D&gt; {
     <span class="doccomment">/// Returns true if and only if the given bytes match.
     ///
     /// This routine may short circuit if it knows that scanning future input
@@ -959,8 +959,8 @@
     /// assert_eq!(false, re.is_match(b&quot;foobar&quot;));
     /// # Ok(()) }; example().unwrap()
     /// ```
-    </span><span class="kw">pub fn </span>is_match(<span class="kw-2">&amp;</span><span class="self">self</span>, input: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>]) -&gt; <a href="https://doc.rust-lang.org/nightly/core/primitive.bool.html">bool</a> {
-        <a class="self" href="#191">self</a>.<a href="#262">is_match_at</a>(<a href="#191">input</a>, <span class="number">0</span>)
+    </span><span class="kw">pub fn </span>is_match(<span class="kw-2">&amp;</span><span class="self">self</span>, input: <span class="kw-2">&amp;</span>[u8]) -&gt; bool {
+        <span class="self">self</span>.is_match_at(input, <span class="number">0</span>)
     }
 
     <span class="doccomment">/// Returns the first position at which a match is found.
@@ -985,8 +985,8 @@
     /// assert_eq!(Some(1), re.shortest_match(b&quot;abc&quot;));
     /// # Ok(()) }; example().unwrap()
     /// ```
-    </span><span class="kw">pub fn </span>shortest_match(<span class="kw-2">&amp;</span><span class="self">self</span>, input: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>&gt; {
-        <a class="self" href="#217">self</a>.<a href="#272-276">shortest_match_at</a>(<a href="#217">input</a>, <span class="number">0</span>)
+    </span><span class="kw">pub fn </span>shortest_match(<span class="kw-2">&amp;</span><span class="self">self</span>, input: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Option</span>&lt;usize&gt; {
+        <span class="self">self</span>.shortest_match_at(input, <span class="number">0</span>)
     }
 
     <span class="doccomment">/// Returns the start and end offset of the leftmost first match. If no
@@ -1020,8 +1020,8 @@
     /// assert_eq!(Some((0, 3)), re.find(b&quot;abc&quot;));
     /// # Ok(()) }; example().unwrap()
     /// ```
-    </span><span class="kw">pub fn </span>find(<span class="kw-2">&amp;</span><span class="self">self</span>, input: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Option</span>&lt;(<a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>, <a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>)&gt; {
-        <a class="self" href="#252">self</a>.<a href="#286-290">find_at</a>(<a href="#252">input</a>, <span class="number">0</span>)
+    </span><span class="kw">pub fn </span>find(<span class="kw-2">&amp;</span><span class="self">self</span>, input: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Option</span>&lt;(usize, usize)&gt; {
+        <span class="self">self</span>.find_at(input, <span class="number">0</span>)
     }
 
     <span class="doccomment">/// Returns the same as `is_match`, but starts the search at the given
@@ -1030,8 +1030,8 @@
     /// The significance of the starting point is that it takes the surrounding
     /// context into consideration. For example, if the DFA is anchored, then
     /// a match can only occur when `start == 0`.
-    </span><span class="kw">pub fn </span>is_match_at(<span class="kw-2">&amp;</span><span class="self">self</span>, input: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>], start: <a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/primitive.bool.html">bool</a> {
-        <a class="self" href="#262">self</a>.<a href="#393">forward</a>().<a href="dfa.rs.html#210">is_match_at</a>(<a href="#262">input</a>, <a href="#262">start</a>)
+    </span><span class="kw">pub fn </span>is_match_at(<span class="kw-2">&amp;</span><span class="self">self</span>, input: <span class="kw-2">&amp;</span>[u8], start: usize) -&gt; bool {
+        <span class="self">self</span>.forward().is_match_at(input, start)
     }
 
     <span class="doccomment">/// Returns the same as `shortest_match`, but starts the search at the
@@ -1042,10 +1042,10 @@
     /// a match can only occur when `start == 0`.
     </span><span class="kw">pub fn </span>shortest_match_at(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        input: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>],
-        start: <a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>,
-    ) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>&gt; {
-        <a class="self" href="#273">self</a>.<a href="#393">forward</a>().<a href="dfa.rs.html#235">shortest_match_at</a>(<a href="#274">input</a>, <a href="#275">start</a>)
+        input: <span class="kw-2">&amp;</span>[u8],
+        start: usize,
+    ) -&gt; <span class="prelude-ty">Option</span>&lt;usize&gt; {
+        <span class="self">self</span>.forward().shortest_match_at(input, start)
     }
 
     <span class="doccomment">/// Returns the same as `find`, but starts the search at the given
@@ -1056,19 +1056,19 @@
     /// a match can only occur when `start == 0`.
     </span><span class="kw">pub fn </span>find_at(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        input: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>],
-        start: <a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>,
-    ) -&gt; <span class="prelude-ty">Option</span>&lt;(<a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>, <a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>)&gt; {
-        <span class="kw">let </span>end = <span class="kw">match </span><a class="self" href="#287">self</a>.<a href="#393">forward</a>().<a href="dfa.rs.html#264">find_at</a>(<a href="#288">input</a>, <a href="#289">start</a>) {
+        input: <span class="kw-2">&amp;</span>[u8],
+        start: usize,
+    ) -&gt; <span class="prelude-ty">Option</span>&lt;(usize, usize)&gt; {
+        <span class="kw">let </span>end = <span class="kw">match </span><span class="self">self</span>.forward().find_at(input, start) {
             <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="prelude-val">None</span>,
-            <span class="prelude-val">Some</span>(end) =&gt; <a href="#293">end</a>,
+            <span class="prelude-val">Some</span>(end) =&gt; end,
         };
-        <span class="kw">let </span>start = <span class="self"><a href="#287">self</a>
-            </span>.<a href="#398">reverse</a>()
-            .<a href="dfa.rs.html#199">rfind</a>(<span class="kw-2">&amp;</span><a href="#288">input</a>[<a href="#289">start</a>..<a href="#291">end</a>])
-            .map(|i| <a href="#289">start</a> + <a href="#298">i</a>)
+        <span class="kw">let </span>start = <span class="self">self
+            </span>.reverse()
+            .rfind(<span class="kw-2">&amp;</span>input[start..end])
+            .map(|i| start + i)
             .expect(<span class="string">&quot;reverse search must match if forward search does&quot;</span>);
-        <span class="prelude-val">Some</span>((<a href="#295">start</a>, <a href="#291">end</a>))
+        <span class="prelude-val">Some</span>((start, end))
     }
 
     <span class="doccomment">/// Returns an iterator over all non-overlapping leftmost first matches
@@ -1094,8 +1094,8 @@
     /// assert_eq!(matches, vec![(0, 4), (5, 10), (11, 17)]);
     /// # Ok(()) }; example().unwrap()
     /// ```
-    </span><span class="kw">pub fn </span>find_iter&lt;<span class="lifetime">&#39;r</span>, <span class="lifetime">&#39;t</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;r </span><span class="self">self</span>, input: <span class="kw-2">&amp;</span><span class="lifetime">&#39;t </span>[<a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>]) -&gt; Matches&lt;<span class="lifetime">&#39;r</span>, <span class="lifetime">&#39;t</span>, D&gt; {
-        Matches::new(<a class="self" href="#326">self</a>, <a href="#326">input</a>)
+    </span><span class="kw">pub fn </span>find_iter&lt;<span class="lifetime">&#39;r</span>, <span class="lifetime">&#39;t</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;r </span><span class="self">self</span>, input: <span class="kw-2">&amp;</span><span class="lifetime">&#39;t </span>[u8]) -&gt; Matches&lt;<span class="lifetime">&#39;r</span>, <span class="lifetime">&#39;t</span>, D&gt; {
+        Matches::new(<span class="self">self</span>, input)
     }
 
     <span class="doccomment">/// Build a new regex from its constituent forward and reverse DFAs.
@@ -1157,17 +1157,17 @@
     /// # Ok(()) }; example().unwrap()
     /// ```
     </span><span class="kw">pub fn </span>from_dfas(forward: D, reverse: D) -&gt; Regex&lt;D&gt; {
-        <a href="#109">Regex</a> { <a href="#388">forward</a>, <a href="#388">reverse</a> }
+        Regex { forward, reverse }
     }
 
     <span class="doccomment">/// Return the underlying DFA responsible for forward matching.
     </span><span class="kw">pub fn </span>forward(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>D {
-        <span class="kw-2">&amp;</span><a class="self" href="#393">self</a>.forward
+        <span class="kw-2">&amp;</span><span class="self">self</span>.forward
     }
 
     <span class="doccomment">/// Return the underlying DFA responsible for reverse matching.
     </span><span class="kw">pub fn </span>reverse(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>D {
-        <span class="kw-2">&amp;</span><a class="self" href="#398">self</a>.reverse
+        <span class="kw-2">&amp;</span><span class="self">self</span>.reverse
     }
 }
 
@@ -1183,45 +1183,45 @@
 /// * `&#39;r` is the lifetime of the regular expression value itself.
 /// * `&#39;t` is the lifetime of the text being searched.
 </span><span class="attr">#[derive(Clone, Debug)]
-</span><span class="kw">pub struct </span>Matches&lt;<span class="lifetime">&#39;r</span>, <span class="lifetime">&#39;t</span>, D: <a href="dfa.rs.html#19">DFA</a> + <span class="lifetime">&#39;r</span>&gt; {
+</span><span class="kw">pub struct </span>Matches&lt;<span class="lifetime">&#39;r</span>, <span class="lifetime">&#39;t</span>, D: DFA + <span class="lifetime">&#39;r</span>&gt; {
     re: <span class="kw-2">&amp;</span><span class="lifetime">&#39;r </span>Regex&lt;D&gt;,
-    text: <span class="kw-2">&amp;</span><span class="lifetime">&#39;t </span>[<a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>],
-    last_end: <a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>,
-    last_match: <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>&gt;,
+    text: <span class="kw-2">&amp;</span><span class="lifetime">&#39;t </span>[u8],
+    last_end: usize,
+    last_match: <span class="prelude-ty">Option</span>&lt;usize&gt;,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;r</span>, <span class="lifetime">&#39;t</span>, D: <a href="dfa.rs.html#19">DFA</a>&gt; Matches&lt;<span class="lifetime">&#39;r</span>, <span class="lifetime">&#39;t</span>, D&gt; {
-    <span class="kw">fn </span>new(re: <span class="kw-2">&amp;</span><span class="lifetime">&#39;r </span>Regex&lt;D&gt;, text: <span class="kw-2">&amp;</span><span class="lifetime">&#39;t </span>[<a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>]) -&gt; Matches&lt;<span class="lifetime">&#39;r</span>, <span class="lifetime">&#39;t</span>, D&gt; {
-        <a href="#415">Matches</a> { <a href="#423">re</a>, <a href="#423">text</a>, last_end: <span class="number">0</span>, last_match: <span class="prelude-val">None </span>}
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;r</span>, <span class="lifetime">&#39;t</span>, D: DFA&gt; Matches&lt;<span class="lifetime">&#39;r</span>, <span class="lifetime">&#39;t</span>, D&gt; {
+    <span class="kw">fn </span>new(re: <span class="kw-2">&amp;</span><span class="lifetime">&#39;r </span>Regex&lt;D&gt;, text: <span class="kw-2">&amp;</span><span class="lifetime">&#39;t </span>[u8]) -&gt; Matches&lt;<span class="lifetime">&#39;r</span>, <span class="lifetime">&#39;t</span>, D&gt; {
+        Matches { re, text, last_end: <span class="number">0</span>, last_match: <span class="prelude-val">None </span>}
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;r</span>, <span class="lifetime">&#39;t</span>, D: <a href="dfa.rs.html#19">DFA</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a> <span class="kw">for </span>Matches&lt;<span class="lifetime">&#39;r</span>, <span class="lifetime">&#39;t</span>, D&gt; {
-    <span class="kw">type </span>Item = (<a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>, <a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>);
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;r</span>, <span class="lifetime">&#39;t</span>, D: DFA&gt; Iterator <span class="kw">for </span>Matches&lt;<span class="lifetime">&#39;r</span>, <span class="lifetime">&#39;t</span>, D&gt; {
+    <span class="kw">type </span>Item = (usize, usize);
 
-    <span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;(<a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>, <a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>)&gt; {
+    <span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;(usize, usize)&gt; {
         <span class="kw">if </span><span class="self">self</span>.last_end &gt; <span class="self">self</span>.text.len() {
             <span class="kw">return </span><span class="prelude-val">None</span>;
         }
-        <span class="kw">let </span>(s, e) = <span class="kw">match </span><a class="self" href="#431">self</a>.re.<a href="#286-290">find_at</a>(<a class="self" href="#431">self</a>.text, <a class="self" href="#431">self</a>.last_end) {
+        <span class="kw">let </span>(s, e) = <span class="kw">match </span><span class="self">self</span>.re.find_at(<span class="self">self</span>.text, <span class="self">self</span>.last_end) {
             <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="prelude-val">None</span>,
-            <span class="prelude-val">Some</span>((s, e)) =&gt; (<a href="#437">s</a>, <a href="#437">e</a>),
+            <span class="prelude-val">Some</span>((s, e)) =&gt; (s, e),
         };
         <span class="kw">if </span>s == e {
             <span class="comment">// This is an empty match. To ensure we make progress, start
             // the next search at the smallest possible starting position
             // of the next match following this one.
-            </span><a class="self" href="#431">self</a>.last_end = <a href="#435">e</a> + <span class="number">1</span>;
+            </span><span class="self">self</span>.last_end = e + <span class="number">1</span>;
             <span class="comment">// Don&#39;t accept empty matches immediately following a match.
             // Just move on to the next match.
             </span><span class="kw">if </span><span class="prelude-val">Some</span>(e) == <span class="self">self</span>.last_match {
-                <span class="kw">return </span><a class="self" href="#431">self</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>();
+                <span class="kw">return </span><span class="self">self</span>.next();
             }
         } <span class="kw">else </span>{
-            <a class="self" href="#431">self</a>.last_end = <a href="#435">e</a>;
+            <span class="self">self</span>.last_end = e;
         }
-        <a class="self" href="#431">self</a>.last_match = <span class="prelude-val">Some</span>(<a href="#435">e</a>);
-        <span class="prelude-val">Some</span>((<a href="#435">s</a>, <a href="#435">e</a>))
+        <span class="self">self</span>.last_match = <span class="prelude-val">Some</span>(e);
+        <span class="prelude-val">Some</span>((s, e))
     }
 }
 
@@ -1541,4 +1541,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="regex_automata" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="regex_automata" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `vir/src/legacy/ast/expr_transformers.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>expr_transformers.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../../vir/index.html"><img class="rust-logo" src="../../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `vir/src/legacy/ast/expr_transformers.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>expr_transformers.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../../vir/index.html"><img class="rust-logo" src="../../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -1013,262 +1013,262 @@
 // (e.g. new position), so we feel it&#39;s ok to use single-digit identifiers there
 </span><span class="attr">#![allow(clippy::many_single_char_names)]
 
-</span><span class="kw">use </span><a href="../borrows.rs.html#18"><span class="kw">super</span>::<span class="kw">super</span>::borrows::Borrow</a>;
-<span class="kw">use </span><a href="../mod.rs.html#12"><span class="kw">crate</span>::legacy::ast</a>::<span class="kw-2">*</span>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/mem/index.html">std::mem</a>;
+</span><span class="kw">use </span><span class="kw">super</span>::<span class="kw">super</span>::borrows::Borrow;
+<span class="kw">use </span><span class="kw">crate</span>::legacy::ast::<span class="kw-2">*</span>;
+<span class="kw">use </span>std::mem;
 
-<span class="kw">impl </span><a href="expr.rs.html#19">Expr</a> {
+<span class="kw">impl </span>Expr {
     <span class="doccomment">/// Apply the closure to all places in the expression.
     </span><span class="attr">#[must_use]
-    </span><span class="kw">pub fn </span>fold_places&lt;F&gt;(<span class="self">self</span>, f: F) -&gt; <a href="expr.rs.html#19">Expr</a>
+    </span><span class="kw">pub fn </span>fold_places&lt;F&gt;(<span class="self">self</span>, f: F) -&gt; Expr
     <span class="kw">where
-        </span>F: Fn(<a href="expr.rs.html#19">Expr</a>) -&gt; <a href="expr.rs.html#19">Expr</a>,
+        </span>F: Fn(Expr) -&gt; Expr,
     {
         <span class="kw">struct </span>PlaceFolder&lt;F&gt;
         <span class="kw">where
-            </span>F: Fn(<a href="expr.rs.html#19">Expr</a>) -&gt; <a href="expr.rs.html#19">Expr</a>,
+            </span>F: Fn(Expr) -&gt; Expr,
         {
             f: F,
         }
-        <span class="kw">impl</span>&lt;F&gt; <a href="#97">ExprFolder</a> <span class="kw">for </span>PlaceFolder&lt;F&gt;
+        <span class="kw">impl</span>&lt;F&gt; ExprFolder <span class="kw">for </span>PlaceFolder&lt;F&gt;
         <span class="kw">where
-            </span>F: Fn(<a href="expr.rs.html#19">Expr</a>) -&gt; <a href="expr.rs.html#19">Expr</a>,
+            </span>F: Fn(Expr) -&gt; Expr,
         {
-            <span class="kw">fn </span>fold(<span class="kw-2">&amp;mut </span><span class="self">self</span>, e: <a href="expr.rs.html#19">Expr</a>) -&gt; <a href="expr.rs.html#19">Expr</a> {
+            <span class="kw">fn </span>fold(<span class="kw-2">&amp;mut </span><span class="self">self</span>, e: Expr) -&gt; Expr {
                 <span class="kw">if </span>e.is_place() {
-                    (<a class="self" href="#32">self</a>.f)(<a href="#32">e</a>)
+                    (<span class="self">self</span>.f)(e)
                 } <span class="kw">else </span>{
-                    <a href="#349">default_fold_expr</a>(<a class="self" href="#32">self</a>, <a href="#32">e</a>)
+                    default_fold_expr(<span class="self">self</span>, e)
                 }
             }
             <span class="comment">// TODO: Handle triggers?
         </span>}
-        <a href="#22">PlaceFolder</a> { <a href="#18">f</a> }.<a href="#98">fold</a>(<a class="self" href="#18">self</a>)
+        PlaceFolder { f }.fold(<span class="self">self</span>)
     }
 
     <span class="doccomment">/// Apply the closure to all expressions.
     </span><span class="attr">#[must_use]
-    </span><span class="kw">pub fn </span>fold_expr&lt;F&gt;(<span class="self">self</span>, f: F) -&gt; <a href="expr.rs.html#19">Expr</a>
+    </span><span class="kw">pub fn </span>fold_expr&lt;F&gt;(<span class="self">self</span>, f: F) -&gt; Expr
     <span class="kw">where
-        </span>F: Fn(<a href="expr.rs.html#19">Expr</a>) -&gt; <a href="expr.rs.html#19">Expr</a>,
+        </span>F: Fn(Expr) -&gt; Expr,
     {
         <span class="kw">struct </span>ExprFolderImpl&lt;F&gt;
         <span class="kw">where
-            </span>F: Fn(<a href="expr.rs.html#19">Expr</a>) -&gt; <a href="expr.rs.html#19">Expr</a>,
+            </span>F: Fn(Expr) -&gt; Expr,
         {
             f: F,
         }
-        <span class="kw">impl</span>&lt;F&gt; <a href="#97">ExprFolder</a> <span class="kw">for </span>ExprFolderImpl&lt;F&gt;
+        <span class="kw">impl</span>&lt;F&gt; ExprFolder <span class="kw">for </span>ExprFolderImpl&lt;F&gt;
         <span class="kw">where
-            </span>F: Fn(<a href="expr.rs.html#19">Expr</a>) -&gt; <a href="expr.rs.html#19">Expr</a>,
+            </span>F: Fn(Expr) -&gt; Expr,
         {
-            <span class="kw">fn </span>fold(<span class="kw-2">&amp;mut </span><span class="self">self</span>, e: <a href="expr.rs.html#19">Expr</a>) -&gt; <a href="expr.rs.html#19">Expr</a> {
-                <span class="kw">let </span>new_expr = <a href="#349">default_fold_expr</a>(<a class="self" href="#60">self</a>, <a href="#60">e</a>);
-                (<a class="self" href="#60">self</a>.f)(<a href="#61">new_expr</a>)
+            <span class="kw">fn </span>fold(<span class="kw-2">&amp;mut </span><span class="self">self</span>, e: Expr) -&gt; Expr {
+                <span class="kw">let </span>new_expr = default_fold_expr(<span class="self">self</span>, e);
+                (<span class="self">self</span>.f)(new_expr)
             }
         }
-        <a href="#50">ExprFolderImpl</a> { <a href="#46">f</a> }.<a href="#98">fold</a>(<a class="self" href="#46">self</a>)
+        ExprFolderImpl { f }.fold(<span class="self">self</span>)
     }
 
     <span class="doccomment">/// Visit each position.
-    </span><span class="kw">pub fn </span>visit_positions&lt;F: FnMut(<span class="kw-2">&amp;</span><a href="common.rs.html#19">Position</a>)&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, visitor: F) {
-        <span class="kw">struct </span>PositionsVisitor&lt;F: FnMut(<span class="kw-2">&amp;</span><a href="common.rs.html#19">Position</a>)&gt; {
+    </span><span class="kw">pub fn </span>visit_positions&lt;F: FnMut(<span class="kw-2">&amp;</span>Position)&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, visitor: F) {
+        <span class="kw">struct </span>PositionsVisitor&lt;F: FnMut(<span class="kw-2">&amp;</span>Position)&gt; {
             visitor: F,
         }
-        <span class="kw">impl</span>&lt;F: FnMut(<span class="kw-2">&amp;</span><a href="common.rs.html#19">Position</a>)&gt; <a href="#384">ExprWalker</a> <span class="kw">for </span>PositionsVisitor&lt;F&gt; {
-            <span class="kw">fn </span>walk_position(<span class="kw-2">&amp;mut </span><span class="self">self</span>, pos: <span class="kw-2">&amp;</span><a href="common.rs.html#19">Position</a>) {
-                (<a class="self" href="#74">self</a>.visitor)(<a href="#74">pos</a>);
+        <span class="kw">impl</span>&lt;F: FnMut(<span class="kw-2">&amp;</span>Position)&gt; ExprWalker <span class="kw">for </span>PositionsVisitor&lt;F&gt; {
+            <span class="kw">fn </span>walk_position(<span class="kw-2">&amp;mut </span><span class="self">self</span>, pos: <span class="kw-2">&amp;</span>Position) {
+                (<span class="self">self</span>.visitor)(pos);
             }
         }
-        <a href="#70">PositionsVisitor</a> { <a href="#69">visitor</a> }.<a href="#385">walk</a>(<a class="self" href="#69">self</a>);
+        PositionsVisitor { visitor }.walk(<span class="self">self</span>);
     }
 
     <span class="doccomment">/// Mutably visit each position.
-    </span><span class="kw">pub fn </span>visit_positions_mut&lt;F: FnMut(<span class="kw-2">&amp;mut </span><a href="common.rs.html#19">Position</a>)&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, visitor: F) {
-        <span class="kw">struct </span>PositionsMutVisitor&lt;G: FnMut(<span class="kw-2">&amp;mut </span><a href="common.rs.html#19">Position</a>)&gt; {
+    </span><span class="kw">pub fn </span>visit_positions_mut&lt;F: FnMut(<span class="kw-2">&amp;mut </span>Position)&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, visitor: F) {
+        <span class="kw">struct </span>PositionsMutVisitor&lt;G: FnMut(<span class="kw-2">&amp;mut </span>Position)&gt; {
             visitor: G,
         }
-        <span class="kw">impl</span>&lt;G: FnMut(<span class="kw-2">&amp;mut </span><a href="common.rs.html#19">Position</a>)&gt; <a href="#97">ExprFolder</a> <span class="kw">for </span>PositionsMutVisitor&lt;G&gt; {
-            <span class="kw">fn </span>fold_position(<span class="kw-2">&amp;mut </span><span class="self">self</span>, <span class="kw-2">mut </span>pos: <a href="common.rs.html#19">Position</a>) -&gt; <a href="common.rs.html#19">Position</a> {
-                (<a class="self" href="#87">self</a>.visitor)(<span class="kw-2">&amp;mut </span><a href="#87">pos</a>);
-                <a href="#87">pos</a>
+        <span class="kw">impl</span>&lt;G: FnMut(<span class="kw-2">&amp;mut </span>Position)&gt; ExprFolder <span class="kw">for </span>PositionsMutVisitor&lt;G&gt; {
+            <span class="kw">fn </span>fold_position(<span class="kw-2">&amp;mut </span><span class="self">self</span>, <span class="kw-2">mut </span>pos: Position) -&gt; Position {
+                (<span class="self">self</span>.visitor)(<span class="kw-2">&amp;mut </span>pos);
+                pos
             }
         }
-        <span class="kw">let </span>expr = mem::replace(<a class="self" href="#82">self</a>, <span class="bool-val">true</span>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>());
-        <span class="kw-2">*</span><span class="self"><a href="#82">self</a> </span>= <a href="#83">PositionsMutVisitor</a> { <a href="#82">visitor</a> }.<a href="#98">fold</a>(<a href="#92">expr</a>);
+        <span class="kw">let </span>expr = mem::replace(<span class="self">self</span>, <span class="bool-val">true</span>.into());
+        <span class="kw-2">*</span><span class="self">self </span>= PositionsMutVisitor { visitor }.fold(expr);
     }
 }
 
-<span class="kw">pub trait </span>ExprFolder: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> {
-    <span class="kw">fn </span>fold(<span class="kw-2">&amp;mut </span><span class="self">self</span>, e: <a href="expr.rs.html#19">Expr</a>) -&gt; <a href="expr.rs.html#19">Expr</a> {
-        <a href="#349">default_fold_expr</a>(<a class="self" href="#98">self</a>, <a href="#98">e</a>)
+<span class="kw">pub trait </span>ExprFolder: Sized {
+    <span class="kw">fn </span>fold(<span class="kw-2">&amp;mut </span><span class="self">self</span>, e: Expr) -&gt; Expr {
+        default_fold_expr(<span class="self">self</span>, e)
     }
 
     <span class="attr">#[allow(clippy::boxed_local)]
-    </span><span class="kw">fn </span>fold_boxed(<span class="kw-2">&amp;mut </span><span class="self">self</span>, e: Box&lt;<a href="expr.rs.html#19">Expr</a>&gt;) -&gt; Box&lt;<a href="expr.rs.html#19">Expr</a>&gt; {
-        <span class="kw">box </span><a class="self" href="#103">self</a>.<a href="#98">fold</a>(<span class="kw-2">*</span><a href="#103">e</a>)
+    </span><span class="kw">fn </span>fold_boxed(<span class="kw-2">&amp;mut </span><span class="self">self</span>, e: Box&lt;Expr&gt;) -&gt; Box&lt;Expr&gt; {
+        <span class="kw">box </span><span class="self">self</span>.fold(<span class="kw-2">*</span>e)
     }
 
-    <span class="kw">fn </span>fold_local(<span class="kw-2">&amp;mut </span><span class="self">self</span>, v: <a href="common.rs.html#302">LocalVar</a>, p: <a href="common.rs.html#19">Position</a>) -&gt; <a href="expr.rs.html#19">Expr</a> {
-        <a href="expr.rs.html#21">Expr::Local</a>(<a href="#107">v</a>, <a class="self" href="#107">self</a>.<a href="#344">fold_position</a>(<a href="#107">p</a>))
+    <span class="kw">fn </span>fold_local(<span class="kw-2">&amp;mut </span><span class="self">self</span>, v: LocalVar, p: Position) -&gt; Expr {
+        Expr::Local(v, <span class="self">self</span>.fold_position(p))
     }
-    <span class="kw">fn </span>fold_variant(<span class="kw-2">&amp;mut </span><span class="self">self</span>, base: Box&lt;<a href="expr.rs.html#19">Expr</a>&gt;, variant: <a href="common.rs.html#333">Field</a>, p: <a href="common.rs.html#19">Position</a>) -&gt; <a href="expr.rs.html#19">Expr</a> {
-        <a href="expr.rs.html#23">Expr::Variant</a>(<a class="self" href="#110">self</a>.<a href="#103">fold_boxed</a>(<a href="#110">base</a>), <a href="#110">variant</a>, <a class="self" href="#110">self</a>.<a href="#344">fold_position</a>(<a href="#110">p</a>))
+    <span class="kw">fn </span>fold_variant(<span class="kw-2">&amp;mut </span><span class="self">self</span>, base: Box&lt;Expr&gt;, variant: Field, p: Position) -&gt; Expr {
+        Expr::Variant(<span class="self">self</span>.fold_boxed(base), variant, <span class="self">self</span>.fold_position(p))
     }
-    <span class="kw">fn </span>fold_field(<span class="kw-2">&amp;mut </span><span class="self">self</span>, receiver: Box&lt;<a href="expr.rs.html#19">Expr</a>&gt;, field: <a href="common.rs.html#333">Field</a>, pos: <a href="common.rs.html#19">Position</a>) -&gt; <a href="expr.rs.html#19">Expr</a> {
-        <a href="expr.rs.html#25">Expr::Field</a>(<a class="self" href="#113">self</a>.<a href="#103">fold_boxed</a>(<a href="#113">receiver</a>), <a href="#113">field</a>, <a class="self" href="#113">self</a>.<a href="#344">fold_position</a>(<a href="#113">pos</a>))
+    <span class="kw">fn </span>fold_field(<span class="kw-2">&amp;mut </span><span class="self">self</span>, receiver: Box&lt;Expr&gt;, field: Field, pos: Position) -&gt; Expr {
+        Expr::Field(<span class="self">self</span>.fold_boxed(receiver), field, <span class="self">self</span>.fold_position(pos))
     }
-    <span class="kw">fn </span>fold_addr_of(<span class="kw-2">&amp;mut </span><span class="self">self</span>, e: Box&lt;<a href="expr.rs.html#19">Expr</a>&gt;, t: <a href="common.rs.html#183">Type</a>, p: <a href="common.rs.html#19">Position</a>) -&gt; <a href="expr.rs.html#19">Expr</a> {
-        <a href="expr.rs.html#27">Expr::AddrOf</a>(<a class="self" href="#116">self</a>.<a href="#103">fold_boxed</a>(<a href="#116">e</a>), <a href="#116">t</a>, <a class="self" href="#116">self</a>.<a href="#344">fold_position</a>(<a href="#116">p</a>))
+    <span class="kw">fn </span>fold_addr_of(<span class="kw-2">&amp;mut </span><span class="self">self</span>, e: Box&lt;Expr&gt;, t: Type, p: Position) -&gt; Expr {
+        Expr::AddrOf(<span class="self">self</span>.fold_boxed(e), t, <span class="self">self</span>.fold_position(p))
     }
-    <span class="kw">fn </span>fold_const(<span class="kw-2">&amp;mut </span><span class="self">self</span>, x: <a href="expr.rs.html#147">Const</a>, p: <a href="common.rs.html#19">Position</a>) -&gt; <a href="expr.rs.html#19">Expr</a> {
-        <a href="expr.rs.html#29">Expr::Const</a>(<a href="#119">x</a>, <a class="self" href="#119">self</a>.<a href="#344">fold_position</a>(<a href="#119">p</a>))
+    <span class="kw">fn </span>fold_const(<span class="kw-2">&amp;mut </span><span class="self">self</span>, x: Const, p: Position) -&gt; Expr {
+        Expr::Const(x, <span class="self">self</span>.fold_position(p))
     }
-    <span class="kw">fn </span>fold_labelled_old(<span class="kw-2">&amp;mut </span><span class="self">self</span>, label: <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, body: Box&lt;<a href="expr.rs.html#19">Expr</a>&gt;, pos: <a href="common.rs.html#19">Position</a>) -&gt; <a href="expr.rs.html#19">Expr</a> {
-        <a href="expr.rs.html#28">Expr::LabelledOld</a>(<a href="#122">label</a>, <a class="self" href="#122">self</a>.<a href="#103">fold_boxed</a>(<a href="#122">body</a>), <a class="self" href="#122">self</a>.<a href="#344">fold_position</a>(<a href="#122">pos</a>))
+    <span class="kw">fn </span>fold_labelled_old(<span class="kw-2">&amp;mut </span><span class="self">self</span>, label: String, body: Box&lt;Expr&gt;, pos: Position) -&gt; Expr {
+        Expr::LabelledOld(label, <span class="self">self</span>.fold_boxed(body), <span class="self">self</span>.fold_position(pos))
     }
     <span class="kw">fn </span>fold_magic_wand(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        lhs: Box&lt;<a href="expr.rs.html#19">Expr</a>&gt;,
-        rhs: Box&lt;<a href="expr.rs.html#19">Expr</a>&gt;,
-        borrow: <span class="prelude-ty">Option</span>&lt;<a href="../borrows.rs.html#18">Borrow</a>&gt;,
-        pos: <a href="common.rs.html#19">Position</a>,
-    ) -&gt; <a href="expr.rs.html#19">Expr</a> {
-        <a href="expr.rs.html#31">Expr::MagicWand</a>(
-            <a class="self" href="#126">self</a>.<a href="#103">fold_boxed</a>(<a href="#127">lhs</a>),
-            <a class="self" href="#126">self</a>.<a href="#103">fold_boxed</a>(<a href="#128">rhs</a>),
-            <a href="#129">borrow</a>,
-            <a class="self" href="#126">self</a>.<a href="#344">fold_position</a>(<a href="#130">pos</a>),
+        lhs: Box&lt;Expr&gt;,
+        rhs: Box&lt;Expr&gt;,
+        borrow: <span class="prelude-ty">Option</span>&lt;Borrow&gt;,
+        pos: Position,
+    ) -&gt; Expr {
+        Expr::MagicWand(
+            <span class="self">self</span>.fold_boxed(lhs),
+            <span class="self">self</span>.fold_boxed(rhs),
+            borrow,
+            <span class="self">self</span>.fold_position(pos),
         )
     }
     <span class="kw">fn </span>fold_predicate_access_predicate(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        name: <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>,
-        arg: Box&lt;<a href="expr.rs.html#19">Expr</a>&gt;,
-        perm_amount: <a href="common.rs.html#67">PermAmount</a>,
-        pos: <a href="common.rs.html#19">Position</a>,
-    ) -&gt; <a href="expr.rs.html#19">Expr</a> {
-        <a href="expr.rs.html#33">Expr::PredicateAccessPredicate</a>(
-            <a href="#141">name</a>,
-            <a class="self" href="#140">self</a>.<a href="#103">fold_boxed</a>(<a href="#142">arg</a>),
-            <a href="#143">perm_amount</a>,
-            <a class="self" href="#140">self</a>.<a href="#344">fold_position</a>(<a href="#144">pos</a>),
+        name: String,
+        arg: Box&lt;Expr&gt;,
+        perm_amount: PermAmount,
+        pos: Position,
+    ) -&gt; Expr {
+        Expr::PredicateAccessPredicate(
+            name,
+            <span class="self">self</span>.fold_boxed(arg),
+            perm_amount,
+            <span class="self">self</span>.fold_position(pos),
         )
     }
     <span class="kw">fn </span>fold_field_access_predicate(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        receiver: Box&lt;<a href="expr.rs.html#19">Expr</a>&gt;,
-        perm_amount: <a href="common.rs.html#67">PermAmount</a>,
-        pos: <a href="common.rs.html#19">Position</a>,
-    ) -&gt; <a href="expr.rs.html#19">Expr</a> {
-        <a href="expr.rs.html#34">Expr::FieldAccessPredicate</a>(
-            <a class="self" href="#154">self</a>.<a href="#103">fold_boxed</a>(<a href="#155">receiver</a>),
-            <a href="#156">perm_amount</a>,
-            <a class="self" href="#154">self</a>.<a href="#344">fold_position</a>(<a href="#157">pos</a>),
+        receiver: Box&lt;Expr&gt;,
+        perm_amount: PermAmount,
+        pos: Position,
+    ) -&gt; Expr {
+        Expr::FieldAccessPredicate(
+            <span class="self">self</span>.fold_boxed(receiver),
+            perm_amount,
+            <span class="self">self</span>.fold_position(pos),
         )
     }
-    <span class="kw">fn </span>fold_unary_op(<span class="kw-2">&amp;mut </span><span class="self">self</span>, x: <a href="expr.rs.html#88">UnaryOpKind</a>, y: Box&lt;<a href="expr.rs.html#19">Expr</a>&gt;, p: <a href="common.rs.html#19">Position</a>) -&gt; <a href="expr.rs.html#19">Expr</a> {
-        <a href="expr.rs.html#35">Expr::UnaryOp</a>(<a href="#165">x</a>, <a class="self" href="#165">self</a>.<a href="#103">fold_boxed</a>(<a href="#165">y</a>), <a class="self" href="#165">self</a>.<a href="#344">fold_position</a>(<a href="#165">p</a>))
+    <span class="kw">fn </span>fold_unary_op(<span class="kw-2">&amp;mut </span><span class="self">self</span>, x: UnaryOpKind, y: Box&lt;Expr&gt;, p: Position) -&gt; Expr {
+        Expr::UnaryOp(x, <span class="self">self</span>.fold_boxed(y), <span class="self">self</span>.fold_position(p))
     }
     <span class="kw">fn </span>fold_bin_op(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        kind: <a href="expr.rs.html#95">BinaryOpKind</a>,
-        first: Box&lt;<a href="expr.rs.html#19">Expr</a>&gt;,
-        second: Box&lt;<a href="expr.rs.html#19">Expr</a>&gt;,
-        pos: <a href="common.rs.html#19">Position</a>,
-    ) -&gt; <a href="expr.rs.html#19">Expr</a> {
-        <a href="expr.rs.html#36">Expr::BinOp</a>(
-            <a href="#170">kind</a>,
-            <a class="self" href="#169">self</a>.<a href="#103">fold_boxed</a>(<a href="#171">first</a>),
-            <a class="self" href="#169">self</a>.<a href="#103">fold_boxed</a>(<a href="#172">second</a>),
-            <a class="self" href="#169">self</a>.<a href="#344">fold_position</a>(<a href="#173">pos</a>),
+        kind: BinaryOpKind,
+        first: Box&lt;Expr&gt;,
+        second: Box&lt;Expr&gt;,
+        pos: Position,
+    ) -&gt; Expr {
+        Expr::BinOp(
+            kind,
+            <span class="self">self</span>.fold_boxed(first),
+            <span class="self">self</span>.fold_boxed(second),
+            <span class="self">self</span>.fold_position(pos),
         )
     }
     <span class="kw">fn </span>fold_unfolding(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        name: <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>,
-        args: Vec&lt;<a href="expr.rs.html#19">Expr</a>&gt;,
-        expr: Box&lt;<a href="expr.rs.html#19">Expr</a>&gt;,
-        perm: <a href="common.rs.html#67">PermAmount</a>,
-        variant: <a href="predicate.rs.html#253">MaybeEnumVariantIndex</a>,
-        pos: <a href="common.rs.html#19">Position</a>,
-    ) -&gt; <a href="expr.rs.html#19">Expr</a> {
-        <a href="expr.rs.html#44">Expr::Unfolding</a>(
-            <a href="#184">name</a>,
-            <a href="#185">args</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|e| <a class="self" href="#183">self</a>.<a href="#98">fold</a>(<a href="#193">e</a>)).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>(),
-            <a class="self" href="#183">self</a>.<a href="#103">fold_boxed</a>(<a href="#186">expr</a>),
-            <a href="#187">perm</a>,
-            <a href="#188">variant</a>,
-            <a class="self" href="#183">self</a>.<a href="#344">fold_position</a>(<a href="#189">pos</a>),
+        name: String,
+        args: Vec&lt;Expr&gt;,
+        expr: Box&lt;Expr&gt;,
+        perm: PermAmount,
+        variant: MaybeEnumVariantIndex,
+        pos: Position,
+    ) -&gt; Expr {
+        Expr::Unfolding(
+            name,
+            args.into_iter().map(|e| <span class="self">self</span>.fold(e)).collect(),
+            <span class="self">self</span>.fold_boxed(expr),
+            perm,
+            variant,
+            <span class="self">self</span>.fold_position(pos),
         )
     }
     <span class="kw">fn </span>fold_cond(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        guard: Box&lt;<a href="expr.rs.html#19">Expr</a>&gt;,
-        then_expr: Box&lt;<a href="expr.rs.html#19">Expr</a>&gt;,
-        else_expr: Box&lt;<a href="expr.rs.html#19">Expr</a>&gt;,
-        pos: <a href="common.rs.html#19">Position</a>,
-    ) -&gt; <a href="expr.rs.html#19">Expr</a> {
-        <a href="expr.rs.html#53">Expr::Cond</a>(
-            <a class="self" href="#201">self</a>.<a href="#103">fold_boxed</a>(<a href="#202">guard</a>),
-            <a class="self" href="#201">self</a>.<a href="#103">fold_boxed</a>(<a href="#203">then_expr</a>),
-            <a class="self" href="#201">self</a>.<a href="#103">fold_boxed</a>(<a href="#204">else_expr</a>),
-            <a class="self" href="#201">self</a>.<a href="#344">fold_position</a>(<a href="#205">pos</a>),
+        guard: Box&lt;Expr&gt;,
+        then_expr: Box&lt;Expr&gt;,
+        else_expr: Box&lt;Expr&gt;,
+        pos: Position,
+    ) -&gt; Expr {
+        Expr::Cond(
+            <span class="self">self</span>.fold_boxed(guard),
+            <span class="self">self</span>.fold_boxed(then_expr),
+            <span class="self">self</span>.fold_boxed(else_expr),
+            <span class="self">self</span>.fold_position(pos),
         )
     }
     <span class="kw">fn </span>fold_forall(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        x: Vec&lt;<a href="common.rs.html#302">LocalVar</a>&gt;,
-        y: Vec&lt;<a href="trigger.rs.html#11">Trigger</a>&gt;,
-        z: Box&lt;<a href="expr.rs.html#19">Expr</a>&gt;,
-        p: <a href="common.rs.html#19">Position</a>,
-    ) -&gt; <a href="expr.rs.html#19">Expr</a> {
-        <a href="expr.rs.html#55">Expr::ForAll</a>(<a href="#216">x</a>, <a href="#217">y</a>, <a class="self" href="#215">self</a>.<a href="#103">fold_boxed</a>(<a href="#218">z</a>), <a class="self" href="#215">self</a>.<a href="#344">fold_position</a>(<a href="#219">p</a>))
+        x: Vec&lt;LocalVar&gt;,
+        y: Vec&lt;Trigger&gt;,
+        z: Box&lt;Expr&gt;,
+        p: Position,
+    ) -&gt; Expr {
+        Expr::ForAll(x, y, <span class="self">self</span>.fold_boxed(z), <span class="self">self</span>.fold_position(p))
     }
     <span class="kw">fn </span>fold_exists(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        x: Vec&lt;<a href="common.rs.html#302">LocalVar</a>&gt;,
-        y: Vec&lt;<a href="trigger.rs.html#11">Trigger</a>&gt;,
-        z: Box&lt;<a href="expr.rs.html#19">Expr</a>&gt;,
-        p: <a href="common.rs.html#19">Position</a>,
-    ) -&gt; <a href="expr.rs.html#19">Expr</a> {
-        <a href="expr.rs.html#57">Expr::Exists</a>(<a href="#225">x</a>, <a href="#226">y</a>, <a class="self" href="#224">self</a>.<a href="#103">fold_boxed</a>(<a href="#227">z</a>), <a class="self" href="#224">self</a>.<a href="#344">fold_position</a>(<a href="#228">p</a>))
+        x: Vec&lt;LocalVar&gt;,
+        y: Vec&lt;Trigger&gt;,
+        z: Box&lt;Expr&gt;,
+        p: Position,
+    ) -&gt; Expr {
+        Expr::Exists(x, y, <span class="self">self</span>.fold_boxed(z), <span class="self">self</span>.fold_position(p))
     }
     <span class="kw">fn </span>fold_let_expr(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        var: <a href="common.rs.html#302">LocalVar</a>,
-        expr: Box&lt;<a href="expr.rs.html#19">Expr</a>&gt;,
-        body: Box&lt;<a href="expr.rs.html#19">Expr</a>&gt;,
-        pos: <a href="common.rs.html#19">Position</a>,
-    ) -&gt; <a href="expr.rs.html#19">Expr</a> {
-        <a href="expr.rs.html#59">Expr::LetExpr</a>(
-            <a href="#234">var</a>,
-            <a class="self" href="#233">self</a>.<a href="#103">fold_boxed</a>(<a href="#235">expr</a>),
-            <a class="self" href="#233">self</a>.<a href="#103">fold_boxed</a>(<a href="#236">body</a>),
-            <a class="self" href="#233">self</a>.<a href="#344">fold_position</a>(<a href="#237">pos</a>),
+        var: LocalVar,
+        expr: Box&lt;Expr&gt;,
+        body: Box&lt;Expr&gt;,
+        pos: Position,
+    ) -&gt; Expr {
+        Expr::LetExpr(
+            var,
+            <span class="self">self</span>.fold_boxed(expr),
+            <span class="self">self</span>.fold_boxed(body),
+            <span class="self">self</span>.fold_position(pos),
         )
     }
     <span class="kw">fn </span>fold_func_app(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        name: <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>,
-        args: Vec&lt;<a href="expr.rs.html#19">Expr</a>&gt;,
-        formal_args: Vec&lt;<a href="common.rs.html#302">LocalVar</a>&gt;,
-        return_type: <a href="common.rs.html#183">Type</a>,
-        pos: <a href="common.rs.html#19">Position</a>,
-    ) -&gt; <a href="expr.rs.html#19">Expr</a> {
-        <a href="expr.rs.html#61">Expr::FuncApp</a>(
-            <a href="#248">name</a>,
-            <a href="#249">args</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|e| <a class="self" href="#247">self</a>.<a href="#98">fold</a>(<a href="#256">e</a>)).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>(),
-            <a href="#250">formal_args</a>,
-            <a href="#251">return_type</a>,
-            <a class="self" href="#247">self</a>.<a href="#344">fold_position</a>(<a href="#252">pos</a>),
+        name: String,
+        args: Vec&lt;Expr&gt;,
+        formal_args: Vec&lt;LocalVar&gt;,
+        return_type: Type,
+        pos: Position,
+    ) -&gt; Expr {
+        Expr::FuncApp(
+            name,
+            args.into_iter().map(|e| <span class="self">self</span>.fold(e)).collect(),
+            formal_args,
+            return_type,
+            <span class="self">self</span>.fold_position(pos),
         )
     }
-    <span class="kw">fn </span>fold_domain_func_app(<span class="kw-2">&amp;mut </span><span class="self">self</span>, func: <a href="domain.rs.html#53">DomainFunc</a>, args: Vec&lt;<a href="expr.rs.html#19">Expr</a>&gt;, pos: <a href="common.rs.html#19">Position</a>) -&gt; <a href="expr.rs.html#19">Expr</a> {
-        <a href="expr.rs.html#63">Expr::DomainFuncApp</a>(
-            <a href="#262">func</a>,
-            <a href="#262">args</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|e| <a class="self" href="#262">self</a>.<a href="#98">fold</a>(<a href="#265">e</a>)).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>(),
-            <a class="self" href="#262">self</a>.<a href="#344">fold_position</a>(<a href="#262">pos</a>),
+    <span class="kw">fn </span>fold_domain_func_app(<span class="kw-2">&amp;mut </span><span class="self">self</span>, func: DomainFunc, args: Vec&lt;Expr&gt;, pos: Position) -&gt; Expr {
+        Expr::DomainFuncApp(
+            func,
+            args.into_iter().map(|e| <span class="self">self</span>.fold(e)).collect(),
+            <span class="self">self</span>.fold_position(pos),
         )
     }
     <span class="comment">/* TODO
@@ -1293,201 +1293,201 @@
     */
     </span><span class="kw">fn </span>fold_inhale_exhale(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        inhale_expr: Box&lt;<a href="expr.rs.html#19">Expr</a>&gt;,
-        exhale_expr: Box&lt;<a href="expr.rs.html#19">Expr</a>&gt;,
-        pos: <a href="common.rs.html#19">Position</a>,
-    ) -&gt; <a href="expr.rs.html#19">Expr</a> {
-        <a href="expr.rs.html#67">Expr::InhaleExhale</a>(
-            <a class="self" href="#290">self</a>.<a href="#103">fold_boxed</a>(<a href="#291">inhale_expr</a>),
-            <a class="self" href="#290">self</a>.<a href="#103">fold_boxed</a>(<a href="#292">exhale_expr</a>),
-            <a class="self" href="#290">self</a>.<a href="#344">fold_position</a>(<a href="#293">pos</a>),
+        inhale_expr: Box&lt;Expr&gt;,
+        exhale_expr: Box&lt;Expr&gt;,
+        pos: Position,
+    ) -&gt; Expr {
+        Expr::InhaleExhale(
+            <span class="self">self</span>.fold_boxed(inhale_expr),
+            <span class="self">self</span>.fold_boxed(exhale_expr),
+            <span class="self">self</span>.fold_position(pos),
         )
     }
 
-    <span class="kw">fn </span>fold_downcast(<span class="kw-2">&amp;mut </span><span class="self">self</span>, base: Box&lt;<a href="expr.rs.html#19">Expr</a>&gt;, enum_place: Box&lt;<a href="expr.rs.html#19">Expr</a>&gt;, field: <a href="common.rs.html#333">Field</a>) -&gt; <a href="expr.rs.html#19">Expr</a> {
-        <a href="expr.rs.html#74">Expr::Downcast</a>(<a class="self" href="#302">self</a>.<a href="#103">fold_boxed</a>(<a href="#302">base</a>), <a class="self" href="#302">self</a>.<a href="#103">fold_boxed</a>(<a href="#302">enum_place</a>), <a href="#302">field</a>)
+    <span class="kw">fn </span>fold_downcast(<span class="kw-2">&amp;mut </span><span class="self">self</span>, base: Box&lt;Expr&gt;, enum_place: Box&lt;Expr&gt;, field: Field) -&gt; Expr {
+        Expr::Downcast(<span class="self">self</span>.fold_boxed(base), <span class="self">self</span>.fold_boxed(enum_place), field)
     }
-    <span class="kw">fn </span>fold_snap_app(<span class="kw-2">&amp;mut </span><span class="self">self</span>, e: Box&lt;<a href="expr.rs.html#19">Expr</a>&gt;, p: <a href="common.rs.html#19">Position</a>) -&gt; <a href="expr.rs.html#19">Expr</a> {
-        <a href="expr.rs.html#76">Expr::SnapApp</a>(<a class="self" href="#305">self</a>.<a href="#103">fold_boxed</a>(<a href="#305">e</a>), <a class="self" href="#305">self</a>.<a href="#344">fold_position</a>(<a href="#305">p</a>))
+    <span class="kw">fn </span>fold_snap_app(<span class="kw-2">&amp;mut </span><span class="self">self</span>, e: Box&lt;Expr&gt;, p: Position) -&gt; Expr {
+        Expr::SnapApp(<span class="self">self</span>.fold_boxed(e), <span class="self">self</span>.fold_position(p))
     }
 
     <span class="kw">fn </span>fold_container_op(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        kind: <a href="expr.rs.html#121">ContainerOpKind</a>,
-        l: Box&lt;<a href="expr.rs.html#19">Expr</a>&gt;,
-        r: Box&lt;<a href="expr.rs.html#19">Expr</a>&gt;,
-        p: <a href="common.rs.html#19">Position</a>,
-    ) -&gt; <a href="expr.rs.html#19">Expr</a> {
-        <a href="expr.rs.html#38">Expr::ContainerOp</a>(
-            <a href="#311">kind</a>,
-            <a class="self" href="#310">self</a>.<a href="#103">fold_boxed</a>(<a href="#312">l</a>),
-            <a class="self" href="#310">self</a>.<a href="#103">fold_boxed</a>(<a href="#313">r</a>),
-            <a class="self" href="#310">self</a>.<a href="#344">fold_position</a>(<a href="#314">p</a>),
+        kind: ContainerOpKind,
+        l: Box&lt;Expr&gt;,
+        r: Box&lt;Expr&gt;,
+        p: Position,
+    ) -&gt; Expr {
+        Expr::ContainerOp(
+            kind,
+            <span class="self">self</span>.fold_boxed(l),
+            <span class="self">self</span>.fold_boxed(r),
+            <span class="self">self</span>.fold_position(p),
         )
     }
 
-    <span class="kw">fn </span>fold_seq(<span class="kw-2">&amp;mut </span><span class="self">self</span>, t: <a href="common.rs.html#183">Type</a>, elems: Vec&lt;<a href="expr.rs.html#19">Expr</a>&gt;, p: <a href="common.rs.html#19">Position</a>) -&gt; <a href="expr.rs.html#19">Expr</a> {
-        <a href="expr.rs.html#40">Expr::Seq</a>(
-            <a href="#324">t</a>,
-            <a href="#324">elems</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|e| <a class="self" href="#324">self</a>.<a href="#98">fold</a>(<a href="#327">e</a>)).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>(),
-            <a class="self" href="#324">self</a>.<a href="#344">fold_position</a>(<a href="#324">p</a>),
+    <span class="kw">fn </span>fold_seq(<span class="kw-2">&amp;mut </span><span class="self">self</span>, t: Type, elems: Vec&lt;Expr&gt;, p: Position) -&gt; Expr {
+        Expr::Seq(
+            t,
+            elems.into_iter().map(|e| <span class="self">self</span>.fold(e)).collect(),
+            <span class="self">self</span>.fold_position(p),
         )
     }
 
-    <span class="kw">fn </span>fold_map(<span class="kw-2">&amp;mut </span><span class="self">self</span>, t: <a href="common.rs.html#183">Type</a>, elems: Vec&lt;<a href="expr.rs.html#19">Expr</a>&gt;, p: <a href="common.rs.html#19">Position</a>) -&gt; <a href="expr.rs.html#19">Expr</a> {
-        <a href="expr.rs.html#42">Expr::Map</a>(
-            <a href="#332">t</a>,
-            <a href="#332">elems</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|e| <a class="self" href="#332">self</a>.<a href="#98">fold</a>(<a href="#335">e</a>)).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>(),
-            <a class="self" href="#332">self</a>.<a href="#344">fold_position</a>(<a href="#332">p</a>),
+    <span class="kw">fn </span>fold_map(<span class="kw-2">&amp;mut </span><span class="self">self</span>, t: Type, elems: Vec&lt;Expr&gt;, p: Position) -&gt; Expr {
+        Expr::Map(
+            t,
+            elems.into_iter().map(|e| <span class="self">self</span>.fold(e)).collect(),
+            <span class="self">self</span>.fold_position(p),
         )
     }
 
-    <span class="kw">fn </span>fold_cast(<span class="kw-2">&amp;mut </span><span class="self">self</span>, kind: <a href="expr.rs.html#129">CastKind</a>, base: Box&lt;<a href="expr.rs.html#19">Expr</a>&gt;, p: <a href="common.rs.html#19">Position</a>) -&gt; <a href="expr.rs.html#19">Expr</a> {
-        <a href="expr.rs.html#77">Expr::Cast</a>(<a href="#340">kind</a>, <a href="#340">base</a>, <a class="self" href="#340">self</a>.<a href="#344">fold_position</a>(<a href="#340">p</a>))
+    <span class="kw">fn </span>fold_cast(<span class="kw-2">&amp;mut </span><span class="self">self</span>, kind: CastKind, base: Box&lt;Expr&gt;, p: Position) -&gt; Expr {
+        Expr::Cast(kind, base, <span class="self">self</span>.fold_position(p))
     }
 
-    <span class="kw">fn </span>fold_position(<span class="kw-2">&amp;mut </span><span class="self">self</span>, p: <a href="common.rs.html#19">Position</a>) -&gt; <a href="common.rs.html#19">Position</a> {
-        <a href="#344">p</a>
+    <span class="kw">fn </span>fold_position(<span class="kw-2">&amp;mut </span><span class="self">self</span>, p: Position) -&gt; Position {
+        p
     }
 }
 
-<span class="kw">pub fn </span>default_fold_expr&lt;T: <a href="#97">ExprFolder</a>&gt;(this: <span class="kw-2">&amp;mut </span>T, e: <a href="expr.rs.html#19">Expr</a>) -&gt; <a href="expr.rs.html#19">Expr</a> {
-    <span class="kw">match </span><a href="#349">e</a> {
-        <a href="expr.rs.html#21">Expr::Local</a>(v, p) =&gt; <a href="#349">this</a>.<a href="#107">fold_local</a>(<a href="#351">v</a>, <a href="#351">p</a>),
-        <a href="expr.rs.html#23">Expr::Variant</a>(base, variant, p) =&gt; <a href="#349">this</a>.<a href="#110">fold_variant</a>(<a href="#352">base</a>, <a href="#352">variant</a>, <a href="#352">p</a>),
-        <a href="expr.rs.html#25">Expr::Field</a>(e, f, p) =&gt; <a href="#349">this</a>.<a href="#113">fold_field</a>(<a href="#353">e</a>, <a href="#353">f</a>, <a href="#353">p</a>),
-        <a href="expr.rs.html#27">Expr::AddrOf</a>(e, t, p) =&gt; <a href="#349">this</a>.<a href="#116">fold_addr_of</a>(<a href="#354">e</a>, <a href="#354">t</a>, <a href="#354">p</a>),
-        <a href="expr.rs.html#29">Expr::Const</a>(x, p) =&gt; <a href="#349">this</a>.<a href="#119">fold_const</a>(<a href="#355">x</a>, <a href="#355">p</a>),
-        <a href="expr.rs.html#28">Expr::LabelledOld</a>(x, y, p) =&gt; <a href="#349">this</a>.<a href="#122">fold_labelled_old</a>(<a href="#356">x</a>, <a href="#356">y</a>, <a href="#356">p</a>),
-        <a href="expr.rs.html#31">Expr::MagicWand</a>(x, y, b, p) =&gt; <a href="#349">this</a>.<a href="#125-131">fold_magic_wand</a>(<a href="#357">x</a>, <a href="#357">y</a>, <a href="#357">b</a>, <a href="#357">p</a>),
-        <a href="expr.rs.html#33">Expr::PredicateAccessPredicate</a>(x, y, z, p) =&gt; {
-            <a href="#349">this</a>.<a href="#139-145">fold_predicate_access_predicate</a>(<a href="#358">x</a>, <a href="#358">y</a>, <a href="#358">z</a>, <a href="#358">p</a>)
+<span class="kw">pub fn </span>default_fold_expr&lt;T: ExprFolder&gt;(this: <span class="kw-2">&amp;mut </span>T, e: Expr) -&gt; Expr {
+    <span class="kw">match </span>e {
+        Expr::Local(v, p) =&gt; this.fold_local(v, p),
+        Expr::Variant(base, variant, p) =&gt; this.fold_variant(base, variant, p),
+        Expr::Field(e, f, p) =&gt; this.fold_field(e, f, p),
+        Expr::AddrOf(e, t, p) =&gt; this.fold_addr_of(e, t, p),
+        Expr::Const(x, p) =&gt; this.fold_const(x, p),
+        Expr::LabelledOld(x, y, p) =&gt; this.fold_labelled_old(x, y, p),
+        Expr::MagicWand(x, y, b, p) =&gt; this.fold_magic_wand(x, y, b, p),
+        Expr::PredicateAccessPredicate(x, y, z, p) =&gt; {
+            this.fold_predicate_access_predicate(x, y, z, p)
         }
-        <a href="expr.rs.html#34">Expr::FieldAccessPredicate</a>(x, y, p) =&gt; <a href="#349">this</a>.<a href="#153-158">fold_field_access_predicate</a>(<a href="#361">x</a>, <a href="#361">y</a>, <a href="#361">p</a>),
-        <a href="expr.rs.html#35">Expr::UnaryOp</a>(x, y, p) =&gt; <a href="#349">this</a>.<a href="#165">fold_unary_op</a>(<a href="#362">x</a>, <a href="#362">y</a>, <a href="#362">p</a>),
-        <a href="expr.rs.html#36">Expr::BinOp</a>(x, y, z, p) =&gt; <a href="#349">this</a>.<a href="#168-174">fold_bin_op</a>(<a href="#363">x</a>, <a href="#363">y</a>, <a href="#363">z</a>, <a href="#363">p</a>),
-        <a href="expr.rs.html#44">Expr::Unfolding</a>(x, y, z, perm, variant, p) =&gt; {
-            <a href="#349">this</a>.<a href="#182-190">fold_unfolding</a>(<a href="#364">x</a>, <a href="#364">y</a>, <a href="#364">z</a>, <a href="#364">perm</a>, <a href="#364">variant</a>, <a href="#364">p</a>)
+        Expr::FieldAccessPredicate(x, y, p) =&gt; this.fold_field_access_predicate(x, y, p),
+        Expr::UnaryOp(x, y, p) =&gt; this.fold_unary_op(x, y, p),
+        Expr::BinOp(x, y, z, p) =&gt; this.fold_bin_op(x, y, z, p),
+        Expr::Unfolding(x, y, z, perm, variant, p) =&gt; {
+            this.fold_unfolding(x, y, z, perm, variant, p)
         }
-        <a href="expr.rs.html#53">Expr::Cond</a>(x, y, z, p) =&gt; <a href="#349">this</a>.<a href="#200-206">fold_cond</a>(<a href="#367">x</a>, <a href="#367">y</a>, <a href="#367">z</a>, <a href="#367">p</a>),
-        <a href="expr.rs.html#55">Expr::ForAll</a>(x, y, z, p) =&gt; <a href="#349">this</a>.<a href="#214-220">fold_forall</a>(<a href="#368">x</a>, <a href="#368">y</a>, <a href="#368">z</a>, <a href="#368">p</a>),
-        <a href="expr.rs.html#57">Expr::Exists</a>(x, y, z, p) =&gt; <a href="#349">this</a>.<a href="#223-229">fold_exists</a>(<a href="#369">x</a>, <a href="#369">y</a>, <a href="#369">z</a>, <a href="#369">p</a>),
-        <a href="expr.rs.html#59">Expr::LetExpr</a>(x, y, z, p) =&gt; <a href="#349">this</a>.<a href="#232-238">fold_let_expr</a>(<a href="#370">x</a>, <a href="#370">y</a>, <a href="#370">z</a>, <a href="#370">p</a>),
-        <a href="expr.rs.html#61">Expr::FuncApp</a>(x, y, z, k, p) =&gt; <a href="#349">this</a>.<a href="#246-253">fold_func_app</a>(<a href="#371">x</a>, <a href="#371">y</a>, <a href="#371">z</a>, <a href="#371">k</a>, <a href="#371">p</a>),
-        <a href="expr.rs.html#63">Expr::DomainFuncApp</a>(x, y, p) =&gt; <a href="#349">this</a>.<a href="#262">fold_domain_func_app</a>(<a href="#372">x</a>, <a href="#372">y</a>, <a href="#372">p</a>),
+        Expr::Cond(x, y, z, p) =&gt; this.fold_cond(x, y, z, p),
+        Expr::ForAll(x, y, z, p) =&gt; this.fold_forall(x, y, z, p),
+        Expr::Exists(x, y, z, p) =&gt; this.fold_exists(x, y, z, p),
+        Expr::LetExpr(x, y, z, p) =&gt; this.fold_let_expr(x, y, z, p),
+        Expr::FuncApp(x, y, z, k, p) =&gt; this.fold_func_app(x, y, z, k, p),
+        Expr::DomainFuncApp(x, y, p) =&gt; this.fold_domain_func_app(x, y, p),
         <span class="comment">// TODO Expr::DomainFuncApp(u, v, w, x, y, p) =&gt; this.fold_domain_func_app(u,v,w,x,y,p),
-        </span><a href="expr.rs.html#67">Expr::InhaleExhale</a>(x, y, p) =&gt; <a href="#349">this</a>.<a href="#289-294">fold_inhale_exhale</a>(<a href="#374">x</a>, <a href="#374">y</a>, <a href="#374">p</a>),
-        <a href="expr.rs.html#74">Expr::Downcast</a>(b, p, f) =&gt; <a href="#349">this</a>.<a href="#302">fold_downcast</a>(<a href="#375">b</a>, <a href="#375">p</a>, <a href="#375">f</a>),
-        <a href="expr.rs.html#76">Expr::SnapApp</a>(e, p) =&gt; <a href="#349">this</a>.<a href="#305">fold_snap_app</a>(<a href="#376">e</a>, <a href="#376">p</a>),
-        <a href="expr.rs.html#38">Expr::ContainerOp</a>(x, y, z, p) =&gt; <a href="#349">this</a>.<a href="#309-315">fold_container_op</a>(<a href="#377">x</a>, <a href="#377">y</a>, <a href="#377">z</a>, <a href="#377">p</a>),
-        <a href="expr.rs.html#40">Expr::Seq</a>(x, y, p) =&gt; <a href="#349">this</a>.<a href="#324">fold_seq</a>(<a href="#378">x</a>, <a href="#378">y</a>, <a href="#378">p</a>),
-        <a href="expr.rs.html#42">Expr::Map</a>(x, y, p) =&gt; <a href="#349">this</a>.<a href="#332">fold_map</a>(<a href="#379">x</a>, <a href="#379">y</a>, <a href="#379">p</a>),
-        <a href="expr.rs.html#77">Expr::Cast</a>(kind, base, p) =&gt; <a href="#349">this</a>.<a href="#340">fold_cast</a>(<a href="#380">kind</a>, <a href="#380">base</a>, <a href="#380">p</a>),
+        </span>Expr::InhaleExhale(x, y, p) =&gt; this.fold_inhale_exhale(x, y, p),
+        Expr::Downcast(b, p, f) =&gt; this.fold_downcast(b, p, f),
+        Expr::SnapApp(e, p) =&gt; this.fold_snap_app(e, p),
+        Expr::ContainerOp(x, y, z, p) =&gt; this.fold_container_op(x, y, z, p),
+        Expr::Seq(x, y, p) =&gt; this.fold_seq(x, y, p),
+        Expr::Map(x, y, p) =&gt; this.fold_map(x, y, p),
+        Expr::Cast(kind, base, p) =&gt; this.fold_cast(kind, base, p),
     }
 }
 
-<span class="kw">pub trait </span>ExprWalker: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> {
-    <span class="kw">fn </span>walk(<span class="kw-2">&amp;mut </span><span class="self">self</span>, expr: <span class="kw-2">&amp;</span><a href="expr.rs.html#19">Expr</a>) {
-        <a href="#612">default_walk_expr</a>(<a class="self" href="#385">self</a>, <a href="#385">expr</a>);
+<span class="kw">pub trait </span>ExprWalker: Sized {
+    <span class="kw">fn </span>walk(<span class="kw-2">&amp;mut </span><span class="self">self</span>, expr: <span class="kw-2">&amp;</span>Expr) {
+        default_walk_expr(<span class="self">self</span>, expr);
     }
 
-    <span class="kw">fn </span>walk_type(<span class="kw-2">&amp;mut </span><span class="self">self</span>, _typ: <span class="kw-2">&amp;</span><a href="common.rs.html#183">Type</a>) {}
-    <span class="kw">fn </span>walk_local_var(<span class="kw-2">&amp;mut </span><span class="self">self</span>, var: <span class="kw-2">&amp;</span><a href="common.rs.html#302">LocalVar</a>) {
-        <a class="self" href="#390">self</a>.<a href="#389">walk_type</a>(<span class="kw-2">&amp;</span><a href="#390">var</a>.typ);
+    <span class="kw">fn </span>walk_type(<span class="kw-2">&amp;mut </span><span class="self">self</span>, _typ: <span class="kw-2">&amp;</span>Type) {}
+    <span class="kw">fn </span>walk_local_var(<span class="kw-2">&amp;mut </span><span class="self">self</span>, var: <span class="kw-2">&amp;</span>LocalVar) {
+        <span class="self">self</span>.walk_type(<span class="kw-2">&amp;</span>var.typ);
     }
 
-    <span class="kw">fn </span>walk_local(<span class="kw-2">&amp;mut </span><span class="self">self</span>, var: <span class="kw-2">&amp;</span><a href="common.rs.html#302">LocalVar</a>, pos: <span class="kw-2">&amp;</span><a href="common.rs.html#19">Position</a>) {
-        <a class="self" href="#394">self</a>.<a href="#390">walk_local_var</a>(<a href="#394">var</a>);
-        <a class="self" href="#394">self</a>.<a href="#609">walk_position</a>(<a href="#394">pos</a>);
+    <span class="kw">fn </span>walk_local(<span class="kw-2">&amp;mut </span><span class="self">self</span>, var: <span class="kw-2">&amp;</span>LocalVar, pos: <span class="kw-2">&amp;</span>Position) {
+        <span class="self">self</span>.walk_local_var(var);
+        <span class="self">self</span>.walk_position(pos);
     }
-    <span class="kw">fn </span>walk_variant(<span class="kw-2">&amp;mut </span><span class="self">self</span>, base: <span class="kw-2">&amp;</span><a href="expr.rs.html#19">Expr</a>, variant: <span class="kw-2">&amp;</span><a href="common.rs.html#333">Field</a>, pos: <span class="kw-2">&amp;</span><a href="common.rs.html#19">Position</a>) {
-        <a class="self" href="#398">self</a>.<a href="#385">walk</a>(<a href="#398">base</a>);
-        <a class="self" href="#398">self</a>.<a href="#389">walk_type</a>(<span class="kw-2">&amp;</span><a href="#398">variant</a>.typ);
-        <a class="self" href="#398">self</a>.<a href="#609">walk_position</a>(<a href="#398">pos</a>);
+    <span class="kw">fn </span>walk_variant(<span class="kw-2">&amp;mut </span><span class="self">self</span>, base: <span class="kw-2">&amp;</span>Expr, variant: <span class="kw-2">&amp;</span>Field, pos: <span class="kw-2">&amp;</span>Position) {
+        <span class="self">self</span>.walk(base);
+        <span class="self">self</span>.walk_type(<span class="kw-2">&amp;</span>variant.typ);
+        <span class="self">self</span>.walk_position(pos);
     }
-    <span class="kw">fn </span>walk_field(<span class="kw-2">&amp;mut </span><span class="self">self</span>, receiver: <span class="kw-2">&amp;</span><a href="expr.rs.html#19">Expr</a>, field: <span class="kw-2">&amp;</span><a href="common.rs.html#333">Field</a>, pos: <span class="kw-2">&amp;</span><a href="common.rs.html#19">Position</a>) {
-        <a class="self" href="#403">self</a>.<a href="#385">walk</a>(<a href="#403">receiver</a>);
-        <a class="self" href="#403">self</a>.<a href="#389">walk_type</a>(<span class="kw-2">&amp;</span><a href="#403">field</a>.typ);
-        <a class="self" href="#403">self</a>.<a href="#609">walk_position</a>(<a href="#403">pos</a>);
+    <span class="kw">fn </span>walk_field(<span class="kw-2">&amp;mut </span><span class="self">self</span>, receiver: <span class="kw-2">&amp;</span>Expr, field: <span class="kw-2">&amp;</span>Field, pos: <span class="kw-2">&amp;</span>Position) {
+        <span class="self">self</span>.walk(receiver);
+        <span class="self">self</span>.walk_type(<span class="kw-2">&amp;</span>field.typ);
+        <span class="self">self</span>.walk_position(pos);
     }
-    <span class="kw">fn </span>walk_addr_of(<span class="kw-2">&amp;mut </span><span class="self">self</span>, receiver: <span class="kw-2">&amp;</span><a href="expr.rs.html#19">Expr</a>, typ: <span class="kw-2">&amp;</span><a href="common.rs.html#183">Type</a>, pos: <span class="kw-2">&amp;</span><a href="common.rs.html#19">Position</a>) {
-        <a class="self" href="#408">self</a>.<a href="#385">walk</a>(<a href="#408">receiver</a>);
-        <a class="self" href="#408">self</a>.<a href="#389">walk_type</a>(<a href="#408">typ</a>);
-        <a class="self" href="#408">self</a>.<a href="#609">walk_position</a>(<a href="#408">pos</a>);
+    <span class="kw">fn </span>walk_addr_of(<span class="kw-2">&amp;mut </span><span class="self">self</span>, receiver: <span class="kw-2">&amp;</span>Expr, typ: <span class="kw-2">&amp;</span>Type, pos: <span class="kw-2">&amp;</span>Position) {
+        <span class="self">self</span>.walk(receiver);
+        <span class="self">self</span>.walk_type(typ);
+        <span class="self">self</span>.walk_position(pos);
     }
-    <span class="kw">fn </span>walk_const(<span class="kw-2">&amp;mut </span><span class="self">self</span>, _const: <span class="kw-2">&amp;</span><a href="expr.rs.html#147">Const</a>, pos: <span class="kw-2">&amp;</span><a href="common.rs.html#19">Position</a>) {
-        <a class="self" href="#413">self</a>.<a href="#609">walk_position</a>(<a href="#413">pos</a>);
+    <span class="kw">fn </span>walk_const(<span class="kw-2">&amp;mut </span><span class="self">self</span>, _const: <span class="kw-2">&amp;</span>Const, pos: <span class="kw-2">&amp;</span>Position) {
+        <span class="self">self</span>.walk_position(pos);
     }
-    <span class="kw">fn </span>walk_labelled_old(<span class="kw-2">&amp;mut </span><span class="self">self</span>, _label: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, body: <span class="kw-2">&amp;</span><a href="expr.rs.html#19">Expr</a>, pos: <span class="kw-2">&amp;</span><a href="common.rs.html#19">Position</a>) {
-        <a class="self" href="#416">self</a>.<a href="#385">walk</a>(<a href="#416">body</a>);
-        <a class="self" href="#416">self</a>.<a href="#609">walk_position</a>(<a href="#416">pos</a>);
+    <span class="kw">fn </span>walk_labelled_old(<span class="kw-2">&amp;mut </span><span class="self">self</span>, _label: <span class="kw-2">&amp;</span>str, body: <span class="kw-2">&amp;</span>Expr, pos: <span class="kw-2">&amp;</span>Position) {
+        <span class="self">self</span>.walk(body);
+        <span class="self">self</span>.walk_position(pos);
     }
     <span class="kw">fn </span>walk_magic_wand(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        lhs: <span class="kw-2">&amp;</span><a href="expr.rs.html#19">Expr</a>,
-        rhs: <span class="kw-2">&amp;</span><a href="expr.rs.html#19">Expr</a>,
-        _borrow: <span class="kw-2">&amp;</span><span class="prelude-ty">Option</span>&lt;<a href="../borrows.rs.html#18">Borrow</a>&gt;,
-        pos: <span class="kw-2">&amp;</span><a href="common.rs.html#19">Position</a>,
+        lhs: <span class="kw-2">&amp;</span>Expr,
+        rhs: <span class="kw-2">&amp;</span>Expr,
+        _borrow: <span class="kw-2">&amp;</span><span class="prelude-ty">Option</span>&lt;Borrow&gt;,
+        pos: <span class="kw-2">&amp;</span>Position,
     ) {
-        <a class="self" href="#421">self</a>.<a href="#385">walk</a>(<a href="#422">lhs</a>);
-        <a class="self" href="#421">self</a>.<a href="#385">walk</a>(<a href="#423">rhs</a>);
-        <a class="self" href="#421">self</a>.<a href="#609">walk_position</a>(<a href="#425">pos</a>);
+        <span class="self">self</span>.walk(lhs);
+        <span class="self">self</span>.walk(rhs);
+        <span class="self">self</span>.walk_position(pos);
     }
     <span class="kw">fn </span>walk_predicate_access_predicate(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        _name: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>,
-        arg: <span class="kw-2">&amp;</span><a href="expr.rs.html#19">Expr</a>,
-        _perm_amount: <a href="common.rs.html#67">PermAmount</a>,
-        pos: <span class="kw-2">&amp;</span><a href="common.rs.html#19">Position</a>,
+        _name: <span class="kw-2">&amp;</span>str,
+        arg: <span class="kw-2">&amp;</span>Expr,
+        _perm_amount: PermAmount,
+        pos: <span class="kw-2">&amp;</span>Position,
     ) {
-        <a class="self" href="#432">self</a>.<a href="#385">walk</a>(<a href="#434">arg</a>);
-        <a class="self" href="#432">self</a>.<a href="#609">walk_position</a>(<a href="#436">pos</a>);
+        <span class="self">self</span>.walk(arg);
+        <span class="self">self</span>.walk_position(pos);
     }
     <span class="kw">fn </span>walk_field_access_predicate(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        receiver: <span class="kw-2">&amp;</span><a href="expr.rs.html#19">Expr</a>,
-        _perm_amount: <a href="common.rs.html#67">PermAmount</a>,
-        pos: <span class="kw-2">&amp;</span><a href="common.rs.html#19">Position</a>,
+        receiver: <span class="kw-2">&amp;</span>Expr,
+        _perm_amount: PermAmount,
+        pos: <span class="kw-2">&amp;</span>Position,
     ) {
-        <a class="self" href="#442">self</a>.<a href="#385">walk</a>(<a href="#443">receiver</a>);
-        <a class="self" href="#442">self</a>.<a href="#609">walk_position</a>(<a href="#445">pos</a>);
+        <span class="self">self</span>.walk(receiver);
+        <span class="self">self</span>.walk_position(pos);
     }
-    <span class="kw">fn </span>walk_unary_op(<span class="kw-2">&amp;mut </span><span class="self">self</span>, _op: <a href="expr.rs.html#88">UnaryOpKind</a>, arg: <span class="kw-2">&amp;</span><a href="expr.rs.html#19">Expr</a>, pos: <span class="kw-2">&amp;</span><a href="common.rs.html#19">Position</a>) {
-        <a class="self" href="#450">self</a>.<a href="#385">walk</a>(<a href="#450">arg</a>);
-        <a class="self" href="#450">self</a>.<a href="#609">walk_position</a>(<a href="#450">pos</a>);
+    <span class="kw">fn </span>walk_unary_op(<span class="kw-2">&amp;mut </span><span class="self">self</span>, _op: UnaryOpKind, arg: <span class="kw-2">&amp;</span>Expr, pos: <span class="kw-2">&amp;</span>Position) {
+        <span class="self">self</span>.walk(arg);
+        <span class="self">self</span>.walk_position(pos);
     }
-    <span class="kw">fn </span>walk_bin_op(<span class="kw-2">&amp;mut </span><span class="self">self</span>, _op: <a href="expr.rs.html#95">BinaryOpKind</a>, arg1: <span class="kw-2">&amp;</span><a href="expr.rs.html#19">Expr</a>, arg2: <span class="kw-2">&amp;</span><a href="expr.rs.html#19">Expr</a>, pos: <span class="kw-2">&amp;</span><a href="common.rs.html#19">Position</a>) {
-        <a class="self" href="#454">self</a>.<a href="#385">walk</a>(<a href="#454">arg1</a>);
-        <a class="self" href="#454">self</a>.<a href="#385">walk</a>(<a href="#454">arg2</a>);
-        <a class="self" href="#454">self</a>.<a href="#609">walk_position</a>(<a href="#454">pos</a>);
+    <span class="kw">fn </span>walk_bin_op(<span class="kw-2">&amp;mut </span><span class="self">self</span>, _op: BinaryOpKind, arg1: <span class="kw-2">&amp;</span>Expr, arg2: <span class="kw-2">&amp;</span>Expr, pos: <span class="kw-2">&amp;</span>Position) {
+        <span class="self">self</span>.walk(arg1);
+        <span class="self">self</span>.walk(arg2);
+        <span class="self">self</span>.walk_position(pos);
     }
     <span class="kw">fn </span>walk_unfolding(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        _name: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>,
-        args: <span class="kw-2">&amp;</span>[<a href="expr.rs.html#19">Expr</a>],
-        body: <span class="kw-2">&amp;</span><a href="expr.rs.html#19">Expr</a>,
-        _perm: <a href="common.rs.html#67">PermAmount</a>,
-        _variant: <span class="kw-2">&amp;</span><a href="predicate.rs.html#253">MaybeEnumVariantIndex</a>,
-        pos: <span class="kw-2">&amp;</span><a href="common.rs.html#19">Position</a>,
+        _name: <span class="kw-2">&amp;</span>str,
+        args: <span class="kw-2">&amp;</span>[Expr],
+        body: <span class="kw-2">&amp;</span>Expr,
+        _perm: PermAmount,
+        _variant: <span class="kw-2">&amp;</span>MaybeEnumVariantIndex,
+        pos: <span class="kw-2">&amp;</span>Position,
     ) {
         <span class="kw">for </span>arg <span class="kw">in </span>args {
             <span class="self">self</span>.walk(arg);
         }
-        <a class="self" href="#460">self</a>.<a href="#385">walk</a>(<a href="#463">body</a>);
-        <a class="self" href="#460">self</a>.<a href="#609">walk_position</a>(<a href="#466">pos</a>);
+        <span class="self">self</span>.walk(body);
+        <span class="self">self</span>.walk_position(pos);
     }
-    <span class="kw">fn </span>walk_cond(<span class="kw-2">&amp;mut </span><span class="self">self</span>, guard: <span class="kw-2">&amp;</span><a href="expr.rs.html#19">Expr</a>, then_expr: <span class="kw-2">&amp;</span><a href="expr.rs.html#19">Expr</a>, else_expr: <span class="kw-2">&amp;</span><a href="expr.rs.html#19">Expr</a>, pos: <span class="kw-2">&amp;</span><a href="common.rs.html#19">Position</a>) {
-        <a class="self" href="#474">self</a>.<a href="#385">walk</a>(<a href="#474">guard</a>);
-        <a class="self" href="#474">self</a>.<a href="#385">walk</a>(<a href="#474">then_expr</a>);
-        <a class="self" href="#474">self</a>.<a href="#385">walk</a>(<a href="#474">else_expr</a>);
-        <a class="self" href="#474">self</a>.<a href="#609">walk_position</a>(<a href="#474">pos</a>);
+    <span class="kw">fn </span>walk_cond(<span class="kw-2">&amp;mut </span><span class="self">self</span>, guard: <span class="kw-2">&amp;</span>Expr, then_expr: <span class="kw-2">&amp;</span>Expr, else_expr: <span class="kw-2">&amp;</span>Expr, pos: <span class="kw-2">&amp;</span>Position) {
+        <span class="self">self</span>.walk(guard);
+        <span class="self">self</span>.walk(then_expr);
+        <span class="self">self</span>.walk(else_expr);
+        <span class="self">self</span>.walk_position(pos);
     }
     <span class="kw">fn </span>walk_forall(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        vars: <span class="kw-2">&amp;</span>[<a href="common.rs.html#302">LocalVar</a>],
-        triggers: <span class="kw-2">&amp;</span>[<a href="trigger.rs.html#11">Trigger</a>],
-        body: <span class="kw-2">&amp;</span><a href="expr.rs.html#19">Expr</a>,
-        pos: <span class="kw-2">&amp;</span><a href="common.rs.html#19">Position</a>,
+        vars: <span class="kw-2">&amp;</span>[LocalVar],
+        triggers: <span class="kw-2">&amp;</span>[Trigger],
+        body: <span class="kw-2">&amp;</span>Expr,
+        pos: <span class="kw-2">&amp;</span>Position,
     ) {
         <span class="kw">for </span>set <span class="kw">in </span>triggers {
             <span class="kw">for </span>expr <span class="kw">in </span>set.elements() {
@@ -1497,15 +1497,15 @@
         <span class="kw">for </span>var <span class="kw">in </span>vars {
             <span class="self">self</span>.walk_local_var(var);
         }
-        <a class="self" href="#481">self</a>.<a href="#385">walk</a>(<a href="#484">body</a>);
-        <a class="self" href="#481">self</a>.<a href="#609">walk_position</a>(<a href="#485">pos</a>);
+        <span class="self">self</span>.walk(body);
+        <span class="self">self</span>.walk_position(pos);
     }
     <span class="kw">fn </span>walk_exists(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        vars: <span class="kw-2">&amp;</span>[<a href="common.rs.html#302">LocalVar</a>],
-        triggers: <span class="kw-2">&amp;</span>[<a href="trigger.rs.html#11">Trigger</a>],
-        body: <span class="kw-2">&amp;</span><a href="expr.rs.html#19">Expr</a>,
-        pos: <span class="kw-2">&amp;</span><a href="common.rs.html#19">Position</a>,
+        vars: <span class="kw-2">&amp;</span>[LocalVar],
+        triggers: <span class="kw-2">&amp;</span>[Trigger],
+        body: <span class="kw-2">&amp;</span>Expr,
+        pos: <span class="kw-2">&amp;</span>Position,
     ) {
         <span class="kw">for </span>set <span class="kw">in </span>triggers {
             <span class="kw">for </span>expr <span class="kw">in </span>set.elements() {
@@ -1515,22 +1515,22 @@
         <span class="kw">for </span>var <span class="kw">in </span>vars {
             <span class="self">self</span>.walk_local_var(var);
         }
-        <a class="self" href="#499">self</a>.<a href="#385">walk</a>(<a href="#502">body</a>);
-        <a class="self" href="#499">self</a>.<a href="#609">walk_position</a>(<a href="#503">pos</a>);
+        <span class="self">self</span>.walk(body);
+        <span class="self">self</span>.walk_position(pos);
     }
-    <span class="kw">fn </span>walk_let_expr(<span class="kw-2">&amp;mut </span><span class="self">self</span>, bound_var: <span class="kw-2">&amp;</span><a href="common.rs.html#302">LocalVar</a>, expr: <span class="kw-2">&amp;</span><a href="expr.rs.html#19">Expr</a>, body: <span class="kw-2">&amp;</span><a href="expr.rs.html#19">Expr</a>, pos: <span class="kw-2">&amp;</span><a href="common.rs.html#19">Position</a>) {
-        <a class="self" href="#516">self</a>.<a href="#390">walk_local_var</a>(<a href="#516">bound_var</a>);
-        <a class="self" href="#516">self</a>.<a href="#385">walk</a>(<a href="#516">expr</a>);
-        <a class="self" href="#516">self</a>.<a href="#385">walk</a>(<a href="#516">body</a>);
-        <a class="self" href="#516">self</a>.<a href="#609">walk_position</a>(<a href="#516">pos</a>);
+    <span class="kw">fn </span>walk_let_expr(<span class="kw-2">&amp;mut </span><span class="self">self</span>, bound_var: <span class="kw-2">&amp;</span>LocalVar, expr: <span class="kw-2">&amp;</span>Expr, body: <span class="kw-2">&amp;</span>Expr, pos: <span class="kw-2">&amp;</span>Position) {
+        <span class="self">self</span>.walk_local_var(bound_var);
+        <span class="self">self</span>.walk(expr);
+        <span class="self">self</span>.walk(body);
+        <span class="self">self</span>.walk_position(pos);
     }
     <span class="kw">fn </span>walk_func_app(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        _name: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>,
-        args: <span class="kw-2">&amp;</span>[<a href="expr.rs.html#19">Expr</a>],
-        formal_args: <span class="kw-2">&amp;</span>[<a href="common.rs.html#302">LocalVar</a>],
-        return_type: <span class="kw-2">&amp;</span><a href="common.rs.html#183">Type</a>,
-        pos: <span class="kw-2">&amp;</span><a href="common.rs.html#19">Position</a>,
+        _name: <span class="kw-2">&amp;</span>str,
+        args: <span class="kw-2">&amp;</span>[Expr],
+        formal_args: <span class="kw-2">&amp;</span>[LocalVar],
+        return_type: <span class="kw-2">&amp;</span>Type,
+        pos: <span class="kw-2">&amp;</span>Position,
     ) {
         <span class="kw">for </span>arg <span class="kw">in </span>args {
             <span class="self">self</span>.walk(arg)
@@ -1538,18 +1538,18 @@
         <span class="kw">for </span>arg <span class="kw">in </span>formal_args {
             <span class="self">self</span>.walk_local_var(arg);
         }
-        <a class="self" href="#523">self</a>.<a href="#389">walk_type</a>(<a href="#527">return_type</a>);
-        <a class="self" href="#523">self</a>.<a href="#609">walk_position</a>(<a href="#528">pos</a>);
+        <span class="self">self</span>.walk_type(return_type);
+        <span class="self">self</span>.walk_position(pos);
     }
-    <span class="kw">fn </span>walk_domain_func_app(<span class="kw-2">&amp;mut </span><span class="self">self</span>, func: <span class="kw-2">&amp;</span><a href="domain.rs.html#53">DomainFunc</a>, args: <span class="kw-2">&amp;</span>[<a href="expr.rs.html#19">Expr</a>], pos: <span class="kw-2">&amp;</span><a href="common.rs.html#19">Position</a>) {
+    <span class="kw">fn </span>walk_domain_func_app(<span class="kw-2">&amp;mut </span><span class="self">self</span>, func: <span class="kw-2">&amp;</span>DomainFunc, args: <span class="kw-2">&amp;</span>[Expr], pos: <span class="kw-2">&amp;</span>Position) {
         <span class="kw">for </span>arg <span class="kw">in </span>args {
             <span class="self">self</span>.walk(arg)
         }
         <span class="kw">for </span>arg <span class="kw">in </span><span class="kw-2">&amp;</span>func.formal_args {
             <span class="self">self</span>.walk_local_var(arg)
         }
-        <a class="self" href="#539">self</a>.<a href="#389">walk_type</a>(<span class="kw-2">&amp;</span><a href="#539">func</a>.return_type);
-        <a class="self" href="#539">self</a>.<a href="#609">walk_position</a>(<a href="#539">pos</a>);
+        <span class="self">self</span>.walk_type(<span class="kw-2">&amp;</span>func.return_type);
+        <span class="self">self</span>.walk_position(pos);
     }
     <span class="comment">/* TODO
     fn walk_domain_func_app(
@@ -1569,298 +1569,298 @@
         self.walk_position(pos);
     }
     */
-    </span><span class="kw">fn </span>walk_inhale_exhale(<span class="kw-2">&amp;mut </span><span class="self">self</span>, inhale_expr: <span class="kw-2">&amp;</span><a href="expr.rs.html#19">Expr</a>, exhale_expr: <span class="kw-2">&amp;</span><a href="expr.rs.html#19">Expr</a>, pos: <span class="kw-2">&amp;</span><a href="common.rs.html#19">Position</a>) {
-        <a class="self" href="#567">self</a>.<a href="#385">walk</a>(<a href="#567">inhale_expr</a>);
-        <a class="self" href="#567">self</a>.<a href="#385">walk</a>(<a href="#567">exhale_expr</a>);
-        <a class="self" href="#567">self</a>.<a href="#609">walk_position</a>(<a href="#567">pos</a>);
+    </span><span class="kw">fn </span>walk_inhale_exhale(<span class="kw-2">&amp;mut </span><span class="self">self</span>, inhale_expr: <span class="kw-2">&amp;</span>Expr, exhale_expr: <span class="kw-2">&amp;</span>Expr, pos: <span class="kw-2">&amp;</span>Position) {
+        <span class="self">self</span>.walk(inhale_expr);
+        <span class="self">self</span>.walk(exhale_expr);
+        <span class="self">self</span>.walk_position(pos);
     }
 
-    <span class="kw">fn </span>walk_downcast(<span class="kw-2">&amp;mut </span><span class="self">self</span>, base: <span class="kw-2">&amp;</span><a href="expr.rs.html#19">Expr</a>, enum_place: <span class="kw-2">&amp;</span><a href="expr.rs.html#19">Expr</a>, _field: <span class="kw-2">&amp;</span><a href="common.rs.html#333">Field</a>) {
-        <a class="self" href="#573">self</a>.<a href="#385">walk</a>(<a href="#573">base</a>);
-        <a class="self" href="#573">self</a>.<a href="#385">walk</a>(<a href="#573">enum_place</a>);
+    <span class="kw">fn </span>walk_downcast(<span class="kw-2">&amp;mut </span><span class="self">self</span>, base: <span class="kw-2">&amp;</span>Expr, enum_place: <span class="kw-2">&amp;</span>Expr, _field: <span class="kw-2">&amp;</span>Field) {
+        <span class="self">self</span>.walk(base);
+        <span class="self">self</span>.walk(enum_place);
     }
-    <span class="kw">fn </span>walk_snap_app(<span class="kw-2">&amp;mut </span><span class="self">self</span>, expr: <span class="kw-2">&amp;</span><a href="expr.rs.html#19">Expr</a>, pos: <span class="kw-2">&amp;</span><a href="common.rs.html#19">Position</a>) {
-        <a class="self" href="#577">self</a>.<a href="#385">walk</a>(<a href="#577">expr</a>);
-        <a class="self" href="#577">self</a>.<a href="#609">walk_position</a>(<a href="#577">pos</a>);
-    }
-
-    <span class="kw">fn </span>walk_container_op(<span class="kw-2">&amp;mut </span><span class="self">self</span>, _kind: <span class="kw-2">&amp;</span><a href="expr.rs.html#121">ContainerOpKind</a>, l: <span class="kw-2">&amp;</span><a href="expr.rs.html#19">Expr</a>, r: <span class="kw-2">&amp;</span><a href="expr.rs.html#19">Expr</a>, pos: <span class="kw-2">&amp;</span><a href="common.rs.html#19">Position</a>) {
-        <a class="self" href="#582">self</a>.<a href="#385">walk</a>(<a href="#582">l</a>);
-        <a class="self" href="#582">self</a>.<a href="#385">walk</a>(<a href="#582">r</a>);
-        <a class="self" href="#582">self</a>.<a href="#609">walk_position</a>(<a href="#582">pos</a>);
+    <span class="kw">fn </span>walk_snap_app(<span class="kw-2">&amp;mut </span><span class="self">self</span>, expr: <span class="kw-2">&amp;</span>Expr, pos: <span class="kw-2">&amp;</span>Position) {
+        <span class="self">self</span>.walk(expr);
+        <span class="self">self</span>.walk_position(pos);
     }
 
-    <span class="kw">fn </span>walk_seq(<span class="kw-2">&amp;mut </span><span class="self">self</span>, typ: <span class="kw-2">&amp;</span><a href="common.rs.html#183">Type</a>, elems: <span class="kw-2">&amp;</span>[<a href="expr.rs.html#19">Expr</a>], pos: <span class="kw-2">&amp;</span><a href="common.rs.html#19">Position</a>) {
+    <span class="kw">fn </span>walk_container_op(<span class="kw-2">&amp;mut </span><span class="self">self</span>, _kind: <span class="kw-2">&amp;</span>ContainerOpKind, l: <span class="kw-2">&amp;</span>Expr, r: <span class="kw-2">&amp;</span>Expr, pos: <span class="kw-2">&amp;</span>Position) {
+        <span class="self">self</span>.walk(l);
+        <span class="self">self</span>.walk(r);
+        <span class="self">self</span>.walk_position(pos);
+    }
+
+    <span class="kw">fn </span>walk_seq(<span class="kw-2">&amp;mut </span><span class="self">self</span>, typ: <span class="kw-2">&amp;</span>Type, elems: <span class="kw-2">&amp;</span>[Expr], pos: <span class="kw-2">&amp;</span>Position) {
         <span class="kw">for </span>elem <span class="kw">in </span>elems {
             <span class="self">self</span>.walk(elem);
         }
-        <a class="self" href="#588">self</a>.<a href="#389">walk_type</a>(<a href="#588">typ</a>);
-        <a class="self" href="#588">self</a>.<a href="#609">walk_position</a>(<a href="#588">pos</a>);
+        <span class="self">self</span>.walk_type(typ);
+        <span class="self">self</span>.walk_position(pos);
     }
 
-    <span class="kw">fn </span>walk_map(<span class="kw-2">&amp;mut </span><span class="self">self</span>, typ: <span class="kw-2">&amp;</span><a href="common.rs.html#183">Type</a>, elems: <span class="kw-2">&amp;</span>[<a href="expr.rs.html#19">Expr</a>], pos: <span class="kw-2">&amp;</span><a href="common.rs.html#19">Position</a>) {
+    <span class="kw">fn </span>walk_map(<span class="kw-2">&amp;mut </span><span class="self">self</span>, typ: <span class="kw-2">&amp;</span>Type, elems: <span class="kw-2">&amp;</span>[Expr], pos: <span class="kw-2">&amp;</span>Position) {
         <span class="kw">for </span>elem <span class="kw">in </span>elems {
             <span class="self">self</span>.walk(elem);
         }
-        <a class="self" href="#596">self</a>.<a href="#389">walk_type</a>(<a href="#596">typ</a>);
-        <a class="self" href="#596">self</a>.<a href="#609">walk_position</a>(<a href="#596">pos</a>);
+        <span class="self">self</span>.walk_type(typ);
+        <span class="self">self</span>.walk_position(pos);
     }
 
-    <span class="kw">fn </span>walk_cast(<span class="kw-2">&amp;mut </span><span class="self">self</span>, _kind: <span class="kw-2">&amp;</span><a href="expr.rs.html#129">CastKind</a>, base: <span class="kw-2">&amp;</span><a href="expr.rs.html#19">Expr</a>, pos: <span class="kw-2">&amp;</span><a href="common.rs.html#19">Position</a>) {
-        <a class="self" href="#604">self</a>.<a href="#385">walk</a>(<a href="#604">base</a>);
-        <a class="self" href="#604">self</a>.<a href="#609">walk_position</a>(<a href="#604">pos</a>);
+    <span class="kw">fn </span>walk_cast(<span class="kw-2">&amp;mut </span><span class="self">self</span>, _kind: <span class="kw-2">&amp;</span>CastKind, base: <span class="kw-2">&amp;</span>Expr, pos: <span class="kw-2">&amp;</span>Position) {
+        <span class="self">self</span>.walk(base);
+        <span class="self">self</span>.walk_position(pos);
     }
 
-    <span class="kw">fn </span>walk_position(<span class="kw-2">&amp;mut </span><span class="self">self</span>, _pos: <span class="kw-2">&amp;</span><a href="common.rs.html#19">Position</a>) {}
+    <span class="kw">fn </span>walk_position(<span class="kw-2">&amp;mut </span><span class="self">self</span>, _pos: <span class="kw-2">&amp;</span>Position) {}
 }
 
-<span class="kw">pub fn </span>default_walk_expr&lt;T: <a href="#384">ExprWalker</a>&gt;(this: <span class="kw-2">&amp;mut </span>T, e: <span class="kw-2">&amp;</span><a href="expr.rs.html#19">Expr</a>) {
-    <span class="kw">match </span><span class="kw-2">*</span><a href="#612">e</a> {
-        <a href="expr.rs.html#21">Expr::Local</a>(<span class="kw-2">ref </span>v, <span class="kw-2">ref </span>p) =&gt; <a href="#612">this</a>.<a href="#394">walk_local</a>(<a href="#614">v</a>, <a href="#614">p</a>),
-        <a href="expr.rs.html#23">Expr::Variant</a>(<span class="kw-2">ref </span>base, <span class="kw-2">ref </span>variant, <span class="kw-2">ref </span>p) =&gt; <a href="#612">this</a>.<a href="#398">walk_variant</a>(<a href="#615">base</a>, <a href="#615">variant</a>, <a href="#615">p</a>),
-        <a href="expr.rs.html#25">Expr::Field</a>(<span class="kw-2">ref </span>e, <span class="kw-2">ref </span>f, <span class="kw-2">ref </span>p) =&gt; <a href="#612">this</a>.<a href="#403">walk_field</a>(<a href="#616">e</a>, <a href="#616">f</a>, <a href="#616">p</a>),
-        <a href="expr.rs.html#27">Expr::AddrOf</a>(<span class="kw-2">ref </span>e, <span class="kw-2">ref </span>t, <span class="kw-2">ref </span>p) =&gt; <a href="#612">this</a>.<a href="#408">walk_addr_of</a>(<a href="#617">e</a>, <a href="#617">t</a>, <a href="#617">p</a>),
-        <a href="expr.rs.html#29">Expr::Const</a>(<span class="kw-2">ref </span>x, <span class="kw-2">ref </span>p) =&gt; <a href="#612">this</a>.<a href="#413">walk_const</a>(<a href="#618">x</a>, <a href="#618">p</a>),
-        <a href="expr.rs.html#28">Expr::LabelledOld</a>(<span class="kw-2">ref </span>x, <span class="kw-2">ref </span>y, <span class="kw-2">ref </span>p) =&gt; <a href="#612">this</a>.<a href="#416">walk_labelled_old</a>(<a href="#619">x</a>, <a href="#619">y</a>, <a href="#619">p</a>),
-        <a href="expr.rs.html#31">Expr::MagicWand</a>(<span class="kw-2">ref </span>x, <span class="kw-2">ref </span>y, <span class="kw-2">ref </span>b, <span class="kw-2">ref </span>p) =&gt; <a href="#612">this</a>.<a href="#420-426">walk_magic_wand</a>(<a href="#620">x</a>, <a href="#620">y</a>, <a href="#620">b</a>, <a href="#620">p</a>),
-        <a href="expr.rs.html#33">Expr::PredicateAccessPredicate</a>(<span class="kw-2">ref </span>x, <span class="kw-2">ref </span>y, z, <span class="kw-2">ref </span>p) =&gt; {
-            <a href="#612">this</a>.<a href="#431-437">walk_predicate_access_predicate</a>(<a href="#621">x</a>, <a href="#621">y</a>, <a href="#621">z</a>, <a href="#621">p</a>)
+<span class="kw">pub fn </span>default_walk_expr&lt;T: ExprWalker&gt;(this: <span class="kw-2">&amp;mut </span>T, e: <span class="kw-2">&amp;</span>Expr) {
+    <span class="kw">match </span><span class="kw-2">*</span>e {
+        Expr::Local(<span class="kw-2">ref </span>v, <span class="kw-2">ref </span>p) =&gt; this.walk_local(v, p),
+        Expr::Variant(<span class="kw-2">ref </span>base, <span class="kw-2">ref </span>variant, <span class="kw-2">ref </span>p) =&gt; this.walk_variant(base, variant, p),
+        Expr::Field(<span class="kw-2">ref </span>e, <span class="kw-2">ref </span>f, <span class="kw-2">ref </span>p) =&gt; this.walk_field(e, f, p),
+        Expr::AddrOf(<span class="kw-2">ref </span>e, <span class="kw-2">ref </span>t, <span class="kw-2">ref </span>p) =&gt; this.walk_addr_of(e, t, p),
+        Expr::Const(<span class="kw-2">ref </span>x, <span class="kw-2">ref </span>p) =&gt; this.walk_const(x, p),
+        Expr::LabelledOld(<span class="kw-2">ref </span>x, <span class="kw-2">ref </span>y, <span class="kw-2">ref </span>p) =&gt; this.walk_labelled_old(x, y, p),
+        Expr::MagicWand(<span class="kw-2">ref </span>x, <span class="kw-2">ref </span>y, <span class="kw-2">ref </span>b, <span class="kw-2">ref </span>p) =&gt; this.walk_magic_wand(x, y, b, p),
+        Expr::PredicateAccessPredicate(<span class="kw-2">ref </span>x, <span class="kw-2">ref </span>y, z, <span class="kw-2">ref </span>p) =&gt; {
+            this.walk_predicate_access_predicate(x, y, z, p)
         }
-        <a href="expr.rs.html#34">Expr::FieldAccessPredicate</a>(<span class="kw-2">ref </span>x, y, <span class="kw-2">ref </span>p) =&gt; <a href="#612">this</a>.<a href="#441-446">walk_field_access_predicate</a>(<a href="#624">x</a>, <a href="#624">y</a>, <a href="#624">p</a>),
-        <a href="expr.rs.html#35">Expr::UnaryOp</a>(x, <span class="kw-2">ref </span>y, <span class="kw-2">ref </span>p) =&gt; <a href="#612">this</a>.<a href="#450">walk_unary_op</a>(<a href="#625">x</a>, <a href="#625">y</a>, <a href="#625">p</a>),
-        <a href="expr.rs.html#36">Expr::BinOp</a>(x, <span class="kw-2">ref </span>y, <span class="kw-2">ref </span>z, <span class="kw-2">ref </span>p) =&gt; <a href="#612">this</a>.<a href="#454">walk_bin_op</a>(<a href="#626">x</a>, <a href="#626">y</a>, <a href="#626">z</a>, <a href="#626">p</a>),
-        <a href="expr.rs.html#44">Expr::Unfolding</a>(<span class="kw-2">ref </span>x, <span class="kw-2">ref </span>y, <span class="kw-2">ref </span>z, perm, <span class="kw-2">ref </span>variant, <span class="kw-2">ref </span>p) =&gt; {
-            <a href="#612">this</a>.<a href="#459-467">walk_unfolding</a>(<a href="#627">x</a>, <a href="#627">y</a>, <a href="#627">z</a>, <a href="#627">perm</a>, <a href="#627">variant</a>, <a href="#627">p</a>)
+        Expr::FieldAccessPredicate(<span class="kw-2">ref </span>x, y, <span class="kw-2">ref </span>p) =&gt; this.walk_field_access_predicate(x, y, p),
+        Expr::UnaryOp(x, <span class="kw-2">ref </span>y, <span class="kw-2">ref </span>p) =&gt; this.walk_unary_op(x, y, p),
+        Expr::BinOp(x, <span class="kw-2">ref </span>y, <span class="kw-2">ref </span>z, <span class="kw-2">ref </span>p) =&gt; this.walk_bin_op(x, y, z, p),
+        Expr::Unfolding(<span class="kw-2">ref </span>x, <span class="kw-2">ref </span>y, <span class="kw-2">ref </span>z, perm, <span class="kw-2">ref </span>variant, <span class="kw-2">ref </span>p) =&gt; {
+            this.walk_unfolding(x, y, z, perm, variant, p)
         }
-        <a href="expr.rs.html#53">Expr::Cond</a>(<span class="kw-2">ref </span>x, <span class="kw-2">ref </span>y, <span class="kw-2">ref </span>z, <span class="kw-2">ref </span>p) =&gt; <a href="#612">this</a>.<a href="#474">walk_cond</a>(<a href="#630">x</a>, <a href="#630">y</a>, <a href="#630">z</a>, <a href="#630">p</a>),
-        <a href="expr.rs.html#55">Expr::ForAll</a>(<span class="kw-2">ref </span>x, <span class="kw-2">ref </span>y, <span class="kw-2">ref </span>z, <span class="kw-2">ref </span>p) =&gt; <a href="#612">this</a>.<a href="#480-486">walk_forall</a>(<a href="#631">x</a>, <a href="#631">y</a>, <a href="#631">z</a>, <a href="#631">p</a>),
-        <a href="expr.rs.html#57">Expr::Exists</a>(<span class="kw-2">ref </span>x, <span class="kw-2">ref </span>y, <span class="kw-2">ref </span>z, <span class="kw-2">ref </span>p) =&gt; <a href="#612">this</a>.<a href="#498-504">walk_exists</a>(<a href="#632">x</a>, <a href="#632">y</a>, <a href="#632">z</a>, <a href="#632">p</a>),
-        <a href="expr.rs.html#59">Expr::LetExpr</a>(<span class="kw-2">ref </span>x, <span class="kw-2">ref </span>y, <span class="kw-2">ref </span>z, <span class="kw-2">ref </span>p) =&gt; <a href="#612">this</a>.<a href="#516">walk_let_expr</a>(<a href="#633">x</a>, <a href="#633">y</a>, <a href="#633">z</a>, <a href="#633">p</a>),
-        <a href="expr.rs.html#61">Expr::FuncApp</a>(<span class="kw-2">ref </span>x, <span class="kw-2">ref </span>y, <span class="kw-2">ref </span>z, <span class="kw-2">ref </span>k, <span class="kw-2">ref </span>p) =&gt; <a href="#612">this</a>.<a href="#522-529">walk_func_app</a>(<a href="#634">x</a>, <a href="#634">y</a>, <a href="#634">z</a>, <a href="#634">k</a>, <a href="#634">p</a>),
-        <a href="expr.rs.html#63">Expr::DomainFuncApp</a>(<span class="kw-2">ref </span>x, <span class="kw-2">ref </span>y, <span class="kw-2">ref </span>p) =&gt; <a href="#612">this</a>.<a href="#539">walk_domain_func_app</a>(<a href="#635">x</a>, <a href="#635">y</a>, <a href="#635">p</a>),
+        Expr::Cond(<span class="kw-2">ref </span>x, <span class="kw-2">ref </span>y, <span class="kw-2">ref </span>z, <span class="kw-2">ref </span>p) =&gt; this.walk_cond(x, y, z, p),
+        Expr::ForAll(<span class="kw-2">ref </span>x, <span class="kw-2">ref </span>y, <span class="kw-2">ref </span>z, <span class="kw-2">ref </span>p) =&gt; this.walk_forall(x, y, z, p),
+        Expr::Exists(<span class="kw-2">ref </span>x, <span class="kw-2">ref </span>y, <span class="kw-2">ref </span>z, <span class="kw-2">ref </span>p) =&gt; this.walk_exists(x, y, z, p),
+        Expr::LetExpr(<span class="kw-2">ref </span>x, <span class="kw-2">ref </span>y, <span class="kw-2">ref </span>z, <span class="kw-2">ref </span>p) =&gt; this.walk_let_expr(x, y, z, p),
+        Expr::FuncApp(<span class="kw-2">ref </span>x, <span class="kw-2">ref </span>y, <span class="kw-2">ref </span>z, <span class="kw-2">ref </span>k, <span class="kw-2">ref </span>p) =&gt; this.walk_func_app(x, y, z, k, p),
+        Expr::DomainFuncApp(<span class="kw-2">ref </span>x, <span class="kw-2">ref </span>y, <span class="kw-2">ref </span>p) =&gt; this.walk_domain_func_app(x, y, p),
         <span class="comment">// TODO Expr::DomainFuncApp(ref u, ref v, ref w, ref x, ref y,ref p) =&gt; this.walk_domain_func_app(u, v, w, x,y,p),
-        </span><a href="expr.rs.html#67">Expr::InhaleExhale</a>(<span class="kw-2">ref </span>x, <span class="kw-2">ref </span>y, <span class="kw-2">ref </span>p) =&gt; <a href="#612">this</a>.<a href="#567">walk_inhale_exhale</a>(<a href="#637">x</a>, <a href="#637">y</a>, <a href="#637">p</a>),
-        <a href="expr.rs.html#74">Expr::Downcast</a>(<span class="kw-2">ref </span>b, <span class="kw-2">ref </span>p, <span class="kw-2">ref </span>f) =&gt; <a href="#612">this</a>.<a href="#573">walk_downcast</a>(<a href="#638">b</a>, <a href="#638">p</a>, <a href="#638">f</a>),
-        <a href="expr.rs.html#76">Expr::SnapApp</a>(<span class="kw-2">ref </span>e, <span class="kw-2">ref </span>p) =&gt; <a href="#612">this</a>.<a href="#577">walk_snap_app</a>(<a href="#639">e</a>, <a href="#639">p</a>),
-        <a href="expr.rs.html#38">Expr::ContainerOp</a>(<span class="kw-2">ref </span>kind, <span class="kw-2">ref </span>l, <span class="kw-2">ref </span>r, <span class="kw-2">ref </span>p) =&gt; <a href="#612">this</a>.<a href="#582">walk_container_op</a>(<a href="#640">kind</a>, <a href="#640">l</a>, <a href="#640">r</a>, <a href="#640">p</a>),
-        <a href="expr.rs.html#40">Expr::Seq</a>(<span class="kw-2">ref </span>ty, <span class="kw-2">ref </span>elems, <span class="kw-2">ref </span>p) =&gt; <a href="#612">this</a>.<a href="#588">walk_seq</a>(<a href="#641">ty</a>, <a href="#641">elems</a>, <a href="#641">p</a>),
-        <a href="expr.rs.html#42">Expr::Map</a>(<span class="kw-2">ref </span>ty, <span class="kw-2">ref </span>elems, <span class="kw-2">ref </span>p) =&gt; <a href="#612">this</a>.<a href="#596">walk_map</a>(<a href="#642">ty</a>, <a href="#642">elems</a>, <a href="#642">p</a>),
-        <a href="expr.rs.html#77">Expr::Cast</a>(<span class="kw-2">ref </span>kind, <span class="kw-2">ref </span>base, <span class="kw-2">ref </span>p) =&gt; <a href="#612">this</a>.<a href="#604">walk_cast</a>(<a href="#643">kind</a>, <a href="#643">base</a>, <a href="#643">p</a>),
+        </span>Expr::InhaleExhale(<span class="kw-2">ref </span>x, <span class="kw-2">ref </span>y, <span class="kw-2">ref </span>p) =&gt; this.walk_inhale_exhale(x, y, p),
+        Expr::Downcast(<span class="kw-2">ref </span>b, <span class="kw-2">ref </span>p, <span class="kw-2">ref </span>f) =&gt; this.walk_downcast(b, p, f),
+        Expr::SnapApp(<span class="kw-2">ref </span>e, <span class="kw-2">ref </span>p) =&gt; this.walk_snap_app(e, p),
+        Expr::ContainerOp(<span class="kw-2">ref </span>kind, <span class="kw-2">ref </span>l, <span class="kw-2">ref </span>r, <span class="kw-2">ref </span>p) =&gt; this.walk_container_op(kind, l, r, p),
+        Expr::Seq(<span class="kw-2">ref </span>ty, <span class="kw-2">ref </span>elems, <span class="kw-2">ref </span>p) =&gt; this.walk_seq(ty, elems, p),
+        Expr::Map(<span class="kw-2">ref </span>ty, <span class="kw-2">ref </span>elems, <span class="kw-2">ref </span>p) =&gt; this.walk_map(ty, elems, p),
+        Expr::Cast(<span class="kw-2">ref </span>kind, <span class="kw-2">ref </span>base, <span class="kw-2">ref </span>p) =&gt; this.walk_cast(kind, base, p),
     }
 }
 
-<span class="kw">pub trait </span>FallibleExprFolder: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> {
+<span class="kw">pub trait </span>FallibleExprFolder: Sized {
     <span class="kw">type </span>Error;
 
-    <span class="kw">fn </span>fallible_fold(<span class="kw-2">&amp;mut </span><span class="self">self</span>, e: <a href="expr.rs.html#19">Expr</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="expr.rs.html#19">Expr</a>, <span class="self">Self</span>::Error&gt; {
-        <a href="#969-972">default_fallible_fold_expr</a>(<a class="self" href="#650">self</a>, <a href="#650">e</a>)
+    <span class="kw">fn </span>fallible_fold(<span class="kw-2">&amp;mut </span><span class="self">self</span>, e: Expr) -&gt; <span class="prelude-ty">Result</span>&lt;Expr, <span class="self">Self</span>::Error&gt; {
+        default_fallible_fold_expr(<span class="self">self</span>, e)
     }
 
     <span class="attr">#[allow(clippy::boxed_local)]
-    </span><span class="kw">fn </span>fallible_fold_boxed(<span class="kw-2">&amp;mut </span><span class="self">self</span>, e: Box&lt;<a href="expr.rs.html#19">Expr</a>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;Box&lt;<a href="expr.rs.html#19">Expr</a>&gt;, <span class="self">Self</span>::Error&gt; {
+    </span><span class="kw">fn </span>fallible_fold_boxed(<span class="kw-2">&amp;mut </span><span class="self">self</span>, e: Box&lt;Expr&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;Box&lt;Expr&gt;, <span class="self">Self</span>::Error&gt; {
         <span class="prelude-val">Ok</span>(<span class="kw">box </span><span class="self">self</span>.fallible_fold(<span class="kw-2">*</span>e)<span class="question-mark">?</span>)
     }
 
-    <span class="kw">fn </span>fallible_fold_local(<span class="kw-2">&amp;mut </span><span class="self">self</span>, v: <a href="common.rs.html#302">LocalVar</a>, p: <a href="common.rs.html#19">Position</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="expr.rs.html#19">Expr</a>, <span class="self">Self</span>::Error&gt; {
-        <span class="prelude-val">Ok</span>(<a href="expr.rs.html#21">Expr::Local</a>(<a href="#659">v</a>, <a href="#659">p</a>))
+    <span class="kw">fn </span>fallible_fold_local(<span class="kw-2">&amp;mut </span><span class="self">self</span>, v: LocalVar, p: Position) -&gt; <span class="prelude-ty">Result</span>&lt;Expr, <span class="self">Self</span>::Error&gt; {
+        <span class="prelude-val">Ok</span>(Expr::Local(v, p))
     }
     <span class="kw">fn </span>fallible_fold_variant(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        base: Box&lt;<a href="expr.rs.html#19">Expr</a>&gt;,
-        variant: <a href="common.rs.html#333">Field</a>,
-        p: <a href="common.rs.html#19">Position</a>,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="expr.rs.html#19">Expr</a>, <span class="self">Self</span>::Error&gt; {
-        <span class="prelude-val">Ok</span>(<a href="expr.rs.html#23">Expr::Variant</a>(<span class="self">self</span>.fallible_fold_boxed(base)<span class="question-mark">?</span>, <a href="#665">variant</a>, <a href="#666">p</a>))
+        base: Box&lt;Expr&gt;,
+        variant: Field,
+        p: Position,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;Expr, <span class="self">Self</span>::Error&gt; {
+        <span class="prelude-val">Ok</span>(Expr::Variant(<span class="self">self</span>.fallible_fold_boxed(base)<span class="question-mark">?</span>, variant, p))
     }
     <span class="kw">fn </span>fallible_fold_field(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        receiver: Box&lt;<a href="expr.rs.html#19">Expr</a>&gt;,
-        field: <a href="common.rs.html#333">Field</a>,
-        pos: <a href="common.rs.html#19">Position</a>,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="expr.rs.html#19">Expr</a>, <span class="self">Self</span>::Error&gt; {
-        <span class="prelude-val">Ok</span>(<a href="expr.rs.html#25">Expr::Field</a>(<span class="self">self</span>.fallible_fold_boxed(receiver)<span class="question-mark">?</span>, <a href="#673">field</a>, <a href="#674">pos</a>))
+        receiver: Box&lt;Expr&gt;,
+        field: Field,
+        pos: Position,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;Expr, <span class="self">Self</span>::Error&gt; {
+        <span class="prelude-val">Ok</span>(Expr::Field(<span class="self">self</span>.fallible_fold_boxed(receiver)<span class="question-mark">?</span>, field, pos))
     }
     <span class="kw">fn </span>fallible_fold_addr_of(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        e: Box&lt;<a href="expr.rs.html#19">Expr</a>&gt;,
-        t: <a href="common.rs.html#183">Type</a>,
-        p: <a href="common.rs.html#19">Position</a>,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="expr.rs.html#19">Expr</a>, <span class="self">Self</span>::Error&gt; {
-        <span class="prelude-val">Ok</span>(<a href="expr.rs.html#27">Expr::AddrOf</a>(<span class="self">self</span>.fallible_fold_boxed(e)<span class="question-mark">?</span>, <a href="#681">t</a>, <a href="#682">p</a>))
+        e: Box&lt;Expr&gt;,
+        t: Type,
+        p: Position,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;Expr, <span class="self">Self</span>::Error&gt; {
+        <span class="prelude-val">Ok</span>(Expr::AddrOf(<span class="self">self</span>.fallible_fold_boxed(e)<span class="question-mark">?</span>, t, p))
     }
-    <span class="kw">fn </span>fallible_fold_const(<span class="kw-2">&amp;mut </span><span class="self">self</span>, x: <a href="expr.rs.html#147">Const</a>, p: <a href="common.rs.html#19">Position</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="expr.rs.html#19">Expr</a>, <span class="self">Self</span>::Error&gt; {
-        <span class="prelude-val">Ok</span>(<a href="expr.rs.html#29">Expr::Const</a>(<a href="#686">x</a>, <a href="#686">p</a>))
+    <span class="kw">fn </span>fallible_fold_const(<span class="kw-2">&amp;mut </span><span class="self">self</span>, x: Const, p: Position) -&gt; <span class="prelude-ty">Result</span>&lt;Expr, <span class="self">Self</span>::Error&gt; {
+        <span class="prelude-val">Ok</span>(Expr::Const(x, p))
     }
     <span class="kw">fn </span>fallible_fold_labelled_old(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        label: <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>,
-        body: Box&lt;<a href="expr.rs.html#19">Expr</a>&gt;,
-        pos: <a href="common.rs.html#19">Position</a>,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="expr.rs.html#19">Expr</a>, <span class="self">Self</span>::Error&gt; {
-        <span class="prelude-val">Ok</span>(<a href="expr.rs.html#28">Expr::LabelledOld</a>(
-            <a href="#691">label</a>,
+        label: String,
+        body: Box&lt;Expr&gt;,
+        pos: Position,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;Expr, <span class="self">Self</span>::Error&gt; {
+        <span class="prelude-val">Ok</span>(Expr::LabelledOld(
+            label,
             <span class="self">self</span>.fallible_fold_boxed(body)<span class="question-mark">?</span>,
-            <a href="#693">pos</a>,
+            pos,
         ))
     }
     <span class="kw">fn </span>fallible_fold_magic_wand(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        lhs: Box&lt;<a href="expr.rs.html#19">Expr</a>&gt;,
-        rhs: Box&lt;<a href="expr.rs.html#19">Expr</a>&gt;,
-        borrow: <span class="prelude-ty">Option</span>&lt;<a href="../borrows.rs.html#18">Borrow</a>&gt;,
-        pos: <a href="common.rs.html#19">Position</a>,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="expr.rs.html#19">Expr</a>, <span class="self">Self</span>::Error&gt; {
-        <span class="prelude-val">Ok</span>(<a href="expr.rs.html#31">Expr::MagicWand</a>(
+        lhs: Box&lt;Expr&gt;,
+        rhs: Box&lt;Expr&gt;,
+        borrow: <span class="prelude-ty">Option</span>&lt;Borrow&gt;,
+        pos: Position,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;Expr, <span class="self">Self</span>::Error&gt; {
+        <span class="prelude-val">Ok</span>(Expr::MagicWand(
             <span class="self">self</span>.fallible_fold_boxed(lhs)<span class="question-mark">?</span>,
             <span class="self">self</span>.fallible_fold_boxed(rhs)<span class="question-mark">?</span>,
-            <a href="#705">borrow</a>,
-            <a href="#706">pos</a>,
+            borrow,
+            pos,
         ))
     }
     <span class="kw">fn </span>fallible_fold_predicate_access_predicate(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        name: <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>,
-        arg: Box&lt;<a href="expr.rs.html#19">Expr</a>&gt;,
-        perm_amount: <a href="common.rs.html#67">PermAmount</a>,
-        pos: <a href="common.rs.html#19">Position</a>,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="expr.rs.html#19">Expr</a>, <span class="self">Self</span>::Error&gt; {
-        <span class="prelude-val">Ok</span>(<a href="expr.rs.html#33">Expr::PredicateAccessPredicate</a>(
-            <a href="#717">name</a>,
+        name: String,
+        arg: Box&lt;Expr&gt;,
+        perm_amount: PermAmount,
+        pos: Position,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;Expr, <span class="self">Self</span>::Error&gt; {
+        <span class="prelude-val">Ok</span>(Expr::PredicateAccessPredicate(
+            name,
             <span class="self">self</span>.fallible_fold_boxed(arg)<span class="question-mark">?</span>,
-            <a href="#719">perm_amount</a>,
-            <a href="#720">pos</a>,
+            perm_amount,
+            pos,
         ))
     }
     <span class="kw">fn </span>fallible_fold_field_access_predicate(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        receiver: Box&lt;<a href="expr.rs.html#19">Expr</a>&gt;,
-        perm_amount: <a href="common.rs.html#67">PermAmount</a>,
-        pos: <a href="common.rs.html#19">Position</a>,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="expr.rs.html#19">Expr</a>, <span class="self">Self</span>::Error&gt; {
-        <span class="prelude-val">Ok</span>(<a href="expr.rs.html#34">Expr::FieldAccessPredicate</a>(
+        receiver: Box&lt;Expr&gt;,
+        perm_amount: PermAmount,
+        pos: Position,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;Expr, <span class="self">Self</span>::Error&gt; {
+        <span class="prelude-val">Ok</span>(Expr::FieldAccessPredicate(
             <span class="self">self</span>.fallible_fold_boxed(receiver)<span class="question-mark">?</span>,
-            <a href="#732">perm_amount</a>,
-            <a href="#733">pos</a>,
+            perm_amount,
+            pos,
         ))
     }
     <span class="kw">fn </span>fallible_fold_unary_op(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        x: <a href="expr.rs.html#88">UnaryOpKind</a>,
-        y: Box&lt;<a href="expr.rs.html#19">Expr</a>&gt;,
-        p: <a href="common.rs.html#19">Position</a>,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="expr.rs.html#19">Expr</a>, <span class="self">Self</span>::Error&gt; {
-        <span class="prelude-val">Ok</span>(<a href="expr.rs.html#35">Expr::UnaryOp</a>(<a href="#743">x</a>, <span class="self">self</span>.fallible_fold_boxed(y)<span class="question-mark">?</span>, <a href="#745">p</a>))
+        x: UnaryOpKind,
+        y: Box&lt;Expr&gt;,
+        p: Position,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;Expr, <span class="self">Self</span>::Error&gt; {
+        <span class="prelude-val">Ok</span>(Expr::UnaryOp(x, <span class="self">self</span>.fallible_fold_boxed(y)<span class="question-mark">?</span>, p))
     }
     <span class="kw">fn </span>fallible_fold_bin_op(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        kind: <a href="expr.rs.html#95">BinaryOpKind</a>,
-        first: Box&lt;<a href="expr.rs.html#19">Expr</a>&gt;,
-        second: Box&lt;<a href="expr.rs.html#19">Expr</a>&gt;,
-        pos: <a href="common.rs.html#19">Position</a>,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="expr.rs.html#19">Expr</a>, <span class="self">Self</span>::Error&gt; {
-        <span class="prelude-val">Ok</span>(<a href="expr.rs.html#36">Expr::BinOp</a>(
-            <a href="#751">kind</a>,
+        kind: BinaryOpKind,
+        first: Box&lt;Expr&gt;,
+        second: Box&lt;Expr&gt;,
+        pos: Position,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;Expr, <span class="self">Self</span>::Error&gt; {
+        <span class="prelude-val">Ok</span>(Expr::BinOp(
+            kind,
             <span class="self">self</span>.fallible_fold_boxed(first)<span class="question-mark">?</span>,
             <span class="self">self</span>.fallible_fold_boxed(second)<span class="question-mark">?</span>,
-            <a href="#754">pos</a>,
+            pos,
         ))
     }
     <span class="kw">fn </span>fallible_fold_unfolding(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        name: <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>,
-        args: Vec&lt;<a href="expr.rs.html#19">Expr</a>&gt;,
-        expr: Box&lt;<a href="expr.rs.html#19">Expr</a>&gt;,
-        perm: <a href="common.rs.html#67">PermAmount</a>,
-        variant: <a href="predicate.rs.html#253">MaybeEnumVariantIndex</a>,
-        pos: <a href="common.rs.html#19">Position</a>,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="expr.rs.html#19">Expr</a>, <span class="self">Self</span>::Error&gt; {
-        <span class="prelude-val">Ok</span>(<a href="expr.rs.html#44">Expr::Unfolding</a>(
-            <a href="#765">name</a>,
+        name: String,
+        args: Vec&lt;Expr&gt;,
+        expr: Box&lt;Expr&gt;,
+        perm: PermAmount,
+        variant: MaybeEnumVariantIndex,
+        pos: Position,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;Expr, <span class="self">Self</span>::Error&gt; {
+        <span class="prelude-val">Ok</span>(Expr::Unfolding(
+            name,
             args.into_iter()
                 .map(|e| <span class="self">self</span>.fallible_fold(e))
                 .collect::&lt;<span class="prelude-ty">Result</span>&lt;Vec&lt;<span class="kw">_</span>&gt;, <span class="self">Self</span>::Error&gt;&gt;()<span class="question-mark">?</span>,
             <span class="self">self</span>.fallible_fold_boxed(expr)<span class="question-mark">?</span>,
-            <a href="#768">perm</a>,
-            <a href="#769">variant</a>,
-            <a href="#770">pos</a>,
+            perm,
+            variant,
+            pos,
         ))
     }
     <span class="kw">fn </span>fallible_fold_cond(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        guard: Box&lt;<a href="expr.rs.html#19">Expr</a>&gt;,
-        then_expr: Box&lt;<a href="expr.rs.html#19">Expr</a>&gt;,
-        else_expr: Box&lt;<a href="expr.rs.html#19">Expr</a>&gt;,
-        pos: <a href="common.rs.html#19">Position</a>,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="expr.rs.html#19">Expr</a>, <span class="self">Self</span>::Error&gt; {
-        <span class="prelude-val">Ok</span>(<a href="expr.rs.html#53">Expr::Cond</a>(
+        guard: Box&lt;Expr&gt;,
+        then_expr: Box&lt;Expr&gt;,
+        else_expr: Box&lt;Expr&gt;,
+        pos: Position,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;Expr, <span class="self">Self</span>::Error&gt; {
+        <span class="prelude-val">Ok</span>(Expr::Cond(
             <span class="self">self</span>.fallible_fold_boxed(guard)<span class="question-mark">?</span>,
             <span class="self">self</span>.fallible_fold_boxed(then_expr)<span class="question-mark">?</span>,
             <span class="self">self</span>.fallible_fold_boxed(else_expr)<span class="question-mark">?</span>,
-            <a href="#788">pos</a>,
+            pos,
         ))
     }
     <span class="kw">fn </span>fallible_fold_forall(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        x: Vec&lt;<a href="common.rs.html#302">LocalVar</a>&gt;,
-        y: Vec&lt;<a href="trigger.rs.html#11">Trigger</a>&gt;,
-        z: Box&lt;<a href="expr.rs.html#19">Expr</a>&gt;,
-        p: <a href="common.rs.html#19">Position</a>,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="expr.rs.html#19">Expr</a>, <span class="self">Self</span>::Error&gt; {
-        <span class="prelude-val">Ok</span>(<a href="expr.rs.html#55">Expr::ForAll</a>(<a href="#799">x</a>, <a href="#800">y</a>, <span class="self">self</span>.fallible_fold_boxed(z)<span class="question-mark">?</span>, <a href="#802">p</a>))
+        x: Vec&lt;LocalVar&gt;,
+        y: Vec&lt;Trigger&gt;,
+        z: Box&lt;Expr&gt;,
+        p: Position,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;Expr, <span class="self">Self</span>::Error&gt; {
+        <span class="prelude-val">Ok</span>(Expr::ForAll(x, y, <span class="self">self</span>.fallible_fold_boxed(z)<span class="question-mark">?</span>, p))
     }
     <span class="kw">fn </span>fallible_fold_exists(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        x: Vec&lt;<a href="common.rs.html#302">LocalVar</a>&gt;,
-        y: Vec&lt;<a href="trigger.rs.html#11">Trigger</a>&gt;,
-        z: Box&lt;<a href="expr.rs.html#19">Expr</a>&gt;,
-        p: <a href="common.rs.html#19">Position</a>,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="expr.rs.html#19">Expr</a>, <span class="self">Self</span>::Error&gt; {
-        <span class="prelude-val">Ok</span>(<a href="expr.rs.html#57">Expr::Exists</a>(<a href="#808">x</a>, <a href="#809">y</a>, <span class="self">self</span>.fallible_fold_boxed(z)<span class="question-mark">?</span>, <a href="#811">p</a>))
+        x: Vec&lt;LocalVar&gt;,
+        y: Vec&lt;Trigger&gt;,
+        z: Box&lt;Expr&gt;,
+        p: Position,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;Expr, <span class="self">Self</span>::Error&gt; {
+        <span class="prelude-val">Ok</span>(Expr::Exists(x, y, <span class="self">self</span>.fallible_fold_boxed(z)<span class="question-mark">?</span>, p))
     }
     <span class="kw">fn </span>fallible_fold_let_expr(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        var: <a href="common.rs.html#302">LocalVar</a>,
-        expr: Box&lt;<a href="expr.rs.html#19">Expr</a>&gt;,
-        body: Box&lt;<a href="expr.rs.html#19">Expr</a>&gt;,
-        pos: <a href="common.rs.html#19">Position</a>,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="expr.rs.html#19">Expr</a>, <span class="self">Self</span>::Error&gt; {
-        <span class="prelude-val">Ok</span>(<a href="expr.rs.html#59">Expr::LetExpr</a>(
-            <a href="#817">var</a>,
+        var: LocalVar,
+        expr: Box&lt;Expr&gt;,
+        body: Box&lt;Expr&gt;,
+        pos: Position,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;Expr, <span class="self">Self</span>::Error&gt; {
+        <span class="prelude-val">Ok</span>(Expr::LetExpr(
+            var,
             <span class="self">self</span>.fallible_fold_boxed(expr)<span class="question-mark">?</span>,
             <span class="self">self</span>.fallible_fold_boxed(body)<span class="question-mark">?</span>,
-            <a href="#820">pos</a>,
+            pos,
         ))
     }
     <span class="kw">fn </span>fallible_fold_func_app(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        name: <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>,
-        args: Vec&lt;<a href="expr.rs.html#19">Expr</a>&gt;,
-        formal_args: Vec&lt;<a href="common.rs.html#302">LocalVar</a>&gt;,
-        return_type: <a href="common.rs.html#183">Type</a>,
-        pos: <a href="common.rs.html#19">Position</a>,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="expr.rs.html#19">Expr</a>, <span class="self">Self</span>::Error&gt; {
-        <span class="prelude-val">Ok</span>(<a href="expr.rs.html#61">Expr::FuncApp</a>(
-            <a href="#831">name</a>,
+        name: String,
+        args: Vec&lt;Expr&gt;,
+        formal_args: Vec&lt;LocalVar&gt;,
+        return_type: Type,
+        pos: Position,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;Expr, <span class="self">Self</span>::Error&gt; {
+        <span class="prelude-val">Ok</span>(Expr::FuncApp(
+            name,
             args.into_iter()
                 .map(|e| <span class="self">self</span>.fallible_fold(e))
                 .collect::&lt;<span class="prelude-ty">Result</span>&lt;Vec&lt;<span class="kw">_</span>&gt;, <span class="self">Self</span>::Error&gt;&gt;()<span class="question-mark">?</span>,
-            <a href="#833">formal_args</a>,
-            <a href="#834">return_type</a>,
-            <a href="#835">pos</a>,
+            formal_args,
+            return_type,
+            pos,
         ))
     }
     <span class="kw">fn </span>fallible_fold_domain_func_app(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        func: <a href="domain.rs.html#53">DomainFunc</a>,
-        args: Vec&lt;<a href="expr.rs.html#19">Expr</a>&gt;,
-        pos: <a href="common.rs.html#19">Position</a>,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="expr.rs.html#19">Expr</a>, <span class="self">Self</span>::Error&gt; {
-        <span class="prelude-val">Ok</span>(<a href="expr.rs.html#63">Expr::DomainFuncApp</a>(
-            <a href="#849">func</a>,
+        func: DomainFunc,
+        args: Vec&lt;Expr&gt;,
+        pos: Position,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;Expr, <span class="self">Self</span>::Error&gt; {
+        <span class="prelude-val">Ok</span>(Expr::DomainFuncApp(
+            func,
             args.into_iter()
                 .map(|e| <span class="self">self</span>.fallible_fold(e))
                 .collect::&lt;<span class="prelude-ty">Result</span>&lt;Vec&lt;<span class="kw">_</span>&gt;, <span class="self">Self</span>::Error&gt;&gt;()<span class="question-mark">?</span>,
-            <a href="#851">pos</a>,
+            pos,
         ))
     }
     <span class="comment">/* TODO
@@ -1887,126 +1887,126 @@
     */
     </span><span class="kw">fn </span>fallible_fold_inhale_exhale(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        inhale: Box&lt;<a href="expr.rs.html#19">Expr</a>&gt;,
-        exhale: Box&lt;<a href="expr.rs.html#19">Expr</a>&gt;,
-        pos: <a href="common.rs.html#19">Position</a>,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="expr.rs.html#19">Expr</a>, <span class="self">Self</span>::Error&gt; {
-        <span class="prelude-val">Ok</span>(<a href="expr.rs.html#67">Expr::InhaleExhale</a>(
+        inhale: Box&lt;Expr&gt;,
+        exhale: Box&lt;Expr&gt;,
+        pos: Position,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;Expr, <span class="self">Self</span>::Error&gt; {
+        <span class="prelude-val">Ok</span>(Expr::InhaleExhale(
             <span class="self">self</span>.fallible_fold_boxed(inhale)<span class="question-mark">?</span>,
             <span class="self">self</span>.fallible_fold_boxed(exhale)<span class="question-mark">?</span>,
-            <a href="#887">pos</a>,
+            pos,
         ))
     }
 
     <span class="kw">fn </span>fallible_fold_downcast(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        base: Box&lt;<a href="expr.rs.html#19">Expr</a>&gt;,
-        enum_expr: Box&lt;<a href="expr.rs.html#19">Expr</a>&gt;,
-        field: <a href="common.rs.html#333">Field</a>,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="expr.rs.html#19">Expr</a>, <span class="self">Self</span>::Error&gt; {
-        <span class="prelude-val">Ok</span>(<a href="expr.rs.html#74">Expr::Downcast</a>(
+        base: Box&lt;Expr&gt;,
+        enum_expr: Box&lt;Expr&gt;,
+        field: Field,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;Expr, <span class="self">Self</span>::Error&gt; {
+        <span class="prelude-val">Ok</span>(Expr::Downcast(
             <span class="self">self</span>.fallible_fold_boxed(base)<span class="question-mark">?</span>,
             <span class="self">self</span>.fallible_fold_boxed(enum_expr)<span class="question-mark">?</span>,
-            <a href="#900">field</a>,
+            field,
         ))
     }
-    <span class="kw">fn </span>fallible_fold_snap_app(<span class="kw-2">&amp;mut </span><span class="self">self</span>, e: Box&lt;<a href="expr.rs.html#19">Expr</a>&gt;, p: <a href="common.rs.html#19">Position</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="expr.rs.html#19">Expr</a>, <span class="self">Self</span>::Error&gt; {
-        <span class="prelude-val">Ok</span>(<a href="expr.rs.html#76">Expr::SnapApp</a>(<span class="self">self</span>.fallible_fold_boxed(e)<span class="question-mark">?</span>, <a href="#908">p</a>))
+    <span class="kw">fn </span>fallible_fold_snap_app(<span class="kw-2">&amp;mut </span><span class="self">self</span>, e: Box&lt;Expr&gt;, p: Position) -&gt; <span class="prelude-ty">Result</span>&lt;Expr, <span class="self">Self</span>::Error&gt; {
+        <span class="prelude-val">Ok</span>(Expr::SnapApp(<span class="self">self</span>.fallible_fold_boxed(e)<span class="question-mark">?</span>, p))
     }
 
     <span class="kw">fn </span>fallible_fold_container_op(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        kind: <a href="expr.rs.html#121">ContainerOpKind</a>,
-        l: Box&lt;<a href="expr.rs.html#19">Expr</a>&gt;,
-        r: Box&lt;<a href="expr.rs.html#19">Expr</a>&gt;,
-        p: <a href="common.rs.html#19">Position</a>,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="expr.rs.html#19">Expr</a>, <span class="self">Self</span>::Error&gt; {
-        <span class="prelude-val">Ok</span>(<a href="expr.rs.html#38">Expr::ContainerOp</a>(
-            <a href="#914">kind</a>,
+        kind: ContainerOpKind,
+        l: Box&lt;Expr&gt;,
+        r: Box&lt;Expr&gt;,
+        p: Position,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;Expr, <span class="self">Self</span>::Error&gt; {
+        <span class="prelude-val">Ok</span>(Expr::ContainerOp(
+            kind,
             <span class="self">self</span>.fallible_fold_boxed(l)<span class="question-mark">?</span>,
             <span class="self">self</span>.fallible_fold_boxed(r)<span class="question-mark">?</span>,
-            <a href="#917">p</a>,
+            p,
         ))
     }
 
     <span class="kw">fn </span>fallible_fold_seq(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        ty: <a href="common.rs.html#183">Type</a>,
-        elems: Vec&lt;<a href="expr.rs.html#19">Expr</a>&gt;,
-        p: <a href="common.rs.html#19">Position</a>,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="expr.rs.html#19">Expr</a>, <span class="self">Self</span>::Error&gt; {
-        <span class="prelude-val">Ok</span>(<a href="expr.rs.html#40">Expr::Seq</a>(
-            <a href="#929">ty</a>,
+        ty: Type,
+        elems: Vec&lt;Expr&gt;,
+        p: Position,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;Expr, <span class="self">Self</span>::Error&gt; {
+        <span class="prelude-val">Ok</span>(Expr::Seq(
+            ty,
             elems
                 .into_iter()
                 .map(|e| <span class="self">self</span>.fallible_fold(e))
                 .collect::&lt;<span class="prelude-ty">Result</span>&lt;<span class="kw">_</span>, <span class="kw">_</span>&gt;&gt;()<span class="question-mark">?</span>,
-            <a href="#931">p</a>,
+            p,
         ))
     }
 
     <span class="kw">fn </span>fallible_fold_map(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        ty: <a href="common.rs.html#183">Type</a>,
-        elems: Vec&lt;<a href="expr.rs.html#19">Expr</a>&gt;,
-        p: <a href="common.rs.html#19">Position</a>,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="expr.rs.html#19">Expr</a>, <span class="self">Self</span>::Error&gt; {
-        <span class="prelude-val">Ok</span>(<a href="expr.rs.html#42">Expr::Map</a>(
-            <a href="#945">ty</a>,
+        ty: Type,
+        elems: Vec&lt;Expr&gt;,
+        p: Position,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;Expr, <span class="self">Self</span>::Error&gt; {
+        <span class="prelude-val">Ok</span>(Expr::Map(
+            ty,
             elems
                 .into_iter()
                 .map(|e| <span class="self">self</span>.fallible_fold(e))
                 .collect::&lt;<span class="prelude-ty">Result</span>&lt;<span class="kw">_</span>, <span class="kw">_</span>&gt;&gt;()<span class="question-mark">?</span>,
-            <a href="#947">p</a>,
+            p,
         ))
     }
 
     <span class="kw">fn </span>fallible_fold_cast(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        kind: <a href="expr.rs.html#129">CastKind</a>,
-        base: Box&lt;<a href="expr.rs.html#19">Expr</a>&gt;,
-        p: <a href="common.rs.html#19">Position</a>,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="expr.rs.html#19">Expr</a>, <span class="self">Self</span>::Error&gt; {
-        <span class="prelude-val">Ok</span>(<a href="expr.rs.html#77">Expr::Cast</a>(<a href="#961">kind</a>, <span class="self">self</span>.fallible_fold_boxed(base)<span class="question-mark">?</span>, <a href="#963">p</a>))
+        kind: CastKind,
+        base: Box&lt;Expr&gt;,
+        p: Position,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;Expr, <span class="self">Self</span>::Error&gt; {
+        <span class="prelude-val">Ok</span>(Expr::Cast(kind, <span class="self">self</span>.fallible_fold_boxed(base)<span class="question-mark">?</span>, p))
     }
 }
 
 <span class="kw">pub fn </span>default_fallible_fold_expr&lt;U, T: FallibleExprFolder&lt;Error = U&gt;&gt;(
     this: <span class="kw-2">&amp;mut </span>T,
-    e: <a href="expr.rs.html#19">Expr</a>,
-) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="expr.rs.html#19">Expr</a>, U&gt; {
-    <span class="kw">match </span><a href="#971">e</a> {
-        <a href="expr.rs.html#21">Expr::Local</a>(v, p) =&gt; <a href="#970">this</a>.<a href="#659">fallible_fold_local</a>(<a href="#974">v</a>, <a href="#974">p</a>),
-        <a href="expr.rs.html#23">Expr::Variant</a>(base, variant, p) =&gt; <a href="#970">this</a>.<a href="#662-667">fallible_fold_variant</a>(<a href="#975">base</a>, <a href="#975">variant</a>, <a href="#975">p</a>),
-        <a href="expr.rs.html#25">Expr::Field</a>(e, f, p) =&gt; <a href="#970">this</a>.<a href="#670-675">fallible_fold_field</a>(<a href="#976">e</a>, <a href="#976">f</a>, <a href="#976">p</a>),
-        <a href="expr.rs.html#27">Expr::AddrOf</a>(e, t, p) =&gt; <a href="#970">this</a>.<a href="#678-683">fallible_fold_addr_of</a>(<a href="#977">e</a>, <a href="#977">t</a>, <a href="#977">p</a>),
-        <a href="expr.rs.html#29">Expr::Const</a>(x, p) =&gt; <a href="#970">this</a>.<a href="#686">fallible_fold_const</a>(<a href="#978">x</a>, <a href="#978">p</a>),
-        <a href="expr.rs.html#28">Expr::LabelledOld</a>(x, y, p) =&gt; <a href="#970">this</a>.<a href="#689-694">fallible_fold_labelled_old</a>(<a href="#979">x</a>, <a href="#979">y</a>, <a href="#979">p</a>),
-        <a href="expr.rs.html#31">Expr::MagicWand</a>(x, y, b, p) =&gt; <a href="#970">this</a>.<a href="#701-707">fallible_fold_magic_wand</a>(<a href="#980">x</a>, <a href="#980">y</a>, <a href="#980">b</a>, <a href="#980">p</a>),
-        <a href="expr.rs.html#33">Expr::PredicateAccessPredicate</a>(x, y, z, p) =&gt; {
-            <a href="#970">this</a>.<a href="#715-721">fallible_fold_predicate_access_predicate</a>(<a href="#981">x</a>, <a href="#981">y</a>, <a href="#981">z</a>, <a href="#981">p</a>)
+    e: Expr,
+) -&gt; <span class="prelude-ty">Result</span>&lt;Expr, U&gt; {
+    <span class="kw">match </span>e {
+        Expr::Local(v, p) =&gt; this.fallible_fold_local(v, p),
+        Expr::Variant(base, variant, p) =&gt; this.fallible_fold_variant(base, variant, p),
+        Expr::Field(e, f, p) =&gt; this.fallible_fold_field(e, f, p),
+        Expr::AddrOf(e, t, p) =&gt; this.fallible_fold_addr_of(e, t, p),
+        Expr::Const(x, p) =&gt; this.fallible_fold_const(x, p),
+        Expr::LabelledOld(x, y, p) =&gt; this.fallible_fold_labelled_old(x, y, p),
+        Expr::MagicWand(x, y, b, p) =&gt; this.fallible_fold_magic_wand(x, y, b, p),
+        Expr::PredicateAccessPredicate(x, y, z, p) =&gt; {
+            this.fallible_fold_predicate_access_predicate(x, y, z, p)
         }
-        <a href="expr.rs.html#34">Expr::FieldAccessPredicate</a>(x, y, p) =&gt; <a href="#970">this</a>.<a href="#729-734">fallible_fold_field_access_predicate</a>(<a href="#984">x</a>, <a href="#984">y</a>, <a href="#984">p</a>),
-        <a href="expr.rs.html#35">Expr::UnaryOp</a>(x, y, p) =&gt; <a href="#970">this</a>.<a href="#741-746">fallible_fold_unary_op</a>(<a href="#985">x</a>, <a href="#985">y</a>, <a href="#985">p</a>),
-        <a href="expr.rs.html#36">Expr::BinOp</a>(x, y, z, p) =&gt; <a href="#970">this</a>.<a href="#749-755">fallible_fold_bin_op</a>(<a href="#986">x</a>, <a href="#986">y</a>, <a href="#986">z</a>, <a href="#986">p</a>),
-        <a href="expr.rs.html#44">Expr::Unfolding</a>(x, y, z, perm, variant, p) =&gt; {
-            <a href="#970">this</a>.<a href="#763-771">fallible_fold_unfolding</a>(<a href="#987">x</a>, <a href="#987">y</a>, <a href="#987">z</a>, <a href="#987">perm</a>, <a href="#987">variant</a>, <a href="#987">p</a>)
+        Expr::FieldAccessPredicate(x, y, p) =&gt; this.fallible_fold_field_access_predicate(x, y, p),
+        Expr::UnaryOp(x, y, p) =&gt; this.fallible_fold_unary_op(x, y, p),
+        Expr::BinOp(x, y, z, p) =&gt; this.fallible_fold_bin_op(x, y, z, p),
+        Expr::Unfolding(x, y, z, perm, variant, p) =&gt; {
+            this.fallible_fold_unfolding(x, y, z, perm, variant, p)
         }
-        <a href="expr.rs.html#53">Expr::Cond</a>(x, y, z, p) =&gt; <a href="#970">this</a>.<a href="#783-789">fallible_fold_cond</a>(<a href="#990">x</a>, <a href="#990">y</a>, <a href="#990">z</a>, <a href="#990">p</a>),
-        <a href="expr.rs.html#55">Expr::ForAll</a>(x, y, z, p) =&gt; <a href="#970">this</a>.<a href="#797-803">fallible_fold_forall</a>(<a href="#991">x</a>, <a href="#991">y</a>, <a href="#991">z</a>, <a href="#991">p</a>),
-        <a href="expr.rs.html#57">Expr::Exists</a>(x, y, z, p) =&gt; <a href="#970">this</a>.<a href="#806-812">fallible_fold_exists</a>(<a href="#992">x</a>, <a href="#992">y</a>, <a href="#992">z</a>, <a href="#992">p</a>),
-        <a href="expr.rs.html#59">Expr::LetExpr</a>(x, y, z, p) =&gt; <a href="#970">this</a>.<a href="#815-821">fallible_fold_let_expr</a>(<a href="#993">x</a>, <a href="#993">y</a>, <a href="#993">z</a>, <a href="#993">p</a>),
-        <a href="expr.rs.html#61">Expr::FuncApp</a>(x, y, z, k, p) =&gt; <a href="#970">this</a>.<a href="#829-836">fallible_fold_func_app</a>(<a href="#994">x</a>, <a href="#994">y</a>, <a href="#994">z</a>, <a href="#994">k</a>, <a href="#994">p</a>),
-        <a href="expr.rs.html#63">Expr::DomainFuncApp</a>(x, y, p) =&gt; <a href="#970">this</a>.<a href="#847-852">fallible_fold_domain_func_app</a>(<a href="#995">x</a>, <a href="#995">y</a>, <a href="#995">p</a>),
+        Expr::Cond(x, y, z, p) =&gt; this.fallible_fold_cond(x, y, z, p),
+        Expr::ForAll(x, y, z, p) =&gt; this.fallible_fold_forall(x, y, z, p),
+        Expr::Exists(x, y, z, p) =&gt; this.fallible_fold_exists(x, y, z, p),
+        Expr::LetExpr(x, y, z, p) =&gt; this.fallible_fold_let_expr(x, y, z, p),
+        Expr::FuncApp(x, y, z, k, p) =&gt; this.fallible_fold_func_app(x, y, z, k, p),
+        Expr::DomainFuncApp(x, y, p) =&gt; this.fallible_fold_domain_func_app(x, y, p),
         <span class="comment">// TODO Expr::DomainFuncApp(u, v, w, x, y, p) =&gt; this.fallible_fold_domain_func_app(u,v,w,x,y,p),
-        </span><a href="expr.rs.html#67">Expr::InhaleExhale</a>(x, y, p) =&gt; <a href="#970">this</a>.<a href="#883-888">fallible_fold_inhale_exhale</a>(<a href="#997">x</a>, <a href="#997">y</a>, <a href="#997">p</a>),
-        <a href="expr.rs.html#74">Expr::Downcast</a>(b, p, f) =&gt; <a href="#970">this</a>.<a href="#896-901">fallible_fold_downcast</a>(<a href="#998">b</a>, <a href="#998">p</a>, <a href="#998">f</a>),
-        <a href="expr.rs.html#76">Expr::SnapApp</a>(e, p) =&gt; <a href="#970">this</a>.<a href="#908">fallible_fold_snap_app</a>(<a href="#999">e</a>, <a href="#999">p</a>),
-        <a href="expr.rs.html#38">Expr::ContainerOp</a>(x, y, z, p) =&gt; <a href="#970">this</a>.<a href="#912-918">fallible_fold_container_op</a>(<a href="#1000">x</a>, <a href="#1000">y</a>, <a href="#1000">z</a>, <a href="#1000">p</a>),
-        <a href="expr.rs.html#40">Expr::Seq</a>(x, y, p) =&gt; <a href="#970">this</a>.<a href="#927-932">fallible_fold_seq</a>(<a href="#1001">x</a>, <a href="#1001">y</a>, <a href="#1001">p</a>),
-        <a href="expr.rs.html#42">Expr::Map</a>(x, y, p) =&gt; <a href="#970">this</a>.<a href="#943-948">fallible_fold_map</a>(<a href="#1002">x</a>, <a href="#1002">y</a>, <a href="#1002">p</a>),
-        <a href="expr.rs.html#77">Expr::Cast</a>(kind, base, p) =&gt; <a href="#970">this</a>.<a href="#959-964">fallible_fold_cast</a>(<a href="#1003">kind</a>, <a href="#1003">base</a>, <a href="#1003">p</a>),
+        </span>Expr::InhaleExhale(x, y, p) =&gt; this.fallible_fold_inhale_exhale(x, y, p),
+        Expr::Downcast(b, p, f) =&gt; this.fallible_fold_downcast(b, p, f),
+        Expr::SnapApp(e, p) =&gt; this.fallible_fold_snap_app(e, p),
+        Expr::ContainerOp(x, y, z, p) =&gt; this.fallible_fold_container_op(x, y, z, p),
+        Expr::Seq(x, y, p) =&gt; this.fallible_fold_seq(x, y, p),
+        Expr::Map(x, y, p) =&gt; this.fallible_fold_map(x, y, p),
+        Expr::Cast(kind, base, p) =&gt; this.fallible_fold_cast(kind, base, p),
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="vir" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="vir" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

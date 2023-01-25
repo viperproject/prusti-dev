@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/num-traits-0.2.15/src/cast.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>cast.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../num_traits/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/num-traits-0.2.15/src/cast.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>cast.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../num_traits/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -812,13 +812,13 @@
 <a href="#812" id="812">812</a>
 <a href="#813" id="813">813</a>
 <a href="#814" id="814">814</a>
-</pre><pre class="rust"><code><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/mem/fn.size_of.html">core::mem::size_of</a>;
+</pre><pre class="rust"><code><span class="kw">use </span>core::mem::size_of;
 <span class="kw">use </span>core::num::Wrapping;
-<span class="kw">use </span>core::{<a href="https://doc.rust-lang.org/nightly/core/f32/index.html">f32</a>, <a href="https://doc.rust-lang.org/nightly/core/f64/index.html">f64</a>};
+<span class="kw">use </span>core::{f32, f64};
 <span class="attr">#[cfg(has_i128)]
-</span><span class="kw">use </span>core::{<a href="https://doc.rust-lang.org/nightly/core/i128/index.html">i128</a>, <a href="https://doc.rust-lang.org/nightly/core/u128/index.html">u128</a>};
-<span class="kw">use </span>core::{<a href="https://doc.rust-lang.org/nightly/core/i16/index.html">i16</a>, <a href="https://doc.rust-lang.org/nightly/core/i32/index.html">i32</a>, <a href="https://doc.rust-lang.org/nightly/core/i64/index.html">i64</a>, <a href="https://doc.rust-lang.org/nightly/core/i8/index.html">i8</a>, <a href="https://doc.rust-lang.org/nightly/core/isize/index.html">isize</a>};
-<span class="kw">use </span>core::{<a href="https://doc.rust-lang.org/nightly/core/u16/index.html">u16</a>, <a href="https://doc.rust-lang.org/nightly/core/u32/index.html">u32</a>, <a href="https://doc.rust-lang.org/nightly/core/u64/index.html">u64</a>, <a href="https://doc.rust-lang.org/nightly/core/u8/index.html">u8</a>, <a href="https://doc.rust-lang.org/nightly/core/usize/index.html">usize</a>};
+</span><span class="kw">use </span>core::{i128, u128};
+<span class="kw">use </span>core::{i16, i32, i64, i8, isize};
+<span class="kw">use </span>core::{u16, u32, u64, u8, usize};
 
 <span class="doccomment">/// A generic trait for converting a value to a number.
 ///
@@ -834,34 +834,34 @@
     <span class="doccomment">/// Converts the value of `self` to an `isize`. If the value cannot be
     /// represented by an `isize`, then `None` is returned.
     </span><span class="attr">#[inline]
-    </span><span class="kw">fn </span>to_isize(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.isize.html">isize</a>&gt; {
-        <a class="self" href="#23">self</a>.<a href="#50">to_i64</a>().as_ref().and_then(<a href="#23">ToPrimitive::to_isize</a>)
+    </span><span class="kw">fn </span>to_isize(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;isize&gt; {
+        <span class="self">self</span>.to_i64().as_ref().and_then(ToPrimitive::to_isize)
     }
 
     <span class="doccomment">/// Converts the value of `self` to an `i8`. If the value cannot be
     /// represented by an `i8`, then `None` is returned.
     </span><span class="attr">#[inline]
-    </span><span class="kw">fn </span>to_i8(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.i8.html">i8</a>&gt; {
-        <a class="self" href="#30">self</a>.<a href="#50">to_i64</a>().as_ref().and_then(<a href="#30">ToPrimitive::to_i8</a>)
+    </span><span class="kw">fn </span>to_i8(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;i8&gt; {
+        <span class="self">self</span>.to_i64().as_ref().and_then(ToPrimitive::to_i8)
     }
 
     <span class="doccomment">/// Converts the value of `self` to an `i16`. If the value cannot be
     /// represented by an `i16`, then `None` is returned.
     </span><span class="attr">#[inline]
-    </span><span class="kw">fn </span>to_i16(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.i16.html">i16</a>&gt; {
-        <a class="self" href="#37">self</a>.<a href="#50">to_i64</a>().as_ref().and_then(<a href="#37">ToPrimitive::to_i16</a>)
+    </span><span class="kw">fn </span>to_i16(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;i16&gt; {
+        <span class="self">self</span>.to_i64().as_ref().and_then(ToPrimitive::to_i16)
     }
 
     <span class="doccomment">/// Converts the value of `self` to an `i32`. If the value cannot be
     /// represented by an `i32`, then `None` is returned.
     </span><span class="attr">#[inline]
-    </span><span class="kw">fn </span>to_i32(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>&gt; {
-        <a class="self" href="#44">self</a>.<a href="#50">to_i64</a>().as_ref().and_then(<a href="#44">ToPrimitive::to_i32</a>)
+    </span><span class="kw">fn </span>to_i32(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;i32&gt; {
+        <span class="self">self</span>.to_i64().as_ref().and_then(ToPrimitive::to_i32)
     }
 
     <span class="doccomment">/// Converts the value of `self` to an `i64`. If the value cannot be
     /// represented by an `i64`, then `None` is returned.
-    </span><span class="kw">fn </span>to_i64(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>&gt;;
+    </span><span class="kw">fn </span>to_i64(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;i64&gt;;
 
     <span class="doccomment">/// Converts the value of `self` to an `i128`. If the value cannot be
     /// represented by an `i128` (`i64` under the default implementation), then
@@ -873,41 +873,41 @@
     /// this trait should override this method if they can represent a greater range.
     </span><span class="attr">#[inline]
     #[cfg(has_i128)]
-    </span><span class="kw">fn </span>to_i128(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.i128.html">i128</a>&gt; {
-        <a class="self" href="#62">self</a>.<a href="#50">to_i64</a>().map(<a href="https://doc.rust-lang.org/nightly/core/convert/trait.From.html">From::from</a>)
+    </span><span class="kw">fn </span>to_i128(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;i128&gt; {
+        <span class="self">self</span>.to_i64().map(From::from)
     }
 
     <span class="doccomment">/// Converts the value of `self` to a `usize`. If the value cannot be
     /// represented by a `usize`, then `None` is returned.
     </span><span class="attr">#[inline]
-    </span><span class="kw">fn </span>to_usize(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
-        <a class="self" href="#69">self</a>.<a href="#96">to_u64</a>().as_ref().and_then(<a href="#69">ToPrimitive::to_usize</a>)
+    </span><span class="kw">fn </span>to_usize(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;usize&gt; {
+        <span class="self">self</span>.to_u64().as_ref().and_then(ToPrimitive::to_usize)
     }
 
     <span class="doccomment">/// Converts the value of `self` to a `u8`. If the value cannot be
     /// represented by a `u8`, then `None` is returned.
     </span><span class="attr">#[inline]
-    </span><span class="kw">fn </span>to_u8(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt; {
-        <a class="self" href="#76">self</a>.<a href="#96">to_u64</a>().as_ref().and_then(<a href="#76">ToPrimitive::to_u8</a>)
+    </span><span class="kw">fn </span>to_u8(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;u8&gt; {
+        <span class="self">self</span>.to_u64().as_ref().and_then(ToPrimitive::to_u8)
     }
 
     <span class="doccomment">/// Converts the value of `self` to a `u16`. If the value cannot be
     /// represented by a `u16`, then `None` is returned.
     </span><span class="attr">#[inline]
-    </span><span class="kw">fn </span>to_u16(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>&gt; {
-        <a class="self" href="#83">self</a>.<a href="#96">to_u64</a>().as_ref().and_then(<a href="#83">ToPrimitive::to_u16</a>)
+    </span><span class="kw">fn </span>to_u16(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;u16&gt; {
+        <span class="self">self</span>.to_u64().as_ref().and_then(ToPrimitive::to_u16)
     }
 
     <span class="doccomment">/// Converts the value of `self` to a `u32`. If the value cannot be
     /// represented by a `u32`, then `None` is returned.
     </span><span class="attr">#[inline]
-    </span><span class="kw">fn </span>to_u32(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>&gt; {
-        <a class="self" href="#90">self</a>.<a href="#96">to_u64</a>().as_ref().and_then(<a href="#90">ToPrimitive::to_u32</a>)
+    </span><span class="kw">fn </span>to_u32(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;u32&gt; {
+        <span class="self">self</span>.to_u64().as_ref().and_then(ToPrimitive::to_u32)
     }
 
     <span class="doccomment">/// Converts the value of `self` to a `u64`. If the value cannot be
     /// represented by a `u64`, then `None` is returned.
-    </span><span class="kw">fn </span>to_u64(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>&gt;;
+    </span><span class="kw">fn </span>to_u64(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;u64&gt;;
 
     <span class="doccomment">/// Converts the value of `self` to a `u128`. If the value cannot be
     /// represented by a `u128` (`u64` under the default implementation), then
@@ -919,16 +919,16 @@
     /// this trait should override this method if they can represent a greater range.
     </span><span class="attr">#[inline]
     #[cfg(has_i128)]
-    </span><span class="kw">fn </span>to_u128(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u128.html">u128</a>&gt; {
-        <a class="self" href="#108">self</a>.<a href="#96">to_u64</a>().map(<a href="https://doc.rust-lang.org/nightly/core/convert/trait.From.html">From::from</a>)
+    </span><span class="kw">fn </span>to_u128(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;u128&gt; {
+        <span class="self">self</span>.to_u64().map(From::from)
     }
 
     <span class="doccomment">/// Converts the value of `self` to an `f32`. Overflows may map to positive
     /// or negative inifinity, otherwise `None` is returned if the value cannot
     /// be represented by an `f32`.
     </span><span class="attr">#[inline]
-    </span><span class="kw">fn </span>to_f32(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.f32.html">f32</a>&gt; {
-        <a class="self" href="#116">self</a>.<a href="#128">to_f64</a>().as_ref().and_then(<a href="#116">ToPrimitive::to_f32</a>)
+    </span><span class="kw">fn </span>to_f32(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;f32&gt; {
+        <span class="self">self</span>.to_f64().as_ref().and_then(ToPrimitive::to_f32)
     }
 
     <span class="doccomment">/// Converts the value of `self` to an `f64`. Overflows may map to positive
@@ -939,10 +939,10 @@
     /// failing that through `to_u64()`. Types implementing this trait should
     /// override this method if they can represent a greater range.
     </span><span class="attr">#[inline]
-    </span><span class="kw">fn </span>to_f64(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.f64.html">f64</a>&gt; {
-        <span class="kw">match </span><a class="self" href="#128">self</a>.<a href="#50">to_i64</a>() {
-            <span class="prelude-val">Some</span>(i) =&gt; <a href="#130">i</a>.<a href="#128">to_f64</a>(),
-            <span class="prelude-val">None </span>=&gt; <a class="self" href="#128">self</a>.<a href="#96">to_u64</a>().as_ref().and_then(<a href="#128">ToPrimitive::to_f64</a>),
+    </span><span class="kw">fn </span>to_f64(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;f64&gt; {
+        <span class="kw">match </span><span class="self">self</span>.to_i64() {
+            <span class="prelude-val">Some</span>(i) =&gt; i.to_f64(),
+            <span class="prelude-val">None </span>=&gt; <span class="self">self</span>.to_u64().as_ref().and_then(ToPrimitive::to_f64),
         }
     }
 }
@@ -1013,13 +1013,13 @@
     };
 }
 
-<a class="macro" href="#167-200">impl_to_primitive_int!</a>(isize);
-<a class="macro" href="#167-200">impl_to_primitive_int!</a>(i8);
-<a class="macro" href="#167-200">impl_to_primitive_int!</a>(i16);
-<a class="macro" href="#167-200">impl_to_primitive_int!</a>(i32);
-<a class="macro" href="#167-200">impl_to_primitive_int!</a>(i64);
+<span class="macro">impl_to_primitive_int!</span>(isize);
+<span class="macro">impl_to_primitive_int!</span>(i8);
+<span class="macro">impl_to_primitive_int!</span>(i16);
+<span class="macro">impl_to_primitive_int!</span>(i32);
+<span class="macro">impl_to_primitive_int!</span>(i64);
 <span class="attr">#[cfg(has_i128)]
-</span><a class="macro" href="#167-200">impl_to_primitive_int!</a>(i128);
+</span><span class="macro">impl_to_primitive_int!</span>(i128);
 
 <span class="macro">macro_rules! </span>impl_to_primitive_uint_to_int {
     (<span class="macro-nonterminal">$SrcT</span>:ident : $( $(<span class="attr">#[<span class="macro-nonterminal">$cfg</span>:meta]</span>)* <span class="kw">fn </span><span class="macro-nonterminal">$method</span>:ident -&gt; <span class="macro-nonterminal">$DstT</span>:ident ; )<span class="kw-2">*</span>) =&gt; {$(
@@ -1086,13 +1086,13 @@
     };
 }
 
-<a class="macro" href="#240-273">impl_to_primitive_uint!</a>(usize);
-<a class="macro" href="#240-273">impl_to_primitive_uint!</a>(u8);
-<a class="macro" href="#240-273">impl_to_primitive_uint!</a>(u16);
-<a class="macro" href="#240-273">impl_to_primitive_uint!</a>(u32);
-<a class="macro" href="#240-273">impl_to_primitive_uint!</a>(u64);
+<span class="macro">impl_to_primitive_uint!</span>(usize);
+<span class="macro">impl_to_primitive_uint!</span>(u8);
+<span class="macro">impl_to_primitive_uint!</span>(u16);
+<span class="macro">impl_to_primitive_uint!</span>(u32);
+<span class="macro">impl_to_primitive_uint!</span>(u64);
 <span class="attr">#[cfg(has_i128)]
-</span><a class="macro" href="#240-273">impl_to_primitive_uint!</a>(u128);
+</span><span class="macro">impl_to_primitive_uint!</span>(u128);
 
 <span class="macro">macro_rules! </span>impl_to_primitive_float_to_float {
     (<span class="macro-nonterminal">$SrcT</span>:ident : $( <span class="kw">fn </span><span class="macro-nonterminal">$method</span>:ident -&gt; <span class="macro-nonterminal">$DstT</span>:ident ; )<span class="kw-2">*</span>) =&gt; {$(
@@ -1209,8 +1209,8 @@
     };
 }
 
-<a class="macro" href="#367-396">impl_to_primitive_float!</a>(f32);
-<a class="macro" href="#367-396">impl_to_primitive_float!</a>(f64);
+<span class="macro">impl_to_primitive_float!</span>(f32);
+<span class="macro">impl_to_primitive_float!</span>(f64);
 
 <span class="doccomment">/// A generic trait for converting a number to a value.
 ///
@@ -1222,38 +1222,38 @@
 /// On the other hand, conversions with possible precision loss or truncation
 /// are admitted, like an `f32` with a decimal part to an integer type, or
 /// even a large `f64` saturating to `f32` infinity.
-</span><span class="kw">pub trait </span>FromPrimitive: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> {
+</span><span class="kw">pub trait </span>FromPrimitive: Sized {
     <span class="doccomment">/// Converts an `isize` to return an optional value of this type. If the
     /// value cannot be represented by this type, then `None` is returned.
     </span><span class="attr">#[inline]
-    </span><span class="kw">fn </span>from_isize(n: <a href="https://doc.rust-lang.org/nightly/std/primitive.isize.html">isize</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt; {
-        <a href="#415">n</a>.<a href="#50">to_i64</a>().and_then(<a href="#442">FromPrimitive::from_i64</a>)
+    </span><span class="kw">fn </span>from_isize(n: isize) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt; {
+        n.to_i64().and_then(FromPrimitive::from_i64)
     }
 
     <span class="doccomment">/// Converts an `i8` to return an optional value of this type. If the
     /// value cannot be represented by this type, then `None` is returned.
     </span><span class="attr">#[inline]
-    </span><span class="kw">fn </span>from_i8(n: <a href="https://doc.rust-lang.org/nightly/std/primitive.i8.html">i8</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt; {
-        <a href="#442">FromPrimitive::from_i64</a>(<a href="https://doc.rust-lang.org/nightly/core/convert/trait.From.html">From::from</a>(<a href="#422">n</a>))
+    </span><span class="kw">fn </span>from_i8(n: i8) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt; {
+        FromPrimitive::from_i64(From::from(n))
     }
 
     <span class="doccomment">/// Converts an `i16` to return an optional value of this type. If the
     /// value cannot be represented by this type, then `None` is returned.
     </span><span class="attr">#[inline]
-    </span><span class="kw">fn </span>from_i16(n: <a href="https://doc.rust-lang.org/nightly/std/primitive.i16.html">i16</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt; {
-        <a href="#442">FromPrimitive::from_i64</a>(<a href="https://doc.rust-lang.org/nightly/core/convert/trait.From.html">From::from</a>(<a href="#429">n</a>))
+    </span><span class="kw">fn </span>from_i16(n: i16) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt; {
+        FromPrimitive::from_i64(From::from(n))
     }
 
     <span class="doccomment">/// Converts an `i32` to return an optional value of this type. If the
     /// value cannot be represented by this type, then `None` is returned.
     </span><span class="attr">#[inline]
-    </span><span class="kw">fn </span>from_i32(n: <a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt; {
-        <a href="#442">FromPrimitive::from_i64</a>(<a href="https://doc.rust-lang.org/nightly/core/convert/trait.From.html">From::from</a>(<a href="#436">n</a>))
+    </span><span class="kw">fn </span>from_i32(n: i32) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt; {
+        FromPrimitive::from_i64(From::from(n))
     }
 
     <span class="doccomment">/// Converts an `i64` to return an optional value of this type. If the
     /// value cannot be represented by this type, then `None` is returned.
-    </span><span class="kw">fn </span>from_i64(n: <a href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt;;
+    </span><span class="kw">fn </span>from_i64(n: i64) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt;;
 
     <span class="doccomment">/// Converts an `i128` to return an optional value of this type. If the
     /// value cannot be represented by this type, then `None` is returned.
@@ -1264,41 +1264,41 @@
     /// this trait should override this method if they can represent a greater range.
     </span><span class="attr">#[inline]
     #[cfg(has_i128)]
-    </span><span class="kw">fn </span>from_i128(n: <a href="https://doc.rust-lang.org/nightly/std/primitive.i128.html">i128</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt; {
-        <a href="#453">n</a>.<a href="#50">to_i64</a>().and_then(<a href="#442">FromPrimitive::from_i64</a>)
+    </span><span class="kw">fn </span>from_i128(n: i128) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt; {
+        n.to_i64().and_then(FromPrimitive::from_i64)
     }
 
     <span class="doccomment">/// Converts a `usize` to return an optional value of this type. If the
     /// value cannot be represented by this type, then `None` is returned.
     </span><span class="attr">#[inline]
-    </span><span class="kw">fn </span>from_usize(n: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt; {
-        <a href="#460">n</a>.<a href="#96">to_u64</a>().and_then(<a href="#487">FromPrimitive::from_u64</a>)
+    </span><span class="kw">fn </span>from_usize(n: usize) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt; {
+        n.to_u64().and_then(FromPrimitive::from_u64)
     }
 
     <span class="doccomment">/// Converts an `u8` to return an optional value of this type. If the
     /// value cannot be represented by this type, then `None` is returned.
     </span><span class="attr">#[inline]
-    </span><span class="kw">fn </span>from_u8(n: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt; {
-        <a href="#487">FromPrimitive::from_u64</a>(<a href="https://doc.rust-lang.org/nightly/core/convert/trait.From.html">From::from</a>(<a href="#467">n</a>))
+    </span><span class="kw">fn </span>from_u8(n: u8) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt; {
+        FromPrimitive::from_u64(From::from(n))
     }
 
     <span class="doccomment">/// Converts an `u16` to return an optional value of this type. If the
     /// value cannot be represented by this type, then `None` is returned.
     </span><span class="attr">#[inline]
-    </span><span class="kw">fn </span>from_u16(n: <a href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt; {
-        <a href="#487">FromPrimitive::from_u64</a>(<a href="https://doc.rust-lang.org/nightly/core/convert/trait.From.html">From::from</a>(<a href="#474">n</a>))
+    </span><span class="kw">fn </span>from_u16(n: u16) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt; {
+        FromPrimitive::from_u64(From::from(n))
     }
 
     <span class="doccomment">/// Converts an `u32` to return an optional value of this type. If the
     /// value cannot be represented by this type, then `None` is returned.
     </span><span class="attr">#[inline]
-    </span><span class="kw">fn </span>from_u32(n: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt; {
-        <a href="#487">FromPrimitive::from_u64</a>(<a href="https://doc.rust-lang.org/nightly/core/convert/trait.From.html">From::from</a>(<a href="#481">n</a>))
+    </span><span class="kw">fn </span>from_u32(n: u32) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt; {
+        FromPrimitive::from_u64(From::from(n))
     }
 
     <span class="doccomment">/// Converts an `u64` to return an optional value of this type. If the
     /// value cannot be represented by this type, then `None` is returned.
-    </span><span class="kw">fn </span>from_u64(n: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt;;
+    </span><span class="kw">fn </span>from_u64(n: u64) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt;;
 
     <span class="doccomment">/// Converts an `u128` to return an optional value of this type. If the
     /// value cannot be represented by this type, then `None` is returned.
@@ -1309,15 +1309,15 @@
     /// this trait should override this method if they can represent a greater range.
     </span><span class="attr">#[inline]
     #[cfg(has_i128)]
-    </span><span class="kw">fn </span>from_u128(n: <a href="https://doc.rust-lang.org/nightly/std/primitive.u128.html">u128</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt; {
-        <a href="#498">n</a>.<a href="#96">to_u64</a>().and_then(<a href="#487">FromPrimitive::from_u64</a>)
+    </span><span class="kw">fn </span>from_u128(n: u128) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt; {
+        n.to_u64().and_then(FromPrimitive::from_u64)
     }
 
     <span class="doccomment">/// Converts a `f32` to return an optional value of this type. If the
     /// value cannot be represented by this type, then `None` is returned.
     </span><span class="attr">#[inline]
-    </span><span class="kw">fn </span>from_f32(n: <a href="https://doc.rust-lang.org/nightly/std/primitive.f32.html">f32</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt; {
-        <a href="#516">FromPrimitive::from_f64</a>(<a href="https://doc.rust-lang.org/nightly/core/convert/trait.From.html">From::from</a>(<a href="#505">n</a>))
+    </span><span class="kw">fn </span>from_f32(n: f32) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt; {
+        FromPrimitive::from_f64(From::from(n))
     }
 
     <span class="doccomment">/// Converts a `f64` to return an optional value of this type. If the
@@ -1327,10 +1327,10 @@
     /// failing that through `from_u64()`. Types implementing this trait should
     /// override this method if they can represent a greater range.
     </span><span class="attr">#[inline]
-    </span><span class="kw">fn </span>from_f64(n: <a href="https://doc.rust-lang.org/nightly/std/primitive.f64.html">f64</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt; {
-        <span class="kw">match </span><a href="#516">n</a>.<a href="#50">to_i64</a>() {
-            <span class="prelude-val">Some</span>(i) =&gt; <a href="#442">FromPrimitive::from_i64</a>(<a href="#518">i</a>),
-            <span class="prelude-val">None </span>=&gt; <a href="#516">n</a>.<a href="#96">to_u64</a>().and_then(<a href="#487">FromPrimitive::from_u64</a>),
+    </span><span class="kw">fn </span>from_f64(n: f64) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt; {
+        <span class="kw">match </span>n.to_i64() {
+            <span class="prelude-val">Some</span>(i) =&gt; FromPrimitive::from_i64(i),
+            <span class="prelude-val">None </span>=&gt; n.to_u64().and_then(FromPrimitive::from_u64),
         }
     }
 }
@@ -1403,22 +1403,22 @@
     };
 }
 
-<a class="macro" href="#524-590">impl_from_primitive!</a>(<a href="https://doc.rust-lang.org/nightly/std/primitive.isize.html">isize</a>, to_isize);
-<a class="macro" href="#524-590">impl_from_primitive!</a>(<a href="https://doc.rust-lang.org/nightly/std/primitive.i8.html">i8</a>, to_i8);
-<a class="macro" href="#524-590">impl_from_primitive!</a>(<a href="https://doc.rust-lang.org/nightly/std/primitive.i16.html">i16</a>, to_i16);
-<a class="macro" href="#524-590">impl_from_primitive!</a>(<a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>, to_i32);
-<a class="macro" href="#524-590">impl_from_primitive!</a>(<a href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>, to_i64);
+<span class="macro">impl_from_primitive!</span>(isize, to_isize);
+<span class="macro">impl_from_primitive!</span>(i8, to_i8);
+<span class="macro">impl_from_primitive!</span>(i16, to_i16);
+<span class="macro">impl_from_primitive!</span>(i32, to_i32);
+<span class="macro">impl_from_primitive!</span>(i64, to_i64);
 <span class="attr">#[cfg(has_i128)]
-</span><a class="macro" href="#524-590">impl_from_primitive!</a>(<a href="https://doc.rust-lang.org/nightly/std/primitive.i128.html">i128</a>, to_i128);
-<a class="macro" href="#524-590">impl_from_primitive!</a>(<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, to_usize);
-<a class="macro" href="#524-590">impl_from_primitive!</a>(<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>, to_u8);
-<a class="macro" href="#524-590">impl_from_primitive!</a>(<a href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>, to_u16);
-<a class="macro" href="#524-590">impl_from_primitive!</a>(<a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>, to_u32);
-<a class="macro" href="#524-590">impl_from_primitive!</a>(<a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>, to_u64);
+</span><span class="macro">impl_from_primitive!</span>(i128, to_i128);
+<span class="macro">impl_from_primitive!</span>(usize, to_usize);
+<span class="macro">impl_from_primitive!</span>(u8, to_u8);
+<span class="macro">impl_from_primitive!</span>(u16, to_u16);
+<span class="macro">impl_from_primitive!</span>(u32, to_u32);
+<span class="macro">impl_from_primitive!</span>(u64, to_u64);
 <span class="attr">#[cfg(has_i128)]
-</span><a class="macro" href="#524-590">impl_from_primitive!</a>(<a href="https://doc.rust-lang.org/nightly/std/primitive.u128.html">u128</a>, to_u128);
-<a class="macro" href="#524-590">impl_from_primitive!</a>(<a href="https://doc.rust-lang.org/nightly/std/primitive.f32.html">f32</a>, to_f32);
-<a class="macro" href="#524-590">impl_from_primitive!</a>(<a href="https://doc.rust-lang.org/nightly/std/primitive.f64.html">f64</a>, to_f64);
+</span><span class="macro">impl_from_primitive!</span>(u128, to_u128);
+<span class="macro">impl_from_primitive!</span>(f32, to_f32);
+<span class="macro">impl_from_primitive!</span>(f64, to_f64);
 
 <span class="macro">macro_rules! </span>impl_to_primitive_wrapping {
     ($( $(<span class="attr">#[<span class="macro-nonterminal">$cfg</span>:meta]</span>)* <span class="kw">fn </span><span class="macro-nonterminal">$method</span>:ident -&gt; <span class="macro-nonterminal">$i</span>:ident ; )<span class="kw-2">*</span>) =&gt; {$(
@@ -1430,8 +1430,8 @@
     )<span class="kw-2">*</span>}
 }
 
-<span class="kw">impl</span>&lt;T: <a href="#19">ToPrimitive</a>&gt; <a href="#19">ToPrimitive</a> <span class="kw">for </span>Wrapping&lt;T&gt; {
-    <a class="macro" href="#609-617">impl_to_primitive_wrapping! </a>{
+<span class="kw">impl</span>&lt;T: ToPrimitive&gt; ToPrimitive <span class="kw">for </span>Wrapping&lt;T&gt; {
+    <span class="macro">impl_to_primitive_wrapping! </span>{
         <span class="kw">fn </span>to_isize -&gt; isize;
         <span class="kw">fn </span>to_i8 -&gt; i8;
         <span class="kw">fn </span>to_i16 -&gt; i16;
@@ -1463,8 +1463,8 @@
     )<span class="kw-2">*</span>}
 }
 
-<span class="kw">impl</span>&lt;T: <a href="#411">FromPrimitive</a>&gt; <a href="#411">FromPrimitive</a> <span class="kw">for </span>Wrapping&lt;T&gt; {
-    <a class="macro" href="#642-650">impl_from_primitive_wrapping! </a>{
+<span class="kw">impl</span>&lt;T: FromPrimitive&gt; FromPrimitive <span class="kw">for </span>Wrapping&lt;T&gt; {
+    <span class="macro">impl_from_primitive_wrapping! </span>{
         <span class="kw">fn </span>from_isize(isize);
         <span class="kw">fn </span>from_i8(i8);
         <span class="kw">fn </span>from_i16(i16);
@@ -1497,12 +1497,12 @@
 /// ```
 ///
 </span><span class="attr">#[inline]
-</span><span class="kw">pub fn </span>cast&lt;T: <a href="#691">NumCast</a>, U: <a href="#691">NumCast</a>&gt;(n: T) -&gt; <span class="prelude-ty">Option</span>&lt;U&gt; {
-    <a href="#704">NumCast::from</a>(<a href="#686">n</a>)
+</span><span class="kw">pub fn </span>cast&lt;T: NumCast, U: NumCast&gt;(n: T) -&gt; <span class="prelude-ty">Option</span>&lt;U&gt; {
+    NumCast::from(n)
 }
 
 <span class="doccomment">/// An interface for casting between machine scalars.
-</span><span class="kw">pub trait </span>NumCast: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> + <a href="#19">ToPrimitive</a> {
+</span><span class="kw">pub trait </span>NumCast: Sized + ToPrimitive {
     <span class="doccomment">/// Creates a number from another value that can be converted into
     /// a primitive via the `ToPrimitive` trait. If the source value cannot be
     /// represented by the target type, then `None` is returned.
@@ -1515,7 +1515,7 @@
     /// On the other hand, conversions with possible precision loss or truncation
     /// are admitted, like an `f32` with a decimal part to an integer type, or
     /// even a large `f64` saturating to `f32` infinity.
-    </span><span class="kw">fn </span>from&lt;T: <a href="#19">ToPrimitive</a>&gt;(n: T) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt;;
+    </span><span class="kw">fn </span>from&lt;T: ToPrimitive&gt;(n: T) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt;;
 }
 
 <span class="macro">macro_rules! </span>impl_num_cast {
@@ -1532,26 +1532,26 @@
     };
 }
 
-<a class="macro" href="#707-719">impl_num_cast!</a>(<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>, to_u8);
-<a class="macro" href="#707-719">impl_num_cast!</a>(<a href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>, to_u16);
-<a class="macro" href="#707-719">impl_num_cast!</a>(<a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>, to_u32);
-<a class="macro" href="#707-719">impl_num_cast!</a>(<a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>, to_u64);
+<span class="macro">impl_num_cast!</span>(u8, to_u8);
+<span class="macro">impl_num_cast!</span>(u16, to_u16);
+<span class="macro">impl_num_cast!</span>(u32, to_u32);
+<span class="macro">impl_num_cast!</span>(u64, to_u64);
 <span class="attr">#[cfg(has_i128)]
-</span><a class="macro" href="#707-719">impl_num_cast!</a>(<a href="https://doc.rust-lang.org/nightly/std/primitive.u128.html">u128</a>, to_u128);
-<a class="macro" href="#707-719">impl_num_cast!</a>(<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, to_usize);
-<a class="macro" href="#707-719">impl_num_cast!</a>(<a href="https://doc.rust-lang.org/nightly/std/primitive.i8.html">i8</a>, to_i8);
-<a class="macro" href="#707-719">impl_num_cast!</a>(<a href="https://doc.rust-lang.org/nightly/std/primitive.i16.html">i16</a>, to_i16);
-<a class="macro" href="#707-719">impl_num_cast!</a>(<a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>, to_i32);
-<a class="macro" href="#707-719">impl_num_cast!</a>(<a href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>, to_i64);
+</span><span class="macro">impl_num_cast!</span>(u128, to_u128);
+<span class="macro">impl_num_cast!</span>(usize, to_usize);
+<span class="macro">impl_num_cast!</span>(i8, to_i8);
+<span class="macro">impl_num_cast!</span>(i16, to_i16);
+<span class="macro">impl_num_cast!</span>(i32, to_i32);
+<span class="macro">impl_num_cast!</span>(i64, to_i64);
 <span class="attr">#[cfg(has_i128)]
-</span><a class="macro" href="#707-719">impl_num_cast!</a>(<a href="https://doc.rust-lang.org/nightly/std/primitive.i128.html">i128</a>, to_i128);
-<a class="macro" href="#707-719">impl_num_cast!</a>(<a href="https://doc.rust-lang.org/nightly/std/primitive.isize.html">isize</a>, to_isize);
-<a class="macro" href="#707-719">impl_num_cast!</a>(<a href="https://doc.rust-lang.org/nightly/std/primitive.f32.html">f32</a>, to_f32);
-<a class="macro" href="#707-719">impl_num_cast!</a>(<a href="https://doc.rust-lang.org/nightly/std/primitive.f64.html">f64</a>, to_f64);
+</span><span class="macro">impl_num_cast!</span>(i128, to_i128);
+<span class="macro">impl_num_cast!</span>(isize, to_isize);
+<span class="macro">impl_num_cast!</span>(f32, to_f32);
+<span class="macro">impl_num_cast!</span>(f64, to_f64);
 
-<span class="kw">impl</span>&lt;T: <a href="#691">NumCast</a>&gt; <a href="#691">NumCast</a> <span class="kw">for </span>Wrapping&lt;T&gt; {
-    <span class="kw">fn </span>from&lt;U: <a href="#19">ToPrimitive</a>&gt;(n: U) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt; {
-        T::from(<a href="#739">n</a>).map(Wrapping)
+<span class="kw">impl</span>&lt;T: NumCast&gt; NumCast <span class="kw">for </span>Wrapping&lt;T&gt; {
+    <span class="kw">fn </span>from&lt;U: ToPrimitive&gt;(n: U) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt; {
+        T::from(n).map(Wrapping)
     }
 }
 
@@ -1581,9 +1581,9 @@
 /// let x: u8 = (1.04E+17).as_(); // UB
 /// ```
 ///
-</span><span class="kw">pub trait </span>AsPrimitive&lt;T&gt;: <span class="lifetime">&#39;static </span>+ <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html">Copy</a>
+</span><span class="kw">pub trait </span>AsPrimitive&lt;T&gt;: <span class="lifetime">&#39;static </span>+ Copy
 <span class="kw">where
-    </span>T: <span class="lifetime">&#39;static </span>+ <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html">Copy</a>,
+    </span>T: <span class="lifetime">&#39;static </span>+ Copy,
 {
     <span class="doccomment">/// Convert a value to another, using the `as` operator.
     </span><span class="kw">fn </span>as_(<span class="self">self</span>) -&gt; T;
@@ -1608,23 +1608,23 @@
     };
 }
 
-<a class="macro" href="#778-795">impl_as_primitive!</a>(<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a> =&gt; { <a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.f32.html">f32</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.f64.html">f64</a> });
-<a class="macro" href="#778-795">impl_as_primitive!</a>(<a href="https://doc.rust-lang.org/nightly/std/primitive.i8.html">i8</a> =&gt; { <a href="https://doc.rust-lang.org/nightly/std/primitive.f32.html">f32</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.f64.html">f64</a> });
-<a class="macro" href="#778-795">impl_as_primitive!</a>(<a href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a> =&gt; { <a href="https://doc.rust-lang.org/nightly/std/primitive.f32.html">f32</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.f64.html">f64</a> });
-<a class="macro" href="#778-795">impl_as_primitive!</a>(<a href="https://doc.rust-lang.org/nightly/std/primitive.i16.html">i16</a> =&gt; { <a href="https://doc.rust-lang.org/nightly/std/primitive.f32.html">f32</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.f64.html">f64</a> });
-<a class="macro" href="#778-795">impl_as_primitive!</a>(<a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> =&gt; { <a href="https://doc.rust-lang.org/nightly/std/primitive.f32.html">f32</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.f64.html">f64</a> });
-<a class="macro" href="#778-795">impl_as_primitive!</a>(<a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a> =&gt; { <a href="https://doc.rust-lang.org/nightly/std/primitive.f32.html">f32</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.f64.html">f64</a> });
-<a class="macro" href="#778-795">impl_as_primitive!</a>(<a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> =&gt; { <a href="https://doc.rust-lang.org/nightly/std/primitive.f32.html">f32</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.f64.html">f64</a> });
-<a class="macro" href="#778-795">impl_as_primitive!</a>(<a href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a> =&gt; { <a href="https://doc.rust-lang.org/nightly/std/primitive.f32.html">f32</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.f64.html">f64</a> });
+<span class="macro">impl_as_primitive!</span>(u8 =&gt; { char, f32, f64 });
+<span class="macro">impl_as_primitive!</span>(i8 =&gt; { f32, f64 });
+<span class="macro">impl_as_primitive!</span>(u16 =&gt; { f32, f64 });
+<span class="macro">impl_as_primitive!</span>(i16 =&gt; { f32, f64 });
+<span class="macro">impl_as_primitive!</span>(u32 =&gt; { f32, f64 });
+<span class="macro">impl_as_primitive!</span>(i32 =&gt; { f32, f64 });
+<span class="macro">impl_as_primitive!</span>(u64 =&gt; { f32, f64 });
+<span class="macro">impl_as_primitive!</span>(i64 =&gt; { f32, f64 });
 <span class="attr">#[cfg(has_i128)]
-</span><a class="macro" href="#778-795">impl_as_primitive!</a>(<a href="https://doc.rust-lang.org/nightly/std/primitive.u128.html">u128</a> =&gt; { <a href="https://doc.rust-lang.org/nightly/std/primitive.f32.html">f32</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.f64.html">f64</a> });
+</span><span class="macro">impl_as_primitive!</span>(u128 =&gt; { f32, f64 });
 <span class="attr">#[cfg(has_i128)]
-</span><a class="macro" href="#778-795">impl_as_primitive!</a>(<a href="https://doc.rust-lang.org/nightly/std/primitive.i128.html">i128</a> =&gt; { <a href="https://doc.rust-lang.org/nightly/std/primitive.f32.html">f32</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.f64.html">f64</a> });
-<a class="macro" href="#778-795">impl_as_primitive!</a>(<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> =&gt; { <a href="https://doc.rust-lang.org/nightly/std/primitive.f32.html">f32</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.f64.html">f64</a> });
-<a class="macro" href="#778-795">impl_as_primitive!</a>(<a href="https://doc.rust-lang.org/nightly/std/primitive.isize.html">isize</a> =&gt; { <a href="https://doc.rust-lang.org/nightly/std/primitive.f32.html">f32</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.f64.html">f64</a> });
-<a class="macro" href="#778-795">impl_as_primitive!</a>(<a href="https://doc.rust-lang.org/nightly/std/primitive.f32.html">f32</a> =&gt; { <a href="https://doc.rust-lang.org/nightly/std/primitive.f32.html">f32</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.f64.html">f64</a> });
-<a class="macro" href="#778-795">impl_as_primitive!</a>(<a href="https://doc.rust-lang.org/nightly/std/primitive.f64.html">f64</a> =&gt; { <a href="https://doc.rust-lang.org/nightly/std/primitive.f32.html">f32</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.f64.html">f64</a> });
-<a class="macro" href="#778-795">impl_as_primitive!</a>(<a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a> =&gt; { <a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a> });
-<a class="macro" href="#778-795">impl_as_primitive!</a>(<a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> =&gt; {});
+</span><span class="macro">impl_as_primitive!</span>(i128 =&gt; { f32, f64 });
+<span class="macro">impl_as_primitive!</span>(usize =&gt; { f32, f64 });
+<span class="macro">impl_as_primitive!</span>(isize =&gt; { f32, f64 });
+<span class="macro">impl_as_primitive!</span>(f32 =&gt; { f32, f64 });
+<span class="macro">impl_as_primitive!</span>(f64 =&gt; { f32, f64 });
+<span class="macro">impl_as_primitive!</span>(char =&gt; { char });
+<span class="macro">impl_as_primitive!</span>(bool =&gt; {});
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="num_traits" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="num_traits" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

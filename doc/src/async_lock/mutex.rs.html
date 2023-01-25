@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/async-lock-2.6.0/src/mutex.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mutex.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../async_lock/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/async-lock-2.6.0/src/mutex.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mutex.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../async_lock/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -480,21 +480,21 @@
 <a href="#480" id="480">480</a>
 <a href="#481" id="481">481</a>
 <a href="#482" id="482">482</a>
-</pre><pre class="rust"><code><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/cell/struct.UnsafeCell.html">std::cell::UnsafeCell</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">std::fmt</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">std::future::Future</a>;
-<span class="kw">use </span>std::ops::{<a href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.Deref.html">Deref</a>, <a href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.DerefMut.html">DerefMut</a>};
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/process/index.html">std::process</a>;
-<span class="kw">use </span>std::sync::atomic::{<a href="https://doc.rust-lang.org/nightly/core/sync/atomic/struct.AtomicUsize.html">AtomicUsize</a>, <a href="https://doc.rust-lang.org/nightly/core/sync/atomic/enum.Ordering.html">Ordering</a>};
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/sync/struct.Arc.html">std::sync::Arc</a>;
+</pre><pre class="rust"><code><span class="kw">use </span>std::cell::UnsafeCell;
+<span class="kw">use </span>std::fmt;
+<span class="kw">use </span>std::future::Future;
+<span class="kw">use </span>std::ops::{Deref, DerefMut};
+<span class="kw">use </span>std::process;
+<span class="kw">use </span>std::sync::atomic::{AtomicUsize, Ordering};
+<span class="kw">use </span>std::sync::Arc;
 
 <span class="comment">// Note: we cannot use `target_family = &quot;wasm&quot;` here because it requires Rust 1.54.
 </span><span class="attr">#[cfg(not(any(target_arch = <span class="string">&quot;wasm32&quot;</span>, target_arch = <span class="string">&quot;wasm64&quot;</span>)))]
-</span><span class="kw">use </span>std::time::{<a href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a>, <a href="https://doc.rust-lang.org/nightly/std/time/struct.Instant.html">Instant</a>};
+</span><span class="kw">use </span>std::time::{Duration, Instant};
 
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/usize/index.html">std::usize</a>;
+<span class="kw">use </span>std::usize;
 
-<span class="kw">use </span><a href="../../event_listener/struct.Event.html">event_listener::Event</a>;
+<span class="kw">use </span>event_listener::Event;
 
 <span class="doccomment">/// An async mutex.
 ///
@@ -518,22 +518,22 @@
 /// assert_eq!(*m.try_lock().unwrap(), 2);
 /// # })
 /// ```
-</span><span class="kw">pub struct </span>Mutex&lt;T: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>&gt; {
+</span><span class="kw">pub struct </span>Mutex&lt;T: <span class="question-mark">?</span>Sized&gt; {
     <span class="doccomment">/// Current state of the mutex.
     ///
     /// The least significant bit is set to 1 if the mutex is locked.
     /// The other bits hold the number of starved lock operations.
-    </span>state: <a href="https://doc.rust-lang.org/nightly/core/sync/atomic/struct.AtomicUsize.html">AtomicUsize</a>,
+    </span>state: AtomicUsize,
 
     <span class="doccomment">/// Lock operations waiting for the mutex to be released.
-    </span>lock_ops: <a href="../../event_listener/struct.Event.html">Event</a>,
+    </span>lock_ops: Event,
 
     <span class="doccomment">/// The value inside the mutex.
     </span>data: UnsafeCell&lt;T&gt;,
 }
 
-<span class="kw">unsafe impl</span>&lt;T: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="kw">for </span>Mutex&lt;T&gt; {}
-<span class="kw">unsafe impl</span>&lt;T: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> <span class="kw">for </span>Mutex&lt;T&gt; {}
+<span class="kw">unsafe impl</span>&lt;T: Send + <span class="question-mark">?</span>Sized&gt; Send <span class="kw">for </span>Mutex&lt;T&gt; {}
+<span class="kw">unsafe impl</span>&lt;T: Send + <span class="question-mark">?</span>Sized&gt; Sync <span class="kw">for </span>Mutex&lt;T&gt; {}
 
 <span class="kw">impl</span>&lt;T&gt; Mutex&lt;T&gt; {
     <span class="doccomment">/// Creates a new async mutex.
@@ -546,10 +546,10 @@
     /// let mutex = Mutex::new(0);
     /// ```
     </span><span class="kw">pub const fn </span>new(data: T) -&gt; Mutex&lt;T&gt; {
-        <a href="#39">Mutex</a> {
+        Mutex {
             state: AtomicUsize::new(<span class="number">0</span>),
             lock_ops: Event::new(),
-            data: UnsafeCell::new(<a href="#66">data</a>),
+            data: UnsafeCell::new(data),
         }
     }
 
@@ -564,11 +564,11 @@
     /// assert_eq!(mutex.into_inner(), 10);
     /// ```
     </span><span class="kw">pub fn </span>into_inner(<span class="self">self</span>) -&gt; T {
-        <a class="self" href="#84">self</a>.data.into_inner()
+        <span class="self">self</span>.data.into_inner()
     }
 }
 
-<span class="kw">impl</span>&lt;T: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>&gt; Mutex&lt;T&gt; {
+<span class="kw">impl</span>&lt;T: <span class="question-mark">?</span>Sized&gt; Mutex&lt;T&gt; {
     <span class="doccomment">/// Acquires the mutex.
     ///
     /// Returns a guard that releases the mutex when dropped.
@@ -719,7 +719,7 @@
             .compare_exchange(<span class="number">0</span>, <span class="number">1</span>, Ordering::Acquire, Ordering::Acquire)
             .is_ok()
         {
-            <span class="prelude-val">Some</span>(<a href="#357">MutexGuard</a>(<a class="self" href="#234">self</a>))
+            <span class="prelude-val">Some</span>(MutexGuard(<span class="self">self</span>))
         } <span class="kw">else </span>{
             <span class="prelude-val">None
         </span>}
@@ -742,11 +742,11 @@
     /// # })
     /// ```
     </span><span class="kw">pub fn </span>get_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>T {
-        <span class="kw">unsafe </span>{ <span class="kw-2">&amp;mut *</span><a class="self" href="#262">self</a>.data.get() }
+        <span class="kw">unsafe </span>{ <span class="kw-2">&amp;mut *</span><span class="self">self</span>.data.get() }
     }
 }
 
-<span class="kw">impl</span>&lt;T: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>&gt; Mutex&lt;T&gt; {
+<span class="kw">impl</span>&lt;T: <span class="question-mark">?</span>Sized&gt; Mutex&lt;T&gt; {
     <span class="kw">async fn </span>lock_arc_impl(<span class="self">self</span>: Arc&lt;<span class="self">Self</span>&gt;) -&gt; MutexGuardArc&lt;T&gt; {
         <span class="kw">if let </span><span class="prelude-val">Some</span>(guard) = <span class="self">self</span>.try_lock_arc() {
             <span class="kw">return </span>guard;
@@ -773,7 +773,7 @@
     /// ```
     </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>lock_arc(<span class="self">self</span>: <span class="kw-2">&amp;</span>Arc&lt;<span class="self">Self</span>&gt;) -&gt; <span class="kw">impl </span>Future&lt;Output = MutexGuardArc&lt;T&gt;&gt; {
-        <a class="self" href="#293">self</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>().<a href="#268">lock_arc_impl</a>()
+        <span class="self">self</span>.clone().lock_arc_impl()
     }
 
     <span class="doccomment">/// Attempts to acquire the mutex and clone a reference to it.
@@ -800,48 +800,48 @@
             .compare_exchange(<span class="number">0</span>, <span class="number">1</span>, Ordering::Acquire, Ordering::Acquire)
             .is_ok()
         {
-            <span class="prelude-val">Some</span>(<a href="#416">MutexGuardArc</a>(<a class="self" href="#315">self</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()))
+            <span class="prelude-val">Some</span>(MutexGuardArc(<span class="self">self</span>.clone()))
         } <span class="kw">else </span>{
             <span class="prelude-val">None
         </span>}
     }
 }
 
-<span class="kw">impl</span>&lt;T: <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> + <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span>Mutex&lt;T&gt; {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+<span class="kw">impl</span>&lt;T: fmt::Debug + <span class="question-mark">?</span>Sized&gt; fmt::Debug <span class="kw">for </span>Mutex&lt;T&gt; {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
         <span class="kw">struct </span>Locked;
-        <span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="#330">Locked</a> {
-            <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-                <a href="#332">f</a>.write_str(<span class="string">&quot;&lt;locked&gt;&quot;</span>)
+        <span class="kw">impl </span>fmt::Debug <span class="kw">for </span>Locked {
+            <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+                f.write_str(<span class="string">&quot;&lt;locked&gt;&quot;</span>)
             }
         }
 
-        <span class="kw">match </span><a class="self" href="#329">self</a>.<a href="#234">try_lock</a>() {
-            <span class="prelude-val">None </span>=&gt; <a href="#329">f</a>.debug_struct(<span class="string">&quot;Mutex&quot;</span>).field(<span class="string">&quot;data&quot;</span>, <span class="kw-2">&amp;</span><a href="#330">Locked</a>).finish(),
-            <span class="prelude-val">Some</span>(guard) =&gt; <a href="#329">f</a>.debug_struct(<span class="string">&quot;Mutex&quot;</span>).field(<span class="string">&quot;data&quot;</span>, &amp;&amp;<span class="kw-2">*</span><a href="#339">guard</a>).finish(),
+        <span class="kw">match </span><span class="self">self</span>.try_lock() {
+            <span class="prelude-val">None </span>=&gt; f.debug_struct(<span class="string">&quot;Mutex&quot;</span>).field(<span class="string">&quot;data&quot;</span>, <span class="kw-2">&amp;</span>Locked).finish(),
+            <span class="prelude-val">Some</span>(guard) =&gt; f.debug_struct(<span class="string">&quot;Mutex&quot;</span>).field(<span class="string">&quot;data&quot;</span>, &amp;&amp;<span class="kw-2">*</span>guard).finish(),
         }
     }
 }
 
 <span class="kw">impl</span>&lt;T&gt; From&lt;T&gt; <span class="kw">for </span>Mutex&lt;T&gt; {
     <span class="kw">fn </span>from(val: T) -&gt; Mutex&lt;T&gt; {
-        Mutex::new(<a href="#345">val</a>)
+        Mutex::new(val)
     }
 }
 
-<span class="kw">impl</span>&lt;T: <a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> + <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for </span>Mutex&lt;T&gt; {
+<span class="kw">impl</span>&lt;T: Default + <span class="question-mark">?</span>Sized&gt; Default <span class="kw">for </span>Mutex&lt;T&gt; {
     <span class="kw">fn </span>default() -&gt; Mutex&lt;T&gt; {
-        Mutex::new(<a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default::default</a>())
+        Mutex::new(Default::default())
     }
 }
 
 <span class="doccomment">/// A guard that releases the mutex when dropped.
-</span><span class="kw">pub struct </span>MutexGuard&lt;<span class="lifetime">&#39;a</span>, T: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Mutex&lt;T&gt;);
+</span><span class="kw">pub struct </span>MutexGuard&lt;<span class="lifetime">&#39;a</span>, T: <span class="question-mark">?</span>Sized&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Mutex&lt;T&gt;);
 
-<span class="kw">unsafe impl</span>&lt;T: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="kw">for </span>MutexGuard&lt;<span class="lifetime">&#39;_</span>, T&gt; {}
-<span class="kw">unsafe impl</span>&lt;T: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> + <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> <span class="kw">for </span>MutexGuard&lt;<span class="lifetime">&#39;_</span>, T&gt; {}
+<span class="kw">unsafe impl</span>&lt;T: Send + <span class="question-mark">?</span>Sized&gt; Send <span class="kw">for </span>MutexGuard&lt;<span class="lifetime">&#39;_</span>, T&gt; {}
+<span class="kw">unsafe impl</span>&lt;T: Sync + <span class="question-mark">?</span>Sized&gt; Sync <span class="kw">for </span>MutexGuard&lt;<span class="lifetime">&#39;_</span>, T&gt; {}
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>&gt; MutexGuard&lt;<span class="lifetime">&#39;a</span>, T&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T: <span class="question-mark">?</span>Sized&gt; MutexGuard&lt;<span class="lifetime">&#39;a</span>, T&gt; {
     <span class="doccomment">/// Returns a reference to the mutex a guard came from.
     ///
     /// # Examples
@@ -856,51 +856,51 @@
     /// # })
     /// ```
     </span><span class="kw">pub fn </span>source(guard: <span class="kw-2">&amp;</span>MutexGuard&lt;<span class="lifetime">&#39;a</span>, T&gt;) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Mutex&lt;T&gt; {
-        <a href="#376">guard</a>.<span class="number">0
+        guard.<span class="number">0
     </span>}
 }
 
-<span class="kw">impl</span>&lt;T: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span>MutexGuard&lt;<span class="lifetime">&#39;_</span>, T&gt; {
+<span class="kw">impl</span>&lt;T: <span class="question-mark">?</span>Sized&gt; Drop <span class="kw">for </span>MutexGuard&lt;<span class="lifetime">&#39;_</span>, T&gt; {
     <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="comment">// Remove the last bit and notify a waiting lock operation.
-        </span><a class="self" href="#382">self</a>.<span class="number">0</span>.state.fetch_sub(<span class="number">1</span>, Ordering::Release);
-        <a class="self" href="#382">self</a>.<span class="number">0</span>.lock_ops.notify(<span class="number">1</span>);
+        </span><span class="self">self</span>.<span class="number">0</span>.state.fetch_sub(<span class="number">1</span>, Ordering::Release);
+        <span class="self">self</span>.<span class="number">0</span>.lock_ops.notify(<span class="number">1</span>);
     }
 }
 
-<span class="kw">impl</span>&lt;T: <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> + <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span>MutexGuard&lt;<span class="lifetime">&#39;_</span>, T&gt; {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug::fmt</a>(<span class="kw-2">&amp;**</span><a class="self" href="#390">self</a>, <a href="#390">f</a>)
+<span class="kw">impl</span>&lt;T: fmt::Debug + <span class="question-mark">?</span>Sized&gt; fmt::Debug <span class="kw">for </span>MutexGuard&lt;<span class="lifetime">&#39;_</span>, T&gt; {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        fmt::Debug::fmt(<span class="kw-2">&amp;**</span><span class="self">self</span>, f)
     }
 }
 
-<span class="kw">impl</span>&lt;T: <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> + <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for </span>MutexGuard&lt;<span class="lifetime">&#39;_</span>, T&gt; {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        (<span class="kw-2">**</span><a class="self" href="#396">self</a>).<a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt</a>(<a href="#396">f</a>)
+<span class="kw">impl</span>&lt;T: fmt::Display + <span class="question-mark">?</span>Sized&gt; fmt::Display <span class="kw">for </span>MutexGuard&lt;<span class="lifetime">&#39;_</span>, T&gt; {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        (<span class="kw-2">**</span><span class="self">self</span>).fmt(f)
     }
 }
 
-<span class="kw">impl</span>&lt;T: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.Deref.html">Deref</a> <span class="kw">for </span>MutexGuard&lt;<span class="lifetime">&#39;_</span>, T&gt; {
+<span class="kw">impl</span>&lt;T: <span class="question-mark">?</span>Sized&gt; Deref <span class="kw">for </span>MutexGuard&lt;<span class="lifetime">&#39;_</span>, T&gt; {
     <span class="kw">type </span>Target = T;
 
     <span class="kw">fn </span>deref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>T {
-        <span class="kw">unsafe </span>{ <span class="kw-2">&amp;*</span><a class="self" href="#404">self</a>.<span class="number">0</span>.data.get() }
+        <span class="kw">unsafe </span>{ <span class="kw-2">&amp;*</span><span class="self">self</span>.<span class="number">0</span>.data.get() }
     }
 }
 
-<span class="kw">impl</span>&lt;T: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.DerefMut.html">DerefMut</a> <span class="kw">for </span>MutexGuard&lt;<span class="lifetime">&#39;_</span>, T&gt; {
+<span class="kw">impl</span>&lt;T: <span class="question-mark">?</span>Sized&gt; DerefMut <span class="kw">for </span>MutexGuard&lt;<span class="lifetime">&#39;_</span>, T&gt; {
     <span class="kw">fn </span>deref_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>T {
-        <span class="kw">unsafe </span>{ <span class="kw-2">&amp;mut *</span><a class="self" href="#410">self</a>.<span class="number">0</span>.data.get() }
+        <span class="kw">unsafe </span>{ <span class="kw-2">&amp;mut *</span><span class="self">self</span>.<span class="number">0</span>.data.get() }
     }
 }
 
 <span class="doccomment">/// An owned guard that releases the mutex when dropped.
-</span><span class="kw">pub struct </span>MutexGuardArc&lt;T: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>&gt;(Arc&lt;Mutex&lt;T&gt;&gt;);
+</span><span class="kw">pub struct </span>MutexGuardArc&lt;T: <span class="question-mark">?</span>Sized&gt;(Arc&lt;Mutex&lt;T&gt;&gt;);
 
-<span class="kw">unsafe impl</span>&lt;T: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="kw">for </span>MutexGuardArc&lt;T&gt; {}
-<span class="kw">unsafe impl</span>&lt;T: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> + <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> <span class="kw">for </span>MutexGuardArc&lt;T&gt; {}
+<span class="kw">unsafe impl</span>&lt;T: Send + <span class="question-mark">?</span>Sized&gt; Send <span class="kw">for </span>MutexGuardArc&lt;T&gt; {}
+<span class="kw">unsafe impl</span>&lt;T: Sync + <span class="question-mark">?</span>Sized&gt; Sync <span class="kw">for </span>MutexGuardArc&lt;T&gt; {}
 
-<span class="kw">impl</span>&lt;T: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>&gt; MutexGuardArc&lt;T&gt; {
+<span class="kw">impl</span>&lt;T: <span class="question-mark">?</span>Sized&gt; MutexGuardArc&lt;T&gt; {
     <span class="doccomment">/// Returns a reference to the mutex a guard came from.
     ///
     /// # Examples
@@ -916,51 +916,51 @@
     /// # })
     /// ```
     </span><span class="kw">pub fn </span>source(guard: <span class="kw-2">&amp;</span>MutexGuardArc&lt;T&gt;) -&gt; <span class="kw-2">&amp;</span>Arc&lt;Mutex&lt;T&gt;&gt; {
-        <span class="kw-2">&amp;</span><a href="#436">guard</a>.<span class="number">0
+        <span class="kw-2">&amp;</span>guard.<span class="number">0
     </span>}
 }
 
-<span class="kw">impl</span>&lt;T: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span>MutexGuardArc&lt;T&gt; {
+<span class="kw">impl</span>&lt;T: <span class="question-mark">?</span>Sized&gt; Drop <span class="kw">for </span>MutexGuardArc&lt;T&gt; {
     <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="comment">// Remove the last bit and notify a waiting lock operation.
-        </span><a class="self" href="#442">self</a>.<span class="number">0</span>.state.fetch_sub(<span class="number">1</span>, Ordering::Release);
-        <a class="self" href="#442">self</a>.<span class="number">0</span>.lock_ops.notify(<span class="number">1</span>);
+        </span><span class="self">self</span>.<span class="number">0</span>.state.fetch_sub(<span class="number">1</span>, Ordering::Release);
+        <span class="self">self</span>.<span class="number">0</span>.lock_ops.notify(<span class="number">1</span>);
     }
 }
 
-<span class="kw">impl</span>&lt;T: <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> + <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span>MutexGuardArc&lt;T&gt; {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug::fmt</a>(<span class="kw-2">&amp;**</span><a class="self" href="#450">self</a>, <a href="#450">f</a>)
+<span class="kw">impl</span>&lt;T: fmt::Debug + <span class="question-mark">?</span>Sized&gt; fmt::Debug <span class="kw">for </span>MutexGuardArc&lt;T&gt; {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        fmt::Debug::fmt(<span class="kw-2">&amp;**</span><span class="self">self</span>, f)
     }
 }
 
-<span class="kw">impl</span>&lt;T: <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> + <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for </span>MutexGuardArc&lt;T&gt; {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        (<span class="kw-2">**</span><a class="self" href="#456">self</a>).<a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt</a>(<a href="#456">f</a>)
+<span class="kw">impl</span>&lt;T: fmt::Display + <span class="question-mark">?</span>Sized&gt; fmt::Display <span class="kw">for </span>MutexGuardArc&lt;T&gt; {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        (<span class="kw-2">**</span><span class="self">self</span>).fmt(f)
     }
 }
 
-<span class="kw">impl</span>&lt;T: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.Deref.html">Deref</a> <span class="kw">for </span>MutexGuardArc&lt;T&gt; {
+<span class="kw">impl</span>&lt;T: <span class="question-mark">?</span>Sized&gt; Deref <span class="kw">for </span>MutexGuardArc&lt;T&gt; {
     <span class="kw">type </span>Target = T;
 
     <span class="kw">fn </span>deref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>T {
-        <span class="kw">unsafe </span>{ <span class="kw-2">&amp;*</span><a class="self" href="#464">self</a>.<span class="number">0</span>.data.get() }
+        <span class="kw">unsafe </span>{ <span class="kw-2">&amp;*</span><span class="self">self</span>.<span class="number">0</span>.data.get() }
     }
 }
 
-<span class="kw">impl</span>&lt;T: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.DerefMut.html">DerefMut</a> <span class="kw">for </span>MutexGuardArc&lt;T&gt; {
+<span class="kw">impl</span>&lt;T: <span class="question-mark">?</span>Sized&gt; DerefMut <span class="kw">for </span>MutexGuardArc&lt;T&gt; {
     <span class="kw">fn </span>deref_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>T {
-        <span class="kw">unsafe </span>{ <span class="kw-2">&amp;mut *</span><a class="self" href="#470">self</a>.<span class="number">0</span>.data.get() }
+        <span class="kw">unsafe </span>{ <span class="kw-2">&amp;mut *</span><span class="self">self</span>.<span class="number">0</span>.data.get() }
     }
 }
 
 <span class="doccomment">/// Calls a function when dropped.
 </span><span class="kw">struct </span>CallOnDrop&lt;F: Fn()&gt;(F);
 
-<span class="kw">impl</span>&lt;F: Fn()&gt; <a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span>CallOnDrop&lt;F&gt; {
+<span class="kw">impl</span>&lt;F: Fn()&gt; Drop <span class="kw">for </span>CallOnDrop&lt;F&gt; {
     <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        (<a class="self" href="#479">self</a>.<span class="number">0</span>)();
+        (<span class="self">self</span>.<span class="number">0</span>)();
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="async_lock" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="async_lock" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

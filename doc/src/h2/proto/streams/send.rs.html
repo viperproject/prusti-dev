@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/h2-0.3.15/src/proto/streams/send.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>send.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../../h2/index.html"><img class="rust-logo" src="../../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/h2-0.3.15/src/proto/streams/send.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>send.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../../h2/index.html"><img class="rust-logo" src="../../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -564,25 +564,25 @@
 <a href="#564" id="564">564</a>
 <a href="#565" id="565">565</a>
 </pre><pre class="rust"><code><span class="kw">use super</span>::{
-    <a href="mod.rs.html#8">store</a>, <a href="buffer.rs.html#5">Buffer</a>, <a href="../../codec/mod.rs.html#24">Codec</a>, <a href="mod.rs.html#34">Config</a>, <a href="counts.rs.html#6">Counts</a>, <a href="../../frame/mod.rs.html#80">Frame</a>, <a href="prioritize.rs.html#24">Prioritize</a>, <a href="prioritize.rs.html#69">Prioritized</a>, <a href="store.rs.html#14">Store</a>, <a href="stream.rs.html#19">Stream</a>, <a href="../../frame/stream_id.rs.html#14">StreamId</a>,
-    <a href="../../frame/stream_id.rs.html#17">StreamIdOverflow</a>, <a href="../mod.rs.html#30">WindowSize</a>,
+    store, Buffer, Codec, Config, Counts, Frame, Prioritize, Prioritized, Store, Stream, StreamId,
+    StreamIdOverflow, WindowSize,
 };
-<span class="kw">use </span><a href="../../codec/error.rs.html#14"><span class="kw">crate</span>::codec::UserError</a>;
-<span class="kw">use </span><span class="kw">crate</span>::frame::{<a class="self" href="../../lib.rs.html#116">self</a>, <a href="../../frame/reason.rs.html#19">Reason</a>};
-<span class="kw">use </span><span class="kw">crate</span>::proto::{<a href="../error.rs.html#10">Error</a>, <a href="../error.rs.html#17">Initiator</a>};
+<span class="kw">use </span><span class="kw">crate</span>::codec::UserError;
+<span class="kw">use </span><span class="kw">crate</span>::frame::{<span class="self">self</span>, Reason};
+<span class="kw">use </span><span class="kw">crate</span>::proto::{Error, Initiator};
 
-<span class="kw">use </span><a href="../../../../bytes/buf/buf_impl/trait.Buf.html">bytes::Buf</a>;
-<span class="kw">use </span><a href="../../../../http/index.html">http</a>;
-<span class="kw">use </span>std::task::{<a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>, <a href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">Poll</a>, <a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Waker.html">Waker</a>};
-<span class="kw">use </span><a href="../../../../tokio/io/async_write/trait.AsyncWrite.html">tokio::io::AsyncWrite</a>;
+<span class="kw">use </span>bytes::Buf;
+<span class="kw">use </span>http;
+<span class="kw">use </span>std::task::{Context, Poll, Waker};
+<span class="kw">use </span>tokio::io::AsyncWrite;
 
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/io/index.html">std::io</a>;
+<span class="kw">use </span>std::io;
 
 <span class="doccomment">/// Manages state transitions related to outbound frames.
 </span><span class="attr">#[derive(Debug)]
 </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">struct </span>Send {
     <span class="doccomment">/// Stream identifier to use for next initialized stream.
-    </span>next_stream_id: <span class="prelude-ty">Result</span>&lt;<a href="../../frame/stream_id.rs.html#14">StreamId</a>, <a href="../../frame/stream_id.rs.html#17">StreamIdOverflow</a>&gt;,
+    </span>next_stream_id: <span class="prelude-ty">Result</span>&lt;StreamId, StreamIdOverflow&gt;,
 
     <span class="doccomment">/// Any streams with a higher ID are ignored.
     ///
@@ -591,18 +591,18 @@
     /// &gt; After sending a GOAWAY frame, the sender can discard frames for
     /// &gt; streams initiated by the receiver with identifiers higher than
     /// &gt; the identified last stream.
-    </span>max_stream_id: <a href="../../frame/stream_id.rs.html#14">StreamId</a>,
+    </span>max_stream_id: StreamId,
 
     <span class="doccomment">/// Initial window size of locally initiated streams
-    </span>init_window_sz: <a href="../mod.rs.html#30">WindowSize</a>,
+    </span>init_window_sz: WindowSize,
 
     <span class="doccomment">/// Prioritization layer
-    </span>prioritize: <a href="prioritize.rs.html#24">Prioritize</a>,
+    </span>prioritize: Prioritize,
 
-    is_push_enabled: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
+    is_push_enabled: bool,
 
     <span class="doccomment">/// If extended connect protocol is enabled.
-    </span>is_extended_connect_protocol_enabled: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
+    </span>is_extended_connect_protocol_enabled: bool,
 }
 
 <span class="doccomment">/// A value to detect which public API has called `poll_reset`.
@@ -612,37 +612,37 @@
     Streaming,
 }
 
-<span class="kw">impl </span><a href="#18">Send</a> {
+<span class="kw">impl </span>Send {
     <span class="doccomment">/// Create a new `Send`
-    </span><span class="kw">pub fn </span>new(config: <span class="kw-2">&amp;</span><a href="mod.rs.html#34">Config</a>) -&gt; <span class="self">Self </span>{
-        <a href="#18">Send</a> {
-            init_window_sz: <a href="#52">config</a>.remote_init_window_sz,
+    </span><span class="kw">pub fn </span>new(config: <span class="kw-2">&amp;</span>Config) -&gt; <span class="self">Self </span>{
+        Send {
+            init_window_sz: config.remote_init_window_sz,
             max_stream_id: StreamId::MAX,
-            next_stream_id: <span class="prelude-val">Ok</span>(<a href="#52">config</a>.local_next_stream_id),
-            prioritize: Prioritize::new(<a href="#52">config</a>),
+            next_stream_id: <span class="prelude-val">Ok</span>(config.local_next_stream_id),
+            prioritize: Prioritize::new(config),
             is_push_enabled: <span class="bool-val">true</span>,
             is_extended_connect_protocol_enabled: <span class="bool-val">false</span>,
         }
     }
 
     <span class="doccomment">/// Returns the initial send window size
-    </span><span class="kw">pub fn </span>init_window_sz(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../mod.rs.html#30">WindowSize</a> {
-        <a class="self" href="#64">self</a>.init_window_sz
+    </span><span class="kw">pub fn </span>init_window_sz(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; WindowSize {
+        <span class="self">self</span>.init_window_sz
     }
 
-    <span class="kw">pub fn </span>open(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../frame/stream_id.rs.html#14">StreamId</a>, <a href="../../codec/error.rs.html#14">UserError</a>&gt; {
+    <span class="kw">pub fn </span>open(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;StreamId, UserError&gt; {
         <span class="kw">let </span>stream_id = <span class="self">self</span>.ensure_next_stream_id()<span class="question-mark">?</span>;
-        <a class="self" href="#68">self</a>.next_stream_id = <a href="#69">stream_id</a>.<a href="../../frame/stream_id.rs.html#69">next_id</a>();
-        <span class="prelude-val">Ok</span>(<a href="#69">stream_id</a>)
+        <span class="self">self</span>.next_stream_id = stream_id.next_id();
+        <span class="prelude-val">Ok</span>(stream_id)
     }
 
-    <span class="kw">pub fn </span>reserve_local(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../frame/stream_id.rs.html#14">StreamId</a>, <a href="../../codec/error.rs.html#14">UserError</a>&gt; {
+    <span class="kw">pub fn </span>reserve_local(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;StreamId, UserError&gt; {
         <span class="kw">let </span>stream_id = <span class="self">self</span>.ensure_next_stream_id()<span class="question-mark">?</span>;
-        <a class="self" href="#74">self</a>.next_stream_id = <a href="#75">stream_id</a>.<a href="../../frame/stream_id.rs.html#69">next_id</a>();
-        <span class="prelude-val">Ok</span>(<a href="#75">stream_id</a>)
+        <span class="self">self</span>.next_stream_id = stream_id.next_id();
+        <span class="prelude-val">Ok</span>(stream_id)
     }
 
-    <span class="kw">fn </span>check_headers(fields: <span class="kw-2">&amp;</span><a href="../../../../http/header/map/struct.HeaderMap.html">http::HeaderMap</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../codec/error.rs.html#14">UserError</a>&gt; {
+    <span class="kw">fn </span>check_headers(fields: <span class="kw-2">&amp;</span>http::HeaderMap) -&gt; <span class="prelude-ty">Result</span>&lt;(), UserError&gt; {
         <span class="comment">// 8.1.2.2. Connection-Specific Header Fields
         </span><span class="kw">if </span>fields.contains_key(http::header::CONNECTION)
             || fields.contains_key(http::header::TRANSFER_ENCODING)
@@ -650,12 +650,12 @@
             || fields.contains_key(<span class="string">&quot;keep-alive&quot;</span>)
             || fields.contains_key(<span class="string">&quot;proxy-connection&quot;</span>)
         {
-            <a class="macro" href="../../../../tracing/tracing/macro.debug.html">tracing::debug!</a>(<span class="string">&quot;illegal connection-specific headers found&quot;</span>);
-            <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../codec/error.rs.html#36">UserError::MalformedHeaders</a>);
-        } <span class="kw">else if let </span><span class="prelude-val">Some</span>(te) = <a href="#80">fields</a>.get(http::header::TE) {
+            <span class="macro">tracing::debug!</span>(<span class="string">&quot;illegal connection-specific headers found&quot;</span>);
+            <span class="kw">return </span><span class="prelude-val">Err</span>(UserError::MalformedHeaders);
+        } <span class="kw">else if let </span><span class="prelude-val">Some</span>(te) = fields.get(http::header::TE) {
             <span class="kw">if </span>te != <span class="string">&quot;trailers&quot; </span>{
-                <a class="macro" href="../../../../tracing/tracing/macro.debug.html">tracing::debug!</a>(<span class="string">&quot;illegal connection-specific headers found&quot;</span>);
-                <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../codec/error.rs.html#36">UserError::MalformedHeaders</a>);
+                <span class="macro">tracing::debug!</span>(<span class="string">&quot;illegal connection-specific headers found&quot;</span>);
+                <span class="kw">return </span><span class="prelude-val">Err</span>(UserError::MalformedHeaders);
             }
         }
         <span class="prelude-val">Ok</span>(())
@@ -663,16 +663,16 @@
 
     <span class="kw">pub fn </span>send_push_promise&lt;B&gt;(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        frame: <a href="../../frame/headers.rs.html#37">frame::PushPromise</a>,
+        frame: frame::PushPromise,
         buffer: <span class="kw-2">&amp;mut </span>Buffer&lt;Frame&lt;B&gt;&gt;,
-        stream: <span class="kw-2">&amp;mut </span><a href="store.rs.html#20">store::Ptr</a>,
-        task: <span class="kw-2">&amp;mut </span><span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Waker.html">Waker</a>&gt;,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../codec/error.rs.html#14">UserError</a>&gt; {
+        stream: <span class="kw-2">&amp;mut </span>store::Ptr,
+        task: <span class="kw-2">&amp;mut </span><span class="prelude-ty">Option</span>&lt;Waker&gt;,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), UserError&gt; {
         <span class="kw">if </span>!<span class="self">self</span>.is_push_enabled {
-            <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../codec/error.rs.html#51">UserError::PeerDisabledServerPush</a>);
+            <span class="kw">return </span><span class="prelude-val">Err</span>(UserError::PeerDisabledServerPush);
         }
 
-        <a class="macro" href="../../../../tracing/tracing/macro.trace.html">tracing::trace!</a>(
+        <span class="macro">tracing::trace!</span>(
             <span class="string">&quot;send_push_promise; frame={:?}; init_window={:?}&quot;</span>,
             frame,
             <span class="self">self</span>.init_window_sz
@@ -681,21 +681,21 @@
         <span class="self">Self</span>::check_headers(frame.fields())<span class="question-mark">?</span>;
 
         <span class="comment">// Queue the frame for sending
-        </span><a class="self" href="#100">self</a>.prioritize
-            .<a href="prioritize.rs.html#108-114">queue_frame</a>(<a href="#101">frame</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(), <a href="#102">buffer</a>, <a href="#103">stream</a>, <a href="#104">task</a>);
+        </span><span class="self">self</span>.prioritize
+            .queue_frame(frame.into(), buffer, stream, task);
 
         <span class="prelude-val">Ok</span>(())
     }
 
     <span class="kw">pub fn </span>send_headers&lt;B&gt;(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        frame: <a href="../../frame/headers.rs.html#19">frame::Headers</a>,
+        frame: frame::Headers,
         buffer: <span class="kw-2">&amp;mut </span>Buffer&lt;Frame&lt;B&gt;&gt;,
-        stream: <span class="kw-2">&amp;mut </span><a href="store.rs.html#20">store::Ptr</a>,
-        counts: <span class="kw-2">&amp;mut </span><a href="counts.rs.html#6">Counts</a>,
-        task: <span class="kw-2">&amp;mut </span><span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Waker.html">Waker</a>&gt;,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../codec/error.rs.html#14">UserError</a>&gt; {
-        <a class="macro" href="../../../../tracing/tracing/macro.trace.html">tracing::trace!</a>(
+        stream: <span class="kw-2">&amp;mut </span>store::Ptr,
+        counts: <span class="kw-2">&amp;mut </span>Counts,
+        task: <span class="kw-2">&amp;mut </span><span class="prelude-ty">Option</span>&lt;Waker&gt;,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), UserError&gt; {
+        <span class="macro">tracing::trace!</span>(
             <span class="string">&quot;send_headers; frame={:?}; init_window={:?}&quot;</span>,
             frame,
             <span class="self">self</span>.init_window_sz
@@ -703,7 +703,7 @@
 
         <span class="self">Self</span>::check_headers(frame.fields())<span class="question-mark">?</span>;
 
-        <span class="kw">let </span>end_stream = <a href="#127">frame</a>.<a href="../../frame/headers.rs.html#229">is_end_stream</a>();
+        <span class="kw">let </span>end_stream = frame.is_end_stream();
 
         <span class="comment">// Update the state
         </span>stream.state.send_open(end_stream)<span class="question-mark">?</span>;
@@ -713,16 +713,16 @@
             // handle potentially queueing the stream at that point
             </span><span class="kw">if </span>!stream.is_pending_push {
                 <span class="kw">if </span>counts.can_inc_num_send_streams() {
-                    <a href="#130">counts</a>.<a href="counts.rs.html#82">inc_num_send_streams</a>(<a href="#129">stream</a>);
+                    counts.inc_num_send_streams(stream);
                 } <span class="kw">else </span>{
-                    <a class="self" href="#126">self</a>.prioritize.<a href="prioritize.rs.html#136">queue_open</a>(<a href="#129">stream</a>);
+                    <span class="self">self</span>.prioritize.queue_open(stream);
                 }
             }
         }
 
         <span class="comment">// Queue the frame for sending
-        </span><a class="self" href="#126">self</a>.prioritize
-            .<a href="prioritize.rs.html#108-114">queue_frame</a>(<a href="#127">frame</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(), <a href="#128">buffer</a>, <a href="#129">stream</a>, <a href="#131">task</a>);
+        </span><span class="self">self</span>.prioritize
+            .queue_frame(frame.into(), buffer, stream, task);
 
         <span class="prelude-val">Ok</span>(())
     }
@@ -730,19 +730,19 @@
     <span class="doccomment">/// Send an explicit RST_STREAM frame
     </span><span class="kw">pub fn </span>send_reset&lt;B&gt;(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        reason: <a href="../../frame/reason.rs.html#19">Reason</a>,
-        initiator: <a href="../error.rs.html#17">Initiator</a>,
+        reason: Reason,
+        initiator: Initiator,
         buffer: <span class="kw-2">&amp;mut </span>Buffer&lt;Frame&lt;B&gt;&gt;,
-        stream: <span class="kw-2">&amp;mut </span><a href="store.rs.html#20">store::Ptr</a>,
-        counts: <span class="kw-2">&amp;mut </span><a href="counts.rs.html#6">Counts</a>,
-        task: <span class="kw-2">&amp;mut </span><span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Waker.html">Waker</a>&gt;,
+        stream: <span class="kw-2">&amp;mut </span>store::Ptr,
+        counts: <span class="kw-2">&amp;mut </span>Counts,
+        task: <span class="kw-2">&amp;mut </span><span class="prelude-ty">Option</span>&lt;Waker&gt;,
     ) {
-        <span class="kw">let </span>is_reset = <a href="#171">stream</a>.state.<a href="state.rs.html#361">is_reset</a>();
-        <span class="kw">let </span>is_closed = <a href="#171">stream</a>.state.<a href="state.rs.html#403">is_closed</a>();
-        <span class="kw">let </span>is_empty = <a href="#171">stream</a>.pending_send.<a href="buffer.rs.html#39">is_empty</a>();
-        <span class="kw">let </span>stream_id = <a href="#171">stream</a>.id;
+        <span class="kw">let </span>is_reset = stream.state.is_reset();
+        <span class="kw">let </span>is_closed = stream.state.is_closed();
+        <span class="kw">let </span>is_empty = stream.pending_send.is_empty();
+        <span class="kw">let </span>stream_id = stream.id;
 
-        <a class="macro" href="../../../../tracing/tracing/macro.trace.html">tracing::trace!</a>(
+        <span class="macro">tracing::trace!</span>(
             <span class="string">&quot;send_reset(..., reason={:?}, initiator={:?}, stream={:?}, ..., \
              is_reset={:?}; is_closed={:?}; pending_send.is_empty={:?}; \
              state={:?} \
@@ -758,7 +758,7 @@
 
         <span class="kw">if </span>is_reset {
             <span class="comment">// Don&#39;t double reset
-            </span><a class="macro" href="../../../../tracing/tracing/macro.trace.html">tracing::trace!</a>(
+            </span><span class="macro">tracing::trace!</span>(
                 <span class="string">&quot; -&gt; not sending RST_STREAM ({:?} is already reset)&quot;</span>,
                 stream_id
             );
@@ -766,12 +766,12 @@
         }
 
         <span class="comment">// Transition the state to reset no matter what.
-        </span><a href="#171">stream</a>.state.<a href="state.rs.html#328">set_reset</a>(<a href="#178">stream_id</a>, <a href="#168">reason</a>, <a href="#169">initiator</a>);
+        </span>stream.state.set_reset(stream_id, reason, initiator);
 
         <span class="comment">// If closed AND the send queue is flushed, then the stream cannot be
         // reset explicitly, either. Implicit resets can still be queued.
         </span><span class="kw">if </span>is_closed &amp;&amp; is_empty {
-            <a class="macro" href="../../../../tracing/tracing/macro.trace.html">tracing::trace!</a>(
+            <span class="macro">tracing::trace!</span>(
                 <span class="string">&quot; -&gt; not sending explicit RST_STREAM ({:?} was closed \
                  and send queue was flushed)&quot;</span>,
                 stream_id
@@ -783,139 +783,139 @@
         // Note that we don&#39;t call `self.recv_err` because we want to enqueue
         // the reset frame before transitioning the stream inside
         // `reclaim_all_capacity`.
-        </span><a class="self" href="#167">self</a>.prioritize.<a href="prioritize.rs.html#632">clear_queue</a>(<a href="#170">buffer</a>, <a href="#171">stream</a>);
+        </span><span class="self">self</span>.prioritize.clear_queue(buffer, stream);
 
-        <span class="kw">let </span>frame = frame::Reset::new(<a href="#171">stream</a>.id, <a href="#168">reason</a>);
+        <span class="kw">let </span>frame = frame::Reset::new(stream.id, reason);
 
-        <a class="macro" href="../../../../tracing/tracing/macro.trace.html">tracing::trace!</a>(<span class="string">&quot;send_reset -- queueing; frame={:?}&quot;</span>, frame);
-        <a class="self" href="#167">self</a>.prioritize
-            .<a href="prioritize.rs.html#108-114">queue_frame</a>(<a href="#223">frame</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(), <a href="#170">buffer</a>, <a href="#171">stream</a>, <a href="#173">task</a>);
-        <a class="self" href="#167">self</a>.prioritize.<a href="prioritize.rs.html#318">reclaim_all_capacity</a>(<a href="#171">stream</a>, <a href="#172">counts</a>);
+        <span class="macro">tracing::trace!</span>(<span class="string">&quot;send_reset -- queueing; frame={:?}&quot;</span>, frame);
+        <span class="self">self</span>.prioritize
+            .queue_frame(frame.into(), buffer, stream, task);
+        <span class="self">self</span>.prioritize.reclaim_all_capacity(stream, counts);
     }
 
     <span class="kw">pub fn </span>schedule_implicit_reset(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        stream: <span class="kw-2">&amp;mut </span><a href="store.rs.html#20">store::Ptr</a>,
-        reason: <a href="../../frame/reason.rs.html#19">Reason</a>,
-        counts: <span class="kw-2">&amp;mut </span><a href="counts.rs.html#6">Counts</a>,
-        task: <span class="kw-2">&amp;mut </span><span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Waker.html">Waker</a>&gt;,
+        stream: <span class="kw-2">&amp;mut </span>store::Ptr,
+        reason: Reason,
+        counts: <span class="kw-2">&amp;mut </span>Counts,
+        task: <span class="kw-2">&amp;mut </span><span class="prelude-ty">Option</span>&lt;Waker&gt;,
     ) {
         <span class="kw">if </span>stream.state.is_closed() {
             <span class="comment">// Stream is already closed, nothing more to do
             </span><span class="kw">return</span>;
         }
 
-        <a href="#233">stream</a>.state.<a href="state.rs.html#333">set_scheduled_reset</a>(<a href="#234">reason</a>);
+        stream.state.set_scheduled_reset(reason);
 
-        <a class="self" href="#232">self</a>.prioritize.<a href="prioritize.rs.html#327">reclaim_reserved_capacity</a>(<a href="#233">stream</a>, <a href="#235">counts</a>);
-        <a class="self" href="#232">self</a>.prioritize.<a href="prioritize.rs.html#122">schedule_send</a>(<a href="#233">stream</a>, <a href="#236">task</a>);
+        <span class="self">self</span>.prioritize.reclaim_reserved_capacity(stream, counts);
+        <span class="self">self</span>.prioritize.schedule_send(stream, task);
     }
 
     <span class="kw">pub fn </span>send_data&lt;B&gt;(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         frame: frame::Data&lt;B&gt;,
         buffer: <span class="kw-2">&amp;mut </span>Buffer&lt;Frame&lt;B&gt;&gt;,
-        stream: <span class="kw-2">&amp;mut </span><a href="store.rs.html#20">store::Ptr</a>,
-        counts: <span class="kw-2">&amp;mut </span><a href="counts.rs.html#6">Counts</a>,
-        task: <span class="kw-2">&amp;mut </span><span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Waker.html">Waker</a>&gt;,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../codec/error.rs.html#14">UserError</a>&gt;
+        stream: <span class="kw-2">&amp;mut </span>store::Ptr,
+        counts: <span class="kw-2">&amp;mut </span>Counts,
+        task: <span class="kw-2">&amp;mut </span><span class="prelude-ty">Option</span>&lt;Waker&gt;,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), UserError&gt;
     <span class="kw">where
-        </span>B: <a href="../../../../bytes/buf/buf_impl/trait.Buf.html">Buf</a>,
+        </span>B: Buf,
     {
-        <a class="self" href="#250">self</a>.prioritize
-            .<a href="prioritize.rs.html#141-150">send_data</a>(<a href="#251">frame</a>, <a href="#252">buffer</a>, <a href="#253">stream</a>, <a href="#254">counts</a>, <a href="#255">task</a>)
+        <span class="self">self</span>.prioritize
+            .send_data(frame, buffer, stream, counts, task)
     }
 
     <span class="kw">pub fn </span>send_trailers&lt;B&gt;(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        frame: <a href="../../frame/headers.rs.html#19">frame::Headers</a>,
+        frame: frame::Headers,
         buffer: <span class="kw-2">&amp;mut </span>Buffer&lt;Frame&lt;B&gt;&gt;,
-        stream: <span class="kw-2">&amp;mut </span><a href="store.rs.html#20">store::Ptr</a>,
-        counts: <span class="kw-2">&amp;mut </span><a href="counts.rs.html#6">Counts</a>,
-        task: <span class="kw-2">&amp;mut </span><span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Waker.html">Waker</a>&gt;,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../codec/error.rs.html#14">UserError</a>&gt; {
+        stream: <span class="kw-2">&amp;mut </span>store::Ptr,
+        counts: <span class="kw-2">&amp;mut </span>Counts,
+        task: <span class="kw-2">&amp;mut </span><span class="prelude-ty">Option</span>&lt;Waker&gt;,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), UserError&gt; {
         <span class="comment">// TODO: Should this logic be moved into state.rs?
         </span><span class="kw">if </span>!stream.state.is_send_streaming() {
-            <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../codec/error.rs.html#19">UserError::UnexpectedFrameType</a>);
+            <span class="kw">return </span><span class="prelude-val">Err</span>(UserError::UnexpectedFrameType);
         }
 
-        <a href="#268">stream</a>.state.<a href="state.rs.html#312">send_close</a>();
+        stream.state.send_close();
 
-        <a class="macro" href="../../../../tracing/tracing/macro.trace.html">tracing::trace!</a>(<span class="string">&quot;send_trailers -- queuing; frame={:?}&quot;</span>, frame);
-        <a class="self" href="#265">self</a>.prioritize
-            .<a href="prioritize.rs.html#108-114">queue_frame</a>(<a href="#266">frame</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(), <a href="#267">buffer</a>, <a href="#268">stream</a>, <a href="#270">task</a>);
+        <span class="macro">tracing::trace!</span>(<span class="string">&quot;send_trailers -- queuing; frame={:?}&quot;</span>, frame);
+        <span class="self">self</span>.prioritize
+            .queue_frame(frame.into(), buffer, stream, task);
 
         <span class="comment">// Release any excess capacity
-        </span><a class="self" href="#265">self</a>.prioritize.<a href="prioritize.rs.html#219-224">reserve_capacity</a>(<span class="number">0</span>, <a href="#268">stream</a>, <a href="#269">counts</a>);
+        </span><span class="self">self</span>.prioritize.reserve_capacity(<span class="number">0</span>, stream, counts);
 
         <span class="prelude-val">Ok</span>(())
     }
 
     <span class="kw">pub fn </span>poll_complete&lt;T, B&gt;(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        cx: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>,
+        cx: <span class="kw-2">&amp;mut </span>Context,
         buffer: <span class="kw-2">&amp;mut </span>Buffer&lt;Frame&lt;B&gt;&gt;,
-        store: <span class="kw-2">&amp;mut </span><a href="store.rs.html#14">Store</a>,
-        counts: <span class="kw-2">&amp;mut </span><a href="counts.rs.html#6">Counts</a>,
+        store: <span class="kw-2">&amp;mut </span>Store,
+        counts: <span class="kw-2">&amp;mut </span>Counts,
         dst: <span class="kw-2">&amp;mut </span>Codec&lt;T, Prioritized&lt;B&gt;&gt;,
     ) -&gt; Poll&lt;io::Result&lt;()&gt;&gt;
     <span class="kw">where
-        </span>T: <a href="../../../../tokio/io/async_write/trait.AsyncWrite.html">AsyncWrite</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
-        B: <a href="../../../../bytes/buf/buf_impl/trait.Buf.html">Buf</a>,
+        </span>T: AsyncWrite + Unpin,
+        B: Buf,
     {
-        <a class="self" href="#290">self</a>.prioritize
-            .<a href="prioritize.rs.html#479-489">poll_complete</a>(<a href="#291">cx</a>, <a href="#292">buffer</a>, <a href="#293">store</a>, <a href="#294">counts</a>, <a href="#295">dst</a>)
+        <span class="self">self</span>.prioritize
+            .poll_complete(cx, buffer, store, counts, dst)
     }
 
     <span class="doccomment">/// Request capacity to send data
     </span><span class="kw">pub fn </span>reserve_capacity(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        capacity: <a href="../mod.rs.html#30">WindowSize</a>,
-        stream: <span class="kw-2">&amp;mut </span><a href="store.rs.html#20">store::Ptr</a>,
-        counts: <span class="kw-2">&amp;mut </span><a href="counts.rs.html#6">Counts</a>,
+        capacity: WindowSize,
+        stream: <span class="kw-2">&amp;mut </span>store::Ptr,
+        counts: <span class="kw-2">&amp;mut </span>Counts,
     ) {
-        <a class="self" href="#307">self</a>.prioritize.<a href="prioritize.rs.html#219-224">reserve_capacity</a>(<a href="#308">capacity</a>, <a href="#309">stream</a>, <a href="#310">counts</a>)
+        <span class="self">self</span>.prioritize.reserve_capacity(capacity, stream, counts)
     }
 
     <span class="kw">pub fn </span>poll_capacity(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        cx: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>,
-        stream: <span class="kw-2">&amp;mut </span><a href="store.rs.html#20">store::Ptr</a>,
-    ) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;<span class="prelude-ty">Result</span>&lt;<a href="../mod.rs.html#30">WindowSize</a>, <a href="../../codec/error.rs.html#14">UserError</a>&gt;&gt;&gt; {
+        cx: <span class="kw-2">&amp;</span>Context,
+        stream: <span class="kw-2">&amp;mut </span>store::Ptr,
+    ) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;<span class="prelude-ty">Result</span>&lt;WindowSize, UserError&gt;&gt;&gt; {
         <span class="kw">if </span>!stream.state.is_send_streaming() {
             <span class="kw">return </span>Poll::Ready(<span class="prelude-val">None</span>);
         }
 
         <span class="kw">if </span>!stream.send_capacity_inc {
-            <a href="#318">stream</a>.<a href="stream.rs.html#324">wait_send</a>(<a href="#317">cx</a>);
+            stream.wait_send(cx);
             <span class="kw">return </span>Poll::Pending;
         }
 
-        <a href="#318">stream</a>.send_capacity_inc = <span class="bool-val">false</span>;
+        stream.send_capacity_inc = <span class="bool-val">false</span>;
 
-        Poll::Ready(<span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(<a class="self" href="#316">self</a>.<a href="#335">capacity</a>(<a href="#318">stream</a>))))
+        Poll::Ready(<span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(<span class="self">self</span>.capacity(stream))))
     }
 
     <span class="doccomment">/// Current available stream send capacity
-    </span><span class="kw">pub fn </span>capacity(<span class="kw-2">&amp;</span><span class="self">self</span>, stream: <span class="kw-2">&amp;mut </span><a href="store.rs.html#20">store::Ptr</a>) -&gt; <a href="../mod.rs.html#30">WindowSize</a> {
-        <span class="kw">let </span>available = <a href="#335">stream</a>.send_flow.<a href="flow_control.rs.html#64">available</a>().<a href="flow_control.rs.html#195">as_size</a>() <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>;
-        <span class="kw">let </span>buffered = <a href="#335">stream</a>.buffered_send_data;
+    </span><span class="kw">pub fn </span>capacity(<span class="kw-2">&amp;</span><span class="self">self</span>, stream: <span class="kw-2">&amp;mut </span>store::Ptr) -&gt; WindowSize {
+        <span class="kw">let </span>available = stream.send_flow.available().as_size() <span class="kw">as </span>usize;
+        <span class="kw">let </span>buffered = stream.buffered_send_data;
 
-        <a href="#336">available</a>
-            .<a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Ord.html">min</a>(<a class="self" href="#335">self</a>.prioritize.<a href="prioritize.rs.html#103">max_buffer_size</a>())
-            .saturating_sub(<a href="#337">buffered</a>) <span class="kw">as </span><a href="../mod.rs.html#30">WindowSize</a>
+        available
+            .min(<span class="self">self</span>.prioritize.max_buffer_size())
+            .saturating_sub(buffered) <span class="kw">as </span>WindowSize
     }
 
     <span class="kw">pub fn </span>poll_reset(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        cx: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>,
-        stream: <span class="kw-2">&amp;mut </span><a href="stream.rs.html#19">Stream</a>,
-        mode: <a href="#45">PollReset</a>,
-    ) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;<a href="../../frame/reason.rs.html#19">Reason</a>, <a href="../../error.rs.html#21"><span class="kw">crate</span>::Error</a>&gt;&gt; {
+        cx: <span class="kw-2">&amp;</span>Context,
+        stream: <span class="kw-2">&amp;mut </span>Stream,
+        mode: PollReset,
+    ) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;Reason, <span class="kw">crate</span>::Error&gt;&gt; {
         <span class="kw">match </span>stream.state.ensure_reason(mode)<span class="question-mark">? </span>{
-            <span class="prelude-val">Some</span>(reason) =&gt; Poll::Ready(<span class="prelude-val">Ok</span>(<a href="#351">reason</a>)),
+            <span class="prelude-val">Some</span>(reason) =&gt; Poll::Ready(<span class="prelude-val">Ok</span>(reason)),
             <span class="prelude-val">None </span>=&gt; {
-                <a href="#347">stream</a>.<a href="stream.rs.html#324">wait_send</a>(<a href="#346">cx</a>);
+                stream.wait_send(cx);
                 Poll::Pending
             }
         }
@@ -923,41 +923,41 @@
 
     <span class="kw">pub fn </span>recv_connection_window_update(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        frame: <a href="../../frame/window_update.rs.html#8">frame::WindowUpdate</a>,
-        store: <span class="kw-2">&amp;mut </span><a href="store.rs.html#14">Store</a>,
-        counts: <span class="kw-2">&amp;mut </span><a href="counts.rs.html#6">Counts</a>,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../frame/reason.rs.html#19">Reason</a>&gt; {
-        <a class="self" href="#360">self</a>.prioritize
-            .<a href="prioritize.rs.html#303-308">recv_connection_window_update</a>(<a href="#361">frame</a>.<a href="../../frame/window_update.rs.html#25">size_increment</a>(), <a href="#362">store</a>, <a href="#363">counts</a>)
+        frame: frame::WindowUpdate,
+        store: <span class="kw-2">&amp;mut </span>Store,
+        counts: <span class="kw-2">&amp;mut </span>Counts,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), Reason&gt; {
+        <span class="self">self</span>.prioritize
+            .recv_connection_window_update(frame.size_increment(), store, counts)
     }
 
     <span class="kw">pub fn </span>recv_stream_window_update&lt;B&gt;(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        sz: <a href="../mod.rs.html#30">WindowSize</a>,
+        sz: WindowSize,
         buffer: <span class="kw-2">&amp;mut </span>Buffer&lt;Frame&lt;B&gt;&gt;,
-        stream: <span class="kw-2">&amp;mut </span><a href="store.rs.html#20">store::Ptr</a>,
-        counts: <span class="kw-2">&amp;mut </span><a href="counts.rs.html#6">Counts</a>,
-        task: <span class="kw-2">&amp;mut </span><span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Waker.html">Waker</a>&gt;,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../frame/reason.rs.html#19">Reason</a>&gt; {
-        <span class="kw">if let </span><span class="prelude-val">Err</span>(e) = <a class="self" href="#370">self</a>.prioritize.<a href="prioritize.rs.html#274-278">recv_stream_window_update</a>(<a href="#371">sz</a>, <a href="#373">stream</a>) {
-            <a class="macro" href="../../../../tracing/tracing/macro.debug.html">tracing::debug!</a>(<span class="string">&quot;recv_stream_window_update !!; err={:?}&quot;</span>, e);
+        stream: <span class="kw-2">&amp;mut </span>store::Ptr,
+        counts: <span class="kw-2">&amp;mut </span>Counts,
+        task: <span class="kw-2">&amp;mut </span><span class="prelude-ty">Option</span>&lt;Waker&gt;,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), Reason&gt; {
+        <span class="kw">if let </span><span class="prelude-val">Err</span>(e) = <span class="self">self</span>.prioritize.recv_stream_window_update(sz, stream) {
+            <span class="macro">tracing::debug!</span>(<span class="string">&quot;recv_stream_window_update !!; err={:?}&quot;</span>, e);
 
-            <a class="self" href="#370">self</a>.<a href="#166-174">send_reset</a>(
+            <span class="self">self</span>.send_reset(
                 Reason::FLOW_CONTROL_ERROR,
-                <a href="../error.rs.html#19">Initiator::Library</a>,
-                <a href="#372">buffer</a>,
-                <a href="#373">stream</a>,
-                <a href="#374">counts</a>,
-                <a href="#375">task</a>,
+                Initiator::Library,
+                buffer,
+                stream,
+                counts,
+                task,
             );
 
-            <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="#377">e</a>);
+            <span class="kw">return </span><span class="prelude-val">Err</span>(e);
         }
 
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>recv_go_away(<span class="kw-2">&amp;mut </span><span class="self">self</span>, last_stream_id: <a href="../../frame/stream_id.rs.html#14">StreamId</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../error.rs.html#10">Error</a>&gt; {
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>recv_go_away(<span class="kw-2">&amp;mut </span><span class="self">self</span>, last_stream_id: StreamId) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
         <span class="kw">if </span>last_stream_id &gt; <span class="self">self</span>.max_stream_id {
             <span class="comment">// The remote endpoint sent a `GOAWAY` frame indicating a stream
             // that we never sent, or that we have already terminated on account
@@ -966,38 +966,38 @@
             // the value they send in the last stream identifier, since the
             // peers might already have retried unprocessed requests on another
             // connection.&quot;)
-            </span><a class="macro" href="../../lib.rs.html#85-92">proto_err!</a>(conn:
+            </span><span class="macro">proto_err!</span>(conn:
                 <span class="string">&quot;recv_go_away: last_stream_id ({:?}) &gt; max_stream_id ({:?})&quot;</span>,
                 last_stream_id, <span class="self">self</span>.max_stream_id,
             );
             <span class="kw">return </span><span class="prelude-val">Err</span>(Error::library_go_away(Reason::PROTOCOL_ERROR));
         }
 
-        <a class="self" href="#395">self</a>.max_stream_id = <a href="#395">last_stream_id</a>;
+        <span class="self">self</span>.max_stream_id = last_stream_id;
         <span class="prelude-val">Ok</span>(())
     }
 
     <span class="kw">pub fn </span>handle_error&lt;B&gt;(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         buffer: <span class="kw-2">&amp;mut </span>Buffer&lt;Frame&lt;B&gt;&gt;,
-        stream: <span class="kw-2">&amp;mut </span><a href="store.rs.html#20">store::Ptr</a>,
-        counts: <span class="kw-2">&amp;mut </span><a href="counts.rs.html#6">Counts</a>,
+        stream: <span class="kw-2">&amp;mut </span>store::Ptr,
+        counts: <span class="kw-2">&amp;mut </span>Counts,
     ) {
         <span class="comment">// Clear all pending outbound frames
-        </span><a class="self" href="#416">self</a>.prioritize.<a href="prioritize.rs.html#632">clear_queue</a>(<a href="#417">buffer</a>, <a href="#418">stream</a>);
-        <a class="self" href="#416">self</a>.prioritize.<a href="prioritize.rs.html#318">reclaim_all_capacity</a>(<a href="#418">stream</a>, <a href="#419">counts</a>);
+        </span><span class="self">self</span>.prioritize.clear_queue(buffer, stream);
+        <span class="self">self</span>.prioritize.reclaim_all_capacity(stream, counts);
     }
 
     <span class="kw">pub fn </span>apply_remote_settings&lt;B&gt;(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        settings: <span class="kw-2">&amp;</span><a href="../../frame/settings.rs.html#7">frame::Settings</a>,
+        settings: <span class="kw-2">&amp;</span>frame::Settings,
         buffer: <span class="kw-2">&amp;mut </span>Buffer&lt;Frame&lt;B&gt;&gt;,
-        store: <span class="kw-2">&amp;mut </span><a href="store.rs.html#14">Store</a>,
-        counts: <span class="kw-2">&amp;mut </span><a href="counts.rs.html#6">Counts</a>,
-        task: <span class="kw-2">&amp;mut </span><span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Waker.html">Waker</a>&gt;,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../error.rs.html#10">Error</a>&gt; {
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(val) = <a href="#428">settings</a>.<a href="../../frame/settings.rs.html#112">is_extended_connect_protocol_enabled</a>() {
-            <a class="self" href="#427">self</a>.is_extended_connect_protocol_enabled = <a href="#434">val</a>;
+        store: <span class="kw-2">&amp;mut </span>Store,
+        counts: <span class="kw-2">&amp;mut </span>Counts,
+        task: <span class="kw-2">&amp;mut </span><span class="prelude-ty">Option</span>&lt;Waker&gt;,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(val) = settings.is_extended_connect_protocol_enabled() {
+            <span class="self">self</span>.is_extended_connect_protocol_enabled = val;
         }
 
         <span class="comment">// Applies an update to the remote endpoint&#39;s initial window size.
@@ -1017,20 +1017,20 @@
         // track the negative flow-control window and MUST NOT send new
         // flow-controlled frames until it receives WINDOW_UPDATE frames that
         // cause the flow-control window to become positive.
-        </span><span class="kw">if let </span><span class="prelude-val">Some</span>(val) = <a href="#428">settings</a>.<a href="../../frame/settings.rs.html#69">initial_window_size</a>() {
-            <span class="kw">let </span>old_val = <a class="self" href="#427">self</a>.init_window_sz;
-            <a class="self" href="#427">self</a>.init_window_sz = <a href="#455">val</a>;
+        </span><span class="kw">if let </span><span class="prelude-val">Some</span>(val) = settings.initial_window_size() {
+            <span class="kw">let </span>old_val = <span class="self">self</span>.init_window_sz;
+            <span class="self">self</span>.init_window_sz = val;
 
             <span class="kw">if </span>val &lt; old_val {
                 <span class="comment">// We must decrease the (remote) window on every open stream.
-                </span><span class="kw">let </span>dec = <a href="#456">old_val</a> - <a href="#455">val</a>;
-                <a class="macro" href="../../../../tracing/tracing/macro.trace.html">tracing::trace!</a>(<span class="string">&quot;decrementing all windows; dec={}&quot;</span>, dec);
+                </span><span class="kw">let </span>dec = old_val - val;
+                <span class="macro">tracing::trace!</span>(<span class="string">&quot;decrementing all windows; dec={}&quot;</span>, dec);
 
                 <span class="kw">let </span><span class="kw-2">mut </span>total_reclaimed = <span class="number">0</span>;
-                <a href="#430">store</a>.<a href="store.rs.html#132-134">for_each</a>(|<span class="kw-2">mut </span>stream| {
-                    <span class="kw">let </span>stream = <span class="kw-2">&amp;mut *</span><a href="#465">stream</a>;
+                store.for_each(|<span class="kw-2">mut </span>stream| {
+                    <span class="kw">let </span>stream = <span class="kw-2">&amp;mut *</span>stream;
 
-                    <a href="#466">stream</a>.send_flow.<a href="flow_control.rs.html#138">dec_send_window</a>(<a href="#461">dec</a>);
+                    stream.send_flow.dec_send_window(dec);
 
                     <span class="comment">// It&#39;s possible that decreasing the window causes
                     // `window_size` (the stream-specific window) to fall below
@@ -1038,19 +1038,19 @@
                     // that we have allocated to the stream).
                     // In this case, we should take that excess allocation away
                     // and reassign it to other streams.
-                    </span><span class="kw">let </span>window_size = <a href="#466">stream</a>.send_flow.<a href="flow_control.rs.html#59">window_size</a>();
-                    <span class="kw">let </span>available = <a href="#466">stream</a>.send_flow.<a href="flow_control.rs.html#64">available</a>().<a href="flow_control.rs.html#195">as_size</a>();
+                    </span><span class="kw">let </span>window_size = stream.send_flow.window_size();
+                    <span class="kw">let </span>available = stream.send_flow.available().as_size();
                     <span class="kw">let </span>reclaimed = <span class="kw">if </span>available &gt; window_size {
                         <span class="comment">// Drop down to `window_size`.
-                        </span><span class="kw">let </span>reclaim = <a href="#477">available</a> - <a href="#476">window_size</a>;
-                        <a href="#466">stream</a>.send_flow.<a href="flow_control.rs.html#77">claim_capacity</a>(<a href="#480">reclaim</a>);
-                        <a href="#464">total_reclaimed</a> += <a href="#480">reclaim</a>;
-                        <a href="#480">reclaim</a>
+                        </span><span class="kw">let </span>reclaim = available - window_size;
+                        stream.send_flow.claim_capacity(reclaim);
+                        total_reclaimed += reclaim;
+                        reclaim
                     } <span class="kw">else </span>{
                         <span class="number">0
                     </span>};
 
-                    <a class="macro" href="../../../../tracing/tracing/macro.trace.html">tracing::trace!</a>(
+                    <span class="macro">tracing::trace!</span>(
                         <span class="string">&quot;decremented stream window; id={:?}; decr={}; reclaimed={}; flow={:?}&quot;</span>,
                         stream.id,
                         dec,
@@ -1063,10 +1063,10 @@
                     // is reduced to zero, allowing the producer to stop work.
                 </span>});
 
-                <a class="self" href="#427">self</a>.prioritize
-                    .<a href="prioritize.rs.html#347-353">assign_connection_capacity</a>(<a href="#464">total_reclaimed</a>, <a href="#430">store</a>, <a href="#431">counts</a>);
+                <span class="self">self</span>.prioritize
+                    .assign_connection_capacity(total_reclaimed, store, counts);
             } <span class="kw">else if </span>val &gt; old_val {
-                <span class="kw">let </span>inc = <a href="#455">val</a> - <a href="#456">old_val</a>;
+                <span class="kw">let </span>inc = val - old_val;
 
                 store.try_for_each(|<span class="kw-2">mut </span>stream| {
                     <span class="self">self</span>.recv_stream_window_update(inc, buffer, <span class="kw-2">&amp;mut </span>stream, counts, task)
@@ -1075,21 +1075,21 @@
             }
         }
 
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(val) = <a href="#428">settings</a>.<a href="../../frame/settings.rs.html#104">is_push_enabled</a>() {
-            <a class="self" href="#427">self</a>.is_push_enabled = <a href="#513">val</a>
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(val) = settings.is_push_enabled() {
+            <span class="self">self</span>.is_push_enabled = val
         }
 
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="kw">pub fn </span>clear_queues(<span class="kw-2">&amp;mut </span><span class="self">self</span>, store: <span class="kw-2">&amp;mut </span><a href="store.rs.html#14">Store</a>, counts: <span class="kw-2">&amp;mut </span><a href="counts.rs.html#6">Counts</a>) {
-        <a class="self" href="#520">self</a>.prioritize.<a href="prioritize.rs.html#337">clear_pending_capacity</a>(<a href="#520">store</a>, <a href="#520">counts</a>);
-        <a class="self" href="#520">self</a>.prioritize.<a href="prioritize.rs.html#651">clear_pending_send</a>(<a href="#520">store</a>, <a href="#520">counts</a>);
-        <a class="self" href="#520">self</a>.prioritize.<a href="prioritize.rs.html#658">clear_pending_open</a>(<a href="#520">store</a>, <a href="#520">counts</a>);
+    <span class="kw">pub fn </span>clear_queues(<span class="kw-2">&amp;mut </span><span class="self">self</span>, store: <span class="kw-2">&amp;mut </span>Store, counts: <span class="kw-2">&amp;mut </span>Counts) {
+        <span class="self">self</span>.prioritize.clear_pending_capacity(store, counts);
+        <span class="self">self</span>.prioritize.clear_pending_send(store, counts);
+        <span class="self">self</span>.prioritize.clear_pending_open(store, counts);
     }
 
-    <span class="kw">pub fn </span>ensure_not_idle(<span class="kw-2">&amp;</span><span class="self">self</span>, id: <a href="../../frame/stream_id.rs.html#14">StreamId</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../frame/reason.rs.html#19">Reason</a>&gt; {
-        <span class="kw">if let </span><span class="prelude-val">Ok</span>(next) = <a class="self" href="#526">self</a>.next_stream_id {
+    <span class="kw">pub fn </span>ensure_not_idle(<span class="kw-2">&amp;</span><span class="self">self</span>, id: StreamId) -&gt; <span class="prelude-ty">Result</span>&lt;(), Reason&gt; {
+        <span class="kw">if let </span><span class="prelude-val">Ok</span>(next) = <span class="self">self</span>.next_stream_id {
             <span class="kw">if </span>id &gt;= next {
                 <span class="kw">return </span><span class="prelude-val">Err</span>(Reason::PROTOCOL_ERROR);
             }
@@ -1099,34 +1099,34 @@
         </span><span class="prelude-val">Ok</span>(())
     }
 
-    <span class="kw">pub fn </span>ensure_next_stream_id(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../frame/stream_id.rs.html#14">StreamId</a>, <a href="../../codec/error.rs.html#14">UserError</a>&gt; {
-        <a class="self" href="#537">self</a>.next_stream_id
-            .map_err(|<span class="kw">_</span>| <a href="../../codec/error.rs.html#33">UserError::OverflowedStreamId</a>)
+    <span class="kw">pub fn </span>ensure_next_stream_id(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;StreamId, UserError&gt; {
+        <span class="self">self</span>.next_stream_id
+            .map_err(|<span class="kw">_</span>| UserError::OverflowedStreamId)
     }
 
-    <span class="kw">pub fn </span>may_have_created_stream(<span class="kw-2">&amp;</span><span class="self">self</span>, id: <a href="../../frame/stream_id.rs.html#14">StreamId</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">if let </span><span class="prelude-val">Ok</span>(next_id) = <a class="self" href="#542">self</a>.next_stream_id {
+    <span class="kw">pub fn </span>may_have_created_stream(<span class="kw-2">&amp;</span><span class="self">self</span>, id: StreamId) -&gt; bool {
+        <span class="kw">if let </span><span class="prelude-val">Ok</span>(next_id) = <span class="self">self</span>.next_stream_id {
             <span class="comment">// Peer::is_local_init should have been called beforehand
-            </span><a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert_eq.html">debug_assert_eq!</a>(id.is_server_initiated(), next_id.is_server_initiated(),);
-            <a href="#542">id</a> &lt; <a href="#543">next_id</a>
+            </span><span class="macro">debug_assert_eq!</span>(id.is_server_initiated(), next_id.is_server_initiated(),);
+            id &lt; next_id
         } <span class="kw">else </span>{
             <span class="bool-val">true
         </span>}
     }
 
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>maybe_reset_next_stream_id(<span class="kw-2">&amp;mut </span><span class="self">self</span>, id: <a href="../../frame/stream_id.rs.html#14">StreamId</a>) {
-        <span class="kw">if let </span><span class="prelude-val">Ok</span>(next_id) = <a class="self" href="#552">self</a>.next_stream_id {
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>maybe_reset_next_stream_id(<span class="kw-2">&amp;mut </span><span class="self">self</span>, id: StreamId) {
+        <span class="kw">if let </span><span class="prelude-val">Ok</span>(next_id) = <span class="self">self</span>.next_stream_id {
             <span class="comment">// Peer::is_local_init should have been called beforehand
-            </span><a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert_eq.html">debug_assert_eq!</a>(id.is_server_initiated(), next_id.is_server_initiated());
+            </span><span class="macro">debug_assert_eq!</span>(id.is_server_initiated(), next_id.is_server_initiated());
             <span class="kw">if </span>id &gt;= next_id {
-                <a class="self" href="#552">self</a>.next_stream_id = <a href="#552">id</a>.<a href="../../frame/stream_id.rs.html#69">next_id</a>();
+                <span class="self">self</span>.next_stream_id = id.next_id();
             }
         }
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>is_extended_connect_protocol_enabled(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#562">self</a>.is_extended_connect_protocol_enabled
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>is_extended_connect_protocol_enabled(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.is_extended_connect_protocol_enabled
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="h2" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="h2" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

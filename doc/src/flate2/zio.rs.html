@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/flate2-1.0.24/src/zio.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>zio.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../flate2/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/flate2-1.0.25/src/zio.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>zio.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../flate2/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -286,86 +286,86 @@
 <a href="#286" id="286">286</a>
 <a href="#287" id="287">287</a>
 <a href="#288" id="288">288</a>
-</pre><pre class="rust"><code><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/io/index.html">std::io</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/io/prelude/index.html">std::io::prelude</a>::<span class="kw-2">*</span>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/mem/index.html">std::mem</a>;
+</pre><pre class="rust"><code><span class="kw">use </span>std::io;
+<span class="kw">use </span>std::io::prelude::<span class="kw-2">*</span>;
+<span class="kw">use </span>std::mem;
 
-<span class="kw">use crate</span>::{<a href="mem.rs.html#22">Compress</a>, <a href="mem.rs.html#39">Decompress</a>, <a href="mem.rs.html#126">DecompressError</a>, <a href="mem.rs.html#46">FlushCompress</a>, <a href="mem.rs.html#91">FlushDecompress</a>, <a href="mem.rs.html#168">Status</a>};
+<span class="kw">use crate</span>::{Compress, Decompress, DecompressError, FlushCompress, FlushDecompress, Status};
 
 <span class="attr">#[derive(Debug)]
-</span><span class="kw">pub struct </span>Writer&lt;W: <a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a>, D: <a href="#14">Ops</a>&gt; {
+</span><span class="kw">pub struct </span>Writer&lt;W: Write, D: Ops&gt; {
     obj: <span class="prelude-ty">Option</span>&lt;W&gt;,
     <span class="kw">pub </span>data: D,
-    buf: Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;,
+    buf: Vec&lt;u8&gt;,
 }
 
 <span class="kw">pub trait </span>Ops {
-    <span class="kw">type </span>Flush: <a href="#84">Flush</a>;
-    <span class="kw">fn </span>total_in(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>;
-    <span class="kw">fn </span>total_out(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>;
+    <span class="kw">type </span>Flush: Flush;
+    <span class="kw">fn </span>total_in(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u64;
+    <span class="kw">fn </span>total_out(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u64;
     <span class="kw">fn </span>run(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        input: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
-        output: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
+        input: <span class="kw-2">&amp;</span>[u8],
+        output: <span class="kw-2">&amp;mut </span>[u8],
         flush: <span class="self">Self</span>::Flush,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="mem.rs.html#168">Status</a>, <a href="mem.rs.html#126">DecompressError</a>&gt;;
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;Status, DecompressError&gt;;
     <span class="kw">fn </span>run_vec(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        input: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
-        output: <span class="kw-2">&amp;mut </span>Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;,
+        input: <span class="kw-2">&amp;</span>[u8],
+        output: <span class="kw-2">&amp;mut </span>Vec&lt;u8&gt;,
         flush: <span class="self">Self</span>::Flush,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="mem.rs.html#168">Status</a>, <a href="mem.rs.html#126">DecompressError</a>&gt;;
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;Status, DecompressError&gt;;
 }
 
-<span class="kw">impl </span><a href="#14">Ops</a> <span class="kw">for </span><a href="mem.rs.html#22">Compress</a> {
-    <span class="kw">type </span>Flush = <a href="mem.rs.html#46">FlushCompress</a>;
-    <span class="kw">fn </span>total_in(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> {
-        <a class="self" href="#34">self</a>.<a href="mem.rs.html#268">total_in</a>()
+<span class="kw">impl </span>Ops <span class="kw">for </span>Compress {
+    <span class="kw">type </span>Flush = FlushCompress;
+    <span class="kw">fn </span>total_in(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u64 {
+        <span class="self">self</span>.total_in()
     }
-    <span class="kw">fn </span>total_out(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> {
-        <a class="self" href="#37">self</a>.<a href="mem.rs.html#274">total_out</a>()
+    <span class="kw">fn </span>total_out(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u64 {
+        <span class="self">self</span>.total_out()
     }
     <span class="kw">fn </span>run(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        input: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
-        output: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
-        flush: <a href="mem.rs.html#46">FlushCompress</a>,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="mem.rs.html#168">Status</a>, <a href="mem.rs.html#126">DecompressError</a>&gt; {
-        <span class="prelude-val">Ok</span>(<a class="self" href="#41">self</a>.<a href="mem.rs.html#336-341">compress</a>(<a href="#42">input</a>, <a href="#43">output</a>, <a href="#44">flush</a>).unwrap())
+        input: <span class="kw-2">&amp;</span>[u8],
+        output: <span class="kw-2">&amp;mut </span>[u8],
+        flush: FlushCompress,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;Status, DecompressError&gt; {
+        <span class="prelude-val">Ok</span>(<span class="self">self</span>.compress(input, output, flush).unwrap())
     }
     <span class="kw">fn </span>run_vec(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        input: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
-        output: <span class="kw-2">&amp;mut </span>Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;,
-        flush: <a href="mem.rs.html#46">FlushCompress</a>,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="mem.rs.html#168">Status</a>, <a href="mem.rs.html#126">DecompressError</a>&gt; {
-        <span class="prelude-val">Ok</span>(<a class="self" href="#49">self</a>.<a href="mem.rs.html#353-358">compress_vec</a>(<a href="#50">input</a>, <a href="#51">output</a>, <a href="#52">flush</a>).unwrap())
+        input: <span class="kw-2">&amp;</span>[u8],
+        output: <span class="kw-2">&amp;mut </span>Vec&lt;u8&gt;,
+        flush: FlushCompress,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;Status, DecompressError&gt; {
+        <span class="prelude-val">Ok</span>(<span class="self">self</span>.compress_vec(input, output, flush).unwrap())
     }
 }
 
-<span class="kw">impl </span><a href="#14">Ops</a> <span class="kw">for </span><a href="mem.rs.html#39">Decompress</a> {
-    <span class="kw">type </span>Flush = <a href="mem.rs.html#91">FlushDecompress</a>;
-    <span class="kw">fn </span>total_in(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> {
-        <a class="self" href="#60">self</a>.<a href="mem.rs.html#439">total_in</a>()
+<span class="kw">impl </span>Ops <span class="kw">for </span>Decompress {
+    <span class="kw">type </span>Flush = FlushDecompress;
+    <span class="kw">fn </span>total_in(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u64 {
+        <span class="self">self</span>.total_in()
     }
-    <span class="kw">fn </span>total_out(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> {
-        <a class="self" href="#63">self</a>.<a href="mem.rs.html#445">total_out</a>()
+    <span class="kw">fn </span>total_out(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u64 {
+        <span class="self">self</span>.total_out()
     }
     <span class="kw">fn </span>run(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        input: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
-        output: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
-        flush: <a href="mem.rs.html#91">FlushDecompress</a>,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="mem.rs.html#168">Status</a>, <a href="mem.rs.html#126">DecompressError</a>&gt; {
-        <a class="self" href="#67">self</a>.<a href="mem.rs.html#471-476">decompress</a>(<a href="#68">input</a>, <a href="#69">output</a>, <a href="#70">flush</a>)
+        input: <span class="kw-2">&amp;</span>[u8],
+        output: <span class="kw-2">&amp;mut </span>[u8],
+        flush: FlushDecompress,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;Status, DecompressError&gt; {
+        <span class="self">self</span>.decompress(input, output, flush)
     }
     <span class="kw">fn </span>run_vec(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        input: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
-        output: <span class="kw-2">&amp;mut </span>Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;,
-        flush: <a href="mem.rs.html#91">FlushDecompress</a>,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="mem.rs.html#168">Status</a>, <a href="mem.rs.html#126">DecompressError</a>&gt; {
-        <a class="self" href="#75">self</a>.<a href="mem.rs.html#494-499">decompress_vec</a>(<a href="#76">input</a>, <a href="#77">output</a>, <a href="#78">flush</a>)
+        input: <span class="kw-2">&amp;</span>[u8],
+        output: <span class="kw-2">&amp;mut </span>Vec&lt;u8&gt;,
+        flush: FlushDecompress,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;Status, DecompressError&gt; {
+        <span class="self">self</span>.decompress_vec(input, output, flush)
     }
 }
 
@@ -375,66 +375,66 @@
     <span class="kw">fn </span>finish() -&gt; <span class="self">Self</span>;
 }
 
-<span class="kw">impl </span><a href="#84">Flush</a> <span class="kw">for </span><a href="mem.rs.html#46">FlushCompress</a> {
+<span class="kw">impl </span>Flush <span class="kw">for </span>FlushCompress {
     <span class="kw">fn </span>none() -&gt; <span class="self">Self </span>{
-        <a href="mem.rs.html#50">FlushCompress::None</a>
+        FlushCompress::None
     }
 
     <span class="kw">fn </span>sync() -&gt; <span class="self">Self </span>{
-        <a href="mem.rs.html#59">FlushCompress::Sync</a>
+        FlushCompress::Sync
     }
 
     <span class="kw">fn </span>finish() -&gt; <span class="self">Self </span>{
-        <a href="mem.rs.html#82">FlushCompress::Finish</a>
+        FlushCompress::Finish
     }
 }
 
-<span class="kw">impl </span><a href="#84">Flush</a> <span class="kw">for </span><a href="mem.rs.html#91">FlushDecompress</a> {
+<span class="kw">impl </span>Flush <span class="kw">for </span>FlushDecompress {
     <span class="kw">fn </span>none() -&gt; <span class="self">Self </span>{
-        <a href="mem.rs.html#95">FlushDecompress::None</a>
+        FlushDecompress::None
     }
 
     <span class="kw">fn </span>sync() -&gt; <span class="self">Self </span>{
-        <a href="mem.rs.html#104">FlushDecompress::Sync</a>
+        FlushDecompress::Sync
     }
 
     <span class="kw">fn </span>finish() -&gt; <span class="self">Self </span>{
-        <a href="mem.rs.html#110">FlushDecompress::Finish</a>
+        FlushDecompress::Finish
     }
 }
 
-<span class="kw">pub fn </span>read&lt;R, D&gt;(obj: <span class="kw-2">&amp;mut </span>R, data: <span class="kw-2">&amp;mut </span>D, dst: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;
+<span class="kw">pub fn </span>read&lt;R, D&gt;(obj: <span class="kw-2">&amp;mut </span>R, data: <span class="kw-2">&amp;mut </span>D, dst: <span class="kw-2">&amp;mut </span>[u8]) -&gt; io::Result&lt;usize&gt;
 <span class="kw">where
-    </span>R: <a href="https://doc.rust-lang.org/nightly/std/io/trait.BufRead.html">BufRead</a>,
-    D: <a href="#14">Ops</a>,
+    </span>R: BufRead,
+    D: Ops,
 {
     <span class="kw">loop </span>{
         <span class="kw">let </span>(read, consumed, ret, eof);
         {
             <span class="kw">let </span>input = obj.fill_buf()<span class="question-mark">?</span>;
-            <a href="#124">eof</a> = <a href="#126">input</a>.is_empty();
-            <span class="kw">let </span>before_out = <a href="#118">data</a>.<a href="#17">total_out</a>();
-            <span class="kw">let </span>before_in = <a href="#118">data</a>.<a href="#16">total_in</a>();
+            eof = input.is_empty();
+            <span class="kw">let </span>before_out = data.total_out();
+            <span class="kw">let </span>before_in = data.total_in();
             <span class="kw">let </span>flush = <span class="kw">if </span>eof {
                 D::Flush::finish()
             } <span class="kw">else </span>{
                 D::Flush::none()
             };
-            <a href="#124">ret</a> = <a href="#118">data</a>.<a href="#18-23">run</a>(<a href="#126">input</a>, <a href="#118">dst</a>, <a href="#130">flush</a>);
-            <a href="#124">read</a> = (<a href="#118">data</a>.<a href="#17">total_out</a>() - <a href="#128">before_out</a>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>;
-            <a href="#124">consumed</a> = (<a href="#118">data</a>.<a href="#16">total_in</a>() - <a href="#129">before_in</a>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>;
+            ret = data.run(input, dst, flush);
+            read = (data.total_out() - before_out) <span class="kw">as </span>usize;
+            consumed = (data.total_in() - before_in) <span class="kw">as </span>usize;
         }
-        <a href="#118">obj</a>.<a href="https://doc.rust-lang.org/nightly/std/io/trait.BufRead.html">consume</a>(<a href="#124">consumed</a>);
+        obj.consume(consumed);
 
-        <span class="kw">match </span><a href="#124">ret</a> {
+        <span class="kw">match </span>ret {
             <span class="comment">// If we haven&#39;t ready any data and we haven&#39;t hit EOF yet,
             // then we need to keep asking for more data because if we
             // return that 0 bytes of data have been read then it will
             // be interpreted as EOF.
-            </span><span class="prelude-val">Ok</span>(<a href="mem.rs.html#173">Status::Ok</a>) | <span class="prelude-val">Ok</span>(<a href="mem.rs.html#184">Status::BufError</a>) <span class="kw">if </span><a href="#124">read</a> == <span class="number">0 </span>&amp;&amp; !<a href="#124">eof</a> &amp;&amp; !<a href="#118">dst</a>.is_empty() =&gt; {
+            </span><span class="prelude-val">Ok</span>(Status::Ok) | <span class="prelude-val">Ok</span>(Status::BufError) <span class="kw">if </span>read == <span class="number">0 </span>&amp;&amp; !eof &amp;&amp; !dst.is_empty() =&gt; {
                 <span class="kw">continue
             </span>}
-            <span class="prelude-val">Ok</span>(<a href="mem.rs.html#173">Status::Ok</a>) | <span class="prelude-val">Ok</span>(<a href="mem.rs.html#184">Status::BufError</a>) | <span class="prelude-val">Ok</span>(<a href="mem.rs.html#191">Status::StreamEnd</a>) =&gt; <span class="kw">return </span><span class="prelude-val">Ok</span>(<a href="#124">read</a>),
+            <span class="prelude-val">Ok</span>(Status::Ok) | <span class="prelude-val">Ok</span>(Status::BufError) | <span class="prelude-val">Ok</span>(Status::StreamEnd) =&gt; <span class="kw">return </span><span class="prelude-val">Ok</span>(read),
 
             <span class="prelude-val">Err</span>(..) =&gt; {
                 <span class="kw">return </span><span class="prelude-val">Err</span>(io::Error::new(
@@ -446,11 +446,11 @@
     }
 }
 
-<span class="kw">impl</span>&lt;W: <a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a>, D: <a href="#14">Ops</a>&gt; Writer&lt;W, D&gt; {
+<span class="kw">impl</span>&lt;W: Write, D: Ops&gt; Writer&lt;W, D&gt; {
     <span class="kw">pub fn </span>new(w: W, d: D) -&gt; Writer&lt;W, D&gt; {
-        <a href="#8">Writer</a> {
-            obj: <span class="prelude-val">Some</span>(<a href="#162">w</a>),
-            data: <a href="#162">d</a>,
+        Writer {
+            obj: <span class="prelude-val">Some</span>(w),
+            data: d,
             buf: Vec::with_capacity(<span class="number">32 </span>* <span class="number">1024</span>),
         }
     }
@@ -459,7 +459,7 @@
         <span class="kw">loop </span>{
             <span class="self">self</span>.dump()<span class="question-mark">?</span>;
 
-            <span class="kw">let </span>before = <a class="self" href="#170">self</a>.data.<a href="#17">total_out</a>();
+            <span class="kw">let </span>before = <span class="self">self</span>.data.total_out();
             <span class="self">self</span>.data.run_vec(<span class="kw-2">&amp;</span>[], <span class="kw-2">&amp;mut </span><span class="self">self</span>.buf, D::Flush::finish())<span class="question-mark">?</span>;
             <span class="kw">if </span>before == <span class="self">self</span>.data.total_out() {
                 <span class="kw">return </span><span class="prelude-val">Ok</span>(());
@@ -468,16 +468,16 @@
     }
 
     <span class="kw">pub fn </span>replace(<span class="kw-2">&amp;mut </span><span class="self">self</span>, w: W) -&gt; W {
-        <a class="self" href="#182">self</a>.buf.truncate(<span class="number">0</span>);
-        mem::replace(<a class="self" href="#182">self</a>.<a href="#191">get_mut</a>(), <a href="#182">w</a>)
+        <span class="self">self</span>.buf.truncate(<span class="number">0</span>);
+        mem::replace(<span class="self">self</span>.get_mut(), w)
     }
 
     <span class="kw">pub fn </span>get_ref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>W {
-        <a class="self" href="#187">self</a>.obj.as_ref().unwrap()
+        <span class="self">self</span>.obj.as_ref().unwrap()
     }
 
     <span class="kw">pub fn </span>get_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>W {
-        <a class="self" href="#191">self</a>.obj.as_mut().unwrap()
+        <span class="self">self</span>.obj.as_mut().unwrap()
     }
 
     <span class="comment">// Note that this should only be called if the outer object is just about
@@ -485,15 +485,15 @@
     //
     // (e.g. an implementation of `into_inner`)
     </span><span class="kw">pub fn </span>take_inner(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; W {
-        <a class="self" href="#199">self</a>.obj.take().unwrap()
+        <span class="self">self</span>.obj.take().unwrap()
     }
 
-    <span class="kw">pub fn </span>is_present(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#203">self</a>.obj.is_some()
+    <span class="kw">pub fn </span>is_present(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.obj.is_some()
     }
 
     <span class="comment">// Returns total written bytes and status of underlying codec
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>write_with_status(<span class="kw-2">&amp;mut </span><span class="self">self</span>, buf: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; io::Result&lt;(<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="mem.rs.html#168">Status</a>)&gt; {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>write_with_status(<span class="kw-2">&amp;mut </span><span class="self">self</span>, buf: <span class="kw-2">&amp;</span>[u8]) -&gt; io::Result&lt;(usize, Status)&gt; {
         <span class="comment">// miniz isn&#39;t guaranteed to actually write any of the buffer provided,
         // it may be in a flushing mode where it&#39;s just giving us data before
         // we&#39;re actually giving it any data. We don&#39;t want to spuriously return
@@ -503,17 +503,17 @@
         </span><span class="kw">loop </span>{
             <span class="self">self</span>.dump()<span class="question-mark">?</span>;
 
-            <span class="kw">let </span>before_in = <a class="self" href="#208">self</a>.data.<a href="#16">total_in</a>();
-            <span class="kw">let </span>ret = <a class="self" href="#208">self</a>.data.<a href="#24-29">run_vec</a>(<a href="#208">buf</a>, <span class="kw-2">&amp;mut </span><a class="self" href="#208">self</a>.buf, D::Flush::none());
-            <span class="kw">let </span>written = (<a class="self" href="#208">self</a>.data.<a href="#16">total_in</a>() - <a href="#218">before_in</a>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>;
-            <span class="kw">let </span>is_stream_end = <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.matches.html">matches!</a>(ret, <span class="prelude-val">Ok</span>(Status::StreamEnd));
+            <span class="kw">let </span>before_in = <span class="self">self</span>.data.total_in();
+            <span class="kw">let </span>ret = <span class="self">self</span>.data.run_vec(buf, <span class="kw-2">&amp;mut </span><span class="self">self</span>.buf, D::Flush::none());
+            <span class="kw">let </span>written = (<span class="self">self</span>.data.total_in() - before_in) <span class="kw">as </span>usize;
+            <span class="kw">let </span>is_stream_end = <span class="macro">matches!</span>(ret, <span class="prelude-val">Ok</span>(Status::StreamEnd));
 
             <span class="kw">if </span>!buf.is_empty() &amp;&amp; written == <span class="number">0 </span>&amp;&amp; ret.is_ok() &amp;&amp; !is_stream_end {
                 <span class="kw">continue</span>;
             }
-            <span class="kw">return match </span><a href="#219">ret</a> {
-                <span class="prelude-val">Ok</span>(st) =&gt; <span class="kw">match </span><a href="#227">st</a> {
-                    <a href="mem.rs.html#173">Status::Ok</a> | <a href="mem.rs.html#184">Status::BufError</a> | <a href="mem.rs.html#191">Status::StreamEnd</a> =&gt; <span class="prelude-val">Ok</span>((<a href="#220">written</a>, <a href="#227">st</a>)),
+            <span class="kw">return match </span>ret {
+                <span class="prelude-val">Ok</span>(st) =&gt; <span class="kw">match </span>st {
+                    Status::Ok | Status::BufError | Status::StreamEnd =&gt; <span class="prelude-val">Ok</span>((written, st)),
                 },
                 <span class="prelude-val">Err</span>(..) =&gt; <span class="prelude-val">Err</span>(io::Error::new(
                     io::ErrorKind::InvalidInput,
@@ -537,14 +537,14 @@
     }
 }
 
-<span class="kw">impl</span>&lt;W: <a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a>, D: <a href="#14">Ops</a>&gt; <a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a> <span class="kw">for </span>Writer&lt;W, D&gt; {
-    <span class="kw">fn </span>write(<span class="kw-2">&amp;mut </span><span class="self">self</span>, buf: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
-        <a class="self" href="#253">self</a>.<a href="#208">write_with_status</a>(<a href="#253">buf</a>).map(|res| <a href="#254">res</a>.<span class="number">0</span>)
+<span class="kw">impl</span>&lt;W: Write, D: Ops&gt; Write <span class="kw">for </span>Writer&lt;W, D&gt; {
+    <span class="kw">fn </span>write(<span class="kw-2">&amp;mut </span><span class="self">self</span>, buf: <span class="kw-2">&amp;</span>[u8]) -&gt; io::Result&lt;usize&gt; {
+        <span class="self">self</span>.write_with_status(buf).map(|res| res.<span class="number">0</span>)
     }
 
     <span class="kw">fn </span>flush(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; io::Result&lt;()&gt; {
-        <a class="self" href="#257">self</a>.data
-            .<a href="#24-29">run_vec</a>(<span class="kw-2">&amp;</span>[], <span class="kw-2">&amp;mut </span><a class="self" href="#257">self</a>.buf, D::Flush::sync())
+        <span class="self">self</span>.data
+            .run_vec(<span class="kw-2">&amp;</span>[], <span class="kw-2">&amp;mut </span><span class="self">self</span>.buf, D::Flush::sync())
             .unwrap();
 
         <span class="comment">// Unfortunately miniz doesn&#39;t actually tell us when we&#39;re done with
@@ -554,25 +554,25 @@
         // at which point we assume it&#39;s reached the end.
         </span><span class="kw">loop </span>{
             <span class="self">self</span>.dump()<span class="question-mark">?</span>;
-            <span class="kw">let </span>before = <a class="self" href="#257">self</a>.data.<a href="#17">total_out</a>();
-            <a class="self" href="#257">self</a>.data
-                .<a href="#24-29">run_vec</a>(<span class="kw-2">&amp;</span>[], <span class="kw-2">&amp;mut </span><a class="self" href="#257">self</a>.buf, D::Flush::none())
+            <span class="kw">let </span>before = <span class="self">self</span>.data.total_out();
+            <span class="self">self</span>.data
+                .run_vec(<span class="kw-2">&amp;</span>[], <span class="kw-2">&amp;mut </span><span class="self">self</span>.buf, D::Flush::none())
                 .unwrap();
             <span class="kw">if </span>before == <span class="self">self</span>.data.total_out() {
                 <span class="kw">break</span>;
             }
         }
 
-        <a class="self" href="#257">self</a>.obj.as_mut().unwrap().<a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">flush</a>()
+        <span class="self">self</span>.obj.as_mut().unwrap().flush()
     }
 }
 
-<span class="kw">impl</span>&lt;W: <a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a>, D: <a href="#14">Ops</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span>Writer&lt;W, D&gt; {
+<span class="kw">impl</span>&lt;W: Write, D: Ops&gt; Drop <span class="kw">for </span>Writer&lt;W, D&gt; {
     <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="kw">if </span><span class="self">self</span>.obj.is_some() {
-            <span class="kw">let _ </span>= <a class="self" href="#283">self</a>.<a href="#170">finish</a>();
+            <span class="kw">let _ </span>= <span class="self">self</span>.finish();
         }
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="flate2" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="flate2" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/warp-0.3.3/src/filters/path.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>path.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../warp/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/warp-0.3.3/src/filters/path.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>path.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../warp/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -777,17 +777,17 @@
 //! with an invalid body for route `/right-path-wrong-body` may try matching against `/wrong-path`
 //! and return the error from `/wrong-path` instead of the correct body-related error.
 
-</span><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/convert/enum.Infallible.html">std::convert::Infallible</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">std::fmt</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/str/traits/trait.FromStr.html">std::str::FromStr</a>;
+</span><span class="kw">use </span>std::convert::Infallible;
+<span class="kw">use </span>std::fmt;
+<span class="kw">use </span>std::str::FromStr;
 
-<span class="kw">use </span><a href="../../../futures_util/future/index.html">futures_util::future</a>;
-<span class="kw">use </span><a href="../../../http/uri/path/struct.PathAndQuery.html">http::uri::PathAndQuery</a>;
+<span class="kw">use </span>futures_util::future;
+<span class="kw">use </span>http::uri::PathAndQuery;
 
-<span class="kw">use </span><a href="#616"><span class="self">self</span>::internal::Opaque</a>;
-<span class="kw">use </span><span class="kw">crate</span>::filter::{<a href="../filter/mod.rs.html#448-453">filter_fn</a>, <a href="../generic.rs.html#7">one</a>, <a href="../filter/mod.rs.html#93">Filter</a>, <a href="../filter/mod.rs.html#39">FilterBase</a>, <a href="../filter/mod.rs.html#70">Internal</a>, <a href="../generic.rs.html#4">One</a>, <a href="../generic.rs.html#25">Tuple</a>};
-<span class="kw">use </span><span class="kw">crate</span>::reject::{<a class="self" href="../lib.rs.html#95">self</a>, <a href="../reject.rs.html#205">Rejection</a>};
-<span class="kw">use </span><span class="kw">crate</span>::route::{<a class="self" href="../lib.rs.html#97">self</a>, <a href="../route.rs.html#31">Route</a>};
+<span class="kw">use </span><span class="self">self</span>::internal::Opaque;
+<span class="kw">use </span><span class="kw">crate</span>::filter::{filter_fn, one, Filter, FilterBase, Internal, One, Tuple};
+<span class="kw">use </span><span class="kw">crate</span>::reject::{<span class="self">self</span>, Rejection};
+<span class="kw">use </span><span class="kw">crate</span>::route::{<span class="self">self</span>, Route};
 
 <span class="doccomment">/// Create an exact match path segment `Filter`.
 ///
@@ -818,17 +818,17 @@
 /// ```
 </span><span class="kw">pub fn </span>path&lt;P&gt;(p: P) -&gt; Exact&lt;Opaque&lt;P&gt;&gt;
 <span class="kw">where
-    </span>P: AsRef&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt;,
+    </span>P: AsRef&lt;str&gt;,
 {
-    <span class="kw">let </span>s = <a href="#167">p</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>();
-    <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(!s.is_empty(), <span class="string">&quot;exact path segments should not be empty&quot;</span>);
-    <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(
+    <span class="kw">let </span>s = p.as_ref();
+    <span class="macro">assert!</span>(!s.is_empty(), <span class="string">&quot;exact path segments should not be empty&quot;</span>);
+    <span class="macro">assert!</span>(
         !s.contains(<span class="string">&#39;/&#39;</span>),
         <span class="string">&quot;exact path segments should not contain a slash: {:?}&quot;</span>,
         s
     );
 
-    <a href="#197">Exact</a>(<a href="#616">Opaque</a>(<a href="#167">p</a>))
+    Exact(Opaque(p))
     <span class="comment">/*
     segment(move |seg| {
         tracing::trace!(&quot;{:?}?: {:?}&quot;, p, seg);
@@ -848,25 +848,25 @@
 #[derive(Clone, Copy)]
 </span><span class="kw">pub struct </span>Exact&lt;P&gt;(P);
 
-<span class="kw">impl</span>&lt;P&gt; <a href="../filter/mod.rs.html#39">FilterBase</a> <span class="kw">for </span>Exact&lt;P&gt;
+<span class="kw">impl</span>&lt;P&gt; FilterBase <span class="kw">for </span>Exact&lt;P&gt;
 <span class="kw">where
-    </span>P: AsRef&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt;,
+    </span>P: AsRef&lt;str&gt;,
 {
     <span class="kw">type </span>Extract = ();
-    <span class="kw">type </span>Error = <a href="../reject.rs.html#205">Rejection</a>;
+    <span class="kw">type </span>Error = Rejection;
     <span class="kw">type </span>Future = future::Ready&lt;<span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Extract, <span class="self">Self</span>::Error&gt;&gt;;
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>filter(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw">_</span>: <a href="../filter/mod.rs.html#70">Internal</a>) -&gt; <span class="self">Self</span>::Future {
-        <a href="../route.rs.html#23-25">route::with</a>(|route| {
-            <span class="kw">let </span>p = <a class="self" href="#208">self</a>.<span class="number">0</span>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>();
-            future::ready(<a href="#443-445">with_segment</a>(<a href="#209">route</a>, |seg| {
-                <a class="macro" href="../../../tracing/tracing/macro.trace.html">tracing::trace!</a>(<span class="string">&quot;{:?}?: {:?}&quot;</span>, p, seg);
+    </span><span class="kw">fn </span>filter(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw">_</span>: Internal) -&gt; <span class="self">Self</span>::Future {
+        route::with(|route| {
+            <span class="kw">let </span>p = <span class="self">self</span>.<span class="number">0</span>.as_ref();
+            future::ready(with_segment(route, |seg| {
+                <span class="macro">tracing::trace!</span>(<span class="string">&quot;{:?}?: {:?}&quot;</span>, p, seg);
 
                 <span class="kw">if </span>seg == p {
                     <span class="prelude-val">Ok</span>(())
                 } <span class="kw">else </span>{
-                    <span class="prelude-val">Err</span>(<a href="../reject.rs.html#81">reject::not_found</a>())
+                    <span class="prelude-val">Err</span>(reject::not_found())
                 }
             }))
         })
@@ -887,12 +887,12 @@
 /// let hello = warp::path::end()
 ///     .map(|| &quot;Hello, World!&quot;);
 /// ```
-</span><span class="kw">pub fn </span>end() -&gt; <span class="kw">impl </span>Filter&lt;Extract = (), Error = <a href="../reject.rs.html#205">Rejection</a>&gt; + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html">Copy</a> {
-    <a href="../filter/mod.rs.html#448-453">filter_fn</a>(<span class="kw">move </span>|route| {
+</span><span class="kw">pub fn </span>end() -&gt; <span class="kw">impl </span>Filter&lt;Extract = (), Error = Rejection&gt; + Copy {
+    filter_fn(<span class="kw">move </span>|route| {
         <span class="kw">if </span>route.path().is_empty() {
             future::ok(())
         } <span class="kw">else </span>{
-            future::err(<a href="../reject.rs.html#81">reject::not_found</a>())
+            future::err(reject::not_found())
         }
     })
 }
@@ -915,14 +915,14 @@
 ///         format!(&quot;You asked for /{}&quot;, id)
 ///     });
 /// ```
-</span><span class="kw">pub fn </span>param&lt;T: <a href="https://doc.rust-lang.org/nightly/core/str/traits/trait.FromStr.html">FromStr</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <span class="lifetime">&#39;static</span>&gt;(
-) -&gt; <span class="kw">impl </span>Filter&lt;Extract = One&lt;T&gt;, Error = <a href="../reject.rs.html#205">Rejection</a>&gt; + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html">Copy</a> {
-    <a href="#435-438">filter_segment</a>(|seg| {
-        <a class="macro" href="../../../tracing/tracing/macro.trace.html">tracing::trace!</a>(<span class="string">&quot;param?: {:?}&quot;</span>, seg);
+</span><span class="kw">pub fn </span>param&lt;T: FromStr + Send + <span class="lifetime">&#39;static</span>&gt;(
+) -&gt; <span class="kw">impl </span>Filter&lt;Extract = One&lt;T&gt;, Error = Rejection&gt; + Copy {
+    filter_segment(|seg| {
+        <span class="macro">tracing::trace!</span>(<span class="string">&quot;param?: {:?}&quot;</span>, seg);
         <span class="kw">if </span>seg.is_empty() {
-            <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../reject.rs.html#81">reject::not_found</a>());
+            <span class="kw">return </span><span class="prelude-val">Err</span>(reject::not_found());
         }
-        T::from_str(<a href="#268">seg</a>).map(<a href="../generic.rs.html#7">one</a>).map_err(|<span class="kw">_</span>| <a href="../reject.rs.html#81">reject::not_found</a>())
+        T::from_str(seg).map(one).map_err(|<span class="kw">_</span>| reject::not_found())
     })
 }
 
@@ -943,39 +943,39 @@
 ///         format!(&quot;The tail after foo is {:?}&quot;, tail)
 ///     });
 /// ```
-</span><span class="kw">pub fn </span>tail() -&gt; <span class="kw">impl </span>Filter&lt;Extract = One&lt;<a href="#312">Tail</a>&gt;, Error = <a href="https://doc.rust-lang.org/nightly/core/convert/enum.Infallible.html">Infallible</a>&gt; + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html">Copy</a> {
-    <a href="../filter/mod.rs.html#448-453">filter_fn</a>(<span class="kw">move </span>|route| {
-        <span class="kw">let </span>path = <a href="#464">path_and_query</a>(<a href="#295">route</a>);
-        <span class="kw">let </span>idx = <a href="#295">route</a>.<a href="../route.rs.html#112">matched_path_index</a>();
+</span><span class="kw">pub fn </span>tail() -&gt; <span class="kw">impl </span>Filter&lt;Extract = One&lt;Tail&gt;, Error = Infallible&gt; + Copy {
+    filter_fn(<span class="kw">move </span>|route| {
+        <span class="kw">let </span>path = path_and_query(route);
+        <span class="kw">let </span>idx = route.matched_path_index();
 
         <span class="comment">// Giving the user the full tail means we assume the full path
         // has been matched now.
-        </span><span class="kw">let </span>end = <a href="#296">path</a>.path().len() - <a href="#297">idx</a>;
-        <a href="#295">route</a>.<a href="../route.rs.html#94">set_unmatched_path</a>(<a href="#301">end</a>);
+        </span><span class="kw">let </span>end = path.path().len() - idx;
+        route.set_unmatched_path(end);
 
-        future::ok(<a href="../generic.rs.html#7">one</a>(<a href="#312">Tail</a> {
-            <a href="#296">path</a>,
-            start_index: <a href="#297">idx</a>,
+        future::ok(one(Tail {
+            path,
+            start_index: idx,
         }))
     })
 }
 
 <span class="doccomment">/// Represents the tail part of a request path, returned by the [`tail()`] filter.
 </span><span class="kw">pub struct </span>Tail {
-    path: <a href="../../../http/uri/path/struct.PathAndQuery.html">PathAndQuery</a>,
-    start_index: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+    path: PathAndQuery,
+    start_index: usize,
 }
 
-<span class="kw">impl </span><a href="#312">Tail</a> {
+<span class="kw">impl </span>Tail {
     <span class="doccomment">/// Get the `&amp;str` representation of the remaining path.
-    </span><span class="kw">pub fn </span>as_str(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> {
-        <span class="kw-2">&amp;</span><a class="self" href="#319">self</a>.path.path()[<a class="self" href="#319">self</a>.start_index..]
+    </span><span class="kw">pub fn </span>as_str(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>str {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.path.path()[<span class="self">self</span>.start_index..]
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="#312">Tail</a> {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug::fmt</a>(<a class="self" href="#325">self</a>.<a href="#319">as_str</a>(), <a href="#325">f</a>)
+<span class="kw">impl </span>fmt::Debug <span class="kw">for </span>Tail {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        fmt::Debug::fmt(<span class="self">self</span>.as_str(), f)
     }
 }
 
@@ -997,39 +997,39 @@
 ///         format!(&quot;The path after foo is {:?}&quot;, peek)
 ///     });
 /// ```
-</span><span class="kw">pub fn </span>peek() -&gt; <span class="kw">impl </span>Filter&lt;Extract = One&lt;<a href="#361">Peek</a>&gt;, Error = <a href="https://doc.rust-lang.org/nightly/core/convert/enum.Infallible.html">Infallible</a>&gt; + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html">Copy</a> {
-    <a href="../filter/mod.rs.html#448-453">filter_fn</a>(<span class="kw">move </span>|route| {
-        <span class="kw">let </span>path = <a href="#464">path_and_query</a>(<a href="#349">route</a>);
-        <span class="kw">let </span>idx = <a href="#349">route</a>.<a href="../route.rs.html#112">matched_path_index</a>();
+</span><span class="kw">pub fn </span>peek() -&gt; <span class="kw">impl </span>Filter&lt;Extract = One&lt;Peek&gt;, Error = Infallible&gt; + Copy {
+    filter_fn(<span class="kw">move </span>|route| {
+        <span class="kw">let </span>path = path_and_query(route);
+        <span class="kw">let </span>idx = route.matched_path_index();
 
-        future::ok(<a href="../generic.rs.html#7">one</a>(<a href="#361">Peek</a> {
-            <a href="#350">path</a>,
-            start_index: <a href="#351">idx</a>,
+        future::ok(one(Peek {
+            path,
+            start_index: idx,
         }))
     })
 }
 
 <span class="doccomment">/// Represents the tail part of a request path, returned by the [`peek()`] filter.
 </span><span class="kw">pub struct </span>Peek {
-    path: <a href="../../../http/uri/path/struct.PathAndQuery.html">PathAndQuery</a>,
-    start_index: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+    path: PathAndQuery,
+    start_index: usize,
 }
 
-<span class="kw">impl </span><a href="#361">Peek</a> {
+<span class="kw">impl </span>Peek {
     <span class="doccomment">/// Get the `&amp;str` representation of the remaining path.
-    </span><span class="kw">pub fn </span>as_str(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> {
-        <span class="kw-2">&amp;</span><a class="self" href="#368">self</a>.path.path()[<a class="self" href="#368">self</a>.start_index..]
+    </span><span class="kw">pub fn </span>as_str(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>str {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.path.path()[<span class="self">self</span>.start_index..]
     }
 
     <span class="doccomment">/// Get an iterator over the segments of the peeked path.
-    </span><span class="kw">pub fn </span>segments(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl </span>Iterator&lt;Item = <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt; {
-        <a class="self" href="#373">self</a>.<a href="#368">as_str</a>().split(<span class="string">&#39;/&#39;</span>).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter</a>(|seg| !<a href="#374">seg</a>.is_empty())
+    </span><span class="kw">pub fn </span>segments(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl </span>Iterator&lt;Item = <span class="kw-2">&amp;</span>str&gt; {
+        <span class="self">self</span>.as_str().split(<span class="string">&#39;/&#39;</span>).filter(|seg| !seg.is_empty())
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="#361">Peek</a> {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug::fmt</a>(<a class="self" href="#379">self</a>.<a href="#368">as_str</a>(), <a href="#379">f</a>)
+<span class="kw">impl </span>fmt::Debug <span class="kw">for </span>Peek {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        fmt::Debug::fmt(<span class="self">self</span>.as_str(), f)
     }
 }
 
@@ -1064,58 +1064,58 @@
 ///         format!(&quot;This is the {}th visit to this URL!&quot;, count)
 ///     });
 /// ```
-</span><span class="kw">pub fn </span>full() -&gt; <span class="kw">impl </span>Filter&lt;Extract = One&lt;<a href="#420">FullPath</a>&gt;, Error = <a href="https://doc.rust-lang.org/nightly/core/convert/enum.Infallible.html">Infallible</a>&gt; + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html">Copy</a> {
-    <a href="../filter/mod.rs.html#448-453">filter_fn</a>(<span class="kw">move </span>|route| future::ok(<a href="../generic.rs.html#7">one</a>(<a href="#420">FullPath</a>(<a href="#464">path_and_query</a>(<a href="#416">route</a>)))))
+</span><span class="kw">pub fn </span>full() -&gt; <span class="kw">impl </span>Filter&lt;Extract = One&lt;FullPath&gt;, Error = Infallible&gt; + Copy {
+    filter_fn(<span class="kw">move </span>|route| future::ok(one(FullPath(path_and_query(route)))))
 }
 
 <span class="doccomment">/// Represents the full request path, returned by the [`full()`] filter.
-</span><span class="kw">pub struct </span>FullPath(<a href="../../../http/uri/path/struct.PathAndQuery.html">PathAndQuery</a>);
+</span><span class="kw">pub struct </span>FullPath(PathAndQuery);
 
-<span class="kw">impl </span><a href="#420">FullPath</a> {
+<span class="kw">impl </span>FullPath {
     <span class="doccomment">/// Get the `&amp;str` representation of the request path.
-    </span><span class="kw">pub fn </span>as_str(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> {
-        <a class="self" href="#424">self</a>.<span class="number">0</span>.path()
+    </span><span class="kw">pub fn </span>as_str(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>str {
+        <span class="self">self</span>.<span class="number">0</span>.path()
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="#420">FullPath</a> {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug::fmt</a>(<a class="self" href="#430">self</a>.<a href="#424">as_str</a>(), <a href="#430">f</a>)
+<span class="kw">impl </span>fmt::Debug <span class="kw">for </span>FullPath {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        fmt::Debug::fmt(<span class="self">self</span>.as_str(), f)
     }
 }
 
-<span class="kw">fn </span>filter_segment&lt;F, U&gt;(func: F) -&gt; <span class="kw">impl </span>Filter&lt;Extract = U, Error = <a href="../reject.rs.html#205">Rejection</a>&gt; + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html">Copy</a>
+<span class="kw">fn </span>filter_segment&lt;F, U&gt;(func: F) -&gt; <span class="kw">impl </span>Filter&lt;Extract = U, Error = Rejection&gt; + Copy
 <span class="kw">where
-    </span>F: Fn(<span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Result</span>&lt;U, <a href="../reject.rs.html#205">Rejection</a>&gt; + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html">Copy</a>,
-    U: <a href="../generic.rs.html#25">Tuple</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <span class="lifetime">&#39;static</span>,
+    </span>F: Fn(<span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;U, Rejection&gt; + Copy,
+    U: Tuple + Send + <span class="lifetime">&#39;static</span>,
 {
-    <a href="../filter/mod.rs.html#448-453">filter_fn</a>(<span class="kw">move </span>|route| future::ready(<a href="#443-445">with_segment</a>(<a href="#440">route</a>, <a href="#435">func</a>)))
+    filter_fn(<span class="kw">move </span>|route| future::ready(with_segment(route, func)))
 }
 
-<span class="kw">fn </span>with_segment&lt;F, U&gt;(route: <span class="kw-2">&amp;mut </span><a href="../route.rs.html#31">Route</a>, func: F) -&gt; <span class="prelude-ty">Result</span>&lt;U, <a href="../reject.rs.html#205">Rejection</a>&gt;
+<span class="kw">fn </span>with_segment&lt;F, U&gt;(route: <span class="kw-2">&amp;mut </span>Route, func: F) -&gt; <span class="prelude-ty">Result</span>&lt;U, Rejection&gt;
 <span class="kw">where
-    </span>F: Fn(<span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Result</span>&lt;U, <a href="../reject.rs.html#205">Rejection</a>&gt;,
+    </span>F: Fn(<span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;U, Rejection&gt;,
 {
-    <span class="kw">let </span>seg = <a href="#456">segment</a>(<a href="#443">route</a>);
-    <span class="kw">let </span>ret = <a href="#443">func</a>(<a href="#447">seg</a>);
+    <span class="kw">let </span>seg = segment(route);
+    <span class="kw">let </span>ret = func(seg);
     <span class="kw">if </span>ret.is_ok() {
-        <span class="kw">let </span>idx = <a href="#447">seg</a>.len();
-        <a href="#443">route</a>.<a href="../route.rs.html#94">set_unmatched_path</a>(<a href="#450">idx</a>);
+        <span class="kw">let </span>idx = seg.len();
+        route.set_unmatched_path(idx);
     }
-    <a href="#448">ret</a>
+    ret
 }
 
-<span class="kw">fn </span>segment(route: <span class="kw-2">&amp;</span><a href="../route.rs.html#31">Route</a>) -&gt; <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> {
-    <a href="#456">route</a>
-        .<a href="../route.rs.html#86">path</a>()
+<span class="kw">fn </span>segment(route: <span class="kw-2">&amp;</span>Route) -&gt; <span class="kw-2">&amp;</span>str {
+    route
+        .path()
         .splitn(<span class="number">2</span>, <span class="string">&#39;/&#39;</span>)
-        .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>()
+        .next()
         .expect(<span class="string">&quot;split always has at least 1&quot;</span>)
 }
 
-<span class="kw">fn </span>path_and_query(route: <span class="kw-2">&amp;</span><a href="../route.rs.html#31">Route</a>) -&gt; <a href="../../../http/uri/path/struct.PathAndQuery.html">PathAndQuery</a> {
-    <a href="#464">route</a>
-        .<a href="../route.rs.html#82">uri</a>()
+<span class="kw">fn </span>path_and_query(route: <span class="kw-2">&amp;</span>Route) -&gt; PathAndQuery {
+    route
+        .uri()
         .path_and_query()
         .cloned()
         .unwrap_or_else(|| PathAndQuery::from_static(<span class="string">&quot;&quot;</span>))
@@ -1267,10 +1267,10 @@
     #[derive(Clone, Copy)]
     </span><span class="kw">pub struct </span>Opaque&lt;T&gt;(<span class="kw">pub</span>(<span class="kw">super</span>) T);
 
-    <span class="kw">impl</span>&lt;T: AsRef&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt;&gt; AsRef&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt; <span class="kw">for </span>Opaque&lt;T&gt; {
+    <span class="kw">impl</span>&lt;T: AsRef&lt;str&gt;&gt; AsRef&lt;str&gt; <span class="kw">for </span>Opaque&lt;T&gt; {
         <span class="attr">#[inline]
-        </span><span class="kw">fn </span>as_ref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> {
-            <a class="self" href="#620">self</a>.<span class="number">0</span>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>()
+        </span><span class="kw">fn </span>as_ref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>str {
+            <span class="self">self</span>.<span class="number">0</span>.as_ref()
         }
     }
 }
@@ -1303,4 +1303,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="warp" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="warp" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

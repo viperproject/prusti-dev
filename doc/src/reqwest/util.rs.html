@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/reqwest-0.11.13/src/util.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>util.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../reqwest/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/reqwest-0.11.13/src/util.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>util.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../reqwest/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -65,21 +65,21 @@
 <a href="#65" id="65">65</a>
 <a href="#66" id="66">66</a>
 <a href="#67" id="67">67</a>
-</pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::header::{<a href="../../reqwest/header/enum.Entry.html">Entry</a>, <a href="../../reqwest/header/struct.HeaderMap.html">HeaderMap</a>, <a href="../../reqwest/header/struct.OccupiedEntry.html">OccupiedEntry</a>};
+</pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::header::{Entry, HeaderMap, OccupiedEntry};
 
 <span class="comment">// xor-shift
 </span><span class="attr">#[cfg(not(target_arch = <span class="string">&quot;wasm32&quot;</span>))]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>fast_random() -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> {
-    <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/cell/struct.Cell.html">std::cell::Cell</a>;
-    <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/collections/hash/map/struct.RandomState.html">std::collections::hash_map::RandomState</a>;
-    <span class="kw">use </span>std::hash::{<a href="https://doc.rust-lang.org/nightly/core/hash/trait.BuildHasher.html">BuildHasher</a>, <a href="https://doc.rust-lang.org/nightly/core/hash/trait.Hasher.html">Hasher</a>};
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>fast_random() -&gt; u64 {
+    <span class="kw">use </span>std::cell::Cell;
+    <span class="kw">use </span>std::collections::hash_map::RandomState;
+    <span class="kw">use </span>std::hash::{BuildHasher, Hasher};
     <span class="kw">use </span>std::num::Wrapping;
 
-    <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.thread_local.html">thread_local! </a>{
+    <span class="macro">thread_local! </span>{
         <span class="kw">static </span>RNG: Cell&lt;Wrapping&lt;u64&gt;&gt; = Cell::new(Wrapping(seed()));
     }
 
-    <span class="kw">fn </span>seed() -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> {
+    <span class="kw">fn </span>seed() -&gt; u64 {
         <span class="kw">let </span>seed = RandomState::new();
 
         <span class="kw">let </span><span class="kw-2">mut </span>out = <span class="number">0</span>;
@@ -90,21 +90,21 @@
             hasher.write_usize(cnt);
             out = hasher.finish();
         }
-        <a href="#18">out</a>
+        out
     }
 
-    <a href="#11-13">RNG</a>.with(|rng| {
-        <span class="kw">let </span><span class="kw-2">mut </span>n = <a href="#29">rng</a>.get();
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert_ne.html">debug_assert_ne!</a>(n.<span class="number">0</span>, <span class="number">0</span>);
-        <a href="#30">n</a> ^= <a href="#30">n</a> &gt;&gt; <span class="number">12</span>;
-        <a href="#30">n</a> ^= <a href="#30">n</a> &lt;&lt; <span class="number">25</span>;
-        <a href="#30">n</a> ^= <a href="#30">n</a> &gt;&gt; <span class="number">27</span>;
-        <a href="#29">rng</a>.set(<a href="#30">n</a>);
-        <a href="#30">n</a>.<span class="number">0</span>.wrapping_mul(<span class="number">0x2545_f491_4f6c_dd1d</span>)
+    RNG.with(|rng| {
+        <span class="kw">let </span><span class="kw-2">mut </span>n = rng.get();
+        <span class="macro">debug_assert_ne!</span>(n.<span class="number">0</span>, <span class="number">0</span>);
+        n ^= n &gt;&gt; <span class="number">12</span>;
+        n ^= n &lt;&lt; <span class="number">25</span>;
+        n ^= n &gt;&gt; <span class="number">27</span>;
+        rng.set(n);
+        n.<span class="number">0</span>.wrapping_mul(<span class="number">0x2545_f491_4f6c_dd1d</span>)
     })
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>replace_headers(dst: <span class="kw-2">&amp;mut </span><a href="../../reqwest/header/struct.HeaderMap.html">HeaderMap</a>, src: <a href="../../reqwest/header/struct.HeaderMap.html">HeaderMap</a>) {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>replace_headers(dst: <span class="kw-2">&amp;mut </span>HeaderMap, src: HeaderMap) {
     <span class="comment">// IntoIter of HeaderMap yields (Option&lt;HeaderName&gt;, HeaderValue).
     // The first time a name is yielded, it will be Some(name), and if
     // there are more values with the same name, the next yield will be
@@ -133,4 +133,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="reqwest" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="reqwest" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

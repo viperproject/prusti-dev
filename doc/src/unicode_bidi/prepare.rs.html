@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/unicode-bidi-0.3.8/src/prepare.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>prepare.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../unicode_bidi/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/unicode-bidi-0.3.8/src/prepare.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>prepare.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../unicode_bidi/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -379,24 +379,24 @@
 //!
 //! &lt;http://www.unicode.org/reports/tr9/#Preparations_for_Implicit_Processing&gt;
 
-</span><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/vec/struct.Vec.html">alloc::vec::Vec</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/cmp/fn.max.html">core::cmp::max</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/ops/range/struct.Range.html">core::ops::Range</a>;
+</span><span class="kw">use </span>alloc::vec::Vec;
+<span class="kw">use </span>core::cmp::max;
+<span class="kw">use </span>core::ops::Range;
 
-<span class="kw">use </span><a href="level.rs.html#34"><span class="kw">super</span>::level::Level</a>;
-<span class="kw">use </span><span class="kw">super</span>::BidiClass::{<a class="self" href="char_data/tables.rs.html#18">self</a>, <span class="kw-2">*</span>};
+<span class="kw">use </span><span class="kw">super</span>::level::Level;
+<span class="kw">use </span><span class="kw">super</span>::BidiClass::{<span class="self">self</span>, <span class="kw-2">*</span>};
 
 <span class="doccomment">/// A maximal substring of characters with the same embedding level.
 ///
 /// Represented as a range of byte indices.
-</span><span class="kw">pub type </span>LevelRun = Range&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;;
+</span><span class="kw">pub type </span>LevelRun = Range&lt;usize&gt;;
 
 <span class="doccomment">/// Output of `isolating_run_sequences` (steps X9-X10)
 </span><span class="attr">#[derive(Debug, PartialEq)]
 </span><span class="kw">pub struct </span>IsolatingRunSequence {
-    <span class="kw">pub </span>runs: Vec&lt;<a href="#24">LevelRun</a>&gt;,
-    <span class="kw">pub </span>sos: <a href="char_data/tables.rs.html#18">BidiClass</a>, <span class="comment">// Start-of-sequence type.
-    </span><span class="kw">pub </span>eos: <a href="char_data/tables.rs.html#18">BidiClass</a>, <span class="comment">// End-of-sequence type.
+    <span class="kw">pub </span>runs: Vec&lt;LevelRun&gt;,
+    <span class="kw">pub </span>sos: BidiClass, <span class="comment">// Start-of-sequence type.
+    </span><span class="kw">pub </span>eos: BidiClass, <span class="comment">// End-of-sequence type.
 </span>}
 
 <span class="doccomment">/// Compute the set of isolating run sequences.
@@ -408,19 +408,19 @@
 /// Note: This function does *not* return the sequences in order by their first characters.
 </span><span class="attr">#[cfg_attr(feature = <span class="string">&quot;flame_it&quot;</span>, flamer::flame)]
 </span><span class="kw">pub fn </span>isolating_run_sequences(
-    para_level: <a href="level.rs.html#34">Level</a>,
-    original_classes: <span class="kw-2">&amp;</span>[<a href="char_data/tables.rs.html#18">BidiClass</a>],
-    levels: <span class="kw-2">&amp;</span>[<a href="level.rs.html#34">Level</a>],
-) -&gt; Vec&lt;<a href="#28">IsolatingRunSequence</a>&gt; {
-    <span class="kw">let </span>runs = <a href="#139">level_runs</a>(<a href="#45">levels</a>, <a href="#44">original_classes</a>);
+    para_level: Level,
+    original_classes: <span class="kw-2">&amp;</span>[BidiClass],
+    levels: <span class="kw-2">&amp;</span>[Level],
+) -&gt; Vec&lt;IsolatingRunSequence&gt; {
+    <span class="kw">let </span>runs = level_runs(levels, original_classes);
 
     <span class="comment">// Compute the set of isolating run sequences.
     // &lt;http://www.unicode.org/reports/tr9/#BD13&gt;
-    </span><span class="kw">let </span><span class="kw-2">mut </span>sequences = Vec::with_capacity(<a href="#47">runs</a>.len());
+    </span><span class="kw">let </span><span class="kw-2">mut </span>sequences = Vec::with_capacity(runs.len());
 
     <span class="comment">// When we encounter an isolate initiator, we push the current sequence onto the
     // stack so we can resume it after the matching PDI.
-    </span><span class="kw">let </span><span class="kw-2">mut </span>stack = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[Vec::new()];
+    </span><span class="kw">let </span><span class="kw-2">mut </span>stack = <span class="macro">vec!</span>[Vec::new()];
 
     <span class="kw">for </span>run <span class="kw">in </span>runs {
         <span class="macro">assert!</span>(run.len() &gt; <span class="number">0</span>);
@@ -448,18 +448,18 @@
         }
     }
     <span class="comment">// Pop any remaning sequences off the stack.
-    </span><a href="#51">sequences</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a href="#55">stack</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">rev</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter</a>(|seq| !<a href="#83">seq</a>.is_empty()));
+    </span>sequences.extend(stack.into_iter().rev().filter(|seq| !seq.is_empty()));
 
     <span class="comment">// Determine the `sos` and `eos` class for each sequence.
     // &lt;http://www.unicode.org/reports/tr9/#X10&gt;
-    </span><a href="#51">sequences</a>
-        .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
-        .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|sequence: Vec&lt;<a href="#24">LevelRun</a>&gt;| {
-            <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(!sequence.is_empty());
+    </span>sequences
+        .into_iter()
+        .map(|sequence: Vec&lt;LevelRun&gt;| {
+            <span class="macro">assert!</span>(!sequence.is_empty());
 
-            <span class="kw">let </span>start_of_seq = <a href="#89">sequence</a>[<span class="number">0</span>].start;
-            <span class="kw">let </span>end_of_seq = <a href="#89">sequence</a>[<a href="#89">sequence</a>.len() - <span class="number">1</span>].end;
-            <span class="kw">let </span>seq_level = <a href="#45">levels</a>[<a href="#92">start_of_seq</a>];
+            <span class="kw">let </span>start_of_seq = sequence[<span class="number">0</span>].start;
+            <span class="kw">let </span>end_of_seq = sequence[sequence.len() - <span class="number">1</span>].end;
+            <span class="kw">let </span>seq_level = levels[start_of_seq];
 
             <span class="attr">#[cfg(test)]
             </span><span class="kw">for </span>run <span class="kw">in </span>sequence.clone() {
@@ -471,48 +471,48 @@
             }
 
             <span class="comment">// Get the level of the last non-removed char before the runs.
-            </span><span class="kw">let </span>pred_level = <span class="kw">match </span><a href="#44">original_classes</a>[..<a href="#92">start_of_seq</a>]
+            </span><span class="kw">let </span>pred_level = <span class="kw">match </span>original_classes[..start_of_seq]
                 .iter()
-                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">rposition</a>(<a href="#173">not_removed_by_x9</a>)
+                .rposition(not_removed_by_x9)
             {
-                <span class="prelude-val">Some</span>(idx) =&gt; <a href="#45">levels</a>[<a href="#110">idx</a>],
-                <span class="prelude-val">None </span>=&gt; <a href="#43">para_level</a>,
+                <span class="prelude-val">Some</span>(idx) =&gt; levels[idx],
+                <span class="prelude-val">None </span>=&gt; para_level,
             };
 
             <span class="comment">// Get the level of the next non-removed char after the runs.
-            </span><span class="kw">let </span>succ_level = <span class="kw">if let </span><a href="char_data/tables.rs.html#38">RLI</a> | <a href="char_data/tables.rs.html#30">LRI</a> | <a href="char_data/tables.rs.html#27">FSI</a> = <a href="#44">original_classes</a>[<a href="#93">end_of_seq</a> - <span class="number">1</span>] {
-                <a href="#43">para_level</a>
+            </span><span class="kw">let </span>succ_level = <span class="kw">if let </span>RLI | LRI | FSI = original_classes[end_of_seq - <span class="number">1</span>] {
+                para_level
             } <span class="kw">else </span>{
-                <span class="kw">match </span><a href="#44">original_classes</a>[<a href="#93">end_of_seq</a>..]
+                <span class="kw">match </span>original_classes[end_of_seq..]
                     .iter()
-                    .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">position</a>(<a href="#173">not_removed_by_x9</a>)
+                    .position(not_removed_by_x9)
                 {
-                    <span class="prelude-val">Some</span>(idx) =&gt; <a href="#45">levels</a>[<a href="#93">end_of_seq</a> + <a href="#122">idx</a>],
-                    <span class="prelude-val">None </span>=&gt; <a href="#43">para_level</a>,
+                    <span class="prelude-val">Some</span>(idx) =&gt; levels[end_of_seq + idx],
+                    <span class="prelude-val">None </span>=&gt; para_level,
                 }
             };
 
-            <a href="#28">IsolatingRunSequence</a> {
-                runs: <a href="#89">sequence</a>,
-                sos: <a href="https://doc.rust-lang.org/nightly/core/cmp/fn.max.html">max</a>(<a href="#94">seq_level</a>, <a href="#106">pred_level</a>).<a href="level.rs.html#186">bidi_class</a>(),
-                eos: <a href="https://doc.rust-lang.org/nightly/core/cmp/fn.max.html">max</a>(<a href="#94">seq_level</a>, <a href="#115">succ_level</a>).<a href="level.rs.html#186">bidi_class</a>(),
+            IsolatingRunSequence {
+                runs: sequence,
+                sos: max(seq_level, pred_level).bidi_class(),
+                eos: max(seq_level, succ_level).bidi_class(),
             }
         })
-        .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>()
+        .collect()
 }
 
 <span class="doccomment">/// Finds the level runs in a paragraph.
 ///
 /// &lt;http://www.unicode.org/reports/tr9/#BD7&gt;
-</span><span class="kw">fn </span>level_runs(levels: <span class="kw-2">&amp;</span>[<a href="level.rs.html#34">Level</a>], original_classes: <span class="kw-2">&amp;</span>[<a href="char_data/tables.rs.html#18">BidiClass</a>]) -&gt; Vec&lt;<a href="#24">LevelRun</a>&gt; {
-    <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert_eq.html">assert_eq!</a>(levels.len(), original_classes.len());
+</span><span class="kw">fn </span>level_runs(levels: <span class="kw-2">&amp;</span>[Level], original_classes: <span class="kw-2">&amp;</span>[BidiClass]) -&gt; Vec&lt;LevelRun&gt; {
+    <span class="macro">assert_eq!</span>(levels.len(), original_classes.len());
 
     <span class="kw">let </span><span class="kw-2">mut </span>runs = Vec::new();
     <span class="kw">if </span>levels.is_empty() {
-        <span class="kw">return </span><a href="#142">runs</a>;
+        <span class="kw">return </span>runs;
     }
 
-    <span class="kw">let </span><span class="kw-2">mut </span>current_run_level = <a href="#139">levels</a>[<span class="number">0</span>];
+    <span class="kw">let </span><span class="kw-2">mut </span>current_run_level = levels[<span class="number">0</span>];
     <span class="kw">let </span><span class="kw-2">mut </span>current_run_start = <span class="number">0</span>;
     <span class="kw">for </span>i <span class="kw">in </span><span class="number">1</span>..levels.len() {
         <span class="kw">if </span>!removed_by_x9(original_classes[i]) &amp;&amp; levels[i] != current_run_level {
@@ -522,24 +522,24 @@
             current_run_start = i;
         }
     }
-    <a href="#142">runs</a>.push(<a href="#148">current_run_start</a>..<a href="#139">levels</a>.len());
+    runs.push(current_run_start..levels.len());
 
-    <a href="#142">runs</a>
+    runs
 }
 
 <span class="doccomment">/// Should this character be ignored in steps after X9?
 ///
 /// &lt;http://www.unicode.org/reports/tr9/#X9&gt;
-</span><span class="kw">pub fn </span>removed_by_x9(class: <a href="char_data/tables.rs.html#18">BidiClass</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-    <span class="kw">match </span><a href="#165">class</a> {
-        <a href="char_data/tables.rs.html#37">RLE</a> | <a href="char_data/tables.rs.html#29">LRE</a> | <a href="char_data/tables.rs.html#39">RLO</a> | <a href="char_data/tables.rs.html#31">LRO</a> | <a href="char_data/tables.rs.html#34">PDF</a> | <a href="char_data/tables.rs.html#22">BN</a> =&gt; <span class="bool-val">true</span>,
+</span><span class="kw">pub fn </span>removed_by_x9(class: BidiClass) -&gt; bool {
+    <span class="kw">match </span>class {
+        RLE | LRE | RLO | LRO | PDF | BN =&gt; <span class="bool-val">true</span>,
         <span class="kw">_ </span>=&gt; <span class="bool-val">false</span>,
     }
 }
 
 <span class="comment">// For use as a predicate for `position` / `rposition`
-</span><span class="kw">pub fn </span>not_removed_by_x9(class: <span class="kw-2">&amp;</span><a href="char_data/tables.rs.html#18">BidiClass</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-    !<a href="#165">removed_by_x9</a>(<span class="kw-2">*</span><a href="#173">class</a>)
+</span><span class="kw">pub fn </span>not_removed_by_x9(class: <span class="kw-2">&amp;</span>BidiClass) -&gt; bool {
+    !removed_by_x9(<span class="kw-2">*</span>class)
 }
 
 <span class="attr">#[cfg(test)]
@@ -735,4 +735,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="unicode_bidi" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="unicode_bidi" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

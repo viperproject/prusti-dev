@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/futures-macro-0.3.25/src/executor.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>executor.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../futures_macro/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/futures-macro-0.3.25/src/executor.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>executor.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../futures_macro/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -53,60 +53,60 @@
 <a href="#53" id="53">53</a>
 <a href="#54" id="54">54</a>
 <a href="#55" id="55">55</a>
-</pre><pre class="rust"><code><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/proc_macro/struct.TokenStream.html">proc_macro::TokenStream</a>;
-<span class="kw">use </span><a href="https://docs.rs/proc-macro2/1.0.47/proc_macro2/struct.Span.html">proc_macro2::Span</a>;
-<span class="kw">use </span>quote::{<a href="https://docs.rs/quote/1.0.21/quote/macro.quote.html">quote</a>, <a href="https://docs.rs/quote/1.0.21/quote/macro.quote_spanned.html">quote_spanned</a>, <a href="https://docs.rs/quote/1.0.21/quote/to_tokens/trait.ToTokens.html">ToTokens</a>};
+</pre><pre class="rust"><code><span class="kw">use </span>proc_macro::TokenStream;
+<span class="kw">use </span>proc_macro2::Span;
+<span class="kw">use </span>quote::{quote, quote_spanned, ToTokens};
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>test(args: <a href="https://doc.rust-lang.org/nightly/proc_macro/struct.TokenStream.html">TokenStream</a>, item: <a href="https://doc.rust-lang.org/nightly/proc_macro/struct.TokenStream.html">TokenStream</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/proc_macro/struct.TokenStream.html">TokenStream</a> {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>test(args: TokenStream, item: TokenStream) -&gt; TokenStream {
     <span class="kw">if </span>!args.is_empty() {
-        <span class="kw">return </span>syn::Error::new_spanned(proc_macro2::TokenStream::from(<a href="#5">args</a>), <span class="string">&quot;invalid argument&quot;</span>)
+        <span class="kw">return </span>syn::Error::new_spanned(proc_macro2::TokenStream::from(args), <span class="string">&quot;invalid argument&quot;</span>)
             .to_compile_error()
-            .<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>();
+            .into();
     }
 
-    <span class="kw">let </span><span class="kw-2">mut </span>input = <a class="macro" href="https://docs.rs/syn/1.0.103/syn/macro.parse_macro_input.html">syn::parse_macro_input!</a>(item <span class="kw">as </span>syn::ItemFn);
+    <span class="kw">let </span><span class="kw-2">mut </span>input = <span class="macro">syn::parse_macro_input!</span>(item <span class="kw">as </span>syn::ItemFn);
 
     <span class="kw">if </span>input.sig.asyncness.take().is_none() {
-        <span class="kw">return </span>syn::Error::new_spanned(<a href="#12">input</a>.sig.fn_token, <span class="string">&quot;Only async functions are supported&quot;</span>)
+        <span class="kw">return </span>syn::Error::new_spanned(input.sig.fn_token, <span class="string">&quot;Only async functions are supported&quot;</span>)
             .to_compile_error()
-            .<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>();
+            .into();
     }
 
     <span class="comment">// If type mismatch occurs, the current rustc points to the last statement.
     </span><span class="kw">let </span>(last_stmt_start_span, last_stmt_end_span) = {
-        <span class="kw">let </span><span class="kw-2">mut </span>last_stmt = <a href="#12">input</a>
+        <span class="kw">let </span><span class="kw-2">mut </span>last_stmt = input
             .block
             .stmts
             .last()
-            .map(<a href="https://docs.rs/quote/1.0.21/quote/to_tokens/trait.ToTokens.html">ToTokens::into_token_stream</a>)
+            .map(ToTokens::into_token_stream)
             .unwrap_or_default()
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>();
+            .into_iter();
         <span class="comment">// `Span` on stable Rust has a limitation that only points to the first
         // token, not the whole tokens. We can work around this limitation by
         // using the first/last span of the tokens like
         // `syn::Error::new_spanned` does.
-        </span><span class="kw">let </span>start = <a href="#22">last_stmt</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>().map_or_else(Span::call_site, |t| <a href="#33">t</a>.span());
-        <span class="kw">let </span>end = <a href="#22">last_stmt</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">last</a>().map_or(<a href="#33">start</a>, |t| <a href="#34">t</a>.span());
-        (<a href="#33">start</a>, <a href="#34">end</a>)
+        </span><span class="kw">let </span>start = last_stmt.next().map_or_else(Span::call_site, |t| t.span());
+        <span class="kw">let </span>end = last_stmt.last().map_or(start, |t| t.span());
+        (start, end)
     };
 
-    <span class="kw">let </span>path = <a class="macro" href="https://docs.rs/quote/1.0.21/quote/macro.quote_spanned.html">quote_spanned! </a>{last_stmt_start_span=&gt;
+    <span class="kw">let </span>path = <span class="macro">quote_spanned! </span>{last_stmt_start_span=&gt;
         ::futures_test::__private
     };
-    <span class="kw">let </span>body = <span class="kw-2">&amp;</span><a href="#12">input</a>.block;
-    <a href="#12">input</a>.block.stmts = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[syn::Stmt::Expr(
+    <span class="kw">let </span>body = <span class="kw-2">&amp;</span>input.block;
+    input.block.stmts = <span class="macro">vec!</span>[syn::Stmt::Expr(
         syn::parse2(<span class="macro">quote_spanned! </span>{last_stmt_end_span=&gt;
             #path::block_on(<span class="kw">async </span>#body)
         })
         .unwrap(),
     )];
 
-    <span class="kw">let </span>gen = <a class="macro" href="https://docs.rs/quote/1.0.21/quote/macro.quote.html">quote! </a>{
+    <span class="kw">let </span>gen = <span class="macro">quote! </span>{
         <span class="attr">#[::core::prelude::v1::test]
         </span>#input
     };
 
-    <a href="#49">gen</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()
+    gen.into()
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="futures_macro" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="futures_macro" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

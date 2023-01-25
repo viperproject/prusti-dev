@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/async-trait-0.1.58/src/receiver.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>receiver.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../async_trait/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/async-trait-0.1.60/src/receiver.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>receiver.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../async_trait/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -177,121 +177,121 @@
 <a href="#177" id="177">177</a>
 <a href="#178" id="178">178</a>
 <a href="#179" id="179">179</a>
-</pre><pre class="rust"><code><span class="kw">use </span>proc_macro2::{<a href="../../proc_macro2/struct.Group.html">Group</a>, <a href="../../proc_macro2/struct.Span.html">Span</a>, <a href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>, <a href="../../proc_macro2/enum.TokenTree.html">TokenTree</a>};
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.FromIterator.html">std::iter::FromIterator</a>;
-<span class="kw">use </span>syn::visit_mut::{<a class="self" href="../../syn/gen/visit_mut/index.html">self</a>, <a href="../../syn/gen/visit_mut/trait.VisitMut.html">VisitMut</a>};
+</pre><pre class="rust"><code><span class="kw">use </span>proc_macro2::{Group, Span, TokenStream, TokenTree};
+<span class="kw">use </span>std::iter::FromIterator;
+<span class="kw">use </span>syn::visit_mut::{<span class="self">self</span>, VisitMut};
 <span class="kw">use </span>syn::{
-    <a href="../../syn/stmt/struct.Block.html">Block</a>, <a href="../../syn/expr/struct.ExprPath.html">ExprPath</a>, Ident, <a href="../../syn/item/enum.Item.html">Item</a>, <a href="../../syn/mac/struct.Macro.html">Macro</a>, <a href="../../syn/pat/enum.Pat.html">Pat</a>, <a href="../../syn/pat/struct.PatIdent.html">PatIdent</a>, <a href="../../syn/pat/struct.PatPath.html">PatPath</a>, <a href="../../syn/path/struct.Path.html">Path</a>, <a href="../../syn/item/struct.Receiver.html">Receiver</a>, <a href="../../syn/item/struct.Signature.html">Signature</a>, <a href="../../syn/macro.Token.html">Token</a>,
-    <a href="../../syn/ty/struct.TypePath.html">TypePath</a>,
+    Block, ExprPath, Ident, Item, Macro, Pat, PatIdent, PatPath, Path, Receiver, Signature, Token,
+    TypePath,
 };
 
-<span class="kw">pub fn </span>has_self_in_sig(sig: <span class="kw-2">&amp;mut </span><a href="../../syn/item/struct.Signature.html">Signature</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-    <span class="kw">let </span><span class="kw-2">mut </span>visitor = <a href="#55">HasSelf</a>(<span class="bool-val">false</span>);
-    <a href="#10">visitor</a>.<a href="../../syn/gen/visit_mut/trait.VisitMut.html">visit_signature_mut</a>(<a href="#9">sig</a>);
-    <a href="#10">visitor</a>.<span class="number">0
+<span class="kw">pub fn </span>has_self_in_sig(sig: <span class="kw-2">&amp;mut </span>Signature) -&gt; bool {
+    <span class="kw">let </span><span class="kw-2">mut </span>visitor = HasSelf(<span class="bool-val">false</span>);
+    visitor.visit_signature_mut(sig);
+    visitor.<span class="number">0
 </span>}
 
-<span class="kw">pub fn </span>has_self_in_block(block: <span class="kw-2">&amp;mut </span><a href="../../syn/stmt/struct.Block.html">Block</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-    <span class="kw">let </span><span class="kw-2">mut </span>visitor = <a href="#55">HasSelf</a>(<span class="bool-val">false</span>);
-    <a href="#16">visitor</a>.<a href="../../syn/gen/visit_mut/trait.VisitMut.html">visit_block_mut</a>(<a href="#15">block</a>);
-    <a href="#16">visitor</a>.<span class="number">0
+<span class="kw">pub fn </span>has_self_in_block(block: <span class="kw-2">&amp;mut </span>Block) -&gt; bool {
+    <span class="kw">let </span><span class="kw-2">mut </span>visitor = HasSelf(<span class="bool-val">false</span>);
+    visitor.visit_block_mut(block);
+    visitor.<span class="number">0
 </span>}
 
-<span class="kw">fn </span>has_self_in_token_stream(tokens: <a href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-    <a href="#21">tokens</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">any</a>(|tt| <span class="kw">match </span><a href="#22">tt</a> {
-        TokenTree::Ident(ident) =&gt; <a href="#23">ident</a> == <span class="string">&quot;Self&quot;</span>,
-        TokenTree::Group(group) =&gt; <a href="#21">has_self_in_token_stream</a>(<a href="#24">group</a>.stream()),
+<span class="kw">fn </span>has_self_in_token_stream(tokens: TokenStream) -&gt; bool {
+    tokens.into_iter().any(|tt| <span class="kw">match </span>tt {
+        TokenTree::Ident(ident) =&gt; ident == <span class="string">&quot;Self&quot;</span>,
+        TokenTree::Group(group) =&gt; has_self_in_token_stream(group.stream()),
         <span class="kw">_ </span>=&gt; <span class="bool-val">false</span>,
     })
 }
 
-<span class="kw">pub fn </span>mut_pat(pat: <span class="kw-2">&amp;mut </span><a href="../../syn/pat/enum.Pat.html">Pat</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<a class="macro" href="../../syn/macro.Token.html">Token!</a>[<span class="kw-2">mut</span>]&gt; {
-    <span class="kw">let </span><span class="kw-2">mut </span>visitor = <a href="#43">HasMutPat</a>(<span class="prelude-val">None</span>);
-    <a href="#30">visitor</a>.<a href="../../syn/gen/visit_mut/trait.VisitMut.html">visit_pat_mut</a>(<a href="#29">pat</a>);
-    <a href="#30">visitor</a>.<span class="number">0
+<span class="kw">pub fn </span>mut_pat(pat: <span class="kw-2">&amp;mut </span>Pat) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="macro">Token!</span>[<span class="kw-2">mut</span>]&gt; {
+    <span class="kw">let </span><span class="kw-2">mut </span>visitor = HasMutPat(<span class="prelude-val">None</span>);
+    visitor.visit_pat_mut(pat);
+    visitor.<span class="number">0
 </span>}
 
-<span class="kw">fn </span>contains_fn(tokens: <a href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-    <a href="#35">tokens</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">any</a>(|tt| <span class="kw">match </span><a href="#36">tt</a> {
-        TokenTree::Ident(ident) =&gt; <a href="#37">ident</a> == <span class="string">&quot;fn&quot;</span>,
-        TokenTree::Group(group) =&gt; <a href="#35">contains_fn</a>(<a href="#38">group</a>.stream()),
+<span class="kw">fn </span>contains_fn(tokens: TokenStream) -&gt; bool {
+    tokens.into_iter().any(|tt| <span class="kw">match </span>tt {
+        TokenTree::Ident(ident) =&gt; ident == <span class="string">&quot;fn&quot;</span>,
+        TokenTree::Group(group) =&gt; contains_fn(group.stream()),
         <span class="kw">_ </span>=&gt; <span class="bool-val">false</span>,
     })
 }
 
-<span class="kw">struct </span>HasMutPat(<span class="prelude-ty">Option</span>&lt;<a class="macro" href="../../syn/macro.Token.html">Token!</a>[<span class="kw-2">mut</span>]&gt;);
+<span class="kw">struct </span>HasMutPat(<span class="prelude-ty">Option</span>&lt;<span class="macro">Token!</span>[<span class="kw-2">mut</span>]&gt;);
 
-<span class="kw">impl </span><a href="../../syn/gen/visit_mut/trait.VisitMut.html">VisitMut</a> <span class="kw">for </span><a href="#43">HasMutPat</a> {
-    <span class="kw">fn </span>visit_pat_ident_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>, i: <span class="kw-2">&amp;mut </span><a href="../../syn/pat/struct.PatIdent.html">PatIdent</a>) {
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(m) = <a href="#46">i</a>.mutability {
-            <a class="self" href="#46">self</a>.<span class="number">0 </span>= <span class="prelude-val">Some</span>(<a href="#47">m</a>);
+<span class="kw">impl </span>VisitMut <span class="kw">for </span>HasMutPat {
+    <span class="kw">fn </span>visit_pat_ident_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>, i: <span class="kw-2">&amp;mut </span>PatIdent) {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(m) = i.mutability {
+            <span class="self">self</span>.<span class="number">0 </span>= <span class="prelude-val">Some</span>(m);
         } <span class="kw">else </span>{
-            visit_mut::visit_pat_ident_mut(<a class="self" href="#46">self</a>, <a href="#46">i</a>);
+            visit_mut::visit_pat_ident_mut(<span class="self">self</span>, i);
         }
     }
 }
 
-<span class="kw">struct </span>HasSelf(<a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>);
+<span class="kw">struct </span>HasSelf(bool);
 
-<span class="kw">impl </span><a href="../../syn/gen/visit_mut/trait.VisitMut.html">VisitMut</a> <span class="kw">for </span><a href="#55">HasSelf</a> {
-    <span class="kw">fn </span>visit_expr_path_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>, expr: <span class="kw-2">&amp;mut </span><a href="../../syn/expr/struct.ExprPath.html">ExprPath</a>) {
-        <a class="self" href="#58">self</a>.<span class="number">0 </span>|= <a href="#58">expr</a>.path.segments[<span class="number">0</span>].ident == <span class="string">&quot;Self&quot;</span>;
-        visit_mut::visit_expr_path_mut(<a class="self" href="#58">self</a>, <a href="#58">expr</a>);
+<span class="kw">impl </span>VisitMut <span class="kw">for </span>HasSelf {
+    <span class="kw">fn </span>visit_expr_path_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>, expr: <span class="kw-2">&amp;mut </span>ExprPath) {
+        <span class="self">self</span>.<span class="number">0 </span>|= expr.path.segments[<span class="number">0</span>].ident == <span class="string">&quot;Self&quot;</span>;
+        visit_mut::visit_expr_path_mut(<span class="self">self</span>, expr);
     }
 
-    <span class="kw">fn </span>visit_pat_path_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>, pat: <span class="kw-2">&amp;mut </span><a href="../../syn/pat/struct.PatPath.html">PatPath</a>) {
-        <a class="self" href="#63">self</a>.<span class="number">0 </span>|= <a href="#63">pat</a>.path.segments[<span class="number">0</span>].ident == <span class="string">&quot;Self&quot;</span>;
-        visit_mut::visit_pat_path_mut(<a class="self" href="#63">self</a>, <a href="#63">pat</a>);
+    <span class="kw">fn </span>visit_pat_path_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>, pat: <span class="kw-2">&amp;mut </span>PatPath) {
+        <span class="self">self</span>.<span class="number">0 </span>|= pat.path.segments[<span class="number">0</span>].ident == <span class="string">&quot;Self&quot;</span>;
+        visit_mut::visit_pat_path_mut(<span class="self">self</span>, pat);
     }
 
-    <span class="kw">fn </span>visit_type_path_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>, ty: <span class="kw-2">&amp;mut </span><a href="../../syn/ty/struct.TypePath.html">TypePath</a>) {
-        <a class="self" href="#68">self</a>.<span class="number">0 </span>|= <a href="#68">ty</a>.path.segments[<span class="number">0</span>].ident == <span class="string">&quot;Self&quot;</span>;
-        visit_mut::visit_type_path_mut(<a class="self" href="#68">self</a>, <a href="#68">ty</a>);
+    <span class="kw">fn </span>visit_type_path_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>, ty: <span class="kw-2">&amp;mut </span>TypePath) {
+        <span class="self">self</span>.<span class="number">0 </span>|= ty.path.segments[<span class="number">0</span>].ident == <span class="string">&quot;Self&quot;</span>;
+        visit_mut::visit_type_path_mut(<span class="self">self</span>, ty);
     }
 
-    <span class="kw">fn </span>visit_receiver_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>, _arg: <span class="kw-2">&amp;mut </span><a href="../../syn/item/struct.Receiver.html">Receiver</a>) {
-        <a class="self" href="#73">self</a>.<span class="number">0 </span>= <span class="bool-val">true</span>;
+    <span class="kw">fn </span>visit_receiver_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>, _arg: <span class="kw-2">&amp;mut </span>Receiver) {
+        <span class="self">self</span>.<span class="number">0 </span>= <span class="bool-val">true</span>;
     }
 
-    <span class="kw">fn </span>visit_item_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>, <span class="kw">_</span>: <span class="kw-2">&amp;mut </span><a href="../../syn/item/enum.Item.html">Item</a>) {
+    <span class="kw">fn </span>visit_item_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>, <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Item) {
         <span class="comment">// Do not recurse into nested items.
     </span>}
 
-    <span class="kw">fn </span>visit_macro_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>, mac: <span class="kw-2">&amp;mut </span><a href="../../syn/mac/struct.Macro.html">Macro</a>) {
+    <span class="kw">fn </span>visit_macro_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>, mac: <span class="kw-2">&amp;mut </span>Macro) {
         <span class="kw">if </span>!contains_fn(mac.tokens.clone()) {
-            <a class="self" href="#81">self</a>.<span class="number">0 </span>|= <a href="#21">has_self_in_token_stream</a>(<a href="#81">mac</a>.tokens.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
+            <span class="self">self</span>.<span class="number">0 </span>|= has_self_in_token_stream(mac.tokens.clone());
         }
     }
 }
 
-<span class="kw">pub struct </span>ReplaceSelf(<span class="kw">pub </span><a href="../../proc_macro2/struct.Span.html">Span</a>);
+<span class="kw">pub struct </span>ReplaceSelf(<span class="kw">pub </span>Span);
 
-<span class="kw">impl </span><a href="#88">ReplaceSelf</a> {
+<span class="kw">impl </span>ReplaceSelf {
     <span class="attr">#[cfg_attr(not(self_span_hack), allow(clippy::unused_self))]
-    </span><span class="kw">fn </span>prepend_underscore_to_self(<span class="kw-2">&amp;</span><span class="self">self</span>, ident: <span class="kw-2">&amp;mut </span><a href="../../proc_macro2/struct.Ident.html">Ident</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">let </span>modified = <a href="#92">ident</a> == <span class="string">&quot;self&quot;</span>;
+    </span><span class="kw">fn </span>prepend_underscore_to_self(<span class="kw-2">&amp;</span><span class="self">self</span>, ident: <span class="kw-2">&amp;mut </span>Ident) -&gt; bool {
+        <span class="kw">let </span>modified = ident == <span class="string">&quot;self&quot;</span>;
         <span class="kw">if </span>modified {
-            <span class="kw-2">*</span><a href="#92">ident</a> = Ident::new(<span class="string">&quot;__self&quot;</span>, <a href="#92">ident</a>.span());
+            <span class="kw-2">*</span>ident = Ident::new(<span class="string">&quot;__self&quot;</span>, ident.span());
             <span class="attr">#[cfg(self_span_hack)]
             </span>ident.set_span(<span class="self">self</span>.<span class="number">0</span>);
         }
-        <a href="#93">modified</a>
+        modified
     }
 
-    <span class="kw">fn </span>visit_token_stream(<span class="kw-2">&amp;mut </span><span class="self">self</span>, tokens: <span class="kw-2">&amp;mut </span><a href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+    <span class="kw">fn </span>visit_token_stream(<span class="kw-2">&amp;mut </span><span class="self">self</span>, tokens: <span class="kw-2">&amp;mut </span>TokenStream) -&gt; bool {
         <span class="kw">let </span><span class="kw-2">mut </span>out = Vec::new();
         <span class="kw">let </span><span class="kw-2">mut </span>modified = <span class="bool-val">false</span>;
-        <a href="#111-116">visit_token_stream_impl</a>(<a class="self" href="#102">self</a>, <a href="#102">tokens</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), <span class="kw-2">&amp;mut </span><a href="#104">modified</a>, <span class="kw-2">&amp;mut </span><a href="#103">out</a>);
+        visit_token_stream_impl(<span class="self">self</span>, tokens.clone(), <span class="kw-2">&amp;mut </span>modified, <span class="kw-2">&amp;mut </span>out);
         <span class="kw">if </span>modified {
-            <span class="kw-2">*</span><a href="#102">tokens</a> = TokenStream::from_iter(<a href="#103">out</a>);
+            <span class="kw-2">*</span>tokens = TokenStream::from_iter(out);
         }
-        <span class="kw">return </span><a href="#104">modified</a>;
+        <span class="kw">return </span>modified;
 
         <span class="kw">fn </span>visit_token_stream_impl(
-            visitor: <span class="kw-2">&amp;mut </span><a href="#88">ReplaceSelf</a>,
-            tokens: <a href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>,
-            modified: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-            out: <span class="kw-2">&amp;mut </span>Vec&lt;<a href="../../proc_macro2/enum.TokenTree.html">TokenTree</a>&gt;,
+            visitor: <span class="kw-2">&amp;mut </span>ReplaceSelf,
+            tokens: TokenStream,
+            modified: <span class="kw-2">&amp;mut </span>bool,
+            out: <span class="kw-2">&amp;mut </span>Vec&lt;TokenTree&gt;,
         ) {
             <span class="kw">for </span>tt <span class="kw">in </span>tokens {
                 <span class="kw">match </span>tt {
@@ -313,22 +313,22 @@
     }
 }
 
-<span class="kw">impl </span><a href="../../syn/gen/visit_mut/trait.VisitMut.html">VisitMut</a> <span class="kw">for </span><a href="#88">ReplaceSelf</a> {
-    <span class="kw">fn </span>visit_ident_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>, i: <span class="kw-2">&amp;mut </span><a href="../../proc_macro2/struct.Ident.html">Ident</a>) {
-        <a class="self" href="#138">self</a>.<a href="#92">prepend_underscore_to_self</a>(<a href="#138">i</a>);
+<span class="kw">impl </span>VisitMut <span class="kw">for </span>ReplaceSelf {
+    <span class="kw">fn </span>visit_ident_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>, i: <span class="kw-2">&amp;mut </span>Ident) {
+        <span class="self">self</span>.prepend_underscore_to_self(i);
     }
 
-    <span class="kw">fn </span>visit_path_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>, p: <span class="kw-2">&amp;mut </span><a href="../../syn/path/struct.Path.html">Path</a>) {
+    <span class="kw">fn </span>visit_path_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>, p: <span class="kw-2">&amp;mut </span>Path) {
         <span class="kw">if </span>p.segments.len() == <span class="number">1 </span>{
             <span class="comment">// Replace `self`, but not `self::function`.
-            </span><a class="self" href="#142">self</a>.<a href="../../syn/gen/visit_mut/trait.VisitMut.html">visit_ident_mut</a>(<span class="kw-2">&amp;mut </span><a href="#142">p</a>.segments[<span class="number">0</span>].ident);
+            </span><span class="self">self</span>.visit_ident_mut(<span class="kw-2">&amp;mut </span>p.segments[<span class="number">0</span>].ident);
         }
         <span class="kw">for </span>segment <span class="kw">in </span><span class="kw-2">&amp;mut </span>p.segments {
             <span class="self">self</span>.visit_path_arguments_mut(<span class="kw-2">&amp;mut </span>segment.arguments);
         }
     }
 
-    <span class="kw">fn </span>visit_item_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>, i: <span class="kw-2">&amp;mut </span><a href="../../syn/item/enum.Item.html">Item</a>) {
+    <span class="kw">fn </span>visit_item_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>, i: <span class="kw-2">&amp;mut </span>Item) {
         <span class="comment">// Visit `macro_rules!` because locally defined macros can refer to
         // `self`.
         //
@@ -336,25 +336,25 @@
         // appear syntactically like an item despite expanding to an expression.
         //
         // Otherwise, do not recurse into nested items.
-        </span><span class="kw">if let </span>Item::Macro(i) = <a href="#152">i</a> {
+        </span><span class="kw">if let </span>Item::Macro(i) = i {
             <span class="kw">if </span>i.mac.path.is_ident(<span class="string">&quot;macro_rules&quot;</span>)
                 || i.mac.path.segments.last().unwrap().ident == <span class="string">&quot;select&quot;
             </span>{
-                <a class="self" href="#152">self</a>.<a href="../../syn/gen/visit_mut/trait.VisitMut.html">visit_macro_mut</a>(<span class="kw-2">&amp;mut </span><a href="#160">i</a>.mac);
+                <span class="self">self</span>.visit_macro_mut(<span class="kw-2">&amp;mut </span>i.mac);
             }
         }
     }
 
-    <span class="kw">fn </span>visit_macro_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>, mac: <span class="kw-2">&amp;mut </span><a href="../../syn/mac/struct.Macro.html">Macro</a>) {
+    <span class="kw">fn </span>visit_macro_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>, mac: <span class="kw-2">&amp;mut </span>Macro) {
         <span class="comment">// We can&#39;t tell in general whether `self` inside a macro invocation
         // refers to the self in the argument list or a different self
         // introduced within the macro. Heuristic: if the macro input contains
         // `fn`, then `self` is more likely to refer to something other than the
         // outer function&#39;s self argument.
         </span><span class="kw">if </span>!contains_fn(mac.tokens.clone()) {
-            <a class="self" href="#169">self</a>.<a href="#102">visit_token_stream</a>(<span class="kw-2">&amp;mut </span><a href="#169">mac</a>.tokens);
+            <span class="self">self</span>.visit_token_stream(<span class="kw-2">&amp;mut </span>mac.tokens);
         }
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="async_trait" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="async_trait" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

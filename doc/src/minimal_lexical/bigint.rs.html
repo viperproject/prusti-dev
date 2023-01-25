@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/minimal-lexical-0.2.1/src/bigint.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>bigint.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../minimal_lexical/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/minimal-lexical-0.2.1/src/bigint.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>bigint.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../minimal_lexical/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -794,28 +794,28 @@
 
 #[cfg(feature = <span class="string">&quot;alloc&quot;</span>)]
 </span><span class="kw">use </span><span class="kw">crate</span>::heapvec::HeapVec;
-<span class="kw">use </span><a href="num.rs.html#18-35"><span class="kw">crate</span>::num::Float</a>;
+<span class="kw">use </span><span class="kw">crate</span>::num::Float;
 <span class="attr">#[cfg(not(feature = <span class="string">&quot;alloc&quot;</span>))]
-</span><span class="kw">use </span><a href="stackvec.rs.html#11"><span class="kw">crate</span>::stackvec::StackVec</a>;
+</span><span class="kw">use </span><span class="kw">crate</span>::stackvec::StackVec;
 <span class="attr">#[cfg(not(feature = <span class="string">&quot;compact&quot;</span>))]
-</span><span class="kw">use </span><span class="kw">crate</span>::table::{<a href="table_small.rs.html#81">LARGE_POW5</a>, <a href="table_small.rs.html#90">LARGE_POW5_STEP</a>};
-<span class="kw">use </span>core::{<a href="https://doc.rust-lang.org/nightly/core/cmp/index.html">cmp</a>, <a href="https://doc.rust-lang.org/nightly/core/ops/index.html">ops</a>, <a href="https://doc.rust-lang.org/nightly/core/ptr/index.html">ptr</a>};
+</span><span class="kw">use </span><span class="kw">crate</span>::table::{LARGE_POW5, LARGE_POW5_STEP};
+<span class="kw">use </span>core::{cmp, ops, ptr};
 
 <span class="doccomment">/// Number of bits in a Bigint.
 ///
 /// This needs to be at least the number of bits required to store
 /// a Bigint, which is `log2(radix**digits)`.
 /// ≅ 3600 for base-10, rounded-up.
-</span><span class="kw">pub const </span>BIGINT_BITS: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> = <span class="number">4000</span>;
+</span><span class="kw">pub const </span>BIGINT_BITS: usize = <span class="number">4000</span>;
 
 <span class="doccomment">/// The number of limbs for the bigint.
-</span><span class="kw">pub const </span>BIGINT_LIMBS: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> = <a href="#21">BIGINT_BITS</a> / <a href="#781">LIMB_BITS</a>;
+</span><span class="kw">pub const </span>BIGINT_LIMBS: usize = BIGINT_BITS / LIMB_BITS;
 
 <span class="attr">#[cfg(feature = <span class="string">&quot;alloc&quot;</span>)]
 </span><span class="kw">pub type </span>VecType = HeapVec;
 
 <span class="attr">#[cfg(not(feature = <span class="string">&quot;alloc&quot;</span>))]
-</span><span class="kw">pub type </span>VecType = <a href="stackvec.rs.html#11">StackVec</a>;
+</span><span class="kw">pub type </span>VecType = StackVec;
 
 <span class="doccomment">/// Storage for a big integer type.
 ///
@@ -841,11 +841,11 @@
     /// for decimal, we need `log2(10**1091) ≅ 3600`, while for base 36
     /// we need `log2(36**1086) ≅ 5600`. Since we use uninitialized data,
     /// we avoid a major performance hit from the large buffer size.
-    </span><span class="kw">pub </span>data: <a href="#30">VecType</a>,
+    </span><span class="kw">pub </span>data: VecType,
 }
 
 <span class="attr">#[allow(clippy::new_without_default)]
-</span><span class="kw">impl </span><a href="#43">Bigint</a> {
+</span><span class="kw">impl </span>Bigint {
     <span class="doccomment">/// Construct a bigint representing 0.
     </span><span class="attr">#[inline(always)]
     </span><span class="kw">pub fn </span>new() -&gt; <span class="self">Self </span>{
@@ -856,21 +856,21 @@
 
     <span class="doccomment">/// Construct a bigint from an integer.
     </span><span class="attr">#[inline(always)]
-    </span><span class="kw">pub fn </span>from_u64(value: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub fn </span>from_u64(value: u64) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
-            data: VecType::from_u64(<a href="#71">value</a>),
+            data: VecType::from_u64(value),
         }
     }
 
     <span class="attr">#[inline(always)]
-    </span><span class="kw">pub fn </span>hi64(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (<a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) {
-        <a class="self" href="#78">self</a>.data.<a href="stackvec.rs.html#213">hi64</a>()
+    </span><span class="kw">pub fn </span>hi64(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (u64, bool) {
+        <span class="self">self</span>.data.hi64()
     }
 
     <span class="doccomment">/// Multiply and assign as if by exponentiation by a power.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>pow(<span class="kw-2">&amp;mut </span><span class="self">self</span>, base: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>, exp: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; <span class="prelude-ty">Option</span>&lt;()&gt; {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(base == <span class="number">2 </span>|| base == <span class="number">5 </span>|| base == <span class="number">10</span>);
+    </span><span class="kw">pub fn </span>pow(<span class="kw-2">&amp;mut </span><span class="self">self</span>, base: u32, exp: u32) -&gt; <span class="prelude-ty">Option</span>&lt;()&gt; {
+        <span class="macro">debug_assert!</span>(base == <span class="number">2 </span>|| base == <span class="number">5 </span>|| base == <span class="number">10</span>);
         <span class="kw">if </span>base % <span class="number">5 </span>== <span class="number">0 </span>{
             pow(<span class="kw-2">&amp;mut </span><span class="self">self</span>.data, exp)<span class="question-mark">?</span>;
         }
@@ -882,14 +882,14 @@
 
     <span class="doccomment">/// Calculate the bit-length of the big-integer.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>bit_length(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
-        <a href="#699">bit_length</a>(<span class="kw-2">&amp;</span><a class="self" href="#97">self</a>.data)
+    </span><span class="kw">pub fn </span>bit_length(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u32 {
+        bit_length(<span class="kw-2">&amp;</span><span class="self">self</span>.data)
     }
 }
 
-<span class="kw">impl </span>ops::MulAssign&lt;<span class="kw-2">&amp;</span><a href="#43">Bigint</a>&gt; <span class="kw">for </span><a href="#43">Bigint</a> {
-    <span class="kw">fn </span>mul_assign(<span class="kw-2">&amp;mut </span><span class="self">self</span>, rhs: <span class="kw-2">&amp;</span><a href="#43">Bigint</a>) {
-        <a class="self" href="#103">self</a>.data <span class="kw-2">*</span>= <span class="kw-2">&amp;</span><a href="#103">rhs</a>.data;
+<span class="kw">impl </span>ops::MulAssign&lt;<span class="kw-2">&amp;</span>Bigint&gt; <span class="kw">for </span>Bigint {
+    <span class="kw">fn </span>mul_assign(<span class="kw-2">&amp;mut </span><span class="self">self</span>, rhs: <span class="kw-2">&amp;</span>Bigint) {
+        <span class="self">self</span>.data <span class="kw-2">*</span>= <span class="kw-2">&amp;</span>rhs.data;
     }
 }
 
@@ -900,21 +900,21 @@
     inner: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[T],
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T&gt; ops::Index&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; <span class="kw">for </span>ReverseView&lt;<span class="lifetime">&#39;a</span>, T&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T&gt; ops::Index&lt;usize&gt; <span class="kw">for </span>ReverseView&lt;<span class="lifetime">&#39;a</span>, T&gt; {
     <span class="kw">type </span>Output = T;
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>index(<span class="kw-2">&amp;</span><span class="self">self</span>, index: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="kw-2">&amp;</span>T {
-        <span class="kw">let </span>len = <a class="self" href="#119">self</a>.inner.len();
-        <span class="kw-2">&amp;</span>(<span class="kw-2">*</span><a class="self" href="#119">self</a>.inner)[<a href="#120">len</a> - <a href="#119">index</a> - <span class="number">1</span>]
+    </span><span class="kw">fn </span>index(<span class="kw-2">&amp;</span><span class="self">self</span>, index: usize) -&gt; <span class="kw-2">&amp;</span>T {
+        <span class="kw">let </span>len = <span class="self">self</span>.inner.len();
+        <span class="kw-2">&amp;</span>(<span class="kw-2">*</span><span class="self">self</span>.inner)[len - index - <span class="number">1</span>]
     }
 }
 
 <span class="doccomment">/// Create a reverse view of the vector for indexing.
 </span><span class="attr">#[inline]
-</span><span class="kw">pub fn </span>rview(x: <span class="kw-2">&amp;</span>[<a href="#777">Limb</a>]) -&gt; ReverseView&lt;<a href="#777">Limb</a>&gt; {
-    <a href="#111">ReverseView</a> {
-        inner: <a href="#127">x</a>,
+</span><span class="kw">pub fn </span>rview(x: <span class="kw-2">&amp;</span>[Limb]) -&gt; ReverseView&lt;Limb&gt; {
+    ReverseView {
+        inner: x,
     }
 }
 
@@ -923,10 +923,10 @@
 
 </span><span class="doccomment">/// Compare `x` to `y`, in little-endian order.
 </span><span class="attr">#[inline]
-</span><span class="kw">pub fn </span>compare(x: <span class="kw-2">&amp;</span>[<a href="#777">Limb</a>], y: <span class="kw-2">&amp;</span>[<a href="#777">Limb</a>]) -&gt; <a href="https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html">cmp::Ordering</a> {
-    <span class="kw">match </span><a href="#138">x</a>.len().<a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Ord.html">cmp</a>(<span class="kw-2">&amp;</span><a href="#138">y</a>.len()) {
+</span><span class="kw">pub fn </span>compare(x: <span class="kw-2">&amp;</span>[Limb], y: <span class="kw-2">&amp;</span>[Limb]) -&gt; cmp::Ordering {
+    <span class="kw">match </span>x.len().cmp(<span class="kw-2">&amp;</span>y.len()) {
         cmp::Ordering::Equal =&gt; {
-            <span class="kw">let </span>iter = <a href="#138">x</a>.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">rev</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">zip</a>(<a href="#138">y</a>.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">rev</a>());
+            <span class="kw">let </span>iter = x.iter().rev().zip(y.iter().rev());
             <span class="kw">for </span>(<span class="kw-2">&amp;</span>xi, yi) <span class="kw">in </span>iter {
                 <span class="kw">match </span>xi.cmp(yi) {
                     cmp::Ordering::Equal =&gt; (),
@@ -936,7 +936,7 @@
             <span class="comment">// Equal case.
             </span>cmp::Ordering::Equal
         },
-        ord =&gt; <a href="#151">ord</a>,
+        ord =&gt; ord,
     }
 }
 
@@ -945,7 +945,7 @@
 
 </span><span class="doccomment">/// Normalize the integer, so any leading zero values are removed.
 </span><span class="attr">#[inline]
-</span><span class="kw">pub fn </span>normalize(x: <span class="kw-2">&amp;mut </span><a href="#30">VecType</a>) {
+</span><span class="kw">pub fn </span>normalize(x: <span class="kw-2">&amp;mut </span>VecType) {
     <span class="comment">// We don&#39;t care if this wraps: the index is bounds-checked.
     </span><span class="kw">while let </span><span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>value) = x.get(x.len().wrapping_sub(<span class="number">1</span>)) {
         <span class="kw">if </span>value == <span class="number">0 </span>{
@@ -959,9 +959,9 @@
 <span class="doccomment">/// Get if the big integer is normalized.
 </span><span class="attr">#[inline]
 #[allow(clippy::match_like_matches_macro)]
-</span><span class="kw">pub fn </span>is_normalized(x: <span class="kw-2">&amp;</span>[<a href="#777">Limb</a>]) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+</span><span class="kw">pub fn </span>is_normalized(x: <span class="kw-2">&amp;</span>[Limb]) -&gt; bool {
     <span class="comment">// We don&#39;t care if this wraps: the index is bounds-checked.
-    </span><span class="kw">match </span><a href="#174">x</a>.get(<a href="#174">x</a>.len().wrapping_sub(<span class="number">1</span>)) {
+    </span><span class="kw">match </span>x.get(x.len().wrapping_sub(<span class="number">1</span>)) {
         <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="number">0</span>) =&gt; <span class="bool-val">false</span>,
         <span class="kw">_ </span>=&gt; <span class="bool-val">true</span>,
     }
@@ -973,17 +973,17 @@
 </span><span class="doccomment">/// Create StackVec from u64 value.
 </span><span class="attr">#[inline(always)]
 #[allow(clippy::branches_sharing_code)]
-</span><span class="kw">pub fn </span>from_u64(x: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) -&gt; <a href="#30">VecType</a> {
+</span><span class="kw">pub fn </span>from_u64(x: u64) -&gt; VecType {
     <span class="kw">let </span><span class="kw-2">mut </span>vec = VecType::new();
-    <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(vec.capacity() &gt;= <span class="number">2</span>);
+    <span class="macro">debug_assert!</span>(vec.capacity() &gt;= <span class="number">2</span>);
     <span class="kw">if </span>LIMB_BITS == <span class="number">32 </span>{
-        <a href="#189">vec</a>.<a href="stackvec.rs.html#89">try_push</a>(<a href="#188">x</a> <span class="kw">as </span><a href="#777">Limb</a>).unwrap();
-        <a href="#189">vec</a>.<a href="stackvec.rs.html#89">try_push</a>((<a href="#188">x</a> &gt;&gt; <span class="number">32</span>) <span class="kw">as </span><a href="#777">Limb</a>).unwrap();
+        vec.try_push(x <span class="kw">as </span>Limb).unwrap();
+        vec.try_push((x &gt;&gt; <span class="number">32</span>) <span class="kw">as </span>Limb).unwrap();
     } <span class="kw">else </span>{
-        <a href="#189">vec</a>.<a href="stackvec.rs.html#89">try_push</a>(<a href="#188">x</a> <span class="kw">as </span><a href="#777">Limb</a>).unwrap();
+        vec.try_push(x <span class="kw">as </span>Limb).unwrap();
     }
-    <a href="#189">vec</a>.<a href="stackvec.rs.html#229">normalize</a>();
-    <a href="#189">vec</a>
+    vec.normalize();
+    vec
 }
 
 <span class="comment">// HI
@@ -995,57 +995,57 @@
 ///
 /// Safe as long as `rindex &lt;= x.len()`.
 </span><span class="attr">#[inline]
-</span><span class="kw">pub fn </span>nonzero(x: <span class="kw-2">&amp;</span>[<a href="#777">Limb</a>], rindex: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-    <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(rindex &lt;= x.len());
+</span><span class="kw">pub fn </span>nonzero(x: <span class="kw-2">&amp;</span>[Limb], rindex: usize) -&gt; bool {
+    <span class="macro">debug_assert!</span>(rindex &lt;= x.len());
 
-    <span class="kw">let </span>len = <a href="#210">x</a>.len();
-    <span class="kw">let </span>slc = <span class="kw-2">&amp;</span><a href="#210">x</a>[..<a href="#213">len</a> - <a href="#210">rindex</a>];
-    <a href="#214">slc</a>.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">rev</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">any</a>(|<span class="kw-2">&amp;</span>x| <a href="#215">x</a> != <span class="number">0</span>)
+    <span class="kw">let </span>len = x.len();
+    <span class="kw">let </span>slc = <span class="kw-2">&amp;</span>x[..len - rindex];
+    slc.iter().rev().any(|<span class="kw-2">&amp;</span>x| x != <span class="number">0</span>)
 }
 
 <span class="comment">// These return the high X bits and if the bits were truncated.
 
 </span><span class="doccomment">/// Shift 32-bit integer to high 64-bits.
 </span><span class="attr">#[inline]
-</span><span class="kw">pub fn </span>u32_to_hi64_1(r0: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; (<a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) {
-    <a href="#245">u64_to_hi64_1</a>(<a href="#222">r0</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>)
+</span><span class="kw">pub fn </span>u32_to_hi64_1(r0: u32) -&gt; (u64, bool) {
+    u64_to_hi64_1(r0 <span class="kw">as </span>u64)
 }
 
 <span class="doccomment">/// Shift 2 32-bit integers to high 64-bits.
 </span><span class="attr">#[inline]
-</span><span class="kw">pub fn </span>u32_to_hi64_2(r0: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>, r1: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; (<a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) {
-    <span class="kw">let </span>r0 = (<a href="#228">r0</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) &lt;&lt; <span class="number">32</span>;
-    <span class="kw">let </span>r1 = <a href="#228">r1</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>;
-    <a href="#245">u64_to_hi64_1</a>(<a href="#229">r0</a> | <a href="#230">r1</a>)
+</span><span class="kw">pub fn </span>u32_to_hi64_2(r0: u32, r1: u32) -&gt; (u64, bool) {
+    <span class="kw">let </span>r0 = (r0 <span class="kw">as </span>u64) &lt;&lt; <span class="number">32</span>;
+    <span class="kw">let </span>r1 = r1 <span class="kw">as </span>u64;
+    u64_to_hi64_1(r0 | r1)
 }
 
 <span class="doccomment">/// Shift 3 32-bit integers to high 64-bits.
 </span><span class="attr">#[inline]
-</span><span class="kw">pub fn </span>u32_to_hi64_3(r0: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>, r1: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>, r2: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; (<a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) {
-    <span class="kw">let </span>r0 = <a href="#236">r0</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>;
-    <span class="kw">let </span>r1 = (<a href="#236">r1</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) &lt;&lt; <span class="number">32</span>;
-    <span class="kw">let </span>r2 = <a href="#236">r2</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>;
-    <a href="#252">u64_to_hi64_2</a>(<a href="#237">r0</a>, <a href="#238">r1</a> | <a href="#239">r2</a>)
+</span><span class="kw">pub fn </span>u32_to_hi64_3(r0: u32, r1: u32, r2: u32) -&gt; (u64, bool) {
+    <span class="kw">let </span>r0 = r0 <span class="kw">as </span>u64;
+    <span class="kw">let </span>r1 = (r1 <span class="kw">as </span>u64) &lt;&lt; <span class="number">32</span>;
+    <span class="kw">let </span>r2 = r2 <span class="kw">as </span>u64;
+    u64_to_hi64_2(r0, r1 | r2)
 }
 
 <span class="doccomment">/// Shift 64-bit integer to high 64-bits.
 </span><span class="attr">#[inline]
-</span><span class="kw">pub fn </span>u64_to_hi64_1(r0: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) -&gt; (<a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) {
-    <span class="kw">let </span>ls = <a href="#245">r0</a>.leading_zeros();
-    (<a href="#245">r0</a> &lt;&lt; <a href="#246">ls</a>, <span class="bool-val">false</span>)
+</span><span class="kw">pub fn </span>u64_to_hi64_1(r0: u64) -&gt; (u64, bool) {
+    <span class="kw">let </span>ls = r0.leading_zeros();
+    (r0 &lt;&lt; ls, <span class="bool-val">false</span>)
 }
 
 <span class="doccomment">/// Shift 2 64-bit integers to high 64-bits.
 </span><span class="attr">#[inline]
-</span><span class="kw">pub fn </span>u64_to_hi64_2(r0: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>, r1: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) -&gt; (<a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) {
-    <span class="kw">let </span>ls = <a href="#252">r0</a>.leading_zeros();
-    <span class="kw">let </span>rs = <span class="number">64 </span>- <a href="#253">ls</a>;
-    <span class="kw">let </span>v = <span class="kw">match </span><a href="#253">ls</a> {
-        <span class="number">0 </span>=&gt; <a href="#252">r0</a>,
-        <span class="kw">_ </span>=&gt; (<a href="#252">r0</a> &lt;&lt; <a href="#253">ls</a>) | (<a href="#252">r1</a> &gt;&gt; <a href="#254">rs</a>),
+</span><span class="kw">pub fn </span>u64_to_hi64_2(r0: u64, r1: u64) -&gt; (u64, bool) {
+    <span class="kw">let </span>ls = r0.leading_zeros();
+    <span class="kw">let </span>rs = <span class="number">64 </span>- ls;
+    <span class="kw">let </span>v = <span class="kw">match </span>ls {
+        <span class="number">0 </span>=&gt; r0,
+        <span class="kw">_ </span>=&gt; (r0 &lt;&lt; ls) | (r1 &gt;&gt; rs),
     };
-    <span class="kw">let </span>n = <a href="#252">r1</a> &lt;&lt; <a href="#253">ls</a> != <span class="number">0</span>;
-    (<a href="#255">v</a>, <a href="#259">n</a>)
+    <span class="kw">let </span>n = r1 &lt;&lt; ls != <span class="number">0</span>;
+    (v, n)
 }
 
 <span class="doccomment">/// Extract the hi bits from the buffer.
@@ -1095,17 +1095,17 @@
 
 <span class="doccomment">/// Get the high 64 bits from the vector.
 </span><span class="attr">#[inline(always)]
-</span><span class="kw">pub fn </span>hi64(x: <span class="kw-2">&amp;</span>[<a href="#777">Limb</a>]) -&gt; (<a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) {
-    <span class="kw">let </span>rslc = <a href="#127">rview</a>(<a href="#310">x</a>);
+</span><span class="kw">pub fn </span>hi64(x: <span class="kw-2">&amp;</span>[Limb]) -&gt; (u64, bool) {
+    <span class="kw">let </span>rslc = rview(x);
     <span class="comment">// SAFETY: the buffer must be at least length bytes long.
-    </span><span class="kw">match </span><a href="#310">x</a>.len() {
+    </span><span class="kw">match </span>x.len() {
         <span class="number">0 </span>=&gt; (<span class="number">0</span>, <span class="bool-val">false</span>),
-        <span class="number">1 </span><span class="kw">if </span><a href="#781">LIMB_BITS</a> == <span class="number">32 </span>=&gt; <a class="macro" href="#264-306">hi!</a>(@<span class="number">1 </span>x, rslc, u32, u32_to_hi64_1),
-        <span class="number">1 </span>=&gt; <a class="macro" href="#264-306">hi!</a>(@<span class="number">1 </span>x, rslc, u64, u64_to_hi64_1),
-        <span class="number">2 </span><span class="kw">if </span><a href="#781">LIMB_BITS</a> == <span class="number">32 </span>=&gt; <a class="macro" href="#264-306">hi!</a>(@<span class="number">2 </span>x, rslc, u32, u32_to_hi64_2),
-        <span class="number">2 </span>=&gt; <a class="macro" href="#264-306">hi!</a>(@<span class="number">2 </span>x, rslc, u64, u64_to_hi64_2),
-        <span class="kw">_ if </span><a href="#781">LIMB_BITS</a> == <span class="number">32 </span>=&gt; <a class="macro" href="#264-306">hi!</a>(@nonzero3 x, rslc, u32, u32_to_hi64_3),
-        <span class="kw">_ </span>=&gt; <a class="macro" href="#264-306">hi!</a>(@nonzero2 x, rslc, u64, u64_to_hi64_2),
+        <span class="number">1 </span><span class="kw">if </span>LIMB_BITS == <span class="number">32 </span>=&gt; <span class="macro">hi!</span>(@<span class="number">1 </span>x, rslc, u32, u32_to_hi64_1),
+        <span class="number">1 </span>=&gt; <span class="macro">hi!</span>(@<span class="number">1 </span>x, rslc, u64, u64_to_hi64_1),
+        <span class="number">2 </span><span class="kw">if </span>LIMB_BITS == <span class="number">32 </span>=&gt; <span class="macro">hi!</span>(@<span class="number">2 </span>x, rslc, u32, u32_to_hi64_2),
+        <span class="number">2 </span>=&gt; <span class="macro">hi!</span>(@<span class="number">2 </span>x, rslc, u64, u64_to_hi64_2),
+        <span class="kw">_ if </span>LIMB_BITS == <span class="number">32 </span>=&gt; <span class="macro">hi!</span>(@nonzero3 x, rslc, u32, u32_to_hi64_3),
+        <span class="kw">_ </span>=&gt; <span class="macro">hi!</span>(@nonzero2 x, rslc, u64, u64_to_hi64_2),
     }
 }
 
@@ -1158,7 +1158,7 @@
 /// Furthermore, using sufficiently big large powers is also crucial for
 /// performance. This is a tradeoff of binary size and performance, and
 /// using a single value at ~`5^(5 * max_exp)` seems optimal.
-</span><span class="kw">pub fn </span>pow(x: <span class="kw-2">&amp;mut </span><a href="#30">VecType</a>, <span class="kw-2">mut </span>exp: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; <span class="prelude-ty">Option</span>&lt;()&gt; {
+</span><span class="kw">pub fn </span>pow(x: <span class="kw-2">&amp;mut </span>VecType, <span class="kw-2">mut </span>exp: u32) -&gt; <span class="prelude-ty">Option</span>&lt;()&gt; {
     <span class="comment">// Minimize the number of iterations for large exponents: just
     // do a few steps with a large powers.
     </span><span class="attr">#[cfg(not(feature = <span class="string">&quot;compact&quot;</span>))]
@@ -1176,14 +1176,14 @@
     </span>} <span class="kw">else </span>{
         <span class="number">27
     </span>};
-    <span class="kw">let </span>max_native = (<span class="number">5 </span><span class="kw">as </span><a href="#777">Limb</a>).pow(<a href="#386">small_step</a>);
+    <span class="kw">let </span>max_native = (<span class="number">5 </span><span class="kw">as </span>Limb).pow(small_step);
     <span class="kw">while </span>exp &gt;= small_step {
         small_mul(x, max_native)<span class="question-mark">?</span>;
         exp -= small_step;
     }
     <span class="kw">if </span>exp != <span class="number">0 </span>{
         <span class="comment">// SAFETY: safe, since `exp &lt; small_step`.
-        </span><span class="kw">let </span>small_power = <span class="kw">unsafe </span>{ f64::int_pow_fast_path(<a href="#373">exp</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="number">5</span>) };
+        </span><span class="kw">let </span>small_power = <span class="kw">unsafe </span>{ f64::int_pow_fast_path(exp <span class="kw">as </span>usize, <span class="number">5</span>) };
         small_mul(x, small_power <span class="kw">as </span>Limb)<span class="question-mark">?</span>;
     }
     <span class="prelude-val">Some</span>(())
@@ -1194,20 +1194,20 @@
 
 </span><span class="doccomment">/// Add two small integers and return the resulting value and if overflow happens.
 </span><span class="attr">#[inline(always)]
-</span><span class="kw">pub fn </span>scalar_add(x: <a href="#777">Limb</a>, y: <a href="#777">Limb</a>) -&gt; (<a href="#777">Limb</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) {
-    <a href="#409">x</a>.overflowing_add(<a href="#409">y</a>)
+</span><span class="kw">pub fn </span>scalar_add(x: Limb, y: Limb) -&gt; (Limb, bool) {
+    x.overflowing_add(y)
 }
 
 <span class="doccomment">/// Multiply two small integers (with carry) (and return the overflow contribution).
 ///
 /// Returns the (low, high) components.
 </span><span class="attr">#[inline(always)]
-</span><span class="kw">pub fn </span>scalar_mul(x: <a href="#777">Limb</a>, y: <a href="#777">Limb</a>, carry: <a href="#777">Limb</a>) -&gt; (<a href="#777">Limb</a>, <a href="#777">Limb</a>) {
+</span><span class="kw">pub fn </span>scalar_mul(x: Limb, y: Limb, carry: Limb) -&gt; (Limb, Limb) {
     <span class="comment">// Cannot overflow, as long as wide is 2x as wide. This is because
     // the following is always true:
     // `Wide::MAX - (Narrow::MAX * Narrow::MAX) &gt;= Narrow::MAX`
-    </span><span class="kw">let </span>z: <a href="#779">Wide</a> = (<a href="#417">x</a> <span class="kw">as </span><a href="#779">Wide</a>) * (<a href="#417">y</a> <span class="kw">as </span><a href="#779">Wide</a>) + (<a href="#417">carry</a> <span class="kw">as </span><a href="#779">Wide</a>);
-    (<a href="#421">z</a> <span class="kw">as </span><a href="#777">Limb</a>, (<a href="#421">z</a> &gt;&gt; <a href="#781">LIMB_BITS</a>) <span class="kw">as </span><a href="#777">Limb</a>)
+    </span><span class="kw">let </span>z: Wide = (x <span class="kw">as </span>Wide) * (y <span class="kw">as </span>Wide) + (carry <span class="kw">as </span>Wide);
+    (z <span class="kw">as </span>Limb, (z &gt;&gt; LIMB_BITS) <span class="kw">as </span>Limb)
 }
 
 <span class="comment">// SMALL
@@ -1215,9 +1215,9 @@
 
 </span><span class="doccomment">/// Add small integer to bigint starting from offset.
 </span><span class="attr">#[inline]
-</span><span class="kw">pub fn </span>small_add_from(x: <span class="kw-2">&amp;mut </span><a href="#30">VecType</a>, y: <a href="#777">Limb</a>, start: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="prelude-ty">Option</span>&lt;()&gt; {
-    <span class="kw">let </span><span class="kw-2">mut </span>index = <a href="#430">start</a>;
-    <span class="kw">let </span><span class="kw-2">mut </span>carry = <a href="#430">y</a>;
+</span><span class="kw">pub fn </span>small_add_from(x: <span class="kw-2">&amp;mut </span>VecType, y: Limb, start: usize) -&gt; <span class="prelude-ty">Option</span>&lt;()&gt; {
+    <span class="kw">let </span><span class="kw-2">mut </span>index = start;
+    <span class="kw">let </span><span class="kw-2">mut </span>carry = y;
     <span class="kw">while </span>carry != <span class="number">0 </span>&amp;&amp; index &lt; x.len() {
         <span class="kw">let </span>result = scalar_add(x[index], carry);
         x[index] = result.<span class="number">0</span>;
@@ -1233,13 +1233,13 @@
 
 <span class="doccomment">/// Add small integer to bigint.
 </span><span class="attr">#[inline(always)]
-</span><span class="kw">pub fn </span>small_add(x: <span class="kw-2">&amp;mut </span><a href="#30">VecType</a>, y: <a href="#777">Limb</a>) -&gt; <span class="prelude-ty">Option</span>&lt;()&gt; {
-    <a href="#430">small_add_from</a>(<a href="#448">x</a>, <a href="#448">y</a>, <span class="number">0</span>)
+</span><span class="kw">pub fn </span>small_add(x: <span class="kw-2">&amp;mut </span>VecType, y: Limb) -&gt; <span class="prelude-ty">Option</span>&lt;()&gt; {
+    small_add_from(x, y, <span class="number">0</span>)
 }
 
 <span class="doccomment">/// Multiply bigint by small integer.
 </span><span class="attr">#[inline]
-</span><span class="kw">pub fn </span>small_mul(x: <span class="kw-2">&amp;mut </span><a href="#30">VecType</a>, y: <a href="#777">Limb</a>) -&gt; <span class="prelude-ty">Option</span>&lt;()&gt; {
+</span><span class="kw">pub fn </span>small_mul(x: <span class="kw-2">&amp;mut </span>VecType, y: Limb) -&gt; <span class="prelude-ty">Option</span>&lt;()&gt; {
     <span class="kw">let </span><span class="kw-2">mut </span>carry = <span class="number">0</span>;
     <span class="kw">for </span>xi <span class="kw">in </span>x.iter_mut() {
         <span class="kw">let </span>result = scalar_mul(<span class="kw-2">*</span>xi, y, carry);
@@ -1257,7 +1257,7 @@
 // -----
 
 </span><span class="doccomment">/// Add bigint to bigint starting from offset.
-</span><span class="kw">pub fn </span>large_add_from(x: <span class="kw-2">&amp;mut </span><a href="#30">VecType</a>, y: <span class="kw-2">&amp;</span>[<a href="#777">Limb</a>], start: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="prelude-ty">Option</span>&lt;()&gt; {
+</span><span class="kw">pub fn </span>large_add_from(x: <span class="kw-2">&amp;mut </span>VecType, y: <span class="kw-2">&amp;</span>[Limb], start: usize) -&gt; <span class="prelude-ty">Option</span>&lt;()&gt; {
     <span class="comment">// The effective x buffer is from `xstart..x.len()`, so we need to treat
     // that as the current range. If the effective y buffer is longer, need
     // to resize to that, + the start index.
@@ -1296,8 +1296,8 @@
 
 <span class="doccomment">/// Add bigint to bigint.
 </span><span class="attr">#[inline(always)]
-</span><span class="kw">pub fn </span>large_add(x: <span class="kw-2">&amp;mut </span><a href="#30">VecType</a>, y: <span class="kw-2">&amp;</span>[<a href="#777">Limb</a>]) -&gt; <span class="prelude-ty">Option</span>&lt;()&gt; {
-    <a href="#472">large_add_from</a>(<a href="#511">x</a>, <a href="#511">y</a>, <span class="number">0</span>)
+</span><span class="kw">pub fn </span>large_add(x: <span class="kw-2">&amp;mut </span>VecType, y: <span class="kw-2">&amp;</span>[Limb]) -&gt; <span class="prelude-ty">Option</span>&lt;()&gt; {
+    large_add_from(x, y, <span class="number">0</span>)
 }
 
 <span class="doccomment">/// Grade-school multiplication algorithm.
@@ -1362,14 +1362,14 @@
 /// ```
 ///
 /// In short, Karatsuba multiplication is never worthwhile for out use-case.
-</span><span class="kw">pub fn </span>long_mul(x: <span class="kw-2">&amp;</span>[<a href="#777">Limb</a>], y: <span class="kw-2">&amp;</span>[<a href="#777">Limb</a>]) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="#30">VecType</a>&gt; {
+</span><span class="kw">pub fn </span>long_mul(x: <span class="kw-2">&amp;</span>[Limb], y: <span class="kw-2">&amp;</span>[Limb]) -&gt; <span class="prelude-ty">Option</span>&lt;VecType&gt; {
     <span class="comment">// Using the immutable value, multiply by all the scalars in y, using
     // the algorithm defined above. Use a single buffer to avoid
     // frequent reallocations. Handle the first case to avoid a redundant
     // addition, since we know y.len() &gt;= 1.
     </span><span class="kw">let </span><span class="kw-2">mut </span>z = VecType::try_from(x)<span class="question-mark">?</span>;
     <span class="kw">if </span>!y.is_empty() {
-        <span class="kw">let </span>y0 = <a href="#577">y</a>[<span class="number">0</span>];
+        <span class="kw">let </span>y0 = y[<span class="number">0</span>];
         small_mul(<span class="kw-2">&amp;mut </span>z, y0)<span class="question-mark">?</span>;
 
         <span class="kw">for </span>(index, <span class="kw-2">&amp;</span>yi) <span class="kw">in </span>y.iter().enumerate().skip(<span class="number">1</span>) {
@@ -1381,20 +1381,20 @@
         }
     }
 
-    <a href="#582">z</a>.<a href="stackvec.rs.html#229">normalize</a>();
-    <span class="prelude-val">Some</span>(<a href="#582">z</a>)
+    z.normalize();
+    <span class="prelude-val">Some</span>(z)
 }
 
 <span class="doccomment">/// Multiply bigint by bigint using grade-school multiplication algorithm.
 </span><span class="attr">#[inline(always)]
-</span><span class="kw">pub fn </span>large_mul(x: <span class="kw-2">&amp;mut </span><a href="#30">VecType</a>, y: <span class="kw-2">&amp;</span>[<a href="#777">Limb</a>]) -&gt; <span class="prelude-ty">Option</span>&lt;()&gt; {
+</span><span class="kw">pub fn </span>large_mul(x: <span class="kw-2">&amp;mut </span>VecType, y: <span class="kw-2">&amp;</span>[Limb]) -&gt; <span class="prelude-ty">Option</span>&lt;()&gt; {
     <span class="comment">// Karatsuba multiplication never makes sense, so just use grade school
     // multiplication.
     </span><span class="kw">if </span>y.len() == <span class="number">1 </span>{
         <span class="comment">// SAFETY: safe since `y.len() == 1`.
         </span>small_mul(x, y[<span class="number">0</span>])<span class="question-mark">?</span>;
     } <span class="kw">else </span>{
-        <span class="kw-2">*</span><a href="#602">x</a> = long_mul(y, x)<span class="question-mark">?</span>;
+        <span class="kw-2">*</span>x = long_mul(y, x)<span class="question-mark">?</span>;
     }
     <span class="prelude-val">Some</span>(())
 }
@@ -1404,18 +1404,18 @@
 
 </span><span class="doccomment">/// Shift-left `n` bits inside a buffer.
 </span><span class="attr">#[inline]
-</span><span class="kw">pub fn </span>shl_bits(x: <span class="kw-2">&amp;mut </span><a href="#30">VecType</a>, n: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="prelude-ty">Option</span>&lt;()&gt; {
-    <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(n != <span class="number">0</span>);
+</span><span class="kw">pub fn </span>shl_bits(x: <span class="kw-2">&amp;mut </span>VecType, n: usize) -&gt; <span class="prelude-ty">Option</span>&lt;()&gt; {
+    <span class="macro">debug_assert!</span>(n != <span class="number">0</span>);
 
     <span class="comment">// Internally, for each item, we shift left by n, and add the previous
     // right shifted limb-bits.
     // For example, we transform (for u8) shifted left 2, to:
     //      b10100100 b01000010
     //      b10 b10010001 b00001000
-    </span><a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(n &lt; LIMB_BITS);
-    <span class="kw">let </span>rshift = <a href="#781">LIMB_BITS</a> - <a href="#619">n</a>;
-    <span class="kw">let </span>lshift = <a href="#619">n</a>;
-    <span class="kw">let </span><span class="kw-2">mut </span>prev: <a href="#777">Limb</a> = <span class="number">0</span>;
+    </span><span class="macro">debug_assert!</span>(n &lt; LIMB_BITS);
+    <span class="kw">let </span>rshift = LIMB_BITS - n;
+    <span class="kw">let </span>lshift = n;
+    <span class="kw">let </span><span class="kw-2">mut </span>prev: Limb = <span class="number">0</span>;
     <span class="kw">for </span>xi <span class="kw">in </span>x.iter_mut() {
         <span class="kw">let </span>tmp = <span class="kw-2">*</span>xi;
         <span class="kw-2">*</span>xi &lt;&lt;= lshift;
@@ -1424,7 +1424,7 @@
     }
 
     <span class="comment">// Always push the carry, even if it creates a non-normal result.
-    </span><span class="kw">let </span>carry = <a href="#630">prev</a> &gt;&gt; <a href="#628">rshift</a>;
+    </span><span class="kw">let </span>carry = prev &gt;&gt; rshift;
     <span class="kw">if </span>carry != <span class="number">0 </span>{
         x.try_push(carry)<span class="question-mark">?</span>;
     }
@@ -1434,21 +1434,21 @@
 
 <span class="doccomment">/// Shift-left `n` limbs inside a buffer.
 </span><span class="attr">#[inline]
-</span><span class="kw">pub fn </span>shl_limbs(x: <span class="kw-2">&amp;mut </span><a href="#30">VecType</a>, n: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="prelude-ty">Option</span>&lt;()&gt; {
-    <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(n != <span class="number">0</span>);
+</span><span class="kw">pub fn </span>shl_limbs(x: <span class="kw-2">&amp;mut </span>VecType, n: usize) -&gt; <span class="prelude-ty">Option</span>&lt;()&gt; {
+    <span class="macro">debug_assert!</span>(n != <span class="number">0</span>);
     <span class="kw">if </span>n + x.len() &gt; x.capacity() {
         <span class="prelude-val">None
     </span>} <span class="kw">else if </span>!x.is_empty() {
-        <span class="kw">let </span>len = <a href="#649">n</a> + <a href="#649">x</a>.<a href="stackvec.rs.html#56">len</a>();
+        <span class="kw">let </span>len = n + x.len();
         <span class="comment">// SAFE: since x is not empty, and `x.len() + n &lt;= x.capacity()`.
         </span><span class="kw">unsafe </span>{
             <span class="comment">// Move the elements.
-            </span><span class="kw">let </span>src = <a href="#649">x</a>.as_ptr();
-            <span class="kw">let </span>dst = <a href="#649">x</a>.as_mut_ptr().add(<a href="#649">n</a>);
-            ptr::copy(<a href="#658">src</a>, <a href="#659">dst</a>, <a href="#649">x</a>.<a href="stackvec.rs.html#56">len</a>());
+            </span><span class="kw">let </span>src = x.as_ptr();
+            <span class="kw">let </span>dst = x.as_mut_ptr().add(n);
+            ptr::copy(src, dst, x.len());
             <span class="comment">// Write our 0s.
-            </span>ptr::write_bytes(<a href="#649">x</a>.as_mut_ptr(), <span class="number">0</span>, <a href="#649">n</a>);
-            <a href="#649">x</a>.<a href="stackvec.rs.html#47">set_len</a>(<a href="#654">len</a>);
+            </span>ptr::write_bytes(x.as_mut_ptr(), <span class="number">0</span>, n);
+            x.set_len(len);
         }
         <span class="prelude-val">Some</span>(())
     } <span class="kw">else </span>{
@@ -1458,9 +1458,9 @@
 
 <span class="doccomment">/// Shift-left buffer by n bits.
 </span><span class="attr">#[inline]
-</span><span class="kw">pub fn </span>shl(x: <span class="kw-2">&amp;mut </span><a href="#30">VecType</a>, n: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="prelude-ty">Option</span>&lt;()&gt; {
-    <span class="kw">let </span>rem = <a href="#673">n</a> % <a href="#781">LIMB_BITS</a>;
-    <span class="kw">let </span>div = <a href="#673">n</a> / <a href="#781">LIMB_BITS</a>;
+</span><span class="kw">pub fn </span>shl(x: <span class="kw-2">&amp;mut </span>VecType, n: usize) -&gt; <span class="prelude-ty">Option</span>&lt;()&gt; {
+    <span class="kw">let </span>rem = n % LIMB_BITS;
+    <span class="kw">let </span>div = n / LIMB_BITS;
     <span class="kw">if </span>rem != <span class="number">0 </span>{
         shl_bits(x, rem)<span class="question-mark">?</span>;
     }
@@ -1472,11 +1472,11 @@
 
 <span class="doccomment">/// Get number of leading zero bits in the storage.
 </span><span class="attr">#[inline]
-</span><span class="kw">pub fn </span>leading_zeros(x: <span class="kw-2">&amp;</span>[<a href="#777">Limb</a>]) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
-    <span class="kw">let </span>length = <a href="#687">x</a>.len();
+</span><span class="kw">pub fn </span>leading_zeros(x: <span class="kw-2">&amp;</span>[Limb]) -&gt; u32 {
+    <span class="kw">let </span>length = x.len();
     <span class="comment">// wrapping_sub is fine, since it&#39;ll just return None.
-    </span><span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>value) = <a href="#687">x</a>.get(<a href="#688">length</a>.wrapping_sub(<span class="number">1</span>)) {
-        <a href="#690">value</a>.leading_zeros()
+    </span><span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>value) = x.get(length.wrapping_sub(<span class="number">1</span>)) {
+        value.leading_zeros()
     } <span class="kw">else </span>{
         <span class="number">0
     </span>}
@@ -1484,9 +1484,9 @@
 
 <span class="doccomment">/// Calculate the bit-length of the big-integer.
 </span><span class="attr">#[inline]
-</span><span class="kw">pub fn </span>bit_length(x: <span class="kw-2">&amp;</span>[<a href="#777">Limb</a>]) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
-    <span class="kw">let </span>nlz = <a href="#687">leading_zeros</a>(<a href="#699">x</a>);
-    <a href="#781">LIMB_BITS</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> * <a href="#699">x</a>.len() <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> - <a href="#700">nlz</a>
+</span><span class="kw">pub fn </span>bit_length(x: <span class="kw-2">&amp;</span>[Limb]) -&gt; u32 {
+    <span class="kw">let </span>nlz = leading_zeros(x);
+    LIMB_BITS <span class="kw">as </span>u32 * x.len() <span class="kw">as </span>u32 - nlz
 }
 
 <span class="comment">// LIMB
@@ -1562,11 +1562,11 @@
 //  we can essentially look for 64-bit architectures that are not SPARC.
 
 </span><span class="attr">#[cfg(all(target_pointer_width = <span class="string">&quot;64&quot;</span>, not(target_arch = <span class="string">&quot;sparc&quot;</span>)))]
-</span><span class="kw">pub type </span>Limb = <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>;
+</span><span class="kw">pub type </span>Limb = u64;
 <span class="attr">#[cfg(all(target_pointer_width = <span class="string">&quot;64&quot;</span>, not(target_arch = <span class="string">&quot;sparc&quot;</span>)))]
-</span><span class="kw">pub type </span>Wide = <a href="https://doc.rust-lang.org/nightly/std/primitive.u128.html">u128</a>;
+</span><span class="kw">pub type </span>Wide = u128;
 <span class="attr">#[cfg(all(target_pointer_width = <span class="string">&quot;64&quot;</span>, not(target_arch = <span class="string">&quot;sparc&quot;</span>)))]
-</span><span class="kw">pub const </span>LIMB_BITS: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> = <span class="number">64</span>;
+</span><span class="kw">pub const </span>LIMB_BITS: usize = <span class="number">64</span>;
 
 <span class="attr">#[cfg(not(all(target_pointer_width = <span class="string">&quot;64&quot;</span>, not(target_arch = <span class="string">&quot;sparc&quot;</span>))))]
 </span><span class="kw">pub type </span>Limb = u32;
@@ -1575,4 +1575,4 @@
 <span class="attr">#[cfg(not(all(target_pointer_width = <span class="string">&quot;64&quot;</span>, not(target_arch = <span class="string">&quot;sparc&quot;</span>))))]
 </span><span class="kw">pub const </span>LIMB_BITS: usize = <span class="number">32</span>;
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="minimal_lexical" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="minimal_lexical" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

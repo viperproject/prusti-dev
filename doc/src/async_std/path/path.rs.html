@@ -1,5 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/async-std-1.12.0/src/path/path.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>path.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../async_std/index.html">
-                        <img src="https://async.rs/images/logo--hero.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/async-std-1.12.0/src/path/path.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>path.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../async_std/index.html">
+                        <img src="https://async.rs/images/logo--hero.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -1040,15 +1040,15 @@
 <a href="#1039" id="1039">1039</a>
 <a href="#1040" id="1040">1040</a>
 <a href="#1041" id="1041">1041</a>
-</pre><pre class="rust"><code><span class="kw">use </span>std::borrow::{<a href="https://doc.rust-lang.org/nightly/alloc/borrow/enum.Cow.html">Cow</a>, <a href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">ToOwned</a>};
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html">std::cmp::Ordering</a>;
-<span class="kw">use </span>std::ffi::{<a href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsStr.html">OsStr</a>, <a href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsString.html">OsString</a>};
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/rc/struct.Rc.html">std::rc::Rc</a>;
-<span class="kw">use </span><a href="../../../async_std/sync/struct.Arc.html">std::sync::Arc</a>;
+</pre><pre class="rust"><code><span class="kw">use </span>std::borrow::{Cow, ToOwned};
+<span class="kw">use </span>std::cmp::Ordering;
+<span class="kw">use </span>std::ffi::{OsStr, OsString};
+<span class="kw">use </span>std::rc::Rc;
+<span class="kw">use </span>std::sync::Arc;
 
-<span class="kw">use </span><span class="kw">crate</span>::path::{<a href="ancestors.rs.html#25">Ancestors</a>, <a href="components.rs.html#27">Components</a>, <a href="../../../async_std/path/struct.Display.html">Display</a>, <a href="iter.rs.html#17">Iter</a>, <a href="pathbuf.rs.html#21">PathBuf</a>, <a href="../../../async_std/path/struct.StripPrefixError.html">StripPrefixError</a>};
+<span class="kw">use </span><span class="kw">crate</span>::path::{Ancestors, Components, Display, Iter, PathBuf, StripPrefixError};
 <span class="attr">#[cfg(not(target_os = <span class="string">&quot;unknown&quot;</span>))]
-</span><span class="kw">use crate</span>::{<a href="../lib.rs.html#316">fs</a>, <a href="../lib.rs.html#307">io</a>};
+</span><span class="kw">use crate</span>::{fs, io};
 
 <span class="doccomment">/// A slice of a path.
 ///
@@ -1089,10 +1089,10 @@
 /// ```
 </span><span class="attr">#[derive(Debug, PartialEq, Eq, Hash, PartialOrd, Ord)]
 </span><span class="kw">pub struct </span>Path {
-    inner: <a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">std::path::Path</a>,
+    inner: std::path::Path,
 }
 
-<span class="kw">impl </span><a href="#49">Path</a> {
+<span class="kw">impl </span>Path {
     <span class="doccomment">/// Directly wraps a string slice as a `Path` slice.
     ///
     /// This is a cost-free conversion.
@@ -1115,8 +1115,8 @@
     /// let from_path = Path::new(&amp;from_string);
     /// assert_eq!(from_string, from_path);
     /// ```
-    </span><span class="kw">pub fn </span>new&lt;S: AsRef&lt;<a href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsStr.html">OsStr</a>&gt; + <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>&gt;(s: <span class="kw-2">&amp;</span>S) -&gt; <span class="kw-2">&amp;</span><a href="#49">Path</a> {
-        <span class="kw">unsafe </span>{ <span class="kw-2">&amp;*</span>(std::path::Path::new(<a href="#76">s</a>) <span class="kw">as </span><span class="kw-2">*const </span><a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">std::path::Path</a> <span class="kw">as </span><span class="kw-2">*const </span><a href="#49">Path</a>) }
+    </span><span class="kw">pub fn </span>new&lt;S: AsRef&lt;OsStr&gt; + <span class="question-mark">?</span>Sized&gt;(s: <span class="kw-2">&amp;</span>S) -&gt; <span class="kw-2">&amp;</span>Path {
+        <span class="kw">unsafe </span>{ <span class="kw-2">&amp;*</span>(std::path::Path::new(s) <span class="kw">as </span><span class="kw-2">*const </span>std::path::Path <span class="kw">as </span><span class="kw-2">*const </span>Path) }
     }
 
     <span class="doccomment">/// Returns the underlying [`OsStr`] slice.
@@ -1133,8 +1133,8 @@
     /// let os_str = Path::new(&quot;foo.txt&quot;).as_os_str();
     /// assert_eq!(os_str, OsStr::new(&quot;foo.txt&quot;));
     /// ```
-    </span><span class="kw">pub fn </span>as_os_str(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsStr.html">OsStr</a> {
-        <a class="self" href="#94">self</a>.inner.as_os_str()
+    </span><span class="kw">pub fn </span>as_os_str(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>OsStr {
+        <span class="self">self</span>.inner.as_os_str()
     }
 
     <span class="doccomment">/// Returns a [`&amp;str`] slice if the `Path` is valid unicode.
@@ -1153,8 +1153,8 @@
     /// let path = Path::new(&quot;foo.txt&quot;);
     /// assert_eq!(path.to_str(), Some(&quot;foo.txt&quot;));
     /// ```
-    </span><span class="kw">pub fn </span>to_str(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt; {
-        <a class="self" href="#114">self</a>.inner.to_str()
+    </span><span class="kw">pub fn </span>to_str(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>str&gt; {
+        <span class="self">self</span>.inner.to_str()
     }
 
     <span class="doccomment">/// Converts a `Path` to a [`Cow&lt;str&gt;`].
@@ -1178,8 +1178,8 @@
     ///
     /// Had `path` contained invalid unicode, the `to_string_lossy` call might
     /// have returned `&quot;fo�.txt&quot;`.
-    </span><span class="kw">pub fn </span>to_string_lossy(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Cow&lt;<span class="lifetime">&#39;_</span>, <a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt; {
-        <a class="self" href="#139">self</a>.inner.to_string_lossy()
+    </span><span class="kw">pub fn </span>to_string_lossy(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Cow&lt;<span class="lifetime">&#39;_</span>, str&gt; {
+        <span class="self">self</span>.inner.to_string_lossy()
     }
 
     <span class="doccomment">/// Converts a `Path` to an owned [`PathBuf`].
@@ -1194,8 +1194,8 @@
     /// let path_buf = Path::new(&quot;foo.txt&quot;).to_path_buf();
     /// assert_eq!(path_buf, PathBuf::from(&quot;foo.txt&quot;));
     /// ```
-    </span><span class="kw">pub fn </span>to_path_buf(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="pathbuf.rs.html#21">PathBuf</a> {
-        PathBuf::from(<a class="self" href="#155">self</a>.inner.to_path_buf())
+    </span><span class="kw">pub fn </span>to_path_buf(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; PathBuf {
+        PathBuf::from(<span class="self">self</span>.inner.to_path_buf())
     }
 
     <span class="doccomment">/// Returns `true` if the `Path` is absolute, i.e. if it is independent of
@@ -1216,8 +1216,8 @@
     ///
     /// assert!(!Path::new(&quot;foo.txt&quot;).is_absolute());
     /// ```
-    </span><span class="kw">pub fn </span>is_absolute(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#177">self</a>.inner.is_absolute()
+    </span><span class="kw">pub fn </span>is_absolute(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.inner.is_absolute()
     }
 
     <span class="doccomment">/// Returns `true` if the `Path` is relative, i.e. not absolute.
@@ -1233,8 +1233,8 @@
     ///
     /// assert!(Path::new(&quot;foo.txt&quot;).is_relative());
     /// ```
-    </span><span class="kw">pub fn </span>is_relative(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#194">self</a>.inner.is_relative()
+    </span><span class="kw">pub fn </span>is_relative(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.inner.is_relative()
     }
 
     <span class="doccomment">/// Returns `true` if the `Path` has a root.
@@ -1253,8 +1253,8 @@
     ///
     /// assert!(Path::new(&quot;/etc/passwd&quot;).has_root());
     /// ```
-    </span><span class="kw">pub fn </span>has_root(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#214">self</a>.inner.has_root()
+    </span><span class="kw">pub fn </span>has_root(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.inner.has_root()
     }
 
     <span class="doccomment">/// Returns the `Path` without its final component, if there is one.
@@ -1276,8 +1276,8 @@
     /// assert_eq!(grand_parent, Path::new(&quot;/&quot;));
     /// assert_eq!(grand_parent.parent(), None);
     /// ```
-    </span><span class="kw">pub fn </span>parent(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="#49">Path</a>&gt; {
-        <a class="self" href="#237">self</a>.inner.parent().map(|p| <a href="#238">p</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
+    </span><span class="kw">pub fn </span>parent(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Path&gt; {
+        <span class="self">self</span>.inner.parent().map(|p| p.into())
     }
 
     <span class="doccomment">/// Produces an iterator over `Path` and its ancestors.
@@ -1303,7 +1303,7 @@
     /// assert_eq!(ancestors.next(), None);
     /// ```
     </span><span class="kw">pub fn </span>ancestors(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Ancestors&lt;<span class="lifetime">&#39;_</span>&gt; {
-        <a href="ancestors.rs.html#25">Ancestors</a> { next: <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><a class="self" href="#263">self</a>) }
+        Ancestors { next: <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) }
     }
 
     <span class="doccomment">/// Returns the final component of the `Path`, if there is one.
@@ -1329,8 +1329,8 @@
     /// assert_eq!(None, Path::new(&quot;foo.txt/..&quot;).file_name());
     /// assert_eq!(None, Path::new(&quot;/&quot;).file_name());
     /// ```
-    </span><span class="kw">pub fn </span>file_name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsStr.html">OsStr</a>&gt; {
-        <a class="self" href="#290">self</a>.inner.file_name()
+    </span><span class="kw">pub fn </span>file_name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>OsStr&gt; {
+        <span class="self">self</span>.inner.file_name()
     }
 
     <span class="doccomment">/// Returns a path that becomes `self` when joined onto `base`.
@@ -1361,11 +1361,11 @@
     /// let prefix = PathBuf::from(&quot;/test/&quot;);
     /// assert_eq!(path.strip_prefix(prefix), Ok(Path::new(&quot;haha/foo.txt&quot;)));
     /// ```
-    </span><span class="kw">pub fn </span>strip_prefix&lt;P&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, base: P) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span><a href="#49">Path</a>, <a href="../../../async_std/path/struct.StripPrefixError.html">StripPrefixError</a>&gt;
+    </span><span class="kw">pub fn </span>strip_prefix&lt;P&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, base: P) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span>Path, StripPrefixError&gt;
     <span class="kw">where
-        </span>P: AsRef&lt;<a href="#49">Path</a>&gt;,
+        </span>P: AsRef&lt;Path&gt;,
     {
-        <span class="prelude-val">Ok</span>(<span class="self">self</span>.inner.strip_prefix(base.as_ref())<span class="question-mark">?</span>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
+        <span class="prelude-val">Ok</span>(<span class="self">self</span>.inner.strip_prefix(base.as_ref())<span class="question-mark">?</span>.into())
     }
 
     <span class="doccomment">/// Determines whether `base` is a prefix of `self`.
@@ -1386,8 +1386,8 @@
     ///
     /// assert!(!path.starts_with(&quot;/e&quot;));
     /// ```
-    </span><span class="kw">pub fn </span>starts_with&lt;P: AsRef&lt;<a href="#49">Path</a>&gt;&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, base: P) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#347">self</a>.inner.starts_with(<a href="#347">base</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>())
+    </span><span class="kw">pub fn </span>starts_with&lt;P: AsRef&lt;Path&gt;&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, base: P) -&gt; bool {
+        <span class="self">self</span>.inner.starts_with(base.as_ref())
     }
 
     <span class="doccomment">/// Determines whether `child` is a suffix of `self`.
@@ -1403,8 +1403,8 @@
     ///
     /// assert!(path.ends_with(&quot;passwd&quot;));
     /// ```
-    </span><span class="kw">pub fn </span>ends_with&lt;P: AsRef&lt;<a href="#49">Path</a>&gt;&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, child: P) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#364">self</a>.inner.ends_with(<a href="#364">child</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>())
+    </span><span class="kw">pub fn </span>ends_with&lt;P: AsRef&lt;Path&gt;&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, child: P) -&gt; bool {
+        <span class="self">self</span>.inner.ends_with(child.as_ref())
     }
 
     <span class="doccomment">/// Extracts the stem (non-extension) portion of [`file_name`].
@@ -1429,8 +1429,8 @@
     ///
     /// assert_eq!(&quot;foo&quot;, path.file_stem().unwrap());
     /// ```
-    </span><span class="kw">pub fn </span>file_stem(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsStr.html">OsStr</a>&gt; {
-        <a class="self" href="#390">self</a>.inner.file_stem()
+    </span><span class="kw">pub fn </span>file_stem(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>OsStr&gt; {
+        <span class="self">self</span>.inner.file_stem()
     }
 
     <span class="doccomment">/// Extracts the extension of [`file_name`], if possible.
@@ -1454,8 +1454,8 @@
     ///
     /// assert_eq!(&quot;rs&quot;, path.extension().unwrap());
     /// ```
-    </span><span class="kw">pub fn </span>extension(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsStr.html">OsStr</a>&gt; {
-        <a class="self" href="#415">self</a>.inner.extension()
+    </span><span class="kw">pub fn </span>extension(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>OsStr&gt; {
+        <span class="self">self</span>.inner.extension()
     }
 
     <span class="doccomment">/// Creates an owned [`PathBuf`] with `path` adjoined to `self`.
@@ -1472,8 +1472,8 @@
     ///
     /// assert_eq!(Path::new(&quot;/etc&quot;).join(&quot;passwd&quot;), PathBuf::from(&quot;/etc/passwd&quot;));
     /// ```
-    </span><span class="kw">pub fn </span>join&lt;P: AsRef&lt;<a href="#49">Path</a>&gt;&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, path: P) -&gt; <a href="pathbuf.rs.html#21">PathBuf</a> {
-        <a class="self" href="#433">self</a>.inner.join(<a href="#433">path</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>()).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()
+    </span><span class="kw">pub fn </span>join&lt;P: AsRef&lt;Path&gt;&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, path: P) -&gt; PathBuf {
+        <span class="self">self</span>.inner.join(path.as_ref()).into()
     }
 
     <span class="doccomment">/// Creates an owned [`PathBuf`] like `self` but with the given file name.
@@ -1494,8 +1494,8 @@
     /// let path = Path::new(&quot;/tmp&quot;);
     /// assert_eq!(path.with_file_name(&quot;var&quot;), PathBuf::from(&quot;/var&quot;));
     /// ```
-    </span><span class="kw">pub fn </span>with_file_name&lt;S: AsRef&lt;<a href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsStr.html">OsStr</a>&gt;&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, file_name: S) -&gt; <a href="pathbuf.rs.html#21">PathBuf</a> {
-        <a class="self" href="#455">self</a>.inner.with_file_name(<a href="#455">file_name</a>).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()
+    </span><span class="kw">pub fn </span>with_file_name&lt;S: AsRef&lt;OsStr&gt;&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, file_name: S) -&gt; PathBuf {
+        <span class="self">self</span>.inner.with_file_name(file_name).into()
     }
 
     <span class="doccomment">/// Creates an owned [`PathBuf`] like `self` but with the given extension.
@@ -1513,8 +1513,8 @@
     /// let path = Path::new(&quot;foo.rs&quot;);
     /// assert_eq!(path.with_extension(&quot;txt&quot;), PathBuf::from(&quot;foo.txt&quot;));
     /// ```
-    </span><span class="kw">pub fn </span>with_extension&lt;S: AsRef&lt;<a href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsStr.html">OsStr</a>&gt;&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, extension: S) -&gt; <a href="pathbuf.rs.html#21">PathBuf</a> {
-        <a class="self" href="#474">self</a>.inner.with_extension(<a href="#474">extension</a>).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()
+    </span><span class="kw">pub fn </span>with_extension&lt;S: AsRef&lt;OsStr&gt;&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, extension: S) -&gt; PathBuf {
+        <span class="self">self</span>.inner.with_extension(extension).into()
     }
 
     <span class="doccomment">/// Produces an iterator over the [`Component`]s of the path.
@@ -1553,8 +1553,8 @@
     /// assert_eq!(components.next(), None);
     /// ```
     </span><span class="kw">pub fn </span>components(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Components&lt;<span class="lifetime">&#39;_</span>&gt; {
-        <a href="components.rs.html#27">Components</a> {
-            inner: <a class="self" href="#513">self</a>.inner.components(),
+        Components {
+            inner: <span class="self">self</span>.inner.components(),
         }
     }
 
@@ -1581,8 +1581,8 @@
     /// assert_eq!(it.next(), None)
     /// ```
     </span><span class="kw">pub fn </span>iter(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Iter&lt;<span class="lifetime">&#39;_</span>&gt; {
-        <a href="iter.rs.html#17">Iter</a> {
-            inner: <a class="self" href="#541">self</a>.<a href="#513">components</a>(),
+        Iter {
+            inner: <span class="self">self</span>.components(),
         }
     }
 
@@ -1601,7 +1601,7 @@
     /// println!(&quot;{}&quot;, path.display());
     /// ```
     </span><span class="kw">pub fn </span>display(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Display&lt;<span class="lifetime">&#39;_</span>&gt; {
-        <a class="self" href="#561">self</a>.inner.display()
+        <span class="self">self</span>.inner.display()
     }
 
     <span class="doccomment">/// Reads the metadata of a file or directory.
@@ -1627,7 +1627,7 @@
     /// # Ok(()) }) }
     /// ```
     </span><span class="attr">#[cfg(not(target_os = <span class="string">&quot;unknown&quot;</span>))]
-    </span><span class="kw">pub async fn </span>metadata(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;<a href="../../../async_std/fs/struct.Metadata.html">fs::Metadata</a>&gt; {
+    </span><span class="kw">pub async fn </span>metadata(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;fs::Metadata&gt; {
         fs::metadata(<span class="self">self</span>).<span class="kw">await
     </span>}
 
@@ -1651,7 +1651,7 @@
     /// # Ok(()) }) }
     /// ```
     </span><span class="attr">#[cfg(not(target_os = <span class="string">&quot;unknown&quot;</span>))]
-    </span><span class="kw">pub async fn </span>symlink_metadata(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;<a href="../../../async_std/fs/struct.Metadata.html">fs::Metadata</a>&gt; {
+    </span><span class="kw">pub async fn </span>symlink_metadata(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;fs::Metadata&gt; {
         fs::symlink_metadata(<span class="self">self</span>).<span class="kw">await
     </span>}
 
@@ -1677,7 +1677,7 @@
     /// # Ok(()) }) }
     /// ```
     </span><span class="attr">#[cfg(not(target_os = <span class="string">&quot;unknown&quot;</span>))]
-    </span><span class="kw">pub async fn </span>canonicalize(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;<a href="pathbuf.rs.html#21">PathBuf</a>&gt; {
+    </span><span class="kw">pub async fn </span>canonicalize(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;PathBuf&gt; {
         fs::canonicalize(<span class="self">self</span>).<span class="kw">await
     </span>}
 
@@ -1700,7 +1700,7 @@
     /// # Ok(()) }) }
     /// ```
     </span><span class="attr">#[cfg(not(target_os = <span class="string">&quot;unknown&quot;</span>))]
-    </span><span class="kw">pub async fn </span>read_link(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;<a href="pathbuf.rs.html#21">PathBuf</a>&gt; {
+    </span><span class="kw">pub async fn </span>read_link(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;PathBuf&gt; {
         fs::read_link(<span class="self">self</span>).<span class="kw">await
     </span>}
 
@@ -1735,7 +1735,7 @@
     /// # Ok(()) }) }
     /// ```
     </span><span class="attr">#[cfg(not(target_os = <span class="string">&quot;unknown&quot;</span>))]
-    </span><span class="kw">pub async fn </span>read_dir(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;<a href="../fs/read_dir.rs.html#70">fs::ReadDir</a>&gt; {
+    </span><span class="kw">pub async fn </span>read_dir(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;fs::ReadDir&gt; {
         fs::read_dir(<span class="self">self</span>).<span class="kw">await
     </span>}
 
@@ -1765,7 +1765,7 @@
     ///
     /// [fs::metadata]: ../fs/fn.metadata.html
     </span><span class="attr">#[cfg(not(target_os = <span class="string">&quot;unknown&quot;</span>))]
-    </span><span class="kw">pub async fn </span>exists(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+    </span><span class="kw">pub async fn </span>exists(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         fs::metadata(<span class="self">self</span>).<span class="kw">await</span>.is_ok()
     }
 
@@ -1798,7 +1798,7 @@
     /// [fs::metadata]: ../fs/fn.metadata.html
     /// [fs::Metadata::is_file]: ../fs/struct.Metadata.html#method.is_file
     </span><span class="attr">#[cfg(not(target_os = <span class="string">&quot;unknown&quot;</span>))]
-    </span><span class="kw">pub async fn </span>is_file(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+    </span><span class="kw">pub async fn </span>is_file(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         fs::metadata(<span class="self">self</span>)
             .<span class="kw">await
             </span>.map(|m| m.is_file())
@@ -1835,7 +1835,7 @@
     /// [fs::metadata]: ../fs/fn.metadata.html
     /// [fs::Metadata::is_dir]: ../fs/struct.Metadata.html#method.is_dir
     </span><span class="attr">#[cfg(not(target_os = <span class="string">&quot;unknown&quot;</span>))]
-    </span><span class="kw">pub async fn </span>is_dir(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+    </span><span class="kw">pub async fn </span>is_dir(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         fs::metadata(<span class="self">self</span>)
             .<span class="kw">await
             </span>.map(|m| m.is_dir())
@@ -1856,116 +1856,116 @@
     /// let path: Box&lt;Path&gt; = Path::new(&quot;foo.txt&quot;).into();
     /// let path_buf = path.into_path_buf();
     /// ```
-    </span><span class="kw">pub fn </span>into_path_buf(<span class="self">self</span>: Box&lt;<a href="#49">Path</a>&gt;) -&gt; <a href="pathbuf.rs.html#21">PathBuf</a> {
-        <span class="kw">let </span>rw = Box::into_raw(<a class="self" href="#817">self</a>) <span class="kw">as </span><span class="kw-2">*mut </span><a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">std::path::Path</a>;
-        <span class="kw">let </span>inner = <span class="kw">unsafe </span>{ Box::from_raw(<a href="#818">rw</a>) };
-        <a href="#819">inner</a>.into_path_buf().<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()
+    </span><span class="kw">pub fn </span>into_path_buf(<span class="self">self</span>: Box&lt;Path&gt;) -&gt; PathBuf {
+        <span class="kw">let </span>rw = Box::into_raw(<span class="self">self</span>) <span class="kw">as </span><span class="kw-2">*mut </span>std::path::Path;
+        <span class="kw">let </span>inner = <span class="kw">unsafe </span>{ Box::from_raw(rw) };
+        inner.into_path_buf().into()
     }
 }
 
-<span class="kw">impl </span>From&lt;<span class="kw-2">&amp;</span><a href="#49">Path</a>&gt; <span class="kw">for </span>Box&lt;<a href="#49">Path</a>&gt; {
-    <span class="kw">fn </span>from(path: <span class="kw-2">&amp;</span><a href="#49">Path</a>) -&gt; Box&lt;<a href="#49">Path</a>&gt; {
-        <span class="kw">let </span>boxed: Box&lt;<a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">std::path::Path</a>&gt; = <a href="#825">path</a>.inner.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>();
-        <span class="kw">let </span>rw = Box::into_raw(<a href="#826">boxed</a>) <span class="kw">as </span><span class="kw-2">*mut </span><a href="#49">Path</a>;
-        <span class="kw">unsafe </span>{ Box::from_raw(<a href="#827">rw</a>) }
+<span class="kw">impl </span>From&lt;<span class="kw-2">&amp;</span>Path&gt; <span class="kw">for </span>Box&lt;Path&gt; {
+    <span class="kw">fn </span>from(path: <span class="kw-2">&amp;</span>Path) -&gt; Box&lt;Path&gt; {
+        <span class="kw">let </span>boxed: Box&lt;std::path::Path&gt; = path.inner.into();
+        <span class="kw">let </span>rw = Box::into_raw(boxed) <span class="kw">as </span><span class="kw-2">*mut </span>Path;
+        <span class="kw">unsafe </span>{ Box::from_raw(rw) }
     }
 }
 
-<span class="kw">impl </span>From&lt;<span class="kw-2">&amp;</span><a href="#49">Path</a>&gt; <span class="kw">for </span>Arc&lt;<a href="#49">Path</a>&gt; {
+<span class="kw">impl </span>From&lt;<span class="kw-2">&amp;</span>Path&gt; <span class="kw">for </span>Arc&lt;Path&gt; {
     <span class="doccomment">/// Converts a Path into a Rc by copying the Path data into a new Rc buffer.
     </span><span class="attr">#[inline]
-    </span><span class="kw">fn </span>from(s: <span class="kw-2">&amp;</span><a href="#49">Path</a>) -&gt; Arc&lt;<a href="#49">Path</a>&gt; {
-        <span class="kw">let </span>arc: Arc&lt;<a href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsStr.html">OsStr</a>&gt; = Arc::from(<a href="#835">s</a>.<a href="#94">as_os_str</a>());
-        <span class="kw">unsafe </span>{ Arc::from_raw(Arc::into_raw(<a href="#836">arc</a>) <span class="kw">as </span><span class="kw-2">*const </span><a href="#49">Path</a>) }
+    </span><span class="kw">fn </span>from(s: <span class="kw-2">&amp;</span>Path) -&gt; Arc&lt;Path&gt; {
+        <span class="kw">let </span>arc: Arc&lt;OsStr&gt; = Arc::from(s.as_os_str());
+        <span class="kw">unsafe </span>{ Arc::from_raw(Arc::into_raw(arc) <span class="kw">as </span><span class="kw-2">*const </span>Path) }
     }
 }
 
-<span class="kw">impl </span>From&lt;<span class="kw-2">&amp;</span><a href="#49">Path</a>&gt; <span class="kw">for </span>Rc&lt;<a href="#49">Path</a>&gt; {
+<span class="kw">impl </span>From&lt;<span class="kw-2">&amp;</span>Path&gt; <span class="kw">for </span>Rc&lt;Path&gt; {
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>from(s: <span class="kw-2">&amp;</span><a href="#49">Path</a>) -&gt; Rc&lt;<a href="#49">Path</a>&gt; {
-        <span class="kw">let </span>rc: Rc&lt;<a href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsStr.html">OsStr</a>&gt; = Rc::from(<a href="#843">s</a>.<a href="#94">as_os_str</a>());
-        <span class="kw">unsafe </span>{ Rc::from_raw(Rc::into_raw(<a href="#844">rc</a>) <span class="kw">as </span><span class="kw-2">*const </span><a href="#49">Path</a>) }
+    </span><span class="kw">fn </span>from(s: <span class="kw-2">&amp;</span>Path) -&gt; Rc&lt;Path&gt; {
+        <span class="kw">let </span>rc: Rc&lt;OsStr&gt; = Rc::from(s.as_os_str());
+        <span class="kw">unsafe </span>{ Rc::from_raw(Rc::into_raw(rc) <span class="kw">as </span><span class="kw-2">*const </span>Path) }
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">ToOwned</a> <span class="kw">for </span><a href="#49">Path</a> {
-    <span class="kw">type </span>Owned = <a href="pathbuf.rs.html#21">PathBuf</a>;
+<span class="kw">impl </span>ToOwned <span class="kw">for </span>Path {
+    <span class="kw">type </span>Owned = PathBuf;
 
-    <span class="kw">fn </span>to_owned(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="pathbuf.rs.html#21">PathBuf</a> {
-        <a class="self" href="#852">self</a>.<a href="#155">to_path_buf</a>()
+    <span class="kw">fn </span>to_owned(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; PathBuf {
+        <span class="self">self</span>.to_path_buf()
     }
 }
 
-<span class="kw">impl </span>AsRef&lt;<a href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsStr.html">OsStr</a>&gt; <span class="kw">for </span><a href="#49">Path</a> {
-    <span class="kw">fn </span>as_ref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsStr.html">OsStr</a> {
-        <a class="self" href="#858">self</a>.inner.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>()
+<span class="kw">impl </span>AsRef&lt;OsStr&gt; <span class="kw">for </span>Path {
+    <span class="kw">fn </span>as_ref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>OsStr {
+        <span class="self">self</span>.inner.as_ref()
     }
 }
 
-<span class="kw">impl </span>AsRef&lt;<a href="#49">Path</a>&gt; <span class="kw">for </span><a href="#49">Path</a> {
-    <span class="kw">fn </span>as_ref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="#49">Path</a> {
-        <span class="self"><a href="#864">self</a>
+<span class="kw">impl </span>AsRef&lt;Path&gt; <span class="kw">for </span>Path {
+    <span class="kw">fn </span>as_ref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Path {
+        <span class="self">self
     </span>}
 }
 
-<span class="kw">impl </span>AsRef&lt;<a href="#49">Path</a>&gt; <span class="kw">for </span><a href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsStr.html">OsStr</a> {
-    <span class="kw">fn </span>as_ref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="#49">Path</a> {
-        Path::new(<a class="self" href="#870">self</a>)
+<span class="kw">impl </span>AsRef&lt;Path&gt; <span class="kw">for </span>OsStr {
+    <span class="kw">fn </span>as_ref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Path {
+        Path::new(<span class="self">self</span>)
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; From&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="#49">Path</a>&gt; <span class="kw">for </span>Cow&lt;<span class="lifetime">&#39;a</span>, <a href="#49">Path</a>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; From&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Path&gt; <span class="kw">for </span>Cow&lt;<span class="lifetime">&#39;a</span>, Path&gt; {
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>from(s: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="#49">Path</a>) -&gt; Cow&lt;<span class="lifetime">&#39;a</span>, <a href="#49">Path</a>&gt; {
-        Cow::Borrowed(<a href="#877">s</a>)
+    </span><span class="kw">fn </span>from(s: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Path) -&gt; Cow&lt;<span class="lifetime">&#39;a</span>, Path&gt; {
+        Cow::Borrowed(s)
     }
 }
 
-<span class="kw">impl </span>AsRef&lt;<a href="#49">Path</a>&gt; <span class="kw">for </span>Cow&lt;<span class="lifetime">&#39;_</span>, <a href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsStr.html">OsStr</a>&gt; {
-    <span class="kw">fn </span>as_ref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="#49">Path</a> {
-        Path::new(<a class="self" href="#883">self</a>)
+<span class="kw">impl </span>AsRef&lt;Path&gt; <span class="kw">for </span>Cow&lt;<span class="lifetime">&#39;_</span>, OsStr&gt; {
+    <span class="kw">fn </span>as_ref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Path {
+        Path::new(<span class="self">self</span>)
     }
 }
 
-<span class="kw">impl </span>AsRef&lt;<a href="#49">Path</a>&gt; <span class="kw">for </span><a href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsString.html">OsString</a> {
-    <span class="kw">fn </span>as_ref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="#49">Path</a> {
-        Path::new(<a class="self" href="#889">self</a>)
+<span class="kw">impl </span>AsRef&lt;Path&gt; <span class="kw">for </span>OsString {
+    <span class="kw">fn </span>as_ref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Path {
+        Path::new(<span class="self">self</span>)
     }
 }
 
-<span class="kw">impl </span>AsRef&lt;<a href="#49">Path</a>&gt; <span class="kw">for </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> {
-    <span class="kw">fn </span>as_ref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="#49">Path</a> {
-        Path::new(<a class="self" href="#895">self</a>)
+<span class="kw">impl </span>AsRef&lt;Path&gt; <span class="kw">for </span>str {
+    <span class="kw">fn </span>as_ref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Path {
+        Path::new(<span class="self">self</span>)
     }
 }
 
-<span class="kw">impl </span>AsRef&lt;<a href="#49">Path</a>&gt; <span class="kw">for </span><a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a> {
-    <span class="kw">fn </span>as_ref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="#49">Path</a> {
-        Path::new(<a class="self" href="#901">self</a>)
+<span class="kw">impl </span>AsRef&lt;Path&gt; <span class="kw">for </span>String {
+    <span class="kw">fn </span>as_ref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Path {
+        Path::new(<span class="self">self</span>)
     }
 }
 
-<span class="kw">impl </span>AsRef&lt;<a href="#49">Path</a>&gt; <span class="kw">for </span><a href="pathbuf.rs.html#21">PathBuf</a> {
-    <span class="kw">fn </span>as_ref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="#49">Path</a> {
-        <span class="self"><a href="#907">self</a>
+<span class="kw">impl </span>AsRef&lt;Path&gt; <span class="kw">for </span>PathBuf {
+    <span class="kw">fn </span>as_ref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Path {
+        <span class="self">self
     </span>}
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">IntoIterator</a> <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="pathbuf.rs.html#21">PathBuf</a> {
-    <span class="kw">type </span>Item = <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsStr.html">OsStr</a>;
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; IntoIterator <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>PathBuf {
+    <span class="kw">type </span>Item = <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>OsStr;
     <span class="kw">type </span>IntoIter = Iter&lt;<span class="lifetime">&#39;a</span>&gt;;
 
     <span class="kw">fn </span>into_iter(<span class="self">self</span>) -&gt; Iter&lt;<span class="lifetime">&#39;a</span>&gt; {
-        <a class="self" href="#916">self</a>.<a href="#541">iter</a>()
+        <span class="self">self</span>.iter()
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">IntoIterator</a> <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="#49">Path</a> {
-    <span class="kw">type </span>Item = <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsStr.html">OsStr</a>;
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; IntoIterator <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Path {
+    <span class="kw">type </span>Item = <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>OsStr;
     <span class="kw">type </span>IntoIter = Iter&lt;<span class="lifetime">&#39;a</span>&gt;;
 
     <span class="kw">fn </span>into_iter(<span class="self">self</span>) -&gt; Iter&lt;<span class="lifetime">&#39;a</span>&gt; {
-        <a class="self" href="#925">self</a>.<a href="#541">iter</a>()
+        <span class="self">self</span>.iter()
     }
 }
 
@@ -2001,11 +2001,11 @@
     };
 }
 
-<a class="macro" href="#930-960">impl_cmp!</a>(<a href="pathbuf.rs.html#21">PathBuf</a>, <a href="#49">Path</a>);
-<a class="macro" href="#930-960">impl_cmp!</a>(<a href="pathbuf.rs.html#21">PathBuf</a>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="#49">Path</a>);
-<a class="macro" href="#930-960">impl_cmp!</a>(Cow&lt;<span class="lifetime">&#39;a</span>, <a href="#49">Path</a>&gt;, <a href="#49">Path</a>);
-<a class="macro" href="#930-960">impl_cmp!</a>(Cow&lt;<span class="lifetime">&#39;a</span>, <a href="#49">Path</a>&gt;, <span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span><a href="#49">Path</a>);
-<a class="macro" href="#930-960">impl_cmp!</a>(Cow&lt;<span class="lifetime">&#39;a</span>, <a href="#49">Path</a>&gt;, <a href="pathbuf.rs.html#21">PathBuf</a>);
+<span class="macro">impl_cmp!</span>(PathBuf, Path);
+<span class="macro">impl_cmp!</span>(PathBuf, <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Path);
+<span class="macro">impl_cmp!</span>(Cow&lt;<span class="lifetime">&#39;a</span>, Path&gt;, Path);
+<span class="macro">impl_cmp!</span>(Cow&lt;<span class="lifetime">&#39;a</span>, Path&gt;, <span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span>Path);
+<span class="macro">impl_cmp!</span>(Cow&lt;<span class="lifetime">&#39;a</span>, Path&gt;, PathBuf);
 
 <span class="macro">macro_rules! </span>impl_cmp_os_str {
     (<span class="macro-nonterminal">$lhs</span>:ty, <span class="macro-nonterminal">$rhs</span>: ty) =&gt; {
@@ -2039,47 +2039,47 @@
     };
 }
 
-<a class="macro" href="#968-998">impl_cmp_os_str!</a>(<a href="pathbuf.rs.html#21">PathBuf</a>, <a href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsStr.html">OsStr</a>);
-<a class="macro" href="#968-998">impl_cmp_os_str!</a>(<a href="pathbuf.rs.html#21">PathBuf</a>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsStr.html">OsStr</a>);
-<a class="macro" href="#968-998">impl_cmp_os_str!</a>(<a href="pathbuf.rs.html#21">PathBuf</a>, Cow&lt;<span class="lifetime">&#39;a</span>, <a href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsStr.html">OsStr</a>&gt;);
-<a class="macro" href="#968-998">impl_cmp_os_str!</a>(<a href="pathbuf.rs.html#21">PathBuf</a>, <a href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsString.html">OsString</a>);
-<a class="macro" href="#968-998">impl_cmp_os_str!</a>(<a href="#49">Path</a>, <a href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsStr.html">OsStr</a>);
-<a class="macro" href="#968-998">impl_cmp_os_str!</a>(<a href="#49">Path</a>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsStr.html">OsStr</a>);
-<a class="macro" href="#968-998">impl_cmp_os_str!</a>(<a href="#49">Path</a>, Cow&lt;<span class="lifetime">&#39;a</span>, <a href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsStr.html">OsStr</a>&gt;);
-<a class="macro" href="#968-998">impl_cmp_os_str!</a>(<a href="#49">Path</a>, <a href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsString.html">OsString</a>);
-<a class="macro" href="#968-998">impl_cmp_os_str!</a>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="#49">Path</a>, <a href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsStr.html">OsStr</a>);
-<a class="macro" href="#968-998">impl_cmp_os_str!</a>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="#49">Path</a>, Cow&lt;<span class="lifetime">&#39;b</span>, <a href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsStr.html">OsStr</a>&gt;);
-<a class="macro" href="#968-998">impl_cmp_os_str!</a>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="#49">Path</a>, <a href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsString.html">OsString</a>);
+<span class="macro">impl_cmp_os_str!</span>(PathBuf, OsStr);
+<span class="macro">impl_cmp_os_str!</span>(PathBuf, <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>OsStr);
+<span class="macro">impl_cmp_os_str!</span>(PathBuf, Cow&lt;<span class="lifetime">&#39;a</span>, OsStr&gt;);
+<span class="macro">impl_cmp_os_str!</span>(PathBuf, OsString);
+<span class="macro">impl_cmp_os_str!</span>(Path, OsStr);
+<span class="macro">impl_cmp_os_str!</span>(Path, <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>OsStr);
+<span class="macro">impl_cmp_os_str!</span>(Path, Cow&lt;<span class="lifetime">&#39;a</span>, OsStr&gt;);
+<span class="macro">impl_cmp_os_str!</span>(Path, OsString);
+<span class="macro">impl_cmp_os_str!</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Path, OsStr);
+<span class="macro">impl_cmp_os_str!</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Path, Cow&lt;<span class="lifetime">&#39;b</span>, OsStr&gt;);
+<span class="macro">impl_cmp_os_str!</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Path, OsString);
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; From&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">std::path::Path</a>&gt; <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="#49">Path</a> {
-    <span class="kw">fn </span>from(path: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">std::path::Path</a>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="#49">Path</a> {
-        <span class="kw-2">&amp;</span>Path::new(<a href="#1013">path</a>.as_os_str())
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; From&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>std::path::Path&gt; <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Path {
+    <span class="kw">fn </span>from(path: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>std::path::Path) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Path {
+        <span class="kw-2">&amp;</span>Path::new(path.as_os_str())
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; Into&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">std::path::Path</a>&gt; <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="#49">Path</a> {
-    <span class="kw">fn </span>into(<span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">std::path::Path</a> {
-        std::path::Path::new(<span class="kw-2">&amp;</span><a class="self" href="#1019">self</a>.inner)
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; Into&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>std::path::Path&gt; <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Path {
+    <span class="kw">fn </span>into(<span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>std::path::Path {
+        std::path::Path::new(<span class="kw-2">&amp;</span><span class="self">self</span>.inner)
     }
 }
 
-<span class="kw">impl </span>AsRef&lt;<a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">std::path::Path</a>&gt; <span class="kw">for </span><a href="#49">Path</a> {
-    <span class="kw">fn </span>as_ref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">std::path::Path</a> {
-        <a class="self" href="#1025">self</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()
+<span class="kw">impl </span>AsRef&lt;std::path::Path&gt; <span class="kw">for </span>Path {
+    <span class="kw">fn </span>as_ref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>std::path::Path {
+        <span class="self">self</span>.into()
     }
 }
 
-<span class="kw">impl </span>AsRef&lt;<a href="#49">Path</a>&gt; <span class="kw">for </span><a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">std::path::Path</a> {
-    <span class="kw">fn </span>as_ref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="#49">Path</a> {
-        <a class="self" href="#1031">self</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()
+<span class="kw">impl </span>AsRef&lt;Path&gt; <span class="kw">for </span>std::path::Path {
+    <span class="kw">fn </span>as_ref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Path {
+        <span class="self">self</span>.into()
     }
 }
 
-<span class="kw">impl </span>AsRef&lt;<a href="#49">Path</a>&gt; <span class="kw">for </span><a href="https://doc.rust-lang.org/nightly/std/path/struct.PathBuf.html">std::path::PathBuf</a> {
-    <span class="kw">fn </span>as_ref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="#49">Path</a> {
-        <span class="kw">let </span>p: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">std::path::Path</a> = <a class="self" href="#1037">self</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>();
-        <a href="#1038">p</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()
+<span class="kw">impl </span>AsRef&lt;Path&gt; <span class="kw">for </span>std::path::PathBuf {
+    <span class="kw">fn </span>as_ref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Path {
+        <span class="kw">let </span>p: <span class="kw-2">&amp;</span>std::path::Path = <span class="self">self</span>.as_ref();
+        p.into()
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="async_std" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="async_std" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

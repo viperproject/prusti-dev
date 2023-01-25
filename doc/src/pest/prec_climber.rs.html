@@ -1,5 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/pest-2.4.1/src/prec_climber.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>prec_climber.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/pest-parser/pest/master/pest-logo.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../pest/index.html">
-                        <img src="https://raw.githubusercontent.com/pest-parser/pest/master/pest-logo.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/pest-2.5.2/src/prec_climber.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>prec_climber.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/pest-parser/pest/master/pest-logo.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../pest/index.html">
+                        <img src="https://raw.githubusercontent.com/pest-parser/pest/master/pest-logo.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -370,14 +370,14 @@
 
 </span><span class="doccomment">//! Constructs useful in infix operator parsing with the precedence climbing method.
 
-</span><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/borrow/enum.Cow.html">alloc::borrow::Cow</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/boxed/struct.Box.html">alloc::boxed::Box</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/vec/struct.Vec.html">alloc::vec::Vec</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/iter/adapters/peekable/struct.Peekable.html">core::iter::Peekable</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/ops/bit/trait.BitOr.html">core::ops::BitOr</a>;
+</span><span class="kw">use </span>alloc::borrow::Cow;
+<span class="kw">use </span>alloc::boxed::Box;
+<span class="kw">use </span>alloc::vec::Vec;
+<span class="kw">use </span>core::iter::Peekable;
+<span class="kw">use </span>core::ops::BitOr;
 
-<span class="kw">use </span><a href="iterators/pair.rs.html#38"><span class="kw">crate</span>::iterators::Pair</a>;
-<span class="kw">use </span><a href="lib.rs.html#360"><span class="kw">crate</span>::RuleType</a>;
+<span class="kw">use </span><span class="kw">crate</span>::iterators::Pair;
+<span class="kw">use </span><span class="kw">crate</span>::RuleType;
 
 <span class="doccomment">/// Macro for more convenient const fn definition of `prec_climber::PrecClimber`.
 ///
@@ -476,13 +476,13 @@
 ///
 /// [`PrecClimber`]: struct.PrecClimber.html
 </span><span class="attr">#[derive(Debug)]
-</span><span class="kw">pub struct </span>Operator&lt;R: <a href="lib.rs.html#360">RuleType</a>&gt; {
+</span><span class="kw">pub struct </span>Operator&lt;R: RuleType&gt; {
     rule: R,
-    assoc: <a href="#107">Assoc</a>,
+    assoc: Assoc,
     next: <span class="prelude-ty">Option</span>&lt;Box&lt;Operator&lt;R&gt;&gt;&gt;,
 }
 
-<span class="kw">impl</span>&lt;R: <a href="lib.rs.html#360">RuleType</a>&gt; Operator&lt;R&gt; {
+<span class="kw">impl</span>&lt;R: RuleType&gt; Operator&lt;R&gt; {
     <span class="doccomment">/// Creates a new `Operator` from a `Rule` and `Assoc`.
     ///
     /// # Examples
@@ -498,29 +498,29 @@
     /// # }
     /// Operator::new(Rule::plus, Assoc::Left) | Operator::new(Rule::minus, Assoc::Right);
     /// ```
-    </span><span class="kw">pub fn </span>new(rule: R, assoc: <a href="#107">Assoc</a>) -&gt; Operator&lt;R&gt; {
-        <a href="#118">Operator</a> {
-            <a href="#140">rule</a>,
-            <a href="#140">assoc</a>,
+    </span><span class="kw">pub fn </span>new(rule: R, assoc: Assoc) -&gt; Operator&lt;R&gt; {
+        Operator {
+            rule,
+            assoc,
             next: <span class="prelude-val">None</span>,
         }
     }
 }
 
-<span class="kw">impl</span>&lt;R: <a href="lib.rs.html#360">RuleType</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/ops/bit/trait.BitOr.html">BitOr</a> <span class="kw">for </span>Operator&lt;R&gt; {
+<span class="kw">impl</span>&lt;R: RuleType&gt; BitOr <span class="kw">for </span>Operator&lt;R&gt; {
     <span class="kw">type </span>Output = <span class="self">Self</span>;
 
     <span class="kw">fn </span>bitor(<span class="kw-2">mut </span><span class="self">self</span>, rhs: <span class="self">Self</span>) -&gt; <span class="self">Self </span>{
-        <span class="kw">fn </span>assign_next&lt;R: <a href="lib.rs.html#360">RuleType</a>&gt;(op: <span class="kw-2">&amp;mut </span>Operator&lt;R&gt;, next: Operator&lt;R&gt;) {
-            <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">ref mut </span>child) = <a href="#153">op</a>.next {
-                <a href="#153">assign_next</a>(<a href="#154">child</a>, <a href="#153">next</a>);
+        <span class="kw">fn </span>assign_next&lt;R: RuleType&gt;(op: <span class="kw-2">&amp;mut </span>Operator&lt;R&gt;, next: Operator&lt;R&gt;) {
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">ref mut </span>child) = op.next {
+                assign_next(child, next);
             } <span class="kw">else </span>{
-                <a href="#153">op</a>.next = <span class="prelude-val">Some</span>(Box::new(<a href="#153">next</a>));
+                op.next = <span class="prelude-val">Some</span>(Box::new(next));
             }
         }
 
-        <a href="#153">assign_next</a>(<span class="kw-2">&amp;mut </span><a class="self" href="#152">self</a>, <a href="#152">rhs</a>);
-        <span class="self"><a href="#152">self</a>
+        assign_next(<span class="kw-2">&amp;mut </span><span class="self">self</span>, rhs);
+        <span class="self">self
     </span>}
 }
 
@@ -531,8 +531,8 @@
 /// [1]: https://en.wikipedia.org/wiki/Operator-precedence_parser#Precedence_climbing_method
 /// [`Pairs`]: ../iterators/struct.Pairs.html
 </span><span class="attr">#[derive(Debug)]
-</span><span class="kw">pub struct </span>PrecClimber&lt;R: <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> + <span class="lifetime">&#39;static</span>&gt; {
-    ops: Cow&lt;<span class="lifetime">&#39;static</span>, [(R, <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>, <a href="#107">Assoc</a>)]&gt;,
+</span><span class="kw">pub struct </span>PrecClimber&lt;R: Clone + <span class="lifetime">&#39;static</span>&gt; {
+    ops: Cow&lt;<span class="lifetime">&#39;static</span>, [(R, u32, Assoc)]&gt;,
 }
 
 <span class="attr">#[cfg(feature = <span class="string">&quot;const_prec_climber&quot;</span>)]
@@ -570,13 +570,13 @@
     }
 }
 
-<span class="kw">impl</span>&lt;R: <a href="lib.rs.html#360">RuleType</a>&gt; PrecClimber&lt;R&gt; {
+<span class="kw">impl</span>&lt;R: RuleType&gt; PrecClimber&lt;R&gt; {
     <span class="comment">// find matching operator by `rule`
-    </span><span class="kw">fn </span>get(<span class="kw-2">&amp;</span><span class="self">self</span>, rule: <span class="kw-2">&amp;</span>R) -&gt; <span class="prelude-ty">Option</span>&lt;(<a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>, <a href="#107">Assoc</a>)&gt; {
-        <a class="self" href="#214">self</a>.ops
+    </span><span class="kw">fn </span>get(<span class="kw-2">&amp;</span><span class="self">self</span>, rule: <span class="kw-2">&amp;</span>R) -&gt; <span class="prelude-ty">Option</span>&lt;(u32, Assoc)&gt; {
+        <span class="self">self</span>.ops
             .iter()
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">find</a>(|(r, <span class="kw">_</span>, <span class="kw">_</span>)| <a href="#217">r</a> == <a href="#214">rule</a>)
-            .map(|(<span class="kw">_</span>, precedence, assoc)| (<span class="kw-2">*</span><a href="#218">precedence</a>, <span class="kw-2">*</span><a href="#218">assoc</a>))
+            .find(|(r, <span class="kw">_</span>, <span class="kw">_</span>)| r == rule)
+            .map(|(<span class="kw">_</span>, precedence, assoc)| (<span class="kw-2">*</span>precedence, <span class="kw-2">*</span>assoc))
     }
 
     <span class="doccomment">/// Creates a new `PrecClimber` from the `Operator`s contained in `ops`. Every entry in the
@@ -604,11 +604,11 @@
     /// ]);
     /// ```
     </span><span class="kw">pub fn </span>new(ops: Vec&lt;Operator&lt;R&gt;&gt;) -&gt; PrecClimber&lt;R&gt; {
-        <span class="kw">let </span>ops = <a href="#245">ops</a>
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">zip</a>(<span class="number">1</span>..)
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">fold</a>(Vec::new(), |<span class="kw-2">mut </span>vec, (op, prec)| {
-                <span class="kw">let </span><span class="kw-2">mut </span>next = <span class="prelude-val">Some</span>(<a href="#249">op</a>);
+        <span class="kw">let </span>ops = ops
+            .into_iter()
+            .zip(<span class="number">1</span>..)
+            .fold(Vec::new(), |<span class="kw-2">mut </span>vec, (op, prec)| {
+                <span class="kw">let </span><span class="kw-2">mut </span>next = <span class="prelude-val">Some</span>(op);
 
                 <span class="kw">while let </span><span class="prelude-val">Some</span>(op) = next.take() {
                     <span class="kw">let </span>Operator {
@@ -621,11 +621,11 @@
                     next = op_next.map(|op| <span class="kw-2">*</span>op);
                 }
 
-                <a href="#249">vec</a>
+                vec
             });
 
-        <a href="#173">PrecClimber</a> {
-            ops: Cow::Owned(<a href="#246">ops</a>),
+        PrecClimber {
+            ops: Cow::Owned(ops),
         }
     }
 
@@ -663,18 +663,18 @@
         F: FnMut(Pair&lt;<span class="lifetime">&#39;i</span>, R&gt;) -&gt; T,
         G: FnMut(T, Pair&lt;<span class="lifetime">&#39;i</span>, R&gt;, T) -&gt; T,
     {
-        <span class="kw">let </span>lhs = <a href="#299">primary</a>(
-            <a href="#299">pairs</a>
-                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>()
+        <span class="kw">let </span>lhs = primary(
+            pairs
+                .next()
                 .expect(<span class="string">&quot;precedence climbing requires a non-empty Pairs&quot;</span>),
         );
-        <a class="self" href="#299">self</a>.<a href="#313-324">climb_rec</a>(<a href="#305">lhs</a>, <span class="number">0</span>, <span class="kw-2">&amp;mut </span><a href="#299">pairs</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">peekable</a>(), <span class="kw-2">&amp;mut </span><a href="#299">primary</a>, <span class="kw-2">&amp;mut </span><a href="#299">infix</a>)
+        <span class="self">self</span>.climb_rec(lhs, <span class="number">0</span>, <span class="kw-2">&amp;mut </span>pairs.peekable(), <span class="kw-2">&amp;mut </span>primary, <span class="kw-2">&amp;mut </span>infix)
     }
 
     <span class="kw">fn </span>climb_rec&lt;<span class="lifetime">&#39;i</span>, P, F, G, T&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         <span class="kw-2">mut </span>lhs: T,
-        min_prec: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>,
+        min_prec: u32,
         pairs: <span class="kw-2">&amp;mut </span>Peekable&lt;P&gt;,
         primary: <span class="kw-2">&amp;mut </span>F,
         infix: <span class="kw-2">&amp;mut </span>G,
@@ -716,8 +716,8 @@
             }
         }
 
-        <a href="#315">lhs</a>
+        lhs
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="pest" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="pest" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

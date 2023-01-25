@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `prusti-common/src/vir/low_to_viper/ast.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>ast.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../../prusti_common/index.html"><img class="rust-logo" src="../../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `prusti-common/src/vir/low_to_viper/ast.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>ast.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../../prusti_common/index.html"><img class="rust-logo" src="../../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -673,700 +673,680 @@
 <a href="#673" id="673">673</a>
 <a href="#674" id="674">674</a>
 <a href="#675" id="675">675</a>
-<a href="#676" id="676">676</a>
-<a href="#677" id="677">677</a>
-<a href="#678" id="678">678</a>
-<a href="#679" id="679">679</a>
-<a href="#680" id="680">680</a>
-<a href="#681" id="681">681</a>
-<a href="#682" id="682">682</a>
-<a href="#683" id="683">683</a>
-<a href="#684" id="684">684</a>
-<a href="#685" id="685">685</a>
-</pre><pre class="rust"><code><span class="kw">use super</span>::{<a href="mod.rs.html#9">Context</a>, <a href="mod.rs.html#20">ToViper</a>, <a href="mod.rs.html#24">ToViperDecl</a>};
-<span class="kw">use </span>viper::{<a class="self" href="../../../../viper/index.html">self</a>, <a href="../../../../viper/ast_factory/struct.AstFactory.html">AstFactory</a>};
+</pre><pre class="rust"><code><span class="kw">use super</span>::{Context, ToViper, ToViperDecl};
+<span class="kw">use </span>viper::{<span class="self">self</span>, AstFactory};
 <span class="kw">use </span>vir::low::ast::{
-    expression::{<a class="self" href="../../../../vir/gen/low/ast/expression/index.html">self</a>, <a href="../../../../vir/gen/low/ast/expression/enum.Expression.html">Expression</a>},
-    <a href="../../../../vir/gen/low/ast/function/struct.FunctionDecl.html">function::FunctionDecl</a>,
-    <a href="../../../../prusti_common/vir/vir_high/struct.Position.html">position::Position</a>,
-    <a href="../../../../vir/gen/low/ast/predicate/struct.PredicateDecl.html">predicate::PredicateDecl</a>,
-    statement::{<a class="self" href="../../../../vir/gen/low/ast/statement/index.html">self</a>, <a href="../../../../vir/gen/low/ast/statement/enum.Statement.html">Statement</a>},
-    ty::{<a class="self" href="../../../../vir/gen/low/ast/ty/index.html">self</a>, <a href="../../../../vir/gen/low/ast/ty/enum.BitVector.html">BitVector</a>, <a href="../../../../vir/gen/low/ast/ty/enum.BitVectorSize.html">BitVectorSize</a>, <a href="../../../../vir/gen/low/ast/ty/enum.Float.html">Float</a>, <a href="../../../../vir/gen/low/ast/ty/enum.Type.html">Type</a>},
-    <a href="../../../../vir/gen/low/ast/variable/struct.VariableDecl.html">variable::VariableDecl</a>,
+    expression::{<span class="self">self</span>, Expression},
+    function::FunctionDecl,
+    position::Position,
+    predicate::PredicateDecl,
+    statement::{<span class="self">self</span>, Statement},
+    ty::{<span class="self">self</span>, BitVector, BitVectorSize, Float, Type},
+    variable::VariableDecl,
 };
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;v</span>&gt; ToViper&lt;<span class="lifetime">&#39;v</span>, viper::Predicate&lt;<span class="lifetime">&#39;v</span>&gt;&gt; <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="../../../../vir/gen/low/ast/predicate/struct.PredicateDecl.html">PredicateDecl</a> {
-    <span class="kw">fn </span>to_viper(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <a href="mod.rs.html#9">Context</a>, ast: <span class="kw-2">&amp;</span>AstFactory&lt;<span class="lifetime">&#39;v</span>&gt;) -&gt; viper::Predicate&lt;<span class="lifetime">&#39;v</span>&gt; {
-        <a href="#14">ast</a>.predicate(
-            <span class="kw-2">&amp;</span><a class="self" href="#14">self</a>.name,
-            <span class="kw-2">&amp;</span><a class="self" href="#14">self</a>.parameters.<a href="mod.rs.html#25">to_viper_decl</a>(<a href="#14">context</a>, <a href="#14">ast</a>),
-            <a class="self" href="#14">self</a>.body.as_ref().map(|body| <a href="#18">body</a>.<a href="mod.rs.html#21">to_viper</a>(<a href="#14">context</a>, <a href="#14">ast</a>)),
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;v</span>&gt; ToViper&lt;<span class="lifetime">&#39;v</span>, viper::Predicate&lt;<span class="lifetime">&#39;v</span>&gt;&gt; <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>PredicateDecl {
+    <span class="kw">fn </span>to_viper(<span class="kw-2">&amp;</span><span class="self">self</span>, context: Context, ast: <span class="kw-2">&amp;</span>AstFactory&lt;<span class="lifetime">&#39;v</span>&gt;) -&gt; viper::Predicate&lt;<span class="lifetime">&#39;v</span>&gt; {
+        ast.predicate(
+            <span class="kw-2">&amp;</span><span class="self">self</span>.name,
+            <span class="kw-2">&amp;</span><span class="self">self</span>.parameters.to_viper_decl(context, ast),
+            <span class="self">self</span>.body.as_ref().map(|body| body.to_viper(context, ast)),
         )
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;v</span>&gt; ToViper&lt;<span class="lifetime">&#39;v</span>, viper::Function&lt;<span class="lifetime">&#39;v</span>&gt;&gt; <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="../../../../vir/gen/low/ast/function/struct.FunctionDecl.html">FunctionDecl</a> {
-    <span class="kw">fn </span>to_viper(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <a href="mod.rs.html#9">Context</a>, ast: <span class="kw-2">&amp;</span>AstFactory&lt;<span class="lifetime">&#39;v</span>&gt;) -&gt; viper::Function&lt;<span class="lifetime">&#39;v</span>&gt; {
-        <a href="#24">ast</a>.function(
-            <span class="kw-2">&amp;</span><a class="self" href="#24">self</a>.name,
-            <span class="kw-2">&amp;</span><a class="self" href="#24">self</a>.parameters.<a href="mod.rs.html#25">to_viper_decl</a>(<a href="#24">context</a>, <a href="#24">ast</a>),
-            <a class="self" href="#24">self</a>.return_type.<a href="mod.rs.html#21">to_viper</a>(<a href="#24">context</a>, <a href="#24">ast</a>),
-            <span class="kw-2">&amp;</span><a class="self" href="#24">self</a>.pres.<a href="mod.rs.html#21">to_viper</a>(<a href="#24">context</a>, <a href="#24">ast</a>),
-            <span class="kw-2">&amp;</span><a class="self" href="#24">self</a>.posts.<a href="mod.rs.html#21">to_viper</a>(<a href="#24">context</a>, <a href="#24">ast</a>),
-            <a href="#24">ast</a>.no_position(),
-            <a class="self" href="#24">self</a>.body.as_ref().map(|body| <a href="#32">body</a>.<a href="mod.rs.html#21">to_viper</a>(<a href="#24">context</a>, <a href="#24">ast</a>)),
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;v</span>&gt; ToViper&lt;<span class="lifetime">&#39;v</span>, viper::Function&lt;<span class="lifetime">&#39;v</span>&gt;&gt; <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>FunctionDecl {
+    <span class="kw">fn </span>to_viper(<span class="kw-2">&amp;</span><span class="self">self</span>, context: Context, ast: <span class="kw-2">&amp;</span>AstFactory&lt;<span class="lifetime">&#39;v</span>&gt;) -&gt; viper::Function&lt;<span class="lifetime">&#39;v</span>&gt; {
+        ast.function(
+            <span class="kw-2">&amp;</span><span class="self">self</span>.name,
+            <span class="kw-2">&amp;</span><span class="self">self</span>.parameters.to_viper_decl(context, ast),
+            <span class="self">self</span>.return_type.to_viper(context, ast),
+            <span class="kw-2">&amp;</span><span class="self">self</span>.pres.to_viper(context, ast),
+            <span class="kw-2">&amp;</span><span class="self">self</span>.posts.to_viper(context, ast),
+            ast.no_position(),
+            <span class="self">self</span>.body.as_ref().map(|body| body.to_viper(context, ast)),
         )
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;v</span>&gt; ToViper&lt;<span class="lifetime">&#39;v</span>, Vec&lt;viper::Stmt&lt;<span class="lifetime">&#39;v</span>&gt;&gt;&gt; <span class="kw">for </span>Vec&lt;<a href="../../../../vir/gen/low/ast/statement/enum.Statement.html">Statement</a>&gt; {
-    <span class="kw">fn </span>to_viper(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <a href="mod.rs.html#9">Context</a>, ast: <span class="kw-2">&amp;</span>AstFactory&lt;<span class="lifetime">&#39;v</span>&gt;) -&gt; Vec&lt;viper::Stmt&lt;<span class="lifetime">&#39;v</span>&gt;&gt; {
-        <a class="self" href="#38">self</a>.iter()
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|statement| <a href="#40">statement</a>.<a href="mod.rs.html#21">to_viper</a>(<a href="#38">context</a>, <a href="#38">ast</a>))
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>()
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;v</span>&gt; ToViper&lt;<span class="lifetime">&#39;v</span>, Vec&lt;viper::Stmt&lt;<span class="lifetime">&#39;v</span>&gt;&gt;&gt; <span class="kw">for </span>Vec&lt;Statement&gt; {
+    <span class="kw">fn </span>to_viper(<span class="kw-2">&amp;</span><span class="self">self</span>, context: Context, ast: <span class="kw-2">&amp;</span>AstFactory&lt;<span class="lifetime">&#39;v</span>&gt;) -&gt; Vec&lt;viper::Stmt&lt;<span class="lifetime">&#39;v</span>&gt;&gt; {
+        <span class="self">self</span>.iter()
+            .map(|statement| statement.to_viper(context, ast))
+            .collect()
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;v</span>&gt; ToViper&lt;<span class="lifetime">&#39;v</span>, viper::Stmt&lt;<span class="lifetime">&#39;v</span>&gt;&gt; <span class="kw">for </span><a href="../../../../vir/gen/low/ast/statement/enum.Statement.html">Statement</a> {
-    <span class="kw">fn </span>to_viper(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <a href="mod.rs.html#9">Context</a>, ast: <span class="kw-2">&amp;</span>AstFactory&lt;<span class="lifetime">&#39;v</span>&gt;) -&gt; viper::Stmt&lt;<span class="lifetime">&#39;v</span>&gt; {
-        <span class="kw">match </span><span class="self"><a href="#46">self</a> </span>{
-            Statement::Comment(statement) =&gt; <a href="#48">statement</a>.<a href="mod.rs.html#21">to_viper</a>(<a href="#46">context</a>, <a href="#46">ast</a>),
-            Statement::LogEvent(statement) =&gt; <a href="#49">statement</a>.<a href="mod.rs.html#21">to_viper</a>(<a href="#46">context</a>, <a href="#46">ast</a>),
-            Statement::Assume(statement) =&gt; <a href="#50">statement</a>.<a href="mod.rs.html#21">to_viper</a>(<a href="#46">context</a>, <a href="#46">ast</a>),
-            Statement::Assert(statement) =&gt; <a href="#51">statement</a>.<a href="mod.rs.html#21">to_viper</a>(<a href="#46">context</a>, <a href="#46">ast</a>),
-            Statement::Inhale(statement) =&gt; <a href="#52">statement</a>.<a href="mod.rs.html#21">to_viper</a>(<a href="#46">context</a>, <a href="#46">ast</a>),
-            Statement::Exhale(statement) =&gt; <a href="#53">statement</a>.<a href="mod.rs.html#21">to_viper</a>(<a href="#46">context</a>, <a href="#46">ast</a>),
-            Statement::Fold(statement) =&gt; <a href="#54">statement</a>.<a href="mod.rs.html#21">to_viper</a>(<a href="#46">context</a>, <a href="#46">ast</a>),
-            Statement::Unfold(statement) =&gt; <a href="#55">statement</a>.<a href="mod.rs.html#21">to_viper</a>(<a href="#46">context</a>, <a href="#46">ast</a>),
-            Statement::ApplyMagicWand(statement) =&gt; <a href="#56">statement</a>.<a href="mod.rs.html#21">to_viper</a>(<a href="#46">context</a>, <a href="#46">ast</a>),
-            Statement::Conditional(statement) =&gt; <a href="#57">statement</a>.<a href="mod.rs.html#21">to_viper</a>(<a href="#46">context</a>, <a href="#46">ast</a>),
-            Statement::MethodCall(statement) =&gt; <a href="#58">statement</a>.<a href="mod.rs.html#21">to_viper</a>(<a href="#46">context</a>, <a href="#46">ast</a>),
-            Statement::Assign(statement) =&gt; <a href="#59">statement</a>.<a href="mod.rs.html#21">to_viper</a>(<a href="#46">context</a>, <a href="#46">ast</a>),
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;v</span>&gt; ToViper&lt;<span class="lifetime">&#39;v</span>, viper::Stmt&lt;<span class="lifetime">&#39;v</span>&gt;&gt; <span class="kw">for </span>Statement {
+    <span class="kw">fn </span>to_viper(<span class="kw-2">&amp;</span><span class="self">self</span>, context: Context, ast: <span class="kw-2">&amp;</span>AstFactory&lt;<span class="lifetime">&#39;v</span>&gt;) -&gt; viper::Stmt&lt;<span class="lifetime">&#39;v</span>&gt; {
+        <span class="kw">match </span><span class="self">self </span>{
+            Statement::Comment(statement) =&gt; statement.to_viper(context, ast),
+            Statement::LogEvent(statement) =&gt; statement.to_viper(context, ast),
+            Statement::Assume(statement) =&gt; statement.to_viper(context, ast),
+            Statement::Assert(statement) =&gt; statement.to_viper(context, ast),
+            Statement::Inhale(statement) =&gt; statement.to_viper(context, ast),
+            Statement::Exhale(statement) =&gt; statement.to_viper(context, ast),
+            Statement::Fold(statement) =&gt; statement.to_viper(context, ast),
+            Statement::Unfold(statement) =&gt; statement.to_viper(context, ast),
+            Statement::ApplyMagicWand(statement) =&gt; statement.to_viper(context, ast),
+            Statement::Conditional(statement) =&gt; statement.to_viper(context, ast),
+            Statement::MethodCall(statement) =&gt; statement.to_viper(context, ast),
+            Statement::Assign(statement) =&gt; statement.to_viper(context, ast),
         }
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;v</span>&gt; ToViper&lt;<span class="lifetime">&#39;v</span>, viper::Stmt&lt;<span class="lifetime">&#39;v</span>&gt;&gt; <span class="kw">for </span><a href="../../../../vir/gen/low/ast/statement/struct.Comment.html">statement::Comment</a> {
-    <span class="kw">fn </span>to_viper(<span class="kw-2">&amp;</span><span class="self">self</span>, _context: <a href="mod.rs.html#9">Context</a>, ast: <span class="kw-2">&amp;</span>AstFactory&lt;<span class="lifetime">&#39;v</span>&gt;) -&gt; viper::Stmt&lt;<span class="lifetime">&#39;v</span>&gt; {
-        <a href="#65">ast</a>.comment(<span class="kw-2">&amp;</span><a class="self" href="#65">self</a>.comment)
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;v</span>&gt; ToViper&lt;<span class="lifetime">&#39;v</span>, viper::Stmt&lt;<span class="lifetime">&#39;v</span>&gt;&gt; <span class="kw">for </span>statement::Comment {
+    <span class="kw">fn </span>to_viper(<span class="kw-2">&amp;</span><span class="self">self</span>, _context: Context, ast: <span class="kw-2">&amp;</span>AstFactory&lt;<span class="lifetime">&#39;v</span>&gt;) -&gt; viper::Stmt&lt;<span class="lifetime">&#39;v</span>&gt; {
+        ast.comment(<span class="kw-2">&amp;</span><span class="self">self</span>.comment)
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;v</span>&gt; ToViper&lt;<span class="lifetime">&#39;v</span>, viper::Stmt&lt;<span class="lifetime">&#39;v</span>&gt;&gt; <span class="kw">for </span><a href="../../../../vir/gen/low/ast/statement/struct.LogEvent.html">statement::LogEvent</a> {
-    <span class="kw">fn </span>to_viper(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <a href="mod.rs.html#9">Context</a>, ast: <span class="kw-2">&amp;</span>AstFactory&lt;<span class="lifetime">&#39;v</span>&gt;) -&gt; viper::Stmt&lt;<span class="lifetime">&#39;v</span>&gt; {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;v</span>&gt; ToViper&lt;<span class="lifetime">&#39;v</span>, viper::Stmt&lt;<span class="lifetime">&#39;v</span>&gt;&gt; <span class="kw">for </span>statement::LogEvent {
+    <span class="kw">fn </span>to_viper(<span class="kw-2">&amp;</span><span class="self">self</span>, context: Context, ast: <span class="kw-2">&amp;</span>AstFactory&lt;<span class="lifetime">&#39;v</span>&gt;) -&gt; viper::Stmt&lt;<span class="lifetime">&#39;v</span>&gt; {
+        <span class="macro">assert!</span>(
             <span class="self">self</span>.expression.is_domain_func_app(),
-            <span class="string">&quot;The log event has to be a domain function application: {}&quot;</span>,
-            <span class="self">self
+            <span class="string">&quot;The log event has to be a domain function application: {self}&quot;
         </span>);
-        <a href="#71">ast</a>.inhale(<a class="self" href="#71">self</a>.expression.<a href="mod.rs.html#21">to_viper</a>(<a href="#71">context</a>, <a href="#71">ast</a>), <a href="#71">ast</a>.no_position())
+        ast.inhale(<span class="self">self</span>.expression.to_viper(context, ast), ast.no_position())
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;v</span>&gt; ToViper&lt;<span class="lifetime">&#39;v</span>, viper::Stmt&lt;<span class="lifetime">&#39;v</span>&gt;&gt; <span class="kw">for </span><a href="../../../../vir/gen/low/ast/statement/struct.Assume.html">statement::Assume</a> {
-    <span class="kw">fn </span>to_viper(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <a href="mod.rs.html#9">Context</a>, ast: <span class="kw-2">&amp;</span>AstFactory&lt;<span class="lifetime">&#39;v</span>&gt;) -&gt; viper::Stmt&lt;<span class="lifetime">&#39;v</span>&gt; {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;v</span>&gt; ToViper&lt;<span class="lifetime">&#39;v</span>, viper::Stmt&lt;<span class="lifetime">&#39;v</span>&gt;&gt; <span class="kw">for </span>statement::Assume {
+    <span class="kw">fn </span>to_viper(<span class="kw-2">&amp;</span><span class="self">self</span>, context: Context, ast: <span class="kw-2">&amp;</span>AstFactory&lt;<span class="lifetime">&#39;v</span>&gt;) -&gt; viper::Stmt&lt;<span class="lifetime">&#39;v</span>&gt; {
+        <span class="macro">assert!</span>(
             !<span class="self">self</span>.position.is_default(),
-            <span class="string">&quot;Statement with default position: {}&quot;</span>,
-            <span class="self">self
+            <span class="string">&quot;Statement with default position: {self}&quot;
         </span>);
-        <a href="#82">ast</a>.inhale(
-            <a class="self" href="#82">self</a>.expression.<a href="mod.rs.html#21">to_viper</a>(<a href="#82">context</a>, <a href="#82">ast</a>),
-            <a class="self" href="#82">self</a>.position.<a href="mod.rs.html#21">to_viper</a>(<a href="#82">context</a>, <a href="#82">ast</a>),
+        ast.inhale(
+            <span class="self">self</span>.expression.to_viper(context, ast),
+            <span class="self">self</span>.position.to_viper(context, ast),
         )
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;v</span>&gt; ToViper&lt;<span class="lifetime">&#39;v</span>, viper::Stmt&lt;<span class="lifetime">&#39;v</span>&gt;&gt; <span class="kw">for </span><a href="../../../../vir/gen/low/ast/statement/struct.Assert.html">statement::Assert</a> {
-    <span class="kw">fn </span>to_viper(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <a href="mod.rs.html#9">Context</a>, ast: <span class="kw-2">&amp;</span>AstFactory&lt;<span class="lifetime">&#39;v</span>&gt;) -&gt; viper::Stmt&lt;<span class="lifetime">&#39;v</span>&gt; {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;v</span>&gt; ToViper&lt;<span class="lifetime">&#39;v</span>, viper::Stmt&lt;<span class="lifetime">&#39;v</span>&gt;&gt; <span class="kw">for </span>statement::Assert {
+    <span class="kw">fn </span>to_viper(<span class="kw-2">&amp;</span><span class="self">self</span>, context: Context, ast: <span class="kw-2">&amp;</span>AstFactory&lt;<span class="lifetime">&#39;v</span>&gt;) -&gt; viper::Stmt&lt;<span class="lifetime">&#39;v</span>&gt; {
+        <span class="macro">assert!</span>(
             !<span class="self">self</span>.position.is_default(),
-            <span class="string">&quot;Statement with default position: {}&quot;</span>,
-            <span class="self">self
+            <span class="string">&quot;Statement with default position: {self}&quot;
         </span>);
-        <a href="#96">ast</a>.assert(
-            <a class="self" href="#96">self</a>.expression.<a href="mod.rs.html#21">to_viper</a>(<a href="#96">context</a>, <a href="#96">ast</a>),
-            <a class="self" href="#96">self</a>.position.<a href="mod.rs.html#21">to_viper</a>(<a href="#96">context</a>, <a href="#96">ast</a>),
+        ast.assert(
+            <span class="self">self</span>.expression.to_viper(context, ast),
+            <span class="self">self</span>.position.to_viper(context, ast),
         )
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;v</span>&gt; ToViper&lt;<span class="lifetime">&#39;v</span>, viper::Stmt&lt;<span class="lifetime">&#39;v</span>&gt;&gt; <span class="kw">for </span><a href="../../../../vir/gen/low/ast/statement/struct.Inhale.html">statement::Inhale</a> {
-    <span class="kw">fn </span>to_viper(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <a href="mod.rs.html#9">Context</a>, ast: <span class="kw-2">&amp;</span>AstFactory&lt;<span class="lifetime">&#39;v</span>&gt;) -&gt; viper::Stmt&lt;<span class="lifetime">&#39;v</span>&gt; {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;v</span>&gt; ToViper&lt;<span class="lifetime">&#39;v</span>, viper::Stmt&lt;<span class="lifetime">&#39;v</span>&gt;&gt; <span class="kw">for </span>statement::Inhale {
+    <span class="kw">fn </span>to_viper(<span class="kw-2">&amp;</span><span class="self">self</span>, context: Context, ast: <span class="kw-2">&amp;</span>AstFactory&lt;<span class="lifetime">&#39;v</span>&gt;) -&gt; viper::Stmt&lt;<span class="lifetime">&#39;v</span>&gt; {
+        <span class="macro">assert!</span>(
             !<span class="self">self</span>.position.is_default(),
-            <span class="string">&quot;Statement with default position: {}&quot;</span>,
-            <span class="self">self
+            <span class="string">&quot;Statement with default position: {self}&quot;
         </span>);
-        <a href="#110">ast</a>.inhale(
-            <a class="self" href="#110">self</a>.expression.<a href="mod.rs.html#21">to_viper</a>(<a href="#110">context</a>, <a href="#110">ast</a>),
-            <a class="self" href="#110">self</a>.position.<a href="mod.rs.html#21">to_viper</a>(<a href="#110">context</a>, <a href="#110">ast</a>),
+        ast.inhale(
+            <span class="self">self</span>.expression.to_viper(context, ast),
+            <span class="self">self</span>.position.to_viper(context, ast),
         )
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;v</span>&gt; ToViper&lt;<span class="lifetime">&#39;v</span>, viper::Stmt&lt;<span class="lifetime">&#39;v</span>&gt;&gt; <span class="kw">for </span><a href="../../../../vir/gen/low/ast/statement/struct.Exhale.html">statement::Exhale</a> {
-    <span class="kw">fn </span>to_viper(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <a href="mod.rs.html#9">Context</a>, ast: <span class="kw-2">&amp;</span>AstFactory&lt;<span class="lifetime">&#39;v</span>&gt;) -&gt; viper::Stmt&lt;<span class="lifetime">&#39;v</span>&gt; {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;v</span>&gt; ToViper&lt;<span class="lifetime">&#39;v</span>, viper::Stmt&lt;<span class="lifetime">&#39;v</span>&gt;&gt; <span class="kw">for </span>statement::Exhale {
+    <span class="kw">fn </span>to_viper(<span class="kw-2">&amp;</span><span class="self">self</span>, context: Context, ast: <span class="kw-2">&amp;</span>AstFactory&lt;<span class="lifetime">&#39;v</span>&gt;) -&gt; viper::Stmt&lt;<span class="lifetime">&#39;v</span>&gt; {
+        <span class="macro">assert!</span>(
             !<span class="self">self</span>.position.is_default(),
-            <span class="string">&quot;Statement with default position: {}&quot;</span>,
-            <span class="self">self
+            <span class="string">&quot;Statement with default position: {self}&quot;
         </span>);
-        <a href="#124">ast</a>.exhale(
-            <a class="self" href="#124">self</a>.expression.<a href="mod.rs.html#21">to_viper</a>(<a href="#124">context</a>, <a href="#124">ast</a>),
-            <a class="self" href="#124">self</a>.position.<a href="mod.rs.html#21">to_viper</a>(<a href="#124">context</a>, <a href="#124">ast</a>),
+        ast.exhale(
+            <span class="self">self</span>.expression.to_viper(context, ast),
+            <span class="self">self</span>.position.to_viper(context, ast),
         )
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;v</span>&gt; ToViper&lt;<span class="lifetime">&#39;v</span>, viper::Stmt&lt;<span class="lifetime">&#39;v</span>&gt;&gt; <span class="kw">for </span><a href="../../../../vir/gen/low/ast/statement/struct.Fold.html">statement::Fold</a> {
-    <span class="kw">fn </span>to_viper(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <a href="mod.rs.html#9">Context</a>, ast: <span class="kw-2">&amp;</span>AstFactory&lt;<span class="lifetime">&#39;v</span>&gt;) -&gt; viper::Stmt&lt;<span class="lifetime">&#39;v</span>&gt; {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;v</span>&gt; ToViper&lt;<span class="lifetime">&#39;v</span>, viper::Stmt&lt;<span class="lifetime">&#39;v</span>&gt;&gt; <span class="kw">for </span>statement::Fold {
+    <span class="kw">fn </span>to_viper(<span class="kw-2">&amp;</span><span class="self">self</span>, context: Context, ast: <span class="kw-2">&amp;</span>AstFactory&lt;<span class="lifetime">&#39;v</span>&gt;) -&gt; viper::Stmt&lt;<span class="lifetime">&#39;v</span>&gt; {
+        <span class="macro">assert!</span>(
             !<span class="self">self</span>.position.is_default(),
-            <span class="string">&quot;Statement with default position: {}&quot;</span>,
-            <span class="self">self
+            <span class="string">&quot;Statement with default position: {self}&quot;
         </span>);
-        <a href="#138">ast</a>.fold_with_pos(
-            <a class="self" href="#138">self</a>.expression.<a href="mod.rs.html#21">to_viper</a>(<a href="#138">context</a>, <a href="#138">ast</a>),
-            <a class="self" href="#138">self</a>.position.<a href="mod.rs.html#21">to_viper</a>(<a href="#138">context</a>, <a href="#138">ast</a>),
+        ast.fold_with_pos(
+            <span class="self">self</span>.expression.to_viper(context, ast),
+            <span class="self">self</span>.position.to_viper(context, ast),
         )
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;v</span>&gt; ToViper&lt;<span class="lifetime">&#39;v</span>, viper::Stmt&lt;<span class="lifetime">&#39;v</span>&gt;&gt; <span class="kw">for </span><a href="../../../../vir/gen/low/ast/statement/struct.Unfold.html">statement::Unfold</a> {
-    <span class="kw">fn </span>to_viper(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <a href="mod.rs.html#9">Context</a>, ast: <span class="kw-2">&amp;</span>AstFactory&lt;<span class="lifetime">&#39;v</span>&gt;) -&gt; viper::Stmt&lt;<span class="lifetime">&#39;v</span>&gt; {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;v</span>&gt; ToViper&lt;<span class="lifetime">&#39;v</span>, viper::Stmt&lt;<span class="lifetime">&#39;v</span>&gt;&gt; <span class="kw">for </span>statement::Unfold {
+    <span class="kw">fn </span>to_viper(<span class="kw-2">&amp;</span><span class="self">self</span>, context: Context, ast: <span class="kw-2">&amp;</span>AstFactory&lt;<span class="lifetime">&#39;v</span>&gt;) -&gt; viper::Stmt&lt;<span class="lifetime">&#39;v</span>&gt; {
+        <span class="macro">assert!</span>(
             !<span class="self">self</span>.position.is_default(),
-            <span class="string">&quot;Statement with default position: {}&quot;</span>,
-            <span class="self">self
+            <span class="string">&quot;Statement with default position: {self}&quot;
         </span>);
-        <a href="#152">ast</a>.unfold_with_pos(
-            <a class="self" href="#152">self</a>.expression.<a href="mod.rs.html#21">to_viper</a>(<a href="#152">context</a>, <a href="#152">ast</a>),
-            <a class="self" href="#152">self</a>.position.<a href="mod.rs.html#21">to_viper</a>(<a href="#152">context</a>, <a href="#152">ast</a>),
+        ast.unfold_with_pos(
+            <span class="self">self</span>.expression.to_viper(context, ast),
+            <span class="self">self</span>.position.to_viper(context, ast),
         )
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;v</span>&gt; ToViper&lt;<span class="lifetime">&#39;v</span>, viper::Stmt&lt;<span class="lifetime">&#39;v</span>&gt;&gt; <span class="kw">for </span><a href="../../../../vir/gen/low/ast/statement/struct.ApplyMagicWand.html">statement::ApplyMagicWand</a> {
-    <span class="kw">fn </span>to_viper(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <a href="mod.rs.html#9">Context</a>, ast: <span class="kw-2">&amp;</span>AstFactory&lt;<span class="lifetime">&#39;v</span>&gt;) -&gt; viper::Stmt&lt;<span class="lifetime">&#39;v</span>&gt; {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;v</span>&gt; ToViper&lt;<span class="lifetime">&#39;v</span>, viper::Stmt&lt;<span class="lifetime">&#39;v</span>&gt;&gt; <span class="kw">for </span>statement::ApplyMagicWand {
+    <span class="kw">fn </span>to_viper(<span class="kw-2">&amp;</span><span class="self">self</span>, context: Context, ast: <span class="kw-2">&amp;</span>AstFactory&lt;<span class="lifetime">&#39;v</span>&gt;) -&gt; viper::Stmt&lt;<span class="lifetime">&#39;v</span>&gt; {
+        <span class="macro">assert!</span>(
             !<span class="self">self</span>.position.is_default(),
-            <span class="string">&quot;Statement with default position: {}&quot;</span>,
-            <span class="self">self
+            <span class="string">&quot;Statement with default position: {self}&quot;
         </span>);
-        <a href="#166">ast</a>.apply(
-            <a class="self" href="#166">self</a>.expression.<a href="mod.rs.html#21">to_viper</a>(<a href="#166">context</a>, <a href="#166">ast</a>),
-            <a class="self" href="#166">self</a>.position.<a href="mod.rs.html#21">to_viper</a>(<a href="#166">context</a>, <a href="#166">ast</a>),
+        ast.apply(
+            <span class="self">self</span>.expression.to_viper(context, ast),
+            <span class="self">self</span>.position.to_viper(context, ast),
         )
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;v</span>&gt; ToViper&lt;<span class="lifetime">&#39;v</span>, viper::Stmt&lt;<span class="lifetime">&#39;v</span>&gt;&gt; <span class="kw">for </span><a href="../../../../vir/gen/low/ast/statement/struct.Conditional.html">statement::Conditional</a> {
-    <span class="kw">fn </span>to_viper(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <a href="mod.rs.html#9">Context</a>, ast: <span class="kw-2">&amp;</span>AstFactory&lt;<span class="lifetime">&#39;v</span>&gt;) -&gt; viper::Stmt&lt;<span class="lifetime">&#39;v</span>&gt; {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;v</span>&gt; ToViper&lt;<span class="lifetime">&#39;v</span>, viper::Stmt&lt;<span class="lifetime">&#39;v</span>&gt;&gt; <span class="kw">for </span>statement::Conditional {
+    <span class="kw">fn </span>to_viper(<span class="kw-2">&amp;</span><span class="self">self</span>, context: Context, ast: <span class="kw-2">&amp;</span>AstFactory&lt;<span class="lifetime">&#39;v</span>&gt;) -&gt; viper::Stmt&lt;<span class="lifetime">&#39;v</span>&gt; {
+        <span class="macro">assert!</span>(
             !<span class="self">self</span>.position.is_default(),
-            <span class="string">&quot;Statement with default position: {}&quot;</span>,
-            <span class="self">self
+            <span class="string">&quot;Statement with default position: {self}&quot;
         </span>);
-        <a href="#180">ast</a>.if_stmt(
-            <a class="self" href="#180">self</a>.guard.<a href="mod.rs.html#21">to_viper</a>(<a href="#180">context</a>, <a href="#180">ast</a>),
-            <a href="#180">ast</a>.seqn(<span class="kw-2">&amp;</span><a class="self" href="#180">self</a>.then_branch.<a href="mod.rs.html#21">to_viper</a>(<a href="#180">context</a>, <a href="#180">ast</a>), <span class="kw-2">&amp;</span>[]),
-            <a href="#180">ast</a>.seqn(<span class="kw-2">&amp;</span><a class="self" href="#180">self</a>.else_branch.<a href="mod.rs.html#21">to_viper</a>(<a href="#180">context</a>, <a href="#180">ast</a>), <span class="kw-2">&amp;</span>[]),
+        ast.if_stmt(
+            <span class="self">self</span>.guard.to_viper(context, ast),
+            ast.seqn(<span class="kw-2">&amp;</span><span class="self">self</span>.then_branch.to_viper(context, ast), <span class="kw-2">&amp;</span>[]),
+            ast.seqn(<span class="kw-2">&amp;</span><span class="self">self</span>.else_branch.to_viper(context, ast), <span class="kw-2">&amp;</span>[]),
         )
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;v</span>&gt; ToViper&lt;<span class="lifetime">&#39;v</span>, viper::Stmt&lt;<span class="lifetime">&#39;v</span>&gt;&gt; <span class="kw">for </span><a href="../../../../vir/gen/low/ast/statement/struct.MethodCall.html">statement::MethodCall</a> {
-    <span class="kw">fn </span>to_viper(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <a href="mod.rs.html#9">Context</a>, ast: <span class="kw-2">&amp;</span>AstFactory&lt;<span class="lifetime">&#39;v</span>&gt;) -&gt; viper::Stmt&lt;<span class="lifetime">&#39;v</span>&gt; {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;v</span>&gt; ToViper&lt;<span class="lifetime">&#39;v</span>, viper::Stmt&lt;<span class="lifetime">&#39;v</span>&gt;&gt; <span class="kw">for </span>statement::MethodCall {
+    <span class="kw">fn </span>to_viper(<span class="kw-2">&amp;</span><span class="self">self</span>, context: Context, ast: <span class="kw-2">&amp;</span>AstFactory&lt;<span class="lifetime">&#39;v</span>&gt;) -&gt; viper::Stmt&lt;<span class="lifetime">&#39;v</span>&gt; {
+        <span class="macro">assert!</span>(
             !<span class="self">self</span>.position.is_default(),
-            <span class="string">&quot;Statement with default position: {}&quot;</span>,
-            <span class="self">self
+            <span class="string">&quot;Statement with default position: {self}&quot;
         </span>);
-        <a href="#195">ast</a>.method_call_with_pos(
-            <span class="kw-2">&amp;</span><a class="self" href="#195">self</a>.method_name,
-            <span class="kw-2">&amp;</span><a class="self" href="#195">self</a>.arguments.<a href="mod.rs.html#21">to_viper</a>(<a href="#195">context</a>, <a href="#195">ast</a>),
-            <span class="kw-2">&amp;</span><a class="self" href="#195">self</a>.targets.<a href="mod.rs.html#21">to_viper</a>(<a href="#195">context</a>, <a href="#195">ast</a>),
-            <a class="self" href="#195">self</a>.position.<a href="mod.rs.html#21">to_viper</a>(<a href="#195">context</a>, <a href="#195">ast</a>),
+        ast.method_call_with_pos(
+            <span class="kw-2">&amp;</span><span class="self">self</span>.method_name,
+            <span class="kw-2">&amp;</span><span class="self">self</span>.arguments.to_viper(context, ast),
+            <span class="kw-2">&amp;</span><span class="self">self</span>.targets.to_viper(context, ast),
+            <span class="self">self</span>.position.to_viper(context, ast),
         )
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;v</span>&gt; ToViper&lt;<span class="lifetime">&#39;v</span>, viper::Stmt&lt;<span class="lifetime">&#39;v</span>&gt;&gt; <span class="kw">for </span><a href="../../../../vir/gen/low/ast/statement/struct.Assign.html">statement::Assign</a> {
-    <span class="kw">fn </span>to_viper(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <a href="mod.rs.html#9">Context</a>, ast: <span class="kw-2">&amp;</span>AstFactory&lt;<span class="lifetime">&#39;v</span>&gt;) -&gt; viper::Stmt&lt;<span class="lifetime">&#39;v</span>&gt; {
-        <span class="kw">let </span>target_expression = Expression::local(<a class="self" href="#211">self</a>.target.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), <a class="self" href="#211">self</a>.position);
-        <a href="#211">ast</a>.abstract_assign(
-            <a href="#212">target_expression</a>.<a href="mod.rs.html#21">to_viper</a>(<a href="#211">context</a>, <a href="#211">ast</a>),
-            <a class="self" href="#211">self</a>.value.<a href="mod.rs.html#21">to_viper</a>(<a href="#211">context</a>, <a href="#211">ast</a>),
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;v</span>&gt; ToViper&lt;<span class="lifetime">&#39;v</span>, viper::Stmt&lt;<span class="lifetime">&#39;v</span>&gt;&gt; <span class="kw">for </span>statement::Assign {
+    <span class="kw">fn </span>to_viper(<span class="kw-2">&amp;</span><span class="self">self</span>, context: Context, ast: <span class="kw-2">&amp;</span>AstFactory&lt;<span class="lifetime">&#39;v</span>&gt;) -&gt; viper::Stmt&lt;<span class="lifetime">&#39;v</span>&gt; {
+        <span class="kw">let </span>target_expression = Expression::local(<span class="self">self</span>.target.clone(), <span class="self">self</span>.position);
+        ast.abstract_assign(
+            target_expression.to_viper(context, ast),
+            <span class="self">self</span>.value.to_viper(context, ast),
         )
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;v</span>&gt; ToViper&lt;<span class="lifetime">&#39;v</span>, Vec&lt;viper::Expr&lt;<span class="lifetime">&#39;v</span>&gt;&gt;&gt; <span class="kw">for </span>Vec&lt;<a href="../../../../vir/gen/low/ast/expression/enum.Expression.html">Expression</a>&gt; {
-    <span class="kw">fn </span>to_viper(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <a href="mod.rs.html#9">Context</a>, ast: <span class="kw-2">&amp;</span>AstFactory&lt;<span class="lifetime">&#39;v</span>&gt;) -&gt; Vec&lt;viper::Expr&lt;<span class="lifetime">&#39;v</span>&gt;&gt; {
-        <a class="self" href="#221">self</a>.iter()
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|expression| <a href="#223">expression</a>.<a href="mod.rs.html#21">to_viper</a>(<a href="#221">context</a>, <a href="#221">ast</a>))
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>()
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;v</span>&gt; ToViper&lt;<span class="lifetime">&#39;v</span>, Vec&lt;viper::Expr&lt;<span class="lifetime">&#39;v</span>&gt;&gt;&gt; <span class="kw">for </span>Vec&lt;Expression&gt; {
+    <span class="kw">fn </span>to_viper(<span class="kw-2">&amp;</span><span class="self">self</span>, context: Context, ast: <span class="kw-2">&amp;</span>AstFactory&lt;<span class="lifetime">&#39;v</span>&gt;) -&gt; Vec&lt;viper::Expr&lt;<span class="lifetime">&#39;v</span>&gt;&gt; {
+        <span class="self">self</span>.iter()
+            .map(|expression| expression.to_viper(context, ast))
+            .collect()
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;v</span>&gt; ToViper&lt;<span class="lifetime">&#39;v</span>, viper::Expr&lt;<span class="lifetime">&#39;v</span>&gt;&gt; <span class="kw">for </span><a href="../../../../vir/gen/low/ast/expression/enum.Expression.html">Expression</a> {
-    <span class="kw">fn </span>to_viper(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <a href="mod.rs.html#9">Context</a>, ast: <span class="kw-2">&amp;</span>AstFactory&lt;<span class="lifetime">&#39;v</span>&gt;) -&gt; viper::Expr&lt;<span class="lifetime">&#39;v</span>&gt; {
-        <span class="kw">let </span>expression = <span class="kw">match </span><span class="self"><a href="#229">self</a> </span>{
-            Expression::Local(expression) =&gt; <a href="#231">expression</a>.<a href="mod.rs.html#21">to_viper</a>(<a href="#229">context</a>, <a href="#229">ast</a>),
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;v</span>&gt; ToViper&lt;<span class="lifetime">&#39;v</span>, viper::Expr&lt;<span class="lifetime">&#39;v</span>&gt;&gt; <span class="kw">for </span>Expression {
+    <span class="kw">fn </span>to_viper(<span class="kw-2">&amp;</span><span class="self">self</span>, context: Context, ast: <span class="kw-2">&amp;</span>AstFactory&lt;<span class="lifetime">&#39;v</span>&gt;) -&gt; viper::Expr&lt;<span class="lifetime">&#39;v</span>&gt; {
+        <span class="kw">let </span>expression = <span class="kw">match </span><span class="self">self </span>{
+            Expression::Local(expression) =&gt; expression.to_viper(context, ast),
             <span class="comment">// Expression::Field(expression) =&gt; expression.to_viper(context, ast),
-            </span>Expression::LabelledOld(expression) =&gt; <a href="#233">expression</a>.<a href="mod.rs.html#21">to_viper</a>(<a href="#229">context</a>, <a href="#229">ast</a>),
-            Expression::Constant(expression) =&gt; <a href="#234">expression</a>.<a href="mod.rs.html#21">to_viper</a>(<a href="#229">context</a>, <a href="#229">ast</a>),
-            Expression::MagicWand(expression) =&gt; <a href="#235">expression</a>.<a href="mod.rs.html#21">to_viper</a>(<a href="#229">context</a>, <a href="#229">ast</a>),
-            Expression::PredicateAccessPredicate(expression) =&gt; <a href="#236">expression</a>.<a href="mod.rs.html#21">to_viper</a>(<a href="#229">context</a>, <a href="#229">ast</a>),
+            </span>Expression::LabelledOld(expression) =&gt; expression.to_viper(context, ast),
+            Expression::Constant(expression) =&gt; expression.to_viper(context, ast),
+            Expression::MagicWand(expression) =&gt; expression.to_viper(context, ast),
+            Expression::PredicateAccessPredicate(expression) =&gt; expression.to_viper(context, ast),
             <span class="comment">// Expression::FieldAccessPredicate(expression) =&gt; expression.to_viper(context, ast),
             // Expression::Unfolding(expression) =&gt; expression.to_viper(context, ast),
-            </span>Expression::UnaryOp(expression) =&gt; <a href="#239">expression</a>.<a href="mod.rs.html#21">to_viper</a>(<a href="#229">context</a>, <a href="#229">ast</a>),
-            Expression::BinaryOp(expression) =&gt; <a href="#240">expression</a>.<a href="mod.rs.html#21">to_viper</a>(<a href="#229">context</a>, <a href="#229">ast</a>),
-            Expression::PermBinaryOp(expression) =&gt; <a href="#241">expression</a>.<a href="mod.rs.html#21">to_viper</a>(<a href="#229">context</a>, <a href="#229">ast</a>),
-            Expression::ContainerOp(expression) =&gt; <a href="#242">expression</a>.<a href="mod.rs.html#21">to_viper</a>(<a href="#229">context</a>, <a href="#229">ast</a>),
-            Expression::Conditional(expression) =&gt; <a href="#243">expression</a>.<a href="mod.rs.html#21">to_viper</a>(<a href="#229">context</a>, <a href="#229">ast</a>),
-            Expression::Quantifier(expression) =&gt; <a href="#244">expression</a>.<a href="mod.rs.html#21">to_viper</a>(<a href="#229">context</a>, <a href="#229">ast</a>),
+            </span>Expression::UnaryOp(expression) =&gt; expression.to_viper(context, ast),
+            Expression::BinaryOp(expression) =&gt; expression.to_viper(context, ast),
+            Expression::PermBinaryOp(expression) =&gt; expression.to_viper(context, ast),
+            Expression::ContainerOp(expression) =&gt; expression.to_viper(context, ast),
+            Expression::Conditional(expression) =&gt; expression.to_viper(context, ast),
+            Expression::Quantifier(expression) =&gt; expression.to_viper(context, ast),
             <span class="comment">// Expression::LetExpr(expression) =&gt; expression.to_viper(context, ast),
-            </span>Expression::FuncApp(expression) =&gt; <a href="#246">expression</a>.<a href="mod.rs.html#21">to_viper</a>(<a href="#229">context</a>, <a href="#229">ast</a>),
-            Expression::DomainFuncApp(expression) =&gt; <a href="#247">expression</a>.<a href="mod.rs.html#21">to_viper</a>(<a href="#229">context</a>, <a href="#229">ast</a>),
+            </span>Expression::FuncApp(expression) =&gt; expression.to_viper(context, ast),
+            Expression::DomainFuncApp(expression) =&gt; expression.to_viper(context, ast),
             <span class="comment">// Expression::InhaleExhale(expression) =&gt; expression.to_viper(context, ast),
-            </span>x =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unimplemented.html">unimplemented!</a>(<span class="string">&quot;{:?}&quot;</span>, x),
+            </span>x =&gt; <span class="macro">unimplemented!</span>(<span class="string">&quot;{:?}&quot;</span>, x),
         };
         <span class="kw">if </span><span class="kw">crate</span>::config::simplify_encoding() {
-            <a href="#229">ast</a>.simplified_expression(<a href="#230">expression</a>)
+            ast.simplified_expression(expression)
         } <span class="kw">else </span>{
-            <a href="#230">expression</a>
+            expression
         }
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;v</span>&gt; ToViper&lt;<span class="lifetime">&#39;v</span>, viper::Expr&lt;<span class="lifetime">&#39;v</span>&gt;&gt; <span class="kw">for </span><a href="../../../../vir/gen/low/ast/expression/struct.Local.html">expression::Local</a> {
-    <span class="kw">fn </span>to_viper(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <a href="mod.rs.html#9">Context</a>, ast: <span class="kw-2">&amp;</span>AstFactory&lt;<span class="lifetime">&#39;v</span>&gt;) -&gt; viper::Expr&lt;<span class="lifetime">&#39;v</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;v</span>&gt; ToViper&lt;<span class="lifetime">&#39;v</span>, viper::Expr&lt;<span class="lifetime">&#39;v</span>&gt;&gt; <span class="kw">for </span>expression::Local {
+    <span class="kw">fn </span>to_viper(<span class="kw-2">&amp;</span><span class="self">self</span>, context: Context, ast: <span class="kw-2">&amp;</span>AstFactory&lt;<span class="lifetime">&#39;v</span>&gt;) -&gt; viper::Expr&lt;<span class="lifetime">&#39;v</span>&gt; {
         <span class="kw">if </span><span class="self">self</span>.variable.name == <span class="string">&quot;__result&quot; </span>{
-            <a href="#260">ast</a>.result_with_pos(
-                <a class="self" href="#260">self</a>.variable.ty.<a href="mod.rs.html#21">to_viper</a>(<a href="#260">context</a>, <a href="#260">ast</a>),
-                <a class="self" href="#260">self</a>.position.<a href="mod.rs.html#21">to_viper</a>(<a href="#260">context</a>, <a href="#260">ast</a>),
+            ast.result_with_pos(
+                <span class="self">self</span>.variable.ty.to_viper(context, ast),
+                <span class="self">self</span>.position.to_viper(context, ast),
             )
         } <span class="kw">else </span>{
-            <a href="#260">ast</a>.local_var_with_pos(
-                <span class="kw-2">&amp;</span><a class="self" href="#260">self</a>.variable.name,
-                <a class="self" href="#260">self</a>.variable.ty.<a href="mod.rs.html#21">to_viper</a>(<a href="#260">context</a>, <a href="#260">ast</a>),
-                <a class="self" href="#260">self</a>.position.<a href="mod.rs.html#21">to_viper</a>(<a href="#260">context</a>, <a href="#260">ast</a>),
+            ast.local_var_with_pos(
+                <span class="kw-2">&amp;</span><span class="self">self</span>.variable.name,
+                <span class="self">self</span>.variable.ty.to_viper(context, ast),
+                <span class="self">self</span>.position.to_viper(context, ast),
             )
         }
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;v</span>&gt; ToViper&lt;<span class="lifetime">&#39;v</span>, viper::Expr&lt;<span class="lifetime">&#39;v</span>&gt;&gt; <span class="kw">for </span><a href="../../../../vir/gen/low/ast/expression/struct.LabelledOld.html">expression::LabelledOld</a> {
-    <span class="kw">fn </span>to_viper(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <a href="mod.rs.html#9">Context</a>, ast: <span class="kw-2">&amp;</span>AstFactory&lt;<span class="lifetime">&#39;v</span>&gt;) -&gt; viper::Expr&lt;<span class="lifetime">&#39;v</span>&gt; {
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(label) = <span class="kw-2">&amp;</span><a class="self" href="#277">self</a>.label {
-            <a href="#277">ast</a>.labelled_old_with_pos(
-                <a class="self" href="#277">self</a>.base.<a href="mod.rs.html#21">to_viper</a>(<a href="#277">context</a>, <a href="#277">ast</a>),
-                <a href="#278">label</a>,
-                <a class="self" href="#277">self</a>.position.<a href="mod.rs.html#21">to_viper</a>(<a href="#277">context</a>, <a href="#277">ast</a>),
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;v</span>&gt; ToViper&lt;<span class="lifetime">&#39;v</span>, viper::Expr&lt;<span class="lifetime">&#39;v</span>&gt;&gt; <span class="kw">for </span>expression::LabelledOld {
+    <span class="kw">fn </span>to_viper(<span class="kw-2">&amp;</span><span class="self">self</span>, context: Context, ast: <span class="kw-2">&amp;</span>AstFactory&lt;<span class="lifetime">&#39;v</span>&gt;) -&gt; viper::Expr&lt;<span class="lifetime">&#39;v</span>&gt; {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(label) = <span class="kw-2">&amp;</span><span class="self">self</span>.label {
+            ast.labelled_old_with_pos(
+                <span class="self">self</span>.base.to_viper(context, ast),
+                label,
+                <span class="self">self</span>.position.to_viper(context, ast),
             )
         } <span class="kw">else </span>{
-            <a href="#277">ast</a>.old(<a class="self" href="#277">self</a>.base.<a href="mod.rs.html#21">to_viper</a>(<a href="#277">context</a>, <a href="#277">ast</a>))
+            ast.old(<span class="self">self</span>.base.to_viper(context, ast))
         }
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;v</span>&gt; ToViper&lt;<span class="lifetime">&#39;v</span>, viper::Expr&lt;<span class="lifetime">&#39;v</span>&gt;&gt; <span class="kw">for </span><a href="../../../../vir/gen/low/ast/expression/struct.Constant.html">expression::Constant</a> {
-    <span class="kw">fn </span>to_viper(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <a href="mod.rs.html#9">Context</a>, ast: <span class="kw-2">&amp;</span>AstFactory&lt;<span class="lifetime">&#39;v</span>&gt;) -&gt; viper::Expr&lt;<span class="lifetime">&#39;v</span>&gt; {
-        <span class="kw">match </span><span class="kw-2">&amp;</span><a class="self" href="#291">self</a>.ty {
-            Type::Int =&gt; <span class="kw">match </span><span class="kw-2">&amp;</span><a class="self" href="#291">self</a>.value {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;v</span>&gt; ToViper&lt;<span class="lifetime">&#39;v</span>, viper::Expr&lt;<span class="lifetime">&#39;v</span>&gt;&gt; <span class="kw">for </span>expression::Constant {
+    <span class="kw">fn </span>to_viper(<span class="kw-2">&amp;</span><span class="self">self</span>, context: Context, ast: <span class="kw-2">&amp;</span>AstFactory&lt;<span class="lifetime">&#39;v</span>&gt;) -&gt; viper::Expr&lt;<span class="lifetime">&#39;v</span>&gt; {
+        <span class="kw">match </span><span class="kw-2">&amp;</span><span class="self">self</span>.ty {
+            Type::Int =&gt; <span class="kw">match </span><span class="kw-2">&amp;</span><span class="self">self</span>.value {
                 expression::ConstantValue::Bool(<span class="kw">_</span>) =&gt; {
-                    <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>()
+                    <span class="macro">unreachable!</span>()
                 }
                 expression::ConstantValue::Int(value) =&gt; {
-                    <a href="#291">ast</a>.int_lit_with_pos(<span class="kw-2">*</span><a href="#297">value</a>, <a class="self" href="#291">self</a>.position.<a href="mod.rs.html#21">to_viper</a>(<a href="#291">context</a>, <a href="#291">ast</a>))
+                    ast.int_lit_with_pos(<span class="kw-2">*</span>value, <span class="self">self</span>.position.to_viper(context, ast))
                 }
                 expression::ConstantValue::BigInt(value) =&gt; {
-                    <a href="#291">ast</a>.int_lit_from_ref_with_pos(<a href="#300">value</a>, <a class="self" href="#291">self</a>.position.<a href="mod.rs.html#21">to_viper</a>(<a href="#291">context</a>, <a href="#291">ast</a>))
+                    ast.int_lit_from_ref_with_pos(value, <span class="self">self</span>.position.to_viper(context, ast))
                 }
             },
-            Type::Bool =&gt; <span class="kw">match </span><span class="kw-2">&amp;</span><a class="self" href="#291">self</a>.value {
+            Type::Bool =&gt; <span class="kw">match </span><span class="kw-2">&amp;</span><span class="self">self</span>.value {
                 expression::ConstantValue::Bool(<span class="bool-val">true</span>) =&gt; {
-                    <a href="#291">ast</a>.true_lit_with_pos(<a class="self" href="#291">self</a>.position.<a href="mod.rs.html#21">to_viper</a>(<a href="#291">context</a>, <a href="#291">ast</a>))
+                    ast.true_lit_with_pos(<span class="self">self</span>.position.to_viper(context, ast))
                 }
                 expression::ConstantValue::Bool(<span class="bool-val">false</span>) =&gt; {
-                    <a href="#291">ast</a>.false_lit_with_pos(<a class="self" href="#291">self</a>.position.<a href="mod.rs.html#21">to_viper</a>(<a href="#291">context</a>, <a href="#291">ast</a>))
+                    ast.false_lit_with_pos(<span class="self">self</span>.position.to_viper(context, ast))
                 }
-                <span class="kw">_ </span>=&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(),
+                <span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>(),
             },
-            Type::Float(<span class="kw">_</span>) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unimplemented.html">unimplemented!</a>(),
-            Type::BitVector(<span class="kw">_</span>) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unimplemented.html">unimplemented!</a>(),
-            Type::Seq(<span class="kw">_</span>) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unimplemented.html">unimplemented!</a>(),
-            Type::Set(<span class="kw">_</span>) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unimplemented.html">unimplemented!</a>(),
-            Type::MultiSet(<span class="kw">_</span>) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unimplemented.html">unimplemented!</a>(),
-            Type::Map(<span class="kw">_</span>) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unimplemented.html">unimplemented!</a>(),
-            Type::Ref =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unimplemented.html">unimplemented!</a>(),
-            Type::Perm =&gt; <span class="kw">match </span><span class="kw-2">&amp;</span><a class="self" href="#291">self</a>.value {
+            Type::Float(<span class="kw">_</span>) =&gt; <span class="macro">unimplemented!</span>(),
+            Type::BitVector(<span class="kw">_</span>) =&gt; <span class="macro">unimplemented!</span>(),
+            Type::Seq(<span class="kw">_</span>) =&gt; <span class="macro">unimplemented!</span>(),
+            Type::Set(<span class="kw">_</span>) =&gt; <span class="macro">unimplemented!</span>(),
+            Type::MultiSet(<span class="kw">_</span>) =&gt; <span class="macro">unimplemented!</span>(),
+            Type::Map(<span class="kw">_</span>) =&gt; <span class="macro">unimplemented!</span>(),
+            Type::Ref =&gt; <span class="macro">unimplemented!</span>(),
+            Type::Perm =&gt; <span class="kw">match </span><span class="kw-2">&amp;</span><span class="self">self</span>.value {
                 expression::ConstantValue::Bool(<span class="kw">_</span>) =&gt; {
-                    <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>()
+                    <span class="macro">unreachable!</span>()
                 }
-                expression::ConstantValue::Int(value) =&gt; <span class="kw">match </span><a href="#324">value</a> {
-                    <span class="number">0 </span>=&gt; <a href="#291">ast</a>.no_perm(),
-                    <span class="number">1 </span>=&gt; <a href="#291">ast</a>.full_perm(),
-                    -<span class="number">1 </span>=&gt; <a href="#291">ast</a>.wildcard_perm(),
-                    <span class="kw">_ </span>=&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unimplemented.html">unimplemented!</a>(<span class="string">&quot;value: {}&quot;</span>, value),
+                expression::ConstantValue::Int(value) =&gt; <span class="kw">match </span>value {
+                    <span class="number">0 </span>=&gt; ast.no_perm(),
+                    <span class="number">1 </span>=&gt; ast.full_perm(),
+                    -<span class="number">1 </span>=&gt; ast.wildcard_perm(),
+                    <span class="kw">_ </span>=&gt; <span class="macro">unimplemented!</span>(<span class="string">&quot;value: {}&quot;</span>, value),
                 },
                 expression::ConstantValue::BigInt(<span class="kw">_</span>) =&gt; {
-                    <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unimplemented.html">unimplemented!</a>()
+                    <span class="macro">unimplemented!</span>()
                 }
             },
-            Type::Domain(domain) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unimplemented.html">unimplemented!</a>(<span class="string">&quot;domain: {:?} constant: {:?}&quot;</span>, domain, <span class="self">self</span>),
+            Type::Domain(domain) =&gt; <span class="macro">unimplemented!</span>(<span class="string">&quot;domain: {:?} constant: {:?}&quot;</span>, domain, <span class="self">self</span>),
         }
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;v</span>&gt; ToViper&lt;<span class="lifetime">&#39;v</span>, viper::Expr&lt;<span class="lifetime">&#39;v</span>&gt;&gt; <span class="kw">for </span><a href="../../../../vir/gen/low/ast/expression/struct.MagicWand.html">expression::MagicWand</a> {
-    <span class="kw">fn </span>to_viper(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <a href="mod.rs.html#9">Context</a>, ast: <span class="kw-2">&amp;</span>AstFactory&lt;<span class="lifetime">&#39;v</span>&gt;) -&gt; viper::Expr&lt;<span class="lifetime">&#39;v</span>&gt; {
-        <a href="#340">ast</a>.magic_wand_with_pos(
-            <a class="self" href="#340">self</a>.left.<a href="mod.rs.html#21">to_viper</a>(<a href="#340">context</a>, <a href="#340">ast</a>),
-            <a class="self" href="#340">self</a>.right.<a href="mod.rs.html#21">to_viper</a>(<a href="#340">context</a>, <a href="#340">ast</a>),
-            <a class="self" href="#340">self</a>.position.<a href="mod.rs.html#21">to_viper</a>(<a href="#340">context</a>, <a href="#340">ast</a>),
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;v</span>&gt; ToViper&lt;<span class="lifetime">&#39;v</span>, viper::Expr&lt;<span class="lifetime">&#39;v</span>&gt;&gt; <span class="kw">for </span>expression::MagicWand {
+    <span class="kw">fn </span>to_viper(<span class="kw-2">&amp;</span><span class="self">self</span>, context: Context, ast: <span class="kw-2">&amp;</span>AstFactory&lt;<span class="lifetime">&#39;v</span>&gt;) -&gt; viper::Expr&lt;<span class="lifetime">&#39;v</span>&gt; {
+        ast.magic_wand_with_pos(
+            <span class="self">self</span>.left.to_viper(context, ast),
+            <span class="self">self</span>.right.to_viper(context, ast),
+            <span class="self">self</span>.position.to_viper(context, ast),
         )
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;v</span>&gt; ToViper&lt;<span class="lifetime">&#39;v</span>, viper::Expr&lt;<span class="lifetime">&#39;v</span>&gt;&gt; <span class="kw">for </span><a href="../../../../vir/gen/low/ast/expression/struct.PredicateAccessPredicate.html">expression::PredicateAccessPredicate</a> {
-    <span class="kw">fn </span>to_viper(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <a href="mod.rs.html#9">Context</a>, ast: <span class="kw-2">&amp;</span>AstFactory&lt;<span class="lifetime">&#39;v</span>&gt;) -&gt; viper::Expr&lt;<span class="lifetime">&#39;v</span>&gt; {
-        <span class="kw">let </span>location = <a href="#350">ast</a>.predicate_access(<span class="kw-2">&amp;</span><a class="self" href="#350">self</a>.arguments.<a href="mod.rs.html#21">to_viper</a>(<a href="#350">context</a>, <a href="#350">ast</a>), <span class="kw-2">&amp;</span><a class="self" href="#350">self</a>.name);
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;v</span>&gt; ToViper&lt;<span class="lifetime">&#39;v</span>, viper::Expr&lt;<span class="lifetime">&#39;v</span>&gt;&gt; <span class="kw">for </span>expression::PredicateAccessPredicate {
+    <span class="kw">fn </span>to_viper(<span class="kw-2">&amp;</span><span class="self">self</span>, context: Context, ast: <span class="kw-2">&amp;</span>AstFactory&lt;<span class="lifetime">&#39;v</span>&gt;) -&gt; viper::Expr&lt;<span class="lifetime">&#39;v</span>&gt; {
+        <span class="kw">let </span>location = ast.predicate_access(<span class="kw-2">&amp;</span><span class="self">self</span>.arguments.to_viper(context, ast), <span class="kw-2">&amp;</span><span class="self">self</span>.name);
         <span class="kw">if </span>context.inside_trigger {
-            <a href="#351">location</a>
+            location
         } <span class="kw">else </span>{
-            <a href="#350">ast</a>.predicate_access_predicate_with_pos(
-                <a href="#351">location</a>,
-                <a class="self" href="#350">self</a>.permission.<a href="mod.rs.html#21">to_viper</a>(<a href="#350">context</a>, <a href="#350">ast</a>),
-                <a class="self" href="#350">self</a>.position.<a href="mod.rs.html#21">to_viper</a>(<a href="#350">context</a>, <a href="#350">ast</a>),
+            ast.predicate_access_predicate_with_pos(
+                location,
+                <span class="self">self</span>.permission.to_viper(context, ast),
+                <span class="self">self</span>.position.to_viper(context, ast),
             )
         }
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;v</span>&gt; ToViper&lt;<span class="lifetime">&#39;v</span>, viper::Expr&lt;<span class="lifetime">&#39;v</span>&gt;&gt; <span class="kw">for </span><a href="../../../../vir/gen/low/ast/expression/struct.UnaryOp.html">expression::UnaryOp</a> {
-    <span class="kw">fn </span>to_viper(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <a href="mod.rs.html#9">Context</a>, ast: <span class="kw-2">&amp;</span>AstFactory&lt;<span class="lifetime">&#39;v</span>&gt;) -&gt; viper::Expr&lt;<span class="lifetime">&#39;v</span>&gt; {
-        <span class="kw">match </span><a class="self" href="#365">self</a>.op_kind {
-            expression::UnaryOpKind::Minus =&gt; <a href="#365">ast</a>.minus_with_pos(
-                <a class="self" href="#365">self</a>.argument.<a href="mod.rs.html#21">to_viper</a>(<a href="#365">context</a>, <a href="#365">ast</a>),
-                <a class="self" href="#365">self</a>.position.<a href="mod.rs.html#21">to_viper</a>(<a href="#365">context</a>, <a href="#365">ast</a>),
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;v</span>&gt; ToViper&lt;<span class="lifetime">&#39;v</span>, viper::Expr&lt;<span class="lifetime">&#39;v</span>&gt;&gt; <span class="kw">for </span>expression::UnaryOp {
+    <span class="kw">fn </span>to_viper(<span class="kw-2">&amp;</span><span class="self">self</span>, context: Context, ast: <span class="kw-2">&amp;</span>AstFactory&lt;<span class="lifetime">&#39;v</span>&gt;) -&gt; viper::Expr&lt;<span class="lifetime">&#39;v</span>&gt; {
+        <span class="kw">match </span><span class="self">self</span>.op_kind {
+            expression::UnaryOpKind::Minus =&gt; ast.minus_with_pos(
+                <span class="self">self</span>.argument.to_viper(context, ast),
+                <span class="self">self</span>.position.to_viper(context, ast),
             ),
-            expression::UnaryOpKind::Not =&gt; <a href="#365">ast</a>.not_with_pos(
-                <a class="self" href="#365">self</a>.argument.<a href="mod.rs.html#21">to_viper</a>(<a href="#365">context</a>, <a href="#365">ast</a>),
-                <a class="self" href="#365">self</a>.position.<a href="mod.rs.html#21">to_viper</a>(<a href="#365">context</a>, <a href="#365">ast</a>),
-            ),
-        }
-    }
-}
-
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;v</span>&gt; ToViper&lt;<span class="lifetime">&#39;v</span>, viper::Expr&lt;<span class="lifetime">&#39;v</span>&gt;&gt; <span class="kw">for </span><a href="../../../../vir/gen/low/ast/expression/struct.BinaryOp.html">expression::BinaryOp</a> {
-    <span class="kw">fn </span>to_viper(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <a href="mod.rs.html#9">Context</a>, ast: <span class="kw-2">&amp;</span>AstFactory&lt;<span class="lifetime">&#39;v</span>&gt;) -&gt; viper::Expr&lt;<span class="lifetime">&#39;v</span>&gt; {
-        <span class="kw">match </span><a class="self" href="#380">self</a>.op_kind {
-            expression::BinaryOpKind::EqCmp =&gt; <a href="#380">ast</a>.eq_cmp_with_pos(
-                <a class="self" href="#380">self</a>.left.<a href="mod.rs.html#21">to_viper</a>(<a href="#380">context</a>, <a href="#380">ast</a>),
-                <a class="self" href="#380">self</a>.right.<a href="mod.rs.html#21">to_viper</a>(<a href="#380">context</a>, <a href="#380">ast</a>),
-                <a class="self" href="#380">self</a>.position.<a href="mod.rs.html#21">to_viper</a>(<a href="#380">context</a>, <a href="#380">ast</a>),
-            ),
-            expression::BinaryOpKind::NeCmp =&gt; <a href="#380">ast</a>.ne_cmp_with_pos(
-                <a class="self" href="#380">self</a>.left.<a href="mod.rs.html#21">to_viper</a>(<a href="#380">context</a>, <a href="#380">ast</a>),
-                <a class="self" href="#380">self</a>.right.<a href="mod.rs.html#21">to_viper</a>(<a href="#380">context</a>, <a href="#380">ast</a>),
-                <a class="self" href="#380">self</a>.position.<a href="mod.rs.html#21">to_viper</a>(<a href="#380">context</a>, <a href="#380">ast</a>),
-            ),
-            expression::BinaryOpKind::GtCmp =&gt; <a href="#380">ast</a>.gt_cmp_with_pos(
-                <a class="self" href="#380">self</a>.left.<a href="mod.rs.html#21">to_viper</a>(<a href="#380">context</a>, <a href="#380">ast</a>),
-                <a class="self" href="#380">self</a>.right.<a href="mod.rs.html#21">to_viper</a>(<a href="#380">context</a>, <a href="#380">ast</a>),
-                <a class="self" href="#380">self</a>.position.<a href="mod.rs.html#21">to_viper</a>(<a href="#380">context</a>, <a href="#380">ast</a>),
-            ),
-            expression::BinaryOpKind::GeCmp =&gt; <a href="#380">ast</a>.ge_cmp_with_pos(
-                <a class="self" href="#380">self</a>.left.<a href="mod.rs.html#21">to_viper</a>(<a href="#380">context</a>, <a href="#380">ast</a>),
-                <a class="self" href="#380">self</a>.right.<a href="mod.rs.html#21">to_viper</a>(<a href="#380">context</a>, <a href="#380">ast</a>),
-                <a class="self" href="#380">self</a>.position.<a href="mod.rs.html#21">to_viper</a>(<a href="#380">context</a>, <a href="#380">ast</a>),
-            ),
-            expression::BinaryOpKind::LtCmp =&gt; <a href="#380">ast</a>.lt_cmp_with_pos(
-                <a class="self" href="#380">self</a>.left.<a href="mod.rs.html#21">to_viper</a>(<a href="#380">context</a>, <a href="#380">ast</a>),
-                <a class="self" href="#380">self</a>.right.<a href="mod.rs.html#21">to_viper</a>(<a href="#380">context</a>, <a href="#380">ast</a>),
-                <a class="self" href="#380">self</a>.position.<a href="mod.rs.html#21">to_viper</a>(<a href="#380">context</a>, <a href="#380">ast</a>),
-            ),
-            expression::BinaryOpKind::LeCmp =&gt; <a href="#380">ast</a>.le_cmp_with_pos(
-                <a class="self" href="#380">self</a>.left.<a href="mod.rs.html#21">to_viper</a>(<a href="#380">context</a>, <a href="#380">ast</a>),
-                <a class="self" href="#380">self</a>.right.<a href="mod.rs.html#21">to_viper</a>(<a href="#380">context</a>, <a href="#380">ast</a>),
-                <a class="self" href="#380">self</a>.position.<a href="mod.rs.html#21">to_viper</a>(<a href="#380">context</a>, <a href="#380">ast</a>),
-            ),
-            expression::BinaryOpKind::Add =&gt; <a href="#380">ast</a>.add_with_pos(
-                <a class="self" href="#380">self</a>.left.<a href="mod.rs.html#21">to_viper</a>(<a href="#380">context</a>, <a href="#380">ast</a>),
-                <a class="self" href="#380">self</a>.right.<a href="mod.rs.html#21">to_viper</a>(<a href="#380">context</a>, <a href="#380">ast</a>),
-                <a class="self" href="#380">self</a>.position.<a href="mod.rs.html#21">to_viper</a>(<a href="#380">context</a>, <a href="#380">ast</a>),
-            ),
-            expression::BinaryOpKind::Sub =&gt; <a href="#380">ast</a>.sub_with_pos(
-                <a class="self" href="#380">self</a>.left.<a href="mod.rs.html#21">to_viper</a>(<a href="#380">context</a>, <a href="#380">ast</a>),
-                <a class="self" href="#380">self</a>.right.<a href="mod.rs.html#21">to_viper</a>(<a href="#380">context</a>, <a href="#380">ast</a>),
-                <a class="self" href="#380">self</a>.position.<a href="mod.rs.html#21">to_viper</a>(<a href="#380">context</a>, <a href="#380">ast</a>),
-            ),
-            expression::BinaryOpKind::Mul =&gt; <a href="#380">ast</a>.mul_with_pos(
-                <a class="self" href="#380">self</a>.left.<a href="mod.rs.html#21">to_viper</a>(<a href="#380">context</a>, <a href="#380">ast</a>),
-                <a class="self" href="#380">self</a>.right.<a href="mod.rs.html#21">to_viper</a>(<a href="#380">context</a>, <a href="#380">ast</a>),
-                <a class="self" href="#380">self</a>.position.<a href="mod.rs.html#21">to_viper</a>(<a href="#380">context</a>, <a href="#380">ast</a>),
-            ),
-            expression::BinaryOpKind::Div =&gt; <a href="#380">ast</a>.div_with_pos(
-                <a class="self" href="#380">self</a>.left.<a href="mod.rs.html#21">to_viper</a>(<a href="#380">context</a>, <a href="#380">ast</a>),
-                <a class="self" href="#380">self</a>.right.<a href="mod.rs.html#21">to_viper</a>(<a href="#380">context</a>, <a href="#380">ast</a>),
-                <a class="self" href="#380">self</a>.position.<a href="mod.rs.html#21">to_viper</a>(<a href="#380">context</a>, <a href="#380">ast</a>),
-            ),
-            expression::BinaryOpKind::Mod =&gt; <a href="#380">ast</a>.module_with_pos(
-                <a class="self" href="#380">self</a>.left.<a href="mod.rs.html#21">to_viper</a>(<a href="#380">context</a>, <a href="#380">ast</a>),
-                <a class="self" href="#380">self</a>.right.<a href="mod.rs.html#21">to_viper</a>(<a href="#380">context</a>, <a href="#380">ast</a>),
-                <a class="self" href="#380">self</a>.position.<a href="mod.rs.html#21">to_viper</a>(<a href="#380">context</a>, <a href="#380">ast</a>),
-            ),
-            expression::BinaryOpKind::And =&gt; <a href="#380">ast</a>.and_with_pos(
-                <a class="self" href="#380">self</a>.left.<a href="mod.rs.html#21">to_viper</a>(<a href="#380">context</a>, <a href="#380">ast</a>),
-                <a class="self" href="#380">self</a>.right.<a href="mod.rs.html#21">to_viper</a>(<a href="#380">context</a>, <a href="#380">ast</a>),
-                <a class="self" href="#380">self</a>.position.<a href="mod.rs.html#21">to_viper</a>(<a href="#380">context</a>, <a href="#380">ast</a>),
-            ),
-            expression::BinaryOpKind::Or =&gt; <a href="#380">ast</a>.or_with_pos(
-                <a class="self" href="#380">self</a>.left.<a href="mod.rs.html#21">to_viper</a>(<a href="#380">context</a>, <a href="#380">ast</a>),
-                <a class="self" href="#380">self</a>.right.<a href="mod.rs.html#21">to_viper</a>(<a href="#380">context</a>, <a href="#380">ast</a>),
-                <a class="self" href="#380">self</a>.position.<a href="mod.rs.html#21">to_viper</a>(<a href="#380">context</a>, <a href="#380">ast</a>),
-            ),
-            expression::BinaryOpKind::Implies =&gt; <a href="#380">ast</a>.implies_with_pos(
-                <a class="self" href="#380">self</a>.left.<a href="mod.rs.html#21">to_viper</a>(<a href="#380">context</a>, <a href="#380">ast</a>),
-                <a class="self" href="#380">self</a>.right.<a href="mod.rs.html#21">to_viper</a>(<a href="#380">context</a>, <a href="#380">ast</a>),
-                <a class="self" href="#380">self</a>.position.<a href="mod.rs.html#21">to_viper</a>(<a href="#380">context</a>, <a href="#380">ast</a>),
+            expression::UnaryOpKind::Not =&gt; ast.not_with_pos(
+                <span class="self">self</span>.argument.to_viper(context, ast),
+                <span class="self">self</span>.position.to_viper(context, ast),
             ),
         }
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;v</span>&gt; ToViper&lt;<span class="lifetime">&#39;v</span>, viper::Expr&lt;<span class="lifetime">&#39;v</span>&gt;&gt; <span class="kw">for </span><a href="../../../../vir/gen/low/ast/expression/struct.PermBinaryOp.html">expression::PermBinaryOp</a> {
-    <span class="kw">fn </span>to_viper(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <a href="mod.rs.html#9">Context</a>, ast: <span class="kw-2">&amp;</span>AstFactory&lt;<span class="lifetime">&#39;v</span>&gt;) -&gt; viper::Expr&lt;<span class="lifetime">&#39;v</span>&gt; {
-        <span class="kw">match </span><a class="self" href="#457">self</a>.op_kind {
-            expression::PermBinaryOpKind::Add =&gt; <a href="#457">ast</a>.perm_add(
-                <a class="self" href="#457">self</a>.left.<a href="mod.rs.html#21">to_viper</a>(<a href="#457">context</a>, <a href="#457">ast</a>),
-                <a class="self" href="#457">self</a>.right.<a href="mod.rs.html#21">to_viper</a>(<a href="#457">context</a>, <a href="#457">ast</a>),
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;v</span>&gt; ToViper&lt;<span class="lifetime">&#39;v</span>, viper::Expr&lt;<span class="lifetime">&#39;v</span>&gt;&gt; <span class="kw">for </span>expression::BinaryOp {
+    <span class="kw">fn </span>to_viper(<span class="kw-2">&amp;</span><span class="self">self</span>, context: Context, ast: <span class="kw-2">&amp;</span>AstFactory&lt;<span class="lifetime">&#39;v</span>&gt;) -&gt; viper::Expr&lt;<span class="lifetime">&#39;v</span>&gt; {
+        <span class="kw">match </span><span class="self">self</span>.op_kind {
+            expression::BinaryOpKind::EqCmp =&gt; ast.eq_cmp_with_pos(
+                <span class="self">self</span>.left.to_viper(context, ast),
+                <span class="self">self</span>.right.to_viper(context, ast),
+                <span class="self">self</span>.position.to_viper(context, ast),
             ),
-            expression::PermBinaryOpKind::Sub =&gt; <a href="#457">ast</a>.perm_sub(
-                <a class="self" href="#457">self</a>.left.<a href="mod.rs.html#21">to_viper</a>(<a href="#457">context</a>, <a href="#457">ast</a>),
-                <a class="self" href="#457">self</a>.right.<a href="mod.rs.html#21">to_viper</a>(<a href="#457">context</a>, <a href="#457">ast</a>),
+            expression::BinaryOpKind::NeCmp =&gt; ast.ne_cmp_with_pos(
+                <span class="self">self</span>.left.to_viper(context, ast),
+                <span class="self">self</span>.right.to_viper(context, ast),
+                <span class="self">self</span>.position.to_viper(context, ast),
             ),
-            expression::PermBinaryOpKind::Mul =&gt; <a href="#457">ast</a>.perm_mul(
-                <a class="self" href="#457">self</a>.left.<a href="mod.rs.html#21">to_viper</a>(<a href="#457">context</a>, <a href="#457">ast</a>),
-                <a class="self" href="#457">self</a>.right.<a href="mod.rs.html#21">to_viper</a>(<a href="#457">context</a>, <a href="#457">ast</a>),
+            expression::BinaryOpKind::GtCmp =&gt; ast.gt_cmp_with_pos(
+                <span class="self">self</span>.left.to_viper(context, ast),
+                <span class="self">self</span>.right.to_viper(context, ast),
+                <span class="self">self</span>.position.to_viper(context, ast),
             ),
-            expression::PermBinaryOpKind::Div =&gt; <a href="#457">ast</a>.perm_div(
-                <a class="self" href="#457">self</a>.left.<a href="mod.rs.html#21">to_viper</a>(<a href="#457">context</a>, <a href="#457">ast</a>),
-                <a class="self" href="#457">self</a>.right.<a href="mod.rs.html#21">to_viper</a>(<a href="#457">context</a>, <a href="#457">ast</a>),
+            expression::BinaryOpKind::GeCmp =&gt; ast.ge_cmp_with_pos(
+                <span class="self">self</span>.left.to_viper(context, ast),
+                <span class="self">self</span>.right.to_viper(context, ast),
+                <span class="self">self</span>.position.to_viper(context, ast),
+            ),
+            expression::BinaryOpKind::LtCmp =&gt; ast.lt_cmp_with_pos(
+                <span class="self">self</span>.left.to_viper(context, ast),
+                <span class="self">self</span>.right.to_viper(context, ast),
+                <span class="self">self</span>.position.to_viper(context, ast),
+            ),
+            expression::BinaryOpKind::LeCmp =&gt; ast.le_cmp_with_pos(
+                <span class="self">self</span>.left.to_viper(context, ast),
+                <span class="self">self</span>.right.to_viper(context, ast),
+                <span class="self">self</span>.position.to_viper(context, ast),
+            ),
+            expression::BinaryOpKind::Add =&gt; ast.add_with_pos(
+                <span class="self">self</span>.left.to_viper(context, ast),
+                <span class="self">self</span>.right.to_viper(context, ast),
+                <span class="self">self</span>.position.to_viper(context, ast),
+            ),
+            expression::BinaryOpKind::Sub =&gt; ast.sub_with_pos(
+                <span class="self">self</span>.left.to_viper(context, ast),
+                <span class="self">self</span>.right.to_viper(context, ast),
+                <span class="self">self</span>.position.to_viper(context, ast),
+            ),
+            expression::BinaryOpKind::Mul =&gt; ast.mul_with_pos(
+                <span class="self">self</span>.left.to_viper(context, ast),
+                <span class="self">self</span>.right.to_viper(context, ast),
+                <span class="self">self</span>.position.to_viper(context, ast),
+            ),
+            expression::BinaryOpKind::Div =&gt; ast.div_with_pos(
+                <span class="self">self</span>.left.to_viper(context, ast),
+                <span class="self">self</span>.right.to_viper(context, ast),
+                <span class="self">self</span>.position.to_viper(context, ast),
+            ),
+            expression::BinaryOpKind::Mod =&gt; ast.module_with_pos(
+                <span class="self">self</span>.left.to_viper(context, ast),
+                <span class="self">self</span>.right.to_viper(context, ast),
+                <span class="self">self</span>.position.to_viper(context, ast),
+            ),
+            expression::BinaryOpKind::And =&gt; ast.and_with_pos(
+                <span class="self">self</span>.left.to_viper(context, ast),
+                <span class="self">self</span>.right.to_viper(context, ast),
+                <span class="self">self</span>.position.to_viper(context, ast),
+            ),
+            expression::BinaryOpKind::Or =&gt; ast.or_with_pos(
+                <span class="self">self</span>.left.to_viper(context, ast),
+                <span class="self">self</span>.right.to_viper(context, ast),
+                <span class="self">self</span>.position.to_viper(context, ast),
+            ),
+            expression::BinaryOpKind::Implies =&gt; ast.implies_with_pos(
+                <span class="self">self</span>.left.to_viper(context, ast),
+                <span class="self">self</span>.right.to_viper(context, ast),
+                <span class="self">self</span>.position.to_viper(context, ast),
             ),
         }
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;v</span>&gt; ToViper&lt;<span class="lifetime">&#39;v</span>, viper::Expr&lt;<span class="lifetime">&#39;v</span>&gt;&gt; <span class="kw">for </span><a href="../../../../vir/gen/low/ast/expression/struct.Conditional.html">expression::Conditional</a> {
-    <span class="kw">fn </span>to_viper(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <a href="mod.rs.html#9">Context</a>, ast: <span class="kw-2">&amp;</span>AstFactory&lt;<span class="lifetime">&#39;v</span>&gt;) -&gt; viper::Expr&lt;<span class="lifetime">&#39;v</span>&gt; {
-        <a href="#480">ast</a>.cond_exp_with_pos(
-            <a class="self" href="#480">self</a>.guard.<a href="mod.rs.html#21">to_viper</a>(<a href="#480">context</a>, <a href="#480">ast</a>),
-            <a class="self" href="#480">self</a>.then_expr.<a href="mod.rs.html#21">to_viper</a>(<a href="#480">context</a>, <a href="#480">ast</a>),
-            <a class="self" href="#480">self</a>.else_expr.<a href="mod.rs.html#21">to_viper</a>(<a href="#480">context</a>, <a href="#480">ast</a>),
-            <a class="self" href="#480">self</a>.position.<a href="mod.rs.html#21">to_viper</a>(<a href="#480">context</a>, <a href="#480">ast</a>),
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;v</span>&gt; ToViper&lt;<span class="lifetime">&#39;v</span>, viper::Expr&lt;<span class="lifetime">&#39;v</span>&gt;&gt; <span class="kw">for </span>expression::PermBinaryOp {
+    <span class="kw">fn </span>to_viper(<span class="kw-2">&amp;</span><span class="self">self</span>, context: Context, ast: <span class="kw-2">&amp;</span>AstFactory&lt;<span class="lifetime">&#39;v</span>&gt;) -&gt; viper::Expr&lt;<span class="lifetime">&#39;v</span>&gt; {
+        <span class="kw">match </span><span class="self">self</span>.op_kind {
+            expression::PermBinaryOpKind::Add =&gt; ast.perm_add(
+                <span class="self">self</span>.left.to_viper(context, ast),
+                <span class="self">self</span>.right.to_viper(context, ast),
+            ),
+            expression::PermBinaryOpKind::Sub =&gt; ast.perm_sub(
+                <span class="self">self</span>.left.to_viper(context, ast),
+                <span class="self">self</span>.right.to_viper(context, ast),
+            ),
+            expression::PermBinaryOpKind::Mul =&gt; ast.perm_mul(
+                <span class="self">self</span>.left.to_viper(context, ast),
+                <span class="self">self</span>.right.to_viper(context, ast),
+            ),
+            expression::PermBinaryOpKind::Div =&gt; ast.perm_div(
+                <span class="self">self</span>.left.to_viper(context, ast),
+                <span class="self">self</span>.right.to_viper(context, ast),
+            ),
+        }
+    }
+}
+
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;v</span>&gt; ToViper&lt;<span class="lifetime">&#39;v</span>, viper::Expr&lt;<span class="lifetime">&#39;v</span>&gt;&gt; <span class="kw">for </span>expression::Conditional {
+    <span class="kw">fn </span>to_viper(<span class="kw-2">&amp;</span><span class="self">self</span>, context: Context, ast: <span class="kw-2">&amp;</span>AstFactory&lt;<span class="lifetime">&#39;v</span>&gt;) -&gt; viper::Expr&lt;<span class="lifetime">&#39;v</span>&gt; {
+        ast.cond_exp_with_pos(
+            <span class="self">self</span>.guard.to_viper(context, ast),
+            <span class="self">self</span>.then_expr.to_viper(context, ast),
+            <span class="self">self</span>.else_expr.to_viper(context, ast),
+            <span class="self">self</span>.position.to_viper(context, ast),
         )
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;v</span>&gt; ToViper&lt;<span class="lifetime">&#39;v</span>, viper::Expr&lt;<span class="lifetime">&#39;v</span>&gt;&gt; <span class="kw">for </span><a href="../../../../vir/gen/low/ast/expression/struct.Quantifier.html">expression::Quantifier</a> {
-    <span class="kw">fn </span>to_viper(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <a href="mod.rs.html#9">Context</a>, ast: <span class="kw-2">&amp;</span>AstFactory&lt;<span class="lifetime">&#39;v</span>&gt;) -&gt; viper::Expr&lt;<span class="lifetime">&#39;v</span>&gt; {
-        <span class="kw">let </span>variables = <a class="self" href="#491">self</a>.variables.<a href="mod.rs.html#25">to_viper_decl</a>(<a href="#491">context</a>, <a href="#491">ast</a>);
-        <span class="kw">let </span>triggers = <span class="self"><a href="#491">self</a>
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;v</span>&gt; ToViper&lt;<span class="lifetime">&#39;v</span>, viper::Expr&lt;<span class="lifetime">&#39;v</span>&gt;&gt; <span class="kw">for </span>expression::Quantifier {
+    <span class="kw">fn </span>to_viper(<span class="kw-2">&amp;</span><span class="self">self</span>, context: Context, ast: <span class="kw-2">&amp;</span>AstFactory&lt;<span class="lifetime">&#39;v</span>&gt;) -&gt; viper::Expr&lt;<span class="lifetime">&#39;v</span>&gt; {
+        <span class="kw">let </span>variables = <span class="self">self</span>.variables.to_viper_decl(context, ast);
+        <span class="kw">let </span>triggers = <span class="self">self
             </span>.triggers
             .iter()
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|trigger| (<a href="#496">trigger</a>, <a class="self" href="#491">self</a>.position).<a href="mod.rs.html#21">to_viper</a>(<a href="#491">context</a>, <a href="#491">ast</a>))
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;();
-        <span class="kw">let </span>body = <a class="self" href="#491">self</a>.body.<a href="mod.rs.html#21">to_viper</a>(<a href="#491">context</a>, <a href="#491">ast</a>);
-        <span class="kw">let </span>pos = <a class="self" href="#491">self</a>.position.<a href="mod.rs.html#21">to_viper</a>(<a href="#491">context</a>, <a href="#491">ast</a>);
-        <span class="kw">match </span><a class="self" href="#491">self</a>.kind {
+            .map(|trigger| (trigger, <span class="self">self</span>.position).to_viper(context, ast))
+            .collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;();
+        <span class="kw">let </span>body = <span class="self">self</span>.body.to_viper(context, ast);
+        <span class="kw">let </span>pos = <span class="self">self</span>.position.to_viper(context, ast);
+        <span class="kw">match </span><span class="self">self</span>.kind {
             expression::QuantifierKind::ForAll =&gt; {
-                <a href="#491">ast</a>.forall_with_pos(<span class="kw-2">&amp;</span><a href="#492">variables</a>[..], <span class="kw-2">&amp;</span><a href="#493">triggers</a>, <a href="#498">body</a>, <a href="#499">pos</a>)
+                ast.forall_with_pos(<span class="kw-2">&amp;</span>variables[..], <span class="kw-2">&amp;</span>triggers, body, pos)
             }
             expression::QuantifierKind::Exists =&gt; {
-                <a href="#491">ast</a>.exists_with_pos(<span class="kw-2">&amp;</span><a href="#492">variables</a>[..], <span class="kw-2">&amp;</span><a href="#493">triggers</a>, <a href="#498">body</a>, <a href="#499">pos</a>)
+                ast.exists_with_pos(<span class="kw-2">&amp;</span>variables[..], <span class="kw-2">&amp;</span>triggers, body, pos)
             }
         }
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;v</span>, <span class="lifetime">&#39;a</span>&gt; ToViper&lt;<span class="lifetime">&#39;v</span>, viper::Trigger&lt;<span class="lifetime">&#39;v</span>&gt;&gt; <span class="kw">for </span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="../../../../vir/gen/low/ast/expression/struct.Trigger.html">expression::Trigger</a>, <a href="../../../../prusti_common/vir/vir_high/struct.Position.html">Position</a>) {
-    <span class="kw">fn </span>to_viper(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <a href="mod.rs.html#9">Context</a>, ast: <span class="kw-2">&amp;</span>AstFactory&lt;<span class="lifetime">&#39;v</span>&gt;) -&gt; viper::Trigger&lt;<span class="lifetime">&#39;v</span>&gt; {
-        <span class="kw">let </span>trigger_context = <a href="#512">context</a>.<a href="mod.rs.html#14">set_inside_trigger</a>();
-        <a href="#512">ast</a>.trigger_with_pos(
-            <span class="kw-2">&amp;</span><a class="self" href="#512">self</a>.<span class="number">0</span>.terms.<a href="mod.rs.html#21">to_viper</a>(<a href="#513">trigger_context</a>, <a href="#512">ast</a>)[..],
-            <a class="self" href="#512">self</a>.<span class="number">1</span>.<a href="mod.rs.html#21">to_viper</a>(<a href="#512">context</a>, <a href="#512">ast</a>),
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;v</span>, <span class="lifetime">&#39;a</span>&gt; ToViper&lt;<span class="lifetime">&#39;v</span>, viper::Trigger&lt;<span class="lifetime">&#39;v</span>&gt;&gt; <span class="kw">for </span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>expression::Trigger, Position) {
+    <span class="kw">fn </span>to_viper(<span class="kw-2">&amp;</span><span class="self">self</span>, context: Context, ast: <span class="kw-2">&amp;</span>AstFactory&lt;<span class="lifetime">&#39;v</span>&gt;) -&gt; viper::Trigger&lt;<span class="lifetime">&#39;v</span>&gt; {
+        <span class="kw">let </span>trigger_context = context.set_inside_trigger();
+        ast.trigger_with_pos(
+            <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="number">0</span>.terms.to_viper(trigger_context, ast)[..],
+            <span class="self">self</span>.<span class="number">1</span>.to_viper(context, ast),
         )
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;v</span>&gt; ToViper&lt;<span class="lifetime">&#39;v</span>, viper::Expr&lt;<span class="lifetime">&#39;v</span>&gt;&gt; <span class="kw">for </span><a href="../../../../vir/gen/low/ast/expression/struct.FuncApp.html">expression::FuncApp</a> {
-    <span class="kw">fn </span>to_viper(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <a href="mod.rs.html#9">Context</a>, ast: <span class="kw-2">&amp;</span>AstFactory&lt;<span class="lifetime">&#39;v</span>&gt;) -&gt; viper::Expr&lt;<span class="lifetime">&#39;v</span>&gt; {
-        <a href="#522">ast</a>.func_app(
-            <span class="kw-2">&amp;</span><a class="self" href="#522">self</a>.function_name,
-            <span class="kw-2">&amp;</span><a class="self" href="#522">self</a>.arguments.<a href="mod.rs.html#21">to_viper</a>(<a href="#522">context</a>, <a href="#522">ast</a>),
-            <a class="self" href="#522">self</a>.return_type.<a href="mod.rs.html#21">to_viper</a>(<a href="#522">context</a>, <a href="#522">ast</a>),
-            <a class="self" href="#522">self</a>.position.<a href="mod.rs.html#21">to_viper</a>(<a href="#522">context</a>, <a href="#522">ast</a>),
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;v</span>&gt; ToViper&lt;<span class="lifetime">&#39;v</span>, viper::Expr&lt;<span class="lifetime">&#39;v</span>&gt;&gt; <span class="kw">for </span>expression::FuncApp {
+    <span class="kw">fn </span>to_viper(<span class="kw-2">&amp;</span><span class="self">self</span>, context: Context, ast: <span class="kw-2">&amp;</span>AstFactory&lt;<span class="lifetime">&#39;v</span>&gt;) -&gt; viper::Expr&lt;<span class="lifetime">&#39;v</span>&gt; {
+        ast.func_app(
+            <span class="kw-2">&amp;</span><span class="self">self</span>.function_name,
+            <span class="kw-2">&amp;</span><span class="self">self</span>.arguments.to_viper(context, ast),
+            <span class="self">self</span>.return_type.to_viper(context, ast),
+            <span class="self">self</span>.position.to_viper(context, ast),
         )
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;v</span>&gt; ToViper&lt;<span class="lifetime">&#39;v</span>, viper::Expr&lt;<span class="lifetime">&#39;v</span>&gt;&gt; <span class="kw">for </span><a href="../../../../vir/gen/low/ast/expression/struct.DomainFuncApp.html">expression::DomainFuncApp</a> {
-    <span class="kw">fn </span>to_viper(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <a href="mod.rs.html#9">Context</a>, ast: <span class="kw-2">&amp;</span>AstFactory&lt;<span class="lifetime">&#39;v</span>&gt;) -&gt; viper::Expr&lt;<span class="lifetime">&#39;v</span>&gt; {
-        <a href="#533">ast</a>.domain_func_app2(
-            <span class="kw-2">&amp;</span><a class="self" href="#533">self</a>.function_name,
-            <span class="kw-2">&amp;</span><a class="self" href="#533">self</a>.arguments.<a href="mod.rs.html#21">to_viper</a>(<a href="#533">context</a>, <a href="#533">ast</a>),
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;v</span>&gt; ToViper&lt;<span class="lifetime">&#39;v</span>, viper::Expr&lt;<span class="lifetime">&#39;v</span>&gt;&gt; <span class="kw">for </span>expression::DomainFuncApp {
+    <span class="kw">fn </span>to_viper(<span class="kw-2">&amp;</span><span class="self">self</span>, context: Context, ast: <span class="kw-2">&amp;</span>AstFactory&lt;<span class="lifetime">&#39;v</span>&gt;) -&gt; viper::Expr&lt;<span class="lifetime">&#39;v</span>&gt; {
+        ast.domain_func_app2(
+            <span class="kw-2">&amp;</span><span class="self">self</span>.function_name,
+            <span class="kw-2">&amp;</span><span class="self">self</span>.arguments.to_viper(context, ast),
             <span class="kw-2">&amp;</span>[],
-            <a class="self" href="#533">self</a>.return_type.<a href="mod.rs.html#21">to_viper</a>(<a href="#533">context</a>, <a href="#533">ast</a>),
-            <span class="kw-2">&amp;</span><a class="self" href="#533">self</a>.domain_name,
-            <a class="self" href="#533">self</a>.position.<a href="mod.rs.html#21">to_viper</a>(<a href="#533">context</a>, <a href="#533">ast</a>),
+            <span class="self">self</span>.return_type.to_viper(context, ast),
+            <span class="kw-2">&amp;</span><span class="self">self</span>.domain_name,
+            <span class="self">self</span>.position.to_viper(context, ast),
         )
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;v</span>&gt; ToViper&lt;<span class="lifetime">&#39;v</span>, viper::Expr&lt;<span class="lifetime">&#39;v</span>&gt;&gt; <span class="kw">for </span><a href="../../../../vir/gen/low/ast/expression/struct.ContainerOp.html">expression::ContainerOp</a> {
-    <span class="kw">fn </span>to_viper(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <a href="mod.rs.html#9">Context</a>, ast: <span class="kw-2">&amp;</span>AstFactory&lt;<span class="lifetime">&#39;v</span>&gt;) -&gt; viper::Expr&lt;<span class="lifetime">&#39;v</span>&gt; {
-        <span class="kw">let </span>element_type = || <span class="kw">match </span><span class="kw-2">&amp;</span><a class="self" href="#546">self</a>.container_type {
-            Type::Seq(<a href="../../../../vir/gen/low/ast/ty/struct.Seq.html">ty::Seq</a> { element_type, .. })
-            | Type::Set(<a href="../../../../vir/gen/low/ast/ty/struct.Set.html">ty::Set</a> { element_type, .. })
-            | Type::MultiSet(<a href="../../../../vir/gen/low/ast/ty/struct.MultiSet.html">ty::MultiSet</a> { element_type, .. }) =&gt; {
-                <a href="#548">element_type</a>.<a href="mod.rs.html#21">to_viper</a>(<a href="#546">context</a>, <a href="#546">ast</a>)
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;v</span>&gt; ToViper&lt;<span class="lifetime">&#39;v</span>, viper::Expr&lt;<span class="lifetime">&#39;v</span>&gt;&gt; <span class="kw">for </span>expression::ContainerOp {
+    <span class="kw">fn </span>to_viper(<span class="kw-2">&amp;</span><span class="self">self</span>, context: Context, ast: <span class="kw-2">&amp;</span>AstFactory&lt;<span class="lifetime">&#39;v</span>&gt;) -&gt; viper::Expr&lt;<span class="lifetime">&#39;v</span>&gt; {
+        <span class="kw">let </span>element_type = || <span class="kw">match </span><span class="kw-2">&amp;</span><span class="self">self</span>.container_type {
+            Type::Seq(ty::Seq { element_type, .. })
+            | Type::Set(ty::Set { element_type, .. })
+            | Type::MultiSet(ty::MultiSet { element_type, .. }) =&gt; {
+                element_type.to_viper(context, ast)
             }
-            <span class="kw">_ </span>=&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(<span class="string">&quot;{}&quot;</span>, <span class="self">self</span>.container_type),
+            <span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>(<span class="string">&quot;{}&quot;</span>, <span class="self">self</span>.container_type),
         };
-        <span class="kw">let </span>key_value_types = || <span class="kw">match </span><span class="kw-2">&amp;</span><a class="self" href="#546">self</a>.container_type {
-            Type::Map(<a href="../../../../vir/gen/low/ast/ty/struct.Map.html">ty::Map</a> { key_type, val_type }) =&gt; {
-                <span class="kw">let </span>key_type = <a href="#556">key_type</a>.<a href="mod.rs.html#21">to_viper</a>(<a href="#546">context</a>, <a href="#546">ast</a>);
-                <span class="kw">let </span>val_type = <a href="#556">val_type</a>.<a href="mod.rs.html#21">to_viper</a>(<a href="#546">context</a>, <a href="#546">ast</a>);
-                (<a href="#557">key_type</a>, <a href="#558">val_type</a>)
+        <span class="kw">let </span>key_value_types = || <span class="kw">match </span><span class="kw-2">&amp;</span><span class="self">self</span>.container_type {
+            Type::Map(ty::Map { key_type, val_type }) =&gt; {
+                <span class="kw">let </span>key_type = key_type.to_viper(context, ast);
+                <span class="kw">let </span>val_type = val_type.to_viper(context, ast);
+                (key_type, val_type)
             }
-            <span class="kw">_ </span>=&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(),
+            <span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>(),
         };
-        <span class="kw">let </span>arg = |idx| (<span class="kw-2">&amp;</span><a class="self" href="#546">self</a>.operands[<a href="#563">idx</a>] <span class="kw">as </span><span class="kw-2">&amp;</span><a href="../../../../vir/gen/low/ast/expression/enum.Expression.html">Expression</a>).<a href="mod.rs.html#21">to_viper</a>(<a href="#546">context</a>, <a href="#546">ast</a>);
+        <span class="kw">let </span>arg = |idx| (<span class="kw-2">&amp;</span><span class="self">self</span>.operands[idx] <span class="kw">as </span><span class="kw-2">&amp;</span>Expression).to_viper(context, ast);
         <span class="kw">let </span>args = || {
-            <a class="self" href="#546">self</a>.operands
+            <span class="self">self</span>.operands
                 .iter()
-                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|operand| <a href="#567">operand</a>.<a href="mod.rs.html#21">to_viper</a>(<a href="#546">context</a>, <a href="#546">ast</a>))
-                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;()
+                .map(|operand| operand.to_viper(context, ast))
+                .collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;()
         };
-        <span class="kw">match </span><a class="self" href="#546">self</a>.kind {
-            expression::ContainerOpKind::SeqEmpty =&gt; <a href="#546">ast</a>.empty_seq(<a href="#547">element_type</a>()),
+        <span class="kw">match </span><span class="self">self</span>.kind {
+            expression::ContainerOpKind::SeqEmpty =&gt; ast.empty_seq(element_type()),
             expression::ContainerOpKind::SeqConstructor =&gt; {
-                <span class="kw">let </span>elements = <a href="#564">args</a>();
+                <span class="kw">let </span>elements = args();
                 <span class="kw">if </span>elements.is_empty() {
-                    <a href="#546">ast</a>.empty_seq(<a href="#547">element_type</a>())
+                    ast.empty_seq(element_type())
                 } <span class="kw">else </span>{
-                    <a href="#546">ast</a>.explicit_seq(<span class="kw-2">&amp;</span><a href="#573">elements</a>)
+                    ast.explicit_seq(<span class="kw-2">&amp;</span>elements)
                 }
             }
-            expression::ContainerOpKind::SeqIndex =&gt; <a href="#546">ast</a>.seq_index(<a href="#563">arg</a>(<span class="number">0</span>), <a href="#563">arg</a>(<span class="number">1</span>)),
-            expression::ContainerOpKind::SeqConcat =&gt; <a href="#546">ast</a>.seq_append(<a href="#563">arg</a>(<span class="number">0</span>), <a href="#563">arg</a>(<span class="number">1</span>)),
-            expression::ContainerOpKind::SeqLen =&gt; <a href="#546">ast</a>.seq_length(<a href="#563">arg</a>(<span class="number">0</span>)),
+            expression::ContainerOpKind::SeqIndex =&gt; ast.seq_index(arg(<span class="number">0</span>), arg(<span class="number">1</span>)),
+            expression::ContainerOpKind::SeqConcat =&gt; ast.seq_append(arg(<span class="number">0</span>), arg(<span class="number">1</span>)),
+            expression::ContainerOpKind::SeqLen =&gt; ast.seq_length(arg(<span class="number">0</span>)),
             expression::ContainerOpKind::MapEmpty =&gt; {
-                <span class="kw">let </span>(key_ty, val_ty) = <a href="#555">key_value_types</a>();
-                <a href="#546">ast</a>.empty_map(<a href="#584">key_ty</a>, <a href="#584">val_ty</a>)
+                <span class="kw">let </span>(key_ty, val_ty) = key_value_types();
+                ast.empty_map(key_ty, val_ty)
             }
-            expression::ContainerOpKind::MapUpdate =&gt; <a href="#546">ast</a>.update_map(<a href="#563">arg</a>(<span class="number">0</span>), <a href="#563">arg</a>(<span class="number">1</span>), <a href="#563">arg</a>(<span class="number">2</span>)),
-            expression::ContainerOpKind::MapContains =&gt; <a href="#546">ast</a>.map_contains(<a href="#563">arg</a>(<span class="number">0</span>), <a href="#563">arg</a>(<span class="number">1</span>)),
-            expression::ContainerOpKind::MapLookup =&gt; <a href="#546">ast</a>.lookup_map(<a href="#563">arg</a>(<span class="number">0</span>), <a href="#563">arg</a>(<span class="number">1</span>)),
-            expression::ContainerOpKind::MapLen =&gt; <a href="#546">ast</a>.map_len(<a href="#563">arg</a>(<span class="number">0</span>)),
-            expression::ContainerOpKind::SetEmpty =&gt; <a href="#546">ast</a>.empty_set(<a href="#547">element_type</a>()),
+            expression::ContainerOpKind::MapUpdate =&gt; ast.update_map(arg(<span class="number">0</span>), arg(<span class="number">1</span>), arg(<span class="number">2</span>)),
+            expression::ContainerOpKind::MapContains =&gt; ast.map_contains(arg(<span class="number">0</span>), arg(<span class="number">1</span>)),
+            expression::ContainerOpKind::MapLookup =&gt; ast.lookup_map(arg(<span class="number">0</span>), arg(<span class="number">1</span>)),
+            expression::ContainerOpKind::MapLen =&gt; ast.map_len(arg(<span class="number">0</span>)),
+            expression::ContainerOpKind::SetEmpty =&gt; ast.empty_set(element_type()),
             expression::ContainerOpKind::SetConstructor =&gt; {
-                <span class="kw">let </span>elements = <a href="#564">args</a>();
+                <span class="kw">let </span>elements = args();
                 <span class="kw">if </span>elements.is_empty() {
-                    <a href="#546">ast</a>.empty_set(<a href="#547">element_type</a>())
+                    ast.empty_set(element_type())
                 } <span class="kw">else </span>{
-                    <a href="#546">ast</a>.explicit_set(<span class="kw-2">&amp;</span><a href="#593">elements</a>)
+                    ast.explicit_set(<span class="kw-2">&amp;</span>elements)
                 }
             }
             expression::ContainerOpKind::SetUnion | expression::ContainerOpKind::MultiSetUnion =&gt; {
-                <a href="#546">ast</a>.any_set_union(<a href="#563">arg</a>(<span class="number">0</span>), <a href="#563">arg</a>(<span class="number">1</span>))
+                ast.any_set_union(arg(<span class="number">0</span>), arg(<span class="number">1</span>))
             }
             expression::ContainerOpKind::SetIntersection
             | expression::ContainerOpKind::MultiSetIntersection =&gt; {
-                <a href="#546">ast</a>.any_set_intersection(<a href="#563">arg</a>(<span class="number">0</span>), <a href="#563">arg</a>(<span class="number">1</span>))
+                ast.any_set_intersection(arg(<span class="number">0</span>), arg(<span class="number">1</span>))
             }
             expression::ContainerOpKind::SetSubset
-            | expression::ContainerOpKind::MultiSetSubset =&gt; <a href="#546">ast</a>.any_set_subset(<a href="#563">arg</a>(<span class="number">0</span>), <a href="#563">arg</a>(<span class="number">1</span>)),
+            | expression::ContainerOpKind::MultiSetSubset =&gt; ast.any_set_subset(arg(<span class="number">0</span>), arg(<span class="number">1</span>)),
             expression::ContainerOpKind::SetMinus | expression::ContainerOpKind::MultiSetMinus =&gt; {
-                <a href="#546">ast</a>.any_set_minus(<a href="#563">arg</a>(<span class="number">0</span>), <a href="#563">arg</a>(<span class="number">1</span>))
+                ast.any_set_minus(arg(<span class="number">0</span>), arg(<span class="number">1</span>))
             }
             expression::ContainerOpKind::SetContains
-            | expression::ContainerOpKind::MultiSetContains =&gt; <a href="#546">ast</a>.any_set_contains(<a href="#563">arg</a>(<span class="number">0</span>), <a href="#563">arg</a>(<span class="number">1</span>)),
+            | expression::ContainerOpKind::MultiSetContains =&gt; ast.any_set_contains(arg(<span class="number">0</span>), arg(<span class="number">1</span>)),
             expression::ContainerOpKind::SetCardinality
-            | expression::ContainerOpKind::MultiSetCardinality =&gt; <a href="#546">ast</a>.any_set_cardinality(<a href="#563">arg</a>(<span class="number">0</span>)),
-            expression::ContainerOpKind::MultiSetEmpty =&gt; <a href="#546">ast</a>.empty_multiset(<a href="#547">element_type</a>()),
+            | expression::ContainerOpKind::MultiSetCardinality =&gt; ast.any_set_cardinality(arg(<span class="number">0</span>)),
+            expression::ContainerOpKind::MultiSetEmpty =&gt; ast.empty_multiset(element_type()),
             expression::ContainerOpKind::MultiSetConstructor =&gt; {
-                <span class="kw">let </span>elements = <a href="#564">args</a>();
+                <span class="kw">let </span>elements = args();
                 <span class="kw">if </span>elements.is_empty() {
-                    <a href="#546">ast</a>.empty_multiset(<a href="#547">element_type</a>())
+                    ast.empty_multiset(element_type())
                 } <span class="kw">else </span>{
-                    <a href="#546">ast</a>.explicit_multiset(<span class="kw-2">&amp;</span><a href="#618">elements</a>)
+                    ast.explicit_multiset(<span class="kw-2">&amp;</span>elements)
                 }
             }
         }
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;v</span>&gt; ToViper&lt;<span class="lifetime">&#39;v</span>, viper::Position&lt;<span class="lifetime">&#39;v</span>&gt;&gt; <span class="kw">for </span><a href="../../../../prusti_common/vir/vir_high/struct.Position.html">Position</a> {
-    <span class="kw">fn </span>to_viper(<span class="kw-2">&amp;</span><span class="self">self</span>, _context: <a href="mod.rs.html#9">Context</a>, ast: <span class="kw-2">&amp;</span>AstFactory&lt;<span class="lifetime">&#39;v</span>&gt;) -&gt; viper::Position&lt;<span class="lifetime">&#39;v</span>&gt; {
-        <a href="#630">ast</a>.identifier_position(<a class="self" href="#630">self</a>.line, <a class="self" href="#630">self</a>.column, <a class="self" href="#630">self</a>.id.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>())
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;v</span>&gt; ToViper&lt;<span class="lifetime">&#39;v</span>, viper::Position&lt;<span class="lifetime">&#39;v</span>&gt;&gt; <span class="kw">for </span>Position {
+    <span class="kw">fn </span>to_viper(<span class="kw-2">&amp;</span><span class="self">self</span>, _context: Context, ast: <span class="kw-2">&amp;</span>AstFactory&lt;<span class="lifetime">&#39;v</span>&gt;) -&gt; viper::Position&lt;<span class="lifetime">&#39;v</span>&gt; {
+        ast.identifier_position(<span class="self">self</span>.line, <span class="self">self</span>.column, <span class="self">self</span>.id.to_string())
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;v</span>&gt; ToViper&lt;<span class="lifetime">&#39;v</span>, viper::Type&lt;<span class="lifetime">&#39;v</span>&gt;&gt; <span class="kw">for </span><a href="../../../../vir/gen/low/ast/ty/enum.Type.html">Type</a> {
-    <span class="kw">fn </span>to_viper(<span class="kw-2">&amp;</span><span class="self">self</span>, _context: <a href="mod.rs.html#9">Context</a>, ast: <span class="kw-2">&amp;</span>AstFactory&lt;<span class="lifetime">&#39;v</span>&gt;) -&gt; viper::Type&lt;<span class="lifetime">&#39;v</span>&gt; {
-        <span class="kw">match </span><span class="self"><a href="#636">self</a> </span>{
-            Type::Int =&gt; <a href="#636">ast</a>.int_type(),
-            Type::Bool =&gt; <a href="#636">ast</a>.bool_type(),
-            Type::Ref =&gt; <a href="#636">ast</a>.ref_type(),
-            Type::Perm =&gt; <a href="#636">ast</a>.perm_type(),
-            Type::Domain(ty) =&gt; <a href="#636">ast</a>.domain_type(<span class="kw-2">&amp;</span><a href="#642">ty</a>.name, <span class="kw-2">&amp;</span>[], <span class="kw-2">&amp;</span>[]),
-            Type::Seq(ty) =&gt; <a href="#636">ast</a>.seq_type(<a href="#643">ty</a>.element_type.<a href="mod.rs.html#21">to_viper</a>(<a href="#636">_context</a>, <a href="#636">ast</a>)),
-            Type::Set(ty) =&gt; <a href="#636">ast</a>.set_type(<a href="#644">ty</a>.element_type.<a href="mod.rs.html#21">to_viper</a>(<a href="#636">_context</a>, <a href="#636">ast</a>)),
-            Type::MultiSet(ty) =&gt; <a href="#636">ast</a>.multiset_type(<a href="#645">ty</a>.element_type.<a href="mod.rs.html#21">to_viper</a>(<a href="#636">_context</a>, <a href="#636">ast</a>)),
-            Type::Map(ty) =&gt; <a href="#636">ast</a>.map_type(
-                <a href="#646">ty</a>.key_type.<a href="mod.rs.html#21">to_viper</a>(<a href="#636">_context</a>, <a href="#636">ast</a>),
-                <a href="#646">ty</a>.val_type.<a href="mod.rs.html#21">to_viper</a>(<a href="#636">_context</a>, <a href="#636">ast</a>),
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;v</span>&gt; ToViper&lt;<span class="lifetime">&#39;v</span>, viper::Type&lt;<span class="lifetime">&#39;v</span>&gt;&gt; <span class="kw">for </span>Type {
+    <span class="kw">fn </span>to_viper(<span class="kw-2">&amp;</span><span class="self">self</span>, _context: Context, ast: <span class="kw-2">&amp;</span>AstFactory&lt;<span class="lifetime">&#39;v</span>&gt;) -&gt; viper::Type&lt;<span class="lifetime">&#39;v</span>&gt; {
+        <span class="kw">match </span><span class="self">self </span>{
+            Type::Int =&gt; ast.int_type(),
+            Type::Bool =&gt; ast.bool_type(),
+            Type::Ref =&gt; ast.ref_type(),
+            Type::Perm =&gt; ast.perm_type(),
+            Type::Domain(ty) =&gt; ast.domain_type(<span class="kw-2">&amp;</span>ty.name, <span class="kw-2">&amp;</span>[], <span class="kw-2">&amp;</span>[]),
+            Type::Seq(ty) =&gt; ast.seq_type(ty.element_type.to_viper(_context, ast)),
+            Type::Set(ty) =&gt; ast.set_type(ty.element_type.to_viper(_context, ast)),
+            Type::MultiSet(ty) =&gt; ast.multiset_type(ty.element_type.to_viper(_context, ast)),
+            Type::Map(ty) =&gt; ast.map_type(
+                ty.key_type.to_viper(_context, ast),
+                ty.val_type.to_viper(_context, ast),
             ),
-            Type::Float(Float::F32) =&gt; <a href="#636">ast</a>.backend_f32_type(),
-            Type::Float(Float::F64) =&gt; <a href="#636">ast</a>.backend_f64_type(),
-            Type::BitVector(bv_size) =&gt; <span class="kw">match </span><a href="#652">bv_size</a> {
+            Type::Float(Float::F32) =&gt; ast.backend_f32_type(),
+            Type::Float(Float::F64) =&gt; ast.backend_f64_type(),
+            Type::BitVector(bv_size) =&gt; <span class="kw">match </span>bv_size {
                 BitVector::Signed(BitVectorSize::BV8) | BitVector::Unsigned(BitVectorSize::BV8) =&gt; {
-                    <a href="#636">ast</a>.backend_bv8_type()
+                    ast.backend_bv8_type()
                 }
                 BitVector::Signed(BitVectorSize::BV16)
-                | BitVector::Unsigned(BitVectorSize::BV16) =&gt; <a href="#636">ast</a>.backend_bv16_type(),
+                | BitVector::Unsigned(BitVectorSize::BV16) =&gt; ast.backend_bv16_type(),
                 BitVector::Signed(BitVectorSize::BV32)
-                | BitVector::Unsigned(BitVectorSize::BV32) =&gt; <a href="#636">ast</a>.backend_bv32_type(),
+                | BitVector::Unsigned(BitVectorSize::BV32) =&gt; ast.backend_bv32_type(),
                 BitVector::Signed(BitVectorSize::BV64)
-                | BitVector::Unsigned(BitVectorSize::BV64) =&gt; <a href="#636">ast</a>.backend_bv64_type(),
+                | BitVector::Unsigned(BitVectorSize::BV64) =&gt; ast.backend_bv64_type(),
                 BitVector::Signed(BitVectorSize::BV128)
-                | BitVector::Unsigned(BitVectorSize::BV128) =&gt; <a href="#636">ast</a>.backend_bv128_type(),
+                | BitVector::Unsigned(BitVectorSize::BV128) =&gt; ast.backend_bv128_type(),
             },
         }
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;v</span>&gt; ToViperDecl&lt;<span class="lifetime">&#39;v</span>, Vec&lt;viper::LocalVarDecl&lt;<span class="lifetime">&#39;v</span>&gt;&gt;&gt; <span class="kw">for </span>Vec&lt;<a href="../../../../vir/gen/low/ast/variable/struct.VariableDecl.html">VariableDecl</a>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;v</span>&gt; ToViperDecl&lt;<span class="lifetime">&#39;v</span>, Vec&lt;viper::LocalVarDecl&lt;<span class="lifetime">&#39;v</span>&gt;&gt;&gt; <span class="kw">for </span>Vec&lt;VariableDecl&gt; {
     <span class="kw">fn </span>to_viper_decl(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        context: <a href="mod.rs.html#9">Context</a>,
+        context: Context,
         ast: <span class="kw-2">&amp;</span>AstFactory&lt;<span class="lifetime">&#39;v</span>&gt;,
     ) -&gt; Vec&lt;viper::LocalVarDecl&lt;<span class="lifetime">&#39;v</span>&gt;&gt; {
-        <a class="self" href="#671">self</a>.iter()
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|variable| <a href="#676">variable</a>.<a href="mod.rs.html#25">to_viper_decl</a>(<a href="#672">context</a>, <a href="#673">ast</a>))
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>()
+        <span class="self">self</span>.iter()
+            .map(|variable| variable.to_viper_decl(context, ast))
+            .collect()
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;v</span>&gt; ToViperDecl&lt;<span class="lifetime">&#39;v</span>, viper::LocalVarDecl&lt;<span class="lifetime">&#39;v</span>&gt;&gt; <span class="kw">for </span><a href="../../../../vir/gen/low/ast/variable/struct.VariableDecl.html">VariableDecl</a> {
-    <span class="kw">fn </span>to_viper_decl(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <a href="mod.rs.html#9">Context</a>, ast: <span class="kw-2">&amp;</span>AstFactory&lt;<span class="lifetime">&#39;v</span>&gt;) -&gt; viper::LocalVarDecl&lt;<span class="lifetime">&#39;v</span>&gt; {
-        <a href="#682">ast</a>.local_var_decl(<span class="kw-2">&amp;</span><a class="self" href="#682">self</a>.name, <a class="self" href="#682">self</a>.ty.<a href="mod.rs.html#21">to_viper</a>(<a href="#682">context</a>, <a href="#682">ast</a>))
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;v</span>&gt; ToViperDecl&lt;<span class="lifetime">&#39;v</span>, viper::LocalVarDecl&lt;<span class="lifetime">&#39;v</span>&gt;&gt; <span class="kw">for </span>VariableDecl {
+    <span class="kw">fn </span>to_viper_decl(<span class="kw-2">&amp;</span><span class="self">self</span>, context: Context, ast: <span class="kw-2">&amp;</span>AstFactory&lt;<span class="lifetime">&#39;v</span>&gt;) -&gt; viper::LocalVarDecl&lt;<span class="lifetime">&#39;v</span>&gt; {
+        ast.local_var_decl(<span class="kw-2">&amp;</span><span class="self">self</span>.name, <span class="self">self</span>.ty.to_viper(context, ast))
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="prusti_common" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="prusti_common" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

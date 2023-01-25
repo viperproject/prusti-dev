@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/csv-1.1.6/src/byte_record.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>byte_record.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../csv/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/csv-1.1.6/src/byte_record.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>byte_record.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../csv/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -1160,18 +1160,18 @@
 <a href="#1160" id="1160">1160</a>
 <a href="#1161" id="1161">1161</a>
 <a href="#1162" id="1162">1162</a>
-</pre><pre class="rust"><code><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/cmp/index.html">std::cmp</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">std::fmt</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.FromIterator.html">std::iter::FromIterator</a>;
-<span class="kw">use </span>std::ops::{<a class="self" href="https://doc.rust-lang.org/nightly/core/ops/index.html">self</a>, <a href="https://doc.rust-lang.org/nightly/core/ops/range/struct.Range.html">Range</a>};
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/result/index.html">std::result</a>;
+</pre><pre class="rust"><code><span class="kw">use </span>std::cmp;
+<span class="kw">use </span>std::fmt;
+<span class="kw">use </span>std::iter::FromIterator;
+<span class="kw">use </span>std::ops::{<span class="self">self</span>, Range};
+<span class="kw">use </span>std::result;
 
-<span class="kw">use </span>bstr::{<a href="../../bstr/bstring/struct.BString.html">BString</a>, <a href="../../bstr/ext_slice/trait.ByteSlice.html">ByteSlice</a>};
-<span class="kw">use </span><a href="../../serde/de/trait.Deserialize.html">serde::de::Deserialize</a>;
+<span class="kw">use </span>bstr::{BString, ByteSlice};
+<span class="kw">use </span>serde::de::Deserialize;
 
-<span class="kw">use </span><a href="deserializer.rs.html#38-41"><span class="kw">crate</span>::deserializer::deserialize_byte_record</a>;
-<span class="kw">use </span><span class="kw">crate</span>::error::{<a href="error.rs.html#273">new_utf8_error</a>, <span class="prelude-ty">Result</span>, <a href="error.rs.html#265">Utf8Error</a>};
-<span class="kw">use </span><a href="string_record.rs.html#36"><span class="kw">crate</span>::string_record::StringRecord</a>;
+<span class="kw">use </span><span class="kw">crate</span>::deserializer::deserialize_byte_record;
+<span class="kw">use </span><span class="kw">crate</span>::error::{new_utf8_error, <span class="prelude-ty">Result</span>, Utf8Error};
+<span class="kw">use </span><span class="kw">crate</span>::string_record::StringRecord;
 
 <span class="doccomment">/// A single CSV record stored as raw bytes.
 ///
@@ -1193,48 +1193,48 @@
 /// Two `ByteRecord`s are compared on the basis of their field data. Any
 /// position information associated with the records is ignored.
 </span><span class="attr">#[derive(Clone, Eq)]
-</span><span class="kw">pub struct </span>ByteRecord(Box&lt;<a href="#86">ByteRecordInner</a>&gt;);
+</span><span class="kw">pub struct </span>ByteRecord(Box&lt;ByteRecordInner&gt;);
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/cmp/trait.PartialEq.html">PartialEq</a> <span class="kw">for </span><a href="#34">ByteRecord</a> {
-    <span class="kw">fn </span>eq(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><a href="#34">ByteRecord</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+<span class="kw">impl </span>PartialEq <span class="kw">for </span>ByteRecord {
+    <span class="kw">fn </span>eq(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span>ByteRecord) -&gt; bool {
         <span class="kw">if </span><span class="self">self</span>.len() != other.len() {
             <span class="kw">return </span><span class="bool-val">false</span>;
         }
-        <a class="self" href="#37">self</a>.<a href="#251">iter</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">zip</a>(<a href="#37">other</a>.<a href="#251">iter</a>()).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">all</a>(|e| <a href="#41">e</a>.<span class="number">0 </span>== <a href="#41">e</a>.<span class="number">1</span>)
+        <span class="self">self</span>.iter().zip(other.iter()).all(|e| e.<span class="number">0 </span>== e.<span class="number">1</span>)
     }
 }
 
-<span class="kw">impl</span>&lt;T: AsRef&lt;[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;&gt; PartialEq&lt;Vec&lt;T&gt;&gt; <span class="kw">for </span><a href="#34">ByteRecord</a> {
-    <span class="kw">fn </span>eq(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span>Vec&lt;T&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#46">self</a>.<a href="#558-561">iter_eq</a>(<a href="#46">other</a>)
+<span class="kw">impl</span>&lt;T: AsRef&lt;[u8]&gt;&gt; PartialEq&lt;Vec&lt;T&gt;&gt; <span class="kw">for </span>ByteRecord {
+    <span class="kw">fn </span>eq(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span>Vec&lt;T&gt;) -&gt; bool {
+        <span class="self">self</span>.iter_eq(other)
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T: AsRef&lt;[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;&gt; PartialEq&lt;Vec&lt;T&gt;&gt; <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="#34">ByteRecord</a> {
-    <span class="kw">fn </span>eq(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span>Vec&lt;T&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#52">self</a>.<a href="#558-561">iter_eq</a>(<a href="#52">other</a>)
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T: AsRef&lt;[u8]&gt;&gt; PartialEq&lt;Vec&lt;T&gt;&gt; <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>ByteRecord {
+    <span class="kw">fn </span>eq(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span>Vec&lt;T&gt;) -&gt; bool {
+        <span class="self">self</span>.iter_eq(other)
     }
 }
 
-<span class="kw">impl</span>&lt;T: AsRef&lt;[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;&gt; PartialEq&lt;[T]&gt; <span class="kw">for </span><a href="#34">ByteRecord</a> {
-    <span class="kw">fn </span>eq(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span>[T]) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#58">self</a>.<a href="#558-561">iter_eq</a>(<a href="#58">other</a>)
+<span class="kw">impl</span>&lt;T: AsRef&lt;[u8]&gt;&gt; PartialEq&lt;[T]&gt; <span class="kw">for </span>ByteRecord {
+    <span class="kw">fn </span>eq(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span>[T]) -&gt; bool {
+        <span class="self">self</span>.iter_eq(other)
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T: AsRef&lt;[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;&gt; PartialEq&lt;[T]&gt; <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="#34">ByteRecord</a> {
-    <span class="kw">fn </span>eq(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span>[T]) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#64">self</a>.<a href="#558-561">iter_eq</a>(<a href="#64">other</a>)
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T: AsRef&lt;[u8]&gt;&gt; PartialEq&lt;[T]&gt; <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>ByteRecord {
+    <span class="kw">fn </span>eq(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span>[T]) -&gt; bool {
+        <span class="self">self</span>.iter_eq(other)
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="#34">ByteRecord</a> {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <span class="kw">let </span><span class="kw-2">mut </span>fields = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[];
+<span class="kw">impl </span>fmt::Debug <span class="kw">for </span>ByteRecord {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter) -&gt; fmt::Result {
+        <span class="kw">let </span><span class="kw-2">mut </span>fields = <span class="macro">vec!</span>[];
         <span class="kw">for </span>field <span class="kw">in </span><span class="self">self </span>{
             fields.push(BString::from(field.to_vec()));
         }
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#70">f</a>, <span class="string">&quot;ByteRecord({:?})&quot;</span>, fields)
+        <span class="macro">write!</span>(f, <span class="string">&quot;ByteRecord({:?})&quot;</span>, fields)
     }
 }
 
@@ -1247,21 +1247,21 @@
 </span><span class="attr">#[derive(Clone, Debug, Eq, PartialEq)]
 </span><span class="kw">struct </span>ByteRecordInner {
     <span class="doccomment">/// The position of this byte record.
-    </span>pos: <span class="prelude-ty">Option</span>&lt;<a href="#588">Position</a>&gt;,
+    </span>pos: <span class="prelude-ty">Option</span>&lt;Position&gt;,
     <span class="doccomment">/// All fields in this record, stored contiguously.
-    </span>fields: Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;,
+    </span>fields: Vec&lt;u8&gt;,
     <span class="doccomment">/// The number of and location of each field in this record.
-    </span>bounds: <a href="#644">Bounds</a>,
+    </span>bounds: Bounds,
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for </span><a href="#34">ByteRecord</a> {
+<span class="kw">impl </span>Default <span class="kw">for </span>ByteRecord {
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>default() -&gt; <a href="#34">ByteRecord</a> {
+    </span><span class="kw">fn </span>default() -&gt; ByteRecord {
         ByteRecord::new()
     }
 }
 
-<span class="kw">impl </span><a href="#34">ByteRecord</a> {
+<span class="kw">impl </span>ByteRecord {
     <span class="doccomment">/// Create a new empty `ByteRecord`.
     ///
     /// Note that you may find the `ByteRecord::from` constructor more
@@ -1285,7 +1285,7 @@
     /// assert_eq!(record.len(), 3);
     /// ```
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>new() -&gt; <a href="#34">ByteRecord</a> {
+    </span><span class="kw">pub fn </span>new() -&gt; ByteRecord {
         ByteRecord::with_capacity(<span class="number">0</span>, <span class="number">0</span>)
     }
 
@@ -1295,11 +1295,11 @@
     /// actual row contents. `fields` refers to the number of fields one
     /// might expect to store.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>with_capacity(buffer: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, fields: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a href="#34">ByteRecord</a> {
-        <a href="#34">ByteRecord</a>(Box::new(<a href="#86">ByteRecordInner</a> {
+    </span><span class="kw">pub fn </span>with_capacity(buffer: usize, fields: usize) -&gt; ByteRecord {
+        ByteRecord(Box::new(ByteRecordInner {
             pos: <span class="prelude-val">None</span>,
-            fields: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[<span class="number">0</span>; buffer],
-            bounds: Bounds::with_capacity(<a href="#136">fields</a>),
+            fields: <span class="macro">vec!</span>[<span class="number">0</span>; buffer],
+            bounds: Bounds::with_capacity(fields),
         }))
     }
 
@@ -1390,9 +1390,9 @@
     /// ```
     </span><span class="kw">pub fn </span>deserialize&lt;<span class="lifetime">&#39;de</span>, D: Deserialize&lt;<span class="lifetime">&#39;de</span>&gt;&gt;(
         <span class="kw-2">&amp;</span><span class="lifetime">&#39;de </span><span class="self">self</span>,
-        headers: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;de </span><a href="#34">ByteRecord</a>&gt;,
+        headers: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;de </span>ByteRecord&gt;,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;D&gt; {
-        <a href="deserializer.rs.html#38-41">deserialize_byte_record</a>(<a class="self" href="#230">self</a>, <a href="#231">headers</a>)
+        deserialize_byte_record(<span class="self">self</span>, headers)
     }
 
     <span class="doccomment">/// Returns an iterator over all fields in this record.
@@ -1410,8 +1410,8 @@
     /// }
     /// ```
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>iter(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="#777">ByteRecordIter</a> {
-        <a class="self" href="#251">self</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
+    </span><span class="kw">pub fn </span>iter(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; ByteRecordIter {
+        <span class="self">self</span>.into_iter()
     }
 
     <span class="doccomment">/// Return the field at index `i`.
@@ -1428,8 +1428,8 @@
     /// assert_eq!(record.get(3), None);
     /// ```
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>get(<span class="kw-2">&amp;</span><span class="self">self</span>, i: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt; {
-        <a class="self" href="#269">self</a>.<span class="number">0</span>.bounds.<a href="#672">get</a>(<a href="#269">i</a>).map(|range| <span class="kw-2">&amp;</span><a class="self" href="#269">self</a>.<span class="number">0</span>.fields[<a href="#270">range</a>])
+    </span><span class="kw">pub fn </span>get(<span class="kw-2">&amp;</span><span class="self">self</span>, i: usize) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>[u8]&gt; {
+        <span class="self">self</span>.<span class="number">0</span>.bounds.get(i).map(|range| <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="number">0</span>.fields[range])
     }
 
     <span class="doccomment">/// Returns true if and only if this record is empty.
@@ -1442,8 +1442,8 @@
     /// assert!(ByteRecord::new().is_empty());
     /// ```
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>is_empty(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#283">self</a>.<a href="#298">len</a>() == <span class="number">0
+    </span><span class="kw">pub fn </span>is_empty(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.len() == <span class="number">0
     </span>}
 
     <span class="doccomment">/// Returns the number of fields in this record.
@@ -1457,8 +1457,8 @@
     /// assert_eq!(record.len(), 3);
     /// ```
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="self" href="#298">self</a>.<span class="number">0</span>.bounds.<a href="#703">len</a>()
+    </span><span class="kw">pub fn </span>len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+        <span class="self">self</span>.<span class="number">0</span>.bounds.len()
     }
 
     <span class="doccomment">/// Truncate this record to `n` fields.
@@ -1478,9 +1478,9 @@
     /// assert_eq!(record, vec![&quot;a&quot;]);
     /// ```
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>truncate(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
+    </span><span class="kw">pub fn </span>truncate(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: usize) {
         <span class="kw">if </span>n &lt;= <span class="self">self</span>.len() {
-            <a class="self" href="#319">self</a>.<span class="number">0</span>.bounds.len = <a href="#319">n</a>;
+            <span class="self">self</span>.<span class="number">0</span>.bounds.len = n;
         }
     }
 
@@ -1503,7 +1503,7 @@
     /// ```
     </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>clear(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <a class="self" href="#343">self</a>.<a href="#319">truncate</a>(<span class="number">0</span>);
+        <span class="self">self</span>.truncate(<span class="number">0</span>);
     }
 
     <span class="doccomment">/// Trim the fields of this record so that leading and trailing whitespace
@@ -1524,18 +1524,18 @@
     /// assert_eq!(record, vec![&quot;&quot;, &quot;foo&quot;, &quot;bar&quot;, &quot;b a z&quot;]);
     /// ```
     </span><span class="kw">pub fn </span>trim(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <span class="kw">let </span>length = <a class="self" href="#364">self</a>.<a href="#298">len</a>();
+        <span class="kw">let </span>length = <span class="self">self</span>.len();
         <span class="kw">if </span>length == <span class="number">0 </span>{
             <span class="kw">return</span>;
         }
         <span class="comment">// TODO: We could likely do this in place, but for now, we allocate.
         </span><span class="kw">let </span><span class="kw-2">mut </span>trimmed =
-            ByteRecord::with_capacity(<a class="self" href="#364">self</a>.<a href="#496">as_slice</a>().len(), <a class="self" href="#364">self</a>.<a href="#298">len</a>());
-        <a href="#370">trimmed</a>.<a href="#459">set_position</a>(<a class="self" href="#364">self</a>.<a href="#438">position</a>().cloned());
+            ByteRecord::with_capacity(<span class="self">self</span>.as_slice().len(), <span class="self">self</span>.len());
+        trimmed.set_position(<span class="self">self</span>.position().cloned());
         <span class="kw">for </span>field <span class="kw">in </span><span class="kw-2">&amp;*</span><span class="self">self </span>{
             trimmed.push_field(field.trim());
         }
-        <span class="kw-2">*</span><span class="self"><a href="#364">self</a> </span>= <a href="#370">trimmed</a>;
+        <span class="kw-2">*</span><span class="self">self </span>= trimmed;
     }
 
     <span class="doccomment">/// Add a new field to this record.
@@ -1550,13 +1550,13 @@
     /// assert_eq!(&amp;record[0], b&quot;foo&quot;);
     /// ```
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>push_field(<span class="kw-2">&amp;mut </span><span class="self">self</span>, field: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) {
-        <span class="kw">let </span>(s, e) = (<a class="self" href="#391">self</a>.<span class="number">0</span>.bounds.<a href="#697">end</a>(), <a class="self" href="#391">self</a>.<span class="number">0</span>.bounds.<a href="#697">end</a>() + <a href="#391">field</a>.len());
+    </span><span class="kw">pub fn </span>push_field(<span class="kw-2">&amp;mut </span><span class="self">self</span>, field: <span class="kw-2">&amp;</span>[u8]) {
+        <span class="kw">let </span>(s, e) = (<span class="self">self</span>.<span class="number">0</span>.bounds.end(), <span class="self">self</span>.<span class="number">0</span>.bounds.end() + field.len());
         <span class="kw">while </span>e &gt; <span class="self">self</span>.<span class="number">0</span>.fields.len() {
             <span class="self">self</span>.expand_fields();
         }
-        <a class="self" href="#391">self</a>.<span class="number">0</span>.fields[<a href="#392">s</a>..<a href="#392">e</a>].copy_from_slice(<a href="#391">field</a>);
-        <a class="self" href="#391">self</a>.<span class="number">0</span>.bounds.<a href="#716">add</a>(<a href="#392">e</a>);
+        <span class="self">self</span>.<span class="number">0</span>.fields[s..e].copy_from_slice(field);
+        <span class="self">self</span>.<span class="number">0</span>.bounds.add(e);
     }
 
     <span class="doccomment">/// Return the position of this record, if available.
@@ -1597,8 +1597,8 @@
     /// }
     /// ```
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>position(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="#588">Position</a>&gt; {
-        <a class="self" href="#438">self</a>.<span class="number">0</span>.pos.as_ref()
+    </span><span class="kw">pub fn </span>position(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Position&gt; {
+        <span class="self">self</span>.<span class="number">0</span>.pos.as_ref()
     }
 
     <span class="doccomment">/// Set the position of this record.
@@ -1618,8 +1618,8 @@
     /// assert_eq!(record.position(), Some(&amp;pos));
     /// ```
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>set_position(<span class="kw-2">&amp;mut </span><span class="self">self</span>, pos: <span class="prelude-ty">Option</span>&lt;<a href="#588">Position</a>&gt;) {
-        <a class="self" href="#459">self</a>.<span class="number">0</span>.pos = <a href="#459">pos</a>;
+    </span><span class="kw">pub fn </span>set_position(<span class="kw-2">&amp;mut </span><span class="self">self</span>, pos: <span class="prelude-ty">Option</span>&lt;Position&gt;) {
+        <span class="self">self</span>.<span class="number">0</span>.pos = pos;
     }
 
     <span class="doccomment">/// Return the start and end position of a field in this record.
@@ -1638,8 +1638,8 @@
     /// assert_eq!(&amp;record.as_slice()[range], &amp;b&quot;quux&quot;[..]);
     /// ```
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>range(<span class="kw-2">&amp;</span><span class="self">self</span>, i: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="prelude-ty">Option</span>&lt;Range&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;&gt; {
-        <a class="self" href="#479">self</a>.<span class="number">0</span>.bounds.<a href="#672">get</a>(<a href="#479">i</a>)
+    </span><span class="kw">pub fn </span>range(<span class="kw-2">&amp;</span><span class="self">self</span>, i: usize) -&gt; <span class="prelude-ty">Option</span>&lt;Range&lt;usize&gt;&gt; {
+        <span class="self">self</span>.<span class="number">0</span>.bounds.get(i)
     }
 
     <span class="doccomment">/// Return the entire row as a single byte slice. The slice returned stores
@@ -1655,53 +1655,53 @@
     /// assert_eq!(record.as_slice(), &amp;b&quot;fooquuxz&quot;[..]);
     /// ```
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>as_slice(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>] {
-        <span class="kw-2">&amp;</span><a class="self" href="#496">self</a>.<span class="number">0</span>.fields[..<a class="self" href="#496">self</a>.<span class="number">0</span>.bounds.<a href="#697">end</a>()]
+    </span><span class="kw">pub fn </span>as_slice(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[u8] {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="number">0</span>.fields[..<span class="self">self</span>.<span class="number">0</span>.bounds.end()]
     }
 
     <span class="doccomment">/// Clone this record, but only copy `fields` up to the end of bounds. This
     /// is useful when one wants to copy a record, but not necessarily any
     /// excess capacity in that record.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>clone_truncated(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="#34">ByteRecord</a> {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>clone_truncated(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; ByteRecord {
         <span class="kw">let </span><span class="kw-2">mut </span>br = ByteRecord::new();
-        <a href="#505">br</a>.<span class="number">0</span>.pos = <a class="self" href="#504">self</a>.<span class="number">0</span>.pos.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
-        <a href="#505">br</a>.<span class="number">0</span>.bounds = <a class="self" href="#504">self</a>.<span class="number">0</span>.bounds.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
-        <a href="#505">br</a>.<span class="number">0</span>.fields = <a class="self" href="#504">self</a>.<span class="number">0</span>.fields[..<a class="self" href="#504">self</a>.<span class="number">0</span>.bounds.<a href="#697">end</a>()].to_vec();
-        <a href="#505">br</a>
+        br.<span class="number">0</span>.pos = <span class="self">self</span>.<span class="number">0</span>.pos.clone();
+        br.<span class="number">0</span>.bounds = <span class="self">self</span>.<span class="number">0</span>.bounds.clone();
+        br.<span class="number">0</span>.fields = <span class="self">self</span>.<span class="number">0</span>.fields[..<span class="self">self</span>.<span class="number">0</span>.bounds.end()].to_vec();
+        br
     }
 
     <span class="doccomment">/// Retrieve the underlying parts of a byte record.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>as_parts(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; (<span class="kw-2">&amp;mut </span>Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;, <span class="kw-2">&amp;mut </span>Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;) {
-        <span class="kw">let </span>inner = <span class="kw-2">&amp;mut *</span><a class="self" href="#514">self</a>.<span class="number">0</span>;
-        (<span class="kw-2">&amp;mut </span><a href="#515">inner</a>.fields, <span class="kw-2">&amp;mut </span><a href="#515">inner</a>.bounds.ends)
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>as_parts(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; (<span class="kw-2">&amp;mut </span>Vec&lt;u8&gt;, <span class="kw-2">&amp;mut </span>Vec&lt;usize&gt;) {
+        <span class="kw">let </span>inner = <span class="kw-2">&amp;mut *</span><span class="self">self</span>.<span class="number">0</span>;
+        (<span class="kw-2">&amp;mut </span>inner.fields, <span class="kw-2">&amp;mut </span>inner.bounds.ends)
     }
 
     <span class="doccomment">/// Set the number of fields in the given record record.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_len(<span class="kw-2">&amp;mut </span><span class="self">self</span>, len: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
-        <a class="self" href="#521">self</a>.<span class="number">0</span>.bounds.len = <a href="#521">len</a>;
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_len(<span class="kw-2">&amp;mut </span><span class="self">self</span>, len: usize) {
+        <span class="self">self</span>.<span class="number">0</span>.bounds.len = len;
     }
 
     <span class="doccomment">/// Expand the capacity for storing fields.
     </span><span class="attr">#[inline]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>expand_fields(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <span class="kw">let </span>new_len = <a class="self" href="#527">self</a>.<span class="number">0</span>.fields.len().checked_mul(<span class="number">2</span>).unwrap();
-        <a class="self" href="#527">self</a>.<span class="number">0</span>.fields.resize(cmp::max(<span class="number">4</span>, <a href="#528">new_len</a>), <span class="number">0</span>);
+        <span class="kw">let </span>new_len = <span class="self">self</span>.<span class="number">0</span>.fields.len().checked_mul(<span class="number">2</span>).unwrap();
+        <span class="self">self</span>.<span class="number">0</span>.fields.resize(cmp::max(<span class="number">4</span>, new_len), <span class="number">0</span>);
     }
 
     <span class="doccomment">/// Expand the capacity for storing field ending positions.
     </span><span class="attr">#[inline]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>expand_ends(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <a class="self" href="#534">self</a>.<span class="number">0</span>.bounds.<a href="#709">expand</a>();
+        <span class="self">self</span>.<span class="number">0</span>.bounds.expand();
     }
 
     <span class="doccomment">/// Validate the given record as UTF-8.
     ///
     /// If it&#39;s not UTF-8, return an error.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>validate(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; result::Result&lt;(), <a href="error.rs.html#265">Utf8Error</a>&gt; {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>validate(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; result::Result&lt;(), Utf8Error&gt; {
         <span class="comment">// If the entire buffer is ASCII, then we have nothing to fear.
         </span><span class="kw">if </span><span class="self">self</span>.<span class="number">0</span>.fields[..<span class="self">self</span>.<span class="number">0</span>.bounds.end()].is_ascii() {
             <span class="kw">return </span><span class="prelude-val">Ok</span>(());
@@ -1717,15 +1717,15 @@
     }
 
     <span class="doccomment">/// Compare the given byte record with the iterator of fields for equality.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>iter_eq&lt;I, T&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, other: I) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>iter_eq&lt;I, T&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, other: I) -&gt; bool
     <span class="kw">where
         </span>I: IntoIterator&lt;Item = T&gt;,
-        T: AsRef&lt;[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;,
+        T: AsRef&lt;[u8]&gt;,
     {
-        <span class="kw">let </span><span class="kw-2">mut </span>it_record = <a class="self" href="#558">self</a>.<a href="#251">iter</a>();
-        <span class="kw">let </span><span class="kw-2">mut </span>it_other = <a href="#558">other</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>();
+        <span class="kw">let </span><span class="kw-2">mut </span>it_record = <span class="self">self</span>.iter();
+        <span class="kw">let </span><span class="kw-2">mut </span>it_other = other.into_iter();
         <span class="kw">loop </span>{
-            <span class="kw">match </span>(<a href="#563">it_record</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>(), <a href="#564">it_other</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>()) {
+            <span class="kw">match </span>(it_record.next(), it_other.next()) {
                 (<span class="prelude-val">None</span>, <span class="prelude-val">None</span>) =&gt; <span class="kw">return </span><span class="bool-val">true</span>,
                 (<span class="prelude-val">None</span>, <span class="prelude-val">Some</span>(<span class="kw">_</span>)) | (<span class="prelude-val">Some</span>(<span class="kw">_</span>), <span class="prelude-val">None</span>) =&gt; <span class="kw">return </span><span class="bool-val">false</span>,
                 (<span class="prelude-val">Some</span>(x), <span class="prelude-val">Some</span>(y)) =&gt; {
@@ -1748,56 +1748,56 @@
 /// A CSV reader will automatically assign the position of each record.
 </span><span class="attr">#[derive(Clone, Debug, Eq, PartialEq)]
 </span><span class="kw">pub struct </span>Position {
-    byte: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>,
-    line: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>,
-    record: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>,
+    byte: u64,
+    line: u64,
+    record: u64,
 }
 
-<span class="kw">impl </span><a href="#588">Position</a> {
+<span class="kw">impl </span>Position {
     <span class="doccomment">/// Returns a new position initialized to the start value.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>new() -&gt; <a href="#588">Position</a> {
-        <a href="#588">Position</a> { byte: <span class="number">0</span>, line: <span class="number">1</span>, record: <span class="number">0 </span>}
+    </span><span class="kw">pub fn </span>new() -&gt; Position {
+        Position { byte: <span class="number">0</span>, line: <span class="number">1</span>, record: <span class="number">0 </span>}
     }
 
     <span class="doccomment">/// The byte offset, starting at `0`, of this position.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>byte(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> {
-        <a class="self" href="#603">self</a>.byte
+    </span><span class="kw">pub fn </span>byte(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u64 {
+        <span class="self">self</span>.byte
     }
     <span class="doccomment">/// The line number, starting at `1`, of this position.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>line(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> {
-        <a class="self" href="#608">self</a>.line
+    </span><span class="kw">pub fn </span>line(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u64 {
+        <span class="self">self</span>.line
     }
     <span class="doccomment">/// The record index, starting with the first record at `0`.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>record(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> {
-        <a class="self" href="#613">self</a>.record
+    </span><span class="kw">pub fn </span>record(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u64 {
+        <span class="self">self</span>.record
     }
 
     <span class="doccomment">/// Set the byte offset of this position.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>set_byte(<span class="kw-2">&amp;mut </span><span class="self">self</span>, byte: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) -&gt; <span class="kw-2">&amp;mut </span><a href="#588">Position</a> {
-        <a class="self" href="#619">self</a>.byte = <a href="#619">byte</a>;
-        <span class="self"><a href="#619">self</a>
+    </span><span class="kw">pub fn </span>set_byte(<span class="kw-2">&amp;mut </span><span class="self">self</span>, byte: u64) -&gt; <span class="kw-2">&amp;mut </span>Position {
+        <span class="self">self</span>.byte = byte;
+        <span class="self">self
     </span>}
 
     <span class="doccomment">/// Set the line number of this position.
     ///
     /// If the line number is less than `1`, then this method panics.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>set_line(<span class="kw-2">&amp;mut </span><span class="self">self</span>, line: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) -&gt; <span class="kw-2">&amp;mut </span><a href="#588">Position</a> {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(line &gt; <span class="number">0</span>);
-        <a class="self" href="#628">self</a>.line = <a href="#628">line</a>;
-        <span class="self"><a href="#628">self</a>
+    </span><span class="kw">pub fn </span>set_line(<span class="kw-2">&amp;mut </span><span class="self">self</span>, line: u64) -&gt; <span class="kw-2">&amp;mut </span>Position {
+        <span class="macro">assert!</span>(line &gt; <span class="number">0</span>);
+        <span class="self">self</span>.line = line;
+        <span class="self">self
     </span>}
 
     <span class="doccomment">/// Set the record index of this position.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>set_record(<span class="kw-2">&amp;mut </span><span class="self">self</span>, record: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) -&gt; <span class="kw-2">&amp;mut </span><a href="#588">Position</a> {
-        <a class="self" href="#636">self</a>.record = <a href="#636">record</a>;
-        <span class="self"><a href="#636">self</a>
+    </span><span class="kw">pub fn </span>set_record(<span class="kw-2">&amp;mut </span><span class="self">self</span>, record: u64) -&gt; <span class="kw-2">&amp;mut </span>Position {
+        <span class="self">self</span>.record = record;
+        <span class="self">self
     </span>}
 }
 
@@ -1805,124 +1805,124 @@
 </span><span class="attr">#[derive(Clone, Debug, Eq, PartialEq)]
 </span><span class="kw">struct </span>Bounds {
     <span class="doccomment">/// The ending index of each field.
-    </span>ends: Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;,
+    </span>ends: Vec&lt;usize&gt;,
     <span class="doccomment">/// The number of fields in this record.
     ///
     /// Technically, we could drop this field and maintain an invariant that
     /// `ends.len()` is always the number of fields, but doing that efficiently
     /// requires attention to safety. We play it safe at essentially no cost.
-    </span>len: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+    </span>len: usize,
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for </span><a href="#644">Bounds</a> {
+<span class="kw">impl </span>Default <span class="kw">for </span>Bounds {
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>default() -&gt; <a href="#644">Bounds</a> {
+    </span><span class="kw">fn </span>default() -&gt; Bounds {
         Bounds::with_capacity(<span class="number">0</span>)
     }
 }
 
-<span class="kw">impl </span><a href="#644">Bounds</a> {
+<span class="kw">impl </span>Bounds {
     <span class="doccomment">/// Create a new set of bounds with the given capacity for storing the
     /// ends of fields.
     </span><span class="attr">#[inline]
-    </span><span class="kw">fn </span>with_capacity(capacity: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a href="#644">Bounds</a> {
-        <a href="#644">Bounds</a> { ends: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[<span class="number">0</span>; capacity], len: <span class="number">0 </span>}
+    </span><span class="kw">fn </span>with_capacity(capacity: usize) -&gt; Bounds {
+        Bounds { ends: <span class="macro">vec!</span>[<span class="number">0</span>; capacity], len: <span class="number">0 </span>}
     }
 
     <span class="doccomment">/// Returns the bounds of field `i`.
     </span><span class="attr">#[inline]
-    </span><span class="kw">fn </span>get(<span class="kw-2">&amp;</span><span class="self">self</span>, i: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="prelude-ty">Option</span>&lt;Range&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;&gt; {
+    </span><span class="kw">fn </span>get(<span class="kw-2">&amp;</span><span class="self">self</span>, i: usize) -&gt; <span class="prelude-ty">Option</span>&lt;Range&lt;usize&gt;&gt; {
         <span class="kw">if </span>i &gt;= <span class="self">self</span>.len {
             <span class="kw">return </span><span class="prelude-val">None</span>;
         }
-        <span class="kw">let </span>end = <span class="kw">match </span><a class="self" href="#672">self</a>.ends.get(<a href="#672">i</a>) {
+        <span class="kw">let </span>end = <span class="kw">match </span><span class="self">self</span>.ends.get(i) {
             <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="prelude-val">None</span>,
-            <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>end) =&gt; <a href="#678">end</a>,
+            <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>end) =&gt; end,
         };
-        <span class="kw">let </span>start = <span class="kw">match </span><a href="#672">i</a>.checked_sub(<span class="number">1</span>).and_then(|i| <a class="self" href="#672">self</a>.ends.get(<a href="#680">i</a>)) {
+        <span class="kw">let </span>start = <span class="kw">match </span>i.checked_sub(<span class="number">1</span>).and_then(|i| <span class="self">self</span>.ends.get(i)) {
             <span class="prelude-val">None </span>=&gt; <span class="number">0</span>,
-            <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>start) =&gt; <a href="#682">start</a>,
+            <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>start) =&gt; start,
         };
-        <span class="prelude-val">Some</span>(<a href="https://doc.rust-lang.org/nightly/core/ops/range/struct.Range.html">ops::Range</a> { start: <a href="#680">start</a>, end: <a href="#676">end</a> })
+        <span class="prelude-val">Some</span>(ops::Range { start: start, end: end })
     }
 
     <span class="doccomment">/// Returns a slice of ending positions of all fields.
     </span><span class="attr">#[inline]
-    </span><span class="kw">fn </span>ends(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>] {
-        <span class="kw-2">&amp;</span><a class="self" href="#689">self</a>.ends[..<a class="self" href="#689">self</a>.len]
+    </span><span class="kw">fn </span>ends(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[usize] {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.ends[..<span class="self">self</span>.len]
     }
 
     <span class="doccomment">/// Return the last position of the last field.
     ///
     /// If there are no fields, this returns `0`.
     </span><span class="attr">#[inline]
-    </span><span class="kw">fn </span>end(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="self" href="#697">self</a>.<a href="#689">ends</a>().last().map(|<span class="kw-2">&amp;</span>i| <a href="#698">i</a>).unwrap_or(<span class="number">0</span>)
+    </span><span class="kw">fn </span>end(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+        <span class="self">self</span>.ends().last().map(|<span class="kw-2">&amp;</span>i| i).unwrap_or(<span class="number">0</span>)
     }
 
     <span class="doccomment">/// Returns the number of fields in these bounds.
     </span><span class="attr">#[inline]
-    </span><span class="kw">fn </span>len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="self" href="#703">self</a>.len
+    </span><span class="kw">fn </span>len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+        <span class="self">self</span>.len
     }
 
     <span class="doccomment">/// Expand the capacity for storing field ending positions.
     </span><span class="attr">#[inline]
     </span><span class="kw">fn </span>expand(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <span class="kw">let </span>new_len = <a class="self" href="#709">self</a>.ends.len().checked_mul(<span class="number">2</span>).unwrap();
-        <a class="self" href="#709">self</a>.ends.resize(cmp::max(<span class="number">4</span>, <a href="#710">new_len</a>), <span class="number">0</span>);
+        <span class="kw">let </span>new_len = <span class="self">self</span>.ends.len().checked_mul(<span class="number">2</span>).unwrap();
+        <span class="self">self</span>.ends.resize(cmp::max(<span class="number">4</span>, new_len), <span class="number">0</span>);
     }
 
     <span class="doccomment">/// Add a new field with the given ending position.
     </span><span class="attr">#[inline]
-    </span><span class="kw">fn </span>add(<span class="kw-2">&amp;mut </span><span class="self">self</span>, pos: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
+    </span><span class="kw">fn </span>add(<span class="kw-2">&amp;mut </span><span class="self">self</span>, pos: usize) {
         <span class="kw">if </span><span class="self">self</span>.len &gt;= <span class="self">self</span>.ends.len() {
-            <a class="self" href="#716">self</a>.<a href="#709">expand</a>();
+            <span class="self">self</span>.expand();
         }
-        <a class="self" href="#716">self</a>.ends[<a class="self" href="#716">self</a>.len] = <a href="#716">pos</a>;
-        <a class="self" href="#716">self</a>.len += <span class="number">1</span>;
+        <span class="self">self</span>.ends[<span class="self">self</span>.len] = pos;
+        <span class="self">self</span>.len += <span class="number">1</span>;
     }
 }
 
-<span class="kw">impl </span>ops::Index&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; <span class="kw">for </span><a href="#34">ByteRecord</a> {
-    <span class="kw">type </span>Output = [<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>];
+<span class="kw">impl </span>ops::Index&lt;usize&gt; <span class="kw">for </span>ByteRecord {
+    <span class="kw">type </span>Output = [u8];
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>index(<span class="kw-2">&amp;</span><span class="self">self</span>, i: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>] {
-        <a class="self" href="#728">self</a>.<a href="#269">get</a>(<a href="#728">i</a>).unwrap()
+    </span><span class="kw">fn </span>index(<span class="kw-2">&amp;</span><span class="self">self</span>, i: usize) -&gt; <span class="kw-2">&amp;</span>[u8] {
+        <span class="self">self</span>.get(i).unwrap()
     }
 }
 
-<span class="kw">impl </span>From&lt;<a href="string_record.rs.html#36">StringRecord</a>&gt; <span class="kw">for </span><a href="#34">ByteRecord</a> {
+<span class="kw">impl </span>From&lt;StringRecord&gt; <span class="kw">for </span>ByteRecord {
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>from(record: <a href="string_record.rs.html#36">StringRecord</a>) -&gt; <a href="#34">ByteRecord</a> {
-        <a href="#735">record</a>.<a href="string_record.rs.html#609">into_byte_record</a>()
+    </span><span class="kw">fn </span>from(record: StringRecord) -&gt; ByteRecord {
+        record.into_byte_record()
     }
 }
 
-<span class="kw">impl</span>&lt;T: AsRef&lt;[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;&gt; From&lt;Vec&lt;T&gt;&gt; <span class="kw">for </span><a href="#34">ByteRecord</a> {
+<span class="kw">impl</span>&lt;T: AsRef&lt;[u8]&gt;&gt; From&lt;Vec&lt;T&gt;&gt; <span class="kw">for </span>ByteRecord {
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>from(xs: Vec&lt;T&gt;) -&gt; <a href="#34">ByteRecord</a> {
-        ByteRecord::from_iter(<span class="kw-2">&amp;</span><a href="#742">xs</a>)
+    </span><span class="kw">fn </span>from(xs: Vec&lt;T&gt;) -&gt; ByteRecord {
+        ByteRecord::from_iter(<span class="kw-2">&amp;</span>xs)
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T: AsRef&lt;[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;&gt; From&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[T]&gt; <span class="kw">for </span><a href="#34">ByteRecord</a> {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T: AsRef&lt;[u8]&gt;&gt; From&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[T]&gt; <span class="kw">for </span>ByteRecord {
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>from(xs: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[T]) -&gt; <a href="#34">ByteRecord</a> {
-        ByteRecord::from_iter(<a href="#749">xs</a>)
+    </span><span class="kw">fn </span>from(xs: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[T]) -&gt; ByteRecord {
+        ByteRecord::from_iter(xs)
     }
 }
 
-<span class="kw">impl</span>&lt;T: AsRef&lt;[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;&gt; FromIterator&lt;T&gt; <span class="kw">for </span><a href="#34">ByteRecord</a> {
+<span class="kw">impl</span>&lt;T: AsRef&lt;[u8]&gt;&gt; FromIterator&lt;T&gt; <span class="kw">for </span>ByteRecord {
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>from_iter&lt;I: IntoIterator&lt;Item = T&gt;&gt;(iter: I) -&gt; <a href="#34">ByteRecord</a> {
+    </span><span class="kw">fn </span>from_iter&lt;I: IntoIterator&lt;Item = T&gt;&gt;(iter: I) -&gt; ByteRecord {
         <span class="kw">let </span><span class="kw-2">mut </span>record = ByteRecord::new();
-        <a href="#757">record</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a href="#756">iter</a>);
-        <a href="#757">record</a>
+        record.extend(iter);
+        record
     }
 }
 
-<span class="kw">impl</span>&lt;T: AsRef&lt;[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;&gt; Extend&lt;T&gt; <span class="kw">for </span><a href="#34">ByteRecord</a> {
+<span class="kw">impl</span>&lt;T: AsRef&lt;[u8]&gt;&gt; Extend&lt;T&gt; <span class="kw">for </span>ByteRecord {
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>extend&lt;I: IntoIterator&lt;Item = T&gt;&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, iter: I) {
         <span class="kw">for </span>x <span class="kw">in </span>iter {
@@ -1938,78 +1938,78 @@
 </span><span class="attr">#[derive(Clone)]
 </span><span class="kw">pub struct </span>ByteRecordIter&lt;<span class="lifetime">&#39;r</span>&gt; {
     <span class="doccomment">/// The record we are iterating over.
-    </span>r: <span class="kw-2">&amp;</span><span class="lifetime">&#39;r </span><a href="#34">ByteRecord</a>,
+    </span>r: <span class="kw-2">&amp;</span><span class="lifetime">&#39;r </span>ByteRecord,
     <span class="doccomment">/// The starting index of the previous field. (For reverse iteration.)
-    </span>last_start: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+    </span>last_start: usize,
     <span class="doccomment">/// The ending index of the previous field. (For forward iteration.)
-    </span>last_end: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+    </span>last_end: usize,
     <span class="doccomment">/// The index of forward iteration.
-    </span>i_forward: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+    </span>i_forward: usize,
     <span class="doccomment">/// The index of reverse iteration.
-    </span>i_reverse: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+    </span>i_reverse: usize,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;r</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">IntoIterator</a> <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;r </span><a href="#34">ByteRecord</a> {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;r</span>&gt; IntoIterator <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;r </span>ByteRecord {
     <span class="kw">type </span>IntoIter = ByteRecordIter&lt;<span class="lifetime">&#39;r</span>&gt;;
-    <span class="kw">type </span>Item = <span class="kw-2">&amp;</span><span class="lifetime">&#39;r </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>];
+    <span class="kw">type </span>Item = <span class="kw-2">&amp;</span><span class="lifetime">&#39;r </span>[u8];
 
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>into_iter(<span class="self">self</span>) -&gt; ByteRecordIter&lt;<span class="lifetime">&#39;r</span>&gt; {
-        <a href="#777">ByteRecordIter</a> {
-            r: <a class="self" href="#795">self</a>,
-            last_start: <a class="self" href="#795">self</a>.<a href="#496">as_slice</a>().len(),
+        ByteRecordIter {
+            r: <span class="self">self</span>,
+            last_start: <span class="self">self</span>.as_slice().len(),
             last_end: <span class="number">0</span>,
             i_forward: <span class="number">0</span>,
-            i_reverse: <a class="self" href="#795">self</a>.<a href="#298">len</a>(),
+            i_reverse: <span class="self">self</span>.len(),
         }
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;r</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/exact_size/trait.ExactSizeIterator.html">ExactSizeIterator</a> <span class="kw">for </span>ByteRecordIter&lt;<span class="lifetime">&#39;r</span>&gt; {}
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;r</span>&gt; ExactSizeIterator <span class="kw">for </span>ByteRecordIter&lt;<span class="lifetime">&#39;r</span>&gt; {}
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;r</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a> <span class="kw">for </span>ByteRecordIter&lt;<span class="lifetime">&#39;r</span>&gt; {
-    <span class="kw">type </span>Item = <span class="kw-2">&amp;</span><span class="lifetime">&#39;r </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>];
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;r</span>&gt; Iterator <span class="kw">for </span>ByteRecordIter&lt;<span class="lifetime">&#39;r</span>&gt; {
+    <span class="kw">type </span>Item = <span class="kw-2">&amp;</span><span class="lifetime">&#39;r </span>[u8];
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;r </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt; {
+    </span><span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;r </span>[u8]&gt; {
         <span class="kw">if </span><span class="self">self</span>.i_forward == <span class="self">self</span>.i_reverse {
             <span class="prelude-val">None
         </span>} <span class="kw">else </span>{
-            <span class="kw">let </span>start = <a class="self" href="#812">self</a>.last_end;
-            <span class="kw">let </span>end = <a class="self" href="#812">self</a>.r.<span class="number">0</span>.bounds.<a href="#689">ends</a>()[<a class="self" href="#812">self</a>.i_forward];
-            <a class="self" href="#812">self</a>.i_forward += <span class="number">1</span>;
-            <a class="self" href="#812">self</a>.last_end = <a href="#817">end</a>;
-            <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><a class="self" href="#812">self</a>.r.<span class="number">0</span>.fields[<a href="#816">start</a>..<a href="#817">end</a>])
+            <span class="kw">let </span>start = <span class="self">self</span>.last_end;
+            <span class="kw">let </span>end = <span class="self">self</span>.r.<span class="number">0</span>.bounds.ends()[<span class="self">self</span>.i_forward];
+            <span class="self">self</span>.i_forward += <span class="number">1</span>;
+            <span class="self">self</span>.last_end = end;
+            <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.r.<span class="number">0</span>.fields[start..end])
         }
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>size_hint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;) {
-        <span class="kw">let </span>x = <a class="self" href="#825">self</a>.i_reverse - <a class="self" href="#825">self</a>.i_forward;
-        (<a href="#826">x</a>, <span class="prelude-val">Some</span>(<a href="#826">x</a>))
+    </span><span class="kw">fn </span>size_hint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (usize, <span class="prelude-ty">Option</span>&lt;usize&gt;) {
+        <span class="kw">let </span>x = <span class="self">self</span>.i_reverse - <span class="self">self</span>.i_forward;
+        (x, <span class="prelude-val">Some</span>(x))
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>count(<span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="self" href="#831">self</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/exact_size/trait.ExactSizeIterator.html">len</a>()
+    </span><span class="kw">fn </span>count(<span class="self">self</span>) -&gt; usize {
+        <span class="self">self</span>.len()
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;r</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/double_ended/trait.DoubleEndedIterator.html">DoubleEndedIterator</a> <span class="kw">for </span>ByteRecordIter&lt;<span class="lifetime">&#39;r</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;r</span>&gt; DoubleEndedIterator <span class="kw">for </span>ByteRecordIter&lt;<span class="lifetime">&#39;r</span>&gt; {
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>next_back(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;r </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt; {
+    </span><span class="kw">fn </span>next_back(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;r </span>[u8]&gt; {
         <span class="kw">if </span><span class="self">self</span>.i_forward == <span class="self">self</span>.i_reverse {
             <span class="prelude-val">None
         </span>} <span class="kw">else </span>{
-            <a class="self" href="#838">self</a>.i_reverse -= <span class="number">1</span>;
-            <span class="kw">let </span>start = <span class="self"><a href="#838">self</a>
+            <span class="self">self</span>.i_reverse -= <span class="number">1</span>;
+            <span class="kw">let </span>start = <span class="self">self
                 </span>.i_reverse
                 .checked_sub(<span class="number">1</span>)
-                .map(|i| <a class="self" href="#838">self</a>.r.<span class="number">0</span>.bounds.<a href="#689">ends</a>()[<a href="#846">i</a>])
+                .map(|i| <span class="self">self</span>.r.<span class="number">0</span>.bounds.ends()[i])
                 .unwrap_or(<span class="number">0</span>);
-            <span class="kw">let </span>end = <a class="self" href="#838">self</a>.last_start;
-            <a class="self" href="#838">self</a>.last_start = <a href="#843">start</a>;
-            <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><a class="self" href="#838">self</a>.r.<span class="number">0</span>.fields[<a href="#843">start</a>..<a href="#848">end</a>])
+            <span class="kw">let </span>end = <span class="self">self</span>.last_start;
+            <span class="self">self</span>.last_start = start;
+            <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.r.<span class="number">0</span>.fields[start..end])
         }
     }
 }
@@ -2323,4 +2323,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="csv" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="csv" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

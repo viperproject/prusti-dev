@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/git2-0.14.4/src/tree.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>tree.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../git2/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/git2-0.14.4/src/tree.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>tree.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../git2/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -565,38 +565,38 @@
 <a href="#565" id="565">565</a>
 <a href="#566" id="566">566</a>
 <a href="#567" id="567">567</a>
-</pre><pre class="rust"><code><span class="kw">use </span>libc::{<a class="self" href="../../libc/index.html">self</a>, <a href="../../libc/unix/linux_like/linux/gnu/b64/x86_64/type.c_char.html">c_char</a>, <a href="../../libc/unix/type.c_int.html">c_int</a>, <a href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>};
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html">std::cmp::Ordering</a>;
-<span class="kw">use </span>std::ffi::{<a href="https://doc.rust-lang.org/nightly/core/ffi/c_str/struct.CStr.html">CStr</a>, <a href="https://doc.rust-lang.org/nightly/alloc/ffi/c_str/struct.CString.html">CString</a>};
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/marker/index.html">std::marker</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/mem/index.html">std::mem</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/ops/range/struct.Range.html">std::ops::Range</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">std::path::Path</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/ptr/index.html">std::ptr</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/str/index.html">std::str</a>;
+</pre><pre class="rust"><code><span class="kw">use </span>libc::{<span class="self">self</span>, c_char, c_int, c_void};
+<span class="kw">use </span>std::cmp::Ordering;
+<span class="kw">use </span>std::ffi::{CStr, CString};
+<span class="kw">use </span>std::marker;
+<span class="kw">use </span>std::mem;
+<span class="kw">use </span>std::ops::Range;
+<span class="kw">use </span>std::path::Path;
+<span class="kw">use </span>std::ptr;
+<span class="kw">use </span>std::str;
 
-<span class="kw">use </span><span class="kw">crate</span>::util::{<a href="util.rs.html#190">c_cmp_to_ordering</a>, <a href="util.rs.html#204">path_to_repo_path</a>, <a href="util.rs.html#25">Binding</a>};
-<span class="kw">use crate</span>::{<a href="lib.rs.html#655">panic</a>, <a href="../../libgit2_sys/index.html">raw</a>, <a href="error.rs.html#12">Error</a>, <a href="object.rs.html#12">Object</a>, <a href="lib.rs.html#336">ObjectType</a>, <a href="oid.rs.html#15">Oid</a>, <a href="repo.rs.html#108">Repository</a>};
+<span class="kw">use </span><span class="kw">crate</span>::util::{c_cmp_to_ordering, path_to_repo_path, Binding};
+<span class="kw">use crate</span>::{panic, raw, Error, Object, ObjectType, Oid, Repository};
 
 <span class="doccomment">/// A structure to represent a git [tree][1]
 ///
 /// [1]: http://git-scm.com/book/en/Git-Internals-Git-Objects
 </span><span class="kw">pub struct </span>Tree&lt;<span class="lifetime">&#39;repo</span>&gt; {
-    raw: <span class="kw-2">*mut </span><a href="../../libgit2_sys/enum.git_tree.html">raw::git_tree</a>,
+    raw: <span class="kw-2">*mut </span>raw::git_tree,
     _marker: marker::PhantomData&lt;Object&lt;<span class="lifetime">&#39;repo</span>&gt;&gt;,
 }
 
 <span class="doccomment">/// A structure representing an entry inside of a tree. An entry is borrowed
 /// from a tree.
 </span><span class="kw">pub struct </span>TreeEntry&lt;<span class="lifetime">&#39;tree</span>&gt; {
-    raw: <span class="kw-2">*mut </span><a href="../../libgit2_sys/enum.git_tree_entry.html">raw::git_tree_entry</a>,
-    owned: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-    _marker: marker::PhantomData&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;tree </span><a href="../../libgit2_sys/enum.git_tree_entry.html">raw::git_tree_entry</a>&gt;,
+    raw: <span class="kw-2">*mut </span>raw::git_tree_entry,
+    owned: bool,
+    _marker: marker::PhantomData&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;tree </span>raw::git_tree_entry&gt;,
 }
 
 <span class="doccomment">/// An iterator over the entries in a tree.
 </span><span class="kw">pub struct </span>TreeIter&lt;<span class="lifetime">&#39;tree</span>&gt; {
-    range: Range&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;,
+    range: Range&lt;usize&gt;,
     tree: <span class="kw-2">&amp;</span><span class="lifetime">&#39;tree </span>Tree&lt;<span class="lifetime">&#39;tree</span>&gt;,
 }
 
@@ -620,44 +620,44 @@
     </span>Abort = raw::GIT_EUSER,
 }
 
-<span class="kw">impl </span>Into&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>&gt; <span class="kw">for </span><a href="#47">TreeWalkResult</a> {
-    <span class="kw">fn </span>into(<span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a> {
-        <span class="self"><a href="#57">self</a> </span><span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>
+<span class="kw">impl </span>Into&lt;i32&gt; <span class="kw">for </span>TreeWalkResult {
+    <span class="kw">fn </span>into(<span class="self">self</span>) -&gt; i32 {
+        <span class="self">self </span><span class="kw">as </span>i32
     }
 }
 
-<span class="kw">impl </span>Into&lt;<a href="../../libgit2_sys/type.git_treewalk_mode.html">raw::git_treewalk_mode</a>&gt; <span class="kw">for </span><a href="#38">TreeWalkMode</a> {
+<span class="kw">impl </span>Into&lt;raw::git_treewalk_mode&gt; <span class="kw">for </span>TreeWalkMode {
     <span class="attr">#[cfg(target_env = <span class="string">&quot;msvc&quot;</span>)]
     </span><span class="kw">fn </span>into(<span class="self">self</span>) -&gt; raw::git_treewalk_mode {
         <span class="self">self </span><span class="kw">as </span>i32
     }
     <span class="attr">#[cfg(not(target_env = <span class="string">&quot;msvc&quot;</span>))]
-    </span><span class="kw">fn </span>into(<span class="self">self</span>) -&gt; <a href="../../libgit2_sys/type.git_treewalk_mode.html">raw::git_treewalk_mode</a> {
-        <span class="self"><a href="#68">self</a> </span><span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>
+    </span><span class="kw">fn </span>into(<span class="self">self</span>) -&gt; raw::git_treewalk_mode {
+        <span class="self">self </span><span class="kw">as </span>u32
     }
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;repo</span>&gt; Tree&lt;<span class="lifetime">&#39;repo</span>&gt; {
     <span class="doccomment">/// Get the id (SHA1) of a repository object
-    </span><span class="kw">pub fn </span>id(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="oid.rs.html#15">Oid</a> {
-        <span class="kw">unsafe </span>{ <a href="util.rs.html#28">Binding::from_raw</a>(raw::git_tree_id(<span class="kw-2">&amp;*</span><a class="self" href="#75">self</a>.raw)) }
+    </span><span class="kw">pub fn </span>id(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Oid {
+        <span class="kw">unsafe </span>{ Binding::from_raw(raw::git_tree_id(<span class="kw-2">&amp;*</span><span class="self">self</span>.raw)) }
     }
 
     <span class="doccomment">/// Get the number of entries listed in this tree.
-    </span><span class="kw">pub fn </span>len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <span class="kw">unsafe </span>{ raw::git_tree_entrycount(<span class="kw-2">&amp;*</span><a class="self" href="#80">self</a>.raw) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> }
+    </span><span class="kw">pub fn </span>len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+        <span class="kw">unsafe </span>{ raw::git_tree_entrycount(<span class="kw-2">&amp;*</span><span class="self">self</span>.raw) <span class="kw">as </span>usize }
     }
 
     <span class="doccomment">/// Return `true` if there is not entry
-    </span><span class="kw">pub fn </span>is_empty(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#85">self</a>.<a href="#80">len</a>() == <span class="number">0
+    </span><span class="kw">pub fn </span>is_empty(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.len() == <span class="number">0
     </span>}
 
     <span class="doccomment">/// Returns an iterator over the entries in this tree.
     </span><span class="kw">pub fn </span>iter(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; TreeIter&lt;<span class="lifetime">&#39;_</span>&gt; {
-        <a href="#31">TreeIter</a> {
-            range: <span class="number">0</span>..<a class="self" href="#90">self</a>.<a href="#80">len</a>(),
-            tree: <a class="self" href="#90">self</a>,
+        TreeIter {
+            range: <span class="number">0</span>..<span class="self">self</span>.len(),
+            tree: <span class="self">self</span>,
         }
     }
 
@@ -683,154 +683,154 @@
     /// See [libgit documentation][1] for more information.
     ///
     /// [1]: https://libgit2.org/libgit2/#HEAD/group/tree/git_tree_walk
-    </span><span class="kw">pub fn </span>walk&lt;C, T&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, mode: <a href="#38">TreeWalkMode</a>, <span class="kw-2">mut </span>callback: C) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#12">Error</a>&gt;
+    </span><span class="kw">pub fn </span>walk&lt;C, T&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, mode: TreeWalkMode, <span class="kw-2">mut </span>callback: C) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt;
     <span class="kw">where
-        </span>C: FnMut(<span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, <span class="kw-2">&amp;</span>TreeEntry&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; T,
-        T: Into&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>&gt;,
+        </span>C: FnMut(<span class="kw-2">&amp;</span>str, <span class="kw-2">&amp;</span>TreeEntry&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; T,
+        T: Into&lt;i32&gt;,
     {
         <span class="attr">#[allow(unused)]
         </span><span class="kw">struct </span>TreeWalkCbData&lt;<span class="lifetime">&#39;a</span>, T&gt; {
             <span class="kw">pub </span>callback: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>TreeWalkCb&lt;<span class="lifetime">&#39;a</span>, T&gt;,
         }
         <span class="kw">unsafe </span>{
-            <span class="kw">let </span><span class="kw-2">mut </span>data = <a href="#125">TreeWalkCbData</a> {
-                callback: <span class="kw-2">&amp;mut </span><a href="#119">callback</a>,
+            <span class="kw">let </span><span class="kw-2">mut </span>data = TreeWalkCbData {
+                callback: <span class="kw-2">&amp;mut </span>callback,
             };
             raw::git_tree_walk(
-                <a class="self" href="#119">self</a>.<a href="util.rs.html#29">raw</a>(),
-                <a href="#119">mode</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
+                <span class="self">self</span>.raw(),
+                mode.into(),
                 <span class="prelude-val">Some</span>(treewalk_cb::&lt;T&gt;),
-                <span class="kw-2">&amp;mut </span><a href="#129">data</a> <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_ as </span><span class="kw-2">*mut </span><a href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>,
+                <span class="kw-2">&amp;mut </span>data <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_ as </span><span class="kw-2">*mut </span>c_void,
             );
             <span class="prelude-val">Ok</span>(())
         }
     }
 
     <span class="doccomment">/// Lookup a tree entry by SHA value.
-    </span><span class="kw">pub fn </span>get_id(<span class="kw-2">&amp;</span><span class="self">self</span>, id: <a href="oid.rs.html#15">Oid</a>) -&gt; <span class="prelude-ty">Option</span>&lt;TreeEntry&lt;<span class="lifetime">&#39;_</span>&gt;&gt; {
+    </span><span class="kw">pub fn </span>get_id(<span class="kw-2">&amp;</span><span class="self">self</span>, id: Oid) -&gt; <span class="prelude-ty">Option</span>&lt;TreeEntry&lt;<span class="lifetime">&#39;_</span>&gt;&gt; {
         <span class="kw">unsafe </span>{
-            <span class="kw">let </span>ptr = raw::git_tree_entry_byid(<span class="kw-2">&amp;*</span><a class="self" href="#143">self</a>.<a href="util.rs.html#29">raw</a>(), <span class="kw-2">&amp;*</span><a href="#143">id</a>.<a href="util.rs.html#29">raw</a>());
+            <span class="kw">let </span>ptr = raw::git_tree_entry_byid(<span class="kw-2">&amp;*</span><span class="self">self</span>.raw(), <span class="kw-2">&amp;*</span>id.raw());
             <span class="kw">if </span>ptr.is_null() {
                 <span class="prelude-val">None
             </span>} <span class="kw">else </span>{
-                <span class="prelude-val">Some</span>(<a href="#274">entry_from_raw_const</a>(<a href="#145">ptr</a>))
+                <span class="prelude-val">Some</span>(entry_from_raw_const(ptr))
             }
         }
     }
 
     <span class="doccomment">/// Lookup a tree entry by its position in the tree
-    </span><span class="kw">pub fn </span>get(<span class="kw-2">&amp;</span><span class="self">self</span>, n: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="prelude-ty">Option</span>&lt;TreeEntry&lt;<span class="lifetime">&#39;_</span>&gt;&gt; {
+    </span><span class="kw">pub fn </span>get(<span class="kw-2">&amp;</span><span class="self">self</span>, n: usize) -&gt; <span class="prelude-ty">Option</span>&lt;TreeEntry&lt;<span class="lifetime">&#39;_</span>&gt;&gt; {
         <span class="kw">unsafe </span>{
-            <span class="kw">let </span>ptr = raw::git_tree_entry_byindex(<span class="kw-2">&amp;*</span><a class="self" href="#155">self</a>.<a href="util.rs.html#29">raw</a>(), <a href="#155">n</a> <span class="kw">as </span><a href="../../libc/unix/type.size_t.html">libc::size_t</a>);
+            <span class="kw">let </span>ptr = raw::git_tree_entry_byindex(<span class="kw-2">&amp;*</span><span class="self">self</span>.raw(), n <span class="kw">as </span>libc::size_t);
             <span class="kw">if </span>ptr.is_null() {
                 <span class="prelude-val">None
             </span>} <span class="kw">else </span>{
-                <span class="prelude-val">Some</span>(<a href="#274">entry_from_raw_const</a>(<a href="#157">ptr</a>))
+                <span class="prelude-val">Some</span>(entry_from_raw_const(ptr))
             }
         }
     }
 
     <span class="doccomment">/// Lookup a tree entry by its filename
-    </span><span class="kw">pub fn </span>get_name(<span class="kw-2">&amp;</span><span class="self">self</span>, filename: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Option</span>&lt;TreeEntry&lt;<span class="lifetime">&#39;_</span>&gt;&gt; {
-        <a class="self" href="#167">self</a>.<a href="#174">get_name_bytes</a>(<a href="#167">filename</a>.as_bytes())
+    </span><span class="kw">pub fn </span>get_name(<span class="kw-2">&amp;</span><span class="self">self</span>, filename: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Option</span>&lt;TreeEntry&lt;<span class="lifetime">&#39;_</span>&gt;&gt; {
+        <span class="self">self</span>.get_name_bytes(filename.as_bytes())
     }
 
     <span class="doccomment">/// Lookup a tree entry by its filename, specified as bytes.
     ///
     /// This allows for non-UTF-8 filenames.
-    </span><span class="kw">pub fn </span>get_name_bytes(<span class="kw-2">&amp;</span><span class="self">self</span>, filename: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Option</span>&lt;TreeEntry&lt;<span class="lifetime">&#39;_</span>&gt;&gt; {
-        <span class="kw">let </span>filename = CString::new(<a href="#174">filename</a>).unwrap();
+    </span><span class="kw">pub fn </span>get_name_bytes(<span class="kw-2">&amp;</span><span class="self">self</span>, filename: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Option</span>&lt;TreeEntry&lt;<span class="lifetime">&#39;_</span>&gt;&gt; {
+        <span class="kw">let </span>filename = CString::new(filename).unwrap();
         <span class="kw">unsafe </span>{
-            <span class="kw">let </span>ptr = <a class="macro" href="call.rs.html#6-10">call!</a>(raw::git_tree_entry_byname(<span class="kw-2">&amp;*</span><span class="self">self</span>.raw(), filename));
+            <span class="kw">let </span>ptr = <span class="macro">call!</span>(raw::git_tree_entry_byname(<span class="kw-2">&amp;*</span><span class="self">self</span>.raw(), filename));
             <span class="kw">if </span>ptr.is_null() {
                 <span class="prelude-val">None
             </span>} <span class="kw">else </span>{
-                <span class="prelude-val">Some</span>(<a href="#274">entry_from_raw_const</a>(<a href="#177">ptr</a>))
+                <span class="prelude-val">Some</span>(entry_from_raw_const(ptr))
             }
         }
     }
 
     <span class="doccomment">/// Retrieve a tree entry contained in a tree or in any of its subtrees,
     /// given its relative path.
-    </span><span class="kw">pub fn </span>get_path(<span class="kw-2">&amp;</span><span class="self">self</span>, path: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>) -&gt; <span class="prelude-ty">Result</span>&lt;TreeEntry&lt;<span class="lifetime">&#39;static</span>&gt;, <a href="error.rs.html#12">Error</a>&gt; {
+    </span><span class="kw">pub fn </span>get_path(<span class="kw-2">&amp;</span><span class="self">self</span>, path: <span class="kw-2">&amp;</span>Path) -&gt; <span class="prelude-ty">Result</span>&lt;TreeEntry&lt;<span class="lifetime">&#39;static</span>&gt;, Error&gt; {
         <span class="kw">let </span>path = path_to_repo_path(path)<span class="question-mark">?</span>;
         <span class="kw">let </span><span class="kw-2">mut </span>ret = ptr::null_mut();
         <span class="kw">unsafe </span>{
-            <a class="macro" href="call.rs.html#12-19">try_call!</a>(raw::git_tree_entry_bypath(<span class="kw-2">&amp;mut </span>ret, <span class="kw-2">&amp;*</span><span class="self">self</span>.raw(), path));
-            <span class="prelude-val">Ok</span>(<a href="util.rs.html#28">Binding::from_raw</a>(<a href="#190">ret</a>))
+            <span class="macro">try_call!</span>(raw::git_tree_entry_bypath(<span class="kw-2">&amp;mut </span>ret, <span class="kw-2">&amp;*</span><span class="self">self</span>.raw(), path));
+            <span class="prelude-val">Ok</span>(Binding::from_raw(ret))
         }
     }
 
     <span class="doccomment">/// Casts this Tree to be usable as an `Object`
     </span><span class="kw">pub fn </span>as_object(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Object&lt;<span class="lifetime">&#39;repo</span>&gt; {
-        <span class="kw">unsafe </span>{ <span class="kw-2">&amp;*</span>(<span class="self"><a href="#198">self</a> </span><span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_ as </span><span class="kw-2">*const </span>Object&lt;<span class="lifetime">&#39;repo</span>&gt;) }
+        <span class="kw">unsafe </span>{ <span class="kw-2">&amp;*</span>(<span class="self">self </span><span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_ as </span><span class="kw-2">*const </span>Object&lt;<span class="lifetime">&#39;repo</span>&gt;) }
     }
 
     <span class="doccomment">/// Consumes Commit to be returned as an `Object`
     </span><span class="kw">pub fn </span>into_object(<span class="self">self</span>) -&gt; Object&lt;<span class="lifetime">&#39;repo</span>&gt; {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert_eq.html">assert_eq!</a>(mem::size_of_val(<span class="kw-2">&amp;</span><span class="self">self</span>), mem::size_of::&lt;Object&lt;<span class="lifetime">&#39;_</span>&gt;&gt;());
-        <span class="kw">unsafe </span>{ mem::transmute(<a class="self" href="#203">self</a>) }
+        <span class="macro">assert_eq!</span>(mem::size_of_val(<span class="kw-2">&amp;</span><span class="self">self</span>), mem::size_of::&lt;Object&lt;<span class="lifetime">&#39;_</span>&gt;&gt;());
+        <span class="kw">unsafe </span>{ mem::transmute(<span class="self">self</span>) }
     }
 }
 
-<span class="kw">type </span>TreeWalkCb&lt;<span class="lifetime">&#39;a</span>, T&gt; = <span class="kw">dyn </span>FnMut(<span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, <span class="kw-2">&amp;</span>TreeEntry&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; T + <span class="lifetime">&#39;a</span>;
+<span class="kw">type </span>TreeWalkCb&lt;<span class="lifetime">&#39;a</span>, T&gt; = <span class="kw">dyn </span>FnMut(<span class="kw-2">&amp;</span>str, <span class="kw-2">&amp;</span>TreeEntry&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; T + <span class="lifetime">&#39;a</span>;
 
-<span class="kw">extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn </span>treewalk_cb&lt;T: Into&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>&gt;&gt;(
-    root: <span class="kw-2">*const </span><a href="../../libc/unix/linux_like/linux/gnu/b64/x86_64/type.c_char.html">c_char</a>,
-    entry: <span class="kw-2">*const </span><a href="../../libgit2_sys/enum.git_tree_entry.html">raw::git_tree_entry</a>,
-    payload: <span class="kw-2">*mut </span><a href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>,
-) -&gt; <a href="../../libc/unix/type.c_int.html">c_int</a> {
-    <span class="kw">match </span><a href="panic.rs.html#8">panic::wrap</a>(|| <span class="kw">unsafe </span>{
-        <span class="kw">let </span>root = <span class="kw">match </span>CStr::from_ptr(<a href="#212">root</a>).to_str() {
-            <span class="prelude-val">Ok</span>(value) =&gt; <a href="#218">value</a>,
+<span class="kw">extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn </span>treewalk_cb&lt;T: Into&lt;i32&gt;&gt;(
+    root: <span class="kw-2">*const </span>c_char,
+    entry: <span class="kw-2">*const </span>raw::git_tree_entry,
+    payload: <span class="kw-2">*mut </span>c_void,
+) -&gt; c_int {
+    <span class="kw">match </span>panic::wrap(|| <span class="kw">unsafe </span>{
+        <span class="kw">let </span>root = <span class="kw">match </span>CStr::from_ptr(root).to_str() {
+            <span class="prelude-val">Ok</span>(value) =&gt; value,
             <span class="kw">_ </span>=&gt; <span class="kw">return </span>-<span class="number">1</span>,
         };
-        <span class="kw">let </span>entry = <a href="#274">entry_from_raw_const</a>(<a href="#213">entry</a>);
-        <span class="kw">let </span>payload = <a href="#214">payload</a> <span class="kw">as </span><span class="kw-2">*mut &amp;mut </span>TreeWalkCb&lt;<span class="lifetime">&#39;_</span>, T&gt;;
-        (<span class="kw-2">*</span><a href="#222">payload</a>)(<a href="#217">root</a>, <span class="kw-2">&amp;</span><a href="#221">entry</a>).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()
+        <span class="kw">let </span>entry = entry_from_raw_const(entry);
+        <span class="kw">let </span>payload = payload <span class="kw">as </span><span class="kw-2">*mut &amp;mut </span>TreeWalkCb&lt;<span class="lifetime">&#39;_</span>, T&gt;;
+        (<span class="kw-2">*</span>payload)(root, <span class="kw-2">&amp;</span>entry).into()
     }) {
-        <span class="prelude-val">Some</span>(value) =&gt; <a href="#225">value</a>,
+        <span class="prelude-val">Some</span>(value) =&gt; value,
         <span class="prelude-val">None </span>=&gt; -<span class="number">1</span>,
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;repo</span>&gt; <a href="util.rs.html#25">Binding</a> <span class="kw">for </span>Tree&lt;<span class="lifetime">&#39;repo</span>&gt; {
-    <span class="kw">type </span>Raw = <span class="kw-2">*mut </span><a href="../../libgit2_sys/enum.git_tree.html">raw::git_tree</a>;
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;repo</span>&gt; Binding <span class="kw">for </span>Tree&lt;<span class="lifetime">&#39;repo</span>&gt; {
+    <span class="kw">type </span>Raw = <span class="kw-2">*mut </span>raw::git_tree;
 
-    <span class="kw">unsafe fn </span>from_raw(raw: <span class="kw-2">*mut </span><a href="../../libgit2_sys/enum.git_tree.html">raw::git_tree</a>) -&gt; Tree&lt;<span class="lifetime">&#39;repo</span>&gt; {
-        <a href="#17">Tree</a> {
-            <a href="#233">raw</a>,
+    <span class="kw">unsafe fn </span>from_raw(raw: <span class="kw-2">*mut </span>raw::git_tree) -&gt; Tree&lt;<span class="lifetime">&#39;repo</span>&gt; {
+        Tree {
+            raw,
             _marker: marker::PhantomData,
         }
     }
-    <span class="kw">fn </span>raw(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">*mut </span><a href="../../libgit2_sys/enum.git_tree.html">raw::git_tree</a> {
-        <a class="self" href="#239">self</a>.raw
+    <span class="kw">fn </span>raw(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">*mut </span>raw::git_tree {
+        <span class="self">self</span>.raw
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;repo</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">std::fmt::Debug</a> <span class="kw">for </span>Tree&lt;<span class="lifetime">&#39;repo</span>&gt; {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="https://doc.rust-lang.org/nightly/core/fmt/struct.Error.html">std::fmt::Error</a>&gt; {
-        <a href="#245">f</a>.debug_struct(<span class="string">&quot;Tree&quot;</span>).field(<span class="string">&quot;id&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="#245">self</a>.<a href="#75">id</a>()).finish()
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;repo</span>&gt; std::fmt::Debug <span class="kw">for </span>Tree&lt;<span class="lifetime">&#39;repo</span>&gt; {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;(), std::fmt::Error&gt; {
+        f.debug_struct(<span class="string">&quot;Tree&quot;</span>).field(<span class="string">&quot;id&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.id()).finish()
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;repo</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> <span class="kw">for </span>Tree&lt;<span class="lifetime">&#39;repo</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;repo</span>&gt; Clone <span class="kw">for </span>Tree&lt;<span class="lifetime">&#39;repo</span>&gt; {
     <span class="kw">fn </span>clone(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self </span>{
-        <a class="self" href="#251">self</a>.<a href="#198">as_object</a>().<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>().<a href="object.rs.html#119">into_tree</a>().ok().unwrap()
+        <span class="self">self</span>.as_object().clone().into_tree().ok().unwrap()
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;repo</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span>Tree&lt;<span class="lifetime">&#39;repo</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;repo</span>&gt; Drop <span class="kw">for </span>Tree&lt;<span class="lifetime">&#39;repo</span>&gt; {
     <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <span class="kw">unsafe </span>{ raw::git_tree_free(<a class="self" href="#257">self</a>.raw) }
+        <span class="kw">unsafe </span>{ raw::git_tree_free(<span class="self">self</span>.raw) }
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;repo</span>, <span class="lifetime">&#39;iter</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">IntoIterator</a> <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;iter </span>Tree&lt;<span class="lifetime">&#39;repo</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;repo</span>, <span class="lifetime">&#39;iter</span>&gt; IntoIterator <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;iter </span>Tree&lt;<span class="lifetime">&#39;repo</span>&gt; {
     <span class="kw">type </span>Item = TreeEntry&lt;<span class="lifetime">&#39;iter</span>&gt;;
     <span class="kw">type </span>IntoIter = TreeIter&lt;<span class="lifetime">&#39;iter</span>&gt;;
     <span class="kw">fn </span>into_iter(<span class="self">self</span>) -&gt; <span class="self">Self</span>::IntoIter {
-        <a class="self" href="#265">self</a>.<a href="#90">iter</a>()
+        <span class="self">self</span>.iter()
     }
 }
 
@@ -838,9 +838,9 @@
 ///
 /// The lifetime of the entry is tied to the tree provided and the function
 /// is unsafe because the validity of the pointer cannot be guaranteed.
-</span><span class="kw">pub unsafe fn </span>entry_from_raw_const&lt;<span class="lifetime">&#39;tree</span>&gt;(raw: <span class="kw-2">*const </span><a href="../../libgit2_sys/enum.git_tree_entry.html">raw::git_tree_entry</a>) -&gt; TreeEntry&lt;<span class="lifetime">&#39;tree</span>&gt; {
-    <a href="#24">TreeEntry</a> {
-        raw: <a href="#274">raw</a> <span class="kw">as </span><span class="kw-2">*mut </span><a href="../../libgit2_sys/enum.git_tree_entry.html">raw::git_tree_entry</a>,
+</span><span class="kw">pub unsafe fn </span>entry_from_raw_const&lt;<span class="lifetime">&#39;tree</span>&gt;(raw: <span class="kw-2">*const </span>raw::git_tree_entry) -&gt; TreeEntry&lt;<span class="lifetime">&#39;tree</span>&gt; {
+    TreeEntry {
+        raw: raw <span class="kw">as </span><span class="kw-2">*mut </span>raw::git_tree_entry,
         owned: <span class="bool-val">false</span>,
         _marker: marker::PhantomData,
     }
@@ -848,48 +848,48 @@
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;tree</span>&gt; TreeEntry&lt;<span class="lifetime">&#39;tree</span>&gt; {
     <span class="doccomment">/// Get the id of the object pointed by the entry
-    </span><span class="kw">pub fn </span>id(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="oid.rs.html#15">Oid</a> {
-        <span class="kw">unsafe </span>{ <a href="util.rs.html#28">Binding::from_raw</a>(raw::git_tree_entry_id(<span class="kw-2">&amp;*</span><a class="self" href="#284">self</a>.raw)) }
+    </span><span class="kw">pub fn </span>id(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Oid {
+        <span class="kw">unsafe </span>{ Binding::from_raw(raw::git_tree_entry_id(<span class="kw-2">&amp;*</span><span class="self">self</span>.raw)) }
     }
 
     <span class="doccomment">/// Get the filename of a tree entry
     ///
     /// Returns `None` if the name is not valid utf-8
-    </span><span class="kw">pub fn </span>name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt; {
-        <a href="https://doc.rust-lang.org/nightly/core/str/converts/fn.from_utf8.html">str::from_utf8</a>(<a class="self" href="#291">self</a>.<a href="#296">name_bytes</a>()).ok()
+    </span><span class="kw">pub fn </span>name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>str&gt; {
+        str::from_utf8(<span class="self">self</span>.name_bytes()).ok()
     }
 
     <span class="doccomment">/// Get the filename of a tree entry
-    </span><span class="kw">pub fn </span>name_bytes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>] {
-        <span class="kw">unsafe </span>{ <a href="lib.rs.html#856"><span class="kw">crate</span>::opt_bytes</a>(<a class="self" href="#296">self</a>, raw::git_tree_entry_name(<span class="kw-2">&amp;*</span><a class="self" href="#296">self</a>.<a href="util.rs.html#29">raw</a>())).unwrap() }
+    </span><span class="kw">pub fn </span>name_bytes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[u8] {
+        <span class="kw">unsafe </span>{ <span class="kw">crate</span>::opt_bytes(<span class="self">self</span>, raw::git_tree_entry_name(<span class="kw-2">&amp;*</span><span class="self">self</span>.raw())).unwrap() }
     }
 
     <span class="doccomment">/// Convert a tree entry to the object it points to.
-    </span><span class="kw">pub fn </span>to_object&lt;<span class="lifetime">&#39;a</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, repo: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="repo.rs.html#108">Repository</a>) -&gt; <span class="prelude-ty">Result</span>&lt;Object&lt;<span class="lifetime">&#39;a</span>&gt;, <a href="error.rs.html#12">Error</a>&gt; {
+    </span><span class="kw">pub fn </span>to_object&lt;<span class="lifetime">&#39;a</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, repo: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Repository) -&gt; <span class="prelude-ty">Result</span>&lt;Object&lt;<span class="lifetime">&#39;a</span>&gt;, Error&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>ret = ptr::null_mut();
         <span class="kw">unsafe </span>{
-            <a class="macro" href="call.rs.html#12-19">try_call!</a>(raw::git_tree_entry_to_object(
+            <span class="macro">try_call!</span>(raw::git_tree_entry_to_object(
                 <span class="kw-2">&amp;mut </span>ret,
                 repo.raw(),
                 <span class="kw-2">&amp;*</span><span class="self">self</span>.raw()
             ));
-            <span class="prelude-val">Ok</span>(<a href="util.rs.html#28">Binding::from_raw</a>(<a href="#302">ret</a>))
+            <span class="prelude-val">Ok</span>(Binding::from_raw(ret))
         }
     }
 
     <span class="doccomment">/// Get the type of the object pointed by the entry
-    </span><span class="kw">pub fn </span>kind(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="lib.rs.html#336">ObjectType</a>&gt; {
-        ObjectType::from_raw(<span class="kw">unsafe </span>{ raw::git_tree_entry_type(<span class="kw-2">&amp;*</span><a class="self" href="#314">self</a>.raw) })
+    </span><span class="kw">pub fn </span>kind(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;ObjectType&gt; {
+        ObjectType::from_raw(<span class="kw">unsafe </span>{ raw::git_tree_entry_type(<span class="kw-2">&amp;*</span><span class="self">self</span>.raw) })
     }
 
     <span class="doccomment">/// Get the UNIX file attributes of a tree entry
-    </span><span class="kw">pub fn </span>filemode(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a> {
-        <span class="kw">unsafe </span>{ raw::git_tree_entry_filemode(<span class="kw-2">&amp;*</span><a class="self" href="#319">self</a>.raw) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a> }
+    </span><span class="kw">pub fn </span>filemode(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; i32 {
+        <span class="kw">unsafe </span>{ raw::git_tree_entry_filemode(<span class="kw-2">&amp;*</span><span class="self">self</span>.raw) <span class="kw">as </span>i32 }
     }
 
     <span class="doccomment">/// Get the raw UNIX file attributes of a tree entry
-    </span><span class="kw">pub fn </span>filemode_raw(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a> {
-        <span class="kw">unsafe </span>{ raw::git_tree_entry_filemode_raw(<span class="kw-2">&amp;*</span><a class="self" href="#324">self</a>.raw) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a> }
+    </span><span class="kw">pub fn </span>filemode_raw(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; i32 {
+        <span class="kw">unsafe </span>{ raw::git_tree_entry_filemode_raw(<span class="kw-2">&amp;*</span><span class="self">self</span>.raw) <span class="kw">as </span>i32 }
     }
 
     <span class="doccomment">/// Convert this entry of any lifetime into an owned signature with a static
@@ -898,77 +898,77 @@
     /// This will use the `Clone::clone` implementation under the hood.
     </span><span class="kw">pub fn </span>to_owned(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; TreeEntry&lt;<span class="lifetime">&#39;static</span>&gt; {
         <span class="kw">unsafe </span>{
-            <span class="kw">let </span>me = mem::transmute::&lt;<span class="kw-2">&amp;</span>TreeEntry&lt;<span class="lifetime">&#39;tree</span>&gt;, <span class="kw-2">&amp;</span>TreeEntry&lt;<span class="lifetime">&#39;static</span>&gt;&gt;(<a class="self" href="#332">self</a>);
-            <a href="#334">me</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()
+            <span class="kw">let </span>me = mem::transmute::&lt;<span class="kw-2">&amp;</span>TreeEntry&lt;<span class="lifetime">&#39;tree</span>&gt;, <span class="kw-2">&amp;</span>TreeEntry&lt;<span class="lifetime">&#39;static</span>&gt;&gt;(<span class="self">self</span>);
+            me.clone()
         }
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; <a href="util.rs.html#25">Binding</a> <span class="kw">for </span>TreeEntry&lt;<span class="lifetime">&#39;a</span>&gt; {
-    <span class="kw">type </span>Raw = <span class="kw-2">*mut </span><a href="../../libgit2_sys/enum.git_tree_entry.html">raw::git_tree_entry</a>;
-    <span class="kw">unsafe fn </span>from_raw(raw: <span class="kw-2">*mut </span><a href="../../libgit2_sys/enum.git_tree_entry.html">raw::git_tree_entry</a>) -&gt; TreeEntry&lt;<span class="lifetime">&#39;a</span>&gt; {
-        <a href="#24">TreeEntry</a> {
-            <a href="#342">raw</a>,
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; Binding <span class="kw">for </span>TreeEntry&lt;<span class="lifetime">&#39;a</span>&gt; {
+    <span class="kw">type </span>Raw = <span class="kw-2">*mut </span>raw::git_tree_entry;
+    <span class="kw">unsafe fn </span>from_raw(raw: <span class="kw-2">*mut </span>raw::git_tree_entry) -&gt; TreeEntry&lt;<span class="lifetime">&#39;a</span>&gt; {
+        TreeEntry {
+            raw,
             owned: <span class="bool-val">true</span>,
             _marker: marker::PhantomData,
         }
     }
-    <span class="kw">fn </span>raw(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">*mut </span><a href="../../libgit2_sys/enum.git_tree_entry.html">raw::git_tree_entry</a> {
-        <a class="self" href="#349">self</a>.raw
+    <span class="kw">fn </span>raw(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">*mut </span>raw::git_tree_entry {
+        <span class="self">self</span>.raw
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> <span class="kw">for </span>TreeEntry&lt;<span class="lifetime">&#39;a</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; Clone <span class="kw">for </span>TreeEntry&lt;<span class="lifetime">&#39;a</span>&gt; {
     <span class="kw">fn </span>clone(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; TreeEntry&lt;<span class="lifetime">&#39;a</span>&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>ret = ptr::null_mut();
         <span class="kw">unsafe </span>{
-            <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert_eq.html">assert_eq!</a>(raw::git_tree_entry_dup(<span class="kw-2">&amp;mut </span>ret, <span class="kw-2">&amp;*</span><span class="self">self</span>.raw()), <span class="number">0</span>);
-            <a href="util.rs.html#28">Binding::from_raw</a>(<a href="#356">ret</a>)
+            <span class="macro">assert_eq!</span>(raw::git_tree_entry_dup(<span class="kw-2">&amp;mut </span>ret, <span class="kw-2">&amp;*</span><span class="self">self</span>.raw()), <span class="number">0</span>);
+            Binding::from_raw(ret)
         }
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/cmp/trait.PartialOrd.html">PartialOrd</a> <span class="kw">for </span>TreeEntry&lt;<span class="lifetime">&#39;a</span>&gt; {
-    <span class="kw">fn </span>partial_cmp(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span>TreeEntry&lt;<span class="lifetime">&#39;a</span>&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html">Ordering</a>&gt; {
-        <span class="prelude-val">Some</span>(<a class="self" href="#365">self</a>.<a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Ord.html">cmp</a>(<a href="#365">other</a>))
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; PartialOrd <span class="kw">for </span>TreeEntry&lt;<span class="lifetime">&#39;a</span>&gt; {
+    <span class="kw">fn </span>partial_cmp(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span>TreeEntry&lt;<span class="lifetime">&#39;a</span>&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;Ordering&gt; {
+        <span class="prelude-val">Some</span>(<span class="self">self</span>.cmp(other))
     }
 }
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Ord.html">Ord</a> <span class="kw">for </span>TreeEntry&lt;<span class="lifetime">&#39;a</span>&gt; {
-    <span class="kw">fn </span>cmp(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span>TreeEntry&lt;<span class="lifetime">&#39;a</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html">Ordering</a> {
-        <a href="util.rs.html#190">c_cmp_to_ordering</a>(<span class="kw">unsafe </span>{ raw::git_tree_entry_cmp(<span class="kw-2">&amp;*</span><a class="self" href="#370">self</a>.<a href="util.rs.html#29">raw</a>(), <span class="kw-2">&amp;*</span><a href="#370">other</a>.<a href="util.rs.html#29">raw</a>()) })
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; Ord <span class="kw">for </span>TreeEntry&lt;<span class="lifetime">&#39;a</span>&gt; {
+    <span class="kw">fn </span>cmp(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span>TreeEntry&lt;<span class="lifetime">&#39;a</span>&gt;) -&gt; Ordering {
+        c_cmp_to_ordering(<span class="kw">unsafe </span>{ raw::git_tree_entry_cmp(<span class="kw-2">&amp;*</span><span class="self">self</span>.raw(), <span class="kw-2">&amp;*</span>other.raw()) })
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/cmp/trait.PartialEq.html">PartialEq</a> <span class="kw">for </span>TreeEntry&lt;<span class="lifetime">&#39;a</span>&gt; {
-    <span class="kw">fn </span>eq(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span>TreeEntry&lt;<span class="lifetime">&#39;a</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#376">self</a>.<a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Ord.html">cmp</a>(<a href="#376">other</a>) == Ordering::Equal
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; PartialEq <span class="kw">for </span>TreeEntry&lt;<span class="lifetime">&#39;a</span>&gt; {
+    <span class="kw">fn </span>eq(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span>TreeEntry&lt;<span class="lifetime">&#39;a</span>&gt;) -&gt; bool {
+        <span class="self">self</span>.cmp(other) == Ordering::Equal
     }
 }
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Eq.html">Eq</a> <span class="kw">for </span>TreeEntry&lt;<span class="lifetime">&#39;a</span>&gt; {}
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; Eq <span class="kw">for </span>TreeEntry&lt;<span class="lifetime">&#39;a</span>&gt; {}
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span>TreeEntry&lt;<span class="lifetime">&#39;a</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; Drop <span class="kw">for </span>TreeEntry&lt;<span class="lifetime">&#39;a</span>&gt; {
     <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="kw">if </span><span class="self">self</span>.owned {
-            <span class="kw">unsafe </span>{ raw::git_tree_entry_free(<a class="self" href="#383">self</a>.raw) }
+            <span class="kw">unsafe </span>{ raw::git_tree_entry_free(<span class="self">self</span>.raw) }
         }
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;tree</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a> <span class="kw">for </span>TreeIter&lt;<span class="lifetime">&#39;tree</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;tree</span>&gt; Iterator <span class="kw">for </span>TreeIter&lt;<span class="lifetime">&#39;tree</span>&gt; {
     <span class="kw">type </span>Item = TreeEntry&lt;<span class="lifetime">&#39;tree</span>&gt;;
     <span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;TreeEntry&lt;<span class="lifetime">&#39;tree</span>&gt;&gt; {
-        <a class="self" href="#392">self</a>.range.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>().and_then(|i| <a class="self" href="#392">self</a>.tree.<a href="#155">get</a>(<a href="#393">i</a>))
+        <span class="self">self</span>.range.next().and_then(|i| <span class="self">self</span>.tree.get(i))
     }
-    <span class="kw">fn </span>size_hint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;) {
-        <a class="self" href="#395">self</a>.range.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">size_hint</a>()
+    <span class="kw">fn </span>size_hint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (usize, <span class="prelude-ty">Option</span>&lt;usize&gt;) {
+        <span class="self">self</span>.range.size_hint()
     }
 }
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;tree</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/double_ended/trait.DoubleEndedIterator.html">DoubleEndedIterator</a> <span class="kw">for </span>TreeIter&lt;<span class="lifetime">&#39;tree</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;tree</span>&gt; DoubleEndedIterator <span class="kw">for </span>TreeIter&lt;<span class="lifetime">&#39;tree</span>&gt; {
     <span class="kw">fn </span>next_back(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;TreeEntry&lt;<span class="lifetime">&#39;tree</span>&gt;&gt; {
-        <a class="self" href="#400">self</a>.range.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/double_ended/trait.DoubleEndedIterator.html">next_back</a>().and_then(|i| <a class="self" href="#400">self</a>.tree.<a href="#155">get</a>(<a href="#401">i</a>))
+        <span class="self">self</span>.range.next_back().and_then(|i| <span class="self">self</span>.tree.get(i))
     }
 }
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;tree</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/exact_size/trait.ExactSizeIterator.html">ExactSizeIterator</a> <span class="kw">for </span>TreeIter&lt;<span class="lifetime">&#39;tree</span>&gt; {}
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;tree</span>&gt; ExactSizeIterator <span class="kw">for </span>TreeIter&lt;<span class="lifetime">&#39;tree</span>&gt; {}
 
 <span class="attr">#[cfg(test)]
 </span><span class="kw">mod </span>tests {
@@ -1133,4 +1133,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="git2" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="git2" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

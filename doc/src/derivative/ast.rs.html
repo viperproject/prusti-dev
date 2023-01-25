@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/derivative-2.2.0/src/ast.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>ast.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../derivative/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/derivative-2.2.0/src/ast.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>ast.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../derivative/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -158,40 +158,40 @@
 <a href="#158" id="158">158</a>
 <a href="#159" id="159">159</a>
 <a href="#160" id="160">160</a>
-</pre><pre class="rust"><code><span class="kw">use </span><a href="lib.rs.html#21">attr</a>;
-<span class="kw">use </span><a href="../../proc_macro2/index.html">proc_macro2</a>;
-<span class="kw">use </span><a href="../../syn/index.html">syn</a>;
-<span class="kw">use </span><a href="../../syn/spanned/trait.Spanned.html">syn::spanned::Spanned</a> <span class="kw">as </span>SynSpanned;
+</pre><pre class="rust"><code><span class="kw">use </span>attr;
+<span class="kw">use </span>proc_macro2;
+<span class="kw">use </span>syn;
+<span class="kw">use </span>syn::spanned::Spanned <span class="kw">as </span>SynSpanned;
 
 <span class="attr">#[derive(Debug)]
 </span><span class="kw">pub struct </span>Input&lt;<span class="lifetime">&#39;a</span>&gt; {
-    <span class="kw">pub </span>attrs: <a href="attr.rs.html#7">attr::Input</a>,
+    <span class="kw">pub </span>attrs: attr::Input,
     <span class="kw">pub </span>body: Body&lt;<span class="lifetime">&#39;a</span>&gt;,
-    <span class="kw">pub </span>generics: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="../../syn/generics/struct.Generics.html">syn::Generics</a>,
-    <span class="kw">pub </span>ident: <a href="../../proc_macro2/struct.Ident.html">syn::Ident</a>,
-    <span class="kw">pub </span>span: <a href="../../proc_macro2/struct.Span.html">proc_macro2::Span</a>,
+    <span class="kw">pub </span>generics: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>syn::Generics,
+    <span class="kw">pub </span>ident: syn::Ident,
+    <span class="kw">pub </span>span: proc_macro2::Span,
 }
 
 <span class="attr">#[derive(Debug)]
 </span><span class="kw">pub enum </span>Body&lt;<span class="lifetime">&#39;a</span>&gt; {
     Enum(Vec&lt;Variant&lt;<span class="lifetime">&#39;a</span>&gt;&gt;),
-    Struct(<a href="#38">Style</a>, Vec&lt;Field&lt;<span class="lifetime">&#39;a</span>&gt;&gt;),
+    Struct(Style, Vec&lt;Field&lt;<span class="lifetime">&#39;a</span>&gt;&gt;),
 }
 
 <span class="attr">#[derive(Debug)]
 </span><span class="kw">pub struct </span>Variant&lt;<span class="lifetime">&#39;a</span>&gt; {
-    <span class="kw">pub </span>attrs: <a href="attr.rs.html#7">attr::Input</a>,
+    <span class="kw">pub </span>attrs: attr::Input,
     <span class="kw">pub </span>fields: Vec&lt;Field&lt;<span class="lifetime">&#39;a</span>&gt;&gt;,
-    <span class="kw">pub </span>ident: <a href="../../proc_macro2/struct.Ident.html">syn::Ident</a>,
-    <span class="kw">pub </span>style: <a href="#38">Style</a>,
+    <span class="kw">pub </span>ident: syn::Ident,
+    <span class="kw">pub </span>style: Style,
 }
 
 <span class="attr">#[derive(Debug)]
 </span><span class="kw">pub struct </span>Field&lt;<span class="lifetime">&#39;a</span>&gt; {
-    <span class="kw">pub </span>attrs: <a href="attr.rs.html#31">attr::Field</a>,
-    <span class="kw">pub </span>ident: <span class="prelude-ty">Option</span>&lt;<a href="../../proc_macro2/struct.Ident.html">syn::Ident</a>&gt;,
-    <span class="kw">pub </span>ty: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="../../syn/ty/enum.Type.html">syn::Type</a>,
-    <span class="kw">pub </span>span: <a href="../../proc_macro2/struct.Span.html">proc_macro2::Span</a>,
+    <span class="kw">pub </span>attrs: attr::Field,
+    <span class="kw">pub </span>ident: <span class="prelude-ty">Option</span>&lt;syn::Ident&gt;,
+    <span class="kw">pub </span>ty: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>syn::Type,
+    <span class="kw">pub </span>span: proc_macro2::Span,
 }
 
 <span class="attr">#[derive(Clone, Copy, Debug)]
@@ -203,120 +203,120 @@
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; Input&lt;<span class="lifetime">&#39;a</span>&gt; {
     <span class="kw">pub fn </span>from_ast(
-        item: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="../../syn/derive/struct.DeriveInput.html">syn::DeriveInput</a>,
-        errors: <span class="kw-2">&amp;mut </span><a href="../../proc_macro2/struct.TokenStream.html">proc_macro2::TokenStream</a>,
+        item: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>syn::DeriveInput,
+        errors: <span class="kw-2">&amp;mut </span>proc_macro2::TokenStream,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;Input&lt;<span class="lifetime">&#39;a</span>&gt;, ()&gt; {
         <span class="kw">let </span>attrs = attr::Input::from_ast(<span class="kw-2">&amp;</span>item.attrs, errors)<span class="question-mark">?</span>;
 
-        <span class="kw">let </span>body = <span class="kw">match </span><a href="#46">item</a>.data {
-            syn::Data::Enum(<a href="../../syn/derive/struct.DataEnum.html">syn::DataEnum</a> { <span class="kw-2">ref </span>variants, .. }) =&gt; {
-                <a href="#17">Body::Enum</a>(enum_from_ast(variants, errors)<span class="question-mark">?</span>)
+        <span class="kw">let </span>body = <span class="kw">match </span>item.data {
+            syn::Data::Enum(syn::DataEnum { <span class="kw-2">ref </span>variants, .. }) =&gt; {
+                Body::Enum(enum_from_ast(variants, errors)<span class="question-mark">?</span>)
             }
-            syn::Data::Struct(<a href="../../syn/derive/struct.DataStruct.html">syn::DataStruct</a> { <span class="kw-2">ref </span>fields, .. }) =&gt; {
+            syn::Data::Struct(syn::DataStruct { <span class="kw-2">ref </span>fields, .. }) =&gt; {
                 <span class="kw">let </span>(style, fields) = struct_from_ast(fields, errors)<span class="question-mark">?</span>;
-                <a href="#18">Body::Struct</a>(<a href="#56">style</a>, <a href="#56">fields</a>)
+                Body::Struct(style, fields)
             }
             syn::Data::Union(..) =&gt; {
-                <a href="#47">errors</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(
-                    syn::Error::new_spanned(<a href="#46">item</a>, <span class="string">&quot;derivative does not support unions&quot;</span>)
+                errors.extend(
+                    syn::Error::new_spanned(item, <span class="string">&quot;derivative does not support unions&quot;</span>)
                         .to_compile_error(),
                 );
                 <span class="kw">return </span><span class="prelude-val">Err</span>(());
             }
         };
 
-        <span class="prelude-val">Ok</span>(<a href="#7">Input</a> {
-            <a href="#49">attrs</a>,
-            <a href="#51">body</a>,
-            generics: <span class="kw-2">&amp;</span><a href="#46">item</a>.generics,
-            ident: <a href="#46">item</a>.ident.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
-            span: <a href="#46">item</a>.<a href="../../syn/spanned/trait.Spanned.html">span</a>(),
+        <span class="prelude-val">Ok</span>(Input {
+            attrs,
+            body,
+            generics: <span class="kw-2">&amp;</span>item.generics,
+            ident: item.ident.clone(),
+            span: item.span(),
         })
     }
 
     <span class="doccomment">/// Checks whether this type is an enum with only unit variants.
-    </span><span class="kw">pub fn </span>is_trivial_enum(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">match </span><span class="kw-2">&amp;</span><a class="self" href="#78">self</a>.body {
-            <a href="#17">Body::Enum</a>(e) =&gt; <a href="#80">e</a>.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">all</a>(|v| <a href="#80">v</a>.<a href="#107">is_unit</a>()),
-            <a href="#18">Body::Struct</a>(..) =&gt; <span class="bool-val">false</span>,
+    </span><span class="kw">pub fn </span>is_trivial_enum(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="kw">match </span><span class="kw-2">&amp;</span><span class="self">self</span>.body {
+            Body::Enum(e) =&gt; e.iter().all(|v| v.is_unit()),
+            Body::Struct(..) =&gt; <span class="bool-val">false</span>,
         }
     }
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; Body&lt;<span class="lifetime">&#39;a</span>&gt; {
-    <span class="kw">pub fn </span>all_fields(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Vec&lt;<span class="kw-2">&amp;</span><a href="#30">Field</a>&gt; {
-        <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="#87">self</a> </span>{
-            <a href="#17">Body::Enum</a>(<span class="kw-2">ref </span>variants) =&gt; <a href="#89">variants</a>
+    <span class="kw">pub fn </span>all_fields(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Vec&lt;<span class="kw-2">&amp;</span>Field&gt; {
+        <span class="kw">match </span><span class="kw-2">*</span><span class="self">self </span>{
+            Body::Enum(<span class="kw-2">ref </span>variants) =&gt; variants
                 .iter()
-                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">flat_map</a>(|variant| <a href="#91">variant</a>.fields.iter())
-                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>(),
-            <a href="#18">Body::Struct</a>(<span class="kw">_</span>, <span class="kw-2">ref </span>fields) =&gt; <a href="#93">fields</a>.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>(),
+                .flat_map(|variant| variant.fields.iter())
+                .collect(),
+            Body::Struct(<span class="kw">_</span>, <span class="kw-2">ref </span>fields) =&gt; fields.iter().collect(),
         }
     }
 
-    <span class="kw">pub fn </span>is_empty(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="#97">self</a> </span>{
-            <a href="#17">Body::Enum</a>(<span class="kw-2">ref </span>variants) =&gt; <a href="#99">variants</a>.is_empty(),
-            <a href="#18">Body::Struct</a>(<span class="kw">_</span>, <span class="kw-2">ref </span>fields) =&gt; <a href="#100">fields</a>.is_empty(),
+    <span class="kw">pub fn </span>is_empty(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="kw">match </span><span class="kw-2">*</span><span class="self">self </span>{
+            Body::Enum(<span class="kw-2">ref </span>variants) =&gt; variants.is_empty(),
+            Body::Struct(<span class="kw">_</span>, <span class="kw-2">ref </span>fields) =&gt; fields.is_empty(),
         }
     }
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; Variant&lt;<span class="lifetime">&#39;a</span>&gt; {
     <span class="doccomment">/// Checks whether this variant is a unit variant.
-    </span><span class="kw">pub fn </span>is_unit(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#107">self</a>.fields.is_empty()
+    </span><span class="kw">pub fn </span>is_unit(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.fields.is_empty()
     }
 }
 
 <span class="kw">fn </span>enum_from_ast&lt;<span class="lifetime">&#39;a</span>&gt;(
-    variants: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>syn::punctuated::Punctuated&lt;<a href="../../syn/data/struct.Variant.html">syn::Variant</a>, <a href="../../syn/token/struct.Comma.html">syn::token::Comma</a>&gt;,
-    errors: <span class="kw-2">&amp;mut </span><a href="../../proc_macro2/struct.TokenStream.html">proc_macro2::TokenStream</a>,
+    variants: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>syn::punctuated::Punctuated&lt;syn::Variant, syn::token::Comma&gt;,
+    errors: <span class="kw-2">&amp;mut </span>proc_macro2::TokenStream,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;Variant&lt;<span class="lifetime">&#39;a</span>&gt;&gt;, ()&gt; {
-    <a href="#113">variants</a>
+    variants
         .iter()
-        .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|variant| {
+        .map(|variant| {
             <span class="kw">let </span>(style, fields) = struct_from_ast(<span class="kw-2">&amp;</span>variant.fields, errors)<span class="question-mark">?</span>;
-            <span class="prelude-val">Ok</span>(<a href="#22">Variant</a> {
+            <span class="prelude-val">Ok</span>(Variant {
                 attrs: attr::Input::from_ast(<span class="kw-2">&amp;</span>variant.attrs, errors)<span class="question-mark">?</span>,
-                <a href="#119">fields</a>,
-                ident: <a href="#118">variant</a>.ident.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
-                <a href="#119">style</a>,
+                fields,
+                ident: variant.ident.clone(),
+                style,
             })
         })
-        .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>()
+        .collect()
 }
 
 <span class="kw">fn </span>struct_from_ast&lt;<span class="lifetime">&#39;a</span>&gt;(
-    fields: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="../../syn/data/enum.Fields.html">syn::Fields</a>,
-    errors: <span class="kw-2">&amp;mut </span><a href="../../proc_macro2/struct.TokenStream.html">proc_macro2::TokenStream</a>,
-) -&gt; <span class="prelude-ty">Result</span>&lt;(<a href="#38">Style</a>, Vec&lt;Field&lt;<span class="lifetime">&#39;a</span>&gt;&gt;), ()&gt; {
-    <span class="kw">match </span><span class="kw-2">*</span><a href="#131">fields</a> {
+    fields: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>syn::Fields,
+    errors: <span class="kw-2">&amp;mut </span>proc_macro2::TokenStream,
+) -&gt; <span class="prelude-ty">Result</span>&lt;(Style, Vec&lt;Field&lt;<span class="lifetime">&#39;a</span>&gt;&gt;), ()&gt; {
+    <span class="kw">match </span><span class="kw-2">*</span>fields {
         syn::Fields::Named(<span class="kw-2">ref </span>fields) =&gt; {
-            <span class="prelude-val">Ok</span>((<a href="#39">Style::Struct</a>, fields_from_ast(<span class="kw-2">&amp;</span>fields.named, errors)<span class="question-mark">?</span>))
+            <span class="prelude-val">Ok</span>((Style::Struct, fields_from_ast(<span class="kw-2">&amp;</span>fields.named, errors)<span class="question-mark">?</span>))
         }
         syn::Fields::Unnamed(<span class="kw-2">ref </span>fields) =&gt; {
-            <span class="prelude-val">Ok</span>((<a href="#40">Style::Tuple</a>, fields_from_ast(<span class="kw-2">&amp;</span>fields.unnamed, errors)<span class="question-mark">?</span>))
+            <span class="prelude-val">Ok</span>((Style::Tuple, fields_from_ast(<span class="kw-2">&amp;</span>fields.unnamed, errors)<span class="question-mark">?</span>))
         }
-        syn::Fields::Unit =&gt; <span class="prelude-val">Ok</span>((<a href="#41">Style::Unit</a>, Vec::new())),
+        syn::Fields::Unit =&gt; <span class="prelude-val">Ok</span>((Style::Unit, Vec::new())),
     }
 }
 
 <span class="kw">fn </span>fields_from_ast&lt;<span class="lifetime">&#39;a</span>&gt;(
-    fields: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>syn::punctuated::Punctuated&lt;<a href="../../syn/data/struct.Field.html">syn::Field</a>, <a href="../../syn/token/struct.Comma.html">syn::token::Comma</a>&gt;,
-    errors: <span class="kw-2">&amp;mut </span><a href="../../proc_macro2/struct.TokenStream.html">proc_macro2::TokenStream</a>,
+    fields: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>syn::punctuated::Punctuated&lt;syn::Field, syn::token::Comma&gt;,
+    errors: <span class="kw-2">&amp;mut </span>proc_macro2::TokenStream,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;Field&lt;<span class="lifetime">&#39;a</span>&gt;&gt;, ()&gt; {
-    <a href="#146">fields</a>
+    fields
         .iter()
-        .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|field| {
-            <span class="prelude-val">Ok</span>(<a href="#30">Field</a> {
+        .map(|field| {
+            <span class="prelude-val">Ok</span>(Field {
                 attrs: attr::Field::from_ast(field, errors)<span class="question-mark">?</span>,
-                ident: <a href="#151">field</a>.ident.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
-                ty: <span class="kw-2">&amp;</span><a href="#151">field</a>.ty,
-                span: <a href="#151">field</a>.<a href="../../syn/spanned/trait.Spanned.html">span</a>(),
+                ident: field.ident.clone(),
+                ty: <span class="kw-2">&amp;</span>field.ty,
+                span: field.span(),
             })
         })
-        .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>()
+        .collect()
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="derivative" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="derivative" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

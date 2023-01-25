@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/futures-util-0.3.25/src/sink/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../futures_util/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/futures-util-0.3.25/src/sink/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../futures_util/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -350,59 +350,59 @@
 //! - The [`SinkExt`] trait, which provides adapters for chaining and composing
 //!   sinks.
 
-</span><span class="kw">use </span><span class="kw">crate</span>::future::{<a href="../future/mod.rs.html#126-128">assert_future</a>, <a href="../future/either.rs.html#28">Either</a>};
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/pin/struct.Pin.html">core::pin::Pin</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">futures_core::future::Future</a>;
-<span class="kw">use </span>futures_core::stream::{<a href="../../../futures_util/stream/trait.Stream.html">Stream</a>, <a href="../../../futures_util/stream/trait.TryStream.html">TryStream</a>};
-<span class="kw">use </span>futures_core::task::{<a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>, <a href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">Poll</a>};
+</span><span class="kw">use </span><span class="kw">crate</span>::future::{assert_future, Either};
+<span class="kw">use </span>core::pin::Pin;
+<span class="kw">use </span>futures_core::future::Future;
+<span class="kw">use </span>futures_core::stream::{Stream, TryStream};
+<span class="kw">use </span>futures_core::task::{Context, Poll};
 
 <span class="attr">#[cfg(feature = <span class="string">&quot;compat&quot;</span>)]
 </span><span class="kw">use </span><span class="kw">crate</span>::compat::CompatSink;
 
-<span class="kw">pub use </span><a href="../../../futures_util/sink/trait.Sink.html">futures_sink::Sink</a>;
+<span class="kw">pub use </span>futures_sink::Sink;
 
-<span class="kw">mod </span><a href="close.rs.html#1-32">close</a>;
-<span class="kw">pub use </span><a href="close.rs.html#10"><span class="self">self</span>::close::Close</a>;
+<span class="kw">mod </span>close;
+<span class="kw">pub use </span><span class="self">self</span>::close::Close;
 
-<span class="kw">mod </span><a href="drain.rs.html#1-59">drain</a>;
-<span class="kw">pub use </span><span class="self">self</span>::drain::{<a href="drain.rs.html#29">drain</a>, <a href="drain.rs.html#11">Drain</a>};
+<span class="kw">mod </span>drain;
+<span class="kw">pub use </span><span class="self">self</span>::drain::{drain, Drain};
 
-<span class="kw">mod </span><a href="fanout.rs.html#1-111">fanout</a>;
-<span class="kw">pub use </span><a href="fanout.rs.html#7-19"><span class="self">self</span>::fanout::Fanout</a>;
+<span class="kw">mod </span>fanout;
+<span class="kw">pub use </span><span class="self">self</span>::fanout::Fanout;
 
-<span class="kw">mod </span><a href="feed.rs.html#1-43">feed</a>;
-<span class="kw">pub use </span><a href="feed.rs.html#10"><span class="self">self</span>::feed::Feed</a>;
+<span class="kw">mod </span>feed;
+<span class="kw">pub use </span><span class="self">self</span>::feed::Feed;
 
-<span class="kw">mod </span><a href="flush.rs.html#1-36">flush</a>;
-<span class="kw">pub use </span><a href="flush.rs.html#10"><span class="self">self</span>::flush::Flush</a>;
+<span class="kw">mod </span>flush;
+<span class="kw">pub use </span><span class="self">self</span>::flush::Flush;
 
-<span class="kw">mod </span><a href="err_into.rs.html#1-57">err_into</a>;
-<span class="kw">pub use </span><a href="err_into.rs.html#6-14"><span class="self">self</span>::err_into::SinkErrInto</a>;
+<span class="kw">mod </span>err_into;
+<span class="kw">pub use </span><span class="self">self</span>::err_into::SinkErrInto;
 
-<span class="kw">mod </span><a href="map_err.rs.html#1-65">map_err</a>;
-<span class="kw">pub use </span><a href="map_err.rs.html#7-16"><span class="self">self</span>::map_err::SinkMapErr</a>;
+<span class="kw">mod </span>map_err;
+<span class="kw">pub use </span><span class="self">self</span>::map_err::SinkMapErr;
 
-<span class="kw">mod </span><a href="send.rs.html#1-41">send</a>;
-<span class="kw">pub use </span><a href="send.rs.html#11"><span class="self">self</span>::send::Send</a>;
+<span class="kw">mod </span>send;
+<span class="kw">pub use </span><span class="self">self</span>::send::Send;
 
-<span class="kw">mod </span><a href="send_all.rs.html#1-100">send_all</a>;
-<span class="kw">pub use </span><a href="send_all.rs.html#13"><span class="self">self</span>::send_all::SendAll</a>;
+<span class="kw">mod </span>send_all;
+<span class="kw">pub use </span><span class="self">self</span>::send_all::SendAll;
 
-<span class="kw">mod </span><a href="unfold.rs.html#1-86">unfold</a>;
-<span class="kw">pub use </span><span class="self">self</span>::unfold::{<a href="unfold.rs.html#39-42">unfold</a>, <a href="unfold.rs.html#9-18">Unfold</a>};
+<span class="kw">mod </span>unfold;
+<span class="kw">pub use </span><span class="self">self</span>::unfold::{unfold, Unfold};
 
-<span class="kw">mod </span><a href="with.rs.html#1-134">with</a>;
-<span class="kw">pub use </span><a href="with.rs.html#11-22"><span class="self">self</span>::with::With</a>;
+<span class="kw">mod </span>with;
+<span class="kw">pub use </span><span class="self">self</span>::with::With;
 
-<span class="kw">mod </span><a href="with_flat_map.rs.html#1-127">with_flat_map</a>;
-<span class="kw">pub use </span><a href="with_flat_map.rs.html#10-22"><span class="self">self</span>::with_flat_map::WithFlatMap</a>;
+<span class="kw">mod </span>with_flat_map;
+<span class="kw">pub use </span><span class="self">self</span>::with_flat_map::WithFlatMap;
 
 <span class="attr">#[cfg(feature = <span class="string">&quot;alloc&quot;</span>)]
-</span><span class="kw">mod </span><a href="buffer.rs.html#1-105">buffer</a>;
+</span><span class="kw">mod </span>buffer;
 <span class="attr">#[cfg(feature = <span class="string">&quot;alloc&quot;</span>)]
-</span><span class="kw">pub use </span><a href="buffer.rs.html#9-21"><span class="self">self</span>::buffer::Buffer</a>;
+</span><span class="kw">pub use </span><span class="self">self</span>::buffer::Buffer;
 
-<span class="kw">impl</span>&lt;T: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>, Item&gt; SinkExt&lt;Item&gt; <span class="kw">for </span>T <span class="kw">where </span>T: Sink&lt;Item&gt; {}
+<span class="kw">impl</span>&lt;T: <span class="question-mark">?</span>Sized, Item&gt; SinkExt&lt;Item&gt; <span class="kw">for </span>T <span class="kw">where </span>T: Sink&lt;Item&gt; {}
 
 <span class="doccomment">/// An extension trait for `Sink`s that provides a variety of convenient
 /// combinator functions.
@@ -423,9 +423,9 @@
         </span>F: FnMut(U) -&gt; Fut,
         Fut: Future&lt;Output = <span class="prelude-ty">Result</span>&lt;Item, E&gt;&gt;,
         E: From&lt;<span class="self">Self</span>::Error&gt;,
-        <span class="self">Self</span>: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>,
+        <span class="self">Self</span>: Sized,
     {
-        assert_sink::&lt;U, E, <span class="kw">_</span>&gt;(With::new(<a class="self" href="#77">self</a>, <a href="#77">f</a>))
+        assert_sink::&lt;U, E, <span class="kw">_</span>&gt;(With::new(<span class="self">self</span>, f))
     }
 
     <span class="doccomment">/// Composes a function *in front of* the sink.
@@ -464,9 +464,9 @@
     <span class="kw">where
         </span>F: FnMut(U) -&gt; St,
         St: Stream&lt;Item = <span class="prelude-ty">Result</span>&lt;Item, <span class="self">Self</span>::Error&gt;&gt;,
-        <span class="self">Self</span>: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>,
+        <span class="self">Self</span>: Sized,
     {
-        assert_sink::&lt;U, <span class="self">Self</span>::Error, <span class="kw">_</span>&gt;(WithFlatMap::new(<a class="self" href="#119">self</a>, <a href="#119">f</a>))
+        assert_sink::&lt;U, <span class="self">Self</span>::Error, <span class="kw">_</span>&gt;(WithFlatMap::new(<span class="self">self</span>, f))
     }
 
     <span class="comment">/*
@@ -487,9 +487,9 @@
     </span><span class="kw">fn </span>sink_map_err&lt;E, F&gt;(<span class="self">self</span>, f: F) -&gt; SinkMapErr&lt;<span class="self">Self</span>, F&gt;
     <span class="kw">where
         </span>F: FnOnce(<span class="self">Self</span>::Error) -&gt; E,
-        <span class="self">Self</span>: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>,
+        <span class="self">Self</span>: Sized,
     {
-        assert_sink::&lt;Item, E, <span class="kw">_</span>&gt;(SinkMapErr::new(<a class="self" href="#143">self</a>, <a href="#143">f</a>))
+        assert_sink::&lt;Item, E, <span class="kw">_</span>&gt;(SinkMapErr::new(<span class="self">self</span>, f))
     }
 
     <span class="doccomment">/// Map this sink&#39;s error to a different error type using the `Into` trait.
@@ -497,10 +497,10 @@
     /// If wanting to map errors of a `Sink + Stream`, use `.sink_err_into().err_into()`.
     </span><span class="kw">fn </span>sink_err_into&lt;E&gt;(<span class="self">self</span>) -&gt; err_into::SinkErrInto&lt;<span class="self">Self</span>, Item, E&gt;
     <span class="kw">where
-        </span><span class="self">Self</span>: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>,
+        </span><span class="self">Self</span>: Sized,
         <span class="self">Self</span>::Error: Into&lt;E&gt;,
     {
-        assert_sink::&lt;Item, E, <span class="kw">_</span>&gt;(SinkErrInto::new(<a class="self" href="#154">self</a>))
+        assert_sink::&lt;Item, E, <span class="kw">_</span>&gt;(SinkErrInto::new(<span class="self">self</span>))
     }
 
     <span class="doccomment">/// Adds a fixed-size buffer to the current sink.
@@ -516,19 +516,19 @@
     /// This method is only available when the `std` or `alloc` feature of this
     /// library is activated, and it is activated by default.
     </span><span class="attr">#[cfg(feature = <span class="string">&quot;alloc&quot;</span>)]
-    </span><span class="kw">fn </span>buffer(<span class="self">self</span>, capacity: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; Buffer&lt;<span class="self">Self</span>, Item&gt;
+    </span><span class="kw">fn </span>buffer(<span class="self">self</span>, capacity: usize) -&gt; Buffer&lt;<span class="self">Self</span>, Item&gt;
     <span class="kw">where
-        </span><span class="self">Self</span>: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>,
+        </span><span class="self">Self</span>: Sized,
     {
-        assert_sink::&lt;Item, <span class="self">Self</span>::Error, <span class="kw">_</span>&gt;(Buffer::new(<a class="self" href="#175">self</a>, <a href="#175">capacity</a>))
+        assert_sink::&lt;Item, <span class="self">Self</span>::Error, <span class="kw">_</span>&gt;(Buffer::new(<span class="self">self</span>, capacity))
     }
 
     <span class="doccomment">/// Close the sink.
     </span><span class="kw">fn </span>close(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; Close&lt;<span class="lifetime">&#39;_</span>, <span class="self">Self</span>, Item&gt;
     <span class="kw">where
-        </span><span class="self">Self</span>: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
+        </span><span class="self">Self</span>: Unpin,
     {
-        assert_future::&lt;<span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt;, <span class="kw">_</span>&gt;(Close::new(<a class="self" href="#183">self</a>))
+        assert_future::&lt;<span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt;, <span class="kw">_</span>&gt;(Close::new(<span class="self">self</span>))
     }
 
     <span class="doccomment">/// Fanout items to multiple sinks.
@@ -537,11 +537,11 @@
     /// the other sink at the same time.
     </span><span class="kw">fn </span>fanout&lt;Si&gt;(<span class="self">self</span>, other: Si) -&gt; Fanout&lt;<span class="self">Self</span>, Si&gt;
     <span class="kw">where
-        </span><span class="self">Self</span>: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>,
-        Item: <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a>,
+        </span><span class="self">Self</span>: Sized,
+        Item: Clone,
         Si: Sink&lt;Item, Error = <span class="self">Self</span>::Error&gt;,
     {
-        assert_sink::&lt;Item, <span class="self">Self</span>::Error, <span class="kw">_</span>&gt;(Fanout::new(<a class="self" href="#194">self</a>, <a href="#194">other</a>))
+        assert_sink::&lt;Item, <span class="self">Self</span>::Error, <span class="kw">_</span>&gt;(Fanout::new(<span class="self">self</span>, other))
     }
 
     <span class="doccomment">/// Flush the sink, processing all pending items.
@@ -550,9 +550,9 @@
     /// until all current requests are processed.
     </span><span class="kw">fn </span>flush(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; Flush&lt;<span class="lifetime">&#39;_</span>, <span class="self">Self</span>, Item&gt;
     <span class="kw">where
-        </span><span class="self">Self</span>: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
+        </span><span class="self">Self</span>: Unpin,
     {
-        assert_future::&lt;<span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt;, <span class="kw">_</span>&gt;(Flush::new(<a class="self" href="#207">self</a>))
+        assert_future::&lt;<span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt;, <span class="kw">_</span>&gt;(Flush::new(<span class="self">self</span>))
     }
 
     <span class="doccomment">/// A future that completes after the given item has been fully processed
@@ -563,9 +563,9 @@
     /// rather than flushing between each item.**
     </span><span class="kw">fn </span>send(<span class="kw-2">&amp;mut </span><span class="self">self</span>, item: Item) -&gt; Send&lt;<span class="lifetime">&#39;_</span>, <span class="self">Self</span>, Item&gt;
     <span class="kw">where
-        </span><span class="self">Self</span>: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
+        </span><span class="self">Self</span>: Unpin,
     {
-        assert_future::&lt;<span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt;, <span class="kw">_</span>&gt;(Send::new(<a class="self" href="#220">self</a>, <a href="#220">item</a>))
+        assert_future::&lt;<span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt;, <span class="kw">_</span>&gt;(Send::new(<span class="self">self</span>, item))
     }
 
     <span class="doccomment">/// A future that completes after the given item has been received
@@ -576,9 +576,9 @@
     /// are processed, which can be done via `flush` or `close`.
     </span><span class="kw">fn </span>feed(<span class="kw-2">&amp;mut </span><span class="self">self</span>, item: Item) -&gt; Feed&lt;<span class="lifetime">&#39;_</span>, <span class="self">Self</span>, Item&gt;
     <span class="kw">where
-        </span><span class="self">Self</span>: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
+        </span><span class="self">Self</span>: Unpin,
     {
-        assert_future::&lt;<span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt;, <span class="kw">_</span>&gt;(Feed::new(<a class="self" href="#233">self</a>, <a href="#233">item</a>))
+        assert_future::&lt;<span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt;, <span class="kw">_</span>&gt;(Feed::new(<span class="self">self</span>, item))
     }
 
     <span class="doccomment">/// A future that completes after the given stream has been fully processed
@@ -595,13 +595,13 @@
     /// `stream` and send them to `self`.
     </span><span class="kw">fn </span>send_all&lt;<span class="lifetime">&#39;a</span>, St&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span><span class="self">self</span>, stream: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>St) -&gt; SendAll&lt;<span class="lifetime">&#39;a</span>, <span class="self">Self</span>, St&gt;
     <span class="kw">where
-        </span>St: TryStream&lt;<span class="prelude-val">Ok </span>= Item, Error = <span class="self">Self</span>::Error&gt; + <a href="../../../futures_util/stream/trait.Stream.html">Stream</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a> + <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>,
+        </span>St: TryStream&lt;<span class="prelude-val">Ok </span>= Item, Error = <span class="self">Self</span>::Error&gt; + Stream + Unpin + <span class="question-mark">?</span>Sized,
         <span class="comment">// St: Stream&lt;Item = Result&lt;Item, Self::Error&gt;&gt; + Unpin + ?Sized,
-        </span><span class="self">Self</span>: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
+        </span><span class="self">Self</span>: Unpin,
     {
         <span class="comment">// TODO: type mismatch resolving `&lt;St as Stream&gt;::Item == std::result::Result&lt;Item, &lt;Self as futures_sink::Sink&lt;Item&gt;&gt;::Error&gt;`
         // assert_future::&lt;Result&lt;(), Self::Error&gt;, _&gt;(SendAll::new(self, stream))
-        </span>SendAll::new(<a class="self" href="#252">self</a>, <a href="#252">stream</a>)
+        </span>SendAll::new(<span class="self">self</span>, stream)
     }
 
     <span class="doccomment">/// Wrap this sink in an `Either` sink, making it the left-hand variant
@@ -612,9 +612,9 @@
     </span><span class="kw">fn </span>left_sink&lt;Si2&gt;(<span class="self">self</span>) -&gt; Either&lt;<span class="self">Self</span>, Si2&gt;
     <span class="kw">where
         </span>Si2: Sink&lt;Item, Error = <span class="self">Self</span>::Error&gt;,
-        <span class="self">Self</span>: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>,
+        <span class="self">Self</span>: Sized,
     {
-        assert_sink::&lt;Item, <span class="self">Self</span>::Error, <span class="kw">_</span>&gt;(<a href="../future/either.rs.html#30">Either::Left</a>(<a class="self" href="#268">self</a>))
+        assert_sink::&lt;Item, <span class="self">Self</span>::Error, <span class="kw">_</span>&gt;(Either::Left(<span class="self">self</span>))
     }
 
     <span class="doccomment">/// Wrap this stream in an `Either` stream, making it the right-hand variant
@@ -625,9 +625,9 @@
     </span><span class="kw">fn </span>right_sink&lt;Si1&gt;(<span class="self">self</span>) -&gt; Either&lt;Si1, <span class="self">Self</span>&gt;
     <span class="kw">where
         </span>Si1: Sink&lt;Item, Error = <span class="self">Self</span>::Error&gt;,
-        <span class="self">Self</span>: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>,
+        <span class="self">Self</span>: Sized,
     {
-        assert_sink::&lt;Item, <span class="self">Self</span>::Error, <span class="kw">_</span>&gt;(<a href="../future/either.rs.html#32">Either::Right</a>(<a class="self" href="#281">self</a>))
+        assert_sink::&lt;Item, <span class="self">Self</span>::Error, <span class="kw">_</span>&gt;(Either::Right(<span class="self">self</span>))
     }
 
     <span class="doccomment">/// Wraps a [`Sink`] into a sink compatible with libraries using
@@ -645,36 +645,36 @@
     /// sink types.
     </span><span class="kw">fn </span>poll_ready_unpin(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt;&gt;
     <span class="kw">where
-        </span><span class="self">Self</span>: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
+        </span><span class="self">Self</span>: Unpin,
     {
-        Pin::new(<a class="self" href="#302">self</a>).<a href="../../../futures_util/sink/trait.Sink.html">poll_ready</a>(<a href="#302">cx</a>)
+        Pin::new(<span class="self">self</span>).poll_ready(cx)
     }
 
     <span class="doccomment">/// A convenience method for calling [`Sink::start_send`] on [`Unpin`]
     /// sink types.
     </span><span class="kw">fn </span>start_send_unpin(<span class="kw-2">&amp;mut </span><span class="self">self</span>, item: Item) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt;
     <span class="kw">where
-        </span><span class="self">Self</span>: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
+        </span><span class="self">Self</span>: Unpin,
     {
-        Pin::new(<a class="self" href="#311">self</a>).<a href="../../../futures_util/sink/trait.Sink.html">start_send</a>(<a href="#311">item</a>)
+        Pin::new(<span class="self">self</span>).start_send(item)
     }
 
     <span class="doccomment">/// A convenience method for calling [`Sink::poll_flush`] on [`Unpin`]
     /// sink types.
     </span><span class="kw">fn </span>poll_flush_unpin(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt;&gt;
     <span class="kw">where
-        </span><span class="self">Self</span>: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
+        </span><span class="self">Self</span>: Unpin,
     {
-        Pin::new(<a class="self" href="#320">self</a>).<a href="../../../futures_util/sink/trait.Sink.html">poll_flush</a>(<a href="#320">cx</a>)
+        Pin::new(<span class="self">self</span>).poll_flush(cx)
     }
 
     <span class="doccomment">/// A convenience method for calling [`Sink::poll_close`] on [`Unpin`]
     /// sink types.
     </span><span class="kw">fn </span>poll_close_unpin(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt;&gt;
     <span class="kw">where
-        </span><span class="self">Self</span>: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
+        </span><span class="self">Self</span>: Unpin,
     {
-        Pin::new(<a class="self" href="#329">self</a>).<a href="../../../futures_util/sink/trait.Sink.html">poll_close</a>(<a href="#329">cx</a>)
+        Pin::new(<span class="self">self</span>).poll_close(cx)
     }
 }
 
@@ -684,7 +684,7 @@
 <span class="kw">where
     </span>S: Sink&lt;T, Error = E&gt;,
 {
-    <a href="#339">sink</a>
+    sink
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="futures_util" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="futures_util" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

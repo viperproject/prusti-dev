@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-util-0.7.4/src/sync/cancellation_token/tree_node.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>tree_node.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../../tokio_util/index.html"><img class="rust-logo" src="../../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-util-0.7.4/src/sync/cancellation_token/tree_node.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>tree_node.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../../tokio_util/index.html"><img class="rust-logo" src="../../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -411,22 +411,22 @@
 //! Specifically, through invariant #2, we know that we always have to lock a parent
 //! before its child.
 //!
-</span><span class="kw">use </span><span class="kw">crate</span>::loom::sync::{<a href="https://doc.rust-lang.org/nightly/alloc/sync/struct.Arc.html">Arc</a>, <a href="https://doc.rust-lang.org/nightly/std/sync/mutex/struct.Mutex.html">Mutex</a>, <a href="https://doc.rust-lang.org/nightly/std/sync/mutex/struct.MutexGuard.html">MutexGuard</a>};
+</span><span class="kw">use </span><span class="kw">crate</span>::loom::sync::{Arc, Mutex, MutexGuard};
 
 <span class="doccomment">/// A node of the cancellation tree structure
 ///
 /// The actual data it holds is wrapped inside a mutex for synchronization.
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>TreeNode {
-    inner: Mutex&lt;<a href="#73">Inner</a>&gt;,
-    waker: <a href="../../../../tokio/sync/notify/struct.Notify.html">tokio::sync::Notify</a>,
+    inner: Mutex&lt;Inner&gt;,
+    waker: tokio::sync::Notify,
 }
-<span class="kw">impl </span><a href="#46">TreeNode</a> {
+<span class="kw">impl </span>TreeNode {
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new() -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
-            inner: Mutex::new(<a href="#73">Inner</a> {
+            inner: Mutex::new(Inner {
                 parent: <span class="prelude-val">None</span>,
                 parent_idx: <span class="number">0</span>,
-                children: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[],
+                children: <span class="macro">vec!</span>[],
                 is_cancelled: <span class="bool-val">false</span>,
                 num_handles: <span class="number">1</span>,
             }),
@@ -435,7 +435,7 @@
     }
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>notified(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; tokio::sync::futures::Notified&lt;<span class="lifetime">&#39;_</span>&gt; {
-        <a class="self" href="#64">self</a>.waker.notified()
+        <span class="self">self</span>.waker.notified()
     }
 }
 
@@ -444,31 +444,31 @@
 /// This struct exists so that the data of the node can be wrapped
 /// in a Mutex.
 </span><span class="kw">struct </span>Inner {
-    parent: <span class="prelude-ty">Option</span>&lt;Arc&lt;<a href="#46">TreeNode</a>&gt;&gt;,
-    parent_idx: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-    children: Vec&lt;Arc&lt;<a href="#46">TreeNode</a>&gt;&gt;,
-    is_cancelled: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-    num_handles: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+    parent: <span class="prelude-ty">Option</span>&lt;Arc&lt;TreeNode&gt;&gt;,
+    parent_idx: usize,
+    children: Vec&lt;Arc&lt;TreeNode&gt;&gt;,
+    is_cancelled: bool,
+    num_handles: usize,
 }
 
 <span class="doccomment">/// Returns whether or not the node is cancelled
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>is_cancelled(node: <span class="kw-2">&amp;</span>Arc&lt;<a href="#46">TreeNode</a>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-    <a href="#82">node</a>.inner.lock().unwrap().is_cancelled
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>is_cancelled(node: <span class="kw-2">&amp;</span>Arc&lt;TreeNode&gt;) -&gt; bool {
+    node.inner.lock().unwrap().is_cancelled
 }
 
 <span class="doccomment">/// Creates a child node
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>child_node(parent: <span class="kw-2">&amp;</span>Arc&lt;<a href="#46">TreeNode</a>&gt;) -&gt; Arc&lt;<a href="#46">TreeNode</a>&gt; {
-    <span class="kw">let </span><span class="kw-2">mut </span>locked_parent = <a href="#87">parent</a>.inner.lock().unwrap();
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>child_node(parent: <span class="kw-2">&amp;</span>Arc&lt;TreeNode&gt;) -&gt; Arc&lt;TreeNode&gt; {
+    <span class="kw">let </span><span class="kw-2">mut </span>locked_parent = parent.inner.lock().unwrap();
 
     <span class="comment">// Do not register as child if we are already cancelled.
     // Cancelled trees can never be uncancelled and therefore
     // need no connection to parents or children any more.
     </span><span class="kw">if </span>locked_parent.is_cancelled {
-        <span class="kw">return </span>Arc::new(<a href="#46">TreeNode</a> {
-            inner: Mutex::new(<a href="#73">Inner</a> {
+        <span class="kw">return </span>Arc::new(TreeNode {
+            inner: Mutex::new(Inner {
                 parent: <span class="prelude-val">None</span>,
                 parent_idx: <span class="number">0</span>,
-                children: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[],
+                children: <span class="macro">vec!</span>[],
                 is_cancelled: <span class="bool-val">true</span>,
                 num_handles: <span class="number">1</span>,
             }),
@@ -476,26 +476,26 @@
         });
     }
 
-    <span class="kw">let </span>child = Arc::new(<a href="#46">TreeNode</a> {
-        inner: Mutex::new(<a href="#73">Inner</a> {
-            parent: <span class="prelude-val">Some</span>(<a href="#87">parent</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()),
-            parent_idx: <a href="#88">locked_parent</a>.children.len(),
-            children: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[],
+    <span class="kw">let </span>child = Arc::new(TreeNode {
+        inner: Mutex::new(Inner {
+            parent: <span class="prelude-val">Some</span>(parent.clone()),
+            parent_idx: locked_parent.children.len(),
+            children: <span class="macro">vec!</span>[],
             is_cancelled: <span class="bool-val">false</span>,
             num_handles: <span class="number">1</span>,
         }),
         waker: tokio::sync::Notify::new(),
     });
 
-    <a href="#88">locked_parent</a>.children.push(<a href="#106">child</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
+    locked_parent.children.push(child.clone());
 
-    <a href="#106">child</a>
+    child
 }
 
 <span class="doccomment">/// Disconnects the given parent from all of its children.
 ///
 /// Takes a reference to [Inner] to make sure the parent is already locked.
-</span><span class="kw">fn </span>disconnect_children(node: <span class="kw-2">&amp;mut </span><a href="#73">Inner</a>) {
+</span><span class="kw">fn </span>disconnect_children(node: <span class="kw-2">&amp;mut </span>Inner) {
     <span class="kw">for </span>child <span class="kw">in </span>std::mem::take(<span class="kw-2">&amp;mut </span>node.children) {
         <span class="kw">let </span><span class="kw-2">mut </span>locked_child = child.inner.lock().unwrap();
         locked_child.parent_idx = <span class="number">0</span>;
@@ -520,17 +520,17 @@
 ///
 /// The locked child and optionally its locked parent, if a parent exists, get passed
 /// to the `func` argument via (node, None) or (node, Some(parent)).
-</span><span class="kw">fn </span>with_locked_node_and_parent&lt;F, Ret&gt;(node: <span class="kw-2">&amp;</span>Arc&lt;<a href="#46">TreeNode</a>&gt;, func: F) -&gt; Ret
+</span><span class="kw">fn </span>with_locked_node_and_parent&lt;F, Ret&gt;(node: <span class="kw-2">&amp;</span>Arc&lt;TreeNode&gt;, func: F) -&gt; Ret
 <span class="kw">where
-    </span>F: FnOnce(MutexGuard&lt;<span class="lifetime">&#39;_</span>, <a href="#73">Inner</a>&gt;, <span class="prelude-ty">Option</span>&lt;MutexGuard&lt;<span class="lifetime">&#39;_</span>, <a href="#73">Inner</a>&gt;&gt;) -&gt; Ret,
+    </span>F: FnOnce(MutexGuard&lt;<span class="lifetime">&#39;_</span>, Inner&gt;, <span class="prelude-ty">Option</span>&lt;MutexGuard&lt;<span class="lifetime">&#39;_</span>, Inner&gt;&gt;) -&gt; Ret,
 {
     <span class="kw">let </span><span class="kw-2">mut </span>potential_parent = {
-        <span class="kw">let </span>locked_node = <a href="#150">node</a>.inner.lock().unwrap();
-        <span class="kw">match </span><a href="#155">locked_node</a>.parent.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>() {
-            <span class="prelude-val">Some</span>(parent) =&gt; <a href="#157">parent</a>,
+        <span class="kw">let </span>locked_node = node.inner.lock().unwrap();
+        <span class="kw">match </span>locked_node.parent.clone() {
+            <span class="prelude-val">Some</span>(parent) =&gt; parent,
             <span class="comment">// If we locked the node and its parent is `None`, we are in a valid state
             // and can return.
-            </span><span class="prelude-val">None </span>=&gt; <span class="kw">return </span><a href="#150">func</a>(<a href="#155">locked_node</a>, <span class="prelude-val">None</span>),
+            </span><span class="prelude-val">None </span>=&gt; <span class="kw">return </span>func(locked_node, <span class="prelude-val">None</span>),
         }
     };
 
@@ -540,31 +540,31 @@
         // Due to invariant #2, we know that we have to lock the parent first, and then the child.
         // This is true even if the potential_parent is no longer the current parent or even its
         // sibling, as the invariant still holds.
-        </span><span class="kw">let </span>locked_parent = <a href="#154">potential_parent</a>.inner.lock().unwrap();
-        <span class="kw">let </span>locked_node = <a href="#150">node</a>.inner.lock().unwrap();
+        </span><span class="kw">let </span>locked_parent = potential_parent.inner.lock().unwrap();
+        <span class="kw">let </span>locked_node = node.inner.lock().unwrap();
 
-        <span class="kw">let </span>actual_parent = <span class="kw">match </span><a href="#171">locked_node</a>.parent.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>() {
-            <span class="prelude-val">Some</span>(parent) =&gt; <a href="#174">parent</a>,
+        <span class="kw">let </span>actual_parent = <span class="kw">match </span>locked_node.parent.clone() {
+            <span class="prelude-val">Some</span>(parent) =&gt; parent,
             <span class="comment">// If we locked the node and its parent is `None`, we are in a valid state
             // and can return.
             </span><span class="prelude-val">None </span>=&gt; {
                 <span class="comment">// Was the wrong parent, so unlock it before calling `func`
-                </span><a href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>(<a href="#170">locked_parent</a>);
-                <span class="kw">return </span><a href="#150">func</a>(<a href="#171">locked_node</a>, <span class="prelude-val">None</span>);
+                </span>drop(locked_parent);
+                <span class="kw">return </span>func(locked_node, <span class="prelude-val">None</span>);
             }
         };
 
         <span class="comment">// Loop until we managed to lock both the node and its parent
         </span><span class="kw">if </span>Arc::ptr_eq(<span class="kw-2">&amp;</span>actual_parent, <span class="kw-2">&amp;</span>potential_parent) {
-            <span class="kw">return </span><a href="#150">func</a>(<a href="#171">locked_node</a>, <span class="prelude-val">Some</span>(<a href="#170">locked_parent</a>));
+            <span class="kw">return </span>func(locked_node, <span class="prelude-val">Some</span>(locked_parent));
         }
 
         <span class="comment">// Drop locked_parent before reassigning to potential_parent,
         // as potential_parent is borrowed in it
-        </span><a href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>(<a href="#171">locked_node</a>);
-        <a href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>(<a href="#170">locked_parent</a>);
+        </span>drop(locked_node);
+        drop(locked_parent);
 
-        <a href="#154">potential_parent</a> = <a href="#173">actual_parent</a>;
+        potential_parent = actual_parent;
     }
 }
 
@@ -574,9 +574,9 @@
 /// otherwise there is a potential for a deadlock as invariant #2 would be violated.
 ///
 /// To acquire the locks for node and parent, use [with_locked_node_and_parent].
-</span><span class="kw">fn </span>move_children_to_parent(node: <span class="kw-2">&amp;mut </span><a href="#73">Inner</a>, parent: <span class="kw-2">&amp;mut </span><a href="#73">Inner</a>) {
+</span><span class="kw">fn </span>move_children_to_parent(node: <span class="kw-2">&amp;mut </span>Inner, parent: <span class="kw-2">&amp;mut </span>Inner) {
     <span class="comment">// Pre-allocate in the parent, for performance
-    </span><a href="#204">parent</a>.children.reserve(<a href="#204">node</a>.children.len());
+    </span>parent.children.reserve(node.children.len());
 
     <span class="kw">for </span>child <span class="kw">in </span>std::mem::take(<span class="kw-2">&amp;mut </span>node.children) {
         {
@@ -592,80 +592,80 @@
 ///
 /// `parent` MUST be the parent of `node`.
 /// To acquire the locks for node and parent, use [with_locked_node_and_parent].
-</span><span class="kw">fn </span>remove_child(parent: <span class="kw-2">&amp;mut </span><a href="#73">Inner</a>, <span class="kw-2">mut </span>node: MutexGuard&lt;<span class="lifetime">&#39;_</span>, <a href="#73">Inner</a>&gt;) {
+</span><span class="kw">fn </span>remove_child(parent: <span class="kw-2">&amp;mut </span>Inner, <span class="kw-2">mut </span>node: MutexGuard&lt;<span class="lifetime">&#39;_</span>, Inner&gt;) {
     <span class="comment">// Query the position from where to remove a node
-    </span><span class="kw">let </span>pos = <a href="#222">node</a>.parent_idx;
-    <a href="#222">node</a>.parent = <span class="prelude-val">None</span>;
-    <a href="#222">node</a>.parent_idx = <span class="number">0</span>;
+    </span><span class="kw">let </span>pos = node.parent_idx;
+    node.parent = <span class="prelude-val">None</span>;
+    node.parent_idx = <span class="number">0</span>;
 
     <span class="comment">// Unlock node, so that only one child at a time is locked.
     // Otherwise we would violate the lock order (see &#39;deadlock safety&#39;) as we
     // don&#39;t know the creation order of the child nodes
-    </span><a href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>(<a href="#222">node</a>);
+    </span>drop(node);
 
     <span class="comment">// If `node` is the last element in the list, we don&#39;t need any swapping
     </span><span class="kw">if </span>parent.children.len() == pos + <span class="number">1 </span>{
-        <a href="#222">parent</a>.children.pop().unwrap();
+        parent.children.pop().unwrap();
     } <span class="kw">else </span>{
         <span class="comment">// If `node` is not the last element in the list, we need to
         // replace it with the last element
-        </span><span class="kw">let </span>replacement_child = <a href="#222">parent</a>.children.pop().unwrap();
-        <a href="#239">replacement_child</a>.inner.lock().unwrap().parent_idx = <a href="#224">pos</a>;
-        <a href="#222">parent</a>.children[<a href="#224">pos</a>] = <a href="#239">replacement_child</a>;
+        </span><span class="kw">let </span>replacement_child = parent.children.pop().unwrap();
+        replacement_child.inner.lock().unwrap().parent_idx = pos;
+        parent.children[pos] = replacement_child;
     }
 
-    <span class="kw">let </span>len = <a href="#222">parent</a>.children.len();
+    <span class="kw">let </span>len = parent.children.len();
     <span class="kw">if </span><span class="number">4 </span>* len &lt;= parent.children.capacity() {
         <span class="comment">// equal to:
         //    parent.children.shrink_to(2 * len);
         // but shrink_to was not yet stabilized in our minimal compatible version
-        </span><span class="kw">let </span>old_children = std::mem::replace(<span class="kw-2">&amp;mut </span><a href="#222">parent</a>.children, Vec::with_capacity(<span class="number">2 </span>* <a href="#244">len</a>));
-        <a href="#222">parent</a>.children.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a href="#249">old_children</a>);
+        </span><span class="kw">let </span>old_children = std::mem::replace(<span class="kw-2">&amp;mut </span>parent.children, Vec::with_capacity(<span class="number">2 </span>* len));
+        parent.children.extend(old_children);
     }
 }
 
 <span class="doccomment">/// Increases the reference count of handles.
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>increase_handle_refcount(node: <span class="kw-2">&amp;</span>Arc&lt;<a href="#46">TreeNode</a>&gt;) {
-    <span class="kw">let </span><span class="kw-2">mut </span>locked_node = <a href="#255">node</a>.inner.lock().unwrap();
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>increase_handle_refcount(node: <span class="kw-2">&amp;</span>Arc&lt;TreeNode&gt;) {
+    <span class="kw">let </span><span class="kw-2">mut </span>locked_node = node.inner.lock().unwrap();
 
     <span class="comment">// Once no handles are left over, the node gets detached from the tree.
     // There should never be a new handle once all handles are dropped.
-    </span><a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(locked_node.num_handles &gt; <span class="number">0</span>);
+    </span><span class="macro">assert!</span>(locked_node.num_handles &gt; <span class="number">0</span>);
 
-    <a href="#256">locked_node</a>.num_handles += <span class="number">1</span>;
+    locked_node.num_handles += <span class="number">1</span>;
 }
 
 <span class="doccomment">/// Decreases the reference count of handles.
 ///
 /// Once no handle is left, we can remove the node from the
 /// tree and connect its parent directly to its children.
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>decrease_handle_refcount(node: <span class="kw-2">&amp;</span>Arc&lt;<a href="#46">TreeNode</a>&gt;) {
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>decrease_handle_refcount(node: <span class="kw-2">&amp;</span>Arc&lt;TreeNode&gt;) {
     <span class="kw">let </span>num_handles = {
-        <span class="kw">let </span><span class="kw-2">mut </span>locked_node = <a href="#269">node</a>.inner.lock().unwrap();
-        <a href="#271">locked_node</a>.num_handles -= <span class="number">1</span>;
-        <a href="#271">locked_node</a>.num_handles
+        <span class="kw">let </span><span class="kw-2">mut </span>locked_node = node.inner.lock().unwrap();
+        locked_node.num_handles -= <span class="number">1</span>;
+        locked_node.num_handles
     };
 
     <span class="kw">if </span>num_handles == <span class="number">0 </span>{
-        <a href="#150-152">with_locked_node_and_parent</a>(<a href="#269">node</a>, |<span class="kw-2">mut </span>node, parent| {
+        with_locked_node_and_parent(node, |<span class="kw-2">mut </span>node, parent| {
             <span class="comment">// Remove the node from the tree
-            </span><span class="kw">match </span><a href="#277">parent</a> {
+            </span><span class="kw">match </span>parent {
                 <span class="prelude-val">Some</span>(<span class="kw-2">mut </span>parent) =&gt; {
                     <span class="comment">// As we want to remove ourselves from the tree,
                     // we have to move the children to the parent, so that
                     // they still receive the cancellation event without us.
                     // Moving them does not violate invariant #1.
-                    </span><a href="#204">move_children_to_parent</a>(<span class="kw-2">&amp;mut </span><a href="#277">node</a>, <span class="kw-2">&amp;mut </span><a href="#280">parent</a>);
+                    </span>move_children_to_parent(<span class="kw-2">&amp;mut </span>node, <span class="kw-2">&amp;mut </span>parent);
 
                     <span class="comment">// Remove the node from the parent
-                    </span><a href="#222">remove_child</a>(<span class="kw-2">&amp;mut </span><a href="#280">parent</a>, <a href="#277">node</a>);
+                    </span>remove_child(<span class="kw-2">&amp;mut </span>parent, node);
                 }
                 <span class="prelude-val">None </span>=&gt; {
                     <span class="comment">// Due to invariant #1, we can assume that our
                     // children can no longer be cancelled through us.
                     // (as we now have neither a parent nor handles)
                     // Therefore we can disconnect them.
-                    </span><a href="#125">disconnect_children</a>(<span class="kw-2">&amp;mut </span><a href="#277">node</a>);
+                    </span>disconnect_children(<span class="kw-2">&amp;mut </span>node);
                 }
             }
         });
@@ -673,8 +673,8 @@
 }
 
 <span class="doccomment">/// Cancels a node and its children.
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>cancel(node: <span class="kw-2">&amp;</span>Arc&lt;<a href="#46">TreeNode</a>&gt;) {
-    <span class="kw">let </span><span class="kw-2">mut </span>locked_node = <a href="#303">node</a>.inner.lock().unwrap();
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>cancel(node: <span class="kw-2">&amp;</span>Arc&lt;TreeNode&gt;) {
+    <span class="kw">let </span><span class="kw-2">mut </span>locked_node = node.inner.lock().unwrap();
 
     <span class="kw">if </span>locked_node.is_cancelled {
         <span class="kw">return</span>;
@@ -739,10 +739,10 @@
     </span>}
 
     <span class="comment">// Cancel the node itself.
-    </span><a href="#304">locked_node</a>.is_cancelled = <span class="bool-val">true</span>;
-    <a href="#304">locked_node</a>.children = Vec::new();
-    <a href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>(<a href="#304">locked_node</a>);
-    <a href="#303">node</a>.waker.notify_waiters();
+    </span>locked_node.is_cancelled = <span class="bool-val">true</span>;
+    locked_node.children = Vec::new();
+    drop(locked_node);
+    node.waker.notify_waiters();
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="tokio_util" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="tokio_util" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

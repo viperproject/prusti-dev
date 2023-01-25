@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/backtrace-0.3.66/src/symbolize/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../backtrace/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/backtrace-0.3.67/src/symbolize/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../backtrace/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -483,19 +483,19 @@
 <a href="#483" id="483">483</a>
 <a href="#484" id="484">484</a>
 <a href="#485" id="485">485</a>
-</pre><pre class="rust"><code><span class="kw">use </span>core::{<a href="https://doc.rust-lang.org/nightly/core/fmt/index.html">fmt</a>, <a href="https://doc.rust-lang.org/nightly/core/str/index.html">str</a>};
+</pre><pre class="rust"><code><span class="kw">use </span>core::{fmt, str};
 
 <span class="macro">cfg_if::cfg_if! </span>{
     <span class="kw">if </span><span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)] </span>{
-        <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">std::path::Path</a>;
-        <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/prelude/v1/index.html">std::prelude::v1</a>::<span class="kw-2">*</span>;
+        <span class="kw">use </span>std::path::Path;
+        <span class="kw">use </span>std::prelude::v1::<span class="kw-2">*</span>;
     }
 }
 
-<span class="kw">use </span><a href="../backtrace/mod.rs.html#76"><span class="kw">super</span>::backtrace::Frame</a>;
-<span class="kw">use </span><a href="../types.rs.html#17"><span class="kw">super</span>::types::BytesOrWideString</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">core::ffi::c_void</a>;
-<span class="kw">use </span>rustc_demangle::{<a href="../../../rustc_demangle/fn.try_demangle.html">try_demangle</a>, <a href="../../../rustc_demangle/struct.Demangle.html">Demangle</a>};
+<span class="kw">use </span><span class="kw">super</span>::backtrace::Frame;
+<span class="kw">use </span><span class="kw">super</span>::types::BytesOrWideString;
+<span class="kw">use </span>core::ffi::c_void;
+<span class="kw">use </span>rustc_demangle::{try_demangle, Demangle};
 
 <span class="doccomment">/// Resolve an address to a symbol, passing the symbol to the specified
 /// closure.
@@ -543,9 +543,9 @@
 /// }
 /// ```
 </span><span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
-</span><span class="kw">pub fn </span>resolve&lt;F: FnMut(<span class="kw-2">&amp;</span><a href="#190">Symbol</a>)&gt;(addr: <span class="kw-2">*mut </span><a href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>, cb: F) {
-    <span class="kw">let </span>_guard = <a href="../lib.rs.html#176"><span class="kw">crate</span>::lock::lock</a>();
-    <span class="kw">unsafe </span>{ <a href="#158-160">resolve_unsynchronized</a>(<a href="#61">addr</a>, <a href="#61">cb</a>) }
+</span><span class="kw">pub fn </span>resolve&lt;F: FnMut(<span class="kw-2">&amp;</span>Symbol)&gt;(addr: <span class="kw-2">*mut </span>c_void, cb: F) {
+    <span class="kw">let </span>_guard = <span class="kw">crate</span>::lock::lock();
+    <span class="kw">unsafe </span>{ resolve_unsynchronized(addr, cb) }
 }
 
 <span class="doccomment">/// Resolve a previously capture frame to a symbol, passing the symbol to the
@@ -585,22 +585,22 @@
 /// }
 /// ```
 </span><span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
-</span><span class="kw">pub fn </span>resolve_frame&lt;F: FnMut(<span class="kw-2">&amp;</span><a href="#190">Symbol</a>)&gt;(frame: <span class="kw-2">&amp;</span><a href="../backtrace/mod.rs.html#76">Frame</a>, cb: F) {
-    <span class="kw">let </span>_guard = <a href="../lib.rs.html#176"><span class="kw">crate</span>::lock::lock</a>();
-    <span class="kw">unsafe </span>{ <a href="#174-176">resolve_frame_unsynchronized</a>(<a href="#103">frame</a>, <a href="#103">cb</a>) }
+</span><span class="kw">pub fn </span>resolve_frame&lt;F: FnMut(<span class="kw-2">&amp;</span>Symbol)&gt;(frame: <span class="kw-2">&amp;</span>Frame, cb: F) {
+    <span class="kw">let </span>_guard = <span class="kw">crate</span>::lock::lock();
+    <span class="kw">unsafe </span>{ resolve_frame_unsynchronized(frame, cb) }
 }
 
 <span class="kw">pub enum </span>ResolveWhat&lt;<span class="lifetime">&#39;a</span>&gt; {
-    Address(<span class="kw-2">*mut </span><a href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>),
-    Frame(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="../backtrace/mod.rs.html#76">Frame</a>),
+    Address(<span class="kw-2">*mut </span>c_void),
+    Frame(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Frame),
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; ResolveWhat&lt;<span class="lifetime">&#39;a</span>&gt; {
     <span class="attr">#[allow(dead_code)]
-    </span><span class="kw">fn </span>address_or_ip(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">*mut </span><a href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a> {
-        <span class="kw">match </span><span class="self"><a href="#115">self</a> </span>{
-            <a href="#109">ResolveWhat::Address</a>(a) =&gt; <a href="#141">adjust_ip</a>(<span class="kw-2">*</span><a href="#117">a</a>),
-            <a href="#110">ResolveWhat::Frame</a>(f) =&gt; <a href="#141">adjust_ip</a>(<a href="#118">f</a>.<a href="../backtrace/mod.rs.html#89">ip</a>()),
+    </span><span class="kw">fn </span>address_or_ip(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">*mut </span>c_void {
+        <span class="kw">match </span><span class="self">self </span>{
+            ResolveWhat::Address(a) =&gt; adjust_ip(<span class="kw-2">*</span>a),
+            ResolveWhat::Frame(f) =&gt; adjust_ip(f.ip()),
         }
     }
 }
@@ -623,11 +623,11 @@
 // For now though this is a pretty niche concern so we just internally always
 // subtract one. Consumers should keep working and getting pretty good results,
 // so we should be good enough.
-</span><span class="kw">fn </span>adjust_ip(a: <span class="kw-2">*mut </span><a href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>) -&gt; <span class="kw-2">*mut </span><a href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a> {
+</span><span class="kw">fn </span>adjust_ip(a: <span class="kw-2">*mut </span>c_void) -&gt; <span class="kw-2">*mut </span>c_void {
     <span class="kw">if </span>a.is_null() {
-        <a href="#141">a</a>
+        a
     } <span class="kw">else </span>{
-        (<a href="#141">a</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> - <span class="number">1</span>) <span class="kw">as </span><span class="kw-2">*mut </span><a href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>
+        (a <span class="kw">as </span>usize - <span class="number">1</span>) <span class="kw">as </span><span class="kw-2">*mut </span>c_void
     }
 }
 
@@ -640,11 +640,11 @@
 /// # Panics
 ///
 /// See information on `resolve` for caveats on `cb` panicking.
-</span><span class="kw">pub unsafe fn </span>resolve_unsynchronized&lt;F&gt;(addr: <span class="kw-2">*mut </span><a href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>, <span class="kw-2">mut </span>cb: F)
+</span><span class="kw">pub unsafe fn </span>resolve_unsynchronized&lt;F&gt;(addr: <span class="kw-2">*mut </span>c_void, <span class="kw-2">mut </span>cb: F)
 <span class="kw">where
-    </span>F: FnMut(<span class="kw-2">&amp;</span><a href="#190">Symbol</a>),
+    </span>F: FnMut(<span class="kw-2">&amp;</span>Symbol),
 {
-    <a href="gimli.rs.html#336">imp::resolve</a>(<a href="#109">ResolveWhat::Address</a>(<a href="#158">addr</a>), <span class="kw-2">&amp;mut </span><a href="#158">cb</a>)
+    imp::resolve(ResolveWhat::Address(addr), <span class="kw-2">&amp;mut </span>cb)
 }
 
 <span class="doccomment">/// Same as `resolve_frame`, only unsafe as it&#39;s unsynchronized.
@@ -656,11 +656,11 @@
 /// # Panics
 ///
 /// See information on `resolve_frame` for caveats on `cb` panicking.
-</span><span class="kw">pub unsafe fn </span>resolve_frame_unsynchronized&lt;F&gt;(frame: <span class="kw-2">&amp;</span><a href="../backtrace/mod.rs.html#76">Frame</a>, <span class="kw-2">mut </span>cb: F)
+</span><span class="kw">pub unsafe fn </span>resolve_frame_unsynchronized&lt;F&gt;(frame: <span class="kw-2">&amp;</span>Frame, <span class="kw-2">mut </span>cb: F)
 <span class="kw">where
-    </span>F: FnMut(<span class="kw-2">&amp;</span><a href="#190">Symbol</a>),
+    </span>F: FnMut(<span class="kw-2">&amp;</span>Symbol),
 {
-    <a href="gimli.rs.html#336">imp::resolve</a>(<a href="#110">ResolveWhat::Frame</a>(<a href="#174">frame</a>), <span class="kw-2">&amp;mut </span><a href="#174">cb</a>)
+    imp::resolve(ResolveWhat::Frame(frame), <span class="kw-2">&amp;mut </span>cb)
 }
 
 <span class="doccomment">/// A trait representing the resolution of a symbol in a file.
@@ -679,7 +679,7 @@
     </span>inner: imp::Symbol&lt;<span class="lifetime">&#39;static</span>&gt;,
 }
 
-<span class="kw">impl </span><a href="#190">Symbol</a> {
+<span class="kw">impl </span>Symbol {
     <span class="doccomment">/// Returns the name of this function.
     ///
     /// The returned structure can be used to query various properties about the
@@ -690,34 +690,34 @@
     ///   utf-8).
     /// * The raw bytes for the symbol name can be accessed.
     </span><span class="kw">pub fn </span>name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;SymbolName&lt;<span class="lifetime">&#39;_</span>&gt;&gt; {
-        <a class="self" href="#207">self</a>.inner.<a href="gimli.rs.html#412">name</a>()
+        <span class="self">self</span>.inner.name()
     }
 
     <span class="doccomment">/// Returns the starting address of this function.
-    </span><span class="kw">pub fn </span>addr(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">*mut </span><a href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>&gt; {
-        <a class="self" href="#212">self</a>.inner.<a href="gimli.rs.html#422">addr</a>().map(|p| <a href="#213">p</a> <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>)
+    </span><span class="kw">pub fn </span>addr(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">*mut </span>c_void&gt; {
+        <span class="self">self</span>.inner.addr().map(|p| p <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>)
     }
 
     <span class="doccomment">/// Returns the raw filename as a slice. This is mainly useful for `no_std`
     /// environments.
     </span><span class="kw">pub fn </span>filename_raw(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;BytesOrWideString&lt;<span class="lifetime">&#39;_</span>&gt;&gt; {
-        <a class="self" href="#218">self</a>.inner.<a href="gimli.rs.html#429">filename_raw</a>()
+        <span class="self">self</span>.inner.filename_raw()
     }
 
     <span class="doccomment">/// Returns the column number for where this symbol is currently executing.
     ///
     /// Only gimli currently provides a value here and even then only if `filename`
     /// returns `Some`, and so it is then consequently subject to similar caveats.
-    </span><span class="kw">pub fn </span>colno(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>&gt; {
-        <a class="self" href="#226">self</a>.inner.<a href="gimli.rs.html#456">colno</a>()
+    </span><span class="kw">pub fn </span>colno(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;u32&gt; {
+        <span class="self">self</span>.inner.colno()
     }
 
     <span class="doccomment">/// Returns the line number for where this symbol is currently executing.
     ///
     /// This return value is typically `Some` if `filename` returns `Some`, and
     /// is consequently subject to similar caveats.
-    </span><span class="kw">pub fn </span>lineno(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>&gt; {
-        <a class="self" href="#234">self</a>.inner.<a href="gimli.rs.html#449">lineno</a>()
+    </span><span class="kw">pub fn </span>lineno(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;u32&gt; {
+        <span class="self">self</span>.inner.lineno()
     }
 
     <span class="doccomment">/// Returns the file name where this function was defined.
@@ -733,32 +733,32 @@
     /// enabled, and the `std` feature is enabled by default.
     </span><span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
     #[allow(unreachable_code)]
-    </span><span class="kw">pub fn </span>filename(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>&gt; {
-        <a class="self" href="#251">self</a>.inner.<a href="gimli.rs.html#439">filename</a>()
+    </span><span class="kw">pub fn </span>filename(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Path&gt; {
+        <span class="self">self</span>.inner.filename()
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="#190">Symbol</a> {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <span class="kw">let </span><span class="kw-2">mut </span>d = <a href="#257">f</a>.debug_struct(<span class="string">&quot;Symbol&quot;</span>);
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(name) = <a class="self" href="#257">self</a>.<a href="#207">name</a>() {
-            <a href="#258">d</a>.field(<span class="string">&quot;name&quot;</span>, <span class="kw-2">&amp;</span><a href="#259">name</a>);
+<span class="kw">impl </span>fmt::Debug <span class="kw">for </span>Symbol {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        <span class="kw">let </span><span class="kw-2">mut </span>d = f.debug_struct(<span class="string">&quot;Symbol&quot;</span>);
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(name) = <span class="self">self</span>.name() {
+            d.field(<span class="string">&quot;name&quot;</span>, <span class="kw-2">&amp;</span>name);
         }
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(addr) = <a class="self" href="#257">self</a>.<a href="#212">addr</a>() {
-            <a href="#258">d</a>.field(<span class="string">&quot;addr&quot;</span>, <span class="kw-2">&amp;</span><a href="#262">addr</a>);
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(addr) = <span class="self">self</span>.addr() {
+            d.field(<span class="string">&quot;addr&quot;</span>, <span class="kw-2">&amp;</span>addr);
         }
 
         <span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
         </span>{
-            <span class="kw">if let </span><span class="prelude-val">Some</span>(filename) = <a class="self" href="#257">self</a>.<a href="#251">filename</a>() {
-                <a href="#258">d</a>.field(<span class="string">&quot;filename&quot;</span>, <span class="kw-2">&amp;</span><a href="#268">filename</a>);
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(filename) = <span class="self">self</span>.filename() {
+                d.field(<span class="string">&quot;filename&quot;</span>, <span class="kw-2">&amp;</span>filename);
             }
         }
 
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(lineno) = <a class="self" href="#257">self</a>.<a href="#234">lineno</a>() {
-            <a href="#258">d</a>.field(<span class="string">&quot;lineno&quot;</span>, <span class="kw-2">&amp;</span><a href="#273">lineno</a>);
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(lineno) = <span class="self">self</span>.lineno() {
+            d.field(<span class="string">&quot;lineno&quot;</span>, <span class="kw-2">&amp;</span>lineno);
         }
-        <a href="#258">d</a>.finish()
+        d.finish()
     }
 }
 
@@ -785,12 +785,12 @@
         </span><span class="kw">struct </span>OptionCppSymbol&lt;<span class="lifetime">&#39;a</span>&gt;(PhantomData&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>()&gt;);
 
         <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; OptionCppSymbol&lt;<span class="lifetime">&#39;a</span>&gt; {
-            <span class="kw">fn </span>parse(<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; OptionCppSymbol&lt;<span class="lifetime">&#39;a</span>&gt; {
-                <a href="#300">OptionCppSymbol</a>(PhantomData)
+            <span class="kw">fn </span>parse(<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[u8]) -&gt; OptionCppSymbol&lt;<span class="lifetime">&#39;a</span>&gt; {
+                OptionCppSymbol(PhantomData)
             }
 
             <span class="kw">fn </span>none() -&gt; OptionCppSymbol&lt;<span class="lifetime">&#39;a</span>&gt; {
-                <a href="#300">OptionCppSymbol</a>(PhantomData)
+                OptionCppSymbol(PhantomData)
             }
         }
     }
@@ -801,51 +801,51 @@
 </span><span class="comment">// Allow dead code for when the `cpp_demangle` feature is not enabled.
 </span><span class="attr">#[allow(dead_code)]
 </span><span class="kw">pub struct </span>SymbolName&lt;<span class="lifetime">&#39;a</span>&gt; {
-    bytes: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
+    bytes: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[u8],
     demangled: <span class="prelude-ty">Option</span>&lt;Demangle&lt;<span class="lifetime">&#39;a</span>&gt;&gt;,
     cpp_demangled: OptionCppSymbol&lt;<span class="lifetime">&#39;a</span>&gt;,
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; SymbolName&lt;<span class="lifetime">&#39;a</span>&gt; {
     <span class="doccomment">/// Creates a new symbol name from the raw underlying bytes.
-    </span><span class="kw">pub fn </span>new(bytes: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; SymbolName&lt;<span class="lifetime">&#39;a</span>&gt; {
-        <span class="kw">let </span>str_bytes = <a href="https://doc.rust-lang.org/nightly/core/str/converts/fn.from_utf8.html">str::from_utf8</a>(<a href="#326">bytes</a>).ok();
-        <span class="kw">let </span>demangled = <a href="#327">str_bytes</a>.and_then(|s| <a href="../../../rustc_demangle/fn.try_demangle.html">try_demangle</a>(<a href="#328">s</a>).ok());
+    </span><span class="kw">pub fn </span>new(bytes: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[u8]) -&gt; SymbolName&lt;<span class="lifetime">&#39;a</span>&gt; {
+        <span class="kw">let </span>str_bytes = str::from_utf8(bytes).ok();
+        <span class="kw">let </span>demangled = str_bytes.and_then(|s| try_demangle(s).ok());
 
         <span class="kw">let </span>cpp = <span class="kw">if </span>demangled.is_none() {
-            OptionCppSymbol::parse(<a href="#326">bytes</a>)
+            OptionCppSymbol::parse(bytes)
         } <span class="kw">else </span>{
             OptionCppSymbol::none()
         };
 
-        <a href="#318">SymbolName</a> {
-            bytes: <a href="#326">bytes</a>,
-            demangled: <a href="#328">demangled</a>,
-            cpp_demangled: <a href="#330">cpp</a>,
+        SymbolName {
+            bytes: bytes,
+            demangled: demangled,
+            cpp_demangled: cpp,
         }
     }
 
     <span class="doccomment">/// Returns the raw (mangled) symbol name as a `str` if the symbol is valid utf-8.
     ///
     /// Use the `Display` implementation if you want the demangled version.
-    </span><span class="kw">pub fn </span>as_str(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt; {
-        <a class="self" href="#346">self</a>.demangled
+    </span><span class="kw">pub fn </span>as_str(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>str&gt; {
+        <span class="self">self</span>.demangled
             .as_ref()
-            .map(|s| <a href="#349">s</a>.as_str())
-            .or_else(|| <a href="https://doc.rust-lang.org/nightly/core/str/converts/fn.from_utf8.html">str::from_utf8</a>(<a class="self" href="#346">self</a>.bytes).ok())
+            .map(|s| s.as_str())
+            .or_else(|| str::from_utf8(<span class="self">self</span>.bytes).ok())
     }
 
     <span class="doccomment">/// Returns the raw symbol name as a list of bytes
-    </span><span class="kw">pub fn </span>as_bytes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>] {
-        <a class="self" href="#354">self</a>.bytes
+    </span><span class="kw">pub fn </span>as_bytes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[u8] {
+        <span class="self">self</span>.bytes
     }
 }
 
 <span class="kw">fn </span>format_symbol_name(
-    fmt: <span class="kw">fn</span>(<span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a>,
-    <span class="kw-2">mut </span>bytes: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
+    fmt: <span class="kw">fn</span>(<span class="kw-2">&amp;</span>str, <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result,
+    <span class="kw-2">mut </span>bytes: <span class="kw-2">&amp;</span>[u8],
     f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;,
-) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+) -&gt; fmt::Result {
     <span class="kw">while </span>bytes.len() &gt; <span class="number">0 </span>{
         <span class="kw">match </span>str::from_utf8(bytes) {
             <span class="prelude-val">Ok</span>(name) =&gt; {
@@ -879,12 +879,12 @@
             }
         }
     } <span class="kw">else </span>{
-        <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for </span>SymbolName&lt;<span class="lifetime">&#39;a</span>&gt; {
-            <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-                <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">ref </span>s) = <a class="self" href="#398">self</a>.demangled {
-                    <a href="#399">s</a>.<a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt</a>(<a href="#398">f</a>)
+        <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; fmt::Display <span class="kw">for </span>SymbolName&lt;<span class="lifetime">&#39;a</span>&gt; {
+            <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">ref </span>s) = <span class="self">self</span>.demangled {
+                    s.fmt(f)
                 } <span class="kw">else </span>{
-                    <a href="#359-363">format_symbol_name</a>(<a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display::fmt</a>, <a class="self" href="#398">self</a>.bytes, <a href="#398">f</a>)
+                    format_symbol_name(fmt::Display::fmt, <span class="self">self</span>.bytes, f)
                 }
             }
         }
@@ -915,12 +915,12 @@
             }
         }
     } <span class="kw">else </span>{
-        <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span>SymbolName&lt;<span class="lifetime">&#39;a</span>&gt; {
-            <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-                <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">ref </span>s) = <a class="self" href="#434">self</a>.demangled {
-                    <a href="#435">s</a>.<a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt</a>(<a href="#434">f</a>)
+        <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; fmt::Debug <span class="kw">for </span>SymbolName&lt;<span class="lifetime">&#39;a</span>&gt; {
+            <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">ref </span>s) = <span class="self">self</span>.demangled {
+                    s.fmt(f)
                 } <span class="kw">else </span>{
-                    <a href="#359-363">format_symbol_name</a>(<a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug::fmt</a>, <a class="self" href="#434">self</a>.bytes, <a href="#434">f</a>)
+                    format_symbol_name(fmt::Debug::fmt, <span class="self">self</span>.bytes, f)
                 }
             }
         }
@@ -942,9 +942,9 @@
 /// function has any effect.
 </span><span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
 </span><span class="kw">pub fn </span>clear_symbol_cache() {
-    <span class="kw">let </span>_guard = <a href="../lib.rs.html#176"><span class="kw">crate</span>::lock::lock</a>();
+    <span class="kw">let </span>_guard = <span class="kw">crate</span>::lock::lock();
     <span class="kw">unsafe </span>{
-        <a href="gimli.rs.html#240">imp::clear_symbol_cache</a>();
+        imp::clear_symbol_cache();
     }
 }
 
@@ -961,12 +961,12 @@
         not(target_os = <span class="string">&quot;emscripten&quot;</span>),
         any(not(backtrace_in_libstd), feature = <span class="string">&quot;backtrace&quot;</span>),
     ))] </span>{
-        <span class="kw">mod </span><a href="gimli.rs.html#1-462">gimli</a>;
-        <span class="kw">use </span><a href="#479">gimli</a> <span class="kw">as </span>imp;
+        <span class="kw">mod </span>gimli;
+        <span class="kw">use </span>gimli <span class="kw">as </span>imp;
     } <span class="kw">else </span>{
         <span class="kw">mod </span>noop;
         <span class="kw">use </span>noop <span class="kw">as </span>imp;
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="backtrace" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="backtrace" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

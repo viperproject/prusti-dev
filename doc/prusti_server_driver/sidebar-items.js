@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":[["main",""]],"struct":[["Args","A verification server to handle Prusti verification requests."]]};
+window.SIDEBAR_ITEMS = {"fn":[["main",""]],"static":[["DEFAULT_VALUE",""]],"struct":[["Args","A verification server to handle Prusti verification requests."]]};

@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/openssl-0.10.42/src/x509/extension.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>extension.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../openssl/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/openssl-0.10.45/src/x509/extension.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>extension.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../openssl/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -574,29 +574,29 @@
 //!
 //! let extension: X509Extension = bc.build().unwrap();
 //! ```
-</span><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Write.html">std::fmt::Write</a>;
+</span><span class="kw">use </span>std::fmt::Write;
 
-<span class="kw">use </span><a href="../error.rs.html#39"><span class="kw">crate</span>::error::ErrorStack</a>;
-<span class="kw">use </span><a href="../nid.rs.html#49"><span class="kw">crate</span>::nid::Nid</a>;
-<span class="kw">use </span><span class="kw">crate</span>::x509::{<a href="mod.rs.html#785-793">X509Extension</a>, <a href="mod.rs.html#777">X509v3Context</a>};
+<span class="kw">use </span><span class="kw">crate</span>::error::ErrorStack;
+<span class="kw">use </span><span class="kw">crate</span>::nid::Nid;
+<span class="kw">use </span><span class="kw">crate</span>::x509::{X509Extension, X509v3Context};
 
 <span class="doccomment">/// An extension which indicates whether a certificate is a CA certificate.
 </span><span class="kw">pub struct </span>BasicConstraints {
-    critical: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-    ca: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-    pathlen: <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>&gt;,
+    critical: bool,
+    ca: bool,
+    pathlen: <span class="prelude-ty">Option</span>&lt;u32&gt;,
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for </span><a href="#26">BasicConstraints</a> {
-    <span class="kw">fn </span>default() -&gt; <a href="#26">BasicConstraints</a> {
+<span class="kw">impl </span>Default <span class="kw">for </span>BasicConstraints {
+    <span class="kw">fn </span>default() -&gt; BasicConstraints {
         BasicConstraints::new()
     }
 }
 
-<span class="kw">impl </span><a href="#26">BasicConstraints</a> {
+<span class="kw">impl </span>BasicConstraints {
     <span class="doccomment">/// Construct a new `BasicConstraints` extension.
-    </span><span class="kw">pub fn </span>new() -&gt; <a href="#26">BasicConstraints</a> {
-        <a href="#26">BasicConstraints</a> {
+    </span><span class="kw">pub fn </span>new() -&gt; BasicConstraints {
+        BasicConstraints {
             critical: <span class="bool-val">false</span>,
             ca: <span class="bool-val">false</span>,
             pathlen: <span class="prelude-val">None</span>,
@@ -604,67 +604,67 @@
     }
 
     <span class="doccomment">/// Sets the `critical` flag to `true`. The extension will be critical.
-    </span><span class="kw">pub fn </span>critical(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span><a href="#26">BasicConstraints</a> {
-        <a class="self" href="#49">self</a>.critical = <span class="bool-val">true</span>;
-        <span class="self"><a href="#49">self</a>
+    </span><span class="kw">pub fn </span>critical(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>BasicConstraints {
+        <span class="self">self</span>.critical = <span class="bool-val">true</span>;
+        <span class="self">self
     </span>}
 
     <span class="doccomment">/// Sets the `ca` flag to `true`.
-    </span><span class="kw">pub fn </span>ca(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span><a href="#26">BasicConstraints</a> {
-        <a class="self" href="#55">self</a>.ca = <span class="bool-val">true</span>;
-        <span class="self"><a href="#55">self</a>
+    </span><span class="kw">pub fn </span>ca(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>BasicConstraints {
+        <span class="self">self</span>.ca = <span class="bool-val">true</span>;
+        <span class="self">self
     </span>}
 
     <span class="doccomment">/// Sets the `pathlen` to an optional non-negative value. The `pathlen` is the
     /// maximum number of CAs that can appear below this one in a chain.
-    </span><span class="kw">pub fn </span>pathlen(<span class="kw-2">&amp;mut </span><span class="self">self</span>, pathlen: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; <span class="kw-2">&amp;mut </span><a href="#26">BasicConstraints</a> {
-        <a class="self" href="#62">self</a>.pathlen = <span class="prelude-val">Some</span>(<a href="#62">pathlen</a>);
-        <span class="self"><a href="#62">self</a>
+    </span><span class="kw">pub fn </span>pathlen(<span class="kw-2">&amp;mut </span><span class="self">self</span>, pathlen: u32) -&gt; <span class="kw-2">&amp;mut </span>BasicConstraints {
+        <span class="self">self</span>.pathlen = <span class="prelude-val">Some</span>(pathlen);
+        <span class="self">self
     </span>}
 
     <span class="doccomment">/// Return the `BasicConstraints` extension as an `X509Extension`.
-    </span><span class="kw">pub fn </span>build(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="mod.rs.html#785-793">X509Extension</a>, <a href="../error.rs.html#39">ErrorStack</a>&gt; {
+    </span><span class="kw">pub fn </span>build(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;X509Extension, ErrorStack&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>value = String::new();
         <span class="kw">if </span><span class="self">self</span>.critical {
-            <a href="#69">value</a>.push_str(<span class="string">&quot;critical,&quot;</span>);
+            value.push_str(<span class="string">&quot;critical,&quot;</span>);
         }
-        <a href="#69">value</a>.push_str(<span class="string">&quot;CA:&quot;</span>);
+        value.push_str(<span class="string">&quot;CA:&quot;</span>);
         <span class="kw">if </span><span class="self">self</span>.ca {
-            <a href="#69">value</a>.push_str(<span class="string">&quot;TRUE&quot;</span>);
+            value.push_str(<span class="string">&quot;TRUE&quot;</span>);
         } <span class="kw">else </span>{
-            <a href="#69">value</a>.push_str(<span class="string">&quot;FALSE&quot;</span>);
+            value.push_str(<span class="string">&quot;FALSE&quot;</span>);
         }
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(pathlen) = <a class="self" href="#68">self</a>.pathlen {
-            <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#69">value</a>, <span class="string">&quot;,pathlen:{}&quot;</span>, pathlen).unwrap();
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(pathlen) = <span class="self">self</span>.pathlen {
+            <span class="macro">write!</span>(value, <span class="string">&quot;,pathlen:{}&quot;</span>, pathlen).unwrap();
         }
-        X509Extension::new_nid(<span class="prelude-val">None</span>, <span class="prelude-val">None</span>, Nid::BASIC_CONSTRAINTS, <span class="kw-2">&amp;</span><a href="#69">value</a>)
+        X509Extension::new_nid(<span class="prelude-val">None</span>, <span class="prelude-val">None</span>, Nid::BASIC_CONSTRAINTS, <span class="kw-2">&amp;</span>value)
     }
 }
 
 <span class="doccomment">/// An extension consisting of a list of names of the permitted key usages.
 </span><span class="kw">pub struct </span>KeyUsage {
-    critical: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-    digital_signature: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-    non_repudiation: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-    key_encipherment: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-    data_encipherment: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-    key_agreement: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-    key_cert_sign: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-    crl_sign: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-    encipher_only: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-    decipher_only: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
+    critical: bool,
+    digital_signature: bool,
+    non_repudiation: bool,
+    key_encipherment: bool,
+    data_encipherment: bool,
+    key_agreement: bool,
+    key_cert_sign: bool,
+    crl_sign: bool,
+    encipher_only: bool,
+    decipher_only: bool,
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for </span><a href="#87">KeyUsage</a> {
-    <span class="kw">fn </span>default() -&gt; <a href="#87">KeyUsage</a> {
+<span class="kw">impl </span>Default <span class="kw">for </span>KeyUsage {
+    <span class="kw">fn </span>default() -&gt; KeyUsage {
         KeyUsage::new()
     }
 }
 
-<span class="kw">impl </span><a href="#87">KeyUsage</a> {
+<span class="kw">impl </span>KeyUsage {
     <span class="doccomment">/// Construct a new `KeyUsage` extension.
-    </span><span class="kw">pub fn </span>new() -&gt; <a href="#87">KeyUsage</a> {
-        <a href="#87">KeyUsage</a> {
+    </span><span class="kw">pub fn </span>new() -&gt; KeyUsage {
+        KeyUsage {
             critical: <span class="bool-val">false</span>,
             digital_signature: <span class="bool-val">false</span>,
             non_repudiation: <span class="bool-val">false</span>,
@@ -679,131 +679,131 @@
     }
 
     <span class="doccomment">/// Sets the `critical` flag to `true`. The extension will be critical.
-    </span><span class="kw">pub fn </span>critical(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span><a href="#87">KeyUsage</a> {
-        <a class="self" href="#124">self</a>.critical = <span class="bool-val">true</span>;
-        <span class="self"><a href="#124">self</a>
+    </span><span class="kw">pub fn </span>critical(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>KeyUsage {
+        <span class="self">self</span>.critical = <span class="bool-val">true</span>;
+        <span class="self">self
     </span>}
 
     <span class="doccomment">/// Sets the `digitalSignature` flag to `true`.
-    </span><span class="kw">pub fn </span>digital_signature(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span><a href="#87">KeyUsage</a> {
-        <a class="self" href="#130">self</a>.digital_signature = <span class="bool-val">true</span>;
-        <span class="self"><a href="#130">self</a>
+    </span><span class="kw">pub fn </span>digital_signature(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>KeyUsage {
+        <span class="self">self</span>.digital_signature = <span class="bool-val">true</span>;
+        <span class="self">self
     </span>}
 
     <span class="doccomment">/// Sets the `nonRepudiation` flag to `true`.
-    </span><span class="kw">pub fn </span>non_repudiation(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span><a href="#87">KeyUsage</a> {
-        <a class="self" href="#136">self</a>.non_repudiation = <span class="bool-val">true</span>;
-        <span class="self"><a href="#136">self</a>
+    </span><span class="kw">pub fn </span>non_repudiation(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>KeyUsage {
+        <span class="self">self</span>.non_repudiation = <span class="bool-val">true</span>;
+        <span class="self">self
     </span>}
 
     <span class="doccomment">/// Sets the `keyEncipherment` flag to `true`.
-    </span><span class="kw">pub fn </span>key_encipherment(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span><a href="#87">KeyUsage</a> {
-        <a class="self" href="#142">self</a>.key_encipherment = <span class="bool-val">true</span>;
-        <span class="self"><a href="#142">self</a>
+    </span><span class="kw">pub fn </span>key_encipherment(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>KeyUsage {
+        <span class="self">self</span>.key_encipherment = <span class="bool-val">true</span>;
+        <span class="self">self
     </span>}
 
     <span class="doccomment">/// Sets the `dataEncipherment` flag to `true`.
-    </span><span class="kw">pub fn </span>data_encipherment(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span><a href="#87">KeyUsage</a> {
-        <a class="self" href="#148">self</a>.data_encipherment = <span class="bool-val">true</span>;
-        <span class="self"><a href="#148">self</a>
+    </span><span class="kw">pub fn </span>data_encipherment(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>KeyUsage {
+        <span class="self">self</span>.data_encipherment = <span class="bool-val">true</span>;
+        <span class="self">self
     </span>}
 
     <span class="doccomment">/// Sets the `keyAgreement` flag to `true`.
-    </span><span class="kw">pub fn </span>key_agreement(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span><a href="#87">KeyUsage</a> {
-        <a class="self" href="#154">self</a>.key_agreement = <span class="bool-val">true</span>;
-        <span class="self"><a href="#154">self</a>
+    </span><span class="kw">pub fn </span>key_agreement(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>KeyUsage {
+        <span class="self">self</span>.key_agreement = <span class="bool-val">true</span>;
+        <span class="self">self
     </span>}
 
     <span class="doccomment">/// Sets the `keyCertSign` flag to `true`.
-    </span><span class="kw">pub fn </span>key_cert_sign(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span><a href="#87">KeyUsage</a> {
-        <a class="self" href="#160">self</a>.key_cert_sign = <span class="bool-val">true</span>;
-        <span class="self"><a href="#160">self</a>
+    </span><span class="kw">pub fn </span>key_cert_sign(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>KeyUsage {
+        <span class="self">self</span>.key_cert_sign = <span class="bool-val">true</span>;
+        <span class="self">self
     </span>}
 
     <span class="doccomment">/// Sets the `cRLSign` flag to `true`.
-    </span><span class="kw">pub fn </span>crl_sign(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span><a href="#87">KeyUsage</a> {
-        <a class="self" href="#166">self</a>.crl_sign = <span class="bool-val">true</span>;
-        <span class="self"><a href="#166">self</a>
+    </span><span class="kw">pub fn </span>crl_sign(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>KeyUsage {
+        <span class="self">self</span>.crl_sign = <span class="bool-val">true</span>;
+        <span class="self">self
     </span>}
 
     <span class="doccomment">/// Sets the `encipherOnly` flag to `true`.
-    </span><span class="kw">pub fn </span>encipher_only(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span><a href="#87">KeyUsage</a> {
-        <a class="self" href="#172">self</a>.encipher_only = <span class="bool-val">true</span>;
-        <span class="self"><a href="#172">self</a>
+    </span><span class="kw">pub fn </span>encipher_only(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>KeyUsage {
+        <span class="self">self</span>.encipher_only = <span class="bool-val">true</span>;
+        <span class="self">self
     </span>}
 
     <span class="doccomment">/// Sets the `decipherOnly` flag to `true`.
-    </span><span class="kw">pub fn </span>decipher_only(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span><a href="#87">KeyUsage</a> {
-        <a class="self" href="#178">self</a>.decipher_only = <span class="bool-val">true</span>;
-        <span class="self"><a href="#178">self</a>
+    </span><span class="kw">pub fn </span>decipher_only(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>KeyUsage {
+        <span class="self">self</span>.decipher_only = <span class="bool-val">true</span>;
+        <span class="self">self
     </span>}
 
     <span class="doccomment">/// Return the `KeyUsage` extension as an `X509Extension`.
-    </span><span class="kw">pub fn </span>build(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="mod.rs.html#785-793">X509Extension</a>, <a href="../error.rs.html#39">ErrorStack</a>&gt; {
+    </span><span class="kw">pub fn </span>build(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;X509Extension, ErrorStack&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>value = String::new();
         <span class="kw">let </span><span class="kw-2">mut </span>first = <span class="bool-val">true</span>;
-        <a href="#548">append</a>(<span class="kw-2">&amp;mut </span><a href="#185">value</a>, <span class="kw-2">&amp;mut </span><a href="#186">first</a>, <a class="self" href="#184">self</a>.critical, <span class="string">&quot;critical&quot;</span>);
-        <a href="#548">append</a>(
-            <span class="kw-2">&amp;mut </span><a href="#185">value</a>,
-            <span class="kw-2">&amp;mut </span><a href="#186">first</a>,
-            <a class="self" href="#184">self</a>.digital_signature,
+        append(<span class="kw-2">&amp;mut </span>value, <span class="kw-2">&amp;mut </span>first, <span class="self">self</span>.critical, <span class="string">&quot;critical&quot;</span>);
+        append(
+            <span class="kw-2">&amp;mut </span>value,
+            <span class="kw-2">&amp;mut </span>first,
+            <span class="self">self</span>.digital_signature,
             <span class="string">&quot;digitalSignature&quot;</span>,
         );
-        <a href="#548">append</a>(
-            <span class="kw-2">&amp;mut </span><a href="#185">value</a>,
-            <span class="kw-2">&amp;mut </span><a href="#186">first</a>,
-            <a class="self" href="#184">self</a>.non_repudiation,
+        append(
+            <span class="kw-2">&amp;mut </span>value,
+            <span class="kw-2">&amp;mut </span>first,
+            <span class="self">self</span>.non_repudiation,
             <span class="string">&quot;nonRepudiation&quot;</span>,
         );
-        <a href="#548">append</a>(
-            <span class="kw-2">&amp;mut </span><a href="#185">value</a>,
-            <span class="kw-2">&amp;mut </span><a href="#186">first</a>,
-            <a class="self" href="#184">self</a>.key_encipherment,
+        append(
+            <span class="kw-2">&amp;mut </span>value,
+            <span class="kw-2">&amp;mut </span>first,
+            <span class="self">self</span>.key_encipherment,
             <span class="string">&quot;keyEncipherment&quot;</span>,
         );
-        <a href="#548">append</a>(
-            <span class="kw-2">&amp;mut </span><a href="#185">value</a>,
-            <span class="kw-2">&amp;mut </span><a href="#186">first</a>,
-            <a class="self" href="#184">self</a>.data_encipherment,
+        append(
+            <span class="kw-2">&amp;mut </span>value,
+            <span class="kw-2">&amp;mut </span>first,
+            <span class="self">self</span>.data_encipherment,
             <span class="string">&quot;dataEncipherment&quot;</span>,
         );
-        <a href="#548">append</a>(<span class="kw-2">&amp;mut </span><a href="#185">value</a>, <span class="kw-2">&amp;mut </span><a href="#186">first</a>, <a class="self" href="#184">self</a>.key_agreement, <span class="string">&quot;keyAgreement&quot;</span>);
-        <a href="#548">append</a>(<span class="kw-2">&amp;mut </span><a href="#185">value</a>, <span class="kw-2">&amp;mut </span><a href="#186">first</a>, <a class="self" href="#184">self</a>.key_cert_sign, <span class="string">&quot;keyCertSign&quot;</span>);
-        <a href="#548">append</a>(<span class="kw-2">&amp;mut </span><a href="#185">value</a>, <span class="kw-2">&amp;mut </span><a href="#186">first</a>, <a class="self" href="#184">self</a>.crl_sign, <span class="string">&quot;cRLSign&quot;</span>);
-        <a href="#548">append</a>(<span class="kw-2">&amp;mut </span><a href="#185">value</a>, <span class="kw-2">&amp;mut </span><a href="#186">first</a>, <a class="self" href="#184">self</a>.encipher_only, <span class="string">&quot;encipherOnly&quot;</span>);
-        <a href="#548">append</a>(<span class="kw-2">&amp;mut </span><a href="#185">value</a>, <span class="kw-2">&amp;mut </span><a href="#186">first</a>, <a class="self" href="#184">self</a>.decipher_only, <span class="string">&quot;decipherOnly&quot;</span>);
-        X509Extension::new_nid(<span class="prelude-val">None</span>, <span class="prelude-val">None</span>, Nid::KEY_USAGE, <span class="kw-2">&amp;</span><a href="#185">value</a>)
+        append(<span class="kw-2">&amp;mut </span>value, <span class="kw-2">&amp;mut </span>first, <span class="self">self</span>.key_agreement, <span class="string">&quot;keyAgreement&quot;</span>);
+        append(<span class="kw-2">&amp;mut </span>value, <span class="kw-2">&amp;mut </span>first, <span class="self">self</span>.key_cert_sign, <span class="string">&quot;keyCertSign&quot;</span>);
+        append(<span class="kw-2">&amp;mut </span>value, <span class="kw-2">&amp;mut </span>first, <span class="self">self</span>.crl_sign, <span class="string">&quot;cRLSign&quot;</span>);
+        append(<span class="kw-2">&amp;mut </span>value, <span class="kw-2">&amp;mut </span>first, <span class="self">self</span>.encipher_only, <span class="string">&quot;encipherOnly&quot;</span>);
+        append(<span class="kw-2">&amp;mut </span>value, <span class="kw-2">&amp;mut </span>first, <span class="self">self</span>.decipher_only, <span class="string">&quot;decipherOnly&quot;</span>);
+        X509Extension::new_nid(<span class="prelude-val">None</span>, <span class="prelude-val">None</span>, Nid::KEY_USAGE, <span class="kw-2">&amp;</span>value)
     }
 }
 
 <span class="doccomment">/// An extension consisting of a list of usages indicating purposes
 /// for which the certificate public key can be used for.
 </span><span class="kw">pub struct </span>ExtendedKeyUsage {
-    critical: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-    server_auth: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-    client_auth: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-    code_signing: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-    email_protection: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-    time_stamping: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-    ms_code_ind: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-    ms_code_com: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-    ms_ctl_sign: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-    ms_sgc: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-    ms_efs: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-    ns_sgc: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-    other: Vec&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt;,
+    critical: bool,
+    server_auth: bool,
+    client_auth: bool,
+    code_signing: bool,
+    email_protection: bool,
+    time_stamping: bool,
+    ms_code_ind: bool,
+    ms_code_com: bool,
+    ms_ctl_sign: bool,
+    ms_sgc: bool,
+    ms_efs: bool,
+    ns_sgc: bool,
+    other: Vec&lt;String&gt;,
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for </span><a href="#223">ExtendedKeyUsage</a> {
-    <span class="kw">fn </span>default() -&gt; <a href="#223">ExtendedKeyUsage</a> {
+<span class="kw">impl </span>Default <span class="kw">for </span>ExtendedKeyUsage {
+    <span class="kw">fn </span>default() -&gt; ExtendedKeyUsage {
         ExtendedKeyUsage::new()
     }
 }
 
-<span class="kw">impl </span><a href="#223">ExtendedKeyUsage</a> {
+<span class="kw">impl </span>ExtendedKeyUsage {
     <span class="doccomment">/// Construct a new `ExtendedKeyUsage` extension.
-    </span><span class="kw">pub fn </span>new() -&gt; <a href="#223">ExtendedKeyUsage</a> {
-        <a href="#223">ExtendedKeyUsage</a> {
+    </span><span class="kw">pub fn </span>new() -&gt; ExtendedKeyUsage {
+        ExtendedKeyUsage {
             critical: <span class="bool-val">false</span>,
             server_auth: <span class="bool-val">false</span>,
             client_auth: <span class="bool-val">false</span>,
@@ -816,168 +816,168 @@
             ms_sgc: <span class="bool-val">false</span>,
             ms_efs: <span class="bool-val">false</span>,
             ns_sgc: <span class="bool-val">false</span>,
-            other: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[],
+            other: <span class="macro">vec!</span>[],
         }
     }
 
     <span class="doccomment">/// Sets the `critical` flag to `true`. The extension will be critical.
-    </span><span class="kw">pub fn </span>critical(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span><a href="#223">ExtendedKeyUsage</a> {
-        <a class="self" href="#266">self</a>.critical = <span class="bool-val">true</span>;
-        <span class="self"><a href="#266">self</a>
+    </span><span class="kw">pub fn </span>critical(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>ExtendedKeyUsage {
+        <span class="self">self</span>.critical = <span class="bool-val">true</span>;
+        <span class="self">self
     </span>}
 
     <span class="doccomment">/// Sets the `serverAuth` flag to `true`.
-    </span><span class="kw">pub fn </span>server_auth(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span><a href="#223">ExtendedKeyUsage</a> {
-        <a class="self" href="#272">self</a>.server_auth = <span class="bool-val">true</span>;
-        <span class="self"><a href="#272">self</a>
+    </span><span class="kw">pub fn </span>server_auth(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>ExtendedKeyUsage {
+        <span class="self">self</span>.server_auth = <span class="bool-val">true</span>;
+        <span class="self">self
     </span>}
 
     <span class="doccomment">/// Sets the `clientAuth` flag to `true`.
-    </span><span class="kw">pub fn </span>client_auth(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span><a href="#223">ExtendedKeyUsage</a> {
-        <a class="self" href="#278">self</a>.client_auth = <span class="bool-val">true</span>;
-        <span class="self"><a href="#278">self</a>
+    </span><span class="kw">pub fn </span>client_auth(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>ExtendedKeyUsage {
+        <span class="self">self</span>.client_auth = <span class="bool-val">true</span>;
+        <span class="self">self
     </span>}
 
     <span class="doccomment">/// Sets the `codeSigning` flag to `true`.
-    </span><span class="kw">pub fn </span>code_signing(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span><a href="#223">ExtendedKeyUsage</a> {
-        <a class="self" href="#284">self</a>.code_signing = <span class="bool-val">true</span>;
-        <span class="self"><a href="#284">self</a>
+    </span><span class="kw">pub fn </span>code_signing(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>ExtendedKeyUsage {
+        <span class="self">self</span>.code_signing = <span class="bool-val">true</span>;
+        <span class="self">self
     </span>}
 
     <span class="doccomment">/// Sets the `emailProtection` flag to `true`.
-    </span><span class="kw">pub fn </span>email_protection(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span><a href="#223">ExtendedKeyUsage</a> {
-        <a class="self" href="#290">self</a>.email_protection = <span class="bool-val">true</span>;
-        <span class="self"><a href="#290">self</a>
+    </span><span class="kw">pub fn </span>email_protection(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>ExtendedKeyUsage {
+        <span class="self">self</span>.email_protection = <span class="bool-val">true</span>;
+        <span class="self">self
     </span>}
 
     <span class="doccomment">/// Sets the `timeStamping` flag to `true`.
-    </span><span class="kw">pub fn </span>time_stamping(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span><a href="#223">ExtendedKeyUsage</a> {
-        <a class="self" href="#296">self</a>.time_stamping = <span class="bool-val">true</span>;
-        <span class="self"><a href="#296">self</a>
+    </span><span class="kw">pub fn </span>time_stamping(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>ExtendedKeyUsage {
+        <span class="self">self</span>.time_stamping = <span class="bool-val">true</span>;
+        <span class="self">self
     </span>}
 
     <span class="doccomment">/// Sets the `msCodeInd` flag to `true`.
-    </span><span class="kw">pub fn </span>ms_code_ind(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span><a href="#223">ExtendedKeyUsage</a> {
-        <a class="self" href="#302">self</a>.ms_code_ind = <span class="bool-val">true</span>;
-        <span class="self"><a href="#302">self</a>
+    </span><span class="kw">pub fn </span>ms_code_ind(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>ExtendedKeyUsage {
+        <span class="self">self</span>.ms_code_ind = <span class="bool-val">true</span>;
+        <span class="self">self
     </span>}
 
     <span class="doccomment">/// Sets the `msCodeCom` flag to `true`.
-    </span><span class="kw">pub fn </span>ms_code_com(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span><a href="#223">ExtendedKeyUsage</a> {
-        <a class="self" href="#308">self</a>.ms_code_com = <span class="bool-val">true</span>;
-        <span class="self"><a href="#308">self</a>
+    </span><span class="kw">pub fn </span>ms_code_com(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>ExtendedKeyUsage {
+        <span class="self">self</span>.ms_code_com = <span class="bool-val">true</span>;
+        <span class="self">self
     </span>}
 
     <span class="doccomment">/// Sets the `msCTLSign` flag to `true`.
-    </span><span class="kw">pub fn </span>ms_ctl_sign(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span><a href="#223">ExtendedKeyUsage</a> {
-        <a class="self" href="#314">self</a>.ms_ctl_sign = <span class="bool-val">true</span>;
-        <span class="self"><a href="#314">self</a>
+    </span><span class="kw">pub fn </span>ms_ctl_sign(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>ExtendedKeyUsage {
+        <span class="self">self</span>.ms_ctl_sign = <span class="bool-val">true</span>;
+        <span class="self">self
     </span>}
 
     <span class="doccomment">/// Sets the `msSGC` flag to `true`.
-    </span><span class="kw">pub fn </span>ms_sgc(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span><a href="#223">ExtendedKeyUsage</a> {
-        <a class="self" href="#320">self</a>.ms_sgc = <span class="bool-val">true</span>;
-        <span class="self"><a href="#320">self</a>
+    </span><span class="kw">pub fn </span>ms_sgc(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>ExtendedKeyUsage {
+        <span class="self">self</span>.ms_sgc = <span class="bool-val">true</span>;
+        <span class="self">self
     </span>}
 
     <span class="doccomment">/// Sets the `msEFS` flag to `true`.
-    </span><span class="kw">pub fn </span>ms_efs(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span><a href="#223">ExtendedKeyUsage</a> {
-        <a class="self" href="#326">self</a>.ms_efs = <span class="bool-val">true</span>;
-        <span class="self"><a href="#326">self</a>
+    </span><span class="kw">pub fn </span>ms_efs(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>ExtendedKeyUsage {
+        <span class="self">self</span>.ms_efs = <span class="bool-val">true</span>;
+        <span class="self">self
     </span>}
 
     <span class="doccomment">/// Sets the `nsSGC` flag to `true`.
-    </span><span class="kw">pub fn </span>ns_sgc(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span><a href="#223">ExtendedKeyUsage</a> {
-        <a class="self" href="#332">self</a>.ns_sgc = <span class="bool-val">true</span>;
-        <span class="self"><a href="#332">self</a>
+    </span><span class="kw">pub fn </span>ns_sgc(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>ExtendedKeyUsage {
+        <span class="self">self</span>.ns_sgc = <span class="bool-val">true</span>;
+        <span class="self">self
     </span>}
 
     <span class="doccomment">/// Sets a flag not already defined.
-    </span><span class="kw">pub fn </span>other(<span class="kw-2">&amp;mut </span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="kw-2">&amp;mut </span><a href="#223">ExtendedKeyUsage</a> {
-        <a class="self" href="#338">self</a>.other.push(<a href="#338">other</a>.<a href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">to_owned</a>());
-        <span class="self"><a href="#338">self</a>
+    </span><span class="kw">pub fn </span>other(<span class="kw-2">&amp;mut </span><span class="self">self</span>, other: <span class="kw-2">&amp;</span>str) -&gt; <span class="kw-2">&amp;mut </span>ExtendedKeyUsage {
+        <span class="self">self</span>.other.push(other.to_owned());
+        <span class="self">self
     </span>}
 
     <span class="doccomment">/// Return the `ExtendedKeyUsage` extension as an `X509Extension`.
-    </span><span class="kw">pub fn </span>build(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="mod.rs.html#785-793">X509Extension</a>, <a href="../error.rs.html#39">ErrorStack</a>&gt; {
+    </span><span class="kw">pub fn </span>build(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;X509Extension, ErrorStack&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>value = String::new();
         <span class="kw">let </span><span class="kw-2">mut </span>first = <span class="bool-val">true</span>;
-        <a href="#548">append</a>(<span class="kw-2">&amp;mut </span><a href="#345">value</a>, <span class="kw-2">&amp;mut </span><a href="#346">first</a>, <a class="self" href="#344">self</a>.critical, <span class="string">&quot;critical&quot;</span>);
-        <a href="#548">append</a>(<span class="kw-2">&amp;mut </span><a href="#345">value</a>, <span class="kw-2">&amp;mut </span><a href="#346">first</a>, <a class="self" href="#344">self</a>.server_auth, <span class="string">&quot;serverAuth&quot;</span>);
-        <a href="#548">append</a>(<span class="kw-2">&amp;mut </span><a href="#345">value</a>, <span class="kw-2">&amp;mut </span><a href="#346">first</a>, <a class="self" href="#344">self</a>.client_auth, <span class="string">&quot;clientAuth&quot;</span>);
-        <a href="#548">append</a>(<span class="kw-2">&amp;mut </span><a href="#345">value</a>, <span class="kw-2">&amp;mut </span><a href="#346">first</a>, <a class="self" href="#344">self</a>.code_signing, <span class="string">&quot;codeSigning&quot;</span>);
-        <a href="#548">append</a>(
-            <span class="kw-2">&amp;mut </span><a href="#345">value</a>,
-            <span class="kw-2">&amp;mut </span><a href="#346">first</a>,
-            <a class="self" href="#344">self</a>.email_protection,
+        append(<span class="kw-2">&amp;mut </span>value, <span class="kw-2">&amp;mut </span>first, <span class="self">self</span>.critical, <span class="string">&quot;critical&quot;</span>);
+        append(<span class="kw-2">&amp;mut </span>value, <span class="kw-2">&amp;mut </span>first, <span class="self">self</span>.server_auth, <span class="string">&quot;serverAuth&quot;</span>);
+        append(<span class="kw-2">&amp;mut </span>value, <span class="kw-2">&amp;mut </span>first, <span class="self">self</span>.client_auth, <span class="string">&quot;clientAuth&quot;</span>);
+        append(<span class="kw-2">&amp;mut </span>value, <span class="kw-2">&amp;mut </span>first, <span class="self">self</span>.code_signing, <span class="string">&quot;codeSigning&quot;</span>);
+        append(
+            <span class="kw-2">&amp;mut </span>value,
+            <span class="kw-2">&amp;mut </span>first,
+            <span class="self">self</span>.email_protection,
             <span class="string">&quot;emailProtection&quot;</span>,
         );
-        <a href="#548">append</a>(<span class="kw-2">&amp;mut </span><a href="#345">value</a>, <span class="kw-2">&amp;mut </span><a href="#346">first</a>, <a class="self" href="#344">self</a>.time_stamping, <span class="string">&quot;timeStamping&quot;</span>);
-        <a href="#548">append</a>(<span class="kw-2">&amp;mut </span><a href="#345">value</a>, <span class="kw-2">&amp;mut </span><a href="#346">first</a>, <a class="self" href="#344">self</a>.ms_code_ind, <span class="string">&quot;msCodeInd&quot;</span>);
-        <a href="#548">append</a>(<span class="kw-2">&amp;mut </span><a href="#345">value</a>, <span class="kw-2">&amp;mut </span><a href="#346">first</a>, <a class="self" href="#344">self</a>.ms_code_com, <span class="string">&quot;msCodeCom&quot;</span>);
-        <a href="#548">append</a>(<span class="kw-2">&amp;mut </span><a href="#345">value</a>, <span class="kw-2">&amp;mut </span><a href="#346">first</a>, <a class="self" href="#344">self</a>.ms_ctl_sign, <span class="string">&quot;msCTLSign&quot;</span>);
-        <a href="#548">append</a>(<span class="kw-2">&amp;mut </span><a href="#345">value</a>, <span class="kw-2">&amp;mut </span><a href="#346">first</a>, <a class="self" href="#344">self</a>.ms_sgc, <span class="string">&quot;msSGC&quot;</span>);
-        <a href="#548">append</a>(<span class="kw-2">&amp;mut </span><a href="#345">value</a>, <span class="kw-2">&amp;mut </span><a href="#346">first</a>, <a class="self" href="#344">self</a>.ms_efs, <span class="string">&quot;msEFS&quot;</span>);
-        <a href="#548">append</a>(<span class="kw-2">&amp;mut </span><a href="#345">value</a>, <span class="kw-2">&amp;mut </span><a href="#346">first</a>, <a class="self" href="#344">self</a>.ns_sgc, <span class="string">&quot;nsSGC&quot;</span>);
+        append(<span class="kw-2">&amp;mut </span>value, <span class="kw-2">&amp;mut </span>first, <span class="self">self</span>.time_stamping, <span class="string">&quot;timeStamping&quot;</span>);
+        append(<span class="kw-2">&amp;mut </span>value, <span class="kw-2">&amp;mut </span>first, <span class="self">self</span>.ms_code_ind, <span class="string">&quot;msCodeInd&quot;</span>);
+        append(<span class="kw-2">&amp;mut </span>value, <span class="kw-2">&amp;mut </span>first, <span class="self">self</span>.ms_code_com, <span class="string">&quot;msCodeCom&quot;</span>);
+        append(<span class="kw-2">&amp;mut </span>value, <span class="kw-2">&amp;mut </span>first, <span class="self">self</span>.ms_ctl_sign, <span class="string">&quot;msCTLSign&quot;</span>);
+        append(<span class="kw-2">&amp;mut </span>value, <span class="kw-2">&amp;mut </span>first, <span class="self">self</span>.ms_sgc, <span class="string">&quot;msSGC&quot;</span>);
+        append(<span class="kw-2">&amp;mut </span>value, <span class="kw-2">&amp;mut </span>first, <span class="self">self</span>.ms_efs, <span class="string">&quot;msEFS&quot;</span>);
+        append(<span class="kw-2">&amp;mut </span>value, <span class="kw-2">&amp;mut </span>first, <span class="self">self</span>.ns_sgc, <span class="string">&quot;nsSGC&quot;</span>);
         <span class="kw">for </span>other <span class="kw">in </span><span class="kw-2">&amp;</span><span class="self">self</span>.other {
             append(<span class="kw-2">&amp;mut </span>value, <span class="kw-2">&amp;mut </span>first, <span class="bool-val">true</span>, other);
         }
-        X509Extension::new_nid(<span class="prelude-val">None</span>, <span class="prelude-val">None</span>, Nid::EXT_KEY_USAGE, <span class="kw-2">&amp;</span><a href="#345">value</a>)
+        X509Extension::new_nid(<span class="prelude-val">None</span>, <span class="prelude-val">None</span>, Nid::EXT_KEY_USAGE, <span class="kw-2">&amp;</span>value)
     }
 }
 
 <span class="doccomment">/// An extension that provides a means of identifying certificates that contain a
 /// particular public key.
 </span><span class="kw">pub struct </span>SubjectKeyIdentifier {
-    critical: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
+    critical: bool,
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for </span><a href="#373">SubjectKeyIdentifier</a> {
-    <span class="kw">fn </span>default() -&gt; <a href="#373">SubjectKeyIdentifier</a> {
+<span class="kw">impl </span>Default <span class="kw">for </span>SubjectKeyIdentifier {
+    <span class="kw">fn </span>default() -&gt; SubjectKeyIdentifier {
         SubjectKeyIdentifier::new()
     }
 }
 
-<span class="kw">impl </span><a href="#373">SubjectKeyIdentifier</a> {
+<span class="kw">impl </span>SubjectKeyIdentifier {
     <span class="doccomment">/// Construct a new `SubjectKeyIdentifier` extension.
-    </span><span class="kw">pub fn </span>new() -&gt; <a href="#373">SubjectKeyIdentifier</a> {
-        <a href="#373">SubjectKeyIdentifier</a> { critical: <span class="bool-val">false </span>}
+    </span><span class="kw">pub fn </span>new() -&gt; SubjectKeyIdentifier {
+        SubjectKeyIdentifier { critical: <span class="bool-val">false </span>}
     }
 
     <span class="doccomment">/// Sets the `critical` flag to `true`. The extension will be critical.
-    </span><span class="kw">pub fn </span>critical(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span><a href="#373">SubjectKeyIdentifier</a> {
-        <a class="self" href="#390">self</a>.critical = <span class="bool-val">true</span>;
-        <span class="self"><a href="#390">self</a>
+    </span><span class="kw">pub fn </span>critical(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>SubjectKeyIdentifier {
+        <span class="self">self</span>.critical = <span class="bool-val">true</span>;
+        <span class="self">self
     </span>}
 
     <span class="doccomment">/// Return a `SubjectKeyIdentifier` extension as an `X509Extension`.
-    </span><span class="kw">pub fn </span>build(<span class="kw-2">&amp;</span><span class="self">self</span>, ctx: <span class="kw-2">&amp;</span>X509v3Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="mod.rs.html#785-793">X509Extension</a>, <a href="../error.rs.html#39">ErrorStack</a>&gt; {
+    </span><span class="kw">pub fn </span>build(<span class="kw-2">&amp;</span><span class="self">self</span>, ctx: <span class="kw-2">&amp;</span>X509v3Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;X509Extension, ErrorStack&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>value = String::new();
         <span class="kw">let </span><span class="kw-2">mut </span>first = <span class="bool-val">true</span>;
-        <a href="#548">append</a>(<span class="kw-2">&amp;mut </span><a href="#397">value</a>, <span class="kw-2">&amp;mut </span><a href="#398">first</a>, <a class="self" href="#396">self</a>.critical, <span class="string">&quot;critical&quot;</span>);
-        <a href="#548">append</a>(<span class="kw-2">&amp;mut </span><a href="#397">value</a>, <span class="kw-2">&amp;mut </span><a href="#398">first</a>, <span class="bool-val">true</span>, <span class="string">&quot;hash&quot;</span>);
-        X509Extension::new_nid(<span class="prelude-val">None</span>, <span class="prelude-val">Some</span>(<a href="#396">ctx</a>), Nid::SUBJECT_KEY_IDENTIFIER, <span class="kw-2">&amp;</span><a href="#397">value</a>)
+        append(<span class="kw-2">&amp;mut </span>value, <span class="kw-2">&amp;mut </span>first, <span class="self">self</span>.critical, <span class="string">&quot;critical&quot;</span>);
+        append(<span class="kw-2">&amp;mut </span>value, <span class="kw-2">&amp;mut </span>first, <span class="bool-val">true</span>, <span class="string">&quot;hash&quot;</span>);
+        X509Extension::new_nid(<span class="prelude-val">None</span>, <span class="prelude-val">Some</span>(ctx), Nid::SUBJECT_KEY_IDENTIFIER, <span class="kw-2">&amp;</span>value)
     }
 }
 
 <span class="doccomment">/// An extension that provides a means of identifying the public key corresponding
 /// to the private key used to sign a CRL.
 </span><span class="kw">pub struct </span>AuthorityKeyIdentifier {
-    critical: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-    keyid: <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>&gt;,
-    issuer: <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>&gt;,
+    critical: bool,
+    keyid: <span class="prelude-ty">Option</span>&lt;bool&gt;,
+    issuer: <span class="prelude-ty">Option</span>&lt;bool&gt;,
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for </span><a href="#407">AuthorityKeyIdentifier</a> {
-    <span class="kw">fn </span>default() -&gt; <a href="#407">AuthorityKeyIdentifier</a> {
+<span class="kw">impl </span>Default <span class="kw">for </span>AuthorityKeyIdentifier {
+    <span class="kw">fn </span>default() -&gt; AuthorityKeyIdentifier {
         AuthorityKeyIdentifier::new()
     }
 }
 
-<span class="kw">impl </span><a href="#407">AuthorityKeyIdentifier</a> {
+<span class="kw">impl </span>AuthorityKeyIdentifier {
     <span class="doccomment">/// Construct a new `AuthorityKeyIdentifier` extension.
-    </span><span class="kw">pub fn </span>new() -&gt; <a href="#407">AuthorityKeyIdentifier</a> {
-        <a href="#407">AuthorityKeyIdentifier</a> {
+    </span><span class="kw">pub fn </span>new() -&gt; AuthorityKeyIdentifier {
+        AuthorityKeyIdentifier {
             critical: <span class="bool-val">false</span>,
             keyid: <span class="prelude-val">None</span>,
             issuer: <span class="prelude-val">None</span>,
@@ -985,134 +985,134 @@
     }
 
     <span class="doccomment">/// Sets the `critical` flag to `true`. The extension will be critical.
-    </span><span class="kw">pub fn </span>critical(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span><a href="#407">AuthorityKeyIdentifier</a> {
-        <a class="self" href="#430">self</a>.critical = <span class="bool-val">true</span>;
-        <span class="self"><a href="#430">self</a>
+    </span><span class="kw">pub fn </span>critical(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>AuthorityKeyIdentifier {
+        <span class="self">self</span>.critical = <span class="bool-val">true</span>;
+        <span class="self">self
     </span>}
 
     <span class="doccomment">/// Sets the `keyid` flag.
-    </span><span class="kw">pub fn </span>keyid(<span class="kw-2">&amp;mut </span><span class="self">self</span>, always: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="kw-2">&amp;mut </span><a href="#407">AuthorityKeyIdentifier</a> {
-        <a class="self" href="#436">self</a>.keyid = <span class="prelude-val">Some</span>(<a href="#436">always</a>);
-        <span class="self"><a href="#436">self</a>
+    </span><span class="kw">pub fn </span>keyid(<span class="kw-2">&amp;mut </span><span class="self">self</span>, always: bool) -&gt; <span class="kw-2">&amp;mut </span>AuthorityKeyIdentifier {
+        <span class="self">self</span>.keyid = <span class="prelude-val">Some</span>(always);
+        <span class="self">self
     </span>}
 
     <span class="doccomment">/// Sets the `issuer` flag.
-    </span><span class="kw">pub fn </span>issuer(<span class="kw-2">&amp;mut </span><span class="self">self</span>, always: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="kw-2">&amp;mut </span><a href="#407">AuthorityKeyIdentifier</a> {
-        <a class="self" href="#442">self</a>.issuer = <span class="prelude-val">Some</span>(<a href="#442">always</a>);
-        <span class="self"><a href="#442">self</a>
+    </span><span class="kw">pub fn </span>issuer(<span class="kw-2">&amp;mut </span><span class="self">self</span>, always: bool) -&gt; <span class="kw-2">&amp;mut </span>AuthorityKeyIdentifier {
+        <span class="self">self</span>.issuer = <span class="prelude-val">Some</span>(always);
+        <span class="self">self
     </span>}
 
     <span class="doccomment">/// Return a `AuthorityKeyIdentifier` extension as an `X509Extension`.
-    </span><span class="kw">pub fn </span>build(<span class="kw-2">&amp;</span><span class="self">self</span>, ctx: <span class="kw-2">&amp;</span>X509v3Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="mod.rs.html#785-793">X509Extension</a>, <a href="../error.rs.html#39">ErrorStack</a>&gt; {
+    </span><span class="kw">pub fn </span>build(<span class="kw-2">&amp;</span><span class="self">self</span>, ctx: <span class="kw-2">&amp;</span>X509v3Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;X509Extension, ErrorStack&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>value = String::new();
         <span class="kw">let </span><span class="kw-2">mut </span>first = <span class="bool-val">true</span>;
-        <a href="#548">append</a>(<span class="kw-2">&amp;mut </span><a href="#449">value</a>, <span class="kw-2">&amp;mut </span><a href="#450">first</a>, <a class="self" href="#448">self</a>.critical, <span class="string">&quot;critical&quot;</span>);
-        <span class="kw">match </span><a class="self" href="#448">self</a>.keyid {
-            <span class="prelude-val">Some</span>(<span class="bool-val">true</span>) =&gt; <a href="#548">append</a>(<span class="kw-2">&amp;mut </span><a href="#449">value</a>, <span class="kw-2">&amp;mut </span><a href="#450">first</a>, <span class="bool-val">true</span>, <span class="string">&quot;keyid:always&quot;</span>),
-            <span class="prelude-val">Some</span>(<span class="bool-val">false</span>) =&gt; <a href="#548">append</a>(<span class="kw-2">&amp;mut </span><a href="#449">value</a>, <span class="kw-2">&amp;mut </span><a href="#450">first</a>, <span class="bool-val">true</span>, <span class="string">&quot;keyid&quot;</span>),
+        append(<span class="kw-2">&amp;mut </span>value, <span class="kw-2">&amp;mut </span>first, <span class="self">self</span>.critical, <span class="string">&quot;critical&quot;</span>);
+        <span class="kw">match </span><span class="self">self</span>.keyid {
+            <span class="prelude-val">Some</span>(<span class="bool-val">true</span>) =&gt; append(<span class="kw-2">&amp;mut </span>value, <span class="kw-2">&amp;mut </span>first, <span class="bool-val">true</span>, <span class="string">&quot;keyid:always&quot;</span>),
+            <span class="prelude-val">Some</span>(<span class="bool-val">false</span>) =&gt; append(<span class="kw-2">&amp;mut </span>value, <span class="kw-2">&amp;mut </span>first, <span class="bool-val">true</span>, <span class="string">&quot;keyid&quot;</span>),
             <span class="prelude-val">None </span>=&gt; {}
         }
-        <span class="kw">match </span><a class="self" href="#448">self</a>.issuer {
-            <span class="prelude-val">Some</span>(<span class="bool-val">true</span>) =&gt; <a href="#548">append</a>(<span class="kw-2">&amp;mut </span><a href="#449">value</a>, <span class="kw-2">&amp;mut </span><a href="#450">first</a>, <span class="bool-val">true</span>, <span class="string">&quot;issuer:always&quot;</span>),
-            <span class="prelude-val">Some</span>(<span class="bool-val">false</span>) =&gt; <a href="#548">append</a>(<span class="kw-2">&amp;mut </span><a href="#449">value</a>, <span class="kw-2">&amp;mut </span><a href="#450">first</a>, <span class="bool-val">true</span>, <span class="string">&quot;issuer&quot;</span>),
+        <span class="kw">match </span><span class="self">self</span>.issuer {
+            <span class="prelude-val">Some</span>(<span class="bool-val">true</span>) =&gt; append(<span class="kw-2">&amp;mut </span>value, <span class="kw-2">&amp;mut </span>first, <span class="bool-val">true</span>, <span class="string">&quot;issuer:always&quot;</span>),
+            <span class="prelude-val">Some</span>(<span class="bool-val">false</span>) =&gt; append(<span class="kw-2">&amp;mut </span>value, <span class="kw-2">&amp;mut </span>first, <span class="bool-val">true</span>, <span class="string">&quot;issuer&quot;</span>),
             <span class="prelude-val">None </span>=&gt; {}
         }
-        X509Extension::new_nid(<span class="prelude-val">None</span>, <span class="prelude-val">Some</span>(<a href="#448">ctx</a>), Nid::AUTHORITY_KEY_IDENTIFIER, <span class="kw-2">&amp;</span><a href="#449">value</a>)
+        X509Extension::new_nid(<span class="prelude-val">None</span>, <span class="prelude-val">Some</span>(ctx), Nid::AUTHORITY_KEY_IDENTIFIER, <span class="kw-2">&amp;</span>value)
     }
 }
 
 <span class="doccomment">/// An extension that allows additional identities to be bound to the subject
 /// of the certificate.
 </span><span class="kw">pub struct </span>SubjectAlternativeName {
-    critical: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-    names: Vec&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt;,
+    critical: bool,
+    names: Vec&lt;String&gt;,
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for </span><a href="#468">SubjectAlternativeName</a> {
-    <span class="kw">fn </span>default() -&gt; <a href="#468">SubjectAlternativeName</a> {
+<span class="kw">impl </span>Default <span class="kw">for </span>SubjectAlternativeName {
+    <span class="kw">fn </span>default() -&gt; SubjectAlternativeName {
         SubjectAlternativeName::new()
     }
 }
 
-<span class="kw">impl </span><a href="#468">SubjectAlternativeName</a> {
+<span class="kw">impl </span>SubjectAlternativeName {
     <span class="doccomment">/// Construct a new `SubjectAlternativeName` extension.
-    </span><span class="kw">pub fn </span>new() -&gt; <a href="#468">SubjectAlternativeName</a> {
-        <a href="#468">SubjectAlternativeName</a> {
+    </span><span class="kw">pub fn </span>new() -&gt; SubjectAlternativeName {
+        SubjectAlternativeName {
             critical: <span class="bool-val">false</span>,
-            names: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[],
+            names: <span class="macro">vec!</span>[],
         }
     }
 
     <span class="doccomment">/// Sets the `critical` flag to `true`. The extension will be critical.
-    </span><span class="kw">pub fn </span>critical(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span><a href="#468">SubjectAlternativeName</a> {
-        <a class="self" href="#489">self</a>.critical = <span class="bool-val">true</span>;
-        <span class="self"><a href="#489">self</a>
+    </span><span class="kw">pub fn </span>critical(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>SubjectAlternativeName {
+        <span class="self">self</span>.critical = <span class="bool-val">true</span>;
+        <span class="self">self
     </span>}
 
     <span class="doccomment">/// Sets the `email` flag.
-    </span><span class="kw">pub fn </span>email(<span class="kw-2">&amp;mut </span><span class="self">self</span>, email: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="kw-2">&amp;mut </span><a href="#468">SubjectAlternativeName</a> {
-        <a class="self" href="#495">self</a>.names.push(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;email:{}&quot;</span>, email));
-        <span class="self"><a href="#495">self</a>
+    </span><span class="kw">pub fn </span>email(<span class="kw-2">&amp;mut </span><span class="self">self</span>, email: <span class="kw-2">&amp;</span>str) -&gt; <span class="kw-2">&amp;mut </span>SubjectAlternativeName {
+        <span class="self">self</span>.names.push(<span class="macro">format!</span>(<span class="string">&quot;email:{}&quot;</span>, email));
+        <span class="self">self
     </span>}
 
     <span class="doccomment">/// Sets the `uri` flag.
-    </span><span class="kw">pub fn </span>uri(<span class="kw-2">&amp;mut </span><span class="self">self</span>, uri: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="kw-2">&amp;mut </span><a href="#468">SubjectAlternativeName</a> {
-        <a class="self" href="#501">self</a>.names.push(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;URI:{}&quot;</span>, uri));
-        <span class="self"><a href="#501">self</a>
+    </span><span class="kw">pub fn </span>uri(<span class="kw-2">&amp;mut </span><span class="self">self</span>, uri: <span class="kw-2">&amp;</span>str) -&gt; <span class="kw-2">&amp;mut </span>SubjectAlternativeName {
+        <span class="self">self</span>.names.push(<span class="macro">format!</span>(<span class="string">&quot;URI:{}&quot;</span>, uri));
+        <span class="self">self
     </span>}
 
     <span class="doccomment">/// Sets the `dns` flag.
-    </span><span class="kw">pub fn </span>dns(<span class="kw-2">&amp;mut </span><span class="self">self</span>, dns: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="kw-2">&amp;mut </span><a href="#468">SubjectAlternativeName</a> {
-        <a class="self" href="#507">self</a>.names.push(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;DNS:{}&quot;</span>, dns));
-        <span class="self"><a href="#507">self</a>
+    </span><span class="kw">pub fn </span>dns(<span class="kw-2">&amp;mut </span><span class="self">self</span>, dns: <span class="kw-2">&amp;</span>str) -&gt; <span class="kw-2">&amp;mut </span>SubjectAlternativeName {
+        <span class="self">self</span>.names.push(<span class="macro">format!</span>(<span class="string">&quot;DNS:{}&quot;</span>, dns));
+        <span class="self">self
     </span>}
 
     <span class="doccomment">/// Sets the `rid` flag.
-    </span><span class="kw">pub fn </span>rid(<span class="kw-2">&amp;mut </span><span class="self">self</span>, rid: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="kw-2">&amp;mut </span><a href="#468">SubjectAlternativeName</a> {
-        <a class="self" href="#513">self</a>.names.push(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;RID:{}&quot;</span>, rid));
-        <span class="self"><a href="#513">self</a>
+    </span><span class="kw">pub fn </span>rid(<span class="kw-2">&amp;mut </span><span class="self">self</span>, rid: <span class="kw-2">&amp;</span>str) -&gt; <span class="kw-2">&amp;mut </span>SubjectAlternativeName {
+        <span class="self">self</span>.names.push(<span class="macro">format!</span>(<span class="string">&quot;RID:{}&quot;</span>, rid));
+        <span class="self">self
     </span>}
 
     <span class="doccomment">/// Sets the `ip` flag.
-    </span><span class="kw">pub fn </span>ip(<span class="kw-2">&amp;mut </span><span class="self">self</span>, ip: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="kw-2">&amp;mut </span><a href="#468">SubjectAlternativeName</a> {
-        <a class="self" href="#519">self</a>.names.push(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;IP:{}&quot;</span>, ip));
-        <span class="self"><a href="#519">self</a>
+    </span><span class="kw">pub fn </span>ip(<span class="kw-2">&amp;mut </span><span class="self">self</span>, ip: <span class="kw-2">&amp;</span>str) -&gt; <span class="kw-2">&amp;mut </span>SubjectAlternativeName {
+        <span class="self">self</span>.names.push(<span class="macro">format!</span>(<span class="string">&quot;IP:{}&quot;</span>, ip));
+        <span class="self">self
     </span>}
 
     <span class="doccomment">/// Sets the `dirName` flag.
-    </span><span class="kw">pub fn </span>dir_name(<span class="kw-2">&amp;mut </span><span class="self">self</span>, dir_name: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="kw-2">&amp;mut </span><a href="#468">SubjectAlternativeName</a> {
-        <a class="self" href="#525">self</a>.names.push(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;dirName:{}&quot;</span>, dir_name));
-        <span class="self"><a href="#525">self</a>
+    </span><span class="kw">pub fn </span>dir_name(<span class="kw-2">&amp;mut </span><span class="self">self</span>, dir_name: <span class="kw-2">&amp;</span>str) -&gt; <span class="kw-2">&amp;mut </span>SubjectAlternativeName {
+        <span class="self">self</span>.names.push(<span class="macro">format!</span>(<span class="string">&quot;dirName:{}&quot;</span>, dir_name));
+        <span class="self">self
     </span>}
 
     <span class="doccomment">/// Sets the `otherName` flag.
-    </span><span class="kw">pub fn </span>other_name(<span class="kw-2">&amp;mut </span><span class="self">self</span>, other_name: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="kw-2">&amp;mut </span><a href="#468">SubjectAlternativeName</a> {
-        <a class="self" href="#531">self</a>.names.push(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;otherName:{}&quot;</span>, other_name));
-        <span class="self"><a href="#531">self</a>
+    </span><span class="kw">pub fn </span>other_name(<span class="kw-2">&amp;mut </span><span class="self">self</span>, other_name: <span class="kw-2">&amp;</span>str) -&gt; <span class="kw-2">&amp;mut </span>SubjectAlternativeName {
+        <span class="self">self</span>.names.push(<span class="macro">format!</span>(<span class="string">&quot;otherName:{}&quot;</span>, other_name));
+        <span class="self">self
     </span>}
 
     <span class="doccomment">/// Return a `SubjectAlternativeName` extension as an `X509Extension`.
-    </span><span class="kw">pub fn </span>build(<span class="kw-2">&amp;</span><span class="self">self</span>, ctx: <span class="kw-2">&amp;</span>X509v3Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="mod.rs.html#785-793">X509Extension</a>, <a href="../error.rs.html#39">ErrorStack</a>&gt; {
+    </span><span class="kw">pub fn </span>build(<span class="kw-2">&amp;</span><span class="self">self</span>, ctx: <span class="kw-2">&amp;</span>X509v3Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;X509Extension, ErrorStack&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>value = String::new();
         <span class="kw">let </span><span class="kw-2">mut </span>first = <span class="bool-val">true</span>;
-        <a href="#548">append</a>(<span class="kw-2">&amp;mut </span><a href="#538">value</a>, <span class="kw-2">&amp;mut </span><a href="#539">first</a>, <a class="self" href="#537">self</a>.critical, <span class="string">&quot;critical&quot;</span>);
+        append(<span class="kw-2">&amp;mut </span>value, <span class="kw-2">&amp;mut </span>first, <span class="self">self</span>.critical, <span class="string">&quot;critical&quot;</span>);
         <span class="kw">for </span>name <span class="kw">in </span><span class="kw-2">&amp;</span><span class="self">self</span>.names {
             append(<span class="kw-2">&amp;mut </span>value, <span class="kw-2">&amp;mut </span>first, <span class="bool-val">true</span>, name);
         }
-        X509Extension::new_nid(<span class="prelude-val">None</span>, <span class="prelude-val">Some</span>(<a href="#537">ctx</a>), Nid::SUBJECT_ALT_NAME, <span class="kw-2">&amp;</span><a href="#538">value</a>)
+        X509Extension::new_nid(<span class="prelude-val">None</span>, <span class="prelude-val">Some</span>(ctx), Nid::SUBJECT_ALT_NAME, <span class="kw-2">&amp;</span>value)
     }
 }
 
-<span class="kw">fn </span>append(value: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, first: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>, should: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>, element: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) {
+<span class="kw">fn </span>append(value: <span class="kw-2">&amp;mut </span>String, first: <span class="kw-2">&amp;mut </span>bool, should: bool, element: <span class="kw-2">&amp;</span>str) {
     <span class="kw">if </span>!should {
         <span class="kw">return</span>;
     }
 
     <span class="kw">if </span>!<span class="kw-2">*</span>first {
-        <a href="#548">value</a>.push(<span class="string">&#39;,&#39;</span>);
+        value.push(<span class="string">&#39;,&#39;</span>);
     }
-    <span class="kw-2">*</span><a href="#548">first</a> = <span class="bool-val">false</span>;
-    <a href="#548">value</a>.push_str(<a href="#548">element</a>);
+    <span class="kw-2">*</span>first = <span class="bool-val">false</span>;
+    value.push_str(element);
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="openssl" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="openssl" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

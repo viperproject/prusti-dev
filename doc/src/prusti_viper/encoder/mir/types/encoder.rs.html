@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `prusti-viper/src/encoder/mir/types/encoder.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>encoder.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../../../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../../../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../../../../source-files.js"></script><script defer src="../../../../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../../../prusti_viper/index.html"><img class="rust-logo" src="../../../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `prusti-viper/src/encoder/mir/types/encoder.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>encoder.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../../../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../../../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../../../source-files.js"></script><script defer src="../../../../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../../../prusti_viper/index.html"><img class="rust-logo" src="../../../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -871,29 +871,36 @@
 <a href="#871" id="871">871</a>
 <a href="#872" id="872">872</a>
 <a href="#873" id="873">873</a>
+<a href="#874" id="874">874</a>
+<a href="#875" id="875">875</a>
+<a href="#876" id="876">876</a>
+<a href="#877" id="877">877</a>
+<a href="#878" id="878">878</a>
+<a href="#879" id="879">879</a>
+<a href="#880" id="880">880</a>
 </pre><pre class="rust"><code><span class="comment">// © 2019, ETH Zurich
 //
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-</span><span class="kw">use super</span>::{<a href="helpers.rs.html#14-17">helpers::compute_discriminant_values</a>, <a href="interface.rs.html#23">interface::MirTypeEncoderInterface</a>};
+</span><span class="kw">use super</span>::{helpers::compute_discriminant_values, interface::MirTypeEncoderInterface};
 <span class="kw">use </span><span class="kw">crate</span>::encoder::{
-    errors::{<a href="../../errors/encoding_error.rs.html#20">EncodingResult</a>, <a href="../../errors/spanned_encoding_error.rs.html#16">SpannedEncodingError</a>, <a href="../../errors/spanned_encoding_error.rs.html#23">SpannedEncodingResult</a>, <a href="../../errors/with_span.rs.html#13">WithSpan</a>},
+    errors::{EncodingResult, SpannedEncodingError, SpannedEncodingResult, WithSpan},
     mir::{
-        <a href="../constants/interface.rs.html#10">constants::ConstantsEncoderInterface</a>, <a href="../generics/interface.rs.html#10">generics::MirGenericsEncoderInterface</a>,
-        <a href="../specifications/interface.rs.html#72">specifications::SpecificationsInterface</a>, <a href="helpers.rs.html#29-32">types::helpers::compute_discriminant_ranges</a>,
+        constants::ConstantsEncoderInterface, generics::MirGenericsEncoderInterface,
+        specifications::SpecificationsInterface, types::helpers::compute_discriminant_ranges,
     },
-    <a href="../../encoder.rs.html#67">Encoder</a>,
+    Encoder,
 };
-<span class="kw">use </span><a href="../../../../../log/macro.debug.html">log::debug</a>;
-<span class="kw">use </span><a href="../../../../../prusti_utils/config/index.html">prusti_common::config</a>;
+<span class="kw">use </span>log::debug;
+<span class="kw">use </span>prusti_common::config;
 <span class="kw">use </span>prusti_rustc_interface::{
     errors::MultiSpan,
-    <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.DefId.html">hir::def_id::DefId</a>,
-    middle::{<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/index.html">mir</a>, <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/index.html">ty</a>},
+    hir::def_id::DefId,
+    middle::{mir, ty},
 };
-<span class="kw">use </span>vir_crate::high::{<span class="self"><a href="../../../../../vir/high/index.html">self</a> </span><span class="kw">as </span>vir, <a href="../../../../../vir/gen/high/operations_internal/ty/trait.Typed.html">operations::ty::Typed</a>};
+<span class="kw">use </span>vir_crate::high::{<span class="self">self </span><span class="kw">as </span>vir, operations::ty::Typed};
 
 <span class="kw">pub struct </span>TypeEncoder&lt;<span class="lifetime">&#39;p</span>, <span class="lifetime">&#39;v</span>: <span class="lifetime">&#39;p</span>, <span class="lifetime">&#39;tcx</span>: <span class="lifetime">&#39;v</span>&gt; {
     encoder: <span class="kw-2">&amp;</span><span class="lifetime">&#39;p </span>Encoder&lt;<span class="lifetime">&#39;v</span>, <span class="lifetime">&#39;tcx</span>&gt;,
@@ -902,19 +909,19 @@
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;p</span>, <span class="lifetime">&#39;v</span>, <span class="lifetime">&#39;r</span>: <span class="lifetime">&#39;v</span>, <span class="lifetime">&#39;tcx</span>: <span class="lifetime">&#39;v</span>&gt; TypeEncoder&lt;<span class="lifetime">&#39;p</span>, <span class="lifetime">&#39;v</span>, <span class="lifetime">&#39;tcx</span>&gt; {
     <span class="kw">pub fn </span>new(encoder: <span class="kw-2">&amp;</span><span class="lifetime">&#39;p </span>Encoder&lt;<span class="lifetime">&#39;v</span>, <span class="lifetime">&#39;tcx</span>&gt;, ty: ty::Ty&lt;<span class="lifetime">&#39;tcx</span>&gt;) -&gt; <span class="self">Self </span>{
-        <a href="#25">TypeEncoder</a> { <a href="#31">encoder</a>, <a href="#31">ty</a> }
+        TypeEncoder { encoder, ty }
     }
 
     <span class="kw">fn </span>encode_substs(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         substs: prusti_rustc_interface::middle::ty::subst::SubstsRef&lt;<span class="lifetime">&#39;tcx</span>&gt;,
-    ) -&gt; Vec&lt;<a href="../../../../../vir/gen/high/ast/ty/enum.Type.html">vir::Type</a>&gt; {
-        <a href="#649-652">encode_substs</a>(<a class="self" href="#36">self</a>.encoder, <a href="#37">substs</a>)
+    ) -&gt; Vec&lt;vir::Type&gt; {
+        encode_substs(<span class="self">self</span>.encoder, substs)
     }
 
-    <span class="kw">fn </span>is_mathematical_type(<span class="kw-2">&amp;</span><span class="self">self</span>, did: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.DefId.html">DefId</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">let </span>type_name: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> = <span class="kw-2">&amp;</span><a class="self" href="#42">self</a>.encoder.<a href="../../encoder.rs.html#225">env</a>().name.get_absolute_item_name(<a href="#42">did</a>);
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.matches.html">matches!</a>(
+    <span class="kw">fn </span>is_mathematical_type(<span class="kw-2">&amp;</span><span class="self">self</span>, did: DefId) -&gt; bool {
+        <span class="kw">let </span>type_name: <span class="kw-2">&amp;</span>str = <span class="kw-2">&amp;</span><span class="self">self</span>.encoder.env().name.get_absolute_item_name(did);
+        <span class="macro">matches!</span>(
             type_name,
             <span class="string">&quot;prusti_contracts::Seq&quot;
                 </span>| <span class="string">&quot;prusti_contracts::Map&quot;
@@ -923,26 +930,26 @@
         </span>)
     }
 
-    <span class="kw">fn </span>is_trusted_type(<span class="kw-2">&amp;</span><span class="self">self</span>, did: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.DefId.html">DefId</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(type_specs) = <a class="self" href="#53">self</a>.encoder.<a href="../specifications/interface.rs.html#93">get_type_specs</a>(<a href="#53">did</a>) {
-            <span class="kw-2">*</span><a href="#54">type_specs</a>.trusted.expect_inherent()
+    <span class="kw">fn </span>is_trusted_type(<span class="kw-2">&amp;</span><span class="self">self</span>, did: DefId) -&gt; bool {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(type_specs) = <span class="self">self</span>.encoder.get_type_specs(did) {
+            <span class="kw-2">*</span>type_specs.trusted.expect_inherent()
         } <span class="kw">else </span>{
             <span class="bool-val">false
         </span>}
     }
 
-    <span class="kw">fn </span>compute_array_len(<span class="kw-2">&amp;</span><span class="self">self</span>, size: ty::Const&lt;<span class="lifetime">&#39;tcx</span>&gt;) -&gt; EncodingResult&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>&gt; {
-        <a class="self" href="#61">self</a>.encoder.<a href="../constants/interface.rs.html#16">compute_array_len</a>(<a href="#61">size</a>)
+    <span class="kw">fn </span>compute_array_len(<span class="kw-2">&amp;</span><span class="self">self</span>, size: ty::Const&lt;<span class="lifetime">&#39;tcx</span>&gt;) -&gt; EncodingResult&lt;u64&gt; {
+        <span class="self">self</span>.encoder.compute_array_len(size)
     }
 
     <span class="kw">pub fn </span>encode_type(
         <span class="self">self</span>,
-        const_arguments: <span class="kw-2">&amp;</span>[<a href="../../../../../vir/gen/high/ast/expression/enum.Expression.html">vir::Expression</a>],
-    ) -&gt; SpannedEncodingResult&lt;<a href="../../../../../vir/gen/high/ast/ty/enum.Type.html">vir::Type</a>&gt; {
-        <a class="macro" href="../../../../../log/macro.debug.html">debug!</a>(<span class="string">&quot;Encode type &#39;{:?}&#39;&quot;</span>, <span class="self">self</span>.ty);
+        const_arguments: <span class="kw-2">&amp;</span>[vir::Expression],
+    ) -&gt; SpannedEncodingResult&lt;vir::Type&gt; {
+        <span class="macro">debug!</span>(<span class="string">&quot;Encode type &#39;{:?}&#39;&quot;</span>, <span class="self">self</span>.ty);
         <span class="comment">// self.encode_polymorphic_predicate_use()
         </span><span class="kw">let </span>lifetimes = <span class="self">self</span>.encoder.get_lifetimes_from_type_high(<span class="self">self</span>.ty)<span class="question-mark">?</span>;
-        <span class="kw">let </span>result = <span class="kw">match </span><a class="self" href="#66">self</a>.ty.kind() {
+        <span class="kw">let </span>result = <span class="kw">match </span><span class="self">self</span>.ty.kind() {
             ty::TyKind::Bool =&gt; vir::Type::Bool,
 
             ty::TyKind::Int(ty::IntTy::I8) =&gt; vir::Type::Int(vir::ty::Int::I8),
@@ -964,98 +971,98 @@
             ty::TyKind::Float(ty::FloatTy::F32) =&gt; vir::Type::Float(vir::ty::Float::F32),
             ty::TyKind::Float(ty::FloatTy::F64) =&gt; vir::Type::Float(vir::ty::Float::F64),
 
-            ty::TyKind::RawPtr(<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/sty/struct.TypeAndMut.html">ty::TypeAndMut</a> { ty, .. }) =&gt; {
+            ty::TyKind::RawPtr(ty::TypeAndMut { ty, .. }) =&gt; {
                 vir::Type::pointer(<span class="self">self</span>.encoder.encode_type_high(<span class="kw-2">*</span>ty)<span class="question-mark">?</span>)
             }
 
             ty::TyKind::Ref(_region, ty, mutability) =&gt; {
-                <span class="kw">let </span>lifetime = <a href="#71">lifetimes</a>.first().unwrap().<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
-                <span class="kw">let </span>uniqueness = <a class="self" href="#66">self</a>.<a href="#641">encode_uniqueness</a>(<span class="kw-2">*</span><a href="#98">mutability</a>);
-                vir::Type::reference(<a href="#99">lifetime</a>, <a href="#100">uniqueness</a>, <span class="self">self</span>.encoder.encode_type_high(<span class="kw-2">*</span>ty)<span class="question-mark">?</span>)
+                <span class="kw">let </span>lifetime = lifetimes.first().unwrap().clone();
+                <span class="kw">let </span>uniqueness = <span class="self">self</span>.encode_uniqueness(<span class="kw-2">*</span>mutability);
+                vir::Type::reference(lifetime, uniqueness, <span class="self">self</span>.encoder.encode_type_high(<span class="kw-2">*</span>ty)<span class="question-mark">?</span>)
             }
 
-            ty::TyKind::Adt(adt_def, substs) <span class="kw">if </span><a class="self" href="#66">self</a>.<a href="#53">is_trusted_type</a>(<a href="#104">adt_def</a>.did()) =&gt; {
+            ty::TyKind::Adt(adt_def, substs) <span class="kw">if </span><span class="self">self</span>.is_trusted_type(adt_def.did()) =&gt; {
                 vir::Type::trusted(
-                    <a href="#689">encode_trusted_name</a>(<a class="self" href="#66">self</a>.encoder, <a href="#104">adt_def</a>.did()),
-                    <a class="self" href="#66">self</a>.<a href="#35-38">encode_substs</a>(<a href="#104">substs</a>),
-                    <a href="#71">lifetimes</a>,
+                    encode_trusted_name(<span class="self">self</span>.encoder, adt_def.did()),
+                    <span class="self">self</span>.encode_substs(substs),
+                    lifetimes,
                 )
             }
 
-            ty::TyKind::Adt(adt_def, substs) <span class="kw">if </span><a href="#112">adt_def</a>.is_struct() =&gt; {
-                <span class="kw">let </span>type_name: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> = <span class="kw-2">&amp;</span><span class="self"><a href="#66">self</a>
+            ty::TyKind::Adt(adt_def, substs) <span class="kw">if </span>adt_def.is_struct() =&gt; {
+                <span class="kw">let </span>type_name: <span class="kw-2">&amp;</span>str = <span class="kw-2">&amp;</span><span class="self">self
                     </span>.encoder
-                    .<a href="../../encoder.rs.html#225">env</a>()
+                    .env()
                     .name
-                    .get_absolute_item_name(<a href="#112">adt_def</a>.did());
+                    .get_absolute_item_name(adt_def.did());
 
-                <span class="kw">let </span>enc_substs = <span class="self"><a href="#66">self</a>
-                    </span>.<a href="#35-38">encode_substs</a>(<a href="#112">substs</a>)
-                    .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
-                    .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(Box::new)
-                    .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;();
+                <span class="kw">let </span>enc_substs = <span class="self">self
+                    </span>.encode_substs(substs)
+                    .into_iter()
+                    .map(Box::new)
+                    .collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;();
 
                 <span class="comment">// TODO: more stable reference to the Sequence type
                 </span><span class="kw">if </span>type_name == <span class="string">&quot;prusti_contracts::Seq&quot; </span>{
-                    vir::Type::Sequence(<a href="../../../../../vir/gen/high/ast/ty/struct.Sequence.html">vir::ty::Sequence</a> {
-                        element_type: <a href="#119">enc_substs</a>[<span class="number">0</span>].<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
-                        <a href="#71">lifetimes</a>,
+                    vir::Type::Sequence(vir::ty::Sequence {
+                        element_type: enc_substs[<span class="number">0</span>].clone(),
+                        lifetimes,
                     })
                 } <span class="kw">else if </span>type_name == <span class="string">&quot;prusti_contracts::Map&quot; </span>{
-                    vir::Type::Map(<a href="../../../../../vir/gen/high/ast/ty/struct.Map.html">vir::ty::Map</a> {
-                        key_type: <a href="#119">enc_substs</a>[<span class="number">0</span>].<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
-                        val_type: <a href="#119">enc_substs</a>[<span class="number">1</span>].<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
-                        <a href="#71">lifetimes</a>,
+                    vir::Type::Map(vir::ty::Map {
+                        key_type: enc_substs[<span class="number">0</span>].clone(),
+                        val_type: enc_substs[<span class="number">1</span>].clone(),
+                        lifetimes,
                     })
                 } <span class="kw">else if </span>type_name == <span class="string">&quot;prusti_contracts::Int&quot; </span>{
                     vir::Type::Int(vir::ty::Int::Unbounded)
                 } <span class="kw">else if </span>type_name == <span class="string">&quot;prusti_contracts::Ghost&quot; </span>{
-                    (<span class="kw-2">*</span><a href="#119">enc_substs</a>[<span class="number">0</span>]).<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()
+                    (<span class="kw-2">*</span>enc_substs[<span class="number">0</span>]).clone()
                 } <span class="kw">else </span>{
                     vir::Type::struct_(
-                        <a href="#685">encode_struct_name</a>(<a class="self" href="#66">self</a>.encoder, <a href="#112">adt_def</a>.did()),
-                        <a class="self" href="#66">self</a>.<a href="#35-38">encode_substs</a>(<a href="#112">substs</a>),
-                        <a href="#71">lifetimes</a>,
+                        encode_struct_name(<span class="self">self</span>.encoder, adt_def.did()),
+                        <span class="self">self</span>.encode_substs(substs),
+                        lifetimes,
                     )
                 }
             }
 
-            ty::TyKind::Adt(adt_def, substs) <span class="kw">if </span><a href="#150">adt_def</a>.is_enum() =&gt; {
+            ty::TyKind::Adt(adt_def, substs) <span class="kw">if </span>adt_def.is_enum() =&gt; {
                 <span class="kw">if </span>adt_def.variants().len() == <span class="number">1 </span>{
                     <span class="comment">// FIXME: Currently fold-unfold assumes that everything that
                     // has only a single variant is a struct.
                     </span>vir::Type::struct_(
-                        <a href="#685">encode_struct_name</a>(<a class="self" href="#66">self</a>.encoder, <a href="#150">adt_def</a>.did()),
-                        <a class="self" href="#66">self</a>.<a href="#35-38">encode_substs</a>(<a href="#150">substs</a>),
-                        <a href="#71">lifetimes</a>,
+                        encode_struct_name(<span class="self">self</span>.encoder, adt_def.did()),
+                        <span class="self">self</span>.encode_substs(substs),
+                        lifetimes,
                     )
                 } <span class="kw">else </span>{
                     vir::Type::enum_(
-                        <a href="#665">encode_enum_name</a>(<a class="self" href="#66">self</a>.encoder, <a href="#150">adt_def</a>.did()),
-                        <a class="self" href="#66">self</a>.<a href="#35-38">encode_substs</a>(<a href="#150">substs</a>),
+                        encode_enum_name(<span class="self">self</span>.encoder, adt_def.did()),
+                        <span class="self">self</span>.encode_substs(substs),
                         <span class="prelude-val">None</span>,
-                        <a href="#71">lifetimes</a>,
+                        lifetimes,
                     )
                 }
             }
 
-            ty::TyKind::Adt(adt_def, substs) <span class="kw">if </span><a href="#169">adt_def</a>.is_union() =&gt; vir::Type::union_(
-                <a href="#669">encode_union_name</a>(<a class="self" href="#66">self</a>.encoder, <a href="#169">adt_def</a>.did()),
-                <a class="self" href="#66">self</a>.<a href="#35-38">encode_substs</a>(<a href="#169">substs</a>),
+            ty::TyKind::Adt(adt_def, substs) <span class="kw">if </span>adt_def.is_union() =&gt; vir::Type::union_(
+                encode_union_name(<span class="self">self</span>.encoder, adt_def.did()),
+                <span class="self">self</span>.encode_substs(substs),
                 <span class="prelude-val">None</span>,
-                <a href="#71">lifetimes</a>,
+                lifetimes,
             ),
 
             ty::TyKind::Adt(_adt_def, _substs) =&gt; {
-                <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>();
+                <span class="macro">unreachable!</span>();
             }
 
             ty::TyKind::Tuple(elems) =&gt; vir::Type::tuple(
-                <a href="#180">elems</a>
+                elems
                     .iter()
-                    .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter_map</a>(|ty| <a class="self" href="#66">self</a>.encoder.<a href="interface.rs.html#57">encode_type_high</a>(<a href="#183">ty</a>).ok())
-                    .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>(),
-                <a href="#71">lifetimes</a>,
+                    .filter_map(|ty| <span class="self">self</span>.encoder.encode_type_high(ty).ok())
+                    .collect(),
+                lifetimes,
             ),
 
             ty::TyKind::Never =&gt; vir::Type::Never,
@@ -1063,70 +1070,69 @@
             ty::TyKind::Str =&gt; vir::Type::Str,
 
             ty::TyKind::Array(elem_ty, size) =&gt; {
-                <span class="kw">let </span>(array_len, tail): (<span class="kw">_</span>, <span class="kw-2">&amp;</span>[<a href="../../../../../vir/gen/high/ast/expression/enum.Expression.html">vir::Expression</a>]) =
-                    <span class="kw">if let </span><span class="prelude-val">Some</span>((array_len, tail)) = <a href="#67">const_arguments</a>.split_first() {
-                        (<a href="#194">array_len</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), <a href="#194">tail</a>)
+                <span class="kw">let </span>(array_len, tail): (<span class="kw">_</span>, <span class="kw-2">&amp;</span>[vir::Expression]) =
+                    <span class="kw">if let </span><span class="prelude-val">Some</span>((array_len, tail)) = const_arguments.split_first() {
+                        (array_len.clone(), tail)
                     } <span class="kw">else </span>{
-                        <span class="kw">let </span>array_len: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> = <span class="self">self
+                        <span class="kw">let </span>array_len: usize = <span class="self">self
                             </span>.compute_array_len(<span class="kw-2">*</span>size)
                             .with_span(<span class="self">self</span>.get_definition_span())<span class="question-mark">?
-                            </span>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.TryInto.html">try_into</a>()
+                            </span>.try_into()
                             .unwrap();
-                        (<a href="#197">array_len</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(), <span class="kw-2">&amp;</span>[])
+                        (array_len.into(), <span class="kw-2">&amp;</span>[])
                     };
                 <span class="kw">let </span>lifetimes = <span class="self">self</span>.encoder.get_lifetimes_from_type_high(<span class="kw-2">*</span>elem_ty)<span class="question-mark">?</span>;
                 vir::Type::array(
-                    vir::ty::ConstGenericArgument::new(<span class="prelude-val">Some</span>(Box::new(<a href="#193">array_len</a>))),
+                    vir::ty::ConstGenericArgument::new(<span class="prelude-val">Some</span>(Box::new(array_len))),
                     <span class="self">self</span>.encoder
                         .encode_type_high_with_const_arguments(<span class="kw-2">*</span>elem_ty, tail)<span class="question-mark">?</span>,
-                    <a href="#204">lifetimes</a>,
+                    lifetimes,
                 )
             }
 
             ty::TyKind::Slice(elem_ty) =&gt; {
-                vir::Type::slice(<span class="self">self</span>.encoder.encode_type_high(<span class="kw-2">*</span>elem_ty)<span class="question-mark">?</span>, <a href="#71">lifetimes</a>)
+                vir::Type::slice(<span class="self">self</span>.encoder.encode_type_high(<span class="kw-2">*</span>elem_ty)<span class="question-mark">?</span>, lifetimes)
             }
 
             ty::TyKind::Closure(def_id, _substs) =&gt; vir::Type::closure(
-                <a href="#673">encode_closure_name</a>(<a class="self" href="#66">self</a>.encoder, <span class="kw-2">*</span><a href="#217">def_id</a>),
+                encode_closure_name(<span class="self">self</span>.encoder, <span class="kw-2">*</span>def_id),
                 <span class="comment">// FIXME: We are currently ignoring type arguments and lifetimes.
                 // self.encode_substs(substs),
                 // lifetimes,
             </span>),
 
             ty::TyKind::FnDef(def_id, _substs) =&gt; vir::Type::function_def(
-                <a href="#677">encode_function_def_name</a>(<a class="self" href="#66">self</a>.encoder, <span class="kw-2">*</span><a href="#224">def_id</a>),
+                encode_function_def_name(<span class="self">self</span>.encoder, <span class="kw-2">*</span>def_id),
                 <span class="comment">// FIXME: We are currently ignoring type arguments and lifetimes.
                 // self.encode_substs(substs),
                 // lifetimes,
             </span>),
 
             ty::TyKind::Param(param_ty) =&gt; {
-                vir::Type::TypeVar(<a class="self" href="#66">self</a>.encoder.<a href="../generics/interface.rs.html#25">encode_param</a>(<a href="#231">param_ty</a>.name, <a href="#231">param_ty</a>.index))
+                vir::Type::TypeVar(<span class="self">self</span>.encoder.encode_param(param_ty.name, param_ty.index))
             }
 
-            ty::TyKind::Projection(<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/sty/struct.ProjectionTy.html">ty::ProjectionTy</a> {
-                item_def_id,
-                substs,
-            }) =&gt; vir::Type::projection(
-                <a class="self" href="#66">self</a>.encoder.<a href="../../encoder.rs.html#678">encode_item_name</a>(<span class="kw-2">*</span><a href="#236">item_def_id</a>),
-                <a class="self" href="#66">self</a>.<a href="#35-38">encode_substs</a>(<a href="#237">substs</a>),
-                <a href="#71">lifetimes</a>,
-            ),
+            ty::TyKind::Alias(ty::AliasKind::Projection, ty::AliasTy { def_id, substs, .. }) =&gt; {
+                vir::Type::projection(
+                    <span class="self">self</span>.encoder.encode_item_name(<span class="kw-2">*</span>def_id),
+                    <span class="self">self</span>.encode_substs(substs),
+                    lifetimes,
+                )
+            }
 
-            ty::TyKind::Dynamic(..) =&gt; vir::Type::unsupported(<span class="string">&quot;dynamic&quot;</span>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>()),
+            ty::TyKind::Dynamic(..) =&gt; vir::Type::unsupported(<span class="string">&quot;dynamic&quot;</span>.to_string()),
 
-            ty::TyKind::FnPtr(..) =&gt; vir::Type::unsupported(<span class="string">&quot;fnptr&quot;</span>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>()),
+            ty::TyKind::FnPtr(..) =&gt; vir::Type::unsupported(<span class="string">&quot;fnptr&quot;</span>.to_string()),
 
-            ty::TyKind::Foreign(..) =&gt; vir::Type::unsupported(<span class="string">&quot;foreign&quot;</span>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>()),
+            ty::TyKind::Foreign(..) =&gt; vir::Type::unsupported(<span class="string">&quot;foreign&quot;</span>.to_string()),
 
-            ty =&gt; vir::Type::unsupported(<a href="../../../utils/mod.rs.html#13"><span class="kw">crate</span>::utils::ty_to_string</a>(<a href="#250">ty</a>)),
+            ty =&gt; vir::Type::unsupported(<span class="kw">crate</span>::utils::ty_to_string(ty)),
         };
-        <span class="prelude-val">Ok</span>(<a href="#72">result</a>)
+        <span class="prelude-val">Ok</span>(result)
     }
 
     <span class="kw">pub fn </span>get_definition_span(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; MultiSpan {
-        <span class="kw">match </span><a class="self" href="#255">self</a>.ty.kind() {
+        <span class="kw">match </span><span class="self">self</span>.ty.kind() {
             ty::TyKind::Bool
             | ty::TyKind::Char
             | ty::TyKind::Int(<span class="kw">_</span>)
@@ -1142,140 +1148,142 @@
             | ty::TyKind::GeneratorWitness(..)
             | ty::TyKind::Never
             | ty::TyKind::Tuple(<span class="kw">_</span>)
-            | ty::TyKind::Projection(<span class="kw">_</span>)
+            | ty::TyKind::Alias(ty::AliasKind::Projection, <span class="kw">_</span>)
             | ty::TyKind::Param(<span class="kw">_</span>)
             | ty::TyKind::Bound(..)
             | ty::TyKind::Placeholder(<span class="kw">_</span>)
             | ty::TyKind::Infer(<span class="kw">_</span>)
             | ty::TyKind::Error(<span class="kw">_</span>) =&gt; MultiSpan::new(),
-            ty::TyKind::Adt(adt, <span class="kw">_</span>) =&gt; <a class="self" href="#255">self</a>.encoder.<a href="../../encoder.rs.html#225">env</a>().query.get_def_span(<a href="#278">adt</a>.did()).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
+            ty::TyKind::Adt(adt, <span class="kw">_</span>) =&gt; <span class="self">self</span>.encoder.env().query.get_def_span(adt.did()).into(),
             ty::TyKind::Foreign(did)
             | ty::TyKind::FnDef(did, <span class="kw">_</span>)
             | ty::TyKind::Closure(did, <span class="kw">_</span>)
             | ty::TyKind::Generator(did, <span class="kw">_</span>, <span class="kw">_</span>)
-            | ty::TyKind::Opaque(did, <span class="kw">_</span>) =&gt; <a class="self" href="#255">self</a>.encoder.<a href="../../encoder.rs.html#225">env</a>().query.get_def_span(<a href="#279">did</a>).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
+            | ty::TyKind::Alias(ty::AliasKind::Opaque, ty::AliasTy { def_id: did, .. }) =&gt; {
+                <span class="self">self</span>.encoder.env().query.get_def_span(did).into()
+            }
         }
     }
 
-    <span class="kw">pub fn </span>get_integer_bounds(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;(<a href="../../../../../vir/gen/high/ast/expression/enum.Expression.html">vir::Expression</a>, <a href="../../../../../vir/gen/high/ast/expression/enum.Expression.html">vir::Expression</a>)&gt; {
-        <span class="kw">match </span><a class="self" href="#287">self</a>.ty.kind() {
+    <span class="kw">pub fn </span>get_integer_bounds(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;(vir::Expression, vir::Expression)&gt; {
+        <span class="kw">match </span><span class="self">self</span>.ty.kind() {
             ty::TyKind::Int(int_ty) =&gt; {
-                <span class="kw">let </span>(<span class="kw-2">mut </span>low, <span class="kw-2">mut </span>up): (<a href="../../../../../vir/gen/high/ast/expression/enum.Expression.html">vir::Expression</a>, <a href="../../../../../vir/gen/high/ast/expression/enum.Expression.html">vir::Expression</a>) = <span class="kw">match </span><a href="#289">int_ty</a> {
-                    ty::IntTy::I8 =&gt; (std::i8::MIN.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(), std::i8::MAX.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
-                    ty::IntTy::I16 =&gt; (std::i16::MIN.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(), std::i16::MAX.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
-                    ty::IntTy::I32 =&gt; (std::i32::MIN.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(), std::i32::MAX.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
-                    ty::IntTy::I64 =&gt; (std::i64::MIN.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(), std::i64::MAX.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
-                    ty::IntTy::I128 =&gt; (std::i128::MIN.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(), std::i128::MAX.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
-                    ty::IntTy::Isize =&gt; (std::isize::MIN.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(), std::isize::MAX.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
+                <span class="kw">let </span>(<span class="kw-2">mut </span>low, <span class="kw-2">mut </span>up): (vir::Expression, vir::Expression) = <span class="kw">match </span>int_ty {
+                    ty::IntTy::I8 =&gt; (std::i8::MIN.into(), std::i8::MAX.into()),
+                    ty::IntTy::I16 =&gt; (std::i16::MIN.into(), std::i16::MAX.into()),
+                    ty::IntTy::I32 =&gt; (std::i32::MIN.into(), std::i32::MAX.into()),
+                    ty::IntTy::I64 =&gt; (std::i64::MIN.into(), std::i64::MAX.into()),
+                    ty::IntTy::I128 =&gt; (std::i128::MIN.into(), std::i128::MAX.into()),
+                    ty::IntTy::Isize =&gt; (std::isize::MIN.into(), std::isize::MAX.into()),
                 };
-                <a href="#290">low</a>.<a href="../../../../../vir/gen/high/operations_internal/ty/trait.Typed.html">set_type</a>(vir::Type::MInt);
-                <a href="#290">up</a>.<a href="../../../../../vir/gen/high/operations_internal/ty/trait.Typed.html">set_type</a>(vir::Type::MInt);
-                <span class="prelude-val">Some</span>((<a href="#290">low</a>, <a href="#290">up</a>))
+                low.set_type(vir::Type::MInt);
+                up.set_type(vir::Type::MInt);
+                <span class="prelude-val">Some</span>((low, up))
             }
             ty::TyKind::Uint(uint_ty) =&gt; {
-                <span class="kw">let </span>(<span class="kw-2">mut </span>low, <span class="kw-2">mut </span>up): (<a href="../../../../../vir/gen/high/ast/expression/enum.Expression.html">vir::Expression</a>, <a href="../../../../../vir/gen/high/ast/expression/enum.Expression.html">vir::Expression</a>) = <span class="kw">match </span><a href="#302">uint_ty</a> {
-                    ty::UintTy::U8 =&gt; (<span class="number">0</span>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(), std::u8::MAX.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
-                    ty::UintTy::U16 =&gt; (<span class="number">0</span>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(), std::u16::MAX.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
-                    ty::UintTy::U32 =&gt; (<span class="number">0</span>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(), std::u32::MAX.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
-                    ty::UintTy::U64 =&gt; (<span class="number">0</span>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(), std::u64::MAX.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
-                    ty::UintTy::U128 =&gt; (<span class="number">0</span>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(), std::u128::MAX.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
-                    ty::UintTy::Usize =&gt; (<span class="number">0</span>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(), std::usize::MAX.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
+                <span class="kw">let </span>(<span class="kw-2">mut </span>low, <span class="kw-2">mut </span>up): (vir::Expression, vir::Expression) = <span class="kw">match </span>uint_ty {
+                    ty::UintTy::U8 =&gt; (<span class="number">0</span>.into(), std::u8::MAX.into()),
+                    ty::UintTy::U16 =&gt; (<span class="number">0</span>.into(), std::u16::MAX.into()),
+                    ty::UintTy::U32 =&gt; (<span class="number">0</span>.into(), std::u32::MAX.into()),
+                    ty::UintTy::U64 =&gt; (<span class="number">0</span>.into(), std::u64::MAX.into()),
+                    ty::UintTy::U128 =&gt; (<span class="number">0</span>.into(), std::u128::MAX.into()),
+                    ty::UintTy::Usize =&gt; (<span class="number">0</span>.into(), std::usize::MAX.into()),
                 };
-                <a href="#303">low</a>.<a href="../../../../../vir/gen/high/operations_internal/ty/trait.Typed.html">set_type</a>(vir::Type::MInt);
-                <a href="#303">up</a>.<a href="../../../../../vir/gen/high/operations_internal/ty/trait.Typed.html">set_type</a>(vir::Type::MInt);
-                <span class="prelude-val">Some</span>((<a href="#303">low</a>, <a href="#303">up</a>))
+                low.set_type(vir::Type::MInt);
+                up.set_type(vir::Type::MInt);
+                <span class="prelude-val">Some</span>((low, up))
             }
             ty::TyKind::Char =&gt; {
-                <span class="kw">let </span><span class="kw-2">mut </span>low: <a href="../../../../../vir/gen/high/ast/expression/enum.Expression.html">vir::Expression</a> = <span class="number">0</span>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>();
-                <span class="kw">let </span><span class="kw-2">mut </span>up: <a href="../../../../../vir/gen/high/ast/expression/enum.Expression.html">vir::Expression</a> = std::char::MAX.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>();
-                <a href="#316">low</a>.<a href="../../../../../vir/gen/high/operations_internal/ty/trait.Typed.html">set_type</a>(vir::Type::MInt);
-                <a href="#317">up</a>.<a href="../../../../../vir/gen/high/operations_internal/ty/trait.Typed.html">set_type</a>(vir::Type::MInt);
-                <span class="prelude-val">Some</span>((<a href="#316">low</a>, <a href="#317">up</a>))
+                <span class="kw">let </span><span class="kw-2">mut </span>low: vir::Expression = <span class="number">0</span>.into();
+                <span class="kw">let </span><span class="kw-2">mut </span>up: vir::Expression = std::char::MAX.into();
+                low.set_type(vir::Type::MInt);
+                up.set_type(vir::Type::MInt);
+                <span class="prelude-val">Some</span>((low, up))
             }
-            ty::TyKind::Ref(<span class="kw">_</span>, ty, <span class="kw">_</span>) =&gt; <span class="self">Self</span>::new(<a class="self" href="#287">self</a>.encoder, <span class="kw-2">*</span><a href="#322">ty</a>).<a href="#287">get_integer_bounds</a>(),
+            ty::TyKind::Ref(<span class="kw">_</span>, ty, <span class="kw">_</span>) =&gt; <span class="self">Self</span>::new(<span class="self">self</span>.encoder, <span class="kw-2">*</span>ty).get_integer_bounds(),
             <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
         }
     }
 
-    <span class="kw">pub fn </span>get_float_bounds(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;(<a href="../../../../../vir/gen/high/ast/expression/enum.Expression.html">vir::Expression</a>, <a href="../../../../../vir/gen/high/ast/expression/enum.Expression.html">vir::Expression</a>)&gt; {
-        <span class="kw">match </span><a class="self" href="#327">self</a>.ty.kind() {
+    <span class="kw">pub fn </span>get_float_bounds(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;(vir::Expression, vir::Expression)&gt; {
+        <span class="kw">match </span><span class="self">self</span>.ty.kind() {
             ty::TyKind::Float(float_ty) =&gt; {
-                <span class="kw">let </span>bounds = <span class="kw">match </span><a href="#329">float_ty</a> {
-                    ty::FloatTy::F32 =&gt; (std::f32::MIN.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(), std::f32::MAX.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
-                    ty::FloatTy::F64 =&gt; (std::f64::MIN.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(), std::f64::MAX.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
+                <span class="kw">let </span>bounds = <span class="kw">match </span>float_ty {
+                    ty::FloatTy::F32 =&gt; (std::f32::MIN.into(), std::f32::MAX.into()),
+                    ty::FloatTy::F64 =&gt; (std::f64::MIN.into(), std::f64::MAX.into()),
                 };
-                <span class="prelude-val">Some</span>(<a href="#330">bounds</a>)
+                <span class="prelude-val">Some</span>(bounds)
             }
             <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
         }
     }
 
-    <span class="kw">pub fn </span>encode_type_def_high(<span class="self">self</span>) -&gt; SpannedEncodingResult&lt;<a href="../../../../../vir/gen/high/ast/type_decl/enum.TypeDecl.html">vir::TypeDecl</a>&gt; {
-        <a class="macro" href="../../../../../log/macro.debug.html">debug!</a>(<span class="string">&quot;Encode type predicate &#39;{:?}&#39;&quot;</span>, <span class="self">self</span>.ty);
-        <span class="kw">let </span>type_decl = <span class="kw">match </span><a class="self" href="#340">self</a>.ty.kind() {
+    <span class="kw">pub fn </span>encode_type_def_high(<span class="self">self</span>) -&gt; SpannedEncodingResult&lt;vir::TypeDecl&gt; {
+        <span class="macro">debug!</span>(<span class="string">&quot;Encode type predicate &#39;{:?}&#39;&quot;</span>, <span class="self">self</span>.ty);
+        <span class="kw">let </span>type_decl = <span class="kw">match </span><span class="self">self</span>.ty.kind() {
             ty::TyKind::Bool =&gt; vir::TypeDecl::bool(),
             ty::TyKind::Int(<span class="kw">_</span>) | ty::TyKind::Uint(<span class="kw">_</span>) | ty::TyKind::Char =&gt; {
                 <span class="kw">let </span><span class="kw-2">mut </span>lower_bound = <span class="prelude-val">None</span>;
                 <span class="kw">let </span><span class="kw-2">mut </span>upper_bound = <span class="prelude-val">None</span>;
                 <span class="kw">if </span>config::check_overflows() {
-                    <span class="kw">if let </span><span class="prelude-val">Some</span>((lower, upper)) = <a class="self" href="#340">self</a>.<a href="#287">get_integer_bounds</a>() {
-                        <a href="#345">lower_bound</a> = <span class="prelude-val">Some</span>(Box::new(<a href="#348">lower</a>));
-                        <a href="#346">upper_bound</a> = <span class="prelude-val">Some</span>(Box::new(<a href="#348">upper</a>));
+                    <span class="kw">if let </span><span class="prelude-val">Some</span>((lower, upper)) = <span class="self">self</span>.get_integer_bounds() {
+                        lower_bound = <span class="prelude-val">Some</span>(Box::new(lower));
+                        upper_bound = <span class="prelude-val">Some</span>(Box::new(upper));
                     }
                 }
                 <span class="kw">if </span>config::encode_unsigned_num_constraint() &amp;&amp; lower_bound.is_none() {
-                    <span class="kw">if let </span>ty::TyKind::Uint(<span class="kw">_</span>) = <a class="self" href="#340">self</a>.ty.kind() {
-                        <span class="kw">let </span><span class="kw-2">mut </span>bound: <a href="../../../../../vir/gen/high/ast/expression/enum.Expression.html">vir::Expression</a> = <span class="number">0usize</span>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>();
-                        <a href="#355">bound</a>.<a href="../../../../../vir/gen/high/operations_internal/ty/trait.Typed.html">set_type</a>(vir::Type::MInt);
-                        <a href="#345">lower_bound</a> = <span class="prelude-val">Some</span>(Box::new(<a href="#355">bound</a>));
+                    <span class="kw">if let </span>ty::TyKind::Uint(<span class="kw">_</span>) = <span class="self">self</span>.ty.kind() {
+                        <span class="kw">let </span><span class="kw-2">mut </span>bound: vir::Expression = <span class="number">0usize</span>.into();
+                        bound.set_type(vir::Type::MInt);
+                        lower_bound = <span class="prelude-val">Some</span>(Box::new(bound));
                     }
                 }
-                vir::TypeDecl::int(<a href="#345">lower_bound</a>, <a href="#346">upper_bound</a>)
+                vir::TypeDecl::int(lower_bound, upper_bound)
             }
             ty::TyKind::Float(<span class="kw">_</span>) =&gt; {
                 <span class="kw">let </span><span class="kw-2">mut </span>lower_bound = <span class="prelude-val">None</span>;
                 <span class="kw">let </span><span class="kw-2">mut </span>upper_bound = <span class="prelude-val">None</span>;
                 <span class="kw">if </span>config::check_overflows() {
-                    <span class="kw">if let </span><span class="prelude-val">Some</span>((lower, upper)) = <a class="self" href="#340">self</a>.<a href="#327">get_float_bounds</a>() {
-                        <a href="#363">lower_bound</a> = <span class="prelude-val">Some</span>(Box::new(<a href="#366">lower</a>));
-                        <a href="#364">upper_bound</a> = <span class="prelude-val">Some</span>(Box::new(<a href="#366">upper</a>));
+                    <span class="kw">if let </span><span class="prelude-val">Some</span>((lower, upper)) = <span class="self">self</span>.get_float_bounds() {
+                        lower_bound = <span class="prelude-val">Some</span>(Box::new(lower));
+                        upper_bound = <span class="prelude-val">Some</span>(Box::new(upper));
                     }
                 }
-                vir::TypeDecl::float(<a href="#363">lower_bound</a>, <a href="#364">upper_bound</a>)
+                vir::TypeDecl::float(lower_bound, upper_bound)
             }
-            ty::TyKind::RawPtr(<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/sty/struct.TypeAndMut.html">prusti_rustc_interface::middle::ty::TypeAndMut</a> { ty, mutbl: <span class="kw">_ </span>}) =&gt; {
+            ty::TyKind::RawPtr(prusti_rustc_interface::middle::ty::TypeAndMut { ty, mutbl: <span class="kw">_ </span>}) =&gt; {
                 <span class="comment">// FIXME: Remove code duplication with ty::TyKind::Array
                 </span><span class="kw">let </span>const_parameters = <span class="self">self</span>.encoder.get_const_parameters_from_type_high(<span class="self">self</span>.ty)<span class="question-mark">?</span>;
-                <span class="kw">let </span>const_arguments: Vec&lt;<span class="kw">_</span>&gt; = <a href="#375">const_parameters</a>
+                <span class="kw">let </span>const_arguments: Vec&lt;<span class="kw">_</span>&gt; = const_parameters
                     .iter()
-                    .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">cloned</a>()
-                    .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|argument| <a href="#379">argument</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
-                    .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
+                    .cloned()
+                    .map(|argument| argument.into())
+                    .collect();
                 <span class="kw">let </span>target_type = <span class="self">self
                     </span>.encoder
                     .encode_type_high(<span class="kw-2">*</span>ty)<span class="question-mark">?
-                    </span>.replace_const_arguments_with(<a href="#376">const_arguments</a>);
+                    </span>.replace_const_arguments_with(const_arguments);
                 <span class="kw">let </span>lifetimes = <span class="self">self</span>.encoder.get_lifetimes_from_type_high(<span class="self">self</span>.ty)<span class="question-mark">?</span>;
-                vir::TypeDecl::pointer(<a href="#385">lifetimes</a>, <a href="#375">const_parameters</a>, <a href="#381">target_type</a>)
+                vir::TypeDecl::pointer(lifetimes, const_parameters, target_type)
             }
             ty::TyKind::Ref(<span class="kw">_</span>, ty, mutability) =&gt; {
                 <span class="comment">// FIXME: Remove code duplication with ty::TyKind::Array
                 </span><span class="kw">let </span>const_parameters = <span class="self">self</span>.encoder.get_const_parameters_from_type_high(<span class="self">self</span>.ty)<span class="question-mark">?</span>;
-                <span class="kw">let </span>const_arguments: Vec&lt;<span class="kw">_</span>&gt; = <a href="#390">const_parameters</a>
+                <span class="kw">let </span>const_arguments: Vec&lt;<span class="kw">_</span>&gt; = const_parameters
                     .iter()
-                    .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">cloned</a>()
-                    .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|argument| <a href="#394">argument</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
-                    .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
+                    .cloned()
+                    .map(|argument| argument.into())
+                    .collect();
                 <span class="kw">let </span>target_type = <span class="self">self
                     </span>.encoder
                     .encode_type_high(<span class="kw-2">*</span>ty)<span class="question-mark">?
-                    </span>.replace_const_arguments_with(<a href="#391">const_arguments</a>);
+                    </span>.replace_const_arguments_with(const_arguments);
                 <span class="kw">let </span>lifetimes = <span class="self">self</span>.encoder.get_lifetimes_from_type_high(<span class="self">self</span>.ty)<span class="question-mark">?</span>;
                 vir::TypeDecl::reference(
-                    <a href="#400">lifetimes</a>,
-                    <a href="#390">const_parameters</a>,
-                    <a class="self" href="#340">self</a>.<a href="#641">encode_uniqueness</a>(<span class="kw-2">*</span><a href="#388">mutability</a>),
-                    <a href="#396">target_type</a>,
+                    lifetimes,
+                    const_parameters,
+                    <span class="self">self</span>.encode_uniqueness(<span class="kw-2">*</span>mutability),
+                    target_type,
                 )
             }
             ty::TyKind::Tuple(elems) =&gt; {
@@ -1287,50 +1295,50 @@
                     .into_iter()
                     .map(|ty| <span class="self">self</span>.encoder.encode_type_high(ty))
                     .collect::&lt;<span class="prelude-ty">Result</span>&lt;<span class="kw">_</span>, <span class="kw">_</span>&gt;&gt;()<span class="question-mark">?</span>;
-                vir::TypeDecl::tuple(<a href="#409">lifetimes</a>, <a href="#410">const_parameters</a>, <a href="#413">arguments</a>)
+                vir::TypeDecl::tuple(lifetimes, const_parameters, arguments)
             }
-            ty::TyKind::Adt(adt_def, substs) <span class="kw">if </span><a class="self" href="#340">self</a>.<a href="#42">is_mathematical_type</a>(<a href="#419">adt_def</a>.did()) =&gt; {
+            ty::TyKind::Adt(adt_def, substs) <span class="kw">if </span><span class="self">self</span>.is_mathematical_type(adt_def.did()) =&gt; {
                 <span class="kw">let </span>lifetimes = <span class="self">self</span>.encoder.get_lifetimes_from_substs(substs)<span class="question-mark">?</span>;
                 <span class="kw">let </span>const_parameters = <span class="self">self</span>.encoder.get_const_parameters_from_substs(substs)<span class="question-mark">?</span>;
-                <span class="kw">let </span>type_name: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> = <span class="kw-2">&amp;</span><span class="self"><a href="#340">self</a>
+                <span class="kw">let </span>type_name: <span class="kw-2">&amp;</span>str = <span class="kw-2">&amp;</span><span class="self">self
                     </span>.encoder
-                    .<a href="../../encoder.rs.html#225">env</a>()
+                    .env()
                     .name
-                    .get_absolute_item_name(<a href="#419">adt_def</a>.did());
-                <span class="kw">let </span>enc_substs = <a class="self" href="#340">self</a>.<a href="#35-38">encode_substs</a>(<a href="#419">substs</a>).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;();
-                <span class="kw">match </span><a href="#422">type_name</a> {
+                    .get_absolute_item_name(adt_def.did());
+                <span class="kw">let </span>enc_substs = <span class="self">self</span>.encode_substs(substs).into_iter().collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;();
+                <span class="kw">match </span>type_name {
                     <span class="string">&quot;prusti_contracts::Seq&quot; </span>=&gt; {
-                        vir::TypeDecl::sequence(<a href="#420">lifetimes</a>, <a href="#421">const_parameters</a>, <a href="#427">enc_substs</a>[<span class="number">0</span>].<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>())
+                        vir::TypeDecl::sequence(lifetimes, const_parameters, enc_substs[<span class="number">0</span>].clone())
                     }
                     <span class="string">&quot;prusti_contracts::Map&quot; </span>=&gt; vir::TypeDecl::map(
-                        <a href="#420">lifetimes</a>,
-                        <a href="#421">const_parameters</a>,
-                        <a href="#427">enc_substs</a>[<span class="number">0</span>].<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
-                        <a href="#427">enc_substs</a>[<span class="number">1</span>].<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+                        lifetimes,
+                        const_parameters,
+                        enc_substs[<span class="number">0</span>].clone(),
+                        enc_substs[<span class="number">1</span>].clone(),
                     ),
-                    <span class="string">&quot;prusti_contracts::Int&quot; </span>=&gt; vir::TypeDecl::Int(<a href="../../../../../vir/gen/high/ast/type_decl/struct.Int.html">vir::type_decl::Int</a> {
+                    <span class="string">&quot;prusti_contracts::Int&quot; </span>=&gt; vir::TypeDecl::Int(vir::type_decl::Int {
                         lower_bound: <span class="prelude-val">None</span>,
                         upper_bound: <span class="prelude-val">None</span>,
                     }),
                     <span class="string">&quot;prusti_contracts::Ghost&quot; </span>=&gt; {
-                        <span class="kw">if let </span>ty::subst::GenericArgKind::Type(ty) = <a href="#419">substs</a>[<span class="number">0</span>].unpack() {
+                        <span class="kw">if let </span>ty::subst::GenericArgKind::Type(ty) = substs[<span class="number">0</span>].unpack() {
                             <span class="self">Self</span>::new(<span class="self">self</span>.encoder, ty).encode_type_def_high()<span class="question-mark">?
                         </span>} <span class="kw">else </span>{
-                            <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(<span class="string">&quot;no type parameter given for Ghost&lt;T&gt;&quot;</span>)
+                            <span class="macro">unreachable!</span>(<span class="string">&quot;no type parameter given for Ghost&lt;T&gt;&quot;</span>)
                         }
                     }
                     <span class="kw">_ </span>=&gt; {
-                        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>();
+                        <span class="macro">unreachable!</span>();
                     }
                 }
             }
-            ty::TyKind::Adt(adt_def, substs) <span class="kw">if </span><a class="self" href="#340">self</a>.<a href="#53">is_trusted_type</a>(<a href="#454">adt_def</a>.did()) =&gt; {
+            ty::TyKind::Adt(adt_def, substs) <span class="kw">if </span><span class="self">self</span>.is_trusted_type(adt_def.did()) =&gt; {
                 <span class="kw">let </span>lifetimes = <span class="self">self</span>.encoder.get_lifetimes_from_substs(substs)<span class="question-mark">?</span>;
                 <span class="kw">let </span>const_parameters = <span class="self">self</span>.encoder.get_const_parameters_from_substs(substs)<span class="question-mark">?</span>;
                 vir::TypeDecl::trusted(
-                    <a href="#689">encode_trusted_name</a>(<a class="self" href="#340">self</a>.encoder, <a href="#454">adt_def</a>.did()),
-                    <a href="#455">lifetimes</a>,
-                    <a href="#456">const_parameters</a>,
+                    encode_trusted_name(<span class="self">self</span>.encoder, adt_def.did()),
+                    lifetimes,
+                    const_parameters,
                 )
             }
             ty::TyKind::Adt(adt_def, substs) =&gt; {
@@ -1338,53 +1346,53 @@
             </span>}
             ty::TyKind::Never =&gt; vir::TypeDecl::never(),
             ty::TyKind::Param(param_ty) =&gt; {
-                vir::TypeDecl::type_var(<a href="#467">param_ty</a>.name.as_str().<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>())
+                vir::TypeDecl::type_var(param_ty.name.as_str().to_string())
             }
             ty::TyKind::Closure(def_id, internal_substs) =&gt; {
-                <span class="kw">let </span>cl_substs = <a href="#470">internal_substs</a>.as_closure();
-                <span class="kw">let </span>arguments = <a href="#471">cl_substs</a>
+                <span class="kw">let </span>cl_substs = internal_substs.as_closure();
+                <span class="kw">let </span>arguments = cl_substs
                     .upvar_tys()
-                    .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter_map</a>(|ty| <a class="self" href="#340">self</a>.encoder.<a href="interface.rs.html#57">encode_type_high</a>(<a href="#474">ty</a>).ok())
-                    .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
-                <span class="kw">let </span>name = <a href="#673">encode_closure_name</a>(<a class="self" href="#340">self</a>.encoder, <span class="kw-2">*</span><a href="#470">def_id</a>);
-                vir::TypeDecl::closure(<a href="#476">name</a>, <a href="#472">arguments</a>)
+                    .filter_map(|ty| <span class="self">self</span>.encoder.encode_type_high(ty).ok())
+                    .collect();
+                <span class="kw">let </span>name = encode_closure_name(<span class="self">self</span>.encoder, <span class="kw-2">*</span>def_id);
+                vir::TypeDecl::closure(name, arguments)
             }
             ty::TyKind::Array(elem_ty, _size) =&gt; {
                 <span class="kw">let </span>lifetimes = <span class="self">self</span>.encoder.get_lifetimes_from_type_high(<span class="self">self</span>.ty)<span class="question-mark">?</span>;
                 <span class="kw">let </span>const_parameters = <span class="self">self</span>.encoder.get_const_parameters_from_type_high(<span class="self">self</span>.ty)<span class="question-mark">?</span>;
-                <span class="kw">let </span>const_arguments: Vec&lt;<span class="kw">_</span>&gt; = <a href="#481">const_parameters</a>
+                <span class="kw">let </span>const_arguments: Vec&lt;<span class="kw">_</span>&gt; = const_parameters
                     .iter()
-                    .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">skip</a>(<span class="number">1</span>)
-                    .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">cloned</a>()
-                    .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|argument| <a href="#486">argument</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
-                    .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
+                    .skip(<span class="number">1</span>)
+                    .cloned()
+                    .map(|argument| argument.into())
+                    .collect();
                 <span class="kw">let </span>element_type = <span class="self">self
                     </span>.encoder
                     .encode_type_high(<span class="kw-2">*</span>elem_ty)<span class="question-mark">?
-                    </span>.replace_const_arguments_with(<a href="#482">const_arguments</a>);
-                vir::TypeDecl::array(<a href="#480">lifetimes</a>, <a href="#481">const_parameters</a>, <a href="#488">element_type</a>)
+                    </span>.replace_const_arguments_with(const_arguments);
+                vir::TypeDecl::array(lifetimes, const_parameters, element_type)
             }
             ty::TyKind::Slice(elem_ty) =&gt; {
                 <span class="kw">let </span>lifetimes = <span class="self">self</span>.encoder.get_lifetimes_from_type_high(<span class="self">self</span>.ty)<span class="question-mark">?</span>;
                 <span class="kw">let </span>const_parameters = <span class="self">self</span>.encoder.get_const_parameters_from_type_high(<span class="self">self</span>.ty)<span class="question-mark">?</span>;
-                <span class="kw">let </span>const_arguments: Vec&lt;<span class="kw">_</span>&gt; = <a href="#496">const_parameters</a>
+                <span class="kw">let </span>const_arguments: Vec&lt;<span class="kw">_</span>&gt; = const_parameters
                     .iter()
-                    .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">cloned</a>()
-                    .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|argument| <a href="#500">argument</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
-                    .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
+                    .cloned()
+                    .map(|argument| argument.into())
+                    .collect();
                 <span class="kw">let </span>element_type = <span class="self">self
                     </span>.encoder
                     .encode_type_high(<span class="kw-2">*</span>elem_ty)<span class="question-mark">?
-                    </span>.replace_const_arguments_with(<a href="#497">const_arguments</a>);
-                vir::TypeDecl::slice(<a href="#495">lifetimes</a>, <a href="#496">const_parameters</a>, <a href="#502">element_type</a>)
+                    </span>.replace_const_arguments_with(const_arguments);
+                vir::TypeDecl::slice(lifetimes, const_parameters, element_type)
             }
             <span class="kw-2">ref </span>ty_variant =&gt; {
-                <a class="macro" href="../../../../../log/macro.debug.html">debug!</a>(<span class="string">&quot;Encoding of type &#39;{:?}&#39; is incomplete&quot;</span>, ty_variant);
+                <span class="macro">debug!</span>(<span class="string">&quot;Encoding of type &#39;{:?}&#39; is incomplete&quot;</span>, ty_variant);
                 <span class="kw">let </span>ty = <span class="self">self</span>.encoder.encode_type_high(<span class="self">self</span>.ty)<span class="question-mark">?</span>;
-                vir::TypeDecl::unsupported(<a href="#510">ty</a>)
+                vir::TypeDecl::unsupported(ty)
             }
         };
-        <span class="prelude-val">Ok</span>(<a href="#342">type_decl</a>)
+        <span class="prelude-val">Ok</span>(type_decl)
     }
 
     <span class="comment">// fn encode_polymorphic_predicate_use(self) -&gt; EncodingResult&lt;vir::Type&gt; {
@@ -1511,8 +1519,8 @@
     //     Ok(result)
     // }
 
-    </span><span class="kw">fn </span>encode_uniqueness(<span class="kw-2">&amp;</span><span class="self">self</span>, mutability: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_ast/ast/enum.Mutability.html">mir::Mutability</a>) -&gt; <a href="../../../../../vir/gen/high/ast/ty/enum.Uniqueness.html">vir::ty::Uniqueness</a> {
-        <span class="kw">match </span><a href="#641">mutability</a> {
+    </span><span class="kw">fn </span>encode_uniqueness(<span class="kw-2">&amp;</span><span class="self">self</span>, mutability: mir::Mutability) -&gt; vir::ty::Uniqueness {
+        <span class="kw">match </span>mutability {
             mir::Mutability::Mut =&gt; vir::ty::Uniqueness::Unique,
             mir::Mutability::Not =&gt; vir::ty::Uniqueness::Shared,
         }
@@ -1522,54 +1530,54 @@
 <span class="kw">fn </span>encode_substs&lt;<span class="lifetime">&#39;v</span>, <span class="lifetime">&#39;tcx</span>: <span class="lifetime">&#39;v</span>&gt;(
     encoder: <span class="kw-2">&amp;</span>Encoder&lt;<span class="lifetime">&#39;v</span>, <span class="lifetime">&#39;tcx</span>&gt;,
     substs: prusti_rustc_interface::middle::ty::subst::SubstsRef&lt;<span class="lifetime">&#39;tcx</span>&gt;,
-) -&gt; Vec&lt;<a href="../../../../../vir/gen/high/ast/ty/enum.Type.html">vir::Type</a>&gt; {
-    <a href="#651">substs</a>
+) -&gt; Vec&lt;vir::Type&gt; {
+    substs
         .iter()
-        .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter_map</a>(|kind| {
-            <span class="kw">if let </span>ty::subst::GenericArgKind::Type(ty) = <a href="#655">kind</a>.unpack() {
-                <a href="#650">encoder</a>.<a href="interface.rs.html#57">encode_type_high</a>(<a href="#656">ty</a>).ok()
+        .filter_map(|kind| {
+            <span class="kw">if let </span>ty::subst::GenericArgKind::Type(ty) = kind.unpack() {
+                encoder.encode_type_high(ty).ok()
             } <span class="kw">else </span>{
                 <span class="prelude-val">None
             </span>}
         })
-        .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>()
+        .collect()
 }
 
-<span class="kw">fn </span>encode_enum_name&lt;<span class="lifetime">&#39;v</span>, <span class="lifetime">&#39;tcx</span>: <span class="lifetime">&#39;v</span>&gt;(encoder: <span class="kw-2">&amp;</span>Encoder&lt;<span class="lifetime">&#39;v</span>, <span class="lifetime">&#39;tcx</span>&gt;, did: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.DefId.html">DefId</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a> {
-    <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;enum${}&quot;</span>, encoder.encode_item_name(did))
+<span class="kw">fn </span>encode_enum_name&lt;<span class="lifetime">&#39;v</span>, <span class="lifetime">&#39;tcx</span>: <span class="lifetime">&#39;v</span>&gt;(encoder: <span class="kw-2">&amp;</span>Encoder&lt;<span class="lifetime">&#39;v</span>, <span class="lifetime">&#39;tcx</span>&gt;, did: DefId) -&gt; String {
+    <span class="macro">format!</span>(<span class="string">&quot;enum${}&quot;</span>, encoder.encode_item_name(did))
 }
 
-<span class="kw">fn </span>encode_union_name&lt;<span class="lifetime">&#39;v</span>, <span class="lifetime">&#39;tcx</span>: <span class="lifetime">&#39;v</span>&gt;(encoder: <span class="kw-2">&amp;</span>Encoder&lt;<span class="lifetime">&#39;v</span>, <span class="lifetime">&#39;tcx</span>&gt;, did: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.DefId.html">DefId</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a> {
-    <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;union${}&quot;</span>, encoder.encode_item_name(did))
+<span class="kw">fn </span>encode_union_name&lt;<span class="lifetime">&#39;v</span>, <span class="lifetime">&#39;tcx</span>: <span class="lifetime">&#39;v</span>&gt;(encoder: <span class="kw-2">&amp;</span>Encoder&lt;<span class="lifetime">&#39;v</span>, <span class="lifetime">&#39;tcx</span>&gt;, did: DefId) -&gt; String {
+    <span class="macro">format!</span>(<span class="string">&quot;union${}&quot;</span>, encoder.encode_item_name(did))
 }
 
-<span class="kw">fn </span>encode_closure_name&lt;<span class="lifetime">&#39;v</span>, <span class="lifetime">&#39;tcx</span>: <span class="lifetime">&#39;v</span>&gt;(encoder: <span class="kw-2">&amp;</span>Encoder&lt;<span class="lifetime">&#39;v</span>, <span class="lifetime">&#39;tcx</span>&gt;, did: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.DefId.html">DefId</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a> {
-    <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;closure${}&quot;</span>, encoder.encode_item_name(did))
+<span class="kw">fn </span>encode_closure_name&lt;<span class="lifetime">&#39;v</span>, <span class="lifetime">&#39;tcx</span>: <span class="lifetime">&#39;v</span>&gt;(encoder: <span class="kw-2">&amp;</span>Encoder&lt;<span class="lifetime">&#39;v</span>, <span class="lifetime">&#39;tcx</span>&gt;, did: DefId) -&gt; String {
+    <span class="macro">format!</span>(<span class="string">&quot;closure${}&quot;</span>, encoder.encode_item_name(did))
 }
 
-<span class="kw">fn </span>encode_function_def_name&lt;<span class="lifetime">&#39;v</span>, <span class="lifetime">&#39;tcx</span>: <span class="lifetime">&#39;v</span>&gt;(encoder: <span class="kw-2">&amp;</span>Encoder&lt;<span class="lifetime">&#39;v</span>, <span class="lifetime">&#39;tcx</span>&gt;, did: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.DefId.html">DefId</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a> {
-    <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;fndef${}&quot;</span>, encoder.encode_item_name(did))
+<span class="kw">fn </span>encode_function_def_name&lt;<span class="lifetime">&#39;v</span>, <span class="lifetime">&#39;tcx</span>: <span class="lifetime">&#39;v</span>&gt;(encoder: <span class="kw-2">&amp;</span>Encoder&lt;<span class="lifetime">&#39;v</span>, <span class="lifetime">&#39;tcx</span>&gt;, did: DefId) -&gt; String {
+    <span class="macro">format!</span>(<span class="string">&quot;fndef${}&quot;</span>, encoder.encode_item_name(did))
 }
 
-<span class="kw">fn </span>encode_box_name() -&gt; <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a> {
-    <span class="string">&quot;box$&quot;</span>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>()
+<span class="kw">fn </span>encode_box_name() -&gt; String {
+    <span class="string">&quot;box$&quot;</span>.to_string()
 }
 
-<span class="kw">fn </span>encode_struct_name&lt;<span class="lifetime">&#39;v</span>, <span class="lifetime">&#39;tcx</span>: <span class="lifetime">&#39;v</span>&gt;(encoder: <span class="kw-2">&amp;</span>Encoder&lt;<span class="lifetime">&#39;v</span>, <span class="lifetime">&#39;tcx</span>&gt;, did: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.DefId.html">DefId</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a> {
-    <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;struct${}&quot;</span>, encoder.encode_item_name(did))
+<span class="kw">fn </span>encode_struct_name&lt;<span class="lifetime">&#39;v</span>, <span class="lifetime">&#39;tcx</span>: <span class="lifetime">&#39;v</span>&gt;(encoder: <span class="kw-2">&amp;</span>Encoder&lt;<span class="lifetime">&#39;v</span>, <span class="lifetime">&#39;tcx</span>&gt;, did: DefId) -&gt; String {
+    <span class="macro">format!</span>(<span class="string">&quot;struct${}&quot;</span>, encoder.encode_item_name(did))
 }
 
-<span class="kw">fn </span>encode_trusted_name&lt;<span class="lifetime">&#39;v</span>, <span class="lifetime">&#39;tcx</span>: <span class="lifetime">&#39;v</span>&gt;(encoder: <span class="kw-2">&amp;</span>Encoder&lt;<span class="lifetime">&#39;v</span>, <span class="lifetime">&#39;tcx</span>&gt;, did: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.DefId.html">DefId</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a> {
-    <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;trusted${}&quot;</span>, encoder.encode_item_name(did))
+<span class="kw">fn </span>encode_trusted_name&lt;<span class="lifetime">&#39;v</span>, <span class="lifetime">&#39;tcx</span>: <span class="lifetime">&#39;v</span>&gt;(encoder: <span class="kw-2">&amp;</span>Encoder&lt;<span class="lifetime">&#39;v</span>, <span class="lifetime">&#39;tcx</span>&gt;, did: DefId) -&gt; String {
+    <span class="macro">format!</span>(<span class="string">&quot;trusted${}&quot;</span>, encoder.encode_item_name(did))
 }
 
 <span class="kw">fn </span>encode_variant&lt;<span class="lifetime">&#39;v</span>, <span class="lifetime">&#39;tcx</span>: <span class="lifetime">&#39;v</span>&gt;(
     encoder: <span class="kw-2">&amp;</span>Encoder&lt;<span class="lifetime">&#39;v</span>, <span class="lifetime">&#39;tcx</span>&gt;,
-    name: <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>,
+    name: String,
     substs: ty::subst::SubstsRef&lt;<span class="lifetime">&#39;tcx</span>&gt;,
-    variant: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/struct.VariantDef.html">ty::VariantDef</a>,
-) -&gt; SpannedEncodingResult&lt;<a href="../../../../../vir/gen/high/ast/type_decl/struct.Struct.html">vir::type_decl::Struct</a>&gt; {
-    <span class="kw">let </span>tcx = <a href="#694">encoder</a>.<a href="../../encoder.rs.html#225">env</a>().tcx();
+    variant: <span class="kw-2">&amp;</span>ty::VariantDef,
+) -&gt; SpannedEncodingResult&lt;vir::type_decl::Struct&gt; {
+    <span class="kw">let </span>tcx = encoder.env().tcx();
     <span class="kw">let </span><span class="kw-2">mut </span>fields = Vec::new();
     <span class="kw">for </span>(field_index, field) <span class="kw">in </span>variant.fields.iter().enumerate() {
         <span class="kw">let </span>field_name = <span class="kw">crate</span>::encoder::encoder::encode_field_name(field.ident(tcx).as_str());
@@ -1580,53 +1588,53 @@
     }
     <span class="kw">let </span>lifetimes = encoder.get_lifetimes_from_substs(substs)<span class="question-mark">?</span>;
     <span class="kw">let </span>const_parameters = encoder.get_const_parameters_from_substs(substs)<span class="question-mark">?</span>;
-    <span class="kw">let </span>variant = vir::type_decl::Struct::new(<a href="#695">name</a>, <a href="#708">lifetimes</a>, <a href="#709">const_parameters</a>, <a href="#700">fields</a>);
-    <span class="prelude-val">Ok</span>(<a href="#710">variant</a>)
+    <span class="kw">let </span>variant = vir::type_decl::Struct::new(name, lifetimes, const_parameters, fields);
+    <span class="prelude-val">Ok</span>(variant)
 }
 
 <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>encode_adt_def&lt;<span class="lifetime">&#39;v</span>, <span class="lifetime">&#39;tcx</span>&gt;(
     encoder: <span class="kw-2">&amp;</span>Encoder&lt;<span class="lifetime">&#39;v</span>, <span class="lifetime">&#39;tcx</span>&gt;,
     adt_def: ty::AdtDef&lt;<span class="lifetime">&#39;tcx</span>&gt;,
     substs: ty::subst::SubstsRef&lt;<span class="lifetime">&#39;tcx</span>&gt;,
-    variant_index: <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_target/abi/struct.VariantIdx.html">prusti_rustc_interface::target::abi::VariantIdx</a>&gt;,
-) -&gt; SpannedEncodingResult&lt;<a href="../../../../../vir/gen/high/ast/type_decl/enum.TypeDecl.html">vir::TypeDecl</a>&gt; {
+    variant_index: <span class="prelude-ty">Option</span>&lt;prusti_rustc_interface::target::abi::VariantIdx&gt;,
+) -&gt; SpannedEncodingResult&lt;vir::TypeDecl&gt; {
     <span class="kw">let </span>lifetimes = encoder.get_lifetimes_from_substs(substs)<span class="question-mark">?</span>;
     <span class="kw">let </span>const_parameters = encoder.get_const_parameters_from_substs(substs)<span class="question-mark">?</span>;
-    <span class="kw">let </span>tcx = <a href="#715">encoder</a>.<a href="../../encoder.rs.html#225">env</a>().tcx();
+    <span class="kw">let </span>tcx = encoder.env().tcx();
     <span class="kw">if </span>adt_def.is_box() {
-        <a class="macro" href="../../../../../log/macro.debug.html">debug!</a>(<span class="string">&quot;ADT {:?} is a box&quot;</span>, adt_def);
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(variant_index.is_none());
+        <span class="macro">debug!</span>(<span class="string">&quot;ADT {:?} is a box&quot;</span>, adt_def);
+        <span class="macro">assert!</span>(variant_index.is_none());
         <span class="kw">let </span>boxed_ty = encoder.encode_type_high(substs.type_at(<span class="number">0</span>))<span class="question-mark">?</span>;
-        <span class="kw">let </span>field = vir::FieldDecl::new(<span class="string">&quot;val_ref&quot;</span>, <span class="number">0usize</span>, <a href="#726">boxed_ty</a>);
+        <span class="kw">let </span>field = vir::FieldDecl::new(<span class="string">&quot;val_ref&quot;</span>, <span class="number">0usize</span>, boxed_ty);
         <span class="prelude-val">Ok</span>(vir::TypeDecl::struct_(
-            <a href="#681">encode_box_name</a>(),
-            <a href="#720">lifetimes</a>,
-            <a href="#721">const_parameters</a>,
-            <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[field],
+            encode_box_name(),
+            lifetimes,
+            const_parameters,
+            <span class="macro">vec!</span>[field],
         ))
     } <span class="kw">else if </span>adt_def.is_struct() {
-        <a class="macro" href="../../../../../log/macro.debug.html">debug!</a>(<span class="string">&quot;ADT {:?} is a struct&quot;</span>, adt_def);
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(variant_index.is_none());
-        <span class="kw">let </span>name = <a href="#685">encode_struct_name</a>(<a href="#715">encoder</a>, <a href="#716">adt_def</a>.did());
-        <span class="kw">let </span>variant = <a href="#716">adt_def</a>.non_enum_variant();
+        <span class="macro">debug!</span>(<span class="string">&quot;ADT {:?} is a struct&quot;</span>, adt_def);
+        <span class="macro">assert!</span>(variant_index.is_none());
+        <span class="kw">let </span>name = encode_struct_name(encoder, adt_def.did());
+        <span class="kw">let </span>variant = adt_def.non_enum_variant();
         <span class="prelude-val">Ok</span>(vir::TypeDecl::Struct(encode_variant(
             encoder, name, substs, variant,
         )<span class="question-mark">?</span>))
     } <span class="kw">else if </span>adt_def.is_union() {
-        <a class="macro" href="../../../../../log/macro.debug.html">debug!</a>(<span class="string">&quot;ADT {:?} is a union&quot;</span>, adt_def);
+        <span class="macro">debug!</span>(<span class="string">&quot;ADT {:?} is a union&quot;</span>, adt_def);
         <span class="kw">if </span>!config::unsafe_core_proof() {
             <span class="kw">return </span><span class="prelude-val">Err</span>(SpannedEncodingError::unsupported(
                 <span class="string">&quot;unions are not supported&quot;</span>,
-                <a href="#715">encoder</a>.<a href="../../encoder.rs.html#225">env</a>().query.get_def_span(<a href="#716">adt_def</a>.did()),
+                encoder.env().query.get_def_span(adt_def.did()),
             ));
         }
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(variant_index.is_none());
-        <span class="kw">let </span>name = <a href="#669">encode_union_name</a>(<a href="#715">encoder</a>, <a href="#716">adt_def</a>.did());
+        <span class="macro">assert!</span>(variant_index.is_none());
+        <span class="kw">let </span>name = encode_union_name(encoder, adt_def.did());
         <span class="comment">// We treat union fields as variants.
-        </span><span class="kw">let </span>variant = <a href="#716">adt_def</a>.non_enum_variant();
-        <span class="kw">let </span>num_variants: <a href="https://doc.rust-lang.org/nightly/std/primitive.i128.html">i128</a> = <a href="#753">variant</a>.fields.len().<a href="https://doc.rust-lang.org/nightly/core/convert/trait.TryInto.html">try_into</a>().unwrap();
-        <span class="kw">let </span>discriminant_bounds = (<span class="number">0</span>, <a href="#754">num_variants</a> - <span class="number">1</span>);
-        <span class="kw">let </span>discriminant_values = (<span class="number">0</span>..<a href="#754">num_variants</a>).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
+        </span><span class="kw">let </span>variant = adt_def.non_enum_variant();
+        <span class="kw">let </span>num_variants: i128 = variant.fields.len().try_into().unwrap();
+        <span class="kw">let </span>discriminant_bounds = (<span class="number">0</span>, num_variants - <span class="number">1</span>);
+        <span class="kw">let </span>discriminant_values = (<span class="number">0</span>..num_variants).collect();
         <span class="kw">let </span><span class="kw-2">mut </span>variants = Vec::new();
         <span class="kw">for </span>(field_index, field) <span class="kw">in </span>variant.fields.iter().enumerate() {
             <span class="kw">let </span>field_name = field.ident(tcx).as_str().to_string();
@@ -1642,107 +1650,113 @@
             variants.push(variant);
         }
         <span class="prelude-val">Ok</span>(vir::TypeDecl::union_(
-            <a href="#751">name</a>,
-            <a href="#649-652">encode_substs</a>(<a href="#715">encoder</a>, <a href="#717">substs</a>),
+            name,
+            encode_substs(encoder, substs),
             vir::Type::Int(vir::ty::Int::Usize),
-            <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[discriminant_bounds],
-            <a href="#756">discriminant_values</a>,
-            <a href="#757">variants</a>,
-            <a href="#720">lifetimes</a>,
-            <a href="#721">const_parameters</a>,
+            <span class="macro">vec!</span>[discriminant_bounds],
+            discriminant_values,
+            variants,
+            lifetimes,
+            const_parameters,
         ))
     } <span class="kw">else if </span>adt_def.is_enum() {
-        <a class="macro" href="../../../../../log/macro.debug.html">debug!</a>(<span class="string">&quot;ADT {:?} is an enum&quot;</span>, adt_def);
-        <span class="kw">let </span>name = <a href="#665">encode_enum_name</a>(<a href="#715">encoder</a>, <a href="#716">adt_def</a>.did());
-        <span class="kw">let </span>num_variants = <a href="#716">adt_def</a>.variants().len();
-        <a class="macro" href="../../../../../log/macro.debug.html">debug!</a>(<span class="string">&quot;ADT {:?} is enum with {} variants&quot;</span>, adt_def, num_variants);
+        <span class="macro">debug!</span>(<span class="string">&quot;ADT {:?} is an enum&quot;</span>, adt_def);
+        <span class="kw">let </span>name = encode_enum_name(encoder, adt_def.did());
+        <span class="kw">let </span>num_variants = adt_def.variants().len();
+        <span class="macro">debug!</span>(<span class="string">&quot;ADT {:?} is enum with {} variants&quot;</span>, adt_def, num_variants);
         <span class="kw">let </span>type_decl = <span class="kw">if </span>num_variants == <span class="number">1 </span>{
             <span class="comment">// FIXME: Currently fold-unfold assumes that everything that
             // has only a single variant is a struct.
-            </span><span class="kw">let </span>variant = <span class="kw-2">&amp;</span><a href="#716">adt_def</a>.variants()[<span class="number">0usize</span>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()];
+            </span><span class="kw">let </span>variant = <span class="kw-2">&amp;</span>adt_def.variants()[<span class="number">0usize</span>.into()];
             vir::TypeDecl::Struct(encode_variant(encoder, name, substs, variant)<span class="question-mark">?</span>)
-        } <span class="kw">else if let </span><span class="prelude-val">Some</span>(_variant_index) = <a href="#718">variant_index</a> {
+        } <span class="kw">else if let </span><span class="prelude-val">Some</span>(_variant_index) = variant_index {
             <span class="comment">// let variant = &amp;adt_def.variants()[variant_index];
             // vir::TypeDecl::Struct(encode_variant(encoder, name, substs, variant)?)
-            </span><a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unimplemented.html">unimplemented!</a>(<span class="string">&quot;FIXME: How this should be implemented?&quot;</span>)
+            </span><span class="macro">unimplemented!</span>(<span class="string">&quot;FIXME: How this should be implemented?&quot;</span>)
         } <span class="kw">else </span>{
-            <span class="kw">let </span>discriminant_bounds = <a href="helpers.rs.html#29-32">compute_discriminant_ranges</a>(<a href="#716">adt_def</a>, <a href="#722">tcx</a>);
-            <span class="kw">let </span>discriminant_values = <a href="helpers.rs.html#14-17">compute_discriminant_values</a>(<a href="#716">adt_def</a>, <a href="#722">tcx</a>)
-                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
-                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
+            <span class="kw">let </span>discriminant_bounds = compute_discriminant_ranges(adt_def, tcx);
+            <span class="kw">let </span>discriminant_values = compute_discriminant_values(adt_def, tcx)
+                .into_iter()
+                .collect();
             <span class="kw">let </span><span class="kw-2">mut </span>variants = Vec::new();
             <span class="kw">for </span>variant <span class="kw">in </span>adt_def.variants() {
                 <span class="kw">let </span>name = variant.ident(tcx).to_string();
                 <span class="kw">let </span>encoded_variant = encode_variant(encoder, name, substs, variant)<span class="question-mark">?</span>;
                 variants.push(encoded_variant);
             }
-            <span class="kw">let </span>mir_discriminant_type = <span class="kw">match </span><a href="#716">adt_def</a>.repr().discr_type() {
-                prusti_rustc_interface::attr::IntType::SignedInt(int) =&gt; {
-                    <span class="kw">let </span>int = <span class="kw">match </span><a href="#807">int</a> {
-                        prusti_rustc_interface::ast::ast::IntTy::Isize =&gt; {
-                            prusti_rustc_interface::middle::ty::IntTy::Isize
-                        }
-                        prusti_rustc_interface::ast::ast::IntTy::I8 =&gt; {
-                            prusti_rustc_interface::middle::ty::IntTy::I8
-                        }
-                        prusti_rustc_interface::ast::ast::IntTy::I16 =&gt; {
-                            prusti_rustc_interface::middle::ty::IntTy::I16
-                        }
-                        prusti_rustc_interface::ast::ast::IntTy::I32 =&gt; {
-                            prusti_rustc_interface::middle::ty::IntTy::I32
-                        }
-                        prusti_rustc_interface::ast::ast::IntTy::I64 =&gt; {
-                            prusti_rustc_interface::middle::ty::IntTy::I64
-                        }
-                        prusti_rustc_interface::ast::ast::IntTy::I128 =&gt; {
-                            prusti_rustc_interface::middle::ty::IntTy::I128
-                        }
-                    };
-                    <a href="#715">encoder</a>.<a href="../../encoder.rs.html#225">env</a>().tcx().mk_ty(ty::TyKind::Int(<a href="#808">int</a>))
+            <span class="kw">let </span>mir_discriminant_type = <span class="kw">match </span>adt_def.repr().discr_type() {
+                prusti_rustc_interface::target::abi::IntegerType::Fixed(int, signed) =&gt; {
+                    <span class="kw">if </span>signed {
+                        <span class="kw">let </span>int = <span class="kw">match </span>int {
+                            prusti_rustc_interface::target::abi::Integer::I8 =&gt; {
+                                prusti_rustc_interface::middle::ty::IntTy::I8
+                            }
+                            prusti_rustc_interface::target::abi::Integer::I16 =&gt; {
+                                prusti_rustc_interface::middle::ty::IntTy::I16
+                            }
+                            prusti_rustc_interface::target::abi::Integer::I32 =&gt; {
+                                prusti_rustc_interface::middle::ty::IntTy::I32
+                            }
+                            prusti_rustc_interface::target::abi::Integer::I64 =&gt; {
+                                prusti_rustc_interface::middle::ty::IntTy::I64
+                            }
+                            prusti_rustc_interface::target::abi::Integer::I128 =&gt; {
+                                prusti_rustc_interface::middle::ty::IntTy::I128
+                            }
+                        };
+                        encoder.env().tcx().mk_ty(ty::TyKind::Int(int))
+                    } <span class="kw">else </span>{
+                        <span class="kw">let </span>int = <span class="kw">match </span>int {
+                            prusti_rustc_interface::target::abi::Integer::I8 =&gt; {
+                                prusti_rustc_interface::middle::ty::UintTy::U8
+                            }
+                            prusti_rustc_interface::target::abi::Integer::I16 =&gt; {
+                                prusti_rustc_interface::middle::ty::UintTy::U16
+                            }
+                            prusti_rustc_interface::target::abi::Integer::I32 =&gt; {
+                                prusti_rustc_interface::middle::ty::UintTy::U32
+                            }
+                            prusti_rustc_interface::target::abi::Integer::I64 =&gt; {
+                                prusti_rustc_interface::middle::ty::UintTy::U64
+                            }
+                            prusti_rustc_interface::target::abi::Integer::I128 =&gt; {
+                                prusti_rustc_interface::middle::ty::UintTy::U128
+                            }
+                        };
+                        encoder.env().tcx().mk_ty(ty::TyKind::Uint(int))
+                    }
                 }
-                prusti_rustc_interface::attr::IntType::UnsignedInt(uint) =&gt; {
-                    <span class="kw">let </span>uint = <span class="kw">match </span><a href="#830">uint</a> {
-                        prusti_rustc_interface::ast::ast::UintTy::Usize =&gt; {
-                            prusti_rustc_interface::middle::ty::UintTy::Usize
-                        }
-                        prusti_rustc_interface::ast::ast::UintTy::U8 =&gt; {
-                            prusti_rustc_interface::middle::ty::UintTy::U8
-                        }
-                        prusti_rustc_interface::ast::ast::UintTy::U16 =&gt; {
-                            prusti_rustc_interface::middle::ty::UintTy::U16
-                        }
-                        prusti_rustc_interface::ast::ast::UintTy::U32 =&gt; {
-                            prusti_rustc_interface::middle::ty::UintTy::U32
-                        }
-                        prusti_rustc_interface::ast::ast::UintTy::U64 =&gt; {
-                            prusti_rustc_interface::middle::ty::UintTy::U64
-                        }
-                        prusti_rustc_interface::ast::ast::UintTy::U128 =&gt; {
-                            prusti_rustc_interface::middle::ty::UintTy::U128
-                        }
-                    };
-                    <a href="#715">encoder</a>.<a href="../../encoder.rs.html#225">env</a>().tcx().mk_ty(ty::TyKind::Uint(<a href="#831">uint</a>))
+                prusti_rustc_interface::target::abi::IntegerType::Pointer(signed) =&gt; {
+                    <span class="kw">if </span>signed {
+                        encoder.env().tcx().mk_ty(ty::TyKind::Int(
+                            prusti_rustc_interface::middle::ty::IntTy::Isize,
+                        ))
+                    } <span class="kw">else </span>{
+                        encoder.env().tcx().mk_ty(ty::TyKind::Uint(
+                            prusti_rustc_interface::middle::ty::UintTy::Usize,
+                        ))
+                    }
                 }
             };
             <span class="kw">let </span>discriminant_type = encoder.encode_type_high(mir_discriminant_type)<span class="question-mark">?</span>;
             vir::TypeDecl::enum_(
-                <a href="#783">name</a>,
-                <a href="#649-652">encode_substs</a>(<a href="#715">encoder</a>, <a href="#717">substs</a>),
-                <a href="#854">discriminant_type</a>,
-                <a href="#796">discriminant_bounds</a>,
-                <a href="#797">discriminant_values</a>,
-                <a href="#800">variants</a>,
-                <a href="#720">lifetimes</a>,
-                <a href="#721">const_parameters</a>,
+                name,
+                encode_substs(encoder, substs),
+                discriminant_type,
+                discriminant_bounds,
+                discriminant_values,
+                variants,
+                lifetimes,
+                const_parameters,
             )
         };
-        <span class="prelude-val">Ok</span>(<a href="#786">type_decl</a>)
+        <span class="prelude-val">Ok</span>(type_decl)
     } <span class="kw">else </span>{
         <span class="prelude-val">Err</span>(SpannedEncodingError::internal(
-            <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;unexpected variant of adt_def: {:?}&quot;</span>, adt_def),
-            <a href="#715">encoder</a>.<a href="../../encoder.rs.html#225">env</a>().query.get_def_span(<a href="#716">adt_def</a>.did()),
+            <span class="macro">format!</span>(<span class="string">&quot;unexpected variant of adt_def: {adt_def:?}&quot;</span>),
+            encoder.env().query.get_def_span(adt_def.did()),
         ))
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../../" data-static-root-path="../../../../../static.files/" data-current-crate="prusti_viper" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../../../" data-static-root-path="../../../../../static.files/" data-current-crate="prusti_viper" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

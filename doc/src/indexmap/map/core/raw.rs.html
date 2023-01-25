@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/indexmap-1.9.2/src/map/core/raw.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>raw.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../../indexmap/index.html"><img class="rust-logo" src="../../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/indexmap-1.9.2/src/map/core/raw.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>raw.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../../indexmap/index.html"><img class="rust-logo" src="../../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -193,18 +193,18 @@
 </span><span class="doccomment">//! This module encapsulates the `unsafe` access to `hashbrown::raw::RawTable`,
 //! mostly in dealing with its bucket &quot;pointers&quot;.
 
-</span><span class="kw">use super</span>::{<a href="../core.rs.html#38-41">equivalent</a>, <a href="../../lib.rs.html#129">Bucket</a>, <a href="../core.rs.html#492">Entry</a>, <a href="../../lib.rs.html#119">HashValue</a>, <a href="../core.rs.html#25">IndexMapCore</a>, <a href="../core.rs.html#657">VacantEntry</a>};
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/fmt/index.html">core::fmt</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/mem/fn.replace.html">core::mem::replace</a>;
-<span class="kw">use </span><a href="../../../../hashbrown/raw/inner/struct.RawTable.html">hashbrown::raw::RawTable</a>;
+</span><span class="kw">use super</span>::{equivalent, Bucket, Entry, HashValue, IndexMapCore, VacantEntry};
+<span class="kw">use </span>core::fmt;
+<span class="kw">use </span>core::mem::replace;
+<span class="kw">use </span>hashbrown::raw::RawTable;
 
-<span class="kw">type </span>RawBucket = hashbrown::raw::Bucket&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;;
+<span class="kw">type </span>RawBucket = hashbrown::raw::Bucket&lt;usize&gt;;
 
 <span class="doccomment">/// Inserts many entries into a raw table without reallocating.
 ///
 /// ***Panics*** if there is not sufficient capacity already.
-</span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>insert_bulk_no_grow&lt;K, V&gt;(indices: <span class="kw-2">&amp;mut </span>RawTable&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;, entries: <span class="kw-2">&amp;</span>[Bucket&lt;K, V&gt;]) {
-    <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(indices.capacity() - indices.len() &gt;= entries.len());
+</span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>insert_bulk_no_grow&lt;K, V&gt;(indices: <span class="kw-2">&amp;mut </span>RawTable&lt;usize&gt;, entries: <span class="kw-2">&amp;</span>[Bucket&lt;K, V&gt;]) {
+    <span class="macro">assert!</span>(indices.capacity() - indices.len() &gt;= entries.len());
     <span class="kw">for </span>entry <span class="kw">in </span>entries {
         <span class="comment">// SAFETY: we asserted that sufficient capacity exists for all entries.
         </span><span class="kw">unsafe </span>{
@@ -213,21 +213,21 @@
     }
 }
 
-<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">struct </span>DebugIndices&lt;<span class="lifetime">&#39;a</span>&gt;(<span class="kw">pub </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>RawTable&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;);
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span>DebugIndices&lt;<span class="lifetime">&#39;_</span>&gt; {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">struct </span>DebugIndices&lt;<span class="lifetime">&#39;a</span>&gt;(<span class="kw">pub </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>RawTable&lt;usize&gt;);
+<span class="kw">impl </span>fmt::Debug <span class="kw">for </span>DebugIndices&lt;<span class="lifetime">&#39;_</span>&gt; {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
         <span class="comment">// SAFETY: we&#39;re not letting any of the buckets escape this function
-        </span><span class="kw">let </span>indices = <span class="kw">unsafe </span>{ <a class="self" href="#27">self</a>.<span class="number">0</span>.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|raw_bucket| <a href="#29">raw_bucket</a>.read()) };
-        <a href="#27">f</a>.debug_list().entries(<a href="#29">indices</a>).finish()
+        </span><span class="kw">let </span>indices = <span class="kw">unsafe </span>{ <span class="self">self</span>.<span class="number">0</span>.iter().map(|raw_bucket| raw_bucket.read()) };
+        f.debug_list().entries(indices).finish()
     }
 }
 
 <span class="kw">impl</span>&lt;K, V&gt; IndexMapCore&lt;K, V&gt; {
     <span class="doccomment">/// Sweep the whole table to erase indices start..end
-    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>erase_indices_sweep(<span class="kw-2">&amp;mut </span><span class="self">self</span>, start: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, end: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>erase_indices_sweep(<span class="kw-2">&amp;mut </span><span class="self">self</span>, start: usize, end: usize) {
         <span class="comment">// SAFETY: we&#39;re not letting any of the buckets escape this function
         </span><span class="kw">unsafe </span>{
-            <span class="kw">let </span>offset = <a href="#36">end</a> - <a href="#36">start</a>;
+            <span class="kw">let </span>offset = end - start;
             <span class="kw">for </span>bucket <span class="kw">in </span><span class="self">self</span>.indices.iter() {
                 <span class="kw">let </span>i = bucket.read();
                 <span class="kw">if </span>i &gt;= end {
@@ -239,54 +239,54 @@
         }
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>entry(<span class="kw-2">&amp;mut </span><span class="self">self</span>, hash: <a href="../../lib.rs.html#119">HashValue</a>, key: K) -&gt; Entry&lt;<span class="lifetime">&#39;_</span>, K, V&gt;
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>entry(<span class="kw-2">&amp;mut </span><span class="self">self</span>, hash: HashValue, key: K) -&gt; Entry&lt;<span class="lifetime">&#39;_</span>, K, V&gt;
     <span class="kw">where
-        </span>K: <a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Eq.html">Eq</a>,
+        </span>K: Eq,
     {
-        <span class="kw">let </span>eq = <a href="../core.rs.html#38-41">equivalent</a>(<span class="kw-2">&amp;</span><a href="#51">key</a>, <span class="kw-2">&amp;</span><a class="self" href="#51">self</a>.entries);
-        <span class="kw">match </span><a class="self" href="#51">self</a>.indices.find(<a href="#51">hash</a>.<a href="../../lib.rs.html#123">get</a>(), <a href="#55">eq</a>) {
+        <span class="kw">let </span>eq = equivalent(<span class="kw-2">&amp;</span>key, <span class="kw-2">&amp;</span><span class="self">self</span>.entries);
+        <span class="kw">match </span><span class="self">self</span>.indices.find(hash.get(), eq) {
             <span class="comment">// SAFETY: The entry is created with a live raw bucket, at the same time
             // we have a &amp;mut reference to the map, so it can not be modified further.
-            </span><span class="prelude-val">Some</span>(raw_bucket) =&gt; <a href="../core.rs.html#494">Entry::Occupied</a>(<a href="#108">OccupiedEntry</a> {
-                map: <a class="self" href="#51">self</a>,
-                <a href="#59">raw_bucket</a>,
-                <a href="#51">key</a>,
+            </span><span class="prelude-val">Some</span>(raw_bucket) =&gt; Entry::Occupied(OccupiedEntry {
+                map: <span class="self">self</span>,
+                raw_bucket,
+                key,
             }),
-            <span class="prelude-val">None </span>=&gt; <a href="../core.rs.html#496">Entry::Vacant</a>(<a href="../core.rs.html#657">VacantEntry</a> {
-                map: <a class="self" href="#51">self</a>,
-                <a href="#51">hash</a>,
-                <a href="#51">key</a>,
+            <span class="prelude-val">None </span>=&gt; Entry::Vacant(VacantEntry {
+                map: <span class="self">self</span>,
+                hash,
+                key,
             }),
         }
     }
 
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>indices_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw">impl </span>Iterator&lt;Item = <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>indices_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw">impl </span>Iterator&lt;Item = <span class="kw-2">&amp;mut </span>usize&gt; {
         <span class="comment">// SAFETY: we&#39;re not letting any of the buckets escape this function,
         // only the item references that are appropriately bound to `&amp;mut self`.
-        </span><span class="kw">unsafe </span>{ <a class="self" href="#72">self</a>.indices.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|bucket| <a href="#75">bucket</a>.as_mut()) }
+        </span><span class="kw">unsafe </span>{ <span class="self">self</span>.indices.iter().map(|bucket| bucket.as_mut()) }
     }
 
     <span class="doccomment">/// Return the raw bucket for the given index
-    </span><span class="kw">fn </span>find_index(<span class="kw-2">&amp;</span><span class="self">self</span>, index: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a href="#10">RawBucket</a> {
+    </span><span class="kw">fn </span>find_index(<span class="kw-2">&amp;</span><span class="self">self</span>, index: usize) -&gt; RawBucket {
         <span class="comment">// We&#39;ll get a &quot;nice&quot; bounds-check from indexing `self.entries`,
         // and then we expect to find it in the table as well.
-        </span><span class="kw">let </span>hash = <a class="self" href="#79">self</a>.entries[<a href="#79">index</a>].hash.<a href="../../lib.rs.html#123">get</a>();
-        <a class="self" href="#79">self</a>.indices
-            .find(<a href="#82">hash</a>, <span class="kw">move </span>|<span class="kw-2">&amp;</span>i| <a href="#84">i</a> == <a href="#79">index</a>)
+        </span><span class="kw">let </span>hash = <span class="self">self</span>.entries[index].hash.get();
+        <span class="self">self</span>.indices
+            .find(hash, <span class="kw">move </span>|<span class="kw-2">&amp;</span>i| i == index)
             .expect(<span class="string">&quot;index not found&quot;</span>)
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>swap_indices(<span class="kw-2">&amp;mut </span><span class="self">self</span>, a: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, b: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>swap_indices(<span class="kw-2">&amp;mut </span><span class="self">self</span>, a: usize, b: usize) {
         <span class="comment">// SAFETY: Can&#39;t take two `get_mut` references from one table, so we
         // must use raw buckets to do the swap. This is still safe because we
         // are locally sure they won&#39;t dangle, and we write them individually.
         </span><span class="kw">unsafe </span>{
-            <span class="kw">let </span>raw_bucket_a = <a class="self" href="#88">self</a>.<a href="#79">find_index</a>(<a href="#88">a</a>);
-            <span class="kw">let </span>raw_bucket_b = <a class="self" href="#88">self</a>.<a href="#79">find_index</a>(<a href="#88">b</a>);
-            <a href="#93">raw_bucket_a</a>.write(<a href="#88">b</a>);
-            <a href="#94">raw_bucket_b</a>.write(<a href="#88">a</a>);
+            <span class="kw">let </span>raw_bucket_a = <span class="self">self</span>.find_index(a);
+            <span class="kw">let </span>raw_bucket_b = <span class="self">self</span>.find_index(b);
+            raw_bucket_a.write(b);
+            raw_bucket_b.write(a);
         }
-        <a class="self" href="#88">self</a>.entries.swap(<a href="#88">a</a>, <a href="#88">b</a>);
+        <span class="self">self</span>.entries.swap(a, b);
     }
 }
 
@@ -298,13 +298,13 @@
 // which is essentially a raw pointer into the map indices.
 </span><span class="kw">pub struct </span>OccupiedEntry&lt;<span class="lifetime">&#39;a</span>, K, V&gt; {
     map: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>IndexMapCore&lt;K, V&gt;,
-    raw_bucket: <a href="#10">RawBucket</a>,
+    raw_bucket: RawBucket,
     key: K,
 }
 
 <span class="comment">// `hashbrown::raw::Bucket` is only `Send`, not `Sync`.
 // SAFETY: `&amp;self` only accesses the bucket to read it.
-</span><span class="kw">unsafe impl</span>&lt;K: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a>, V: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> <span class="kw">for </span>OccupiedEntry&lt;<span class="lifetime">&#39;_</span>, K, V&gt; {}
+</span><span class="kw">unsafe impl</span>&lt;K: Sync, V: Sync&gt; Sync <span class="kw">for </span>OccupiedEntry&lt;<span class="lifetime">&#39;_</span>, K, V&gt; {}
 
 <span class="comment">// The parent module also adds methods that don&#39;t threaten the unsafe encapsulation.
 </span><span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, K, V&gt; OccupiedEntry&lt;<span class="lifetime">&#39;a</span>, K, V&gt; {
@@ -314,12 +314,12 @@
     /// difference if the key type has any distinguishing features outside of `Hash` and `Eq`, like
     /// extra fields or the memory address of an allocation.
     </span><span class="kw">pub fn </span>key(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>K {
-        <span class="kw-2">&amp;</span><a class="self" href="#125">self</a>.map.entries[<a class="self" href="#125">self</a>.<a href="#152">index</a>()].key
+        <span class="kw-2">&amp;</span><span class="self">self</span>.map.entries[<span class="self">self</span>.index()].key
     }
 
     <span class="doccomment">/// Gets a reference to the entry&#39;s value in the map.
     </span><span class="kw">pub fn </span>get(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>V {
-        <span class="kw-2">&amp;</span><a class="self" href="#130">self</a>.map.entries[<a class="self" href="#130">self</a>.<a href="#152">index</a>()].value
+        <span class="kw-2">&amp;</span><span class="self">self</span>.map.entries[<span class="self">self</span>.index()].value
     }
 
     <span class="doccomment">/// Gets a mutable reference to the entry&#39;s value in the map.
@@ -327,29 +327,29 @@
     /// If you need a reference which may outlive the destruction of the
     /// `Entry` value, see `into_mut`.
     </span><span class="kw">pub fn </span>get_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>V {
-        <span class="kw">let </span>index = <a class="self" href="#138">self</a>.<a href="#152">index</a>();
-        <span class="kw-2">&amp;mut </span><a class="self" href="#138">self</a>.map.entries[<a href="#139">index</a>].value
+        <span class="kw">let </span>index = <span class="self">self</span>.index();
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>.map.entries[index].value
     }
 
     <span class="doccomment">/// Put the new key in the occupied entry&#39;s key slot
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>replace_key(<span class="self">self</span>) -&gt; K {
-        <span class="kw">let </span>index = <a class="self" href="#144">self</a>.<a href="#152">index</a>();
-        <span class="kw">let </span>old_key = <span class="kw-2">&amp;mut </span><a class="self" href="#144">self</a>.map.entries[<a href="#145">index</a>].key;
-        <a href="https://doc.rust-lang.org/nightly/core/mem/fn.replace.html">replace</a>(<a href="#146">old_key</a>, <a class="self" href="#144">self</a>.key)
+        <span class="kw">let </span>index = <span class="self">self</span>.index();
+        <span class="kw">let </span>old_key = <span class="kw-2">&amp;mut </span><span class="self">self</span>.map.entries[index].key;
+        replace(old_key, <span class="self">self</span>.key)
     }
 
     <span class="doccomment">/// Return the index of the key-value pair
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>index(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
+    </span><span class="kw">pub fn </span>index(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
         <span class="comment">// SAFETY: we have &amp;mut map keep keeping the bucket stable
-        </span><span class="kw">unsafe </span>{ <a class="self" href="#152">self</a>.raw_bucket.read() }
+        </span><span class="kw">unsafe </span>{ <span class="self">self</span>.raw_bucket.read() }
     }
 
     <span class="doccomment">/// Converts into a mutable reference to the entry&#39;s value in the map,
     /// with a lifetime bound to the map itself.
     </span><span class="kw">pub fn </span>into_mut(<span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>V {
-        <span class="kw">let </span>index = <a class="self" href="#159">self</a>.<a href="#152">index</a>();
-        <span class="kw-2">&amp;mut </span><a class="self" href="#159">self</a>.map.entries[<a href="#160">index</a>].value
+        <span class="kw">let </span>index = <span class="self">self</span>.index();
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>.map.entries[index].value
     }
 
     <span class="doccomment">/// Remove and return the key, value pair stored in the map for this entry
@@ -362,8 +362,8 @@
     </span><span class="kw">pub fn </span>swap_remove_entry(<span class="self">self</span>) -&gt; (K, V) {
         <span class="comment">// SAFETY: This is safe because it can only happen once (self is consumed)
         // and map.indices have not been modified since entry construction
-        </span><span class="kw">let </span>index = <span class="kw">unsafe </span>{ <a class="self" href="#171">self</a>.map.indices.remove(<a class="self" href="#171">self</a>.raw_bucket) };
-        <a class="self" href="#171">self</a>.map.<a href="../core.rs.html#388">swap_remove_finish</a>(<a href="#174">index</a>)
+        </span><span class="kw">let </span>index = <span class="kw">unsafe </span>{ <span class="self">self</span>.map.indices.remove(<span class="self">self</span>.raw_bucket) };
+        <span class="self">self</span>.map.swap_remove_finish(index)
     }
 
     <span class="doccomment">/// Remove and return the key, value pair stored in the map for this entry
@@ -376,9 +376,9 @@
     </span><span class="kw">pub fn </span>shift_remove_entry(<span class="self">self</span>) -&gt; (K, V) {
         <span class="comment">// SAFETY: This is safe because it can only happen once (self is consumed)
         // and map.indices have not been modified since entry construction
-        </span><span class="kw">let </span>index = <span class="kw">unsafe </span>{ <a class="self" href="#185">self</a>.map.indices.remove(<a class="self" href="#185">self</a>.raw_bucket) };
-        <a class="self" href="#185">self</a>.map.<a href="../core.rs.html#285">shift_remove_finish</a>(<a href="#188">index</a>)
+        </span><span class="kw">let </span>index = <span class="kw">unsafe </span>{ <span class="self">self</span>.map.indices.remove(<span class="self">self</span>.raw_bucket) };
+        <span class="self">self</span>.map.shift_remove_finish(index)
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="indexmap" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="indexmap" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

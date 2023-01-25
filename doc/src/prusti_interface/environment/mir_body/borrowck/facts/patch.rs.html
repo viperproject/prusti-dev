@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `prusti-interface/src/environment/mir_body/borrowck/facts/patch.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>patch.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../../../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../../../../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../../../../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../../../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../../../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../../../../../source-files.js"></script><script defer src="../../../../../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../../../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../../../../prusti_interface/index.html"><img class="rust-logo" src="../../../../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `prusti-interface/src/environment/mir_body/borrowck/facts/patch.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>patch.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../../../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../../../../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../../../../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../../../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../../../../source-files.js"></script><script defer src="../../../../../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../../../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../../../../prusti_interface/index.html"><img class="rust-logo" src="../../../../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -456,14 +456,10 @@
 <a href="#456" id="456">456</a>
 <a href="#457" id="457">457</a>
 <a href="#458" id="458">458</a>
-<a href="#459" id="459">459</a>
-<a href="#460" id="460">460</a>
-<a href="#461" id="461">461</a>
-<a href="#462" id="462">462</a>
-</pre><pre class="rust"><code><span class="kw">use super</span>::{<a href="mod.rs.html#15">AllInputFacts</a>, <a href="mod.rs.html#83">LocationTable</a>, <a href="mod.rs.html#11">Point</a>, <a href="mod.rs.html#42">RichLocation</a>};
-<span class="kw">use </span><a href="../../patch/compiler.rs.html#24"><span class="kw">crate</span>::environment::mir_body::patch::MirPatch</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/index.html">prusti_rustc_interface::middle::mir</a>;
-<span class="kw">use </span><a href="../../../../../../rustc_hash/type.FxHashMap.html">rustc_hash::FxHashMap</a>;
+</pre><pre class="rust"><code><span class="kw">use super</span>::{AllInputFacts, LocationTable, Point, RichLocation};
+<span class="kw">use </span><span class="kw">crate</span>::environment::mir_body::patch::MirPatch;
+<span class="kw">use </span>prusti_rustc_interface::middle::mir;
+<span class="kw">use </span>rustc_hash::FxHashMap;
 
 <span class="doccomment">/// FIXME: Currently, this function patches only `borrowck_input_facts.cfg_edge`.
 /// It probably should also patch other facts. For example, added drop flag
@@ -483,13 +479,13 @@
 /// ```
 </span><span class="attr">#[allow(clippy::needless_collect)] </span><span class="comment">// False positive.
 </span><span class="kw">pub fn </span>apply_patch_to_borrowck&lt;<span class="lifetime">&#39;tcx</span>&gt;(
-    borrowck_input_facts: <span class="kw-2">&amp;mut </span><a href="mod.rs.html#15">AllInputFacts</a>,
-    location_table: <span class="kw-2">&amp;mut </span><a href="mod.rs.html#83">LocationTable</a>,
+    borrowck_input_facts: <span class="kw-2">&amp;mut </span>AllInputFacts,
+    location_table: <span class="kw-2">&amp;mut </span>LocationTable,
     patch: <span class="kw-2">&amp;</span>MirPatch&lt;<span class="lifetime">&#39;tcx</span>&gt;,
     old_body: <span class="kw-2">&amp;</span>mir::Body&lt;<span class="lifetime">&#39;tcx</span>&gt;,
     patched_body: <span class="kw-2">&amp;mut </span>mir::Body&lt;<span class="lifetime">&#39;tcx</span>&gt;,
 ) {
-    <span class="kw">let </span><span class="kw-2">mut </span>lt_patcher = LocationTablePatcher::new(<a href="#25">location_table</a>);
+    <span class="kw">let </span><span class="kw-2">mut </span>lt_patcher = LocationTablePatcher::new(location_table);
 
     <span class="kw">let </span><span class="kw-2">mut </span>cfg_edges = FxHashMap::&lt;<span class="kw">_</span>, Vec&lt;<span class="kw">_</span>&gt;&gt;::default();
     <span class="kw">for </span>(from, to) <span class="kw">in </span>std::mem::take(<span class="kw-2">&amp;mut </span>borrowck_input_facts.cfg_edge) {
@@ -497,14 +493,14 @@
         cfg_edges.entry(to).or_default();
     }
 
-    <span class="kw">let </span><span class="kw-2">mut </span>block_sizes: FxHashMap&lt;<span class="kw">_</span>, <span class="kw">_</span>&gt; = <a href="#27">old_body</a>
+    <span class="kw">let </span><span class="kw-2">mut </span>block_sizes: FxHashMap&lt;<span class="kw">_</span>, <span class="kw">_</span>&gt; = old_body
         .basic_blocks
         .iter_enumerated()
-        .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|(bb, data)| (<a href="#41">bb</a>, <a href="#41">data</a>.statements.len()))
-        .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
+        .map(|(bb, data)| (bb, data.statements.len()))
+        .collect();
 
     <span class="comment">// Create cfg_edge facts for the new basic blocks.
-    </span><span class="kw">let </span>bb_base = <a href="#27">old_body</a>.basic_blocks.len();
+    </span><span class="kw">let </span>bb_base = old_body.basic_blocks.len();
     <span class="kw">for </span>(offset, block) <span class="kw">in </span>patch.new_blocks.iter().enumerate() {
         <span class="comment">// +1 is for terminator.
         </span><span class="kw">let </span><span class="kw-2">mut </span>statement_indices = <span class="number">0usize</span>..block.statements.len() + <span class="number">1</span>;
@@ -537,13 +533,13 @@
     }
 
     <span class="comment">// Patch cfg_edge facts for the inserted statements.
-    </span><span class="kw">let </span>predecessors = <a href="#28">patched_body</a>.basic_blocks.predecessors();
-    <span class="kw">let </span><span class="kw-2">mut </span>new_statements: Vec&lt;<span class="kw">_</span>&gt; = <a href="#26">patch</a>
+    </span><span class="kw">let </span>predecessors = patched_body.basic_blocks.predecessors();
+    <span class="kw">let </span><span class="kw-2">mut </span>new_statements: Vec&lt;<span class="kw">_</span>&gt; = patch
         .new_statements
         .iter()
-        .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|(location, <span class="kw">_</span>)| <span class="kw-2">*</span><a href="#82">location</a>)
-        .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
-    <a href="#79">new_statements</a>.sort();
+        .map(|(location, <span class="kw">_</span>)| <span class="kw-2">*</span>location)
+        .collect();
+    new_statements.sort();
     <span class="kw">let </span><span class="kw-2">mut </span>delta = <span class="number">0</span>;
     <span class="kw">let </span><span class="kw-2">mut </span>last_bb = mir::START_BLOCK;
     <span class="kw">let </span><span class="kw-2">mut </span>predecessors_to_patch = Vec::new();
@@ -656,7 +652,7 @@
     }
 
     <span class="comment">// Patch cfg_edge facts to account for removed basic blocks.
-    </span><span class="kw">let </span>reachable = mir::traversal::reachable_as_bitset(<a href="#28">patched_body</a>);
+    </span><span class="kw">let </span>reachable = mir::traversal::reachable_as_bitset(patched_body);
     <span class="kw">if </span>patched_body.basic_blocks.len() &gt; reachable.count() {
         <span class="comment">// Delete cfg_edges of removed blocks.
         </span><span class="kw">for </span>(src, block) <span class="kw">in </span>patched_body.basic_blocks.iter_enumerated() {
@@ -674,7 +670,7 @@
             }
         }
         <span class="kw">let </span>basic_block_inverse_replacements =
-            <a href="../../dead_blocks.rs.html#10-13"><span class="kw">super</span>::<span class="kw">super</span>::<span class="kw">super</span>::dead_blocks::remove_dead_blocks</a>(<a href="#28">patched_body</a>, <span class="kw-2">&amp;</span><a href="#197">reachable</a>);
+            <span class="kw">super</span>::<span class="kw">super</span>::<span class="kw">super</span>::dead_blocks::remove_dead_blocks(patched_body, <span class="kw-2">&amp;</span>reachable);
         <span class="comment">// Update the location table to reflect moved blocks.
         </span><span class="kw">for </span>(<span class="kw-2">&amp;</span>new_index, <span class="kw-2">&amp;</span>old_index) <span class="kw">in </span><span class="kw-2">&amp;</span>basic_block_inverse_replacements {
             <span class="kw">if </span>new_index != old_index {
@@ -713,172 +709,168 @@
         }
     }
 
-    <a href="#24">borrowck_input_facts</a>.cfg_edge = <a href="#32">cfg_edges</a>
-        .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
-        .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">flat_map</a>(|(from, targets)| <a href="#256">targets</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<span class="kw">move </span>|target| (<a href="#256">from</a>, <a href="#256">target</a>)))
-        .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
+    borrowck_input_facts.cfg_edge = cfg_edges
+        .into_iter()
+        .flat_map(|(from, targets)| targets.into_iter().map(<span class="kw">move </span>|target| (from, target)))
+        .collect();
 
-    <a href="#24">borrowck_input_facts</a>.cfg_edge.sort();
+    borrowck_input_facts.cfg_edge.sort();
 }
 
 <span class="kw">struct </span>LocationTablePatcher&lt;<span class="lifetime">&#39;a</span>&gt; {
-    location_table: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span><a href="mod.rs.html#83">LocationTable</a>,
-    next_point: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+    location_table: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>LocationTable,
+    next_point: usize,
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; LocationTablePatcher&lt;<span class="lifetime">&#39;a</span>&gt; {
-    <span class="kw">fn </span>new(location_table: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span><a href="mod.rs.html#83">LocationTable</a>) -&gt; <span class="self">Self </span>{
-        <span class="kw">let </span>next_point = <a href="#268">location_table</a>
+    <span class="kw">fn </span>new(location_table: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>LocationTable) -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span>next_point = location_table
             .locations
             .keys()
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">max</a>()
-            .map(|point| <a href="#273">point</a>.index())
+            .max()
+            .map(|point| point.index())
             .unwrap_or(<span class="number">1usize</span>)
             + <span class="number">1</span>;
         <span class="self">Self </span>{
-            <a href="#268">location_table</a>,
-            <a href="#269">next_point</a>,
+            location_table,
+            next_point,
         }
     }
 
-    <span class="kw">fn </span>point(<span class="kw-2">&amp;</span><span class="self">self</span>, location: <a href="mod.rs.html#42">RichLocation</a>) -&gt; <a href="mod.rs.html#11">Point</a> {
-        <a class="self" href="#282">self</a>.location_table.points[<span class="kw-2">&amp;</span><a href="#282">location</a>]
+    <span class="kw">fn </span>point(<span class="kw-2">&amp;</span><span class="self">self</span>, location: RichLocation) -&gt; Point {
+        <span class="self">self</span>.location_table.points[<span class="kw-2">&amp;</span>location]
     }
 
-    <span class="kw">fn </span>start_point(<span class="kw-2">&amp;mut </span><span class="self">self</span>, block: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, statement_index: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a href="mod.rs.html#11">Point</a> {
-        <a class="self" href="#286">self</a>.<a href="#282">point</a>(<a href="mod.rs.html#43">RichLocation::Start</a>(<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Location.html">mir::Location</a> {
-            block: <a href="#286">block</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
-            <a href="#286">statement_index</a>,
+    <span class="kw">fn </span>start_point(<span class="kw-2">&amp;mut </span><span class="self">self</span>, block: usize, statement_index: usize) -&gt; Point {
+        <span class="self">self</span>.point(RichLocation::Start(mir::Location {
+            block: block.into(),
+            statement_index,
         }))
     }
 
-    <span class="kw">fn </span>mid_point(<span class="kw-2">&amp;mut </span><span class="self">self</span>, block: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, statement_index: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a href="mod.rs.html#11">Point</a> {
-        <a class="self" href="#293">self</a>.<a href="#282">point</a>(<a href="mod.rs.html#44">RichLocation::Mid</a>(<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Location.html">mir::Location</a> {
-            block: <a href="#293">block</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
-            <a href="#293">statement_index</a>,
+    <span class="kw">fn </span>mid_point(<span class="kw-2">&amp;mut </span><span class="self">self</span>, block: usize, statement_index: usize) -&gt; Point {
+        <span class="self">self</span>.point(RichLocation::Mid(mir::Location {
+            block: block.into(),
+            statement_index,
         }))
     }
 
-    <span class="kw">fn </span>delete_point(<span class="kw-2">&amp;mut </span><span class="self">self</span>, location: <a href="mod.rs.html#42">RichLocation</a>, point: <a href="mod.rs.html#11">Point</a>) {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert_eq.html">assert_eq!</a>(<span class="self">self</span>.location_table.points.remove(<span class="kw-2">&amp;</span>location), <span class="prelude-val">Some</span>(point));
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert_eq.html">assert_eq!</a>(<span class="self">self</span>.location_table.locations.remove(<span class="kw-2">&amp;</span>point), <span class="prelude-val">Some</span>(location));
+    <span class="kw">fn </span>delete_point(<span class="kw-2">&amp;mut </span><span class="self">self</span>, location: RichLocation, point: Point) {
+        <span class="macro">assert_eq!</span>(<span class="self">self</span>.location_table.points.remove(<span class="kw-2">&amp;</span>location), <span class="prelude-val">Some</span>(point));
+        <span class="macro">assert_eq!</span>(<span class="self">self</span>.location_table.locations.remove(<span class="kw-2">&amp;</span>point), <span class="prelude-val">Some</span>(location));
     }
 
-    <span class="kw">fn </span>delete_start_point(<span class="kw-2">&amp;mut </span><span class="self">self</span>, block: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, statement_index: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
-        <span class="kw">let </span>location = <a href="mod.rs.html#43">RichLocation::Start</a>(<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Location.html">mir::Location</a> {
-            block: <a href="#305">block</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
-            <a href="#305">statement_index</a>,
+    <span class="kw">fn </span>delete_start_point(<span class="kw-2">&amp;mut </span><span class="self">self</span>, block: usize, statement_index: usize) {
+        <span class="kw">let </span>location = RichLocation::Start(mir::Location {
+            block: block.into(),
+            statement_index,
         });
-        <span class="kw">let </span>point = <a class="self" href="#305">self</a>.<a href="#282">point</a>(<a href="#306">location</a>);
-        <a class="self" href="#305">self</a>.<a href="#300">delete_point</a>(<a href="#306">location</a>, <a href="#310">point</a>);
+        <span class="kw">let </span>point = <span class="self">self</span>.point(location);
+        <span class="self">self</span>.delete_point(location, point);
     }
 
-    <span class="kw">fn </span>delete_mid_point(<span class="kw-2">&amp;mut </span><span class="self">self</span>, block: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, statement_index: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
-        <span class="kw">let </span>location = <a href="mod.rs.html#44">RichLocation::Mid</a>(<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Location.html">mir::Location</a> {
-            block: <a href="#314">block</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
-            <a href="#314">statement_index</a>,
+    <span class="kw">fn </span>delete_mid_point(<span class="kw-2">&amp;mut </span><span class="self">self</span>, block: usize, statement_index: usize) {
+        <span class="kw">let </span>location = RichLocation::Mid(mir::Location {
+            block: block.into(),
+            statement_index,
         });
-        <span class="kw">let </span>point = <a class="self" href="#314">self</a>.<a href="#282">point</a>(<a href="#315">location</a>);
-        <a class="self" href="#314">self</a>.<a href="#300">delete_point</a>(<a href="#315">location</a>, <a href="#319">point</a>);
+        <span class="kw">let </span>point = <span class="self">self</span>.point(location);
+        <span class="self">self</span>.delete_point(location, point);
     }
 
     <span class="kw">fn </span>move_start_point(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        old_index: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.BasicBlock.html">mir::BasicBlock</a>,
-        old_statement_index: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-        new_index: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.BasicBlock.html">mir::BasicBlock</a>,
-        new_statement_index: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+        old_index: mir::BasicBlock,
+        old_statement_index: usize,
+        new_index: mir::BasicBlock,
+        new_statement_index: usize,
     ) {
-        <span class="kw">let </span>old_location = <a href="mod.rs.html#43">RichLocation::Start</a>(<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Location.html">mir::Location</a> {
-            block: <a href="#325">old_index</a>,
-            statement_index: <a href="#326">old_statement_index</a>,
+        <span class="kw">let </span>old_location = RichLocation::Start(mir::Location {
+            block: old_index,
+            statement_index: old_statement_index,
         });
-        <span class="kw">let </span>old_point = <a class="self" href="#324">self</a>.<a href="#282">point</a>(<a href="#330">old_location</a>);
-        <span class="kw">let </span>new_location = <a href="mod.rs.html#43">RichLocation::Start</a>(<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Location.html">mir::Location</a> {
-            block: <a href="#327">new_index</a>,
-            statement_index: <a href="#328">new_statement_index</a>,
+        <span class="kw">let </span>old_point = <span class="self">self</span>.point(old_location);
+        <span class="kw">let </span>new_location = RichLocation::Start(mir::Location {
+            block: new_index,
+            statement_index: new_statement_index,
         });
-        <a class="self" href="#324">self</a>.<a href="#300">delete_point</a>(<a href="#330">old_location</a>, <a href="#334">old_point</a>);
-        <a class="self" href="#324">self</a>.<a href="#363">set_point</a>(<a href="#335">new_location</a>, <a href="#334">old_point</a>);
+        <span class="self">self</span>.delete_point(old_location, old_point);
+        <span class="self">self</span>.set_point(new_location, old_point);
     }
 
     <span class="kw">fn </span>move_mid_point(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        old_index: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.BasicBlock.html">mir::BasicBlock</a>,
-        old_statement_index: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-        new_index: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.BasicBlock.html">mir::BasicBlock</a>,
-        new_statement_index: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+        old_index: mir::BasicBlock,
+        old_statement_index: usize,
+        new_index: mir::BasicBlock,
+        new_statement_index: usize,
     ) {
-        <span class="kw">let </span>old_location = <a href="mod.rs.html#44">RichLocation::Mid</a>(<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Location.html">mir::Location</a> {
-            block: <a href="#345">old_index</a>,
-            statement_index: <a href="#346">old_statement_index</a>,
+        <span class="kw">let </span>old_location = RichLocation::Mid(mir::Location {
+            block: old_index,
+            statement_index: old_statement_index,
         });
-        <span class="kw">let </span>old_point = <a class="self" href="#344">self</a>.<a href="#282">point</a>(<a href="#350">old_location</a>);
-        <span class="kw">let </span>new_location = <a href="mod.rs.html#44">RichLocation::Mid</a>(<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Location.html">mir::Location</a> {
-            block: <a href="#347">new_index</a>,
-            statement_index: <a href="#348">new_statement_index</a>,
+        <span class="kw">let </span>old_point = <span class="self">self</span>.point(old_location);
+        <span class="kw">let </span>new_location = RichLocation::Mid(mir::Location {
+            block: new_index,
+            statement_index: new_statement_index,
         });
-        <a class="self" href="#344">self</a>.<a href="#300">delete_point</a>(<a href="#350">old_location</a>, <a href="#354">old_point</a>);
-        <a class="self" href="#344">self</a>.<a href="#363">set_point</a>(<a href="#355">new_location</a>, <a href="#354">old_point</a>);
+        <span class="self">self</span>.delete_point(old_location, old_point);
+        <span class="self">self</span>.set_point(new_location, old_point);
     }
 
-    <span class="kw">fn </span>set_point(<span class="kw-2">&amp;mut </span><span class="self">self</span>, location: <a href="mod.rs.html#42">RichLocation</a>, point: <a href="mod.rs.html#11">Point</a>) {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(
+    <span class="kw">fn </span>set_point(<span class="kw-2">&amp;mut </span><span class="self">self</span>, location: RichLocation, point: Point) {
+        <span class="macro">assert!</span>(
             <span class="self">self</span>.location_table
                 .locations
                 .insert(point, location)
                 .is_none(),
-            <span class="string">&quot;location: {:?} point: {:?}&quot;</span>,
-            location,
-            point
-        );
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(
+            <span class="string">&quot;location: {location:?} point: {point:?}&quot;
+        </span>);
+        <span class="macro">assert!</span>(
             <span class="self">self</span>.location_table.points.insert(location, point).is_none(),
-            <span class="string">&quot;location: {:?} point: {:?}&quot;</span>,
-            location,
-            point
-        );
+            <span class="string">&quot;location: {location:?} point: {point:?}&quot;
+        </span>);
     }
 
-    <span class="kw">fn </span>fresh_point(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <a href="mod.rs.html#11">Point</a> {
-        <span class="kw">let </span>point = <a class="self" href="#381">self</a>.next_point.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>();
-        <a class="self" href="#381">self</a>.next_point += <span class="number">1</span>;
-        <a href="#382">point</a>
+    <span class="kw">fn </span>fresh_point(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; Point {
+        <span class="kw">let </span>point = <span class="self">self</span>.next_point.into();
+        <span class="self">self</span>.next_point += <span class="number">1</span>;
+        point
     }
 
-    <span class="kw">fn </span>next_point(<span class="kw-2">&amp;mut </span><span class="self">self</span>, location: <a href="mod.rs.html#42">RichLocation</a>) -&gt; <a href="mod.rs.html#11">Point</a> {
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(point) = <a class="self" href="#387">self</a>.location_table.points.get(<span class="kw-2">&amp;</span><a href="#387">location</a>) {
-            <span class="kw-2">*</span><a href="#388">point</a>
+    <span class="kw">fn </span>next_point(<span class="kw-2">&amp;mut </span><span class="self">self</span>, location: RichLocation) -&gt; Point {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(point) = <span class="self">self</span>.location_table.points.get(<span class="kw-2">&amp;</span>location) {
+            <span class="kw-2">*</span>point
         } <span class="kw">else </span>{
-            <span class="kw">let </span>point = <a class="self" href="#387">self</a>.<a href="#381">fresh_point</a>();
-            <a class="self" href="#387">self</a>.location_table.locations.insert(<a href="#391">point</a>, <a href="#387">location</a>);
-            <a class="self" href="#387">self</a>.location_table.points.insert(<a href="#387">location</a>, <a href="#391">point</a>);
-            <a href="#391">point</a>
+            <span class="kw">let </span>point = <span class="self">self</span>.fresh_point();
+            <span class="self">self</span>.location_table.locations.insert(point, location);
+            <span class="self">self</span>.location_table.points.insert(location, point);
+            point
         }
     }
 
-    <span class="kw">fn </span>next_start_point(<span class="kw-2">&amp;mut </span><span class="self">self</span>, block: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, statement_index: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a href="mod.rs.html#11">Point</a> {
-        <a class="self" href="#398">self</a>.<a href="#387">next_point</a>(<a href="mod.rs.html#43">RichLocation::Start</a>(<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Location.html">mir::Location</a> {
-            block: <a href="#398">block</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
-            <a href="#398">statement_index</a>,
+    <span class="kw">fn </span>next_start_point(<span class="kw-2">&amp;mut </span><span class="self">self</span>, block: usize, statement_index: usize) -&gt; Point {
+        <span class="self">self</span>.next_point(RichLocation::Start(mir::Location {
+            block: block.into(),
+            statement_index,
         }))
     }
 
-    <span class="kw">fn </span>next_mid_point(<span class="kw-2">&amp;mut </span><span class="self">self</span>, block: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, statement_index: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a href="mod.rs.html#11">Point</a> {
-        <a class="self" href="#405">self</a>.<a href="#387">next_point</a>(<a href="mod.rs.html#44">RichLocation::Mid</a>(<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Location.html">mir::Location</a> {
-            block: <a href="#405">block</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
-            <a href="#405">statement_index</a>,
+    <span class="kw">fn </span>next_mid_point(<span class="kw-2">&amp;mut </span><span class="self">self</span>, block: usize, statement_index: usize) -&gt; Point {
+        <span class="self">self</span>.next_point(RichLocation::Mid(mir::Location {
+            block: block.into(),
+            statement_index,
         }))
     }
 
     <span class="doccomment">/// Shift locations of all statements by 1 and insert the provided point at that location.
     </span><span class="kw">fn </span>insert_statement_at(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        location: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Location.html">mir::Location</a>,
-        block_sizes: <span class="kw-2">&amp;mut </span>FxHashMap&lt;<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.BasicBlock.html">mir::BasicBlock</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;,
+        location: mir::Location,
+        block_sizes: <span class="kw-2">&amp;mut </span>FxHashMap&lt;mir::BasicBlock, usize&gt;,
     ) {
         <span class="comment">// Shift all the statements by one.
-        </span><span class="kw">let </span><span class="kw-2">mut </span>target_statement_index = <a href="#416">block_sizes</a>[<span class="kw-2">&amp;</span><a href="#415">location</a>.block] + <span class="number">1</span>; <span class="comment">// +1 for terminator;
+        </span><span class="kw">let </span><span class="kw-2">mut </span>target_statement_index = block_sizes[<span class="kw-2">&amp;</span>location.block] + <span class="number">1</span>; <span class="comment">// +1 for terminator;
         </span><span class="kw">while </span>target_statement_index &gt; location.statement_index {
             <span class="kw">let </span>statement_index = target_statement_index - <span class="number">1</span>;
             <span class="kw">let </span>old_start_location = RichLocation::start(location.block, statement_index);
@@ -903,24 +895,24 @@
         }
 
         <span class="comment">// Insert.
-        </span><span class="kw">let </span>start_point = <a class="self" href="#414">self</a>.<a href="#381">fresh_point</a>();
-        <span class="kw">let </span>mid_point = <a class="self" href="#414">self</a>.<a href="#381">fresh_point</a>();
-        <span class="kw">let </span>start_location = RichLocation::start(<a href="#415">location</a>.block, <a href="#419">target_statement_index</a>);
-        <span class="kw">let </span>mid_location = RichLocation::mid(<a href="#415">location</a>.block, <a href="#419">target_statement_index</a>);
-        <a class="self" href="#414">self</a>.location_table
+        </span><span class="kw">let </span>start_point = <span class="self">self</span>.fresh_point();
+        <span class="kw">let </span>mid_point = <span class="self">self</span>.fresh_point();
+        <span class="kw">let </span>start_location = RichLocation::start(location.block, target_statement_index);
+        <span class="kw">let </span>mid_location = RichLocation::mid(location.block, target_statement_index);
+        <span class="self">self</span>.location_table
             .locations
-            .insert(<a href="#444">start_point</a>, <a href="#446">start_location</a>);
-        <a class="self" href="#414">self</a>.location_table
+            .insert(start_point, start_location);
+        <span class="self">self</span>.location_table
             .points
-            .insert(<a href="#446">start_location</a>, <a href="#444">start_point</a>);
-        <a class="self" href="#414">self</a>.location_table
+            .insert(start_location, start_point);
+        <span class="self">self</span>.location_table
             .locations
-            .insert(<a href="#445">mid_point</a>, <a href="#447">mid_location</a>);
-        <a class="self" href="#414">self</a>.location_table.points.insert(<a href="#447">mid_location</a>, <a href="#445">mid_point</a>);
+            .insert(mid_point, mid_location);
+        <span class="self">self</span>.location_table.points.insert(mid_location, mid_point);
 
         <span class="comment">// Update the sizes map.
-        </span><span class="kw-2">*</span><a href="#416">block_sizes</a>.get_mut(<span class="kw-2">&amp;</span><a href="#415">location</a>.block).unwrap() += <span class="number">1</span>;
+        </span><span class="kw-2">*</span>block_sizes.get_mut(<span class="kw-2">&amp;</span>location.block).unwrap() += <span class="number">1</span>;
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../../../" data-static-root-path="../../../../../../static.files/" data-current-crate="prusti_interface" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../../../../" data-static-root-path="../../../../../../static.files/" data-current-crate="prusti_interface" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

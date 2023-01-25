@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tar-0.4.38/src/entry.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>entry.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../tar/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tar-0.4.38/src/entry.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>entry.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../tar/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -830,29 +830,29 @@
 <a href="#830" id="830">830</a>
 <a href="#831" id="831">831</a>
 <a href="#832" id="832">832</a>
-</pre><pre class="rust"><code><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/borrow/enum.Cow.html">std::borrow::Cow</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/cmp/index.html">std::cmp</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/fs/index.html">std::fs</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/fs/struct.OpenOptions.html">std::fs::OpenOptions</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/io/prelude/index.html">std::io::prelude</a>::<span class="kw-2">*</span>;
-<span class="kw">use </span>std::io::{<a class="self" href="https://doc.rust-lang.org/nightly/std/io/index.html">self</a>, <a href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">Error</a>, <a href="https://doc.rust-lang.org/nightly/std/io/error/enum.ErrorKind.html">ErrorKind</a>, <a href="https://doc.rust-lang.org/nightly/std/io/enum.SeekFrom.html">SeekFrom</a>};
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/marker/index.html">std::marker</a>;
-<span class="kw">use </span>std::path::{<a href="https://doc.rust-lang.org/nightly/std/path/enum.Component.html">Component</a>, <a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>, <a href="https://doc.rust-lang.org/nightly/std/path/struct.PathBuf.html">PathBuf</a>};
+</pre><pre class="rust"><code><span class="kw">use </span>std::borrow::Cow;
+<span class="kw">use </span>std::cmp;
+<span class="kw">use </span>std::fs;
+<span class="kw">use </span>std::fs::OpenOptions;
+<span class="kw">use </span>std::io::prelude::<span class="kw-2">*</span>;
+<span class="kw">use </span>std::io::{<span class="self">self</span>, Error, ErrorKind, SeekFrom};
+<span class="kw">use </span>std::marker;
+<span class="kw">use </span>std::path::{Component, Path, PathBuf};
 
-<span class="kw">use </span>filetime::{<a class="self" href="../../filetime/index.html">self</a>, <a href="../../filetime/struct.FileTime.html">FileTime</a>};
+<span class="kw">use </span>filetime::{<span class="self">self</span>, FileTime};
 
-<span class="kw">use </span><a href="archive.rs.html#23"><span class="kw">crate</span>::archive::ArchiveInner</a>;
-<span class="kw">use </span><a href="error.rs.html#7"><span class="kw">crate</span>::error::TarError</a>;
-<span class="kw">use </span><a href="header.rs.html#1618"><span class="kw">crate</span>::header::bytes2path</a>;
-<span class="kw">use </span><a href="lib.rs.html#42"><span class="kw">crate</span>::other</a>;
-<span class="kw">use crate</span>::{<a href="archive.rs.html#19">Archive</a>, <a href="header.rs.html#22">Header</a>, <a href="pax.rs.html#11">PaxExtensions</a>};
+<span class="kw">use </span><span class="kw">crate</span>::archive::ArchiveInner;
+<span class="kw">use </span><span class="kw">crate</span>::error::TarError;
+<span class="kw">use </span><span class="kw">crate</span>::header::bytes2path;
+<span class="kw">use </span><span class="kw">crate</span>::other;
+<span class="kw">use crate</span>::{Archive, Header, PaxExtensions};
 
 <span class="doccomment">/// A read-only view into an entry of an archive.
 ///
 /// This structure is a window into a portion of a borrowed archive which can
 /// be inspected. It acts as a file handle by implementing the Reader trait. An
 /// entry cannot be rewritten once inserted into an archive.
-</span><span class="kw">pub struct </span>Entry&lt;<span class="lifetime">&#39;a</span>, R: <span class="lifetime">&#39;a </span>+ <a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a>&gt; {
+</span><span class="kw">pub struct </span>Entry&lt;<span class="lifetime">&#39;a</span>, R: <span class="lifetime">&#39;a </span>+ Read&gt; {
     fields: EntryFields&lt;<span class="lifetime">&#39;a</span>&gt;,
     _ignored: marker::PhantomData&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Archive&lt;R&gt;&gt;,
 }
@@ -860,23 +860,23 @@
 <span class="comment">// private implementation detail of `Entry`, but concrete (no type parameters)
 // and also all-public to be constructed from other modules.
 </span><span class="kw">pub struct </span>EntryFields&lt;<span class="lifetime">&#39;a</span>&gt; {
-    <span class="kw">pub </span>long_pathname: <span class="prelude-ty">Option</span>&lt;Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;&gt;,
-    <span class="kw">pub </span>long_linkname: <span class="prelude-ty">Option</span>&lt;Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;&gt;,
-    <span class="kw">pub </span>pax_extensions: <span class="prelude-ty">Option</span>&lt;Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;&gt;,
-    <span class="kw">pub </span>header: <a href="header.rs.html#22">Header</a>,
-    <span class="kw">pub </span>size: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>,
-    <span class="kw">pub </span>header_pos: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>,
-    <span class="kw">pub </span>file_pos: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>,
+    <span class="kw">pub </span>long_pathname: <span class="prelude-ty">Option</span>&lt;Vec&lt;u8&gt;&gt;,
+    <span class="kw">pub </span>long_linkname: <span class="prelude-ty">Option</span>&lt;Vec&lt;u8&gt;&gt;,
+    <span class="kw">pub </span>pax_extensions: <span class="prelude-ty">Option</span>&lt;Vec&lt;u8&gt;&gt;,
+    <span class="kw">pub </span>header: Header,
+    <span class="kw">pub </span>size: u64,
+    <span class="kw">pub </span>header_pos: u64,
+    <span class="kw">pub </span>file_pos: u64,
     <span class="kw">pub </span>data: Vec&lt;EntryIo&lt;<span class="lifetime">&#39;a</span>&gt;&gt;,
-    <span class="kw">pub </span>unpack_xattrs: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-    <span class="kw">pub </span>preserve_permissions: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-    <span class="kw">pub </span>preserve_mtime: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-    <span class="kw">pub </span>overwrite: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
+    <span class="kw">pub </span>unpack_xattrs: bool,
+    <span class="kw">pub </span>preserve_permissions: bool,
+    <span class="kw">pub </span>preserve_mtime: bool,
+    <span class="kw">pub </span>overwrite: bool,
 }
 
 <span class="kw">pub enum </span>EntryIo&lt;<span class="lifetime">&#39;a</span>&gt; {
-    Pad(io::Take&lt;<a href="https://doc.rust-lang.org/nightly/std/io/util/struct.Repeat.html">io::Repeat</a>&gt;),
-    Data(io::Take&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>ArchiveInner&lt;<span class="kw">dyn </span><a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a> + <span class="lifetime">&#39;a</span>&gt;&gt;),
+    Pad(io::Take&lt;io::Repeat&gt;),
+    Data(io::Take&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>ArchiveInner&lt;<span class="kw">dyn </span>Read + <span class="lifetime">&#39;a</span>&gt;&gt;),
 }
 
 <span class="doccomment">/// When unpacking items the unpacked thing is returned to allow custom
@@ -885,13 +885,13 @@
 </span><span class="attr">#[derive(Debug)]
 </span><span class="kw">pub enum </span>Unpacked {
     <span class="doccomment">/// A file was unpacked.
-    </span>File(<a href="https://doc.rust-lang.org/nightly/std/fs/struct.File.html">std::fs::File</a>),
+    </span>File(std::fs::File),
     <span class="doccomment">/// A directory, hardlink, symlink, or other node was unpacked.
     </span><span class="attr">#[doc(hidden)]
     </span>__Nonexhaustive,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, R: <a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a>&gt; Entry&lt;<span class="lifetime">&#39;a</span>, R&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, R: Read&gt; Entry&lt;<span class="lifetime">&#39;a</span>, R&gt; {
     <span class="doccomment">/// Returns the path name for this entry.
     ///
     /// This method may fail if the pathname is not valid Unicode and this is
@@ -904,8 +904,8 @@
     ///
     /// It is recommended to use this method instead of inspecting the `header`
     /// directly to ensure that various archive formats are handled correctly.
-    </span><span class="kw">pub fn </span>path(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;Cow&lt;<a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>&gt;&gt; {
-        <a class="self" href="#75">self</a>.fields.<a href="#287">path</a>()
+    </span><span class="kw">pub fn </span>path(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;Cow&lt;Path&gt;&gt; {
+        <span class="self">self</span>.fields.path()
     }
 
     <span class="doccomment">/// Returns the raw bytes listed for this entry.
@@ -914,8 +914,8 @@
     /// separators, and it will not always return the same value as
     /// `self.header().path_bytes()` as some archive formats have support for
     /// longer path names described in separate entries.
-    </span><span class="kw">pub fn </span>path_bytes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Cow&lt;[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt; {
-        <a class="self" href="#85">self</a>.fields.<a href="#291">path_bytes</a>()
+    </span><span class="kw">pub fn </span>path_bytes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Cow&lt;[u8]&gt; {
+        <span class="self">self</span>.fields.path_bytes()
     }
 
     <span class="doccomment">/// Returns the link name for this entry, if any is found.
@@ -931,8 +931,8 @@
     ///
     /// It is recommended to use this method instead of inspecting the `header`
     /// directly to ensure that various archive formats are handled correctly.
-    </span><span class="kw">pub fn </span>link_name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;<span class="prelude-ty">Option</span>&lt;Cow&lt;<a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>&gt;&gt;&gt; {
-        <a class="self" href="#102">self</a>.fields.<a href="#320">link_name</a>()
+    </span><span class="kw">pub fn </span>link_name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;<span class="prelude-ty">Option</span>&lt;Cow&lt;Path&gt;&gt;&gt; {
+        <span class="self">self</span>.fields.link_name()
     }
 
     <span class="doccomment">/// Returns the link name for this entry, in bytes, if listed.
@@ -940,8 +940,8 @@
     /// Note that this will not always return the same value as
     /// `self.header().link_name_bytes()` as some archive formats have support for
     /// longer path names described in separate entries.
-    </span><span class="kw">pub fn </span>link_name_bytes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Cow&lt;[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;&gt; {
-        <a class="self" href="#111">self</a>.fields.<a href="#327">link_name_bytes</a>()
+    </span><span class="kw">pub fn </span>link_name_bytes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Cow&lt;[u8]&gt;&gt; {
+        <span class="self">self</span>.fields.link_name_bytes()
     }
 
     <span class="doccomment">/// Returns an iterator over the pax extensions contained in this entry.
@@ -962,23 +962,23 @@
     ///
     /// Also note that this function will read the entire entry if the entry
     /// itself is a list of extensions.
-    </span><span class="kw">pub fn </span>pax_extensions(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; io::Result&lt;<span class="prelude-ty">Option</span>&lt;<a href="pax.rs.html#11">PaxExtensions</a>&gt;&gt; {
-        <a class="self" href="#133">self</a>.fields.<a href="#351">pax_extensions</a>()
+    </span><span class="kw">pub fn </span>pax_extensions(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; io::Result&lt;<span class="prelude-ty">Option</span>&lt;PaxExtensions&gt;&gt; {
+        <span class="self">self</span>.fields.pax_extensions()
     }
 
     <span class="doccomment">/// Returns access to the header of this entry in the archive.
     ///
     /// This provides access to the metadata for this entry in the archive.
-    </span><span class="kw">pub fn </span>header(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="header.rs.html#22">Header</a> {
-        <span class="kw-2">&amp;</span><a class="self" href="#140">self</a>.fields.header
+    </span><span class="kw">pub fn </span>header(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Header {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.fields.header
     }
 
     <span class="doccomment">/// Returns access to the size of this entry in the archive.
     ///
     /// In the event the size is stored in a pax extension, that size value
     /// will be referenced. Otherwise, the entry size will be stored in the header.
-    </span><span class="kw">pub fn </span>size(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> {
-        <a class="self" href="#148">self</a>.fields.size
+    </span><span class="kw">pub fn </span>size(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u64 {
+        <span class="self">self</span>.fields.size
     }
 
     <span class="doccomment">/// Returns the starting position, in bytes, of the header of this entry in
@@ -987,8 +987,8 @@
     /// The header is always a contiguous section of 512 bytes, so if the
     /// underlying reader implements `Seek`, then the slice from `header_pos` to
     /// `header_pos + 512` contains the raw header bytes.
-    </span><span class="kw">pub fn </span>raw_header_position(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> {
-        <a class="self" href="#158">self</a>.fields.header_pos
+    </span><span class="kw">pub fn </span>raw_header_position(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u64 {
+        <span class="self">self</span>.fields.header_pos
     }
 
     <span class="doccomment">/// Returns the starting position, in bytes, of the file of this entry in
@@ -997,8 +997,8 @@
     /// If the file of this entry is continuous (e.g. not a sparse file), and
     /// if the underlying reader implements `Seek`, then the slice from
     /// `file_pos` to `file_pos + entry_size` contains the raw file bytes.
-    </span><span class="kw">pub fn </span>raw_file_position(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> {
-        <a class="self" href="#168">self</a>.fields.file_pos
+    </span><span class="kw">pub fn </span>raw_file_position(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u64 {
+        <span class="self">self</span>.fields.file_pos
     }
 
     <span class="doccomment">/// Writes this file to the specified location.
@@ -1030,8 +1030,8 @@
     ///     file.unpack(format!(&quot;file-{}&quot;, i)).unwrap();
     /// }
     /// ```
-    </span><span class="kw">pub fn </span>unpack&lt;P: AsRef&lt;<a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>&gt;&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, dst: P) -&gt; io::Result&lt;<a href="#54">Unpacked</a>&gt; {
-        <a class="self" href="#201">self</a>.fields.<a href="#446">unpack</a>(<span class="prelude-val">None</span>, <a href="#201">dst</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>())
+    </span><span class="kw">pub fn </span>unpack&lt;P: AsRef&lt;Path&gt;&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, dst: P) -&gt; io::Result&lt;Unpacked&gt; {
+        <span class="self">self</span>.fields.unpack(<span class="prelude-val">None</span>, dst.as_ref())
     }
 
     <span class="doccomment">/// Extracts this file under the specified path, avoiding security issues.
@@ -1058,8 +1058,8 @@
     ///     file.unpack_in(&quot;target&quot;).unwrap();
     /// }
     /// ```
-    </span><span class="kw">pub fn </span>unpack_in&lt;P: AsRef&lt;<a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>&gt;&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, dst: P) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>&gt; {
-        <a class="self" href="#229">self</a>.fields.<a href="#365">unpack_in</a>(<a href="#229">dst</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>())
+    </span><span class="kw">pub fn </span>unpack_in&lt;P: AsRef&lt;Path&gt;&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, dst: P) -&gt; io::Result&lt;bool&gt; {
+        <span class="self">self</span>.fields.unpack_in(dst.as_ref())
     }
 
     <span class="doccomment">/// Indicate whether extended file attributes (xattrs on Unix) are preserved
@@ -1069,8 +1069,8 @@
     /// Unix using xattr support. This may eventually be implemented for
     /// Windows, however, if other archive implementations are found which do
     /// this as well.
-    </span><span class="kw">pub fn </span>set_unpack_xattrs(<span class="kw-2">&amp;mut </span><span class="self">self</span>, unpack_xattrs: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) {
-        <a class="self" href="#240">self</a>.fields.unpack_xattrs = <a href="#240">unpack_xattrs</a>;
+    </span><span class="kw">pub fn </span>set_unpack_xattrs(<span class="kw-2">&amp;mut </span><span class="self">self</span>, unpack_xattrs: bool) {
+        <span class="self">self</span>.fields.unpack_xattrs = unpack_xattrs;
     }
 
     <span class="doccomment">/// Indicate whether extended permissions (like suid on Unix) are preserved
@@ -1078,123 +1078,123 @@
     ///
     /// This flag is disabled by default and is currently only implemented on
     /// Unix.
-    </span><span class="kw">pub fn </span>set_preserve_permissions(<span class="kw-2">&amp;mut </span><span class="self">self</span>, preserve: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) {
-        <a class="self" href="#249">self</a>.fields.preserve_permissions = <a href="#249">preserve</a>;
+    </span><span class="kw">pub fn </span>set_preserve_permissions(<span class="kw-2">&amp;mut </span><span class="self">self</span>, preserve: bool) {
+        <span class="self">self</span>.fields.preserve_permissions = preserve;
     }
 
     <span class="doccomment">/// Indicate whether access time information is preserved when unpacking
     /// this entry.
     ///
     /// This flag is enabled by default.
-    </span><span class="kw">pub fn </span>set_preserve_mtime(<span class="kw-2">&amp;mut </span><span class="self">self</span>, preserve: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) {
-        <a class="self" href="#257">self</a>.fields.preserve_mtime = <a href="#257">preserve</a>;
+    </span><span class="kw">pub fn </span>set_preserve_mtime(<span class="kw-2">&amp;mut </span><span class="self">self</span>, preserve: bool) {
+        <span class="self">self</span>.fields.preserve_mtime = preserve;
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, R: <a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a>&gt; <a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a> <span class="kw">for </span>Entry&lt;<span class="lifetime">&#39;a</span>, R&gt; {
-    <span class="kw">fn </span>read(<span class="kw-2">&amp;mut </span><span class="self">self</span>, into: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
-        <a class="self" href="#263">self</a>.fields.<a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">read</a>(<a href="#263">into</a>)
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, R: Read&gt; Read <span class="kw">for </span>Entry&lt;<span class="lifetime">&#39;a</span>, R&gt; {
+    <span class="kw">fn </span>read(<span class="kw-2">&amp;mut </span><span class="self">self</span>, into: <span class="kw-2">&amp;mut </span>[u8]) -&gt; io::Result&lt;usize&gt; {
+        <span class="self">self</span>.fields.read(into)
     }
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; EntryFields&lt;<span class="lifetime">&#39;a</span>&gt; {
-    <span class="kw">pub fn </span>from&lt;R: <a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a>&gt;(entry: Entry&lt;R&gt;) -&gt; <a href="#30">EntryFields</a> {
-        <a href="#269">entry</a>.fields
+    <span class="kw">pub fn </span>from&lt;R: Read&gt;(entry: Entry&lt;R&gt;) -&gt; EntryFields {
+        entry.fields
     }
 
-    <span class="kw">pub fn </span>into_entry&lt;R: <a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a>&gt;(<span class="self">self</span>) -&gt; Entry&lt;<span class="lifetime">&#39;a</span>, R&gt; {
-        <a href="#23">Entry</a> {
-            fields: <a class="self" href="#273">self</a>,
+    <span class="kw">pub fn </span>into_entry&lt;R: Read&gt;(<span class="self">self</span>) -&gt; Entry&lt;<span class="lifetime">&#39;a</span>, R&gt; {
+        Entry {
+            fields: <span class="self">self</span>,
             _ignored: marker::PhantomData,
         }
     }
 
-    <span class="kw">pub fn </span>read_all(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; io::Result&lt;Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;&gt; {
+    <span class="kw">pub fn </span>read_all(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; io::Result&lt;Vec&lt;u8&gt;&gt; {
         <span class="comment">// Preallocate some data but don&#39;t let ourselves get too crazy now.
-        </span><span class="kw">let </span>cap = cmp::min(<a class="self" href="#280">self</a>.size, <span class="number">128 </span>* <span class="number">1024</span>);
-        <span class="kw">let </span><span class="kw-2">mut </span>v = Vec::with_capacity(<a href="#282">cap</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>);
-        <a class="self" href="#280">self</a>.<a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">read_to_end</a>(<span class="kw-2">&amp;mut </span><a href="#283">v</a>).map(|<span class="kw">_</span>| <a href="#283">v</a>)
+        </span><span class="kw">let </span>cap = cmp::min(<span class="self">self</span>.size, <span class="number">128 </span>* <span class="number">1024</span>);
+        <span class="kw">let </span><span class="kw-2">mut </span>v = Vec::with_capacity(cap <span class="kw">as </span>usize);
+        <span class="self">self</span>.read_to_end(<span class="kw-2">&amp;mut </span>v).map(|<span class="kw">_</span>| v)
     }
 
-    <span class="kw">fn </span>path(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;Cow&lt;<a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>&gt;&gt; {
-        <a href="header.rs.html#1618">bytes2path</a>(<a class="self" href="#287">self</a>.<a href="#291">path_bytes</a>())
+    <span class="kw">fn </span>path(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;Cow&lt;Path&gt;&gt; {
+        bytes2path(<span class="self">self</span>.path_bytes())
     }
 
-    <span class="kw">fn </span>path_bytes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Cow&lt;[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt; {
-        <span class="kw">match </span><a class="self" href="#291">self</a>.long_pathname {
+    <span class="kw">fn </span>path_bytes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Cow&lt;[u8]&gt; {
+        <span class="kw">match </span><span class="self">self</span>.long_pathname {
             <span class="prelude-val">Some</span>(<span class="kw-2">ref </span>bytes) =&gt; {
-                <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="number">0</span>) = <a href="#293">bytes</a>.last() {
-                    Cow::Borrowed(<span class="kw-2">&amp;</span><a href="#293">bytes</a>[..<a href="#293">bytes</a>.len() - <span class="number">1</span>])
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="number">0</span>) = bytes.last() {
+                    Cow::Borrowed(<span class="kw-2">&amp;</span>bytes[..bytes.len() - <span class="number">1</span>])
                 } <span class="kw">else </span>{
-                    Cow::Borrowed(<a href="#293">bytes</a>)
+                    Cow::Borrowed(bytes)
                 }
             }
             <span class="prelude-val">None </span>=&gt; {
-                <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">ref </span>pax) = <a class="self" href="#291">self</a>.pax_extensions {
-                    <span class="kw">let </span>pax = PaxExtensions::new(<a href="#301">pax</a>)
-                        .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter_map</a>(|f| <a href="#303">f</a>.ok())
-                        .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">find</a>(|f| <a href="#304">f</a>.<a href="pax.rs.html#102">key_bytes</a>() == <span class="string">b&quot;path&quot;</span>)
-                        .map(|f| <a href="#305">f</a>.<a href="pax.rs.html#114">value_bytes</a>());
-                    <span class="kw">if let </span><span class="prelude-val">Some</span>(field) = <a href="#302">pax</a> {
-                        <span class="kw">return </span>Cow::Borrowed(<a href="#306">field</a>);
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">ref </span>pax) = <span class="self">self</span>.pax_extensions {
+                    <span class="kw">let </span>pax = PaxExtensions::new(pax)
+                        .filter_map(|f| f.ok())
+                        .find(|f| f.key_bytes() == <span class="string">b&quot;path&quot;</span>)
+                        .map(|f| f.value_bytes());
+                    <span class="kw">if let </span><span class="prelude-val">Some</span>(field) = pax {
+                        <span class="kw">return </span>Cow::Borrowed(field);
                     }
                 }
-                <a class="self" href="#291">self</a>.header.<a href="header.rs.html#345">path_bytes</a>()
+                <span class="self">self</span>.header.path_bytes()
             }
         }
     }
 
     <span class="doccomment">/// Gets the path in a &quot;lossy&quot; way, used for error reporting ONLY.
-    </span><span class="kw">fn </span>path_lossy(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a> {
-        String::from_utf8_lossy(<span class="kw-2">&amp;</span><a class="self" href="#316">self</a>.<a href="#291">path_bytes</a>()).<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>()
+    </span><span class="kw">fn </span>path_lossy(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; String {
+        String::from_utf8_lossy(<span class="kw-2">&amp;</span><span class="self">self</span>.path_bytes()).to_string()
     }
 
-    <span class="kw">fn </span>link_name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;<span class="prelude-ty">Option</span>&lt;Cow&lt;<a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>&gt;&gt;&gt; {
-        <span class="kw">match </span><a class="self" href="#320">self</a>.<a href="#327">link_name_bytes</a>() {
-            <span class="prelude-val">Some</span>(bytes) =&gt; <a href="header.rs.html#1618">bytes2path</a>(<a href="#322">bytes</a>).map(<span class="prelude-val">Some</span>),
+    <span class="kw">fn </span>link_name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;<span class="prelude-ty">Option</span>&lt;Cow&lt;Path&gt;&gt;&gt; {
+        <span class="kw">match </span><span class="self">self</span>.link_name_bytes() {
+            <span class="prelude-val">Some</span>(bytes) =&gt; bytes2path(bytes).map(<span class="prelude-val">Some</span>),
             <span class="prelude-val">None </span>=&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>),
         }
     }
 
-    <span class="kw">fn </span>link_name_bytes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Cow&lt;[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;&gt; {
-        <span class="kw">match </span><a class="self" href="#327">self</a>.long_linkname {
+    <span class="kw">fn </span>link_name_bytes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Cow&lt;[u8]&gt;&gt; {
+        <span class="kw">match </span><span class="self">self</span>.long_linkname {
             <span class="prelude-val">Some</span>(<span class="kw-2">ref </span>bytes) =&gt; {
-                <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="number">0</span>) = <a href="#329">bytes</a>.last() {
-                    <span class="prelude-val">Some</span>(Cow::Borrowed(<span class="kw-2">&amp;</span><a href="#329">bytes</a>[..<a href="#329">bytes</a>.len() - <span class="number">1</span>]))
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="number">0</span>) = bytes.last() {
+                    <span class="prelude-val">Some</span>(Cow::Borrowed(<span class="kw-2">&amp;</span>bytes[..bytes.len() - <span class="number">1</span>]))
                 } <span class="kw">else </span>{
-                    <span class="prelude-val">Some</span>(Cow::Borrowed(<a href="#329">bytes</a>))
+                    <span class="prelude-val">Some</span>(Cow::Borrowed(bytes))
                 }
             }
             <span class="prelude-val">None </span>=&gt; {
-                <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">ref </span>pax) = <a class="self" href="#327">self</a>.pax_extensions {
-                    <span class="kw">let </span>pax = PaxExtensions::new(<a href="#337">pax</a>)
-                        .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter_map</a>(|f| <a href="#339">f</a>.ok())
-                        .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">find</a>(|f| <a href="#340">f</a>.<a href="pax.rs.html#102">key_bytes</a>() == <span class="string">b&quot;linkpath&quot;</span>)
-                        .map(|f| <a href="#341">f</a>.<a href="pax.rs.html#114">value_bytes</a>());
-                    <span class="kw">if let </span><span class="prelude-val">Some</span>(field) = <a href="#338">pax</a> {
-                        <span class="kw">return </span><span class="prelude-val">Some</span>(Cow::Borrowed(<a href="#342">field</a>));
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">ref </span>pax) = <span class="self">self</span>.pax_extensions {
+                    <span class="kw">let </span>pax = PaxExtensions::new(pax)
+                        .filter_map(|f| f.ok())
+                        .find(|f| f.key_bytes() == <span class="string">b&quot;linkpath&quot;</span>)
+                        .map(|f| f.value_bytes());
+                    <span class="kw">if let </span><span class="prelude-val">Some</span>(field) = pax {
+                        <span class="kw">return </span><span class="prelude-val">Some</span>(Cow::Borrowed(field));
                     }
                 }
-                <a class="self" href="#327">self</a>.header.<a href="header.rs.html#408">link_name_bytes</a>()
+                <span class="self">self</span>.header.link_name_bytes()
             }
         }
     }
 
-    <span class="kw">fn </span>pax_extensions(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; io::Result&lt;<span class="prelude-ty">Option</span>&lt;<a href="pax.rs.html#11">PaxExtensions</a>&gt;&gt; {
+    <span class="kw">fn </span>pax_extensions(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; io::Result&lt;<span class="prelude-ty">Option</span>&lt;PaxExtensions&gt;&gt; {
         <span class="kw">if </span><span class="self">self</span>.pax_extensions.is_none() {
             <span class="kw">if </span>!<span class="self">self</span>.header.entry_type().is_pax_global_extensions()
                 &amp;&amp; !<span class="self">self</span>.header.entry_type().is_pax_local_extensions()
             {
                 <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>);
             }
-            <a class="self" href="#351">self</a>.pax_extensions = <span class="prelude-val">Some</span>(<span class="self">self</span>.read_all()<span class="question-mark">?</span>);
+            <span class="self">self</span>.pax_extensions = <span class="prelude-val">Some</span>(<span class="self">self</span>.read_all()<span class="question-mark">?</span>);
         }
         <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(PaxExtensions::new(
-            <a class="self" href="#351">self</a>.pax_extensions.as_ref().unwrap(),
+            <span class="self">self</span>.pax_extensions.as_ref().unwrap(),
         )))
     }
 
-    <span class="kw">fn </span>unpack_in(<span class="kw-2">&amp;mut </span><span class="self">self</span>, dst: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>&gt; {
+    <span class="kw">fn </span>unpack_in(<span class="kw-2">&amp;mut </span><span class="self">self</span>, dst: <span class="kw-2">&amp;</span>Path) -&gt; io::Result&lt;bool&gt; {
         <span class="comment">// Notes regarding bsdtar 2.8.3 / libarchive 2.8.3:
         // * Leading &#39;/&#39;s are trimmed. For example, `///test` is treated as
         //   `test`.
@@ -1208,7 +1208,7 @@
         // Most of this is handled by the `path` module of the standard
         // library, but we specially handle a few cases here as well.
 
-        </span><span class="kw">let </span><span class="kw-2">mut </span>file_dst = <a href="#365">dst</a>.to_path_buf();
+        </span><span class="kw">let </span><span class="kw-2">mut </span>file_dst = dst.to_path_buf();
         {
             <span class="kw">let </span>path = <span class="self">self</span>.path().map_err(|e| {
                 TarError::new(
@@ -1241,8 +1241,8 @@
         }
 
         <span class="comment">// Skip entries without a parent (i.e. outside of FS root)
-        </span><span class="kw">let </span>parent = <span class="kw">match </span><a href="#379">file_dst</a>.parent() {
-            <span class="prelude-val">Some</span>(p) =&gt; <a href="#413">p</a>,
+        </span><span class="kw">let </span>parent = <span class="kw">match </span>file_dst.parent() {
+            <span class="prelude-val">Some</span>(p) =&gt; p,
             <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="bool-val">false</span>),
         };
 
@@ -1258,37 +1258,37 @@
     }
 
     <span class="doccomment">/// Unpack as destination directory `dst`.
-    </span><span class="kw">fn </span>unpack_dir(<span class="kw-2">&amp;mut </span><span class="self">self</span>, dst: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>) -&gt; io::Result&lt;()&gt; {
+    </span><span class="kw">fn </span>unpack_dir(<span class="kw-2">&amp;mut </span><span class="self">self</span>, dst: <span class="kw-2">&amp;</span>Path) -&gt; io::Result&lt;()&gt; {
         <span class="comment">// If the directory already exists just let it slide
-        </span>fs::create_dir(<a href="#429">dst</a>).or_else(|err| {
+        </span>fs::create_dir(dst).or_else(|err| {
             <span class="kw">if </span>err.kind() == ErrorKind::AlreadyExists {
-                <span class="kw">let </span>prev = <a href="https://doc.rust-lang.org/nightly/std/fs/fn.metadata.html">fs::metadata</a>(<a href="#429">dst</a>);
+                <span class="kw">let </span>prev = fs::metadata(dst);
                 <span class="kw">if </span>prev.map(|m| m.is_dir()).unwrap_or(<span class="bool-val">false</span>) {
                     <span class="kw">return </span><span class="prelude-val">Ok</span>(());
                 }
             }
             <span class="prelude-val">Err</span>(Error::new(
-                <a href="#431">err</a>.kind(),
-                <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;{} when creating dir {}&quot;</span>, err, dst.display()),
+                err.kind(),
+                <span class="macro">format!</span>(<span class="string">&quot;{} when creating dir {}&quot;</span>, err, dst.display()),
             ))
         })
     }
 
     <span class="doccomment">/// Returns access to the header of this entry in the archive.
-    </span><span class="kw">fn </span>unpack(<span class="kw-2">&amp;mut </span><span class="self">self</span>, target_base: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>&gt;, dst: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>) -&gt; io::Result&lt;<a href="#54">Unpacked</a>&gt; {
-        <span class="kw">let </span>kind = <a class="self" href="#446">self</a>.header.<a href="header.rs.html#674">entry_type</a>();
+    </span><span class="kw">fn </span>unpack(<span class="kw-2">&amp;mut </span><span class="self">self</span>, target_base: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Path&gt;, dst: <span class="kw-2">&amp;</span>Path) -&gt; io::Result&lt;Unpacked&gt; {
+        <span class="kw">let </span>kind = <span class="self">self</span>.header.entry_type();
 
         <span class="kw">if </span>kind.is_dir() {
             <span class="self">self</span>.unpack_dir(dst)<span class="question-mark">?</span>;
-            <span class="kw">if let </span><span class="prelude-val">Ok</span>(mode) = <a class="self" href="#446">self</a>.header.<a href="header.rs.html#453">mode</a>() {
+            <span class="kw">if let </span><span class="prelude-val">Ok</span>(mode) = <span class="self">self</span>.header.mode() {
                 set_perms(dst, <span class="prelude-val">None</span>, mode, <span class="self">self</span>.preserve_permissions)<span class="question-mark">?</span>;
             }
-            <span class="kw">return </span><span class="prelude-val">Ok</span>(<a href="#59">Unpacked::__Nonexhaustive</a>);
+            <span class="kw">return </span><span class="prelude-val">Ok</span>(Unpacked::__Nonexhaustive);
         } <span class="kw">else if </span>kind.is_hard_link() || kind.is_symlink() {
             <span class="kw">let </span>src = <span class="kw">match </span><span class="self">self</span>.link_name()<span class="question-mark">? </span>{
-                <span class="prelude-val">Some</span>(name) =&gt; <a href="#457">name</a>,
+                <span class="prelude-val">Some</span>(name) =&gt; name,
                 <span class="prelude-val">None </span>=&gt; {
-                    <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="lib.rs.html#42">other</a>(<span class="kw-2">&amp;</span><a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(
+                    <span class="kw">return </span><span class="prelude-val">Err</span>(other(<span class="kw-2">&amp;</span><span class="macro">format!</span>(
                         <span class="string">&quot;hard link listed for {} but no link name found&quot;</span>,
                         String::from_utf8_lossy(<span class="self">self</span>.header.as_bytes())
                     )));
@@ -1296,14 +1296,14 @@
             };
 
             <span class="kw">if </span>src.iter().count() == <span class="number">0 </span>{
-                <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="lib.rs.html#42">other</a>(<span class="kw-2">&amp;</span><a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(
+                <span class="kw">return </span><span class="prelude-val">Err</span>(other(<span class="kw-2">&amp;</span><span class="macro">format!</span>(
                     <span class="string">&quot;symlink destination for {} is empty&quot;</span>,
                     String::from_utf8_lossy(<span class="self">self</span>.header.as_bytes())
                 )));
             }
 
             <span class="kw">if </span>kind.is_hard_link() {
-                <span class="kw">let </span>link_src = <span class="kw">match </span><a href="#446">target_base</a> {
+                <span class="kw">let </span>link_src = <span class="kw">match </span>target_base {
                     <span class="comment">// If we&#39;re unpacking within a directory then ensure that
                     // the destination of this hard link is both present and
                     // inside our own directory. This is needed because we want
@@ -1316,11 +1316,11 @@
                     // links though they&#39;re canonicalized to their existing path
                     // so we need to validate at this time.
                     </span><span class="prelude-val">Some</span>(<span class="kw-2">ref </span>p) =&gt; {
-                        <span class="kw">let </span>link_src = <a href="#486">p</a>.join(<a href="#456">src</a>);
+                        <span class="kw">let </span>link_src = p.join(src);
                         <span class="self">self</span>.validate_inside_dst(p, <span class="kw-2">&amp;</span>link_src)<span class="question-mark">?</span>;
-                        <a href="#487">link_src</a>
+                        link_src
                     }
-                    <span class="prelude-val">None </span>=&gt; <a href="#456">src</a>.into_owned(),
+                    <span class="prelude-val">None </span>=&gt; src.into_owned(),
                 };
                 fs::hard_link(<span class="kw-2">&amp;</span>link_src, dst).map_err(|err| {
                     Error::new(
@@ -1355,7 +1355,7 @@
                         )
                     })<span class="question-mark">?</span>;
             };
-            <span class="kw">return </span><span class="prelude-val">Ok</span>(<a href="#59">Unpacked::__Nonexhaustive</a>);
+            <span class="kw">return </span><span class="prelude-val">Ok</span>(Unpacked::__Nonexhaustive);
 
             <span class="attr">#[cfg(target_arch = <span class="string">&quot;wasm32&quot;</span>)]
             #[allow(unused_variables)]
@@ -1369,15 +1369,15 @@
             }
 
             <span class="attr">#[cfg(unix)]
-            </span><span class="kw">fn </span>symlink(src: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>, dst: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>) -&gt; io::Result&lt;()&gt; {
-                ::std::os::unix::fs::symlink(<a href="#540">src</a>, <a href="#540">dst</a>)
+            </span><span class="kw">fn </span>symlink(src: <span class="kw-2">&amp;</span>Path, dst: <span class="kw-2">&amp;</span>Path) -&gt; io::Result&lt;()&gt; {
+                ::std::os::unix::fs::symlink(src, dst)
             }
         } <span class="kw">else if </span>kind.is_pax_global_extensions()
             || kind.is_pax_local_extensions()
             || kind.is_gnu_longname()
             || kind.is_gnu_longlink()
         {
-            <span class="kw">return </span><span class="prelude-val">Ok</span>(<a href="#59">Unpacked::__Nonexhaustive</a>);
+            <span class="kw">return </span><span class="prelude-val">Ok</span>(Unpacked::__Nonexhaustive);
         };
 
         <span class="comment">// Old BSD-tar compatibility.
@@ -1385,10 +1385,10 @@
         // Only applies to old headers.
         </span><span class="kw">if </span><span class="self">self</span>.header.as_ustar().is_none() &amp;&amp; <span class="self">self</span>.path_bytes().ends_with(<span class="string">b&quot;/&quot;</span>) {
             <span class="self">self</span>.unpack_dir(dst)<span class="question-mark">?</span>;
-            <span class="kw">if let </span><span class="prelude-val">Ok</span>(mode) = <a class="self" href="#446">self</a>.header.<a href="header.rs.html#453">mode</a>() {
+            <span class="kw">if let </span><span class="prelude-val">Ok</span>(mode) = <span class="self">self</span>.header.mode() {
                 set_perms(dst, <span class="prelude-val">None</span>, mode, <span class="self">self</span>.preserve_permissions)<span class="question-mark">?</span>;
             }
-            <span class="kw">return </span><span class="prelude-val">Ok</span>(<a href="#59">Unpacked::__Nonexhaustive</a>);
+            <span class="kw">return </span><span class="prelude-val">Ok</span>(Unpacked::__Nonexhaustive);
         }
 
         <span class="comment">// Note the lack of `else` clause above. According to the FreeBSD
@@ -1402,8 +1402,8 @@
 
         // Ensure we write a new file rather than overwriting in-place which
         // is attackable; if an existing file is found unlink it.
-        </span><span class="kw">fn </span>open(dst: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/fs/struct.File.html">std::fs::File</a>&gt; {
-            OpenOptions::new().write(<span class="bool-val">true</span>).create_new(<span class="bool-val">true</span>).open(<a href="#573">dst</a>)
+        </span><span class="kw">fn </span>open(dst: <span class="kw-2">&amp;</span>Path) -&gt; io::Result&lt;std::fs::File&gt; {
+            OpenOptions::new().write(<span class="bool-val">true</span>).create_new(<span class="bool-val">true</span>).open(dst)
         }
         <span class="kw">let </span><span class="kw-2">mut </span>f = (|| -&gt; io::Result&lt;std::fs::File&gt; {
             <span class="kw">let </span><span class="kw-2">mut </span>f = open(dst).or_else(|err| {
@@ -1450,61 +1450,61 @@
         })<span class="question-mark">?</span>;
 
         <span class="kw">if </span><span class="self">self</span>.preserve_mtime {
-            <span class="kw">if let </span><span class="prelude-val">Ok</span>(mtime) = <a class="self" href="#446">self</a>.header.<a href="header.rs.html#506">mtime</a>() {
+            <span class="kw">if let </span><span class="prelude-val">Ok</span>(mtime) = <span class="self">self</span>.header.mtime() {
                 <span class="comment">// For some more information on this see the comments in
                 // `Header::fill_platform_from`, but the general idea is that
                 // we&#39;re trying to avoid 0-mtime files coming out of archives
                 // since some tools don&#39;t ingest them well. Perhaps one day
                 // when Cargo stops working with 0-mtime archives we can remove
                 // this.
-                </span><span class="kw">let </span>mtime = <span class="kw">if </span>mtime == <span class="number">0 </span>{ <span class="number">1 </span>} <span class="kw">else </span>{ <a href="#621">mtime</a> };
-                <span class="kw">let </span>mtime = FileTime::from_unix_time(<a href="#628">mtime</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>, <span class="number">0</span>);
+                </span><span class="kw">let </span>mtime = <span class="kw">if </span>mtime == <span class="number">0 </span>{ <span class="number">1 </span>} <span class="kw">else </span>{ mtime };
+                <span class="kw">let </span>mtime = FileTime::from_unix_time(mtime <span class="kw">as </span>i64, <span class="number">0</span>);
                 filetime::set_file_handle_times(<span class="kw-2">&amp;</span>f, <span class="prelude-val">Some</span>(mtime), <span class="prelude-val">Some</span>(mtime)).map_err(|e| {
                     TarError::new(<span class="macro">format!</span>(<span class="string">&quot;failed to set mtime for `{}`&quot;</span>, dst.display()), e)
                 })<span class="question-mark">?</span>;
             }
         }
-        <span class="kw">if let </span><span class="prelude-val">Ok</span>(mode) = <a class="self" href="#446">self</a>.header.<a href="header.rs.html#453">mode</a>() {
+        <span class="kw">if let </span><span class="prelude-val">Ok</span>(mode) = <span class="self">self</span>.header.mode() {
             set_perms(dst, <span class="prelude-val">Some</span>(<span class="kw-2">&amp;mut </span>f), mode, <span class="self">self</span>.preserve_permissions)<span class="question-mark">?</span>;
         }
         <span class="kw">if </span><span class="self">self</span>.unpack_xattrs {
             set_xattrs(<span class="self">self</span>, dst)<span class="question-mark">?</span>;
         }
-        <span class="kw">return </span><span class="prelude-val">Ok</span>(<a href="#56">Unpacked::File</a>(<a href="#576">f</a>));
+        <span class="kw">return </span><span class="prelude-val">Ok</span>(Unpacked::File(f));
 
         <span class="kw">fn </span>set_perms(
-            dst: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>,
-            f: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/std/fs/struct.File.html">std::fs::File</a>&gt;,
-            mode: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>,
-            preserve: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-        ) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#7">TarError</a>&gt; {
-            <a href="#663-668">_set_perms</a>(<a href="#644">dst</a>, <a href="#645">f</a>, <a href="#646">mode</a>, <a href="#647">preserve</a>).map_err(|e| {
+            dst: <span class="kw-2">&amp;</span>Path,
+            f: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;mut </span>std::fs::File&gt;,
+            mode: u32,
+            preserve: bool,
+        ) -&gt; <span class="prelude-ty">Result</span>&lt;(), TarError&gt; {
+            _set_perms(dst, f, mode, preserve).map_err(|e| {
                 TarError::new(
-                    <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(
+                    <span class="macro">format!</span>(
                         <span class="string">&quot;failed to set permissions to {:o} \
                          for `{}`&quot;</span>,
                         mode,
                         dst.display()
                     ),
-                    <a href="#649">e</a>,
+                    e,
                 )
             })
         }
 
         <span class="attr">#[cfg(unix)]
         </span><span class="kw">fn </span>_set_perms(
-            dst: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>,
-            f: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/std/fs/struct.File.html">std::fs::File</a>&gt;,
-            mode: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>,
-            preserve: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
+            dst: <span class="kw-2">&amp;</span>Path,
+            f: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;mut </span>std::fs::File&gt;,
+            mode: u32,
+            preserve: bool,
         ) -&gt; io::Result&lt;()&gt; {
-            <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/os/unix/prelude/index.html">std::os::unix::prelude</a>::<span class="kw-2">*</span>;
+            <span class="kw">use </span>std::os::unix::prelude::<span class="kw-2">*</span>;
 
-            <span class="kw">let </span>mode = <span class="kw">if </span>preserve { <a href="#666">mode</a> } <span class="kw">else </span>{ <a href="#666">mode</a> &amp; <span class="number">0o777 </span>};
-            <span class="kw">let </span>perm = fs::Permissions::from_mode(<a href="#671">mode</a> <span class="kw">as _</span>);
-            <span class="kw">match </span><a href="#665">f</a> {
-                <span class="prelude-val">Some</span>(f) =&gt; <a href="#674">f</a>.set_permissions(<a href="#672">perm</a>),
-                <span class="prelude-val">None </span>=&gt; fs::set_permissions(<a href="#664">dst</a>, <a href="#672">perm</a>),
+            <span class="kw">let </span>mode = <span class="kw">if </span>preserve { mode } <span class="kw">else </span>{ mode &amp; <span class="number">0o777 </span>};
+            <span class="kw">let </span>perm = fs::Permissions::from_mode(mode <span class="kw">as _</span>);
+            <span class="kw">match </span>f {
+                <span class="prelude-val">Some</span>(f) =&gt; f.set_permissions(perm),
+                <span class="prelude-val">None </span>=&gt; fs::set_permissions(dst, perm),
             }
         }
 
@@ -1544,26 +1544,26 @@
         }
 
         <span class="attr">#[cfg(all(unix, feature = <span class="string">&quot;xattr&quot;</span>))]
-        </span><span class="kw">fn </span>set_xattrs(me: <span class="kw-2">&amp;mut </span><a href="#30">EntryFields</a>, dst: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>) -&gt; io::Result&lt;()&gt; {
-            <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsStr.html">std::ffi::OsStr</a>;
-            <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/os/unix/prelude/index.html">std::os::unix::prelude</a>::<span class="kw-2">*</span>;
+        </span><span class="kw">fn </span>set_xattrs(me: <span class="kw-2">&amp;mut </span>EntryFields, dst: <span class="kw-2">&amp;</span>Path) -&gt; io::Result&lt;()&gt; {
+            <span class="kw">use </span>std::ffi::OsStr;
+            <span class="kw">use </span>std::os::unix::prelude::<span class="kw-2">*</span>;
 
-            <span class="kw">let </span>exts = <span class="kw">match </span><a href="#715">me</a>.<a href="#351">pax_extensions</a>() {
-                <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(e)) =&gt; <a href="#720">e</a>,
+            <span class="kw">let </span>exts = <span class="kw">match </span>me.pax_extensions() {
+                <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(e)) =&gt; e,
                 <span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="prelude-val">Ok</span>(()),
             };
-            <span class="kw">let </span>exts = <a href="#719">exts</a>
-                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter_map</a>(|e| <a href="#724">e</a>.ok())
-                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter_map</a>(|e| {
-                    <span class="kw">let </span>key = <a href="#725">e</a>.<a href="pax.rs.html#102">key_bytes</a>();
+            <span class="kw">let </span>exts = exts
+                .filter_map(|e| e.ok())
+                .filter_map(|e| {
+                    <span class="kw">let </span>key = e.key_bytes();
                     <span class="kw">let </span>prefix = <span class="string">b&quot;SCHILY.xattr.&quot;</span>;
                     <span class="kw">if </span>key.starts_with(prefix) {
-                        <span class="prelude-val">Some</span>((<span class="kw-2">&amp;</span><a href="#726">key</a>[<a href="#727">prefix</a>.len()..], <a href="#725">e</a>))
+                        <span class="prelude-val">Some</span>((<span class="kw-2">&amp;</span>key[prefix.len()..], e))
                     } <span class="kw">else </span>{
                         <span class="prelude-val">None
                     </span>}
                 })
-                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|(key, e)| (OsStr::from_bytes(<a href="#734">key</a>), <a href="#734">e</a>.<a href="pax.rs.html#114">value_bytes</a>()));
+                .map(|(key, e)| (OsStr::from_bytes(key), e.value_bytes()));
 
             <span class="kw">for </span>(key, value) <span class="kw">in </span>exts {
                 xattr::set(dst, key, value).map_err(|e| {
@@ -1591,8 +1591,8 @@
         }
     }
 
-    <span class="kw">fn </span>ensure_dir_created(<span class="kw-2">&amp;</span><span class="self">self</span>, dst: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>, dir: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>) -&gt; io::Result&lt;()&gt; {
-        <span class="kw">let </span><span class="kw-2">mut </span>ancestor = <a href="#762">dir</a>;
+    <span class="kw">fn </span>ensure_dir_created(<span class="kw-2">&amp;</span><span class="self">self</span>, dst: <span class="kw-2">&amp;</span>Path, dir: <span class="kw-2">&amp;</span>Path) -&gt; io::Result&lt;()&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>ancestor = dir;
         <span class="kw">let </span><span class="kw-2">mut </span>dirs_to_create = Vec::new();
         <span class="kw">while </span>ancestor.symlink_metadata().is_err() {
             dirs_to_create.push(ancestor);
@@ -1611,7 +1611,7 @@
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="kw">fn </span>validate_inside_dst(<span class="kw-2">&amp;</span><span class="self">self</span>, dst: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>, file_dst: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/path/struct.PathBuf.html">PathBuf</a>&gt; {
+    <span class="kw">fn </span>validate_inside_dst(<span class="kw-2">&amp;</span><span class="self">self</span>, dst: <span class="kw-2">&amp;</span>Path, file_dst: <span class="kw-2">&amp;</span>Path) -&gt; io::Result&lt;PathBuf&gt; {
         <span class="comment">// Abort if target (canonical) parent is outside of `dst`
         </span><span class="kw">let </span>canon_parent = file_dst.canonicalize().map_err(|err| {
             Error::new(
@@ -1627,40 +1627,40 @@
         })<span class="question-mark">?</span>;
         <span class="kw">if </span>!canon_parent.starts_with(<span class="kw-2">&amp;</span>canon_target) {
             <span class="kw">let </span>err = TarError::new(
-                <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(
+                <span class="macro">format!</span>(
                     <span class="string">&quot;trying to unpack outside of destination path: {}&quot;</span>,
                     canon_target.display()
                 ),
                 <span class="comment">// TODO: use ErrorKind::InvalidInput here? (minor breaking change)
                 </span>Error::new(ErrorKind::Other, <span class="string">&quot;Invalid argument&quot;</span>),
             );
-            <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="#797">err</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>());
+            <span class="kw">return </span><span class="prelude-val">Err</span>(err.into());
         }
-        <span class="prelude-val">Ok</span>(<a href="#790">canon_target</a>)
+        <span class="prelude-val">Ok</span>(canon_target)
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; <a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a> <span class="kw">for </span>EntryFields&lt;<span class="lifetime">&#39;a</span>&gt; {
-    <span class="kw">fn </span>read(<span class="kw-2">&amp;mut </span><span class="self">self</span>, into: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; Read <span class="kw">for </span>EntryFields&lt;<span class="lifetime">&#39;a</span>&gt; {
+    <span class="kw">fn </span>read(<span class="kw-2">&amp;mut </span><span class="self">self</span>, into: <span class="kw-2">&amp;mut </span>[u8]) -&gt; io::Result&lt;usize&gt; {
         <span class="kw">loop </span>{
-            <span class="kw">match </span><a class="self" href="#812">self</a>.data.get_mut(<span class="number">0</span>).map(|io| <a href="#814">io</a>.<a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">read</a>(<a href="#812">into</a>)) {
+            <span class="kw">match </span><span class="self">self</span>.data.get_mut(<span class="number">0</span>).map(|io| io.read(into)) {
                 <span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(<span class="number">0</span>)) =&gt; {
-                    <a class="self" href="#812">self</a>.data.remove(<span class="number">0</span>);
+                    <span class="self">self</span>.data.remove(<span class="number">0</span>);
                 }
-                <span class="prelude-val">Some</span>(r) =&gt; <span class="kw">return </span><a href="#818">r</a>,
+                <span class="prelude-val">Some</span>(r) =&gt; <span class="kw">return </span>r,
                 <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="number">0</span>),
             }
         }
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; <a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a> <span class="kw">for </span>EntryIo&lt;<span class="lifetime">&#39;a</span>&gt; {
-    <span class="kw">fn </span>read(<span class="kw-2">&amp;mut </span><span class="self">self</span>, into: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
-        <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="#826">self</a> </span>{
-            <a href="#46">EntryIo::Pad</a>(<span class="kw-2">ref mut </span>io) =&gt; <a href="#828">io</a>.<a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">read</a>(<a href="#826">into</a>),
-            <a href="#47">EntryIo::Data</a>(<span class="kw-2">ref mut </span>io) =&gt; <a href="#829">io</a>.<a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">read</a>(<a href="#826">into</a>),
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; Read <span class="kw">for </span>EntryIo&lt;<span class="lifetime">&#39;a</span>&gt; {
+    <span class="kw">fn </span>read(<span class="kw-2">&amp;mut </span><span class="self">self</span>, into: <span class="kw-2">&amp;mut </span>[u8]) -&gt; io::Result&lt;usize&gt; {
+        <span class="kw">match </span><span class="kw-2">*</span><span class="self">self </span>{
+            EntryIo::Pad(<span class="kw-2">ref mut </span>io) =&gt; io.read(into),
+            EntryIo::Data(<span class="kw-2">ref mut </span>io) =&gt; io.read(into),
         }
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="tar" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="tar" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

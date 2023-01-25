@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/hyper-0.14.23/src/client/dispatch.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>dispatch.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../hyper/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/hyper-0.14.23/src/client/dispatch.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>dispatch.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../hyper/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -435,28 +435,28 @@
 <a href="#435" id="435">435</a>
 <a href="#436" id="436">436</a>
 </pre><pre class="rust"><code><span class="attr">#[cfg(feature = <span class="string">&quot;http2&quot;</span>)]
-</span><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">std::future::Future</a>;
+</span><span class="kw">use </span>std::future::Future;
 
-<span class="kw">use </span><a href="../../../futures_util/future/future/trait.FutureExt.html">futures_util::FutureExt</a>;
-<span class="kw">use </span>tokio::sync::{<a href="../../../tokio/sync/mpsc/index.html">mpsc</a>, <a href="../../../tokio/sync/oneshot/index.html">oneshot</a>};
+<span class="kw">use </span>futures_util::FutureExt;
+<span class="kw">use </span>tokio::sync::{mpsc, oneshot};
 
 <span class="attr">#[cfg(feature = <span class="string">&quot;http2&quot;</span>)]
-</span><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/pin/struct.Pin.html"><span class="kw">crate</span>::common::Pin</a>;
-<span class="kw">use </span><span class="kw">crate</span>::common::{<a href="../common/mod.rs.html#26">task</a>, <a href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">Poll</a>};
+</span><span class="kw">use </span><span class="kw">crate</span>::common::Pin;
+<span class="kw">use </span><span class="kw">crate</span>::common::{task, Poll};
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type </span>RetryPromise&lt;T, U&gt; = oneshot::Receiver&lt;<span class="prelude-ty">Result</span>&lt;U, (<a href="../error.rs.html#11"><span class="kw">crate</span>::Error</a>, <span class="prelude-ty">Option</span>&lt;T&gt;)&gt;&gt;;
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type </span>Promise&lt;T&gt; = oneshot::Receiver&lt;<span class="prelude-ty">Result</span>&lt;T, <a href="../error.rs.html#11"><span class="kw">crate</span>::Error</a>&gt;&gt;;
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type </span>RetryPromise&lt;T, U&gt; = oneshot::Receiver&lt;<span class="prelude-ty">Result</span>&lt;U, (<span class="kw">crate</span>::Error, <span class="prelude-ty">Option</span>&lt;T&gt;)&gt;&gt;;
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type </span>Promise&lt;T&gt; = oneshot::Receiver&lt;<span class="prelude-ty">Result</span>&lt;T, <span class="kw">crate</span>::Error&gt;&gt;;
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>channel&lt;T, U&gt;() -&gt; (Sender&lt;T, U&gt;, Receiver&lt;T, U&gt;) {
     <span class="kw">let </span>(tx, rx) = mpsc::unbounded_channel();
     <span class="kw">let </span>(giver, taker) = want::new();
-    <span class="kw">let </span>tx = <a href="#30">Sender</a> {
+    <span class="kw">let </span>tx = Sender {
         buffered_once: <span class="bool-val">false</span>,
-        <a href="#16">giver</a>,
-        inner: <a href="#15">tx</a>,
+        giver,
+        inner: tx,
     };
-    <span class="kw">let </span>rx = <a href="#143">Receiver</a> { inner: <a href="#15">rx</a>, <a href="#16">taker</a> };
-    (<a href="#17">tx</a>, <a href="#22">rx</a>)
+    <span class="kw">let </span>rx = Receiver { inner: rx, taker };
+    (tx, rx)
 }
 
 <span class="doccomment">/// A bounded sender of requests and callbacks for when responses are ready.
@@ -467,12 +467,12 @@
     <span class="doccomment">/// One message is always allowed, even if the Receiver hasn&#39;t asked
     /// for it yet. This boolean keeps track of whether we&#39;ve sent one
     /// without notice.
-    </span>buffered_once: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
+    </span>buffered_once: bool,
     <span class="doccomment">/// The Giver helps watch that the the Receiver side has been polled
     /// when the queue is empty. This helps us know when a request and
     /// response have been fully processed, and a connection is ready
     /// for more.
-    </span>giver: <a href="../../../want/struct.Giver.html">want::Giver</a>,
+    </span>giver: want::Giver,
     <span class="doccomment">/// Actually bounded by the Giver, plus `buffered_once`.
     </span>inner: mpsc::UnboundedSender&lt;Envelope&lt;T, U&gt;&gt;,
 }
@@ -484,32 +484,32 @@
 </span><span class="attr">#[cfg(feature = <span class="string">&quot;http2&quot;</span>)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>UnboundedSender&lt;T, U&gt; {
     <span class="doccomment">/// Only used for `is_closed`, since mpsc::UnboundedSender cannot be checked.
-    </span>giver: <a href="../../../want/struct.SharedGiver.html">want::SharedGiver</a>,
+    </span>giver: want::SharedGiver,
     inner: mpsc::UnboundedSender&lt;Envelope&lt;T, U&gt;&gt;,
 }
 
 <span class="kw">impl</span>&lt;T, U&gt; Sender&lt;T, U&gt; {
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>poll_ready(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cx: <span class="kw-2">&amp;mut </span>task::Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="kw">crate</span>::Result&lt;()&gt;&gt; {
-        <a class="self" href="#56">self</a>.giver
-            .poll_want(<a href="#56">cx</a>)
+        <span class="self">self</span>.giver
+            .poll_want(cx)
             .map_err(|<span class="kw">_</span>| <span class="kw">crate</span>::Error::new_closed())
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>is_ready(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#62">self</a>.giver.is_wanting()
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>is_ready(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.giver.is_wanting()
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>is_closed(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#66">self</a>.giver.is_canceled()
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>is_closed(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.giver.is_canceled()
     }
 
-    <span class="kw">fn </span>can_send(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+    <span class="kw">fn </span>can_send(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; bool {
         <span class="kw">if </span><span class="self">self</span>.giver.give() || !<span class="self">self</span>.buffered_once {
             <span class="comment">// If the receiver is ready *now*, then of course we can send.
             //
             // If the receiver isn&#39;t ready yet, but we don&#39;t have anything
             // in the channel yet, then allow one message.
-            </span><a class="self" href="#70">self</a>.buffered_once = <span class="bool-val">true</span>;
+            </span><span class="self">self</span>.buffered_once = <span class="bool-val">true</span>;
             <span class="bool-val">true
         </span>} <span class="kw">else </span>{
             <span class="bool-val">false
@@ -518,67 +518,67 @@
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>try_send(<span class="kw-2">&amp;mut </span><span class="self">self</span>, val: T) -&gt; <span class="prelude-ty">Result</span>&lt;RetryPromise&lt;T, U&gt;, T&gt; {
         <span class="kw">if </span>!<span class="self">self</span>.can_send() {
-            <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="#83">val</a>);
+            <span class="kw">return </span><span class="prelude-val">Err</span>(val);
         }
         <span class="kw">let </span>(tx, rx) = oneshot::channel();
-        <a class="self" href="#83">self</a>.inner
-            .send(<a href="#187">Envelope</a>(<span class="prelude-val">Some</span>((<a href="#83">val</a>, <a href="#201">Callback::Retry</a>(<span class="prelude-val">Some</span>(<a href="#87">tx</a>))))))
-            .map(<span class="kw">move </span>|<span class="kw">_</span>| <a href="#87">rx</a>)
-            .map_err(|<span class="kw-2">mut </span>e| (<a href="#91">e</a>.<span class="number">0</span>).<span class="number">0</span>.take().expect(<span class="string">&quot;envelope not dropped&quot;</span>).<span class="number">0</span>)
+        <span class="self">self</span>.inner
+            .send(Envelope(<span class="prelude-val">Some</span>((val, Callback::Retry(<span class="prelude-val">Some</span>(tx))))))
+            .map(<span class="kw">move </span>|<span class="kw">_</span>| rx)
+            .map_err(|<span class="kw-2">mut </span>e| (e.<span class="number">0</span>).<span class="number">0</span>.take().expect(<span class="string">&quot;envelope not dropped&quot;</span>).<span class="number">0</span>)
     }
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>send(<span class="kw-2">&amp;mut </span><span class="self">self</span>, val: T) -&gt; <span class="prelude-ty">Result</span>&lt;Promise&lt;U&gt;, T&gt; {
         <span class="kw">if </span>!<span class="self">self</span>.can_send() {
-            <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="#94">val</a>);
+            <span class="kw">return </span><span class="prelude-val">Err</span>(val);
         }
         <span class="kw">let </span>(tx, rx) = oneshot::channel();
-        <a class="self" href="#94">self</a>.inner
-            .send(<a href="#187">Envelope</a>(<span class="prelude-val">Some</span>((<a href="#94">val</a>, <a href="#202">Callback::NoRetry</a>(<span class="prelude-val">Some</span>(<a href="#98">tx</a>))))))
-            .map(<span class="kw">move </span>|<span class="kw">_</span>| <a href="#98">rx</a>)
-            .map_err(|<span class="kw-2">mut </span>e| (<a href="#102">e</a>.<span class="number">0</span>).<span class="number">0</span>.take().expect(<span class="string">&quot;envelope not dropped&quot;</span>).<span class="number">0</span>)
+        <span class="self">self</span>.inner
+            .send(Envelope(<span class="prelude-val">Some</span>((val, Callback::NoRetry(<span class="prelude-val">Some</span>(tx))))))
+            .map(<span class="kw">move </span>|<span class="kw">_</span>| rx)
+            .map_err(|<span class="kw-2">mut </span>e| (e.<span class="number">0</span>).<span class="number">0</span>.take().expect(<span class="string">&quot;envelope not dropped&quot;</span>).<span class="number">0</span>)
     }
 
     <span class="attr">#[cfg(feature = <span class="string">&quot;http2&quot;</span>)]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>unbound(<span class="self">self</span>) -&gt; UnboundedSender&lt;T, U&gt; {
-        <a href="#49">UnboundedSender</a> {
-            giver: <a class="self" href="#106">self</a>.giver.shared(),
-            inner: <a class="self" href="#106">self</a>.inner,
+        UnboundedSender {
+            giver: <span class="self">self</span>.giver.shared(),
+            inner: <span class="self">self</span>.inner,
         }
     }
 }
 
 <span class="attr">#[cfg(feature = <span class="string">&quot;http2&quot;</span>)]
 </span><span class="kw">impl</span>&lt;T, U&gt; UnboundedSender&lt;T, U&gt; {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>is_ready(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        !<a class="self" href="#116">self</a>.giver.is_canceled()
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>is_ready(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        !<span class="self">self</span>.giver.is_canceled()
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>is_closed(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#120">self</a>.giver.is_canceled()
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>is_closed(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.giver.is_canceled()
     }
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>try_send(<span class="kw-2">&amp;mut </span><span class="self">self</span>, val: T) -&gt; <span class="prelude-ty">Result</span>&lt;RetryPromise&lt;T, U&gt;, T&gt; {
         <span class="kw">let </span>(tx, rx) = oneshot::channel();
-        <a class="self" href="#124">self</a>.inner
-            .send(<a href="#187">Envelope</a>(<span class="prelude-val">Some</span>((<a href="#124">val</a>, <a href="#201">Callback::Retry</a>(<span class="prelude-val">Some</span>(<a href="#125">tx</a>))))))
-            .map(<span class="kw">move </span>|<span class="kw">_</span>| <a href="#125">rx</a>)
-            .map_err(|<span class="kw-2">mut </span>e| (<a href="#129">e</a>.<span class="number">0</span>).<span class="number">0</span>.take().expect(<span class="string">&quot;envelope not dropped&quot;</span>).<span class="number">0</span>)
+        <span class="self">self</span>.inner
+            .send(Envelope(<span class="prelude-val">Some</span>((val, Callback::Retry(<span class="prelude-val">Some</span>(tx))))))
+            .map(<span class="kw">move </span>|<span class="kw">_</span>| rx)
+            .map_err(|<span class="kw-2">mut </span>e| (e.<span class="number">0</span>).<span class="number">0</span>.take().expect(<span class="string">&quot;envelope not dropped&quot;</span>).<span class="number">0</span>)
     }
 }
 
 <span class="attr">#[cfg(feature = <span class="string">&quot;http2&quot;</span>)]
-</span><span class="kw">impl</span>&lt;T, U&gt; <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> <span class="kw">for </span>UnboundedSender&lt;T, U&gt; {
+</span><span class="kw">impl</span>&lt;T, U&gt; Clone <span class="kw">for </span>UnboundedSender&lt;T, U&gt; {
     <span class="kw">fn </span>clone(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self </span>{
-        <a href="#49">UnboundedSender</a> {
-            giver: <a class="self" href="#135">self</a>.giver.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
-            inner: <a class="self" href="#135">self</a>.inner.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+        UnboundedSender {
+            giver: <span class="self">self</span>.giver.clone(),
+            inner: <span class="self">self</span>.inner.clone(),
         }
     }
 }
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>Receiver&lt;T, U&gt; {
     inner: mpsc::UnboundedReceiver&lt;Envelope&lt;T, U&gt;&gt;,
-    taker: <a href="../../../want/struct.Taker.html">want::Taker</a>,
+    taker: want::Taker,
 }
 
 <span class="kw">impl</span>&lt;T, U&gt; Receiver&lt;T, U&gt; {
@@ -586,12 +586,12 @@
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         cx: <span class="kw-2">&amp;mut </span>task::Context&lt;<span class="lifetime">&#39;_</span>&gt;,
     ) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;(T, Callback&lt;T, U&gt;)&gt;&gt; {
-        <span class="kw">match </span><a class="self" href="#150">self</a>.inner.poll_recv(<a href="#151">cx</a>) {
+        <span class="kw">match </span><span class="self">self</span>.inner.poll_recv(cx) {
             Poll::Ready(item) =&gt; {
-                Poll::Ready(<a href="#154">item</a>.map(|<span class="kw-2">mut </span>env| <a href="#155">env</a>.<span class="number">0</span>.take().expect(<span class="string">&quot;envelope not dropped&quot;</span>)))
+                Poll::Ready(item.map(|<span class="kw-2">mut </span>env| env.<span class="number">0</span>.take().expect(<span class="string">&quot;envelope not dropped&quot;</span>)))
             }
             Poll::Pending =&gt; {
-                <a class="self" href="#150">self</a>.taker.want();
+                <span class="self">self</span>.taker.want();
                 Poll::Pending
             }
         }
@@ -599,63 +599,63 @@
 
     <span class="attr">#[cfg(feature = <span class="string">&quot;http1&quot;</span>)]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>close(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <a class="self" href="#165">self</a>.taker.cancel();
-        <a class="self" href="#165">self</a>.inner.close();
+        <span class="self">self</span>.taker.cancel();
+        <span class="self">self</span>.inner.close();
     }
 
     <span class="attr">#[cfg(feature = <span class="string">&quot;http1&quot;</span>)]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>try_recv(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;(T, Callback&lt;T, U&gt;)&gt; {
-        <span class="kw">match </span><a class="self" href="#171">self</a>.inner.recv().<a href="../../../futures_util/future/future/trait.FutureExt.html">now_or_never</a>() {
-            <span class="prelude-val">Some</span>(<span class="prelude-val">Some</span>(<span class="kw-2">mut </span>env)) =&gt; <a href="#173">env</a>.<span class="number">0</span>.take(),
+        <span class="kw">match </span><span class="self">self</span>.inner.recv().now_or_never() {
+            <span class="prelude-val">Some</span>(<span class="prelude-val">Some</span>(<span class="kw-2">mut </span>env)) =&gt; env.<span class="number">0</span>.take(),
             <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
         }
     }
 }
 
-<span class="kw">impl</span>&lt;T, U&gt; <a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span>Receiver&lt;T, U&gt; {
+<span class="kw">impl</span>&lt;T, U&gt; Drop <span class="kw">for </span>Receiver&lt;T, U&gt; {
     <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="comment">// Notify the giver about the closure first, before dropping
         // the mpsc::Receiver.
-        </span><a class="self" href="#180">self</a>.taker.cancel();
+        </span><span class="self">self</span>.taker.cancel();
     }
 }
 
 <span class="kw">struct </span>Envelope&lt;T, U&gt;(<span class="prelude-ty">Option</span>&lt;(T, Callback&lt;T, U&gt;)&gt;);
 
-<span class="kw">impl</span>&lt;T, U&gt; <a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span>Envelope&lt;T, U&gt; {
+<span class="kw">impl</span>&lt;T, U&gt; Drop <span class="kw">for </span>Envelope&lt;T, U&gt; {
     <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <span class="kw">if let </span><span class="prelude-val">Some</span>((val, cb)) = <a class="self" href="#190">self</a>.<span class="number">0</span>.take() {
-            <a href="#191">cb</a>.<a href="#247">send</a>(<span class="prelude-val">Err</span>((
-                <span class="kw">crate</span>::Error::new_canceled().<a href="../error.rs.html#219">with</a>(<span class="string">&quot;connection closed&quot;</span>),
-                <span class="prelude-val">Some</span>(<a href="#191">val</a>),
+        <span class="kw">if let </span><span class="prelude-val">Some</span>((val, cb)) = <span class="self">self</span>.<span class="number">0</span>.take() {
+            cb.send(<span class="prelude-val">Err</span>((
+                <span class="kw">crate</span>::Error::new_canceled().with(<span class="string">&quot;connection closed&quot;</span>),
+                <span class="prelude-val">Some</span>(val),
             )));
         }
     }
 }
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">enum </span>Callback&lt;T, U&gt; {
-    Retry(<span class="prelude-ty">Option</span>&lt;oneshot::Sender&lt;<span class="prelude-ty">Result</span>&lt;U, (<a href="../error.rs.html#11"><span class="kw">crate</span>::Error</a>, <span class="prelude-ty">Option</span>&lt;T&gt;)&gt;&gt;&gt;),
-    NoRetry(<span class="prelude-ty">Option</span>&lt;oneshot::Sender&lt;<span class="prelude-ty">Result</span>&lt;U, <a href="../error.rs.html#11"><span class="kw">crate</span>::Error</a>&gt;&gt;&gt;),
+    Retry(<span class="prelude-ty">Option</span>&lt;oneshot::Sender&lt;<span class="prelude-ty">Result</span>&lt;U, (<span class="kw">crate</span>::Error, <span class="prelude-ty">Option</span>&lt;T&gt;)&gt;&gt;&gt;),
+    NoRetry(<span class="prelude-ty">Option</span>&lt;oneshot::Sender&lt;<span class="prelude-ty">Result</span>&lt;U, <span class="kw">crate</span>::Error&gt;&gt;&gt;),
 }
 
-<span class="kw">impl</span>&lt;T, U&gt; <a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span>Callback&lt;T, U&gt; {
+<span class="kw">impl</span>&lt;T, U&gt; Drop <span class="kw">for </span>Callback&lt;T, U&gt; {
     <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="comment">// FIXME(nox): What errors do we want here?
-        </span><span class="kw">let </span>error = <span class="kw">crate</span>::Error::new_user_dispatch_gone().<a href="../error.rs.html#219">with</a>(<span class="kw">if </span>std::thread::panicking() {
+        </span><span class="kw">let </span>error = <span class="kw">crate</span>::Error::new_user_dispatch_gone().with(<span class="kw">if </span>std::thread::panicking() {
             <span class="string">&quot;user code panicked&quot;
         </span>} <span class="kw">else </span>{
             <span class="string">&quot;runtime dropped the dispatch task&quot;
         </span>});
 
-        <span class="kw">match </span><span class="self"><a href="#206">self</a> </span>{
-            <a href="#201">Callback::Retry</a>(tx) =&gt; {
-                <span class="kw">if let </span><span class="prelude-val">Some</span>(tx) = <a href="#215">tx</a>.take() {
-                    <span class="kw">let _ </span>= <a href="#216">tx</a>.send(<span class="prelude-val">Err</span>((<a href="#208">error</a>, <span class="prelude-val">None</span>)));
+        <span class="kw">match </span><span class="self">self </span>{
+            Callback::Retry(tx) =&gt; {
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(tx) = tx.take() {
+                    <span class="kw">let _ </span>= tx.send(<span class="prelude-val">Err</span>((error, <span class="prelude-val">None</span>)));
                 }
             }
-            <a href="#202">Callback::NoRetry</a>(tx) =&gt; {
-                <span class="kw">if let </span><span class="prelude-val">Some</span>(tx) = <a href="#220">tx</a>.take() {
-                    <span class="kw">let _ </span>= <a href="#221">tx</a>.send(<span class="prelude-val">Err</span>(<a href="#208">error</a>));
+            Callback::NoRetry(tx) =&gt; {
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(tx) = tx.take() {
+                    <span class="kw">let _ </span>= tx.send(<span class="prelude-val">Err</span>(error));
                 }
             }
         }
@@ -664,29 +664,29 @@
 
 <span class="kw">impl</span>&lt;T, U&gt; Callback&lt;T, U&gt; {
     <span class="attr">#[cfg(feature = <span class="string">&quot;http2&quot;</span>)]
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>is_canceled(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="#231">self</a> </span>{
-            <a href="#201">Callback::Retry</a>(<span class="prelude-val">Some</span>(<span class="kw-2">ref </span>tx)) =&gt; <a href="#233">tx</a>.is_closed(),
-            <a href="#202">Callback::NoRetry</a>(<span class="prelude-val">Some</span>(<span class="kw-2">ref </span>tx)) =&gt; <a href="#234">tx</a>.is_closed(),
-            <span class="kw">_ </span>=&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(),
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>is_canceled(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="kw">match </span><span class="kw-2">*</span><span class="self">self </span>{
+            Callback::Retry(<span class="prelude-val">Some</span>(<span class="kw-2">ref </span>tx)) =&gt; tx.is_closed(),
+            Callback::NoRetry(<span class="prelude-val">Some</span>(<span class="kw-2">ref </span>tx)) =&gt; tx.is_closed(),
+            <span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>(),
         }
     }
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>poll_canceled(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cx: <span class="kw-2">&amp;mut </span>task::Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;()&gt; {
-        <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="#239">self</a> </span>{
-            <a href="#201">Callback::Retry</a>(<span class="prelude-val">Some</span>(<span class="kw-2">ref mut </span>tx)) =&gt; <a href="#241">tx</a>.poll_closed(<a href="#239">cx</a>),
-            <a href="#202">Callback::NoRetry</a>(<span class="prelude-val">Some</span>(<span class="kw-2">ref mut </span>tx)) =&gt; <a href="#242">tx</a>.poll_closed(<a href="#239">cx</a>),
-            <span class="kw">_ </span>=&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(),
+        <span class="kw">match </span><span class="kw-2">*</span><span class="self">self </span>{
+            Callback::Retry(<span class="prelude-val">Some</span>(<span class="kw-2">ref mut </span>tx)) =&gt; tx.poll_closed(cx),
+            Callback::NoRetry(<span class="prelude-val">Some</span>(<span class="kw-2">ref mut </span>tx)) =&gt; tx.poll_closed(cx),
+            <span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>(),
         }
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>send(<span class="kw-2">mut </span><span class="self">self</span>, val: <span class="prelude-ty">Result</span>&lt;U, (<a href="../error.rs.html#11"><span class="kw">crate</span>::Error</a>, <span class="prelude-ty">Option</span>&lt;T&gt;)&gt;) {
-        <span class="kw">match </span><span class="self"><a href="#247">self</a> </span>{
-            <a href="#201">Callback::Retry</a>(<span class="kw-2">ref mut </span>tx) =&gt; {
-                <span class="kw">let _ </span>= <a href="#249">tx</a>.take().unwrap().send(<a href="#247">val</a>);
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>send(<span class="kw-2">mut </span><span class="self">self</span>, val: <span class="prelude-ty">Result</span>&lt;U, (<span class="kw">crate</span>::Error, <span class="prelude-ty">Option</span>&lt;T&gt;)&gt;) {
+        <span class="kw">match </span><span class="self">self </span>{
+            Callback::Retry(<span class="kw-2">ref mut </span>tx) =&gt; {
+                <span class="kw">let _ </span>= tx.take().unwrap().send(val);
             }
-            <a href="#202">Callback::NoRetry</a>(<span class="kw-2">ref mut </span>tx) =&gt; {
-                <span class="kw">let _ </span>= <a href="#252">tx</a>.take().unwrap().send(<a href="#247">val</a>.map_err(|e| <a href="#253">e</a>.<span class="number">0</span>));
+            Callback::NoRetry(<span class="kw-2">ref mut </span>tx) =&gt; {
+                <span class="kw">let _ </span>= tx.take().unwrap().send(val.map_err(|e| e.<span class="number">0</span>));
             }
         }
     }
@@ -694,7 +694,7 @@
     <span class="attr">#[cfg(feature = <span class="string">&quot;http2&quot;</span>)]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">async fn </span>send_when(
         <span class="self">self</span>,
-        <span class="kw-2">mut </span>when: <span class="kw">impl </span>Future&lt;Output = <span class="prelude-ty">Result</span>&lt;U, (<a href="../error.rs.html#11"><span class="kw">crate</span>::Error</a>, <span class="prelude-ty">Option</span>&lt;T&gt;)&gt;&gt; + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
+        <span class="kw-2">mut </span>when: <span class="kw">impl </span>Future&lt;Output = <span class="prelude-ty">Result</span>&lt;U, (<span class="kw">crate</span>::Error, <span class="prelude-ty">Option</span>&lt;T&gt;)&gt;&gt; + Unpin,
     ) {
         <span class="kw">use </span>futures_util::future;
         <span class="kw">use </span>tracing::trace;
@@ -871,4 +871,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="hyper" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="hyper" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

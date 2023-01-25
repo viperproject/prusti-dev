@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/syn-1.0.103/src/lookahead.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lookahead.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../syn/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/syn-1.0.107/src/lookahead.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lookahead.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../syn/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -167,13 +167,13 @@
 <a href="#167" id="167">167</a>
 <a href="#168" id="168">168</a>
 <a href="#169" id="169">169</a>
-</pre><pre class="rust"><code><span class="kw">use </span><a href="buffer.rs.html#109"><span class="kw">crate</span>::buffer::Cursor</a>;
-<span class="kw">use </span><span class="kw">crate</span>::error::{<a class="self" href="lib.rs.html#817">self</a>, <a href="error.rs.html#85">Error</a>};
-<span class="kw">use </span><a href="sealed.rs.html#3"><span class="kw">crate</span>::sealed::lookahead::Sealed</a>;
-<span class="kw">use </span><a href="span.rs.html#3"><span class="kw">crate</span>::span::IntoSpans</a>;
-<span class="kw">use </span><a href="token.rs.html#126"><span class="kw">crate</span>::token::Token</a>;
-<span class="kw">use </span>proc_macro2::{<a href="../../proc_macro2/enum.Delimiter.html">Delimiter</a>, <a href="../../proc_macro2/struct.Span.html">Span</a>};
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/cell/struct.RefCell.html">std::cell::RefCell</a>;
+</pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::buffer::Cursor;
+<span class="kw">use </span><span class="kw">crate</span>::error::{<span class="self">self</span>, Error};
+<span class="kw">use </span><span class="kw">crate</span>::sealed::lookahead::Sealed;
+<span class="kw">use </span><span class="kw">crate</span>::span::IntoSpans;
+<span class="kw">use </span><span class="kw">crate</span>::token::Token;
+<span class="kw">use </span>proc_macro2::{Delimiter, Span};
+<span class="kw">use </span>std::cell::RefCell;
 
 <span class="doccomment">/// Support for checking the next token in a stream to decide how to parse.
 ///
@@ -229,28 +229,28 @@
 /// }
 /// ```
 </span><span class="kw">pub struct </span>Lookahead1&lt;<span class="lifetime">&#39;a</span>&gt; {
-    scope: <a href="../../proc_macro2/struct.Span.html">Span</a>,
+    scope: Span,
     cursor: Cursor&lt;<span class="lifetime">&#39;a</span>&gt;,
-    comparisons: RefCell&lt;Vec&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt;&gt;,
+    comparisons: RefCell&lt;Vec&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str&gt;&gt;,
 }
 
-<span class="kw">pub fn </span>new(scope: <a href="../../proc_macro2/struct.Span.html">Span</a>, cursor: <a href="buffer.rs.html#109">Cursor</a>) -&gt; <a href="#62">Lookahead1</a> {
-    <a href="#62">Lookahead1</a> {
-        <a href="#68">scope</a>,
-        <a href="#68">cursor</a>,
+<span class="kw">pub fn </span>new(scope: Span, cursor: Cursor) -&gt; Lookahead1 {
+    Lookahead1 {
+        scope,
+        cursor,
         comparisons: RefCell::new(Vec::new()),
     }
 }
 
 <span class="kw">fn </span>peek_impl(
-    lookahead: <span class="kw-2">&amp;</span><a href="#62">Lookahead1</a>,
-    peek: <span class="kw">fn</span>(<a href="buffer.rs.html#109">Cursor</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-    display: <span class="kw">fn</span>() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>,
-) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+    lookahead: <span class="kw-2">&amp;</span>Lookahead1,
+    peek: <span class="kw">fn</span>(Cursor) -&gt; bool,
+    display: <span class="kw">fn</span>() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
+) -&gt; bool {
     <span class="kw">if </span>peek(lookahead.cursor) {
         <span class="kw">return </span><span class="bool-val">true</span>;
     }
-    <a href="#77">lookahead</a>.comparisons.borrow_mut().push(<a href="#79">display</a>());
+    lookahead.comparisons.borrow_mut().push(display());
     <span class="bool-val">false
 </span>}
 
@@ -269,37 +269,37 @@
     /// - `input.peek(Ident::peek_any)`
     /// - `input.peek(Lifetime)`
     /// - `input.peek(token::Brace)`
-    </span><span class="kw">pub fn </span>peek&lt;T: <a href="#147">Peek</a>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, token: T) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">let _ </span>= <a href="#103">token</a>;
-        <a href="#76-80">peek_impl</a>(<a class="self" href="#103">self</a>, T::Token::peek, T::Token::display)
+    </span><span class="kw">pub fn </span>peek&lt;T: Peek&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, token: T) -&gt; bool {
+        <span class="kw">let _ </span>= token;
+        peek_impl(<span class="self">self</span>, T::Token::peek, T::Token::display)
     }
 
     <span class="doccomment">/// Triggers an error at the current position of the parse stream.
     ///
     /// The error message will identify all of the expected token types that
     /// have been peeked against this lookahead instance.
-    </span><span class="kw">pub fn </span>error(<span class="self">self</span>) -&gt; <a href="error.rs.html#85">Error</a> {
-        <span class="kw">let </span>comparisons = <a class="self" href="#112">self</a>.comparisons.borrow();
-        <span class="kw">match </span><a href="#113">comparisons</a>.len() {
+    </span><span class="kw">pub fn </span>error(<span class="self">self</span>) -&gt; Error {
+        <span class="kw">let </span>comparisons = <span class="self">self</span>.comparisons.borrow();
+        <span class="kw">match </span>comparisons.len() {
             <span class="number">0 </span>=&gt; {
                 <span class="kw">if </span><span class="self">self</span>.cursor.eof() {
-                    Error::new(<a class="self" href="#112">self</a>.scope, <span class="string">&quot;unexpected end of input&quot;</span>)
+                    Error::new(<span class="self">self</span>.scope, <span class="string">&quot;unexpected end of input&quot;</span>)
                 } <span class="kw">else </span>{
-                    Error::new(<a class="self" href="#112">self</a>.cursor.<a href="buffer.rs.html#306">span</a>(), <span class="string">&quot;unexpected token&quot;</span>)
+                    Error::new(<span class="self">self</span>.cursor.span(), <span class="string">&quot;unexpected token&quot;</span>)
                 }
             }
             <span class="number">1 </span>=&gt; {
-                <span class="kw">let </span>message = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;expected {}&quot;</span>, comparisons[<span class="number">0</span>]);
-                <a href="error.rs.html#280">error::new_at</a>(<a class="self" href="#112">self</a>.scope, <a class="self" href="#112">self</a>.cursor, <a href="#123">message</a>)
+                <span class="kw">let </span>message = <span class="macro">format!</span>(<span class="string">&quot;expected {}&quot;</span>, comparisons[<span class="number">0</span>]);
+                error::new_at(<span class="self">self</span>.scope, <span class="self">self</span>.cursor, message)
             }
             <span class="number">2 </span>=&gt; {
-                <span class="kw">let </span>message = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;expected {} or {}&quot;</span>, comparisons[<span class="number">0</span>], comparisons[<span class="number">1</span>]);
-                <a href="error.rs.html#280">error::new_at</a>(<a class="self" href="#112">self</a>.scope, <a class="self" href="#112">self</a>.cursor, <a href="#127">message</a>)
+                <span class="kw">let </span>message = <span class="macro">format!</span>(<span class="string">&quot;expected {} or {}&quot;</span>, comparisons[<span class="number">0</span>], comparisons[<span class="number">1</span>]);
+                error::new_at(<span class="self">self</span>.scope, <span class="self">self</span>.cursor, message)
             }
             <span class="kw">_ </span>=&gt; {
-                <span class="kw">let </span>join = <a href="#113">comparisons</a>.join(<span class="string">&quot;, &quot;</span>);
-                <span class="kw">let </span>message = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;expected one of: {}&quot;</span>, join);
-                <a href="error.rs.html#280">error::new_at</a>(<a class="self" href="#112">self</a>.scope, <a class="self" href="#112">self</a>.cursor, <a href="#132">message</a>)
+                <span class="kw">let </span>join = comparisons.join(<span class="string">&quot;, &quot;</span>);
+                <span class="kw">let </span>message = <span class="macro">format!</span>(<span class="string">&quot;expected one of: {}&quot;</span>, join);
+                error::new_at(<span class="self">self</span>.scope, <span class="self">self</span>.cursor, message)
             }
         }
     }
@@ -313,28 +313,28 @@
 /// This trait is sealed and cannot be implemented for types outside of Syn.
 ///
 /// [`ParseStream::peek`]: crate::parse::ParseBuffer::peek
-</span><span class="kw">pub trait </span>Peek: <a href="sealed.rs.html#3">Sealed</a> {
+</span><span class="kw">pub trait </span>Peek: Sealed {
     <span class="comment">// Not public API.
     </span><span class="attr">#[doc(hidden)]
-    </span><span class="kw">type </span>Token: <a href="token.rs.html#126">Token</a>;
+    </span><span class="kw">type </span>Token: Token;
 }
 
-<span class="kw">impl</span>&lt;F: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html">Copy</a> + FnOnce(<a href="#157">TokenMarker</a>) -&gt; T, T: <a href="token.rs.html#126">Token</a>&gt; <a href="#147">Peek</a> <span class="kw">for </span>F {
+<span class="kw">impl</span>&lt;F: Copy + FnOnce(TokenMarker) -&gt; T, T: Token&gt; Peek <span class="kw">for </span>F {
     <span class="kw">type </span>Token = T;
 }
 
 <span class="kw">pub enum </span>TokenMarker {}
 
-<span class="kw">impl</span>&lt;S&gt; IntoSpans&lt;S&gt; <span class="kw">for </span><a href="#157">TokenMarker</a> {
+<span class="kw">impl</span>&lt;S&gt; IntoSpans&lt;S&gt; <span class="kw">for </span>TokenMarker {
     <span class="kw">fn </span>into_spans(<span class="self">self</span>) -&gt; S {
-        <span class="kw">match </span><span class="self"><a href="#160">self</a> </span>{}
+        <span class="kw">match </span><span class="self">self </span>{}
     }
 }
 
-<span class="kw">pub fn </span>is_delimiter(cursor: <a href="buffer.rs.html#109">Cursor</a>, delimiter: <a href="../../proc_macro2/enum.Delimiter.html">Delimiter</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-    <a href="#165">cursor</a>.<a href="buffer.rs.html#202">group</a>(<a href="#165">delimiter</a>).is_some()
+<span class="kw">pub fn </span>is_delimiter(cursor: Cursor, delimiter: Delimiter) -&gt; bool {
+    cursor.group(delimiter).is_some()
 }
 
-<span class="kw">impl</span>&lt;F: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html">Copy</a> + FnOnce(<a href="#157">TokenMarker</a>) -&gt; T, T: <a href="token.rs.html#126">Token</a>&gt; <a href="sealed.rs.html#3">Sealed</a> <span class="kw">for </span>F {}
+<span class="kw">impl</span>&lt;F: Copy + FnOnce(TokenMarker) -&gt; T, T: Token&gt; Sealed <span class="kw">for </span>F {}
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="syn" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="syn" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

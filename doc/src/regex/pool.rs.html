@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-1.7.0/src/pool.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>pool.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../regex/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-1.7.0/src/pool.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>pool.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../regex/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -390,14 +390,14 @@
 // Namely, at the time, I was looking to reduce dependencies. And for something
 // like regex, maintenance can be simpler when we own the full dependency tree.
 
-</span><span class="kw">use </span>std::panic::{<a href="https://doc.rust-lang.org/nightly/core/panic/unwind_safe/trait.RefUnwindSafe.html">RefUnwindSafe</a>, <a href="https://doc.rust-lang.org/nightly/core/panic/unwind_safe/trait.UnwindSafe.html">UnwindSafe</a>};
-<span class="kw">use </span>std::sync::atomic::{<a href="https://doc.rust-lang.org/nightly/core/sync/atomic/struct.AtomicUsize.html">AtomicUsize</a>, <a href="https://doc.rust-lang.org/nightly/core/sync/atomic/enum.Ordering.html">Ordering</a>};
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/sync/mutex/struct.Mutex.html">std::sync::Mutex</a>;
+</span><span class="kw">use </span>std::panic::{RefUnwindSafe, UnwindSafe};
+<span class="kw">use </span>std::sync::atomic::{AtomicUsize, Ordering};
+<span class="kw">use </span>std::sync::Mutex;
 
 <span class="doccomment">/// An atomic counter used to allocate thread IDs.
-</span><span class="kw">static </span>COUNTER: <a href="https://doc.rust-lang.org/nightly/core/sync/atomic/struct.AtomicUsize.html">AtomicUsize</a> = AtomicUsize::new(<span class="number">1</span>);
+</span><span class="kw">static </span>COUNTER: AtomicUsize = AtomicUsize::new(<span class="number">1</span>);
 
-<a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.thread_local.html">thread_local!</a>(
+<span class="macro">thread_local!</span>(
     <span class="doccomment">/// A thread local used to assign an ID to a thread.
     </span><span class="kw">static </span>THREAD_ID: usize = {
         <span class="kw">let </span>next = COUNTER.fetch_add(<span class="number">1</span>, Ordering::Relaxed);
@@ -420,7 +420,7 @@
 <span class="doccomment">/// The type of the function used to create values in a pool when the pool is
 /// empty and the caller requests one.
 </span><span class="kw">type </span>CreateFn&lt;T&gt; =
-    Box&lt;<span class="kw">dyn </span>Fn() -&gt; T + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> + <a href="https://doc.rust-lang.org/nightly/core/panic/unwind_safe/trait.UnwindSafe.html">UnwindSafe</a> + <a href="https://doc.rust-lang.org/nightly/core/panic/unwind_safe/trait.RefUnwindSafe.html">RefUnwindSafe</a> + <span class="lifetime">&#39;static</span>&gt;;
+    Box&lt;<span class="kw">dyn </span>Fn() -&gt; T + Send + Sync + UnwindSafe + RefUnwindSafe + <span class="lifetime">&#39;static</span>&gt;;
 
 <span class="doccomment">/// A simple thread safe pool for reusing values.
 ///
@@ -448,7 +448,7 @@
     ///
     /// It is initialized to a value of zero (an impossible thread ID) as a
     /// sentinel to indicate that it is unowned.
-    </span>owner: <a href="https://doc.rust-lang.org/nightly/core/sync/atomic/struct.AtomicUsize.html">AtomicUsize</a>,
+    </span>owner: AtomicUsize,
     <span class="doccomment">/// A value to return when the caller is in the same thread that created
     /// the Pool.
     </span>owner_val: T,
@@ -484,14 +484,14 @@
 // tries to balance safety with performance. The case where a Regex is used
 // from multiple threads simultaneously will suffer a bit since getting a cache
 // will require unlocking a mutex.
-</span><span class="kw">unsafe impl</span>&lt;T: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> <span class="kw">for </span>Pool&lt;T&gt; {}
+</span><span class="kw">unsafe impl</span>&lt;T: Send&gt; Sync <span class="kw">for </span>Pool&lt;T&gt; {}
 
-<span class="kw">impl</span>&lt;T: <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">::std::fmt::Debug</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">::std::fmt::Debug</a> <span class="kw">for </span>Pool&lt;T&gt; {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>::std::fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">::std::fmt::Result</a> {
-        <a href="#157">f</a>.debug_struct(<span class="string">&quot;Pool&quot;</span>)
-            .field(<span class="string">&quot;stack&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="#157">self</a>.stack)
-            .field(<span class="string">&quot;owner&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="#157">self</a>.owner)
-            .field(<span class="string">&quot;owner_val&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="#157">self</a>.owner_val)
+<span class="kw">impl</span>&lt;T: ::std::fmt::Debug&gt; ::std::fmt::Debug <span class="kw">for </span>Pool&lt;T&gt; {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>::std::fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; ::std::fmt::Result {
+        f.debug_struct(<span class="string">&quot;Pool&quot;</span>)
+            .field(<span class="string">&quot;stack&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.stack)
+            .field(<span class="string">&quot;owner&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.owner)
+            .field(<span class="string">&quot;owner_val&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.owner_val)
             .finish()
     }
 }
@@ -501,7 +501,7 @@
 /// The purpose of the guard is to use RAII to automatically put the value back
 /// in the pool once it&#39;s dropped.
 </span><span class="attr">#[derive(Debug)]
-</span><span class="kw">pub struct </span>PoolGuard&lt;<span class="lifetime">&#39;a</span>, T: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a>&gt; {
+</span><span class="kw">pub struct </span>PoolGuard&lt;<span class="lifetime">&#39;a</span>, T: Send&gt; {
     <span class="doccomment">/// The pool that this guard is attached to.
     </span>pool: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Pool&lt;T&gt;,
     <span class="doccomment">/// This is None when the guard represents the special &quot;owned&quot; value. In
@@ -509,13 +509,13 @@
     </span>value: <span class="prelude-ty">Option</span>&lt;Box&lt;T&gt;&gt;,
 }
 
-<span class="kw">impl</span>&lt;T: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a>&gt; Pool&lt;T&gt; {
+<span class="kw">impl</span>&lt;T: Send&gt; Pool&lt;T&gt; {
     <span class="doccomment">/// Create a new pool. The given closure is used to create values in the
     /// pool when necessary.
     </span><span class="kw">pub fn </span>new(create: CreateFn&lt;T&gt;) -&gt; Pool&lt;T&gt; {
         <span class="kw">let </span>owner = AtomicUsize::new(<span class="number">0</span>);
-        <span class="kw">let </span>owner_val = <a href="#182">create</a>();
-        <a href="#103">Pool</a> { stack: Mutex::new(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[]), <a href="#182">create</a>, <a href="#183">owner</a>, <a href="#184">owner_val</a> }
+        <span class="kw">let </span>owner_val = create();
+        Pool { stack: Mutex::new(<span class="macro">vec!</span>[]), create, owner, owner_val }
     }
 
     <span class="doccomment">/// Get a value from the pool. The caller is guaranteed to have exclusive
@@ -536,12 +536,12 @@
         // value. Since a thread is uniquely identified by the THREAD_ID thread
         // local, it follows that is the caller&#39;s thread ID is equal to the
         // owner, then only one thread may receive this value.
-        </span><span class="kw">let </span>caller = <a href="#67-85">THREAD_ID</a>.with(|id| <span class="kw-2">*</span><a href="#206">id</a>);
-        <span class="kw">let </span>owner = <a class="self" href="#196">self</a>.owner.load(Ordering::Relaxed);
+        </span><span class="kw">let </span>caller = THREAD_ID.with(|id| <span class="kw-2">*</span>id);
+        <span class="kw">let </span>owner = <span class="self">self</span>.owner.load(Ordering::Relaxed);
         <span class="kw">if </span>caller == owner {
-            <span class="kw">return </span><a class="self" href="#196">self</a>.<a href="#250">guard_owned</a>();
+            <span class="kw">return </span><span class="self">self</span>.guard_owned();
         }
-        <a class="self" href="#196">self</a>.<a href="#220">get_slow</a>(<a href="#206">caller</a>, <a href="#207">owner</a>)
+        <span class="self">self</span>.get_slow(caller, owner)
     }
 
     <span class="doccomment">/// This is the &quot;slow&quot; version that goes through a mutex to pop an
@@ -550,7 +550,7 @@
     ///
     /// If the pool has no owner, then this will set the owner.
     </span><span class="attr">#[cold]
-    </span><span class="kw">fn </span>get_slow(<span class="kw-2">&amp;</span><span class="self">self</span>, caller: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, owner: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; PoolGuard&lt;<span class="lifetime">&#39;_</span>, T&gt; {
+    </span><span class="kw">fn </span>get_slow(<span class="kw-2">&amp;</span><span class="self">self</span>, caller: usize, owner: usize) -&gt; PoolGuard&lt;<span class="lifetime">&#39;_</span>, T&gt; {
         <span class="kw">use </span>std::sync::atomic::Ordering::Relaxed;
 
         <span class="kw">if </span>owner == <span class="number">0 </span>{
@@ -558,53 +558,53 @@
             // try to atomically set the owner. If we do, then this thread
             // becomes the owner and we can return a guard that represents
             // the special T for the owner.
-            </span><span class="kw">let </span>res = <a class="self" href="#220">self</a>.owner.compare_exchange(<span class="number">0</span>, <a href="#220">caller</a>, Relaxed, Relaxed);
+            </span><span class="kw">let </span>res = <span class="self">self</span>.owner.compare_exchange(<span class="number">0</span>, caller, Relaxed, Relaxed);
             <span class="kw">if </span>res.is_ok() {
-                <span class="kw">return </span><a class="self" href="#220">self</a>.<a href="#250">guard_owned</a>();
+                <span class="kw">return </span><span class="self">self</span>.guard_owned();
             }
         }
-        <span class="kw">let </span><span class="kw-2">mut </span>stack = <a class="self" href="#220">self</a>.stack.lock().unwrap();
-        <span class="kw">let </span>value = <span class="kw">match </span><a href="#233">stack</a>.pop() {
-            <span class="prelude-val">None </span>=&gt; Box::new((<a class="self" href="#220">self</a>.create)()),
-            <span class="prelude-val">Some</span>(value) =&gt; <a href="#236">value</a>,
+        <span class="kw">let </span><span class="kw-2">mut </span>stack = <span class="self">self</span>.stack.lock().unwrap();
+        <span class="kw">let </span>value = <span class="kw">match </span>stack.pop() {
+            <span class="prelude-val">None </span>=&gt; Box::new((<span class="self">self</span>.create)()),
+            <span class="prelude-val">Some</span>(value) =&gt; value,
         };
-        <a class="self" href="#220">self</a>.<a href="#255">guard_stack</a>(<a href="#234">value</a>)
+        <span class="self">self</span>.guard_stack(value)
     }
 
     <span class="doccomment">/// Puts a value back into the pool. Callers don&#39;t need to call this. Once
     /// the guard that&#39;s returned by &#39;get&#39; is dropped, it is put back into the
     /// pool automatically.
     </span><span class="kw">fn </span>put(<span class="kw-2">&amp;</span><span class="self">self</span>, value: Box&lt;T&gt;) {
-        <span class="kw">let </span><span class="kw-2">mut </span>stack = <a class="self" href="#244">self</a>.stack.lock().unwrap();
-        <a href="#245">stack</a>.push(<a href="#244">value</a>);
+        <span class="kw">let </span><span class="kw-2">mut </span>stack = <span class="self">self</span>.stack.lock().unwrap();
+        stack.push(value);
     }
 
     <span class="doccomment">/// Create a guard that represents the special owned T.
     </span><span class="kw">fn </span>guard_owned(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; PoolGuard&lt;<span class="lifetime">&#39;_</span>, T&gt; {
-        <a href="#171">PoolGuard</a> { pool: <a class="self" href="#250">self</a>, value: <span class="prelude-val">None </span>}
+        PoolGuard { pool: <span class="self">self</span>, value: <span class="prelude-val">None </span>}
     }
 
     <span class="doccomment">/// Create a guard that contains a value from the pool&#39;s stack.
     </span><span class="kw">fn </span>guard_stack(<span class="kw-2">&amp;</span><span class="self">self</span>, value: Box&lt;T&gt;) -&gt; PoolGuard&lt;<span class="lifetime">&#39;_</span>, T&gt; {
-        <a href="#171">PoolGuard</a> { pool: <a class="self" href="#255">self</a>, value: <span class="prelude-val">Some</span>(<a href="#255">value</a>) }
+        PoolGuard { pool: <span class="self">self</span>, value: <span class="prelude-val">Some</span>(value) }
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a>&gt; PoolGuard&lt;<span class="lifetime">&#39;a</span>, T&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T: Send&gt; PoolGuard&lt;<span class="lifetime">&#39;a</span>, T&gt; {
     <span class="doccomment">/// Return the underlying value.
     </span><span class="kw">pub fn </span>value(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>T {
-        <span class="kw">match </span><a class="self" href="#262">self</a>.value {
-            <span class="prelude-val">None </span>=&gt; <span class="kw-2">&amp;</span><a class="self" href="#262">self</a>.pool.owner_val,
-            <span class="prelude-val">Some</span>(<span class="kw-2">ref </span>v) =&gt; <span class="kw-2">&amp;**</span><a href="#265">v</a>,
+        <span class="kw">match </span><span class="self">self</span>.value {
+            <span class="prelude-val">None </span>=&gt; <span class="kw-2">&amp;</span><span class="self">self</span>.pool.owner_val,
+            <span class="prelude-val">Some</span>(<span class="kw-2">ref </span>v) =&gt; <span class="kw-2">&amp;**</span>v,
         }
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span>PoolGuard&lt;<span class="lifetime">&#39;a</span>, T&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T: Send&gt; Drop <span class="kw">for </span>PoolGuard&lt;<span class="lifetime">&#39;a</span>, T&gt; {
     <span class="attr">#[cfg_attr(feature = <span class="string">&quot;perf-inline&quot;</span>, inline(always))]
     </span><span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(value) = <a class="self" href="#272">self</a>.value.take() {
-            <a class="self" href="#272">self</a>.pool.<a href="#244">put</a>(<a href="#273">value</a>);
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(value) = <span class="self">self</span>.value.take() {
+            <span class="self">self</span>.pool.put(value);
         }
     }
 }
@@ -665,4 +665,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="regex" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="regex" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

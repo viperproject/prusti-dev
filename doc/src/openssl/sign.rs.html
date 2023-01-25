@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/openssl-0.10.42/src/sign.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>sign.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../openssl/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/openssl-0.10.45/src/sign.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>sign.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../openssl/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -882,6 +882,8 @@
 <a href="#882" id="882">882</a>
 <a href="#883" id="883">883</a>
 <a href="#884" id="884">884</a>
+<a href="#885" id="885">885</a>
+<a href="#886" id="886">886</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Message signatures.
 //!
 //! The `Signer` allows for the computation of cryptographic signatures of
@@ -951,64 +953,64 @@ assert!(memcmp::eq(&amp;hmac, &amp;target));
 ```&quot;#
 </span>)]
 
-</span><span class="kw">use </span><a href="../../cfg_if/macro.cfg_if.html">cfg_if::cfg_if</a>;
-<span class="kw">use </span><a href="../../foreign_types_shared/trait.ForeignTypeRef.html">foreign_types::ForeignTypeRef</a>;
-<span class="kw">use </span><a href="../../libc/unix/type.c_int.html">libc::c_int</a>;
-<span class="kw">use </span>std::io::{<a class="self" href="https://doc.rust-lang.org/nightly/std/io/index.html">self</a>, <a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a>};
+</span><span class="kw">use </span>cfg_if::cfg_if;
+<span class="kw">use </span>foreign_types::ForeignTypeRef;
+<span class="kw">use </span>libc::c_int;
+<span class="kw">use </span>std::io::{<span class="self">self</span>, Write};
 <span class="kw">use </span>std::marker::PhantomData;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/ptr/index.html">std::ptr</a>;
+<span class="kw">use </span>std::ptr;
 
-<span class="kw">use </span><a href="error.rs.html#39"><span class="kw">crate</span>::error::ErrorStack</a>;
-<span class="kw">use </span><a href="hash.rs.html#22"><span class="kw">crate</span>::hash::MessageDigest</a>;
-<span class="kw">use </span><span class="kw">crate</span>::pkey::{<a href="pkey.rs.html#128">HasPrivate</a>, <a href="pkey.rs.html#121">HasPublic</a>, <a href="pkey.rs.html#132-140">PKeyRef</a>};
-<span class="kw">use </span><a href="rsa.rs.html#46"><span class="kw">crate</span>::rsa::Padding</a>;
-<span class="kw">use crate</span>::{<a href="lib.rs.html#202">cvt</a>, <a href="lib.rs.html#193">cvt_p</a>};
+<span class="kw">use </span><span class="kw">crate</span>::error::ErrorStack;
+<span class="kw">use </span><span class="kw">crate</span>::hash::MessageDigest;
+<span class="kw">use </span><span class="kw">crate</span>::pkey::{HasPrivate, HasPublic, PKeyRef};
+<span class="kw">use </span><span class="kw">crate</span>::rsa::Padding;
+<span class="kw">use crate</span>::{cvt, cvt_p};
 
 <span class="macro">cfg_if! </span>{
     <span class="kw">if </span><span class="attr">#[cfg(ossl110)] </span>{
-        <span class="kw">use </span>ffi::{<a href="../../openssl_sys/openssl/handwritten/evp/fn.EVP_MD_CTX_free.html">EVP_MD_CTX_free</a>, <a href="../../openssl_sys/openssl/handwritten/evp/fn.EVP_MD_CTX_new.html">EVP_MD_CTX_new</a>};
+        <span class="kw">use </span>ffi::{EVP_MD_CTX_free, EVP_MD_CTX_new};
     } <span class="kw">else </span>{
         <span class="kw">use </span>ffi::{EVP_MD_CTX_create <span class="kw">as </span>EVP_MD_CTX_new, EVP_MD_CTX_destroy <span class="kw">as </span>EVP_MD_CTX_free};
     }
 }
 
 <span class="doccomment">/// Salt lengths that must be used with `set_rsa_pss_saltlen`.
-</span><span class="kw">pub struct </span>RsaPssSaltlen(<a href="../../libc/unix/type.c_int.html">c_int</a>);
+</span><span class="kw">pub struct </span>RsaPssSaltlen(c_int);
 
-<span class="kw">impl </span><a href="#92">RsaPssSaltlen</a> {
+<span class="kw">impl </span>RsaPssSaltlen {
     <span class="doccomment">/// Returns the integer representation of `RsaPssSaltlen`.
-    </span><span class="kw">fn </span>as_raw(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../../libc/unix/type.c_int.html">c_int</a> {
-        <a class="self" href="#96">self</a>.<span class="number">0
+    </span><span class="kw">fn </span>as_raw(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; c_int {
+        <span class="self">self</span>.<span class="number">0
     </span>}
 
     <span class="doccomment">/// Sets the salt length to the given value.
-    </span><span class="kw">pub fn </span>custom(val: <a href="../../libc/unix/type.c_int.html">c_int</a>) -&gt; <a href="#92">RsaPssSaltlen</a> {
-        <a href="#92">RsaPssSaltlen</a>(<a href="#101">val</a>)
+    </span><span class="kw">pub fn </span>custom(val: c_int) -&gt; RsaPssSaltlen {
+        RsaPssSaltlen(val)
     }
 
     <span class="doccomment">/// The salt length is set to the digest length.
     /// Corresponds to the special value `-1`.
-    </span><span class="kw">pub const </span>DIGEST_LENGTH: <a href="#92">RsaPssSaltlen</a> = <a href="#92">RsaPssSaltlen</a>(-<span class="number">1</span>);
+    </span><span class="kw">pub const </span>DIGEST_LENGTH: RsaPssSaltlen = RsaPssSaltlen(-<span class="number">1</span>);
     <span class="doccomment">/// The salt length is set to the maximum permissible value.
     /// Corresponds to the special value `-2`.
-    </span><span class="kw">pub const </span>MAXIMUM_LENGTH: <a href="#92">RsaPssSaltlen</a> = <a href="#92">RsaPssSaltlen</a>(-<span class="number">2</span>);
+    </span><span class="kw">pub const </span>MAXIMUM_LENGTH: RsaPssSaltlen = RsaPssSaltlen(-<span class="number">2</span>);
 }
 
 <span class="doccomment">/// A type which computes cryptographic signatures of data.
 </span><span class="kw">pub struct </span>Signer&lt;<span class="lifetime">&#39;a</span>&gt; {
-    md_ctx: <span class="kw-2">*mut </span><a href="../../openssl_sys/openssl/handwritten/types/enum.EVP_MD_CTX.html">ffi::EVP_MD_CTX</a>,
-    pctx: <span class="kw-2">*mut </span><a href="../../openssl_sys/openssl/handwritten/types/enum.EVP_PKEY_CTX.html">ffi::EVP_PKEY_CTX</a>,
+    md_ctx: <span class="kw-2">*mut </span>ffi::EVP_MD_CTX,
+    pctx: <span class="kw-2">*mut </span>ffi::EVP_PKEY_CTX,
     _p: PhantomData&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>()&gt;,
 }
 
-<span class="kw">unsafe impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> <span class="kw">for </span>Signer&lt;<span class="lifetime">&#39;a</span>&gt; {}
-<span class="kw">unsafe impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="kw">for </span>Signer&lt;<span class="lifetime">&#39;a</span>&gt; {}
+<span class="kw">unsafe impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; Sync <span class="kw">for </span>Signer&lt;<span class="lifetime">&#39;a</span>&gt; {}
+<span class="kw">unsafe impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; Send <span class="kw">for </span>Signer&lt;<span class="lifetime">&#39;a</span>&gt; {}
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span>Signer&lt;<span class="lifetime">&#39;a</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; Drop <span class="kw">for </span>Signer&lt;<span class="lifetime">&#39;a</span>&gt; {
     <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="comment">// pkey_ctx is owned by the md_ctx, so no need to explicitly free it.
         </span><span class="kw">unsafe </span>{
-            <a href="../../openssl_sys/openssl/handwritten/evp/fn.EVP_MD_CTX_free.html">EVP_MD_CTX_free</a>(<a class="self" href="#124">self</a>.md_ctx);
+            EVP_MD_CTX_free(<span class="self">self</span>.md_ctx);
         }
     }
 }
@@ -1023,11 +1025,11 @@ assert!(memcmp::eq(&amp;hmac, &amp;target));
     /// OpenSSL documentation at [`EVP_DigestSignInit`].
     ///
     /// [`EVP_DigestSignInit`]: https://www.openssl.org/docs/manmaster/man3/EVP_DigestSignInit.html
-    </span><span class="kw">pub fn </span>new&lt;T&gt;(type_: <a href="hash.rs.html#22">MessageDigest</a>, pkey: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>PKeyRef&lt;T&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;Signer&lt;<span class="lifetime">&#39;a</span>&gt;, <a href="error.rs.html#39">ErrorStack</a>&gt;
+    </span><span class="kw">pub fn </span>new&lt;T&gt;(type_: MessageDigest, pkey: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>PKeyRef&lt;T&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;Signer&lt;<span class="lifetime">&#39;a</span>&gt;, ErrorStack&gt;
     <span class="kw">where
-        </span>T: <a href="pkey.rs.html#128">HasPrivate</a>,
+        </span>T: HasPrivate,
     {
-        <span class="self">Self</span>::new_intern(<span class="prelude-val">Some</span>(<a href="#142">type_</a>), <a href="#142">pkey</a>)
+        <span class="self">Self</span>::new_intern(<span class="prelude-val">Some</span>(type_), pkey)
     }
 
     <span class="doccomment">/// Creates a new `Signer` without a digest.
@@ -1038,42 +1040,42 @@ assert!(memcmp::eq(&amp;hmac, &amp;target));
     /// OpenSSL documentation at [`EVP_DigestSignInit`].
     ///
     /// [`EVP_DigestSignInit`]: https://www.openssl.org/docs/manmaster/man3/EVP_DigestSignInit.html
-    </span><span class="kw">pub fn </span>new_without_digest&lt;T&gt;(pkey: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>PKeyRef&lt;T&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;Signer&lt;<span class="lifetime">&#39;a</span>&gt;, <a href="error.rs.html#39">ErrorStack</a>&gt;
+    </span><span class="kw">pub fn </span>new_without_digest&lt;T&gt;(pkey: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>PKeyRef&lt;T&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;Signer&lt;<span class="lifetime">&#39;a</span>&gt;, ErrorStack&gt;
     <span class="kw">where
-        </span>T: <a href="pkey.rs.html#128">HasPrivate</a>,
+        </span>T: HasPrivate,
     {
-        <span class="self">Self</span>::new_intern(<span class="prelude-val">None</span>, <a href="#157">pkey</a>)
+        <span class="self">Self</span>::new_intern(<span class="prelude-val">None</span>, pkey)
     }
 
     <span class="kw">fn </span>new_intern&lt;T&gt;(
-        type_: <span class="prelude-ty">Option</span>&lt;<a href="hash.rs.html#22">MessageDigest</a>&gt;,
+        type_: <span class="prelude-ty">Option</span>&lt;MessageDigest&gt;,
         pkey: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>PKeyRef&lt;T&gt;,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;Signer&lt;<span class="lifetime">&#39;a</span>&gt;, <a href="error.rs.html#39">ErrorStack</a>&gt;
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;Signer&lt;<span class="lifetime">&#39;a</span>&gt;, ErrorStack&gt;
     <span class="kw">where
-        </span>T: <a href="pkey.rs.html#128">HasPrivate</a>,
+        </span>T: HasPrivate,
     {
         <span class="kw">unsafe </span>{
-            <a href="../../openssl/fn.init.html">ffi::init</a>();
+            ffi::init();
 
             <span class="kw">let </span>ctx = cvt_p(EVP_MD_CTX_new())<span class="question-mark">?</span>;
-            <span class="kw">let </span><span class="kw-2">mut </span>pctx: <span class="kw-2">*mut </span><a href="../../openssl_sys/openssl/handwritten/types/enum.EVP_PKEY_CTX.html">ffi::EVP_PKEY_CTX</a> = ptr::null_mut();
+            <span class="kw">let </span><span class="kw-2">mut </span>pctx: <span class="kw-2">*mut </span>ffi::EVP_PKEY_CTX = ptr::null_mut();
             <span class="kw">let </span>r = ffi::EVP_DigestSignInit(
-                <a href="#174">ctx</a>,
-                <span class="kw-2">&amp;mut </span><a href="#175">pctx</a>,
-                <a href="#165">type_</a>.map(|t| <a href="#179">t</a>.<a href="hash.rs.html#138">as_ptr</a>()).unwrap_or(ptr::null()),
+                ctx,
+                <span class="kw-2">&amp;mut </span>pctx,
+                type_.map(|t| t.as_ptr()).unwrap_or(ptr::null()),
                 ptr::null_mut(),
-                <a href="#166">pkey</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
+                pkey.as_ptr(),
             );
             <span class="kw">if </span>r != <span class="number">1 </span>{
-                <a href="../../openssl_sys/openssl/handwritten/evp/fn.EVP_MD_CTX_free.html">EVP_MD_CTX_free</a>(<a href="#174">ctx</a>);
+                EVP_MD_CTX_free(ctx);
                 <span class="kw">return </span><span class="prelude-val">Err</span>(ErrorStack::get());
             }
 
-            <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(!pctx.is_null());
+            <span class="macro">assert!</span>(!pctx.is_null());
 
-            <span class="prelude-val">Ok</span>(<a href="#114">Signer</a> {
-                md_ctx: <a href="#174">ctx</a>,
-                <a href="#175">pctx</a>,
+            <span class="prelude-val">Ok</span>(Signer {
+                md_ctx: ctx,
+                pctx,
                 _p: PhantomData,
             })
         }
@@ -1084,11 +1086,11 @@ assert!(memcmp::eq(&amp;hmac, &amp;target));
     /// This is only useful for RSA keys.
     ///
     /// This corresponds to `EVP_PKEY_CTX_get_rsa_padding`.
-    </span><span class="kw">pub fn </span>rsa_padding(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="rsa.rs.html#46">Padding</a>, <a href="error.rs.html#39">ErrorStack</a>&gt; {
+    </span><span class="kw">pub fn </span>rsa_padding(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;Padding, ErrorStack&gt; {
         <span class="kw">unsafe </span>{
             <span class="kw">let </span><span class="kw-2">mut </span>pad = <span class="number">0</span>;
-            <a href="lib.rs.html#202">cvt</a>(ffi::EVP_PKEY_CTX_get_rsa_padding(<a class="self" href="#203">self</a>.pctx, <span class="kw-2">&amp;mut </span><a href="#205">pad</a>))
-                .map(|<span class="kw">_</span>| Padding::from_raw(<a href="#205">pad</a>))
+            cvt(ffi::EVP_PKEY_CTX_get_rsa_padding(<span class="self">self</span>.pctx, <span class="kw-2">&amp;mut </span>pad))
+                .map(|<span class="kw">_</span>| Padding::from_raw(pad))
         }
     }
 
@@ -1099,11 +1101,11 @@ assert!(memcmp::eq(&amp;hmac, &amp;target));
     /// This corresponds to [`EVP_PKEY_CTX_set_rsa_padding`].
     ///
     /// [`EVP_PKEY_CTX_set_rsa_padding`]: https://www.openssl.org/docs/man1.1.0/crypto/EVP_PKEY_CTX_set_rsa_padding.html
-    </span><span class="kw">pub fn </span>set_rsa_padding(<span class="kw-2">&amp;mut </span><span class="self">self</span>, padding: <a href="rsa.rs.html#46">Padding</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#39">ErrorStack</a>&gt; {
+    </span><span class="kw">pub fn </span>set_rsa_padding(<span class="kw-2">&amp;mut </span><span class="self">self</span>, padding: Padding) -&gt; <span class="prelude-ty">Result</span>&lt;(), ErrorStack&gt; {
         <span class="kw">unsafe </span>{
-            <a href="lib.rs.html#202">cvt</a>(ffi::EVP_PKEY_CTX_set_rsa_padding(
-                <a class="self" href="#218">self</a>.pctx,
-                <a href="#218">padding</a>.<a href="rsa.rs.html#61">as_raw</a>(),
+            cvt(ffi::EVP_PKEY_CTX_set_rsa_padding(
+                <span class="self">self</span>.pctx,
+                padding.as_raw(),
             ))
             .map(|<span class="kw">_</span>| ())
         }
@@ -1116,11 +1118,11 @@ assert!(memcmp::eq(&amp;hmac, &amp;target));
     /// This corresponds to [`EVP_PKEY_CTX_set_rsa_pss_saltlen`].
     ///
     /// [`EVP_PKEY_CTX_set_rsa_pss_saltlen`]: https://www.openssl.org/docs/man1.1.0/crypto/EVP_PKEY_CTX_set_rsa_pss_saltlen.html
-    </span><span class="kw">pub fn </span>set_rsa_pss_saltlen(<span class="kw-2">&amp;mut </span><span class="self">self</span>, len: <a href="#92">RsaPssSaltlen</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#39">ErrorStack</a>&gt; {
+    </span><span class="kw">pub fn </span>set_rsa_pss_saltlen(<span class="kw-2">&amp;mut </span><span class="self">self</span>, len: RsaPssSaltlen) -&gt; <span class="prelude-ty">Result</span>&lt;(), ErrorStack&gt; {
         <span class="kw">unsafe </span>{
-            <a href="lib.rs.html#202">cvt</a>(ffi::EVP_PKEY_CTX_set_rsa_pss_saltlen(
-                <a class="self" href="#235">self</a>.pctx,
-                <a href="#235">len</a>.<a href="#96">as_raw</a>(),
+            cvt(ffi::EVP_PKEY_CTX_set_rsa_pss_saltlen(
+                <span class="self">self</span>.pctx,
+                len.as_raw(),
             ))
             .map(|<span class="kw">_</span>| ())
         }
@@ -1133,11 +1135,11 @@ assert!(memcmp::eq(&amp;hmac, &amp;target));
     /// This corresponds to [`EVP_PKEY_CTX_set_rsa_mgf1_md`].
     ///
     /// [`EVP_PKEY_CTX_set_rsa_mgf1_md`]: https://www.openssl.org/docs/manmaster/man7/RSA-PSS.html
-    </span><span class="kw">pub fn </span>set_rsa_mgf1_md(<span class="kw-2">&amp;mut </span><span class="self">self</span>, md: <a href="hash.rs.html#22">MessageDigest</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#39">ErrorStack</a>&gt; {
+    </span><span class="kw">pub fn </span>set_rsa_mgf1_md(<span class="kw-2">&amp;mut </span><span class="self">self</span>, md: MessageDigest) -&gt; <span class="prelude-ty">Result</span>&lt;(), ErrorStack&gt; {
         <span class="kw">unsafe </span>{
-            <a href="lib.rs.html#202">cvt</a>(ffi::EVP_PKEY_CTX_set_rsa_mgf1_md(
-                <a class="self" href="#252">self</a>.pctx,
-                <a href="#252">md</a>.<a href="hash.rs.html#138">as_ptr</a>() <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>,
+            cvt(ffi::EVP_PKEY_CTX_set_rsa_mgf1_md(
+                <span class="self">self</span>.pctx,
+                md.as_ptr() <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>,
             ))
             .map(|<span class="kw">_</span>| ())
         }
@@ -1151,12 +1153,12 @@ assert!(memcmp::eq(&amp;hmac, &amp;target));
     /// OpenSSL documentation at [`EVP_DigestUpdate`].
     ///
     /// [`EVP_DigestUpdate`]: https://www.openssl.org/docs/manmaster/man3/EVP_DigestInit.html
-    </span><span class="kw">pub fn </span>update(<span class="kw-2">&amp;mut </span><span class="self">self</span>, buf: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#39">ErrorStack</a>&gt; {
+    </span><span class="kw">pub fn </span>update(<span class="kw-2">&amp;mut </span><span class="self">self</span>, buf: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;(), ErrorStack&gt; {
         <span class="kw">unsafe </span>{
-            <a href="lib.rs.html#202">cvt</a>(ffi::EVP_DigestUpdate(
-                <a class="self" href="#270">self</a>.md_ctx,
-                <a href="#270">buf</a>.as_ptr() <span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_</span>,
-                <a href="#270">buf</a>.len(),
+            cvt(ffi::EVP_DigestUpdate(
+                <span class="self">self</span>.md_ctx,
+                buf.as_ptr() <span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_</span>,
+                buf.len(),
             ))
             .map(|<span class="kw">_</span>| ())
         }
@@ -1170,8 +1172,8 @@ assert!(memcmp::eq(&amp;hmac, &amp;target));
     /// OpenSSL documentation at [`EVP_DigestSignFinal`].
     ///
     /// [`EVP_DigestSignFinal`]: https://www.openssl.org/docs/man1.1.0/crypto/EVP_DigestSignFinal.html
-    </span><span class="kw">pub fn </span>len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="error.rs.html#39">ErrorStack</a>&gt; {
-        <a class="self" href="#289">self</a>.<a href="#307">len_intern</a>()
+    </span><span class="kw">pub fn </span>len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;usize, ErrorStack&gt; {
+        <span class="self">self</span>.len_intern()
     }
 
     <span class="attr">#[cfg(not(ossl111))]
@@ -1188,7 +1190,7 @@ assert!(memcmp::eq(&amp;hmac, &amp;target));
     }
 
     <span class="attr">#[cfg(ossl111)]
-    </span><span class="kw">fn </span>len_intern(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="error.rs.html#39">ErrorStack</a>&gt; {
+    </span><span class="kw">fn </span>len_intern(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;usize, ErrorStack&gt; {
         <span class="kw">unsafe </span>{
             <span class="kw">let </span><span class="kw-2">mut </span>len = <span class="number">0</span>;
             cvt(ffi::EVP_DigestSign(
@@ -1198,7 +1200,7 @@ assert!(memcmp::eq(&amp;hmac, &amp;target));
                 ptr::null(),
                 <span class="number">0</span>,
             ))<span class="question-mark">?</span>;
-            <span class="prelude-val">Ok</span>(<a href="#309">len</a>)
+            <span class="prelude-val">Ok</span>(len)
         }
     }
 
@@ -1210,27 +1212,27 @@ assert!(memcmp::eq(&amp;hmac, &amp;target));
     /// OpenSSL documentation at [`EVP_DigestSignFinal`].
     ///
     /// [`EVP_DigestSignFinal`]: https://www.openssl.org/docs/man1.1.0/crypto/EVP_DigestSignFinal.html
-    </span><span class="kw">pub fn </span>sign(<span class="kw-2">&amp;</span><span class="self">self</span>, buf: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="error.rs.html#39">ErrorStack</a>&gt; {
+    </span><span class="kw">pub fn </span>sign(<span class="kw-2">&amp;</span><span class="self">self</span>, buf: <span class="kw-2">&amp;mut </span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;usize, ErrorStack&gt; {
         <span class="kw">unsafe </span>{
-            <span class="kw">let </span><span class="kw-2">mut </span>len = <a href="#329">buf</a>.len();
+            <span class="kw">let </span><span class="kw-2">mut </span>len = buf.len();
             cvt(ffi::EVP_DigestSignFinal(
                 <span class="self">self</span>.md_ctx,
                 buf.as_mut_ptr() <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>,
                 <span class="kw-2">&amp;mut </span>len,
             ))<span class="question-mark">?</span>;
-            <span class="prelude-val">Ok</span>(<a href="#331">len</a>)
+            <span class="prelude-val">Ok</span>(len)
         }
     }
 
     <span class="doccomment">/// Returns the signature.
     ///
     /// This is a simple convenience wrapper over `len` and `sign`.
-    </span><span class="kw">pub fn </span>sign_to_vec(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;, <a href="error.rs.html#39">ErrorStack</a>&gt; {
-        <span class="kw">let </span><span class="kw-2">mut </span>buf = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[<span class="number">0</span>; <span class="self">self</span>.len()<span class="question-mark">?</span>];
+    </span><span class="kw">pub fn </span>sign_to_vec(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;u8&gt;, ErrorStack&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>buf = <span class="macro">vec!</span>[<span class="number">0</span>; <span class="self">self</span>.len()<span class="question-mark">?</span>];
         <span class="kw">let </span>len = <span class="self">self</span>.sign(<span class="kw-2">&amp;mut </span>buf)<span class="question-mark">?</span>;
         <span class="comment">// The advertised length is not always equal to the real length for things like DSA
-        </span><a href="#345">buf</a>.truncate(<a href="#346">len</a>);
-        <span class="prelude-val">Ok</span>(<a href="#345">buf</a>)
+        </span>buf.truncate(len);
+        <span class="prelude-val">Ok</span>(buf)
     }
 
     <span class="doccomment">/// Signs the data in `data_buf` and writes the signature into the buffer `sig_buf`, returning the
@@ -1247,11 +1249,11 @@ assert!(memcmp::eq(&amp;hmac, &amp;target));
     </span><span class="attr">#[cfg(ossl111)]
     </span><span class="kw">pub fn </span>sign_oneshot(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        sig_buf: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
-        data_buf: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="error.rs.html#39">ErrorStack</a>&gt; {
+        sig_buf: <span class="kw-2">&amp;mut </span>[u8],
+        data_buf: <span class="kw-2">&amp;</span>[u8],
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;usize, ErrorStack&gt; {
         <span class="kw">unsafe </span>{
-            <span class="kw">let </span><span class="kw-2">mut </span>sig_len = <a href="#366">sig_buf</a>.len();
+            <span class="kw">let </span><span class="kw-2">mut </span>sig_len = sig_buf.len();
             cvt(ffi::EVP_DigestSign(
                 <span class="self">self</span>.md_ctx,
                 sig_buf.as_mut_ptr() <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>,
@@ -1259,7 +1261,7 @@ assert!(memcmp::eq(&amp;hmac, &amp;target));
                 data_buf.as_ptr() <span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_</span>,
                 data_buf.len(),
             ))<span class="question-mark">?</span>;
-            <span class="prelude-val">Ok</span>(<a href="#370">sig_len</a>)
+            <span class="prelude-val">Ok</span>(sig_len)
         }
     }
 
@@ -1267,19 +1269,19 @@ assert!(memcmp::eq(&amp;hmac, &amp;target));
     ///
     /// This is a simple convenience wrapper over `len` and `sign_oneshot`.
     </span><span class="attr">#[cfg(ossl111)]
-    </span><span class="kw">pub fn </span>sign_oneshot_to_vec(<span class="kw-2">&amp;mut </span><span class="self">self</span>, data_buf: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;, <a href="error.rs.html#39">ErrorStack</a>&gt; {
-        <span class="kw">let </span><span class="kw-2">mut </span>sig_buf = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[<span class="number">0</span>; <span class="self">self</span>.len()<span class="question-mark">?</span>];
+    </span><span class="kw">pub fn </span>sign_oneshot_to_vec(<span class="kw-2">&amp;mut </span><span class="self">self</span>, data_buf: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;u8&gt;, ErrorStack&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>sig_buf = <span class="macro">vec!</span>[<span class="number">0</span>; <span class="self">self</span>.len()<span class="question-mark">?</span>];
         <span class="kw">let </span>len = <span class="self">self</span>.sign_oneshot(<span class="kw-2">&amp;mut </span>sig_buf, data_buf)<span class="question-mark">?</span>;
         <span class="comment">// The advertised length is not always equal to the real length for things like DSA
-        </span><a href="#387">sig_buf</a>.truncate(<a href="#388">len</a>);
-        <span class="prelude-val">Ok</span>(<a href="#387">sig_buf</a>)
+        </span>sig_buf.truncate(len);
+        <span class="prelude-val">Ok</span>(sig_buf)
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; <a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a> <span class="kw">for </span>Signer&lt;<span class="lifetime">&#39;a</span>&gt; {
-    <span class="kw">fn </span>write(<span class="kw-2">&amp;mut </span><span class="self">self</span>, buf: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; Write <span class="kw">for </span>Signer&lt;<span class="lifetime">&#39;a</span>&gt; {
+    <span class="kw">fn </span>write(<span class="kw-2">&amp;mut </span><span class="self">self</span>, buf: <span class="kw-2">&amp;</span>[u8]) -&gt; io::Result&lt;usize&gt; {
         <span class="self">self</span>.update(buf)<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(<a href="#396">buf</a>.len())
+        <span class="prelude-val">Ok</span>(buf.len())
     }
 
     <span class="kw">fn </span>flush(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; io::Result&lt;()&gt; {
@@ -1287,20 +1289,22 @@ assert!(memcmp::eq(&amp;hmac, &amp;target));
     }
 }
 
-<span class="kw">pub struct </span>Verifier&lt;<span class="lifetime">&#39;a</span>&gt; {
-    md_ctx: <span class="kw-2">*mut </span><a href="../../openssl_sys/openssl/handwritten/types/enum.EVP_MD_CTX.html">ffi::EVP_MD_CTX</a>,
-    pctx: <span class="kw-2">*mut </span><a href="../../openssl_sys/openssl/handwritten/types/enum.EVP_PKEY_CTX.html">ffi::EVP_PKEY_CTX</a>,
+<span class="doccomment">/// A type which can be used to verify the integrity and authenticity
+/// of data given the signature.
+</span><span class="kw">pub struct </span>Verifier&lt;<span class="lifetime">&#39;a</span>&gt; {
+    md_ctx: <span class="kw-2">*mut </span>ffi::EVP_MD_CTX,
+    pctx: <span class="kw-2">*mut </span>ffi::EVP_PKEY_CTX,
     pkey_pd: PhantomData&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>()&gt;,
 }
 
-<span class="kw">unsafe impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> <span class="kw">for </span>Verifier&lt;<span class="lifetime">&#39;a</span>&gt; {}
-<span class="kw">unsafe impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="kw">for </span>Verifier&lt;<span class="lifetime">&#39;a</span>&gt; {}
+<span class="kw">unsafe impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; Sync <span class="kw">for </span>Verifier&lt;<span class="lifetime">&#39;a</span>&gt; {}
+<span class="kw">unsafe impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; Send <span class="kw">for </span>Verifier&lt;<span class="lifetime">&#39;a</span>&gt; {}
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span>Verifier&lt;<span class="lifetime">&#39;a</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; Drop <span class="kw">for </span>Verifier&lt;<span class="lifetime">&#39;a</span>&gt; {
     <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="comment">// pkey_ctx is owned by the md_ctx, so no need to explicitly free it.
         </span><span class="kw">unsafe </span>{
-            <a href="../../openssl_sys/openssl/handwritten/evp/fn.EVP_MD_CTX_free.html">EVP_MD_CTX_free</a>(<a class="self" href="#416">self</a>.md_ctx);
+            EVP_MD_CTX_free(<span class="self">self</span>.md_ctx);
         }
     }
 }
@@ -1310,16 +1314,16 @@ assert!(memcmp::eq(&amp;hmac, &amp;target));
     <span class="doccomment">/// Creates a new `Verifier`.
     ///
     /// This cannot be used with Ed25519 or Ed448 keys. Please refer to
-    /// `new_without_digest`.
+    /// [`Verifier::new_without_digest`].
     ///
     /// OpenSSL documentation at [`EVP_DigestVerifyInit`].
     ///
     /// [`EVP_DigestVerifyInit`]: https://www.openssl.org/docs/manmaster/man3/EVP_DigestVerifyInit.html
-    </span><span class="kw">pub fn </span>new&lt;T&gt;(type_: <a href="hash.rs.html#22">MessageDigest</a>, pkey: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>PKeyRef&lt;T&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;Verifier&lt;<span class="lifetime">&#39;a</span>&gt;, <a href="error.rs.html#39">ErrorStack</a>&gt;
+    </span><span class="kw">pub fn </span>new&lt;T&gt;(type_: MessageDigest, pkey: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>PKeyRef&lt;T&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;Verifier&lt;<span class="lifetime">&#39;a</span>&gt;, ErrorStack&gt;
     <span class="kw">where
-        </span>T: <a href="pkey.rs.html#121">HasPublic</a>,
+        </span>T: HasPublic,
     {
-        Verifier::new_intern(<span class="prelude-val">Some</span>(<a href="#434">type_</a>), <a href="#434">pkey</a>)
+        Verifier::new_intern(<span class="prelude-val">Some</span>(type_), pkey)
     }
 
     <span class="doccomment">/// Creates a new `Verifier` without a digest.
@@ -1329,42 +1333,42 @@ assert!(memcmp::eq(&amp;hmac, &amp;target));
     /// OpenSSL documentation at [`EVP_DigestVerifyInit`].
     ///
     /// [`EVP_DigestVerifyInit`]: https://www.openssl.org/docs/manmaster/man3/EVP_DigestVerifyInit.html
-    </span><span class="kw">pub fn </span>new_without_digest&lt;T&gt;(pkey: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>PKeyRef&lt;T&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;Verifier&lt;<span class="lifetime">&#39;a</span>&gt;, <a href="error.rs.html#39">ErrorStack</a>&gt;
+    </span><span class="kw">pub fn </span>new_without_digest&lt;T&gt;(pkey: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>PKeyRef&lt;T&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;Verifier&lt;<span class="lifetime">&#39;a</span>&gt;, ErrorStack&gt;
     <span class="kw">where
-        </span>T: <a href="pkey.rs.html#121">HasPublic</a>,
+        </span>T: HasPublic,
     {
-        Verifier::new_intern(<span class="prelude-val">None</span>, <a href="#448">pkey</a>)
+        Verifier::new_intern(<span class="prelude-val">None</span>, pkey)
     }
 
     <span class="kw">fn </span>new_intern&lt;T&gt;(
-        type_: <span class="prelude-ty">Option</span>&lt;<a href="hash.rs.html#22">MessageDigest</a>&gt;,
+        type_: <span class="prelude-ty">Option</span>&lt;MessageDigest&gt;,
         pkey: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>PKeyRef&lt;T&gt;,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;Verifier&lt;<span class="lifetime">&#39;a</span>&gt;, <a href="error.rs.html#39">ErrorStack</a>&gt;
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;Verifier&lt;<span class="lifetime">&#39;a</span>&gt;, ErrorStack&gt;
     <span class="kw">where
-        </span>T: <a href="pkey.rs.html#121">HasPublic</a>,
+        </span>T: HasPublic,
     {
         <span class="kw">unsafe </span>{
-            <a href="../../openssl/fn.init.html">ffi::init</a>();
+            ffi::init();
 
             <span class="kw">let </span>ctx = cvt_p(EVP_MD_CTX_new())<span class="question-mark">?</span>;
-            <span class="kw">let </span><span class="kw-2">mut </span>pctx: <span class="kw-2">*mut </span><a href="../../openssl_sys/openssl/handwritten/types/enum.EVP_PKEY_CTX.html">ffi::EVP_PKEY_CTX</a> = ptr::null_mut();
+            <span class="kw">let </span><span class="kw-2">mut </span>pctx: <span class="kw-2">*mut </span>ffi::EVP_PKEY_CTX = ptr::null_mut();
             <span class="kw">let </span>r = ffi::EVP_DigestVerifyInit(
-                <a href="#465">ctx</a>,
-                <span class="kw-2">&amp;mut </span><a href="#466">pctx</a>,
-                <a href="#456">type_</a>.map(|t| <a href="#470">t</a>.<a href="hash.rs.html#138">as_ptr</a>()).unwrap_or(ptr::null()),
+                ctx,
+                <span class="kw-2">&amp;mut </span>pctx,
+                type_.map(|t| t.as_ptr()).unwrap_or(ptr::null()),
                 ptr::null_mut(),
-                <a href="#457">pkey</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
+                pkey.as_ptr(),
             );
             <span class="kw">if </span>r != <span class="number">1 </span>{
-                <a href="../../openssl_sys/openssl/handwritten/evp/fn.EVP_MD_CTX_free.html">EVP_MD_CTX_free</a>(<a href="#465">ctx</a>);
+                EVP_MD_CTX_free(ctx);
                 <span class="kw">return </span><span class="prelude-val">Err</span>(ErrorStack::get());
             }
 
-            <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(!pctx.is_null());
+            <span class="macro">assert!</span>(!pctx.is_null());
 
-            <span class="prelude-val">Ok</span>(<a href="#406">Verifier</a> {
-                md_ctx: <a href="#465">ctx</a>,
-                <a href="#466">pctx</a>,
+            <span class="prelude-val">Ok</span>(Verifier {
+                md_ctx: ctx,
+                pctx,
                 pkey_pd: PhantomData,
             })
         }
@@ -1375,11 +1379,11 @@ assert!(memcmp::eq(&amp;hmac, &amp;target));
     /// This is only useful for RSA keys.
     ///
     /// This corresponds to `EVP_PKEY_CTX_get_rsa_padding`.
-    </span><span class="kw">pub fn </span>rsa_padding(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="rsa.rs.html#46">Padding</a>, <a href="error.rs.html#39">ErrorStack</a>&gt; {
+    </span><span class="kw">pub fn </span>rsa_padding(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;Padding, ErrorStack&gt; {
         <span class="kw">unsafe </span>{
             <span class="kw">let </span><span class="kw-2">mut </span>pad = <span class="number">0</span>;
-            <a href="lib.rs.html#202">cvt</a>(ffi::EVP_PKEY_CTX_get_rsa_padding(<a class="self" href="#494">self</a>.pctx, <span class="kw-2">&amp;mut </span><a href="#496">pad</a>))
-                .map(|<span class="kw">_</span>| Padding::from_raw(<a href="#496">pad</a>))
+            cvt(ffi::EVP_PKEY_CTX_get_rsa_padding(<span class="self">self</span>.pctx, <span class="kw-2">&amp;mut </span>pad))
+                .map(|<span class="kw">_</span>| Padding::from_raw(pad))
         }
     }
 
@@ -1390,11 +1394,11 @@ assert!(memcmp::eq(&amp;hmac, &amp;target));
     /// This corresponds to [`EVP_PKEY_CTX_set_rsa_padding`].
     ///
     /// [`EVP_PKEY_CTX_set_rsa_padding`]: https://www.openssl.org/docs/man1.1.0/crypto/EVP_PKEY_CTX_set_rsa_padding.html
-    </span><span class="kw">pub fn </span>set_rsa_padding(<span class="kw-2">&amp;mut </span><span class="self">self</span>, padding: <a href="rsa.rs.html#46">Padding</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#39">ErrorStack</a>&gt; {
+    </span><span class="kw">pub fn </span>set_rsa_padding(<span class="kw-2">&amp;mut </span><span class="self">self</span>, padding: Padding) -&gt; <span class="prelude-ty">Result</span>&lt;(), ErrorStack&gt; {
         <span class="kw">unsafe </span>{
-            <a href="lib.rs.html#202">cvt</a>(ffi::EVP_PKEY_CTX_set_rsa_padding(
-                <a class="self" href="#509">self</a>.pctx,
-                <a href="#509">padding</a>.<a href="rsa.rs.html#61">as_raw</a>(),
+            cvt(ffi::EVP_PKEY_CTX_set_rsa_padding(
+                <span class="self">self</span>.pctx,
+                padding.as_raw(),
             ))
             .map(|<span class="kw">_</span>| ())
         }
@@ -1407,11 +1411,11 @@ assert!(memcmp::eq(&amp;hmac, &amp;target));
     /// This corresponds to [`EVP_PKEY_CTX_set_rsa_pss_saltlen`].
     ///
     /// [`EVP_PKEY_CTX_set_rsa_pss_saltlen`]: https://www.openssl.org/docs/man1.1.0/crypto/EVP_PKEY_CTX_set_rsa_pss_saltlen.html
-    </span><span class="kw">pub fn </span>set_rsa_pss_saltlen(<span class="kw-2">&amp;mut </span><span class="self">self</span>, len: <a href="#92">RsaPssSaltlen</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#39">ErrorStack</a>&gt; {
+    </span><span class="kw">pub fn </span>set_rsa_pss_saltlen(<span class="kw-2">&amp;mut </span><span class="self">self</span>, len: RsaPssSaltlen) -&gt; <span class="prelude-ty">Result</span>&lt;(), ErrorStack&gt; {
         <span class="kw">unsafe </span>{
-            <a href="lib.rs.html#202">cvt</a>(ffi::EVP_PKEY_CTX_set_rsa_pss_saltlen(
-                <a class="self" href="#526">self</a>.pctx,
-                <a href="#526">len</a>.<a href="#96">as_raw</a>(),
+            cvt(ffi::EVP_PKEY_CTX_set_rsa_pss_saltlen(
+                <span class="self">self</span>.pctx,
+                len.as_raw(),
             ))
             .map(|<span class="kw">_</span>| ())
         }
@@ -1424,11 +1428,11 @@ assert!(memcmp::eq(&amp;hmac, &amp;target));
     /// This corresponds to [`EVP_PKEY_CTX_set_rsa_mgf1_md`].
     ///
     /// [`EVP_PKEY_CTX_set_rsa_mgf1_md`]: https://www.openssl.org/docs/manmaster/man7/RSA-PSS.html
-    </span><span class="kw">pub fn </span>set_rsa_mgf1_md(<span class="kw-2">&amp;mut </span><span class="self">self</span>, md: <a href="hash.rs.html#22">MessageDigest</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#39">ErrorStack</a>&gt; {
+    </span><span class="kw">pub fn </span>set_rsa_mgf1_md(<span class="kw-2">&amp;mut </span><span class="self">self</span>, md: MessageDigest) -&gt; <span class="prelude-ty">Result</span>&lt;(), ErrorStack&gt; {
         <span class="kw">unsafe </span>{
-            <a href="lib.rs.html#202">cvt</a>(ffi::EVP_PKEY_CTX_set_rsa_mgf1_md(
-                <a class="self" href="#543">self</a>.pctx,
-                <a href="#543">md</a>.<a href="hash.rs.html#138">as_ptr</a>() <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>,
+            cvt(ffi::EVP_PKEY_CTX_set_rsa_mgf1_md(
+                <span class="self">self</span>.pctx,
+                md.as_ptr() <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>,
             ))
             .map(|<span class="kw">_</span>| ())
         }
@@ -1437,17 +1441,17 @@ assert!(memcmp::eq(&amp;hmac, &amp;target));
     <span class="doccomment">/// Feeds more data into the `Verifier`.
     ///
     /// Please note that PureEdDSA (Ed25519 and Ed448 keys) do not support streaming.
-    /// Use `verify_oneshot` instead.
+    /// Use [`Verifier::verify_oneshot`] instead.
     ///
     /// OpenSSL documentation at [`EVP_DigestUpdate`].
     ///
     /// [`EVP_DigestUpdate`]: https://www.openssl.org/docs/manmaster/man3/EVP_DigestInit.html
-    </span><span class="kw">pub fn </span>update(<span class="kw-2">&amp;mut </span><span class="self">self</span>, buf: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#39">ErrorStack</a>&gt; {
+    </span><span class="kw">pub fn </span>update(<span class="kw-2">&amp;mut </span><span class="self">self</span>, buf: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;(), ErrorStack&gt; {
         <span class="kw">unsafe </span>{
-            <a href="lib.rs.html#202">cvt</a>(ffi::EVP_DigestUpdate(
-                <a class="self" href="#561">self</a>.md_ctx,
-                <a href="#561">buf</a>.as_ptr() <span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_</span>,
-                <a href="#561">buf</a>.len(),
+            cvt(ffi::EVP_DigestUpdate(
+                <span class="self">self</span>.md_ctx,
+                buf.as_ptr() <span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_</span>,
+                buf.len(),
             ))
             .map(|<span class="kw">_</span>| ())
         }
@@ -1458,11 +1462,11 @@ assert!(memcmp::eq(&amp;hmac, &amp;target));
     /// OpenSSL documentation at [`EVP_DigestVerifyFinal`].
     ///
     /// [`EVP_DigestVerifyFinal`]: https://www.openssl.org/docs/manmaster/man3/EVP_DigestVerifyFinal.html
-    </span><span class="kw">pub fn </span>verify(<span class="kw-2">&amp;</span><span class="self">self</span>, signature: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>, <a href="error.rs.html#39">ErrorStack</a>&gt; {
+    </span><span class="kw">pub fn </span>verify(<span class="kw-2">&amp;</span><span class="self">self</span>, signature: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;bool, ErrorStack&gt; {
         <span class="kw">unsafe </span>{
             <span class="kw">let </span>r =
-                <a href="#635-639">EVP_DigestVerifyFinal</a>(<a class="self" href="#577">self</a>.md_ctx, <a href="#577">signature</a>.as_ptr() <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>, <a href="#577">signature</a>.len());
-            <span class="kw">match </span><a href="#579">r</a> {
+                EVP_DigestVerifyFinal(<span class="self">self</span>.md_ctx, signature.as_ptr() <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>, signature.len());
+            <span class="kw">match </span>r {
                 <span class="number">1 </span>=&gt; <span class="prelude-val">Ok</span>(<span class="bool-val">true</span>),
                 <span class="number">0 </span>=&gt; {
                     ErrorStack::get(); <span class="comment">// discard error stack
@@ -1479,16 +1483,16 @@ assert!(memcmp::eq(&amp;hmac, &amp;target));
     ///
     /// [`EVP_DigestVerify`]: https://www.openssl.org/docs/man1.1.1/man3/EVP_DigestVerify.html
     </span><span class="attr">#[cfg(ossl111)]
-    </span><span class="kw">pub fn </span>verify_oneshot(<span class="kw-2">&amp;mut </span><span class="self">self</span>, signature: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], buf: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>, <a href="error.rs.html#39">ErrorStack</a>&gt; {
+    </span><span class="kw">pub fn </span>verify_oneshot(<span class="kw-2">&amp;mut </span><span class="self">self</span>, signature: <span class="kw-2">&amp;</span>[u8], buf: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;bool, ErrorStack&gt; {
         <span class="kw">unsafe </span>{
             <span class="kw">let </span>r = ffi::EVP_DigestVerify(
-                <a class="self" href="#598">self</a>.md_ctx,
-                <a href="#598">signature</a>.as_ptr() <span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_</span>,
-                <a href="#598">signature</a>.len(),
-                <a href="#598">buf</a>.as_ptr() <span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_</span>,
-                <a href="#598">buf</a>.len(),
+                <span class="self">self</span>.md_ctx,
+                signature.as_ptr() <span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_</span>,
+                signature.len(),
+                buf.as_ptr() <span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_</span>,
+                buf.len(),
             );
-            <span class="kw">match </span><a href="#600">r</a> {
+            <span class="kw">match </span>r {
                 <span class="number">1 </span>=&gt; <span class="prelude-val">Ok</span>(<span class="bool-val">true</span>),
                 <span class="number">0 </span>=&gt; {
                     ErrorStack::get();
@@ -1500,10 +1504,10 @@ assert!(memcmp::eq(&amp;hmac, &amp;target));
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; <a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a> <span class="kw">for </span>Verifier&lt;<span class="lifetime">&#39;a</span>&gt; {
-    <span class="kw">fn </span>write(<span class="kw-2">&amp;mut </span><span class="self">self</span>, buf: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; Write <span class="kw">for </span>Verifier&lt;<span class="lifetime">&#39;a</span>&gt; {
+    <span class="kw">fn </span>write(<span class="kw-2">&amp;mut </span><span class="self">self</span>, buf: <span class="kw-2">&amp;</span>[u8]) -&gt; io::Result&lt;usize&gt; {
         <span class="self">self</span>.update(buf)<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(<a href="#620">buf</a>.len())
+        <span class="prelude-val">Ok</span>(buf.len())
     }
 
     <span class="kw">fn </span>flush(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; io::Result&lt;()&gt; {
@@ -1517,11 +1521,11 @@ assert!(memcmp::eq(&amp;hmac, &amp;target));
 <span class="attr">#[cfg(ossl101)]
 #[allow(bad_style)]
 </span><span class="kw">unsafe fn </span>EVP_DigestVerifyFinal(
-    ctx: <span class="kw-2">*mut </span><a href="../../openssl_sys/openssl/handwritten/types/enum.EVP_MD_CTX.html">ffi::EVP_MD_CTX</a>,
-    sigret: <span class="kw-2">*const </span><a href="../../libc/unix/type.c_uchar.html">::libc::c_uchar</a>,
-    siglen: <a href="../../libc/unix/type.size_t.html">::libc::size_t</a>,
-) -&gt; <a href="../../libc/unix/type.c_int.html">::libc::c_int</a> {
-    ffi::EVP_DigestVerifyFinal(<a href="#636">ctx</a>, <a href="#637">sigret</a> <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>, <a href="#638">siglen</a>)
+    ctx: <span class="kw-2">*mut </span>ffi::EVP_MD_CTX,
+    sigret: <span class="kw-2">*const </span>::libc::c_uchar,
+    siglen: ::libc::size_t,
+) -&gt; ::libc::c_int {
+    ffi::EVP_DigestVerifyFinal(ctx, sigret <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>, siglen)
 }
 
 <span class="attr">#[cfg(test)]
@@ -1767,4 +1771,4 @@ assert!(memcmp::eq(&amp;hmac, &amp;target));
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="openssl" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="openssl" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

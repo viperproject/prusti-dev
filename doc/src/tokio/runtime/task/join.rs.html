@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.21.2/src/runtime/task/join.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>join.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../../tokio/index.html"><img class="rust-logo" src="../../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.23.0/src/runtime/task/join.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>join.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../../tokio/index.html"><img class="rust-logo" src="../../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -330,37 +330,22 @@
 <a href="#330" id="330">330</a>
 <a href="#331" id="331">331</a>
 <a href="#332" id="332">332</a>
-<a href="#333" id="333">333</a>
-<a href="#334" id="334">334</a>
-<a href="#335" id="335">335</a>
-<a href="#336" id="336">336</a>
-<a href="#337" id="337">337</a>
-<a href="#338" id="338">338</a>
-<a href="#339" id="339">339</a>
-<a href="#340" id="340">340</a>
-<a href="#341" id="341">341</a>
-<a href="#342" id="342">342</a>
-<a href="#343" id="343">343</a>
-<a href="#344" id="344">344</a>
-<a href="#345" id="345">345</a>
-<a href="#346" id="346">346</a>
-<a href="#347" id="347">347</a>
-<a href="#348" id="348">348</a>
-<a href="#349" id="349">349</a>
-</pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::runtime::task::{<a href="mod.rs.html#206">Id</a>, <a href="raw.rs.html#9">RawTask</a>};
+</pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::runtime::task::{Header, RawTask};
 
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">std::fmt</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">std::future::Future</a>;
+<span class="kw">use </span>std::fmt;
+<span class="kw">use </span>std::future::Future;
 <span class="kw">use </span>std::marker::PhantomData;
-<span class="kw">use </span>std::panic::{<a href="https://doc.rust-lang.org/nightly/core/panic/unwind_safe/trait.RefUnwindSafe.html">RefUnwindSafe</a>, <a href="https://doc.rust-lang.org/nightly/core/panic/unwind_safe/trait.UnwindSafe.html">UnwindSafe</a>};
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/pin/struct.Pin.html">std::pin::Pin</a>;
-<span class="kw">use </span>std::task::{<a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>, <a href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">Poll</a>, <a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Waker.html">Waker</a>};
+<span class="kw">use </span>std::panic::{RefUnwindSafe, UnwindSafe};
+<span class="kw">use </span>std::pin::Pin;
+<span class="kw">use </span>std::task::{Context, Poll, Waker};
 
 <span class="macro">cfg_rt! </span>{
     <span class="doccomment">/// An owned permission to join on a task (await its termination).
     ///
-    /// This can be thought of as the equivalent of [`std::thread::JoinHandle`] for
-    /// a task rather than a thread.
+    /// This can be thought of as the equivalent of [`std::thread::JoinHandle`]
+    /// for a Tokio task rather than a thread. You do not need to `.await` the
+    /// `JoinHandle` to make the task execute — it will start running in the
+    /// background immediately.
     ///
     /// A `JoinHandle` *detaches* the associated task when it is dropped, which
     /// means that there is no longer any handle to the task, and no way to `join`
@@ -501,23 +486,21 @@
     /// [`std::thread::JoinHandle`]: std::thread::JoinHandle
     /// [`JoinError`]: crate::task::JoinError
     </span><span class="kw">pub struct </span>JoinHandle&lt;T&gt; {
-        raw: <span class="prelude-ty">Option</span>&lt;<a href="raw.rs.html#9">RawTask</a>&gt;,
-        id: <a href="mod.rs.html#206">Id</a>,
+        raw: RawTask,
         _p: PhantomData&lt;T&gt;,
     }
 }
 
-<span class="kw">unsafe impl</span>&lt;T: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="kw">for </span>JoinHandle&lt;T&gt; {}
-<span class="kw">unsafe impl</span>&lt;T: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> <span class="kw">for </span>JoinHandle&lt;T&gt; {}
+<span class="kw">unsafe impl</span>&lt;T: Send&gt; Send <span class="kw">for </span>JoinHandle&lt;T&gt; {}
+<span class="kw">unsafe impl</span>&lt;T: Send&gt; Sync <span class="kw">for </span>JoinHandle&lt;T&gt; {}
 
-<span class="kw">impl</span>&lt;T&gt; <a href="https://doc.rust-lang.org/nightly/core/panic/unwind_safe/trait.UnwindSafe.html">UnwindSafe</a> <span class="kw">for </span>JoinHandle&lt;T&gt; {}
-<span class="kw">impl</span>&lt;T&gt; <a href="https://doc.rust-lang.org/nightly/core/panic/unwind_safe/trait.RefUnwindSafe.html">RefUnwindSafe</a> <span class="kw">for </span>JoinHandle&lt;T&gt; {}
+<span class="kw">impl</span>&lt;T&gt; UnwindSafe <span class="kw">for </span>JoinHandle&lt;T&gt; {}
+<span class="kw">impl</span>&lt;T&gt; RefUnwindSafe <span class="kw">for </span>JoinHandle&lt;T&gt; {}
 
 <span class="kw">impl</span>&lt;T&gt; JoinHandle&lt;T&gt; {
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>new(raw: <a href="raw.rs.html#9">RawTask</a>, id: <a href="mod.rs.html#206">Id</a>) -&gt; JoinHandle&lt;T&gt; {
-        <a href="#154">JoinHandle</a> {
-            raw: <span class="prelude-val">Some</span>(<a href="#168">raw</a>),
-            <a href="#168">id</a>,
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>new(raw: RawTask) -&gt; JoinHandle&lt;T&gt; {
+        JoinHandle {
+            raw,
             _p: PhantomData,
         }
     }
@@ -556,9 +539,7 @@
     /// ```
     /// [cancelled]: method@super::error::JoinError::is_cancelled
     </span><span class="kw">pub fn </span>abort(<span class="kw-2">&amp;</span><span class="self">self</span>) {
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(raw) = <a class="self" href="#209">self</a>.raw {
-            <a href="#210">raw</a>.<a href="raw.rs.html#171">remote_abort</a>();
-        }
+        <span class="self">self</span>.raw.remote_abort();
     }
 
     <span class="doccomment">/// Checks if the task associated with this `JoinHandle` has finished.
@@ -589,32 +570,23 @@
     /// # }
     /// ```
     /// [`abort`]: method@JoinHandle::abort
-    </span><span class="kw">pub fn </span>is_finished(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(raw) = <a class="self" href="#243">self</a>.raw {
-            <span class="kw">let </span>state = <a href="#244">raw</a>.<a href="raw.rs.html#127">header</a>().state.<a href="state.rs.html#109">load</a>();
-            <a href="#245">state</a>.<a href="state.rs.html#537">is_complete</a>()
-        } <span class="kw">else </span>{
-            <span class="bool-val">true
-        </span>}
+    </span><span class="kw">pub fn </span>is_finished(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="kw">let </span>state = <span class="self">self</span>.raw.header().state.load();
+        state.is_complete()
     }
 
     <span class="doccomment">/// Set the waker that is notified when the task completes.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_join_waker(<span class="kw-2">&amp;mut </span><span class="self">self</span>, waker: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Waker.html">Waker</a>) {
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(raw) = <a class="self" href="#253">self</a>.raw {
-            <span class="kw">if </span>raw.try_set_join_waker(waker) {
-                <span class="comment">// In this case the task has already completed. We wake the waker immediately.
-                </span><a href="#253">waker</a>.wake_by_ref();
-            }
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_join_waker(<span class="kw-2">&amp;mut </span><span class="self">self</span>, waker: <span class="kw-2">&amp;</span>Waker) {
+        <span class="kw">if </span><span class="self">self</span>.raw.try_set_join_waker(waker) {
+            <span class="comment">// In this case the task has already completed. We wake the waker immediately.
+            </span>waker.wake_by_ref();
         }
     }
 
     <span class="doccomment">/// Returns a new `AbortHandle` that can be used to remotely abort this task.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>abort_handle(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="abort.rs.html#16"><span class="kw">super</span>::AbortHandle</a> {
-        <span class="kw">let </span>raw = <a class="self" href="#263">self</a>.raw.map(|raw| {
-            <a href="#264">raw</a>.<a href="raw.rs.html#179">ref_inc</a>();
-            <a href="#264">raw</a>
-        });
-        <span class="kw">super</span>::AbortHandle::new(<a href="#264">raw</a>, <a class="self" href="#263">self</a>.id.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>())
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>abort_handle(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">super</span>::AbortHandle {
+        <span class="self">self</span>.raw.ref_inc();
+        <span class="kw">super</span>::AbortHandle::new(<span class="self">self</span>.raw)
     }
 
     <span class="doccomment">/// Returns a [task ID] that uniquely identifies this task relative to other
@@ -629,27 +601,21 @@
     </span><span class="attr">#[cfg(tokio_unstable)]
     #[cfg_attr(docsrs, doc(cfg(tokio_unstable)))]
     </span><span class="kw">pub fn </span>id(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">super</span>::Id {
-        <span class="self">self</span>.id.clone()
+        <span class="comment">// Safety: The header pointer is valid.
+        </span><span class="kw">unsafe </span>{ Header::get_id(<span class="self">self</span>.raw.header_ptr()) }
     }
 }
 
-<span class="kw">impl</span>&lt;T&gt; <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a> <span class="kw">for </span>JoinHandle&lt;T&gt; {}
+<span class="kw">impl</span>&lt;T&gt; Unpin <span class="kw">for </span>JoinHandle&lt;T&gt; {}
 
-<span class="kw">impl</span>&lt;T&gt; <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a> <span class="kw">for </span>JoinHandle&lt;T&gt; {
+<span class="kw">impl</span>&lt;T&gt; Future <span class="kw">for </span>JoinHandle&lt;T&gt; {
     <span class="kw">type </span>Output = <span class="kw">super</span>::Result&lt;T&gt;;
 
     <span class="kw">fn </span>poll(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>ret = Poll::Pending;
 
         <span class="comment">// Keep track of task budget
-        </span><span class="kw">let </span>coop = <a class="macro" href="../../macros/ready.rs.html#1-8">ready!</a>(<span class="kw">crate</span>::coop::poll_proceed(cx));
-
-        <span class="comment">// Raw should always be set. If it is not, this is due to polling after
-        // completion
-        </span><span class="kw">let </span>raw = <span class="self"><a href="#292">self</a>
-            </span>.raw
-            .as_ref()
-            .expect(<span class="string">&quot;polling after `JoinHandle` already completed&quot;</span>);
+        </span><span class="kw">let </span>coop = <span class="macro">ready!</span>(<span class="kw">crate</span>::runtime::coop::poll_proceed(cx));
 
         <span class="comment">// Try to read the task output. If the task is not yet complete, the
         // waker is stored and is notified once the task does complete.
@@ -663,38 +629,38 @@
         //
         // The type of `T` must match the task&#39;s output type.
         </span><span class="kw">unsafe </span>{
-            <a href="#300">raw</a>.<a href="raw.rs.html#146">try_read_output</a>(<span class="kw-2">&amp;mut </span><a href="#293">ret</a> <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_ as </span><span class="kw-2">*mut </span>(), <a href="#292">cx</a>.waker());
+            <span class="self">self</span>.raw
+                .try_read_output(<span class="kw-2">&amp;mut </span>ret <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_ as </span><span class="kw-2">*mut </span>(), cx.waker());
         }
 
         <span class="kw">if </span>ret.is_ready() {
-            <a href="#296">coop</a>.<a href="../../coop.rs.html#138">made_progress</a>();
+            coop.made_progress();
         }
 
-        <a href="#293">ret</a>
+        ret
     }
 }
 
-<span class="kw">impl</span>&lt;T&gt; <a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span>JoinHandle&lt;T&gt; {
+<span class="kw">impl</span>&lt;T&gt; Drop <span class="kw">for </span>JoinHandle&lt;T&gt; {
     <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(raw) = <a class="self" href="#329">self</a>.raw.take() {
-            <span class="kw">if </span>raw.header().state.drop_join_handle_fast().is_ok() {
-                <span class="kw">return</span>;
-            }
-
-            <a href="#330">raw</a>.<a href="raw.rs.html#156">drop_join_handle_slow</a>();
+        <span class="kw">if </span><span class="self">self</span>.raw.state().drop_join_handle_fast().is_ok() {
+            <span class="kw">return</span>;
         }
+
+        <span class="self">self</span>.raw.drop_join_handle_slow();
     }
 }
 
-<span class="kw">impl</span>&lt;T&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span>JoinHandle&lt;T&gt;
+<span class="kw">impl</span>&lt;T&gt; fmt::Debug <span class="kw">for </span>JoinHandle&lt;T&gt;
 <span class="kw">where
-    </span>T: <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a>,
+    </span>T: fmt::Debug,
 {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, fmt: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a href="#344">fmt</a>.debug_struct(<span class="string">&quot;JoinHandle&quot;</span>)
-            .field(<span class="string">&quot;id&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="#344">self</a>.id)
-            .finish()
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, fmt: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        <span class="comment">// Safety: The header pointer is valid.
+        </span><span class="kw">let </span>id_ptr = <span class="kw">unsafe </span>{ Header::get_id_ptr(<span class="self">self</span>.raw.header_ptr()) };
+        <span class="kw">let </span>id = <span class="kw">unsafe </span>{ id_ptr.as_ref() };
+        fmt.debug_struct(<span class="string">&quot;JoinHandle&quot;</span>).field(<span class="string">&quot;id&quot;</span>, id).finish()
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="tokio" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="tokio" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

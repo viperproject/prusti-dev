@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tungstenite-0.17.3/src/protocol/frame/frame.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>frame.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../../tungstenite/index.html"><img class="rust-logo" src="../../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tungstenite-0.17.3/src/protocol/frame/frame.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>frame.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../../tungstenite/index.html"><img class="rust-logo" src="../../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -475,43 +475,43 @@
 <a href="#475" id="475">475</a>
 <a href="#476" id="476">476</a>
 <a href="#477" id="477">477</a>
-</pre><pre class="rust"><code><span class="kw">use </span>byteorder::{<a href="../../../../byteorder/trait.ByteOrder.html">ByteOrder</a>, <a href="../../../../byteorder/type.NetworkEndian.html">NetworkEndian</a>, <a href="../../../../byteorder/io/trait.ReadBytesExt.html">ReadBytesExt</a>, <a href="../../../../byteorder/io/trait.WriteBytesExt.html">WriteBytesExt</a>};
-<span class="kw">use </span><a href="../../../../log/index.html">log</a>::<span class="kw-2">*</span>;
+</pre><pre class="rust"><code><span class="kw">use </span>byteorder::{ByteOrder, NetworkEndian, ReadBytesExt, WriteBytesExt};
+<span class="kw">use </span>log::<span class="kw-2">*</span>;
 <span class="kw">use </span>std::{
-    <a href="https://doc.rust-lang.org/nightly/alloc/borrow/enum.Cow.html">borrow::Cow</a>,
-    <a href="https://doc.rust-lang.org/nightly/core/default/derive.Default.html">default::Default</a>,
-    <a href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">fmt</a>,
-    io::{<a href="https://doc.rust-lang.org/nightly/std/io/cursor/struct.Cursor.html">Cursor</a>, <a href="https://doc.rust-lang.org/nightly/std/io/error/enum.ErrorKind.html">ErrorKind</a>, <a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a>, <a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a>},
-    <a href="https://doc.rust-lang.org/nightly/core/result/enum.Result.html">result::Result</a> <span class="kw">as </span>StdResult,
-    <a href="https://doc.rust-lang.org/nightly/core/str/error/struct.Utf8Error.html">str::Utf8Error</a>,
-    string::{<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.FromUtf8Error.html">FromUtf8Error</a>, <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>},
+    borrow::Cow,
+    default::Default,
+    fmt,
+    io::{Cursor, ErrorKind, Read, Write},
+    result::Result <span class="kw">as </span>StdResult,
+    str::Utf8Error,
+    string::{FromUtf8Error, String},
 };
 
 <span class="kw">use super</span>::{
-    coding::{<a href="coding.rs.html#119">CloseCode</a>, <a href="coding.rs.html#32">Control</a>, <a href="coding.rs.html#19">Data</a>, <a href="coding.rs.html#10">OpCode</a>},
-    mask::{<a href="mask.rs.html#9">apply_mask</a>, <a href="mask.rs.html#3">generate_mask</a>},
+    coding::{CloseCode, Control, Data, OpCode},
+    mask::{apply_mask, generate_mask},
 };
-<span class="kw">use </span><span class="kw">crate</span>::error::{<a href="../../error.rs.html#14">Error</a>, <a href="../../error.rs.html#142">ProtocolError</a>, <span class="prelude-ty">Result</span>};
+<span class="kw">use </span><span class="kw">crate</span>::error::{Error, ProtocolError, <span class="prelude-ty">Result</span>};
 
 <span class="doccomment">/// A struct representing the close command.
 </span><span class="attr">#[derive(Debug, Clone, Eq, PartialEq)]
 </span><span class="kw">pub struct </span>CloseFrame&lt;<span class="lifetime">&#39;t</span>&gt; {
     <span class="doccomment">/// The reason as a code.
-    </span><span class="kw">pub </span>code: <a href="coding.rs.html#119">CloseCode</a>,
+    </span><span class="kw">pub </span>code: CloseCode,
     <span class="doccomment">/// The reason as text string.
-    </span><span class="kw">pub </span>reason: Cow&lt;<span class="lifetime">&#39;t</span>, <a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt;,
+    </span><span class="kw">pub </span>reason: Cow&lt;<span class="lifetime">&#39;t</span>, str&gt;,
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;t</span>&gt; CloseFrame&lt;<span class="lifetime">&#39;t</span>&gt; {
     <span class="doccomment">/// Convert into a owned string.
     </span><span class="kw">pub fn </span>into_owned(<span class="self">self</span>) -&gt; CloseFrame&lt;<span class="lifetime">&#39;static</span>&gt; {
-        <a href="#21">CloseFrame</a> { code: <a class="self" href="#30">self</a>.code, reason: <a class="self" href="#30">self</a>.reason.into_owned().<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>() }
+        CloseFrame { code: <span class="self">self</span>.code, reason: <span class="self">self</span>.reason.into_owned().into() }
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;t</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for </span>CloseFrame&lt;<span class="lifetime">&#39;t</span>&gt; {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#36">f</a>, <span class="string">&quot;{} ({})&quot;</span>, <span class="self">self</span>.reason, <span class="self">self</span>.code)
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;t</span>&gt; fmt::Display <span class="kw">for </span>CloseFrame&lt;<span class="lifetime">&#39;t</span>&gt; {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter) -&gt; fmt::Result {
+        <span class="macro">write!</span>(f, <span class="string">&quot;{} ({})&quot;</span>, <span class="self">self</span>.reason, <span class="self">self</span>.code)
     }
 }
 
@@ -520,76 +520,76 @@
 #[derive(Debug, Clone, Eq, PartialEq)]
 </span><span class="kw">pub struct </span>FrameHeader {
     <span class="doccomment">/// Indicates that the frame is the last one of a possibly fragmented message.
-    </span><span class="kw">pub </span>is_final: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
+    </span><span class="kw">pub </span>is_final: bool,
     <span class="doccomment">/// Reserved for protocol extensions.
-    </span><span class="kw">pub </span>rsv1: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
+    </span><span class="kw">pub </span>rsv1: bool,
     <span class="doccomment">/// Reserved for protocol extensions.
-    </span><span class="kw">pub </span>rsv2: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
+    </span><span class="kw">pub </span>rsv2: bool,
     <span class="doccomment">/// Reserved for protocol extensions.
-    </span><span class="kw">pub </span>rsv3: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
+    </span><span class="kw">pub </span>rsv3: bool,
     <span class="doccomment">/// WebSocket protocol opcode.
-    </span><span class="kw">pub </span>opcode: <a href="coding.rs.html#10">OpCode</a>,
+    </span><span class="kw">pub </span>opcode: OpCode,
     <span class="doccomment">/// A frame mask, if any.
-    </span><span class="kw">pub </span>mask: <span class="prelude-ty">Option</span>&lt;[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="number">4</span>]&gt;,
+    </span><span class="kw">pub </span>mask: <span class="prelude-ty">Option</span>&lt;[u8; <span class="number">4</span>]&gt;,
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for </span><a href="#44">FrameHeader</a> {
+<span class="kw">impl </span>Default <span class="kw">for </span>FrameHeader {
     <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
-        <a href="#44">FrameHeader</a> {
+        FrameHeader {
             is_final: <span class="bool-val">true</span>,
             rsv1: <span class="bool-val">false</span>,
             rsv2: <span class="bool-val">false</span>,
             rsv3: <span class="bool-val">false</span>,
-            opcode: <a href="coding.rs.html#14">OpCode::Control</a>(<a href="coding.rs.html#34">Control::Close</a>),
+            opcode: OpCode::Control(Control::Close),
             mask: <span class="prelude-val">None</span>,
         }
     }
 }
 
-<span class="kw">impl </span><a href="#44">FrameHeader</a> {
+<span class="kw">impl </span>FrameHeader {
     <span class="doccomment">/// Parse a header from an input stream.
     /// Returns `None` if insufficient data and does not consume anything in this case.
     /// Payload size is returned along with the header.
-    </span><span class="kw">pub fn </span>parse(cursor: <span class="kw-2">&amp;mut </span>Cursor&lt;<span class="kw">impl </span>AsRef&lt;[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;(<span class="self">Self</span>, <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>)&gt;&gt; {
-        <span class="kw">let </span>initial = <a href="#76">cursor</a>.position();
-        <span class="kw">match </span><span class="self">Self</span>::parse_internal(<a href="#76">cursor</a>) {
+    </span><span class="kw">pub fn </span>parse(cursor: <span class="kw-2">&amp;mut </span>Cursor&lt;<span class="kw">impl </span>AsRef&lt;[u8]&gt;&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;(<span class="self">Self</span>, u64)&gt;&gt; {
+        <span class="kw">let </span>initial = cursor.position();
+        <span class="kw">match </span><span class="self">Self</span>::parse_internal(cursor) {
             ret @ <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>) =&gt; {
-                <a href="#76">cursor</a>.set_position(<a href="#77">initial</a>);
-                <a href="#79">ret</a>
+                cursor.set_position(initial);
+                ret
             }
-            ret =&gt; <a href="#83">ret</a>,
+            ret =&gt; ret,
         }
     }
 
     <span class="doccomment">/// Get the size of the header formatted with given payload length.
     </span><span class="attr">#[allow(clippy::len_without_is_empty)]
-    </span><span class="kw">pub fn </span>len(<span class="kw-2">&amp;</span><span class="self">self</span>, length: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <span class="number">2 </span>+ LengthFormat::for_length(<a href="#89">length</a>).<a href="#415">extra_bytes</a>() + <span class="kw">if </span><span class="self">self</span>.mask.is_some() { <span class="number">4 </span>} <span class="kw">else </span>{ <span class="number">0 </span>}
+    </span><span class="kw">pub fn </span>len(<span class="kw-2">&amp;</span><span class="self">self</span>, length: u64) -&gt; usize {
+        <span class="number">2 </span>+ LengthFormat::for_length(length).extra_bytes() + <span class="kw">if </span><span class="self">self</span>.mask.is_some() { <span class="number">4 </span>} <span class="kw">else </span>{ <span class="number">0 </span>}
     }
 
     <span class="doccomment">/// Format a header for given payload size.
-    </span><span class="kw">pub fn </span>format(<span class="kw-2">&amp;</span><span class="self">self</span>, length: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>, output: <span class="kw-2">&amp;mut </span><span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a>) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
-        <span class="kw">let </span>code: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a> = <a class="self" href="#94">self</a>.opcode.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>();
+    </span><span class="kw">pub fn </span>format(<span class="kw-2">&amp;</span><span class="self">self</span>, length: u64, output: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>Write) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+        <span class="kw">let </span>code: u8 = <span class="self">self</span>.opcode.into();
 
         <span class="kw">let </span>one = {
-            <a href="#95">code</a> | <span class="kw">if </span><span class="self">self</span>.is_final { <span class="number">0x80 </span>} <span class="kw">else </span>{ <span class="number">0 </span>}
+            code | <span class="kw">if </span><span class="self">self</span>.is_final { <span class="number">0x80 </span>} <span class="kw">else </span>{ <span class="number">0 </span>}
                 | <span class="kw">if </span><span class="self">self</span>.rsv1 { <span class="number">0x40 </span>} <span class="kw">else </span>{ <span class="number">0 </span>}
                 | <span class="kw">if </span><span class="self">self</span>.rsv2 { <span class="number">0x20 </span>} <span class="kw">else </span>{ <span class="number">0 </span>}
                 | <span class="kw">if </span><span class="self">self</span>.rsv3 { <span class="number">0x10 </span>} <span class="kw">else </span>{ <span class="number">0 </span>}
         };
 
-        <span class="kw">let </span>lenfmt = LengthFormat::for_length(<a href="#94">length</a>);
+        <span class="kw">let </span>lenfmt = LengthFormat::for_length(length);
 
-        <span class="kw">let </span>two = { <a href="#104">lenfmt</a>.<a href="#425">length_byte</a>() | <span class="kw">if </span><span class="self">self</span>.mask.is_some() { <span class="number">0x80 </span>} <span class="kw">else </span>{ <span class="number">0 </span>} };
+        <span class="kw">let </span>two = { lenfmt.length_byte() | <span class="kw">if </span><span class="self">self</span>.mask.is_some() { <span class="number">0x80 </span>} <span class="kw">else </span>{ <span class="number">0 </span>} };
 
         output.write_all(<span class="kw-2">&amp;</span>[one, two])<span class="question-mark">?</span>;
-        <span class="kw">match </span><a href="#104">lenfmt</a> {
-            <a href="#395">LengthFormat::U8</a>(<span class="kw">_</span>) =&gt; (),
-            <a href="#396">LengthFormat::U16</a> =&gt; output.write_u16::&lt;NetworkEndian&gt;(length <span class="kw">as </span>u16)<span class="question-mark">?</span>,
-            <a href="#397">LengthFormat::U64</a> =&gt; output.write_u64::&lt;NetworkEndian&gt;(length)<span class="question-mark">?</span>,
+        <span class="kw">match </span>lenfmt {
+            LengthFormat::U8(<span class="kw">_</span>) =&gt; (),
+            LengthFormat::U16 =&gt; output.write_u16::&lt;NetworkEndian&gt;(length <span class="kw">as </span>u16)<span class="question-mark">?</span>,
+            LengthFormat::U64 =&gt; output.write_u64::&lt;NetworkEndian&gt;(length)<span class="question-mark">?</span>,
         }
 
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">ref </span>mask) = <a class="self" href="#94">self</a>.mask {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">ref </span>mask) = <span class="self">self</span>.mask {
             output.write_all(mask)<span class="question-mark">?
         </span>}
 
@@ -600,54 +600,54 @@
     ///
     /// Of course this does not change frame contents. It just generates a mask.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_random_mask(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <a class="self" href="#125">self</a>.mask = <span class="prelude-val">Some</span>(<a href="mask.rs.html#3">generate_mask</a>())
+        <span class="self">self</span>.mask = <span class="prelude-val">Some</span>(generate_mask())
     }
 }
 
-<span class="kw">impl </span><a href="#44">FrameHeader</a> {
+<span class="kw">impl </span>FrameHeader {
     <span class="doccomment">/// Internal parse engine.
     /// Returns `None` if insufficient data.
     /// Payload size is returned along with the header.
-    </span><span class="kw">fn </span>parse_internal(cursor: <span class="kw-2">&amp;mut </span><span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;(<span class="self">Self</span>, <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>)&gt;&gt; {
+    </span><span class="kw">fn </span>parse_internal(cursor: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>Read) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;(<span class="self">Self</span>, u64)&gt;&gt; {
         <span class="kw">let </span>(first, second) = {
             <span class="kw">let </span><span class="kw-2">mut </span>head = [<span class="number">0u8</span>; <span class="number">2</span>];
             <span class="kw">if </span>cursor.read(<span class="kw-2">&amp;mut </span>head)<span class="question-mark">? </span>!= <span class="number">2 </span>{
                 <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>);
             }
-            <a class="macro" href="../../../../log/log/macro.trace.html">trace!</a>(<span class="string">&quot;Parsed headers {:?}&quot;</span>, head);
-            (<a href="#136">head</a>[<span class="number">0</span>], <a href="#136">head</a>[<span class="number">1</span>])
+            <span class="macro">trace!</span>(<span class="string">&quot;Parsed headers {:?}&quot;</span>, head);
+            (head[<span class="number">0</span>], head[<span class="number">1</span>])
         };
 
-        <a class="macro" href="../../../../log/log/macro.trace.html">trace!</a>(<span class="string">&quot;First: {:b}&quot;</span>, first);
-        <a class="macro" href="../../../../log/log/macro.trace.html">trace!</a>(<span class="string">&quot;Second: {:b}&quot;</span>, second);
+        <span class="macro">trace!</span>(<span class="string">&quot;First: {:b}&quot;</span>, first);
+        <span class="macro">trace!</span>(<span class="string">&quot;Second: {:b}&quot;</span>, second);
 
-        <span class="kw">let </span>is_final = <a href="#135">first</a> &amp; <span class="number">0x80 </span>!= <span class="number">0</span>;
+        <span class="kw">let </span>is_final = first &amp; <span class="number">0x80 </span>!= <span class="number">0</span>;
 
-        <span class="kw">let </span>rsv1 = <a href="#135">first</a> &amp; <span class="number">0x40 </span>!= <span class="number">0</span>;
-        <span class="kw">let </span>rsv2 = <a href="#135">first</a> &amp; <span class="number">0x20 </span>!= <span class="number">0</span>;
-        <span class="kw">let </span>rsv3 = <a href="#135">first</a> &amp; <span class="number">0x10 </span>!= <span class="number">0</span>;
+        <span class="kw">let </span>rsv1 = first &amp; <span class="number">0x40 </span>!= <span class="number">0</span>;
+        <span class="kw">let </span>rsv2 = first &amp; <span class="number">0x20 </span>!= <span class="number">0</span>;
+        <span class="kw">let </span>rsv3 = first &amp; <span class="number">0x10 </span>!= <span class="number">0</span>;
 
-        <span class="kw">let </span>opcode = OpCode::from(<a href="#135">first</a> &amp; <span class="number">0x0F</span>);
-        <a class="macro" href="../../../../log/log/macro.trace.html">trace!</a>(<span class="string">&quot;Opcode: {:?}&quot;</span>, opcode);
+        <span class="kw">let </span>opcode = OpCode::from(first &amp; <span class="number">0x0F</span>);
+        <span class="macro">trace!</span>(<span class="string">&quot;Opcode: {:?}&quot;</span>, opcode);
 
-        <span class="kw">let </span>masked = <a href="#135">second</a> &amp; <span class="number">0x80 </span>!= <span class="number">0</span>;
-        <a class="macro" href="../../../../log/log/macro.trace.html">trace!</a>(<span class="string">&quot;Masked: {:?}&quot;</span>, masked);
+        <span class="kw">let </span>masked = second &amp; <span class="number">0x80 </span>!= <span class="number">0</span>;
+        <span class="macro">trace!</span>(<span class="string">&quot;Masked: {:?}&quot;</span>, masked);
 
         <span class="kw">let </span>length = {
-            <span class="kw">let </span>length_byte = <a href="#135">second</a> &amp; <span class="number">0x7F</span>;
-            <span class="kw">let </span>length_length = LengthFormat::for_byte(<a href="#160">length_byte</a>).<a href="#415">extra_bytes</a>();
+            <span class="kw">let </span>length_byte = second &amp; <span class="number">0x7F</span>;
+            <span class="kw">let </span>length_length = LengthFormat::for_byte(length_byte).extra_bytes();
             <span class="kw">if </span>length_length &gt; <span class="number">0 </span>{
-                <span class="kw">match </span><a href="#134">cursor</a>.<a href="../../../../byteorder/io/trait.ReadBytesExt.html">read_uint</a>::&lt;<a href="../../../../byteorder/type.NetworkEndian.html">NetworkEndian</a>&gt;(<a href="#161">length_length</a>) {
-                    <span class="prelude-val">Err</span>(<span class="kw-2">ref </span>err) <span class="kw">if </span><a href="#164">err</a>.kind() == ErrorKind::UnexpectedEof =&gt; {
+                <span class="kw">match </span>cursor.read_uint::&lt;NetworkEndian&gt;(length_length) {
+                    <span class="prelude-val">Err</span>(<span class="kw-2">ref </span>err) <span class="kw">if </span>err.kind() == ErrorKind::UnexpectedEof =&gt; {
                         <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>);
                     }
                     <span class="prelude-val">Err</span>(err) =&gt; {
-                        <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="#167">err</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>());
+                        <span class="kw">return </span><span class="prelude-val">Err</span>(err.into());
                     }
-                    <span class="prelude-val">Ok</span>(read) =&gt; <a href="#170">read</a>,
+                    <span class="prelude-val">Ok</span>(read) =&gt; read,
                 }
             } <span class="kw">else </span>{
-                u64::from(<a href="#160">length_byte</a>)
+                u64::from(length_byte)
             }
         };
 
@@ -656,76 +656,76 @@
             <span class="kw">if </span>cursor.read(<span class="kw-2">&amp;mut </span>mask_bytes)<span class="question-mark">? </span>!= <span class="number">4 </span>{
                 <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>);
             } <span class="kw">else </span>{
-                <span class="prelude-val">Some</span>(<a href="#178">mask_bytes</a>)
+                <span class="prelude-val">Some</span>(mask_bytes)
             }
         } <span class="kw">else </span>{
             <span class="prelude-val">None
         </span>};
 
         <span class="comment">// Disallow bad opcode
-        </span><span class="kw">match </span><a href="#153">opcode</a> {
-            <a href="coding.rs.html#14">OpCode::Control</a>(<a href="coding.rs.html#40">Control::Reserved</a>(<span class="kw">_</span>)) | <a href="coding.rs.html#12">OpCode::Data</a>(<a href="coding.rs.html#27">Data::Reserved</a>(<span class="kw">_</span>)) =&gt; {
-                <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../error.rs.html#54">Error::Protocol</a>(<a href="../../error.rs.html#217">ProtocolError::InvalidOpcode</a>(<a href="#135">first</a> &amp; <span class="number">0x0F</span>)))
+        </span><span class="kw">match </span>opcode {
+            OpCode::Control(Control::Reserved(<span class="kw">_</span>)) | OpCode::Data(Data::Reserved(<span class="kw">_</span>)) =&gt; {
+                <span class="kw">return </span><span class="prelude-val">Err</span>(Error::Protocol(ProtocolError::InvalidOpcode(first &amp; <span class="number">0x0F</span>)))
             }
             <span class="kw">_ </span>=&gt; (),
         }
 
-        <span class="kw">let </span>hdr = <a href="#44">FrameHeader</a> { <a href="#147">is_final</a>, <a href="#149">rsv1</a>, <a href="#150">rsv2</a>, <a href="#151">rsv3</a>, <a href="#153">opcode</a>, <a href="#177">mask</a> };
+        <span class="kw">let </span>hdr = FrameHeader { is_final, rsv1, rsv2, rsv3, opcode, mask };
 
-        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>((<a href="#196">hdr</a>, <a href="#159">length</a>)))
+        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>((hdr, length)))
     }
 }
 
 <span class="doccomment">/// A struct representing a WebSocket frame.
 </span><span class="attr">#[derive(Debug, Clone, Eq, PartialEq)]
 </span><span class="kw">pub struct </span>Frame {
-    header: <a href="#44">FrameHeader</a>,
-    payload: Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;,
+    header: FrameHeader,
+    payload: Vec&lt;u8&gt;,
 }
 
-<span class="kw">impl </span><a href="#204">Frame</a> {
+<span class="kw">impl </span>Frame {
     <span class="doccomment">/// Get the length of the frame.
     /// This is the length of the header + the length of the payload.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <span class="kw">let </span>length = <a class="self" href="#213">self</a>.payload.len();
-        <a class="self" href="#213">self</a>.header.<a href="#89">len</a>(<a href="#214">length</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) + <a href="#214">length</a>
+    </span><span class="kw">pub fn </span>len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+        <span class="kw">let </span>length = <span class="self">self</span>.payload.len();
+        <span class="self">self</span>.header.len(length <span class="kw">as </span>u64) + length
     }
 
     <span class="doccomment">/// Check if the frame is empty.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>is_empty(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#220">self</a>.<a href="#213">len</a>() == <span class="number">0
+    </span><span class="kw">pub fn </span>is_empty(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.len() == <span class="number">0
     </span>}
 
     <span class="doccomment">/// Get a reference to the frame&#39;s header.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>header(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="#44">FrameHeader</a> {
-        <span class="kw-2">&amp;</span><a class="self" href="#226">self</a>.header
+    </span><span class="kw">pub fn </span>header(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>FrameHeader {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.header
     }
 
     <span class="doccomment">/// Get a mutable reference to the frame&#39;s header.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>header_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span><a href="#44">FrameHeader</a> {
-        <span class="kw-2">&amp;mut </span><a class="self" href="#232">self</a>.header
+    </span><span class="kw">pub fn </span>header_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>FrameHeader {
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>.header
     }
 
     <span class="doccomment">/// Get a reference to the frame&#39;s payload.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>payload(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt; {
-        <span class="kw-2">&amp;</span><a class="self" href="#238">self</a>.payload
+    </span><span class="kw">pub fn </span>payload(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Vec&lt;u8&gt; {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.payload
     }
 
     <span class="doccomment">/// Get a mutable reference to the frame&#39;s payload.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>payload_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt; {
-        <span class="kw-2">&amp;mut </span><a class="self" href="#244">self</a>.payload
+    </span><span class="kw">pub fn </span>payload_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>Vec&lt;u8&gt; {
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>.payload
     }
 
     <span class="doccomment">/// Test whether the frame is masked.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>is_masked(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#250">self</a>.header.mask.is_some()
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>is_masked(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.header.mask.is_some()
     }
 
     <span class="doccomment">/// Generate a random mask for the frame.
@@ -734,117 +734,117 @@
     /// either on `format()` or on `apply_mask()` call.
     </span><span class="attr">#[inline]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_random_mask(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <a class="self" href="#259">self</a>.header.<a href="#125">set_random_mask</a>()
+        <span class="self">self</span>.header.set_random_mask()
     }
 
     <span class="doccomment">/// This method unmasks the payload and should only be called on frames that are actually
     /// masked. In other words, those frames that have just been received from a client endpoint.
     </span><span class="attr">#[inline]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>apply_mask(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(mask) = <a class="self" href="#266">self</a>.header.mask.take() {
-            <a href="mask.rs.html#9">apply_mask</a>(<span class="kw-2">&amp;mut </span><a class="self" href="#266">self</a>.payload, <a href="#267">mask</a>)
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(mask) = <span class="self">self</span>.header.mask.take() {
+            apply_mask(<span class="kw-2">&amp;mut </span><span class="self">self</span>.payload, mask)
         }
     }
 
     <span class="doccomment">/// Consume the frame into its payload as binary.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>into_data(<span class="self">self</span>) -&gt; Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt; {
-        <a class="self" href="#274">self</a>.payload
+    </span><span class="kw">pub fn </span>into_data(<span class="self">self</span>) -&gt; Vec&lt;u8&gt; {
+        <span class="self">self</span>.payload
     }
 
     <span class="doccomment">/// Consume the frame into its payload as string.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>into_string(<span class="self">self</span>) -&gt; StdResult&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.FromUtf8Error.html">FromUtf8Error</a>&gt; {
-        String::from_utf8(<a class="self" href="#280">self</a>.payload)
+    </span><span class="kw">pub fn </span>into_string(<span class="self">self</span>) -&gt; StdResult&lt;String, FromUtf8Error&gt; {
+        String::from_utf8(<span class="self">self</span>.payload)
     }
 
     <span class="doccomment">/// Get frame payload as `&amp;str`.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>to_text(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, <a href="https://doc.rust-lang.org/nightly/core/str/error/struct.Utf8Error.html">Utf8Error</a>&gt; {
-        <a href="https://doc.rust-lang.org/nightly/core/str/converts/fn.from_utf8.html">std::str::from_utf8</a>(<span class="kw-2">&amp;</span><a class="self" href="#286">self</a>.payload)
+    </span><span class="kw">pub fn </span>to_text(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span>str, Utf8Error&gt; {
+        std::str::from_utf8(<span class="kw-2">&amp;</span><span class="self">self</span>.payload)
     }
 
     <span class="doccomment">/// Consume the frame into a closing frame.
     </span><span class="attr">#[inline]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>into_close(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;CloseFrame&lt;<span class="lifetime">&#39;static</span>&gt;&gt;&gt; {
-        <span class="kw">match </span><a class="self" href="#292">self</a>.payload.len() {
+        <span class="kw">match </span><span class="self">self</span>.payload.len() {
             <span class="number">0 </span>=&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>),
-            <span class="number">1 </span>=&gt; <span class="prelude-val">Err</span>(<a href="../../error.rs.html#54">Error::Protocol</a>(<a href="../../error.rs.html#220">ProtocolError::InvalidCloseSequence</a>)),
+            <span class="number">1 </span>=&gt; <span class="prelude-val">Err</span>(Error::Protocol(ProtocolError::InvalidCloseSequence)),
             <span class="kw">_ </span>=&gt; {
-                <span class="kw">let </span><span class="kw-2">mut </span>data = <a class="self" href="#292">self</a>.payload;
-                <span class="kw">let </span>code = NetworkEndian::read_u16(<span class="kw-2">&amp;</span><a href="#297">data</a>[<span class="number">0</span>..<span class="number">2</span>]).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>();
-                <a href="#297">data</a>.drain(<span class="number">0</span>..<span class="number">2</span>);
+                <span class="kw">let </span><span class="kw-2">mut </span>data = <span class="self">self</span>.payload;
+                <span class="kw">let </span>code = NetworkEndian::read_u16(<span class="kw-2">&amp;</span>data[<span class="number">0</span>..<span class="number">2</span>]).into();
+                data.drain(<span class="number">0</span>..<span class="number">2</span>);
                 <span class="kw">let </span>text = String::from_utf8(data)<span class="question-mark">?</span>;
-                <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<a href="#21">CloseFrame</a> { <a href="#298">code</a>, reason: <a href="#300">text</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>() }))
+                <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(CloseFrame { code, reason: text.into() }))
             }
         }
     }
 
     <span class="doccomment">/// Create a new data frame.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>message(data: Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;, opcode: <a href="coding.rs.html#10">OpCode</a>, is_final: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <a href="#204">Frame</a> {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(<span class="macro">matches!</span>(opcode, OpCode::Data(<span class="kw">_</span>)), <span class="string">&quot;Invalid opcode for data frame.&quot;</span>);
+    </span><span class="kw">pub fn </span>message(data: Vec&lt;u8&gt;, opcode: OpCode, is_final: bool) -&gt; Frame {
+        <span class="macro">debug_assert!</span>(<span class="macro">matches!</span>(opcode, OpCode::Data(<span class="kw">_</span>)), <span class="string">&quot;Invalid opcode for data frame.&quot;</span>);
 
-        <a href="#204">Frame</a> { header: <a href="#44">FrameHeader</a> { <a href="#308">is_final</a>, <a href="#308">opcode</a>, ..FrameHeader::default() }, payload: <a href="#308">data</a> }
+        Frame { header: FrameHeader { is_final, opcode, ..FrameHeader::default() }, payload: data }
     }
 
     <span class="doccomment">/// Create a new Pong control frame.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>pong(data: Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;) -&gt; <a href="#204">Frame</a> {
-        <a href="#204">Frame</a> {
-            header: <a href="#44">FrameHeader</a> {
-                opcode: <a href="coding.rs.html#14">OpCode::Control</a>(<a href="coding.rs.html#38">Control::Pong</a>),
+    </span><span class="kw">pub fn </span>pong(data: Vec&lt;u8&gt;) -&gt; Frame {
+        Frame {
+            header: FrameHeader {
+                opcode: OpCode::Control(Control::Pong),
                 ..FrameHeader::default()
             },
-            payload: <a href="#316">data</a>,
+            payload: data,
         }
     }
 
     <span class="doccomment">/// Create a new Ping control frame.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>ping(data: Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;) -&gt; <a href="#204">Frame</a> {
-        <a href="#204">Frame</a> {
-            header: <a href="#44">FrameHeader</a> {
-                opcode: <a href="coding.rs.html#14">OpCode::Control</a>(<a href="coding.rs.html#36">Control::Ping</a>),
+    </span><span class="kw">pub fn </span>ping(data: Vec&lt;u8&gt;) -&gt; Frame {
+        Frame {
+            header: FrameHeader {
+                opcode: OpCode::Control(Control::Ping),
                 ..FrameHeader::default()
             },
-            payload: <a href="#328">data</a>,
+            payload: data,
         }
     }
 
     <span class="doccomment">/// Create a new Close control frame.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>close(msg: <span class="prelude-ty">Option</span>&lt;<a href="#21">CloseFrame</a>&gt;) -&gt; <a href="#204">Frame</a> {
-        <span class="kw">let </span>payload = <span class="kw">if let </span><span class="prelude-val">Some</span>(<a href="#21">CloseFrame</a> { code, reason }) = <a href="#340">msg</a> {
-            <span class="kw">let </span><span class="kw-2">mut </span>p = Vec::with_capacity(<a href="#341">reason</a>.as_bytes().len() + <span class="number">2</span>);
-            <a href="#342">p</a>.<a href="../../../../byteorder/io/trait.WriteBytesExt.html">write_u16</a>::&lt;<a href="../../../../byteorder/type.NetworkEndian.html">NetworkEndian</a>&gt;(<a href="#341">code</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()).unwrap(); <span class="comment">// can&#39;t fail
-            </span><a href="#342">p</a>.extend_from_slice(<a href="#341">reason</a>.as_bytes());
-            <a href="#342">p</a>
+    </span><span class="kw">pub fn </span>close(msg: <span class="prelude-ty">Option</span>&lt;CloseFrame&gt;) -&gt; Frame {
+        <span class="kw">let </span>payload = <span class="kw">if let </span><span class="prelude-val">Some</span>(CloseFrame { code, reason }) = msg {
+            <span class="kw">let </span><span class="kw-2">mut </span>p = Vec::with_capacity(reason.as_bytes().len() + <span class="number">2</span>);
+            p.write_u16::&lt;NetworkEndian&gt;(code.into()).unwrap(); <span class="comment">// can&#39;t fail
+            </span>p.extend_from_slice(reason.as_bytes());
+            p
         } <span class="kw">else </span>{
             Vec::new()
         };
 
-        <a href="#204">Frame</a> { header: FrameHeader::default(), <a href="#341">payload</a> }
+        Frame { header: FrameHeader::default(), payload }
     }
 
     <span class="doccomment">/// Create a frame from given header and data.
-    </span><span class="kw">pub fn </span>from_payload(header: <a href="#44">FrameHeader</a>, payload: Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;) -&gt; <span class="self">Self </span>{
-        <a href="#204">Frame</a> { <a href="#354">header</a>, <a href="#354">payload</a> }
+    </span><span class="kw">pub fn </span>from_payload(header: FrameHeader, payload: Vec&lt;u8&gt;) -&gt; <span class="self">Self </span>{
+        Frame { header, payload }
     }
 
     <span class="doccomment">/// Write a frame out to a buffer
-    </span><span class="kw">pub fn </span>format(<span class="kw-2">mut </span><span class="self">self</span>, output: <span class="kw-2">&amp;mut </span><span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a>) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+    </span><span class="kw">pub fn </span>format(<span class="kw-2">mut </span><span class="self">self</span>, output: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>Write) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
         <span class="self">self</span>.header.format(<span class="self">self</span>.payload.len() <span class="kw">as </span>u64, output)<span class="question-mark">?</span>;
-        <a class="self" href="#359">self</a>.<a href="#266">apply_mask</a>();
+        <span class="self">self</span>.apply_mask();
         output.write_all(<span class="self">self</span>.payload())<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(())
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for </span><a href="#204">Frame</a> {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(
-            <a href="#368">f</a>,
+<span class="kw">impl </span>fmt::Display <span class="kw">for </span>Frame {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter) -&gt; fmt::Result {
+        <span class="macro">write!</span>(
+            f,
             <span class="string">&quot;
 &lt;FRAME&gt;
 final: {}
@@ -869,51 +869,51 @@ payload: 0x{}
 
 <span class="doccomment">/// Handling of the length format.
 </span><span class="kw">enum </span>LengthFormat {
-    U8(<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>),
+    U8(u8),
     U16,
     U64,
 }
 
-<span class="kw">impl </span><a href="#394">LengthFormat</a> {
+<span class="kw">impl </span>LengthFormat {
     <span class="doccomment">/// Get the length format for a given data size.
     </span><span class="attr">#[inline]
-    </span><span class="kw">fn </span>for_length(length: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">fn </span>for_length(length: u64) -&gt; <span class="self">Self </span>{
         <span class="kw">if </span>length &lt; <span class="number">126 </span>{
-            <a href="#395">LengthFormat::U8</a>(<a href="#403">length</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>)
+            LengthFormat::U8(length <span class="kw">as </span>u8)
         } <span class="kw">else if </span>length &lt; <span class="number">65536 </span>{
-            <a href="#396">LengthFormat::U16</a>
+            LengthFormat::U16
         } <span class="kw">else </span>{
-            <a href="#397">LengthFormat::U64</a>
+            LengthFormat::U64
         }
     }
 
     <span class="doccomment">/// Get the size of the length encoding.
     </span><span class="attr">#[inline]
-    </span><span class="kw">fn </span>extra_bytes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="#415">self</a> </span>{
-            <a href="#395">LengthFormat::U8</a>(<span class="kw">_</span>) =&gt; <span class="number">0</span>,
-            <a href="#396">LengthFormat::U16</a> =&gt; <span class="number">2</span>,
-            <a href="#397">LengthFormat::U64</a> =&gt; <span class="number">8</span>,
+    </span><span class="kw">fn </span>extra_bytes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+        <span class="kw">match </span><span class="kw-2">*</span><span class="self">self </span>{
+            LengthFormat::U8(<span class="kw">_</span>) =&gt; <span class="number">0</span>,
+            LengthFormat::U16 =&gt; <span class="number">2</span>,
+            LengthFormat::U64 =&gt; <span class="number">8</span>,
         }
     }
 
     <span class="doccomment">/// Encode the given length.
     </span><span class="attr">#[inline]
-    </span><span class="kw">fn </span>length_byte(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a> {
-        <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="#425">self</a> </span>{
-            <a href="#395">LengthFormat::U8</a>(b) =&gt; <a href="#427">b</a>,
-            <a href="#396">LengthFormat::U16</a> =&gt; <span class="number">126</span>,
-            <a href="#397">LengthFormat::U64</a> =&gt; <span class="number">127</span>,
+    </span><span class="kw">fn </span>length_byte(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u8 {
+        <span class="kw">match </span><span class="kw-2">*</span><span class="self">self </span>{
+            LengthFormat::U8(b) =&gt; b,
+            LengthFormat::U16 =&gt; <span class="number">126</span>,
+            LengthFormat::U64 =&gt; <span class="number">127</span>,
         }
     }
 
     <span class="doccomment">/// Get the length format for a given length byte.
     </span><span class="attr">#[inline]
-    </span><span class="kw">fn </span>for_byte(byte: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) -&gt; <span class="self">Self </span>{
-        <span class="kw">match </span><a href="#435">byte</a> &amp; <span class="number">0x7F </span>{
-            <span class="number">126 </span>=&gt; <a href="#396">LengthFormat::U16</a>,
-            <span class="number">127 </span>=&gt; <a href="#397">LengthFormat::U64</a>,
-            b =&gt; <a href="#395">LengthFormat::U8</a>(<a href="#439">b</a>),
+    </span><span class="kw">fn </span>for_byte(byte: u8) -&gt; <span class="self">Self </span>{
+        <span class="kw">match </span>byte &amp; <span class="number">0x7F </span>{
+            <span class="number">126 </span>=&gt; LengthFormat::U16,
+            <span class="number">127 </span>=&gt; LengthFormat::U64,
+            b =&gt; LengthFormat::U8(b),
         }
     }
 }
@@ -953,4 +953,4 @@ payload: 0x{}
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="tungstenite" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="tungstenite" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/git2-0.14.4/src/transaction.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>transaction.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../git2/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/git2-0.14.4/src/transaction.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>transaction.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../git2/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -283,10 +283,10 @@
 <a href="#283" id="283">283</a>
 <a href="#284" id="284">284</a>
 <a href="#285" id="285">285</a>
-</pre><pre class="rust"><code><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/ffi/c_str/struct.CString.html">std::ffi::CString</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/marker/index.html">std::marker</a>;
+</pre><pre class="rust"><code><span class="kw">use </span>std::ffi::CString;
+<span class="kw">use </span>std::marker;
 
-<span class="kw">use crate</span>::{<a href="../../libgit2_sys/index.html">raw</a>, <a href="util.rs.html#25">util::Binding</a>, <a href="error.rs.html#12">Error</a>, <a href="oid.rs.html#15">Oid</a>, <a href="reflog.rs.html#10">Reflog</a>, <a href="repo.rs.html#108">Repository</a>, <a href="signature.rs.html#21">Signature</a>};
+<span class="kw">use crate</span>::{raw, util::Binding, Error, Oid, Reflog, Repository, Signature};
 
 <span class="doccomment">/// A structure representing a transactional update of a repository&#39;s references.
 ///
@@ -295,37 +295,37 @@
 /// called. Note that comitting is not atomic: if an operation fails, the
 /// transaction aborts, but previous successful operations are not rolled back.
 </span><span class="kw">pub struct </span>Transaction&lt;<span class="lifetime">&#39;repo</span>&gt; {
-    raw: <span class="kw-2">*mut </span><a href="../../libgit2_sys/enum.git_transaction.html">raw::git_transaction</a>,
-    _marker: marker::PhantomData&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;repo </span><a href="repo.rs.html#108">Repository</a>&gt;,
+    raw: <span class="kw-2">*mut </span>raw::git_transaction,
+    _marker: marker::PhantomData&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;repo </span>Repository&gt;,
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span>Transaction&lt;<span class="lifetime">&#39;_</span>&gt; {
+<span class="kw">impl </span>Drop <span class="kw">for </span>Transaction&lt;<span class="lifetime">&#39;_</span>&gt; {
     <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <span class="kw">unsafe </span>{ raw::git_transaction_free(<a class="self" href="#18">self</a>.raw) }
+        <span class="kw">unsafe </span>{ raw::git_transaction_free(<span class="self">self</span>.raw) }
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;repo</span>&gt; <a href="util.rs.html#25">Binding</a> <span class="kw">for </span>Transaction&lt;<span class="lifetime">&#39;repo</span>&gt; {
-    <span class="kw">type </span>Raw = <span class="kw-2">*mut </span><a href="../../libgit2_sys/enum.git_transaction.html">raw::git_transaction</a>;
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;repo</span>&gt; Binding <span class="kw">for </span>Transaction&lt;<span class="lifetime">&#39;repo</span>&gt; {
+    <span class="kw">type </span>Raw = <span class="kw-2">*mut </span>raw::git_transaction;
 
-    <span class="kw">unsafe fn </span>from_raw(ptr: <span class="kw-2">*mut </span><a href="../../libgit2_sys/enum.git_transaction.html">raw::git_transaction</a>) -&gt; Transaction&lt;<span class="lifetime">&#39;repo</span>&gt; {
-        <a href="#12">Transaction</a> {
-            raw: <a href="#26">ptr</a>,
+    <span class="kw">unsafe fn </span>from_raw(ptr: <span class="kw-2">*mut </span>raw::git_transaction) -&gt; Transaction&lt;<span class="lifetime">&#39;repo</span>&gt; {
+        Transaction {
+            raw: ptr,
             _marker: marker::PhantomData,
         }
     }
 
-    <span class="kw">fn </span>raw(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">*mut </span><a href="../../libgit2_sys/enum.git_transaction.html">raw::git_transaction</a> {
-        <a class="self" href="#33">self</a>.raw
+    <span class="kw">fn </span>raw(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">*mut </span>raw::git_transaction {
+        <span class="self">self</span>.raw
     }
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;repo</span>&gt; Transaction&lt;<span class="lifetime">&#39;repo</span>&gt; {
     <span class="doccomment">/// Lock the specified reference by name.
-    </span><span class="kw">pub fn </span>lock_ref(<span class="kw-2">&amp;mut </span><span class="self">self</span>, refname: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#12">Error</a>&gt; {
-        <span class="kw">let </span>refname = CString::new(<a href="#40">refname</a>).unwrap();
+    </span><span class="kw">pub fn </span>lock_ref(<span class="kw-2">&amp;mut </span><span class="self">self</span>, refname: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
+        <span class="kw">let </span>refname = CString::new(refname).unwrap();
         <span class="kw">unsafe </span>{
-            <a class="macro" href="call.rs.html#12-19">try_call!</a>(raw::git_transaction_lock_ref(<span class="self">self</span>.raw, refname));
+            <span class="macro">try_call!</span>(raw::git_transaction_lock_ref(<span class="self">self</span>.raw, refname));
         }
 
         <span class="prelude-val">Ok</span>(())
@@ -339,15 +339,15 @@
     /// repository config.
     </span><span class="kw">pub fn </span>set_target(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        refname: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>,
-        target: <a href="oid.rs.html#15">Oid</a>,
+        refname: <span class="kw-2">&amp;</span>str,
+        target: Oid,
         reflog_signature: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Signature&lt;<span class="lifetime">&#39;_</span>&gt;&gt;,
-        reflog_message: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#12">Error</a>&gt; {
-        <span class="kw">let </span>refname = CString::new(<a href="#57">refname</a>).unwrap();
-        <span class="kw">let </span>reflog_message = CString::new(<a href="#60">reflog_message</a>).unwrap();
+        reflog_message: <span class="kw-2">&amp;</span>str,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
+        <span class="kw">let </span>refname = CString::new(refname).unwrap();
+        <span class="kw">let </span>reflog_message = CString::new(reflog_message).unwrap();
         <span class="kw">unsafe </span>{
-            <a class="macro" href="call.rs.html#12-19">try_call!</a>(raw::git_transaction_set_target(
+            <span class="macro">try_call!</span>(raw::git_transaction_set_target(
                 <span class="self">self</span>.raw,
                 refname,
                 target.raw(),
@@ -367,16 +367,16 @@
     /// repository config.
     </span><span class="kw">pub fn </span>set_symbolic_target(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        refname: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>,
-        target: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>,
+        refname: <span class="kw-2">&amp;</span>str,
+        target: <span class="kw-2">&amp;</span>str,
         reflog_signature: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Signature&lt;<span class="lifetime">&#39;_</span>&gt;&gt;,
-        reflog_message: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#12">Error</a>&gt; {
-        <span class="kw">let </span>refname = CString::new(<a href="#85">refname</a>).unwrap();
-        <span class="kw">let </span>target = CString::new(<a href="#86">target</a>).unwrap();
-        <span class="kw">let </span>reflog_message = CString::new(<a href="#88">reflog_message</a>).unwrap();
+        reflog_message: <span class="kw-2">&amp;</span>str,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
+        <span class="kw">let </span>refname = CString::new(refname).unwrap();
+        <span class="kw">let </span>target = CString::new(target).unwrap();
+        <span class="kw">let </span>reflog_message = CString::new(reflog_message).unwrap();
         <span class="kw">unsafe </span>{
-            <a class="macro" href="call.rs.html#12-19">try_call!</a>(raw::git_transaction_set_symbolic_target(
+            <span class="macro">try_call!</span>(raw::git_transaction_set_symbolic_target(
                 <span class="self">self</span>.raw,
                 refname,
                 target,
@@ -397,10 +397,10 @@
     /// If this is combined with setting the target, that update won&#39;t be
     /// written to the log (ie. the `reflog_signature` and `reflog_message`
     /// parameters will be ignored).
-    </span><span class="kw">pub fn </span>set_reflog(<span class="kw-2">&amp;mut </span><span class="self">self</span>, refname: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, reflog: <a href="reflog.rs.html#10">Reflog</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#12">Error</a>&gt; {
-        <span class="kw">let </span>refname = CString::new(<a href="#115">refname</a>).unwrap();
+    </span><span class="kw">pub fn </span>set_reflog(<span class="kw-2">&amp;mut </span><span class="self">self</span>, refname: <span class="kw-2">&amp;</span>str, reflog: Reflog) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
+        <span class="kw">let </span>refname = CString::new(refname).unwrap();
         <span class="kw">unsafe </span>{
-            <a class="macro" href="call.rs.html#12-19">try_call!</a>(raw::git_transaction_set_reflog(
+            <span class="macro">try_call!</span>(raw::git_transaction_set_reflog(
                 <span class="self">self</span>.raw,
                 refname,
                 reflog.raw()
@@ -413,10 +413,10 @@
     <span class="doccomment">/// Remove a reference.
     ///
     /// The reference must have been locked via `lock_ref`.
-    </span><span class="kw">pub fn </span>remove(<span class="kw-2">&amp;mut </span><span class="self">self</span>, refname: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#12">Error</a>&gt; {
-        <span class="kw">let </span>refname = CString::new(<a href="#131">refname</a>).unwrap();
+    </span><span class="kw">pub fn </span>remove(<span class="kw-2">&amp;mut </span><span class="self">self</span>, refname: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
+        <span class="kw">let </span>refname = CString::new(refname).unwrap();
         <span class="kw">unsafe </span>{
-            <a class="macro" href="call.rs.html#12-19">try_call!</a>(raw::git_transaction_remove(<span class="self">self</span>.raw, refname));
+            <span class="macro">try_call!</span>(raw::git_transaction_remove(<span class="self">self</span>.raw, refname));
         }
 
         <span class="prelude-val">Ok</span>(())
@@ -426,9 +426,9 @@
     ///
     /// The updates will be made one by one, and the first failure will stop the
     /// processing.
-    </span><span class="kw">pub fn </span>commit(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#12">Error</a>&gt; {
+    </span><span class="kw">pub fn </span>commit(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
         <span class="kw">unsafe </span>{
-            <a class="macro" href="call.rs.html#12-19">try_call!</a>(raw::git_transaction_commit(<span class="self">self</span>.raw));
+            <span class="macro">try_call!</span>(raw::git_transaction_commit(<span class="self">self</span>.raw));
         }
         <span class="prelude-val">Ok</span>(())
     }
@@ -569,4 +569,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="git2" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="git2" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

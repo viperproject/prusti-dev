@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `prusti-viper/src/encoder/high/procedures/inference/ensurer.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>ensurer.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../../../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../../../../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../../../../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../../../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../../../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../../../../../source-files.js"></script><script defer src="../../../../../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../../../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../../../../prusti_viper/index.html"><img class="rust-logo" src="../../../../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `prusti-viper/src/encoder/high/procedures/inference/ensurer.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>ensurer.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../../../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../../../../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../../../../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../../../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../../../../source-files.js"></script><script defer src="../../../../../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../../../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../../../../prusti_viper/index.html"><img class="rust-logo" src="../../../../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -513,24 +513,22 @@
 <a href="#513" id="513">513</a>
 <a href="#514" id="514">514</a>
 <a href="#515" id="515">515</a>
-<a href="#516" id="516">516</a>
-<a href="#517" id="517">517</a>
 </pre><pre class="rust"><code><span class="kw">use super</span>::{
-    <a href="action.rs.html#8">action::Action</a>,
-    permission::{<a href="permission.rs.html#4">Permission</a>, <a href="permission.rs.html#43">PermissionKind</a>},
-    <a href="state/predicate_state_on_path.rs.html#15">state::PredicateStateOnPath</a>,
-    <a href="state/fold_unfold_state.rs.html#14">FoldUnfoldState</a>,
+    action::Action,
+    permission::{Permission, PermissionKind},
+    state::PredicateStateOnPath,
+    FoldUnfoldState,
 };
 <span class="kw">use </span><span class="kw">crate</span>::encoder::{
-    errors::{<a href="../../../errors/error_manager.rs.html#52">ErrorCtxt</a>, <a href="../../../errors/spanned_encoding_error.rs.html#16">SpannedEncodingError</a>, <a href="../../../errors/spanned_encoding_error.rs.html#23">SpannedEncodingResult</a>},
-    <a href="state/predicate_state.rs.html#10">high::procedures::inference::state::PredicateState</a>,
+    errors::{ErrorCtxt, SpannedEncodingError, SpannedEncodingResult},
+    high::procedures::inference::state::PredicateState,
 };
-<span class="kw">use </span><a href="../../../../../../log/macro.debug.html">log::debug</a>;
+<span class="kw">use </span>log::debug;
 <span class="kw">use </span>prusti_rustc_interface::errors::MultiSpan;
 <span class="kw">use </span>vir_crate::{
-    <a href="../../../../../../vir/common/position/trait.Positioned.html">common::position::Positioned</a>,
-    <a href="../../../../../../vir/middle/index.html">middle</a> <span class="kw">as </span>vir_mid,
-    typed::{<span class="self"><a href="../../../../../../vir/typed/index.html">self</a> </span><span class="kw">as </span>vir_typed, <a href="../../../../../../vir/gen/typed/operations_internal/ty/trait.Typed.html">operations::ty::Typed</a>},
+    common::position::Positioned,
+    middle <span class="kw">as </span>vir_mid,
+    typed::{<span class="self">self </span><span class="kw">as </span>vir_typed, operations::ty::Typed},
 };
 
 <span class="attr">#[derive(Clone, Copy, PartialEq, Eq, Debug)]
@@ -546,29 +544,29 @@
     /// be used.
     </span><span class="kw">fn </span>expand_place(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        place: <span class="kw-2">&amp;</span><a href="../../../../../../vir/gen/typed/ast/expression/enum.Expression.html">vir_typed::Expression</a>,
-        guiding_place: <span class="kw-2">&amp;</span><a href="../../../../../../vir/gen/typed/ast/expression/enum.Expression.html">vir_typed::Expression</a>,
-    ) -&gt; SpannedEncodingResult&lt;Vec&lt;(<a href="#20">ExpandedPermissionKind</a>, <a href="../../../../../../vir/gen/typed/ast/expression/enum.Expression.html">vir_typed::Expression</a>)&gt;&gt;;
-    <span class="kw">fn </span>get_span(<span class="kw-2">&amp;mut </span><span class="self">self</span>, position: <a href="../../../../../../vir/common/position/struct.Position.html">vir_typed::Position</a>) -&gt; <span class="prelude-ty">Option</span>&lt;MultiSpan&gt;;
+        place: <span class="kw-2">&amp;</span>vir_typed::Expression,
+        guiding_place: <span class="kw-2">&amp;</span>vir_typed::Expression,
+    ) -&gt; SpannedEncodingResult&lt;Vec&lt;(ExpandedPermissionKind, vir_typed::Expression)&gt;&gt;;
+    <span class="kw">fn </span>get_span(<span class="kw-2">&amp;mut </span><span class="self">self</span>, position: vir_typed::Position) -&gt; <span class="prelude-ty">Option</span>&lt;MultiSpan&gt;;
     <span class="kw">fn </span>change_error_context(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        position: <a href="../../../../../../vir/common/position/struct.Position.html">vir_typed::Position</a>,
-        error_ctxt: <a href="../../../errors/error_manager.rs.html#52">ErrorCtxt</a>,
-    ) -&gt; <a href="../../../../../../vir/common/position/struct.Position.html">vir_typed::Position</a>;
+        position: vir_typed::Position,
+        error_ctxt: ErrorCtxt,
+    ) -&gt; vir_typed::Position;
 }
 
 <span class="kw">pub</span>(<span class="kw">in </span><span class="kw">super</span>::<span class="kw">super</span>) <span class="kw">fn </span>ensure_required_permissions(
-    context: <span class="kw-2">&amp;mut </span><span class="kw">impl </span><a href="#27">Context</a>,
-    state: <span class="kw-2">&amp;mut </span><a href="state/fold_unfold_state.rs.html#14">FoldUnfoldState</a>,
-    required_permissions: Vec&lt;<a href="permission.rs.html#4">Permission</a>&gt;,
-) -&gt; SpannedEncodingResult&lt;Vec&lt;<a href="action.rs.html#8">Action</a>&gt;&gt; {
-    <a href="#45">state</a>.<a href="state/fold_unfold_state.rs.html#359">check_consistency</a>();
+    context: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>Context,
+    state: <span class="kw-2">&amp;mut </span>FoldUnfoldState,
+    required_permissions: Vec&lt;Permission&gt;,
+) -&gt; SpannedEncodingResult&lt;Vec&lt;Action&gt;&gt; {
+    state.check_consistency();
     <span class="kw">let </span><span class="kw-2">mut </span>actions = Vec::new();
     <span class="kw">for </span>permission <span class="kw">in </span>required_permissions {
         ensure_required_permission(context, state, permission, <span class="kw-2">&amp;mut </span>actions)<span class="question-mark">?</span>;
     }
-    <a href="#45">state</a>.<a href="state/fold_unfold_state.rs.html#359">check_consistency</a>();
-    <span class="prelude-val">Ok</span>(<a href="#49">actions</a>)
+    state.check_consistency();
+    <span class="prelude-val">Ok</span>(actions)
 }
 
 <span class="doccomment">/// A special cased version of `ensure_required_permissions` for enum
@@ -580,14 +578,14 @@
 ///
 /// `place` – place of the enum.
 </span><span class="kw">pub</span>(<span class="kw">in </span><span class="kw">super</span>::<span class="kw">super</span>) <span class="kw">fn </span>try_ensure_enum_discriminant_by_unfolding(
-    context: <span class="kw-2">&amp;mut </span><span class="kw">impl </span><a href="#27">Context</a>,
-    state: <span class="kw-2">&amp;mut </span><a href="state/fold_unfold_state.rs.html#14">FoldUnfoldState</a>,
-    place: <span class="kw-2">&amp;</span><a href="../../../../../../vir/gen/typed/ast/expression/enum.Expression.html">vir_typed::Expression</a>,
-    permission_kind: <a href="permission.rs.html#43">PermissionKind</a>,
-) -&gt; SpannedEncodingResult&lt;(<span class="prelude-ty">Option</span>&lt;Vec&lt;<a href="../../../../../../vir/gen/middle/ast/statement/struct.BlockMarkerCondition.html">vir_mid::BlockMarkerCondition</a>&gt;&gt;, Vec&lt;<a href="action.rs.html#8">Action</a>&gt;)&gt; {
+    context: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>Context,
+    state: <span class="kw-2">&amp;mut </span>FoldUnfoldState,
+    place: <span class="kw-2">&amp;</span>vir_typed::Expression,
+    permission_kind: PermissionKind,
+) -&gt; SpannedEncodingResult&lt;(<span class="prelude-ty">Option</span>&lt;Vec&lt;vir_mid::BlockMarkerCondition&gt;&gt;, Vec&lt;Action&gt;)&gt; {
     <span class="kw">let </span><span class="kw-2">mut </span>actions = Vec::new();
     <span class="kw">match </span>state.get_predicates_state(place)<span class="question-mark">? </span>{
-        <a href="state/predicate_state.rs.html#11">PredicateState::Unconditional</a>(unconditional_predicate_state) =&gt; {
+        PredicateState::Unconditional(unconditional_predicate_state) =&gt; {
             <span class="kw">if </span>check_contains_place(unconditional_predicate_state, place, permission_kind)<span class="question-mark">?
                 </span>|| unconditional_predicate_state
                     .find_prefix(permission_kind, place)
@@ -600,20 +598,18 @@
                     permission_kind,
                     <span class="kw-2">&amp;mut </span>actions,
                 )<span class="question-mark">?</span>;
-                <span class="prelude-val">Ok</span>((<span class="prelude-val">Some</span>(Vec::new()), <a href="#71">actions</a>))
+                <span class="prelude-val">Ok</span>((<span class="prelude-val">Some</span>(Vec::new()), actions))
             } <span class="kw">else </span>{
-                <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(
+                <span class="macro">debug_assert!</span>(
                     unconditional_predicate_state
                         .contains_discriminant_with_prefix(place)
                         .is_some(),
-                    <span class="string">&quot;The state must contain the discriminant of the enum: {}. State: {}&quot;</span>,
-                    place,
-                    unconditional_predicate_state,
+                    <span class="string">&quot;The state must contain the discriminant of the enum: {place}. State: {unconditional_predicate_state}&quot;</span>,
                 );
                 <span class="prelude-val">Ok</span>((<span class="prelude-val">None</span>, Vec::new()))
             }
         }
-        <a href="state/predicate_state.rs.html#12">PredicateState::Conditional</a>(conditional_predicate_states) =&gt; {
+        PredicateState::Conditional(conditional_predicate_states) =&gt; {
             <span class="kw">let </span><span class="kw-2">mut </span>conditions = Vec::new();
             <span class="kw">for </span>(condition, conditional_predicate_state) <span class="kw">in </span>conditional_predicate_states {
                 <span class="kw">if </span>check_contains_place(conditional_predicate_state, place, permission_kind)<span class="question-mark">?
@@ -638,29 +634,29 @@
                     conditions.push(condition.clone());
                 }
             }
-            <span class="prelude-val">Ok</span>((<span class="prelude-val">Some</span>(<a href="#100">conditions</a>), <a href="#71">actions</a>))
+            <span class="prelude-val">Ok</span>((<span class="prelude-val">Some</span>(conditions), actions))
         }
     }
 }
 
 <span class="kw">pub</span>(<span class="kw">in </span><span class="kw">super</span>::<span class="kw">super</span>) <span class="kw">fn </span>ensure_required_permission(
-    context: <span class="kw-2">&amp;mut </span><span class="kw">impl </span><a href="#27">Context</a>,
-    state: <span class="kw-2">&amp;mut </span><a href="state/fold_unfold_state.rs.html#14">FoldUnfoldState</a>,
-    required_permission: <a href="permission.rs.html#4">Permission</a>,
-    actions: <span class="kw-2">&amp;mut </span>Vec&lt;<a href="action.rs.html#8">Action</a>&gt;,
+    context: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>Context,
+    state: <span class="kw-2">&amp;mut </span>FoldUnfoldState,
+    required_permission: Permission,
+    actions: <span class="kw-2">&amp;mut </span>Vec&lt;Action&gt;,
 ) -&gt; SpannedEncodingResult&lt;()&gt; {
-    <a class="macro" href="../../../../../../log/macro.debug.html">debug!</a>(<span class="string">&quot;required_permission: {}&quot;</span>, required_permission);
-    <a href="#131">state</a>.<a href="state/fold_unfold_state.rs.html#47">debug_print</a>();
+    <span class="macro">debug!</span>(<span class="string">&quot;required_permission: {}&quot;</span>, required_permission);
+    state.debug_print();
 
-    <span class="kw">let </span>(place, permission_kind) = <span class="kw">match </span><a href="#132">required_permission</a> {
-        <a href="permission.rs.html#6">Permission::MemoryBlock</a>(place) =&gt; (<a href="#139">place</a>, <a href="permission.rs.html#44">PermissionKind::MemoryBlock</a>),
-        <a href="permission.rs.html#10">Permission::Owned</a>(place) =&gt; (<a href="#140">place</a>, <a href="permission.rs.html#45">PermissionKind::Owned</a>),
-        <a href="permission.rs.html#12">Permission::MutBorrowed</a>(borrow) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(<span class="string">&quot;requiring a borrow: {}&quot;</span>, borrow),
+    <span class="kw">let </span>(place, permission_kind) = <span class="kw">match </span>required_permission {
+        Permission::MemoryBlock(place) =&gt; (place, PermissionKind::MemoryBlock),
+        Permission::Owned(place) =&gt; (place, PermissionKind::Owned),
+        Permission::MutBorrowed(borrow) =&gt; <span class="macro">unreachable!</span>(<span class="string">&quot;requiring a borrow: {}&quot;</span>, borrow),
     };
 
-    <span class="kw">let </span>base = <a href="#138">place</a>.get_base().erase_lifetime();
+    <span class="kw">let </span>base = place.get_base().erase_lifetime();
     <span class="kw">match </span>state.get_predicates_state(<span class="kw-2">&amp;</span>place)<span class="question-mark">? </span>{
-        <a href="state/predicate_state.rs.html#11">PredicateState::Unconditional</a>(unconditional_predicate_state) =&gt; {
+        PredicateState::Unconditional(unconditional_predicate_state) =&gt; {
             <span class="kw">if </span>ensure_permission_in_state(
                 context,
                 unconditional_predicate_state,
@@ -668,11 +664,11 @@
                 permission_kind,
                 actions,
             )<span class="question-mark">? </span>{
-                <a class="macro" href="../../../../../../log/macro.debug.html">debug!</a>(<span class="string">&quot;Dropping unconditional state due to conflicting requirements.&quot;</span>);
+                <span class="macro">debug!</span>(<span class="string">&quot;Dropping unconditional state due to conflicting requirements.&quot;</span>);
                 unconditional_predicate_state.clear()<span class="question-mark">?</span>;
             }
         }
-        <a href="state/predicate_state.rs.html#12">PredicateState::Conditional</a>(conditional_predicate_states) =&gt; {
+        PredicateState::Conditional(conditional_predicate_states) =&gt; {
             <span class="kw">for </span>(condition, conditional_predicate_state) <span class="kw">in </span>conditional_predicate_states {
                 <span class="kw">let </span><span class="kw-2">mut </span>conditional_actions = Vec::new();
                 <span class="kw">let </span>to_drop = ensure_permission_in_state(
@@ -698,34 +694,34 @@
         }
     }
     state.remove_empty_states(<span class="kw-2">&amp;</span>base)<span class="question-mark">?</span>;
-    <a href="#131">state</a>.<a href="state/fold_unfold_state.rs.html#359">check_consistency</a>();
+    state.check_consistency();
     <span class="prelude-val">Ok</span>(())
 }
 
 <span class="kw">fn </span>check_can_place_be_ensured_in(
-    context: <span class="kw-2">&amp;mut </span><span class="kw">impl </span><a href="#27">Context</a>,
-    place: <span class="kw-2">&amp;</span><a href="../../../../../../vir/gen/typed/ast/expression/enum.Expression.html">vir_typed::Expression</a>,
-    permission_kind: <a href="permission.rs.html#43">PermissionKind</a>,
-    predicate_state: <span class="kw-2">&amp;</span><a href="state/predicate_state_on_path.rs.html#15">PredicateStateOnPath</a>,
-    check_conversions: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-) -&gt; SpannedEncodingResult&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>&gt; {
+    context: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>Context,
+    place: <span class="kw-2">&amp;</span>vir_typed::Expression,
+    permission_kind: PermissionKind,
+    predicate_state: <span class="kw-2">&amp;</span>PredicateStateOnPath,
+    check_conversions: bool,
+) -&gt; SpannedEncodingResult&lt;bool&gt; {
     <span class="comment">// The requirement is already satisfied.
-    </span><span class="kw">let </span>already_satisfied = <a href="#192">predicate_state</a>.<a href="state/predicate_state_on_path.rs.html#152-156">contains</a>(<a href="#191">permission_kind</a>, <a href="#190">place</a>);
+    </span><span class="kw">let </span>already_satisfied = predicate_state.contains(permission_kind, place);
     <span class="comment">// The requirement can be satisifed by unfolding.
-    </span><span class="kw">let </span>by_unfolding = <a href="#192">predicate_state</a>.<a href="state/predicate_state_on_path.rs.html#213-217">contains_prefix_of</a>(<a href="#191">permission_kind</a>, <a href="#190">place</a>);
+    </span><span class="kw">let </span>by_unfolding = predicate_state.contains_prefix_of(permission_kind, place);
     <span class="comment">// The requirement can be satisifed by folding.
-    </span><span class="kw">let </span>by_folding = <a href="#192">predicate_state</a>
-        .<a href="state/predicate_state_on_path.rs.html#166-170">contains_non_discriminant_with_prefix</a>(<a href="#191">permission_kind</a>, <a href="#190">place</a>)
+    </span><span class="kw">let </span>by_folding = predicate_state
+        .contains_non_discriminant_with_prefix(permission_kind, place)
         .is_some();
-    <span class="kw">let </span>by_folding_discriminant = <a href="#192">predicate_state</a>
-        .<a href="state/predicate_state_on_path.rs.html#183-186">contains_discriminant_with_prefix</a>(<a href="#190">place</a>)
+    <span class="kw">let </span>by_folding_discriminant = predicate_state
+        .contains_discriminant_with_prefix(place)
         .is_some();
     <span class="comment">// The requirement can be satisfied by restoring a mutable borrow.
     </span><span class="kw">let </span>by_restoring_blocked = predicate_state.contains_blocked(place)<span class="question-mark">?</span>.is_some();
     <span class="comment">// The requirement can be satisfied by converting into Memory Block.
     // Short circuiting is used to prevent infinite recursion.
-    </span><span class="kw">let </span>by_into_memory_block = <a href="#193">check_conversions</a>
-        &amp;&amp; <a href="#191">permission_kind</a> == <a href="permission.rs.html#44">PermissionKind::MemoryBlock</a>
+    </span><span class="kw">let </span>by_into_memory_block = check_conversions
+        &amp;&amp; permission_kind == PermissionKind::MemoryBlock
         &amp;&amp; check_can_place_be_ensured_in(
             context,
             place,
@@ -735,8 +731,8 @@
         )<span class="question-mark">?</span>;
     <span class="comment">// The requirement can be satisfied by converting into Owned.
     // Short circuiting is used to prevent infinite recursion.
-    </span><span class="kw">let </span>by_into_owned = <a href="#193">check_conversions</a>
-        &amp;&amp; <a href="#191">permission_kind</a> == <a href="permission.rs.html#45">PermissionKind::Owned</a>
+    </span><span class="kw">let </span>by_into_owned = check_conversions
+        &amp;&amp; permission_kind == PermissionKind::Owned
         &amp;&amp; check_can_place_be_ensured_in(
             context,
             place,
@@ -744,13 +740,13 @@
             predicate_state,
             <span class="bool-val">false</span>,
         )<span class="question-mark">?</span>;
-    <span class="kw">let </span>can = <a href="#196">already_satisfied</a>
-        || <a href="#198">by_unfolding</a>
-        || <a href="#200">by_folding</a>
-        || <a href="#203">by_folding_discriminant</a>
-        || <a href="#207">by_restoring_blocked</a>
-        || <a href="#210">by_into_memory_block</a>
-        || <a href="#221">by_into_owned</a>;
+    <span class="kw">let </span>can = already_satisfied
+        || by_unfolding
+        || by_folding
+        || by_folding_discriminant
+        || by_restoring_blocked
+        || by_into_memory_block
+        || by_into_owned;
     <span class="kw">if </span>!can {
         <span class="comment">// Check whether required_permission conflicts with state (has a
         // different variant) and report an error to the user suggesting that
@@ -780,34 +776,34 @@
             }
         }
     }
-    <span class="prelude-val">Ok</span>(<a href="#230">can</a>)
+    <span class="prelude-val">Ok</span>(can)
 }
 
 <span class="kw">fn </span>can_place_be_ensured_in(
-    context: <span class="kw-2">&amp;mut </span><span class="kw">impl </span><a href="#27">Context</a>,
-    place: <span class="kw-2">&amp;</span><a href="../../../../../../vir/gen/typed/ast/expression/enum.Expression.html">vir_typed::Expression</a>,
-    permission_kind: <a href="permission.rs.html#43">PermissionKind</a>,
-    predicate_state: <span class="kw-2">&amp;</span><a href="state/predicate_state_on_path.rs.html#15">PredicateStateOnPath</a>,
-) -&gt; SpannedEncodingResult&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>&gt; {
-    <a href="#188-194">check_can_place_be_ensured_in</a>(<a href="#270">context</a>, <a href="#271">place</a>, <a href="#272">permission_kind</a>, <a href="#273">predicate_state</a>, <span class="bool-val">true</span>)
+    context: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>Context,
+    place: <span class="kw-2">&amp;</span>vir_typed::Expression,
+    permission_kind: PermissionKind,
+    predicate_state: <span class="kw-2">&amp;</span>PredicateStateOnPath,
+) -&gt; SpannedEncodingResult&lt;bool&gt; {
+    check_can_place_be_ensured_in(context, place, permission_kind, predicate_state, <span class="bool-val">true</span>)
 }
 
 <span class="kw">fn </span>check_contains_place(
-    predicate_state: <span class="kw-2">&amp;mut </span><a href="state/predicate_state_on_path.rs.html#15">PredicateStateOnPath</a>,
-    place: <span class="kw-2">&amp;</span><a href="../../../../../../vir/gen/typed/ast/expression/enum.Expression.html">vir_typed::Expression</a>,
-    permission_kind: <a href="permission.rs.html#43">PermissionKind</a>,
-) -&gt; SpannedEncodingResult&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>&gt; {
+    predicate_state: <span class="kw-2">&amp;mut </span>PredicateStateOnPath,
+    place: <span class="kw-2">&amp;</span>vir_typed::Expression,
+    permission_kind: PermissionKind,
+) -&gt; SpannedEncodingResult&lt;bool&gt; {
     <span class="kw">let </span>contains = <span class="kw">if </span>predicate_state.contains(permission_kind, place) {
         <span class="bool-val">true
     </span>} <span class="kw">else if </span>permission_kind == PermissionKind::MemoryBlock {
         <span class="kw">let </span>address_place = vir_typed::Expression::field(
-            <a href="#280">place</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+            place.clone(),
             vir_typed::FieldDecl::new(
                 <span class="string">&quot;address$&quot;</span>,
                 <span class="number">0usize</span>,
                 vir_typed::Type::Int(vir_typed::ty::Int::Usize),
             ),
-            <a href="#280">place</a>.<a href="../../../../../../vir/common/position/trait.Positioned.html">position</a>(),
+            place.position(),
         );
         <span class="kw">if </span>predicate_state.contains(PermissionKind::MemoryBlock, <span class="kw-2">&amp;</span>address_place) {
             predicate_state.remove(PermissionKind::MemoryBlock, <span class="kw-2">&amp;</span>address_place)<span class="question-mark">?</span>;
@@ -825,63 +821,63 @@
     } <span class="kw">else </span>{
         <span class="bool-val">false
     </span>};
-    <span class="prelude-val">Ok</span>(<a href="#283">contains</a>)
+    <span class="prelude-val">Ok</span>(contains)
 }
 
 <span class="doccomment">/// Returns `true` if the state should be droped because it should be
 /// unreachable.
 </span><span class="kw">fn </span>ensure_permission_in_state(
-    context: <span class="kw-2">&amp;mut </span><span class="kw">impl </span><a href="#27">Context</a>,
-    predicate_state: <span class="kw-2">&amp;mut </span><a href="state/predicate_state_on_path.rs.html#15">PredicateStateOnPath</a>,
-    place: <a href="../../../../../../vir/gen/typed/ast/expression/enum.Expression.html">vir_typed::Expression</a>,
-    permission_kind: <a href="permission.rs.html#43">PermissionKind</a>,
-    actions: <span class="kw-2">&amp;mut </span>Vec&lt;<a href="action.rs.html#8">Action</a>&gt;,
-) -&gt; SpannedEncodingResult&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>&gt; {
-    <a href="#318">predicate_state</a>.<a href="state/predicate_state_on_path.rs.html#291">check_consistency</a>();
+    context: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>Context,
+    predicate_state: <span class="kw-2">&amp;mut </span>PredicateStateOnPath,
+    place: vir_typed::Expression,
+    permission_kind: PermissionKind,
+    actions: <span class="kw-2">&amp;mut </span>Vec&lt;Action&gt;,
+) -&gt; SpannedEncodingResult&lt;bool&gt; {
+    predicate_state.check_consistency();
     <span class="kw">let </span>to_drop = <span class="kw">if </span>check_contains_place(predicate_state, <span class="kw-2">&amp;</span>place, permission_kind)<span class="question-mark">? </span>{
-        <a class="macro" href="../../../../../../log/macro.debug.html">debug!</a>(<span class="string">&quot;  satisfied: {:?} {}&quot;</span>, permission_kind, place);
+        <span class="macro">debug!</span>(<span class="string">&quot;  satisfied: {:?} {}&quot;</span>, permission_kind, place);
         <span class="comment">// The requirement is already satisfied.
         </span><span class="bool-val">false
-    </span>} <span class="kw">else if let </span><span class="prelude-val">Some</span>(prefix) = <a href="#318">predicate_state</a>.<a href="state/predicate_state_on_path.rs.html#222-226">find_prefix</a>(<a href="#320">permission_kind</a>, <span class="kw-2">&amp;</span><a href="#319">place</a>) {
+    </span>} <span class="kw">else if let </span><span class="prelude-val">Some</span>(prefix) = predicate_state.find_prefix(permission_kind, <span class="kw-2">&amp;</span>place) {
         <span class="comment">// The requirement can be satisifed by unfolding.
         </span><span class="kw">if </span>prefix.get_type().is_trusted() {
             <span class="comment">// Trusted types cannot be unfolded.
-            </span><span class="kw">let </span>place_span = <a href="#317">context</a>.<a href="#35">get_span</a>(<a href="#319">place</a>.<a href="../../../../../../vir/common/position/trait.Positioned.html">position</a>()).unwrap();
-            <span class="kw">let </span>prefix_span = <a href="#317">context</a>.<a href="#35">get_span</a>(<a href="#328">prefix</a>.<a href="../../../../../../vir/common/position/trait.Positioned.html">position</a>()).unwrap();
+            </span><span class="kw">let </span>place_span = context.get_span(place.position()).unwrap();
+            <span class="kw">let </span>prefix_span = context.get_span(prefix.position()).unwrap();
             <span class="kw">let </span><span class="kw-2">mut </span>error = SpannedEncodingError::incorrect(
                 <span class="string">&quot;accessing fields of #[trusted] types is not allowed&quot;</span>,
-                <a href="#332">place_span</a>,
+                place_span,
             );
-            <a href="#334">error</a>.<a href="../../../errors/spanned_encoding_error.rs.html#101">add_note</a>(
+            error.add_note(
                 <span class="string">&quot;the type of this place is marked as #[trusted]&quot;</span>,
-                <span class="prelude-val">Some</span>(<a href="#333">prefix_span</a>),
+                <span class="prelude-val">Some</span>(prefix_span),
             );
-            <a href="#334">error</a>.<a href="../../../errors/spanned_encoding_error.rs.html#105">set_help</a>(<span class="string">&quot;you might want to mark the function as #[trusted]&quot;</span>);
-            <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="#334">error</a>);
+            error.set_help(<span class="string">&quot;you might want to mark the function as #[trusted]&quot;</span>);
+            <span class="kw">return </span><span class="prelude-val">Err</span>(error);
         }
         predicate_state.remove(permission_kind, <span class="kw-2">&amp;</span>prefix)<span class="question-mark">?</span>;
         <span class="kw">let </span>expanded_place = context.expand_place(<span class="kw-2">&amp;</span>prefix, <span class="kw-2">&amp;</span>place)<span class="question-mark">?</span>;
-        <a class="macro" href="../../../../../../log/macro.debug.html">debug!</a>(<span class="string">&quot;expand_place(place={}, guiding_place={})&quot;</span>, prefix, place);
+        <span class="macro">debug!</span>(<span class="string">&quot;expand_place(place={}, guiding_place={})&quot;</span>, prefix, place);
         <span class="kw">let </span>enum_variant = <span class="kw">if </span>prefix.get_type().has_variants() {
-            <span class="prelude-val">Some</span>(<a href="#328">prefix</a>.get_variant_name(<span class="kw-2">&amp;</span><a href="#319">place</a>).<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>())
+            <span class="prelude-val">Some</span>(prefix.get_variant_name(<span class="kw-2">&amp;</span>place).clone())
         } <span class="kw">else </span>{
             <span class="prelude-val">None
         </span>};
         <span class="kw">let </span>position = {
-            <span class="kw">let </span>error_ctxt = <span class="kw">if let </span>vir_typed::Type::Enum(<a href="../../../../../../vir/gen/typed/ast/ty/struct.Enum.html">vir_typed::ty::Enum</a> {
+            <span class="kw">let </span>error_ctxt = <span class="kw">if let </span>vir_typed::Type::Enum(vir_typed::ty::Enum {
                 variant: <span class="prelude-val">Some</span>(<span class="kw">_</span>),
                 safety: vir_typed::ty::EnumSafety::Union,
                 ..
-            }) = <a href="#328">prefix</a>.<a href="../../../../../../vir/gen/typed/operations_internal/ty/trait.Typed.html">get_type</a>()
+            }) = prefix.get_type()
             {
-                <a href="../../../errors/error_manager.rs.html#153">ErrorCtxt::UnfoldUnionVariant</a>
+                ErrorCtxt::UnfoldUnionVariant
             } <span class="kw">else </span>{
-                <a href="../../../errors/error_manager.rs.html#151">ErrorCtxt::Unfold</a>
+                ErrorCtxt::Unfold
             };
-            <a href="#317">context</a>.<a href="#36-40">change_error_context</a>(<a href="#319">place</a>.<a href="../../../../../../vir/common/position/trait.Positioned.html">position</a>(), <a href="#354">error_ctxt</a>)
+            context.change_error_context(place.position(), error_ctxt)
         };
-        <span class="kw">let </span>prefix = <a href="#328">prefix</a>.replace_position(<a href="#353">position</a>);
-        <a href="#321">actions</a>.push(Action::unfold(<a href="#320">permission_kind</a>, <a href="#366">prefix</a>, <a href="#348">enum_variant</a>));
+        <span class="kw">let </span>prefix = prefix.replace_position(position);
+        actions.push(Action::unfold(permission_kind, prefix, enum_variant));
         <span class="kw">for </span>(kind, new_place) <span class="kw">in </span>expanded_place {
             <span class="macro">debug!</span>(<span class="string">&quot;  kind={:?} new_place={}&quot;</span>, kind, new_place);
             new_place.check_no_default_position();
@@ -893,13 +889,13 @@
             predicate_state.insert(permission_kind, new_place)<span class="question-mark">?</span>;
         }
         ensure_permission_in_state(context, predicate_state, place, permission_kind, actions)<span class="question-mark">?
-    </span>} <span class="kw">else if let </span><span class="prelude-val">Some</span>(witness) = <a href="#318">predicate_state</a>
-        .<a href="state/predicate_state_on_path.rs.html#166-170">contains_non_discriminant_with_prefix</a>(<a href="#320">permission_kind</a>, <span class="kw-2">&amp;</span><a href="#319">place</a>)
+    </span>} <span class="kw">else if let </span><span class="prelude-val">Some</span>(witness) = predicate_state
+        .contains_non_discriminant_with_prefix(permission_kind, <span class="kw-2">&amp;</span>place)
         .cloned()
     {
         <span class="comment">// The requirement can be satisifed by folding.
         </span><span class="kw">let </span>enum_variant = <span class="kw">if </span>place.get_type().has_variants() {
-            <span class="prelude-val">Some</span>(<a href="#319">place</a>.get_variant_name(<span class="kw-2">&amp;</span><a href="#379">witness</a>).<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>())
+            <span class="prelude-val">Some</span>(place.get_variant_name(<span class="kw-2">&amp;</span>witness).clone())
         } <span class="kw">else </span>{
             <span class="prelude-val">None
         </span>};
@@ -916,15 +912,15 @@
             }
             predicate_state.remove(permission_kind, <span class="kw-2">&amp;</span>new_place)<span class="question-mark">?</span>;
         }
-        <a href="#321">actions</a>.push(Action::fold(<a href="#320">permission_kind</a>, <a href="#319">place</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), <a href="#384">enum_variant</a>));
+        actions.push(Action::fold(permission_kind, place.clone(), enum_variant));
         predicate_state.insert(permission_kind, place)<span class="question-mark">?</span>;
         <span class="bool-val">false
     </span>} <span class="kw">else if let </span><span class="prelude-val">Some</span>((prefix, lifetime)) = predicate_state.contains_blocked(<span class="kw-2">&amp;</span>place)<span class="question-mark">? </span>{
-        <span class="kw">let </span>prefix = <a href="#405">prefix</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
-        <span class="kw">let </span>lifetime = <a href="#405">lifetime</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
+        <span class="kw">let </span>prefix = prefix.clone();
+        <span class="kw">let </span>lifetime = lifetime.clone();
         predicate_state.remove_mut_borrowed(<span class="kw-2">&amp;</span>prefix)<span class="question-mark">?</span>;
         predicate_state.insert(PermissionKind::Owned, prefix.clone())<span class="question-mark">?</span>;
-        <a href="#321">actions</a>.push(Action::restore_mut_borrowed(<a href="#407">lifetime</a>, <a href="#406">prefix</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()));
+        actions.push(Action::restore_mut_borrowed(lifetime, prefix.clone()));
         ensure_permission_in_state(context, predicate_state, place, permission_kind, actions)<span class="question-mark">?
     </span>} <span class="kw">else if </span>permission_kind == PermissionKind::MemoryBlock
         &amp;&amp; can_place_be_ensured_in(context, <span class="kw-2">&amp;</span>place, PermissionKind::Owned, predicate_state)<span class="question-mark">?
@@ -942,14 +938,14 @@
             )<span class="question-mark">?</span>;
             predicate_state.remove(PermissionKind::Owned, <span class="kw-2">&amp;</span>place)<span class="question-mark">?</span>;
             predicate_state.insert(PermissionKind::MemoryBlock, place.clone())<span class="question-mark">?</span>;
-            <a href="#321">actions</a>.push(Action::owned_into_memory_block(<a href="#319">place</a>));
-            <a href="#419">to_drop</a>
+            actions.push(Action::owned_into_memory_block(place));
+            to_drop
         } <span class="kw">else if </span>place.get_type().is_reference() {
             <span class="comment">// We need to special case references to be no-op here because
             // `_2.*` is both `Owned` and `MemoryBlock`.
-            </span><span class="kw">let </span>target_type = <span class="kw-2">*</span><a href="#319">place</a>.<a href="../../../../../../vir/gen/typed/operations_internal/ty/trait.Typed.html">get_type</a>().<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>().unwrap_reference().target_type;
+            </span><span class="kw">let </span>target_type = <span class="kw-2">*</span>place.get_type().clone().unwrap_reference().target_type;
             <span class="kw">let </span>deref_place =
-                vir_typed::Expression::deref(<a href="#319">place</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), <a href="#433">target_type</a>, <a href="#319">place</a>.<a href="../../../../../../vir/common/position/trait.Positioned.html">position</a>());
+                vir_typed::Expression::deref(place.clone(), target_type, place.position());
             <span class="kw">let </span>to_drop = ensure_permission_in_state(
                 context,
                 predicate_state,
@@ -959,7 +955,7 @@
             )<span class="question-mark">?</span>;
             predicate_state.remove(PermissionKind::Owned, <span class="kw-2">&amp;</span>deref_place)<span class="question-mark">?</span>;
             predicate_state.insert(PermissionKind::MemoryBlock, place.clone())<span class="question-mark">?</span>;
-            <a href="#436">to_drop</a>
+            to_drop
         } <span class="kw">else if </span>place.get_type().is_array() {
             <span class="comment">// We need to special case arrays, because when the array is
             // unfolded, we track only a single element of the array and only
@@ -975,13 +971,13 @@
             )<span class="question-mark">?</span>;
             predicate_state.remove(PermissionKind::Owned, <span class="kw-2">&amp;</span>place)<span class="question-mark">?</span>;
             predicate_state.insert(PermissionKind::MemoryBlock, place.clone())<span class="question-mark">?</span>;
-            <a href="#321">actions</a>.push(Action::owned_into_memory_block(<a href="#319">place</a>));
-            <a href="#452">to_drop</a>
+            actions.push(Action::owned_into_memory_block(place));
+            to_drop
         } <span class="kw">else </span>{
             <span class="comment">// We have a mix of Owned and MemoryBlock. Convert all Owned into
             // MemoryBlock and then obtain the MemoryBlock we need.
             </span><span class="kw">let </span>places = predicate_state.collect_owned_with_prefix(<span class="kw-2">&amp;</span>place)<span class="question-mark">?</span>;
-            <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(!places.is_empty(), <span class="string">&quot;Something went wrong.&quot;</span>);
+            <span class="macro">assert!</span>(!places.is_empty(), <span class="string">&quot;Something went wrong.&quot;</span>);
             <span class="kw">for </span>place <span class="kw">in </span>places {
                 predicate_state.remove(PermissionKind::Owned, <span class="kw-2">&amp;</span>place)<span class="question-mark">?</span>;
                 predicate_state.insert(PermissionKind::MemoryBlock, place.clone())<span class="question-mark">?</span>;
@@ -1002,7 +998,7 @@
         {
             predicate_state.remove(PermissionKind::MemoryBlock, <span class="kw-2">&amp;</span>place)<span class="question-mark">?</span>;
             predicate_state.insert(PermissionKind::Owned, place.clone())<span class="question-mark">?</span>;
-            <a href="#321">actions</a>.push(Action::fold(<a href="permission.rs.html#45">PermissionKind::Owned</a>, <a href="#319">place</a>, <span class="prelude-val">None</span>));
+            actions.push(Action::fold(PermissionKind::Owned, place, <span class="prelude-val">None</span>));
             <span class="bool-val">false
         </span>} <span class="kw">else </span>{
             <span class="comment">// We have MemoryBlock and we need Owned, which means that this
@@ -1018,19 +1014,19 @@
             // }
             // ```
             </span><span class="kw">let </span>position =
-                <a href="#317">context</a>.<a href="#36-40">change_error_context</a>(<a href="#319">place</a>.<a href="../../../../../../vir/common/position/trait.Positioned.html">position</a>(), <a href="../../../errors/error_manager.rs.html#182">ErrorCtxt::UnreachableFoldingState</a>);
-            <a href="#321">actions</a>.push(Action::unreachable(<a href="#503">position</a>));
+                context.change_error_context(place.position(), ErrorCtxt::UnreachableFoldingState);
+            actions.push(Action::unreachable(position));
             <span class="bool-val">true
         </span>}
     } <span class="kw">else </span>{
         <span class="comment">// The requirement cannot be satisfied.
-        </span><a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(
+        </span><span class="macro">unreachable!</span>(
             <span class="string">&quot;place={} permission_kind={:?} predicate_state={}&quot;</span>,
             place, permission_kind, predicate_state
         );
     };
-    <a href="#318">predicate_state</a>.<a href="state/predicate_state_on_path.rs.html#291">check_consistency</a>();
-    <span class="prelude-val">Ok</span>(<a href="#324">to_drop</a>)
+    predicate_state.check_consistency();
+    <span class="prelude-val">Ok</span>(to_drop)
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../../../" data-static-root-path="../../../../../../static.files/" data-current-crate="prusti_viper" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../../../../" data-static-root-path="../../../../../../static.files/" data-current-crate="prusti_viper" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

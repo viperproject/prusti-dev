@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/futures-util-0.3.25/src/sink/with.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>with.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../futures_util/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/futures-util-0.3.25/src/sink/with.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>with.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../futures_util/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -132,17 +132,17 @@
 <a href="#132" id="132">132</a>
 <a href="#133" id="133">133</a>
 <a href="#134" id="134">134</a>
-</pre><pre class="rust"><code><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/fmt/index.html">core::fmt</a>;
+</pre><pre class="rust"><code><span class="kw">use </span>core::fmt;
 <span class="kw">use </span>core::marker::PhantomData;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/pin/struct.Pin.html">core::pin::Pin</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">futures_core::future::Future</a>;
-<span class="kw">use </span><a href="../../../futures_util/macro.ready.html">futures_core::ready</a>;
-<span class="kw">use </span><a href="../../../futures_util/stream/trait.Stream.html">futures_core::stream::Stream</a>;
-<span class="kw">use </span>futures_core::task::{<a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>, <a href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">Poll</a>};
-<span class="kw">use </span><a href="../../../futures_util/sink/trait.Sink.html">futures_sink::Sink</a>;
-<span class="kw">use </span><a href="../../../pin_project_lite/macro.pin_project.html">pin_project_lite::pin_project</a>;
+<span class="kw">use </span>core::pin::Pin;
+<span class="kw">use </span>futures_core::future::Future;
+<span class="kw">use </span>futures_core::ready;
+<span class="kw">use </span>futures_core::stream::Stream;
+<span class="kw">use </span>futures_core::task::{Context, Poll};
+<span class="kw">use </span>futures_sink::Sink;
+<span class="kw">use </span>pin_project_lite::pin_project;
 
-<a class="macro" href="../../../pin_project_lite/macro.pin_project.html">pin_project! </a>{
+<span class="macro">pin_project! </span>{
     <span class="doccomment">/// Sink for the [`with`](super::SinkExt::with) method.
     </span><span class="attr">#[must_use = <span class="string">&quot;sinks do nothing unless polled&quot;</span>]
     </span><span class="kw">pub struct </span>With&lt;Si, Item, U, Fut, F&gt; {
@@ -155,13 +155,13 @@
     }
 }
 
-<span class="kw">impl</span>&lt;Si, Item, U, Fut, F&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span>With&lt;Si, Item, U, Fut, F&gt;
+<span class="kw">impl</span>&lt;Si, Item, U, Fut, F&gt; fmt::Debug <span class="kw">for </span>With&lt;Si, Item, U, Fut, F&gt;
 <span class="kw">where
-    </span>Si: <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a>,
-    Fut: <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a>,
+    </span>Si: fmt::Debug,
+    Fut: fmt::Debug,
 {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a href="#29">f</a>.debug_struct(<span class="string">&quot;With&quot;</span>).field(<span class="string">&quot;sink&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="#29">self</a>.sink).field(<span class="string">&quot;state&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="#29">self</a>.state).finish()
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        f.debug_struct(<span class="string">&quot;With&quot;</span>).field(<span class="string">&quot;sink&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.sink).field(<span class="string">&quot;state&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.state).finish()
     }
 }
 
@@ -169,43 +169,43 @@
 <span class="kw">where
     </span>Si: Sink&lt;Item&gt;,
     F: FnMut(U) -&gt; Fut,
-    Fut: <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a>,
+    Fut: Future,
 {
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>new&lt;E&gt;(sink: Si, f: F) -&gt; <span class="self">Self
     </span><span class="kw">where
         </span>Fut: Future&lt;Output = <span class="prelude-ty">Result</span>&lt;Item, E&gt;&gt;,
         E: From&lt;Si::Error&gt;,
     {
-        <span class="self">Self </span>{ state: <span class="prelude-val">None</span>, <a href="#40">sink</a>, <a href="#40">f</a>, _phantom: PhantomData }
+        <span class="self">Self </span>{ state: <span class="prelude-val">None</span>, sink, f, _phantom: PhantomData }
     }
 }
 
-<span class="kw">impl</span>&lt;Si, Item, U, Fut, F&gt; <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> <span class="kw">for </span>With&lt;Si, Item, U, Fut, F&gt;
+<span class="kw">impl</span>&lt;Si, Item, U, Fut, F&gt; Clone <span class="kw">for </span>With&lt;Si, Item, U, Fut, F&gt;
 <span class="kw">where
-    </span>Si: <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a>,
-    F: <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a>,
-    Fut: <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a>,
+    </span>Si: Clone,
+    F: Clone,
+    Fut: Clone,
 {
     <span class="kw">fn </span>clone(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
-            state: <a class="self" href="#55">self</a>.state.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
-            sink: <a class="self" href="#55">self</a>.sink.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
-            f: <a class="self" href="#55">self</a>.f.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+            state: <span class="self">self</span>.state.clone(),
+            sink: <span class="self">self</span>.sink.clone(),
+            f: <span class="self">self</span>.f.clone(),
             _phantom: PhantomData,
         }
     }
 }
 
 <span class="comment">// Forwarding impl of Stream from the underlying sink
-</span><span class="kw">impl</span>&lt;S, Item, U, Fut, F&gt; <a href="../../../futures_util/stream/trait.Stream.html">Stream</a> <span class="kw">for </span>With&lt;S, Item, U, Fut, F&gt;
+</span><span class="kw">impl</span>&lt;S, Item, U, Fut, F&gt; Stream <span class="kw">for </span>With&lt;S, Item, U, Fut, F&gt;
 <span class="kw">where
-    </span>S: <a href="../../../futures_util/stream/trait.Stream.html">Stream</a> + Sink&lt;Item&gt;,
+    </span>S: Stream + Sink&lt;Item&gt;,
     F: FnMut(U) -&gt; Fut,
-    Fut: <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a>,
+    Fut: Future,
 {
     <span class="kw">type </span>Item = S::Item;
 
-    <a class="macro" href="../lib.rs.html#96-108">delegate_stream!</a>(sink);
+    <span class="macro">delegate_stream!</span>(sink);
 }
 
 <span class="kw">impl</span>&lt;Si, Item, U, Fut, F, E&gt; With&lt;Si, Item, U, Fut, F&gt;
@@ -215,17 +215,17 @@
     Fut: Future&lt;Output = <span class="prelude-ty">Result</span>&lt;Item, E&gt;&gt;,
     E: From&lt;Si::Error&gt;,
 {
-    <a class="macro" href="../lib.rs.html#182-216">delegate_access_inner!</a>(sink, Si, ());
+    <span class="macro">delegate_access_inner!</span>(sink, Si, ());
 
     <span class="doccomment">/// Completes the processing of previous item if any.
     </span><span class="kw">fn </span>poll(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;(), E&gt;&gt; {
-        <span class="kw">let </span><span class="kw-2">mut </span>this = <a class="self" href="#87">self</a>.<a href="#11-22">project</a>();
+        <span class="kw">let </span><span class="kw-2">mut </span>this = <span class="self">self</span>.project();
 
-        <span class="kw">let </span>item = <span class="kw">match </span><a href="#88">this</a>.state.as_mut().as_pin_mut() {
+        <span class="kw">let </span>item = <span class="kw">match </span>this.state.as_mut().as_pin_mut() {
             <span class="prelude-val">None </span>=&gt; <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Ok</span>(())),
             <span class="prelude-val">Some</span>(fut) =&gt; <span class="macro">ready!</span>(fut.poll(cx))<span class="question-mark">?</span>,
         };
-        <a href="#88">this</a>.state.set(<span class="prelude-val">None</span>);
+        this.state.set(<span class="prelude-val">None</span>);
         this.sink.start_send(item)<span class="question-mark">?</span>;
         Poll::Ready(<span class="prelude-val">Ok</span>(()))
     }
@@ -242,29 +242,29 @@
 
     <span class="kw">fn </span>poll_ready(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt;&gt; {
         <span class="macro">ready!</span>(<span class="self">self</span>.as_mut().poll(cx))<span class="question-mark">?</span>;
-        <a class="macro" href="../../../futures_util/macro.ready.html">ready!</a>(<span class="self">self</span>.project().sink.poll_ready(cx)<span class="question-mark">?</span>);
+        <span class="macro">ready!</span>(<span class="self">self</span>.project().sink.poll_ready(cx)<span class="question-mark">?</span>);
         Poll::Ready(<span class="prelude-val">Ok</span>(()))
     }
 
     <span class="kw">fn </span>start_send(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, item: U) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt; {
-        <span class="kw">let </span><span class="kw-2">mut </span>this = <a class="self" href="#115">self</a>.<a href="#11-22">project</a>();
+        <span class="kw">let </span><span class="kw-2">mut </span>this = <span class="self">self</span>.project();
 
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(this.state.is_none());
-        <a href="#116">this</a>.state.set(<span class="prelude-val">Some</span>((<a href="#116">this</a>.f)(<a href="#115">item</a>)));
+        <span class="macro">assert!</span>(this.state.is_none());
+        this.state.set(<span class="prelude-val">Some</span>((this.f)(item)));
         <span class="prelude-val">Ok</span>(())
     }
 
     <span class="kw">fn </span>poll_flush(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt;&gt; {
         <span class="macro">ready!</span>(<span class="self">self</span>.as_mut().poll(cx))<span class="question-mark">?</span>;
-        <a class="macro" href="../../../futures_util/macro.ready.html">ready!</a>(<span class="self">self</span>.project().sink.poll_flush(cx)<span class="question-mark">?</span>);
+        <span class="macro">ready!</span>(<span class="self">self</span>.project().sink.poll_flush(cx)<span class="question-mark">?</span>);
         Poll::Ready(<span class="prelude-val">Ok</span>(()))
     }
 
     <span class="kw">fn </span>poll_close(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt;&gt; {
         <span class="macro">ready!</span>(<span class="self">self</span>.as_mut().poll(cx))<span class="question-mark">?</span>;
-        <a class="macro" href="../../../futures_util/macro.ready.html">ready!</a>(<span class="self">self</span>.project().sink.poll_close(cx)<span class="question-mark">?</span>);
+        <span class="macro">ready!</span>(<span class="self">self</span>.project().sink.poll_close(cx)<span class="question-mark">?</span>);
         Poll::Ready(<span class="prelude-val">Ok</span>(()))
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="futures_util" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="futures_util" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

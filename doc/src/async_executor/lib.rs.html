@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/async-executor-1.5.0/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../async_executor/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/async-executor-1.5.0/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../async_executor/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -863,22 +863,22 @@
 
 </span><span class="attr">#![warn(missing_docs, missing_debug_implementations, rust_2018_idioms)]
 
-</span><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">std::future::Future</a>;
+</span><span class="kw">use </span>std::future::Future;
 <span class="kw">use </span>std::marker::PhantomData;
-<span class="kw">use </span>std::panic::{<a href="https://doc.rust-lang.org/nightly/core/panic/unwind_safe/trait.RefUnwindSafe.html">RefUnwindSafe</a>, <a href="https://doc.rust-lang.org/nightly/core/panic/unwind_safe/trait.UnwindSafe.html">UnwindSafe</a>};
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/rc/struct.Rc.html">std::rc::Rc</a>;
-<span class="kw">use </span>std::sync::atomic::{<a href="https://doc.rust-lang.org/nightly/core/sync/atomic/struct.AtomicBool.html">AtomicBool</a>, <a href="https://doc.rust-lang.org/nightly/core/sync/atomic/struct.AtomicUsize.html">AtomicUsize</a>, <a href="https://doc.rust-lang.org/nightly/core/sync/atomic/enum.Ordering.html">Ordering</a>};
-<span class="kw">use </span>std::sync::{<a href="https://doc.rust-lang.org/nightly/alloc/sync/struct.Arc.html">Arc</a>, <a href="https://doc.rust-lang.org/nightly/std/sync/mutex/struct.Mutex.html">Mutex</a>, <a href="https://doc.rust-lang.org/nightly/std/sync/rwlock/struct.RwLock.html">RwLock</a>};
-<span class="kw">use </span>std::task::{<a href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">Poll</a>, <a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Waker.html">Waker</a>};
+<span class="kw">use </span>std::panic::{RefUnwindSafe, UnwindSafe};
+<span class="kw">use </span>std::rc::Rc;
+<span class="kw">use </span>std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
+<span class="kw">use </span>std::sync::{Arc, Mutex, RwLock};
+<span class="kw">use </span>std::task::{Poll, Waker};
 
-<span class="kw">use </span><a href="../../async_lock/once_cell/struct.OnceCell.html">async_lock::OnceCell</a>;
-<span class="kw">use </span><a href="../../async_task/runnable/struct.Runnable.html">async_task::Runnable</a>;
-<span class="kw">use </span><a href="../../concurrent_queue/struct.ConcurrentQueue.html">concurrent_queue::ConcurrentQueue</a>;
-<span class="kw">use </span>futures_lite::{<a href="../../futures_lite/future/index.html">future</a>, <a href="../../futures_lite/prelude/index.html">prelude</a>::<span class="kw-2">*</span>};
-<span class="kw">use </span><a href="../../slab/struct.Slab.html">slab::Slab</a>;
+<span class="kw">use </span>async_lock::OnceCell;
+<span class="kw">use </span>async_task::Runnable;
+<span class="kw">use </span>concurrent_queue::ConcurrentQueue;
+<span class="kw">use </span>futures_lite::{future, prelude::<span class="kw-2">*</span>};
+<span class="kw">use </span>slab::Slab;
 
 <span class="attr">#[doc(no_inline)]
-</span><span class="kw">pub use </span><a href="../../async_task/task/struct.Task.html">async_task::Task</a>;
+</span><span class="kw">pub use </span>async_task::Task;
 
 <span class="doccomment">/// An async executor.
 ///
@@ -907,17 +907,17 @@
 </span><span class="attr">#[derive(Debug)]
 </span><span class="kw">pub struct </span>Executor&lt;<span class="lifetime">&#39;a</span>&gt; {
     <span class="doccomment">/// The executor state.
-    </span>state: OnceCell&lt;Arc&lt;<a href="#463">State</a>&gt;&gt;,
+    </span>state: OnceCell&lt;Arc&lt;State&gt;&gt;,
 
     <span class="doccomment">/// Makes the `&#39;a` lifetime invariant.
     </span>_marker: PhantomData&lt;std::cell::UnsafeCell&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>()&gt;&gt;,
 }
 
-<span class="kw">unsafe impl </span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="kw">for </span>Executor&lt;<span class="lifetime">&#39;_</span>&gt; {}
-<span class="kw">unsafe impl </span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> <span class="kw">for </span>Executor&lt;<span class="lifetime">&#39;_</span>&gt; {}
+<span class="kw">unsafe impl </span>Send <span class="kw">for </span>Executor&lt;<span class="lifetime">&#39;_</span>&gt; {}
+<span class="kw">unsafe impl </span>Sync <span class="kw">for </span>Executor&lt;<span class="lifetime">&#39;_</span>&gt; {}
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/panic/unwind_safe/trait.UnwindSafe.html">UnwindSafe</a> <span class="kw">for </span>Executor&lt;<span class="lifetime">&#39;_</span>&gt; {}
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/panic/unwind_safe/trait.RefUnwindSafe.html">RefUnwindSafe</a> <span class="kw">for </span>Executor&lt;<span class="lifetime">&#39;_</span>&gt; {}
+<span class="kw">impl </span>UnwindSafe <span class="kw">for </span>Executor&lt;<span class="lifetime">&#39;_</span>&gt; {}
+<span class="kw">impl </span>RefUnwindSafe <span class="kw">for </span>Executor&lt;<span class="lifetime">&#39;_</span>&gt; {}
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; Executor&lt;<span class="lifetime">&#39;a</span>&gt; {
     <span class="doccomment">/// Creates a new executor.
@@ -930,7 +930,7 @@
     /// let ex = Executor::new();
     /// ```
     </span><span class="kw">pub const fn </span>new() -&gt; Executor&lt;<span class="lifetime">&#39;a</span>&gt; {
-        <a href="#65">Executor</a> {
+        Executor {
             state: OnceCell::new(),
             _marker: PhantomData,
         }
@@ -954,8 +954,8 @@
     /// assert!(ex.try_tick());
     /// assert!(ex.is_empty());
     /// ```
-    </span><span class="kw">pub fn </span>is_empty(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#114">self</a>.<a href="#252">state</a>().active.lock().unwrap().is_empty()
+    </span><span class="kw">pub fn </span>is_empty(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.state().active.lock().unwrap().is_empty()
     }
 
     <span class="doccomment">/// Spawns a task onto the executor.
@@ -971,23 +971,23 @@
     ///     println!(&quot;Hello world&quot;);
     /// });
     /// ```
-    </span><span class="kw">pub fn </span>spawn&lt;T: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <span class="lifetime">&#39;a</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, future: <span class="kw">impl </span>Future&lt;Output = T&gt; + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <span class="lifetime">&#39;a</span>) -&gt; Task&lt;T&gt; {
-        <span class="kw">let </span><span class="kw-2">mut </span>active = <a class="self" href="#131">self</a>.<a href="#252">state</a>().active.lock().unwrap();
+    </span><span class="kw">pub fn </span>spawn&lt;T: Send + <span class="lifetime">&#39;a</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, future: <span class="kw">impl </span>Future&lt;Output = T&gt; + Send + <span class="lifetime">&#39;a</span>) -&gt; Task&lt;T&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>active = <span class="self">self</span>.state().active.lock().unwrap();
 
         <span class="comment">// Remove the task from the set of active tasks when the future finishes.
-        </span><span class="kw">let </span>index = <a href="#132">active</a>.vacant_entry().key();
-        <span class="kw">let </span>state = <a class="self" href="#131">self</a>.<a href="#252">state</a>().<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
+        </span><span class="kw">let </span>index = active.vacant_entry().key();
+        <span class="kw">let </span>state = <span class="self">self</span>.state().clone();
         <span class="kw">let </span>future = <span class="kw">async move </span>{
-            <span class="kw">let </span>_guard = <a href="#837">CallOnDrop</a>(<span class="kw">move </span>|| <a href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>(<a href="#136">state</a>.active.lock().unwrap().try_remove(<a href="#135">index</a>)));
+            <span class="kw">let </span>_guard = CallOnDrop(<span class="kw">move </span>|| drop(state.active.lock().unwrap().try_remove(index)));
             future.<span class="kw">await
         </span>};
 
         <span class="comment">// Create the task and register it in the set of active tasks.
-        </span><span class="kw">let </span>(runnable, task) = <span class="kw">unsafe </span>{ async_task::spawn_unchecked(<a href="#137">future</a>, <a class="self" href="#131">self</a>.<a href="#241">schedule</a>()) };
-        <a href="#132">active</a>.insert(<a href="#143">runnable</a>.waker());
+        </span><span class="kw">let </span>(runnable, task) = <span class="kw">unsafe </span>{ async_task::spawn_unchecked(future, <span class="self">self</span>.schedule()) };
+        active.insert(runnable.waker());
 
-        <a href="#143">runnable</a>.schedule();
-        <a href="#143">task</a>
+        runnable.schedule();
+        task
     }
 
     <span class="doccomment">/// Attempts to run a task if at least one is scheduled.
@@ -1007,16 +1007,16 @@
     /// });
     /// assert!(ex.try_tick()); // a task was found
     /// ```
-    </span><span class="kw">pub fn </span>try_tick(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">match </span><a class="self" href="#167">self</a>.<a href="#252">state</a>().queue.pop() {
+    </span><span class="kw">pub fn </span>try_tick(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="kw">match </span><span class="self">self</span>.state().queue.pop() {
             <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; <span class="bool-val">false</span>,
             <span class="prelude-val">Ok</span>(runnable) =&gt; {
                 <span class="comment">// Notify another ticker now to pick up where this ticker left off, just in case
                 // running the task takes a long time.
-                </span><a class="self" href="#167">self</a>.<a href="#252">state</a>().<a href="#498">notify</a>();
+                </span><span class="self">self</span>.state().notify();
 
                 <span class="comment">// Run the task.
-                </span><a href="#170">runnable</a>.run();
+                </span>runnable.run();
                 <span class="bool-val">true
             </span>}
         }
@@ -1081,37 +1081,37 @@
     </span>}
 
     <span class="doccomment">/// Returns a function that schedules a runnable task when it gets woken up.
-    </span><span class="kw">fn </span>schedule(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl </span>Fn(<a href="../../async_task/runnable/struct.Runnable.html">Runnable</a>) + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> + <span class="lifetime">&#39;static </span>{
-        <span class="kw">let </span>state = <a class="self" href="#241">self</a>.<a href="#252">state</a>().<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
+    </span><span class="kw">fn </span>schedule(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl </span>Fn(Runnable) + Send + Sync + <span class="lifetime">&#39;static </span>{
+        <span class="kw">let </span>state = <span class="self">self</span>.state().clone();
 
         <span class="comment">// TODO(stjepang): If possible, push into the current local queue and notify the ticker.
         </span><span class="kw">move </span>|runnable| {
-            <a href="#242">state</a>.queue.push(<a href="#245">runnable</a>).unwrap();
-            <a href="#242">state</a>.<a href="#498">notify</a>();
+            state.queue.push(runnable).unwrap();
+            state.notify();
         }
     }
 
     <span class="doccomment">/// Returns a reference to the inner state.
-    </span><span class="kw">fn </span>state(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Arc&lt;<a href="#463">State</a>&gt; {
-        <a class="self" href="#252">self</a>.state.get_or_init_blocking(|| Arc::new(State::new()))
+    </span><span class="kw">fn </span>state(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Arc&lt;State&gt; {
+        <span class="self">self</span>.state.get_or_init_blocking(|| Arc::new(State::new()))
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span>Executor&lt;<span class="lifetime">&#39;_</span>&gt; {
+<span class="kw">impl </span>Drop <span class="kw">for </span>Executor&lt;<span class="lifetime">&#39;_</span>&gt; {
     <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(state) = <a class="self" href="#258">self</a>.state.get() {
-            <span class="kw">let </span><span class="kw-2">mut </span>active = <a href="#259">state</a>.active.lock().unwrap();
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(state) = <span class="self">self</span>.state.get() {
+            <span class="kw">let </span><span class="kw-2">mut </span>active = state.active.lock().unwrap();
             <span class="kw">for </span>w <span class="kw">in </span>active.drain() {
                 w.wake();
             }
-            <a href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>(<a href="#260">active</a>);
+            drop(active);
 
             <span class="kw">while </span>state.queue.pop().is_ok() {}
         }
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for </span>Executor&lt;<span class="lifetime">&#39;a</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; Default <span class="kw">for </span>Executor&lt;<span class="lifetime">&#39;a</span>&gt; {
     <span class="kw">fn </span>default() -&gt; Executor&lt;<span class="lifetime">&#39;a</span>&gt; {
         Executor::new()
     }
@@ -1142,8 +1142,8 @@
     </span>_marker: PhantomData&lt;Rc&lt;()&gt;&gt;,
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/panic/unwind_safe/trait.UnwindSafe.html">UnwindSafe</a> <span class="kw">for </span>LocalExecutor&lt;<span class="lifetime">&#39;_</span>&gt; {}
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/panic/unwind_safe/trait.RefUnwindSafe.html">RefUnwindSafe</a> <span class="kw">for </span>LocalExecutor&lt;<span class="lifetime">&#39;_</span>&gt; {}
+<span class="kw">impl </span>UnwindSafe <span class="kw">for </span>LocalExecutor&lt;<span class="lifetime">&#39;_</span>&gt; {}
+<span class="kw">impl </span>RefUnwindSafe <span class="kw">for </span>LocalExecutor&lt;<span class="lifetime">&#39;_</span>&gt; {}
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; LocalExecutor&lt;<span class="lifetime">&#39;a</span>&gt; {
     <span class="doccomment">/// Creates a single-threaded executor.
@@ -1156,7 +1156,7 @@
     /// let local_ex = LocalExecutor::new();
     /// ```
     </span><span class="kw">pub const fn </span>new() -&gt; LocalExecutor&lt;<span class="lifetime">&#39;a</span>&gt; {
-        <a href="#294">LocalExecutor</a> {
+        LocalExecutor {
             inner: Executor::new(),
             _marker: PhantomData,
         }
@@ -1180,8 +1180,8 @@
     /// assert!(local_ex.try_tick());
     /// assert!(local_ex.is_empty());
     /// ```
-    </span><span class="kw">pub fn </span>is_empty(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#340">self</a>.<a href="#450">inner</a>().<a href="#114">is_empty</a>()
+    </span><span class="kw">pub fn </span>is_empty(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.inner().is_empty()
     }
 
     <span class="doccomment">/// Spawns a task onto the executor.
@@ -1198,22 +1198,22 @@
     /// });
     /// ```
     </span><span class="kw">pub fn </span>spawn&lt;T: <span class="lifetime">&#39;a</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, future: <span class="kw">impl </span>Future&lt;Output = T&gt; + <span class="lifetime">&#39;a</span>) -&gt; Task&lt;T&gt; {
-        <span class="kw">let </span><span class="kw-2">mut </span>active = <a class="self" href="#357">self</a>.<a href="#450">inner</a>().<a href="#252">state</a>().active.lock().unwrap();
+        <span class="kw">let </span><span class="kw-2">mut </span>active = <span class="self">self</span>.inner().state().active.lock().unwrap();
 
         <span class="comment">// Remove the task from the set of active tasks when the future finishes.
-        </span><span class="kw">let </span>index = <a href="#358">active</a>.vacant_entry().key();
-        <span class="kw">let </span>state = <a class="self" href="#357">self</a>.<a href="#450">inner</a>().<a href="#252">state</a>().<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
+        </span><span class="kw">let </span>index = active.vacant_entry().key();
+        <span class="kw">let </span>state = <span class="self">self</span>.inner().state().clone();
         <span class="kw">let </span>future = <span class="kw">async move </span>{
-            <span class="kw">let </span>_guard = <a href="#837">CallOnDrop</a>(<span class="kw">move </span>|| <a href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>(<a href="#362">state</a>.active.lock().unwrap().try_remove(<a href="#361">index</a>)));
+            <span class="kw">let </span>_guard = CallOnDrop(<span class="kw">move </span>|| drop(state.active.lock().unwrap().try_remove(index)));
             future.<span class="kw">await
         </span>};
 
         <span class="comment">// Create the task and register it in the set of active tasks.
-        </span><span class="kw">let </span>(runnable, task) = <span class="kw">unsafe </span>{ async_task::spawn_unchecked(<a href="#363">future</a>, <a class="self" href="#357">self</a>.<a href="#440">schedule</a>()) };
-        <a href="#358">active</a>.insert(<a href="#369">runnable</a>.waker());
+        </span><span class="kw">let </span>(runnable, task) = <span class="kw">unsafe </span>{ async_task::spawn_unchecked(future, <span class="self">self</span>.schedule()) };
+        active.insert(runnable.waker());
 
-        <a href="#369">runnable</a>.schedule();
-        <a href="#369">task</a>
+        runnable.schedule();
+        task
     }
 
     <span class="doccomment">/// Attempts to run a task if at least one is scheduled.
@@ -1233,8 +1233,8 @@
     /// });
     /// assert!(ex.try_tick()); // a task was found
     /// ```
-    </span><span class="kw">pub fn </span>try_tick(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#393">self</a>.<a href="#450">inner</a>().<a href="#167">try_tick</a>()
+    </span><span class="kw">pub fn </span>try_tick(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.inner().try_tick()
     }
 
     <span class="doccomment">/// Runs a single task.
@@ -1280,22 +1280,22 @@
     </span>}
 
     <span class="doccomment">/// Returns a function that schedules a runnable task when it gets woken up.
-    </span><span class="kw">fn </span>schedule(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl </span>Fn(<a href="../../async_task/runnable/struct.Runnable.html">Runnable</a>) + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> + <span class="lifetime">&#39;static </span>{
-        <span class="kw">let </span>state = <a class="self" href="#440">self</a>.<a href="#450">inner</a>().<a href="#252">state</a>().<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
+    </span><span class="kw">fn </span>schedule(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl </span>Fn(Runnable) + Send + Sync + <span class="lifetime">&#39;static </span>{
+        <span class="kw">let </span>state = <span class="self">self</span>.inner().state().clone();
 
         <span class="kw">move </span>|runnable| {
-            <a href="#441">state</a>.queue.push(<a href="#443">runnable</a>).unwrap();
-            <a href="#441">state</a>.<a href="#498">notify</a>();
+            state.queue.push(runnable).unwrap();
+            state.notify();
         }
     }
 
     <span class="doccomment">/// Returns a reference to the inner executor.
     </span><span class="kw">fn </span>inner(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Executor&lt;<span class="lifetime">&#39;a</span>&gt; {
-        <span class="kw-2">&amp;</span><a class="self" href="#450">self</a>.inner
+        <span class="kw-2">&amp;</span><span class="self">self</span>.inner
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for </span>LocalExecutor&lt;<span class="lifetime">&#39;a</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; Default <span class="kw">for </span>LocalExecutor&lt;<span class="lifetime">&#39;a</span>&gt; {
     <span class="kw">fn </span>default() -&gt; LocalExecutor&lt;<span class="lifetime">&#39;a</span>&gt; {
         LocalExecutor::new()
     }
@@ -1305,29 +1305,29 @@
 </span><span class="attr">#[derive(Debug)]
 </span><span class="kw">struct </span>State {
     <span class="doccomment">/// The global queue.
-    </span>queue: ConcurrentQueue&lt;<a href="../../async_task/runnable/struct.Runnable.html">Runnable</a>&gt;,
+    </span>queue: ConcurrentQueue&lt;Runnable&gt;,
 
     <span class="doccomment">/// Local queues created by runners.
-    </span>local_queues: RwLock&lt;Vec&lt;Arc&lt;ConcurrentQueue&lt;<a href="../../async_task/runnable/struct.Runnable.html">Runnable</a>&gt;&gt;&gt;&gt;,
+    </span>local_queues: RwLock&lt;Vec&lt;Arc&lt;ConcurrentQueue&lt;Runnable&gt;&gt;&gt;&gt;,
 
     <span class="doccomment">/// Set to `true` when a sleeping ticker is notified or no tickers are sleeping.
-    </span>notified: <a href="https://doc.rust-lang.org/nightly/core/sync/atomic/struct.AtomicBool.html">AtomicBool</a>,
+    </span>notified: AtomicBool,
 
     <span class="doccomment">/// A list of sleeping tickers.
-    </span>sleepers: Mutex&lt;<a href="#514">Sleepers</a>&gt;,
+    </span>sleepers: Mutex&lt;Sleepers&gt;,
 
     <span class="doccomment">/// Currently active tasks.
-    </span>active: Mutex&lt;Slab&lt;<a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Waker.html">Waker</a>&gt;&gt;,
+    </span>active: Mutex&lt;Slab&lt;Waker&gt;&gt;,
 }
 
-<span class="kw">impl </span><a href="#463">State</a> {
+<span class="kw">impl </span>State {
     <span class="doccomment">/// Creates state for a new executor.
-    </span><span class="kw">fn </span>new() -&gt; <a href="#463">State</a> {
-        <a href="#463">State</a> {
+    </span><span class="kw">fn </span>new() -&gt; State {
+        State {
             queue: ConcurrentQueue::unbounded(),
             local_queues: RwLock::new(Vec::new()),
             notified: AtomicBool::new(<span class="bool-val">true</span>),
-            sleepers: Mutex::new(<a href="#514">Sleepers</a> {
+            sleepers: Mutex::new(Sleepers {
                 count: <span class="number">0</span>,
                 wakers: Vec::new(),
                 free_ids: Vec::new(),
@@ -1344,9 +1344,9 @@
             .compare_exchange(<span class="bool-val">false</span>, <span class="bool-val">true</span>, Ordering::SeqCst, Ordering::SeqCst)
             .is_ok()
         {
-            <span class="kw">let </span>waker = <a class="self" href="#498">self</a>.sleepers.lock().unwrap().<a href="#580">notify</a>();
-            <span class="kw">if let </span><span class="prelude-val">Some</span>(w) = <a href="#504">waker</a> {
-                <a href="#505">w</a>.wake();
+            <span class="kw">let </span>waker = <span class="self">self</span>.sleepers.lock().unwrap().notify();
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(w) = waker {
+                w.wake();
             }
         }
     }
@@ -1356,33 +1356,33 @@
 </span><span class="attr">#[derive(Debug)]
 </span><span class="kw">struct </span>Sleepers {
     <span class="doccomment">/// Number of sleeping tickers (both notified and unnotified).
-    </span>count: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+    </span>count: usize,
 
     <span class="doccomment">/// IDs and wakers of sleeping unnotified tickers.
     ///
     /// A sleeping ticker is notified when its waker is missing from this list.
-    </span>wakers: Vec&lt;(<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Waker.html">Waker</a>)&gt;,
+    </span>wakers: Vec&lt;(usize, Waker)&gt;,
 
     <span class="doccomment">/// Reclaimed IDs.
-    </span>free_ids: Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;,
+    </span>free_ids: Vec&lt;usize&gt;,
 }
 
-<span class="kw">impl </span><a href="#514">Sleepers</a> {
+<span class="kw">impl </span>Sleepers {
     <span class="doccomment">/// Inserts a new sleeping ticker.
-    </span><span class="kw">fn </span>insert(<span class="kw-2">&amp;mut </span><span class="self">self</span>, waker: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Waker.html">Waker</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <span class="kw">let </span>id = <span class="kw">match </span><a class="self" href="#529">self</a>.free_ids.pop() {
-            <span class="prelude-val">Some</span>(id) =&gt; <a href="#531">id</a>,
-            <span class="prelude-val">None </span>=&gt; <a class="self" href="#529">self</a>.count + <span class="number">1</span>,
+    </span><span class="kw">fn </span>insert(<span class="kw-2">&amp;mut </span><span class="self">self</span>, waker: <span class="kw-2">&amp;</span>Waker) -&gt; usize {
+        <span class="kw">let </span>id = <span class="kw">match </span><span class="self">self</span>.free_ids.pop() {
+            <span class="prelude-val">Some</span>(id) =&gt; id,
+            <span class="prelude-val">None </span>=&gt; <span class="self">self</span>.count + <span class="number">1</span>,
         };
-        <a class="self" href="#529">self</a>.count += <span class="number">1</span>;
-        <a class="self" href="#529">self</a>.wakers.push((<a href="#530">id</a>, <a href="#529">waker</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()));
-        <a href="#530">id</a>
+        <span class="self">self</span>.count += <span class="number">1</span>;
+        <span class="self">self</span>.wakers.push((id, waker.clone()));
+        id
     }
 
     <span class="doccomment">/// Re-inserts a sleeping ticker&#39;s waker if it was notified.
     ///
     /// Returns `true` if the ticker was notified.
-    </span><span class="kw">fn </span>update(<span class="kw-2">&amp;mut </span><span class="self">self</span>, id: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, waker: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Waker.html">Waker</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+    </span><span class="kw">fn </span>update(<span class="kw-2">&amp;mut </span><span class="self">self</span>, id: usize, waker: <span class="kw-2">&amp;</span>Waker) -&gt; bool {
         <span class="kw">for </span>item <span class="kw">in </span><span class="kw-2">&amp;mut </span><span class="self">self</span>.wakers {
             <span class="kw">if </span>item.<span class="number">0 </span>== id {
                 <span class="kw">if </span>!item.<span class="number">1</span>.will_wake(waker) {
@@ -1392,16 +1392,16 @@
             }
         }
 
-        <a class="self" href="#542">self</a>.wakers.push((<a href="#542">id</a>, <a href="#542">waker</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()));
+        <span class="self">self</span>.wakers.push((id, waker.clone()));
         <span class="bool-val">true
     </span>}
 
     <span class="doccomment">/// Removes a previously inserted sleeping ticker.
     ///
     /// Returns `true` if the ticker was notified.
-    </span><span class="kw">fn </span>remove(<span class="kw-2">&amp;mut </span><span class="self">self</span>, id: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#559">self</a>.count -= <span class="number">1</span>;
-        <a class="self" href="#559">self</a>.free_ids.push(<a href="#559">id</a>);
+    </span><span class="kw">fn </span>remove(<span class="kw-2">&amp;mut </span><span class="self">self</span>, id: usize) -&gt; bool {
+        <span class="self">self</span>.count -= <span class="number">1</span>;
+        <span class="self">self</span>.free_ids.push(id);
 
         <span class="kw">for </span>i <span class="kw">in </span>(<span class="number">0</span>..<span class="self">self</span>.wakers.len()).rev() {
             <span class="kw">if </span><span class="self">self</span>.wakers[i].<span class="number">0 </span>== id {
@@ -1413,16 +1413,16 @@
     </span>}
 
     <span class="doccomment">/// Returns `true` if a sleeping ticker is notified or no tickers are sleeping.
-    </span><span class="kw">fn </span>is_notified(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#573">self</a>.count == <span class="number">0 </span>|| <a class="self" href="#573">self</a>.count &gt; <a class="self" href="#573">self</a>.wakers.len()
+    </span><span class="kw">fn </span>is_notified(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.count == <span class="number">0 </span>|| <span class="self">self</span>.count &gt; <span class="self">self</span>.wakers.len()
     }
 
     <span class="doccomment">/// Returns notification waker for a sleeping ticker.
     ///
     /// If a ticker was notified already or there are no tickers, `None` will be returned.
-    </span><span class="kw">fn </span>notify(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Waker.html">Waker</a>&gt; {
+    </span><span class="kw">fn </span>notify(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Waker&gt; {
         <span class="kw">if </span><span class="self">self</span>.wakers.len() == <span class="self">self</span>.count {
-            <a class="self" href="#580">self</a>.wakers.pop().map(|item| <a href="#582">item</a>.<span class="number">1</span>)
+            <span class="self">self</span>.wakers.pop().map(|item| item.<span class="number">1</span>)
         } <span class="kw">else </span>{
             <span class="prelude-val">None
         </span>}
@@ -1433,7 +1433,7 @@
 </span><span class="attr">#[derive(Debug)]
 </span><span class="kw">struct </span>Ticker&lt;<span class="lifetime">&#39;a</span>&gt; {
     <span class="doccomment">/// The executor state.
-    </span>state: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="#463">State</a>,
+    </span>state: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>State,
 
     <span class="doccomment">/// Set to a non-zero sleeper ID when in sleeping state.
     ///
@@ -1441,14 +1441,14 @@
     /// 1) Woken.
     /// 2a) Sleeping and unnotified.
     /// 2b) Sleeping and notified.
-    </span>sleeping: <a href="https://doc.rust-lang.org/nightly/core/sync/atomic/struct.AtomicUsize.html">AtomicUsize</a>,
+    </span>sleeping: AtomicUsize,
 }
 
 <span class="kw">impl </span>Ticker&lt;<span class="lifetime">&#39;_</span>&gt; {
     <span class="doccomment">/// Creates a ticker.
-    </span><span class="kw">fn </span>new(state: <span class="kw-2">&amp;</span><a href="#463">State</a>) -&gt; Ticker&lt;<span class="lifetime">&#39;_</span>&gt; {
-        <a href="#591">Ticker</a> {
-            <a href="#606">state</a>,
+    </span><span class="kw">fn </span>new(state: <span class="kw-2">&amp;</span>State) -&gt; Ticker&lt;<span class="lifetime">&#39;_</span>&gt; {
+        Ticker {
+            state,
             sleeping: AtomicUsize::new(<span class="number">0</span>),
         }
     }
@@ -1456,14 +1456,14 @@
     <span class="doccomment">/// Moves the ticker into sleeping and unnotified state.
     ///
     /// Returns `false` if the ticker was already sleeping and unnotified.
-    </span><span class="kw">fn </span>sleep(<span class="kw-2">&amp;</span><span class="self">self</span>, waker: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Waker.html">Waker</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">let </span><span class="kw-2">mut </span>sleepers = <a class="self" href="#616">self</a>.state.sleepers.lock().unwrap();
+    </span><span class="kw">fn </span>sleep(<span class="kw-2">&amp;</span><span class="self">self</span>, waker: <span class="kw-2">&amp;</span>Waker) -&gt; bool {
+        <span class="kw">let </span><span class="kw-2">mut </span>sleepers = <span class="self">self</span>.state.sleepers.lock().unwrap();
 
-        <span class="kw">match </span><a class="self" href="#616">self</a>.sleeping.load(Ordering::SeqCst) {
+        <span class="kw">match </span><span class="self">self</span>.sleeping.load(Ordering::SeqCst) {
             <span class="comment">// Move to sleeping state.
-            </span><span class="number">0 </span>=&gt; <span class="self"><a href="#616">self</a>
+            </span><span class="number">0 </span>=&gt; <span class="self">self
                 </span>.sleeping
-                .store(<a href="#617">sleepers</a>.<a href="#529">insert</a>(<a href="#616">waker</a>), Ordering::SeqCst),
+                .store(sleepers.insert(waker), Ordering::SeqCst),
 
             <span class="comment">// Already sleeping, check if notified.
             </span>id =&gt; {
@@ -1473,33 +1473,33 @@
             }
         }
 
-        <a class="self" href="#616">self</a>.state
+        <span class="self">self</span>.state
             .notified
-            .swap(<a href="#617">sleepers</a>.<a href="#573">is_notified</a>(), Ordering::SeqCst);
+            .swap(sleepers.is_notified(), Ordering::SeqCst);
 
         <span class="bool-val">true
     </span>}
 
     <span class="doccomment">/// Moves the ticker into woken state.
     </span><span class="kw">fn </span>wake(<span class="kw-2">&amp;</span><span class="self">self</span>) {
-        <span class="kw">let </span>id = <a class="self" href="#641">self</a>.sleeping.swap(<span class="number">0</span>, Ordering::SeqCst);
+        <span class="kw">let </span>id = <span class="self">self</span>.sleeping.swap(<span class="number">0</span>, Ordering::SeqCst);
         <span class="kw">if </span>id != <span class="number">0 </span>{
-            <span class="kw">let </span><span class="kw-2">mut </span>sleepers = <a class="self" href="#641">self</a>.state.sleepers.lock().unwrap();
-            <a href="#644">sleepers</a>.<a href="#559">remove</a>(<a href="#642">id</a>);
+            <span class="kw">let </span><span class="kw-2">mut </span>sleepers = <span class="self">self</span>.state.sleepers.lock().unwrap();
+            sleepers.remove(id);
 
-            <a class="self" href="#641">self</a>.state
+            <span class="self">self</span>.state
                 .notified
-                .swap(<a href="#644">sleepers</a>.<a href="#573">is_notified</a>(), Ordering::SeqCst);
+                .swap(sleepers.is_notified(), Ordering::SeqCst);
         }
     }
 
     <span class="doccomment">/// Waits for the next runnable task to run.
-    </span><span class="kw">async fn </span>runnable(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../../async_task/runnable/struct.Runnable.html">Runnable</a> {
+    </span><span class="kw">async fn </span>runnable(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Runnable {
         <span class="self">self</span>.runnable_with(|| <span class="self">self</span>.state.queue.pop().ok()).<span class="kw">await
     </span>}
 
     <span class="doccomment">/// Waits for the next runnable task to run, given a function that searches for a task.
-    </span><span class="kw">async fn </span>runnable_with(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw-2">mut </span>search: <span class="kw">impl </span>FnMut() -&gt; <span class="prelude-ty">Option</span>&lt;<a href="../../async_task/runnable/struct.Runnable.html">Runnable</a>&gt;) -&gt; <a href="../../async_task/runnable/struct.Runnable.html">Runnable</a> {
+    </span><span class="kw">async fn </span>runnable_with(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw-2">mut </span>search: <span class="kw">impl </span>FnMut() -&gt; <span class="prelude-ty">Option</span>&lt;Runnable&gt;) -&gt; Runnable {
         future::poll_fn(|cx| {
             <span class="kw">loop </span>{
                 <span class="kw">match </span>search() {
@@ -1527,22 +1527,22 @@
     </span>}
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span>Ticker&lt;<span class="lifetime">&#39;_</span>&gt; {
+<span class="kw">impl </span>Drop <span class="kw">for </span>Ticker&lt;<span class="lifetime">&#39;_</span>&gt; {
     <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="comment">// If this ticker is in sleeping state, it must be removed from the sleepers list.
-        </span><span class="kw">let </span>id = <a class="self" href="#688">self</a>.sleeping.swap(<span class="number">0</span>, Ordering::SeqCst);
+        </span><span class="kw">let </span>id = <span class="self">self</span>.sleeping.swap(<span class="number">0</span>, Ordering::SeqCst);
         <span class="kw">if </span>id != <span class="number">0 </span>{
-            <span class="kw">let </span><span class="kw-2">mut </span>sleepers = <a class="self" href="#688">self</a>.state.sleepers.lock().unwrap();
-            <span class="kw">let </span>notified = <a href="#692">sleepers</a>.<a href="#559">remove</a>(<a href="#690">id</a>);
+            <span class="kw">let </span><span class="kw-2">mut </span>sleepers = <span class="self">self</span>.state.sleepers.lock().unwrap();
+            <span class="kw">let </span>notified = sleepers.remove(id);
 
-            <a class="self" href="#688">self</a>.state
+            <span class="self">self</span>.state
                 .notified
-                .swap(<a href="#692">sleepers</a>.<a href="#573">is_notified</a>(), Ordering::SeqCst);
+                .swap(sleepers.is_notified(), Ordering::SeqCst);
 
             <span class="comment">// If this ticker was notified, then notify another ticker.
             </span><span class="kw">if </span>notified {
-                <a href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>(<a href="#692">sleepers</a>);
-                <a class="self" href="#688">self</a>.state.<a href="#498">notify</a>();
+                drop(sleepers);
+                <span class="self">self</span>.state.notify();
             }
         }
     }
@@ -1554,37 +1554,37 @@
 </span><span class="attr">#[derive(Debug)]
 </span><span class="kw">struct </span>Runner&lt;<span class="lifetime">&#39;a</span>&gt; {
     <span class="doccomment">/// The executor state.
-    </span>state: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="#463">State</a>,
+    </span>state: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>State,
 
     <span class="doccomment">/// Inner ticker.
     </span>ticker: Ticker&lt;<span class="lifetime">&#39;a</span>&gt;,
 
     <span class="doccomment">/// The local queue.
-    </span>local: Arc&lt;ConcurrentQueue&lt;<a href="../../async_task/runnable/struct.Runnable.html">Runnable</a>&gt;&gt;,
+    </span>local: Arc&lt;ConcurrentQueue&lt;Runnable&gt;&gt;,
 
     <span class="doccomment">/// Bumped every time a runnable task is found.
-    </span>ticks: <a href="https://doc.rust-lang.org/nightly/core/sync/atomic/struct.AtomicUsize.html">AtomicUsize</a>,
+    </span>ticks: AtomicUsize,
 }
 
 <span class="kw">impl </span>Runner&lt;<span class="lifetime">&#39;_</span>&gt; {
     <span class="doccomment">/// Creates a runner and registers it in the executor state.
-    </span><span class="kw">fn </span>new(state: <span class="kw-2">&amp;</span><a href="#463">State</a>) -&gt; Runner&lt;<span class="lifetime">&#39;_</span>&gt; {
-        <span class="kw">let </span>runner = <a href="#712">Runner</a> {
-            <a href="#728">state</a>,
-            ticker: Ticker::new(<a href="#728">state</a>),
+    </span><span class="kw">fn </span>new(state: <span class="kw-2">&amp;</span>State) -&gt; Runner&lt;<span class="lifetime">&#39;_</span>&gt; {
+        <span class="kw">let </span>runner = Runner {
+            state,
+            ticker: Ticker::new(state),
             local: Arc::new(ConcurrentQueue::bounded(<span class="number">512</span>)),
             ticks: AtomicUsize::new(<span class="number">0</span>),
         };
-        <a href="#728">state</a>
+        state
             .local_queues
             .write()
             .unwrap()
-            .push(<a href="#729">runner</a>.local.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
-        <a href="#729">runner</a>
+            .push(runner.local.clone());
+        runner
     }
 
     <span class="doccomment">/// Waits for the next runnable task to run.
-    </span><span class="kw">async fn </span>runnable(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../../async_task/runnable/struct.Runnable.html">Runnable</a> {
+    </span><span class="kw">async fn </span>runnable(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Runnable {
         <span class="kw">let </span>runnable = <span class="self">self
             </span>.ticker
             .runnable_with(|| {
@@ -1638,14 +1638,14 @@
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span>Runner&lt;<span class="lifetime">&#39;_</span>&gt; {
+<span class="kw">impl </span>Drop <span class="kw">for </span>Runner&lt;<span class="lifetime">&#39;_</span>&gt; {
     <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="comment">// Remove the local queue.
-        </span><a class="self" href="#799">self</a>.state
+        </span><span class="self">self</span>.state
             .local_queues
             .write()
             .unwrap()
-            .retain(|local| !Arc::ptr_eq(<a href="#805">local</a>, <span class="kw-2">&amp;</span><a class="self" href="#799">self</a>.local));
+            .retain(|local| !Arc::ptr_eq(local, <span class="kw-2">&amp;</span><span class="self">self</span>.local));
 
         <span class="comment">// Re-schedule remaining tasks in the local queue.
         </span><span class="kw">while let </span><span class="prelude-val">Ok</span>(r) = <span class="self">self</span>.local.pop() {
@@ -1657,12 +1657,12 @@
 <span class="doccomment">/// Steals some items from one queue into another.
 </span><span class="kw">fn </span>steal&lt;T&gt;(src: <span class="kw-2">&amp;</span>ConcurrentQueue&lt;T&gt;, dest: <span class="kw-2">&amp;</span>ConcurrentQueue&lt;T&gt;) {
     <span class="comment">// Half of `src`&#39;s length rounded up.
-    </span><span class="kw">let </span><span class="kw-2">mut </span>count = (<a href="#815">src</a>.len() + <span class="number">1</span>) / <span class="number">2</span>;
+    </span><span class="kw">let </span><span class="kw-2">mut </span>count = (src.len() + <span class="number">1</span>) / <span class="number">2</span>;
 
     <span class="kw">if </span>count &gt; <span class="number">0 </span>{
         <span class="comment">// Don&#39;t steal more than fits into the queue.
-        </span><span class="kw">if let </span><span class="prelude-val">Some</span>(cap) = <a href="#815">dest</a>.capacity() {
-            <a href="#817">count</a> = <a href="#817">count</a>.<a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Ord.html">min</a>(<a href="#821">cap</a> - <a href="#815">dest</a>.len());
+        </span><span class="kw">if let </span><span class="prelude-val">Some</span>(cap) = dest.capacity() {
+            count = count.min(cap - dest.len());
         }
 
         <span class="comment">// Steal tasks.
@@ -1679,10 +1679,10 @@
 <span class="doccomment">/// Runs a closure when dropped.
 </span><span class="kw">struct </span>CallOnDrop&lt;F: Fn()&gt;(F);
 
-<span class="kw">impl</span>&lt;F: Fn()&gt; <a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span>CallOnDrop&lt;F&gt; {
+<span class="kw">impl</span>&lt;F: Fn()&gt; Drop <span class="kw">for </span>CallOnDrop&lt;F&gt; {
     <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        (<a class="self" href="#840">self</a>.<span class="number">0</span>)();
+        (<span class="self">self</span>.<span class="number">0</span>)();
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="async_executor" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="async_executor" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

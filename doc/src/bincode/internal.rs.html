@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/bincode-1.3.3/src/internal.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>internal.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../bincode/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/bincode-1.3.3/src/internal.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>internal.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../bincode/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -122,19 +122,19 @@
 <a href="#122" id="122">122</a>
 <a href="#123" id="123">123</a>
 <a href="#124" id="124">124</a>
-</pre><pre class="rust"><code><span class="kw">use </span><a href="../../serde/index.html">serde</a>;
-<span class="kw">use </span>std::io::{<a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a>, <a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a>};
+</pre><pre class="rust"><code><span class="kw">use </span>serde;
+<span class="kw">use </span>std::io::{Read, Write};
 <span class="kw">use </span>std::marker::PhantomData;
 
-<span class="kw">use </span>config::{<a href="config/limit.rs.html#20">Infinite</a>, <a href="config/mod.rs.html#388">InternalOptions</a>, <a href="config/mod.rs.html#128">Options</a>, <a href="config/limit.rs.html#4">SizeLimit</a>, <a href="config/trailing.rs.html#5">TrailingBytes</a>};
-<span class="kw">use </span><a href="de/read.rs.html#13">de::read::BincodeRead</a>;
+<span class="kw">use </span>config::{Infinite, InternalOptions, Options, SizeLimit, TrailingBytes};
+<span class="kw">use </span>de::read::BincodeRead;
 <span class="kw">use </span><span class="prelude-ty">Result</span>;
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>serialize_into&lt;W, T: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>, O&gt;(writer: W, value: <span class="kw-2">&amp;</span>T, <span class="kw-2">mut </span>options: O) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt;
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>serialize_into&lt;W, T: <span class="question-mark">?</span>Sized, O&gt;(writer: W, value: <span class="kw-2">&amp;</span>T, <span class="kw-2">mut </span>options: O) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt;
 <span class="kw">where
-    </span>W: <a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a>,
-    T: <a href="../../serde/ser/trait.Serialize.html">serde::Serialize</a>,
-    O: <a href="config/mod.rs.html#388">InternalOptions</a>,
+    </span>W: Write,
+    T: serde::Serialize,
+    O: InternalOptions,
 {
     <span class="kw">if </span>options.limit().limit().is_some() {
         <span class="comment">// &quot;compute&quot; the size for the side-effect
@@ -142,60 +142,60 @@
         </span>serialized_size(value, <span class="kw-2">&amp;mut </span>options)<span class="question-mark">?</span>;
     }
 
-    <span class="kw">let </span><span class="kw-2">mut </span>serializer = ::ser::Serializer::&lt;<span class="kw">_</span>, O&gt;::new(<a href="#9">writer</a>, <a href="#9">options</a>);
-    <a href="../../serde/ser/trait.Serialize.html">serde::Serialize::serialize</a>(<a href="#9">value</a>, <span class="kw-2">&amp;mut </span><a href="#21">serializer</a>)
+    <span class="kw">let </span><span class="kw-2">mut </span>serializer = ::ser::Serializer::&lt;<span class="kw">_</span>, O&gt;::new(writer, options);
+    serde::Serialize::serialize(value, <span class="kw-2">&amp;mut </span>serializer)
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>serialize&lt;T: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>, O&gt;(value: <span class="kw-2">&amp;</span>T, <span class="kw-2">mut </span>options: O) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;&gt;
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>serialize&lt;T: <span class="question-mark">?</span>Sized, O&gt;(value: <span class="kw-2">&amp;</span>T, <span class="kw-2">mut </span>options: O) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;u8&gt;&gt;
 <span class="kw">where
-    </span>T: <a href="../../serde/ser/trait.Serialize.html">serde::Serialize</a>,
-    O: <a href="config/mod.rs.html#388">InternalOptions</a>,
+    </span>T: serde::Serialize,
+    O: InternalOptions,
 {
     <span class="kw">let </span><span class="kw-2">mut </span>writer = {
         <span class="kw">let </span>actual_size = serialized_size(value, <span class="kw-2">&amp;mut </span>options)<span class="question-mark">?</span>;
-        Vec::with_capacity(<a href="#31">actual_size</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>)
+        Vec::with_capacity(actual_size <span class="kw">as </span>usize)
     };
 
     serialize_into(<span class="kw-2">&amp;mut </span>writer, value, options.with_no_limit())<span class="question-mark">?</span>;
-    <span class="prelude-val">Ok</span>(<a href="#30">writer</a>)
+    <span class="prelude-val">Ok</span>(writer)
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>serialized_size&lt;T: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>, O: <a href="config/mod.rs.html#388">InternalOptions</a>&gt;(value: <span class="kw-2">&amp;</span>T, options: O) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>&gt;
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>serialized_size&lt;T: <span class="question-mark">?</span>Sized, O: InternalOptions&gt;(value: <span class="kw-2">&amp;</span>T, options: O) -&gt; <span class="prelude-ty">Result</span>&lt;u64&gt;
 <span class="kw">where
-    </span>T: <a href="../../serde/ser/trait.Serialize.html">serde::Serialize</a>,
+    </span>T: serde::Serialize,
 {
-    <span class="kw">let </span><span class="kw-2">mut </span>size_counter = <a href="ser/mod.rs.html#234">::ser::SizeChecker</a> { <a href="#39">options</a>, total: <span class="number">0 </span>};
+    <span class="kw">let </span><span class="kw-2">mut </span>size_counter = ::ser::SizeChecker { options, total: <span class="number">0 </span>};
 
-    <span class="kw">let </span>result = <a href="#39">value</a>.<a href="../../serde/ser/trait.Serialize.html">serialize</a>(<span class="kw-2">&amp;mut </span><a href="#43">size_counter</a>);
-    <a href="#45">result</a>.map(|<span class="kw">_</span>| <a href="#43">size_counter</a>.total)
+    <span class="kw">let </span>result = value.serialize(<span class="kw-2">&amp;mut </span>size_counter);
+    result.map(|<span class="kw">_</span>| size_counter.total)
 }
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>deserialize_from&lt;R, T, O&gt;(reader: R, options: O) -&gt; <span class="prelude-ty">Result</span>&lt;T&gt;
 <span class="kw">where
-    </span>R: <a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a>,
-    T: <a href="../../serde/de/trait.DeserializeOwned.html">serde::de::DeserializeOwned</a>,
-    O: <a href="config/mod.rs.html#388">InternalOptions</a>,
+    </span>R: Read,
+    T: serde::de::DeserializeOwned,
+    O: InternalOptions,
 {
-    <a href="#58-62">deserialize_from_seed</a>(PhantomData, <a href="#49">reader</a>, <a href="#49">options</a>)
+    deserialize_from_seed(PhantomData, reader, options)
 }
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>deserialize_from_seed&lt;<span class="lifetime">&#39;a</span>, R, T, O&gt;(seed: T, reader: R, options: O) -&gt; <span class="prelude-ty">Result</span>&lt;T::Value&gt;
 <span class="kw">where
-    </span>R: <a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a>,
+    </span>R: Read,
     T: serde::de::DeserializeSeed&lt;<span class="lifetime">&#39;a</span>&gt;,
-    O: <a href="config/mod.rs.html#388">InternalOptions</a>,
+    O: InternalOptions,
 {
-    <span class="kw">let </span>reader = ::de::read::IoReader::new(<a href="#58">reader</a>);
-    <a href="#77-85">deserialize_from_custom_seed</a>(<a href="#58">seed</a>, <a href="#64">reader</a>, <a href="#58">options</a>)
+    <span class="kw">let </span>reader = ::de::read::IoReader::new(reader);
+    deserialize_from_custom_seed(seed, reader, options)
 }
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>deserialize_from_custom&lt;<span class="lifetime">&#39;a</span>, R, T, O&gt;(reader: R, options: O) -&gt; <span class="prelude-ty">Result</span>&lt;T&gt;
 <span class="kw">where
     </span>R: BincodeRead&lt;<span class="lifetime">&#39;a</span>&gt;,
-    T: <a href="../../serde/de/trait.DeserializeOwned.html">serde::de::DeserializeOwned</a>,
-    O: <a href="config/mod.rs.html#388">InternalOptions</a>,
+    T: serde::de::DeserializeOwned,
+    O: InternalOptions,
 {
-    <a href="#77-85">deserialize_from_custom_seed</a>(PhantomData, <a href="#68">reader</a>, <a href="#68">options</a>)
+    deserialize_from_custom_seed(PhantomData, reader, options)
 }
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>deserialize_from_custom_seed&lt;<span class="lifetime">&#39;a</span>, R, T, O&gt;(
@@ -206,45 +206,45 @@
 <span class="kw">where
     </span>R: BincodeRead&lt;<span class="lifetime">&#39;a</span>&gt;,
     T: serde::de::DeserializeSeed&lt;<span class="lifetime">&#39;a</span>&gt;,
-    O: <a href="config/mod.rs.html#388">InternalOptions</a>,
+    O: InternalOptions,
 {
-    <span class="kw">let </span><span class="kw-2">mut </span>deserializer = ::de::Deserializer::&lt;<span class="kw">_</span>, O&gt;::with_bincode_read(<a href="#79">reader</a>, <a href="#80">options</a>);
-    <a href="#78">seed</a>.<a href="../../serde/de/trait.DeserializeSeed.html">deserialize</a>(<span class="kw-2">&amp;mut </span><a href="#87">deserializer</a>)
+    <span class="kw">let </span><span class="kw-2">mut </span>deserializer = ::de::Deserializer::&lt;<span class="kw">_</span>, O&gt;::with_bincode_read(reader, options);
+    seed.deserialize(<span class="kw-2">&amp;mut </span>deserializer)
 }
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>deserialize_in_place&lt;<span class="lifetime">&#39;a</span>, R, T, O&gt;(reader: R, options: O, place: <span class="kw-2">&amp;mut </span>T) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt;
 <span class="kw">where
     </span>R: BincodeRead&lt;<span class="lifetime">&#39;a</span>&gt;,
     T: serde::de::Deserialize&lt;<span class="lifetime">&#39;a</span>&gt;,
-    O: <a href="config/mod.rs.html#388">InternalOptions</a>,
+    O: InternalOptions,
 {
-    <span class="kw">let </span><span class="kw-2">mut </span>deserializer = ::de::Deserializer::&lt;<span class="kw">_</span>, <span class="kw">_</span>&gt;::with_bincode_read(<a href="#91">reader</a>, <a href="#91">options</a>);
-    <a href="../../serde/de/trait.Deserialize.html">serde::Deserialize::deserialize_in_place</a>(<span class="kw-2">&amp;mut </span><a href="#97">deserializer</a>, <a href="#91">place</a>)
+    <span class="kw">let </span><span class="kw-2">mut </span>deserializer = ::de::Deserializer::&lt;<span class="kw">_</span>, <span class="kw">_</span>&gt;::with_bincode_read(reader, options);
+    serde::Deserialize::deserialize_in_place(<span class="kw-2">&amp;mut </span>deserializer, place)
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>deserialize&lt;<span class="lifetime">&#39;a</span>, T, O&gt;(bytes: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], options: O) -&gt; <span class="prelude-ty">Result</span>&lt;T&gt;
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>deserialize&lt;<span class="lifetime">&#39;a</span>, T, O&gt;(bytes: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[u8], options: O) -&gt; <span class="prelude-ty">Result</span>&lt;T&gt;
 <span class="kw">where
     </span>T: serde::de::Deserialize&lt;<span class="lifetime">&#39;a</span>&gt;,
-    O: <a href="config/mod.rs.html#388">InternalOptions</a>,
+    O: InternalOptions,
 {
-    <a href="#109-112">deserialize_seed</a>(PhantomData, <a href="#101">bytes</a>, <a href="#101">options</a>)
+    deserialize_seed(PhantomData, bytes, options)
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>deserialize_seed&lt;<span class="lifetime">&#39;a</span>, T, O&gt;(seed: T, bytes: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], options: O) -&gt; <span class="prelude-ty">Result</span>&lt;T::Value&gt;
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>deserialize_seed&lt;<span class="lifetime">&#39;a</span>, T, O&gt;(seed: T, bytes: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[u8], options: O) -&gt; <span class="prelude-ty">Result</span>&lt;T::Value&gt;
 <span class="kw">where
     </span>T: serde::de::DeserializeSeed&lt;<span class="lifetime">&#39;a</span>&gt;,
-    O: <a href="config/mod.rs.html#388">InternalOptions</a>,
+    O: InternalOptions,
 {
-    <span class="kw">let </span>options = ::config::WithOtherLimit::new(<a href="#109">options</a>, <a href="config/limit.rs.html#20">Infinite</a>);
+    <span class="kw">let </span>options = ::config::WithOtherLimit::new(options, Infinite);
 
-    <span class="kw">let </span>reader = ::de::read::SliceReader::new(<a href="#109">bytes</a>);
-    <span class="kw">let </span><span class="kw-2">mut </span>deserializer = ::de::Deserializer::with_bincode_read(<a href="#116">reader</a>, <a href="#114">options</a>);
+    <span class="kw">let </span>reader = ::de::read::SliceReader::new(bytes);
+    <span class="kw">let </span><span class="kw-2">mut </span>deserializer = ::de::Deserializer::with_bincode_read(reader, options);
     <span class="kw">let </span>val = seed.deserialize(<span class="kw-2">&amp;mut </span>deserializer)<span class="question-mark">?</span>;
 
-    <span class="kw">match </span>O::Trailing::check_end(<span class="kw-2">&amp;</span><a href="#117">deserializer</a>.reader) {
-        <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">Ok</span>(<a href="#118">val</a>),
-        <span class="prelude-val">Err</span>(err) =&gt; <span class="prelude-val">Err</span>(<a href="#122">err</a>),
+    <span class="kw">match </span>O::Trailing::check_end(<span class="kw-2">&amp;</span>deserializer.reader) {
+        <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">Ok</span>(val),
+        <span class="prelude-val">Err</span>(err) =&gt; <span class="prelude-val">Err</span>(err),
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="bincode" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="bincode" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

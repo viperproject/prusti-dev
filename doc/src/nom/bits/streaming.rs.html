@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/nom-7.1.1/src/bits/streaming.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>streaming.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../nom/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/nom-7.1.2/src/bits/streaming.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>streaming.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../nom/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -127,36 +127,77 @@
 <a href="#127" id="127">127</a>
 <a href="#128" id="128">128</a>
 <a href="#129" id="129">129</a>
+<a href="#130" id="130">130</a>
+<a href="#131" id="131">131</a>
+<a href="#132" id="132">132</a>
+<a href="#133" id="133">133</a>
+<a href="#134" id="134">134</a>
+<a href="#135" id="135">135</a>
+<a href="#136" id="136">136</a>
+<a href="#137" id="137">137</a>
+<a href="#138" id="138">138</a>
+<a href="#139" id="139">139</a>
+<a href="#140" id="140">140</a>
+<a href="#141" id="141">141</a>
+<a href="#142" id="142">142</a>
+<a href="#143" id="143">143</a>
+<a href="#144" id="144">144</a>
+<a href="#145" id="145">145</a>
+<a href="#146" id="146">146</a>
+<a href="#147" id="147">147</a>
+<a href="#148" id="148">148</a>
+<a href="#149" id="149">149</a>
+<a href="#150" id="150">150</a>
+<a href="#151" id="151">151</a>
+<a href="#152" id="152">152</a>
+<a href="#153" id="153">153</a>
+<a href="#154" id="154">154</a>
+<a href="#155" id="155">155</a>
+<a href="#156" id="156">156</a>
+<a href="#157" id="157">157</a>
+<a href="#158" id="158">158</a>
+<a href="#159" id="159">159</a>
+<a href="#160" id="160">160</a>
+<a href="#161" id="161">161</a>
+<a href="#162" id="162">162</a>
+<a href="#163" id="163">163</a>
+<a href="#164" id="164">164</a>
+<a href="#165" id="165">165</a>
+<a href="#166" id="166">166</a>
+<a href="#167" id="167">167</a>
+<a href="#168" id="168">168</a>
+<a href="#169" id="169">169</a>
+<a href="#170" id="170">170</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Bit level parsers
 //!
 
-</span><span class="kw">use </span><span class="kw">crate</span>::error::{<a href="../error.rs.html#366">ErrorKind</a>, <a href="../error.rs.html#16">ParseError</a>};
-<span class="kw">use </span><span class="kw">crate</span>::internal::{<span class="prelude-val">Err</span>, <a href="../internal.rs.html#18">IResult</a>, <a href="../internal.rs.html#50">Needed</a>};
-<span class="kw">use </span><span class="kw">crate</span>::lib::std::ops::{<a href="https://doc.rust-lang.org/nightly/core/ops/arith/trait.AddAssign.html">AddAssign</a>, <a href="https://doc.rust-lang.org/nightly/core/ops/arith/trait.Div.html">Div</a>, <a href="https://doc.rust-lang.org/nightly/core/ops/range/struct.RangeFrom.html">RangeFrom</a>, <a href="https://doc.rust-lang.org/nightly/core/ops/bit/trait.Shl.html">Shl</a>, <a href="https://doc.rust-lang.org/nightly/core/ops/bit/trait.Shr.html">Shr</a>};
-<span class="kw">use </span><span class="kw">crate</span>::traits::{<a href="../traits.rs.html#302">InputIter</a>, <a href="../traits.rs.html#18">InputLength</a>, <a href="../traits.rs.html#1006">Slice</a>, <a href="../traits.rs.html#1234">ToUsize</a>};
+</span><span class="kw">use </span><span class="kw">crate</span>::error::{ErrorKind, ParseError};
+<span class="kw">use </span><span class="kw">crate</span>::internal::{<span class="prelude-val">Err</span>, IResult, Needed};
+<span class="kw">use </span><span class="kw">crate</span>::lib::std::ops::{AddAssign, Div, RangeFrom, Shl, Shr};
+<span class="kw">use </span><span class="kw">crate</span>::traits::{InputIter, InputLength, Slice, ToUsize};
 
 <span class="doccomment">/// Generates a parser taking `count` bits
-</span><span class="kw">pub fn </span>take&lt;I, O, C, E: ParseError&lt;(I, <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>)&gt;&gt;(
+</span><span class="kw">pub fn </span>take&lt;I, O, C, E: ParseError&lt;(I, usize)&gt;&gt;(
   count: C,
-) -&gt; <span class="kw">impl </span>Fn((I, <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>)) -&gt; IResult&lt;(I, <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>), O, E&gt;
+) -&gt; <span class="kw">impl </span>Fn((I, usize)) -&gt; IResult&lt;(I, usize), O, E&gt;
 <span class="kw">where
-  </span>I: Slice&lt;RangeFrom&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;&gt; + InputIter&lt;Item = <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt; + <a href="../traits.rs.html#18">InputLength</a>,
-  C: <a href="../traits.rs.html#1234">ToUsize</a>,
-  O: From&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt; + <a href="https://doc.rust-lang.org/nightly/core/ops/arith/trait.AddAssign.html">AddAssign</a> + Shl&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, Output = O&gt; + Shr&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, Output = O&gt;,
+  </span>I: Slice&lt;RangeFrom&lt;usize&gt;&gt; + InputIter&lt;Item = u8&gt; + InputLength,
+  C: ToUsize,
+  O: From&lt;u8&gt; + AddAssign + Shl&lt;usize, Output = O&gt; + Shr&lt;usize, Output = O&gt;,
 {
-  <span class="kw">let </span>count = <a href="#11">count</a>.<a href="../traits.rs.html#1236">to_usize</a>();
-  <span class="kw">move </span>|(input, bit_offset): (I, <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>)| {
+  <span class="kw">let </span>count = count.to_usize();
+  <span class="kw">move </span>|(input, bit_offset): (I, usize)| {
     <span class="kw">if </span>count == <span class="number">0 </span>{
-      <span class="prelude-val">Ok</span>(((<a href="#19">input</a>, <a href="#19">bit_offset</a>), <span class="number">0u8</span>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()))
+      <span class="prelude-val">Ok</span>(((input, bit_offset), <span class="number">0u8</span>.into()))
     } <span class="kw">else </span>{
-      <span class="kw">let </span>cnt = (<a href="#18">count</a> + <a href="#19">bit_offset</a>).<a href="https://doc.rust-lang.org/nightly/core/ops/arith/trait.Div.html">div</a>(<span class="number">8</span>);
+      <span class="kw">let </span>cnt = (count + bit_offset).div(<span class="number">8</span>);
       <span class="kw">if </span>input.input_len() * <span class="number">8 </span>&lt; count + bit_offset {
-        <span class="prelude-val">Err</span>(<a href="../internal.rs.html#99">Err::Incomplete</a>(Needed::new(<a href="#18">count</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>)))
+        <span class="prelude-val">Err</span>(Err::Incomplete(Needed::new(count <span class="kw">as </span>usize)))
       } <span class="kw">else </span>{
-        <span class="kw">let </span><span class="kw-2">mut </span>acc: O = <span class="number">0_u8</span>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>();
-        <span class="kw">let </span><span class="kw-2">mut </span>offset: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> = <a href="#19">bit_offset</a>;
-        <span class="kw">let </span><span class="kw-2">mut </span>remaining: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> = <a href="#18">count</a>;
-        <span class="kw">let </span><span class="kw-2">mut </span>end_offset: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> = <span class="number">0</span>;
+        <span class="kw">let </span><span class="kw-2">mut </span>acc: O = <span class="number">0_u8</span>.into();
+        <span class="kw">let </span><span class="kw-2">mut </span>offset: usize = bit_offset;
+        <span class="kw">let </span><span class="kw-2">mut </span>remaining: usize = count;
+        <span class="kw">let </span><span class="kw-2">mut </span>end_offset: usize = <span class="number">0</span>;
 
         <span class="kw">for </span>byte <span class="kw">in </span>input.iter_elements().take(cnt + <span class="number">1</span>) {
           <span class="kw">if </span>remaining == <span class="number">0 </span>{
@@ -178,34 +219,57 @@
             offset = <span class="number">0</span>;
           }
         }
-        <span class="prelude-val">Ok</span>(((<a href="#19">input</a>.<a href="../traits.rs.html#1008">slice</a>(<a href="#23">cnt</a>..), <a href="#30">end_offset</a>), <a href="#27">acc</a>))
+        <span class="prelude-val">Ok</span>(((input.slice(cnt..), end_offset), acc))
       }
     }
   }
 }
 
 <span class="doccomment">/// Generates a parser taking `count` bits and comparing them to `pattern`
-</span><span class="kw">pub fn </span>tag&lt;I, O, C, E: ParseError&lt;(I, <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>)&gt;&gt;(
+</span><span class="kw">pub fn </span>tag&lt;I, O, C, E: ParseError&lt;(I, usize)&gt;&gt;(
   pattern: O,
   count: C,
-) -&gt; <span class="kw">impl </span>Fn((I, <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>)) -&gt; IResult&lt;(I, <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>), O, E&gt;
+) -&gt; <span class="kw">impl </span>Fn((I, usize)) -&gt; IResult&lt;(I, usize), O, E&gt;
 <span class="kw">where
-  </span>I: Slice&lt;RangeFrom&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;&gt; + InputIter&lt;Item = <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt; + <a href="../traits.rs.html#18">InputLength</a> + <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a>,
-  C: <a href="../traits.rs.html#1234">ToUsize</a>,
-  O: From&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt; + <a href="https://doc.rust-lang.org/nightly/core/ops/arith/trait.AddAssign.html">AddAssign</a> + Shl&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, Output = O&gt; + Shr&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, Output = O&gt; + <a href="https://doc.rust-lang.org/nightly/core/cmp/trait.PartialEq.html">PartialEq</a>,
+  </span>I: Slice&lt;RangeFrom&lt;usize&gt;&gt; + InputIter&lt;Item = u8&gt; + InputLength + Clone,
+  C: ToUsize,
+  O: From&lt;u8&gt; + AddAssign + Shl&lt;usize, Output = O&gt; + Shr&lt;usize, Output = O&gt; + PartialEq,
 {
-  <span class="kw">let </span>count = <a href="#61">count</a>.<a href="../traits.rs.html#1236">to_usize</a>();
-  <span class="kw">move </span>|input: (I, <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>)| {
-    <span class="kw">let </span>inp = <a href="#69">input</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
+  <span class="kw">let </span>count = count.to_usize();
+  <span class="kw">move </span>|input: (I, usize)| {
+    <span class="kw">let </span>inp = input.clone();
 
-    <a href="#10-16">take</a>(<a href="#68">count</a>)(<a href="#69">input</a>).and_then(|(i, o)| {
+    take(count)(input).and_then(|(i, o)| {
       <span class="kw">if </span>pattern == o {
-        <span class="prelude-val">Ok</span>((<a href="#72">i</a>, <a href="#72">o</a>))
+        <span class="prelude-val">Ok</span>((i, o))
       } <span class="kw">else </span>{
-        <span class="prelude-val">Err</span>(<a href="../internal.rs.html#101">Err::Error</a>(<a class="macro" href="../error.rs.html#550-554">error_position!</a>(inp, ErrorKind::TagBits)))
+        <span class="prelude-val">Err</span>(Err::Error(<span class="macro">error_position!</span>(inp, ErrorKind::TagBits)))
       }
     })
   }
+}
+
+<span class="doccomment">/// Parses one specific bit as a bool.
+///
+/// # Example
+/// ```rust
+/// # use nom::bits::complete::bool;
+/// # use nom::IResult;
+/// # use nom::error::{Error, ErrorKind};
+///
+/// fn parse(input: (&amp;[u8], usize)) -&gt; IResult&lt;(&amp;[u8], usize), bool&gt; {
+///     bool(input)
+/// }
+///
+/// assert_eq!(parse(([0b10000000].as_ref(), 0)), Ok((([0b10000000].as_ref(), 1), true)));
+/// assert_eq!(parse(([0b10000000].as_ref(), 1)), Ok((([0b10000000].as_ref(), 2), false)));
+/// ```
+</span><span class="kw">pub fn </span>bool&lt;I, E: ParseError&lt;(I, usize)&gt;&gt;(input: (I, usize)) -&gt; IResult&lt;(I, usize), bool, E&gt;
+<span class="kw">where
+  </span>I: Slice&lt;RangeFrom&lt;usize&gt;&gt; + InputIter&lt;Item = u8&gt; + InputLength,
+{
+  <span class="kw">let </span>(res, bit): (<span class="kw">_</span>, u32) = take(<span class="number">1usize</span>)(input)<span class="question-mark">?</span>;
+  <span class="prelude-val">Ok</span>((res, bit != <span class="number">0</span>))
 }
 
 <span class="attr">#[cfg(test)]
@@ -255,6 +319,24 @@
       }))
     );
   }
+
+  <span class="attr">#[test]
+  </span><span class="kw">fn </span>test_bool_0() {
+    <span class="kw">let </span>input = [<span class="number">0b10000000</span>].as_ref();
+
+    <span class="kw">let </span>result: <span class="kw">crate</span>::IResult&lt;(<span class="kw-2">&amp;</span>[u8], usize), bool&gt; = bool((input, <span class="number">0</span>));
+
+    <span class="macro">assert_eq!</span>(result, <span class="prelude-val">Ok</span>(((input, <span class="number">1</span>), <span class="bool-val">true</span>)));
+  }
+
+  <span class="attr">#[test]
+  </span><span class="kw">fn </span>test_bool_eof() {
+    <span class="kw">let </span>input = [<span class="number">0b10000000</span>].as_ref();
+
+    <span class="kw">let </span>result: <span class="kw">crate</span>::IResult&lt;(<span class="kw-2">&amp;</span>[u8], usize), bool&gt; = bool((input, <span class="number">8</span>));
+
+    <span class="macro">assert_eq!</span>(result, <span class="prelude-val">Err</span>(<span class="kw">crate</span>::Err::Incomplete(Needed::new(<span class="number">1</span>))));
+  }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="nom" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="nom" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

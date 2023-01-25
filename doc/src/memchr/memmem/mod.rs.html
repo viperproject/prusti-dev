@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/memchr-2.5.0/src/memmem/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../memchr/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/memchr-2.5.0/src/memmem/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../memchr/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -1387,14 +1387,14 @@ assert_eq!(None, finder.find(b&quot;quux baz bar&quot;));
 ```
 */
 
-</span><span class="kw">pub use </span><a href="prefilter/mod.rs.html#170"><span class="self">self</span>::prefilter::Prefilter</a>;
+</span><span class="kw">pub use </span><span class="self">self</span>::prefilter::Prefilter;
 
 <span class="kw">use crate</span>::{
-    <a href="../cow.rs.html#10">cow::CowBytes</a>,
+    cow::CowBytes,
     memmem::{
-        prefilter::{<a href="prefilter/mod.rs.html#22">Pre</a>, <a href="prefilter/mod.rs.html#74">PrefilterFn</a>, <a href="prefilter/mod.rs.html#204">PrefilterState</a>},
-        <a href="rabinkarp.rs.html#105">rabinkarp::NeedleHash</a>,
-        <a href="rarebytes.rs.html#15">rarebytes::RareNeedleBytes</a>,
+        prefilter::{Pre, PrefilterFn, PrefilterState},
+        rabinkarp::NeedleHash,
+        rarebytes::RareNeedleBytes,
     },
 };
 
@@ -1466,20 +1466,20 @@ assert_eq!(None, finder.find(b&quot;quux baz bar&quot;));
     };
 }
 
-<span class="kw">mod </span><a href="byte_frequencies.rs.html#1-258">byte_frequencies</a>;
+<span class="kw">mod </span>byte_frequencies;
 <span class="attr">#[cfg(memchr_runtime_simd)]
-</span><span class="kw">mod </span><a href="genericsimd.rs.html#1-266">genericsimd</a>;
-<span class="kw">mod </span><a href="prefilter/mod.rs.html#1-570">prefilter</a>;
-<span class="kw">mod </span><a href="rabinkarp.rs.html#34-233">rabinkarp</a>;
-<span class="kw">mod </span><a href="rarebytes.rs.html#1-136">rarebytes</a>;
-<span class="kw">mod </span><a href="twoway.rs.html#1-878">twoway</a>;
-<span class="kw">mod </span><a href="util.rs.html#6-88">util</a>;
+</span><span class="kw">mod </span>genericsimd;
+<span class="kw">mod </span>prefilter;
+<span class="kw">mod </span>rabinkarp;
+<span class="kw">mod </span>rarebytes;
+<span class="kw">mod </span>twoway;
+<span class="kw">mod </span>util;
 <span class="attr">#[cfg(memchr_runtime_simd)]
-</span><span class="kw">mod </span><a href="vector.rs.html#1-131">vector</a>;
+</span><span class="kw">mod </span>vector;
 <span class="attr">#[cfg(all(memchr_runtime_wasm128))]
 </span><span class="kw">mod </span>wasm;
 <span class="attr">#[cfg(all(not(miri), target_arch = <span class="string">&quot;x86_64&quot;</span>, memchr_runtime_simd))]
-</span><span class="kw">mod </span><a href="x86/mod.rs.html#1-2">x86</a>;
+</span><span class="kw">mod </span>x86;
 
 <span class="doccomment">/// Returns an iterator over all non-overlapping occurrences of a substring in
 /// a haystack.
@@ -1508,11 +1508,11 @@ assert_eq!(None, finder.find(b&quot;quux baz bar&quot;));
 /// assert_eq!(None, it.next());
 /// ```
 </span><span class="attr">#[inline]
-</span><span class="kw">pub fn </span>find_iter&lt;<span class="lifetime">&#39;h</span>, <span class="lifetime">&#39;n</span>, N: <span class="lifetime">&#39;n </span>+ <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> + AsRef&lt;[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;&gt;(
-    haystack: <span class="kw-2">&amp;</span><span class="lifetime">&#39;h </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
+</span><span class="kw">pub fn </span>find_iter&lt;<span class="lifetime">&#39;h</span>, <span class="lifetime">&#39;n</span>, N: <span class="lifetime">&#39;n </span>+ <span class="question-mark">?</span>Sized + AsRef&lt;[u8]&gt;&gt;(
+    haystack: <span class="kw-2">&amp;</span><span class="lifetime">&#39;h </span>[u8],
     needle: <span class="kw-2">&amp;</span><span class="lifetime">&#39;n </span>N,
 ) -&gt; FindIter&lt;<span class="lifetime">&#39;h</span>, <span class="lifetime">&#39;n</span>&gt; {
-    FindIter::new(<a href="#191">haystack</a>, Finder::new(<a href="#192">needle</a>))
+    FindIter::new(haystack, Finder::new(needle))
 }
 
 <span class="doccomment">/// Returns a reverse iterator over all non-overlapping occurrences of a
@@ -1542,11 +1542,11 @@ assert_eq!(None, finder.find(b&quot;quux baz bar&quot;));
 /// assert_eq!(None, it.next());
 /// ```
 </span><span class="attr">#[inline]
-</span><span class="kw">pub fn </span>rfind_iter&lt;<span class="lifetime">&#39;h</span>, <span class="lifetime">&#39;n</span>, N: <span class="lifetime">&#39;n </span>+ <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> + AsRef&lt;[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;&gt;(
-    haystack: <span class="kw-2">&amp;</span><span class="lifetime">&#39;h </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
+</span><span class="kw">pub fn </span>rfind_iter&lt;<span class="lifetime">&#39;h</span>, <span class="lifetime">&#39;n</span>, N: <span class="lifetime">&#39;n </span>+ <span class="question-mark">?</span>Sized + AsRef&lt;[u8]&gt;&gt;(
+    haystack: <span class="kw-2">&amp;</span><span class="lifetime">&#39;h </span>[u8],
     needle: <span class="kw-2">&amp;</span><span class="lifetime">&#39;n </span>N,
 ) -&gt; FindRevIter&lt;<span class="lifetime">&#39;h</span>, <span class="lifetime">&#39;n</span>&gt; {
-    FindRevIter::new(<a href="#225">haystack</a>, FinderRev::new(<a href="#226">needle</a>))
+    FindRevIter::new(haystack, FinderRev::new(needle))
 }
 
 <span class="doccomment">/// Returns the index of the first occurrence of the given needle.
@@ -1577,11 +1577,11 @@ assert_eq!(None, finder.find(b&quot;quux baz bar&quot;));
 /// assert_eq!(None, memmem::find(haystack, b&quot;quux&quot;));
 /// ```
 </span><span class="attr">#[inline]
-</span><span class="kw">pub fn </span>find(haystack: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], needle: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
+</span><span class="kw">pub fn </span>find(haystack: <span class="kw-2">&amp;</span>[u8], needle: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Option</span>&lt;usize&gt; {
     <span class="kw">if </span>haystack.len() &lt; <span class="number">64 </span>{
-        <a href="rabinkarp.rs.html#40">rabinkarp::find</a>(<a href="#259">haystack</a>, <a href="#259">needle</a>)
+        rabinkarp::find(haystack, needle)
     } <span class="kw">else </span>{
-        Finder::new(<a href="#259">needle</a>).<a href="#484">find</a>(<a href="#259">haystack</a>)
+        Finder::new(needle).find(haystack)
     }
 }
 
@@ -1614,11 +1614,11 @@ assert_eq!(None, finder.find(b&quot;quux baz bar&quot;));
 /// assert_eq!(None, memmem::rfind(haystack, b&quot;quux&quot;));
 /// ```
 </span><span class="attr">#[inline]
-</span><span class="kw">pub fn </span>rfind(haystack: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], needle: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
+</span><span class="kw">pub fn </span>rfind(haystack: <span class="kw-2">&amp;</span>[u8], needle: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Option</span>&lt;usize&gt; {
     <span class="kw">if </span>haystack.len() &lt; <span class="number">64 </span>{
-        <a href="rabinkarp.rs.html#71">rabinkarp::rfind</a>(<a href="#296">haystack</a>, <a href="#296">needle</a>)
+        rabinkarp::rfind(haystack, needle)
     } <span class="kw">else </span>{
-        FinderRev::new(<a href="#296">needle</a>).<a href="#614">rfind</a>(<a href="#296">haystack</a>)
+        FinderRev::new(needle).rfind(haystack)
     }
 }
 
@@ -1630,20 +1630,20 @@ assert_eq!(None, finder.find(b&quot;quux baz bar&quot;));
 /// needle.
 </span><span class="attr">#[derive(Debug)]
 </span><span class="kw">pub struct </span>FindIter&lt;<span class="lifetime">&#39;h</span>, <span class="lifetime">&#39;n</span>&gt; {
-    haystack: <span class="kw-2">&amp;</span><span class="lifetime">&#39;h </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
-    prestate: <a href="prefilter/mod.rs.html#204">PrefilterState</a>,
+    haystack: <span class="kw-2">&amp;</span><span class="lifetime">&#39;h </span>[u8],
+    prestate: PrefilterState,
     finder: Finder&lt;<span class="lifetime">&#39;n</span>&gt;,
-    pos: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+    pos: usize,
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;h</span>, <span class="lifetime">&#39;n</span>&gt; FindIter&lt;<span class="lifetime">&#39;h</span>, <span class="lifetime">&#39;n</span>&gt; {
     <span class="attr">#[inline(always)]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(
-        haystack: <span class="kw-2">&amp;</span><span class="lifetime">&#39;h </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
+        haystack: <span class="kw-2">&amp;</span><span class="lifetime">&#39;h </span>[u8],
         finder: Finder&lt;<span class="lifetime">&#39;n</span>&gt;,
     ) -&gt; FindIter&lt;<span class="lifetime">&#39;h</span>, <span class="lifetime">&#39;n</span>&gt; {
-        <span class="kw">let </span>prestate = <a href="#322">finder</a>.searcher.<a href="#865">prefilter_state</a>();
-        <a href="#311">FindIter</a> { <a href="#321">haystack</a>, <a href="#324">prestate</a>, <a href="#322">finder</a>, pos: <span class="number">0 </span>}
+        <span class="kw">let </span>prestate = finder.searcher.prefilter_state();
+        FindIter { haystack, prestate, finder, pos: <span class="number">0 </span>}
     }
 
     <span class="doccomment">/// Convert this iterator into its owned variant, such that it no longer
@@ -1656,32 +1656,32 @@ assert_eq!(None, finder.find(b&quot;quux baz bar&quot;));
     </span><span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
     #[inline]
     </span><span class="kw">pub fn </span>into_owned(<span class="self">self</span>) -&gt; FindIter&lt;<span class="lifetime">&#39;h</span>, <span class="lifetime">&#39;static</span>&gt; {
-        <a href="#311">FindIter</a> {
-            haystack: <a class="self" href="#337">self</a>.haystack,
-            prestate: <a class="self" href="#337">self</a>.prestate,
-            finder: <a class="self" href="#337">self</a>.finder.<a href="#531">into_owned</a>(),
-            pos: <a class="self" href="#337">self</a>.pos,
+        FindIter {
+            haystack: <span class="self">self</span>.haystack,
+            prestate: <span class="self">self</span>.prestate,
+            finder: <span class="self">self</span>.finder.into_owned(),
+            pos: <span class="self">self</span>.pos,
         }
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;h</span>, <span class="lifetime">&#39;n</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a> <span class="kw">for </span>FindIter&lt;<span class="lifetime">&#39;h</span>, <span class="lifetime">&#39;n</span>&gt; {
-    <span class="kw">type </span>Item = <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>;
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;h</span>, <span class="lifetime">&#39;n</span>&gt; Iterator <span class="kw">for </span>FindIter&lt;<span class="lifetime">&#39;h</span>, <span class="lifetime">&#39;n</span>&gt; {
+    <span class="kw">type </span>Item = usize;
 
-    <span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
+    <span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;usize&gt; {
         <span class="kw">if </span><span class="self">self</span>.pos &gt; <span class="self">self</span>.haystack.len() {
             <span class="kw">return </span><span class="prelude-val">None</span>;
         }
-        <span class="kw">let </span>result = <span class="self"><a href="#350">self</a>
+        <span class="kw">let </span>result = <span class="self">self
             </span>.finder
             .searcher
-            .<a href="#930-934">find</a>(<span class="kw-2">&amp;mut </span><a class="self" href="#350">self</a>.prestate, <span class="kw-2">&amp;</span><a class="self" href="#350">self</a>.haystack[<a class="self" href="#350">self</a>.pos..]);
-        <span class="kw">match </span><a href="#354">result</a> {
+            .find(<span class="kw-2">&amp;mut </span><span class="self">self</span>.prestate, <span class="kw-2">&amp;</span><span class="self">self</span>.haystack[<span class="self">self</span>.pos..]);
+        <span class="kw">match </span>result {
             <span class="prelude-val">None </span>=&gt; <span class="prelude-val">None</span>,
             <span class="prelude-val">Some</span>(i) =&gt; {
-                <span class="kw">let </span>pos = <a class="self" href="#350">self</a>.pos + <a href="#360">i</a>;
-                <a class="self" href="#350">self</a>.pos = <a href="#361">pos</a> + core::cmp::max(<span class="number">1</span>, <a class="self" href="#350">self</a>.finder.<a href="#557">needle</a>().len());
-                <span class="prelude-val">Some</span>(<a href="#361">pos</a>)
+                <span class="kw">let </span>pos = <span class="self">self</span>.pos + i;
+                <span class="self">self</span>.pos = pos + core::cmp::max(<span class="number">1</span>, <span class="self">self</span>.finder.needle().len());
+                <span class="prelude-val">Some</span>(pos)
             }
         }
     }
@@ -1695,21 +1695,21 @@ assert_eq!(None, finder.find(b&quot;quux baz bar&quot;));
 /// needle.
 </span><span class="attr">#[derive(Debug)]
 </span><span class="kw">pub struct </span>FindRevIter&lt;<span class="lifetime">&#39;h</span>, <span class="lifetime">&#39;n</span>&gt; {
-    haystack: <span class="kw-2">&amp;</span><span class="lifetime">&#39;h </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
+    haystack: <span class="kw-2">&amp;</span><span class="lifetime">&#39;h </span>[u8],
     finder: FinderRev&lt;<span class="lifetime">&#39;n</span>&gt;,
     <span class="doccomment">/// When searching with an empty needle, this gets set to `None` after
     /// we&#39;ve yielded the last element at `0`.
-    </span>pos: <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;,
+    </span>pos: <span class="prelude-ty">Option</span>&lt;usize&gt;,
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;h</span>, <span class="lifetime">&#39;n</span>&gt; FindRevIter&lt;<span class="lifetime">&#39;h</span>, <span class="lifetime">&#39;n</span>&gt; {
     <span class="attr">#[inline(always)]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(
-        haystack: <span class="kw-2">&amp;</span><span class="lifetime">&#39;h </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
+        haystack: <span class="kw-2">&amp;</span><span class="lifetime">&#39;h </span>[u8],
         finder: FinderRev&lt;<span class="lifetime">&#39;n</span>&gt;,
     ) -&gt; FindRevIter&lt;<span class="lifetime">&#39;h</span>, <span class="lifetime">&#39;n</span>&gt; {
-        <span class="kw">let </span>pos = <span class="prelude-val">Some</span>(<a href="#387">haystack</a>.len());
-        <a href="#376">FindRevIter</a> { <a href="#387">haystack</a>, <a href="#388">finder</a>, <a href="#390">pos</a> }
+        <span class="kw">let </span>pos = <span class="prelude-val">Some</span>(haystack.len());
+        FindRevIter { haystack, finder, pos }
     }
 
     <span class="doccomment">/// Convert this iterator into its owned variant, such that it no longer
@@ -1722,32 +1722,32 @@ assert_eq!(None, finder.find(b&quot;quux baz bar&quot;));
     </span><span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
     #[inline]
     </span><span class="kw">pub fn </span>into_owned(<span class="self">self</span>) -&gt; FindRevIter&lt;<span class="lifetime">&#39;h</span>, <span class="lifetime">&#39;static</span>&gt; {
-        <a href="#376">FindRevIter</a> {
-            haystack: <a class="self" href="#403">self</a>.haystack,
-            finder: <a class="self" href="#403">self</a>.finder.<a href="#662">into_owned</a>(),
-            pos: <a class="self" href="#403">self</a>.pos,
+        FindRevIter {
+            haystack: <span class="self">self</span>.haystack,
+            finder: <span class="self">self</span>.finder.into_owned(),
+            pos: <span class="self">self</span>.pos,
         }
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;h</span>, <span class="lifetime">&#39;n</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a> <span class="kw">for </span>FindRevIter&lt;<span class="lifetime">&#39;h</span>, <span class="lifetime">&#39;n</span>&gt; {
-    <span class="kw">type </span>Item = <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>;
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;h</span>, <span class="lifetime">&#39;n</span>&gt; Iterator <span class="kw">for </span>FindRevIter&lt;<span class="lifetime">&#39;h</span>, <span class="lifetime">&#39;n</span>&gt; {
+    <span class="kw">type </span>Item = usize;
 
-    <span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
-        <span class="kw">let </span>pos = <span class="kw">match </span><a class="self" href="#415">self</a>.pos {
+    <span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;usize&gt; {
+        <span class="kw">let </span>pos = <span class="kw">match </span><span class="self">self</span>.pos {
             <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="prelude-val">None</span>,
-            <span class="prelude-val">Some</span>(pos) =&gt; <a href="#418">pos</a>,
+            <span class="prelude-val">Some</span>(pos) =&gt; pos,
         };
-        <span class="kw">let </span>result = <a class="self" href="#415">self</a>.finder.<a href="#614">rfind</a>(<span class="kw-2">&amp;</span><a class="self" href="#415">self</a>.haystack[..<a href="#416">pos</a>]);
-        <span class="kw">match </span><a href="#420">result</a> {
+        <span class="kw">let </span>result = <span class="self">self</span>.finder.rfind(<span class="kw-2">&amp;</span><span class="self">self</span>.haystack[..pos]);
+        <span class="kw">match </span>result {
             <span class="prelude-val">None </span>=&gt; <span class="prelude-val">None</span>,
             <span class="prelude-val">Some</span>(i) =&gt; {
                 <span class="kw">if </span>pos == i {
-                    <a class="self" href="#415">self</a>.pos = <a href="#416">pos</a>.checked_sub(<span class="number">1</span>);
+                    <span class="self">self</span>.pos = pos.checked_sub(<span class="number">1</span>);
                 } <span class="kw">else </span>{
-                    <a class="self" href="#415">self</a>.pos = <span class="prelude-val">Some</span>(<a href="#423">i</a>);
+                    <span class="self">self</span>.pos = <span class="prelude-val">Some</span>(i);
                 }
-                <span class="prelude-val">Some</span>(<a href="#423">i</a>)
+                <span class="prelude-val">Some</span>(i)
             }
         }
     }
@@ -1774,8 +1774,8 @@ assert_eq!(None, finder.find(b&quot;quux baz bar&quot;));
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;n</span>&gt; Finder&lt;<span class="lifetime">&#39;n</span>&gt; {
     <span class="doccomment">/// Create a new finder for the given needle.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>new&lt;B: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> + AsRef&lt;[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;&gt;(needle: <span class="kw-2">&amp;</span><span class="lifetime">&#39;n </span>B) -&gt; Finder&lt;<span class="lifetime">&#39;n</span>&gt; {
-        FinderBuilder::new().<a href="#711-714">build_forward</a>(<a href="#456">needle</a>)
+    </span><span class="kw">pub fn </span>new&lt;B: <span class="question-mark">?</span>Sized + AsRef&lt;[u8]&gt;&gt;(needle: <span class="kw-2">&amp;</span><span class="lifetime">&#39;n </span>B) -&gt; Finder&lt;<span class="lifetime">&#39;n</span>&gt; {
+        FinderBuilder::new().build_forward(needle)
     }
 
     <span class="doccomment">/// Returns the index of the first occurrence of this needle in the given
@@ -1802,8 +1802,8 @@ assert_eq!(None, finder.find(b&quot;quux baz bar&quot;));
     /// assert_eq!(Some(4), Finder::new(&quot;bar&quot;).find(haystack));
     /// assert_eq!(None, Finder::new(&quot;quux&quot;).find(haystack));
     /// ```
-    </span><span class="kw">pub fn </span>find(<span class="kw-2">&amp;</span><span class="self">self</span>, haystack: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
-        <a class="self" href="#484">self</a>.searcher.<a href="#930-934">find</a>(<span class="kw-2">&amp;mut </span><a class="self" href="#484">self</a>.searcher.<a href="#865">prefilter_state</a>(), <a href="#484">haystack</a>)
+    </span><span class="kw">pub fn </span>find(<span class="kw-2">&amp;</span><span class="self">self</span>, haystack: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Option</span>&lt;usize&gt; {
+        <span class="self">self</span>.searcher.find(<span class="kw-2">&amp;mut </span><span class="self">self</span>.searcher.prefilter_state(), haystack)
     }
 
     <span class="doccomment">/// Returns an iterator over all occurrences of a substring in a haystack.
@@ -1835,9 +1835,9 @@ assert_eq!(None, finder.find(b&quot;quux baz bar&quot;));
     </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>find_iter&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;h</span>&gt;(
         <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="self">self</span>,
-        haystack: <span class="kw-2">&amp;</span><span class="lifetime">&#39;h </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
+        haystack: <span class="kw-2">&amp;</span><span class="lifetime">&#39;h </span>[u8],
     ) -&gt; FindIter&lt;<span class="lifetime">&#39;h</span>, <span class="lifetime">&#39;a</span>&gt; {
-        FindIter::new(<a href="#517">haystack</a>, <a class="self" href="#516">self</a>.<a href="#546">as_ref</a>())
+        FindIter::new(haystack, <span class="self">self</span>.as_ref())
     }
 
     <span class="doccomment">/// Convert this finder into its owned variant, such that it no longer
@@ -1850,7 +1850,7 @@ assert_eq!(None, finder.find(b&quot;quux baz bar&quot;));
     </span><span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
     #[inline]
     </span><span class="kw">pub fn </span>into_owned(<span class="self">self</span>) -&gt; Finder&lt;<span class="lifetime">&#39;static</span>&gt; {
-        <a href="#449">Finder</a> { searcher: <a class="self" href="#531">self</a>.searcher.<a href="#902">into_owned</a>() }
+        Finder { searcher: <span class="self">self</span>.searcher.into_owned() }
     }
 
     <span class="doccomment">/// Convert this finder into its borrowed variant.
@@ -1865,7 +1865,7 @@ assert_eq!(None, finder.find(b&quot;quux baz bar&quot;));
     /// shorter of the two.
     </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>as_ref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Finder&lt;<span class="lifetime">&#39;_</span>&gt; {
-        <a href="#449">Finder</a> { searcher: <a class="self" href="#546">self</a>.searcher.<a href="#877">as_ref</a>() }
+        Finder { searcher: <span class="self">self</span>.searcher.as_ref() }
     }
 
     <span class="doccomment">/// Returns the needle that this finder searches for.
@@ -1875,8 +1875,8 @@ assert_eq!(None, finder.find(b&quot;quux baz bar&quot;));
     /// finder&#39;s needle can be either borrowed or owned, so the lifetime of the
     /// needle returned must necessarily be the shorter of the two.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>needle(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>] {
-        <a class="self" href="#557">self</a>.searcher.<a href="#873">needle</a>()
+    </span><span class="kw">pub fn </span>needle(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[u8] {
+        <span class="self">self</span>.searcher.needle()
     }
 }
 
@@ -1901,8 +1901,8 @@ assert_eq!(None, finder.find(b&quot;quux baz bar&quot;));
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;n</span>&gt; FinderRev&lt;<span class="lifetime">&#39;n</span>&gt; {
     <span class="doccomment">/// Create a new reverse finder for the given needle.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>new&lt;B: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> + AsRef&lt;[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;&gt;(needle: <span class="kw-2">&amp;</span><span class="lifetime">&#39;n </span>B) -&gt; FinderRev&lt;<span class="lifetime">&#39;n</span>&gt; {
-        FinderBuilder::new().<a href="#720-723">build_reverse</a>(<a href="#583">needle</a>)
+    </span><span class="kw">pub fn </span>new&lt;B: <span class="question-mark">?</span>Sized + AsRef&lt;[u8]&gt;&gt;(needle: <span class="kw-2">&amp;</span><span class="lifetime">&#39;n </span>B) -&gt; FinderRev&lt;<span class="lifetime">&#39;n</span>&gt; {
+        FinderBuilder::new().build_reverse(needle)
     }
 
     <span class="doccomment">/// Returns the index of the last occurrence of this needle in the given
@@ -1932,8 +1932,8 @@ assert_eq!(None, finder.find(b&quot;quux baz bar&quot;));
     /// assert_eq!(Some(4), FinderRev::new(&quot;bar&quot;).rfind(haystack));
     /// assert_eq!(None, FinderRev::new(&quot;quux&quot;).rfind(haystack));
     /// ```
-    </span><span class="kw">pub fn </span>rfind&lt;B: AsRef&lt;[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, haystack: B) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
-        <a class="self" href="#614">self</a>.searcher.<a href="#1109">rfind</a>(<a href="#614">haystack</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>())
+    </span><span class="kw">pub fn </span>rfind&lt;B: AsRef&lt;[u8]&gt;&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, haystack: B) -&gt; <span class="prelude-ty">Option</span>&lt;usize&gt; {
+        <span class="self">self</span>.searcher.rfind(haystack.as_ref())
     }
 
     <span class="doccomment">/// Returns a reverse iterator over all occurrences of a substring in a
@@ -1966,9 +1966,9 @@ assert_eq!(None, finder.find(b&quot;quux baz bar&quot;));
     </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>rfind_iter&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;h</span>&gt;(
         <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="self">self</span>,
-        haystack: <span class="kw-2">&amp;</span><span class="lifetime">&#39;h </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
+        haystack: <span class="kw-2">&amp;</span><span class="lifetime">&#39;h </span>[u8],
     ) -&gt; FindRevIter&lt;<span class="lifetime">&#39;h</span>, <span class="lifetime">&#39;a</span>&gt; {
-        FindRevIter::new(<a href="#648">haystack</a>, <a class="self" href="#647">self</a>.<a href="#677">as_ref</a>())
+        FindRevIter::new(haystack, <span class="self">self</span>.as_ref())
     }
 
     <span class="doccomment">/// Convert this finder into its owned variant, such that it no longer
@@ -1981,7 +1981,7 @@ assert_eq!(None, finder.find(b&quot;quux baz bar&quot;));
     </span><span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
     #[inline]
     </span><span class="kw">pub fn </span>into_owned(<span class="self">self</span>) -&gt; FinderRev&lt;<span class="lifetime">&#39;static</span>&gt; {
-        <a href="#576">FinderRev</a> { searcher: <a class="self" href="#662">self</a>.searcher.<a href="#1090">into_owned</a>() }
+        FinderRev { searcher: <span class="self">self</span>.searcher.into_owned() }
     }
 
     <span class="doccomment">/// Convert this finder into its borrowed variant.
@@ -1996,7 +1996,7 @@ assert_eq!(None, finder.find(b&quot;quux baz bar&quot;));
     /// shorter of the two.
     </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>as_ref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; FinderRev&lt;<span class="lifetime">&#39;_</span>&gt; {
-        <a href="#576">FinderRev</a> { searcher: <a class="self" href="#677">self</a>.searcher.<a href="#1074">as_ref</a>() }
+        FinderRev { searcher: <span class="self">self</span>.searcher.as_ref() }
     }
 
     <span class="doccomment">/// Returns the needle that this finder searches for.
@@ -2006,8 +2006,8 @@ assert_eq!(None, finder.find(b&quot;quux baz bar&quot;));
     /// finder&#39;s needle can be either borrowed or owned, so the lifetime of the
     /// needle returned must necessarily be the shorter of the two.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>needle(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>] {
-        <a class="self" href="#688">self</a>.searcher.<a href="#1070">needle</a>()
+    </span><span class="kw">pub fn </span>needle(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[u8] {
+        <span class="self">self</span>.searcher.needle()
     }
 }
 
@@ -2018,40 +2018,40 @@ assert_eq!(None, finder.find(b&quot;quux baz bar&quot;));
 /// heuristic prefilters used to speed up certain searches.
 </span><span class="attr">#[derive(Clone, Debug, Default)]
 </span><span class="kw">pub struct </span>FinderBuilder {
-    config: <a href="#793">SearcherConfig</a>,
+    config: SearcherConfig,
 }
 
-<span class="kw">impl </span><a href="#699">FinderBuilder</a> {
+<span class="kw">impl </span>FinderBuilder {
     <span class="doccomment">/// Create a new finder builder with default settings.
-    </span><span class="kw">pub fn </span>new() -&gt; <a href="#699">FinderBuilder</a> {
+    </span><span class="kw">pub fn </span>new() -&gt; FinderBuilder {
         FinderBuilder::default()
     }
 
     <span class="doccomment">/// Build a forward finder using the given needle from the current
     /// settings.
-    </span><span class="kw">pub fn </span>build_forward&lt;<span class="lifetime">&#39;n</span>, B: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> + AsRef&lt;[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;&gt;(
+    </span><span class="kw">pub fn </span>build_forward&lt;<span class="lifetime">&#39;n</span>, B: <span class="question-mark">?</span>Sized + AsRef&lt;[u8]&gt;&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         needle: <span class="kw-2">&amp;</span><span class="lifetime">&#39;n </span>B,
     ) -&gt; Finder&lt;<span class="lifetime">&#39;n</span>&gt; {
-        <a href="#449">Finder</a> { searcher: Searcher::new(<a class="self" href="#712">self</a>.config, <a href="#713">needle</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>()) }
+        Finder { searcher: Searcher::new(<span class="self">self</span>.config, needle.as_ref()) }
     }
 
     <span class="doccomment">/// Build a reverse finder using the given needle from the current
     /// settings.
-    </span><span class="kw">pub fn </span>build_reverse&lt;<span class="lifetime">&#39;n</span>, B: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> + AsRef&lt;[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;&gt;(
+    </span><span class="kw">pub fn </span>build_reverse&lt;<span class="lifetime">&#39;n</span>, B: <span class="question-mark">?</span>Sized + AsRef&lt;[u8]&gt;&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         needle: <span class="kw-2">&amp;</span><span class="lifetime">&#39;n </span>B,
     ) -&gt; FinderRev&lt;<span class="lifetime">&#39;n</span>&gt; {
-        <a href="#576">FinderRev</a> { searcher: SearcherRev::new(<a href="#722">needle</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>()) }
+        FinderRev { searcher: SearcherRev::new(needle.as_ref()) }
     }
 
     <span class="doccomment">/// Configure the prefilter setting for the finder.
     ///
     /// See the documentation for [`Prefilter`] for more discussion on why
     /// you might want to configure this.
-    </span><span class="kw">pub fn </span>prefilter(<span class="kw-2">&amp;mut </span><span class="self">self</span>, prefilter: <a href="prefilter/mod.rs.html#170">Prefilter</a>) -&gt; <span class="kw-2">&amp;mut </span><a href="#699">FinderBuilder</a> {
-        <a class="self" href="#731">self</a>.config.prefilter = <a href="#731">prefilter</a>;
-        <span class="self"><a href="#731">self</a>
+    </span><span class="kw">pub fn </span>prefilter(<span class="kw-2">&amp;mut </span><span class="self">self</span>, prefilter: Prefilter) -&gt; <span class="kw-2">&amp;mut </span>FinderBuilder {
+        <span class="self">self</span>.config.prefilter = prefilter;
+        <span class="self">self
     </span>}
 }
 
@@ -2070,14 +2070,14 @@ assert_eq!(None, finder.find(b&quot;quux baz bar&quot;));
     </span>needle: CowBytes&lt;<span class="lifetime">&#39;n</span>&gt;,
     <span class="doccomment">/// A collection of facts computed on the needle that are useful for more
     /// than one substring search algorithm.
-    </span>ninfo: <a href="#767">NeedleInfo</a>,
+    </span>ninfo: NeedleInfo,
     <span class="doccomment">/// A prefilter function, if it was deemed appropriate.
     ///
     /// Some substring search implementations (like Two-Way) benefit greatly
     /// if we can quickly find candidate starting positions for a match.
-    </span>prefn: <span class="prelude-ty">Option</span>&lt;<a href="prefilter/mod.rs.html#74">PrefilterFn</a>&gt;,
+    </span>prefn: <span class="prelude-ty">Option</span>&lt;PrefilterFn&gt;,
     <span class="doccomment">/// The actual substring implementation in use.
-    </span>kind: <a href="#800">SearcherKind</a>,
+    </span>kind: SearcherKind,
 }
 
 <span class="doccomment">/// A collection of facts computed about a search needle.
@@ -2096,7 +2096,7 @@ assert_eq!(None, finder.find(b&quot;quux baz bar&quot;));
     ///
     /// Of course, this is only a heuristic based on a background frequency
     /// distribution of bytes. But it tends to work very well in practice.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) rarebytes: <a href="rarebytes.rs.html#15">RareNeedleBytes</a>,
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) rarebytes: RareNeedleBytes,
     <span class="doccomment">/// A Rabin-Karp hash of the needle.
     ///
     /// This is store here instead of in a more specific Rabin-Karp search
@@ -2106,7 +2106,7 @@ assert_eq!(None, finder.find(b&quot;quux baz bar&quot;));
     /// particularly small haystack. (Moreover, we cannot use RK *generally*,
     /// since its worst case time is multiplicative. Instead, we only use it
     /// some small haystacks, where &quot;small&quot; is a constant.)
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) nhash: <a href="rabinkarp.rs.html#105">NeedleHash</a>,
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) nhash: NeedleHash,
 }
 
 <span class="doccomment">/// Configuration for substring search.
@@ -2114,7 +2114,7 @@ assert_eq!(None, finder.find(b&quot;quux baz bar&quot;));
 </span><span class="kw">struct </span>SearcherConfig {
     <span class="doccomment">/// This permits changing the behavior of the prefilter, since it can have
     /// a variable impact on performance.
-    </span>prefilter: <a href="prefilter/mod.rs.html#170">Prefilter</a>,
+    </span>prefilter: Prefilter,
 }
 
 <span class="attr">#[derive(Clone, Debug)]
@@ -2124,44 +2124,44 @@ assert_eq!(None, finder.find(b&quot;quux baz bar&quot;));
     </span>Empty,
     <span class="doccomment">/// This is used whenever the needle is a single byte. In this case, we
     /// always use memchr.
-    </span>OneByte(<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>),
+    </span>OneByte(u8),
     <span class="doccomment">/// Two-Way is the generic work horse and is what provides our additive
     /// linear time guarantee. In general, it&#39;s used when the needle is bigger
     /// than 8 bytes or so.
-    </span>TwoWay(<a href="twoway.rs.html#7">twoway::Forward</a>),
+    </span>TwoWay(twoway::Forward),
     <span class="attr">#[cfg(all(not(miri), target_arch = <span class="string">&quot;x86_64&quot;</span>, memchr_runtime_simd))]
-    </span>GenericSIMD128(<a href="x86/sse.rs.html#8">x86::sse::Forward</a>),
+    </span>GenericSIMD128(x86::sse::Forward),
     <span class="attr">#[cfg(memchr_runtime_wasm128)]
     </span>GenericSIMD128(wasm::Forward),
     <span class="attr">#[cfg(all(not(miri), target_arch = <span class="string">&quot;x86_64&quot;</span>, memchr_runtime_simd))]
-    </span>GenericSIMD256(<a href="x86/avx.rs.html#15">x86::avx::Forward</a>),
+    </span>GenericSIMD256(x86::avx::Forward),
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;n</span>&gt; Searcher&lt;<span class="lifetime">&#39;n</span>&gt; {
-    <span class="kw">fn </span>new(config: <a href="#793">SearcherConfig</a>, needle: <span class="kw-2">&amp;</span><span class="lifetime">&#39;n </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; Searcher&lt;<span class="lifetime">&#39;n</span>&gt; {
-        <span class="kw">use </span><a href="#800"><span class="self">self</span>::SearcherKind</a>::<span class="kw-2">*</span>;
+    <span class="kw">fn </span>new(config: SearcherConfig, needle: <span class="kw-2">&amp;</span><span class="lifetime">&#39;n </span>[u8]) -&gt; Searcher&lt;<span class="lifetime">&#39;n</span>&gt; {
+        <span class="kw">use </span><span class="self">self</span>::SearcherKind::<span class="kw-2">*</span>;
 
-        <span class="kw">let </span>ninfo = NeedleInfo::new(<a href="#820">needle</a>);
-        <span class="kw">let </span>mk = |kind: <a href="#800">SearcherKind</a>| {
-            <span class="kw">let </span>prefn = <a href="prefilter/mod.rs.html#290-294">prefilter::forward</a>(
-                <span class="kw-2">&amp;</span><a href="#820">config</a>.prefilter,
-                <span class="kw-2">&amp;</span><a href="#823">ninfo</a>.rarebytes,
-                <a href="#820">needle</a>,
+        <span class="kw">let </span>ninfo = NeedleInfo::new(needle);
+        <span class="kw">let </span>mk = |kind: SearcherKind| {
+            <span class="kw">let </span>prefn = prefilter::forward(
+                <span class="kw-2">&amp;</span>config.prefilter,
+                <span class="kw-2">&amp;</span>ninfo.rarebytes,
+                needle,
             );
-            <a href="#744">Searcher</a> { needle: CowBytes::new(<a href="#820">needle</a>), <a href="#823">ninfo</a>, <a href="#825">prefn</a>, <a href="#824">kind</a> }
+            Searcher { needle: CowBytes::new(needle), ninfo, prefn, kind }
         };
         <span class="kw">if </span>needle.len() == <span class="number">0 </span>{
-            <span class="kw">return </span><a href="#824">mk</a>(<a href="#803">Empty</a>);
+            <span class="kw">return </span>mk(Empty);
         }
         <span class="kw">if </span>needle.len() == <span class="number">1 </span>{
-            <span class="kw">return </span><a href="#824">mk</a>(<a href="#806">OneByte</a>(<a href="#820">needle</a>[<span class="number">0</span>]));
+            <span class="kw">return </span>mk(OneByte(needle[<span class="number">0</span>]));
         }
         <span class="attr">#[cfg(all(not(miri), target_arch = <span class="string">&quot;x86_64&quot;</span>, memchr_runtime_simd))]
         </span>{
-            <span class="kw">if let </span><span class="prelude-val">Some</span>(fwd) = x86::avx::Forward::new(<span class="kw-2">&amp;</span><a href="#823">ninfo</a>, <a href="#820">needle</a>) {
-                <span class="kw">return </span><a href="#824">mk</a>(<a href="#816">GenericSIMD256</a>(<a href="#840">fwd</a>));
-            } <span class="kw">else if let </span><span class="prelude-val">Some</span>(fwd) = x86::sse::Forward::new(<span class="kw-2">&amp;</span><a href="#823">ninfo</a>, <a href="#820">needle</a>) {
-                <span class="kw">return </span><a href="#824">mk</a>(<a href="#812">GenericSIMD128</a>(<a href="#842">fwd</a>));
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(fwd) = x86::avx::Forward::new(<span class="kw-2">&amp;</span>ninfo, needle) {
+                <span class="kw">return </span>mk(GenericSIMD256(fwd));
+            } <span class="kw">else if let </span><span class="prelude-val">Some</span>(fwd) = x86::sse::Forward::new(<span class="kw-2">&amp;</span>ninfo, needle) {
+                <span class="kw">return </span>mk(GenericSIMD128(fwd));
             }
         }
         <span class="attr">#[cfg(all(target_arch = <span class="string">&quot;wasm32&quot;</span>, memchr_runtime_simd))]
@@ -2171,7 +2171,7 @@ assert_eq!(None, finder.find(b&quot;quux baz bar&quot;));
             }
         }
 
-        <a href="#824">mk</a>(<a href="#810">TwoWay</a>(twoway::Forward::new(<a href="#820">needle</a>)))
+        mk(TwoWay(twoway::Forward::new(needle)))
     }
 
     <span class="doccomment">/// Return a fresh prefilter state that can be used with this searcher.
@@ -2183,7 +2183,7 @@ assert_eq!(None, finder.find(b&quot;quux baz bar&quot;));
     ///
     /// This always initializes a valid (but possibly inert) prefilter state
     /// even if this searcher does not have a prefilter enabled.
-    </span><span class="kw">fn </span>prefilter_state(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="prefilter/mod.rs.html#204">PrefilterState</a> {
+    </span><span class="kw">fn </span>prefilter_state(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; PrefilterState {
         <span class="kw">if </span><span class="self">self</span>.prefn.is_none() {
             PrefilterState::inert()
         } <span class="kw">else </span>{
@@ -2191,56 +2191,56 @@ assert_eq!(None, finder.find(b&quot;quux baz bar&quot;));
         }
     }
 
-    <span class="kw">fn </span>needle(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>] {
-        <a class="self" href="#873">self</a>.needle.<a href="../cow.rs.html#52">as_slice</a>()
+    <span class="kw">fn </span>needle(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[u8] {
+        <span class="self">self</span>.needle.as_slice()
     }
 
     <span class="kw">fn </span>as_ref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Searcher&lt;<span class="lifetime">&#39;_</span>&gt; {
-        <span class="kw">use </span><a href="#800"><span class="self">self</span>::SearcherKind</a>::<span class="kw-2">*</span>;
+        <span class="kw">use </span><span class="self">self</span>::SearcherKind::<span class="kw-2">*</span>;
 
-        <span class="kw">let </span>kind = <span class="kw">match </span><a class="self" href="#877">self</a>.kind {
-            <a href="#803">Empty</a> =&gt; <a href="#803">Empty</a>,
-            <a href="#806">OneByte</a>(b) =&gt; <a href="#806">OneByte</a>(<a href="#882">b</a>),
-            <a href="#810">TwoWay</a>(tw) =&gt; <a href="#810">TwoWay</a>(<a href="#883">tw</a>),
+        <span class="kw">let </span>kind = <span class="kw">match </span><span class="self">self</span>.kind {
+            Empty =&gt; Empty,
+            OneByte(b) =&gt; OneByte(b),
+            TwoWay(tw) =&gt; TwoWay(tw),
             <span class="attr">#[cfg(all(not(miri), memchr_runtime_simd))]
-            </span><a href="#812">GenericSIMD128</a>(gs) =&gt; <a href="#812">GenericSIMD128</a>(<a href="#885">gs</a>),
+            </span>GenericSIMD128(gs) =&gt; GenericSIMD128(gs),
             <span class="attr">#[cfg(all(
                 not(miri),
                 target_arch = <span class="string">&quot;x86_64&quot;</span>,
                 memchr_runtime_simd
             ))]
-            </span><a href="#816">GenericSIMD256</a>(gs) =&gt; <a href="#816">GenericSIMD256</a>(<a href="#891">gs</a>),
+            </span>GenericSIMD256(gs) =&gt; GenericSIMD256(gs),
         };
-        <a href="#744">Searcher</a> {
-            needle: CowBytes::new(<a class="self" href="#877">self</a>.<a href="#873">needle</a>()),
-            ninfo: <a class="self" href="#877">self</a>.ninfo,
-            prefn: <a class="self" href="#877">self</a>.prefn,
-            <a href="#880">kind</a>,
+        Searcher {
+            needle: CowBytes::new(<span class="self">self</span>.needle()),
+            ninfo: <span class="self">self</span>.ninfo,
+            prefn: <span class="self">self</span>.prefn,
+            kind,
         }
     }
 
     <span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
     </span><span class="kw">fn </span>into_owned(<span class="self">self</span>) -&gt; Searcher&lt;<span class="lifetime">&#39;static</span>&gt; {
-        <span class="kw">use </span><a href="#800"><span class="self">self</span>::SearcherKind</a>::<span class="kw-2">*</span>;
+        <span class="kw">use </span><span class="self">self</span>::SearcherKind::<span class="kw-2">*</span>;
 
-        <span class="kw">let </span>kind = <span class="kw">match </span><a class="self" href="#902">self</a>.kind {
-            <a href="#803">Empty</a> =&gt; <a href="#803">Empty</a>,
-            <a href="#806">OneByte</a>(b) =&gt; <a href="#806">OneByte</a>(<a href="#907">b</a>),
-            <a href="#810">TwoWay</a>(tw) =&gt; <a href="#810">TwoWay</a>(<a href="#908">tw</a>),
+        <span class="kw">let </span>kind = <span class="kw">match </span><span class="self">self</span>.kind {
+            Empty =&gt; Empty,
+            OneByte(b) =&gt; OneByte(b),
+            TwoWay(tw) =&gt; TwoWay(tw),
             <span class="attr">#[cfg(all(not(miri), memchr_runtime_simd))]
-            </span><a href="#812">GenericSIMD128</a>(gs) =&gt; <a href="#812">GenericSIMD128</a>(<a href="#910">gs</a>),
+            </span>GenericSIMD128(gs) =&gt; GenericSIMD128(gs),
             <span class="attr">#[cfg(all(
                 not(miri),
                 target_arch = <span class="string">&quot;x86_64&quot;</span>,
                 memchr_runtime_simd
             ))]
-            </span><a href="#816">GenericSIMD256</a>(gs) =&gt; <a href="#816">GenericSIMD256</a>(<a href="#916">gs</a>),
+            </span>GenericSIMD256(gs) =&gt; GenericSIMD256(gs),
         };
-        <a href="#744">Searcher</a> {
-            needle: <a class="self" href="#902">self</a>.needle.<a href="../cow.rs.html#62">into_owned</a>(),
-            ninfo: <a class="self" href="#902">self</a>.ninfo,
-            prefn: <a class="self" href="#902">self</a>.prefn,
-            <a href="#905">kind</a>,
+        Searcher {
+            needle: <span class="self">self</span>.needle.into_owned(),
+            ninfo: <span class="self">self</span>.ninfo,
+            prefn: <span class="self">self</span>.prefn,
+            kind,
         }
     }
 
@@ -2250,35 +2250,35 @@ assert_eq!(None, finder.find(b&quot;quux baz bar&quot;));
     </span><span class="attr">#[inline(always)]
     </span><span class="kw">fn </span>find(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        state: <span class="kw-2">&amp;mut </span><a href="prefilter/mod.rs.html#204">PrefilterState</a>,
-        haystack: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
-    ) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
-        <span class="kw">use </span><a href="#800"><span class="self">self</span>::SearcherKind</a>::<span class="kw-2">*</span>;
+        state: <span class="kw-2">&amp;mut </span>PrefilterState,
+        haystack: <span class="kw-2">&amp;</span>[u8],
+    ) -&gt; <span class="prelude-ty">Option</span>&lt;usize&gt; {
+        <span class="kw">use </span><span class="self">self</span>::SearcherKind::<span class="kw-2">*</span>;
 
-        <span class="kw">let </span>needle = <a class="self" href="#931">self</a>.<a href="#873">needle</a>();
+        <span class="kw">let </span>needle = <span class="self">self</span>.needle();
         <span class="kw">if </span>haystack.len() &lt; needle.len() {
             <span class="kw">return </span><span class="prelude-val">None</span>;
         }
-        <span class="kw">match </span><a class="self" href="#931">self</a>.kind {
-            <a href="#803">Empty</a> =&gt; <span class="prelude-val">Some</span>(<span class="number">0</span>),
-            <a href="#806">OneByte</a>(b) =&gt; <a href="../memchr/mod.rs.html#87"><span class="kw">crate</span>::memchr</a>(<a href="#943">b</a>, <a href="#933">haystack</a>),
-            <a href="#810">TwoWay</a>(<span class="kw-2">ref </span>tw) =&gt; {
+        <span class="kw">match </span><span class="self">self</span>.kind {
+            Empty =&gt; <span class="prelude-val">Some</span>(<span class="number">0</span>),
+            OneByte(b) =&gt; <span class="kw">crate</span>::memchr(b, haystack),
+            TwoWay(<span class="kw-2">ref </span>tw) =&gt; {
                 <span class="comment">// For very short haystacks (e.g., where the prefilter probably
                 // can&#39;t run), it&#39;s faster to just run RK.
                 </span><span class="kw">if </span>rabinkarp::is_fast(haystack, needle) {
-                    <a href="rabinkarp.rs.html#46-50">rabinkarp::find_with</a>(<span class="kw-2">&amp;</span><a class="self" href="#931">self</a>.ninfo.nhash, <a href="#933">haystack</a>, <a href="#937">needle</a>)
+                    rabinkarp::find_with(<span class="kw-2">&amp;</span><span class="self">self</span>.ninfo.nhash, haystack, needle)
                 } <span class="kw">else </span>{
-                    <a class="self" href="#931">self</a>.<a href="#990-996">find_tw</a>(<a href="#944">tw</a>, <a href="#932">state</a>, <a href="#933">haystack</a>, <a href="#937">needle</a>)
+                    <span class="self">self</span>.find_tw(tw, state, haystack, needle)
                 }
             }
             <span class="attr">#[cfg(all(not(miri), memchr_runtime_simd))]
-            </span><a href="#812">GenericSIMD128</a>(<span class="kw-2">ref </span>gs) =&gt; {
+            </span>GenericSIMD128(<span class="kw-2">ref </span>gs) =&gt; {
                 <span class="comment">// The SIMD matcher can&#39;t handle particularly short haystacks,
                 // so we fall back to RK in these cases.
                 </span><span class="kw">if </span>haystack.len() &lt; gs.min_haystack_len() {
-                    <a href="rabinkarp.rs.html#46-50">rabinkarp::find_with</a>(<span class="kw-2">&amp;</span><a class="self" href="#931">self</a>.ninfo.nhash, <a href="#933">haystack</a>, <a href="#937">needle</a>)
+                    rabinkarp::find_with(<span class="kw-2">&amp;</span><span class="self">self</span>.ninfo.nhash, haystack, needle)
                 } <span class="kw">else </span>{
-                    <a href="#954">gs</a>.<a href="x86/sse.rs.html#29-33">find</a>(<a href="#933">haystack</a>, <a href="#937">needle</a>)
+                    gs.find(haystack, needle)
                 }
             }
             <span class="attr">#[cfg(all(
@@ -2286,13 +2286,13 @@ assert_eq!(None, finder.find(b&quot;quux baz bar&quot;));
                 target_arch = <span class="string">&quot;x86_64&quot;</span>,
                 memchr_runtime_simd
             ))]
-            </span><a href="#816">GenericSIMD256</a>(<span class="kw-2">ref </span>gs) =&gt; {
+            </span>GenericSIMD256(<span class="kw-2">ref </span>gs) =&gt; {
                 <span class="comment">// The SIMD matcher can&#39;t handle particularly short haystacks,
                 // so we fall back to RK in these cases.
                 </span><span class="kw">if </span>haystack.len() &lt; gs.min_haystack_len() {
-                    <a href="rabinkarp.rs.html#46-50">rabinkarp::find_with</a>(<span class="kw-2">&amp;</span><a class="self" href="#931">self</a>.ninfo.nhash, <a href="#933">haystack</a>, <a href="#937">needle</a>)
+                    rabinkarp::find_with(<span class="kw-2">&amp;</span><span class="self">self</span>.ninfo.nhash, haystack, needle)
                 } <span class="kw">else </span>{
-                    <a href="#968">gs</a>.<a href="x86/avx.rs.html#39-43">find</a>(<a href="#933">haystack</a>, <a href="#937">needle</a>)
+                    gs.find(haystack, needle)
                 }
             }
         }
@@ -2310,31 +2310,31 @@ assert_eq!(None, finder.find(b&quot;quux baz bar&quot;));
     </span><span class="attr">#[inline(never)]
     </span><span class="kw">fn </span>find_tw(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        tw: <span class="kw-2">&amp;</span><a href="twoway.rs.html#7">twoway::Forward</a>,
-        state: <span class="kw-2">&amp;mut </span><a href="prefilter/mod.rs.html#204">PrefilterState</a>,
-        haystack: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
-        needle: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
-    ) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(prefn) = <a class="self" href="#991">self</a>.prefn {
+        tw: <span class="kw-2">&amp;</span>twoway::Forward,
+        state: <span class="kw-2">&amp;mut </span>PrefilterState,
+        haystack: <span class="kw-2">&amp;</span>[u8],
+        needle: <span class="kw-2">&amp;</span>[u8],
+    ) -&gt; <span class="prelude-ty">Option</span>&lt;usize&gt; {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(prefn) = <span class="self">self</span>.prefn {
             <span class="comment">// We used to look at the length of a haystack here. That is, if
             // it was too small, then don&#39;t bother with the prefilter. But two
             // things changed: the prefilter falls back to memchr for small
             // haystacks, and, above, Rabin-Karp is employed for tiny haystacks
             // anyway.
             </span><span class="kw">if </span>state.is_effective() {
-                <span class="kw">let </span><span class="kw-2">mut </span>pre = <a href="prefilter/mod.rs.html#22">Pre</a> { <a href="#993">state</a>, <a href="#997">prefn</a>, ninfo: <span class="kw-2">&amp;</span><a class="self" href="#991">self</a>.ninfo };
-                <span class="kw">return </span><a href="#992">tw</a>.<a href="twoway.rs.html#107-112">find</a>(<span class="prelude-val">Some</span>(<span class="kw-2">&amp;mut </span><a href="#1004">pre</a>), <a href="#994">haystack</a>, <a href="#995">needle</a>);
+                <span class="kw">let </span><span class="kw-2">mut </span>pre = Pre { state, prefn, ninfo: <span class="kw-2">&amp;</span><span class="self">self</span>.ninfo };
+                <span class="kw">return </span>tw.find(<span class="prelude-val">Some</span>(<span class="kw-2">&amp;mut </span>pre), haystack, needle);
             }
         }
-        <a href="#992">tw</a>.<a href="twoway.rs.html#107-112">find</a>(<span class="prelude-val">None</span>, <a href="#994">haystack</a>, <a href="#995">needle</a>)
+        tw.find(<span class="prelude-val">None</span>, haystack, needle)
     }
 }
 
-<span class="kw">impl </span><a href="#767">NeedleInfo</a> {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(needle: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <a href="#767">NeedleInfo</a> {
-        <a href="#767">NeedleInfo</a> {
-            rarebytes: RareNeedleBytes::forward(<a href="#1013">needle</a>),
-            nhash: NeedleHash::forward(<a href="#1013">needle</a>),
+<span class="kw">impl </span>NeedleInfo {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(needle: <span class="kw-2">&amp;</span>[u8]) -&gt; NeedleInfo {
+        NeedleInfo {
+            rarebytes: RareNeedleBytes::forward(needle),
+            nhash: NeedleHash::forward(needle),
         }
     }
 }
@@ -2351,9 +2351,9 @@ assert_eq!(None, finder.find(b&quot;quux baz bar&quot;));
     <span class="doccomment">/// The actual needle we&#39;re searching for.
     </span>needle: CowBytes&lt;<span class="lifetime">&#39;n</span>&gt;,
     <span class="doccomment">/// A Rabin-Karp hash of the needle.
-    </span>nhash: <a href="rabinkarp.rs.html#105">NeedleHash</a>,
+    </span>nhash: NeedleHash,
     <span class="doccomment">/// The actual substring implementation in use.
-    </span>kind: <a href="#1039">SearcherRevKind</a>,
+    </span>kind: SearcherRevKind,
 }
 
 <span class="attr">#[derive(Clone, Debug)]
@@ -2363,63 +2363,63 @@ assert_eq!(None, finder.find(b&quot;quux baz bar&quot;));
     </span>Empty,
     <span class="doccomment">/// This is used whenever the needle is a single byte. In this case, we
     /// always use memchr.
-    </span>OneByte(<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>),
+    </span>OneByte(u8),
     <span class="doccomment">/// Two-Way is the generic work horse and is what provides our additive
     /// linear time guarantee. In general, it&#39;s used when the needle is bigger
     /// than 8 bytes or so.
-    </span>TwoWay(<a href="twoway.rs.html#11">twoway::Reverse</a>),
+    </span>TwoWay(twoway::Reverse),
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;n</span>&gt; SearcherRev&lt;<span class="lifetime">&#39;n</span>&gt; {
-    <span class="kw">fn </span>new(needle: <span class="kw-2">&amp;</span><span class="lifetime">&#39;n </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; SearcherRev&lt;<span class="lifetime">&#39;n</span>&gt; {
-        <span class="kw">use </span><a href="#1039"><span class="self">self</span>::SearcherRevKind</a>::<span class="kw-2">*</span>;
+    <span class="kw">fn </span>new(needle: <span class="kw-2">&amp;</span><span class="lifetime">&#39;n </span>[u8]) -&gt; SearcherRev&lt;<span class="lifetime">&#39;n</span>&gt; {
+        <span class="kw">use </span><span class="self">self</span>::SearcherRevKind::<span class="kw-2">*</span>;
 
         <span class="kw">let </span>kind = <span class="kw">if </span>needle.len() == <span class="number">0 </span>{
-            <a href="#1042">Empty</a>
+            Empty
         } <span class="kw">else if </span>needle.len() == <span class="number">1 </span>{
-            <a href="#1045">OneByte</a>(<a href="#1053">needle</a>[<span class="number">0</span>])
+            OneByte(needle[<span class="number">0</span>])
         } <span class="kw">else </span>{
-            <a href="#1049">TwoWay</a>(twoway::Reverse::new(<a href="#1053">needle</a>))
+            TwoWay(twoway::Reverse::new(needle))
         };
-        <a href="#1029">SearcherRev</a> {
-            needle: CowBytes::new(<a href="#1053">needle</a>),
-            nhash: NeedleHash::reverse(<a href="#1053">needle</a>),
-            <a href="#1056">kind</a>,
+        SearcherRev {
+            needle: CowBytes::new(needle),
+            nhash: NeedleHash::reverse(needle),
+            kind,
         }
     }
 
-    <span class="kw">fn </span>needle(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>] {
-        <a class="self" href="#1070">self</a>.needle.<a href="../cow.rs.html#52">as_slice</a>()
+    <span class="kw">fn </span>needle(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[u8] {
+        <span class="self">self</span>.needle.as_slice()
     }
 
     <span class="kw">fn </span>as_ref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; SearcherRev&lt;<span class="lifetime">&#39;_</span>&gt; {
-        <span class="kw">use </span><a href="#1039"><span class="self">self</span>::SearcherRevKind</a>::<span class="kw-2">*</span>;
+        <span class="kw">use </span><span class="self">self</span>::SearcherRevKind::<span class="kw-2">*</span>;
 
-        <span class="kw">let </span>kind = <span class="kw">match </span><a class="self" href="#1074">self</a>.kind {
-            <a href="#1042">Empty</a> =&gt; <a href="#1042">Empty</a>,
-            <a href="#1045">OneByte</a>(b) =&gt; <a href="#1045">OneByte</a>(<a href="#1079">b</a>),
-            <a href="#1049">TwoWay</a>(tw) =&gt; <a href="#1049">TwoWay</a>(<a href="#1080">tw</a>),
+        <span class="kw">let </span>kind = <span class="kw">match </span><span class="self">self</span>.kind {
+            Empty =&gt; Empty,
+            OneByte(b) =&gt; OneByte(b),
+            TwoWay(tw) =&gt; TwoWay(tw),
         };
-        <a href="#1029">SearcherRev</a> {
-            needle: CowBytes::new(<a class="self" href="#1074">self</a>.<a href="#1070">needle</a>()),
-            nhash: <a class="self" href="#1074">self</a>.nhash,
-            <a href="#1077">kind</a>,
+        SearcherRev {
+            needle: CowBytes::new(<span class="self">self</span>.needle()),
+            nhash: <span class="self">self</span>.nhash,
+            kind,
         }
     }
 
     <span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
     </span><span class="kw">fn </span>into_owned(<span class="self">self</span>) -&gt; SearcherRev&lt;<span class="lifetime">&#39;static</span>&gt; {
-        <span class="kw">use </span><a href="#1039"><span class="self">self</span>::SearcherRevKind</a>::<span class="kw-2">*</span>;
+        <span class="kw">use </span><span class="self">self</span>::SearcherRevKind::<span class="kw-2">*</span>;
 
-        <span class="kw">let </span>kind = <span class="kw">match </span><a class="self" href="#1090">self</a>.kind {
-            <a href="#1042">Empty</a> =&gt; <a href="#1042">Empty</a>,
-            <a href="#1045">OneByte</a>(b) =&gt; <a href="#1045">OneByte</a>(<a href="#1095">b</a>),
-            <a href="#1049">TwoWay</a>(tw) =&gt; <a href="#1049">TwoWay</a>(<a href="#1096">tw</a>),
+        <span class="kw">let </span>kind = <span class="kw">match </span><span class="self">self</span>.kind {
+            Empty =&gt; Empty,
+            OneByte(b) =&gt; OneByte(b),
+            TwoWay(tw) =&gt; TwoWay(tw),
         };
-        <a href="#1029">SearcherRev</a> {
-            needle: <a class="self" href="#1090">self</a>.needle.<a href="../cow.rs.html#62">into_owned</a>(),
-            nhash: <a class="self" href="#1090">self</a>.nhash,
-            <a href="#1093">kind</a>,
+        SearcherRev {
+            needle: <span class="self">self</span>.needle.into_owned(),
+            nhash: <span class="self">self</span>.nhash,
+            kind,
         }
     }
 
@@ -2427,23 +2427,23 @@ assert_eq!(None, finder.find(b&quot;quux baz bar&quot;));
     /// chosen at construction and executing it on the given haystack with the
     /// prefilter&#39;s current state of effectiveness.
     </span><span class="attr">#[inline(always)]
-    </span><span class="kw">fn </span>rfind(<span class="kw-2">&amp;</span><span class="self">self</span>, haystack: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
-        <span class="kw">use </span><a href="#1039"><span class="self">self</span>::SearcherRevKind</a>::<span class="kw-2">*</span>;
+    </span><span class="kw">fn </span>rfind(<span class="kw-2">&amp;</span><span class="self">self</span>, haystack: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Option</span>&lt;usize&gt; {
+        <span class="kw">use </span><span class="self">self</span>::SearcherRevKind::<span class="kw-2">*</span>;
 
-        <span class="kw">let </span>needle = <a class="self" href="#1109">self</a>.<a href="#1070">needle</a>();
+        <span class="kw">let </span>needle = <span class="self">self</span>.needle();
         <span class="kw">if </span>haystack.len() &lt; needle.len() {
             <span class="kw">return </span><span class="prelude-val">None</span>;
         }
-        <span class="kw">match </span><a class="self" href="#1109">self</a>.kind {
-            <a href="#1042">Empty</a> =&gt; <span class="prelude-val">Some</span>(<a href="#1109">haystack</a>.len()),
-            <a href="#1045">OneByte</a>(b) =&gt; <a href="../memchr/mod.rs.html#260"><span class="kw">crate</span>::memrchr</a>(<a href="#1118">b</a>, <a href="#1109">haystack</a>),
-            <a href="#1049">TwoWay</a>(<span class="kw-2">ref </span>tw) =&gt; {
+        <span class="kw">match </span><span class="self">self</span>.kind {
+            Empty =&gt; <span class="prelude-val">Some</span>(haystack.len()),
+            OneByte(b) =&gt; <span class="kw">crate</span>::memrchr(b, haystack),
+            TwoWay(<span class="kw-2">ref </span>tw) =&gt; {
                 <span class="comment">// For very short haystacks (e.g., where the prefilter probably
                 // can&#39;t run), it&#39;s faster to just run RK.
                 </span><span class="kw">if </span>rabinkarp::is_fast(haystack, needle) {
-                    <a href="rabinkarp.rs.html#77-81">rabinkarp::rfind_with</a>(<span class="kw-2">&amp;</span><a class="self" href="#1109">self</a>.nhash, <a href="#1109">haystack</a>, <a href="#1112">needle</a>)
+                    rabinkarp::rfind_with(<span class="kw-2">&amp;</span><span class="self">self</span>.nhash, haystack, needle)
                 } <span class="kw">else </span>{
-                    <a href="#1119">tw</a>.<a href="twoway.rs.html#275-279">rfind</a>(<a href="#1109">haystack</a>, <a href="#1112">needle</a>)
+                    tw.rfind(haystack, needle)
                 }
             }
         }
@@ -2641,4 +2641,4 @@ assert_eq!(None, finder.find(b&quot;quux baz bar&quot;));
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="memchr" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="memchr" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

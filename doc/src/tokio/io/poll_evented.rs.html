@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.21.2/src/io/poll_evented.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>poll_evented.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../tokio/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.23.0/src/io/poll_evented.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>poll_evented.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../tokio/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -232,14 +232,32 @@
 <a href="#232" id="232">232</a>
 <a href="#233" id="233">233</a>
 <a href="#234" id="234">234</a>
-</pre><pre class="rust"><code><span class="kw">use </span><a href="interest.rs.html#14"><span class="kw">crate</span>::io::interest::Interest</a>;
-<span class="kw">use </span><span class="kw">crate</span>::runtime::io::{<a href="../runtime/io/mod.rs.html#46">Handle</a>, <a href="../runtime/io/registration.rs.html#45">Registration</a>};
+<a href="#235" id="235">235</a>
+<a href="#236" id="236">236</a>
+<a href="#237" id="237">237</a>
+<a href="#238" id="238">238</a>
+<a href="#239" id="239">239</a>
+<a href="#240" id="240">240</a>
+<a href="#241" id="241">241</a>
+<a href="#242" id="242">242</a>
+<a href="#243" id="243">243</a>
+<a href="#244" id="244">244</a>
+<a href="#245" id="245">245</a>
+<a href="#246" id="246">246</a>
+<a href="#247" id="247">247</a>
+<a href="#248" id="248">248</a>
+<a href="#249" id="249">249</a>
+<a href="#250" id="250">250</a>
+<a href="#251" id="251">251</a>
+</pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::io::interest::Interest;
+<span class="kw">use </span><span class="kw">crate</span>::runtime::io::Registration;
+<span class="kw">use </span><span class="kw">crate</span>::runtime::scheduler;
 
-<span class="kw">use </span><a href="../../../mio/event/source/trait.Source.html">mio::event::Source</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">std::fmt</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/io/index.html">std::io</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.Deref.html">std::ops::Deref</a>;
-<span class="kw">use </span>std::panic::{<a href="https://doc.rust-lang.org/nightly/core/panic/unwind_safe/trait.RefUnwindSafe.html">RefUnwindSafe</a>, <a href="https://doc.rust-lang.org/nightly/core/panic/unwind_safe/trait.UnwindSafe.html">UnwindSafe</a>};
+<span class="kw">use </span>mio::event::Source;
+<span class="kw">use </span>std::fmt;
+<span class="kw">use </span>std::io;
+<span class="kw">use </span>std::ops::Deref;
+<span class="kw">use </span>std::panic::{RefUnwindSafe, UnwindSafe};
 
 <span class="macro">cfg_io_driver! </span>{
     <span class="doccomment">/// Associates an I/O resource that implements the [`std::io::Read`] and/or
@@ -295,15 +313,15 @@
     /// [`clear_readiness`]: Registration::clear_readiness
     /// [`poll_read_ready`]: Registration::poll_read_ready
     /// [`poll_write_ready`]: Registration::poll_write_ready
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>PollEvented&lt;E: <a href="../../../mio/event/source/trait.Source.html">Source</a>&gt; {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>PollEvented&lt;E: Source&gt; {
         io: <span class="prelude-ty">Option</span>&lt;E&gt;,
-        registration: <a href="../runtime/io/registration.rs.html#45">Registration</a>,
+        registration: Registration,
     }
 }
 
 <span class="comment">// ===== impl PollEvented =====
 
-</span><span class="kw">impl</span>&lt;E: <a href="../../../mio/event/source/trait.Source.html">Source</a>&gt; PollEvented&lt;E&gt; {
+</span><span class="kw">impl</span>&lt;E: Source&gt; PollEvented&lt;E&gt; {
     <span class="doccomment">/// Creates a new `PollEvented` associated with the default reactor.
     ///
     /// # Panics
@@ -316,7 +334,7 @@
     </span><span class="attr">#[track_caller]
     #[cfg_attr(feature = <span class="string">&quot;signal&quot;</span>, allow(unused))]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(io: E) -&gt; io::Result&lt;<span class="self">Self</span>&gt; {
-        PollEvented::new_with_interest(<a href="#84">io</a>, Interest::READABLE | Interest::WRITABLE)
+        PollEvented::new_with_interest(io, Interest::READABLE | Interest::WRITABLE)
     }
 
     <span class="doccomment">/// Creates a new `PollEvented` associated with the default reactor, for
@@ -336,48 +354,45 @@
     /// function.
     </span><span class="attr">#[track_caller]
     #[cfg_attr(feature = <span class="string">&quot;signal&quot;</span>, allow(unused))]
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new_with_interest(io: E, interest: <a href="interest.rs.html#14">Interest</a>) -&gt; io::Result&lt;<span class="self">Self</span>&gt; {
-        <span class="self">Self</span>::new_with_interest_and_handle(<a href="#105">io</a>, <a href="#105">interest</a>, Handle::current())
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new_with_interest(io: E, interest: Interest) -&gt; io::Result&lt;<span class="self">Self</span>&gt; {
+        <span class="self">Self</span>::new_with_interest_and_handle(io, interest, scheduler::Handle::current())
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new_with_interest_and_handle(
+    <span class="attr">#[track_caller]
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new_with_interest_and_handle(
         <span class="kw-2">mut </span>io: E,
-        interest: <a href="interest.rs.html#14">Interest</a>,
-        handle: <a href="../runtime/io/mod.rs.html#46">Handle</a>,
+        interest: Interest,
+        handle: scheduler::Handle,
     ) -&gt; io::Result&lt;<span class="self">Self</span>&gt; {
         <span class="kw">let </span>registration = Registration::new_with_interest_and_handle(<span class="kw-2">&amp;mut </span>io, interest, handle)<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(<span class="self">Self </span>{
-            io: <span class="prelude-val">Some</span>(<a href="#110">io</a>),
-            <a href="#114">registration</a>,
+            io: <span class="prelude-val">Some</span>(io),
+            registration,
         })
     }
 
     <span class="doccomment">/// Returns a reference to the registration.
-    </span><span class="attr">#[cfg(any(
-        feature = <span class="string">&quot;net&quot;</span>,
-        all(unix, feature = <span class="string">&quot;process&quot;</span>),
-        all(unix, feature = <span class="string">&quot;signal&quot;</span>),
-    ))]
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>registration(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="../runtime/io/registration.rs.html#45">Registration</a> {
-        <span class="kw-2">&amp;</span><a class="self" href="#127">self</a>.registration
+    </span><span class="attr">#[cfg(any(feature = <span class="string">&quot;net&quot;</span>))]
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>registration(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Registration {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.registration
     }
 
     <span class="doccomment">/// Deregisters the inner io from the registration and returns a Result containing the inner io.
     </span><span class="attr">#[cfg(any(feature = <span class="string">&quot;net&quot;</span>, feature = <span class="string">&quot;process&quot;</span>))]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>into_inner(<span class="kw-2">mut </span><span class="self">self</span>) -&gt; io::Result&lt;E&gt; {
-        <span class="kw">let </span><span class="kw-2">mut </span>inner = <a class="self" href="#133">self</a>.io.take().unwrap(); <span class="comment">// As io shouldn&#39;t ever be None, just unwrap here.
+        <span class="kw">let </span><span class="kw-2">mut </span>inner = <span class="self">self</span>.io.take().unwrap(); <span class="comment">// As io shouldn&#39;t ever be None, just unwrap here.
         </span><span class="self">self</span>.registration.deregister(<span class="kw-2">&amp;mut </span>inner)<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(<a href="#134">inner</a>)
+        <span class="prelude-val">Ok</span>(inner)
     }
 }
 
 <span class="macro">feature! </span>{
     <span class="attr">#![any(feature = <span class="string">&quot;net&quot;</span>, all(unix, feature = <span class="string">&quot;process&quot;</span>))]
 
-    </span><span class="kw">use </span><a href="read_buf.rs.html#23"><span class="kw">crate</span>::io::ReadBuf</a>;
-    <span class="kw">use </span>std::task::{<a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>, <a href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">Poll</a>};
+    </span><span class="kw">use </span><span class="kw">crate</span>::io::ReadBuf;
+    <span class="kw">use </span>std::task::{Context, Poll};
 
-    <span class="kw">impl</span>&lt;E: <a href="../../../mio/event/source/trait.Source.html">Source</a>&gt; PollEvented&lt;E&gt; {
+    <span class="kw">impl</span>&lt;E: Source&gt; PollEvented&lt;E&gt; {
         <span class="comment">// Safety: The caller must ensure that `E` can read into uninitialized memory
         </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">unsafe fn </span>poll_read&lt;<span class="lifetime">&#39;a</span>&gt;(
             <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="self">self</span>,
@@ -385,86 +400,105 @@
             buf: <span class="kw-2">&amp;mut </span>ReadBuf&lt;<span class="lifetime">&#39;_</span>&gt;,
         ) -&gt; Poll&lt;io::Result&lt;()&gt;&gt;
         <span class="kw">where
-            </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>E: <a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">io::Read</a> + <span class="lifetime">&#39;a</span>,
+            </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>E: io::Read + <span class="lifetime">&#39;a</span>,
         {
-            <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">std::io::Read</a>;
+            <span class="kw">use </span>std::io::Read;
 
             <span class="kw">loop </span>{
                 <span class="kw">let </span>evt = <span class="macro">ready!</span>(<span class="self">self</span>.registration.poll_read_ready(cx))<span class="question-mark">?</span>;
 
-                <span class="kw">let </span>b = <span class="kw-2">&amp;mut *</span>(<a href="#151">buf</a>.<a href="read_buf.rs.html#135">unfilled_mut</a>() <span class="kw">as </span><span class="kw-2">*mut </span>[std::mem::MaybeUninit&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;] <span class="kw">as </span><span class="kw-2">*mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]);
-                <span class="kw">let </span>len = <a href="#161">b</a>.len();
+                <span class="kw">let </span>b = <span class="kw-2">&amp;mut *</span>(buf.unfilled_mut() <span class="kw">as </span><span class="kw-2">*mut </span>[std::mem::MaybeUninit&lt;u8&gt;] <span class="kw">as </span><span class="kw-2">*mut </span>[u8]);
+                <span class="kw">let </span>len = b.len();
 
-                <span class="kw">match </span><a class="self" href="#149">self</a>.io.as_ref().unwrap().<a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">read</a>(<a href="#161">b</a>) {
+                <span class="kw">match </span><span class="self">self</span>.io.as_ref().unwrap().read(b) {
                     <span class="prelude-val">Ok</span>(n) =&gt; {
                         <span class="comment">// if we read a partially full buffer, this is sufficient on unix to show
                         // that the socket buffer has been drained
                         </span><span class="kw">if </span>n &gt; <span class="number">0 </span>&amp;&amp; (!<span class="macro">cfg!</span>(windows) &amp;&amp; n &lt; len) {
-                            <a class="self" href="#149">self</a>.registration.<a href="../runtime/io/registration.rs.html#101">clear_readiness</a>(<a href="#159">evt</a>);
+                            <span class="self">self</span>.registration.clear_readiness(evt);
                         }
 
                         <span class="comment">// Safety: We trust `TcpStream::read` to have filled up `n` bytes in the
                         // buffer.
-                        </span><a href="#151">buf</a>.<a href="read_buf.rs.html#234">assume_init</a>(<a href="#165">n</a>);
-                        <a href="#151">buf</a>.<a href="read_buf.rs.html#200">advance</a>(<a href="#165">n</a>);
+                        </span>buf.assume_init(n);
+                        buf.advance(n);
                         <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Ok</span>(()));
                     },
-                    <span class="prelude-val">Err</span>(e) <span class="kw">if </span><a href="#178">e</a>.kind() == io::ErrorKind::WouldBlock =&gt; {
-                        <a class="self" href="#149">self</a>.registration.<a href="../runtime/io/registration.rs.html#101">clear_readiness</a>(<a href="#159">evt</a>);
+                    <span class="prelude-val">Err</span>(e) <span class="kw">if </span>e.kind() == io::ErrorKind::WouldBlock =&gt; {
+                        <span class="self">self</span>.registration.clear_readiness(evt);
                     }
-                    <span class="prelude-val">Err</span>(e) =&gt; <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Err</span>(<a href="#181">e</a>)),
+                    <span class="prelude-val">Err</span>(e) =&gt; <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Err</span>(e)),
                 }
             }
         }
 
-        <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>poll_write&lt;<span class="lifetime">&#39;a</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="self">self</span>, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;, buf: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; Poll&lt;io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;&gt;
+        <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>poll_write&lt;<span class="lifetime">&#39;a</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="self">self</span>, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;, buf: <span class="kw-2">&amp;</span>[u8]) -&gt; Poll&lt;io::Result&lt;usize&gt;&gt;
         <span class="kw">where
-            </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>E: <a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">io::Write</a> + <span class="lifetime">&#39;a</span>,
+            </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>E: io::Write + <span class="lifetime">&#39;a</span>,
         {
-            <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">std::io::Write</a>;
-            <a class="self" href="#186">self</a>.registration.<a href="../runtime/io/registration.rs.html#130-134">poll_write_io</a>(<a href="#186">cx</a>, || <a class="self" href="#186">self</a>.io.as_ref().unwrap().<a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">write</a>(<a href="#186">buf</a>))
+            <span class="kw">use </span>std::io::Write;
+
+            <span class="kw">loop </span>{
+                <span class="kw">let </span>evt = <span class="macro">ready!</span>(<span class="self">self</span>.registration.poll_write_ready(cx))<span class="question-mark">?</span>;
+
+                <span class="kw">match </span><span class="self">self</span>.io.as_ref().unwrap().write(buf) {
+                    <span class="prelude-val">Ok</span>(n) =&gt; {
+                        <span class="comment">// if we write only part of our buffer, this is sufficient on unix to show
+                        // that the socket buffer is full
+                        </span><span class="kw">if </span>n &gt; <span class="number">0 </span>&amp;&amp; (!<span class="macro">cfg!</span>(windows) &amp;&amp; n &lt; buf.len()) {
+                            <span class="self">self</span>.registration.clear_readiness(evt);
+                        }
+
+                        <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Ok</span>(n));
+                    },
+                    <span class="prelude-val">Err</span>(e) <span class="kw">if </span>e.kind() == io::ErrorKind::WouldBlock =&gt; {
+                        <span class="self">self</span>.registration.clear_readiness(evt);
+                    }
+                    <span class="prelude-val">Err</span>(e) =&gt; <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Err</span>(e)),
+                }
+            }
         }
 
-        <span class="attr">#[cfg(feature = <span class="string">&quot;net&quot;</span>)]
+        <span class="attr">#[cfg(any(feature = <span class="string">&quot;net&quot;</span>, feature = <span class="string">&quot;process&quot;</span>))]
         </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>poll_write_vectored&lt;<span class="lifetime">&#39;a</span>&gt;(
             <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="self">self</span>,
             cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
             bufs: <span class="kw-2">&amp;</span>[io::IoSlice&lt;<span class="lifetime">&#39;_</span>&gt;],
-        ) -&gt; Poll&lt;io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;&gt;
+        ) -&gt; Poll&lt;io::Result&lt;usize&gt;&gt;
         <span class="kw">where
-            </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>E: <a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">io::Write</a> + <span class="lifetime">&#39;a</span>,
+            </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>E: io::Write + <span class="lifetime">&#39;a</span>,
         {
-            <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">std::io::Write</a>;
-            <a class="self" href="#196">self</a>.registration.<a href="../runtime/io/registration.rs.html#130-134">poll_write_io</a>(<a href="#197">cx</a>, || <a class="self" href="#196">self</a>.io.as_ref().unwrap().<a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">write_vectored</a>(<a href="#198">bufs</a>))
+            <span class="kw">use </span>std::io::Write;
+            <span class="self">self</span>.registration.poll_write_io(cx, || <span class="self">self</span>.io.as_ref().unwrap().write_vectored(bufs))
         }
     }
 }
 
-<span class="kw">impl</span>&lt;E: <a href="../../../mio/event/source/trait.Source.html">Source</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/panic/unwind_safe/trait.UnwindSafe.html">UnwindSafe</a> <span class="kw">for </span>PollEvented&lt;E&gt; {}
+<span class="kw">impl</span>&lt;E: Source&gt; UnwindSafe <span class="kw">for </span>PollEvented&lt;E&gt; {}
 
-<span class="kw">impl</span>&lt;E: <a href="../../../mio/event/source/trait.Source.html">Source</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/panic/unwind_safe/trait.RefUnwindSafe.html">RefUnwindSafe</a> <span class="kw">for </span>PollEvented&lt;E&gt; {}
+<span class="kw">impl</span>&lt;E: Source&gt; RefUnwindSafe <span class="kw">for </span>PollEvented&lt;E&gt; {}
 
-<span class="kw">impl</span>&lt;E: <a href="../../../mio/event/source/trait.Source.html">Source</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.Deref.html">Deref</a> <span class="kw">for </span>PollEvented&lt;E&gt; {
+<span class="kw">impl</span>&lt;E: Source&gt; Deref <span class="kw">for </span>PollEvented&lt;E&gt; {
     <span class="kw">type </span>Target = E;
 
     <span class="kw">fn </span>deref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>E {
-        <a class="self" href="#216">self</a>.io.as_ref().unwrap()
+        <span class="self">self</span>.io.as_ref().unwrap()
     }
 }
 
-<span class="kw">impl</span>&lt;E: <a href="../../../mio/event/source/trait.Source.html">Source</a> + <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span>PollEvented&lt;E&gt; {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a href="#222">f</a>.debug_struct(<span class="string">&quot;PollEvented&quot;</span>).field(<span class="string">&quot;io&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="#222">self</a>.io).finish()
+<span class="kw">impl</span>&lt;E: Source + fmt::Debug&gt; fmt::Debug <span class="kw">for </span>PollEvented&lt;E&gt; {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        f.debug_struct(<span class="string">&quot;PollEvented&quot;</span>).field(<span class="string">&quot;io&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.io).finish()
     }
 }
 
-<span class="kw">impl</span>&lt;E: <a href="../../../mio/event/source/trait.Source.html">Source</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span>PollEvented&lt;E&gt; {
+<span class="kw">impl</span>&lt;E: Source&gt; Drop <span class="kw">for </span>PollEvented&lt;E&gt; {
     <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">mut </span>io) = <a class="self" href="#228">self</a>.io.take() {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">mut </span>io) = <span class="self">self</span>.io.take() {
             <span class="comment">// Ignore errors
-            </span><span class="kw">let _ </span>= <a class="self" href="#228">self</a>.registration.<a href="../runtime/io/registration.rs.html#97">deregister</a>(<span class="kw-2">&amp;mut </span><a href="#229">io</a>);
+            </span><span class="kw">let _ </span>= <span class="self">self</span>.registration.deregister(<span class="kw-2">&amp;mut </span>io);
         }
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="tokio" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="tokio" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/indexmap-1.9.2/src/set.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>set.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../indexmap/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/indexmap-1.9.2/src/set.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>set.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../indexmap/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -1916,17 +1916,17 @@
 </span><span class="kw">pub use </span><span class="kw">crate</span>::rayon::set <span class="kw">as </span>rayon;
 
 <span class="attr">#[cfg(has_std)]
-</span><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/collections/hash/map/struct.RandomState.html">std::collections::hash_map::RandomState</a>;
+</span><span class="kw">use </span>std::collections::hash_map::RandomState;
 
-<span class="kw">use </span><span class="kw">crate</span>::vec::{<a class="self" href="https://doc.rust-lang.org/nightly/alloc/vec/index.html">self</a>, <a href="https://doc.rust-lang.org/nightly/alloc/vec/struct.Vec.html">Vec</a>};
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html">core::cmp::Ordering</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/fmt/index.html">core::fmt</a>;
-<span class="kw">use </span>core::hash::{<a href="https://doc.rust-lang.org/nightly/core/hash/trait.BuildHasher.html">BuildHasher</a>, <a href="https://doc.rust-lang.org/nightly/core/hash/macros/derive.Hash.html">Hash</a>};
-<span class="kw">use </span>core::iter::{<a href="https://doc.rust-lang.org/nightly/core/iter/adapters/chain/struct.Chain.html">Chain</a>, <a href="https://doc.rust-lang.org/nightly/core/iter/traits/marker/trait.FusedIterator.html">FusedIterator</a>};
-<span class="kw">use </span>core::ops::{<a href="https://doc.rust-lang.org/nightly/core/ops/bit/trait.BitAnd.html">BitAnd</a>, <a href="https://doc.rust-lang.org/nightly/core/ops/bit/trait.BitOr.html">BitOr</a>, <a href="https://doc.rust-lang.org/nightly/core/ops/bit/trait.BitXor.html">BitXor</a>, <a href="https://doc.rust-lang.org/nightly/core/ops/index/trait.Index.html">Index</a>, <a href="https://doc.rust-lang.org/nightly/core/ops/range/trait.RangeBounds.html">RangeBounds</a>, <a href="https://doc.rust-lang.org/nightly/core/ops/arith/trait.Sub.html">Sub</a>};
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/slice/index.html">core::slice</a>;
+<span class="kw">use </span><span class="kw">crate</span>::vec::{<span class="self">self</span>, Vec};
+<span class="kw">use </span>core::cmp::Ordering;
+<span class="kw">use </span>core::fmt;
+<span class="kw">use </span>core::hash::{BuildHasher, Hash};
+<span class="kw">use </span>core::iter::{Chain, FusedIterator};
+<span class="kw">use </span>core::ops::{BitAnd, BitOr, BitXor, Index, RangeBounds, Sub};
+<span class="kw">use </span>core::slice;
 
-<span class="kw">use super</span>::{<a href="lib.rs.html#186">Entries</a>, <a href="equivalent.rs.html#13">Equivalent</a>, <a href="map.rs.html#71">IndexMap</a>};
+<span class="kw">use super</span>::{Entries, Equivalent, IndexMap};
 
 <span class="kw">type </span>Bucket&lt;T&gt; = <span class="kw">super</span>::Bucket&lt;T, ()&gt;;
 
@@ -1972,7 +1972,7 @@
 /// assert!(!letters.contains(&amp;&#39;y&#39;));
 /// ```
 </span><span class="attr">#[cfg(has_std)]
-</span><span class="kw">pub struct </span>IndexSet&lt;T, S = <a href="https://doc.rust-lang.org/nightly/std/collections/hash/map/struct.RandomState.html">RandomState</a>&gt; {
+</span><span class="kw">pub struct </span>IndexSet&lt;T, S = RandomState&gt; {
     <span class="kw">pub</span>(<span class="kw">crate</span>) map: IndexMap&lt;T, (), S&gt;,
 }
 <span class="attr">#[cfg(not(has_std))]
@@ -1980,58 +1980,58 @@
     <span class="kw">pub</span>(<span class="kw">crate</span>) map: IndexMap&lt;T, (), S&gt;,
 }
 
-<span class="kw">impl</span>&lt;T, S&gt; <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> <span class="kw">for </span>IndexSet&lt;T, S&gt;
+<span class="kw">impl</span>&lt;T, S&gt; Clone <span class="kw">for </span>IndexSet&lt;T, S&gt;
 <span class="kw">where
-    </span>T: <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a>,
-    S: <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a>,
+    </span>T: Clone,
+    S: Clone,
 {
     <span class="kw">fn </span>clone(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self </span>{
-        <a href="#63">IndexSet</a> {
-            map: <a class="self" href="#76">self</a>.map.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+        IndexSet {
+            map: <span class="self">self</span>.map.clone(),
         }
     }
 
     <span class="kw">fn </span>clone_from(<span class="kw-2">&amp;mut </span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>) {
-        <a class="self" href="#82">self</a>.map.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone_from</a>(<span class="kw-2">&amp;</span><a href="#82">other</a>.map);
+        <span class="self">self</span>.map.clone_from(<span class="kw-2">&amp;</span>other.map);
     }
 }
 
-<span class="kw">impl</span>&lt;T, S&gt; <a href="lib.rs.html#186">Entries</a> <span class="kw">for </span>IndexSet&lt;T, S&gt; {
+<span class="kw">impl</span>&lt;T, S&gt; Entries <span class="kw">for </span>IndexSet&lt;T, S&gt; {
     <span class="kw">type </span>Entry = Bucket&lt;T&gt;;
 
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>into_entries(<span class="self">self</span>) -&gt; Vec&lt;<span class="self">Self</span>::Entry&gt; {
-        <a class="self" href="#91">self</a>.map.<a href="lib.rs.html#188">into_entries</a>()
+        <span class="self">self</span>.map.into_entries()
     }
 
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>as_entries(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[<span class="self">Self</span>::Entry] {
-        <a class="self" href="#96">self</a>.map.<a href="lib.rs.html#189">as_entries</a>()
+        <span class="self">self</span>.map.as_entries()
     }
 
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>as_entries_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>[<span class="self">Self</span>::Entry] {
-        <a class="self" href="#101">self</a>.map.<a href="lib.rs.html#190">as_entries_mut</a>()
+        <span class="self">self</span>.map.as_entries_mut()
     }
 
     <span class="kw">fn </span>with_entries&lt;F&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, f: F)
     <span class="kw">where
         </span>F: FnOnce(<span class="kw-2">&amp;mut </span>[<span class="self">Self</span>::Entry]),
     {
-        <a class="self" href="#105">self</a>.map.<a href="lib.rs.html#191-193">with_entries</a>(<a href="#105">f</a>);
+        <span class="self">self</span>.map.with_entries(f);
     }
 }
 
-<span class="kw">impl</span>&lt;T, S&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span>IndexSet&lt;T, S&gt;
+<span class="kw">impl</span>&lt;T, S&gt; fmt::Debug <span class="kw">for </span>IndexSet&lt;T, S&gt;
 <span class="kw">where
-    </span>T: <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a>,
+    </span>T: fmt::Debug,
 {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <span class="kw">if </span><a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.cfg.html">cfg!</a>(not(feature = <span class="string">&quot;test_debug&quot;</span>)) {
-            <a href="#117">f</a>.debug_set().entries(<a class="self" href="#117">self</a>.<a href="#193">iter</a>()).finish()
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        <span class="kw">if </span><span class="macro">cfg!</span>(not(feature = <span class="string">&quot;test_debug&quot;</span>)) {
+            f.debug_set().entries(<span class="self">self</span>.iter()).finish()
         } <span class="kw">else </span>{
             <span class="comment">// Let the inner `IndexMap` print all of its details
-            </span><a href="#117">f</a>.debug_struct(<span class="string">&quot;IndexSet&quot;</span>).field(<span class="string">&quot;map&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="#117">self</a>.map).finish()
+            </span>f.debug_struct(<span class="string">&quot;IndexSet&quot;</span>).field(<span class="string">&quot;map&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.map).finish()
         }
     }
 }
@@ -2040,7 +2040,7 @@
 </span><span class="kw">impl</span>&lt;T&gt; IndexSet&lt;T&gt; {
     <span class="doccomment">/// Create a new set. (Does not allocate.)
     </span><span class="kw">pub fn </span>new() -&gt; <span class="self">Self </span>{
-        <a href="#63">IndexSet</a> {
+        IndexSet {
             map: IndexMap::new(),
         }
     }
@@ -2049,9 +2049,9 @@
     /// (Does not allocate if `n` is zero.)
     ///
     /// Computes in **O(n)** time.
-    </span><span class="kw">pub fn </span>with_capacity(n: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="self">Self </span>{
-        <a href="#63">IndexSet</a> {
-            map: IndexMap::with_capacity(<a href="#140">n</a>),
+    </span><span class="kw">pub fn </span>with_capacity(n: usize) -&gt; <span class="self">Self </span>{
+        IndexSet {
+            map: IndexMap::with_capacity(n),
         }
     }
 }
@@ -2061,9 +2061,9 @@
     /// (Does not allocate if `n` is zero.)
     ///
     /// Computes in **O(n)** time.
-    </span><span class="kw">pub fn </span>with_capacity_and_hasher(n: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, hash_builder: S) -&gt; <span class="self">Self </span>{
-        <a href="#63">IndexSet</a> {
-            map: IndexMap::with_capacity_and_hasher(<a href="#152">n</a>, <a href="#152">hash_builder</a>),
+    </span><span class="kw">pub fn </span>with_capacity_and_hasher(n: usize, hash_builder: S) -&gt; <span class="self">Self </span>{
+        IndexSet {
+            map: IndexMap::with_capacity_and_hasher(n, hash_builder),
         }
     }
 
@@ -2072,39 +2072,39 @@
     /// This function is `const`, so it
     /// can be called in `static` contexts.
     </span><span class="kw">pub const fn </span>with_hasher(hash_builder: S) -&gt; <span class="self">Self </span>{
-        <a href="#63">IndexSet</a> {
-            map: IndexMap::with_hasher(<a href="#162">hash_builder</a>),
+        IndexSet {
+            map: IndexMap::with_hasher(hash_builder),
         }
     }
 
     <span class="doccomment">/// Computes in **O(1)** time.
-    </span><span class="kw">pub fn </span>capacity(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="self" href="#169">self</a>.map.<a href="map.rs.html#190">capacity</a>()
+    </span><span class="kw">pub fn </span>capacity(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+        <span class="self">self</span>.map.capacity()
     }
 
     <span class="doccomment">/// Return a reference to the set&#39;s `BuildHasher`.
     </span><span class="kw">pub fn </span>hasher(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>S {
-        <a class="self" href="#174">self</a>.map.<a href="map.rs.html#195">hasher</a>()
+        <span class="self">self</span>.map.hasher()
     }
 
     <span class="doccomment">/// Return the number of elements in the set.
     ///
     /// Computes in **O(1)** time.
-    </span><span class="kw">pub fn </span>len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="self" href="#181">self</a>.map.<a href="map.rs.html#203">len</a>()
+    </span><span class="kw">pub fn </span>len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+        <span class="self">self</span>.map.len()
     }
 
     <span class="doccomment">/// Returns true if the set contains no elements.
     ///
     /// Computes in **O(1)** time.
-    </span><span class="kw">pub fn </span>is_empty(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#188">self</a>.map.<a href="map.rs.html#211">is_empty</a>()
+    </span><span class="kw">pub fn </span>is_empty(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.map.is_empty()
     }
 
     <span class="doccomment">/// Return an iterator over the values of the set, in their order
     </span><span class="kw">pub fn </span>iter(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Iter&lt;<span class="lifetime">&#39;_</span>, T&gt; {
-        <a href="#807">Iter</a> {
-            iter: <a class="self" href="#193">self</a>.map.<a href="lib.rs.html#189">as_entries</a>().iter(),
+        Iter {
+            iter: <span class="self">self</span>.map.as_entries().iter(),
         }
     }
 
@@ -2112,14 +2112,14 @@
     ///
     /// Computes in **O(n)** time.
     </span><span class="kw">pub fn </span>clear(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <a class="self" href="#202">self</a>.map.<a href="map.rs.html#268">clear</a>();
+        <span class="self">self</span>.map.clear();
     }
 
     <span class="doccomment">/// Shortens the set, keeping the first `len` elements and dropping the rest.
     ///
     /// If `len` is greater than the set&#39;s current length, this has no effect.
-    </span><span class="kw">pub fn </span>truncate(<span class="kw-2">&amp;mut </span><span class="self">self</span>, len: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
-        <a class="self" href="#209">self</a>.map.<a href="map.rs.html#275">truncate</a>(<a href="#209">len</a>);
+    </span><span class="kw">pub fn </span>truncate(<span class="kw-2">&amp;mut </span><span class="self">self</span>, len: usize) {
+        <span class="self">self</span>.map.truncate(len);
     }
 
     <span class="doccomment">/// Clears the `IndexSet` in the given index range, returning those values
@@ -2137,10 +2137,10 @@
     /// the end point is greater than the length of the set.
     </span><span class="kw">pub fn </span>drain&lt;R&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, range: R) -&gt; Drain&lt;<span class="lifetime">&#39;_</span>, T&gt;
     <span class="kw">where
-        </span>R: RangeBounds&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;,
+        </span>R: RangeBounds&lt;usize&gt;,
     {
-        <a href="#850">Drain</a> {
-            iter: <a class="self" href="#226">self</a>.map.<a href="map.rs.html#292-294">drain</a>(<a href="#226">range</a>).iter,
+        Drain {
+            iter: <span class="self">self</span>.map.drain(range).iter,
         }
     }
 
@@ -2151,40 +2151,40 @@
     /// the elements `[0, at)` with its previous capacity unchanged.
     ///
     /// ***Panics*** if `at &gt; len`.
-    </span><span class="kw">pub fn </span>split_off(<span class="kw-2">&amp;mut </span><span class="self">self</span>, at: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="self">Self
+    </span><span class="kw">pub fn </span>split_off(<span class="kw-2">&amp;mut </span><span class="self">self</span>, at: usize) -&gt; <span class="self">Self
     </span><span class="kw">where
-        </span>S: <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a>,
+        </span>S: Clone,
     {
         <span class="self">Self </span>{
-            map: <a class="self" href="#242">self</a>.map.<a href="map.rs.html#308-310">split_off</a>(<a href="#242">at</a>),
+            map: <span class="self">self</span>.map.split_off(at),
         }
     }
 }
 
 <span class="kw">impl</span>&lt;T, S&gt; IndexSet&lt;T, S&gt;
 <span class="kw">where
-    </span>T: <a href="https://doc.rust-lang.org/nightly/core/hash/trait.Hash.html">Hash</a> + <a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Eq.html">Eq</a>,
-    S: <a href="https://doc.rust-lang.org/nightly/core/hash/trait.BuildHasher.html">BuildHasher</a>,
+    </span>T: Hash + Eq,
+    S: BuildHasher,
 {
     <span class="doccomment">/// Reserve capacity for `additional` more values.
     ///
     /// Computes in **O(n)** time.
-    </span><span class="kw">pub fn </span>reserve(<span class="kw-2">&amp;mut </span><span class="self">self</span>, additional: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
-        <a class="self" href="#260">self</a>.map.<a href="map.rs.html#327">reserve</a>(<a href="#260">additional</a>);
+    </span><span class="kw">pub fn </span>reserve(<span class="kw-2">&amp;mut </span><span class="self">self</span>, additional: usize) {
+        <span class="self">self</span>.map.reserve(additional);
     }
 
     <span class="doccomment">/// Shrink the capacity of the set as much as possible.
     ///
     /// Computes in **O(n)** time.
     </span><span class="kw">pub fn </span>shrink_to_fit(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <a class="self" href="#267">self</a>.map.<a href="map.rs.html#334">shrink_to_fit</a>();
+        <span class="self">self</span>.map.shrink_to_fit();
     }
 
     <span class="doccomment">/// Shrink the capacity of the set with a lower limit.
     ///
     /// Computes in **O(n)** time.
-    </span><span class="kw">pub fn </span>shrink_to(<span class="kw-2">&amp;mut </span><span class="self">self</span>, min_capacity: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
-        <a class="self" href="#274">self</a>.map.<a href="map.rs.html#341">shrink_to</a>(<a href="#274">min_capacity</a>);
+    </span><span class="kw">pub fn </span>shrink_to(<span class="kw-2">&amp;mut </span><span class="self">self</span>, min_capacity: usize) {
+        <span class="self">self</span>.map.shrink_to(min_capacity);
     }
 
     <span class="doccomment">/// Insert the value into the set.
@@ -2195,8 +2195,8 @@
     /// item and returns `true`.
     ///
     /// Computes in **O(1)** time (amortized average).
-    </span><span class="kw">pub fn </span>insert(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: T) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#286">self</a>.map.<a href="map.rs.html#364">insert</a>(<a href="#286">value</a>, ()).is_none()
+    </span><span class="kw">pub fn </span>insert(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: T) -&gt; bool {
+        <span class="self">self</span>.map.insert(value, ()).is_none()
     }
 
     <span class="doccomment">/// Insert the value into the set, and get its index.
@@ -2208,15 +2208,15 @@
     /// of the inserted item and `true`.
     ///
     /// Computes in **O(1)** time (amortized average).
-    </span><span class="kw">pub fn </span>insert_full(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: T) -&gt; (<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) {
-        <span class="kw">use </span><a href="map/core.rs.html#492"><span class="kw">super</span>::map::Entry</a>::<span class="kw-2">*</span>;
+    </span><span class="kw">pub fn </span>insert_full(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: T) -&gt; (usize, bool) {
+        <span class="kw">use </span><span class="kw">super</span>::map::Entry::<span class="kw-2">*</span>;
 
-        <span class="kw">match </span><a class="self" href="#299">self</a>.map.<a href="map.rs.html#390">entry</a>(<a href="#299">value</a>) {
-            <a href="map/core.rs.html#494">Occupied</a>(e) =&gt; (<a href="#303">e</a>.<a href="map/core/raw.rs.html#152">index</a>(), <span class="bool-val">false</span>),
-            <a href="map/core.rs.html#496">Vacant</a>(e) =&gt; {
-                <span class="kw">let </span>index = <a href="#304">e</a>.<a href="map/core.rs.html#675">index</a>();
-                <a href="#304">e</a>.<a href="map/core.rs.html#681">insert</a>(());
-                (<a href="#305">index</a>, <span class="bool-val">true</span>)
+        <span class="kw">match </span><span class="self">self</span>.map.entry(value) {
+            Occupied(e) =&gt; (e.index(), <span class="bool-val">false</span>),
+            Vacant(e) =&gt; {
+                <span class="kw">let </span>index = e.index();
+                e.insert(());
+                (index, <span class="bool-val">true</span>)
             }
         }
     }
@@ -2226,11 +2226,11 @@
     /// Values are produced in the same order that they appear in `self`.
     </span><span class="kw">pub fn </span>difference&lt;<span class="lifetime">&#39;a</span>, S2&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>IndexSet&lt;T, S2&gt;) -&gt; Difference&lt;<span class="lifetime">&#39;a</span>, T, S2&gt;
     <span class="kw">where
-        </span>S2: <a href="https://doc.rust-lang.org/nightly/core/hash/trait.BuildHasher.html">BuildHasher</a>,
+        </span>S2: BuildHasher,
     {
-        <a href="#1024">Difference</a> {
-            iter: <a class="self" href="#315">self</a>.<a href="#193">iter</a>(),
-            <a href="#315">other</a>,
+        Difference {
+            iter: <span class="self">self</span>.iter(),
+            other,
         }
     }
 
@@ -2244,10 +2244,10 @@
         other: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>IndexSet&lt;T, S2&gt;,
     ) -&gt; SymmetricDifference&lt;<span class="lifetime">&#39;a</span>, T, S, S2&gt;
     <span class="kw">where
-        </span>S2: <a href="https://doc.rust-lang.org/nightly/core/hash/trait.BuildHasher.html">BuildHasher</a>,
+        </span>S2: BuildHasher,
     {
-        <a href="#1172">SymmetricDifference</a> {
-            iter: <a class="self" href="#331">self</a>.<a href="#315-317">difference</a>(<a href="#332">other</a>).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">chain</a>(<a href="#332">other</a>.<a href="#315-317">difference</a>(<a class="self" href="#331">self</a>)),
+        SymmetricDifference {
+            iter: <span class="self">self</span>.difference(other).chain(other.difference(<span class="self">self</span>)),
         }
     }
 
@@ -2256,11 +2256,11 @@
     /// Values are produced in the same order that they appear in `self`.
     </span><span class="kw">pub fn </span>intersection&lt;<span class="lifetime">&#39;a</span>, S2&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>IndexSet&lt;T, S2&gt;) -&gt; Intersection&lt;<span class="lifetime">&#39;a</span>, T, S2&gt;
     <span class="kw">where
-        </span>S2: <a href="https://doc.rust-lang.org/nightly/core/hash/trait.BuildHasher.html">BuildHasher</a>,
+        </span>S2: BuildHasher,
     {
-        <a href="#1098">Intersection</a> {
-            iter: <a class="self" href="#345">self</a>.<a href="#193">iter</a>(),
-            <a href="#345">other</a>,
+        Intersection {
+            iter: <span class="self">self</span>.iter(),
+            other,
         }
     }
 
@@ -2270,48 +2270,48 @@
     /// values that are unique to `other` in their original order.
     </span><span class="kw">pub fn </span>union&lt;<span class="lifetime">&#39;a</span>, S2&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>IndexSet&lt;T, S2&gt;) -&gt; Union&lt;<span class="lifetime">&#39;a</span>, T, S&gt;
     <span class="kw">where
-        </span>S2: <a href="https://doc.rust-lang.org/nightly/core/hash/trait.BuildHasher.html">BuildHasher</a>,
+        </span>S2: BuildHasher,
     {
-        <a href="#1252">Union</a> {
-            iter: <a class="self" href="#359">self</a>.<a href="#193">iter</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">chain</a>(<a href="#359">other</a>.<a href="#315-317">difference</a>(<a class="self" href="#359">self</a>)),
+        Union {
+            iter: <span class="self">self</span>.iter().chain(other.difference(<span class="self">self</span>)),
         }
     }
 
     <span class="doccomment">/// Return `true` if an equivalent to `value` exists in the set.
     ///
     /// Computes in **O(1)** time (average).
-    </span><span class="kw">pub fn </span>contains&lt;Q: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, value: <span class="kw-2">&amp;</span>Q) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>
+    </span><span class="kw">pub fn </span>contains&lt;Q: <span class="question-mark">?</span>Sized&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, value: <span class="kw-2">&amp;</span>Q) -&gt; bool
     <span class="kw">where
-        </span>Q: <a href="https://doc.rust-lang.org/nightly/core/hash/trait.Hash.html">Hash</a> + Equivalent&lt;T&gt;,
+        </span>Q: Hash + Equivalent&lt;T&gt;,
     {
-        <a class="self" href="#371">self</a>.map.<a href="map.rs.html#398-400">contains_key</a>(<a href="#371">value</a>)
+        <span class="self">self</span>.map.contains_key(value)
     }
 
     <span class="doccomment">/// Return a reference to the value stored in the set, if it is present,
     /// else `None`.
     ///
     /// Computes in **O(1)** time (average).
-    </span><span class="kw">pub fn </span>get&lt;Q: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, value: <span class="kw-2">&amp;</span>Q) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>T&gt;
+    </span><span class="kw">pub fn </span>get&lt;Q: <span class="question-mark">?</span>Sized&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, value: <span class="kw-2">&amp;</span>Q) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>T&gt;
     <span class="kw">where
-        </span>Q: <a href="https://doc.rust-lang.org/nightly/core/hash/trait.Hash.html">Hash</a> + Equivalent&lt;T&gt;,
+        </span>Q: Hash + Equivalent&lt;T&gt;,
     {
-        <a class="self" href="#382">self</a>.map.<a href="map.rs.html#425-427">get_key_value</a>(<a href="#382">value</a>).map(|(x, <span class="kw-2">&amp;</span>())| <a href="#386">x</a>)
+        <span class="self">self</span>.map.get_key_value(value).map(|(x, <span class="kw-2">&amp;</span>())| x)
     }
 
     <span class="doccomment">/// Return item index and value
-    </span><span class="kw">pub fn </span>get_full&lt;Q: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, value: <span class="kw-2">&amp;</span>Q) -&gt; <span class="prelude-ty">Option</span>&lt;(<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="kw-2">&amp;</span>T)&gt;
+    </span><span class="kw">pub fn </span>get_full&lt;Q: <span class="question-mark">?</span>Sized&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, value: <span class="kw-2">&amp;</span>Q) -&gt; <span class="prelude-ty">Option</span>&lt;(usize, <span class="kw-2">&amp;</span>T)&gt;
     <span class="kw">where
-        </span>Q: <a href="https://doc.rust-lang.org/nightly/core/hash/trait.Hash.html">Hash</a> + Equivalent&lt;T&gt;,
+        </span>Q: Hash + Equivalent&lt;T&gt;,
     {
-        <a class="self" href="#390">self</a>.map.<a href="map.rs.html#438-440">get_full</a>(<a href="#390">value</a>).map(|(i, x, <span class="kw-2">&amp;</span>())| (<a href="#394">i</a>, <a href="#394">x</a>))
+        <span class="self">self</span>.map.get_full(value).map(|(i, x, <span class="kw-2">&amp;</span>())| (i, x))
     }
 
     <span class="doccomment">/// Return item index, if it exists in the set
-    </span><span class="kw">pub fn </span>get_index_of&lt;Q: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, value: <span class="kw-2">&amp;</span>Q) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;
+    </span><span class="kw">pub fn </span>get_index_of&lt;Q: <span class="question-mark">?</span>Sized&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, value: <span class="kw-2">&amp;</span>Q) -&gt; <span class="prelude-ty">Option</span>&lt;usize&gt;
     <span class="kw">where
-        </span>Q: <a href="https://doc.rust-lang.org/nightly/core/hash/trait.Hash.html">Hash</a> + Equivalent&lt;T&gt;,
+        </span>Q: Hash + Equivalent&lt;T&gt;,
     {
-        <a class="self" href="#398">self</a>.map.<a href="map.rs.html#453-455">get_index_of</a>(<a href="#398">value</a>)
+        <span class="self">self</span>.map.get_index_of(value)
     }
 
     <span class="doccomment">/// Adds a value to the set, replacing the existing value, if any, that is
@@ -2320,7 +2320,7 @@
     ///
     /// Computes in **O(1)** time (average).
     </span><span class="kw">pub fn </span>replace(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: T) -&gt; <span class="prelude-ty">Option</span>&lt;T&gt; {
-        <a class="self" href="#410">self</a>.<a href="#419">replace_full</a>(<a href="#410">value</a>).<span class="number">1
+        <span class="self">self</span>.replace_full(value).<span class="number">1
     </span>}
 
     <span class="doccomment">/// Adds a value to the set, replacing the existing value, if any, that is
@@ -2328,16 +2328,16 @@
     /// the index of the item and its replaced value.
     ///
     /// Computes in **O(1)** time (average).
-    </span><span class="kw">pub fn </span>replace_full(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: T) -&gt; (<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="prelude-ty">Option</span>&lt;T&gt;) {
-        <span class="kw">use </span><a href="map/core.rs.html#492"><span class="kw">super</span>::map::Entry</a>::<span class="kw-2">*</span>;
+    </span><span class="kw">pub fn </span>replace_full(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: T) -&gt; (usize, <span class="prelude-ty">Option</span>&lt;T&gt;) {
+        <span class="kw">use </span><span class="kw">super</span>::map::Entry::<span class="kw-2">*</span>;
 
-        <span class="kw">match </span><a class="self" href="#419">self</a>.map.<a href="map.rs.html#390">entry</a>(<a href="#419">value</a>) {
-            <a href="map/core.rs.html#496">Vacant</a>(e) =&gt; {
-                <span class="kw">let </span>index = <a href="#423">e</a>.<a href="map/core.rs.html#675">index</a>();
-                <a href="#423">e</a>.<a href="map/core.rs.html#681">insert</a>(());
-                (<a href="#424">index</a>, <span class="prelude-val">None</span>)
+        <span class="kw">match </span><span class="self">self</span>.map.entry(value) {
+            Vacant(e) =&gt; {
+                <span class="kw">let </span>index = e.index();
+                e.insert(());
+                (index, <span class="prelude-val">None</span>)
             }
-            <a href="map/core.rs.html#494">Occupied</a>(e) =&gt; (<a href="#428">e</a>.<a href="map/core/raw.rs.html#152">index</a>(), <span class="prelude-val">Some</span>(<a href="#428">e</a>.<a href="map/core/raw.rs.html#144">replace_key</a>())),
+            Occupied(e) =&gt; (e.index(), <span class="prelude-val">Some</span>(e.replace_key())),
         }
     }
 
@@ -2347,11 +2347,11 @@
     /// to preserve the order of the values in the set, use `.shift_remove(value)`.
     ///
     /// Computes in **O(1)** time (average).
-    </span><span class="kw">pub fn </span>remove&lt;Q: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: <span class="kw-2">&amp;</span>Q) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>
+    </span><span class="kw">pub fn </span>remove&lt;Q: <span class="question-mark">?</span>Sized&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: <span class="kw-2">&amp;</span>Q) -&gt; bool
     <span class="kw">where
-        </span>Q: <a href="https://doc.rust-lang.org/nightly/core/hash/trait.Hash.html">Hash</a> + Equivalent&lt;T&gt;,
+        </span>Q: Hash + Equivalent&lt;T&gt;,
     {
-        <a class="self" href="#438">self</a>.<a href="#454-456">swap_remove</a>(<a href="#438">value</a>)
+        <span class="self">self</span>.swap_remove(value)
     }
 
     <span class="doccomment">/// Remove the value from the set, and return `true` if it was present.
@@ -2363,11 +2363,11 @@
     /// Return `false` if `value` was not in the set.
     ///
     /// Computes in **O(1)** time (average).
-    </span><span class="kw">pub fn </span>swap_remove&lt;Q: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: <span class="kw-2">&amp;</span>Q) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>
+    </span><span class="kw">pub fn </span>swap_remove&lt;Q: <span class="question-mark">?</span>Sized&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: <span class="kw-2">&amp;</span>Q) -&gt; bool
     <span class="kw">where
-        </span>Q: <a href="https://doc.rust-lang.org/nightly/core/hash/trait.Hash.html">Hash</a> + Equivalent&lt;T&gt;,
+        </span>Q: Hash + Equivalent&lt;T&gt;,
     {
-        <a class="self" href="#454">self</a>.map.<a href="map.rs.html#543-545">swap_remove</a>(<a href="#454">value</a>).is_some()
+        <span class="self">self</span>.map.swap_remove(value).is_some()
     }
 
     <span class="doccomment">/// Remove the value from the set, and return `true` if it was present.
@@ -2379,11 +2379,11 @@
     /// Return `false` if `value` was not in the set.
     ///
     /// Computes in **O(n)** time (average).
-    </span><span class="kw">pub fn </span>shift_remove&lt;Q: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: <span class="kw-2">&amp;</span>Q) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>
+    </span><span class="kw">pub fn </span>shift_remove&lt;Q: <span class="question-mark">?</span>Sized&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: <span class="kw-2">&amp;</span>Q) -&gt; bool
     <span class="kw">where
-        </span>Q: <a href="https://doc.rust-lang.org/nightly/core/hash/trait.Hash.html">Hash</a> + Equivalent&lt;T&gt;,
+        </span>Q: Hash + Equivalent&lt;T&gt;,
     {
-        <a class="self" href="#470">self</a>.map.<a href="map.rs.html#600-602">shift_remove</a>(<a href="#470">value</a>).is_some()
+        <span class="self">self</span>.map.shift_remove(value).is_some()
     }
 
     <span class="doccomment">/// Removes and returns the value in the set, if any, that is equal to the
@@ -2394,11 +2394,11 @@
     /// instead.
     ///
     /// Computes in **O(1)** time (average).
-    </span><span class="kw">pub fn </span>take&lt;Q: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: <span class="kw-2">&amp;</span>Q) -&gt; <span class="prelude-ty">Option</span>&lt;T&gt;
+    </span><span class="kw">pub fn </span>take&lt;Q: <span class="question-mark">?</span>Sized&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: <span class="kw-2">&amp;</span>Q) -&gt; <span class="prelude-ty">Option</span>&lt;T&gt;
     <span class="kw">where
-        </span>Q: <a href="https://doc.rust-lang.org/nightly/core/hash/trait.Hash.html">Hash</a> + Equivalent&lt;T&gt;,
+        </span>Q: Hash + Equivalent&lt;T&gt;,
     {
-        <a class="self" href="#485">self</a>.<a href="#502-504">swap_take</a>(<a href="#485">value</a>)
+        <span class="self">self</span>.swap_take(value)
     }
 
     <span class="doccomment">/// Removes and returns the value in the set, if any, that is equal to the
@@ -2411,11 +2411,11 @@
     /// Return `None` if `value` was not in the set.
     ///
     /// Computes in **O(1)** time (average).
-    </span><span class="kw">pub fn </span>swap_take&lt;Q: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: <span class="kw-2">&amp;</span>Q) -&gt; <span class="prelude-ty">Option</span>&lt;T&gt;
+    </span><span class="kw">pub fn </span>swap_take&lt;Q: <span class="question-mark">?</span>Sized&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: <span class="kw-2">&amp;</span>Q) -&gt; <span class="prelude-ty">Option</span>&lt;T&gt;
     <span class="kw">where
-        </span>Q: <a href="https://doc.rust-lang.org/nightly/core/hash/trait.Hash.html">Hash</a> + Equivalent&lt;T&gt;,
+        </span>Q: Hash + Equivalent&lt;T&gt;,
     {
-        <a class="self" href="#502">self</a>.map.<a href="map.rs.html#559-561">swap_remove_entry</a>(<a href="#502">value</a>).map(|(x, ())| <a href="#506">x</a>)
+        <span class="self">self</span>.map.swap_remove_entry(value).map(|(x, ())| x)
     }
 
     <span class="doccomment">/// Removes and returns the value in the set, if any, that is equal to the
@@ -2428,11 +2428,11 @@
     /// Return `None` if `value` was not in the set.
     ///
     /// Computes in **O(n)** time (average).
-    </span><span class="kw">pub fn </span>shift_take&lt;Q: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: <span class="kw-2">&amp;</span>Q) -&gt; <span class="prelude-ty">Option</span>&lt;T&gt;
+    </span><span class="kw">pub fn </span>shift_take&lt;Q: <span class="question-mark">?</span>Sized&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: <span class="kw-2">&amp;</span>Q) -&gt; <span class="prelude-ty">Option</span>&lt;T&gt;
     <span class="kw">where
-        </span>Q: <a href="https://doc.rust-lang.org/nightly/core/hash/trait.Hash.html">Hash</a> + Equivalent&lt;T&gt;,
+        </span>Q: Hash + Equivalent&lt;T&gt;,
     {
-        <a class="self" href="#519">self</a>.map.<a href="map.rs.html#616-618">shift_remove_entry</a>(<a href="#519">value</a>).map(|(x, ())| <a href="#523">x</a>)
+        <span class="self">self</span>.map.shift_remove_entry(value).map(|(x, ())| x)
     }
 
     <span class="doccomment">/// Remove the value from the set return it and the index it had.
@@ -2442,11 +2442,11 @@
     /// the position of what used to be the last element!**
     ///
     /// Return `None` if `value` was not in the set.
-    </span><span class="kw">pub fn </span>swap_remove_full&lt;Q: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: <span class="kw-2">&amp;</span>Q) -&gt; <span class="prelude-ty">Option</span>&lt;(<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, T)&gt;
+    </span><span class="kw">pub fn </span>swap_remove_full&lt;Q: <span class="question-mark">?</span>Sized&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: <span class="kw-2">&amp;</span>Q) -&gt; <span class="prelude-ty">Option</span>&lt;(usize, T)&gt;
     <span class="kw">where
-        </span>Q: <a href="https://doc.rust-lang.org/nightly/core/hash/trait.Hash.html">Hash</a> + Equivalent&lt;T&gt;,
+        </span>Q: Hash + Equivalent&lt;T&gt;,
     {
-        <a class="self" href="#533">self</a>.map.<a href="map.rs.html#579-581">swap_remove_full</a>(<a href="#533">value</a>).map(|(i, x, ())| (<a href="#537">i</a>, <a href="#537">x</a>))
+        <span class="self">self</span>.map.swap_remove_full(value).map(|(i, x, ())| (i, x))
     }
 
     <span class="doccomment">/// Remove the value from the set return it and the index it had.
@@ -2456,11 +2456,11 @@
     /// **This perturbs the index of all of those elements!**
     ///
     /// Return `None` if `value` was not in the set.
-    </span><span class="kw">pub fn </span>shift_remove_full&lt;Q: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: <span class="kw-2">&amp;</span>Q) -&gt; <span class="prelude-ty">Option</span>&lt;(<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, T)&gt;
+    </span><span class="kw">pub fn </span>shift_remove_full&lt;Q: <span class="question-mark">?</span>Sized&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: <span class="kw-2">&amp;</span>Q) -&gt; <span class="prelude-ty">Option</span>&lt;(usize, T)&gt;
     <span class="kw">where
-        </span>Q: <a href="https://doc.rust-lang.org/nightly/core/hash/trait.Hash.html">Hash</a> + Equivalent&lt;T&gt;,
+        </span>Q: Hash + Equivalent&lt;T&gt;,
     {
-        <a class="self" href="#547">self</a>.map.<a href="map.rs.html#636-638">shift_remove_full</a>(<a href="#547">value</a>).map(|(i, x, ())| (<a href="#551">i</a>, <a href="#551">x</a>))
+        <span class="self">self</span>.map.shift_remove_full(value).map(|(i, x, ())| (i, x))
     }
 
     <span class="doccomment">/// Remove the last value
@@ -2469,7 +2469,7 @@
     ///
     /// Computes in **O(1)** time (average).
     </span><span class="kw">pub fn </span>pop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;T&gt; {
-        <a class="self" href="#559">self</a>.map.<a href="map.rs.html#652">pop</a>().map(|(x, ())| <a href="#560">x</a>)
+        <span class="self">self</span>.map.pop().map(|(x, ())| x)
     }
 
     <span class="doccomment">/// Scan through each value in the set and keep those where the
@@ -2481,9 +2481,9 @@
     /// Computes in **O(n)** time (average).
     </span><span class="kw">pub fn </span>retain&lt;F&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, <span class="kw-2">mut </span>keep: F)
     <span class="kw">where
-        </span>F: FnMut(<span class="kw-2">&amp;</span>T) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
+        </span>F: FnMut(<span class="kw-2">&amp;</span>T) -&gt; bool,
     {
-        <a class="self" href="#570">self</a>.map.<a href="map.rs.html#663-665">retain</a>(<span class="kw">move </span>|x, <span class="kw-2">&amp;mut </span>()| <a href="#570">keep</a>(<a href="#574">x</a>))
+        <span class="self">self</span>.map.retain(<span class="kw">move </span>|x, <span class="kw-2">&amp;mut </span>()| keep(x))
     }
 
     <span class="doccomment">/// Sort the set’s values by their default ordering.
@@ -2491,9 +2491,9 @@
     /// See [`sort_by`](Self::sort_by) for details.
     </span><span class="kw">pub fn </span>sort(<span class="kw-2">&amp;mut </span><span class="self">self</span>)
     <span class="kw">where
-        </span>T: <a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Ord.html">Ord</a>,
+        </span>T: Ord,
     {
-        <a class="self" href="#580">self</a>.map.<a href="map.rs.html#680-682">sort_keys</a>()
+        <span class="self">self</span>.map.sort_keys()
     }
 
     <span class="doccomment">/// Sort the set’s values in place using the comparison function `cmp`.
@@ -2501,9 +2501,9 @@
     /// Computes in **O(n log n)** time and **O(n)** space. The sort is stable.
     </span><span class="kw">pub fn </span>sort_by&lt;F&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, <span class="kw-2">mut </span>cmp: F)
     <span class="kw">where
-        </span>F: FnMut(<span class="kw-2">&amp;</span>T, <span class="kw-2">&amp;</span>T) -&gt; <a href="https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html">Ordering</a>,
+        </span>F: FnMut(<span class="kw-2">&amp;</span>T, <span class="kw-2">&amp;</span>T) -&gt; Ordering,
     {
-        <a class="self" href="#590">self</a>.map.<a href="map.rs.html#697-699">sort_by</a>(<span class="kw">move </span>|a, <span class="kw">_</span>, b, <span class="kw">_</span>| <a href="#590">cmp</a>(<a href="#594">a</a>, <a href="#594">b</a>));
+        <span class="self">self</span>.map.sort_by(<span class="kw">move </span>|a, <span class="kw">_</span>, b, <span class="kw">_</span>| cmp(a, b));
     }
 
     <span class="doccomment">/// Sort the values of the set and return a by-value iterator of
@@ -2512,12 +2512,12 @@
     /// The sort is stable.
     </span><span class="kw">pub fn </span>sorted_by&lt;F&gt;(<span class="self">self</span>, <span class="kw-2">mut </span>cmp: F) -&gt; IntoIter&lt;T&gt;
     <span class="kw">where
-        </span>F: FnMut(<span class="kw-2">&amp;</span>T, <span class="kw-2">&amp;</span>T) -&gt; <a href="https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html">Ordering</a>,
+        </span>F: FnMut(<span class="kw-2">&amp;</span>T, <span class="kw-2">&amp;</span>T) -&gt; Ordering,
     {
-        <span class="kw">let </span><span class="kw-2">mut </span>entries = <a class="self" href="#601">self</a>.<a href="lib.rs.html#188">into_entries</a>();
-        <a href="#605">entries</a>.sort_by(<span class="kw">move </span>|a, b| <a href="#601">cmp</a>(<span class="kw-2">&amp;</span><a href="#606">a</a>.key, <span class="kw-2">&amp;</span><a href="#606">b</a>.key));
-        <a href="#771">IntoIter</a> {
-            iter: <a href="#605">entries</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>(),
+        <span class="kw">let </span><span class="kw-2">mut </span>entries = <span class="self">self</span>.into_entries();
+        entries.sort_by(<span class="kw">move </span>|a, b| cmp(<span class="kw-2">&amp;</span>a.key, <span class="kw-2">&amp;</span>b.key));
+        IntoIter {
+            iter: entries.into_iter(),
         }
     }
 
@@ -2526,9 +2526,9 @@
     /// See [`sort_unstable_by`](Self::sort_unstable_by) for details.
     </span><span class="kw">pub fn </span>sort_unstable(<span class="kw-2">&amp;mut </span><span class="self">self</span>)
     <span class="kw">where
-        </span>T: <a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Ord.html">Ord</a>,
+        </span>T: Ord,
     {
-        <a class="self" href="#615">self</a>.map.<a href="map.rs.html#725-727">sort_unstable_keys</a>()
+        <span class="self">self</span>.map.sort_unstable_keys()
     }
 
     <span class="doccomment">/// Sort the set&#39;s values in place using the comparison funtion `cmp`.
@@ -2536,21 +2536,21 @@
     /// Computes in **O(n log n)** time. The sort is unstable.
     </span><span class="kw">pub fn </span>sort_unstable_by&lt;F&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, <span class="kw-2">mut </span>cmp: F)
     <span class="kw">where
-        </span>F: FnMut(<span class="kw-2">&amp;</span>T, <span class="kw-2">&amp;</span>T) -&gt; <a href="https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html">Ordering</a>,
+        </span>F: FnMut(<span class="kw-2">&amp;</span>T, <span class="kw-2">&amp;</span>T) -&gt; Ordering,
     {
-        <a class="self" href="#625">self</a>.map.<a href="map.rs.html#742-744">sort_unstable_by</a>(<span class="kw">move </span>|a, <span class="kw">_</span>, b, <span class="kw">_</span>| <a href="#625">cmp</a>(<a href="#629">a</a>, <a href="#629">b</a>))
+        <span class="self">self</span>.map.sort_unstable_by(<span class="kw">move </span>|a, <span class="kw">_</span>, b, <span class="kw">_</span>| cmp(a, b))
     }
 
     <span class="doccomment">/// Sort the values of the set and return a by-value iterator of
     /// the values with the result.
     </span><span class="kw">pub fn </span>sorted_unstable_by&lt;F&gt;(<span class="self">self</span>, <span class="kw-2">mut </span>cmp: F) -&gt; IntoIter&lt;T&gt;
     <span class="kw">where
-        </span>F: FnMut(<span class="kw-2">&amp;</span>T, <span class="kw-2">&amp;</span>T) -&gt; <a href="https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html">Ordering</a>,
+        </span>F: FnMut(<span class="kw-2">&amp;</span>T, <span class="kw-2">&amp;</span>T) -&gt; Ordering,
     {
-        <span class="kw">let </span><span class="kw-2">mut </span>entries = <a class="self" href="#634">self</a>.<a href="lib.rs.html#188">into_entries</a>();
-        <a href="#638">entries</a>.sort_unstable_by(<span class="kw">move </span>|a, b| <a href="#634">cmp</a>(<span class="kw-2">&amp;</span><a href="#639">a</a>.key, <span class="kw-2">&amp;</span><a href="#639">b</a>.key));
-        <a href="#771">IntoIter</a> {
-            iter: <a href="#638">entries</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>(),
+        <span class="kw">let </span><span class="kw-2">mut </span>entries = <span class="self">self</span>.into_entries();
+        entries.sort_unstable_by(<span class="kw">move </span>|a, b| cmp(<span class="kw-2">&amp;</span>a.key, <span class="kw-2">&amp;</span>b.key));
+        IntoIter {
+            iter: entries.into_iter(),
         }
     }
 
@@ -2558,7 +2558,7 @@
     ///
     /// Computes in **O(n)** time and **O(1)** space.
     </span><span class="kw">pub fn </span>reverse(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <a class="self" href="#648">self</a>.map.<a href="map.rs.html#770">reverse</a>()
+        <span class="self">self</span>.map.reverse()
     }
 }
 
@@ -2568,22 +2568,22 @@
     /// Valid indices are *0 &lt;= index &lt; self.len()*
     ///
     /// Computes in **O(1)** time.
-    </span><span class="kw">pub fn </span>get_index(<span class="kw-2">&amp;</span><span class="self">self</span>, index: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>T&gt; {
-        <a class="self" href="#659">self</a>.<a href="lib.rs.html#189">as_entries</a>().get(<a href="#659">index</a>).map(Bucket::key_ref)
+    </span><span class="kw">pub fn </span>get_index(<span class="kw-2">&amp;</span><span class="self">self</span>, index: usize) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>T&gt; {
+        <span class="self">self</span>.as_entries().get(index).map(Bucket::key_ref)
     }
 
     <span class="doccomment">/// Get the first value
     ///
     /// Computes in **O(1)** time.
     </span><span class="kw">pub fn </span>first(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>T&gt; {
-        <a class="self" href="#666">self</a>.<a href="lib.rs.html#189">as_entries</a>().first().map(Bucket::key_ref)
+        <span class="self">self</span>.as_entries().first().map(Bucket::key_ref)
     }
 
     <span class="doccomment">/// Get the last value
     ///
     /// Computes in **O(1)** time.
     </span><span class="kw">pub fn </span>last(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>T&gt; {
-        <a class="self" href="#673">self</a>.<a href="lib.rs.html#189">as_entries</a>().last().map(Bucket::key_ref)
+        <span class="self">self</span>.as_entries().last().map(Bucket::key_ref)
     }
 
     <span class="doccomment">/// Remove the value by index
@@ -2595,8 +2595,8 @@
     /// the position of what used to be the last element!**
     ///
     /// Computes in **O(1)** time (average).
-    </span><span class="kw">pub fn </span>swap_remove_index(<span class="kw-2">&amp;mut </span><span class="self">self</span>, index: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="prelude-ty">Option</span>&lt;T&gt; {
-        <a class="self" href="#686">self</a>.map.<a href="map.rs.html#831">swap_remove_index</a>(<a href="#686">index</a>).map(|(x, ())| <a href="#687">x</a>)
+    </span><span class="kw">pub fn </span>swap_remove_index(<span class="kw-2">&amp;mut </span><span class="self">self</span>, index: usize) -&gt; <span class="prelude-ty">Option</span>&lt;T&gt; {
+        <span class="self">self</span>.map.swap_remove_index(index).map(|(x, ())| x)
     }
 
     <span class="doccomment">/// Remove the value by index
@@ -2608,8 +2608,8 @@
     /// **This perturbs the index of all of those elements!**
     ///
     /// Computes in **O(n)** time (average).
-    </span><span class="kw">pub fn </span>shift_remove_index(<span class="kw-2">&amp;mut </span><span class="self">self</span>, index: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="prelude-ty">Option</span>&lt;T&gt; {
-        <a class="self" href="#699">self</a>.map.<a href="map.rs.html#844">shift_remove_index</a>(<a href="#699">index</a>).map(|(x, ())| <a href="#700">x</a>)
+    </span><span class="kw">pub fn </span>shift_remove_index(<span class="kw-2">&amp;mut </span><span class="self">self</span>, index: usize) -&gt; <span class="prelude-ty">Option</span>&lt;T&gt; {
+        <span class="self">self</span>.map.shift_remove_index(index).map(|(x, ())| x)
     }
 
     <span class="doccomment">/// Moves the position of a value from one index to another
@@ -2621,15 +2621,15 @@
     /// ***Panics*** if `from` or `to` are out of bounds.
     ///
     /// Computes in **O(n)** time (average).
-    </span><span class="kw">pub fn </span>move_index(<span class="kw-2">&amp;mut </span><span class="self">self</span>, from: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, to: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
-        <a class="self" href="#712">self</a>.map.<a href="map.rs.html#857">move_index</a>(<a href="#712">from</a>, <a href="#712">to</a>)
+    </span><span class="kw">pub fn </span>move_index(<span class="kw-2">&amp;mut </span><span class="self">self</span>, from: usize, to: usize) {
+        <span class="self">self</span>.map.move_index(from, to)
     }
 
     <span class="doccomment">/// Swaps the position of two values in the set.
     ///
     /// ***Panics*** if `a` or `b` are out of bounds.
-    </span><span class="kw">pub fn </span>swap_indices(<span class="kw-2">&amp;mut </span><span class="self">self</span>, a: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, b: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
-        <a class="self" href="#719">self</a>.map.<a href="map.rs.html#864">swap_indices</a>(<a href="#719">a</a>, <a href="#719">b</a>)
+    </span><span class="kw">pub fn </span>swap_indices(<span class="kw-2">&amp;mut </span><span class="self">self</span>, a: usize, b: usize) {
+        <span class="self">self</span>.map.swap_indices(a, b)
     }
 }
 
@@ -2661,14 +2661,14 @@
 /// set.insert(&quot;foo&quot;);
 /// println!(&quot;{:?}&quot;, set[10]); // panics!
 /// ```
-</span><span class="kw">impl</span>&lt;T, S&gt; Index&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; <span class="kw">for </span>IndexSet&lt;T, S&gt; {
+</span><span class="kw">impl</span>&lt;T, S&gt; Index&lt;usize&gt; <span class="kw">for </span>IndexSet&lt;T, S&gt; {
     <span class="kw">type </span>Output = T;
 
     <span class="doccomment">/// Returns a reference to the value at the supplied `index`.
     ///
     /// ***Panics*** if `index` is out of bounds.
-    </span><span class="kw">fn </span>index(<span class="kw-2">&amp;</span><span class="self">self</span>, index: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="kw-2">&amp;</span>T {
-        <a class="self" href="#758">self</a>.<a href="#659">get_index</a>(<a href="#758">index</a>)
+    </span><span class="kw">fn </span>index(<span class="kw-2">&amp;</span><span class="self">self</span>, index: usize) -&gt; <span class="kw-2">&amp;</span>T {
+        <span class="self">self</span>.get_index(index)
             .expect(<span class="string">&quot;IndexSet: index out of bounds&quot;</span>)
     }
 }
@@ -2684,28 +2684,28 @@
     iter: vec::IntoIter&lt;Bucket&lt;T&gt;&gt;,
 }
 
-<span class="kw">impl</span>&lt;T&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a> <span class="kw">for </span>IntoIter&lt;T&gt; {
+<span class="kw">impl</span>&lt;T&gt; Iterator <span class="kw">for </span>IntoIter&lt;T&gt; {
     <span class="kw">type </span>Item = T;
 
-    <a class="macro" href="macros.rs.html#77-110">iterator_methods!</a>(Bucket::key);
+    <span class="macro">iterator_methods!</span>(Bucket::key);
 }
 
-<span class="kw">impl</span>&lt;T&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/double_ended/trait.DoubleEndedIterator.html">DoubleEndedIterator</a> <span class="kw">for </span>IntoIter&lt;T&gt; {
-    <a class="macro" href="macros.rs.html#112-124">double_ended_iterator_methods!</a>(Bucket::key);
+<span class="kw">impl</span>&lt;T&gt; DoubleEndedIterator <span class="kw">for </span>IntoIter&lt;T&gt; {
+    <span class="macro">double_ended_iterator_methods!</span>(Bucket::key);
 }
 
-<span class="kw">impl</span>&lt;T&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/exact_size/trait.ExactSizeIterator.html">ExactSizeIterator</a> <span class="kw">for </span>IntoIter&lt;T&gt; {
-    <span class="kw">fn </span>len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="self" href="#786">self</a>.iter.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/exact_size/trait.ExactSizeIterator.html">len</a>()
+<span class="kw">impl</span>&lt;T&gt; ExactSizeIterator <span class="kw">for </span>IntoIter&lt;T&gt; {
+    <span class="kw">fn </span>len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+        <span class="self">self</span>.iter.len()
     }
 }
 
-<span class="kw">impl</span>&lt;T&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/marker/trait.FusedIterator.html">FusedIterator</a> <span class="kw">for </span>IntoIter&lt;T&gt; {}
+<span class="kw">impl</span>&lt;T&gt; FusedIterator <span class="kw">for </span>IntoIter&lt;T&gt; {}
 
-<span class="kw">impl</span>&lt;T: <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span>IntoIter&lt;T&gt; {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <span class="kw">let </span>iter = <a class="self" href="#794">self</a>.iter.as_slice().iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(Bucket::key_ref);
-        <a href="#794">f</a>.debug_list().entries(<a href="#795">iter</a>).finish()
+<span class="kw">impl</span>&lt;T: fmt::Debug&gt; fmt::Debug <span class="kw">for </span>IntoIter&lt;T&gt; {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        <span class="kw">let </span>iter = <span class="self">self</span>.iter.as_slice().iter().map(Bucket::key_ref);
+        f.debug_list().entries(iter).finish()
     }
 }
 
@@ -2720,35 +2720,35 @@
     iter: slice::Iter&lt;<span class="lifetime">&#39;a</span>, Bucket&lt;T&gt;&gt;,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a> <span class="kw">for </span>Iter&lt;<span class="lifetime">&#39;a</span>, T&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T&gt; Iterator <span class="kw">for </span>Iter&lt;<span class="lifetime">&#39;a</span>, T&gt; {
     <span class="kw">type </span>Item = <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>T;
 
-    <a class="macro" href="macros.rs.html#77-110">iterator_methods!</a>(Bucket::key_ref);
+    <span class="macro">iterator_methods!</span>(Bucket::key_ref);
 }
 
-<span class="kw">impl</span>&lt;T&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/double_ended/trait.DoubleEndedIterator.html">DoubleEndedIterator</a> <span class="kw">for </span>Iter&lt;<span class="lifetime">&#39;_</span>, T&gt; {
-    <a class="macro" href="macros.rs.html#112-124">double_ended_iterator_methods!</a>(Bucket::key_ref);
+<span class="kw">impl</span>&lt;T&gt; DoubleEndedIterator <span class="kw">for </span>Iter&lt;<span class="lifetime">&#39;_</span>, T&gt; {
+    <span class="macro">double_ended_iterator_methods!</span>(Bucket::key_ref);
 }
 
-<span class="kw">impl</span>&lt;T&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/exact_size/trait.ExactSizeIterator.html">ExactSizeIterator</a> <span class="kw">for </span>Iter&lt;<span class="lifetime">&#39;_</span>, T&gt; {
-    <span class="kw">fn </span>len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="self" href="#822">self</a>.iter.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/exact_size/trait.ExactSizeIterator.html">len</a>()
+<span class="kw">impl</span>&lt;T&gt; ExactSizeIterator <span class="kw">for </span>Iter&lt;<span class="lifetime">&#39;_</span>, T&gt; {
+    <span class="kw">fn </span>len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+        <span class="self">self</span>.iter.len()
     }
 }
 
-<span class="kw">impl</span>&lt;T&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/marker/trait.FusedIterator.html">FusedIterator</a> <span class="kw">for </span>Iter&lt;<span class="lifetime">&#39;_</span>, T&gt; {}
+<span class="kw">impl</span>&lt;T&gt; FusedIterator <span class="kw">for </span>Iter&lt;<span class="lifetime">&#39;_</span>, T&gt; {}
 
-<span class="kw">impl</span>&lt;T&gt; <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> <span class="kw">for </span>Iter&lt;<span class="lifetime">&#39;_</span>, T&gt; {
+<span class="kw">impl</span>&lt;T&gt; Clone <span class="kw">for </span>Iter&lt;<span class="lifetime">&#39;_</span>, T&gt; {
     <span class="kw">fn </span>clone(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self </span>{
-        <a href="#807">Iter</a> {
-            iter: <a class="self" href="#830">self</a>.iter.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+        Iter {
+            iter: <span class="self">self</span>.iter.clone(),
         }
     }
 }
 
-<span class="kw">impl</span>&lt;T: <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span>Iter&lt;<span class="lifetime">&#39;_</span>, T&gt; {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a href="#838">f</a>.debug_list().entries(<a class="self" href="#838">self</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()).finish()
+<span class="kw">impl</span>&lt;T: fmt::Debug&gt; fmt::Debug <span class="kw">for </span>Iter&lt;<span class="lifetime">&#39;_</span>, T&gt; {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        f.debug_list().entries(<span class="self">self</span>.clone()).finish()
     }
 }
 
@@ -2763,68 +2763,68 @@
     iter: vec::Drain&lt;<span class="lifetime">&#39;a</span>, Bucket&lt;T&gt;&gt;,
 }
 
-<span class="kw">impl</span>&lt;T&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a> <span class="kw">for </span>Drain&lt;<span class="lifetime">&#39;_</span>, T&gt; {
+<span class="kw">impl</span>&lt;T&gt; Iterator <span class="kw">for </span>Drain&lt;<span class="lifetime">&#39;_</span>, T&gt; {
     <span class="kw">type </span>Item = T;
 
-    <a class="macro" href="macros.rs.html#77-110">iterator_methods!</a>(Bucket::key);
+    <span class="macro">iterator_methods!</span>(Bucket::key);
 }
 
-<span class="kw">impl</span>&lt;T&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/double_ended/trait.DoubleEndedIterator.html">DoubleEndedIterator</a> <span class="kw">for </span>Drain&lt;<span class="lifetime">&#39;_</span>, T&gt; {
-    <a class="macro" href="macros.rs.html#112-124">double_ended_iterator_methods!</a>(Bucket::key);
+<span class="kw">impl</span>&lt;T&gt; DoubleEndedIterator <span class="kw">for </span>Drain&lt;<span class="lifetime">&#39;_</span>, T&gt; {
+    <span class="macro">double_ended_iterator_methods!</span>(Bucket::key);
 }
 
-<span class="kw">impl</span>&lt;T&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/exact_size/trait.ExactSizeIterator.html">ExactSizeIterator</a> <span class="kw">for </span>Drain&lt;<span class="lifetime">&#39;_</span>, T&gt; {
-    <span class="kw">fn </span>len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="self" href="#865">self</a>.iter.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/exact_size/trait.ExactSizeIterator.html">len</a>()
+<span class="kw">impl</span>&lt;T&gt; ExactSizeIterator <span class="kw">for </span>Drain&lt;<span class="lifetime">&#39;_</span>, T&gt; {
+    <span class="kw">fn </span>len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+        <span class="self">self</span>.iter.len()
     }
 }
 
-<span class="kw">impl</span>&lt;T&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/marker/trait.FusedIterator.html">FusedIterator</a> <span class="kw">for </span>Drain&lt;<span class="lifetime">&#39;_</span>, T&gt; {}
+<span class="kw">impl</span>&lt;T&gt; FusedIterator <span class="kw">for </span>Drain&lt;<span class="lifetime">&#39;_</span>, T&gt; {}
 
-<span class="kw">impl</span>&lt;T: <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span>Drain&lt;<span class="lifetime">&#39;_</span>, T&gt; {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <span class="kw">let </span>iter = <a class="self" href="#873">self</a>.iter.as_slice().iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(Bucket::key_ref);
-        <a href="#873">f</a>.debug_list().entries(<a href="#874">iter</a>).finish()
+<span class="kw">impl</span>&lt;T: fmt::Debug&gt; fmt::Debug <span class="kw">for </span>Drain&lt;<span class="lifetime">&#39;_</span>, T&gt; {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        <span class="kw">let </span>iter = <span class="self">self</span>.iter.as_slice().iter().map(Bucket::key_ref);
+        f.debug_list().entries(iter).finish()
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T, S&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">IntoIterator</a> <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>IndexSet&lt;T, S&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T, S&gt; IntoIterator <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>IndexSet&lt;T, S&gt; {
     <span class="kw">type </span>Item = <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>T;
     <span class="kw">type </span>IntoIter = Iter&lt;<span class="lifetime">&#39;a</span>, T&gt;;
 
     <span class="kw">fn </span>into_iter(<span class="self">self</span>) -&gt; <span class="self">Self</span>::IntoIter {
-        <a class="self" href="#883">self</a>.<a href="#193">iter</a>()
+        <span class="self">self</span>.iter()
     }
 }
 
-<span class="kw">impl</span>&lt;T, S&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">IntoIterator</a> <span class="kw">for </span>IndexSet&lt;T, S&gt; {
+<span class="kw">impl</span>&lt;T, S&gt; IntoIterator <span class="kw">for </span>IndexSet&lt;T, S&gt; {
     <span class="kw">type </span>Item = T;
     <span class="kw">type </span>IntoIter = IntoIter&lt;T&gt;;
 
     <span class="kw">fn </span>into_iter(<span class="self">self</span>) -&gt; <span class="self">Self</span>::IntoIter {
-        <a href="#771">IntoIter</a> {
-            iter: <a class="self" href="#892">self</a>.<a href="lib.rs.html#188">into_entries</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>(),
+        IntoIter {
+            iter: <span class="self">self</span>.into_entries().into_iter(),
         }
     }
 }
 
 <span class="kw">impl</span>&lt;T, S&gt; FromIterator&lt;T&gt; <span class="kw">for </span>IndexSet&lt;T, S&gt;
 <span class="kw">where
-    </span>T: <a href="https://doc.rust-lang.org/nightly/core/hash/trait.Hash.html">Hash</a> + <a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Eq.html">Eq</a>,
-    S: <a href="https://doc.rust-lang.org/nightly/core/hash/trait.BuildHasher.html">BuildHasher</a> + <a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a>,
+    </span>T: Hash + Eq,
+    S: BuildHasher + Default,
 {
     <span class="kw">fn </span>from_iter&lt;I: IntoIterator&lt;Item = T&gt;&gt;(iterable: I) -&gt; <span class="self">Self </span>{
-        <span class="kw">let </span>iter = <a href="#904">iterable</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|x| (<a href="#905">x</a>, ()));
-        <a href="#63">IndexSet</a> {
-            map: IndexMap::from_iter(<a href="#905">iter</a>),
+        <span class="kw">let </span>iter = iterable.into_iter().map(|x| (x, ()));
+        IndexSet {
+            map: IndexMap::from_iter(iter),
         }
     }
 }
 
 <span class="attr">#[cfg(has_std)]
-</span><span class="kw">impl</span>&lt;T, <span class="kw">const </span>N: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; From&lt;[T; <a href="#913">N</a>]&gt; <span class="kw">for </span>IndexSet&lt;T, <a href="https://doc.rust-lang.org/nightly/std/collections/hash/map/struct.RandomState.html">RandomState</a>&gt;
+</span><span class="kw">impl</span>&lt;T, <span class="kw">const </span>N: usize&gt; From&lt;[T; N]&gt; <span class="kw">for </span>IndexSet&lt;T, RandomState&gt;
 <span class="kw">where
-    </span>T: <a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Eq.html">Eq</a> + <a href="https://doc.rust-lang.org/nightly/core/hash/trait.Hash.html">Hash</a>,
+    </span>T: Eq + Hash,
 {
     <span class="doccomment">/// # Examples
     ///
@@ -2835,40 +2835,40 @@
     /// let set2: IndexSet&lt;_&gt; = [1, 2, 3, 4].into();
     /// assert_eq!(set1, set2);
     /// ```
-    </span><span class="kw">fn </span>from(arr: [T; <a href="#913">N</a>]) -&gt; <span class="self">Self </span>{
-        <span class="self">Self</span>::from_iter(<a href="#926">arr</a>)
+    </span><span class="kw">fn </span>from(arr: [T; N]) -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::from_iter(arr)
     }
 }
 
 <span class="kw">impl</span>&lt;T, S&gt; Extend&lt;T&gt; <span class="kw">for </span>IndexSet&lt;T, S&gt;
 <span class="kw">where
-    </span>T: <a href="https://doc.rust-lang.org/nightly/core/hash/trait.Hash.html">Hash</a> + <a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Eq.html">Eq</a>,
-    S: <a href="https://doc.rust-lang.org/nightly/core/hash/trait.BuildHasher.html">BuildHasher</a>,
+    </span>T: Hash + Eq,
+    S: BuildHasher,
 {
     <span class="kw">fn </span>extend&lt;I: IntoIterator&lt;Item = T&gt;&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, iterable: I) {
-        <span class="kw">let </span>iter = <a href="#936">iterable</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|x| (<a href="#937">x</a>, ()));
-        <a class="self" href="#936">self</a>.map.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a href="#937">iter</a>);
+        <span class="kw">let </span>iter = iterable.into_iter().map(|x| (x, ()));
+        <span class="self">self</span>.map.extend(iter);
     }
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T, S&gt; Extend&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>T&gt; <span class="kw">for </span>IndexSet&lt;T, S&gt;
 <span class="kw">where
-    </span>T: <a href="https://doc.rust-lang.org/nightly/core/hash/trait.Hash.html">Hash</a> + <a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Eq.html">Eq</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html">Copy</a> + <span class="lifetime">&#39;a</span>,
-    S: <a href="https://doc.rust-lang.org/nightly/core/hash/trait.BuildHasher.html">BuildHasher</a>,
+    </span>T: Hash + Eq + Copy + <span class="lifetime">&#39;a</span>,
+    S: BuildHasher,
 {
     <span class="kw">fn </span>extend&lt;I: IntoIterator&lt;Item = <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>T&gt;&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, iterable: I) {
-        <span class="kw">let </span>iter = <a href="#947">iterable</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">copied</a>();
-        <a class="self" href="#947">self</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a href="#948">iter</a>);
+        <span class="kw">let </span>iter = iterable.into_iter().copied();
+        <span class="self">self</span>.extend(iter);
     }
 }
 
-<span class="kw">impl</span>&lt;T, S&gt; <a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for </span>IndexSet&lt;T, S&gt;
+<span class="kw">impl</span>&lt;T, S&gt; Default <span class="kw">for </span>IndexSet&lt;T, S&gt;
 <span class="kw">where
-    </span>S: <a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a>,
+    </span>S: Default,
 {
     <span class="doccomment">/// Return an empty `IndexSet`
     </span><span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
-        <a href="#63">IndexSet</a> {
+        IndexSet {
             map: IndexMap::default(),
         }
     }
@@ -2876,53 +2876,53 @@
 
 <span class="kw">impl</span>&lt;T, S1, S2&gt; PartialEq&lt;IndexSet&lt;T, S2&gt;&gt; <span class="kw">for </span>IndexSet&lt;T, S1&gt;
 <span class="kw">where
-    </span>T: <a href="https://doc.rust-lang.org/nightly/core/hash/trait.Hash.html">Hash</a> + <a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Eq.html">Eq</a>,
-    S1: <a href="https://doc.rust-lang.org/nightly/core/hash/trait.BuildHasher.html">BuildHasher</a>,
-    S2: <a href="https://doc.rust-lang.org/nightly/core/hash/trait.BuildHasher.html">BuildHasher</a>,
+    </span>T: Hash + Eq,
+    S1: BuildHasher,
+    S2: BuildHasher,
 {
-    <span class="kw">fn </span>eq(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span>IndexSet&lt;T, S2&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#971">self</a>.<a href="#181">len</a>() == <a href="#971">other</a>.<a href="#181">len</a>() &amp;&amp; <a class="self" href="#971">self</a>.<a href="#1001-1003">is_subset</a>(<a href="#971">other</a>)
+    <span class="kw">fn </span>eq(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span>IndexSet&lt;T, S2&gt;) -&gt; bool {
+        <span class="self">self</span>.len() == other.len() &amp;&amp; <span class="self">self</span>.is_subset(other)
     }
 }
 
-<span class="kw">impl</span>&lt;T, S&gt; <a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Eq.html">Eq</a> <span class="kw">for </span>IndexSet&lt;T, S&gt;
+<span class="kw">impl</span>&lt;T, S&gt; Eq <span class="kw">for </span>IndexSet&lt;T, S&gt;
 <span class="kw">where
-    </span>T: <a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Eq.html">Eq</a> + <a href="https://doc.rust-lang.org/nightly/core/hash/trait.Hash.html">Hash</a>,
-    S: <a href="https://doc.rust-lang.org/nightly/core/hash/trait.BuildHasher.html">BuildHasher</a>,
+    </span>T: Eq + Hash,
+    S: BuildHasher,
 {
 }
 
 <span class="kw">impl</span>&lt;T, S&gt; IndexSet&lt;T, S&gt;
 <span class="kw">where
-    </span>T: <a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Eq.html">Eq</a> + <a href="https://doc.rust-lang.org/nightly/core/hash/trait.Hash.html">Hash</a>,
-    S: <a href="https://doc.rust-lang.org/nightly/core/hash/trait.BuildHasher.html">BuildHasher</a>,
+    </span>T: Eq + Hash,
+    S: BuildHasher,
 {
     <span class="doccomment">/// Returns `true` if `self` has no elements in common with `other`.
-    </span><span class="kw">pub fn </span>is_disjoint&lt;S2&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span>IndexSet&lt;T, S2&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>
+    </span><span class="kw">pub fn </span>is_disjoint&lt;S2&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span>IndexSet&lt;T, S2&gt;) -&gt; bool
     <span class="kw">where
-        </span>S2: <a href="https://doc.rust-lang.org/nightly/core/hash/trait.BuildHasher.html">BuildHasher</a>,
+        </span>S2: BuildHasher,
     {
         <span class="kw">if </span><span class="self">self</span>.len() &lt;= other.len() {
-            <a class="self" href="#989">self</a>.<a href="#193">iter</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">all</a>(<span class="kw">move </span>|value| !<a href="#989">other</a>.<a href="#371-373">contains</a>(<a href="#994">value</a>))
+            <span class="self">self</span>.iter().all(<span class="kw">move </span>|value| !other.contains(value))
         } <span class="kw">else </span>{
-            <a href="#989">other</a>.<a href="#193">iter</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">all</a>(<span class="kw">move </span>|value| !<a class="self" href="#989">self</a>.<a href="#371-373">contains</a>(<a href="#996">value</a>))
+            other.iter().all(<span class="kw">move </span>|value| !<span class="self">self</span>.contains(value))
         }
     }
 
     <span class="doccomment">/// Returns `true` if all elements of `self` are contained in `other`.
-    </span><span class="kw">pub fn </span>is_subset&lt;S2&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span>IndexSet&lt;T, S2&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>
+    </span><span class="kw">pub fn </span>is_subset&lt;S2&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span>IndexSet&lt;T, S2&gt;) -&gt; bool
     <span class="kw">where
-        </span>S2: <a href="https://doc.rust-lang.org/nightly/core/hash/trait.BuildHasher.html">BuildHasher</a>,
+        </span>S2: BuildHasher,
     {
-        <a class="self" href="#1001">self</a>.<a href="#181">len</a>() &lt;= <a href="#1001">other</a>.<a href="#181">len</a>() &amp;&amp; <a class="self" href="#1001">self</a>.<a href="#193">iter</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">all</a>(<span class="kw">move </span>|value| <a href="#1001">other</a>.<a href="#371-373">contains</a>(<a href="#1005">value</a>))
+        <span class="self">self</span>.len() &lt;= other.len() &amp;&amp; <span class="self">self</span>.iter().all(<span class="kw">move </span>|value| other.contains(value))
     }
 
     <span class="doccomment">/// Returns `true` if all elements of `other` are contained in `self`.
-    </span><span class="kw">pub fn </span>is_superset&lt;S2&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span>IndexSet&lt;T, S2&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>
+    </span><span class="kw">pub fn </span>is_superset&lt;S2&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span>IndexSet&lt;T, S2&gt;) -&gt; bool
     <span class="kw">where
-        </span>S2: <a href="https://doc.rust-lang.org/nightly/core/hash/trait.BuildHasher.html">BuildHasher</a>,
+        </span>S2: BuildHasher,
     {
-        <a href="#1009">other</a>.<a href="#1001-1003">is_subset</a>(<a class="self" href="#1009">self</a>)
+        other.is_subset(<span class="self">self</span>)
     }
 }
 
@@ -2938,10 +2938,10 @@
     other: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>IndexSet&lt;T, S&gt;,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T, S&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a> <span class="kw">for </span>Difference&lt;<span class="lifetime">&#39;a</span>, T, S&gt;
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T, S&gt; Iterator <span class="kw">for </span>Difference&lt;<span class="lifetime">&#39;a</span>, T, S&gt;
 <span class="kw">where
-    </span>T: <a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Eq.html">Eq</a> + <a href="https://doc.rust-lang.org/nightly/core/hash/trait.Hash.html">Hash</a>,
-    S: <a href="https://doc.rust-lang.org/nightly/core/hash/trait.BuildHasher.html">BuildHasher</a>,
+    </span>T: Eq + Hash,
+    S: BuildHasher,
 {
     <span class="kw">type </span>Item = <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>T;
 
@@ -2954,15 +2954,15 @@
         <span class="prelude-val">None
     </span>}
 
-    <span class="kw">fn </span>size_hint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;) {
-        (<span class="number">0</span>, <a class="self" href="#1045">self</a>.iter.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">size_hint</a>().<span class="number">1</span>)
+    <span class="kw">fn </span>size_hint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (usize, <span class="prelude-ty">Option</span>&lt;usize&gt;) {
+        (<span class="number">0</span>, <span class="self">self</span>.iter.size_hint().<span class="number">1</span>)
     }
 }
 
-<span class="kw">impl</span>&lt;T, S&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/double_ended/trait.DoubleEndedIterator.html">DoubleEndedIterator</a> <span class="kw">for </span>Difference&lt;<span class="lifetime">&#39;_</span>, T, S&gt;
+<span class="kw">impl</span>&lt;T, S&gt; DoubleEndedIterator <span class="kw">for </span>Difference&lt;<span class="lifetime">&#39;_</span>, T, S&gt;
 <span class="kw">where
-    </span>T: <a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Eq.html">Eq</a> + <a href="https://doc.rust-lang.org/nightly/core/hash/trait.Hash.html">Hash</a>,
-    S: <a href="https://doc.rust-lang.org/nightly/core/hash/trait.BuildHasher.html">BuildHasher</a>,
+    </span>T: Eq + Hash,
+    S: BuildHasher,
 {
     <span class="kw">fn </span>next_back(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt; {
         <span class="kw">while let </span><span class="prelude-val">Some</span>(item) = <span class="self">self</span>.iter.next_back() {
@@ -2974,29 +2974,29 @@
     </span>}
 }
 
-<span class="kw">impl</span>&lt;T, S&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/marker/trait.FusedIterator.html">FusedIterator</a> <span class="kw">for </span>Difference&lt;<span class="lifetime">&#39;_</span>, T, S&gt;
+<span class="kw">impl</span>&lt;T, S&gt; FusedIterator <span class="kw">for </span>Difference&lt;<span class="lifetime">&#39;_</span>, T, S&gt;
 <span class="kw">where
-    </span>T: <a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Eq.html">Eq</a> + <a href="https://doc.rust-lang.org/nightly/core/hash/trait.Hash.html">Hash</a>,
-    S: <a href="https://doc.rust-lang.org/nightly/core/hash/trait.BuildHasher.html">BuildHasher</a>,
+    </span>T: Eq + Hash,
+    S: BuildHasher,
 {
 }
 
-<span class="kw">impl</span>&lt;T, S&gt; <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> <span class="kw">for </span>Difference&lt;<span class="lifetime">&#39;_</span>, T, S&gt; {
+<span class="kw">impl</span>&lt;T, S&gt; Clone <span class="kw">for </span>Difference&lt;<span class="lifetime">&#39;_</span>, T, S&gt; {
     <span class="kw">fn </span>clone(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self </span>{
-        <a href="#1024">Difference</a> {
-            iter: <a class="self" href="#1073">self</a>.iter.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
-            ..<span class="kw-2">*</span><span class="self"><a href="#1073">self</a>
+        Difference {
+            iter: <span class="self">self</span>.iter.clone(),
+            ..<span class="kw-2">*</span><span class="self">self
         </span>}
     }
 }
 
-<span class="kw">impl</span>&lt;T, S&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span>Difference&lt;<span class="lifetime">&#39;_</span>, T, S&gt;
+<span class="kw">impl</span>&lt;T, S&gt; fmt::Debug <span class="kw">for </span>Difference&lt;<span class="lifetime">&#39;_</span>, T, S&gt;
 <span class="kw">where
-    </span>T: <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> + <a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Eq.html">Eq</a> + <a href="https://doc.rust-lang.org/nightly/core/hash/trait.Hash.html">Hash</a>,
-    S: <a href="https://doc.rust-lang.org/nightly/core/hash/trait.BuildHasher.html">BuildHasher</a>,
+    </span>T: fmt::Debug + Eq + Hash,
+    S: BuildHasher,
 {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a href="#1086">f</a>.debug_list().entries(<a class="self" href="#1086">self</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()).finish()
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        f.debug_list().entries(<span class="self">self</span>.clone()).finish()
     }
 }
 
@@ -3012,10 +3012,10 @@
     other: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>IndexSet&lt;T, S&gt;,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T, S&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a> <span class="kw">for </span>Intersection&lt;<span class="lifetime">&#39;a</span>, T, S&gt;
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T, S&gt; Iterator <span class="kw">for </span>Intersection&lt;<span class="lifetime">&#39;a</span>, T, S&gt;
 <span class="kw">where
-    </span>T: <a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Eq.html">Eq</a> + <a href="https://doc.rust-lang.org/nightly/core/hash/trait.Hash.html">Hash</a>,
-    S: <a href="https://doc.rust-lang.org/nightly/core/hash/trait.BuildHasher.html">BuildHasher</a>,
+    </span>T: Eq + Hash,
+    S: BuildHasher,
 {
     <span class="kw">type </span>Item = <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>T;
 
@@ -3028,15 +3028,15 @@
         <span class="prelude-val">None
     </span>}
 
-    <span class="kw">fn </span>size_hint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;) {
-        (<span class="number">0</span>, <a class="self" href="#1119">self</a>.iter.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">size_hint</a>().<span class="number">1</span>)
+    <span class="kw">fn </span>size_hint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (usize, <span class="prelude-ty">Option</span>&lt;usize&gt;) {
+        (<span class="number">0</span>, <span class="self">self</span>.iter.size_hint().<span class="number">1</span>)
     }
 }
 
-<span class="kw">impl</span>&lt;T, S&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/double_ended/trait.DoubleEndedIterator.html">DoubleEndedIterator</a> <span class="kw">for </span>Intersection&lt;<span class="lifetime">&#39;_</span>, T, S&gt;
+<span class="kw">impl</span>&lt;T, S&gt; DoubleEndedIterator <span class="kw">for </span>Intersection&lt;<span class="lifetime">&#39;_</span>, T, S&gt;
 <span class="kw">where
-    </span>T: <a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Eq.html">Eq</a> + <a href="https://doc.rust-lang.org/nightly/core/hash/trait.Hash.html">Hash</a>,
-    S: <a href="https://doc.rust-lang.org/nightly/core/hash/trait.BuildHasher.html">BuildHasher</a>,
+    </span>T: Eq + Hash,
+    S: BuildHasher,
 {
     <span class="kw">fn </span>next_back(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt; {
         <span class="kw">while let </span><span class="prelude-val">Some</span>(item) = <span class="self">self</span>.iter.next_back() {
@@ -3048,29 +3048,29 @@
     </span>}
 }
 
-<span class="kw">impl</span>&lt;T, S&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/marker/trait.FusedIterator.html">FusedIterator</a> <span class="kw">for </span>Intersection&lt;<span class="lifetime">&#39;_</span>, T, S&gt;
+<span class="kw">impl</span>&lt;T, S&gt; FusedIterator <span class="kw">for </span>Intersection&lt;<span class="lifetime">&#39;_</span>, T, S&gt;
 <span class="kw">where
-    </span>T: <a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Eq.html">Eq</a> + <a href="https://doc.rust-lang.org/nightly/core/hash/trait.Hash.html">Hash</a>,
-    S: <a href="https://doc.rust-lang.org/nightly/core/hash/trait.BuildHasher.html">BuildHasher</a>,
+    </span>T: Eq + Hash,
+    S: BuildHasher,
 {
 }
 
-<span class="kw">impl</span>&lt;T, S&gt; <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> <span class="kw">for </span>Intersection&lt;<span class="lifetime">&#39;_</span>, T, S&gt; {
+<span class="kw">impl</span>&lt;T, S&gt; Clone <span class="kw">for </span>Intersection&lt;<span class="lifetime">&#39;_</span>, T, S&gt; {
     <span class="kw">fn </span>clone(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self </span>{
-        <a href="#1098">Intersection</a> {
-            iter: <a class="self" href="#1147">self</a>.iter.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
-            ..<span class="kw-2">*</span><span class="self"><a href="#1147">self</a>
+        Intersection {
+            iter: <span class="self">self</span>.iter.clone(),
+            ..<span class="kw-2">*</span><span class="self">self
         </span>}
     }
 }
 
-<span class="kw">impl</span>&lt;T, S&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span>Intersection&lt;<span class="lifetime">&#39;_</span>, T, S&gt;
+<span class="kw">impl</span>&lt;T, S&gt; fmt::Debug <span class="kw">for </span>Intersection&lt;<span class="lifetime">&#39;_</span>, T, S&gt;
 <span class="kw">where
-    </span>T: <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> + <a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Eq.html">Eq</a> + <a href="https://doc.rust-lang.org/nightly/core/hash/trait.Hash.html">Hash</a>,
-    S: <a href="https://doc.rust-lang.org/nightly/core/hash/trait.BuildHasher.html">BuildHasher</a>,
+    </span>T: fmt::Debug + Eq + Hash,
+    S: BuildHasher,
 {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a href="#1160">f</a>.debug_list().entries(<a class="self" href="#1160">self</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()).finish()
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        f.debug_list().entries(<span class="self">self</span>.clone()).finish()
     }
 }
 
@@ -3085,72 +3085,72 @@
     iter: Chain&lt;Difference&lt;<span class="lifetime">&#39;a</span>, T, S2&gt;, Difference&lt;<span class="lifetime">&#39;a</span>, T, S1&gt;&gt;,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T, S1, S2&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a> <span class="kw">for </span>SymmetricDifference&lt;<span class="lifetime">&#39;a</span>, T, S1, S2&gt;
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T, S1, S2&gt; Iterator <span class="kw">for </span>SymmetricDifference&lt;<span class="lifetime">&#39;a</span>, T, S1, S2&gt;
 <span class="kw">where
-    </span>T: <a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Eq.html">Eq</a> + <a href="https://doc.rust-lang.org/nightly/core/hash/trait.Hash.html">Hash</a>,
-    S1: <a href="https://doc.rust-lang.org/nightly/core/hash/trait.BuildHasher.html">BuildHasher</a>,
-    S2: <a href="https://doc.rust-lang.org/nightly/core/hash/trait.BuildHasher.html">BuildHasher</a>,
+    </span>T: Eq + Hash,
+    S1: BuildHasher,
+    S2: BuildHasher,
 {
     <span class="kw">type </span>Item = <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>T;
 
     <span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt; {
-        <a class="self" href="#1184">self</a>.iter.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>()
+        <span class="self">self</span>.iter.next()
     }
 
-    <span class="kw">fn </span>size_hint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;) {
-        <a class="self" href="#1188">self</a>.iter.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">size_hint</a>()
+    <span class="kw">fn </span>size_hint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (usize, <span class="prelude-ty">Option</span>&lt;usize&gt;) {
+        <span class="self">self</span>.iter.size_hint()
     }
 
     <span class="kw">fn </span>fold&lt;B, F&gt;(<span class="self">self</span>, init: B, f: F) -&gt; B
     <span class="kw">where
         </span>F: FnMut(B, <span class="self">Self</span>::Item) -&gt; B,
     {
-        <a class="self" href="#1192">self</a>.iter.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">fold</a>(<a href="#1192">init</a>, <a href="#1192">f</a>)
+        <span class="self">self</span>.iter.fold(init, f)
     }
 }
 
-<span class="kw">impl</span>&lt;T, S1, S2&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/double_ended/trait.DoubleEndedIterator.html">DoubleEndedIterator</a> <span class="kw">for </span>SymmetricDifference&lt;<span class="lifetime">&#39;_</span>, T, S1, S2&gt;
+<span class="kw">impl</span>&lt;T, S1, S2&gt; DoubleEndedIterator <span class="kw">for </span>SymmetricDifference&lt;<span class="lifetime">&#39;_</span>, T, S1, S2&gt;
 <span class="kw">where
-    </span>T: <a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Eq.html">Eq</a> + <a href="https://doc.rust-lang.org/nightly/core/hash/trait.Hash.html">Hash</a>,
-    S1: <a href="https://doc.rust-lang.org/nightly/core/hash/trait.BuildHasher.html">BuildHasher</a>,
-    S2: <a href="https://doc.rust-lang.org/nightly/core/hash/trait.BuildHasher.html">BuildHasher</a>,
+    </span>T: Eq + Hash,
+    S1: BuildHasher,
+    S2: BuildHasher,
 {
     <span class="kw">fn </span>next_back(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt; {
-        <a class="self" href="#1206">self</a>.iter.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/double_ended/trait.DoubleEndedIterator.html">next_back</a>()
+        <span class="self">self</span>.iter.next_back()
     }
 
     <span class="kw">fn </span>rfold&lt;B, F&gt;(<span class="self">self</span>, init: B, f: F) -&gt; B
     <span class="kw">where
         </span>F: FnMut(B, <span class="self">Self</span>::Item) -&gt; B,
     {
-        <a class="self" href="#1210">self</a>.iter.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/double_ended/trait.DoubleEndedIterator.html">rfold</a>(<a href="#1210">init</a>, <a href="#1210">f</a>)
+        <span class="self">self</span>.iter.rfold(init, f)
     }
 }
 
-<span class="kw">impl</span>&lt;T, S1, S2&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/marker/trait.FusedIterator.html">FusedIterator</a> <span class="kw">for </span>SymmetricDifference&lt;<span class="lifetime">&#39;_</span>, T, S1, S2&gt;
+<span class="kw">impl</span>&lt;T, S1, S2&gt; FusedIterator <span class="kw">for </span>SymmetricDifference&lt;<span class="lifetime">&#39;_</span>, T, S1, S2&gt;
 <span class="kw">where
-    </span>T: <a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Eq.html">Eq</a> + <a href="https://doc.rust-lang.org/nightly/core/hash/trait.Hash.html">Hash</a>,
-    S1: <a href="https://doc.rust-lang.org/nightly/core/hash/trait.BuildHasher.html">BuildHasher</a>,
-    S2: <a href="https://doc.rust-lang.org/nightly/core/hash/trait.BuildHasher.html">BuildHasher</a>,
+    </span>T: Eq + Hash,
+    S1: BuildHasher,
+    S2: BuildHasher,
 {
 }
 
-<span class="kw">impl</span>&lt;T, S1, S2&gt; <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> <span class="kw">for </span>SymmetricDifference&lt;<span class="lifetime">&#39;_</span>, T, S1, S2&gt; {
+<span class="kw">impl</span>&lt;T, S1, S2&gt; Clone <span class="kw">for </span>SymmetricDifference&lt;<span class="lifetime">&#39;_</span>, T, S1, S2&gt; {
     <span class="kw">fn </span>clone(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self </span>{
-        <a href="#1172">SymmetricDifference</a> {
-            iter: <a class="self" href="#1227">self</a>.iter.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+        SymmetricDifference {
+            iter: <span class="self">self</span>.iter.clone(),
         }
     }
 }
 
-<span class="kw">impl</span>&lt;T, S1, S2&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span>SymmetricDifference&lt;<span class="lifetime">&#39;_</span>, T, S1, S2&gt;
+<span class="kw">impl</span>&lt;T, S1, S2&gt; fmt::Debug <span class="kw">for </span>SymmetricDifference&lt;<span class="lifetime">&#39;_</span>, T, S1, S2&gt;
 <span class="kw">where
-    </span>T: <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> + <a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Eq.html">Eq</a> + <a href="https://doc.rust-lang.org/nightly/core/hash/trait.Hash.html">Hash</a>,
-    S1: <a href="https://doc.rust-lang.org/nightly/core/hash/trait.BuildHasher.html">BuildHasher</a>,
-    S2: <a href="https://doc.rust-lang.org/nightly/core/hash/trait.BuildHasher.html">BuildHasher</a>,
+    </span>T: fmt::Debug + Eq + Hash,
+    S1: BuildHasher,
+    S2: BuildHasher,
 {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a href="#1240">f</a>.debug_list().entries(<a class="self" href="#1240">self</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()).finish()
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        f.debug_list().entries(<span class="self">self</span>.clone()).finish()
     }
 }
 
@@ -3165,76 +3165,76 @@
     iter: Chain&lt;Iter&lt;<span class="lifetime">&#39;a</span>, T&gt;, Difference&lt;<span class="lifetime">&#39;a</span>, T, S&gt;&gt;,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T, S&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a> <span class="kw">for </span>Union&lt;<span class="lifetime">&#39;a</span>, T, S&gt;
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T, S&gt; Iterator <span class="kw">for </span>Union&lt;<span class="lifetime">&#39;a</span>, T, S&gt;
 <span class="kw">where
-    </span>T: <a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Eq.html">Eq</a> + <a href="https://doc.rust-lang.org/nightly/core/hash/trait.Hash.html">Hash</a>,
-    S: <a href="https://doc.rust-lang.org/nightly/core/hash/trait.BuildHasher.html">BuildHasher</a>,
+    </span>T: Eq + Hash,
+    S: BuildHasher,
 {
     <span class="kw">type </span>Item = <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>T;
 
     <span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt; {
-        <a class="self" href="#1263">self</a>.iter.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>()
+        <span class="self">self</span>.iter.next()
     }
 
-    <span class="kw">fn </span>size_hint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;) {
-        <a class="self" href="#1267">self</a>.iter.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">size_hint</a>()
+    <span class="kw">fn </span>size_hint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (usize, <span class="prelude-ty">Option</span>&lt;usize&gt;) {
+        <span class="self">self</span>.iter.size_hint()
     }
 
     <span class="kw">fn </span>fold&lt;B, F&gt;(<span class="self">self</span>, init: B, f: F) -&gt; B
     <span class="kw">where
         </span>F: FnMut(B, <span class="self">Self</span>::Item) -&gt; B,
     {
-        <a class="self" href="#1271">self</a>.iter.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">fold</a>(<a href="#1271">init</a>, <a href="#1271">f</a>)
+        <span class="self">self</span>.iter.fold(init, f)
     }
 }
 
-<span class="kw">impl</span>&lt;T, S&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/double_ended/trait.DoubleEndedIterator.html">DoubleEndedIterator</a> <span class="kw">for </span>Union&lt;<span class="lifetime">&#39;_</span>, T, S&gt;
+<span class="kw">impl</span>&lt;T, S&gt; DoubleEndedIterator <span class="kw">for </span>Union&lt;<span class="lifetime">&#39;_</span>, T, S&gt;
 <span class="kw">where
-    </span>T: <a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Eq.html">Eq</a> + <a href="https://doc.rust-lang.org/nightly/core/hash/trait.Hash.html">Hash</a>,
-    S: <a href="https://doc.rust-lang.org/nightly/core/hash/trait.BuildHasher.html">BuildHasher</a>,
+    </span>T: Eq + Hash,
+    S: BuildHasher,
 {
     <span class="kw">fn </span>next_back(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt; {
-        <a class="self" href="#1284">self</a>.iter.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/double_ended/trait.DoubleEndedIterator.html">next_back</a>()
+        <span class="self">self</span>.iter.next_back()
     }
 
     <span class="kw">fn </span>rfold&lt;B, F&gt;(<span class="self">self</span>, init: B, f: F) -&gt; B
     <span class="kw">where
         </span>F: FnMut(B, <span class="self">Self</span>::Item) -&gt; B,
     {
-        <a class="self" href="#1288">self</a>.iter.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/double_ended/trait.DoubleEndedIterator.html">rfold</a>(<a href="#1288">init</a>, <a href="#1288">f</a>)
+        <span class="self">self</span>.iter.rfold(init, f)
     }
 }
 
-<span class="kw">impl</span>&lt;T, S&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/marker/trait.FusedIterator.html">FusedIterator</a> <span class="kw">for </span>Union&lt;<span class="lifetime">&#39;_</span>, T, S&gt;
+<span class="kw">impl</span>&lt;T, S&gt; FusedIterator <span class="kw">for </span>Union&lt;<span class="lifetime">&#39;_</span>, T, S&gt;
 <span class="kw">where
-    </span>T: <a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Eq.html">Eq</a> + <a href="https://doc.rust-lang.org/nightly/core/hash/trait.Hash.html">Hash</a>,
-    S: <a href="https://doc.rust-lang.org/nightly/core/hash/trait.BuildHasher.html">BuildHasher</a>,
+    </span>T: Eq + Hash,
+    S: BuildHasher,
 {
 }
 
-<span class="kw">impl</span>&lt;T, S&gt; <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> <span class="kw">for </span>Union&lt;<span class="lifetime">&#39;_</span>, T, S&gt; {
+<span class="kw">impl</span>&lt;T, S&gt; Clone <span class="kw">for </span>Union&lt;<span class="lifetime">&#39;_</span>, T, S&gt; {
     <span class="kw">fn </span>clone(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self </span>{
-        <a href="#1252">Union</a> {
-            iter: <a class="self" href="#1304">self</a>.iter.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+        Union {
+            iter: <span class="self">self</span>.iter.clone(),
         }
     }
 }
 
-<span class="kw">impl</span>&lt;T, S&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span>Union&lt;<span class="lifetime">&#39;_</span>, T, S&gt;
+<span class="kw">impl</span>&lt;T, S&gt; fmt::Debug <span class="kw">for </span>Union&lt;<span class="lifetime">&#39;_</span>, T, S&gt;
 <span class="kw">where
-    </span>T: <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> + <a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Eq.html">Eq</a> + <a href="https://doc.rust-lang.org/nightly/core/hash/trait.Hash.html">Hash</a>,
-    S: <a href="https://doc.rust-lang.org/nightly/core/hash/trait.BuildHasher.html">BuildHasher</a>,
+    </span>T: fmt::Debug + Eq + Hash,
+    S: BuildHasher,
 {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a href="#1316">f</a>.debug_list().entries(<a class="self" href="#1316">self</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()).finish()
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        f.debug_list().entries(<span class="self">self</span>.clone()).finish()
     }
 }
 
 <span class="kw">impl</span>&lt;T, S1, S2&gt; BitAnd&lt;<span class="kw-2">&amp;</span>IndexSet&lt;T, S2&gt;&gt; <span class="kw">for </span><span class="kw-2">&amp;</span>IndexSet&lt;T, S1&gt;
 <span class="kw">where
-    </span>T: <a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Eq.html">Eq</a> + <a href="https://doc.rust-lang.org/nightly/core/hash/trait.Hash.html">Hash</a> + <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a>,
-    S1: <a href="https://doc.rust-lang.org/nightly/core/hash/trait.BuildHasher.html">BuildHasher</a> + <a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a>,
-    S2: <a href="https://doc.rust-lang.org/nightly/core/hash/trait.BuildHasher.html">BuildHasher</a>,
+    </span>T: Eq + Hash + Clone,
+    S1: BuildHasher + Default,
+    S2: BuildHasher,
 {
     <span class="kw">type </span>Output = IndexSet&lt;T, S1&gt;;
 
@@ -3242,15 +3242,15 @@
     ///
     /// Values are collected in the same order that they appear in `self`.
     </span><span class="kw">fn </span>bitand(<span class="self">self</span>, other: <span class="kw-2">&amp;</span>IndexSet&lt;T, S2&gt;) -&gt; <span class="self">Self</span>::Output {
-        <a class="self" href="#1332">self</a>.<a href="#345-347">intersection</a>(<a href="#1332">other</a>).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">cloned</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>()
+        <span class="self">self</span>.intersection(other).cloned().collect()
     }
 }
 
 <span class="kw">impl</span>&lt;T, S1, S2&gt; BitOr&lt;<span class="kw-2">&amp;</span>IndexSet&lt;T, S2&gt;&gt; <span class="kw">for </span><span class="kw-2">&amp;</span>IndexSet&lt;T, S1&gt;
 <span class="kw">where
-    </span>T: <a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Eq.html">Eq</a> + <a href="https://doc.rust-lang.org/nightly/core/hash/trait.Hash.html">Hash</a> + <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a>,
-    S1: <a href="https://doc.rust-lang.org/nightly/core/hash/trait.BuildHasher.html">BuildHasher</a> + <a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a>,
-    S2: <a href="https://doc.rust-lang.org/nightly/core/hash/trait.BuildHasher.html">BuildHasher</a>,
+    </span>T: Eq + Hash + Clone,
+    S1: BuildHasher + Default,
+    S2: BuildHasher,
 {
     <span class="kw">type </span>Output = IndexSet&lt;T, S1&gt;;
 
@@ -3259,15 +3259,15 @@
     /// Values from `self` are collected in their original order, followed by
     /// values that are unique to `other` in their original order.
     </span><span class="kw">fn </span>bitor(<span class="self">self</span>, other: <span class="kw-2">&amp;</span>IndexSet&lt;T, S2&gt;) -&gt; <span class="self">Self</span>::Output {
-        <a class="self" href="#1349">self</a>.<a href="#359-361">union</a>(<a href="#1349">other</a>).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">cloned</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>()
+        <span class="self">self</span>.union(other).cloned().collect()
     }
 }
 
 <span class="kw">impl</span>&lt;T, S1, S2&gt; BitXor&lt;<span class="kw-2">&amp;</span>IndexSet&lt;T, S2&gt;&gt; <span class="kw">for </span><span class="kw-2">&amp;</span>IndexSet&lt;T, S1&gt;
 <span class="kw">where
-    </span>T: <a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Eq.html">Eq</a> + <a href="https://doc.rust-lang.org/nightly/core/hash/trait.Hash.html">Hash</a> + <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a>,
-    S1: <a href="https://doc.rust-lang.org/nightly/core/hash/trait.BuildHasher.html">BuildHasher</a> + <a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a>,
-    S2: <a href="https://doc.rust-lang.org/nightly/core/hash/trait.BuildHasher.html">BuildHasher</a>,
+    </span>T: Eq + Hash + Clone,
+    S1: BuildHasher + Default,
+    S2: BuildHasher,
 {
     <span class="kw">type </span>Output = IndexSet&lt;T, S1&gt;;
 
@@ -3276,15 +3276,15 @@
     /// Values from `self` are collected in their original order, followed by
     /// values from `other` in their original order.
     </span><span class="kw">fn </span>bitxor(<span class="self">self</span>, other: <span class="kw-2">&amp;</span>IndexSet&lt;T, S2&gt;) -&gt; <span class="self">Self</span>::Output {
-        <a class="self" href="#1366">self</a>.<a href="#330-335">symmetric_difference</a>(<a href="#1366">other</a>).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">cloned</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>()
+        <span class="self">self</span>.symmetric_difference(other).cloned().collect()
     }
 }
 
 <span class="kw">impl</span>&lt;T, S1, S2&gt; Sub&lt;<span class="kw-2">&amp;</span>IndexSet&lt;T, S2&gt;&gt; <span class="kw">for </span><span class="kw-2">&amp;</span>IndexSet&lt;T, S1&gt;
 <span class="kw">where
-    </span>T: <a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Eq.html">Eq</a> + <a href="https://doc.rust-lang.org/nightly/core/hash/trait.Hash.html">Hash</a> + <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a>,
-    S1: <a href="https://doc.rust-lang.org/nightly/core/hash/trait.BuildHasher.html">BuildHasher</a> + <a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a>,
-    S2: <a href="https://doc.rust-lang.org/nightly/core/hash/trait.BuildHasher.html">BuildHasher</a>,
+    </span>T: Eq + Hash + Clone,
+    S1: BuildHasher + Default,
+    S2: BuildHasher,
 {
     <span class="kw">type </span>Output = IndexSet&lt;T, S1&gt;;
 
@@ -3292,7 +3292,7 @@
     ///
     /// Values are collected in the same order that they appear in `self`.
     </span><span class="kw">fn </span>sub(<span class="self">self</span>, other: <span class="kw-2">&amp;</span>IndexSet&lt;T, S2&gt;) -&gt; <span class="self">Self</span>::Output {
-        <a class="self" href="#1382">self</a>.<a href="#315-317">difference</a>(<a href="#1382">other</a>).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">cloned</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>()
+        <span class="self">self</span>.difference(other).cloned().collect()
     }
 }
 
@@ -3823,4 +3823,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="indexmap" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="indexmap" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/h2-0.3.15/src/server.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>server.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../h2/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/h2-0.3.15/src/server.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>server.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../h2/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -1667,20 +1667,20 @@
 //! [`SendStream`]: ../struct.SendStream.html
 //! [`TcpListener`]: https://docs.rs/tokio-core/0.1/tokio_core/net/struct.TcpListener.html
 
-</span><span class="kw">use </span><span class="kw">crate</span>::codec::{<a href="codec/mod.rs.html#24">Codec</a>, <a href="codec/error.rs.html#14">UserError</a>};
-<span class="kw">use </span><span class="kw">crate</span>::frame::{<a class="self" href="lib.rs.html#116">self</a>, <a href="frame/headers.rs.html#64">Pseudo</a>, <a href="frame/headers.rs.html#335">PushPromiseHeaderError</a>, <a href="frame/reason.rs.html#19">Reason</a>, <a href="frame/settings.rs.html#7">Settings</a>, <a href="frame/stream_id.rs.html#14">StreamId</a>};
-<span class="kw">use </span><span class="kw">crate</span>::proto::{<a class="self" href="lib.rs.html#109">self</a>, <a href="proto/connection.rs.html#77">Config</a>, <a href="proto/error.rs.html#10">Error</a>, <a href="proto/streams/prioritize.rs.html#69">Prioritized</a>};
-<span class="kw">use crate</span>::{<a href="share.rs.html#195">FlowControl</a>, <a href="share.rs.html#201">PingPong</a>, <a href="share.rs.html#138">RecvStream</a>, <a href="share.rs.html#97">SendStream</a>};
+</span><span class="kw">use </span><span class="kw">crate</span>::codec::{Codec, UserError};
+<span class="kw">use </span><span class="kw">crate</span>::frame::{<span class="self">self</span>, Pseudo, PushPromiseHeaderError, Reason, Settings, StreamId};
+<span class="kw">use </span><span class="kw">crate</span>::proto::{<span class="self">self</span>, Config, Error, Prioritized};
+<span class="kw">use crate</span>::{FlowControl, PingPong, RecvStream, SendStream};
 
-<span class="kw">use </span>bytes::{<a href="../../bytes/buf/buf_impl/trait.Buf.html">Buf</a>, <a href="../../bytes/bytes/struct.Bytes.html">Bytes</a>};
-<span class="kw">use </span>http::{<a href="../../http/header/map/struct.HeaderMap.html">HeaderMap</a>, <a href="../../http/method/struct.Method.html">Method</a>, <a href="../../http/request/struct.Request.html">Request</a>, <a href="../../http/response/struct.Response.html">Response</a>};
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">std::future::Future</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/pin/struct.Pin.html">std::pin::Pin</a>;
-<span class="kw">use </span>std::task::{<a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>, <a href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">Poll</a>};
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">std::time::Duration</a>;
-<span class="kw">use </span>std::{<a href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">fmt</a>, <a href="https://doc.rust-lang.org/nightly/std/io/index.html">io</a>};
-<span class="kw">use </span>tokio::io::{<a href="../../tokio/io/async_read/trait.AsyncRead.html">AsyncRead</a>, <a href="../../tokio/io/async_write/trait.AsyncWrite.html">AsyncWrite</a>, <a href="../../tokio/io/read_buf/struct.ReadBuf.html">ReadBuf</a>};
-<span class="kw">use </span>tracing::instrument::{<a href="../../tracing/instrument/trait.Instrument.html">Instrument</a>, <a href="../../tracing/instrument/struct.Instrumented.html">Instrumented</a>};
+<span class="kw">use </span>bytes::{Buf, Bytes};
+<span class="kw">use </span>http::{HeaderMap, Method, Request, Response};
+<span class="kw">use </span>std::future::Future;
+<span class="kw">use </span>std::pin::Pin;
+<span class="kw">use </span>std::task::{Context, Poll};
+<span class="kw">use </span>std::time::Duration;
+<span class="kw">use </span>std::{fmt, io};
+<span class="kw">use </span>tokio::io::{AsyncRead, AsyncWrite, ReadBuf};
+<span class="kw">use </span>tracing::instrument::{Instrument, Instrumented};
 
 <span class="doccomment">/// In progress HTTP/2 connection handshake future.
 ///
@@ -1697,13 +1697,13 @@
 ///
 /// [module]: index.html
 </span><span class="attr">#[must_use = <span class="string">&quot;futures do nothing unless polled&quot;</span>]
-</span><span class="kw">pub struct </span>Handshake&lt;T, B: <a href="../../bytes/buf/buf_impl/trait.Buf.html">Buf</a> = <a href="../../bytes/bytes/struct.Bytes.html">Bytes</a>&gt; {
+</span><span class="kw">pub struct </span>Handshake&lt;T, B: Buf = Bytes&gt; {
     <span class="doccomment">/// The config to pass to Connection::new after handshake succeeds.
-    </span>builder: <a href="#236">Builder</a>,
+    </span>builder: Builder,
     <span class="doccomment">/// The current state of the handshake.
     </span>state: Handshaking&lt;T, B&gt;,
     <span class="doccomment">/// Span tracking the handshake
-    </span>span: <a href="../../tracing/span/struct.Span.html">tracing::Span</a>,
+    </span>span: tracing::Span,
 }
 
 <span class="doccomment">/// Accepts inbound HTTP/2 streams on a connection.
@@ -1745,8 +1745,8 @@
 /// # pub fn main() {}
 /// ```
 </span><span class="attr">#[must_use = <span class="string">&quot;streams do nothing unless polled&quot;</span>]
-</span><span class="kw">pub struct </span>Connection&lt;T, B: <a href="../../bytes/buf/buf_impl/trait.Buf.html">Buf</a>&gt; {
-    connection: proto::Connection&lt;T, <a href="#320">Peer</a>, B&gt;,
+</span><span class="kw">pub struct </span>Connection&lt;T, B: Buf&gt; {
+    connection: proto::Connection&lt;T, Peer, B&gt;,
 }
 
 <span class="doccomment">/// Builds server connections with custom configuration values.
@@ -1787,19 +1787,19 @@
 </span><span class="attr">#[derive(Clone, Debug)]
 </span><span class="kw">pub struct </span>Builder {
     <span class="doccomment">/// Time to keep locally reset streams around before reaping.
-    </span>reset_stream_duration: <a href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a>,
+    </span>reset_stream_duration: Duration,
 
     <span class="doccomment">/// Maximum number of locally reset streams to keep at a time.
-    </span>reset_stream_max: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+    </span>reset_stream_max: usize,
 
     <span class="doccomment">/// Initial `Settings` frame to send as part of the handshake.
-    </span>settings: <a href="frame/settings.rs.html#7">Settings</a>,
+    </span>settings: Settings,
 
     <span class="doccomment">/// Initial target window size for new connections.
-    </span>initial_target_connection_window_size: <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>&gt;,
+    </span>initial_target_connection_window_size: <span class="prelude-ty">Option</span>&lt;u32&gt;,
 
     <span class="doccomment">/// Maximum amount of bytes to &quot;buffer&quot; for writing per stream.
-    </span>max_send_buffer_size: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+    </span>max_send_buffer_size: usize,
 }
 
 <span class="doccomment">/// Send a response back to the client
@@ -1818,7 +1818,7 @@
 ///
 /// [module]: index.html
 </span><span class="attr">#[derive(Debug)]
-</span><span class="kw">pub struct </span>SendResponse&lt;B: <a href="../../bytes/buf/buf_impl/trait.Buf.html">Buf</a>&gt; {
+</span><span class="kw">pub struct </span>SendResponse&lt;B: Buf&gt; {
     inner: proto::StreamRef&lt;B&gt;,
 }
 
@@ -1836,19 +1836,19 @@
 /// See [module] level docs for more details.
 ///
 /// [module]: index.html
-</span><span class="kw">pub struct </span>SendPushedResponse&lt;B: <a href="../../bytes/buf/buf_impl/trait.Buf.html">Buf</a>&gt; {
+</span><span class="kw">pub struct </span>SendPushedResponse&lt;B: Buf&gt; {
     inner: SendResponse&lt;B&gt;,
 }
 
 <span class="comment">// Manual implementation necessary because of rust-lang/rust#26925
-</span><span class="kw">impl</span>&lt;B: <a href="../../bytes/buf/buf_impl/trait.Buf.html">Buf</a> + <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span>SendPushedResponse&lt;B&gt; {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#293">f</a>, <span class="string">&quot;SendPushedResponse {{ {:?} }}&quot;</span>, <span class="self">self</span>.inner)
+</span><span class="kw">impl</span>&lt;B: Buf + fmt::Debug&gt; fmt::Debug <span class="kw">for </span>SendPushedResponse&lt;B&gt; {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter) -&gt; fmt::Result {
+        <span class="macro">write!</span>(f, <span class="string">&quot;SendPushedResponse {{ {:?} }}&quot;</span>, <span class="self">self</span>.inner)
     }
 }
 
 <span class="doccomment">/// Stages of an in-progress handshake.
-</span><span class="kw">enum </span>Handshaking&lt;T, B: <a href="../../bytes/buf/buf_impl/trait.Buf.html">Buf</a>&gt; {
+</span><span class="kw">enum </span>Handshaking&lt;T, B: Buf&gt; {
     <span class="doccomment">/// State 1. Connection is flushing pending SETTINGS frame.
     </span>Flushing(Instrumented&lt;Flush&lt;T, Prioritized&lt;B&gt;&gt;&gt;),
     <span class="doccomment">/// State 2. Connection is waiting for the client preface.
@@ -1865,13 +1865,13 @@
 <span class="doccomment">/// Read the client connection preface
 </span><span class="kw">struct </span>ReadPreface&lt;T, B&gt; {
     codec: <span class="prelude-ty">Option</span>&lt;Codec&lt;T, B&gt;&gt;,
-    pos: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+    pos: usize,
 }
 
 <span class="attr">#[derive(Debug)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>Peer;
 
-<span class="kw">const </span>PREFACE: [<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="number">24</span>] = <span class="kw-2">*</span><span class="string">b&quot;PRI * HTTP/2.0\r\n\r\nSM\r\n\r\n&quot;</span>;
+<span class="kw">const </span>PREFACE: [u8; <span class="number">24</span>] = <span class="kw-2">*</span><span class="string">b&quot;PRI * HTTP/2.0\r\n\r\nSM\r\n\r\n&quot;</span>;
 
 <span class="doccomment">/// Creates a new configured HTTP/2 server with default configuration
 /// values backed by `io`.
@@ -1904,57 +1904,57 @@
 /// #
 /// # pub fn main() {}
 /// ```
-</span><span class="kw">pub fn </span>handshake&lt;T&gt;(io: T) -&gt; Handshake&lt;T, <a href="../../bytes/bytes/struct.Bytes.html">Bytes</a>&gt;
+</span><span class="kw">pub fn </span>handshake&lt;T&gt;(io: T) -&gt; Handshake&lt;T, Bytes&gt;
 <span class="kw">where
-    </span>T: <a href="../../tokio/io/async_read/trait.AsyncRead.html">AsyncRead</a> + <a href="../../tokio/io/async_write/trait.AsyncWrite.html">AsyncWrite</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
+    </span>T: AsyncRead + AsyncWrite + Unpin,
 {
-    Builder::new().<a href="#1007-1010">handshake</a>(<a href="#355">io</a>)
+    Builder::new().handshake(io)
 }
 
 <span class="comment">// ===== impl Connection =====
 
 </span><span class="kw">impl</span>&lt;T, B&gt; Connection&lt;T, B&gt;
 <span class="kw">where
-    </span>T: <a href="../../tokio/io/async_read/trait.AsyncRead.html">AsyncRead</a> + <a href="../../tokio/io/async_write/trait.AsyncWrite.html">AsyncWrite</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
-    B: <a href="../../bytes/buf/buf_impl/trait.Buf.html">Buf</a> + <span class="lifetime">&#39;static</span>,
+    </span>T: AsyncRead + AsyncWrite + Unpin,
+    B: Buf + <span class="lifetime">&#39;static</span>,
 {
-    <span class="kw">fn </span>handshake2(io: T, builder: <a href="#236">Builder</a>) -&gt; Handshake&lt;T, B&gt; {
-        <span class="kw">let </span>span = <a class="macro" href="../../tracing/tracing/macro.trace_span.html">tracing::trace_span!</a>(<span class="string">&quot;server_handshake&quot;</span>);
-        <span class="kw">let </span>entered = <a href="#370">span</a>.enter();
+    <span class="kw">fn </span>handshake2(io: T, builder: Builder) -&gt; Handshake&lt;T, B&gt; {
+        <span class="kw">let </span>span = <span class="macro">tracing::trace_span!</span>(<span class="string">&quot;server_handshake&quot;</span>);
+        <span class="kw">let </span>entered = span.enter();
 
         <span class="comment">// Create the codec.
-        </span><span class="kw">let </span><span class="kw-2">mut </span>codec = Codec::new(<a href="#369">io</a>);
+        </span><span class="kw">let </span><span class="kw-2">mut </span>codec = Codec::new(io);
 
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(max) = <a href="#369">builder</a>.settings.<a href="frame/settings.rs.html#85">max_frame_size</a>() {
-            <a href="#374">codec</a>.<a href="codec/mod.rs.html#69">set_max_recv_frame_size</a>(<a href="#376">max</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>);
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(max) = builder.settings.max_frame_size() {
+            codec.set_max_recv_frame_size(max <span class="kw">as </span>usize);
         }
 
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(max) = <a href="#369">builder</a>.settings.<a href="frame/settings.rs.html#96">max_header_list_size</a>() {
-            <a href="#374">codec</a>.<a href="codec/mod.rs.html#99">set_max_recv_header_list_size</a>(<a href="#380">max</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>);
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(max) = builder.settings.max_header_list_size() {
+            codec.set_max_recv_header_list_size(max <span class="kw">as </span>usize);
         }
 
         <span class="comment">// Send initial settings frame.
-        </span><a href="#374">codec</a>
-            .<a href="codec/mod.rs.html#140">buffer</a>(<a href="#369">builder</a>.settings.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>().<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
+        </span>codec
+            .buffer(builder.settings.clone().into())
             .expect(<span class="string">&quot;invalid SETTINGS frame&quot;</span>);
 
         <span class="comment">// Create the handshake future.
         </span><span class="kw">let </span>state =
-            <a href="#301">Handshaking::Flushing</a>(Flush::new(<a href="#374">codec</a>).<a href="../../tracing/instrument/trait.Instrument.html">instrument</a>(<a class="macro" href="../../tracing/tracing/macro.trace_span.html">tracing::trace_span!</a>(<span class="string">&quot;flush&quot;</span>)));
+            Handshaking::Flushing(Flush::new(codec).instrument(<span class="macro">tracing::trace_span!</span>(<span class="string">&quot;flush&quot;</span>)));
 
-        <a href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>(<a href="#371">entered</a>);
+        drop(entered);
 
-        <a href="#148">Handshake</a> {
-            <a href="#369">builder</a>,
-            <a href="#390">state</a>,
-            <a href="#370">span</a>,
+        Handshake {
+            builder,
+            state,
+            span,
         }
     }
 
     <span class="doccomment">/// Accept the next incoming request on this connection.
     </span><span class="kw">pub async fn </span>accept(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-    ) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="prelude-ty">Result</span>&lt;(Request&lt;<a href="share.rs.html#138">RecvStream</a>&gt;, SendResponse&lt;B&gt;), <a href="error.rs.html#21"><span class="kw">crate</span>::Error</a>&gt;&gt; {
+    ) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="prelude-ty">Result</span>&lt;(Request&lt;RecvStream&gt;, SendResponse&lt;B&gt;), <span class="kw">crate</span>::Error&gt;&gt; {
         futures_util::future::poll_fn(<span class="kw">move </span>|cx| <span class="self">self</span>.poll_accept(cx)).<span class="kw">await
     </span>}
 
@@ -1962,7 +1962,7 @@
     </span><span class="kw">pub fn </span>poll_accept(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
-    ) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;<span class="prelude-ty">Result</span>&lt;(Request&lt;<a href="share.rs.html#138">RecvStream</a>&gt;, SendResponse&lt;B&gt;), <a href="error.rs.html#21"><span class="kw">crate</span>::Error</a>&gt;&gt;&gt; {
+    ) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;<span class="prelude-ty">Result</span>&lt;(Request&lt;RecvStream&gt;, SendResponse&lt;B&gt;), <span class="kw">crate</span>::Error&gt;&gt;&gt; {
         <span class="comment">// Always try to advance the internal state. Getting Pending also is
         // needed to allow this function to return Pending.
         </span><span class="kw">if let </span>Poll::Ready(<span class="kw">_</span>) = <span class="self">self</span>.poll_closed(cx)<span class="question-mark">? </span>{
@@ -1971,15 +1971,15 @@
             </span><span class="kw">return </span>Poll::Ready(<span class="prelude-val">None</span>);
         }
 
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(inner) = <a class="self" href="#411">self</a>.connection.<a href="proto/connection.rs.html#544">next_incoming</a>() {
-            <a class="macro" href="../../tracing/tracing/macro.trace.html">tracing::trace!</a>(<span class="string">&quot;received incoming&quot;</span>);
-            <span class="kw">let </span>(head, <span class="kw">_</span>) = <a href="#422">inner</a>.<a href="proto/streams/streams.rs.html#1169">take_request</a>().into_parts();
-            <span class="kw">let </span>body = RecvStream::new(FlowControl::new(<a href="#422">inner</a>.<a href="proto/streams/streams.rs.html#1232-1234">clone_to_opaque</a>()));
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(inner) = <span class="self">self</span>.connection.next_incoming() {
+            <span class="macro">tracing::trace!</span>(<span class="string">&quot;received incoming&quot;</span>);
+            <span class="kw">let </span>(head, <span class="kw">_</span>) = inner.take_request().into_parts();
+            <span class="kw">let </span>body = RecvStream::new(FlowControl::new(inner.clone_to_opaque()));
 
-            <span class="kw">let </span>request = Request::from_parts(<a href="#424">head</a>, <a href="#425">body</a>);
-            <span class="kw">let </span>respond = <a href="#269">SendResponse</a> { <a href="#422">inner</a> };
+            <span class="kw">let </span>request = Request::from_parts(head, body);
+            <span class="kw">let </span>respond = SendResponse { inner };
 
-            <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>((<a href="#427">request</a>, <a href="#428">respond</a>))));
+            <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>((request, respond))));
         }
 
         Poll::Pending
@@ -2002,9 +2002,9 @@
     ///
     /// [`FlowControl`]: ../struct.FlowControl.html
     /// [library level]: ../index.html#flow-control
-    </span><span class="kw">pub fn </span>set_target_window_size(<span class="kw-2">&amp;mut </span><span class="self">self</span>, size: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(size &lt;= proto::MAX_WINDOW_SIZE);
-        <a class="self" href="#453">self</a>.connection.<a href="proto/connection.rs.html#145">set_target_window_size</a>(<a href="#453">size</a>);
+    </span><span class="kw">pub fn </span>set_target_window_size(<span class="kw-2">&amp;mut </span><span class="self">self</span>, size: u32) {
+        <span class="macro">assert!</span>(size &lt;= proto::MAX_WINDOW_SIZE);
+        <span class="self">self</span>.connection.set_target_window_size(size);
     }
 
     <span class="doccomment">/// Set a new `INITIAL_WINDOW_SIZE` setting (in octets) for stream-level
@@ -2020,8 +2020,8 @@
     ///
     /// Returns an error if a previous call is still pending acknowledgement
     /// from the remote endpoint.
-    </span><span class="kw">pub fn </span>set_initial_window_size(<span class="kw-2">&amp;mut </span><span class="self">self</span>, size: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#21"><span class="kw">crate</span>::Error</a>&gt; {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(size &lt;= proto::MAX_WINDOW_SIZE);
+    </span><span class="kw">pub fn </span>set_initial_window_size(<span class="kw-2">&amp;mut </span><span class="self">self</span>, size: u32) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="kw">crate</span>::Error&gt; {
+        <span class="macro">assert!</span>(size &lt;= proto::MAX_WINDOW_SIZE);
         <span class="self">self</span>.connection.set_initial_window_size(size)<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(())
     }
@@ -2034,7 +2034,7 @@
     ///
     /// Returns an error if a previous call is still pending acknowledgement
     /// from the remote endpoint.
-    </span><span class="kw">pub fn </span>enable_connect_protocol(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#21"><span class="kw">crate</span>::Error</a>&gt; {
+    </span><span class="kw">pub fn </span>enable_connect_protocol(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="kw">crate</span>::Error&gt; {
         <span class="self">self</span>.connection.set_enable_connect_protocol()<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(())
     }
@@ -2052,14 +2052,14 @@
     /// [`poll_accept`]: struct.Connection.html#method.poll_accept
     /// [`RecvStream`]: ../struct.RecvStream.html
     /// [`SendStream`]: ../struct.SendStream.html
-    </span><span class="kw">pub fn </span>poll_closed(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cx: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#21"><span class="kw">crate</span>::Error</a>&gt;&gt; {
-        <a class="self" href="#503">self</a>.connection.<a href="proto/connection.rs.html#243">poll</a>(<a href="#503">cx</a>).map_err(<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">Into::into</a>)
+    </span><span class="kw">pub fn </span>poll_closed(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cx: <span class="kw-2">&amp;mut </span>Context) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;(), <span class="kw">crate</span>::Error&gt;&gt; {
+        <span class="self">self</span>.connection.poll(cx).map_err(Into::into)
     }
 
     <span class="attr">#[doc(hidden)]
     #[deprecated(note = <span class="string">&quot;renamed to poll_closed&quot;</span>)]
-    </span><span class="kw">pub fn </span>poll_close(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cx: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#21"><span class="kw">crate</span>::Error</a>&gt;&gt; {
-        <a class="self" href="#509">self</a>.<a href="#503">poll_closed</a>(<a href="#509">cx</a>)
+    </span><span class="kw">pub fn </span>poll_close(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cx: <span class="kw-2">&amp;mut </span>Context) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;(), <span class="kw">crate</span>::Error&gt;&gt; {
+        <span class="self">self</span>.poll_closed(cx)
     }
 
     <span class="doccomment">/// Sets the connection to a GOAWAY state.
@@ -2074,8 +2074,8 @@
     /// handled.
     ///
     /// For graceful shutdowns, see [`graceful_shutdown`](Connection::graceful_shutdown).
-    </span><span class="kw">pub fn </span>abrupt_shutdown(<span class="kw-2">&amp;mut </span><span class="self">self</span>, reason: <a href="frame/reason.rs.html#19">Reason</a>) {
-        <a class="self" href="#525">self</a>.connection.<a href="proto/connection.rs.html#203">go_away_from_user</a>(<a href="#525">reason</a>);
+    </span><span class="kw">pub fn </span>abrupt_shutdown(<span class="kw-2">&amp;mut </span><span class="self">self</span>, reason: Reason) {
+        <span class="self">self</span>.connection.go_away_from_user(reason);
     }
 
     <span class="doccomment">/// Starts a [graceful shutdown][1] process.
@@ -2089,7 +2089,7 @@
     ///
     /// [1]: http://httpwg.org/specs/rfc7540.html#GOAWAY
     </span><span class="kw">pub fn </span>graceful_shutdown(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <a class="self" href="#539">self</a>.connection.<a href="proto/connection.rs.html#549">go_away_gracefully</a>();
+        <span class="self">self</span>.connection.go_away_gracefully();
     }
 
     <span class="doccomment">/// Takes a `PingPong` instance from the connection.
@@ -2097,8 +2097,8 @@
     /// # Note
     ///
     /// This may only be called once. Calling multiple times will return `None`.
-    </span><span class="kw">pub fn </span>ping_pong(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="share.rs.html#201">PingPong</a>&gt; {
-        <a class="self" href="#548">self</a>.connection.<a href="proto/connection.rs.html#238">take_user_pings</a>().map(PingPong::new)
+    </span><span class="kw">pub fn </span>ping_pong(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;PingPong&gt; {
+        <span class="self">self</span>.connection.take_user_pings().map(PingPong::new)
     }
 
     <span class="doccomment">/// Returns the maximum number of concurrent streams that may be initiated
@@ -2110,8 +2110,8 @@
     /// remote.
     ///
     /// [1]: https://tools.ietf.org/html/rfc7540#section-5.1.2
-    </span><span class="kw">pub fn </span>max_concurrent_send_streams(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="self" href="#561">self</a>.connection.<a href="proto/connection.rs.html#165">max_send_streams</a>()
+    </span><span class="kw">pub fn </span>max_concurrent_send_streams(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+        <span class="self">self</span>.connection.max_send_streams()
     }
 
     <span class="doccomment">/// Returns the maximum number of concurrent streams that may be initiated
@@ -2125,8 +2125,8 @@
     ///
     /// [1]: https://tools.ietf.org/html/rfc7540#section-5.1.2
     /// [2]: ../struct.Builder.html#method.max_concurrent_streams
-    </span><span class="kw">pub fn </span>max_concurrent_recv_streams(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="self" href="#576">self</a>.connection.<a href="proto/connection.rs.html#171">max_recv_streams</a>()
+    </span><span class="kw">pub fn </span>max_concurrent_recv_streams(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+        <span class="self">self</span>.connection.max_recv_streams()
     }
 }
 
@@ -2143,21 +2143,21 @@
     }
 }
 
-<span class="kw">impl</span>&lt;T, B&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span>Connection&lt;T, B&gt;
+<span class="kw">impl</span>&lt;T, B&gt; fmt::Debug <span class="kw">for </span>Connection&lt;T, B&gt;
 <span class="kw">where
-    </span>T: <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a>,
-    B: <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> + <a href="../../bytes/buf/buf_impl/trait.Buf.html">Buf</a>,
+    </span>T: fmt::Debug,
+    B: fmt::Debug + Buf,
 {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, fmt: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a href="#599">fmt</a>.debug_struct(<span class="string">&quot;Connection&quot;</span>)
-            .field(<span class="string">&quot;connection&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="#599">self</a>.connection)
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, fmt: <span class="kw-2">&amp;mut </span>fmt::Formatter) -&gt; fmt::Result {
+        fmt.debug_struct(<span class="string">&quot;Connection&quot;</span>)
+            .field(<span class="string">&quot;connection&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.connection)
             .finish()
     }
 }
 
 <span class="comment">// ===== impl Builder =====
 
-</span><span class="kw">impl </span><a href="#236">Builder</a> {
+</span><span class="kw">impl </span>Builder {
     <span class="doccomment">/// Returns a new server builder instance initialized with default
     /// configuration values.
     ///
@@ -2183,13 +2183,13 @@
     /// #
     /// # pub fn main() {}
     /// ```
-    </span><span class="kw">pub fn </span>new() -&gt; <a href="#236">Builder</a> {
-        <a href="#236">Builder</a> {
-            reset_stream_duration: Duration::from_secs(<a href="proto/mod.rs.html#35">proto::DEFAULT_RESET_STREAM_SECS</a>),
-            reset_stream_max: <a href="proto/mod.rs.html#34">proto::DEFAULT_RESET_STREAM_MAX</a>,
+    </span><span class="kw">pub fn </span>new() -&gt; Builder {
+        Builder {
+            reset_stream_duration: Duration::from_secs(proto::DEFAULT_RESET_STREAM_SECS),
+            reset_stream_max: proto::DEFAULT_RESET_STREAM_MAX,
             settings: Settings::default(),
             initial_target_connection_window_size: <span class="prelude-val">None</span>,
-            max_send_buffer_size: <a href="proto/mod.rs.html#36">proto::DEFAULT_MAX_SEND_BUFFER_SIZE</a>,
+            max_send_buffer_size: proto::DEFAULT_MAX_SEND_BUFFER_SIZE,
         }
     }
 
@@ -2222,9 +2222,9 @@
     /// #
     /// # pub fn main() {}
     /// ```
-    </span><span class="kw">pub fn </span>initial_window_size(<span class="kw-2">&amp;mut </span><span class="self">self</span>, size: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self </span>{
-        <a class="self" href="#673">self</a>.settings.<a href="frame/settings.rs.html#73">set_initial_window_size</a>(<span class="prelude-val">Some</span>(<a href="#673">size</a>));
-        <span class="self"><a href="#673">self</a>
+    </span><span class="kw">pub fn </span>initial_window_size(<span class="kw-2">&amp;mut </span><span class="self">self</span>, size: u32) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self </span>{
+        <span class="self">self</span>.settings.set_initial_window_size(<span class="prelude-val">Some</span>(size));
+        <span class="self">self
     </span>}
 
     <span class="doccomment">/// Indicates the initial window size (in octets) for connection-level flow control
@@ -2256,9 +2256,9 @@
     /// #
     /// # pub fn main() {}
     /// ```
-    </span><span class="kw">pub fn </span>initial_connection_window_size(<span class="kw-2">&amp;mut </span><span class="self">self</span>, size: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self </span>{
-        <a class="self" href="#707">self</a>.initial_target_connection_window_size = <span class="prelude-val">Some</span>(<a href="#707">size</a>);
-        <span class="self"><a href="#707">self</a>
+    </span><span class="kw">pub fn </span>initial_connection_window_size(<span class="kw-2">&amp;mut </span><span class="self">self</span>, size: u32) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self </span>{
+        <span class="self">self</span>.initial_target_connection_window_size = <span class="prelude-val">Some</span>(size);
+        <span class="self">self
     </span>}
 
     <span class="doccomment">/// Indicates the size (in octets) of the largest HTTP/2 frame payload that the
@@ -2294,9 +2294,9 @@
     ///
     /// This function panics if `max` is not within the legal range specified
     /// above.
-    </span><span class="kw">pub fn </span>max_frame_size(<span class="kw-2">&amp;mut </span><span class="self">self</span>, max: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self </span>{
-        <a class="self" href="#745">self</a>.settings.<a href="frame/settings.rs.html#89">set_max_frame_size</a>(<span class="prelude-val">Some</span>(<a href="#745">max</a>));
-        <span class="self"><a href="#745">self</a>
+    </span><span class="kw">pub fn </span>max_frame_size(<span class="kw-2">&amp;mut </span><span class="self">self</span>, max: u32) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self </span>{
+        <span class="self">self</span>.settings.set_max_frame_size(<span class="prelude-val">Some</span>(max));
+        <span class="self">self
     </span>}
 
     <span class="doccomment">/// Sets the max size of received header frames.
@@ -2328,9 +2328,9 @@
     /// #
     /// # pub fn main() {}
     /// ```
-    </span><span class="kw">pub fn </span>max_header_list_size(<span class="kw-2">&amp;mut </span><span class="self">self</span>, max: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self </span>{
-        <a class="self" href="#779">self</a>.settings.<a href="frame/settings.rs.html#100">set_max_header_list_size</a>(<span class="prelude-val">Some</span>(<a href="#779">max</a>));
-        <span class="self"><a href="#779">self</a>
+    </span><span class="kw">pub fn </span>max_header_list_size(<span class="kw-2">&amp;mut </span><span class="self">self</span>, max: u32) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self </span>{
+        <span class="self">self</span>.settings.set_max_header_list_size(<span class="prelude-val">Some</span>(max));
+        <span class="self">self
     </span>}
 
     <span class="doccomment">/// Sets the maximum number of concurrent streams.
@@ -2376,9 +2376,9 @@
     /// #
     /// # pub fn main() {}
     /// ```
-    </span><span class="kw">pub fn </span>max_concurrent_streams(<span class="kw-2">&amp;mut </span><span class="self">self</span>, max: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self </span>{
-        <a class="self" href="#827">self</a>.settings.<a href="frame/settings.rs.html#81">set_max_concurrent_streams</a>(<span class="prelude-val">Some</span>(<a href="#827">max</a>));
-        <span class="self"><a href="#827">self</a>
+    </span><span class="kw">pub fn </span>max_concurrent_streams(<span class="kw-2">&amp;mut </span><span class="self">self</span>, max: u32) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self </span>{
+        <span class="self">self</span>.settings.set_max_concurrent_streams(<span class="prelude-val">Some</span>(max));
+        <span class="self">self
     </span>}
 
     <span class="doccomment">/// Sets the maximum number of concurrent locally reset streams.
@@ -2422,9 +2422,9 @@
     /// #
     /// # pub fn main() {}
     /// ```
-    </span><span class="kw">pub fn </span>max_concurrent_reset_streams(<span class="kw-2">&amp;mut </span><span class="self">self</span>, max: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self </span>{
-        <a class="self" href="#873">self</a>.reset_stream_max = <a href="#873">max</a>;
-        <span class="self"><a href="#873">self</a>
+    </span><span class="kw">pub fn </span>max_concurrent_reset_streams(<span class="kw-2">&amp;mut </span><span class="self">self</span>, max: usize) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self </span>{
+        <span class="self">self</span>.reset_stream_max = max;
+        <span class="self">self
     </span>}
 
     <span class="doccomment">/// Sets the maximum send buffer size per stream.
@@ -2439,10 +2439,10 @@
     /// # Panics
     ///
     /// This function panics if `max` is larger than `u32::MAX`.
-    </span><span class="kw">pub fn </span>max_send_buffer_size(<span class="kw-2">&amp;mut </span><span class="self">self</span>, max: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self </span>{
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(max &lt;= std::u32::MAX <span class="kw">as </span>usize);
-        <a class="self" href="#890">self</a>.max_send_buffer_size = <a href="#890">max</a>;
-        <span class="self"><a href="#890">self</a>
+    </span><span class="kw">pub fn </span>max_send_buffer_size(<span class="kw-2">&amp;mut </span><span class="self">self</span>, max: usize) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self </span>{
+        <span class="macro">assert!</span>(max &lt;= std::u32::MAX <span class="kw">as </span>usize);
+        <span class="self">self</span>.max_send_buffer_size = max;
+        <span class="self">self
     </span>}
 
     <span class="doccomment">/// Sets the maximum number of concurrent locally reset streams.
@@ -2487,17 +2487,17 @@
     /// #
     /// # pub fn main() {}
     /// ```
-    </span><span class="kw">pub fn </span>reset_stream_duration(<span class="kw-2">&amp;mut </span><span class="self">self</span>, dur: <a href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a>) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self </span>{
-        <a class="self" href="#938">self</a>.reset_stream_duration = <a href="#938">dur</a>;
-        <span class="self"><a href="#938">self</a>
+    </span><span class="kw">pub fn </span>reset_stream_duration(<span class="kw-2">&amp;mut </span><span class="self">self</span>, dur: Duration) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self </span>{
+        <span class="self">self</span>.reset_stream_duration = dur;
+        <span class="self">self
     </span>}
 
     <span class="doccomment">/// Enables the [extended CONNECT protocol].
     ///
     /// [extended CONNECT protocol]: https://datatracker.ietf.org/doc/html/rfc8441#section-4
     </span><span class="kw">pub fn </span>enable_connect_protocol(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self </span>{
-        <a class="self" href="#946">self</a>.settings.<a href="frame/settings.rs.html#116">set_enable_connect_protocol</a>(<span class="prelude-val">Some</span>(<span class="number">1</span>));
-        <span class="self"><a href="#946">self</a>
+        <span class="self">self</span>.settings.set_enable_connect_protocol(<span class="prelude-val">Some</span>(<span class="number">1</span>));
+        <span class="self">self
     </span>}
 
     <span class="doccomment">/// Creates a new configured HTTP/2 server backed by `io`.
@@ -2558,22 +2558,22 @@
     /// ```
     </span><span class="kw">pub fn </span>handshake&lt;T, B&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, io: T) -&gt; Handshake&lt;T, B&gt;
     <span class="kw">where
-        </span>T: <a href="../../tokio/io/async_read/trait.AsyncRead.html">AsyncRead</a> + <a href="../../tokio/io/async_write/trait.AsyncWrite.html">AsyncWrite</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
-        B: <a href="../../bytes/buf/buf_impl/trait.Buf.html">Buf</a> + <span class="lifetime">&#39;static</span>,
+        </span>T: AsyncRead + AsyncWrite + Unpin,
+        B: Buf + <span class="lifetime">&#39;static</span>,
     {
-        Connection::handshake2(<a href="#1007">io</a>, <a class="self" href="#1007">self</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>())
+        Connection::handshake2(io, <span class="self">self</span>.clone())
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for </span><a href="#236">Builder</a> {
-    <span class="kw">fn </span>default() -&gt; <a href="#236">Builder</a> {
+<span class="kw">impl </span>Default <span class="kw">for </span>Builder {
+    <span class="kw">fn </span>default() -&gt; Builder {
         Builder::new()
     }
 }
 
 <span class="comment">// ===== impl SendResponse =====
 
-</span><span class="kw">impl</span>&lt;B: <a href="../../bytes/buf/buf_impl/trait.Buf.html">Buf</a>&gt; SendResponse&lt;B&gt; {
+</span><span class="kw">impl</span>&lt;B: Buf&gt; SendResponse&lt;B&gt; {
     <span class="doccomment">/// Send a response to a client request.
     ///
     /// On success, a [`SendStream`] instance is returned. This instance can be
@@ -2593,12 +2593,12 @@
     </span><span class="kw">pub fn </span>send_response(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         response: Response&lt;()&gt;,
-        end_of_stream: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;SendStream&lt;B&gt;, <a href="error.rs.html#21"><span class="kw">crate</span>::Error</a>&gt; {
-        <a class="self" href="#1042">self</a>.inner
-            .<a href="proto/streams/streams.rs.html#1082-1086">send_response</a>(<a href="#1043">response</a>, <a href="#1044">end_of_stream</a>)
-            .map(|<span class="kw">_</span>| SendStream::new(<a class="self" href="#1042">self</a>.inner.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()))
-            .map_err(<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">Into::into</a>)
+        end_of_stream: bool,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;SendStream&lt;B&gt;, <span class="kw">crate</span>::Error&gt; {
+        <span class="self">self</span>.inner
+            .send_response(response, end_of_stream)
+            .map(|<span class="kw">_</span>| SendStream::new(<span class="self">self</span>.inner.clone()))
+            .map_err(Into::into)
     }
 
     <span class="doccomment">/// Push a request and response to the client
@@ -2609,13 +2609,13 @@
     </span><span class="kw">pub fn </span>push_request(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         request: Request&lt;()&gt;,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;SendPushedResponse&lt;B&gt;, <a href="error.rs.html#21"><span class="kw">crate</span>::Error</a>&gt; {
-        <a class="self" href="#1058">self</a>.inner
-            .<a href="proto/streams/streams.rs.html#1106-1109">send_push_promise</a>(<a href="#1059">request</a>)
-            .map(|inner| <a href="#287">SendPushedResponse</a> {
-                inner: <a href="#269">SendResponse</a> { <a href="#1063">inner</a> },
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;SendPushedResponse&lt;B&gt;, <span class="kw">crate</span>::Error&gt; {
+        <span class="self">self</span>.inner
+            .send_push_promise(request)
+            .map(|inner| SendPushedResponse {
+                inner: SendResponse { inner },
             })
-            .map_err(<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">Into::into</a>)
+            .map_err(Into::into)
     }
 
     <span class="doccomment">/// Send a stream reset to the peer.
@@ -2633,8 +2633,8 @@
     ///
     /// [`send_response`]: #method.send_response
     /// [`SendStream`]: ../struct.SendStream.html
-    </span><span class="kw">pub fn </span>send_reset(<span class="kw-2">&amp;mut </span><span class="self">self</span>, reason: <a href="frame/reason.rs.html#19">Reason</a>) {
-        <a class="self" href="#1084">self</a>.inner.<a href="proto/streams/streams.rs.html#1070">send_reset</a>(<a href="#1084">reason</a>)
+    </span><span class="kw">pub fn </span>send_reset(<span class="kw-2">&amp;mut </span><span class="self">self</span>, reason: Reason) {
+        <span class="self">self</span>.inner.send_reset(reason)
     }
 
     <span class="doccomment">/// Polls to be notified when the client resets this stream.
@@ -2649,8 +2649,8 @@
     ///
     /// Calling this method after having called `send_response` will return
     /// a user error.
-    </span><span class="kw">pub fn </span>poll_reset(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cx: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;<a href="frame/reason.rs.html#19">Reason</a>, <a href="error.rs.html#21"><span class="kw">crate</span>::Error</a>&gt;&gt; {
-        <a class="self" href="#1100">self</a>.inner.<a href="proto/streams/streams.rs.html#1216-1220">poll_reset</a>(<a href="#1100">cx</a>, <a href="proto/streams/send.rs.html#46">proto::PollReset::AwaitingHeaders</a>)
+    </span><span class="kw">pub fn </span>poll_reset(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cx: <span class="kw-2">&amp;mut </span>Context) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;Reason, <span class="kw">crate</span>::Error&gt;&gt; {
+        <span class="self">self</span>.inner.poll_reset(cx, proto::PollReset::AwaitingHeaders)
     }
 
     <span class="doccomment">/// Returns the stream ID of the response stream.
@@ -2658,14 +2658,14 @@
     /// # Panics
     ///
     /// If the lock on the stream store has been poisoned.
-    </span><span class="kw">pub fn </span>stream_id(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="share.rs.html#112"><span class="kw">crate</span>::StreamId</a> {
-        <span class="kw">crate</span>::StreamId::from_internal(<a class="self" href="#1109">self</a>.inner.<a href="proto/streams/streams.rs.html#1239">stream_id</a>())
+    </span><span class="kw">pub fn </span>stream_id(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">crate</span>::StreamId {
+        <span class="kw">crate</span>::StreamId::from_internal(<span class="self">self</span>.inner.stream_id())
     }
 }
 
 <span class="comment">// ===== impl SendPushedResponse =====
 
-</span><span class="kw">impl</span>&lt;B: <a href="../../bytes/buf/buf_impl/trait.Buf.html">Buf</a>&gt; SendPushedResponse&lt;B&gt; {
+</span><span class="kw">impl</span>&lt;B: Buf&gt; SendPushedResponse&lt;B&gt; {
     <span class="doccomment">/// Send a response to a promised request.
     ///
     /// On success, a [`SendStream`] instance is returned. This instance can be
@@ -2685,9 +2685,9 @@
     </span><span class="kw">pub fn </span>send_response(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         response: Response&lt;()&gt;,
-        end_of_stream: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;SendStream&lt;B&gt;, <a href="error.rs.html#21"><span class="kw">crate</span>::Error</a>&gt; {
-        <a class="self" href="#1134">self</a>.inner.<a href="#1041-1045">send_response</a>(<a href="#1135">response</a>, <a href="#1136">end_of_stream</a>)
+        end_of_stream: bool,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;SendStream&lt;B&gt;, <span class="kw">crate</span>::Error&gt; {
+        <span class="self">self</span>.inner.send_response(response, end_of_stream)
     }
 
     <span class="doccomment">/// Send a stream reset to the peer.
@@ -2705,8 +2705,8 @@
     ///
     /// [`send_response`]: #method.send_response
     /// [`SendStream`]: ../struct.SendStream.html
-    </span><span class="kw">pub fn </span>send_reset(<span class="kw-2">&amp;mut </span><span class="self">self</span>, reason: <a href="frame/reason.rs.html#19">Reason</a>) {
-        <a class="self" href="#1156">self</a>.inner.<a href="#1084">send_reset</a>(<a href="#1156">reason</a>)
+    </span><span class="kw">pub fn </span>send_reset(<span class="kw-2">&amp;mut </span><span class="self">self</span>, reason: Reason) {
+        <span class="self">self</span>.inner.send_reset(reason)
     }
 
     <span class="doccomment">/// Polls to be notified when the client resets this stream.
@@ -2721,8 +2721,8 @@
     ///
     /// Calling this method after having called `send_response` will return
     /// a user error.
-    </span><span class="kw">pub fn </span>poll_reset(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cx: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;<a href="frame/reason.rs.html#19">Reason</a>, <a href="error.rs.html#21"><span class="kw">crate</span>::Error</a>&gt;&gt; {
-        <a class="self" href="#1172">self</a>.inner.<a href="#1100">poll_reset</a>(<a href="#1172">cx</a>)
+    </span><span class="kw">pub fn </span>poll_reset(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cx: <span class="kw-2">&amp;mut </span>Context) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;Reason, <span class="kw">crate</span>::Error&gt;&gt; {
+        <span class="self">self</span>.inner.poll_reset(cx)
     }
 
     <span class="doccomment">/// Returns the stream ID of the response stream.
@@ -2730,58 +2730,58 @@
     /// # Panics
     ///
     /// If the lock on the stream store has been poisoned.
-    </span><span class="kw">pub fn </span>stream_id(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="share.rs.html#112"><span class="kw">crate</span>::StreamId</a> {
-        <a class="self" href="#1181">self</a>.inner.<a href="#1109">stream_id</a>()
+    </span><span class="kw">pub fn </span>stream_id(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">crate</span>::StreamId {
+        <span class="self">self</span>.inner.stream_id()
     }
 }
 
 <span class="comment">// ===== impl Flush =====
 
-</span><span class="kw">impl</span>&lt;T, B: <a href="../../bytes/buf/buf_impl/trait.Buf.html">Buf</a>&gt; Flush&lt;T, B&gt; {
+</span><span class="kw">impl</span>&lt;T, B: Buf&gt; Flush&lt;T, B&gt; {
     <span class="kw">fn </span>new(codec: Codec&lt;T, B&gt;) -&gt; <span class="self">Self </span>{
-        <a href="#309">Flush</a> { codec: <span class="prelude-val">Some</span>(<a href="#1189">codec</a>) }
+        Flush { codec: <span class="prelude-val">Some</span>(codec) }
     }
 }
 
-<span class="kw">impl</span>&lt;T, B&gt; <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a> <span class="kw">for </span>Flush&lt;T, B&gt;
+<span class="kw">impl</span>&lt;T, B&gt; Future <span class="kw">for </span>Flush&lt;T, B&gt;
 <span class="kw">where
-    </span>T: <a href="../../tokio/io/async_write/trait.AsyncWrite.html">AsyncWrite</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
-    B: <a href="../../bytes/buf/buf_impl/trait.Buf.html">Buf</a>,
+    </span>T: AsyncWrite + Unpin,
+    B: Buf,
 {
-    <span class="kw">type </span>Output = <span class="prelude-ty">Result</span>&lt;Codec&lt;T, B&gt;, <a href="error.rs.html#21"><span class="kw">crate</span>::Error</a>&gt;;
+    <span class="kw">type </span>Output = <span class="prelude-ty">Result</span>&lt;Codec&lt;T, B&gt;, <span class="kw">crate</span>::Error&gt;;
 
     <span class="kw">fn </span>poll(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
         <span class="comment">// Flush the codec
         </span><span class="macro">ready!</span>(<span class="self">self</span>.codec.as_mut().unwrap().flush(cx)).map_err(<span class="kw">crate</span>::Error::from_io)<span class="question-mark">?</span>;
 
         <span class="comment">// Return the codec
-        </span>Poll::Ready(<span class="prelude-val">Ok</span>(<a class="self" href="#1201">self</a>.codec.take().unwrap()))
+        </span>Poll::Ready(<span class="prelude-val">Ok</span>(<span class="self">self</span>.codec.take().unwrap()))
     }
 }
 
-<span class="kw">impl</span>&lt;T, B: <a href="../../bytes/buf/buf_impl/trait.Buf.html">Buf</a>&gt; ReadPreface&lt;T, B&gt; {
+<span class="kw">impl</span>&lt;T, B: Buf&gt; ReadPreface&lt;T, B&gt; {
     <span class="kw">fn </span>new(codec: Codec&lt;T, B&gt;) -&gt; <span class="self">Self </span>{
-        <a href="#314">ReadPreface</a> {
-            codec: <span class="prelude-val">Some</span>(<a href="#1211">codec</a>),
+        ReadPreface {
+            codec: <span class="prelude-val">Some</span>(codec),
             pos: <span class="number">0</span>,
         }
     }
 
     <span class="kw">fn </span>inner_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>T {
-        <a class="self" href="#1218">self</a>.codec.as_mut().unwrap().<a href="codec/mod.rs.html#110">get_mut</a>()
+        <span class="self">self</span>.codec.as_mut().unwrap().get_mut()
     }
 }
 
-<span class="kw">impl</span>&lt;T, B&gt; <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a> <span class="kw">for </span>ReadPreface&lt;T, B&gt;
+<span class="kw">impl</span>&lt;T, B&gt; Future <span class="kw">for </span>ReadPreface&lt;T, B&gt;
 <span class="kw">where
-    </span>T: <a href="../../tokio/io/async_read/trait.AsyncRead.html">AsyncRead</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
-    B: <a href="../../bytes/buf/buf_impl/trait.Buf.html">Buf</a>,
+    </span>T: AsyncRead + Unpin,
+    B: Buf,
 {
-    <span class="kw">type </span>Output = <span class="prelude-ty">Result</span>&lt;Codec&lt;T, B&gt;, <a href="error.rs.html#21"><span class="kw">crate</span>::Error</a>&gt;;
+    <span class="kw">type </span>Output = <span class="prelude-ty">Result</span>&lt;Codec&lt;T, B&gt;, <span class="kw">crate</span>::Error&gt;;
 
     <span class="kw">fn </span>poll(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>buf = [<span class="number">0</span>; <span class="number">24</span>];
-        <span class="kw">let </span><span class="kw-2">mut </span>rem = <a href="#322">PREFACE</a>.len() - <a class="self" href="#1230">self</a>.pos;
+        <span class="kw">let </span><span class="kw-2">mut </span>rem = PREFACE.len() - <span class="self">self</span>.pos;
 
         <span class="kw">while </span>rem &gt; <span class="number">0 </span>{
             <span class="kw">let </span><span class="kw-2">mut </span>buf = ReadBuf::new(<span class="kw-2">&amp;mut </span>buf[..rem]);
@@ -2805,183 +2805,183 @@
             rem -= n; <span class="comment">// TODO test
         </span>}
 
-        Poll::Ready(<span class="prelude-val">Ok</span>(<a class="self" href="#1230">self</a>.codec.take().unwrap()))
+        Poll::Ready(<span class="prelude-val">Ok</span>(<span class="self">self</span>.codec.take().unwrap()))
     }
 }
 
 <span class="comment">// ===== impl Handshake =====
 
-</span><span class="kw">impl</span>&lt;T, B: <a href="../../bytes/buf/buf_impl/trait.Buf.html">Buf</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a> <span class="kw">for </span>Handshake&lt;T, B&gt;
+</span><span class="kw">impl</span>&lt;T, B: Buf&gt; Future <span class="kw">for </span>Handshake&lt;T, B&gt;
 <span class="kw">where
-    </span>T: <a href="../../tokio/io/async_read/trait.AsyncRead.html">AsyncRead</a> + <a href="../../tokio/io/async_write/trait.AsyncWrite.html">AsyncWrite</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
-    B: <a href="../../bytes/buf/buf_impl/trait.Buf.html">Buf</a> + <span class="lifetime">&#39;static</span>,
+    </span>T: AsyncRead + AsyncWrite + Unpin,
+    B: Buf + <span class="lifetime">&#39;static</span>,
 {
-    <span class="kw">type </span>Output = <span class="prelude-ty">Result</span>&lt;Connection&lt;T, B&gt;, <a href="error.rs.html#21"><span class="kw">crate</span>::Error</a>&gt;;
+    <span class="kw">type </span>Output = <span class="prelude-ty">Result</span>&lt;Connection&lt;T, B&gt;, <span class="kw">crate</span>::Error&gt;;
 
     <span class="kw">fn </span>poll(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
-        <span class="kw">let </span>span = <a class="self" href="#1269">self</a>.span.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(); <span class="comment">// XXX(eliza): T_T
-        </span><span class="kw">let </span>_e = <a href="#1270">span</a>.enter();
-        <a class="macro" href="../../tracing/tracing/macro.trace.html">tracing::trace!</a>(state = <span class="question-mark">?</span><span class="self">self</span>.state);
+        <span class="kw">let </span>span = <span class="self">self</span>.span.clone(); <span class="comment">// XXX(eliza): T_T
+        </span><span class="kw">let </span>_e = span.enter();
+        <span class="macro">tracing::trace!</span>(state = <span class="question-mark">?</span><span class="self">self</span>.state);
 
         <span class="kw">loop </span>{
-            <span class="kw">match </span><span class="kw-2">&amp;mut </span><a class="self" href="#1269">self</a>.state {
-                <a href="#301">Handshaking::Flushing</a>(flush) =&gt; {
+            <span class="kw">match </span><span class="kw-2">&amp;mut </span><span class="self">self</span>.state {
+                Handshaking::Flushing(flush) =&gt; {
                     <span class="comment">// We&#39;re currently flushing a pending SETTINGS frame. Poll the
                     // flush future, and, if it&#39;s completed, advance our state to wait
                     // for the client preface.
                     </span><span class="kw">let </span>codec = <span class="kw">match </span>Pin::new(flush).poll(cx)<span class="question-mark">? </span>{
                         Poll::Pending =&gt; {
-                            <a class="macro" href="../../tracing/tracing/macro.trace.html">tracing::trace!</a>(flush.poll = %<span class="string">&quot;Pending&quot;</span>);
+                            <span class="macro">tracing::trace!</span>(flush.poll = %<span class="string">&quot;Pending&quot;</span>);
                             <span class="kw">return </span>Poll::Pending;
                         }
                         Poll::Ready(flushed) =&gt; {
-                            <a class="macro" href="../../tracing/tracing/macro.trace.html">tracing::trace!</a>(flush.poll = %<span class="string">&quot;Ready&quot;</span>);
-                            <a href="#1285">flushed</a>
+                            <span class="macro">tracing::trace!</span>(flush.poll = %<span class="string">&quot;Ready&quot;</span>);
+                            flushed
                         }
                     };
-                    <a class="self" href="#1269">self</a>.state = <a href="#303">Handshaking::ReadingPreface</a>(
-                        ReadPreface::new(<a href="#1280">codec</a>).<a href="../../tracing/instrument/trait.Instrument.html">instrument</a>(<a class="macro" href="../../tracing/tracing/macro.trace_span.html">tracing::trace_span!</a>(<span class="string">&quot;read_preface&quot;</span>)),
+                    <span class="self">self</span>.state = Handshaking::ReadingPreface(
+                        ReadPreface::new(codec).instrument(<span class="macro">tracing::trace_span!</span>(<span class="string">&quot;read_preface&quot;</span>)),
                     );
                 }
-                <a href="#303">Handshaking::ReadingPreface</a>(read) =&gt; {
-                    <span class="kw">let </span>codec = <a class="macro" href="lib.rs.html#94-101">ready!</a>(Pin::new(read).poll(cx)<span class="question-mark">?</span>);
+                Handshaking::ReadingPreface(read) =&gt; {
+                    <span class="kw">let </span>codec = <span class="macro">ready!</span>(Pin::new(read).poll(cx)<span class="question-mark">?</span>);
 
-                    <a class="self" href="#1269">self</a>.state = <a href="#305">Handshaking::Done</a>;
+                    <span class="self">self</span>.state = Handshaking::Done;
 
                     <span class="kw">let </span>connection = proto::Connection::new(
-                        <a href="#1295">codec</a>,
-                        <a href="proto/connection.rs.html#77">Config</a> {
-                            next_stream_id: <span class="number">2</span>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
+                        codec,
+                        Config {
+                            next_stream_id: <span class="number">2</span>.into(),
                             <span class="comment">// Server does not need to locally initiate any streams
                             </span>initial_max_send_streams: <span class="number">0</span>,
-                            max_send_buffer_size: <a class="self" href="#1269">self</a>.builder.max_send_buffer_size,
-                            reset_stream_duration: <a class="self" href="#1269">self</a>.builder.reset_stream_duration,
-                            reset_stream_max: <a class="self" href="#1269">self</a>.builder.reset_stream_max,
-                            settings: <a class="self" href="#1269">self</a>.builder.settings.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+                            max_send_buffer_size: <span class="self">self</span>.builder.max_send_buffer_size,
+                            reset_stream_duration: <span class="self">self</span>.builder.reset_stream_duration,
+                            reset_stream_max: <span class="self">self</span>.builder.reset_stream_max,
+                            settings: <span class="self">self</span>.builder.settings.clone(),
                         },
                     );
 
-                    <a class="macro" href="../../tracing/tracing/macro.trace.html">tracing::trace!</a>(<span class="string">&quot;connection established!&quot;</span>);
-                    <span class="kw">let </span><span class="kw-2">mut </span>c = <a href="#196">Connection</a> { <a href="#1299">connection</a> };
-                    <span class="kw">if let </span><span class="prelude-val">Some</span>(sz) = <a class="self" href="#1269">self</a>.builder.initial_target_connection_window_size {
-                        <a href="#1313">c</a>.<a href="#453">set_target_window_size</a>(<a href="#1314">sz</a>);
+                    <span class="macro">tracing::trace!</span>(<span class="string">&quot;connection established!&quot;</span>);
+                    <span class="kw">let </span><span class="kw-2">mut </span>c = Connection { connection };
+                    <span class="kw">if let </span><span class="prelude-val">Some</span>(sz) = <span class="self">self</span>.builder.initial_target_connection_window_size {
+                        c.set_target_window_size(sz);
                     }
 
-                    <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Ok</span>(<a href="#1313">c</a>));
+                    <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Ok</span>(c));
                 }
-                <a href="#305">Handshaking::Done</a> =&gt; {
-                    <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(<span class="string">&quot;Handshaking::poll() called again after handshaking was complete&quot;</span>)
+                Handshaking::Done =&gt; {
+                    <span class="macro">panic!</span>(<span class="string">&quot;Handshaking::poll() called again after handshaking was complete&quot;</span>)
                 }
             }
         }
     }
 }
 
-<span class="kw">impl</span>&lt;T, B&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span>Handshake&lt;T, B&gt;
+<span class="kw">impl</span>&lt;T, B&gt; fmt::Debug <span class="kw">for </span>Handshake&lt;T, B&gt;
 <span class="kw">where
-    </span>T: <a href="../../tokio/io/async_read/trait.AsyncRead.html">AsyncRead</a> + <a href="../../tokio/io/async_write/trait.AsyncWrite.html">AsyncWrite</a> + <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a>,
-    B: <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> + <a href="../../bytes/buf/buf_impl/trait.Buf.html">Buf</a>,
+    </span>T: AsyncRead + AsyncWrite + fmt::Debug,
+    B: fmt::Debug + Buf,
 {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, fmt: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#1333">fmt</a>, <span class="string">&quot;server::Handshake&quot;</span>)
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, fmt: <span class="kw-2">&amp;mut </span>fmt::Formatter) -&gt; fmt::Result {
+        <span class="macro">write!</span>(fmt, <span class="string">&quot;server::Handshake&quot;</span>)
     }
 }
 
-<span class="kw">impl </span><a href="#320">Peer</a> {
+<span class="kw">impl </span>Peer {
     <span class="kw">pub fn </span>convert_send_message(
-        id: <a href="frame/stream_id.rs.html#14">StreamId</a>,
+        id: StreamId,
         response: Response&lt;()&gt;,
-        end_of_stream: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-    ) -&gt; <a href="frame/headers.rs.html#19">frame::Headers</a> {
-        <span class="kw">use </span><a href="../../http/response/struct.Parts.html">http::response::Parts</a>;
+        end_of_stream: bool,
+    ) -&gt; frame::Headers {
+        <span class="kw">use </span>http::response::Parts;
 
         <span class="comment">// Extract the components of the HTTP request
         </span><span class="kw">let </span>(
-            <a href="../../http/response/struct.Parts.html">Parts</a> {
+            Parts {
                 status, headers, ..
             },
             <span class="kw">_</span>,
-        ) = <a href="#1341">response</a>.into_parts();
+        ) = response.into_parts();
 
         <span class="comment">// Build the set pseudo header set. All requests will include `method`
         // and `path`.
-        </span><span class="kw">let </span>pseudo = Pseudo::response(<a href="#1349">status</a>);
+        </span><span class="kw">let </span>pseudo = Pseudo::response(status);
 
         <span class="comment">// Create the HEADERS frame
-        </span><span class="kw">let </span><span class="kw-2">mut </span>frame = frame::Headers::new(<a href="#1340">id</a>, <a href="#1356">pseudo</a>, <a href="#1349">headers</a>);
+        </span><span class="kw">let </span><span class="kw-2">mut </span>frame = frame::Headers::new(id, pseudo, headers);
 
         <span class="kw">if </span>end_of_stream {
-            <a href="#1359">frame</a>.<a href="frame/headers.rs.html#233">set_end_stream</a>()
+            frame.set_end_stream()
         }
 
-        <a href="#1359">frame</a>
+        frame
     }
 
     <span class="kw">pub fn </span>convert_push_message(
-        stream_id: <a href="frame/stream_id.rs.html#14">StreamId</a>,
-        promised_id: <a href="frame/stream_id.rs.html#14">StreamId</a>,
+        stream_id: StreamId,
+        promised_id: StreamId,
         request: Request&lt;()&gt;,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="frame/headers.rs.html#37">frame::PushPromise</a>, <a href="codec/error.rs.html#14">UserError</a>&gt; {
-        <span class="kw">use </span><a href="../../http/request/struct.Parts.html">http::request::Parts</a>;
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;frame::PushPromise, UserError&gt; {
+        <span class="kw">use </span>http::request::Parts;
 
-        <span class="kw">if let </span><span class="prelude-val">Err</span>(e) = frame::PushPromise::validate_request(<span class="kw-2">&amp;</span><a href="#1371">request</a>) {
-            <span class="kw">use </span><a href="frame/headers.rs.html#335">PushPromiseHeaderError</a>::<span class="kw-2">*</span>;
-            <span class="kw">match </span><a href="#1375">e</a> {
-                <a href="frame/headers.rs.html#337">NotSafeAndCacheable</a> =&gt; <a class="macro" href="../../tracing/tracing/macro.debug.html">tracing::debug!</a>(
+        <span class="kw">if let </span><span class="prelude-val">Err</span>(e) = frame::PushPromise::validate_request(<span class="kw-2">&amp;</span>request) {
+            <span class="kw">use </span>PushPromiseHeaderError::<span class="kw-2">*</span>;
+            <span class="kw">match </span>e {
+                NotSafeAndCacheable =&gt; <span class="macro">tracing::debug!</span>(
                     <span class="question-mark">?</span>promised_id,
                     <span class="string">&quot;convert_push_message: method {} is not safe and cacheable&quot;</span>,
                     request.method(),
                 ),
-                <a href="frame/headers.rs.html#336">InvalidContentLength</a>(e) =&gt; <a class="macro" href="../../tracing/tracing/macro.debug.html">tracing::debug!</a>(
+                InvalidContentLength(e) =&gt; <span class="macro">tracing::debug!</span>(
                     <span class="question-mark">?</span>promised_id,
                     <span class="string">&quot;convert_push_message; promised request has invalid content-length {:?}&quot;</span>,
                     e,
                 ),
             }
-            <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="codec/error.rs.html#36">UserError::MalformedHeaders</a>);
+            <span class="kw">return </span><span class="prelude-val">Err</span>(UserError::MalformedHeaders);
         }
 
         <span class="comment">// Extract the components of the HTTP request
         </span><span class="kw">let </span>(
-            <a href="../../http/request/struct.Parts.html">Parts</a> {
+            Parts {
                 method,
                 uri,
                 headers,
                 ..
             },
             <span class="kw">_</span>,
-        ) = <a href="#1371">request</a>.into_parts();
+        ) = request.into_parts();
 
-        <span class="kw">let </span>pseudo = Pseudo::request(<a href="#1395">method</a>, <a href="#1396">uri</a>, <span class="prelude-val">None</span>);
+        <span class="kw">let </span>pseudo = Pseudo::request(method, uri, <span class="prelude-val">None</span>);
 
         <span class="prelude-val">Ok</span>(frame::PushPromise::new(
-            <a href="#1369">stream_id</a>,
-            <a href="#1370">promised_id</a>,
-            <a href="#1403">pseudo</a>,
-            <a href="#1397">headers</a>,
+            stream_id,
+            promised_id,
+            pseudo,
+            headers,
         ))
     }
 }
 
-<span class="kw">impl </span><a href="proto/peer.rs.html#10">proto::Peer</a> <span class="kw">for </span><a href="#320">Peer</a> {
+<span class="kw">impl </span>proto::Peer <span class="kw">for </span>Peer {
     <span class="kw">type </span>Poll = Request&lt;()&gt;;
 
-    <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> = <span class="string">&quot;Server&quot;</span>;
+    <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;Server&quot;</span>;
 
-    <span class="kw">fn </span>is_server() -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+    <span class="kw">fn </span>is_server() -&gt; bool {
         <span class="bool-val">true
     </span>}
 
-    <span class="kw">fn </span>r#dyn() -&gt; <a href="proto/peer.rs.html#35">proto::DynPeer</a> {
-        <a href="proto/peer.rs.html#37">proto::DynPeer::Server</a>
+    <span class="kw">fn </span>r#dyn() -&gt; proto::DynPeer {
+        proto::DynPeer::Server
     }
 
     <span class="kw">fn </span>convert_poll_message(
-        pseudo: <a href="frame/headers.rs.html#64">Pseudo</a>,
-        fields: <a href="../../http/header/map/struct.HeaderMap.html">HeaderMap</a>,
-        stream_id: <a href="frame/stream_id.rs.html#14">StreamId</a>,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Poll, <a href="proto/error.rs.html#10">Error</a>&gt; {
-        <span class="kw">use </span>http::{<a href="../../http/uri/index.html">uri</a>, <a href="../../http/version/struct.Version.html">Version</a>};
+        pseudo: Pseudo,
+        fields: HeaderMap,
+        stream_id: StreamId,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Poll, Error&gt; {
+        <span class="kw">use </span>http::{uri, Version};
 
         <span class="kw">let </span><span class="kw-2">mut </span>b = Request::builder();
 
@@ -2992,23 +2992,23 @@
             }}
         }
 
-        <a href="#1434">b</a> = <a href="#1434">b</a>.version(Version::HTTP_2);
+        b = b.version(Version::HTTP_2);
 
         <span class="kw">let </span>is_connect;
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(method) = <a href="#1428">pseudo</a>.method {
-            <a href="#1445">is_connect</a> = <a href="#1446">method</a> == Method::CONNECT;
-            <a href="#1434">b</a> = <a href="#1434">b</a>.method(<a href="#1446">method</a>);
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(method) = pseudo.method {
+            is_connect = method == Method::CONNECT;
+            b = b.method(method);
         } <span class="kw">else </span>{
-            <a class="macro" href="#1436-1441">malformed!</a>(<span class="string">&quot;malformed headers: missing method&quot;</span>);
+            <span class="macro">malformed!</span>(<span class="string">&quot;malformed headers: missing method&quot;</span>);
         }
 
-        <span class="kw">let </span>has_protocol = <a href="#1428">pseudo</a>.protocol.is_some();
+        <span class="kw">let </span>has_protocol = pseudo.protocol.is_some();
         <span class="kw">if </span>!is_connect &amp;&amp; has_protocol {
-            <a class="macro" href="#1436-1441">malformed!</a>(<span class="string">&quot;malformed headers: :protocol on non-CONNECT request&quot;</span>);
+            <span class="macro">malformed!</span>(<span class="string">&quot;malformed headers: :protocol on non-CONNECT request&quot;</span>);
         }
 
         <span class="kw">if </span>pseudo.status.is_some() {
-            <a class="macro" href="#1436-1441">malformed!</a>(<span class="string">&quot;malformed headers: :status field on request&quot;</span>);
+            <span class="macro">malformed!</span>(<span class="string">&quot;malformed headers: :status field on request&quot;</span>);
         }
 
         <span class="comment">// Convert the URI
@@ -3016,9 +3016,9 @@
 
         <span class="comment">// A request translated from HTTP/1 must not include the :authority
         // header
-        </span><span class="kw">if let </span><span class="prelude-val">Some</span>(authority) = <a href="#1428">pseudo</a>.authority {
-            <span class="kw">let </span>maybe_authority = uri::Authority::from_maybe_shared(<a href="#1467">authority</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>().<a href="hpack/header.rs.html#286">into_inner</a>());
-            <a href="#1463">parts</a>.authority = <span class="prelude-val">Some</span>(maybe_authority.or_else(|why| {
+        </span><span class="kw">if let </span><span class="prelude-val">Some</span>(authority) = pseudo.authority {
+            <span class="kw">let </span>maybe_authority = uri::Authority::from_maybe_shared(authority.clone().into_inner());
+            parts.authority = <span class="prelude-val">Some</span>(maybe_authority.or_else(|why| {
                 <span class="macro">malformed!</span>(
                     <span class="string">&quot;malformed headers: malformed authority ({:?}): {}&quot;</span>,
                     authority,
@@ -3028,11 +3028,11 @@
         }
 
         <span class="comment">// A :scheme is required, except CONNECT.
-        </span><span class="kw">if let </span><span class="prelude-val">Some</span>(scheme) = <a href="#1428">pseudo</a>.scheme {
+        </span><span class="kw">if let </span><span class="prelude-val">Some</span>(scheme) = pseudo.scheme {
             <span class="kw">if </span>is_connect &amp;&amp; !has_protocol {
-                <a class="macro" href="#1436-1441">malformed!</a>(<span class="string">&quot;:scheme in CONNECT&quot;</span>);
+                <span class="macro">malformed!</span>(<span class="string">&quot;:scheme in CONNECT&quot;</span>);
             }
-            <span class="kw">let </span>maybe_scheme = <a href="#1479">scheme</a>.parse();
+            <span class="kw">let </span>maybe_scheme = scheme.parse();
             <span class="kw">let </span>scheme = maybe_scheme.or_else(|why| {
                 <span class="macro">malformed!</span>(
                     <span class="string">&quot;malformed headers: malformed scheme ({:?}): {}&quot;</span>,
@@ -3045,62 +3045,62 @@
             // after validating is was a valid scheme, we just have to drop it
             // if there isn&#39;t an :authority.
             </span><span class="kw">if </span>parts.authority.is_some() {
-                <a href="#1463">parts</a>.scheme = <span class="prelude-val">Some</span>(<a href="#1484">scheme</a>);
+                parts.scheme = <span class="prelude-val">Some</span>(scheme);
             }
         } <span class="kw">else if </span>!is_connect || has_protocol {
-            <a class="macro" href="#1436-1441">malformed!</a>(<span class="string">&quot;malformed headers: missing scheme&quot;</span>);
+            <span class="macro">malformed!</span>(<span class="string">&quot;malformed headers: missing scheme&quot;</span>);
         }
 
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(path) = <a href="#1428">pseudo</a>.path {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(path) = pseudo.path {
             <span class="kw">if </span>is_connect &amp;&amp; !has_protocol {
-                <a class="macro" href="#1436-1441">malformed!</a>(<span class="string">&quot;:path in CONNECT&quot;</span>);
+                <span class="macro">malformed!</span>(<span class="string">&quot;:path in CONNECT&quot;</span>);
             }
 
             <span class="comment">// This cannot be empty
             </span><span class="kw">if </span>path.is_empty() {
-                <a class="macro" href="#1436-1441">malformed!</a>(<span class="string">&quot;malformed headers: missing path&quot;</span>);
+                <span class="macro">malformed!</span>(<span class="string">&quot;malformed headers: missing path&quot;</span>);
             }
 
-            <span class="kw">let </span>maybe_path = uri::PathAndQuery::from_maybe_shared(<a href="#1502">path</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>().<a href="hpack/header.rs.html#286">into_inner</a>());
-            <a href="#1463">parts</a>.path_and_query = <span class="prelude-val">Some</span>(maybe_path.or_else(|why| {
+            <span class="kw">let </span>maybe_path = uri::PathAndQuery::from_maybe_shared(path.clone().into_inner());
+            parts.path_and_query = <span class="prelude-val">Some</span>(maybe_path.or_else(|why| {
                 <span class="macro">malformed!</span>(<span class="string">&quot;malformed headers: malformed path ({:?}): {}&quot;</span>, path, why,)
             })<span class="question-mark">?</span>);
         } <span class="kw">else if </span>is_connect &amp;&amp; has_protocol {
-            <a class="macro" href="#1436-1441">malformed!</a>(<span class="string">&quot;malformed headers: missing path in extended CONNECT&quot;</span>);
+            <span class="macro">malformed!</span>(<span class="string">&quot;malformed headers: missing path in extended CONNECT&quot;</span>);
         }
 
-        <a href="#1434">b</a> = <a href="#1434">b</a>.uri(<a href="#1463">parts</a>);
+        b = b.uri(parts);
 
-        <span class="kw">let </span><span class="kw-2">mut </span>request = <span class="kw">match </span><a href="#1434">b</a>.body(()) {
-            <span class="prelude-val">Ok</span>(request) =&gt; <a href="#1523">request</a>,
+        <span class="kw">let </span><span class="kw-2">mut </span>request = <span class="kw">match </span>b.body(()) {
+            <span class="prelude-val">Ok</span>(request) =&gt; request,
             <span class="prelude-val">Err</span>(e) =&gt; {
                 <span class="comment">// TODO: Should there be more specialized handling for different
                 // kinds of errors
-                </span><a class="macro" href="lib.rs.html#85-92">proto_err!</a>(stream: <span class="string">&quot;error building request: {}; stream={:?}&quot;</span>, e, stream_id);
-                <span class="kw">return </span><span class="prelude-val">Err</span>(Error::library_reset(<a href="#1430">stream_id</a>, Reason::PROTOCOL_ERROR));
+                </span><span class="macro">proto_err!</span>(stream: <span class="string">&quot;error building request: {}; stream={:?}&quot;</span>, e, stream_id);
+                <span class="kw">return </span><span class="prelude-val">Err</span>(Error::library_reset(stream_id, Reason::PROTOCOL_ERROR));
             }
         };
 
-        <span class="kw-2">*</span><a href="#1522">request</a>.headers_mut() = <a href="#1429">fields</a>;
+        <span class="kw-2">*</span>request.headers_mut() = fields;
 
-        <span class="prelude-val">Ok</span>(<a href="#1522">request</a>)
+        <span class="prelude-val">Ok</span>(request)
     }
 }
 
 <span class="comment">// ===== impl Handshaking =====
 
-</span><span class="kw">impl</span>&lt;T, B&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span>Handshaking&lt;T, B&gt;
+</span><span class="kw">impl</span>&lt;T, B&gt; fmt::Debug <span class="kw">for </span>Handshaking&lt;T, B&gt;
 <span class="kw">where
-    </span>B: <a href="../../bytes/buf/buf_impl/trait.Buf.html">Buf</a>,
+    </span>B: Buf,
 {
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="https://doc.rust-lang.org/nightly/core/fmt/struct.Error.html">fmt::Error</a>&gt; {
-        <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="#1545">self</a> </span>{
-            <a href="#301">Handshaking::Flushing</a>(<span class="kw">_</span>) =&gt; <a href="#1545">f</a>.write_str(<span class="string">&quot;Flushing(_)&quot;</span>),
-            <a href="#303">Handshaking::ReadingPreface</a>(<span class="kw">_</span>) =&gt; <a href="#1545">f</a>.write_str(<span class="string">&quot;ReadingPreface(_)&quot;</span>),
-            <a href="#305">Handshaking::Done</a> =&gt; <a href="#1545">f</a>.write_str(<span class="string">&quot;Done&quot;</span>),
+    </span><span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter) -&gt; <span class="prelude-ty">Result</span>&lt;(), fmt::Error&gt; {
+        <span class="kw">match </span><span class="kw-2">*</span><span class="self">self </span>{
+            Handshaking::Flushing(<span class="kw">_</span>) =&gt; f.write_str(<span class="string">&quot;Flushing(_)&quot;</span>),
+            Handshaking::ReadingPreface(<span class="kw">_</span>) =&gt; f.write_str(<span class="string">&quot;ReadingPreface(_)&quot;</span>),
+            Handshaking::Done =&gt; f.write_str(<span class="string">&quot;Done&quot;</span>),
         }
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="h2" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="h2" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

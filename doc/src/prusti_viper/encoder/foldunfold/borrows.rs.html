@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `prusti-viper/src/encoder/foldunfold/borrows.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>borrows.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../../prusti_viper/index.html"><img class="rust-logo" src="../../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `prusti-viper/src/encoder/foldunfold/borrows.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>borrows.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../../prusti_viper/index.html"><img class="rust-logo" src="../../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -140,17 +140,17 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-</span><span class="kw">use </span><a href="../../../../rustc_hash/type.FxHashMap.html">rustc_hash::FxHashMap</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/io/index.html">std::io</a>;
-<span class="kw">use </span>vir_crate::{<a href="../../../../vir/common/graphviz/helpers/fn.escape_html.html">common::graphviz::escape_html</a>, <a href="../../../../vir/polymorphic/index.html">polymorphic</a> <span class="kw">as </span>vir};
+</span><span class="kw">use </span>rustc_hash::FxHashMap;
+<span class="kw">use </span>std::io;
+<span class="kw">use </span>vir_crate::{common::graphviz::escape_html, polymorphic <span class="kw">as </span>vir};
 
 <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">struct </span>BasicBlock&lt;<span class="lifetime">&#39;a</span>&gt; {
-    <span class="kw">pub </span>guard: <a href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a>,
-    <span class="kw">pub </span>current_guard: <a href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a>,
-    <span class="kw">pub </span>node: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="../../../../vir/gen/polymorphic/borrows/struct.Node.html">vir::borrows::Node</a>,
-    <span class="kw">pub </span>predecessors: Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;,
-    <span class="kw">pub </span>statements: Vec&lt;<a href="../../../../vir/gen/polymorphic/ast/stmt/enum.Stmt.html">vir::Stmt</a>&gt;,
-    <span class="kw">pub </span>successors: Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;,
+    <span class="kw">pub </span>guard: vir::Expr,
+    <span class="kw">pub </span>current_guard: vir::Expr,
+    <span class="kw">pub </span>node: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>vir::borrows::Node,
+    <span class="kw">pub </span>predecessors: Vec&lt;usize&gt;,
+    <span class="kw">pub </span>statements: Vec&lt;vir::Stmt&gt;,
+    <span class="kw">pub </span>successors: Vec&lt;usize&gt;,
 }
 
 <span class="attr">#[allow(clippy::upper_case_acronyms)]
@@ -158,7 +158,7 @@
     <span class="kw">pub </span>basic_blocks: Vec&lt;BasicBlock&lt;<span class="lifetime">&#39;a</span>&gt;&gt;,
     <span class="doccomment">/// Basic blocks that connect a pair of basic blocks. They are needed for performing
     /// fold-unfold operations on an edge.
-    </span><span class="kw">pub </span>edges: FxHashMap&lt;(<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>), Vec&lt;<a href="../../../../vir/gen/polymorphic/ast/stmt/enum.Stmt.html">vir::Stmt</a>&gt;&gt;,
+    </span><span class="kw">pub </span>edges: FxHashMap&lt;(usize, usize), Vec&lt;vir::Stmt&gt;&gt;,
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; CFG&lt;<span class="lifetime">&#39;a</span>&gt; {
@@ -169,22 +169,22 @@
         }
     }
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>add_block(<span class="kw-2">&amp;mut </span><span class="self">self</span>, block: BasicBlock&lt;<span class="lifetime">&#39;a</span>&gt;) {
-        <a class="self" href="#35">self</a>.basic_blocks.push(<a href="#35">block</a>);
+        <span class="self">self</span>.basic_blocks.push(block);
     }
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; CFG&lt;<span class="lifetime">&#39;a</span>&gt; {
-    <span class="kw">fn </span>block_label(<span class="kw-2">&amp;</span><span class="self">self</span>, index: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a> {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;block_{}&quot;</span>, index)
+    <span class="kw">fn </span>block_label(<span class="kw-2">&amp;</span><span class="self">self</span>, index: usize) -&gt; String {
+        <span class="macro">format!</span>(<span class="string">&quot;block_{index}&quot;</span>)
     }
-    <span class="kw">fn </span>edge_label(<span class="kw-2">&amp;</span><span class="self">self</span>, from: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, to: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a> {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;edge_{}_{}&quot;</span>, from, to)
+    <span class="kw">fn </span>edge_label(<span class="kw-2">&amp;</span><span class="self">self</span>, from: usize, to: usize) -&gt; String {
+        <span class="macro">format!</span>(<span class="string">&quot;edge_{from}_{to}&quot;</span>)
     }
     <span class="kw">fn </span>write_to_graphviz(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        graph: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span><a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">io::Write</a>,
-        curr_block_index: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a>&gt; {
+        graph: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>io::Write,
+        curr_block_index: usize,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), io::Error&gt; {
         <span class="macro">writeln!</span>(graph, <span class="string">&quot;digraph CFG {{&quot;</span>)<span class="question-mark">?</span>;
         <span class="macro">writeln!</span>(graph, <span class="string">&quot;graph [fontname=monospace];&quot;</span>)<span class="question-mark">?</span>;
         <span class="macro">writeln!</span>(graph, <span class="string">&quot;node [fontname=monospace];&quot;</span>)<span class="question-mark">?</span>;
@@ -264,11 +264,11 @@
             )<span class="question-mark">?</span>;
         }
 
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.writeln.html">writeln!</a>(<a href="#49">graph</a>, <span class="string">&quot;}}&quot;</span>)
+        <span class="macro">writeln!</span>(graph, <span class="string">&quot;}}&quot;</span>)
     }
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>to_graphviz(<span class="kw-2">&amp;</span><span class="self">self</span>, graph: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span><a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">io::Write</a>, curr_block_index: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
-        <a class="self" href="#133">self</a>.<a href="#47-51">write_to_graphviz</a>(<a href="#133">graph</a>, <a href="#133">curr_block_index</a>).unwrap();
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>to_graphviz(<span class="kw-2">&amp;</span><span class="self">self</span>, graph: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>io::Write, curr_block_index: usize) {
+        <span class="self">self</span>.write_to_graphviz(graph, curr_block_index).unwrap();
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="prusti_viper" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="prusti_viper" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

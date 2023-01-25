@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/num_cpus-1.14.0/src/linux.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>linux.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../num_cpus/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/num_cpus-1.15.0/src/linux.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>linux.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../num_cpus/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -593,15 +593,15 @@
 <a href="#593" id="593">593</a>
 <a href="#594" id="594">594</a>
 <a href="#595" id="595">595</a>
-</pre><pre class="rust"><code><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/collections/hash/map/struct.HashMap.html">std::collections::HashMap</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/fs/struct.File.html">std::fs::File</a>;
-<span class="kw">use </span>std::io::{<a href="https://doc.rust-lang.org/nightly/std/io/trait.BufRead.html">BufRead</a>, <a href="https://doc.rust-lang.org/nightly/std/io/buffered/bufreader/struct.BufReader.html">BufReader</a>, <a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a>};
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/mem/index.html">std::mem</a>;
-<span class="kw">use </span>std::path::{<a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>, <a href="https://doc.rust-lang.org/nightly/std/path/struct.PathBuf.html">PathBuf</a>};
-<span class="kw">use </span>std::sync::atomic::{<a href="https://doc.rust-lang.org/nightly/core/sync/atomic/struct.AtomicUsize.html">AtomicUsize</a>, <a href="https://doc.rust-lang.org/nightly/core/sync/atomic/enum.Ordering.html">Ordering</a>};
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/sync/once/struct.Once.html">std::sync::Once</a>;
+</pre><pre class="rust"><code><span class="kw">use </span>std::collections::HashMap;
+<span class="kw">use </span>std::fs::File;
+<span class="kw">use </span>std::io::{BufRead, BufReader, Read};
+<span class="kw">use </span>std::mem;
+<span class="kw">use </span>std::path::{Path, PathBuf};
+<span class="kw">use </span>std::sync::atomic::{AtomicUsize, Ordering};
+<span class="kw">use </span>std::sync::Once;
 
-<span class="kw">use </span><a href="../../libc/index.html">libc</a>;
+<span class="kw">use </span>libc;
 
 <span class="macro">macro_rules! </span>debug {
     ($(<span class="macro-nonterminal">$args</span>:expr),<span class="kw-2">*</span>) =&gt; ({
@@ -624,42 +624,42 @@
     }};
 }
 
-<span class="kw">pub fn </span>get_num_cpus() -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-    <span class="kw">match </span><a href="#110">cgroups_num_cpus</a>() {
-        <span class="prelude-val">Some</span>(n) =&gt; <a href="#34">n</a>,
-        <span class="prelude-val">None </span>=&gt; <a href="#39">logical_cpus</a>(),
+<span class="kw">pub fn </span>get_num_cpus() -&gt; usize {
+    <span class="kw">match </span>cgroups_num_cpus() {
+        <span class="prelude-val">Some</span>(n) =&gt; n,
+        <span class="prelude-val">None </span>=&gt; logical_cpus(),
     }
 }
 
-<span class="kw">fn </span>logical_cpus() -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-    <span class="kw">let </span><span class="kw-2">mut </span>set: <a href="../../libc/unix/linux_like/linux/struct.cpu_set_t.html">libc::cpu_set_t</a> = <span class="kw">unsafe </span>{ mem::zeroed() };
+<span class="kw">fn </span>logical_cpus() -&gt; usize {
+    <span class="kw">let </span><span class="kw-2">mut </span>set: libc::cpu_set_t = <span class="kw">unsafe </span>{ mem::zeroed() };
     <span class="kw">if unsafe </span>{ libc::sched_getaffinity(<span class="number">0</span>, mem::size_of::&lt;libc::cpu_set_t&gt;(), <span class="kw-2">&amp;mut </span>set) } == <span class="number">0 </span>{
-        <span class="kw">let </span><span class="kw-2">mut </span>count: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> = <span class="number">0</span>;
+        <span class="kw">let </span><span class="kw-2">mut </span>count: u32 = <span class="number">0</span>;
         <span class="kw">for </span>i <span class="kw">in </span><span class="number">0</span>..libc::CPU_SETSIZE <span class="kw">as </span>usize {
             <span class="kw">if unsafe </span>{ libc::CPU_ISSET(i, <span class="kw-2">&amp;</span>set) } {
                 count += <span class="number">1
             </span>}
         }
-        <a href="#42">count</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>
+        count <span class="kw">as </span>usize
     } <span class="kw">else </span>{
         <span class="kw">let </span>cpus = <span class="kw">unsafe </span>{ libc::sysconf(libc::_SC_NPROCESSORS_ONLN) };
         <span class="kw">if </span>cpus &lt; <span class="number">1 </span>{
             <span class="number">1
         </span>} <span class="kw">else </span>{
-            <a href="#50">cpus</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>
+            cpus <span class="kw">as </span>usize
         }
     }
 }
 
-<span class="kw">pub fn </span>get_num_physical_cpus() -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
+<span class="kw">pub fn </span>get_num_physical_cpus() -&gt; usize {
     <span class="kw">let </span>file = <span class="kw">match </span>File::open(<span class="string">&quot;/proc/cpuinfo&quot;</span>) {
-        <span class="prelude-val">Ok</span>(val) =&gt; <a href="#61">val</a>,
-        <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; <span class="kw">return </span><a href="#32">get_num_cpus</a>(),
+        <span class="prelude-val">Ok</span>(val) =&gt; val,
+        <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; <span class="kw">return </span>get_num_cpus(),
     };
-    <span class="kw">let </span>reader = BufReader::new(<a href="#60">file</a>);
+    <span class="kw">let </span>reader = BufReader::new(file);
     <span class="kw">let </span><span class="kw-2">mut </span>map = HashMap::new();
-    <span class="kw">let </span><span class="kw-2">mut </span>physid: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> = <span class="number">0</span>;
-    <span class="kw">let </span><span class="kw-2">mut </span>cores: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> = <span class="number">0</span>;
+    <span class="kw">let </span><span class="kw-2">mut </span>physid: u32 = <span class="number">0</span>;
+    <span class="kw">let </span><span class="kw-2">mut </span>cores: usize = <span class="number">0</span>;
     <span class="kw">let </span><span class="kw-2">mut </span>chgcount = <span class="number">0</span>;
     <span class="kw">for </span>line <span class="kw">in </span>reader.lines().filter_map(|result| result.ok()) {
         <span class="kw">let </span><span class="kw-2">mut </span>it = line.split(<span class="string">&#39;:&#39;</span>);
@@ -686,12 +686,12 @@
             chgcount = <span class="number">0</span>;
         }
     }
-    <span class="kw">let </span>count = <a href="#65">map</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">fold</a>(<span class="number">0</span>, |acc, (<span class="kw">_</span>, cores)| <a href="#94">acc</a> + <a href="#94">cores</a>);
+    <span class="kw">let </span>count = map.into_iter().fold(<span class="number">0</span>, |acc, (<span class="kw">_</span>, cores)| acc + cores);
 
     <span class="kw">if </span>count == <span class="number">0 </span>{
-        <a href="#32">get_num_cpus</a>()
+        get_num_cpus()
     } <span class="kw">else </span>{
-        <a href="#94">count</a>
+        count
     }
 }
 
@@ -700,18 +700,18 @@
 /// If 0, check logical cpus.
 </span><span class="comment">// Allow deprecation warnings, we want to work on older rustc
 </span><span class="attr">#[allow(warnings)]
-</span><span class="kw">static </span>CGROUPS_CPUS: <a href="https://doc.rust-lang.org/nightly/core/sync/atomic/struct.AtomicUsize.html">AtomicUsize</a> = ::std::sync::atomic::ATOMIC_USIZE_INIT;
+</span><span class="kw">static </span>CGROUPS_CPUS: AtomicUsize = ::std::sync::atomic::ATOMIC_USIZE_INIT;
 
-<span class="kw">fn </span>cgroups_num_cpus() -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
+<span class="kw">fn </span>cgroups_num_cpus() -&gt; <span class="prelude-ty">Option</span>&lt;usize&gt; {
     <span class="attr">#[allow(warnings)]
-    </span><span class="kw">static </span>ONCE: <a href="https://doc.rust-lang.org/nightly/std/sync/once/struct.Once.html">Once</a> = ::std::sync::ONCE_INIT;
+    </span><span class="kw">static </span>ONCE: Once = ::std::sync::ONCE_INIT;
 
-    <a href="#112">ONCE</a>.call_once(<a href="#125">init_cgroups</a>);
+    ONCE.call_once(init_cgroups);
 
-    <span class="kw">let </span>cpus = <a href="#108">CGROUPS_CPUS</a>.load(Ordering::Acquire);
+    <span class="kw">let </span>cpus = CGROUPS_CPUS.load(Ordering::Acquire);
 
     <span class="kw">if </span>cpus &gt; <span class="number">0 </span>{
-        <span class="prelude-val">Some</span>(<a href="#116">cpus</a>)
+        <span class="prelude-val">Some</span>(cpus)
     } <span class="kw">else </span>{
         <span class="prelude-val">None
     </span>}
@@ -719,34 +719,34 @@
 
 <span class="kw">fn </span>init_cgroups() {
     <span class="comment">// Should only be called once
-    </span><a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(CGROUPS_CPUS.load(Ordering::SeqCst) == <span class="number">0</span>);
+    </span><span class="macro">debug_assert!</span>(CGROUPS_CPUS.load(Ordering::SeqCst) == <span class="number">0</span>);
 
     <span class="comment">// Fails in Miri by default (cannot open files), and Miri does not have parallelism anyway.
-    </span><span class="kw">if </span><a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.cfg.html">cfg!</a>(miri) {
+    </span><span class="kw">if </span><span class="macro">cfg!</span>(miri) {
         <span class="kw">return</span>;
     }
 
-    <span class="kw">if let </span><span class="prelude-val">Some</span>(quota) = <a href="#146-149">load_cgroups</a>(<span class="string">&quot;/proc/self/cgroup&quot;</span>, <span class="string">&quot;/proc/self/mountinfo&quot;</span>) {
+    <span class="kw">if let </span><span class="prelude-val">Some</span>(quota) = load_cgroups(<span class="string">&quot;/proc/self/cgroup&quot;</span>, <span class="string">&quot;/proc/self/mountinfo&quot;</span>) {
         <span class="kw">if </span>quota == <span class="number">0 </span>{
             <span class="kw">return</span>;
         }
 
-        <span class="kw">let </span>logical = <a href="#39">logical_cpus</a>();
-        <span class="kw">let </span>count = ::std::cmp::min(<a href="#134">quota</a>, <a href="#139">logical</a>);
+        <span class="kw">let </span>logical = logical_cpus();
+        <span class="kw">let </span>count = ::std::cmp::min(quota, logical);
 
-        <a href="#108">CGROUPS_CPUS</a>.store(<a href="#140">count</a>, Ordering::SeqCst);
+        CGROUPS_CPUS.store(count, Ordering::SeqCst);
     }
 }
 
-<span class="kw">fn </span>load_cgroups&lt;P1, P2&gt;(cgroup_proc: P1, mountinfo_proc: P2) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;
+<span class="kw">fn </span>load_cgroups&lt;P1, P2&gt;(cgroup_proc: P1, mountinfo_proc: P2) -&gt; <span class="prelude-ty">Option</span>&lt;usize&gt;
 <span class="kw">where
-    </span>P1: AsRef&lt;<a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>&gt;,
-    P2: AsRef&lt;<a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>&gt;,
+    </span>P1: AsRef&lt;Path&gt;,
+    P2: AsRef&lt;Path&gt;,
 {
-    <span class="kw">let </span>subsys = <a class="macro" href="#20-30">some!</a>(Subsys::load_cpu(cgroup_proc));
-    <span class="kw">let </span>mntinfo = <a class="macro" href="#20-30">some!</a>(MountInfo::load_cpu(mountinfo_proc, subsys.version));
-    <span class="kw">let </span>cgroup = <a class="macro" href="#20-30">some!</a>(Cgroup::translate(mntinfo, subsys));
-    <a href="#153">cgroup</a>.<a href="#201">cpu_quota</a>()
+    <span class="kw">let </span>subsys = <span class="macro">some!</span>(Subsys::load_cpu(cgroup_proc));
+    <span class="kw">let </span>mntinfo = <span class="macro">some!</span>(MountInfo::load_cpu(mountinfo_proc, subsys.version));
+    <span class="kw">let </span>cgroup = <span class="macro">some!</span>(Cgroup::translate(mntinfo, subsys));
+    cgroup.cpu_quota()
 }
 
 <span class="attr">#[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -756,47 +756,47 @@
 }
 
 <span class="kw">struct </span>Cgroup {
-    version: <a href="#158">CgroupVersion</a>,
-    base: <a href="https://doc.rust-lang.org/nightly/std/path/struct.PathBuf.html">PathBuf</a>,
+    version: CgroupVersion,
+    base: PathBuf,
 }
 
 <span class="kw">struct </span>MountInfo {
-    version: <a href="#158">CgroupVersion</a>,
-    root: <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>,
-    mount_point: <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>,
+    version: CgroupVersion,
+    root: String,
+    mount_point: String,
 }
 
 <span class="kw">struct </span>Subsys {
-    version: <a href="#158">CgroupVersion</a>,
-    base: <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>,
+    version: CgroupVersion,
+    base: String,
 }
 
-<span class="kw">impl </span><a href="#163">Cgroup</a> {
-    <span class="kw">fn </span>new(version: <a href="#158">CgroupVersion</a>, dir: <a href="https://doc.rust-lang.org/nightly/std/path/struct.PathBuf.html">PathBuf</a>) -&gt; <a href="#163">Cgroup</a> {
-        <a href="#163">Cgroup</a> { version: <a href="#180">version</a>, base: <a href="#180">dir</a> }
+<span class="kw">impl </span>Cgroup {
+    <span class="kw">fn </span>new(version: CgroupVersion, dir: PathBuf) -&gt; Cgroup {
+        Cgroup { version: version, base: dir }
     }
 
-    <span class="kw">fn </span>translate(mntinfo: <a href="#168">MountInfo</a>, subsys: <a href="#174">Subsys</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="#163">Cgroup</a>&gt; {
+    <span class="kw">fn </span>translate(mntinfo: MountInfo, subsys: Subsys) -&gt; <span class="prelude-ty">Option</span>&lt;Cgroup&gt; {
         <span class="comment">// Translate the subsystem directory via the host paths.
-        </span><a class="macro" href="#11-18">debug!</a>(
+        </span><span class="macro">debug!</span>(
             <span class="string">&quot;subsys = {:?}; root = {:?}; mount_point = {:?}&quot;</span>,
             subsys.base, mntinfo.root, mntinfo.mount_point
         );
 
-        <span class="kw">let </span>rel_from_root = <a class="macro" href="#20-30">some!</a>(Path::new(<span class="kw-2">&amp;</span>subsys.base).strip_prefix(<span class="kw-2">&amp;</span>mntinfo.root).ok());
+        <span class="kw">let </span>rel_from_root = <span class="macro">some!</span>(Path::new(<span class="kw-2">&amp;</span>subsys.base).strip_prefix(<span class="kw-2">&amp;</span>mntinfo.root).ok());
 
-        <a class="macro" href="#11-18">debug!</a>(<span class="string">&quot;rel_from_root: {:?}&quot;</span>, rel_from_root);
+        <span class="macro">debug!</span>(<span class="string">&quot;rel_from_root: {:?}&quot;</span>, rel_from_root);
 
         <span class="comment">// join(mp.MountPoint, relPath)
-        </span><span class="kw">let </span><span class="kw-2">mut </span>path = PathBuf::from(<a href="#184">mntinfo</a>.mount_point);
-        <a href="#196">path</a>.push(<a href="#191">rel_from_root</a>);
-        <span class="prelude-val">Some</span>(Cgroup::new(<a href="#184">mntinfo</a>.version, <a href="#196">path</a>))
+        </span><span class="kw">let </span><span class="kw-2">mut </span>path = PathBuf::from(mntinfo.mount_point);
+        path.push(rel_from_root);
+        <span class="prelude-val">Some</span>(Cgroup::new(mntinfo.version, path))
     }
 
-    <span class="kw">fn </span>cpu_quota(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
-        <span class="kw">let </span>(quota_us, period_us) = <span class="kw">match </span><a class="self" href="#201">self</a>.version {
-            <a href="#159">CgroupVersion::V1</a> =&gt; (<a class="macro" href="#20-30">some!</a>(<span class="self">self</span>.quota_us()), <a class="macro" href="#20-30">some!</a>(<span class="self">self</span>.period_us())),
-            <a href="#160">CgroupVersion::V2</a> =&gt; <a class="macro" href="#20-30">some!</a>(<span class="self">self</span>.max()),
+    <span class="kw">fn </span>cpu_quota(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;usize&gt; {
+        <span class="kw">let </span>(quota_us, period_us) = <span class="kw">match </span><span class="self">self</span>.version {
+            CgroupVersion::V1 =&gt; (<span class="macro">some!</span>(<span class="self">self</span>.quota_us()), <span class="macro">some!</span>(<span class="self">self</span>.period_us())),
+            CgroupVersion::V2 =&gt; <span class="macro">some!</span>(<span class="self">self</span>.max()),
         };
 
         <span class="comment">// protect against dividing by zero
@@ -807,83 +807,83 @@
         <span class="comment">// Ceil the division, since we want to be able to saturate
         // the available CPUs, and flooring would leave a CPU un-utilized.
 
-        </span><span class="prelude-val">Some</span>((<a href="#202">quota_us</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.f64.html">f64</a> / <a href="#202">period_us</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.f64.html">f64</a>).ceil() <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>)
+        </span><span class="prelude-val">Some</span>((quota_us <span class="kw">as </span>f64 / period_us <span class="kw">as </span>f64).ceil() <span class="kw">as </span>usize)
     }
 
-    <span class="kw">fn </span>quota_us(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
-        <a class="self" href="#218">self</a>.<a href="#236">param</a>(<span class="string">&quot;cpu.cfs_quota_us&quot;</span>)
+    <span class="kw">fn </span>quota_us(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;usize&gt; {
+        <span class="self">self</span>.param(<span class="string">&quot;cpu.cfs_quota_us&quot;</span>)
     }
 
-    <span class="kw">fn </span>period_us(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
-        <a class="self" href="#222">self</a>.<a href="#236">param</a>(<span class="string">&quot;cpu.cfs_period_us&quot;</span>)
+    <span class="kw">fn </span>period_us(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;usize&gt; {
+        <span class="self">self</span>.param(<span class="string">&quot;cpu.cfs_period_us&quot;</span>)
     }
 
-    <span class="kw">fn </span>max(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;(<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>)&gt; {
-        <span class="kw">let </span>max = <a class="macro" href="#20-30">some!</a>(<span class="self">self</span>.raw_param(<span class="string">&quot;cpu.max&quot;</span>));
-        <span class="kw">let </span><span class="kw-2">mut </span>max = <a class="macro" href="#20-30">some!</a>(max.lines().next()).split(<span class="string">&#39; &#39;</span>);
+    <span class="kw">fn </span>max(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;(usize, usize)&gt; {
+        <span class="kw">let </span>max = <span class="macro">some!</span>(<span class="self">self</span>.raw_param(<span class="string">&quot;cpu.max&quot;</span>));
+        <span class="kw">let </span><span class="kw-2">mut </span>max = <span class="macro">some!</span>(max.lines().next()).split(<span class="string">&#39; &#39;</span>);
 
-        <span class="kw">let </span>quota = <a class="macro" href="#20-30">some!</a>(max.next().and_then(|quota| quota.parse().ok()));
-        <span class="kw">let </span>period = <a class="macro" href="#20-30">some!</a>(max.next().and_then(|period| period.parse().ok()));
+        <span class="kw">let </span>quota = <span class="macro">some!</span>(max.next().and_then(|quota| quota.parse().ok()));
+        <span class="kw">let </span>period = <span class="macro">some!</span>(max.next().and_then(|period| period.parse().ok()));
 
-        <span class="prelude-val">Some</span>((<a href="#230">quota</a>, <a href="#231">period</a>))
+        <span class="prelude-val">Some</span>((quota, period))
     }
 
-    <span class="kw">fn </span>param(<span class="kw-2">&amp;</span><span class="self">self</span>, param: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
-        <span class="kw">let </span>buf = <a class="macro" href="#20-30">some!</a>(<span class="self">self</span>.raw_param(param));
+    <span class="kw">fn </span>param(<span class="kw-2">&amp;</span><span class="self">self</span>, param: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Option</span>&lt;usize&gt; {
+        <span class="kw">let </span>buf = <span class="macro">some!</span>(<span class="self">self</span>.raw_param(param));
 
-        <a href="#237">buf</a>.trim().parse().ok()
+        buf.trim().parse().ok()
     }
 
-    <span class="kw">fn </span>raw_param(<span class="kw-2">&amp;</span><span class="self">self</span>, param: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt; {
-        <span class="kw">let </span><span class="kw-2">mut </span>file = <a class="macro" href="#20-30">some!</a>(File::open(<span class="self">self</span>.base.join(param)).ok());
+    <span class="kw">fn </span>raw_param(<span class="kw-2">&amp;</span><span class="self">self</span>, param: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Option</span>&lt;String&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>file = <span class="macro">some!</span>(File::open(<span class="self">self</span>.base.join(param)).ok());
 
         <span class="kw">let </span><span class="kw-2">mut </span>buf = String::new();
-        <a class="macro" href="#20-30">some!</a>(file.read_to_string(<span class="kw-2">&amp;mut </span>buf).ok());
+        <span class="macro">some!</span>(file.read_to_string(<span class="kw-2">&amp;mut </span>buf).ok());
 
-        <span class="prelude-val">Some</span>(<a href="#245">buf</a>)
+        <span class="prelude-val">Some</span>(buf)
     }
 }
 
-<span class="kw">impl </span><a href="#168">MountInfo</a> {
-    <span class="kw">fn </span>load_cpu&lt;P: AsRef&lt;<a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>&gt;&gt;(proc_path: P, version: <a href="#158">CgroupVersion</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="#168">MountInfo</a>&gt; {
-        <span class="kw">let </span>file = <a class="macro" href="#20-30">some!</a>(File::open(proc_path).ok());
-        <span class="kw">let </span>file = BufReader::new(<a href="#254">file</a>);
+<span class="kw">impl </span>MountInfo {
+    <span class="kw">fn </span>load_cpu&lt;P: AsRef&lt;Path&gt;&gt;(proc_path: P, version: CgroupVersion) -&gt; <span class="prelude-ty">Option</span>&lt;MountInfo&gt; {
+        <span class="kw">let </span>file = <span class="macro">some!</span>(File::open(proc_path).ok());
+        <span class="kw">let </span>file = BufReader::new(file);
 
-        <a href="#255">file</a>.<a href="https://doc.rust-lang.org/nightly/std/io/trait.BufRead.html">lines</a>()
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter_map</a>(|result| <a href="#258">result</a>.ok())
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter_map</a>(MountInfo::parse_line)
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">find</a>(|mount_info| <a href="#260">mount_info</a>.version == <a href="#253">version</a>)
+        file.lines()
+            .filter_map(|result| result.ok())
+            .filter_map(MountInfo::parse_line)
+            .find(|mount_info| mount_info.version == version)
     }
 
-    <span class="kw">fn </span>parse_line(line: <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="#168">MountInfo</a>&gt; {
-        <span class="kw">let </span><span class="kw-2">mut </span>fields = <a href="#263">line</a>.split(<span class="string">&#39; &#39;</span>);
+    <span class="kw">fn </span>parse_line(line: String) -&gt; <span class="prelude-ty">Option</span>&lt;MountInfo&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>fields = line.split(<span class="string">&#39; &#39;</span>);
 
         <span class="comment">// 7 5 0:6 &lt;/&gt; /sys/fs/cgroup/cpu,cpuacct rw,nosuid,nodev,noexec,relatime shared:7 - cgroup cgroup rw,cpu,cpuacct
-        </span><span class="kw">let </span>mnt_root = <a class="macro" href="#20-30">some!</a>(fields.nth(<span class="number">3</span>));
+        </span><span class="kw">let </span>mnt_root = <span class="macro">some!</span>(fields.nth(<span class="number">3</span>));
         <span class="comment">// 7 5 0:6 / &lt;/sys/fs/cgroup/cpu,cpuacct&gt; rw,nosuid,nodev,noexec,relatime shared:7 - cgroup cgroup rw,cpu,cpuacct
-        </span><span class="kw">let </span>mnt_point = <a class="macro" href="#20-30">some!</a>(fields.next());
+        </span><span class="kw">let </span>mnt_point = <span class="macro">some!</span>(fields.next());
 
         <span class="comment">// Ignore all fields until the separator(-).
         // Note: there could be zero or more optional fields before hyphen.
         // See: https://man7.org/linux/man-pages/man5/proc.5.html
         // 7 5 0:6 / /sys/fs/cgroup/cpu,cpuacct rw,nosuid,nodev,noexec,relatime shared:7 &lt;-&gt; cgroup cgroup rw,cpu,cpuacct
         // Note: we cannot use `?` here because we need to support Rust 1.13.
-        </span><span class="kw">match </span><a href="#264">fields</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">find</a>(|<span class="kw-2">&amp;</span>s| <a href="#276">s</a> == <span class="string">&quot;-&quot;</span>) {
+        </span><span class="kw">match </span>fields.find(|<span class="kw-2">&amp;</span>s| s == <span class="string">&quot;-&quot;</span>) {
             <span class="prelude-val">Some</span>(<span class="kw">_</span>) =&gt; {}
             <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="prelude-val">None</span>,
         };
 
         <span class="comment">// 7 5 0:6 / /sys/fs/cgroup/cpu,cpuacct rw,nosuid,nodev,noexec,relatime shared:7 - &lt;cgroup&gt; cgroup rw,cpu,cpuacct
-        </span><span class="kw">let </span>version = <span class="kw">match </span><a href="#264">fields</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>() {
-            <span class="prelude-val">Some</span>(<span class="string">&quot;cgroup&quot;</span>) =&gt; <a href="#159">CgroupVersion::V1</a>,
-            <span class="prelude-val">Some</span>(<span class="string">&quot;cgroup2&quot;</span>) =&gt; <a href="#160">CgroupVersion::V2</a>,
+        </span><span class="kw">let </span>version = <span class="kw">match </span>fields.next() {
+            <span class="prelude-val">Some</span>(<span class="string">&quot;cgroup&quot;</span>) =&gt; CgroupVersion::V1,
+            <span class="prelude-val">Some</span>(<span class="string">&quot;cgroup2&quot;</span>) =&gt; CgroupVersion::V2,
             <span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="prelude-val">None</span>,
         };
 
         <span class="comment">// cgroups2 only has a single mount point
         </span><span class="kw">if </span>version == CgroupVersion::V1 {
             <span class="comment">// 7 5 0:6 / /sys/fs/cgroup/cpu,cpuacct rw,nosuid,nodev,noexec,relatime shared:7 - cgroup cgroup &lt;rw,cpu,cpuacct&gt;
-            </span><span class="kw">let </span>super_opts = <a class="macro" href="#20-30">some!</a>(fields.nth(<span class="number">1</span>));
+            </span><span class="kw">let </span>super_opts = <span class="macro">some!</span>(fields.nth(<span class="number">1</span>));
 
             <span class="comment">// We only care about the &#39;cpu&#39; option
             </span><span class="kw">if </span>!super_opts.split(<span class="string">&#39;,&#39;</span>).any(|opt| opt == <span class="string">&quot;cpu&quot;</span>) {
@@ -891,52 +891,52 @@
             }
         }
 
-        <span class="prelude-val">Some</span>(<a href="#168">MountInfo</a> {
-            version: <a href="#282">version</a>,
-            root: <a href="#267">mnt_root</a>.<a href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">to_owned</a>(),
-            mount_point: <a href="#269">mnt_point</a>.<a href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">to_owned</a>(),
+        <span class="prelude-val">Some</span>(MountInfo {
+            version: version,
+            root: mnt_root.to_owned(),
+            mount_point: mnt_point.to_owned(),
         })
     }
 }
 
-<span class="kw">impl </span><a href="#174">Subsys</a> {
-    <span class="kw">fn </span>load_cpu&lt;P: AsRef&lt;<a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>&gt;&gt;(proc_path: P) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="#174">Subsys</a>&gt; {
-        <span class="kw">let </span>file = <a class="macro" href="#20-30">some!</a>(File::open(proc_path).ok());
-        <span class="kw">let </span>file = BufReader::new(<a href="#309">file</a>);
+<span class="kw">impl </span>Subsys {
+    <span class="kw">fn </span>load_cpu&lt;P: AsRef&lt;Path&gt;&gt;(proc_path: P) -&gt; <span class="prelude-ty">Option</span>&lt;Subsys&gt; {
+        <span class="kw">let </span>file = <span class="macro">some!</span>(File::open(proc_path).ok());
+        <span class="kw">let </span>file = BufReader::new(file);
 
-        <a href="#310">file</a>.<a href="https://doc.rust-lang.org/nightly/std/io/trait.BufRead.html">lines</a>()
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter_map</a>(|result| <a href="#313">result</a>.ok())
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter_map</a>(Subsys::parse_line)
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">fold</a>(<span class="prelude-val">None</span>, |previous, line| {
+        file.lines()
+            .filter_map(|result| result.ok())
+            .filter_map(Subsys::parse_line)
+            .fold(<span class="prelude-val">None</span>, |previous, line| {
                 <span class="comment">// already-found v1 trumps v2 since it explicitly specifies its controllers
                 </span><span class="kw">if </span>previous.is_some() &amp;&amp; line.version == CgroupVersion::V2 {
-                    <span class="kw">return </span><a href="#315">previous</a>;
+                    <span class="kw">return </span>previous;
                 }
 
-                <span class="prelude-val">Some</span>(<a href="#315">line</a>)
+                <span class="prelude-val">Some</span>(line)
             })
     }
 
-    <span class="kw">fn </span>parse_line(line: <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="#174">Subsys</a>&gt; {
+    <span class="kw">fn </span>parse_line(line: String) -&gt; <span class="prelude-ty">Option</span>&lt;Subsys&gt; {
         <span class="comment">// Example format:
         // 11:cpu,cpuacct:/
-        </span><span class="kw">let </span><span class="kw-2">mut </span>fields = <a href="#325">line</a>.split(<span class="string">&#39;:&#39;</span>);
+        </span><span class="kw">let </span><span class="kw-2">mut </span>fields = line.split(<span class="string">&#39;:&#39;</span>);
 
-        <span class="kw">let </span>sub_systems = <a class="macro" href="#20-30">some!</a>(fields.nth(<span class="number">1</span>));
+        <span class="kw">let </span>sub_systems = <span class="macro">some!</span>(fields.nth(<span class="number">1</span>));
 
         <span class="kw">let </span>version = <span class="kw">if </span>sub_systems.is_empty() {
-            <a href="#160">CgroupVersion::V2</a>
+            CgroupVersion::V2
         } <span class="kw">else </span>{
-            <a href="#159">CgroupVersion::V1</a>
+            CgroupVersion::V1
         };
 
         <span class="kw">if </span>version == CgroupVersion::V1 &amp;&amp; !sub_systems.split(<span class="string">&#39;,&#39;</span>).any(|sub| sub == <span class="string">&quot;cpu&quot;</span>) {
             <span class="kw">return </span><span class="prelude-val">None</span>;
         }
 
-        <a href="#328">fields</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>().map(|path| <a href="#174">Subsys</a> {
-            version: <a href="#332">version</a>,
-            base: <a href="#342">path</a>.<a href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">to_owned</a>(),
+        fields.next().map(|path| Subsys {
+            version: version,
+            base: path.to_owned(),
         })
     }
 }
@@ -1189,4 +1189,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="num_cpus" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="num_cpus" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

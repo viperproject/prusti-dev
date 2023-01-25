@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-util-0.7.4/src/codec/framed.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>framed.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../tokio_util/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-util-0.7.4/src/codec/framed.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>framed.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../tokio_util/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -371,22 +371,22 @@
 <a href="#371" id="371">371</a>
 <a href="#372" id="372">372</a>
 <a href="#373" id="373">373</a>
-</pre><pre class="rust"><code><span class="kw">use </span><a href="decoder.rs.html#35"><span class="kw">crate</span>::codec::decoder::Decoder</a>;
-<span class="kw">use </span><a href="encoder.rs.html#8"><span class="kw">crate</span>::codec::encoder::Encoder</a>;
-<span class="kw">use </span><span class="kw">crate</span>::codec::framed_impl::{<a href="framed_impl.rs.html#17-25">FramedImpl</a>, <a href="framed_impl.rs.html#43">RWFrames</a>, <a href="framed_impl.rs.html#31">ReadFrame</a>, <a href="framed_impl.rs.html#38">WriteFrame</a>};
+</pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::codec::decoder::Decoder;
+<span class="kw">use </span><span class="kw">crate</span>::codec::encoder::Encoder;
+<span class="kw">use </span><span class="kw">crate</span>::codec::framed_impl::{FramedImpl, RWFrames, ReadFrame, WriteFrame};
 
-<span class="kw">use </span><a href="../../../futures_core/stream/trait.Stream.html">futures_core::Stream</a>;
-<span class="kw">use </span>tokio::io::{<a href="../../../tokio/io/async_read/trait.AsyncRead.html">AsyncRead</a>, <a href="../../../tokio/io/async_write/trait.AsyncWrite.html">AsyncWrite</a>};
+<span class="kw">use </span>futures_core::Stream;
+<span class="kw">use </span>tokio::io::{AsyncRead, AsyncWrite};
 
-<span class="kw">use </span><a href="../../../bytes/bytes_mut/struct.BytesMut.html">bytes::BytesMut</a>;
-<span class="kw">use </span><a href="../../../futures_sink/trait.Sink.html">futures_sink::Sink</a>;
-<span class="kw">use </span><a href="../../../pin_project_lite/macro.pin_project.html">pin_project_lite::pin_project</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">std::fmt</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/io/index.html">std::io</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/pin/struct.Pin.html">std::pin::Pin</a>;
-<span class="kw">use </span>std::task::{<a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>, <a href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">Poll</a>};
+<span class="kw">use </span>bytes::BytesMut;
+<span class="kw">use </span>futures_sink::Sink;
+<span class="kw">use </span>pin_project_lite::pin_project;
+<span class="kw">use </span>std::fmt;
+<span class="kw">use </span>std::io;
+<span class="kw">use </span>std::pin::Pin;
+<span class="kw">use </span>std::task::{Context, Poll};
 
-<a class="macro" href="../../../pin_project_lite/macro.pin_project.html">pin_project! </a>{
+<span class="macro">pin_project! </span>{
     <span class="doccomment">/// A unified [`Stream`] and [`Sink`] interface to an underlying I/O object, using
     /// the `Encoder` and `Decoder` traits to encode and decode frames.
     ///
@@ -399,13 +399,13 @@
     /// [`Decoder::framed`]: crate::codec::Decoder::framed()
     </span><span class="kw">pub struct </span>Framed&lt;T, U&gt; {
         <span class="attr">#[pin]
-        </span>inner: FramedImpl&lt;T, U, <a href="framed_impl.rs.html#43">RWFrames</a>&gt;
+        </span>inner: FramedImpl&lt;T, U, RWFrames&gt;
     }
 }
 
 <span class="kw">impl</span>&lt;T, U&gt; Framed&lt;T, U&gt;
 <span class="kw">where
-    </span>T: <a href="../../../tokio/io/async_read/trait.AsyncRead.html">AsyncRead</a> + <a href="../../../tokio/io/async_write/trait.AsyncWrite.html">AsyncWrite</a>,
+    </span>T: AsyncRead + AsyncWrite,
 {
     <span class="doccomment">/// Provides a [`Stream`] and [`Sink`] interface for reading and writing to this
     /// I/O object, using [`Decoder`] and [`Encoder`] to read and write the raw data.
@@ -436,11 +436,11 @@
     /// [`Encoder`]: crate::codec::Encoder
     /// [`split`]: https://docs.rs/futures/0.3/futures/stream/trait.StreamExt.html#method.split
     </span><span class="kw">pub fn </span>new(inner: T, codec: U) -&gt; Framed&lt;T, U&gt; {
-        <a href="#16-31">Framed</a> {
-            inner: <a href="framed_impl.rs.html#17-25">FramedImpl</a> {
-                <a href="#65">inner</a>,
-                <a href="#65">codec</a>,
-                state: <a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default::default</a>(),
+        Framed {
+            inner: FramedImpl {
+                inner,
+                codec,
+                state: Default::default(),
             },
         }
     }
@@ -469,16 +469,16 @@
     /// [`Decode`]: crate::codec::Decoder
     /// [`Encoder`]: crate::codec::Encoder
     /// [`split`]: https://docs.rs/futures/0.3/futures/stream/trait.StreamExt.html#method.split
-    </span><span class="kw">pub fn </span>with_capacity(inner: T, codec: U, capacity: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; Framed&lt;T, U&gt; {
-        <a href="#16-31">Framed</a> {
-            inner: <a href="framed_impl.rs.html#17-25">FramedImpl</a> {
-                <a href="#99">inner</a>,
-                <a href="#99">codec</a>,
-                state: <a href="framed_impl.rs.html#43">RWFrames</a> {
-                    read: <a href="framed_impl.rs.html#31">ReadFrame</a> {
+    </span><span class="kw">pub fn </span>with_capacity(inner: T, codec: U, capacity: usize) -&gt; Framed&lt;T, U&gt; {
+        Framed {
+            inner: FramedImpl {
+                inner,
+                codec,
+                state: RWFrames {
+                    read: ReadFrame {
                         eof: <span class="bool-val">false</span>,
                         is_readable: <span class="bool-val">false</span>,
-                        buffer: BytesMut::with_capacity(<a href="#99">capacity</a>),
+                        buffer: BytesMut::with_capacity(capacity),
                         has_errored: <span class="bool-val">false</span>,
                     },
                     write: WriteFrame::default(),
@@ -517,13 +517,13 @@
     /// [`into_parts`]: crate::codec::Framed::into_parts()
     /// [`split`]: https://docs.rs/futures/0.3/futures/stream/trait.StreamExt.html#method.split
     </span><span class="kw">pub fn </span>from_parts(parts: FramedParts&lt;T, U&gt;) -&gt; Framed&lt;T, U&gt; {
-        <a href="#16-31">Framed</a> {
-            inner: <a href="framed_impl.rs.html#17-25">FramedImpl</a> {
-                inner: <a href="#146">parts</a>.io,
-                codec: <a href="#146">parts</a>.codec,
-                state: <a href="framed_impl.rs.html#43">RWFrames</a> {
-                    read: <a href="#146">parts</a>.read_buf.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
-                    write: <a href="#146">parts</a>.write_buf.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
+        Framed {
+            inner: FramedImpl {
+                inner: parts.io,
+                codec: parts.codec,
+                state: RWFrames {
+                    read: parts.read_buf.into(),
+                    write: parts.write_buf.into(),
                 },
             },
         }
@@ -536,7 +536,7 @@
     /// of data coming in as it may corrupt the stream of frames otherwise
     /// being worked with.
     </span><span class="kw">pub fn </span>get_ref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>T {
-        <span class="kw-2">&amp;</span><a class="self" href="#165">self</a>.inner.inner
+        <span class="kw-2">&amp;</span><span class="self">self</span>.inner.inner
     }
 
     <span class="doccomment">/// Returns a mutable reference to the underlying I/O stream wrapped by
@@ -546,7 +546,7 @@
     /// of data coming in as it may corrupt the stream of frames otherwise
     /// being worked with.
     </span><span class="kw">pub fn </span>get_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>T {
-        <span class="kw-2">&amp;mut </span><a class="self" href="#175">self</a>.inner.inner
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>.inner.inner
     }
 
     <span class="doccomment">/// Returns a pinned mutable reference to the underlying I/O stream wrapped by
@@ -556,7 +556,7 @@
     /// of data coming in as it may corrupt the stream of frames otherwise
     /// being worked with.
     </span><span class="kw">pub fn </span>get_pin_mut(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;) -&gt; Pin&lt;<span class="kw-2">&amp;mut </span>T&gt; {
-        <a class="self" href="#185">self</a>.<a href="#16-31">project</a>().inner.<a href="framed_impl.rs.html#17-25">project</a>().inner
+        <span class="self">self</span>.project().inner.project().inner
     }
 
     <span class="doccomment">/// Returns a reference to the underlying codec wrapped by
@@ -565,7 +565,7 @@
     /// Note that care should be taken to not tamper with the underlying codec
     /// as it may corrupt the stream of frames otherwise being worked with.
     </span><span class="kw">pub fn </span>codec(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>U {
-        <span class="kw-2">&amp;</span><a class="self" href="#194">self</a>.inner.codec
+        <span class="kw-2">&amp;</span><span class="self">self</span>.inner.codec
     }
 
     <span class="doccomment">/// Returns a mutable reference to the underlying codec wrapped by
@@ -574,7 +574,7 @@
     /// Note that care should be taken to not tamper with the underlying codec
     /// as it may corrupt the stream of frames otherwise being worked with.
     </span><span class="kw">pub fn </span>codec_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>U {
-        <span class="kw-2">&amp;mut </span><a class="self" href="#203">self</a>.inner.codec
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>.inner.codec
     }
 
     <span class="doccomment">/// Maps the codec `U` to `C`, preserving the read and write buffers
@@ -587,12 +587,12 @@
         </span>F: FnOnce(U) -&gt; C,
     {
         <span class="comment">// This could be potentially simplified once rust-lang/rust#86555 hits stable
-        </span><span class="kw">let </span>parts = <a class="self" href="#212">self</a>.<a href="#271">into_parts</a>();
-        Framed::from_parts(<a href="#341">FramedParts</a> {
-            io: <a href="#217">parts</a>.io,
-            codec: <a href="#212">map</a>(<a href="#217">parts</a>.codec),
-            read_buf: <a href="#217">parts</a>.read_buf,
-            write_buf: <a href="#217">parts</a>.write_buf,
+        </span><span class="kw">let </span>parts = <span class="self">self</span>.into_parts();
+        Framed::from_parts(FramedParts {
+            io: parts.io,
+            codec: map(parts.codec),
+            read_buf: parts.read_buf,
+            write_buf: parts.write_buf,
             _priv: (),
         })
     }
@@ -603,27 +603,27 @@
     /// Note that care should be taken to not tamper with the underlying codec
     /// as it may corrupt the stream of frames otherwise being worked with.
     </span><span class="kw">pub fn </span>codec_pin_mut(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;) -&gt; <span class="kw-2">&amp;mut </span>U {
-        <a class="self" href="#232">self</a>.<a href="#16-31">project</a>().inner.<a href="framed_impl.rs.html#17-25">project</a>().codec
+        <span class="self">self</span>.project().inner.project().codec
     }
 
     <span class="doccomment">/// Returns a reference to the read buffer.
-    </span><span class="kw">pub fn </span>read_buffer(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="../../../bytes/bytes_mut/struct.BytesMut.html">BytesMut</a> {
-        <span class="kw-2">&amp;</span><a class="self" href="#237">self</a>.inner.state.read.buffer
+    </span><span class="kw">pub fn </span>read_buffer(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>BytesMut {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.inner.state.read.buffer
     }
 
     <span class="doccomment">/// Returns a mutable reference to the read buffer.
-    </span><span class="kw">pub fn </span>read_buffer_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span><a href="../../../bytes/bytes_mut/struct.BytesMut.html">BytesMut</a> {
-        <span class="kw-2">&amp;mut </span><a class="self" href="#242">self</a>.inner.state.read.buffer
+    </span><span class="kw">pub fn </span>read_buffer_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>BytesMut {
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>.inner.state.read.buffer
     }
 
     <span class="doccomment">/// Returns a reference to the write buffer.
-    </span><span class="kw">pub fn </span>write_buffer(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="../../../bytes/bytes_mut/struct.BytesMut.html">BytesMut</a> {
-        <span class="kw-2">&amp;</span><a class="self" href="#247">self</a>.inner.state.write.buffer
+    </span><span class="kw">pub fn </span>write_buffer(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>BytesMut {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.inner.state.write.buffer
     }
 
     <span class="doccomment">/// Returns a mutable reference to the write buffer.
-    </span><span class="kw">pub fn </span>write_buffer_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span><a href="../../../bytes/bytes_mut/struct.BytesMut.html">BytesMut</a> {
-        <span class="kw-2">&amp;mut </span><a class="self" href="#252">self</a>.inner.state.write.buffer
+    </span><span class="kw">pub fn </span>write_buffer_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>BytesMut {
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>.inner.state.write.buffer
     }
 
     <span class="doccomment">/// Consumes the `Framed`, returning its underlying I/O stream.
@@ -632,7 +632,7 @@
     /// of data coming in as it may corrupt the stream of frames otherwise
     /// being worked with.
     </span><span class="kw">pub fn </span>into_inner(<span class="self">self</span>) -&gt; T {
-        <a class="self" href="#261">self</a>.inner.inner
+        <span class="self">self</span>.inner.inner
     }
 
     <span class="doccomment">/// Consumes the `Framed`, returning its underlying I/O stream, the buffer
@@ -642,64 +642,64 @@
     /// of data coming in as it may corrupt the stream of frames otherwise
     /// being worked with.
     </span><span class="kw">pub fn </span>into_parts(<span class="self">self</span>) -&gt; FramedParts&lt;T, U&gt; {
-        <a href="#341">FramedParts</a> {
-            io: <a class="self" href="#271">self</a>.inner.inner,
-            codec: <a class="self" href="#271">self</a>.inner.codec,
-            read_buf: <a class="self" href="#271">self</a>.inner.state.read.buffer,
-            write_buf: <a class="self" href="#271">self</a>.inner.state.write.buffer,
+        FramedParts {
+            io: <span class="self">self</span>.inner.inner,
+            codec: <span class="self">self</span>.inner.codec,
+            read_buf: <span class="self">self</span>.inner.state.read.buffer,
+            write_buf: <span class="self">self</span>.inner.state.write.buffer,
             _priv: (),
         }
     }
 }
 
 <span class="comment">// This impl just defers to the underlying FramedImpl
-</span><span class="kw">impl</span>&lt;T, U&gt; <a href="../../../futures_core/stream/trait.Stream.html">Stream</a> <span class="kw">for </span>Framed&lt;T, U&gt;
+</span><span class="kw">impl</span>&lt;T, U&gt; Stream <span class="kw">for </span>Framed&lt;T, U&gt;
 <span class="kw">where
-    </span>T: <a href="../../../tokio/io/async_read/trait.AsyncRead.html">AsyncRead</a>,
-    U: <a href="decoder.rs.html#35">Decoder</a>,
+    </span>T: AsyncRead,
+    U: Decoder,
 {
     <span class="kw">type </span>Item = <span class="prelude-ty">Result</span>&lt;U::Item, U::Error&gt;;
 
     <span class="kw">fn </span>poll_next(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt;&gt; {
-        <a class="self" href="#290">self</a>.<a href="#16-31">project</a>().inner.<a href="../../../futures_core/stream/trait.Stream.html">poll_next</a>(<a href="#290">cx</a>)
+        <span class="self">self</span>.project().inner.poll_next(cx)
     }
 }
 
 <span class="comment">// This impl just defers to the underlying FramedImpl
 </span><span class="kw">impl</span>&lt;T, I, U&gt; Sink&lt;I&gt; <span class="kw">for </span>Framed&lt;T, U&gt;
 <span class="kw">where
-    </span>T: <a href="../../../tokio/io/async_write/trait.AsyncWrite.html">AsyncWrite</a>,
+    </span>T: AsyncWrite,
     U: Encoder&lt;I&gt;,
-    U::Error: From&lt;<a href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a>&gt;,
+    U::Error: From&lt;io::Error&gt;,
 {
     <span class="kw">type </span>Error = U::Error;
 
     <span class="kw">fn </span>poll_ready(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt;&gt; {
-        <a class="self" href="#304">self</a>.<a href="#16-31">project</a>().inner.<a href="../../../futures_sink/trait.Sink.html">poll_ready</a>(<a href="#304">cx</a>)
+        <span class="self">self</span>.project().inner.poll_ready(cx)
     }
 
     <span class="kw">fn </span>start_send(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, item: I) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt; {
-        <a class="self" href="#308">self</a>.<a href="#16-31">project</a>().inner.<a href="../../../futures_sink/trait.Sink.html">start_send</a>(<a href="#308">item</a>)
+        <span class="self">self</span>.project().inner.start_send(item)
     }
 
     <span class="kw">fn </span>poll_flush(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt;&gt; {
-        <a class="self" href="#312">self</a>.<a href="#16-31">project</a>().inner.<a href="../../../futures_sink/trait.Sink.html">poll_flush</a>(<a href="#312">cx</a>)
+        <span class="self">self</span>.project().inner.poll_flush(cx)
     }
 
     <span class="kw">fn </span>poll_close(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt;&gt; {
-        <a class="self" href="#316">self</a>.<a href="#16-31">project</a>().inner.<a href="../../../futures_sink/trait.Sink.html">poll_close</a>(<a href="#316">cx</a>)
+        <span class="self">self</span>.project().inner.poll_close(cx)
     }
 }
 
-<span class="kw">impl</span>&lt;T, U&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span>Framed&lt;T, U&gt;
+<span class="kw">impl</span>&lt;T, U&gt; fmt::Debug <span class="kw">for </span>Framed&lt;T, U&gt;
 <span class="kw">where
-    </span>T: <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a>,
-    U: <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a>,
+    </span>T: fmt::Debug,
+    U: fmt::Debug,
 {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a href="#326">f</a>.debug_struct(<span class="string">&quot;Framed&quot;</span>)
-            .field(<span class="string">&quot;io&quot;</span>, <a class="self" href="#326">self</a>.<a href="#165">get_ref</a>())
-            .field(<span class="string">&quot;codec&quot;</span>, <a class="self" href="#326">self</a>.<a href="#194">codec</a>())
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        f.debug_struct(<span class="string">&quot;Framed&quot;</span>)
+            .field(<span class="string">&quot;io&quot;</span>, <span class="self">self</span>.get_ref())
+            .field(<span class="string">&quot;codec&quot;</span>, <span class="self">self</span>.codec())
             .finish()
     }
 }
@@ -719,10 +719,10 @@
     </span><span class="kw">pub </span>codec: U,
 
     <span class="doccomment">/// The buffer with read but unprocessed data.
-    </span><span class="kw">pub </span>read_buf: <a href="../../../bytes/bytes_mut/struct.BytesMut.html">BytesMut</a>,
+    </span><span class="kw">pub </span>read_buf: BytesMut,
 
     <span class="doccomment">/// A buffer with unprocessed data which are not written yet.
-    </span><span class="kw">pub </span>write_buf: <a href="../../../bytes/bytes_mut/struct.BytesMut.html">BytesMut</a>,
+    </span><span class="kw">pub </span>write_buf: BytesMut,
 
     <span class="doccomment">/// This private field allows us to add additional fields in the future in a
     /// backwards compatible way.
@@ -735,9 +735,9 @@
     <span class="kw">where
         </span>U: Encoder&lt;I&gt;,
     {
-        <a href="#341">FramedParts</a> {
-            <a href="#361">io</a>,
-            <a href="#361">codec</a>,
+        FramedParts {
+            io,
+            codec,
             read_buf: BytesMut::new(),
             write_buf: BytesMut::new(),
             _priv: (),
@@ -745,4 +745,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="tokio_util" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="tokio_util" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

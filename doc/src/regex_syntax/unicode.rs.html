@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-syntax-0.6.28/src/unicode.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>unicode.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../regex_syntax/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-syntax-0.6.28/src/unicode.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>unicode.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../regex_syntax/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -999,18 +999,18 @@
 <a href="#999" id="999">999</a>
 <a href="#1000" id="1000">1000</a>
 <a href="#1001" id="1001">1001</a>
-</pre><pre class="rust"><code><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/error/index.html">std::error</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">std::fmt</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/result/index.html">std::result</a>;
+</pre><pre class="rust"><code><span class="kw">use </span>std::error;
+<span class="kw">use </span>std::fmt;
+<span class="kw">use </span>std::result;
 
-<span class="kw">use </span><a href="lib.rs.html#168"><span class="kw">crate</span>::hir</a>;
+<span class="kw">use </span><span class="kw">crate</span>::hir;
 
 <span class="doccomment">/// A type alias for errors specific to Unicode handling of classes.
-</span><span class="kw">pub type </span><span class="prelude-ty">Result</span>&lt;T&gt; = result::Result&lt;T, <a href="#19">Error</a>&gt;;
+</span><span class="kw">pub type </span><span class="prelude-ty">Result</span>&lt;T&gt; = result::Result&lt;T, Error&gt;;
 
 <span class="doccomment">/// An inclusive range of codepoints from a generated file (hence the static
 /// lifetime).
-</span><span class="kw">type </span>Range = <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>[(<a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>)];
+</span><span class="kw">type </span>Range = <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>[(char, char)];
 
 <span class="doccomment">/// An error that occurs when dealing with Unicode.
 ///
@@ -1026,7 +1026,7 @@
 }
 
 <span class="doccomment">/// A type alias for errors specific to Unicode case folding.
-</span><span class="kw">pub type </span>FoldResult&lt;T&gt; = result::Result&lt;T, <a href="#36">CaseFoldError</a>&gt;;
+</span><span class="kw">pub type </span>FoldResult&lt;T&gt; = result::Result&lt;T, CaseFoldError&gt;;
 
 <span class="doccomment">/// An error that occurs when Unicode-aware simple case folding fails.
 ///
@@ -1036,12 +1036,12 @@
 </span><span class="attr">#[derive(Debug)]
 </span><span class="kw">pub struct </span>CaseFoldError(());
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">error::Error</a> <span class="kw">for </span><a href="#36">CaseFoldError</a> {}
+<span class="kw">impl </span>error::Error <span class="kw">for </span>CaseFoldError {}
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for </span><a href="#36">CaseFoldError</a> {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(
-            <a href="#41">f</a>,
+<span class="kw">impl </span>fmt::Display <span class="kw">for </span>CaseFoldError {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        <span class="macro">write!</span>(
+            f,
             <span class="string">&quot;Unicode-aware case folding is not available \
              (probably because the unicode-case feature is not enabled)&quot;
         </span>)
@@ -1056,12 +1056,12 @@
 </span><span class="attr">#[derive(Debug)]
 </span><span class="kw">pub struct </span>UnicodeWordError(());
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">error::Error</a> <span class="kw">for </span><a href="#56">UnicodeWordError</a> {}
+<span class="kw">impl </span>error::Error <span class="kw">for </span>UnicodeWordError {}
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for </span><a href="#56">UnicodeWordError</a> {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(
-            <a href="#61">f</a>,
+<span class="kw">impl </span>fmt::Display <span class="kw">for </span>UnicodeWordError {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        <span class="macro">write!</span>(
+            f,
             <span class="string">&quot;Unicode-aware \\w class is not available \
              (probably because the unicode-perl feature is not enabled)&quot;
         </span>)
@@ -1080,8 +1080,8 @@
 ///
 /// This returns an error if the Unicode case folding tables are not available.
 </span><span class="kw">pub fn </span>simple_fold(
-    c: <a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>,
-) -&gt; FoldResult&lt;result::Result&lt;<span class="kw">impl </span>Iterator&lt;Item = <a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>&gt;, <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>&gt;&gt;&gt; {
+    c: char,
+) -&gt; FoldResult&lt;result::Result&lt;<span class="kw">impl </span>Iterator&lt;Item = char&gt;, <span class="prelude-ty">Option</span>&lt;char&gt;&gt;&gt; {
     <span class="attr">#[cfg(not(feature = <span class="string">&quot;unicode-case&quot;</span>))]
     </span><span class="kw">fn </span>imp(
         <span class="kw">_</span>: char,
@@ -1093,24 +1093,24 @@
 
     <span class="attr">#[cfg(feature = <span class="string">&quot;unicode-case&quot;</span>)]
     </span><span class="kw">fn </span>imp(
-        c: <a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>,
-    ) -&gt; FoldResult&lt;result::Result&lt;<span class="kw">impl </span>Iterator&lt;Item = <a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>&gt;, <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>&gt;&gt;&gt;
+        c: char,
+    ) -&gt; FoldResult&lt;result::Result&lt;<span class="kw">impl </span>Iterator&lt;Item = char&gt;, <span class="prelude-ty">Option</span>&lt;char&gt;&gt;&gt;
     {
-        <span class="kw">use </span><a href="unicode_tables/case_folding_simple.rs.html#9"><span class="kw">crate</span>::unicode_tables::case_folding_simple::CASE_FOLDING_SIMPLE</a>;
+        <span class="kw">use </span><span class="kw">crate</span>::unicode_tables::case_folding_simple::CASE_FOLDING_SIMPLE;
 
-        <span class="prelude-val">Ok</span>(<a href="unicode_tables/case_folding_simple.rs.html#9">CASE_FOLDING_SIMPLE</a>
-            .binary_search_by_key(<span class="kw-2">&amp;</span><a href="#95">c</a>, |<span class="kw-2">&amp;</span>(c1, <span class="kw">_</span>)| <a href="#101">c1</a>)
-            .map(|i| <a href="unicode_tables/case_folding_simple.rs.html#9">CASE_FOLDING_SIMPLE</a>[<a href="#102">i</a>].<span class="number">1</span>.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">copied</a>())
+        <span class="prelude-val">Ok</span>(CASE_FOLDING_SIMPLE
+            .binary_search_by_key(<span class="kw-2">&amp;</span>c, |<span class="kw-2">&amp;</span>(c1, <span class="kw">_</span>)| c1)
+            .map(|i| CASE_FOLDING_SIMPLE[i].<span class="number">1</span>.iter().copied())
             .map_err(|i| {
                 <span class="kw">if </span>i &gt;= CASE_FOLDING_SIMPLE.len() {
                     <span class="prelude-val">None
                 </span>} <span class="kw">else </span>{
-                    <span class="prelude-val">Some</span>(<a href="unicode_tables/case_folding_simple.rs.html#9">CASE_FOLDING_SIMPLE</a>[<a href="#103">i</a>].<span class="number">0</span>)
+                    <span class="prelude-val">Some</span>(CASE_FOLDING_SIMPLE[i].<span class="number">0</span>)
                 }
             }))
     }
 
-    <a href="#94-96">imp</a>(<a href="#82">c</a>)
+    imp(c)
 }
 
 <span class="doccomment">/// Returns true if and only if the given (inclusive) range contains at least
@@ -1121,21 +1121,21 @@
 ///
 /// This returns an error if the Unicode case folding tables are not available.
 </span><span class="kw">pub fn </span>contains_simple_case_mapping(
-    start: <a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>,
-    end: <a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>,
-) -&gt; FoldResult&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>&gt; {
+    start: char,
+    end: char,
+) -&gt; FoldResult&lt;bool&gt; {
     <span class="attr">#[cfg(not(feature = <span class="string">&quot;unicode-case&quot;</span>))]
     </span><span class="kw">fn </span>imp(<span class="kw">_</span>: char, <span class="kw">_</span>: char) -&gt; FoldResult&lt;bool&gt; {
         <span class="prelude-val">Err</span>(CaseFoldError(()))
     }
 
     <span class="attr">#[cfg(feature = <span class="string">&quot;unicode-case&quot;</span>)]
-    </span><span class="kw">fn </span>imp(start: <a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>, end: <a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>) -&gt; FoldResult&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>&gt; {
-        <span class="kw">use </span><a href="unicode_tables/case_folding_simple.rs.html#9"><span class="kw">crate</span>::unicode_tables::case_folding_simple::CASE_FOLDING_SIMPLE</a>;
-        <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html">std::cmp::Ordering</a>;
+    </span><span class="kw">fn </span>imp(start: char, end: char) -&gt; FoldResult&lt;bool&gt; {
+        <span class="kw">use </span><span class="kw">crate</span>::unicode_tables::case_folding_simple::CASE_FOLDING_SIMPLE;
+        <span class="kw">use </span>std::cmp::Ordering;
 
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(start &lt;= end);
-        <span class="prelude-val">Ok</span>(<a href="unicode_tables/case_folding_simple.rs.html#9">CASE_FOLDING_SIMPLE</a>
+        <span class="macro">assert!</span>(start &lt;= end);
+        <span class="prelude-val">Ok</span>(CASE_FOLDING_SIMPLE
             .binary_search_by(|<span class="kw-2">&amp;</span>(c, <span class="kw">_</span>)| {
                 <span class="kw">if </span>start &lt;= c &amp;&amp; c &lt;= end {
                     Ordering::Equal
@@ -1148,7 +1148,7 @@
             .is_ok())
     }
 
-    <a href="#132">imp</a>(<a href="#123">start</a>, <a href="#124">end</a>)
+    imp(start, end)
 }
 
 <span class="doccomment">/// A query for finding a character class defined by Unicode. This supports
@@ -1167,67 +1167,67 @@
 </span><span class="kw">pub enum </span>ClassQuery&lt;<span class="lifetime">&#39;a</span>&gt; {
     <span class="doccomment">/// Return a class corresponding to a Unicode binary property, named by
     /// a single letter.
-    </span>OneLetter(<a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>),
+    </span>OneLetter(char),
     <span class="doccomment">/// Return a class corresponding to a Unicode binary property.
     ///
     /// Note that, by special exception (see UTS#18, Section 1.2), both
     /// general category values and script values are permitted here as if
     /// they were a binary property.
-    </span>Binary(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>),
+    </span>Binary(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>str),
     <span class="doccomment">/// Return a class corresponding to all codepoints whose property
     /// (identified by `property_name`) corresponds to the given value
     /// (identified by `property_value`).
     </span>ByValue {
         <span class="doccomment">/// A property name.
-        </span>property_name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>,
+        </span>property_name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>str,
         <span class="doccomment">/// A property value.
-        </span>property_value: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>,
+        </span>property_value: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>str,
     },
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; ClassQuery&lt;<span class="lifetime">&#39;a</span>&gt; {
-    <span class="kw">fn </span>canonicalize(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#265">CanonicalClassQuery</a>&gt; {
-        <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="#188">self</a> </span>{
-            <a href="#169">ClassQuery::OneLetter</a>(c) =&gt; <a class="self" href="#188">self</a>.<a href="#237">canonical_binary</a>(<span class="kw-2">&amp;</span><a href="#190">c</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>()),
-            <a href="#175">ClassQuery::Binary</a>(name) =&gt; <a class="self" href="#188">self</a>.<a href="#237">canonical_binary</a>(<a href="#191">name</a>),
-            <a href="#179">ClassQuery::ByValue</a> { property_name, property_value } =&gt; {
-                <span class="kw">let </span>property_name = <a href="#806">symbolic_name_normalize</a>(<a href="#192">property_name</a>);
-                <span class="kw">let </span>property_value = <a href="#806">symbolic_name_normalize</a>(<a href="#192">property_value</a>);
+    <span class="kw">fn </span>canonicalize(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;CanonicalClassQuery&gt; {
+        <span class="kw">match </span><span class="kw-2">*</span><span class="self">self </span>{
+            ClassQuery::OneLetter(c) =&gt; <span class="self">self</span>.canonical_binary(<span class="kw-2">&amp;</span>c.to_string()),
+            ClassQuery::Binary(name) =&gt; <span class="self">self</span>.canonical_binary(name),
+            ClassQuery::ByValue { property_name, property_value } =&gt; {
+                <span class="kw">let </span>property_name = symbolic_name_normalize(property_name);
+                <span class="kw">let </span>property_value = symbolic_name_normalize(property_value);
 
                 <span class="kw">let </span>canon_name = <span class="kw">match </span>canonical_prop(<span class="kw-2">&amp;</span>property_name)<span class="question-mark">? </span>{
-                    <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="#20">Error::PropertyNotFound</a>),
-                    <span class="prelude-val">Some</span>(canon_name) =&gt; <a href="#198">canon_name</a>,
+                    <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(Error::PropertyNotFound),
+                    <span class="prelude-val">Some</span>(canon_name) =&gt; canon_name,
                 };
-                <span class="prelude-val">Ok</span>(<span class="kw">match </span><a href="#196">canon_name</a> {
+                <span class="prelude-val">Ok</span>(<span class="kw">match </span>canon_name {
                     <span class="string">&quot;General_Category&quot; </span>=&gt; {
                         <span class="kw">let </span>canon = <span class="kw">match </span>canonical_gencat(<span class="kw-2">&amp;</span>property_value)<span class="question-mark">? </span>{
-                            <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="#21">Error::PropertyValueNotFound</a>),
-                            <span class="prelude-val">Some</span>(canon) =&gt; <a href="#204">canon</a>,
+                            <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(Error::PropertyValueNotFound),
+                            <span class="prelude-val">Some</span>(canon) =&gt; canon,
                         };
-                        <a href="#269">CanonicalClassQuery::GeneralCategory</a>(<a href="#202">canon</a>)
+                        CanonicalClassQuery::GeneralCategory(canon)
                     }
                     <span class="string">&quot;Script&quot; </span>=&gt; {
                         <span class="kw">let </span>canon = <span class="kw">match </span>canonical_script(<span class="kw-2">&amp;</span>property_value)<span class="question-mark">? </span>{
-                            <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="#21">Error::PropertyValueNotFound</a>),
-                            <span class="prelude-val">Some</span>(canon) =&gt; <a href="#211">canon</a>,
+                            <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(Error::PropertyValueNotFound),
+                            <span class="prelude-val">Some</span>(canon) =&gt; canon,
                         };
-                        <a href="#271">CanonicalClassQuery::Script</a>(<a href="#209">canon</a>)
+                        CanonicalClassQuery::Script(canon)
                     }
                     <span class="kw">_ </span>=&gt; {
                         <span class="kw">let </span>vals = <span class="kw">match </span>property_values(canon_name)<span class="question-mark">? </span>{
-                            <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="#21">Error::PropertyValueNotFound</a>),
-                            <span class="prelude-val">Some</span>(vals) =&gt; <a href="#218">vals</a>,
+                            <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(Error::PropertyValueNotFound),
+                            <span class="prelude-val">Some</span>(vals) =&gt; vals,
                         };
                         <span class="kw">let </span>canon_val =
-                            <span class="kw">match </span><a href="#506-509">canonical_value</a>(<a href="#216">vals</a>, <span class="kw-2">&amp;</span><a href="#194">property_value</a>) {
+                            <span class="kw">match </span>canonical_value(vals, <span class="kw-2">&amp;</span>property_value) {
                                 <span class="prelude-val">None </span>=&gt; {
-                                    <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="#21">Error::PropertyValueNotFound</a>)
+                                    <span class="kw">return </span><span class="prelude-val">Err</span>(Error::PropertyValueNotFound)
                                 }
-                                <span class="prelude-val">Some</span>(canon_val) =&gt; <a href="#225">canon_val</a>,
+                                <span class="prelude-val">Some</span>(canon_val) =&gt; canon_val,
                             };
-                        <a href="#278">CanonicalClassQuery::ByValue</a> {
-                            property_name: <a href="#196">canon_name</a>,
-                            property_value: <a href="#220">canon_val</a>,
+                        CanonicalClassQuery::ByValue {
+                            property_name: canon_name,
+                            property_value: canon_val,
                         }
                     }
                 })
@@ -1235,8 +1235,8 @@
         }
     }
 
-    <span class="kw">fn </span>canonical_binary(<span class="kw-2">&amp;</span><span class="self">self</span>, name: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#265">CanonicalClassQuery</a>&gt; {
-        <span class="kw">let </span>norm = <a href="#806">symbolic_name_normalize</a>(<a href="#237">name</a>);
+    <span class="kw">fn </span>canonical_binary(<span class="kw-2">&amp;</span><span class="self">self</span>, name: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;CanonicalClassQuery&gt; {
+        <span class="kw">let </span>norm = symbolic_name_normalize(name);
 
         <span class="comment">// This is a special case where &#39;cf&#39; refers to the &#39;Format&#39; general
         // category, but where the &#39;cf&#39; abbreviation is also an abbreviation
@@ -1246,16 +1246,16 @@
         // required to spell it out.)
         </span><span class="kw">if </span>norm != <span class="string">&quot;cf&quot; </span>{
             <span class="kw">if let </span><span class="prelude-val">Some</span>(canon) = canonical_prop(<span class="kw-2">&amp;</span>norm)<span class="question-mark">? </span>{
-                <span class="kw">return </span><span class="prelude-val">Ok</span>(<a href="#267">CanonicalClassQuery::Binary</a>(<a href="#247">canon</a>));
+                <span class="kw">return </span><span class="prelude-val">Ok</span>(CanonicalClassQuery::Binary(canon));
             }
         }
         <span class="kw">if let </span><span class="prelude-val">Some</span>(canon) = canonical_gencat(<span class="kw-2">&amp;</span>norm)<span class="question-mark">? </span>{
-            <span class="kw">return </span><span class="prelude-val">Ok</span>(<a href="#269">CanonicalClassQuery::GeneralCategory</a>(<a href="#251">canon</a>));
+            <span class="kw">return </span><span class="prelude-val">Ok</span>(CanonicalClassQuery::GeneralCategory(canon));
         }
         <span class="kw">if let </span><span class="prelude-val">Some</span>(canon) = canonical_script(<span class="kw-2">&amp;</span>norm)<span class="question-mark">? </span>{
-            <span class="kw">return </span><span class="prelude-val">Ok</span>(<a href="#271">CanonicalClassQuery::Script</a>(<a href="#254">canon</a>));
+            <span class="kw">return </span><span class="prelude-val">Ok</span>(CanonicalClassQuery::Script(canon));
         }
-        <span class="prelude-val">Err</span>(<a href="#20">Error::PropertyNotFound</a>)
+        <span class="prelude-val">Err</span>(Error::PropertyNotFound)
     }
 }
 
@@ -1265,11 +1265,11 @@
 </span><span class="attr">#[derive(Debug, Eq, PartialEq)]
 </span><span class="kw">enum </span>CanonicalClassQuery {
     <span class="doccomment">/// The canonical binary property name.
-    </span>Binary(<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>),
+    </span>Binary(<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str),
     <span class="doccomment">/// The canonical general category name.
-    </span>GeneralCategory(<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>),
+    </span>GeneralCategory(<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str),
     <span class="doccomment">/// The canonical script name.
-    </span>Script(<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>),
+    </span>Script(<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str),
     <span class="doccomment">/// An arbitrary association between property and value, both of which
     /// have been canonicalized.
     ///
@@ -1278,44 +1278,44 @@
     /// eponymous variants.
     </span>ByValue {
         <span class="doccomment">/// The canonical property name.
-        </span>property_name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>,
+        </span>property_name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
         <span class="doccomment">/// The canonical property value.
-        </span>property_value: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>,
+        </span>property_value: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
     },
 }
 
 <span class="doccomment">/// Looks up a Unicode class given a query. If one doesn&#39;t exist, then
 /// `None` is returned.
-</span><span class="kw">pub fn </span>class(query: ClassQuery&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="hir/mod.rs.html#837">hir::ClassUnicode</a>&gt; {
-    <span class="kw">use </span><a href="#265"><span class="self">self</span>::CanonicalClassQuery</a>::<span class="kw-2">*</span>;
+</span><span class="kw">pub fn </span>class(query: ClassQuery&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;hir::ClassUnicode&gt; {
+    <span class="kw">use </span><span class="self">self</span>::CanonicalClassQuery::<span class="kw-2">*</span>;
 
     <span class="kw">match </span>query.canonicalize()<span class="question-mark">? </span>{
-        <a href="#267">Binary</a>(name) =&gt; <a href="#712">bool_property</a>(<a href="#292">name</a>),
-        <a href="#269">GeneralCategory</a>(name) =&gt; <a href="#628">gencat</a>(<a href="#293">name</a>),
-        <a href="#271">Script</a>(name) =&gt; <a href="#663">script</a>(<a href="#294">name</a>),
-        <a href="#278">ByValue</a> { property_name: <span class="string">&quot;Age&quot;</span>, property_value } =&gt; {
+        Binary(name) =&gt; bool_property(name),
+        GeneralCategory(name) =&gt; gencat(name),
+        Script(name) =&gt; script(name),
+        ByValue { property_name: <span class="string">&quot;Age&quot;</span>, property_value } =&gt; {
             <span class="kw">let </span><span class="kw-2">mut </span>class = hir::ClassUnicode::empty();
             <span class="kw">for </span>set <span class="kw">in </span>ages(property_value)<span class="question-mark">? </span>{
                 class.union(<span class="kw-2">&amp;</span>hir_class(set));
             }
-            <span class="prelude-val">Ok</span>(<a href="#296">class</a>)
+            <span class="prelude-val">Ok</span>(class)
         }
-        <a href="#278">ByValue</a> { property_name: <span class="string">&quot;Script_Extensions&quot;</span>, property_value } =&gt; {
-            <a href="#686-688">script_extension</a>(<a href="#302">property_value</a>)
+        ByValue { property_name: <span class="string">&quot;Script_Extensions&quot;</span>, property_value } =&gt; {
+            script_extension(property_value)
         }
-        <a href="#278">ByValue</a> {
+        ByValue {
             property_name: <span class="string">&quot;Grapheme_Cluster_Break&quot;</span>,
             property_value,
-        } =&gt; <a href="#740">gcb</a>(<a href="#307">property_value</a>),
-        <a href="#278">ByValue</a> { property_name: <span class="string">&quot;Sentence_Break&quot;</span>, property_value } =&gt; {
-            <a href="#788">sb</a>(<a href="#309">property_value</a>)
+        } =&gt; gcb(property_value),
+        ByValue { property_name: <span class="string">&quot;Sentence_Break&quot;</span>, property_value } =&gt; {
+            sb(property_value)
         }
-        <a href="#278">ByValue</a> { property_name: <span class="string">&quot;Word_Break&quot;</span>, property_value } =&gt; {
-            <a href="#764">wb</a>(<a href="#312">property_value</a>)
+        ByValue { property_name: <span class="string">&quot;Word_Break&quot;</span>, property_value } =&gt; {
+            wb(property_value)
         }
         <span class="kw">_ </span>=&gt; {
             <span class="comment">// What else should we support?
-            </span><span class="prelude-val">Err</span>(<a href="#20">Error::PropertyNotFound</a>)
+            </span><span class="prelude-val">Err</span>(Error::PropertyNotFound)
         }
     }
 }
@@ -1323,25 +1323,25 @@
 <span class="doccomment">/// Returns a Unicode aware class for \w.
 ///
 /// This returns an error if the data is not available for \w.
-</span><span class="kw">pub fn </span>perl_word() -&gt; <span class="prelude-ty">Result</span>&lt;<a href="hir/mod.rs.html#837">hir::ClassUnicode</a>&gt; {
+</span><span class="kw">pub fn </span>perl_word() -&gt; <span class="prelude-ty">Result</span>&lt;hir::ClassUnicode&gt; {
     <span class="attr">#[cfg(not(feature = <span class="string">&quot;unicode-perl&quot;</span>))]
     </span><span class="kw">fn </span>imp() -&gt; <span class="prelude-ty">Result</span>&lt;hir::ClassUnicode&gt; {
         <span class="prelude-val">Err</span>(Error::PerlClassNotFound)
     }
 
     <span class="attr">#[cfg(feature = <span class="string">&quot;unicode-perl&quot;</span>)]
-    </span><span class="kw">fn </span>imp() -&gt; <span class="prelude-ty">Result</span>&lt;<a href="hir/mod.rs.html#837">hir::ClassUnicode</a>&gt; {
-        <span class="kw">use </span><a href="unicode_tables/perl_word.rs.html#9"><span class="kw">crate</span>::unicode_tables::perl_word::PERL_WORD</a>;
-        <span class="prelude-val">Ok</span>(<a href="#389">hir_class</a>(<a href="unicode_tables/perl_word.rs.html#9">PERL_WORD</a>))
+    </span><span class="kw">fn </span>imp() -&gt; <span class="prelude-ty">Result</span>&lt;hir::ClassUnicode&gt; {
+        <span class="kw">use </span><span class="kw">crate</span>::unicode_tables::perl_word::PERL_WORD;
+        <span class="prelude-val">Ok</span>(hir_class(PERL_WORD))
     }
 
-    <a href="#332">imp</a>()
+    imp()
 }
 
 <span class="doccomment">/// Returns a Unicode aware class for \s.
 ///
 /// This returns an error if the data is not available for \s.
-</span><span class="kw">pub fn </span>perl_space() -&gt; <span class="prelude-ty">Result</span>&lt;<a href="hir/mod.rs.html#837">hir::ClassUnicode</a>&gt; {
+</span><span class="kw">pub fn </span>perl_space() -&gt; <span class="prelude-ty">Result</span>&lt;hir::ClassUnicode&gt; {
     <span class="attr">#[cfg(not(any(feature = <span class="string">&quot;unicode-perl&quot;</span>, feature = <span class="string">&quot;unicode-bool&quot;</span>)))]
     </span><span class="kw">fn </span>imp() -&gt; <span class="prelude-ty">Result</span>&lt;hir::ClassUnicode&gt; {
         <span class="prelude-val">Err</span>(Error::PerlClassNotFound)
@@ -1354,18 +1354,18 @@
     }
 
     <span class="attr">#[cfg(feature = <span class="string">&quot;unicode-bool&quot;</span>)]
-    </span><span class="kw">fn </span>imp() -&gt; <span class="prelude-ty">Result</span>&lt;<a href="hir/mod.rs.html#837">hir::ClassUnicode</a>&gt; {
-        <span class="kw">use </span><a href="unicode_tables/property_bool.rs.html#9909"><span class="kw">crate</span>::unicode_tables::property_bool::WHITE_SPACE</a>;
-        <span class="prelude-val">Ok</span>(<a href="#389">hir_class</a>(<a href="unicode_tables/property_bool.rs.html#9909">WHITE_SPACE</a>))
+    </span><span class="kw">fn </span>imp() -&gt; <span class="prelude-ty">Result</span>&lt;hir::ClassUnicode&gt; {
+        <span class="kw">use </span><span class="kw">crate</span>::unicode_tables::property_bool::WHITE_SPACE;
+        <span class="prelude-val">Ok</span>(hir_class(WHITE_SPACE))
     }
 
-    <a href="#356">imp</a>()
+    imp()
 }
 
 <span class="doccomment">/// Returns a Unicode aware class for \d.
 ///
 /// This returns an error if the data is not available for \d.
-</span><span class="kw">pub fn </span>perl_digit() -&gt; <span class="prelude-ty">Result</span>&lt;<a href="hir/mod.rs.html#837">hir::ClassUnicode</a>&gt; {
+</span><span class="kw">pub fn </span>perl_digit() -&gt; <span class="prelude-ty">Result</span>&lt;hir::ClassUnicode&gt; {
     <span class="attr">#[cfg(not(any(feature = <span class="string">&quot;unicode-perl&quot;</span>, feature = <span class="string">&quot;unicode-gencat&quot;</span>)))]
     </span><span class="kw">fn </span>imp() -&gt; <span class="prelude-ty">Result</span>&lt;hir::ClassUnicode&gt; {
         <span class="prelude-val">Err</span>(Error::PerlClassNotFound)
@@ -1378,42 +1378,42 @@
     }
 
     <span class="attr">#[cfg(feature = <span class="string">&quot;unicode-gencat&quot;</span>)]
-    </span><span class="kw">fn </span>imp() -&gt; <span class="prelude-ty">Result</span>&lt;<a href="hir/mod.rs.html#837">hir::ClassUnicode</a>&gt; {
-        <span class="kw">use </span><a href="unicode_tables/general_category.rs.html#332"><span class="kw">crate</span>::unicode_tables::general_category::DECIMAL_NUMBER</a>;
-        <span class="prelude-val">Ok</span>(<a href="#389">hir_class</a>(<a href="unicode_tables/general_category.rs.html#332">DECIMAL_NUMBER</a>))
+    </span><span class="kw">fn </span>imp() -&gt; <span class="prelude-ty">Result</span>&lt;hir::ClassUnicode&gt; {
+        <span class="kw">use </span><span class="kw">crate</span>::unicode_tables::general_category::DECIMAL_NUMBER;
+        <span class="prelude-val">Ok</span>(hir_class(DECIMAL_NUMBER))
     }
 
-    <a href="#380">imp</a>()
+    imp()
 }
 
 <span class="doccomment">/// Build a Unicode HIR class from a sequence of Unicode scalar value ranges.
-</span><span class="kw">pub fn </span>hir_class(ranges: <span class="kw-2">&amp;</span>[(<a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>)]) -&gt; <a href="hir/mod.rs.html#837">hir::ClassUnicode</a> {
-    <span class="kw">let </span>hir_ranges: Vec&lt;<a href="hir/mod.rs.html#973">hir::ClassUnicodeRange</a>&gt; = <a href="#389">ranges</a>
+</span><span class="kw">pub fn </span>hir_class(ranges: <span class="kw-2">&amp;</span>[(char, char)]) -&gt; hir::ClassUnicode {
+    <span class="kw">let </span>hir_ranges: Vec&lt;hir::ClassUnicodeRange&gt; = ranges
         .iter()
-        .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|<span class="kw-2">&amp;</span>(s, e)| hir::ClassUnicodeRange::new(<a href="#392">s</a>, <a href="#392">e</a>))
-        .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
-    hir::ClassUnicode::new(<a href="#390">hir_ranges</a>)
+        .map(|<span class="kw-2">&amp;</span>(s, e)| hir::ClassUnicodeRange::new(s, e))
+        .collect();
+    hir::ClassUnicode::new(hir_ranges)
 }
 
 <span class="doccomment">/// Returns true only if the given codepoint is in the `\w` character class.
 ///
 /// If the `unicode-perl` feature is not enabled, then this returns an error.
-</span><span class="kw">pub fn </span>is_word_character(c: <a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>) -&gt; result::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>, <a href="#56">UnicodeWordError</a>&gt; {
+</span><span class="kw">pub fn </span>is_word_character(c: char) -&gt; result::Result&lt;bool, UnicodeWordError&gt; {
     <span class="attr">#[cfg(not(feature = <span class="string">&quot;unicode-perl&quot;</span>))]
     </span><span class="kw">fn </span>imp(<span class="kw">_</span>: char) -&gt; result::Result&lt;bool, UnicodeWordError&gt; {
         <span class="prelude-val">Err</span>(UnicodeWordError(()))
     }
 
     <span class="attr">#[cfg(feature = <span class="string">&quot;unicode-perl&quot;</span>)]
-    </span><span class="kw">fn </span>imp(c: <a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>) -&gt; result::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>, <a href="#56">UnicodeWordError</a>&gt; {
-        <span class="kw">use </span><a href="lib.rs.html#259"><span class="kw">crate</span>::is_word_byte</a>;
-        <span class="kw">use </span><a href="unicode_tables/perl_word.rs.html#9"><span class="kw">crate</span>::unicode_tables::perl_word::PERL_WORD</a>;
-        <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html">std::cmp::Ordering</a>;
+    </span><span class="kw">fn </span>imp(c: char) -&gt; result::Result&lt;bool, UnicodeWordError&gt; {
+        <span class="kw">use </span><span class="kw">crate</span>::is_word_byte;
+        <span class="kw">use </span><span class="kw">crate</span>::unicode_tables::perl_word::PERL_WORD;
+        <span class="kw">use </span>std::cmp::Ordering;
 
         <span class="kw">if </span>c &lt;= <span class="number">0x7F </span><span class="kw">as </span>char &amp;&amp; is_word_byte(c <span class="kw">as </span>u8) {
             <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="bool-val">true</span>);
         }
-        <span class="prelude-val">Ok</span>(<a href="unicode_tables/perl_word.rs.html#9">PERL_WORD</a>
+        <span class="prelude-val">Ok</span>(PERL_WORD
             .binary_search_by(|<span class="kw-2">&amp;</span>(start, end)| {
                 <span class="kw">if </span>start &lt;= c &amp;&amp; c &lt;= end {
                     Ordering::Equal
@@ -1426,7 +1426,7 @@
             .is_ok())
     }
 
-    <a href="#407">imp</a>(<a href="#400">c</a>)
+    imp(c)
 }
 
 <span class="doccomment">/// A mapping of property values for a specific property.
@@ -1434,23 +1434,23 @@
 /// The first element of each tuple is a normalized property value while the
 /// second element of each tuple is the corresponding canonical property
 /// value.
-</span><span class="kw">type </span>PropertyValues = <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>[(<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>)];
+</span><span class="kw">type </span>PropertyValues = <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>[(<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str, <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str)];
 
-<span class="kw">fn </span>canonical_gencat(normalized_value: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt;&gt; {
-    <span class="prelude-val">Ok</span>(<span class="kw">match </span><a href="#438">normalized_value</a> {
+<span class="kw">fn </span>canonical_gencat(normalized_value: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str&gt;&gt; {
+    <span class="prelude-val">Ok</span>(<span class="kw">match </span>normalized_value {
         <span class="string">&quot;any&quot; </span>=&gt; <span class="prelude-val">Some</span>(<span class="string">&quot;Any&quot;</span>),
         <span class="string">&quot;assigned&quot; </span>=&gt; <span class="prelude-val">Some</span>(<span class="string">&quot;Assigned&quot;</span>),
         <span class="string">&quot;ascii&quot; </span>=&gt; <span class="prelude-val">Some</span>(<span class="string">&quot;ASCII&quot;</span>),
         <span class="kw">_ </span>=&gt; {
             <span class="kw">let </span>gencats = property_values(<span class="string">&quot;General_Category&quot;</span>)<span class="question-mark">?</span>.unwrap();
-            <a href="#506-509">canonical_value</a>(<a href="#444">gencats</a>, <a href="#438">normalized_value</a>)
+            canonical_value(gencats, normalized_value)
         }
     })
 }
 
-<span class="kw">fn </span>canonical_script(normalized_value: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt;&gt; {
+<span class="kw">fn </span>canonical_script(normalized_value: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str&gt;&gt; {
     <span class="kw">let </span>scripts = property_values(<span class="string">&quot;Script&quot;</span>)<span class="question-mark">?</span>.unwrap();
-    <span class="prelude-val">Ok</span>(<a href="#506-509">canonical_value</a>(<a href="#451">scripts</a>, <a href="#450">normalized_value</a>))
+    <span class="prelude-val">Ok</span>(canonical_value(scripts, normalized_value))
 }
 
 <span class="doccomment">/// Find the canonical property name for the given normalized property name.
@@ -1461,7 +1461,7 @@
 /// UAX44 LM3, which can be done using `symbolic_name_normalize`.
 ///
 /// If the property names data is not available, then an error is returned.
-</span><span class="kw">fn </span>canonical_prop(normalized_name: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt;&gt; {
+</span><span class="kw">fn </span>canonical_prop(normalized_name: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str&gt;&gt; {
     <span class="attr">#[cfg(not(any(
         feature = <span class="string">&quot;unicode-age&quot;</span>,
         feature = <span class="string">&quot;unicode-bool&quot;</span>,
@@ -1482,16 +1482,16 @@
         feature = <span class="string">&quot;unicode-script&quot;</span>,
         feature = <span class="string">&quot;unicode-segment&quot;</span>,
     ))]
-    </span><span class="kw">fn </span>imp(name: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt;&gt; {
-        <span class="kw">use </span><a href="unicode_tables/property_names.rs.html#9"><span class="kw">crate</span>::unicode_tables::property_names::PROPERTY_NAMES</a>;
+    </span><span class="kw">fn </span>imp(name: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str&gt;&gt; {
+        <span class="kw">use </span><span class="kw">crate</span>::unicode_tables::property_names::PROPERTY_NAMES;
 
-        <span class="prelude-val">Ok</span>(<a href="unicode_tables/property_names.rs.html#9">PROPERTY_NAMES</a>
-            .binary_search_by_key(<span class="kw-2">&amp;</span><a href="#484">name</a>, |<span class="kw-2">&amp;</span>(n, <span class="kw">_</span>)| <a href="#488">n</a>)
+        <span class="prelude-val">Ok</span>(PROPERTY_NAMES
+            .binary_search_by_key(<span class="kw-2">&amp;</span>name, |<span class="kw-2">&amp;</span>(n, <span class="kw">_</span>)| n)
             .ok()
-            .map(|i| <a href="unicode_tables/property_names.rs.html#9">PROPERTY_NAMES</a>[<a href="#490">i</a>].<span class="number">1</span>))
+            .map(|i| PROPERTY_NAMES[i].<span class="number">1</span>))
     }
 
-    <a href="#484">imp</a>(<a href="#463">normalized_name</a>)
+    imp(normalized_name)
 }
 
 <span class="doccomment">/// Find the canonical property value for the given normalized property
@@ -1505,20 +1505,20 @@
 /// The normalized property value must have been normalized according to
 /// UAX44 LM3, which can be done using `symbolic_name_normalize`.
 </span><span class="kw">fn </span>canonical_value(
-    vals: <a href="#436">PropertyValues</a>,
-    normalized_value: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>,
-) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt; {
-    <a href="#507">vals</a>.binary_search_by_key(<span class="kw-2">&amp;</span><a href="#508">normalized_value</a>, |<span class="kw-2">&amp;</span>(n, <span class="kw">_</span>)| <a href="#510">n</a>)
+    vals: PropertyValues,
+    normalized_value: <span class="kw-2">&amp;</span>str,
+) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str&gt; {
+    vals.binary_search_by_key(<span class="kw-2">&amp;</span>normalized_value, |<span class="kw-2">&amp;</span>(n, <span class="kw">_</span>)| n)
         .ok()
-        .map(|i| <a href="#507">vals</a>[<a href="#512">i</a>].<span class="number">1</span>)
+        .map(|i| vals[i].<span class="number">1</span>)
 }
 
 <span class="doccomment">/// Return the table of property values for the given property name.
 ///
 /// If the property values data is not available, then an error is returned.
 </span><span class="kw">fn </span>property_values(
-    canonical_property_name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>,
-) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<a href="#436">PropertyValues</a>&gt;&gt; {
+    canonical_property_name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
+) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;PropertyValues&gt;&gt; {
     <span class="attr">#[cfg(not(any(
         feature = <span class="string">&quot;unicode-age&quot;</span>,
         feature = <span class="string">&quot;unicode-bool&quot;</span>,
@@ -1539,29 +1539,29 @@
         feature = <span class="string">&quot;unicode-script&quot;</span>,
         feature = <span class="string">&quot;unicode-segment&quot;</span>,
     ))]
-    </span><span class="kw">fn </span>imp(name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<a href="#436">PropertyValues</a>&gt;&gt; {
-        <span class="kw">use </span><a href="unicode_tables/property_values.rs.html#9-12"><span class="kw">crate</span>::unicode_tables::property_values::PROPERTY_VALUES</a>;
+    </span><span class="kw">fn </span>imp(name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;PropertyValues&gt;&gt; {
+        <span class="kw">use </span><span class="kw">crate</span>::unicode_tables::property_values::PROPERTY_VALUES;
 
-        <span class="prelude-val">Ok</span>(<a href="unicode_tables/property_values.rs.html#9-12">PROPERTY_VALUES</a>
-            .binary_search_by_key(<span class="kw-2">&amp;</span><a href="#541">name</a>, |<span class="kw-2">&amp;</span>(n, <span class="kw">_</span>)| <a href="#545">n</a>)
+        <span class="prelude-val">Ok</span>(PROPERTY_VALUES
+            .binary_search_by_key(<span class="kw-2">&amp;</span>name, |<span class="kw-2">&amp;</span>(n, <span class="kw">_</span>)| n)
             .ok()
-            .map(|i| <a href="unicode_tables/property_values.rs.html#9-12">PROPERTY_VALUES</a>[<a href="#547">i</a>].<span class="number">1</span>))
+            .map(|i| PROPERTY_VALUES[i].<span class="number">1</span>))
     }
 
-    <a href="#541">imp</a>(<a href="#519">canonical_property_name</a>)
+    imp(canonical_property_name)
 }
 
 <span class="comment">// This is only used in some cases, but small enough to just let it be dead
 // instead of figuring out (and maintaining) the right set of features.
 </span><span class="attr">#[allow(dead_code)]
 </span><span class="kw">fn </span>property_set(
-    name_map: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>[(<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, <a href="#12">Range</a>)],
-    canonical: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>,
-) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="#12">Range</a>&gt; {
-    <a href="#557">name_map</a>
-        .binary_search_by_key(<span class="kw-2">&amp;</span><a href="#558">canonical</a>, |x| <a href="#561">x</a>.<span class="number">0</span>)
+    name_map: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>[(<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str, Range)],
+    canonical: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
+) -&gt; <span class="prelude-ty">Option</span>&lt;Range&gt; {
+    name_map
+        .binary_search_by_key(<span class="kw-2">&amp;</span>canonical, |x| x.<span class="number">0</span>)
         .ok()
-        .map(|i| <a href="#557">name_map</a>[<a href="#563">i</a>].<span class="number">1</span>)
+        .map(|i| name_map[i].<span class="number">1</span>)
 }
 
 <span class="doccomment">/// Returns an iterator over Unicode Age sets. Each item corresponds to a set
@@ -1570,7 +1570,7 @@
 ///
 /// If the given age value isn&#39;t valid or if the data isn&#39;t available, then an
 /// error is returned instead.
-</span><span class="kw">fn </span>ages(canonical_age: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw">impl </span>Iterator&lt;Item = <a href="#12">Range</a>&gt;&gt; {
+</span><span class="kw">fn </span>ages(canonical_age: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw">impl </span>Iterator&lt;Item = Range&gt;&gt; {
     <span class="attr">#[cfg(not(feature = <span class="string">&quot;unicode-age&quot;</span>))]
     </span><span class="kw">fn </span>imp(<span class="kw">_</span>: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw">impl </span>Iterator&lt;Item = Range&gt;&gt; {
         <span class="kw">use </span>std::option::IntoIter;
@@ -1578,46 +1578,46 @@
     }
 
     <span class="attr">#[cfg(feature = <span class="string">&quot;unicode-age&quot;</span>)]
-    </span><span class="kw">fn </span>imp(canonical_age: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw">impl </span>Iterator&lt;Item = <a href="#12">Range</a>&gt;&gt; {
-        <span class="kw">use </span><a href="unicode_tables/mod.rs.html#2"><span class="kw">crate</span>::unicode_tables::age</a>;
+    </span><span class="kw">fn </span>imp(canonical_age: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw">impl </span>Iterator&lt;Item = Range&gt;&gt; {
+        <span class="kw">use </span><span class="kw">crate</span>::unicode_tables::age;
 
-        <span class="kw">const </span>AGES: <span class="kw-2">&amp;</span>[(<span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, <a href="#12">Range</a>)] = <span class="kw-2">&amp;</span>[
-            (<span class="string">&quot;V1_1&quot;</span>, <a href="unicode_tables/age.rs.html#385">age::V1_1</a>),
-            (<span class="string">&quot;V2_0&quot;</span>, <a href="unicode_tables/age.rs.html#676">age::V2_0</a>),
-            (<span class="string">&quot;V2_1&quot;</span>, <a href="unicode_tables/age.rs.html#707">age::V2_1</a>),
-            (<span class="string">&quot;V3_0&quot;</span>, <a href="unicode_tables/age.rs.html#709">age::V3_0</a>),
-            (<span class="string">&quot;V3_1&quot;</span>, <a href="unicode_tables/age.rs.html#833">age::V3_1</a>),
-            (<span class="string">&quot;V3_2&quot;</span>, <a href="unicode_tables/age.rs.html#872">age::V3_2</a>),
-            (<span class="string">&quot;V4_0&quot;</span>, <a href="unicode_tables/age.rs.html#934">age::V4_0</a>),
-            (<span class="string">&quot;V4_1&quot;</span>, <a href="unicode_tables/age.rs.html#1014">age::V4_1</a>),
-            (<span class="string">&quot;V5_0&quot;</span>, <a href="unicode_tables/age.rs.html#1103">age::V5_0</a>),
-            (<span class="string">&quot;V5_1&quot;</span>, <a href="unicode_tables/age.rs.html#1141">age::V5_1</a>),
-            (<span class="string">&quot;V5_2&quot;</span>, <a href="unicode_tables/age.rs.html#1233">age::V5_2</a>),
-            (<span class="string">&quot;V6_0&quot;</span>, <a href="unicode_tables/age.rs.html#1326">age::V6_0</a>),
-            (<span class="string">&quot;V6_1&quot;</span>, <a href="unicode_tables/age.rs.html#1435">age::V6_1</a>),
-            (<span class="string">&quot;V6_2&quot;</span>, <a href="unicode_tables/age.rs.html#1527">age::V6_2</a>),
-            (<span class="string">&quot;V6_3&quot;</span>, <a href="unicode_tables/age.rs.html#1529">age::V6_3</a>),
-            (<span class="string">&quot;V7_0&quot;</span>, <a href="unicode_tables/age.rs.html#1532">age::V7_0</a>),
-            (<span class="string">&quot;V8_0&quot;</span>, <a href="unicode_tables/age.rs.html#1676">age::V8_0</a>),
-            (<span class="string">&quot;V9_0&quot;</span>, <a href="unicode_tables/age.rs.html#1738">age::V9_0</a>),
-            (<span class="string">&quot;V10_0&quot;</span>, <a href="unicode_tables/age.rs.html#37">age::V10_0</a>),
-            (<span class="string">&quot;V11_0&quot;</span>, <a href="unicode_tables/age.rs.html#80">age::V11_0</a>),
-            (<span class="string">&quot;V12_0&quot;</span>, <a href="unicode_tables/age.rs.html#142">age::V12_0</a>),
-            (<span class="string">&quot;V12_1&quot;</span>, <a href="unicode_tables/age.rs.html#205">age::V12_1</a>),
-            (<span class="string">&quot;V13_0&quot;</span>, <a href="unicode_tables/age.rs.html#207">age::V13_0</a>),
-            (<span class="string">&quot;V14_0&quot;</span>, <a href="unicode_tables/age.rs.html#269">age::V14_0</a>),
-            (<span class="string">&quot;V15_0&quot;</span>, <a href="unicode_tables/age.rs.html#350">age::V15_0</a>),
+        <span class="kw">const </span>AGES: <span class="kw-2">&amp;</span>[(<span class="kw-2">&amp;</span>str, Range)] = <span class="kw-2">&amp;</span>[
+            (<span class="string">&quot;V1_1&quot;</span>, age::V1_1),
+            (<span class="string">&quot;V2_0&quot;</span>, age::V2_0),
+            (<span class="string">&quot;V2_1&quot;</span>, age::V2_1),
+            (<span class="string">&quot;V3_0&quot;</span>, age::V3_0),
+            (<span class="string">&quot;V3_1&quot;</span>, age::V3_1),
+            (<span class="string">&quot;V3_2&quot;</span>, age::V3_2),
+            (<span class="string">&quot;V4_0&quot;</span>, age::V4_0),
+            (<span class="string">&quot;V4_1&quot;</span>, age::V4_1),
+            (<span class="string">&quot;V5_0&quot;</span>, age::V5_0),
+            (<span class="string">&quot;V5_1&quot;</span>, age::V5_1),
+            (<span class="string">&quot;V5_2&quot;</span>, age::V5_2),
+            (<span class="string">&quot;V6_0&quot;</span>, age::V6_0),
+            (<span class="string">&quot;V6_1&quot;</span>, age::V6_1),
+            (<span class="string">&quot;V6_2&quot;</span>, age::V6_2),
+            (<span class="string">&quot;V6_3&quot;</span>, age::V6_3),
+            (<span class="string">&quot;V7_0&quot;</span>, age::V7_0),
+            (<span class="string">&quot;V8_0&quot;</span>, age::V8_0),
+            (<span class="string">&quot;V9_0&quot;</span>, age::V9_0),
+            (<span class="string">&quot;V10_0&quot;</span>, age::V10_0),
+            (<span class="string">&quot;V11_0&quot;</span>, age::V11_0),
+            (<span class="string">&quot;V12_0&quot;</span>, age::V12_0),
+            (<span class="string">&quot;V12_1&quot;</span>, age::V12_1),
+            (<span class="string">&quot;V13_0&quot;</span>, age::V13_0),
+            (<span class="string">&quot;V14_0&quot;</span>, age::V14_0),
+            (<span class="string">&quot;V15_0&quot;</span>, age::V15_0),
         ];
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert_eq.html">assert_eq!</a>(AGES.len(), age::BY_NAME.len(), <span class="string">&quot;ages are out of sync&quot;</span>);
+        <span class="macro">assert_eq!</span>(AGES.len(), age::BY_NAME.len(), <span class="string">&quot;ages are out of sync&quot;</span>);
 
-        <span class="kw">let </span>pos = <a href="#583">AGES</a>.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">position</a>(|<span class="kw-2">&amp;</span>(age, <span class="kw">_</span>)| <a href="#580">canonical_age</a> == <a href="#612">age</a>);
-        <span class="kw">match </span><a href="#612">pos</a> {
-            <span class="prelude-val">None </span>=&gt; <span class="prelude-val">Err</span>(<a href="#21">Error::PropertyValueNotFound</a>),
-            <span class="prelude-val">Some</span>(i) =&gt; <span class="prelude-val">Ok</span>(<a href="#583">AGES</a>[..=<a href="#615">i</a>].iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|<span class="kw-2">&amp;</span>(<span class="kw">_</span>, classes)| <a href="#615">classes</a>)),
+        <span class="kw">let </span>pos = AGES.iter().position(|<span class="kw-2">&amp;</span>(age, <span class="kw">_</span>)| canonical_age == age);
+        <span class="kw">match </span>pos {
+            <span class="prelude-val">None </span>=&gt; <span class="prelude-val">Err</span>(Error::PropertyValueNotFound),
+            <span class="prelude-val">Some</span>(i) =&gt; <span class="prelude-val">Ok</span>(AGES[..=i].iter().map(|<span class="kw-2">&amp;</span>(<span class="kw">_</span>, classes)| classes)),
         }
     }
 
-    <a href="#580">imp</a>(<a href="#572">canonical_age</a>)
+    imp(canonical_age)
 }
 
 <span class="doccomment">/// Returns the Unicode HIR class corresponding to the given general category.
@@ -1626,32 +1626,32 @@
 ///
 /// If the given general category could not be found, or if the general
 /// category data is not available, then an error is returned.
-</span><span class="kw">fn </span>gencat(canonical_name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="hir/mod.rs.html#837">hir::ClassUnicode</a>&gt; {
+</span><span class="kw">fn </span>gencat(canonical_name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str) -&gt; <span class="prelude-ty">Result</span>&lt;hir::ClassUnicode&gt; {
     <span class="attr">#[cfg(not(feature = <span class="string">&quot;unicode-gencat&quot;</span>))]
     </span><span class="kw">fn </span>imp(<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str) -&gt; <span class="prelude-ty">Result</span>&lt;hir::ClassUnicode&gt; {
         <span class="prelude-val">Err</span>(Error::PropertyNotFound)
     }
 
     <span class="attr">#[cfg(feature = <span class="string">&quot;unicode-gencat&quot;</span>)]
-    </span><span class="kw">fn </span>imp(name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="hir/mod.rs.html#837">hir::ClassUnicode</a>&gt; {
-        <span class="kw">use </span><a href="unicode_tables/general_category.rs.html#9"><span class="kw">crate</span>::unicode_tables::general_category::BY_NAME</a>;
-        <span class="kw">match </span><a href="#635">name</a> {
-            <span class="string">&quot;ASCII&quot; </span>=&gt; <span class="prelude-val">Ok</span>(<a href="#389">hir_class</a>(<span class="kw-2">&amp;</span>[(<span class="string">&#39;\0&#39;</span>, <span class="string">&#39;\x7F&#39;</span>)])),
-            <span class="string">&quot;Any&quot; </span>=&gt; <span class="prelude-val">Ok</span>(<a href="#389">hir_class</a>(<span class="kw-2">&amp;</span>[(<span class="string">&#39;\0&#39;</span>, <span class="string">&#39;\u{10FFFF}&#39;</span>)])),
+    </span><span class="kw">fn </span>imp(name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str) -&gt; <span class="prelude-ty">Result</span>&lt;hir::ClassUnicode&gt; {
+        <span class="kw">use </span><span class="kw">crate</span>::unicode_tables::general_category::BY_NAME;
+        <span class="kw">match </span>name {
+            <span class="string">&quot;ASCII&quot; </span>=&gt; <span class="prelude-val">Ok</span>(hir_class(<span class="kw-2">&amp;</span>[(<span class="string">&#39;\0&#39;</span>, <span class="string">&#39;\x7F&#39;</span>)])),
+            <span class="string">&quot;Any&quot; </span>=&gt; <span class="prelude-val">Ok</span>(hir_class(<span class="kw-2">&amp;</span>[(<span class="string">&#39;\0&#39;</span>, <span class="string">&#39;\u{10FFFF}&#39;</span>)])),
             <span class="string">&quot;Assigned&quot; </span>=&gt; {
                 <span class="kw">let </span><span class="kw-2">mut </span>cls = gencat(<span class="string">&quot;Unassigned&quot;</span>)<span class="question-mark">?</span>;
-                <a href="#641">cls</a>.<a href="hir/mod.rs.html#914">negate</a>();
-                <span class="prelude-val">Ok</span>(<a href="#641">cls</a>)
+                cls.negate();
+                <span class="prelude-val">Ok</span>(cls)
             }
-            name =&gt; <a href="#556-559">property_set</a>(<a href="unicode_tables/general_category.rs.html#9">BY_NAME</a>, <a href="#645">name</a>)
-                .map(<a href="#389">hir_class</a>)
-                .ok_or(<a href="#21">Error::PropertyValueNotFound</a>),
+            name =&gt; property_set(BY_NAME, name)
+                .map(hir_class)
+                .ok_or(Error::PropertyValueNotFound),
         }
     }
 
-    <span class="kw">match </span><a href="#628">canonical_name</a> {
-        <span class="string">&quot;Decimal_Number&quot; </span>=&gt; <a href="#367">perl_digit</a>(),
-        name =&gt; <a href="#635">imp</a>(<a href="#653">name</a>),
+    <span class="kw">match </span>canonical_name {
+        <span class="string">&quot;Decimal_Number&quot; </span>=&gt; perl_digit(),
+        name =&gt; imp(name),
     }
 }
 
@@ -1661,21 +1661,21 @@
 ///
 /// If the given script could not be found, or if the script data is not
 /// available, then an error is returned.
-</span><span class="kw">fn </span>script(canonical_name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="hir/mod.rs.html#837">hir::ClassUnicode</a>&gt; {
+</span><span class="kw">fn </span>script(canonical_name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str) -&gt; <span class="prelude-ty">Result</span>&lt;hir::ClassUnicode&gt; {
     <span class="attr">#[cfg(not(feature = <span class="string">&quot;unicode-script&quot;</span>))]
     </span><span class="kw">fn </span>imp(<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str) -&gt; <span class="prelude-ty">Result</span>&lt;hir::ClassUnicode&gt; {
         <span class="prelude-val">Err</span>(Error::PropertyNotFound)
     }
 
     <span class="attr">#[cfg(feature = <span class="string">&quot;unicode-script&quot;</span>)]
-    </span><span class="kw">fn </span>imp(name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="hir/mod.rs.html#837">hir::ClassUnicode</a>&gt; {
-        <span class="kw">use </span><a href="unicode_tables/script.rs.html#9"><span class="kw">crate</span>::unicode_tables::script::BY_NAME</a>;
-        <a href="#556-559">property_set</a>(<a href="unicode_tables/script.rs.html#9">BY_NAME</a>, <a href="#670">name</a>)
-            .map(<a href="#389">hir_class</a>)
-            .ok_or(<a href="#21">Error::PropertyValueNotFound</a>)
+    </span><span class="kw">fn </span>imp(name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str) -&gt; <span class="prelude-ty">Result</span>&lt;hir::ClassUnicode&gt; {
+        <span class="kw">use </span><span class="kw">crate</span>::unicode_tables::script::BY_NAME;
+        property_set(BY_NAME, name)
+            .map(hir_class)
+            .ok_or(Error::PropertyValueNotFound)
     }
 
-    <a href="#670">imp</a>(<a href="#663">canonical_name</a>)
+    imp(canonical_name)
 }
 
 <span class="doccomment">/// Returns the Unicode HIR class corresponding to the given script extension.
@@ -1685,22 +1685,22 @@
 /// If the given script extension could not be found, or if the script data is
 /// not available, then an error is returned.
 </span><span class="kw">fn </span>script_extension(
-    canonical_name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>,
-) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="hir/mod.rs.html#837">hir::ClassUnicode</a>&gt; {
+    canonical_name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
+) -&gt; <span class="prelude-ty">Result</span>&lt;hir::ClassUnicode&gt; {
     <span class="attr">#[cfg(not(feature = <span class="string">&quot;unicode-script&quot;</span>))]
     </span><span class="kw">fn </span>imp(<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str) -&gt; <span class="prelude-ty">Result</span>&lt;hir::ClassUnicode&gt; {
         <span class="prelude-val">Err</span>(Error::PropertyNotFound)
     }
 
     <span class="attr">#[cfg(feature = <span class="string">&quot;unicode-script&quot;</span>)]
-    </span><span class="kw">fn </span>imp(name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="hir/mod.rs.html#837">hir::ClassUnicode</a>&gt; {
-        <span class="kw">use </span><a href="unicode_tables/script_extension.rs.html#9"><span class="kw">crate</span>::unicode_tables::script_extension::BY_NAME</a>;
-        <a href="#556-559">property_set</a>(<a href="unicode_tables/script_extension.rs.html#9">BY_NAME</a>, <a href="#695">name</a>)
-            .map(<a href="#389">hir_class</a>)
-            .ok_or(<a href="#21">Error::PropertyValueNotFound</a>)
+    </span><span class="kw">fn </span>imp(name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str) -&gt; <span class="prelude-ty">Result</span>&lt;hir::ClassUnicode&gt; {
+        <span class="kw">use </span><span class="kw">crate</span>::unicode_tables::script_extension::BY_NAME;
+        property_set(BY_NAME, name)
+            .map(hir_class)
+            .ok_or(Error::PropertyValueNotFound)
     }
 
-    <a href="#695">imp</a>(<a href="#687">canonical_name</a>)
+    imp(canonical_name)
 }
 
 <span class="doccomment">/// Returns the Unicode HIR class corresponding to the given Unicode boolean
@@ -1710,24 +1710,24 @@
 ///
 /// If the given boolean property could not be found, or if the boolean
 /// property data is not available, then an error is returned.
-</span><span class="kw">fn </span>bool_property(canonical_name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="hir/mod.rs.html#837">hir::ClassUnicode</a>&gt; {
+</span><span class="kw">fn </span>bool_property(canonical_name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str) -&gt; <span class="prelude-ty">Result</span>&lt;hir::ClassUnicode&gt; {
     <span class="attr">#[cfg(not(feature = <span class="string">&quot;unicode-bool&quot;</span>))]
     </span><span class="kw">fn </span>imp(<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str) -&gt; <span class="prelude-ty">Result</span>&lt;hir::ClassUnicode&gt; {
         <span class="prelude-val">Err</span>(Error::PropertyNotFound)
     }
 
     <span class="attr">#[cfg(feature = <span class="string">&quot;unicode-bool&quot;</span>)]
-    </span><span class="kw">fn </span>imp(name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="hir/mod.rs.html#837">hir::ClassUnicode</a>&gt; {
-        <span class="kw">use </span><a href="unicode_tables/property_bool.rs.html#9"><span class="kw">crate</span>::unicode_tables::property_bool::BY_NAME</a>;
-        <a href="#556-559">property_set</a>(<a href="unicode_tables/property_bool.rs.html#9">BY_NAME</a>, <a href="#719">name</a>)
-            .map(<a href="#389">hir_class</a>)
-            .ok_or(<a href="#20">Error::PropertyNotFound</a>)
+    </span><span class="kw">fn </span>imp(name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str) -&gt; <span class="prelude-ty">Result</span>&lt;hir::ClassUnicode&gt; {
+        <span class="kw">use </span><span class="kw">crate</span>::unicode_tables::property_bool::BY_NAME;
+        property_set(BY_NAME, name)
+            .map(hir_class)
+            .ok_or(Error::PropertyNotFound)
     }
 
-    <span class="kw">match </span><a href="#712">canonical_name</a> {
-        <span class="string">&quot;Decimal_Number&quot; </span>=&gt; <a href="#367">perl_digit</a>(),
-        <span class="string">&quot;White_Space&quot; </span>=&gt; <a href="#343">perl_space</a>(),
-        name =&gt; <a href="#719">imp</a>(<a href="#729">name</a>),
+    <span class="kw">match </span>canonical_name {
+        <span class="string">&quot;Decimal_Number&quot; </span>=&gt; perl_digit(),
+        <span class="string">&quot;White_Space&quot; </span>=&gt; perl_space(),
+        name =&gt; imp(name),
     }
 }
 
@@ -1738,21 +1738,21 @@
 ///
 /// If the given property could not be found, or if the corresponding data is
 /// not available, then an error is returned.
-</span><span class="kw">fn </span>gcb(canonical_name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="hir/mod.rs.html#837">hir::ClassUnicode</a>&gt; {
+</span><span class="kw">fn </span>gcb(canonical_name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str) -&gt; <span class="prelude-ty">Result</span>&lt;hir::ClassUnicode&gt; {
     <span class="attr">#[cfg(not(feature = <span class="string">&quot;unicode-segment&quot;</span>))]
     </span><span class="kw">fn </span>imp(<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str) -&gt; <span class="prelude-ty">Result</span>&lt;hir::ClassUnicode&gt; {
         <span class="prelude-val">Err</span>(Error::PropertyNotFound)
     }
 
     <span class="attr">#[cfg(feature = <span class="string">&quot;unicode-segment&quot;</span>)]
-    </span><span class="kw">fn </span>imp(name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="hir/mod.rs.html#837">hir::ClassUnicode</a>&gt; {
-        <span class="kw">use </span><a href="unicode_tables/grapheme_cluster_break.rs.html#9"><span class="kw">crate</span>::unicode_tables::grapheme_cluster_break::BY_NAME</a>;
-        <a href="#556-559">property_set</a>(<a href="unicode_tables/grapheme_cluster_break.rs.html#9">BY_NAME</a>, <a href="#747">name</a>)
-            .map(<a href="#389">hir_class</a>)
-            .ok_or(<a href="#21">Error::PropertyValueNotFound</a>)
+    </span><span class="kw">fn </span>imp(name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str) -&gt; <span class="prelude-ty">Result</span>&lt;hir::ClassUnicode&gt; {
+        <span class="kw">use </span><span class="kw">crate</span>::unicode_tables::grapheme_cluster_break::BY_NAME;
+        property_set(BY_NAME, name)
+            .map(hir_class)
+            .ok_or(Error::PropertyValueNotFound)
     }
 
-    <a href="#747">imp</a>(<a href="#740">canonical_name</a>)
+    imp(canonical_name)
 }
 
 <span class="doccomment">/// Returns the Unicode HIR class corresponding to the given word break
@@ -1762,21 +1762,21 @@
 ///
 /// If the given property could not be found, or if the corresponding data is
 /// not available, then an error is returned.
-</span><span class="kw">fn </span>wb(canonical_name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="hir/mod.rs.html#837">hir::ClassUnicode</a>&gt; {
+</span><span class="kw">fn </span>wb(canonical_name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str) -&gt; <span class="prelude-ty">Result</span>&lt;hir::ClassUnicode&gt; {
     <span class="attr">#[cfg(not(feature = <span class="string">&quot;unicode-segment&quot;</span>))]
     </span><span class="kw">fn </span>imp(<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str) -&gt; <span class="prelude-ty">Result</span>&lt;hir::ClassUnicode&gt; {
         <span class="prelude-val">Err</span>(Error::PropertyNotFound)
     }
 
     <span class="attr">#[cfg(feature = <span class="string">&quot;unicode-segment&quot;</span>)]
-    </span><span class="kw">fn </span>imp(name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="hir/mod.rs.html#837">hir::ClassUnicode</a>&gt; {
-        <span class="kw">use </span><a href="unicode_tables/word_break.rs.html#9"><span class="kw">crate</span>::unicode_tables::word_break::BY_NAME</a>;
-        <a href="#556-559">property_set</a>(<a href="unicode_tables/word_break.rs.html#9">BY_NAME</a>, <a href="#771">name</a>)
-            .map(<a href="#389">hir_class</a>)
-            .ok_or(<a href="#21">Error::PropertyValueNotFound</a>)
+    </span><span class="kw">fn </span>imp(name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str) -&gt; <span class="prelude-ty">Result</span>&lt;hir::ClassUnicode&gt; {
+        <span class="kw">use </span><span class="kw">crate</span>::unicode_tables::word_break::BY_NAME;
+        property_set(BY_NAME, name)
+            .map(hir_class)
+            .ok_or(Error::PropertyValueNotFound)
     }
 
-    <a href="#771">imp</a>(<a href="#764">canonical_name</a>)
+    imp(canonical_name)
 }
 
 <span class="doccomment">/// Returns the Unicode HIR class corresponding to the given sentence
@@ -1786,35 +1786,35 @@
 ///
 /// If the given property could not be found, or if the corresponding data is
 /// not available, then an error is returned.
-</span><span class="kw">fn </span>sb(canonical_name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="hir/mod.rs.html#837">hir::ClassUnicode</a>&gt; {
+</span><span class="kw">fn </span>sb(canonical_name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str) -&gt; <span class="prelude-ty">Result</span>&lt;hir::ClassUnicode&gt; {
     <span class="attr">#[cfg(not(feature = <span class="string">&quot;unicode-segment&quot;</span>))]
     </span><span class="kw">fn </span>imp(<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str) -&gt; <span class="prelude-ty">Result</span>&lt;hir::ClassUnicode&gt; {
         <span class="prelude-val">Err</span>(Error::PropertyNotFound)
     }
 
     <span class="attr">#[cfg(feature = <span class="string">&quot;unicode-segment&quot;</span>)]
-    </span><span class="kw">fn </span>imp(name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="hir/mod.rs.html#837">hir::ClassUnicode</a>&gt; {
-        <span class="kw">use </span><a href="unicode_tables/sentence_break.rs.html#9"><span class="kw">crate</span>::unicode_tables::sentence_break::BY_NAME</a>;
-        <a href="#556-559">property_set</a>(<a href="unicode_tables/sentence_break.rs.html#9">BY_NAME</a>, <a href="#795">name</a>)
-            .map(<a href="#389">hir_class</a>)
-            .ok_or(<a href="#21">Error::PropertyValueNotFound</a>)
+    </span><span class="kw">fn </span>imp(name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str) -&gt; <span class="prelude-ty">Result</span>&lt;hir::ClassUnicode&gt; {
+        <span class="kw">use </span><span class="kw">crate</span>::unicode_tables::sentence_break::BY_NAME;
+        property_set(BY_NAME, name)
+            .map(hir_class)
+            .ok_or(Error::PropertyValueNotFound)
     }
 
-    <a href="#795">imp</a>(<a href="#788">canonical_name</a>)
+    imp(canonical_name)
 }
 
 <span class="doccomment">/// Like symbolic_name_normalize_bytes, but operates on a string.
-</span><span class="kw">fn </span>symbolic_name_normalize(x: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a> {
-    <span class="kw">let </span><span class="kw-2">mut </span>tmp = <a href="#806">x</a>.as_bytes().to_vec();
-    <span class="kw">let </span>len = <a href="#829">symbolic_name_normalize_bytes</a>(<span class="kw-2">&amp;mut </span><a href="#807">tmp</a>).len();
-    <a href="#807">tmp</a>.truncate(<a href="#808">len</a>);
+</span><span class="kw">fn </span>symbolic_name_normalize(x: <span class="kw-2">&amp;</span>str) -&gt; String {
+    <span class="kw">let </span><span class="kw-2">mut </span>tmp = x.as_bytes().to_vec();
+    <span class="kw">let </span>len = symbolic_name_normalize_bytes(<span class="kw-2">&amp;mut </span>tmp).len();
+    tmp.truncate(len);
     <span class="comment">// This should always succeed because `symbolic_name_normalize_bytes`
     // guarantees that `&amp;tmp[..len]` is always valid UTF-8.
     //
     // N.B. We could avoid the additional UTF-8 check here, but it&#39;s unlikely
     // to be worth skipping the additional safety check. A benchmark must
     // justify it first.
-    </span>String::from_utf8(<a href="#807">tmp</a>).unwrap()
+    </span>String::from_utf8(tmp).unwrap()
 }
 
 <span class="doccomment">/// Normalize the given symbolic name in place according to UAX44-LM3.
@@ -1827,7 +1827,7 @@
 /// of `slice`.
 ///
 /// See: https://unicode.org/reports/tr44/#UAX44-LM3
-</span><span class="kw">fn </span>symbolic_name_normalize_bytes(slice: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>] {
+</span><span class="kw">fn </span>symbolic_name_normalize_bytes(slice: <span class="kw-2">&amp;mut </span>[u8]) -&gt; <span class="kw-2">&amp;mut </span>[u8] {
     <span class="comment">// I couldn&#39;t find a place in the standard that specified that property
     // names/aliases had a particular structure (unlike character names), but
     // we assume that it&#39;s ASCII only and drop anything that isn&#39;t ASCII.
@@ -1835,12 +1835,12 @@
     <span class="kw">let </span><span class="kw-2">mut </span>starts_with_is = <span class="bool-val">false</span>;
     <span class="kw">if </span>slice.len() &gt;= <span class="number">2 </span>{
         <span class="comment">// Ignore any &quot;is&quot; prefix.
-        </span><a href="#834">starts_with_is</a> = <a href="#829">slice</a>[<span class="number">0</span>..<span class="number">2</span>] == <span class="string">b&quot;is&quot;</span>[..]
-            || <a href="#829">slice</a>[<span class="number">0</span>..<span class="number">2</span>] == <span class="string">b&quot;IS&quot;</span>[..]
-            || <a href="#829">slice</a>[<span class="number">0</span>..<span class="number">2</span>] == <span class="string">b&quot;iS&quot;</span>[..]
-            || <a href="#829">slice</a>[<span class="number">0</span>..<span class="number">2</span>] == <span class="string">b&quot;Is&quot;</span>[..];
+        </span>starts_with_is = slice[<span class="number">0</span>..<span class="number">2</span>] == <span class="string">b&quot;is&quot;</span>[..]
+            || slice[<span class="number">0</span>..<span class="number">2</span>] == <span class="string">b&quot;IS&quot;</span>[..]
+            || slice[<span class="number">0</span>..<span class="number">2</span>] == <span class="string">b&quot;iS&quot;</span>[..]
+            || slice[<span class="number">0</span>..<span class="number">2</span>] == <span class="string">b&quot;Is&quot;</span>[..];
         <span class="kw">if </span>starts_with_is {
-            <a href="#833">start</a> = <span class="number">2</span>;
+            start = <span class="number">2</span>;
         }
     }
     <span class="kw">let </span><span class="kw-2">mut </span>next_write = <span class="number">0</span>;
@@ -1864,12 +1864,12 @@
     // fire and ends up creating an alias for &#39;c&#39; to &#39;ISO_Comment&#39;, but it
     // is actually an alias for the &#39;Other&#39; general category.
     </span><span class="kw">if </span>starts_with_is &amp;&amp; next_write == <span class="number">1 </span>&amp;&amp; slice[<span class="number">0</span>] == <span class="string">b&#39;c&#39; </span>{
-        <a href="#829">slice</a>[<span class="number">0</span>] = <span class="string">b&#39;i&#39;</span>;
-        <a href="#829">slice</a>[<span class="number">1</span>] = <span class="string">b&#39;s&#39;</span>;
-        <a href="#829">slice</a>[<span class="number">2</span>] = <span class="string">b&#39;c&#39;</span>;
-        <a href="#845">next_write</a> = <span class="number">3</span>;
+        slice[<span class="number">0</span>] = <span class="string">b&#39;i&#39;</span>;
+        slice[<span class="number">1</span>] = <span class="string">b&#39;s&#39;</span>;
+        slice[<span class="number">2</span>] = <span class="string">b&#39;c&#39;</span>;
+        next_write = <span class="number">3</span>;
     }
-    <span class="kw-2">&amp;mut </span><a href="#829">slice</a>[..<a href="#845">next_write</a>]
+    <span class="kw-2">&amp;mut </span>slice[..next_write]
 }
 
 <span class="attr">#[cfg(test)]
@@ -2001,4 +2001,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="regex_syntax" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="regex_syntax" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

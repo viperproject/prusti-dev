@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/futures-util-0.3.25/src/stream/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../futures_util/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/futures-util-0.3.25/src/stream/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../futures_util/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -153,128 +153,128 @@
 //!   stream from an iterator.
 
 </span><span class="attr">#[cfg(feature = <span class="string">&quot;alloc&quot;</span>)]
-</span><span class="kw">pub use </span>futures_core::stream::{<a href="../../../futures_util/stream/type.BoxStream.html">BoxStream</a>, <a href="../../../futures_util/stream/type.LocalBoxStream.html">LocalBoxStream</a>};
-<span class="kw">pub use </span>futures_core::stream::{<a href="../../../futures_util/stream/trait.FusedStream.html">FusedStream</a>, <a href="../../../futures_util/stream/trait.Stream.html">Stream</a>, <a href="../../../futures_util/stream/trait.TryStream.html">TryStream</a>};
+</span><span class="kw">pub use </span>futures_core::stream::{BoxStream, LocalBoxStream};
+<span class="kw">pub use </span>futures_core::stream::{FusedStream, Stream, TryStream};
 
 <span class="comment">// Extension traits and combinators
 
 </span><span class="attr">#[allow(clippy::module_inception)]
-</span><span class="kw">mod </span><a href="stream/mod.rs.html#1-1685">stream</a>;
+</span><span class="kw">mod </span>stream;
 <span class="kw">pub use </span><span class="self">self</span>::stream::{
-    <a href="stream/chain.rs.html#7-17">Chain</a>, <a href="stream/collect.rs.html#9-18">Collect</a>, <a href="stream/concat.rs.html#8-17">Concat</a>, <a href="stream/cycle.rs.html#8-17">Cycle</a>, <a href="stream/enumerate.rs.html#9-18">Enumerate</a>, <a href="stream/filter.rs.html#12-25">Filter</a>, <a href="stream/filter_map.rs.html#12-22">FilterMap</a>, <a href="stream/mod.rs.html#121-126">FlatMap</a>, <a href="stream/mod.rs.html#65-71">Flatten</a>, <a href="stream/fold.rs.html#9-20">Fold</a>, <a href="stream/for_each.rs.html#9-19">ForEach</a>,
-    <a href="stream/fuse.rs.html#9-18">Fuse</a>, <a href="stream/mod.rs.html#110-115">Inspect</a>, <a href="stream/map.rs.html#12-20">Map</a>, <a href="stream/next.rs.html#10">Next</a>, <a href="stream/peek.rs.html#313-319">NextIf</a>, <a href="stream/peek.rs.html#372-379">NextIfEq</a>, <a href="stream/peek.rs.html#229-235">Peek</a>, <a href="stream/peek.rs.html#271-277">PeekMut</a>, <a href="stream/peek.rs.html#14-27">Peekable</a>, <a href="stream/scan.rs.html#16-26">Scan</a>, <a href="stream/select_next_some.rs.html#12">SelectNextSome</a>,
-    <a href="stream/skip.rs.html#9-18">Skip</a>, <a href="stream/skip_while.rs.html#11-23">SkipWhile</a>, <a href="stream/mod.rs.html#249">StreamExt</a>, <a href="stream/into_future.rs.html#11">StreamFuture</a>, <a href="stream/take.rs.html#10-19">Take</a>, <a href="stream/take_until.rs.html#13-28">TakeUntil</a>, <a href="stream/take_while.rs.html#11-23">TakeWhile</a>, <a href="stream/then.rs.html#11-21">Then</a>, <a href="stream/unzip.rs.html#9-19">Unzip</a>, <a href="stream/zip.rs.html#8-20">Zip</a>,
+    Chain, Collect, Concat, Cycle, Enumerate, Filter, FilterMap, FlatMap, Flatten, Fold, ForEach,
+    Fuse, Inspect, Map, Next, NextIf, NextIfEq, Peek, PeekMut, Peekable, Scan, SelectNextSome,
+    Skip, SkipWhile, StreamExt, StreamFuture, Take, TakeUntil, TakeWhile, Then, Unzip, Zip,
 };
 
 <span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
-</span><span class="kw">pub use </span><a href="stream/catch_unwind.rs.html#8-17"><span class="self">self</span>::stream::CatchUnwind</a>;
+</span><span class="kw">pub use </span><span class="self">self</span>::stream::CatchUnwind;
 
 <span class="attr">#[cfg(feature = <span class="string">&quot;alloc&quot;</span>)]
-</span><span class="kw">pub use </span><a href="stream/chunks.rs.html#12-22"><span class="self">self</span>::stream::Chunks</a>;
+</span><span class="kw">pub use </span><span class="self">self</span>::stream::Chunks;
 
 <span class="attr">#[cfg(feature = <span class="string">&quot;alloc&quot;</span>)]
-</span><span class="kw">pub use </span><a href="stream/ready_chunks.rs.html#11-21"><span class="self">self</span>::stream::ReadyChunks</a>;
+</span><span class="kw">pub use </span><span class="self">self</span>::stream::ReadyChunks;
 
 <span class="attr">#[cfg(feature = <span class="string">&quot;sink&quot;</span>)]
 #[cfg_attr(docsrs, doc(cfg(feature = <span class="string">&quot;sink&quot;</span>)))]
-</span><span class="kw">pub use </span><a href="stream/mod.rs.html#89-96"><span class="self">self</span>::stream::Forward</a>;
+</span><span class="kw">pub use </span><span class="self">self</span>::stream::Forward;
 
 <span class="attr">#[cfg(not(futures_no_atomic_cas))]
 #[cfg(feature = <span class="string">&quot;alloc&quot;</span>)]
-</span><span class="kw">pub use </span><span class="self">self</span>::stream::{<a href="stream/buffer_unordered.rs.html#11-24">BufferUnordered</a>, <a href="stream/buffered.rs.html#12-25">Buffered</a>, <a href="stream/for_each_concurrent.rs.html#10-21">ForEachConcurrent</a>};
+</span><span class="kw">pub use </span><span class="self">self</span>::stream::{BufferUnordered, Buffered, ForEachConcurrent};
 
 <span class="attr">#[cfg(not(futures_no_atomic_cas))]
 #[cfg(feature = <span class="string">&quot;sink&quot;</span>)]
 #[cfg_attr(docsrs, doc(cfg(feature = <span class="string">&quot;sink&quot;</span>)))]
 #[cfg(feature = <span class="string">&quot;alloc&quot;</span>)]
-</span><span class="kw">pub use </span><span class="self">self</span>::stream::{<a href="stream/split.rs.html#129">ReuniteError</a>, <a href="stream/split.rs.html#47">SplitSink</a>, <a href="stream/split.rs.html#14">SplitStream</a>};
+</span><span class="kw">pub use </span><span class="self">self</span>::stream::{ReuniteError, SplitSink, SplitStream};
 
-<span class="kw">mod </span><a href="try_stream/mod.rs.html#1-1064">try_stream</a>;
+<span class="kw">mod </span>try_stream;
 <span class="kw">pub use </span><span class="self">self</span>::try_stream::{
-    <a href="try_stream/try_unfold.rs.html#59-62">try_unfold</a>, <a href="try_stream/and_then.rs.html#11-21">AndThen</a>, <a href="try_stream/mod.rs.html#28-33">ErrInto</a>, <a href="try_stream/mod.rs.html#42-47">InspectErr</a>, <a href="try_stream/mod.rs.html#35-40">InspectOk</a>, <a href="try_stream/into_stream.rs.html#8-16">IntoStream</a>, <a href="try_stream/mod.rs.html#60-65">MapErr</a>, <a href="try_stream/mod.rs.html#53-58">MapOk</a>, <a href="try_stream/or_else.rs.html#11-21">OrElse</a>,
-    <a href="try_stream/try_collect.rs.html#9-18">TryCollect</a>, <a href="try_stream/try_concat.rs.html#8-17">TryConcat</a>, <a href="try_stream/try_filter.rs.html#11-25">TryFilter</a>, <a href="try_stream/try_filter_map.rs.html#11-22">TryFilterMap</a>, <a href="try_stream/try_flatten.rs.html#9-22">TryFlatten</a>, <a href="try_stream/try_fold.rs.html#9-20">TryFold</a>, <a href="try_stream/try_for_each.rs.html#9-19">TryForEach</a>, <a href="try_stream/try_next.rs.html#10">TryNext</a>,
-    <a href="try_stream/try_skip_while.rs.html#11-24">TrySkipWhile</a>, <a href="try_stream/mod.rs.html#157">TryStreamExt</a>, <a href="try_stream/try_take_while.rs.html#11-27">TryTakeWhile</a>, <a href="try_stream/try_unfold.rs.html#67-76">TryUnfold</a>,
+    try_unfold, AndThen, ErrInto, InspectErr, InspectOk, IntoStream, MapErr, MapOk, OrElse,
+    TryCollect, TryConcat, TryFilter, TryFilterMap, TryFlatten, TryFold, TryForEach, TryNext,
+    TrySkipWhile, TryStreamExt, TryTakeWhile, TryUnfold,
 };
 
 <span class="attr">#[cfg(feature = <span class="string">&quot;io&quot;</span>)]
 #[cfg_attr(docsrs, doc(cfg(feature = <span class="string">&quot;io&quot;</span>)))]
 #[cfg(feature = <span class="string">&quot;std&quot;</span>)]
-</span><span class="kw">pub use </span><a href="try_stream/into_async_read.rs.html#10-24"><span class="self">self</span>::try_stream::IntoAsyncRead</a>;
+</span><span class="kw">pub use </span><span class="self">self</span>::try_stream::IntoAsyncRead;
 
 <span class="attr">#[cfg(not(futures_no_atomic_cas))]
 #[cfg(feature = <span class="string">&quot;alloc&quot;</span>)]
-</span><span class="kw">pub use </span><span class="self">self</span>::try_stream::{<a href="try_stream/try_buffer_unordered.rs.html#11-24">TryBufferUnordered</a>, <a href="try_stream/try_buffered.rs.html#11-25">TryBuffered</a>, <a href="try_stream/try_for_each_concurrent.rs.html#11-23">TryForEachConcurrent</a>};
+</span><span class="kw">pub use </span><span class="self">self</span>::try_stream::{TryBufferUnordered, TryBuffered, TryForEachConcurrent};
 
 <span class="attr">#[cfg(feature = <span class="string">&quot;alloc&quot;</span>)]
-</span><span class="kw">pub use </span><span class="self">self</span>::try_stream::{<a href="try_stream/try_chunks.rs.html#13-23">TryChunks</a>, <a href="try_stream/try_chunks.rs.html#116">TryChunksError</a>};
+</span><span class="kw">pub use </span><span class="self">self</span>::try_stream::{TryChunks, TryChunksError};
 
 <span class="comment">// Primitive streams
 
-</span><span class="kw">mod </span><a href="iter.rs.html#1-49">iter</a>;
-<span class="kw">pub use </span><span class="self">self</span>::iter::{<a href="iter.rs.html#29-31">iter</a>, <a href="iter.rs.html#9">Iter</a>};
+</span><span class="kw">mod </span>iter;
+<span class="kw">pub use </span><span class="self">self</span>::iter::{iter, Iter};
 
-<span class="kw">mod </span><a href="repeat.rs.html#1-58">repeat</a>;
-<span class="kw">pub use </span><span class="self">self</span>::repeat::{<a href="repeat.rs.html#27-29">repeat</a>, <a href="repeat.rs.html#9">Repeat</a>};
+<span class="kw">mod </span>repeat;
+<span class="kw">pub use </span><span class="self">self</span>::repeat::{repeat, Repeat};
 
-<span class="kw">mod </span><a href="repeat_with.rs.html#1-93">repeat_with</a>;
-<span class="kw">pub use </span><span class="self">self</span>::repeat_with::{<a href="repeat_with.rs.html#91">repeat_with</a>, <a href="repeat_with.rs.html#13">RepeatWith</a>};
+<span class="kw">mod </span>repeat_with;
+<span class="kw">pub use </span><span class="self">self</span>::repeat_with::{repeat_with, RepeatWith};
 
-<span class="kw">mod </span><a href="empty.rs.html#1-45">empty</a>;
-<span class="kw">pub use </span><span class="self">self</span>::empty::{<a href="empty.rs.html#17">empty</a>, <a href="empty.rs.html#10">Empty</a>};
+<span class="kw">mod </span>empty;
+<span class="kw">pub use </span><span class="self">self</span>::empty::{empty, Empty};
 
-<span class="kw">mod </span><a href="once.rs.html#1-67">once</a>;
-<span class="kw">pub use </span><span class="self">self</span>::once::{<a href="once.rs.html#20">once</a>, <a href="once.rs.html#24-32">Once</a>};
+<span class="kw">mod </span>once;
+<span class="kw">pub use </span><span class="self">self</span>::once::{once, Once};
 
-<span class="kw">mod </span><a href="pending.rs.html#1-45">pending</a>;
-<span class="kw">pub use </span><span class="self">self</span>::pending::{<a href="pending.rs.html#17">pending</a>, <a href="pending.rs.html#10">Pending</a>};
+<span class="kw">mod </span>pending;
+<span class="kw">pub use </span><span class="self">self</span>::pending::{pending, Pending};
 
-<span class="kw">mod </span><a href="poll_fn.rs.html#1-57">poll_fn</a>;
-<span class="kw">pub use </span><span class="self">self</span>::poll_fn::{<a href="poll_fn.rs.html#41-43">poll_fn</a>, <a href="poll_fn.rs.html#11">PollFn</a>};
+<span class="kw">mod </span>poll_fn;
+<span class="kw">pub use </span><span class="self">self</span>::poll_fn::{poll_fn, PollFn};
 
-<span class="kw">mod </span><a href="poll_immediate.rs.html#1-80">poll_immediate</a>;
-<span class="kw">pub use </span><span class="self">self</span>::poll_immediate::{<a href="poll_immediate.rs.html#78">poll_immediate</a>, <a href="poll_immediate.rs.html#6-16">PollImmediate</a>};
+<span class="kw">mod </span>poll_immediate;
+<span class="kw">pub use </span><span class="self">self</span>::poll_immediate::{poll_immediate, PollImmediate};
 
-<span class="kw">mod </span><a href="select.rs.html#1-117">select</a>;
-<span class="kw">pub use </span><span class="self">self</span>::select::{<a href="select.rs.html#47-50">select</a>, <a href="select.rs.html#8-16">Select</a>};
+<span class="kw">mod </span>select;
+<span class="kw">pub use </span><span class="self">self</span>::select::{select, Select};
 
-<span class="kw">mod </span><a href="select_with_strategy.rs.html#1-304">select_with_strategy</a>;
-<span class="kw">pub use </span><span class="self">self</span>::select_with_strategy::{<a href="select_with_strategy.rs.html#139-148">select_with_strategy</a>, <a href="select_with_strategy.rs.html#9">PollNext</a>, <a href="select_with_strategy.rs.html#63-76">SelectWithStrategy</a>};
+<span class="kw">mod </span>select_with_strategy;
+<span class="kw">pub use </span><span class="self">self</span>::select_with_strategy::{select_with_strategy, PollNext, SelectWithStrategy};
 
-<span class="kw">mod </span><a href="unfold.rs.html#1-119">unfold</a>;
-<span class="kw">pub use </span><span class="self">self</span>::unfold::{<a href="unfold.rs.html#50-53">unfold</a>, <a href="unfold.rs.html#58-66">Unfold</a>};
-
-<span class="attr">#[cfg(not(futures_no_atomic_cas))]
-#[cfg(feature = <span class="string">&quot;alloc&quot;</span>)]
-</span><span class="kw">mod </span><a href="futures_ordered.rs.html#1-248">futures_ordered</a>;
-<span class="attr">#[cfg(not(futures_no_atomic_cas))]
-#[cfg(feature = <span class="string">&quot;alloc&quot;</span>)]
-</span><span class="kw">pub use </span><a href="futures_ordered.rs.html#95"><span class="self">self</span>::futures_ordered::FuturesOrdered</a>;
+<span class="kw">mod </span>unfold;
+<span class="kw">pub use </span><span class="self">self</span>::unfold::{unfold, Unfold};
 
 <span class="attr">#[cfg(not(futures_no_atomic_cas))]
 #[cfg(feature = <span class="string">&quot;alloc&quot;</span>)]
-</span><span class="kw">pub mod </span><a href="futures_unordered/mod.rs.html#1-658">futures_unordered</a>;
+</span><span class="kw">mod </span>futures_ordered;
 <span class="attr">#[cfg(not(futures_no_atomic_cas))]
 #[cfg(feature = <span class="string">&quot;alloc&quot;</span>)]
-#[doc(inline)]
-</span><span class="kw">pub use </span><a href="futures_unordered/mod.rs.html#55"><span class="self">self</span>::futures_unordered::FuturesUnordered</a>;
+</span><span class="kw">pub use </span><span class="self">self</span>::futures_ordered::FuturesOrdered;
 
 <span class="attr">#[cfg(not(futures_no_atomic_cas))]
 #[cfg(feature = <span class="string">&quot;alloc&quot;</span>)]
-</span><span class="kw">pub mod </span><a href="select_all.rs.html#1-254">select_all</a>;
+</span><span class="kw">pub mod </span>futures_unordered;
 <span class="attr">#[cfg(not(futures_no_atomic_cas))]
 #[cfg(feature = <span class="string">&quot;alloc&quot;</span>)]
 #[doc(inline)]
-</span><span class="kw">pub use </span><span class="self">self</span>::select_all::{<a href="select_all.rs.html#135-138">select_all</a>, <a href="select_all.rs.html#16-34">SelectAll</a>};
+</span><span class="kw">pub use </span><span class="self">self</span>::futures_unordered::FuturesUnordered;
 
 <span class="attr">#[cfg(not(futures_no_atomic_cas))]
 #[cfg(feature = <span class="string">&quot;alloc&quot;</span>)]
-</span><span class="kw">mod </span><a href="abortable.rs.html#1-19">abortable</a>;
+</span><span class="kw">pub mod </span>select_all;
 <span class="attr">#[cfg(not(futures_no_atomic_cas))]
 #[cfg(feature = <span class="string">&quot;alloc&quot;</span>)]
-</span><span class="kw">pub use </span><span class="kw">crate</span>::abortable::{<a href="../abortable.rs.html#83">AbortHandle</a>, <a href="../abortable.rs.html#77">AbortRegistration</a>, <a href="../abortable.rs.html#11-20">Abortable</a>, <a href="../abortable.rs.html#110">Aborted</a>};
+#[doc(inline)]
+</span><span class="kw">pub use </span><span class="self">self</span>::select_all::{select_all, SelectAll};
+
 <span class="attr">#[cfg(not(futures_no_atomic_cas))]
 #[cfg(feature = <span class="string">&quot;alloc&quot;</span>)]
-</span><span class="kw">pub use </span><a href="abortable.rs.html#12-14">abortable::abortable</a>;
+</span><span class="kw">mod </span>abortable;
+<span class="attr">#[cfg(not(futures_no_atomic_cas))]
+#[cfg(feature = <span class="string">&quot;alloc&quot;</span>)]
+</span><span class="kw">pub use </span><span class="kw">crate</span>::abortable::{AbortHandle, AbortRegistration, Abortable, Aborted};
+<span class="attr">#[cfg(not(futures_no_atomic_cas))]
+#[cfg(feature = <span class="string">&quot;alloc&quot;</span>)]
+</span><span class="kw">pub use </span>abortable::abortable;
 
 <span class="comment">// Just a helper function to ensure the streams we&#39;re returning all have the
 // right implementations.
@@ -282,7 +282,7 @@
 <span class="kw">where
     </span>S: Stream&lt;Item = T&gt;,
 {
-    <a href="#138">stream</a>
+    stream
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="futures_util" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="futures_util" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

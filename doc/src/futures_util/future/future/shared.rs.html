@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/futures-util-0.3.25/src/future/future/shared.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>shared.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../../futures_util/index.html"><img class="rust-logo" src="../../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/futures-util-0.3.25/src/future/future/shared.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>shared.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../../futures_util/index.html"><img class="rust-logo" src="../../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -373,122 +373,122 @@
 <a href="#373" id="373">373</a>
 <a href="#374" id="374">374</a>
 <a href="#375" id="375">375</a>
-</pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::task::{<a href="../../../../futures_util/task/fn.waker_ref.html">waker_ref</a>, <a href="../../../../futures_util/task/trait.ArcWake.html">ArcWake</a>};
-<span class="kw">use </span>futures_core::future::{<a href="../../../../futures_util/future/trait.FusedFuture.html">FusedFuture</a>, <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a>};
-<span class="kw">use </span>futures_core::task::{<a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>, <a href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">Poll</a>, <a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Waker.html">Waker</a>};
-<span class="kw">use </span><a href="../../../../slab/struct.Slab.html">slab::Slab</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/cell/struct.UnsafeCell.html">std::cell::UnsafeCell</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">std::fmt</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/pin/struct.Pin.html">std::pin::Pin</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/sync/atomic/struct.AtomicUsize.html">std::sync::atomic::AtomicUsize</a>;
+</pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::task::{waker_ref, ArcWake};
+<span class="kw">use </span>futures_core::future::{FusedFuture, Future};
+<span class="kw">use </span>futures_core::task::{Context, Poll, Waker};
+<span class="kw">use </span>slab::Slab;
+<span class="kw">use </span>std::cell::UnsafeCell;
+<span class="kw">use </span>std::fmt;
+<span class="kw">use </span>std::pin::Pin;
+<span class="kw">use </span>std::sync::atomic::AtomicUsize;
 <span class="kw">use </span>std::sync::atomic::Ordering::{Acquire, SeqCst};
-<span class="kw">use </span>std::sync::{<a href="https://doc.rust-lang.org/nightly/alloc/sync/struct.Arc.html">Arc</a>, <a href="https://doc.rust-lang.org/nightly/std/sync/mutex/struct.Mutex.html">Mutex</a>, <a href="https://doc.rust-lang.org/nightly/alloc/sync/struct.Weak.html">Weak</a>};
+<span class="kw">use </span>std::sync::{Arc, Mutex, Weak};
 
 <span class="doccomment">/// Future for the [`shared`](super::FutureExt::shared) method.
 </span><span class="attr">#[must_use = <span class="string">&quot;futures do nothing unless you `.await` or poll them&quot;</span>]
-</span><span class="kw">pub struct </span>Shared&lt;Fut: <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a>&gt; {
+</span><span class="kw">pub struct </span>Shared&lt;Fut: Future&gt; {
     inner: <span class="prelude-ty">Option</span>&lt;Arc&lt;Inner&lt;Fut&gt;&gt;&gt;,
-    waker_key: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+    waker_key: usize,
 }
 
-<span class="kw">struct </span>Inner&lt;Fut: <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a>&gt; {
+<span class="kw">struct </span>Inner&lt;Fut: Future&gt; {
     future_or_output: UnsafeCell&lt;FutureOrOutput&lt;Fut&gt;&gt;,
-    notifier: Arc&lt;<a href="#24">Notifier</a>&gt;,
+    notifier: Arc&lt;Notifier&gt;,
 }
 
 <span class="kw">struct </span>Notifier {
-    state: <a href="https://doc.rust-lang.org/nightly/core/sync/atomic/struct.AtomicUsize.html">AtomicUsize</a>,
-    wakers: Mutex&lt;<span class="prelude-ty">Option</span>&lt;Slab&lt;<span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Waker.html">Waker</a>&gt;&gt;&gt;&gt;,
+    state: AtomicUsize,
+    wakers: Mutex&lt;<span class="prelude-ty">Option</span>&lt;Slab&lt;<span class="prelude-ty">Option</span>&lt;Waker&gt;&gt;&gt;&gt;,
 }
 
 <span class="doccomment">/// A weak reference to a [`Shared`] that can be upgraded much like an `Arc`.
-</span><span class="kw">pub struct </span>WeakShared&lt;Fut: <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a>&gt;(Weak&lt;Inner&lt;Fut&gt;&gt;);
+</span><span class="kw">pub struct </span>WeakShared&lt;Fut: Future&gt;(Weak&lt;Inner&lt;Fut&gt;&gt;);
 
-<span class="kw">impl</span>&lt;Fut: <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> <span class="kw">for </span>WeakShared&lt;Fut&gt; {
+<span class="kw">impl</span>&lt;Fut: Future&gt; Clone <span class="kw">for </span>WeakShared&lt;Fut&gt; {
     <span class="kw">fn </span>clone(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self </span>{
-        <span class="self">Self</span>(<a class="self" href="#33">self</a>.<span class="number">0</span>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>())
+        <span class="self">Self</span>(<span class="self">self</span>.<span class="number">0</span>.clone())
     }
 }
 
 <span class="comment">// The future itself is polled behind the `Arc`, so it won&#39;t be moved
 // when `Shared` is moved.
-</span><span class="kw">impl</span>&lt;Fut: <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a> <span class="kw">for </span>Shared&lt;Fut&gt; {}
+</span><span class="kw">impl</span>&lt;Fut: Future&gt; Unpin <span class="kw">for </span>Shared&lt;Fut&gt; {}
 
-<span class="kw">impl</span>&lt;Fut: <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span>Shared&lt;Fut&gt; {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a href="#43">f</a>.debug_struct(<span class="string">&quot;Shared&quot;</span>)
-            .field(<span class="string">&quot;inner&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="#43">self</a>.inner)
-            .field(<span class="string">&quot;waker_key&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="#43">self</a>.waker_key)
+<span class="kw">impl</span>&lt;Fut: Future&gt; fmt::Debug <span class="kw">for </span>Shared&lt;Fut&gt; {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        f.debug_struct(<span class="string">&quot;Shared&quot;</span>)
+            .field(<span class="string">&quot;inner&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.inner)
+            .field(<span class="string">&quot;waker_key&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.waker_key)
             .finish()
     }
 }
 
-<span class="kw">impl</span>&lt;Fut: <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span>Inner&lt;Fut&gt; {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a href="#52">f</a>.debug_struct(<span class="string">&quot;Inner&quot;</span>).finish()
+<span class="kw">impl</span>&lt;Fut: Future&gt; fmt::Debug <span class="kw">for </span>Inner&lt;Fut&gt; {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        f.debug_struct(<span class="string">&quot;Inner&quot;</span>).finish()
     }
 }
 
-<span class="kw">impl</span>&lt;Fut: <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span>WeakShared&lt;Fut&gt; {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a href="#58">f</a>.debug_struct(<span class="string">&quot;WeakShared&quot;</span>).finish()
+<span class="kw">impl</span>&lt;Fut: Future&gt; fmt::Debug <span class="kw">for </span>WeakShared&lt;Fut&gt; {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        f.debug_struct(<span class="string">&quot;WeakShared&quot;</span>).finish()
     }
 }
 
-<span class="kw">enum </span>FutureOrOutput&lt;Fut: <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a>&gt; {
+<span class="kw">enum </span>FutureOrOutput&lt;Fut: Future&gt; {
     Future(Fut),
     Output(Fut::Output),
 }
 
-<span class="kw">unsafe impl</span>&lt;Fut&gt; <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="kw">for </span>Inner&lt;Fut&gt;
+<span class="kw">unsafe impl</span>&lt;Fut&gt; Send <span class="kw">for </span>Inner&lt;Fut&gt;
 <span class="kw">where
-    </span>Fut: <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a>,
-    Fut::Output: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a>,
+    </span>Fut: Future + Send,
+    Fut::Output: Send + Sync,
 {
 }
 
-<span class="kw">unsafe impl</span>&lt;Fut&gt; <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> <span class="kw">for </span>Inner&lt;Fut&gt;
+<span class="kw">unsafe impl</span>&lt;Fut&gt; Sync <span class="kw">for </span>Inner&lt;Fut&gt;
 <span class="kw">where
-    </span>Fut: <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a>,
-    Fut::Output: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a>,
+    </span>Fut: Future + Send,
+    Fut::Output: Send + Sync,
 {
 }
 
-<span class="kw">const </span>IDLE: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> = <span class="number">0</span>;
-<span class="kw">const </span>POLLING: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> = <span class="number">1</span>;
-<span class="kw">const </span>COMPLETE: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> = <span class="number">2</span>;
-<span class="kw">const </span>POISONED: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> = <span class="number">3</span>;
+<span class="kw">const </span>IDLE: usize = <span class="number">0</span>;
+<span class="kw">const </span>POLLING: usize = <span class="number">1</span>;
+<span class="kw">const </span>COMPLETE: usize = <span class="number">2</span>;
+<span class="kw">const </span>POISONED: usize = <span class="number">3</span>;
 
-<span class="kw">const </span>NULL_WAKER_KEY: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> = usize::max_value();
+<span class="kw">const </span>NULL_WAKER_KEY: usize = usize::max_value();
 
-<span class="kw">impl</span>&lt;Fut: <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a>&gt; Shared&lt;Fut&gt; {
+<span class="kw">impl</span>&lt;Fut: Future&gt; Shared&lt;Fut&gt; {
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>new(future: Fut) -&gt; <span class="self">Self </span>{
-        <span class="kw">let </span>inner = <a href="#19">Inner</a> {
-            future_or_output: UnsafeCell::new(<a href="#64">FutureOrOutput::Future</a>(<a href="#90">future</a>)),
-            notifier: Arc::new(<a href="#24">Notifier</a> {
-                state: AtomicUsize::new(<a href="#82">IDLE</a>),
+        <span class="kw">let </span>inner = Inner {
+            future_or_output: UnsafeCell::new(FutureOrOutput::Future(future)),
+            notifier: Arc::new(Notifier {
+                state: AtomicUsize::new(IDLE),
                 wakers: Mutex::new(<span class="prelude-val">Some</span>(Slab::new())),
             }),
         };
 
-        <span class="self">Self </span>{ inner: <span class="prelude-val">Some</span>(Arc::new(<a href="#91">inner</a>)), waker_key: <a href="#87">NULL_WAKER_KEY</a> }
+        <span class="self">Self </span>{ inner: <span class="prelude-val">Some</span>(Arc::new(inner)), waker_key: NULL_WAKER_KEY }
     }
 }
 
 <span class="kw">impl</span>&lt;Fut&gt; Shared&lt;Fut&gt;
 <span class="kw">where
-    </span>Fut: <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a>,
-    Fut::Output: <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a>,
+    </span>Fut: Future,
+    Fut::Output: Clone,
 {
     <span class="doccomment">/// Returns [`Some`] containing a reference to this [`Shared`]&#39;s output if
     /// it has already been computed by a clone or [`None`] if it hasn&#39;t been
     /// computed yet or this [`Shared`] already returned its output from
     /// [`poll`](Future::poll).
     </span><span class="kw">pub fn </span>peek(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Fut::Output&gt; {
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(inner) = <a class="self" href="#112">self</a>.inner.as_ref() {
-            <span class="kw">match </span><a href="#113">inner</a>.notifier.state.load(SeqCst) {
-                <a href="#84">COMPLETE</a> =&gt; <span class="kw">unsafe </span>{ <span class="kw">return </span><span class="prelude-val">Some</span>(<a href="#113">inner</a>.<a href="#167">output</a>()) },
-                <a href="#85">POISONED</a> =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(<span class="string">&quot;inner future panicked during poll&quot;</span>),
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(inner) = <span class="self">self</span>.inner.as_ref() {
+            <span class="kw">match </span>inner.notifier.state.load(SeqCst) {
+                COMPLETE =&gt; <span class="kw">unsafe </span>{ <span class="kw">return </span><span class="prelude-val">Some</span>(inner.output()) },
+                POISONED =&gt; <span class="macro">panic!</span>(<span class="string">&quot;inner future panicked during poll&quot;</span>),
                 <span class="kw">_ </span>=&gt; {}
             }
         }
@@ -499,8 +499,8 @@
     ///
     /// Returns [`None`] if it has already been polled to completion.
     </span><span class="kw">pub fn </span>downgrade(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;WeakShared&lt;Fut&gt;&gt; {
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(inner) = <a class="self" href="#126">self</a>.inner.as_ref() {
-            <span class="kw">return </span><span class="prelude-val">Some</span>(<a href="#30">WeakShared</a>(Arc::downgrade(<a href="#127">inner</a>)));
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(inner) = <span class="self">self</span>.inner.as_ref() {
+            <span class="kw">return </span><span class="prelude-val">Some</span>(WeakShared(Arc::downgrade(inner)));
         }
         <span class="prelude-val">None
     </span>}
@@ -514,8 +514,8 @@
     /// This method by itself is safe, but using it correctly requires extra care. Another thread
     /// can change the strong count at any time, including potentially between calling this method
     /// and acting on the result.
-    </span><span class="kw">pub fn </span>strong_count(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
-        <a class="self" href="#142">self</a>.inner.as_ref().map(|arc| Arc::strong_count(<a href="#143">arc</a>))
+    </span><span class="kw">pub fn </span>strong_count(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;usize&gt; {
+        <span class="self">self</span>.inner.as_ref().map(|arc| Arc::strong_count(arc))
     }
 
     <span class="doccomment">/// Gets the number of weak pointers to this allocation.
@@ -527,198 +527,198 @@
     /// This method by itself is safe, but using it correctly requires extra care. Another thread
     /// can change the weak count at any time, including potentially between calling this method
     /// and acting on the result.
-    </span><span class="kw">pub fn </span>weak_count(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
-        <a class="self" href="#155">self</a>.inner.as_ref().map(|arc| Arc::weak_count(<a href="#156">arc</a>))
+    </span><span class="kw">pub fn </span>weak_count(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;usize&gt; {
+        <span class="self">self</span>.inner.as_ref().map(|arc| Arc::weak_count(arc))
     }
 }
 
 <span class="kw">impl</span>&lt;Fut&gt; Inner&lt;Fut&gt;
 <span class="kw">where
-    </span>Fut: <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a>,
-    Fut::Output: <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a>,
+    </span>Fut: Future,
+    Fut::Output: Clone,
 {
     <span class="doccomment">/// Safety: callers must first ensure that `self.inner.state`
     /// is `COMPLETE`
     </span><span class="kw">unsafe fn </span>output(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Fut::Output {
-        <span class="kw">match </span><span class="kw-2">&amp;*</span><a class="self" href="#167">self</a>.future_or_output.get() {
-            <a href="#65">FutureOrOutput::Output</a>(<span class="kw-2">ref </span>item) =&gt; <a href="#169">item</a>,
-            <a href="#64">FutureOrOutput::Future</a>(<span class="kw">_</span>) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(),
+        <span class="kw">match </span><span class="kw-2">&amp;*</span><span class="self">self</span>.future_or_output.get() {
+            FutureOrOutput::Output(<span class="kw-2">ref </span>item) =&gt; item,
+            FutureOrOutput::Future(<span class="kw">_</span>) =&gt; <span class="macro">unreachable!</span>(),
         }
     }
     <span class="doccomment">/// Registers the current task to receive a wakeup when we are awoken.
-    </span><span class="kw">fn </span>record_waker(<span class="kw-2">&amp;</span><span class="self">self</span>, waker_key: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) {
-        <span class="kw">let </span><span class="kw-2">mut </span>wakers_guard = <a class="self" href="#174">self</a>.notifier.wakers.lock().unwrap();
+    </span><span class="kw">fn </span>record_waker(<span class="kw-2">&amp;</span><span class="self">self</span>, waker_key: <span class="kw-2">&amp;mut </span>usize, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) {
+        <span class="kw">let </span><span class="kw-2">mut </span>wakers_guard = <span class="self">self</span>.notifier.wakers.lock().unwrap();
 
-        <span class="kw">let </span>wakers = <span class="kw">match </span><a href="#175">wakers_guard</a>.as_mut() {
-            <span class="prelude-val">Some</span>(wakers) =&gt; <a href="#178">wakers</a>,
+        <span class="kw">let </span>wakers = <span class="kw">match </span>wakers_guard.as_mut() {
+            <span class="prelude-val">Some</span>(wakers) =&gt; wakers,
             <span class="prelude-val">None </span>=&gt; <span class="kw">return</span>,
         };
 
-        <span class="kw">let </span>new_waker = <a href="#174">cx</a>.waker();
+        <span class="kw">let </span>new_waker = cx.waker();
 
         <span class="kw">if </span><span class="kw-2">*</span>waker_key == NULL_WAKER_KEY {
-            <span class="kw-2">*</span><a href="#174">waker_key</a> = <a href="#177">wakers</a>.insert(<span class="prelude-val">Some</span>(<a href="#182">new_waker</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()));
+            <span class="kw-2">*</span>waker_key = wakers.insert(<span class="prelude-val">Some</span>(new_waker.clone()));
         } <span class="kw">else </span>{
-            <span class="kw">match </span><a href="#177">wakers</a>[<span class="kw-2">*</span><a href="#174">waker_key</a>] {
-                <span class="prelude-val">Some</span>(<span class="kw-2">ref </span>old_waker) <span class="kw">if </span><a href="#182">new_waker</a>.will_wake(<a href="#188">old_waker</a>) =&gt; {}
+            <span class="kw">match </span>wakers[<span class="kw-2">*</span>waker_key] {
+                <span class="prelude-val">Some</span>(<span class="kw-2">ref </span>old_waker) <span class="kw">if </span>new_waker.will_wake(old_waker) =&gt; {}
                 <span class="comment">// Could use clone_from here, but Waker doesn&#39;t specialize it.
-                </span><span class="kw-2">ref mut </span>slot =&gt; <span class="kw-2">*</span><a href="#190">slot</a> = <span class="prelude-val">Some</span>(<a href="#182">new_waker</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()),
+                </span><span class="kw-2">ref mut </span>slot =&gt; <span class="kw-2">*</span>slot = <span class="prelude-val">Some</span>(new_waker.clone()),
             }
         }
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(<span class="kw-2">*</span>waker_key != NULL_WAKER_KEY);
+        <span class="macro">debug_assert!</span>(<span class="kw-2">*</span>waker_key != NULL_WAKER_KEY);
     }
 
     <span class="doccomment">/// Safety: callers must first ensure that `inner.state`
     /// is `COMPLETE`
     </span><span class="kw">unsafe fn </span>take_or_clone_output(<span class="self">self</span>: Arc&lt;<span class="self">Self</span>&gt;) -&gt; Fut::Output {
-        <span class="kw">match </span>Arc::try_unwrap(<a class="self" href="#198">self</a>) {
-            <span class="prelude-val">Ok</span>(inner) =&gt; <span class="kw">match </span><a href="#200">inner</a>.future_or_output.into_inner() {
-                <a href="#65">FutureOrOutput::Output</a>(item) =&gt; <a href="#201">item</a>,
-                <a href="#64">FutureOrOutput::Future</a>(<span class="kw">_</span>) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(),
+        <span class="kw">match </span>Arc::try_unwrap(<span class="self">self</span>) {
+            <span class="prelude-val">Ok</span>(inner) =&gt; <span class="kw">match </span>inner.future_or_output.into_inner() {
+                FutureOrOutput::Output(item) =&gt; item,
+                FutureOrOutput::Future(<span class="kw">_</span>) =&gt; <span class="macro">unreachable!</span>(),
             },
-            <span class="prelude-val">Err</span>(inner) =&gt; <a href="#204">inner</a>.<a href="#167">output</a>().<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+            <span class="prelude-val">Err</span>(inner) =&gt; inner.output().clone(),
         }
     }
 }
 
-<span class="kw">impl</span>&lt;Fut&gt; <a href="../../../../futures_util/future/trait.FusedFuture.html">FusedFuture</a> <span class="kw">for </span>Shared&lt;Fut&gt;
+<span class="kw">impl</span>&lt;Fut&gt; FusedFuture <span class="kw">for </span>Shared&lt;Fut&gt;
 <span class="kw">where
-    </span>Fut: <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a>,
-    Fut::Output: <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a>,
+    </span>Fut: Future,
+    Fut::Output: Clone,
 {
-    <span class="kw">fn </span>is_terminated(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#214">self</a>.inner.is_none()
+    <span class="kw">fn </span>is_terminated(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.inner.is_none()
     }
 }
 
-<span class="kw">impl</span>&lt;Fut&gt; <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a> <span class="kw">for </span>Shared&lt;Fut&gt;
+<span class="kw">impl</span>&lt;Fut&gt; Future <span class="kw">for </span>Shared&lt;Fut&gt;
 <span class="kw">where
-    </span>Fut: <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a>,
-    Fut::Output: <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a>,
+    </span>Fut: Future,
+    Fut::Output: Clone,
 {
     <span class="kw">type </span>Output = Fut::Output;
 
     <span class="kw">fn </span>poll(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
-        <span class="kw">let </span>this = <span class="kw-2">&amp;mut *</span><a class="self" href="#226">self</a>;
+        <span class="kw">let </span>this = <span class="kw-2">&amp;mut *</span><span class="self">self</span>;
 
-        <span class="kw">let </span>inner = <a href="#227">this</a>.inner.take().expect(<span class="string">&quot;Shared future polled again after completion&quot;</span>);
+        <span class="kw">let </span>inner = this.inner.take().expect(<span class="string">&quot;Shared future polled again after completion&quot;</span>);
 
         <span class="comment">// Fast path for when the wrapped future has already completed
         </span><span class="kw">if </span>inner.notifier.state.load(Acquire) == COMPLETE {
             <span class="comment">// Safety: We&#39;re in the COMPLETE state
-            </span><span class="kw">return unsafe </span>{ Poll::Ready(<a href="#229">inner</a>.<a href="#198">take_or_clone_output</a>()) };
+            </span><span class="kw">return unsafe </span>{ Poll::Ready(inner.take_or_clone_output()) };
         }
 
-        <a href="#229">inner</a>.<a href="#174">record_waker</a>(<span class="kw-2">&amp;mut </span><a href="#227">this</a>.waker_key, <a href="#226">cx</a>);
+        inner.record_waker(<span class="kw-2">&amp;mut </span>this.waker_key, cx);
 
-        <span class="kw">match </span><a href="#229">inner</a>
+        <span class="kw">match </span>inner
             .notifier
             .state
-            .compare_exchange(<a href="#82">IDLE</a>, <a href="#83">POLLING</a>, SeqCst, SeqCst)
-            .unwrap_or_else(|x| <a href="#243">x</a>)
+            .compare_exchange(IDLE, POLLING, SeqCst, SeqCst)
+            .unwrap_or_else(|x| x)
         {
-            <a href="#82">IDLE</a> =&gt; {
+            IDLE =&gt; {
                 <span class="comment">// Lock acquired, fall through
             </span>}
-            <a href="#83">POLLING</a> =&gt; {
+            POLLING =&gt; {
                 <span class="comment">// Another task is currently polling, at this point we just want
                 // to ensure that the waker for this task is registered
-                </span><a href="#227">this</a>.inner = <span class="prelude-val">Some</span>(<a href="#229">inner</a>);
+                </span>this.inner = <span class="prelude-val">Some</span>(inner);
                 <span class="kw">return </span>Poll::Pending;
             }
-            <a href="#84">COMPLETE</a> =&gt; {
+            COMPLETE =&gt; {
                 <span class="comment">// Safety: We&#39;re in the COMPLETE state
-                </span><span class="kw">return unsafe </span>{ Poll::Ready(<a href="#229">inner</a>.<a href="#198">take_or_clone_output</a>()) };
+                </span><span class="kw">return unsafe </span>{ Poll::Ready(inner.take_or_clone_output()) };
             }
-            <a href="#85">POISONED</a> =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(<span class="string">&quot;inner future panicked during poll&quot;</span>),
-            <span class="kw">_ </span>=&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(),
+            POISONED =&gt; <span class="macro">panic!</span>(<span class="string">&quot;inner future panicked during poll&quot;</span>),
+            <span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>(),
         }
 
-        <span class="kw">let </span>waker = <a href="../../../../futures_util/task/fn.waker_ref.html">waker_ref</a>(<span class="kw-2">&amp;</span><a href="#229">inner</a>.notifier);
-        <span class="kw">let </span><span class="kw-2">mut </span>cx = Context::from_waker(<span class="kw-2">&amp;</span><a href="#262">waker</a>);
+        <span class="kw">let </span>waker = waker_ref(<span class="kw-2">&amp;</span>inner.notifier);
+        <span class="kw">let </span><span class="kw-2">mut </span>cx = Context::from_waker(<span class="kw-2">&amp;</span>waker);
 
         <span class="kw">struct </span>Reset&lt;<span class="lifetime">&#39;a</span>&gt; {
-            state: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="https://doc.rust-lang.org/nightly/core/sync/atomic/struct.AtomicUsize.html">AtomicUsize</a>,
-            did_not_panic: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
+            state: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>AtomicUsize,
+            did_not_panic: bool,
         }
 
-        <span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span>Reset&lt;<span class="lifetime">&#39;_</span>&gt; {
+        <span class="kw">impl </span>Drop <span class="kw">for </span>Reset&lt;<span class="lifetime">&#39;_</span>&gt; {
             <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
                 <span class="kw">if </span>!<span class="self">self</span>.did_not_panic {
-                    <a class="self" href="#271">self</a>.state.store(<a href="#85">POISONED</a>, SeqCst);
+                    <span class="self">self</span>.state.store(POISONED, SeqCst);
                 }
             }
         }
 
-        <span class="kw">let </span><span class="kw-2">mut </span>reset = <a href="#265">Reset</a> { state: <span class="kw-2">&amp;</span><a href="#229">inner</a>.notifier.state, did_not_panic: <span class="bool-val">false </span>};
+        <span class="kw">let </span><span class="kw-2">mut </span>reset = Reset { state: <span class="kw-2">&amp;</span>inner.notifier.state, did_not_panic: <span class="bool-val">false </span>};
 
         <span class="kw">let </span>output = {
             <span class="kw">let </span>future = <span class="kw">unsafe </span>{
-                <span class="kw">match </span><span class="kw-2">&amp;mut *</span><a href="#229">inner</a>.future_or_output.get() {
-                    <a href="#64">FutureOrOutput::Future</a>(fut) =&gt; Pin::new_unchecked(<a href="#283">fut</a>),
-                    <span class="kw">_ </span>=&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(),
+                <span class="kw">match </span><span class="kw-2">&amp;mut *</span>inner.future_or_output.get() {
+                    FutureOrOutput::Future(fut) =&gt; Pin::new_unchecked(fut),
+                    <span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>(),
                 }
             };
 
-            <span class="kw">let </span>poll_result = <a href="#281">future</a>.<a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">poll</a>(<span class="kw-2">&amp;mut </span><a href="#263">cx</a>);
-            <a href="#278">reset</a>.did_not_panic = <span class="bool-val">true</span>;
+            <span class="kw">let </span>poll_result = future.poll(<span class="kw-2">&amp;mut </span>cx);
+            reset.did_not_panic = <span class="bool-val">true</span>;
 
-            <span class="kw">match </span><a href="#288">poll_result</a> {
+            <span class="kw">match </span>poll_result {
                 Poll::Pending =&gt; {
                     <span class="kw">if </span>inner.notifier.state.compare_exchange(POLLING, IDLE, SeqCst, SeqCst).is_ok()
                     {
                         <span class="comment">// Success
-                        </span><a href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>(<a href="#278">reset</a>);
-                        <a href="#227">this</a>.inner = <span class="prelude-val">Some</span>(<a href="#229">inner</a>);
+                        </span>drop(reset);
+                        this.inner = <span class="prelude-val">Some</span>(inner);
                         <span class="kw">return </span>Poll::Pending;
                     } <span class="kw">else </span>{
-                        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>()
+                        <span class="macro">unreachable!</span>()
                     }
                 }
-                Poll::Ready(output) =&gt; <a href="#303">output</a>,
+                Poll::Ready(output) =&gt; output,
             }
         };
 
         <span class="kw">unsafe </span>{
-            <span class="kw-2">*</span><a href="#229">inner</a>.future_or_output.get() = <a href="#65">FutureOrOutput::Output</a>(<a href="#280">output</a>);
+            <span class="kw-2">*</span>inner.future_or_output.get() = FutureOrOutput::Output(output);
         }
 
-        <a href="#229">inner</a>.notifier.state.store(<a href="#84">COMPLETE</a>, SeqCst);
+        inner.notifier.state.store(COMPLETE, SeqCst);
 
         <span class="comment">// Wake all tasks and drop the slab
-        </span><span class="kw">let </span><span class="kw-2">mut </span>wakers_guard = <a href="#229">inner</a>.notifier.wakers.lock().unwrap();
-        <span class="kw">let </span><span class="kw-2">mut </span>wakers = <a href="#314">wakers_guard</a>.take().unwrap();
+        </span><span class="kw">let </span><span class="kw-2">mut </span>wakers_guard = inner.notifier.wakers.lock().unwrap();
+        <span class="kw">let </span><span class="kw-2">mut </span>wakers = wakers_guard.take().unwrap();
         <span class="kw">for </span>waker <span class="kw">in </span>wakers.drain().flatten() {
             waker.wake();
         }
 
-        <a href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>(<a href="#278">reset</a>); <span class="comment">// Make borrow checker happy
-        </span><a href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>(<a href="#314">wakers_guard</a>);
+        drop(reset); <span class="comment">// Make borrow checker happy
+        </span>drop(wakers_guard);
 
         <span class="comment">// Safety: We&#39;re in the COMPLETE state
-        </span><span class="kw">unsafe </span>{ Poll::Ready(<a href="#229">inner</a>.<a href="#198">take_or_clone_output</a>()) }
+        </span><span class="kw">unsafe </span>{ Poll::Ready(inner.take_or_clone_output()) }
     }
 }
 
-<span class="kw">impl</span>&lt;Fut&gt; <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> <span class="kw">for </span>Shared&lt;Fut&gt;
+<span class="kw">impl</span>&lt;Fut&gt; Clone <span class="kw">for </span>Shared&lt;Fut&gt;
 <span class="kw">where
-    </span>Fut: <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a>,
+    </span>Fut: Future,
 {
     <span class="kw">fn </span>clone(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self </span>{
-        <span class="self">Self </span>{ inner: <a class="self" href="#332">self</a>.inner.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), waker_key: <a href="#87">NULL_WAKER_KEY</a> }
+        <span class="self">Self </span>{ inner: <span class="self">self</span>.inner.clone(), waker_key: NULL_WAKER_KEY }
     }
 }
 
-<span class="kw">impl</span>&lt;Fut&gt; <a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span>Shared&lt;Fut&gt;
+<span class="kw">impl</span>&lt;Fut&gt; Drop <span class="kw">for </span>Shared&lt;Fut&gt;
 <span class="kw">where
-    </span>Fut: <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a>,
+    </span>Fut: Future,
 {
     <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="kw">if </span><span class="self">self</span>.waker_key != NULL_WAKER_KEY {
-            <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">ref </span>inner) = <a class="self" href="#341">self</a>.inner {
-                <span class="kw">if let </span><span class="prelude-val">Ok</span>(<span class="kw-2">mut </span>wakers) = <a href="#343">inner</a>.notifier.wakers.lock() {
-                    <span class="kw">if let </span><span class="prelude-val">Some</span>(wakers) = <a href="#344">wakers</a>.as_mut() {
-                        <a href="#345">wakers</a>.remove(<a class="self" href="#341">self</a>.waker_key);
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">ref </span>inner) = <span class="self">self</span>.inner {
+                <span class="kw">if let </span><span class="prelude-val">Ok</span>(<span class="kw-2">mut </span>wakers) = inner.notifier.wakers.lock() {
+                    <span class="kw">if let </span><span class="prelude-val">Some</span>(wakers) = wakers.as_mut() {
+                        wakers.remove(<span class="self">self</span>.waker_key);
                     }
                 }
             }
@@ -726,10 +726,10 @@
     }
 }
 
-<span class="kw">impl </span><a href="../../../../futures_util/task/trait.ArcWake.html">ArcWake</a> <span class="kw">for </span><a href="#24">Notifier</a> {
+<span class="kw">impl </span>ArcWake <span class="kw">for </span>Notifier {
     <span class="kw">fn </span>wake_by_ref(arc_self: <span class="kw-2">&amp;</span>Arc&lt;<span class="self">Self</span>&gt;) {
-        <span class="kw">let </span>wakers = <span class="kw-2">&amp;mut *</span><a href="#355">arc_self</a>.wakers.lock().unwrap();
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(wakers) = <a href="#356">wakers</a>.as_mut() {
+        <span class="kw">let </span>wakers = <span class="kw-2">&amp;mut *</span>arc_self.wakers.lock().unwrap();
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(wakers) = wakers.as_mut() {
             <span class="kw">for </span>(_key, opt_waker) <span class="kw">in </span>wakers {
                 <span class="kw">if let </span><span class="prelude-val">Some</span>(waker) = opt_waker.take() {
                     waker.wake();
@@ -739,14 +739,14 @@
     }
 }
 
-<span class="kw">impl</span>&lt;Fut: <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a>&gt; WeakShared&lt;Fut&gt; {
+<span class="kw">impl</span>&lt;Fut: Future&gt; WeakShared&lt;Fut&gt; {
     <span class="doccomment">/// Attempts to upgrade this [`WeakShared`] into a [`Shared`].
     ///
     /// Returns [`None`] if all clones of the [`Shared`] have been dropped or polled
     /// to completion.
     </span><span class="kw">pub fn </span>upgrade(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Shared&lt;Fut&gt;&gt; {
-        <span class="prelude-val">Some</span>(<a href="#14">Shared</a> { inner: <span class="prelude-val">Some</span>(<span class="self">self</span>.<span class="number">0</span>.upgrade()<span class="question-mark">?</span>), waker_key: <a href="#87">NULL_WAKER_KEY</a> })
+        <span class="prelude-val">Some</span>(Shared { inner: <span class="prelude-val">Some</span>(<span class="self">self</span>.<span class="number">0</span>.upgrade()<span class="question-mark">?</span>), waker_key: NULL_WAKER_KEY })
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="futures_util" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="futures_util" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

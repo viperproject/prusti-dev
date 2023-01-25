@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/once_cell-1.16.0/src/race.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>race.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../once_cell/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/once_cell-1.17.0/src/race.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>race.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../once_cell/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -302,6 +302,98 @@
 <a href="#302" id="302">302</a>
 <a href="#303" id="303">303</a>
 <a href="#304" id="304">304</a>
+<a href="#305" id="305">305</a>
+<a href="#306" id="306">306</a>
+<a href="#307" id="307">307</a>
+<a href="#308" id="308">308</a>
+<a href="#309" id="309">309</a>
+<a href="#310" id="310">310</a>
+<a href="#311" id="311">311</a>
+<a href="#312" id="312">312</a>
+<a href="#313" id="313">313</a>
+<a href="#314" id="314">314</a>
+<a href="#315" id="315">315</a>
+<a href="#316" id="316">316</a>
+<a href="#317" id="317">317</a>
+<a href="#318" id="318">318</a>
+<a href="#319" id="319">319</a>
+<a href="#320" id="320">320</a>
+<a href="#321" id="321">321</a>
+<a href="#322" id="322">322</a>
+<a href="#323" id="323">323</a>
+<a href="#324" id="324">324</a>
+<a href="#325" id="325">325</a>
+<a href="#326" id="326">326</a>
+<a href="#327" id="327">327</a>
+<a href="#328" id="328">328</a>
+<a href="#329" id="329">329</a>
+<a href="#330" id="330">330</a>
+<a href="#331" id="331">331</a>
+<a href="#332" id="332">332</a>
+<a href="#333" id="333">333</a>
+<a href="#334" id="334">334</a>
+<a href="#335" id="335">335</a>
+<a href="#336" id="336">336</a>
+<a href="#337" id="337">337</a>
+<a href="#338" id="338">338</a>
+<a href="#339" id="339">339</a>
+<a href="#340" id="340">340</a>
+<a href="#341" id="341">341</a>
+<a href="#342" id="342">342</a>
+<a href="#343" id="343">343</a>
+<a href="#344" id="344">344</a>
+<a href="#345" id="345">345</a>
+<a href="#346" id="346">346</a>
+<a href="#347" id="347">347</a>
+<a href="#348" id="348">348</a>
+<a href="#349" id="349">349</a>
+<a href="#350" id="350">350</a>
+<a href="#351" id="351">351</a>
+<a href="#352" id="352">352</a>
+<a href="#353" id="353">353</a>
+<a href="#354" id="354">354</a>
+<a href="#355" id="355">355</a>
+<a href="#356" id="356">356</a>
+<a href="#357" id="357">357</a>
+<a href="#358" id="358">358</a>
+<a href="#359" id="359">359</a>
+<a href="#360" id="360">360</a>
+<a href="#361" id="361">361</a>
+<a href="#362" id="362">362</a>
+<a href="#363" id="363">363</a>
+<a href="#364" id="364">364</a>
+<a href="#365" id="365">365</a>
+<a href="#366" id="366">366</a>
+<a href="#367" id="367">367</a>
+<a href="#368" id="368">368</a>
+<a href="#369" id="369">369</a>
+<a href="#370" id="370">370</a>
+<a href="#371" id="371">371</a>
+<a href="#372" id="372">372</a>
+<a href="#373" id="373">373</a>
+<a href="#374" id="374">374</a>
+<a href="#375" id="375">375</a>
+<a href="#376" id="376">376</a>
+<a href="#377" id="377">377</a>
+<a href="#378" id="378">378</a>
+<a href="#379" id="379">379</a>
+<a href="#380" id="380">380</a>
+<a href="#381" id="381">381</a>
+<a href="#382" id="382">382</a>
+<a href="#383" id="383">383</a>
+<a href="#384" id="384">384</a>
+<a href="#385" id="385">385</a>
+<a href="#386" id="386">386</a>
+<a href="#387" id="387">387</a>
+<a href="#388" id="388">388</a>
+<a href="#389" id="389">389</a>
+<a href="#390" id="390">390</a>
+<a href="#391" id="391">391</a>
+<a href="#392" id="392">392</a>
+<a href="#393" id="393">393</a>
+<a href="#394" id="394">394</a>
+<a href="#395" id="395">395</a>
+<a href="#396" id="396">396</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Thread-safe, non-blocking, &quot;first one wins&quot; flavor of `OnceCell`.
 //!
 //! If two threads race to initialize a type from the `race` module, they
@@ -326,29 +418,31 @@
 </span><span class="attr">#[cfg(feature = <span class="string">&quot;critical-section&quot;</span>)]
 </span><span class="kw">use </span>atomic_polyfill <span class="kw">as </span>atomic;
 <span class="attr">#[cfg(not(feature = <span class="string">&quot;critical-section&quot;</span>))]
-</span><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/sync/atomic/index.html">core::sync::atomic</a>;
+</span><span class="kw">use </span>core::sync::atomic;
 
-<span class="kw">use </span>atomic::{<a href="https://doc.rust-lang.org/nightly/core/sync/atomic/struct.AtomicUsize.html">AtomicUsize</a>, <a href="https://doc.rust-lang.org/nightly/core/sync/atomic/enum.Ordering.html">Ordering</a>};
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/num/nonzero/struct.NonZeroUsize.html">core::num::NonZeroUsize</a>;
+<span class="kw">use </span>atomic::{AtomicUsize, Ordering};
+<span class="kw">use </span>core::cell::UnsafeCell;
+<span class="kw">use </span>core::marker::PhantomData;
+<span class="kw">use </span>core::num::NonZeroUsize;
 
 <span class="doccomment">/// A thread-safe cell which can be written to only once.
 </span><span class="attr">#[derive(Default, Debug)]
 </span><span class="kw">pub struct </span>OnceNonZeroUsize {
-    inner: <a href="https://doc.rust-lang.org/nightly/core/sync/atomic/struct.AtomicUsize.html">AtomicUsize</a>,
+    inner: AtomicUsize,
 }
 
-<span class="kw">impl </span><a href="#32">OnceNonZeroUsize</a> {
+<span class="kw">impl </span>OnceNonZeroUsize {
     <span class="doccomment">/// Creates a new empty cell.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub const fn </span>new() -&gt; <a href="#32">OnceNonZeroUsize</a> {
-        <a href="#32">OnceNonZeroUsize</a> { inner: AtomicUsize::new(<span class="number">0</span>) }
+    </span><span class="kw">pub const fn </span>new() -&gt; OnceNonZeroUsize {
+        OnceNonZeroUsize { inner: AtomicUsize::new(<span class="number">0</span>) }
     }
 
     <span class="doccomment">/// Gets the underlying value.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>get(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/num/nonzero/struct.NonZeroUsize.html">NonZeroUsize</a>&gt; {
-        <span class="kw">let </span>val = <a class="self" href="#45">self</a>.inner.load(Ordering::Acquire);
-        NonZeroUsize::new(<a href="#46">val</a>)
+    </span><span class="kw">pub fn </span>get(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;NonZeroUsize&gt; {
+        <span class="kw">let </span>val = <span class="self">self</span>.inner.load(Ordering::Acquire);
+        NonZeroUsize::new(val)
     }
 
     <span class="doccomment">/// Sets the contents of this cell to `value`.
@@ -356,10 +450,10 @@
     /// Returns `Ok(())` if the cell was empty and `Err(())` if it was
     /// full.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>set(<span class="kw-2">&amp;</span><span class="self">self</span>, value: <a href="https://doc.rust-lang.org/nightly/core/num/nonzero/struct.NonZeroUsize.html">NonZeroUsize</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), ()&gt; {
+    </span><span class="kw">pub fn </span>set(<span class="kw-2">&amp;</span><span class="self">self</span>, value: NonZeroUsize) -&gt; <span class="prelude-ty">Result</span>&lt;(), ()&gt; {
         <span class="kw">let </span>exchange =
-            <a class="self" href="#55">self</a>.inner.compare_exchange(<span class="number">0</span>, <a href="#55">value</a>.get(), Ordering::AcqRel, Ordering::Acquire);
-        <span class="kw">match </span><a href="#56">exchange</a> {
+            <span class="self">self</span>.inner.compare_exchange(<span class="number">0</span>, value.get(), Ordering::AcqRel, Ordering::Acquire);
+        <span class="kw">match </span>exchange {
             <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">Ok</span>(()),
             <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">Err</span>(()),
         }
@@ -371,14 +465,14 @@
     /// If several threads concurrently run `get_or_init`, more than one `f` can
     /// be called. However, all threads will return the same value, produced by
     /// some `f`.
-    </span><span class="kw">pub fn </span>get_or_init&lt;F&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, f: F) -&gt; <a href="https://doc.rust-lang.org/nightly/core/num/nonzero/struct.NonZeroUsize.html">NonZeroUsize</a>
+    </span><span class="kw">pub fn </span>get_or_init&lt;F&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, f: F) -&gt; NonZeroUsize
     <span class="kw">where
-        </span>F: FnOnce() -&gt; <a href="https://doc.rust-lang.org/nightly/core/num/nonzero/struct.NonZeroUsize.html">NonZeroUsize</a>,
+        </span>F: FnOnce() -&gt; NonZeroUsize,
     {
         <span class="kw">enum </span>Void {}
-        <span class="kw">match </span><a class="self" href="#70">self</a>.<a href="#88-90">get_or_try_init</a>(|| <span class="prelude-val">Ok</span>::&lt;<a href="https://doc.rust-lang.org/nightly/core/num/nonzero/struct.NonZeroUsize.html">NonZeroUsize</a>, <a href="#74">Void</a>&gt;(<a href="#70">f</a>())) {
-            <span class="prelude-val">Ok</span>(val) =&gt; <a href="#76">val</a>,
-            <span class="prelude-val">Err</span>(void) =&gt; <span class="kw">match </span><a href="#77">void</a> {},
+        <span class="kw">match </span><span class="self">self</span>.get_or_try_init(|| <span class="prelude-val">Ok</span>::&lt;NonZeroUsize, Void&gt;(f())) {
+            <span class="prelude-val">Ok</span>(val) =&gt; val,
+            <span class="prelude-val">Err</span>(void) =&gt; <span class="kw">match </span>void {},
         }
     }
 
@@ -389,44 +483,44 @@
     /// If several threads concurrently run `get_or_init`, more than one `f` can
     /// be called. However, all threads will return the same value, produced by
     /// some `f`.
-    </span><span class="kw">pub fn </span>get_or_try_init&lt;F, E&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, f: F) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/num/nonzero/struct.NonZeroUsize.html">NonZeroUsize</a>, E&gt;
+    </span><span class="kw">pub fn </span>get_or_try_init&lt;F, E&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, f: F) -&gt; <span class="prelude-ty">Result</span>&lt;NonZeroUsize, E&gt;
     <span class="kw">where
-        </span>F: FnOnce() -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/num/nonzero/struct.NonZeroUsize.html">NonZeroUsize</a>, E&gt;,
+        </span>F: FnOnce() -&gt; <span class="prelude-ty">Result</span>&lt;NonZeroUsize, E&gt;,
     {
-        <span class="kw">let </span>val = <a class="self" href="#88">self</a>.inner.load(Ordering::Acquire);
-        <span class="kw">let </span>res = <span class="kw">match </span>NonZeroUsize::new(<a href="#92">val</a>) {
-            <span class="prelude-val">Some</span>(it) =&gt; <a href="#94">it</a>,
+        <span class="kw">let </span>val = <span class="self">self</span>.inner.load(Ordering::Acquire);
+        <span class="kw">let </span>res = <span class="kw">match </span>NonZeroUsize::new(val) {
+            <span class="prelude-val">Some</span>(it) =&gt; it,
             <span class="prelude-val">None </span>=&gt; {
                 <span class="kw">let </span><span class="kw-2">mut </span>val = f()<span class="question-mark">?</span>.get();
                 <span class="kw">let </span>exchange =
-                    <a class="self" href="#88">self</a>.inner.compare_exchange(<span class="number">0</span>, <a href="#96">val</a>, Ordering::AcqRel, Ordering::Acquire);
-                <span class="kw">if let </span><span class="prelude-val">Err</span>(old) = <a href="#97">exchange</a> {
-                    <a href="#96">val</a> = <a href="#99">old</a>;
+                    <span class="self">self</span>.inner.compare_exchange(<span class="number">0</span>, val, Ordering::AcqRel, Ordering::Acquire);
+                <span class="kw">if let </span><span class="prelude-val">Err</span>(old) = exchange {
+                    val = old;
                 }
-                <span class="kw">unsafe </span>{ NonZeroUsize::new_unchecked(<a href="#96">val</a>) }
+                <span class="kw">unsafe </span>{ NonZeroUsize::new_unchecked(val) }
             }
         };
-        <span class="prelude-val">Ok</span>(<a href="#93">res</a>)
+        <span class="prelude-val">Ok</span>(res)
     }
 }
 
 <span class="doccomment">/// A thread-safe cell which can be written to only once.
 </span><span class="attr">#[derive(Default, Debug)]
 </span><span class="kw">pub struct </span>OnceBool {
-    inner: <a href="#32">OnceNonZeroUsize</a>,
+    inner: OnceNonZeroUsize,
 }
 
-<span class="kw">impl </span><a href="#111">OnceBool</a> {
+<span class="kw">impl </span>OnceBool {
     <span class="doccomment">/// Creates a new empty cell.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub const fn </span>new() -&gt; <a href="#111">OnceBool</a> {
-        <a href="#111">OnceBool</a> { inner: OnceNonZeroUsize::new() }
+    </span><span class="kw">pub const fn </span>new() -&gt; OnceBool {
+        OnceBool { inner: OnceNonZeroUsize::new() }
     }
 
     <span class="doccomment">/// Gets the underlying value.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>get(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>&gt; {
-        <a class="self" href="#124">self</a>.inner.<a href="#45">get</a>().map(OnceBool::from_usize)
+    </span><span class="kw">pub fn </span>get(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;bool&gt; {
+        <span class="self">self</span>.inner.get().map(OnceBool::from_usize)
     }
 
     <span class="doccomment">/// Sets the contents of this cell to `value`.
@@ -434,8 +528,8 @@
     /// Returns `Ok(())` if the cell was empty and `Err(())` if it was
     /// full.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>set(<span class="kw-2">&amp;</span><span class="self">self</span>, value: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), ()&gt; {
-        <a class="self" href="#133">self</a>.inner.<a href="#55">set</a>(OnceBool::to_usize(<a href="#133">value</a>))
+    </span><span class="kw">pub fn </span>set(<span class="kw-2">&amp;</span><span class="self">self</span>, value: bool) -&gt; <span class="prelude-ty">Result</span>&lt;(), ()&gt; {
+        <span class="self">self</span>.inner.set(OnceBool::to_usize(value))
     }
 
     <span class="doccomment">/// Gets the contents of the cell, initializing it with `f` if the cell was
@@ -444,11 +538,11 @@
     /// If several threads concurrently run `get_or_init`, more than one `f` can
     /// be called. However, all threads will return the same value, produced by
     /// some `f`.
-    </span><span class="kw">pub fn </span>get_or_init&lt;F&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, f: F) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>
+    </span><span class="kw">pub fn </span>get_or_init&lt;F&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, f: F) -&gt; bool
     <span class="kw">where
-        </span>F: FnOnce() -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
+        </span>F: FnOnce() -&gt; bool,
     {
-        OnceBool::from_usize(<a class="self" href="#143">self</a>.inner.<a href="#70-72">get_or_init</a>(|| OnceBool::to_usize(<a href="#143">f</a>())))
+        OnceBool::from_usize(<span class="self">self</span>.inner.get_or_init(|| OnceBool::to_usize(f())))
     }
 
     <span class="doccomment">/// Gets the contents of the cell, initializing it with `f` if
@@ -458,33 +552,123 @@
     /// If several threads concurrently run `get_or_init`, more than one `f` can
     /// be called. However, all threads will return the same value, produced by
     /// some `f`.
-    </span><span class="kw">pub fn </span>get_or_try_init&lt;F, E&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, f: F) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>, E&gt;
+    </span><span class="kw">pub fn </span>get_or_try_init&lt;F, E&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, f: F) -&gt; <span class="prelude-ty">Result</span>&lt;bool, E&gt;
     <span class="kw">where
-        </span>F: FnOnce() -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>, E&gt;,
+        </span>F: FnOnce() -&gt; <span class="prelude-ty">Result</span>&lt;bool, E&gt;,
     {
-        <a class="self" href="#157">self</a>.inner.<a href="#88-90">get_or_try_init</a>(|| <a href="#157">f</a>().map(OnceBool::to_usize)).map(OnceBool::from_usize)
+        <span class="self">self</span>.inner.get_or_try_init(|| f().map(OnceBool::to_usize)).map(OnceBool::from_usize)
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>from_usize(value: <a href="https://doc.rust-lang.org/nightly/core/num/nonzero/struct.NonZeroUsize.html">NonZeroUsize</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a href="#165">value</a>.get() == <span class="number">1
+    </span><span class="kw">fn </span>from_usize(value: NonZeroUsize) -&gt; bool {
+        value.get() == <span class="number">1
     </span>}
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>to_usize(value: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/num/nonzero/struct.NonZeroUsize.html">NonZeroUsize</a> {
+    </span><span class="kw">fn </span>to_usize(value: bool) -&gt; NonZeroUsize {
         <span class="kw">unsafe </span>{ NonZeroUsize::new_unchecked(<span class="kw">if </span>value { <span class="number">1 </span>} <span class="kw">else </span>{ <span class="number">2 </span>}) }
     }
 }
 
+<span class="doccomment">/// A thread-safe cell which can be written to only once.
+</span><span class="kw">pub struct </span>OnceRef&lt;<span class="lifetime">&#39;a</span>, T&gt; {
+    inner: OnceNonZeroUsize,
+    ghost: PhantomData&lt;UnsafeCell&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>T&gt;&gt;,
+}
+
+<span class="comment">// TODO: Replace UnsafeCell with SyncUnsafeCell once stabilized
+</span><span class="kw">unsafe impl</span>&lt;<span class="lifetime">&#39;a</span>, T: Sync&gt; Sync <span class="kw">for </span>OnceRef&lt;<span class="lifetime">&#39;a</span>, T&gt; {}
+
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T&gt; core::fmt::Debug <span class="kw">for </span>OnceRef&lt;<span class="lifetime">&#39;a</span>, T&gt; {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>core::fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; core::fmt::Result {
+        <span class="macro">write!</span>(f, <span class="string">&quot;OnceRef({:?})&quot;</span>, <span class="self">self</span>.inner)
+    }
+}
+
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T&gt; Default <span class="kw">for </span>OnceRef&lt;<span class="lifetime">&#39;a</span>, T&gt; {
+    <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::new()
+    }
+}
+
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T&gt; OnceRef&lt;<span class="lifetime">&#39;a</span>, T&gt; {
+    <span class="doccomment">/// Creates a new empty cell.
+    </span><span class="kw">pub const fn </span>new() -&gt; OnceRef&lt;<span class="lifetime">&#39;a</span>, T&gt; {
+        OnceRef { inner: OnceNonZeroUsize::new(), ghost: PhantomData }
+    }
+
+    <span class="doccomment">/// Gets a reference to the underlying value.
+    </span><span class="kw">pub fn </span>get(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>T&gt; {
+        <span class="self">self</span>.inner.get().map(|ptr| <span class="kw">unsafe </span>{ <span class="kw-2">&amp;*</span>(ptr.get() <span class="kw">as </span><span class="kw-2">*const </span>T) })
+    }
+
+    <span class="doccomment">/// Sets the contents of this cell to `value`.
+    ///
+    /// Returns `Ok(())` if the cell was empty and `Err(value)` if it was
+    /// full.
+    </span><span class="kw">pub fn </span>set(<span class="kw-2">&amp;</span><span class="self">self</span>, value: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>T) -&gt; <span class="prelude-ty">Result</span>&lt;(), ()&gt; {
+        <span class="kw">let </span>ptr = NonZeroUsize::new(value <span class="kw">as </span><span class="kw-2">*const </span>T <span class="kw">as </span>usize).unwrap();
+        <span class="self">self</span>.inner.set(ptr)
+    }
+
+    <span class="doccomment">/// Gets the contents of the cell, initializing it with `f` if the cell was
+    /// empty.
+    ///
+    /// If several threads concurrently run `get_or_init`, more than one `f` can
+    /// be called. However, all threads will return the same value, produced by
+    /// some `f`.
+    </span><span class="kw">pub fn </span>get_or_init&lt;F&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, f: F) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>T
+    <span class="kw">where
+        </span>F: FnOnce() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>T,
+    {
+        <span class="kw">let </span>f = || NonZeroUsize::new(f() <span class="kw">as </span><span class="kw-2">*const </span>T <span class="kw">as </span>usize).unwrap();
+        <span class="kw">let </span>ptr = <span class="self">self</span>.inner.get_or_init(f);
+        <span class="kw">unsafe </span>{ <span class="kw-2">&amp;*</span>(ptr.get() <span class="kw">as </span><span class="kw-2">*const </span>T) }
+    }
+
+    <span class="doccomment">/// Gets the contents of the cell, initializing it with `f` if
+    /// the cell was empty. If the cell was empty and `f` failed, an
+    /// error is returned.
+    ///
+    /// If several threads concurrently run `get_or_init`, more than one `f` can
+    /// be called. However, all threads will return the same value, produced by
+    /// some `f`.
+    </span><span class="kw">pub fn </span>get_or_try_init&lt;F, E&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, f: F) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>T, E&gt;
+    <span class="kw">where
+        </span>F: FnOnce() -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>T, E&gt;,
+    {
+        <span class="kw">let </span>f = || f().map(|value| NonZeroUsize::new(value <span class="kw">as </span><span class="kw-2">*const </span>T <span class="kw">as </span>usize).unwrap());
+        <span class="kw">let </span>ptr = <span class="self">self</span>.inner.get_or_try_init(f)<span class="question-mark">?</span>;
+        <span class="kw">unsafe </span>{ <span class="prelude-val">Ok</span>(<span class="kw-2">&amp;*</span>(ptr.get() <span class="kw">as </span><span class="kw-2">*const </span>T)) }
+    }
+
+    <span class="doccomment">/// ```compile_fail
+    /// use once_cell::race::OnceRef;
+    ///
+    /// let mut l = OnceRef::new();
+    ///
+    /// {
+    ///     let y = 2;
+    ///     let mut r = OnceRef::new();
+    ///     r.set(&amp;y).unwrap();
+    ///     core::mem::swap(&amp;mut l, &amp;mut r);
+    /// }
+    ///
+    /// // l now contains a dangling reference to y
+    /// eprintln!(&quot;uaf: {}&quot;, l.get().unwrap());
+    /// ```
+    </span><span class="kw">fn </span>_dummy() {}
+}
+
 <span class="attr">#[cfg(feature = <span class="string">&quot;alloc&quot;</span>)]
-</span><span class="kw">pub use </span><a href="#186"><span class="self">self</span>::once_box::OnceBox</a>;
+</span><span class="kw">pub use </span><span class="self">self</span>::once_box::OnceBox;
 
 <span class="attr">#[cfg(feature = <span class="string">&quot;alloc&quot;</span>)]
 </span><span class="kw">mod </span>once_box {
-    <span class="kw">use </span><span class="kw">super</span>::atomic::{<a href="https://doc.rust-lang.org/nightly/core/sync/atomic/struct.AtomicPtr.html">AtomicPtr</a>, <a href="https://doc.rust-lang.org/nightly/core/sync/atomic/enum.Ordering.html">Ordering</a>};
-    <span class="kw">use </span>core::{marker::PhantomData, <a href="https://doc.rust-lang.org/nightly/core/ptr/index.html">ptr</a>};
+    <span class="kw">use </span><span class="kw">super</span>::atomic::{AtomicPtr, Ordering};
+    <span class="kw">use </span>core::{marker::PhantomData, ptr};
 
-    <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/boxed/struct.Box.html">alloc::boxed::Box</a>;
+    <span class="kw">use </span>alloc::boxed::Box;
 
     <span class="doccomment">/// A thread-safe cell which can be written to only once.
     </span><span class="kw">pub struct </span>OnceBox&lt;T&gt; {
@@ -492,23 +676,23 @@
         ghost: PhantomData&lt;<span class="prelude-ty">Option</span>&lt;Box&lt;T&gt;&gt;&gt;,
     }
 
-    <span class="kw">impl</span>&lt;T&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">core::fmt::Debug</a> <span class="kw">for </span>OnceBox&lt;T&gt; {
-        <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>core::fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">core::fmt::Result</a> {
-            <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#192">f</a>, <span class="string">&quot;OnceBox({:?})&quot;</span>, <span class="self">self</span>.inner.load(Ordering::Relaxed))
+    <span class="kw">impl</span>&lt;T&gt; core::fmt::Debug <span class="kw">for </span>OnceBox&lt;T&gt; {
+        <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>core::fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; core::fmt::Result {
+            <span class="macro">write!</span>(f, <span class="string">&quot;OnceBox({:?})&quot;</span>, <span class="self">self</span>.inner.load(Ordering::Relaxed))
         }
     }
 
-    <span class="kw">impl</span>&lt;T&gt; <a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for </span>OnceBox&lt;T&gt; {
+    <span class="kw">impl</span>&lt;T&gt; Default <span class="kw">for </span>OnceBox&lt;T&gt; {
         <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
             <span class="self">Self</span>::new()
         }
     }
 
-    <span class="kw">impl</span>&lt;T&gt; <a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span>OnceBox&lt;T&gt; {
+    <span class="kw">impl</span>&lt;T&gt; Drop <span class="kw">for </span>OnceBox&lt;T&gt; {
         <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-            <span class="kw">let </span>ptr = <span class="kw-2">*</span><a class="self" href="#204">self</a>.inner.get_mut();
+            <span class="kw">let </span>ptr = <span class="kw-2">*</span><span class="self">self</span>.inner.get_mut();
             <span class="kw">if </span>!ptr.is_null() {
-                <a href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>(<span class="kw">unsafe </span>{ Box::from_raw(<a href="#205">ptr</a>) })
+                drop(<span class="kw">unsafe </span>{ Box::from_raw(ptr) })
             }
         }
     }
@@ -516,16 +700,16 @@
     <span class="kw">impl</span>&lt;T&gt; OnceBox&lt;T&gt; {
         <span class="doccomment">/// Creates a new empty cell.
         </span><span class="kw">pub const fn </span>new() -&gt; OnceBox&lt;T&gt; {
-            <a href="#186">OnceBox</a> { inner: AtomicPtr::new(ptr::null_mut()), ghost: PhantomData }
+            OnceBox { inner: AtomicPtr::new(ptr::null_mut()), ghost: PhantomData }
         }
 
         <span class="doccomment">/// Gets a reference to the underlying value.
         </span><span class="kw">pub fn </span>get(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>T&gt; {
-            <span class="kw">let </span>ptr = <a class="self" href="#219">self</a>.inner.load(Ordering::Acquire);
+            <span class="kw">let </span>ptr = <span class="self">self</span>.inner.load(Ordering::Acquire);
             <span class="kw">if </span>ptr.is_null() {
                 <span class="kw">return </span><span class="prelude-val">None</span>;
             }
-            <span class="prelude-val">Some</span>(<span class="kw">unsafe </span>{ <span class="kw-2">&amp;*</span><a href="#220">ptr</a> })
+            <span class="prelude-val">Some</span>(<span class="kw">unsafe </span>{ <span class="kw-2">&amp;*</span>ptr })
         }
 
         <span class="doccomment">/// Sets the contents of this cell to `value`.
@@ -533,16 +717,16 @@
         /// Returns `Ok(())` if the cell was empty and `Err(value)` if it was
         /// full.
         </span><span class="kw">pub fn </span>set(<span class="kw-2">&amp;</span><span class="self">self</span>, value: Box&lt;T&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;(), Box&lt;T&gt;&gt; {
-            <span class="kw">let </span>ptr = Box::into_raw(<a href="#231">value</a>);
-            <span class="kw">let </span>exchange = <a class="self" href="#231">self</a>.inner.compare_exchange(
+            <span class="kw">let </span>ptr = Box::into_raw(value);
+            <span class="kw">let </span>exchange = <span class="self">self</span>.inner.compare_exchange(
                 ptr::null_mut(),
-                <a href="#232">ptr</a>,
+                ptr,
                 Ordering::AcqRel,
                 Ordering::Acquire,
             );
-            <span class="kw">if let </span><span class="prelude-val">Err</span>(<span class="kw">_</span>) = <a href="#233">exchange</a> {
-                <span class="kw">let </span>value = <span class="kw">unsafe </span>{ Box::from_raw(<a href="#232">ptr</a>) };
-                <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="#240">value</a>);
+            <span class="kw">if let </span><span class="prelude-val">Err</span>(<span class="kw">_</span>) = exchange {
+                <span class="kw">let </span>value = <span class="kw">unsafe </span>{ Box::from_raw(ptr) };
+                <span class="kw">return </span><span class="prelude-val">Err</span>(value);
             }
             <span class="prelude-val">Ok</span>(())
         }
@@ -558,9 +742,9 @@
             </span>F: FnOnce() -&gt; Box&lt;T&gt;,
         {
             <span class="kw">enum </span>Void {}
-            <span class="kw">match </span><a class="self" href="#252">self</a>.<a href="#270-272">get_or_try_init</a>(|| <span class="prelude-val">Ok</span>::&lt;Box&lt;T&gt;, <a href="#256">Void</a>&gt;(<a href="#252">f</a>())) {
-                <span class="prelude-val">Ok</span>(val) =&gt; <a href="#258">val</a>,
-                <span class="prelude-val">Err</span>(void) =&gt; <span class="kw">match </span><a href="#259">void</a> {},
+            <span class="kw">match </span><span class="self">self</span>.get_or_try_init(|| <span class="prelude-val">Ok</span>::&lt;Box&lt;T&gt;, Void&gt;(f())) {
+                <span class="prelude-val">Ok</span>(val) =&gt; val,
+                <span class="prelude-val">Err</span>(void) =&gt; <span class="kw">match </span>void {},
             }
         }
 
@@ -575,27 +759,27 @@
         <span class="kw">where
             </span>F: FnOnce() -&gt; <span class="prelude-ty">Result</span>&lt;Box&lt;T&gt;, E&gt;,
         {
-            <span class="kw">let </span><span class="kw-2">mut </span>ptr = <a class="self" href="#270">self</a>.inner.load(Ordering::Acquire);
+            <span class="kw">let </span><span class="kw-2">mut </span>ptr = <span class="self">self</span>.inner.load(Ordering::Acquire);
 
             <span class="kw">if </span>ptr.is_null() {
                 <span class="kw">let </span>val = f()<span class="question-mark">?</span>;
-                <a href="#274">ptr</a> = Box::into_raw(<a href="#277">val</a>);
-                <span class="kw">let </span>exchange = <a class="self" href="#270">self</a>.inner.compare_exchange(
+                ptr = Box::into_raw(val);
+                <span class="kw">let </span>exchange = <span class="self">self</span>.inner.compare_exchange(
                     ptr::null_mut(),
-                    <a href="#274">ptr</a>,
+                    ptr,
                     Ordering::AcqRel,
                     Ordering::Acquire,
                 );
-                <span class="kw">if let </span><span class="prelude-val">Err</span>(old) = <a href="#279">exchange</a> {
-                    <a href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>(<span class="kw">unsafe </span>{ Box::from_raw(<a href="#274">ptr</a>) });
-                    <a href="#274">ptr</a> = <a href="#285">old</a>;
+                <span class="kw">if let </span><span class="prelude-val">Err</span>(old) = exchange {
+                    drop(<span class="kw">unsafe </span>{ Box::from_raw(ptr) });
+                    ptr = old;
                 }
             };
-            <span class="prelude-val">Ok</span>(<span class="kw">unsafe </span>{ <span class="kw-2">&amp;*</span><a href="#274">ptr</a> })
+            <span class="prelude-val">Ok</span>(<span class="kw">unsafe </span>{ <span class="kw-2">&amp;*</span>ptr })
         }
     }
 
-    <span class="kw">unsafe impl</span>&lt;T: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> <span class="kw">for </span>OnceBox&lt;T&gt; {}
+    <span class="kw">unsafe impl</span>&lt;T: Sync + Send&gt; Sync <span class="kw">for </span>OnceBox&lt;T&gt; {}
 
     <span class="doccomment">/// ```compile_fail
     /// struct S(*mut ());
@@ -607,4 +791,4 @@
     </span><span class="kw">fn </span>_dummy() {}
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="once_cell" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="once_cell" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

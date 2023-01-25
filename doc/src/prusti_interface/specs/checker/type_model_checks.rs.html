@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `prusti-interface/src/specs/checker/type_model_checks.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>type_model_checks.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../../prusti_interface/index.html"><img class="rust-logo" src="../../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `prusti-interface/src/specs/checker/type_model_checks.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>type_model_checks.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../../prusti_interface/index.html"><img class="rust-logo" src="../../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -168,13 +168,13 @@
 <a href="#168" id="168">168</a>
 <a href="#169" id="169">169</a>
 <a href="#170" id="170">170</a>
-</pre><pre class="rust"><code><span class="kw">use </span><a href="mod.rs.html#3"><span class="kw">super</span>::common</a>::<span class="kw-2">*</span>;
+</pre><pre class="rust"><code><span class="kw">use </span><span class="kw">super</span>::common::<span class="kw-2">*</span>;
 <span class="kw">use crate</span>::{
-    environment::{<a href="../../environment/query.rs.html#29">EnvQuery</a>, <a href="../../environment/mod.rs.html#51">Environment</a>},
-    utils::{<a href="../../utils.rs.html#240">has_to_model_fn_attr</a>, <a href="../../utils.rs.html#244">has_to_model_impl_attr</a>},
-    <a href="../../prusti_error.rs.html#22">PrustiError</a>,
+    environment::{EnvQuery, Environment},
+    utils::{has_to_model_fn_attr, has_to_model_impl_attr},
+    PrustiError,
 };
-<span class="kw">use </span><a href="../../../../log/macro.debug.html">log::debug</a>;
+<span class="kw">use </span>log::debug;
 <span class="kw">use </span>prusti_rustc_interface::{
     errors::MultiSpan,
     hir::{
@@ -182,55 +182,55 @@
         def::{DefKind, Res},
         intravisit, HirId, QPath, TyKind,
     },
-    middle::{<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/hir/map/struct.Map.html">hir::map::Map</a>, <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/context/struct.TyCtxt.html">ty::TyCtxt</a>},
-    <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/span_encoding/struct.Span.html">span::Span</a>,
+    middle::{hir::map::Map, ty::TyCtxt},
+    span::Span,
 };
-<span class="kw">use </span><a href="../../../../rustc_hash/type.FxHashMap.html">rustc_hash::FxHashMap</a>;
+<span class="kw">use </span>rustc_hash::FxHashMap;
 
 <span class="doccomment">/// Checks the usage of the `.model()` method (induced by the `#[model]` macro) in non-spec code
 </span><span class="kw">pub struct </span>IllegalModelUsagesChecker;
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;tcx</span>&gt; SpecCheckerStrategy&lt;<span class="lifetime">&#39;tcx</span>&gt; <span class="kw">for </span><a href="#21">IllegalModelUsagesChecker</a> {
-    <span class="kw">fn </span>check(<span class="kw-2">&amp;</span><span class="self">self</span>, env: <span class="kw-2">&amp;</span>Environment&lt;<span class="lifetime">&#39;tcx</span>&gt;) -&gt; Vec&lt;<a href="../../prusti_error.rs.html#22">PrustiError</a>&gt; {
-        <span class="kw">let </span><span class="kw-2">mut </span>visit = <a href="#47">ModelUsageVisitor</a> {
-            env_query: <a href="#24">env</a>.query,
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;tcx</span>&gt; SpecCheckerStrategy&lt;<span class="lifetime">&#39;tcx</span>&gt; <span class="kw">for </span>IllegalModelUsagesChecker {
+    <span class="kw">fn </span>check(<span class="kw-2">&amp;</span><span class="self">self</span>, env: <span class="kw-2">&amp;</span>Environment&lt;<span class="lifetime">&#39;tcx</span>&gt;) -&gt; Vec&lt;PrustiError&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>visit = ModelUsageVisitor {
+            env_query: env.query,
             model_usages_in_non_spec_code: Vec::default(),
         }
-        .<a href="common.rs.html#28-30">wrap_as_visitor</a>();
+        .wrap_as_visitor();
 
-        <a href="#24">env</a>.query.<a href="../../environment/query.rs.html#44">hir</a>().walk_toplevel_module(<span class="kw-2">&amp;mut </span><a href="#25">visit</a>);
+        env.query.hir().walk_toplevel_module(<span class="kw-2">&amp;mut </span>visit);
 
-        <span class="kw">let </span>illegal_model_usages = <a href="#25">visit</a>.wrapped.model_usages_in_non_spec_code;
-        <a href="#33">illegal_model_usages</a>
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|model_span| {
+        <span class="kw">let </span>illegal_model_usages = visit.wrapped.model_usages_in_non_spec_code;
+        illegal_model_usages
+            .into_iter()
+            .map(|model_span| {
                 PrustiError::incorrect(
-                    <span class="string">&quot;using models in non-specification code is not allowed&quot;</span>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(),
-                    MultiSpan::from_span(<a href="#36">model_span</a>),
+                    <span class="string">&quot;using models in non-specification code is not allowed&quot;</span>.to_string(),
+                    MultiSpan::from_span(model_span),
                 )
             })
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>()
+            .collect()
     }
 }
 
 <span class="doccomment">/// Checks for the usage of models in non-specification code
 </span><span class="kw">struct </span>ModelUsageVisitor&lt;<span class="lifetime">&#39;tcx</span>&gt; {
     env_query: EnvQuery&lt;<span class="lifetime">&#39;tcx</span>&gt;,
-    model_usages_in_non_spec_code: Vec&lt;<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/span_encoding/struct.Span.html">Span</a>&gt;,
+    model_usages_in_non_spec_code: Vec&lt;Span&gt;,
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;tcx</span>&gt; ModelUsageVisitor&lt;<span class="lifetime">&#39;tcx</span>&gt; {
     <span class="kw">fn </span>get_called_method(<span class="kw-2">&amp;</span><span class="self">self</span>, expr: <span class="kw-2">&amp;</span><span class="lifetime">&#39;tcx </span>hir::Expr&lt;<span class="lifetime">&#39;tcx</span>&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;hir::HirId&gt; {
-        <span class="kw">let </span>maybe_method_def_id = <span class="self"><a href="#53">self</a>
+        <span class="kw">let </span>maybe_method_def_id = <span class="self">self
             </span>.env_query
-            .<a href="../../environment/query.rs.html#39">tcx</a>()
-            .typeck(<a href="#53">expr</a>.hir_id.owner.def_id)
-            .type_dependent_def_id(<a href="#53">expr</a>.hir_id);
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(method_def_id) = <a href="#54">maybe_method_def_id</a> {
-            <span class="kw">let </span>maybe_local_def_id = <a href="#59">method_def_id</a>.as_local();
-            <span class="kw">if let </span><span class="prelude-val">Some</span>(local_def_id) = <a href="#60">maybe_local_def_id</a> {
-                <span class="kw">let </span>decl_hir_id = <a class="self" href="#53">self</a>.env_query.<a href="../../environment/query.rs.html#65">as_hir_id</a>(<a href="#61">local_def_id</a>);
-                <span class="kw">return </span><span class="prelude-val">Some</span>(<a href="#62">decl_hir_id</a>);
+            .tcx()
+            .typeck(expr.hir_id.owner.def_id)
+            .type_dependent_def_id(expr.hir_id);
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(method_def_id) = maybe_method_def_id {
+            <span class="kw">let </span>maybe_local_def_id = method_def_id.as_local();
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(local_def_id) = maybe_local_def_id {
+                <span class="kw">let </span>decl_hir_id = <span class="self">self</span>.env_query.as_hir_id(local_def_id);
+                <span class="kw">return </span><span class="prelude-val">Some</span>(decl_hir_id);
             }
         }
         <span class="prelude-val">None
@@ -239,18 +239,18 @@
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;tcx</span>&gt; NonSpecExprVisitor&lt;<span class="lifetime">&#39;tcx</span>&gt; <span class="kw">for </span>ModelUsageVisitor&lt;<span class="lifetime">&#39;tcx</span>&gt; {
     <span class="kw">fn </span>tcx(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; TyCtxt&lt;<span class="lifetime">&#39;tcx</span>&gt; {
-        <a class="self" href="#71">self</a>.env_query.<a href="../../environment/query.rs.html#39">tcx</a>()
+        <span class="self">self</span>.env_query.tcx()
     }
 
     <span class="kw">fn </span>visit_expr(<span class="kw-2">&amp;mut </span><span class="self">self</span>, expr: <span class="kw-2">&amp;</span><span class="lifetime">&#39;tcx </span>hir::Expr&lt;<span class="lifetime">&#39;tcx</span>&gt;) {
-        <span class="kw">if let </span>hir::ExprKind::MethodCall(<span class="kw">_</span>, <span class="kw">_</span>, <span class="kw">_</span>, call_span) = <a href="#75">expr</a>.kind {
-            <span class="kw">let </span>maybe_method_decl_hir_id: <span class="prelude-ty">Option</span>&lt;hir::HirId&gt; = <a class="self" href="#75">self</a>.<a href="#53">get_called_method</a>(<a href="#75">expr</a>);
+        <span class="kw">if let </span>hir::ExprKind::MethodCall(<span class="kw">_</span>, <span class="kw">_</span>, <span class="kw">_</span>, call_span) = expr.kind {
+            <span class="kw">let </span>maybe_method_decl_hir_id: <span class="prelude-ty">Option</span>&lt;hir::HirId&gt; = <span class="self">self</span>.get_called_method(expr);
 
-            <span class="kw">if let </span><span class="prelude-val">Some</span>(method_decl_hir_id) = <a href="#77">maybe_method_decl_hir_id</a> {
-                <span class="kw">let </span>attrs = <a class="self" href="#75">self</a>.env_query.<a href="../../environment/query.rs.html#69">get_local_attributes</a>(<a href="#79">method_decl_hir_id</a>);
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(method_decl_hir_id) = maybe_method_decl_hir_id {
+                <span class="kw">let </span>attrs = <span class="self">self</span>.env_query.get_local_attributes(method_decl_hir_id);
 
                 <span class="kw">if </span>has_to_model_fn_attr(attrs) {
-                    <a class="self" href="#75">self</a>.model_usages_in_non_spec_code.push(<a href="#76">call_span</a>);
+                    <span class="self">self</span>.model_usages_in_non_spec_code.push(call_span);
                 }
             }
         }
@@ -260,21 +260,21 @@
 <span class="doccomment">/// Checks whether modelled types have fields
 </span><span class="kw">pub struct </span>ModelDefinedOnTypeWithoutFields;
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;tcx</span>&gt; SpecCheckerStrategy&lt;<span class="lifetime">&#39;tcx</span>&gt; <span class="kw">for </span><a href="#91">ModelDefinedOnTypeWithoutFields</a> {
-    <span class="kw">fn </span>check(<span class="kw-2">&amp;</span><span class="self">self</span>, env: <span class="kw-2">&amp;</span>Environment&lt;<span class="lifetime">&#39;tcx</span>&gt;) -&gt; Vec&lt;<a href="../../prusti_error.rs.html#22">PrustiError</a>&gt; {
-        <span class="kw">let </span><span class="kw-2">mut </span>collect = <a href="#146">CollectModelledTypes</a> {
-            env_query: <a href="#94">env</a>.query,
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;tcx</span>&gt; SpecCheckerStrategy&lt;<span class="lifetime">&#39;tcx</span>&gt; <span class="kw">for </span>ModelDefinedOnTypeWithoutFields {
+    <span class="kw">fn </span>check(<span class="kw-2">&amp;</span><span class="self">self</span>, env: <span class="kw-2">&amp;</span>Environment&lt;<span class="lifetime">&#39;tcx</span>&gt;) -&gt; Vec&lt;PrustiError&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>collect = CollectModelledTypes {
+            env_query: env.query,
             modelled_types: FxHashMap::default(),
         };
-        <a href="#94">env</a>.query.<a href="../../environment/query.rs.html#44">hir</a>().walk_toplevel_module(<span class="kw-2">&amp;mut </span><a href="#95">collect</a>);
+        env.query.hir().walk_toplevel_module(<span class="kw-2">&amp;mut </span>collect);
 
         <span class="comment">// Mark all modelled types as &quot;dangerous&quot;, i.e. assume they have no fields
-        </span><span class="kw">let </span><span class="kw-2">mut </span>modelled_types_has_fields: FxHashMap&lt;HirId, <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>&gt; = <a href="#95">collect</a>
+        </span><span class="kw">let </span><span class="kw-2">mut </span>modelled_types_has_fields: FxHashMap&lt;HirId, bool&gt; = collect
             .modelled_types
             .keys()
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|ty_hir_id| (<span class="kw-2">*</span><a href="#105">ty_hir_id</a>, <span class="bool-val">true</span>))
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
-        <span class="kw">let </span><span class="kw-2">mut </span>type_names: FxHashMap&lt;HirId, <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt; = FxHashMap::default();
+            .map(|ty_hir_id| (<span class="kw-2">*</span>ty_hir_id, <span class="bool-val">true</span>))
+            .collect();
+        <span class="kw">let </span><span class="kw-2">mut </span>type_names: FxHashMap&lt;HirId, String&gt; = FxHashMap::default();
 
         <span class="comment">// Try to show that all modelled types have fields
         </span><span class="kw">for </span>(hir_id, self_ty) <span class="kw">in </span>collect.modelled_types {
@@ -290,26 +290,26 @@
             }
         }
 
-        <a href="#102">modelled_types_has_fields</a>
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter</a>(|(<span class="kw">_</span>, has_no_fields)| <span class="kw-2">*</span><a href="#125">has_no_fields</a>)
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|(ty_hir_id_without_fields, <span class="kw">_</span>)| {
-                <span class="kw">let </span>span = <a href="#94">env</a>.query.<a href="../../environment/query.rs.html#88">get_def_span</a>(<a href="#126">ty_hir_id_without_fields</a>.owner);
-                <span class="kw">let </span>message_type_name = <a href="#107">type_names</a>.get(<span class="kw-2">&amp;</span><a href="#126">ty_hir_id_without_fields</a>).unwrap();
-                <span class="kw">let </span>message = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;Potentially dangerous type model definition for type &#39;{}&#39;&quot;</span>, message_type_name);
+        modelled_types_has_fields
+            .into_iter()
+            .filter(|(<span class="kw">_</span>, has_no_fields)| <span class="kw-2">*</span>has_no_fields)
+            .map(|(ty_hir_id_without_fields, <span class="kw">_</span>)| {
+                <span class="kw">let </span>span = env.query.get_def_span(ty_hir_id_without_fields.owner);
+                <span class="kw">let </span>message_type_name = type_names.get(<span class="kw-2">&amp;</span>ty_hir_id_without_fields).unwrap();
+                <span class="kw">let </span>message = <span class="macro">format!</span>(<span class="string">&quot;Potentially dangerous type model definition for type &#39;{message_type_name}&#39;&quot;</span>);
 
                 <span class="kw">let </span><span class="kw-2">mut </span>warning = PrustiError::incorrect(
-                        <a href="#129">message</a>,
-                    MultiSpan::from_span(<a href="#127">span</a>),
+                        message,
+                    MultiSpan::from_span(span),
                 )
-                .<a href="../../prusti_error.rs.html#172">add_note</a>(
+                .add_note(
                     <span class="string">&quot;The modelled type could have no fields. This can lead to unsound verification code.&quot;</span>,
-                    <a href="#94">env</a>.<a href="../../environment/mod.rs.html#72">tcx</a>().def_ident_span(<a href="#126">ty_hir_id_without_fields</a>.owner),
+                    env.tcx().def_ident_span(ty_hir_id_without_fields.owner),
                 );
-                <a href="#131">warning</a>.<a href="../../prusti_error.rs.html#150">set_warning</a>();
-                <a href="#131">warning</a>
+                warning.set_warning();
+                warning
             })
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>()
+            .collect()
     }
 }
 
@@ -320,23 +320,23 @@
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;tcx</span>&gt; intravisit::Visitor&lt;<span class="lifetime">&#39;tcx</span>&gt; <span class="kw">for </span>CollectModelledTypes&lt;<span class="lifetime">&#39;tcx</span>&gt; {
     <span class="kw">type </span>Map = Map&lt;<span class="lifetime">&#39;tcx</span>&gt;;
-    <span class="kw">type </span>NestedFilter = <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/hir/nested_filter/struct.All.html">prusti_rustc_interface::middle::hir::nested_filter::All</a>;
+    <span class="kw">type </span>NestedFilter = prusti_rustc_interface::middle::hir::nested_filter::All;
 
     <span class="kw">fn </span>nested_visit_map(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="self">Self</span>::Map {
-        <a class="self" href="#155">self</a>.env_query.<a href="../../environment/query.rs.html#44">hir</a>()
+        <span class="self">self</span>.env_query.hir()
     }
 
     <span class="kw">fn </span>visit_item(<span class="kw-2">&amp;mut </span><span class="self">self</span>, item: <span class="kw-2">&amp;</span><span class="lifetime">&#39;tcx </span>hir::Item&lt;<span class="lifetime">&#39;tcx</span>&gt;) {
-        <span class="kw">if let </span>hir::ItemKind::Impl(_impl) = <span class="kw-2">&amp;</span><a href="#159">item</a>.kind {
-            <span class="kw">let </span>attrs = <a class="self" href="#159">self</a>.env_query.<a href="../../environment/query.rs.html#69">get_local_attributes</a>(<a href="#159">item</a>.hir_id());
+        <span class="kw">if let </span>hir::ItemKind::Impl(_impl) = <span class="kw-2">&amp;</span>item.kind {
+            <span class="kw">let </span>attrs = <span class="self">self</span>.env_query.get_local_attributes(item.hir_id());
             <span class="kw">if </span>has_to_model_impl_attr(attrs) {
-                <a class="self" href="#159">self</a>.modelled_types
-                    .insert(<a href="#160">_impl</a>.self_ty.hir_id, <a href="#160">_impl</a>.self_ty);
+                <span class="self">self</span>.modelled_types
+                    .insert(_impl.self_ty.hir_id, _impl.self_ty);
             }
         }
 
-        intravisit::walk_item(<a class="self" href="#159">self</a>, <a href="#159">item</a>);
+        intravisit::walk_item(<span class="self">self</span>, item);
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="prusti_interface" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="prusti_interface" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

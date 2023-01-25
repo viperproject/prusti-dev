@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `vir/src/legacy/ast/predicate.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>predicate.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../../vir/index.html"><img class="rust-logo" src="../../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `vir/src/legacy/ast/predicate.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>predicate.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../../vir/index.html"><img class="rust-logo" src="../../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -325,85 +325,85 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-</span><span class="kw">use crate</span>::{<a href="../../common/identifier.rs.html#1">common::identifier::WithIdentifier</a>, <a href="../../common/ast/predicate.rs.html#2">enum_predicate</a>, <a href="../mod.rs.html#12">legacy::ast</a>::<span class="kw-2">*</span>};
-<span class="kw">use </span>std::{<a href="https://doc.rust-lang.org/nightly/std/collections/hash/set/struct.HashSet.html">collections::HashSet</a>, <a href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">fmt</a>};
+</span><span class="kw">use crate</span>::{common::identifier::WithIdentifier, enum_predicate, legacy::ast::<span class="kw-2">*</span>};
+<span class="kw">use </span>std::{collections::HashSet, fmt};
 
 <span class="attr">#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Serialize, serde::Deserialize)]
 </span><span class="kw">pub enum </span>Predicate {
-    Struct(<a href="#158">StructPredicate</a>),
-    Enum(<a href="#237">EnumPredicate</a>),
-    Bodyless(<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, <a href="common.rs.html#302">LocalVar</a>),
+    Struct(StructPredicate),
+    Enum(EnumPredicate),
+    Bodyless(String, LocalVar),
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for </span><a href="#11">Predicate</a> {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <span class="kw">match </span><span class="self"><a href="#18">self</a> </span>{
-            <a href="#12">Predicate::Struct</a>(p) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#18">f</a>, <span class="string">&quot;{}&quot;</span>, p),
-            <a href="#13">Predicate::Enum</a>(p) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#18">f</a>, <span class="string">&quot;{}&quot;</span>, p),
-            <a href="#14">Predicate::Bodyless</a>(name, this) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#18">f</a>, <span class="string">&quot;bodyless_predicate {}({});&quot;</span>, name, this),
+<span class="kw">impl </span>fmt::Display <span class="kw">for </span>Predicate {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter) -&gt; fmt::Result {
+        <span class="kw">match </span><span class="self">self </span>{
+            Predicate::Struct(p) =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;{p}&quot;</span>),
+            Predicate::Enum(p) =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;{p}&quot;</span>),
+            Predicate::Bodyless(name, this) =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;bodyless_predicate {name}({this});&quot;</span>),
         }
     }
 }
 
-<span class="kw">impl </span><a href="#11">Predicate</a> {
+<span class="kw">impl </span>Predicate {
     <span class="doccomment">/// A helper for constructing the predicate&#39;s `self` argument.
-    </span><span class="kw">pub fn </span>construct_this(typ: <a href="common.rs.html#183">Type</a>) -&gt; <a href="common.rs.html#302">LocalVar</a> {
-        LocalVar::new(<span class="string">&quot;self&quot;</span>, <a href="#29">typ</a>)
+    </span><span class="kw">pub fn </span>construct_this(typ: Type) -&gt; LocalVar {
+        LocalVar::new(<span class="string">&quot;self&quot;</span>, typ)
     }
     <span class="doccomment">/// Construct a new abstract predicate of the given type.
-    </span><span class="kw">pub fn </span>new_abstract(typ: <a href="common.rs.html#183">Type</a>) -&gt; <a href="#11">Predicate</a> {
-        <span class="kw">let </span>predicate_name = <a href="#33">typ</a>.<a href="common.rs.html#242">name</a>();
-        <a href="#12">Predicate::Struct</a>(<a href="#158">StructPredicate</a> {
-            name: <a href="#34">predicate_name</a>,
-            this: <span class="self">Self</span>::construct_this(<a href="#33">typ</a>),
+    </span><span class="kw">pub fn </span>new_abstract(typ: Type) -&gt; Predicate {
+        <span class="kw">let </span>predicate_name = typ.name();
+        Predicate::Struct(StructPredicate {
+            name: predicate_name,
+            this: <span class="self">Self</span>::construct_this(typ),
             body: <span class="prelude-val">None</span>,
         })
     }
     <span class="doccomment">/// Is this predicate abstract.
-    </span><span class="kw">pub fn </span>is_abstract(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.matches.html">matches!</a>(<span class="self">self</span>, Predicate::Struct(StructPredicate { body: <span class="prelude-val">None</span>, .. }))
+    </span><span class="kw">pub fn </span>is_abstract(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="macro">matches!</span>(<span class="self">self</span>, Predicate::Struct(StructPredicate { body: <span class="prelude-val">None</span>, .. }))
     }
     <span class="doccomment">/// Construct a new predicate that represents a type that models a primitive
     /// value such as an integer or a boolean.
     </span><span class="kw">pub fn </span>new_primitive_value(
-        typ: <a href="common.rs.html#183">Type</a>,
-        field: <a href="common.rs.html#333">Field</a>,
-        bounds: <span class="prelude-ty">Option</span>&lt;(<a href="expr.rs.html#19">Expr</a>, <a href="expr.rs.html#19">Expr</a>)&gt;,
-        is_unsigned: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-    ) -&gt; <a href="#11">Predicate</a> {
-        <span class="kw">let </span>predicate_name = <a href="#48">typ</a>.<a href="common.rs.html#242">name</a>();
-        <span class="kw">let </span>this = <span class="self">Self</span>::construct_this(<a href="#48">typ</a>);
-        <span class="kw">let </span>val_field = Expr::from(<a href="#54">this</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()).<a href="expr.rs.html#764">field</a>(<a href="#49">field</a>);
-        <span class="kw">let </span>perm = Expr::acc_permission(<a href="#55">val_field</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), <a href="common.rs.html#69">PermAmount::Write</a>);
-        <span class="kw">let </span><span class="kw-2">mut </span>conjuncts = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[perm];
-        <span class="kw">if let </span><span class="prelude-val">Some</span>((lower, upper)) = <a href="#50">bounds</a> {
-            <a href="#57">conjuncts</a>.push(Expr::le_cmp(<a href="#58">lower</a>, <a href="#55">val_field</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()));
-            <a href="#57">conjuncts</a>.push(Expr::le_cmp(<a href="#55">val_field</a>, <a href="#58">upper</a>));
+        typ: Type,
+        field: Field,
+        bounds: <span class="prelude-ty">Option</span>&lt;(Expr, Expr)&gt;,
+        is_unsigned: bool,
+    ) -&gt; Predicate {
+        <span class="kw">let </span>predicate_name = typ.name();
+        <span class="kw">let </span>this = <span class="self">Self</span>::construct_this(typ);
+        <span class="kw">let </span>val_field = Expr::from(this.clone()).field(field);
+        <span class="kw">let </span>perm = Expr::acc_permission(val_field.clone(), PermAmount::Write);
+        <span class="kw">let </span><span class="kw-2">mut </span>conjuncts = <span class="macro">vec!</span>[perm];
+        <span class="kw">if let </span><span class="prelude-val">Some</span>((lower, upper)) = bounds {
+            conjuncts.push(Expr::le_cmp(lower, val_field.clone()));
+            conjuncts.push(Expr::le_cmp(val_field, upper));
         } <span class="kw">else if </span>is_unsigned {
-            <a href="#57">conjuncts</a>.push(Expr::le_cmp(<span class="number">0</span>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(), <a href="#55">val_field</a>));
+            conjuncts.push(Expr::le_cmp(<span class="number">0</span>.into(), val_field));
         };
-        <span class="kw">let </span>body = <a href="#57">conjuncts</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a href="expr.rs.html#1884">conjoin</a>();
-        <a href="#12">Predicate::Struct</a>(<a href="#158">StructPredicate</a> {
-            name: <a href="#53">predicate_name</a>,
-            <a href="#54">this</a>,
-            body: <span class="prelude-val">Some</span>(<a href="#64">body</a>),
+        <span class="kw">let </span>body = conjuncts.into_iter().conjoin();
+        Predicate::Struct(StructPredicate {
+            name: predicate_name,
+            this,
+            body: <span class="prelude-val">Some</span>(body),
         })
     }
     <span class="doccomment">/// Construct a predicate that corresponds to a composite type that has only one variant such
     /// as `struct` or `tuple`.
-    </span><span class="kw">pub fn </span>new_struct(typ: <a href="common.rs.html#183">Type</a>, fields: Vec&lt;<a href="common.rs.html#333">Field</a>&gt;) -&gt; <a href="#11">Predicate</a> {
-        <a href="#12">Predicate::Struct</a>(StructPredicate::new(<a href="#73">typ</a>, <a href="#73">fields</a>))
+    </span><span class="kw">pub fn </span>new_struct(typ: Type, fields: Vec&lt;Field&gt;) -&gt; Predicate {
+        Predicate::Struct(StructPredicate::new(typ, fields))
     }
     <span class="doccomment">/// Construct a predicate that corresponds to a composite type that has zero or more than one
     /// variants.
     </span><span class="kw">pub fn </span>new_enum(
-        this: <a href="common.rs.html#302">LocalVar</a>,
-        discriminant_field: <a href="common.rs.html#333">Field</a>,
-        discriminant_bounds: <a href="expr.rs.html#19">Expr</a>,
-        variants: Vec&lt;(<a href="expr.rs.html#19">Expr</a>, <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, <a href="#158">StructPredicate</a>)&gt;,
-    ) -&gt; <a href="#11">Predicate</a> {
-        <span class="kw">let </span>predicate_name = <a href="#79">this</a>.typ.<a href="common.rs.html#242">name</a>();
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(
+        this: LocalVar,
+        discriminant_field: Field,
+        discriminant_bounds: Expr,
+        variants: Vec&lt;(Expr, String, StructPredicate)&gt;,
+    ) -&gt; Predicate {
+        <span class="kw">let </span>predicate_name = this.typ.name();
+        <span class="macro">debug_assert!</span>(
             variants
                 .iter()
                 .map(|(<span class="kw">_</span>, name, <span class="kw">_</span>)| name.to_string())
@@ -411,65 +411,65 @@
                 .len()
                 == variants.len()
         );
-        <a href="#13">Predicate::Enum</a>(<a href="#237">EnumPredicate</a> {
-            name: <a href="#84">predicate_name</a>,
-            <a href="#79">this</a>,
-            <a href="#80">discriminant_field</a>,
-            <a href="#81">discriminant_bounds</a>,
-            <a href="#82">variants</a>,
+        Predicate::Enum(EnumPredicate {
+            name: predicate_name,
+            this,
+            discriminant_field,
+            discriminant_bounds,
+            variants,
         })
     }
     <span class="doccomment">/// A `self` place getter.
-    </span><span class="kw">pub fn </span>self_place(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="expr.rs.html#19">Expr</a> {
-        <span class="kw">match </span><span class="self"><a href="#102">self</a> </span>{
-            <a href="#12">Predicate::Struct</a>(p) =&gt; <a href="#104">p</a>.this.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>().<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
-            <a href="#13">Predicate::Enum</a>(p) =&gt; <a href="#105">p</a>.this.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>().<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
-            <a href="#14">Predicate::Bodyless</a>(<span class="kw">_</span>, this) =&gt; <a href="#106">this</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>().<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
+    </span><span class="kw">pub fn </span>self_place(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Expr {
+        <span class="kw">match </span><span class="self">self </span>{
+            Predicate::Struct(p) =&gt; p.this.clone().into(),
+            Predicate::Enum(p) =&gt; p.this.clone().into(),
+            Predicate::Bodyless(<span class="kw">_</span>, this) =&gt; this.clone().into(),
         }
     }
     <span class="doccomment">/// The predicate name getter.
-    </span><span class="kw">pub fn </span>name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> {
-        <span class="kw">match </span><span class="self"><a href="#110">self</a> </span>{
-            <a href="#12">Predicate::Struct</a>(p) =&gt; <span class="kw-2">&amp;</span><a href="#112">p</a>.name,
-            <a href="#13">Predicate::Enum</a>(p) =&gt; <span class="kw-2">&amp;</span><a href="#113">p</a>.name,
-            <a href="#14">Predicate::Bodyless</a>(<span class="kw-2">ref </span>name, <span class="kw">_</span>) =&gt; <a href="#114">name</a>,
+    </span><span class="kw">pub fn </span>name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>str {
+        <span class="kw">match </span><span class="self">self </span>{
+            Predicate::Struct(p) =&gt; <span class="kw-2">&amp;</span>p.name,
+            Predicate::Enum(p) =&gt; <span class="kw-2">&amp;</span>p.name,
+            Predicate::Bodyless(<span class="kw-2">ref </span>name, <span class="kw">_</span>) =&gt; name,
         }
     }
-    <span class="kw">pub fn </span>body(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="expr.rs.html#19">Expr</a>&gt; {
-        <span class="kw">match </span><span class="self"><a href="#117">self</a> </span>{
-            <a href="#12">Predicate::Struct</a>(struct_predicate) =&gt; <a href="#119">struct_predicate</a>.body.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
-            <a href="#13">Predicate::Enum</a>(enum_predicate) =&gt; <span class="prelude-val">Some</span>(<a href="#120">enum_predicate</a>.<a href="#292">body</a>()),
-            <a href="#14">Predicate::Bodyless</a>(<span class="kw">_</span>, <span class="kw">_</span>) =&gt; <span class="prelude-val">None</span>,
+    <span class="kw">pub fn </span>body(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Expr&gt; {
+        <span class="kw">match </span><span class="self">self </span>{
+            Predicate::Struct(struct_predicate) =&gt; struct_predicate.body.clone(),
+            Predicate::Enum(enum_predicate) =&gt; <span class="prelude-val">Some</span>(enum_predicate.body()),
+            Predicate::Bodyless(<span class="kw">_</span>, <span class="kw">_</span>) =&gt; <span class="prelude-val">None</span>,
         }
     }
 
     <span class="doccomment">/// Visit each expression.
     /// Note: sub-expressions of expressions will not be visited.
-    </span><span class="kw">pub fn </span>visit_expressions&lt;F: FnMut(<span class="kw-2">&amp;</span><a href="expr.rs.html#19">Expr</a>)&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, visitor: F) {
-        <span class="kw">match </span><span class="self"><a href="#127">self</a> </span>{
-            <a href="#12">Predicate::Struct</a>(p) =&gt; <a href="#129">p</a>.<a href="#218">visit_expressions</a>(<a href="#127">visitor</a>),
-            <a href="#13">Predicate::Enum</a>(p) =&gt; <a href="#130">p</a>.<a href="#298">visit_expressions</a>(<a href="#127">visitor</a>),
-            <a href="#14">Predicate::Bodyless</a>(..) =&gt; {}
+    </span><span class="kw">pub fn </span>visit_expressions&lt;F: FnMut(<span class="kw-2">&amp;</span>Expr)&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, visitor: F) {
+        <span class="kw">match </span><span class="self">self </span>{
+            Predicate::Struct(p) =&gt; p.visit_expressions(visitor),
+            Predicate::Enum(p) =&gt; p.visit_expressions(visitor),
+            Predicate::Bodyless(..) =&gt; {}
         }
     }
 
     <span class="doccomment">/// Mutably visit each expression.
     /// Note: sub-expressions of expressions will not be visited.
-    </span><span class="kw">pub fn </span>visit_expressions_mut&lt;F: FnMut(<span class="kw-2">&amp;mut </span><a href="expr.rs.html#19">Expr</a>)&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, visitor: F) {
-        <span class="kw">match </span><span class="self"><a href="#137">self</a> </span>{
-            <a href="#12">Predicate::Struct</a>(p) =&gt; <a href="#139">p</a>.<a href="#224">visit_expressions_mut</a>(<a href="#137">visitor</a>),
-            <a href="#13">Predicate::Enum</a>(p) =&gt; <a href="#140">p</a>.<a href="#308">visit_expressions_mut</a>(<a href="#137">visitor</a>),
-            <a href="#14">Predicate::Bodyless</a>(..) =&gt; {}
+    </span><span class="kw">pub fn </span>visit_expressions_mut&lt;F: FnMut(<span class="kw-2">&amp;mut </span>Expr)&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, visitor: F) {
+        <span class="kw">match </span><span class="self">self </span>{
+            Predicate::Struct(p) =&gt; p.visit_expressions_mut(visitor),
+            Predicate::Enum(p) =&gt; p.visit_expressions_mut(visitor),
+            Predicate::Bodyless(..) =&gt; {}
         }
     }
 }
 
-<span class="kw">impl </span><a href="../../common/identifier.rs.html#1">WithIdentifier</a> <span class="kw">for </span><a href="#11">Predicate</a> {
-    <span class="kw">fn </span>get_identifier(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a> {
-        <span class="kw">match </span><span class="self"><a href="#147">self</a> </span>{
-            <a href="#12">Predicate::Struct</a>(p) =&gt; <a href="#149">p</a>.<a href="../../common/identifier.rs.html#2">get_identifier</a>(),
-            <a href="#13">Predicate::Enum</a>(p) =&gt; <a href="#150">p</a>.<a href="../../common/identifier.rs.html#2">get_identifier</a>(),
-            <a href="#14">Predicate::Bodyless</a>(name, <span class="kw">_</span>) =&gt; <a href="#151">name</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+<span class="kw">impl </span>WithIdentifier <span class="kw">for </span>Predicate {
+    <span class="kw">fn </span>get_identifier(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; String {
+        <span class="kw">match </span><span class="self">self </span>{
+            Predicate::Struct(p) =&gt; p.get_identifier(),
+            Predicate::Enum(p) =&gt; p.get_identifier(),
+            Predicate::Bodyless(name, <span class="kw">_</span>) =&gt; name.clone(),
         }
     }
 }
@@ -478,78 +478,78 @@
 </span><span class="attr">#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Serialize, serde::Deserialize)]
 </span><span class="kw">pub struct </span>StructPredicate {
     <span class="doccomment">/// The predicate name in Viper.
-    </span><span class="kw">pub </span>name: <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>,
+    </span><span class="kw">pub </span>name: String,
     <span class="doccomment">/// The self reference.
-    </span><span class="kw">pub </span>this: <a href="common.rs.html#302">LocalVar</a>,
+    </span><span class="kw">pub </span>this: LocalVar,
     <span class="doccomment">/// The optional body of the predicate.
-    </span><span class="kw">pub </span>body: <span class="prelude-ty">Option</span>&lt;<a href="expr.rs.html#19">Expr</a>&gt;,
+    </span><span class="kw">pub </span>body: <span class="prelude-ty">Option</span>&lt;Expr&gt;,
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for </span><a href="#158">StructPredicate</a> {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+<span class="kw">impl </span>fmt::Display <span class="kw">for </span>StructPredicate {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter) -&gt; fmt::Result {
         <span class="macro">write!</span>(f, <span class="string">&quot;struct_predicate {}({}&quot;</span>, <span class="self">self</span>.name, <span class="self">self</span>.this)<span class="question-mark">?</span>;
-        <span class="kw">match </span><a class="self" href="#168">self</a>.body {
-            <span class="prelude-val">None </span>=&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.writeln.html">writeln!</a>(<a href="#168">f</a>, <span class="string">&quot;);&quot;</span>),
+        <span class="kw">match </span><span class="self">self</span>.body {
+            <span class="prelude-val">None </span>=&gt; <span class="macro">writeln!</span>(f, <span class="string">&quot;);&quot;</span>),
             <span class="prelude-val">Some</span>(<span class="kw-2">ref </span>body) =&gt; {
                 <span class="macro">writeln!</span>(f, <span class="string">&quot;){{&quot;</span>)<span class="question-mark">?</span>;
-                <span class="macro">writeln!</span>(f, <span class="string">&quot;  {}&quot;</span>, body)<span class="question-mark">?</span>;
-                <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.writeln.html">writeln!</a>(<a href="#168">f</a>, <span class="string">&quot;}}&quot;</span>)
+                <span class="macro">writeln!</span>(f, <span class="string">&quot;  {body}&quot;</span>)<span class="question-mark">?</span>;
+                <span class="macro">writeln!</span>(f, <span class="string">&quot;}}&quot;</span>)
             }
         }
     }
 }
 
-<span class="kw">impl </span><a href="#158">StructPredicate</a> {
-    <span class="kw">pub fn </span>new(typ: <a href="common.rs.html#183">Type</a>, fields: Vec&lt;<a href="common.rs.html#333">Field</a>&gt;) -&gt; <span class="self">Self </span>{
-        <span class="kw">let </span>predicate_name = <a href="#182">typ</a>.<a href="common.rs.html#242">name</a>();
-        <span class="kw">let </span>this = Predicate::construct_this(<a href="#182">typ</a>);
-        <span class="kw">let </span>body = <a href="#182">fields</a>
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">flat_map</a>(|field| {
-                <span class="kw">let </span>predicate_name = <a href="#187">field</a>.<a href="common.rs.html#358">typed_ref_name</a>().unwrap();
-                <span class="kw">let </span>location: <a href="expr.rs.html#19">Expr</a> = Expr::from(<a href="#184">this</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()).<a href="expr.rs.html#764">field</a>(<a href="#187">field</a>);
-                <span class="kw">let </span>field_perm = Expr::acc_permission(<a href="#189">location</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), <a href="common.rs.html#69">PermAmount::Write</a>);
+<span class="kw">impl </span>StructPredicate {
+    <span class="kw">pub fn </span>new(typ: Type, fields: Vec&lt;Field&gt;) -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span>predicate_name = typ.name();
+        <span class="kw">let </span>this = Predicate::construct_this(typ);
+        <span class="kw">let </span>body = fields
+            .into_iter()
+            .flat_map(|field| {
+                <span class="kw">let </span>predicate_name = field.typed_ref_name().unwrap();
+                <span class="kw">let </span>location: Expr = Expr::from(this.clone()).field(field);
+                <span class="kw">let </span>field_perm = Expr::acc_permission(location.clone(), PermAmount::Write);
                 <span class="kw">let </span>pred_perm =
-                    Expr::predicate_access_predicate(<a href="#188">predicate_name</a>, <a href="#189">location</a>, <a href="common.rs.html#69">PermAmount::Write</a>);
-                <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[field_perm, pred_perm]
+                    Expr::predicate_access_predicate(predicate_name, location, PermAmount::Write);
+                <span class="macro">vec!</span>[field_perm, pred_perm]
             })
-            .<a href="expr.rs.html#1884">conjoin</a>();
+            .conjoin();
         <span class="self">Self </span>{
-            name: <a href="#183">predicate_name</a>,
-            <a href="#184">this</a>,
-            body: <span class="prelude-val">Some</span>(<a href="#185">body</a>),
+            name: predicate_name,
+            this,
+            body: <span class="prelude-val">Some</span>(body),
         }
     }
     <span class="doccomment">/// Construct a predicate access predicate for this predicate.
-    </span><span class="kw">pub fn </span>construct_access(<span class="kw-2">&amp;</span><span class="self">self</span>, this: <a href="expr.rs.html#19">Expr</a>, perm_amount: <a href="common.rs.html#67">PermAmount</a>) -&gt; <a href="expr.rs.html#19">Expr</a> {
-        <a href="expr.rs.html#33">Expr::PredicateAccessPredicate</a>(
-            <a class="self" href="#203">self</a>.name.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
-            <span class="kw">box </span><a href="#203">this</a>,
-            <a href="#203">perm_amount</a>,
+    </span><span class="kw">pub fn </span>construct_access(<span class="kw-2">&amp;</span><span class="self">self</span>, this: Expr, perm_amount: PermAmount) -&gt; Expr {
+        Expr::PredicateAccessPredicate(
+            <span class="self">self</span>.name.clone(),
+            <span class="kw">box </span>this,
+            perm_amount,
             Position::default(),
         )
     }
     <span class="doccomment">/// Is the predicate&#39;s body just `true`?
-    </span><span class="kw">pub fn </span>has_empty_body(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.matches.html">matches!</a>(<span class="self">self</span>.body, <span class="prelude-val">Some</span>(Expr::Const(Const::Bool(<span class="bool-val">true</span>), <span class="kw">_</span>)))
+    </span><span class="kw">pub fn </span>has_empty_body(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="macro">matches!</span>(<span class="self">self</span>.body, <span class="prelude-val">Some</span>(Expr::Const(Const::Bool(<span class="bool-val">true</span>), <span class="kw">_</span>)))
     }
 
     <span class="doccomment">/// Visit each expression.
     /// Note: sub-expressions of expressions will not be visited.
-    </span><span class="kw">pub fn </span>visit_expressions&lt;F: FnMut(<span class="kw-2">&amp;</span><a href="expr.rs.html#19">Expr</a>)&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, visitor: F) {
-        <a class="self" href="#218">self</a>.body.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">for_each</a>(<a href="#218">visitor</a>);
+    </span><span class="kw">pub fn </span>visit_expressions&lt;F: FnMut(<span class="kw-2">&amp;</span>Expr)&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, visitor: F) {
+        <span class="self">self</span>.body.iter().for_each(visitor);
     }
 
     <span class="doccomment">/// Mutably visit each expression.
     /// Note: sub-expressions of expressions will not be visited.
-    </span><span class="kw">pub fn </span>visit_expressions_mut&lt;F: FnMut(<span class="kw-2">&amp;mut </span><a href="expr.rs.html#19">Expr</a>)&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, visitor: F) {
-        <a class="self" href="#224">self</a>.body.iter_mut().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">for_each</a>(<a href="#224">visitor</a>);
+    </span><span class="kw">pub fn </span>visit_expressions_mut&lt;F: FnMut(<span class="kw-2">&amp;mut </span>Expr)&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, visitor: F) {
+        <span class="self">self</span>.body.iter_mut().for_each(visitor);
     }
 }
 
-<span class="kw">impl </span><a href="../../common/identifier.rs.html#1">WithIdentifier</a> <span class="kw">for </span><a href="#158">StructPredicate</a> {
-    <span class="kw">fn </span>get_identifier(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a> {
-        <a class="self" href="#230">self</a>.name.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()
+<span class="kw">impl </span>WithIdentifier <span class="kw">for </span>StructPredicate {
+    <span class="kw">fn </span>get_identifier(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; String {
+        <span class="self">self</span>.name.clone()
     }
 }
 
@@ -557,88 +557,88 @@
 </span><span class="attr">#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Serialize, serde::Deserialize)]
 </span><span class="kw">pub struct </span>EnumPredicate {
     <span class="doccomment">/// The predicate name in Viper.
-    </span><span class="kw">pub </span>name: <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>,
+    </span><span class="kw">pub </span>name: String,
     <span class="doccomment">/// The self reference.
-    </span><span class="kw">pub </span>this: <a href="common.rs.html#302">LocalVar</a>,
+    </span><span class="kw">pub </span>this: LocalVar,
     <span class="doccomment">/// The discriminant field.
-    </span><span class="kw">pub </span>discriminant_field: <a href="common.rs.html#333">Field</a>,
+    </span><span class="kw">pub </span>discriminant_field: Field,
     <span class="doccomment">/// The restrictions of the discriminant field.
-    </span><span class="kw">pub </span>discriminant_bounds: <a href="expr.rs.html#19">Expr</a>,
+    </span><span class="kw">pub </span>discriminant_bounds: Expr,
     <span class="doccomment">/// `(guard, variant_name, variant_predicate)` of the enum. `guard`
     /// is a condition on `discriminant` under which this variant holds.
-    </span><span class="kw">pub </span>variants: Vec&lt;(<a href="expr.rs.html#19">Expr</a>, <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, <a href="#158">StructPredicate</a>)&gt;,
+    </span><span class="kw">pub </span>variants: Vec&lt;(Expr, String, StructPredicate)&gt;,
 }
 
 <span class="attr">#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Serialize, serde::Deserialize)]
-</span><span class="kw">pub struct </span>EnumVariantIndex(<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>);
-<span class="kw">pub type </span>MaybeEnumVariantIndex = <span class="prelude-ty">Option</span>&lt;<a href="#252">EnumVariantIndex</a>&gt;;
+</span><span class="kw">pub struct </span>EnumVariantIndex(String);
+<span class="kw">pub type </span>MaybeEnumVariantIndex = <span class="prelude-ty">Option</span>&lt;EnumVariantIndex&gt;;
 
-<span class="kw">impl </span><a href="#252">EnumVariantIndex</a> {
-    <span class="kw">pub fn </span>get_variant_name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> {
-        <span class="kw-2">&amp;</span><a class="self" href="#256">self</a>.<span class="number">0
+<span class="kw">impl </span>EnumVariantIndex {
+    <span class="kw">pub fn </span>get_variant_name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>str {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="number">0
     </span>}
 
-    <span class="kw">pub fn </span>new(s: <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>) -&gt; <span class="self">Self </span>{
-        <a href="#252">EnumVariantIndex</a>(<a href="#260">s</a>)
+    <span class="kw">pub fn </span>new(s: String) -&gt; <span class="self">Self </span>{
+        EnumVariantIndex(s)
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; From&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="common.rs.html#333">Field</a>&gt; <span class="kw">for </span><a href="#252">EnumVariantIndex</a> {
-    <span class="kw">fn </span>from(field: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="common.rs.html#333">Field</a>) -&gt; <span class="self">Self </span>{
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; From&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Field&gt; <span class="kw">for </span>EnumVariantIndex {
+    <span class="kw">fn </span>from(field: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Field) -&gt; <span class="self">Self </span>{
         <span class="comment">// TODO: Refactor to avoid string manipulations.
-        </span><a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(field.name.starts_with(<span class="string">&quot;enum_&quot;</span>));
-        <a href="#252">EnumVariantIndex</a>(<a href="#266">field</a>.name[<span class="number">5</span>..].<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>())
+        </span><span class="macro">assert!</span>(field.name.starts_with(<span class="string">&quot;enum_&quot;</span>));
+        EnumVariantIndex(field.name[<span class="number">5</span>..].to_string())
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for </span><a href="#237">EnumPredicate</a> {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+<span class="kw">impl </span>fmt::Display <span class="kw">for </span>EnumPredicate {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter) -&gt; fmt::Result {
         <span class="macro">writeln!</span>(f, <span class="string">&quot;enum_predicate {}({}){{&quot;</span>, <span class="self">self</span>.name, <span class="self">self</span>.this)<span class="question-mark">?</span>;
         <span class="macro">writeln!</span>(f, <span class="string">&quot;  discriminant_field={}&quot;</span>, <span class="self">self</span>.discriminant_field)<span class="question-mark">?</span>;
         <span class="kw">for </span>(guard, name, variant) <span class="kw">in </span><span class="self">self</span>.variants.iter() {
-            <span class="macro">writeln!</span>(f, <span class="string">&quot;  {}: {} ==&gt; {}\n&quot;</span>, name, guard, variant)<span class="question-mark">?</span>;
+            <span class="macro">writeln!</span>(f, <span class="string">&quot;  {name}: {guard} ==&gt; {variant}\n&quot;</span>)<span class="question-mark">?</span>;
         }
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.writeln.html">writeln!</a>(<a href="#274">f</a>, <span class="string">&quot;}}&quot;</span>)
+        <span class="macro">writeln!</span>(f, <span class="string">&quot;}}&quot;</span>)
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for </span><a href="#252">EnumVariantIndex</a> {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#285">f</a>, <span class="string">&quot;{{{}}}&quot;</span>, <span class="self">self</span>.<span class="number">0</span>)
+<span class="kw">impl </span>fmt::Display <span class="kw">for </span>EnumVariantIndex {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter) -&gt; fmt::Result {
+        <span class="macro">write!</span>(f, <span class="string">&quot;{{{}}}&quot;</span>, <span class="self">self</span>.<span class="number">0</span>)
     }
 }
 
-<span class="kw">impl </span><a href="#237">EnumPredicate</a> {
+<span class="kw">impl </span>EnumPredicate {
     <span class="doccomment">/// Construct an expression that represents the body of this predicate.
-    </span><span class="kw">pub fn </span>body(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="expr.rs.html#19">Expr</a> {
-        <a class="macro" href="../../common/ast/predicate.rs.html#2-34">enum_predicate!</a>(<span class="self">self</span>)
+    </span><span class="kw">pub fn </span>body(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Expr {
+        <span class="macro">enum_predicate!</span>(<span class="self">self</span>)
     }
 
     <span class="doccomment">/// Visit each expression.
     /// Note: sub-expressions of expressions will not be visited.
-    </span><span class="kw">pub fn </span>visit_expressions&lt;F: FnMut(<span class="kw-2">&amp;</span><a href="expr.rs.html#19">Expr</a>)&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw-2">mut </span>visitor: F) {
-        <a href="#298">visitor</a>(<span class="kw-2">&amp;</span><a class="self" href="#298">self</a>.discriminant_bounds);
-        <a class="self" href="#298">self</a>.variants.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">for_each</a>(|(e, <span class="kw">_</span>, p)| {
-            <a href="#298">visitor</a>(<a href="#300">e</a>);
-            <a href="#300">p</a>.<a href="#218">visit_expressions</a>(|e| <a href="#298">visitor</a>(<a href="#302">e</a>))
+    </span><span class="kw">pub fn </span>visit_expressions&lt;F: FnMut(<span class="kw-2">&amp;</span>Expr)&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw-2">mut </span>visitor: F) {
+        visitor(<span class="kw-2">&amp;</span><span class="self">self</span>.discriminant_bounds);
+        <span class="self">self</span>.variants.iter().for_each(|(e, <span class="kw">_</span>, p)| {
+            visitor(e);
+            p.visit_expressions(|e| visitor(e))
         });
     }
 
     <span class="doccomment">/// Mutably visit each expression.
     /// Note: sub-expressions of expressions will not be visited.
-    </span><span class="kw">pub fn </span>visit_expressions_mut&lt;F: FnMut(<span class="kw-2">&amp;mut </span><a href="expr.rs.html#19">Expr</a>)&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, <span class="kw-2">mut </span>visitor: F) {
-        <a href="#308">visitor</a>(<span class="kw-2">&amp;mut </span><a class="self" href="#308">self</a>.discriminant_bounds);
-        <a class="self" href="#308">self</a>.variants.iter_mut().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">for_each</a>(|(e, <span class="kw">_</span>, p)| {
-            <a href="#308">visitor</a>(<a href="#310">e</a>);
-            <a href="#310">p</a>.<a href="#224">visit_expressions_mut</a>(<span class="kw-2">&amp;mut </span><a href="#308">visitor</a>);
+    </span><span class="kw">pub fn </span>visit_expressions_mut&lt;F: FnMut(<span class="kw-2">&amp;mut </span>Expr)&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, <span class="kw-2">mut </span>visitor: F) {
+        visitor(<span class="kw-2">&amp;mut </span><span class="self">self</span>.discriminant_bounds);
+        <span class="self">self</span>.variants.iter_mut().for_each(|(e, <span class="kw">_</span>, p)| {
+            visitor(e);
+            p.visit_expressions_mut(<span class="kw-2">&amp;mut </span>visitor);
         });
     }
 }
 
-<span class="kw">impl </span><a href="../../common/identifier.rs.html#1">WithIdentifier</a> <span class="kw">for </span><a href="#237">EnumPredicate</a> {
-    <span class="kw">fn </span>get_identifier(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a> {
-        <a class="self" href="#318">self</a>.name.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()
+<span class="kw">impl </span>WithIdentifier <span class="kw">for </span>EnumPredicate {
+    <span class="kw">fn </span>get_identifier(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; String {
+        <span class="self">self</span>.name.clone()
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="vir" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="vir" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

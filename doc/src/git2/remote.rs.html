@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/git2-0.14.4/src/remote.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>remote.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../git2/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/git2-0.14.4/src/remote.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>remote.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../git2/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -1001,20 +1001,20 @@
 <a href="#1001" id="1001">1001</a>
 <a href="#1002" id="1002">1002</a>
 <a href="#1003" id="1003">1003</a>
-</pre><pre class="rust"><code><span class="kw">use </span><a href="../../libc/index.html">libc</a>;
-<span class="kw">use </span><a href="../../libgit2_sys/struct.git_strarray.html">raw::git_strarray</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/marker/index.html">std::marker</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/mem/index.html">std::mem</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/ops/range/struct.Range.html">std::ops::Range</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/ptr/index.html">std::ptr</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/slice/index.html">std::slice</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/str/index.html">std::str</a>;
-<span class="kw">use </span>std::{<a href="https://doc.rust-lang.org/nightly/alloc/ffi/c_str/struct.CString.html">ffi::CString</a>, <a href="https://doc.rust-lang.org/nightly/std/os/raw/type.c_char.html">os::raw::c_char</a>};
+</pre><pre class="rust"><code><span class="kw">use </span>libc;
+<span class="kw">use </span>raw::git_strarray;
+<span class="kw">use </span>std::marker;
+<span class="kw">use </span>std::mem;
+<span class="kw">use </span>std::ops::Range;
+<span class="kw">use </span>std::ptr;
+<span class="kw">use </span>std::slice;
+<span class="kw">use </span>std::str;
+<span class="kw">use </span>std::{ffi::CString, os::raw::c_char};
 
-<span class="kw">use </span><a href="string_array.rs.html#14"><span class="kw">crate</span>::string_array::StringArray</a>;
-<span class="kw">use </span><a href="util.rs.html#25"><span class="kw">crate</span>::util::Binding</a>;
-<span class="kw">use crate</span>::{<a href="../../libgit2_sys/index.html">raw</a>, <a href="buf.rs.html#13">Buf</a>, <a href="lib.rs.html#315">Direction</a>, <a href="error.rs.html#12">Error</a>, <a href="lib.rs.html#1390">FetchPrune</a>, <a href="oid.rs.html#15">Oid</a>, <a href="proxy_options.rs.html#10">ProxyOptions</a>, <a href="refspec.rs.html#13">Refspec</a>};
-<span class="kw">use crate</span>::{<a href="lib.rs.html#1378">AutotagOption</a>, <a href="indexer.rs.html#7">Progress</a>, <a href="remote_callbacks.rs.html#19">RemoteCallbacks</a>, <a href="repo.rs.html#108">Repository</a>};
+<span class="kw">use </span><span class="kw">crate</span>::string_array::StringArray;
+<span class="kw">use </span><span class="kw">crate</span>::util::Binding;
+<span class="kw">use crate</span>::{raw, Buf, Direction, Error, FetchPrune, Oid, ProxyOptions, Refspec};
+<span class="kw">use crate</span>::{AutotagOption, Progress, RemoteCallbacks, Repository};
 
 <span class="doccomment">/// A structure representing a [remote][1] of a git repository.
 ///
@@ -1023,43 +1023,43 @@
 /// The lifetime is the lifetime of the repository that it is attached to. The
 /// remote is used to manage fetches and pushes as well as refspecs.
 </span><span class="kw">pub struct </span>Remote&lt;<span class="lifetime">&#39;repo</span>&gt; {
-    raw: <span class="kw-2">*mut </span><a href="../../libgit2_sys/enum.git_remote.html">raw::git_remote</a>,
-    _marker: marker::PhantomData&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;repo </span><a href="repo.rs.html#108">Repository</a>&gt;,
+    raw: <span class="kw-2">*mut </span>raw::git_remote,
+    _marker: marker::PhantomData&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;repo </span>Repository&gt;,
 }
 
 <span class="doccomment">/// An iterator over the refspecs that a remote contains.
 </span><span class="kw">pub struct </span>Refspecs&lt;<span class="lifetime">&#39;remote</span>&gt; {
-    range: Range&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;,
+    range: Range&lt;usize&gt;,
     remote: <span class="kw-2">&amp;</span><span class="lifetime">&#39;remote </span>Remote&lt;<span class="lifetime">&#39;remote</span>&gt;,
 }
 
 <span class="doccomment">/// Description of a reference advertised by a remote server, given out on calls
 /// to `list`.
 </span><span class="kw">pub struct </span>RemoteHead&lt;<span class="lifetime">&#39;remote</span>&gt; {
-    raw: <span class="kw-2">*const </span><a href="../../libgit2_sys/struct.git_remote_head.html">raw::git_remote_head</a>,
-    _marker: marker::PhantomData&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;remote </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt;,
+    raw: <span class="kw-2">*const </span>raw::git_remote_head,
+    _marker: marker::PhantomData&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;remote </span>str&gt;,
 }
 
 <span class="doccomment">/// Options which can be specified to various fetch operations.
 </span><span class="kw">pub struct </span>FetchOptions&lt;<span class="lifetime">&#39;cb</span>&gt; {
     callbacks: <span class="prelude-ty">Option</span>&lt;RemoteCallbacks&lt;<span class="lifetime">&#39;cb</span>&gt;&gt;,
     proxy: <span class="prelude-ty">Option</span>&lt;ProxyOptions&lt;<span class="lifetime">&#39;cb</span>&gt;&gt;,
-    prune: <a href="lib.rs.html#1390">FetchPrune</a>,
-    update_fetchhead: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-    download_tags: <a href="lib.rs.html#1378">AutotagOption</a>,
-    follow_redirects: <a href="#74">RemoteRedirect</a>,
-    custom_headers: Vec&lt;<a href="https://doc.rust-lang.org/nightly/alloc/ffi/c_str/struct.CString.html">CString</a>&gt;,
-    custom_headers_ptrs: Vec&lt;<span class="kw-2">*const </span><a href="https://doc.rust-lang.org/nightly/std/os/raw/type.c_char.html">c_char</a>&gt;,
+    prune: FetchPrune,
+    update_fetchhead: bool,
+    download_tags: AutotagOption,
+    follow_redirects: RemoteRedirect,
+    custom_headers: Vec&lt;CString&gt;,
+    custom_headers_ptrs: Vec&lt;<span class="kw-2">*const </span>c_char&gt;,
 }
 
 <span class="doccomment">/// Options to control the behavior of a git push.
 </span><span class="kw">pub struct </span>PushOptions&lt;<span class="lifetime">&#39;cb</span>&gt; {
     callbacks: <span class="prelude-ty">Option</span>&lt;RemoteCallbacks&lt;<span class="lifetime">&#39;cb</span>&gt;&gt;,
     proxy: <span class="prelude-ty">Option</span>&lt;ProxyOptions&lt;<span class="lifetime">&#39;cb</span>&gt;&gt;,
-    pb_parallelism: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>,
-    follow_redirects: <a href="#74">RemoteRedirect</a>,
-    custom_headers: Vec&lt;<a href="https://doc.rust-lang.org/nightly/alloc/ffi/c_str/struct.CString.html">CString</a>&gt;,
-    custom_headers_ptrs: Vec&lt;<span class="kw-2">*const </span><a href="https://doc.rust-lang.org/nightly/std/os/raw/type.c_char.html">c_char</a>&gt;,
+    pb_parallelism: u32,
+    follow_redirects: RemoteRedirect,
+    custom_headers: Vec&lt;CString&gt;,
+    custom_headers_ptrs: Vec&lt;<span class="kw-2">*const </span>c_char&gt;,
 }
 
 <span class="doccomment">/// Holds callbacks for a connection to a `Remote`. Disconnects when dropped
@@ -1084,18 +1084,18 @@
     </span>All,
 }
 
-<span class="kw">pub fn </span>remote_into_raw(remote: Remote&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <span class="kw-2">*mut </span><a href="../../libgit2_sys/enum.git_remote.html">raw::git_remote</a> {
-    <span class="kw">let </span>ret = <a href="#84">remote</a>.raw;
-    mem::forget(<a href="#84">remote</a>);
-    <a href="#85">ret</a>
+<span class="kw">pub fn </span>remote_into_raw(remote: Remote&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <span class="kw-2">*mut </span>raw::git_remote {
+    <span class="kw">let </span>ret = remote.raw;
+    mem::forget(remote);
+    ret
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;repo</span>&gt; Remote&lt;<span class="lifetime">&#39;repo</span>&gt; {
     <span class="doccomment">/// Ensure the remote name is well-formed.
-    </span><span class="kw">pub fn </span>is_valid_name(remote_name: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a href="lib.rs.html#717"><span class="kw">crate</span>::init</a>();
-        <span class="kw">let </span>remote_name = CString::new(<a href="#92">remote_name</a>).unwrap();
-        <span class="kw">unsafe </span>{ raw::git_remote_is_valid_name(<a href="#94">remote_name</a>.as_ptr()) == <span class="number">1 </span>}
+    </span><span class="kw">pub fn </span>is_valid_name(remote_name: <span class="kw-2">&amp;</span>str) -&gt; bool {
+        <span class="kw">crate</span>::init();
+        <span class="kw">let </span>remote_name = CString::new(remote_name).unwrap();
+        <span class="kw">unsafe </span>{ raw::git_remote_is_valid_name(remote_name.as_ptr()) == <span class="number">1 </span>}
     }
 
     <span class="doccomment">/// Create a detached remote
@@ -1104,13 +1104,13 @@
     /// when you have a URL instead of a remote&#39;s name.
     /// Contrasted with an anonymous remote, a detached remote will not
     /// consider any repo configuration values.
-    </span><span class="kw">pub fn </span>create_detached&lt;S: Into&lt;Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;&gt;&gt;(url: S) -&gt; <span class="prelude-ty">Result</span>&lt;Remote&lt;<span class="lifetime">&#39;repo</span>&gt;, <a href="error.rs.html#12">Error</a>&gt; {
-        <a href="lib.rs.html#717"><span class="kw">crate</span>::init</a>();
+    </span><span class="kw">pub fn </span>create_detached&lt;S: Into&lt;Vec&lt;u8&gt;&gt;&gt;(url: S) -&gt; <span class="prelude-ty">Result</span>&lt;Remote&lt;<span class="lifetime">&#39;repo</span>&gt;, Error&gt; {
+        <span class="kw">crate</span>::init();
         <span class="kw">let </span><span class="kw-2">mut </span>ret = ptr::null_mut();
         <span class="kw">let </span>url = CString::new(url)<span class="question-mark">?</span>;
         <span class="kw">unsafe </span>{
-            <a class="macro" href="call.rs.html#12-19">try_call!</a>(raw::git_remote_create_detached(<span class="kw-2">&amp;mut </span>ret, url));
-            <span class="prelude-val">Ok</span>(<a href="util.rs.html#28">Binding::from_raw</a>(<a href="#106">ret</a>))
+            <span class="macro">try_call!</span>(raw::git_remote_create_detached(<span class="kw-2">&amp;mut </span>ret, url));
+            <span class="prelude-val">Ok</span>(Binding::from_raw(ret))
         }
     }
 
@@ -1118,39 +1118,39 @@
     ///
     /// Returns `None` if this remote has not yet been named or if the name is
     /// not valid utf-8
-    </span><span class="kw">pub fn </span>name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt; {
-        <a class="self" href="#118">self</a>.<a href="#125">name_bytes</a>().and_then(|s| <a href="https://doc.rust-lang.org/nightly/core/str/converts/fn.from_utf8.html">str::from_utf8</a>(<a href="#119">s</a>).ok())
+    </span><span class="kw">pub fn </span>name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>str&gt; {
+        <span class="self">self</span>.name_bytes().and_then(|s| str::from_utf8(s).ok())
     }
 
     <span class="doccomment">/// Get the remote&#39;s name, in bytes.
     ///
     /// Returns `None` if this remote has not yet been named
-    </span><span class="kw">pub fn </span>name_bytes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt; {
-        <span class="kw">unsafe </span>{ <a href="lib.rs.html#856"><span class="kw">crate</span>::opt_bytes</a>(<a class="self" href="#125">self</a>, raw::git_remote_name(<span class="kw-2">&amp;*</span><a class="self" href="#125">self</a>.raw)) }
+    </span><span class="kw">pub fn </span>name_bytes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>[u8]&gt; {
+        <span class="kw">unsafe </span>{ <span class="kw">crate</span>::opt_bytes(<span class="self">self</span>, raw::git_remote_name(<span class="kw-2">&amp;*</span><span class="self">self</span>.raw)) }
     }
 
     <span class="doccomment">/// Get the remote&#39;s url.
     ///
     /// Returns `None` if the url is not valid utf-8
-    </span><span class="kw">pub fn </span>url(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt; {
-        <a href="https://doc.rust-lang.org/nightly/core/str/converts/fn.from_utf8.html">str::from_utf8</a>(<a class="self" href="#132">self</a>.<a href="#137">url_bytes</a>()).ok()
+    </span><span class="kw">pub fn </span>url(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>str&gt; {
+        str::from_utf8(<span class="self">self</span>.url_bytes()).ok()
     }
 
     <span class="doccomment">/// Get the remote&#39;s url as a byte array.
-    </span><span class="kw">pub fn </span>url_bytes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>] {
-        <span class="kw">unsafe </span>{ <a href="lib.rs.html#856"><span class="kw">crate</span>::opt_bytes</a>(<a class="self" href="#137">self</a>, raw::git_remote_url(<span class="kw-2">&amp;*</span><a class="self" href="#137">self</a>.raw)).unwrap() }
+    </span><span class="kw">pub fn </span>url_bytes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[u8] {
+        <span class="kw">unsafe </span>{ <span class="kw">crate</span>::opt_bytes(<span class="self">self</span>, raw::git_remote_url(<span class="kw-2">&amp;*</span><span class="self">self</span>.raw)).unwrap() }
     }
 
     <span class="doccomment">/// Get the remote&#39;s pushurl.
     ///
     /// Returns `None` if the pushurl is not valid utf-8
-    </span><span class="kw">pub fn </span>pushurl(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt; {
-        <a class="self" href="#144">self</a>.<a href="#149">pushurl_bytes</a>().and_then(|s| <a href="https://doc.rust-lang.org/nightly/core/str/converts/fn.from_utf8.html">str::from_utf8</a>(<a href="#145">s</a>).ok())
+    </span><span class="kw">pub fn </span>pushurl(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>str&gt; {
+        <span class="self">self</span>.pushurl_bytes().and_then(|s| str::from_utf8(s).ok())
     }
 
     <span class="doccomment">/// Get the remote&#39;s pushurl as a byte array.
-    </span><span class="kw">pub fn </span>pushurl_bytes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt; {
-        <span class="kw">unsafe </span>{ <a href="lib.rs.html#856"><span class="kw">crate</span>::opt_bytes</a>(<a class="self" href="#149">self</a>, raw::git_remote_pushurl(<span class="kw-2">&amp;*</span><a class="self" href="#149">self</a>.raw)) }
+    </span><span class="kw">pub fn </span>pushurl_bytes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>[u8]&gt; {
+        <span class="kw">unsafe </span>{ <span class="kw">crate</span>::opt_bytes(<span class="self">self</span>, raw::git_remote_pushurl(<span class="kw-2">&amp;*</span><span class="self">self</span>.raw)) }
     }
 
     <span class="doccomment">/// Get the remote&#39;s default branch.
@@ -1159,19 +1159,19 @@
     /// remote repository. This default branch is available as soon as the
     /// connection to the remote is initiated and it remains available after
     /// disconnecting.
-    </span><span class="kw">pub fn </span>default_branch(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="buf.rs.html#13">Buf</a>, <a href="error.rs.html#12">Error</a>&gt; {
+    </span><span class="kw">pub fn </span>default_branch(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;Buf, Error&gt; {
         <span class="kw">unsafe </span>{
             <span class="kw">let </span>buf = Buf::new();
-            <a class="macro" href="call.rs.html#12-19">try_call!</a>(raw::git_remote_default_branch(buf.raw(), <span class="self">self</span>.raw));
-            <span class="prelude-val">Ok</span>(<a href="#161">buf</a>)
+            <span class="macro">try_call!</span>(raw::git_remote_default_branch(buf.raw(), <span class="self">self</span>.raw));
+            <span class="prelude-val">Ok</span>(buf)
         }
     }
 
     <span class="doccomment">/// Open a connection to a remote.
-    </span><span class="kw">pub fn </span>connect(<span class="kw-2">&amp;mut </span><span class="self">self</span>, dir: <a href="lib.rs.html#315">Direction</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#12">Error</a>&gt; {
+    </span><span class="kw">pub fn </span>connect(<span class="kw-2">&amp;mut </span><span class="self">self</span>, dir: Direction) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
         <span class="comment">// TODO: can callbacks be exposed safely?
         </span><span class="kw">unsafe </span>{
-            <a class="macro" href="call.rs.html#12-19">try_call!</a>(raw::git_remote_connect(
+            <span class="macro">try_call!</span>(raw::git_remote_connect(
                 <span class="self">self</span>.raw,
                 dir,
                 ptr::null(),
@@ -1187,14 +1187,14 @@
     /// Returns a `RemoteConnection` that will disconnect once dropped
     </span><span class="kw">pub fn </span>connect_auth&lt;<span class="lifetime">&#39;connection</span>, <span class="lifetime">&#39;cb</span>&gt;(
         <span class="kw-2">&amp;</span><span class="lifetime">&#39;connection </span><span class="kw-2">mut </span><span class="self">self</span>,
-        dir: <a href="lib.rs.html#315">Direction</a>,
+        dir: Direction,
         cb: <span class="prelude-ty">Option</span>&lt;RemoteCallbacks&lt;<span class="lifetime">&#39;cb</span>&gt;&gt;,
         proxy_options: <span class="prelude-ty">Option</span>&lt;ProxyOptions&lt;<span class="lifetime">&#39;cb</span>&gt;&gt;,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;RemoteConnection&lt;<span class="lifetime">&#39;repo</span>, <span class="lifetime">&#39;connection</span>, <span class="lifetime">&#39;cb</span>&gt;, <a href="error.rs.html#12">Error</a>&gt; {
-        <span class="kw">let </span>cb = Box::new(<a href="#188">cb</a>.unwrap_or_else(RemoteCallbacks::new));
-        <span class="kw">let </span>proxy_options = <a href="#189">proxy_options</a>.unwrap_or_else(ProxyOptions::new);
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;RemoteConnection&lt;<span class="lifetime">&#39;repo</span>, <span class="lifetime">&#39;connection</span>, <span class="lifetime">&#39;cb</span>&gt;, Error&gt; {
+        <span class="kw">let </span>cb = Box::new(cb.unwrap_or_else(RemoteCallbacks::new));
+        <span class="kw">let </span>proxy_options = proxy_options.unwrap_or_else(ProxyOptions::new);
         <span class="kw">unsafe </span>{
-            <a class="macro" href="call.rs.html#12-19">try_call!</a>(raw::git_remote_connect(
+            <span class="macro">try_call!</span>(raw::git_remote_connect(
                 <span class="self">self</span>.raw,
                 dir,
                 <span class="kw-2">&amp;</span>cb.raw(),
@@ -1203,22 +1203,22 @@
             ));
         }
 
-        <span class="prelude-val">Ok</span>(<a href="#63">RemoteConnection</a> {
-            _callbacks: <a href="#191">cb</a>,
-            _proxy: <a href="#192">proxy_options</a>,
-            remote: <a class="self" href="#186">self</a>,
+        <span class="prelude-val">Ok</span>(RemoteConnection {
+            _callbacks: cb,
+            _proxy: proxy_options,
+            remote: <span class="self">self</span>,
         })
     }
 
     <span class="doccomment">/// Check whether the remote is connected
-    </span><span class="kw">pub fn </span>connected(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">unsafe </span>{ raw::git_remote_connected(<a class="self" href="#211">self</a>.raw) == <span class="number">1 </span>}
+    </span><span class="kw">pub fn </span>connected(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; bool {
+        <span class="kw">unsafe </span>{ raw::git_remote_connected(<span class="self">self</span>.raw) == <span class="number">1 </span>}
     }
 
     <span class="doccomment">/// Disconnect from the remote
-    </span><span class="kw">pub fn </span>disconnect(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#12">Error</a>&gt; {
+    </span><span class="kw">pub fn </span>disconnect(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
         <span class="kw">unsafe </span>{
-            <a class="macro" href="call.rs.html#12-19">try_call!</a>(raw::git_remote_disconnect(<span class="self">self</span>.raw));
+            <span class="macro">try_call!</span>(raw::git_remote_disconnect(<span class="self">self</span>.raw));
         }
         <span class="prelude-val">Ok</span>(())
     }
@@ -1233,15 +1233,15 @@
     ///
     /// The `specs` argument is a list of refspecs to use for this negotiation
     /// and download. Use an empty array to use the base refspecs.
-    </span><span class="kw">pub fn </span>download&lt;Str: AsRef&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt; + <a href="util.rs.html#101"><span class="kw">crate</span>::IntoCString</a> + <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a>&gt;(
+    </span><span class="kw">pub fn </span>download&lt;Str: AsRef&lt;str&gt; + <span class="kw">crate</span>::IntoCString + Clone&gt;(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         specs: <span class="kw-2">&amp;</span>[Str],
         opts: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;mut </span>FetchOptions&lt;<span class="lifetime">&#39;_</span>&gt;&gt;,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#12">Error</a>&gt; {
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
         <span class="kw">let </span>(_a, _b, arr) = <span class="kw">crate</span>::util::iter2cstrs(specs.iter())<span class="question-mark">?</span>;
-        <span class="kw">let </span>raw = <a href="#236">opts</a>.map(|o| <a href="#239">o</a>.<a href="util.rs.html#29">raw</a>());
+        <span class="kw">let </span>raw = opts.map(|o| o.raw());
         <span class="kw">unsafe </span>{
-            <a class="macro" href="call.rs.html#12-19">try_call!</a>(raw::git_remote_download(<span class="self">self</span>.raw, <span class="kw-2">&amp;</span>arr, raw.as_ref()));
+            <span class="macro">try_call!</span>(raw::git_remote_download(<span class="self">self</span>.raw, <span class="kw-2">&amp;</span>arr, raw.as_ref()));
         }
         <span class="prelude-val">Ok</span>(())
     }
@@ -1250,29 +1250,29 @@
     ///
     /// At certain points in its operation, the network code checks whether the
     /// operation has been cancelled and if so stops the operation.
-    </span><span class="kw">pub fn </span>stop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#12">Error</a>&gt; {
+    </span><span class="kw">pub fn </span>stop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
         <span class="kw">unsafe </span>{
-            <a class="macro" href="call.rs.html#12-19">try_call!</a>(raw::git_remote_stop(<span class="self">self</span>.raw));
+            <span class="macro">try_call!</span>(raw::git_remote_stop(<span class="self">self</span>.raw));
         }
         <span class="prelude-val">Ok</span>(())
     }
 
     <span class="doccomment">/// Get the number of refspecs for a remote
     </span><span class="kw">pub fn </span>refspecs(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Refspecs&lt;<span class="lifetime">&#39;_</span>&gt; {
-        <span class="kw">let </span>cnt = <span class="kw">unsafe </span>{ raw::git_remote_refspec_count(<span class="kw-2">&amp;*</span><a class="self" href="#258">self</a>.raw) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> };
-        <a href="#28">Refspecs</a> {
-            range: <span class="number">0</span>..<a href="#259">cnt</a>,
-            remote: <a class="self" href="#258">self</a>,
+        <span class="kw">let </span>cnt = <span class="kw">unsafe </span>{ raw::git_remote_refspec_count(<span class="kw-2">&amp;*</span><span class="self">self</span>.raw) <span class="kw">as </span>usize };
+        Refspecs {
+            range: <span class="number">0</span>..cnt,
+            remote: <span class="self">self</span>,
         }
     }
 
     <span class="doccomment">/// Get the `nth` refspec from this remote.
     ///
     /// The `refspecs` iterator can be used to iterate over all refspecs.
-    </span><span class="kw">pub fn </span>get_refspec(<span class="kw-2">&amp;</span><span class="self">self</span>, i: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="prelude-ty">Option</span>&lt;Refspec&lt;<span class="lifetime">&#39;repo</span>&gt;&gt; {
+    </span><span class="kw">pub fn </span>get_refspec(<span class="kw-2">&amp;</span><span class="self">self</span>, i: usize) -&gt; <span class="prelude-ty">Option</span>&lt;Refspec&lt;<span class="lifetime">&#39;repo</span>&gt;&gt; {
         <span class="kw">unsafe </span>{
-            <span class="kw">let </span>ptr = raw::git_remote_get_refspec(<span class="kw-2">&amp;*</span><a class="self" href="#269">self</a>.raw, <a href="#269">i</a> <span class="kw">as </span><a href="../../libc/unix/type.size_t.html">libc::size_t</a>);
-            <a href="util.rs.html#31-34">Binding::from_raw_opt</a>(<a href="#271">ptr</a>)
+            <span class="kw">let </span>ptr = raw::git_remote_get_refspec(<span class="kw-2">&amp;*</span><span class="self">self</span>.raw, i <span class="kw">as </span>libc::size_t);
+            Binding::from_raw_opt(ptr)
         }
     }
 
@@ -1293,17 +1293,17 @@
     /// let repo = git2::Repository::discover(&quot;rust&quot;).unwrap();
     /// fetch_origin_main(repo).unwrap();
     /// ```
-    </span><span class="kw">pub fn </span>fetch&lt;Str: AsRef&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt; + <a href="util.rs.html#101"><span class="kw">crate</span>::IntoCString</a> + <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a>&gt;(
+    </span><span class="kw">pub fn </span>fetch&lt;Str: AsRef&lt;str&gt; + <span class="kw">crate</span>::IntoCString + Clone&gt;(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         refspecs: <span class="kw-2">&amp;</span>[Str],
         opts: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;mut </span>FetchOptions&lt;<span class="lifetime">&#39;_</span>&gt;&gt;,
-        reflog_msg: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt;,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#12">Error</a>&gt; {
+        reflog_msg: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>str&gt;,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
         <span class="kw">let </span>(_a, _b, arr) = <span class="kw">crate</span>::util::iter2cstrs(refspecs.iter())<span class="question-mark">?</span>;
         <span class="kw">let </span>msg = <span class="kw">crate</span>::opt_cstr(reflog_msg)<span class="question-mark">?</span>;
-        <span class="kw">let </span>raw = <a href="#296">opts</a>.map(|o| <a href="#301">o</a>.<a href="util.rs.html#29">raw</a>());
+        <span class="kw">let </span>raw = opts.map(|o| o.raw());
         <span class="kw">unsafe </span>{
-            <a class="macro" href="call.rs.html#12-19">try_call!</a>(raw::git_remote_fetch(<span class="self">self</span>.raw, <span class="kw-2">&amp;</span>arr, raw.as_ref(), msg));
+            <span class="macro">try_call!</span>(raw::git_remote_fetch(<span class="self">self</span>.raw, <span class="kw-2">&amp;</span>arr, raw.as_ref(), msg));
         }
         <span class="prelude-val">Ok</span>(())
     }
@@ -1312,14 +1312,14 @@
     </span><span class="kw">pub fn </span>update_tips(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         callbacks: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;mut </span>RemoteCallbacks&lt;<span class="lifetime">&#39;_</span>&gt;&gt;,
-        update_fetchhead: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-        download_tags: <a href="lib.rs.html#1378">AutotagOption</a>,
-        msg: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt;,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#12">Error</a>&gt; {
+        update_fetchhead: bool,
+        download_tags: AutotagOption,
+        msg: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>str&gt;,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
         <span class="kw">let </span>msg = <span class="kw">crate</span>::opt_cstr(msg)<span class="question-mark">?</span>;
-        <span class="kw">let </span>cbs = <a href="#311">callbacks</a>.map(|cb| <a href="#317">cb</a>.<a href="util.rs.html#29">raw</a>());
+        <span class="kw">let </span>cbs = callbacks.map(|cb| cb.raw());
         <span class="kw">unsafe </span>{
-            <a class="macro" href="call.rs.html#12-19">try_call!</a>(raw::git_remote_update_tips(
+            <span class="macro">try_call!</span>(raw::git_remote_update_tips(
                 <span class="self">self</span>.raw,
                 cbs.as_ref(),
                 update_fetchhead,
@@ -1338,22 +1338,22 @@
     /// Note that you&#39;ll likely want to use `RemoteCallbacks` and set
     /// `push_update_reference` to test whether all the references were pushed
     /// successfully.
-    </span><span class="kw">pub fn </span>push&lt;Str: AsRef&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt; + <a href="util.rs.html#101"><span class="kw">crate</span>::IntoCString</a> + <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a>&gt;(
+    </span><span class="kw">pub fn </span>push&lt;Str: AsRef&lt;str&gt; + <span class="kw">crate</span>::IntoCString + Clone&gt;(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         refspecs: <span class="kw-2">&amp;</span>[Str],
         opts: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;mut </span>PushOptions&lt;<span class="lifetime">&#39;_</span>&gt;&gt;,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#12">Error</a>&gt; {
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
         <span class="kw">let </span>(_a, _b, arr) = <span class="kw">crate</span>::util::iter2cstrs(refspecs.iter())<span class="question-mark">?</span>;
-        <span class="kw">let </span>raw = <a href="#341">opts</a>.map(|o| <a href="#344">o</a>.<a href="util.rs.html#29">raw</a>());
+        <span class="kw">let </span>raw = opts.map(|o| o.raw());
         <span class="kw">unsafe </span>{
-            <a class="macro" href="call.rs.html#12-19">try_call!</a>(raw::git_remote_push(<span class="self">self</span>.raw, <span class="kw-2">&amp;</span>arr, raw.as_ref()));
+            <span class="macro">try_call!</span>(raw::git_remote_push(<span class="self">self</span>.raw, <span class="kw-2">&amp;</span>arr, raw.as_ref()));
         }
         <span class="prelude-val">Ok</span>(())
     }
 
     <span class="doccomment">/// Get the statistics structure that is filled in by the fetch operation.
     </span><span class="kw">pub fn </span>stats(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Progress&lt;<span class="lifetime">&#39;_</span>&gt; {
-        <span class="kw">unsafe </span>{ <a href="util.rs.html#28">Binding::from_raw</a>(raw::git_remote_stats(<a class="self" href="#352">self</a>.raw)) }
+        <span class="kw">unsafe </span>{ Binding::from_raw(raw::git_remote_stats(<span class="self">self</span>.raw)) }
     }
 
     <span class="doccomment">/// Get the remote repository&#39;s reference advertisement list.
@@ -1364,127 +1364,127 @@
     /// The remote (or more exactly its transport) must have connected to the
     /// remote repository. This list is available as soon as the connection to
     /// the remote is initiated and it remains available after disconnecting.
-    </span><span class="kw">pub fn </span>list(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span>[RemoteHead&lt;<span class="lifetime">&#39;_</span>&gt;], <a href="error.rs.html#12">Error</a>&gt; {
+    </span><span class="kw">pub fn </span>list(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span>[RemoteHead&lt;<span class="lifetime">&#39;_</span>&gt;], Error&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>size = <span class="number">0</span>;
         <span class="kw">let </span><span class="kw-2">mut </span>base = ptr::null_mut();
         <span class="kw">unsafe </span>{
-            <a class="macro" href="call.rs.html#12-19">try_call!</a>(raw::git_remote_ls(<span class="kw-2">&amp;mut </span>base, <span class="kw-2">&amp;mut </span>size, <span class="self">self</span>.raw));
-            <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert_eq.html">assert_eq!</a>(
+            <span class="macro">try_call!</span>(raw::git_remote_ls(<span class="kw-2">&amp;mut </span>base, <span class="kw-2">&amp;mut </span>size, <span class="self">self</span>.raw));
+            <span class="macro">assert_eq!</span>(
                 mem::size_of::&lt;RemoteHead&lt;<span class="lifetime">&#39;_</span>&gt;&gt;(),
                 mem::size_of::&lt;<span class="kw-2">*const </span>raw::git_remote_head&gt;()
             );
-            <span class="kw">let </span>slice = slice::from_raw_parts(<a href="#366">base</a> <span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_</span>, <a href="#365">size</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>);
+            <span class="kw">let </span>slice = slice::from_raw_parts(base <span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_</span>, size <span class="kw">as </span>usize);
             <span class="prelude-val">Ok</span>(mem::transmute::&lt;
-                <span class="kw-2">&amp;</span>[<span class="kw-2">*const </span><a href="../../libgit2_sys/struct.git_remote_head.html">raw::git_remote_head</a>],
+                <span class="kw-2">&amp;</span>[<span class="kw-2">*const </span>raw::git_remote_head],
                 <span class="kw-2">&amp;</span>[RemoteHead&lt;<span class="lifetime">&#39;_</span>&gt;],
-            &gt;(<a href="#373">slice</a>))
+            &gt;(slice))
         }
     }
 
     <span class="doccomment">/// Prune tracking refs that are no longer present on remote
-    </span><span class="kw">pub fn </span>prune(<span class="kw-2">&amp;mut </span><span class="self">self</span>, callbacks: <span class="prelude-ty">Option</span>&lt;RemoteCallbacks&lt;<span class="lifetime">&#39;_</span>&gt;&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#12">Error</a>&gt; {
-        <span class="kw">let </span>cbs = Box::new(<a href="#382">callbacks</a>.unwrap_or_else(RemoteCallbacks::new));
+    </span><span class="kw">pub fn </span>prune(<span class="kw-2">&amp;mut </span><span class="self">self</span>, callbacks: <span class="prelude-ty">Option</span>&lt;RemoteCallbacks&lt;<span class="lifetime">&#39;_</span>&gt;&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
+        <span class="kw">let </span>cbs = Box::new(callbacks.unwrap_or_else(RemoteCallbacks::new));
         <span class="kw">unsafe </span>{
-            <a class="macro" href="call.rs.html#12-19">try_call!</a>(raw::git_remote_prune(<span class="self">self</span>.raw, <span class="kw-2">&amp;</span>cbs.raw()));
+            <span class="macro">try_call!</span>(raw::git_remote_prune(<span class="self">self</span>.raw, <span class="kw-2">&amp;</span>cbs.raw()));
         }
         <span class="prelude-val">Ok</span>(())
     }
 
     <span class="doccomment">/// Get the remote&#39;s list of fetch refspecs
-    </span><span class="kw">pub fn </span>fetch_refspecs(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="string_array.rs.html#14">StringArray</a>, <a href="error.rs.html#12">Error</a>&gt; {
+    </span><span class="kw">pub fn </span>fetch_refspecs(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;StringArray, Error&gt; {
         <span class="kw">unsafe </span>{
-            <span class="kw">let </span><span class="kw-2">mut </span>raw: <a href="../../libgit2_sys/struct.git_strarray.html">raw::git_strarray</a> = mem::zeroed();
-            <a class="macro" href="call.rs.html#12-19">try_call!</a>(raw::git_remote_get_fetch_refspecs(<span class="kw-2">&amp;mut </span>raw, <span class="self">self</span>.raw));
-            <span class="prelude-val">Ok</span>(StringArray::from_raw(<a href="#393">raw</a>))
+            <span class="kw">let </span><span class="kw-2">mut </span>raw: raw::git_strarray = mem::zeroed();
+            <span class="macro">try_call!</span>(raw::git_remote_get_fetch_refspecs(<span class="kw-2">&amp;mut </span>raw, <span class="self">self</span>.raw));
+            <span class="prelude-val">Ok</span>(StringArray::from_raw(raw))
         }
     }
 
     <span class="doccomment">/// Get the remote&#39;s list of push refspecs
-    </span><span class="kw">pub fn </span>push_refspecs(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="string_array.rs.html#14">StringArray</a>, <a href="error.rs.html#12">Error</a>&gt; {
+    </span><span class="kw">pub fn </span>push_refspecs(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;StringArray, Error&gt; {
         <span class="kw">unsafe </span>{
-            <span class="kw">let </span><span class="kw-2">mut </span>raw: <a href="../../libgit2_sys/struct.git_strarray.html">raw::git_strarray</a> = mem::zeroed();
-            <a class="macro" href="call.rs.html#12-19">try_call!</a>(raw::git_remote_get_push_refspecs(<span class="kw-2">&amp;mut </span>raw, <span class="self">self</span>.raw));
-            <span class="prelude-val">Ok</span>(StringArray::from_raw(<a href="#402">raw</a>))
+            <span class="kw">let </span><span class="kw-2">mut </span>raw: raw::git_strarray = mem::zeroed();
+            <span class="macro">try_call!</span>(raw::git_remote_get_push_refspecs(<span class="kw-2">&amp;mut </span>raw, <span class="self">self</span>.raw));
+            <span class="prelude-val">Ok</span>(StringArray::from_raw(raw))
         }
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;repo</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> <span class="kw">for </span>Remote&lt;<span class="lifetime">&#39;repo</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;repo</span>&gt; Clone <span class="kw">for </span>Remote&lt;<span class="lifetime">&#39;repo</span>&gt; {
     <span class="kw">fn </span>clone(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Remote&lt;<span class="lifetime">&#39;repo</span>&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>ret = ptr::null_mut();
-        <span class="kw">let </span>rc = <span class="kw">unsafe </span>{ <a class="macro" href="call.rs.html#6-10">call!</a>(raw::git_remote_dup(<span class="kw-2">&amp;mut </span>ret, <span class="self">self</span>.raw)) };
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert_eq.html">assert_eq!</a>(rc, <span class="number">0</span>);
-        <a href="#22">Remote</a> {
-            raw: <a href="#411">ret</a>,
+        <span class="kw">let </span>rc = <span class="kw">unsafe </span>{ <span class="macro">call!</span>(raw::git_remote_dup(<span class="kw-2">&amp;mut </span>ret, <span class="self">self</span>.raw)) };
+        <span class="macro">assert_eq!</span>(rc, <span class="number">0</span>);
+        Remote {
+            raw: ret,
             _marker: marker::PhantomData,
         }
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;repo</span>&gt; <a href="util.rs.html#25">Binding</a> <span class="kw">for </span>Remote&lt;<span class="lifetime">&#39;repo</span>&gt; {
-    <span class="kw">type </span>Raw = <span class="kw-2">*mut </span><a href="../../libgit2_sys/enum.git_remote.html">raw::git_remote</a>;
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;repo</span>&gt; Binding <span class="kw">for </span>Remote&lt;<span class="lifetime">&#39;repo</span>&gt; {
+    <span class="kw">type </span>Raw = <span class="kw-2">*mut </span>raw::git_remote;
 
-    <span class="kw">unsafe fn </span>from_raw(raw: <span class="kw-2">*mut </span><a href="../../libgit2_sys/enum.git_remote.html">raw::git_remote</a>) -&gt; Remote&lt;<span class="lifetime">&#39;repo</span>&gt; {
-        <a href="#22">Remote</a> {
-            <a href="#424">raw</a>,
+    <span class="kw">unsafe fn </span>from_raw(raw: <span class="kw-2">*mut </span>raw::git_remote) -&gt; Remote&lt;<span class="lifetime">&#39;repo</span>&gt; {
+        Remote {
+            raw,
             _marker: marker::PhantomData,
         }
     }
-    <span class="kw">fn </span>raw(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">*mut </span><a href="../../libgit2_sys/enum.git_remote.html">raw::git_remote</a> {
-        <a class="self" href="#430">self</a>.raw
+    <span class="kw">fn </span>raw(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">*mut </span>raw::git_remote {
+        <span class="self">self</span>.raw
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;repo</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span>Remote&lt;<span class="lifetime">&#39;repo</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;repo</span>&gt; Drop <span class="kw">for </span>Remote&lt;<span class="lifetime">&#39;repo</span>&gt; {
     <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <span class="kw">unsafe </span>{ raw::git_remote_free(<a class="self" href="#436">self</a>.raw) }
+        <span class="kw">unsafe </span>{ raw::git_remote_free(<span class="self">self</span>.raw) }
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;repo</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a> <span class="kw">for </span>Refspecs&lt;<span class="lifetime">&#39;repo</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;repo</span>&gt; Iterator <span class="kw">for </span>Refspecs&lt;<span class="lifetime">&#39;repo</span>&gt; {
     <span class="kw">type </span>Item = Refspec&lt;<span class="lifetime">&#39;repo</span>&gt;;
     <span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Refspec&lt;<span class="lifetime">&#39;repo</span>&gt;&gt; {
-        <a class="self" href="#443">self</a>.range.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>().and_then(|i| <a class="self" href="#443">self</a>.remote.<a href="#269">get_refspec</a>(<a href="#444">i</a>))
+        <span class="self">self</span>.range.next().and_then(|i| <span class="self">self</span>.remote.get_refspec(i))
     }
-    <span class="kw">fn </span>size_hint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;) {
-        <a class="self" href="#446">self</a>.range.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">size_hint</a>()
+    <span class="kw">fn </span>size_hint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (usize, <span class="prelude-ty">Option</span>&lt;usize&gt;) {
+        <span class="self">self</span>.range.size_hint()
     }
 }
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;repo</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/double_ended/trait.DoubleEndedIterator.html">DoubleEndedIterator</a> <span class="kw">for </span>Refspecs&lt;<span class="lifetime">&#39;repo</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;repo</span>&gt; DoubleEndedIterator <span class="kw">for </span>Refspecs&lt;<span class="lifetime">&#39;repo</span>&gt; {
     <span class="kw">fn </span>next_back(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Refspec&lt;<span class="lifetime">&#39;repo</span>&gt;&gt; {
-        <a class="self" href="#451">self</a>.range
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/double_ended/trait.DoubleEndedIterator.html">next_back</a>()
-            .and_then(|i| <a class="self" href="#451">self</a>.remote.<a href="#269">get_refspec</a>(<a href="#454">i</a>))
+        <span class="self">self</span>.range
+            .next_back()
+            .and_then(|i| <span class="self">self</span>.remote.get_refspec(i))
     }
 }
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;repo</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/exact_size/trait.ExactSizeIterator.html">ExactSizeIterator</a> <span class="kw">for </span>Refspecs&lt;<span class="lifetime">&#39;repo</span>&gt; {}
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;repo</span>&gt; ExactSizeIterator <span class="kw">for </span>Refspecs&lt;<span class="lifetime">&#39;repo</span>&gt; {}
 
 <span class="attr">#[allow(missing_docs)] </span><span class="comment">// not documented in libgit2 :(
 </span><span class="kw">impl</span>&lt;<span class="lifetime">&#39;remote</span>&gt; RemoteHead&lt;<span class="lifetime">&#39;remote</span>&gt; {
     <span class="doccomment">/// Flag if this is available locally.
-    </span><span class="kw">pub fn </span>is_local(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">unsafe </span>{ (<span class="kw-2">*</span><a class="self" href="#462">self</a>.raw).local != <span class="number">0 </span>}
+    </span><span class="kw">pub fn </span>is_local(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="kw">unsafe </span>{ (<span class="kw-2">*</span><span class="self">self</span>.raw).local != <span class="number">0 </span>}
     }
 
-    <span class="kw">pub fn </span>oid(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="oid.rs.html#15">Oid</a> {
-        <span class="kw">unsafe </span>{ <a href="util.rs.html#28">Binding::from_raw</a>(<span class="kw-2">&amp;</span>(<span class="kw-2">*</span><a class="self" href="#466">self</a>.raw).oid <span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_</span>) }
+    <span class="kw">pub fn </span>oid(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Oid {
+        <span class="kw">unsafe </span>{ Binding::from_raw(<span class="kw-2">&amp;</span>(<span class="kw-2">*</span><span class="self">self</span>.raw).oid <span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_</span>) }
     }
-    <span class="kw">pub fn </span>loid(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="oid.rs.html#15">Oid</a> {
-        <span class="kw">unsafe </span>{ <a href="util.rs.html#28">Binding::from_raw</a>(<span class="kw-2">&amp;</span>(<span class="kw-2">*</span><a class="self" href="#469">self</a>.raw).loid <span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_</span>) }
-    }
-
-    <span class="kw">pub fn </span>name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> {
-        <span class="kw">let </span>b = <span class="kw">unsafe </span>{ <a href="lib.rs.html#856"><span class="kw">crate</span>::opt_bytes</a>(<a class="self" href="#473">self</a>, (<span class="kw-2">*</span><a class="self" href="#473">self</a>.raw).name).unwrap() };
-        <a href="https://doc.rust-lang.org/nightly/core/str/converts/fn.from_utf8.html">str::from_utf8</a>(<a href="#474">b</a>).unwrap()
+    <span class="kw">pub fn </span>loid(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Oid {
+        <span class="kw">unsafe </span>{ Binding::from_raw(<span class="kw-2">&amp;</span>(<span class="kw-2">*</span><span class="self">self</span>.raw).loid <span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_</span>) }
     }
 
-    <span class="kw">pub fn </span>symref_target(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt; {
-        <span class="kw">let </span>b = <span class="kw">unsafe </span>{ <a href="lib.rs.html#856"><span class="kw">crate</span>::opt_bytes</a>(<a class="self" href="#478">self</a>, (<span class="kw-2">*</span><a class="self" href="#478">self</a>.raw).symref_target) };
-        <a href="#479">b</a>.map(|b| <a href="https://doc.rust-lang.org/nightly/core/str/converts/fn.from_utf8.html">str::from_utf8</a>(<a href="#480">b</a>).unwrap())
+    <span class="kw">pub fn </span>name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>str {
+        <span class="kw">let </span>b = <span class="kw">unsafe </span>{ <span class="kw">crate</span>::opt_bytes(<span class="self">self</span>, (<span class="kw-2">*</span><span class="self">self</span>.raw).name).unwrap() };
+        str::from_utf8(b).unwrap()
+    }
+
+    <span class="kw">pub fn </span>symref_target(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>str&gt; {
+        <span class="kw">let </span>b = <span class="kw">unsafe </span>{ <span class="kw">crate</span>::opt_bytes(<span class="self">self</span>, (<span class="kw-2">*</span><span class="self">self</span>.raw).symref_target) };
+        b.map(|b| str::from_utf8(b).unwrap())
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;cb</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for </span>FetchOptions&lt;<span class="lifetime">&#39;cb</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;cb</span>&gt; Default <span class="kw">for </span>FetchOptions&lt;<span class="lifetime">&#39;cb</span>&gt; {
     <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>::new()
     }
@@ -1493,13 +1493,13 @@
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;cb</span>&gt; FetchOptions&lt;<span class="lifetime">&#39;cb</span>&gt; {
     <span class="doccomment">/// Creates a new blank set of fetch options
     </span><span class="kw">pub fn </span>new() -&gt; FetchOptions&lt;<span class="lifetime">&#39;cb</span>&gt; {
-        <a href="#41">FetchOptions</a> {
+        FetchOptions {
             callbacks: <span class="prelude-val">None</span>,
             proxy: <span class="prelude-val">None</span>,
-            prune: <a href="lib.rs.html#1392">FetchPrune::Unspecified</a>,
+            prune: FetchPrune::Unspecified,
             update_fetchhead: <span class="bool-val">true</span>,
-            download_tags: <a href="lib.rs.html#1380">AutotagOption::Unspecified</a>,
-            follow_redirects: <a href="#79">RemoteRedirect::Initial</a>,
+            download_tags: AutotagOption::Unspecified,
+            follow_redirects: RemoteRedirect::Initial,
             custom_headers: Vec::new(),
             custom_headers_ptrs: Vec::new(),
         }
@@ -1507,37 +1507,37 @@
 
     <span class="doccomment">/// Set the callbacks to use for the fetch operation.
     </span><span class="kw">pub fn </span>remote_callbacks(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cbs: RemoteCallbacks&lt;<span class="lifetime">&#39;cb</span>&gt;) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self </span>{
-        <a class="self" href="#506">self</a>.callbacks = <span class="prelude-val">Some</span>(<a href="#506">cbs</a>);
-        <span class="self"><a href="#506">self</a>
+        <span class="self">self</span>.callbacks = <span class="prelude-val">Some</span>(cbs);
+        <span class="self">self
     </span>}
 
     <span class="doccomment">/// Set the proxy options to use for the fetch operation.
     </span><span class="kw">pub fn </span>proxy_options(<span class="kw-2">&amp;mut </span><span class="self">self</span>, opts: ProxyOptions&lt;<span class="lifetime">&#39;cb</span>&gt;) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self </span>{
-        <a class="self" href="#512">self</a>.proxy = <span class="prelude-val">Some</span>(<a href="#512">opts</a>);
-        <span class="self"><a href="#512">self</a>
+        <span class="self">self</span>.proxy = <span class="prelude-val">Some</span>(opts);
+        <span class="self">self
     </span>}
 
     <span class="doccomment">/// Set whether to perform a prune after the fetch.
-    </span><span class="kw">pub fn </span>prune(<span class="kw-2">&amp;mut </span><span class="self">self</span>, prune: <a href="lib.rs.html#1390">FetchPrune</a>) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self </span>{
-        <a class="self" href="#518">self</a>.prune = <a href="#518">prune</a>;
-        <span class="self"><a href="#518">self</a>
+    </span><span class="kw">pub fn </span>prune(<span class="kw-2">&amp;mut </span><span class="self">self</span>, prune: FetchPrune) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self </span>{
+        <span class="self">self</span>.prune = prune;
+        <span class="self">self
     </span>}
 
     <span class="doccomment">/// Set whether to write the results to FETCH_HEAD.
     ///
     /// Defaults to `true`.
-    </span><span class="kw">pub fn </span>update_fetchhead(<span class="kw-2">&amp;mut </span><span class="self">self</span>, update: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self </span>{
-        <a class="self" href="#526">self</a>.update_fetchhead = <a href="#526">update</a>;
-        <span class="self"><a href="#526">self</a>
+    </span><span class="kw">pub fn </span>update_fetchhead(<span class="kw-2">&amp;mut </span><span class="self">self</span>, update: bool) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self </span>{
+        <span class="self">self</span>.update_fetchhead = update;
+        <span class="self">self
     </span>}
 
     <span class="doccomment">/// Set how to behave regarding tags on the remote, such as auto-downloading
     /// tags for objects we&#39;re downloading or downloading all of them.
     ///
     /// The default is to auto-follow tags.
-    </span><span class="kw">pub fn </span>download_tags(<span class="kw-2">&amp;mut </span><span class="self">self</span>, opt: <a href="lib.rs.html#1378">AutotagOption</a>) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self </span>{
-        <a class="self" href="#535">self</a>.download_tags = <a href="#535">opt</a>;
-        <span class="self"><a href="#535">self</a>
+    </span><span class="kw">pub fn </span>download_tags(<span class="kw-2">&amp;mut </span><span class="self">self</span>, opt: AutotagOption) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self </span>{
+        <span class="self">self</span>.download_tags = opt;
+        <span class="self">self
     </span>}
 
     <span class="doccomment">/// Set remote redirection settings; whether redirects to another host are
@@ -1545,54 +1545,54 @@
     ///
     /// By default, git will follow a redirect on the initial request
     /// (`/info/refs`), but not subsequent requests.
-    </span><span class="kw">pub fn </span>follow_redirects(<span class="kw-2">&amp;mut </span><span class="self">self</span>, redirect: <a href="#74">RemoteRedirect</a>) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self </span>{
-        <a class="self" href="#545">self</a>.follow_redirects = <a href="#545">redirect</a>;
-        <span class="self"><a href="#545">self</a>
+    </span><span class="kw">pub fn </span>follow_redirects(<span class="kw-2">&amp;mut </span><span class="self">self</span>, redirect: RemoteRedirect) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self </span>{
+        <span class="self">self</span>.follow_redirects = redirect;
+        <span class="self">self
     </span>}
 
     <span class="doccomment">/// Set extra headers for this fetch operation.
-    </span><span class="kw">pub fn </span>custom_headers(<span class="kw-2">&amp;mut </span><span class="self">self</span>, custom_headers: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>]) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self </span>{
-        <a class="self" href="#551">self</a>.custom_headers = <a href="#551">custom_headers</a>
+    </span><span class="kw">pub fn </span>custom_headers(<span class="kw-2">&amp;mut </span><span class="self">self</span>, custom_headers: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span>str]) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self </span>{
+        <span class="self">self</span>.custom_headers = custom_headers
             .iter()
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|<span class="kw-2">&amp;</span>s| CString::new(<a href="#554">s</a>).unwrap())
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
-        <a class="self" href="#551">self</a>.custom_headers_ptrs = <a class="self" href="#551">self</a>.custom_headers.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|s| <a href="#556">s</a>.as_ptr()).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
-        <span class="self"><a href="#551">self</a>
+            .map(|<span class="kw-2">&amp;</span>s| CString::new(s).unwrap())
+            .collect();
+        <span class="self">self</span>.custom_headers_ptrs = <span class="self">self</span>.custom_headers.iter().map(|s| s.as_ptr()).collect();
+        <span class="self">self
     </span>}
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;cb</span>&gt; <a href="util.rs.html#25">Binding</a> <span class="kw">for </span>FetchOptions&lt;<span class="lifetime">&#39;cb</span>&gt; {
-    <span class="kw">type </span>Raw = <a href="../../libgit2_sys/struct.git_fetch_options.html">raw::git_fetch_options</a>;
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;cb</span>&gt; Binding <span class="kw">for </span>FetchOptions&lt;<span class="lifetime">&#39;cb</span>&gt; {
+    <span class="kw">type </span>Raw = raw::git_fetch_options;
 
-    <span class="kw">unsafe fn </span>from_raw(_raw: <a href="../../libgit2_sys/struct.git_fetch_options.html">raw::git_fetch_options</a>) -&gt; FetchOptions&lt;<span class="lifetime">&#39;cb</span>&gt; {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(<span class="string">&quot;unimplemented&quot;</span>);
+    <span class="kw">unsafe fn </span>from_raw(_raw: raw::git_fetch_options) -&gt; FetchOptions&lt;<span class="lifetime">&#39;cb</span>&gt; {
+        <span class="macro">panic!</span>(<span class="string">&quot;unimplemented&quot;</span>);
     }
-    <span class="kw">fn </span>raw(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../../libgit2_sys/struct.git_fetch_options.html">raw::git_fetch_options</a> {
-        <a href="../../libgit2_sys/struct.git_fetch_options.html">raw::git_fetch_options</a> {
+    <span class="kw">fn </span>raw(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; raw::git_fetch_options {
+        raw::git_fetch_options {
             version: <span class="number">1</span>,
-            callbacks: <span class="self"><a href="#567">self</a>
+            callbacks: <span class="self">self
                 </span>.callbacks
                 .as_ref()
-                .map(|m| <a href="#573">m</a>.<a href="util.rs.html#29">raw</a>())
-                .unwrap_or_else(|| RemoteCallbacks::new().<a href="util.rs.html#29">raw</a>()),
-            proxy_opts: <span class="self"><a href="#567">self</a>
+                .map(|m| m.raw())
+                .unwrap_or_else(|| RemoteCallbacks::new().raw()),
+            proxy_opts: <span class="self">self
                 </span>.proxy
                 .as_ref()
-                .map(|m| <a href="#578">m</a>.<a href="util.rs.html#29">raw</a>())
-                .unwrap_or_else(|| ProxyOptions::new().<a href="util.rs.html#29">raw</a>()),
-            prune: <a href="call.rs.html#36"><span class="kw">crate</span>::call::convert</a>(<span class="kw-2">&amp;</span><a class="self" href="#567">self</a>.prune),
-            update_fetchhead: <a href="call.rs.html#36"><span class="kw">crate</span>::call::convert</a>(<span class="kw-2">&amp;</span><a class="self" href="#567">self</a>.update_fetchhead),
-            download_tags: <a href="call.rs.html#36"><span class="kw">crate</span>::call::convert</a>(<span class="kw-2">&amp;</span><a class="self" href="#567">self</a>.download_tags),
-            follow_redirects: <a class="self" href="#567">self</a>.follow_redirects.<a href="#725">raw</a>(),
-            custom_headers: <a href="../../libgit2_sys/struct.git_strarray.html">git_strarray</a> {
-                count: <a class="self" href="#567">self</a>.custom_headers_ptrs.len(),
-                strings: <a class="self" href="#567">self</a>.custom_headers_ptrs.as_ptr() <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>,
+                .map(|m| m.raw())
+                .unwrap_or_else(|| ProxyOptions::new().raw()),
+            prune: <span class="kw">crate</span>::call::convert(<span class="kw-2">&amp;</span><span class="self">self</span>.prune),
+            update_fetchhead: <span class="kw">crate</span>::call::convert(<span class="kw-2">&amp;</span><span class="self">self</span>.update_fetchhead),
+            download_tags: <span class="kw">crate</span>::call::convert(<span class="kw-2">&amp;</span><span class="self">self</span>.download_tags),
+            follow_redirects: <span class="self">self</span>.follow_redirects.raw(),
+            custom_headers: git_strarray {
+                count: <span class="self">self</span>.custom_headers_ptrs.len(),
+                strings: <span class="self">self</span>.custom_headers_ptrs.as_ptr() <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>,
             },
         }
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;cb</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for </span>PushOptions&lt;<span class="lifetime">&#39;cb</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;cb</span>&gt; Default <span class="kw">for </span>PushOptions&lt;<span class="lifetime">&#39;cb</span>&gt; {
     <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>::new()
     }
@@ -1601,11 +1601,11 @@
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;cb</span>&gt; PushOptions&lt;<span class="lifetime">&#39;cb</span>&gt; {
     <span class="doccomment">/// Creates a new blank set of push options
     </span><span class="kw">pub fn </span>new() -&gt; PushOptions&lt;<span class="lifetime">&#39;cb</span>&gt; {
-        <a href="#53">PushOptions</a> {
+        PushOptions {
             callbacks: <span class="prelude-val">None</span>,
             proxy: <span class="prelude-val">None</span>,
             pb_parallelism: <span class="number">1</span>,
-            follow_redirects: <a href="#79">RemoteRedirect::Initial</a>,
+            follow_redirects: RemoteRedirect::Initial,
             custom_headers: Vec::new(),
             custom_headers_ptrs: Vec::new(),
         }
@@ -1613,14 +1613,14 @@
 
     <span class="doccomment">/// Set the callbacks to use for the fetch operation.
     </span><span class="kw">pub fn </span>remote_callbacks(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cbs: RemoteCallbacks&lt;<span class="lifetime">&#39;cb</span>&gt;) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self </span>{
-        <a class="self" href="#612">self</a>.callbacks = <span class="prelude-val">Some</span>(<a href="#612">cbs</a>);
-        <span class="self"><a href="#612">self</a>
+        <span class="self">self</span>.callbacks = <span class="prelude-val">Some</span>(cbs);
+        <span class="self">self
     </span>}
 
     <span class="doccomment">/// Set the proxy options to use for the fetch operation.
     </span><span class="kw">pub fn </span>proxy_options(<span class="kw-2">&amp;mut </span><span class="self">self</span>, opts: ProxyOptions&lt;<span class="lifetime">&#39;cb</span>&gt;) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self </span>{
-        <a class="self" href="#618">self</a>.proxy = <span class="prelude-val">Some</span>(<a href="#618">opts</a>);
-        <span class="self"><a href="#618">self</a>
+        <span class="self">self</span>.proxy = <span class="prelude-val">Some</span>(opts);
+        <span class="self">self
     </span>}
 
     <span class="doccomment">/// If the transport being used to push to the remote requires the creation
@@ -1629,9 +1629,9 @@
     ///
     /// if set to 0 the packbuilder will auto-detect the number of threads to
     /// create, and the default value is 1.
-    </span><span class="kw">pub fn </span>packbuilder_parallelism(<span class="kw-2">&amp;mut </span><span class="self">self</span>, parallel: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self </span>{
-        <a class="self" href="#629">self</a>.pb_parallelism = <a href="#629">parallel</a>;
-        <span class="self"><a href="#629">self</a>
+    </span><span class="kw">pub fn </span>packbuilder_parallelism(<span class="kw-2">&amp;mut </span><span class="self">self</span>, parallel: u32) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self </span>{
+        <span class="self">self</span>.pb_parallelism = parallel;
+        <span class="self">self
     </span>}
 
     <span class="doccomment">/// Set remote redirection settings; whether redirects to another host are
@@ -1639,46 +1639,46 @@
     ///
     /// By default, git will follow a redirect on the initial request
     /// (`/info/refs`), but not subsequent requests.
-    </span><span class="kw">pub fn </span>follow_redirects(<span class="kw-2">&amp;mut </span><span class="self">self</span>, redirect: <a href="#74">RemoteRedirect</a>) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self </span>{
-        <a class="self" href="#639">self</a>.follow_redirects = <a href="#639">redirect</a>;
-        <span class="self"><a href="#639">self</a>
+    </span><span class="kw">pub fn </span>follow_redirects(<span class="kw-2">&amp;mut </span><span class="self">self</span>, redirect: RemoteRedirect) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self </span>{
+        <span class="self">self</span>.follow_redirects = redirect;
+        <span class="self">self
     </span>}
 
     <span class="doccomment">/// Set extra headers for this push operation.
-    </span><span class="kw">pub fn </span>custom_headers(<span class="kw-2">&amp;mut </span><span class="self">self</span>, custom_headers: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>]) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self </span>{
-        <a class="self" href="#645">self</a>.custom_headers = <a href="#645">custom_headers</a>
+    </span><span class="kw">pub fn </span>custom_headers(<span class="kw-2">&amp;mut </span><span class="self">self</span>, custom_headers: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span>str]) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self </span>{
+        <span class="self">self</span>.custom_headers = custom_headers
             .iter()
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|<span class="kw-2">&amp;</span>s| CString::new(<a href="#648">s</a>).unwrap())
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
-        <a class="self" href="#645">self</a>.custom_headers_ptrs = <a class="self" href="#645">self</a>.custom_headers.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|s| <a href="#650">s</a>.as_ptr()).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
-        <span class="self"><a href="#645">self</a>
+            .map(|<span class="kw-2">&amp;</span>s| CString::new(s).unwrap())
+            .collect();
+        <span class="self">self</span>.custom_headers_ptrs = <span class="self">self</span>.custom_headers.iter().map(|s| s.as_ptr()).collect();
+        <span class="self">self
     </span>}
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;cb</span>&gt; <a href="util.rs.html#25">Binding</a> <span class="kw">for </span>PushOptions&lt;<span class="lifetime">&#39;cb</span>&gt; {
-    <span class="kw">type </span>Raw = <a href="../../libgit2_sys/struct.git_push_options.html">raw::git_push_options</a>;
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;cb</span>&gt; Binding <span class="kw">for </span>PushOptions&lt;<span class="lifetime">&#39;cb</span>&gt; {
+    <span class="kw">type </span>Raw = raw::git_push_options;
 
-    <span class="kw">unsafe fn </span>from_raw(_raw: <a href="../../libgit2_sys/struct.git_push_options.html">raw::git_push_options</a>) -&gt; PushOptions&lt;<span class="lifetime">&#39;cb</span>&gt; {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(<span class="string">&quot;unimplemented&quot;</span>);
+    <span class="kw">unsafe fn </span>from_raw(_raw: raw::git_push_options) -&gt; PushOptions&lt;<span class="lifetime">&#39;cb</span>&gt; {
+        <span class="macro">panic!</span>(<span class="string">&quot;unimplemented&quot;</span>);
     }
-    <span class="kw">fn </span>raw(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../../libgit2_sys/struct.git_push_options.html">raw::git_push_options</a> {
-        <a href="../../libgit2_sys/struct.git_push_options.html">raw::git_push_options</a> {
+    <span class="kw">fn </span>raw(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; raw::git_push_options {
+        raw::git_push_options {
             version: <span class="number">1</span>,
-            callbacks: <span class="self"><a href="#661">self</a>
+            callbacks: <span class="self">self
                 </span>.callbacks
                 .as_ref()
-                .map(|m| <a href="#667">m</a>.<a href="util.rs.html#29">raw</a>())
-                .unwrap_or_else(|| RemoteCallbacks::new().<a href="util.rs.html#29">raw</a>()),
-            proxy_opts: <span class="self"><a href="#661">self</a>
+                .map(|m| m.raw())
+                .unwrap_or_else(|| RemoteCallbacks::new().raw()),
+            proxy_opts: <span class="self">self
                 </span>.proxy
                 .as_ref()
-                .map(|m| <a href="#672">m</a>.<a href="util.rs.html#29">raw</a>())
-                .unwrap_or_else(|| ProxyOptions::new().<a href="util.rs.html#29">raw</a>()),
-            pb_parallelism: <a class="self" href="#661">self</a>.pb_parallelism <span class="kw">as </span><a href="../../libc/unix/type.c_uint.html">libc::c_uint</a>,
-            follow_redirects: <a class="self" href="#661">self</a>.follow_redirects.<a href="#725">raw</a>(),
-            custom_headers: <a href="../../libgit2_sys/struct.git_strarray.html">git_strarray</a> {
-                count: <a class="self" href="#661">self</a>.custom_headers_ptrs.len(),
-                strings: <a class="self" href="#661">self</a>.custom_headers_ptrs.as_ptr() <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>,
+                .map(|m| m.raw())
+                .unwrap_or_else(|| ProxyOptions::new().raw()),
+            pb_parallelism: <span class="self">self</span>.pb_parallelism <span class="kw">as </span>libc::c_uint,
+            follow_redirects: <span class="self">self</span>.follow_redirects.raw(),
+            custom_headers: git_strarray {
+                count: <span class="self">self</span>.custom_headers_ptrs.len(),
+                strings: <span class="self">self</span>.custom_headers_ptrs.as_ptr() <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>,
             },
         }
     }
@@ -1686,50 +1686,50 @@
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;repo</span>, <span class="lifetime">&#39;connection</span>, <span class="lifetime">&#39;cb</span>&gt; RemoteConnection&lt;<span class="lifetime">&#39;repo</span>, <span class="lifetime">&#39;connection</span>, <span class="lifetime">&#39;cb</span>&gt; {
     <span class="doccomment">/// Check whether the remote is (still) connected
-    </span><span class="kw">pub fn </span>connected(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#686">self</a>.remote.<a href="#211">connected</a>()
+    </span><span class="kw">pub fn </span>connected(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.remote.connected()
     }
 
     <span class="doccomment">/// Get the remote repository&#39;s reference advertisement list.
     ///
     /// This list is available as soon as the connection to
     /// the remote is initiated and it remains available after disconnecting.
-    </span><span class="kw">pub fn </span>list(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span>[RemoteHead&lt;<span class="lifetime">&#39;_</span>&gt;], <a href="error.rs.html#12">Error</a>&gt; {
-        <a class="self" href="#694">self</a>.remote.<a href="#364">list</a>()
+    </span><span class="kw">pub fn </span>list(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span>[RemoteHead&lt;<span class="lifetime">&#39;_</span>&gt;], Error&gt; {
+        <span class="self">self</span>.remote.list()
     }
 
     <span class="doccomment">/// Get the remote&#39;s default branch.
     ///
     /// This default branch is available as soon as the connection to the remote
     /// is initiated and it remains available after disconnecting.
-    </span><span class="kw">pub fn </span>default_branch(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="buf.rs.html#13">Buf</a>, <a href="error.rs.html#12">Error</a>&gt; {
-        <a class="self" href="#702">self</a>.remote.<a href="#159">default_branch</a>()
+    </span><span class="kw">pub fn </span>default_branch(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;Buf, Error&gt; {
+        <span class="self">self</span>.remote.default_branch()
     }
 
     <span class="doccomment">/// access remote bound to this connection
     </span><span class="kw">pub fn </span>remote(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>Remote&lt;<span class="lifetime">&#39;repo</span>&gt; {
-        <a class="self" href="#707">self</a>.remote
+        <span class="self">self</span>.remote
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;repo</span>, <span class="lifetime">&#39;connection</span>, <span class="lifetime">&#39;cb</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span>RemoteConnection&lt;<span class="lifetime">&#39;repo</span>, <span class="lifetime">&#39;connection</span>, <span class="lifetime">&#39;cb</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;repo</span>, <span class="lifetime">&#39;connection</span>, <span class="lifetime">&#39;cb</span>&gt; Drop <span class="kw">for </span>RemoteConnection&lt;<span class="lifetime">&#39;repo</span>, <span class="lifetime">&#39;connection</span>, <span class="lifetime">&#39;cb</span>&gt; {
     <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <a href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>(<a class="self" href="#713">self</a>.remote.<a href="#216">disconnect</a>());
+        drop(<span class="self">self</span>.remote.disconnect());
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for </span><a href="#74">RemoteRedirect</a> {
+<span class="kw">impl </span>Default <span class="kw">for </span>RemoteRedirect {
     <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
-        <a href="#79">RemoteRedirect::Initial</a>
+        RemoteRedirect::Initial
     }
 }
 
-<span class="kw">impl </span><a href="#74">RemoteRedirect</a> {
-    <span class="kw">fn </span>raw(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../../libgit2_sys/type.git_remote_redirect_t.html">raw::git_remote_redirect_t</a> {
-        <span class="kw">match </span><span class="self"><a href="#725">self</a> </span>{
-            <a href="#76">RemoteRedirect::None</a> =&gt; raw::GIT_REMOTE_REDIRECT_NONE,
-            <a href="#79">RemoteRedirect::Initial</a> =&gt; raw::GIT_REMOTE_REDIRECT_INITIAL,
-            <a href="#81">RemoteRedirect::All</a> =&gt; raw::GIT_REMOTE_REDIRECT_ALL,
+<span class="kw">impl </span>RemoteRedirect {
+    <span class="kw">fn </span>raw(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; raw::git_remote_redirect_t {
+        <span class="kw">match </span><span class="self">self </span>{
+            RemoteRedirect::None =&gt; raw::GIT_REMOTE_REDIRECT_NONE,
+            RemoteRedirect::Initial =&gt; raw::GIT_REMOTE_REDIRECT_INITIAL,
+            RemoteRedirect::All =&gt; raw::GIT_REMOTE_REDIRECT_ALL,
         }
     }
 }
@@ -2005,4 +2005,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="git2" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="git2" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

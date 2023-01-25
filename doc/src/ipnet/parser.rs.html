@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/ipnet-2.5.1/src/parser.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>parser.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../ipnet/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/ipnet-2.7.0/src/parser.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>parser.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../ipnet/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -349,57 +349,57 @@
 //! is private. It is copied and extended here with methods for parsing
 //! IP network addresses.
 
-</span><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">std::error::Error</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">std::fmt</a>;
-<span class="kw">use </span>std::net::{<a href="https://doc.rust-lang.org/nightly/std/net/ip_addr/struct.Ipv4Addr.html">Ipv4Addr</a>, <a href="https://doc.rust-lang.org/nightly/std/net/ip_addr/struct.Ipv6Addr.html">Ipv6Addr</a>};
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/str/traits/trait.FromStr.html">std::str::FromStr</a>;
+</span><span class="kw">use </span>std::error::Error;
+<span class="kw">use </span>std::fmt;
+<span class="kw">use </span>std::net::{Ipv4Addr, Ipv6Addr};
+<span class="kw">use </span>std::str::FromStr;
 
-<span class="kw">use </span><span class="kw">crate</span>::ipnet::{<a href="ipnet.rs.html#43">IpNet</a>, <a href="ipnet.rs.html#73">Ipv4Net</a>, <a href="ipnet.rs.html#103">Ipv6Net</a>};
+<span class="kw">use </span><span class="kw">crate</span>::ipnet::{IpNet, Ipv4Net, Ipv6Net};
 
 <span class="kw">pub struct </span>Parser&lt;<span class="lifetime">&#39;a</span>&gt; {
     <span class="comment">// parsing as ASCII, so can use byte array
-    </span>s: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
-    pos: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+    </span>s: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[u8],
+    pos: usize,
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; Parser&lt;<span class="lifetime">&#39;a</span>&gt; {
-    <span class="kw">fn </span>new(s: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; Parser&lt;<span class="lifetime">&#39;a</span>&gt; {
-        <a href="#14">Parser</a> {
-            s: <a href="#21">s</a>.as_bytes(),
+    <span class="kw">fn </span>new(s: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>str) -&gt; Parser&lt;<span class="lifetime">&#39;a</span>&gt; {
+        Parser {
+            s: s.as_bytes(),
             pos: <span class="number">0</span>,
         }
     }
 
-    <span class="kw">fn </span>is_eof(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#28">self</a>.pos == <a class="self" href="#28">self</a>.s.len()
+    <span class="kw">fn </span>is_eof(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.pos == <span class="self">self</span>.s.len()
     }
 
     <span class="comment">// Commit only if parser returns Some
     </span><span class="kw">fn </span>read_atomically&lt;T, F&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cb: F) -&gt; <span class="prelude-ty">Option</span>&lt;T&gt; <span class="kw">where
-        </span>F: FnOnce(<span class="kw-2">&amp;mut </span><a href="#14">Parser</a>) -&gt; <span class="prelude-ty">Option</span>&lt;T&gt;,
+        </span>F: FnOnce(<span class="kw-2">&amp;mut </span>Parser) -&gt; <span class="prelude-ty">Option</span>&lt;T&gt;,
     {
-        <span class="kw">let </span>pos = <a class="self" href="#33">self</a>.pos;
-        <span class="kw">let </span>r = <a href="#33">cb</a>(<a class="self" href="#33">self</a>);
+        <span class="kw">let </span>pos = <span class="self">self</span>.pos;
+        <span class="kw">let </span>r = cb(<span class="self">self</span>);
         <span class="kw">if </span>r.is_none() {
-            <a class="self" href="#33">self</a>.pos = <a href="#36">pos</a>;
+            <span class="self">self</span>.pos = pos;
         }
-        <a href="#37">r</a>
+        r
     }
 
     <span class="comment">// Commit only if parser read till EOF
     </span><span class="kw">fn </span>read_till_eof&lt;T, F&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cb: F) -&gt; <span class="prelude-ty">Option</span>&lt;T&gt; <span class="kw">where
-        </span>F: FnOnce(<span class="kw-2">&amp;mut </span><a href="#14">Parser</a>) -&gt; <span class="prelude-ty">Option</span>&lt;T&gt;,
+        </span>F: FnOnce(<span class="kw-2">&amp;mut </span>Parser) -&gt; <span class="prelude-ty">Option</span>&lt;T&gt;,
     {
-        <a class="self" href="#45">self</a>.<a href="#33-34">read_atomically</a>(<span class="kw">move </span>|p| {
-            <span class="kw">match </span><a href="#45">cb</a>(<a href="#48">p</a>) {
-                <span class="prelude-val">Some</span>(x) =&gt; <span class="kw">if </span>p.is_eof() {<span class="prelude-val">Some</span>(<a href="#50">x</a>)} <span class="kw">else </span>{<span class="prelude-val">None</span>},
+        <span class="self">self</span>.read_atomically(<span class="kw">move </span>|p| {
+            <span class="kw">match </span>cb(p) {
+                <span class="prelude-val">Some</span>(x) =&gt; <span class="kw">if </span>p.is_eof() {<span class="prelude-val">Some</span>(x)} <span class="kw">else </span>{<span class="prelude-val">None</span>},
                 <span class="prelude-val">None </span>=&gt; <span class="prelude-val">None</span>,
             }
         })
     }
 
     <span class="comment">// Return result of first successful parser
-    </span><span class="kw">fn </span>read_or&lt;T&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, parsers: <span class="kw-2">&amp;mut </span>[Box&lt;<span class="kw">dyn </span>FnMut(<span class="kw-2">&amp;mut </span><a href="#14">Parser</a>) -&gt; <span class="prelude-ty">Option</span>&lt;T&gt; + <span class="lifetime">&#39;static</span>&gt;])
+    </span><span class="kw">fn </span>read_or&lt;T&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, parsers: <span class="kw-2">&amp;mut </span>[Box&lt;<span class="kw">dyn </span>FnMut(<span class="kw-2">&amp;mut </span>Parser) -&gt; <span class="prelude-ty">Option</span>&lt;T&gt; + <span class="lifetime">&#39;static</span>&gt;])
                -&gt; <span class="prelude-ty">Option</span>&lt;T&gt; {
         <span class="kw">for </span>pf <span class="kw">in </span>parsers {
             <span class="kw">if let </span><span class="prelude-val">Some</span>(r) = <span class="self">self</span>.read_atomically(|p: <span class="kw-2">&amp;mut </span>Parser| pf(p)) {
@@ -415,71 +415,71 @@
                                        pb: PB,
                                        pc: PC)
                                        -&gt; <span class="prelude-ty">Option</span>&lt;(A, B, C)&gt; <span class="kw">where
-        </span>PA: FnOnce(<span class="kw-2">&amp;mut </span><a href="#14">Parser</a>) -&gt; <span class="prelude-ty">Option</span>&lt;A&gt;,
-        PB: FnOnce(<span class="kw-2">&amp;mut </span><a href="#14">Parser</a>) -&gt; <span class="prelude-ty">Option</span>&lt;B&gt;,
-        PC: FnOnce(<span class="kw-2">&amp;mut </span><a href="#14">Parser</a>) -&gt; <span class="prelude-ty">Option</span>&lt;C&gt;,
+        </span>PA: FnOnce(<span class="kw-2">&amp;mut </span>Parser) -&gt; <span class="prelude-ty">Option</span>&lt;A&gt;,
+        PB: FnOnce(<span class="kw-2">&amp;mut </span>Parser) -&gt; <span class="prelude-ty">Option</span>&lt;B&gt;,
+        PC: FnOnce(<span class="kw-2">&amp;mut </span>Parser) -&gt; <span class="prelude-ty">Option</span>&lt;C&gt;,
     {
-        <a class="self" href="#68">self</a>.<a href="#33-34">read_atomically</a>(<span class="kw">move </span>|p| {
-            <span class="kw">let </span>a = <a href="#69">pa</a>(<a href="#77">p</a>);
-            <span class="kw">let </span>b = <span class="kw">if </span>a.is_some() { <a href="#70">pb</a>(<a href="#77">p</a>) } <span class="kw">else </span>{ <span class="prelude-val">None </span>};
-            <span class="kw">let </span>c = <span class="kw">if </span>b.is_some() { <a href="#71">pc</a>(<a href="#77">p</a>) } <span class="kw">else </span>{ <span class="prelude-val">None </span>};
-            <span class="kw">match </span>(<a href="#78">a</a>, <a href="#79">b</a>, <a href="#80">c</a>) {
-                (<span class="prelude-val">Some</span>(a), <span class="prelude-val">Some</span>(b), <span class="prelude-val">Some</span>(c)) =&gt; <span class="prelude-val">Some</span>((<a href="#82">a</a>, <a href="#82">b</a>, <a href="#82">c</a>)),
+        <span class="self">self</span>.read_atomically(<span class="kw">move </span>|p| {
+            <span class="kw">let </span>a = pa(p);
+            <span class="kw">let </span>b = <span class="kw">if </span>a.is_some() { pb(p) } <span class="kw">else </span>{ <span class="prelude-val">None </span>};
+            <span class="kw">let </span>c = <span class="kw">if </span>b.is_some() { pc(p) } <span class="kw">else </span>{ <span class="prelude-val">None </span>};
+            <span class="kw">match </span>(a, b, c) {
+                (<span class="prelude-val">Some</span>(a), <span class="prelude-val">Some</span>(b), <span class="prelude-val">Some</span>(c)) =&gt; <span class="prelude-val">Some</span>((a, b, c)),
                 <span class="kw">_ </span>=&gt; <span class="prelude-val">None
             </span>}
         })
     }
 
     <span class="comment">// Read next char
-    </span><span class="kw">fn </span>read_char(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>&gt; {
+    </span><span class="kw">fn </span>read_char(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;char&gt; {
         <span class="kw">if </span><span class="self">self</span>.is_eof() {
             <span class="prelude-val">None
         </span>} <span class="kw">else </span>{
-            <span class="kw">let </span>r = <a class="self" href="#89">self</a>.s[<a class="self" href="#89">self</a>.pos] <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>;
-            <a class="self" href="#89">self</a>.pos += <span class="number">1</span>;
-            <span class="prelude-val">Some</span>(<a href="#93">r</a>)
+            <span class="kw">let </span>r = <span class="self">self</span>.s[<span class="self">self</span>.pos] <span class="kw">as </span>char;
+            <span class="self">self</span>.pos += <span class="number">1</span>;
+            <span class="prelude-val">Some</span>(r)
         }
     }
 
     <span class="comment">// Return char and advance iff next char is equal to requested
-    </span><span class="kw">fn </span>read_given_char(<span class="kw-2">&amp;mut </span><span class="self">self</span>, c: <a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>&gt; {
-        <a class="self" href="#100">self</a>.<a href="#33-34">read_atomically</a>(|p| {
-            <span class="kw">match </span><a href="#101">p</a>.<a href="#89">read_char</a>() {
-                <span class="prelude-val">Some</span>(next) <span class="kw">if </span><a href="#103">next</a> == <a href="#100">c</a> =&gt; <span class="prelude-val">Some</span>(<a href="#103">next</a>),
+    </span><span class="kw">fn </span>read_given_char(<span class="kw-2">&amp;mut </span><span class="self">self</span>, c: char) -&gt; <span class="prelude-ty">Option</span>&lt;char&gt; {
+        <span class="self">self</span>.read_atomically(|p| {
+            <span class="kw">match </span>p.read_char() {
+                <span class="prelude-val">Some</span>(next) <span class="kw">if </span>next == c =&gt; <span class="prelude-val">Some</span>(next),
                 <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
             }
         })
     }
 
     <span class="comment">// Read digit
-    </span><span class="kw">fn </span>read_digit(<span class="kw-2">&amp;mut </span><span class="self">self</span>, radix: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt; {
-        <span class="kw">fn </span>parse_digit(c: <a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>, radix: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt; {
-            <span class="kw">let </span>c = <a href="#111">c</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>;
+    </span><span class="kw">fn </span>read_digit(<span class="kw-2">&amp;mut </span><span class="self">self</span>, radix: u8) -&gt; <span class="prelude-ty">Option</span>&lt;u8&gt; {
+        <span class="kw">fn </span>parse_digit(c: char, radix: u8) -&gt; <span class="prelude-ty">Option</span>&lt;u8&gt; {
+            <span class="kw">let </span>c = c <span class="kw">as </span>u8;
             <span class="comment">// assuming radix is either 10 or 16
             </span><span class="kw">if </span>c &gt;= <span class="string">b&#39;0&#39; </span>&amp;&amp; c &lt;= <span class="string">b&#39;9&#39; </span>{
-                <span class="prelude-val">Some</span>(<a href="#112">c</a> - <span class="string">b&#39;0&#39;</span>)
+                <span class="prelude-val">Some</span>(c - <span class="string">b&#39;0&#39;</span>)
             } <span class="kw">else if </span>radix &gt; <span class="number">10 </span>&amp;&amp; c &gt;= <span class="string">b&#39;a&#39; </span>&amp;&amp; c &lt; <span class="string">b&#39;a&#39; </span>+ (radix - <span class="number">10</span>) {
-                <span class="prelude-val">Some</span>(<a href="#112">c</a> - <span class="string">b&#39;a&#39; </span>+ <span class="number">10</span>)
+                <span class="prelude-val">Some</span>(c - <span class="string">b&#39;a&#39; </span>+ <span class="number">10</span>)
             } <span class="kw">else if </span>radix &gt; <span class="number">10 </span>&amp;&amp; c &gt;= <span class="string">b&#39;A&#39; </span>&amp;&amp; c &lt; <span class="string">b&#39;A&#39; </span>+ (radix - <span class="number">10</span>) {
-                <span class="prelude-val">Some</span>(<a href="#112">c</a> - <span class="string">b&#39;A&#39; </span>+ <span class="number">10</span>)
+                <span class="prelude-val">Some</span>(c - <span class="string">b&#39;A&#39; </span>+ <span class="number">10</span>)
             } <span class="kw">else </span>{
                 <span class="prelude-val">None
             </span>}
         }
 
-        <a class="self" href="#110">self</a>.<a href="#33-34">read_atomically</a>(|p| {
-            <a href="#125">p</a>.<a href="#89">read_char</a>().and_then(|c| <a href="#111">parse_digit</a>(<a href="#126">c</a>, <a href="#110">radix</a>))
+        <span class="self">self</span>.read_atomically(|p| {
+            p.read_char().and_then(|c| parse_digit(c, radix))
         })
     }
 
-    <span class="kw">fn </span>read_number_impl(<span class="kw-2">&amp;mut </span><span class="self">self</span>, radix: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>, max_digits: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>, upto: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>&gt; {
+    <span class="kw">fn </span>read_number_impl(<span class="kw-2">&amp;mut </span><span class="self">self</span>, radix: u8, max_digits: u32, upto: u32) -&gt; <span class="prelude-ty">Option</span>&lt;u32&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>r = <span class="number">0</span>;
         <span class="kw">let </span><span class="kw-2">mut </span>digit_count = <span class="number">0</span>;
         <span class="kw">loop </span>{
-            <span class="kw">match </span><a class="self" href="#130">self</a>.<a href="#110">read_digit</a>(<a href="#130">radix</a>) {
+            <span class="kw">match </span><span class="self">self</span>.read_digit(radix) {
                 <span class="prelude-val">Some</span>(d) =&gt; {
-                    <a href="#131">r</a> = <a href="#131">r</a> * (<a href="#130">radix</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) + (<a href="#135">d</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>);
-                    <a href="#132">digit_count</a> += <span class="number">1</span>;
+                    r = r * (radix <span class="kw">as </span>u32) + (d <span class="kw">as </span>u32);
+                    digit_count += <span class="number">1</span>;
                     <span class="kw">if </span>digit_count &gt; max_digits || r &gt;= upto {
                         <span class="kw">return </span><span class="prelude-val">None
                     </span>}
@@ -488,7 +488,7 @@
                     <span class="kw">if </span>digit_count == <span class="number">0 </span>{
                         <span class="kw">return </span><span class="prelude-val">None
                     </span>} <span class="kw">else </span>{
-                        <span class="kw">return </span><span class="prelude-val">Some</span>(<a href="#131">r</a>)
+                        <span class="kw">return </span><span class="prelude-val">Some</span>(r)
                     }
                 }
             };
@@ -496,11 +496,11 @@
     }
 
     <span class="comment">// Read number, failing if max_digits of number value exceeded
-    </span><span class="kw">fn </span>read_number(<span class="kw-2">&amp;mut </span><span class="self">self</span>, radix: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>, max_digits: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>, upto: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>&gt; {
-        <a class="self" href="#154">self</a>.<a href="#33-34">read_atomically</a>(|p| <a href="#155">p</a>.<a href="#130">read_number_impl</a>(<a href="#154">radix</a>, <a href="#154">max_digits</a>, <a href="#154">upto</a>))
+    </span><span class="kw">fn </span>read_number(<span class="kw-2">&amp;mut </span><span class="self">self</span>, radix: u8, max_digits: u32, upto: u32) -&gt; <span class="prelude-ty">Option</span>&lt;u32&gt; {
+        <span class="self">self</span>.read_atomically(|p| p.read_number_impl(radix, max_digits, upto))
     }
 
-    <span class="kw">fn </span>read_ipv4_addr_impl(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/net/ip_addr/struct.Ipv4Addr.html">Ipv4Addr</a>&gt; {
+    <span class="kw">fn </span>read_ipv4_addr_impl(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Ipv4Addr&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>bs = [<span class="number">0</span>; <span class="number">4</span>];
         <span class="kw">let </span><span class="kw-2">mut </span>i = <span class="number">0</span>;
         <span class="kw">while </span>i &lt; <span class="number">4 </span>{
@@ -515,25 +515,25 @@
             };
             i += <span class="number">1</span>;
         }
-        <span class="prelude-val">Some</span>(Ipv4Addr::new(<a href="#159">bs</a>[<span class="number">0</span>], <a href="#159">bs</a>[<span class="number">1</span>], <a href="#159">bs</a>[<span class="number">2</span>], <a href="#159">bs</a>[<span class="number">3</span>]))
+        <span class="prelude-val">Some</span>(Ipv4Addr::new(bs[<span class="number">0</span>], bs[<span class="number">1</span>], bs[<span class="number">2</span>], bs[<span class="number">3</span>]))
     }
 
     <span class="comment">// Read IPv4 address
-    </span><span class="kw">fn </span>read_ipv4_addr(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/net/ip_addr/struct.Ipv4Addr.html">Ipv4Addr</a>&gt; {
-        <a class="self" href="#177">self</a>.<a href="#33-34">read_atomically</a>(|p| <a href="#178">p</a>.<a href="#158">read_ipv4_addr_impl</a>())
+    </span><span class="kw">fn </span>read_ipv4_addr(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Ipv4Addr&gt; {
+        <span class="self">self</span>.read_atomically(|p| p.read_ipv4_addr_impl())
     }
 
-    <span class="kw">fn </span>read_ipv6_addr_impl(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/net/ip_addr/struct.Ipv6Addr.html">Ipv6Addr</a>&gt; {
-        <span class="kw">fn </span>ipv6_addr_from_head_tail(head: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>], tail: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>]) -&gt; <a href="https://doc.rust-lang.org/nightly/std/net/ip_addr/struct.Ipv6Addr.html">Ipv6Addr</a> {
-            <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(head.len() + tail.len() &lt;= <span class="number">8</span>);
+    <span class="kw">fn </span>read_ipv6_addr_impl(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Ipv6Addr&gt; {
+        <span class="kw">fn </span>ipv6_addr_from_head_tail(head: <span class="kw-2">&amp;</span>[u16], tail: <span class="kw-2">&amp;</span>[u16]) -&gt; Ipv6Addr {
+            <span class="macro">assert!</span>(head.len() + tail.len() &lt;= <span class="number">8</span>);
             <span class="kw">let </span><span class="kw-2">mut </span>gs = [<span class="number">0</span>; <span class="number">8</span>];
-            <a href="#184">gs</a>[..<a href="#182">head</a>.len()].copy_from_slice(<a href="#182">head</a>);
-            <a href="#184">gs</a>[(<span class="number">8 </span>- <a href="#182">tail</a>.len()) .. <span class="number">8</span>].copy_from_slice(<a href="#182">tail</a>);
-            Ipv6Addr::new(<a href="#184">gs</a>[<span class="number">0</span>], <a href="#184">gs</a>[<span class="number">1</span>], <a href="#184">gs</a>[<span class="number">2</span>], <a href="#184">gs</a>[<span class="number">3</span>], <a href="#184">gs</a>[<span class="number">4</span>], <a href="#184">gs</a>[<span class="number">5</span>], <a href="#184">gs</a>[<span class="number">6</span>], <a href="#184">gs</a>[<span class="number">7</span>])
+            gs[..head.len()].copy_from_slice(head);
+            gs[(<span class="number">8 </span>- tail.len()) .. <span class="number">8</span>].copy_from_slice(tail);
+            Ipv6Addr::new(gs[<span class="number">0</span>], gs[<span class="number">1</span>], gs[<span class="number">2</span>], gs[<span class="number">3</span>], gs[<span class="number">4</span>], gs[<span class="number">5</span>], gs[<span class="number">6</span>], gs[<span class="number">7</span>])
         }
 
-        <span class="kw">fn </span>read_groups(p: <span class="kw-2">&amp;mut </span><a href="#14">Parser</a>, groups: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>; <span class="number">8</span>], limit: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>)
-                       -&gt; (<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) {
+        <span class="kw">fn </span>read_groups(p: <span class="kw-2">&amp;mut </span>Parser, groups: <span class="kw-2">&amp;mut </span>[u16; <span class="number">8</span>], limit: usize)
+                       -&gt; (usize, bool) {
             <span class="kw">let </span><span class="kw-2">mut </span>i = <span class="number">0</span>;
             <span class="kw">while </span>i &lt; limit {
                 <span class="kw">if </span>i &lt; limit - <span class="number">1 </span>{
@@ -565,16 +565,16 @@
                 }
                 i += <span class="number">1</span>;
             }
-            (<a href="#192">i</a>, <span class="bool-val">false</span>)
+            (i, <span class="bool-val">false</span>)
         }
 
         <span class="kw">let </span><span class="kw-2">mut </span>head = [<span class="number">0</span>; <span class="number">8</span>];
-        <span class="kw">let </span>(head_size, head_ipv4) = <a href="#190-191">read_groups</a>(<a class="self" href="#181">self</a>, <span class="kw-2">&amp;mut </span><a href="#226">head</a>, <span class="number">8</span>);
+        <span class="kw">let </span>(head_size, head_ipv4) = read_groups(<span class="self">self</span>, <span class="kw-2">&amp;mut </span>head, <span class="number">8</span>);
 
         <span class="kw">if </span>head_size == <span class="number">8 </span>{
             <span class="kw">return </span><span class="prelude-val">Some</span>(Ipv6Addr::new(
-                <a href="#226">head</a>[<span class="number">0</span>], <a href="#226">head</a>[<span class="number">1</span>], <a href="#226">head</a>[<span class="number">2</span>], <a href="#226">head</a>[<span class="number">3</span>],
-                <a href="#226">head</a>[<span class="number">4</span>], <a href="#226">head</a>[<span class="number">5</span>], <a href="#226">head</a>[<span class="number">6</span>], <a href="#226">head</a>[<span class="number">7</span>]))
+                head[<span class="number">0</span>], head[<span class="number">1</span>], head[<span class="number">2</span>], head[<span class="number">3</span>],
+                head[<span class="number">4</span>], head[<span class="number">5</span>], head[<span class="number">6</span>], head[<span class="number">7</span>]))
         }
 
         <span class="comment">// IPv4 part is not allowed before `::`
@@ -588,48 +588,48 @@
         }
 
         <span class="kw">let </span><span class="kw-2">mut </span>tail = [<span class="number">0</span>; <span class="number">8</span>];
-        <span class="kw">let </span>(tail_size, <span class="kw">_</span>) = <a href="#190-191">read_groups</a>(<a class="self" href="#181">self</a>, <span class="kw-2">&amp;mut </span><a href="#245">tail</a>, <span class="number">8 </span>- <a href="#227">head_size</a>);
-        <span class="prelude-val">Some</span>(<a href="#182">ipv6_addr_from_head_tail</a>(<span class="kw-2">&amp;</span><a href="#226">head</a>[..<a href="#227">head_size</a>], <span class="kw-2">&amp;</span><a href="#245">tail</a>[..<a href="#246">tail_size</a>]))
+        <span class="kw">let </span>(tail_size, <span class="kw">_</span>) = read_groups(<span class="self">self</span>, <span class="kw-2">&amp;mut </span>tail, <span class="number">8 </span>- head_size);
+        <span class="prelude-val">Some</span>(ipv6_addr_from_head_tail(<span class="kw-2">&amp;</span>head[..head_size], <span class="kw-2">&amp;</span>tail[..tail_size]))
     }
 
-    <span class="kw">fn </span>read_ipv6_addr(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/net/ip_addr/struct.Ipv6Addr.html">Ipv6Addr</a>&gt; {
-        <a class="self" href="#250">self</a>.<a href="#33-34">read_atomically</a>(|p| <a href="#251">p</a>.<a href="#181">read_ipv6_addr_impl</a>())
+    <span class="kw">fn </span>read_ipv6_addr(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Ipv6Addr&gt; {
+        <span class="self">self</span>.read_atomically(|p| p.read_ipv6_addr_impl())
     }
     
     <span class="comment">/* Additions for IpNet below. */
 
     // Read IPv4 network
-    </span><span class="kw">fn </span>read_ipv4_net(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="ipnet.rs.html#73">Ipv4Net</a>&gt; {
-        <span class="kw">let </span>ip_addr = |p: <span class="kw-2">&amp;mut </span><a href="#14">Parser</a>| <a href="#258">p</a>.<a href="#177">read_ipv4_addr</a>();
-        <span class="kw">let </span>slash = |p: <span class="kw-2">&amp;mut </span><a href="#14">Parser</a>| <a href="#259">p</a>.<a href="#100">read_given_char</a>(<span class="string">&#39;/&#39;</span>);
-        <span class="kw">let </span>prefix_len = |p: <span class="kw-2">&amp;mut </span><a href="#14">Parser</a>| {
-            <a href="#260">p</a>.<a href="#154">read_number</a>(<span class="number">10</span>, <span class="number">2</span>, <span class="number">33</span>).map(|n| <a href="#261">n</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>)
+    </span><span class="kw">fn </span>read_ipv4_net(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Ipv4Net&gt; {
+        <span class="kw">let </span>ip_addr = |p: <span class="kw-2">&amp;mut </span>Parser| p.read_ipv4_addr();
+        <span class="kw">let </span>slash = |p: <span class="kw-2">&amp;mut </span>Parser| p.read_given_char(<span class="string">&#39;/&#39;</span>);
+        <span class="kw">let </span>prefix_len = |p: <span class="kw-2">&amp;mut </span>Parser| {
+            p.read_number(<span class="number">10</span>, <span class="number">2</span>, <span class="number">33</span>).map(|n| n <span class="kw">as </span>u8)
         };
 
-        <a class="self" href="#257">self</a>.<a href="#68-75">read_seq_3</a>(<a href="#258">ip_addr</a>, <a href="#259">slash</a>, <a href="#260">prefix_len</a>).map(|t| {
-            <span class="kw">let </span>(ip, <span class="kw">_</span>, prefix_len): (<a href="https://doc.rust-lang.org/nightly/std/net/ip_addr/struct.Ipv4Addr.html">Ipv4Addr</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) = <a href="#264">t</a>;
-            Ipv4Net::new(<a href="#265">ip</a>, <a href="#265">prefix_len</a>).unwrap()
+        <span class="self">self</span>.read_seq_3(ip_addr, slash, prefix_len).map(|t| {
+            <span class="kw">let </span>(ip, <span class="kw">_</span>, prefix_len): (Ipv4Addr, char, u8) = t;
+            Ipv4Net::new(ip, prefix_len).unwrap()
         })
     }
 
     <span class="comment">// Read Ipv6 network
-    </span><span class="kw">fn </span>read_ipv6_net(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="ipnet.rs.html#103">Ipv6Net</a>&gt; {
-        <span class="kw">let </span>ip_addr = |p: <span class="kw-2">&amp;mut </span><a href="#14">Parser</a>| <a href="#272">p</a>.<a href="#250">read_ipv6_addr</a>();
-        <span class="kw">let </span>slash = |p: <span class="kw-2">&amp;mut </span><a href="#14">Parser</a>| <a href="#273">p</a>.<a href="#100">read_given_char</a>(<span class="string">&#39;/&#39;</span>);
-        <span class="kw">let </span>prefix_len = |p: <span class="kw-2">&amp;mut </span><a href="#14">Parser</a>| {
-            <a href="#274">p</a>.<a href="#154">read_number</a>(<span class="number">10</span>, <span class="number">3</span>, <span class="number">129</span>).map(|n| <a href="#275">n</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>)
+    </span><span class="kw">fn </span>read_ipv6_net(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Ipv6Net&gt; {
+        <span class="kw">let </span>ip_addr = |p: <span class="kw-2">&amp;mut </span>Parser| p.read_ipv6_addr();
+        <span class="kw">let </span>slash = |p: <span class="kw-2">&amp;mut </span>Parser| p.read_given_char(<span class="string">&#39;/&#39;</span>);
+        <span class="kw">let </span>prefix_len = |p: <span class="kw-2">&amp;mut </span>Parser| {
+            p.read_number(<span class="number">10</span>, <span class="number">3</span>, <span class="number">129</span>).map(|n| n <span class="kw">as </span>u8)
         };
 
-        <a class="self" href="#271">self</a>.<a href="#68-75">read_seq_3</a>(<a href="#272">ip_addr</a>, <a href="#273">slash</a>, <a href="#274">prefix_len</a>).map(|t| {
-            <span class="kw">let </span>(ip, <span class="kw">_</span>, prefix_len): (<a href="https://doc.rust-lang.org/nightly/std/net/ip_addr/struct.Ipv6Addr.html">Ipv6Addr</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) = <a href="#278">t</a>;
-            Ipv6Net::new(<a href="#279">ip</a>, <a href="#279">prefix_len</a>).unwrap()
+        <span class="self">self</span>.read_seq_3(ip_addr, slash, prefix_len).map(|t| {
+            <span class="kw">let </span>(ip, <span class="kw">_</span>, prefix_len): (Ipv6Addr, char, u8) = t;
+            Ipv6Net::new(ip, prefix_len).unwrap()
         })
     }
 
-    <span class="kw">fn </span>read_ip_net(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="ipnet.rs.html#43">IpNet</a>&gt; {
-        <span class="kw">let </span>ipv4_net = |p: <span class="kw-2">&amp;mut </span><a href="#14">Parser</a>| <a href="#285">p</a>.<a href="#257">read_ipv4_net</a>().map(<a href="ipnet.rs.html#44">IpNet::V4</a>);
-        <span class="kw">let </span>ipv6_net = |p: <span class="kw-2">&amp;mut </span><a href="#14">Parser</a>| <a href="#286">p</a>.<a href="#271">read_ipv6_net</a>().map(<a href="ipnet.rs.html#45">IpNet::V6</a>);
-        <a class="self" href="#284">self</a>.<a href="#57-58">read_or</a>(<span class="kw-2">&amp;mut </span>[Box::new(<a href="#285">ipv4_net</a>), Box::new(<a href="#286">ipv6_net</a>)])
+    <span class="kw">fn </span>read_ip_net(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;IpNet&gt; {
+        <span class="kw">let </span>ipv4_net = |p: <span class="kw-2">&amp;mut </span>Parser| p.read_ipv4_net().map(IpNet::V4);
+        <span class="kw">let </span>ipv6_net = |p: <span class="kw-2">&amp;mut </span>Parser| p.read_ipv6_net().map(IpNet::V6);
+        <span class="self">self</span>.read_or(<span class="kw-2">&amp;mut </span>[Box::new(ipv4_net), Box::new(ipv6_net)])
     }
 
     <span class="comment">/* Additions for IpNet above. */
@@ -637,32 +637,32 @@
 
 <span class="comment">/* Additions for IpNet below. */
 
-</span><span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/str/traits/trait.FromStr.html">FromStr</a> <span class="kw">for </span><a href="ipnet.rs.html#43">IpNet</a> {
-    <span class="kw">type </span><span class="prelude-val">Err </span>= <a href="#337">AddrParseError</a>;
-    <span class="kw">fn </span>from_str(s: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="ipnet.rs.html#43">IpNet</a>, <a href="#337">AddrParseError</a>&gt; {
-        <span class="kw">match </span>Parser::new(<a href="#297">s</a>).<a href="#45-46">read_till_eof</a>(|p| <a href="#298">p</a>.<a href="#284">read_ip_net</a>()) {
-            <span class="prelude-val">Some</span>(s) =&gt; <span class="prelude-val">Ok</span>(<a href="#299">s</a>),
-            <span class="prelude-val">None </span>=&gt; <span class="prelude-val">Err</span>(<a href="#337">AddrParseError</a>(()))
+</span><span class="kw">impl </span>FromStr <span class="kw">for </span>IpNet {
+    <span class="kw">type </span><span class="prelude-val">Err </span>= AddrParseError;
+    <span class="kw">fn </span>from_str(s: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;IpNet, AddrParseError&gt; {
+        <span class="kw">match </span>Parser::new(s).read_till_eof(|p| p.read_ip_net()) {
+            <span class="prelude-val">Some</span>(s) =&gt; <span class="prelude-val">Ok</span>(s),
+            <span class="prelude-val">None </span>=&gt; <span class="prelude-val">Err</span>(AddrParseError(()))
         }
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/str/traits/trait.FromStr.html">FromStr</a> <span class="kw">for </span><a href="ipnet.rs.html#73">Ipv4Net</a> {
-    <span class="kw">type </span><span class="prelude-val">Err </span>= <a href="#337">AddrParseError</a>;
-    <span class="kw">fn </span>from_str(s: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="ipnet.rs.html#73">Ipv4Net</a>, <a href="#337">AddrParseError</a>&gt; {
-        <span class="kw">match </span>Parser::new(<a href="#307">s</a>).<a href="#45-46">read_till_eof</a>(|p| <a href="#308">p</a>.<a href="#257">read_ipv4_net</a>()) {
-            <span class="prelude-val">Some</span>(s) =&gt; <span class="prelude-val">Ok</span>(<a href="#309">s</a>),
-            <span class="prelude-val">None </span>=&gt; <span class="prelude-val">Err</span>(<a href="#337">AddrParseError</a>(()))
+<span class="kw">impl </span>FromStr <span class="kw">for </span>Ipv4Net {
+    <span class="kw">type </span><span class="prelude-val">Err </span>= AddrParseError;
+    <span class="kw">fn </span>from_str(s: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;Ipv4Net, AddrParseError&gt; {
+        <span class="kw">match </span>Parser::new(s).read_till_eof(|p| p.read_ipv4_net()) {
+            <span class="prelude-val">Some</span>(s) =&gt; <span class="prelude-val">Ok</span>(s),
+            <span class="prelude-val">None </span>=&gt; <span class="prelude-val">Err</span>(AddrParseError(()))
         }
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/str/traits/trait.FromStr.html">FromStr</a> <span class="kw">for </span><a href="ipnet.rs.html#103">Ipv6Net</a> {
-    <span class="kw">type </span><span class="prelude-val">Err </span>= <a href="#337">AddrParseError</a>;
-    <span class="kw">fn </span>from_str(s: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="ipnet.rs.html#103">Ipv6Net</a>, <a href="#337">AddrParseError</a>&gt; {
-        <span class="kw">match </span>Parser::new(<a href="#317">s</a>).<a href="#45-46">read_till_eof</a>(|p| <a href="#318">p</a>.<a href="#271">read_ipv6_net</a>()) {
-            <span class="prelude-val">Some</span>(s) =&gt; <span class="prelude-val">Ok</span>(<a href="#319">s</a>),
-            <span class="prelude-val">None </span>=&gt; <span class="prelude-val">Err</span>(<a href="#337">AddrParseError</a>(()))
+<span class="kw">impl </span>FromStr <span class="kw">for </span>Ipv6Net {
+    <span class="kw">type </span><span class="prelude-val">Err </span>= AddrParseError;
+    <span class="kw">fn </span>from_str(s: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;Ipv6Net, AddrParseError&gt; {
+        <span class="kw">match </span>Parser::new(s).read_till_eof(|p| p.read_ipv6_net()) {
+            <span class="prelude-val">Some</span>(s) =&gt; <span class="prelude-val">Ok</span>(s),
+            <span class="prelude-val">None </span>=&gt; <span class="prelude-val">Err</span>(AddrParseError(()))
         }
     }
 }
@@ -681,12 +681,12 @@
 </span><span class="attr">#[derive(Debug, Clone, PartialEq, Eq)]
 </span><span class="kw">pub struct </span>AddrParseError(());
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for </span><a href="#337">AddrParseError</a> {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, fmt: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a href="#340">fmt</a>.write_str(<span class="string">&quot;invalid IP address syntax&quot;</span>)
+<span class="kw">impl </span>fmt::Display <span class="kw">for </span>AddrParseError {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, fmt: <span class="kw-2">&amp;mut </span>fmt::Formatter) -&gt; fmt::Result {
+        fmt.write_str(<span class="string">&quot;invalid IP address syntax&quot;</span>)
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">Error</a> <span class="kw">for </span><a href="#337">AddrParseError</a> {}
+<span class="kw">impl </span>Error <span class="kw">for </span>AddrParseError {}
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="ipnet" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="ipnet" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

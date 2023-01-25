@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/reqwest-0.11.13/src/async_impl/response.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>response.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../reqwest/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/reqwest-0.11.13/src/async_impl/response.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>response.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../reqwest/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -446,77 +446,77 @@
 <a href="#446" id="446">446</a>
 <a href="#447" id="447">447</a>
 <a href="#448" id="448">448</a>
-</pre><pre class="rust"><code><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/borrow/enum.Cow.html">std::borrow::Cow</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">std::fmt</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/net/socket_addr/enum.SocketAddr.html">std::net::SocketAddr</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/pin/struct.Pin.html">std::pin::Pin</a>;
+</pre><pre class="rust"><code><span class="kw">use </span>std::borrow::Cow;
+<span class="kw">use </span>std::fmt;
+<span class="kw">use </span>std::net::SocketAddr;
+<span class="kw">use </span>std::pin::Pin;
 
-<span class="kw">use </span><a href="../../../bytes/bytes/struct.Bytes.html">bytes::Bytes</a>;
-<span class="kw">use </span>encoding_rs::{<a href="../../../encoding_rs/struct.Encoding.html">Encoding</a>, <a href="../../../encoding_rs/static.UTF_8.html">UTF_8</a>};
-<span class="kw">use </span><a href="../../../futures_util/stream/stream/trait.StreamExt.html">futures_util::stream::StreamExt</a>;
-<span class="kw">use </span><a href="../../../hyper/client/connect/http/struct.HttpInfo.html">hyper::client::connect::HttpInfo</a>;
-<span class="kw">use </span>hyper::{<a href="../../../reqwest/header/struct.HeaderMap.html">HeaderMap</a>, <a href="../../../reqwest/struct.StatusCode.html">StatusCode</a>, <a href="../../../reqwest/struct.Version.html">Version</a>};
-<span class="kw">use </span><a href="../../../mime/struct.Mime.html">mime::Mime</a>;
+<span class="kw">use </span>bytes::Bytes;
+<span class="kw">use </span>encoding_rs::{Encoding, UTF_8};
+<span class="kw">use </span>futures_util::stream::StreamExt;
+<span class="kw">use </span>hyper::client::connect::HttpInfo;
+<span class="kw">use </span>hyper::{HeaderMap, StatusCode, Version};
+<span class="kw">use </span>mime::Mime;
 <span class="attr">#[cfg(feature = <span class="string">&quot;json&quot;</span>)]
-</span><span class="kw">use </span><a href="../../../serde/de/trait.DeserializeOwned.html">serde::de::DeserializeOwned</a>;
+</span><span class="kw">use </span>serde::de::DeserializeOwned;
 <span class="attr">#[cfg(feature = <span class="string">&quot;json&quot;</span>)]
-</span><span class="kw">use </span><a href="../../../serde_json/index.html">serde_json</a>;
-<span class="kw">use </span><a href="../../../tokio/time/driver/sleep/struct.Sleep.html">tokio::time::Sleep</a>;
-<span class="kw">use </span><a href="../../../reqwest/struct.Url.html">url::Url</a>;
+</span><span class="kw">use </span>serde_json;
+<span class="kw">use </span>tokio::time::Sleep;
+<span class="kw">use </span>url::Url;
 
-<span class="kw">use </span><a href="body.rs.html#17"><span class="kw">super</span>::body::Body</a>;
-<span class="kw">use </span><span class="kw">super</span>::decoder::{<a href="decoder.rs.html#30">Accepts</a>, <a href="decoder.rs.html#42">Decoder</a>};
+<span class="kw">use </span><span class="kw">super</span>::body::Body;
+<span class="kw">use </span><span class="kw">super</span>::decoder::{Accepts, Decoder};
 <span class="attr">#[cfg(feature = <span class="string">&quot;cookies&quot;</span>)]
 </span><span class="kw">use </span><span class="kw">crate</span>::cookie;
-<span class="kw">use </span><a href="../response.rs.html#4"><span class="kw">crate</span>::response::ResponseUrl</a>;
+<span class="kw">use </span><span class="kw">crate</span>::response::ResponseUrl;
 
 <span class="doccomment">/// A Response to a submitted `Request`.
 </span><span class="kw">pub struct </span>Response {
-    <span class="kw">pub</span>(<span class="kw">super</span>) res: hyper::Response&lt;<a href="decoder.rs.html#42">Decoder</a>&gt;,
+    <span class="kw">pub</span>(<span class="kw">super</span>) res: hyper::Response&lt;Decoder&gt;,
     <span class="comment">// Boxed to save space (11 words to 1 word), and it&#39;s not accessed
     // frequently internally.
-    </span>url: Box&lt;<a href="../../../reqwest/struct.Url.html">Url</a>&gt;,
+    </span>url: Box&lt;Url&gt;,
 }
 
-<span class="kw">impl </span><a href="#26">Response</a> {
+<span class="kw">impl </span>Response {
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>new(
-        res: hyper::Response&lt;<a href="../../../hyper/body/body/struct.Body.html">hyper::Body</a>&gt;,
-        url: <a href="../../../reqwest/struct.Url.html">Url</a>,
-        accepts: <a href="decoder.rs.html#30">Accepts</a>,
-        timeout: <span class="prelude-ty">Option</span>&lt;Pin&lt;Box&lt;<a href="../../../tokio/time/driver/sleep/struct.Sleep.html">Sleep</a>&gt;&gt;&gt;,
-    ) -&gt; <a href="#26">Response</a> {
-        <span class="kw">let </span>(<span class="kw-2">mut </span>parts, body) = <a href="#35">res</a>.into_parts();
-        <span class="kw">let </span>decoder = Decoder::detect(<span class="kw-2">&amp;mut </span><a href="#40">parts</a>.headers, Body::response(<a href="#40">body</a>, <a href="#38">timeout</a>), <a href="#37">accepts</a>);
-        <span class="kw">let </span>res = hyper::Response::from_parts(<a href="#40">parts</a>, <a href="#41">decoder</a>);
+        res: hyper::Response&lt;hyper::Body&gt;,
+        url: Url,
+        accepts: Accepts,
+        timeout: <span class="prelude-ty">Option</span>&lt;Pin&lt;Box&lt;Sleep&gt;&gt;&gt;,
+    ) -&gt; Response {
+        <span class="kw">let </span>(<span class="kw-2">mut </span>parts, body) = res.into_parts();
+        <span class="kw">let </span>decoder = Decoder::detect(<span class="kw-2">&amp;mut </span>parts.headers, Body::response(body, timeout), accepts);
+        <span class="kw">let </span>res = hyper::Response::from_parts(parts, decoder);
 
-        <a href="#26">Response</a> {
-            <a href="#42">res</a>,
-            url: Box::new(<a href="#36">url</a>),
+        Response {
+            res,
+            url: Box::new(url),
         }
     }
 
     <span class="doccomment">/// Get the `StatusCode` of this `Response`.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>status(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../../../reqwest/struct.StatusCode.html">StatusCode</a> {
-        <a class="self" href="#52">self</a>.res.status()
+    </span><span class="kw">pub fn </span>status(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; StatusCode {
+        <span class="self">self</span>.res.status()
     }
 
     <span class="doccomment">/// Get the HTTP `Version` of this `Response`.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>version(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../../../reqwest/struct.Version.html">Version</a> {
-        <a class="self" href="#58">self</a>.res.version()
+    </span><span class="kw">pub fn </span>version(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Version {
+        <span class="self">self</span>.res.version()
     }
 
     <span class="doccomment">/// Get the `Headers` of this `Response`.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>headers(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="../../../reqwest/header/struct.HeaderMap.html">HeaderMap</a> {
-        <a class="self" href="#64">self</a>.res.headers()
+    </span><span class="kw">pub fn </span>headers(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>HeaderMap {
+        <span class="self">self</span>.res.headers()
     }
 
     <span class="doccomment">/// Get a mutable reference to the `Headers` of this `Response`.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>headers_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span><a href="../../../reqwest/header/struct.HeaderMap.html">HeaderMap</a> {
-        <a class="self" href="#70">self</a>.res.headers_mut()
+    </span><span class="kw">pub fn </span>headers_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>HeaderMap {
+        <span class="self">self</span>.res.headers_mut()
     }
 
     <span class="doccomment">/// Get the content-length of this response, if known.
@@ -526,10 +526,10 @@
     /// - The server didn&#39;t send a `content-length` header.
     /// - The response is compressed and automatically decoded (thus changing
     ///   the actual decoded length).
-    </span><span class="kw">pub fn </span>content_length(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>&gt; {
-        <span class="kw">use </span><a href="../../../http_body/trait.Body.html">hyper::body::HttpBody</a>;
+    </span><span class="kw">pub fn </span>content_length(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;u64&gt; {
+        <span class="kw">use </span>hyper::body::HttpBody;
 
-        <a href="../../../http_body/trait.Body.html">HttpBody::size_hint</a>(<a class="self" href="#81">self</a>.res.body()).exact()
+        HttpBody::size_hint(<span class="self">self</span>.res.body()).exact()
     }
 
     <span class="doccomment">/// Retrieve the cookies contained in the response.
@@ -547,26 +547,26 @@
 
     <span class="doccomment">/// Get the final `Url` of this `Response`.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>url(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="../../../reqwest/struct.Url.html">Url</a> {
-        <span class="kw-2">&amp;</span><a class="self" href="#102">self</a>.url
+    </span><span class="kw">pub fn </span>url(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Url {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.url
     }
 
     <span class="doccomment">/// Get the remote address used to get this `Response`.
-    </span><span class="kw">pub fn </span>remote_addr(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/net/socket_addr/enum.SocketAddr.html">SocketAddr</a>&gt; {
-        <a class="self" href="#107">self</a>.res
+    </span><span class="kw">pub fn </span>remote_addr(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;SocketAddr&gt; {
+        <span class="self">self</span>.res
             .extensions()
-            .get::&lt;<a href="../../../hyper/client/connect/http/struct.HttpInfo.html">HttpInfo</a>&gt;()
-            .map(|info| <a href="#111">info</a>.remote_addr())
+            .get::&lt;HttpInfo&gt;()
+            .map(|info| info.remote_addr())
     }
 
     <span class="doccomment">/// Returns a reference to the associated extensions.
-    </span><span class="kw">pub fn </span>extensions(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="../../../http/extensions/struct.Extensions.html">http::Extensions</a> {
-        <a class="self" href="#115">self</a>.res.extensions()
+    </span><span class="kw">pub fn </span>extensions(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>http::Extensions {
+        <span class="self">self</span>.res.extensions()
     }
 
     <span class="doccomment">/// Returns a mutable reference to the associated extensions.
-    </span><span class="kw">pub fn </span>extensions_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span><a href="../../../http/extensions/struct.Extensions.html">http::Extensions</a> {
-        <a class="self" href="#120">self</a>.res.extensions_mut()
+    </span><span class="kw">pub fn </span>extensions_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>http::Extensions {
+        <span class="self">self</span>.res.extensions_mut()
     }
 
     <span class="comment">// body methods
@@ -591,7 +591,7 @@
     /// # Ok(())
     /// # }
     /// ```
-    </span><span class="kw">pub async fn </span>text(<span class="self">self</span>) -&gt; <span class="kw">crate</span>::Result&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt; {
+    </span><span class="kw">pub async fn </span>text(<span class="self">self</span>) -&gt; <span class="kw">crate</span>::Result&lt;String&gt; {
         <span class="self">self</span>.text_with_charset(<span class="string">&quot;utf-8&quot;</span>).<span class="kw">await
     </span>}
 
@@ -618,7 +618,7 @@
     /// # Ok(())
     /// # }
     /// ```
-    </span><span class="kw">pub async fn </span>text_with_charset(<span class="self">self</span>, default_encoding: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="kw">crate</span>::Result&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt; {
+    </span><span class="kw">pub async fn </span>text_with_charset(<span class="self">self</span>, default_encoding: <span class="kw-2">&amp;</span>str) -&gt; <span class="kw">crate</span>::Result&lt;String&gt; {
         <span class="kw">let </span>content_type = <span class="self">self
             </span>.headers()
             .get(<span class="kw">crate</span>::header::CONTENT_TYPE)
@@ -686,7 +686,7 @@
     /// [`serde_json::from_reader`]: https://docs.serde.rs/serde_json/fn.from_reader.html
     </span><span class="attr">#[cfg(feature = <span class="string">&quot;json&quot;</span>)]
     #[cfg_attr(docsrs, doc(cfg(feature = <span class="string">&quot;json&quot;</span>)))]
-    </span><span class="kw">pub async fn </span>json&lt;T: <a href="../../../serde/de/trait.DeserializeOwned.html">DeserializeOwned</a>&gt;(<span class="self">self</span>) -&gt; <span class="kw">crate</span>::Result&lt;T&gt; {
+    </span><span class="kw">pub async fn </span>json&lt;T: DeserializeOwned&gt;(<span class="self">self</span>) -&gt; <span class="kw">crate</span>::Result&lt;T&gt; {
         <span class="kw">let </span>full = <span class="self">self</span>.bytes().<span class="kw">await</span><span class="question-mark">?</span>;
 
         serde_json::from_slice(<span class="kw-2">&amp;</span>full).map_err(<span class="kw">crate</span>::error::decode)
@@ -707,7 +707,7 @@
     /// # Ok(())
     /// # }
     /// ```
-    </span><span class="kw">pub async fn </span>bytes(<span class="self">self</span>) -&gt; <span class="kw">crate</span>::Result&lt;<a href="../../../bytes/bytes/struct.Bytes.html">Bytes</a>&gt; {
+    </span><span class="kw">pub async fn </span>bytes(<span class="self">self</span>) -&gt; <span class="kw">crate</span>::Result&lt;Bytes&gt; {
         hyper::body::to_bytes(<span class="self">self</span>.res.into_body()).<span class="kw">await
     </span>}
 
@@ -727,7 +727,7 @@
     /// # Ok(())
     /// # }
     /// ```
-    </span><span class="kw">pub async fn </span>chunk(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw">crate</span>::Result&lt;<span class="prelude-ty">Option</span>&lt;<a href="../../../bytes/bytes/struct.Bytes.html">Bytes</a>&gt;&gt; {
+    </span><span class="kw">pub async fn </span>chunk(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw">crate</span>::Result&lt;<span class="prelude-ty">Option</span>&lt;Bytes&gt;&gt; {
         <span class="kw">if let </span><span class="prelude-val">Some</span>(item) = <span class="self">self</span>.res.body_mut().next().<span class="kw">await </span>{
             <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(item<span class="question-mark">?</span>))
         } <span class="kw">else </span>{
@@ -787,11 +787,11 @@
     /// # fn main() {}
     /// ```
     </span><span class="kw">pub fn </span>error_for_status(<span class="self">self</span>) -&gt; <span class="kw">crate</span>::Result&lt;<span class="self">Self</span>&gt; {
-        <span class="kw">let </span>status = <a class="self" href="#341">self</a>.<a href="#52">status</a>();
+        <span class="kw">let </span>status = <span class="self">self</span>.status();
         <span class="kw">if </span>status.is_client_error() || status.is_server_error() {
-            <span class="prelude-val">Err</span>(<a href="../error.rs.html#265"><span class="kw">crate</span>::error::status_code</a>(<span class="kw-2">*</span><a class="self" href="#341">self</a>.url, <a href="#342">status</a>))
+            <span class="prelude-val">Err</span>(<span class="kw">crate</span>::error::status_code(<span class="kw-2">*</span><span class="self">self</span>.url, status))
         } <span class="kw">else </span>{
-            <span class="prelude-val">Ok</span>(<a class="self" href="#341">self</a>)
+            <span class="prelude-val">Ok</span>(<span class="self">self</span>)
         }
     }
 
@@ -817,11 +817,11 @@
     /// # fn main() {}
     /// ```
     </span><span class="kw">pub fn </span>error_for_status_ref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">crate</span>::Result&lt;<span class="kw-2">&amp;</span><span class="self">Self</span>&gt; {
-        <span class="kw">let </span>status = <a class="self" href="#371">self</a>.<a href="#52">status</a>();
+        <span class="kw">let </span>status = <span class="self">self</span>.status();
         <span class="kw">if </span>status.is_client_error() || status.is_server_error() {
-            <span class="prelude-val">Err</span>(<a href="../error.rs.html#265"><span class="kw">crate</span>::error::status_code</a>(<span class="kw-2">*</span><a class="self" href="#371">self</a>.url.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), <a href="#372">status</a>))
+            <span class="prelude-val">Err</span>(<span class="kw">crate</span>::error::status_code(<span class="kw-2">*</span><span class="self">self</span>.url.clone(), status))
         } <span class="kw">else </span>{
-            <span class="prelude-val">Ok</span>(<a class="self" href="#371">self</a>)
+            <span class="prelude-val">Ok</span>(<span class="self">self</span>)
         }
     }
 
@@ -838,38 +838,38 @@
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="#26">Response</a> {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a href="#394">f</a>.debug_struct(<span class="string">&quot;Response&quot;</span>)
-            .field(<span class="string">&quot;url&quot;</span>, <a class="self" href="#394">self</a>.<a href="#102">url</a>())
-            .field(<span class="string">&quot;status&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="#394">self</a>.<a href="#52">status</a>())
-            .field(<span class="string">&quot;headers&quot;</span>, <a class="self" href="#394">self</a>.<a href="#64">headers</a>())
+<span class="kw">impl </span>fmt::Debug <span class="kw">for </span>Response {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter) -&gt; fmt::Result {
+        f.debug_struct(<span class="string">&quot;Response&quot;</span>)
+            .field(<span class="string">&quot;url&quot;</span>, <span class="self">self</span>.url())
+            .field(<span class="string">&quot;status&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.status())
+            .field(<span class="string">&quot;headers&quot;</span>, <span class="self">self</span>.headers())
             .finish()
     }
 }
 
-<span class="kw">impl</span>&lt;T: Into&lt;<a href="body.rs.html#17">Body</a>&gt;&gt; From&lt;http::Response&lt;T&gt;&gt; <span class="kw">for </span><a href="#26">Response</a> {
-    <span class="kw">fn </span>from(r: http::Response&lt;T&gt;) -&gt; <a href="#26">Response</a> {
-        <span class="kw">let </span>(<span class="kw-2">mut </span>parts, body) = <a href="#404">r</a>.into_parts();
-        <span class="kw">let </span>body = <a href="#405">body</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>();
-        <span class="kw">let </span>decoder = Decoder::detect(<span class="kw-2">&amp;mut </span><a href="#405">parts</a>.headers, <a href="#406">body</a>, Accepts::none());
-        <span class="kw">let </span>url = <a href="#405">parts</a>
+<span class="kw">impl</span>&lt;T: Into&lt;Body&gt;&gt; From&lt;http::Response&lt;T&gt;&gt; <span class="kw">for </span>Response {
+    <span class="kw">fn </span>from(r: http::Response&lt;T&gt;) -&gt; Response {
+        <span class="kw">let </span>(<span class="kw-2">mut </span>parts, body) = r.into_parts();
+        <span class="kw">let </span>body = body.into();
+        <span class="kw">let </span>decoder = Decoder::detect(<span class="kw-2">&amp;mut </span>parts.headers, body, Accepts::none());
+        <span class="kw">let </span>url = parts
             .extensions
-            .remove::&lt;<a href="../response.rs.html#4">ResponseUrl</a>&gt;()
-            .unwrap_or_else(|| <a href="../response.rs.html#4">ResponseUrl</a>(Url::parse(<span class="string">&quot;http://no.url.provided.local&quot;</span>).unwrap()));
-        <span class="kw">let </span>url = <a href="#408">url</a>.<span class="number">0</span>;
-        <span class="kw">let </span>res = hyper::Response::from_parts(<a href="#405">parts</a>, <a href="#407">decoder</a>);
-        <a href="#26">Response</a> {
-            <a href="#413">res</a>,
-            url: Box::new(<a href="#412">url</a>),
+            .remove::&lt;ResponseUrl&gt;()
+            .unwrap_or_else(|| ResponseUrl(Url::parse(<span class="string">&quot;http://no.url.provided.local&quot;</span>).unwrap()));
+        <span class="kw">let </span>url = url.<span class="number">0</span>;
+        <span class="kw">let </span>res = hyper::Response::from_parts(parts, decoder);
+        Response {
+            res,
+            url: Box::new(url),
         }
     }
 }
 
 <span class="doccomment">/// A `Response` can be piped as the `Body` of another request.
-</span><span class="kw">impl </span>From&lt;<a href="#26">Response</a>&gt; <span class="kw">for </span><a href="body.rs.html#17">Body</a> {
-    <span class="kw">fn </span>from(r: <a href="#26">Response</a>) -&gt; <a href="body.rs.html#17">Body</a> {
-        Body::stream(<a href="#423">r</a>.res.into_body())
+</span><span class="kw">impl </span>From&lt;Response&gt; <span class="kw">for </span>Body {
+    <span class="kw">fn </span>from(r: Response) -&gt; Body {
+        Body::stream(r.res.into_body())
     }
 }
 
@@ -895,4 +895,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="reqwest" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="reqwest" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

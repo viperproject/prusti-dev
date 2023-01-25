@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/csv-1.1.6/src/deserializer.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>deserializer.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../csv/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/csv-1.1.6/src/deserializer.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>deserializer.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../csv/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -1251,56 +1251,56 @@
 <a href="#1251" id="1251">1251</a>
 <a href="#1252" id="1252">1252</a>
 <a href="#1253" id="1253">1253</a>
-</pre><pre class="rust"><code><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">std::error::Error</a> <span class="kw">as </span>StdError;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">std::fmt</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/iter/index.html">std::iter</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/num/index.html">std::num</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/str/index.html">std::str</a>;
+</pre><pre class="rust"><code><span class="kw">use </span>std::error::Error <span class="kw">as </span>StdError;
+<span class="kw">use </span>std::fmt;
+<span class="kw">use </span>std::iter;
+<span class="kw">use </span>std::num;
+<span class="kw">use </span>std::str;
 
-<span class="kw">use </span><a href="../../serde/de/value/struct.BorrowedBytesDeserializer.html">serde::de::value::BorrowedBytesDeserializer</a>;
+<span class="kw">use </span>serde::de::value::BorrowedBytesDeserializer;
 <span class="kw">use </span>serde::de::{
-    <a href="../../serde/de/trait.Deserialize.html">Deserialize</a>, <a href="../../serde/de/trait.DeserializeSeed.html">DeserializeSeed</a>, <a href="../../serde/de/trait.Deserializer.html">Deserializer</a>, <a href="../../serde/de/trait.EnumAccess.html">EnumAccess</a>,
-    <a href="../../serde/de/trait.Error.html">Error</a> <span class="kw">as </span>SerdeError, <a href="../../serde/de/trait.IntoDeserializer.html">IntoDeserializer</a>, <a href="../../serde/de/trait.MapAccess.html">MapAccess</a>, <a href="../../serde/de/trait.SeqAccess.html">SeqAccess</a>, <a href="../../serde/de/enum.Unexpected.html">Unexpected</a>,
-    <a href="../../serde/de/trait.VariantAccess.html">VariantAccess</a>, <a href="../../serde/de/trait.Visitor.html">Visitor</a>,
+    Deserialize, DeserializeSeed, Deserializer, EnumAccess,
+    Error <span class="kw">as </span>SerdeError, IntoDeserializer, MapAccess, SeqAccess, Unexpected,
+    VariantAccess, Visitor,
 };
-<span class="kw">use </span><a href="../../serde/macro.serde_if_integer128.html">serde::serde_if_integer128</a>;
+<span class="kw">use </span>serde::serde_if_integer128;
 
-<span class="kw">use </span><span class="kw">crate</span>::byte_record::{<a href="byte_record.rs.html#34">ByteRecord</a>, <a href="byte_record.rs.html#777">ByteRecordIter</a>};
-<span class="kw">use </span><span class="kw">crate</span>::error::{<a href="error.rs.html#21">Error</a>, <a href="error.rs.html#61">ErrorKind</a>};
-<span class="kw">use </span><span class="kw">crate</span>::string_record::{<a href="string_record.rs.html#36">StringRecord</a>, <a href="string_record.rs.html#711">StringRecordIter</a>};
+<span class="kw">use </span><span class="kw">crate</span>::byte_record::{ByteRecord, ByteRecordIter};
+<span class="kw">use </span><span class="kw">crate</span>::error::{Error, ErrorKind};
+<span class="kw">use </span><span class="kw">crate</span>::string_record::{StringRecord, StringRecordIter};
 
-<span class="kw">use </span><a href="#667"><span class="self">self</span>::DeserializeErrorKind</a> <span class="kw">as </span>DEK;
+<span class="kw">use </span><span class="self">self</span>::DeserializeErrorKind <span class="kw">as </span>DEK;
 
 <span class="kw">pub fn </span>deserialize_string_record&lt;<span class="lifetime">&#39;de</span>, D: Deserialize&lt;<span class="lifetime">&#39;de</span>&gt;&gt;(
-    record: <span class="kw-2">&amp;</span><span class="lifetime">&#39;de </span><a href="string_record.rs.html#36">StringRecord</a>,
-    headers: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;de </span><a href="string_record.rs.html#36">StringRecord</a>&gt;,
-) -&gt; <span class="prelude-ty">Result</span>&lt;D, <a href="error.rs.html#21">Error</a>&gt; {
-    <span class="kw">let </span><span class="kw-2">mut </span>deser = <a href="#102">DeRecordWrap</a>(<a href="#151">DeStringRecord</a> {
-        it: <a href="#22">record</a>.<a href="string_record.rs.html#314">iter</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">peekable</a>(),
-        headers: <a href="#23">headers</a>.map(|r| <a href="#27">r</a>.<a href="string_record.rs.html#314">iter</a>()),
+    record: <span class="kw-2">&amp;</span><span class="lifetime">&#39;de </span>StringRecord,
+    headers: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;de </span>StringRecord&gt;,
+) -&gt; <span class="prelude-ty">Result</span>&lt;D, Error&gt; {
+    <span class="kw">let </span><span class="kw-2">mut </span>deser = DeRecordWrap(DeStringRecord {
+        it: record.iter().peekable(),
+        headers: headers.map(|r| r.iter()),
         field: <span class="number">0</span>,
     });
-    D::deserialize(<span class="kw-2">&amp;mut </span><a href="#25">deser</a>).map_err(|err| {
-        Error::new(<a href="error.rs.html#95">ErrorKind::Deserialize</a> {
-            pos: <a href="#22">record</a>.<a href="string_record.rs.html#496">position</a>().map(<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone::clone</a>),
-            err: <a href="#30">err</a>,
+    D::deserialize(<span class="kw-2">&amp;mut </span>deser).map_err(|err| {
+        Error::new(ErrorKind::Deserialize {
+            pos: record.position().map(Clone::clone),
+            err: err,
         })
     })
 }
 
 <span class="kw">pub fn </span>deserialize_byte_record&lt;<span class="lifetime">&#39;de</span>, D: Deserialize&lt;<span class="lifetime">&#39;de</span>&gt;&gt;(
-    record: <span class="kw-2">&amp;</span><span class="lifetime">&#39;de </span><a href="byte_record.rs.html#34">ByteRecord</a>,
-    headers: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;de </span><a href="byte_record.rs.html#34">ByteRecord</a>&gt;,
-) -&gt; <span class="prelude-ty">Result</span>&lt;D, <a href="error.rs.html#21">Error</a>&gt; {
-    <span class="kw">let </span><span class="kw-2">mut </span>deser = <a href="#102">DeRecordWrap</a>(<a href="#235">DeByteRecord</a> {
-        it: <a href="#39">record</a>.<a href="byte_record.rs.html#251">iter</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">peekable</a>(),
-        headers: <a href="#40">headers</a>.map(|r| <a href="#44">r</a>.<a href="byte_record.rs.html#251">iter</a>()),
+    record: <span class="kw-2">&amp;</span><span class="lifetime">&#39;de </span>ByteRecord,
+    headers: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;de </span>ByteRecord&gt;,
+) -&gt; <span class="prelude-ty">Result</span>&lt;D, Error&gt; {
+    <span class="kw">let </span><span class="kw-2">mut </span>deser = DeRecordWrap(DeByteRecord {
+        it: record.iter().peekable(),
+        headers: headers.map(|r| r.iter()),
         field: <span class="number">0</span>,
     });
-    D::deserialize(<span class="kw-2">&amp;mut </span><a href="#42">deser</a>).map_err(|err| {
-        Error::new(<a href="error.rs.html#95">ErrorKind::Deserialize</a> {
-            pos: <a href="#39">record</a>.<a href="byte_record.rs.html#438">position</a>().map(<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone::clone</a>),
-            err: <a href="#47">err</a>,
+    D::deserialize(<span class="kw-2">&amp;mut </span>deser).map_err(|err| {
+        Error::new(ErrorKind::Deserialize {
+            pos: record.position().map(Clone::clone),
+            err: err,
         })
     })
 }
@@ -1323,164 +1323,164 @@
 /// The lifetime `&#39;r` refers to the lifetime of the underlying record.
 </span><span class="kw">trait </span>DeRecord&lt;<span class="lifetime">&#39;r</span>&gt; {
     <span class="doccomment">/// Returns true if and only if this deserialize has access to headers.
-    </span><span class="kw">fn </span>has_headers(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>;
+    </span><span class="kw">fn </span>has_headers(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool;
 
     <span class="doccomment">/// Extracts the next string header value from the underlying record.
-    </span><span class="kw">fn </span>next_header(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;r </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt;, <a href="#660">DeserializeError</a>&gt;;
+    </span><span class="kw">fn </span>next_header(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;r </span>str&gt;, DeserializeError&gt;;
 
     <span class="doccomment">/// Extracts the next raw byte header value from the underlying record.
     </span><span class="kw">fn </span>next_header_bytes(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;r </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;, <a href="#660">DeserializeError</a>&gt;;
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;r </span>[u8]&gt;, DeserializeError&gt;;
 
     <span class="doccomment">/// Extracts the next string field from the underlying record.
-    </span><span class="kw">fn </span>next_field(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;r </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, <a href="#660">DeserializeError</a>&gt;;
+    </span><span class="kw">fn </span>next_field(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;r </span>str, DeserializeError&gt;;
 
     <span class="doccomment">/// Extracts the next raw byte field from the underlying record.
-    </span><span class="kw">fn </span>next_field_bytes(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;r </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], <a href="#660">DeserializeError</a>&gt;;
+    </span><span class="kw">fn </span>next_field_bytes(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;r </span>[u8], DeserializeError&gt;;
 
     <span class="doccomment">/// Peeks at the next field from the underlying record.
-    </span><span class="kw">fn </span>peek_field(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;r </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;;
+    </span><span class="kw">fn </span>peek_field(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;r </span>[u8]&gt;;
 
     <span class="doccomment">/// Returns an error corresponding to the most recently extracted field.
-    </span><span class="kw">fn </span>error(<span class="kw-2">&amp;</span><span class="self">self</span>, kind: <a href="#667">DeserializeErrorKind</a>) -&gt; <a href="#660">DeserializeError</a>;
+    </span><span class="kw">fn </span>error(<span class="kw-2">&amp;</span><span class="self">self</span>, kind: DeserializeErrorKind) -&gt; DeserializeError;
 
     <span class="doccomment">/// Infer the type of the next field and deserialize it.
     </span><span class="kw">fn </span>infer_deserialize&lt;<span class="lifetime">&#39;de</span>, V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;&gt;(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         visitor: V,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value, <a href="#660">DeserializeError</a>&gt;;
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value, DeserializeError&gt;;
 }
 
 <span class="kw">struct </span>DeRecordWrap&lt;T&gt;(T);
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;r</span>, T: DeRecord&lt;<span class="lifetime">&#39;r</span>&gt;&gt; DeRecord&lt;<span class="lifetime">&#39;r</span>&gt; <span class="kw">for </span>DeRecordWrap&lt;T&gt; {
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>has_headers(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#106">self</a>.<span class="number">0</span>.<a href="#73">has_headers</a>()
+    </span><span class="kw">fn </span>has_headers(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.<span class="number">0</span>.has_headers()
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>next_header(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;r </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt;, <a href="#660">DeserializeError</a>&gt; {
-        <a class="self" href="#111">self</a>.<span class="number">0</span>.<a href="#76">next_header</a>()
+    </span><span class="kw">fn </span>next_header(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;r </span>str&gt;, DeserializeError&gt; {
+        <span class="self">self</span>.<span class="number">0</span>.next_header()
     }
 
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>next_header_bytes(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;r </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;, <a href="#660">DeserializeError</a>&gt; {
-        <a class="self" href="#117">self</a>.<span class="number">0</span>.<a href="#79-81">next_header_bytes</a>()
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;r </span>[u8]&gt;, DeserializeError&gt; {
+        <span class="self">self</span>.<span class="number">0</span>.next_header_bytes()
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>next_field(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;r </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, <a href="#660">DeserializeError</a>&gt; {
-        <a class="self" href="#123">self</a>.<span class="number">0</span>.<a href="#84">next_field</a>()
+    </span><span class="kw">fn </span>next_field(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;r </span>str, DeserializeError&gt; {
+        <span class="self">self</span>.<span class="number">0</span>.next_field()
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>next_field_bytes(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;r </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], <a href="#660">DeserializeError</a>&gt; {
-        <a class="self" href="#128">self</a>.<span class="number">0</span>.<a href="#87">next_field_bytes</a>()
+    </span><span class="kw">fn </span>next_field_bytes(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;r </span>[u8], DeserializeError&gt; {
+        <span class="self">self</span>.<span class="number">0</span>.next_field_bytes()
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>peek_field(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;r </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt; {
-        <a class="self" href="#133">self</a>.<span class="number">0</span>.<a href="#90">peek_field</a>()
+    </span><span class="kw">fn </span>peek_field(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;r </span>[u8]&gt; {
+        <span class="self">self</span>.<span class="number">0</span>.peek_field()
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>error(<span class="kw-2">&amp;</span><span class="self">self</span>, kind: <a href="#667">DeserializeErrorKind</a>) -&gt; <a href="#660">DeserializeError</a> {
-        <a class="self" href="#138">self</a>.<span class="number">0</span>.<a href="#93">error</a>(<a href="#138">kind</a>)
+    </span><span class="kw">fn </span>error(<span class="kw-2">&amp;</span><span class="self">self</span>, kind: DeserializeErrorKind) -&gt; DeserializeError {
+        <span class="self">self</span>.<span class="number">0</span>.error(kind)
     }
 
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>infer_deserialize&lt;<span class="lifetime">&#39;de</span>, V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;&gt;(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         visitor: V,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value, <a href="#660">DeserializeError</a>&gt; {
-        <a class="self" href="#144">self</a>.<span class="number">0</span>.<a href="#96-99">infer_deserialize</a>(<a href="#145">visitor</a>)
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value, DeserializeError&gt; {
+        <span class="self">self</span>.<span class="number">0</span>.infer_deserialize(visitor)
     }
 }
 
 <span class="kw">struct </span>DeStringRecord&lt;<span class="lifetime">&#39;r</span>&gt; {
     it: iter::Peekable&lt;StringRecordIter&lt;<span class="lifetime">&#39;r</span>&gt;&gt;,
     headers: <span class="prelude-ty">Option</span>&lt;StringRecordIter&lt;<span class="lifetime">&#39;r</span>&gt;&gt;,
-    field: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>,
+    field: u64,
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;r</span>&gt; DeRecord&lt;<span class="lifetime">&#39;r</span>&gt; <span class="kw">for </span>DeStringRecord&lt;<span class="lifetime">&#39;r</span>&gt; {
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>has_headers(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#159">self</a>.headers.is_some()
+    </span><span class="kw">fn </span>has_headers(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.headers.is_some()
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>next_header(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;r </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt;, <a href="#660">DeserializeError</a>&gt; {
-        <span class="prelude-val">Ok</span>(<a class="self" href="#164">self</a>.headers.as_mut().and_then(|it| <a href="#165">it</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>()))
+    </span><span class="kw">fn </span>next_header(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;r </span>str&gt;, DeserializeError&gt; {
+        <span class="prelude-val">Ok</span>(<span class="self">self</span>.headers.as_mut().and_then(|it| it.next()))
     }
 
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>next_header_bytes(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;r </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;, <a href="#660">DeserializeError</a>&gt; {
-        <span class="prelude-val">Ok</span>(<span class="self">self</span>.next_header()<span class="question-mark">?</span>.map(|s| <a href="#172">s</a>.as_bytes()))
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;r </span>[u8]&gt;, DeserializeError&gt; {
+        <span class="prelude-val">Ok</span>(<span class="self">self</span>.next_header()<span class="question-mark">?</span>.map(|s| s.as_bytes()))
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>next_field(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;r </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, <a href="#660">DeserializeError</a>&gt; {
-        <span class="kw">match </span><a class="self" href="#176">self</a>.it.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>() {
+    </span><span class="kw">fn </span>next_field(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;r </span>str, DeserializeError&gt; {
+        <span class="kw">match </span><span class="self">self</span>.it.next() {
             <span class="prelude-val">Some</span>(field) =&gt; {
-                <a class="self" href="#176">self</a>.field += <span class="number">1</span>;
-                <span class="prelude-val">Ok</span>(<a href="#178">field</a>)
+                <span class="self">self</span>.field += <span class="number">1</span>;
+                <span class="prelude-val">Ok</span>(field)
             }
-            <span class="prelude-val">None </span>=&gt; <span class="prelude-val">Err</span>(<a href="#660">DeserializeError</a> {
+            <span class="prelude-val">None </span>=&gt; <span class="prelude-val">Err</span>(DeserializeError {
                 field: <span class="prelude-val">None</span>,
-                kind: <a href="#674">DEK::UnexpectedEndOfRow</a>,
+                kind: DEK::UnexpectedEndOfRow,
             }),
         }
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>next_field_bytes(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;r </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], <a href="#660">DeserializeError</a>&gt; {
-        <a class="self" href="#190">self</a>.<a href="#84">next_field</a>().map(|s| <a href="#191">s</a>.as_bytes())
+    </span><span class="kw">fn </span>next_field_bytes(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;r </span>[u8], DeserializeError&gt; {
+        <span class="self">self</span>.next_field().map(|s| s.as_bytes())
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>peek_field(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;r </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt; {
-        <a class="self" href="#195">self</a>.it.peek().map(|s| <a href="#196">s</a>.as_bytes())
+    </span><span class="kw">fn </span>peek_field(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;r </span>[u8]&gt; {
+        <span class="self">self</span>.it.peek().map(|s| s.as_bytes())
     }
 
-    <span class="kw">fn </span>error(<span class="kw-2">&amp;</span><span class="self">self</span>, kind: <a href="#667">DeserializeErrorKind</a>) -&gt; <a href="#660">DeserializeError</a> {
-        <a href="#660">DeserializeError</a> {
-            field: <span class="prelude-val">Some</span>(<a class="self" href="#199">self</a>.field.saturating_sub(<span class="number">1</span>)),
-            kind: <a href="#199">kind</a>,
+    <span class="kw">fn </span>error(<span class="kw-2">&amp;</span><span class="self">self</span>, kind: DeserializeErrorKind) -&gt; DeserializeError {
+        DeserializeError {
+            field: <span class="prelude-val">Some</span>(<span class="self">self</span>.field.saturating_sub(<span class="number">1</span>)),
+            kind: kind,
         }
     }
 
     <span class="kw">fn </span>infer_deserialize&lt;<span class="lifetime">&#39;de</span>, V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;&gt;(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         visitor: V,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value, <a href="#660">DeserializeError</a>&gt; {
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value, DeserializeError&gt; {
         <span class="kw">let </span>x = <span class="self">self</span>.next_field()<span class="question-mark">?</span>;
         <span class="kw">if </span>x == <span class="string">&quot;true&quot; </span>{
-            <span class="kw">return </span><a href="#208">visitor</a>.<a href="../../serde/de/trait.Visitor.html">visit_bool</a>(<span class="bool-val">true</span>);
+            <span class="kw">return </span>visitor.visit_bool(<span class="bool-val">true</span>);
         } <span class="kw">else if </span>x == <span class="string">&quot;false&quot; </span>{
-            <span class="kw">return </span><a href="#208">visitor</a>.<a href="../../serde/de/trait.Visitor.html">visit_bool</a>(<span class="bool-val">false</span>);
-        } <span class="kw">else if let </span><span class="prelude-val">Some</span>(n) = <a href="#766">try_positive_integer64</a>(<a href="#210">x</a>) {
-            <span class="kw">return </span><a href="#208">visitor</a>.<a href="../../serde/de/trait.Visitor.html">visit_u64</a>(<a href="#215">n</a>);
-        } <span class="kw">else if let </span><span class="prelude-val">Some</span>(n) = <a href="#770">try_negative_integer64</a>(<a href="#210">x</a>) {
-            <span class="kw">return </span><a href="#208">visitor</a>.<a href="../../serde/de/trait.Visitor.html">visit_i64</a>(<a href="#217">n</a>);
+            <span class="kw">return </span>visitor.visit_bool(<span class="bool-val">false</span>);
+        } <span class="kw">else if let </span><span class="prelude-val">Some</span>(n) = try_positive_integer64(x) {
+            <span class="kw">return </span>visitor.visit_u64(n);
+        } <span class="kw">else if let </span><span class="prelude-val">Some</span>(n) = try_negative_integer64(x) {
+            <span class="kw">return </span>visitor.visit_i64(n);
         }
         <span class="macro">serde_if_integer128! </span>{
-            <span class="kw">if let </span><span class="prelude-val">Some</span>(n) = <a href="#757">try_positive_integer128</a>(<a href="#210">x</a>) {
-                <span class="kw">return </span><a href="#208">visitor</a>.<a href="../../serde/de/trait.Visitor.html">visit_u128</a>(<a href="#221">n</a>);
-            } <span class="kw">else if let </span><span class="prelude-val">Some</span>(n) = <a href="#761">try_negative_integer128</a>(<a href="#210">x</a>) {
-                <span class="kw">return </span><a href="#208">visitor</a>.<a href="../../serde/de/trait.Visitor.html">visit_i128</a>(<a href="#223">n</a>);
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(n) = try_positive_integer128(x) {
+                <span class="kw">return </span>visitor.visit_u128(n);
+            } <span class="kw">else if let </span><span class="prelude-val">Some</span>(n) = try_negative_integer128(x) {
+                <span class="kw">return </span>visitor.visit_i128(n);
             }
         }
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(n) = <a href="#774">try_float</a>(<a href="#210">x</a>) {
-            <a href="#208">visitor</a>.<a href="../../serde/de/trait.Visitor.html">visit_f64</a>(<a href="#227">n</a>)
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(n) = try_float(x) {
+            visitor.visit_f64(n)
         } <span class="kw">else </span>{
-            <a href="#208">visitor</a>.<a href="../../serde/de/trait.Visitor.html">visit_str</a>(<a href="#210">x</a>)
+            visitor.visit_str(x)
         }
     }
 }
@@ -1488,95 +1488,95 @@
 <span class="kw">struct </span>DeByteRecord&lt;<span class="lifetime">&#39;r</span>&gt; {
     it: iter::Peekable&lt;ByteRecordIter&lt;<span class="lifetime">&#39;r</span>&gt;&gt;,
     headers: <span class="prelude-ty">Option</span>&lt;ByteRecordIter&lt;<span class="lifetime">&#39;r</span>&gt;&gt;,
-    field: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>,
+    field: u64,
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;r</span>&gt; DeRecord&lt;<span class="lifetime">&#39;r</span>&gt; <span class="kw">for </span>DeByteRecord&lt;<span class="lifetime">&#39;r</span>&gt; {
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>has_headers(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#243">self</a>.headers.is_some()
+    </span><span class="kw">fn </span>has_headers(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.headers.is_some()
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>next_header(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;r </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt;, <a href="#660">DeserializeError</a>&gt; {
-        <span class="kw">match </span><a class="self" href="#248">self</a>.<a href="#79-81">next_header_bytes</a>() {
+    </span><span class="kw">fn </span>next_header(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;r </span>str&gt;, DeserializeError&gt; {
+        <span class="kw">match </span><span class="self">self</span>.next_header_bytes() {
             <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(field)) =&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(
                 str::from_utf8(field)
                     .map_err(|err| <span class="self">self</span>.error(DEK::InvalidUtf8(err)))<span class="question-mark">?</span>,
             )),
             <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>),
-            <span class="prelude-val">Err</span>(err) =&gt; <span class="prelude-val">Err</span>(<a href="#255">err</a>),
+            <span class="prelude-val">Err</span>(err) =&gt; <span class="prelude-val">Err</span>(err),
         }
     }
 
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>next_header_bytes(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;r </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;, <a href="#660">DeserializeError</a>&gt; {
-        <span class="prelude-val">Ok</span>(<a class="self" href="#261">self</a>.headers.as_mut().and_then(|it| <a href="#263">it</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>()))
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;r </span>[u8]&gt;, DeserializeError&gt; {
+        <span class="prelude-val">Ok</span>(<span class="self">self</span>.headers.as_mut().and_then(|it| it.next()))
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>next_field(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;r </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, <a href="#660">DeserializeError</a>&gt; {
-        <a class="self" href="#267">self</a>.<a href="#87">next_field_bytes</a>().and_then(|field| {
-            <a href="https://doc.rust-lang.org/nightly/core/str/converts/fn.from_utf8.html">str::from_utf8</a>(<a href="#268">field</a>)
-                .map_err(|err| <a class="self" href="#267">self</a>.<a href="#93">error</a>(<a href="#678">DEK::InvalidUtf8</a>(<a href="#270">err</a>)))
+    </span><span class="kw">fn </span>next_field(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;r </span>str, DeserializeError&gt; {
+        <span class="self">self</span>.next_field_bytes().and_then(|field| {
+            str::from_utf8(field)
+                .map_err(|err| <span class="self">self</span>.error(DEK::InvalidUtf8(err)))
         })
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>next_field_bytes(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;r </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], <a href="#660">DeserializeError</a>&gt; {
-        <span class="kw">match </span><a class="self" href="#275">self</a>.it.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>() {
+    </span><span class="kw">fn </span>next_field_bytes(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;r </span>[u8], DeserializeError&gt; {
+        <span class="kw">match </span><span class="self">self</span>.it.next() {
             <span class="prelude-val">Some</span>(field) =&gt; {
-                <a class="self" href="#275">self</a>.field += <span class="number">1</span>;
-                <span class="prelude-val">Ok</span>(<a href="#277">field</a>)
+                <span class="self">self</span>.field += <span class="number">1</span>;
+                <span class="prelude-val">Ok</span>(field)
             }
-            <span class="prelude-val">None </span>=&gt; <span class="prelude-val">Err</span>(<a href="#660">DeserializeError</a> {
+            <span class="prelude-val">None </span>=&gt; <span class="prelude-val">Err</span>(DeserializeError {
                 field: <span class="prelude-val">None</span>,
-                kind: <a href="#674">DEK::UnexpectedEndOfRow</a>,
+                kind: DEK::UnexpectedEndOfRow,
             }),
         }
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>peek_field(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;r </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt; {
-        <a class="self" href="#289">self</a>.it.peek().map(|s| <span class="kw-2">*</span><a href="#290">s</a>)
+    </span><span class="kw">fn </span>peek_field(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;r </span>[u8]&gt; {
+        <span class="self">self</span>.it.peek().map(|s| <span class="kw-2">*</span>s)
     }
 
-    <span class="kw">fn </span>error(<span class="kw-2">&amp;</span><span class="self">self</span>, kind: <a href="#667">DeserializeErrorKind</a>) -&gt; <a href="#660">DeserializeError</a> {
-        <a href="#660">DeserializeError</a> {
-            field: <span class="prelude-val">Some</span>(<a class="self" href="#293">self</a>.field.saturating_sub(<span class="number">1</span>)),
-            kind: <a href="#293">kind</a>,
+    <span class="kw">fn </span>error(<span class="kw-2">&amp;</span><span class="self">self</span>, kind: DeserializeErrorKind) -&gt; DeserializeError {
+        DeserializeError {
+            field: <span class="prelude-val">Some</span>(<span class="self">self</span>.field.saturating_sub(<span class="number">1</span>)),
+            kind: kind,
         }
     }
 
     <span class="kw">fn </span>infer_deserialize&lt;<span class="lifetime">&#39;de</span>, V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;&gt;(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         visitor: V,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value, <a href="#660">DeserializeError</a>&gt; {
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value, DeserializeError&gt; {
         <span class="kw">let </span>x = <span class="self">self</span>.next_field_bytes()<span class="question-mark">?</span>;
         <span class="kw">if </span>x == <span class="string">b&quot;true&quot; </span>{
-            <span class="kw">return </span><a href="#302">visitor</a>.<a href="../../serde/de/trait.Visitor.html">visit_bool</a>(<span class="bool-val">true</span>);
+            <span class="kw">return </span>visitor.visit_bool(<span class="bool-val">true</span>);
         } <span class="kw">else if </span>x == <span class="string">b&quot;false&quot; </span>{
-            <span class="kw">return </span><a href="#302">visitor</a>.<a href="../../serde/de/trait.Visitor.html">visit_bool</a>(<span class="bool-val">false</span>);
-        } <span class="kw">else if let </span><span class="prelude-val">Some</span>(n) = <a href="#778">try_positive_integer64_bytes</a>(<a href="#304">x</a>) {
-            <span class="kw">return </span><a href="#302">visitor</a>.<a href="../../serde/de/trait.Visitor.html">visit_u64</a>(<a href="#309">n</a>);
-        } <span class="kw">else if let </span><span class="prelude-val">Some</span>(n) = <a href="#782">try_negative_integer64_bytes</a>(<a href="#304">x</a>) {
-            <span class="kw">return </span><a href="#302">visitor</a>.<a href="../../serde/de/trait.Visitor.html">visit_i64</a>(<a href="#311">n</a>);
+            <span class="kw">return </span>visitor.visit_bool(<span class="bool-val">false</span>);
+        } <span class="kw">else if let </span><span class="prelude-val">Some</span>(n) = try_positive_integer64_bytes(x) {
+            <span class="kw">return </span>visitor.visit_u64(n);
+        } <span class="kw">else if let </span><span class="prelude-val">Some</span>(n) = try_negative_integer64_bytes(x) {
+            <span class="kw">return </span>visitor.visit_i64(n);
         }
         <span class="macro">serde_if_integer128! </span>{
-            <span class="kw">if let </span><span class="prelude-val">Some</span>(n) = <a href="#787">try_positive_integer128_bytes</a>(<a href="#304">x</a>) {
-                <span class="kw">return </span><a href="#302">visitor</a>.<a href="../../serde/de/trait.Visitor.html">visit_u128</a>(<a href="#315">n</a>);
-            } <span class="kw">else if let </span><span class="prelude-val">Some</span>(n) = <a href="#791">try_negative_integer128_bytes</a>(<a href="#304">x</a>) {
-                <span class="kw">return </span><a href="#302">visitor</a>.<a href="../../serde/de/trait.Visitor.html">visit_i128</a>(<a href="#317">n</a>);
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(n) = try_positive_integer128_bytes(x) {
+                <span class="kw">return </span>visitor.visit_u128(n);
+            } <span class="kw">else if let </span><span class="prelude-val">Some</span>(n) = try_negative_integer128_bytes(x) {
+                <span class="kw">return </span>visitor.visit_i128(n);
             }
         }
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(n) = <a href="#796">try_float_bytes</a>(<a href="#304">x</a>) {
-            <a href="#302">visitor</a>.<a href="../../serde/de/trait.Visitor.html">visit_f64</a>(<a href="#321">n</a>)
-        } <span class="kw">else if let </span><span class="prelude-val">Ok</span>(s) = <a href="https://doc.rust-lang.org/nightly/core/str/converts/fn.from_utf8.html">str::from_utf8</a>(<a href="#304">x</a>) {
-            <a href="#302">visitor</a>.<a href="../../serde/de/trait.Visitor.html">visit_str</a>(<a href="#323">s</a>)
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(n) = try_float_bytes(x) {
+            visitor.visit_f64(n)
+        } <span class="kw">else if let </span><span class="prelude-val">Ok</span>(s) = str::from_utf8(x) {
+            visitor.visit_str(s)
         } <span class="kw">else </span>{
-            <a href="#302">visitor</a>.<a href="../../serde/de/trait.Visitor.html">visit_bytes</a>(<a href="#304">x</a>)
+            visitor.visit_bytes(x)
         }
     }
 }
@@ -1601,46 +1601,46 @@
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;de</span>: <span class="lifetime">&#39;a</span>, T: DeRecord&lt;<span class="lifetime">&#39;de</span>&gt;&gt; Deserializer&lt;<span class="lifetime">&#39;de</span>&gt;
     <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>DeRecordWrap&lt;T&gt;
 {
-    <span class="kw">type </span>Error = <a href="#660">DeserializeError</a>;
+    <span class="kw">type </span>Error = DeserializeError;
 
     <span class="kw">fn </span>deserialize_any&lt;V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;&gt;(
         <span class="self">self</span>,
         visitor: V,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value, <span class="self">Self</span>::Error&gt; {
-        <a class="self" href="#354">self</a>.<a href="#96-99">infer_deserialize</a>(<a href="#355">visitor</a>)
+        <span class="self">self</span>.infer_deserialize(visitor)
     }
 
     <span class="kw">fn </span>deserialize_bool&lt;V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;&gt;(
         <span class="self">self</span>,
         visitor: V,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value, <span class="self">Self</span>::Error&gt; {
-        <a href="#362">visitor</a>.<a href="../../serde/de/trait.Visitor.html">visit_bool</a>(
+        visitor.visit_bool(
             <span class="self">self</span>.next_field()<span class="question-mark">?
                 </span>.parse()
                 .map_err(|err| <span class="self">self</span>.error(DEK::ParseBool(err)))<span class="question-mark">?</span>,
         )
     }
 
-    <a class="macro" href="#331-346">deserialize_int!</a>(deserialize_u8, visit_u8, u8);
-    <a class="macro" href="#331-346">deserialize_int!</a>(deserialize_u16, visit_u16, u16);
-    <a class="macro" href="#331-346">deserialize_int!</a>(deserialize_u32, visit_u32, u32);
-    <a class="macro" href="#331-346">deserialize_int!</a>(deserialize_u64, visit_u64, u64);
+    <span class="macro">deserialize_int!</span>(deserialize_u8, visit_u8, u8);
+    <span class="macro">deserialize_int!</span>(deserialize_u16, visit_u16, u16);
+    <span class="macro">deserialize_int!</span>(deserialize_u32, visit_u32, u32);
+    <span class="macro">deserialize_int!</span>(deserialize_u64, visit_u64, u64);
     <span class="macro">serde_if_integer128! </span>{
-        <a class="macro" href="#331-346">deserialize_int!</a>(deserialize_u128, visit_u128, u128);
+        <span class="macro">deserialize_int!</span>(deserialize_u128, visit_u128, u128);
     }
-    <a class="macro" href="#331-346">deserialize_int!</a>(deserialize_i8, visit_i8, i8);
-    <a class="macro" href="#331-346">deserialize_int!</a>(deserialize_i16, visit_i16, i16);
-    <a class="macro" href="#331-346">deserialize_int!</a>(deserialize_i32, visit_i32, i32);
-    <a class="macro" href="#331-346">deserialize_int!</a>(deserialize_i64, visit_i64, i64);
+    <span class="macro">deserialize_int!</span>(deserialize_i8, visit_i8, i8);
+    <span class="macro">deserialize_int!</span>(deserialize_i16, visit_i16, i16);
+    <span class="macro">deserialize_int!</span>(deserialize_i32, visit_i32, i32);
+    <span class="macro">deserialize_int!</span>(deserialize_i64, visit_i64, i64);
     <span class="macro">serde_if_integer128! </span>{
-        <a class="macro" href="#331-346">deserialize_int!</a>(deserialize_i128, visit_i128, i128);
+        <span class="macro">deserialize_int!</span>(deserialize_i128, visit_i128, i128);
     }
 
     <span class="kw">fn </span>deserialize_f32&lt;V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;&gt;(
         <span class="self">self</span>,
         visitor: V,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value, <span class="self">Self</span>::Error&gt; {
-        <a href="#388">visitor</a>.<a href="../../serde/de/trait.Visitor.html">visit_f32</a>(
+        visitor.visit_f32(
             <span class="self">self</span>.next_field()<span class="question-mark">?
                 </span>.parse()
                 .map_err(|err| <span class="self">self</span>.error(DEK::ParseFloat(err)))<span class="question-mark">?</span>,
@@ -1651,7 +1651,7 @@
         <span class="self">self</span>,
         visitor: V,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value, <span class="self">Self</span>::Error&gt; {
-        <a href="#399">visitor</a>.<a href="../../serde/de/trait.Visitor.html">visit_f64</a>(
+        visitor.visit_f64(
             <span class="self">self</span>.next_field()<span class="question-mark">?
                 </span>.parse()
                 .map_err(|err| <span class="self">self</span>.error(DEK::ParseFloat(err)))<span class="question-mark">?</span>,
@@ -1663,56 +1663,56 @@
         visitor: V,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value, <span class="self">Self</span>::Error&gt; {
         <span class="kw">let </span>field = <span class="self">self</span>.next_field()<span class="question-mark">?</span>;
-        <span class="kw">let </span>len = <a href="#412">field</a>.chars().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">count</a>();
+        <span class="kw">let </span>len = field.chars().count();
         <span class="kw">if </span>len != <span class="number">1 </span>{
-            <span class="kw">return </span><span class="prelude-val">Err</span>(<a class="self" href="#409">self</a>.<a href="#93">error</a>(<a href="#669">DEK::Message</a>(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(
+            <span class="kw">return </span><span class="prelude-val">Err</span>(<span class="self">self</span>.error(DEK::Message(<span class="macro">format!</span>(
                 <span class="string">&quot;expected single character but got {} characters in &#39;{}&#39;&quot;</span>,
                 len, field
             ))));
         }
-        <a href="#410">visitor</a>.<a href="../../serde/de/trait.Visitor.html">visit_char</a>(<a href="#412">field</a>.chars().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>().unwrap())
+        visitor.visit_char(field.chars().next().unwrap())
     }
 
     <span class="kw">fn </span>deserialize_str&lt;V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;&gt;(
         <span class="self">self</span>,
         visitor: V,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value, <span class="self">Self</span>::Error&gt; {
-        <a class="self" href="#424">self</a>.<a href="#84">next_field</a>().and_then(|f| <a href="#425">visitor</a>.<a href="../../serde/de/trait.Visitor.html">visit_borrowed_str</a>(<a href="#427">f</a>))
+        <span class="self">self</span>.next_field().and_then(|f| visitor.visit_borrowed_str(f))
     }
 
     <span class="kw">fn </span>deserialize_string&lt;V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;&gt;(
         <span class="self">self</span>,
         visitor: V,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value, <span class="self">Self</span>::Error&gt; {
-        <a class="self" href="#431">self</a>.<a href="#84">next_field</a>().and_then(|f| <a href="#432">visitor</a>.<a href="../../serde/de/trait.Visitor.html">visit_str</a>(<a href="#434">f</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()))
+        <span class="self">self</span>.next_field().and_then(|f| visitor.visit_str(f.into()))
     }
 
     <span class="kw">fn </span>deserialize_bytes&lt;V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;&gt;(
         <span class="self">self</span>,
         visitor: V,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value, <span class="self">Self</span>::Error&gt; {
-        <a class="self" href="#438">self</a>.<a href="#87">next_field_bytes</a>().and_then(|f| <a href="#439">visitor</a>.<a href="../../serde/de/trait.Visitor.html">visit_borrowed_bytes</a>(<a href="#441">f</a>))
+        <span class="self">self</span>.next_field_bytes().and_then(|f| visitor.visit_borrowed_bytes(f))
     }
 
     <span class="kw">fn </span>deserialize_byte_buf&lt;V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;&gt;(
         <span class="self">self</span>,
         visitor: V,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value, <span class="self">Self</span>::Error&gt; {
-        <a class="self" href="#445">self</a>.<a href="#87">next_field_bytes</a>()
-            .and_then(|f| <a href="#446">visitor</a>.<a href="../../serde/de/trait.Visitor.html">visit_byte_buf</a>(<a href="#449">f</a>.to_vec()))
+        <span class="self">self</span>.next_field_bytes()
+            .and_then(|f| visitor.visit_byte_buf(f.to_vec()))
     }
 
     <span class="kw">fn </span>deserialize_option&lt;V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;&gt;(
         <span class="self">self</span>,
         visitor: V,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value, <span class="self">Self</span>::Error&gt; {
-        <span class="kw">match </span><a class="self" href="#453">self</a>.<a href="#90">peek_field</a>() {
-            <span class="prelude-val">None </span>=&gt; <a href="#454">visitor</a>.<a href="../../serde/de/trait.Visitor.html">visit_none</a>(),
-            <span class="prelude-val">Some</span>(f) <span class="kw">if </span><a href="#458">f</a>.is_empty() =&gt; {
-                <a class="self" href="#453">self</a>.<a href="#84">next_field</a>().expect(<span class="string">&quot;empty field&quot;</span>);
-                <a href="#454">visitor</a>.<a href="../../serde/de/trait.Visitor.html">visit_none</a>()
+        <span class="kw">match </span><span class="self">self</span>.peek_field() {
+            <span class="prelude-val">None </span>=&gt; visitor.visit_none(),
+            <span class="prelude-val">Some</span>(f) <span class="kw">if </span>f.is_empty() =&gt; {
+                <span class="self">self</span>.next_field().expect(<span class="string">&quot;empty field&quot;</span>);
+                visitor.visit_none()
             }
-            <span class="prelude-val">Some</span>(<span class="kw">_</span>) =&gt; <a href="#454">visitor</a>.<a href="../../serde/de/trait.Visitor.html">visit_some</a>(<a class="self" href="#453">self</a>),
+            <span class="prelude-val">Some</span>(<span class="kw">_</span>) =&gt; visitor.visit_some(<span class="self">self</span>),
         }
     }
 
@@ -1720,47 +1720,47 @@
         <span class="self">self</span>,
         visitor: V,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value, <span class="self">Self</span>::Error&gt; {
-        <a href="#468">visitor</a>.<a href="../../serde/de/trait.Visitor.html">visit_unit</a>()
+        visitor.visit_unit()
     }
 
     <span class="kw">fn </span>deserialize_unit_struct&lt;V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;&gt;(
         <span class="self">self</span>,
-        _name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>,
+        _name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
         visitor: V,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value, <span class="self">Self</span>::Error&gt; {
-        <a href="#476">visitor</a>.<a href="../../serde/de/trait.Visitor.html">visit_unit</a>()
+        visitor.visit_unit()
     }
 
     <span class="kw">fn </span>deserialize_newtype_struct&lt;V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;&gt;(
         <span class="self">self</span>,
-        _name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>,
+        _name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
         visitor: V,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value, <span class="self">Self</span>::Error&gt; {
-        <a href="#484">visitor</a>.<a href="../../serde/de/trait.Visitor.html">visit_newtype_struct</a>(<a class="self" href="#482">self</a>)
+        visitor.visit_newtype_struct(<span class="self">self</span>)
     }
 
     <span class="kw">fn </span>deserialize_seq&lt;V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;&gt;(
         <span class="self">self</span>,
         visitor: V,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value, <span class="self">Self</span>::Error&gt; {
-        <a href="#491">visitor</a>.<a href="../../serde/de/trait.Visitor.html">visit_seq</a>(<a class="self" href="#490">self</a>)
+        visitor.visit_seq(<span class="self">self</span>)
     }
 
     <span class="kw">fn </span>deserialize_tuple&lt;V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;&gt;(
         <span class="self">self</span>,
-        _len: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+        _len: usize,
         visitor: V,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value, <span class="self">Self</span>::Error&gt; {
-        <a href="#499">visitor</a>.<a href="../../serde/de/trait.Visitor.html">visit_seq</a>(<a class="self" href="#497">self</a>)
+        visitor.visit_seq(<span class="self">self</span>)
     }
 
     <span class="kw">fn </span>deserialize_tuple_struct&lt;V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;&gt;(
         <span class="self">self</span>,
-        _name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>,
-        _len: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+        _name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
+        _len: usize,
         visitor: V,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value, <span class="self">Self</span>::Error&gt; {
-        <a href="#508">visitor</a>.<a href="../../serde/de/trait.Visitor.html">visit_seq</a>(<a class="self" href="#505">self</a>)
+        visitor.visit_seq(<span class="self">self</span>)
     }
 
     <span class="kw">fn </span>deserialize_map&lt;V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;&gt;(
@@ -1768,22 +1768,22 @@
         visitor: V,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value, <span class="self">Self</span>::Error&gt; {
         <span class="kw">if </span>!<span class="self">self</span>.has_headers() {
-            <a href="#515">visitor</a>.<a href="../../serde/de/trait.Visitor.html">visit_seq</a>(<a class="self" href="#514">self</a>)
+            visitor.visit_seq(<span class="self">self</span>)
         } <span class="kw">else </span>{
-            <a href="#515">visitor</a>.<a href="../../serde/de/trait.Visitor.html">visit_map</a>(<a class="self" href="#514">self</a>)
+            visitor.visit_map(<span class="self">self</span>)
         }
     }
 
     <span class="kw">fn </span>deserialize_struct&lt;V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;&gt;(
         <span class="self">self</span>,
-        _name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>,
-        _fields: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>[<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>],
+        _name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
+        _fields: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>[<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str],
         visitor: V,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value, <span class="self">Self</span>::Error&gt; {
         <span class="kw">if </span>!<span class="self">self</span>.has_headers() {
-            <a href="#528">visitor</a>.<a href="../../serde/de/trait.Visitor.html">visit_seq</a>(<a class="self" href="#525">self</a>)
+            visitor.visit_seq(<span class="self">self</span>)
         } <span class="kw">else </span>{
-            <a href="#528">visitor</a>.<a href="../../serde/de/trait.Visitor.html">visit_map</a>(<a class="self" href="#525">self</a>)
+            visitor.visit_map(<span class="self">self</span>)
         }
     }
 
@@ -1791,16 +1791,16 @@
         <span class="self">self</span>,
         _visitor: V,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value, <span class="self">Self</span>::Error&gt; {
-        <span class="prelude-val">Err</span>(<a class="self" href="#538">self</a>.<a href="#93">error</a>(<a href="#671">DEK::Unsupported</a>(<span class="string">&quot;deserialize_identifier&quot;</span>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())))
+        <span class="prelude-val">Err</span>(<span class="self">self</span>.error(DEK::Unsupported(<span class="string">&quot;deserialize_identifier&quot;</span>.into())))
     }
 
     <span class="kw">fn </span>deserialize_enum&lt;V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;&gt;(
         <span class="self">self</span>,
-        _name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>,
-        _variants: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>[<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>],
+        _name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
+        _variants: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>[<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str],
         visitor: V,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value, <span class="self">Self</span>::Error&gt; {
-        <a href="#548">visitor</a>.<a href="../../serde/de/trait.Visitor.html">visit_enum</a>(<a class="self" href="#545">self</a>)
+        visitor.visit_enum(<span class="self">self</span>)
     }
 
     <span class="kw">fn </span>deserialize_ignored_any&lt;V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;&gt;(
@@ -1811,14 +1811,14 @@
         // This code is reached, e.g., when trying to deserialize a header
         // that doesn&#39;t exist in the destination struct.
         </span><span class="kw">let _ </span>= <span class="self">self</span>.next_field_bytes()<span class="question-mark">?</span>;
-        <a href="#555">visitor</a>.<a href="../../serde/de/trait.Visitor.html">visit_unit</a>()
+        visitor.visit_unit()
     }
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;de</span>: <span class="lifetime">&#39;a</span>, T: DeRecord&lt;<span class="lifetime">&#39;de</span>&gt;&gt; EnumAccess&lt;<span class="lifetime">&#39;de</span>&gt;
     <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>DeRecordWrap&lt;T&gt;
 {
-    <span class="kw">type </span>Error = <a href="#660">DeserializeError</a>;
+    <span class="kw">type </span>Error = DeserializeError;
     <span class="kw">type </span>Variant = <span class="self">Self</span>;
 
     <span class="kw">fn </span>variant_seed&lt;V: DeserializeSeed&lt;<span class="lifetime">&#39;de</span>&gt;&gt;(
@@ -1826,14 +1826,14 @@
         seed: V,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;(V::Value, <span class="self">Self</span>::Variant), <span class="self">Self</span>::Error&gt; {
         <span class="kw">let </span>variant_name = <span class="self">self</span>.next_field()<span class="question-mark">?</span>;
-        <a href="#573">seed</a>.<a href="../../serde/de/trait.DeserializeSeed.html">deserialize</a>(<a href="#575">variant_name</a>.<a href="../../serde/de/trait.IntoDeserializer.html">into_deserializer</a>()).map(|v| (<a href="#576">v</a>, <a class="self" href="#572">self</a>))
+        seed.deserialize(variant_name.into_deserializer()).map(|v| (v, <span class="self">self</span>))
     }
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;de</span>: <span class="lifetime">&#39;a</span>, T: DeRecord&lt;<span class="lifetime">&#39;de</span>&gt;&gt; VariantAccess&lt;<span class="lifetime">&#39;de</span>&gt;
     <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>DeRecordWrap&lt;T&gt;
 {
-    <span class="kw">type </span>Error = <a href="#660">DeserializeError</a>;
+    <span class="kw">type </span>Error = DeserializeError;
 
     <span class="kw">fn </span>unit_variant(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt; {
         <span class="prelude-val">Ok</span>(())
@@ -1844,32 +1844,32 @@
         _seed: U,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;U::Value, <span class="self">Self</span>::Error&gt; {
         <span class="kw">let </span>unexp = Unexpected::UnitVariant;
-        <span class="prelude-val">Err</span>(DeserializeError::invalid_type(<a href="#593">unexp</a>, <span class="kw-2">&amp;</span><span class="string">&quot;newtype variant&quot;</span>))
+        <span class="prelude-val">Err</span>(DeserializeError::invalid_type(unexp, <span class="kw-2">&amp;</span><span class="string">&quot;newtype variant&quot;</span>))
     }
 
     <span class="kw">fn </span>tuple_variant&lt;V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;&gt;(
         <span class="self">self</span>,
-        _len: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+        _len: usize,
         _visitor: V,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value, <span class="self">Self</span>::Error&gt; {
         <span class="kw">let </span>unexp = Unexpected::UnitVariant;
-        <span class="prelude-val">Err</span>(DeserializeError::invalid_type(<a href="#602">unexp</a>, <span class="kw-2">&amp;</span><span class="string">&quot;tuple variant&quot;</span>))
+        <span class="prelude-val">Err</span>(DeserializeError::invalid_type(unexp, <span class="kw-2">&amp;</span><span class="string">&quot;tuple variant&quot;</span>))
     }
 
     <span class="kw">fn </span>struct_variant&lt;V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;&gt;(
         <span class="self">self</span>,
-        _fields: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>[<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>],
+        _fields: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>[<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str],
         _visitor: V,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value, <span class="self">Self</span>::Error&gt; {
         <span class="kw">let </span>unexp = Unexpected::UnitVariant;
-        <span class="prelude-val">Err</span>(DeserializeError::invalid_type(<a href="#611">unexp</a>, <span class="kw-2">&amp;</span><span class="string">&quot;struct variant&quot;</span>))
+        <span class="prelude-val">Err</span>(DeserializeError::invalid_type(unexp, <span class="kw-2">&amp;</span><span class="string">&quot;struct variant&quot;</span>))
     }
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;de</span>: <span class="lifetime">&#39;a</span>, T: DeRecord&lt;<span class="lifetime">&#39;de</span>&gt;&gt; SeqAccess&lt;<span class="lifetime">&#39;de</span>&gt;
     <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>DeRecordWrap&lt;T&gt;
 {
-    <span class="kw">type </span>Error = <a href="#660">DeserializeError</a>;
+    <span class="kw">type </span>Error = DeserializeError;
 
     <span class="kw">fn </span>next_element_seed&lt;U: DeserializeSeed&lt;<span class="lifetime">&#39;de</span>&gt;&gt;(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
@@ -1878,7 +1878,7 @@
         <span class="kw">if </span><span class="self">self</span>.peek_field().is_none() {
             <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>)
         } <span class="kw">else </span>{
-            <a href="#623">seed</a>.<a href="../../serde/de/trait.DeserializeSeed.html">deserialize</a>(<span class="kw-2">&amp;mut **</span><a class="self" href="#622">self</a>).map(<span class="prelude-val">Some</span>)
+            seed.deserialize(<span class="kw-2">&amp;mut **</span><span class="self">self</span>).map(<span class="prelude-val">Some</span>)
         }
     }
 }
@@ -1886,168 +1886,168 @@
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;de</span>: <span class="lifetime">&#39;a</span>, T: DeRecord&lt;<span class="lifetime">&#39;de</span>&gt;&gt; MapAccess&lt;<span class="lifetime">&#39;de</span>&gt;
     <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>DeRecordWrap&lt;T&gt;
 {
-    <span class="kw">type </span>Error = <a href="#660">DeserializeError</a>;
+    <span class="kw">type </span>Error = DeserializeError;
 
     <span class="kw">fn </span>next_key_seed&lt;K: DeserializeSeed&lt;<span class="lifetime">&#39;de</span>&gt;&gt;(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         seed: K,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;K::Value&gt;, <span class="self">Self</span>::Error&gt; {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(<span class="self">self</span>.has_headers());
+        <span class="macro">assert!</span>(<span class="self">self</span>.has_headers());
         <span class="kw">let </span>field = <span class="kw">match </span><span class="self">self</span>.next_header_bytes()<span class="question-mark">? </span>{
             <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>),
-            <span class="prelude-val">Some</span>(field) =&gt; <a href="#645">field</a>,
+            <span class="prelude-val">Some</span>(field) =&gt; field,
         };
-        <a href="#640">seed</a>.<a href="../../serde/de/trait.DeserializeSeed.html">deserialize</a>(BorrowedBytesDeserializer::new(<a href="#643">field</a>)).map(<span class="prelude-val">Some</span>)
+        seed.deserialize(BorrowedBytesDeserializer::new(field)).map(<span class="prelude-val">Some</span>)
     }
 
     <span class="kw">fn </span>next_value_seed&lt;K: DeserializeSeed&lt;<span class="lifetime">&#39;de</span>&gt;&gt;(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         seed: K,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;K::Value, <span class="self">Self</span>::Error&gt; {
-        <a href="#652">seed</a>.<a href="../../serde/de/trait.DeserializeSeed.html">deserialize</a>(<span class="kw-2">&amp;mut **</span><a class="self" href="#651">self</a>)
+        seed.deserialize(<span class="kw-2">&amp;mut **</span><span class="self">self</span>)
     }
 }
 
 <span class="doccomment">/// An Serde deserialization error.
 </span><span class="attr">#[derive(Clone, Debug, Eq, PartialEq)]
 </span><span class="kw">pub struct </span>DeserializeError {
-    field: <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>&gt;,
-    kind: <a href="#667">DeserializeErrorKind</a>,
+    field: <span class="prelude-ty">Option</span>&lt;u64&gt;,
+    kind: DeserializeErrorKind,
 }
 
 <span class="doccomment">/// The type of a Serde deserialization error.
 </span><span class="attr">#[derive(Clone, Debug, Eq, PartialEq)]
 </span><span class="kw">pub enum </span>DeserializeErrorKind {
     <span class="doccomment">/// A generic Serde deserialization error.
-    </span>Message(<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>),
+    </span>Message(String),
     <span class="doccomment">/// A generic Serde unsupported error.
-    </span>Unsupported(<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>),
+    </span>Unsupported(String),
     <span class="doccomment">/// This error occurs when a Rust type expects to decode another field
     /// from a row, but no more fields exist.
     </span>UnexpectedEndOfRow,
     <span class="doccomment">/// This error occurs when UTF-8 validation on a field fails. UTF-8
     /// validation is only performed when the Rust type requires it (e.g.,
     /// a `String` or `&amp;str` type).
-    </span>InvalidUtf8(<a href="https://doc.rust-lang.org/nightly/core/str/error/struct.Utf8Error.html">str::Utf8Error</a>),
+    </span>InvalidUtf8(str::Utf8Error),
     <span class="doccomment">/// This error occurs when a boolean value fails to parse.
-    </span>ParseBool(<a href="https://doc.rust-lang.org/nightly/core/str/error/struct.ParseBoolError.html">str::ParseBoolError</a>),
+    </span>ParseBool(str::ParseBoolError),
     <span class="doccomment">/// This error occurs when an integer value fails to parse.
-    </span>ParseInt(<a href="https://doc.rust-lang.org/nightly/core/num/error/struct.ParseIntError.html">num::ParseIntError</a>),
+    </span>ParseInt(num::ParseIntError),
     <span class="doccomment">/// This error occurs when a float value fails to parse.
-    </span>ParseFloat(<a href="https://doc.rust-lang.org/nightly/core/num/dec2flt/struct.ParseFloatError.html">num::ParseFloatError</a>),
+    </span>ParseFloat(num::ParseFloatError),
 }
 
-<span class="kw">impl </span><a href="../../serde/de/trait.Error.html">SerdeError</a> <span class="kw">for </span><a href="#660">DeserializeError</a> {
-    <span class="kw">fn </span>custom&lt;T: <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a>&gt;(msg: T) -&gt; <a href="#660">DeserializeError</a> {
-        <a href="#660">DeserializeError</a> { field: <span class="prelude-val">None</span>, kind: <a href="#669">DEK::Message</a>(<a href="#688">msg</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>()) }
+<span class="kw">impl </span>SerdeError <span class="kw">for </span>DeserializeError {
+    <span class="kw">fn </span>custom&lt;T: fmt::Display&gt;(msg: T) -&gt; DeserializeError {
+        DeserializeError { field: <span class="prelude-val">None</span>, kind: DEK::Message(msg.to_string()) }
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">StdError</a> <span class="kw">for </span><a href="#660">DeserializeError</a> {
-    <span class="kw">fn </span>description(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> {
-        <a class="self" href="#694">self</a>.kind.<a href="#741">description</a>()
+<span class="kw">impl </span>StdError <span class="kw">for </span>DeserializeError {
+    <span class="kw">fn </span>description(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>str {
+        <span class="self">self</span>.kind.description()
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for </span><a href="#660">DeserializeError</a> {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(field) = <a class="self" href="#700">self</a>.field {
-            <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#700">f</a>, <span class="string">&quot;field {}: {}&quot;</span>, field, <span class="self">self</span>.kind)
+<span class="kw">impl </span>fmt::Display <span class="kw">for </span>DeserializeError {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter) -&gt; fmt::Result {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(field) = <span class="self">self</span>.field {
+            <span class="macro">write!</span>(f, <span class="string">&quot;field {}: {}&quot;</span>, field, <span class="self">self</span>.kind)
         } <span class="kw">else </span>{
-            <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#700">f</a>, <span class="string">&quot;{}&quot;</span>, <span class="self">self</span>.kind)
+            <span class="macro">write!</span>(f, <span class="string">&quot;{}&quot;</span>, <span class="self">self</span>.kind)
         }
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for </span><a href="#667">DeserializeErrorKind</a> {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <span class="kw">use </span><a href="#667"><span class="self">self</span>::DeserializeErrorKind</a>::<span class="kw-2">*</span>;
+<span class="kw">impl </span>fmt::Display <span class="kw">for </span>DeserializeErrorKind {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter) -&gt; fmt::Result {
+        <span class="kw">use </span><span class="self">self</span>::DeserializeErrorKind::<span class="kw-2">*</span>;
 
-        <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="#710">self</a> </span>{
-            <a href="#669">Message</a>(<span class="kw-2">ref </span>msg) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#710">f</a>, <span class="string">&quot;{}&quot;</span>, msg),
-            <a href="#671">Unsupported</a>(<span class="kw-2">ref </span>which) =&gt; {
-                <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#710">f</a>, <span class="string">&quot;unsupported deserializer method: {}&quot;</span>, which)
+        <span class="kw">match </span><span class="kw-2">*</span><span class="self">self </span>{
+            Message(<span class="kw-2">ref </span>msg) =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;{}&quot;</span>, msg),
+            Unsupported(<span class="kw-2">ref </span>which) =&gt; {
+                <span class="macro">write!</span>(f, <span class="string">&quot;unsupported deserializer method: {}&quot;</span>, which)
             }
-            <a href="#674">UnexpectedEndOfRow</a> =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#710">f</a>, <span class="string">&quot;{}&quot;</span>, <span class="self">self</span>.description()),
-            <a href="#678">InvalidUtf8</a>(<span class="kw-2">ref </span>err) =&gt; <a href="#719">err</a>.<a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt</a>(<a href="#710">f</a>),
-            <a href="#680">ParseBool</a>(<span class="kw-2">ref </span>err) =&gt; <a href="#720">err</a>.<a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt</a>(<a href="#710">f</a>),
-            <a href="#682">ParseInt</a>(<span class="kw-2">ref </span>err) =&gt; <a href="#721">err</a>.<a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt</a>(<a href="#710">f</a>),
-            <a href="#684">ParseFloat</a>(<span class="kw-2">ref </span>err) =&gt; <a href="#722">err</a>.<a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt</a>(<a href="#710">f</a>),
+            UnexpectedEndOfRow =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;{}&quot;</span>, <span class="self">self</span>.description()),
+            InvalidUtf8(<span class="kw-2">ref </span>err) =&gt; err.fmt(f),
+            ParseBool(<span class="kw-2">ref </span>err) =&gt; err.fmt(f),
+            ParseInt(<span class="kw-2">ref </span>err) =&gt; err.fmt(f),
+            ParseFloat(<span class="kw-2">ref </span>err) =&gt; err.fmt(f),
         }
     }
 }
 
-<span class="kw">impl </span><a href="#660">DeserializeError</a> {
+<span class="kw">impl </span>DeserializeError {
     <span class="doccomment">/// Return the field index (starting at 0) of this error, if available.
-    </span><span class="kw">pub fn </span>field(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>&gt; {
-        <a class="self" href="#729">self</a>.field
+    </span><span class="kw">pub fn </span>field(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;u64&gt; {
+        <span class="self">self</span>.field
     }
 
     <span class="doccomment">/// Return the underlying error kind.
-    </span><span class="kw">pub fn </span>kind(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="#667">DeserializeErrorKind</a> {
-        <span class="kw-2">&amp;</span><a class="self" href="#734">self</a>.kind
+    </span><span class="kw">pub fn </span>kind(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>DeserializeErrorKind {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.kind
     }
 }
 
-<span class="kw">impl </span><a href="#667">DeserializeErrorKind</a> {
+<span class="kw">impl </span>DeserializeErrorKind {
     <span class="attr">#[allow(deprecated)]
-    </span><span class="kw">fn </span>description(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> {
-        <span class="kw">use </span><a href="#667"><span class="self">self</span>::DeserializeErrorKind</a>::<span class="kw-2">*</span>;
+    </span><span class="kw">fn </span>description(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>str {
+        <span class="kw">use </span><span class="self">self</span>::DeserializeErrorKind::<span class="kw-2">*</span>;
 
-        <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="#741">self</a> </span>{
-            <a href="#669">Message</a>(<span class="kw">_</span>) =&gt; <span class="string">&quot;deserialization error&quot;</span>,
-            <a href="#671">Unsupported</a>(<span class="kw">_</span>) =&gt; <span class="string">&quot;unsupported deserializer method&quot;</span>,
-            <a href="#674">UnexpectedEndOfRow</a> =&gt; <span class="string">&quot;expected field, but got end of row&quot;</span>,
-            <a href="#678">InvalidUtf8</a>(<span class="kw-2">ref </span>err) =&gt; <a href="#748">err</a>.<a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">description</a>(),
-            <a href="#680">ParseBool</a>(<span class="kw-2">ref </span>err) =&gt; <a href="#749">err</a>.<a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">description</a>(),
-            <a href="#682">ParseInt</a>(<span class="kw-2">ref </span>err) =&gt; <a href="#750">err</a>.<a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">description</a>(),
-            <a href="#684">ParseFloat</a>(<span class="kw-2">ref </span>err) =&gt; <a href="#751">err</a>.<a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">description</a>(),
+        <span class="kw">match </span><span class="kw-2">*</span><span class="self">self </span>{
+            Message(<span class="kw">_</span>) =&gt; <span class="string">&quot;deserialization error&quot;</span>,
+            Unsupported(<span class="kw">_</span>) =&gt; <span class="string">&quot;unsupported deserializer method&quot;</span>,
+            UnexpectedEndOfRow =&gt; <span class="string">&quot;expected field, but got end of row&quot;</span>,
+            InvalidUtf8(<span class="kw-2">ref </span>err) =&gt; err.description(),
+            ParseBool(<span class="kw-2">ref </span>err) =&gt; err.description(),
+            ParseInt(<span class="kw-2">ref </span>err) =&gt; err.description(),
+            ParseFloat(<span class="kw-2">ref </span>err) =&gt; err.description(),
         }
     }
 }
 
 <span class="macro">serde_if_integer128! </span>{
-    <span class="kw">fn </span>try_positive_integer128(s: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u128.html">u128</a>&gt; {
-        <a href="#757">s</a>.parse().ok()
+    <span class="kw">fn </span>try_positive_integer128(s: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Option</span>&lt;u128&gt; {
+        s.parse().ok()
     }
 
-    <span class="kw">fn </span>try_negative_integer128(s: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.i128.html">i128</a>&gt; {
-        <a href="#761">s</a>.parse().ok()
+    <span class="kw">fn </span>try_negative_integer128(s: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Option</span>&lt;i128&gt; {
+        s.parse().ok()
     }
 }
 
-<span class="kw">fn </span>try_positive_integer64(s: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>&gt; {
-    <a href="#766">s</a>.parse().ok()
+<span class="kw">fn </span>try_positive_integer64(s: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Option</span>&lt;u64&gt; {
+    s.parse().ok()
 }
 
-<span class="kw">fn </span>try_negative_integer64(s: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>&gt; {
-    <a href="#770">s</a>.parse().ok()
+<span class="kw">fn </span>try_negative_integer64(s: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Option</span>&lt;i64&gt; {
+    s.parse().ok()
 }
 
-<span class="kw">fn </span>try_float(s: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.f64.html">f64</a>&gt; {
-    <a href="#774">s</a>.parse().ok()
+<span class="kw">fn </span>try_float(s: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Option</span>&lt;f64&gt; {
+    s.parse().ok()
 }
 
-<span class="kw">fn </span>try_positive_integer64_bytes(s: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>&gt; {
-    <a href="https://doc.rust-lang.org/nightly/core/str/converts/fn.from_utf8.html">str::from_utf8</a>(<a href="#778">s</a>).ok().and_then(|s| <a href="#779">s</a>.parse().ok())
+<span class="kw">fn </span>try_positive_integer64_bytes(s: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Option</span>&lt;u64&gt; {
+    str::from_utf8(s).ok().and_then(|s| s.parse().ok())
 }
 
-<span class="kw">fn </span>try_negative_integer64_bytes(s: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>&gt; {
-    <a href="https://doc.rust-lang.org/nightly/core/str/converts/fn.from_utf8.html">str::from_utf8</a>(<a href="#782">s</a>).ok().and_then(|s| <a href="#783">s</a>.parse().ok())
+<span class="kw">fn </span>try_negative_integer64_bytes(s: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Option</span>&lt;i64&gt; {
+    str::from_utf8(s).ok().and_then(|s| s.parse().ok())
 }
 
 <span class="macro">serde_if_integer128! </span>{
-    <span class="kw">fn </span>try_positive_integer128_bytes(s: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u128.html">u128</a>&gt; {
-        <a href="https://doc.rust-lang.org/nightly/core/str/converts/fn.from_utf8.html">str::from_utf8</a>(<a href="#787">s</a>).ok().and_then(|s| <a href="#788">s</a>.parse().ok())
+    <span class="kw">fn </span>try_positive_integer128_bytes(s: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Option</span>&lt;u128&gt; {
+        str::from_utf8(s).ok().and_then(|s| s.parse().ok())
     }
 
-    <span class="kw">fn </span>try_negative_integer128_bytes(s: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.i128.html">i128</a>&gt; {
-        <a href="https://doc.rust-lang.org/nightly/core/str/converts/fn.from_utf8.html">str::from_utf8</a>(<a href="#791">s</a>).ok().and_then(|s| <a href="#792">s</a>.parse().ok())
+    <span class="kw">fn </span>try_negative_integer128_bytes(s: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Option</span>&lt;i128&gt; {
+        str::from_utf8(s).ok().and_then(|s| s.parse().ok())
     }
 }
 
-<span class="kw">fn </span>try_float_bytes(s: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.f64.html">f64</a>&gt; {
-    <a href="https://doc.rust-lang.org/nightly/core/str/converts/fn.from_utf8.html">str::from_utf8</a>(<a href="#796">s</a>).ok().and_then(|s| <a href="#797">s</a>.parse().ok())
+<span class="kw">fn </span>try_float_bytes(s: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Option</span>&lt;f64&gt; {
+    str::from_utf8(s).ok().and_then(|s| s.parse().ok())
 }
 
 <span class="attr">#[cfg(test)]
@@ -2505,4 +2505,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="csv" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="csv" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

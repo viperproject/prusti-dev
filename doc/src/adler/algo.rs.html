@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/adler-1.0.2/src/algo.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>algo.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../adler/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/adler-1.0.2/src/algo.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>algo.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../adler/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -144,11 +144,11 @@
 <a href="#144" id="144">144</a>
 <a href="#145" id="145">145</a>
 <a href="#146" id="146">146</a>
-</pre><pre class="rust"><code><span class="kw">use </span><a href="lib.rs.html#87"><span class="kw">crate</span>::Adler32</a>;
-<span class="kw">use </span>std::ops::{<a href="https://doc.rust-lang.org/nightly/core/ops/arith/trait.AddAssign.html">AddAssign</a>, <a href="https://doc.rust-lang.org/nightly/core/ops/arith/trait.MulAssign.html">MulAssign</a>, <a href="https://doc.rust-lang.org/nightly/core/ops/arith/trait.RemAssign.html">RemAssign</a>};
+</pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::Adler32;
+<span class="kw">use </span>std::ops::{AddAssign, MulAssign, RemAssign};
 
-<span class="kw">impl </span><a href="lib.rs.html#87">Adler32</a> {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>compute(<span class="kw-2">&amp;mut </span><span class="self">self</span>, bytes: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>]) {
+<span class="kw">impl </span>Adler32 {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>compute(<span class="kw-2">&amp;mut </span><span class="self">self</span>, bytes: <span class="kw-2">&amp;</span>[u8]) {
         <span class="comment">// The basic algorithm is, for every byte:
         //   a = (a + byte) % MOD
         //   b = (b + a) % MOD
@@ -195,19 +195,19 @@
         // This technique is described in-depth (here:)[https://software.intel.com/content/www/us/\
         // en/develop/articles/fast-computation-of-fletcher-checksums.html]
 
-        </span><span class="kw">const </span>MOD: <a href="https://doc.rust-lang.org/nightly/core/primitive.u32.html">u32</a> = <span class="number">65521</span>;
-        <span class="kw">const </span>CHUNK_SIZE: <a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a> = <span class="number">5552 </span>* <span class="number">4</span>;
+        </span><span class="kw">const </span>MOD: u32 = <span class="number">65521</span>;
+        <span class="kw">const </span>CHUNK_SIZE: usize = <span class="number">5552 </span>* <span class="number">4</span>;
 
-        <span class="kw">let </span><span class="kw-2">mut </span>a = u32::from(<a class="self" href="#5">self</a>.a);
-        <span class="kw">let </span><span class="kw-2">mut </span>b = u32::from(<a class="self" href="#5">self</a>.b);
-        <span class="kw">let </span><span class="kw-2">mut </span>a_vec = <a href="#111">U32X4</a>([<span class="number">0</span>; <span class="number">4</span>]);
-        <span class="kw">let </span><span class="kw-2">mut </span>b_vec = <a href="#57">a_vec</a>;
+        <span class="kw">let </span><span class="kw-2">mut </span>a = u32::from(<span class="self">self</span>.a);
+        <span class="kw">let </span><span class="kw-2">mut </span>b = u32::from(<span class="self">self</span>.b);
+        <span class="kw">let </span><span class="kw-2">mut </span>a_vec = U32X4([<span class="number">0</span>; <span class="number">4</span>]);
+        <span class="kw">let </span><span class="kw-2">mut </span>b_vec = a_vec;
 
-        <span class="kw">let </span>(bytes, remainder) = <a href="#5">bytes</a>.split_at(<a href="#5">bytes</a>.len() - <a href="#5">bytes</a>.len() % <span class="number">4</span>);
+        <span class="kw">let </span>(bytes, remainder) = bytes.split_at(bytes.len() - bytes.len() % <span class="number">4</span>);
 
         <span class="comment">// iterate over 4 bytes at a time
-        </span><span class="kw">let </span>chunk_iter = <a href="#60">bytes</a>.chunks_exact(<a href="#53">CHUNK_SIZE</a>);
-        <span class="kw">let </span>remainder_chunk = <a href="#63">chunk_iter</a>.remainder();
+        </span><span class="kw">let </span>chunk_iter = bytes.chunks_exact(CHUNK_SIZE);
+        <span class="kw">let </span>remainder_chunk = chunk_iter.remainder();
         <span class="kw">for </span>chunk <span class="kw">in </span>chunk_iter {
             <span class="kw">for </span>byte_vec <span class="kw">in </span>chunk.chunks_exact(<span class="number">4</span>) {
                 <span class="kw">let </span>val = U32X4::from(byte_vec);
@@ -225,16 +225,16 @@
             a_vec += val;
             b_vec += a_vec;
         }
-        <a href="#56">b</a> += <a href="#64">remainder_chunk</a>.len() <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.u32.html">u32</a> * <a href="#55">a</a>;
-        <a href="#57">a_vec</a> %= <a href="#52">MOD</a>;
-        <a href="#58">b_vec</a> %= <a href="#52">MOD</a>;
-        <a href="#56">b</a> %= <a href="#52">MOD</a>;
+        b += remainder_chunk.len() <span class="kw">as </span>u32 * a;
+        a_vec %= MOD;
+        b_vec %= MOD;
+        b %= MOD;
 
         <span class="comment">// combine the sub-sum results into the main sum
-        </span><a href="#58">b_vec</a> <span class="kw-2">*</span>= <span class="number">4</span>;
-        <a href="#58">b_vec</a>.<span class="number">0</span>[<span class="number">1</span>] += <a href="#52">MOD</a> - <a href="#57">a_vec</a>.<span class="number">0</span>[<span class="number">1</span>];
-        <a href="#58">b_vec</a>.<span class="number">0</span>[<span class="number">2</span>] += (<a href="#52">MOD</a> - <a href="#57">a_vec</a>.<span class="number">0</span>[<span class="number">2</span>]) * <span class="number">2</span>;
-        <a href="#58">b_vec</a>.<span class="number">0</span>[<span class="number">3</span>] += (<a href="#52">MOD</a> - <a href="#57">a_vec</a>.<span class="number">0</span>[<span class="number">3</span>]) * <span class="number">3</span>;
+        </span>b_vec <span class="kw-2">*</span>= <span class="number">4</span>;
+        b_vec.<span class="number">0</span>[<span class="number">1</span>] += MOD - a_vec.<span class="number">0</span>[<span class="number">1</span>];
+        b_vec.<span class="number">0</span>[<span class="number">2</span>] += (MOD - a_vec.<span class="number">0</span>[<span class="number">2</span>]) * <span class="number">2</span>;
+        b_vec.<span class="number">0</span>[<span class="number">3</span>] += (MOD - a_vec.<span class="number">0</span>[<span class="number">3</span>]) * <span class="number">3</span>;
         <span class="kw">for </span><span class="kw-2">&amp;</span>av <span class="kw">in </span>a_vec.<span class="number">0</span>.iter() {
             a += av;
         }
@@ -248,26 +248,26 @@
             b += a;
         }
 
-        <a class="self" href="#5">self</a>.a = (<a href="#55">a</a> % <a href="#52">MOD</a>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.u16.html">u16</a>;
-        <a class="self" href="#5">self</a>.b = (<a href="#56">b</a> % <a href="#52">MOD</a>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.u16.html">u16</a>;
+        <span class="self">self</span>.a = (a % MOD) <span class="kw">as </span>u16;
+        <span class="self">self</span>.b = (b % MOD) <span class="kw">as </span>u16;
     }
 }
 
 <span class="attr">#[derive(Copy, Clone)]
-</span><span class="kw">struct </span>U32X4([<a href="https://doc.rust-lang.org/nightly/core/primitive.u32.html">u32</a>; <span class="number">4</span>]);
+</span><span class="kw">struct </span>U32X4([u32; <span class="number">4</span>]);
 
-<span class="kw">impl </span><a href="#111">U32X4</a> {
-    <span class="kw">fn </span>from(bytes: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>]) -&gt; <span class="self">Self </span>{
-        <a href="#111">U32X4</a>([
-            u32::from(<a href="#114">bytes</a>[<span class="number">0</span>]),
-            u32::from(<a href="#114">bytes</a>[<span class="number">1</span>]),
-            u32::from(<a href="#114">bytes</a>[<span class="number">2</span>]),
-            u32::from(<a href="#114">bytes</a>[<span class="number">3</span>]),
+<span class="kw">impl </span>U32X4 {
+    <span class="kw">fn </span>from(bytes: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="self">Self </span>{
+        U32X4([
+            u32::from(bytes[<span class="number">0</span>]),
+            u32::from(bytes[<span class="number">1</span>]),
+            u32::from(bytes[<span class="number">2</span>]),
+            u32::from(bytes[<span class="number">3</span>]),
         ])
     }
 }
 
-<span class="kw">impl </span>AddAssign&lt;<span class="self">Self</span>&gt; <span class="kw">for </span><a href="#111">U32X4</a> {
+<span class="kw">impl </span>AddAssign&lt;<span class="self">Self</span>&gt; <span class="kw">for </span>U32X4 {
     <span class="kw">fn </span>add_assign(<span class="kw-2">&amp;mut </span><span class="self">self</span>, other: <span class="self">Self</span>) {
         <span class="kw">for </span>(s, o) <span class="kw">in </span><span class="self">self</span>.<span class="number">0</span>.iter_mut().zip(other.<span class="number">0</span>.iter()) {
             <span class="kw-2">*</span>s += o;
@@ -275,20 +275,20 @@
     }
 }
 
-<span class="kw">impl </span>RemAssign&lt;<a href="https://doc.rust-lang.org/nightly/core/primitive.u32.html">u32</a>&gt; <span class="kw">for </span><a href="#111">U32X4</a> {
-    <span class="kw">fn </span>rem_assign(<span class="kw-2">&amp;mut </span><span class="self">self</span>, quotient: <a href="https://doc.rust-lang.org/nightly/core/primitive.u32.html">u32</a>) {
+<span class="kw">impl </span>RemAssign&lt;u32&gt; <span class="kw">for </span>U32X4 {
+    <span class="kw">fn </span>rem_assign(<span class="kw-2">&amp;mut </span><span class="self">self</span>, quotient: u32) {
         <span class="kw">for </span>s <span class="kw">in </span><span class="self">self</span>.<span class="number">0</span>.iter_mut() {
             <span class="kw-2">*</span>s %= quotient;
         }
     }
 }
 
-<span class="kw">impl </span>MulAssign&lt;<a href="https://doc.rust-lang.org/nightly/core/primitive.u32.html">u32</a>&gt; <span class="kw">for </span><a href="#111">U32X4</a> {
-    <span class="kw">fn </span>mul_assign(<span class="kw-2">&amp;mut </span><span class="self">self</span>, rhs: <a href="https://doc.rust-lang.org/nightly/core/primitive.u32.html">u32</a>) {
+<span class="kw">impl </span>MulAssign&lt;u32&gt; <span class="kw">for </span>U32X4 {
+    <span class="kw">fn </span>mul_assign(<span class="kw-2">&amp;mut </span><span class="self">self</span>, rhs: u32) {
         <span class="kw">for </span>s <span class="kw">in </span><span class="self">self</span>.<span class="number">0</span>.iter_mut() {
             <span class="kw-2">*</span>s <span class="kw-2">*</span>= rhs;
         }
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="adler" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="adler" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

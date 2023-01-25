@@ -1,5 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/unicode-normalization-0.1.22/src/lookups.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lookups.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="icon" href="https://unicode-rs.github.io/unicode-rs_sm.png"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../unicode_normalization/index.html">
-                        <img src="https://unicode-rs.github.io/unicode-rs_sm.png" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/unicode-normalization-0.1.22/src/lookups.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lookups.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="icon" href="https://unicode-rs.github.io/unicode-rs_sm.png"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../unicode_normalization/index.html">
+                        <img src="https://unicode-rs.github.io/unicode-rs_sm.png" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -149,131 +149,131 @@
 
 </span><span class="doccomment">//! Lookups of unicode properties using minimal perfect hashing.
 
-</span><span class="kw">use </span><a href="perfect_hash.rs.html#30-41"><span class="kw">crate</span>::perfect_hash::mph_lookup</a>;
-<span class="kw">use </span><a href="lib.rs.html#82"><span class="kw">crate</span>::tables</a>::<span class="kw-2">*</span>;
+</span><span class="kw">use </span><span class="kw">crate</span>::perfect_hash::mph_lookup;
+<span class="kw">use </span><span class="kw">crate</span>::tables::<span class="kw-2">*</span>;
 
 <span class="doccomment">/// Look up the canonical combining class for a codepoint.
 ///
 /// The value returned is as defined in the Unicode Character Database.
-</span><span class="kw">pub fn </span>canonical_combining_class(c: <a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a> {
-    <a href="perfect_hash.rs.html#30-41">mph_lookup</a>(
-        <a href="#19">c</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
-        <a href="tables.rs.html#20">CANONICAL_COMBINING_CLASS_SALT</a>,
-        <a href="tables.rs.html#944">CANONICAL_COMBINING_CLASS_KV</a>,
-        <a href="#106">u8_lookup_fk</a>,
-        <a href="#112">u8_lookup_fv</a>,
+</span><span class="kw">pub fn </span>canonical_combining_class(c: char) -&gt; u8 {
+    mph_lookup(
+        c.into(),
+        CANONICAL_COMBINING_CLASS_SALT,
+        CANONICAL_COMBINING_CLASS_KV,
+        u8_lookup_fk,
+        u8_lookup_fv,
         <span class="number">0</span>,
     )
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>composition_table(c1: <a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>, c2: <a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>&gt; {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>composition_table(c1: char, c2: char) -&gt; <span class="prelude-ty">Option</span>&lt;char&gt; {
     <span class="kw">if </span>c1 &lt; <span class="string">&#39;\u{10000}&#39; </span>&amp;&amp; c2 &lt; <span class="string">&#39;\u{10000}&#39; </span>{
-        <a href="perfect_hash.rs.html#30-41">mph_lookup</a>(
-            (<a href="#30">c1</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) &lt;&lt; <span class="number">16 </span>| (<a href="#30">c2</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>),
-            <a href="tables.rs.html#1870">COMPOSITION_TABLE_SALT</a>,
-            <a href="tables.rs.html#2800">COMPOSITION_TABLE_KV</a>,
-            <a href="#130">pair_lookup_fk</a>,
-            <a href="#136">pair_lookup_fv_opt</a>,
+        mph_lookup(
+            (c1 <span class="kw">as </span>u32) &lt;&lt; <span class="number">16 </span>| (c2 <span class="kw">as </span>u32),
+            COMPOSITION_TABLE_SALT,
+            COMPOSITION_TABLE_KV,
+            pair_lookup_fk,
+            pair_lookup_fv_opt,
             <span class="prelude-val">None</span>,
         )
     } <span class="kw">else </span>{
-        <a href="tables.rs.html#3731">composition_table_astral</a>(<a href="#30">c1</a>, <a href="#30">c2</a>)
+        composition_table_astral(c1, c2)
     }
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>canonical_fully_decomposed(c: <a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>]&gt; {
-    <a href="perfect_hash.rs.html#30-41">mph_lookup</a>(
-        <a href="#45">c</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
-        <a href="tables.rs.html#7158">CANONICAL_DECOMPOSED_SALT</a>,
-        <a href="tables.rs.html#9221">CANONICAL_DECOMPOSED_KV</a>,
-        <a href="#130">pair_lookup_fk</a>,
-        <a href="#136">pair_lookup_fv_opt</a>,
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>canonical_fully_decomposed(c: char) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>[char]&gt; {
+    mph_lookup(
+        c.into(),
+        CANONICAL_DECOMPOSED_SALT,
+        CANONICAL_DECOMPOSED_KV,
+        pair_lookup_fk,
+        pair_lookup_fv_opt,
         <span class="prelude-val">None</span>,
     )
-    .map(|(start, len)| <span class="kw-2">&amp;</span><a href="tables.rs.html#3750">CANONICAL_DECOMPOSED_CHARS</a>[<a href="#54">start</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>..][..<a href="#54">len</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>])
+    .map(|(start, len)| <span class="kw-2">&amp;</span>CANONICAL_DECOMPOSED_CHARS[start <span class="kw">as </span>usize..][..len <span class="kw">as </span>usize])
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>compatibility_fully_decomposed(c: <a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>]&gt; {
-    <a href="perfect_hash.rs.html#30-41">mph_lookup</a>(
-        <a href="#57">c</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
-        <a href="tables.rs.html#17022">COMPATIBILITY_DECOMPOSED_SALT</a>,
-        <a href="tables.rs.html#20836">COMPATIBILITY_DECOMPOSED_KV</a>,
-        <a href="#130">pair_lookup_fk</a>,
-        <a href="#136">pair_lookup_fv_opt</a>,
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>compatibility_fully_decomposed(c: char) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>[char]&gt; {
+    mph_lookup(
+        c.into(),
+        COMPATIBILITY_DECOMPOSED_SALT,
+        COMPATIBILITY_DECOMPOSED_KV,
+        pair_lookup_fk,
+        pair_lookup_fv_opt,
         <span class="prelude-val">None</span>,
     )
-    .map(|(start, len)| <span class="kw-2">&amp;</span><a href="tables.rs.html#11285">COMPATIBILITY_DECOMPOSED_CHARS</a>[<a href="#66">start</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>..][..<a href="#66">len</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>])
+    .map(|(start, len)| <span class="kw-2">&amp;</span>COMPATIBILITY_DECOMPOSED_CHARS[start <span class="kw">as </span>usize..][..len <span class="kw">as </span>usize])
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>cjk_compat_variants_fully_decomposed(c: <a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>]&gt; {
-    <a href="perfect_hash.rs.html#30-41">mph_lookup</a>(
-        <a href="#69">c</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
-        <a href="tables.rs.html#26657">CJK_COMPAT_VARIANTS_DECOMPOSED_SALT</a>,
-        <a href="tables.rs.html#27661">CJK_COMPAT_VARIANTS_DECOMPOSED_KV</a>,
-        <a href="#130">pair_lookup_fk</a>,
-        <a href="#136">pair_lookup_fv_opt</a>,
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>cjk_compat_variants_fully_decomposed(c: char) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>[char]&gt; {
+    mph_lookup(
+        c.into(),
+        CJK_COMPAT_VARIANTS_DECOMPOSED_SALT,
+        CJK_COMPAT_VARIANTS_DECOMPOSED_KV,
+        pair_lookup_fk,
+        pair_lookup_fv_opt,
         <span class="prelude-val">None</span>,
     )
-    .map(|(start, len)| <span class="kw-2">&amp;</span><a href="tables.rs.html#24651">CJK_COMPAT_VARIANTS_DECOMPOSED_CHARS</a>[<a href="#78">start</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>..][..<a href="#78">len</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>])
+    .map(|(start, len)| <span class="kw-2">&amp;</span>CJK_COMPAT_VARIANTS_DECOMPOSED_CHARS[start <span class="kw">as </span>usize..][..len <span class="kw">as </span>usize])
 }
 
 <span class="doccomment">/// Return whether the given character is a combining mark (`General_Category=Mark`)
-</span><span class="kw">pub fn </span>is_combining_mark(c: <a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-    <a href="perfect_hash.rs.html#30-41">mph_lookup</a>(
-        <a href="#82">c</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
-        <a href="tables.rs.html#28666">COMBINING_MARK_SALT</a>,
-        <a href="tables.rs.html#31118">COMBINING_MARK_KV</a>,
-        <a href="#118">bool_lookup_fk</a>,
-        <a href="#124">bool_lookup_fv</a>,
+</span><span class="kw">pub fn </span>is_combining_mark(c: char) -&gt; bool {
+    mph_lookup(
+        c.into(),
+        COMBINING_MARK_SALT,
+        COMBINING_MARK_KV,
+        bool_lookup_fk,
+        bool_lookup_fv,
         <span class="bool-val">false</span>,
     )
 }
 
-<span class="kw">pub fn </span>stream_safe_trailing_nonstarters(c: <a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-    <a href="perfect_hash.rs.html#30-41">mph_lookup</a>(
-        <a href="#93">c</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
-        <a href="tables.rs.html#35678">TRAILING_NONSTARTERS_SALT</a>,
-        <a href="tables.rs.html#36770">TRAILING_NONSTARTERS_KV</a>,
-        <a href="#106">u8_lookup_fk</a>,
-        <a href="#112">u8_lookup_fv</a>,
+<span class="kw">pub fn </span>stream_safe_trailing_nonstarters(c: char) -&gt; usize {
+    mph_lookup(
+        c.into(),
+        TRAILING_NONSTARTERS_SALT,
+        TRAILING_NONSTARTERS_KV,
+        u8_lookup_fk,
+        u8_lookup_fv,
         <span class="number">0</span>,
-    ) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>
+    ) <span class="kw">as </span>usize
 }
 
 <span class="doccomment">/// Extract the key in a 24 bit key and 8 bit value packed in a u32.
 </span><span class="attr">#[inline]
-</span><span class="kw">fn </span>u8_lookup_fk(kv: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
-    <a href="#106">kv</a> &gt;&gt; <span class="number">8
+</span><span class="kw">fn </span>u8_lookup_fk(kv: u32) -&gt; u32 {
+    kv &gt;&gt; <span class="number">8
 </span>}
 
 <span class="doccomment">/// Extract the value in a 24 bit key and 8 bit value packed in a u32.
 </span><span class="attr">#[inline]
-</span><span class="kw">fn </span>u8_lookup_fv(kv: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a> {
-    (<a href="#112">kv</a> &amp; <span class="number">0xff</span>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>
+</span><span class="kw">fn </span>u8_lookup_fv(kv: u32) -&gt; u8 {
+    (kv &amp; <span class="number">0xff</span>) <span class="kw">as </span>u8
 }
 
 <span class="doccomment">/// Extract the key for a boolean lookup.
 </span><span class="attr">#[inline]
-</span><span class="kw">fn </span>bool_lookup_fk(kv: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
-    <a href="#118">kv</a>
+</span><span class="kw">fn </span>bool_lookup_fk(kv: u32) -&gt; u32 {
+    kv
 }
 
 <span class="doccomment">/// Extract the value for a boolean lookup.
 </span><span class="attr">#[inline]
-</span><span class="kw">fn </span>bool_lookup_fv(_kv: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+</span><span class="kw">fn </span>bool_lookup_fv(_kv: u32) -&gt; bool {
     <span class="bool-val">true
 </span>}
 
 <span class="doccomment">/// Extract the key in a pair.
 </span><span class="attr">#[inline]
-</span><span class="kw">fn </span>pair_lookup_fk&lt;T&gt;(kv: (<a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>, T)) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
-    <a href="#130">kv</a>.<span class="number">0
+</span><span class="kw">fn </span>pair_lookup_fk&lt;T&gt;(kv: (u32, T)) -&gt; u32 {
+    kv.<span class="number">0
 </span>}
 
 <span class="doccomment">/// Extract the value in a pair, returning an option.
 </span><span class="attr">#[inline]
-</span><span class="kw">fn </span>pair_lookup_fv_opt&lt;T&gt;(kv: (<a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>, T)) -&gt; <span class="prelude-ty">Option</span>&lt;T&gt; {
-    <span class="prelude-val">Some</span>(<a href="#136">kv</a>.<span class="number">1</span>)
+</span><span class="kw">fn </span>pair_lookup_fv_opt&lt;T&gt;(kv: (u32, T)) -&gt; <span class="prelude-ty">Option</span>&lt;T&gt; {
+    <span class="prelude-val">Some</span>(kv.<span class="number">1</span>)
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="unicode_normalization" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="unicode_normalization" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

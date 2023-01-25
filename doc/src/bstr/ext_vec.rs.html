@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/bstr-0.2.17/src/ext_vec.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>ext_vec.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../bstr/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/bstr-0.2.17/src/ext_vec.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>ext_vec.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../bstr/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -1103,19 +1103,19 @@
 <a href="#1103" id="1103">1103</a>
 <a href="#1104" id="1104">1104</a>
 <a href="#1105" id="1105">1105</a>
-</pre><pre class="rust"><code><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/borrow/enum.Cow.html">std::borrow::Cow</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/error/index.html">std::error</a>;
-<span class="kw">use </span>std::ffi::{<a href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsStr.html">OsStr</a>, <a href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsString.html">OsString</a>};
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">std::fmt</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/iter/index.html">std::iter</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/ops/index.html">std::ops</a>;
-<span class="kw">use </span>std::path::{<a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>, <a href="https://doc.rust-lang.org/nightly/std/path/struct.PathBuf.html">PathBuf</a>};
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/ptr/index.html">std::ptr</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/str/index.html">std::str</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">std::vec</a>;
+</pre><pre class="rust"><code><span class="kw">use </span>std::borrow::Cow;
+<span class="kw">use </span>std::error;
+<span class="kw">use </span>std::ffi::{OsStr, OsString};
+<span class="kw">use </span>std::fmt;
+<span class="kw">use </span>std::iter;
+<span class="kw">use </span>std::ops;
+<span class="kw">use </span>std::path::{Path, PathBuf};
+<span class="kw">use </span>std::ptr;
+<span class="kw">use </span>std::str;
+<span class="kw">use </span>std::vec;
 
-<span class="kw">use </span><a href="ext_slice.rs.html#92"><span class="kw">crate</span>::ext_slice::ByteSlice</a>;
-<span class="kw">use </span><span class="kw">crate</span>::utf8::{<a class="self" href="lib.rs.html#407">self</a>, <a href="utf8.rs.html#410">Utf8Error</a>};
+<span class="kw">use </span><span class="kw">crate</span>::ext_slice::ByteSlice;
+<span class="kw">use </span><span class="kw">crate</span>::utf8::{<span class="self">self</span>, Utf8Error};
 
 <span class="doccomment">/// Concatenate the elements given by the iterator together into a single
 /// `Vec&lt;u8&gt;`.
@@ -1134,16 +1134,16 @@
 /// assert_eq!(s, &quot;foobarbaz&quot;.as_bytes());
 /// ```
 </span><span class="attr">#[inline]
-</span><span class="kw">pub fn </span>concat&lt;T, I&gt;(elements: I) -&gt; Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;
+</span><span class="kw">pub fn </span>concat&lt;T, I&gt;(elements: I) -&gt; Vec&lt;u8&gt;
 <span class="kw">where
-    </span>T: AsRef&lt;[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;,
+    </span>T: AsRef&lt;[u8]&gt;,
     I: IntoIterator&lt;Item = T&gt;,
 {
-    <span class="kw">let </span><span class="kw-2">mut </span>dest = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[];
+    <span class="kw">let </span><span class="kw-2">mut </span>dest = <span class="macro">vec!</span>[];
     <span class="kw">for </span>element <span class="kw">in </span>elements {
         dest.push_str(element);
     }
-    <a href="#37">dest</a>
+    dest
 }
 
 <span class="doccomment">/// Join the elements given by the iterator with the given separator into a
@@ -1164,48 +1164,48 @@
 /// assert_eq!(s, &quot;foo,bar,baz&quot;.as_bytes());
 /// ```
 </span><span class="attr">#[inline]
-</span><span class="kw">pub fn </span>join&lt;B, T, I&gt;(separator: B, elements: I) -&gt; Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;
+</span><span class="kw">pub fn </span>join&lt;B, T, I&gt;(separator: B, elements: I) -&gt; Vec&lt;u8&gt;
 <span class="kw">where
-    </span>B: AsRef&lt;[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;,
-    T: AsRef&lt;[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;,
+    </span>B: AsRef&lt;[u8]&gt;,
+    T: AsRef&lt;[u8]&gt;,
     I: IntoIterator&lt;Item = T&gt;,
 {
-    <span class="kw">let </span><span class="kw-2">mut </span>it = <a href="#62">elements</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>();
-    <span class="kw">let </span><span class="kw-2">mut </span>dest = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[];
-    <span class="kw">match </span><a href="#68">it</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>() {
-        <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><a href="#69">dest</a>,
+    <span class="kw">let </span><span class="kw-2">mut </span>it = elements.into_iter();
+    <span class="kw">let </span><span class="kw-2">mut </span>dest = <span class="macro">vec!</span>[];
+    <span class="kw">match </span>it.next() {
+        <span class="prelude-val">None </span>=&gt; <span class="kw">return </span>dest,
         <span class="prelude-val">Some</span>(first) =&gt; {
-            <a href="#69">dest</a>.<a href="#347">push_str</a>(<a href="#72">first</a>);
+            dest.push_str(first);
         }
     }
     <span class="kw">for </span>element <span class="kw">in </span>it {
         dest.push_str(<span class="kw-2">&amp;</span>separator);
         dest.push_str(element);
     }
-    <a href="#69">dest</a>
+    dest
 }
 
-<span class="kw">impl </span><a href="#117">ByteVec</a> <span class="kw">for </span>Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt; {
+<span class="kw">impl </span>ByteVec <span class="kw">for </span>Vec&lt;u8&gt; {
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>as_vec(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt; {
-        <span class="self"><a href="#85">self</a>
+    </span><span class="kw">fn </span>as_vec(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Vec&lt;u8&gt; {
+        <span class="self">self
     </span>}
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>as_vec_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt; {
-        <span class="self"><a href="#90">self</a>
+    </span><span class="kw">fn </span>as_vec_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>Vec&lt;u8&gt; {
+        <span class="self">self
     </span>}
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>into_vec(<span class="self">self</span>) -&gt; Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt; {
-        <span class="self"><a href="#95">self</a>
+    </span><span class="kw">fn </span>into_vec(<span class="self">self</span>) -&gt; Vec&lt;u8&gt; {
+        <span class="self">self
     </span>}
 }
 
 <span class="doccomment">/// Ensure that callers cannot implement `ByteSlice` by making an
 /// umplementable trait its super trait.
 </span><span class="kw">pub trait </span>Sealed {}
-<span class="kw">impl </span><a href="#102">Sealed</a> <span class="kw">for </span>Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt; {}
+<span class="kw">impl </span>Sealed <span class="kw">for </span>Vec&lt;u8&gt; {}
 
 <span class="doccomment">/// A trait that extends `Vec&lt;u8&gt;` with string oriented methods.
 ///
@@ -1219,26 +1219,26 @@
 /// let s = Vec::from_slice(b&quot;abc&quot;); // NOT ByteVec::from_slice(&quot;...&quot;)
 /// assert_eq!(s, B(&quot;abc&quot;));
 /// ```
-</span><span class="kw">pub trait </span>ByteVec: <a href="#102">Sealed</a> {
+</span><span class="kw">pub trait </span>ByteVec: Sealed {
     <span class="doccomment">/// A method for accessing the raw vector bytes of this type. This is
     /// always a no-op and callers shouldn&#39;t care about it. This only exists
     /// for making the extension trait work.
     </span><span class="attr">#[doc(hidden)]
-    </span><span class="kw">fn </span>as_vec(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;;
+    </span><span class="kw">fn </span>as_vec(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Vec&lt;u8&gt;;
 
     <span class="doccomment">/// A method for accessing the raw vector bytes of this type, mutably. This
     /// is always a no-op and callers shouldn&#39;t care about it. This only exists
     /// for making the extension trait work.
     </span><span class="attr">#[doc(hidden)]
-    </span><span class="kw">fn </span>as_vec_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;;
+    </span><span class="kw">fn </span>as_vec_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>Vec&lt;u8&gt;;
 
     <span class="doccomment">/// A method for consuming ownership of this vector. This is always a no-op
     /// and callers shouldn&#39;t care about it. This only exists for making the
     /// extension trait work.
     </span><span class="attr">#[doc(hidden)]
-    </span><span class="kw">fn </span>into_vec(<span class="self">self</span>) -&gt; Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;
+    </span><span class="kw">fn </span>into_vec(<span class="self">self</span>) -&gt; Vec&lt;u8&gt;
     <span class="kw">where
-        </span><span class="self">Self</span>: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>;
+        </span><span class="self">Self</span>: Sized;
 
     <span class="doccomment">/// Create a new owned byte string from the given byte slice.
     ///
@@ -1253,8 +1253,8 @@
     /// assert_eq!(s, B(&quot;abc&quot;));
     /// ```
     </span><span class="attr">#[inline]
-    </span><span class="kw">fn </span>from_slice&lt;B: AsRef&lt;[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;&gt;(bytes: B) -&gt; Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt; {
-        <a href="#151">bytes</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>().to_vec()
+    </span><span class="kw">fn </span>from_slice&lt;B: AsRef&lt;[u8]&gt;&gt;(bytes: B) -&gt; Vec&lt;u8&gt; {
+        bytes.as_ref().to_vec()
     }
 
     <span class="doccomment">/// Create a new byte string from an owned OS string.
@@ -1276,13 +1276,13 @@
     /// assert_eq!(bs, B(&quot;foo&quot;));
     /// ```
     </span><span class="attr">#[inline]
-    </span><span class="kw">fn </span>from_os_string(os_str: <a href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsString.html">OsString</a>) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;, <a href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsString.html">OsString</a>&gt; {
+    </span><span class="kw">fn </span>from_os_string(os_str: OsString) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;u8&gt;, OsString&gt; {
         <span class="attr">#[cfg(unix)]
         #[inline]
-        </span><span class="kw">fn </span>imp(os_str: <a href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsString.html">OsString</a>) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;, <a href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsString.html">OsString</a>&gt; {
-            <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/os/unix/ffi/os_str/trait.OsStringExt.html">std::os::unix::ffi::OsStringExt</a>;
+        </span><span class="kw">fn </span>imp(os_str: OsString) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;u8&gt;, OsString&gt; {
+            <span class="kw">use </span>std::os::unix::ffi::OsStringExt;
 
-            <span class="prelude-val">Ok</span>(Vec::from(<a href="#177">os_str</a>.<a href="https://doc.rust-lang.org/nightly/std/os/unix/ffi/os_str/trait.OsStringExt.html">into_vec</a>()))
+            <span class="prelude-val">Ok</span>(Vec::from(os_str.into_vec()))
         }
 
         <span class="attr">#[cfg(not(unix))]
@@ -1291,7 +1291,7 @@
             os_str.into_string().map(Vec::from)
         }
 
-        <a href="#177">imp</a>(<a href="#174">os_str</a>)
+        imp(os_str)
     }
 
     <span class="doccomment">/// Lossily create a new byte string from an OS string slice.
@@ -1315,13 +1315,13 @@
     /// assert_eq!(bs, B(&quot;foo&quot;));
     /// ```
     </span><span class="attr">#[inline]
-    </span><span class="kw">fn </span>from_os_str_lossy&lt;<span class="lifetime">&#39;a</span>&gt;(os_str: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsStr.html">OsStr</a>) -&gt; Cow&lt;<span class="lifetime">&#39;a</span>, [<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt; {
+    </span><span class="kw">fn </span>from_os_str_lossy&lt;<span class="lifetime">&#39;a</span>&gt;(os_str: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>OsStr) -&gt; Cow&lt;<span class="lifetime">&#39;a</span>, [u8]&gt; {
         <span class="attr">#[cfg(unix)]
         #[inline]
-        </span><span class="kw">fn </span>imp&lt;<span class="lifetime">&#39;a</span>&gt;(os_str: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsStr.html">OsStr</a>) -&gt; Cow&lt;<span class="lifetime">&#39;a</span>, [<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt; {
-            <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/os/unix/ffi/os_str/trait.OsStrExt.html">std::os::unix::ffi::OsStrExt</a>;
+        </span><span class="kw">fn </span>imp&lt;<span class="lifetime">&#39;a</span>&gt;(os_str: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>OsStr) -&gt; Cow&lt;<span class="lifetime">&#39;a</span>, [u8]&gt; {
+            <span class="kw">use </span>std::os::unix::ffi::OsStrExt;
 
-            Cow::Borrowed(<a href="#216">os_str</a>.<a href="https://doc.rust-lang.org/nightly/std/os/unix/ffi/os_str/trait.OsStrExt.html">as_bytes</a>())
+            Cow::Borrowed(os_str.as_bytes())
         }
 
         <span class="attr">#[cfg(not(unix))]
@@ -1333,7 +1333,7 @@
             }
         }
 
-        <a href="#216">imp</a>(<a href="#213">os_str</a>)
+        imp(os_str)
     }
 
     <span class="doccomment">/// Create a new byte string from an owned file path.
@@ -1355,8 +1355,8 @@
     /// assert_eq!(bs, B(&quot;foo&quot;));
     /// ```
     </span><span class="attr">#[inline]
-    </span><span class="kw">fn </span>from_path_buf(path: <a href="https://doc.rust-lang.org/nightly/std/path/struct.PathBuf.html">PathBuf</a>) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;, <a href="https://doc.rust-lang.org/nightly/std/path/struct.PathBuf.html">PathBuf</a>&gt; {
-        Vec::from_os_string(<a href="#253">path</a>.into_os_string()).map_err(PathBuf::from)
+    </span><span class="kw">fn </span>from_path_buf(path: PathBuf) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;u8&gt;, PathBuf&gt; {
+        Vec::from_os_string(path.into_os_string()).map_err(PathBuf::from)
     }
 
     <span class="doccomment">/// Lossily create a new byte string from a file path.
@@ -1380,8 +1380,8 @@
     /// assert_eq!(bs, B(&quot;foo&quot;));
     /// ```
     </span><span class="attr">#[inline]
-    </span><span class="kw">fn </span>from_path_lossy&lt;<span class="lifetime">&#39;a</span>&gt;(path: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>) -&gt; Cow&lt;<span class="lifetime">&#39;a</span>, [<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt; {
-        Vec::from_os_str_lossy(<a href="#278">path</a>.as_os_str())
+    </span><span class="kw">fn </span>from_path_lossy&lt;<span class="lifetime">&#39;a</span>&gt;(path: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Path) -&gt; Cow&lt;<span class="lifetime">&#39;a</span>, [u8]&gt; {
+        Vec::from_os_str_lossy(path.as_os_str())
     }
 
     <span class="doccomment">/// Appends the given byte to the end of this byte string.
@@ -1404,8 +1404,8 @@
     /// assert_eq!(s, &quot;abc☃&quot;.as_bytes());
     /// ```
     </span><span class="attr">#[inline]
-    </span><span class="kw">fn </span>push_byte(<span class="kw-2">&amp;mut </span><span class="self">self</span>, byte: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) {
-        <a class="self" href="#302">self</a>.<a href="#128">as_vec_mut</a>().push(<a href="#302">byte</a>);
+    </span><span class="kw">fn </span>push_byte(<span class="kw-2">&amp;mut </span><span class="self">self</span>, byte: u8) {
+        <span class="self">self</span>.as_vec_mut().push(byte);
     }
 
     <span class="doccomment">/// Appends the given `char` to the end of this byte string.
@@ -1424,13 +1424,13 @@
     /// assert_eq!(s, &quot;abc123&quot;.as_bytes());
     /// ```
     </span><span class="attr">#[inline]
-    </span><span class="kw">fn </span>push_char(<span class="kw-2">&amp;mut </span><span class="self">self</span>, ch: <a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>) {
+    </span><span class="kw">fn </span>push_char(<span class="kw-2">&amp;mut </span><span class="self">self</span>, ch: char) {
         <span class="kw">if </span>ch.len_utf8() == <span class="number">1 </span>{
-            <a class="self" href="#322">self</a>.<a href="#302">push_byte</a>(<a href="#322">ch</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>);
+            <span class="self">self</span>.push_byte(ch <span class="kw">as </span>u8);
             <span class="kw">return</span>;
         }
-        <a class="self" href="#322">self</a>.<a href="#128">as_vec_mut</a>()
-            .extend_from_slice(<a href="#322">ch</a>.encode_utf8(<span class="kw-2">&amp;mut </span>[<span class="number">0</span>; <span class="number">4</span>]).as_bytes());
+        <span class="self">self</span>.as_vec_mut()
+            .extend_from_slice(ch.encode_utf8(<span class="kw-2">&amp;mut </span>[<span class="number">0</span>; <span class="number">4</span>]).as_bytes());
     }
 
     <span class="doccomment">/// Appends the given slice to the end of this byte string. This accepts
@@ -1449,8 +1449,8 @@
     /// assert_eq!(s, &quot;abc123&quot;.as_bytes());
     /// ```
     </span><span class="attr">#[inline]
-    </span><span class="kw">fn </span>push_str&lt;B: AsRef&lt;[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, bytes: B) {
-        <a class="self" href="#347">self</a>.<a href="#128">as_vec_mut</a>().extend_from_slice(<a href="#347">bytes</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>());
+    </span><span class="kw">fn </span>push_str&lt;B: AsRef&lt;[u8]&gt;&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, bytes: B) {
+        <span class="self">self</span>.as_vec_mut().extend_from_slice(bytes.as_ref());
     }
 
     <span class="doccomment">/// Converts a `Vec&lt;u8&gt;` into a `String` if and only if this byte string is
@@ -1494,16 +1494,16 @@
     /// assert_eq!(bytes, B(b&quot;foo\xFFbar&quot;));
     /// ```
     </span><span class="attr">#[inline]
-    </span><span class="kw">fn </span>into_string(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, <a href="#961">FromUtf8Error</a>&gt;
+    </span><span class="kw">fn </span>into_string(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;String, FromUtf8Error&gt;
     <span class="kw">where
-        </span><span class="self">Self</span>: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>,
+        </span><span class="self">Self</span>: Sized,
     {
-        <span class="kw">match </span><a href="utf8.rs.html#471">utf8::validate</a>(<a class="self" href="#392">self</a>.<a href="#122">as_vec</a>()) {
-            <span class="prelude-val">Err</span>(err) =&gt; <span class="prelude-val">Err</span>(<a href="#961">FromUtf8Error</a> { original: <a class="self" href="#392">self</a>.<a href="#134-136">into_vec</a>(), <a href="#397">err</a> }),
+        <span class="kw">match </span>utf8::validate(<span class="self">self</span>.as_vec()) {
+            <span class="prelude-val">Err</span>(err) =&gt; <span class="prelude-val">Err</span>(FromUtf8Error { original: <span class="self">self</span>.into_vec(), err }),
             <span class="prelude-val">Ok</span>(()) =&gt; {
                 <span class="comment">// SAFETY: This is safe because of the guarantees provided by
                 // utf8::validate.
-                </span><span class="kw">unsafe </span>{ <span class="prelude-val">Ok</span>(<a class="self" href="#392">self</a>.<a href="#463-465">into_string_unchecked</a>()) }
+                </span><span class="kw">unsafe </span>{ <span class="prelude-val">Ok</span>(<span class="self">self</span>.into_string_unchecked()) }
             }
         }
     }
@@ -1524,17 +1524,17 @@
     /// assert_eq!(string, &quot;foo\u{FFFD}bar&quot;);
     /// ```
     </span><span class="attr">#[inline]
-    </span><span class="kw">fn </span>into_string_lossy(<span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>
+    </span><span class="kw">fn </span>into_string_lossy(<span class="self">self</span>) -&gt; String
     <span class="kw">where
-        </span><span class="self">Self</span>: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>,
+        </span><span class="self">Self</span>: Sized,
     {
-        <span class="kw">match </span><a class="self" href="#422">self</a>.<a href="#122">as_vec</a>().<a href="ext_slice.rs.html#346">to_str_lossy</a>() {
+        <span class="kw">match </span><span class="self">self</span>.as_vec().to_str_lossy() {
             Cow::Borrowed(<span class="kw">_</span>) =&gt; {
                 <span class="comment">// SAFETY: to_str_lossy() returning a Cow::Borrowed guarantees
                 // the entire string is valid utf8.
-                </span><span class="kw">unsafe </span>{ <a class="self" href="#422">self</a>.<a href="#463-465">into_string_unchecked</a>() }
+                </span><span class="kw">unsafe </span>{ <span class="self">self</span>.into_string_unchecked() }
             }
-            Cow::Owned(s) =&gt; <a href="#432">s</a>,
+            Cow::Owned(s) =&gt; s,
         }
     }
 
@@ -1565,11 +1565,11 @@
     /// assert_eq!(&quot;☃βツ&quot;, s);
     /// ```
     </span><span class="attr">#[inline]
-    </span><span class="kw">unsafe fn </span>into_string_unchecked(<span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>
+    </span><span class="kw">unsafe fn </span>into_string_unchecked(<span class="self">self</span>) -&gt; String
     <span class="kw">where
-        </span><span class="self">Self</span>: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>,
+        </span><span class="self">Self</span>: Sized,
     {
-        String::from_utf8_unchecked(<a class="self" href="#463">self</a>.<a href="#134-136">into_vec</a>())
+        String::from_utf8_unchecked(<span class="self">self</span>.into_vec())
     }
 
     <span class="doccomment">/// Converts this byte string into an OS string, in place.
@@ -1591,16 +1591,16 @@
     /// assert_eq!(os_str, OsStr::new(&quot;foo&quot;));
     /// ```
     </span><span class="attr">#[inline]
-    </span><span class="kw">fn </span>into_os_string(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsString.html">OsString</a>, Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;&gt;
+    </span><span class="kw">fn </span>into_os_string(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;OsString, Vec&lt;u8&gt;&gt;
     <span class="kw">where
-        </span><span class="self">Self</span>: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>,
+        </span><span class="self">Self</span>: Sized,
     {
         <span class="attr">#[cfg(unix)]
         #[inline]
-        </span><span class="kw">fn </span>imp(v: Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsString.html">OsString</a>, Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;&gt; {
-            <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/os/unix/ffi/os_str/trait.OsStringExt.html">std::os::unix::ffi::OsStringExt</a>;
+        </span><span class="kw">fn </span>imp(v: Vec&lt;u8&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;OsString, Vec&lt;u8&gt;&gt; {
+            <span class="kw">use </span>std::os::unix::ffi::OsStringExt;
 
-            <span class="prelude-val">Ok</span>(OsString::from_vec(<a href="#495">v</a>))
+            <span class="prelude-val">Ok</span>(OsString::from_vec(v))
         }
 
         <span class="attr">#[cfg(not(unix))]
@@ -1612,7 +1612,7 @@
             }
         }
 
-        <a href="#495">imp</a>(<a class="self" href="#489">self</a>.<a href="#134-136">into_vec</a>())
+        imp(<span class="self">self</span>.into_vec())
     }
 
     <span class="doccomment">/// Lossily converts this byte string into an OS string, in place.
@@ -1637,16 +1637,16 @@
     /// assert_eq!(os_str.to_string_lossy(), &quot;foo\u{FFFD}bar&quot;);
     /// ```
     </span><span class="attr">#[inline]
-    </span><span class="kw">fn </span>into_os_string_lossy(<span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsString.html">OsString</a>
+    </span><span class="kw">fn </span>into_os_string_lossy(<span class="self">self</span>) -&gt; OsString
     <span class="kw">where
-        </span><span class="self">Self</span>: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>,
+        </span><span class="self">Self</span>: Sized,
     {
         <span class="attr">#[cfg(unix)]
         #[inline]
-        </span><span class="kw">fn </span>imp(v: Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsString.html">OsString</a> {
-            <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/os/unix/ffi/os_str/trait.OsStringExt.html">std::os::unix::ffi::OsStringExt</a>;
+        </span><span class="kw">fn </span>imp(v: Vec&lt;u8&gt;) -&gt; OsString {
+            <span class="kw">use </span>std::os::unix::ffi::OsStringExt;
 
-            OsString::from_vec(<a href="#541">v</a>)
+            OsString::from_vec(v)
         }
 
         <span class="attr">#[cfg(not(unix))]
@@ -1655,7 +1655,7 @@
             OsString::from(v.into_string_lossy())
         }
 
-        <a href="#541">imp</a>(<a class="self" href="#535">self</a>.<a href="#134-136">into_vec</a>())
+        imp(<span class="self">self</span>.into_vec())
     }
 
     <span class="doccomment">/// Converts this byte string into an owned file path, in place.
@@ -1675,11 +1675,11 @@
     /// assert_eq!(path.as_os_str(), &quot;foo&quot;);
     /// ```
     </span><span class="attr">#[inline]
-    </span><span class="kw">fn </span>into_path_buf(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/path/struct.PathBuf.html">PathBuf</a>, Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;&gt;
+    </span><span class="kw">fn </span>into_path_buf(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;PathBuf, Vec&lt;u8&gt;&gt;
     <span class="kw">where
-        </span><span class="self">Self</span>: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>,
+        </span><span class="self">Self</span>: Sized,
     {
-        <a class="self" href="#573">self</a>.<a href="#489-491">into_os_string</a>().map(PathBuf::from)
+        <span class="self">self</span>.into_os_string().map(PathBuf::from)
     }
 
     <span class="doccomment">/// Lossily converts this byte string into an owned file path, in place.
@@ -1704,11 +1704,11 @@
     /// assert_eq!(path.to_string_lossy(), &quot;foo\u{FFFD}bar&quot;);
     /// ```
     </span><span class="attr">#[inline]
-    </span><span class="kw">fn </span>into_path_buf_lossy(<span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/path/struct.PathBuf.html">PathBuf</a>
+    </span><span class="kw">fn </span>into_path_buf_lossy(<span class="self">self</span>) -&gt; PathBuf
     <span class="kw">where
-        </span><span class="self">Self</span>: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>,
+        </span><span class="self">Self</span>: Sized,
     {
-        PathBuf::from(<a class="self" href="#602">self</a>.<a href="#535-537">into_os_string_lossy</a>())
+        PathBuf::from(<span class="self">self</span>.into_os_string_lossy())
     }
 
     <span class="doccomment">/// Removes the last byte from this `Vec&lt;u8&gt;` and returns it.
@@ -1736,8 +1736,8 @@
     /// assert_eq!(s.pop_byte(), None);
     /// ```
     </span><span class="attr">#[inline]
-    </span><span class="kw">fn </span>pop_byte(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt; {
-        <a class="self" href="#634">self</a>.<a href="#128">as_vec_mut</a>().pop()
+    </span><span class="kw">fn </span>pop_byte(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;u8&gt; {
+        <span class="self">self</span>.as_vec_mut().pop()
     }
 
     <span class="doccomment">/// Removes the last codepoint from this `Vec&lt;u8&gt;` and returns it.
@@ -1782,14 +1782,14 @@
     /// assert_eq!(s.pop_char(), None);
     /// ```
     </span><span class="attr">#[inline]
-    </span><span class="kw">fn </span>pop_char(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>&gt; {
-        <span class="kw">let </span>(ch, size) = <a href="utf8.rs.html#811">utf8::decode_last_lossy</a>(<a class="self" href="#680">self</a>.<a href="#122">as_vec</a>());
+    </span><span class="kw">fn </span>pop_char(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;char&gt; {
+        <span class="kw">let </span>(ch, size) = utf8::decode_last_lossy(<span class="self">self</span>.as_vec());
         <span class="kw">if </span>size == <span class="number">0 </span>{
             <span class="kw">return </span><span class="prelude-val">None</span>;
         }
-        <span class="kw">let </span>new_len = <a class="self" href="#680">self</a>.<a href="#122">as_vec</a>().len() - <a href="#681">size</a>;
-        <a class="self" href="#680">self</a>.<a href="#128">as_vec_mut</a>().truncate(<a href="#685">new_len</a>);
-        <span class="prelude-val">Some</span>(<a href="#681">ch</a>)
+        <span class="kw">let </span>new_len = <span class="self">self</span>.as_vec().len() - size;
+        <span class="self">self</span>.as_vec_mut().truncate(new_len);
+        <span class="prelude-val">Some</span>(ch)
     }
 
     <span class="doccomment">/// Removes a `char` from this `Vec&lt;u8&gt;` at the given byte position and
@@ -1826,16 +1826,16 @@
     /// assert_eq!(s, b&quot;foobar&quot;);
     /// ```
     </span><span class="attr">#[inline]
-    </span><span class="kw">fn </span>remove_char(<span class="kw-2">&amp;mut </span><span class="self">self</span>, at: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a> {
-        <span class="kw">let </span>(ch, size) = <a href="utf8.rs.html#687">utf8::decode_lossy</a>(<span class="kw-2">&amp;</span><a class="self" href="#724">self</a>.<a href="#122">as_vec</a>()[<a href="#724">at</a>..]);
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(
+    </span><span class="kw">fn </span>remove_char(<span class="kw-2">&amp;mut </span><span class="self">self</span>, at: usize) -&gt; char {
+        <span class="kw">let </span>(ch, size) = utf8::decode_lossy(<span class="kw-2">&amp;</span><span class="self">self</span>.as_vec()[at..]);
+        <span class="macro">assert!</span>(
             size &gt; <span class="number">0</span>,
             <span class="string">&quot;expected {} to be less than {}&quot;</span>,
             at,
             <span class="self">self</span>.as_vec().len(),
         );
-        <a class="self" href="#724">self</a>.<a href="#128">as_vec_mut</a>().drain(<a href="#724">at</a>..<a href="#724">at</a> + <a href="#725">size</a>);
-        <a href="#725">ch</a>
+        <span class="self">self</span>.as_vec_mut().drain(at..at + size);
+        ch
     }
 
     <span class="doccomment">/// Inserts the given codepoint into this `Vec&lt;u8&gt;` at a particular byte
@@ -1860,8 +1860,8 @@
     /// assert_eq!(s, &quot;foo☃bar&quot;.as_bytes());
     /// ```
     </span><span class="attr">#[inline]
-    </span><span class="kw">fn </span>insert_char(<span class="kw-2">&amp;mut </span><span class="self">self</span>, at: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, ch: <a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>) {
-        <a class="self" href="#758">self</a>.<a href="#788">insert_str</a>(<a href="#758">at</a>, <a href="#758">ch</a>.encode_utf8(<span class="kw-2">&amp;mut </span>[<span class="number">0</span>; <span class="number">4</span>]).as_bytes());
+    </span><span class="kw">fn </span>insert_char(<span class="kw-2">&amp;mut </span><span class="self">self</span>, at: usize, ch: char) {
+        <span class="self">self</span>.insert_str(at, ch.encode_utf8(<span class="kw-2">&amp;mut </span>[<span class="number">0</span>; <span class="number">4</span>]).as_bytes());
     }
 
     <span class="doccomment">/// Inserts the given byte string into this byte string at a particular
@@ -1890,35 +1890,35 @@
     /// assert_eq!(s, &quot;foo☃☃☃bar&quot;.as_bytes());
     /// ```
     </span><span class="attr">#[inline]
-    </span><span class="kw">fn </span>insert_str&lt;B: AsRef&lt;[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, at: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, bytes: B) {
-        <span class="kw">let </span>bytes = <a href="#788">bytes</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>();
-        <span class="kw">let </span>len = <a class="self" href="#788">self</a>.<a href="#122">as_vec</a>().len();
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(at &lt;= len, <span class="string">&quot;expected {} to be &lt;= {}&quot;</span>, at, len);
+    </span><span class="kw">fn </span>insert_str&lt;B: AsRef&lt;[u8]&gt;&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, at: usize, bytes: B) {
+        <span class="kw">let </span>bytes = bytes.as_ref();
+        <span class="kw">let </span>len = <span class="self">self</span>.as_vec().len();
+        <span class="macro">assert!</span>(at &lt;= len, <span class="string">&quot;expected {} to be &lt;= {}&quot;</span>, at, len);
 
         <span class="comment">// SAFETY: We&#39;d like to efficiently splice in the given bytes into
         // this byte string. Since we are only working with `u8` elements here,
         // we only need to consider whether our bounds are correct and whether
         // our byte string has enough space.
-        </span><a class="self" href="#788">self</a>.<a href="#128">as_vec_mut</a>().reserve(<a href="#789">bytes</a>.len());
+        </span><span class="self">self</span>.as_vec_mut().reserve(bytes.len());
         <span class="kw">unsafe </span>{
             <span class="comment">// Shift bytes after `at` over by the length of `bytes` to make
             // room for it. This requires referencing two regions of memory
             // that may overlap, so we use ptr::copy.
             </span>ptr::copy(
-                <a class="self" href="#788">self</a>.<a href="#122">as_vec</a>().as_ptr().add(<a href="#788">at</a>),
-                <a class="self" href="#788">self</a>.<a href="#128">as_vec_mut</a>().as_mut_ptr().add(<a href="#788">at</a> + <a href="#789">bytes</a>.len()),
-                <a href="#790">len</a> - <a href="#788">at</a>,
+                <span class="self">self</span>.as_vec().as_ptr().add(at),
+                <span class="self">self</span>.as_vec_mut().as_mut_ptr().add(at + bytes.len()),
+                len - at,
             );
             <span class="comment">// Now copy the bytes given into the room we made above. In this
             // case, we know that the given bytes cannot possibly overlap
             // with this byte string since we have a mutable borrow of the
             // latter. Thus, we can use a nonoverlapping copy.
             </span>ptr::copy_nonoverlapping(
-                <a href="#789">bytes</a>.as_ptr(),
-                <a class="self" href="#788">self</a>.<a href="#128">as_vec_mut</a>().as_mut_ptr().add(<a href="#788">at</a>),
-                <a href="#789">bytes</a>.len(),
+                bytes.as_ptr(),
+                <span class="self">self</span>.as_vec_mut().as_mut_ptr().add(at),
+                bytes.len(),
             );
-            <a class="self" href="#788">self</a>.<a href="#128">as_vec_mut</a>().set_len(<a href="#790">len</a> + <a href="#789">bytes</a>.len());
+            <span class="self">self</span>.as_vec_mut().set_len(len + bytes.len());
         }
     }
 
@@ -1944,10 +1944,10 @@
     </span><span class="attr">#[inline]
     </span><span class="kw">fn </span>replace_range&lt;R, B&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, range: R, replace_with: B)
     <span class="kw">where
-        </span>R: ops::RangeBounds&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;,
-        B: AsRef&lt;[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;,
+        </span>R: ops::RangeBounds&lt;usize&gt;,
+        B: AsRef&lt;[u8]&gt;,
     {
-        <a class="self" href="#840">self</a>.<a href="#128">as_vec_mut</a>().splice(<a href="#840">range</a>, <a href="#840">replace_with</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>().iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">cloned</a>());
+        <span class="self">self</span>.as_vec_mut().splice(range, replace_with.as_ref().iter().cloned());
     }
 
     <span class="doccomment">/// Creates a draining iterator that removes the specified range in this
@@ -1982,9 +1982,9 @@
     </span><span class="attr">#[inline]
     </span><span class="kw">fn </span>drain_bytes&lt;R&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, range: R) -&gt; DrainBytes&lt;<span class="lifetime">&#39;_</span>&gt;
     <span class="kw">where
-        </span>R: ops::RangeBounds&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;,
+        </span>R: ops::RangeBounds&lt;usize&gt;,
     {
-        <a href="#908">DrainBytes</a> { it: <a class="self" href="#878">self</a>.<a href="#128">as_vec_mut</a>().drain(<a href="#878">range</a>) }
+        DrainBytes { it: <span class="self">self</span>.as_vec_mut().drain(range) }
     }
 }
 
@@ -2011,31 +2011,31 @@
 /// ```
 </span><span class="attr">#[derive(Debug)]
 </span><span class="kw">pub struct </span>DrainBytes&lt;<span class="lifetime">&#39;a</span>&gt; {
-    it: vec::Drain&lt;<span class="lifetime">&#39;a</span>, <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;,
+    it: vec::Drain&lt;<span class="lifetime">&#39;a</span>, u8&gt;,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/marker/trait.FusedIterator.html">iter::FusedIterator</a> <span class="kw">for </span>DrainBytes&lt;<span class="lifetime">&#39;a</span>&gt; {}
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; iter::FusedIterator <span class="kw">for </span>DrainBytes&lt;<span class="lifetime">&#39;a</span>&gt; {}
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a> <span class="kw">for </span>DrainBytes&lt;<span class="lifetime">&#39;a</span>&gt; {
-    <span class="kw">type </span>Item = <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>;
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; Iterator <span class="kw">for </span>DrainBytes&lt;<span class="lifetime">&#39;a</span>&gt; {
+    <span class="kw">type </span>Item = u8;
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt; {
-        <a class="self" href="#918">self</a>.it.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>()
+    </span><span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;u8&gt; {
+        <span class="self">self</span>.it.next()
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/double_ended/trait.DoubleEndedIterator.html">DoubleEndedIterator</a> <span class="kw">for </span>DrainBytes&lt;<span class="lifetime">&#39;a</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; DoubleEndedIterator <span class="kw">for </span>DrainBytes&lt;<span class="lifetime">&#39;a</span>&gt; {
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>next_back(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt; {
-        <a class="self" href="#925">self</a>.it.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/double_ended/trait.DoubleEndedIterator.html">next_back</a>()
+    </span><span class="kw">fn </span>next_back(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;u8&gt; {
+        <span class="self">self</span>.it.next_back()
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/exact_size/trait.ExactSizeIterator.html">ExactSizeIterator</a> <span class="kw">for </span>DrainBytes&lt;<span class="lifetime">&#39;a</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; ExactSizeIterator <span class="kw">for </span>DrainBytes&lt;<span class="lifetime">&#39;a</span>&gt; {
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="self" href="#932">self</a>.it.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/exact_size/trait.ExactSizeIterator.html">len</a>()
+    </span><span class="kw">fn </span>len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+        <span class="self">self</span>.it.len()
     }
 }
 
@@ -2064,11 +2064,11 @@
 /// ```
 </span><span class="attr">#[derive(Debug, Eq, PartialEq)]
 </span><span class="kw">pub struct </span>FromUtf8Error {
-    original: Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;,
-    err: <a href="utf8.rs.html#410">Utf8Error</a>,
+    original: Vec&lt;u8&gt;,
+    err: Utf8Error,
 }
 
-<span class="kw">impl </span><a href="#961">FromUtf8Error</a> {
+<span class="kw">impl </span>FromUtf8Error {
     <span class="doccomment">/// Return the original bytes as a slice that failed to convert to a
     /// `String`.
     ///
@@ -2086,8 +2086,8 @@
     /// assert_eq!(err.as_bytes(), B(b&quot;foo\xFFbar&quot;));
     /// ```
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>as_bytes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>] {
-        <span class="kw-2">&amp;</span><a class="self" href="#984">self</a>.original
+    </span><span class="kw">pub fn </span>as_bytes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[u8] {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.original
     }
 
     <span class="doccomment">/// Consume this error and return the original byte string that failed to
@@ -2108,8 +2108,8 @@
     /// assert_eq!(original, B(b&quot;foo\xFFbar&quot;));
     /// ```
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>into_vec(<span class="self">self</span>) -&gt; Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt; {
-        <a class="self" href="#1006">self</a>.original
+    </span><span class="kw">pub fn </span>into_vec(<span class="self">self</span>) -&gt; Vec&lt;u8&gt; {
+        <span class="self">self</span>.original
     }
 
     <span class="doccomment">/// Return the underlying UTF-8 error that occurred. This error provides
@@ -2129,22 +2129,22 @@
     /// assert_eq!(err.utf8_error().error_len(), Some(1));
     /// ```
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>utf8_error(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="utf8.rs.html#410">Utf8Error</a> {
-        <span class="kw-2">&amp;</span><a class="self" href="#1027">self</a>.err
+    </span><span class="kw">pub fn </span>utf8_error(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Utf8Error {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.err
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">error::Error</a> <span class="kw">for </span><a href="#961">FromUtf8Error</a> {
+<span class="kw">impl </span>error::Error <span class="kw">for </span>FromUtf8Error {
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>description(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> {
+    </span><span class="kw">fn </span>description(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>str {
         <span class="string">&quot;invalid UTF-8 vector&quot;
     </span>}
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for </span><a href="#961">FromUtf8Error</a> {
+<span class="kw">impl </span>fmt::Display <span class="kw">for </span>FromUtf8Error {
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#1041">f</a>, <span class="string">&quot;{}&quot;</span>, <span class="self">self</span>.err)
+    </span><span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        <span class="macro">write!</span>(f, <span class="string">&quot;{}&quot;</span>, <span class="self">self</span>.err)
     }
 }
 
@@ -2209,4 +2209,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="bstr" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="bstr" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

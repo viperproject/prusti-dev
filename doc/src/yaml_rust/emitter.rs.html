@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/yaml-rust-0.4.5/src/emitter.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>emitter.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../yaml_rust/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/yaml-rust-0.4.5/src/emitter.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>emitter.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../yaml_rust/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -633,50 +633,50 @@
 <a href="#633" id="633">633</a>
 <a href="#634" id="634">634</a>
 <a href="#635" id="635">635</a>
-</pre><pre class="rust"><code><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/convert/trait.From.html">std::convert::From</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">std::error::Error</a>;
-<span class="kw">use </span>std::fmt::{<a class="self" href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">self</a>, <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">Display</a>};
-<span class="kw">use </span><span class="kw">crate</span>::yaml::{<a href="yaml.rs.html#56">Hash</a>, <a href="yaml.rs.html#29">Yaml</a>};
+</pre><pre class="rust"><code><span class="kw">use </span>std::convert::From;
+<span class="kw">use </span>std::error::Error;
+<span class="kw">use </span>std::fmt::{<span class="self">self</span>, Display};
+<span class="kw">use </span><span class="kw">crate</span>::yaml::{Hash, Yaml};
 
 <span class="attr">#[derive(Copy, Clone, Debug)]
 </span><span class="kw">pub enum </span>EmitError {
-    FmtError(<a href="https://doc.rust-lang.org/nightly/core/fmt/struct.Error.html">fmt::Error</a>),
+    FmtError(fmt::Error),
     BadHashmapKey,
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">Error</a> <span class="kw">for </span><a href="#7">EmitError</a> {
-    <span class="kw">fn </span>cause(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="kw">dyn </span><a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">Error</a>&gt; {
+<span class="kw">impl </span>Error <span class="kw">for </span>EmitError {
+    <span class="kw">fn </span>cause(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="kw">dyn </span>Error&gt; {
         <span class="prelude-val">None
     </span>}
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">Display</a> <span class="kw">for </span><a href="#7">EmitError</a> {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, formatter: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="#19">self</a> </span>{
-            <a href="#8">EmitError::FmtError</a>(<span class="kw-2">ref </span>err) =&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">Display::fmt</a>(<a href="#21">err</a>, <a href="#19">formatter</a>),
-            <a href="#9">EmitError::BadHashmapKey</a> =&gt; <a href="#19">formatter</a>.write_str(<span class="string">&quot;bad hashmap key&quot;</span>),
+<span class="kw">impl </span>Display <span class="kw">for </span>EmitError {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, formatter: <span class="kw-2">&amp;mut </span>fmt::Formatter) -&gt; fmt::Result {
+        <span class="kw">match </span><span class="kw-2">*</span><span class="self">self </span>{
+            EmitError::FmtError(<span class="kw-2">ref </span>err) =&gt; Display::fmt(err, formatter),
+            EmitError::BadHashmapKey =&gt; formatter.write_str(<span class="string">&quot;bad hashmap key&quot;</span>),
         }
     }
 }
 
-<span class="kw">impl </span>From&lt;<a href="https://doc.rust-lang.org/nightly/core/fmt/struct.Error.html">fmt::Error</a>&gt; <span class="kw">for </span><a href="#7">EmitError</a> {
-    <span class="kw">fn </span>from(f: <a href="https://doc.rust-lang.org/nightly/core/fmt/struct.Error.html">fmt::Error</a>) -&gt; <span class="self">Self </span>{
-        <a href="#8">EmitError::FmtError</a>(<a href="#28">f</a>)
+<span class="kw">impl </span>From&lt;fmt::Error&gt; <span class="kw">for </span>EmitError {
+    <span class="kw">fn </span>from(f: fmt::Error) -&gt; <span class="self">Self </span>{
+        EmitError::FmtError(f)
     }
 }
 
 <span class="kw">pub struct </span>YamlEmitter&lt;<span class="lifetime">&#39;a</span>&gt; {
-    writer: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span><span class="kw">dyn </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Write.html">fmt::Write</a>,
-    best_indent: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-    compact: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
+    writer: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span><span class="kw">dyn </span>fmt::Write,
+    best_indent: usize,
+    compact: bool,
 
-    level: <a href="https://doc.rust-lang.org/nightly/std/primitive.isize.html">isize</a>,
+    level: isize,
 }
 
-<span class="kw">pub type </span>EmitResult = <span class="prelude-ty">Result</span>&lt;(), <a href="#7">EmitError</a>&gt;;
+<span class="kw">pub type </span>EmitResult = <span class="prelude-ty">Result</span>&lt;(), EmitError&gt;;
 
 <span class="comment">// from serialize::json
-</span><span class="kw">fn </span>escape_str(wr: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Write.html">fmt::Write</a>, v: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="https://doc.rust-lang.org/nightly/core/fmt/struct.Error.html">fmt::Error</a>&gt; {
+</span><span class="kw">fn </span>escape_str(wr: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>fmt::Write, v: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;(), fmt::Error&gt; {
     wr.write_str(<span class="string">&quot;\&quot;&quot;</span>)<span class="question-mark">?</span>;
 
     <span class="kw">let </span><span class="kw-2">mut </span>start = <span class="number">0</span>;
@@ -739,9 +739,9 @@
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; YamlEmitter&lt;<span class="lifetime">&#39;a</span>&gt; {
-    <span class="kw">pub fn </span>new(writer: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span><span class="kw">dyn </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Write.html">fmt::Write</a>) -&gt; <a href="#33">YamlEmitter</a> {
-        <a href="#33">YamlEmitter</a> {
-            <a href="#107">writer</a>,
+    <span class="kw">pub fn </span>new(writer: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span><span class="kw">dyn </span>fmt::Write) -&gt; YamlEmitter {
+        YamlEmitter {
+            writer,
             best_indent: <span class="number">2</span>,
             compact: <span class="bool-val">true</span>,
             level: -<span class="number">1</span>,
@@ -756,23 +756,23 @@
     /// In this form, blocks cannot have any properties (such as anchors
     /// or tags), which should be OK, because this emitter doesn&#39;t
     /// (currently) emit those anyways.
-    </span><span class="kw">pub fn </span>compact(<span class="kw-2">&amp;mut </span><span class="self">self</span>, compact: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) {
-        <a class="self" href="#124">self</a>.compact = <a href="#124">compact</a>;
+    </span><span class="kw">pub fn </span>compact(<span class="kw-2">&amp;mut </span><span class="self">self</span>, compact: bool) {
+        <span class="self">self</span>.compact = compact;
     }
 
     <span class="doccomment">/// Determine if this emitter is using &#39;compact inline notation&#39;.
-    </span><span class="kw">pub fn </span>is_compact(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#129">self</a>.compact
+    </span><span class="kw">pub fn </span>is_compact(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.compact
     }
 
-    <span class="kw">pub fn </span>dump(<span class="kw-2">&amp;mut </span><span class="self">self</span>, doc: <span class="kw-2">&amp;</span><a href="yaml.rs.html#29">Yaml</a>) -&gt; <a href="#41">EmitResult</a> {
+    <span class="kw">pub fn </span>dump(<span class="kw-2">&amp;mut </span><span class="self">self</span>, doc: <span class="kw-2">&amp;</span>Yaml) -&gt; EmitResult {
         <span class="comment">// write DocumentStart
         </span><span class="macro">writeln!</span>(<span class="self">self</span>.writer, <span class="string">&quot;---&quot;</span>)<span class="question-mark">?</span>;
-        <a class="self" href="#133">self</a>.level = -<span class="number">1</span>;
-        <a class="self" href="#133">self</a>.<a href="#152">emit_node</a>(<a href="#133">doc</a>)
+        <span class="self">self</span>.level = -<span class="number">1</span>;
+        <span class="self">self</span>.emit_node(doc)
     }
 
-    <span class="kw">fn </span>write_indent(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <a href="#41">EmitResult</a> {
+    <span class="kw">fn </span>write_indent(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; EmitResult {
         <span class="kw">if </span><span class="self">self</span>.level &lt;= <span class="number">0 </span>{
             <span class="kw">return </span><span class="prelude-val">Ok</span>(());
         }
@@ -784,11 +784,11 @@
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="kw">fn </span>emit_node(<span class="kw-2">&amp;mut </span><span class="self">self</span>, node: <span class="kw-2">&amp;</span><a href="yaml.rs.html#29">Yaml</a>) -&gt; <a href="#41">EmitResult</a> {
-        <span class="kw">match </span><span class="kw-2">*</span><a href="#152">node</a> {
-            <a href="yaml.rs.html#40">Yaml::Array</a>(<span class="kw-2">ref </span>v) =&gt; <a class="self" href="#152">self</a>.<a href="#189">emit_array</a>(<a href="#154">v</a>),
-            <a href="yaml.rs.html#44">Yaml::Hash</a>(<span class="kw-2">ref </span>h) =&gt; <a class="self" href="#152">self</a>.<a href="#207">emit_hash</a>(<a href="#155">h</a>),
-            <a href="yaml.rs.html#36">Yaml::String</a>(<span class="kw-2">ref </span>v) =&gt; {
+    <span class="kw">fn </span>emit_node(<span class="kw-2">&amp;mut </span><span class="self">self</span>, node: <span class="kw-2">&amp;</span>Yaml) -&gt; EmitResult {
+        <span class="kw">match </span><span class="kw-2">*</span>node {
+            Yaml::Array(<span class="kw-2">ref </span>v) =&gt; <span class="self">self</span>.emit_array(v),
+            Yaml::Hash(<span class="kw-2">ref </span>h) =&gt; <span class="self">self</span>.emit_hash(h),
+            Yaml::String(<span class="kw-2">ref </span>v) =&gt; {
                 <span class="kw">if </span>need_quotes(v) {
                     escape_str(<span class="self">self</span>.writer, v)<span class="question-mark">?</span>;
                 } <span class="kw">else </span>{
@@ -796,7 +796,7 @@
                 }
                 <span class="prelude-val">Ok</span>(())
             }
-            <a href="yaml.rs.html#38">Yaml::Boolean</a>(v) =&gt; {
+            Yaml::Boolean(v) =&gt; {
                 <span class="kw">if </span>v {
                     <span class="self">self</span>.writer.write_str(<span class="string">&quot;true&quot;</span>)<span class="question-mark">?</span>;
                 } <span class="kw">else </span>{
@@ -804,15 +804,15 @@
                 }
                 <span class="prelude-val">Ok</span>(())
             }
-            <a href="yaml.rs.html#34">Yaml::Integer</a>(v) =&gt; {
+            Yaml::Integer(v) =&gt; {
                 <span class="macro">write!</span>(<span class="self">self</span>.writer, <span class="string">&quot;{}&quot;</span>, v)<span class="question-mark">?</span>;
                 <span class="prelude-val">Ok</span>(())
             }
-            <a href="yaml.rs.html#32">Yaml::Real</a>(<span class="kw-2">ref </span>v) =&gt; {
+            Yaml::Real(<span class="kw-2">ref </span>v) =&gt; {
                 <span class="macro">write!</span>(<span class="self">self</span>.writer, <span class="string">&quot;{}&quot;</span>, v)<span class="question-mark">?</span>;
                 <span class="prelude-val">Ok</span>(())
             }
-            <a href="yaml.rs.html#48">Yaml::Null</a> | <a href="yaml.rs.html#52">Yaml::BadValue</a> =&gt; {
+            Yaml::Null | Yaml::BadValue =&gt; {
                 <span class="macro">write!</span>(<span class="self">self</span>.writer, <span class="string">&quot;~&quot;</span>)<span class="question-mark">?</span>;
                 <span class="prelude-val">Ok</span>(())
             }
@@ -821,11 +821,11 @@
         }
     }
 
-    <span class="kw">fn </span>emit_array(<span class="kw-2">&amp;mut </span><span class="self">self</span>, v: <span class="kw-2">&amp;</span>[<a href="yaml.rs.html#29">Yaml</a>]) -&gt; <a href="#41">EmitResult</a> {
+    <span class="kw">fn </span>emit_array(<span class="kw-2">&amp;mut </span><span class="self">self</span>, v: <span class="kw-2">&amp;</span>[Yaml]) -&gt; EmitResult {
         <span class="kw">if </span>v.is_empty() {
             <span class="macro">write!</span>(<span class="self">self</span>.writer, <span class="string">&quot;[]&quot;</span>)<span class="question-mark">?</span>;
         } <span class="kw">else </span>{
-            <a class="self" href="#189">self</a>.level += <span class="number">1</span>;
+            <span class="self">self</span>.level += <span class="number">1</span>;
             <span class="kw">for </span>(cnt, x) <span class="kw">in </span>v.iter().enumerate() {
                 <span class="kw">if </span>cnt &gt; <span class="number">0 </span>{
                     <span class="macro">writeln!</span>(<span class="self">self</span>.writer)<span class="question-mark">?</span>;
@@ -834,16 +834,16 @@
                 <span class="macro">write!</span>(<span class="self">self</span>.writer, <span class="string">&quot;-&quot;</span>)<span class="question-mark">?</span>;
                 <span class="self">self</span>.emit_val(<span class="bool-val">true</span>, x)<span class="question-mark">?</span>;
             }
-            <a class="self" href="#189">self</a>.level -= <span class="number">1</span>;
+            <span class="self">self</span>.level -= <span class="number">1</span>;
         }
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="kw">fn </span>emit_hash(<span class="kw-2">&amp;mut </span><span class="self">self</span>, h: <span class="kw-2">&amp;</span><a href="yaml.rs.html#56">Hash</a>) -&gt; <a href="#41">EmitResult</a> {
+    <span class="kw">fn </span>emit_hash(<span class="kw-2">&amp;mut </span><span class="self">self</span>, h: <span class="kw-2">&amp;</span>Hash) -&gt; EmitResult {
         <span class="kw">if </span>h.is_empty() {
             <span class="self">self</span>.writer.write_str(<span class="string">&quot;{}&quot;</span>)<span class="question-mark">?</span>;
         } <span class="kw">else </span>{
-            <a class="self" href="#207">self</a>.level += <span class="number">1</span>;
+            <span class="self">self</span>.level += <span class="number">1</span>;
             <span class="kw">for </span>(cnt, (k, v)) <span class="kw">in </span>h.iter().enumerate() {
                 <span class="kw">let </span>complex_key = <span class="kw">match </span><span class="kw-2">*</span>k {
                     Yaml::Hash(<span class="kw">_</span>) | Yaml::Array(<span class="kw">_</span>) =&gt; <span class="bool-val">true</span>,
@@ -866,7 +866,7 @@
                     <span class="self">self</span>.emit_val(<span class="bool-val">false</span>, v)<span class="question-mark">?</span>;
                 }
             }
-            <a class="self" href="#207">self</a>.level -= <span class="number">1</span>;
+            <span class="self">self</span>.level -= <span class="number">1</span>;
         }
         <span class="prelude-val">Ok</span>(())
     }
@@ -875,33 +875,33 @@
     /// following a &quot;:&quot; or &quot;-&quot;, either after a space, or on a new line.
     /// If `inline` is true, then the preceding characters are distinct
     /// and short enough to respect the compact flag.
-    </span><span class="kw">fn </span>emit_val(<span class="kw-2">&amp;mut </span><span class="self">self</span>, inline: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>, val: <span class="kw-2">&amp;</span><a href="yaml.rs.html#29">Yaml</a>) -&gt; <a href="#41">EmitResult</a> {
-        <span class="kw">match </span><span class="kw-2">*</span><a href="#243">val</a> {
-            <a href="yaml.rs.html#40">Yaml::Array</a>(<span class="kw-2">ref </span>v) =&gt; {
+    </span><span class="kw">fn </span>emit_val(<span class="kw-2">&amp;mut </span><span class="self">self</span>, inline: bool, val: <span class="kw-2">&amp;</span>Yaml) -&gt; EmitResult {
+        <span class="kw">match </span><span class="kw-2">*</span>val {
+            Yaml::Array(<span class="kw-2">ref </span>v) =&gt; {
                 <span class="kw">if </span>(inline &amp;&amp; <span class="self">self</span>.compact) || v.is_empty() {
                     <span class="macro">write!</span>(<span class="self">self</span>.writer, <span class="string">&quot; &quot;</span>)<span class="question-mark">?</span>;
                 } <span class="kw">else </span>{
                     <span class="macro">writeln!</span>(<span class="self">self</span>.writer)<span class="question-mark">?</span>;
-                    <a class="self" href="#243">self</a>.level += <span class="number">1</span>;
+                    <span class="self">self</span>.level += <span class="number">1</span>;
                     <span class="self">self</span>.write_indent()<span class="question-mark">?</span>;
-                    <a class="self" href="#243">self</a>.level -= <span class="number">1</span>;
+                    <span class="self">self</span>.level -= <span class="number">1</span>;
                 }
-                <a class="self" href="#243">self</a>.<a href="#189">emit_array</a>(<a href="#245">v</a>)
+                <span class="self">self</span>.emit_array(v)
             }
-            <a href="yaml.rs.html#44">Yaml::Hash</a>(<span class="kw-2">ref </span>h) =&gt; {
+            Yaml::Hash(<span class="kw-2">ref </span>h) =&gt; {
                 <span class="kw">if </span>(inline &amp;&amp; <span class="self">self</span>.compact) || h.is_empty() {
                     <span class="macro">write!</span>(<span class="self">self</span>.writer, <span class="string">&quot; &quot;</span>)<span class="question-mark">?</span>;
                 } <span class="kw">else </span>{
                     <span class="macro">writeln!</span>(<span class="self">self</span>.writer)<span class="question-mark">?</span>;
-                    <a class="self" href="#243">self</a>.level += <span class="number">1</span>;
+                    <span class="self">self</span>.level += <span class="number">1</span>;
                     <span class="self">self</span>.write_indent()<span class="question-mark">?</span>;
-                    <a class="self" href="#243">self</a>.level -= <span class="number">1</span>;
+                    <span class="self">self</span>.level -= <span class="number">1</span>;
                 }
-                <a class="self" href="#243">self</a>.<a href="#207">emit_hash</a>(<a href="#256">h</a>)
+                <span class="self">self</span>.emit_hash(h)
             }
             <span class="kw">_ </span>=&gt; {
                 <span class="macro">write!</span>(<span class="self">self</span>.writer, <span class="string">&quot; &quot;</span>)<span class="question-mark">?</span>;
-                <a class="self" href="#243">self</a>.<a href="#152">emit_node</a>(<a href="#243">val</a>)
+                <span class="self">self</span>.emit_node(val)
             }
         }
     }
@@ -921,18 +921,18 @@
 /// * When the string is null or ~ (otherwise, it would be considered as a null value);
 /// * When the string looks like a number, such as integers (e.g. 2, 14, etc.), floats (e.g. 2.6, 14.9) and exponential numbers (e.g. 12e7, etc.) (otherwise, it would be treated as a numeric value);
 /// * When the string looks like a date (e.g. 2014-12-31) (otherwise it would be automatically converted into a Unix timestamp).
-</span><span class="kw">fn </span>need_quotes(string: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-    <span class="kw">fn </span>need_quotes_spaces(string: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a href="#290">string</a>.starts_with(<span class="string">&#39; &#39;</span>) || <a href="#290">string</a>.ends_with(<span class="string">&#39; &#39;</span>)
+</span><span class="kw">fn </span>need_quotes(string: <span class="kw-2">&amp;</span>str) -&gt; bool {
+    <span class="kw">fn </span>need_quotes_spaces(string: <span class="kw-2">&amp;</span>str) -&gt; bool {
+        string.starts_with(<span class="string">&#39; &#39;</span>) || string.ends_with(<span class="string">&#39; &#39;</span>)
     }
 
-    <a href="#289">string</a> == <span class="string">&quot;&quot;
-        </span>|| <a href="#290">need_quotes_spaces</a>(<a href="#289">string</a>)
-        || <a href="#289">string</a>.starts_with(|character: <a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>| <span class="kw">match </span><a href="#296">character</a> {
+    string == <span class="string">&quot;&quot;
+        </span>|| need_quotes_spaces(string)
+        || string.starts_with(|character: char| <span class="kw">match </span>character {
             <span class="string">&#39;&amp;&#39; </span>| <span class="string">&#39;*&#39; </span>| <span class="string">&#39;?&#39; </span>| <span class="string">&#39;|&#39; </span>| <span class="string">&#39;-&#39; </span>| <span class="string">&#39;&lt;&#39; </span>| <span class="string">&#39;&gt;&#39; </span>| <span class="string">&#39;=&#39; </span>| <span class="string">&#39;!&#39; </span>| <span class="string">&#39;%&#39; </span>| <span class="string">&#39;@&#39; </span>=&gt; <span class="bool-val">true</span>,
             <span class="kw">_ </span>=&gt; <span class="bool-val">false</span>,
         })
-        || <a href="#289">string</a>.contains(|character: <a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>| <span class="kw">match </span><a href="#300">character</a> {
+        || string.contains(|character: char| <span class="kw">match </span>character {
             <span class="string">&#39;:&#39;
             </span>| <span class="string">&#39;{&#39;
             </span>| <span class="string">&#39;}&#39;
@@ -962,11 +962,11 @@
             <span class="comment">// http://yaml.org/type/null.html
             </span><span class="string">&quot;null&quot;</span>, <span class="string">&quot;Null&quot;</span>, <span class="string">&quot;NULL&quot;</span>, <span class="string">&quot;~&quot;</span>,
         ]
-        .contains(<span class="kw-2">&amp;</span><a href="#289">string</a>)
-        || <a href="#289">string</a>.starts_with(<span class="string">&#39;.&#39;</span>)
-        || <a href="#289">string</a>.starts_with(<span class="string">&quot;0x&quot;</span>)
-        || <a href="#289">string</a>.parse::&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>&gt;().is_ok()
-        || <a href="#289">string</a>.parse::&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.f64.html">f64</a>&gt;().is_ok()
+        .contains(<span class="kw-2">&amp;</span>string)
+        || string.starts_with(<span class="string">&#39;.&#39;</span>)
+        || string.starts_with(<span class="string">&quot;0x&quot;</span>)
+        || string.parse::&lt;i64&gt;().is_ok()
+        || string.parse::&lt;f64&gt;().is_ok()
 }
 
 <span class="attr">#[cfg(test)]
@@ -1269,4 +1269,4 @@ a:
 
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="yaml_rust" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="yaml_rust" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

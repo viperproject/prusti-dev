@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `vir/src/converter/polymorphic_to_legacy.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>polymorphic_to_legacy.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../vir/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `vir/src/converter/polymorphic_to_legacy.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>polymorphic_to_legacy.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../vir/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -853,860 +853,932 @@
 <a href="#853" id="853">853</a>
 <a href="#854" id="854">854</a>
 <a href="#855" id="855">855</a>
-</pre><pre class="rust"><code><span class="kw">use </span><span class="kw">super</span>::<span class="kw">super</span>::{<a href="../lib.rs.html#27">legacy</a>, <a href="../lib.rs.html#29">polymorphic</a>};
-<span class="kw">use </span><a href="../common/identifier.rs.html#1"><span class="kw">crate</span>::common::identifier::WithIdentifier</a>;
-<span class="kw">use </span>std::{<a href="https://doc.rust-lang.org/nightly/std/collections/hash/map/struct.HashMap.html">collections::HashMap</a>, <a href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">fmt</a>};
-<span class="kw">use </span><a href="../../../uuid/struct.Uuid.html">uuid::Uuid</a>;
+<a href="#856" id="856">856</a>
+<a href="#857" id="857">857</a>
+<a href="#858" id="858">858</a>
+<a href="#859" id="859">859</a>
+<a href="#860" id="860">860</a>
+<a href="#861" id="861">861</a>
+<a href="#862" id="862">862</a>
+<a href="#863" id="863">863</a>
+<a href="#864" id="864">864</a>
+<a href="#865" id="865">865</a>
+<a href="#866" id="866">866</a>
+<a href="#867" id="867">867</a>
+<a href="#868" id="868">868</a>
+<a href="#869" id="869">869</a>
+<a href="#870" id="870">870</a>
+<a href="#871" id="871">871</a>
+<a href="#872" id="872">872</a>
+<a href="#873" id="873">873</a>
+<a href="#874" id="874">874</a>
+<a href="#875" id="875">875</a>
+<a href="#876" id="876">876</a>
+<a href="#877" id="877">877</a>
+<a href="#878" id="878">878</a>
+<a href="#879" id="879">879</a>
+<a href="#880" id="880">880</a>
+<a href="#881" id="881">881</a>
+<a href="#882" id="882">882</a>
+<a href="#883" id="883">883</a>
+<a href="#884" id="884">884</a>
+<a href="#885" id="885">885</a>
+<a href="#886" id="886">886</a>
+<a href="#887" id="887">887</a>
+<a href="#888" id="888">888</a>
+<a href="#889" id="889">889</a>
+<a href="#890" id="890">890</a>
+<a href="#891" id="891">891</a>
+</pre><pre class="rust"><code><span class="kw">use </span><span class="kw">super</span>::<span class="kw">super</span>::{legacy, polymorphic};
+<span class="kw">use </span><span class="kw">crate</span>::common::identifier::WithIdentifier;
+<span class="kw">use </span>std::{collections::HashMap, fmt};
+<span class="kw">use </span>uuid::Uuid;
 
 <span class="comment">// bodyless_method
-</span><span class="kw">impl </span>From&lt;<a href="../up/gen/polymorphic/ast/bodyless_method.rs.html#5">polymorphic::BodylessMethod</a>&gt; <span class="kw">for </span><a href="../legacy/ast/bodyless_method.rs.html#11">legacy::BodylessMethod</a> {
-    <span class="kw">fn </span>from(bodyless_method: <a href="../up/gen/polymorphic/ast/bodyless_method.rs.html#5">polymorphic::BodylessMethod</a>) -&gt; <a href="../legacy/ast/bodyless_method.rs.html#11">legacy::BodylessMethod</a> {
-        <a href="../legacy/ast/bodyless_method.rs.html#11">legacy::BodylessMethod</a> {
-            name: <a href="#8">bodyless_method</a>.name,
-            formal_args: <a href="#8">bodyless_method</a>
+</span><span class="kw">impl </span>From&lt;polymorphic::BodylessMethod&gt; <span class="kw">for </span>legacy::BodylessMethod {
+    <span class="kw">fn </span>from(bodyless_method: polymorphic::BodylessMethod) -&gt; legacy::BodylessMethod {
+        legacy::BodylessMethod {
+            name: bodyless_method.name,
+            formal_args: bodyless_method
                 .formal_args
-                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
-                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|formal_arg| <a href="#14">formal_arg</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
-                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>(),
-            formal_returns: <a href="#8">bodyless_method</a>
+                .into_iter()
+                .map(|formal_arg| formal_arg.into())
+                .collect(),
+            formal_returns: bodyless_method
                 .formal_returns
-                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
-                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|formal_return| <a href="#19">formal_return</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
-                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>(),
-            pres: <a href="#8">bodyless_method</a>
+                .into_iter()
+                .map(|formal_return| formal_return.into())
+                .collect(),
+            pres: bodyless_method
                 .pres
-                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
-                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|formal_return| <a href="#24">formal_return</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
-                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>(),
-            posts: <a href="#8">bodyless_method</a>
+                .into_iter()
+                .map(|formal_return| formal_return.into())
+                .collect(),
+            posts: bodyless_method
                 .posts
-                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
-                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|formal_return| <a href="#29">formal_return</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
-                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>(),
+                .into_iter()
+                .map(|formal_return| formal_return.into())
+                .collect(),
         }
     }
 }
 
 <span class="comment">// common
-</span><span class="kw">impl </span>From&lt;<a href="../up/gen/polymorphic/ast/common.rs.html#42">polymorphic::PermAmountError</a>&gt; <span class="kw">for </span><a href="../legacy/ast/common.rs.html#60">legacy::PermAmountError</a> {
-    <span class="kw">fn </span>from(perm_amount_error: <a href="../up/gen/polymorphic/ast/common.rs.html#42">polymorphic::PermAmountError</a>) -&gt; <a href="../legacy/ast/common.rs.html#60">legacy::PermAmountError</a> {
-        <span class="kw">match </span><a href="#37">perm_amount_error</a> {
-            <a href="../up/gen/polymorphic/ast/common.rs.html#43">polymorphic::PermAmountError::InvalidAdd</a>(perm_amount_1, perm_amount_2) =&gt; {
-                <a href="../legacy/ast/common.rs.html#61">legacy::PermAmountError::InvalidAdd</a>(<a href="#39">perm_amount_1</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(), <a href="#39">perm_amount_2</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
+</span><span class="kw">impl </span>From&lt;polymorphic::PermAmountError&gt; <span class="kw">for </span>legacy::PermAmountError {
+    <span class="kw">fn </span>from(perm_amount_error: polymorphic::PermAmountError) -&gt; legacy::PermAmountError {
+        <span class="kw">match </span>perm_amount_error {
+            polymorphic::PermAmountError::InvalidAdd(perm_amount_1, perm_amount_2) =&gt; {
+                legacy::PermAmountError::InvalidAdd(perm_amount_1.into(), perm_amount_2.into())
             }
-            <a href="../up/gen/polymorphic/ast/common.rs.html#44">polymorphic::PermAmountError::InvalidSub</a>(perm_amount_1, perm_amount_2) =&gt; {
-                <a href="../legacy/ast/common.rs.html#62">legacy::PermAmountError::InvalidSub</a>(<a href="#42">perm_amount_1</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(), <a href="#42">perm_amount_2</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
+            polymorphic::PermAmountError::InvalidSub(perm_amount_1, perm_amount_2) =&gt; {
+                legacy::PermAmountError::InvalidSub(perm_amount_1.into(), perm_amount_2.into())
             }
         }
     }
 }
 
-<span class="kw">impl </span>From&lt;<a href="../up/gen/polymorphic/ast/common.rs.html#48">polymorphic::PermAmount</a>&gt; <span class="kw">for </span><a href="../legacy/ast/common.rs.html#67">legacy::PermAmount</a> {
-    <span class="kw">fn </span>from(perm_amount: <a href="../up/gen/polymorphic/ast/common.rs.html#48">polymorphic::PermAmount</a>) -&gt; <a href="../legacy/ast/common.rs.html#67">legacy::PermAmount</a> {
-        <span class="kw">match </span><a href="#50">perm_amount</a> {
-            <a href="../up/gen/polymorphic/ast/common.rs.html#49">polymorphic::PermAmount::Read</a> =&gt; <a href="../legacy/ast/common.rs.html#68">legacy::PermAmount::Read</a>,
-            <a href="../up/gen/polymorphic/ast/common.rs.html#50">polymorphic::PermAmount::Write</a> =&gt; <a href="../legacy/ast/common.rs.html#69">legacy::PermAmount::Write</a>,
-            <a href="../up/gen/polymorphic/ast/common.rs.html#52">polymorphic::PermAmount::Remaining</a> =&gt; <a href="../legacy/ast/common.rs.html#71">legacy::PermAmount::Remaining</a>,
+<span class="kw">impl </span>From&lt;polymorphic::PermAmount&gt; <span class="kw">for </span>legacy::PermAmount {
+    <span class="kw">fn </span>from(perm_amount: polymorphic::PermAmount) -&gt; legacy::PermAmount {
+        <span class="kw">match </span>perm_amount {
+            polymorphic::PermAmount::Read =&gt; legacy::PermAmount::Read,
+            polymorphic::PermAmount::Write =&gt; legacy::PermAmount::Write,
+            polymorphic::PermAmount::Remaining =&gt; legacy::PermAmount::Remaining,
         }
     }
 }
 
-<span class="kw">impl </span>From&lt;<a href="../up/gen/polymorphic/ast/common.rs.html#113">polymorphic::Float</a>&gt; <span class="kw">for </span><a href="../legacy/ast/common.rs.html#135">legacy::Float</a> {
-    <span class="kw">fn </span>from(float: <a href="../up/gen/polymorphic/ast/common.rs.html#113">polymorphic::Float</a>) -&gt; <a href="../legacy/ast/common.rs.html#135">legacy::Float</a> {
-        <span class="kw">match </span><a href="#60">float</a> {
-            <a href="../up/gen/polymorphic/ast/common.rs.html#114">polymorphic::Float::F32</a> =&gt; <a href="../legacy/ast/common.rs.html#136">legacy::Float::F32</a>,
-            <a href="../up/gen/polymorphic/ast/common.rs.html#115">polymorphic::Float::F64</a> =&gt; <a href="../legacy/ast/common.rs.html#137">legacy::Float::F64</a>,
+<span class="kw">impl </span>From&lt;polymorphic::Float&gt; <span class="kw">for </span>legacy::Float {
+    <span class="kw">fn </span>from(float: polymorphic::Float) -&gt; legacy::Float {
+        <span class="kw">match </span>float {
+            polymorphic::Float::F32 =&gt; legacy::Float::F32,
+            polymorphic::Float::F64 =&gt; legacy::Float::F64,
         }
     }
 }
 
-<span class="kw">impl </span>From&lt;<a href="../up/gen/polymorphic/ast/common.rs.html#129">polymorphic::BitVectorSize</a>&gt; <span class="kw">for </span><a href="../legacy/ast/common.rs.html#143">legacy::BitVectorSize</a> {
-    <span class="kw">fn </span>from(value: <a href="../up/gen/polymorphic/ast/common.rs.html#129">polymorphic::BitVectorSize</a>) -&gt; <a href="../legacy/ast/common.rs.html#143">legacy::BitVectorSize</a> {
-        <span class="kw">match </span><a href="#69">value</a> {
-            <a href="../up/gen/polymorphic/ast/common.rs.html#130">polymorphic::BitVectorSize::BV8</a> =&gt; <a href="../legacy/ast/common.rs.html#144">legacy::BitVectorSize::BV8</a>,
-            <a href="../up/gen/polymorphic/ast/common.rs.html#131">polymorphic::BitVectorSize::BV16</a> =&gt; <a href="../legacy/ast/common.rs.html#145">legacy::BitVectorSize::BV16</a>,
-            <a href="../up/gen/polymorphic/ast/common.rs.html#132">polymorphic::BitVectorSize::BV32</a> =&gt; <a href="../legacy/ast/common.rs.html#146">legacy::BitVectorSize::BV32</a>,
-            <a href="../up/gen/polymorphic/ast/common.rs.html#133">polymorphic::BitVectorSize::BV64</a> =&gt; <a href="../legacy/ast/common.rs.html#147">legacy::BitVectorSize::BV64</a>,
-            <a href="../up/gen/polymorphic/ast/common.rs.html#134">polymorphic::BitVectorSize::BV128</a> =&gt; <a href="../legacy/ast/common.rs.html#148">legacy::BitVectorSize::BV128</a>,
+<span class="kw">impl </span>From&lt;polymorphic::BitVectorSize&gt; <span class="kw">for </span>legacy::BitVectorSize {
+    <span class="kw">fn </span>from(value: polymorphic::BitVectorSize) -&gt; legacy::BitVectorSize {
+        <span class="kw">match </span>value {
+            polymorphic::BitVectorSize::BV8 =&gt; legacy::BitVectorSize::BV8,
+            polymorphic::BitVectorSize::BV16 =&gt; legacy::BitVectorSize::BV16,
+            polymorphic::BitVectorSize::BV32 =&gt; legacy::BitVectorSize::BV32,
+            polymorphic::BitVectorSize::BV64 =&gt; legacy::BitVectorSize::BV64,
+            polymorphic::BitVectorSize::BV128 =&gt; legacy::BitVectorSize::BV128,
         }
     }
 }
 
-<span class="kw">impl </span>From&lt;<a href="../up/gen/polymorphic/ast/common.rs.html#159">polymorphic::BitVector</a>&gt; <span class="kw">for </span><a href="../legacy/ast/common.rs.html#166">legacy::BitVector</a> {
-    <span class="kw">fn </span>from(value: <a href="../up/gen/polymorphic/ast/common.rs.html#159">polymorphic::BitVector</a>) -&gt; <a href="../legacy/ast/common.rs.html#166">legacy::BitVector</a> {
-        <span class="kw">match </span><a href="#81">value</a> {
-            <a href="../up/gen/polymorphic/ast/common.rs.html#160">polymorphic::BitVector::Signed</a>(value) =&gt; <a href="../legacy/ast/common.rs.html#167">legacy::BitVector::Signed</a>(<a href="#83">value</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
-            <a href="../up/gen/polymorphic/ast/common.rs.html#161">polymorphic::BitVector::Unsigned</a>(value) =&gt; <a href="../legacy/ast/common.rs.html#168">legacy::BitVector::Unsigned</a>(<a href="#84">value</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
+<span class="kw">impl </span>From&lt;polymorphic::BitVector&gt; <span class="kw">for </span>legacy::BitVector {
+    <span class="kw">fn </span>from(value: polymorphic::BitVector) -&gt; legacy::BitVector {
+        <span class="kw">match </span>value {
+            polymorphic::BitVector::Signed(value) =&gt; legacy::BitVector::Signed(value.into()),
+            polymorphic::BitVector::Unsigned(value) =&gt; legacy::BitVector::Unsigned(value.into()),
         }
     }
 }
 
-<span class="kw">impl </span>From&lt;<a href="../up/gen/polymorphic/ast/common.rs.html#174">polymorphic::Type</a>&gt; <span class="kw">for </span><a href="../legacy/ast/common.rs.html#183">legacy::Type</a> {
-    <span class="kw">fn </span>from(typ: <a href="../up/gen/polymorphic/ast/common.rs.html#174">polymorphic::Type</a>) -&gt; <a href="../legacy/ast/common.rs.html#183">legacy::Type</a> {
-        <span class="kw">match </span><a href="#90">typ</a> {
-            <a href="../up/gen/polymorphic/ast/common.rs.html#175">polymorphic::Type::Int</a> =&gt; <a href="../legacy/ast/common.rs.html#184">legacy::Type::Int</a>,
-            <a href="../up/gen/polymorphic/ast/common.rs.html#176">polymorphic::Type::Bool</a> =&gt; <a href="../legacy/ast/common.rs.html#185">legacy::Type::Bool</a>,
-            <a href="../up/gen/polymorphic/ast/common.rs.html#182">polymorphic::Type::Ref</a> =&gt; <a href="../legacy/ast/common.rs.html#191">legacy::Type::Ref</a>,
-            <a href="../up/gen/polymorphic/ast/common.rs.html#177">polymorphic::Type::Float</a>(float) =&gt; <a href="../legacy/ast/common.rs.html#186">legacy::Type::Float</a>(<a href="#95">float</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
-            <a href="../up/gen/polymorphic/ast/common.rs.html#178">polymorphic::Type::BitVector</a>(vector) =&gt; <a href="../legacy/ast/common.rs.html#187">legacy::Type::BitVector</a>(<a href="#96">vector</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
-            <a href="../up/gen/polymorphic/ast/common.rs.html#179">polymorphic::Type::Seq</a>(seq) =&gt; <a href="../legacy/ast/common.rs.html#188">legacy::Type::Seq</a>(Box::new((<span class="kw-2">*</span><a href="#97">seq</a>.typ).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())),
-            <a href="../up/gen/polymorphic/ast/common.rs.html#180">polymorphic::Type::Map</a>(map) =&gt; <a href="../legacy/ast/common.rs.html#189">legacy::Type::Map</a>(
-                Box::new((<span class="kw-2">*</span><a href="#98">map</a>.key_type).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
-                Box::new((<span class="kw-2">*</span><a href="#98">map</a>.val_type).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
+<span class="kw">impl </span>From&lt;polymorphic::Type&gt; <span class="kw">for </span>legacy::Type {
+    <span class="kw">fn </span>from(typ: polymorphic::Type) -&gt; legacy::Type {
+        <span class="kw">match </span>typ {
+            polymorphic::Type::Int =&gt; legacy::Type::Int,
+            polymorphic::Type::Bool =&gt; legacy::Type::Bool,
+            polymorphic::Type::Ref =&gt; legacy::Type::Ref,
+            polymorphic::Type::Float(float) =&gt; legacy::Type::Float(float.into()),
+            polymorphic::Type::BitVector(vector) =&gt; legacy::Type::BitVector(vector.into()),
+            polymorphic::Type::Seq(seq) =&gt; legacy::Type::Seq(Box::new((<span class="kw-2">*</span>seq.typ).into())),
+            polymorphic::Type::Map(map) =&gt; legacy::Type::Map(
+                Box::new((<span class="kw-2">*</span>map.key_type).into()),
+                Box::new((<span class="kw-2">*</span>map.val_type).into()),
             ),
-            <a href="../up/gen/polymorphic/ast/common.rs.html#184">polymorphic::Type::TypedRef</a>(<span class="kw">_</span>) | <a href="../up/gen/polymorphic/ast/common.rs.html#187">polymorphic::Type::TypeVar</a>(<span class="kw">_</span>) =&gt; {
-                <a href="../legacy/ast/common.rs.html#193">legacy::Type::TypedRef</a>(<a href="#90">typ</a>.<a href="../up/gen/polymorphic/ast/common.rs.html#347">encode_as_string</a>())
+            polymorphic::Type::TypedRef(<span class="kw">_</span>) | polymorphic::Type::TypeVar(<span class="kw">_</span>) =&gt; {
+                legacy::Type::TypedRef(typ.encode_as_string())
             }
-            <a href="../up/gen/polymorphic/ast/common.rs.html#185">polymorphic::Type::Domain</a>(<span class="kw">_</span>) =&gt; <a href="../legacy/ast/common.rs.html#194">legacy::Type::Domain</a>(<a href="#90">typ</a>.<a href="../up/gen/polymorphic/ast/common.rs.html#347">encode_as_string</a>()),
-            <a href="../up/gen/polymorphic/ast/common.rs.html#186">polymorphic::Type::Snapshot</a>(<span class="kw">_</span>) =&gt; <a href="../legacy/ast/common.rs.html#195">legacy::Type::Snapshot</a>(<a href="#90">typ</a>.<a href="../up/gen/polymorphic/ast/common.rs.html#347">encode_as_string</a>()),
+            polymorphic::Type::Domain(<span class="kw">_</span>) =&gt; legacy::Type::Domain(typ.encode_as_string()),
+            polymorphic::Type::Snapshot(<span class="kw">_</span>) =&gt; legacy::Type::Snapshot(typ.encode_as_string()),
         }
     }
 }
 
-<span class="kw">impl </span>From&lt;<a href="../up/gen/polymorphic/ast/common.rs.html#604">polymorphic::TypeId</a>&gt; <span class="kw">for </span><a href="../legacy/ast/common.rs.html#199">legacy::TypeId</a> {
-    <span class="kw">fn </span>from(type_id: <a href="../up/gen/polymorphic/ast/common.rs.html#604">polymorphic::TypeId</a>) -&gt; <a href="../legacy/ast/common.rs.html#199">legacy::TypeId</a> {
-        <span class="kw">match </span><a href="#112">type_id</a> {
-            <a href="../up/gen/polymorphic/ast/common.rs.html#605">polymorphic::TypeId::Int</a> =&gt; <a href="../legacy/ast/common.rs.html#200">legacy::TypeId::Int</a>,
-            <a href="../up/gen/polymorphic/ast/common.rs.html#606">polymorphic::TypeId::Bool</a> =&gt; <a href="../legacy/ast/common.rs.html#201">legacy::TypeId::Bool</a>,
-            <a href="../up/gen/polymorphic/ast/common.rs.html#608">polymorphic::TypeId::BitVector</a> =&gt; <a href="../legacy/ast/common.rs.html#203">legacy::TypeId::BitVector</a>,
-            <a href="../up/gen/polymorphic/ast/common.rs.html#607">polymorphic::TypeId::Float</a> =&gt; <a href="../legacy/ast/common.rs.html#202">legacy::TypeId::Float</a>,
-            <a href="../up/gen/polymorphic/ast/common.rs.html#609">polymorphic::TypeId::Ref</a> =&gt; <a href="../legacy/ast/common.rs.html#204">legacy::TypeId::Ref</a>,
-            <a href="../up/gen/polymorphic/ast/common.rs.html#610">polymorphic::TypeId::Seq</a> =&gt; <a href="../legacy/ast/common.rs.html#205">legacy::TypeId::Seq</a>,
-            <a href="../up/gen/polymorphic/ast/common.rs.html#611">polymorphic::TypeId::Map</a> =&gt; <a href="../legacy/ast/common.rs.html#206">legacy::TypeId::Map</a>,
-            <a href="../up/gen/polymorphic/ast/common.rs.html#612">polymorphic::TypeId::Domain</a> =&gt; <a href="../legacy/ast/common.rs.html#207">legacy::TypeId::Domain</a>,
-            <a href="../up/gen/polymorphic/ast/common.rs.html#613">polymorphic::TypeId::Snapshot</a> =&gt; <a href="../legacy/ast/common.rs.html#208">legacy::TypeId::Snapshot</a>,
+<span class="kw">impl </span>From&lt;polymorphic::TypeId&gt; <span class="kw">for </span>legacy::TypeId {
+    <span class="kw">fn </span>from(type_id: polymorphic::TypeId) -&gt; legacy::TypeId {
+        <span class="kw">match </span>type_id {
+            polymorphic::TypeId::Int =&gt; legacy::TypeId::Int,
+            polymorphic::TypeId::Bool =&gt; legacy::TypeId::Bool,
+            polymorphic::TypeId::BitVector =&gt; legacy::TypeId::BitVector,
+            polymorphic::TypeId::Float =&gt; legacy::TypeId::Float,
+            polymorphic::TypeId::Ref =&gt; legacy::TypeId::Ref,
+            polymorphic::TypeId::Seq =&gt; legacy::TypeId::Seq,
+            polymorphic::TypeId::Map =&gt; legacy::TypeId::Map,
+            polymorphic::TypeId::Domain =&gt; legacy::TypeId::Domain,
+            polymorphic::TypeId::Snapshot =&gt; legacy::TypeId::Snapshot,
         }
     }
 }
 
-<span class="kw">impl </span>From&lt;<a href="../up/gen/polymorphic/ast/common.rs.html#616">polymorphic::LocalVar</a>&gt; <span class="kw">for </span><a href="../legacy/ast/common.rs.html#302">legacy::LocalVar</a> {
-    <span class="kw">fn </span>from(type_id: <a href="../up/gen/polymorphic/ast/common.rs.html#616">polymorphic::LocalVar</a>) -&gt; <a href="../legacy/ast/common.rs.html#302">legacy::LocalVar</a> {
-        <a href="../legacy/ast/common.rs.html#302">legacy::LocalVar</a> {
-            name: <a href="#128">type_id</a>.name,
-            typ: <a href="#128">type_id</a>.typ.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
+<span class="kw">impl </span>From&lt;polymorphic::LocalVar&gt; <span class="kw">for </span>legacy::LocalVar {
+    <span class="kw">fn </span>from(type_id: polymorphic::LocalVar) -&gt; legacy::LocalVar {
+        legacy::LocalVar {
+            name: type_id.name,
+            typ: type_id.typ.into(),
         }
     }
 }
 
-<span class="kw">impl </span>From&lt;<a href="../up/gen/polymorphic/ast/common.rs.html#639">polymorphic::Field</a>&gt; <span class="kw">for </span><a href="../legacy/ast/common.rs.html#333">legacy::Field</a> {
-    <span class="kw">fn </span>from(field: <a href="../up/gen/polymorphic/ast/common.rs.html#639">polymorphic::Field</a>) -&gt; <a href="../legacy/ast/common.rs.html#333">legacy::Field</a> {
-        <a href="../legacy/ast/common.rs.html#333">legacy::Field</a> {
-            name: <a href="#137">field</a>.name,
-            typ: <a href="#137">field</a>.typ.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
+<span class="kw">impl </span>From&lt;polymorphic::Field&gt; <span class="kw">for </span>legacy::Field {
+    <span class="kw">fn </span>from(field: polymorphic::Field) -&gt; legacy::Field {
+        legacy::Field {
+            name: field.name,
+            typ: field.typ.into(),
         }
     }
 }
 
 <span class="comment">// domain
-</span><span class="kw">impl </span>From&lt;<a href="../up/gen/polymorphic/ast/domain.rs.html#8">polymorphic::Domain</a>&gt; <span class="kw">for </span><a href="../legacy/ast/domain.rs.html#11">legacy::Domain</a> {
-    <span class="kw">fn </span>from(domain: <a href="../up/gen/polymorphic/ast/domain.rs.html#8">polymorphic::Domain</a>) -&gt; <a href="../legacy/ast/domain.rs.html#11">legacy::Domain</a> {
-        <a href="../legacy/ast/domain.rs.html#11">legacy::Domain</a> {
-            name: <a href="#147">domain</a>.name,
-            functions: <a href="#147">domain</a>
+</span><span class="kw">impl </span>From&lt;polymorphic::Domain&gt; <span class="kw">for </span>legacy::Domain {
+    <span class="kw">fn </span>from(domain: polymorphic::Domain) -&gt; legacy::Domain {
+        legacy::Domain {
+            name: domain.name,
+            functions: domain
                 .functions
-                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
-                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|function| <a href="#153">function</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
-                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>(),
-            axioms: <a href="#147">domain</a>
+                .into_iter()
+                .map(|function| function.into())
+                .collect(),
+            axioms: domain
                 .axioms
-                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
-                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|axiom| <a href="#158">axiom</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
-                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>(),
-            type_vars: <a href="#147">domain</a>
+                .into_iter()
+                .map(|axiom| axiom.into())
+                .collect(),
+            type_vars: domain
                 .type_vars
-                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
-                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|type_var| <a href="#163">type_var</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
-                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>(),
+                .into_iter()
+                .map(|type_var| type_var.into())
+                .collect(),
         }
     }
 }
 
-<span class="kw">impl </span>From&lt;<a href="../up/gen/polymorphic/ast/domain.rs.html#49">polymorphic::DomainFunc</a>&gt; <span class="kw">for </span><a href="../legacy/ast/domain.rs.html#53">legacy::DomainFunc</a> {
-    <span class="kw">fn </span>from(domain_func: <a href="../up/gen/polymorphic/ast/domain.rs.html#49">polymorphic::DomainFunc</a>) -&gt; <a href="../legacy/ast/domain.rs.html#53">legacy::DomainFunc</a> {
-        <a href="../legacy/ast/domain.rs.html#53">legacy::DomainFunc</a> {
-            name: <a href="#170">domain_func</a>.<a href="../common/identifier.rs.html#2">get_identifier</a>(),
-            formal_args: <a href="#170">domain_func</a>
+<span class="kw">impl </span>From&lt;polymorphic::DomainFunc&gt; <span class="kw">for </span>legacy::DomainFunc {
+    <span class="kw">fn </span>from(domain_func: polymorphic::DomainFunc) -&gt; legacy::DomainFunc {
+        legacy::DomainFunc {
+            name: domain_func.get_identifier(),
+            formal_args: domain_func
                 .formal_args
-                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
-                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|formal_arg| <a href="#176">formal_arg</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
-                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>(),
-            return_type: <a href="#170">domain_func</a>.return_type.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
-            unique: <a href="#170">domain_func</a>.unique,
-            domain_name: <a href="#170">domain_func</a>.domain_name,
+                .into_iter()
+                .map(|formal_arg| formal_arg.into())
+                .collect(),
+            return_type: domain_func.return_type.into(),
+            unique: domain_func.unique,
+            domain_name: domain_func.domain_name,
         }
     }
 }
 
-<span class="kw">impl </span>From&lt;<a href="../up/gen/polymorphic/ast/domain.rs.html#127">polymorphic::DomainAxiom</a>&gt; <span class="kw">for </span><a href="../legacy/ast/domain.rs.html#93">legacy::DomainAxiom</a> {
-    <span class="kw">fn </span>from(domain_axiom: <a href="../up/gen/polymorphic/ast/domain.rs.html#127">polymorphic::DomainAxiom</a>) -&gt; <a href="../legacy/ast/domain.rs.html#93">legacy::DomainAxiom</a> {
-        <a href="../legacy/ast/domain.rs.html#93">legacy::DomainAxiom</a> {
-            comment: <a href="#186">domain_axiom</a>.comment,
-            name: <a href="#186">domain_axiom</a>.name,
-            expr: <a href="#186">domain_axiom</a>.expr.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
-            domain_name: <a href="#186">domain_axiom</a>.domain_name,
+<span class="kw">impl </span>From&lt;polymorphic::DomainAxiom&gt; <span class="kw">for </span>legacy::DomainAxiom {
+    <span class="kw">fn </span>from(domain_axiom: polymorphic::DomainAxiom) -&gt; legacy::DomainAxiom {
+        legacy::DomainAxiom {
+            comment: domain_axiom.comment,
+            name: domain_axiom.name,
+            expr: domain_axiom.expr.into(),
+            domain_name: domain_axiom.domain_name,
+        }
+    }
+}
+
+<span class="comment">// backend type
+</span><span class="kw">impl </span>From&lt;polymorphic::BackendType&gt; <span class="kw">for </span>legacy::BackendType {
+    <span class="kw">fn </span>from(domain: polymorphic::BackendType) -&gt; legacy::BackendType {
+        legacy::BackendType {
+            name: domain.name,
+            functions: domain
+                .functions
+                .into_iter()
+                .map(|function| function.into())
+                .collect(),
+            interpretations: domain.interpretations,
+        }
+    }
+}
+
+<span class="kw">impl </span>From&lt;polymorphic::BackendFuncDecl&gt; <span class="kw">for </span>legacy::BackendFuncDecl {
+    <span class="kw">fn </span>from(domain_func: polymorphic::BackendFuncDecl) -&gt; legacy::BackendFuncDecl {
+        legacy::BackendFuncDecl {
+            name: domain_func.get_identifier(),
+            formal_args: domain_func
+                .formal_args
+                .into_iter()
+                .map(|formal_arg| formal_arg.into())
+                .collect(),
+            return_type: domain_func.return_type.into(),
+            domain_name: domain_func.domain_name,
+            interpretation: domain_func.interpretation,
         }
     }
 }
 
 <span class="comment">// expr
-</span><span class="kw">impl </span>From&lt;<a href="../up/gen/polymorphic/ast/expr.rs.html#13">polymorphic::Expr</a>&gt; <span class="kw">for </span><a href="../legacy/ast/expr.rs.html#19">legacy::Expr</a> {
-    <span class="kw">fn </span>from(expr: <a href="../up/gen/polymorphic/ast/expr.rs.html#13">polymorphic::Expr</a>) -&gt; <a href="../legacy/ast/expr.rs.html#19">legacy::Expr</a> {
-        <span class="kw">match </span><a href="#198">expr</a> {
-            <a href="../up/gen/polymorphic/ast/expr.rs.html#15">polymorphic::Expr::Local</a>(local) =&gt; {
-                <a href="../legacy/ast/expr.rs.html#21">legacy::Expr::Local</a>(<a href="#200">local</a>.variable.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(), <a href="#200">local</a>.position.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
+</span><span class="kw">impl </span>From&lt;polymorphic::Expr&gt; <span class="kw">for </span>legacy::Expr {
+    <span class="kw">fn </span>from(expr: polymorphic::Expr) -&gt; legacy::Expr {
+        <span class="kw">match </span>expr {
+            polymorphic::Expr::Local(local) =&gt; {
+                legacy::Expr::Local(local.variable.into(), local.position.into())
             }
-            <a href="../up/gen/polymorphic/ast/expr.rs.html#17">polymorphic::Expr::Variant</a>(variant) =&gt; <a href="../legacy/ast/expr.rs.html#23">legacy::Expr::Variant</a>(
-                Box::new((<span class="kw-2">*</span><a href="#203">variant</a>.base).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
-                <a href="#203">variant</a>.variant_index.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
-                <a href="#203">variant</a>.position.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
+            polymorphic::Expr::Variant(variant) =&gt; legacy::Expr::Variant(
+                Box::new((<span class="kw-2">*</span>variant.base).into()),
+                variant.variant_index.into(),
+                variant.position.into(),
             ),
-            <a href="../up/gen/polymorphic/ast/expr.rs.html#19">polymorphic::Expr::Field</a>(field) =&gt; <a href="../legacy/ast/expr.rs.html#25">legacy::Expr::Field</a>(
-                Box::new((<span class="kw-2">*</span><a href="#208">field</a>.base).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
-                <a href="#208">field</a>.field.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
-                <a href="#208">field</a>.position.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
+            polymorphic::Expr::Field(field) =&gt; legacy::Expr::Field(
+                Box::new((<span class="kw-2">*</span>field.base).into()),
+                field.field.into(),
+                field.position.into(),
             ),
-            <a href="../up/gen/polymorphic/ast/expr.rs.html#21">polymorphic::Expr::AddrOf</a>(addr_of) =&gt; <a href="../legacy/ast/expr.rs.html#27">legacy::Expr::AddrOf</a>(
-                Box::new((<span class="kw-2">*</span><a href="#213">addr_of</a>.base).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
-                <a href="#213">addr_of</a>.addr_type.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
-                <a href="#213">addr_of</a>.position.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
+            polymorphic::Expr::AddrOf(addr_of) =&gt; legacy::Expr::AddrOf(
+                Box::new((<span class="kw-2">*</span>addr_of.base).into()),
+                addr_of.addr_type.into(),
+                addr_of.position.into(),
             ),
-            <a href="../up/gen/polymorphic/ast/expr.rs.html#22">polymorphic::Expr::LabelledOld</a>(labelled_old) =&gt; <a href="../legacy/ast/expr.rs.html#28">legacy::Expr::LabelledOld</a>(
-                <a href="#218">labelled_old</a>.label,
-                Box::new((<span class="kw-2">*</span><a href="#218">labelled_old</a>.base).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
-                <a href="#218">labelled_old</a>.position.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
+            polymorphic::Expr::LabelledOld(labelled_old) =&gt; legacy::Expr::LabelledOld(
+                labelled_old.label,
+                Box::new((<span class="kw-2">*</span>labelled_old.base).into()),
+                labelled_old.position.into(),
             ),
-            <a href="../up/gen/polymorphic/ast/expr.rs.html#23">polymorphic::Expr::Const</a>(const_expr) =&gt; {
-                <a href="../legacy/ast/expr.rs.html#29">legacy::Expr::Const</a>(<a href="#223">const_expr</a>.value.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(), <a href="#223">const_expr</a>.position.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
+            polymorphic::Expr::Const(const_expr) =&gt; {
+                legacy::Expr::Const(const_expr.value.into(), const_expr.position.into())
             }
-            <a href="../up/gen/polymorphic/ast/expr.rs.html#25">polymorphic::Expr::MagicWand</a>(magic_wand) =&gt; <a href="../legacy/ast/expr.rs.html#31">legacy::Expr::MagicWand</a>(
-                Box::new((<span class="kw-2">*</span><a href="#226">magic_wand</a>.left).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
-                Box::new((<span class="kw-2">*</span><a href="#226">magic_wand</a>.right).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
-                <a href="#226">magic_wand</a>.borrow.map(|borrow| <a href="#229">borrow</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
-                <a href="#226">magic_wand</a>.position.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
+            polymorphic::Expr::MagicWand(magic_wand) =&gt; legacy::Expr::MagicWand(
+                Box::new((<span class="kw-2">*</span>magic_wand.left).into()),
+                Box::new((<span class="kw-2">*</span>magic_wand.right).into()),
+                magic_wand.borrow.map(|borrow| borrow.into()),
+                magic_wand.position.into(),
             ),
-            <a href="../up/gen/polymorphic/ast/expr.rs.html#27">polymorphic::Expr::PredicateAccessPredicate</a>(predicate_access_predicate) =&gt; {
-                <a href="../legacy/ast/expr.rs.html#33">legacy::Expr::PredicateAccessPredicate</a>(
-                    <a href="#232">predicate_access_predicate</a>.predicate_type.<a href="../up/gen/polymorphic/ast/common.rs.html#347">encode_as_string</a>(),
-                    Box::new((<span class="kw-2">*</span><a href="#232">predicate_access_predicate</a>.argument).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
-                    <a href="#232">predicate_access_predicate</a>.permission.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
-                    <a href="#232">predicate_access_predicate</a>.position.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
+            polymorphic::Expr::PredicateAccessPredicate(predicate_access_predicate) =&gt; {
+                legacy::Expr::PredicateAccessPredicate(
+                    predicate_access_predicate.predicate_type.encode_as_string(),
+                    Box::new((<span class="kw-2">*</span>predicate_access_predicate.argument).into()),
+                    predicate_access_predicate.permission.into(),
+                    predicate_access_predicate.position.into(),
                 )
             }
-            <a href="../up/gen/polymorphic/ast/expr.rs.html#28">polymorphic::Expr::FieldAccessPredicate</a>(field_access_predicate) =&gt; {
-                <a href="../legacy/ast/expr.rs.html#34">legacy::Expr::FieldAccessPredicate</a>(
-                    Box::new((<span class="kw-2">*</span><a href="#240">field_access_predicate</a>.base).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
-                    <a href="#240">field_access_predicate</a>.permission.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
-                    <a href="#240">field_access_predicate</a>.position.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
+            polymorphic::Expr::FieldAccessPredicate(field_access_predicate) =&gt; {
+                legacy::Expr::FieldAccessPredicate(
+                    Box::new((<span class="kw-2">*</span>field_access_predicate.base).into()),
+                    field_access_predicate.permission.into(),
+                    field_access_predicate.position.into(),
                 )
             }
-            <a href="../up/gen/polymorphic/ast/expr.rs.html#29">polymorphic::Expr::UnaryOp</a>(unary_op) =&gt; <a href="../legacy/ast/expr.rs.html#35">legacy::Expr::UnaryOp</a>(
-                <a href="#247">unary_op</a>.op_kind.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
-                Box::new((<span class="kw-2">*</span><a href="#247">unary_op</a>.argument).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
-                <a href="#247">unary_op</a>.position.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
+            polymorphic::Expr::UnaryOp(unary_op) =&gt; legacy::Expr::UnaryOp(
+                unary_op.op_kind.into(),
+                Box::new((<span class="kw-2">*</span>unary_op.argument).into()),
+                unary_op.position.into(),
             ),
-            <a href="../up/gen/polymorphic/ast/expr.rs.html#30">polymorphic::Expr::BinOp</a>(bin_op) =&gt; <a href="../legacy/ast/expr.rs.html#36">legacy::Expr::BinOp</a>(
-                <a href="#252">bin_op</a>.op_kind.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
-                Box::new((<span class="kw-2">*</span><a href="#252">bin_op</a>.left).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
-                Box::new((<span class="kw-2">*</span><a href="#252">bin_op</a>.right).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
-                <a href="#252">bin_op</a>.position.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
+            polymorphic::Expr::BinOp(bin_op) =&gt; legacy::Expr::BinOp(
+                bin_op.op_kind.into(),
+                Box::new((<span class="kw-2">*</span>bin_op.left).into()),
+                Box::new((<span class="kw-2">*</span>bin_op.right).into()),
+                bin_op.position.into(),
             ),
-            <a href="../up/gen/polymorphic/ast/expr.rs.html#32">polymorphic::Expr::ContainerOp</a>(container_op) =&gt; <a href="../legacy/ast/expr.rs.html#38">legacy::Expr::ContainerOp</a>(
-                <a href="#258">container_op</a>.op_kind.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
-                Box::new((<span class="kw-2">*</span><a href="#258">container_op</a>.left).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
-                Box::new((<span class="kw-2">*</span><a href="#258">container_op</a>.right).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
-                <a href="#258">container_op</a>.position.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
+            polymorphic::Expr::ContainerOp(container_op) =&gt; legacy::Expr::ContainerOp(
+                container_op.op_kind.into(),
+                Box::new((<span class="kw-2">*</span>container_op.left).into()),
+                Box::new((<span class="kw-2">*</span>container_op.right).into()),
+                container_op.position.into(),
             ),
-            <a href="../up/gen/polymorphic/ast/expr.rs.html#34">polymorphic::Expr::Seq</a>(seq) =&gt; <a href="../legacy/ast/expr.rs.html#40">legacy::Expr::Seq</a>(
-                <a href="#264">seq</a>.typ.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
-                <a href="#264">seq</a>.elements
-                    .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
-                    .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|element| <a href="#268">element</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
-                    .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>(),
-                <a href="#264">seq</a>.position.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
+            polymorphic::Expr::Seq(seq) =&gt; legacy::Expr::Seq(
+                seq.typ.into(),
+                seq.elements
+                    .into_iter()
+                    .map(|element| element.into())
+                    .collect(),
+                seq.position.into(),
             ),
-            <a href="../up/gen/polymorphic/ast/expr.rs.html#36">polymorphic::Expr::Map</a>(map) =&gt; <a href="../legacy/ast/expr.rs.html#42">legacy::Expr::Map</a>(
-                <a href="#272">map</a>.typ.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
-                <a href="#272">map</a>.elements.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">Into::into</a>).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>(),
-                <a href="#272">map</a>.position.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
+            polymorphic::Expr::Map(map) =&gt; legacy::Expr::Map(
+                map.typ.into(),
+                map.elements.into_iter().map(Into::into).collect(),
+                map.position.into(),
             ),
-            <a href="../up/gen/polymorphic/ast/expr.rs.html#38">polymorphic::Expr::Unfolding</a>(unfolding) =&gt; <a href="../legacy/ast/expr.rs.html#44">legacy::Expr::Unfolding</a>(
-                <a href="#277">unfolding</a>.predicate.<a href="../up/gen/polymorphic/ast/common.rs.html#236">name</a>(),
-                <a href="#277">unfolding</a>
+            polymorphic::Expr::Unfolding(unfolding) =&gt; legacy::Expr::Unfolding(
+                unfolding.predicate.name(),
+                unfolding
                     .arguments
-                    .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
-                    .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|argument| <a href="#282">argument</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
-                    .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>(),
-                Box::new((<span class="kw-2">*</span><a href="#277">unfolding</a>.base).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
-                <a href="#277">unfolding</a>.permission.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
-                <a href="#277">unfolding</a>
+                    .into_iter()
+                    .map(|argument| argument.into())
+                    .collect(),
+                Box::new((<span class="kw-2">*</span>unfolding.base).into()),
+                unfolding.permission.into(),
+                unfolding
                     .variant
-                    .map(|enum_variant_index| <a href="#288">enum_variant_index</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
-                <a href="#277">unfolding</a>.position.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
+                    .map(|enum_variant_index| enum_variant_index.into()),
+                unfolding.position.into(),
             ),
-            <a href="../up/gen/polymorphic/ast/expr.rs.html#40">polymorphic::Expr::Cond</a>(cond) =&gt; <a href="../legacy/ast/expr.rs.html#53">legacy::Expr::Cond</a>(
-                Box::new((<span class="kw-2">*</span><a href="#291">cond</a>.guard).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
-                Box::new((<span class="kw-2">*</span><a href="#291">cond</a>.then_expr).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
-                Box::new((<span class="kw-2">*</span><a href="#291">cond</a>.else_expr).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
-                <a href="#291">cond</a>.position.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
+            polymorphic::Expr::Cond(cond) =&gt; legacy::Expr::Cond(
+                Box::new((<span class="kw-2">*</span>cond.guard).into()),
+                Box::new((<span class="kw-2">*</span>cond.then_expr).into()),
+                Box::new((<span class="kw-2">*</span>cond.else_expr).into()),
+                cond.position.into(),
             ),
-            <a href="../up/gen/polymorphic/ast/expr.rs.html#42">polymorphic::Expr::ForAll</a>(for_all) =&gt; <a href="../legacy/ast/expr.rs.html#55">legacy::Expr::ForAll</a>(
-                <a href="#297">for_all</a>
+            polymorphic::Expr::ForAll(for_all) =&gt; legacy::Expr::ForAll(
+                for_all
                     .variables
-                    .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
-                    .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|variable| <a href="#301">variable</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
-                    .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>(),
-                <a href="#297">for_all</a>
+                    .into_iter()
+                    .map(|variable| variable.into())
+                    .collect(),
+                for_all
                     .triggers
-                    .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
-                    .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|trigger| <a href="#306">trigger</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
-                    .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>(),
-                Box::new((<span class="kw-2">*</span><a href="#297">for_all</a>.body).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
-                <a href="#297">for_all</a>.position.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
+                    .into_iter()
+                    .map(|trigger| trigger.into())
+                    .collect(),
+                Box::new((<span class="kw-2">*</span>for_all.body).into()),
+                for_all.position.into(),
             ),
-            <a href="../up/gen/polymorphic/ast/expr.rs.html#44">polymorphic::Expr::Exists</a>(exists) =&gt; <a href="../legacy/ast/expr.rs.html#57">legacy::Expr::Exists</a>(
-                <a href="#311">exists</a>
+            polymorphic::Expr::Exists(exists) =&gt; legacy::Expr::Exists(
+                exists
                     .variables
-                    .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
-                    .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|variable| <a href="#315">variable</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
-                    .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>(),
-                <a href="#311">exists</a>
+                    .into_iter()
+                    .map(|variable| variable.into())
+                    .collect(),
+                exists
                     .triggers
-                    .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
-                    .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|trigger| <a href="#320">trigger</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
-                    .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>(),
-                Box::new((<span class="kw-2">*</span><a href="#311">exists</a>.body).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
-                <a href="#311">exists</a>.position.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
+                    .into_iter()
+                    .map(|trigger| trigger.into())
+                    .collect(),
+                Box::new((<span class="kw-2">*</span>exists.body).into()),
+                exists.position.into(),
             ),
-            <a href="../up/gen/polymorphic/ast/expr.rs.html#46">polymorphic::Expr::LetExpr</a>(let_expr) =&gt; <a href="../legacy/ast/expr.rs.html#59">legacy::Expr::LetExpr</a>(
-                <a href="#325">let_expr</a>.variable.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
-                Box::new((<span class="kw-2">*</span><a href="#325">let_expr</a>.def).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
-                Box::new((<span class="kw-2">*</span><a href="#325">let_expr</a>.body).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
-                <a href="#325">let_expr</a>.position.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
+            polymorphic::Expr::LetExpr(let_expr) =&gt; legacy::Expr::LetExpr(
+                let_expr.variable.into(),
+                Box::new((<span class="kw-2">*</span>let_expr.def).into()),
+                Box::new((<span class="kw-2">*</span>let_expr.body).into()),
+                let_expr.position.into(),
             ),
-            <a href="../up/gen/polymorphic/ast/expr.rs.html#48">polymorphic::Expr::FuncApp</a>(func_app) =&gt; <a href="../legacy/ast/expr.rs.html#61">legacy::Expr::FuncApp</a>(
-                <a href="../up/gen/polymorphic/ast/function.rs.html#87-92">polymorphic::compute_identifier</a>(
-                    <span class="kw-2">&amp;</span><a href="#331">func_app</a>.function_name,
-                    <span class="kw-2">&amp;</span><a href="#331">func_app</a>.type_arguments,
-                    <span class="kw-2">&amp;</span><a href="#331">func_app</a>.formal_arguments,
-                    <span class="kw-2">&amp;</span><a href="#331">func_app</a>.return_type,
+            polymorphic::Expr::FuncApp(func_app) =&gt; legacy::Expr::FuncApp(
+                polymorphic::compute_identifier(
+                    <span class="kw-2">&amp;</span>func_app.function_name,
+                    <span class="kw-2">&amp;</span>func_app.type_arguments,
+                    <span class="kw-2">&amp;</span>func_app.formal_arguments,
+                    <span class="kw-2">&amp;</span>func_app.return_type,
                 ),
-                <a href="#331">func_app</a>
+                func_app
                     .arguments
-                    .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
-                    .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|argument| <a href="#341">argument</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
-                    .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>(),
-                <a href="#331">func_app</a>
+                    .into_iter()
+                    .map(|argument| argument.into())
+                    .collect(),
+                func_app
                     .formal_arguments
-                    .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
-                    .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|formal_argument| <a href="#346">formal_argument</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
-                    .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>(),
-                <a href="#331">func_app</a>.return_type.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
-                <a href="#331">func_app</a>.position.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
+                    .into_iter()
+                    .map(|formal_argument| formal_argument.into())
+                    .collect(),
+                func_app.return_type.into(),
+                func_app.position.into(),
             ),
-            <a href="../up/gen/polymorphic/ast/expr.rs.html#50">polymorphic::Expr::DomainFuncApp</a>(domain_func_app) =&gt; <a href="../legacy/ast/expr.rs.html#63">legacy::Expr::DomainFuncApp</a>(
-                <a href="#351">domain_func_app</a>.domain_function.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
-                <a href="#351">domain_func_app</a>
+            polymorphic::Expr::DomainFuncApp(domain_func_app) =&gt; legacy::Expr::DomainFuncApp(
+                domain_func_app.domain_function.into(),
+                domain_func_app
                     .arguments
-                    .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
-                    .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|argument| <a href="#356">argument</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
-                    .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>(),
-                <a href="#351">domain_func_app</a>.position.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
+                    .into_iter()
+                    .map(|argument| argument.into())
+                    .collect(),
+                domain_func_app.position.into(),
             ),
-            <a href="../up/gen/polymorphic/ast/expr.rs.html#52">polymorphic::Expr::InhaleExhale</a>(inhale_exhale) =&gt; <a href="../legacy/ast/expr.rs.html#67">legacy::Expr::InhaleExhale</a>(
-                Box::new((<span class="kw-2">*</span><a href="#360">inhale_exhale</a>.inhale_expr).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
-                Box::new((<span class="kw-2">*</span><a href="#360">inhale_exhale</a>.exhale_expr).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
-                <a href="#360">inhale_exhale</a>.position.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
+            polymorphic::Expr::InhaleExhale(inhale_exhale) =&gt; legacy::Expr::InhaleExhale(
+                Box::new((<span class="kw-2">*</span>inhale_exhale.inhale_expr).into()),
+                Box::new((<span class="kw-2">*</span>inhale_exhale.exhale_expr).into()),
+                inhale_exhale.position.into(),
             ),
-            <a href="../up/gen/polymorphic/ast/expr.rs.html#59">polymorphic::Expr::Downcast</a>(down_cast) =&gt; <a href="../legacy/ast/expr.rs.html#74">legacy::Expr::Downcast</a>(
-                Box::new((<span class="kw-2">*</span><a href="#365">down_cast</a>.base).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
-                Box::new((<span class="kw-2">*</span><a href="#365">down_cast</a>.enum_place).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
-                <a href="#365">down_cast</a>.field.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
+            polymorphic::Expr::Downcast(down_cast) =&gt; legacy::Expr::Downcast(
+                Box::new((<span class="kw-2">*</span>down_cast.base).into()),
+                Box::new((<span class="kw-2">*</span>down_cast.enum_place).into()),
+                down_cast.field.into(),
             ),
-            <a href="../up/gen/polymorphic/ast/expr.rs.html#61">polymorphic::Expr::SnapApp</a>(snap_app) =&gt; {
-                <a href="../legacy/ast/expr.rs.html#76">legacy::Expr::SnapApp</a>(Box::new((<span class="kw-2">*</span><a href="#370">snap_app</a>.base).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()), <a href="#370">snap_app</a>.position.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
+            polymorphic::Expr::SnapApp(snap_app) =&gt; {
+                legacy::Expr::SnapApp(Box::new((<span class="kw-2">*</span>snap_app.base).into()), snap_app.position.into())
             }
-            <a href="../up/gen/polymorphic/ast/expr.rs.html#63">polymorphic::Expr::Cast</a>(cast) =&gt; <a href="../legacy/ast/expr.rs.html#77">legacy::Expr::Cast</a>(
-                <a href="#373">cast</a>.kind.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
-                Box::new((<span class="kw-2">*</span><a href="#373">cast</a>.base).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
-                <a href="#373">cast</a>.position.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
+            polymorphic::Expr::Cast(cast) =&gt; legacy::Expr::Cast(
+                cast.kind.into(),
+                Box::new((<span class="kw-2">*</span>cast.base).into()),
+                cast.position.into(),
             ),
         }
     }
 }
 
-<span class="kw">impl </span>From&lt;<a href="../up/gen/polymorphic/ast/expr.rs.html#1509">polymorphic::PlaceComponent</a>&gt; <span class="kw">for </span><a href="../legacy/ast/expr.rs.html#82">legacy::PlaceComponent</a> {
-    <span class="kw">fn </span>from(place_component: <a href="../up/gen/polymorphic/ast/expr.rs.html#1509">polymorphic::PlaceComponent</a>) -&gt; <a href="../legacy/ast/expr.rs.html#82">legacy::PlaceComponent</a> {
-        <span class="kw">match </span><a href="#383">place_component</a> {
-            <a href="../up/gen/polymorphic/ast/expr.rs.html#1510">polymorphic::PlaceComponent::Field</a>(field, position) =&gt; {
-                <a href="../legacy/ast/expr.rs.html#83">legacy::PlaceComponent::Field</a>(<a href="#385">field</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(), <a href="#385">position</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
+<span class="kw">impl </span>From&lt;polymorphic::PlaceComponent&gt; <span class="kw">for </span>legacy::PlaceComponent {
+    <span class="kw">fn </span>from(place_component: polymorphic::PlaceComponent) -&gt; legacy::PlaceComponent {
+        <span class="kw">match </span>place_component {
+            polymorphic::PlaceComponent::Field(field, position) =&gt; {
+                legacy::PlaceComponent::Field(field.into(), position.into())
             }
-            <a href="../up/gen/polymorphic/ast/expr.rs.html#1511">polymorphic::PlaceComponent::Variant</a>(field, position) =&gt; {
-                <a href="../legacy/ast/expr.rs.html#84">legacy::PlaceComponent::Variant</a>(<a href="#388">field</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(), <a href="#388">position</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
+            polymorphic::PlaceComponent::Variant(field, position) =&gt; {
+                legacy::PlaceComponent::Variant(field.into(), position.into())
             }
         }
     }
 }
 
-<span class="kw">impl </span>From&lt;<a href="../up/gen/polymorphic/ast/expr.rs.html#1525">polymorphic::UnaryOpKind</a>&gt; <span class="kw">for </span><a href="../legacy/ast/expr.rs.html#88">legacy::UnaryOpKind</a> {
-    <span class="kw">fn </span>from(unary_op_kind: <a href="../up/gen/polymorphic/ast/expr.rs.html#1525">polymorphic::UnaryOpKind</a>) -&gt; <a href="../legacy/ast/expr.rs.html#88">legacy::UnaryOpKind</a> {
-        <span class="kw">match </span><a href="#396">unary_op_kind</a> {
-            <a href="../up/gen/polymorphic/ast/expr.rs.html#1526">polymorphic::UnaryOpKind::Not</a> =&gt; <a href="../legacy/ast/expr.rs.html#89">legacy::UnaryOpKind::Not</a>,
-            <a href="../up/gen/polymorphic/ast/expr.rs.html#1527">polymorphic::UnaryOpKind::Minus</a> =&gt; <a href="../legacy/ast/expr.rs.html#90">legacy::UnaryOpKind::Minus</a>,
+<span class="kw">impl </span>From&lt;polymorphic::UnaryOpKind&gt; <span class="kw">for </span>legacy::UnaryOpKind {
+    <span class="kw">fn </span>from(unary_op_kind: polymorphic::UnaryOpKind) -&gt; legacy::UnaryOpKind {
+        <span class="kw">match </span>unary_op_kind {
+            polymorphic::UnaryOpKind::Not =&gt; legacy::UnaryOpKind::Not,
+            polymorphic::UnaryOpKind::Minus =&gt; legacy::UnaryOpKind::Minus,
         }
     }
 }
 
-<span class="kw">impl </span>From&lt;<a href="../up/gen/polymorphic/ast/expr.rs.html#1541">polymorphic::BinaryOpKind</a>&gt; <span class="kw">for </span><a href="../legacy/ast/expr.rs.html#95">legacy::BinaryOpKind</a> {
-    <span class="kw">fn </span>from(bin_op_kind: <a href="../up/gen/polymorphic/ast/expr.rs.html#1541">polymorphic::BinaryOpKind</a>) -&gt; <a href="../legacy/ast/expr.rs.html#95">legacy::BinaryOpKind</a> {
-        <span class="kw">match </span><a href="#405">bin_op_kind</a> {
-            <a href="../up/gen/polymorphic/ast/expr.rs.html#1542">polymorphic::BinaryOpKind::EqCmp</a> =&gt; <a href="../legacy/ast/expr.rs.html#96">legacy::BinaryOpKind::EqCmp</a>,
-            <a href="../up/gen/polymorphic/ast/expr.rs.html#1543">polymorphic::BinaryOpKind::NeCmp</a> =&gt; <a href="../legacy/ast/expr.rs.html#97">legacy::BinaryOpKind::NeCmp</a>,
-            <a href="../up/gen/polymorphic/ast/expr.rs.html#1544">polymorphic::BinaryOpKind::GtCmp</a> =&gt; <a href="../legacy/ast/expr.rs.html#98">legacy::BinaryOpKind::GtCmp</a>,
-            <a href="../up/gen/polymorphic/ast/expr.rs.html#1545">polymorphic::BinaryOpKind::GeCmp</a> =&gt; <a href="../legacy/ast/expr.rs.html#99">legacy::BinaryOpKind::GeCmp</a>,
-            <a href="../up/gen/polymorphic/ast/expr.rs.html#1546">polymorphic::BinaryOpKind::LtCmp</a> =&gt; <a href="../legacy/ast/expr.rs.html#100">legacy::BinaryOpKind::LtCmp</a>,
-            <a href="../up/gen/polymorphic/ast/expr.rs.html#1547">polymorphic::BinaryOpKind::LeCmp</a> =&gt; <a href="../legacy/ast/expr.rs.html#101">legacy::BinaryOpKind::LeCmp</a>,
-            <a href="../up/gen/polymorphic/ast/expr.rs.html#1548">polymorphic::BinaryOpKind::Add</a> =&gt; <a href="../legacy/ast/expr.rs.html#102">legacy::BinaryOpKind::Add</a>,
-            <a href="../up/gen/polymorphic/ast/expr.rs.html#1549">polymorphic::BinaryOpKind::Sub</a> =&gt; <a href="../legacy/ast/expr.rs.html#103">legacy::BinaryOpKind::Sub</a>,
-            <a href="../up/gen/polymorphic/ast/expr.rs.html#1550">polymorphic::BinaryOpKind::Mul</a> =&gt; <a href="../legacy/ast/expr.rs.html#104">legacy::BinaryOpKind::Mul</a>,
-            <a href="../up/gen/polymorphic/ast/expr.rs.html#1551">polymorphic::BinaryOpKind::Div</a> =&gt; <a href="../legacy/ast/expr.rs.html#105">legacy::BinaryOpKind::Div</a>,
-            <a href="../up/gen/polymorphic/ast/expr.rs.html#1552">polymorphic::BinaryOpKind::Mod</a> =&gt; <a href="../legacy/ast/expr.rs.html#106">legacy::BinaryOpKind::Mod</a>,
-            <a href="../up/gen/polymorphic/ast/expr.rs.html#1553">polymorphic::BinaryOpKind::And</a> =&gt; <a href="../legacy/ast/expr.rs.html#107">legacy::BinaryOpKind::And</a>,
-            <a href="../up/gen/polymorphic/ast/expr.rs.html#1554">polymorphic::BinaryOpKind::Or</a> =&gt; <a href="../legacy/ast/expr.rs.html#108">legacy::BinaryOpKind::Or</a>,
-            <a href="../up/gen/polymorphic/ast/expr.rs.html#1555">polymorphic::BinaryOpKind::Implies</a> =&gt; <a href="../legacy/ast/expr.rs.html#109">legacy::BinaryOpKind::Implies</a>,
-            <a href="../up/gen/polymorphic/ast/expr.rs.html#1556">polymorphic::BinaryOpKind::BitAnd</a> =&gt; <a href="../legacy/ast/expr.rs.html#110">legacy::BinaryOpKind::BitAnd</a>,
-            <a href="../up/gen/polymorphic/ast/expr.rs.html#1557">polymorphic::BinaryOpKind::BitOr</a> =&gt; <a href="../legacy/ast/expr.rs.html#111">legacy::BinaryOpKind::BitOr</a>,
-            <a href="../up/gen/polymorphic/ast/expr.rs.html#1558">polymorphic::BinaryOpKind::BitXor</a> =&gt; <a href="../legacy/ast/expr.rs.html#112">legacy::BinaryOpKind::BitXor</a>,
-            <a href="../up/gen/polymorphic/ast/expr.rs.html#1559">polymorphic::BinaryOpKind::Shl</a> =&gt; <a href="../legacy/ast/expr.rs.html#113">legacy::BinaryOpKind::Shl</a>,
-            <a href="../up/gen/polymorphic/ast/expr.rs.html#1560">polymorphic::BinaryOpKind::LShr</a> =&gt; <a href="../legacy/ast/expr.rs.html#114">legacy::BinaryOpKind::LShr</a>,
-            <a href="../up/gen/polymorphic/ast/expr.rs.html#1561">polymorphic::BinaryOpKind::AShr</a> =&gt; <a href="../legacy/ast/expr.rs.html#115">legacy::BinaryOpKind::AShr</a>,
-            <a href="../up/gen/polymorphic/ast/expr.rs.html#1562">polymorphic::BinaryOpKind::Min</a> =&gt; <a href="../legacy/ast/expr.rs.html#116">legacy::BinaryOpKind::Min</a>,
-            <a href="../up/gen/polymorphic/ast/expr.rs.html#1563">polymorphic::BinaryOpKind::Max</a> =&gt; <a href="../legacy/ast/expr.rs.html#117">legacy::BinaryOpKind::Max</a>,
+<span class="kw">impl </span>From&lt;polymorphic::BinaryOpKind&gt; <span class="kw">for </span>legacy::BinaryOpKind {
+    <span class="kw">fn </span>from(bin_op_kind: polymorphic::BinaryOpKind) -&gt; legacy::BinaryOpKind {
+        <span class="kw">match </span>bin_op_kind {
+            polymorphic::BinaryOpKind::EqCmp =&gt; legacy::BinaryOpKind::EqCmp,
+            polymorphic::BinaryOpKind::NeCmp =&gt; legacy::BinaryOpKind::NeCmp,
+            polymorphic::BinaryOpKind::GtCmp =&gt; legacy::BinaryOpKind::GtCmp,
+            polymorphic::BinaryOpKind::GeCmp =&gt; legacy::BinaryOpKind::GeCmp,
+            polymorphic::BinaryOpKind::LtCmp =&gt; legacy::BinaryOpKind::LtCmp,
+            polymorphic::BinaryOpKind::LeCmp =&gt; legacy::BinaryOpKind::LeCmp,
+            polymorphic::BinaryOpKind::Add =&gt; legacy::BinaryOpKind::Add,
+            polymorphic::BinaryOpKind::Sub =&gt; legacy::BinaryOpKind::Sub,
+            polymorphic::BinaryOpKind::Mul =&gt; legacy::BinaryOpKind::Mul,
+            polymorphic::BinaryOpKind::Div =&gt; legacy::BinaryOpKind::Div,
+            polymorphic::BinaryOpKind::Mod =&gt; legacy::BinaryOpKind::Mod,
+            polymorphic::BinaryOpKind::And =&gt; legacy::BinaryOpKind::And,
+            polymorphic::BinaryOpKind::Or =&gt; legacy::BinaryOpKind::Or,
+            polymorphic::BinaryOpKind::Implies =&gt; legacy::BinaryOpKind::Implies,
+            polymorphic::BinaryOpKind::BitAnd =&gt; legacy::BinaryOpKind::BitAnd,
+            polymorphic::BinaryOpKind::BitOr =&gt; legacy::BinaryOpKind::BitOr,
+            polymorphic::BinaryOpKind::BitXor =&gt; legacy::BinaryOpKind::BitXor,
+            polymorphic::BinaryOpKind::Shl =&gt; legacy::BinaryOpKind::Shl,
+            polymorphic::BinaryOpKind::LShr =&gt; legacy::BinaryOpKind::LShr,
+            polymorphic::BinaryOpKind::AShr =&gt; legacy::BinaryOpKind::AShr,
+            polymorphic::BinaryOpKind::Min =&gt; legacy::BinaryOpKind::Min,
+            polymorphic::BinaryOpKind::Max =&gt; legacy::BinaryOpKind::Max,
         }
     }
 }
 
-<span class="kw">impl </span>From&lt;<a href="../up/gen/polymorphic/ast/expr.rs.html#1577">polymorphic::ContainerOpKind</a>&gt; <span class="kw">for </span><a href="../legacy/ast/expr.rs.html#121">legacy::ContainerOpKind</a> {
-    <span class="kw">fn </span>from(container_op_kind: <a href="../up/gen/polymorphic/ast/expr.rs.html#1577">polymorphic::ContainerOpKind</a>) -&gt; <a href="../legacy/ast/expr.rs.html#121">legacy::ContainerOpKind</a> {
-        <span class="kw">match </span><a href="#434">container_op_kind</a> {
-            <a href="../up/gen/polymorphic/ast/expr.rs.html#1578">polymorphic::ContainerOpKind::SeqIndex</a> =&gt; <a href="../legacy/ast/expr.rs.html#122">legacy::ContainerOpKind::SeqIndex</a>,
-            <a href="../up/gen/polymorphic/ast/expr.rs.html#1579">polymorphic::ContainerOpKind::SeqConcat</a> =&gt; <a href="../legacy/ast/expr.rs.html#123">legacy::ContainerOpKind::SeqConcat</a>,
-            <a href="../up/gen/polymorphic/ast/expr.rs.html#1580">polymorphic::ContainerOpKind::SeqLen</a> =&gt; <a href="../legacy/ast/expr.rs.html#124">legacy::ContainerOpKind::SeqLen</a>,
+<span class="kw">impl </span>From&lt;polymorphic::ContainerOpKind&gt; <span class="kw">for </span>legacy::ContainerOpKind {
+    <span class="kw">fn </span>from(container_op_kind: polymorphic::ContainerOpKind) -&gt; legacy::ContainerOpKind {
+        <span class="kw">match </span>container_op_kind {
+            polymorphic::ContainerOpKind::SeqIndex =&gt; legacy::ContainerOpKind::SeqIndex,
+            polymorphic::ContainerOpKind::SeqConcat =&gt; legacy::ContainerOpKind::SeqConcat,
+            polymorphic::ContainerOpKind::SeqLen =&gt; legacy::ContainerOpKind::SeqLen,
         }
     }
 }
 
-<span class="kw">impl </span>From&lt;<a href="../up/gen/polymorphic/ast/expr.rs.html#2267">polymorphic::CastKind</a>&gt; <span class="kw">for </span><a href="../legacy/ast/expr.rs.html#129">legacy::CastKind</a> {
-    <span class="kw">fn </span>from(container_op_kind: <a href="../up/gen/polymorphic/ast/expr.rs.html#2267">polymorphic::CastKind</a>) -&gt; <a href="../legacy/ast/expr.rs.html#129">legacy::CastKind</a> {
-        <span class="kw">match </span><a href="#444">container_op_kind</a> {
-            <a href="../up/gen/polymorphic/ast/expr.rs.html#2268">polymorphic::CastKind::BVIntoInt</a>(size) =&gt; <a href="../legacy/ast/expr.rs.html#130">legacy::CastKind::BVIntoInt</a>(<a href="#446">size</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
-            <a href="../up/gen/polymorphic/ast/expr.rs.html#2269">polymorphic::CastKind::IntIntoBV</a>(size) =&gt; <a href="../legacy/ast/expr.rs.html#131">legacy::CastKind::IntIntoBV</a>(<a href="#447">size</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
+<span class="kw">impl </span>From&lt;polymorphic::CastKind&gt; <span class="kw">for </span>legacy::CastKind {
+    <span class="kw">fn </span>from(container_op_kind: polymorphic::CastKind) -&gt; legacy::CastKind {
+        <span class="kw">match </span>container_op_kind {
+            polymorphic::CastKind::BVIntoInt(size) =&gt; legacy::CastKind::BVIntoInt(size.into()),
+            polymorphic::CastKind::IntIntoBV(size) =&gt; legacy::CastKind::IntIntoBV(size.into()),
         }
     }
 }
 
-<span class="kw">impl </span>From&lt;<a href="../up/gen/polymorphic/ast/expr.rs.html#1585">polymorphic::FloatConst</a>&gt; <span class="kw">for </span><a href="../legacy/ast/expr.rs.html#135">legacy::FloatConst</a> {
-    <span class="kw">fn </span>from(old: <a href="../up/gen/polymorphic/ast/expr.rs.html#1585">polymorphic::FloatConst</a>) -&gt; <a href="../legacy/ast/expr.rs.html#135">legacy::FloatConst</a> {
-        <span class="kw">match </span><a href="#453">old</a> {
-            <a href="../up/gen/polymorphic/ast/expr.rs.html#1586">polymorphic::FloatConst::F32</a>(value) =&gt; <a href="../legacy/ast/expr.rs.html#136">legacy::FloatConst::F32</a>(<a href="#455">value</a>),
-            <a href="../up/gen/polymorphic/ast/expr.rs.html#1587">polymorphic::FloatConst::F64</a>(value) =&gt; <a href="../legacy/ast/expr.rs.html#137">legacy::FloatConst::F64</a>(<a href="#456">value</a>),
+<span class="kw">impl </span>From&lt;polymorphic::FloatConst&gt; <span class="kw">for </span>legacy::FloatConst {
+    <span class="kw">fn </span>from(old: polymorphic::FloatConst) -&gt; legacy::FloatConst {
+        <span class="kw">match </span>old {
+            polymorphic::FloatConst::F32(value) =&gt; legacy::FloatConst::F32(value),
+            polymorphic::FloatConst::F64(value) =&gt; legacy::FloatConst::F64(value),
         }
     }
 }
 
-<span class="kw">impl </span>From&lt;<a href="../up/gen/polymorphic/ast/expr.rs.html#1597">polymorphic::BitVectorConst</a>&gt; <span class="kw">for </span><a href="../legacy/ast/expr.rs.html#141">legacy::BitVectorConst</a> {
-    <span class="kw">fn </span>from(old: <a href="../up/gen/polymorphic/ast/expr.rs.html#1597">polymorphic::BitVectorConst</a>) -&gt; <a href="../legacy/ast/expr.rs.html#141">legacy::BitVectorConst</a> {
-        <a href="../legacy/ast/expr.rs.html#141">legacy::BitVectorConst</a> {
-            value: <a href="#462">old</a>.value,
-            typ: <a href="#462">old</a>.typ.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
+<span class="kw">impl </span>From&lt;polymorphic::BitVectorConst&gt; <span class="kw">for </span>legacy::BitVectorConst {
+    <span class="kw">fn </span>from(old: polymorphic::BitVectorConst) -&gt; legacy::BitVectorConst {
+        legacy::BitVectorConst {
+            value: old.value,
+            typ: old.typ.into(),
         }
     }
 }
 
-<span class="kw">impl </span>From&lt;<a href="../up/gen/polymorphic/ast/expr.rs.html#1609">polymorphic::Const</a>&gt; <span class="kw">for </span><a href="../legacy/ast/expr.rs.html#147">legacy::Const</a> {
-    <span class="kw">fn </span>from(old_const: <a href="../up/gen/polymorphic/ast/expr.rs.html#1609">polymorphic::Const</a>) -&gt; <a href="../legacy/ast/expr.rs.html#147">legacy::Const</a> {
-        <span class="kw">match </span><a href="#471">old_const</a> {
-            <a href="../up/gen/polymorphic/ast/expr.rs.html#1610">polymorphic::Const::Bool</a>(bool_value) =&gt; <a href="../legacy/ast/expr.rs.html#148">legacy::Const::Bool</a>(<a href="#473">bool_value</a>),
-            <a href="../up/gen/polymorphic/ast/expr.rs.html#1611">polymorphic::Const::Int</a>(i64_value) =&gt; <a href="../legacy/ast/expr.rs.html#149">legacy::Const::Int</a>(<a href="#474">i64_value</a>),
-            <a href="../up/gen/polymorphic/ast/expr.rs.html#1612">polymorphic::Const::BigInt</a>(label) =&gt; <a href="../legacy/ast/expr.rs.html#150">legacy::Const::BigInt</a>(<a href="#475">label</a>),
-            <a href="../up/gen/polymorphic/ast/expr.rs.html#1613">polymorphic::Const::Float</a>(float_value) =&gt; <a href="../legacy/ast/expr.rs.html#151">legacy::Const::Float</a>(<a href="#476">float_value</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
-            <a href="../up/gen/polymorphic/ast/expr.rs.html#1614">polymorphic::Const::BitVector</a>(value) =&gt; <a href="../legacy/ast/expr.rs.html#152">legacy::Const::BitVector</a>(<a href="#477">value</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
-            <a href="../up/gen/polymorphic/ast/expr.rs.html#1617">polymorphic::Const::FnPtr</a> =&gt; <a href="../legacy/ast/expr.rs.html#155">legacy::Const::FnPtr</a>,
+<span class="kw">impl </span>From&lt;polymorphic::Const&gt; <span class="kw">for </span>legacy::Const {
+    <span class="kw">fn </span>from(old_const: polymorphic::Const) -&gt; legacy::Const {
+        <span class="kw">match </span>old_const {
+            polymorphic::Const::Bool(bool_value) =&gt; legacy::Const::Bool(bool_value),
+            polymorphic::Const::Int(i64_value) =&gt; legacy::Const::Int(i64_value),
+            polymorphic::Const::BigInt(label) =&gt; legacy::Const::BigInt(label),
+            polymorphic::Const::Float(float_value) =&gt; legacy::Const::Float(float_value.into()),
+            polymorphic::Const::BitVector(value) =&gt; legacy::Const::BitVector(value.into()),
+            polymorphic::Const::FnPtr =&gt; legacy::Const::FnPtr,
         }
     }
 }
 
 <span class="comment">// function
-</span><span class="kw">impl </span>From&lt;<a href="../up/gen/polymorphic/ast/function.rs.html#8">polymorphic::Function</a>&gt; <span class="kw">for </span><a href="../legacy/ast/function.rs.html#11">legacy::Function</a> {
-    <span class="kw">fn </span>from(function: <a href="../up/gen/polymorphic/ast/function.rs.html#8">polymorphic::Function</a>) -&gt; <a href="../legacy/ast/function.rs.html#11">legacy::Function</a> {
-        <a href="../legacy/ast/function.rs.html#11">legacy::Function</a> {
-            name: <a href="#485">function</a>.<a href="../common/identifier.rs.html#2">get_identifier</a>(),
-            formal_args: <a href="#485">function</a>
+</span><span class="kw">impl </span>From&lt;polymorphic::Function&gt; <span class="kw">for </span>legacy::Function {
+    <span class="kw">fn </span>from(function: polymorphic::Function) -&gt; legacy::Function {
+        legacy::Function {
+            name: function.get_identifier(),
+            formal_args: function
                 .formal_args
-                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
-                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|formal_arg| <a href="#491">formal_arg</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
-                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>(),
-            return_type: <a href="#485">function</a>.return_type.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
-            pres: <a href="#485">function</a>.pres.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|pre| <a href="#494">pre</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>(),
-            posts: <a href="#485">function</a>.posts.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|post| <a href="#495">post</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>(),
-            body: <a href="#485">function</a>.body.map(|body_expr| <a href="#496">body_expr</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
+                .into_iter()
+                .map(|formal_arg| formal_arg.into())
+                .collect(),
+            return_type: function.return_type.into(),
+            pres: function.pres.into_iter().map(|pre| pre.into()).collect(),
+            posts: function.posts.into_iter().map(|post| post.into()).collect(),
+            body: function.body.map(|body_expr| body_expr.into()),
         }
     }
 }
 
-<span class="kw">impl </span>From&lt;<a href="../up/gen/polymorphic/ast/function.rs.html#136">polymorphic::FunctionIdentifier</a>&gt; <span class="kw">for </span><a href="../legacy/ast/function.rs.html#105">legacy::FunctionIdentifier</a> {
-    <span class="kw">fn </span>from(function_identifier: <a href="../up/gen/polymorphic/ast/function.rs.html#136">polymorphic::FunctionIdentifier</a>) -&gt; <a href="../legacy/ast/function.rs.html#105">legacy::FunctionIdentifier</a> {
-        <a href="../legacy/ast/function.rs.html#105">legacy::FunctionIdentifier</a>(<a href="#502">function_identifier</a>.<span class="number">0</span>)
+<span class="kw">impl </span>From&lt;polymorphic::FunctionIdentifier&gt; <span class="kw">for </span>legacy::FunctionIdentifier {
+    <span class="kw">fn </span>from(function_identifier: polymorphic::FunctionIdentifier) -&gt; legacy::FunctionIdentifier {
+        legacy::FunctionIdentifier(function_identifier.<span class="number">0</span>)
     }
 }
 
 <span class="comment">// predicate
-</span><span class="kw">impl </span>From&lt;<a href="../up/gen/polymorphic/ast/predicate.rs.html#5">polymorphic::Predicate</a>&gt; <span class="kw">for </span><a href="../legacy/ast/predicate.rs.html#11">legacy::Predicate</a> {
-    <span class="kw">fn </span>from(predicate: <a href="../up/gen/polymorphic/ast/predicate.rs.html#5">polymorphic::Predicate</a>) -&gt; <a href="../legacy/ast/predicate.rs.html#11">legacy::Predicate</a> {
-        <span class="kw">match </span><a href="#509">predicate</a> {
-            <a href="../up/gen/polymorphic/ast/predicate.rs.html#6">polymorphic::Predicate::Struct</a>(struct_predicate) =&gt; {
-                <a href="../legacy/ast/predicate.rs.html#12">legacy::Predicate::Struct</a>(<a href="#511">struct_predicate</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
+</span><span class="kw">impl </span>From&lt;polymorphic::Predicate&gt; <span class="kw">for </span>legacy::Predicate {
+    <span class="kw">fn </span>from(predicate: polymorphic::Predicate) -&gt; legacy::Predicate {
+        <span class="kw">match </span>predicate {
+            polymorphic::Predicate::Struct(struct_predicate) =&gt; {
+                legacy::Predicate::Struct(struct_predicate.into())
             }
-            <a href="../up/gen/polymorphic/ast/predicate.rs.html#7">polymorphic::Predicate::Enum</a>(enum_predicate) =&gt; {
-                <a href="../legacy/ast/predicate.rs.html#13">legacy::Predicate::Enum</a>(<a href="#514">enum_predicate</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
+            polymorphic::Predicate::Enum(enum_predicate) =&gt; {
+                legacy::Predicate::Enum(enum_predicate.into())
             }
-            <a href="../up/gen/polymorphic/ast/predicate.rs.html#8">polymorphic::Predicate::Bodyless</a>(typ, local_var) =&gt; {
-                <a href="../legacy/ast/predicate.rs.html#14">legacy::Predicate::Bodyless</a>(<a href="#517">typ</a>.<a href="../up/gen/polymorphic/ast/common.rs.html#347">encode_as_string</a>(), <a href="#517">local_var</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
+            polymorphic::Predicate::Bodyless(typ, local_var) =&gt; {
+                legacy::Predicate::Bodyless(typ.encode_as_string(), local_var.into())
             }
         }
     }
 }
 
-<span class="kw">impl </span>From&lt;<a href="../up/gen/polymorphic/ast/predicate.rs.html#139">polymorphic::StructPredicate</a>&gt; <span class="kw">for </span><a href="../legacy/ast/predicate.rs.html#158">legacy::StructPredicate</a> {
-    <span class="kw">fn </span>from(struct_predicate: <a href="../up/gen/polymorphic/ast/predicate.rs.html#139">polymorphic::StructPredicate</a>) -&gt; <a href="../legacy/ast/predicate.rs.html#158">legacy::StructPredicate</a> {
-        <a href="../legacy/ast/predicate.rs.html#158">legacy::StructPredicate</a> {
-            name: <a href="#525">struct_predicate</a>.typ.<a href="../up/gen/polymorphic/ast/common.rs.html#347">encode_as_string</a>(),
-            this: <a href="#525">struct_predicate</a>.this.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
-            body: <a href="#525">struct_predicate</a>.body.map(|body_expr| <a href="#529">body_expr</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
+<span class="kw">impl </span>From&lt;polymorphic::StructPredicate&gt; <span class="kw">for </span>legacy::StructPredicate {
+    <span class="kw">fn </span>from(struct_predicate: polymorphic::StructPredicate) -&gt; legacy::StructPredicate {
+        legacy::StructPredicate {
+            name: struct_predicate.typ.encode_as_string(),
+            this: struct_predicate.this.into(),
+            body: struct_predicate.body.map(|body_expr| body_expr.into()),
         }
     }
 }
 
-<span class="kw">impl </span>From&lt;<a href="../up/gen/polymorphic/ast/predicate.rs.html#211">polymorphic::EnumPredicate</a>&gt; <span class="kw">for </span><a href="../legacy/ast/predicate.rs.html#237">legacy::EnumPredicate</a> {
-    <span class="kw">fn </span>from(enum_predicate: <a href="../up/gen/polymorphic/ast/predicate.rs.html#211">polymorphic::EnumPredicate</a>) -&gt; <a href="../legacy/ast/predicate.rs.html#237">legacy::EnumPredicate</a> {
-        <a href="../legacy/ast/predicate.rs.html#237">legacy::EnumPredicate</a> {
-            name: <a href="#535">enum_predicate</a>.typ.<a href="../up/gen/polymorphic/ast/common.rs.html#236">name</a>(),
-            this: <a href="#535">enum_predicate</a>.this.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
-            discriminant_field: <a href="#535">enum_predicate</a>.discriminant_field.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
-            discriminant_bounds: <a href="#535">enum_predicate</a>.discriminant_bounds.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
-            variants: <a href="#535">enum_predicate</a>
+<span class="kw">impl </span>From&lt;polymorphic::EnumPredicate&gt; <span class="kw">for </span>legacy::EnumPredicate {
+    <span class="kw">fn </span>from(enum_predicate: polymorphic::EnumPredicate) -&gt; legacy::EnumPredicate {
+        legacy::EnumPredicate {
+            name: enum_predicate.typ.name(),
+            this: enum_predicate.this.into(),
+            discriminant_field: enum_predicate.discriminant_field.into(),
+            discriminant_bounds: enum_predicate.discriminant_bounds.into(),
+            variants: enum_predicate
                 .variants
-                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
-                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|(expr, label, struct_predicate)| {
-                    (<a href="#544">expr</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(), <a href="#544">label</a>, <a href="#544">struct_predicate</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
+                .into_iter()
+                .map(|(expr, label, struct_predicate)| {
+                    (expr.into(), label, struct_predicate.into())
                 })
-                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>(),
+                .collect(),
         }
     }
 }
 
-<span class="kw">impl </span>From&lt;<a href="../up/gen/polymorphic/ast/predicate.rs.html#227">polymorphic::EnumVariantIndex</a>&gt; <span class="kw">for </span><a href="../legacy/ast/predicate.rs.html#252">legacy::EnumVariantIndex</a> {
-    <span class="kw">fn </span>from(enum_variant_index: <a href="../up/gen/polymorphic/ast/predicate.rs.html#227">polymorphic::EnumVariantIndex</a>) -&gt; <a href="../legacy/ast/predicate.rs.html#252">legacy::EnumVariantIndex</a> {
-        legacy::EnumVariantIndex::new(<a href="#553">enum_variant_index</a>.<span class="number">0</span>)
+<span class="kw">impl </span>From&lt;polymorphic::EnumVariantIndex&gt; <span class="kw">for </span>legacy::EnumVariantIndex {
+    <span class="kw">fn </span>from(enum_variant_index: polymorphic::EnumVariantIndex) -&gt; legacy::EnumVariantIndex {
+        legacy::EnumVariantIndex::new(enum_variant_index.<span class="number">0</span>)
     }
 }
 
 <span class="comment">// stmt
-</span><span class="kw">impl </span>From&lt;<a href="../up/gen/polymorphic/ast/stmt.rs.html#10">polymorphic::Stmt</a>&gt; <span class="kw">for </span><a href="../legacy/ast/stmt.rs.html#20">legacy::Stmt</a> {
-    <span class="kw">fn </span>from(stmt: <a href="../up/gen/polymorphic/ast/stmt.rs.html#10">polymorphic::Stmt</a>) -&gt; <a href="../legacy/ast/stmt.rs.html#20">legacy::Stmt</a> {
-        <span class="kw">match </span><a href="#560">stmt</a> {
-            <a href="../up/gen/polymorphic/ast/stmt.rs.html#11">polymorphic::Stmt::Comment</a>(comment) =&gt; <a href="../legacy/ast/stmt.rs.html#21">legacy::Stmt::Comment</a>(<a href="#562">comment</a>.comment),
-            <a href="../up/gen/polymorphic/ast/stmt.rs.html#12">polymorphic::Stmt::Label</a>(label) =&gt; <a href="../legacy/ast/stmt.rs.html#22">legacy::Stmt::Label</a>(<a href="#563">label</a>.label),
-            <a href="../up/gen/polymorphic/ast/stmt.rs.html#13">polymorphic::Stmt::Inhale</a>(inhale) =&gt; <a href="../legacy/ast/stmt.rs.html#23">legacy::Stmt::Inhale</a>(<a href="#564">inhale</a>.expr.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
-            <a href="../up/gen/polymorphic/ast/stmt.rs.html#14">polymorphic::Stmt::Exhale</a>(exhale) =&gt; {
-                <a href="../legacy/ast/stmt.rs.html#24">legacy::Stmt::Exhale</a>(<a href="#565">exhale</a>.expr.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(), <a href="#565">exhale</a>.position.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
+</span><span class="kw">impl </span>From&lt;polymorphic::Stmt&gt; <span class="kw">for </span>legacy::Stmt {
+    <span class="kw">fn </span>from(stmt: polymorphic::Stmt) -&gt; legacy::Stmt {
+        <span class="kw">match </span>stmt {
+            polymorphic::Stmt::Comment(comment) =&gt; legacy::Stmt::Comment(comment.comment),
+            polymorphic::Stmt::Label(label) =&gt; legacy::Stmt::Label(label.label),
+            polymorphic::Stmt::Inhale(inhale) =&gt; legacy::Stmt::Inhale(inhale.expr.into()),
+            polymorphic::Stmt::Exhale(exhale) =&gt; {
+                legacy::Stmt::Exhale(exhale.expr.into(), exhale.position.into())
             }
-            <a href="../up/gen/polymorphic/ast/stmt.rs.html#15">polymorphic::Stmt::Assert</a>(assert) =&gt; {
-                <a href="../legacy/ast/stmt.rs.html#25">legacy::Stmt::Assert</a>(<a href="#568">assert</a>.expr.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(), <a href="#568">assert</a>.position.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
+            polymorphic::Stmt::Assert(assert) =&gt; {
+                legacy::Stmt::Assert(assert.expr.into(), assert.position.into())
             }
-            <a href="../up/gen/polymorphic/ast/stmt.rs.html#17">polymorphic::Stmt::MethodCall</a>(method_call) =&gt; <a href="../legacy/ast/stmt.rs.html#27">legacy::Stmt::MethodCall</a>(
-                <a href="#571">method_call</a>.method_name,
-                <a href="#571">method_call</a>
+            polymorphic::Stmt::MethodCall(method_call) =&gt; legacy::Stmt::MethodCall(
+                method_call.method_name,
+                method_call
                     .arguments
-                    .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
-                    .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|argument| <a href="#576">argument</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
-                    .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>(),
-                <a href="#571">method_call</a>
+                    .into_iter()
+                    .map(|argument| argument.into())
+                    .collect(),
+                method_call
                     .targets
-                    .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
-                    .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|target| <a href="#581">target</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
-                    .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>(),
+                    .into_iter()
+                    .map(|target| target.into())
+                    .collect(),
             ),
-            <a href="../up/gen/polymorphic/ast/stmt.rs.html#19">polymorphic::Stmt::Assign</a>(assign) =&gt; <a href="../legacy/ast/stmt.rs.html#29">legacy::Stmt::Assign</a>(
-                <a href="#584">assign</a>.target.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
-                <a href="#584">assign</a>.source.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
-                <a href="#584">assign</a>.kind.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
+            polymorphic::Stmt::Assign(assign) =&gt; legacy::Stmt::Assign(
+                assign.target.into(),
+                assign.source.into(),
+                assign.kind.into(),
             ),
-            <a href="../up/gen/polymorphic/ast/stmt.rs.html#21">polymorphic::Stmt::Fold</a>(fold) =&gt; <a href="../legacy/ast/stmt.rs.html#31">legacy::Stmt::Fold</a>(
-                <a href="#589">fold</a>.predicate.<a href="../up/gen/polymorphic/ast/common.rs.html#236">name</a>(),
-                <a href="#589">fold</a>.arguments
-                    .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
-                    .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|argument| <a href="#593">argument</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
-                    .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>(),
-                <a href="#589">fold</a>.permission.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
-                <a href="#589">fold</a>.enum_variant
-                    .map(|enum_variant_index| <a href="#597">enum_variant_index</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
-                <a href="#589">fold</a>.position.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
+            polymorphic::Stmt::Fold(fold) =&gt; legacy::Stmt::Fold(
+                fold.predicate.name(),
+                fold.arguments
+                    .into_iter()
+                    .map(|argument| argument.into())
+                    .collect(),
+                fold.permission.into(),
+                fold.enum_variant
+                    .map(|enum_variant_index| enum_variant_index.into()),
+                fold.position.into(),
             ),
-            <a href="../up/gen/polymorphic/ast/stmt.rs.html#23">polymorphic::Stmt::Unfold</a>(unfold) =&gt; <a href="../legacy/ast/stmt.rs.html#39">legacy::Stmt::Unfold</a>(
-                <a href="#600">unfold</a>.predicate.<a href="../up/gen/polymorphic/ast/common.rs.html#236">name</a>(),
-                <a href="#600">unfold</a>
+            polymorphic::Stmt::Unfold(unfold) =&gt; legacy::Stmt::Unfold(
+                unfold.predicate.name(),
+                unfold
                     .arguments
-                    .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
-                    .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|argument| <a href="#605">argument</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
-                    .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>(),
-                <a href="#600">unfold</a>.permission.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
-                <a href="#600">unfold</a>
+                    .into_iter()
+                    .map(|argument| argument.into())
+                    .collect(),
+                unfold.permission.into(),
+                unfold
                     .enum_variant
-                    .map(|enum_variant_index| <a href="#610">enum_variant_index</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
+                    .map(|enum_variant_index| enum_variant_index.into()),
             ),
-            <a href="../up/gen/polymorphic/ast/stmt.rs.html#26">polymorphic::Stmt::Obtain</a>(obtain) =&gt; {
-                <a href="../legacy/ast/stmt.rs.html#42">legacy::Stmt::Obtain</a>(<a href="#612">obtain</a>.expr.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(), <a href="#612">obtain</a>.position.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
+            polymorphic::Stmt::Obtain(obtain) =&gt; {
+                legacy::Stmt::Obtain(obtain.expr.into(), obtain.position.into())
             }
-            <a href="../up/gen/polymorphic/ast/stmt.rs.html#29">polymorphic::Stmt::BeginFrame</a>(<span class="kw">_</span>) =&gt; <a href="../legacy/ast/stmt.rs.html#45">legacy::Stmt::BeginFrame</a>,
-            <a href="../up/gen/polymorphic/ast/stmt.rs.html#32">polymorphic::Stmt::EndFrame</a>(<span class="kw">_</span>) =&gt; <a href="../legacy/ast/stmt.rs.html#48">legacy::Stmt::EndFrame</a>,
-            <a href="../up/gen/polymorphic/ast/stmt.rs.html#39">polymorphic::Stmt::TransferPerm</a>(transfer_perm) =&gt; <a href="../legacy/ast/stmt.rs.html#55">legacy::Stmt::TransferPerm</a>(
-                <a href="#617">transfer_perm</a>.left.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
-                <a href="#617">transfer_perm</a>.right.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
-                <a href="#617">transfer_perm</a>.unchecked,
+            polymorphic::Stmt::BeginFrame(<span class="kw">_</span>) =&gt; legacy::Stmt::BeginFrame,
+            polymorphic::Stmt::EndFrame(<span class="kw">_</span>) =&gt; legacy::Stmt::EndFrame,
+            polymorphic::Stmt::TransferPerm(transfer_perm) =&gt; legacy::Stmt::TransferPerm(
+                transfer_perm.left.into(),
+                transfer_perm.right.into(),
+                transfer_perm.unchecked,
             ),
-            <a href="../up/gen/polymorphic/ast/stmt.rs.html#44">polymorphic::Stmt::PackageMagicWand</a>(package_magic_wand) =&gt; {
-                <a href="../legacy/ast/stmt.rs.html#60">legacy::Stmt::PackageMagicWand</a>(
-                    <a href="#622">package_magic_wand</a>.magic_wand.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
-                    <a href="#622">package_magic_wand</a>
+            polymorphic::Stmt::PackageMagicWand(package_magic_wand) =&gt; {
+                legacy::Stmt::PackageMagicWand(
+                    package_magic_wand.magic_wand.into(),
+                    package_magic_wand
                         .package_stmts
-                        .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
-                        .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|package_stmt| <a href="#628">package_stmt</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
-                        .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>(),
-                    <a href="#622">package_magic_wand</a>.label,
-                    <a href="#622">package_magic_wand</a>
+                        .into_iter()
+                        .map(|package_stmt| package_stmt.into())
+                        .collect(),
+                    package_magic_wand.label,
+                    package_magic_wand
                         .variables
-                        .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
-                        .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|variable| <a href="#634">variable</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
-                        .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>(),
-                    <a href="#622">package_magic_wand</a>.position.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
+                        .into_iter()
+                        .map(|variable| variable.into())
+                        .collect(),
+                    package_magic_wand.position.into(),
                 )
             }
-            <a href="../up/gen/polymorphic/ast/stmt.rs.html#47">polymorphic::Stmt::ApplyMagicWand</a>(apply_magic_wand) =&gt; <a href="../legacy/ast/stmt.rs.html#63">legacy::Stmt::ApplyMagicWand</a>(
-                <a href="#639">apply_magic_wand</a>.magic_wand.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
-                <a href="#639">apply_magic_wand</a>.position.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
+            polymorphic::Stmt::ApplyMagicWand(apply_magic_wand) =&gt; legacy::Stmt::ApplyMagicWand(
+                apply_magic_wand.magic_wand.into(),
+                apply_magic_wand.position.into(),
             ),
-            <a href="../up/gen/polymorphic/ast/stmt.rs.html#49">polymorphic::Stmt::ExpireBorrows</a>(expire_borrows) =&gt; {
-                <a href="../legacy/ast/stmt.rs.html#65">legacy::Stmt::ExpireBorrows</a>(<a href="#643">expire_borrows</a>.dag.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
+            polymorphic::Stmt::ExpireBorrows(expire_borrows) =&gt; {
+                legacy::Stmt::ExpireBorrows(expire_borrows.dag.into())
             }
-            <a href="../up/gen/polymorphic/ast/stmt.rs.html#51">polymorphic::Stmt::If</a>(if_stmt) =&gt; <a href="../legacy/ast/stmt.rs.html#67">legacy::Stmt::If</a>(
-                <a href="#646">if_stmt</a>.guard.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
-                <a href="#646">if_stmt</a>
+            polymorphic::Stmt::If(if_stmt) =&gt; legacy::Stmt::If(
+                if_stmt.guard.into(),
+                if_stmt
                     .then_stmts
-                    .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
-                    .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|then_stmt| <a href="#651">then_stmt</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
-                    .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>(),
-                <a href="#646">if_stmt</a>
+                    .into_iter()
+                    .map(|then_stmt| then_stmt.into())
+                    .collect(),
+                if_stmt
                     .else_stmts
-                    .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
-                    .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|else_stmt| <a href="#656">else_stmt</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
-                    .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>(),
+                    .into_iter()
+                    .map(|else_stmt| else_stmt.into())
+                    .collect(),
             ),
-            <a href="../up/gen/polymorphic/ast/stmt.rs.html#57">polymorphic::Stmt::Downcast</a>(downcast) =&gt; {
-                <a href="../legacy/ast/stmt.rs.html#73">legacy::Stmt::Downcast</a>(<a href="#659">downcast</a>.base.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(), <a href="#659">downcast</a>.field.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
+            polymorphic::Stmt::Downcast(downcast) =&gt; {
+                legacy::Stmt::Downcast(downcast.base.into(), downcast.field.into())
             }
         }
     }
 }
 
-<span class="kw">impl </span>From&lt;<a href="../up/gen/polymorphic/ast/stmt.rs.html#84">polymorphic::AssignKind</a>&gt; <span class="kw">for </span><a href="../legacy/ast/stmt.rs.html#106">legacy::AssignKind</a> {
-    <span class="kw">fn </span>from(assign_kind: <a href="../up/gen/polymorphic/ast/stmt.rs.html#84">polymorphic::AssignKind</a>) -&gt; <a href="../legacy/ast/stmt.rs.html#106">legacy::AssignKind</a> {
-        <span class="kw">match </span><a href="#667">assign_kind</a> {
-            <a href="../up/gen/polymorphic/ast/stmt.rs.html#87">polymorphic::AssignKind::Copy</a> =&gt; <a href="../legacy/ast/stmt.rs.html#109">legacy::AssignKind::Copy</a>,
-            <a href="../up/gen/polymorphic/ast/stmt.rs.html#90">polymorphic::AssignKind::Move</a> =&gt; <a href="../legacy/ast/stmt.rs.html#112">legacy::AssignKind::Move</a>,
-            <a href="../up/gen/polymorphic/ast/stmt.rs.html#93">polymorphic::AssignKind::MutableBorrow</a>(borrow) =&gt; {
-                <a href="../legacy/ast/stmt.rs.html#115">legacy::AssignKind::MutableBorrow</a>(<a href="#671">borrow</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
+<span class="kw">impl </span>From&lt;polymorphic::AssignKind&gt; <span class="kw">for </span>legacy::AssignKind {
+    <span class="kw">fn </span>from(assign_kind: polymorphic::AssignKind) -&gt; legacy::AssignKind {
+        <span class="kw">match </span>assign_kind {
+            polymorphic::AssignKind::Copy =&gt; legacy::AssignKind::Copy,
+            polymorphic::AssignKind::Move =&gt; legacy::AssignKind::Move,
+            polymorphic::AssignKind::MutableBorrow(borrow) =&gt; {
+                legacy::AssignKind::MutableBorrow(borrow.into())
             }
-            <a href="../up/gen/polymorphic/ast/stmt.rs.html#96">polymorphic::AssignKind::SharedBorrow</a>(borrow) =&gt; {
-                <a href="../legacy/ast/stmt.rs.html#118">legacy::AssignKind::SharedBorrow</a>(<a href="#674">borrow</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
+            polymorphic::AssignKind::SharedBorrow(borrow) =&gt; {
+                legacy::AssignKind::SharedBorrow(borrow.into())
             }
-            <a href="../up/gen/polymorphic/ast/stmt.rs.html#99">polymorphic::AssignKind::Ghost</a> =&gt; <a href="../legacy/ast/stmt.rs.html#121">legacy::AssignKind::Ghost</a>,
+            polymorphic::AssignKind::Ghost =&gt; legacy::AssignKind::Ghost,
         }
     }
 }
 
 <span class="comment">// trigger
-</span><span class="kw">impl </span>From&lt;<a href="../up/gen/polymorphic/ast/trigger.rs.html#7">polymorphic::Trigger</a>&gt; <span class="kw">for </span><a href="../legacy/ast/trigger.rs.html#11">legacy::Trigger</a> {
-    <span class="kw">fn </span>from(trigger: <a href="../up/gen/polymorphic/ast/trigger.rs.html#7">polymorphic::Trigger</a>) -&gt; <a href="../legacy/ast/trigger.rs.html#11">legacy::Trigger</a> {
-        legacy::Trigger::new(<a href="#684">trigger</a>.<span class="number">0</span>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|expr| <a href="#685">expr</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>())
+</span><span class="kw">impl </span>From&lt;polymorphic::Trigger&gt; <span class="kw">for </span>legacy::Trigger {
+    <span class="kw">fn </span>from(trigger: polymorphic::Trigger) -&gt; legacy::Trigger {
+        legacy::Trigger::new(trigger.<span class="number">0</span>.into_iter().map(|expr| expr.into()).collect())
     }
 }
 
 <span class="comment">// method
-</span><span class="kw">impl </span>From&lt;<a href="../up/gen/polymorphic/cfg/method.rs.html#11">polymorphic::CfgMethod</a>&gt; <span class="kw">for </span><a href="../legacy/cfg/method.rs.html#25">legacy::CfgMethod</a> {
-    <span class="kw">fn </span>from(cfg_method: <a href="../up/gen/polymorphic/cfg/method.rs.html#11">polymorphic::CfgMethod</a>) -&gt; <a href="../legacy/cfg/method.rs.html#25">legacy::CfgMethod</a> {
-        <a href="../legacy/cfg/method.rs.html#25">legacy::CfgMethod</a> {
-            method_name: <a href="#691">cfg_method</a>.method_name,
-            formal_returns: <a href="#691">cfg_method</a>
+</span><span class="kw">impl </span>From&lt;polymorphic::CfgMethod&gt; <span class="kw">for </span>legacy::CfgMethod {
+    <span class="kw">fn </span>from(cfg_method: polymorphic::CfgMethod) -&gt; legacy::CfgMethod {
+        legacy::CfgMethod {
+            method_name: cfg_method.method_name,
+            formal_returns: cfg_method
                 .formal_returns
-                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
-                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|formal_return| <a href="#697">formal_return</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
-                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>(),
-            local_vars: <a href="#691">cfg_method</a>
+                .into_iter()
+                .map(|formal_return| formal_return.into())
+                .collect(),
+            local_vars: cfg_method
                 .local_vars
-                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
-                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|local_var| <a href="#702">local_var</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
-                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>(),
-            labels: <a href="#691">cfg_method</a>.labels.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>(),
-            basic_blocks: <a href="#691">cfg_method</a>
+                .into_iter()
+                .map(|local_var| local_var.into())
+                .collect(),
+            labels: cfg_method.labels.into_iter().collect(),
+            basic_blocks: cfg_method
                 .basic_blocks
-                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
-                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|basic_block| <a href="#708">basic_block</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
-                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>(),
-            basic_blocks_labels: <a href="#691">cfg_method</a>.basic_blocks_labels.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>(),
+                .into_iter()
+                .map(|basic_block| basic_block.into())
+                .collect(),
+            basic_blocks_labels: cfg_method.basic_blocks_labels.into_iter().collect(),
         }
     }
 }
 
-<span class="kw">impl </span>From&lt;<a href="../up/gen/polymorphic/cfg/method.rs.html#28">polymorphic::CfgBlock</a>&gt; <span class="kw">for </span><a href="../legacy/cfg/method.rs.html#37">legacy::CfgBlock</a> {
-    <span class="kw">fn </span>from(cfg_block: <a href="../up/gen/polymorphic/cfg/method.rs.html#28">polymorphic::CfgBlock</a>) -&gt; <a href="../legacy/cfg/method.rs.html#37">legacy::CfgBlock</a> {
-        <a href="../legacy/cfg/method.rs.html#37">legacy::CfgBlock</a> {
-            stmts: <a href="#716">cfg_block</a>
+<span class="kw">impl </span>From&lt;polymorphic::CfgBlock&gt; <span class="kw">for </span>legacy::CfgBlock {
+    <span class="kw">fn </span>from(cfg_block: polymorphic::CfgBlock) -&gt; legacy::CfgBlock {
+        legacy::CfgBlock {
+            stmts: cfg_block
                 .stmts
-                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
-                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|stmt| <a href="#721">stmt</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
-                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>(),
-            successor: <a href="#716">cfg_block</a>.successor.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
+                .into_iter()
+                .map(|stmt| stmt.into())
+                .collect(),
+            successor: cfg_block.successor.into(),
         }
     }
 }
 
-<span class="kw">impl </span>From&lt;<a href="../up/gen/polymorphic/cfg/method.rs.html#33">polymorphic::Successor</a>&gt; <span class="kw">for </span><a href="../legacy/cfg/method.rs.html#43">legacy::Successor</a> {
-    <span class="kw">fn </span>from(successor: <a href="../up/gen/polymorphic/cfg/method.rs.html#33">polymorphic::Successor</a>) -&gt; <a href="../legacy/cfg/method.rs.html#43">legacy::Successor</a> {
-        <span class="kw">match </span><a href="#729">successor</a> {
-            <a href="../up/gen/polymorphic/cfg/method.rs.html#34">polymorphic::Successor::Undefined</a> =&gt; <a href="../legacy/cfg/method.rs.html#44">legacy::Successor::Undefined</a>,
-            <a href="../up/gen/polymorphic/cfg/method.rs.html#35">polymorphic::Successor::Return</a> =&gt; <a href="../legacy/cfg/method.rs.html#45">legacy::Successor::Return</a>,
-            <a href="../up/gen/polymorphic/cfg/method.rs.html#36">polymorphic::Successor::Goto</a>(cfg_block_index) =&gt; {
-                <a href="../legacy/cfg/method.rs.html#46">legacy::Successor::Goto</a>(<a href="#733">cfg_block_index</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
+<span class="kw">impl </span>From&lt;polymorphic::Successor&gt; <span class="kw">for </span>legacy::Successor {
+    <span class="kw">fn </span>from(successor: polymorphic::Successor) -&gt; legacy::Successor {
+        <span class="kw">match </span>successor {
+            polymorphic::Successor::Undefined =&gt; legacy::Successor::Undefined,
+            polymorphic::Successor::Return =&gt; legacy::Successor::Return,
+            polymorphic::Successor::Goto(cfg_block_index) =&gt; {
+                legacy::Successor::Goto(cfg_block_index.into())
             }
-            <a href="../up/gen/polymorphic/cfg/method.rs.html#37">polymorphic::Successor::GotoSwitch</a>(expr_indices, cfg_block_index) =&gt; {
-                <a href="../legacy/cfg/method.rs.html#47">legacy::Successor::GotoSwitch</a>(
-                    <a href="#736">expr_indices</a>
-                        .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
-                        .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|(expr, index)| (<a href="#740">expr</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(), <a href="#740">index</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()))
-                        .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>(),
-                    <a href="#736">cfg_block_index</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
+            polymorphic::Successor::GotoSwitch(expr_indices, cfg_block_index) =&gt; {
+                legacy::Successor::GotoSwitch(
+                    expr_indices
+                        .into_iter()
+                        .map(|(expr, index)| (expr.into(), index.into()))
+                        .collect(),
+                    cfg_block_index.into(),
                 )
             }
         }
     }
 }
 
-<span class="kw">impl </span>From&lt;<a href="../up/gen/polymorphic/cfg/method.rs.html#40">polymorphic::CfgBlockIndex</a>&gt; <span class="kw">for </span><a href="../legacy/cfg/method.rs.html#53">legacy::CfgBlockIndex</a> {
-    <span class="kw">fn </span>from(cfg_block_index: <a href="../up/gen/polymorphic/cfg/method.rs.html#40">polymorphic::CfgBlockIndex</a>) -&gt; <a href="../legacy/cfg/method.rs.html#53">legacy::CfgBlockIndex</a> {
-        <a href="../legacy/cfg/method.rs.html#53">legacy::CfgBlockIndex</a> {
-            block_index: <a href="#750">cfg_block_index</a>.block_index,
+<span class="kw">impl </span>From&lt;polymorphic::CfgBlockIndex&gt; <span class="kw">for </span>legacy::CfgBlockIndex {
+    <span class="kw">fn </span>from(cfg_block_index: polymorphic::CfgBlockIndex) -&gt; legacy::CfgBlockIndex {
+        legacy::CfgBlockIndex {
+            block_index: cfg_block_index.block_index,
         }
     }
 }
 
 <span class="comment">// borrows
-</span><span class="kw">impl </span>From&lt;<a href="../up/gen/polymorphic/borrows.rs.html#9">polymorphic::Borrow</a>&gt; <span class="kw">for </span><a href="../legacy/borrows.rs.html#18">legacy::Borrow</a> {
-    <span class="kw">fn </span>from(borrow: <a href="../up/gen/polymorphic/borrows.rs.html#9">polymorphic::Borrow</a>) -&gt; <a href="../legacy/borrows.rs.html#18">legacy::Borrow</a> {
-        <a href="../legacy/borrows.rs.html#18">legacy::Borrow</a>(<a href="#759">borrow</a>.<span class="number">0</span>)
+</span><span class="kw">impl </span>From&lt;polymorphic::Borrow&gt; <span class="kw">for </span>legacy::Borrow {
+    <span class="kw">fn </span>from(borrow: polymorphic::Borrow) -&gt; legacy::Borrow {
+        legacy::Borrow(borrow.<span class="number">0</span>)
     }
 }
 
-<span class="kw">impl </span>From&lt;<a href="../up/gen/polymorphic/borrows.rs.html#27">polymorphic::Node</a>&gt; <span class="kw">for </span><a href="../legacy/borrows.rs.html#44">legacy::Node</a> {
-    <span class="kw">fn </span>from(node: <a href="../up/gen/polymorphic/borrows.rs.html#27">polymorphic::Node</a>) -&gt; <a href="../legacy/borrows.rs.html#44">legacy::Node</a> {
-        <a href="../legacy/borrows.rs.html#44">legacy::Node</a> {
-            guard: <a href="#765">node</a>.guard.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
-            borrow: <a href="#765">node</a>.borrow.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
-            reborrowing_nodes: <a href="#765">node</a>
+<span class="kw">impl </span>From&lt;polymorphic::Node&gt; <span class="kw">for </span>legacy::Node {
+    <span class="kw">fn </span>from(node: polymorphic::Node) -&gt; legacy::Node {
+        legacy::Node {
+            guard: node.guard.into(),
+            borrow: node.borrow.into(),
+            reborrowing_nodes: node
                 .reborrowing_nodes
-                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
-                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|reborrowing_node| <a href="#772">reborrowing_node</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
-                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>(),
-            reborrowed_nodes: <a href="#765">node</a>
+                .into_iter()
+                .map(|reborrowing_node| reborrowing_node.into())
+                .collect(),
+            reborrowed_nodes: node
                 .reborrowed_nodes
-                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
-                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|reborrowed_node| <a href="#777">reborrowed_node</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
-                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>(),
-            stmts: <a href="#765">node</a>.stmts.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|stmt| <a href="#779">stmt</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>(),
-            borrowed_places: <a href="#765">node</a>
+                .into_iter()
+                .map(|reborrowed_node| reborrowed_node.into())
+                .collect(),
+            stmts: node.stmts.into_iter().map(|stmt| stmt.into()).collect(),
+            borrowed_places: node
                 .borrowed_places
-                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
-                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|borrowed_place| <a href="#783">borrowed_place</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
-                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>(),
-            conflicting_borrows: <a href="#765">node</a>
+                .into_iter()
+                .map(|borrowed_place| borrowed_place.into())
+                .collect(),
+            conflicting_borrows: node
                 .conflicting_borrows
-                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
-                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|conflicting_borrow| <a href="#788">conflicting_borrow</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
-                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>(),
-            alive_conflicting_borrows: <a href="#765">node</a>
+                .into_iter()
+                .map(|conflicting_borrow| conflicting_borrow.into())
+                .collect(),
+            alive_conflicting_borrows: node
                 .alive_conflicting_borrows
-                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
-                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|alive_conflicting_borrow| <a href="#793">alive_conflicting_borrow</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
-                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>(),
-            place: <a href="#765">node</a>.place.map(|expr| <a href="#795">expr</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
+                .into_iter()
+                .map(|alive_conflicting_borrow| alive_conflicting_borrow.into())
+                .collect(),
+            place: node.place.map(|expr| expr.into()),
         }
     }
 }
 
-<span class="kw">impl </span>From&lt;<a href="../up/gen/polymorphic/borrows.rs.html#78">polymorphic::DAG</a>&gt; <span class="kw">for </span><a href="../legacy/borrows.rs.html#98">legacy::DAG</a> {
-    <span class="kw">fn </span>from(dag: <a href="../up/gen/polymorphic/borrows.rs.html#78">polymorphic::DAG</a>) -&gt; <a href="../legacy/borrows.rs.html#98">legacy::DAG</a> {
-        <a href="../legacy/borrows.rs.html#98">legacy::DAG</a> {
-            borrow_indices: <a href="#801">dag</a>
+<span class="kw">impl </span>From&lt;polymorphic::DAG&gt; <span class="kw">for </span>legacy::DAG {
+    <span class="kw">fn </span>from(dag: polymorphic::DAG) -&gt; legacy::DAG {
+        legacy::DAG {
+            borrow_indices: dag
                 .borrow_indices
-                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
-                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|(borrow, index)| (<a href="#806">borrow</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(), <a href="#806">index</a>))
-                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>(),
-            nodes: <a href="#801">dag</a>.nodes.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|node| <a href="#808">node</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>(),
-            borrowed_places: <a href="#801">dag</a>
+                .into_iter()
+                .map(|(borrow, index)| (borrow.into(), index))
+                .collect(),
+            nodes: dag.nodes.into_iter().map(|node| node.into()).collect(),
+            borrowed_places: dag
                 .borrowed_places
-                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
-                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|borrowed_place| <a href="#812">borrowed_place</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
-                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>(),
+                .into_iter()
+                .map(|borrowed_place| borrowed_place.into())
+                .collect(),
         }
     }
 }
 
 <span class="comment">// program
-</span><span class="kw">impl </span>From&lt;<a href="../up/gen/polymorphic/program.rs.html#3">polymorphic::Program</a>&gt; <span class="kw">for </span><a href="../legacy/program.rs.html#4">legacy::Program</a> {
-    <span class="kw">fn </span>from(program: <a href="../up/gen/polymorphic/program.rs.html#3">polymorphic::Program</a>) -&gt; <a href="../legacy/program.rs.html#4">legacy::Program</a> {
-        <a href="../legacy/program.rs.html#4">legacy::Program</a> {
-            name: <a href="#820">program</a>.name,
-            domains: <a href="#820">program</a>
+</span><span class="kw">impl </span>From&lt;polymorphic::Program&gt; <span class="kw">for </span>legacy::Program {
+    <span class="kw">fn </span>from(program: polymorphic::Program) -&gt; legacy::Program {
+        legacy::Program {
+            name: program.name,
+            backend_types: program
+                .backend_types
+                .into_iter()
+                .map(|backend_type| backend_type.into())
+                .collect(),
+            domains: program
                 .domains
-                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
-                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|domain| <a href="#826">domain</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
-                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>(),
-            fields: <a href="#820">program</a>
+                .into_iter()
+                .map(|domain| domain.into())
+                .collect(),
+            fields: program
                 .fields
-                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
-                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|field| <a href="#831">field</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
-                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>(),
-            builtin_methods: <a href="#820">program</a>
+                .into_iter()
+                .map(|field| field.into())
+                .collect(),
+            builtin_methods: program
                 .builtin_methods
-                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
-                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|builtin_method| <a href="#836">builtin_method</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
-                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>(),
-            methods: <a href="#820">program</a>
+                .into_iter()
+                .map(|builtin_method| builtin_method.into())
+                .collect(),
+            methods: program
                 .methods
-                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
-                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|method| <a href="#841">method</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
-                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>(),
-            functions: <a href="#820">program</a>
+                .into_iter()
+                .map(|method| method.into())
+                .collect(),
+            functions: program
                 .functions
-                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
-                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|function| <a href="#846">function</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
-                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>(),
-            viper_predicates: <a href="#820">program</a>
+                .into_iter()
+                .map(|function| function.into())
+                .collect(),
+            viper_predicates: program
                 .viper_predicates
-                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
-                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|viper_predicate| <a href="#851">viper_predicate</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
-                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>(),
+                .into_iter()
+                .map(|viper_predicate| viper_predicate.into())
+                .collect(),
         }
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="vir" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="vir" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

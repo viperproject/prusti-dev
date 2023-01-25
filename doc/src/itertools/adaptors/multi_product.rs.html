@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/itertools-0.10.5/src/adaptors/multi_product.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>multi_product.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../itertools/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/itertools-0.10.5/src/adaptors/multi_product.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>multi_product.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../itertools/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -230,10 +230,10 @@
 <a href="#230" id="230">230</a>
 </pre><pre class="rust"><code><span class="attr">#![cfg(feature = <span class="string">&quot;use_alloc&quot;</span>)]
 
-</span><span class="kw">use </span><a href="../lib.rs.html#234"><span class="kw">crate</span>::size_hint</a>;
-<span class="kw">use </span><a href="../lib.rs.html#431"><span class="kw">crate</span>::Itertools</a>;
+</span><span class="kw">use </span><span class="kw">crate</span>::size_hint;
+<span class="kw">use </span><span class="kw">crate</span>::Itertools;
 
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/vec/struct.Vec.html">alloc::vec::Vec</a>;
+<span class="kw">use </span>alloc::vec::Vec;
 
 <span class="attr">#[derive(Clone)]
 </span><span class="doccomment">/// An iterator adaptor that iterates over the cartesian product of
@@ -245,15 +245,15 @@
 /// for more information.
 </span><span class="attr">#[must_use = <span class="string">&quot;iterator adaptors are lazy and do nothing unless consumed&quot;</span>]
 </span><span class="kw">pub struct </span>MultiProduct&lt;I&gt;(Vec&lt;MultiProductIter&lt;I&gt;&gt;)
-    <span class="kw">where </span>I: <a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a> + <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a>,
-          I::Item: <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a>;
+    <span class="kw">where </span>I: Iterator + Clone,
+          I::Item: Clone;
 
-<span class="kw">impl</span>&lt;I&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">std::fmt::Debug</a> <span class="kw">for </span>MultiProduct&lt;I&gt;
+<span class="kw">impl</span>&lt;I&gt; std::fmt::Debug <span class="kw">for </span>MultiProduct&lt;I&gt;
 <span class="kw">where
-    </span>I: <a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a> + <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> + <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">std::fmt::Debug</a>,
-    I::Item: <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> + <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">std::fmt::Debug</a>,
+    </span>I: Iterator + Clone + std::fmt::Debug,
+    I::Item: Clone + std::fmt::Debug,
 {
-    <a class="macro" href="../impl_macros.rs.html#4-14">debug_fmt_fields!</a>(CoalesceBy, <span class="number">0</span>);
+    <span class="macro">debug_fmt_fields!</span>(CoalesceBy, <span class="number">0</span>);
 }
 
 <span class="doccomment">/// Create a new cartesian product iterator over an arbitrary number
@@ -261,19 +261,19 @@
 ///
 /// Iterator element is of type `Vec&lt;H::Item::Item&gt;`.
 </span><span class="kw">pub fn </span>multi_cartesian_product&lt;H&gt;(iters: H) -&gt; MultiProduct&lt;&lt;H::Item <span class="kw">as </span>IntoIterator&gt;::IntoIter&gt;
-    <span class="kw">where </span>H: <a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a>,
-          H::Item: <a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">IntoIterator</a>,
-          &lt;H::Item <span class="kw">as </span>IntoIterator&gt;::IntoIter: <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a>,
-          &lt;H::Item <span class="kw">as </span>IntoIterator&gt;::Item: <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a>
+    <span class="kw">where </span>H: Iterator,
+          H::Item: IntoIterator,
+          &lt;H::Item <span class="kw">as </span>IntoIterator&gt;::IntoIter: Clone,
+          &lt;H::Item <span class="kw">as </span>IntoIterator&gt;::Item: Clone
 {
-    <a href="#17">MultiProduct</a>(<a href="#33">iters</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|i| MultiProductIter::new(<a href="#39">i</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>())).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>())
+    MultiProduct(iters.map(|i| MultiProductIter::new(i.into_iter())).collect())
 }
 
 <span class="attr">#[derive(Clone, Debug)]
 </span><span class="doccomment">/// Holds the state of a single iterator within a `MultiProduct`.
 </span><span class="kw">struct </span>MultiProductIter&lt;I&gt;
-    <span class="kw">where </span>I: <a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a> + <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a>,
-          I::Item: <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a>
+    <span class="kw">where </span>I: Iterator + Clone,
+          I::Item: Clone
 {
     cur: <span class="prelude-ty">Option</span>&lt;I::Item&gt;,
     iter: I,
@@ -284,12 +284,12 @@
 </span><span class="attr">#[derive(Debug)]
 </span><span class="kw">enum </span>MultiProductIterState {
     StartOfIter,
-    MidIter { on_first_iter: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> },
+    MidIter { on_first_iter: bool },
 }
 
 <span class="kw">impl</span>&lt;I&gt; MultiProduct&lt;I&gt;
-    <span class="kw">where </span>I: <a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a> + <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a>,
-          I::Item: <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a>
+    <span class="kw">where </span>I: Iterator + Clone,
+          I::Item: Clone
 {
     <span class="doccomment">/// Iterates the rightmost iterator, then recursively iterates iterators
     /// to the left if necessary.
@@ -297,57 +297,57 @@
     /// Returns true if the iteration succeeded, else false.
     </span><span class="kw">fn </span>iterate_last(
         multi_iters: <span class="kw-2">&amp;mut </span>[MultiProductIter&lt;I&gt;],
-        <span class="kw-2">mut </span>state: <a href="#55">MultiProductIterState</a>
-    ) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">use </span><a href="#55"><span class="self">self</span>::MultiProductIterState</a>::<span class="kw-2">*</span>;
+        <span class="kw-2">mut </span>state: MultiProductIterState
+    ) -&gt; bool {
+        <span class="kw">use </span><span class="self">self</span>::MultiProductIterState::<span class="kw-2">*</span>;
 
-        <span class="kw">if let </span><span class="prelude-val">Some</span>((last, rest)) = <a href="#69">multi_iters</a>.split_last_mut() {
-            <span class="kw">let </span>on_first_iter = <span class="kw">match </span><a href="#70">state</a> {
-                <a href="#56">StartOfIter</a> =&gt; {
-                    <span class="kw">let </span>on_first_iter = !<a href="#74">last</a>.<a href="#151">in_progress</a>();
-                    <a href="#70">state</a> = <a href="#57">MidIter</a> { <a href="#77">on_first_iter</a> };
-                    <a href="#77">on_first_iter</a>
+        <span class="kw">if let </span><span class="prelude-val">Some</span>((last, rest)) = multi_iters.split_last_mut() {
+            <span class="kw">let </span>on_first_iter = <span class="kw">match </span>state {
+                StartOfIter =&gt; {
+                    <span class="kw">let </span>on_first_iter = !last.in_progress();
+                    state = MidIter { on_first_iter };
+                    on_first_iter
                 },
-                <a href="#57">MidIter</a> { on_first_iter } =&gt; <a href="#81">on_first_iter</a>
+                MidIter { on_first_iter } =&gt; on_first_iter
             };
 
             <span class="kw">if </span>!on_first_iter {
-                <a href="#74">last</a>.<a href="#140">iterate</a>();
+                last.iterate();
             }
 
             <span class="kw">if </span>last.in_progress() {
                 <span class="bool-val">true
             </span>} <span class="kw">else if </span>MultiProduct::iterate_last(rest, state) {
-                <a href="#74">last</a>.<a href="#145">reset</a>();
-                <a href="#74">last</a>.<a href="#140">iterate</a>();
+                last.reset();
+                last.iterate();
                 <span class="comment">// If iterator is None twice consecutively, then iterator is
                 // empty; whole product is empty.
-                </span><a href="#74">last</a>.<a href="#151">in_progress</a>()
+                </span>last.in_progress()
             } <span class="kw">else </span>{
                 <span class="bool-val">false
             </span>}
         } <span class="kw">else </span>{
             <span class="comment">// Reached end of iterator list. On initialisation, return true.
             // At end of iteration (final iterator finishes), finish.
-            </span><span class="kw">match </span><a href="#70">state</a> {
-                <a href="#56">StartOfIter</a> =&gt; <span class="bool-val">false</span>,
-                <a href="#57">MidIter</a> { on_first_iter } =&gt; <a href="#104">on_first_iter</a>
+            </span><span class="kw">match </span>state {
+                StartOfIter =&gt; <span class="bool-val">false</span>,
+                MidIter { on_first_iter } =&gt; on_first_iter
             }
         }
     }
 
     <span class="doccomment">/// Returns the unwrapped value of the next iteration.
     </span><span class="kw">fn </span>curr_iterator(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Vec&lt;I::Item&gt; {
-        <a class="self" href="#110">self</a>.<span class="number">0</span>.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|multi_iter| {
-            <a href="#111">multi_iter</a>.cur.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>().unwrap()
-        }).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>()
+        <span class="self">self</span>.<span class="number">0</span>.iter().map(|multi_iter| {
+            multi_iter.cur.clone().unwrap()
+        }).collect()
     }
 
     <span class="doccomment">/// Returns true if iteration has started and has not yet finished; false
     /// otherwise.
-    </span><span class="kw">fn </span>in_progress(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(last) = <a class="self" href="#118">self</a>.<span class="number">0</span>.last() {
-            <a href="#119">last</a>.<a href="#151">in_progress</a>()
+    </span><span class="kw">fn </span>in_progress(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(last) = <span class="self">self</span>.<span class="number">0</span>.last() {
+            last.in_progress()
         } <span class="kw">else </span>{
             <span class="bool-val">false
         </span>}
@@ -355,37 +355,37 @@
 }
 
 <span class="kw">impl</span>&lt;I&gt; MultiProductIter&lt;I&gt;
-    <span class="kw">where </span>I: <a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a> + <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a>,
-          I::Item: <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a>
+    <span class="kw">where </span>I: Iterator + Clone,
+          I::Item: Clone
 {
     <span class="kw">fn </span>new(iter: I) -&gt; <span class="self">Self </span>{
-        <a href="#44">MultiProductIter</a> {
+        MultiProductIter {
             cur: <span class="prelude-val">None</span>,
-            iter: <a href="#131">iter</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
-            iter_orig: <a href="#131">iter</a>
+            iter: iter.clone(),
+            iter_orig: iter
         }
     }
 
     <span class="doccomment">/// Iterate the managed iterator.
     </span><span class="kw">fn </span>iterate(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <a class="self" href="#140">self</a>.cur = <a class="self" href="#140">self</a>.iter.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>();
+        <span class="self">self</span>.cur = <span class="self">self</span>.iter.next();
     }
 
     <span class="doccomment">/// Reset the managed iterator.
     </span><span class="kw">fn </span>reset(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <a class="self" href="#145">self</a>.iter = <a class="self" href="#145">self</a>.iter_orig.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
+        <span class="self">self</span>.iter = <span class="self">self</span>.iter_orig.clone();
     }
 
     <span class="doccomment">/// Returns true if the current iterator has been started and has not yet
     /// finished; false otherwise.
-    </span><span class="kw">fn </span>in_progress(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#151">self</a>.cur.is_some()
+    </span><span class="kw">fn </span>in_progress(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.cur.is_some()
     }
 }
 
-<span class="kw">impl</span>&lt;I&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a> <span class="kw">for </span>MultiProduct&lt;I&gt;
-    <span class="kw">where </span>I: <a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a> + <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a>,
-          I::Item: <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a>
+<span class="kw">impl</span>&lt;I&gt; Iterator <span class="kw">for </span>MultiProduct&lt;I&gt;
+    <span class="kw">where </span>I: Iterator + Clone,
+          I::Item: Clone
 {
     <span class="kw">type </span>Item = Vec&lt;I::Item&gt;;
 
@@ -394,69 +394,69 @@
             <span class="kw-2">&amp;mut </span><span class="self">self</span>.<span class="number">0</span>,
             MultiProductIterState::StartOfIter
         ) {
-            <span class="prelude-val">Some</span>(<a class="self" href="#162">self</a>.<a href="#110">curr_iterator</a>())
+            <span class="prelude-val">Some</span>(<span class="self">self</span>.curr_iterator())
         } <span class="kw">else </span>{
             <span class="prelude-val">None
         </span>}
     }
 
-    <span class="kw">fn </span>count(<span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
+    <span class="kw">fn </span>count(<span class="self">self</span>) -&gt; usize {
         <span class="kw">if </span><span class="self">self</span>.<span class="number">0</span>.is_empty() {
             <span class="kw">return </span><span class="number">0</span>;
         }
 
         <span class="kw">if </span>!<span class="self">self</span>.in_progress() {
-            <span class="kw">return </span><a class="self" href="#173">self</a>.<span class="number">0</span>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">fold</a>(<span class="number">1</span>, |acc, multi_iter| {
-                <a href="#179">acc</a> * <a href="#179">multi_iter</a>.iter.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">count</a>()
+            <span class="kw">return </span><span class="self">self</span>.<span class="number">0</span>.into_iter().fold(<span class="number">1</span>, |acc, multi_iter| {
+                acc * multi_iter.iter.count()
             });
         }
 
-        <a class="self" href="#173">self</a>.<span class="number">0</span>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">fold</a>(
+        <span class="self">self</span>.<span class="number">0</span>.into_iter().fold(
             <span class="number">0</span>,
-            |acc, <a href="#44">MultiProductIter</a> { iter, iter_orig, cur: <span class="kw">_ </span>}| {
-                <span class="kw">let </span>total_count = <a href="#186">iter_orig</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">count</a>();
-                <span class="kw">let </span>cur_count = <a href="#186">iter</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">count</a>();
-                <a href="#186">acc</a> * <a href="#187">total_count</a> + <a href="#188">cur_count</a>
+            |acc, MultiProductIter { iter, iter_orig, cur: <span class="kw">_ </span>}| {
+                <span class="kw">let </span>total_count = iter_orig.count();
+                <span class="kw">let </span>cur_count = iter.count();
+                acc * total_count + cur_count
             }
         )
     }
 
-    <span class="kw">fn </span>size_hint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;) {
+    <span class="kw">fn </span>size_hint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (usize, <span class="prelude-ty">Option</span>&lt;usize&gt;) {
         <span class="comment">// Not ExactSizeIterator because size may be larger than usize
         </span><span class="kw">if </span><span class="self">self</span>.<span class="number">0</span>.is_empty() {
             <span class="kw">return </span>(<span class="number">0</span>, <span class="prelude-val">Some</span>(<span class="number">0</span>));
         }
 
         <span class="kw">if </span>!<span class="self">self</span>.in_progress() {
-            <span class="kw">return </span><a class="self" href="#194">self</a>.<span class="number">0</span>.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">fold</a>((<span class="number">1</span>, <span class="prelude-val">Some</span>(<span class="number">1</span>)), |acc, multi_iter| {
-                <a href="../size_hint.rs.html#59">size_hint::mul</a>(<a href="#201">acc</a>, <a href="#201">multi_iter</a>.iter.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">size_hint</a>())
+            <span class="kw">return </span><span class="self">self</span>.<span class="number">0</span>.iter().fold((<span class="number">1</span>, <span class="prelude-val">Some</span>(<span class="number">1</span>)), |acc, multi_iter| {
+                size_hint::mul(acc, multi_iter.iter.size_hint())
             });
         }
 
-        <a class="self" href="#194">self</a>.<span class="number">0</span>.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">fold</a>(
+        <span class="self">self</span>.<span class="number">0</span>.iter().fold(
             (<span class="number">0</span>, <span class="prelude-val">Some</span>(<span class="number">0</span>)),
-            |acc, <span class="kw-2">&amp;</span><a href="#44">MultiProductIter</a> { <span class="kw-2">ref </span>iter, <span class="kw-2">ref </span>iter_orig, cur: <span class="kw">_ </span>}| {
-                <span class="kw">let </span>cur_size = <a href="#208">iter</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">size_hint</a>();
-                <span class="kw">let </span>total_size = <a href="#208">iter_orig</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">size_hint</a>();
-                <a href="../size_hint.rs.html#13">size_hint::add</a>(<a href="../size_hint.rs.html#59">size_hint::mul</a>(<a href="#208">acc</a>, <a href="#210">total_size</a>), <a href="#209">cur_size</a>)
+            |acc, <span class="kw-2">&amp;</span>MultiProductIter { <span class="kw-2">ref </span>iter, <span class="kw-2">ref </span>iter_orig, cur: <span class="kw">_ </span>}| {
+                <span class="kw">let </span>cur_size = iter.size_hint();
+                <span class="kw">let </span>total_size = iter_orig.size_hint();
+                size_hint::add(size_hint::mul(acc, total_size), cur_size)
             }
         )
     }
 
     <span class="kw">fn </span>last(<span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt; {
-        <span class="kw">let </span>iter_count = <a class="self" href="#216">self</a>.<span class="number">0</span>.len();
+        <span class="kw">let </span>iter_count = <span class="self">self</span>.<span class="number">0</span>.len();
 
-        <span class="kw">let </span>lasts: <span class="self">Self</span>::Item = <a class="self" href="#216">self</a>.<span class="number">0</span>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|multi_iter| <a href="#220">multi_iter</a>.iter.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">last</a>())
-            .<a href="../lib.rs.html#1406-1407">while_some</a>()
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
+        <span class="kw">let </span>lasts: <span class="self">Self</span>::Item = <span class="self">self</span>.<span class="number">0</span>.into_iter()
+            .map(|multi_iter| multi_iter.iter.last())
+            .while_some()
+            .collect();
 
         <span class="kw">if </span>lasts.len() == iter_count {
-            <span class="prelude-val">Some</span>(<a href="#219">lasts</a>)
+            <span class="prelude-val">Some</span>(lasts)
         } <span class="kw">else </span>{
             <span class="prelude-val">None
         </span>}
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="itertools" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="itertools" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

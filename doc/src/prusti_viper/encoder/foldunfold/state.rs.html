@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `prusti-viper/src/encoder/foldunfold/state.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>state.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../../prusti_viper/index.html"><img class="rust-logo" src="../../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `prusti-viper/src/encoder/foldunfold/state.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>state.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../../prusti_viper/index.html"><img class="rust-logo" src="../../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -674,65 +674,55 @@
 <a href="#674" id="674">674</a>
 <a href="#675" id="675">675</a>
 <a href="#676" id="676">676</a>
-<a href="#677" id="677">677</a>
-<a href="#678" id="678">678</a>
-<a href="#679" id="679">679</a>
-<a href="#680" id="680">680</a>
-<a href="#681" id="681">681</a>
-<a href="#682" id="682">682</a>
-<a href="#683" id="683">683</a>
-<a href="#684" id="684">684</a>
-<a href="#685" id="685">685</a>
-<a href="#686" id="686">686</a>
 </pre><pre class="rust"><code><span class="comment">// © 2019, ETH Zurich
 //
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-</span><span class="kw">use </span><span class="kw">crate</span>::encoder::foldunfold::{<a href="mod.rs.html#33">perm</a>::<span class="kw-2">*</span>, <a href="mod.rs.html#43">FoldUnfoldError</a>};
-<span class="kw">use </span>log::{<a href="../../../../log/macro.debug.html">debug</a>, <a href="../../../../log/macro.trace.html">trace</a>};
-<span class="kw">use </span>rustc_hash::{<a href="../../../../rustc_hash/type.FxHashMap.html">FxHashMap</a>, <a href="../../../../rustc_hash/type.FxHashSet.html">FxHashSet</a>};
+</span><span class="kw">use </span><span class="kw">crate</span>::encoder::foldunfold::{perm::<span class="kw-2">*</span>, FoldUnfoldError};
+<span class="kw">use </span>log::{debug, trace};
+<span class="kw">use </span>rustc_hash::{FxHashMap, FxHashSet};
 <span class="kw">use </span>std::{
-    <a href="https://doc.rust-lang.org/nightly/core/borrow/trait.Borrow.html">borrow::Borrow</a>,
-    <a href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">fmt</a>,
-    ops::{<a href="https://doc.rust-lang.org/nightly/core/ops/arith/trait.Add.html">Add</a>, <a href="https://doc.rust-lang.org/nightly/core/ops/arith/trait.Sub.html">Sub</a>},
+    borrow::Borrow,
+    fmt,
+    ops::{Add, Sub},
 };
-<span class="kw">use </span>vir_crate::polymorphic::{<span class="self"><a href="../../../../vir/polymorphic/index.html">self</a> </span><span class="kw">as </span>vir, <a href="../../../../vir/gen/polymorphic/ast/expr/trait.ExprIterator.html">ExprIterator</a>, <a href="../../../../vir/gen/polymorphic/ast/common/enum.PermAmount.html">PermAmount</a>};
+<span class="kw">use </span>vir_crate::polymorphic::{<span class="self">self </span><span class="kw">as </span>vir, ExprIterator, PermAmount};
 
 <span class="attr">#[derive(Debug, Clone, PartialEq, Eq)]
 </span><span class="kw">pub struct </span>State {
     <span class="doccomment">/// paths on which we (may) have a full access permission
-    </span>acc: FxHashMap&lt;<a href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a>, <a href="../../../../vir/gen/polymorphic/ast/common/enum.PermAmount.html">PermAmount</a>&gt;,
+    </span>acc: FxHashMap&lt;vir::Expr, PermAmount&gt;,
     <span class="doccomment">/// paths on which we (may) have a full predicate permission
-    </span>pred: FxHashMap&lt;<a href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a>, <a href="../../../../vir/gen/polymorphic/ast/common/enum.PermAmount.html">PermAmount</a>&gt;,
+    </span>pred: FxHashMap&lt;vir::Expr, PermAmount&gt;,
     <span class="doccomment">/// paths that have been &quot;moved out&quot; (for sure)
-    </span>moved: FxHashSet&lt;<a href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a>&gt;,
+    </span>moved: FxHashSet&lt;vir::Expr&gt;,
     <span class="doccomment">/// Permissions currently framed
-    </span>framing_stack: Vec&lt;<a href="perm.rs.html#130">PermSet</a>&gt;,
+    </span>framing_stack: Vec&lt;PermSet&gt;,
     <span class="doccomment">/// Permissions that should be removed from the state
     /// This is a hack for restoring borrows
-    </span>dropped: FxHashSet&lt;<a href="perm.rs.html#14">Perm</a>&gt;,
+    </span>dropped: FxHashSet&lt;Perm&gt;,
 }
 
-<span class="kw">impl </span><a href="#18">State</a> {
+<span class="kw">impl </span>State {
     <span class="kw">pub fn </span>new(
-        acc: FxHashMap&lt;<a href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a>, <a href="../../../../vir/gen/polymorphic/ast/common/enum.PermAmount.html">PermAmount</a>&gt;,
-        pred: FxHashMap&lt;<a href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a>, <a href="../../../../vir/gen/polymorphic/ast/common/enum.PermAmount.html">PermAmount</a>&gt;,
-        moved: FxHashSet&lt;<a href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a>&gt;,
+        acc: FxHashMap&lt;vir::Expr, PermAmount&gt;,
+        pred: FxHashMap&lt;vir::Expr, PermAmount&gt;,
+        moved: FxHashSet&lt;vir::Expr&gt;,
     ) -&gt; <span class="self">Self </span>{
-        <a href="#18">State</a> {
-            <a href="#34">acc</a>,
-            <a href="#35">pred</a>,
-            <a href="#36">moved</a>,
-            framing_stack: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[],
+        State {
+            acc,
+            pred,
+            moved,
+            framing_stack: <span class="macro">vec!</span>[],
             dropped: FxHashSet::default(),
         }
     }
 
     <span class="kw">pub fn </span>check_consistency(<span class="kw-2">&amp;</span><span class="self">self</span>) {
         <span class="comment">// Skip consistency checks in release mode
-        </span><span class="kw">if </span><a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.cfg.html">cfg!</a>(not(debug_assertions)) {
+        </span><span class="kw">if </span><span class="macro">cfg!</span>(not(debug_assertions)) {
             <span class="kw">return</span>;
         }
 
@@ -752,10 +742,7 @@
                     <span class="macro">trace!</span>(<span class="string">&quot;place: {:?}&quot;</span>, place);
                     <span class="macro">trace!</span>(<span class="string">&quot;Acc state: {{\n{}\n}}&quot;</span>, <span class="self">self</span>.display_acc());
                     <span class="macro">trace!</span>(<span class="string">&quot;Pred state: {{\n{}\n}}&quot;</span>, <span class="self">self</span>.display_pred());
-                    <span class="macro">panic!</span>(
-                        <span class="string">&quot;Consistency error: state has pred {}, but not acc {}&quot;</span>,
-                        place, place
-                    );
+                    <span class="macro">panic!</span>(<span class="string">&quot;Consistency error: state has pred {place}, but not acc {place}&quot;</span>);
                 }
             }
         }
@@ -802,9 +789,8 @@
                     &amp;&amp; <span class="macro">matches!</span>(<span class="self">self</span>.pred[pred_place], PermAmount::Write)
                 {
                     <span class="macro">panic!</span>(
-                        <span class="string">&quot;Consistency error: state has acc {}, but also a full pred {}&quot;</span>,
-                        acc_place, pred_place
-                    );
+                        <span class="string">&quot;Consistency error: state has acc {acc_place}, but also a full pred {pred_place}&quot;
+                    </span>);
                 }
             }
         }
@@ -815,9 +801,8 @@
                     &amp;&amp; acc_place.has_proper_prefix(moved_place)
                 {
                     <span class="macro">panic!</span>(
-                        <span class="string">&quot;Consistency error: state has acc {}, but also moved path {}&quot;</span>,
-                        acc_place, moved_place
-                    );
+                        <span class="string">&quot;Consistency error: state has acc {acc_place}, but also moved path {moved_place}&quot;
+                    </span>);
                 }
             }
         }
@@ -828,18 +813,16 @@
                     &amp;&amp; pred_place.has_prefix(moved_place)
                 {
                     <span class="macro">panic!</span>(
-                        <span class="string">&quot;Consistency error: state has pred {}, but also moved path {}&quot;</span>,
-                        pred_place, moved_place
-                    );
+                        <span class="string">&quot;Consistency error: state has pred {pred_place}, but also moved path {moved_place}&quot;
+                    </span>);
                 }
                 <span class="kw">if </span>moved_place.is_simple_place()
                     &amp;&amp; pred_place.is_simple_place()
                     &amp;&amp; moved_place.has_prefix(pred_place)
                 {
                     <span class="macro">panic!</span>(
-                        <span class="string">&quot;Consistency error: state has pred {}, but also moved path {}&quot;</span>,
-                        pred_place, moved_place
-                    );
+                        <span class="string">&quot;Consistency error: state has pred {pred_place}, but also moved path {moved_place}&quot;
+                    </span>);
                 }
             }
         }
@@ -862,7 +845,7 @@
 
     <span class="kw">pub fn </span>replace_places&lt;F&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, replace: F)
     <span class="kw">where
-        </span>F: Fn(<a href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a>) -&gt; <a href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a>,
+        </span>F: Fn(vir::Expr) -&gt; vir::Expr,
     {
         <span class="kw">for </span>coll <span class="kw">in </span><span class="macro">vec!</span>[<span class="kw-2">&amp;mut </span><span class="self">self</span>.acc, <span class="kw-2">&amp;mut </span><span class="self">self</span>.pred] {
             <span class="kw">let </span>new_values = coll
@@ -876,64 +859,64 @@
         }
     }
 
-    <span class="kw">pub fn </span>acc(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>FxHashMap&lt;<a href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a>, <a href="../../../../vir/gen/polymorphic/ast/common/enum.PermAmount.html">PermAmount</a>&gt; {
-        <span class="kw-2">&amp;</span><a class="self" href="#193">self</a>.acc
+    <span class="kw">pub fn </span>acc(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>FxHashMap&lt;vir::Expr, PermAmount&gt; {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.acc
     }
 
-    <span class="kw">pub fn </span>acc_places(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; FxHashSet&lt;<a href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a>&gt; {
-        <a class="self" href="#197">self</a>.acc.keys().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">cloned</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>()
+    <span class="kw">pub fn </span>acc_places(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; FxHashSet&lt;vir::Expr&gt; {
+        <span class="self">self</span>.acc.keys().cloned().collect()
     }
 
-    <span class="kw">pub fn </span>acc_leaves(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; FxHashSet&lt;<a href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a>&gt; {
+    <span class="kw">pub fn </span>acc_leaves(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; FxHashSet&lt;vir::Expr&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>acc_leaves = FxHashSet::default();
         <span class="kw">for </span>place <span class="kw">in </span><span class="self">self</span>.acc.keys() {
             <span class="kw">if </span>!<span class="self">self</span>.is_proper_prefix_of_some_acc(place) {
                 acc_leaves.insert(place.clone());
             }
         }
-        <a href="#202">acc_leaves</a>
+        acc_leaves
     }
 
-    <span class="kw">pub fn </span>pred(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>FxHashMap&lt;<a href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a>, <a href="../../../../vir/gen/polymorphic/ast/common/enum.PermAmount.html">PermAmount</a>&gt; {
-        <span class="kw-2">&amp;</span><a class="self" href="#211">self</a>.pred
+    <span class="kw">pub fn </span>pred(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>FxHashMap&lt;vir::Expr, PermAmount&gt; {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.pred
     }
 
-    <span class="kw">pub fn </span>pred_places(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; FxHashSet&lt;<a href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a>&gt; {
-        <a class="self" href="#215">self</a>.pred.keys().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">cloned</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>()
+    <span class="kw">pub fn </span>pred_places(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; FxHashSet&lt;vir::Expr&gt; {
+        <span class="self">self</span>.pred.keys().cloned().collect()
     }
 
-    <span class="kw">pub fn </span>moved(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>FxHashSet&lt;<a href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a>&gt; {
-        <span class="kw-2">&amp;</span><a class="self" href="#219">self</a>.moved
+    <span class="kw">pub fn </span>moved(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>FxHashSet&lt;vir::Expr&gt; {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.moved
     }
 
-    <span class="kw">pub fn </span>set_moved(<span class="kw-2">&amp;mut </span><span class="self">self</span>, moved: FxHashSet&lt;<a href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a>&gt;) {
-        <a class="self" href="#223">self</a>.moved = <a href="#223">moved</a>
+    <span class="kw">pub fn </span>set_moved(<span class="kw-2">&amp;mut </span><span class="self">self</span>, moved: FxHashSet&lt;vir::Expr&gt;) {
+        <span class="self">self</span>.moved = moved
     }
 
-    <span class="kw">pub fn </span>contains_acc(<span class="kw-2">&amp;</span><span class="self">self</span>, place: <span class="kw-2">&amp;</span><a href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#227">self</a>.acc.contains_key(<a href="#227">place</a>)
+    <span class="kw">pub fn </span>contains_acc(<span class="kw-2">&amp;</span><span class="self">self</span>, place: <span class="kw-2">&amp;</span>vir::Expr) -&gt; bool {
+        <span class="self">self</span>.acc.contains_key(place)
     }
 
-    <span class="kw">pub fn </span>contains_pred(<span class="kw-2">&amp;</span><span class="self">self</span>, place: <span class="kw-2">&amp;</span><a href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#231">self</a>.pred.contains_key(<a href="#231">place</a>)
+    <span class="kw">pub fn </span>contains_pred(<span class="kw-2">&amp;</span><span class="self">self</span>, place: <span class="kw-2">&amp;</span>vir::Expr) -&gt; bool {
+        <span class="self">self</span>.pred.contains_key(place)
     }
 
     <span class="doccomment">/// Note: the permission amount is currently ignored
-    </span><span class="kw">pub fn </span>contains_perm(<span class="kw-2">&amp;</span><span class="self">self</span>, item: <span class="kw-2">&amp;</span><a href="perm.rs.html#14">Perm</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">match </span><a href="#236">item</a> {
-            <a href="perm.rs.html#15">Perm::Acc</a>(<span class="kw-2">ref </span>_place, <span class="kw">_</span>) =&gt; <a class="self" href="#236">self</a>.<a href="#227">contains_acc</a>(<a href="#236">item</a>.<a href="perm.rs.html#59">get_place</a>()),
-            <a href="perm.rs.html#16">Perm::Pred</a>(<span class="kw-2">ref </span>_place, <span class="kw">_</span>) =&gt; <a class="self" href="#236">self</a>.<a href="#231">contains_pred</a>(<a href="#236">item</a>.<a href="perm.rs.html#59">get_place</a>()),
+    </span><span class="kw">pub fn </span>contains_perm(<span class="kw-2">&amp;</span><span class="self">self</span>, item: <span class="kw-2">&amp;</span>Perm) -&gt; bool {
+        <span class="kw">match </span>item {
+            Perm::Acc(<span class="kw-2">ref </span>_place, <span class="kw">_</span>) =&gt; <span class="self">self</span>.contains_acc(item.get_place()),
+            Perm::Pred(<span class="kw-2">ref </span>_place, <span class="kw">_</span>) =&gt; <span class="self">self</span>.contains_pred(item.get_place()),
         }
     }
 
-    <span class="kw">pub fn </span>contains_all_perms&lt;<span class="lifetime">&#39;a</span>, I&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, <span class="kw-2">mut </span>items: I) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>
+    <span class="kw">pub fn </span>contains_all_perms&lt;<span class="lifetime">&#39;a</span>, I&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, <span class="kw-2">mut </span>items: I) -&gt; bool
     <span class="kw">where
-        </span>I: Iterator&lt;Item = <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="perm.rs.html#14">Perm</a>&gt;,
+        </span>I: Iterator&lt;Item = <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Perm&gt;,
     {
-        <a href="#243">items</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">all</a>(|x| <a class="self" href="#243">self</a>.<a href="#236">contains_perm</a>(<a href="#247">x</a>))
+        items.all(|x| <span class="self">self</span>.contains_perm(x))
     }
 
-    <span class="kw">pub fn </span>is_proper_prefix_of_some_acc(<span class="kw-2">&amp;</span><span class="self">self</span>, prefix: <span class="kw-2">&amp;</span><a href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+    <span class="kw">pub fn </span>is_proper_prefix_of_some_acc(<span class="kw-2">&amp;</span><span class="self">self</span>, prefix: <span class="kw-2">&amp;</span>vir::Expr) -&gt; bool {
         <span class="kw">for </span>place <span class="kw">in </span><span class="self">self</span>.acc.keys() {
             <span class="kw">if </span>place.has_proper_prefix(prefix) {
                 <span class="kw">return </span><span class="bool-val">true</span>;
@@ -942,7 +925,7 @@
         <span class="bool-val">false
     </span>}
 
-    <span class="kw">pub fn </span>is_prefix_of_some_acc(<span class="kw-2">&amp;</span><span class="self">self</span>, prefix: <span class="kw-2">&amp;</span><a href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+    <span class="kw">pub fn </span>is_prefix_of_some_acc(<span class="kw-2">&amp;</span><span class="self">self</span>, prefix: <span class="kw-2">&amp;</span>vir::Expr) -&gt; bool {
         <span class="kw">for </span>place <span class="kw">in </span><span class="self">self</span>.acc.keys() {
             <span class="kw">if </span>place.has_prefix(prefix) {
                 <span class="kw">return </span><span class="bool-val">true</span>;
@@ -951,7 +934,7 @@
         <span class="bool-val">false
     </span>}
 
-    <span class="kw">pub fn </span>is_prefix_of_some_pred(<span class="kw-2">&amp;</span><span class="self">self</span>, prefix: <span class="kw-2">&amp;</span><a href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+    <span class="kw">pub fn </span>is_prefix_of_some_pred(<span class="kw-2">&amp;</span><span class="self">self</span>, prefix: <span class="kw-2">&amp;</span>vir::Expr) -&gt; bool {
         <span class="kw">for </span>place <span class="kw">in </span><span class="self">self</span>.pred.keys() {
             <span class="kw">if </span>place.has_prefix(prefix) {
                 <span class="kw">return </span><span class="bool-val">true</span>;
@@ -960,7 +943,7 @@
         <span class="bool-val">false
     </span>}
 
-    <span class="kw">pub fn </span>is_prefix_of_some_moved(<span class="kw-2">&amp;</span><span class="self">self</span>, prefix: <span class="kw-2">&amp;</span><a href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+    <span class="kw">pub fn </span>is_prefix_of_some_moved(<span class="kw-2">&amp;</span><span class="self">self</span>, prefix: <span class="kw-2">&amp;</span>vir::Expr) -&gt; bool {
         <span class="kw">for </span>place <span class="kw">in </span><span class="kw-2">&amp;</span><span class="self">self</span>.moved {
             <span class="kw">if </span>place.has_prefix(prefix) {
                 <span class="kw">return </span><span class="bool-val">true</span>;
@@ -970,93 +953,93 @@
     </span>}
 
     <span class="kw">pub fn </span>remove_all(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <a class="self" href="#286">self</a>.<a href="#290-292">remove_matching_place</a>(|<span class="kw">_</span>| <span class="bool-val">true</span>);
+        <span class="self">self</span>.remove_matching_place(|<span class="kw">_</span>| <span class="bool-val">true</span>);
     }
 
     <span class="kw">pub fn </span>remove_matching_place&lt;P&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, pred: P)
     <span class="kw">where
-        </span>P: Fn(<span class="kw-2">&amp;</span><a href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
+        </span>P: Fn(<span class="kw-2">&amp;</span>vir::Expr) -&gt; bool,
     {
-        <a class="self" href="#290">self</a>.<a href="#299-301">remove_acc_matching</a>(|x| <a href="#290">pred</a>(<a href="#294">x</a>));
-        <a class="self" href="#290">self</a>.<a href="#306-308">remove_pred_matching</a>(|x| <a href="#290">pred</a>(<a href="#295">x</a>));
-        <a class="self" href="#290">self</a>.<a href="#313-315">remove_moved_matching</a>(|x| <a href="#290">pred</a>(<a href="#296">x</a>));
+        <span class="self">self</span>.remove_acc_matching(|x| pred(x));
+        <span class="self">self</span>.remove_pred_matching(|x| pred(x));
+        <span class="self">self</span>.remove_moved_matching(|x| pred(x));
     }
 
     <span class="kw">pub fn </span>remove_acc_matching&lt;P&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, pred: P)
     <span class="kw">where
-        </span>P: Fn(<span class="kw-2">&amp;</span><a href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
+        </span>P: Fn(<span class="kw-2">&amp;</span>vir::Expr) -&gt; bool,
     {
-        <a class="self" href="#299">self</a>.acc.retain(|e, <span class="kw">_</span>| !<a href="#299">pred</a>(<a href="#303">e</a>));
+        <span class="self">self</span>.acc.retain(|e, <span class="kw">_</span>| !pred(e));
     }
 
     <span class="kw">pub fn </span>remove_pred_matching&lt;P&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, pred: P)
     <span class="kw">where
-        </span>P: Fn(<span class="kw-2">&amp;</span><a href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
+        </span>P: Fn(<span class="kw-2">&amp;</span>vir::Expr) -&gt; bool,
     {
-        <a class="self" href="#306">self</a>.pred.retain(|e, <span class="kw">_</span>| !<a href="#306">pred</a>(<a href="#310">e</a>));
+        <span class="self">self</span>.pred.retain(|e, <span class="kw">_</span>| !pred(e));
     }
 
     <span class="kw">pub fn </span>remove_moved_matching&lt;P&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, pred: P)
     <span class="kw">where
-        </span>P: Fn(<span class="kw-2">&amp;</span><a href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
+        </span>P: Fn(<span class="kw-2">&amp;</span>vir::Expr) -&gt; bool,
     {
-        <a class="self" href="#313">self</a>.moved.retain(|e| !<a href="#313">pred</a>(<a href="#317">e</a>));
+        <span class="self">self</span>.moved.retain(|e| !pred(e));
     }
 
-    <span class="kw">pub fn </span>display_acc(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a> {
-        <span class="kw">let </span><span class="kw-2">mut </span>info = <span class="self"><a href="#320">self</a>
+    <span class="kw">pub fn </span>display_acc(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; String {
+        <span class="kw">let </span><span class="kw-2">mut </span>info = <span class="self">self
             </span>.acc
             .iter()
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|(p, f)| <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;  {}: {}&quot;</span>, p, f))
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>::&lt;Vec&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt;&gt;();
-        <a href="#321">info</a>.sort();
-        <a href="#321">info</a>.join(<span class="string">&quot;,\n&quot;</span>)
+            .map(|(p, f)| <span class="macro">format!</span>(<span class="string">&quot;  {p}: {f}&quot;</span>))
+            .collect::&lt;Vec&lt;String&gt;&gt;();
+        info.sort();
+        info.join(<span class="string">&quot;,\n&quot;</span>)
     }
 
-    <span class="kw">pub fn </span>display_pred(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a> {
-        <span class="kw">let </span><span class="kw-2">mut </span>info = <span class="self"><a href="#330">self</a>
+    <span class="kw">pub fn </span>display_pred(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; String {
+        <span class="kw">let </span><span class="kw-2">mut </span>info = <span class="self">self
             </span>.pred
             .iter()
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|(p, f)| <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;  {}: {}&quot;</span>, p, f))
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>::&lt;Vec&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt;&gt;();
-        <a href="#331">info</a>.sort();
-        <a href="#331">info</a>.join(<span class="string">&quot;,\n&quot;</span>)
+            .map(|(p, f)| <span class="macro">format!</span>(<span class="string">&quot;  {p}: {f}&quot;</span>))
+            .collect::&lt;Vec&lt;String&gt;&gt;();
+        info.sort();
+        info.join(<span class="string">&quot;,\n&quot;</span>)
     }
 
-    <span class="kw">pub fn </span>display_moved(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a> {
-        <span class="kw">let </span><span class="kw-2">mut </span>info = <span class="self"><a href="#340">self</a>
+    <span class="kw">pub fn </span>display_moved(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; String {
+        <span class="kw">let </span><span class="kw-2">mut </span>info = <span class="self">self
             </span>.moved
             .iter()
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|x| <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;  {}&quot;</span>, x))
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>::&lt;Vec&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt;&gt;();
-        <a href="#341">info</a>.sort();
-        <a href="#341">info</a>.join(<span class="string">&quot;,\n&quot;</span>)
+            .map(|x| <span class="macro">format!</span>(<span class="string">&quot;  {x}&quot;</span>))
+            .collect::&lt;Vec&lt;String&gt;&gt;();
+        info.sort();
+        info.join(<span class="string">&quot;,\n&quot;</span>)
     }
 
     <span class="kw">pub fn </span>insert_acc(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        place: <a href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a>,
-        perm: <a href="../../../../vir/gen/polymorphic/ast/common/enum.PermAmount.html">PermAmount</a>,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="mod.rs.html#43">FoldUnfoldError</a>&gt; {
-        <a class="macro" href="../../../../log/macro.trace.html">trace!</a>(<span class="string">&quot;insert_acc {}, {}&quot;</span>, place, perm);
+        place: vir::Expr,
+        perm: PermAmount,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), FoldUnfoldError&gt; {
+        <span class="macro">trace!</span>(<span class="string">&quot;insert_acc {}, {}&quot;</span>, place, perm);
         <span class="kw">if </span><span class="self">self</span>.acc.contains_key(<span class="kw-2">&amp;</span>place) {
             <span class="kw">let </span>new_perm = <span class="self">self</span>.acc[<span class="kw-2">&amp;</span>place].add(perm)<span class="question-mark">?</span>;
-            <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(
+            <span class="macro">assert!</span>(
                 new_perm == PermAmount::Write || new_perm == PermAmount::Read,
                 <span class="string">&quot;Trying to inhale {} access permission, while there is already {}&quot;</span>,
                 perm,
                 <span class="self">self</span>.acc[<span class="kw-2">&amp;</span>place]
             );
-            <a class="self" href="#351">self</a>.acc.insert(<a href="#352">place</a>, <a href="#357">new_perm</a>);
+            <span class="self">self</span>.acc.insert(place, new_perm);
         } <span class="kw">else </span>{
-            <a class="self" href="#351">self</a>.acc.insert(<a href="#352">place</a>, <a href="#353">perm</a>);
+            <span class="self">self</span>.acc.insert(place, perm);
         }
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="kw">pub fn </span>insert_all_acc&lt;I&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, items: I) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="mod.rs.html#43">FoldUnfoldError</a>&gt;
+    <span class="kw">pub fn </span>insert_all_acc&lt;I&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, items: I) -&gt; <span class="prelude-ty">Result</span>&lt;(), FoldUnfoldError&gt;
     <span class="kw">where
-        </span>I: Iterator&lt;Item = (<a href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a>, <a href="../../../../vir/gen/polymorphic/ast/common/enum.PermAmount.html">PermAmount</a>)&gt;,
+        </span>I: Iterator&lt;Item = (vir::Expr, PermAmount)&gt;,
     {
         <span class="kw">for </span>(place, perm) <span class="kw">in </span>items {
             <span class="self">self</span>.insert_acc(place, perm)<span class="question-mark">?</span>;
@@ -1066,28 +1049,28 @@
 
     <span class="kw">pub fn </span>insert_pred(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        place: <a href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a>,
-        perm: <a href="../../../../vir/gen/polymorphic/ast/common/enum.PermAmount.html">PermAmount</a>,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="mod.rs.html#43">FoldUnfoldError</a>&gt; {
-        <a class="macro" href="../../../../log/macro.trace.html">trace!</a>(<span class="string">&quot;insert_pred {}, {}&quot;</span>, place, perm);
+        place: vir::Expr,
+        perm: PermAmount,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), FoldUnfoldError&gt; {
+        <span class="macro">trace!</span>(<span class="string">&quot;insert_pred {}, {}&quot;</span>, place, perm);
         <span class="kw">if </span><span class="self">self</span>.pred.contains_key(<span class="kw-2">&amp;</span>place) {
             <span class="kw">let </span>new_perm = <span class="self">self</span>.pred[<span class="kw-2">&amp;</span>place].add(perm)<span class="question-mark">?</span>;
-            <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(
+            <span class="macro">assert!</span>(
                 new_perm == PermAmount::Write || new_perm == PermAmount::Read,
                 <span class="string">&quot;Trying to inhale {} predicate permission, while there is already {}&quot;</span>,
                 perm,
                 <span class="self">self</span>.pred[<span class="kw-2">&amp;</span>place]
             );
-            <a class="self" href="#382">self</a>.pred.insert(<a href="#383">place</a>, <a href="#388">new_perm</a>);
+            <span class="self">self</span>.pred.insert(place, new_perm);
         } <span class="kw">else </span>{
-            <a class="self" href="#382">self</a>.pred.insert(<a href="#383">place</a>, <a href="#384">perm</a>);
+            <span class="self">self</span>.pred.insert(place, perm);
         }
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="kw">pub fn </span>insert_all_pred&lt;I&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, items: I) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="mod.rs.html#43">FoldUnfoldError</a>&gt;
+    <span class="kw">pub fn </span>insert_all_pred&lt;I&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, items: I) -&gt; <span class="prelude-ty">Result</span>&lt;(), FoldUnfoldError&gt;
     <span class="kw">where
-        </span>I: Iterator&lt;Item = (<a href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a>, <a href="../../../../vir/gen/polymorphic/ast/common/enum.PermAmount.html">PermAmount</a>)&gt;,
+        </span>I: Iterator&lt;Item = (vir::Expr, PermAmount)&gt;,
     {
         <span class="kw">for </span>(place, perm) <span class="kw">in </span>items {
             <span class="self">self</span>.insert_pred(place, perm)<span class="question-mark">?</span>;
@@ -1095,25 +1078,25 @@
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="kw">pub fn </span>insert_moved(<span class="kw-2">&amp;mut </span><span class="self">self</span>, place: <a href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a>) {
+    <span class="kw">pub fn </span>insert_moved(<span class="kw-2">&amp;mut </span><span class="self">self</span>, place: vir::Expr) {
         <span class="comment">//assert!(!self.pred.contains(&amp;place), &quot;Place {} is already in state (pred), so it can not be added.&quot;, place);
-        </span><a class="self" href="#412">self</a>.moved.insert(<a href="#412">place</a>);
+        </span><span class="self">self</span>.moved.insert(place);
     }
 
-    <span class="kw">pub fn </span>is_dropped(<span class="kw-2">&amp;</span><span class="self">self</span>, item: <span class="kw-2">&amp;</span><a href="perm.rs.html#14">Perm</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#417">self</a>.dropped.contains(<a href="#417">item</a>)
+    <span class="kw">pub fn </span>is_dropped(<span class="kw-2">&amp;</span><span class="self">self</span>, item: <span class="kw-2">&amp;</span>Perm) -&gt; bool {
+        <span class="self">self</span>.dropped.contains(item)
     }
 
-    <span class="kw">pub fn </span>insert_perm(<span class="kw-2">&amp;mut </span><span class="self">self</span>, item: <a href="perm.rs.html#14">Perm</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="mod.rs.html#43">FoldUnfoldError</a>&gt; {
-        <span class="kw">match </span><a href="#421">item</a> {
-            <a href="perm.rs.html#15">Perm::Acc</a>(place, perm) =&gt; <a class="self" href="#421">self</a>.<a href="#350-354">insert_acc</a>(<a href="#423">place</a>, <a href="#423">perm</a>),
-            <a href="perm.rs.html#16">Perm::Pred</a>(place, perm) =&gt; <a class="self" href="#421">self</a>.<a href="#381-385">insert_pred</a>(<a href="#424">place</a>, <a href="#424">perm</a>),
+    <span class="kw">pub fn </span>insert_perm(<span class="kw-2">&amp;mut </span><span class="self">self</span>, item: Perm) -&gt; <span class="prelude-ty">Result</span>&lt;(), FoldUnfoldError&gt; {
+        <span class="kw">match </span>item {
+            Perm::Acc(place, perm) =&gt; <span class="self">self</span>.insert_acc(place, perm),
+            Perm::Pred(place, perm) =&gt; <span class="self">self</span>.insert_pred(place, perm),
         }
     }
 
-    <span class="kw">pub fn </span>insert_all_perms&lt;I&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, items: I) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="mod.rs.html#43">FoldUnfoldError</a>&gt;
+    <span class="kw">pub fn </span>insert_all_perms&lt;I&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, items: I) -&gt; <span class="prelude-ty">Result</span>&lt;(), FoldUnfoldError&gt;
     <span class="kw">where
-        </span>I: Iterator&lt;Item = <a href="perm.rs.html#14">Perm</a>&gt;,
+        </span>I: Iterator&lt;Item = Perm&gt;,
     {
         <span class="kw">for </span>item <span class="kw">in </span>items {
             <span class="self">self</span>.insert_perm(item)<span class="question-mark">?</span>;
@@ -1121,70 +1104,67 @@
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="kw">pub fn </span>remove_acc_place(<span class="kw-2">&amp;mut </span><span class="self">self</span>, place: <span class="kw-2">&amp;</span><a href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a>) -&gt; <a href="../../../../vir/gen/polymorphic/ast/common/enum.PermAmount.html">PermAmount</a> {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(
+    <span class="kw">pub fn </span>remove_acc_place(<span class="kw-2">&amp;mut </span><span class="self">self</span>, place: <span class="kw-2">&amp;</span>vir::Expr) -&gt; PermAmount {
+        <span class="macro">assert!</span>(
             <span class="self">self</span>.acc.contains_key(place),
-            <span class="string">&quot;Place {} is not in state (acc), so it can not be removed.&quot;</span>,
-            place
-        );
-        <a class="self" href="#438">self</a>.acc.remove(<a href="#438">place</a>).unwrap()
+            <span class="string">&quot;Place {place} is not in state (acc), so it can not be removed.&quot;
+        </span>);
+        <span class="self">self</span>.acc.remove(place).unwrap()
     }
 
-    <span class="kw">pub fn </span>remove_pred_place(<span class="kw-2">&amp;mut </span><span class="self">self</span>, place: <span class="kw-2">&amp;</span><a href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a>) -&gt; <a href="../../../../vir/gen/polymorphic/ast/common/enum.PermAmount.html">PermAmount</a> {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(
+    <span class="kw">pub fn </span>remove_pred_place(<span class="kw-2">&amp;mut </span><span class="self">self</span>, place: <span class="kw-2">&amp;</span>vir::Expr) -&gt; PermAmount {
+        <span class="macro">assert!</span>(
             <span class="self">self</span>.pred.contains_key(place),
-            <span class="string">&quot;Place {} is not in state (pred), so it can not be removed.&quot;</span>,
-            place
-        );
-        <a class="self" href="#447">self</a>.pred.remove(<a href="#447">place</a>).unwrap()
+            <span class="string">&quot;Place {place} is not in state (pred), so it can not be removed.&quot;
+        </span>);
+        <span class="self">self</span>.pred.remove(place).unwrap()
     }
 
     <span class="kw">pub fn </span>remove_acc(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        place: <span class="kw-2">&amp;</span><a href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a>,
-        perm: <a href="../../../../vir/gen/polymorphic/ast/common/enum.PermAmount.html">PermAmount</a>,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="mod.rs.html#43">FoldUnfoldError</a>&gt; {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(
+        place: <span class="kw-2">&amp;</span>vir::Expr,
+        perm: PermAmount,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), FoldUnfoldError&gt; {
+        <span class="macro">assert!</span>(
             <span class="self">self</span>.acc.contains_key(place),
-            <span class="string">&quot;Place {} is not in state (acc), so it can not be removed.&quot;</span>,
-            place
-        );
+            <span class="string">&quot;Place {place} is not in state (acc), so it can not be removed.&quot;
+        </span>);
         <span class="kw">if </span><span class="self">self</span>.acc[place] == perm {
-            <a class="self" href="#457">self</a>.acc.remove(<a href="#458">place</a>);
+            <span class="self">self</span>.acc.remove(place);
         } <span class="kw">else </span>{
-            <a class="self" href="#457">self</a>.acc.insert(<a href="#458">place</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), <span class="self">self</span>.acc[place].sub(perm)<span class="question-mark">?</span>);
+            <span class="self">self</span>.acc.insert(place.clone(), <span class="self">self</span>.acc[place].sub(perm)<span class="question-mark">?</span>);
         }
         <span class="prelude-val">Ok</span>(())
     }
 
     <span class="kw">pub fn </span>remove_pred(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        place: <span class="kw-2">&amp;</span><a href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a>,
-        perm: <a href="../../../../vir/gen/polymorphic/ast/common/enum.PermAmount.html">PermAmount</a>,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="mod.rs.html#43">FoldUnfoldError</a>&gt; {
-        <a class="macro" href="../../../../log/macro.trace.html">trace!</a>(<span class="string">&quot;remove_pred {}, {}&quot;</span>, place, perm);
+        place: <span class="kw-2">&amp;</span>vir::Expr,
+        perm: PermAmount,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), FoldUnfoldError&gt; {
+        <span class="macro">trace!</span>(<span class="string">&quot;remove_pred {}, {}&quot;</span>, place, perm);
         <span class="kw">if </span>!<span class="self">self</span>.pred.contains_key(place) {
-            <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="mod.rs.html#62">FoldUnfoldError::FailedToRemovePred</a>(<a href="#476">place</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), <a href="#477">perm</a>));
+            <span class="kw">return </span><span class="prelude-val">Err</span>(FoldUnfoldError::FailedToRemovePred(place.clone(), perm));
         }
         <span class="kw">if </span><span class="self">self</span>.pred[place] == perm {
-            <a class="self" href="#475">self</a>.pred.remove(<a href="#476">place</a>).unwrap();
+            <span class="self">self</span>.pred.remove(place).unwrap();
         } <span class="kw">else </span>{
-            <a class="self" href="#475">self</a>.pred.insert(<a href="#476">place</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), <span class="self">self</span>.pred[place].sub(perm)<span class="question-mark">?</span>);
+            <span class="self">self</span>.pred.insert(place.clone(), <span class="self">self</span>.pred[place].sub(perm)<span class="question-mark">?</span>);
         }
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="kw">pub fn </span>remove_perm(<span class="kw-2">&amp;mut </span><span class="self">self</span>, item: <span class="kw-2">&amp;</span><a href="perm.rs.html#14">Perm</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="mod.rs.html#43">FoldUnfoldError</a>&gt; {
-        <span class="kw">match </span><a href="#491">item</a> {
-            <a href="perm.rs.html#15">Perm::Acc</a>(<span class="kw">_</span>, perm) =&gt; <a class="self" href="#491">self</a>.<a href="#456-460">remove_acc</a>(<a href="#491">item</a>.<a href="perm.rs.html#59">get_place</a>(), <span class="kw-2">*</span><a href="#493">perm</a>),
-            <a href="perm.rs.html#16">Perm::Pred</a>(<span class="kw">_</span>, perm) =&gt; <a class="self" href="#491">self</a>.<a href="#474-478">remove_pred</a>(<a href="#491">item</a>.<a href="perm.rs.html#59">get_place</a>(), <span class="kw-2">*</span><a href="#494">perm</a>),
+    <span class="kw">pub fn </span>remove_perm(<span class="kw-2">&amp;mut </span><span class="self">self</span>, item: <span class="kw-2">&amp;</span>Perm) -&gt; <span class="prelude-ty">Result</span>&lt;(), FoldUnfoldError&gt; {
+        <span class="kw">match </span>item {
+            Perm::Acc(<span class="kw">_</span>, perm) =&gt; <span class="self">self</span>.remove_acc(item.get_place(), <span class="kw-2">*</span>perm),
+            Perm::Pred(<span class="kw">_</span>, perm) =&gt; <span class="self">self</span>.remove_pred(item.get_place(), <span class="kw-2">*</span>perm),
         }
     }
 
-    <span class="kw">pub fn </span>remove_all_perms&lt;I, P&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, items: I) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="mod.rs.html#43">FoldUnfoldError</a>&gt;
+    <span class="kw">pub fn </span>remove_all_perms&lt;I, P&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, items: I) -&gt; <span class="prelude-ty">Result</span>&lt;(), FoldUnfoldError&gt;
     <span class="kw">where
         </span>I: Iterator&lt;Item = P&gt;,
-        P: Borrow&lt;<a href="perm.rs.html#14">Perm</a>&gt;,
+        P: Borrow&lt;Perm&gt;,
     {
         <span class="kw">for </span>item <span class="kw">in </span>items {
             <span class="self">self</span>.remove_perm(item.borrow())<span class="question-mark">?</span>;
@@ -1210,33 +1190,33 @@
     /// ```
     /// In such a case, the function keeps the most generic variant of
     /// permissions.
-    </span><span class="kw">pub fn </span>restore_dropped_perm(<span class="kw-2">&amp;mut </span><span class="self">self</span>, item: <a href="perm.rs.html#14">Perm</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="mod.rs.html#43">FoldUnfoldError</a>&gt; {
-        <a class="macro" href="../../../../log/macro.trace.html">trace!</a>(<span class="string">&quot;[enter] restore_dropped_perm item={}&quot;</span>, item);
+    </span><span class="kw">pub fn </span>restore_dropped_perm(<span class="kw-2">&amp;mut </span><span class="self">self</span>, item: Perm) -&gt; <span class="prelude-ty">Result</span>&lt;(), FoldUnfoldError&gt; {
+        <span class="macro">trace!</span>(<span class="string">&quot;[enter] restore_dropped_perm item={}&quot;</span>, item);
         <span class="kw">for </span>moved_place <span class="kw">in </span><span class="kw-2">&amp;</span><span class="self">self</span>.moved {
             <span class="macro">trace!</span>(<span class="string">&quot;  moved_place={}&quot;</span>, moved_place);
         }
-        <span class="kw">match </span><a href="#527">item</a> {
-            <a href="perm.rs.html#15">Perm::Acc</a>(place, perm) =&gt; {
-                <a class="self" href="#527">self</a>.<a href="#313-315">remove_moved_matching</a>(|p| <a href="#533">place</a>.has_prefix(<a href="#534">p</a>));
+        <span class="kw">match </span>item {
+            Perm::Acc(place, perm) =&gt; {
+                <span class="self">self</span>.remove_moved_matching(|p| place.has_prefix(p));
                 <span class="self">self</span>.restore_acc(place, perm)<span class="question-mark">?</span>;
             }
-            <a href="perm.rs.html#16">Perm::Pred</a>(place, perm) =&gt; {
-                <a class="self" href="#527">self</a>.<a href="#313-315">remove_moved_matching</a>(|p| <a href="#537">place</a>.has_prefix(<a href="#538">p</a>));
+            Perm::Pred(place, perm) =&gt; {
+                <span class="self">self</span>.remove_moved_matching(|p| place.has_prefix(p));
                 <span class="self">self</span>.restore_pred(place, perm)<span class="question-mark">?</span>;
             }
         };
-        <a class="macro" href="../../../../log/macro.trace.html">trace!</a>(<span class="string">&quot;[exit] restore_dropped_perm&quot;</span>);
+        <span class="macro">trace!</span>(<span class="string">&quot;[exit] restore_dropped_perm&quot;</span>);
         <span class="prelude-val">Ok</span>(())
     }
 
     <span class="kw">fn </span>restore_acc(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        acc_place: <a href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a>,
-        <span class="kw-2">mut </span>perm: <a href="../../../../vir/gen/polymorphic/ast/common/enum.PermAmount.html">PermAmount</a>,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="mod.rs.html#43">FoldUnfoldError</a>&gt; {
-        <a class="macro" href="../../../../log/macro.trace.html">trace!</a>(<span class="string">&quot;restore_acc {}, {}&quot;</span>, acc_place, perm);
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(curr_perm_amount) = <a class="self" href="#547">self</a>.acc.get(<span class="kw-2">&amp;</span><a href="#548">acc_place</a>) {
-            <a href="#549">perm</a> = perm.add(<span class="kw-2">*</span>curr_perm_amount)<span class="question-mark">?</span>;
+        acc_place: vir::Expr,
+        <span class="kw-2">mut </span>perm: PermAmount,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), FoldUnfoldError&gt; {
+        <span class="macro">trace!</span>(<span class="string">&quot;restore_acc {}, {}&quot;</span>, acc_place, perm);
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(curr_perm_amount) = <span class="self">self</span>.acc.get(<span class="kw-2">&amp;</span>acc_place) {
+            perm = perm.add(<span class="kw-2">*</span>curr_perm_amount)<span class="question-mark">?</span>;
         }
         <span class="kw">if </span>acc_place.is_simple_place() {
             <span class="kw">for </span>pred_place <span class="kw">in </span><span class="self">self</span>.pred.keys() {
@@ -1250,25 +1230,25 @@
                 }
             }
         }
-        <a class="self" href="#547">self</a>.acc.insert(<a href="#548">acc_place</a>, <a href="#549">perm</a>);
+        <span class="self">self</span>.acc.insert(acc_place, perm);
         <span class="prelude-val">Ok</span>(())
     }
 
     <span class="kw">fn </span>restore_pred(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        pred_place: <a href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a>,
-        <span class="kw-2">mut </span>perm: <a href="../../../../vir/gen/polymorphic/ast/common/enum.PermAmount.html">PermAmount</a>,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="mod.rs.html#43">FoldUnfoldError</a>&gt; {
-        <a class="macro" href="../../../../log/macro.trace.html">trace!</a>(<span class="string">&quot;restore_pred {}, {}&quot;</span>, pred_place, perm);
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(curr_perm_amount) = <a class="self" href="#572">self</a>.pred.get(<span class="kw-2">&amp;</span><a href="#573">pred_place</a>) {
-            <a href="#574">perm</a> = perm.add(<span class="kw-2">*</span>curr_perm_amount)<span class="question-mark">?</span>;
+        pred_place: vir::Expr,
+        <span class="kw-2">mut </span>perm: PermAmount,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), FoldUnfoldError&gt; {
+        <span class="macro">trace!</span>(<span class="string">&quot;restore_pred {}, {}&quot;</span>, pred_place, perm);
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(curr_perm_amount) = <span class="self">self</span>.pred.get(<span class="kw-2">&amp;</span>pred_place) {
+            perm = perm.add(<span class="kw-2">*</span>curr_perm_amount)<span class="question-mark">?</span>;
             <span class="comment">//trace!(&quot;restore_pred {}: ignored (state already contains place)&quot;, pred_place);
             //return;
         </span>}
         <span class="kw">if </span>pred_place.is_simple_place() {
-            <a class="self" href="#572">self</a>.acc.retain(|acc_place, <span class="kw">_</span>| {
+            <span class="self">self</span>.acc.retain(|acc_place, <span class="kw">_</span>| {
                 <span class="kw">if </span>acc_place.is_simple_place() &amp;&amp; acc_place.has_proper_prefix(<span class="kw-2">&amp;</span>pred_place) {
-                    <a class="macro" href="../../../../log/macro.trace.html">trace!</a>(
+                    <span class="macro">trace!</span>(
                         <span class="string">&quot;restore_pred {}: drop conflicting acc {}&quot;</span>,
                         pred_place,
                         acc_place
@@ -1279,25 +1259,25 @@
                 </span>}
             });
         }
-        <a class="self" href="#572">self</a>.pred.insert(<a href="#573">pred_place</a>, <a href="#574">perm</a>);
+        <span class="self">self</span>.pred.insert(pred_place, perm);
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="kw">pub fn </span>restore_dropped_perms&lt;I&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, items: I) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="mod.rs.html#43">FoldUnfoldError</a>&gt;
+    <span class="kw">pub fn </span>restore_dropped_perms&lt;I&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, items: I) -&gt; <span class="prelude-ty">Result</span>&lt;(), FoldUnfoldError&gt;
     <span class="kw">where
-        </span>I: Iterator&lt;Item = <a href="perm.rs.html#14">Perm</a>&gt;,
+        </span>I: Iterator&lt;Item = Perm&gt;,
     {
-        <a class="macro" href="../../../../log/macro.trace.html">trace!</a>(<span class="string">&quot;[enter] restore_dropped_perms&quot;</span>);
+        <span class="macro">trace!</span>(<span class="string">&quot;[enter] restore_dropped_perms&quot;</span>);
         <span class="kw">for </span>item <span class="kw">in </span>items {
             <span class="self">self</span>.restore_dropped_perm(item)<span class="question-mark">?</span>;
         }
-        <a class="self" href="#600">self</a>.<a href="#47">check_consistency</a>();
-        <a class="macro" href="../../../../log/macro.trace.html">trace!</a>(<span class="string">&quot;[exit] restore_dropped_perms&quot;</span>);
+        <span class="self">self</span>.check_consistency();
+        <span class="macro">trace!</span>(<span class="string">&quot;[exit] restore_dropped_perms&quot;</span>);
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="kw">pub fn </span>as_vir_expr(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a> {
-        <span class="kw">let </span><span class="kw-2">mut </span>exprs: Vec&lt;<a href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a>&gt; = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[];
+    <span class="kw">pub fn </span>as_vir_expr(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; vir::Expr {
+        <span class="kw">let </span><span class="kw-2">mut </span>exprs: Vec&lt;vir::Expr&gt; = <span class="macro">vec!</span>[];
         <span class="kw">for </span>(place, perm) <span class="kw">in </span><span class="self">self</span>.acc.iter() {
             <span class="kw">if </span>!place.is_local()
                 &amp;&amp; place.is_curr()
@@ -1313,12 +1293,12 @@
                 }
             }
         }
-        <a href="#614">exprs</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a href="../../../../vir/gen/polymorphic/ast/expr/trait.ExprIterator.html">conjoin</a>()
+        exprs.into_iter().conjoin()
     }
 
     <span class="kw">pub fn </span>begin_frame(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <a class="macro" href="../../../../log/macro.trace.html">trace!</a>(<span class="string">&quot;begin_frame&quot;</span>);
-        <a class="macro" href="../../../../log/macro.trace.html">trace!</a>(
+        <span class="macro">trace!</span>(<span class="string">&quot;begin_frame&quot;</span>);
+        <span class="macro">trace!</span>(
             <span class="string">&quot;Before: {} frames are on the stack&quot;</span>,
             <span class="self">self</span>.framing_stack.len()
         );
@@ -1332,27 +1312,27 @@
         <span class="kw">for </span>(place, perm) <span class="kw">in </span><span class="self">self</span>.pred.drain() {
             framed_perms.add(Perm::Pred(place.clone(), perm));
         }
-        <a class="macro" href="../../../../log/macro.debug.html">debug!</a>(<span class="string">&quot;Framed permissions: {}&quot;</span>, framed_perms);
-        <a class="self" href="#633">self</a>.framing_stack.push(<a href="#639">framed_perms</a>);
-        <a class="macro" href="../../../../log/macro.trace.html">trace!</a>(
+        <span class="macro">debug!</span>(<span class="string">&quot;Framed permissions: {}&quot;</span>, framed_perms);
+        <span class="self">self</span>.framing_stack.push(framed_perms);
+        <span class="macro">trace!</span>(
             <span class="string">&quot;After: {} frames are on the stack&quot;</span>,
             <span class="self">self</span>.framing_stack.len()
         );
     }
 
-    <span class="kw">pub fn </span>end_frame(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="mod.rs.html#43">FoldUnfoldError</a>&gt; {
-        <a class="macro" href="../../../../log/macro.trace.html">trace!</a>(<span class="string">&quot;end_frame&quot;</span>);
-        <a class="macro" href="../../../../log/macro.trace.html">trace!</a>(
+    <span class="kw">pub fn </span>end_frame(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), FoldUnfoldError&gt; {
+        <span class="macro">trace!</span>(<span class="string">&quot;end_frame&quot;</span>);
+        <span class="macro">trace!</span>(
             <span class="string">&quot;Before: {} frames are on the stack&quot;</span>,
             <span class="self">self</span>.framing_stack.len()
         );
-        <span class="kw">let </span>framed_perms = <a class="self" href="#657">self</a>.framing_stack.pop().unwrap();
-        <a class="macro" href="../../../../log/macro.debug.html">debug!</a>(<span class="string">&quot;Framed permissions: {}&quot;</span>, framed_perms);
+        <span class="kw">let </span>framed_perms = <span class="self">self</span>.framing_stack.pop().unwrap();
+        <span class="macro">debug!</span>(<span class="string">&quot;Framed permissions: {}&quot;</span>, framed_perms);
         <span class="kw">for </span>perm <span class="kw">in </span>framed_perms.perms().drain(..) {
             <span class="self">self</span>.insert_perm(perm)<span class="question-mark">?</span>;
         }
 
-        <a class="macro" href="../../../../log/macro.trace.html">trace!</a>(
+        <span class="macro">trace!</span>(
             <span class="string">&quot;After: {} frames are on the stack&quot;</span>,
             <span class="self">self</span>.framing_stack.len()
         );
@@ -1360,15 +1340,15 @@
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for </span><a href="#18">State</a> {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+<span class="kw">impl </span>fmt::Display <span class="kw">for </span>State {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter) -&gt; fmt::Result {
         <span class="macro">writeln!</span>(f, <span class="string">&quot;acc: {{&quot;</span>)<span class="question-mark">?</span>;
         <span class="macro">writeln!</span>(f, <span class="string">&quot;{}&quot;</span>, <span class="self">self</span>.display_acc())<span class="question-mark">?</span>;
         <span class="macro">writeln!</span>(f, <span class="string">&quot;}}&quot;</span>)<span class="question-mark">?</span>;
         <span class="macro">writeln!</span>(f, <span class="string">&quot;pred: {{&quot;</span>)<span class="question-mark">?</span>;
         <span class="macro">writeln!</span>(f, <span class="string">&quot;{}&quot;</span>, <span class="self">self</span>.display_pred())<span class="question-mark">?</span>;
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.writeln.html">writeln!</a>(<a href="#678">f</a>, <span class="string">&quot;}}&quot;</span>)
+        <span class="macro">writeln!</span>(f, <span class="string">&quot;}}&quot;</span>)
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="prusti_viper" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="prusti_viper" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

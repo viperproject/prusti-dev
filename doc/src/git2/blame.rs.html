@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/git2-0.14.4/src/blame.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>blame.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../git2/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/git2-0.14.4/src/blame.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>blame.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../git2/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -348,104 +348,104 @@
 <a href="#348" id="348">348</a>
 <a href="#349" id="349">349</a>
 <a href="#350" id="350">350</a>
-</pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::util::{<a class="self" href="lib.rs.html#658">self</a>, <a href="util.rs.html#25">Binding</a>};
-<span class="kw">use crate</span>::{<a href="../../libgit2_sys/index.html">raw</a>, <a href="lib.rs.html#703">signature</a>, <a href="oid.rs.html#15">Oid</a>, <a href="repo.rs.html#108">Repository</a>, <a href="signature.rs.html#21">Signature</a>};
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/marker/index.html">std::marker</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/mem/index.html">std::mem</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/ops/range/struct.Range.html">std::ops::Range</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">std::path::Path</a>;
+</pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::util::{<span class="self">self</span>, Binding};
+<span class="kw">use crate</span>::{raw, signature, Oid, Repository, Signature};
+<span class="kw">use </span>std::marker;
+<span class="kw">use </span>std::mem;
+<span class="kw">use </span>std::ops::Range;
+<span class="kw">use </span>std::path::Path;
 
 <span class="doccomment">/// Opaque structure to hold blame results.
 </span><span class="kw">pub struct </span>Blame&lt;<span class="lifetime">&#39;repo</span>&gt; {
-    raw: <span class="kw-2">*mut </span><a href="../../libgit2_sys/enum.git_blame.html">raw::git_blame</a>,
-    _marker: marker::PhantomData&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;repo </span><a href="repo.rs.html#108">Repository</a>&gt;,
+    raw: <span class="kw-2">*mut </span>raw::git_blame,
+    _marker: marker::PhantomData&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;repo </span>Repository&gt;,
 }
 
 <span class="doccomment">/// Structure that represents a blame hunk.
 </span><span class="kw">pub struct </span>BlameHunk&lt;<span class="lifetime">&#39;blame</span>&gt; {
-    raw: <span class="kw-2">*mut </span><a href="../../libgit2_sys/struct.git_blame_hunk.html">raw::git_blame_hunk</a>,
-    _marker: marker::PhantomData&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;blame </span><a href="../../libgit2_sys/enum.git_blame.html">raw::git_blame</a>&gt;,
+    raw: <span class="kw-2">*mut </span>raw::git_blame_hunk,
+    _marker: marker::PhantomData&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;blame </span>raw::git_blame&gt;,
 }
 
 <span class="doccomment">/// Blame options
 </span><span class="kw">pub struct </span>BlameOptions {
-    raw: <a href="../../libgit2_sys/struct.git_blame_options.html">raw::git_blame_options</a>,
+    raw: raw::git_blame_options,
 }
 
 <span class="doccomment">/// An iterator over the hunks in a blame.
 </span><span class="kw">pub struct </span>BlameIter&lt;<span class="lifetime">&#39;blame</span>&gt; {
-    range: Range&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;,
+    range: Range&lt;usize&gt;,
     blame: <span class="kw-2">&amp;</span><span class="lifetime">&#39;blame </span>Blame&lt;<span class="lifetime">&#39;blame</span>&gt;,
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;repo</span>&gt; Blame&lt;<span class="lifetime">&#39;repo</span>&gt; {
     <span class="doccomment">/// Gets the number of hunks that exist in the blame structure.
-    </span><span class="kw">pub fn </span>len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <span class="kw">unsafe </span>{ raw::git_blame_get_hunk_count(<a class="self" href="#33">self</a>.raw) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> }
+    </span><span class="kw">pub fn </span>len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+        <span class="kw">unsafe </span>{ raw::git_blame_get_hunk_count(<span class="self">self</span>.raw) <span class="kw">as </span>usize }
     }
 
     <span class="doccomment">/// Return `true` is there is no hunk in the blame structure.
-    </span><span class="kw">pub fn </span>is_empty(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#38">self</a>.<a href="#33">len</a>() == <span class="number">0
+    </span><span class="kw">pub fn </span>is_empty(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.len() == <span class="number">0
     </span>}
 
     <span class="doccomment">/// Gets the blame hunk at the given index.
-    </span><span class="kw">pub fn </span>get_index(<span class="kw-2">&amp;</span><span class="self">self</span>, index: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="prelude-ty">Option</span>&lt;BlameHunk&lt;<span class="lifetime">&#39;_</span>&gt;&gt; {
+    </span><span class="kw">pub fn </span>get_index(<span class="kw-2">&amp;</span><span class="self">self</span>, index: usize) -&gt; <span class="prelude-ty">Option</span>&lt;BlameHunk&lt;<span class="lifetime">&#39;_</span>&gt;&gt; {
         <span class="kw">unsafe </span>{
-            <span class="kw">let </span>ptr = raw::git_blame_get_hunk_byindex(<a class="self" href="#43">self</a>.<a href="util.rs.html#29">raw</a>(), <a href="#43">index</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>);
+            <span class="kw">let </span>ptr = raw::git_blame_get_hunk_byindex(<span class="self">self</span>.raw(), index <span class="kw">as </span>u32);
             <span class="kw">if </span>ptr.is_null() {
                 <span class="prelude-val">None
             </span>} <span class="kw">else </span>{
-                <span class="prelude-val">Some</span>(BlameHunk::from_raw_const(<a href="#45">ptr</a>))
+                <span class="prelude-val">Some</span>(BlameHunk::from_raw_const(ptr))
             }
         }
     }
 
     <span class="doccomment">/// Gets the hunk that relates to the given line number in the newest
     /// commit.
-    </span><span class="kw">pub fn </span>get_line(<span class="kw-2">&amp;</span><span class="self">self</span>, lineno: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="prelude-ty">Option</span>&lt;BlameHunk&lt;<span class="lifetime">&#39;_</span>&gt;&gt; {
+    </span><span class="kw">pub fn </span>get_line(<span class="kw-2">&amp;</span><span class="self">self</span>, lineno: usize) -&gt; <span class="prelude-ty">Option</span>&lt;BlameHunk&lt;<span class="lifetime">&#39;_</span>&gt;&gt; {
         <span class="kw">unsafe </span>{
-            <span class="kw">let </span>ptr = raw::git_blame_get_hunk_byline(<a class="self" href="#56">self</a>.<a href="util.rs.html#29">raw</a>(), <a href="#56">lineno</a>);
+            <span class="kw">let </span>ptr = raw::git_blame_get_hunk_byline(<span class="self">self</span>.raw(), lineno);
             <span class="kw">if </span>ptr.is_null() {
                 <span class="prelude-val">None
             </span>} <span class="kw">else </span>{
-                <span class="prelude-val">Some</span>(BlameHunk::from_raw_const(<a href="#58">ptr</a>))
+                <span class="prelude-val">Some</span>(BlameHunk::from_raw_const(ptr))
             }
         }
     }
 
     <span class="doccomment">/// Returns an iterator over the hunks in this blame.
     </span><span class="kw">pub fn </span>iter(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; BlameIter&lt;<span class="lifetime">&#39;_</span>&gt; {
-        <a href="#26">BlameIter</a> {
-            range: <span class="number">0</span>..<a class="self" href="#68">self</a>.<a href="#33">len</a>(),
-            blame: <a class="self" href="#68">self</a>,
+        BlameIter {
+            range: <span class="number">0</span>..<span class="self">self</span>.len(),
+            blame: <span class="self">self</span>,
         }
     }
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;blame</span>&gt; BlameHunk&lt;<span class="lifetime">&#39;blame</span>&gt; {
-    <span class="kw">unsafe fn </span>from_raw_const(raw: <span class="kw-2">*const </span><a href="../../libgit2_sys/struct.git_blame_hunk.html">raw::git_blame_hunk</a>) -&gt; BlameHunk&lt;<span class="lifetime">&#39;blame</span>&gt; {
-        <a href="#15">BlameHunk</a> {
-            raw: <a href="#77">raw</a> <span class="kw">as </span><span class="kw-2">*mut </span><a href="../../libgit2_sys/struct.git_blame_hunk.html">raw::git_blame_hunk</a>,
+    <span class="kw">unsafe fn </span>from_raw_const(raw: <span class="kw-2">*const </span>raw::git_blame_hunk) -&gt; BlameHunk&lt;<span class="lifetime">&#39;blame</span>&gt; {
+        BlameHunk {
+            raw: raw <span class="kw">as </span><span class="kw-2">*mut </span>raw::git_blame_hunk,
             _marker: marker::PhantomData,
         }
     }
 
     <span class="doccomment">/// Returns OID of the commit where this line was last changed
-    </span><span class="kw">pub fn </span>final_commit_id(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="oid.rs.html#15">Oid</a> {
-        <span class="kw">unsafe </span>{ Oid::from_raw(<span class="kw-2">&amp;</span>(<span class="kw-2">*</span><a class="self" href="#85">self</a>.raw).final_commit_id) }
+    </span><span class="kw">pub fn </span>final_commit_id(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Oid {
+        <span class="kw">unsafe </span>{ Oid::from_raw(<span class="kw-2">&amp;</span>(<span class="kw-2">*</span><span class="self">self</span>.raw).final_commit_id) }
     }
 
     <span class="doccomment">/// Returns signature of the commit.
     </span><span class="kw">pub fn </span>final_signature(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Signature&lt;<span class="lifetime">&#39;_</span>&gt; {
-        <span class="kw">unsafe </span>{ <a href="signature.rs.html#123">signature::from_raw_const</a>(<a class="self" href="#90">self</a>, (<span class="kw-2">*</span><a class="self" href="#90">self</a>.raw).final_signature) }
+        <span class="kw">unsafe </span>{ signature::from_raw_const(<span class="self">self</span>, (<span class="kw-2">*</span><span class="self">self</span>.raw).final_signature) }
     }
 
     <span class="doccomment">/// Returns line number where this hunk begins.
     ///
     /// Note that the start line is counting from 1.
-    </span><span class="kw">pub fn </span>final_start_line(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <span class="kw">unsafe </span>{ (<span class="kw-2">*</span><a class="self" href="#97">self</a>.raw).final_start_line_number }
+    </span><span class="kw">pub fn </span>final_start_line(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+        <span class="kw">unsafe </span>{ (<span class="kw-2">*</span><span class="self">self</span>.raw).final_start_line_number }
     }
 
     <span class="doccomment">/// Returns the OID of the commit where this hunk was found.
@@ -453,29 +453,29 @@
     /// This will usually be the same as `final_commit_id`,
     /// except when `BlameOptions::track_copies_any_commit_copies` has been
     /// turned on
-    </span><span class="kw">pub fn </span>orig_commit_id(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="oid.rs.html#15">Oid</a> {
-        <span class="kw">unsafe </span>{ Oid::from_raw(<span class="kw-2">&amp;</span>(<span class="kw-2">*</span><a class="self" href="#106">self</a>.raw).orig_commit_id) }
+    </span><span class="kw">pub fn </span>orig_commit_id(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Oid {
+        <span class="kw">unsafe </span>{ Oid::from_raw(<span class="kw-2">&amp;</span>(<span class="kw-2">*</span><span class="self">self</span>.raw).orig_commit_id) }
     }
 
     <span class="doccomment">/// Returns signature of the commit.
     </span><span class="kw">pub fn </span>orig_signature(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Signature&lt;<span class="lifetime">&#39;_</span>&gt; {
-        <span class="kw">unsafe </span>{ <a href="signature.rs.html#123">signature::from_raw_const</a>(<a class="self" href="#111">self</a>, (<span class="kw-2">*</span><a class="self" href="#111">self</a>.raw).orig_signature) }
+        <span class="kw">unsafe </span>{ signature::from_raw_const(<span class="self">self</span>, (<span class="kw-2">*</span><span class="self">self</span>.raw).orig_signature) }
     }
 
     <span class="doccomment">/// Returns line number where this hunk begins.
     ///
     /// Note that the start line is counting from 1.
-    </span><span class="kw">pub fn </span>orig_start_line(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <span class="kw">unsafe </span>{ (<span class="kw-2">*</span><a class="self" href="#118">self</a>.raw).orig_start_line_number }
+    </span><span class="kw">pub fn </span>orig_start_line(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+        <span class="kw">unsafe </span>{ (<span class="kw-2">*</span><span class="self">self</span>.raw).orig_start_line_number }
     }
 
     <span class="doccomment">/// Returns path to the file where this hunk originated.
     ///
     /// Note: `None` could be returned for non-unicode paths on Windows.
-    </span><span class="kw">pub fn </span>path(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>&gt; {
+    </span><span class="kw">pub fn </span>path(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Path&gt; {
         <span class="kw">unsafe </span>{
-            <span class="kw">if let </span><span class="prelude-val">Some</span>(bytes) = <a href="lib.rs.html#856"><span class="kw">crate</span>::opt_bytes</a>(<a class="self" href="#125">self</a>, (<span class="kw-2">*</span><a class="self" href="#125">self</a>.raw).orig_path) {
-                <span class="prelude-val">Some</span>(<a href="util.rs.html#87">util::bytes2path</a>(<a href="#127">bytes</a>))
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(bytes) = <span class="kw">crate</span>::opt_bytes(<span class="self">self</span>, (<span class="kw-2">*</span><span class="self">self</span>.raw).orig_path) {
+                <span class="prelude-val">Some</span>(util::bytes2path(bytes))
             } <span class="kw">else </span>{
                 <span class="prelude-val">None
             </span>}
@@ -484,180 +484,180 @@
 
     <span class="doccomment">/// Tests whether this hunk has been tracked to a boundary commit
     /// (the root, or the commit specified in git_blame_options.oldest_commit).
-    </span><span class="kw">pub fn </span>is_boundary(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">unsafe </span>{ (<span class="kw-2">*</span><a class="self" href="#137">self</a>.raw).boundary == <span class="number">1 </span>}
+    </span><span class="kw">pub fn </span>is_boundary(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="kw">unsafe </span>{ (<span class="kw-2">*</span><span class="self">self</span>.raw).boundary == <span class="number">1 </span>}
     }
 
     <span class="doccomment">/// Returns number of lines in this hunk.
-    </span><span class="kw">pub fn </span>lines_in_hunk(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <span class="kw">unsafe </span>{ (<span class="kw-2">*</span><a class="self" href="#142">self</a>.raw).lines_in_hunk <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> }
+    </span><span class="kw">pub fn </span>lines_in_hunk(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+        <span class="kw">unsafe </span>{ (<span class="kw-2">*</span><span class="self">self</span>.raw).lines_in_hunk <span class="kw">as </span>usize }
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for </span><a href="#21">BlameOptions</a> {
+<span class="kw">impl </span>Default <span class="kw">for </span>BlameOptions {
     <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>::new()
     }
 }
 
-<span class="kw">impl </span><a href="#21">BlameOptions</a> {
+<span class="kw">impl </span>BlameOptions {
     <span class="doccomment">/// Initialize options
-    </span><span class="kw">pub fn </span>new() -&gt; <a href="#21">BlameOptions</a> {
+    </span><span class="kw">pub fn </span>new() -&gt; BlameOptions {
         <span class="kw">unsafe </span>{
-            <span class="kw">let </span><span class="kw-2">mut </span>raw: <a href="../../libgit2_sys/struct.git_blame_options.html">raw::git_blame_options</a> = mem::zeroed();
-            <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert_eq.html">assert_eq!</a>(
+            <span class="kw">let </span><span class="kw-2">mut </span>raw: raw::git_blame_options = mem::zeroed();
+            <span class="macro">assert_eq!</span>(
                 raw::git_blame_init_options(<span class="kw-2">&amp;mut </span>raw, raw::GIT_BLAME_OPTIONS_VERSION),
                 <span class="number">0
             </span>);
 
-            <a href="util.rs.html#28">Binding::from_raw</a>(<span class="kw-2">&amp;</span><a href="#157">raw</a> <span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_ as </span><span class="kw-2">*mut </span><span class="kw">_</span>)
+            Binding::from_raw(<span class="kw-2">&amp;</span>raw <span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_ as </span><span class="kw-2">*mut </span><span class="kw">_</span>)
         }
     }
 
-    <span class="kw">fn </span>flag(<span class="kw-2">&amp;mut </span><span class="self">self</span>, opt: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>, val: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="kw-2">&amp;mut </span><a href="#21">BlameOptions</a> {
+    <span class="kw">fn </span>flag(<span class="kw-2">&amp;mut </span><span class="self">self</span>, opt: u32, val: bool) -&gt; <span class="kw-2">&amp;mut </span>BlameOptions {
         <span class="kw">if </span>val {
-            <a class="self" href="#167">self</a>.raw.flags |= <a href="#167">opt</a>;
+            <span class="self">self</span>.raw.flags |= opt;
         } <span class="kw">else </span>{
-            <a class="self" href="#167">self</a>.raw.flags &amp;= !<a href="#167">opt</a>;
+            <span class="self">self</span>.raw.flags &amp;= !opt;
         }
-        <span class="self"><a href="#167">self</a>
+        <span class="self">self
     </span>}
 
     <span class="doccomment">/// Track lines that have moved within a file.
-    </span><span class="kw">pub fn </span>track_copies_same_file(<span class="kw-2">&amp;mut </span><span class="self">self</span>, opt: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="kw-2">&amp;mut </span><a href="#21">BlameOptions</a> {
-        <a class="self" href="#177">self</a>.<a href="#167">flag</a>(raw::GIT_BLAME_TRACK_COPIES_SAME_FILE, <a href="#177">opt</a>)
+    </span><span class="kw">pub fn </span>track_copies_same_file(<span class="kw-2">&amp;mut </span><span class="self">self</span>, opt: bool) -&gt; <span class="kw-2">&amp;mut </span>BlameOptions {
+        <span class="self">self</span>.flag(raw::GIT_BLAME_TRACK_COPIES_SAME_FILE, opt)
     }
 
     <span class="doccomment">/// Track lines that have moved across files in the same commit.
-    </span><span class="kw">pub fn </span>track_copies_same_commit_moves(<span class="kw-2">&amp;mut </span><span class="self">self</span>, opt: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="kw-2">&amp;mut </span><a href="#21">BlameOptions</a> {
-        <a class="self" href="#182">self</a>.<a href="#167">flag</a>(raw::GIT_BLAME_TRACK_COPIES_SAME_COMMIT_MOVES, <a href="#182">opt</a>)
+    </span><span class="kw">pub fn </span>track_copies_same_commit_moves(<span class="kw-2">&amp;mut </span><span class="self">self</span>, opt: bool) -&gt; <span class="kw-2">&amp;mut </span>BlameOptions {
+        <span class="self">self</span>.flag(raw::GIT_BLAME_TRACK_COPIES_SAME_COMMIT_MOVES, opt)
     }
 
     <span class="doccomment">/// Track lines that have been copied from another file that exists
     /// in the same commit.
-    </span><span class="kw">pub fn </span>track_copies_same_commit_copies(<span class="kw-2">&amp;mut </span><span class="self">self</span>, opt: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="kw-2">&amp;mut </span><a href="#21">BlameOptions</a> {
-        <a class="self" href="#188">self</a>.<a href="#167">flag</a>(raw::GIT_BLAME_TRACK_COPIES_SAME_COMMIT_COPIES, <a href="#188">opt</a>)
+    </span><span class="kw">pub fn </span>track_copies_same_commit_copies(<span class="kw-2">&amp;mut </span><span class="self">self</span>, opt: bool) -&gt; <span class="kw-2">&amp;mut </span>BlameOptions {
+        <span class="self">self</span>.flag(raw::GIT_BLAME_TRACK_COPIES_SAME_COMMIT_COPIES, opt)
     }
 
     <span class="doccomment">/// Track lines that have been copied from another file that exists
     /// in any commit.
-    </span><span class="kw">pub fn </span>track_copies_any_commit_copies(<span class="kw-2">&amp;mut </span><span class="self">self</span>, opt: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="kw-2">&amp;mut </span><a href="#21">BlameOptions</a> {
-        <a class="self" href="#194">self</a>.<a href="#167">flag</a>(raw::GIT_BLAME_TRACK_COPIES_ANY_COMMIT_COPIES, <a href="#194">opt</a>)
+    </span><span class="kw">pub fn </span>track_copies_any_commit_copies(<span class="kw-2">&amp;mut </span><span class="self">self</span>, opt: bool) -&gt; <span class="kw-2">&amp;mut </span>BlameOptions {
+        <span class="self">self</span>.flag(raw::GIT_BLAME_TRACK_COPIES_ANY_COMMIT_COPIES, opt)
     }
 
     <span class="doccomment">/// Restrict the search of commits to those reachable following only
     /// the first parents.
-    </span><span class="kw">pub fn </span>first_parent(<span class="kw-2">&amp;mut </span><span class="self">self</span>, opt: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="kw-2">&amp;mut </span><a href="#21">BlameOptions</a> {
-        <a class="self" href="#200">self</a>.<a href="#167">flag</a>(raw::GIT_BLAME_FIRST_PARENT, <a href="#200">opt</a>)
+    </span><span class="kw">pub fn </span>first_parent(<span class="kw-2">&amp;mut </span><span class="self">self</span>, opt: bool) -&gt; <span class="kw-2">&amp;mut </span>BlameOptions {
+        <span class="self">self</span>.flag(raw::GIT_BLAME_FIRST_PARENT, opt)
     }
 
     <span class="doccomment">/// Use mailmap file to map author and committer names and email addresses
     /// to canonical real names and email addresses. The mailmap will be read
     /// from the working directory, or HEAD in a bare repository.
-    </span><span class="kw">pub fn </span>use_mailmap(<span class="kw-2">&amp;mut </span><span class="self">self</span>, opt: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="kw-2">&amp;mut </span><a href="#21">BlameOptions</a> {
-        <a class="self" href="#207">self</a>.<a href="#167">flag</a>(raw::GIT_BLAME_USE_MAILMAP, <a href="#207">opt</a>)
+    </span><span class="kw">pub fn </span>use_mailmap(<span class="kw-2">&amp;mut </span><span class="self">self</span>, opt: bool) -&gt; <span class="kw-2">&amp;mut </span>BlameOptions {
+        <span class="self">self</span>.flag(raw::GIT_BLAME_USE_MAILMAP, opt)
     }
 
     <span class="doccomment">/// Ignore whitespace differences.
-    </span><span class="kw">pub fn </span>ignore_whitespace(<span class="kw-2">&amp;mut </span><span class="self">self</span>, opt: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="kw-2">&amp;mut </span><a href="#21">BlameOptions</a> {
-        <a class="self" href="#212">self</a>.<a href="#167">flag</a>(raw::GIT_BLAME_IGNORE_WHITESPACE, <a href="#212">opt</a>)
+    </span><span class="kw">pub fn </span>ignore_whitespace(<span class="kw-2">&amp;mut </span><span class="self">self</span>, opt: bool) -&gt; <span class="kw-2">&amp;mut </span>BlameOptions {
+        <span class="self">self</span>.flag(raw::GIT_BLAME_IGNORE_WHITESPACE, opt)
     }
 
     <span class="doccomment">/// Setter for the id of the newest commit to consider.
-    </span><span class="kw">pub fn </span>newest_commit(<span class="kw-2">&amp;mut </span><span class="self">self</span>, id: <a href="oid.rs.html#15">Oid</a>) -&gt; <span class="kw-2">&amp;mut </span><a href="#21">BlameOptions</a> {
+    </span><span class="kw">pub fn </span>newest_commit(<span class="kw-2">&amp;mut </span><span class="self">self</span>, id: Oid) -&gt; <span class="kw-2">&amp;mut </span>BlameOptions {
         <span class="kw">unsafe </span>{
-            <a class="self" href="#217">self</a>.raw.newest_commit = <span class="kw-2">*</span><a href="#217">id</a>.<a href="util.rs.html#29">raw</a>();
+            <span class="self">self</span>.raw.newest_commit = <span class="kw-2">*</span>id.raw();
         }
-        <span class="self"><a href="#217">self</a>
+        <span class="self">self
     </span>}
 
     <span class="doccomment">/// Setter for the id of the oldest commit to consider.
-    </span><span class="kw">pub fn </span>oldest_commit(<span class="kw-2">&amp;mut </span><span class="self">self</span>, id: <a href="oid.rs.html#15">Oid</a>) -&gt; <span class="kw-2">&amp;mut </span><a href="#21">BlameOptions</a> {
+    </span><span class="kw">pub fn </span>oldest_commit(<span class="kw-2">&amp;mut </span><span class="self">self</span>, id: Oid) -&gt; <span class="kw-2">&amp;mut </span>BlameOptions {
         <span class="kw">unsafe </span>{
-            <a class="self" href="#225">self</a>.raw.oldest_commit = <span class="kw-2">*</span><a href="#225">id</a>.<a href="util.rs.html#29">raw</a>();
+            <span class="self">self</span>.raw.oldest_commit = <span class="kw-2">*</span>id.raw();
         }
-        <span class="self"><a href="#225">self</a>
+        <span class="self">self
     </span>}
 
     <span class="doccomment">/// The first line in the file to blame.
-    </span><span class="kw">pub fn </span>min_line(<span class="kw-2">&amp;mut </span><span class="self">self</span>, lineno: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="kw-2">&amp;mut </span><a href="#21">BlameOptions</a> {
-        <a class="self" href="#233">self</a>.raw.min_line = <a href="#233">lineno</a>;
-        <span class="self"><a href="#233">self</a>
+    </span><span class="kw">pub fn </span>min_line(<span class="kw-2">&amp;mut </span><span class="self">self</span>, lineno: usize) -&gt; <span class="kw-2">&amp;mut </span>BlameOptions {
+        <span class="self">self</span>.raw.min_line = lineno;
+        <span class="self">self
     </span>}
 
     <span class="doccomment">/// The last line in the file to blame.
-    </span><span class="kw">pub fn </span>max_line(<span class="kw-2">&amp;mut </span><span class="self">self</span>, lineno: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="kw-2">&amp;mut </span><a href="#21">BlameOptions</a> {
-        <a class="self" href="#239">self</a>.raw.max_line = <a href="#239">lineno</a>;
-        <span class="self"><a href="#239">self</a>
+    </span><span class="kw">pub fn </span>max_line(<span class="kw-2">&amp;mut </span><span class="self">self</span>, lineno: usize) -&gt; <span class="kw-2">&amp;mut </span>BlameOptions {
+        <span class="self">self</span>.raw.max_line = lineno;
+        <span class="self">self
     </span>}
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;repo</span>&gt; <a href="util.rs.html#25">Binding</a> <span class="kw">for </span>Blame&lt;<span class="lifetime">&#39;repo</span>&gt; {
-    <span class="kw">type </span>Raw = <span class="kw-2">*mut </span><a href="../../libgit2_sys/enum.git_blame.html">raw::git_blame</a>;
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;repo</span>&gt; Binding <span class="kw">for </span>Blame&lt;<span class="lifetime">&#39;repo</span>&gt; {
+    <span class="kw">type </span>Raw = <span class="kw-2">*mut </span>raw::git_blame;
 
-    <span class="kw">unsafe fn </span>from_raw(raw: <span class="kw-2">*mut </span><a href="../../libgit2_sys/enum.git_blame.html">raw::git_blame</a>) -&gt; Blame&lt;<span class="lifetime">&#39;repo</span>&gt; {
-        <a href="#9">Blame</a> {
-            <a href="#248">raw</a>,
+    <span class="kw">unsafe fn </span>from_raw(raw: <span class="kw-2">*mut </span>raw::git_blame) -&gt; Blame&lt;<span class="lifetime">&#39;repo</span>&gt; {
+        Blame {
+            raw,
             _marker: marker::PhantomData,
         }
     }
 
-    <span class="kw">fn </span>raw(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">*mut </span><a href="../../libgit2_sys/enum.git_blame.html">raw::git_blame</a> {
-        <a class="self" href="#255">self</a>.raw
+    <span class="kw">fn </span>raw(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">*mut </span>raw::git_blame {
+        <span class="self">self</span>.raw
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;repo</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span>Blame&lt;<span class="lifetime">&#39;repo</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;repo</span>&gt; Drop <span class="kw">for </span>Blame&lt;<span class="lifetime">&#39;repo</span>&gt; {
     <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <span class="kw">unsafe </span>{ raw::git_blame_free(<a class="self" href="#261">self</a>.raw) }
+        <span class="kw">unsafe </span>{ raw::git_blame_free(<span class="self">self</span>.raw) }
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;blame</span>&gt; <a href="util.rs.html#25">Binding</a> <span class="kw">for </span>BlameHunk&lt;<span class="lifetime">&#39;blame</span>&gt; {
-    <span class="kw">type </span>Raw = <span class="kw-2">*mut </span><a href="../../libgit2_sys/struct.git_blame_hunk.html">raw::git_blame_hunk</a>;
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;blame</span>&gt; Binding <span class="kw">for </span>BlameHunk&lt;<span class="lifetime">&#39;blame</span>&gt; {
+    <span class="kw">type </span>Raw = <span class="kw-2">*mut </span>raw::git_blame_hunk;
 
-    <span class="kw">unsafe fn </span>from_raw(raw: <span class="kw-2">*mut </span><a href="../../libgit2_sys/struct.git_blame_hunk.html">raw::git_blame_hunk</a>) -&gt; BlameHunk&lt;<span class="lifetime">&#39;blame</span>&gt; {
-        <a href="#15">BlameHunk</a> {
-            <a href="#269">raw</a>,
+    <span class="kw">unsafe fn </span>from_raw(raw: <span class="kw-2">*mut </span>raw::git_blame_hunk) -&gt; BlameHunk&lt;<span class="lifetime">&#39;blame</span>&gt; {
+        BlameHunk {
+            raw,
             _marker: marker::PhantomData,
         }
     }
 
-    <span class="kw">fn </span>raw(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">*mut </span><a href="../../libgit2_sys/struct.git_blame_hunk.html">raw::git_blame_hunk</a> {
-        <a class="self" href="#276">self</a>.raw
+    <span class="kw">fn </span>raw(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">*mut </span>raw::git_blame_hunk {
+        <span class="self">self</span>.raw
     }
 }
 
-<span class="kw">impl </span><a href="util.rs.html#25">Binding</a> <span class="kw">for </span><a href="#21">BlameOptions</a> {
-    <span class="kw">type </span>Raw = <span class="kw-2">*mut </span><a href="../../libgit2_sys/struct.git_blame_options.html">raw::git_blame_options</a>;
+<span class="kw">impl </span>Binding <span class="kw">for </span>BlameOptions {
+    <span class="kw">type </span>Raw = <span class="kw-2">*mut </span>raw::git_blame_options;
 
-    <span class="kw">unsafe fn </span>from_raw(opts: <span class="kw-2">*mut </span><a href="../../libgit2_sys/struct.git_blame_options.html">raw::git_blame_options</a>) -&gt; <a href="#21">BlameOptions</a> {
-        <a href="#21">BlameOptions</a> { raw: <span class="kw-2">*</span><a href="#284">opts</a> }
+    <span class="kw">unsafe fn </span>from_raw(opts: <span class="kw-2">*mut </span>raw::git_blame_options) -&gt; BlameOptions {
+        BlameOptions { raw: <span class="kw-2">*</span>opts }
     }
 
-    <span class="kw">fn </span>raw(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">*mut </span><a href="../../libgit2_sys/struct.git_blame_options.html">raw::git_blame_options</a> {
-        <span class="kw-2">&amp;</span><a class="self" href="#288">self</a>.raw <span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_ as </span><span class="kw-2">*mut </span><span class="kw">_
+    <span class="kw">fn </span>raw(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">*mut </span>raw::git_blame_options {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.raw <span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_ as </span><span class="kw-2">*mut </span><span class="kw">_
     </span>}
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;blame</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a> <span class="kw">for </span>BlameIter&lt;<span class="lifetime">&#39;blame</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;blame</span>&gt; Iterator <span class="kw">for </span>BlameIter&lt;<span class="lifetime">&#39;blame</span>&gt; {
     <span class="kw">type </span>Item = BlameHunk&lt;<span class="lifetime">&#39;blame</span>&gt;;
     <span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;BlameHunk&lt;<span class="lifetime">&#39;blame</span>&gt;&gt; {
-        <a class="self" href="#295">self</a>.range.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>().and_then(|i| <a class="self" href="#295">self</a>.blame.<a href="#43">get_index</a>(<a href="#296">i</a>))
+        <span class="self">self</span>.range.next().and_then(|i| <span class="self">self</span>.blame.get_index(i))
     }
 
-    <span class="kw">fn </span>size_hint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;) {
-        <a class="self" href="#299">self</a>.range.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">size_hint</a>()
+    <span class="kw">fn </span>size_hint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (usize, <span class="prelude-ty">Option</span>&lt;usize&gt;) {
+        <span class="self">self</span>.range.size_hint()
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;blame</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/double_ended/trait.DoubleEndedIterator.html">DoubleEndedIterator</a> <span class="kw">for </span>BlameIter&lt;<span class="lifetime">&#39;blame</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;blame</span>&gt; DoubleEndedIterator <span class="kw">for </span>BlameIter&lt;<span class="lifetime">&#39;blame</span>&gt; {
     <span class="kw">fn </span>next_back(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;BlameHunk&lt;<span class="lifetime">&#39;blame</span>&gt;&gt; {
-        <a class="self" href="#305">self</a>.range.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/double_ended/trait.DoubleEndedIterator.html">next_back</a>().and_then(|i| <a class="self" href="#305">self</a>.blame.<a href="#43">get_index</a>(<a href="#306">i</a>))
+        <span class="self">self</span>.range.next_back().and_then(|i| <span class="self">self</span>.blame.get_index(i))
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;blame</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/exact_size/trait.ExactSizeIterator.html">ExactSizeIterator</a> <span class="kw">for </span>BlameIter&lt;<span class="lifetime">&#39;blame</span>&gt; {}
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;blame</span>&gt; ExactSizeIterator <span class="kw">for </span>BlameIter&lt;<span class="lifetime">&#39;blame</span>&gt; {}
 
 <span class="attr">#[cfg(test)]
 </span><span class="kw">mod </span>tests {
@@ -699,4 +699,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="git2" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="git2" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

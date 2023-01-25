@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/openssl-0.10.42/src/ec.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>ec.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../openssl/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/openssl-0.10.45/src/ec.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>ec.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../openssl/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -1220,6 +1220,52 @@
 <a href="#1220" id="1220">1220</a>
 <a href="#1221" id="1221">1221</a>
 <a href="#1222" id="1222">1222</a>
+<a href="#1223" id="1223">1223</a>
+<a href="#1224" id="1224">1224</a>
+<a href="#1225" id="1225">1225</a>
+<a href="#1226" id="1226">1226</a>
+<a href="#1227" id="1227">1227</a>
+<a href="#1228" id="1228">1228</a>
+<a href="#1229" id="1229">1229</a>
+<a href="#1230" id="1230">1230</a>
+<a href="#1231" id="1231">1231</a>
+<a href="#1232" id="1232">1232</a>
+<a href="#1233" id="1233">1233</a>
+<a href="#1234" id="1234">1234</a>
+<a href="#1235" id="1235">1235</a>
+<a href="#1236" id="1236">1236</a>
+<a href="#1237" id="1237">1237</a>
+<a href="#1238" id="1238">1238</a>
+<a href="#1239" id="1239">1239</a>
+<a href="#1240" id="1240">1240</a>
+<a href="#1241" id="1241">1241</a>
+<a href="#1242" id="1242">1242</a>
+<a href="#1243" id="1243">1243</a>
+<a href="#1244" id="1244">1244</a>
+<a href="#1245" id="1245">1245</a>
+<a href="#1246" id="1246">1246</a>
+<a href="#1247" id="1247">1247</a>
+<a href="#1248" id="1248">1248</a>
+<a href="#1249" id="1249">1249</a>
+<a href="#1250" id="1250">1250</a>
+<a href="#1251" id="1251">1251</a>
+<a href="#1252" id="1252">1252</a>
+<a href="#1253" id="1253">1253</a>
+<a href="#1254" id="1254">1254</a>
+<a href="#1255" id="1255">1255</a>
+<a href="#1256" id="1256">1256</a>
+<a href="#1257" id="1257">1257</a>
+<a href="#1258" id="1258">1258</a>
+<a href="#1259" id="1259">1259</a>
+<a href="#1260" id="1260">1260</a>
+<a href="#1261" id="1261">1261</a>
+<a href="#1262" id="1262">1262</a>
+<a href="#1263" id="1263">1263</a>
+<a href="#1264" id="1264">1264</a>
+<a href="#1265" id="1265">1265</a>
+<a href="#1266" id="1266">1266</a>
+<a href="#1267" id="1267">1267</a>
+<a href="#1268" id="1268">1268</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Elliptic Curve
 //!
 //! Cryptography relies on the difficulty of solving mathematical problems, such as the factor
@@ -1236,19 +1282,19 @@
 //!
 //! [`EcGroup`]: struct.EcGroup.html
 //! [`Nid`]: ../nid/struct.Nid.html
-//! [Eliptic Curve Cryptography]: https://wiki.openssl.org/index.php/Elliptic_Curve_Cryptography
-</span><span class="kw">use </span>foreign_types::{<a href="../../foreign_types_shared/trait.ForeignType.html">ForeignType</a>, <a href="../../foreign_types_shared/trait.ForeignTypeRef.html">ForeignTypeRef</a>};
-<span class="kw">use </span><a href="../../libc/unix/type.c_int.html">libc::c_int</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">std::fmt</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/ptr/index.html">std::ptr</a>;
+//! [Elliptic Curve Cryptography]: https://wiki.openssl.org/index.php/Elliptic_Curve_Cryptography
+</span><span class="kw">use </span>foreign_types::{ForeignType, ForeignTypeRef};
+<span class="kw">use </span>libc::c_int;
+<span class="kw">use </span>std::fmt;
+<span class="kw">use </span>std::ptr;
 
-<span class="kw">use </span><span class="kw">crate</span>::bn::{<a href="bn.rs.html#123-155">BigNum</a>, <a href="bn.rs.html#84-100">BigNumContextRef</a>, <a href="bn.rs.html#123-155">BigNumRef</a>};
-<span class="kw">use </span><a href="error.rs.html#39"><span class="kw">crate</span>::error::ErrorStack</a>;
-<span class="kw">use </span><a href="nid.rs.html#49"><span class="kw">crate</span>::nid::Nid</a>;
-<span class="kw">use </span><span class="kw">crate</span>::pkey::{<a href="pkey.rs.html#114">HasParams</a>, <a href="pkey.rs.html#128">HasPrivate</a>, <a href="pkey.rs.html#121">HasPublic</a>, <a href="pkey.rs.html#67">Params</a>, <a href="pkey.rs.html#73">Private</a>, <a href="pkey.rs.html#70">Public</a>};
-<span class="kw">use </span><a href="util.rs.html#80"><span class="kw">crate</span>::util::ForeignTypeRefExt</a>;
-<span class="kw">use crate</span>::{<a href="lib.rs.html#202">cvt</a>, <a href="lib.rs.html#211">cvt_n</a>, <a href="lib.rs.html#193">cvt_p</a>, <a href="../../openssl/fn.init.html">init</a>};
-<span class="kw">use </span><a href="../../openssl_macros/attr.corresponds.html">openssl_macros::corresponds</a>;
+<span class="kw">use </span><span class="kw">crate</span>::bn::{BigNum, BigNumContextRef, BigNumRef};
+<span class="kw">use </span><span class="kw">crate</span>::error::ErrorStack;
+<span class="kw">use </span><span class="kw">crate</span>::nid::Nid;
+<span class="kw">use </span><span class="kw">crate</span>::pkey::{HasParams, HasPrivate, HasPublic, Params, Private, Public};
+<span class="kw">use </span><span class="kw">crate</span>::util::ForeignTypeRefExt;
+<span class="kw">use crate</span>::{cvt, cvt_n, cvt_p, init};
+<span class="kw">use </span>openssl_macros::corresponds;
 
 <span class="doccomment">/// Compressed or Uncompressed conversion
 ///
@@ -1260,29 +1306,29 @@
 ///
 /// [X9.62]: http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.202.2977&amp;rep=rep1&amp;type=pdf
 </span><span class="attr">#[derive(Copy, Clone)]
-</span><span class="kw">pub struct </span>PointConversionForm(<a href="../../openssl_sys/openssl/handwritten/ec/enum.point_conversion_form_t.html">ffi::point_conversion_form_t</a>);
+</span><span class="kw">pub struct </span>PointConversionForm(ffi::point_conversion_form_t);
 
-<span class="kw">impl </span><a href="#41">PointConversionForm</a> {
+<span class="kw">impl </span>PointConversionForm {
     <span class="doccomment">/// Compressed conversion from point value.
-    </span><span class="kw">pub const </span>COMPRESSED: <a href="#41">PointConversionForm</a> =
-        <a href="#41">PointConversionForm</a>(ffi::point_conversion_form_t::POINT_CONVERSION_COMPRESSED);
+    </span><span class="kw">pub const </span>COMPRESSED: PointConversionForm =
+        PointConversionForm(ffi::point_conversion_form_t::POINT_CONVERSION_COMPRESSED);
 
     <span class="doccomment">/// Uncompressed conversion from point value.
-    </span><span class="kw">pub const </span>UNCOMPRESSED: <a href="#41">PointConversionForm</a> =
-        <a href="#41">PointConversionForm</a>(ffi::point_conversion_form_t::POINT_CONVERSION_UNCOMPRESSED);
+    </span><span class="kw">pub const </span>UNCOMPRESSED: PointConversionForm =
+        PointConversionForm(ffi::point_conversion_form_t::POINT_CONVERSION_UNCOMPRESSED);
 
     <span class="doccomment">/// Performs both compressed and uncompressed conversions.
-    </span><span class="kw">pub const </span>HYBRID: <a href="#41">PointConversionForm</a> =
-        <a href="#41">PointConversionForm</a>(ffi::point_conversion_form_t::POINT_CONVERSION_HYBRID);
+    </span><span class="kw">pub const </span>HYBRID: PointConversionForm =
+        PointConversionForm(ffi::point_conversion_form_t::POINT_CONVERSION_HYBRID);
 }
 
 <span class="doccomment">/// Named Curve or Explicit
 ///
 /// This type acts as a boolean as to whether the `EcGroup` is named or explicit.
 </span><span class="attr">#[derive(Copy, Clone)]
-</span><span class="kw">pub struct </span>Asn1Flag(<a href="../../libc/unix/type.c_int.html">c_int</a>);
+</span><span class="kw">pub struct </span>Asn1Flag(c_int);
 
-<span class="kw">impl </span><a href="#61">Asn1Flag</a> {
+<span class="kw">impl </span>Asn1Flag {
     <span class="doccomment">/// Curve defined using polynomial parameters
     ///
     /// Most applications use a named EC_GROUP curve, however, support
@@ -1296,7 +1342,7 @@
     /// OpenSSL documentation at [`EC_GROUP`]
     ///
     /// [`EC_GROUP`]: https://www.openssl.org/docs/man1.1.0/crypto/EC_GROUP_get_seed_len.html
-    </span><span class="kw">pub const </span>EXPLICIT_CURVE: <a href="#61">Asn1Flag</a> = <a href="#61">Asn1Flag</a>(<span class="number">0</span>);
+    </span><span class="kw">pub const </span>EXPLICIT_CURVE: Asn1Flag = Asn1Flag(<span class="number">0</span>);
 
     <span class="doccomment">/// Standard Curves
     ///
@@ -1306,11 +1352,11 @@
     /// OpenSSL documentation at [`EC_GROUP`]
     ///
     /// [`EC_GROUP`]: https://www.openssl.org/docs/manmaster/man3/EC_GROUP_order_bits.html
-    </span><span class="kw">pub const </span>NAMED_CURVE: <a href="#61">Asn1Flag</a> = <a href="#61">Asn1Flag</a>(ffi::OPENSSL_EC_NAMED_CURVE);
+    </span><span class="kw">pub const </span>NAMED_CURVE: Asn1Flag = Asn1Flag(ffi::OPENSSL_EC_NAMED_CURVE);
 }
 
-<a class="macro" href="macros.rs.html#134-163">foreign_type_and_impl_send_sync! </a>{
-    <span class="kw">type </span>CType = <a href="../../openssl_sys/openssl/handwritten/ec/enum.EC_GROUP.html">ffi::EC_GROUP</a>;
+<span class="macro">foreign_type_and_impl_send_sync! </span>{
+    <span class="kw">type </span>CType = ffi::EC_GROUP;
     <span class="kw">fn </span>drop = ffi::EC_GROUP_free;
 
     <span class="doccomment">/// Describes the curve
@@ -1336,54 +1382,67 @@
     </span><span class="kw">pub struct </span>EcGroupRef;
 }
 
-<span class="kw">impl </span><a href="#90-115">EcGroup</a> {
+<span class="kw">impl </span>EcGroup {
     <span class="doccomment">/// Returns the group of a standard named curve.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # fn main() -&gt; Result&lt;(), Box&lt;dyn std::error::Error&gt;&gt; {
+    /// use openssl::nid::Nid;
+    /// use openssl::ec::{EcGroup, EcKey};
+    ///
+    /// let nid = Nid::X9_62_PRIME256V1; // NIST P-256 curve
+    /// let group = EcGroup::from_curve_name(nid)?;
+    /// let key = EcKey::generate(&amp;group)?;
+    /// # Ok(()) }
+    /// ```
     </span><span class="attr">#[corresponds(EC_GROUP_new_by_curve_name)]
-    </span><span class="kw">pub fn </span>from_curve_name(nid: <a href="nid.rs.html#49">Nid</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#90-115">EcGroup</a>, <a href="error.rs.html#39">ErrorStack</a>&gt; {
+    </span><span class="kw">pub fn </span>from_curve_name(nid: Nid) -&gt; <span class="prelude-ty">Result</span>&lt;EcGroup, ErrorStack&gt; {
         <span class="kw">unsafe </span>{
-            <a href="../../openssl/fn.init.html">init</a>();
-            <a href="lib.rs.html#193">cvt_p</a>(ffi::EC_GROUP_new_by_curve_name(<a href="#120">nid</a>.<a href="nid.rs.html#60">as_raw</a>())).map(<a href="#90-115">EcGroup</a>)
+            init();
+            cvt_p(ffi::EC_GROUP_new_by_curve_name(nid.as_raw())).map(EcGroup)
         }
     }
 
     <span class="doccomment">/// Returns the group for given parameters
     </span><span class="attr">#[corresponds(EC_GROUP_new_curve_GFp)]
     </span><span class="kw">pub fn </span>from_components(
-        p: <a href="bn.rs.html#123-155">BigNum</a>,
-        a: <a href="bn.rs.html#123-155">BigNum</a>,
-        b: <a href="bn.rs.html#123-155">BigNum</a>,
-        ctx: <span class="kw-2">&amp;mut </span><a href="bn.rs.html#84-100">BigNumContextRef</a>,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#90-115">EcGroup</a>, <a href="error.rs.html#39">ErrorStack</a>&gt; {
+        p: BigNum,
+        a: BigNum,
+        b: BigNum,
+        ctx: <span class="kw-2">&amp;mut </span>BigNumContextRef,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;EcGroup, ErrorStack&gt; {
         <span class="kw">unsafe </span>{
-            <a href="lib.rs.html#193">cvt_p</a>(ffi::EC_GROUP_new_curve_GFp(
-                <a href="#130">p</a>.<a href="../../foreign_types_shared/trait.ForeignType.html">as_ptr</a>(),
-                <a href="#131">a</a>.<a href="../../foreign_types_shared/trait.ForeignType.html">as_ptr</a>(),
-                <a href="#132">b</a>.<a href="../../foreign_types_shared/trait.ForeignType.html">as_ptr</a>(),
-                <a href="#133">ctx</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
+            cvt_p(ffi::EC_GROUP_new_curve_GFp(
+                p.as_ptr(),
+                a.as_ptr(),
+                b.as_ptr(),
+                ctx.as_ptr(),
             ))
-            .map(<a href="#90-115">EcGroup</a>)
+            .map(EcGroup)
         }
     }
 }
 
-<span class="kw">impl </span><a href="#90-115">EcGroupRef</a> {
+<span class="kw">impl </span>EcGroupRef {
     <span class="doccomment">/// Places the components of a curve over a prime field in the provided `BigNum`s.
     /// The components make up the formula `y^2 mod p = x^3 + ax + b mod p`.
     </span><span class="attr">#[corresponds(EC_GROUP_get_curve_GFp)]
     </span><span class="kw">pub fn </span>components_gfp(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        p: <span class="kw-2">&amp;mut </span><a href="bn.rs.html#123-155">BigNumRef</a>,
-        a: <span class="kw-2">&amp;mut </span><a href="bn.rs.html#123-155">BigNumRef</a>,
-        b: <span class="kw-2">&amp;mut </span><a href="bn.rs.html#123-155">BigNumRef</a>,
-        ctx: <span class="kw-2">&amp;mut </span><a href="bn.rs.html#84-100">BigNumContextRef</a>,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#39">ErrorStack</a>&gt; {
+        p: <span class="kw-2">&amp;mut </span>BigNumRef,
+        a: <span class="kw-2">&amp;mut </span>BigNumRef,
+        b: <span class="kw-2">&amp;mut </span>BigNumRef,
+        ctx: <span class="kw-2">&amp;mut </span>BigNumContextRef,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), ErrorStack&gt; {
         <span class="kw">unsafe </span>{
-            <a href="lib.rs.html#202">cvt</a>(ffi::EC_GROUP_get_curve_GFp(
-                <a class="self" href="#152">self</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
-                <a href="#153">p</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
-                <a href="#154">a</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
-                <a href="#155">b</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
-                <a href="#156">ctx</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
+            cvt(ffi::EC_GROUP_get_curve_GFp(
+                <span class="self">self</span>.as_ptr(),
+                p.as_ptr(),
+                a.as_ptr(),
+                b.as_ptr(),
+                ctx.as_ptr(),
             ))
             .map(|<span class="kw">_</span>| ())
         }
@@ -1399,18 +1458,18 @@
     #[cfg(not(any(boringssl, osslconf = <span class="string">&quot;OPENSSL_NO_EC2M&quot;</span>)))]
     </span><span class="kw">pub fn </span>components_gf2m(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        p: <span class="kw-2">&amp;mut </span><a href="bn.rs.html#123-155">BigNumRef</a>,
-        a: <span class="kw-2">&amp;mut </span><a href="bn.rs.html#123-155">BigNumRef</a>,
-        b: <span class="kw-2">&amp;mut </span><a href="bn.rs.html#123-155">BigNumRef</a>,
-        ctx: <span class="kw-2">&amp;mut </span><a href="bn.rs.html#84-100">BigNumContextRef</a>,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#39">ErrorStack</a>&gt; {
+        p: <span class="kw-2">&amp;mut </span>BigNumRef,
+        a: <span class="kw-2">&amp;mut </span>BigNumRef,
+        b: <span class="kw-2">&amp;mut </span>BigNumRef,
+        ctx: <span class="kw-2">&amp;mut </span>BigNumContextRef,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), ErrorStack&gt; {
         <span class="kw">unsafe </span>{
-            <a href="lib.rs.html#202">cvt</a>(ffi::EC_GROUP_get_curve_GF2m(
-                <a class="self" href="#179">self</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
-                <a href="#180">p</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
-                <a href="#181">a</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
-                <a href="#182">b</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
-                <a href="#183">ctx</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
+            cvt(ffi::EC_GROUP_get_curve_GF2m(
+                <span class="self">self</span>.as_ptr(),
+                p.as_ptr(),
+                a.as_ptr(),
+                b.as_ptr(),
+                ctx.as_ptr(),
             ))
             .map(|<span class="kw">_</span>| ())
         }
@@ -1420,14 +1479,14 @@
     </span><span class="attr">#[corresponds(EC_GROUP_get_cofactor)]
     </span><span class="kw">pub fn </span>cofactor(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        cofactor: <span class="kw-2">&amp;mut </span><a href="bn.rs.html#123-155">BigNumRef</a>,
-        ctx: <span class="kw-2">&amp;mut </span><a href="bn.rs.html#84-100">BigNumContextRef</a>,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#39">ErrorStack</a>&gt; {
+        cofactor: <span class="kw-2">&amp;mut </span>BigNumRef,
+        ctx: <span class="kw-2">&amp;mut </span>BigNumContextRef,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), ErrorStack&gt; {
         <span class="kw">unsafe </span>{
-            <a href="lib.rs.html#202">cvt</a>(ffi::EC_GROUP_get_cofactor(
-                <a class="self" href="#200">self</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
-                <a href="#201">cofactor</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
-                <a href="#202">ctx</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
+            cvt(ffi::EC_GROUP_get_cofactor(
+                <span class="self">self</span>.as_ptr(),
+                cofactor.as_ptr(),
+                ctx.as_ptr(),
             ))
             .map(|<span class="kw">_</span>| ())
         }
@@ -1435,23 +1494,23 @@
 
     <span class="doccomment">/// Returns the degree of the curve.
     </span><span class="attr">#[corresponds(EC_GROUP_get_degree)]
-    </span><span class="kw">pub fn </span>degree(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
-        <span class="kw">unsafe </span>{ ffi::EC_GROUP_get_degree(<a class="self" href="#216">self</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>()) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> }
+    </span><span class="kw">pub fn </span>degree(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u32 {
+        <span class="kw">unsafe </span>{ ffi::EC_GROUP_get_degree(<span class="self">self</span>.as_ptr()) <span class="kw">as </span>u32 }
     }
 
     <span class="doccomment">/// Returns the number of bits in the group order.
     </span><span class="attr">#[corresponds(EC_GROUP_order_bits)]
     #[cfg(ossl110)]
-    </span><span class="kw">pub fn </span>order_bits(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
-        <span class="kw">unsafe </span>{ ffi::EC_GROUP_order_bits(<a class="self" href="#223">self</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>()) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> }
+    </span><span class="kw">pub fn </span>order_bits(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u32 {
+        <span class="kw">unsafe </span>{ ffi::EC_GROUP_order_bits(<span class="self">self</span>.as_ptr()) <span class="kw">as </span>u32 }
     }
 
     <span class="doccomment">/// Returns the generator for the given curve as an [`EcPoint`].
     </span><span class="attr">#[corresponds(EC_GROUP_get0_generator)]
-    </span><span class="kw">pub fn </span>generator(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="#296-304">EcPointRef</a> {
+    </span><span class="kw">pub fn </span>generator(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>EcPointRef {
         <span class="kw">unsafe </span>{
-            <span class="kw">let </span>ptr = ffi::EC_GROUP_get0_generator(<a class="self" href="#229">self</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>());
-            EcPointRef::from_const_ptr(<a href="#231">ptr</a>)
+            <span class="kw">let </span>ptr = ffi::EC_GROUP_get0_generator(<span class="self">self</span>.as_ptr());
+            EcPointRef::from_const_ptr(ptr)
         }
     }
 
@@ -1459,16 +1518,16 @@
     </span><span class="attr">#[corresponds(EC_GROUP_set_generator)]
     </span><span class="kw">pub fn </span>set_generator(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        generator: <a href="#296-304">EcPoint</a>,
-        order: <a href="bn.rs.html#123-155">BigNum</a>,
-        cofactor: <a href="bn.rs.html#123-155">BigNum</a>,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#39">ErrorStack</a>&gt; {
+        generator: EcPoint,
+        order: BigNum,
+        cofactor: BigNum,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), ErrorStack&gt; {
         <span class="kw">unsafe </span>{
-            <a href="lib.rs.html#202">cvt</a>(ffi::EC_GROUP_set_generator(
-                <a class="self" href="#239">self</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
-                <a href="#240">generator</a>.<a href="../../foreign_types_shared/trait.ForeignType.html">as_ptr</a>(),
-                <a href="#241">order</a>.<a href="../../foreign_types_shared/trait.ForeignType.html">as_ptr</a>(),
-                <a href="#242">cofactor</a>.<a href="../../foreign_types_shared/trait.ForeignType.html">as_ptr</a>(),
+            cvt(ffi::EC_GROUP_set_generator(
+                <span class="self">self</span>.as_ptr(),
+                generator.as_ptr(),
+                order.as_ptr(),
+                cofactor.as_ptr(),
             ))
             .map(|<span class="kw">_</span>| ())
         }
@@ -1478,14 +1537,14 @@
     </span><span class="attr">#[corresponds(EC_GROUP_get_order)]
     </span><span class="kw">pub fn </span>order(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        order: <span class="kw-2">&amp;mut </span><a href="bn.rs.html#123-155">BigNumRef</a>,
-        ctx: <span class="kw-2">&amp;mut </span><a href="bn.rs.html#84-100">BigNumContextRef</a>,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#39">ErrorStack</a>&gt; {
+        order: <span class="kw-2">&amp;mut </span>BigNumRef,
+        ctx: <span class="kw-2">&amp;mut </span>BigNumContextRef,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), ErrorStack&gt; {
         <span class="kw">unsafe </span>{
-            <a href="lib.rs.html#202">cvt</a>(ffi::EC_GROUP_get_order(
-                <a class="self" href="#258">self</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
-                <a href="#259">order</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
-                <a href="#260">ctx</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
+            cvt(ffi::EC_GROUP_get_order(
+                <span class="self">self</span>.as_ptr(),
+                order.as_ptr(),
+                ctx.as_ptr(),
             ))
             .map(|<span class="kw">_</span>| ())
         }
@@ -1497,26 +1556,26 @@
     /// This defaults to `EXPLICIT_CURVE` in OpenSSL 1.0.1 and 1.0.2, but `NAMED_CURVE` in OpenSSL
     /// 1.1.0.
     </span><span class="attr">#[corresponds(EC_GROUP_set_asn1_flag)]
-    </span><span class="kw">pub fn </span>set_asn1_flag(<span class="kw-2">&amp;mut </span><span class="self">self</span>, flag: <a href="#61">Asn1Flag</a>) {
+    </span><span class="kw">pub fn </span>set_asn1_flag(<span class="kw-2">&amp;mut </span><span class="self">self</span>, flag: Asn1Flag) {
         <span class="kw">unsafe </span>{
-            ffi::EC_GROUP_set_asn1_flag(<a class="self" href="#278">self</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(), <a href="#278">flag</a>.<span class="number">0</span>);
+            ffi::EC_GROUP_set_asn1_flag(<span class="self">self</span>.as_ptr(), flag.<span class="number">0</span>);
         }
     }
 
     <span class="doccomment">/// Returns the name of the curve, if a name is associated.
     </span><span class="attr">#[corresponds(EC_GROUP_get_curve_name)]
-    </span><span class="kw">pub fn </span>curve_name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="nid.rs.html#49">Nid</a>&gt; {
-        <span class="kw">let </span>nid = <span class="kw">unsafe </span>{ ffi::EC_GROUP_get_curve_name(<a class="self" href="#286">self</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>()) };
+    </span><span class="kw">pub fn </span>curve_name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Nid&gt; {
+        <span class="kw">let </span>nid = <span class="kw">unsafe </span>{ ffi::EC_GROUP_get_curve_name(<span class="self">self</span>.as_ptr()) };
         <span class="kw">if </span>nid &gt; <span class="number">0 </span>{
-            <span class="prelude-val">Some</span>(Nid::from_raw(<a href="#287">nid</a>))
+            <span class="prelude-val">Some</span>(Nid::from_raw(nid))
         } <span class="kw">else </span>{
             <span class="prelude-val">None
         </span>}
     }
 }
 
-<a class="macro" href="macros.rs.html#134-163">foreign_type_and_impl_send_sync! </a>{
-    <span class="kw">type </span>CType = <a href="../../openssl_sys/openssl/handwritten/ec/enum.EC_POINT.html">ffi::EC_POINT</a>;
+<span class="macro">foreign_type_and_impl_send_sync! </span>{
+    <span class="kw">type </span>CType = ffi::EC_POINT;
     <span class="kw">fn </span>drop = ffi::EC_POINT_free;
 
     <span class="doccomment">/// Represents a point on the curve
@@ -1525,23 +1584,23 @@
     </span><span class="kw">pub struct </span>EcPointRef;
 }
 
-<span class="kw">impl </span><a href="#296-304">EcPointRef</a> {
+<span class="kw">impl </span>EcPointRef {
     <span class="doccomment">/// Computes `a + b`, storing the result in `self`.
     </span><span class="attr">#[corresponds(EC_POINT_add)]
     </span><span class="kw">pub fn </span>add(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        group: <span class="kw-2">&amp;</span><a href="#90-115">EcGroupRef</a>,
-        a: <span class="kw-2">&amp;</span><a href="#296-304">EcPointRef</a>,
-        b: <span class="kw-2">&amp;</span><a href="#296-304">EcPointRef</a>,
-        ctx: <span class="kw-2">&amp;mut </span><a href="bn.rs.html#84-100">BigNumContextRef</a>,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#39">ErrorStack</a>&gt; {
+        group: <span class="kw-2">&amp;</span>EcGroupRef,
+        a: <span class="kw-2">&amp;</span>EcPointRef,
+        b: <span class="kw-2">&amp;</span>EcPointRef,
+        ctx: <span class="kw-2">&amp;mut </span>BigNumContextRef,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), ErrorStack&gt; {
         <span class="kw">unsafe </span>{
-            <a href="lib.rs.html#202">cvt</a>(ffi::EC_POINT_add(
-                <a href="#311">group</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
-                <a class="self" href="#310">self</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
-                <a href="#312">a</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
-                <a href="#313">b</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
-                <a href="#314">ctx</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
+            cvt(ffi::EC_POINT_add(
+                group.as_ptr(),
+                <span class="self">self</span>.as_ptr(),
+                a.as_ptr(),
+                b.as_ptr(),
+                ctx.as_ptr(),
             ))
             .map(|<span class="kw">_</span>| ())
         }
@@ -1551,20 +1610,20 @@
     </span><span class="attr">#[corresponds(EC_POINT_mul)]
     </span><span class="kw">pub fn </span>mul(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        group: <span class="kw-2">&amp;</span><a href="#90-115">EcGroupRef</a>,
-        q: <span class="kw-2">&amp;</span><a href="#296-304">EcPointRef</a>,
-        m: <span class="kw-2">&amp;</span><a href="bn.rs.html#123-155">BigNumRef</a>,
+        group: <span class="kw-2">&amp;</span>EcGroupRef,
+        q: <span class="kw-2">&amp;</span>EcPointRef,
+        m: <span class="kw-2">&amp;</span>BigNumRef,
         <span class="comment">// FIXME should be &amp;mut
-        </span>ctx: <span class="kw-2">&amp;</span><a href="bn.rs.html#84-100">BigNumContextRef</a>,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#39">ErrorStack</a>&gt; {
+        </span>ctx: <span class="kw-2">&amp;</span>BigNumContextRef,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), ErrorStack&gt; {
         <span class="kw">unsafe </span>{
-            <a href="lib.rs.html#202">cvt</a>(ffi::EC_POINT_mul(
-                <a href="#332">group</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
-                <a class="self" href="#331">self</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
+            cvt(ffi::EC_POINT_mul(
+                group.as_ptr(),
+                <span class="self">self</span>.as_ptr(),
                 ptr::null(),
-                <a href="#333">q</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
-                <a href="#334">m</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
-                <a href="#336">ctx</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
+                q.as_ptr(),
+                m.as_ptr(),
+                ctx.as_ptr(),
             ))
             .map(|<span class="kw">_</span>| ())
         }
@@ -1574,19 +1633,19 @@
     </span><span class="attr">#[corresponds(EC_POINT_mul)]
     </span><span class="kw">pub fn </span>mul_generator(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        group: <span class="kw-2">&amp;</span><a href="#90-115">EcGroupRef</a>,
-        n: <span class="kw-2">&amp;</span><a href="bn.rs.html#123-155">BigNumRef</a>,
+        group: <span class="kw-2">&amp;</span>EcGroupRef,
+        n: <span class="kw-2">&amp;</span>BigNumRef,
         <span class="comment">// FIXME should be &amp;mut
-        </span>ctx: <span class="kw-2">&amp;</span><a href="bn.rs.html#84-100">BigNumContextRef</a>,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#39">ErrorStack</a>&gt; {
+        </span>ctx: <span class="kw-2">&amp;</span>BigNumContextRef,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), ErrorStack&gt; {
         <span class="kw">unsafe </span>{
-            <a href="lib.rs.html#202">cvt</a>(ffi::EC_POINT_mul(
-                <a href="#355">group</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
-                <a class="self" href="#354">self</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
-                <a href="#356">n</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
+            cvt(ffi::EC_POINT_mul(
+                group.as_ptr(),
+                <span class="self">self</span>.as_ptr(),
+                n.as_ptr(),
                 ptr::null(),
                 ptr::null(),
-                <a href="#358">ctx</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
+                ctx.as_ptr(),
             ))
             .map(|<span class="kw">_</span>| ())
         }
@@ -1596,20 +1655,20 @@
     </span><span class="attr">#[corresponds(EC_POINT_mul)]
     </span><span class="kw">pub fn </span>mul_full(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        group: <span class="kw-2">&amp;</span><a href="#90-115">EcGroupRef</a>,
-        n: <span class="kw-2">&amp;</span><a href="bn.rs.html#123-155">BigNumRef</a>,
-        q: <span class="kw-2">&amp;</span><a href="#296-304">EcPointRef</a>,
-        m: <span class="kw-2">&amp;</span><a href="bn.rs.html#123-155">BigNumRef</a>,
-        ctx: <span class="kw-2">&amp;mut </span><a href="bn.rs.html#84-100">BigNumContextRef</a>,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#39">ErrorStack</a>&gt; {
+        group: <span class="kw-2">&amp;</span>EcGroupRef,
+        n: <span class="kw-2">&amp;</span>BigNumRef,
+        q: <span class="kw-2">&amp;</span>EcPointRef,
+        m: <span class="kw-2">&amp;</span>BigNumRef,
+        ctx: <span class="kw-2">&amp;mut </span>BigNumContextRef,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), ErrorStack&gt; {
         <span class="kw">unsafe </span>{
-            <a href="lib.rs.html#202">cvt</a>(ffi::EC_POINT_mul(
-                <a href="#377">group</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
-                <a class="self" href="#376">self</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
-                <a href="#378">n</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
-                <a href="#379">q</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
-                <a href="#380">m</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
-                <a href="#381">ctx</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
+            cvt(ffi::EC_POINT_mul(
+                group.as_ptr(),
+                <span class="self">self</span>.as_ptr(),
+                n.as_ptr(),
+                q.as_ptr(),
+                m.as_ptr(),
+                ctx.as_ptr(),
             ))
             .map(|<span class="kw">_</span>| ())
         }
@@ -1618,12 +1677,12 @@
     <span class="doccomment">/// Inverts `self`.
     </span><span class="attr">#[corresponds(EC_POINT_invert)]
     </span><span class="comment">// FIXME should be mutable
-    </span><span class="kw">pub fn </span>invert(<span class="kw-2">&amp;mut </span><span class="self">self</span>, group: <span class="kw-2">&amp;</span><a href="#90-115">EcGroupRef</a>, ctx: <span class="kw-2">&amp;</span><a href="bn.rs.html#84-100">BigNumContextRef</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#39">ErrorStack</a>&gt; {
+    </span><span class="kw">pub fn </span>invert(<span class="kw-2">&amp;mut </span><span class="self">self</span>, group: <span class="kw-2">&amp;</span>EcGroupRef, ctx: <span class="kw-2">&amp;</span>BigNumContextRef) -&gt; <span class="prelude-ty">Result</span>&lt;(), ErrorStack&gt; {
         <span class="kw">unsafe </span>{
-            <a href="lib.rs.html#202">cvt</a>(ffi::EC_POINT_invert(
-                <a href="#399">group</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
-                <a class="self" href="#399">self</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
-                <a href="#399">ctx</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
+            cvt(ffi::EC_POINT_invert(
+                group.as_ptr(),
+                <span class="self">self</span>.as_ptr(),
+                ctx.as_ptr(),
             ))
             .map(|<span class="kw">_</span>| ())
         }
@@ -1633,53 +1692,53 @@
     </span><span class="attr">#[corresponds(EC_POINT_point2oct)]
     </span><span class="kw">pub fn </span>to_bytes(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        group: <span class="kw-2">&amp;</span><a href="#90-115">EcGroupRef</a>,
-        form: <a href="#41">PointConversionForm</a>,
-        ctx: <span class="kw-2">&amp;mut </span><a href="bn.rs.html#84-100">BigNumContextRef</a>,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;, <a href="error.rs.html#39">ErrorStack</a>&gt; {
+        group: <span class="kw-2">&amp;</span>EcGroupRef,
+        form: PointConversionForm,
+        ctx: <span class="kw-2">&amp;mut </span>BigNumContextRef,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;u8&gt;, ErrorStack&gt; {
         <span class="kw">unsafe </span>{
             <span class="kw">let </span>len = ffi::EC_POINT_point2oct(
-                <a href="#414">group</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
-                <a class="self" href="#413">self</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
-                <a href="#415">form</a>.<span class="number">0</span>,
+                group.as_ptr(),
+                <span class="self">self</span>.as_ptr(),
+                form.<span class="number">0</span>,
                 ptr::null_mut(),
                 <span class="number">0</span>,
-                <a href="#416">ctx</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
+                ctx.as_ptr(),
             );
             <span class="kw">if </span>len == <span class="number">0 </span>{
                 <span class="kw">return </span><span class="prelude-val">Err</span>(ErrorStack::get());
             }
-            <span class="kw">let </span><span class="kw-2">mut </span>buf = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[<span class="number">0</span>; len];
+            <span class="kw">let </span><span class="kw-2">mut </span>buf = <span class="macro">vec!</span>[<span class="number">0</span>; len];
             <span class="kw">let </span>len = ffi::EC_POINT_point2oct(
-                <a href="#414">group</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
-                <a class="self" href="#413">self</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
-                <a href="#415">form</a>.<span class="number">0</span>,
-                <a href="#430">buf</a>.as_mut_ptr(),
-                <a href="#419">len</a>,
-                <a href="#416">ctx</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
+                group.as_ptr(),
+                <span class="self">self</span>.as_ptr(),
+                form.<span class="number">0</span>,
+                buf.as_mut_ptr(),
+                len,
+                ctx.as_ptr(),
             );
             <span class="kw">if </span>len == <span class="number">0 </span>{
                 <span class="prelude-val">Err</span>(ErrorStack::get())
             } <span class="kw">else </span>{
-                <span class="prelude-val">Ok</span>(<a href="#430">buf</a>)
+                <span class="prelude-val">Ok</span>(buf)
             }
         }
     }
 
     <span class="doccomment">/// Creates a new point on the specified curve with the same value.
     </span><span class="attr">#[corresponds(EC_POINT_dup)]
-    </span><span class="kw">pub fn </span>to_owned(<span class="kw-2">&amp;</span><span class="self">self</span>, group: <span class="kw-2">&amp;</span><a href="#90-115">EcGroupRef</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#296-304">EcPoint</a>, <a href="error.rs.html#39">ErrorStack</a>&gt; {
-        <span class="kw">unsafe </span>{ <a href="lib.rs.html#193">cvt_p</a>(ffi::EC_POINT_dup(<a class="self" href="#449">self</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(), <a href="#449">group</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>())).map(<a href="#296-304">EcPoint</a>) }
+    </span><span class="kw">pub fn </span>to_owned(<span class="kw-2">&amp;</span><span class="self">self</span>, group: <span class="kw-2">&amp;</span>EcGroupRef) -&gt; <span class="prelude-ty">Result</span>&lt;EcPoint, ErrorStack&gt; {
+        <span class="kw">unsafe </span>{ cvt_p(ffi::EC_POINT_dup(<span class="self">self</span>.as_ptr(), group.as_ptr())).map(EcPoint) }
     }
 
     <span class="doccomment">/// Determines if this point is equal to another.
     </span><span class="attr">#[corresponds(EC_POINT_cmp)]
     </span><span class="kw">pub fn </span>eq(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        group: <span class="kw-2">&amp;</span><a href="#90-115">EcGroupRef</a>,
-        other: <span class="kw-2">&amp;</span><a href="#296-304">EcPointRef</a>,
-        ctx: <span class="kw-2">&amp;mut </span><a href="bn.rs.html#84-100">BigNumContextRef</a>,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>, <a href="error.rs.html#39">ErrorStack</a>&gt; {
+        group: <span class="kw-2">&amp;</span>EcGroupRef,
+        other: <span class="kw-2">&amp;</span>EcPointRef,
+        ctx: <span class="kw-2">&amp;mut </span>BigNumContextRef,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;bool, ErrorStack&gt; {
         <span class="kw">unsafe </span>{
             <span class="kw">let </span>res = cvt_n(ffi::EC_POINT_cmp(
                 group.as_ptr(),
@@ -1687,7 +1746,7 @@
                 other.as_ptr(),
                 ctx.as_ptr(),
             ))<span class="question-mark">?</span>;
-            <span class="prelude-val">Ok</span>(<a href="#462">res</a> == <span class="number">0</span>)
+            <span class="prelude-val">Ok</span>(res == <span class="number">0</span>)
         }
     }
 
@@ -1697,18 +1756,18 @@
     #[cfg(ossl111)]
     </span><span class="kw">pub fn </span>affine_coordinates(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        group: <span class="kw-2">&amp;</span><a href="#90-115">EcGroupRef</a>,
-        x: <span class="kw-2">&amp;mut </span><a href="bn.rs.html#123-155">BigNumRef</a>,
-        y: <span class="kw-2">&amp;mut </span><a href="bn.rs.html#123-155">BigNumRef</a>,
-        ctx: <span class="kw-2">&amp;mut </span><a href="bn.rs.html#84-100">BigNumContextRef</a>,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#39">ErrorStack</a>&gt; {
+        group: <span class="kw-2">&amp;</span>EcGroupRef,
+        x: <span class="kw-2">&amp;mut </span>BigNumRef,
+        y: <span class="kw-2">&amp;mut </span>BigNumRef,
+        ctx: <span class="kw-2">&amp;mut </span>BigNumContextRef,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), ErrorStack&gt; {
         <span class="kw">unsafe </span>{
-            <a href="lib.rs.html#202">cvt</a>(ffi::EC_POINT_get_affine_coordinates(
-                <a href="#478">group</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
-                <a class="self" href="#477">self</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
-                <a href="#479">x</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
-                <a href="#480">y</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
-                <a href="#481">ctx</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
+            cvt(ffi::EC_POINT_get_affine_coordinates(
+                group.as_ptr(),
+                <span class="self">self</span>.as_ptr(),
+                x.as_ptr(),
+                y.as_ptr(),
+                ctx.as_ptr(),
             ))
             .map(|<span class="kw">_</span>| ())
         }
@@ -1719,18 +1778,18 @@
     </span><span class="attr">#[corresponds(EC_POINT_get_affine_coordinates_GFp)]
     </span><span class="kw">pub fn </span>affine_coordinates_gfp(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        group: <span class="kw-2">&amp;</span><a href="#90-115">EcGroupRef</a>,
-        x: <span class="kw-2">&amp;mut </span><a href="bn.rs.html#123-155">BigNumRef</a>,
-        y: <span class="kw-2">&amp;mut </span><a href="bn.rs.html#123-155">BigNumRef</a>,
-        ctx: <span class="kw-2">&amp;mut </span><a href="bn.rs.html#84-100">BigNumContextRef</a>,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#39">ErrorStack</a>&gt; {
+        group: <span class="kw-2">&amp;</span>EcGroupRef,
+        x: <span class="kw-2">&amp;mut </span>BigNumRef,
+        y: <span class="kw-2">&amp;mut </span>BigNumRef,
+        ctx: <span class="kw-2">&amp;mut </span>BigNumContextRef,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), ErrorStack&gt; {
         <span class="kw">unsafe </span>{
-            <a href="lib.rs.html#202">cvt</a>(ffi::EC_POINT_get_affine_coordinates_GFp(
-                <a href="#500">group</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
-                <a class="self" href="#499">self</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
-                <a href="#501">x</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
-                <a href="#502">y</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
-                <a href="#503">ctx</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
+            cvt(ffi::EC_POINT_get_affine_coordinates_GFp(
+                group.as_ptr(),
+                <span class="self">self</span>.as_ptr(),
+                x.as_ptr(),
+                y.as_ptr(),
+                ctx.as_ptr(),
             ))
             .map(|<span class="kw">_</span>| ())
         }
@@ -1741,18 +1800,18 @@
     </span><span class="attr">#[corresponds(EC_POINT_set_affine_coordinates_GFp)]
     </span><span class="kw">pub fn </span>set_affine_coordinates_gfp(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        group: <span class="kw-2">&amp;</span><a href="#90-115">EcGroupRef</a>,
-        x: <span class="kw-2">&amp;</span><a href="bn.rs.html#123-155">BigNumRef</a>,
-        y: <span class="kw-2">&amp;</span><a href="bn.rs.html#123-155">BigNumRef</a>,
-        ctx: <span class="kw-2">&amp;mut </span><a href="bn.rs.html#84-100">BigNumContextRef</a>,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#39">ErrorStack</a>&gt; {
+        group: <span class="kw-2">&amp;</span>EcGroupRef,
+        x: <span class="kw-2">&amp;</span>BigNumRef,
+        y: <span class="kw-2">&amp;</span>BigNumRef,
+        ctx: <span class="kw-2">&amp;mut </span>BigNumContextRef,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), ErrorStack&gt; {
         <span class="kw">unsafe </span>{
-            <a href="lib.rs.html#202">cvt</a>(ffi::EC_POINT_set_affine_coordinates_GFp(
-                <a href="#522">group</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
-                <a class="self" href="#521">self</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
-                <a href="#523">x</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
-                <a href="#524">y</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
-                <a href="#525">ctx</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
+            cvt(ffi::EC_POINT_set_affine_coordinates_GFp(
+                group.as_ptr(),
+                <span class="self">self</span>.as_ptr(),
+                x.as_ptr(),
+                y.as_ptr(),
+                ctx.as_ptr(),
             ))
             .map(|<span class="kw">_</span>| ())
         }
@@ -1764,18 +1823,18 @@
     #[cfg(not(any(boringssl, osslconf = <span class="string">&quot;OPENSSL_NO_EC2M&quot;</span>)))]
     </span><span class="kw">pub fn </span>affine_coordinates_gf2m(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        group: <span class="kw-2">&amp;</span><a href="#90-115">EcGroupRef</a>,
-        x: <span class="kw-2">&amp;mut </span><a href="bn.rs.html#123-155">BigNumRef</a>,
-        y: <span class="kw-2">&amp;mut </span><a href="bn.rs.html#123-155">BigNumRef</a>,
-        ctx: <span class="kw-2">&amp;mut </span><a href="bn.rs.html#84-100">BigNumContextRef</a>,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#39">ErrorStack</a>&gt; {
+        group: <span class="kw-2">&amp;</span>EcGroupRef,
+        x: <span class="kw-2">&amp;mut </span>BigNumRef,
+        y: <span class="kw-2">&amp;mut </span>BigNumRef,
+        ctx: <span class="kw-2">&amp;mut </span>BigNumContextRef,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), ErrorStack&gt; {
         <span class="kw">unsafe </span>{
-            <a href="lib.rs.html#202">cvt</a>(ffi::EC_POINT_get_affine_coordinates_GF2m(
-                <a href="#545">group</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
-                <a class="self" href="#544">self</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
-                <a href="#546">x</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
-                <a href="#547">y</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
-                <a href="#548">ctx</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
+            cvt(ffi::EC_POINT_get_affine_coordinates_GF2m(
+                group.as_ptr(),
+                <span class="self">self</span>.as_ptr(),
+                x.as_ptr(),
+                y.as_ptr(),
+                ctx.as_ptr(),
             ))
             .map(|<span class="kw">_</span>| ())
         }
@@ -1783,10 +1842,10 @@
 
     <span class="doccomment">/// Checks if point is infinity
     </span><span class="attr">#[corresponds(EC_POINT_is_at_infinity)]
-    </span><span class="kw">pub fn </span>is_infinity(<span class="kw-2">&amp;</span><span class="self">self</span>, group: <span class="kw-2">&amp;</span><a href="#90-115">EcGroupRef</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+    </span><span class="kw">pub fn </span>is_infinity(<span class="kw-2">&amp;</span><span class="self">self</span>, group: <span class="kw-2">&amp;</span>EcGroupRef) -&gt; bool {
         <span class="kw">unsafe </span>{
-            <span class="kw">let </span>res = ffi::EC_POINT_is_at_infinity(<a href="#564">group</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(), <a class="self" href="#564">self</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>());
-            <a href="#566">res</a> == <span class="number">1
+            <span class="kw">let </span>res = ffi::EC_POINT_is_at_infinity(group.as_ptr(), <span class="self">self</span>.as_ptr());
+            res == <span class="number">1
         </span>}
     }
 
@@ -1794,34 +1853,34 @@
     </span><span class="attr">#[corresponds(EC_POINT_is_on_curve)]
     </span><span class="kw">pub fn </span>is_on_curve(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        group: <span class="kw-2">&amp;</span><a href="#90-115">EcGroupRef</a>,
-        ctx: <span class="kw-2">&amp;mut </span><a href="bn.rs.html#84-100">BigNumContextRef</a>,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>, <a href="error.rs.html#39">ErrorStack</a>&gt; {
+        group: <span class="kw-2">&amp;</span>EcGroupRef,
+        ctx: <span class="kw-2">&amp;mut </span>BigNumContextRef,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;bool, ErrorStack&gt; {
         <span class="kw">unsafe </span>{
             <span class="kw">let </span>res = cvt_n(ffi::EC_POINT_is_on_curve(
                 group.as_ptr(),
                 <span class="self">self</span>.as_ptr(),
                 ctx.as_ptr(),
             ))<span class="question-mark">?</span>;
-            <span class="prelude-val">Ok</span>(<a href="#579">res</a> == <span class="number">1</span>)
+            <span class="prelude-val">Ok</span>(res == <span class="number">1</span>)
         }
     }
 }
 
-<span class="kw">impl </span><a href="#296-304">EcPoint</a> {
+<span class="kw">impl </span>EcPoint {
     <span class="doccomment">/// Creates a new point on the specified curve.
     </span><span class="attr">#[corresponds(EC_POINT_new)]
-    </span><span class="kw">pub fn </span>new(group: <span class="kw-2">&amp;</span><a href="#90-115">EcGroupRef</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#296-304">EcPoint</a>, <a href="error.rs.html#39">ErrorStack</a>&gt; {
-        <span class="kw">unsafe </span>{ <a href="lib.rs.html#193">cvt_p</a>(ffi::EC_POINT_new(<a href="#592">group</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>())).map(<a href="#296-304">EcPoint</a>) }
+    </span><span class="kw">pub fn </span>new(group: <span class="kw-2">&amp;</span>EcGroupRef) -&gt; <span class="prelude-ty">Result</span>&lt;EcPoint, ErrorStack&gt; {
+        <span class="kw">unsafe </span>{ cvt_p(ffi::EC_POINT_new(group.as_ptr())).map(EcPoint) }
     }
 
     <span class="doccomment">/// Creates point from a binary representation
     </span><span class="attr">#[corresponds(EC_POINT_oct2point)]
     </span><span class="kw">pub fn </span>from_bytes(
-        group: <span class="kw-2">&amp;</span><a href="#90-115">EcGroupRef</a>,
-        buf: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
-        ctx: <span class="kw-2">&amp;mut </span><a href="bn.rs.html#84-100">BigNumContextRef</a>,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#296-304">EcPoint</a>, <a href="error.rs.html#39">ErrorStack</a>&gt; {
+        group: <span class="kw-2">&amp;</span>EcGroupRef,
+        buf: <span class="kw-2">&amp;</span>[u8],
+        ctx: <span class="kw-2">&amp;mut </span>BigNumContextRef,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;EcPoint, ErrorStack&gt; {
         <span class="kw">let </span>point = EcPoint::new(group)<span class="question-mark">?</span>;
         <span class="kw">unsafe </span>{
             cvt(ffi::EC_POINT_oct2point(
@@ -1832,12 +1891,12 @@
                 ctx.as_ptr(),
             ))<span class="question-mark">?</span>;
         }
-        <span class="prelude-val">Ok</span>(<a href="#603">point</a>)
+        <span class="prelude-val">Ok</span>(point)
     }
 }
 
-<a class="macro" href="macros.rs.html#165-270">generic_foreign_type_and_impl_send_sync! </a>{
-    <span class="kw">type </span>CType = <a href="../../openssl_sys/openssl/handwritten/types/enum.EC_KEY.html">ffi::EC_KEY</a>;
+<span class="macro">generic_foreign_type_and_impl_send_sync! </span>{
+    <span class="kw">type </span>CType = ffi::EC_KEY;
     <span class="kw">fn </span>drop = ffi::EC_KEY_free;
 
     <span class="doccomment">/// Public and optional private key on the given curve.
@@ -1848,9 +1907,9 @@
 
 <span class="kw">impl</span>&lt;T&gt; EcKeyRef&lt;T&gt;
 <span class="kw">where
-    </span>T: <a href="pkey.rs.html#128">HasPrivate</a>,
+    </span>T: HasPrivate,
 {
-    <a class="macro" href="macros.rs.html#37-74">private_key_to_pem! </a>{
+    <span class="macro">private_key_to_pem! </span>{
         <span class="doccomment">/// Serializes the private key to a PEM-encoded ECPrivateKey structure.
         ///
         /// The output will have a header of `-----BEGIN EC PRIVATE KEY-----`.
@@ -1864,7 +1923,7 @@
         ffi::PEM_write_bio_ECPrivateKey
     }
 
-    <a class="macro" href="macros.rs.html#89-103">to_der! </a>{
+    <span class="macro">to_der! </span>{
         <span class="doccomment">/// Serializes the private key into a DER-encoded ECPrivateKey structure.
         </span><span class="attr">#[corresponds(i2d_ECPrivateKey)]
         </span>private_key_to_der,
@@ -1873,28 +1932,28 @@
 
     <span class="doccomment">/// Returns the private key value.
     </span><span class="attr">#[corresponds(EC_KEY_get0_private_key)]
-    </span><span class="kw">pub fn </span>private_key(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="bn.rs.html#123-155">BigNumRef</a> {
+    </span><span class="kw">pub fn </span>private_key(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>BigNumRef {
         <span class="kw">unsafe </span>{
-            <span class="kw">let </span>ptr = ffi::EC_KEY_get0_private_key(<a class="self" href="#654">self</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>());
-            BigNumRef::from_const_ptr(<a href="#656">ptr</a>)
+            <span class="kw">let </span>ptr = ffi::EC_KEY_get0_private_key(<span class="self">self</span>.as_ptr());
+            BigNumRef::from_const_ptr(ptr)
         }
     }
 }
 
 <span class="kw">impl</span>&lt;T&gt; EcKeyRef&lt;T&gt;
 <span class="kw">where
-    </span>T: <a href="pkey.rs.html#121">HasPublic</a>,
+    </span>T: HasPublic,
 {
     <span class="doccomment">/// Returns the public key.
     </span><span class="attr">#[corresponds(EC_KEY_get0_public_key)]
-    </span><span class="kw">pub fn </span>public_key(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="#296-304">EcPointRef</a> {
+    </span><span class="kw">pub fn </span>public_key(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>EcPointRef {
         <span class="kw">unsafe </span>{
-            <span class="kw">let </span>ptr = ffi::EC_KEY_get0_public_key(<a class="self" href="#668">self</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>());
-            EcPointRef::from_const_ptr(<a href="#670">ptr</a>)
+            <span class="kw">let </span>ptr = ffi::EC_KEY_get0_public_key(<span class="self">self</span>.as_ptr());
+            EcPointRef::from_const_ptr(ptr)
         }
     }
 
-    <a class="macro" href="macros.rs.html#76-87">to_pem! </a>{
+    <span class="macro">to_pem! </span>{
         <span class="doccomment">/// Serializes the public key into a PEM-encoded SubjectPublicKeyInfo structure.
         ///
         /// The output will have a header of `-----BEGIN PUBLIC KEY-----`.
@@ -1903,7 +1962,7 @@
         ffi::PEM_write_bio_EC_PUBKEY
     }
 
-    <a class="macro" href="macros.rs.html#89-103">to_der! </a>{
+    <span class="macro">to_der! </span>{
         <span class="doccomment">/// Serializes the public key into a DER-encoded SubjectPublicKeyInfo structure.
         </span><span class="attr">#[corresponds(i2d_EC_PUBKEY)]
         </span>public_key_to_der,
@@ -1913,101 +1972,107 @@
 
 <span class="kw">impl</span>&lt;T&gt; EcKeyRef&lt;T&gt;
 <span class="kw">where
-    </span>T: <a href="pkey.rs.html#114">HasParams</a>,
+    </span>T: HasParams,
 {
     <span class="doccomment">/// Returns the key&#39;s group.
     </span><span class="attr">#[corresponds(EC_KEY_get0_group)]
-    </span><span class="kw">pub fn </span>group(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="#90-115">EcGroupRef</a> {
+    </span><span class="kw">pub fn </span>group(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>EcGroupRef {
         <span class="kw">unsafe </span>{
-            <span class="kw">let </span>ptr = ffi::EC_KEY_get0_group(<a class="self" href="#698">self</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>());
-            EcGroupRef::from_const_ptr(<a href="#700">ptr</a>)
+            <span class="kw">let </span>ptr = ffi::EC_KEY_get0_group(<span class="self">self</span>.as_ptr());
+            EcGroupRef::from_const_ptr(ptr)
         }
     }
 
     <span class="doccomment">/// Checks the key for validity.
     </span><span class="attr">#[corresponds(EC_KEY_check_key)]
-    </span><span class="kw">pub fn </span>check_key(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#39">ErrorStack</a>&gt; {
-        <span class="kw">unsafe </span>{ <a href="lib.rs.html#202">cvt</a>(ffi::EC_KEY_check_key(<a class="self" href="#707">self</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>())).map(|<span class="kw">_</span>| ()) }
+    </span><span class="kw">pub fn </span>check_key(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), ErrorStack&gt; {
+        <span class="kw">unsafe </span>{ cvt(ffi::EC_KEY_check_key(<span class="self">self</span>.as_ptr())).map(|<span class="kw">_</span>| ()) }
     }
 }
 
-<span class="kw">impl</span>&lt;T&gt; <a href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">ToOwned</a> <span class="kw">for </span>EcKeyRef&lt;T&gt; {
+<span class="kw">impl</span>&lt;T&gt; ToOwned <span class="kw">for </span>EcKeyRef&lt;T&gt; {
     <span class="kw">type </span>Owned = EcKey&lt;T&gt;;
 
     <span class="kw">fn </span>to_owned(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; EcKey&lt;T&gt; {
         <span class="kw">unsafe </span>{
-            <span class="kw">let </span>r = ffi::EC_KEY_up_ref(<a class="self" href="#715">self</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>());
-            <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(r == <span class="number">1</span>);
-            EcKey::from_ptr(<a class="self" href="#715">self</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>())
+            <span class="kw">let </span>r = ffi::EC_KEY_up_ref(<span class="self">self</span>.as_ptr());
+            <span class="macro">assert!</span>(r == <span class="number">1</span>);
+            EcKey::from_ptr(<span class="self">self</span>.as_ptr())
         }
     }
 }
 
-<span class="kw">impl </span>EcKey&lt;<a href="pkey.rs.html#67">Params</a>&gt; {
+<span class="kw">impl </span>EcKey&lt;Params&gt; {
     <span class="doccomment">/// Constructs an `EcKey` corresponding to a known curve.
     ///
     /// It will not have an associated public or private key. This kind of key is primarily useful
     /// to be provided to the `set_tmp_ecdh` methods on `Ssl` and `SslContextBuilder`.
     </span><span class="attr">#[corresponds(EC_KEY_new_by_curve_name)]
-    </span><span class="kw">pub fn </span>from_curve_name(nid: <a href="nid.rs.html#49">Nid</a>) -&gt; <span class="prelude-ty">Result</span>&lt;EcKey&lt;<a href="pkey.rs.html#67">Params</a>&gt;, <a href="error.rs.html#39">ErrorStack</a>&gt; {
+    </span><span class="kw">pub fn </span>from_curve_name(nid: Nid) -&gt; <span class="prelude-ty">Result</span>&lt;EcKey&lt;Params&gt;, ErrorStack&gt; {
         <span class="kw">unsafe </span>{
-            <a href="../../openssl/fn.init.html">init</a>();
-            <a href="lib.rs.html#193">cvt_p</a>(ffi::EC_KEY_new_by_curve_name(<a href="#730">nid</a>.<a href="nid.rs.html#60">as_raw</a>())).map(|p| EcKey::from_ptr(<a href="#733">p</a>))
+            init();
+            cvt_p(ffi::EC_KEY_new_by_curve_name(nid.as_raw())).map(|p| EcKey::from_ptr(p))
         }
     }
 
     <span class="doccomment">/// Constructs an `EcKey` corresponding to a curve.
     </span><span class="attr">#[corresponds(EC_KEY_set_group)]
-    </span><span class="kw">pub fn </span>from_group(group: <span class="kw-2">&amp;</span><a href="#90-115">EcGroupRef</a>) -&gt; <span class="prelude-ty">Result</span>&lt;EcKey&lt;<a href="pkey.rs.html#67">Params</a>&gt;, <a href="error.rs.html#39">ErrorStack</a>&gt; {
+    </span><span class="kw">pub fn </span>from_group(group: <span class="kw-2">&amp;</span>EcGroupRef) -&gt; <span class="prelude-ty">Result</span>&lt;EcKey&lt;Params&gt;, ErrorStack&gt; {
         <span class="kw">unsafe </span>{
-            <a href="lib.rs.html#193">cvt_p</a>(ffi::EC_KEY_new())
-                .map(|p| EcKey::from_ptr(<a href="#742">p</a>))
+            cvt_p(ffi::EC_KEY_new())
+                .map(|p| EcKey::from_ptr(p))
                 .and_then(|key| {
-                    <a href="lib.rs.html#202">cvt</a>(ffi::EC_KEY_set_group(<a href="#743">key</a>.<a href="../../foreign_types_shared/trait.ForeignType.html">as_ptr</a>(), <a href="#739">group</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>())).map(|<span class="kw">_</span>| <a href="#743">key</a>)
+                    cvt(ffi::EC_KEY_set_group(key.as_ptr(), group.as_ptr())).map(|<span class="kw">_</span>| key)
                 })
         }
     }
 }
 
-<span class="kw">impl </span>EcKey&lt;<a href="pkey.rs.html#70">Public</a>&gt; {
-    <span class="doccomment">/// Constructs an `EcKey` from the specified group with the associated `EcPoint`, public_key.
+<span class="kw">impl </span>EcKey&lt;Public&gt; {
+    <span class="doccomment">/// Constructs an `EcKey` from the specified group with the associated [`EcPoint`]: `public_key`.
     ///
-    /// This will only have the associated public_key.
+    /// This will only have the associated `public_key`.
     ///
     /// # Example
     ///
-    /// ```no_run
+    /// ```
+    /// # fn main() -&gt; Result&lt;(), Box&lt;dyn std::error::Error&gt;&gt; {
     /// use openssl::bn::BigNumContext;
     /// use openssl::ec::*;
     /// use openssl::nid::Nid;
     /// use openssl::pkey::PKey;
     ///
-    /// // get bytes from somewhere, i.e. this will not produce a valid key
-    /// let public_key: Vec&lt;u8&gt; = vec![];
+    /// let group = EcGroup::from_curve_name(Nid::SECP384R1)?;
+    /// let mut ctx = BigNumContext::new()?;
+    ///
+    /// // get bytes from somewhere
+    /// let public_key = // ...
+    /// # EcKey::generate(&amp;group)?.public_key().to_bytes(&amp;group,
+    /// # PointConversionForm::COMPRESSED, &amp;mut ctx)?;
     ///
     /// // create an EcKey from the binary form of a EcPoint
-    /// let group = EcGroup::from_curve_name(Nid::SECP256K1).unwrap();
-    /// let mut ctx = BigNumContext::new().unwrap();
-    /// let point = EcPoint::from_bytes(&amp;group, &amp;public_key, &amp;mut ctx).unwrap();
-    /// let key = EcKey::from_public_key(&amp;group, &amp;point);
+    /// let point = EcPoint::from_bytes(&amp;group, &amp;public_key, &amp;mut ctx)?;
+    /// let key = EcKey::from_public_key(&amp;group, &amp;point)?;
+    /// key.check_key()?;
+    /// # Ok(()) }
     /// ```
     </span><span class="attr">#[corresponds(EC_KEY_set_public_key)]
     </span><span class="kw">pub fn </span>from_public_key(
-        group: <span class="kw-2">&amp;</span><a href="#90-115">EcGroupRef</a>,
-        public_key: <span class="kw-2">&amp;</span><a href="#296-304">EcPointRef</a>,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;EcKey&lt;<a href="pkey.rs.html#70">Public</a>&gt;, <a href="error.rs.html#39">ErrorStack</a>&gt; {
+        group: <span class="kw-2">&amp;</span>EcGroupRef,
+        public_key: <span class="kw-2">&amp;</span>EcPointRef,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;EcKey&lt;Public&gt;, ErrorStack&gt; {
         <span class="kw">unsafe </span>{
-            <a href="lib.rs.html#193">cvt_p</a>(ffi::EC_KEY_new())
-                .map(|p| EcKey::from_ptr(<a href="#779">p</a>))
+            cvt_p(ffi::EC_KEY_new())
+                .map(|p| EcKey::from_ptr(p))
                 .and_then(|key| {
-                    <a href="lib.rs.html#202">cvt</a>(ffi::EC_KEY_set_group(<a href="#780">key</a>.<a href="../../foreign_types_shared/trait.ForeignType.html">as_ptr</a>(), <a href="#774">group</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>())).map(|<span class="kw">_</span>| <a href="#780">key</a>)
+                    cvt(ffi::EC_KEY_set_group(key.as_ptr(), group.as_ptr())).map(|<span class="kw">_</span>| key)
                 })
                 .and_then(|key| {
-                    <a href="lib.rs.html#202">cvt</a>(ffi::EC_KEY_set_public_key(
-                        <a href="#783">key</a>.<a href="../../foreign_types_shared/trait.ForeignType.html">as_ptr</a>(),
-                        <a href="#775">public_key</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
+                    cvt(ffi::EC_KEY_set_public_key(
+                        key.as_ptr(),
+                        public_key.as_ptr(),
                     ))
-                    .map(|<span class="kw">_</span>| <a href="#783">key</a>)
+                    .map(|<span class="kw">_</span>| key)
                 })
         }
     }
@@ -2015,28 +2080,28 @@
     <span class="doccomment">/// Constructs a public key from its affine coordinates.
     </span><span class="attr">#[corresponds(EC_KEY_set_public_key_affine_coordinates)]
     </span><span class="kw">pub fn </span>from_public_key_affine_coordinates(
-        group: <span class="kw-2">&amp;</span><a href="#90-115">EcGroupRef</a>,
-        x: <span class="kw-2">&amp;</span><a href="bn.rs.html#123-155">BigNumRef</a>,
-        y: <span class="kw-2">&amp;</span><a href="bn.rs.html#123-155">BigNumRef</a>,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;EcKey&lt;<a href="pkey.rs.html#70">Public</a>&gt;, <a href="error.rs.html#39">ErrorStack</a>&gt; {
+        group: <span class="kw-2">&amp;</span>EcGroupRef,
+        x: <span class="kw-2">&amp;</span>BigNumRef,
+        y: <span class="kw-2">&amp;</span>BigNumRef,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;EcKey&lt;Public&gt;, ErrorStack&gt; {
         <span class="kw">unsafe </span>{
-            <a href="lib.rs.html#193">cvt_p</a>(ffi::EC_KEY_new())
-                .map(|p| EcKey::from_ptr(<a href="#802">p</a>))
+            cvt_p(ffi::EC_KEY_new())
+                .map(|p| EcKey::from_ptr(p))
                 .and_then(|key| {
-                    <a href="lib.rs.html#202">cvt</a>(ffi::EC_KEY_set_group(<a href="#803">key</a>.<a href="../../foreign_types_shared/trait.ForeignType.html">as_ptr</a>(), <a href="#796">group</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>())).map(|<span class="kw">_</span>| <a href="#803">key</a>)
+                    cvt(ffi::EC_KEY_set_group(key.as_ptr(), group.as_ptr())).map(|<span class="kw">_</span>| key)
                 })
                 .and_then(|key| {
-                    <a href="lib.rs.html#202">cvt</a>(ffi::EC_KEY_set_public_key_affine_coordinates(
-                        <a href="#806">key</a>.<a href="../../foreign_types_shared/trait.ForeignType.html">as_ptr</a>(),
-                        <a href="#797">x</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
-                        <a href="#798">y</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
+                    cvt(ffi::EC_KEY_set_public_key_affine_coordinates(
+                        key.as_ptr(),
+                        x.as_ptr(),
+                        y.as_ptr(),
                     ))
-                    .map(|<span class="kw">_</span>| <a href="#806">key</a>)
+                    .map(|<span class="kw">_</span>| key)
                 })
         }
     }
 
-    <a class="macro" href="macros.rs.html#120-132">from_pem! </a>{
+    <span class="macro">from_pem! </span>{
         <span class="doccomment">/// Decodes a PEM-encoded SubjectPublicKeyInfo structure containing a EC key.
         ///
         /// The input should have a header of `-----BEGIN PUBLIC KEY-----`.
@@ -2046,7 +2111,7 @@
         ffi::PEM_read_bio_EC_PUBKEY
     }
 
-    <a class="macro" href="macros.rs.html#105-118">from_der! </a>{
+    <span class="macro">from_der! </span>{
         <span class="doccomment">/// Decodes a DER-encoded SubjectPublicKeyInfo structure containing a EC key.
         </span><span class="attr">#[corresponds(d2i_EC_PUBKEY)]
         </span>public_key_from_der,
@@ -2055,51 +2120,78 @@
     }
 }
 
-<span class="kw">impl </span>EcKey&lt;<a href="pkey.rs.html#73">Private</a>&gt; {
+<span class="kw">impl </span>EcKey&lt;Private&gt; {
     <span class="doccomment">/// Generates a new public/private key pair on the specified curve.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # fn main() -&gt; Result&lt;(), Box&lt;dyn std::error::Error&gt;&gt; {
+    /// use openssl::bn::BigNumContext;
+    /// use openssl::nid::Nid;
+    /// use openssl::ec::{EcGroup, EcKey, PointConversionForm};
+    ///
+    /// let nid = Nid::X9_62_PRIME256V1; // NIST P-256 curve
+    /// let group = EcGroup::from_curve_name(nid)?;
+    /// let key = EcKey::generate(&amp;group)?;
+    ///
+    /// let mut ctx = BigNumContext::new()?;
+    ///
+    /// let public_key = &amp;key.public_key().to_bytes(
+    ///     &amp;group,
+    ///     PointConversionForm::COMPRESSED,
+    ///     &amp;mut ctx,
+    /// )?;
+    /// assert_eq!(public_key.len(), 33);
+    /// assert_ne!(public_key[0], 0x04);
+    ///
+    /// let private_key = key.private_key().to_vec();
+    /// assert!(private_key.len() &gt;= 31);
+    /// # Ok(()) }
+    /// ```
     </span><span class="attr">#[corresponds(EC_KEY_generate_key)]
-    </span><span class="kw">pub fn </span>generate(group: <span class="kw-2">&amp;</span><a href="#90-115">EcGroupRef</a>) -&gt; <span class="prelude-ty">Result</span>&lt;EcKey&lt;<a href="pkey.rs.html#73">Private</a>&gt;, <a href="error.rs.html#39">ErrorStack</a>&gt; {
+    </span><span class="kw">pub fn </span>generate(group: <span class="kw-2">&amp;</span>EcGroupRef) -&gt; <span class="prelude-ty">Result</span>&lt;EcKey&lt;Private&gt;, ErrorStack&gt; {
         <span class="kw">unsafe </span>{
-            <a href="lib.rs.html#193">cvt_p</a>(ffi::EC_KEY_new())
-                .map(|p| EcKey::from_ptr(<a href="#842">p</a>))
+            cvt_p(ffi::EC_KEY_new())
+                .map(|p| EcKey::from_ptr(p))
                 .and_then(|key| {
-                    <a href="lib.rs.html#202">cvt</a>(ffi::EC_KEY_set_group(<a href="#843">key</a>.<a href="../../foreign_types_shared/trait.ForeignType.html">as_ptr</a>(), <a href="#839">group</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>())).map(|<span class="kw">_</span>| <a href="#843">key</a>)
+                    cvt(ffi::EC_KEY_set_group(key.as_ptr(), group.as_ptr())).map(|<span class="kw">_</span>| key)
                 })
-                .and_then(|key| <a href="lib.rs.html#202">cvt</a>(ffi::EC_KEY_generate_key(<a href="#846">key</a>.<a href="../../foreign_types_shared/trait.ForeignType.html">as_ptr</a>())).map(|<span class="kw">_</span>| <a href="#846">key</a>))
+                .and_then(|key| cvt(ffi::EC_KEY_generate_key(key.as_ptr())).map(|<span class="kw">_</span>| key))
         }
     }
 
     <span class="doccomment">/// Constructs an public/private key pair given a curve, a private key and a public key point.
     </span><span class="attr">#[corresponds(EC_KEY_set_private_key)]
     </span><span class="kw">pub fn </span>from_private_components(
-        group: <span class="kw-2">&amp;</span><a href="#90-115">EcGroupRef</a>,
-        private_number: <span class="kw-2">&amp;</span><a href="bn.rs.html#123-155">BigNumRef</a>,
-        public_key: <span class="kw-2">&amp;</span><a href="#296-304">EcPointRef</a>,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;EcKey&lt;<a href="pkey.rs.html#73">Private</a>&gt;, <a href="error.rs.html#39">ErrorStack</a>&gt; {
+        group: <span class="kw-2">&amp;</span>EcGroupRef,
+        private_number: <span class="kw-2">&amp;</span>BigNumRef,
+        public_key: <span class="kw-2">&amp;</span>EcPointRef,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;EcKey&lt;Private&gt;, ErrorStack&gt; {
         <span class="kw">unsafe </span>{
-            <a href="lib.rs.html#193">cvt_p</a>(ffi::EC_KEY_new())
-                .map(|p| EcKey::from_ptr(<a href="#859">p</a>))
+            cvt_p(ffi::EC_KEY_new())
+                .map(|p| EcKey::from_ptr(p))
                 .and_then(|key| {
-                    <a href="lib.rs.html#202">cvt</a>(ffi::EC_KEY_set_group(<a href="#860">key</a>.<a href="../../foreign_types_shared/trait.ForeignType.html">as_ptr</a>(), <a href="#853">group</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>())).map(|<span class="kw">_</span>| <a href="#860">key</a>)
+                    cvt(ffi::EC_KEY_set_group(key.as_ptr(), group.as_ptr())).map(|<span class="kw">_</span>| key)
                 })
                 .and_then(|key| {
-                    <a href="lib.rs.html#202">cvt</a>(ffi::EC_KEY_set_private_key(
-                        <a href="#863">key</a>.<a href="../../foreign_types_shared/trait.ForeignType.html">as_ptr</a>(),
-                        <a href="#854">private_number</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
+                    cvt(ffi::EC_KEY_set_private_key(
+                        key.as_ptr(),
+                        private_number.as_ptr(),
                     ))
-                    .map(|<span class="kw">_</span>| <a href="#863">key</a>)
+                    .map(|<span class="kw">_</span>| key)
                 })
                 .and_then(|key| {
-                    <a href="lib.rs.html#202">cvt</a>(ffi::EC_KEY_set_public_key(
-                        <a href="#870">key</a>.<a href="../../foreign_types_shared/trait.ForeignType.html">as_ptr</a>(),
-                        <a href="#855">public_key</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
+                    cvt(ffi::EC_KEY_set_public_key(
+                        key.as_ptr(),
+                        public_key.as_ptr(),
                     ))
-                    .map(|<span class="kw">_</span>| <a href="#870">key</a>)
+                    .map(|<span class="kw">_</span>| key)
                 })
         }
     }
 
-    <a class="macro" href="macros.rs.html#1-35">private_key_from_pem! </a>{
+    <span class="macro">private_key_from_pem! </span>{
         <span class="doccomment">/// Deserializes a private key from a PEM-encoded ECPrivateKey structure.
         ///
         /// The input should have a header of `-----BEGIN EC PRIVATE KEY-----`.
@@ -2123,7 +2215,7 @@
         ffi::PEM_read_bio_ECPrivateKey
     }
 
-    <a class="macro" href="macros.rs.html#105-118">from_der! </a>{
+    <span class="macro">from_der! </span>{
         <span class="doccomment">/// Decodes a DER-encoded elliptic curve private key structure.
         </span><span class="attr">#[corresponds(d2i_ECPrivateKey)]
         </span>private_key_from_der,
@@ -2132,15 +2224,15 @@
     }
 }
 
-<span class="kw">impl</span>&lt;T&gt; <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> <span class="kw">for </span>EcKey&lt;T&gt; {
+<span class="kw">impl</span>&lt;T&gt; Clone <span class="kw">for </span>EcKey&lt;T&gt; {
     <span class="kw">fn </span>clone(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; EcKey&lt;T&gt; {
-        (<span class="kw-2">**</span><a class="self" href="#914">self</a>).<a href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">to_owned</a>()
+        (<span class="kw-2">**</span><span class="self">self</span>).to_owned()
     }
 }
 
-<span class="kw">impl</span>&lt;T&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span>EcKey&lt;T&gt; {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#920">f</a>, <span class="string">&quot;EcKey&quot;</span>)
+<span class="kw">impl</span>&lt;T&gt; fmt::Debug <span class="kw">for </span>EcKey&lt;T&gt; {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        <span class="macro">write!</span>(f, <span class="string">&quot;EcKey&quot;</span>)
     }
 }
 
@@ -2443,4 +2535,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="openssl" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="openssl" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

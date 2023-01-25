@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.21.2/src/sync/watch.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>watch.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../tokio/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.23.0/src/sync/watch.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>watch.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../tokio/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -1058,6 +1058,12 @@
 <a href="#1058" id="1058">1058</a>
 <a href="#1059" id="1059">1059</a>
 <a href="#1060" id="1060">1060</a>
+<a href="#1061" id="1061">1061</a>
+<a href="#1062" id="1062">1062</a>
+<a href="#1063" id="1063">1063</a>
+<a href="#1064" id="1064">1064</a>
+<a href="#1065" id="1065">1065</a>
+<a href="#1066" id="1066">1066</a>
 </pre><pre class="rust"><code><span class="attr">#![cfg_attr(not(feature = <span class="string">&quot;sync&quot;</span>), allow(dead_code, unreachable_pub))]
 
 </span><span class="doccomment">//! A single-producer, multi-consumer channel that only retains the *last* sent
@@ -1069,10 +1075,10 @@
 //! # Usage
 //!
 //! [`channel`] returns a [`Sender`] / [`Receiver`] pair. These are the producer
-//! and sender halves of the channel. The channel is created with an initial
+//! and consumer halves of the channel. The channel is created with an initial
 //! value. The **latest** value stored in the channel is accessed with
 //! [`Receiver::borrow()`]. Awaiting [`Receiver::changed()`] waits for a new
-//! value to sent by the [`Sender`] half.
+//! value to be sent by the [`Sender`] half.
 //!
 //! # Examples
 //!
@@ -1113,14 +1119,14 @@
 //! [`Sender::is_closed`]: crate::sync::watch::Sender::is_closed
 //! [`Sender::closed`]: crate::sync::watch::Sender::closed
 
-</span><span class="kw">use </span><a href="notify.rs.html#199"><span class="kw">crate</span>::sync::notify::Notify</a>;
+</span><span class="kw">use </span><span class="kw">crate</span>::sync::notify::Notify;
 
-<span class="kw">use </span><a href="../loom/std/atomic_usize.rs.html#6"><span class="kw">crate</span>::loom::sync::atomic::AtomicUsize</a>;
+<span class="kw">use </span><span class="kw">crate</span>::loom::sync::atomic::AtomicUsize;
 <span class="kw">use </span><span class="kw">crate</span>::loom::sync::atomic::Ordering::Relaxed;
-<span class="kw">use </span><span class="kw">crate</span>::loom::sync::{<a href="https://doc.rust-lang.org/nightly/alloc/sync/struct.Arc.html">Arc</a>, <a href="https://doc.rust-lang.org/nightly/std/sync/rwlock/struct.RwLock.html">RwLock</a>, <a href="https://doc.rust-lang.org/nightly/std/sync/rwlock/struct.RwLockReadGuard.html">RwLockReadGuard</a>};
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/mem/index.html">std::mem</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/ops/index.html">std::ops</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/macro.panic.html">std::panic</a>;
+<span class="kw">use </span><span class="kw">crate</span>::loom::sync::{Arc, RwLock, RwLockReadGuard};
+<span class="kw">use </span>std::mem;
+<span class="kw">use </span>std::ops;
+<span class="kw">use </span>std::panic;
 
 <span class="doccomment">/// Receives values from the associated [`Sender`](struct@Sender).
 ///
@@ -1136,7 +1142,7 @@
     </span>shared: Arc&lt;Shared&lt;T&gt;&gt;,
 
     <span class="doccomment">/// Last observed version
-    </span>version: <a href="#232">Version</a>,
+    </span>version: Version,
 }
 
 <span class="doccomment">/// Sends values to the associated [`Receiver`](struct@Receiver).
@@ -1150,10 +1156,11 @@
 <span class="doccomment">/// Returns a reference to the inner value.
 ///
 /// Outstanding borrows hold a read lock on the inner value. This means that
-/// long lived borrows could cause the produce half to block. It is recommended
-/// to keep the borrow as short lived as possible. Additionally, if you are
+/// long-lived borrows could cause the producer half to block. It is recommended
+/// to keep the borrow as short-lived as possible. Additionally, if you are
 /// running in an environment that allows `!Send` futures, you must ensure that
-/// the returned `Ref` type is never held alive across an `.await` point.
+/// the returned `Ref` type is never held alive across an `.await` point,
+/// otherwise, it can lead to a deadlock.
 ///
 /// The priority policy of the lock is dependent on the underlying lock
 /// implementation, and this type does not guarantee that any particular policy
@@ -1174,7 +1181,7 @@
 </span><span class="attr">#[derive(Debug)]
 </span><span class="kw">pub struct </span>Ref&lt;<span class="lifetime">&#39;a</span>, T&gt; {
     inner: RwLockReadGuard&lt;<span class="lifetime">&#39;a</span>, T&gt;,
-    has_changed: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
+    has_changed: bool,
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T&gt; Ref&lt;<span class="lifetime">&#39;a</span>, T&gt; {
@@ -1220,8 +1227,8 @@
     ///     assert!(!rx.borrow().has_changed());
     /// }
     /// ```
-    </span><span class="kw">pub fn </span>has_changed(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#163">self</a>.has_changed
+    </span><span class="kw">pub fn </span>has_changed(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.has_changed
     }
 }
 
@@ -1234,22 +1241,22 @@
     ///
     /// The lowest bit represents a &quot;closed&quot; state. The rest of the bits
     /// represent the current version.
-    </span>state: <a href="#244">AtomicState</a>,
+    </span>state: AtomicState,
 
     <span class="doccomment">/// Tracks the number of `Receiver` instances.
-    </span>ref_count_rx: <a href="../loom/std/atomic_usize.rs.html#6">AtomicUsize</a>,
+    </span>ref_count_rx: AtomicUsize,
 
     <span class="doccomment">/// Notifies waiting receivers that the value changed.
-    </span>notify_rx: <a href="notify.rs.html#199">Notify</a>,
+    </span>notify_rx: Notify,
 
     <span class="doccomment">/// Notifies any task listening for `Receiver` dropped events.
-    </span>notify_tx: <a href="notify.rs.html#199">Notify</a>,
+    </span>notify_tx: Notify,
 }
 
 <span class="kw">pub mod </span>error {
     <span class="doccomment">//! Watch error types.
 
-    </span><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">std::fmt</a>;
+    </span><span class="kw">use </span>std::fmt;
 
     <span class="doccomment">/// Error produced when sending a value fails.
     </span><span class="attr">#[derive(Debug)]
@@ -1257,13 +1264,13 @@
 
     <span class="comment">// ===== impl SendError =====
 
-    </span><span class="kw">impl</span>&lt;T: <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for </span>SendError&lt;T&gt; {
-        <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, fmt: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-            <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#201">fmt</a>, <span class="string">&quot;channel closed&quot;</span>)
+    </span><span class="kw">impl</span>&lt;T: fmt::Debug&gt; fmt::Display <span class="kw">for </span>SendError&lt;T&gt; {
+        <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, fmt: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+            <span class="macro">write!</span>(fmt, <span class="string">&quot;channel closed&quot;</span>)
         }
     }
 
-    <span class="kw">impl</span>&lt;T: <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">std::error::Error</a> <span class="kw">for </span>SendError&lt;T&gt; {}
+    <span class="kw">impl</span>&lt;T: fmt::Debug&gt; std::error::Error <span class="kw">for </span>SendError&lt;T&gt; {}
 
     <span class="doccomment">/// Error produced when receiving a change notification.
     </span><span class="attr">#[derive(Debug, Clone)]
@@ -1271,25 +1278,25 @@
 
     <span class="comment">// ===== impl RecvError =====
 
-    </span><span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for </span><a href="#210">RecvError</a> {
-        <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, fmt: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-            <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#215">fmt</a>, <span class="string">&quot;channel closed&quot;</span>)
+    </span><span class="kw">impl </span>fmt::Display <span class="kw">for </span>RecvError {
+        <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, fmt: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+            <span class="macro">write!</span>(fmt, <span class="string">&quot;channel closed&quot;</span>)
         }
     }
 
-    <span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">std::error::Error</a> <span class="kw">for </span><a href="#210">RecvError</a> {}
+    <span class="kw">impl </span>std::error::Error <span class="kw">for </span>RecvError {}
 }
 
-<span class="kw">use </span><span class="self">self</span>::state::{<a href="#244">AtomicState</a>, <a href="#232">Version</a>};
+<span class="kw">use </span><span class="self">self</span>::state::{AtomicState, Version};
 <span class="kw">mod </span>state {
-    <span class="kw">use </span><a href="../loom/std/atomic_usize.rs.html#6"><span class="kw">crate</span>::loom::sync::atomic::AtomicUsize</a>;
+    <span class="kw">use </span><span class="kw">crate</span>::loom::sync::atomic::AtomicUsize;
     <span class="kw">use </span><span class="kw">crate</span>::loom::sync::atomic::Ordering::SeqCst;
 
-    <span class="kw">const </span>CLOSED: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> = <span class="number">1</span>;
+    <span class="kw">const </span>CLOSED: usize = <span class="number">1</span>;
 
     <span class="doccomment">/// The version part of the state. The lowest bit is always zero.
     </span><span class="attr">#[derive(Copy, Clone, Debug, Eq, PartialEq)]
-    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">struct </span>Version(<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>);
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">struct </span>Version(usize);
 
     <span class="doccomment">/// Snapshot of the state. The first bit is used as the CLOSED bit.
     /// The remaining bits are used as the version.
@@ -1297,52 +1304,52 @@
     /// The CLOSED bit tracks whether the Sender has been dropped. Dropping all
     /// receivers does not set it.
     </span><span class="attr">#[derive(Copy, Clone, Debug)]
-    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">struct </span>StateSnapshot(<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>);
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">struct </span>StateSnapshot(usize);
 
     <span class="doccomment">/// The state stored in an atomic integer.
     </span><span class="attr">#[derive(Debug)]
-    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">struct </span>AtomicState(<a href="../loom/std/atomic_usize.rs.html#6">AtomicUsize</a>);
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">struct </span>AtomicState(AtomicUsize);
 
-    <span class="kw">impl </span><a href="#232">Version</a> {
+    <span class="kw">impl </span>Version {
         <span class="doccomment">/// Get the initial version when creating the channel.
         </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>initial() -&gt; <span class="self">Self </span>{
-            <a href="#232">Version</a>(<span class="number">0</span>)
+            Version(<span class="number">0</span>)
         }
     }
 
-    <span class="kw">impl </span><a href="#240">StateSnapshot</a> {
+    <span class="kw">impl </span>StateSnapshot {
         <span class="doccomment">/// Extract the version from the state.
-        </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>version(<span class="self">self</span>) -&gt; <a href="#232">Version</a> {
-            <a href="#232">Version</a>(<a class="self" href="#255">self</a>.<span class="number">0 </span>&amp; !<a href="#228">CLOSED</a>)
+        </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>version(<span class="self">self</span>) -&gt; Version {
+            Version(<span class="self">self</span>.<span class="number">0 </span>&amp; !CLOSED)
         }
 
         <span class="doccomment">/// Is the closed bit set?
-        </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>is_closed(<span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-            (<a class="self" href="#260">self</a>.<span class="number">0 </span>&amp; <a href="#228">CLOSED</a>) == <a href="#228">CLOSED</a>
+        </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>is_closed(<span class="self">self</span>) -&gt; bool {
+            (<span class="self">self</span>.<span class="number">0 </span>&amp; CLOSED) == CLOSED
         }
     }
 
-    <span class="kw">impl </span><a href="#244">AtomicState</a> {
+    <span class="kw">impl </span>AtomicState {
         <span class="doccomment">/// Create a new `AtomicState` that is not closed and which has the
         /// version set to `Version::initial()`.
         </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>new() -&gt; <span class="self">Self </span>{
-            <a href="#244">AtomicState</a>(AtomicUsize::new(<span class="number">0</span>))
+            AtomicState(AtomicUsize::new(<span class="number">0</span>))
         }
 
         <span class="doccomment">/// Load the current value of the state.
-        </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>load(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="#240">StateSnapshot</a> {
-            <a href="#240">StateSnapshot</a>(<a class="self" href="#273">self</a>.<span class="number">0</span>.load(SeqCst))
+        </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>load(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; StateSnapshot {
+            StateSnapshot(<span class="self">self</span>.<span class="number">0</span>.load(SeqCst))
         }
 
         <span class="doccomment">/// Increment the version counter.
         </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>increment_version(<span class="kw-2">&amp;</span><span class="self">self</span>) {
             <span class="comment">// Increment by two to avoid touching the CLOSED bit.
-            </span><a class="self" href="#278">self</a>.<span class="number">0</span>.fetch_add(<span class="number">2</span>, SeqCst);
+            </span><span class="self">self</span>.<span class="number">0</span>.fetch_add(<span class="number">2</span>, SeqCst);
         }
 
         <span class="doccomment">/// Set the closed bit in the state.
         </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>set_closed(<span class="kw-2">&amp;</span><span class="self">self</span>) {
-            <a class="self" href="#284">self</a>.<span class="number">0</span>.fetch_or(<a href="#228">CLOSED</a>, SeqCst);
+            <span class="self">self</span>.<span class="number">0</span>.fetch_or(CLOSED, SeqCst);
         }
     }
 }
@@ -1375,33 +1382,33 @@
 /// [`Sender`]: struct@Sender
 /// [`Receiver`]: struct@Receiver
 </span><span class="kw">pub fn </span>channel&lt;T&gt;(init: T) -&gt; (Sender&lt;T&gt;, Receiver&lt;T&gt;) {
-    <span class="kw">let </span>shared = Arc::new(<a href="#169">Shared</a> {
-        value: RwLock::new(<a href="#317">init</a>),
+    <span class="kw">let </span>shared = Arc::new(Shared {
+        value: RwLock::new(init),
         state: AtomicState::new(),
         ref_count_rx: AtomicUsize::new(<span class="number">1</span>),
         notify_rx: Notify::new(),
         notify_tx: Notify::new(),
     });
 
-    <span class="kw">let </span>tx = <a href="#86">Sender</a> {
-        shared: <a href="#318">shared</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+    <span class="kw">let </span>tx = Sender {
+        shared: shared.clone(),
     };
 
-    <span class="kw">let </span>rx = <a href="#74">Receiver</a> {
-        <a href="#318">shared</a>,
+    <span class="kw">let </span>rx = Receiver {
+        shared,
         version: Version::initial(),
     };
 
-    (<a href="#326">tx</a>, <a href="#330">rx</a>)
+    (tx, rx)
 }
 
 <span class="kw">impl</span>&lt;T&gt; Receiver&lt;T&gt; {
-    <span class="kw">fn </span>from_shared(version: <a href="#232">Version</a>, shared: Arc&lt;Shared&lt;T&gt;&gt;) -&gt; <span class="self">Self </span>{
+    <span class="kw">fn </span>from_shared(version: Version, shared: Arc&lt;Shared&lt;T&gt;&gt;) -&gt; <span class="self">Self </span>{
         <span class="comment">// No synchronization necessary as this is only used as a counter and
         // not memory access.
-        </span><a href="#339">shared</a>.ref_count_rx.fetch_add(<span class="number">1</span>, Relaxed);
+        </span>shared.ref_count_rx.fetch_add(<span class="number">1</span>, Relaxed);
 
-        <span class="self">Self </span>{ <a href="#339">shared</a>, <a href="#339">version</a> }
+        <span class="self">Self </span>{ shared, version }
     }
 
     <span class="doccomment">/// Returns a reference to the most recently sent value.
@@ -1410,11 +1417,12 @@
     /// [`changed`] may return immediately even if you have already seen the
     /// value with a call to `borrow`.
     ///
-    /// Outstanding borrows hold a read lock. This means that long lived borrows
-    /// could cause the send half to block. It is recommended to keep the borrow
-    /// as short lived as possible. Additionally, if you are running in an
-    /// environment that allows `!Send` futures, you must ensure that the
-    /// returned `Ref` type is never held alive across an `.await` point.
+    /// Outstanding borrows hold a read lock on the inner value. This means that
+    /// long-lived borrows could cause the producer half to block. It is recommended
+    /// to keep the borrow as short-lived as possible. Additionally, if you are
+    /// running in an environment that allows `!Send` futures, you must ensure that
+    /// the returned `Ref` type is never held alive across an `.await` point,
+    /// otherwise, it can lead to a deadlock.
     ///
     /// The priority policy of the lock is dependent on the underlying lock
     /// implementation, and this type does not guarantee that any particular policy
@@ -1444,14 +1452,14 @@
     /// assert_eq!(*rx.borrow(), &quot;hello&quot;);
     /// ```
     </span><span class="kw">pub fn </span>borrow(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Ref&lt;<span class="lifetime">&#39;_</span>, T&gt; {
-        <span class="kw">let </span>inner = <a class="self" href="#386">self</a>.shared.value.read().unwrap();
+        <span class="kw">let </span>inner = <span class="self">self</span>.shared.value.read().unwrap();
 
         <span class="comment">// After obtaining a read-lock no concurrent writes could occur
         // and the loaded version matches that of the borrowed reference.
-        </span><span class="kw">let </span>new_version = <a class="self" href="#386">self</a>.shared.state.<a href="#273">load</a>().<a href="#255">version</a>();
-        <span class="kw">let </span>has_changed = <a class="self" href="#386">self</a>.version != <a href="#391">new_version</a>;
+        </span><span class="kw">let </span>new_version = <span class="self">self</span>.shared.state.load().version();
+        <span class="kw">let </span>has_changed = <span class="self">self</span>.version != new_version;
 
-        <a href="#115">Ref</a> { <a href="#387">inner</a>, <a href="#392">has_changed</a> }
+        Ref { inner, has_changed }
     }
 
     <span class="doccomment">/// Returns a reference to the most recently sent value and marks that value
@@ -1461,11 +1469,12 @@
     /// will not return immediately until the [`Sender`] has modified the shared
     /// value again.
     ///
-    /// Outstanding borrows hold a read lock. This means that long lived borrows
-    /// could cause the send half to block. It is recommended to keep the borrow
-    /// as short lived as possible. Additionally, if you are running in an
-    /// environment that allows `!Send` futures, you must ensure that the
-    /// returned `Ref` type is never held alive across an `.await` point.
+    /// Outstanding borrows hold a read lock on the inner value. This means that
+    /// long-lived borrows could cause the producer half to block. It is recommended
+    /// to keep the borrow as short-lived as possible. Additionally, if you are
+    /// running in an environment that allows `!Send` futures, you must ensure that
+    /// the returned `Ref` type is never held alive across an `.await` point,
+    /// otherwise, it can lead to a deadlock.
     ///
     /// The priority policy of the lock is dependent on the underlying lock
     /// implementation, and this type does not guarantee that any particular policy
@@ -1486,17 +1495,17 @@
     ///
     /// [`changed`]: Receiver::changed
     </span><span class="kw">pub fn </span>borrow_and_update(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; Ref&lt;<span class="lifetime">&#39;_</span>, T&gt; {
-        <span class="kw">let </span>inner = <a class="self" href="#428">self</a>.shared.value.read().unwrap();
+        <span class="kw">let </span>inner = <span class="self">self</span>.shared.value.read().unwrap();
 
         <span class="comment">// After obtaining a read-lock no concurrent writes could occur
         // and the loaded version matches that of the borrowed reference.
-        </span><span class="kw">let </span>new_version = <a class="self" href="#428">self</a>.shared.state.<a href="#273">load</a>().<a href="#255">version</a>();
-        <span class="kw">let </span>has_changed = <a class="self" href="#428">self</a>.version != <a href="#433">new_version</a>;
+        </span><span class="kw">let </span>new_version = <span class="self">self</span>.shared.state.load().version();
+        <span class="kw">let </span>has_changed = <span class="self">self</span>.version != new_version;
 
         <span class="comment">// Mark the shared value as seen by updating the version
-        </span><a class="self" href="#428">self</a>.version = <a href="#433">new_version</a>;
+        </span><span class="self">self</span>.version = new_version;
 
-        <a href="#115">Ref</a> { <a href="#429">inner</a>, <a href="#434">has_changed</a> }
+        Ref { inner, has_changed }
     }
 
     <span class="doccomment">/// Checks if this channel contains a message that this receiver has not yet
@@ -1529,16 +1538,16 @@
     ///     assert!(rx.has_changed().is_err());
     /// }
     /// ```
-    </span><span class="kw">pub fn </span>has_changed(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>, <a href="#210">error::RecvError</a>&gt; {
+    </span><span class="kw">pub fn </span>has_changed(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;bool, error::RecvError&gt; {
         <span class="comment">// Load the version from the state
-        </span><span class="kw">let </span>state = <a class="self" href="#472">self</a>.shared.state.<a href="#273">load</a>();
+        </span><span class="kw">let </span>state = <span class="self">self</span>.shared.state.load();
         <span class="kw">if </span>state.is_closed() {
             <span class="comment">// The sender has dropped.
-            </span><span class="kw">return </span><span class="prelude-val">Err</span>(<a href="#210">error::RecvError</a>(()));
+            </span><span class="kw">return </span><span class="prelude-val">Err</span>(error::RecvError(()));
         }
-        <span class="kw">let </span>new_version = <a href="#474">state</a>.<a href="#255">version</a>();
+        <span class="kw">let </span>new_version = state.version();
 
-        <span class="prelude-val">Ok</span>(<a class="self" href="#472">self</a>.version != <a href="#479">new_version</a>)
+        <span class="prelude-val">Ok</span>(<span class="self">self</span>.version != new_version)
     }
 
     <span class="doccomment">/// Waits for a change notification, then marks the newest value as seen.
@@ -1580,7 +1589,7 @@
     ///     assert!(rx.changed().await.is_err());
     /// }
     /// ```
-    </span><span class="kw">pub async fn </span>changed(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="#210">error::RecvError</a>&gt; {
+    </span><span class="kw">pub async fn </span>changed(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), error::RecvError&gt; {
         <span class="kw">loop </span>{
             <span class="comment">// In order to avoid a race condition, we first request a notification,
             // **then** check the current value&#39;s version. If a new version exists,
@@ -1608,55 +1617,55 @@
     /// let (tx3, rx3) = tokio::sync::watch::channel(true);
     /// assert!(!rx3.same_channel(&amp;rx2));
     /// ```
-    </span><span class="kw">pub fn </span>same_channel(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        Arc::ptr_eq(<span class="kw-2">&amp;</span><a class="self" href="#551">self</a>.shared, <span class="kw-2">&amp;</span><a href="#551">other</a>.shared)
+    </span><span class="kw">pub fn </span>same_channel(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; bool {
+        Arc::ptr_eq(<span class="kw-2">&amp;</span><span class="self">self</span>.shared, <span class="kw-2">&amp;</span>other.shared)
     }
 
     <span class="macro">cfg_process_driver! </span>{
-        <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>try_has_changed(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="prelude-ty">Result</span>&lt;(), <a href="#210">error::RecvError</a>&gt;&gt; {
-            <a href="#562-565">maybe_changed</a>(<span class="kw-2">&amp;</span><a class="self" href="#556">self</a>.shared, <span class="kw-2">&amp;mut </span><a class="self" href="#556">self</a>.version)
+        <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>try_has_changed(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="prelude-ty">Result</span>&lt;(), error::RecvError&gt;&gt; {
+            maybe_changed(<span class="kw-2">&amp;</span><span class="self">self</span>.shared, <span class="kw-2">&amp;mut </span><span class="self">self</span>.version)
         }
     }
 }
 
 <span class="kw">fn </span>maybe_changed&lt;T&gt;(
     shared: <span class="kw-2">&amp;</span>Shared&lt;T&gt;,
-    version: <span class="kw-2">&amp;mut </span><a href="#232">Version</a>,
-) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="prelude-ty">Result</span>&lt;(), <a href="#210">error::RecvError</a>&gt;&gt; {
+    version: <span class="kw-2">&amp;mut </span>Version,
+) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="prelude-ty">Result</span>&lt;(), error::RecvError&gt;&gt; {
     <span class="comment">// Load the version from the state
-    </span><span class="kw">let </span>state = <a href="#563">shared</a>.state.<a href="#273">load</a>();
-    <span class="kw">let </span>new_version = <a href="#567">state</a>.<a href="#255">version</a>();
+    </span><span class="kw">let </span>state = shared.state.load();
+    <span class="kw">let </span>new_version = state.version();
 
     <span class="kw">if </span><span class="kw-2">*</span>version != new_version {
         <span class="comment">// Observe the new version and return
-        </span><span class="kw-2">*</span><a href="#564">version</a> = <a href="#568">new_version</a>;
+        </span><span class="kw-2">*</span>version = new_version;
         <span class="kw">return </span><span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(()));
     }
 
     <span class="kw">if </span>state.is_closed() {
         <span class="comment">// All receivers have dropped.
-        </span><span class="kw">return </span><span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(<a href="#210">error::RecvError</a>(())));
+        </span><span class="kw">return </span><span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(error::RecvError(())));
     }
 
     <span class="prelude-val">None
 </span>}
 
-<span class="kw">impl</span>&lt;T&gt; <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> <span class="kw">for </span>Receiver&lt;T&gt; {
+<span class="kw">impl</span>&lt;T&gt; Clone <span class="kw">for </span>Receiver&lt;T&gt; {
     <span class="kw">fn </span>clone(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self </span>{
-        <span class="kw">let </span>version = <a class="self" href="#585">self</a>.version;
-        <span class="kw">let </span>shared = <a class="self" href="#585">self</a>.shared.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
+        <span class="kw">let </span>version = <span class="self">self</span>.version;
+        <span class="kw">let </span>shared = <span class="self">self</span>.shared.clone();
 
-        <span class="self">Self</span>::from_shared(<a href="#586">version</a>, <a href="#587">shared</a>)
+        <span class="self">Self</span>::from_shared(version, shared)
     }
 }
 
-<span class="kw">impl</span>&lt;T&gt; <a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span>Receiver&lt;T&gt; {
+<span class="kw">impl</span>&lt;T&gt; Drop <span class="kw">for </span>Receiver&lt;T&gt; {
     <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="comment">// No synchronization necessary as this is only used as a counter and
         // not memory access.
         </span><span class="kw">if </span><span class="number">1 </span>== <span class="self">self</span>.shared.ref_count_rx.fetch_sub(<span class="number">1</span>, Relaxed) {
             <span class="comment">// This is the last `Receiver` handle, tasks waiting on `Sender::closed()`
-            </span><a class="self" href="#594">self</a>.shared.notify_tx.<a href="notify.rs.html#501">notify_waiters</a>();
+            </span><span class="self">self</span>.shared.notify_tx.notify_waiters();
         }
     }
 }
@@ -1683,10 +1692,10 @@
     </span><span class="kw">pub fn </span>send(<span class="kw-2">&amp;</span><span class="self">self</span>, value: T) -&gt; <span class="prelude-ty">Result</span>&lt;(), error::SendError&lt;T&gt;&gt; {
         <span class="comment">// This is pretty much only useful as a hint anyway, so synchronization isn&#39;t critical.
         </span><span class="kw">if </span><span class="number">0 </span>== <span class="self">self</span>.receiver_count() {
-            <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="#196">error::SendError</a>(<a href="#623">value</a>));
+            <span class="kw">return </span><span class="prelude-val">Err</span>(error::SendError(value));
         }
 
-        <a class="self" href="#623">self</a>.<a href="#788">send_replace</a>(<a href="#623">value</a>);
+        <span class="self">self</span>.send_replace(value);
         <span class="prelude-val">Ok</span>(())
     }
 
@@ -1724,8 +1733,8 @@
     <span class="kw">where
         </span>F: FnOnce(<span class="kw-2">&amp;mut </span>T),
     {
-        <a class="self" href="#663">self</a>.<a href="#730-732">send_if_modified</a>(|value| {
-            <a href="#663">modify</a>(<a href="#667">value</a>);
+        <span class="self">self</span>.send_if_modified(|value| {
+            modify(value);
             <span class="bool-val">true
         </span>});
     }
@@ -1787,17 +1796,17 @@
     /// assert!(!state_rx.has_changed().unwrap());
     /// assert_eq!(state_rx.borrow_and_update().counter, 2);
     /// ```
-    </span><span class="kw">pub fn </span>send_if_modified&lt;F&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, modify: F) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>
+    </span><span class="kw">pub fn </span>send_if_modified&lt;F&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, modify: F) -&gt; bool
     <span class="kw">where
-        </span>F: FnOnce(<span class="kw-2">&amp;mut </span>T) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
+        </span>F: FnOnce(<span class="kw-2">&amp;mut </span>T) -&gt; bool,
     {
         {
             <span class="comment">// Acquire the write lock and update the value.
-            </span><span class="kw">let </span><span class="kw-2">mut </span>lock = <a class="self" href="#730">self</a>.shared.value.write().unwrap();
+            </span><span class="kw">let </span><span class="kw-2">mut </span>lock = <span class="self">self</span>.shared.value.write().unwrap();
 
             <span class="comment">// Update the value and catch possible panic inside func.
-            </span><span class="kw">let </span>result = panic::catch_unwind(panic::AssertUnwindSafe(|| <a href="#730">modify</a>(<span class="kw-2">&amp;mut </span><a href="#736">lock</a>)));
-            <span class="kw">match </span><a href="#739">result</a> {
+            </span><span class="kw">let </span>result = panic::catch_unwind(panic::AssertUnwindSafe(|| modify(<span class="kw-2">&amp;mut </span>lock)));
+            <span class="kw">match </span>result {
                 <span class="prelude-val">Ok</span>(modified) =&gt; {
                     <span class="kw">if </span>!modified {
                         <span class="comment">// Abort, i.e. don&#39;t notify receivers if unmodified
@@ -1807,24 +1816,24 @@
                 </span>}
                 <span class="prelude-val">Err</span>(panicked) =&gt; {
                     <span class="comment">// Drop the lock to avoid poisoning it.
-                    </span><a href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>(<a href="#736">lock</a>);
+                    </span>drop(lock);
                     <span class="comment">// Forward the panic to the caller.
-                    </span><a href="https://doc.rust-lang.org/nightly/std/panic/fn.resume_unwind.html">panic::resume_unwind</a>(<a href="#748">panicked</a>);
+                    </span>panic::resume_unwind(panicked);
                     <span class="comment">// Unreachable
                 </span>}
             };
 
-            <a class="self" href="#730">self</a>.shared.state.<a href="#278">increment_version</a>();
+            <span class="self">self</span>.shared.state.increment_version();
 
             <span class="comment">// Release the write lock.
             //
             // Incrementing the version counter while holding the lock ensures
             // that receivers are able to figure out the version number of the
             // value they are currently looking at.
-            </span><a href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>(<a href="#736">lock</a>);
+            </span>drop(lock);
         }
 
-        <a class="self" href="#730">self</a>.shared.notify_rx.<a href="notify.rs.html#501">notify_waiters</a>();
+        <span class="self">self</span>.shared.notify_rx.notify_waiters();
 
         <span class="bool-val">true
     </span>}
@@ -1847,16 +1856,19 @@
     /// ```
     </span><span class="kw">pub fn </span>send_replace(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw-2">mut </span>value: T) -&gt; T {
         <span class="comment">// swap old watched value with the new one
-        </span><a class="self" href="#788">self</a>.<a href="#663-665">send_modify</a>(|old| <a href="https://doc.rust-lang.org/nightly/core/mem/fn.swap.html">mem::swap</a>(<a href="#790">old</a>, <span class="kw-2">&amp;mut </span><a href="#788">value</a>));
+        </span><span class="self">self</span>.send_modify(|old| mem::swap(old, <span class="kw-2">&amp;mut </span>value));
 
-        <a href="#788">value</a>
+        value
     }
 
     <span class="doccomment">/// Returns a reference to the most recently sent value
     ///
-    /// Outstanding borrows hold a read lock. This means that long lived borrows
-    /// could cause the send half to block. It is recommended to keep the borrow
-    /// as short lived as possible.
+    /// Outstanding borrows hold a read lock on the inner value. This means that
+    /// long-lived borrows could cause the producer half to block. It is recommended
+    /// to keep the borrow as short-lived as possible. Additionally, if you are
+    /// running in an environment that allows `!Send` futures, you must ensure that
+    /// the returned `Ref` type is never held alive across an `.await` point,
+    /// otherwise, it can lead to a deadlock.
     ///
     /// # Examples
     ///
@@ -1867,12 +1879,12 @@
     /// assert_eq!(*tx.borrow(), &quot;hello&quot;);
     /// ```
     </span><span class="kw">pub fn </span>borrow(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Ref&lt;<span class="lifetime">&#39;_</span>, T&gt; {
-        <span class="kw">let </span>inner = <a class="self" href="#809">self</a>.shared.value.read().unwrap();
+        <span class="kw">let </span>inner = <span class="self">self</span>.shared.value.read().unwrap();
 
         <span class="comment">// The sender/producer always sees the current version
         </span><span class="kw">let </span>has_changed = <span class="bool-val">false</span>;
 
-        <a href="#115">Ref</a> { <a href="#810">inner</a>, <a href="#813">has_changed</a> }
+        Ref { inner, has_changed }
     }
 
     <span class="doccomment">/// Checks if the channel has been closed. This happens when all receivers
@@ -1887,8 +1899,8 @@
     /// drop(rx);
     /// assert!(tx.is_closed());
     /// ```
-    </span><span class="kw">pub fn </span>is_closed(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#830">self</a>.<a href="#959">receiver_count</a>() == <span class="number">0
+    </span><span class="kw">pub fn </span>is_closed(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.receiver_count() == <span class="number">0
     </span>}
 
     <span class="doccomment">/// Completes when all receivers have dropped.
@@ -1990,12 +2002,12 @@
     /// }
     /// ```
     </span><span class="kw">pub fn </span>subscribe(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Receiver&lt;T&gt; {
-        <span class="kw">let </span>shared = <a class="self" href="#932">self</a>.shared.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
-        <span class="kw">let </span>version = <a href="#933">shared</a>.state.<a href="#273">load</a>().<a href="#255">version</a>();
+        <span class="kw">let </span>shared = <span class="self">self</span>.shared.clone();
+        <span class="kw">let </span>version = shared.state.load().version();
 
         <span class="comment">// The CLOSED bit in the state tracks only whether the sender is
         // dropped, so we do not need to unset it if this reopens the channel.
-        </span>Receiver::from_shared(<a href="#934">version</a>, <a href="#933">shared</a>)
+        </span>Receiver::from_shared(version, shared)
     }
 
     <span class="doccomment">/// Returns the number of receivers that currently exist.
@@ -2016,25 +2028,25 @@
     ///     assert_eq!(2, tx.receiver_count());
     /// }
     /// ```
-    </span><span class="kw">pub fn </span>receiver_count(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="self" href="#959">self</a>.shared.ref_count_rx.load(Relaxed)
+    </span><span class="kw">pub fn </span>receiver_count(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+        <span class="self">self</span>.shared.ref_count_rx.load(Relaxed)
     }
 }
 
-<span class="kw">impl</span>&lt;T&gt; <a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span>Sender&lt;T&gt; {
+<span class="kw">impl</span>&lt;T&gt; Drop <span class="kw">for </span>Sender&lt;T&gt; {
     <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <a class="self" href="#965">self</a>.shared.state.<a href="#284">set_closed</a>();
-        <a class="self" href="#965">self</a>.shared.notify_rx.<a href="notify.rs.html#501">notify_waiters</a>();
+        <span class="self">self</span>.shared.state.set_closed();
+        <span class="self">self</span>.shared.notify_rx.notify_waiters();
     }
 }
 
 <span class="comment">// ===== impl Ref =====
 
-</span><span class="kw">impl</span>&lt;T&gt; <a href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.Deref.html">ops::Deref</a> <span class="kw">for </span>Ref&lt;<span class="lifetime">&#39;_</span>, T&gt; {
+</span><span class="kw">impl</span>&lt;T&gt; ops::Deref <span class="kw">for </span>Ref&lt;<span class="lifetime">&#39;_</span>, T&gt; {
     <span class="kw">type </span>Target = T;
 
     <span class="kw">fn </span>deref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>T {
-        <a class="self" href="#976">self</a>.inner.<a href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.Deref.html">deref</a>()
+        <span class="self">self</span>.inner.deref()
     }
 }
 
@@ -2119,4 +2131,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="tokio" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="tokio" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.21.2/src/runtime/task/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../../tokio/index.html"><img class="rust-logo" src="../../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.23.0/src/runtime/task/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../../tokio/index.html"><img class="rust-logo" src="../../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -529,6 +529,94 @@
 <a href="#529" id="529">529</a>
 <a href="#530" id="530">530</a>
 <a href="#531" id="531">531</a>
+<a href="#532" id="532">532</a>
+<a href="#533" id="533">533</a>
+<a href="#534" id="534">534</a>
+<a href="#535" id="535">535</a>
+<a href="#536" id="536">536</a>
+<a href="#537" id="537">537</a>
+<a href="#538" id="538">538</a>
+<a href="#539" id="539">539</a>
+<a href="#540" id="540">540</a>
+<a href="#541" id="541">541</a>
+<a href="#542" id="542">542</a>
+<a href="#543" id="543">543</a>
+<a href="#544" id="544">544</a>
+<a href="#545" id="545">545</a>
+<a href="#546" id="546">546</a>
+<a href="#547" id="547">547</a>
+<a href="#548" id="548">548</a>
+<a href="#549" id="549">549</a>
+<a href="#550" id="550">550</a>
+<a href="#551" id="551">551</a>
+<a href="#552" id="552">552</a>
+<a href="#553" id="553">553</a>
+<a href="#554" id="554">554</a>
+<a href="#555" id="555">555</a>
+<a href="#556" id="556">556</a>
+<a href="#557" id="557">557</a>
+<a href="#558" id="558">558</a>
+<a href="#559" id="559">559</a>
+<a href="#560" id="560">560</a>
+<a href="#561" id="561">561</a>
+<a href="#562" id="562">562</a>
+<a href="#563" id="563">563</a>
+<a href="#564" id="564">564</a>
+<a href="#565" id="565">565</a>
+<a href="#566" id="566">566</a>
+<a href="#567" id="567">567</a>
+<a href="#568" id="568">568</a>
+<a href="#569" id="569">569</a>
+<a href="#570" id="570">570</a>
+<a href="#571" id="571">571</a>
+<a href="#572" id="572">572</a>
+<a href="#573" id="573">573</a>
+<a href="#574" id="574">574</a>
+<a href="#575" id="575">575</a>
+<a href="#576" id="576">576</a>
+<a href="#577" id="577">577</a>
+<a href="#578" id="578">578</a>
+<a href="#579" id="579">579</a>
+<a href="#580" id="580">580</a>
+<a href="#581" id="581">581</a>
+<a href="#582" id="582">582</a>
+<a href="#583" id="583">583</a>
+<a href="#584" id="584">584</a>
+<a href="#585" id="585">585</a>
+<a href="#586" id="586">586</a>
+<a href="#587" id="587">587</a>
+<a href="#588" id="588">588</a>
+<a href="#589" id="589">589</a>
+<a href="#590" id="590">590</a>
+<a href="#591" id="591">591</a>
+<a href="#592" id="592">592</a>
+<a href="#593" id="593">593</a>
+<a href="#594" id="594">594</a>
+<a href="#595" id="595">595</a>
+<a href="#596" id="596">596</a>
+<a href="#597" id="597">597</a>
+<a href="#598" id="598">598</a>
+<a href="#599" id="599">599</a>
+<a href="#600" id="600">600</a>
+<a href="#601" id="601">601</a>
+<a href="#602" id="602">602</a>
+<a href="#603" id="603">603</a>
+<a href="#604" id="604">604</a>
+<a href="#605" id="605">605</a>
+<a href="#606" id="606">606</a>
+<a href="#607" id="607">607</a>
+<a href="#608" id="608">608</a>
+<a href="#609" id="609">609</a>
+<a href="#610" id="610">610</a>
+<a href="#611" id="611">611</a>
+<a href="#612" id="612">612</a>
+<a href="#613" id="613">613</a>
+<a href="#614" id="614">614</a>
+<a href="#615" id="615">615</a>
+<a href="#616" id="616">616</a>
+<a href="#617" id="617">617</a>
+<a href="#618" id="618">618</a>
+<a href="#619" id="619">619</a>
 </pre><pre class="rust"><code><span class="doccomment">//! The task module.
 //!
 //! The task module contains the code that manages spawned tasks and provides a
@@ -578,7 +666,8 @@
 //!
 //!  * JOIN_INTEREST - Is set to one if there exists a JoinHandle.
 //!
-//!  * JOIN_WAKER - Is set to one if the JoinHandle has set a waker.
+//!  * JOIN_WAKER - Acts as an access control bit for the join handle waker. The
+//!    protocol for its usage is described below.
 //!
 //! The rest of the bits are used for the ref-count.
 //!
@@ -602,10 +691,38 @@
 //!    a lock for the stage field, and it can be accessed only by the thread
 //!    that set RUNNING to one.
 //!
-//!  * If JOIN_WAKER is zero, then the JoinHandle has exclusive access to the
-//!    join handle waker. If JOIN_WAKER and COMPLETE are both one, then the
-//!    thread that set COMPLETE to one has exclusive access to the join handle
-//!    waker.
+//!  * The waker field may be concurrently accessed by different threads: in one
+//!    thread the runtime may complete a task and *read* the waker field to
+//!    invoke the waker, and in another thread the task&#39;s JoinHandle may be
+//!    polled, and if the task hasn&#39;t yet completed, the JoinHandle may *write*
+//!    a waker to the waker field. The JOIN_WAKER bit ensures safe access by
+//!    multiple threads to the waker field using the following rules:
+//!
+//!    1. JOIN_WAKER is initialized to zero.
+//!
+//!    2. If JOIN_WAKER is zero, then the JoinHandle has exclusive (mutable)
+//!       access to the waker field.
+//!
+//!    3. If JOIN_WAKER is one, then the JoinHandle has shared (read-only)
+//!       access to the waker field.
+//!
+//!    4. If JOIN_WAKER is one and COMPLETE is one, then the runtime has shared
+//!       (read-only) access to the waker field.
+//!
+//!    5. If the JoinHandle needs to write to the waker field, then the
+//!       JoinHandle needs to (i) successfully set JOIN_WAKER to zero if it is
+//!       not already zero to gain exclusive access to the waker field per rule
+//!       2, (ii) write a waker, and (iii) successfully set JOIN_WAKER to one.
+//!
+//!    6. The JoinHandle can change JOIN_WAKER only if COMPLETE is zero (i.e.
+//!       the task hasn&#39;t yet completed).
+//!
+//!    Rule 6 implies that the steps (i) or (iii) of rule 5 may fail due to a
+//!    race. If step (i) fails, then the attempt to write a waker is aborted. If
+//!    step (iii) fails because COMPLETE is set to one by another thread after
+//!    step (i), then the waker field is cleared. Once COMPLETE is one (i.e.
+//!    task has completed), the JoinHandle will not modify JOIN_WAKER. After the
+//!    runtime sets COMPLETE to one, it invokes the waker if there is one.
 //!
 //! All other fields are immutable and can be accessed immutably without
 //! synchronization by anyone.
@@ -652,7 +769,7 @@
 //!  1. The output is created on the thread that the future was polled on. Since
 //!     only non-Send futures can have non-Send output, the future was polled on
 //!     the thread that the future was spawned from.
-//!  2. Since JoinHandle&lt;Output&gt; is not Send if Output is not Send, the
+//!  2. Since `JoinHandle&lt;Output&gt;` is not Send if Output is not Send, the
 //!     JoinHandle is also on the thread that the future was spawned from.
 //!  3. Thus, the JoinHandle will not move the output across threads when it
 //!     takes or drops the output.
@@ -670,50 +787,52 @@
 // unstable. This should be removed once `JoinSet` is stabilized.
 </span><span class="attr">#![cfg_attr(not(tokio_unstable), allow(dead_code))]
 
-</span><span class="kw">mod </span><a href="core.rs.html#1-301">core</a>;
-<span class="kw">use </span><a href="core.rs.html#28"><span class="self">self</span>::core::Cell</a>;
-<span class="kw">use </span><a href="core.rs.html#59"><span class="self">self</span>::core::Header</a>;
+</span><span class="kw">use </span><span class="kw">crate</span>::runtime::context;
 
-<span class="kw">mod </span><a href="error.rs.html#1-165">error</a>;
+<span class="kw">mod </span>core;
+<span class="kw">use </span><span class="self">self</span>::core::Cell;
+<span class="kw">use </span><span class="self">self</span>::core::Header;
+
+<span class="kw">mod </span>error;
 <span class="attr">#[allow(unreachable_pub)] </span><span class="comment">// https://github.com/rust-lang/rust/issues/57411
-</span><span class="kw">pub use </span><a href="error.rs.html#9"><span class="self">self</span>::error::JoinError</a>;
+</span><span class="kw">pub use </span><span class="self">self</span>::error::JoinError;
 
-<span class="kw">mod </span><a href="harness.rs.html#1-505">harness</a>;
-<span class="kw">use </span><a href="harness.rs.html#14"><span class="self">self</span>::harness::Harness</a>;
+<span class="kw">mod </span>harness;
+<span class="kw">use </span><span class="self">self</span>::harness::Harness;
 
 <span class="macro">cfg_rt_multi_thread! </span>{
-    <span class="kw">mod </span><a href="inject.rs.html#1-220">inject</a>;
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">use </span><a href="inject.rs.html#13"><span class="self">self</span>::inject::Inject</a>;
+    <span class="kw">mod </span>inject;
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">use </span><span class="self">self</span>::inject::Inject;
 }
 
 <span class="attr">#[cfg(feature = <span class="string">&quot;rt&quot;</span>)]
-</span><span class="kw">mod </span><a href="abort.rs.html#1-94">abort</a>;
-<span class="kw">mod </span><a href="join.rs.html#1-349">join</a>;
+</span><span class="kw">mod </span>abort;
+<span class="kw">mod </span>join;
 
 <span class="attr">#[cfg(feature = <span class="string">&quot;rt&quot;</span>)]
 #[allow(unreachable_pub)] </span><span class="comment">// https://github.com/rust-lang/rust/issues/57411
-</span><span class="kw">pub use </span><a href="abort.rs.html#16"><span class="self">self</span>::abort::AbortHandle</a>;
+</span><span class="kw">pub use </span><span class="self">self</span>::abort::AbortHandle;
 
 <span class="attr">#[allow(unreachable_pub)] </span><span class="comment">// https://github.com/rust-lang/rust/issues/57411
-</span><span class="kw">pub use </span><a href="join.rs.html#154"><span class="self">self</span>::join::JoinHandle</a>;
+</span><span class="kw">pub use </span><span class="self">self</span>::join::JoinHandle;
 
-<span class="kw">mod </span><a href="list.rs.html#1-299">list</a>;
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span><span class="self">self</span>::list::{<a href="list.rs.html#60">LocalOwnedTasks</a>, <a href="list.rs.html#56">OwnedTasks</a>};
+<span class="kw">mod </span>list;
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span><span class="self">self</span>::list::{LocalOwnedTasks, OwnedTasks};
 
-<span class="kw">mod </span><a href="raw.rs.html#1-236">raw</a>;
-<span class="kw">use </span><a href="raw.rs.html#9"><span class="self">self</span>::raw::RawTask</a>;
+<span class="kw">mod </span>raw;
+<span class="kw">use </span><span class="self">self</span>::raw::RawTask;
 
-<span class="kw">mod </span><a href="state.rs.html#1-595">state</a>;
-<span class="kw">use </span><a href="state.rs.html#7"><span class="self">self</span>::state::State</a>;
+<span class="kw">mod </span>state;
+<span class="kw">use </span><span class="self">self</span>::state::State;
 
-<span class="kw">mod </span><a href="waker.rs.html#1-130">waker</a>;
+<span class="kw">mod </span>waker;
 
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html"><span class="kw">crate</span>::future::Future</a>;
-<span class="kw">use </span><a href="../../util/mod.rs.html#50"><span class="kw">crate</span>::util::linked_list</a>;
+<span class="kw">use </span><span class="kw">crate</span>::future::Future;
+<span class="kw">use </span><span class="kw">crate</span>::util::linked_list;
 
 <span class="kw">use </span>std::marker::PhantomData;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/ptr/non_null/struct.NonNull.html">std::ptr::NonNull</a>;
-<span class="kw">use </span>std::{<a href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">fmt</a>, <a href="https://doc.rust-lang.org/nightly/core/mem/index.html">mem</a>};
+<span class="kw">use </span>std::ptr::NonNull;
+<span class="kw">use </span>std::{fmt, mem};
 
 <span class="doccomment">/// An opaque ID that uniquely identifies a task relative to all other currently
 /// running tasks.
@@ -724,6 +843,10 @@
 ///   task completes, the same ID may be used for another task.
 /// - Task IDs are *not* sequential, and do not indicate the order in which
 ///   tasks are spawned, what runtime a task is spawned on, or any other data.
+/// - The task ID of the currently running task can be obtained from inside the
+///   task via the [`task::try_id()`](crate::task::try_id()) and
+///   [`task::id()`](crate::task::id()) functions and from outside the task via
+///   the [`JoinHandle::id()`](crate::task::JoinHandle::id()) function.
 ///
 /// **Note**: This is an [unstable API][unstable]. The public API of this type
 /// may break in 1.x releases. See [the documentation on unstable
@@ -732,19 +855,58 @@
 /// [unstable]: crate#unstable-features
 </span><span class="attr">#[cfg_attr(docsrs, doc(cfg(all(feature = <span class="string">&quot;rt&quot;</span>, tokio_unstable))))]
 #[cfg_attr(not(tokio_unstable), allow(unreachable_pub))]
-</span><span class="comment">// TODO(eliza): there&#39;s almost certainly no reason not to make this `Copy` as well...
-</span><span class="attr">#[derive(Clone, Debug, Hash, Eq, PartialEq)]
-</span><span class="kw">pub struct </span>Id(<a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>);
+#[derive(Clone, Copy, Debug, Hash, Eq, PartialEq)]
+</span><span class="kw">pub struct </span>Id(u64);
+
+<span class="doccomment">/// Returns the [`Id`] of the currently running task.
+///
+/// # Panics
+///
+/// This function panics if called from outside a task. Please note that calls
+/// to `block_on` do not have task IDs, so the method will panic if called from
+/// within a call to `block_on`. For a version of this function that doesn&#39;t
+/// panic, see [`task::try_id()`](crate::runtime::task::try_id()).
+///
+/// **Note**: This is an [unstable API][unstable]. The public API of this type
+/// may break in 1.x releases. See [the documentation on unstable
+/// features][unstable] for details.
+///
+/// [task ID]: crate::task::Id
+/// [unstable]: crate#unstable-features
+</span><span class="attr">#[cfg_attr(not(tokio_unstable), allow(unreachable_pub))]
+#[track_caller]
+</span><span class="kw">pub fn </span>id() -&gt; Id {
+    context::current_task_id().expect(<span class="string">&quot;Can&#39;t get a task id when not inside a task&quot;</span>)
+}
+
+<span class="doccomment">/// Returns the [`Id`] of the currently running task, or `None` if called outside
+/// of a task.
+///
+/// This function is similar to  [`task::id()`](crate::runtime::task::id()), except
+/// that it returns `None` rather than panicking if called outside of a task
+/// context.
+///
+/// **Note**: This is an [unstable API][unstable]. The public API of this type
+/// may break in 1.x releases. See [the documentation on unstable
+/// features][unstable] for details.
+///
+/// [task ID]: crate::task::Id
+/// [unstable]: crate#unstable-features
+</span><span class="attr">#[cfg_attr(not(tokio_unstable), allow(unreachable_pub))]
+#[track_caller]
+</span><span class="kw">pub fn </span>try_id() -&gt; <span class="prelude-ty">Option</span>&lt;Id&gt; {
+    context::current_task_id()
+}
 
 <span class="doccomment">/// An owned handle to the task, tracked by ref count.
 </span><span class="attr">#[repr(transparent)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>Task&lt;S: <span class="lifetime">&#39;static</span>&gt; {
-    raw: <a href="raw.rs.html#9">RawTask</a>,
+    raw: RawTask,
     _p: PhantomData&lt;S&gt;,
 }
 
-<span class="kw">unsafe impl</span>&lt;S&gt; <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="kw">for </span>Task&lt;S&gt; {}
-<span class="kw">unsafe impl</span>&lt;S&gt; <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> <span class="kw">for </span>Task&lt;S&gt; {}
+<span class="kw">unsafe impl</span>&lt;S&gt; Send <span class="kw">for </span>Task&lt;S&gt; {}
+<span class="kw">unsafe impl</span>&lt;S&gt; Sync <span class="kw">for </span>Task&lt;S&gt; {}
 
 <span class="doccomment">/// A task was notified.
 </span><span class="attr">#[repr(transparent)]
@@ -752,8 +914,8 @@
 
 <span class="comment">// safety: This type cannot be used to touch the task without first verifying
 // that the value is on a thread where it is safe to poll the task.
-</span><span class="kw">unsafe impl</span>&lt;S: <a href="#249">Schedule</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="kw">for </span>Notified&lt;S&gt; {}
-<span class="kw">unsafe impl</span>&lt;S: <a href="#249">Schedule</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> <span class="kw">for </span>Notified&lt;S&gt; {}
+</span><span class="kw">unsafe impl</span>&lt;S: Schedule&gt; Send <span class="kw">for </span>Notified&lt;S&gt; {}
+<span class="kw">unsafe impl</span>&lt;S: Schedule&gt; Sync <span class="kw">for </span>Notified&lt;S&gt; {}
 
 <span class="doccomment">/// A non-Send variant of Notified with the invariant that it is on a thread
 /// where it is safe to poll it.
@@ -766,18 +928,18 @@
 <span class="doccomment">/// A task that is not owned by any OwnedTasks. Used for blocking tasks.
 /// This type holds two ref-counts.
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>UnownedTask&lt;S: <span class="lifetime">&#39;static</span>&gt; {
-    raw: <a href="raw.rs.html#9">RawTask</a>,
+    raw: RawTask,
     _p: PhantomData&lt;S&gt;,
 }
 
 <span class="comment">// safety: This type can only be created given a Send task.
-</span><span class="kw">unsafe impl</span>&lt;S&gt; <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="kw">for </span>UnownedTask&lt;S&gt; {}
-<span class="kw">unsafe impl</span>&lt;S&gt; <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> <span class="kw">for </span>UnownedTask&lt;S&gt; {}
+</span><span class="kw">unsafe impl</span>&lt;S&gt; Send <span class="kw">for </span>UnownedTask&lt;S&gt; {}
+<span class="kw">unsafe impl</span>&lt;S&gt; Sync <span class="kw">for </span>UnownedTask&lt;S&gt; {}
 
 <span class="doccomment">/// Task result sent back.
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type </span><span class="prelude-ty">Result</span>&lt;T&gt; = std::result::Result&lt;T, <a href="error.rs.html#9">JoinError</a>&gt;;
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type </span><span class="prelude-ty">Result</span>&lt;T&gt; = std::result::Result&lt;T, JoinError&gt;;
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">trait </span>Schedule: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> + <span class="lifetime">&#39;static </span>{
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">trait </span>Schedule: Sync + Sized + <span class="lifetime">&#39;static </span>{
     <span class="doccomment">/// The task has completed work and is ready to be released. The scheduler
     /// should release it immediately and return it. The task module will batch
     /// the ref-dec with setting other options.
@@ -791,7 +953,7 @@
     <span class="doccomment">/// Schedule the task to run in the near future, yielding the thread to
     /// other tasks.
     </span><span class="kw">fn </span>yield_now(<span class="kw-2">&amp;</span><span class="self">self</span>, task: Notified&lt;<span class="self">Self</span>&gt;) {
-        <a class="self" href="#262">self</a>.<a href="#258">schedule</a>(<a href="#262">task</a>);
+        <span class="self">self</span>.schedule(task);
     }
 
     <span class="doccomment">/// Polling the task resulted in a panic. Should the runtime shutdown?
@@ -808,116 +970,116 @@
     </span><span class="kw">fn </span>new_task&lt;T, S&gt;(
         task: T,
         scheduler: S,
-        id: <a href="#206">Id</a>,
+        id: Id,
     ) -&gt; (Task&lt;S&gt;, Notified&lt;S&gt;, JoinHandle&lt;T::Output&gt;)
     <span class="kw">where
-        </span>S: <a href="#249">Schedule</a>,
-        T: <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a> + <span class="lifetime">&#39;static</span>,
+        </span>S: Schedule,
+        T: Future + <span class="lifetime">&#39;static</span>,
         T::Output: <span class="lifetime">&#39;static</span>,
     {
-        <span class="kw">let </span>raw = RawTask::new::&lt;T, S&gt;(<a href="#278">task</a>, <a href="#279">scheduler</a>, <a href="#280">id</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
-        <span class="kw">let </span>task = <a href="#210">Task</a> {
-            <a href="#287">raw</a>,
+        <span class="kw">let </span>raw = RawTask::new::&lt;T, S&gt;(task, scheduler, id);
+        <span class="kw">let </span>task = Task {
+            raw,
             _p: PhantomData,
         };
-        <span class="kw">let </span>notified = <a href="#220">Notified</a>(<a href="#210">Task</a> {
-            <a href="#287">raw</a>,
+        <span class="kw">let </span>notified = Notified(Task {
+            raw,
             _p: PhantomData,
         });
-        <span class="kw">let </span>join = JoinHandle::new(<a href="#287">raw</a>, <a href="#280">id</a>);
+        <span class="kw">let </span>join = JoinHandle::new(raw);
 
-        (<a href="#288">task</a>, <a href="#292">notified</a>, <a href="#296">join</a>)
+        (task, notified, join)
     }
 
     <span class="doccomment">/// Creates a new task with an associated join handle. This method is used
     /// only when the task is not going to be stored in an `OwnedTasks` list.
     ///
     /// Currently only blocking tasks use this method.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>unowned&lt;T, S&gt;(task: T, scheduler: S, id: <a href="#206">Id</a>) -&gt; (UnownedTask&lt;S&gt;, JoinHandle&lt;T::Output&gt;)
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>unowned&lt;T, S&gt;(task: T, scheduler: S, id: Id) -&gt; (UnownedTask&lt;S&gt;, JoinHandle&lt;T::Output&gt;)
     <span class="kw">where
-        </span>S: <a href="#249">Schedule</a>,
-        T: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a> + <span class="lifetime">&#39;static</span>,
-        T::Output: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <span class="lifetime">&#39;static</span>,
+        </span>S: Schedule,
+        T: Send + Future + <span class="lifetime">&#39;static</span>,
+        T::Output: Send + <span class="lifetime">&#39;static</span>,
     {
-        <span class="kw">let </span>(task, notified, join) = <a href="#277-285">new_task</a>(<a href="#305">task</a>, <a href="#305">scheduler</a>, <a href="#305">id</a>);
+        <span class="kw">let </span>(task, notified, join) = new_task(task, scheduler, id);
 
         <span class="comment">// This transfers the ref-count of task and notified into an UnownedTask.
         // This is valid because an UnownedTask holds two ref-counts.
-        </span><span class="kw">let </span>unowned = <a href="#237">UnownedTask</a> {
-            raw: <a href="#311">task</a>.raw,
+        </span><span class="kw">let </span>unowned = UnownedTask {
+            raw: task.raw,
             _p: PhantomData,
         };
-        std::mem::forget(<a href="#311">task</a>);
-        std::mem::forget(<a href="#311">notified</a>);
+        std::mem::forget(task);
+        std::mem::forget(notified);
 
-        (<a href="#315">unowned</a>, <a href="#311">join</a>)
+        (unowned, join)
     }
 }
 
 <span class="kw">impl</span>&lt;S: <span class="lifetime">&#39;static</span>&gt; Task&lt;S&gt; {
-    <span class="kw">unsafe fn </span>from_raw(ptr: NonNull&lt;<a href="core.rs.html#59">Header</a>&gt;) -&gt; Task&lt;S&gt; {
-        <a href="#210">Task</a> {
-            raw: RawTask::from_raw(<a href="#327">ptr</a>),
+    <span class="kw">unsafe fn </span>from_raw(ptr: NonNull&lt;Header&gt;) -&gt; Task&lt;S&gt; {
+        Task {
+            raw: RawTask::from_raw(ptr),
             _p: PhantomData,
         }
     }
 
-    <span class="kw">fn </span>header(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="core.rs.html#59">Header</a> {
-        <a class="self" href="#334">self</a>.raw.<a href="raw.rs.html#127">header</a>()
+    <span class="kw">fn </span>header(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Header {
+        <span class="self">self</span>.raw.header()
     }
 
-    <span class="kw">fn </span>header_ptr(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; NonNull&lt;<a href="core.rs.html#59">Header</a>&gt; {
-        <a class="self" href="#338">self</a>.raw.<a href="raw.rs.html#120">header_ptr</a>()
+    <span class="kw">fn </span>header_ptr(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; NonNull&lt;Header&gt; {
+        <span class="self">self</span>.raw.header_ptr()
     }
 }
 
 <span class="kw">impl</span>&lt;S: <span class="lifetime">&#39;static</span>&gt; Notified&lt;S&gt; {
-    <span class="kw">fn </span>header(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="core.rs.html#59">Header</a> {
-        <a class="self" href="#344">self</a>.<span class="number">0</span>.<a href="#334">header</a>()
+    <span class="kw">fn </span>header(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Header {
+        <span class="self">self</span>.<span class="number">0</span>.header()
     }
 }
 
 <span class="macro">cfg_rt_multi_thread! </span>{
     <span class="kw">impl</span>&lt;S: <span class="lifetime">&#39;static</span>&gt; Notified&lt;S&gt; {
-        <span class="kw">unsafe fn </span>from_raw(ptr: NonNull&lt;<a href="core.rs.html#59">Header</a>&gt;) -&gt; Notified&lt;S&gt; {
-            <a href="#220">Notified</a>(Task::from_raw(<a href="#351">ptr</a>))
+        <span class="kw">unsafe fn </span>from_raw(ptr: NonNull&lt;Header&gt;) -&gt; Notified&lt;S&gt; {
+            Notified(Task::from_raw(ptr))
         }
     }
 
     <span class="kw">impl</span>&lt;S: <span class="lifetime">&#39;static</span>&gt; Task&lt;S&gt; {
-        <span class="kw">fn </span>into_raw(<span class="self">self</span>) -&gt; NonNull&lt;<a href="core.rs.html#59">Header</a>&gt; {
-            <span class="kw">let </span>ret = <a class="self" href="#357">self</a>.raw.<a href="raw.rs.html#120">header_ptr</a>();
-            mem::forget(<a class="self" href="#357">self</a>);
-            <a href="#358">ret</a>
+        <span class="kw">fn </span>into_raw(<span class="self">self</span>) -&gt; NonNull&lt;Header&gt; {
+            <span class="kw">let </span>ret = <span class="self">self</span>.raw.header_ptr();
+            mem::forget(<span class="self">self</span>);
+            ret
         }
     }
 
     <span class="kw">impl</span>&lt;S: <span class="lifetime">&#39;static</span>&gt; Notified&lt;S&gt; {
-        <span class="kw">fn </span>into_raw(<span class="self">self</span>) -&gt; NonNull&lt;<a href="core.rs.html#59">Header</a>&gt; {
-            <a class="self" href="#365">self</a>.<span class="number">0</span>.<a href="#357">into_raw</a>()
+        <span class="kw">fn </span>into_raw(<span class="self">self</span>) -&gt; NonNull&lt;Header&gt; {
+            <span class="self">self</span>.<span class="number">0</span>.into_raw()
         }
     }
 }
 
-<span class="kw">impl</span>&lt;S: <a href="#249">Schedule</a>&gt; Task&lt;S&gt; {
+<span class="kw">impl</span>&lt;S: Schedule&gt; Task&lt;S&gt; {
     <span class="doccomment">/// Preemptively cancels the task as part of the shutdown process.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>shutdown(<span class="self">self</span>) {
-        <span class="kw">let </span>raw = <a class="self" href="#373">self</a>.raw;
-        mem::forget(<a class="self" href="#373">self</a>);
-        <a href="#374">raw</a>.<a href="raw.rs.html#166">shutdown</a>();
+        <span class="kw">let </span>raw = <span class="self">self</span>.raw;
+        mem::forget(<span class="self">self</span>);
+        raw.shutdown();
     }
 }
 
-<span class="kw">impl</span>&lt;S: <a href="#249">Schedule</a>&gt; LocalNotified&lt;S&gt; {
+<span class="kw">impl</span>&lt;S: Schedule&gt; LocalNotified&lt;S&gt; {
     <span class="doccomment">/// Runs the task.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>run(<span class="self">self</span>) {
-        <span class="kw">let </span>raw = <a class="self" href="#382">self</a>.task.raw;
-        mem::forget(<a class="self" href="#382">self</a>);
-        <a href="#383">raw</a>.<a href="raw.rs.html#132">poll</a>();
+        <span class="kw">let </span>raw = <span class="self">self</span>.task.raw;
+        mem::forget(<span class="self">self</span>);
+        raw.poll();
     }
 }
 
-<span class="kw">impl</span>&lt;S: <a href="#249">Schedule</a>&gt; UnownedTask&lt;S&gt; {
+<span class="kw">impl</span>&lt;S: Schedule&gt; UnownedTask&lt;S&gt; {
     <span class="comment">// Used in test of the inject queue.
     </span><span class="attr">#[cfg(test)]
     #[cfg_attr(tokio_wasm, allow(dead_code))]
@@ -927,98 +1089,98 @@
 
     <span class="kw">fn </span>into_task(<span class="self">self</span>) -&gt; Task&lt;S&gt; {
         <span class="comment">// Convert into a task.
-        </span><span class="kw">let </span>task = <a href="#210">Task</a> {
-            raw: <a class="self" href="#397">self</a>.raw,
+        </span><span class="kw">let </span>task = Task {
+            raw: <span class="self">self</span>.raw,
             _p: PhantomData,
         };
-        mem::forget(<a class="self" href="#397">self</a>);
+        mem::forget(<span class="self">self</span>);
 
         <span class="comment">// Drop a ref-count since an UnownedTask holds two.
-        </span><a href="#399">task</a>.<a href="#334">header</a>().state.<a href="state.rs.html#438">ref_dec</a>();
+        </span>task.header().state.ref_dec();
 
-        <a href="#399">task</a>
+        task
     }
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>run(<span class="self">self</span>) {
-        <span class="kw">let </span>raw = <a class="self" href="#411">self</a>.raw;
-        mem::forget(<a class="self" href="#411">self</a>);
+        <span class="kw">let </span>raw = <span class="self">self</span>.raw;
+        mem::forget(<span class="self">self</span>);
 
         <span class="comment">// Transfer one ref-count to a Task object.
         </span><span class="kw">let </span>task = Task::&lt;S&gt; {
-            <a href="#412">raw</a>,
+            raw,
             _p: PhantomData,
         };
 
         <span class="comment">// Use the other ref-count to poll the task.
-        </span><a href="#412">raw</a>.<a href="raw.rs.html#132">poll</a>();
+        </span>raw.poll();
         <span class="comment">// Decrement our extra ref-count
-        </span><a href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>(<a href="#416">task</a>);
+        </span>drop(task);
     }
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>shutdown(<span class="self">self</span>) {
-        <a class="self" href="#427">self</a>.<a href="#397">into_task</a>().<a href="#373">shutdown</a>()
+        <span class="self">self</span>.into_task().shutdown()
     }
 }
 
-<span class="kw">impl</span>&lt;S: <span class="lifetime">&#39;static</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span>Task&lt;S&gt; {
+<span class="kw">impl</span>&lt;S: <span class="lifetime">&#39;static</span>&gt; Drop <span class="kw">for </span>Task&lt;S&gt; {
     <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="comment">// Decrement the ref count
         </span><span class="kw">if </span><span class="self">self</span>.header().state.ref_dec() {
             <span class="comment">// Deallocate if this is the final ref count
-            </span><a class="self" href="#433">self</a>.raw.<a href="raw.rs.html#137">dealloc</a>();
+            </span><span class="self">self</span>.raw.dealloc();
         }
     }
 }
 
-<span class="kw">impl</span>&lt;S: <span class="lifetime">&#39;static</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span>UnownedTask&lt;S&gt; {
+<span class="kw">impl</span>&lt;S: <span class="lifetime">&#39;static</span>&gt; Drop <span class="kw">for </span>UnownedTask&lt;S&gt; {
     <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="comment">// Decrement the ref count
         </span><span class="kw">if </span><span class="self">self</span>.raw.header().state.ref_dec_twice() {
             <span class="comment">// Deallocate if this is the final ref count
-            </span><a class="self" href="#443">self</a>.raw.<a href="raw.rs.html#137">dealloc</a>();
+            </span><span class="self">self</span>.raw.dealloc();
         }
     }
 }
 
-<span class="kw">impl</span>&lt;S&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span>Task&lt;S&gt; {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, fmt: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#453">fmt</a>, <span class="string">&quot;Task({:p})&quot;</span>, <span class="self">self</span>.header())
+<span class="kw">impl</span>&lt;S&gt; fmt::Debug <span class="kw">for </span>Task&lt;S&gt; {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, fmt: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        <span class="macro">write!</span>(fmt, <span class="string">&quot;Task({:p})&quot;</span>, <span class="self">self</span>.header())
     }
 }
 
-<span class="kw">impl</span>&lt;S&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span>Notified&lt;S&gt; {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, fmt: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#459">fmt</a>, <span class="string">&quot;task::Notified({:p})&quot;</span>, <span class="self">self</span>.<span class="number">0</span>.header())
+<span class="kw">impl</span>&lt;S&gt; fmt::Debug <span class="kw">for </span>Notified&lt;S&gt; {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, fmt: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        <span class="macro">write!</span>(fmt, <span class="string">&quot;task::Notified({:p})&quot;</span>, <span class="self">self</span>.<span class="number">0</span>.header())
     }
 }
 
 <span class="doccomment">/// # Safety
 ///
 /// Tasks are pinned.
-</span><span class="kw">unsafe impl</span>&lt;S&gt; <a href="../../util/linked_list.rs.html#43">linked_list::Link</a> <span class="kw">for </span>Task&lt;S&gt; {
+</span><span class="kw">unsafe impl</span>&lt;S&gt; linked_list::Link <span class="kw">for </span>Task&lt;S&gt; {
     <span class="kw">type </span>Handle = Task&lt;S&gt;;
-    <span class="kw">type </span>Target = <a href="core.rs.html#59">Header</a>;
+    <span class="kw">type </span>Target = Header;
 
-    <span class="kw">fn </span>as_raw(handle: <span class="kw-2">&amp;</span>Task&lt;S&gt;) -&gt; NonNull&lt;<a href="core.rs.html#59">Header</a>&gt; {
-        <a href="#471">handle</a>.raw.<a href="raw.rs.html#120">header_ptr</a>()
+    <span class="kw">fn </span>as_raw(handle: <span class="kw-2">&amp;</span>Task&lt;S&gt;) -&gt; NonNull&lt;Header&gt; {
+        handle.raw.header_ptr()
     }
 
-    <span class="kw">unsafe fn </span>from_raw(ptr: NonNull&lt;<a href="core.rs.html#59">Header</a>&gt;) -&gt; Task&lt;S&gt; {
-        Task::from_raw(<a href="#475">ptr</a>)
+    <span class="kw">unsafe fn </span>from_raw(ptr: NonNull&lt;Header&gt;) -&gt; Task&lt;S&gt; {
+        Task::from_raw(ptr)
     }
 
-    <span class="kw">unsafe fn </span>pointers(target: NonNull&lt;<a href="core.rs.html#59">Header</a>&gt;) -&gt; NonNull&lt;linked_list::Pointers&lt;<a href="core.rs.html#59">Header</a>&gt;&gt; {
-        <span class="self">self</span>::core::Trailer::addr_of_owned(Header::get_trailer(<a href="#479">target</a>))
-    }
-}
-
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for </span><a href="#206">Id</a> {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="self" href="#485">self</a>.<span class="number">0</span>.<a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt</a>(<a href="#485">f</a>)
+    <span class="kw">unsafe fn </span>pointers(target: NonNull&lt;Header&gt;) -&gt; NonNull&lt;linked_list::Pointers&lt;Header&gt;&gt; {
+        <span class="self">self</span>::core::Trailer::addr_of_owned(Header::get_trailer(target))
     }
 }
 
-<span class="kw">impl </span><a href="#206">Id</a> {
+<span class="kw">impl </span>fmt::Display <span class="kw">for </span>Id {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        <span class="self">self</span>.<span class="number">0</span>.fmt(f)
+    }
+}
+
+<span class="kw">impl </span>Id {
     <span class="comment">// When 64-bit atomics are available, use a static `AtomicU64` counter to
     // generate task IDs.
     //
@@ -1031,34 +1193,48 @@
     // platforms...
     </span><span class="macro">cfg_has_atomic_u64! </span>{
         <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>next() -&gt; <span class="self">Self </span>{
-            <span class="kw">use </span>std::sync::atomic::{<a href="https://doc.rust-lang.org/nightly/core/sync/atomic/struct.AtomicU64.html">AtomicU64</a>, Ordering::Relaxed};
-            <span class="kw">static </span>NEXT_ID: <a href="https://doc.rust-lang.org/nightly/core/sync/atomic/struct.AtomicU64.html">AtomicU64</a> = AtomicU64::new(<span class="number">1</span>);
-            <span class="self">Self</span>(<a href="#504">NEXT_ID</a>.fetch_add(<span class="number">1</span>, Relaxed))
+            <span class="kw">use </span>std::sync::atomic::{AtomicU64, Ordering::Relaxed};
+            <span class="kw">static </span>NEXT_ID: AtomicU64 = AtomicU64::new(<span class="number">1</span>);
+            <span class="self">Self</span>(NEXT_ID.fetch_add(<span class="number">1</span>, Relaxed))
         }
     }
 
     <span class="macro">cfg_not_has_atomic_u64! </span>{
-        <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>next() -&gt; <span class="self">Self </span>{
-            <span class="kw">use </span><span class="kw">crate</span>::util::once_cell::OnceCell;
-            <span class="kw">use </span><span class="kw">crate</span>::loom::sync::Mutex;
+        <span class="macro">cfg_has_const_mutex_new! </span>{
+            <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>next() -&gt; <span class="self">Self </span>{
+                <span class="kw">use </span><span class="kw">crate</span>::loom::sync::Mutex;
+                <span class="kw">static </span>NEXT_ID: Mutex&lt;u64&gt; = Mutex::const_new(<span class="number">1</span>);
 
-            <span class="kw">fn </span>init_next_id() -&gt; Mutex&lt;u64&gt; {
-                Mutex::new(<span class="number">1</span>)
+                <span class="kw">let </span><span class="kw-2">mut </span>lock = NEXT_ID.lock();
+                <span class="kw">let </span>id = <span class="kw-2">*</span>lock;
+                <span class="kw-2">*</span>lock += <span class="number">1</span>;
+                <span class="self">Self</span>(id)
             }
+        }
 
-            <span class="kw">static </span>NEXT_ID: OnceCell&lt;Mutex&lt;u64&gt;&gt; = OnceCell::new();
+        <span class="macro">cfg_not_has_const_mutex_new! </span>{
+            <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>next() -&gt; <span class="self">Self </span>{
+                <span class="kw">use </span><span class="kw">crate</span>::util::once_cell::OnceCell;
+                <span class="kw">use </span><span class="kw">crate</span>::loom::sync::Mutex;
 
-            <span class="kw">let </span>next_id = NEXT_ID.get(init_next_id);
-            <span class="kw">let </span><span class="kw-2">mut </span>lock = next_id.lock();
-            <span class="kw">let </span>id = <span class="kw-2">*</span>lock;
-            <span class="kw-2">*</span>lock += <span class="number">1</span>;
-            <span class="self">Self</span>(id)
+                <span class="kw">fn </span>init_next_id() -&gt; Mutex&lt;u64&gt; {
+                    Mutex::new(<span class="number">1</span>)
+                }
+
+                <span class="kw">static </span>NEXT_ID: OnceCell&lt;Mutex&lt;u64&gt;&gt; = OnceCell::new();
+
+                <span class="kw">let </span>next_id = NEXT_ID.get(init_next_id);
+                <span class="kw">let </span><span class="kw-2">mut </span>lock = next_id.lock();
+                <span class="kw">let </span>id = <span class="kw-2">*</span>lock;
+                <span class="kw-2">*</span>lock += <span class="number">1</span>;
+                <span class="self">Self</span>(id)
+            }
         }
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>as_u64(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> {
-        <a class="self" href="#528">self</a>.<span class="number">0
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>as_u64(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u64 {
+        <span class="self">self</span>.<span class="number">0
     </span>}
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="tokio" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="tokio" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

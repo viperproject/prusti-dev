@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/nix-0.25.0/src/sys/sysinfo.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>sysinfo.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../nix/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/nix-0.26.1/src/sys/sysinfo.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>sysinfo.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../nix/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -77,61 +77,67 @@
 <a href="#77" id="77">77</a>
 <a href="#78" id="78">78</a>
 <a href="#79" id="79">79</a>
-</pre><pre class="rust"><code><span class="kw">use </span>libc::{<a class="self" href="../../../libc/index.html">self</a>, <a href="../../../libc/unix/linux_like/constant.SI_LOAD_SHIFT.html">SI_LOAD_SHIFT</a>};
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">std::time::Duration</a>;
-<span class="kw">use </span>std::{<a href="https://doc.rust-lang.org/nightly/core/cmp/index.html">cmp</a>, <a href="https://doc.rust-lang.org/nightly/core/mem/index.html">mem</a>};
+<a href="#80" id="80">80</a>
+<a href="#81" id="81">81</a>
+<a href="#82" id="82">82</a>
+<a href="#83" id="83">83</a>
+</pre><pre class="rust"><code><span class="kw">use </span>libc::{<span class="self">self</span>, SI_LOAD_SHIFT};
+<span class="kw">use </span>std::time::Duration;
+<span class="kw">use </span>std::{cmp, mem};
 
-<span class="kw">use </span><a href="../errno.rs.html#1163"><span class="kw">crate</span>::errno::Errno</a>;
-<span class="kw">use </span><a href="../lib.rs.html#167"><span class="kw">crate</span>::Result</a>;
+<span class="kw">use </span><span class="kw">crate</span>::errno::Errno;
+<span class="kw">use </span><span class="kw">crate</span>::Result;
 
 <span class="doccomment">/// System info structure returned by `sysinfo`.
 </span><span class="attr">#[derive(Copy, Clone, Debug, Eq, Hash, PartialEq)]
 #[repr(transparent)]
-</span><span class="kw">pub struct </span>SysInfo(<a href="../../../libc/unix/linux_like/linux/gnu/b64/struct.sysinfo.html">libc::sysinfo</a>);
+</span><span class="kw">pub struct </span>SysInfo(libc::sysinfo);
 
 <span class="comment">// The fields are c_ulong on 32-bit linux, u64 on 64-bit linux; x32&#39;s ulong is u32
 </span><span class="attr">#[cfg(all(target_arch = <span class="string">&quot;x86_64&quot;</span>, target_pointer_width = <span class="string">&quot;32&quot;</span>))]
 </span><span class="kw">type </span>mem_blocks_t = u64;
 <span class="attr">#[cfg(not(all(target_arch = <span class="string">&quot;x86_64&quot;</span>, target_pointer_width = <span class="string">&quot;32&quot;</span>)))]
-</span><span class="kw">type </span>mem_blocks_t = <a href="../../../libc/unix/linux_like/linux/gnu/b64/x86_64/not_x32/type.c_ulong.html">libc::c_ulong</a>;
+</span><span class="kw">type </span>mem_blocks_t = libc::c_ulong;
 
-<span class="kw">impl </span><a href="#11">SysInfo</a> {
+<span class="kw">impl </span>SysInfo {
     <span class="doccomment">/// Returns the load average tuple.
     ///
     /// The returned values represent the load average over time intervals of
     /// 1, 5, and 15 minutes, respectively.
-    </span><span class="kw">pub fn </span>load_average(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (<a href="https://doc.rust-lang.org/nightly/std/primitive.f64.html">f64</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.f64.html">f64</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.f64.html">f64</a>) {
+    </span><span class="kw">pub fn </span>load_average(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (f64, f64, f64) {
         (
-            <a class="self" href="#24">self</a>.<span class="number">0</span>.loads[<span class="number">0</span>] <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.f64.html">f64</a> / (<span class="number">1 </span>&lt;&lt; <a href="../../../libc/unix/linux_like/constant.SI_LOAD_SHIFT.html">SI_LOAD_SHIFT</a>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.f64.html">f64</a>,
-            <a class="self" href="#24">self</a>.<span class="number">0</span>.loads[<span class="number">1</span>] <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.f64.html">f64</a> / (<span class="number">1 </span>&lt;&lt; <a href="../../../libc/unix/linux_like/constant.SI_LOAD_SHIFT.html">SI_LOAD_SHIFT</a>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.f64.html">f64</a>,
-            <a class="self" href="#24">self</a>.<span class="number">0</span>.loads[<span class="number">2</span>] <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.f64.html">f64</a> / (<span class="number">1 </span>&lt;&lt; <a href="../../../libc/unix/linux_like/constant.SI_LOAD_SHIFT.html">SI_LOAD_SHIFT</a>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.f64.html">f64</a>,
+            <span class="self">self</span>.<span class="number">0</span>.loads[<span class="number">0</span>] <span class="kw">as </span>f64 / (<span class="number">1 </span>&lt;&lt; SI_LOAD_SHIFT) <span class="kw">as </span>f64,
+            <span class="self">self</span>.<span class="number">0</span>.loads[<span class="number">1</span>] <span class="kw">as </span>f64 / (<span class="number">1 </span>&lt;&lt; SI_LOAD_SHIFT) <span class="kw">as </span>f64,
+            <span class="self">self</span>.<span class="number">0</span>.loads[<span class="number">2</span>] <span class="kw">as </span>f64 / (<span class="number">1 </span>&lt;&lt; SI_LOAD_SHIFT) <span class="kw">as </span>f64,
         )
     }
 
     <span class="doccomment">/// Returns the time since system boot.
-    </span><span class="kw">pub fn </span>uptime(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a> {
+    </span><span class="comment">// The cast is not unnecessary on all platforms.
+    </span><span class="attr">#[allow(clippy::unnecessary_cast)]
+    </span><span class="kw">pub fn </span>uptime(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Duration {
         <span class="comment">// Truncate negative values to 0
-        </span>Duration::from_secs(cmp::max(<a class="self" href="#33">self</a>.<span class="number">0</span>.uptime, <span class="number">0</span>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>)
+        </span>Duration::from_secs(cmp::max(<span class="self">self</span>.<span class="number">0</span>.uptime, <span class="number">0</span>) <span class="kw">as </span>u64)
     }
 
     <span class="doccomment">/// Current number of processes.
-    </span><span class="kw">pub fn </span>process_count(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a> {
-        <a class="self" href="#39">self</a>.<span class="number">0</span>.procs
+    </span><span class="kw">pub fn </span>process_count(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u16 {
+        <span class="self">self</span>.<span class="number">0</span>.procs
     }
 
     <span class="doccomment">/// Returns the amount of swap memory in Bytes.
-    </span><span class="kw">pub fn </span>swap_total(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> {
-        <a class="self" href="#44">self</a>.<a href="#67">scale_mem</a>(<a class="self" href="#44">self</a>.<span class="number">0</span>.totalswap)
+    </span><span class="kw">pub fn </span>swap_total(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u64 {
+        <span class="self">self</span>.scale_mem(<span class="self">self</span>.<span class="number">0</span>.totalswap)
     }
 
     <span class="doccomment">/// Returns the amount of unused swap memory in Bytes.
-    </span><span class="kw">pub fn </span>swap_free(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> {
-        <a class="self" href="#49">self</a>.<a href="#67">scale_mem</a>(<a class="self" href="#49">self</a>.<span class="number">0</span>.freeswap)
+    </span><span class="kw">pub fn </span>swap_free(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u64 {
+        <span class="self">self</span>.scale_mem(<span class="self">self</span>.<span class="number">0</span>.freeswap)
     }
 
     <span class="doccomment">/// Returns the total amount of installed RAM in Bytes.
-    </span><span class="kw">pub fn </span>ram_total(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> {
-        <a class="self" href="#54">self</a>.<a href="#67">scale_mem</a>(<a class="self" href="#54">self</a>.<span class="number">0</span>.totalram)
+    </span><span class="kw">pub fn </span>ram_total(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u64 {
+        <span class="self">self</span>.scale_mem(<span class="self">self</span>.<span class="number">0</span>.totalram)
     }
 
     <span class="doccomment">/// Returns the amount of completely unused RAM in Bytes.
@@ -139,22 +145,24 @@
     /// &quot;Unused&quot; in this context means that the RAM in neither actively used by
     /// programs, nor by the operating system as disk cache or buffer. It is
     /// &quot;wasted&quot; RAM since it currently serves no purpose.
-    </span><span class="kw">pub fn </span>ram_unused(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> {
-        <a class="self" href="#63">self</a>.<a href="#67">scale_mem</a>(<a class="self" href="#63">self</a>.<span class="number">0</span>.freeram)
+    </span><span class="kw">pub fn </span>ram_unused(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u64 {
+        <span class="self">self</span>.scale_mem(<span class="self">self</span>.<span class="number">0</span>.freeram)
     }
 
-    <span class="kw">fn </span>scale_mem(<span class="kw-2">&amp;</span><span class="self">self</span>, units: <a href="#17">mem_blocks_t</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> {
-        <a href="#67">units</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> * <a class="self" href="#67">self</a>.<span class="number">0</span>.mem_unit <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>
+    <span class="comment">// The cast is not unnecessary on all platforms.
+    </span><span class="attr">#[allow(clippy::unnecessary_cast)]
+    </span><span class="kw">fn </span>scale_mem(<span class="kw-2">&amp;</span><span class="self">self</span>, units: mem_blocks_t) -&gt; u64 {
+        units <span class="kw">as </span>u64 * <span class="self">self</span>.<span class="number">0</span>.mem_unit <span class="kw">as </span>u64
     }
 }
 
 <span class="doccomment">/// Returns system information.
 ///
 /// [See `sysinfo(2)`](https://man7.org/linux/man-pages/man2/sysinfo.2.html).
-</span><span class="kw">pub fn </span>sysinfo() -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#11">SysInfo</a>&gt; {
+</span><span class="kw">pub fn </span>sysinfo() -&gt; <span class="prelude-ty">Result</span>&lt;SysInfo&gt; {
     <span class="kw">let </span><span class="kw-2">mut </span>info = mem::MaybeUninit::uninit();
-    <span class="kw">let </span>res = <span class="kw">unsafe </span>{ libc::sysinfo(<a href="#76">info</a>.as_mut_ptr()) };
-    Errno::result(<a href="#77">res</a>).map(|<span class="kw">_</span>| <span class="kw">unsafe </span>{ <a href="#11">SysInfo</a>(<a href="#76">info</a>.assume_init()) })
+    <span class="kw">let </span>res = <span class="kw">unsafe </span>{ libc::sysinfo(info.as_mut_ptr()) };
+    Errno::result(res).map(|<span class="kw">_</span>| <span class="kw">unsafe </span>{ SysInfo(info.assume_init()) })
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="nix" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="nix" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

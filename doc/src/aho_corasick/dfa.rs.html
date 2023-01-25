@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/aho-corasick-0.7.19/src/dfa.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>dfa.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../aho_corasick/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/aho-corasick-0.7.20/src/dfa.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>dfa.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../aho_corasick/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -711,16 +711,16 @@
 <a href="#711" id="711">711</a>
 <a href="#712" id="712">712</a>
 <a href="#713" id="713">713</a>
-</pre><pre class="rust"><code><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/mem/fn.size_of.html">std::mem::size_of</a>;
+</pre><pre class="rust"><code><span class="kw">use </span>std::mem::size_of;
 
-<span class="kw">use </span><a href="ahocorasick.rs.html#2041"><span class="kw">crate</span>::ahocorasick::MatchKind</a>;
-<span class="kw">use </span><a href="automaton.rs.html#80"><span class="kw">crate</span>::automaton::Automaton</a>;
-<span class="kw">use </span><a href="classes.rs.html#9"><span class="kw">crate</span>::classes::ByteClasses</a>;
-<span class="kw">use </span><a href="error.rs.html#5"><span class="kw">crate</span>::error::Result</a>;
-<span class="kw">use </span><span class="kw">crate</span>::nfa::{<a href="nfa.rs.html#17">PatternID</a>, <a href="nfa.rs.html#20">PatternLength</a>, <a href="nfa.rs.html#47">NFA</a>};
-<span class="kw">use </span><span class="kw">crate</span>::prefilter::{<a href="prefilter.rs.html#50-51">Prefilter</a>, <a href="prefilter.rs.html#123">PrefilterObj</a>, <a href="prefilter.rs.html#151">PrefilterState</a>};
-<span class="kw">use </span><span class="kw">crate</span>::state_id::{<a href="state_id.rs.html#45">dead_id</a>, <a href="state_id.rs.html#39">fail_id</a>, <a href="state_id.rs.html#12-15">premultiply_overflow_error</a>, <a href="state_id.rs.html#72-81">StateID</a>};
-<span class="kw">use </span><a href="lib.rs.html#239"><span class="kw">crate</span>::Match</a>;
+<span class="kw">use </span><span class="kw">crate</span>::ahocorasick::MatchKind;
+<span class="kw">use </span><span class="kw">crate</span>::automaton::Automaton;
+<span class="kw">use </span><span class="kw">crate</span>::classes::ByteClasses;
+<span class="kw">use </span><span class="kw">crate</span>::error::Result;
+<span class="kw">use </span><span class="kw">crate</span>::nfa::{PatternID, PatternLength, NFA};
+<span class="kw">use </span><span class="kw">crate</span>::prefilter::{Prefilter, PrefilterObj, PrefilterState};
+<span class="kw">use </span><span class="kw">crate</span>::state_id::{dead_id, fail_id, premultiply_overflow_error, StateID};
+<span class="kw">use </span><span class="kw">crate</span>::Match;
 
 <span class="attr">#[derive(Clone, Debug)]
 </span><span class="kw">pub enum </span>DFA&lt;S&gt; {
@@ -730,77 +730,77 @@
     PremultipliedByteClass(PremultipliedByteClass&lt;S&gt;),
 }
 
-<span class="kw">impl</span>&lt;S: <a href="state_id.rs.html#72-81">StateID</a>&gt; DFA&lt;S&gt; {
+<span class="kw">impl</span>&lt;S: StateID&gt; DFA&lt;S&gt; {
     <span class="kw">fn </span>repr(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Repr&lt;S&gt; {
-        <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="#21">self</a> </span>{
-            <a href="#14">DFA::Standard</a>(<span class="kw-2">ref </span>dfa) =&gt; <a href="#23">dfa</a>.<a href="#147">repr</a>(),
-            <a href="#15">DFA::ByteClass</a>(<span class="kw-2">ref </span>dfa) =&gt; <a href="#24">dfa</a>.<a href="#206">repr</a>(),
-            <a href="#16">DFA::Premultiplied</a>(<span class="kw-2">ref </span>dfa) =&gt; <a href="#25">dfa</a>.<a href="#267">repr</a>(),
-            <a href="#17">DFA::PremultipliedByteClass</a>(<span class="kw-2">ref </span>dfa) =&gt; <a href="#26">dfa</a>.<a href="#334">repr</a>(),
+        <span class="kw">match </span><span class="kw-2">*</span><span class="self">self </span>{
+            DFA::Standard(<span class="kw-2">ref </span>dfa) =&gt; dfa.repr(),
+            DFA::ByteClass(<span class="kw-2">ref </span>dfa) =&gt; dfa.repr(),
+            DFA::Premultiplied(<span class="kw-2">ref </span>dfa) =&gt; dfa.repr(),
+            DFA::PremultipliedByteClass(<span class="kw-2">ref </span>dfa) =&gt; dfa.repr(),
         }
     }
 
-    <span class="kw">pub fn </span>match_kind(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="ahocorasick.rs.html#2041">MatchKind</a> {
-        <span class="kw-2">&amp;</span><a class="self" href="#30">self</a>.<a href="#21">repr</a>().match_kind
+    <span class="kw">pub fn </span>match_kind(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>MatchKind {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.repr().match_kind
     }
 
-    <span class="kw">pub fn </span>heap_bytes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="self" href="#34">self</a>.<a href="#21">repr</a>().heap_bytes
+    <span class="kw">pub fn </span>heap_bytes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+        <span class="self">self</span>.repr().heap_bytes
     }
 
-    <span class="kw">pub fn </span>max_pattern_len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="self" href="#38">self</a>.<a href="#21">repr</a>().max_pattern_len
+    <span class="kw">pub fn </span>max_pattern_len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+        <span class="self">self</span>.repr().max_pattern_len
     }
 
-    <span class="kw">pub fn </span>pattern_count(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="self" href="#42">self</a>.<a href="#21">repr</a>().pattern_count
+    <span class="kw">pub fn </span>pattern_count(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+        <span class="self">self</span>.repr().pattern_count
     }
 
-    <span class="kw">pub fn </span>prefilter(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="kw">dyn </span><a href="prefilter.rs.html#50-51">Prefilter</a>&gt; {
-        <a class="self" href="#46">self</a>.<a href="#21">repr</a>().prefilter.as_ref().map(|p| <a href="#47">p</a>.<a href="prefilter.rs.html#138">as_ref</a>())
+    <span class="kw">pub fn </span>prefilter(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="kw">dyn </span>Prefilter&gt; {
+        <span class="self">self</span>.repr().prefilter.as_ref().map(|p| p.as_ref())
     }
 
     <span class="kw">pub fn </span>start_state(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; S {
-        <a class="self" href="#50">self</a>.<a href="#21">repr</a>().start_id
+        <span class="self">self</span>.repr().start_id
     }
 
     <span class="attr">#[inline(always)]
     </span><span class="kw">pub fn </span>overlapping_find_at(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        prestate: <span class="kw-2">&amp;mut </span><a href="prefilter.rs.html#151">PrefilterState</a>,
-        haystack: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
-        at: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+        prestate: <span class="kw-2">&amp;mut </span>PrefilterState,
+        haystack: <span class="kw-2">&amp;</span>[u8],
+        at: usize,
         state_id: <span class="kw-2">&amp;mut </span>S,
-        match_index: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-    ) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="lib.rs.html#239">Match</a>&gt; {
-        <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="#56">self</a> </span>{
-            <a href="#14">DFA::Standard</a>(<span class="kw-2">ref </span>dfa) =&gt; <a href="#64">dfa</a>.<a href="automaton.rs.html#475-482">overlapping_find_at</a>(
-                <a href="#57">prestate</a>,
-                <a href="#58">haystack</a>,
-                <a href="#59">at</a>,
-                <a href="#60">state_id</a>,
-                <a href="#61">match_index</a>,
+        match_index: <span class="kw-2">&amp;mut </span>usize,
+    ) -&gt; <span class="prelude-ty">Option</span>&lt;Match&gt; {
+        <span class="kw">match </span><span class="kw-2">*</span><span class="self">self </span>{
+            DFA::Standard(<span class="kw-2">ref </span>dfa) =&gt; dfa.overlapping_find_at(
+                prestate,
+                haystack,
+                at,
+                state_id,
+                match_index,
             ),
-            <a href="#15">DFA::ByteClass</a>(<span class="kw-2">ref </span>dfa) =&gt; <a href="#71">dfa</a>.<a href="automaton.rs.html#475-482">overlapping_find_at</a>(
-                <a href="#57">prestate</a>,
-                <a href="#58">haystack</a>,
-                <a href="#59">at</a>,
-                <a href="#60">state_id</a>,
-                <a href="#61">match_index</a>,
+            DFA::ByteClass(<span class="kw-2">ref </span>dfa) =&gt; dfa.overlapping_find_at(
+                prestate,
+                haystack,
+                at,
+                state_id,
+                match_index,
             ),
-            <a href="#16">DFA::Premultiplied</a>(<span class="kw-2">ref </span>dfa) =&gt; <a href="#78">dfa</a>.<a href="automaton.rs.html#475-482">overlapping_find_at</a>(
-                <a href="#57">prestate</a>,
-                <a href="#58">haystack</a>,
-                <a href="#59">at</a>,
-                <a href="#60">state_id</a>,
-                <a href="#61">match_index</a>,
+            DFA::Premultiplied(<span class="kw-2">ref </span>dfa) =&gt; dfa.overlapping_find_at(
+                prestate,
+                haystack,
+                at,
+                state_id,
+                match_index,
             ),
-            <a href="#17">DFA::PremultipliedByteClass</a>(<span class="kw-2">ref </span>dfa) =&gt; <a href="#85">dfa</a>.<a href="automaton.rs.html#475-482">overlapping_find_at</a>(
-                <a href="#57">prestate</a>,
-                <a href="#58">haystack</a>,
-                <a href="#59">at</a>,
-                <a href="#60">state_id</a>,
-                <a href="#61">match_index</a>,
+            DFA::PremultipliedByteClass(<span class="kw-2">ref </span>dfa) =&gt; dfa.overlapping_find_at(
+                prestate,
+                haystack,
+                at,
+                state_id,
+                match_index,
             ),
         }
     }
@@ -808,23 +808,23 @@
     <span class="attr">#[inline(always)]
     </span><span class="kw">pub fn </span>earliest_find_at(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        prestate: <span class="kw-2">&amp;mut </span><a href="prefilter.rs.html#151">PrefilterState</a>,
-        haystack: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
-        at: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+        prestate: <span class="kw-2">&amp;mut </span>PrefilterState,
+        haystack: <span class="kw-2">&amp;</span>[u8],
+        at: usize,
         state_id: <span class="kw-2">&amp;mut </span>S,
-    ) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="lib.rs.html#239">Match</a>&gt; {
-        <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="#97">self</a> </span>{
-            <a href="#14">DFA::Standard</a>(<span class="kw-2">ref </span>dfa) =&gt; {
-                <a href="#104">dfa</a>.<a href="automaton.rs.html#512-518">earliest_find_at</a>(<a href="#98">prestate</a>, <a href="#99">haystack</a>, <a href="#100">at</a>, <a href="#101">state_id</a>)
+    ) -&gt; <span class="prelude-ty">Option</span>&lt;Match&gt; {
+        <span class="kw">match </span><span class="kw-2">*</span><span class="self">self </span>{
+            DFA::Standard(<span class="kw-2">ref </span>dfa) =&gt; {
+                dfa.earliest_find_at(prestate, haystack, at, state_id)
             }
-            <a href="#15">DFA::ByteClass</a>(<span class="kw-2">ref </span>dfa) =&gt; {
-                <a href="#107">dfa</a>.<a href="automaton.rs.html#512-518">earliest_find_at</a>(<a href="#98">prestate</a>, <a href="#99">haystack</a>, <a href="#100">at</a>, <a href="#101">state_id</a>)
+            DFA::ByteClass(<span class="kw-2">ref </span>dfa) =&gt; {
+                dfa.earliest_find_at(prestate, haystack, at, state_id)
             }
-            <a href="#16">DFA::Premultiplied</a>(<span class="kw-2">ref </span>dfa) =&gt; {
-                <a href="#110">dfa</a>.<a href="automaton.rs.html#512-518">earliest_find_at</a>(<a href="#98">prestate</a>, <a href="#99">haystack</a>, <a href="#100">at</a>, <a href="#101">state_id</a>)
+            DFA::Premultiplied(<span class="kw-2">ref </span>dfa) =&gt; {
+                dfa.earliest_find_at(prestate, haystack, at, state_id)
             }
-            <a href="#17">DFA::PremultipliedByteClass</a>(<span class="kw-2">ref </span>dfa) =&gt; {
-                <a href="#113">dfa</a>.<a href="automaton.rs.html#512-518">earliest_find_at</a>(<a href="#98">prestate</a>, <a href="#99">haystack</a>, <a href="#100">at</a>, <a href="#101">state_id</a>)
+            DFA::PremultipliedByteClass(<span class="kw-2">ref </span>dfa) =&gt; {
+                dfa.earliest_find_at(prestate, haystack, at, state_id)
             }
         }
     }
@@ -832,22 +832,22 @@
     <span class="attr">#[inline(always)]
     </span><span class="kw">pub fn </span>find_at_no_state(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        prestate: <span class="kw-2">&amp;mut </span><a href="prefilter.rs.html#151">PrefilterState</a>,
-        haystack: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
-        at: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-    ) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="lib.rs.html#239">Match</a>&gt; {
-        <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="#121">self</a> </span>{
-            <a href="#14">DFA::Standard</a>(<span class="kw-2">ref </span>dfa) =&gt; {
-                <a href="#127">dfa</a>.<a href="automaton.rs.html#556-561">find_at_no_state</a>(<a href="#122">prestate</a>, <a href="#123">haystack</a>, <a href="#124">at</a>)
+        prestate: <span class="kw-2">&amp;mut </span>PrefilterState,
+        haystack: <span class="kw-2">&amp;</span>[u8],
+        at: usize,
+    ) -&gt; <span class="prelude-ty">Option</span>&lt;Match&gt; {
+        <span class="kw">match </span><span class="kw-2">*</span><span class="self">self </span>{
+            DFA::Standard(<span class="kw-2">ref </span>dfa) =&gt; {
+                dfa.find_at_no_state(prestate, haystack, at)
             }
-            <a href="#15">DFA::ByteClass</a>(<span class="kw-2">ref </span>dfa) =&gt; {
-                <a href="#130">dfa</a>.<a href="automaton.rs.html#556-561">find_at_no_state</a>(<a href="#122">prestate</a>, <a href="#123">haystack</a>, <a href="#124">at</a>)
+            DFA::ByteClass(<span class="kw-2">ref </span>dfa) =&gt; {
+                dfa.find_at_no_state(prestate, haystack, at)
             }
-            <a href="#16">DFA::Premultiplied</a>(<span class="kw-2">ref </span>dfa) =&gt; {
-                <a href="#133">dfa</a>.<a href="automaton.rs.html#556-561">find_at_no_state</a>(<a href="#122">prestate</a>, <a href="#123">haystack</a>, <a href="#124">at</a>)
+            DFA::Premultiplied(<span class="kw-2">ref </span>dfa) =&gt; {
+                dfa.find_at_no_state(prestate, haystack, at)
             }
-            <a href="#17">DFA::PremultipliedByteClass</a>(<span class="kw-2">ref </span>dfa) =&gt; {
-                <a href="#136">dfa</a>.<a href="automaton.rs.html#556-561">find_at_no_state</a>(<a href="#122">prestate</a>, <a href="#123">haystack</a>, <a href="#124">at</a>)
+            DFA::PremultipliedByteClass(<span class="kw-2">ref </span>dfa) =&gt; {
+                dfa.find_at_no_state(prestate, haystack, at)
             }
         }
     }
@@ -856,300 +856,300 @@
 <span class="attr">#[derive(Clone, Debug)]
 </span><span class="kw">pub struct </span>Standard&lt;S&gt;(Repr&lt;S&gt;);
 
-<span class="kw">impl</span>&lt;S: <a href="state_id.rs.html#72-81">StateID</a>&gt; Standard&lt;S&gt; {
+<span class="kw">impl</span>&lt;S: StateID&gt; Standard&lt;S&gt; {
     <span class="kw">fn </span>repr(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Repr&lt;S&gt; {
-        <span class="kw-2">&amp;</span><a class="self" href="#147">self</a>.<span class="number">0
+        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="number">0
     </span>}
 }
 
-<span class="kw">impl</span>&lt;S: <a href="state_id.rs.html#72-81">StateID</a>&gt; <a href="automaton.rs.html#80">Automaton</a> <span class="kw">for </span>Standard&lt;S&gt; {
+<span class="kw">impl</span>&lt;S: StateID&gt; Automaton <span class="kw">for </span>Standard&lt;S&gt; {
     <span class="kw">type </span>ID = S;
 
-    <span class="kw">fn </span>match_kind(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="ahocorasick.rs.html#2041">MatchKind</a> {
-        <span class="kw-2">&amp;</span><a class="self" href="#155">self</a>.<a href="#147">repr</a>().match_kind
+    <span class="kw">fn </span>match_kind(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>MatchKind {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.repr().match_kind
     }
 
-    <span class="kw">fn </span>anchored(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#159">self</a>.<a href="#147">repr</a>().anchored
+    <span class="kw">fn </span>anchored(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.repr().anchored
     }
 
-    <span class="kw">fn </span>prefilter(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="kw">dyn </span><a href="prefilter.rs.html#50-51">Prefilter</a>&gt; {
-        <a class="self" href="#163">self</a>.<a href="#147">repr</a>().prefilter.as_ref().map(|p| <a href="#164">p</a>.<a href="prefilter.rs.html#138">as_ref</a>())
+    <span class="kw">fn </span>prefilter(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="kw">dyn </span>Prefilter&gt; {
+        <span class="self">self</span>.repr().prefilter.as_ref().map(|p| p.as_ref())
     }
 
     <span class="kw">fn </span>start_state(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; S {
-        <a class="self" href="#167">self</a>.<a href="#147">repr</a>().start_id
+        <span class="self">self</span>.repr().start_id
     }
 
-    <span class="kw">fn </span>is_valid(<span class="kw-2">&amp;</span><span class="self">self</span>, id: S) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a href="#171">id</a>.<a href="state_id.rs.html#98">to_usize</a>() &lt; <a class="self" href="#171">self</a>.<a href="#147">repr</a>().state_count
+    <span class="kw">fn </span>is_valid(<span class="kw-2">&amp;</span><span class="self">self</span>, id: S) -&gt; bool {
+        id.to_usize() &lt; <span class="self">self</span>.repr().state_count
     }
 
-    <span class="kw">fn </span>is_match_state(<span class="kw-2">&amp;</span><span class="self">self</span>, id: S) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#175">self</a>.<a href="#147">repr</a>().<a href="#432">is_match_state</a>(<a href="#175">id</a>)
+    <span class="kw">fn </span>is_match_state(<span class="kw-2">&amp;</span><span class="self">self</span>, id: S) -&gt; bool {
+        <span class="self">self</span>.repr().is_match_state(id)
     }
 
-    <span class="kw">fn </span>is_match_or_dead_state(<span class="kw-2">&amp;</span><span class="self">self</span>, id: S) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#179">self</a>.<a href="#147">repr</a>().<a href="#438">is_match_or_dead_state</a>(<a href="#179">id</a>)
+    <span class="kw">fn </span>is_match_or_dead_state(<span class="kw-2">&amp;</span><span class="self">self</span>, id: S) -&gt; bool {
+        <span class="self">self</span>.repr().is_match_or_dead_state(id)
     }
 
     <span class="kw">fn </span>get_match(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         id: S,
-        match_index: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-        end: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-    ) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="lib.rs.html#239">Match</a>&gt; {
-        <a class="self" href="#184">self</a>.<a href="#147">repr</a>().<a href="#450-455">get_match</a>(<a href="#185">id</a>, <a href="#186">match_index</a>, <a href="#187">end</a>)
+        match_index: usize,
+        end: usize,
+    ) -&gt; <span class="prelude-ty">Option</span>&lt;Match&gt; {
+        <span class="self">self</span>.repr().get_match(id, match_index, end)
     }
 
-    <span class="kw">fn </span>match_count(<span class="kw-2">&amp;</span><span class="self">self</span>, id: S) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="self" href="#192">self</a>.<a href="#147">repr</a>().<a href="#471">match_count</a>(<a href="#192">id</a>)
+    <span class="kw">fn </span>match_count(<span class="kw-2">&amp;</span><span class="self">self</span>, id: S) -&gt; usize {
+        <span class="self">self</span>.repr().match_count(id)
     }
 
-    <span class="kw">fn </span>next_state(<span class="kw-2">&amp;</span><span class="self">self</span>, current: S, input: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) -&gt; S {
-        <span class="kw">let </span>o = <a href="#196">current</a>.<a href="state_id.rs.html#98">to_usize</a>() * <span class="number">256 </span>+ <a href="#196">input</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>;
-        <a class="self" href="#196">self</a>.<a href="#147">repr</a>().trans[<a href="#197">o</a>]
+    <span class="kw">fn </span>next_state(<span class="kw-2">&amp;</span><span class="self">self</span>, current: S, input: u8) -&gt; S {
+        <span class="kw">let </span>o = current.to_usize() * <span class="number">256 </span>+ input <span class="kw">as </span>usize;
+        <span class="self">self</span>.repr().trans[o]
     }
 }
 
 <span class="attr">#[derive(Clone, Debug)]
 </span><span class="kw">pub struct </span>ByteClass&lt;S&gt;(Repr&lt;S&gt;);
 
-<span class="kw">impl</span>&lt;S: <a href="state_id.rs.html#72-81">StateID</a>&gt; ByteClass&lt;S&gt; {
+<span class="kw">impl</span>&lt;S: StateID&gt; ByteClass&lt;S&gt; {
     <span class="kw">fn </span>repr(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Repr&lt;S&gt; {
-        <span class="kw-2">&amp;</span><a class="self" href="#206">self</a>.<span class="number">0
+        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="number">0
     </span>}
 }
 
-<span class="kw">impl</span>&lt;S: <a href="state_id.rs.html#72-81">StateID</a>&gt; <a href="automaton.rs.html#80">Automaton</a> <span class="kw">for </span>ByteClass&lt;S&gt; {
+<span class="kw">impl</span>&lt;S: StateID&gt; Automaton <span class="kw">for </span>ByteClass&lt;S&gt; {
     <span class="kw">type </span>ID = S;
 
-    <span class="kw">fn </span>match_kind(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="ahocorasick.rs.html#2041">MatchKind</a> {
-        <span class="kw-2">&amp;</span><a class="self" href="#214">self</a>.<a href="#206">repr</a>().match_kind
+    <span class="kw">fn </span>match_kind(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>MatchKind {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.repr().match_kind
     }
 
-    <span class="kw">fn </span>anchored(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#218">self</a>.<a href="#206">repr</a>().anchored
+    <span class="kw">fn </span>anchored(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.repr().anchored
     }
 
-    <span class="kw">fn </span>prefilter(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="kw">dyn </span><a href="prefilter.rs.html#50-51">Prefilter</a>&gt; {
-        <a class="self" href="#222">self</a>.<a href="#206">repr</a>().prefilter.as_ref().map(|p| <a href="#223">p</a>.<a href="prefilter.rs.html#138">as_ref</a>())
+    <span class="kw">fn </span>prefilter(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="kw">dyn </span>Prefilter&gt; {
+        <span class="self">self</span>.repr().prefilter.as_ref().map(|p| p.as_ref())
     }
 
     <span class="kw">fn </span>start_state(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; S {
-        <a class="self" href="#226">self</a>.<a href="#206">repr</a>().start_id
+        <span class="self">self</span>.repr().start_id
     }
 
-    <span class="kw">fn </span>is_valid(<span class="kw-2">&amp;</span><span class="self">self</span>, id: S) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a href="#230">id</a>.<a href="state_id.rs.html#98">to_usize</a>() &lt; <a class="self" href="#230">self</a>.<a href="#206">repr</a>().state_count
+    <span class="kw">fn </span>is_valid(<span class="kw-2">&amp;</span><span class="self">self</span>, id: S) -&gt; bool {
+        id.to_usize() &lt; <span class="self">self</span>.repr().state_count
     }
 
-    <span class="kw">fn </span>is_match_state(<span class="kw-2">&amp;</span><span class="self">self</span>, id: S) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#234">self</a>.<a href="#206">repr</a>().<a href="#432">is_match_state</a>(<a href="#234">id</a>)
+    <span class="kw">fn </span>is_match_state(<span class="kw-2">&amp;</span><span class="self">self</span>, id: S) -&gt; bool {
+        <span class="self">self</span>.repr().is_match_state(id)
     }
 
-    <span class="kw">fn </span>is_match_or_dead_state(<span class="kw-2">&amp;</span><span class="self">self</span>, id: S) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#238">self</a>.<a href="#206">repr</a>().<a href="#438">is_match_or_dead_state</a>(<a href="#238">id</a>)
+    <span class="kw">fn </span>is_match_or_dead_state(<span class="kw-2">&amp;</span><span class="self">self</span>, id: S) -&gt; bool {
+        <span class="self">self</span>.repr().is_match_or_dead_state(id)
     }
 
     <span class="kw">fn </span>get_match(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         id: S,
-        match_index: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-        end: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-    ) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="lib.rs.html#239">Match</a>&gt; {
-        <a class="self" href="#243">self</a>.<a href="#206">repr</a>().<a href="#450-455">get_match</a>(<a href="#244">id</a>, <a href="#245">match_index</a>, <a href="#246">end</a>)
+        match_index: usize,
+        end: usize,
+    ) -&gt; <span class="prelude-ty">Option</span>&lt;Match&gt; {
+        <span class="self">self</span>.repr().get_match(id, match_index, end)
     }
 
-    <span class="kw">fn </span>match_count(<span class="kw-2">&amp;</span><span class="self">self</span>, id: S) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="self" href="#251">self</a>.<a href="#206">repr</a>().<a href="#471">match_count</a>(<a href="#251">id</a>)
+    <span class="kw">fn </span>match_count(<span class="kw-2">&amp;</span><span class="self">self</span>, id: S) -&gt; usize {
+        <span class="self">self</span>.repr().match_count(id)
     }
 
-    <span class="kw">fn </span>next_state(<span class="kw-2">&amp;</span><span class="self">self</span>, current: S, input: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) -&gt; S {
-        <span class="kw">let </span>alphabet_len = <a class="self" href="#255">self</a>.<a href="#206">repr</a>().byte_classes.<a href="classes.rs.html#46">alphabet_len</a>();
-        <span class="kw">let </span>input = <a class="self" href="#255">self</a>.<a href="#206">repr</a>().byte_classes.<a href="classes.rs.html#36">get</a>(<a href="#255">input</a>);
-        <span class="kw">let </span>o = <a href="#255">current</a>.<a href="state_id.rs.html#98">to_usize</a>() * <a href="#256">alphabet_len</a> + <a href="#257">input</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>;
-        <a class="self" href="#255">self</a>.<a href="#206">repr</a>().trans[<a href="#258">o</a>]
+    <span class="kw">fn </span>next_state(<span class="kw-2">&amp;</span><span class="self">self</span>, current: S, input: u8) -&gt; S {
+        <span class="kw">let </span>alphabet_len = <span class="self">self</span>.repr().byte_classes.alphabet_len();
+        <span class="kw">let </span>input = <span class="self">self</span>.repr().byte_classes.get(input);
+        <span class="kw">let </span>o = current.to_usize() * alphabet_len + input <span class="kw">as </span>usize;
+        <span class="self">self</span>.repr().trans[o]
     }
 }
 
 <span class="attr">#[derive(Clone, Debug)]
 </span><span class="kw">pub struct </span>Premultiplied&lt;S&gt;(Repr&lt;S&gt;);
 
-<span class="kw">impl</span>&lt;S: <a href="state_id.rs.html#72-81">StateID</a>&gt; Premultiplied&lt;S&gt; {
+<span class="kw">impl</span>&lt;S: StateID&gt; Premultiplied&lt;S&gt; {
     <span class="kw">fn </span>repr(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Repr&lt;S&gt; {
-        <span class="kw-2">&amp;</span><a class="self" href="#267">self</a>.<span class="number">0
+        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="number">0
     </span>}
 }
 
-<span class="kw">impl</span>&lt;S: <a href="state_id.rs.html#72-81">StateID</a>&gt; <a href="automaton.rs.html#80">Automaton</a> <span class="kw">for </span>Premultiplied&lt;S&gt; {
+<span class="kw">impl</span>&lt;S: StateID&gt; Automaton <span class="kw">for </span>Premultiplied&lt;S&gt; {
     <span class="kw">type </span>ID = S;
 
-    <span class="kw">fn </span>match_kind(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="ahocorasick.rs.html#2041">MatchKind</a> {
-        <span class="kw-2">&amp;</span><a class="self" href="#275">self</a>.<a href="#267">repr</a>().match_kind
+    <span class="kw">fn </span>match_kind(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>MatchKind {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.repr().match_kind
     }
 
-    <span class="kw">fn </span>anchored(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#279">self</a>.<a href="#267">repr</a>().anchored
+    <span class="kw">fn </span>anchored(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.repr().anchored
     }
 
-    <span class="kw">fn </span>prefilter(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="kw">dyn </span><a href="prefilter.rs.html#50-51">Prefilter</a>&gt; {
-        <a class="self" href="#283">self</a>.<a href="#267">repr</a>().prefilter.as_ref().map(|p| <a href="#284">p</a>.<a href="prefilter.rs.html#138">as_ref</a>())
+    <span class="kw">fn </span>prefilter(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="kw">dyn </span>Prefilter&gt; {
+        <span class="self">self</span>.repr().prefilter.as_ref().map(|p| p.as_ref())
     }
 
     <span class="kw">fn </span>start_state(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; S {
-        <a class="self" href="#287">self</a>.<a href="#267">repr</a>().start_id
+        <span class="self">self</span>.repr().start_id
     }
 
-    <span class="kw">fn </span>is_valid(<span class="kw-2">&amp;</span><span class="self">self</span>, id: S) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        (<a href="#291">id</a>.<a href="state_id.rs.html#98">to_usize</a>() / <span class="number">256</span>) &lt; <a class="self" href="#291">self</a>.<a href="#267">repr</a>().state_count
+    <span class="kw">fn </span>is_valid(<span class="kw-2">&amp;</span><span class="self">self</span>, id: S) -&gt; bool {
+        (id.to_usize() / <span class="number">256</span>) &lt; <span class="self">self</span>.repr().state_count
     }
 
-    <span class="kw">fn </span>is_match_state(<span class="kw-2">&amp;</span><span class="self">self</span>, id: S) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#295">self</a>.<a href="#267">repr</a>().<a href="#432">is_match_state</a>(<a href="#295">id</a>)
+    <span class="kw">fn </span>is_match_state(<span class="kw-2">&amp;</span><span class="self">self</span>, id: S) -&gt; bool {
+        <span class="self">self</span>.repr().is_match_state(id)
     }
 
-    <span class="kw">fn </span>is_match_or_dead_state(<span class="kw-2">&amp;</span><span class="self">self</span>, id: S) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#299">self</a>.<a href="#267">repr</a>().<a href="#438">is_match_or_dead_state</a>(<a href="#299">id</a>)
+    <span class="kw">fn </span>is_match_or_dead_state(<span class="kw-2">&amp;</span><span class="self">self</span>, id: S) -&gt; bool {
+        <span class="self">self</span>.repr().is_match_or_dead_state(id)
     }
 
     <span class="kw">fn </span>get_match(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         id: S,
-        match_index: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-        end: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-    ) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="lib.rs.html#239">Match</a>&gt; {
+        match_index: usize,
+        end: usize,
+    ) -&gt; <span class="prelude-ty">Option</span>&lt;Match&gt; {
         <span class="kw">if </span>id &gt; <span class="self">self</span>.repr().max_match {
             <span class="kw">return </span><span class="prelude-val">None</span>;
         }
-        <a class="self" href="#304">self</a>.<a href="#267">repr</a>()
+        <span class="self">self</span>.repr()
             .matches
-            .get(<a href="#305">id</a>.<a href="state_id.rs.html#98">to_usize</a>() / <span class="number">256</span>)
-            .and_then(|m| <a href="#315">m</a>.get(<a href="#306">match_index</a>))
-            .map(|<span class="kw-2">&amp;</span>(id, len)| <a href="lib.rs.html#239">Match</a> { pattern: <a href="#316">id</a>, <a href="#316">len</a>, <a href="#307">end</a> })
+            .get(id.to_usize() / <span class="number">256</span>)
+            .and_then(|m| m.get(match_index))
+            .map(|<span class="kw-2">&amp;</span>(id, len)| Match { pattern: id, len, end })
     }
 
-    <span class="kw">fn </span>match_count(<span class="kw-2">&amp;</span><span class="self">self</span>, id: S) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <span class="kw">let </span>o = <a href="#319">id</a>.<a href="state_id.rs.html#98">to_usize</a>() / <span class="number">256</span>;
-        <a class="self" href="#319">self</a>.<a href="#267">repr</a>().matches[<a href="#320">o</a>].len()
+    <span class="kw">fn </span>match_count(<span class="kw-2">&amp;</span><span class="self">self</span>, id: S) -&gt; usize {
+        <span class="kw">let </span>o = id.to_usize() / <span class="number">256</span>;
+        <span class="self">self</span>.repr().matches[o].len()
     }
 
-    <span class="kw">fn </span>next_state(<span class="kw-2">&amp;</span><span class="self">self</span>, current: S, input: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) -&gt; S {
-        <span class="kw">let </span>o = <a href="#324">current</a>.<a href="state_id.rs.html#98">to_usize</a>() + <a href="#324">input</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>;
-        <a class="self" href="#324">self</a>.<a href="#267">repr</a>().trans[<a href="#325">o</a>]
+    <span class="kw">fn </span>next_state(<span class="kw-2">&amp;</span><span class="self">self</span>, current: S, input: u8) -&gt; S {
+        <span class="kw">let </span>o = current.to_usize() + input <span class="kw">as </span>usize;
+        <span class="self">self</span>.repr().trans[o]
     }
 }
 
 <span class="attr">#[derive(Clone, Debug)]
 </span><span class="kw">pub struct </span>PremultipliedByteClass&lt;S&gt;(Repr&lt;S&gt;);
 
-<span class="kw">impl</span>&lt;S: <a href="state_id.rs.html#72-81">StateID</a>&gt; PremultipliedByteClass&lt;S&gt; {
+<span class="kw">impl</span>&lt;S: StateID&gt; PremultipliedByteClass&lt;S&gt; {
     <span class="kw">fn </span>repr(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Repr&lt;S&gt; {
-        <span class="kw-2">&amp;</span><a class="self" href="#334">self</a>.<span class="number">0
+        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="number">0
     </span>}
 }
 
-<span class="kw">impl</span>&lt;S: <a href="state_id.rs.html#72-81">StateID</a>&gt; <a href="automaton.rs.html#80">Automaton</a> <span class="kw">for </span>PremultipliedByteClass&lt;S&gt; {
+<span class="kw">impl</span>&lt;S: StateID&gt; Automaton <span class="kw">for </span>PremultipliedByteClass&lt;S&gt; {
     <span class="kw">type </span>ID = S;
 
-    <span class="kw">fn </span>match_kind(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="ahocorasick.rs.html#2041">MatchKind</a> {
-        <span class="kw-2">&amp;</span><a class="self" href="#342">self</a>.<a href="#334">repr</a>().match_kind
+    <span class="kw">fn </span>match_kind(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>MatchKind {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.repr().match_kind
     }
 
-    <span class="kw">fn </span>anchored(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#346">self</a>.<a href="#334">repr</a>().anchored
+    <span class="kw">fn </span>anchored(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.repr().anchored
     }
 
-    <span class="kw">fn </span>prefilter(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="kw">dyn </span><a href="prefilter.rs.html#50-51">Prefilter</a>&gt; {
-        <a class="self" href="#350">self</a>.<a href="#334">repr</a>().prefilter.as_ref().map(|p| <a href="#351">p</a>.<a href="prefilter.rs.html#138">as_ref</a>())
+    <span class="kw">fn </span>prefilter(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="kw">dyn </span>Prefilter&gt; {
+        <span class="self">self</span>.repr().prefilter.as_ref().map(|p| p.as_ref())
     }
 
     <span class="kw">fn </span>start_state(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; S {
-        <a class="self" href="#354">self</a>.<a href="#334">repr</a>().start_id
+        <span class="self">self</span>.repr().start_id
     }
 
-    <span class="kw">fn </span>is_valid(<span class="kw-2">&amp;</span><span class="self">self</span>, id: S) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        (<a href="#358">id</a>.<a href="state_id.rs.html#98">to_usize</a>() / <a class="self" href="#358">self</a>.<a href="#334">repr</a>().<a href="#427">alphabet_len</a>()) &lt; <a class="self" href="#358">self</a>.<a href="#334">repr</a>().state_count
+    <span class="kw">fn </span>is_valid(<span class="kw-2">&amp;</span><span class="self">self</span>, id: S) -&gt; bool {
+        (id.to_usize() / <span class="self">self</span>.repr().alphabet_len()) &lt; <span class="self">self</span>.repr().state_count
     }
 
-    <span class="kw">fn </span>is_match_state(<span class="kw-2">&amp;</span><span class="self">self</span>, id: S) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#362">self</a>.<a href="#334">repr</a>().<a href="#432">is_match_state</a>(<a href="#362">id</a>)
+    <span class="kw">fn </span>is_match_state(<span class="kw-2">&amp;</span><span class="self">self</span>, id: S) -&gt; bool {
+        <span class="self">self</span>.repr().is_match_state(id)
     }
 
-    <span class="kw">fn </span>is_match_or_dead_state(<span class="kw-2">&amp;</span><span class="self">self</span>, id: S) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#366">self</a>.<a href="#334">repr</a>().<a href="#438">is_match_or_dead_state</a>(<a href="#366">id</a>)
+    <span class="kw">fn </span>is_match_or_dead_state(<span class="kw-2">&amp;</span><span class="self">self</span>, id: S) -&gt; bool {
+        <span class="self">self</span>.repr().is_match_or_dead_state(id)
     }
 
     <span class="kw">fn </span>get_match(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         id: S,
-        match_index: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-        end: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-    ) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="lib.rs.html#239">Match</a>&gt; {
+        match_index: usize,
+        end: usize,
+    ) -&gt; <span class="prelude-ty">Option</span>&lt;Match&gt; {
         <span class="kw">if </span>id &gt; <span class="self">self</span>.repr().max_match {
             <span class="kw">return </span><span class="prelude-val">None</span>;
         }
-        <a class="self" href="#371">self</a>.<a href="#334">repr</a>()
+        <span class="self">self</span>.repr()
             .matches
-            .get(<a href="#372">id</a>.<a href="state_id.rs.html#98">to_usize</a>() / <a class="self" href="#371">self</a>.<a href="#334">repr</a>().<a href="#427">alphabet_len</a>())
-            .and_then(|m| <a href="#382">m</a>.get(<a href="#373">match_index</a>))
-            .map(|<span class="kw-2">&amp;</span>(id, len)| <a href="lib.rs.html#239">Match</a> { pattern: <a href="#383">id</a>, <a href="#383">len</a>, <a href="#374">end</a> })
+            .get(id.to_usize() / <span class="self">self</span>.repr().alphabet_len())
+            .and_then(|m| m.get(match_index))
+            .map(|<span class="kw-2">&amp;</span>(id, len)| Match { pattern: id, len, end })
     }
 
-    <span class="kw">fn </span>match_count(<span class="kw-2">&amp;</span><span class="self">self</span>, id: S) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <span class="kw">let </span>o = <a href="#386">id</a>.<a href="state_id.rs.html#98">to_usize</a>() / <a class="self" href="#386">self</a>.<a href="#334">repr</a>().<a href="#427">alphabet_len</a>();
-        <a class="self" href="#386">self</a>.<a href="#334">repr</a>().matches[<a href="#387">o</a>].len()
+    <span class="kw">fn </span>match_count(<span class="kw-2">&amp;</span><span class="self">self</span>, id: S) -&gt; usize {
+        <span class="kw">let </span>o = id.to_usize() / <span class="self">self</span>.repr().alphabet_len();
+        <span class="self">self</span>.repr().matches[o].len()
     }
 
-    <span class="kw">fn </span>next_state(<span class="kw-2">&amp;</span><span class="self">self</span>, current: S, input: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) -&gt; S {
-        <span class="kw">let </span>input = <a class="self" href="#391">self</a>.<a href="#334">repr</a>().byte_classes.<a href="classes.rs.html#36">get</a>(<a href="#391">input</a>);
-        <span class="kw">let </span>o = <a href="#391">current</a>.<a href="state_id.rs.html#98">to_usize</a>() + <a href="#392">input</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>;
-        <a class="self" href="#391">self</a>.<a href="#334">repr</a>().trans[<a href="#393">o</a>]
+    <span class="kw">fn </span>next_state(<span class="kw-2">&amp;</span><span class="self">self</span>, current: S, input: u8) -&gt; S {
+        <span class="kw">let </span>input = <span class="self">self</span>.repr().byte_classes.get(input);
+        <span class="kw">let </span>o = current.to_usize() + input <span class="kw">as </span>usize;
+        <span class="self">self</span>.repr().trans[o]
     }
 }
 
 <span class="attr">#[derive(Clone, Debug)]
 </span><span class="kw">pub struct </span>Repr&lt;S&gt; {
-    match_kind: <a href="ahocorasick.rs.html#2041">MatchKind</a>,
-    anchored: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-    premultiplied: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
+    match_kind: MatchKind,
+    anchored: bool,
+    premultiplied: bool,
     start_id: S,
     <span class="doccomment">/// The length, in bytes, of the longest pattern in this automaton. This
     /// information is useful for keeping correct buffer sizes when searching
     /// on streams.
-    </span>max_pattern_len: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+    </span>max_pattern_len: usize,
     <span class="doccomment">/// The total number of patterns added to this automaton. This includes
     /// patterns that may never match.
-    </span>pattern_count: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-    state_count: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+    </span>pattern_count: usize,
+    state_count: usize,
     max_match: S,
     <span class="doccomment">/// The number of bytes of heap used by this NFA&#39;s transition table.
-    </span>heap_bytes: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+    </span>heap_bytes: usize,
     <span class="doccomment">/// A prefilter for quickly detecting candidate matchs, if pertinent.
-    </span>prefilter: <span class="prelude-ty">Option</span>&lt;<a href="prefilter.rs.html#123">PrefilterObj</a>&gt;,
-    byte_classes: <a href="classes.rs.html#9">ByteClasses</a>,
+    </span>prefilter: <span class="prelude-ty">Option</span>&lt;PrefilterObj&gt;,
+    byte_classes: ByteClasses,
     trans: Vec&lt;S&gt;,
-    matches: Vec&lt;Vec&lt;(<a href="nfa.rs.html#17">PatternID</a>, <a href="nfa.rs.html#20">PatternLength</a>)&gt;&gt;,
+    matches: Vec&lt;Vec&lt;(PatternID, PatternLength)&gt;&gt;,
 }
 
-<span class="kw">impl</span>&lt;S: <a href="state_id.rs.html#72-81">StateID</a>&gt; Repr&lt;S&gt; {
+<span class="kw">impl</span>&lt;S: StateID&gt; Repr&lt;S&gt; {
     <span class="doccomment">/// Returns the total alphabet size for this DFA.
     ///
     /// If byte classes are enabled, then this corresponds to the number of
     /// equivalence classes. If they are disabled, then this is always 256.
-    </span><span class="kw">fn </span>alphabet_len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="self" href="#427">self</a>.byte_classes.<a href="classes.rs.html#46">alphabet_len</a>()
+    </span><span class="kw">fn </span>alphabet_len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+        <span class="self">self</span>.byte_classes.alphabet_len()
     }
 
     <span class="doccomment">/// Returns true only if the given state is a match state.
-    </span><span class="kw">fn </span>is_match_state(<span class="kw-2">&amp;</span><span class="self">self</span>, id: S) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a href="#432">id</a> &lt;= <a class="self" href="#432">self</a>.max_match &amp;&amp; <a href="#432">id</a> &gt; <a href="state_id.rs.html#45">dead_id</a>()
+    </span><span class="kw">fn </span>is_match_state(<span class="kw-2">&amp;</span><span class="self">self</span>, id: S) -&gt; bool {
+        id &lt;= <span class="self">self</span>.max_match &amp;&amp; id &gt; dead_id()
     }
 
     <span class="doccomment">/// Returns true only if the given state is either a dead state or a match
     /// state.
-    </span><span class="kw">fn </span>is_match_or_dead_state(<span class="kw-2">&amp;</span><span class="self">self</span>, id: S) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a href="#438">id</a> &lt;= <a class="self" href="#438">self</a>.max_match
+    </span><span class="kw">fn </span>is_match_or_dead_state(<span class="kw-2">&amp;</span><span class="self">self</span>, id: S) -&gt; bool {
+        id &lt;= <span class="self">self</span>.max_match
     }
 
     <span class="doccomment">/// Get the ith match for the given state, where the end position of a
@@ -1163,16 +1163,16 @@
     </span><span class="kw">fn </span>get_match(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         id: S,
-        match_index: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-        end: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-    ) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="lib.rs.html#239">Match</a>&gt; {
+        match_index: usize,
+        end: usize,
+    ) -&gt; <span class="prelude-ty">Option</span>&lt;Match&gt; {
         <span class="kw">if </span>id &gt; <span class="self">self</span>.max_match {
             <span class="kw">return </span><span class="prelude-val">None</span>;
         }
-        <a class="self" href="#451">self</a>.matches
-            .get(<a href="#452">id</a>.<a href="state_id.rs.html#98">to_usize</a>())
-            .and_then(|m| <a href="#461">m</a>.get(<a href="#453">match_index</a>))
-            .map(|<span class="kw-2">&amp;</span>(id, len)| <a href="lib.rs.html#239">Match</a> { pattern: <a href="#462">id</a>, <a href="#462">len</a>, <a href="#454">end</a> })
+        <span class="self">self</span>.matches
+            .get(id.to_usize())
+            .and_then(|m| m.get(match_index))
+            .map(|<span class="kw-2">&amp;</span>(id, len)| Match { pattern: id, len, end })
     }
 
     <span class="doccomment">/// Return the total number of matches for the given state.
@@ -1181,35 +1181,35 @@
     ///
     /// The caller must ensure that the given identifier is valid, or else
     /// this panics.
-    </span><span class="kw">fn </span>match_count(<span class="kw-2">&amp;</span><span class="self">self</span>, id: S) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="self" href="#471">self</a>.matches[<a href="#471">id</a>.<a href="state_id.rs.html#98">to_usize</a>()].len()
+    </span><span class="kw">fn </span>match_count(<span class="kw-2">&amp;</span><span class="self">self</span>, id: S) -&gt; usize {
+        <span class="self">self</span>.matches[id.to_usize()].len()
     }
 
     <span class="doccomment">/// Get the next state given `from` as the current state and `byte` as the
     /// current input byte.
-    </span><span class="kw">fn </span>next_state(<span class="kw-2">&amp;</span><span class="self">self</span>, from: S, byte: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) -&gt; S {
-        <span class="kw">let </span>alphabet_len = <a class="self" href="#477">self</a>.<a href="#427">alphabet_len</a>();
-        <span class="kw">let </span>byte = <a class="self" href="#477">self</a>.byte_classes.<a href="classes.rs.html#36">get</a>(<a href="#477">byte</a>);
-        <a class="self" href="#477">self</a>.trans[<a href="#477">from</a>.<a href="state_id.rs.html#98">to_usize</a>() * <a href="#478">alphabet_len</a> + <a href="#479">byte</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>]
+    </span><span class="kw">fn </span>next_state(<span class="kw-2">&amp;</span><span class="self">self</span>, from: S, byte: u8) -&gt; S {
+        <span class="kw">let </span>alphabet_len = <span class="self">self</span>.alphabet_len();
+        <span class="kw">let </span>byte = <span class="self">self</span>.byte_classes.get(byte);
+        <span class="self">self</span>.trans[from.to_usize() * alphabet_len + byte <span class="kw">as </span>usize]
     }
 
     <span class="doccomment">/// Set the `byte` transition for the `from` state to point to `to`.
-    </span><span class="kw">fn </span>set_next_state(<span class="kw-2">&amp;mut </span><span class="self">self</span>, from: S, byte: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>, to: S) {
-        <span class="kw">let </span>alphabet_len = <a class="self" href="#484">self</a>.<a href="#427">alphabet_len</a>();
-        <span class="kw">let </span>byte = <a class="self" href="#484">self</a>.byte_classes.<a href="classes.rs.html#36">get</a>(<a href="#484">byte</a>);
-        <a class="self" href="#484">self</a>.trans[<a href="#484">from</a>.<a href="state_id.rs.html#98">to_usize</a>() * <a href="#485">alphabet_len</a> + <a href="#486">byte</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>] = <a href="#484">to</a>;
+    </span><span class="kw">fn </span>set_next_state(<span class="kw-2">&amp;mut </span><span class="self">self</span>, from: S, byte: u8, to: S) {
+        <span class="kw">let </span>alphabet_len = <span class="self">self</span>.alphabet_len();
+        <span class="kw">let </span>byte = <span class="self">self</span>.byte_classes.get(byte);
+        <span class="self">self</span>.trans[from.to_usize() * alphabet_len + byte <span class="kw">as </span>usize] = to;
     }
 
     <span class="doccomment">/// Swap the given states in place.
     </span><span class="kw">fn </span>swap_states(<span class="kw-2">&amp;mut </span><span class="self">self</span>, id1: S, id2: S) {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(!<span class="self">self</span>.premultiplied, <span class="string">&quot;can&#39;t swap states in premultiplied DFA&quot;</span>);
+        <span class="macro">assert!</span>(!<span class="self">self</span>.premultiplied, <span class="string">&quot;can&#39;t swap states in premultiplied DFA&quot;</span>);
 
-        <span class="kw">let </span>o1 = <a href="#491">id1</a>.<a href="state_id.rs.html#98">to_usize</a>() * <a class="self" href="#491">self</a>.<a href="#427">alphabet_len</a>();
-        <span class="kw">let </span>o2 = <a href="#491">id2</a>.<a href="state_id.rs.html#98">to_usize</a>() * <a class="self" href="#491">self</a>.<a href="#427">alphabet_len</a>();
+        <span class="kw">let </span>o1 = id1.to_usize() * <span class="self">self</span>.alphabet_len();
+        <span class="kw">let </span>o2 = id2.to_usize() * <span class="self">self</span>.alphabet_len();
         <span class="kw">for </span>b <span class="kw">in </span><span class="number">0</span>..<span class="self">self</span>.alphabet_len() {
             <span class="self">self</span>.trans.swap(o1 + b, o2 + b);
         }
-        <a class="self" href="#491">self</a>.matches.swap(<a href="#491">id1</a>.<a href="state_id.rs.html#98">to_usize</a>(), <a href="#491">id2</a>.<a href="state_id.rs.html#98">to_usize</a>());
+        <span class="self">self</span>.matches.swap(id1.to_usize(), id2.to_usize());
     }
 
     <span class="doccomment">/// This routine shuffles all match states in this DFA to the beginning
@@ -1224,7 +1224,7 @@
     /// This updates `self.max_match` to point to the last matching state as
     /// well as `self.start` if the starting state was moved.
     </span><span class="kw">fn </span>shuffle_match_states(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(
+        <span class="macro">assert!</span>(
             !<span class="self">self</span>.premultiplied,
             <span class="string">&quot;cannot shuffle match states of premultiplied DFA&quot;
         </span>);
@@ -1233,15 +1233,15 @@
             <span class="kw">return</span>;
         }
 
-        <span class="kw">let </span><span class="kw-2">mut </span>first_non_match = <a class="self" href="#513">self</a>.start_id.<a href="state_id.rs.html#98">to_usize</a>();
+        <span class="kw">let </span><span class="kw-2">mut </span>first_non_match = <span class="self">self</span>.start_id.to_usize();
         <span class="kw">while </span>first_non_match &lt; <span class="self">self</span>.state_count
             &amp;&amp; <span class="self">self</span>.matches[first_non_match].len() &gt; <span class="number">0
         </span>{
             first_non_match += <span class="number">1</span>;
         }
 
-        <span class="kw">let </span><span class="kw-2">mut </span>swaps: Vec&lt;S&gt; = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[fail_id(); <span class="self">self</span>.state_count];
-        <span class="kw">let </span><span class="kw-2">mut </span>cur = <a class="self" href="#513">self</a>.state_count - <span class="number">1</span>;
+        <span class="kw">let </span><span class="kw-2">mut </span>swaps: Vec&lt;S&gt; = <span class="macro">vec!</span>[fail_id(); <span class="self">self</span>.state_count];
+        <span class="kw">let </span><span class="kw-2">mut </span>cur = <span class="self">self</span>.state_count - <span class="number">1</span>;
         <span class="kw">while </span>cur &gt; first_non_match {
             <span class="kw">if </span><span class="self">self</span>.matches[cur].len() &gt; <span class="number">0 </span>{
                 <span class="self">self</span>.swap_states(
@@ -1270,9 +1270,9 @@
             }
         }
         <span class="kw">if </span>swaps[<span class="self">self</span>.start_id.to_usize()] != fail_id() {
-            <a class="self" href="#513">self</a>.start_id = <a href="#530">swaps</a>[<a class="self" href="#513">self</a>.start_id.<a href="state_id.rs.html#98">to_usize</a>()];
+            <span class="self">self</span>.start_id = swaps[<span class="self">self</span>.start_id.to_usize()];
         }
-        <a class="self" href="#513">self</a>.max_match = S::from_usize(<a href="#523">first_non_match</a> - <span class="number">1</span>);
+        <span class="self">self</span>.max_match = S::from_usize(first_non_match - <span class="number">1</span>);
     }
 
     <span class="kw">fn </span>premultiply(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
@@ -1280,7 +1280,7 @@
             <span class="kw">return </span><span class="prelude-val">Ok</span>(());
         }
 
-        <span class="kw">let </span>alpha_len = <a class="self" href="#565">self</a>.<a href="#427">alphabet_len</a>();
+        <span class="kw">let </span>alpha_len = <span class="self">self</span>.alphabet_len();
         premultiply_overflow_error(
             S::from_usize(<span class="self">self</span>.state_count - <span class="number">1</span>),
             alpha_len,
@@ -1295,37 +1295,37 @@
                 <span class="kw-2">*</span>next = S::from_usize(next.to_usize() * alpha_len);
             }
         }
-        <a class="self" href="#565">self</a>.premultiplied = <span class="bool-val">true</span>;
-        <a class="self" href="#565">self</a>.start_id = S::from_usize(<a class="self" href="#565">self</a>.start_id.<a href="state_id.rs.html#98">to_usize</a>() * <a href="#570">alpha_len</a>);
-        <a class="self" href="#565">self</a>.max_match = S::from_usize(<a class="self" href="#565">self</a>.max_match.<a href="state_id.rs.html#98">to_usize</a>() * <a href="#570">alpha_len</a>);
+        <span class="self">self</span>.premultiplied = <span class="bool-val">true</span>;
+        <span class="self">self</span>.start_id = S::from_usize(<span class="self">self</span>.start_id.to_usize() * alpha_len);
+        <span class="self">self</span>.max_match = S::from_usize(<span class="self">self</span>.max_match.to_usize() * alpha_len);
         <span class="prelude-val">Ok</span>(())
     }
 
     <span class="doccomment">/// Computes the total amount of heap used by this NFA in bytes.
     </span><span class="kw">fn </span>calculate_size(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <span class="kw">let </span><span class="kw-2">mut </span>size = (<a class="self" href="#592">self</a>.trans.len() * size_of::&lt;S&gt;())
-            + (<a class="self" href="#592">self</a>.matches.len()
-                * size_of::&lt;Vec&lt;(<a href="nfa.rs.html#17">PatternID</a>, <a href="nfa.rs.html#20">PatternLength</a>)&gt;&gt;());
+        <span class="kw">let </span><span class="kw-2">mut </span>size = (<span class="self">self</span>.trans.len() * size_of::&lt;S&gt;())
+            + (<span class="self">self</span>.matches.len()
+                * size_of::&lt;Vec&lt;(PatternID, PatternLength)&gt;&gt;());
         <span class="kw">for </span>state_matches <span class="kw">in </span><span class="kw-2">&amp;</span><span class="self">self</span>.matches {
             size +=
                 state_matches.len() * size_of::&lt;(PatternID, PatternLength)&gt;();
         }
-        <a href="#593">size</a> += <a class="self" href="#592">self</a>.prefilter.as_ref().map_or(<span class="number">0</span>, |p| <a href="#600">p</a>.<a href="prefilter.rs.html#138">as_ref</a>().<a href="prefilter.rs.html#71">heap_bytes</a>());
-        <a class="self" href="#592">self</a>.heap_bytes = <a href="#593">size</a>;
+        size += <span class="self">self</span>.prefilter.as_ref().map_or(<span class="number">0</span>, |p| p.as_ref().heap_bytes());
+        <span class="self">self</span>.heap_bytes = size;
     }
 }
 
 <span class="doccomment">/// A builder for configuring the determinization of an NFA into a DFA.
 </span><span class="attr">#[derive(Clone, Debug)]
 </span><span class="kw">pub struct </span>Builder {
-    premultiply: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-    byte_classes: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
+    premultiply: bool,
+    byte_classes: bool,
 }
 
-<span class="kw">impl </span><a href="#607">Builder</a> {
+<span class="kw">impl </span>Builder {
     <span class="doccomment">/// Create a new builder for a DFA.
-    </span><span class="kw">pub fn </span>new() -&gt; <a href="#607">Builder</a> {
-        <a href="#607">Builder</a> { premultiply: <span class="bool-val">true</span>, byte_classes: <span class="bool-val">true </span>}
+    </span><span class="kw">pub fn </span>new() -&gt; Builder {
+        Builder { premultiply: <span class="bool-val">true</span>, byte_classes: <span class="bool-val">true </span>}
     }
 
     <span class="doccomment">/// Build a DFA from the given NFA.
@@ -1333,29 +1333,29 @@
     /// This returns an error if the state identifiers exceed their
     /// representation size. This can only happen when state ids are
     /// premultiplied (which is enabled by default).
-    </span><span class="kw">pub fn </span>build&lt;S: <a href="state_id.rs.html#72-81">StateID</a>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, nfa: <span class="kw-2">&amp;</span>NFA&lt;S&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;DFA&lt;S&gt;&gt; {
+    </span><span class="kw">pub fn </span>build&lt;S: StateID&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, nfa: <span class="kw-2">&amp;</span>NFA&lt;S&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;DFA&lt;S&gt;&gt; {
         <span class="kw">let </span>byte_classes = <span class="kw">if </span><span class="self">self</span>.byte_classes {
-            <a href="#623">nfa</a>.<a href="nfa.rs.html#96">byte_classes</a>().<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()
+            nfa.byte_classes().clone()
         } <span class="kw">else </span>{
             ByteClasses::singletons()
         };
-        <span class="kw">let </span>alphabet_len = <a href="#624">byte_classes</a>.<a href="classes.rs.html#46">alphabet_len</a>();
-        <span class="kw">let </span>trans = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[fail_id(); alphabet_len * nfa.state_len()];
-        <span class="kw">let </span>matches = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[<span class="macro">vec!</span>[]; nfa.state_len()];
-        <span class="kw">let </span><span class="kw-2">mut </span>repr = <a href="#399">Repr</a> {
-            match_kind: <a href="#623">nfa</a>.<a href="automaton.rs.html#87">match_kind</a>().<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
-            anchored: <a href="#623">nfa</a>.<a href="automaton.rs.html#90">anchored</a>(),
+        <span class="kw">let </span>alphabet_len = byte_classes.alphabet_len();
+        <span class="kw">let </span>trans = <span class="macro">vec!</span>[fail_id(); alphabet_len * nfa.state_len()];
+        <span class="kw">let </span>matches = <span class="macro">vec!</span>[<span class="macro">vec!</span>[]; nfa.state_len()];
+        <span class="kw">let </span><span class="kw-2">mut </span>repr = Repr {
+            match_kind: nfa.match_kind().clone(),
+            anchored: nfa.anchored(),
             premultiplied: <span class="bool-val">false</span>,
-            start_id: <a href="#623">nfa</a>.<a href="automaton.rs.html#103">start_state</a>(),
-            max_pattern_len: <a href="#623">nfa</a>.<a href="nfa.rs.html#113">max_pattern_len</a>(),
-            pattern_count: <a href="#623">nfa</a>.<a href="nfa.rs.html#118">pattern_count</a>(),
-            state_count: <a href="#623">nfa</a>.<a href="nfa.rs.html#123">state_len</a>(),
-            max_match: <a href="state_id.rs.html#39">fail_id</a>(),
+            start_id: nfa.start_state(),
+            max_pattern_len: nfa.max_pattern_len(),
+            pattern_count: nfa.pattern_count(),
+            state_count: nfa.state_len(),
+            max_match: fail_id(),
             heap_bytes: <span class="number">0</span>,
-            prefilter: <a href="#623">nfa</a>.<a href="nfa.rs.html#101">prefilter_obj</a>().map(|p| <a href="#642">p</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()),
-            byte_classes: <a href="#624">byte_classes</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
-            <a href="#630">trans</a>,
-            <a href="#631">matches</a>,
+            prefilter: nfa.prefilter_obj().map(|p| p.clone()),
+            byte_classes: byte_classes.clone(),
+            trans,
+            matches,
         };
         <span class="kw">for </span>id <span class="kw">in </span>(<span class="number">0</span>..nfa.state_len()).map(S::from_usize) {
             repr.matches[id.to_usize()].extend_from_slice(nfa.matches(id));
@@ -1368,34 +1368,34 @@
                 repr.set_next_state(id, b, next);
             });
         }
-        <a href="#632">repr</a>.<a href="#513">shuffle_match_states</a>();
-        <a href="#632">repr</a>.<a href="#592">calculate_size</a>();
+        repr.shuffle_match_states();
+        repr.calculate_size();
         <span class="kw">if </span><span class="self">self</span>.premultiply {
             repr.premultiply()<span class="question-mark">?</span>;
             <span class="kw">if </span>byte_classes.is_singleton() {
-                <span class="prelude-val">Ok</span>(<a href="#16">DFA::Premultiplied</a>(<a href="#264">Premultiplied</a>(<a href="#632">repr</a>)))
+                <span class="prelude-val">Ok</span>(DFA::Premultiplied(Premultiplied(repr)))
             } <span class="kw">else </span>{
-                <span class="prelude-val">Ok</span>(<a href="#17">DFA::PremultipliedByteClass</a>(<a href="#331">PremultipliedByteClass</a>(<a href="#632">repr</a>)))
+                <span class="prelude-val">Ok</span>(DFA::PremultipliedByteClass(PremultipliedByteClass(repr)))
             }
         } <span class="kw">else </span>{
             <span class="kw">if </span>byte_classes.is_singleton() {
-                <span class="prelude-val">Ok</span>(<a href="#14">DFA::Standard</a>(<a href="#144">Standard</a>(<a href="#632">repr</a>)))
+                <span class="prelude-val">Ok</span>(DFA::Standard(Standard(repr)))
             } <span class="kw">else </span>{
-                <span class="prelude-val">Ok</span>(<a href="#15">DFA::ByteClass</a>(<a href="#203">ByteClass</a>(<a href="#632">repr</a>)))
+                <span class="prelude-val">Ok</span>(DFA::ByteClass(ByteClass(repr)))
             }
         }
     }
 
     <span class="doccomment">/// Whether to use byte classes or in the DFA.
-    </span><span class="kw">pub fn </span>byte_classes(<span class="kw-2">&amp;mut </span><span class="self">self</span>, yes: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="kw-2">&amp;mut </span><a href="#607">Builder</a> {
-        <a class="self" href="#677">self</a>.byte_classes = <a href="#677">yes</a>;
-        <span class="self"><a href="#677">self</a>
+    </span><span class="kw">pub fn </span>byte_classes(<span class="kw-2">&amp;mut </span><span class="self">self</span>, yes: bool) -&gt; <span class="kw-2">&amp;mut </span>Builder {
+        <span class="self">self</span>.byte_classes = yes;
+        <span class="self">self
     </span>}
 
     <span class="doccomment">/// Whether to premultiply state identifier in the DFA.
-    </span><span class="kw">pub fn </span>premultiply(<span class="kw-2">&amp;mut </span><span class="self">self</span>, yes: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="kw-2">&amp;mut </span><a href="#607">Builder</a> {
-        <a class="self" href="#683">self</a>.premultiply = <a href="#683">yes</a>;
-        <span class="self"><a href="#683">self</a>
+    </span><span class="kw">pub fn </span>premultiply(<span class="kw-2">&amp;mut </span><span class="self">self</span>, yes: bool) -&gt; <span class="kw-2">&amp;mut </span>Builder {
+        <span class="self">self</span>.premultiply = yes;
+        <span class="self">self
     </span>}
 }
 
@@ -1406,23 +1406,23 @@
 /// the DFA itself.
 ///
 /// In general, this should only be called when a failure transition is seen.
-</span><span class="kw">fn </span>nfa_next_state_memoized&lt;S: <a href="state_id.rs.html#72-81">StateID</a>&gt;(
+</span><span class="kw">fn </span>nfa_next_state_memoized&lt;S: StateID&gt;(
     nfa: <span class="kw-2">&amp;</span>NFA&lt;S&gt;,
     dfa: <span class="kw-2">&amp;</span>Repr&lt;S&gt;,
     populating: S,
     <span class="kw-2">mut </span>current: S,
-    input: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>,
+    input: u8,
 ) -&gt; S {
     <span class="kw">loop </span>{
         <span class="kw">if </span>current &lt; populating {
-            <span class="kw">return </span><a href="#698">dfa</a>.<a href="#477">next_state</a>(<a href="#700">current</a>, <a href="#701">input</a>);
+            <span class="kw">return </span>dfa.next_state(current, input);
         }
-        <span class="kw">let </span>next = <a href="#697">nfa</a>.<a href="nfa.rs.html#154">next_state</a>(<a href="#700">current</a>, <a href="#701">input</a>);
+        <span class="kw">let </span>next = nfa.next_state(current, input);
         <span class="kw">if </span>next != fail_id() {
-            <span class="kw">return </span><a href="#707">next</a>;
+            <span class="kw">return </span>next;
         }
-        <a href="#700">current</a> = <a href="#697">nfa</a>.<a href="nfa.rs.html#146">failure_transition</a>(<a href="#700">current</a>);
+        current = nfa.failure_transition(current);
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="aho_corasick" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="aho_corasick" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

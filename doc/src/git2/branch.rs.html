@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/git2-0.14.4/src/branch.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>branch.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../git2/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/git2-0.14.4/src/branch.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>branch.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../git2/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -195,13 +195,13 @@
 <a href="#195" id="195">195</a>
 <a href="#196" id="196">196</a>
 <a href="#197" id="197">197</a>
-</pre><pre class="rust"><code><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/ffi/c_str/struct.CString.html">std::ffi::CString</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/marker/index.html">std::marker</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/ptr/index.html">std::ptr</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/str/index.html">std::str</a>;
+</pre><pre class="rust"><code><span class="kw">use </span>std::ffi::CString;
+<span class="kw">use </span>std::marker;
+<span class="kw">use </span>std::ptr;
+<span class="kw">use </span>std::str;
 
-<span class="kw">use </span><a href="util.rs.html#25"><span class="kw">crate</span>::util::Binding</a>;
-<span class="kw">use crate</span>::{<a href="../../libgit2_sys/index.html">raw</a>, <a href="lib.rs.html#361">BranchType</a>, <a href="error.rs.html#12">Error</a>, <a href="reference.rs.html#24">Reference</a>, <a href="reference.rs.html#30">References</a>};
+<span class="kw">use </span><span class="kw">crate</span>::util::Binding;
+<span class="kw">use crate</span>::{raw, BranchType, Error, Reference, References};
 
 <span class="doccomment">/// A structure to represent a git [branch][1]
 ///
@@ -215,93 +215,93 @@
 
 <span class="doccomment">/// An iterator over the branches inside of a repository.
 </span><span class="kw">pub struct </span>Branches&lt;<span class="lifetime">&#39;repo</span>&gt; {
-    raw: <span class="kw-2">*mut </span><a href="../../libgit2_sys/enum.git_branch_iterator.html">raw::git_branch_iterator</a>,
+    raw: <span class="kw-2">*mut </span>raw::git_branch_iterator,
     _marker: marker::PhantomData&lt;References&lt;<span class="lifetime">&#39;repo</span>&gt;&gt;,
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;repo</span>&gt; Branch&lt;<span class="lifetime">&#39;repo</span>&gt; {
     <span class="doccomment">/// Creates Branch type from a Reference
     </span><span class="kw">pub fn </span>wrap(reference: Reference&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Branch&lt;<span class="lifetime">&#39;_</span>&gt; {
-        <a href="#15">Branch</a> { inner: <a href="#27">reference</a> }
+        Branch { inner: reference }
     }
 
     <span class="doccomment">/// Ensure the branch name is well-formed.
-    </span><span class="kw">pub fn </span>name_is_valid(name: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>, <a href="error.rs.html#12">Error</a>&gt; {
-        <a href="lib.rs.html#717"><span class="kw">crate</span>::init</a>();
+    </span><span class="kw">pub fn </span>name_is_valid(name: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;bool, Error&gt; {
+        <span class="kw">crate</span>::init();
         <span class="kw">let </span>name = CString::new(name)<span class="question-mark">?</span>;
-        <span class="kw">let </span><span class="kw-2">mut </span>valid: <a href="../../libc/unix/type.c_int.html">libc::c_int</a> = <span class="number">0</span>;
+        <span class="kw">let </span><span class="kw-2">mut </span>valid: libc::c_int = <span class="number">0</span>;
         <span class="kw">unsafe </span>{
-            <a class="macro" href="call.rs.html#12-19">try_call!</a>(raw::git_branch_name_is_valid(<span class="kw-2">&amp;mut </span>valid, name.as_ptr()));
+            <span class="macro">try_call!</span>(raw::git_branch_name_is_valid(<span class="kw-2">&amp;mut </span>valid, name.as_ptr()));
         }
-        <span class="prelude-val">Ok</span>(<a href="#35">valid</a> == <span class="number">1</span>)
+        <span class="prelude-val">Ok</span>(valid == <span class="number">1</span>)
     }
 
     <span class="doccomment">/// Gain access to the reference that is this branch
     </span><span class="kw">pub fn </span>get(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Reference&lt;<span class="lifetime">&#39;repo</span>&gt; {
-        <span class="kw-2">&amp;</span><a class="self" href="#43">self</a>.inner
+        <span class="kw-2">&amp;</span><span class="self">self</span>.inner
     }
 
     <span class="doccomment">/// Gain mutable access to the reference that is this branch
     </span><span class="kw">pub fn </span>get_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>Reference&lt;<span class="lifetime">&#39;repo</span>&gt; {
-        <span class="kw-2">&amp;mut </span><a class="self" href="#48">self</a>.inner
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>.inner
     }
 
     <span class="doccomment">/// Take ownership of the underlying reference.
     </span><span class="kw">pub fn </span>into_reference(<span class="self">self</span>) -&gt; Reference&lt;<span class="lifetime">&#39;repo</span>&gt; {
-        <a class="self" href="#53">self</a>.inner
+        <span class="self">self</span>.inner
     }
 
     <span class="doccomment">/// Delete an existing branch reference.
-    </span><span class="kw">pub fn </span>delete(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#12">Error</a>&gt; {
+    </span><span class="kw">pub fn </span>delete(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
         <span class="kw">unsafe </span>{
-            <a class="macro" href="call.rs.html#12-19">try_call!</a>(raw::git_branch_delete(<span class="self">self</span>.get().raw()));
+            <span class="macro">try_call!</span>(raw::git_branch_delete(<span class="self">self</span>.get().raw()));
         }
         <span class="prelude-val">Ok</span>(())
     }
 
     <span class="doccomment">/// Determine if the current local branch is pointed at by HEAD.
-    </span><span class="kw">pub fn </span>is_head(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">unsafe </span>{ raw::git_branch_is_head(<span class="kw-2">&amp;*</span><a class="self" href="#66">self</a>.<a href="#43">get</a>().<a href="reference.rs.html#157">raw</a>()) == <span class="number">1 </span>}
+    </span><span class="kw">pub fn </span>is_head(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="kw">unsafe </span>{ raw::git_branch_is_head(<span class="kw-2">&amp;*</span><span class="self">self</span>.get().raw()) == <span class="number">1 </span>}
     }
 
     <span class="doccomment">/// Move/rename an existing local branch reference.
-    </span><span class="kw">pub fn </span>rename(<span class="kw-2">&amp;mut </span><span class="self">self</span>, new_branch_name: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, force: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="prelude-ty">Result</span>&lt;Branch&lt;<span class="lifetime">&#39;repo</span>&gt;, <a href="error.rs.html#12">Error</a>&gt; {
+    </span><span class="kw">pub fn </span>rename(<span class="kw-2">&amp;mut </span><span class="self">self</span>, new_branch_name: <span class="kw-2">&amp;</span>str, force: bool) -&gt; <span class="prelude-ty">Result</span>&lt;Branch&lt;<span class="lifetime">&#39;repo</span>&gt;, Error&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>ret = ptr::null_mut();
         <span class="kw">let </span>new_branch_name = CString::new(new_branch_name)<span class="question-mark">?</span>;
         <span class="kw">unsafe </span>{
-            <a class="macro" href="call.rs.html#12-19">try_call!</a>(raw::git_branch_move(
+            <span class="macro">try_call!</span>(raw::git_branch_move(
                 <span class="kw-2">&amp;mut </span>ret,
                 <span class="self">self</span>.get().raw(),
                 new_branch_name,
                 force
             ));
-            <span class="prelude-val">Ok</span>(Branch::wrap(<a href="util.rs.html#28">Binding::from_raw</a>(<a href="#72">ret</a>)))
+            <span class="prelude-val">Ok</span>(Branch::wrap(Binding::from_raw(ret)))
         }
     }
 
     <span class="doccomment">/// Return the name of the given local or remote branch.
     ///
     /// May return `Ok(None)` if the name is not valid utf-8.
-    </span><span class="kw">pub fn </span>name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt;, <a href="error.rs.html#12">Error</a>&gt; {
-        <a class="self" href="#88">self</a>.<a href="#93">name_bytes</a>().map(|s| <a href="https://doc.rust-lang.org/nightly/core/str/converts/fn.from_utf8.html">str::from_utf8</a>(<a href="#89">s</a>).ok())
+    </span><span class="kw">pub fn </span>name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>str&gt;, Error&gt; {
+        <span class="self">self</span>.name_bytes().map(|s| str::from_utf8(s).ok())
     }
 
     <span class="doccomment">/// Return the name of the given local or remote branch.
-    </span><span class="kw">pub fn </span>name_bytes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], <a href="error.rs.html#12">Error</a>&gt; {
+    </span><span class="kw">pub fn </span>name_bytes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span>[u8], Error&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>ret = ptr::null();
         <span class="kw">unsafe </span>{
-            <a class="macro" href="call.rs.html#12-19">try_call!</a>(raw::git_branch_name(<span class="kw-2">&amp;mut </span>ret, <span class="kw-2">&amp;*</span><span class="self">self</span>.get().raw()));
-            <span class="prelude-val">Ok</span>(<a href="lib.rs.html#856"><span class="kw">crate</span>::opt_bytes</a>(<a class="self" href="#93">self</a>, <a href="#94">ret</a>).unwrap())
+            <span class="macro">try_call!</span>(raw::git_branch_name(<span class="kw-2">&amp;mut </span>ret, <span class="kw-2">&amp;*</span><span class="self">self</span>.get().raw()));
+            <span class="prelude-val">Ok</span>(<span class="kw">crate</span>::opt_bytes(<span class="self">self</span>, ret).unwrap())
         }
     }
 
     <span class="doccomment">/// Return the reference supporting the remote tracking branch, given a
     /// local branch reference.
-    </span><span class="kw">pub fn </span>upstream(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;Branch&lt;<span class="lifetime">&#39;repo</span>&gt;, <a href="error.rs.html#12">Error</a>&gt; {
+    </span><span class="kw">pub fn </span>upstream(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;Branch&lt;<span class="lifetime">&#39;repo</span>&gt;, Error&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>ret = ptr::null_mut();
         <span class="kw">unsafe </span>{
-            <a class="macro" href="call.rs.html#12-19">try_call!</a>(raw::git_branch_upstream(<span class="kw-2">&amp;mut </span>ret, <span class="kw-2">&amp;*</span><span class="self">self</span>.get().raw()));
-            <span class="prelude-val">Ok</span>(Branch::wrap(<a href="util.rs.html#28">Binding::from_raw</a>(<a href="#104">ret</a>)))
+            <span class="macro">try_call!</span>(raw::git_branch_upstream(<span class="kw-2">&amp;mut </span>ret, <span class="kw-2">&amp;*</span><span class="self">self</span>.get().raw()));
+            <span class="prelude-val">Ok</span>(Branch::wrap(Binding::from_raw(ret)))
         }
     }
 
@@ -309,10 +309,10 @@
     ///
     /// If `None` is specified, then the upstream branch is unset. The name
     /// provided is the name of the branch to set as upstream.
-    </span><span class="kw">pub fn </span>set_upstream(<span class="kw-2">&amp;mut </span><span class="self">self</span>, upstream_name: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#12">Error</a>&gt; {
+    </span><span class="kw">pub fn </span>set_upstream(<span class="kw-2">&amp;mut </span><span class="self">self</span>, upstream_name: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>str&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
         <span class="kw">let </span>upstream_name = <span class="kw">crate</span>::opt_cstr(upstream_name)<span class="question-mark">?</span>;
         <span class="kw">unsafe </span>{
-            <a class="macro" href="call.rs.html#12-19">try_call!</a>(raw::git_branch_set_upstream(
+            <span class="macro">try_call!</span>(raw::git_branch_set_upstream(
                 <span class="self">self</span>.get().raw(),
                 upstream_name
             ));
@@ -326,34 +326,34 @@
     ///
     /// This function is unsafe as it is not guaranteed that `raw` is a valid
     /// pointer.
-    </span><span class="kw">pub unsafe fn </span>from_raw(raw: <span class="kw-2">*mut </span><a href="../../libgit2_sys/enum.git_branch_iterator.html">raw::git_branch_iterator</a>) -&gt; Branches&lt;<span class="lifetime">&#39;repo</span>&gt; {
-        <a href="#20">Branches</a> {
-            <a href="#132">raw</a>,
+    </span><span class="kw">pub unsafe fn </span>from_raw(raw: <span class="kw-2">*mut </span>raw::git_branch_iterator) -&gt; Branches&lt;<span class="lifetime">&#39;repo</span>&gt; {
+        Branches {
+            raw,
             _marker: marker::PhantomData,
         }
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;repo</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a> <span class="kw">for </span>Branches&lt;<span class="lifetime">&#39;repo</span>&gt; {
-    <span class="kw">type </span>Item = <span class="prelude-ty">Result</span>&lt;(Branch&lt;<span class="lifetime">&#39;repo</span>&gt;, <a href="lib.rs.html#361">BranchType</a>), <a href="error.rs.html#12">Error</a>&gt;;
-    <span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="prelude-ty">Result</span>&lt;(Branch&lt;<span class="lifetime">&#39;repo</span>&gt;, <a href="lib.rs.html#361">BranchType</a>), <a href="error.rs.html#12">Error</a>&gt;&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;repo</span>&gt; Iterator <span class="kw">for </span>Branches&lt;<span class="lifetime">&#39;repo</span>&gt; {
+    <span class="kw">type </span>Item = <span class="prelude-ty">Result</span>&lt;(Branch&lt;<span class="lifetime">&#39;repo</span>&gt;, BranchType), Error&gt;;
+    <span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="prelude-ty">Result</span>&lt;(Branch&lt;<span class="lifetime">&#39;repo</span>&gt;, BranchType), Error&gt;&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>ret = ptr::null_mut();
         <span class="kw">let </span><span class="kw-2">mut </span>typ = raw::GIT_BRANCH_LOCAL;
         <span class="kw">unsafe </span>{
-            <a class="macro" href="call.rs.html#21-29">try_call_iter!</a>(raw::git_branch_next(<span class="kw-2">&amp;mut </span>ret, <span class="kw-2">&amp;mut </span>typ, <span class="self">self</span>.raw));
-            <span class="kw">let </span>typ = <span class="kw">match </span><a href="#144">typ</a> {
-                raw::GIT_BRANCH_LOCAL =&gt; <a href="lib.rs.html#363">BranchType::Local</a>,
-                raw::GIT_BRANCH_REMOTE =&gt; <a href="lib.rs.html#365">BranchType::Remote</a>,
-                n =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(<span class="string">&quot;unexected branch type: {}&quot;</span>, n),
+            <span class="macro">try_call_iter!</span>(raw::git_branch_next(<span class="kw-2">&amp;mut </span>ret, <span class="kw-2">&amp;mut </span>typ, <span class="self">self</span>.raw));
+            <span class="kw">let </span>typ = <span class="kw">match </span>typ {
+                raw::GIT_BRANCH_LOCAL =&gt; BranchType::Local,
+                raw::GIT_BRANCH_REMOTE =&gt; BranchType::Remote,
+                n =&gt; <span class="macro">panic!</span>(<span class="string">&quot;unexected branch type: {}&quot;</span>, n),
             };
-            <span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>((Branch::wrap(<a href="util.rs.html#28">Binding::from_raw</a>(<a href="#143">ret</a>)), <a href="#147">typ</a>)))
+            <span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>((Branch::wrap(Binding::from_raw(ret)), typ)))
         }
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;repo</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span>Branches&lt;<span class="lifetime">&#39;repo</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;repo</span>&gt; Drop <span class="kw">for </span>Branches&lt;<span class="lifetime">&#39;repo</span>&gt; {
     <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <span class="kw">unsafe </span>{ raw::git_branch_iterator_free(<a class="self" href="#158">self</a>.raw) }
+        <span class="kw">unsafe </span>{ raw::git_branch_iterator_free(<span class="self">self</span>.raw) }
     }
 }
 
@@ -393,4 +393,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="git2" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="git2" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

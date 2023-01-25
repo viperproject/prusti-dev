@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/gimli-0.26.2/src/read/op.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>op.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../gimli/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/gimli-0.27.0/src/read/op.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>op.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../gimli/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -4107,26 +4107,21 @@
 <a href="#4107" id="4107">4107</a>
 <a href="#4108" id="4108">4108</a>
 <a href="#4109" id="4109">4109</a>
-<a href="#4110" id="4110">4110</a>
-<a href="#4111" id="4111">4111</a>
-<a href="#4112" id="4112">4112</a>
-<a href="#4113" id="4113">4113</a>
-<a href="#4114" id="4114">4114</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Functions for parsing and evaluating DWARF expressions.
 
 </span><span class="attr">#[cfg(feature = <span class="string">&quot;read&quot;</span>)]
-</span><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/vec/struct.Vec.html">alloc::vec::Vec</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/mem/index.html">core::mem</a>;
+</span><span class="kw">use </span>alloc::vec::Vec;
+<span class="kw">use </span>core::mem;
 
-<span class="kw">use </span><span class="kw">super</span>::util::{<a href="util.rs.html#32">ArrayLike</a>, <a href="util.rs.html#106">ArrayVec</a>};
-<span class="kw">use </span><span class="kw">crate</span>::common::{<a href="../common.rs.html#100">DebugAddrIndex</a>, <a href="../common.rs.html#108">DebugInfoOffset</a>, <a href="../common.rs.html#37">Encoding</a>, <a href="../common.rs.html#88">Register</a>};
-<span class="kw">use </span><a href="../lib.rs.html#57"><span class="kw">crate</span>::constants</a>;
-<span class="kw">use </span><span class="kw">crate</span>::read::{<a href="mod.rs.html#271">Error</a>, <a href="reader.rs.html#215">Reader</a>, <a href="reader.rs.html#24-25">ReaderOffset</a>, <span class="prelude-ty">Result</span>, <a href="mod.rs.html#262">StoreOnHeap</a>, <a href="mod.rs.html#250">UnitOffset</a>, <a href="value.rs.html#55">Value</a>, <a href="value.rs.html#26">ValueType</a>};
+<span class="kw">use </span><span class="kw">super</span>::util::{ArrayLike, ArrayVec};
+<span class="kw">use </span><span class="kw">crate</span>::common::{DebugAddrIndex, DebugInfoOffset, Encoding, Register};
+<span class="kw">use </span><span class="kw">crate</span>::constants;
+<span class="kw">use </span><span class="kw">crate</span>::read::{Error, Reader, ReaderOffset, <span class="prelude-ty">Result</span>, StoreOnHeap, UnitOffset, Value, ValueType};
 
 <span class="doccomment">/// A reference to a DIE, either relative to the current CU or
 /// relative to the section.
 </span><span class="attr">#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-</span><span class="kw">pub enum </span>DieReference&lt;T = <a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>&gt; {
+</span><span class="kw">pub enum </span>DieReference&lt;T = usize&gt; {
     <span class="doccomment">/// A CU-relative reference.
     </span>UnitRef(UnitOffset&lt;T&gt;),
     <span class="doccomment">/// A section-relative reference.
@@ -4148,17 +4143,17 @@
 </span><span class="kw">pub enum </span>Operation&lt;R, Offset = &lt;R <span class="kw">as </span>Reader&gt;::Offset&gt;
 <span class="kw">where
     </span>R: Reader&lt;Offset = Offset&gt;,
-    Offset: <a href="reader.rs.html#24-25">ReaderOffset</a>,
+    Offset: ReaderOffset,
 {
     <span class="doccomment">/// Dereference the topmost value of the stack.
     </span>Deref {
         <span class="doccomment">/// The DIE of the base type or 0 to indicate the generic type
         </span>base_type: UnitOffset&lt;Offset&gt;,
         <span class="doccomment">/// The size of the data to dereference.
-        </span>size: <a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>,
+        </span>size: u8,
         <span class="doccomment">/// True if the dereference operation takes an address space
         /// argument from the stack; false otherwise.
-        </span>space: <a href="https://doc.rust-lang.org/nightly/core/primitive.bool.html">bool</a>,
+        </span>space: bool,
     },
     <span class="doccomment">/// Drop an item from the stack.
     </span>Drop,
@@ -4167,7 +4162,7 @@
     /// `DW_OP_over`.
     </span>Pick {
         <span class="doccomment">/// The index, from the top of the stack, of the item to copy.
-        </span>index: <a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>,
+        </span>index: u8,
     },
     <span class="doccomment">/// Swap the top two stack items.
     </span>Swap,
@@ -4196,7 +4191,7 @@
     <span class="doccomment">/// Add a constant to the topmost value on the stack.
     </span>PlusConstant {
         <span class="doccomment">/// The value to add.
-        </span>value: <a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>,
+        </span>value: u64,
     },
     <span class="doccomment">/// Logical left shift of the 2nd value on the stack by the number
     /// of bits given by the topmost value on the stack.
@@ -4212,7 +4207,7 @@
     <span class="doccomment">/// Branch to the target location if the top of stack is nonzero.
     </span>Bra {
         <span class="doccomment">/// The relative offset to the target bytecode.
-        </span>target: <a href="https://doc.rust-lang.org/nightly/core/primitive.i16.html">i16</a>,
+        </span>target: i16,
     },
     <span class="doccomment">/// Compare the top two stack values for equality.
     </span>Eq,
@@ -4229,34 +4224,34 @@
     <span class="doccomment">/// Unconditional branch to the target location.
     </span>Skip {
         <span class="doccomment">/// The relative offset to the target bytecode.
-        </span>target: <a href="https://doc.rust-lang.org/nightly/core/primitive.i16.html">i16</a>,
+        </span>target: i16,
     },
     <span class="doccomment">/// Push an unsigned constant value on the stack.  This handles multiple
     /// DWARF opcodes.
     </span>UnsignedConstant {
         <span class="doccomment">/// The value to push.
-        </span>value: <a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>,
+        </span>value: u64,
     },
     <span class="doccomment">/// Push a signed constant value on the stack.  This handles multiple
     /// DWARF opcodes.
     </span>SignedConstant {
         <span class="doccomment">/// The value to push.
-        </span>value: <a href="https://doc.rust-lang.org/nightly/core/primitive.i64.html">i64</a>,
+        </span>value: i64,
     },
     <span class="doccomment">/// Indicate that this piece&#39;s location is in the given register.
     ///
     /// Completes the piece or expression.
     </span>Register {
         <span class="doccomment">/// The register number.
-        </span>register: <a href="../common.rs.html#88">Register</a>,
+        </span>register: Register,
     },
     <span class="doccomment">/// Find the value of the given register, add the offset, and then
     /// push the resulting sum on the stack.
     </span>RegisterOffset {
         <span class="doccomment">/// The register number.
-        </span>register: <a href="../common.rs.html#88">Register</a>,
+        </span>register: Register,
         <span class="doccomment">/// The offset to add.
-        </span>offset: <a href="https://doc.rust-lang.org/nightly/core/primitive.i64.html">i64</a>,
+        </span>offset: i64,
         <span class="doccomment">/// The DIE of the base type or 0 to indicate the generic type
         </span>base_type: UnitOffset&lt;Offset&gt;,
     },
@@ -4264,7 +4259,7 @@
     /// given offset, and then push the resulting sum on the stack.
     </span>FrameOffset {
         <span class="doccomment">/// The offset to add.
-        </span>offset: <a href="https://doc.rust-lang.org/nightly/core/primitive.i64.html">i64</a>,
+        </span>offset: i64,
     },
     <span class="doccomment">/// No operation.
     </span>Nop,
@@ -4285,11 +4280,11 @@
     <span class="doccomment">/// Terminate a piece.
     </span>Piece {
         <span class="doccomment">/// The size of this piece in bits.
-        </span>size_in_bits: <a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>,
+        </span>size_in_bits: u64,
         <span class="doccomment">/// The bit offset of this piece.  If `None`, then this piece
         /// was specified using `DW_OP_piece` and should start at the
         /// next byte boundary.
-        </span>bit_offset: <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>&gt;,
+        </span>bit_offset: <span class="prelude-ty">Option</span>&lt;u64&gt;,
     },
     <span class="doccomment">/// The object has no location, but has a known constant value.
     ///
@@ -4313,7 +4308,7 @@
         <span class="doccomment">/// The `.debug_info` offset of the value that this is an implicit pointer into.
         </span>value: DebugInfoOffset&lt;Offset&gt;,
         <span class="doccomment">/// The byte offset into the value that the implicit pointer points to.
-        </span>byte_offset: <a href="https://doc.rust-lang.org/nightly/core/primitive.i64.html">i64</a>,
+        </span>byte_offset: i64,
     },
     <span class="doccomment">/// Evaluate an expression at the entry to the current subprogram, and push it on the stack.
     ///
@@ -4338,7 +4333,7 @@
     /// Represents `DW_OP_addr`.
     </span>Address {
         <span class="doccomment">/// The offset to add.
-        </span>address: <a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>,
+        </span>address: u64,
     },
     <span class="doccomment">/// Read the address at the given index in `.debug_addr, relocate the address if needed,
     /// and push it on the stack.
@@ -4386,7 +4381,7 @@
     /// Completes the piece or expression.
     </span>WasmLocal {
         <span class="doccomment">/// The index of the local.
-        </span>index: <a href="https://doc.rust-lang.org/nightly/core/primitive.u32.html">u32</a>,
+        </span>index: u32,
     },
     <span class="doccomment">/// The index of a global.
     ///
@@ -4394,7 +4389,7 @@
     /// Completes the piece or expression.
     </span>WasmGlobal {
         <span class="doccomment">/// The index of the global.
-        </span>index: <a href="https://doc.rust-lang.org/nightly/core/primitive.u32.html">u32</a>,
+        </span>index: u32,
     },
     <span class="doccomment">/// The index of an item on the operand stack.
     ///
@@ -4402,12 +4397,12 @@
     /// Completes the piece or expression.
     </span>WasmStack {
         <span class="doccomment">/// The index of the stack item. 0 is the bottom of the operand stack.
-        </span>index: <a href="https://doc.rust-lang.org/nightly/core/primitive.u32.html">u32</a>,
+        </span>index: u32,
     },
 }
 
 <span class="attr">#[derive(Debug)]
-</span><span class="kw">enum </span>OperationEvaluationResult&lt;R: <a href="reader.rs.html#215">Reader</a>&gt; {
+</span><span class="kw">enum </span>OperationEvaluationResult&lt;R: Reader&gt; {
     Piece,
     Incomplete,
     Complete { location: Location&lt;R&gt; },
@@ -4419,7 +4414,7 @@
 </span><span class="kw">pub enum </span>Location&lt;R, Offset = &lt;R <span class="kw">as </span>Reader&gt;::Offset&gt;
 <span class="kw">where
     </span>R: Reader&lt;Offset = Offset&gt;,
-    Offset: <a href="reader.rs.html#24-25">ReaderOffset</a>,
+    Offset: ReaderOffset,
 {
     <span class="doccomment">/// The piece is empty.  Ordinarily this means the piece has been
     /// optimized away.
@@ -4427,17 +4422,17 @@
     <span class="doccomment">/// The piece is found in a register.
     </span>Register {
         <span class="doccomment">/// The register number.
-        </span>register: <a href="../common.rs.html#88">Register</a>,
+        </span>register: Register,
     },
     <span class="doccomment">/// The piece is found in memory.
     </span>Address {
         <span class="doccomment">/// The address.
-        </span>address: <a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>,
+        </span>address: u64,
     },
     <span class="doccomment">/// The piece has no location but its value is known.
     </span>Value {
         <span class="doccomment">/// The value.
-        </span>value: <a href="value.rs.html#55">Value</a>,
+        </span>value: Value,
     },
     <span class="doccomment">/// The piece is represented by some constant bytes.
     </span>Bytes {
@@ -4449,21 +4444,18 @@
         <span class="doccomment">/// The `.debug_info` offset of the value that this is an implicit pointer into.
         </span>value: DebugInfoOffset&lt;Offset&gt;,
         <span class="doccomment">/// The byte offset into the value that the implicit pointer points to.
-        </span>byte_offset: <a href="https://doc.rust-lang.org/nightly/core/primitive.i64.html">i64</a>,
+        </span>byte_offset: i64,
     },
 }
 
 <span class="kw">impl</span>&lt;R, Offset&gt; Location&lt;R, Offset&gt;
 <span class="kw">where
     </span>R: Reader&lt;Offset = Offset&gt;,
-    Offset: <a href="reader.rs.html#24-25">ReaderOffset</a>,
+    Offset: ReaderOffset,
 {
     <span class="doccomment">/// Return true if the piece is empty.
-    </span><span class="kw">pub fn </span>is_empty(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/primitive.bool.html">bool</a> {
-        <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="#348">self</a> </span>{
-            <a href="#312">Location::Empty</a> =&gt; <span class="bool-val">true</span>,
-            <span class="kw">_ </span>=&gt; <span class="bool-val">false</span>,
-        }
+    </span><span class="kw">pub fn </span>is_empty(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="macro">matches!</span>(<span class="kw-2">*</span><span class="self">self</span>, Location::Empty)
     }
 }
 
@@ -4473,11 +4465,11 @@
 </span><span class="kw">pub struct </span>Piece&lt;R, Offset = &lt;R <span class="kw">as </span>Reader&gt;::Offset&gt;
 <span class="kw">where
     </span>R: Reader&lt;Offset = Offset&gt;,
-    Offset: <a href="reader.rs.html#24-25">ReaderOffset</a>,
+    Offset: ReaderOffset,
 {
     <span class="doccomment">/// If given, the size of the piece in bits.  If `None`, there
     /// must be only one piece whose size is all of the object.
-    </span><span class="kw">pub </span>size_in_bits: <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>&gt;,
+    </span><span class="kw">pub </span>size_in_bits: <span class="prelude-ty">Option</span>&lt;u64&gt;,
     <span class="doccomment">/// If given, the bit offset of the piece within the location.
     /// If the location is a `Location::Register` or `Location::Value`,
     /// then this offset is from the least significant bit end of
@@ -4489,32 +4481,32 @@
     /// If `None`, the piece starts at the location. If the
     /// location is a register whose size is larger than the piece,
     /// then placement within the register is defined by the ABI.
-    </span><span class="kw">pub </span>bit_offset: <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>&gt;,
+    </span><span class="kw">pub </span>bit_offset: <span class="prelude-ty">Option</span>&lt;u64&gt;,
     <span class="doccomment">/// Where this piece is to be found.
     </span><span class="kw">pub </span>location: Location&lt;R, Offset&gt;,
 }
 
 <span class="comment">// A helper function to handle branch offsets.
-</span><span class="kw">fn </span>compute_pc&lt;R: <a href="reader.rs.html#215">Reader</a>&gt;(pc: <span class="kw-2">&amp;</span>R, bytecode: <span class="kw-2">&amp;</span>R, offset: <a href="https://doc.rust-lang.org/nightly/core/primitive.i16.html">i16</a>) -&gt; <span class="prelude-ty">Result</span>&lt;R&gt; {
-    <span class="kw">let </span>pc_offset = <a href="#384">pc</a>.<a href="reader.rs.html#239">offset_from</a>(<a href="#384">bytecode</a>);
-    <span class="kw">let </span>new_pc_offset = <a href="#385">pc_offset</a>.<a href="reader.rs.html#48">wrapping_add</a>(R::Offset::from_i16(<a href="#384">offset</a>));
+</span><span class="kw">fn </span>compute_pc&lt;R: Reader&gt;(pc: <span class="kw-2">&amp;</span>R, bytecode: <span class="kw-2">&amp;</span>R, offset: i16) -&gt; <span class="prelude-ty">Result</span>&lt;R&gt; {
+    <span class="kw">let </span>pc_offset = pc.offset_from(bytecode);
+    <span class="kw">let </span>new_pc_offset = pc_offset.wrapping_add(R::Offset::from_i16(offset));
     <span class="kw">if </span>new_pc_offset &gt; bytecode.len() {
-        <span class="prelude-val">Err</span>(<a href="mod.rs.html#345">Error::BadBranchTarget</a>(<a href="#386">new_pc_offset</a>.<a href="reader.rs.html#45">into_u64</a>()))
+        <span class="prelude-val">Err</span>(Error::BadBranchTarget(new_pc_offset.into_u64()))
     } <span class="kw">else </span>{
-        <span class="kw">let </span><span class="kw-2">mut </span>new_pc = <a href="#384">bytecode</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
+        <span class="kw">let </span><span class="kw-2">mut </span>new_pc = bytecode.clone();
         new_pc.skip(new_pc_offset)<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(<a href="#390">new_pc</a>)
+        <span class="prelude-val">Ok</span>(new_pc)
     }
 }
 
-<span class="kw">fn </span>generic_type&lt;O: <a href="reader.rs.html#24-25">ReaderOffset</a>&gt;() -&gt; UnitOffset&lt;O&gt; {
-    <a href="mod.rs.html#250">UnitOffset</a>(O::from_u64(<span class="number">0</span>).unwrap())
+<span class="kw">fn </span>generic_type&lt;O: ReaderOffset&gt;() -&gt; UnitOffset&lt;O&gt; {
+    UnitOffset(O::from_u64(<span class="number">0</span>).unwrap())
 }
 
 <span class="kw">impl</span>&lt;R, Offset&gt; Operation&lt;R, Offset&gt;
 <span class="kw">where
     </span>R: Reader&lt;Offset = Offset&gt;,
-    Offset: <a href="reader.rs.html#24-25">ReaderOffset</a>,
+    Offset: ReaderOffset,
 {
     <span class="doccomment">/// Parse a single DWARF expression operation.
     ///
@@ -4524,303 +4516,303 @@
     /// `bytes` points to a the operation to decode.  It should point into
     /// the same array as `bytecode`, which should be the entire
     /// expression.
-    </span><span class="kw">pub fn </span>parse(bytes: <span class="kw-2">&amp;mut </span>R, encoding: <a href="../common.rs.html#37">Encoding</a>) -&gt; <span class="prelude-ty">Result</span>&lt;Operation&lt;R, Offset&gt;&gt; {
+    </span><span class="kw">pub fn </span>parse(bytes: <span class="kw-2">&amp;mut </span>R, encoding: Encoding) -&gt; <span class="prelude-ty">Result</span>&lt;Operation&lt;R, Offset&gt;&gt; {
         <span class="kw">let </span>opcode = bytes.read_u8()<span class="question-mark">?</span>;
-        <span class="kw">let </span>name = <a href="../constants.rs.html#1085-1270">constants::DwOp</a>(<a href="#414">opcode</a>);
-        <span class="kw">match </span><a href="#415">name</a> {
-            <a href="../constants.rs.html#1085-1270">constants::DW_OP_addr</a> =&gt; {
+        <span class="kw">let </span>name = constants::DwOp(opcode);
+        <span class="kw">match </span>name {
+            constants::DW_OP_addr =&gt; {
                 <span class="kw">let </span>address = bytes.read_address(encoding.address_size)<span class="question-mark">?</span>;
-                <span class="prelude-val">Ok</span>(<a href="#225">Operation::Address</a> { <a href="#418">address</a> })
+                <span class="prelude-val">Ok</span>(Operation::Address { address })
             }
-            <a href="../constants.rs.html#1085-1270">constants::DW_OP_deref</a> =&gt; <span class="prelude-val">Ok</span>(<a href="#40">Operation::Deref</a> {
-                base_type: <a href="#396">generic_type</a>(),
-                size: <a href="#413">encoding</a>.address_size,
+            constants::DW_OP_deref =&gt; <span class="prelude-val">Ok</span>(Operation::Deref {
+                base_type: generic_type(),
+                size: encoding.address_size,
                 space: <span class="bool-val">false</span>,
             }),
-            <a href="../constants.rs.html#1085-1270">constants::DW_OP_const1u</a> =&gt; {
+            constants::DW_OP_const1u =&gt; {
                 <span class="kw">let </span>value = bytes.read_u8()<span class="question-mark">?</span>;
-                <span class="prelude-val">Ok</span>(<a href="#122">Operation::UnsignedConstant</a> {
-                    value: u64::from(<a href="#427">value</a>),
+                <span class="prelude-val">Ok</span>(Operation::UnsignedConstant {
+                    value: u64::from(value),
                 })
             }
-            <a href="../constants.rs.html#1085-1270">constants::DW_OP_const1s</a> =&gt; {
+            constants::DW_OP_const1s =&gt; {
                 <span class="kw">let </span>value = bytes.read_i8()<span class="question-mark">?</span>;
-                <span class="prelude-val">Ok</span>(<a href="#128">Operation::SignedConstant</a> {
-                    value: i64::from(<a href="#433">value</a>),
+                <span class="prelude-val">Ok</span>(Operation::SignedConstant {
+                    value: i64::from(value),
                 })
             }
-            <a href="../constants.rs.html#1085-1270">constants::DW_OP_const2u</a> =&gt; {
+            constants::DW_OP_const2u =&gt; {
                 <span class="kw">let </span>value = bytes.read_u16()<span class="question-mark">?</span>;
-                <span class="prelude-val">Ok</span>(<a href="#122">Operation::UnsignedConstant</a> {
-                    value: u64::from(<a href="#439">value</a>),
+                <span class="prelude-val">Ok</span>(Operation::UnsignedConstant {
+                    value: u64::from(value),
                 })
             }
-            <a href="../constants.rs.html#1085-1270">constants::DW_OP_const2s</a> =&gt; {
+            constants::DW_OP_const2s =&gt; {
                 <span class="kw">let </span>value = bytes.read_i16()<span class="question-mark">?</span>;
-                <span class="prelude-val">Ok</span>(<a href="#128">Operation::SignedConstant</a> {
-                    value: i64::from(<a href="#445">value</a>),
+                <span class="prelude-val">Ok</span>(Operation::SignedConstant {
+                    value: i64::from(value),
                 })
             }
-            <a href="../constants.rs.html#1085-1270">constants::DW_OP_const4u</a> =&gt; {
+            constants::DW_OP_const4u =&gt; {
                 <span class="kw">let </span>value = bytes.read_u32()<span class="question-mark">?</span>;
-                <span class="prelude-val">Ok</span>(<a href="#122">Operation::UnsignedConstant</a> {
-                    value: u64::from(<a href="#451">value</a>),
+                <span class="prelude-val">Ok</span>(Operation::UnsignedConstant {
+                    value: u64::from(value),
                 })
             }
-            <a href="../constants.rs.html#1085-1270">constants::DW_OP_const4s</a> =&gt; {
+            constants::DW_OP_const4s =&gt; {
                 <span class="kw">let </span>value = bytes.read_i32()<span class="question-mark">?</span>;
-                <span class="prelude-val">Ok</span>(<a href="#128">Operation::SignedConstant</a> {
-                    value: i64::from(<a href="#457">value</a>),
+                <span class="prelude-val">Ok</span>(Operation::SignedConstant {
+                    value: i64::from(value),
                 })
             }
-            <a href="../constants.rs.html#1085-1270">constants::DW_OP_const8u</a> =&gt; {
+            constants::DW_OP_const8u =&gt; {
                 <span class="kw">let </span>value = bytes.read_u64()<span class="question-mark">?</span>;
-                <span class="prelude-val">Ok</span>(<a href="#122">Operation::UnsignedConstant</a> { <a href="#463">value</a> })
+                <span class="prelude-val">Ok</span>(Operation::UnsignedConstant { value })
             }
-            <a href="../constants.rs.html#1085-1270">constants::DW_OP_const8s</a> =&gt; {
+            constants::DW_OP_const8s =&gt; {
                 <span class="kw">let </span>value = bytes.read_i64()<span class="question-mark">?</span>;
-                <span class="prelude-val">Ok</span>(<a href="#128">Operation::SignedConstant</a> { <a href="#467">value</a> })
+                <span class="prelude-val">Ok</span>(Operation::SignedConstant { value })
             }
-            <a href="../constants.rs.html#1085-1270">constants::DW_OP_constu</a> =&gt; {
+            constants::DW_OP_constu =&gt; {
                 <span class="kw">let </span>value = bytes.read_uleb128()<span class="question-mark">?</span>;
-                <span class="prelude-val">Ok</span>(<a href="#122">Operation::UnsignedConstant</a> { <a href="#471">value</a> })
+                <span class="prelude-val">Ok</span>(Operation::UnsignedConstant { value })
             }
-            <a href="../constants.rs.html#1085-1270">constants::DW_OP_consts</a> =&gt; {
+            constants::DW_OP_consts =&gt; {
                 <span class="kw">let </span>value = bytes.read_sleb128()<span class="question-mark">?</span>;
-                <span class="prelude-val">Ok</span>(<a href="#128">Operation::SignedConstant</a> { <a href="#475">value</a> })
+                <span class="prelude-val">Ok</span>(Operation::SignedConstant { value })
             }
-            <a href="../constants.rs.html#1085-1270">constants::DW_OP_dup</a> =&gt; <span class="prelude-val">Ok</span>(<a href="#54">Operation::Pick</a> { index: <span class="number">0 </span>}),
-            <a href="../constants.rs.html#1085-1270">constants::DW_OP_drop</a> =&gt; <span class="prelude-val">Ok</span>(<a href="#50">Operation::Drop</a>),
-            <a href="../constants.rs.html#1085-1270">constants::DW_OP_over</a> =&gt; <span class="prelude-val">Ok</span>(<a href="#54">Operation::Pick</a> { index: <span class="number">1 </span>}),
-            <a href="../constants.rs.html#1085-1270">constants::DW_OP_pick</a> =&gt; {
+            constants::DW_OP_dup =&gt; <span class="prelude-val">Ok</span>(Operation::Pick { index: <span class="number">0 </span>}),
+            constants::DW_OP_drop =&gt; <span class="prelude-val">Ok</span>(Operation::Drop),
+            constants::DW_OP_over =&gt; <span class="prelude-val">Ok</span>(Operation::Pick { index: <span class="number">1 </span>}),
+            constants::DW_OP_pick =&gt; {
                 <span class="kw">let </span>value = bytes.read_u8()<span class="question-mark">?</span>;
-                <span class="prelude-val">Ok</span>(<a href="#54">Operation::Pick</a> { index: <a href="#482">value</a> })
+                <span class="prelude-val">Ok</span>(Operation::Pick { index: value })
             }
-            <a href="../constants.rs.html#1085-1270">constants::DW_OP_swap</a> =&gt; <span class="prelude-val">Ok</span>(<a href="#59">Operation::Swap</a>),
-            <a href="../constants.rs.html#1085-1270">constants::DW_OP_rot</a> =&gt; <span class="prelude-val">Ok</span>(<a href="#61">Operation::Rot</a>),
-            <a href="../constants.rs.html#1085-1270">constants::DW_OP_xderef</a> =&gt; <span class="prelude-val">Ok</span>(<a href="#40">Operation::Deref</a> {
-                base_type: <a href="#396">generic_type</a>(),
-                size: <a href="#413">encoding</a>.address_size,
+            constants::DW_OP_swap =&gt; <span class="prelude-val">Ok</span>(Operation::Swap),
+            constants::DW_OP_rot =&gt; <span class="prelude-val">Ok</span>(Operation::Rot),
+            constants::DW_OP_xderef =&gt; <span class="prelude-val">Ok</span>(Operation::Deref {
+                base_type: generic_type(),
+                size: encoding.address_size,
                 space: <span class="bool-val">true</span>,
             }),
-            <a href="../constants.rs.html#1085-1270">constants::DW_OP_abs</a> =&gt; <span class="prelude-val">Ok</span>(<a href="#63">Operation::Abs</a>),
-            <a href="../constants.rs.html#1085-1270">constants::DW_OP_and</a> =&gt; <span class="prelude-val">Ok</span>(<a href="#65">Operation::And</a>),
-            <a href="../constants.rs.html#1085-1270">constants::DW_OP_div</a> =&gt; <span class="prelude-val">Ok</span>(<a href="#67">Operation::Div</a>),
-            <a href="../constants.rs.html#1085-1270">constants::DW_OP_minus</a> =&gt; <span class="prelude-val">Ok</span>(<a href="#69">Operation::Minus</a>),
-            <a href="../constants.rs.html#1085-1270">constants::DW_OP_mod</a> =&gt; <span class="prelude-val">Ok</span>(<a href="#71">Operation::Mod</a>),
-            <a href="../constants.rs.html#1085-1270">constants::DW_OP_mul</a> =&gt; <span class="prelude-val">Ok</span>(<a href="#73">Operation::Mul</a>),
-            <a href="../constants.rs.html#1085-1270">constants::DW_OP_neg</a> =&gt; <span class="prelude-val">Ok</span>(<a href="#75">Operation::Neg</a>),
-            <a href="../constants.rs.html#1085-1270">constants::DW_OP_not</a> =&gt; <span class="prelude-val">Ok</span>(<a href="#77">Operation::Not</a>),
-            <a href="../constants.rs.html#1085-1270">constants::DW_OP_or</a> =&gt; <span class="prelude-val">Ok</span>(<a href="#79">Operation::Or</a>),
-            <a href="../constants.rs.html#1085-1270">constants::DW_OP_plus</a> =&gt; <span class="prelude-val">Ok</span>(<a href="#81">Operation::Plus</a>),
-            <a href="../constants.rs.html#1085-1270">constants::DW_OP_plus_uconst</a> =&gt; {
+            constants::DW_OP_abs =&gt; <span class="prelude-val">Ok</span>(Operation::Abs),
+            constants::DW_OP_and =&gt; <span class="prelude-val">Ok</span>(Operation::And),
+            constants::DW_OP_div =&gt; <span class="prelude-val">Ok</span>(Operation::Div),
+            constants::DW_OP_minus =&gt; <span class="prelude-val">Ok</span>(Operation::Minus),
+            constants::DW_OP_mod =&gt; <span class="prelude-val">Ok</span>(Operation::Mod),
+            constants::DW_OP_mul =&gt; <span class="prelude-val">Ok</span>(Operation::Mul),
+            constants::DW_OP_neg =&gt; <span class="prelude-val">Ok</span>(Operation::Neg),
+            constants::DW_OP_not =&gt; <span class="prelude-val">Ok</span>(Operation::Not),
+            constants::DW_OP_or =&gt; <span class="prelude-val">Ok</span>(Operation::Or),
+            constants::DW_OP_plus =&gt; <span class="prelude-val">Ok</span>(Operation::Plus),
+            constants::DW_OP_plus_uconst =&gt; {
                 <span class="kw">let </span>value = bytes.read_uleb128()<span class="question-mark">?</span>;
-                <span class="prelude-val">Ok</span>(<a href="#83">Operation::PlusConstant</a> { <a href="#503">value</a> })
+                <span class="prelude-val">Ok</span>(Operation::PlusConstant { value })
             }
-            <a href="../constants.rs.html#1085-1270">constants::DW_OP_shl</a> =&gt; <span class="prelude-val">Ok</span>(<a href="#89">Operation::Shl</a>),
-            <a href="../constants.rs.html#1085-1270">constants::DW_OP_shr</a> =&gt; <span class="prelude-val">Ok</span>(<a href="#92">Operation::Shr</a>),
-            <a href="../constants.rs.html#1085-1270">constants::DW_OP_shra</a> =&gt; <span class="prelude-val">Ok</span>(<a href="#95">Operation::Shra</a>),
-            <a href="../constants.rs.html#1085-1270">constants::DW_OP_xor</a> =&gt; <span class="prelude-val">Ok</span>(<a href="#97">Operation::Xor</a>),
-            <a href="../constants.rs.html#1085-1270">constants::DW_OP_bra</a> =&gt; {
+            constants::DW_OP_shl =&gt; <span class="prelude-val">Ok</span>(Operation::Shl),
+            constants::DW_OP_shr =&gt; <span class="prelude-val">Ok</span>(Operation::Shr),
+            constants::DW_OP_shra =&gt; <span class="prelude-val">Ok</span>(Operation::Shra),
+            constants::DW_OP_xor =&gt; <span class="prelude-val">Ok</span>(Operation::Xor),
+            constants::DW_OP_bra =&gt; {
                 <span class="kw">let </span>target = bytes.read_i16()<span class="question-mark">?</span>;
-                <span class="prelude-val">Ok</span>(<a href="#99">Operation::Bra</a> { <a href="#511">target</a> })
+                <span class="prelude-val">Ok</span>(Operation::Bra { target })
             }
-            <a href="../constants.rs.html#1085-1270">constants::DW_OP_eq</a> =&gt; <span class="prelude-val">Ok</span>(<a href="#104">Operation::Eq</a>),
-            <a href="../constants.rs.html#1085-1270">constants::DW_OP_ge</a> =&gt; <span class="prelude-val">Ok</span>(<a href="#106">Operation::Ge</a>),
-            <a href="../constants.rs.html#1085-1270">constants::DW_OP_gt</a> =&gt; <span class="prelude-val">Ok</span>(<a href="#108">Operation::Gt</a>),
-            <a href="../constants.rs.html#1085-1270">constants::DW_OP_le</a> =&gt; <span class="prelude-val">Ok</span>(<a href="#110">Operation::Le</a>),
-            <a href="../constants.rs.html#1085-1270">constants::DW_OP_lt</a> =&gt; <span class="prelude-val">Ok</span>(<a href="#112">Operation::Lt</a>),
-            <a href="../constants.rs.html#1085-1270">constants::DW_OP_ne</a> =&gt; <span class="prelude-val">Ok</span>(<a href="#114">Operation::Ne</a>),
-            <a href="../constants.rs.html#1085-1270">constants::DW_OP_skip</a> =&gt; {
+            constants::DW_OP_eq =&gt; <span class="prelude-val">Ok</span>(Operation::Eq),
+            constants::DW_OP_ge =&gt; <span class="prelude-val">Ok</span>(Operation::Ge),
+            constants::DW_OP_gt =&gt; <span class="prelude-val">Ok</span>(Operation::Gt),
+            constants::DW_OP_le =&gt; <span class="prelude-val">Ok</span>(Operation::Le),
+            constants::DW_OP_lt =&gt; <span class="prelude-val">Ok</span>(Operation::Lt),
+            constants::DW_OP_ne =&gt; <span class="prelude-val">Ok</span>(Operation::Ne),
+            constants::DW_OP_skip =&gt; {
                 <span class="kw">let </span>target = bytes.read_i16()<span class="question-mark">?</span>;
-                <span class="prelude-val">Ok</span>(<a href="#116">Operation::Skip</a> { <a href="#521">target</a> })
+                <span class="prelude-val">Ok</span>(Operation::Skip { target })
             }
-            <a href="../constants.rs.html#1085-1270">constants::DW_OP_lit0</a>
-            | <a href="../constants.rs.html#1085-1270">constants::DW_OP_lit1</a>
-            | <a href="../constants.rs.html#1085-1270">constants::DW_OP_lit2</a>
-            | <a href="../constants.rs.html#1085-1270">constants::DW_OP_lit3</a>
-            | <a href="../constants.rs.html#1085-1270">constants::DW_OP_lit4</a>
-            | <a href="../constants.rs.html#1085-1270">constants::DW_OP_lit5</a>
-            | <a href="../constants.rs.html#1085-1270">constants::DW_OP_lit6</a>
-            | <a href="../constants.rs.html#1085-1270">constants::DW_OP_lit7</a>
-            | <a href="../constants.rs.html#1085-1270">constants::DW_OP_lit8</a>
-            | <a href="../constants.rs.html#1085-1270">constants::DW_OP_lit9</a>
-            | <a href="../constants.rs.html#1085-1270">constants::DW_OP_lit10</a>
-            | <a href="../constants.rs.html#1085-1270">constants::DW_OP_lit11</a>
-            | <a href="../constants.rs.html#1085-1270">constants::DW_OP_lit12</a>
-            | <a href="../constants.rs.html#1085-1270">constants::DW_OP_lit13</a>
-            | <a href="../constants.rs.html#1085-1270">constants::DW_OP_lit14</a>
-            | <a href="../constants.rs.html#1085-1270">constants::DW_OP_lit15</a>
-            | <a href="../constants.rs.html#1085-1270">constants::DW_OP_lit16</a>
-            | <a href="../constants.rs.html#1085-1270">constants::DW_OP_lit17</a>
-            | <a href="../constants.rs.html#1085-1270">constants::DW_OP_lit18</a>
-            | <a href="../constants.rs.html#1085-1270">constants::DW_OP_lit19</a>
-            | <a href="../constants.rs.html#1085-1270">constants::DW_OP_lit20</a>
-            | <a href="../constants.rs.html#1085-1270">constants::DW_OP_lit21</a>
-            | <a href="../constants.rs.html#1085-1270">constants::DW_OP_lit22</a>
-            | <a href="../constants.rs.html#1085-1270">constants::DW_OP_lit23</a>
-            | <a href="../constants.rs.html#1085-1270">constants::DW_OP_lit24</a>
-            | <a href="../constants.rs.html#1085-1270">constants::DW_OP_lit25</a>
-            | <a href="../constants.rs.html#1085-1270">constants::DW_OP_lit26</a>
-            | <a href="../constants.rs.html#1085-1270">constants::DW_OP_lit27</a>
-            | <a href="../constants.rs.html#1085-1270">constants::DW_OP_lit28</a>
-            | <a href="../constants.rs.html#1085-1270">constants::DW_OP_lit29</a>
-            | <a href="../constants.rs.html#1085-1270">constants::DW_OP_lit30</a>
-            | <a href="../constants.rs.html#1085-1270">constants::DW_OP_lit31</a> =&gt; <span class="prelude-val">Ok</span>(<a href="#122">Operation::UnsignedConstant</a> {
-                value: (<a href="#414">opcode</a> - <a href="../constants.rs.html#1085-1270">constants::DW_OP_lit0</a>.<span class="number">0</span>).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
+            constants::DW_OP_lit0
+            | constants::DW_OP_lit1
+            | constants::DW_OP_lit2
+            | constants::DW_OP_lit3
+            | constants::DW_OP_lit4
+            | constants::DW_OP_lit5
+            | constants::DW_OP_lit6
+            | constants::DW_OP_lit7
+            | constants::DW_OP_lit8
+            | constants::DW_OP_lit9
+            | constants::DW_OP_lit10
+            | constants::DW_OP_lit11
+            | constants::DW_OP_lit12
+            | constants::DW_OP_lit13
+            | constants::DW_OP_lit14
+            | constants::DW_OP_lit15
+            | constants::DW_OP_lit16
+            | constants::DW_OP_lit17
+            | constants::DW_OP_lit18
+            | constants::DW_OP_lit19
+            | constants::DW_OP_lit20
+            | constants::DW_OP_lit21
+            | constants::DW_OP_lit22
+            | constants::DW_OP_lit23
+            | constants::DW_OP_lit24
+            | constants::DW_OP_lit25
+            | constants::DW_OP_lit26
+            | constants::DW_OP_lit27
+            | constants::DW_OP_lit28
+            | constants::DW_OP_lit29
+            | constants::DW_OP_lit30
+            | constants::DW_OP_lit31 =&gt; <span class="prelude-val">Ok</span>(Operation::UnsignedConstant {
+                value: (opcode - constants::DW_OP_lit0.<span class="number">0</span>).into(),
             }),
-            <a href="../constants.rs.html#1085-1270">constants::DW_OP_reg0</a>
-            | <a href="../constants.rs.html#1085-1270">constants::DW_OP_reg1</a>
-            | <a href="../constants.rs.html#1085-1270">constants::DW_OP_reg2</a>
-            | <a href="../constants.rs.html#1085-1270">constants::DW_OP_reg3</a>
-            | <a href="../constants.rs.html#1085-1270">constants::DW_OP_reg4</a>
-            | <a href="../constants.rs.html#1085-1270">constants::DW_OP_reg5</a>
-            | <a href="../constants.rs.html#1085-1270">constants::DW_OP_reg6</a>
-            | <a href="../constants.rs.html#1085-1270">constants::DW_OP_reg7</a>
-            | <a href="../constants.rs.html#1085-1270">constants::DW_OP_reg8</a>
-            | <a href="../constants.rs.html#1085-1270">constants::DW_OP_reg9</a>
-            | <a href="../constants.rs.html#1085-1270">constants::DW_OP_reg10</a>
-            | <a href="../constants.rs.html#1085-1270">constants::DW_OP_reg11</a>
-            | <a href="../constants.rs.html#1085-1270">constants::DW_OP_reg12</a>
-            | <a href="../constants.rs.html#1085-1270">constants::DW_OP_reg13</a>
-            | <a href="../constants.rs.html#1085-1270">constants::DW_OP_reg14</a>
-            | <a href="../constants.rs.html#1085-1270">constants::DW_OP_reg15</a>
-            | <a href="../constants.rs.html#1085-1270">constants::DW_OP_reg16</a>
-            | <a href="../constants.rs.html#1085-1270">constants::DW_OP_reg17</a>
-            | <a href="../constants.rs.html#1085-1270">constants::DW_OP_reg18</a>
-            | <a href="../constants.rs.html#1085-1270">constants::DW_OP_reg19</a>
-            | <a href="../constants.rs.html#1085-1270">constants::DW_OP_reg20</a>
-            | <a href="../constants.rs.html#1085-1270">constants::DW_OP_reg21</a>
-            | <a href="../constants.rs.html#1085-1270">constants::DW_OP_reg22</a>
-            | <a href="../constants.rs.html#1085-1270">constants::DW_OP_reg23</a>
-            | <a href="../constants.rs.html#1085-1270">constants::DW_OP_reg24</a>
-            | <a href="../constants.rs.html#1085-1270">constants::DW_OP_reg25</a>
-            | <a href="../constants.rs.html#1085-1270">constants::DW_OP_reg26</a>
-            | <a href="../constants.rs.html#1085-1270">constants::DW_OP_reg27</a>
-            | <a href="../constants.rs.html#1085-1270">constants::DW_OP_reg28</a>
-            | <a href="../constants.rs.html#1085-1270">constants::DW_OP_reg29</a>
-            | <a href="../constants.rs.html#1085-1270">constants::DW_OP_reg30</a>
-            | <a href="../constants.rs.html#1085-1270">constants::DW_OP_reg31</a> =&gt; <span class="prelude-val">Ok</span>(<a href="#135">Operation::Register</a> {
-                register: <a href="../common.rs.html#88">Register</a>((<a href="#414">opcode</a> - <a href="../constants.rs.html#1085-1270">constants::DW_OP_reg0</a>.<span class="number">0</span>).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
+            constants::DW_OP_reg0
+            | constants::DW_OP_reg1
+            | constants::DW_OP_reg2
+            | constants::DW_OP_reg3
+            | constants::DW_OP_reg4
+            | constants::DW_OP_reg5
+            | constants::DW_OP_reg6
+            | constants::DW_OP_reg7
+            | constants::DW_OP_reg8
+            | constants::DW_OP_reg9
+            | constants::DW_OP_reg10
+            | constants::DW_OP_reg11
+            | constants::DW_OP_reg12
+            | constants::DW_OP_reg13
+            | constants::DW_OP_reg14
+            | constants::DW_OP_reg15
+            | constants::DW_OP_reg16
+            | constants::DW_OP_reg17
+            | constants::DW_OP_reg18
+            | constants::DW_OP_reg19
+            | constants::DW_OP_reg20
+            | constants::DW_OP_reg21
+            | constants::DW_OP_reg22
+            | constants::DW_OP_reg23
+            | constants::DW_OP_reg24
+            | constants::DW_OP_reg25
+            | constants::DW_OP_reg26
+            | constants::DW_OP_reg27
+            | constants::DW_OP_reg28
+            | constants::DW_OP_reg29
+            | constants::DW_OP_reg30
+            | constants::DW_OP_reg31 =&gt; <span class="prelude-val">Ok</span>(Operation::Register {
+                register: Register((opcode - constants::DW_OP_reg0.<span class="number">0</span>).into()),
             }),
-            <a href="../constants.rs.html#1085-1270">constants::DW_OP_breg0</a>
-            | <a href="../constants.rs.html#1085-1270">constants::DW_OP_breg1</a>
-            | <a href="../constants.rs.html#1085-1270">constants::DW_OP_breg2</a>
-            | <a href="../constants.rs.html#1085-1270">constants::DW_OP_breg3</a>
-            | <a href="../constants.rs.html#1085-1270">constants::DW_OP_breg4</a>
-            | <a href="../constants.rs.html#1085-1270">constants::DW_OP_breg5</a>
-            | <a href="../constants.rs.html#1085-1270">constants::DW_OP_breg6</a>
-            | <a href="../constants.rs.html#1085-1270">constants::DW_OP_breg7</a>
-            | <a href="../constants.rs.html#1085-1270">constants::DW_OP_breg8</a>
-            | <a href="../constants.rs.html#1085-1270">constants::DW_OP_breg9</a>
-            | <a href="../constants.rs.html#1085-1270">constants::DW_OP_breg10</a>
-            | <a href="../constants.rs.html#1085-1270">constants::DW_OP_breg11</a>
-            | <a href="../constants.rs.html#1085-1270">constants::DW_OP_breg12</a>
-            | <a href="../constants.rs.html#1085-1270">constants::DW_OP_breg13</a>
-            | <a href="../constants.rs.html#1085-1270">constants::DW_OP_breg14</a>
-            | <a href="../constants.rs.html#1085-1270">constants::DW_OP_breg15</a>
-            | <a href="../constants.rs.html#1085-1270">constants::DW_OP_breg16</a>
-            | <a href="../constants.rs.html#1085-1270">constants::DW_OP_breg17</a>
-            | <a href="../constants.rs.html#1085-1270">constants::DW_OP_breg18</a>
-            | <a href="../constants.rs.html#1085-1270">constants::DW_OP_breg19</a>
-            | <a href="../constants.rs.html#1085-1270">constants::DW_OP_breg20</a>
-            | <a href="../constants.rs.html#1085-1270">constants::DW_OP_breg21</a>
-            | <a href="../constants.rs.html#1085-1270">constants::DW_OP_breg22</a>
-            | <a href="../constants.rs.html#1085-1270">constants::DW_OP_breg23</a>
-            | <a href="../constants.rs.html#1085-1270">constants::DW_OP_breg24</a>
-            | <a href="../constants.rs.html#1085-1270">constants::DW_OP_breg25</a>
-            | <a href="../constants.rs.html#1085-1270">constants::DW_OP_breg26</a>
-            | <a href="../constants.rs.html#1085-1270">constants::DW_OP_breg27</a>
-            | <a href="../constants.rs.html#1085-1270">constants::DW_OP_breg28</a>
-            | <a href="../constants.rs.html#1085-1270">constants::DW_OP_breg29</a>
-            | <a href="../constants.rs.html#1085-1270">constants::DW_OP_breg30</a>
-            | <a href="../constants.rs.html#1085-1270">constants::DW_OP_breg31</a> =&gt; {
+            constants::DW_OP_breg0
+            | constants::DW_OP_breg1
+            | constants::DW_OP_breg2
+            | constants::DW_OP_breg3
+            | constants::DW_OP_breg4
+            | constants::DW_OP_breg5
+            | constants::DW_OP_breg6
+            | constants::DW_OP_breg7
+            | constants::DW_OP_breg8
+            | constants::DW_OP_breg9
+            | constants::DW_OP_breg10
+            | constants::DW_OP_breg11
+            | constants::DW_OP_breg12
+            | constants::DW_OP_breg13
+            | constants::DW_OP_breg14
+            | constants::DW_OP_breg15
+            | constants::DW_OP_breg16
+            | constants::DW_OP_breg17
+            | constants::DW_OP_breg18
+            | constants::DW_OP_breg19
+            | constants::DW_OP_breg20
+            | constants::DW_OP_breg21
+            | constants::DW_OP_breg22
+            | constants::DW_OP_breg23
+            | constants::DW_OP_breg24
+            | constants::DW_OP_breg25
+            | constants::DW_OP_breg26
+            | constants::DW_OP_breg27
+            | constants::DW_OP_breg28
+            | constants::DW_OP_breg29
+            | constants::DW_OP_breg30
+            | constants::DW_OP_breg31 =&gt; {
                 <span class="kw">let </span>value = bytes.read_sleb128()<span class="question-mark">?</span>;
-                <span class="prelude-val">Ok</span>(<a href="#141">Operation::RegisterOffset</a> {
-                    register: <a href="../common.rs.html#88">Register</a>((<a href="#414">opcode</a> - <a href="../constants.rs.html#1085-1270">constants::DW_OP_breg0</a>.<span class="number">0</span>).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
-                    offset: <a href="#624">value</a>,
-                    base_type: <a href="#396">generic_type</a>(),
+                <span class="prelude-val">Ok</span>(Operation::RegisterOffset {
+                    register: Register((opcode - constants::DW_OP_breg0.<span class="number">0</span>).into()),
+                    offset: value,
+                    base_type: generic_type(),
                 })
             }
-            <a href="../constants.rs.html#1085-1270">constants::DW_OP_regx</a> =&gt; {
+            constants::DW_OP_regx =&gt; {
                 <span class="kw">let </span>register = bytes.read_uleb128().and_then(Register::from_u64)<span class="question-mark">?</span>;
-                <span class="prelude-val">Ok</span>(<a href="#135">Operation::Register</a> { <a href="#632">register</a> })
+                <span class="prelude-val">Ok</span>(Operation::Register { register })
             }
-            <a href="../constants.rs.html#1085-1270">constants::DW_OP_fbreg</a> =&gt; {
+            constants::DW_OP_fbreg =&gt; {
                 <span class="kw">let </span>value = bytes.read_sleb128()<span class="question-mark">?</span>;
-                <span class="prelude-val">Ok</span>(<a href="#151">Operation::FrameOffset</a> { offset: <a href="#636">value</a> })
+                <span class="prelude-val">Ok</span>(Operation::FrameOffset { offset: value })
             }
-            <a href="../constants.rs.html#1085-1270">constants::DW_OP_bregx</a> =&gt; {
+            constants::DW_OP_bregx =&gt; {
                 <span class="kw">let </span>register = bytes.read_uleb128().and_then(Register::from_u64)<span class="question-mark">?</span>;
                 <span class="kw">let </span>offset = bytes.read_sleb128()<span class="question-mark">?</span>;
-                <span class="prelude-val">Ok</span>(<a href="#141">Operation::RegisterOffset</a> {
-                    <a href="#640">register</a>,
-                    <a href="#641">offset</a>,
-                    base_type: <a href="#396">generic_type</a>(),
+                <span class="prelude-val">Ok</span>(Operation::RegisterOffset {
+                    register,
+                    offset,
+                    base_type: generic_type(),
                 })
             }
-            <a href="../constants.rs.html#1085-1270">constants::DW_OP_piece</a> =&gt; {
+            constants::DW_OP_piece =&gt; {
                 <span class="kw">let </span>size = bytes.read_uleb128()<span class="question-mark">?</span>;
-                <span class="prelude-val">Ok</span>(<a href="#172">Operation::Piece</a> {
-                    size_in_bits: <span class="number">8 </span>* <a href="#649">size</a>,
+                <span class="prelude-val">Ok</span>(Operation::Piece {
+                    size_in_bits: <span class="number">8 </span>* size,
                     bit_offset: <span class="prelude-val">None</span>,
                 })
             }
-            <a href="../constants.rs.html#1085-1270">constants::DW_OP_deref_size</a> =&gt; {
+            constants::DW_OP_deref_size =&gt; {
                 <span class="kw">let </span>size = bytes.read_u8()<span class="question-mark">?</span>;
-                <span class="prelude-val">Ok</span>(<a href="#40">Operation::Deref</a> {
-                    base_type: <a href="#396">generic_type</a>(),
-                    <a href="#656">size</a>,
+                <span class="prelude-val">Ok</span>(Operation::Deref {
+                    base_type: generic_type(),
+                    size,
                     space: <span class="bool-val">false</span>,
                 })
             }
-            <a href="../constants.rs.html#1085-1270">constants::DW_OP_xderef_size</a> =&gt; {
+            constants::DW_OP_xderef_size =&gt; {
                 <span class="kw">let </span>size = bytes.read_u8()<span class="question-mark">?</span>;
-                <span class="prelude-val">Ok</span>(<a href="#40">Operation::Deref</a> {
-                    base_type: <a href="#396">generic_type</a>(),
-                    <a href="#664">size</a>,
+                <span class="prelude-val">Ok</span>(Operation::Deref {
+                    base_type: generic_type(),
+                    size,
                     space: <span class="bool-val">true</span>,
                 })
             }
-            <a href="../constants.rs.html#1085-1270">constants::DW_OP_nop</a> =&gt; <span class="prelude-val">Ok</span>(<a href="#156">Operation::Nop</a>),
-            <a href="../constants.rs.html#1085-1270">constants::DW_OP_push_object_address</a> =&gt; <span class="prelude-val">Ok</span>(<a href="#158">Operation::PushObjectAddress</a>),
-            <a href="../constants.rs.html#1085-1270">constants::DW_OP_call2</a> =&gt; {
+            constants::DW_OP_nop =&gt; <span class="prelude-val">Ok</span>(Operation::Nop),
+            constants::DW_OP_push_object_address =&gt; <span class="prelude-val">Ok</span>(Operation::PushObjectAddress),
+            constants::DW_OP_call2 =&gt; {
                 <span class="kw">let </span>value = bytes.read_u16().map(R::Offset::from_u16)<span class="question-mark">?</span>;
-                <span class="prelude-val">Ok</span>(<a href="#162">Operation::Call</a> {
-                    offset: <a href="#17">DieReference::UnitRef</a>(<a href="mod.rs.html#250">UnitOffset</a>(<a href="#674">value</a>)),
+                <span class="prelude-val">Ok</span>(Operation::Call {
+                    offset: DieReference::UnitRef(UnitOffset(value)),
                 })
             }
-            <a href="../constants.rs.html#1085-1270">constants::DW_OP_call4</a> =&gt; {
+            constants::DW_OP_call4 =&gt; {
                 <span class="kw">let </span>value = bytes.read_u32().map(R::Offset::from_u32)<span class="question-mark">?</span>;
-                <span class="prelude-val">Ok</span>(<a href="#162">Operation::Call</a> {
-                    offset: <a href="#17">DieReference::UnitRef</a>(<a href="mod.rs.html#250">UnitOffset</a>(<a href="#680">value</a>)),
+                <span class="prelude-val">Ok</span>(Operation::Call {
+                    offset: DieReference::UnitRef(UnitOffset(value)),
                 })
             }
-            <a href="../constants.rs.html#1085-1270">constants::DW_OP_call_ref</a> =&gt; {
+            constants::DW_OP_call_ref =&gt; {
                 <span class="kw">let </span>value = bytes.read_offset(encoding.format)<span class="question-mark">?</span>;
-                <span class="prelude-val">Ok</span>(<a href="#162">Operation::Call</a> {
-                    offset: <a href="#19">DieReference::DebugInfoRef</a>(<a href="../common.rs.html#108">DebugInfoOffset</a>(<a href="#686">value</a>)),
+                <span class="prelude-val">Ok</span>(Operation::Call {
+                    offset: DieReference::DebugInfoRef(DebugInfoOffset(value)),
                 })
             }
-            <a href="../constants.rs.html#1085-1270">constants::DW_OP_form_tls_address</a> | <a href="../constants.rs.html#1085-1270">constants::DW_OP_GNU_push_tls_address</a> =&gt; {
-                <span class="prelude-val">Ok</span>(<a href="#168">Operation::TLS</a>)
+            constants::DW_OP_form_tls_address | constants::DW_OP_GNU_push_tls_address =&gt; {
+                <span class="prelude-val">Ok</span>(Operation::TLS)
             }
-            <a href="../constants.rs.html#1085-1270">constants::DW_OP_call_frame_cfa</a> =&gt; <span class="prelude-val">Ok</span>(<a href="#170">Operation::CallFrameCFA</a>),
-            <a href="../constants.rs.html#1085-1270">constants::DW_OP_bit_piece</a> =&gt; {
+            constants::DW_OP_call_frame_cfa =&gt; <span class="prelude-val">Ok</span>(Operation::CallFrameCFA),
+            constants::DW_OP_bit_piece =&gt; {
                 <span class="kw">let </span>size = bytes.read_uleb128()<span class="question-mark">?</span>;
                 <span class="kw">let </span>offset = bytes.read_uleb128()<span class="question-mark">?</span>;
-                <span class="prelude-val">Ok</span>(<a href="#172">Operation::Piece</a> {
-                    size_in_bits: <a href="#696">size</a>,
-                    bit_offset: <span class="prelude-val">Some</span>(<a href="#697">offset</a>),
+                <span class="prelude-val">Ok</span>(Operation::Piece {
+                    size_in_bits: size,
+                    bit_offset: <span class="prelude-val">Some</span>(offset),
                 })
             }
-            <a href="../constants.rs.html#1085-1270">constants::DW_OP_implicit_value</a> =&gt; {
+            constants::DW_OP_implicit_value =&gt; {
                 <span class="kw">let </span>len = bytes.read_uleb128().and_then(R::Offset::from_u64)<span class="question-mark">?</span>;
                 <span class="kw">let </span>data = bytes.split(len)<span class="question-mark">?</span>;
-                <span class="prelude-val">Ok</span>(<a href="#184">Operation::ImplicitValue</a> { <a href="#705">data</a> })
+                <span class="prelude-val">Ok</span>(Operation::ImplicitValue { data })
             }
-            <a href="../constants.rs.html#1085-1270">constants::DW_OP_stack_value</a> =&gt; <span class="prelude-val">Ok</span>(<a href="#192">Operation::StackValue</a>),
-            <a href="../constants.rs.html#1085-1270">constants::DW_OP_implicit_pointer</a> | <a href="../constants.rs.html#1085-1270">constants::DW_OP_GNU_implicit_pointer</a> =&gt; {
+            constants::DW_OP_stack_value =&gt; <span class="prelude-val">Ok</span>(Operation::StackValue),
+            constants::DW_OP_implicit_pointer | constants::DW_OP_GNU_implicit_pointer =&gt; {
                 <span class="kw">let </span>value = <span class="kw">if </span>encoding.version == <span class="number">2 </span>{
                     bytes
                         .read_address(encoding.address_size)
@@ -4829,120 +4821,120 @@
                     bytes.read_offset(encoding.format)<span class="question-mark">?
                 </span>};
                 <span class="kw">let </span>byte_offset = bytes.read_sleb128()<span class="question-mark">?</span>;
-                <span class="prelude-val">Ok</span>(<a href="#198">Operation::ImplicitPointer</a> {
-                    value: <a href="../common.rs.html#108">DebugInfoOffset</a>(<a href="#710">value</a>),
-                    <a href="#717">byte_offset</a>,
+                <span class="prelude-val">Ok</span>(Operation::ImplicitPointer {
+                    value: DebugInfoOffset(value),
+                    byte_offset,
                 })
             }
-            <a href="../constants.rs.html#1085-1270">constants::DW_OP_addrx</a> | <a href="../constants.rs.html#1085-1270">constants::DW_OP_GNU_addr_index</a> =&gt; {
+            constants::DW_OP_addrx | constants::DW_OP_GNU_addr_index =&gt; {
                 <span class="kw">let </span>index = bytes.read_uleb128().and_then(R::Offset::from_u64)<span class="question-mark">?</span>;
-                <span class="prelude-val">Ok</span>(<a href="#233">Operation::AddressIndex</a> {
-                    index: <a href="../common.rs.html#100">DebugAddrIndex</a>(<a href="#724">index</a>),
+                <span class="prelude-val">Ok</span>(Operation::AddressIndex {
+                    index: DebugAddrIndex(index),
                 })
             }
-            <a href="../constants.rs.html#1085-1270">constants::DW_OP_constx</a> | <a href="../constants.rs.html#1085-1270">constants::DW_OP_GNU_const_index</a> =&gt; {
+            constants::DW_OP_constx | constants::DW_OP_GNU_const_index =&gt; {
                 <span class="kw">let </span>index = bytes.read_uleb128().and_then(R::Offset::from_u64)<span class="question-mark">?</span>;
-                <span class="prelude-val">Ok</span>(<a href="#241">Operation::ConstantIndex</a> {
-                    index: <a href="../common.rs.html#100">DebugAddrIndex</a>(<a href="#730">index</a>),
+                <span class="prelude-val">Ok</span>(Operation::ConstantIndex {
+                    index: DebugAddrIndex(index),
                 })
             }
-            <a href="../constants.rs.html#1085-1270">constants::DW_OP_entry_value</a> | <a href="../constants.rs.html#1085-1270">constants::DW_OP_GNU_entry_value</a> =&gt; {
+            constants::DW_OP_entry_value | constants::DW_OP_GNU_entry_value =&gt; {
                 <span class="kw">let </span>len = bytes.read_uleb128().and_then(R::Offset::from_u64)<span class="question-mark">?</span>;
                 <span class="kw">let </span>expression = bytes.split(len)<span class="question-mark">?</span>;
-                <span class="prelude-val">Ok</span>(<a href="#207">Operation::EntryValue</a> { <a href="#737">expression</a> })
+                <span class="prelude-val">Ok</span>(Operation::EntryValue { expression })
             }
-            <a href="../constants.rs.html#1085-1270">constants::DW_OP_GNU_parameter_ref</a> =&gt; {
+            constants::DW_OP_GNU_parameter_ref =&gt; {
                 <span class="kw">let </span>value = bytes.read_u32().map(R::Offset::from_u32)<span class="question-mark">?</span>;
-                <span class="prelude-val">Ok</span>(<a href="#218">Operation::ParameterRef</a> {
-                    offset: <a href="mod.rs.html#250">UnitOffset</a>(<a href="#741">value</a>),
+                <span class="prelude-val">Ok</span>(Operation::ParameterRef {
+                    offset: UnitOffset(value),
                 })
             }
-            <a href="../constants.rs.html#1085-1270">constants::DW_OP_const_type</a> | <a href="../constants.rs.html#1085-1270">constants::DW_OP_GNU_const_type</a> =&gt; {
+            constants::DW_OP_const_type | constants::DW_OP_GNU_const_type =&gt; {
                 <span class="kw">let </span>base_type = bytes.read_uleb128().and_then(R::Offset::from_u64)<span class="question-mark">?</span>;
                 <span class="kw">let </span>len = bytes.read_u8()<span class="question-mark">?</span>;
                 <span class="kw">let </span>value = bytes.split(R::Offset::from_u8(len))<span class="question-mark">?</span>;
-                <span class="prelude-val">Ok</span>(<a href="#248">Operation::TypedLiteral</a> {
-                    base_type: <a href="mod.rs.html#250">UnitOffset</a>(<a href="#747">base_type</a>),
-                    <a href="#749">value</a>,
+                <span class="prelude-val">Ok</span>(Operation::TypedLiteral {
+                    base_type: UnitOffset(base_type),
+                    value,
                 })
             }
-            <a href="../constants.rs.html#1085-1270">constants::DW_OP_regval_type</a> | <a href="../constants.rs.html#1085-1270">constants::DW_OP_GNU_regval_type</a> =&gt; {
+            constants::DW_OP_regval_type | constants::DW_OP_GNU_regval_type =&gt; {
                 <span class="kw">let </span>register = bytes.read_uleb128().and_then(Register::from_u64)<span class="question-mark">?</span>;
                 <span class="kw">let </span>base_type = bytes.read_uleb128().and_then(R::Offset::from_u64)<span class="question-mark">?</span>;
-                <span class="prelude-val">Ok</span>(<a href="#141">Operation::RegisterOffset</a> {
-                    <a href="#756">register</a>,
+                <span class="prelude-val">Ok</span>(Operation::RegisterOffset {
+                    register,
                     offset: <span class="number">0</span>,
-                    base_type: <a href="mod.rs.html#250">UnitOffset</a>(<a href="#757">base_type</a>),
+                    base_type: UnitOffset(base_type),
                 })
             }
-            <a href="../constants.rs.html#1085-1270">constants::DW_OP_deref_type</a> | <a href="../constants.rs.html#1085-1270">constants::DW_OP_GNU_deref_type</a> =&gt; {
+            constants::DW_OP_deref_type | constants::DW_OP_GNU_deref_type =&gt; {
                 <span class="kw">let </span>size = bytes.read_u8()<span class="question-mark">?</span>;
                 <span class="kw">let </span>base_type = bytes.read_uleb128().and_then(R::Offset::from_u64)<span class="question-mark">?</span>;
-                <span class="prelude-val">Ok</span>(<a href="#40">Operation::Deref</a> {
-                    base_type: <a href="mod.rs.html#250">UnitOffset</a>(<a href="#766">base_type</a>),
-                    <a href="#765">size</a>,
+                <span class="prelude-val">Ok</span>(Operation::Deref {
+                    base_type: UnitOffset(base_type),
+                    size,
                     space: <span class="bool-val">false</span>,
                 })
             }
-            <a href="../constants.rs.html#1085-1270">constants::DW_OP_xderef_type</a> =&gt; {
+            constants::DW_OP_xderef_type =&gt; {
                 <span class="kw">let </span>size = bytes.read_u8()<span class="question-mark">?</span>;
                 <span class="kw">let </span>base_type = bytes.read_uleb128().and_then(R::Offset::from_u64)<span class="question-mark">?</span>;
-                <span class="prelude-val">Ok</span>(<a href="#40">Operation::Deref</a> {
-                    base_type: <a href="mod.rs.html#250">UnitOffset</a>(<a href="#775">base_type</a>),
-                    <a href="#774">size</a>,
+                <span class="prelude-val">Ok</span>(Operation::Deref {
+                    base_type: UnitOffset(base_type),
+                    size,
                     space: <span class="bool-val">true</span>,
                 })
             }
-            <a href="../constants.rs.html#1085-1270">constants::DW_OP_convert</a> | <a href="../constants.rs.html#1085-1270">constants::DW_OP_GNU_convert</a> =&gt; {
+            constants::DW_OP_convert | constants::DW_OP_GNU_convert =&gt; {
                 <span class="kw">let </span>base_type = bytes.read_uleb128().and_then(R::Offset::from_u64)<span class="question-mark">?</span>;
-                <span class="prelude-val">Ok</span>(<a href="#257">Operation::Convert</a> {
-                    base_type: <a href="mod.rs.html#250">UnitOffset</a>(<a href="#783">base_type</a>),
+                <span class="prelude-val">Ok</span>(Operation::Convert {
+                    base_type: UnitOffset(base_type),
                 })
             }
-            <a href="../constants.rs.html#1085-1270">constants::DW_OP_reinterpret</a> | <a href="../constants.rs.html#1085-1270">constants::DW_OP_GNU_reinterpret</a> =&gt; {
+            constants::DW_OP_reinterpret | constants::DW_OP_GNU_reinterpret =&gt; {
                 <span class="kw">let </span>base_type = bytes.read_uleb128().and_then(R::Offset::from_u64)<span class="question-mark">?</span>;
-                <span class="prelude-val">Ok</span>(<a href="#265">Operation::Reinterpret</a> {
-                    base_type: <a href="mod.rs.html#250">UnitOffset</a>(<a href="#789">base_type</a>),
+                <span class="prelude-val">Ok</span>(Operation::Reinterpret {
+                    base_type: UnitOffset(base_type),
                 })
             }
-            <a href="../constants.rs.html#1085-1270">constants::DW_OP_WASM_location</a> =&gt; <span class="kw">match </span>bytes.read_u8()<span class="question-mark">? </span>{
+            constants::DW_OP_WASM_location =&gt; <span class="kw">match </span>bytes.read_u8()<span class="question-mark">? </span>{
                 <span class="number">0x0 </span>=&gt; {
                     <span class="kw">let </span>index = bytes.read_uleb128_u32()<span class="question-mark">?</span>;
-                    <span class="prelude-val">Ok</span>(<a href="#273">Operation::WasmLocal</a> { <a href="#796">index</a> })
+                    <span class="prelude-val">Ok</span>(Operation::WasmLocal { index })
                 }
                 <span class="number">0x1 </span>=&gt; {
                     <span class="kw">let </span>index = bytes.read_uleb128_u32()<span class="question-mark">?</span>;
-                    <span class="prelude-val">Ok</span>(<a href="#281">Operation::WasmGlobal</a> { <a href="#800">index</a> })
+                    <span class="prelude-val">Ok</span>(Operation::WasmGlobal { index })
                 }
                 <span class="number">0x2 </span>=&gt; {
                     <span class="kw">let </span>index = bytes.read_uleb128_u32()<span class="question-mark">?</span>;
-                    <span class="prelude-val">Ok</span>(<a href="#289">Operation::WasmStack</a> { <a href="#804">index</a> })
+                    <span class="prelude-val">Ok</span>(Operation::WasmStack { index })
                 }
                 <span class="number">0x3 </span>=&gt; {
                     <span class="kw">let </span>index = bytes.read_u32()<span class="question-mark">?</span>;
-                    <span class="prelude-val">Ok</span>(<a href="#281">Operation::WasmGlobal</a> { <a href="#808">index</a> })
+                    <span class="prelude-val">Ok</span>(Operation::WasmGlobal { index })
                 }
-                <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(<a href="mod.rs.html#354">Error::InvalidExpression</a>(<a href="#415">name</a>)),
+                <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(Error::InvalidExpression(name)),
             },
-            <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(<a href="mod.rs.html#354">Error::InvalidExpression</a>(<a href="#415">name</a>)),
+            <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(Error::InvalidExpression(name)),
         }
     }
 }
 
 <span class="attr">#[derive(Debug)]
-</span><span class="kw">enum </span>EvaluationState&lt;R: <a href="reader.rs.html#215">Reader</a>&gt; {
-    Start(<span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>&gt;),
+</span><span class="kw">enum </span>EvaluationState&lt;R: Reader&gt; {
+    Start(<span class="prelude-ty">Option</span>&lt;u64&gt;),
     Ready,
-    Error(<a href="mod.rs.html#271">Error</a>),
+    Error(Error),
     Complete,
     Waiting(EvaluationWaiting&lt;R&gt;),
 }
 
 <span class="attr">#[derive(Debug)]
-</span><span class="kw">enum </span>EvaluationWaiting&lt;R: <a href="reader.rs.html#215">Reader</a>&gt; {
+</span><span class="kw">enum </span>EvaluationWaiting&lt;R: Reader&gt; {
     Memory,
-    Register { offset: <a href="https://doc.rust-lang.org/nightly/core/primitive.i64.html">i64</a> },
-    FrameBase { offset: <a href="https://doc.rust-lang.org/nightly/core/primitive.i64.html">i64</a> },
+    Register { offset: i64 },
+    FrameBase { offset: i64 },
     Tls,
     Cfa,
     AtLocation,
@@ -4959,7 +4951,7 @@
 /// The evaluation is either `Complete`, or it requires more data
 /// to continue, as described by the variant.
 </span><span class="attr">#[derive(Debug, PartialEq)]
-</span><span class="kw">pub enum </span>EvaluationResult&lt;R: <a href="reader.rs.html#215">Reader</a>&gt; {
+</span><span class="kw">pub enum </span>EvaluationResult&lt;R: Reader&gt; {
     <span class="doccomment">/// The `Evaluation` is complete, and `Evaluation::result()` can be called.
     </span>Complete,
     <span class="doccomment">/// The `Evaluation` needs a value from memory to proceed further.  Once the
@@ -4967,12 +4959,12 @@
     /// by calling `Evaluation::resume_with_memory`.
     </span>RequiresMemory {
         <span class="doccomment">/// The address of the value required.
-        </span>address: <a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>,
+        </span>address: u64,
         <span class="doccomment">/// The size of the value required. This is guaranteed to be at most the
         /// word size of the target architecture.
-        </span>size: <a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>,
+        </span>size: u8,
         <span class="doccomment">/// If not `None`, a target-specific address space value.
-        </span>space: <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>&gt;,
+        </span>space: <span class="prelude-ty">Option</span>&lt;u64&gt;,
         <span class="doccomment">/// The DIE of the base type or 0 to indicate the generic type
         </span>base_type: UnitOffset&lt;R::Offset&gt;,
     },
@@ -4981,7 +4973,7 @@
     /// `Evaluation` by calling `Evaluation::resume_with_register`.
     </span>RequiresRegister {
         <span class="doccomment">/// The register number.
-        </span>register: <a href="../common.rs.html#88">Register</a>,
+        </span>register: Register,
         <span class="doccomment">/// The DIE of the base type or 0 to indicate the generic type
         </span>base_type: UnitOffset&lt;R::Offset&gt;,
     },
@@ -4994,7 +4986,7 @@
     <span class="doccomment">/// The `Evaluation` needs a value from TLS to proceed further.  Once the
     /// caller determines what value to provide it should resume the
     /// `Evaluation` by calling `Evaluation::resume_with_tls`.
-    </span>RequiresTls(<a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>),
+    </span>RequiresTls(u64),
     <span class="doccomment">/// The `Evaluation` needs the CFA to proceed further.  Once the caller
     /// determines what value to provide it should resume the `Evaluation` by
     /// calling `Evaluation::resume_with_call_frame_cfa`.
@@ -5017,7 +5009,7 @@
     <span class="doccomment">/// The `Evaluation` needs an address to be relocated to proceed further.
     /// Once the caller determines what value to provide it should resume the
     /// `Evaluation` by calling `Evaluation::resume_with_relocated_address`.
-    </span>RequiresRelocatedAddress(<a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>),
+    </span>RequiresRelocatedAddress(u64),
     <span class="doccomment">/// The `Evaluation` needs an address from the `.debug_addr` section.
     /// This address may also need to be relocated.
     /// Once the caller determines what value to provide it should resume the
@@ -5027,7 +5019,7 @@
         /// relative to the `DW_AT_addr_base` of the compilation unit.
         </span>index: DebugAddrIndex&lt;R::Offset&gt;,
         <span class="doccomment">/// Whether the address also needs to be relocated.
-        </span>relocate: <a href="https://doc.rust-lang.org/nightly/core/primitive.bool.html">bool</a>,
+        </span>relocate: bool,
     },
     <span class="doccomment">/// The `Evaluation` needs the `ValueType` for the base type DIE at
     /// the give unit offset.  Once the caller determines what value to provide it
@@ -5038,9 +5030,9 @@
 
 <span class="doccomment">/// The bytecode for a DWARF expression or location description.
 </span><span class="attr">#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-</span><span class="kw">pub struct </span>Expression&lt;R: <a href="reader.rs.html#215">Reader</a>&gt;(<span class="kw">pub </span>R);
+</span><span class="kw">pub struct </span>Expression&lt;R: Reader&gt;(<span class="kw">pub </span>R);
 
-<span class="kw">impl</span>&lt;R: <a href="reader.rs.html#215">Reader</a>&gt; Expression&lt;R&gt; {
+<span class="kw">impl</span>&lt;R: Reader&gt; Expression&lt;R&gt; {
     <span class="doccomment">/// Create an evaluation for this expression.
     ///
     /// The `encoding` is determined by the
@@ -5061,44 +5053,44 @@
     /// ```
     </span><span class="attr">#[cfg(feature = <span class="string">&quot;read&quot;</span>)]
     #[inline]
-    </span><span class="kw">pub fn </span>evaluation(<span class="self">self</span>, encoding: <a href="../common.rs.html#37">Encoding</a>) -&gt; Evaluation&lt;R&gt; {
-        Evaluation::new(<a class="self" href="#950">self</a>.<span class="number">0</span>, <a href="#950">encoding</a>)
+    </span><span class="kw">pub fn </span>evaluation(<span class="self">self</span>, encoding: Encoding) -&gt; Evaluation&lt;R&gt; {
+        Evaluation::new(<span class="self">self</span>.<span class="number">0</span>, encoding)
     }
 
     <span class="doccomment">/// Return an iterator for the operations in the expression.
-    </span><span class="kw">pub fn </span>operations(<span class="self">self</span>, encoding: <a href="../common.rs.html#37">Encoding</a>) -&gt; OperationIter&lt;R&gt; {
-        <a href="#965">OperationIter</a> {
-            input: <a class="self" href="#955">self</a>.<span class="number">0</span>,
-            <a href="#955">encoding</a>,
+    </span><span class="kw">pub fn </span>operations(<span class="self">self</span>, encoding: Encoding) -&gt; OperationIter&lt;R&gt; {
+        OperationIter {
+            input: <span class="self">self</span>.<span class="number">0</span>,
+            encoding,
         }
     }
 }
 
 <span class="doccomment">/// An iterator for the operations in an expression.
 </span><span class="attr">#[derive(Debug, Clone, Copy)]
-</span><span class="kw">pub struct </span>OperationIter&lt;R: <a href="reader.rs.html#215">Reader</a>&gt; {
+</span><span class="kw">pub struct </span>OperationIter&lt;R: Reader&gt; {
     input: R,
-    encoding: <a href="../common.rs.html#37">Encoding</a>,
+    encoding: Encoding,
 }
 
-<span class="kw">impl</span>&lt;R: <a href="reader.rs.html#215">Reader</a>&gt; OperationIter&lt;R&gt; {
+<span class="kw">impl</span>&lt;R: Reader&gt; OperationIter&lt;R&gt; {
     <span class="doccomment">/// Read the next operation in an expression.
     </span><span class="kw">pub fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;Operation&lt;R&gt;&gt;&gt; {
         <span class="kw">if </span><span class="self">self</span>.input.is_empty() {
             <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>);
         }
-        <span class="kw">match </span>Operation::parse(<span class="kw-2">&amp;mut </span><a class="self" href="#972">self</a>.input, <a class="self" href="#972">self</a>.encoding) {
-            <span class="prelude-val">Ok</span>(op) =&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<a href="#977">op</a>)),
+        <span class="kw">match </span>Operation::parse(<span class="kw-2">&amp;mut </span><span class="self">self</span>.input, <span class="self">self</span>.encoding) {
+            <span class="prelude-val">Ok</span>(op) =&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(op)),
             <span class="prelude-val">Err</span>(e) =&gt; {
-                <a class="self" href="#972">self</a>.input.<a href="reader.rs.html#229">empty</a>();
-                <span class="prelude-val">Err</span>(<a href="#978">e</a>)
+                <span class="self">self</span>.input.empty();
+                <span class="prelude-val">Err</span>(e)
             }
         }
     }
 
     <span class="doccomment">/// Return the current byte offset of the iterator.
     </span><span class="kw">pub fn </span>offset_from(<span class="kw-2">&amp;</span><span class="self">self</span>, expression: <span class="kw-2">&amp;</span>Expression&lt;R&gt;) -&gt; R::Offset {
-        <a class="self" href="#986">self</a>.input.<a href="reader.rs.html#239">offset_from</a>(<span class="kw-2">&amp;</span><a href="#986">expression</a>.<span class="number">0</span>)
+        <span class="self">self</span>.input.offset_from(<span class="kw-2">&amp;</span>expression.<span class="number">0</span>)
     }
 }
 
@@ -5148,9 +5140,9 @@ on the heap using [`Vec`]. This is the default storage type parameter for [`Eval
 /// let result = eval.as_result();
 /// println!(&quot;{:?}&quot;, result);
 /// ```
-</span><span class="kw">pub trait </span>EvaluationStorage&lt;R: <a href="reader.rs.html#215">Reader</a>&gt; {
+</span><span class="kw">pub trait </span>EvaluationStorage&lt;R: Reader&gt; {
     <span class="doccomment">/// The storage used for the evaluation stack.
-    </span><span class="kw">type </span>Stack: ArrayLike&lt;Item = <a href="value.rs.html#55">Value</a>&gt;;
+    </span><span class="kw">type </span>Stack: ArrayLike&lt;Item = Value&gt;;
     <span class="doccomment">/// The storage used for the expression stack.
     </span><span class="kw">type </span>ExpressionStack: ArrayLike&lt;Item = (R, R)&gt;;
     <span class="doccomment">/// The storage used for the results.
@@ -5158,8 +5150,8 @@ on the heap using [`Vec`]. This is the default storage type parameter for [`Eval
 }
 
 <span class="attr">#[cfg(feature = <span class="string">&quot;read&quot;</span>)]
-</span><span class="kw">impl</span>&lt;R: <a href="reader.rs.html#215">Reader</a>&gt; EvaluationStorage&lt;R&gt; <span class="kw">for </span><a href="mod.rs.html#262">StoreOnHeap</a> {
-    <span class="kw">type </span>Stack = Vec&lt;<a href="value.rs.html#55">Value</a>&gt;;
+</span><span class="kw">impl</span>&lt;R: Reader&gt; EvaluationStorage&lt;R&gt; <span class="kw">for </span>StoreOnHeap {
+    <span class="kw">type </span>Stack = Vec&lt;Value&gt;;
     <span class="kw">type </span>ExpressionStack = Vec&lt;(R, R)&gt;;
     <span class="kw">type </span><span class="prelude-ty">Result </span>= Vec&lt;Piece&lt;R&gt;&gt;;
 }
@@ -5210,18 +5202,18 @@ on the heap using [`Vec`]. This is the default storage type parameter for [`Eval
 /// println!(&quot;{:?}&quot;, result);
 /// ```
 </span><span class="attr">#[derive(Debug)]
-</span><span class="kw">pub struct </span>Evaluation&lt;R: <a href="reader.rs.html#215">Reader</a>, S: EvaluationStorage&lt;R&gt; = <a href="mod.rs.html#262">StoreOnHeap</a>&gt; {
+</span><span class="kw">pub struct </span>Evaluation&lt;R: Reader, S: EvaluationStorage&lt;R&gt; = StoreOnHeap&gt; {
     bytecode: R,
-    encoding: <a href="../common.rs.html#37">Encoding</a>,
-    object_address: <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>&gt;,
-    max_iterations: <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/primitive.u32.html">u32</a>&gt;,
-    iteration: <a href="https://doc.rust-lang.org/nightly/core/primitive.u32.html">u32</a>,
+    encoding: Encoding,
+    object_address: <span class="prelude-ty">Option</span>&lt;u64&gt;,
+    max_iterations: <span class="prelude-ty">Option</span>&lt;u32&gt;,
+    iteration: u32,
     state: EvaluationState&lt;R&gt;,
 
     <span class="comment">// Stack operations are done on word-sized values.  We do all
     // operations on 64-bit values, and then mask the results
     // appropriately when popping.
-    </span>addr_mask: <a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>,
+    </span>addr_mask: u64,
 
     <span class="comment">// The stack.
     </span>stack: ArrayVec&lt;S::Stack&gt;,
@@ -5237,13 +5229,13 @@ on the heap using [`Vec`]. This is the default storage type parameter for [`Eval
 }
 
 <span class="attr">#[cfg(feature = <span class="string">&quot;read&quot;</span>)]
-</span><span class="kw">impl</span>&lt;R: <a href="reader.rs.html#215">Reader</a>&gt; Evaluation&lt;R&gt; {
+</span><span class="kw">impl</span>&lt;R: Reader&gt; Evaluation&lt;R&gt; {
     <span class="doccomment">/// Create a new DWARF expression evaluator.
     ///
     /// The new evaluator is created without an initial value, without
     /// an object address, and without a maximum number of iterations.
-    </span><span class="kw">pub fn </span>new(bytecode: R, encoding: <a href="../common.rs.html#37">Encoding</a>) -&gt; <span class="self">Self </span>{
-        <span class="self">Self</span>::new_in(<a href="#1131">bytecode</a>, <a href="#1131">encoding</a>)
+    </span><span class="kw">pub fn </span>new(bytecode: R, encoding: Encoding) -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::new_in(bytecode, encoding)
     }
 
     <span class="doccomment">/// Get the result of this `Evaluation`.
@@ -5251,38 +5243,38 @@ on the heap using [`Vec`]. This is the default storage type parameter for [`Eval
     /// # Panics
     /// Panics if this `Evaluation` has not been driven to completion.
     </span><span class="kw">pub fn </span>result(<span class="self">self</span>) -&gt; Vec&lt;Piece&lt;R&gt;&gt; {
-        <span class="kw">match </span><a class="self" href="#1139">self</a>.state {
-            <a href="#823">EvaluationState::Complete</a> =&gt; <a class="self" href="#1139">self</a>.result.<a href="util.rs.html#177">into_vec</a>(),
+        <span class="kw">match </span><span class="self">self</span>.state {
+            EvaluationState::Complete =&gt; <span class="self">self</span>.result.into_vec(),
             <span class="kw">_ </span>=&gt; {
-                <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.panic.html">panic!</a>(<span class="string">&quot;Called `Evaluation::result` on an `Evaluation` that has not been completed&quot;</span>)
+                <span class="macro">panic!</span>(<span class="string">&quot;Called `Evaluation::result` on an `Evaluation` that has not been completed&quot;</span>)
             }
         }
     }
 }
 
-<span class="kw">impl</span>&lt;R: <a href="reader.rs.html#215">Reader</a>, S: EvaluationStorage&lt;R&gt;&gt; Evaluation&lt;R, S&gt; {
+<span class="kw">impl</span>&lt;R: Reader, S: EvaluationStorage&lt;R&gt;&gt; Evaluation&lt;R, S&gt; {
     <span class="doccomment">/// Create a new DWARF expression evaluator.
     ///
     /// The new evaluator is created without an initial value, without
     /// an object address, and without a maximum number of iterations.
-    </span><span class="kw">pub fn </span>new_in(bytecode: R, encoding: <a href="../common.rs.html#37">Encoding</a>) -&gt; <span class="self">Self </span>{
-        <span class="kw">let </span>pc = <a href="#1154">bytecode</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
-        <a href="#1099">Evaluation</a> {
-            <a href="#1154">bytecode</a>,
-            <a href="#1154">encoding</a>,
+    </span><span class="kw">pub fn </span>new_in(bytecode: R, encoding: Encoding) -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span>pc = bytecode.clone();
+        Evaluation {
+            bytecode,
+            encoding,
             object_address: <span class="prelude-val">None</span>,
             max_iterations: <span class="prelude-val">None</span>,
             iteration: <span class="number">0</span>,
-            state: <a href="#820">EvaluationState::Start</a>(<span class="prelude-val">None</span>),
+            state: EvaluationState::Start(<span class="prelude-val">None</span>),
             addr_mask: <span class="kw">if </span>encoding.address_size == <span class="number">8 </span>{
                 !<span class="number">0u64
             </span>} <span class="kw">else </span>{
-                (<span class="number">1 </span>&lt;&lt; (<span class="number">8 </span>* u64::from(<a href="#1154">encoding</a>.address_size))) - <span class="number">1
+                (<span class="number">1 </span>&lt;&lt; (<span class="number">8 </span>* u64::from(encoding.address_size))) - <span class="number">1
             </span>},
-            stack: <a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default::default</a>(),
-            expression_stack: <a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default::default</a>(),
-            <a href="#1155">pc</a>,
-            result: <a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default::default</a>(),
+            stack: Default::default(),
+            expression_stack: Default::default(),
+            pc,
+            result: Default::default(),
         }
     }
 
@@ -5296,12 +5288,12 @@ on the heap using [`Vec`]. This is the default storage type parameter for [`Eval
     /// # Panics
     /// Panics if `set_initial_value()` has already been called, or if
     /// `evaluate()` has already been called.
-    </span><span class="kw">pub fn </span>set_initial_value(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: <a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>) {
-        <span class="kw">match </span><a class="self" href="#1185">self</a>.state {
-            <a href="#820">EvaluationState::Start</a>(<span class="prelude-val">None</span>) =&gt; {
-                <a class="self" href="#1185">self</a>.state = <a href="#820">EvaluationState::Start</a>(<span class="prelude-val">Some</span>(<a href="#1185">value</a>));
+    </span><span class="kw">pub fn </span>set_initial_value(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: u64) {
+        <span class="kw">match </span><span class="self">self</span>.state {
+            EvaluationState::Start(<span class="prelude-val">None</span>) =&gt; {
+                <span class="self">self</span>.state = EvaluationState::Start(<span class="prelude-val">Some</span>(value));
             }
-            <span class="kw">_ </span>=&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.panic.html">panic!</a>(
+            <span class="kw">_ </span>=&gt; <span class="macro">panic!</span>(
                 <span class="string">&quot;`Evaluation::set_initial_value` was called twice, or after evaluation began.&quot;
             </span>),
         };
@@ -5311,8 +5303,8 @@ on the heap using [`Vec`]. This is the default storage type parameter for [`Eval
     /// `DW_OP_push_object_address`.  If no object address is set, and
     /// the expression uses an opcode requiring the object address,
     /// then evaluation will fail with an error.
-    </span><span class="kw">pub fn </span>set_object_address(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: <a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>) {
-        <a class="self" href="#1200">self</a>.object_address = <span class="prelude-val">Some</span>(<a href="#1200">value</a>);
+    </span><span class="kw">pub fn </span>set_object_address(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: u64) {
+        <span class="self">self</span>.object_address = <span class="prelude-val">Some</span>(value);
     }
 
     <span class="doccomment">/// Set the maximum number of iterations to be allowed by the
@@ -5324,27 +5316,26 @@ on the heap using [`Vec`]. This is the default storage type parameter for [`Eval
     /// The default is not to have a maximum; once set, it&#39;s not
     /// possible to go back to this default state.  This value can be
     /// set to avoid denial of service attacks by bad DWARF bytecode.
-    </span><span class="kw">pub fn </span>set_max_iterations(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: <a href="https://doc.rust-lang.org/nightly/core/primitive.u32.html">u32</a>) {
-        <a class="self" href="#1213">self</a>.max_iterations = <span class="prelude-val">Some</span>(<a href="#1213">value</a>);
+    </span><span class="kw">pub fn </span>set_max_iterations(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: u32) {
+        <span class="self">self</span>.max_iterations = <span class="prelude-val">Some</span>(value);
     }
 
-    <span class="kw">fn </span>pop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="value.rs.html#55">Value</a>&gt; {
-        <span class="kw">match </span><a class="self" href="#1217">self</a>.stack.<a href="util.rs.html#158">pop</a>() {
-            <span class="prelude-val">Some</span>(value) =&gt; <span class="prelude-val">Ok</span>(<a href="#1219">value</a>),
-            <span class="prelude-val">None </span>=&gt; <span class="prelude-val">Err</span>(<a href="mod.rs.html#349">Error::NotEnoughStackItems</a>),
+    <span class="kw">fn </span>pop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;Value&gt; {
+        <span class="kw">match </span><span class="self">self</span>.stack.pop() {
+            <span class="prelude-val">Some</span>(value) =&gt; <span class="prelude-val">Ok</span>(value),
+            <span class="prelude-val">None </span>=&gt; <span class="prelude-val">Err</span>(Error::NotEnoughStackItems),
         }
     }
 
-    <span class="kw">fn </span>push(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: <a href="value.rs.html#55">Value</a>) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
-        <a class="self" href="#1224">self</a>.stack.<a href="util.rs.html#127">try_push</a>(<a href="#1224">value</a>).map_err(|<span class="kw">_</span>| <a href="mod.rs.html#406">Error::StackFull</a>)
+    <span class="kw">fn </span>push(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: Value) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+        <span class="self">self</span>.stack.try_push(value).map_err(|<span class="kw">_</span>| Error::StackFull)
     }
 
-    <span class="attr">#[allow(clippy::cyclomatic_complexity)]
-    </span><span class="kw">fn </span>evaluate_one_operation(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;OperationEvaluationResult&lt;R&gt;&gt; {
+    <span class="kw">fn </span>evaluate_one_operation(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;OperationEvaluationResult&lt;R&gt;&gt; {
         <span class="kw">let </span>operation = Operation::parse(<span class="kw-2">&amp;mut </span><span class="self">self</span>.pc, <span class="self">self</span>.encoding)<span class="question-mark">?</span>;
 
-        <span class="kw">match </span><a href="#1230">operation</a> {
-            <a href="#40">Operation::Deref</a> {
+        <span class="kw">match </span>operation {
+            Operation::Deref {
                 base_type,
                 size,
                 space,
@@ -5354,40 +5345,40 @@ on the heap using [`Vec`]. This is the default storage type parameter for [`Eval
                 <span class="kw">let </span>addr_space = <span class="kw">if </span>space {
                     <span class="kw">let </span>entry = <span class="self">self</span>.pop()<span class="question-mark">?</span>;
                     <span class="kw">let </span>value = entry.to_u64(<span class="self">self</span>.addr_mask)<span class="question-mark">?</span>;
-                    <span class="prelude-val">Some</span>(<a href="#1242">value</a>)
+                    <span class="prelude-val">Some</span>(value)
                 } <span class="kw">else </span>{
                     <span class="prelude-val">None
                 </span>};
-                <span class="kw">return </span><span class="prelude-val">Ok</span>(<a href="#300">OperationEvaluationResult::Waiting</a>(
-                    <a href="#829">EvaluationWaiting::Memory</a>,
-                    <a href="#854">EvaluationResult::RequiresMemory</a> {
-                        address: <a href="#1239">addr</a>,
-                        <a href="#1235">size</a>,
-                        space: <a href="#1240">addr_space</a>,
-                        <a href="#1234">base_type</a>,
+                <span class="kw">return </span><span class="prelude-val">Ok</span>(OperationEvaluationResult::Waiting(
+                    EvaluationWaiting::Memory,
+                    EvaluationResult::RequiresMemory {
+                        address: addr,
+                        size,
+                        space: addr_space,
+                        base_type,
                     },
                 ));
             }
 
-            <a href="#50">Operation::Drop</a> =&gt; {
+            Operation::Drop =&gt; {
                 <span class="self">self</span>.pop()<span class="question-mark">?</span>;
             }
-            <a href="#54">Operation::Pick</a> { index } =&gt; {
-                <span class="kw">let </span>len = <a class="self" href="#1229">self</a>.stack.len();
-                <span class="kw">let </span>index = <a href="#1261">index</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>;
+            Operation::Pick { index } =&gt; {
+                <span class="kw">let </span>len = <span class="self">self</span>.stack.len();
+                <span class="kw">let </span>index = index <span class="kw">as </span>usize;
                 <span class="kw">if </span>index &gt;= len {
-                    <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="mod.rs.html#349">Error::NotEnoughStackItems</a>);
+                    <span class="kw">return </span><span class="prelude-val">Err</span>(Error::NotEnoughStackItems);
                 }
-                <span class="kw">let </span>value = <a class="self" href="#1229">self</a>.stack[<a href="#1262">len</a> - <a href="#1263">index</a> - <span class="number">1</span>];
+                <span class="kw">let </span>value = <span class="self">self</span>.stack[len - index - <span class="number">1</span>];
                 <span class="self">self</span>.push(value)<span class="question-mark">?</span>;
             }
-            <a href="#59">Operation::Swap</a> =&gt; {
+            Operation::Swap =&gt; {
                 <span class="kw">let </span>top = <span class="self">self</span>.pop()<span class="question-mark">?</span>;
                 <span class="kw">let </span>next = <span class="self">self</span>.pop()<span class="question-mark">?</span>;
                 <span class="self">self</span>.push(top)<span class="question-mark">?</span>;
                 <span class="self">self</span>.push(next)<span class="question-mark">?</span>;
             }
-            <a href="#61">Operation::Rot</a> =&gt; {
+            Operation::Rot =&gt; {
                 <span class="kw">let </span>one = <span class="self">self</span>.pop()<span class="question-mark">?</span>;
                 <span class="kw">let </span>two = <span class="self">self</span>.pop()<span class="question-mark">?</span>;
                 <span class="kw">let </span>three = <span class="self">self</span>.pop()<span class="question-mark">?</span>;
@@ -5396,279 +5387,279 @@ on the heap using [`Vec`]. This is the default storage type parameter for [`Eval
                 <span class="self">self</span>.push(two)<span class="question-mark">?</span>;
             }
 
-            <a href="#63">Operation::Abs</a> =&gt; {
+            Operation::Abs =&gt; {
                 <span class="kw">let </span>value = <span class="self">self</span>.pop()<span class="question-mark">?</span>;
                 <span class="kw">let </span>result = value.abs(<span class="self">self</span>.addr_mask)<span class="question-mark">?</span>;
                 <span class="self">self</span>.push(result)<span class="question-mark">?</span>;
             }
-            <a href="#65">Operation::And</a> =&gt; {
+            Operation::And =&gt; {
                 <span class="kw">let </span>rhs = <span class="self">self</span>.pop()<span class="question-mark">?</span>;
                 <span class="kw">let </span>lhs = <span class="self">self</span>.pop()<span class="question-mark">?</span>;
                 <span class="kw">let </span>result = lhs.and(rhs, <span class="self">self</span>.addr_mask)<span class="question-mark">?</span>;
                 <span class="self">self</span>.push(result)<span class="question-mark">?</span>;
             }
-            <a href="#67">Operation::Div</a> =&gt; {
+            Operation::Div =&gt; {
                 <span class="kw">let </span>rhs = <span class="self">self</span>.pop()<span class="question-mark">?</span>;
                 <span class="kw">let </span>lhs = <span class="self">self</span>.pop()<span class="question-mark">?</span>;
                 <span class="kw">let </span>result = lhs.div(rhs, <span class="self">self</span>.addr_mask)<span class="question-mark">?</span>;
                 <span class="self">self</span>.push(result)<span class="question-mark">?</span>;
             }
-            <a href="#69">Operation::Minus</a> =&gt; {
+            Operation::Minus =&gt; {
                 <span class="kw">let </span>rhs = <span class="self">self</span>.pop()<span class="question-mark">?</span>;
                 <span class="kw">let </span>lhs = <span class="self">self</span>.pop()<span class="question-mark">?</span>;
                 <span class="kw">let </span>result = lhs.sub(rhs, <span class="self">self</span>.addr_mask)<span class="question-mark">?</span>;
                 <span class="self">self</span>.push(result)<span class="question-mark">?</span>;
             }
-            <a href="#71">Operation::Mod</a> =&gt; {
+            Operation::Mod =&gt; {
                 <span class="kw">let </span>rhs = <span class="self">self</span>.pop()<span class="question-mark">?</span>;
                 <span class="kw">let </span>lhs = <span class="self">self</span>.pop()<span class="question-mark">?</span>;
                 <span class="kw">let </span>result = lhs.rem(rhs, <span class="self">self</span>.addr_mask)<span class="question-mark">?</span>;
                 <span class="self">self</span>.push(result)<span class="question-mark">?</span>;
             }
-            <a href="#73">Operation::Mul</a> =&gt; {
+            Operation::Mul =&gt; {
                 <span class="kw">let </span>rhs = <span class="self">self</span>.pop()<span class="question-mark">?</span>;
                 <span class="kw">let </span>lhs = <span class="self">self</span>.pop()<span class="question-mark">?</span>;
                 <span class="kw">let </span>result = lhs.mul(rhs, <span class="self">self</span>.addr_mask)<span class="question-mark">?</span>;
                 <span class="self">self</span>.push(result)<span class="question-mark">?</span>;
             }
-            <a href="#75">Operation::Neg</a> =&gt; {
+            Operation::Neg =&gt; {
                 <span class="kw">let </span>v = <span class="self">self</span>.pop()<span class="question-mark">?</span>;
                 <span class="kw">let </span>result = v.neg(<span class="self">self</span>.addr_mask)<span class="question-mark">?</span>;
                 <span class="self">self</span>.push(result)<span class="question-mark">?</span>;
             }
-            <a href="#77">Operation::Not</a> =&gt; {
+            Operation::Not =&gt; {
                 <span class="kw">let </span>value = <span class="self">self</span>.pop()<span class="question-mark">?</span>;
                 <span class="kw">let </span>result = value.not(<span class="self">self</span>.addr_mask)<span class="question-mark">?</span>;
                 <span class="self">self</span>.push(result)<span class="question-mark">?</span>;
             }
-            <a href="#79">Operation::Or</a> =&gt; {
+            Operation::Or =&gt; {
                 <span class="kw">let </span>rhs = <span class="self">self</span>.pop()<span class="question-mark">?</span>;
                 <span class="kw">let </span>lhs = <span class="self">self</span>.pop()<span class="question-mark">?</span>;
                 <span class="kw">let </span>result = lhs.or(rhs, <span class="self">self</span>.addr_mask)<span class="question-mark">?</span>;
                 <span class="self">self</span>.push(result)<span class="question-mark">?</span>;
             }
-            <a href="#81">Operation::Plus</a> =&gt; {
+            Operation::Plus =&gt; {
                 <span class="kw">let </span>rhs = <span class="self">self</span>.pop()<span class="question-mark">?</span>;
                 <span class="kw">let </span>lhs = <span class="self">self</span>.pop()<span class="question-mark">?</span>;
                 <span class="kw">let </span>result = lhs.add(rhs, <span class="self">self</span>.addr_mask)<span class="question-mark">?</span>;
                 <span class="self">self</span>.push(result)<span class="question-mark">?</span>;
             }
-            <a href="#83">Operation::PlusConstant</a> { value } =&gt; {
+            Operation::PlusConstant { value } =&gt; {
                 <span class="kw">let </span>lhs = <span class="self">self</span>.pop()<span class="question-mark">?</span>;
                 <span class="kw">let </span>rhs = Value::from_u64(lhs.value_type(), value)<span class="question-mark">?</span>;
                 <span class="kw">let </span>result = lhs.add(rhs, <span class="self">self</span>.addr_mask)<span class="question-mark">?</span>;
                 <span class="self">self</span>.push(result)<span class="question-mark">?</span>;
             }
-            <a href="#89">Operation::Shl</a> =&gt; {
+            Operation::Shl =&gt; {
                 <span class="kw">let </span>rhs = <span class="self">self</span>.pop()<span class="question-mark">?</span>;
                 <span class="kw">let </span>lhs = <span class="self">self</span>.pop()<span class="question-mark">?</span>;
                 <span class="kw">let </span>result = lhs.shl(rhs, <span class="self">self</span>.addr_mask)<span class="question-mark">?</span>;
                 <span class="self">self</span>.push(result)<span class="question-mark">?</span>;
             }
-            <a href="#92">Operation::Shr</a> =&gt; {
+            Operation::Shr =&gt; {
                 <span class="kw">let </span>rhs = <span class="self">self</span>.pop()<span class="question-mark">?</span>;
                 <span class="kw">let </span>lhs = <span class="self">self</span>.pop()<span class="question-mark">?</span>;
                 <span class="kw">let </span>result = lhs.shr(rhs, <span class="self">self</span>.addr_mask)<span class="question-mark">?</span>;
                 <span class="self">self</span>.push(result)<span class="question-mark">?</span>;
             }
-            <a href="#95">Operation::Shra</a> =&gt; {
+            Operation::Shra =&gt; {
                 <span class="kw">let </span>rhs = <span class="self">self</span>.pop()<span class="question-mark">?</span>;
                 <span class="kw">let </span>lhs = <span class="self">self</span>.pop()<span class="question-mark">?</span>;
                 <span class="kw">let </span>result = lhs.shra(rhs, <span class="self">self</span>.addr_mask)<span class="question-mark">?</span>;
                 <span class="self">self</span>.push(result)<span class="question-mark">?</span>;
             }
-            <a href="#97">Operation::Xor</a> =&gt; {
+            Operation::Xor =&gt; {
                 <span class="kw">let </span>rhs = <span class="self">self</span>.pop()<span class="question-mark">?</span>;
                 <span class="kw">let </span>lhs = <span class="self">self</span>.pop()<span class="question-mark">?</span>;
                 <span class="kw">let </span>result = lhs.xor(rhs, <span class="self">self</span>.addr_mask)<span class="question-mark">?</span>;
                 <span class="self">self</span>.push(result)<span class="question-mark">?</span>;
             }
 
-            <a href="#99">Operation::Bra</a> { target } =&gt; {
+            Operation::Bra { target } =&gt; {
                 <span class="kw">let </span>entry = <span class="self">self</span>.pop()<span class="question-mark">?</span>;
                 <span class="kw">let </span>v = entry.to_u64(<span class="self">self</span>.addr_mask)<span class="question-mark">?</span>;
                 <span class="kw">if </span>v != <span class="number">0 </span>{
-                    <a class="self" href="#1229">self</a>.pc = compute_pc(<span class="kw-2">&amp;</span><span class="self">self</span>.pc, <span class="kw-2">&amp;</span><span class="self">self</span>.bytecode, target)<span class="question-mark">?</span>;
+                    <span class="self">self</span>.pc = compute_pc(<span class="kw-2">&amp;</span><span class="self">self</span>.pc, <span class="kw-2">&amp;</span><span class="self">self</span>.bytecode, target)<span class="question-mark">?</span>;
                 }
             }
 
-            <a href="#104">Operation::Eq</a> =&gt; {
+            Operation::Eq =&gt; {
                 <span class="kw">let </span>rhs = <span class="self">self</span>.pop()<span class="question-mark">?</span>;
                 <span class="kw">let </span>lhs = <span class="self">self</span>.pop()<span class="question-mark">?</span>;
                 <span class="kw">let </span>result = lhs.eq(rhs, <span class="self">self</span>.addr_mask)<span class="question-mark">?</span>;
                 <span class="self">self</span>.push(result)<span class="question-mark">?</span>;
             }
-            <a href="#106">Operation::Ge</a> =&gt; {
+            Operation::Ge =&gt; {
                 <span class="kw">let </span>rhs = <span class="self">self</span>.pop()<span class="question-mark">?</span>;
                 <span class="kw">let </span>lhs = <span class="self">self</span>.pop()<span class="question-mark">?</span>;
                 <span class="kw">let </span>result = lhs.ge(rhs, <span class="self">self</span>.addr_mask)<span class="question-mark">?</span>;
                 <span class="self">self</span>.push(result)<span class="question-mark">?</span>;
             }
-            <a href="#108">Operation::Gt</a> =&gt; {
+            Operation::Gt =&gt; {
                 <span class="kw">let </span>rhs = <span class="self">self</span>.pop()<span class="question-mark">?</span>;
                 <span class="kw">let </span>lhs = <span class="self">self</span>.pop()<span class="question-mark">?</span>;
                 <span class="kw">let </span>result = lhs.gt(rhs, <span class="self">self</span>.addr_mask)<span class="question-mark">?</span>;
                 <span class="self">self</span>.push(result)<span class="question-mark">?</span>;
             }
-            <a href="#110">Operation::Le</a> =&gt; {
+            Operation::Le =&gt; {
                 <span class="kw">let </span>rhs = <span class="self">self</span>.pop()<span class="question-mark">?</span>;
                 <span class="kw">let </span>lhs = <span class="self">self</span>.pop()<span class="question-mark">?</span>;
                 <span class="kw">let </span>result = lhs.le(rhs, <span class="self">self</span>.addr_mask)<span class="question-mark">?</span>;
                 <span class="self">self</span>.push(result)<span class="question-mark">?</span>;
             }
-            <a href="#112">Operation::Lt</a> =&gt; {
+            Operation::Lt =&gt; {
                 <span class="kw">let </span>rhs = <span class="self">self</span>.pop()<span class="question-mark">?</span>;
                 <span class="kw">let </span>lhs = <span class="self">self</span>.pop()<span class="question-mark">?</span>;
                 <span class="kw">let </span>result = lhs.lt(rhs, <span class="self">self</span>.addr_mask)<span class="question-mark">?</span>;
                 <span class="self">self</span>.push(result)<span class="question-mark">?</span>;
             }
-            <a href="#114">Operation::Ne</a> =&gt; {
+            Operation::Ne =&gt; {
                 <span class="kw">let </span>rhs = <span class="self">self</span>.pop()<span class="question-mark">?</span>;
                 <span class="kw">let </span>lhs = <span class="self">self</span>.pop()<span class="question-mark">?</span>;
                 <span class="kw">let </span>result = lhs.ne(rhs, <span class="self">self</span>.addr_mask)<span class="question-mark">?</span>;
                 <span class="self">self</span>.push(result)<span class="question-mark">?</span>;
             }
 
-            <a href="#116">Operation::Skip</a> { target } =&gt; {
-                <a class="self" href="#1229">self</a>.pc = compute_pc(<span class="kw-2">&amp;</span><span class="self">self</span>.pc, <span class="kw-2">&amp;</span><span class="self">self</span>.bytecode, target)<span class="question-mark">?</span>;
+            Operation::Skip { target } =&gt; {
+                <span class="self">self</span>.pc = compute_pc(<span class="kw-2">&amp;</span><span class="self">self</span>.pc, <span class="kw-2">&amp;</span><span class="self">self</span>.bytecode, target)<span class="question-mark">?</span>;
             }
 
-            <a href="#122">Operation::UnsignedConstant</a> { value } =&gt; {
+            Operation::UnsignedConstant { value } =&gt; {
                 <span class="self">self</span>.push(Value::Generic(value))<span class="question-mark">?</span>;
             }
 
-            <a href="#128">Operation::SignedConstant</a> { value } =&gt; {
+            Operation::SignedConstant { value } =&gt; {
                 <span class="self">self</span>.push(Value::Generic(value <span class="kw">as </span>u64))<span class="question-mark">?</span>;
             }
 
-            <a href="#141">Operation::RegisterOffset</a> {
+            Operation::RegisterOffset {
                 register,
                 offset,
                 base_type,
             } =&gt; {
-                <span class="kw">return </span><span class="prelude-val">Ok</span>(<a href="#300">OperationEvaluationResult::Waiting</a>(
-                    <a href="#830">EvaluationWaiting::Register</a> { <a href="#1432">offset</a> },
-                    <a href="#868">EvaluationResult::RequiresRegister</a> {
-                        <a href="#1431">register</a>,
-                        <a href="#1433">base_type</a>,
+                <span class="kw">return </span><span class="prelude-val">Ok</span>(OperationEvaluationResult::Waiting(
+                    EvaluationWaiting::Register { offset },
+                    EvaluationResult::RequiresRegister {
+                        register,
+                        base_type,
                     },
                 ));
             }
 
-            <a href="#151">Operation::FrameOffset</a> { offset } =&gt; {
-                <span class="kw">return </span><span class="prelude-val">Ok</span>(<a href="#300">OperationEvaluationResult::Waiting</a>(
-                    <a href="#831">EvaluationWaiting::FrameBase</a> { <a href="#1444">offset</a> },
-                    <a href="#879">EvaluationResult::RequiresFrameBase</a>,
+            Operation::FrameOffset { offset } =&gt; {
+                <span class="kw">return </span><span class="prelude-val">Ok</span>(OperationEvaluationResult::Waiting(
+                    EvaluationWaiting::FrameBase { offset },
+                    EvaluationResult::RequiresFrameBase,
                 ));
             }
 
-            <a href="#156">Operation::Nop</a> =&gt; {}
+            Operation::Nop =&gt; {}
 
-            <a href="#158">Operation::PushObjectAddress</a> =&gt; {
-                <span class="kw">if let </span><span class="prelude-val">Some</span>(value) = <a class="self" href="#1229">self</a>.object_address {
+            Operation::PushObjectAddress =&gt; {
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(value) = <span class="self">self</span>.object_address {
                     <span class="self">self</span>.push(Value::Generic(value))<span class="question-mark">?</span>;
                 } <span class="kw">else </span>{
-                    <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="mod.rs.html#347">Error::InvalidPushObjectAddress</a>);
+                    <span class="kw">return </span><span class="prelude-val">Err</span>(Error::InvalidPushObjectAddress);
                 }
             }
 
-            <a href="#162">Operation::Call</a> { offset } =&gt; {
-                <span class="kw">return </span><span class="prelude-val">Ok</span>(<a href="#300">OperationEvaluationResult::Waiting</a>(
-                    <a href="#834">EvaluationWaiting::AtLocation</a>,
-                    <a href="#892">EvaluationResult::RequiresAtLocation</a>(<a href="#1461">offset</a>),
+            Operation::Call { offset } =&gt; {
+                <span class="kw">return </span><span class="prelude-val">Ok</span>(OperationEvaluationResult::Waiting(
+                    EvaluationWaiting::AtLocation,
+                    EvaluationResult::RequiresAtLocation(offset),
                 ));
             }
 
-            <a href="#168">Operation::TLS</a> =&gt; {
+            Operation::TLS =&gt; {
                 <span class="kw">let </span>entry = <span class="self">self</span>.pop()<span class="question-mark">?</span>;
                 <span class="kw">let </span>index = entry.to_u64(<span class="self">self</span>.addr_mask)<span class="question-mark">?</span>;
-                <span class="kw">return </span><span class="prelude-val">Ok</span>(<a href="#300">OperationEvaluationResult::Waiting</a>(
-                    <a href="#832">EvaluationWaiting::Tls</a>,
-                    <a href="#883">EvaluationResult::RequiresTls</a>(<a href="#1470">index</a>),
+                <span class="kw">return </span><span class="prelude-val">Ok</span>(OperationEvaluationResult::Waiting(
+                    EvaluationWaiting::Tls,
+                    EvaluationResult::RequiresTls(index),
                 ));
             }
 
-            <a href="#170">Operation::CallFrameCFA</a> =&gt; {
-                <span class="kw">return </span><span class="prelude-val">Ok</span>(<a href="#300">OperationEvaluationResult::Waiting</a>(
-                    <a href="#833">EvaluationWaiting::Cfa</a>,
-                    <a href="#887">EvaluationResult::RequiresCallFrameCfa</a>,
+            Operation::CallFrameCFA =&gt; {
+                <span class="kw">return </span><span class="prelude-val">Ok</span>(OperationEvaluationResult::Waiting(
+                    EvaluationWaiting::Cfa,
+                    EvaluationResult::RequiresCallFrameCfa,
                 ));
             }
 
-            <a href="#135">Operation::Register</a> { register } =&gt; {
-                <span class="kw">let </span>location = <a href="#314">Location::Register</a> { <a href="#1484">register</a> };
-                <span class="kw">return </span><span class="prelude-val">Ok</span>(<a href="#299">OperationEvaluationResult::Complete</a> { <a href="#1485">location</a> });
+            Operation::Register { register } =&gt; {
+                <span class="kw">let </span>location = Location::Register { register };
+                <span class="kw">return </span><span class="prelude-val">Ok</span>(OperationEvaluationResult::Complete { location });
             }
 
-            <a href="#184">Operation::ImplicitValue</a> { <span class="kw-2">ref </span>data } =&gt; {
-                <span class="kw">let </span>location = <a href="#329">Location::Bytes</a> {
-                    value: <a href="#1489">data</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+            Operation::ImplicitValue { <span class="kw-2">ref </span>data } =&gt; {
+                <span class="kw">let </span>location = Location::Bytes {
+                    value: data.clone(),
                 };
-                <span class="kw">return </span><span class="prelude-val">Ok</span>(<a href="#299">OperationEvaluationResult::Complete</a> { <a href="#1490">location</a> });
+                <span class="kw">return </span><span class="prelude-val">Ok</span>(OperationEvaluationResult::Complete { location });
             }
 
-            <a href="#192">Operation::StackValue</a> =&gt; {
+            Operation::StackValue =&gt; {
                 <span class="kw">let </span>value = <span class="self">self</span>.pop()<span class="question-mark">?</span>;
-                <span class="kw">let </span>location = <a href="#324">Location::Value</a> { <a href="#1497">value</a> };
-                <span class="kw">return </span><span class="prelude-val">Ok</span>(<a href="#299">OperationEvaluationResult::Complete</a> { <a href="#1498">location</a> });
+                <span class="kw">let </span>location = Location::Value { value };
+                <span class="kw">return </span><span class="prelude-val">Ok</span>(OperationEvaluationResult::Complete { location });
             }
 
-            <a href="#198">Operation::ImplicitPointer</a> { value, byte_offset } =&gt; {
-                <span class="kw">let </span>location = <a href="#334">Location::ImplicitPointer</a> { <a href="#1502">value</a>, <a href="#1502">byte_offset</a> };
-                <span class="kw">return </span><span class="prelude-val">Ok</span>(<a href="#299">OperationEvaluationResult::Complete</a> { <a href="#1503">location</a> });
+            Operation::ImplicitPointer { value, byte_offset } =&gt; {
+                <span class="kw">let </span>location = Location::ImplicitPointer { value, byte_offset };
+                <span class="kw">return </span><span class="prelude-val">Ok</span>(OperationEvaluationResult::Complete { location });
             }
 
-            <a href="#207">Operation::EntryValue</a> { <span class="kw-2">ref </span>expression } =&gt; {
-                <span class="kw">return </span><span class="prelude-val">Ok</span>(<a href="#300">OperationEvaluationResult::Waiting</a>(
-                    <a href="#835">EvaluationWaiting::EntryValue</a>,
-                    <a href="#897">EvaluationResult::RequiresEntryValue</a>(<a href="#927">Expression</a>(<a href="#1507">expression</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>())),
+            Operation::EntryValue { <span class="kw-2">ref </span>expression } =&gt; {
+                <span class="kw">return </span><span class="prelude-val">Ok</span>(OperationEvaluationResult::Waiting(
+                    EvaluationWaiting::EntryValue,
+                    EvaluationResult::RequiresEntryValue(Expression(expression.clone())),
                 ));
             }
 
-            <a href="#218">Operation::ParameterRef</a> { offset } =&gt; {
-                <span class="kw">return </span><span class="prelude-val">Ok</span>(<a href="#300">OperationEvaluationResult::Waiting</a>(
-                    <a href="#836">EvaluationWaiting::ParameterRef</a>,
-                    <a href="#902">EvaluationResult::RequiresParameterRef</a>(<a href="#1514">offset</a>),
+            Operation::ParameterRef { offset } =&gt; {
+                <span class="kw">return </span><span class="prelude-val">Ok</span>(OperationEvaluationResult::Waiting(
+                    EvaluationWaiting::ParameterRef,
+                    EvaluationResult::RequiresParameterRef(offset),
                 ));
             }
 
-            <a href="#225">Operation::Address</a> { address } =&gt; {
-                <span class="kw">return </span><span class="prelude-val">Ok</span>(<a href="#300">OperationEvaluationResult::Waiting</a>(
-                    <a href="#837">EvaluationWaiting::RelocatedAddress</a>,
-                    <a href="#906">EvaluationResult::RequiresRelocatedAddress</a>(<a href="#1521">address</a>),
+            Operation::Address { address } =&gt; {
+                <span class="kw">return </span><span class="prelude-val">Ok</span>(OperationEvaluationResult::Waiting(
+                    EvaluationWaiting::RelocatedAddress,
+                    EvaluationResult::RequiresRelocatedAddress(address),
                 ));
             }
 
-            <a href="#233">Operation::AddressIndex</a> { index } =&gt; {
-                <span class="kw">return </span><span class="prelude-val">Ok</span>(<a href="#300">OperationEvaluationResult::Waiting</a>(
-                    <a href="#838">EvaluationWaiting::IndexedAddress</a>,
-                    <a href="#911">EvaluationResult::RequiresIndexedAddress</a> {
-                        <a href="#1528">index</a>,
+            Operation::AddressIndex { index } =&gt; {
+                <span class="kw">return </span><span class="prelude-val">Ok</span>(OperationEvaluationResult::Waiting(
+                    EvaluationWaiting::IndexedAddress,
+                    EvaluationResult::RequiresIndexedAddress {
+                        index,
                         relocate: <span class="bool-val">true</span>,
                     },
                 ));
             }
 
-            <a href="#241">Operation::ConstantIndex</a> { index } =&gt; {
-                <span class="kw">return </span><span class="prelude-val">Ok</span>(<a href="#300">OperationEvaluationResult::Waiting</a>(
-                    <a href="#838">EvaluationWaiting::IndexedAddress</a>,
-                    <a href="#911">EvaluationResult::RequiresIndexedAddress</a> {
-                        <a href="#1538">index</a>,
+            Operation::ConstantIndex { index } =&gt; {
+                <span class="kw">return </span><span class="prelude-val">Ok</span>(OperationEvaluationResult::Waiting(
+                    EvaluationWaiting::IndexedAddress,
+                    EvaluationResult::RequiresIndexedAddress {
+                        index,
                         relocate: <span class="bool-val">false</span>,
                     },
                 ));
             }
 
-            <a href="#172">Operation::Piece</a> {
+            Operation::Piece {
                 size_in_bits,
                 bit_offset,
             } =&gt; {
                 <span class="kw">let </span>location = <span class="kw">if </span><span class="self">self</span>.stack.is_empty() {
-                    <a href="#312">Location::Empty</a>
+                    Location::Empty
                 } <span class="kw">else </span>{
                     <span class="kw">let </span>entry = <span class="self">self</span>.pop()<span class="question-mark">?</span>;
                     <span class="kw">let </span>address = entry.to_u64(<span class="self">self</span>.addr_mask)<span class="question-mark">?</span>;
-                    <a href="#319">Location::Address</a> { <a href="#1556">address</a> }
+                    Location::Address { address }
                 };
                 <span class="self">self</span>.result
                     .try_push(Piece {
@@ -5677,35 +5668,35 @@ on the heap using [`Vec`]. This is the default storage type parameter for [`Eval
                         location,
                     })
                     .map_err(|<span class="kw">_</span>| Error::StackFull)<span class="question-mark">?</span>;
-                <span class="kw">return </span><span class="prelude-val">Ok</span>(<a href="#297">OperationEvaluationResult::Piece</a>);
+                <span class="kw">return </span><span class="prelude-val">Ok</span>(OperationEvaluationResult::Piece);
             }
 
-            <a href="#248">Operation::TypedLiteral</a> { base_type, value } =&gt; {
-                <span class="kw">return </span><span class="prelude-val">Ok</span>(<a href="#300">OperationEvaluationResult::Waiting</a>(
-                    <a href="#839">EvaluationWaiting::TypedLiteral</a> { <a href="#1569">value</a> },
-                    <a href="#922">EvaluationResult::RequiresBaseType</a>(<a href="#1569">base_type</a>),
+            Operation::TypedLiteral { base_type, value } =&gt; {
+                <span class="kw">return </span><span class="prelude-val">Ok</span>(OperationEvaluationResult::Waiting(
+                    EvaluationWaiting::TypedLiteral { value },
+                    EvaluationResult::RequiresBaseType(base_type),
                 ));
             }
-            <a href="#257">Operation::Convert</a> { base_type } =&gt; {
-                <span class="kw">return </span><span class="prelude-val">Ok</span>(<a href="#300">OperationEvaluationResult::Waiting</a>(
-                    <a href="#840">EvaluationWaiting::Convert</a>,
-                    <a href="#922">EvaluationResult::RequiresBaseType</a>(<a href="#1575">base_type</a>),
+            Operation::Convert { base_type } =&gt; {
+                <span class="kw">return </span><span class="prelude-val">Ok</span>(OperationEvaluationResult::Waiting(
+                    EvaluationWaiting::Convert,
+                    EvaluationResult::RequiresBaseType(base_type),
                 ));
             }
-            <a href="#265">Operation::Reinterpret</a> { base_type } =&gt; {
-                <span class="kw">return </span><span class="prelude-val">Ok</span>(<a href="#300">OperationEvaluationResult::Waiting</a>(
-                    <a href="#841">EvaluationWaiting::Reinterpret</a>,
-                    <a href="#922">EvaluationResult::RequiresBaseType</a>(<a href="#1581">base_type</a>),
+            Operation::Reinterpret { base_type } =&gt; {
+                <span class="kw">return </span><span class="prelude-val">Ok</span>(OperationEvaluationResult::Waiting(
+                    EvaluationWaiting::Reinterpret,
+                    EvaluationResult::RequiresBaseType(base_type),
                 ));
             }
-            <a href="#273">Operation::WasmLocal</a> { .. }
-            | <a href="#281">Operation::WasmGlobal</a> { .. }
-            | <a href="#289">Operation::WasmStack</a> { .. } =&gt; {
-                <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="mod.rs.html#356">Error::UnsupportedEvaluation</a>);
+            Operation::WasmLocal { .. }
+            | Operation::WasmGlobal { .. }
+            | Operation::WasmStack { .. } =&gt; {
+                <span class="kw">return </span><span class="prelude-val">Err</span>(Error::UnsupportedEvaluation);
             }
         }
 
-        <span class="prelude-val">Ok</span>(<a href="#298">OperationEvaluationResult::Incomplete</a>)
+        <span class="prelude-val">Ok</span>(OperationEvaluationResult::Incomplete)
     }
 
     <span class="doccomment">/// Get the result of this `Evaluation`.
@@ -5713,10 +5704,10 @@ on the heap using [`Vec`]. This is the default storage type parameter for [`Eval
     /// # Panics
     /// Panics if this `Evaluation` has not been driven to completion.
     </span><span class="kw">pub fn </span>as_result(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[Piece&lt;R&gt;] {
-        <span class="kw">match </span><a class="self" href="#1601">self</a>.state {
-            <a href="#823">EvaluationState::Complete</a> =&gt; <span class="kw-2">&amp;</span><a class="self" href="#1601">self</a>.result,
+        <span class="kw">match </span><span class="self">self</span>.state {
+            EvaluationState::Complete =&gt; <span class="kw-2">&amp;</span><span class="self">self</span>.result,
             <span class="kw">_ </span>=&gt; {
-                <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.panic.html">panic!</a>(<span class="string">&quot;Called `Evaluation::result` on an `Evaluation` that has not been completed&quot;</span>)
+                <span class="macro">panic!</span>(<span class="string">&quot;Called `Evaluation::result` on an `Evaluation` that has not been completed&quot;</span>)
             }
         }
     }
@@ -5727,24 +5718,24 @@ on the heap using [`Vec`]. This is the default storage type parameter for [`Eval
     /// value and resume the evaluation by calling the appropriate resume_with
     /// method on `Evaluation`.
     </span><span class="kw">pub fn </span>evaluate(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;EvaluationResult&lt;R&gt;&gt; {
-        <span class="kw">match </span><a class="self" href="#1615">self</a>.state {
-            <a href="#820">EvaluationState::Start</a>(initial_value) =&gt; {
-                <span class="kw">if let </span><span class="prelude-val">Some</span>(value) = <a href="#1617">initial_value</a> {
+        <span class="kw">match </span><span class="self">self</span>.state {
+            EvaluationState::Start(initial_value) =&gt; {
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(value) = initial_value {
                     <span class="self">self</span>.push(Value::Generic(value))<span class="question-mark">?</span>;
                 }
-                <a class="self" href="#1615">self</a>.state = <a href="#821">EvaluationState::Ready</a>;
+                <span class="self">self</span>.state = EvaluationState::Ready;
             }
-            <a href="#821">EvaluationState::Ready</a> =&gt; {}
-            <a href="#822">EvaluationState::Error</a>(err) =&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="#1624">err</a>),
-            <a href="#823">EvaluationState::Complete</a> =&gt; <span class="kw">return </span><span class="prelude-val">Ok</span>(<a href="#850">EvaluationResult::Complete</a>),
-            <a href="#824">EvaluationState::Waiting</a>(<span class="kw">_</span>) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.panic.html">panic!</a>(),
+            EvaluationState::Ready =&gt; {}
+            EvaluationState::Error(err) =&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(err),
+            EvaluationState::Complete =&gt; <span class="kw">return </span><span class="prelude-val">Ok</span>(EvaluationResult::Complete),
+            EvaluationState::Waiting(<span class="kw">_</span>) =&gt; <span class="macro">panic!</span>(),
         };
 
-        <span class="kw">match </span><a class="self" href="#1615">self</a>.<a href="#1902">evaluate_internal</a>() {
-            <span class="prelude-val">Ok</span>(r) =&gt; <span class="prelude-val">Ok</span>(<a href="#1630">r</a>),
+        <span class="kw">match </span><span class="self">self</span>.evaluate_internal() {
+            <span class="prelude-val">Ok</span>(r) =&gt; <span class="prelude-val">Ok</span>(r),
             <span class="prelude-val">Err</span>(e) =&gt; {
-                <a class="self" href="#1615">self</a>.state = <a href="#822">EvaluationState::Error</a>(<a href="#1631">e</a>);
-                <span class="prelude-val">Err</span>(<a href="#1631">e</a>)
+                <span class="self">self</span>.state = EvaluationState::Error(e);
+                <span class="prelude-val">Err</span>(e)
             }
         }
     }
@@ -5756,18 +5747,18 @@ on the heap using [`Vec`]. This is the default storage type parameter for [`Eval
     ///
     /// # Panics
     /// Panics if this `Evaluation` did not previously stop with `EvaluationResult::RequiresMemory`.
-    </span><span class="kw">pub fn </span>resume_with_memory(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: <a href="value.rs.html#55">Value</a>) -&gt; <span class="prelude-ty">Result</span>&lt;EvaluationResult&lt;R&gt;&gt; {
-        <span class="kw">match </span><a class="self" href="#1645">self</a>.state {
-            <a href="#822">EvaluationState::Error</a>(err) =&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="#1647">err</a>),
-            <a href="#824">EvaluationState::Waiting</a>(<a href="#829">EvaluationWaiting::Memory</a>) =&gt; {
+    </span><span class="kw">pub fn </span>resume_with_memory(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: Value) -&gt; <span class="prelude-ty">Result</span>&lt;EvaluationResult&lt;R&gt;&gt; {
+        <span class="kw">match </span><span class="self">self</span>.state {
+            EvaluationState::Error(err) =&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(err),
+            EvaluationState::Waiting(EvaluationWaiting::Memory) =&gt; {
                 <span class="self">self</span>.push(value)<span class="question-mark">?</span>;
             }
-            <span class="kw">_ </span>=&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.panic.html">panic!</a>(
+            <span class="kw">_ </span>=&gt; <span class="macro">panic!</span>(
                 <span class="string">&quot;Called `Evaluation::resume_with_memory` without a preceding `EvaluationResult::RequiresMemory`&quot;
             </span>),
         };
 
-        <a class="self" href="#1645">self</a>.<a href="#1902">evaluate_internal</a>()
+        <span class="self">self</span>.evaluate_internal()
     }
 
     <span class="doccomment">/// Resume the `Evaluation` with the provided `register` value.  This will apply
@@ -5777,20 +5768,20 @@ on the heap using [`Vec`]. This is the default storage type parameter for [`Eval
     ///
     /// # Panics
     /// Panics if this `Evaluation` did not previously stop with `EvaluationResult::RequiresRegister`.
-    </span><span class="kw">pub fn </span>resume_with_register(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: <a href="value.rs.html#55">Value</a>) -&gt; <span class="prelude-ty">Result</span>&lt;EvaluationResult&lt;R&gt;&gt; {
-        <span class="kw">match </span><a class="self" href="#1666">self</a>.state {
-            <a href="#822">EvaluationState::Error</a>(err) =&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="#1668">err</a>),
-            <a href="#824">EvaluationState::Waiting</a>(<a href="#830">EvaluationWaiting::Register</a> { offset }) =&gt; {
+    </span><span class="kw">pub fn </span>resume_with_register(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: Value) -&gt; <span class="prelude-ty">Result</span>&lt;EvaluationResult&lt;R&gt;&gt; {
+        <span class="kw">match </span><span class="self">self</span>.state {
+            EvaluationState::Error(err) =&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(err),
+            EvaluationState::Waiting(EvaluationWaiting::Register { offset }) =&gt; {
                 <span class="kw">let </span>offset = Value::from_u64(value.value_type(), offset <span class="kw">as </span>u64)<span class="question-mark">?</span>;
                 <span class="kw">let </span>value = value.add(offset, <span class="self">self</span>.addr_mask)<span class="question-mark">?</span>;
                 <span class="self">self</span>.push(value)<span class="question-mark">?</span>;
             }
-            <span class="kw">_ </span>=&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.panic.html">panic!</a>(
+            <span class="kw">_ </span>=&gt; <span class="macro">panic!</span>(
                 <span class="string">&quot;Called `Evaluation::resume_with_register` without a preceding `EvaluationResult::RequiresRegister`&quot;
             </span>),
         };
 
-        <a class="self" href="#1666">self</a>.<a href="#1902">evaluate_internal</a>()
+        <span class="self">self</span>.evaluate_internal()
     }
 
     <span class="doccomment">/// Resume the `Evaluation` with the provided `frame_base`.  This will
@@ -5800,18 +5791,18 @@ on the heap using [`Vec`]. This is the default storage type parameter for [`Eval
     ///
     /// # Panics
     /// Panics if this `Evaluation` did not previously stop with `EvaluationResult::RequiresFrameBase`.
-    </span><span class="kw">pub fn </span>resume_with_frame_base(<span class="kw-2">&amp;mut </span><span class="self">self</span>, frame_base: <a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>) -&gt; <span class="prelude-ty">Result</span>&lt;EvaluationResult&lt;R&gt;&gt; {
-        <span class="kw">match </span><a class="self" href="#1689">self</a>.state {
-            <a href="#822">EvaluationState::Error</a>(err) =&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="#1691">err</a>),
-            <a href="#824">EvaluationState::Waiting</a>(<a href="#831">EvaluationWaiting::FrameBase</a> { offset }) =&gt; {
+    </span><span class="kw">pub fn </span>resume_with_frame_base(<span class="kw-2">&amp;mut </span><span class="self">self</span>, frame_base: u64) -&gt; <span class="prelude-ty">Result</span>&lt;EvaluationResult&lt;R&gt;&gt; {
+        <span class="kw">match </span><span class="self">self</span>.state {
+            EvaluationState::Error(err) =&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(err),
+            EvaluationState::Waiting(EvaluationWaiting::FrameBase { offset }) =&gt; {
                 <span class="self">self</span>.push(Value::Generic(frame_base.wrapping_add(offset <span class="kw">as </span>u64)))<span class="question-mark">?</span>;
             }
-            <span class="kw">_ </span>=&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.panic.html">panic!</a>(
+            <span class="kw">_ </span>=&gt; <span class="macro">panic!</span>(
                 <span class="string">&quot;Called `Evaluation::resume_with_frame_base` without a preceding `EvaluationResult::RequiresFrameBase`&quot;
             </span>),
         };
 
-        <a class="self" href="#1689">self</a>.<a href="#1902">evaluate_internal</a>()
+        <span class="self">self</span>.evaluate_internal()
     }
 
     <span class="doccomment">/// Resume the `Evaluation` with the provided `value`.  This will apply
@@ -5821,18 +5812,18 @@ on the heap using [`Vec`]. This is the default storage type parameter for [`Eval
     ///
     /// # Panics
     /// Panics if this `Evaluation` did not previously stop with `EvaluationResult::RequiresTls`.
-    </span><span class="kw">pub fn </span>resume_with_tls(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: <a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>) -&gt; <span class="prelude-ty">Result</span>&lt;EvaluationResult&lt;R&gt;&gt; {
-        <span class="kw">match </span><a class="self" href="#1710">self</a>.state {
-            <a href="#822">EvaluationState::Error</a>(err) =&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="#1712">err</a>),
-            <a href="#824">EvaluationState::Waiting</a>(<a href="#832">EvaluationWaiting::Tls</a>) =&gt; {
+    </span><span class="kw">pub fn </span>resume_with_tls(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: u64) -&gt; <span class="prelude-ty">Result</span>&lt;EvaluationResult&lt;R&gt;&gt; {
+        <span class="kw">match </span><span class="self">self</span>.state {
+            EvaluationState::Error(err) =&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(err),
+            EvaluationState::Waiting(EvaluationWaiting::Tls) =&gt; {
                 <span class="self">self</span>.push(Value::Generic(value))<span class="question-mark">?</span>;
             }
-            <span class="kw">_ </span>=&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.panic.html">panic!</a>(
+            <span class="kw">_ </span>=&gt; <span class="macro">panic!</span>(
                 <span class="string">&quot;Called `Evaluation::resume_with_tls` without a preceding `EvaluationResult::RequiresTls`&quot;
             </span>),
         };
 
-        <a class="self" href="#1710">self</a>.<a href="#1902">evaluate_internal</a>()
+        <span class="self">self</span>.evaluate_internal()
     }
 
     <span class="doccomment">/// Resume the `Evaluation` with the provided `cfa`.  This will
@@ -5842,18 +5833,18 @@ on the heap using [`Vec`]. This is the default storage type parameter for [`Eval
     ///
     /// # Panics
     /// Panics if this `Evaluation` did not previously stop with `EvaluationResult::RequiresCallFrameCfa`.
-    </span><span class="kw">pub fn </span>resume_with_call_frame_cfa(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cfa: <a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>) -&gt; <span class="prelude-ty">Result</span>&lt;EvaluationResult&lt;R&gt;&gt; {
-        <span class="kw">match </span><a class="self" href="#1731">self</a>.state {
-            <a href="#822">EvaluationState::Error</a>(err) =&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="#1733">err</a>),
-            <a href="#824">EvaluationState::Waiting</a>(<a href="#833">EvaluationWaiting::Cfa</a>) =&gt; {
+    </span><span class="kw">pub fn </span>resume_with_call_frame_cfa(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cfa: u64) -&gt; <span class="prelude-ty">Result</span>&lt;EvaluationResult&lt;R&gt;&gt; {
+        <span class="kw">match </span><span class="self">self</span>.state {
+            EvaluationState::Error(err) =&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(err),
+            EvaluationState::Waiting(EvaluationWaiting::Cfa) =&gt; {
                 <span class="self">self</span>.push(Value::Generic(cfa))<span class="question-mark">?</span>;
             }
-            <span class="kw">_ </span>=&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.panic.html">panic!</a>(
+            <span class="kw">_ </span>=&gt; <span class="macro">panic!</span>(
                 <span class="string">&quot;Called `Evaluation::resume_with_call_frame_cfa` without a preceding `EvaluationResult::RequiresCallFrameCfa`&quot;
             </span>),
         };
 
-        <a class="self" href="#1731">self</a>.<a href="#1902">evaluate_internal</a>()
+        <span class="self">self</span>.evaluate_internal()
     }
 
     <span class="doccomment">/// Resume the `Evaluation` with the provided `bytes`.  This will
@@ -5864,22 +5855,22 @@ on the heap using [`Vec`]. This is the default storage type parameter for [`Eval
     /// # Panics
     /// Panics if this `Evaluation` did not previously stop with `EvaluationResult::RequiresAtLocation`.
     </span><span class="kw">pub fn </span>resume_with_at_location(<span class="kw-2">&amp;mut </span><span class="self">self</span>, <span class="kw-2">mut </span>bytes: R) -&gt; <span class="prelude-ty">Result</span>&lt;EvaluationResult&lt;R&gt;&gt; {
-        <span class="kw">match </span><a class="self" href="#1752">self</a>.state {
-            <a href="#822">EvaluationState::Error</a>(err) =&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="#1754">err</a>),
-            <a href="#824">EvaluationState::Waiting</a>(<a href="#834">EvaluationWaiting::AtLocation</a>) =&gt; {
+        <span class="kw">match </span><span class="self">self</span>.state {
+            EvaluationState::Error(err) =&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(err),
+            EvaluationState::Waiting(EvaluationWaiting::AtLocation) =&gt; {
                 <span class="kw">if </span>!bytes.is_empty() {
-                    <span class="kw">let </span><span class="kw-2">mut </span>pc = <a href="#1752">bytes</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
-                    mem::swap(<span class="kw-2">&amp;mut </span><a href="#1757">pc</a>, <span class="kw-2">&amp;mut </span><a class="self" href="#1752">self</a>.pc);
-                    mem::swap(<span class="kw-2">&amp;mut </span><a href="#1752">bytes</a>, <span class="kw-2">&amp;mut </span><a class="self" href="#1752">self</a>.bytecode);
+                    <span class="kw">let </span><span class="kw-2">mut </span>pc = bytes.clone();
+                    mem::swap(<span class="kw-2">&amp;mut </span>pc, <span class="kw-2">&amp;mut </span><span class="self">self</span>.pc);
+                    mem::swap(<span class="kw-2">&amp;mut </span>bytes, <span class="kw-2">&amp;mut </span><span class="self">self</span>.bytecode);
                     <span class="self">self</span>.expression_stack.try_push((pc, bytes)).map_err(|<span class="kw">_</span>| Error::StackFull)<span class="question-mark">?</span>;
                 }
             }
-            <span class="kw">_ </span>=&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.panic.html">panic!</a>(
+            <span class="kw">_ </span>=&gt; <span class="macro">panic!</span>(
                 <span class="string">&quot;Called `Evaluation::resume_with_at_location` without a precedeing `EvaluationResult::RequiresAtLocation`&quot;
             </span>),
         };
 
-        <a class="self" href="#1752">self</a>.<a href="#1902">evaluate_internal</a>()
+        <span class="self">self</span>.evaluate_internal()
     }
 
     <span class="doccomment">/// Resume the `Evaluation` with the provided `entry_value`.  This will
@@ -5889,18 +5880,18 @@ on the heap using [`Vec`]. This is the default storage type parameter for [`Eval
     ///
     /// # Panics
     /// Panics if this `Evaluation` did not previously stop with `EvaluationResult::RequiresEntryValue`.
-    </span><span class="kw">pub fn </span>resume_with_entry_value(<span class="kw-2">&amp;mut </span><span class="self">self</span>, entry_value: <a href="value.rs.html#55">Value</a>) -&gt; <span class="prelude-ty">Result</span>&lt;EvaluationResult&lt;R&gt;&gt; {
-        <span class="kw">match </span><a class="self" href="#1778">self</a>.state {
-            <a href="#822">EvaluationState::Error</a>(err) =&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="#1780">err</a>),
-            <a href="#824">EvaluationState::Waiting</a>(<a href="#835">EvaluationWaiting::EntryValue</a>) =&gt; {
+    </span><span class="kw">pub fn </span>resume_with_entry_value(<span class="kw-2">&amp;mut </span><span class="self">self</span>, entry_value: Value) -&gt; <span class="prelude-ty">Result</span>&lt;EvaluationResult&lt;R&gt;&gt; {
+        <span class="kw">match </span><span class="self">self</span>.state {
+            EvaluationState::Error(err) =&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(err),
+            EvaluationState::Waiting(EvaluationWaiting::EntryValue) =&gt; {
                 <span class="self">self</span>.push(entry_value)<span class="question-mark">?</span>;
             }
-            <span class="kw">_ </span>=&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.panic.html">panic!</a>(
+            <span class="kw">_ </span>=&gt; <span class="macro">panic!</span>(
                 <span class="string">&quot;Called `Evaluation::resume_with_entry_value` without a preceding `EvaluationResult::RequiresEntryValue`&quot;
             </span>),
         };
 
-        <a class="self" href="#1778">self</a>.<a href="#1902">evaluate_internal</a>()
+        <span class="self">self</span>.evaluate_internal()
     }
 
     <span class="doccomment">/// Resume the `Evaluation` with the provided `parameter_value`.  This will
@@ -5912,19 +5903,19 @@ on the heap using [`Vec`]. This is the default storage type parameter for [`Eval
     /// Panics if this `Evaluation` did not previously stop with `EvaluationResult::RequiresParameterRef`.
     </span><span class="kw">pub fn </span>resume_with_parameter_ref(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        parameter_value: <a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>,
+        parameter_value: u64,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;EvaluationResult&lt;R&gt;&gt; {
-        <span class="kw">match </span><a class="self" href="#1800">self</a>.state {
-            <a href="#822">EvaluationState::Error</a>(err) =&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="#1804">err</a>),
-            <a href="#824">EvaluationState::Waiting</a>(<a href="#836">EvaluationWaiting::ParameterRef</a>) =&gt; {
+        <span class="kw">match </span><span class="self">self</span>.state {
+            EvaluationState::Error(err) =&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(err),
+            EvaluationState::Waiting(EvaluationWaiting::ParameterRef) =&gt; {
                 <span class="self">self</span>.push(Value::Generic(parameter_value))<span class="question-mark">?</span>;
             }
-            <span class="kw">_ </span>=&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.panic.html">panic!</a>(
+            <span class="kw">_ </span>=&gt; <span class="macro">panic!</span>(
                 <span class="string">&quot;Called `Evaluation::resume_with_parameter_ref` without a preceding `EvaluationResult::RequiresParameterRef`&quot;
             </span>),
         };
 
-        <a class="self" href="#1800">self</a>.<a href="#1902">evaluate_internal</a>()
+        <span class="self">self</span>.evaluate_internal()
     }
 
     <span class="doccomment">/// Resume the `Evaluation` with the provided relocated `address`.  This will use the
@@ -5935,18 +5926,18 @@ on the heap using [`Vec`]. This is the default storage type parameter for [`Eval
     /// # Panics
     /// Panics if this `Evaluation` did not previously stop with
     /// `EvaluationResult::RequiresRelocatedAddress`.
-    </span><span class="kw">pub fn </span>resume_with_relocated_address(<span class="kw-2">&amp;mut </span><span class="self">self</span>, address: <a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>) -&gt; <span class="prelude-ty">Result</span>&lt;EvaluationResult&lt;R&gt;&gt; {
-        <span class="kw">match </span><a class="self" href="#1824">self</a>.state {
-            <a href="#822">EvaluationState::Error</a>(err) =&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="#1826">err</a>),
-            <a href="#824">EvaluationState::Waiting</a>(<a href="#837">EvaluationWaiting::RelocatedAddress</a>) =&gt; {
+    </span><span class="kw">pub fn </span>resume_with_relocated_address(<span class="kw-2">&amp;mut </span><span class="self">self</span>, address: u64) -&gt; <span class="prelude-ty">Result</span>&lt;EvaluationResult&lt;R&gt;&gt; {
+        <span class="kw">match </span><span class="self">self</span>.state {
+            EvaluationState::Error(err) =&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(err),
+            EvaluationState::Waiting(EvaluationWaiting::RelocatedAddress) =&gt; {
                 <span class="self">self</span>.push(Value::Generic(address))<span class="question-mark">?</span>;
             }
-            <span class="kw">_ </span>=&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.panic.html">panic!</a>(
+            <span class="kw">_ </span>=&gt; <span class="macro">panic!</span>(
                 <span class="string">&quot;Called `Evaluation::resume_with_relocated_address` without a preceding `EvaluationResult::RequiresRelocatedAddress`&quot;
             </span>),
         };
 
-        <a class="self" href="#1824">self</a>.<a href="#1902">evaluate_internal</a>()
+        <span class="self">self</span>.evaluate_internal()
     }
 
     <span class="doccomment">/// Resume the `Evaluation` with the provided indexed `address`.  This will use the
@@ -5957,18 +5948,18 @@ on the heap using [`Vec`]. This is the default storage type parameter for [`Eval
     /// # Panics
     /// Panics if this `Evaluation` did not previously stop with
     /// `EvaluationResult::RequiresIndexedAddress`.
-    </span><span class="kw">pub fn </span>resume_with_indexed_address(<span class="kw-2">&amp;mut </span><span class="self">self</span>, address: <a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>) -&gt; <span class="prelude-ty">Result</span>&lt;EvaluationResult&lt;R&gt;&gt; {
-        <span class="kw">match </span><a class="self" href="#1846">self</a>.state {
-            <a href="#822">EvaluationState::Error</a>(err) =&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="#1848">err</a>),
-            <a href="#824">EvaluationState::Waiting</a>(<a href="#838">EvaluationWaiting::IndexedAddress</a>) =&gt; {
+    </span><span class="kw">pub fn </span>resume_with_indexed_address(<span class="kw-2">&amp;mut </span><span class="self">self</span>, address: u64) -&gt; <span class="prelude-ty">Result</span>&lt;EvaluationResult&lt;R&gt;&gt; {
+        <span class="kw">match </span><span class="self">self</span>.state {
+            EvaluationState::Error(err) =&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(err),
+            EvaluationState::Waiting(EvaluationWaiting::IndexedAddress) =&gt; {
                 <span class="self">self</span>.push(Value::Generic(address))<span class="question-mark">?</span>;
             }
-            <span class="kw">_ </span>=&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.panic.html">panic!</a>(
+            <span class="kw">_ </span>=&gt; <span class="macro">panic!</span>(
                 <span class="string">&quot;Called `Evaluation::resume_with_indexed_address` without a preceding `EvaluationResult::RequiresIndexedAddress`&quot;
             </span>),
         };
 
-        <a class="self" href="#1846">self</a>.<a href="#1902">evaluate_internal</a>()
+        <span class="self">self</span>.evaluate_internal()
     }
 
     <span class="doccomment">/// Resume the `Evaluation` with the provided `base_type`.  This will use the
@@ -5978,29 +5969,29 @@ on the heap using [`Vec`]. This is the default storage type parameter for [`Eval
     ///
     /// # Panics
     /// Panics if this `Evaluation` did not previously stop with `EvaluationResult::RequiresBaseType`.
-    </span><span class="kw">pub fn </span>resume_with_base_type(<span class="kw-2">&amp;mut </span><span class="self">self</span>, base_type: <a href="value.rs.html#26">ValueType</a>) -&gt; <span class="prelude-ty">Result</span>&lt;EvaluationResult&lt;R&gt;&gt; {
-        <span class="kw">let </span>value = <span class="kw">match </span><a class="self" href="#1867">self</a>.state {
-            <a href="#822">EvaluationState::Error</a>(err) =&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="#1869">err</a>),
-            <a href="#824">EvaluationState::Waiting</a>(<a href="#839">EvaluationWaiting::TypedLiteral</a> { <span class="kw-2">ref </span>value }) =&gt; {
+    </span><span class="kw">pub fn </span>resume_with_base_type(<span class="kw-2">&amp;mut </span><span class="self">self</span>, base_type: ValueType) -&gt; <span class="prelude-ty">Result</span>&lt;EvaluationResult&lt;R&gt;&gt; {
+        <span class="kw">let </span>value = <span class="kw">match </span><span class="self">self</span>.state {
+            EvaluationState::Error(err) =&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(err),
+            EvaluationState::Waiting(EvaluationWaiting::TypedLiteral { <span class="kw-2">ref </span>value }) =&gt; {
                 Value::parse(base_type, value.clone())<span class="question-mark">?
             </span>}
-            <a href="#824">EvaluationState::Waiting</a>(<a href="#840">EvaluationWaiting::Convert</a>) =&gt; {
+            EvaluationState::Waiting(EvaluationWaiting::Convert) =&gt; {
                 <span class="kw">let </span>entry = <span class="self">self</span>.pop()<span class="question-mark">?</span>;
                 entry.convert(base_type, <span class="self">self</span>.addr_mask)<span class="question-mark">?
             </span>}
-            <a href="#824">EvaluationState::Waiting</a>(<a href="#841">EvaluationWaiting::Reinterpret</a>) =&gt; {
+            EvaluationState::Waiting(EvaluationWaiting::Reinterpret) =&gt; {
                 <span class="kw">let </span>entry = <span class="self">self</span>.pop()<span class="question-mark">?</span>;
                 entry.reinterpret(base_type, <span class="self">self</span>.addr_mask)<span class="question-mark">?
             </span>}
-            <span class="kw">_ </span>=&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.panic.html">panic!</a>(
+            <span class="kw">_ </span>=&gt; <span class="macro">panic!</span>(
                 <span class="string">&quot;Called `Evaluation::resume_with_base_type` without a preceding `EvaluationResult::RequiresBaseType`&quot;
             </span>),
         };
         <span class="self">self</span>.push(value)<span class="question-mark">?</span>;
-        <a class="self" href="#1867">self</a>.<a href="#1902">evaluate_internal</a>()
+        <span class="self">self</span>.evaluate_internal()
     }
 
-    <span class="kw">fn </span>end_of_expression(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/primitive.bool.html">bool</a> {
+    <span class="kw">fn </span>end_of_expression(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; bool {
         <span class="kw">while </span><span class="self">self</span>.pc.is_empty() {
             <span class="kw">match </span><span class="self">self</span>.expression_stack.pop() {
                 <span class="prelude-val">Some</span>((newpc, newbytes)) =&gt; {
@@ -6093,8 +6084,8 @@ on the heap using [`Vec`]. This is the default storage type parameter for [`Eval
                 .map_err(|<span class="kw">_</span>| Error::StackFull)<span class="question-mark">?</span>;
         }
 
-        <a class="self" href="#1902">self</a>.state = <a href="#823">EvaluationState::Complete</a>;
-        <span class="prelude-val">Ok</span>(<a href="#850">EvaluationResult::Complete</a>)
+        <span class="self">self</span>.state = EvaluationState::Complete;
+        <span class="prelude-val">Ok</span>(EvaluationResult::Complete)
     }
 }
 
@@ -7003,8 +6994,7 @@ on the heap using [`Vec`]. This is the default storage type parameter for [`Eval
         result
     }
 
-    <span class="attr">#[allow(clippy::too_many_arguments)]
-    </span><span class="kw">fn </span>check_eval_with_args&lt;F&gt;(
+    <span class="kw">fn </span>check_eval_with_args&lt;F&gt;(
         program: <span class="kw-2">&amp;</span>[AssemblerEntry],
         expect: <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span>[Piece&lt;EndianSlice&lt;LittleEndian&gt;&gt;]&gt;,
         encoding: Encoding,
@@ -8227,4 +8217,4 @@ on the heap using [`Vec`]. This is the default storage type parameter for [`Eval
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="gimli" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="gimli" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

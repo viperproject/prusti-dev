@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-1.7.0/src/backtrack.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>backtrack.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../regex/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-1.7.0/src/backtrack.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>backtrack.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../regex/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -298,51 +298,51 @@
 // the bitset has to be zeroed on each execution, which becomes quite expensive
 // on large bitsets.
 
-</span><span class="kw">use </span><a href="exec.rs.html#1521"><span class="kw">crate</span>::exec::ProgramCache</a>;
-<span class="kw">use </span><span class="kw">crate</span>::input::{<a href="input.rs.html#67">Input</a>, <a href="input.rs.html#13">InputAt</a>};
-<span class="kw">use </span><span class="kw">crate</span>::prog::{<a href="prog.rs.html#13">InstPtr</a>, <a href="prog.rs.html#18">Program</a>};
-<span class="kw">use </span><a href="re_trait.rs.html#7"><span class="kw">crate</span>::re_trait::Slot</a>;
+</span><span class="kw">use </span><span class="kw">crate</span>::exec::ProgramCache;
+<span class="kw">use </span><span class="kw">crate</span>::input::{Input, InputAt};
+<span class="kw">use </span><span class="kw">crate</span>::prog::{InstPtr, Program};
+<span class="kw">use </span><span class="kw">crate</span>::re_trait::Slot;
 
-<span class="kw">type </span>Bits = <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>;
+<span class="kw">type </span>Bits = u32;
 
-<span class="kw">const </span>BIT_SIZE: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> = <span class="number">32</span>;
-<span class="kw">const </span>MAX_SIZE_BYTES: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> = <span class="number">256 </span>* (<span class="number">1 </span>&lt;&lt; <span class="number">10</span>); <span class="comment">// 256 KB
+<span class="kw">const </span>BIT_SIZE: usize = <span class="number">32</span>;
+<span class="kw">const </span>MAX_SIZE_BYTES: usize = <span class="number">256 </span>* (<span class="number">1 </span>&lt;&lt; <span class="number">10</span>); <span class="comment">// 256 KB
 
 </span><span class="doccomment">/// Returns true iff the given regex and input should be executed by this
 /// engine with reasonable memory usage.
-</span><span class="kw">pub fn </span>should_exec(num_insts: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, text_len: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+</span><span class="kw">pub fn </span>should_exec(num_insts: usize, text_len: usize) -&gt; bool {
     <span class="comment">// Total memory usage in bytes is determined by:
     //
     //   ((len(insts) * (len(input) + 1) + bits - 1) / bits) * (size_of(u32))
     //
     // The actual limit picked is pretty much a heuristic.
     // See: https://github.com/rust-lang/regex/issues/215
-    </span><span class="kw">let </span>size = ((<a href="#31">num_insts</a> * (<a href="#31">text_len</a> + <span class="number">1</span>) + <a href="#26">BIT_SIZE</a> - <span class="number">1</span>) / <a href="#26">BIT_SIZE</a>) * <span class="number">4</span>;
-    <a href="#38">size</a> &lt;= <a href="#27">MAX_SIZE_BYTES</a>
+    </span><span class="kw">let </span>size = ((num_insts * (text_len + <span class="number">1</span>) + BIT_SIZE - <span class="number">1</span>) / BIT_SIZE) * <span class="number">4</span>;
+    size &lt;= MAX_SIZE_BYTES
 }
 
 <span class="doccomment">/// A backtracking matching engine.
 </span><span class="attr">#[derive(Debug)]
 </span><span class="kw">pub struct </span>Bounded&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;m</span>, <span class="lifetime">&#39;r</span>, <span class="lifetime">&#39;s</span>, I&gt; {
-    prog: <span class="kw-2">&amp;</span><span class="lifetime">&#39;r </span><a href="prog.rs.html#18">Program</a>,
+    prog: <span class="kw-2">&amp;</span><span class="lifetime">&#39;r </span>Program,
     input: I,
-    matches: <span class="kw-2">&amp;</span><span class="lifetime">&#39;m </span><span class="kw-2">mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>],
-    slots: <span class="kw-2">&amp;</span><span class="lifetime">&#39;s </span><span class="kw-2">mut </span>[<a href="re_trait.rs.html#7">Slot</a>],
-    m: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span><a href="#55">Cache</a>,
+    matches: <span class="kw-2">&amp;</span><span class="lifetime">&#39;m </span><span class="kw-2">mut </span>[bool],
+    slots: <span class="kw-2">&amp;</span><span class="lifetime">&#39;s </span><span class="kw-2">mut </span>[Slot],
+    m: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>Cache,
 }
 
 <span class="doccomment">/// Shared cached state between multiple invocations of a backtracking engine
 /// in the same thread.
 </span><span class="attr">#[derive(Clone, Debug)]
 </span><span class="kw">pub struct </span>Cache {
-    jobs: Vec&lt;<a href="#74">Job</a>&gt;,
-    visited: Vec&lt;<a href="#24">Bits</a>&gt;,
+    jobs: Vec&lt;Job&gt;,
+    visited: Vec&lt;Bits&gt;,
 }
 
-<span class="kw">impl </span><a href="#55">Cache</a> {
+<span class="kw">impl </span>Cache {
     <span class="doccomment">/// Create new empty cache for the backtracking engine.
-    </span><span class="kw">pub fn </span>new(_prog: <span class="kw-2">&amp;</span><a href="prog.rs.html#18">Program</a>) -&gt; <span class="self">Self </span>{
-        <a href="#55">Cache</a> { jobs: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[], visited: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[] }
+    </span><span class="kw">pub fn </span>new(_prog: <span class="kw-2">&amp;</span>Program) -&gt; <span class="self">Self </span>{
+        Cache { jobs: <span class="macro">vec!</span>[], visited: <span class="macro">vec!</span>[] }
     }
 }
 
@@ -354,36 +354,36 @@
 /// stack to do it.
 </span><span class="attr">#[derive(Clone, Copy, Debug)]
 </span><span class="kw">enum </span>Job {
-    Inst { ip: <a href="prog.rs.html#13">InstPtr</a>, at: <a href="input.rs.html#13">InputAt</a> },
-    SaveRestore { slot: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, old_pos: <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; },
+    Inst { ip: InstPtr, at: InputAt },
+    SaveRestore { slot: usize, old_pos: <span class="prelude-ty">Option</span>&lt;usize&gt; },
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;m</span>, <span class="lifetime">&#39;r</span>, <span class="lifetime">&#39;s</span>, I: <a href="input.rs.html#67">Input</a>&gt; Bounded&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;m</span>, <span class="lifetime">&#39;r</span>, <span class="lifetime">&#39;s</span>, I&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;m</span>, <span class="lifetime">&#39;r</span>, <span class="lifetime">&#39;s</span>, I: Input&gt; Bounded&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;m</span>, <span class="lifetime">&#39;r</span>, <span class="lifetime">&#39;s</span>, I&gt; {
     <span class="doccomment">/// Execute the backtracking matching engine.
     ///
     /// If there&#39;s a match, `exec` returns `true` and populates the given
     /// captures accordingly.
     </span><span class="kw">pub fn </span>exec(
-        prog: <span class="kw-2">&amp;</span><span class="lifetime">&#39;r </span><a href="prog.rs.html#18">Program</a>,
-        cache: <span class="kw-2">&amp;</span><a href="exec.rs.html#1521">ProgramCache</a>,
-        matches: <span class="kw-2">&amp;</span><span class="lifetime">&#39;m </span><span class="kw-2">mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>],
-        slots: <span class="kw-2">&amp;</span><span class="lifetime">&#39;s </span><span class="kw-2">mut </span>[<a href="re_trait.rs.html#7">Slot</a>],
+        prog: <span class="kw-2">&amp;</span><span class="lifetime">&#39;r </span>Program,
+        cache: <span class="kw-2">&amp;</span>ProgramCache,
+        matches: <span class="kw-2">&amp;</span><span class="lifetime">&#39;m </span><span class="kw-2">mut </span>[bool],
+        slots: <span class="kw-2">&amp;</span><span class="lifetime">&#39;s </span><span class="kw-2">mut </span>[Slot],
         input: I,
-        start: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-        end: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-    ) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">let </span><span class="kw-2">mut </span>cache = <a href="#86">cache</a>.borrow_mut();
-        <span class="kw">let </span>cache = <span class="kw-2">&amp;mut </span><a href="#93">cache</a>.backtrack;
-        <span class="kw">let </span>start = <a href="#89">input</a>.<a href="input.rs.html#69">at</a>(<a href="#90">start</a>);
-        <span class="kw">let </span><span class="kw-2">mut </span>b = <a href="#44">Bounded</a> { <a href="#85">prog</a>, <a href="#89">input</a>, <a href="#87">matches</a>, <a href="#88">slots</a>, m: <a href="#94">cache</a> };
-        <a href="#96">b</a>.<a href="#134">exec_</a>(<a href="#95">start</a>, <a href="#91">end</a>)
+        start: usize,
+        end: usize,
+    ) -&gt; bool {
+        <span class="kw">let </span><span class="kw-2">mut </span>cache = cache.borrow_mut();
+        <span class="kw">let </span>cache = <span class="kw-2">&amp;mut </span>cache.backtrack;
+        <span class="kw">let </span>start = input.at(start);
+        <span class="kw">let </span><span class="kw-2">mut </span>b = Bounded { prog, input, matches, slots, m: cache };
+        b.exec_(start, end)
     }
 
     <span class="doccomment">/// Clears the cache such that the backtracking engine can be executed
     /// on some input of fixed length.
     </span><span class="kw">fn </span>clear(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="comment">// Reset the job memory so that we start fresh.
-        </span><a class="self" href="#102">self</a>.m.jobs.clear();
+        </span><span class="self">self</span>.m.jobs.clear();
 
         <span class="comment">// Now we need to clear the bit state set.
         // We do this by figuring out how much space we need to keep track
@@ -396,15 +396,15 @@
         // (Probably because backtracking is limited to such small
         // inputs/regexes in the first place.)
         </span><span class="kw">let </span>visited_len =
-            (<a class="self" href="#102">self</a>.prog.len() * (<a class="self" href="#102">self</a>.input.<a href="input.rs.html#93">len</a>() + <span class="number">1</span>) + <a href="#26">BIT_SIZE</a> - <span class="number">1</span>)
-                / <a href="#26">BIT_SIZE</a>;
-        <a class="self" href="#102">self</a>.m.visited.truncate(<a href="#116">visited_len</a>);
+            (<span class="self">self</span>.prog.len() * (<span class="self">self</span>.input.len() + <span class="number">1</span>) + BIT_SIZE - <span class="number">1</span>)
+                / BIT_SIZE;
+        <span class="self">self</span>.m.visited.truncate(visited_len);
         <span class="kw">for </span>v <span class="kw">in </span><span class="kw-2">&amp;mut </span><span class="self">self</span>.m.visited {
             <span class="kw-2">*</span>v = <span class="number">0</span>;
         }
         <span class="kw">if </span>visited_len &gt; <span class="self">self</span>.m.visited.len() {
-            <span class="kw">let </span>len = <a class="self" href="#102">self</a>.m.visited.len();
-            <a class="self" href="#102">self</a>.m.visited.reserve_exact(<a href="#116">visited_len</a> - <a href="#124">len</a>);
+            <span class="kw">let </span>len = <span class="self">self</span>.m.visited.len();
+            <span class="self">self</span>.m.visited.reserve_exact(visited_len - len);
             <span class="kw">for _ in </span><span class="number">0</span>..(visited_len - len) {
                 <span class="self">self</span>.m.visited.push(<span class="number">0</span>);
             }
@@ -413,41 +413,41 @@
 
     <span class="doccomment">/// Start backtracking at the given position in the input, but also look
     /// for literal prefixes.
-    </span><span class="kw">fn </span>exec_(<span class="kw-2">&amp;mut </span><span class="self">self</span>, <span class="kw-2">mut </span>at: <a href="input.rs.html#13">InputAt</a>, end: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#134">self</a>.<a href="#102">clear</a>();
+    </span><span class="kw">fn </span>exec_(<span class="kw-2">&amp;mut </span><span class="self">self</span>, <span class="kw-2">mut </span>at: InputAt, end: usize) -&gt; bool {
+        <span class="self">self</span>.clear();
         <span class="comment">// If this is an anchored regex at the beginning of the input, then
         // we&#39;re either already done or we only need to try backtracking once.
         </span><span class="kw">if </span><span class="self">self</span>.prog.is_anchored_start {
-            <span class="kw">return if </span>!at.is_start() { <span class="bool-val">false </span>} <span class="kw">else </span>{ <a class="self" href="#134">self</a>.<a href="#162">backtrack</a>(<a href="#134">at</a>) };
+            <span class="kw">return if </span>!at.is_start() { <span class="bool-val">false </span>} <span class="kw">else </span>{ <span class="self">self</span>.backtrack(at) };
         }
         <span class="kw">let </span><span class="kw-2">mut </span>matched = <span class="bool-val">false</span>;
         <span class="kw">loop </span>{
             <span class="kw">if </span>!<span class="self">self</span>.prog.prefixes.is_empty() {
-                <a href="#134">at</a> = <span class="kw">match </span><a class="self" href="#134">self</a>.input.<a href="input.rs.html#86-90">prefix_at</a>(<span class="kw-2">&amp;</span><a class="self" href="#134">self</a>.prog.prefixes, <a href="#134">at</a>) {
+                at = <span class="kw">match </span><span class="self">self</span>.input.prefix_at(<span class="kw-2">&amp;</span><span class="self">self</span>.prog.prefixes, at) {
                     <span class="prelude-val">None </span>=&gt; <span class="kw">break</span>,
-                    <span class="prelude-val">Some</span>(at) =&gt; <a href="#146">at</a>,
+                    <span class="prelude-val">Some</span>(at) =&gt; at,
                 };
             }
-            <a href="#141">matched</a> = <a class="self" href="#134">self</a>.<a href="#162">backtrack</a>(<a href="#134">at</a>) || <a href="#141">matched</a>;
+            matched = <span class="self">self</span>.backtrack(at) || matched;
             <span class="kw">if </span>matched &amp;&amp; <span class="self">self</span>.prog.matches.len() == <span class="number">1 </span>{
                 <span class="kw">return </span><span class="bool-val">true</span>;
             }
             <span class="kw">if </span>at.pos() &gt;= end {
                 <span class="kw">break</span>;
             }
-            <a href="#134">at</a> = <a class="self" href="#134">self</a>.input.<a href="input.rs.html#69">at</a>(<a href="#134">at</a>.<a href="input.rs.html#61">next_pos</a>());
+            at = <span class="self">self</span>.input.at(at.next_pos());
         }
-        <a href="#141">matched</a>
+        matched
     }
 
     <span class="doccomment">/// The main backtracking loop starting at the given input position.
-    </span><span class="kw">fn </span>backtrack(<span class="kw-2">&amp;mut </span><span class="self">self</span>, start: <a href="input.rs.html#13">InputAt</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+    </span><span class="kw">fn </span>backtrack(<span class="kw-2">&amp;mut </span><span class="self">self</span>, start: InputAt) -&gt; bool {
         <span class="comment">// N.B. We use an explicit stack to avoid recursion.
         // To avoid excessive pushing and popping, most transitions are handled
         // in the `step` helper function, which only pushes to the stack when
         // there&#39;s a capture or a branch.
         </span><span class="kw">let </span><span class="kw-2">mut </span>matched = <span class="bool-val">false</span>;
-        <a class="self" href="#162">self</a>.m.jobs.push(<a href="#75">Job::Inst</a> { ip: <span class="number">0</span>, at: <a href="#162">start</a> });
+        <span class="self">self</span>.m.jobs.push(Job::Inst { ip: <span class="number">0</span>, at: start });
         <span class="kw">while let </span><span class="prelude-val">Some</span>(job) = <span class="self">self</span>.m.jobs.pop() {
             <span class="kw">match </span>job {
                 Job::Inst { ip, at } =&gt; {
@@ -468,11 +468,11 @@
                 }
             }
         }
-        <a href="#167">matched</a>
+        matched
     }
 
-    <span class="kw">fn </span>step(<span class="kw-2">&amp;mut </span><span class="self">self</span>, <span class="kw-2">mut </span>ip: <a href="prog.rs.html#13">InstPtr</a>, <span class="kw-2">mut </span>at: <a href="input.rs.html#13">InputAt</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">use </span><a href="prog.rs.html#268"><span class="kw">crate</span>::prog::Inst</a>::<span class="kw-2">*</span>;
+    <span class="kw">fn </span>step(<span class="kw-2">&amp;mut </span><span class="self">self</span>, <span class="kw-2">mut </span>ip: InstPtr, <span class="kw-2">mut </span>at: InputAt) -&gt; bool {
+        <span class="kw">use </span><span class="kw">crate</span>::prog::Inst::<span class="kw-2">*</span>;
         <span class="kw">loop </span>{
             <span class="comment">// This loop is an optimization to avoid constantly pushing/popping
             // from the stack. Namely, if we&#39;re pushing a job only to run it
@@ -481,59 +481,59 @@
             </span><span class="kw">if </span><span class="self">self</span>.has_visited(ip, at) {
                 <span class="kw">return </span><span class="bool-val">false</span>;
             }
-            <span class="kw">match </span><a class="self" href="#192">self</a>.prog[<a href="#192">ip</a>] {
-                <a href="prog.rs.html#276">Match</a>(slot) =&gt; {
+            <span class="kw">match </span><span class="self">self</span>.prog[ip] {
+                Match(slot) =&gt; {
                     <span class="kw">if </span>slot &lt; <span class="self">self</span>.matches.len() {
-                        <a class="self" href="#192">self</a>.matches[<a href="#203">slot</a>] = <span class="bool-val">true</span>;
+                        <span class="self">self</span>.matches[slot] = <span class="bool-val">true</span>;
                     }
                     <span class="kw">return </span><span class="bool-val">true</span>;
                 }
-                <a href="prog.rs.html#279">Save</a>(<span class="kw-2">ref </span>inst) =&gt; {
-                    <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>old_pos) = <a class="self" href="#192">self</a>.slots.get(<a href="#209">inst</a>.slot) {
+                Save(<span class="kw-2">ref </span>inst) =&gt; {
+                    <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>old_pos) = <span class="self">self</span>.slots.get(inst.slot) {
                         <span class="comment">// If this path doesn&#39;t work out, then we save the old
                         // capture index (if one exists) in an alternate
                         // job. If the next path fails, then the alternate
                         // job is popped and the old capture index is restored.
-                        </span><a class="self" href="#192">self</a>.m.jobs.push(<a href="#76">Job::SaveRestore</a> {
-                            slot: <a href="#209">inst</a>.slot,
-                            <a href="#210">old_pos</a>,
+                        </span><span class="self">self</span>.m.jobs.push(Job::SaveRestore {
+                            slot: inst.slot,
+                            old_pos,
                         });
-                        <a class="self" href="#192">self</a>.slots[<a href="#209">inst</a>.slot] = <span class="prelude-val">Some</span>(<a href="#192">at</a>.<a href="input.rs.html#56">pos</a>());
+                        <span class="self">self</span>.slots[inst.slot] = <span class="prelude-val">Some</span>(at.pos());
                     }
-                    <a href="#192">ip</a> = <a href="#209">inst</a>.goto;
+                    ip = inst.goto;
                 }
-                <a href="prog.rs.html#282">Split</a>(<span class="kw-2">ref </span>inst) =&gt; {
-                    <a class="self" href="#192">self</a>.m.jobs.push(<a href="#75">Job::Inst</a> { ip: <a href="#223">inst</a>.goto2, <a href="#192">at</a> });
-                    <a href="#192">ip</a> = <a href="#223">inst</a>.goto1;
+                Split(<span class="kw-2">ref </span>inst) =&gt; {
+                    <span class="self">self</span>.m.jobs.push(Job::Inst { ip: inst.goto2, at });
+                    ip = inst.goto1;
                 }
-                <a href="prog.rs.html#285">EmptyLook</a>(<span class="kw-2">ref </span>inst) =&gt; {
+                EmptyLook(<span class="kw-2">ref </span>inst) =&gt; {
                     <span class="kw">if </span><span class="self">self</span>.input.is_empty_match(at, inst) {
-                        <a href="#192">ip</a> = <a href="#227">inst</a>.goto;
+                        ip = inst.goto;
                     } <span class="kw">else </span>{
                         <span class="kw">return </span><span class="bool-val">false</span>;
                     }
                 }
-                <a href="prog.rs.html#288">Char</a>(<span class="kw-2">ref </span>inst) =&gt; {
+                Char(<span class="kw-2">ref </span>inst) =&gt; {
                     <span class="kw">if </span>inst.c == at.char() {
-                        <a href="#192">ip</a> = <a href="#234">inst</a>.goto;
-                        <a href="#192">at</a> = <a class="self" href="#192">self</a>.input.<a href="input.rs.html#69">at</a>(<a href="#192">at</a>.<a href="input.rs.html#61">next_pos</a>());
+                        ip = inst.goto;
+                        at = <span class="self">self</span>.input.at(at.next_pos());
                     } <span class="kw">else </span>{
                         <span class="kw">return </span><span class="bool-val">false</span>;
                     }
                 }
-                <a href="prog.rs.html#291">Ranges</a>(<span class="kw-2">ref </span>inst) =&gt; {
+                Ranges(<span class="kw-2">ref </span>inst) =&gt; {
                     <span class="kw">if </span>inst.matches(at.char()) {
-                        <a href="#192">ip</a> = <a href="#242">inst</a>.goto;
-                        <a href="#192">at</a> = <a class="self" href="#192">self</a>.input.<a href="input.rs.html#69">at</a>(<a href="#192">at</a>.<a href="input.rs.html#61">next_pos</a>());
+                        ip = inst.goto;
+                        at = <span class="self">self</span>.input.at(at.next_pos());
                     } <span class="kw">else </span>{
                         <span class="kw">return </span><span class="bool-val">false</span>;
                     }
                 }
-                <a href="prog.rs.html#295">Bytes</a>(<span class="kw-2">ref </span>inst) =&gt; {
-                    <span class="kw">if let </span><span class="prelude-val">Some</span>(b) = <a href="#192">at</a>.<a href="input.rs.html#40">byte</a>() {
+                Bytes(<span class="kw-2">ref </span>inst) =&gt; {
+                    <span class="kw">if let </span><span class="prelude-val">Some</span>(b) = at.byte() {
                         <span class="kw">if </span>inst.matches(b) {
-                            <a href="#192">ip</a> = <a href="#250">inst</a>.goto;
-                            <a href="#192">at</a> = <a class="self" href="#192">self</a>.input.<a href="input.rs.html#69">at</a>(<a href="#192">at</a>.<a href="input.rs.html#61">next_pos</a>());
+                            ip = inst.goto;
+                            at = <span class="self">self</span>.input.at(at.next_pos());
                             <span class="kw">continue</span>;
                         }
                     }
@@ -543,12 +543,12 @@
         }
     }
 
-    <span class="kw">fn </span>has_visited(<span class="kw-2">&amp;mut </span><span class="self">self</span>, ip: <a href="prog.rs.html#13">InstPtr</a>, at: <a href="input.rs.html#13">InputAt</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">let </span>k = <a href="#264">ip</a> * (<a class="self" href="#264">self</a>.input.<a href="input.rs.html#93">len</a>() + <span class="number">1</span>) + <a href="#264">at</a>.<a href="input.rs.html#56">pos</a>();
-        <span class="kw">let </span>k1 = <a href="#265">k</a> / <a href="#26">BIT_SIZE</a>;
-        <span class="kw">let </span>k2 = <a href="#277">usize_to_u32</a>(<span class="number">1 </span>&lt;&lt; (<a href="#265">k</a> &amp; (<a href="#26">BIT_SIZE</a> - <span class="number">1</span>)));
+    <span class="kw">fn </span>has_visited(<span class="kw-2">&amp;mut </span><span class="self">self</span>, ip: InstPtr, at: InputAt) -&gt; bool {
+        <span class="kw">let </span>k = ip * (<span class="self">self</span>.input.len() + <span class="number">1</span>) + at.pos();
+        <span class="kw">let </span>k1 = k / BIT_SIZE;
+        <span class="kw">let </span>k2 = usize_to_u32(<span class="number">1 </span>&lt;&lt; (k &amp; (BIT_SIZE - <span class="number">1</span>)));
         <span class="kw">if </span><span class="self">self</span>.m.visited[k1] &amp; k2 == <span class="number">0 </span>{
-            <a class="self" href="#264">self</a>.m.visited[<a href="#266">k1</a>] |= <a href="#267">k2</a>;
+            <span class="self">self</span>.m.visited[k1] |= k2;
             <span class="bool-val">false
         </span>} <span class="kw">else </span>{
             <span class="bool-val">true
@@ -556,11 +556,11 @@
     }
 }
 
-<span class="kw">fn </span>usize_to_u32(n: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
+<span class="kw">fn </span>usize_to_u32(n: usize) -&gt; u32 {
     <span class="kw">if </span>(n <span class="kw">as </span>u64) &gt; (::std::u32::MAX <span class="kw">as </span>u64) {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(<span class="string">&quot;BUG: {} is too big to fit into u32&quot;</span>, n)
+        <span class="macro">panic!</span>(<span class="string">&quot;BUG: {} is too big to fit into u32&quot;</span>, n)
     }
-    <a href="#277">n</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>
+    n <span class="kw">as </span>u32
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="regex" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="regex" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

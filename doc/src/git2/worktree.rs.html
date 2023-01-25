@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/git2-0.14.4/src/worktree.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>worktree.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../git2/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/git2-0.14.4/src/worktree.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>worktree.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../git2/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -329,34 +329,34 @@
 <a href="#329" id="329">329</a>
 <a href="#330" id="330">330</a>
 <a href="#331" id="331">331</a>
-</pre><pre class="rust"><code><span class="kw">use </span><a href="buf.rs.html#13"><span class="kw">crate</span>::buf::Buf</a>;
-<span class="kw">use </span><a href="reference.rs.html#24"><span class="kw">crate</span>::reference::Reference</a>;
-<span class="kw">use </span><a href="repo.rs.html#108"><span class="kw">crate</span>::repo::Repository</a>;
-<span class="kw">use </span><span class="kw">crate</span>::util::{<a class="self" href="lib.rs.html#658">self</a>, <a href="util.rs.html#25">Binding</a>};
-<span class="kw">use crate</span>::{<a href="../../libgit2_sys/index.html">raw</a>, <a href="error.rs.html#12">Error</a>};
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/os/raw/type.c_int.html">std::os::raw::c_int</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">std::path::Path</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/ptr/index.html">std::ptr</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/str/index.html">std::str</a>;
-<span class="kw">use </span>std::{<a href="https://doc.rust-lang.org/nightly/core/marker/index.html">marker</a>, <a href="https://doc.rust-lang.org/nightly/core/mem/index.html">mem</a>};
+</pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::buf::Buf;
+<span class="kw">use </span><span class="kw">crate</span>::reference::Reference;
+<span class="kw">use </span><span class="kw">crate</span>::repo::Repository;
+<span class="kw">use </span><span class="kw">crate</span>::util::{<span class="self">self</span>, Binding};
+<span class="kw">use crate</span>::{raw, Error};
+<span class="kw">use </span>std::os::raw::c_int;
+<span class="kw">use </span>std::path::Path;
+<span class="kw">use </span>std::ptr;
+<span class="kw">use </span>std::str;
+<span class="kw">use </span>std::{marker, mem};
 
 <span class="doccomment">/// An owned git worktree
 ///
 /// This structure corresponds to a `git_worktree` in libgit2.
 </span><span class="comment">//
 </span><span class="kw">pub struct </span>Worktree {
-    raw: <span class="kw-2">*mut </span><a href="../../libgit2_sys/enum.git_worktree.html">raw::git_worktree</a>,
+    raw: <span class="kw-2">*mut </span>raw::git_worktree,
 }
 
 <span class="doccomment">/// Options which can be used to configure how a worktree is initialized
 </span><span class="kw">pub struct </span>WorktreeAddOptions&lt;<span class="lifetime">&#39;a</span>&gt; {
-    raw: <a href="../../libgit2_sys/struct.git_worktree_add_options.html">raw::git_worktree_add_options</a>,
+    raw: raw::git_worktree_add_options,
     _marker: marker::PhantomData&lt;Reference&lt;<span class="lifetime">&#39;a</span>&gt;&gt;,
 }
 
 <span class="doccomment">/// Options to configure how worktree pruning is performed
 </span><span class="kw">pub struct </span>WorktreePruneOptions {
-    raw: <a href="../../libgit2_sys/struct.git_worktree_prune_options.html">raw::git_worktree_prune_options</a>,
+    raw: raw::git_worktree_prune_options,
 }
 
 <span class="doccomment">/// Lock Status of a worktree
@@ -365,20 +365,20 @@
     <span class="doccomment">/// Worktree is Unlocked
     </span>Unlocked,
     <span class="doccomment">/// Worktree is locked with the optional message
-    </span>Locked(<span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt;),
+    </span>Locked(<span class="prelude-ty">Option</span>&lt;String&gt;),
 }
 
-<span class="kw">impl </span><a href="#16">Worktree</a> {
+<span class="kw">impl </span>Worktree {
     <span class="doccomment">/// Open a worktree of a the repository
     ///
     /// If a repository is not the main tree but a worktree, this
     /// function will look up the worktree inside the parent
     /// repository and create a new `git_worktree` structure.
-    </span><span class="kw">pub fn </span>open_from_repository(repo: <span class="kw-2">&amp;</span><a href="repo.rs.html#108">Repository</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#16">Worktree</a>, <a href="error.rs.html#12">Error</a>&gt; {
+    </span><span class="kw">pub fn </span>open_from_repository(repo: <span class="kw-2">&amp;</span>Repository) -&gt; <span class="prelude-ty">Result</span>&lt;Worktree, Error&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>raw = ptr::null_mut();
         <span class="kw">unsafe </span>{
-            <a class="macro" href="call.rs.html#12-19">try_call!</a>(raw::git_worktree_open_from_repository(<span class="kw-2">&amp;mut </span>raw, repo.raw()));
-            <span class="prelude-val">Ok</span>(<a href="util.rs.html#28">Binding::from_raw</a>(<a href="#47">raw</a>))
+            <span class="macro">try_call!</span>(raw::git_worktree_open_from_repository(<span class="kw-2">&amp;mut </span>raw, repo.raw()));
+            <span class="prelude-val">Ok</span>(Binding::from_raw(raw))
         }
     }
 
@@ -387,10 +387,10 @@
     /// This is the name that can be passed to repo::Repository::find_worktree
     /// to reopen the worktree. This is also the name that would appear in the
     /// list returned by repo::Repository::worktrees
-    </span><span class="kw">pub fn </span>name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt; {
+    </span><span class="kw">pub fn </span>name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>str&gt; {
         <span class="kw">unsafe </span>{
-            <a href="lib.rs.html#856"><span class="kw">crate</span>::opt_bytes</a>(<a class="self" href="#59">self</a>, raw::git_worktree_name(<a class="self" href="#59">self</a>.raw))
-                .and_then(|s| <a href="https://doc.rust-lang.org/nightly/core/str/converts/fn.from_utf8.html">str::from_utf8</a>(<a href="#62">s</a>).ok())
+            <span class="kw">crate</span>::opt_bytes(<span class="self">self</span>, raw::git_worktree_name(<span class="self">self</span>.raw))
+                .and_then(|s| str::from_utf8(s).ok())
         }
     }
 
@@ -399,9 +399,9 @@
     /// This is the path to the top-level of the source and not the path to the
     /// .git file within the worktree. This path can be passed to
     /// repo::Repository::open.
-    </span><span class="kw">pub fn </span>path(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a> {
+    </span><span class="kw">pub fn </span>path(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Path {
         <span class="kw">unsafe </span>{
-            <a href="util.rs.html#87">util::bytes2path</a>(<a href="lib.rs.html#856"><span class="kw">crate</span>::opt_bytes</a>(<a class="self" href="#71">self</a>, raw::git_worktree_path(<a class="self" href="#71">self</a>.raw)).unwrap())
+            util::bytes2path(<span class="kw">crate</span>::opt_bytes(<span class="self">self</span>, raw::git_worktree_path(<span class="self">self</span>.raw)).unwrap())
         }
     }
 
@@ -409,41 +409,41 @@
     ///
     /// This checks that it still exists on the
     /// filesystem and that the metadata is correct
-    </span><span class="kw">pub fn </span>validate(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#12">Error</a>&gt; {
+    </span><span class="kw">pub fn </span>validate(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
         <span class="kw">unsafe </span>{
-            <a class="macro" href="call.rs.html#12-19">try_call!</a>(raw::git_worktree_validate(<span class="self">self</span>.raw));
+            <span class="macro">try_call!</span>(raw::git_worktree_validate(<span class="self">self</span>.raw));
         }
         <span class="prelude-val">Ok</span>(())
     }
 
     <span class="doccomment">/// Locks the worktree
-    </span><span class="kw">pub fn </span>lock(<span class="kw-2">&amp;</span><span class="self">self</span>, reason: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#12">Error</a>&gt; {
+    </span><span class="kw">pub fn </span>lock(<span class="kw-2">&amp;</span><span class="self">self</span>, reason: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>str&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
         <span class="kw">let </span>reason = <span class="kw">crate</span>::opt_cstr(reason)<span class="question-mark">?</span>;
         <span class="kw">unsafe </span>{
-            <a class="macro" href="call.rs.html#12-19">try_call!</a>(raw::git_worktree_lock(<span class="self">self</span>.raw, reason));
+            <span class="macro">try_call!</span>(raw::git_worktree_lock(<span class="self">self</span>.raw, reason));
         }
         <span class="prelude-val">Ok</span>(())
     }
 
     <span class="doccomment">/// Unlocks the worktree
-    </span><span class="kw">pub fn </span>unlock(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#12">Error</a>&gt; {
+    </span><span class="kw">pub fn </span>unlock(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
         <span class="kw">unsafe </span>{
-            <a class="macro" href="call.rs.html#12-19">try_call!</a>(raw::git_worktree_unlock(<span class="self">self</span>.raw));
+            <span class="macro">try_call!</span>(raw::git_worktree_unlock(<span class="self">self</span>.raw));
         }
         <span class="prelude-val">Ok</span>(())
     }
 
     <span class="doccomment">/// Checks if worktree is locked
-    </span><span class="kw">pub fn </span>is_locked(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#33">WorktreeLockStatus</a>, <a href="error.rs.html#12">Error</a>&gt; {
+    </span><span class="kw">pub fn </span>is_locked(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;WorktreeLockStatus, Error&gt; {
         <span class="kw">let </span>buf = Buf::new();
         <span class="kw">unsafe </span>{
-            <span class="kw">match </span><a class="macro" href="call.rs.html#12-19">try_call!</a>(raw::git_worktree_is_locked(buf.raw(), <span class="self">self</span>.raw)) {
-                <span class="number">0 </span>=&gt; <span class="prelude-val">Ok</span>(<a href="#35">WorktreeLockStatus::Unlocked</a>),
+            <span class="kw">match </span><span class="macro">try_call!</span>(raw::git_worktree_is_locked(buf.raw(), <span class="self">self</span>.raw)) {
+                <span class="number">0 </span>=&gt; <span class="prelude-val">Ok</span>(WorktreeLockStatus::Unlocked),
                 <span class="kw">_ </span>=&gt; {
-                    <span class="kw">let </span>v = <a href="#107">buf</a>.to_vec();
-                    <span class="prelude-val">Ok</span>(<a href="#37">WorktreeLockStatus::Locked</a>(<span class="kw">match </span><a href="#112">v</a>.len() {
+                    <span class="kw">let </span>v = buf.to_vec();
+                    <span class="prelude-val">Ok</span>(WorktreeLockStatus::Locked(<span class="kw">match </span>v.len() {
                         <span class="number">0 </span>=&gt; <span class="prelude-val">None</span>,
-                        <span class="kw">_ </span>=&gt; <span class="prelude-val">Some</span>(String::from_utf8(<a href="#112">v</a>).unwrap()),
+                        <span class="kw">_ </span>=&gt; <span class="prelude-val">Some</span>(String::from_utf8(v).unwrap()),
                     }))
                 }
             }
@@ -451,23 +451,23 @@
     }
 
     <span class="doccomment">/// Prunes the worktree
-    </span><span class="kw">pub fn </span>prune(<span class="kw-2">&amp;</span><span class="self">self</span>, opts: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;mut </span><a href="#27">WorktreePruneOptions</a>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#12">Error</a>&gt; {
+    </span><span class="kw">pub fn </span>prune(<span class="kw-2">&amp;</span><span class="self">self</span>, opts: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;mut </span>WorktreePruneOptions&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
         <span class="comment">// When successful the worktree should be removed however the backing structure
         // of the git_worktree should still be valid.
         </span><span class="kw">unsafe </span>{
-            <a class="macro" href="call.rs.html#12-19">try_call!</a>(raw::git_worktree_prune(<span class="self">self</span>.raw, opts.map(|o| o.raw())));
+            <span class="macro">try_call!</span>(raw::git_worktree_prune(<span class="self">self</span>.raw, opts.map(|o| o.raw())));
         }
         <span class="prelude-val">Ok</span>(())
     }
 
     <span class="doccomment">/// Checks if the worktree is prunable
-    </span><span class="kw">pub fn </span>is_prunable(<span class="kw-2">&amp;</span><span class="self">self</span>, opts: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;mut </span><a href="#27">WorktreePruneOptions</a>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>, <a href="error.rs.html#12">Error</a>&gt; {
+    </span><span class="kw">pub fn </span>is_prunable(<span class="kw-2">&amp;</span><span class="self">self</span>, opts: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;mut </span>WorktreePruneOptions&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;bool, Error&gt; {
         <span class="kw">unsafe </span>{
-            <span class="kw">let </span>rv = <a class="macro" href="call.rs.html#12-19">try_call!</a>(raw::git_worktree_is_prunable(
+            <span class="kw">let </span>rv = <span class="macro">try_call!</span>(raw::git_worktree_is_prunable(
                 <span class="self">self</span>.raw,
                 opts.map(|o| o.raw())
             ));
-            <span class="prelude-val">Ok</span>(<a href="#135">rv</a> != <span class="number">0</span>)
+            <span class="prelude-val">Ok</span>(rv != <span class="number">0</span>)
         }
     }
 }
@@ -479,21 +479,21 @@
     </span><span class="kw">pub fn </span>new() -&gt; WorktreeAddOptions&lt;<span class="lifetime">&#39;a</span>&gt; {
         <span class="kw">unsafe </span>{
             <span class="kw">let </span><span class="kw-2">mut </span>raw = mem::zeroed();
-            <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert_eq.html">assert_eq!</a>(
+            <span class="macro">assert_eq!</span>(
                 raw::git_worktree_add_options_init(<span class="kw-2">&amp;mut </span>raw, raw::GIT_WORKTREE_ADD_OPTIONS_VERSION),
                 <span class="number">0
             </span>);
-            <a href="#21">WorktreeAddOptions</a> {
-                <a href="#150">raw</a>,
+            WorktreeAddOptions {
+                raw,
                 _marker: marker::PhantomData,
             }
         }
     }
 
     <span class="doccomment">/// If enabled, this will cause the newly added worktree to be locked
-    </span><span class="kw">pub fn </span>lock(<span class="kw-2">&amp;mut </span><span class="self">self</span>, enabled: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="kw-2">&amp;mut </span>WorktreeAddOptions&lt;<span class="lifetime">&#39;a</span>&gt; {
-        <a class="self" href="#163">self</a>.raw.lock = <a href="#163">enabled</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/os/raw/type.c_int.html">c_int</a>;
-        <span class="self"><a href="#163">self</a>
+    </span><span class="kw">pub fn </span>lock(<span class="kw-2">&amp;mut </span><span class="self">self</span>, enabled: bool) -&gt; <span class="kw-2">&amp;mut </span>WorktreeAddOptions&lt;<span class="lifetime">&#39;a</span>&gt; {
+        <span class="self">self</span>.raw.lock = enabled <span class="kw">as </span>c_int;
+        <span class="self">self
     </span>}
 
     <span class="doccomment">/// reference to use for the new worktree HEAD
@@ -501,36 +501,36 @@
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         reference: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Reference&lt;<span class="lifetime">&#39;_</span>&gt;&gt;,
     ) -&gt; <span class="kw-2">&amp;mut </span>WorktreeAddOptions&lt;<span class="lifetime">&#39;a</span>&gt; {
-        <a class="self" href="#170">self</a>.raw.reference = <span class="kw">if let </span><span class="prelude-val">Some</span>(reference) = <a href="#171">reference</a> {
-            <a href="#173">reference</a>.<a href="reference.rs.html#157">raw</a>()
+        <span class="self">self</span>.raw.reference = <span class="kw">if let </span><span class="prelude-val">Some</span>(reference) = reference {
+            reference.raw()
         } <span class="kw">else </span>{
             ptr::null_mut()
         };
-        <span class="self"><a href="#170">self</a>
+        <span class="self">self
     </span>}
 
     <span class="doccomment">/// Get a set of raw add options to be used with `git_worktree_add`
-    </span><span class="kw">pub fn </span>raw(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">*const </span><a href="../../libgit2_sys/struct.git_worktree_add_options.html">raw::git_worktree_add_options</a> {
-        <span class="kw-2">&amp;</span><a class="self" href="#182">self</a>.raw
+    </span><span class="kw">pub fn </span>raw(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">*const </span>raw::git_worktree_add_options {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.raw
     }
 }
 
-<span class="kw">impl </span><a href="#27">WorktreePruneOptions</a> {
+<span class="kw">impl </span>WorktreePruneOptions {
     <span class="doccomment">/// Creates a default set of pruning options
     ///
     /// By defaults this will prune only worktrees that are no longer valid
     /// unlocked and not checked out
-    </span><span class="kw">pub fn </span>new() -&gt; <a href="#27">WorktreePruneOptions</a> {
+    </span><span class="kw">pub fn </span>new() -&gt; WorktreePruneOptions {
         <span class="kw">unsafe </span>{
             <span class="kw">let </span><span class="kw-2">mut </span>raw = mem::zeroed();
-            <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert_eq.html">assert_eq!</a>(
+            <span class="macro">assert_eq!</span>(
                 raw::git_worktree_prune_options_init(
                     <span class="kw-2">&amp;mut </span>raw,
                     raw::GIT_WORKTREE_PRUNE_OPTIONS_VERSION
                 ),
                 <span class="number">0
             </span>);
-            <a href="#27">WorktreePruneOptions</a> { <a href="#194">raw</a> }
+            WorktreePruneOptions { raw }
         }
     }
 
@@ -538,52 +538,52 @@
     /// will be pruned
     ///
     /// Defaults to false
-    </span><span class="kw">pub fn </span>valid(<span class="kw-2">&amp;mut </span><span class="self">self</span>, valid: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="kw-2">&amp;mut </span><a href="#27">WorktreePruneOptions</a> {
-        <a class="self" href="#210">self</a>.<a href="#228">flag</a>(raw::GIT_WORKTREE_PRUNE_VALID, <a href="#210">valid</a>)
+    </span><span class="kw">pub fn </span>valid(<span class="kw-2">&amp;mut </span><span class="self">self</span>, valid: bool) -&gt; <span class="kw-2">&amp;mut </span>WorktreePruneOptions {
+        <span class="self">self</span>.flag(raw::GIT_WORKTREE_PRUNE_VALID, valid)
     }
 
     <span class="doccomment">/// Controls whether locked worktrees will be pruned
     ///
     /// Defaults to false
-    </span><span class="kw">pub fn </span>locked(<span class="kw-2">&amp;mut </span><span class="self">self</span>, locked: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="kw-2">&amp;mut </span><a href="#27">WorktreePruneOptions</a> {
-        <a class="self" href="#217">self</a>.<a href="#228">flag</a>(raw::GIT_WORKTREE_PRUNE_LOCKED, <a href="#217">locked</a>)
+    </span><span class="kw">pub fn </span>locked(<span class="kw-2">&amp;mut </span><span class="self">self</span>, locked: bool) -&gt; <span class="kw-2">&amp;mut </span>WorktreePruneOptions {
+        <span class="self">self</span>.flag(raw::GIT_WORKTREE_PRUNE_LOCKED, locked)
     }
 
     <span class="doccomment">/// Controls whether the actual working tree on the fs is recursively removed
     ///
     /// Defaults to false
-    </span><span class="kw">pub fn </span>working_tree(<span class="kw-2">&amp;mut </span><span class="self">self</span>, working_tree: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="kw-2">&amp;mut </span><a href="#27">WorktreePruneOptions</a> {
-        <a class="self" href="#224">self</a>.<a href="#228">flag</a>(raw::GIT_WORKTREE_PRUNE_WORKING_TREE, <a href="#224">working_tree</a>)
+    </span><span class="kw">pub fn </span>working_tree(<span class="kw-2">&amp;mut </span><span class="self">self</span>, working_tree: bool) -&gt; <span class="kw-2">&amp;mut </span>WorktreePruneOptions {
+        <span class="self">self</span>.flag(raw::GIT_WORKTREE_PRUNE_WORKING_TREE, working_tree)
     }
 
-    <span class="kw">fn </span>flag(<span class="kw-2">&amp;mut </span><span class="self">self</span>, flag: <a href="../../libgit2_sys/type.git_worktree_prune_t.html">raw::git_worktree_prune_t</a>, on: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="kw-2">&amp;mut </span><a href="#27">WorktreePruneOptions</a> {
+    <span class="kw">fn </span>flag(<span class="kw-2">&amp;mut </span><span class="self">self</span>, flag: raw::git_worktree_prune_t, on: bool) -&gt; <span class="kw-2">&amp;mut </span>WorktreePruneOptions {
         <span class="kw">if </span>on {
-            <a class="self" href="#228">self</a>.raw.flags |= <a href="#228">flag</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>;
+            <span class="self">self</span>.raw.flags |= flag <span class="kw">as </span>u32;
         } <span class="kw">else </span>{
-            <a class="self" href="#228">self</a>.raw.flags &amp;= !(<a href="#228">flag</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>);
+            <span class="self">self</span>.raw.flags &amp;= !(flag <span class="kw">as </span>u32);
         }
-        <span class="self"><a href="#228">self</a>
+        <span class="self">self
     </span>}
 
     <span class="doccomment">/// Get a set of raw prune options to be used with `git_worktree_prune`
-    </span><span class="kw">pub fn </span>raw(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">*mut </span><a href="../../libgit2_sys/struct.git_worktree_prune_options.html">raw::git_worktree_prune_options</a> {
-        <span class="kw-2">&amp;mut </span><a class="self" href="#238">self</a>.raw
+    </span><span class="kw">pub fn </span>raw(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">*mut </span>raw::git_worktree_prune_options {
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>.raw
     }
 }
 
-<span class="kw">impl </span><a href="util.rs.html#25">Binding</a> <span class="kw">for </span><a href="#16">Worktree</a> {
-    <span class="kw">type </span>Raw = <span class="kw-2">*mut </span><a href="../../libgit2_sys/enum.git_worktree.html">raw::git_worktree</a>;
-    <span class="kw">unsafe fn </span>from_raw(ptr: <span class="kw-2">*mut </span><a href="../../libgit2_sys/enum.git_worktree.html">raw::git_worktree</a>) -&gt; <a href="#16">Worktree</a> {
-        <a href="#16">Worktree</a> { raw: <a href="#245">ptr</a> }
+<span class="kw">impl </span>Binding <span class="kw">for </span>Worktree {
+    <span class="kw">type </span>Raw = <span class="kw-2">*mut </span>raw::git_worktree;
+    <span class="kw">unsafe fn </span>from_raw(ptr: <span class="kw-2">*mut </span>raw::git_worktree) -&gt; Worktree {
+        Worktree { raw: ptr }
     }
-    <span class="kw">fn </span>raw(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">*mut </span><a href="../../libgit2_sys/enum.git_worktree.html">raw::git_worktree</a> {
-        <a class="self" href="#248">self</a>.raw
+    <span class="kw">fn </span>raw(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">*mut </span>raw::git_worktree {
+        <span class="self">self</span>.raw
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span><a href="#16">Worktree</a> {
+<span class="kw">impl </span>Drop <span class="kw">for </span>Worktree {
     <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <span class="kw">unsafe </span>{ raw::git_worktree_free(<a class="self" href="#254">self</a>.raw) }
+        <span class="kw">unsafe </span>{ raw::git_worktree_free(<span class="self">self</span>.raw) }
     }
 }
 
@@ -661,4 +661,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="git2" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="git2" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

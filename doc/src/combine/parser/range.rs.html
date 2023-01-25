@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/combine-4.6.6/src/parser/range.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>range.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../combine/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/combine-4.6.6/src/parser/range.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>range.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../combine/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -774,35 +774,35 @@
 
 </span><span class="kw">use crate</span>::{
     error::{
-        <a class="self" href="../lib.rs.html#616">self</a>, <a href="../error.rs.html#456">ParseError</a>,
-        ParseResult::{<a class="self" href="../error.rs.html#946">self</a>, <span class="kw-2">*</span>},
-        <a href="../error.rs.html#10">ResultExt</a>, <a href="../error.rs.html#367">StreamError</a>, <a href="../error.rs.html#926">Tracked</a>,
+        <span class="self">self</span>, ParseError,
+        ParseResult::{<span class="self">self</span>, <span class="kw-2">*</span>},
+        ResultExt, StreamError, Tracked,
     },
-    lib::{<a href="https://doc.rust-lang.org/nightly/core/convert/trait.TryFrom.html">convert::TryFrom</a>, marker::PhantomData},
-    <a href="mod.rs.html#1104">parser::ParseMode</a>,
+    lib::{convert::TryFrom, marker::PhantomData},
+    parser::ParseMode,
 };
 
 <span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
-</span><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html"><span class="kw">crate</span>::lib::error::Error</a> <span class="kw">as </span>StdError;
+</span><span class="kw">use </span><span class="kw">crate</span>::lib::error::Error <span class="kw">as </span>StdError;
 
 <span class="attr">#[cfg(not(feature = <span class="string">&quot;std&quot;</span>))]
 </span><span class="kw">use </span><span class="kw">crate</span>::lib::fmt;
 
 <span class="kw">use </span><span class="kw">crate</span>::stream::{
-    <a href="../stream/mod.rs.html#263-268">uncons_range</a>, <a href="../stream/mod.rs.html#297-304">uncons_while</a>, <a href="../stream/mod.rs.html#332-338">uncons_while1</a>, <a href="../stream/mod.rs.html#247-252">wrap_stream_error</a>, <a href="../stream/mod.rs.html#382">Range</a> <span class="kw">as </span>StreamRange,
-    <a href="../stream/mod.rs.html#242">RangeStream</a>, <a href="../stream/mod.rs.html#109">StreamErrorFor</a>, <a href="../stream/mod.rs.html#116">StreamOnce</a>,
+    uncons_range, uncons_while, uncons_while1, wrap_stream_error, Range <span class="kw">as </span>StreamRange,
+    RangeStream, StreamErrorFor, StreamOnce,
 };
 
-<span class="kw">use </span><a href="mod.rs.html#84"><span class="kw">crate</span>::Parser</a>;
+<span class="kw">use </span><span class="kw">crate</span>::Parser;
 
 <span class="kw">pub struct </span>Range&lt;Input&gt;(Input::Range)
 <span class="kw">where
-    </span>Input: <a href="../stream/mod.rs.html#242">RangeStream</a>;
+    </span>Input: RangeStream;
 
 <span class="kw">impl</span>&lt;Input&gt; Parser&lt;Input&gt; <span class="kw">for </span>Range&lt;Input&gt;
 <span class="kw">where
-    </span>Input: <a href="../stream/mod.rs.html#242">RangeStream</a>,
-    Input::Range: <a href="https://doc.rust-lang.org/nightly/core/cmp/trait.PartialEq.html">PartialEq</a> + <a href="../stream/mod.rs.html#382"><span class="kw">crate</span>::stream::Range</a>,
+    </span>Input: RangeStream,
+    Input::Range: PartialEq + <span class="kw">crate</span>::stream::Range,
 {
     <span class="kw">type </span>Output = Input::Range;
     <span class="kw">type </span>PartialState = ();
@@ -812,27 +812,27 @@
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         input: <span class="kw-2">&amp;mut </span>Input,
     ) -&gt; ParseResult&lt;<span class="self">Self</span>::Output, &lt;Input <span class="kw">as </span>StreamOnce&gt;::Error&gt; {
-        <span class="kw">use </span><a href="../stream/mod.rs.html#382"><span class="kw">crate</span>::stream::Range</a>;
+        <span class="kw">use </span><span class="kw">crate</span>::stream::Range;
 
-        <span class="kw">let </span>position = <a href="#46">input</a>.<a href="../stream/mod.rs.html#78">position</a>();
-        <span class="kw">match </span><a href="#46">input</a>.<a href="../stream/mod.rs.html#187">uncons_range</a>(<a class="self" href="#45">self</a>.<span class="number">0</span>.<a href="../stream/mod.rs.html#385">len</a>()) {
+        <span class="kw">let </span>position = input.position();
+        <span class="kw">match </span>input.uncons_range(<span class="self">self</span>.<span class="number">0</span>.len()) {
             <span class="prelude-val">Ok</span>(other) =&gt; {
                 <span class="kw">if </span>other == <span class="self">self</span>.<span class="number">0 </span>{
-                    <a href="../error.rs.html#949">CommitOk</a>(<a href="#52">other</a>)
+                    CommitOk(other)
                 } <span class="kw">else </span>{
-                    <a href="../error.rs.html#956">PeekErr</a>(Input::Error::empty(<a href="#50">position</a>).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
+                    PeekErr(Input::Error::empty(position).into())
                 }
             }
-            <span class="prelude-val">Err</span>(err) =&gt; <a href="../stream/mod.rs.html#247-252">wrap_stream_error</a>(<a href="#46">input</a>, <a href="#59">err</a>),
+            <span class="prelude-val">Err</span>(err) =&gt; wrap_stream_error(input, err),
         }
     }
     <span class="kw">fn </span>add_error(<span class="kw-2">&amp;mut </span><span class="self">self</span>, errors: <span class="kw-2">&amp;mut </span>Tracked&lt;&lt;Input <span class="kw">as </span>StreamOnce&gt;::Error&gt;) {
         <span class="comment">// TODO Add unexpected message?
-        </span><a href="#62">errors</a>.error.<a href="../error.rs.html#492-494">add_expected</a>(<a href="../error.rs.html#145">error::Range</a>(<a class="self" href="#62">self</a>.<span class="number">0</span>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()));
+        </span>errors.error.add_expected(error::Range(<span class="self">self</span>.<span class="number">0</span>.clone()));
     }
 }
 
-<a class="macro" href="../lib.rs.html#326-403">parser! </a>{
+<span class="macro">parser! </span>{
     <span class="attr">#[derive(Clone)]
     </span><span class="kw">pub struct </span>Recognize;
     <span class="kw">type </span>PartialState = &lt;RecognizeWithValue&lt;P&gt; <span class="kw">as </span>Parser&lt;Input&gt;&gt;::PartialState;
@@ -855,8 +855,8 @@
     </span><span class="kw">pub fn </span>recognize[Input, P](parser: P)(Input) -&gt; &lt;Input <span class="kw">as </span>StreamOnce&gt;::Range
     <span class="kw">where </span>[
         P: Parser&lt;Input&gt;,
-        Input: <a href="../stream/mod.rs.html#242">RangeStream</a>,
-        &lt;Input <span class="kw">as </span>StreamOnce&gt;::Range: <a href="../stream/mod.rs.html#382"><span class="kw">crate</span>::stream::Range</a>,
+        Input: RangeStream,
+        &lt;Input <span class="kw">as </span>StreamOnce&gt;::Range: <span class="kw">crate</span>::stream::Range,
     ]
     {
         recognize_with_value(parser).map(|(range, <span class="kw">_</span>)| range)
@@ -867,48 +867,48 @@
 </span><span class="kw">fn </span>parse_partial_range&lt;M, F, G, S, Input&gt;(
     mode: M,
     input: <span class="kw-2">&amp;mut </span>Input,
-    distance_state: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+    distance_state: <span class="kw-2">&amp;mut </span>usize,
     state: S,
     first: F,
     resume: G,
 ) -&gt; ParseResult&lt;Input::Range, Input::Error&gt;
 <span class="kw">where
-    </span>M: <a href="mod.rs.html#1104">ParseMode</a>,
+    </span>M: ParseMode,
     F: FnOnce(<span class="kw-2">&amp;mut </span>Input, S) -&gt; ParseResult&lt;Input::Range, &lt;Input <span class="kw">as </span>StreamOnce&gt;::Error&gt;,
     G: FnOnce(<span class="kw-2">&amp;mut </span>Input, S) -&gt; ParseResult&lt;Input::Range, &lt;Input <span class="kw">as </span>StreamOnce&gt;::Error&gt;,
-    Input: <a href="../stream/mod.rs.html#242">RangeStream</a>,
+    Input: RangeStream,
 {
-    <span class="kw">let </span>before = <a href="#102">input</a>.<a href="../stream/mod.rs.html#148">checkpoint</a>();
+    <span class="kw">let </span>before = input.checkpoint();
 
     <span class="kw">if </span>!input.is_partial() {
-        <a href="#105">first</a>(<a href="#102">input</a>, <a href="#104">state</a>)
+        first(input, state)
     } <span class="kw">else if </span>mode.is_first() || <span class="kw-2">*</span>distance_state == <span class="number">0 </span>{
-        <span class="kw">let </span>result = <a href="#105">first</a>(<a href="#102">input</a>, <a href="#104">state</a>);
-        <span class="kw">if let </span><a href="../error.rs.html#954">CommitErr</a>(<span class="kw">_</span>) = <a href="#119">result</a> {
-            <span class="kw-2">*</span><a href="#103">distance_state</a> = <a href="#102">input</a>.<a href="../stream/mod.rs.html#235">distance</a>(<span class="kw-2">&amp;</span><a href="#114">before</a>);
-            <a class="macro" href="../error.rs.html#25-38">ctry!</a>(input.reset(before).committed());
+        <span class="kw">let </span>result = first(input, state);
+        <span class="kw">if let </span>CommitErr(<span class="kw">_</span>) = result {
+            <span class="kw-2">*</span>distance_state = input.distance(<span class="kw-2">&amp;</span>before);
+            <span class="macro">ctry!</span>(input.reset(before).committed());
         }
-        <a href="#119">result</a>
+        result
     } <span class="kw">else </span>{
         <span class="kw">if </span>input.uncons_range(<span class="kw-2">*</span>distance_state).is_err() {
-            <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(<span class="string">&quot;recognize errored when restoring the input stream to its expected state&quot;</span>);
+            <span class="macro">panic!</span>(<span class="string">&quot;recognize errored when restoring the input stream to its expected state&quot;</span>);
         }
 
-        <span class="kw">match </span><a href="#106">resume</a>(<a href="#102">input</a>, <a href="#104">state</a>) {
-            <a href="../error.rs.html#949">CommitOk</a>(<span class="kw">_</span>) | <a href="../error.rs.html#952">PeekOk</a>(<span class="kw">_</span>) =&gt; (),
-            <a href="../error.rs.html#956">PeekErr</a>(err) =&gt; <span class="kw">return </span><a href="../error.rs.html#956">PeekErr</a>(<a href="#132">err</a>),
-            <a href="../error.rs.html#954">CommitErr</a>(err) =&gt; {
-                <span class="kw-2">*</span><a href="#103">distance_state</a> = <a href="#102">input</a>.<a href="../stream/mod.rs.html#235">distance</a>(<span class="kw-2">&amp;</span><a href="#114">before</a>);
-                <a class="macro" href="../error.rs.html#25-38">ctry!</a>(input.reset(before).committed());
-                <span class="kw">return </span><a href="../error.rs.html#954">CommitErr</a>(<a href="#133">err</a>);
+        <span class="kw">match </span>resume(input, state) {
+            CommitOk(<span class="kw">_</span>) | PeekOk(<span class="kw">_</span>) =&gt; (),
+            PeekErr(err) =&gt; <span class="kw">return </span>PeekErr(err),
+            CommitErr(err) =&gt; {
+                <span class="kw-2">*</span>distance_state = input.distance(<span class="kw-2">&amp;</span>before);
+                <span class="macro">ctry!</span>(input.reset(before).committed());
+                <span class="kw">return </span>CommitErr(err);
             }
         }
 
-        <span class="kw">let </span>distance = <a href="#102">input</a>.<a href="../stream/mod.rs.html#235">distance</a>(<span class="kw-2">&amp;</span><a href="#114">before</a>);
-        <a class="macro" href="../error.rs.html#25-38">ctry!</a>(input.reset(before).committed());
-        <a href="#296-298">take</a>(<a href="#140">distance</a>).<a href="mod.rs.html#180-183">parse_lazy</a>(<a href="#102">input</a>).<a href="../error.rs.html#1016-1018">map</a>(|range| {
-            <span class="kw-2">*</span><a href="#103">distance_state</a> = <span class="number">0</span>;
-            <a href="#142">range</a>
+        <span class="kw">let </span>distance = input.distance(<span class="kw-2">&amp;</span>before);
+        <span class="macro">ctry!</span>(input.reset(before).committed());
+        take(distance).parse_lazy(input).map(|range| {
+            <span class="kw-2">*</span>distance_state = <span class="number">0</span>;
+            range
         })
     }
 }
@@ -919,13 +919,13 @@
 <span class="kw">impl</span>&lt;Input, P&gt; Parser&lt;Input&gt; <span class="kw">for </span>RecognizeWithValue&lt;P&gt;
 <span class="kw">where
     </span>P: Parser&lt;Input&gt;,
-    Input: <a href="../stream/mod.rs.html#242">RangeStream</a>,
-    &lt;Input <span class="kw">as </span>StreamOnce&gt;::Range: <a href="../stream/mod.rs.html#382"><span class="kw">crate</span>::stream::Range</a>,
+    Input: RangeStream,
+    &lt;Input <span class="kw">as </span>StreamOnce&gt;::Range: <span class="kw">crate</span>::stream::Range,
 {
     <span class="kw">type </span>Output = (&lt;Input <span class="kw">as </span>StreamOnce&gt;::Range, P::Output);
-    <span class="kw">type </span>PartialState = (<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, P::PartialState);
+    <span class="kw">type </span>PartialState = (usize, P::PartialState);
 
-    <a class="macro" href="mod.rs.html#36-56">parse_mode!</a>(Input);
+    <span class="macro">parse_mode!</span>(Input);
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>parse_mode&lt;M&gt;(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
@@ -934,34 +934,34 @@
         state: <span class="kw-2">&amp;mut </span><span class="self">Self</span>::PartialState,
     ) -&gt; ParseResult&lt;<span class="self">Self</span>::Output, &lt;Input <span class="kw">as </span>StreamOnce&gt;::Error&gt;
     <span class="kw">where
-        </span>M: <a href="mod.rs.html#1104">ParseMode</a>,
+        </span>M: ParseMode,
     {
-        <span class="kw">let </span>(<span class="kw-2">ref mut </span>distance_state, <span class="kw-2">ref mut </span>child_state) = <span class="kw-2">*</span><a href="#167">state</a>;
+        <span class="kw">let </span>(<span class="kw-2">ref mut </span>distance_state, <span class="kw-2">ref mut </span>child_state) = <span class="kw-2">*</span>state;
 
-        <span class="kw">let </span>before = <a href="#166">input</a>.<a href="../stream/mod.rs.html#148">checkpoint</a>();
+        <span class="kw">let </span>before = input.checkpoint();
         <span class="kw">if </span>!mode.is_first() &amp;&amp; input.uncons_range(<span class="kw-2">*</span>distance_state).is_err() {
-            <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(<span class="string">&quot;recognize errored when restoring the input stream to its expected state&quot;</span>);
+            <span class="macro">panic!</span>(<span class="string">&quot;recognize errored when restoring the input stream to its expected state&quot;</span>);
         }
 
-        <span class="kw">let </span>value = <span class="kw">match </span><a class="self" href="#164">self</a>.<span class="number">0</span>.<a href="mod.rs.html#267-275">parse_mode</a>(<a href="#165">mode</a>, <a href="#166">input</a>, <a href="#172">child_state</a>) {
-            <a href="../error.rs.html#949">CommitOk</a>(x) | <a href="../error.rs.html#952">PeekOk</a>(x) =&gt; <a href="#180">x</a>,
-            <a href="../error.rs.html#956">PeekErr</a>(err) =&gt; <span class="kw">return </span><a href="../error.rs.html#956">PeekErr</a>(<a href="#181">err</a>),
-            <a href="../error.rs.html#954">CommitErr</a>(err) =&gt; {
-                <span class="kw-2">*</span><a href="#172">distance_state</a> = <a href="#166">input</a>.<a href="../stream/mod.rs.html#235">distance</a>(<span class="kw-2">&amp;</span><a href="#174">before</a>);
-                <a class="macro" href="../error.rs.html#25-38">ctry!</a>(input.reset(before).committed());
-                <span class="kw">return </span><a href="../error.rs.html#954">CommitErr</a>(<a href="#182">err</a>);
+        <span class="kw">let </span>value = <span class="kw">match </span><span class="self">self</span>.<span class="number">0</span>.parse_mode(mode, input, child_state) {
+            CommitOk(x) | PeekOk(x) =&gt; x,
+            PeekErr(err) =&gt; <span class="kw">return </span>PeekErr(err),
+            CommitErr(err) =&gt; {
+                <span class="kw-2">*</span>distance_state = input.distance(<span class="kw-2">&amp;</span>before);
+                <span class="macro">ctry!</span>(input.reset(before).committed());
+                <span class="kw">return </span>CommitErr(err);
             }
         };
 
-        <span class="kw">let </span>distance = <a href="#166">input</a>.<a href="../stream/mod.rs.html#235">distance</a>(<span class="kw-2">&amp;</span><a href="#174">before</a>);
-        <a class="macro" href="../error.rs.html#25-38">ctry!</a>(input.reset(before).committed());
-        <a href="#296-298">take</a>(<a href="#189">distance</a>).<a href="mod.rs.html#180-183">parse_lazy</a>(<a href="#166">input</a>).<a href="../error.rs.html#1016-1018">map</a>(|range| {
-            <span class="kw-2">*</span><a href="#172">distance_state</a> = <span class="number">0</span>;
-            (<a href="#191">range</a>, <a href="#179">value</a>)
+        <span class="kw">let </span>distance = input.distance(<span class="kw-2">&amp;</span>before);
+        <span class="macro">ctry!</span>(input.reset(before).committed());
+        take(distance).parse_lazy(input).map(|range| {
+            <span class="kw-2">*</span>distance_state = <span class="number">0</span>;
+            (range, value)
         })
     }
     <span class="kw">fn </span>add_error(<span class="kw-2">&amp;mut </span><span class="self">self</span>, errors: <span class="kw-2">&amp;mut </span>Tracked&lt;&lt;Input <span class="kw">as </span>StreamOnce&gt;::Error&gt;) {
-        <a class="self" href="#196">self</a>.<span class="number">0</span>.<a href="mod.rs.html#206">add_error</a>(<a href="#196">errors</a>)
+        <span class="self">self</span>.<span class="number">0</span>.add_error(errors)
     }
 }
 
@@ -991,10 +991,10 @@
 </span><span class="kw">pub fn </span>recognize_with_value&lt;Input, P&gt;(parser: P) -&gt; RecognizeWithValue&lt;P&gt;
 <span class="kw">where
     </span>P: Parser&lt;Input&gt;,
-    Input: <a href="../stream/mod.rs.html#242">RangeStream</a>,
-    &lt;Input <span class="kw">as </span>StreamOnce&gt;::Range: <a href="../stream/mod.rs.html#382"><span class="kw">crate</span>::stream::Range</a>,
+    Input: RangeStream,
+    &lt;Input <span class="kw">as </span>StreamOnce&gt;::Range: <span class="kw">crate</span>::stream::Range,
 {
-    <a href="#150">RecognizeWithValue</a>(<a href="#224">parser</a>)
+    RecognizeWithValue(parser)
 }
 
 <span class="doccomment">/// Zero-copy parser which reads a range of length `i.len()` and succeeds if `i` is equal to that
@@ -1017,16 +1017,16 @@
 /// ```
 </span><span class="kw">pub fn </span>range&lt;Input&gt;(i: Input::Range) -&gt; Range&lt;Input&gt;
 <span class="kw">where
-    </span>Input: <a href="../stream/mod.rs.html#242">RangeStream</a>,
-    Input::Range: <a href="https://doc.rust-lang.org/nightly/core/cmp/trait.PartialEq.html">PartialEq</a>,
+    </span>Input: RangeStream,
+    Input::Range: PartialEq,
 {
-    <a href="#31">Range</a>(<a href="#251">i</a>)
+    Range(i)
 }
 
-<span class="kw">pub struct </span>Take&lt;Input&gt;(<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, PhantomData&lt;<span class="kw">fn</span>(Input)&gt;);
+<span class="kw">pub struct </span>Take&lt;Input&gt;(usize, PhantomData&lt;<span class="kw">fn</span>(Input)&gt;);
 <span class="kw">impl</span>&lt;Input&gt; Parser&lt;Input&gt; <span class="kw">for </span>Take&lt;Input&gt;
 <span class="kw">where
-    </span>Input: <a href="../stream/mod.rs.html#242">RangeStream</a>,
+    </span>Input: RangeStream,
 {
     <span class="kw">type </span>Output = Input::Range;
     <span class="kw">type </span>PartialState = ();
@@ -1036,7 +1036,7 @@
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         input: <span class="kw-2">&amp;mut </span>Input,
     ) -&gt; ParseResult&lt;<span class="self">Self</span>::Output, &lt;Input <span class="kw">as </span>StreamOnce&gt;::Error&gt; {
-        <a href="../stream/mod.rs.html#263-268">uncons_range</a>(<a href="#270">input</a>, <a class="self" href="#269">self</a>.<span class="number">0</span>)
+        uncons_range(input, <span class="self">self</span>.<span class="number">0</span>)
     }
 }
 
@@ -1060,24 +1060,24 @@
 /// assert!(result.is_err());
 /// # }
 /// ```
-</span><span class="kw">pub fn </span>take&lt;Input&gt;(n: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; Take&lt;Input&gt;
+</span><span class="kw">pub fn </span>take&lt;Input&gt;(n: usize) -&gt; Take&lt;Input&gt;
 <span class="kw">where
-    </span>Input: <a href="../stream/mod.rs.html#242">RangeStream</a>,
+    </span>Input: RangeStream,
 {
-    <a href="#259">Take</a>(<a href="#296">n</a>, PhantomData)
+    Take(n, PhantomData)
 }
 
 <span class="kw">pub struct </span>TakeWhile&lt;Input, F&gt;(F, PhantomData&lt;<span class="kw">fn</span>(Input) -&gt; Input&gt;);
 <span class="kw">impl</span>&lt;Input, F&gt; Parser&lt;Input&gt; <span class="kw">for </span>TakeWhile&lt;Input, F&gt;
 <span class="kw">where
-    </span>Input: <a href="../stream/mod.rs.html#242">RangeStream</a>,
-    Input::Range: <a href="../stream/mod.rs.html#382"><span class="kw">crate</span>::stream::Range</a>,
-    F: FnMut(Input::Token) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
+    </span>Input: RangeStream,
+    Input::Range: <span class="kw">crate</span>::stream::Range,
+    F: FnMut(Input::Token) -&gt; bool,
 {
     <span class="kw">type </span>Output = Input::Range;
-    <span class="kw">type </span>PartialState = <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>;
+    <span class="kw">type </span>PartialState = usize;
 
-    <a class="macro" href="mod.rs.html#36-56">parse_mode!</a>(Input);
+    <span class="macro">parse_mode!</span>(Input);
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>parse_mode_impl&lt;M&gt;(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
@@ -1086,15 +1086,15 @@
         state: <span class="kw-2">&amp;mut </span><span class="self">Self</span>::PartialState,
     ) -&gt; ParseResult&lt;<span class="self">Self</span>::Output, &lt;Input <span class="kw">as </span>StreamOnce&gt;::Error&gt;
     <span class="kw">where
-        </span>M: <a href="mod.rs.html#1104">ParseMode</a>,
+        </span>M: ParseMode,
     {
-        <a href="#100-112">parse_partial_range</a>(
-            <a href="#317">mode</a>,
-            <a href="#318">input</a>,
-            <a href="#319">state</a>,
-            <span class="kw-2">&amp;mut </span><a class="self" href="#316">self</a>.<span class="number">0</span>,
-            |input, predicate| <a href="../stream/mod.rs.html#297-304">uncons_while</a>(<a href="#329">input</a>, <a href="#329">predicate</a>),
-            |input, predicate| <a href="../stream/mod.rs.html#297-304">uncons_while</a>(<a href="#330">input</a>, <a href="#330">predicate</a>),
+        parse_partial_range(
+            mode,
+            input,
+            state,
+            <span class="kw-2">&amp;mut </span><span class="self">self</span>.<span class="number">0</span>,
+            |input, predicate| uncons_while(input, predicate),
+            |input, predicate| uncons_while(input, predicate),
         )
     }
 }
@@ -1118,24 +1118,24 @@
 /// ```
 </span><span class="kw">pub fn </span>take_while&lt;Input, F&gt;(f: F) -&gt; TakeWhile&lt;Input, F&gt;
 <span class="kw">where
-    </span>Input: <a href="../stream/mod.rs.html#242">RangeStream</a>,
-    Input::Range: <a href="../stream/mod.rs.html#382"><span class="kw">crate</span>::stream::Range</a>,
-    F: FnMut(Input::Token) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
+    </span>Input: RangeStream,
+    Input::Range: <span class="kw">crate</span>::stream::Range,
+    F: FnMut(Input::Token) -&gt; bool,
 {
-    <a href="#303">TakeWhile</a>(<a href="#352">f</a>, PhantomData)
+    TakeWhile(f, PhantomData)
 }
 
 <span class="kw">pub struct </span>TakeWhile1&lt;Input, F&gt;(F, PhantomData&lt;<span class="kw">fn</span>(Input) -&gt; Input&gt;);
 <span class="kw">impl</span>&lt;Input, F&gt; Parser&lt;Input&gt; <span class="kw">for </span>TakeWhile1&lt;Input, F&gt;
 <span class="kw">where
-    </span>Input: <a href="../stream/mod.rs.html#242">RangeStream</a>,
-    Input::Range: <a href="../stream/mod.rs.html#382"><span class="kw">crate</span>::stream::Range</a>,
-    F: FnMut(Input::Token) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
+    </span>Input: RangeStream,
+    Input::Range: <span class="kw">crate</span>::stream::Range,
+    F: FnMut(Input::Token) -&gt; bool,
 {
     <span class="kw">type </span>Output = Input::Range;
-    <span class="kw">type </span>PartialState = <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>;
+    <span class="kw">type </span>PartialState = usize;
 
-    <a class="macro" href="mod.rs.html#36-56">parse_mode!</a>(Input);
+    <span class="macro">parse_mode!</span>(Input);
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>parse_mode_impl&lt;M&gt;(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
@@ -1144,15 +1144,15 @@
         state: <span class="kw-2">&amp;mut </span><span class="self">Self</span>::PartialState,
     ) -&gt; ParseResult&lt;<span class="self">Self</span>::Output, &lt;Input <span class="kw">as </span>StreamOnce&gt;::Error&gt;
     <span class="kw">where
-        </span>M: <a href="mod.rs.html#1104">ParseMode</a>,
+        </span>M: ParseMode,
     {
-        <a href="#100-112">parse_partial_range</a>(
-            <a href="#375">mode</a>,
-            <a href="#376">input</a>,
-            <a href="#377">state</a>,
-            <span class="kw-2">&amp;mut </span><a class="self" href="#374">self</a>.<span class="number">0</span>,
-            |input, predicate| <a href="../stream/mod.rs.html#332-338">uncons_while1</a>(<a href="#387">input</a>, <a href="#387">predicate</a>),
-            |input, predicate| <a href="../stream/mod.rs.html#297-304">uncons_while</a>(<a href="#388">input</a>, <a href="#388">predicate</a>),
+        parse_partial_range(
+            mode,
+            input,
+            state,
+            <span class="kw-2">&amp;mut </span><span class="self">self</span>.<span class="number">0</span>,
+            |input, predicate| uncons_while1(input, predicate),
+            |input, predicate| uncons_while(input, predicate),
         )
     }
 }
@@ -1176,23 +1176,23 @@
 /// ```
 </span><span class="kw">pub fn </span>take_while1&lt;Input, F&gt;(f: F) -&gt; TakeWhile1&lt;Input, F&gt;
 <span class="kw">where
-    </span>Input: <a href="../stream/mod.rs.html#242">RangeStream</a>,
-    Input::Range: <a href="../stream/mod.rs.html#382"><span class="kw">crate</span>::stream::Range</a>,
-    F: FnMut(Input::Token) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
+    </span>Input: RangeStream,
+    Input::Range: <span class="kw">crate</span>::stream::Range,
+    F: FnMut(Input::Token) -&gt; bool,
 {
-    <a href="#361">TakeWhile1</a>(<a href="#410">f</a>, PhantomData)
+    TakeWhile1(f, PhantomData)
 }
 
 <span class="kw">pub struct </span>TakeUntilRange&lt;Input&gt;(Input::Range)
 <span class="kw">where
-    </span>Input: <a href="../stream/mod.rs.html#242">RangeStream</a>;
+    </span>Input: RangeStream;
 <span class="kw">impl</span>&lt;Input&gt; Parser&lt;Input&gt; <span class="kw">for </span>TakeUntilRange&lt;Input&gt;
 <span class="kw">where
-    </span>Input: <a href="../stream/mod.rs.html#242">RangeStream</a>,
-    Input::Range: <a href="https://doc.rust-lang.org/nightly/core/cmp/trait.PartialEq.html">PartialEq</a> + <a href="../stream/mod.rs.html#382"><span class="kw">crate</span>::stream::Range</a>,
+    </span>Input: RangeStream,
+    Input::Range: PartialEq + <span class="kw">crate</span>::stream::Range,
 {
     <span class="kw">type </span>Output = Input::Range;
-    <span class="kw">type </span>PartialState = <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>;
+    <span class="kw">type </span>PartialState = usize;
 
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>parse_partial(
@@ -1200,43 +1200,43 @@
         input: <span class="kw-2">&amp;mut </span>Input,
         to_consume: <span class="kw-2">&amp;mut </span><span class="self">Self</span>::PartialState,
     ) -&gt; ParseResult&lt;<span class="self">Self</span>::Output, &lt;Input <span class="kw">as </span>StreamOnce&gt;::Error&gt; {
-        <span class="kw">use </span><a href="../stream/mod.rs.html#382"><span class="kw">crate</span>::stream::Range</a>;
+        <span class="kw">use </span><span class="kw">crate</span>::stream::Range;
 
-        <span class="kw">let </span>len = <a class="self" href="#432">self</a>.<span class="number">0</span>.<a href="../stream/mod.rs.html#385">len</a>();
-        <span class="kw">let </span>before = <a href="#433">input</a>.<a href="../stream/mod.rs.html#148">checkpoint</a>();
+        <span class="kw">let </span>len = <span class="self">self</span>.<span class="number">0</span>.len();
+        <span class="kw">let </span>before = input.checkpoint();
         <span class="kw">let </span><span class="kw-2">mut </span>first_stream_error = <span class="prelude-val">None</span>;
 
         <span class="comment">// Skip until the end of the last parse attempt
-        </span><a class="macro" href="../error.rs.html#25-38">ctry!</a>(uncons_range(input, <span class="kw-2">*</span>to_consume));
+        </span><span class="macro">ctry!</span>(uncons_range(input, <span class="kw-2">*</span>to_consume));
 
         <span class="kw">loop </span>{
-            <span class="kw">let </span>look_ahead_input = <a href="#433">input</a>.<a href="../stream/mod.rs.html#148">checkpoint</a>();
+            <span class="kw">let </span>look_ahead_input = input.checkpoint();
 
-            <span class="kw">match </span><a href="#433">input</a>.<a href="../stream/mod.rs.html#187">uncons_range</a>(<a href="#438">len</a>) {
+            <span class="kw">match </span>input.uncons_range(len) {
                 <span class="prelude-val">Ok</span>(xs) =&gt; {
                     <span class="kw">if </span>xs == <span class="self">self</span>.<span class="number">0 </span>{
-                        <span class="kw">let </span>distance = <a href="#433">input</a>.<a href="../stream/mod.rs.html#235">distance</a>(<span class="kw-2">&amp;</span><a href="#439">before</a>) - <a href="#438">len</a>;
-                        <a class="macro" href="../error.rs.html#25-38">ctry!</a>(input.reset(before).committed());
+                        <span class="kw">let </span>distance = input.distance(<span class="kw-2">&amp;</span>before) - len;
+                        <span class="macro">ctry!</span>(input.reset(before).committed());
 
-                        <span class="kw">if let </span><span class="prelude-val">Ok</span>(committed) = <a href="#433">input</a>.<a href="../stream/mod.rs.html#187">uncons_range</a>(<a href="#451">distance</a>) {
+                        <span class="kw">if let </span><span class="prelude-val">Ok</span>(committed) = input.uncons_range(distance) {
                             <span class="kw">if </span>distance == <span class="number">0 </span>{
-                                <span class="kw">return </span><a href="../error.rs.html#952">PeekOk</a>(<a href="#454">committed</a>);
+                                <span class="kw">return </span>PeekOk(committed);
                             } <span class="kw">else </span>{
-                                <span class="kw-2">*</span><a href="#434">to_consume</a> = <span class="number">0</span>;
-                                <span class="kw">return </span><a href="../error.rs.html#949">CommitOk</a>(<a href="#454">committed</a>);
+                                <span class="kw-2">*</span>to_consume = <span class="number">0</span>;
+                                <span class="kw">return </span>CommitOk(committed);
                             }
                         }
 
                         <span class="comment">// We are guaranteed able to uncons to_consume characters here
                         // because we&#39;ve already done it on look_ahead_input.
-                        </span><a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>();
+                        </span><span class="macro">unreachable!</span>();
                     } <span class="kw">else </span>{
                         <span class="comment">// Reset the stream back to where it was when we entered the top of the loop
-                        </span><a class="macro" href="../error.rs.html#25-38">ctry!</a>(input.reset(look_ahead_input).committed());
+                        </span><span class="macro">ctry!</span>(input.reset(look_ahead_input).committed());
 
                         <span class="comment">// Advance the stream by one token
                         </span><span class="kw">if </span>input.uncons().is_err() {
-                            <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>();
+                            <span class="macro">unreachable!</span>();
                         }
                     }
                 }
@@ -1248,22 +1248,22 @@
                     // with more input we must start parsing again at the first time we errored so we
                     // can see the entire `::`
                     </span><span class="kw">if </span>first_stream_error.is_none() {
-                        <a href="#440">first_stream_error</a> = <span class="prelude-val">Some</span>((<a href="#476">first_error</a>, <a href="#433">input</a>.<a href="../stream/mod.rs.html#235">distance</a>(<span class="kw-2">&amp;</span><a href="#439">before</a>)));
+                        first_stream_error = <span class="prelude-val">Some</span>((first_error, input.distance(<span class="kw-2">&amp;</span>before)));
                     }
 
                     <span class="comment">// Reset the stream back to where it was when we entered the top of the loop
-                    </span><a class="macro" href="../error.rs.html#25-38">ctry!</a>(input.reset(look_ahead_input).committed());
+                    </span><span class="macro">ctry!</span>(input.reset(look_ahead_input).committed());
 
                     <span class="comment">// See if we can advance anyway
                     </span><span class="kw">if </span>input.uncons().is_err() {
-                        <span class="kw">let </span>(first_error, first_error_distance) = <a href="#440">first_stream_error</a>.unwrap();
+                        <span class="kw">let </span>(first_error, first_error_distance) = first_stream_error.unwrap();
 
                         <span class="comment">// Reset the stream
-                        </span><a class="macro" href="../error.rs.html#25-38">ctry!</a>(input.reset(before).committed());
-                        <span class="kw-2">*</span><a href="#434">to_consume</a> = <a href="#492">first_error_distance</a>;
+                        </span><span class="macro">ctry!</span>(input.reset(before).committed());
+                        <span class="kw-2">*</span>to_consume = first_error_distance;
 
                         <span class="comment">// Return the original error if uncons failed
-                        </span><span class="kw">return </span><a href="../stream/mod.rs.html#247-252">wrap_stream_error</a>(<a href="#433">input</a>, <a href="#492">first_error</a>);
+                        </span><span class="kw">return </span>wrap_stream_error(input, first_error);
                     }
                 }
             };
@@ -1293,24 +1293,24 @@
 /// ```
 </span><span class="kw">pub fn </span>take_until_range&lt;Input&gt;(r: Input::Range) -&gt; TakeUntilRange&lt;Input&gt;
 <span class="kw">where
-    </span>Input: <a href="../stream/mod.rs.html#242">RangeStream</a>,
+    </span>Input: RangeStream,
 {
-    <a href="#419">TakeUntilRange</a>(<a href="#527">r</a>)
+    TakeUntilRange(r)
 }
 
 <span class="attr">#[derive(Debug, PartialEq)]
 </span><span class="kw">pub enum </span>TakeRange {
     <span class="doccomment">/// Found the pattern at this offset
-    </span>Found(<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>),
+    </span>Found(usize),
     <span class="doccomment">/// Did not find the pattern but the parser can skip ahead to this offset.
-    </span>NotFound(<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>),
+    </span>NotFound(usize),
 }
 
-<span class="kw">impl </span>From&lt;<span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;&gt; <span class="kw">for </span><a href="#535">TakeRange</a> {
-    <span class="kw">fn </span>from(opt: <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;) -&gt; <a href="#535">TakeRange</a> {
-        <span class="kw">match </span><a href="#543">opt</a> {
-            <span class="prelude-val">Some</span>(i) =&gt; <a href="#537">TakeRange::Found</a>(<a href="#545">i</a>),
-            <span class="prelude-val">None </span>=&gt; <a href="#539">TakeRange::NotFound</a>(<span class="number">0</span>),
+<span class="kw">impl </span>From&lt;<span class="prelude-ty">Option</span>&lt;usize&gt;&gt; <span class="kw">for </span>TakeRange {
+    <span class="kw">fn </span>from(opt: <span class="prelude-ty">Option</span>&lt;usize&gt;) -&gt; TakeRange {
+        <span class="kw">match </span>opt {
+            <span class="prelude-val">Some</span>(i) =&gt; TakeRange::Found(i),
+            <span class="prelude-val">None </span>=&gt; TakeRange::NotFound(<span class="number">0</span>),
         }
     }
 }
@@ -1323,14 +1323,14 @@
 <span class="kw">impl</span>&lt;Input, F, R&gt; Parser&lt;Input&gt; <span class="kw">for </span>TakeFn&lt;F, Input&gt;
 <span class="kw">where
     </span>F: FnMut(Input::Range) -&gt; R,
-    R: Into&lt;<a href="#535">TakeRange</a>&gt;,
-    Input: <a href="../stream/mod.rs.html#242">RangeStream</a>,
-    Input::Range: <a href="../stream/mod.rs.html#382"><span class="kw">crate</span>::stream::Range</a>,
+    R: Into&lt;TakeRange&gt;,
+    Input: RangeStream,
+    Input::Range: <span class="kw">crate</span>::stream::Range,
 {
     <span class="kw">type </span>Output = Input::Range;
-    <span class="kw">type </span>PartialState = <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>;
+    <span class="kw">type </span>PartialState = usize;
 
-    <a class="macro" href="mod.rs.html#36-56">parse_mode!</a>(Input);
+    <span class="macro">parse_mode!</span>(Input);
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>parse_mode&lt;M&gt;(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
@@ -1339,38 +1339,38 @@
         offset: <span class="kw-2">&amp;mut </span><span class="self">Self</span>::PartialState,
     ) -&gt; ParseResult&lt;<span class="self">Self</span>::Output, &lt;Input <span class="kw">as </span>StreamOnce&gt;::Error&gt;
     <span class="kw">where
-        </span>M: <a href="mod.rs.html#1104">ParseMode</a>,
+        </span>M: ParseMode,
     {
-        <span class="kw">let </span>checkpoint = <a href="#571">input</a>.<a href="../stream/mod.rs.html#148">checkpoint</a>();
+        <span class="kw">let </span>checkpoint = input.checkpoint();
 
         <span class="kw">if </span>mode.is_first() {
-            <span class="kw-2">*</span><a href="#572">offset</a> = <span class="number">0</span>;
+            <span class="kw-2">*</span>offset = <span class="number">0</span>;
         } <span class="kw">else </span>{
-            <span class="kw">let _ </span>= <a href="#571">input</a>.<a href="../stream/mod.rs.html#187">uncons_range</a>(<span class="kw-2">*</span><a href="#572">offset</a>);
+            <span class="kw">let _ </span>= input.uncons_range(<span class="kw-2">*</span>offset);
         }
 
-        <span class="kw">match </span>(<a class="self" href="#569">self</a>.searcher)(<a href="#571">input</a>.<a href="../stream/mod.rs.html#238">range</a>()).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>() {
-            <a href="#537">TakeRange::Found</a>(i) =&gt; {
-                <a class="macro" href="../error.rs.html#25-38">ctry!</a>(input.reset(checkpoint).committed());
-                <span class="kw">let </span>result = <a href="../stream/mod.rs.html#263-268">uncons_range</a>(<a href="#571">input</a>, <span class="kw-2">*</span><a href="#572">offset</a> + <a href="#586">i</a>);
+        <span class="kw">match </span>(<span class="self">self</span>.searcher)(input.range()).into() {
+            TakeRange::Found(i) =&gt; {
+                <span class="macro">ctry!</span>(input.reset(checkpoint).committed());
+                <span class="kw">let </span>result = uncons_range(input, <span class="kw-2">*</span>offset + i);
                 <span class="kw">if </span>result.is_ok() {
-                    <span class="kw-2">*</span><a href="#572">offset</a> = <span class="number">0</span>;
+                    <span class="kw-2">*</span>offset = <span class="number">0</span>;
                 }
-                <a href="#588">result</a>
+                result
             }
-            <a href="#539">TakeRange::NotFound</a>(next_offset) =&gt; {
-                <span class="kw-2">*</span><a href="#572">offset</a> = <a href="#594">next_offset</a>;
+            TakeRange::NotFound(next_offset) =&gt; {
+                <span class="kw-2">*</span>offset = next_offset;
 
-                <span class="kw">let </span>range = <a href="#571">input</a>.<a href="../stream/mod.rs.html#238">range</a>();
-                <span class="kw">let _ </span>= <a href="#571">input</a>.<a href="../stream/mod.rs.html#187">uncons_range</a>(<a href="#597">range</a>.<a href="../stream/mod.rs.html#385">len</a>());
-                <span class="kw">let </span>position = <a href="#571">input</a>.<a href="../stream/mod.rs.html#78">position</a>();
-                <a class="macro" href="../error.rs.html#25-38">ctry!</a>(input.reset(checkpoint).committed());
+                <span class="kw">let </span>range = input.range();
+                <span class="kw">let _ </span>= input.uncons_range(range.len());
+                <span class="kw">let </span>position = input.position();
+                <span class="macro">ctry!</span>(input.reset(checkpoint).committed());
 
-                <span class="kw">let </span>err = Input::Error::from_error(<a href="#599">position</a>, <a href="../error.rs.html#436">StreamError::end_of_input</a>());
+                <span class="kw">let </span>err = Input::Error::from_error(position, StreamError::end_of_input());
                 <span class="kw">if </span>!input.is_partial() &amp;&amp; range.is_empty() {
-                    <a href="../error.rs.html#956">PeekErr</a>(<a href="#602">err</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
+                    PeekErr(err.into())
                 } <span class="kw">else </span>{
-                    <a href="../error.rs.html#954">CommitErr</a>(<a href="#602">err</a>)
+                    CommitErr(err)
                 }
             }
         }
@@ -1388,18 +1388,18 @@
 </span><span class="kw">pub fn </span>take_fn&lt;F, R, Input&gt;(searcher: F) -&gt; TakeFn&lt;F, Input&gt;
 <span class="kw">where
     </span>F: FnMut(Input::Range) -&gt; R,
-    R: Into&lt;<a href="#535">TakeRange</a>&gt;,
-    Input: <a href="../stream/mod.rs.html#242">RangeStream</a>,
-    Input::Range: <a href="../stream/mod.rs.html#382"><span class="kw">crate</span>::stream::Range</a>,
+    R: Into&lt;TakeRange&gt;,
+    Input: RangeStream,
+    Input::Range: <span class="kw">crate</span>::stream::Range,
 {
-    <a href="#551">TakeFn</a> {
-        <a href="#621">searcher</a>,
+    TakeFn {
+        searcher,
         _marker: PhantomData,
     }
 }
 
 <span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
-</span><a class="macro" href="../lib.rs.html#326-403">parser! </a>{
+</span><span class="macro">parser! </span>{
 <span class="doccomment">/// Takes a parser which parses a `length` then extracts a range of that length and returns it.
 /// Commonly used in binary formats
 ///
@@ -1418,10 +1418,10 @@
 /// ```
 </span><span class="kw">pub fn </span>length_prefix[Input, P](len: P)(Input) -&gt; Input::Range
 <span class="kw">where </span>[
-    Input: <a href="../stream/mod.rs.html#242">RangeStream</a>,
+    Input: RangeStream,
     P: Parser&lt;Input&gt;,
-    <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>: TryFrom&lt;P::Output&gt;,
-    &lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> <span class="kw">as </span>TryFrom&lt;P::Output&gt;&gt;::Error: <a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">StdError</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> + <span class="lifetime">&#39;static</span>,
+    usize: TryFrom&lt;P::Output&gt;,
+    &lt;usize <span class="kw">as </span>TryFrom&lt;P::Output&gt;&gt;::Error: StdError + Send + Sync + <span class="lifetime">&#39;static</span>,
 ]
 {
     len
@@ -1533,4 +1533,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="combine" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="combine" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

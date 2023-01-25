@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/itertools-0.10.5/src/adaptors/coalesce.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>coalesce.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../itertools/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/itertools-0.10.5/src/adaptors/coalesce.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>coalesce.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../itertools/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -233,43 +233,43 @@
 <a href="#233" id="233">233</a>
 <a href="#234" id="234">234</a>
 <a href="#235" id="235">235</a>
-</pre><pre class="rust"><code><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">std::fmt</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/iter/traits/marker/trait.FusedIterator.html">std::iter::FusedIterator</a>;
+</pre><pre class="rust"><code><span class="kw">use </span>std::fmt;
+<span class="kw">use </span>std::iter::FusedIterator;
 
-<span class="kw">use </span><a href="../lib.rs.html#234"><span class="kw">crate</span>::size_hint</a>;
+<span class="kw">use </span><span class="kw">crate</span>::size_hint;
 
 <span class="attr">#[must_use = <span class="string">&quot;iterator adaptors are lazy and do nothing unless consumed&quot;</span>]
 </span><span class="kw">pub struct </span>CoalesceBy&lt;I, F, T&gt;
 <span class="kw">where
-    </span>I: <a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a>,
+    </span>I: Iterator,
 {
     iter: I,
     last: <span class="prelude-ty">Option</span>&lt;T&gt;,
     f: F,
 }
 
-<span class="kw">impl</span>&lt;I: <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a>, F: <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a>, T: <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> <span class="kw">for </span>CoalesceBy&lt;I, F, T&gt;
+<span class="kw">impl</span>&lt;I: Clone, F: Clone, T: Clone&gt; Clone <span class="kw">for </span>CoalesceBy&lt;I, F, T&gt;
 <span class="kw">where
-    </span>I: <a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a>,
+    </span>I: Iterator,
 {
-    <a class="macro" href="../impl_macros.rs.html#16-25">clone_fields!</a>(last, iter, f);
+    <span class="macro">clone_fields!</span>(last, iter, f);
 }
 
-<span class="kw">impl</span>&lt;I, F, T&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span>CoalesceBy&lt;I, F, T&gt;
+<span class="kw">impl</span>&lt;I, F, T&gt; fmt::Debug <span class="kw">for </span>CoalesceBy&lt;I, F, T&gt;
 <span class="kw">where
-    </span>I: <a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a> + <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a>,
-    T: <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a>,
+    </span>I: Iterator + fmt::Debug,
+    T: fmt::Debug,
 {
-    <a class="macro" href="../impl_macros.rs.html#4-14">debug_fmt_fields!</a>(CoalesceBy, iter);
+    <span class="macro">debug_fmt_fields!</span>(CoalesceBy, iter);
 }
 
 <span class="kw">pub trait </span>CoalescePredicate&lt;Item, T&gt; {
     <span class="kw">fn </span>coalesce_pair(<span class="kw-2">&amp;mut </span><span class="self">self</span>, t: T, item: Item) -&gt; <span class="prelude-ty">Result</span>&lt;T, (T, T)&gt;;
 }
 
-<span class="kw">impl</span>&lt;I, F, T&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a> <span class="kw">for </span>CoalesceBy&lt;I, F, T&gt;
+<span class="kw">impl</span>&lt;I, F, T&gt; Iterator <span class="kw">for </span>CoalesceBy&lt;I, F, T&gt;
 <span class="kw">where
-    </span>I: <a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a>,
+    </span>I: Iterator,
     F: CoalescePredicate&lt;I::Item, T&gt;,
 {
     <span class="kw">type </span>Item = T;
@@ -278,46 +278,46 @@
         <span class="comment">// this fuses the iterator
         </span><span class="kw">let </span>last = <span class="self">self</span>.last.take()<span class="question-mark">?</span>;
 
-        <span class="kw">let </span>self_last = <span class="kw-2">&amp;mut </span><a class="self" href="#42">self</a>.last;
-        <span class="kw">let </span>self_f = <span class="kw-2">&amp;mut </span><a class="self" href="#42">self</a>.f;
+        <span class="kw">let </span>self_last = <span class="kw-2">&amp;mut </span><span class="self">self</span>.last;
+        <span class="kw">let </span>self_f = <span class="kw-2">&amp;mut </span><span class="self">self</span>.f;
         <span class="prelude-val">Some</span>(
-            <a class="self" href="#42">self</a>.iter
-                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">try_fold</a>(<a href="#44">last</a>, |last, next| <span class="kw">match </span><a href="#47">self_f</a>.<a href="#32">coalesce_pair</a>(<a href="#50">last</a>, <a href="#50">next</a>) {
-                    <span class="prelude-val">Ok</span>(joined) =&gt; <span class="prelude-val">Ok</span>(<a href="#51">joined</a>),
+            <span class="self">self</span>.iter
+                .try_fold(last, |last, next| <span class="kw">match </span>self_f.coalesce_pair(last, next) {
+                    <span class="prelude-val">Ok</span>(joined) =&gt; <span class="prelude-val">Ok</span>(joined),
                     <span class="prelude-val">Err</span>((last_, next_)) =&gt; {
-                        <span class="kw-2">*</span><a href="#46">self_last</a> = <span class="prelude-val">Some</span>(<a href="#52">next_</a>);
-                        <span class="prelude-val">Err</span>(<a href="#52">last_</a>)
+                        <span class="kw-2">*</span>self_last = <span class="prelude-val">Some</span>(next_);
+                        <span class="prelude-val">Err</span>(last_)
                     }
                 })
-                .unwrap_or_else(|x| <a href="#57">x</a>),
+                .unwrap_or_else(|x| x),
         )
     }
 
-    <span class="kw">fn </span>size_hint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;) {
-        <span class="kw">let </span>(low, hi) = <a href="../size_hint.rs.html#25">size_hint::add_scalar</a>(<a class="self" href="#61">self</a>.iter.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">size_hint</a>(), <a class="self" href="#61">self</a>.last.is_some() <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>);
-        ((<a href="#62">low</a> &gt; <span class="number">0</span>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="#62">hi</a>)
+    <span class="kw">fn </span>size_hint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (usize, <span class="prelude-ty">Option</span>&lt;usize&gt;) {
+        <span class="kw">let </span>(low, hi) = size_hint::add_scalar(<span class="self">self</span>.iter.size_hint(), <span class="self">self</span>.last.is_some() <span class="kw">as </span>usize);
+        ((low &gt; <span class="number">0</span>) <span class="kw">as </span>usize, hi)
     }
 
     <span class="kw">fn </span>fold&lt;Acc, FnAcc&gt;(<span class="self">self</span>, acc: Acc, <span class="kw-2">mut </span>fn_acc: FnAcc) -&gt; Acc
     <span class="kw">where
         </span>FnAcc: FnMut(Acc, <span class="self">Self</span>::Item) -&gt; Acc,
     {
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(last) = <a class="self" href="#66">self</a>.last {
-            <span class="kw">let </span><span class="kw-2">mut </span>f = <a class="self" href="#66">self</a>.f;
-            <span class="kw">let </span>(last, acc) = <a class="self" href="#66">self</a>.iter.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">fold</a>((<a href="#70">last</a>, <a href="#66">acc</a>), |(last, acc), elt| {
-                <span class="kw">match </span><a href="#71">f</a>.<a href="#32">coalesce_pair</a>(<a href="#72">last</a>, <a href="#72">elt</a>) {
-                    <span class="prelude-val">Ok</span>(joined) =&gt; (<a href="#74">joined</a>, <a href="#72">acc</a>),
-                    <span class="prelude-val">Err</span>((last_, next_)) =&gt; (<a href="#75">next_</a>, <a href="#66">fn_acc</a>(<a href="#72">acc</a>, <a href="#75">last_</a>)),
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(last) = <span class="self">self</span>.last {
+            <span class="kw">let </span><span class="kw-2">mut </span>f = <span class="self">self</span>.f;
+            <span class="kw">let </span>(last, acc) = <span class="self">self</span>.iter.fold((last, acc), |(last, acc), elt| {
+                <span class="kw">match </span>f.coalesce_pair(last, elt) {
+                    <span class="prelude-val">Ok</span>(joined) =&gt; (joined, acc),
+                    <span class="prelude-val">Err</span>((last_, next_)) =&gt; (next_, fn_acc(acc, last_)),
                 }
             });
-            <a href="#66">fn_acc</a>(<a href="#72">acc</a>, <a href="#72">last</a>)
+            fn_acc(acc, last)
         } <span class="kw">else </span>{
-            <a href="#66">acc</a>
+            acc
         }
     }
 }
 
-<span class="kw">impl</span>&lt;I: <a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a>, F: CoalescePredicate&lt;I::Item, T&gt;, T&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/marker/trait.FusedIterator.html">FusedIterator</a> <span class="kw">for </span>CoalesceBy&lt;I, F, T&gt; {}
+<span class="kw">impl</span>&lt;I: Iterator, F: CoalescePredicate&lt;I::Item, T&gt;, T&gt; FusedIterator <span class="kw">for </span>CoalesceBy&lt;I, F, T&gt; {}
 
 <span class="doccomment">/// An iterator adaptor that may join together adjacent elements.
 ///
@@ -329,19 +329,19 @@
     </span>F: FnMut(T, Item) -&gt; <span class="prelude-ty">Result</span>&lt;T, (T, T)&gt;,
 {
     <span class="kw">fn </span>coalesce_pair(<span class="kw-2">&amp;mut </span><span class="self">self</span>, t: T, item: Item) -&gt; <span class="prelude-ty">Result</span>&lt;T, (T, T)&gt; {
-        <a class="self" href="#96">self</a>(<a href="#96">t</a>, <a href="#96">item</a>)
+        <span class="self">self</span>(t, item)
     }
 }
 
 <span class="doccomment">/// Create a new `Coalesce`.
 </span><span class="kw">pub fn </span>coalesce&lt;I, F&gt;(<span class="kw-2">mut </span>iter: I, f: F) -&gt; Coalesce&lt;I, F&gt;
 <span class="kw">where
-    </span>I: <a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a>,
+    </span>I: Iterator,
 {
-    <a href="#90">Coalesce</a> {
-        last: <a href="#102">iter</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>(),
-        <a href="#102">iter</a>,
-        <a href="#102">f</a>,
+    Coalesce {
+        last: iter.next(),
+        iter,
+        f,
     }
 }
 
@@ -353,13 +353,13 @@
 <span class="attr">#[derive(Clone)]
 </span><span class="kw">pub struct </span>DedupPred2CoalescePred&lt;DP&gt;(DP);
 
-<span class="kw">impl</span>&lt;DP&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span>DedupPred2CoalescePred&lt;DP&gt; {
-    <a class="macro" href="../impl_macros.rs.html#4-14">debug_fmt_fields!</a>(DedupPred2CoalescePred,);
+<span class="kw">impl</span>&lt;DP&gt; fmt::Debug <span class="kw">for </span>DedupPred2CoalescePred&lt;DP&gt; {
+    <span class="macro">debug_fmt_fields!</span>(DedupPred2CoalescePred,);
 }
 
 <span class="kw">pub trait </span>DedupPredicate&lt;T&gt; {
     <span class="comment">// TODO replace by Fn(&amp;T, &amp;T)-&gt;bool once Rust supports it
-    </span><span class="kw">fn </span>dedup_pair(<span class="kw-2">&amp;mut </span><span class="self">self</span>, a: <span class="kw-2">&amp;</span>T, b: <span class="kw-2">&amp;</span>T) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>;
+    </span><span class="kw">fn </span>dedup_pair(<span class="kw-2">&amp;mut </span><span class="self">self</span>, a: <span class="kw-2">&amp;</span>T, b: <span class="kw-2">&amp;</span>T) -&gt; bool;
 }
 
 <span class="kw">impl</span>&lt;DP, T&gt; CoalescePredicate&lt;T, T&gt; <span class="kw">for </span>DedupPred2CoalescePred&lt;DP&gt;
@@ -368,9 +368,9 @@
 {
     <span class="kw">fn </span>coalesce_pair(<span class="kw-2">&amp;mut </span><span class="self">self</span>, t: T, item: T) -&gt; <span class="prelude-ty">Result</span>&lt;T, (T, T)&gt; {
         <span class="kw">if </span><span class="self">self</span>.<span class="number">0</span>.dedup_pair(<span class="kw-2">&amp;</span>t, <span class="kw-2">&amp;</span>item) {
-            <span class="prelude-val">Ok</span>(<a href="#134">t</a>)
+            <span class="prelude-val">Ok</span>(t)
         } <span class="kw">else </span>{
-            <span class="prelude-val">Err</span>((<a href="#134">t</a>, <a href="#134">item</a>))
+            <span class="prelude-val">Err</span>((t, item))
         }
     }
 }
@@ -378,41 +378,41 @@
 <span class="attr">#[derive(Clone, Debug)]
 </span><span class="kw">pub struct </span>DedupEq;
 
-<span class="kw">impl</span>&lt;T: <a href="https://doc.rust-lang.org/nightly/core/cmp/trait.PartialEq.html">PartialEq</a>&gt; DedupPredicate&lt;T&gt; <span class="kw">for </span><a href="#144">DedupEq</a> {
-    <span class="kw">fn </span>dedup_pair(<span class="kw-2">&amp;mut </span><span class="self">self</span>, a: <span class="kw-2">&amp;</span>T, b: <span class="kw-2">&amp;</span>T) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a href="#147">a</a> == <a href="#147">b</a>
+<span class="kw">impl</span>&lt;T: PartialEq&gt; DedupPredicate&lt;T&gt; <span class="kw">for </span>DedupEq {
+    <span class="kw">fn </span>dedup_pair(<span class="kw-2">&amp;mut </span><span class="self">self</span>, a: <span class="kw-2">&amp;</span>T, b: <span class="kw-2">&amp;</span>T) -&gt; bool {
+        a == b
     }
 }
 
-<span class="kw">impl</span>&lt;T, F: FnMut(<span class="kw-2">&amp;</span>T, <span class="kw-2">&amp;</span>T) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>&gt; DedupPredicate&lt;T&gt; <span class="kw">for </span>F {
-    <span class="kw">fn </span>dedup_pair(<span class="kw-2">&amp;mut </span><span class="self">self</span>, a: <span class="kw-2">&amp;</span>T, b: <span class="kw-2">&amp;</span>T) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#153">self</a>(<a href="#153">a</a>, <a href="#153">b</a>)
+<span class="kw">impl</span>&lt;T, F: FnMut(<span class="kw-2">&amp;</span>T, <span class="kw-2">&amp;</span>T) -&gt; bool&gt; DedupPredicate&lt;T&gt; <span class="kw">for </span>F {
+    <span class="kw">fn </span>dedup_pair(<span class="kw-2">&amp;mut </span><span class="self">self</span>, a: <span class="kw-2">&amp;</span>T, b: <span class="kw-2">&amp;</span>T) -&gt; bool {
+        <span class="self">self</span>(a, b)
     }
 }
 
 <span class="doccomment">/// Create a new `DedupBy`.
 </span><span class="kw">pub fn </span>dedup_by&lt;I, Pred&gt;(<span class="kw-2">mut </span>iter: I, dedup_pred: Pred) -&gt; DedupBy&lt;I, Pred&gt;
 <span class="kw">where
-    </span>I: <a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a>,
+    </span>I: Iterator,
 {
-    <a href="#116">DedupBy</a> {
-        last: <a href="#159">iter</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>(),
-        <a href="#159">iter</a>,
-        f: <a href="#119">DedupPred2CoalescePred</a>(<a href="#159">dedup_pred</a>),
+    DedupBy {
+        last: iter.next(),
+        iter,
+        f: DedupPred2CoalescePred(dedup_pred),
     }
 }
 
 <span class="doccomment">/// An iterator adaptor that removes repeated duplicates.
 ///
 /// See [`.dedup()`](crate::Itertools::dedup) for more information.
-</span><span class="kw">pub type </span>Dedup&lt;I&gt; = DedupBy&lt;I, <a href="#144">DedupEq</a>&gt;;
+</span><span class="kw">pub type </span>Dedup&lt;I&gt; = DedupBy&lt;I, DedupEq&gt;;
 
 <span class="doccomment">/// Create a new `Dedup`.
 </span><span class="kw">pub fn </span>dedup&lt;I&gt;(iter: I) -&gt; Dedup&lt;I&gt;
 <span class="kw">where
-    </span>I: <a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a>,
+    </span>I: Iterator,
 {
-    <a href="#159-161">dedup_by</a>(<a href="#176">iter</a>, <a href="#144">DedupEq</a>)
+    dedup_by(iter, DedupEq)
 }
 
 <span class="doccomment">/// An iterator adaptor that removes repeated duplicates, while keeping a count of how many
@@ -421,24 +421,24 @@
 /// See [`.dedup_by_with_count()`](crate::Itertools::dedup_by_with_count) or
 /// [`.dedup_with_count()`](crate::Itertools::dedup_with_count) for more information.
 </span><span class="kw">pub type </span>DedupByWithCount&lt;I, Pred&gt; =
-    CoalesceBy&lt;I, DedupPredWithCount2CoalescePred&lt;Pred&gt;, (<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, &lt;I <span class="kw">as </span>Iterator&gt;::Item)&gt;;
+    CoalesceBy&lt;I, DedupPredWithCount2CoalescePred&lt;Pred&gt;, (usize, &lt;I <span class="kw">as </span>Iterator&gt;::Item)&gt;;
 
 <span class="attr">#[derive(Clone, Debug)]
 </span><span class="kw">pub struct </span>DedupPredWithCount2CoalescePred&lt;DP&gt;(DP);
 
-<span class="kw">impl</span>&lt;DP, T&gt; CoalescePredicate&lt;T, (<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, T)&gt; <span class="kw">for </span>DedupPredWithCount2CoalescePred&lt;DP&gt;
+<span class="kw">impl</span>&lt;DP, T&gt; CoalescePredicate&lt;T, (usize, T)&gt; <span class="kw">for </span>DedupPredWithCount2CoalescePred&lt;DP&gt;
 <span class="kw">where
     </span>DP: DedupPredicate&lt;T&gt;,
 {
     <span class="kw">fn </span>coalesce_pair(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        (c, t): (<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, T),
+        (c, t): (usize, T),
         item: T,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;(<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, T), ((<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, T), (<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, T))&gt; {
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(usize, T), ((usize, T), (usize, T))&gt; {
         <span class="kw">if </span><span class="self">self</span>.<span class="number">0</span>.dedup_pair(<span class="kw-2">&amp;</span>t, <span class="kw-2">&amp;</span>item) {
-            <span class="prelude-val">Ok</span>((<a href="#200">c</a> + <span class="number">1</span>, <a href="#200">t</a>))
+            <span class="prelude-val">Ok</span>((c + <span class="number">1</span>, t))
         } <span class="kw">else </span>{
-            <span class="prelude-val">Err</span>(((<a href="#200">c</a>, <a href="#200">t</a>), (<span class="number">1</span>, <a href="#201">item</a>)))
+            <span class="prelude-val">Err</span>(((c, t), (<span class="number">1</span>, item)))
         }
     }
 }
@@ -447,26 +447,26 @@
 /// repeated elements were present.
 ///
 /// See [`.dedup_with_count()`](crate::Itertools::dedup_with_count) for more information.
-</span><span class="kw">pub type </span>DedupWithCount&lt;I&gt; = DedupByWithCount&lt;I, <a href="#144">DedupEq</a>&gt;;
+</span><span class="kw">pub type </span>DedupWithCount&lt;I&gt; = DedupByWithCount&lt;I, DedupEq&gt;;
 
 <span class="doccomment">/// Create a new `DedupByWithCount`.
 </span><span class="kw">pub fn </span>dedup_by_with_count&lt;I, Pred&gt;(<span class="kw-2">mut </span>iter: I, dedup_pred: Pred) -&gt; DedupByWithCount&lt;I, Pred&gt;
 <span class="kw">where
-    </span>I: <a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a>,
+    </span>I: Iterator,
 {
-    <a href="#188">DedupByWithCount</a> {
-        last: <a href="#218">iter</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>().map(|v| (<span class="number">1</span>, <a href="#223">v</a>)),
-        <a href="#218">iter</a>,
-        f: <a href="#192">DedupPredWithCount2CoalescePred</a>(<a href="#218">dedup_pred</a>),
+    DedupByWithCount {
+        last: iter.next().map(|v| (<span class="number">1</span>, v)),
+        iter,
+        f: DedupPredWithCount2CoalescePred(dedup_pred),
     }
 }
 
 <span class="doccomment">/// Create a new `DedupWithCount`.
 </span><span class="kw">pub fn </span>dedup_with_count&lt;I&gt;(iter: I) -&gt; DedupWithCount&lt;I&gt;
 <span class="kw">where
-    </span>I: <a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a>,
+    </span>I: Iterator,
 {
-    <a href="#218-220">dedup_by_with_count</a>(<a href="#230">iter</a>, <a href="#144">DedupEq</a>)
+    dedup_by_with_count(iter, DedupEq)
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="itertools" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="itertools" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

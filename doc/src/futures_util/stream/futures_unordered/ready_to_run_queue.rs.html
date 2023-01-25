@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/futures-util-0.3.25/src/stream/futures_unordered/ready_to_run_queue.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>ready_to_run_queue.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../../futures_util/index.html"><img class="rust-logo" src="../../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/futures-util-0.3.25/src/stream/futures_unordered/ready_to_run_queue.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>ready_to_run_queue.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../../futures_util/index.html"><img class="rust-logo" src="../../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -120,15 +120,15 @@
 <a href="#120" id="120">120</a>
 <a href="#121" id="121">121</a>
 <a href="#122" id="122">122</a>
-</pre><pre class="rust"><code><span class="kw">use </span><a href="../../../../futures_util/task/struct.AtomicWaker.html"><span class="kw">crate</span>::task::AtomicWaker</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/sync/struct.Arc.html">alloc::sync::Arc</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/cell/struct.UnsafeCell.html">core::cell::UnsafeCell</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/ptr/index.html">core::ptr</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/sync/atomic/struct.AtomicPtr.html">core::sync::atomic::AtomicPtr</a>;
+</pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::task::AtomicWaker;
+<span class="kw">use </span>alloc::sync::Arc;
+<span class="kw">use </span>core::cell::UnsafeCell;
+<span class="kw">use </span>core::ptr;
+<span class="kw">use </span>core::sync::atomic::AtomicPtr;
 <span class="kw">use </span>core::sync::atomic::Ordering::{AcqRel, Acquire, Relaxed, Release};
 
-<span class="kw">use </span><a href="abort.rs.html#1"><span class="kw">super</span>::abort::abort</a>;
-<span class="kw">use </span><a href="task.rs.html#10"><span class="kw">super</span>::task::Task</a>;
+<span class="kw">use </span><span class="kw">super</span>::abort::abort;
+<span class="kw">use </span><span class="kw">super</span>::task::Task;
 
 <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">enum </span>Dequeue&lt;Fut&gt; {
     Data(<span class="kw-2">*const </span>Task&lt;Fut&gt;),
@@ -138,7 +138,7 @@
 
 <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">struct </span>ReadyToRunQueue&lt;Fut&gt; {
     <span class="comment">// The waker of the task using `FuturesUnordered`.
-    </span><span class="kw">pub</span>(<span class="kw">super</span>) waker: <a href="../../../../futures_util/task/struct.AtomicWaker.html">AtomicWaker</a>,
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) waker: AtomicWaker,
 
     <span class="comment">// Head/tail of the readiness queue
     </span><span class="kw">pub</span>(<span class="kw">super</span>) head: AtomicPtr&lt;Task&lt;Fut&gt;&gt;,
@@ -152,15 +152,15 @@
     <span class="doccomment">/// The enqueue function from the 1024cores intrusive MPSC queue algorithm.
     </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>enqueue(<span class="kw-2">&amp;</span><span class="self">self</span>, task: <span class="kw-2">*const </span>Task&lt;Fut&gt;) {
         <span class="kw">unsafe </span>{
-            <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>((<span class="kw-2">*</span>task).queued.load(Relaxed));
+            <span class="macro">debug_assert!</span>((<span class="kw-2">*</span>task).queued.load(Relaxed));
 
             <span class="comment">// This action does not require any coordination
-            </span>(<span class="kw-2">*</span><a href="#31">task</a>).next_ready_to_run.store(ptr::null_mut(), Relaxed);
+            </span>(<span class="kw-2">*</span>task).next_ready_to_run.store(ptr::null_mut(), Relaxed);
 
             <span class="comment">// Note that these atomic orderings come from 1024cores
-            </span><span class="kw">let </span>task = <a href="#31">task</a> <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>;
-            <span class="kw">let </span>prev = <a class="self" href="#31">self</a>.head.swap(<a href="#39">task</a>, AcqRel);
-            (<span class="kw-2">*</span><a href="#40">prev</a>).next_ready_to_run.store(<a href="#39">task</a>, Release);
+            </span><span class="kw">let </span>task = task <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>;
+            <span class="kw">let </span>prev = <span class="self">self</span>.head.swap(task, AcqRel);
+            (<span class="kw-2">*</span>prev).next_ready_to_run.store(task, Release);
         }
     }
 
@@ -169,43 +169,43 @@
     /// Note that this is unsafe as it required mutual exclusion (only one
     /// thread can call this) to be guaranteed elsewhere.
     </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">unsafe fn </span>dequeue(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Dequeue&lt;Fut&gt; {
-        <span class="kw">let </span><span class="kw-2">mut </span>tail = <span class="kw-2">*</span><a class="self" href="#49">self</a>.tail.get();
-        <span class="kw">let </span><span class="kw-2">mut </span>next = (<span class="kw-2">*</span><a href="#50">tail</a>).next_ready_to_run.load(Acquire);
+        <span class="kw">let </span><span class="kw-2">mut </span>tail = <span class="kw-2">*</span><span class="self">self</span>.tail.get();
+        <span class="kw">let </span><span class="kw-2">mut </span>next = (<span class="kw-2">*</span>tail).next_ready_to_run.load(Acquire);
 
         <span class="kw">if </span>tail == <span class="self">self</span>.stub() {
             <span class="kw">if </span>next.is_null() {
-                <span class="kw">return </span><a href="#13">Dequeue::Empty</a>;
+                <span class="kw">return </span>Dequeue::Empty;
             }
 
-            <span class="kw-2">*</span><a class="self" href="#49">self</a>.tail.get() = <a href="#51">next</a>;
-            <a href="#50">tail</a> = <a href="#51">next</a>;
-            <a href="#51">next</a> = (<span class="kw-2">*</span><a href="#51">next</a>).next_ready_to_run.load(Acquire);
+            <span class="kw-2">*</span><span class="self">self</span>.tail.get() = next;
+            tail = next;
+            next = (<span class="kw-2">*</span>next).next_ready_to_run.load(Acquire);
         }
 
         <span class="kw">if </span>!next.is_null() {
-            <span class="kw-2">*</span><a class="self" href="#49">self</a>.tail.get() = <a href="#51">next</a>;
-            <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(tail != <span class="self">self</span>.stub());
-            <span class="kw">return </span><a href="#12">Dequeue::Data</a>(<a href="#50">tail</a>);
+            <span class="kw-2">*</span><span class="self">self</span>.tail.get() = next;
+            <span class="macro">debug_assert!</span>(tail != <span class="self">self</span>.stub());
+            <span class="kw">return </span>Dequeue::Data(tail);
         }
 
         <span class="kw">if </span><span class="self">self</span>.head.load(Acquire) <span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_ </span>!= tail {
-            <span class="kw">return </span><a href="#14">Dequeue::Inconsistent</a>;
+            <span class="kw">return </span>Dequeue::Inconsistent;
         }
 
-        <a class="self" href="#49">self</a>.<a href="#31">enqueue</a>(<a class="self" href="#49">self</a>.<a href="#85">stub</a>());
+        <span class="self">self</span>.enqueue(<span class="self">self</span>.stub());
 
-        <a href="#51">next</a> = (<span class="kw-2">*</span><a href="#50">tail</a>).next_ready_to_run.load(Acquire);
+        next = (<span class="kw-2">*</span>tail).next_ready_to_run.load(Acquire);
 
         <span class="kw">if </span>!next.is_null() {
-            <span class="kw-2">*</span><a class="self" href="#49">self</a>.tail.get() = <a href="#51">next</a>;
-            <span class="kw">return </span><a href="#12">Dequeue::Data</a>(<a href="#50">tail</a>);
+            <span class="kw-2">*</span><span class="self">self</span>.tail.get() = next;
+            <span class="kw">return </span>Dequeue::Data(tail);
         }
 
-        <a href="#14">Dequeue::Inconsistent</a>
+        Dequeue::Inconsistent
     }
 
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>stub(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">*const </span>Task&lt;Fut&gt; {
-        Arc::as_ptr(<span class="kw-2">&amp;</span><a class="self" href="#85">self</a>.stub)
+        Arc::as_ptr(<span class="kw-2">&amp;</span><span class="self">self</span>.stub)
     }
 
     <span class="comment">// Clear the queue of tasks.
@@ -221,16 +221,16 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">unsafe fn </span>clear(<span class="kw-2">&amp;</span><span class="self">self</span>) {
         <span class="kw">loop </span>{
             <span class="comment">// SAFETY: We have the guarantee of mutual exclusion required by `dequeue`.
-            </span><span class="kw">match </span><a class="self" href="#99">self</a>.<a href="#49">dequeue</a>() {
-                <a href="#13">Dequeue::Empty</a> =&gt; <span class="kw">break</span>,
-                <a href="#14">Dequeue::Inconsistent</a> =&gt; <a href="abort.rs.html#1">abort</a>(<span class="string">&quot;inconsistent in drop&quot;</span>),
-                <a href="#12">Dequeue::Data</a>(ptr) =&gt; <a href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>(Arc::from_raw(<a href="#105">ptr</a>)),
+            </span><span class="kw">match </span><span class="self">self</span>.dequeue() {
+                Dequeue::Empty =&gt; <span class="kw">break</span>,
+                Dequeue::Inconsistent =&gt; abort(<span class="string">&quot;inconsistent in drop&quot;</span>),
+                Dequeue::Data(ptr) =&gt; drop(Arc::from_raw(ptr)),
             }
         }
     }
 }
 
-<span class="kw">impl</span>&lt;Fut&gt; <a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span>ReadyToRunQueue&lt;Fut&gt; {
+<span class="kw">impl</span>&lt;Fut&gt; Drop <span class="kw">for </span>ReadyToRunQueue&lt;Fut&gt; {
     <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="comment">// Once we&#39;re in the destructor for `Inner&lt;Fut&gt;` we need to clear out
         // the ready to run queue of tasks if there&#39;s anything left in there.
@@ -238,9 +238,9 @@
         // All tasks have had their futures dropped already by the `FuturesUnordered`
         // destructor above, and we have &amp;mut self, so this is safe.
         </span><span class="kw">unsafe </span>{
-            <a class="self" href="#112">self</a>.<a href="#99">clear</a>();
+            <span class="self">self</span>.clear();
         }
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="futures_util" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="futures_util" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

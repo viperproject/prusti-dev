@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/combine-4.6.6/src/parser/char.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>char.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../combine/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/combine-4.6.6/src/parser/char.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>char.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../combine/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -335,14 +335,14 @@
 </pre><pre class="rust"><code><span class="doccomment">//! Module containing parsers specialized on character streams.
 
 </span><span class="kw">use crate</span>::{
-    <a href="../error.rs.html#456">error::ParseError</a>,
+    error::ParseError,
     parser::{
-        <a href="combinator.rs.html#668-671">combinator::no_partial</a>,
-        <a href="repeat.rs.html#558-583">repeat::skip_many</a>,
-        token::{<a href="token.rs.html#104-107">satisfy</a>, <a href="token.rs.html#208-211">token</a>, <a href="token.rs.html#410-414">tokens_cmp</a>, <a href="token.rs.html#170">Token</a>},
+        combinator::no_partial,
+        repeat::skip_many,
+        token::{satisfy, token, tokens_cmp, Token},
     },
-    <a href="../stream/mod.rs.html#163">stream::Stream</a>,
-    <a href="mod.rs.html#84">Parser</a>,
+    stream::Stream,
+    Parser,
 };
 
 <span class="doccomment">/// Parses a character and succeeds if the character is equal to `c`.
@@ -353,15 +353,15 @@
 /// assert_eq!(char(&#39;!&#39;).parse(&quot;!&quot;), Ok((&#39;!&#39;, &quot;&quot;)));
 /// assert!(char(&#39;A&#39;).parse(&quot;!&quot;).is_err());
 /// ```
-</span><span class="kw">pub fn </span>char&lt;Input&gt;(c: <a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>) -&gt; Token&lt;Input&gt;
+</span><span class="kw">pub fn </span>char&lt;Input&gt;(c: char) -&gt; Token&lt;Input&gt;
 <span class="kw">where
-    </span>Input: Stream&lt;Token = <a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>&gt;,
+    </span>Input: Stream&lt;Token = char&gt;,
     Input::Error: ParseError&lt;Input::Token, Input::Range, Input::Position&gt;,
 {
-    <a href="token.rs.html#208-211">token</a>(<a href="#22">c</a>)
+    token(c)
 }
 
-<a class="macro" href="../lib.rs.html#326-403">parser! </a>{
+<span class="macro">parser! </span>{
     <span class="attr">#[derive(Copy, Clone)]
     </span><span class="kw">pub struct </span>Digit;
     <span class="doccomment">/// Parses a base-10 digit.
@@ -372,9 +372,9 @@
     /// assert_eq!(digit().parse(&quot;9&quot;), Ok((&#39;9&#39;, &quot;&quot;)));
     /// assert!(digit().parse(&quot;A&quot;).is_err());
     /// ```
-    </span><span class="kw">pub fn </span>digit[Input]()(Input) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>
+    </span><span class="kw">pub fn </span>digit[Input]()(Input) -&gt; char
     <span class="kw">where
-        </span>[Input: Stream&lt;Token = <a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>&gt;,]
+        </span>[Input: Stream&lt;Token = char&gt;,]
     {
         satisfy(|c: char| c.is_digit(<span class="number">10</span>)).expected(<span class="string">&quot;digit&quot;</span>)
     }
@@ -394,13 +394,13 @@
 /// assert!(space().parse(&quot;!&quot;).is_err());
 /// assert!(space().parse(&quot;&quot;).is_err());
 /// ```
-</span><span class="kw">pub fn </span>space&lt;Input&gt;() -&gt; <span class="kw">impl </span>Parser&lt;Input, Output = <a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>, PartialState = ()&gt;
+</span><span class="kw">pub fn </span>space&lt;Input&gt;() -&gt; <span class="kw">impl </span>Parser&lt;Input, Output = char, PartialState = ()&gt;
 <span class="kw">where
-    </span>Input: Stream&lt;Token = <a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>&gt;,
+    </span>Input: Stream&lt;Token = char&gt;,
     Input::Error: ParseError&lt;Input::Token, Input::Range, Input::Position&gt;,
 {
-    <span class="kw">let </span>f: <span class="kw">fn</span>(<a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> = char::is_whitespace;
-    <a href="token.rs.html#104-107">satisfy</a>(<a href="#68">f</a>).<a href="mod.rs.html#700-703">expected</a>(<span class="string">&quot;whitespace&quot;</span>)
+    <span class="kw">let </span>f: <span class="kw">fn</span>(char) -&gt; bool = char::is_whitespace;
+    satisfy(f).expected(<span class="string">&quot;whitespace&quot;</span>)
 }
 
 <span class="doccomment">/// Skips over zero or more spaces according to [`std::char::is_whitespace`].
@@ -417,10 +417,10 @@
 /// ```
 </span><span class="kw">pub fn </span>spaces&lt;Input&gt;() -&gt; <span class="kw">impl </span>Parser&lt;Input, Output = ()&gt;
 <span class="kw">where
-    </span>Input: Stream&lt;Token = <a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>&gt;,
+    </span>Input: Stream&lt;Token = char&gt;,
     Input::Error: ParseError&lt;Input::Token, Input::Range, Input::Position&gt;,
 {
-    <a href="repeat.rs.html#558-583">skip_many</a>(<a href="#63-66">space</a>()).<a href="mod.rs.html#700-703">expected</a>(<span class="string">&quot;whitespaces&quot;</span>)
+    skip_many(space()).expected(<span class="string">&quot;whitespaces&quot;</span>)
 }
 
 <span class="doccomment">/// Parses a newline character (`&#39;\n&#39;`).
@@ -431,12 +431,12 @@
 /// assert_eq!(newline().parse(&quot;\n&quot;), Ok((&#39;\n&#39;, &quot;&quot;)));
 /// assert!(newline().parse(&quot;\r&quot;).is_err());
 /// ```
-</span><span class="kw">pub fn </span>newline&lt;Input&gt;() -&gt; <span class="kw">impl </span>Parser&lt;Input, Output = <a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>, PartialState = ()&gt;
+</span><span class="kw">pub fn </span>newline&lt;Input&gt;() -&gt; <span class="kw">impl </span>Parser&lt;Input, Output = char, PartialState = ()&gt;
 <span class="kw">where
-    </span>Input: Stream&lt;Token = <a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>&gt;,
+    </span>Input: Stream&lt;Token = char&gt;,
     Input::Error: ParseError&lt;Input::Token, Input::Range, Input::Position&gt;,
 {
-    <a href="token.rs.html#104-107">satisfy</a>(|ch: <a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>| <a href="#105">ch</a> == <span class="string">&#39;\n&#39;</span>).<a href="mod.rs.html#700-703">expected</a>(<span class="string">&quot;lf newline&quot;</span>)
+    satisfy(|ch: char| ch == <span class="string">&#39;\n&#39;</span>).expected(<span class="string">&quot;lf newline&quot;</span>)
 }
 
 <span class="doccomment">/// Parses carriage return and newline (`&quot;\r\n&quot;`), returning the newline character.
@@ -448,12 +448,12 @@
 /// assert!(crlf().parse(&quot;\r&quot;).is_err());
 /// assert!(crlf().parse(&quot;\n&quot;).is_err());
 /// ```
-</span><span class="kw">pub fn </span>crlf&lt;Input&gt;() -&gt; <span class="kw">impl </span>Parser&lt;Input, Output = <a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>, PartialState = ()&gt;
+</span><span class="kw">pub fn </span>crlf&lt;Input&gt;() -&gt; <span class="kw">impl </span>Parser&lt;Input, Output = char, PartialState = ()&gt;
 <span class="kw">where
-    </span>Input: Stream&lt;Token = <a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>&gt;,
+    </span>Input: Stream&lt;Token = char&gt;,
     Input::Error: ParseError&lt;Input::Token, Input::Range, Input::Position&gt;,
 {
-    <a href="combinator.rs.html#668-671">no_partial</a>(<a href="token.rs.html#104-107">satisfy</a>(|ch: <a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>| <a href="#122">ch</a> == <span class="string">&#39;\r&#39;</span>).<a href="mod.rs.html#379-382">with</a>(<a href="#100-103">newline</a>())).<a href="mod.rs.html#700-703">expected</a>(<span class="string">&quot;crlf newline&quot;</span>)
+    no_partial(satisfy(|ch: char| ch == <span class="string">&#39;\r&#39;</span>).with(newline())).expected(<span class="string">&quot;crlf newline&quot;</span>)
 }
 
 <span class="doccomment">/// Parses a tab character (`&#39;\t&#39;`).
@@ -464,12 +464,12 @@
 /// assert_eq!(tab().parse(&quot;\t&quot;), Ok((&#39;\t&#39;, &quot;&quot;)));
 /// assert!(tab().parse(&quot; &quot;).is_err());
 /// ```
-</span><span class="kw">pub fn </span>tab&lt;Input&gt;() -&gt; <span class="kw">impl </span>Parser&lt;Input, Output = <a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>, PartialState = ()&gt;
+</span><span class="kw">pub fn </span>tab&lt;Input&gt;() -&gt; <span class="kw">impl </span>Parser&lt;Input, Output = char, PartialState = ()&gt;
 <span class="kw">where
-    </span>Input: Stream&lt;Token = <a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>&gt;,
+    </span>Input: Stream&lt;Token = char&gt;,
     Input::Error: ParseError&lt;Input::Token, Input::Range, Input::Position&gt;,
 {
-    <a href="token.rs.html#104-107">satisfy</a>(|ch: <a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>| <a href="#138">ch</a> == <span class="string">&#39;\t&#39;</span>).<a href="mod.rs.html#700-703">expected</a>(<span class="string">&quot;tab&quot;</span>)
+    satisfy(|ch: char| ch == <span class="string">&#39;\t&#39;</span>).expected(<span class="string">&quot;tab&quot;</span>)
 }
 
 <span class="doccomment">/// Parses an uppercase letter according to [`std::char::is_uppercase`].
@@ -482,12 +482,12 @@
 /// assert_eq!(upper().parse(&quot;A&quot;), Ok((&#39;A&#39;, &quot;&quot;)));
 /// assert!(upper().parse(&quot;a&quot;).is_err());
 /// ```
-</span><span class="kw">pub fn </span>upper&lt;Input&gt;() -&gt; <span class="kw">impl </span>Parser&lt;Input, Output = <a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>, PartialState = ()&gt;
+</span><span class="kw">pub fn </span>upper&lt;Input&gt;() -&gt; <span class="kw">impl </span>Parser&lt;Input, Output = char, PartialState = ()&gt;
 <span class="kw">where
-    </span>Input: Stream&lt;Token = <a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>&gt;,
+    </span>Input: Stream&lt;Token = char&gt;,
     Input::Error: ParseError&lt;Input::Token, Input::Range, Input::Position&gt;,
 {
-    <a href="token.rs.html#104-107">satisfy</a>(|ch: <a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>| <a href="#156">ch</a>.is_uppercase()).<a href="mod.rs.html#700-703">expected</a>(<span class="string">&quot;uppercase letter&quot;</span>)
+    satisfy(|ch: char| ch.is_uppercase()).expected(<span class="string">&quot;uppercase letter&quot;</span>)
 }
 
 <span class="doccomment">/// Parses an lowercase letter according to [`std::char::is_lowercase`].
@@ -500,12 +500,12 @@
 /// assert_eq!(lower().parse(&quot;a&quot;), Ok((&#39;a&#39;, &quot;&quot;)));
 /// assert!(lower().parse(&quot;A&quot;).is_err());
 /// ```
-</span><span class="kw">pub fn </span>lower&lt;Input&gt;() -&gt; <span class="kw">impl </span>Parser&lt;Input, Output = <a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>, PartialState = ()&gt;
+</span><span class="kw">pub fn </span>lower&lt;Input&gt;() -&gt; <span class="kw">impl </span>Parser&lt;Input, Output = char, PartialState = ()&gt;
 <span class="kw">where
-    </span>Input: Stream&lt;Token = <a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>&gt;,
+    </span>Input: Stream&lt;Token = char&gt;,
     Input::Error: ParseError&lt;Input::Token, Input::Range, Input::Position&gt;,
 {
-    <a href="token.rs.html#104-107">satisfy</a>(|ch: <a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>| <a href="#174">ch</a>.is_lowercase()).<a href="mod.rs.html#700-703">expected</a>(<span class="string">&quot;lowercase letter&quot;</span>)
+    satisfy(|ch: char| ch.is_lowercase()).expected(<span class="string">&quot;lowercase letter&quot;</span>)
 }
 
 <span class="doccomment">/// Parses either an alphabet letter or digit according to [`std::char::is_alphanumeric`].
@@ -519,12 +519,12 @@
 /// assert_eq!(alpha_num().parse(&quot;1&quot;), Ok((&#39;1&#39;, &quot;&quot;)));
 /// assert!(alpha_num().parse(&quot;!&quot;).is_err());
 /// ```
-</span><span class="kw">pub fn </span>alpha_num&lt;Input&gt;() -&gt; <span class="kw">impl </span>Parser&lt;Input, Output = <a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>, PartialState = ()&gt;
+</span><span class="kw">pub fn </span>alpha_num&lt;Input&gt;() -&gt; <span class="kw">impl </span>Parser&lt;Input, Output = char, PartialState = ()&gt;
 <span class="kw">where
-    </span>Input: Stream&lt;Token = <a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>&gt;,
+    </span>Input: Stream&lt;Token = char&gt;,
     Input::Error: ParseError&lt;Input::Token, Input::Range, Input::Position&gt;,
 {
-    <a href="token.rs.html#104-107">satisfy</a>(|ch: <a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>| <a href="#193">ch</a>.is_alphanumeric()).<a href="mod.rs.html#700-703">expected</a>(<span class="string">&quot;letter or digit&quot;</span>)
+    satisfy(|ch: char| ch.is_alphanumeric()).expected(<span class="string">&quot;letter or digit&quot;</span>)
 }
 
 <span class="doccomment">/// Parses an alphabet letter according to [`std::char::is_alphabetic`].
@@ -538,12 +538,12 @@
 /// assert_eq!(letter().parse(&quot;A&quot;), Ok((&#39;A&#39;, &quot;&quot;)));
 /// assert!(letter().parse(&quot;9&quot;).is_err());
 /// ```
-</span><span class="kw">pub fn </span>letter&lt;Input&gt;() -&gt; <span class="kw">impl </span>Parser&lt;Input, Output = <a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>, PartialState = ()&gt;
+</span><span class="kw">pub fn </span>letter&lt;Input&gt;() -&gt; <span class="kw">impl </span>Parser&lt;Input, Output = char, PartialState = ()&gt;
 <span class="kw">where
-    </span>Input: Stream&lt;Token = <a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>&gt;,
+    </span>Input: Stream&lt;Token = char&gt;,
     Input::Error: ParseError&lt;Input::Token, Input::Range, Input::Position&gt;,
 {
-    <a href="token.rs.html#104-107">satisfy</a>(|ch: <a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>| <a href="#212">ch</a>.is_alphabetic()).<a href="mod.rs.html#700-703">expected</a>(<span class="string">&quot;letter&quot;</span>)
+    satisfy(|ch: char| ch.is_alphabetic()).expected(<span class="string">&quot;letter&quot;</span>)
 }
 
 <span class="doccomment">/// Parses an octal digit.
@@ -554,12 +554,12 @@
 /// assert_eq!(oct_digit().parse(&quot;7&quot;), Ok((&#39;7&#39;, &quot;&quot;)));
 /// assert!(oct_digit().parse(&quot;8&quot;).is_err());
 /// ```
-</span><span class="kw">pub fn </span>oct_digit&lt;Input&gt;() -&gt; <span class="kw">impl </span>Parser&lt;Input, Output = <a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>, PartialState = ()&gt;
+</span><span class="kw">pub fn </span>oct_digit&lt;Input&gt;() -&gt; <span class="kw">impl </span>Parser&lt;Input, Output = char, PartialState = ()&gt;
 <span class="kw">where
-    </span>Input: Stream&lt;Token = <a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>&gt;,
+    </span>Input: Stream&lt;Token = char&gt;,
     Input::Error: ParseError&lt;Input::Token, Input::Range, Input::Position&gt;,
 {
-    <a href="token.rs.html#104-107">satisfy</a>(|ch: <a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>| <a href="#228">ch</a>.is_digit(<span class="number">8</span>)).<a href="mod.rs.html#700-703">expected</a>(<span class="string">&quot;octal digit&quot;</span>)
+    satisfy(|ch: char| ch.is_digit(<span class="number">8</span>)).expected(<span class="string">&quot;octal digit&quot;</span>)
 }
 
 <span class="doccomment">/// Parses a hexdecimal digit with uppercase and lowercase.
@@ -570,12 +570,12 @@
 /// assert_eq!(hex_digit().parse(&quot;F&quot;), Ok((&#39;F&#39;, &quot;&quot;)));
 /// assert!(hex_digit().parse(&quot;H&quot;).is_err());
 /// ```
-</span><span class="kw">pub fn </span>hex_digit&lt;Input&gt;() -&gt; <span class="kw">impl </span>Parser&lt;Input, Output = <a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>, PartialState = ()&gt;
+</span><span class="kw">pub fn </span>hex_digit&lt;Input&gt;() -&gt; <span class="kw">impl </span>Parser&lt;Input, Output = char, PartialState = ()&gt;
 <span class="kw">where
-    </span>Input: Stream&lt;Token = <a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>&gt;,
+    </span>Input: Stream&lt;Token = char&gt;,
     Input::Error: ParseError&lt;Input::Token, Input::Range, Input::Position&gt;,
 {
-    <a href="token.rs.html#104-107">satisfy</a>(|ch: <a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>| <a href="#244">ch</a>.is_digit(<span class="number">0x10</span>)).<a href="mod.rs.html#700-703">expected</a>(<span class="string">&quot;hexadecimal digit&quot;</span>)
+    satisfy(|ch: char| ch.is_digit(<span class="number">0x10</span>)).expected(<span class="string">&quot;hexadecimal digit&quot;</span>)
 }
 
 <span class="doccomment">/// Parses the string `s`.
@@ -591,12 +591,12 @@
 /// assert_eq!(result, Ok(&quot;rust&quot;));
 /// # }
 /// ```
-</span><span class="kw">pub fn </span>string&lt;<span class="lifetime">&#39;a</span>, Input&gt;(s: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="kw">impl </span>Parser&lt;Input, Output = <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt;
+</span><span class="kw">pub fn </span>string&lt;<span class="lifetime">&#39;a</span>, Input&gt;(s: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str) -&gt; <span class="kw">impl </span>Parser&lt;Input, Output = <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>str&gt;
 <span class="kw">where
-    </span>Input: Stream&lt;Token = <a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>&gt;,
+    </span>Input: Stream&lt;Token = char&gt;,
     Input::Error: ParseError&lt;Input::Token, Input::Range, Input::Position&gt;,
 {
-    <a href="#281-285">string_cmp</a>(<a href="#260">s</a>, |l, r| <a href="#265">l</a> == <a href="#265">r</a>)
+    string_cmp(s, |l, r| l == r)
 }
 
 <span class="doccomment">/// Parses the string `s`, using `cmp` to compare each character.
@@ -612,13 +612,13 @@
 /// assert_eq!(result, Ok(&quot;rust&quot;));
 /// # }
 /// ```
-</span><span class="kw">pub fn </span>string_cmp&lt;<span class="lifetime">&#39;a</span>, C, Input&gt;(s: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, cmp: C) -&gt; <span class="kw">impl </span>Parser&lt;Input, Output = <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt;
+</span><span class="kw">pub fn </span>string_cmp&lt;<span class="lifetime">&#39;a</span>, C, Input&gt;(s: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str, cmp: C) -&gt; <span class="kw">impl </span>Parser&lt;Input, Output = <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>str&gt;
 <span class="kw">where
-    </span>C: FnMut(<a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-    Input: Stream&lt;Token = <a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>&gt;,
+    </span>C: FnMut(char, char) -&gt; bool,
+    Input: Stream&lt;Token = char&gt;,
     Input::Error: ParseError&lt;Input::Token, Input::Range, Input::Position&gt;,
 {
-    <a href="token.rs.html#410-414">tokens_cmp</a>(<a href="#281">s</a>.chars(), <a href="#281">cmp</a>).<a href="mod.rs.html#598-601">map</a>(<span class="kw">move </span>|<span class="kw">_</span>| <a href="#281">s</a>).<a href="mod.rs.html#700-703">expected</a>(<a href="#281">s</a>)
+    tokens_cmp(s.chars(), cmp).map(<span class="kw">move </span>|<span class="kw">_</span>| s).expected(s)
 }
 
 <span class="attr">#[cfg(all(feature = <span class="string">&quot;std&quot;</span>, test))]
@@ -667,4 +667,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="combine" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="combine" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

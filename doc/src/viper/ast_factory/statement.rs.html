@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `viper/src/ast_factory/statement.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>statement.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../viper/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `viper/src/ast_factory/statement.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>statement.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../viper/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -254,15 +254,15 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 </span><span class="kw">use </span><span class="kw">crate</span>::ast_factory::{
-    structs::{<a href="structs.rs.html#26">Declaration</a>, <a href="structs.rs.html#9">Expr</a>, <a href="structs.rs.html#17">Field</a>, <a href="structs.rs.html#11">Position</a>, <a href="structs.rs.html#20">Stmt</a>},
-    <a href="mod.rs.html#21">AstFactory</a>,
+    structs::{Declaration, Expr, Field, Position, Stmt},
+    AstFactory,
 };
-<span class="kw">use </span><a href="../../../jni/wrapper/objects/jobject/struct.JObject.html">jni::objects::JObject</a>;
-<span class="kw">use </span><a href="../../../viper_sys/wrappers/viper/silver/ast/index.html">viper_sys::wrappers::viper::silver::ast</a>;
+<span class="kw">use </span>jni::objects::JObject;
+<span class="kw">use </span>viper_sys::wrappers::viper::silver::ast;
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; AstFactory&lt;<span class="lifetime">&#39;a</span>&gt; {
-    <span class="kw">pub fn </span>new_stmt(<span class="kw-2">&amp;</span><span class="self">self</span>, lhs: <a href="structs.rs.html#9">Expr</a>, fields: <span class="kw-2">&amp;</span>[<a href="structs.rs.html#17">Field</a>]) -&gt; Stmt&lt;<span class="lifetime">&#39;a</span>&gt; {
-        <a class="macro" href="macros.rs.html#71-89">build_ast_node!</a>(
+    <span class="kw">pub fn </span>new_stmt(<span class="kw-2">&amp;</span><span class="self">self</span>, lhs: Expr, fields: <span class="kw-2">&amp;</span>[Field]) -&gt; Stmt&lt;<span class="lifetime">&#39;a</span>&gt; {
+        <span class="macro">build_ast_node!</span>(
             <span class="self">self</span>,
             Stmt,
             ast::NewStmt,
@@ -271,22 +271,22 @@
         )
     }
 
-    <span class="kw">pub fn </span>abstract_assign(<span class="kw-2">&amp;</span><span class="self">self</span>, lhs: <a href="structs.rs.html#9">Expr</a>, rhs: <a href="structs.rs.html#9">Expr</a>) -&gt; Stmt&lt;<span class="lifetime">&#39;a</span>&gt; {
-        <span class="kw">let </span>abstract_assign_wrapper = ast::AbstractAssign_object::with(<a class="self" href="#23">self</a>.env);
-        <span class="kw">let </span>abstract_assign_instance = <a class="self" href="#23">self</a>.jni.<a href="../jni_utils.rs.html#63">unwrap_result</a>(<a href="#24">abstract_assign_wrapper</a>.singleton());
-        <span class="kw">let </span>obj = <a class="self" href="#23">self</a>.jni.<a href="../jni_utils.rs.html#63">unwrap_result</a>(<a href="#24">abstract_assign_wrapper</a>.call_apply(
-            <a href="#25">abstract_assign_instance</a>,
-            <a href="#23">lhs</a>.<a href="structs.rs.html#9">to_jobject</a>(),
-            <a href="#23">rhs</a>.<a href="structs.rs.html#9">to_jobject</a>(),
-            <a class="self" href="#23">self</a>.<a href="position.rs.html#10">no_position</a>().<a href="structs.rs.html#11">to_jobject</a>(),
-            <a class="self" href="#23">self</a>.<a href="mod.rs.html#34">no_info</a>(),
-            <a class="self" href="#23">self</a>.<a href="mod.rs.html#52">no_trafos</a>(),
+    <span class="kw">pub fn </span>abstract_assign(<span class="kw-2">&amp;</span><span class="self">self</span>, lhs: Expr, rhs: Expr) -&gt; Stmt&lt;<span class="lifetime">&#39;a</span>&gt; {
+        <span class="kw">let </span>abstract_assign_wrapper = ast::AbstractAssign_object::with(<span class="self">self</span>.env);
+        <span class="kw">let </span>abstract_assign_instance = <span class="self">self</span>.jni.unwrap_result(abstract_assign_wrapper.singleton());
+        <span class="kw">let </span>obj = <span class="self">self</span>.jni.unwrap_result(abstract_assign_wrapper.call_apply(
+            abstract_assign_instance,
+            lhs.to_jobject(),
+            rhs.to_jobject(),
+            <span class="self">self</span>.no_position().to_jobject(),
+            <span class="self">self</span>.no_info(),
+            <span class="self">self</span>.no_trafos(),
         ));
-        Stmt::new(<a href="#26">obj</a>)
+        Stmt::new(obj)
     }
 
-    <span class="kw">pub fn </span>local_var_assign(<span class="kw-2">&amp;</span><span class="self">self</span>, lhs: <a href="structs.rs.html#9">Expr</a>, rhs: <a href="structs.rs.html#9">Expr</a>) -&gt; Stmt&lt;<span class="lifetime">&#39;a</span>&gt; {
-        <a class="macro" href="macros.rs.html#71-89">build_ast_node!</a>(
+    <span class="kw">pub fn </span>local_var_assign(<span class="kw-2">&amp;</span><span class="self">self</span>, lhs: Expr, rhs: Expr) -&gt; Stmt&lt;<span class="lifetime">&#39;a</span>&gt; {
+        <span class="macro">build_ast_node!</span>(
             <span class="self">self</span>,
             Stmt,
             ast::LocalVarAssign,
@@ -295,8 +295,8 @@
         )
     }
 
-    <span class="kw">pub fn </span>field_assign(<span class="kw-2">&amp;</span><span class="self">self</span>, lhs: <a href="structs.rs.html#9">Expr</a>, rhs: <a href="structs.rs.html#9">Expr</a>) -&gt; Stmt&lt;<span class="lifetime">&#39;a</span>&gt; {
-        <a class="macro" href="macros.rs.html#71-89">build_ast_node!</a>(
+    <span class="kw">pub fn </span>field_assign(<span class="kw-2">&amp;</span><span class="self">self</span>, lhs: Expr, rhs: Expr) -&gt; Stmt&lt;<span class="lifetime">&#39;a</span>&gt; {
+        <span class="macro">build_ast_node!</span>(
             <span class="self">self</span>,
             Stmt,
             ast::FieldAssign,
@@ -305,8 +305,8 @@
         )
     }
 
-    <span class="kw">pub fn </span>method_call(<span class="kw-2">&amp;</span><span class="self">self</span>, method_name: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, args: <span class="kw-2">&amp;</span>[<a href="structs.rs.html#9">Expr</a>], targets: <span class="kw-2">&amp;</span>[<a href="structs.rs.html#9">Expr</a>]) -&gt; Stmt&lt;<span class="lifetime">&#39;a</span>&gt; {
-        <a class="macro" href="macros.rs.html#71-89">build_ast_node!</a>(
+    <span class="kw">pub fn </span>method_call(<span class="kw-2">&amp;</span><span class="self">self</span>, method_name: <span class="kw-2">&amp;</span>str, args: <span class="kw-2">&amp;</span>[Expr], targets: <span class="kw-2">&amp;</span>[Expr]) -&gt; Stmt&lt;<span class="lifetime">&#39;a</span>&gt; {
+        <span class="macro">build_ast_node!</span>(
             <span class="self">self</span>,
             Stmt,
             ast::MethodCall,
@@ -318,12 +318,12 @@
 
     <span class="kw">pub fn </span>method_call_with_pos(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        method_name: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>,
-        args: <span class="kw-2">&amp;</span>[<a href="structs.rs.html#9">Expr</a>],
-        targets: <span class="kw-2">&amp;</span>[<a href="structs.rs.html#9">Expr</a>],
-        pos: <a href="structs.rs.html#11">Position</a>,
+        method_name: <span class="kw-2">&amp;</span>str,
+        args: <span class="kw-2">&amp;</span>[Expr],
+        targets: <span class="kw-2">&amp;</span>[Expr],
+        pos: Position,
     ) -&gt; Stmt&lt;<span class="lifetime">&#39;a</span>&gt; {
-        <a class="macro" href="macros.rs.html#53-68">build_ast_node_with_pos!</a>(
+        <span class="macro">build_ast_node_with_pos!</span>(
             <span class="self">self</span>,
             Stmt,
             ast::MethodCall,
@@ -334,117 +334,117 @@
         )
     }
 
-    <span class="kw">pub fn </span>exhale(<span class="kw-2">&amp;</span><span class="self">self</span>, expr: <a href="structs.rs.html#9">Expr</a>, pos: <a href="structs.rs.html#11">Position</a>) -&gt; Stmt&lt;<span class="lifetime">&#39;a</span>&gt; {
-        <span class="kw">let </span>obj = <a class="self" href="#86">self</a>.jni.<a href="../jni_utils.rs.html#63">unwrap_result</a>(ast::Exhale::with(<a class="self" href="#86">self</a>.env).new(
-            <a href="#86">expr</a>.<a href="structs.rs.html#9">to_jobject</a>(),
-            <a href="#86">pos</a>.<a href="structs.rs.html#11">to_jobject</a>(),
-            <a class="self" href="#86">self</a>.<a href="mod.rs.html#34">no_info</a>(),
-            <a class="self" href="#86">self</a>.<a href="mod.rs.html#52">no_trafos</a>(),
+    <span class="kw">pub fn </span>exhale(<span class="kw-2">&amp;</span><span class="self">self</span>, expr: Expr, pos: Position) -&gt; Stmt&lt;<span class="lifetime">&#39;a</span>&gt; {
+        <span class="kw">let </span>obj = <span class="self">self</span>.jni.unwrap_result(ast::Exhale::with(<span class="self">self</span>.env).new(
+            expr.to_jobject(),
+            pos.to_jobject(),
+            <span class="self">self</span>.no_info(),
+            <span class="self">self</span>.no_trafos(),
         ));
-        Stmt::new(<a href="#87">obj</a>)
+        Stmt::new(obj)
     }
 
-    <span class="kw">pub fn </span>exhale_with_comment(<span class="kw-2">&amp;</span><span class="self">self</span>, expr: <a href="structs.rs.html#9">Expr</a>, pos: <a href="structs.rs.html#11">Position</a>, comment: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; Stmt&lt;<span class="lifetime">&#39;a</span>&gt; {
-        <span class="kw">let </span>obj = <a class="self" href="#96">self</a>.jni.<a href="../jni_utils.rs.html#63">unwrap_result</a>(ast::Exhale::with(<a class="self" href="#96">self</a>.env).new(
-            <a href="#96">expr</a>.<a href="structs.rs.html#9">to_jobject</a>(),
-            <a href="#96">pos</a>.<a href="structs.rs.html#11">to_jobject</a>(),
-            <a class="self" href="#96">self</a>.<a href="mod.rs.html#39">simple_info</a>(<span class="kw-2">&amp;</span>[<a href="#96">comment</a>, <span class="string">&quot;&quot;</span>]),
-            <a class="self" href="#96">self</a>.<a href="mod.rs.html#52">no_trafos</a>(),
+    <span class="kw">pub fn </span>exhale_with_comment(<span class="kw-2">&amp;</span><span class="self">self</span>, expr: Expr, pos: Position, comment: <span class="kw-2">&amp;</span>str) -&gt; Stmt&lt;<span class="lifetime">&#39;a</span>&gt; {
+        <span class="kw">let </span>obj = <span class="self">self</span>.jni.unwrap_result(ast::Exhale::with(<span class="self">self</span>.env).new(
+            expr.to_jobject(),
+            pos.to_jobject(),
+            <span class="self">self</span>.simple_info(<span class="kw-2">&amp;</span>[comment, <span class="string">&quot;&quot;</span>]),
+            <span class="self">self</span>.no_trafos(),
         ));
-        Stmt::new(<a href="#97">obj</a>)
+        Stmt::new(obj)
     }
 
-    <span class="kw">pub fn </span>inhale(<span class="kw-2">&amp;</span><span class="self">self</span>, expr: <a href="structs.rs.html#9">Expr</a>, pos: <a href="structs.rs.html#11">Position</a>) -&gt; Stmt&lt;<span class="lifetime">&#39;a</span>&gt; {
-        <span class="kw">let </span>obj = <a class="self" href="#106">self</a>.jni.<a href="../jni_utils.rs.html#63">unwrap_result</a>(ast::Inhale::with(<a class="self" href="#106">self</a>.env).new(
-            <a href="#106">expr</a>.<a href="structs.rs.html#9">to_jobject</a>(),
-            <a href="#106">pos</a>.<a href="structs.rs.html#11">to_jobject</a>(),
-            <a class="self" href="#106">self</a>.<a href="mod.rs.html#34">no_info</a>(),
-            <a class="self" href="#106">self</a>.<a href="mod.rs.html#52">no_trafos</a>(),
+    <span class="kw">pub fn </span>inhale(<span class="kw-2">&amp;</span><span class="self">self</span>, expr: Expr, pos: Position) -&gt; Stmt&lt;<span class="lifetime">&#39;a</span>&gt; {
+        <span class="kw">let </span>obj = <span class="self">self</span>.jni.unwrap_result(ast::Inhale::with(<span class="self">self</span>.env).new(
+            expr.to_jobject(),
+            pos.to_jobject(),
+            <span class="self">self</span>.no_info(),
+            <span class="self">self</span>.no_trafos(),
         ));
-        Stmt::new(<a href="#107">obj</a>)
+        Stmt::new(obj)
     }
 
-    <span class="kw">pub fn </span>inhale_with_comment(<span class="kw-2">&amp;</span><span class="self">self</span>, expr: <a href="structs.rs.html#9">Expr</a>, pos: <a href="structs.rs.html#11">Position</a>, comment: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; Stmt&lt;<span class="lifetime">&#39;a</span>&gt; {
-        <span class="kw">let </span>obj = <a class="self" href="#116">self</a>.jni.<a href="../jni_utils.rs.html#63">unwrap_result</a>(ast::Inhale::with(<a class="self" href="#116">self</a>.env).new(
-            <a href="#116">expr</a>.<a href="structs.rs.html#9">to_jobject</a>(),
-            <a href="#116">pos</a>.<a href="structs.rs.html#11">to_jobject</a>(),
-            <a class="self" href="#116">self</a>.<a href="mod.rs.html#39">simple_info</a>(<span class="kw-2">&amp;</span>[<a href="#116">comment</a>, <span class="string">&quot;&quot;</span>]),
-            <a class="self" href="#116">self</a>.<a href="mod.rs.html#52">no_trafos</a>(),
+    <span class="kw">pub fn </span>inhale_with_comment(<span class="kw-2">&amp;</span><span class="self">self</span>, expr: Expr, pos: Position, comment: <span class="kw-2">&amp;</span>str) -&gt; Stmt&lt;<span class="lifetime">&#39;a</span>&gt; {
+        <span class="kw">let </span>obj = <span class="self">self</span>.jni.unwrap_result(ast::Inhale::with(<span class="self">self</span>.env).new(
+            expr.to_jobject(),
+            pos.to_jobject(),
+            <span class="self">self</span>.simple_info(<span class="kw-2">&amp;</span>[comment, <span class="string">&quot;&quot;</span>]),
+            <span class="self">self</span>.no_trafos(),
         ));
-        Stmt::new(<a href="#117">obj</a>)
+        Stmt::new(obj)
     }
 
-    <span class="kw">pub fn </span>assert(<span class="kw-2">&amp;</span><span class="self">self</span>, expr: <a href="structs.rs.html#9">Expr</a>, pos: <a href="structs.rs.html#11">Position</a>) -&gt; Stmt&lt;<span class="lifetime">&#39;a</span>&gt; {
-        <span class="kw">let </span>obj = <a class="self" href="#126">self</a>.jni.<a href="../jni_utils.rs.html#63">unwrap_result</a>(ast::Assert::with(<a class="self" href="#126">self</a>.env).new(
-            <a href="#126">expr</a>.<a href="structs.rs.html#9">to_jobject</a>(),
-            <a href="#126">pos</a>.<a href="structs.rs.html#11">to_jobject</a>(),
-            <a class="self" href="#126">self</a>.<a href="mod.rs.html#34">no_info</a>(),
-            <a class="self" href="#126">self</a>.<a href="mod.rs.html#52">no_trafos</a>(),
+    <span class="kw">pub fn </span>assert(<span class="kw-2">&amp;</span><span class="self">self</span>, expr: Expr, pos: Position) -&gt; Stmt&lt;<span class="lifetime">&#39;a</span>&gt; {
+        <span class="kw">let </span>obj = <span class="self">self</span>.jni.unwrap_result(ast::Assert::with(<span class="self">self</span>.env).new(
+            expr.to_jobject(),
+            pos.to_jobject(),
+            <span class="self">self</span>.no_info(),
+            <span class="self">self</span>.no_trafos(),
         ));
-        Stmt::new(<a href="#127">obj</a>)
+        Stmt::new(obj)
     }
 
-    <span class="kw">pub fn </span>assert_with_comment(<span class="kw-2">&amp;</span><span class="self">self</span>, expr: <a href="structs.rs.html#9">Expr</a>, pos: <a href="structs.rs.html#11">Position</a>, comment: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; Stmt&lt;<span class="lifetime">&#39;a</span>&gt; {
-        <span class="kw">let </span>obj = <a class="self" href="#136">self</a>.jni.<a href="../jni_utils.rs.html#63">unwrap_result</a>(ast::Assert::with(<a class="self" href="#136">self</a>.env).new(
-            <a href="#136">expr</a>.<a href="structs.rs.html#9">to_jobject</a>(),
-            <a href="#136">pos</a>.<a href="structs.rs.html#11">to_jobject</a>(),
-            <a class="self" href="#136">self</a>.<a href="mod.rs.html#39">simple_info</a>(<span class="kw-2">&amp;</span>[<a href="#136">comment</a>, <span class="string">&quot;&quot;</span>]),
-            <a class="self" href="#136">self</a>.<a href="mod.rs.html#52">no_trafos</a>(),
+    <span class="kw">pub fn </span>assert_with_comment(<span class="kw-2">&amp;</span><span class="self">self</span>, expr: Expr, pos: Position, comment: <span class="kw-2">&amp;</span>str) -&gt; Stmt&lt;<span class="lifetime">&#39;a</span>&gt; {
+        <span class="kw">let </span>obj = <span class="self">self</span>.jni.unwrap_result(ast::Assert::with(<span class="self">self</span>.env).new(
+            expr.to_jobject(),
+            pos.to_jobject(),
+            <span class="self">self</span>.simple_info(<span class="kw-2">&amp;</span>[comment, <span class="string">&quot;&quot;</span>]),
+            <span class="self">self</span>.no_trafos(),
         ));
-        Stmt::new(<a href="#137">obj</a>)
+        Stmt::new(obj)
     }
 
-    <span class="kw">pub fn </span>fold(<span class="kw-2">&amp;</span><span class="self">self</span>, acc: <a href="structs.rs.html#9">Expr</a>) -&gt; Stmt&lt;<span class="lifetime">&#39;a</span>&gt; {
-        <a class="macro" href="macros.rs.html#71-89">build_ast_node!</a>(<span class="self">self</span>, Stmt, ast::Fold, acc.to_jobject())
+    <span class="kw">pub fn </span>fold(<span class="kw-2">&amp;</span><span class="self">self</span>, acc: Expr) -&gt; Stmt&lt;<span class="lifetime">&#39;a</span>&gt; {
+        <span class="macro">build_ast_node!</span>(<span class="self">self</span>, Stmt, ast::Fold, acc.to_jobject())
     }
 
-    <span class="kw">pub fn </span>fold_with_pos(<span class="kw-2">&amp;</span><span class="self">self</span>, acc: <a href="structs.rs.html#9">Expr</a>, pos: <a href="structs.rs.html#11">Position</a>) -&gt; Stmt&lt;<span class="lifetime">&#39;a</span>&gt; {
-        <span class="kw">let </span>obj = <a class="self" href="#150">self</a>.jni.<a href="../jni_utils.rs.html#63">unwrap_result</a>(ast::Fold::with(<a class="self" href="#150">self</a>.env).new(
-            <a href="#150">acc</a>.<a href="structs.rs.html#9">to_jobject</a>(),
-            <a href="#150">pos</a>.<a href="structs.rs.html#11">to_jobject</a>(),
-            <a class="self" href="#150">self</a>.<a href="mod.rs.html#34">no_info</a>(),
-            <a class="self" href="#150">self</a>.<a href="mod.rs.html#52">no_trafos</a>(),
+    <span class="kw">pub fn </span>fold_with_pos(<span class="kw-2">&amp;</span><span class="self">self</span>, acc: Expr, pos: Position) -&gt; Stmt&lt;<span class="lifetime">&#39;a</span>&gt; {
+        <span class="kw">let </span>obj = <span class="self">self</span>.jni.unwrap_result(ast::Fold::with(<span class="self">self</span>.env).new(
+            acc.to_jobject(),
+            pos.to_jobject(),
+            <span class="self">self</span>.no_info(),
+            <span class="self">self</span>.no_trafos(),
         ));
-        Stmt::new(<a href="#151">obj</a>)
+        Stmt::new(obj)
     }
 
-    <span class="kw">pub fn </span>unfold(<span class="kw-2">&amp;</span><span class="self">self</span>, acc: <a href="structs.rs.html#9">Expr</a>) -&gt; Stmt&lt;<span class="lifetime">&#39;a</span>&gt; {
-        <a class="macro" href="macros.rs.html#71-89">build_ast_node!</a>(<span class="self">self</span>, Stmt, ast::Unfold, acc.to_jobject())
+    <span class="kw">pub fn </span>unfold(<span class="kw-2">&amp;</span><span class="self">self</span>, acc: Expr) -&gt; Stmt&lt;<span class="lifetime">&#39;a</span>&gt; {
+        <span class="macro">build_ast_node!</span>(<span class="self">self</span>, Stmt, ast::Unfold, acc.to_jobject())
     }
 
-    <span class="kw">pub fn </span>unfold_with_pos(<span class="kw-2">&amp;</span><span class="self">self</span>, acc: <a href="structs.rs.html#9">Expr</a>, pos: <a href="structs.rs.html#11">Position</a>) -&gt; Stmt&lt;<span class="lifetime">&#39;a</span>&gt; {
-        <span class="kw">let </span>obj = <a class="self" href="#164">self</a>.jni.<a href="../jni_utils.rs.html#63">unwrap_result</a>(ast::Unfold::with(<a class="self" href="#164">self</a>.env).new(
-            <a href="#164">acc</a>.<a href="structs.rs.html#9">to_jobject</a>(),
-            <a href="#164">pos</a>.<a href="structs.rs.html#11">to_jobject</a>(),
-            <a class="self" href="#164">self</a>.<a href="mod.rs.html#34">no_info</a>(),
-            <a class="self" href="#164">self</a>.<a href="mod.rs.html#52">no_trafos</a>(),
+    <span class="kw">pub fn </span>unfold_with_pos(<span class="kw-2">&amp;</span><span class="self">self</span>, acc: Expr, pos: Position) -&gt; Stmt&lt;<span class="lifetime">&#39;a</span>&gt; {
+        <span class="kw">let </span>obj = <span class="self">self</span>.jni.unwrap_result(ast::Unfold::with(<span class="self">self</span>.env).new(
+            acc.to_jobject(),
+            pos.to_jobject(),
+            <span class="self">self</span>.no_info(),
+            <span class="self">self</span>.no_trafos(),
         ));
-        Stmt::new(<a href="#165">obj</a>)
+        Stmt::new(obj)
     }
 
-    <span class="kw">pub fn </span>package(<span class="kw-2">&amp;</span><span class="self">self</span>, wand: <a href="structs.rs.html#9">Expr</a>, proof_script: <a href="structs.rs.html#20">Stmt</a>, pos: <a href="structs.rs.html#11">Position</a>) -&gt; Stmt&lt;<span class="lifetime">&#39;a</span>&gt; {
-        <span class="kw">let </span>obj = <a class="self" href="#174">self</a>.jni.<a href="../jni_utils.rs.html#63">unwrap_result</a>(ast::Package::with(<a class="self" href="#174">self</a>.env).new(
-            <a href="#174">wand</a>.<a href="structs.rs.html#9">to_jobject</a>(),
-            <a href="#174">proof_script</a>.<a href="structs.rs.html#20">to_jobject</a>(),
-            <a href="#174">pos</a>.<a href="structs.rs.html#11">to_jobject</a>(),
-            <a class="self" href="#174">self</a>.<a href="mod.rs.html#34">no_info</a>(),
-            <a class="self" href="#174">self</a>.<a href="mod.rs.html#52">no_trafos</a>(),
+    <span class="kw">pub fn </span>package(<span class="kw-2">&amp;</span><span class="self">self</span>, wand: Expr, proof_script: Stmt, pos: Position) -&gt; Stmt&lt;<span class="lifetime">&#39;a</span>&gt; {
+        <span class="kw">let </span>obj = <span class="self">self</span>.jni.unwrap_result(ast::Package::with(<span class="self">self</span>.env).new(
+            wand.to_jobject(),
+            proof_script.to_jobject(),
+            pos.to_jobject(),
+            <span class="self">self</span>.no_info(),
+            <span class="self">self</span>.no_trafos(),
         ));
-        Stmt::new(<a href="#175">obj</a>)
+        Stmt::new(obj)
     }
 
-    <span class="kw">pub fn </span>apply(<span class="kw-2">&amp;</span><span class="self">self</span>, wand: <a href="structs.rs.html#9">Expr</a>, pos: <a href="structs.rs.html#11">Position</a>) -&gt; Stmt&lt;<span class="lifetime">&#39;a</span>&gt; {
-        <span class="kw">let </span>obj = <a class="self" href="#185">self</a>.jni.<a href="../jni_utils.rs.html#63">unwrap_result</a>(ast::Apply::with(<a class="self" href="#185">self</a>.env).new(
-            <a href="#185">wand</a>.<a href="structs.rs.html#9">to_jobject</a>(),
-            <a href="#185">pos</a>.<a href="structs.rs.html#11">to_jobject</a>(),
-            <a class="self" href="#185">self</a>.<a href="mod.rs.html#34">no_info</a>(),
-            <a class="self" href="#185">self</a>.<a href="mod.rs.html#52">no_trafos</a>(),
+    <span class="kw">pub fn </span>apply(<span class="kw-2">&amp;</span><span class="self">self</span>, wand: Expr, pos: Position) -&gt; Stmt&lt;<span class="lifetime">&#39;a</span>&gt; {
+        <span class="kw">let </span>obj = <span class="self">self</span>.jni.unwrap_result(ast::Apply::with(<span class="self">self</span>.env).new(
+            wand.to_jobject(),
+            pos.to_jobject(),
+            <span class="self">self</span>.no_info(),
+            <span class="self">self</span>.no_trafos(),
         ));
-        Stmt::new(<a href="#186">obj</a>)
+        Stmt::new(obj)
     }
 
-    <span class="kw">pub fn </span>seqn(<span class="kw-2">&amp;</span><span class="self">self</span>, stmts: <span class="kw-2">&amp;</span>[<a href="structs.rs.html#20">Stmt</a>], scoped_decls: <span class="kw-2">&amp;</span>[<a href="structs.rs.html#26">Declaration</a>]) -&gt; Stmt&lt;<span class="lifetime">&#39;a</span>&gt; {
-        <a class="macro" href="macros.rs.html#71-89">build_ast_node!</a>(
+    <span class="kw">pub fn </span>seqn(<span class="kw-2">&amp;</span><span class="self">self</span>, stmts: <span class="kw-2">&amp;</span>[Stmt], scoped_decls: <span class="kw-2">&amp;</span>[Declaration]) -&gt; Stmt&lt;<span class="lifetime">&#39;a</span>&gt; {
+        <span class="macro">build_ast_node!</span>(
             <span class="self">self</span>,
             Stmt,
             ast::Seqn,
@@ -453,19 +453,19 @@
         )
     }
 
-    <span class="kw">pub fn </span>comment(<span class="kw-2">&amp;</span><span class="self">self</span>, comment: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; Stmt&lt;<span class="lifetime">&#39;a</span>&gt; {
-        <span class="kw">let </span>obj = <a class="self" href="#205">self</a>.jni.<a href="../jni_utils.rs.html#63">unwrap_result</a>(ast::Seqn::with(<a class="self" href="#205">self</a>.env).new(
-            <a class="self" href="#205">self</a>.jni.<a href="../jni_utils.rs.html#101">new_seq</a>(<span class="kw-2">&amp;</span>[]),
-            <a class="self" href="#205">self</a>.jni.<a href="../jni_utils.rs.html#101">new_seq</a>(<span class="kw-2">&amp;</span>[]),
-            <a class="self" href="#205">self</a>.<a href="position.rs.html#10">no_position</a>().<a href="structs.rs.html#11">to_jobject</a>(),
-            <a class="self" href="#205">self</a>.<a href="mod.rs.html#39">simple_info</a>(<span class="kw-2">&amp;</span>[<a href="#205">comment</a>]),
-            <a class="self" href="#205">self</a>.<a href="mod.rs.html#52">no_trafos</a>(),
+    <span class="kw">pub fn </span>comment(<span class="kw-2">&amp;</span><span class="self">self</span>, comment: <span class="kw-2">&amp;</span>str) -&gt; Stmt&lt;<span class="lifetime">&#39;a</span>&gt; {
+        <span class="kw">let </span>obj = <span class="self">self</span>.jni.unwrap_result(ast::Seqn::with(<span class="self">self</span>.env).new(
+            <span class="self">self</span>.jni.new_seq(<span class="kw-2">&amp;</span>[]),
+            <span class="self">self</span>.jni.new_seq(<span class="kw-2">&amp;</span>[]),
+            <span class="self">self</span>.no_position().to_jobject(),
+            <span class="self">self</span>.simple_info(<span class="kw-2">&amp;</span>[comment]),
+            <span class="self">self</span>.no_trafos(),
         ));
-        Stmt::new(<a href="#206">obj</a>)
+        Stmt::new(obj)
     }
 
-    <span class="kw">pub fn </span>if_stmt(<span class="kw-2">&amp;</span><span class="self">self</span>, cond: <a href="structs.rs.html#9">Expr</a>, then_body: <a href="structs.rs.html#20">Stmt</a>, else_body: <a href="structs.rs.html#20">Stmt</a>) -&gt; Stmt&lt;<span class="lifetime">&#39;a</span>&gt; {
-        <a class="macro" href="macros.rs.html#71-89">build_ast_node!</a>(
+    <span class="kw">pub fn </span>if_stmt(<span class="kw-2">&amp;</span><span class="self">self</span>, cond: Expr, then_body: Stmt, else_body: Stmt) -&gt; Stmt&lt;<span class="lifetime">&#39;a</span>&gt; {
+        <span class="macro">build_ast_node!</span>(
             <span class="self">self</span>,
             Stmt,
             ast::If,
@@ -475,8 +475,8 @@
         )
     }
 
-    <span class="kw">pub fn </span>while_stmt(<span class="kw-2">&amp;</span><span class="self">self</span>, cond: <a href="structs.rs.html#9">Expr</a>, invs: <span class="kw-2">&amp;</span>[<a href="structs.rs.html#9">Expr</a>], body: <a href="structs.rs.html#20">Stmt</a>) -&gt; Stmt&lt;<span class="lifetime">&#39;a</span>&gt; {
-        <a class="macro" href="macros.rs.html#71-89">build_ast_node!</a>(
+    <span class="kw">pub fn </span>while_stmt(<span class="kw-2">&amp;</span><span class="self">self</span>, cond: Expr, invs: <span class="kw-2">&amp;</span>[Expr], body: Stmt) -&gt; Stmt&lt;<span class="lifetime">&#39;a</span>&gt; {
+        <span class="macro">build_ast_node!</span>(
             <span class="self">self</span>,
             Stmt,
             ast::While,
@@ -486,8 +486,8 @@
         )
     }
 
-    <span class="kw">pub fn </span>label(<span class="kw-2">&amp;</span><span class="self">self</span>, name: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, invs: <span class="kw-2">&amp;</span>[<a href="structs.rs.html#9">Expr</a>]) -&gt; Stmt&lt;<span class="lifetime">&#39;a</span>&gt; {
-        <a class="macro" href="macros.rs.html#71-89">build_ast_node!</a>(
+    <span class="kw">pub fn </span>label(<span class="kw-2">&amp;</span><span class="self">self</span>, name: <span class="kw-2">&amp;</span>str, invs: <span class="kw-2">&amp;</span>[Expr]) -&gt; Stmt&lt;<span class="lifetime">&#39;a</span>&gt; {
+        <span class="macro">build_ast_node!</span>(
             <span class="self">self</span>,
             Stmt,
             ast::Label,
@@ -496,9 +496,9 @@
         )
     }
 
-    <span class="kw">pub fn </span>goto(<span class="kw-2">&amp;</span><span class="self">self</span>, target: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; Stmt&lt;<span class="lifetime">&#39;a</span>&gt; {
-        <a class="macro" href="macros.rs.html#71-89">build_ast_node!</a>(<span class="self">self</span>, Stmt, ast::Goto, <span class="self">self</span>.jni.new_string(target))
+    <span class="kw">pub fn </span>goto(<span class="kw-2">&amp;</span><span class="self">self</span>, target: <span class="kw-2">&amp;</span>str) -&gt; Stmt&lt;<span class="lifetime">&#39;a</span>&gt; {
+        <span class="macro">build_ast_node!</span>(<span class="self">self</span>, Stmt, ast::Goto, <span class="self">self</span>.jni.new_string(target))
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="viper" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="viper" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

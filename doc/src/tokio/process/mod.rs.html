@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.21.2/src/process/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../tokio/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.23.0/src/process/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../tokio/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -1530,6 +1530,48 @@
 <a href="#1530" id="1530">1530</a>
 <a href="#1531" id="1531">1531</a>
 <a href="#1532" id="1532">1532</a>
+<a href="#1533" id="1533">1533</a>
+<a href="#1534" id="1534">1534</a>
+<a href="#1535" id="1535">1535</a>
+<a href="#1536" id="1536">1536</a>
+<a href="#1537" id="1537">1537</a>
+<a href="#1538" id="1538">1538</a>
+<a href="#1539" id="1539">1539</a>
+<a href="#1540" id="1540">1540</a>
+<a href="#1541" id="1541">1541</a>
+<a href="#1542" id="1542">1542</a>
+<a href="#1543" id="1543">1543</a>
+<a href="#1544" id="1544">1544</a>
+<a href="#1545" id="1545">1545</a>
+<a href="#1546" id="1546">1546</a>
+<a href="#1547" id="1547">1547</a>
+<a href="#1548" id="1548">1548</a>
+<a href="#1549" id="1549">1549</a>
+<a href="#1550" id="1550">1550</a>
+<a href="#1551" id="1551">1551</a>
+<a href="#1552" id="1552">1552</a>
+<a href="#1553" id="1553">1553</a>
+<a href="#1554" id="1554">1554</a>
+<a href="#1555" id="1555">1555</a>
+<a href="#1556" id="1556">1556</a>
+<a href="#1557" id="1557">1557</a>
+<a href="#1558" id="1558">1558</a>
+<a href="#1559" id="1559">1559</a>
+<a href="#1560" id="1560">1560</a>
+<a href="#1561" id="1561">1561</a>
+<a href="#1562" id="1562">1562</a>
+<a href="#1563" id="1563">1563</a>
+<a href="#1564" id="1564">1564</a>
+<a href="#1565" id="1565">1565</a>
+<a href="#1566" id="1566">1566</a>
+<a href="#1567" id="1567">1567</a>
+<a href="#1568" id="1568">1568</a>
+<a href="#1569" id="1569">1569</a>
+<a href="#1570" id="1570">1570</a>
+<a href="#1571" id="1571">1571</a>
+<a href="#1572" id="1572">1572</a>
+<a href="#1573" id="1573">1573</a>
+<a href="#1574" id="1574">1574</a>
 </pre><pre class="rust"><code><span class="doccomment">//! An implementation of asynchronous process management for Tokio.
 //!
 //! This module provides a [`Command`] struct that imitates the interface of the
@@ -1761,37 +1803,37 @@
 
 </span><span class="attr">#[path = <span class="string">&quot;unix/mod.rs&quot;</span>]
 #[cfg(unix)]
-</span><span class="kw">mod </span><a href="unix/mod.rs.html#1-297">imp</a>;
+</span><span class="kw">mod </span>imp;
 
 <span class="attr">#[cfg(unix)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span>unix {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span><a href="#232"><span class="kw">super</span>::imp</a>::<span class="kw-2">*</span>;
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span><span class="kw">super</span>::imp::<span class="kw-2">*</span>;
 }
 
 <span class="attr">#[path = <span class="string">&quot;windows.rs&quot;</span>]
 #[cfg(windows)]
 </span><span class="kw">mod </span>imp;
 
-<span class="kw">mod </span><a href="kill.rs.html#1-13">kill</a>;
+<span class="kw">mod </span>kill;
 
-<span class="kw">use </span><span class="kw">crate</span>::io::{<a href="../io/async_read.rs.html#43">AsyncRead</a>, <a href="../io/async_write.rs.html#45">AsyncWrite</a>, <a href="../io/read_buf.rs.html#23">ReadBuf</a>};
-<span class="kw">use </span><a href="kill.rs.html#4"><span class="kw">crate</span>::process::kill::Kill</a>;
+<span class="kw">use </span><span class="kw">crate</span>::io::{AsyncRead, AsyncWrite, ReadBuf};
+<span class="kw">use </span><span class="kw">crate</span>::process::kill::Kill;
 
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/convert/trait.TryInto.html">std::convert::TryInto</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsStr.html">std::ffi::OsStr</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">std::future::Future</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/io/index.html">std::io</a>;
+<span class="kw">use </span>std::convert::TryInto;
+<span class="kw">use </span>std::ffi::OsStr;
+<span class="kw">use </span>std::future::Future;
+<span class="kw">use </span>std::io;
 <span class="attr">#[cfg(unix)]
-</span><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/os/unix/process/trait.CommandExt.html">std::os::unix::process::CommandExt</a>;
+</span><span class="kw">use </span>std::os::unix::process::CommandExt;
 <span class="attr">#[cfg(windows)]
 </span><span class="kw">use </span>std::os::windows::io::{AsRawHandle, RawHandle};
 <span class="attr">#[cfg(windows)]
 </span><span class="kw">use </span>std::os::windows::process::CommandExt;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">std::path::Path</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/pin/struct.Pin.html">std::pin::Pin</a>;
-<span class="kw">use </span>std::process::{<a href="https://doc.rust-lang.org/nightly/std/process/struct.Command.html">Command</a> <span class="kw">as </span>StdCommand, <a href="https://doc.rust-lang.org/nightly/std/process/struct.ExitStatus.html">ExitStatus</a>, <a href="https://doc.rust-lang.org/nightly/std/process/struct.Output.html">Output</a>, <a href="https://doc.rust-lang.org/nightly/std/process/struct.Stdio.html">Stdio</a>};
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">std::task::Context</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">std::task::Poll</a>;
+<span class="kw">use </span>std::path::Path;
+<span class="kw">use </span>std::pin::Pin;
+<span class="kw">use </span>std::process::{Command <span class="kw">as </span>StdCommand, ExitStatus, Output, Stdio};
+<span class="kw">use </span>std::task::Context;
+<span class="kw">use </span>std::task::Poll;
 
 <span class="doccomment">/// This structure mimics the API of [`std::process::Command`] found in the standard library, but
 /// replaces functions that create a process with an asynchronous variant. The main provided
@@ -1804,18 +1846,18 @@
 /// [`Child`]: struct@Child
 </span><span class="attr">#[derive(Debug)]
 </span><span class="kw">pub struct </span>Command {
-    std: <a href="https://doc.rust-lang.org/nightly/std/process/struct.Command.html">StdCommand</a>,
-    kill_on_drop: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
+    std: StdCommand,
+    kill_on_drop: bool,
 }
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>SpawnedChild {
-    child: <a href="unix/mod.rs.html#94">imp::Child</a>,
-    stdin: <span class="prelude-ty">Option</span>&lt;<a href="unix/mod.rs.html#220">imp::ChildStdio</a>&gt;,
-    stdout: <span class="prelude-ty">Option</span>&lt;<a href="unix/mod.rs.html#220">imp::ChildStdio</a>&gt;,
-    stderr: <span class="prelude-ty">Option</span>&lt;<a href="unix/mod.rs.html#220">imp::ChildStdio</a>&gt;,
+    child: imp::Child,
+    stdin: <span class="prelude-ty">Option</span>&lt;imp::ChildStdio&gt;,
+    stdout: <span class="prelude-ty">Option</span>&lt;imp::ChildStdio&gt;,
+    stderr: <span class="prelude-ty">Option</span>&lt;imp::ChildStdio&gt;,
 }
 
-<span class="kw">impl </span><a href="#274">Command</a> {
+<span class="kw">impl </span>Command {
     <span class="doccomment">/// Constructs a new `Command` for launching the program at
     /// path `program`, with the following default configuration:
     ///
@@ -1845,14 +1887,14 @@
     /// ```
     ///
     /// [rust-lang/rust#37519]: https://github.com/rust-lang/rust/issues/37519
-    </span><span class="kw">pub fn </span>new&lt;S: AsRef&lt;<a href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsStr.html">OsStr</a>&gt;&gt;(program: S) -&gt; <a href="#274">Command</a> {
-        <span class="self">Self</span>::from(StdCommand::new(<a href="#316">program</a>))
+    </span><span class="kw">pub fn </span>new&lt;S: AsRef&lt;OsStr&gt;&gt;(program: S) -&gt; Command {
+        <span class="self">Self</span>::from(StdCommand::new(program))
     }
 
     <span class="doccomment">/// Cheaply convert to a `&amp;std::process::Command` for places where the type from the standard
     /// library is expected.
-    </span><span class="kw">pub fn </span>as_std(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/process/struct.Command.html">StdCommand</a> {
-        <span class="kw-2">&amp;</span><a class="self" href="#322">self</a>.std
+    </span><span class="kw">pub fn </span>as_std(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StdCommand {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.std
     }
 
     <span class="doccomment">/// Adds an argument to pass to the program.
@@ -1887,9 +1929,9 @@
     ///         .arg(&quot;-l&quot;)
     ///         .arg(&quot;-a&quot;);
     /// ```
-    </span><span class="kw">pub fn </span>arg&lt;S: AsRef&lt;<a href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsStr.html">OsStr</a>&gt;&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, arg: S) -&gt; <span class="kw-2">&amp;mut </span><a href="#274">Command</a> {
-        <a class="self" href="#358">self</a>.std.arg(<a href="#358">arg</a>);
-        <span class="self"><a href="#358">self</a>
+    </span><span class="kw">pub fn </span>arg&lt;S: AsRef&lt;OsStr&gt;&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, arg: S) -&gt; <span class="kw-2">&amp;mut </span>Command {
+        <span class="self">self</span>.std.arg(arg);
+        <span class="self">self
     </span>}
 
     <span class="doccomment">/// Adds multiple arguments to pass to the program.
@@ -1908,13 +1950,13 @@
     /// let command = Command::new(&quot;ls&quot;)
     ///         .args(&amp;[&quot;-l&quot;, &quot;-a&quot;]);
     /// ```
-    </span><span class="kw">pub fn </span>args&lt;I, S&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, args: I) -&gt; <span class="kw-2">&amp;mut </span><a href="#274">Command</a>
+    </span><span class="kw">pub fn </span>args&lt;I, S&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, args: I) -&gt; <span class="kw-2">&amp;mut </span>Command
     <span class="kw">where
         </span>I: IntoIterator&lt;Item = S&gt;,
-        S: AsRef&lt;<a href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsStr.html">OsStr</a>&gt;,
+        S: AsRef&lt;OsStr&gt;,
     {
-        <a class="self" href="#379">self</a>.std.args(<a href="#379">args</a>);
-        <span class="self"><a href="#379">self</a>
+        <span class="self">self</span>.std.args(args);
+        <span class="self">self
     </span>}
 
     <span class="doccomment">/// Inserts or updates an environment variable mapping.
@@ -1932,13 +1974,13 @@
     /// let command = Command::new(&quot;ls&quot;)
     ///         .env(&quot;PATH&quot;, &quot;/bin&quot;);
     /// ```
-    </span><span class="kw">pub fn </span>env&lt;K, V&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, key: K, val: V) -&gt; <span class="kw-2">&amp;mut </span><a href="#274">Command</a>
+    </span><span class="kw">pub fn </span>env&lt;K, V&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, key: K, val: V) -&gt; <span class="kw-2">&amp;mut </span>Command
     <span class="kw">where
-        </span>K: AsRef&lt;<a href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsStr.html">OsStr</a>&gt;,
-        V: AsRef&lt;<a href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsStr.html">OsStr</a>&gt;,
+        </span>K: AsRef&lt;OsStr&gt;,
+        V: AsRef&lt;OsStr&gt;,
     {
-        <a class="self" href="#403">self</a>.std.env(<a href="#403">key</a>, <a href="#403">val</a>);
-        <span class="self"><a href="#403">self</a>
+        <span class="self">self</span>.std.env(key, val);
+        <span class="self">self
     </span>}
 
     <span class="doccomment">/// Adds or updates multiple environment variable mappings.
@@ -1964,14 +2006,14 @@
     ///         .env_clear()
     ///         .envs(&amp;filtered_env);
     /// ```
-    </span><span class="kw">pub fn </span>envs&lt;I, K, V&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, vars: I) -&gt; <span class="kw-2">&amp;mut </span><a href="#274">Command</a>
+    </span><span class="kw">pub fn </span>envs&lt;I, K, V&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, vars: I) -&gt; <span class="kw-2">&amp;mut </span>Command
     <span class="kw">where
         </span>I: IntoIterator&lt;Item = (K, V)&gt;,
-        K: AsRef&lt;<a href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsStr.html">OsStr</a>&gt;,
-        V: AsRef&lt;<a href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsStr.html">OsStr</a>&gt;,
+        K: AsRef&lt;OsStr&gt;,
+        V: AsRef&lt;OsStr&gt;,
     {
-        <a class="self" href="#435">self</a>.std.envs(<a href="#435">vars</a>);
-        <span class="self"><a href="#435">self</a>
+        <span class="self">self</span>.std.envs(vars);
+        <span class="self">self
     </span>}
 
     <span class="doccomment">/// Removes an environment variable mapping.
@@ -1986,9 +2028,9 @@
     /// let command = Command::new(&quot;ls&quot;)
     ///         .env_remove(&quot;PATH&quot;);
     /// ```
-    </span><span class="kw">pub fn </span>env_remove&lt;K: AsRef&lt;<a href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsStr.html">OsStr</a>&gt;&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, key: K) -&gt; <span class="kw-2">&amp;mut </span><a href="#274">Command</a> {
-        <a class="self" href="#457">self</a>.std.env_remove(<a href="#457">key</a>);
-        <span class="self"><a href="#457">self</a>
+    </span><span class="kw">pub fn </span>env_remove&lt;K: AsRef&lt;OsStr&gt;&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, key: K) -&gt; <span class="kw-2">&amp;mut </span>Command {
+        <span class="self">self</span>.std.env_remove(key);
+        <span class="self">self
     </span>}
 
     <span class="doccomment">/// Clears the entire environment map for the child process.
@@ -2003,9 +2045,9 @@
     /// let command = Command::new(&quot;ls&quot;)
     ///         .env_clear();
     /// ```
-    </span><span class="kw">pub fn </span>env_clear(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span><a href="#274">Command</a> {
-        <a class="self" href="#474">self</a>.std.env_clear();
-        <span class="self"><a href="#474">self</a>
+    </span><span class="kw">pub fn </span>env_clear(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>Command {
+        <span class="self">self</span>.std.env_clear();
+        <span class="self">self
     </span>}
 
     <span class="doccomment">/// Sets the working directory for the child process.
@@ -2030,9 +2072,9 @@
     /// let command = Command::new(&quot;ls&quot;)
     ///         .current_dir(&quot;/bin&quot;);
     /// ```
-    </span><span class="kw">pub fn </span>current_dir&lt;P: AsRef&lt;<a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>&gt;&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, dir: P) -&gt; <span class="kw-2">&amp;mut </span><a href="#274">Command</a> {
-        <a class="self" href="#501">self</a>.std.current_dir(<a href="#501">dir</a>);
-        <span class="self"><a href="#501">self</a>
+    </span><span class="kw">pub fn </span>current_dir&lt;P: AsRef&lt;Path&gt;&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, dir: P) -&gt; <span class="kw-2">&amp;mut </span>Command {
+        <span class="self">self</span>.std.current_dir(dir);
+        <span class="self">self
     </span>}
 
     <span class="doccomment">/// Sets configuration for the child process&#39;s standard input (stdin) handle.
@@ -2054,9 +2096,9 @@
     /// let command = Command::new(&quot;ls&quot;)
     ///         .stdin(Stdio::null());
     /// ```
-    </span><span class="kw">pub fn </span>stdin&lt;T: Into&lt;<a href="https://doc.rust-lang.org/nightly/std/process/struct.Stdio.html">Stdio</a>&gt;&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cfg: T) -&gt; <span class="kw-2">&amp;mut </span><a href="#274">Command</a> {
-        <a class="self" href="#525">self</a>.std.stdin(<a href="#525">cfg</a>);
-        <span class="self"><a href="#525">self</a>
+    </span><span class="kw">pub fn </span>stdin&lt;T: Into&lt;Stdio&gt;&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cfg: T) -&gt; <span class="kw-2">&amp;mut </span>Command {
+        <span class="self">self</span>.std.stdin(cfg);
+        <span class="self">self
     </span>}
 
     <span class="doccomment">/// Sets configuration for the child process&#39;s standard output (stdout) handle.
@@ -2078,9 +2120,9 @@
     /// let command = Command::new(&quot;ls&quot;)
     ///         .stdout(Stdio::null());
     /// ```
-    </span><span class="kw">pub fn </span>stdout&lt;T: Into&lt;<a href="https://doc.rust-lang.org/nightly/std/process/struct.Stdio.html">Stdio</a>&gt;&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cfg: T) -&gt; <span class="kw-2">&amp;mut </span><a href="#274">Command</a> {
-        <a class="self" href="#549">self</a>.std.stdout(<a href="#549">cfg</a>);
-        <span class="self"><a href="#549">self</a>
+    </span><span class="kw">pub fn </span>stdout&lt;T: Into&lt;Stdio&gt;&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cfg: T) -&gt; <span class="kw-2">&amp;mut </span>Command {
+        <span class="self">self</span>.std.stdout(cfg);
+        <span class="self">self
     </span>}
 
     <span class="doccomment">/// Sets configuration for the child process&#39;s standard error (stderr) handle.
@@ -2102,9 +2144,9 @@
     /// let command = Command::new(&quot;ls&quot;)
     ///         .stderr(Stdio::null());
     /// ```
-    </span><span class="kw">pub fn </span>stderr&lt;T: Into&lt;<a href="https://doc.rust-lang.org/nightly/std/process/struct.Stdio.html">Stdio</a>&gt;&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cfg: T) -&gt; <span class="kw-2">&amp;mut </span><a href="#274">Command</a> {
-        <a class="self" href="#573">self</a>.std.stderr(<a href="#573">cfg</a>);
-        <span class="self"><a href="#573">self</a>
+    </span><span class="kw">pub fn </span>stderr&lt;T: Into&lt;Stdio&gt;&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cfg: T) -&gt; <span class="kw-2">&amp;mut </span>Command {
+        <span class="self">self</span>.std.stderr(cfg);
+        <span class="self">self
     </span>}
 
     <span class="doccomment">/// Controls whether a `kill` operation should be invoked on a spawned child
@@ -2133,9 +2175,9 @@
     /// If stronger guarantees are required, it is recommended to avoid dropping
     /// a [`Child`] handle where possible, and instead utilize `child.wait().await`
     /// or `child.kill().await` where possible.
-    </span><span class="kw">pub fn </span>kill_on_drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>, kill_on_drop: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="kw-2">&amp;mut </span><a href="#274">Command</a> {
-        <a class="self" href="#604">self</a>.kill_on_drop = <a href="#604">kill_on_drop</a>;
-        <span class="self"><a href="#604">self</a>
+    </span><span class="kw">pub fn </span>kill_on_drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>, kill_on_drop: bool) -&gt; <span class="kw-2">&amp;mut </span>Command {
+        <span class="self">self</span>.kill_on_drop = kill_on_drop;
+        <span class="self">self
     </span>}
 
     <span class="doccomment">/// Sets the [process creation flags][1] to be passed to `CreateProcess`.
@@ -2155,18 +2197,18 @@
     /// call will cause the spawn to fail.
     </span><span class="attr">#[cfg(unix)]
     #[cfg_attr(docsrs, doc(cfg(unix)))]
-    </span><span class="kw">pub fn </span>uid(<span class="kw-2">&amp;mut </span><span class="self">self</span>, id: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; <span class="kw-2">&amp;mut </span><a href="#274">Command</a> {
-        <a class="self" href="#626">self</a>.std.<a href="https://doc.rust-lang.org/nightly/std/os/unix/process/trait.CommandExt.html">uid</a>(<a href="#626">id</a>);
-        <span class="self"><a href="#626">self</a>
+    </span><span class="kw">pub fn </span>uid(<span class="kw-2">&amp;mut </span><span class="self">self</span>, id: u32) -&gt; <span class="kw-2">&amp;mut </span>Command {
+        <span class="self">self</span>.std.uid(id);
+        <span class="self">self
     </span>}
 
     <span class="doccomment">/// Similar to `uid` but sets the group ID of the child process. This has
     /// the same semantics as the `uid` field.
     </span><span class="attr">#[cfg(unix)]
     #[cfg_attr(docsrs, doc(cfg(unix)))]
-    </span><span class="kw">pub fn </span>gid(<span class="kw-2">&amp;mut </span><span class="self">self</span>, id: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; <span class="kw-2">&amp;mut </span><a href="#274">Command</a> {
-        <a class="self" href="#635">self</a>.std.<a href="https://doc.rust-lang.org/nightly/std/os/unix/process/trait.CommandExt.html">gid</a>(<a href="#635">id</a>);
-        <span class="self"><a href="#635">self</a>
+    </span><span class="kw">pub fn </span>gid(<span class="kw-2">&amp;mut </span><span class="self">self</span>, id: u32) -&gt; <span class="kw-2">&amp;mut </span>Command {
+        <span class="self">self</span>.std.gid(id);
+        <span class="self">self
     </span>}
 
     <span class="doccomment">/// Sets executable argument.
@@ -2175,12 +2217,12 @@
     /// default executable path.
     </span><span class="attr">#[cfg(unix)]
     #[cfg_attr(docsrs, doc(cfg(unix)))]
-    </span><span class="kw">pub fn </span>arg0&lt;S&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, arg: S) -&gt; <span class="kw-2">&amp;mut </span><a href="#274">Command</a>
+    </span><span class="kw">pub fn </span>arg0&lt;S&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, arg: S) -&gt; <span class="kw-2">&amp;mut </span>Command
     <span class="kw">where
-        </span>S: AsRef&lt;<a href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsStr.html">OsStr</a>&gt;,
+        </span>S: AsRef&lt;OsStr&gt;,
     {
-        <a class="self" href="#646">self</a>.std.<a href="https://doc.rust-lang.org/nightly/std/os/unix/process/trait.CommandExt.html">arg0</a>(<a href="#646">arg</a>);
-        <span class="self"><a href="#646">self</a>
+        <span class="self">self</span>.std.arg0(arg);
+        <span class="self">self
     </span>}
 
     <span class="doccomment">/// Schedules a closure to be run just before the `exec` function is
@@ -2214,12 +2256,42 @@
     /// locations may not appear where intended.
     </span><span class="attr">#[cfg(unix)]
     #[cfg_attr(docsrs, doc(cfg(unix)))]
-    </span><span class="kw">pub unsafe fn </span>pre_exec&lt;F&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, f: F) -&gt; <span class="kw-2">&amp;mut </span><a href="#274">Command</a>
+    </span><span class="kw">pub unsafe fn </span>pre_exec&lt;F&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, f: F) -&gt; <span class="kw-2">&amp;mut </span>Command
     <span class="kw">where
-        </span>F: FnMut() -&gt; io::Result&lt;()&gt; + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> + <span class="lifetime">&#39;static</span>,
+        </span>F: FnMut() -&gt; io::Result&lt;()&gt; + Send + Sync + <span class="lifetime">&#39;static</span>,
     {
-        <a class="self" href="#685">self</a>.std.<a href="https://doc.rust-lang.org/nightly/std/os/unix/process/trait.CommandExt.html">pre_exec</a>(<a href="#685">f</a>);
-        <span class="self"><a href="#685">self</a>
+        <span class="self">self</span>.std.pre_exec(f);
+        <span class="self">self
+    </span>}
+
+    <span class="doccomment">/// Sets the process group ID (PGID) of the child process. Equivalent to a
+    /// setpgid call in the child process, but may be more efficient.
+    ///
+    /// Process groups determine which processes receive signals.
+    ///
+    /// **Note**: This is an [unstable API][unstable] but will be stabilised once
+    /// tokio&#39;s MSRV is sufficiently new. See [the documentation on
+    /// unstable features][unstable] for details about using unstable features.
+    ///
+    /// If you want similar behaviour without using this unstable feature you can
+    /// create a [`std::process::Command`] and convert that into a
+    /// [`tokio::process::Command`] using the `From` trait.
+    ///
+    /// [unstable]: crate#unstable-features
+    /// [`tokio::process::Command`]: crate::process::Command
+    ///
+    /// ```no_run
+    /// use tokio::process::Command;
+    ///
+    /// let command = Command::new(&quot;ls&quot;)
+    ///         .process_group(0);
+    /// ```
+    </span><span class="attr">#[cfg(unix)]
+    #[cfg(tokio_unstable)]
+    #[cfg_attr(docsrs, doc(cfg(all(unix, tokio_unstable))))]
+    </span><span class="kw">pub fn </span>process_group(<span class="kw-2">&amp;mut </span><span class="self">self</span>, pgroup: i32) -&gt; <span class="kw-2">&amp;mut </span>Command {
+        <span class="self">self</span>.std.process_group(pgroup);
+        <span class="self">self
     </span>}
 
     <span class="doccomment">/// Executes the command as a child process, returning a handle to it.
@@ -2289,15 +2361,15 @@
     /// On Unix platforms this method will fail with `std::io::ErrorKind::WouldBlock`
     /// if the system process limit is reached (which includes other applications
     /// running on the system).
-    </span><span class="kw">pub fn </span>spawn(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; io::Result&lt;<a href="#963">Child</a>&gt; {
-        <a href="unix/mod.rs.html#106">imp::spawn_child</a>(<span class="kw-2">&amp;mut </span><a class="self" href="#760">self</a>.std).map(|spawned_child| <a href="#963">Child</a> {
-            child: <a href="#948">FusedChild::Child</a>(<a href="#894">ChildDropGuard</a> {
-                inner: <a href="#761">spawned_child</a>.child,
-                kill_on_drop: <a class="self" href="#760">self</a>.kill_on_drop,
+    </span><span class="kw">pub fn </span>spawn(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; io::Result&lt;Child&gt; {
+        imp::spawn_child(<span class="kw-2">&amp;mut </span><span class="self">self</span>.std).map(|spawned_child| Child {
+            child: FusedChild::Child(ChildDropGuard {
+                inner: spawned_child.child,
+                kill_on_drop: <span class="self">self</span>.kill_on_drop,
             }),
-            stdin: <a href="#761">spawned_child</a>.stdin.map(|inner| <a href="#1219">ChildStdin</a> { <a href="#766">inner</a> }),
-            stdout: <a href="#761">spawned_child</a>.stdout.map(|inner| <a href="#1228">ChildStdout</a> { <a href="#767">inner</a> }),
-            stderr: <a href="#761">spawned_child</a>.stderr.map(|inner| <a href="#1237">ChildStderr</a> { <a href="#768">inner</a> }),
+            stdin: spawned_child.stdin.map(|inner| ChildStdin { inner }),
+            stdout: spawned_child.stdout.map(|inner| ChildStdout { inner }),
+            stderr: spawned_child.stderr.map(|inner| ChildStderr { inner }),
         })
     }
 
@@ -2339,8 +2411,8 @@
     ///         .expect(&quot;ls command failed to run&quot;)
     /// }
     /// ```
-    </span><span class="kw">pub fn </span>status(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw">impl </span>Future&lt;Output = io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/process/struct.ExitStatus.html">ExitStatus</a>&gt;&gt; {
-        <span class="kw">let </span>child = <a class="self" href="#810">self</a>.<a href="#760">spawn</a>();
+    </span><span class="kw">pub fn </span>status(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw">impl </span>Future&lt;Output = io::Result&lt;ExitStatus&gt;&gt; {
+        <span class="kw">let </span>child = <span class="self">self</span>.spawn();
 
         <span class="kw">async </span>{
             <span class="kw">let </span><span class="kw-2">mut </span>child = child<span class="question-mark">?</span>;
@@ -2348,9 +2420,9 @@
             <span class="comment">// Ensure we close any stdio handles so we can&#39;t deadlock
             // waiting on the child which may be waiting to read/write
             // to a pipe we&#39;re holding.
-            </span><a href="#814">child</a>.stdin.take();
-            <a href="#814">child</a>.stdout.take();
-            <a href="#814">child</a>.stderr.take();
+            </span>child.stdin.take();
+            child.stdout.take();
+            child.stderr.take();
 
             child.wait().<span class="kw">await
         </span>}
@@ -2402,20 +2474,20 @@
     ///     println!(&quot;stderr of ls: {:?}&quot;, output.stderr);
     /// }
     /// ```
-    </span><span class="kw">pub fn </span>output(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw">impl </span>Future&lt;Output = io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/process/struct.Output.html">Output</a>&gt;&gt; {
-        <a class="self" href="#873">self</a>.std.stdout(Stdio::piped());
-        <a class="self" href="#873">self</a>.std.stderr(Stdio::piped());
+    </span><span class="kw">pub fn </span>output(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw">impl </span>Future&lt;Output = io::Result&lt;Output&gt;&gt; {
+        <span class="self">self</span>.std.stdout(Stdio::piped());
+        <span class="self">self</span>.std.stderr(Stdio::piped());
 
-        <span class="kw">let </span>child = <a class="self" href="#873">self</a>.<a href="#760">spawn</a>();
+        <span class="kw">let </span>child = <span class="self">self</span>.spawn();
 
         <span class="kw">async </span>{ child<span class="question-mark">?</span>.wait_with_output().<span class="kw">await </span>}
     }
 }
 
-<span class="kw">impl </span>From&lt;<a href="https://doc.rust-lang.org/nightly/std/process/struct.Command.html">StdCommand</a>&gt; <span class="kw">for </span><a href="#274">Command</a> {
-    <span class="kw">fn </span>from(std: <a href="https://doc.rust-lang.org/nightly/std/process/struct.Command.html">StdCommand</a>) -&gt; <a href="#274">Command</a> {
-        <a href="#274">Command</a> {
-            <a href="#884">std</a>,
+<span class="kw">impl </span>From&lt;StdCommand&gt; <span class="kw">for </span>Command {
+    <span class="kw">fn </span>from(std: StdCommand) -&gt; Command {
+        Command {
+            std,
             kill_on_drop: <span class="bool-val">false</span>,
         }
     }
@@ -2423,53 +2495,53 @@
 
 <span class="doccomment">/// A drop guard which can ensure the child process is killed on drop if specified.
 </span><span class="attr">#[derive(Debug)]
-</span><span class="kw">struct </span>ChildDropGuard&lt;T: <a href="kill.rs.html#4">Kill</a>&gt; {
+</span><span class="kw">struct </span>ChildDropGuard&lt;T: Kill&gt; {
     inner: T,
-    kill_on_drop: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
+    kill_on_drop: bool,
 }
 
-<span class="kw">impl</span>&lt;T: <a href="kill.rs.html#4">Kill</a>&gt; <a href="kill.rs.html#4">Kill</a> <span class="kw">for </span>ChildDropGuard&lt;T&gt; {
+<span class="kw">impl</span>&lt;T: Kill&gt; Kill <span class="kw">for </span>ChildDropGuard&lt;T&gt; {
     <span class="kw">fn </span>kill(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; io::Result&lt;()&gt; {
-        <span class="kw">let </span>ret = <a class="self" href="#900">self</a>.inner.<a href="kill.rs.html#6">kill</a>();
+        <span class="kw">let </span>ret = <span class="self">self</span>.inner.kill();
 
         <span class="kw">if </span>ret.is_ok() {
-            <a class="self" href="#900">self</a>.kill_on_drop = <span class="bool-val">false</span>;
+            <span class="self">self</span>.kill_on_drop = <span class="bool-val">false</span>;
         }
 
-        <a href="#901">ret</a>
+        ret
     }
 }
 
-<span class="kw">impl</span>&lt;T: <a href="kill.rs.html#4">Kill</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span>ChildDropGuard&lt;T&gt; {
+<span class="kw">impl</span>&lt;T: Kill&gt; Drop <span class="kw">for </span>ChildDropGuard&lt;T&gt; {
     <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="kw">if </span><span class="self">self</span>.kill_on_drop {
-            <a href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>(<a class="self" href="#912">self</a>.<a href="kill.rs.html#6">kill</a>());
+            drop(<span class="self">self</span>.kill());
         }
     }
 }
 
-<span class="kw">impl</span>&lt;T, E, F&gt; <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a> <span class="kw">for </span>ChildDropGuard&lt;F&gt;
+<span class="kw">impl</span>&lt;T, E, F&gt; Future <span class="kw">for </span>ChildDropGuard&lt;F&gt;
 <span class="kw">where
-    </span>F: Future&lt;Output = <span class="prelude-ty">Result</span>&lt;T, E&gt;&gt; + <a href="kill.rs.html#4">Kill</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
+    </span>F: Future&lt;Output = <span class="prelude-ty">Result</span>&lt;T, E&gt;&gt; + Kill + Unpin,
 {
     <span class="kw">type </span>Output = <span class="prelude-ty">Result</span>&lt;T, E&gt;;
 
     <span class="kw">fn </span>poll(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
         <span class="comment">// Keep track of task budget
-        </span><span class="kw">let </span>coop = <a class="macro" href="../macros/ready.rs.html#1-8">ready!</a>(<span class="kw">crate</span>::coop::poll_proceed(cx));
+        </span><span class="kw">let </span>coop = <span class="macro">ready!</span>(<span class="kw">crate</span>::runtime::coop::poll_proceed(cx));
 
-        <span class="kw">let </span>ret = Pin::new(<span class="kw-2">&amp;mut </span><a class="self" href="#925">self</a>.inner).<a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">poll</a>(<a href="#925">cx</a>);
+        <span class="kw">let </span>ret = Pin::new(<span class="kw-2">&amp;mut </span><span class="self">self</span>.inner).poll(cx);
 
-        <span class="kw">if let </span>Poll::Ready(<span class="prelude-val">Ok</span>(<span class="kw">_</span>)) = <a href="#929">ret</a> {
+        <span class="kw">if let </span>Poll::Ready(<span class="prelude-val">Ok</span>(<span class="kw">_</span>)) = ret {
             <span class="comment">// Avoid the overhead of trying to kill a reaped process
-            </span><a class="self" href="#925">self</a>.kill_on_drop = <span class="bool-val">false</span>;
+            </span><span class="self">self</span>.kill_on_drop = <span class="bool-val">false</span>;
         }
 
         <span class="kw">if </span>ret.is_ready() {
-            <a href="#927">coop</a>.<a href="../coop.rs.html#138">made_progress</a>();
+            coop.made_progress();
         }
 
-        <a href="#929">ret</a>
+        ret
     }
 }
 
@@ -2477,8 +2549,8 @@
 /// polling the underlying futures even after they have completed.
 </span><span class="attr">#[derive(Debug)]
 </span><span class="kw">enum </span>FusedChild {
-    Child(ChildDropGuard&lt;<a href="unix/mod.rs.html#94">imp::Child</a>&gt;),
-    Done(<a href="https://doc.rust-lang.org/nightly/std/process/struct.ExitStatus.html">ExitStatus</a>),
+    Child(ChildDropGuard&lt;imp::Child&gt;),
+    Done(ExitStatus),
 }
 
 <span class="doccomment">/// Representation of a child process spawned onto an event loop.
@@ -2493,7 +2565,7 @@
 /// has exited.
 </span><span class="attr">#[derive(Debug)]
 </span><span class="kw">pub struct </span>Child {
-    child: <a href="#947">FusedChild</a>,
+    child: FusedChild,
 
     <span class="doccomment">/// The handle for writing to the child&#39;s standard input (stdin), if it has
     /// been captured. To avoid partially moving the `child` and thus blocking
@@ -2504,7 +2576,7 @@
     /// # let mut child = tokio::process::Command::new(&quot;echo&quot;).spawn().unwrap();
     /// let stdin = child.stdin.take().unwrap();
     /// ```
-    </span><span class="kw">pub </span>stdin: <span class="prelude-ty">Option</span>&lt;<a href="#1219">ChildStdin</a>&gt;,
+    </span><span class="kw">pub </span>stdin: <span class="prelude-ty">Option</span>&lt;ChildStdin&gt;,
 
     <span class="doccomment">/// The handle for reading from the child&#39;s standard output (stdout), if it
     /// has been captured. You might find it helpful to do
@@ -2516,7 +2588,7 @@
     ///
     /// to avoid partially moving the `child` and thus blocking yourself from calling
     /// functions on `child` while using `stdout`.
-    </span><span class="kw">pub </span>stdout: <span class="prelude-ty">Option</span>&lt;<a href="#1228">ChildStdout</a>&gt;,
+    </span><span class="kw">pub </span>stdout: <span class="prelude-ty">Option</span>&lt;ChildStdout&gt;,
 
     <span class="doccomment">/// The handle for reading from the child&#39;s standard error (stderr), if it
     /// has been captured. You might find it helpful to do
@@ -2528,20 +2600,20 @@
     ///
     /// to avoid partially moving the `child` and thus blocking yourself from calling
     /// functions on `child` while using `stderr`.
-    </span><span class="kw">pub </span>stderr: <span class="prelude-ty">Option</span>&lt;<a href="#1237">ChildStderr</a>&gt;,
+    </span><span class="kw">pub </span>stderr: <span class="prelude-ty">Option</span>&lt;ChildStderr&gt;,
 }
 
-<span class="kw">impl </span><a href="#963">Child</a> {
+<span class="kw">impl </span>Child {
     <span class="doccomment">/// Returns the OS-assigned process identifier associated with this child
     /// while it is still running.
     ///
     /// Once the child has been polled to completion this will return `None`.
     /// This is done to avoid confusion on platforms like Unix where the OS
     /// identifier could be reused once the process has completed.
-    </span><span class="kw">pub fn </span>id(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>&gt; {
-        <span class="kw">match </span><span class="kw-2">&amp;</span><a class="self" href="#1009">self</a>.child {
-            <a href="#948">FusedChild::Child</a>(child) =&gt; <span class="prelude-val">Some</span>(<a href="#1011">child</a>.inner.<a href="unix/mod.rs.html#125">id</a>()),
-            <a href="#949">FusedChild::Done</a>(<span class="kw">_</span>) =&gt; <span class="prelude-val">None</span>,
+    </span><span class="kw">pub fn </span>id(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;u32&gt; {
+        <span class="kw">match </span><span class="kw-2">&amp;</span><span class="self">self</span>.child {
+            FusedChild::Child(child) =&gt; <span class="prelude-val">Some</span>(child.inner.id()),
+            FusedChild::Done(<span class="kw">_</span>) =&gt; <span class="prelude-val">None</span>,
         }
     }
 
@@ -2563,9 +2635,9 @@
     /// after a kill is sent; to avoid this, the caller should ensure that either
     /// `child.wait().await` or `child.try_wait()` is invoked successfully.
     </span><span class="kw">pub fn </span>start_kill(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; io::Result&lt;()&gt; {
-        <span class="kw">match </span><span class="kw-2">&amp;mut </span><a class="self" href="#1033">self</a>.child {
-            <a href="#948">FusedChild::Child</a>(child) =&gt; <a href="#1035">child</a>.<a href="kill.rs.html#6">kill</a>(),
-            <a href="#949">FusedChild::Done</a>(<span class="kw">_</span>) =&gt; <span class="prelude-val">Err</span>(io::Error::new(
+        <span class="kw">match </span><span class="kw-2">&amp;mut </span><span class="self">self</span>.child {
+            FusedChild::Child(child) =&gt; child.kill(),
+            FusedChild::Done(<span class="kw">_</span>) =&gt; <span class="prelude-val">Err</span>(io::Error::new(
                 io::ErrorKind::InvalidInput,
                 <span class="string">&quot;invalid argument: can&#39;t kill an exited process&quot;</span>,
             )),
@@ -2645,7 +2717,7 @@
     ///     let _ = child.wait().await;
     /// }
     /// ```
-    </span><span class="kw">pub async fn </span>wait(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/process/struct.ExitStatus.html">ExitStatus</a>&gt; {
+    </span><span class="kw">pub async fn </span>wait(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; io::Result&lt;ExitStatus&gt; {
         <span class="comment">// Ensure stdin is closed so the child isn&#39;t stuck waiting on
         // input while the parent is waiting for it to exit.
         </span>drop(<span class="self">self</span>.stdin.take());
@@ -2679,19 +2751,19 @@
     ///
     /// Note that unlike `wait`, this function will not attempt to drop stdin,
     /// nor will it wake the current task if the child exits.
-    </span><span class="kw">pub fn </span>try_wait(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; io::Result&lt;<span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/process/struct.ExitStatus.html">ExitStatus</a>&gt;&gt; {
-        <span class="kw">match </span><span class="kw-2">&amp;mut </span><a class="self" href="#1150">self</a>.child {
-            <a href="#949">FusedChild::Done</a>(exit) =&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="kw-2">*</span><a href="#1152">exit</a>)),
-            <a href="#948">FusedChild::Child</a>(guard) =&gt; {
-                <span class="kw">let </span>ret = <a href="#1153">guard</a>.inner.<a href="unix/mod.rs.html#129">try_wait</a>();
+    </span><span class="kw">pub fn </span>try_wait(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; io::Result&lt;<span class="prelude-ty">Option</span>&lt;ExitStatus&gt;&gt; {
+        <span class="kw">match </span><span class="kw-2">&amp;mut </span><span class="self">self</span>.child {
+            FusedChild::Done(exit) =&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="kw-2">*</span>exit)),
+            FusedChild::Child(guard) =&gt; {
+                <span class="kw">let </span>ret = guard.inner.try_wait();
 
-                <span class="kw">if let </span><span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(exit)) = <a href="#1154">ret</a> {
+                <span class="kw">if let </span><span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(exit)) = ret {
                     <span class="comment">// Avoid the overhead of trying to kill a reaped process
-                    </span><a href="#1153">guard</a>.kill_on_drop = <span class="bool-val">false</span>;
-                    <a class="self" href="#1150">self</a>.child = <a href="#949">FusedChild::Done</a>(<a href="#1156">exit</a>);
+                    </span>guard.kill_on_drop = <span class="bool-val">false</span>;
+                    <span class="self">self</span>.child = FusedChild::Done(exit);
                 }
 
-                <a href="#1154">ret</a>
+                ret
             }
         }
     }
@@ -2712,7 +2784,7 @@
     /// order to capture the output into this `Output` it is necessary to create
     /// new pipes between parent and child. Use `stdout(Stdio::piped())` or
     /// `stderr(Stdio::piped())`, respectively, when creating a `Command`.
-    </span><span class="kw">pub async fn </span>wait_with_output(<span class="kw-2">mut </span><span class="self">self</span>) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/process/struct.Output.html">Output</a>&gt; {
+    </span><span class="kw">pub async fn </span>wait_with_output(<span class="kw-2">mut </span><span class="self">self</span>) -&gt; io::Result&lt;Output&gt; {
         <span class="kw">use </span><span class="kw">crate</span>::future::try_join3;
 
         <span class="kw">async fn </span>read_to_end&lt;A: AsyncRead + Unpin&gt;(io: <span class="kw-2">&amp;mut </span><span class="prelude-ty">Option</span>&lt;A&gt;) -&gt; io::Result&lt;Vec&lt;u8&gt;&gt; {
@@ -2749,7 +2821,7 @@
 /// handle of a child process asynchronously.
 </span><span class="attr">#[derive(Debug)]
 </span><span class="kw">pub struct </span>ChildStdin {
-    inner: <a href="unix/mod.rs.html#220">imp::ChildStdio</a>,
+    inner: imp::ChildStdio,
 }
 
 <span class="doccomment">/// The standard output stream for spawned children.
@@ -2758,7 +2830,7 @@
 /// handle of a child process asynchronously.
 </span><span class="attr">#[derive(Debug)]
 </span><span class="kw">pub struct </span>ChildStdout {
-    inner: <a href="unix/mod.rs.html#220">imp::ChildStdio</a>,
+    inner: imp::ChildStdio,
 }
 
 <span class="doccomment">/// The standard error stream for spawned children.
@@ -2767,10 +2839,10 @@
 /// handle of a child process asynchronously.
 </span><span class="attr">#[derive(Debug)]
 </span><span class="kw">pub struct </span>ChildStderr {
-    inner: <a href="unix/mod.rs.html#220">imp::ChildStdio</a>,
+    inner: imp::ChildStdio,
 }
 
-<span class="kw">impl </span><a href="#1219">ChildStdin</a> {
+<span class="kw">impl </span>ChildStdin {
     <span class="doccomment">/// Creates an asynchronous `ChildStdin` from a synchronous one.
     ///
     /// # Errors
@@ -2778,14 +2850,14 @@
     /// This method may fail if an error is encountered when setting the pipe to
     /// non-blocking mode, or when registering the pipe with the runtime&#39;s IO
     /// driver.
-    </span><span class="kw">pub fn </span>from_std(inner: <a href="https://doc.rust-lang.org/nightly/std/process/struct.ChildStdin.html">std::process::ChildStdin</a>) -&gt; io::Result&lt;<span class="self">Self</span>&gt; {
+    </span><span class="kw">pub fn </span>from_std(inner: std::process::ChildStdin) -&gt; io::Result&lt;<span class="self">Self</span>&gt; {
         <span class="prelude-val">Ok</span>(<span class="self">Self </span>{
             inner: imp::stdio(inner)<span class="question-mark">?</span>,
         })
     }
 }
 
-<span class="kw">impl </span><a href="#1228">ChildStdout</a> {
+<span class="kw">impl </span>ChildStdout {
     <span class="doccomment">/// Creates an asynchronous `ChildStderr` from a synchronous one.
     ///
     /// # Errors
@@ -2793,14 +2865,14 @@
     /// This method may fail if an error is encountered when setting the pipe to
     /// non-blocking mode, or when registering the pipe with the runtime&#39;s IO
     /// driver.
-    </span><span class="kw">pub fn </span>from_std(inner: <a href="https://doc.rust-lang.org/nightly/std/process/struct.ChildStdout.html">std::process::ChildStdout</a>) -&gt; io::Result&lt;<span class="self">Self</span>&gt; {
+    </span><span class="kw">pub fn </span>from_std(inner: std::process::ChildStdout) -&gt; io::Result&lt;<span class="self">Self</span>&gt; {
         <span class="prelude-val">Ok</span>(<span class="self">Self </span>{
             inner: imp::stdio(inner)<span class="question-mark">?</span>,
         })
     }
 }
 
-<span class="kw">impl </span><a href="#1237">ChildStderr</a> {
+<span class="kw">impl </span>ChildStderr {
     <span class="doccomment">/// Creates an asynchronous `ChildStderr` from a synchronous one.
     ///
     /// # Errors
@@ -2808,96 +2880,108 @@
     /// This method may fail if an error is encountered when setting the pipe to
     /// non-blocking mode, or when registering the pipe with the runtime&#39;s IO
     /// driver.
-    </span><span class="kw">pub fn </span>from_std(inner: <a href="https://doc.rust-lang.org/nightly/std/process/struct.ChildStderr.html">std::process::ChildStderr</a>) -&gt; io::Result&lt;<span class="self">Self</span>&gt; {
+    </span><span class="kw">pub fn </span>from_std(inner: std::process::ChildStderr) -&gt; io::Result&lt;<span class="self">Self</span>&gt; {
         <span class="prelude-val">Ok</span>(<span class="self">Self </span>{
             inner: imp::stdio(inner)<span class="question-mark">?</span>,
         })
     }
 }
 
-<span class="kw">impl </span><a href="../io/async_write.rs.html#45">AsyncWrite</a> <span class="kw">for </span><a href="#1219">ChildStdin</a> {
+<span class="kw">impl </span>AsyncWrite <span class="kw">for </span>ChildStdin {
     <span class="kw">fn </span>poll_write(
         <span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;,
         cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
-        buf: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
-    ) -&gt; Poll&lt;io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;&gt; {
-        Pin::new(<span class="kw-2">&amp;mut </span><a class="self" href="#1288">self</a>.inner).<a href="../io/async_write.rs.html#58-62">poll_write</a>(<a href="#1289">cx</a>, <a href="#1290">buf</a>)
+        buf: <span class="kw-2">&amp;</span>[u8],
+    ) -&gt; Poll&lt;io::Result&lt;usize&gt;&gt; {
+        Pin::new(<span class="kw-2">&amp;mut </span><span class="self">self</span>.inner).poll_write(cx, buf)
     }
 
     <span class="kw">fn </span>poll_flush(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;io::Result&lt;()&gt;&gt; {
-        Pin::new(<span class="kw-2">&amp;mut </span><a class="self" href="#1295">self</a>.inner).<a href="../io/async_write.rs.html#73">poll_flush</a>(<a href="#1295">cx</a>)
+        Pin::new(<span class="kw-2">&amp;mut </span><span class="self">self</span>.inner).poll_flush(cx)
     }
 
     <span class="kw">fn </span>poll_shutdown(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;io::Result&lt;()&gt;&gt; {
-        Pin::new(<span class="kw-2">&amp;mut </span><a class="self" href="#1299">self</a>.inner).<a href="../io/async_write.rs.html#133">poll_shutdown</a>(<a href="#1299">cx</a>)
+        Pin::new(<span class="kw-2">&amp;mut </span><span class="self">self</span>.inner).poll_shutdown(cx)
+    }
+
+    <span class="kw">fn </span>poll_write_vectored(
+        <span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;,
+        cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        bufs: <span class="kw-2">&amp;</span>[io::IoSlice&lt;<span class="lifetime">&#39;_</span>&gt;],
+    ) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;usize, io::Error&gt;&gt; {
+        Pin::new(<span class="kw-2">&amp;mut </span><span class="self">self</span>.inner).poll_write_vectored(cx, bufs)
+    }
+
+    <span class="kw">fn </span>is_write_vectored(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.inner.is_write_vectored()
     }
 }
 
-<span class="kw">impl </span><a href="../io/async_read.rs.html#43">AsyncRead</a> <span class="kw">for </span><a href="#1228">ChildStdout</a> {
+<span class="kw">impl </span>AsyncRead <span class="kw">for </span>ChildStdout {
     <span class="kw">fn </span>poll_read(
         <span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;,
         cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
         buf: <span class="kw-2">&amp;mut </span>ReadBuf&lt;<span class="lifetime">&#39;_</span>&gt;,
     ) -&gt; Poll&lt;io::Result&lt;()&gt;&gt; {
-        Pin::new(<span class="kw-2">&amp;mut </span><a class="self" href="#1306">self</a>.inner).<a href="../io/async_read.rs.html#53-57">poll_read</a>(<a href="#1307">cx</a>, <a href="#1308">buf</a>)
+        Pin::new(<span class="kw-2">&amp;mut </span><span class="self">self</span>.inner).poll_read(cx, buf)
     }
 }
 
-<span class="kw">impl </span><a href="../io/async_read.rs.html#43">AsyncRead</a> <span class="kw">for </span><a href="#1237">ChildStderr</a> {
+<span class="kw">impl </span>AsyncRead <span class="kw">for </span>ChildStderr {
     <span class="kw">fn </span>poll_read(
         <span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;,
         cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
         buf: <span class="kw-2">&amp;mut </span>ReadBuf&lt;<span class="lifetime">&#39;_</span>&gt;,
     ) -&gt; Poll&lt;io::Result&lt;()&gt;&gt; {
-        Pin::new(<span class="kw-2">&amp;mut </span><a class="self" href="#1316">self</a>.inner).<a href="../io/async_read.rs.html#53-57">poll_read</a>(<a href="#1317">cx</a>, <a href="#1318">buf</a>)
+        Pin::new(<span class="kw-2">&amp;mut </span><span class="self">self</span>.inner).poll_read(cx, buf)
     }
 }
 
-<span class="kw">impl </span>TryInto&lt;<a href="https://doc.rust-lang.org/nightly/std/process/struct.Stdio.html">Stdio</a>&gt; <span class="kw">for </span><a href="#1219">ChildStdin</a> {
-    <span class="kw">type </span>Error = <a href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a>;
+<span class="kw">impl </span>TryInto&lt;Stdio&gt; <span class="kw">for </span>ChildStdin {
+    <span class="kw">type </span>Error = io::Error;
 
-    <span class="kw">fn </span>try_into(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/process/struct.Stdio.html">Stdio</a>, <span class="self">Self</span>::Error&gt; {
-        <a href="unix/mod.rs.html#184">imp::convert_to_stdio</a>(<a class="self" href="#1327">self</a>.inner)
+    <span class="kw">fn </span>try_into(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;Stdio, <span class="self">Self</span>::Error&gt; {
+        imp::convert_to_stdio(<span class="self">self</span>.inner)
     }
 }
 
-<span class="kw">impl </span>TryInto&lt;<a href="https://doc.rust-lang.org/nightly/std/process/struct.Stdio.html">Stdio</a>&gt; <span class="kw">for </span><a href="#1228">ChildStdout</a> {
-    <span class="kw">type </span>Error = <a href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a>;
+<span class="kw">impl </span>TryInto&lt;Stdio&gt; <span class="kw">for </span>ChildStdout {
+    <span class="kw">type </span>Error = io::Error;
 
-    <span class="kw">fn </span>try_into(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/process/struct.Stdio.html">Stdio</a>, <span class="self">Self</span>::Error&gt; {
-        <a href="unix/mod.rs.html#184">imp::convert_to_stdio</a>(<a class="self" href="#1335">self</a>.inner)
+    <span class="kw">fn </span>try_into(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;Stdio, <span class="self">Self</span>::Error&gt; {
+        imp::convert_to_stdio(<span class="self">self</span>.inner)
     }
 }
 
-<span class="kw">impl </span>TryInto&lt;<a href="https://doc.rust-lang.org/nightly/std/process/struct.Stdio.html">Stdio</a>&gt; <span class="kw">for </span><a href="#1237">ChildStderr</a> {
-    <span class="kw">type </span>Error = <a href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a>;
+<span class="kw">impl </span>TryInto&lt;Stdio&gt; <span class="kw">for </span>ChildStderr {
+    <span class="kw">type </span>Error = io::Error;
 
-    <span class="kw">fn </span>try_into(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/process/struct.Stdio.html">Stdio</a>, <span class="self">Self</span>::Error&gt; {
-        <a href="unix/mod.rs.html#184">imp::convert_to_stdio</a>(<a class="self" href="#1343">self</a>.inner)
+    <span class="kw">fn </span>try_into(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;Stdio, <span class="self">Self</span>::Error&gt; {
+        imp::convert_to_stdio(<span class="self">self</span>.inner)
     }
 }
 
 <span class="attr">#[cfg(unix)]
 </span><span class="kw">mod </span>sys {
-    <span class="kw">use </span>std::os::unix::io::{<a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">AsRawFd</a>, <a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a>};
+    <span class="kw">use </span>std::os::unix::io::{AsRawFd, RawFd};
 
-    <span class="kw">use super</span>::{<a href="#1237">ChildStderr</a>, <a href="#1219">ChildStdin</a>, <a href="#1228">ChildStdout</a>};
+    <span class="kw">use super</span>::{ChildStderr, ChildStdin, ChildStdout};
 
-    <span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">AsRawFd</a> <span class="kw">for </span><a href="#1219">ChildStdin</a> {
-        <span class="kw">fn </span>as_raw_fd(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a> {
-            <a class="self" href="#1355">self</a>.inner.<a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">as_raw_fd</a>()
+    <span class="kw">impl </span>AsRawFd <span class="kw">for </span>ChildStdin {
+        <span class="kw">fn </span>as_raw_fd(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; RawFd {
+            <span class="self">self</span>.inner.as_raw_fd()
         }
     }
 
-    <span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">AsRawFd</a> <span class="kw">for </span><a href="#1228">ChildStdout</a> {
-        <span class="kw">fn </span>as_raw_fd(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a> {
-            <a class="self" href="#1361">self</a>.inner.<a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">as_raw_fd</a>()
+    <span class="kw">impl </span>AsRawFd <span class="kw">for </span>ChildStdout {
+        <span class="kw">fn </span>as_raw_fd(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; RawFd {
+            <span class="self">self</span>.inner.as_raw_fd()
         }
     }
 
-    <span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">AsRawFd</a> <span class="kw">for </span><a href="#1237">ChildStderr</a> {
-        <span class="kw">fn </span>as_raw_fd(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a> {
-            <a class="self" href="#1367">self</a>.inner.<a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">as_raw_fd</a>()
+    <span class="kw">impl </span>AsRawFd <span class="kw">for </span>ChildStderr {
+        <span class="kw">fn </span>as_raw_fd(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; RawFd {
+            <span class="self">self</span>.inner.as_raw_fd()
         }
     }
 }
@@ -3063,4 +3147,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="tokio" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="tokio" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

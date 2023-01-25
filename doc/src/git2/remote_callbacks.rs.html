@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/git2-0.14.4/src/remote_callbacks.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>remote_callbacks.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../git2/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/git2-0.14.4/src/remote_callbacks.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>remote_callbacks.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../git2/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -450,17 +450,17 @@
 <a href="#450" id="450">450</a>
 <a href="#451" id="451">451</a>
 <a href="#452" id="452">452</a>
-</pre><pre class="rust"><code><span class="kw">use </span>libc::{<a href="../../libc/unix/linux_like/linux/gnu/b64/x86_64/type.c_char.html">c_char</a>, <a href="../../libc/unix/type.c_int.html">c_int</a>, <a href="../../libc/unix/type.c_uint.html">c_uint</a>, <a href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>, <a href="../../libc/unix/type.size_t.html">size_t</a>};
-<span class="kw">use </span>std::ffi::{<a href="https://doc.rust-lang.org/nightly/core/ffi/c_str/struct.CStr.html">CStr</a>, <a href="https://doc.rust-lang.org/nightly/alloc/ffi/c_str/struct.CString.html">CString</a>};
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/mem/index.html">std::mem</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/ptr/index.html">std::ptr</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/slice/index.html">std::slice</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/str/index.html">std::str</a>;
+</pre><pre class="rust"><code><span class="kw">use </span>libc::{c_char, c_int, c_uint, c_void, size_t};
+<span class="kw">use </span>std::ffi::{CStr, CString};
+<span class="kw">use </span>std::mem;
+<span class="kw">use </span>std::ptr;
+<span class="kw">use </span>std::slice;
+<span class="kw">use </span>std::str;
 
-<span class="kw">use </span><a href="cert.rs.html#13"><span class="kw">crate</span>::cert::Cert</a>;
-<span class="kw">use </span><a href="util.rs.html#25"><span class="kw">crate</span>::util::Binding</a>;
+<span class="kw">use </span><span class="kw">crate</span>::cert::Cert;
+<span class="kw">use </span><span class="kw">crate</span>::util::Binding;
 <span class="kw">use crate</span>::{
-    <a href="lib.rs.html#655">panic</a>, <a href="../../libgit2_sys/index.html">raw</a>, <a href="cred.rs.html#14">Cred</a>, <a href="lib.rs.html#446-464">CredentialType</a>, <a href="error.rs.html#12">Error</a>, <a href="indexer.rs.html#25">IndexerProgress</a>, <a href="oid.rs.html#15">Oid</a>, <a href="packbuilder.rs.html#12">PackBuilderStage</a>, <a href="indexer.rs.html#7">Progress</a>,
+    panic, raw, Cred, CredentialType, Error, IndexerProgress, Oid, PackBuilderStage, Progress,
 };
 
 <span class="doccomment">/// A structure to contain the callbacks which are invoked when a repository is
@@ -486,15 +486,15 @@
 ///                         if it was not included.
 /// * `allowed_types` - a bitmask stating which cred types are ok to return.
 </span><span class="kw">pub type </span>Credentials&lt;<span class="lifetime">&#39;a</span>&gt; =
-    <span class="kw">dyn </span>FnMut(<span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt;, <a href="lib.rs.html#446-464">CredentialType</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="cred.rs.html#14">Cred</a>, <a href="error.rs.html#12">Error</a>&gt; + <span class="lifetime">&#39;a</span>;
+    <span class="kw">dyn </span>FnMut(<span class="kw-2">&amp;</span>str, <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>str&gt;, CredentialType) -&gt; <span class="prelude-ty">Result</span>&lt;Cred, Error&gt; + <span class="lifetime">&#39;a</span>;
 
 <span class="doccomment">/// Callback for receiving messages delivered by the transport.
 ///
 /// The return value indicates whether the network operation should continue.
-</span><span class="kw">pub type </span>TransportMessage&lt;<span class="lifetime">&#39;a</span>&gt; = <span class="kw">dyn </span>FnMut(<span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> + <span class="lifetime">&#39;a</span>;
+</span><span class="kw">pub type </span>TransportMessage&lt;<span class="lifetime">&#39;a</span>&gt; = <span class="kw">dyn </span>FnMut(<span class="kw-2">&amp;</span>[u8]) -&gt; bool + <span class="lifetime">&#39;a</span>;
 
 <span class="doccomment">/// Callback for whenever a reference is updated locally.
-</span><span class="kw">pub type </span>UpdateTips&lt;<span class="lifetime">&#39;a</span>&gt; = <span class="kw">dyn </span>FnMut(<span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, <a href="oid.rs.html#15">Oid</a>, <a href="oid.rs.html#15">Oid</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> + <span class="lifetime">&#39;a</span>;
+</span><span class="kw">pub type </span>UpdateTips&lt;<span class="lifetime">&#39;a</span>&gt; = <span class="kw">dyn </span>FnMut(<span class="kw-2">&amp;</span>str, Oid, Oid) -&gt; bool + <span class="lifetime">&#39;a</span>;
 
 <span class="doccomment">/// Callback for a custom certificate check.
 ///
@@ -503,14 +503,14 @@
 ///
 /// The second argument is the hostname for the connection is passed as the last
 /// argument.
-</span><span class="kw">pub type </span>CertificateCheck&lt;<span class="lifetime">&#39;a</span>&gt; = <span class="kw">dyn </span>FnMut(<span class="kw-2">&amp;</span>Cert&lt;<span class="lifetime">&#39;_</span>&gt;, <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> + <span class="lifetime">&#39;a</span>;
+</span><span class="kw">pub type </span>CertificateCheck&lt;<span class="lifetime">&#39;a</span>&gt; = <span class="kw">dyn </span>FnMut(<span class="kw-2">&amp;</span>Cert&lt;<span class="lifetime">&#39;_</span>&gt;, <span class="kw-2">&amp;</span>str) -&gt; bool + <span class="lifetime">&#39;a</span>;
 
 <span class="doccomment">/// Callback for each updated reference on push.
 ///
 /// The first argument here is the `refname` of the reference, and the second is
 /// the status message sent by a server. If the status is `Some` then the update
 /// was rejected by the remote server with a reason why.
-</span><span class="kw">pub type </span>PushUpdateReference&lt;<span class="lifetime">&#39;a</span>&gt; = <span class="kw">dyn </span>FnMut(<span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#12">Error</a>&gt; + <span class="lifetime">&#39;a</span>;
+</span><span class="kw">pub type </span>PushUpdateReference&lt;<span class="lifetime">&#39;a</span>&gt; = <span class="kw">dyn </span>FnMut(<span class="kw-2">&amp;</span>str, <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>str&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; + <span class="lifetime">&#39;a</span>;
 
 <span class="doccomment">/// Callback for push transfer progress
 ///
@@ -518,7 +518,7 @@
 ///     * current
 ///     * total
 ///     * bytes
-</span><span class="kw">pub type </span>PushTransferProgress&lt;<span class="lifetime">&#39;a</span>&gt; = <span class="kw">dyn </span>FnMut(<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) + <span class="lifetime">&#39;a</span>;
+</span><span class="kw">pub type </span>PushTransferProgress&lt;<span class="lifetime">&#39;a</span>&gt; = <span class="kw">dyn </span>FnMut(usize, usize, usize) + <span class="lifetime">&#39;a</span>;
 
 <span class="doccomment">/// Callback for pack progress
 ///
@@ -526,9 +526,9 @@
 ///     * stage
 ///     * current
 ///     * total
-</span><span class="kw">pub type </span>PackProgress&lt;<span class="lifetime">&#39;a</span>&gt; = <span class="kw">dyn </span>FnMut(<a href="packbuilder.rs.html#12">PackBuilderStage</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) + <span class="lifetime">&#39;a</span>;
+</span><span class="kw">pub type </span>PackProgress&lt;<span class="lifetime">&#39;a</span>&gt; = <span class="kw">dyn </span>FnMut(PackBuilderStage, usize, usize) + <span class="lifetime">&#39;a</span>;
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for </span>RemoteCallbacks&lt;<span class="lifetime">&#39;a</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; Default <span class="kw">for </span>RemoteCallbacks&lt;<span class="lifetime">&#39;a</span>&gt; {
     <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>::new()
     }
@@ -537,7 +537,7 @@
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; RemoteCallbacks&lt;<span class="lifetime">&#39;a</span>&gt; {
     <span class="doccomment">/// Creates a new set of empty callbacks
     </span><span class="kw">pub fn </span>new() -&gt; RemoteCallbacks&lt;<span class="lifetime">&#39;a</span>&gt; {
-        <a href="#19">RemoteCallbacks</a> {
+        RemoteCallbacks {
             credentials: <span class="prelude-val">None</span>,
             progress: <span class="prelude-val">None</span>,
             pack_progress: <span class="prelude-val">None</span>,
@@ -572,19 +572,19 @@
     /// ```
     </span><span class="kw">pub fn </span>credentials&lt;F&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cb: F) -&gt; <span class="kw-2">&amp;mut </span>RemoteCallbacks&lt;<span class="lifetime">&#39;a</span>&gt;
     <span class="kw">where
-        </span>F: FnMut(<span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt;, <a href="lib.rs.html#446-464">CredentialType</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="cred.rs.html#14">Cred</a>, <a href="error.rs.html#12">Error</a>&gt; + <span class="lifetime">&#39;a</span>,
+        </span>F: FnMut(<span class="kw-2">&amp;</span>str, <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>str&gt;, CredentialType) -&gt; <span class="prelude-ty">Result</span>&lt;Cred, Error&gt; + <span class="lifetime">&#39;a</span>,
     {
-        <a class="self" href="#121">self</a>.credentials = <span class="prelude-val">Some</span>(Box::new(<a href="#121">cb</a>) <span class="kw">as </span>Box&lt;Credentials&lt;<span class="lifetime">&#39;a</span>&gt;&gt;);
-        <span class="self"><a href="#121">self</a>
+        <span class="self">self</span>.credentials = <span class="prelude-val">Some</span>(Box::new(cb) <span class="kw">as </span>Box&lt;Credentials&lt;<span class="lifetime">&#39;a</span>&gt;&gt;);
+        <span class="self">self
     </span>}
 
     <span class="doccomment">/// The callback through which progress is monitored.
     </span><span class="kw">pub fn </span>transfer_progress&lt;F&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cb: F) -&gt; <span class="kw-2">&amp;mut </span>RemoteCallbacks&lt;<span class="lifetime">&#39;a</span>&gt;
     <span class="kw">where
-        </span>F: FnMut(Progress&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> + <span class="lifetime">&#39;a</span>,
+        </span>F: FnMut(Progress&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; bool + <span class="lifetime">&#39;a</span>,
     {
-        <a class="self" href="#130">self</a>.progress = <span class="prelude-val">Some</span>(Box::new(<a href="#130">cb</a>) <span class="kw">as </span>Box&lt;IndexerProgress&lt;<span class="lifetime">&#39;a</span>&gt;&gt;);
-        <span class="self"><a href="#130">self</a>
+        <span class="self">self</span>.progress = <span class="prelude-val">Some</span>(Box::new(cb) <span class="kw">as </span>Box&lt;IndexerProgress&lt;<span class="lifetime">&#39;a</span>&gt;&gt;);
+        <span class="self">self
     </span>}
 
     <span class="doccomment">/// Textual progress from the remote.
@@ -593,20 +593,20 @@
     /// (this is the &#39;counting objects&#39; output).
     </span><span class="kw">pub fn </span>sideband_progress&lt;F&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cb: F) -&gt; <span class="kw-2">&amp;mut </span>RemoteCallbacks&lt;<span class="lifetime">&#39;a</span>&gt;
     <span class="kw">where
-        </span>F: FnMut(<span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> + <span class="lifetime">&#39;a</span>,
+        </span>F: FnMut(<span class="kw-2">&amp;</span>[u8]) -&gt; bool + <span class="lifetime">&#39;a</span>,
     {
-        <a class="self" href="#142">self</a>.sideband_progress = <span class="prelude-val">Some</span>(Box::new(<a href="#142">cb</a>) <span class="kw">as </span>Box&lt;TransportMessage&lt;<span class="lifetime">&#39;a</span>&gt;&gt;);
-        <span class="self"><a href="#142">self</a>
+        <span class="self">self</span>.sideband_progress = <span class="prelude-val">Some</span>(Box::new(cb) <span class="kw">as </span>Box&lt;TransportMessage&lt;<span class="lifetime">&#39;a</span>&gt;&gt;);
+        <span class="self">self
     </span>}
 
     <span class="doccomment">/// Each time a reference is updated locally, the callback will be called
     /// with information about it.
     </span><span class="kw">pub fn </span>update_tips&lt;F&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cb: F) -&gt; <span class="kw-2">&amp;mut </span>RemoteCallbacks&lt;<span class="lifetime">&#39;a</span>&gt;
     <span class="kw">where
-        </span>F: FnMut(<span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, <a href="oid.rs.html#15">Oid</a>, <a href="oid.rs.html#15">Oid</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> + <span class="lifetime">&#39;a</span>,
+        </span>F: FnMut(<span class="kw-2">&amp;</span>str, Oid, Oid) -&gt; bool + <span class="lifetime">&#39;a</span>,
     {
-        <a class="self" href="#152">self</a>.update_tips = <span class="prelude-val">Some</span>(Box::new(<a href="#152">cb</a>) <span class="kw">as </span>Box&lt;UpdateTips&lt;<span class="lifetime">&#39;a</span>&gt;&gt;);
-        <span class="self"><a href="#152">self</a>
+        <span class="self">self</span>.update_tips = <span class="prelude-val">Some</span>(Box::new(cb) <span class="kw">as </span>Box&lt;UpdateTips&lt;<span class="lifetime">&#39;a</span>&gt;&gt;);
+        <span class="self">self
     </span>}
 
     <span class="doccomment">/// If certificate verification fails, then this callback will be invoked to
@@ -614,10 +614,10 @@
     /// connection to proceed.
     </span><span class="kw">pub fn </span>certificate_check&lt;F&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cb: F) -&gt; <span class="kw-2">&amp;mut </span>RemoteCallbacks&lt;<span class="lifetime">&#39;a</span>&gt;
     <span class="kw">where
-        </span>F: FnMut(<span class="kw-2">&amp;</span>Cert&lt;<span class="lifetime">&#39;_</span>&gt;, <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> + <span class="lifetime">&#39;a</span>,
+        </span>F: FnMut(<span class="kw-2">&amp;</span>Cert&lt;<span class="lifetime">&#39;_</span>&gt;, <span class="kw-2">&amp;</span>str) -&gt; bool + <span class="lifetime">&#39;a</span>,
     {
-        <a class="self" href="#163">self</a>.certificate_check = <span class="prelude-val">Some</span>(Box::new(<a href="#163">cb</a>) <span class="kw">as </span>Box&lt;CertificateCheck&lt;<span class="lifetime">&#39;a</span>&gt;&gt;);
-        <span class="self"><a href="#163">self</a>
+        <span class="self">self</span>.certificate_check = <span class="prelude-val">Some</span>(Box::new(cb) <span class="kw">as </span>Box&lt;CertificateCheck&lt;<span class="lifetime">&#39;a</span>&gt;&gt;);
+        <span class="self">self
     </span>}
 
     <span class="doccomment">/// Set a callback to get invoked for each updated reference on a push.
@@ -627,19 +627,19 @@
     /// then the push was rejected.
     </span><span class="kw">pub fn </span>push_update_reference&lt;F&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cb: F) -&gt; <span class="kw-2">&amp;mut </span>RemoteCallbacks&lt;<span class="lifetime">&#39;a</span>&gt;
     <span class="kw">where
-        </span>F: FnMut(<span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#12">Error</a>&gt; + <span class="lifetime">&#39;a</span>,
+        </span>F: FnMut(<span class="kw-2">&amp;</span>str, <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>str&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; + <span class="lifetime">&#39;a</span>,
     {
-        <a class="self" href="#176">self</a>.push_update_reference = <span class="prelude-val">Some</span>(Box::new(<a href="#176">cb</a>) <span class="kw">as </span>Box&lt;PushUpdateReference&lt;<span class="lifetime">&#39;a</span>&gt;&gt;);
-        <span class="self"><a href="#176">self</a>
+        <span class="self">self</span>.push_update_reference = <span class="prelude-val">Some</span>(Box::new(cb) <span class="kw">as </span>Box&lt;PushUpdateReference&lt;<span class="lifetime">&#39;a</span>&gt;&gt;);
+        <span class="self">self
     </span>}
 
     <span class="doccomment">/// The callback through which progress of push transfer is monitored
     </span><span class="kw">pub fn </span>push_transfer_progress&lt;F&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cb: F) -&gt; <span class="kw-2">&amp;mut </span>RemoteCallbacks&lt;<span class="lifetime">&#39;a</span>&gt;
     <span class="kw">where
-        </span>F: FnMut(<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) + <span class="lifetime">&#39;a</span>,
+        </span>F: FnMut(usize, usize, usize) + <span class="lifetime">&#39;a</span>,
     {
-        <a class="self" href="#185">self</a>.push_progress = <span class="prelude-val">Some</span>(Box::new(<a href="#185">cb</a>) <span class="kw">as </span>Box&lt;PushTransferProgress&lt;<span class="lifetime">&#39;a</span>&gt;&gt;);
-        <span class="self"><a href="#185">self</a>
+        <span class="self">self</span>.push_progress = <span class="prelude-val">Some</span>(Box::new(cb) <span class="kw">as </span>Box&lt;PushTransferProgress&lt;<span class="lifetime">&#39;a</span>&gt;&gt;);
+        <span class="self">self
     </span>}
 
     <span class="doccomment">/// Function to call with progress information during pack building.
@@ -647,123 +647,123 @@
     /// so performance may be affected.
     </span><span class="kw">pub fn </span>pack_progress&lt;F&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cb: F) -&gt; <span class="kw-2">&amp;mut </span>RemoteCallbacks&lt;<span class="lifetime">&#39;a</span>&gt;
     <span class="kw">where
-        </span>F: FnMut(<a href="packbuilder.rs.html#12">PackBuilderStage</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) + <span class="lifetime">&#39;a</span>,
+        </span>F: FnMut(PackBuilderStage, usize, usize) + <span class="lifetime">&#39;a</span>,
     {
-        <a class="self" href="#196">self</a>.pack_progress = <span class="prelude-val">Some</span>(Box::new(<a href="#196">cb</a>) <span class="kw">as </span>Box&lt;PackProgress&lt;<span class="lifetime">&#39;a</span>&gt;&gt;);
-        <span class="self"><a href="#196">self</a>
+        <span class="self">self</span>.pack_progress = <span class="prelude-val">Some</span>(Box::new(cb) <span class="kw">as </span>Box&lt;PackProgress&lt;<span class="lifetime">&#39;a</span>&gt;&gt;);
+        <span class="self">self
     </span>}
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; <a href="util.rs.html#25">Binding</a> <span class="kw">for </span>RemoteCallbacks&lt;<span class="lifetime">&#39;a</span>&gt; {
-    <span class="kw">type </span>Raw = <a href="../../libgit2_sys/struct.git_remote_callbacks.html">raw::git_remote_callbacks</a>;
-    <span class="kw">unsafe fn </span>from_raw(_raw: <a href="../../libgit2_sys/struct.git_remote_callbacks.html">raw::git_remote_callbacks</a>) -&gt; RemoteCallbacks&lt;<span class="lifetime">&#39;a</span>&gt; {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(<span class="string">&quot;unimplemented&quot;</span>);
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; Binding <span class="kw">for </span>RemoteCallbacks&lt;<span class="lifetime">&#39;a</span>&gt; {
+    <span class="kw">type </span>Raw = raw::git_remote_callbacks;
+    <span class="kw">unsafe fn </span>from_raw(_raw: raw::git_remote_callbacks) -&gt; RemoteCallbacks&lt;<span class="lifetime">&#39;a</span>&gt; {
+        <span class="macro">panic!</span>(<span class="string">&quot;unimplemented&quot;</span>);
     }
 
-    <span class="kw">fn </span>raw(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../../libgit2_sys/struct.git_remote_callbacks.html">raw::git_remote_callbacks</a> {
+    <span class="kw">fn </span>raw(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; raw::git_remote_callbacks {
         <span class="kw">unsafe </span>{
-            <span class="kw">let </span><span class="kw-2">mut </span>callbacks: <a href="../../libgit2_sys/struct.git_remote_callbacks.html">raw::git_remote_callbacks</a> = mem::zeroed();
-            <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert_eq.html">assert_eq!</a>(
+            <span class="kw">let </span><span class="kw-2">mut </span>callbacks: raw::git_remote_callbacks = mem::zeroed();
+            <span class="macro">assert_eq!</span>(
                 raw::git_remote_init_callbacks(<span class="kw-2">&amp;mut </span>callbacks, raw::GIT_REMOTE_CALLBACKS_VERSION),
                 <span class="number">0
             </span>);
             <span class="kw">if </span><span class="self">self</span>.progress.is_some() {
-                <a href="#213">callbacks</a>.transfer_progress = <span class="prelude-val">Some</span>(<a href="#303-306">transfer_progress_cb</a>);
+                callbacks.transfer_progress = <span class="prelude-val">Some</span>(transfer_progress_cb);
             }
             <span class="kw">if </span><span class="self">self</span>.credentials.is_some() {
-                <a href="#213">callbacks</a>.credentials = <span class="prelude-val">Some</span>(<a href="#254-260">credentials_cb</a>);
+                callbacks.credentials = <span class="prelude-val">Some</span>(credentials_cb);
             }
             <span class="kw">if </span><span class="self">self</span>.sideband_progress.is_some() {
-                <a href="#213">callbacks</a>.sideband_progress = <span class="prelude-val">Some</span>(<a href="#323">sideband_progress_cb</a>);
+                callbacks.sideband_progress = <span class="prelude-val">Some</span>(sideband_progress_cb);
             }
             <span class="kw">if </span><span class="self">self</span>.certificate_check.is_some() {
-                <a href="#213">callbacks</a>.certificate_check = <span class="prelude-val">Some</span>(<a href="#364-369">certificate_check_cb</a>);
+                callbacks.certificate_check = <span class="prelude-val">Some</span>(certificate_check_cb);
             }
             <span class="kw">if </span><span class="self">self</span>.push_update_reference.is_some() {
-                <a href="#213">callbacks</a>.push_update_reference = <span class="prelude-val">Some</span>(<a href="#387-391">push_update_reference_cb</a>);
+                callbacks.push_update_reference = <span class="prelude-val">Some</span>(push_update_reference_cb);
             }
             <span class="kw">if </span><span class="self">self</span>.push_progress.is_some() {
-                <a href="#213">callbacks</a>.push_transfer_progress = <span class="prelude-val">Some</span>(<a href="#412-417">push_transfer_progress_cb</a>);
+                callbacks.push_transfer_progress = <span class="prelude-val">Some</span>(push_transfer_progress_cb);
             }
             <span class="kw">if </span><span class="self">self</span>.pack_progress.is_some() {
-                <a href="#213">callbacks</a>.pack_progress = <span class="prelude-val">Some</span>(<a href="#432-437">pack_progress_cb</a>);
+                callbacks.pack_progress = <span class="prelude-val">Some</span>(pack_progress_cb);
             }
             <span class="kw">if </span><span class="self">self</span>.update_tips.is_some() {
                 <span class="kw">let </span>f: <span class="kw">extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn</span>(
-                    <span class="kw-2">*const </span><a href="../../libc/unix/linux_like/linux/gnu/b64/x86_64/type.c_char.html">c_char</a>,
-                    <span class="kw-2">*const </span><a href="../../libgit2_sys/struct.git_oid.html">raw::git_oid</a>,
-                    <span class="kw-2">*const </span><a href="../../libgit2_sys/struct.git_oid.html">raw::git_oid</a>,
-                    <span class="kw-2">*mut </span><a href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>,
-                ) -&gt; <a href="../../libc/unix/type.c_int.html">c_int</a> = <a href="#340-345">update_tips_cb</a>;
-                <a href="#213">callbacks</a>.update_tips = <span class="prelude-val">Some</span>(<a href="#240">f</a>);
+                    <span class="kw-2">*const </span>c_char,
+                    <span class="kw-2">*const </span>raw::git_oid,
+                    <span class="kw-2">*const </span>raw::git_oid,
+                    <span class="kw-2">*mut </span>c_void,
+                ) -&gt; c_int = update_tips_cb;
+                callbacks.update_tips = <span class="prelude-val">Some</span>(f);
             }
-            <a href="#213">callbacks</a>.payload = <span class="self"><a href="#211">self</a> </span><span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_ as </span><span class="kw-2">*mut </span><span class="kw">_</span>;
-            <a href="#213">callbacks</a>
+            callbacks.payload = <span class="self">self </span><span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_ as </span><span class="kw-2">*mut </span><span class="kw">_</span>;
+            callbacks
         }
     }
 }
 
 <span class="kw">extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn </span>credentials_cb(
-    ret: <span class="kw-2">*mut *mut </span><a href="../../libgit2_sys/struct.git_cred.html">raw::git_cred</a>,
-    url: <span class="kw-2">*const </span><a href="../../libc/unix/linux_like/linux/gnu/b64/x86_64/type.c_char.html">c_char</a>,
-    username_from_url: <span class="kw-2">*const </span><a href="../../libc/unix/linux_like/linux/gnu/b64/x86_64/type.c_char.html">c_char</a>,
-    allowed_types: <a href="../../libc/unix/type.c_uint.html">c_uint</a>,
-    payload: <span class="kw-2">*mut </span><a href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>,
-) -&gt; <a href="../../libc/unix/type.c_int.html">c_int</a> {
+    ret: <span class="kw-2">*mut *mut </span>raw::git_cred,
+    url: <span class="kw-2">*const </span>c_char,
+    username_from_url: <span class="kw-2">*const </span>c_char,
+    allowed_types: c_uint,
+    payload: <span class="kw-2">*mut </span>c_void,
+) -&gt; c_int {
     <span class="kw">unsafe </span>{
-        <span class="kw">let </span>ok = <a href="panic.rs.html#8">panic::wrap</a>(|| {
-            <span class="kw">let </span>payload = <span class="kw-2">&amp;mut *</span>(<a href="#259">payload</a> <span class="kw">as </span><span class="kw-2">*mut </span>RemoteCallbacks&lt;<span class="lifetime">&#39;_</span>&gt;);
+        <span class="kw">let </span>ok = panic::wrap(|| {
+            <span class="kw">let </span>payload = <span class="kw-2">&amp;mut *</span>(payload <span class="kw">as </span><span class="kw-2">*mut </span>RemoteCallbacks&lt;<span class="lifetime">&#39;_</span>&gt;);
             <span class="kw">let </span>callback = payload
                 .credentials
                 .as_mut()
                 .ok_or(raw::GIT_PASSTHROUGH <span class="kw">as </span>c_int)<span class="question-mark">?</span>;
-            <span class="kw-2">*</span><a href="#255">ret</a> = ptr::null_mut();
+            <span class="kw-2">*</span>ret = ptr::null_mut();
             <span class="kw">let </span>url = str::from_utf8(CStr::from_ptr(url).to_bytes())
                 .map_err(|<span class="kw">_</span>| raw::GIT_PASSTHROUGH <span class="kw">as </span>c_int)<span class="question-mark">?</span>;
-            <span class="kw">let </span>username_from_url = <span class="kw">match </span><a href="lib.rs.html#856"><span class="kw">crate</span>::opt_bytes</a>(<span class="kw-2">&amp;</span><a href="#269">url</a>, <a href="#257">username_from_url</a>) {
+            <span class="kw">let </span>username_from_url = <span class="kw">match </span><span class="kw">crate</span>::opt_bytes(<span class="kw-2">&amp;</span>url, username_from_url) {
                 <span class="prelude-val">Some</span>(username) =&gt; {
                     <span class="prelude-val">Some</span>(str::from_utf8(username).map_err(|<span class="kw">_</span>| raw::GIT_PASSTHROUGH <span class="kw">as </span>c_int)<span class="question-mark">?</span>)
                 }
                 <span class="prelude-val">None </span>=&gt; <span class="prelude-val">None</span>,
             };
 
-            <span class="kw">let </span>cred_type = CredentialType::from_bits_truncate(<a href="#258">allowed_types</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>);
+            <span class="kw">let </span>cred_type = CredentialType::from_bits_truncate(allowed_types <span class="kw">as </span>u32);
 
-            <a href="#264">callback</a>(<a href="#269">url</a>, <a href="#271">username_from_url</a>, <a href="#278">cred_type</a>).map_err(|e| {
-                <span class="kw">let </span>s = CString::new(<a href="#280">e</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>()).unwrap();
-                raw::git_error_set_str(<a href="#280">e</a>.<a href="error.rs.html#260">raw_code</a>() <span class="kw">as </span><a href="../../libc/unix/type.c_int.html">c_int</a>, <a href="#281">s</a>.as_ptr());
-                <a href="#280">e</a>.<a href="error.rs.html#260">raw_code</a>() <span class="kw">as </span><a href="../../libc/unix/type.c_int.html">c_int</a>
+            callback(url, username_from_url, cred_type).map_err(|e| {
+                <span class="kw">let </span>s = CString::new(e.to_string()).unwrap();
+                raw::git_error_set_str(e.raw_code() <span class="kw">as </span>c_int, s.as_ptr());
+                e.raw_code() <span class="kw">as </span>c_int
             })
         });
-        <span class="kw">match </span><a href="#262">ok</a> {
+        <span class="kw">match </span>ok {
             <span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(cred)) =&gt; {
                 <span class="comment">// Turns out it&#39;s a memory safety issue if we pass through any
                 // and all credentials into libgit2
                 </span><span class="kw">if </span>allowed_types &amp; (cred.credtype() <span class="kw">as </span>c_uint) != <span class="number">0 </span>{
-                    <span class="kw-2">*</span><a href="#255">ret</a> = <a href="#287">cred</a>.<a href="cred.rs.html#165">unwrap</a>();
+                    <span class="kw-2">*</span>ret = cred.unwrap();
                     <span class="number">0
                 </span>} <span class="kw">else </span>{
-                    raw::GIT_PASSTHROUGH <span class="kw">as </span><a href="../../libc/unix/type.c_int.html">c_int</a>
+                    raw::GIT_PASSTHROUGH <span class="kw">as </span>c_int
                 }
             }
-            <span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(e)) =&gt; <a href="#297">e</a>,
+            <span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(e)) =&gt; e,
             <span class="prelude-val">None </span>=&gt; -<span class="number">1</span>,
         }
     }
 }
 
 <span class="kw">extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn </span>transfer_progress_cb(
-    stats: <span class="kw-2">*const </span><a href="../../libgit2_sys/struct.git_indexer_progress.html">raw::git_indexer_progress</a>,
-    payload: <span class="kw-2">*mut </span><a href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>,
-) -&gt; <a href="../../libc/unix/type.c_int.html">c_int</a> {
-    <span class="kw">let </span>ok = <a href="panic.rs.html#8">panic::wrap</a>(|| <span class="kw">unsafe </span>{
-        <span class="kw">let </span>payload = <span class="kw-2">&amp;mut *</span>(<a href="#305">payload</a> <span class="kw">as </span><span class="kw-2">*mut </span>RemoteCallbacks&lt;<span class="lifetime">&#39;_</span>&gt;);
-        <span class="kw">let </span>callback = <span class="kw">match </span><a href="#308">payload</a>.progress {
-            <span class="prelude-val">Some</span>(<span class="kw-2">ref mut </span>c) =&gt; <a href="#310">c</a>,
+    stats: <span class="kw-2">*const </span>raw::git_indexer_progress,
+    payload: <span class="kw-2">*mut </span>c_void,
+) -&gt; c_int {
+    <span class="kw">let </span>ok = panic::wrap(|| <span class="kw">unsafe </span>{
+        <span class="kw">let </span>payload = <span class="kw-2">&amp;mut *</span>(payload <span class="kw">as </span><span class="kw-2">*mut </span>RemoteCallbacks&lt;<span class="lifetime">&#39;_</span>&gt;);
+        <span class="kw">let </span>callback = <span class="kw">match </span>payload.progress {
+            <span class="prelude-val">Some</span>(<span class="kw-2">ref mut </span>c) =&gt; c,
             <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="bool-val">true</span>,
         };
-        <span class="kw">let </span>progress = <a href="util.rs.html#28">Binding::from_raw</a>(<a href="#304">stats</a>);
-        <a href="#309">callback</a>(<a href="#313">progress</a>)
+        <span class="kw">let </span>progress = Binding::from_raw(stats);
+        callback(progress)
     });
     <span class="kw">if </span>ok == <span class="prelude-val">Some</span>(<span class="bool-val">true</span>) {
         <span class="number">0
@@ -772,15 +772,15 @@
     </span>}
 }
 
-<span class="kw">extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn </span>sideband_progress_cb(str: <span class="kw-2">*const </span><a href="../../libc/unix/linux_like/linux/gnu/b64/x86_64/type.c_char.html">c_char</a>, len: <a href="../../libc/unix/type.c_int.html">c_int</a>, payload: <span class="kw-2">*mut </span><a href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>) -&gt; <a href="../../libc/unix/type.c_int.html">c_int</a> {
-    <span class="kw">let </span>ok = <a href="panic.rs.html#8">panic::wrap</a>(|| <span class="kw">unsafe </span>{
-        <span class="kw">let </span>payload = <span class="kw-2">&amp;mut *</span>(<a href="#323">payload</a> <span class="kw">as </span><span class="kw-2">*mut </span>RemoteCallbacks&lt;<span class="lifetime">&#39;_</span>&gt;);
-        <span class="kw">let </span>callback = <span class="kw">match </span><a href="#325">payload</a>.sideband_progress {
-            <span class="prelude-val">Some</span>(<span class="kw-2">ref mut </span>c) =&gt; <a href="#327">c</a>,
+<span class="kw">extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn </span>sideband_progress_cb(str: <span class="kw-2">*const </span>c_char, len: c_int, payload: <span class="kw-2">*mut </span>c_void) -&gt; c_int {
+    <span class="kw">let </span>ok = panic::wrap(|| <span class="kw">unsafe </span>{
+        <span class="kw">let </span>payload = <span class="kw-2">&amp;mut *</span>(payload <span class="kw">as </span><span class="kw-2">*mut </span>RemoteCallbacks&lt;<span class="lifetime">&#39;_</span>&gt;);
+        <span class="kw">let </span>callback = <span class="kw">match </span>payload.sideband_progress {
+            <span class="prelude-val">Some</span>(<span class="kw-2">ref mut </span>c) =&gt; c,
             <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="bool-val">true</span>,
         };
-        <span class="kw">let </span>buf = slice::from_raw_parts(<a href="#323">str</a> <span class="kw">as </span><span class="kw-2">*const </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>, <a href="#323">len</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>);
-        <a href="#326">callback</a>(<a href="#330">buf</a>)
+        <span class="kw">let </span>buf = slice::from_raw_parts(str <span class="kw">as </span><span class="kw-2">*const </span>u8, len <span class="kw">as </span>usize);
+        callback(buf)
     });
     <span class="kw">if </span>ok == <span class="prelude-val">Some</span>(<span class="bool-val">true</span>) {
         <span class="number">0
@@ -790,21 +790,21 @@
 }
 
 <span class="kw">extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn </span>update_tips_cb(
-    refname: <span class="kw-2">*const </span><a href="../../libc/unix/linux_like/linux/gnu/b64/x86_64/type.c_char.html">c_char</a>,
-    a: <span class="kw-2">*const </span><a href="../../libgit2_sys/struct.git_oid.html">raw::git_oid</a>,
-    b: <span class="kw-2">*const </span><a href="../../libgit2_sys/struct.git_oid.html">raw::git_oid</a>,
-    data: <span class="kw-2">*mut </span><a href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>,
-) -&gt; <a href="../../libc/unix/type.c_int.html">c_int</a> {
-    <span class="kw">let </span>ok = <a href="panic.rs.html#8">panic::wrap</a>(|| <span class="kw">unsafe </span>{
-        <span class="kw">let </span>payload = <span class="kw-2">&amp;mut *</span>(<a href="#344">data</a> <span class="kw">as </span><span class="kw-2">*mut </span>RemoteCallbacks&lt;<span class="lifetime">&#39;_</span>&gt;);
-        <span class="kw">let </span>callback = <span class="kw">match </span><a href="#347">payload</a>.update_tips {
-            <span class="prelude-val">Some</span>(<span class="kw-2">ref mut </span>c) =&gt; <a href="#349">c</a>,
+    refname: <span class="kw-2">*const </span>c_char,
+    a: <span class="kw-2">*const </span>raw::git_oid,
+    b: <span class="kw-2">*const </span>raw::git_oid,
+    data: <span class="kw-2">*mut </span>c_void,
+) -&gt; c_int {
+    <span class="kw">let </span>ok = panic::wrap(|| <span class="kw">unsafe </span>{
+        <span class="kw">let </span>payload = <span class="kw-2">&amp;mut *</span>(data <span class="kw">as </span><span class="kw-2">*mut </span>RemoteCallbacks&lt;<span class="lifetime">&#39;_</span>&gt;);
+        <span class="kw">let </span>callback = <span class="kw">match </span>payload.update_tips {
+            <span class="prelude-val">Some</span>(<span class="kw-2">ref mut </span>c) =&gt; c,
             <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="bool-val">true</span>,
         };
-        <span class="kw">let </span>refname = <a href="https://doc.rust-lang.org/nightly/core/str/converts/fn.from_utf8.html">str::from_utf8</a>(CStr::from_ptr(<a href="#341">refname</a>).to_bytes()).unwrap();
-        <span class="kw">let </span>a = <a href="util.rs.html#28">Binding::from_raw</a>(<a href="#342">a</a>);
-        <span class="kw">let </span>b = <a href="util.rs.html#28">Binding::from_raw</a>(<a href="#343">b</a>);
-        <a href="#348">callback</a>(<a href="#352">refname</a>, <a href="#353">a</a>, <a href="#354">b</a>)
+        <span class="kw">let </span>refname = str::from_utf8(CStr::from_ptr(refname).to_bytes()).unwrap();
+        <span class="kw">let </span>a = Binding::from_raw(a);
+        <span class="kw">let </span>b = Binding::from_raw(b);
+        callback(refname, a, b)
     });
     <span class="kw">if </span>ok == <span class="prelude-val">Some</span>(<span class="bool-val">true</span>) {
         <span class="number">0
@@ -814,20 +814,20 @@
 }
 
 <span class="kw">extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn </span>certificate_check_cb(
-    cert: <span class="kw-2">*mut </span><a href="../../libgit2_sys/struct.git_cert.html">raw::git_cert</a>,
-    _valid: <a href="../../libc/unix/type.c_int.html">c_int</a>,
-    hostname: <span class="kw-2">*const </span><a href="../../libc/unix/linux_like/linux/gnu/b64/x86_64/type.c_char.html">c_char</a>,
-    data: <span class="kw-2">*mut </span><a href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>,
-) -&gt; <a href="../../libc/unix/type.c_int.html">c_int</a> {
-    <span class="kw">let </span>ok = <a href="panic.rs.html#8">panic::wrap</a>(|| <span class="kw">unsafe </span>{
-        <span class="kw">let </span>payload = <span class="kw-2">&amp;mut *</span>(<a href="#368">data</a> <span class="kw">as </span><span class="kw-2">*mut </span>RemoteCallbacks&lt;<span class="lifetime">&#39;_</span>&gt;);
-        <span class="kw">let </span>callback = <span class="kw">match </span><a href="#371">payload</a>.certificate_check {
-            <span class="prelude-val">Some</span>(<span class="kw-2">ref mut </span>c) =&gt; <a href="#373">c</a>,
+    cert: <span class="kw-2">*mut </span>raw::git_cert,
+    _valid: c_int,
+    hostname: <span class="kw-2">*const </span>c_char,
+    data: <span class="kw-2">*mut </span>c_void,
+) -&gt; c_int {
+    <span class="kw">let </span>ok = panic::wrap(|| <span class="kw">unsafe </span>{
+        <span class="kw">let </span>payload = <span class="kw-2">&amp;mut *</span>(data <span class="kw">as </span><span class="kw-2">*mut </span>RemoteCallbacks&lt;<span class="lifetime">&#39;_</span>&gt;);
+        <span class="kw">let </span>callback = <span class="kw">match </span>payload.certificate_check {
+            <span class="prelude-val">Some</span>(<span class="kw-2">ref mut </span>c) =&gt; c,
             <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="bool-val">true</span>,
         };
-        <span class="kw">let </span>cert = <a href="util.rs.html#28">Binding::from_raw</a>(<a href="#365">cert</a>);
-        <span class="kw">let </span>hostname = <a href="https://doc.rust-lang.org/nightly/core/str/converts/fn.from_utf8.html">str::from_utf8</a>(CStr::from_ptr(<a href="#367">hostname</a>).to_bytes()).unwrap();
-        <a href="#372">callback</a>(<span class="kw-2">&amp;</span><a href="#376">cert</a>, <a href="#377">hostname</a>)
+        <span class="kw">let </span>cert = Binding::from_raw(cert);
+        <span class="kw">let </span>hostname = str::from_utf8(CStr::from_ptr(hostname).to_bytes()).unwrap();
+        callback(<span class="kw-2">&amp;</span>cert, hostname)
     });
     <span class="kw">if </span>ok == <span class="prelude-val">Some</span>(<span class="bool-val">true</span>) {
         <span class="number">0
@@ -837,44 +837,44 @@
 }
 
 <span class="kw">extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn </span>push_update_reference_cb(
-    refname: <span class="kw-2">*const </span><a href="../../libc/unix/linux_like/linux/gnu/b64/x86_64/type.c_char.html">c_char</a>,
-    status: <span class="kw-2">*const </span><a href="../../libc/unix/linux_like/linux/gnu/b64/x86_64/type.c_char.html">c_char</a>,
-    data: <span class="kw-2">*mut </span><a href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>,
-) -&gt; <a href="../../libc/unix/type.c_int.html">c_int</a> {
-    <a href="panic.rs.html#8">panic::wrap</a>(|| <span class="kw">unsafe </span>{
-        <span class="kw">let </span>payload = <span class="kw-2">&amp;mut *</span>(<a href="#390">data</a> <span class="kw">as </span><span class="kw-2">*mut </span>RemoteCallbacks&lt;<span class="lifetime">&#39;_</span>&gt;);
-        <span class="kw">let </span>callback = <span class="kw">match </span><a href="#393">payload</a>.push_update_reference {
-            <span class="prelude-val">Some</span>(<span class="kw-2">ref mut </span>c) =&gt; <a href="#395">c</a>,
+    refname: <span class="kw-2">*const </span>c_char,
+    status: <span class="kw-2">*const </span>c_char,
+    data: <span class="kw-2">*mut </span>c_void,
+) -&gt; c_int {
+    panic::wrap(|| <span class="kw">unsafe </span>{
+        <span class="kw">let </span>payload = <span class="kw-2">&amp;mut *</span>(data <span class="kw">as </span><span class="kw-2">*mut </span>RemoteCallbacks&lt;<span class="lifetime">&#39;_</span>&gt;);
+        <span class="kw">let </span>callback = <span class="kw">match </span>payload.push_update_reference {
+            <span class="prelude-val">Some</span>(<span class="kw-2">ref mut </span>c) =&gt; c,
             <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="number">0</span>,
         };
-        <span class="kw">let </span>refname = <a href="https://doc.rust-lang.org/nightly/core/str/converts/fn.from_utf8.html">str::from_utf8</a>(CStr::from_ptr(<a href="#388">refname</a>).to_bytes()).unwrap();
+        <span class="kw">let </span>refname = str::from_utf8(CStr::from_ptr(refname).to_bytes()).unwrap();
         <span class="kw">let </span>status = <span class="kw">if </span>status.is_null() {
             <span class="prelude-val">None
         </span>} <span class="kw">else </span>{
-            <span class="prelude-val">Some</span>(<a href="https://doc.rust-lang.org/nightly/core/str/converts/fn.from_utf8.html">str::from_utf8</a>(CStr::from_ptr(<a href="#389">status</a>).to_bytes()).unwrap())
+            <span class="prelude-val">Some</span>(str::from_utf8(CStr::from_ptr(status).to_bytes()).unwrap())
         };
-        <span class="kw">match </span><a href="#394">callback</a>(<a href="#398">refname</a>, <a href="#399">status</a>) {
+        <span class="kw">match </span>callback(refname, status) {
             <span class="prelude-val">Ok</span>(()) =&gt; <span class="number">0</span>,
-            <span class="prelude-val">Err</span>(e) =&gt; <a href="#406">e</a>.<a href="error.rs.html#260">raw_code</a>(),
+            <span class="prelude-val">Err</span>(e) =&gt; e.raw_code(),
         }
     })
     .unwrap_or(-<span class="number">1</span>)
 }
 
 <span class="kw">extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn </span>push_transfer_progress_cb(
-    progress: <a href="../../libc/unix/type.c_uint.html">c_uint</a>,
-    total: <a href="../../libc/unix/type.c_uint.html">c_uint</a>,
-    bytes: <a href="../../libc/unix/type.size_t.html">size_t</a>,
-    data: <span class="kw-2">*mut </span><a href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>,
-) -&gt; <a href="../../libc/unix/type.c_int.html">c_int</a> {
-    <a href="panic.rs.html#8">panic::wrap</a>(|| <span class="kw">unsafe </span>{
-        <span class="kw">let </span>payload = <span class="kw-2">&amp;mut *</span>(<a href="#416">data</a> <span class="kw">as </span><span class="kw-2">*mut </span>RemoteCallbacks&lt;<span class="lifetime">&#39;_</span>&gt;);
-        <span class="kw">let </span>callback = <span class="kw">match </span><a href="#419">payload</a>.push_progress {
-            <span class="prelude-val">Some</span>(<span class="kw-2">ref mut </span>c) =&gt; <a href="#421">c</a>,
+    progress: c_uint,
+    total: c_uint,
+    bytes: size_t,
+    data: <span class="kw-2">*mut </span>c_void,
+) -&gt; c_int {
+    panic::wrap(|| <span class="kw">unsafe </span>{
+        <span class="kw">let </span>payload = <span class="kw-2">&amp;mut *</span>(data <span class="kw">as </span><span class="kw-2">*mut </span>RemoteCallbacks&lt;<span class="lifetime">&#39;_</span>&gt;);
+        <span class="kw">let </span>callback = <span class="kw">match </span>payload.push_progress {
+            <span class="prelude-val">Some</span>(<span class="kw-2">ref mut </span>c) =&gt; c,
             <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="number">0</span>,
         };
 
-        <a href="#420">callback</a>(<a href="#413">progress</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="#414">total</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="#415">bytes</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>);
+        callback(progress <span class="kw">as </span>usize, total <span class="kw">as </span>usize, bytes <span class="kw">as </span>usize);
 
         <span class="number">0
     </span>})
@@ -882,25 +882,25 @@
 }
 
 <span class="kw">extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn </span>pack_progress_cb(
-    stage: <a href="../../libgit2_sys/type.git_packbuilder_stage_t.html">raw::git_packbuilder_stage_t</a>,
-    current: <a href="../../libc/unix/type.c_uint.html">c_uint</a>,
-    total: <a href="../../libc/unix/type.c_uint.html">c_uint</a>,
-    data: <span class="kw-2">*mut </span><a href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>,
-) -&gt; <a href="../../libc/unix/type.c_int.html">c_int</a> {
-    <a href="panic.rs.html#8">panic::wrap</a>(|| <span class="kw">unsafe </span>{
-        <span class="kw">let </span>payload = <span class="kw-2">&amp;mut *</span>(<a href="#436">data</a> <span class="kw">as </span><span class="kw-2">*mut </span>RemoteCallbacks&lt;<span class="lifetime">&#39;_</span>&gt;);
-        <span class="kw">let </span>callback = <span class="kw">match </span><a href="#439">payload</a>.pack_progress {
-            <span class="prelude-val">Some</span>(<span class="kw-2">ref mut </span>c) =&gt; <a href="#441">c</a>,
+    stage: raw::git_packbuilder_stage_t,
+    current: c_uint,
+    total: c_uint,
+    data: <span class="kw-2">*mut </span>c_void,
+) -&gt; c_int {
+    panic::wrap(|| <span class="kw">unsafe </span>{
+        <span class="kw">let </span>payload = <span class="kw-2">&amp;mut *</span>(data <span class="kw">as </span><span class="kw-2">*mut </span>RemoteCallbacks&lt;<span class="lifetime">&#39;_</span>&gt;);
+        <span class="kw">let </span>callback = <span class="kw">match </span>payload.pack_progress {
+            <span class="prelude-val">Some</span>(<span class="kw-2">ref mut </span>c) =&gt; c,
             <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="number">0</span>,
         };
 
-        <span class="kw">let </span>stage = <a href="util.rs.html#28">Binding::from_raw</a>(<a href="#433">stage</a>);
+        <span class="kw">let </span>stage = Binding::from_raw(stage);
 
-        <a href="#440">callback</a>(<a href="#445">stage</a>, <a href="#434">current</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="#435">total</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>);
+        callback(stage, current <span class="kw">as </span>usize, total <span class="kw">as </span>usize);
 
         <span class="number">0
     </span>})
     .unwrap_or(-<span class="number">1</span>)
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="git2" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="git2" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

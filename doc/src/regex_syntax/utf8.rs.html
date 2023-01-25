@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-syntax-0.6.28/src/utf8.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>utf8.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../regex_syntax/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-syntax-0.6.28/src/utf8.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>utf8.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../regex_syntax/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -669,12 +669,12 @@ which uses it for executing automata on their term index.
 
 </span><span class="attr">#![deny(missing_docs)]
 
-</span><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/char/index.html">std::char</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">std::fmt</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/iter/traits/marker/trait.FusedIterator.html">std::iter::FusedIterator</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/slice/index.html">std::slice</a>;
+</span><span class="kw">use </span>std::char;
+<span class="kw">use </span>std::fmt;
+<span class="kw">use </span>std::iter::FusedIterator;
+<span class="kw">use </span>std::slice;
 
-<span class="kw">const </span>MAX_UTF8_BYTES: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> = <span class="number">4</span>;
+<span class="kw">const </span>MAX_UTF8_BYTES: usize = <span class="number">4</span>;
 
 <span class="doccomment">/// Utf8Sequence represents a sequence of byte ranges.
 ///
@@ -686,58 +686,58 @@ which uses it for executing automata on their term index.
 </span><span class="attr">#[derive(Copy, Clone, Eq, PartialEq, PartialOrd, Ord)]
 </span><span class="kw">pub enum </span>Utf8Sequence {
     <span class="doccomment">/// One byte range.
-    </span>One(<a href="#221">Utf8Range</a>),
+    </span>One(Utf8Range),
     <span class="doccomment">/// Two successive byte ranges.
-    </span>Two([<a href="#221">Utf8Range</a>; <span class="number">2</span>]),
+    </span>Two([Utf8Range; <span class="number">2</span>]),
     <span class="doccomment">/// Three successive byte ranges.
-    </span>Three([<a href="#221">Utf8Range</a>; <span class="number">3</span>]),
+    </span>Three([Utf8Range; <span class="number">3</span>]),
     <span class="doccomment">/// Four successive byte ranges.
-    </span>Four([<a href="#221">Utf8Range</a>; <span class="number">4</span>]),
+    </span>Four([Utf8Range; <span class="number">4</span>]),
 }
 
-<span class="kw">impl </span><a href="#100">Utf8Sequence</a> {
+<span class="kw">impl </span>Utf8Sequence {
     <span class="doccomment">/// Creates a new UTF-8 sequence from the encoded bytes of a scalar value
     /// range.
     ///
     /// This assumes that `start` and `end` have the same length.
-    </span><span class="kw">fn </span>from_encoded_range(start: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], end: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="self">Self </span>{
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert_eq.html">assert_eq!</a>(start.len(), end.len());
-        <span class="kw">match </span><a href="#116">start</a>.len() {
-            <span class="number">2 </span>=&gt; <a href="#104">Utf8Sequence::Two</a>([
-                Utf8Range::new(<a href="#116">start</a>[<span class="number">0</span>], <a href="#116">end</a>[<span class="number">0</span>]),
-                Utf8Range::new(<a href="#116">start</a>[<span class="number">1</span>], <a href="#116">end</a>[<span class="number">1</span>]),
+    </span><span class="kw">fn </span>from_encoded_range(start: <span class="kw-2">&amp;</span>[u8], end: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="self">Self </span>{
+        <span class="macro">assert_eq!</span>(start.len(), end.len());
+        <span class="kw">match </span>start.len() {
+            <span class="number">2 </span>=&gt; Utf8Sequence::Two([
+                Utf8Range::new(start[<span class="number">0</span>], end[<span class="number">0</span>]),
+                Utf8Range::new(start[<span class="number">1</span>], end[<span class="number">1</span>]),
             ]),
-            <span class="number">3 </span>=&gt; <a href="#106">Utf8Sequence::Three</a>([
-                Utf8Range::new(<a href="#116">start</a>[<span class="number">0</span>], <a href="#116">end</a>[<span class="number">0</span>]),
-                Utf8Range::new(<a href="#116">start</a>[<span class="number">1</span>], <a href="#116">end</a>[<span class="number">1</span>]),
-                Utf8Range::new(<a href="#116">start</a>[<span class="number">2</span>], <a href="#116">end</a>[<span class="number">2</span>]),
+            <span class="number">3 </span>=&gt; Utf8Sequence::Three([
+                Utf8Range::new(start[<span class="number">0</span>], end[<span class="number">0</span>]),
+                Utf8Range::new(start[<span class="number">1</span>], end[<span class="number">1</span>]),
+                Utf8Range::new(start[<span class="number">2</span>], end[<span class="number">2</span>]),
             ]),
-            <span class="number">4 </span>=&gt; <a href="#108">Utf8Sequence::Four</a>([
-                Utf8Range::new(<a href="#116">start</a>[<span class="number">0</span>], <a href="#116">end</a>[<span class="number">0</span>]),
-                Utf8Range::new(<a href="#116">start</a>[<span class="number">1</span>], <a href="#116">end</a>[<span class="number">1</span>]),
-                Utf8Range::new(<a href="#116">start</a>[<span class="number">2</span>], <a href="#116">end</a>[<span class="number">2</span>]),
-                Utf8Range::new(<a href="#116">start</a>[<span class="number">3</span>], <a href="#116">end</a>[<span class="number">3</span>]),
+            <span class="number">4 </span>=&gt; Utf8Sequence::Four([
+                Utf8Range::new(start[<span class="number">0</span>], end[<span class="number">0</span>]),
+                Utf8Range::new(start[<span class="number">1</span>], end[<span class="number">1</span>]),
+                Utf8Range::new(start[<span class="number">2</span>], end[<span class="number">2</span>]),
+                Utf8Range::new(start[<span class="number">3</span>], end[<span class="number">3</span>]),
             ]),
-            n =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(<span class="string">&quot;invalid encoded length: {}&quot;</span>, n),
+            n =&gt; <span class="macro">unreachable!</span>(<span class="string">&quot;invalid encoded length: {}&quot;</span>, n),
         }
     }
 
     <span class="doccomment">/// Returns the underlying sequence of byte ranges as a slice.
-    </span><span class="kw">pub fn </span>as_slice(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[<a href="#221">Utf8Range</a>] {
-        <span class="kw">use </span><a href="#100"><span class="self">self</span>::Utf8Sequence</a>::<span class="kw-2">*</span>;
-        <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="#139">self</a> </span>{
-            <a href="#102">One</a>(<span class="kw-2">ref </span>r) =&gt; slice::from_ref(<a href="#142">r</a>),
-            <a href="#104">Two</a>(<span class="kw-2">ref </span>r) =&gt; <span class="kw-2">&amp;</span><a href="#143">r</a>[..],
-            <a href="#106">Three</a>(<span class="kw-2">ref </span>r) =&gt; <span class="kw-2">&amp;</span><a href="#144">r</a>[..],
-            <a href="#108">Four</a>(<span class="kw-2">ref </span>r) =&gt; <span class="kw-2">&amp;</span><a href="#145">r</a>[..],
+    </span><span class="kw">pub fn </span>as_slice(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[Utf8Range] {
+        <span class="kw">use </span><span class="self">self</span>::Utf8Sequence::<span class="kw-2">*</span>;
+        <span class="kw">match </span><span class="kw-2">*</span><span class="self">self </span>{
+            One(<span class="kw-2">ref </span>r) =&gt; slice::from_ref(r),
+            Two(<span class="kw-2">ref </span>r) =&gt; <span class="kw-2">&amp;</span>r[..],
+            Three(<span class="kw-2">ref </span>r) =&gt; <span class="kw-2">&amp;</span>r[..],
+            Four(<span class="kw-2">ref </span>r) =&gt; <span class="kw-2">&amp;</span>r[..],
         }
     }
 
     <span class="doccomment">/// Returns the number of byte ranges in this sequence.
     ///
     /// The length is guaranteed to be in the closed interval `[1, 4]`.
-    </span><span class="kw">pub fn </span>len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="self" href="#152">self</a>.<a href="#139">as_slice</a>().len()
+    </span><span class="kw">pub fn </span>len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+        <span class="self">self</span>.as_slice().len()
     }
 
     <span class="doccomment">/// Reverses the ranges in this sequence.
@@ -757,17 +757,17 @@ which uses it for executing automata on their term index.
     /// This is useful when one is constructing a UTF-8 automaton to match
     /// character classes in reverse.
     </span><span class="kw">pub fn </span>reverse(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="#172">self</a> </span>{
-            <a href="#102">Utf8Sequence::One</a>(<span class="kw">_</span>) =&gt; {}
-            <a href="#104">Utf8Sequence::Two</a>(<span class="kw-2">ref mut </span>x) =&gt; <a href="#175">x</a>.reverse(),
-            <a href="#106">Utf8Sequence::Three</a>(<span class="kw-2">ref mut </span>x) =&gt; <a href="#176">x</a>.reverse(),
-            <a href="#108">Utf8Sequence::Four</a>(<span class="kw-2">ref mut </span>x) =&gt; <a href="#177">x</a>.reverse(),
+        <span class="kw">match </span><span class="kw-2">*</span><span class="self">self </span>{
+            Utf8Sequence::One(<span class="kw">_</span>) =&gt; {}
+            Utf8Sequence::Two(<span class="kw-2">ref mut </span>x) =&gt; x.reverse(),
+            Utf8Sequence::Three(<span class="kw-2">ref mut </span>x) =&gt; x.reverse(),
+            Utf8Sequence::Four(<span class="kw-2">ref mut </span>x) =&gt; x.reverse(),
         }
     }
 
     <span class="doccomment">/// Returns true if and only if a prefix of `bytes` matches this sequence
     /// of byte ranges.
-    </span><span class="kw">pub fn </span>matches(<span class="kw-2">&amp;</span><span class="self">self</span>, bytes: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+    </span><span class="kw">pub fn </span>matches(<span class="kw-2">&amp;</span><span class="self">self</span>, bytes: <span class="kw-2">&amp;</span>[u8]) -&gt; bool {
         <span class="kw">if </span>bytes.len() &lt; <span class="self">self</span>.len() {
             <span class="kw">return </span><span class="bool-val">false</span>;
         }
@@ -780,24 +780,24 @@ which uses it for executing automata on their term index.
     </span>}
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">IntoIterator</a> <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="#100">Utf8Sequence</a> {
-    <span class="kw">type </span>IntoIter = slice::Iter&lt;<span class="lifetime">&#39;a</span>, <a href="#221">Utf8Range</a>&gt;;
-    <span class="kw">type </span>Item = <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="#221">Utf8Range</a>;
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; IntoIterator <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Utf8Sequence {
+    <span class="kw">type </span>IntoIter = slice::Iter&lt;<span class="lifetime">&#39;a</span>, Utf8Range&gt;;
+    <span class="kw">type </span>Item = <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Utf8Range;
 
     <span class="kw">fn </span>into_iter(<span class="self">self</span>) -&gt; <span class="self">Self</span>::IntoIter {
-        <a class="self" href="#200">self</a>.<a href="#139">as_slice</a>().iter()
+        <span class="self">self</span>.as_slice().iter()
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="#100">Utf8Sequence</a> {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <span class="kw">use </span><a href="#100"><span class="self">self</span>::Utf8Sequence</a>::<span class="kw-2">*</span>;
-        <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="#206">self</a> </span>{
-            <a href="#102">One</a>(<span class="kw-2">ref </span>r) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#206">f</a>, <span class="string">&quot;{:?}&quot;</span>, r),
-            <a href="#104">Two</a>(<span class="kw-2">ref </span>r) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#206">f</a>, <span class="string">&quot;{:?}{:?}&quot;</span>, r[<span class="number">0</span>], r[<span class="number">1</span>]),
-            <a href="#106">Three</a>(<span class="kw-2">ref </span>r) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#206">f</a>, <span class="string">&quot;{:?}{:?}{:?}&quot;</span>, r[<span class="number">0</span>], r[<span class="number">1</span>], r[<span class="number">2</span>]),
-            <a href="#108">Four</a>(<span class="kw-2">ref </span>r) =&gt; {
-                <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#206">f</a>, <span class="string">&quot;{:?}{:?}{:?}{:?}&quot;</span>, r[<span class="number">0</span>], r[<span class="number">1</span>], r[<span class="number">2</span>], r[<span class="number">3</span>])
+<span class="kw">impl </span>fmt::Debug <span class="kw">for </span>Utf8Sequence {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        <span class="kw">use </span><span class="self">self</span>::Utf8Sequence::<span class="kw-2">*</span>;
+        <span class="kw">match </span><span class="kw-2">*</span><span class="self">self </span>{
+            One(<span class="kw-2">ref </span>r) =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;{:?}&quot;</span>, r),
+            Two(<span class="kw-2">ref </span>r) =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;{:?}{:?}&quot;</span>, r[<span class="number">0</span>], r[<span class="number">1</span>]),
+            Three(<span class="kw-2">ref </span>r) =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;{:?}{:?}{:?}&quot;</span>, r[<span class="number">0</span>], r[<span class="number">1</span>], r[<span class="number">2</span>]),
+            Four(<span class="kw-2">ref </span>r) =&gt; {
+                <span class="macro">write!</span>(f, <span class="string">&quot;{:?}{:?}{:?}{:?}&quot;</span>, r[<span class="number">0</span>], r[<span class="number">1</span>], r[<span class="number">2</span>], r[<span class="number">3</span>])
             }
         }
     }
@@ -807,28 +807,28 @@ which uses it for executing automata on their term index.
 </span><span class="attr">#[derive(Clone, Copy, Eq, PartialEq, PartialOrd, Ord)]
 </span><span class="kw">pub struct </span>Utf8Range {
     <span class="doccomment">/// Start of byte range (inclusive).
-    </span><span class="kw">pub </span>start: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>,
+    </span><span class="kw">pub </span>start: u8,
     <span class="doccomment">/// End of byte range (inclusive).
-    </span><span class="kw">pub </span>end: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>,
+    </span><span class="kw">pub </span>end: u8,
 }
 
-<span class="kw">impl </span><a href="#221">Utf8Range</a> {
-    <span class="kw">fn </span>new(start: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>, end: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) -&gt; <span class="self">Self </span>{
-        <a href="#221">Utf8Range</a> { <a href="#229">start</a>, <a href="#229">end</a> }
+<span class="kw">impl </span>Utf8Range {
+    <span class="kw">fn </span>new(start: u8, end: u8) -&gt; <span class="self">Self </span>{
+        Utf8Range { start, end }
     }
 
     <span class="doccomment">/// Returns true if and only if the given byte is in this range.
-    </span><span class="kw">pub fn </span>matches(<span class="kw-2">&amp;</span><span class="self">self</span>, b: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#234">self</a>.start &lt;= <a href="#234">b</a> &amp;&amp; <a href="#234">b</a> &lt;= <a class="self" href="#234">self</a>.end
+    </span><span class="kw">pub fn </span>matches(<span class="kw-2">&amp;</span><span class="self">self</span>, b: u8) -&gt; bool {
+        <span class="self">self</span>.start &lt;= b &amp;&amp; b &lt;= <span class="self">self</span>.end
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="#221">Utf8Range</a> {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+<span class="kw">impl </span>fmt::Debug <span class="kw">for </span>Utf8Range {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
         <span class="kw">if </span><span class="self">self</span>.start == <span class="self">self</span>.end {
-            <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#240">f</a>, <span class="string">&quot;[{:X}]&quot;</span>, <span class="self">self</span>.start)
+            <span class="macro">write!</span>(f, <span class="string">&quot;[{:X}]&quot;</span>, <span class="self">self</span>.start)
         } <span class="kw">else </span>{
-            <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#240">f</a>, <span class="string">&quot;[{:X}-{:X}]&quot;</span>, <span class="self">self</span>.start, <span class="self">self</span>.end)
+            <span class="macro">write!</span>(f, <span class="string">&quot;[{:X}-{:X}]&quot;</span>, <span class="self">self</span>.start, <span class="self">self</span>.end)
         }
     }
 }
@@ -885,16 +885,16 @@ which uses it for executing automata on their term index.
 /// always possible (for example, in a byte based automaton).
 </span><span class="attr">#[derive(Debug)]
 </span><span class="kw">pub struct </span>Utf8Sequences {
-    range_stack: Vec&lt;<a href="#328">ScalarRange</a>&gt;,
+    range_stack: Vec&lt;ScalarRange&gt;,
 }
 
-<span class="kw">impl </span><a href="#300">Utf8Sequences</a> {
+<span class="kw">impl </span>Utf8Sequences {
     <span class="doccomment">/// Create a new iterator over UTF-8 byte ranges for the scalar value range
     /// given.
-    </span><span class="kw">pub fn </span>new(start: <a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>, end: <a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>) -&gt; <span class="self">Self </span>{
-        <span class="kw">let </span><span class="kw-2">mut </span>it = <a href="#300">Utf8Sequences</a> { range_stack: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[] };
-        <a href="#308">it</a>.<a href="#323">push</a>(<a href="#307">start</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>, <a href="#307">end</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>);
-        <a href="#308">it</a>
+    </span><span class="kw">pub fn </span>new(start: char, end: char) -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span><span class="kw-2">mut </span>it = Utf8Sequences { range_stack: <span class="macro">vec!</span>[] };
+        it.push(start <span class="kw">as </span>u32, end <span class="kw">as </span>u32);
+        it
     }
 
     <span class="doccomment">/// reset resets the scalar value range.
@@ -902,29 +902,29 @@ which uses it for executing automata on their term index.
     ///
     /// N.B. Benchmarks say that this method is dubious.
     </span><span class="attr">#[doc(hidden)]
-    </span><span class="kw">pub fn </span>reset(<span class="kw-2">&amp;mut </span><span class="self">self</span>, start: <a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>, end: <a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>) {
-        <a class="self" href="#318">self</a>.range_stack.clear();
-        <a class="self" href="#318">self</a>.<a href="#323">push</a>(<a href="#318">start</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>, <a href="#318">end</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>);
+    </span><span class="kw">pub fn </span>reset(<span class="kw-2">&amp;mut </span><span class="self">self</span>, start: char, end: char) {
+        <span class="self">self</span>.range_stack.clear();
+        <span class="self">self</span>.push(start <span class="kw">as </span>u32, end <span class="kw">as </span>u32);
     }
 
-    <span class="kw">fn </span>push(<span class="kw-2">&amp;mut </span><span class="self">self</span>, start: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>, end: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) {
-        <a class="self" href="#323">self</a>.range_stack.push(<a href="#328">ScalarRange</a> { <a href="#323">start</a>, <a href="#323">end</a> });
+    <span class="kw">fn </span>push(<span class="kw-2">&amp;mut </span><span class="self">self</span>, start: u32, end: u32) {
+        <span class="self">self</span>.range_stack.push(ScalarRange { start, end });
     }
 }
 
 <span class="kw">struct </span>ScalarRange {
-    start: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>,
-    end: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>,
+    start: u32,
+    end: u32,
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="#328">ScalarRange</a> {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#334">f</a>, <span class="string">&quot;ScalarRange({:X}, {:X})&quot;</span>, <span class="self">self</span>.start, <span class="self">self</span>.end)
+<span class="kw">impl </span>fmt::Debug <span class="kw">for </span>ScalarRange {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        <span class="macro">write!</span>(f, <span class="string">&quot;ScalarRange({:X}, {:X})&quot;</span>, <span class="self">self</span>.start, <span class="self">self</span>.end)
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a> <span class="kw">for </span><a href="#300">Utf8Sequences</a> {
-    <span class="kw">type </span>Item = <a href="#100">Utf8Sequence</a>;
+<span class="kw">impl </span>Iterator <span class="kw">for </span>Utf8Sequences {
+    <span class="kw">type </span>Item = Utf8Sequence;
 
     <span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt; {
         <span class="lifetime">&#39;TOP</span>: <span class="kw">while let </span><span class="prelude-val">Some</span>(<span class="kw-2">mut </span>r) = <span class="self">self</span>.range_stack.pop() {
@@ -977,17 +977,17 @@ which uses it for executing automata on their term index.
     </span>}
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/iter/traits/marker/trait.FusedIterator.html">FusedIterator</a> <span class="kw">for </span><a href="#300">Utf8Sequences</a> {}
+<span class="kw">impl </span>FusedIterator <span class="kw">for </span>Utf8Sequences {}
 
-<span class="kw">impl </span><a href="#328">ScalarRange</a> {
+<span class="kw">impl </span>ScalarRange {
     <span class="doccomment">/// split splits this range if it overlaps with a surrogate codepoint.
     ///
     /// Either or both ranges may be invalid.
-    </span><span class="kw">fn </span>split(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;(<a href="#328">ScalarRange</a>, <a href="#328">ScalarRange</a>)&gt; {
+    </span><span class="kw">fn </span>split(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;(ScalarRange, ScalarRange)&gt; {
         <span class="kw">if </span><span class="self">self</span>.start &lt; <span class="number">0xE000 </span>&amp;&amp; <span class="self">self</span>.end &gt; <span class="number">0xD7FF </span>{
             <span class="prelude-val">Some</span>((
-                <a href="#328">ScalarRange</a> { start: <a class="self" href="#399">self</a>.start, end: <span class="number">0xD7FF </span>},
-                <a href="#328">ScalarRange</a> { start: <span class="number">0xE000</span>, end: <a class="self" href="#399">self</a>.end },
+                ScalarRange { start: <span class="self">self</span>.start, end: <span class="number">0xD7FF </span>},
+                ScalarRange { start: <span class="number">0xE000</span>, end: <span class="self">self</span>.end },
             ))
         } <span class="kw">else </span>{
             <span class="prelude-val">None
@@ -995,15 +995,15 @@ which uses it for executing automata on their term index.
     }
 
     <span class="doccomment">/// is_valid returns true if and only if start &lt;= end.
-    </span><span class="kw">fn </span>is_valid(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#411">self</a>.start &lt;= <a class="self" href="#411">self</a>.end
+    </span><span class="kw">fn </span>is_valid(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.start &lt;= <span class="self">self</span>.end
     }
 
     <span class="doccomment">/// as_ascii returns this range as a Utf8Range if and only if all scalar
     /// values in this range can be encoded as a single byte.
-    </span><span class="kw">fn </span>as_ascii(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="#221">Utf8Range</a>&gt; {
+    </span><span class="kw">fn </span>as_ascii(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Utf8Range&gt; {
         <span class="kw">if </span><span class="self">self</span>.is_ascii() {
-            <span class="prelude-val">Some</span>(Utf8Range::new(<a class="self" href="#417">self</a>.start <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>, <a class="self" href="#417">self</a>.end <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>))
+            <span class="prelude-val">Some</span>(Utf8Range::new(<span class="self">self</span>.start <span class="kw">as </span>u8, <span class="self">self</span>.end <span class="kw">as </span>u8))
         } <span class="kw">else </span>{
             <span class="prelude-val">None
         </span>}
@@ -1011,8 +1011,8 @@ which uses it for executing automata on their term index.
 
     <span class="doccomment">/// is_ascii returns true if the range is ASCII only (i.e., takes a single
     /// byte to encode any scalar value).
-    </span><span class="kw">fn </span>is_ascii(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#427">self</a>.<a href="#411">is_valid</a>() &amp;&amp; <a class="self" href="#427">self</a>.end &lt;= <span class="number">0x7f
+    </span><span class="kw">fn </span>is_ascii(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.is_valid() &amp;&amp; <span class="self">self</span>.end &lt;= <span class="number">0x7f
     </span>}
 
     <span class="doccomment">/// encode writes the UTF-8 encoding of the start and end of this range
@@ -1020,23 +1020,23 @@ which uses it for executing automata on their term index.
     /// bytes written.
     ///
     /// The slices should have room for at least `MAX_UTF8_BYTES`.
-    </span><span class="kw">fn </span>encode(<span class="kw-2">&amp;</span><span class="self">self</span>, start: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], end: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <span class="kw">let </span>cs = char::from_u32(<a class="self" href="#436">self</a>.start).unwrap();
-        <span class="kw">let </span>ce = char::from_u32(<a class="self" href="#436">self</a>.end).unwrap();
-        <span class="kw">let </span>ss = <a href="#437">cs</a>.encode_utf8(<a href="#436">start</a>);
-        <span class="kw">let </span>se = <a href="#438">ce</a>.encode_utf8(<a href="#436">end</a>);
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert_eq.html">assert_eq!</a>(ss.len(), se.len());
-        <a href="#439">ss</a>.len()
+    </span><span class="kw">fn </span>encode(<span class="kw-2">&amp;</span><span class="self">self</span>, start: <span class="kw-2">&amp;mut </span>[u8], end: <span class="kw-2">&amp;mut </span>[u8]) -&gt; usize {
+        <span class="kw">let </span>cs = char::from_u32(<span class="self">self</span>.start).unwrap();
+        <span class="kw">let </span>ce = char::from_u32(<span class="self">self</span>.end).unwrap();
+        <span class="kw">let </span>ss = cs.encode_utf8(start);
+        <span class="kw">let </span>se = ce.encode_utf8(end);
+        <span class="macro">assert_eq!</span>(ss.len(), se.len());
+        ss.len()
     }
 }
 
-<span class="kw">fn </span>max_scalar_value(nbytes: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
-    <span class="kw">match </span><a href="#446">nbytes</a> {
+<span class="kw">fn </span>max_scalar_value(nbytes: usize) -&gt; u32 {
+    <span class="kw">match </span>nbytes {
         <span class="number">1 </span>=&gt; <span class="number">0x007F</span>,
         <span class="number">2 </span>=&gt; <span class="number">0x07FF</span>,
         <span class="number">3 </span>=&gt; <span class="number">0xFFFF</span>,
         <span class="number">4 </span>=&gt; <span class="number">0x0010_FFFF</span>,
-        <span class="kw">_ </span>=&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(<span class="string">&quot;invalid UTF-8 byte sequence size&quot;</span>),
+        <span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>(<span class="string">&quot;invalid UTF-8 byte sequence size&quot;</span>),
     }
 }
 
@@ -1173,4 +1173,4 @@ which uses it for executing automata on their term index.
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="regex_syntax" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="regex_syntax" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

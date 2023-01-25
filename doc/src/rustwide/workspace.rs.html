@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/rustwide-0.15.2/src/workspace.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>workspace.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../rustwide/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/rustwide-0.15.2/src/workspace.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>workspace.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../rustwide/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -332,56 +332,56 @@
 <a href="#332" id="332">332</a>
 <a href="#333" id="333">333</a>
 <a href="#334" id="334">334</a>
-</pre><pre class="rust"><code><span class="kw">use </span><a href="build.rs.html#32"><span class="kw">crate</span>::build::BuildDirectory</a>;
-<span class="kw">use </span><span class="kw">crate</span>::cmd::{<a href="cmd/mod.rs.html#193">Command</a>, <a href="cmd/sandbox.rs.html#11">SandboxImage</a>};
-<span class="kw">use </span><a href="inside_docker.rs.html#9"><span class="kw">crate</span>::inside_docker::CurrentContainer</a>;
-<span class="kw">use </span><a href="toolchain.rs.html#169"><span class="kw">crate</span>::Toolchain</a>;
-<span class="kw">use </span>failure::{<a href="../../failure/error/struct.Error.html">Error</a>, <a href="../../failure/result_ext/trait.ResultExt.html">ResultExt</a>};
-<span class="kw">use </span><a href="../../log/macro.info.html">log::info</a>;
-<span class="kw">use </span>std::path::{<a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>, <a href="https://doc.rust-lang.org/nightly/std/path/struct.PathBuf.html">PathBuf</a>};
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/sync/struct.Arc.html">std::sync::Arc</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">std::time::Duration</a>;
+</pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::build::BuildDirectory;
+<span class="kw">use </span><span class="kw">crate</span>::cmd::{Command, SandboxImage};
+<span class="kw">use </span><span class="kw">crate</span>::inside_docker::CurrentContainer;
+<span class="kw">use </span><span class="kw">crate</span>::Toolchain;
+<span class="kw">use </span>failure::{Error, ResultExt};
+<span class="kw">use </span>log::info;
+<span class="kw">use </span>std::path::{Path, PathBuf};
+<span class="kw">use </span>std::sync::Arc;
+<span class="kw">use </span>std::time::Duration;
 
 <span class="attr">#[cfg(windows)]
 </span><span class="kw">static </span>DEFAULT_SANDBOX_IMAGE: <span class="kw-2">&amp;</span>str = <span class="string">&quot;rustops/crates-build-env-windows&quot;</span>;
 
 <span class="attr">#[cfg(not(windows))]
-</span><span class="kw">static </span>DEFAULT_SANDBOX_IMAGE: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> = <span class="string">&quot;ghcr.io/rust-lang/crates-build-env/linux&quot;</span>;
+</span><span class="kw">static </span>DEFAULT_SANDBOX_IMAGE: <span class="kw-2">&amp;</span>str = <span class="string">&quot;ghcr.io/rust-lang/crates-build-env/linux&quot;</span>;
 
-<span class="kw">const </span>DEFAULT_COMMAND_TIMEOUT: <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a>&gt; = <span class="prelude-val">Some</span>(Duration::from_secs(<span class="number">15 </span>* <span class="number">60</span>));
-<span class="kw">const </span>DEFAULT_COMMAND_NO_OUTPUT_TIMEOUT: <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a>&gt; = <span class="prelude-val">None</span>;
+<span class="kw">const </span>DEFAULT_COMMAND_TIMEOUT: <span class="prelude-ty">Option</span>&lt;Duration&gt; = <span class="prelude-val">Some</span>(Duration::from_secs(<span class="number">15 </span>* <span class="number">60</span>));
+<span class="kw">const </span>DEFAULT_COMMAND_NO_OUTPUT_TIMEOUT: <span class="prelude-ty">Option</span>&lt;Duration&gt; = <span class="prelude-val">None</span>;
 
-<span class="kw">static </span>DEFAULT_RUSTUP_PROFILE: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> = <span class="string">&quot;minimal&quot;</span>;
+<span class="kw">static </span>DEFAULT_RUSTUP_PROFILE: <span class="kw-2">&amp;</span>str = <span class="string">&quot;minimal&quot;</span>;
 
 <span class="doccomment">/// Builder of a [`Workspace`](struct.Workspace.html).
 </span><span class="kw">pub struct </span>WorkspaceBuilder {
-    user_agent: <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>,
-    path: <a href="https://doc.rust-lang.org/nightly/std/path/struct.PathBuf.html">PathBuf</a>,
-    sandbox_image: <span class="prelude-ty">Option</span>&lt;<a href="cmd/sandbox.rs.html#11">SandboxImage</a>&gt;,
-    command_timeout: <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a>&gt;,
-    command_no_output_timeout: <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a>&gt;,
-    fetch_registry_index_during_builds: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-    running_inside_docker: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-    fast_init: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-    rustup_profile: <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>,
+    user_agent: String,
+    path: PathBuf,
+    sandbox_image: <span class="prelude-ty">Option</span>&lt;SandboxImage&gt;,
+    command_timeout: <span class="prelude-ty">Option</span>&lt;Duration&gt;,
+    command_no_output_timeout: <span class="prelude-ty">Option</span>&lt;Duration&gt;,
+    fetch_registry_index_during_builds: bool,
+    running_inside_docker: bool,
+    fast_init: bool,
+    rustup_profile: String,
 }
 
-<span class="kw">impl </span><a href="#23">WorkspaceBuilder</a> {
+<span class="kw">impl </span>WorkspaceBuilder {
     <span class="doccomment">/// Create a new builder.
     ///
     /// The provided path will be the home of the workspace, containing all the data generated by
     /// rustwide (including state and caches).
-    </span><span class="kw">pub fn </span>new(path: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>, user_agent: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub fn </span>new(path: <span class="kw-2">&amp;</span>Path, user_agent: <span class="kw-2">&amp;</span>str) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
-            user_agent: <a href="#40">user_agent</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
-            path: <a href="#40">path</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
+            user_agent: user_agent.into(),
+            path: path.into(),
             sandbox_image: <span class="prelude-val">None</span>,
-            command_timeout: <a href="#17">DEFAULT_COMMAND_TIMEOUT</a>,
-            command_no_output_timeout: <a href="#18">DEFAULT_COMMAND_NO_OUTPUT_TIMEOUT</a>,
+            command_timeout: DEFAULT_COMMAND_TIMEOUT,
+            command_no_output_timeout: DEFAULT_COMMAND_NO_OUTPUT_TIMEOUT,
             fetch_registry_index_during_builds: <span class="bool-val">true</span>,
             running_inside_docker: <span class="bool-val">false</span>,
             fast_init: <span class="bool-val">false</span>,
-            rustup_profile: <a href="#20">DEFAULT_RUSTUP_PROFILE</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
+            rustup_profile: DEFAULT_RUSTUP_PROFILE.into(),
         }
     }
 
@@ -393,26 +393,26 @@
     ///
     /// [ghcr.io/rust-lang/crates-build-env/linux-micro]: https://github.com/orgs/rust-lang/packages/container/package/crates-build-env/linux-micro
     /// [rustops/crates-build-env-windows]: https://hub.docker.com/r/rustops/crates-build-env-windows
-    </span><span class="kw">pub fn </span>sandbox_image(<span class="kw-2">mut </span><span class="self">self</span>, image: <a href="cmd/sandbox.rs.html#11">SandboxImage</a>) -&gt; <span class="self">Self </span>{
-        <a class="self" href="#62">self</a>.sandbox_image = <span class="prelude-val">Some</span>(<a href="#62">image</a>);
-        <span class="self"><a href="#62">self</a>
+    </span><span class="kw">pub fn </span>sandbox_image(<span class="kw-2">mut </span><span class="self">self</span>, image: SandboxImage) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.sandbox_image = <span class="prelude-val">Some</span>(image);
+        <span class="self">self
     </span>}
 
     <span class="doccomment">/// Set the default timeout of [`Command`](cmd/struct.Command.html), which can be overridden
     /// with the [`Command::timeout`](cmd/struct.Command.html#method.timeout) method. To disable
     /// the timeout set its value to `None`. By default the timeout is 15 minutes.
-    </span><span class="kw">pub fn </span>command_timeout(<span class="kw-2">mut </span><span class="self">self</span>, timeout: <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a>&gt;) -&gt; <span class="self">Self </span>{
-        <a class="self" href="#70">self</a>.command_timeout = <a href="#70">timeout</a>;
-        <span class="self"><a href="#70">self</a>
+    </span><span class="kw">pub fn </span>command_timeout(<span class="kw-2">mut </span><span class="self">self</span>, timeout: <span class="prelude-ty">Option</span>&lt;Duration&gt;) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.command_timeout = timeout;
+        <span class="self">self
     </span>}
 
     <span class="doccomment">/// Set the default no output timeout of [`Command`](cmd/struct.Command.html), which can be
     /// overridden with the
     /// [`Command::no_output_timeout`](cmd/struct.Command.html#method.no_output_timeout) method. To
     /// disable the timeout set its value to `None`. By default it&#39;s disabled.
-    </span><span class="kw">pub fn </span>command_no_output_timeout(<span class="kw-2">mut </span><span class="self">self</span>, timeout: <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a>&gt;) -&gt; <span class="self">Self </span>{
-        <a class="self" href="#79">self</a>.command_no_output_timeout = <a href="#79">timeout</a>;
-        <span class="self"><a href="#79">self</a>
+    </span><span class="kw">pub fn </span>command_no_output_timeout(<span class="kw-2">mut </span><span class="self">self</span>, timeout: <span class="prelude-ty">Option</span>&lt;Duration&gt;) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.command_no_output_timeout = timeout;
+        <span class="self">self
     </span>}
 
     <span class="doccomment">/// Enable or disable fast workspace initialization (disabled by default).
@@ -422,9 +422,9 @@
     /// needs in debug mode instead of release mode. It&#39;s not recommended to enable fast workspace
     /// initialization with production workloads, but it can help in CIs or other automated testing
     /// scenarios.
-    </span><span class="kw">pub fn </span>fast_init(<span class="kw-2">mut </span><span class="self">self</span>, enable: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="self">Self </span>{
-        <a class="self" href="#91">self</a>.fast_init = <a href="#91">enable</a>;
-        <span class="self"><a href="#91">self</a>
+    </span><span class="kw">pub fn </span>fast_init(<span class="kw-2">mut </span><span class="self">self</span>, enable: bool) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.fast_init = enable;
+        <span class="self">self
     </span>}
 
     <span class="doccomment">/// Enable or disable fetching the registry&#39;s index during each build (enabled by default).
@@ -436,9 +436,9 @@
     /// index.
     </span><span class="attr">#[cfg(any(feature = <span class="string">&quot;unstable&quot;</span>, doc))]
     #[cfg_attr(docs_rs, doc(cfg(feature = <span class="string">&quot;unstable&quot;</span>)))]
-    </span><span class="kw">pub fn </span>fetch_registry_index_during_builds(<span class="kw-2">mut </span><span class="self">self</span>, enable: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="self">Self </span>{
-        <a class="self" href="#105">self</a>.fetch_registry_index_during_builds = <a href="#105">enable</a>;
-        <span class="self"><a href="#105">self</a>
+    </span><span class="kw">pub fn </span>fetch_registry_index_during_builds(<span class="kw-2">mut </span><span class="self">self</span>, enable: bool) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.fetch_registry_index_during_builds = enable;
+        <span class="self">self
     </span>}
 
     <span class="doccomment">/// Enable or disable support for running Rustwide itself inside Docker (disabled by default).
@@ -455,20 +455,20 @@
     /// * The workspace directory must be either mounted from the host system or in a child
     ///   directory of a mount from the host system. Workspaces created inside the container are
     ///   not supported.
-    </span><span class="kw">pub fn </span>running_inside_docker(<span class="kw-2">mut </span><span class="self">self</span>, inside: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="self">Self </span>{
-        <a class="self" href="#124">self</a>.running_inside_docker = <a href="#124">inside</a>;
-        <span class="self"><a href="#124">self</a>
+    </span><span class="kw">pub fn </span>running_inside_docker(<span class="kw-2">mut </span><span class="self">self</span>, inside: bool) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.running_inside_docker = inside;
+        <span class="self">self
     </span>}
 
     <span class="doccomment">/// Name of the rustup profile used when installing toolchains. The default is `minimal`.
-    </span><span class="kw">pub fn </span>rustup_profile(<span class="kw-2">mut </span><span class="self">self</span>, profile: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="self">Self </span>{
-        <a class="self" href="#130">self</a>.rustup_profile = <a href="#130">profile</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>();
-        <span class="self"><a href="#130">self</a>
+    </span><span class="kw">pub fn </span>rustup_profile(<span class="kw-2">mut </span><span class="self">self</span>, profile: <span class="kw-2">&amp;</span>str) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.rustup_profile = profile.into();
+        <span class="self">self
     </span>}
 
     <span class="doccomment">/// Initialize the workspace. This will create all the necessary local files and fetch the rest from the network. It&#39;s
     /// not unexpected for this method to take minutes to run on slower network connections.
-    </span><span class="kw">pub fn </span>init(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#193">Workspace</a>, <a href="../../failure/error/struct.Error.html">Error</a>&gt; {
+    </span><span class="kw">pub fn </span>init(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;Workspace, Error&gt; {
         std::fs::create_dir_all(<span class="kw-2">&amp;</span><span class="self">self</span>.path).with_context(|<span class="kw">_</span>| {
             <span class="macro">format!</span>(
                 <span class="string">&quot;failed to create workspace directory: {}&quot;</span>,
@@ -476,72 +476,72 @@
             )
         })<span class="question-mark">?</span>;
 
-        <a href="utils.rs.html#24-28"><span class="kw">crate</span>::utils::file_lock</a>(<span class="kw-2">&amp;</span><a class="self" href="#137">self</a>.path.join(<span class="string">&quot;lock&quot;</span>), <span class="string">&quot;initialize the workspace&quot;</span>, || {
-            <span class="kw">let </span>sandbox_image = <span class="kw">if let </span><span class="prelude-val">Some</span>(img) = <a class="self" href="#137">self</a>.sandbox_image {
-                <a href="#146">img</a>
+        <span class="kw">crate</span>::utils::file_lock(<span class="kw-2">&amp;</span><span class="self">self</span>.path.join(<span class="string">&quot;lock&quot;</span>), <span class="string">&quot;initialize the workspace&quot;</span>, || {
+            <span class="kw">let </span>sandbox_image = <span class="kw">if let </span><span class="prelude-val">Some</span>(img) = <span class="self">self</span>.sandbox_image {
+                img
             } <span class="kw">else </span>{
                 SandboxImage::remote(DEFAULT_SANDBOX_IMAGE)<span class="question-mark">?
             </span>};
 
             <span class="kw">let </span><span class="kw-2">mut </span>agent = attohttpc::Session::new();
-            <a href="#152">agent</a>.header(http::header::USER_AGENT, <a class="self" href="#137">self</a>.user_agent);
+            agent.header(http::header::USER_AGENT, <span class="self">self</span>.user_agent);
 
-            <span class="kw">let </span><span class="kw-2">mut </span>ws = <a href="#193">Workspace</a> {
-                inner: Arc::new(<a href="#179">WorkspaceInner</a> {
-                    http: <a href="#152">agent</a>,
-                    path: <a class="self" href="#137">self</a>.path,
-                    <a href="#146">sandbox_image</a>,
-                    command_timeout: <a class="self" href="#137">self</a>.command_timeout,
-                    command_no_output_timeout: <a class="self" href="#137">self</a>.command_no_output_timeout,
-                    fetch_registry_index_during_builds: <a class="self" href="#137">self</a>.fetch_registry_index_during_builds,
+            <span class="kw">let </span><span class="kw-2">mut </span>ws = Workspace {
+                inner: Arc::new(WorkspaceInner {
+                    http: agent,
+                    path: <span class="self">self</span>.path,
+                    sandbox_image,
+                    command_timeout: <span class="self">self</span>.command_timeout,
+                    command_no_output_timeout: <span class="self">self</span>.command_no_output_timeout,
+                    fetch_registry_index_during_builds: <span class="self">self</span>.fetch_registry_index_during_builds,
                     current_container: <span class="prelude-val">None</span>,
-                    rustup_profile: <a class="self" href="#137">self</a>.rustup_profile,
+                    rustup_profile: <span class="self">self</span>.rustup_profile,
                 }),
             };
 
             <span class="kw">if </span><span class="self">self</span>.running_inside_docker {
                 <span class="kw">let </span>container = CurrentContainer::detect(<span class="kw-2">&amp;</span>ws)<span class="question-mark">?</span>;
-                Arc::get_mut(<span class="kw-2">&amp;mut </span><a href="#155">ws</a>.inner).unwrap().current_container = <a href="#169">container</a>;
+                Arc::get_mut(<span class="kw-2">&amp;mut </span>ws.inner).unwrap().current_container = container;
             }
 
             ws.init(<span class="self">self</span>.fast_init)<span class="question-mark">?</span>;
-            <span class="prelude-val">Ok</span>(<a href="#155">ws</a>)
+            <span class="prelude-val">Ok</span>(ws)
         })
     }
 }
 
 <span class="kw">struct </span>WorkspaceInner {
-    http: <a href="../../attohttpc/request/session/struct.Session.html">attohttpc::Session</a>,
-    path: <a href="https://doc.rust-lang.org/nightly/std/path/struct.PathBuf.html">PathBuf</a>,
-    sandbox_image: <a href="cmd/sandbox.rs.html#11">SandboxImage</a>,
-    command_timeout: <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a>&gt;,
-    command_no_output_timeout: <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a>&gt;,
-    fetch_registry_index_during_builds: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-    current_container: <span class="prelude-ty">Option</span>&lt;<a href="inside_docker.rs.html#9">CurrentContainer</a>&gt;,
-    rustup_profile: <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>,
+    http: attohttpc::Session,
+    path: PathBuf,
+    sandbox_image: SandboxImage,
+    command_timeout: <span class="prelude-ty">Option</span>&lt;Duration&gt;,
+    command_no_output_timeout: <span class="prelude-ty">Option</span>&lt;Duration&gt;,
+    fetch_registry_index_during_builds: bool,
+    current_container: <span class="prelude-ty">Option</span>&lt;CurrentContainer&gt;,
+    rustup_profile: String,
 }
 
 <span class="doccomment">/// Directory on the filesystem containing rustwide&#39;s state and caches.
 ///
 /// Use [`WorkspaceBuilder`](struct.WorkspaceBuilder.html) to create a new instance of it.
 </span><span class="kw">pub struct </span>Workspace {
-    inner: Arc&lt;<a href="#179">WorkspaceInner</a>&gt;,
+    inner: Arc&lt;WorkspaceInner&gt;,
 }
 
-<span class="kw">impl </span><a href="#193">Workspace</a> {
+<span class="kw">impl </span>Workspace {
     <span class="doccomment">/// Open a named build directory inside the workspace.
-    </span><span class="kw">pub fn </span>build_dir(<span class="kw-2">&amp;</span><span class="self">self</span>, name: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <a href="build.rs.html#32">BuildDirectory</a> {
+    </span><span class="kw">pub fn </span>build_dir(<span class="kw-2">&amp;</span><span class="self">self</span>, name: <span class="kw-2">&amp;</span>str) -&gt; BuildDirectory {
         BuildDirectory::new(
-            <a href="#193">Workspace</a> {
-                inner: <a class="self" href="#199">self</a>.inner.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+            Workspace {
+                inner: <span class="self">self</span>.inner.clone(),
             },
-            <a href="#199">name</a>,
+            name,
         )
     }
 
     <span class="doccomment">/// Remove all the contents of all the build directories, freeing disk space.
-    </span><span class="kw">pub fn </span>purge_all_build_dirs(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../failure/error/struct.Error.html">Error</a>&gt; {
-        <span class="kw">let </span>dir = <a class="self" href="#209">self</a>.<a href="#282">builds_dir</a>();
+    </span><span class="kw">pub fn </span>purge_all_build_dirs(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
+        <span class="kw">let </span>dir = <span class="self">self</span>.builds_dir();
         <span class="kw">if </span>dir.exists() {
             <span class="kw">crate</span>::utils::remove_dir_all(<span class="kw-2">&amp;</span>dir)<span class="question-mark">?</span>;
         }
@@ -549,8 +549,8 @@
     }
 
     <span class="doccomment">/// Remove all the contents of the caches in the workspace, freeing disk space.
-    </span><span class="kw">pub fn </span>purge_all_caches(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../failure/error/struct.Error.html">Error</a>&gt; {
-        <span class="kw">let </span><span class="kw-2">mut </span>paths = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[
+    </span><span class="kw">pub fn </span>purge_all_caches(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>paths = <span class="macro">vec!</span>[
             <span class="self">self</span>.cache_dir(),
             <span class="self">self</span>.cargo_home().join(<span class="string">&quot;git&quot;</span>),
             <span class="self">self</span>.cargo_home().join(<span class="string">&quot;registry&quot;</span>).join(<span class="string">&quot;src&quot;</span>),
@@ -593,78 +593,78 @@
     /// # Ok(())
     /// # }
     /// ```
-    </span><span class="kw">pub fn </span>installed_toolchains(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;<a href="toolchain.rs.html#169">Toolchain</a>&gt;, <a href="../../failure/error/struct.Error.html">Error</a>&gt; {
-        <a href="toolchain.rs.html#525"><span class="kw">crate</span>::toolchain::list_installed_toolchains</a>(<span class="kw-2">&amp;</span><a class="self" href="#262">self</a>.<a href="#274">rustup_home</a>())
+    </span><span class="kw">pub fn </span>installed_toolchains(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;Toolchain&gt;, Error&gt; {
+        <span class="kw">crate</span>::toolchain::list_installed_toolchains(<span class="kw-2">&amp;</span><span class="self">self</span>.rustup_home())
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>http_client(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="../../attohttpc/request/session/struct.Session.html">attohttpc::Session</a> {
-        <span class="kw-2">&amp;</span><a class="self" href="#266">self</a>.inner.http
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>http_client(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>attohttpc::Session {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.inner.http
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>cargo_home(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/path/struct.PathBuf.html">PathBuf</a> {
-        <a class="self" href="#270">self</a>.inner.path.join(<span class="string">&quot;cargo-home&quot;</span>)
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>cargo_home(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; PathBuf {
+        <span class="self">self</span>.inner.path.join(<span class="string">&quot;cargo-home&quot;</span>)
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>rustup_home(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/path/struct.PathBuf.html">PathBuf</a> {
-        <a class="self" href="#274">self</a>.inner.path.join(<span class="string">&quot;rustup-home&quot;</span>)
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>rustup_home(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; PathBuf {
+        <span class="self">self</span>.inner.path.join(<span class="string">&quot;rustup-home&quot;</span>)
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>cache_dir(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/path/struct.PathBuf.html">PathBuf</a> {
-        <a class="self" href="#278">self</a>.inner.path.join(<span class="string">&quot;cache&quot;</span>)
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>cache_dir(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; PathBuf {
+        <span class="self">self</span>.inner.path.join(<span class="string">&quot;cache&quot;</span>)
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>builds_dir(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/path/struct.PathBuf.html">PathBuf</a> {
-        <a class="self" href="#282">self</a>.inner.path.join(<span class="string">&quot;builds&quot;</span>)
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>builds_dir(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; PathBuf {
+        <span class="self">self</span>.inner.path.join(<span class="string">&quot;builds&quot;</span>)
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>sandbox_image(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="cmd/sandbox.rs.html#11">SandboxImage</a> {
-        <span class="kw-2">&amp;</span><a class="self" href="#286">self</a>.inner.sandbox_image
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>sandbox_image(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>SandboxImage {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.inner.sandbox_image
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>default_command_timeout(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a>&gt; {
-        <a class="self" href="#290">self</a>.inner.command_timeout
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>default_command_timeout(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Duration&gt; {
+        <span class="self">self</span>.inner.command_timeout
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>default_command_no_output_timeout(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a>&gt; {
-        <a class="self" href="#294">self</a>.inner.command_no_output_timeout
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>default_command_no_output_timeout(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Duration&gt; {
+        <span class="self">self</span>.inner.command_no_output_timeout
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>fetch_registry_index_during_builds(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#298">self</a>.inner.fetch_registry_index_during_builds
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>fetch_registry_index_during_builds(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.inner.fetch_registry_index_during_builds
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>current_container(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="inside_docker.rs.html#9">CurrentContainer</a>&gt; {
-        <a class="self" href="#302">self</a>.inner.current_container.as_ref()
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>current_container(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>CurrentContainer&gt; {
+        <span class="self">self</span>.inner.current_container.as_ref()
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>rustup_profile(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> {
-        <span class="kw-2">&amp;</span><a class="self" href="#306">self</a>.inner.rustup_profile
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>rustup_profile(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>str {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.inner.rustup_profile
     }
 
-    <span class="kw">fn </span>init(<span class="kw-2">&amp;</span><span class="self">self</span>, fast_init: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../failure/error/struct.Error.html">Error</a>&gt; {
-        <a class="macro" href="../../log/macro.info.html">info!</a>(<span class="string">&quot;installing tools required by rustwide&quot;</span>);
+    <span class="kw">fn </span>init(<span class="kw-2">&amp;</span><span class="self">self</span>, fast_init: bool) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
+        <span class="macro">info!</span>(<span class="string">&quot;installing tools required by rustwide&quot;</span>);
         <span class="kw">crate</span>::tools::install(<span class="self">self</span>, fast_init)<span class="question-mark">?</span>;
         <span class="kw">if </span>!<span class="self">self</span>.fetch_registry_index_during_builds() {
-            <a class="macro" href="../../log/macro.info.html">info!</a>(<span class="string">&quot;updating the local crates.io registry clone&quot;</span>);
+            <span class="macro">info!</span>(<span class="string">&quot;updating the local crates.io registry clone&quot;</span>);
             <span class="self">self</span>.update_cratesio_registry()<span class="question-mark">?</span>;
         }
         <span class="prelude-val">Ok</span>(())
     }
 
     <span class="attr">#[allow(clippy::unnecessary_wraps)] </span><span class="comment">// hopefully we could actually catch the error here at some point
-    </span><span class="kw">fn </span>update_cratesio_registry(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../failure/error/struct.Error.html">Error</a>&gt; {
+    </span><span class="kw">fn </span>update_cratesio_registry(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
         <span class="comment">// This nop cargo command is to update the registry so we don&#39;t have to do it for each
         // crate.  using `install` is a temporary solution until
         // https://github.com/rust-lang/cargo/pull/5961 is ready
 
-        </span><span class="kw">let _ </span>= Command::new(<a class="self" href="#321">self</a>, Toolchain::MAIN.<a href="toolchain.rs.html#445">cargo</a>())
-            .<a href="cmd/mod.rs.html#260">args</a>(<span class="kw-2">&amp;</span>[<span class="string">&quot;install&quot;</span>, <span class="string">&quot;lazy_static&quot;</span>])
-            .<a href="cmd/mod.rs.html#295">no_output_timeout</a>(<span class="prelude-val">None</span>)
-            .<a href="cmd/mod.rs.html#348">run</a>();
+        </span><span class="kw">let _ </span>= Command::new(<span class="self">self</span>, Toolchain::MAIN.cargo())
+            .args(<span class="kw-2">&amp;</span>[<span class="string">&quot;install&quot;</span>, <span class="string">&quot;lazy_static&quot;</span>])
+            .no_output_timeout(<span class="prelude-val">None</span>)
+            .run();
 
         <span class="comment">// ignore the error untill https://github.com/rust-lang/cargo/pull/5961 is ready
         </span><span class="prelude-val">Ok</span>(())
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="rustwide" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="rustwide" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `analysis/src/pointwise_state.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>pointwise_state.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../analysis/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `analysis/src/pointwise_state.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>pointwise_state.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../analysis/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -177,37 +177,37 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-</span><span class="kw">use </span>prusti_rustc_interface::{<a href="../../rustc_hash/type.FxHashMap.html">data_structures::fx::FxHashMap</a>, <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/index.html">middle::mir</a>};
-<span class="kw">use </span>serde::{<a href="../../serde/ser/trait.SerializeMap.html">ser::SerializeMap</a>, <a href="../../serde_derive/derive.Serialize.html">Serialize</a>, <a href="../../serde/ser/trait.Serializer.html">Serializer</a>};
-<span class="kw">use </span>std::{<a href="https://doc.rust-lang.org/nightly/alloc/collections/btree/map/struct.BTreeMap.html">collections::BTreeMap</a>, <a href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">fmt</a>};
+</span><span class="kw">use </span>prusti_rustc_interface::{data_structures::fx::FxHashMap, middle::mir};
+<span class="kw">use </span>serde::{ser::SerializeMap, Serialize, Serializer};
+<span class="kw">use </span>std::{collections::BTreeMap, fmt};
 
 <span class="doccomment">/// Records the state of the analysis at every program point and CFG edge of `mir`.
-</span><span class="kw">pub struct </span>PointwiseState&lt;<span class="lifetime">&#39;mir</span>, <span class="lifetime">&#39;tcx</span>: <span class="lifetime">&#39;mir</span>, S: <a href="../../serde/ser/trait.Serialize.html">Serialize</a>&gt; {
-    state_before: FxHashMap&lt;<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Location.html">mir::Location</a>, S&gt;,
+</span><span class="kw">pub struct </span>PointwiseState&lt;<span class="lifetime">&#39;mir</span>, <span class="lifetime">&#39;tcx</span>: <span class="lifetime">&#39;mir</span>, S: Serialize&gt; {
+    state_before: FxHashMap&lt;mir::Location, S&gt;,
     <span class="doccomment">/// Maps each basic block to a map of its successor blocks to the state on the CFG edge.
-    </span>state_after_block: FxHashMap&lt;<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.BasicBlock.html">mir::BasicBlock</a>, FxHashMap&lt;<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.BasicBlock.html">mir::BasicBlock</a>, S&gt;&gt;,
+    </span>state_after_block: FxHashMap&lt;mir::BasicBlock, FxHashMap&lt;mir::BasicBlock, S&gt;&gt;,
     <span class="comment">// Needed for translation of location to statement/terminator in serialization.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) mir: <span class="kw-2">&amp;</span><span class="lifetime">&#39;mir </span>mir::Body&lt;<span class="lifetime">&#39;tcx</span>&gt;,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;mir</span>, <span class="lifetime">&#39;tcx</span>: <span class="lifetime">&#39;mir</span>, S&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span>PointwiseState&lt;<span class="lifetime">&#39;mir</span>, <span class="lifetime">&#39;tcx</span>, S&gt;
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;mir</span>, <span class="lifetime">&#39;tcx</span>: <span class="lifetime">&#39;mir</span>, S&gt; fmt::Debug <span class="kw">for </span>PointwiseState&lt;<span class="lifetime">&#39;mir</span>, <span class="lifetime">&#39;tcx</span>, S&gt;
 <span class="kw">where
-    </span>S: <a href="../../serde/ser/trait.Serialize.html">Serialize</a> + <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a>,
+    </span>S: Serialize + fmt::Debug,
 {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter) -&gt; fmt::Result {
         <span class="comment">// ignore tcx
-        </span><a href="#24">f</a>.debug_struct(<span class="string">&quot;PointwiseState&quot;</span>)
-            .field(<span class="string">&quot;state_before&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="#24">self</a>.state_before)
-            .field(<span class="string">&quot;state_after_block&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="#24">self</a>.state_after_block)
-            .field(<span class="string">&quot;mir&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="#24">self</a>.mir)
+        </span>f.debug_struct(<span class="string">&quot;PointwiseState&quot;</span>)
+            .field(<span class="string">&quot;state_before&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.state_before)
+            .field(<span class="string">&quot;state_after_block&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.state_after_block)
+            .field(<span class="string">&quot;mir&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.mir)
             .finish()
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;mir</span>, <span class="lifetime">&#39;tcx</span>: <span class="lifetime">&#39;mir</span>, S: <a href="../../serde/ser/trait.Serialize.html">Serialize</a>&gt; <a href="../../serde/ser/trait.Serialize.html">Serialize</a> <span class="kw">for </span>PointwiseState&lt;<span class="lifetime">&#39;mir</span>, <span class="lifetime">&#39;tcx</span>, S&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;mir</span>, <span class="lifetime">&#39;tcx</span>: <span class="lifetime">&#39;mir</span>, S: Serialize&gt; Serialize <span class="kw">for </span>PointwiseState&lt;<span class="lifetime">&#39;mir</span>, <span class="lifetime">&#39;tcx</span>, S&gt; {
     <span class="doccomment">/// Serialize PointwiseState by translating it to a combination of vectors, tuples and maps,
     /// such that serde can automatically translate it.
-    </span><span class="kw">fn </span>serialize&lt;Se: <a href="../../serde/ser/trait.Serializer.html">Serializer</a>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, serializer: Se) -&gt; <span class="prelude-ty">Result</span>&lt;Se::Ok, Se::Error&gt; {
+    </span><span class="kw">fn </span>serialize&lt;Se: Serializer&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, serializer: Se) -&gt; <span class="prelude-ty">Result</span>&lt;Se::Ok, Se::Error&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>map = serializer.serialize_map(<span class="prelude-val">Some</span>(<span class="self">self</span>.mir.basic_blocks.len()))<span class="question-mark">?</span>;
 
         <span class="kw">for </span>bb <span class="kw">in </span><span class="self">self</span>.mir.basic_blocks.indices() {
@@ -221,7 +221,7 @@
                 <span class="kw">let </span>state = <span class="self">self</span>.lookup_before(location).unwrap();
 
                 <span class="comment">// output statement
-                </span>stmt_vec.push((<span class="string">&quot;state:&quot;</span>, state, <span class="macro">format!</span>(<span class="string">&quot;statement: {:?}&quot;</span>, stmt)));
+                </span>stmt_vec.push((<span class="string">&quot;state:&quot;</span>, state, <span class="macro">format!</span>(<span class="string">&quot;statement: {stmt:?}&quot;</span>)));
             }
 
             <span class="kw">let </span>term_location = <span class="self">self</span>.mir.terminator_loc(bb);
@@ -233,11 +233,11 @@
             <span class="kw">let </span>map_after = <span class="self">self</span>.lookup_after_block(bb).unwrap_or(<span class="kw-2">&amp;</span>new_map);
             <span class="kw">let </span>ordered_succ_map: BTreeMap&lt;<span class="kw">_</span>, <span class="kw">_</span>&gt; = map_after
                 .iter()
-                .map(|(bb, s)| (<span class="macro">format!</span>(<span class="string">&quot;{:?}&quot;</span>, bb), (<span class="string">&quot;state:&quot;</span>, s)))
+                .map(|(bb, s)| (<span class="macro">format!</span>(<span class="string">&quot;{bb:?}&quot;</span>), (<span class="string">&quot;state:&quot;</span>, s)))
                 .collect();
 
             map.serialize_entry(
-                <span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;{:?}&quot;</span>, bb),
+                <span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;{bb:?}&quot;</span>),
                 <span class="kw-2">&amp;</span>(
                     stmt_vec,
                     <span class="string">&quot;state before terminator:&quot;</span>,
@@ -247,36 +247,36 @@
                 ),
             )<span class="question-mark">?</span>;
         }
-        <a href="#38">map</a>.<a href="../../serde/ser/trait.SerializeMap.html">end</a>()
+        map.end()
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;mir</span>, <span class="lifetime">&#39;tcx</span>: <span class="lifetime">&#39;mir</span>, S: <a href="../../serde/ser/trait.Serialize.html">Serialize</a>&gt; PointwiseState&lt;<span class="lifetime">&#39;mir</span>, <span class="lifetime">&#39;tcx</span>, S&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;mir</span>, <span class="lifetime">&#39;tcx</span>: <span class="lifetime">&#39;mir</span>, S: Serialize&gt; PointwiseState&lt;<span class="lifetime">&#39;mir</span>, <span class="lifetime">&#39;tcx</span>, S&gt; {
     <span class="kw">pub fn </span>new(mir: <span class="kw-2">&amp;</span><span class="lifetime">&#39;mir </span>mir::Body&lt;<span class="lifetime">&#39;tcx</span>&gt;) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
             state_before: FxHashMap::default(),
             state_after_block: FxHashMap::default(),
-            <a href="#82">mir</a>,
+            mir,
         }
     }
 
     <span class="doccomment">/// Look up the state before the `location`.
     /// The `location` can point to a statement or terminator.
-    </span><span class="kw">pub fn </span>lookup_before(<span class="kw-2">&amp;</span><span class="self">self</span>, location: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Location.html">mir::Location</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>S&gt; {
-        <a class="self" href="#92">self</a>.state_before.get(<span class="kw-2">&amp;</span><a href="#92">location</a>)
+    </span><span class="kw">pub fn </span>lookup_before(<span class="kw-2">&amp;</span><span class="self">self</span>, location: mir::Location) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>S&gt; {
+        <span class="self">self</span>.state_before.get(<span class="kw-2">&amp;</span>location)
     }
 
     <span class="doccomment">/// Look up the mutable state before the `location`.
     /// The `location` can point to a statement or terminator.
-    </span><span class="kw">pub fn </span>lookup_mut_before(<span class="kw-2">&amp;mut </span><span class="self">self</span>, location: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Location.html">mir::Location</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;mut </span>S&gt; {
-        <a class="self" href="#98">self</a>.state_before.get_mut(<span class="kw-2">&amp;</span><a href="#98">location</a>)
+    </span><span class="kw">pub fn </span>lookup_mut_before(<span class="kw-2">&amp;mut </span><span class="self">self</span>, location: mir::Location) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;mut </span>S&gt; {
+        <span class="self">self</span>.state_before.get_mut(<span class="kw-2">&amp;</span>location)
     }
 
     <span class="doccomment">/// Look up the state after the `location`.
     /// The `location` should point to a statement, not a terminator.
-    </span><span class="kw">pub fn </span>lookup_after(<span class="kw-2">&amp;</span><span class="self">self</span>, location: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Location.html">mir::Location</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>S&gt; {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(location.statement_index &lt; <span class="self">self</span>.mir[location.block].statements.len());
-        <a class="self" href="#104">self</a>.state_before.get(<span class="kw-2">&amp;</span><a href="#104">location</a>.successor_within_block())
+    </span><span class="kw">pub fn </span>lookup_after(<span class="kw-2">&amp;</span><span class="self">self</span>, location: mir::Location) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>S&gt; {
+        <span class="macro">debug_assert!</span>(location.statement_index &lt; <span class="self">self</span>.mir[location.block].statements.len());
+        <span class="self">self</span>.state_before.get(<span class="kw-2">&amp;</span>location.successor_within_block())
     }
 
     <span class="doccomment">/// Look up the state on the outgoing CFG edges of `block`.
@@ -284,9 +284,9 @@
     /// that block.
     </span><span class="kw">pub fn </span>lookup_after_block(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        block: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.BasicBlock.html">mir::BasicBlock</a>,
-    ) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>FxHashMap&lt;<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.BasicBlock.html">mir::BasicBlock</a>, S&gt;&gt; {
-        <a class="self" href="#113">self</a>.state_after_block.get(<span class="kw-2">&amp;</span><a href="#114">block</a>)
+        block: mir::BasicBlock,
+    ) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>FxHashMap&lt;mir::BasicBlock, S&gt;&gt; {
+        <span class="self">self</span>.state_after_block.get(<span class="kw-2">&amp;</span>block)
     }
 
     <span class="doccomment">/// Return the mutable state of the analysis on the outgoing CFG edges of `block`.
@@ -294,55 +294,55 @@
     /// that block.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>lookup_mut_after_block(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        block: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.BasicBlock.html">mir::BasicBlock</a>,
-    ) -&gt; <span class="kw-2">&amp;mut </span>FxHashMap&lt;<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.BasicBlock.html">mir::BasicBlock</a>, S&gt; {
-        <a class="self" href="#123">self</a>.state_after_block
-            .entry(<a href="#124">block</a>)
+        block: mir::BasicBlock,
+    ) -&gt; <span class="kw-2">&amp;mut </span>FxHashMap&lt;mir::BasicBlock, S&gt; {
+        <span class="self">self</span>.state_after_block
+            .entry(block)
             .or_insert_with(FxHashMap::default)
     }
 
     <span class="doccomment">/// Update the state before the `location`.
     /// The `location` can point to a statement or terminator.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_before(<span class="kw-2">&amp;mut </span><span class="self">self</span>, location: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Location.html">mir::Location</a>, state: S) {
-        <a class="self" href="#133">self</a>.state_before.insert(<a href="#133">location</a>, <a href="#133">state</a>);
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_before(<span class="kw-2">&amp;mut </span><span class="self">self</span>, location: mir::Location, state: S) {
+        <span class="self">self</span>.state_before.insert(location, state);
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;mir</span>, <span class="lifetime">&#39;tcx</span>: <span class="lifetime">&#39;mir</span>, S: <a href="../../serde/ser/trait.Serialize.html">Serialize</a> + <a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a>&gt; PointwiseState&lt;<span class="lifetime">&#39;mir</span>, <span class="lifetime">&#39;tcx</span>, S&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;mir</span>, <span class="lifetime">&#39;tcx</span>: <span class="lifetime">&#39;mir</span>, S: Serialize + Default&gt; PointwiseState&lt;<span class="lifetime">&#39;mir</span>, <span class="lifetime">&#39;tcx</span>, S&gt; {
     <span class="kw">pub fn </span>default(mir: <span class="kw-2">&amp;</span><span class="lifetime">&#39;mir </span>mir::Body&lt;<span class="lifetime">&#39;tcx</span>&gt;) -&gt; <span class="self">Self </span>{
-        <span class="kw">let </span>state_before: FxHashMap&lt;<span class="kw">_</span>, <span class="kw">_</span>&gt; = <a href="#139">mir</a>
+        <span class="kw">let </span>state_before: FxHashMap&lt;<span class="kw">_</span>, <span class="kw">_</span>&gt; = mir
             .basic_blocks
             .iter_enumerated()
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">flat_map</a>(|(block, bb_data)| {
-                (<span class="number">0</span>..=<a href="#143">bb_data</a>.statements.len()).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<span class="kw">move </span>|statement_index| {
+            .flat_map(|(block, bb_data)| {
+                (<span class="number">0</span>..=bb_data.statements.len()).map(<span class="kw">move </span>|statement_index| {
                     (
-                        <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Location.html">mir::Location</a> {
-                            <a href="#143">block</a>,
-                            <a href="#144">statement_index</a>,
+                        mir::Location {
+                            block,
+                            statement_index,
                         },
                         S::default(),
                     )
                 })
             })
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
-        <span class="kw">let </span>state_after_block: FxHashMap&lt;<span class="kw">_</span>, <span class="kw">_</span>&gt; = <a href="#139">mir</a>
+            .collect();
+        <span class="kw">let </span>state_after_block: FxHashMap&lt;<span class="kw">_</span>, <span class="kw">_</span>&gt; = mir
             .basic_blocks
             .iter_enumerated()
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|(block, bb_data)| {
-                <span class="kw">let </span>successors: FxHashMap&lt;<span class="kw">_</span>, <span class="kw">_</span>&gt; = <a href="#158">bb_data</a>
+            .map(|(block, bb_data)| {
+                <span class="kw">let </span>successors: FxHashMap&lt;<span class="kw">_</span>, <span class="kw">_</span>&gt; = bb_data
                     .terminator()
                     .successors()
-                    .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|successor| (<a href="#162">successor</a>, S::default()))
-                    .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
-                (<a href="#158">block</a>, <a href="#159">successors</a>)
+                    .map(|successor| (successor, S::default()))
+                    .collect();
+                (block, successors)
             })
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
+            .collect();
         <span class="self">Self </span>{
-            <a href="#140">state_before</a>,
-            <a href="#155">state_after_block</a>,
-            <a href="#139">mir</a>,
+            state_before,
+            state_after_block,
+            mir,
         }
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="analysis" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="analysis" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

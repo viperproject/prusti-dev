@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/object-0.29.0/src/read/pe/data_directory.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>data_directory.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../../object/index.html"><img class="rust-logo" src="../../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/object-0.30.1/src/read/pe/data_directory.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>data_directory.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../../object/index.html"><img class="rust-logo" src="../../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -183,17 +183,46 @@
 <a href="#183" id="183">183</a>
 <a href="#184" id="184">184</a>
 <a href="#185" id="185">185</a>
-</pre><pre class="rust"><code><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/slice/index.html">core::slice</a>;
+<a href="#186" id="186">186</a>
+<a href="#187" id="187">187</a>
+<a href="#188" id="188">188</a>
+<a href="#189" id="189">189</a>
+<a href="#190" id="190">190</a>
+<a href="#191" id="191">191</a>
+<a href="#192" id="192">192</a>
+<a href="#193" id="193">193</a>
+<a href="#194" id="194">194</a>
+<a href="#195" id="195">195</a>
+<a href="#196" id="196">196</a>
+<a href="#197" id="197">197</a>
+<a href="#198" id="198">198</a>
+<a href="#199" id="199">199</a>
+<a href="#200" id="200">200</a>
+<a href="#201" id="201">201</a>
+<a href="#202" id="202">202</a>
+<a href="#203" id="203">203</a>
+<a href="#204" id="204">204</a>
+<a href="#205" id="205">205</a>
+<a href="#206" id="206">206</a>
+<a href="#207" id="207">207</a>
+<a href="#208" id="208">208</a>
+<a href="#209" id="209">209</a>
+<a href="#210" id="210">210</a>
+<a href="#211" id="211">211</a>
+</pre><pre class="rust"><code><span class="kw">use </span>core::slice;
 
-<span class="kw">use </span><span class="kw">crate</span>::read::{<a href="../mod.rs.html#64">Error</a>, <a href="../mod.rs.html#79">ReadError</a>, <a href="../read_ref.rs.html#37">ReadRef</a>, <span class="prelude-ty">Result</span>};
-<span class="kw">use crate</span>::{<a href="../../lib.rs.html#112">pe</a>, <a href="../../endian.rs.html#317">LittleEndian</a> <span class="kw">as </span>LE};
+<span class="kw">use </span><span class="kw">crate</span>::read::{Error, ReadError, ReadRef, <span class="prelude-ty">Result</span>};
+<span class="kw">use crate</span>::{pe, LittleEndian <span class="kw">as </span>LE};
 
-<span class="kw">use super</span>::{<a href="export.rs.html#84">ExportTable</a>, <a href="import.rs.html#11">ImportTable</a>, <a href="relocation.rs.html#9">RelocationBlockIterator</a>, <a href="resource.rs.html#8">ResourceDirectory</a>, <a href="../coff/section.rs.html#16">SectionTable</a>};
+<span class="kw">use super</span>::{
+    DelayLoadImportTable, ExportTable, ImportTable, RelocationBlockIterator, ResourceDirectory,
+    SectionTable,
+};
 
 <span class="doccomment">/// The table of data directories in a PE file.
 </span><span class="attr">#[derive(Debug, Clone, Copy)]
 </span><span class="kw">pub struct </span>DataDirectories&lt;<span class="lifetime">&#39;data</span>&gt; {
-    entries: <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[<a href="../../pe.rs.html#374">pe::ImageDataDirectory</a>],
+    entries: <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[pe::ImageDataDirectory],
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>&gt; DataDirectories&lt;<span class="lifetime">&#39;data</span>&gt; {
@@ -203,27 +232,27 @@
     /// [optional header](pe::ImageOptionalHeader64).  `number` must be from the
     /// [`number_of_rva_and_sizes`](pe::ImageOptionalHeader64::number_of_rva_and_sizes)
     /// field of the optional header.
-    </span><span class="kw">pub fn </span>parse(data: <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], number: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
+    </span><span class="kw">pub fn </span>parse(data: <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[u8], number: u32) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
         <span class="kw">let </span>entries = data
             .read_slice_at(<span class="number">0</span>, number <span class="kw">as </span>usize)
             .read_error(<span class="string">&quot;Invalid PE number of RVA and sizes&quot;</span>)<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(<a href="#10">DataDirectories</a> { <a href="#22">entries</a> })
+        <span class="prelude-val">Ok</span>(DataDirectories { entries })
     }
 
     <span class="doccomment">/// The number of data directories.
     </span><span class="attr">#[allow(clippy::len_without_is_empty)]
-    </span><span class="kw">pub fn </span>len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="self" href="#30">self</a>.entries.len()
+    </span><span class="kw">pub fn </span>len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+        <span class="self">self</span>.entries.len()
     }
 
     <span class="doccomment">/// Iterator over the data directories.
-    </span><span class="kw">pub fn </span>iter(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; slice::Iter&lt;<span class="lifetime">&#39;data</span>, <a href="../../pe.rs.html#374">pe::ImageDataDirectory</a>&gt; {
-        <a class="self" href="#35">self</a>.entries.iter()
+    </span><span class="kw">pub fn </span>iter(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; slice::Iter&lt;<span class="lifetime">&#39;data</span>, pe::ImageDataDirectory&gt; {
+        <span class="self">self</span>.entries.iter()
     }
 
     <span class="doccomment">/// Iterator which gives the directories as well as their index (one of the IMAGE_DIRECTORY_ENTRY_* constants).
-    </span><span class="kw">pub fn </span>enumerate(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; core::iter::Enumerate&lt;slice::Iter&lt;<span class="lifetime">&#39;data</span>, <a href="../../pe.rs.html#374">pe::ImageDataDirectory</a>&gt;&gt; {
-        <a class="self" href="#40">self</a>.entries.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">enumerate</a>()
+    </span><span class="kw">pub fn </span>enumerate(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; core::iter::Enumerate&lt;slice::Iter&lt;<span class="lifetime">&#39;data</span>, pe::ImageDataDirectory&gt;&gt; {
+        <span class="self">self</span>.entries.iter().enumerate()
     }
 
     <span class="doccomment">/// Returns the data directory at the given index.
@@ -232,10 +261,10 @@
     ///
     /// Returns `None` if the index is larger than the table size,
     /// or if the entry at the index has a zero virtual address.
-    </span><span class="kw">pub fn </span>get(<span class="kw-2">&amp;</span><span class="self">self</span>, index: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span><a href="../../pe.rs.html#374">pe::ImageDataDirectory</a>&gt; {
-        <a class="self" href="#50">self</a>.entries
-            .get(<a href="#50">index</a>)
-            .filter(|d| <a href="#53">d</a>.virtual_address.<a href="../../endian.rs.html#621">get</a>(<a href="../../endian.rs.html#317">LE</a>) != <span class="number">0</span>)
+    </span><span class="kw">pub fn </span>get(<span class="kw-2">&amp;</span><span class="self">self</span>, index: usize) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>pe::ImageDataDirectory&gt; {
+        <span class="self">self</span>.entries
+            .get(index)
+            .filter(|d| d.virtual_address.get(LE) != <span class="number">0</span>)
     }
 
     <span class="doccomment">/// Returns the unparsed export directory.
@@ -245,13 +274,13 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         data: R,
         sections: <span class="kw-2">&amp;</span>SectionTable&lt;<span class="lifetime">&#39;data</span>&gt;,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span><a href="../../pe.rs.html#1808">pe::ImageExportDirectory</a>&gt;&gt; {
-        <span class="kw">let </span>data_dir = <span class="kw">match </span><a class="self" href="#60">self</a>.<a href="#50">get</a>(<a href="../../pe.rs.html#561">pe::IMAGE_DIRECTORY_ENTRY_EXPORT</a>) {
-            <span class="prelude-val">Some</span>(data_dir) =&gt; <a href="#65">data_dir</a>,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>pe::ImageExportDirectory&gt;&gt; {
+        <span class="kw">let </span>data_dir = <span class="kw">match </span><span class="self">self</span>.get(pe::IMAGE_DIRECTORY_ENTRY_EXPORT) {
+            <span class="prelude-val">Some</span>(data_dir) =&gt; data_dir,
             <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>),
         };
         <span class="kw">let </span>export_data = data_dir.data(data, sections)<span class="question-mark">?</span>;
-        ExportTable::parse_directory(<a href="#68">export_data</a>).map(<span class="prelude-val">Some</span>)
+        ExportTable::parse_directory(export_data).map(<span class="prelude-val">Some</span>)
     }
 
     <span class="doccomment">/// Returns the partially parsed export directory.
@@ -262,13 +291,13 @@
         data: R,
         sections: <span class="kw-2">&amp;</span>SectionTable&lt;<span class="lifetime">&#39;data</span>&gt;,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;ExportTable&lt;<span class="lifetime">&#39;data</span>&gt;&gt;&gt; {
-        <span class="kw">let </span>data_dir = <span class="kw">match </span><a class="self" href="#76">self</a>.<a href="#50">get</a>(<a href="../../pe.rs.html#561">pe::IMAGE_DIRECTORY_ENTRY_EXPORT</a>) {
-            <span class="prelude-val">Some</span>(data_dir) =&gt; <a href="#81">data_dir</a>,
+        <span class="kw">let </span>data_dir = <span class="kw">match </span><span class="self">self</span>.get(pe::IMAGE_DIRECTORY_ENTRY_EXPORT) {
+            <span class="prelude-val">Some</span>(data_dir) =&gt; data_dir,
             <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>),
         };
-        <span class="kw">let </span>export_va = <a href="#80">data_dir</a>.virtual_address.<a href="../../endian.rs.html#621">get</a>(<a href="../../endian.rs.html#317">LE</a>);
+        <span class="kw">let </span>export_va = data_dir.virtual_address.get(LE);
         <span class="kw">let </span>export_data = data_dir.data(data, sections)<span class="question-mark">?</span>;
-        ExportTable::parse(<a href="#85">export_data</a>, <a href="#84">export_va</a>).map(<span class="prelude-val">Some</span>)
+        ExportTable::parse(export_data, export_va).map(<span class="prelude-val">Some</span>)
     }
 
     <span class="doccomment">/// Returns the partially parsed import directory.
@@ -279,15 +308,38 @@
         data: R,
         sections: <span class="kw-2">&amp;</span>SectionTable&lt;<span class="lifetime">&#39;data</span>&gt;,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;ImportTable&lt;<span class="lifetime">&#39;data</span>&gt;&gt;&gt; {
-        <span class="kw">let </span>data_dir = <span class="kw">match </span><a class="self" href="#93">self</a>.<a href="#50">get</a>(<a href="../../pe.rs.html#563">pe::IMAGE_DIRECTORY_ENTRY_IMPORT</a>) {
-            <span class="prelude-val">Some</span>(data_dir) =&gt; <a href="#98">data_dir</a>,
+        <span class="kw">let </span>data_dir = <span class="kw">match </span><span class="self">self</span>.get(pe::IMAGE_DIRECTORY_ENTRY_IMPORT) {
+            <span class="prelude-val">Some</span>(data_dir) =&gt; data_dir,
             <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>),
         };
-        <span class="kw">let </span>import_va = <a href="#97">data_dir</a>.virtual_address.<a href="../../endian.rs.html#621">get</a>(<a href="../../endian.rs.html#317">LE</a>);
+        <span class="kw">let </span>import_va = data_dir.virtual_address.get(LE);
         <span class="kw">let </span>(section_data, section_va) = sections
             .pe_data_containing(data, import_va)
             .read_error(<span class="string">&quot;Invalid import data dir virtual address&quot;</span>)<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(ImportTable::new(<a href="#102">section_data</a>, <a href="#102">section_va</a>, <a href="#101">import_va</a>)))
+        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(ImportTable::new(section_data, section_va, import_va)))
+    }
+
+    <span class="doccomment">/// Returns the partially parsed delay-load import directory.
+    ///
+    /// `data` must be the entire file data.
+    </span><span class="kw">pub fn </span>delay_load_import_table&lt;R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt;&gt;(
+        <span class="kw-2">&amp;</span><span class="self">self</span>,
+        data: R,
+        sections: <span class="kw-2">&amp;</span>SectionTable&lt;<span class="lifetime">&#39;data</span>&gt;,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;DelayLoadImportTable&lt;<span class="lifetime">&#39;data</span>&gt;&gt;&gt; {
+        <span class="kw">let </span>data_dir = <span class="kw">match </span><span class="self">self</span>.get(pe::IMAGE_DIRECTORY_ENTRY_DELAY_IMPORT) {
+            <span class="prelude-val">Some</span>(data_dir) =&gt; data_dir,
+            <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>),
+        };
+        <span class="kw">let </span>import_va = data_dir.virtual_address.get(LE);
+        <span class="kw">let </span>(section_data, section_va) = sections
+            .pe_data_containing(data, import_va)
+            .read_error(<span class="string">&quot;Invalid import data dir virtual address&quot;</span>)<span class="question-mark">?</span>;
+        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(DelayLoadImportTable::new(
+            section_data,
+            section_va,
+            import_va,
+        )))
     }
 
     <span class="doccomment">/// Returns the blocks in the base relocation directory.
@@ -298,12 +350,12 @@
         data: R,
         sections: <span class="kw-2">&amp;</span>SectionTable&lt;<span class="lifetime">&#39;data</span>&gt;,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;RelocationBlockIterator&lt;<span class="lifetime">&#39;data</span>&gt;&gt;&gt; {
-        <span class="kw">let </span>data_dir = <span class="kw">match </span><a class="self" href="#112">self</a>.<a href="#50">get</a>(<a href="../../pe.rs.html#571">pe::IMAGE_DIRECTORY_ENTRY_BASERELOC</a>) {
-            <span class="prelude-val">Some</span>(data_dir) =&gt; <a href="#117">data_dir</a>,
+        <span class="kw">let </span>data_dir = <span class="kw">match </span><span class="self">self</span>.get(pe::IMAGE_DIRECTORY_ENTRY_BASERELOC) {
+            <span class="prelude-val">Some</span>(data_dir) =&gt; data_dir,
             <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>),
         };
         <span class="kw">let </span>reloc_data = data_dir.data(data, sections)<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(RelocationBlockIterator::new(<a href="#120">reloc_data</a>)))
+        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(RelocationBlockIterator::new(reloc_data)))
     }
 
     <span class="doccomment">/// Returns the resource directory.
@@ -314,19 +366,19 @@
         data: R,
         sections: <span class="kw-2">&amp;</span>SectionTable&lt;<span class="lifetime">&#39;data</span>&gt;,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;ResourceDirectory&lt;<span class="lifetime">&#39;data</span>&gt;&gt;&gt; {
-        <span class="kw">let </span>data_dir = <span class="kw">match </span><a class="self" href="#128">self</a>.<a href="#50">get</a>(<a href="../../pe.rs.html#565">pe::IMAGE_DIRECTORY_ENTRY_RESOURCE</a>) {
-            <span class="prelude-val">Some</span>(data_dir) =&gt; <a href="#133">data_dir</a>,
+        <span class="kw">let </span>data_dir = <span class="kw">match </span><span class="self">self</span>.get(pe::IMAGE_DIRECTORY_ENTRY_RESOURCE) {
+            <span class="prelude-val">Some</span>(data_dir) =&gt; data_dir,
             <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>),
         };
         <span class="kw">let </span>rsrc_data = data_dir.data(data, sections)<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(ResourceDirectory::new(<a href="#136">rsrc_data</a>)))
+        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(ResourceDirectory::new(rsrc_data)))
     }
 }
 
-<span class="kw">impl </span><a href="../../pe.rs.html#374">pe::ImageDataDirectory</a> {
+<span class="kw">impl </span>pe::ImageDataDirectory {
     <span class="doccomment">/// Return the virtual address range of this directory entry.
-    </span><span class="kw">pub fn </span>address_range(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (<a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) {
-        (<a class="self" href="#143">self</a>.virtual_address.<a href="../../endian.rs.html#621">get</a>(<a href="../../endian.rs.html#317">LE</a>), <a class="self" href="#143">self</a>.size.<a href="../../endian.rs.html#621">get</a>(<a href="../../endian.rs.html#317">LE</a>))
+    </span><span class="kw">pub fn </span>address_range(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (u32, u32) {
+        (<span class="self">self</span>.virtual_address.get(LE), <span class="self">self</span>.size.get(LE))
     }
 
     <span class="doccomment">/// Return the file offset and size of this directory entry.
@@ -337,15 +389,15 @@
     /// not desirable for all data directories.
     /// - It uses the `virtual_address` of the directory entry as an address,
     /// which is not valid for `IMAGE_DIRECTORY_ENTRY_SECURITY`.
-    </span><span class="kw">pub fn </span>file_range&lt;<span class="lifetime">&#39;data</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, sections: <span class="kw-2">&amp;</span>SectionTable&lt;<span class="lifetime">&#39;data</span>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;(<a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>)&gt; {
+    </span><span class="kw">pub fn </span>file_range&lt;<span class="lifetime">&#39;data</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, sections: <span class="kw-2">&amp;</span>SectionTable&lt;<span class="lifetime">&#39;data</span>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;(u32, u32)&gt; {
         <span class="kw">let </span>(offset, section_size) = sections
             .pe_file_range_at(<span class="self">self</span>.virtual_address.get(LE))
             .read_error(<span class="string">&quot;Invalid data dir virtual address&quot;</span>)<span class="question-mark">?</span>;
-        <span class="kw">let </span>size = <a class="self" href="#155">self</a>.size.<a href="../../endian.rs.html#621">get</a>(<a href="../../endian.rs.html#317">LE</a>);
+        <span class="kw">let </span>size = <span class="self">self</span>.size.get(LE);
         <span class="kw">if </span>size &gt; section_size {
-            <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../mod.rs.html#64">Error</a>(<span class="string">&quot;Invalid data dir size&quot;</span>));
+            <span class="kw">return </span><span class="prelude-val">Err</span>(Error(<span class="string">&quot;Invalid data dir size&quot;</span>));
         }
-        <span class="prelude-val">Ok</span>((<a href="#156">offset</a>, <a href="#159">size</a>))
+        <span class="prelude-val">Ok</span>((offset, size))
     }
 
     <span class="doccomment">/// Get the data referenced by this directory entry.
@@ -360,13 +412,13 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         data: R,
         sections: <span class="kw-2">&amp;</span>SectionTable&lt;<span class="lifetime">&#39;data</span>&gt;,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt; {
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[u8]&gt; {
         sections
             .pe_data_at(data, <span class="self">self</span>.virtual_address.get(LE))
             .read_error(<span class="string">&quot;Invalid data dir virtual address&quot;</span>)<span class="question-mark">?
-            </span>.get(..<a class="self" href="#175">self</a>.size.<a href="../../endian.rs.html#621">get</a>(<a href="../../endian.rs.html#317">LE</a>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>)
-            .<a href="../mod.rs.html#80">read_error</a>(<span class="string">&quot;Invalid data dir size&quot;</span>)
+            </span>.get(..<span class="self">self</span>.size.get(LE) <span class="kw">as </span>usize)
+            .read_error(<span class="string">&quot;Invalid data dir size&quot;</span>)
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="object" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="object" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

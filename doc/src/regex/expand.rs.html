@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-1.7.0/src/expand.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>expand.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../regex/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-1.7.0/src/expand.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>expand.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../regex/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -237,17 +237,17 @@
 <a href="#237" id="237">237</a>
 <a href="#238" id="238">238</a>
 <a href="#239" id="239">239</a>
-</pre><pre class="rust"><code><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/str/index.html">std::str</a>;
+</pre><pre class="rust"><code><span class="kw">use </span>std::str;
 
-<span class="kw">use </span><a href="find_byte.rs.html#5"><span class="kw">crate</span>::find_byte::find_byte</a>;
+<span class="kw">use </span><span class="kw">crate</span>::find_byte::find_byte;
 
-<span class="kw">use </span><a href="lib.rs.html#751"><span class="kw">crate</span>::re_bytes</a>;
-<span class="kw">use </span><a href="lib.rs.html#754"><span class="kw">crate</span>::re_unicode</a>;
+<span class="kw">use </span><span class="kw">crate</span>::re_bytes;
+<span class="kw">use </span><span class="kw">crate</span>::re_unicode;
 
 <span class="kw">pub fn </span>expand_str(
     caps: <span class="kw-2">&amp;</span>re_unicode::Captures&lt;<span class="lifetime">&#39;_</span>&gt;,
-    <span class="kw-2">mut </span>replacement: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>,
-    dst: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>,
+    <span class="kw-2">mut </span>replacement: <span class="kw-2">&amp;</span>str,
+    dst: <span class="kw-2">&amp;mut </span>String,
 ) {
     <span class="kw">while </span>!replacement.is_empty() {
         <span class="kw">match </span>find_byte(<span class="string">b&#39;$&#39;</span>, replacement.as_bytes()) {
@@ -283,13 +283,13 @@
             }
         }
     }
-    <a href="#11">dst</a>.push_str(<a href="#10">replacement</a>);
+    dst.push_str(replacement);
 }
 
 <span class="kw">pub fn </span>expand_bytes(
     caps: <span class="kw-2">&amp;</span>re_bytes::Captures&lt;<span class="lifetime">&#39;_</span>&gt;,
-    <span class="kw-2">mut </span>replacement: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
-    dst: <span class="kw-2">&amp;mut </span>Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;,
+    <span class="kw-2">mut </span>replacement: <span class="kw-2">&amp;</span>[u8],
+    dst: <span class="kw-2">&amp;mut </span>Vec&lt;u8&gt;,
 ) {
     <span class="kw">while </span>!replacement.is_empty() {
         <span class="kw">match </span>find_byte(<span class="string">b&#39;$&#39;</span>, replacement) {
@@ -325,7 +325,7 @@
             }
         }
     }
-    <a href="#53">dst</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a href="#52">replacement</a>);
+    dst.extend(replacement);
 }
 
 <span class="doccomment">/// `CaptureRef` represents a reference to a capture group inside some text.
@@ -336,7 +336,7 @@
 </span><span class="attr">#[derive(Clone, Copy, Debug, Eq, PartialEq)]
 </span><span class="kw">struct </span>CaptureRef&lt;<span class="lifetime">&#39;a</span>&gt; {
     cap: Ref&lt;<span class="lifetime">&#39;a</span>&gt;,
-    end: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+    end: usize,
 }
 
 <span class="doccomment">/// A reference to a capture group in some text.
@@ -344,19 +344,19 @@
 /// e.g., `$2`, `$foo`, `${foo}`.
 </span><span class="attr">#[derive(Clone, Copy, Debug, Eq, PartialEq)]
 </span><span class="kw">enum </span>Ref&lt;<span class="lifetime">&#39;a</span>&gt; {
-    Named(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>),
-    Number(<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>),
+    Named(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>str),
+    Number(usize),
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; From&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt; <span class="kw">for </span>Ref&lt;<span class="lifetime">&#39;a</span>&gt; {
-    <span class="kw">fn </span>from(x: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; Ref&lt;<span class="lifetime">&#39;a</span>&gt; {
-        <a href="#108">Ref::Named</a>(<a href="#113">x</a>)
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; From&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>str&gt; <span class="kw">for </span>Ref&lt;<span class="lifetime">&#39;a</span>&gt; {
+    <span class="kw">fn </span>from(x: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>str) -&gt; Ref&lt;<span class="lifetime">&#39;a</span>&gt; {
+        Ref::Named(x)
     }
 }
 
-<span class="kw">impl </span>From&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; <span class="kw">for </span>Ref&lt;<span class="lifetime">&#39;static</span>&gt; {
-    <span class="kw">fn </span>from(x: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; Ref&lt;<span class="lifetime">&#39;static</span>&gt; {
-        <a href="#109">Ref::Number</a>(<a href="#119">x</a>)
+<span class="kw">impl </span>From&lt;usize&gt; <span class="kw">for </span>Ref&lt;<span class="lifetime">&#39;static</span>&gt; {
+    <span class="kw">fn </span>from(x: usize) -&gt; Ref&lt;<span class="lifetime">&#39;static</span>&gt; {
+        Ref::Number(x)
     }
 }
 
@@ -364,17 +364,17 @@
 /// starting at the beginning of `replacement`.
 ///
 /// If no such valid reference could be found, None is returned.
-</span><span class="kw">fn </span>find_cap_ref(replacement: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Option</span>&lt;CaptureRef&lt;<span class="lifetime">&#39;_</span>&gt;&gt; {
+</span><span class="kw">fn </span>find_cap_ref(replacement: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Option</span>&lt;CaptureRef&lt;<span class="lifetime">&#39;_</span>&gt;&gt; {
     <span class="kw">let </span><span class="kw-2">mut </span>i = <span class="number">0</span>;
-    <span class="kw">let </span>rep: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>] = <a href="#128">replacement</a>;
+    <span class="kw">let </span>rep: <span class="kw-2">&amp;</span>[u8] = replacement;
     <span class="kw">if </span>rep.len() &lt;= <span class="number">1 </span>|| rep[<span class="number">0</span>] != <span class="string">b&#39;$&#39; </span>{
         <span class="kw">return </span><span class="prelude-val">None</span>;
     }
-    <a href="#129">i</a> += <span class="number">1</span>;
+    i += <span class="number">1</span>;
     <span class="kw">if </span>rep[i] == <span class="string">b&#39;{&#39; </span>{
-        <span class="kw">return </span><a href="#160">find_cap_ref_braced</a>(<a href="#130">rep</a>, <a href="#129">i</a> + <span class="number">1</span>);
+        <span class="kw">return </span>find_cap_ref_braced(rep, i + <span class="number">1</span>);
     }
-    <span class="kw">let </span><span class="kw-2">mut </span>cap_end = <a href="#129">i</a>;
+    <span class="kw">let </span><span class="kw-2">mut </span>cap_end = i;
     <span class="kw">while </span>rep.get(cap_end).copied().map_or(<span class="bool-val">false</span>, is_valid_cap_letter) {
         cap_end += <span class="number">1</span>;
     }
@@ -386,18 +386,18 @@
     // check via an unchecked conversion or by parsing the number straight from
     // &amp;[u8].
     </span><span class="kw">let </span>cap =
-        <a href="https://doc.rust-lang.org/nightly/core/str/converts/fn.from_utf8.html">str::from_utf8</a>(<span class="kw-2">&amp;</span><a href="#130">rep</a>[<a href="#129">i</a>..<a href="#138">cap_end</a>]).expect(<span class="string">&quot;valid UTF-8 capture name&quot;</span>);
-    <span class="prelude-val">Some</span>(<a href="#98">CaptureRef</a> {
-        cap: <span class="kw">match </span><a href="#149">cap</a>.parse::&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>&gt;() {
-            <span class="prelude-val">Ok</span>(i) =&gt; <a href="#109">Ref::Number</a>(<a href="#153">i</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>),
-            <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; <a href="#108">Ref::Named</a>(<a href="#149">cap</a>),
+        str::from_utf8(<span class="kw-2">&amp;</span>rep[i..cap_end]).expect(<span class="string">&quot;valid UTF-8 capture name&quot;</span>);
+    <span class="prelude-val">Some</span>(CaptureRef {
+        cap: <span class="kw">match </span>cap.parse::&lt;u32&gt;() {
+            <span class="prelude-val">Ok</span>(i) =&gt; Ref::Number(i <span class="kw">as </span>usize),
+            <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; Ref::Named(cap),
         },
-        end: <a href="#138">cap_end</a>,
+        end: cap_end,
     })
 }
 
-<span class="kw">fn </span>find_cap_ref_braced(rep: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], <span class="kw-2">mut </span>i: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="prelude-ty">Option</span>&lt;CaptureRef&lt;<span class="lifetime">&#39;_</span>&gt;&gt; {
-    <span class="kw">let </span>start = <a href="#160">i</a>;
+<span class="kw">fn </span>find_cap_ref_braced(rep: <span class="kw-2">&amp;</span>[u8], <span class="kw-2">mut </span>i: usize) -&gt; <span class="prelude-ty">Option</span>&lt;CaptureRef&lt;<span class="lifetime">&#39;_</span>&gt;&gt; {
+    <span class="kw">let </span>start = i;
     <span class="kw">while </span>rep.get(i).map_or(<span class="bool-val">false</span>, |<span class="kw-2">&amp;</span>b| b != <span class="string">b&#39;}&#39;</span>) {
         i += <span class="number">1</span>;
     }
@@ -408,22 +408,22 @@
     // so it&#39;s possible it could be invalid UTF-8. But a capture group name
     // can never be invalid UTF-8, so if we have invalid UTF-8, then we can
     // safely return None.
-    </span><span class="kw">let </span>cap = <span class="kw">match </span><a href="https://doc.rust-lang.org/nightly/core/str/converts/fn.from_utf8.html">str::from_utf8</a>(<span class="kw-2">&amp;</span><a href="#160">rep</a>[<a href="#161">start</a>..<a href="#160">i</a>]) {
+    </span><span class="kw">let </span>cap = <span class="kw">match </span>str::from_utf8(<span class="kw-2">&amp;</span>rep[start..i]) {
         <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; <span class="kw">return </span><span class="prelude-val">None</span>,
-        <span class="prelude-val">Ok</span>(cap) =&gt; <a href="#174">cap</a>,
+        <span class="prelude-val">Ok</span>(cap) =&gt; cap,
     };
-    <span class="prelude-val">Some</span>(<a href="#98">CaptureRef</a> {
-        cap: <span class="kw">match </span><a href="#172">cap</a>.parse::&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>&gt;() {
-            <span class="prelude-val">Ok</span>(i) =&gt; <a href="#109">Ref::Number</a>(<a href="#178">i</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>),
-            <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; <a href="#108">Ref::Named</a>(<a href="#172">cap</a>),
+    <span class="prelude-val">Some</span>(CaptureRef {
+        cap: <span class="kw">match </span>cap.parse::&lt;u32&gt;() {
+            <span class="prelude-val">Ok</span>(i) =&gt; Ref::Number(i <span class="kw">as </span>usize),
+            <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; Ref::Named(cap),
         },
-        end: <a href="#160">i</a> + <span class="number">1</span>,
+        end: i + <span class="number">1</span>,
     })
 }
 
 <span class="doccomment">/// Returns true if and only if the given byte is allowed in a capture name.
-</span><span class="kw">fn </span>is_valid_cap_letter(b: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-    <span class="kw">match </span><a href="#186">b</a> {
+</span><span class="kw">fn </span>is_valid_cap_letter(b: u8) -&gt; bool {
+    <span class="kw">match </span>b {
         <span class="string">b&#39;0&#39;</span>..=<span class="string">b&#39;9&#39; </span>| <span class="string">b&#39;a&#39;</span>..=<span class="string">b&#39;z&#39; </span>| <span class="string">b&#39;A&#39;</span>..=<span class="string">b&#39;Z&#39; </span>| <span class="string">b&#39;_&#39; </span>=&gt; <span class="bool-val">true</span>,
         <span class="kw">_ </span>=&gt; <span class="bool-val">false</span>,
     }
@@ -477,4 +477,4 @@
     <span class="macro">find!</span>(find_cap_ref19, <span class="string">&quot;${Z[}&quot;</span>, <span class="macro">c!</span>(<span class="string">&quot;Z[&quot;</span>, <span class="number">5</span>));
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="regex" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="regex" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

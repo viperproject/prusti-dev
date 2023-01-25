@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/h2-0.3.15/src/proto/streams/store.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>store.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../../h2/index.html"><img class="rust-logo" src="../../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/h2-0.3.15/src/proto/streams/store.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>store.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../../h2/index.html"><img class="rust-logo" src="../../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -426,65 +426,65 @@
 <a href="#426" id="426">426</a>
 </pre><pre class="rust"><code><span class="kw">use super</span>::<span class="kw-2">*</span>;
 
-<span class="kw">use </span><a href="../../../../slab/index.html">slab</a>;
+<span class="kw">use </span>slab;
 
-<span class="kw">use </span>indexmap::{<a class="self" href="../../../../indexmap/index.html">self</a>, <a href="../../../../indexmap/map/struct.IndexMap.html">IndexMap</a>};
+<span class="kw">use </span>indexmap::{<span class="self">self</span>, IndexMap};
 
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/convert/enum.Infallible.html">std::convert::Infallible</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">std::fmt</a>;
+<span class="kw">use </span>std::convert::Infallible;
+<span class="kw">use </span>std::fmt;
 <span class="kw">use </span>std::marker::PhantomData;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/ops/index.html">std::ops</a>;
+<span class="kw">use </span>std::ops;
 
 <span class="doccomment">/// Storage for streams
 </span><span class="attr">#[derive(Debug)]
 </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">struct </span>Store {
-    slab: slab::Slab&lt;<a href="stream.rs.html#19">Stream</a>&gt;,
-    ids: IndexMap&lt;<a href="../../frame/stream_id.rs.html#14">StreamId</a>, <a href="#37">SlabIndex</a>&gt;,
+    slab: slab::Slab&lt;Stream&gt;,
+    ids: IndexMap&lt;StreamId, SlabIndex&gt;,
 }
 
 <span class="doccomment">/// &quot;Pointer&quot; to an entry in the store
 </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">struct </span>Ptr&lt;<span class="lifetime">&#39;a</span>&gt; {
-    key: <a href="#27">Key</a>,
-    store: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span><a href="#14">Store</a>,
+    key: Key,
+    store: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>Store,
 }
 
 <span class="doccomment">/// References an entry in the store.
 </span><span class="attr">#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>Key {
-    index: <a href="#37">SlabIndex</a>,
+    index: SlabIndex,
     <span class="doccomment">/// Keep the stream ID in the key as an ABA guard, since slab indices
     /// could be re-used with a new stream.
-    </span>stream_id: <a href="../../frame/stream_id.rs.html#14">StreamId</a>,
+    </span>stream_id: StreamId,
 }
 
 <span class="comment">// We can never have more than `StreamId::MAX` streams in the store,
 // so we can save a smaller index (u32 vs usize).
 </span><span class="attr">#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-</span><span class="kw">struct </span>SlabIndex(<a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>);
+</span><span class="kw">struct </span>SlabIndex(u32);
 
 <span class="attr">#[derive(Debug)]
 </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">struct </span>Queue&lt;N&gt; {
-    indices: <span class="prelude-ty">Option</span>&lt;<a href="#59">store::Indices</a>&gt;,
+    indices: <span class="prelude-ty">Option</span>&lt;store::Indices&gt;,
     _p: PhantomData&lt;N&gt;,
 }
 
 <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">trait </span>Next {
-    <span class="kw">fn </span>next(stream: <span class="kw-2">&amp;</span><a href="stream.rs.html#19">Stream</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="#27">Key</a>&gt;;
+    <span class="kw">fn </span>next(stream: <span class="kw-2">&amp;</span>Stream) -&gt; <span class="prelude-ty">Option</span>&lt;Key&gt;;
 
-    <span class="kw">fn </span>set_next(stream: <span class="kw-2">&amp;mut </span><a href="stream.rs.html#19">Stream</a>, key: <span class="prelude-ty">Option</span>&lt;<a href="#27">Key</a>&gt;);
+    <span class="kw">fn </span>set_next(stream: <span class="kw-2">&amp;mut </span>Stream, key: <span class="prelude-ty">Option</span>&lt;Key&gt;);
 
-    <span class="kw">fn </span>take_next(stream: <span class="kw-2">&amp;mut </span><a href="stream.rs.html#19">Stream</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="#27">Key</a>&gt;;
+    <span class="kw">fn </span>take_next(stream: <span class="kw-2">&amp;mut </span>Stream) -&gt; <span class="prelude-ty">Option</span>&lt;Key&gt;;
 
-    <span class="kw">fn </span>is_queued(stream: <span class="kw-2">&amp;</span><a href="stream.rs.html#19">Stream</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>;
+    <span class="kw">fn </span>is_queued(stream: <span class="kw-2">&amp;</span>Stream) -&gt; bool;
 
-    <span class="kw">fn </span>set_queued(stream: <span class="kw-2">&amp;mut </span><a href="stream.rs.html#19">Stream</a>, val: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>);
+    <span class="kw">fn </span>set_queued(stream: <span class="kw-2">&amp;mut </span>Stream, val: bool);
 }
 
 <span class="doccomment">/// A linked list
 </span><span class="attr">#[derive(Debug, Clone, Copy)]
 </span><span class="kw">struct </span>Indices {
-    <span class="kw">pub </span>head: <a href="#27">Key</a>,
-    <span class="kw">pub </span>tail: <a href="#27">Key</a>,
+    <span class="kw">pub </span>head: Key,
+    <span class="kw">pub </span>tail: Key,
 }
 
 <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">enum </span>Entry&lt;<span class="lifetime">&#39;a</span>&gt; {
@@ -493,86 +493,86 @@
 }
 
 <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">struct </span>OccupiedEntry&lt;<span class="lifetime">&#39;a</span>&gt; {
-    ids: indexmap::map::OccupiedEntry&lt;<span class="lifetime">&#39;a</span>, <a href="../../frame/stream_id.rs.html#14">StreamId</a>, <a href="#37">SlabIndex</a>&gt;,
+    ids: indexmap::map::OccupiedEntry&lt;<span class="lifetime">&#39;a</span>, StreamId, SlabIndex&gt;,
 }
 
 <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">struct </span>VacantEntry&lt;<span class="lifetime">&#39;a</span>&gt; {
-    ids: indexmap::map::VacantEntry&lt;<span class="lifetime">&#39;a</span>, <a href="../../frame/stream_id.rs.html#14">StreamId</a>, <a href="#37">SlabIndex</a>&gt;,
-    slab: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>slab::Slab&lt;<a href="stream.rs.html#19">Stream</a>&gt;,
+    ids: indexmap::map::VacantEntry&lt;<span class="lifetime">&#39;a</span>, StreamId, SlabIndex&gt;,
+    slab: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>slab::Slab&lt;Stream&gt;,
 }
 
 <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">trait </span>Resolve {
-    <span class="kw">fn </span>resolve(<span class="kw-2">&amp;mut </span><span class="self">self</span>, key: <a href="#27">Key</a>) -&gt; <a href="#20">Ptr</a>;
+    <span class="kw">fn </span>resolve(<span class="kw-2">&amp;mut </span><span class="self">self</span>, key: Key) -&gt; Ptr;
 }
 
 <span class="comment">// ===== impl Store =====
 
-</span><span class="kw">impl </span><a href="#14">Store</a> {
+</span><span class="kw">impl </span>Store {
     <span class="kw">pub fn </span>new() -&gt; <span class="self">Self </span>{
-        <a href="#14">Store</a> {
+        Store {
             slab: slab::Slab::new(),
             ids: IndexMap::new(),
         }
     }
 
-    <span class="kw">pub fn </span>find_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>, id: <span class="kw-2">&amp;</span><a href="../../frame/stream_id.rs.html#14">StreamId</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="#20">Ptr</a>&gt; {
-        <span class="kw">let </span>index = <span class="kw">match </span><a class="self" href="#92">self</a>.ids.get(<a href="#92">id</a>) {
-            <span class="prelude-val">Some</span>(key) =&gt; <span class="kw-2">*</span><a href="#94">key</a>,
+    <span class="kw">pub fn </span>find_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>, id: <span class="kw-2">&amp;</span>StreamId) -&gt; <span class="prelude-ty">Option</span>&lt;Ptr&gt; {
+        <span class="kw">let </span>index = <span class="kw">match </span><span class="self">self</span>.ids.get(id) {
+            <span class="prelude-val">Some</span>(key) =&gt; <span class="kw-2">*</span>key,
             <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="prelude-val">None</span>,
         };
 
-        <span class="prelude-val">Some</span>(<a href="#20">Ptr</a> {
-            key: <a href="#27">Key</a> {
-                <a href="#93">index</a>,
-                stream_id: <span class="kw-2">*</span><a href="#92">id</a>,
+        <span class="prelude-val">Some</span>(Ptr {
+            key: Key {
+                index,
+                stream_id: <span class="kw-2">*</span>id,
             },
-            store: <a class="self" href="#92">self</a>,
+            store: <span class="self">self</span>,
         })
     }
 
-    <span class="kw">pub fn </span>insert(<span class="kw-2">&amp;mut </span><span class="self">self</span>, id: <a href="../../frame/stream_id.rs.html#14">StreamId</a>, val: <a href="stream.rs.html#19">Stream</a>) -&gt; <a href="#20">Ptr</a> {
-        <span class="kw">let </span>index = <a href="#37">SlabIndex</a>(<a class="self" href="#107">self</a>.slab.insert(<a href="#107">val</a>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>);
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(<span class="self">self</span>.ids.insert(id, index).is_none());
+    <span class="kw">pub fn </span>insert(<span class="kw-2">&amp;mut </span><span class="self">self</span>, id: StreamId, val: Stream) -&gt; Ptr {
+        <span class="kw">let </span>index = SlabIndex(<span class="self">self</span>.slab.insert(val) <span class="kw">as </span>u32);
+        <span class="macro">assert!</span>(<span class="self">self</span>.ids.insert(id, index).is_none());
 
-        <a href="#20">Ptr</a> {
-            key: <a href="#27">Key</a> {
-                <a href="#108">index</a>,
-                stream_id: <a href="#107">id</a>,
+        Ptr {
+            key: Key {
+                index,
+                stream_id: id,
             },
-            store: <a class="self" href="#107">self</a>,
+            store: <span class="self">self</span>,
         }
     }
 
-    <span class="kw">pub fn </span>find_entry(<span class="kw-2">&amp;mut </span><span class="self">self</span>, id: <a href="../../frame/stream_id.rs.html#14">StreamId</a>) -&gt; <a href="#64">Entry</a> {
-        <span class="kw">use </span><a href="../../../../indexmap/map/core/enum.Entry.html"><span class="self">self</span>::indexmap::map::Entry</a>::<span class="kw-2">*</span>;
+    <span class="kw">pub fn </span>find_entry(<span class="kw-2">&amp;mut </span><span class="self">self</span>, id: StreamId) -&gt; Entry {
+        <span class="kw">use </span><span class="self">self</span>::indexmap::map::Entry::<span class="kw-2">*</span>;
 
-        <span class="kw">match </span><a class="self" href="#120">self</a>.ids.entry(<a href="#120">id</a>) {
-            Occupied(e) =&gt; <a href="#65">Entry::Occupied</a>(<a href="#69">OccupiedEntry</a> { ids: <a href="#124">e</a> }),
-            Vacant(e) =&gt; <a href="#66">Entry::Vacant</a>(<a href="#73">VacantEntry</a> {
-                ids: <a href="#125">e</a>,
-                slab: <span class="kw-2">&amp;mut </span><a class="self" href="#120">self</a>.slab,
+        <span class="kw">match </span><span class="self">self</span>.ids.entry(id) {
+            Occupied(e) =&gt; Entry::Occupied(OccupiedEntry { ids: e }),
+            Vacant(e) =&gt; Entry::Vacant(VacantEntry {
+                ids: e,
+                slab: <span class="kw-2">&amp;mut </span><span class="self">self</span>.slab,
             }),
         }
     }
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>for_each&lt;F&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, <span class="kw-2">mut </span>f: F)
     <span class="kw">where
-        </span>F: FnMut(<a href="#20">Ptr</a>),
+        </span>F: FnMut(Ptr),
     {
-        <span class="kw">match </span><a class="self" href="#132">self</a>.<a href="#145-147">try_for_each</a>(|ptr| {
-            <a href="#132">f</a>(<a href="#136">ptr</a>);
-            <span class="prelude-val">Ok</span>::&lt;<span class="kw">_</span>, <a href="https://doc.rust-lang.org/nightly/core/convert/enum.Infallible.html">Infallible</a>&gt;(())
+        <span class="kw">match </span><span class="self">self</span>.try_for_each(|ptr| {
+            f(ptr);
+            <span class="prelude-val">Ok</span>::&lt;<span class="kw">_</span>, Infallible&gt;(())
         }) {
             <span class="prelude-val">Ok</span>(()) =&gt; (),
-            <span class="prelude-val">Err</span>(infallible) =&gt; <span class="kw">match </span><a href="#141">infallible</a> {},
+            <span class="prelude-val">Err</span>(infallible) =&gt; <span class="kw">match </span>infallible {},
         }
     }
 
     <span class="kw">pub fn </span>try_for_each&lt;F, E&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, <span class="kw-2">mut </span>f: F) -&gt; <span class="prelude-ty">Result</span>&lt;(), E&gt;
     <span class="kw">where
-        </span>F: FnMut(<a href="#20">Ptr</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), E&gt;,
+        </span>F: FnMut(Ptr) -&gt; <span class="prelude-ty">Result</span>&lt;(), E&gt;,
     {
-        <span class="kw">let </span><span class="kw-2">mut </span>len = <a class="self" href="#145">self</a>.ids.len();
+        <span class="kw">let </span><span class="kw-2">mut </span>len = <span class="self">self</span>.ids.len();
         <span class="kw">let </span><span class="kw-2">mut </span>i = <span class="number">0</span>;
 
         <span class="kw">while </span>i &lt; len {
@@ -602,37 +602,37 @@
     }
 }
 
-<span class="kw">impl </span><a href="#78">Resolve</a> <span class="kw">for </span><a href="#14">Store</a> {
-    <span class="kw">fn </span>resolve(<span class="kw-2">&amp;mut </span><span class="self">self</span>, key: <a href="#27">Key</a>) -&gt; <a href="#20">Ptr</a> {
-        <a href="#20">Ptr</a> { <a href="#180">key</a>, store: <span class="self"><a href="#180">self</a> </span>}
+<span class="kw">impl </span>Resolve <span class="kw">for </span>Store {
+    <span class="kw">fn </span>resolve(<span class="kw-2">&amp;mut </span><span class="self">self</span>, key: Key) -&gt; Ptr {
+        Ptr { key, store: <span class="self">self </span>}
     }
 }
 
-<span class="kw">impl </span>ops::Index&lt;<a href="#27">Key</a>&gt; <span class="kw">for </span><a href="#14">Store</a> {
-    <span class="kw">type </span>Output = <a href="stream.rs.html#19">Stream</a>;
+<span class="kw">impl </span>ops::Index&lt;Key&gt; <span class="kw">for </span>Store {
+    <span class="kw">type </span>Output = Stream;
 
-    <span class="kw">fn </span>index(<span class="kw-2">&amp;</span><span class="self">self</span>, key: <a href="#27">Key</a>) -&gt; <span class="kw-2">&amp;</span><span class="self">Self</span>::Output {
-        <a class="self" href="#188">self</a>.slab
-            .get(<a href="#188">key</a>.index.<span class="number">0 </span><span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>)
-            .filter(|s| <a href="#191">s</a>.id == <a href="#188">key</a>.stream_id)
+    <span class="kw">fn </span>index(<span class="kw-2">&amp;</span><span class="self">self</span>, key: Key) -&gt; <span class="kw-2">&amp;</span><span class="self">Self</span>::Output {
+        <span class="self">self</span>.slab
+            .get(key.index.<span class="number">0 </span><span class="kw">as </span>usize)
+            .filter(|s| s.id == key.stream_id)
             .unwrap_or_else(|| {
-                <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(<span class="string">&quot;dangling store key for stream_id={:?}&quot;</span>, key.stream_id);
+                <span class="macro">panic!</span>(<span class="string">&quot;dangling store key for stream_id={:?}&quot;</span>, key.stream_id);
             })
     }
 }
 
-<span class="kw">impl </span>ops::IndexMut&lt;<a href="#27">Key</a>&gt; <span class="kw">for </span><a href="#14">Store</a> {
-    <span class="kw">fn </span>index_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>, key: <a href="#27">Key</a>) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self</span>::Output {
-        <a class="self" href="#199">self</a>.slab
-            .get_mut(<a href="#199">key</a>.index.<span class="number">0 </span><span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>)
-            .filter(|s| <a href="#202">s</a>.id == <a href="#199">key</a>.stream_id)
+<span class="kw">impl </span>ops::IndexMut&lt;Key&gt; <span class="kw">for </span>Store {
+    <span class="kw">fn </span>index_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>, key: Key) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self</span>::Output {
+        <span class="self">self</span>.slab
+            .get_mut(key.index.<span class="number">0 </span><span class="kw">as </span>usize)
+            .filter(|s| s.id == key.stream_id)
             .unwrap_or_else(|| {
-                <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(<span class="string">&quot;dangling store key for stream_id={:?}&quot;</span>, key.stream_id);
+                <span class="macro">panic!</span>(<span class="string">&quot;dangling store key for stream_id={:?}&quot;</span>, key.stream_id);
             })
     }
 }
 
-<span class="kw">impl </span><a href="#14">Store</a> {
+<span class="kw">impl </span>Store {
     <span class="attr">#[cfg(feature = <span class="string">&quot;unstable&quot;</span>)]
     </span><span class="kw">pub fn </span>num_active_streams(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
         <span class="self">self</span>.ids.len()
@@ -664,18 +664,18 @@
 
 </span><span class="kw">impl</span>&lt;N&gt; Queue&lt;N&gt;
 <span class="kw">where
-    </span>N: <a href="#45">Next</a>,
+    </span>N: Next,
 {
     <span class="kw">pub fn </span>new() -&gt; <span class="self">Self </span>{
-        <a href="#40">Queue</a> {
+        Queue {
             indices: <span class="prelude-val">None</span>,
             _p: PhantomData,
         }
     }
 
     <span class="kw">pub fn </span>take(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="self">Self </span>{
-        <a href="#40">Queue</a> {
-            indices: <a class="self" href="#250">self</a>.indices.take(),
+        Queue {
+            indices: <span class="self">self</span>.indices.take(),
             _p: PhantomData,
         }
     }
@@ -683,36 +683,36 @@
     <span class="doccomment">/// Queue the stream.
     ///
     /// If the stream is already contained by the list, return `false`.
-    </span><span class="kw">pub fn </span>push(<span class="kw-2">&amp;mut </span><span class="self">self</span>, stream: <span class="kw-2">&amp;mut </span><a href="#20">store::Ptr</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="macro" href="../../../../tracing/tracing/macro.trace.html">tracing::trace!</a>(<span class="string">&quot;Queue::push&quot;</span>);
+    </span><span class="kw">pub fn </span>push(<span class="kw-2">&amp;mut </span><span class="self">self</span>, stream: <span class="kw-2">&amp;mut </span>store::Ptr) -&gt; bool {
+        <span class="macro">tracing::trace!</span>(<span class="string">&quot;Queue::push&quot;</span>);
 
         <span class="kw">if </span>N::is_queued(stream) {
-            <a class="macro" href="../../../../tracing/tracing/macro.trace.html">tracing::trace!</a>(<span class="string">&quot; -&gt; already queued&quot;</span>);
+            <span class="macro">tracing::trace!</span>(<span class="string">&quot; -&gt; already queued&quot;</span>);
             <span class="kw">return </span><span class="bool-val">false</span>;
         }
 
-        N::set_queued(<a href="#260">stream</a>, <span class="bool-val">true</span>);
+        N::set_queued(stream, <span class="bool-val">true</span>);
 
         <span class="comment">// The next pointer shouldn&#39;t be set
-        </span><a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(N::next(stream).is_none());
+        </span><span class="macro">debug_assert!</span>(N::next(stream).is_none());
 
         <span class="comment">// Queue the stream
-        </span><span class="kw">match </span><a class="self" href="#260">self</a>.indices {
+        </span><span class="kw">match </span><span class="self">self</span>.indices {
             <span class="prelude-val">Some</span>(<span class="kw-2">ref mut </span>idxs) =&gt; {
-                <a class="macro" href="../../../../tracing/tracing/macro.trace.html">tracing::trace!</a>(<span class="string">&quot; -&gt; existing entries&quot;</span>);
+                <span class="macro">tracing::trace!</span>(<span class="string">&quot; -&gt; existing entries&quot;</span>);
 
                 <span class="comment">// Update the current tail node to point to `stream`
-                </span><span class="kw">let </span>key = <a href="#260">stream</a>.<a href="#345">key</a>();
-                N::set_next(<span class="kw-2">&amp;mut </span><a href="#260">stream</a>.<a href="#79">resolve</a>(<a href="#275">idxs</a>.tail), <span class="prelude-val">Some</span>(<a href="#279">key</a>));
+                </span><span class="kw">let </span>key = stream.key();
+                N::set_next(<span class="kw-2">&amp;mut </span>stream.resolve(idxs.tail), <span class="prelude-val">Some</span>(key));
 
                 <span class="comment">// Update the tail pointer
-                </span><a href="#275">idxs</a>.tail = <a href="#260">stream</a>.<a href="#345">key</a>();
+                </span>idxs.tail = stream.key();
             }
             <span class="prelude-val">None </span>=&gt; {
-                <a class="macro" href="../../../../tracing/tracing/macro.trace.html">tracing::trace!</a>(<span class="string">&quot; -&gt; first entry&quot;</span>);
-                <a class="self" href="#260">self</a>.indices = <span class="prelude-val">Some</span>(<a href="#59">store::Indices</a> {
-                    head: <a href="#260">stream</a>.<a href="#345">key</a>(),
-                    tail: <a href="#260">stream</a>.<a href="#345">key</a>(),
+                <span class="macro">tracing::trace!</span>(<span class="string">&quot; -&gt; first entry&quot;</span>);
+                <span class="self">self</span>.indices = <span class="prelude-val">Some</span>(store::Indices {
+                    head: stream.key(),
+                    tail: stream.key(),
                 });
             }
         }
@@ -722,41 +722,41 @@
 
     <span class="kw">pub fn </span>pop&lt;<span class="lifetime">&#39;a</span>, R&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, store: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>R) -&gt; <span class="prelude-ty">Option</span>&lt;store::Ptr&lt;<span class="lifetime">&#39;a</span>&gt;&gt;
     <span class="kw">where
-        </span>R: <a href="#78">Resolve</a>,
+        </span>R: Resolve,
     {
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">mut </span>idxs) = <a class="self" href="#297">self</a>.indices {
-            <span class="kw">let </span><span class="kw-2">mut </span>stream = <a href="#297">store</a>.<a href="#79">resolve</a>(<a href="#301">idxs</a>.head);
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">mut </span>idxs) = <span class="self">self</span>.indices {
+            <span class="kw">let </span><span class="kw-2">mut </span>stream = store.resolve(idxs.head);
 
             <span class="kw">if </span>idxs.head == idxs.tail {
-                <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(N::next(<span class="kw-2">&amp;*</span>stream).is_none());
-                <a class="self" href="#297">self</a>.indices = <span class="prelude-val">None</span>;
+                <span class="macro">assert!</span>(N::next(<span class="kw-2">&amp;*</span>stream).is_none());
+                <span class="self">self</span>.indices = <span class="prelude-val">None</span>;
             } <span class="kw">else </span>{
-                <a href="#301">idxs</a>.head = N::take_next(<span class="kw-2">&amp;mut *</span><a href="#302">stream</a>).unwrap();
-                <a class="self" href="#297">self</a>.indices = <span class="prelude-val">Some</span>(<a href="#301">idxs</a>);
+                idxs.head = N::take_next(<span class="kw-2">&amp;mut *</span>stream).unwrap();
+                <span class="self">self</span>.indices = <span class="prelude-val">Some</span>(idxs);
             }
 
-            <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(N::is_queued(<span class="kw-2">&amp;*</span>stream));
-            N::set_queued(<span class="kw-2">&amp;mut *</span><a href="#302">stream</a>, <span class="bool-val">false</span>);
+            <span class="macro">debug_assert!</span>(N::is_queued(<span class="kw-2">&amp;*</span>stream));
+            N::set_queued(<span class="kw-2">&amp;mut *</span>stream, <span class="bool-val">false</span>);
 
-            <span class="kw">return </span><span class="prelude-val">Some</span>(<a href="#302">stream</a>);
+            <span class="kw">return </span><span class="prelude-val">Some</span>(stream);
         }
 
         <span class="prelude-val">None
     </span>}
 
-    <span class="kw">pub fn </span>is_empty(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#321">self</a>.indices.is_none()
+    <span class="kw">pub fn </span>is_empty(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.indices.is_none()
     }
 
     <span class="kw">pub fn </span>pop_if&lt;<span class="lifetime">&#39;a</span>, R, F&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, store: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>R, f: F) -&gt; <span class="prelude-ty">Option</span>&lt;store::Ptr&lt;<span class="lifetime">&#39;a</span>&gt;&gt;
     <span class="kw">where
-        </span>R: <a href="#78">Resolve</a>,
-        F: Fn(<span class="kw-2">&amp;</span><a href="stream.rs.html#19">Stream</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
+        </span>R: Resolve,
+        F: Fn(<span class="kw-2">&amp;</span>Stream) -&gt; bool,
     {
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(idxs) = <a class="self" href="#325">self</a>.indices {
-            <span class="kw">let </span>should_pop = <a href="#325">f</a>(<span class="kw-2">&amp;</span><a href="#325">store</a>.<a href="#79">resolve</a>(<a href="#330">idxs</a>.head));
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(idxs) = <span class="self">self</span>.indices {
+            <span class="kw">let </span>should_pop = f(<span class="kw-2">&amp;</span>store.resolve(idxs.head));
             <span class="kw">if </span>should_pop {
-                <span class="kw">return </span><a class="self" href="#325">self</a>.<a href="#297-299">pop</a>(<a href="#325">store</a>);
+                <span class="kw">return </span><span class="self">self</span>.pop(store);
             }
         }
 
@@ -768,23 +768,23 @@
 
 </span><span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; Ptr&lt;<span class="lifetime">&#39;a</span>&gt; {
     <span class="doccomment">/// Returns the Key associated with the stream
-    </span><span class="kw">pub fn </span>key(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="#27">Key</a> {
-        <a class="self" href="#345">self</a>.key
+    </span><span class="kw">pub fn </span>key(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Key {
+        <span class="self">self</span>.key
     }
 
-    <span class="kw">pub fn </span>store_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span><a href="#14">Store</a> {
-        <span class="kw-2">&amp;mut </span><a class="self" href="#349">self</a>.store
+    <span class="kw">pub fn </span>store_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>Store {
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>.store
     }
 
     <span class="doccomment">/// Remove the stream from the store
-    </span><span class="kw">pub fn </span>remove(<span class="self">self</span>) -&gt; <a href="../../frame/stream_id.rs.html#14">StreamId</a> {
+    </span><span class="kw">pub fn </span>remove(<span class="self">self</span>) -&gt; StreamId {
         <span class="comment">// The stream must have been unlinked before this point
-        </span><a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(!<span class="self">self</span>.store.ids.contains_key(<span class="kw-2">&amp;</span><span class="self">self</span>.key.stream_id));
+        </span><span class="macro">debug_assert!</span>(!<span class="self">self</span>.store.ids.contains_key(<span class="kw-2">&amp;</span><span class="self">self</span>.key.stream_id));
 
         <span class="comment">// Remove the stream state
-        </span><span class="kw">let </span>stream = <a class="self" href="#354">self</a>.store.slab.remove(<a class="self" href="#354">self</a>.key.index.<span class="number">0 </span><span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>);
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert_eq.html">assert_eq!</a>(stream.id, <span class="self">self</span>.key.stream_id);
-        <a href="#359">stream</a>.id
+        </span><span class="kw">let </span>stream = <span class="self">self</span>.store.slab.remove(<span class="self">self</span>.key.index.<span class="number">0 </span><span class="kw">as </span>usize);
+        <span class="macro">assert_eq!</span>(stream.id, <span class="self">self</span>.key.stream_id);
+        stream.id
     }
 
     <span class="doccomment">/// Remove the StreamId -&gt; stream state association.
@@ -792,63 +792,63 @@
     /// This will effectively remove the stream as far as the H2 protocol is
     /// concerned.
     </span><span class="kw">pub fn </span>unlink(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <span class="kw">let </span>id = <a class="self" href="#368">self</a>.key.stream_id;
-        <a class="self" href="#368">self</a>.store.ids.swap_remove(<span class="kw-2">&amp;</span><a href="#369">id</a>);
+        <span class="kw">let </span>id = <span class="self">self</span>.key.stream_id;
+        <span class="self">self</span>.store.ids.swap_remove(<span class="kw-2">&amp;</span>id);
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; <a href="#78">Resolve</a> <span class="kw">for </span>Ptr&lt;<span class="lifetime">&#39;a</span>&gt; {
-    <span class="kw">fn </span>resolve(<span class="kw-2">&amp;mut </span><span class="self">self</span>, key: <a href="#27">Key</a>) -&gt; <a href="#20">Ptr</a> {
-        <a href="#20">Ptr</a> {
-            <a href="#375">key</a>,
-            store: <span class="kw-2">&amp;mut *</span><a class="self" href="#375">self</a>.store,
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; Resolve <span class="kw">for </span>Ptr&lt;<span class="lifetime">&#39;a</span>&gt; {
+    <span class="kw">fn </span>resolve(<span class="kw-2">&amp;mut </span><span class="self">self</span>, key: Key) -&gt; Ptr {
+        Ptr {
+            key,
+            store: <span class="kw-2">&amp;mut *</span><span class="self">self</span>.store,
         }
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.Deref.html">ops::Deref</a> <span class="kw">for </span>Ptr&lt;<span class="lifetime">&#39;a</span>&gt; {
-    <span class="kw">type </span>Target = <a href="stream.rs.html#19">Stream</a>;
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; ops::Deref <span class="kw">for </span>Ptr&lt;<span class="lifetime">&#39;a</span>&gt; {
+    <span class="kw">type </span>Target = Stream;
 
-    <span class="kw">fn </span>deref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="stream.rs.html#19">Stream</a> {
-        <span class="kw-2">&amp;</span><a class="self" href="#386">self</a>.store[<a class="self" href="#386">self</a>.key]
+    <span class="kw">fn </span>deref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Stream {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.store[<span class="self">self</span>.key]
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.DerefMut.html">ops::DerefMut</a> <span class="kw">for </span>Ptr&lt;<span class="lifetime">&#39;a</span>&gt; {
-    <span class="kw">fn </span>deref_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span><a href="stream.rs.html#19">Stream</a> {
-        <span class="kw-2">&amp;mut </span><a class="self" href="#392">self</a>.store[<a class="self" href="#392">self</a>.key]
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; ops::DerefMut <span class="kw">for </span>Ptr&lt;<span class="lifetime">&#39;a</span>&gt; {
+    <span class="kw">fn </span>deref_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>Stream {
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>.store[<span class="self">self</span>.key]
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span>Ptr&lt;<span class="lifetime">&#39;a</span>&gt; {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, fmt: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        (<span class="kw-2">**</span><a class="self" href="#398">self</a>).<a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt</a>(<a href="#398">fmt</a>)
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; fmt::Debug <span class="kw">for </span>Ptr&lt;<span class="lifetime">&#39;a</span>&gt; {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, fmt: <span class="kw-2">&amp;mut </span>fmt::Formatter) -&gt; fmt::Result {
+        (<span class="kw-2">**</span><span class="self">self</span>).fmt(fmt)
     }
 }
 
 <span class="comment">// ===== impl OccupiedEntry =====
 
 </span><span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; OccupiedEntry&lt;<span class="lifetime">&#39;a</span>&gt; {
-    <span class="kw">pub fn </span>key(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="#27">Key</a> {
-        <span class="kw">let </span>stream_id = <span class="kw-2">*</span><a class="self" href="#406">self</a>.ids.key();
-        <span class="kw">let </span>index = <span class="kw-2">*</span><a class="self" href="#406">self</a>.ids.get();
-        <a href="#27">Key</a> { <a href="#408">index</a>, <a href="#407">stream_id</a> }
+    <span class="kw">pub fn </span>key(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Key {
+        <span class="kw">let </span>stream_id = <span class="kw-2">*</span><span class="self">self</span>.ids.key();
+        <span class="kw">let </span>index = <span class="kw-2">*</span><span class="self">self</span>.ids.get();
+        Key { index, stream_id }
     }
 }
 
 <span class="comment">// ===== impl VacantEntry =====
 
 </span><span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; VacantEntry&lt;<span class="lifetime">&#39;a</span>&gt; {
-    <span class="kw">pub fn </span>insert(<span class="self">self</span>, value: <a href="stream.rs.html#19">Stream</a>) -&gt; <a href="#27">Key</a> {
+    <span class="kw">pub fn </span>insert(<span class="self">self</span>, value: Stream) -&gt; Key {
         <span class="comment">// Insert the value in the slab
-        </span><span class="kw">let </span>stream_id = <a href="#416">value</a>.id;
-        <span class="kw">let </span>index = <a href="#37">SlabIndex</a>(<a class="self" href="#416">self</a>.slab.insert(<a href="#416">value</a>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>);
+        </span><span class="kw">let </span>stream_id = value.id;
+        <span class="kw">let </span>index = SlabIndex(<span class="self">self</span>.slab.insert(value) <span class="kw">as </span>u32);
 
         <span class="comment">// Insert the handle in the ID map
-        </span><a class="self" href="#416">self</a>.ids.insert(<a href="#419">index</a>);
+        </span><span class="self">self</span>.ids.insert(index);
 
-        <a href="#27">Key</a> { <a href="#419">index</a>, <a href="#418">stream_id</a> }
+        Key { index, stream_id }
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="h2" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="h2" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

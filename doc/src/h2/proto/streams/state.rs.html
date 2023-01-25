@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/h2-0.3.15/src/proto/streams/state.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>state.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../../h2/index.html"><img class="rust-logo" src="../../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/h2-0.3.15/src/proto/streams/state.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>state.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../../h2/index.html"><img class="rust-logo" src="../../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -470,14 +470,14 @@
 <a href="#470" id="470">470</a>
 <a href="#471" id="471">471</a>
 <a href="#472" id="472">472</a>
-</pre><pre class="rust"><code><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/io/index.html">std::io</a>;
+</pre><pre class="rust"><code><span class="kw">use </span>std::io;
 
-<span class="kw">use </span><a href="../../codec/error.rs.html#14"><span class="kw">crate</span>::codec::UserError</a>;
-<span class="kw">use </span><span class="kw">crate</span>::frame::{<a class="self" href="../../lib.rs.html#116">self</a>, <a href="../../frame/reason.rs.html#19">Reason</a>, <a href="../../frame/stream_id.rs.html#14">StreamId</a>};
-<span class="kw">use </span><span class="kw">crate</span>::proto::{<a class="self" href="../../lib.rs.html#109">self</a>, <a href="../error.rs.html#10">Error</a>, <a href="../error.rs.html#17">Initiator</a>, <a href="send.rs.html#45">PollReset</a>};
+<span class="kw">use </span><span class="kw">crate</span>::codec::UserError;
+<span class="kw">use </span><span class="kw">crate</span>::frame::{<span class="self">self</span>, Reason, StreamId};
+<span class="kw">use </span><span class="kw">crate</span>::proto::{<span class="self">self</span>, Error, Initiator, PollReset};
 
-<span class="kw">use </span><a href="#56"><span class="self">self</span>::Inner</a>::<span class="kw-2">*</span>;
-<span class="kw">use </span><a href="#68"><span class="self">self</span>::Peer</a>::<span class="kw-2">*</span>;
+<span class="kw">use </span><span class="self">self</span>::Inner::<span class="kw-2">*</span>;
+<span class="kw">use </span><span class="self">self</span>::Peer::<span class="kw-2">*</span>;
 
 <span class="doccomment">/// Represents the state of an H2 stream
 ///
@@ -521,7 +521,7 @@
 /// ```
 </span><span class="attr">#[derive(Debug, Clone)]
 </span><span class="kw">pub struct </span>State {
-    inner: <a href="#56">Inner</a>,
+    inner: Inner,
 }
 
 <span class="attr">#[derive(Debug, Clone)]
@@ -530,10 +530,10 @@
     <span class="comment">// TODO: these states shouldn&#39;t count against concurrency limits:
     </span>ReservedLocal,
     ReservedRemote,
-    Open { local: <a href="#68">Peer</a>, remote: <a href="#68">Peer</a> },
-    HalfClosedLocal(<a href="#68">Peer</a>), <span class="comment">// TODO: explicitly name this value
-    </span>HalfClosedRemote(<a href="#68">Peer</a>),
-    Closed(<a href="#74">Cause</a>),
+    Open { local: Peer, remote: Peer },
+    HalfClosedLocal(Peer), <span class="comment">// TODO: explicitly name this value
+    </span>HalfClosedRemote(Peer),
+    Closed(Cause),
 }
 
 <span class="attr">#[derive(Debug, Copy, Clone)]
@@ -545,7 +545,7 @@
 <span class="attr">#[derive(Debug, Clone)]
 </span><span class="kw">enum </span>Cause {
     EndStream,
-    Error(<a href="../error.rs.html#10">Error</a>),
+    Error(Error),
 
     <span class="doccomment">/// This indicates to the connection that a reset frame must be sent out
     /// once the send queue has been flushed.
@@ -554,45 +554,45 @@
     /// - User drops all references to a stream, so we want to CANCEL the it.
     /// - Header block size was too large, so we want to REFUSE, possibly
     ///   after sending a 431 response frame.
-    </span>ScheduledLibraryReset(<a href="../../frame/reason.rs.html#19">Reason</a>),
+    </span>ScheduledLibraryReset(Reason),
 }
 
-<span class="kw">impl </span><a href="#51">State</a> {
+<span class="kw">impl </span>State {
     <span class="doccomment">/// Opens the send-half of a stream if it is not already open.
-    </span><span class="kw">pub fn </span>send_open(<span class="kw-2">&amp;mut </span><span class="self">self</span>, eos: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../codec/error.rs.html#14">UserError</a>&gt; {
-        <span class="kw">let </span>local = <a href="#70">Streaming</a>;
+    </span><span class="kw">pub fn </span>send_open(<span class="kw-2">&amp;mut </span><span class="self">self</span>, eos: bool) -&gt; <span class="prelude-ty">Result</span>&lt;(), UserError&gt; {
+        <span class="kw">let </span>local = Streaming;
 
-        <a class="self" href="#90">self</a>.inner = <span class="kw">match </span><a class="self" href="#90">self</a>.inner {
-            <a href="#57">Idle</a> =&gt; {
+        <span class="self">self</span>.inner = <span class="kw">match </span><span class="self">self</span>.inner {
+            Idle =&gt; {
                 <span class="kw">if </span>eos {
-                    <a href="#62">HalfClosedLocal</a>(<a href="#69">AwaitingHeaders</a>)
+                    HalfClosedLocal(AwaitingHeaders)
                 } <span class="kw">else </span>{
-                    <a href="#61">Open</a> {
-                        <a href="#91">local</a>,
-                        remote: <a href="#69">AwaitingHeaders</a>,
+                    Open {
+                        local,
+                        remote: AwaitingHeaders,
                     }
                 }
             }
-            <a href="#61">Open</a> {
-                local: <a href="#69">AwaitingHeaders</a>,
+            Open {
+                local: AwaitingHeaders,
                 remote,
             } =&gt; {
                 <span class="kw">if </span>eos {
-                    <a href="#62">HalfClosedLocal</a>(<a href="#106">remote</a>)
+                    HalfClosedLocal(remote)
                 } <span class="kw">else </span>{
-                    <a href="#61">Open</a> { <a href="#91">local</a>, <a href="#106">remote</a> }
+                    Open { local, remote }
                 }
             }
-            <a href="#63">HalfClosedRemote</a>(<a href="#69">AwaitingHeaders</a>) | <a href="#59">ReservedLocal</a> =&gt; {
+            HalfClosedRemote(AwaitingHeaders) | ReservedLocal =&gt; {
                 <span class="kw">if </span>eos {
-                    <a href="#64">Closed</a>(<a href="#75">Cause::EndStream</a>)
+                    Closed(Cause::EndStream)
                 } <span class="kw">else </span>{
-                    <a href="#63">HalfClosedRemote</a>(<a href="#91">local</a>)
+                    HalfClosedRemote(local)
                 }
             }
             <span class="kw">_ </span>=&gt; {
                 <span class="comment">// All other transitions result in a protocol error
-                </span><span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../codec/error.rs.html#19">UserError::UnexpectedFrameType</a>);
+                </span><span class="kw">return </span><span class="prelude-val">Err</span>(UserError::UnexpectedFrameType);
             }
         };
 
@@ -602,119 +602,119 @@
     <span class="doccomment">/// Opens the receive-half of the stream when a HEADERS frame is received.
     ///
     /// Returns true if this transitions the state to Open.
-    </span><span class="kw">pub fn </span>recv_open(<span class="kw-2">&amp;mut </span><span class="self">self</span>, frame: <span class="kw-2">&amp;</span><a href="../../frame/headers.rs.html#19">frame::Headers</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>, <a href="../error.rs.html#10">Error</a>&gt; {
+    </span><span class="kw">pub fn </span>recv_open(<span class="kw-2">&amp;mut </span><span class="self">self</span>, frame: <span class="kw-2">&amp;</span>frame::Headers) -&gt; <span class="prelude-ty">Result</span>&lt;bool, Error&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>initial = <span class="bool-val">false</span>;
-        <span class="kw">let </span>eos = <a href="#133">frame</a>.<a href="../../frame/headers.rs.html#229">is_end_stream</a>();
+        <span class="kw">let </span>eos = frame.is_end_stream();
 
-        <a class="self" href="#133">self</a>.inner = <span class="kw">match </span><a class="self" href="#133">self</a>.inner {
-            <a href="#57">Idle</a> =&gt; {
-                <a href="#134">initial</a> = <span class="bool-val">true</span>;
+        <span class="self">self</span>.inner = <span class="kw">match </span><span class="self">self</span>.inner {
+            Idle =&gt; {
+                initial = <span class="bool-val">true</span>;
 
                 <span class="kw">if </span>eos {
-                    <a href="#63">HalfClosedRemote</a>(<a href="#69">AwaitingHeaders</a>)
+                    HalfClosedRemote(AwaitingHeaders)
                 } <span class="kw">else </span>{
-                    <a href="#61">Open</a> {
-                        local: <a href="#69">AwaitingHeaders</a>,
+                    Open {
+                        local: AwaitingHeaders,
                         remote: <span class="kw">if </span>frame.is_informational() {
-                            <a class="macro" href="../../../../tracing/tracing/macro.trace.html">tracing::trace!</a>(<span class="string">&quot;skipping 1xx response headers&quot;</span>);
-                            <a href="#69">AwaitingHeaders</a>
+                            <span class="macro">tracing::trace!</span>(<span class="string">&quot;skipping 1xx response headers&quot;</span>);
+                            AwaitingHeaders
                         } <span class="kw">else </span>{
-                            <a href="#70">Streaming</a>
+                            Streaming
                         },
                     }
                 }
             }
-            <a href="#60">ReservedRemote</a> =&gt; {
-                <a href="#134">initial</a> = <span class="bool-val">true</span>;
+            ReservedRemote =&gt; {
+                initial = <span class="bool-val">true</span>;
 
                 <span class="kw">if </span>eos {
-                    <a href="#64">Closed</a>(<a href="#75">Cause::EndStream</a>)
+                    Closed(Cause::EndStream)
                 } <span class="kw">else if </span>frame.is_informational() {
-                    <a class="macro" href="../../../../tracing/tracing/macro.trace.html">tracing::trace!</a>(<span class="string">&quot;skipping 1xx response headers&quot;</span>);
-                    <a href="#60">ReservedRemote</a>
+                    <span class="macro">tracing::trace!</span>(<span class="string">&quot;skipping 1xx response headers&quot;</span>);
+                    ReservedRemote
                 } <span class="kw">else </span>{
-                    <a href="#62">HalfClosedLocal</a>(<a href="#70">Streaming</a>)
+                    HalfClosedLocal(Streaming)
                 }
             }
-            <a href="#61">Open</a> {
+            Open {
                 local,
-                remote: <a href="#69">AwaitingHeaders</a>,
+                remote: AwaitingHeaders,
             } =&gt; {
                 <span class="kw">if </span>eos {
-                    <a href="#63">HalfClosedRemote</a>(<a href="#168">local</a>)
+                    HalfClosedRemote(local)
                 } <span class="kw">else </span>{
-                    <a href="#61">Open</a> {
-                        <a href="#168">local</a>,
+                    Open {
+                        local,
                         remote: <span class="kw">if </span>frame.is_informational() {
-                            <a class="macro" href="../../../../tracing/tracing/macro.trace.html">tracing::trace!</a>(<span class="string">&quot;skipping 1xx response headers&quot;</span>);
-                            <a href="#69">AwaitingHeaders</a>
+                            <span class="macro">tracing::trace!</span>(<span class="string">&quot;skipping 1xx response headers&quot;</span>);
+                            AwaitingHeaders
                         } <span class="kw">else </span>{
-                            <a href="#70">Streaming</a>
+                            Streaming
                         },
                     }
                 }
             }
-            <a href="#62">HalfClosedLocal</a>(<a href="#69">AwaitingHeaders</a>) =&gt; {
+            HalfClosedLocal(AwaitingHeaders) =&gt; {
                 <span class="kw">if </span>eos {
-                    <a href="#64">Closed</a>(<a href="#75">Cause::EndStream</a>)
+                    Closed(Cause::EndStream)
                 } <span class="kw">else if </span>frame.is_informational() {
-                    <a class="macro" href="../../../../tracing/tracing/macro.trace.html">tracing::trace!</a>(<span class="string">&quot;skipping 1xx response headers&quot;</span>);
-                    <a href="#62">HalfClosedLocal</a>(<a href="#69">AwaitingHeaders</a>)
+                    <span class="macro">tracing::trace!</span>(<span class="string">&quot;skipping 1xx response headers&quot;</span>);
+                    HalfClosedLocal(AwaitingHeaders)
                 } <span class="kw">else </span>{
-                    <a href="#62">HalfClosedLocal</a>(<a href="#70">Streaming</a>)
+                    HalfClosedLocal(Streaming)
                 }
             }
             <span class="kw-2">ref </span>state =&gt; {
                 <span class="comment">// All other transitions result in a protocol error
-                </span><a class="macro" href="../../lib.rs.html#85-92">proto_err!</a>(conn: <span class="string">&quot;recv_open: in unexpected state {:?}&quot;</span>, state);
+                </span><span class="macro">proto_err!</span>(conn: <span class="string">&quot;recv_open: in unexpected state {:?}&quot;</span>, state);
                 <span class="kw">return </span><span class="prelude-val">Err</span>(Error::library_go_away(Reason::PROTOCOL_ERROR));
             }
         };
 
-        <span class="prelude-val">Ok</span>(<a href="#134">initial</a>)
+        <span class="prelude-val">Ok</span>(initial)
     }
 
     <span class="doccomment">/// Transition from Idle -&gt; ReservedRemote
-    </span><span class="kw">pub fn </span>reserve_remote(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../error.rs.html#10">Error</a>&gt; {
-        <span class="kw">match </span><a class="self" href="#206">self</a>.inner {
-            <a href="#57">Idle</a> =&gt; {
-                <a class="self" href="#206">self</a>.inner = <a href="#60">ReservedRemote</a>;
+    </span><span class="kw">pub fn </span>reserve_remote(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
+        <span class="kw">match </span><span class="self">self</span>.inner {
+            Idle =&gt; {
+                <span class="self">self</span>.inner = ReservedRemote;
                 <span class="prelude-val">Ok</span>(())
             }
             <span class="kw-2">ref </span>state =&gt; {
-                <a class="macro" href="../../lib.rs.html#85-92">proto_err!</a>(conn: <span class="string">&quot;reserve_remote: in unexpected state {:?}&quot;</span>, state);
+                <span class="macro">proto_err!</span>(conn: <span class="string">&quot;reserve_remote: in unexpected state {:?}&quot;</span>, state);
                 <span class="prelude-val">Err</span>(Error::library_go_away(Reason::PROTOCOL_ERROR))
             }
         }
     }
 
     <span class="doccomment">/// Transition from Idle -&gt; ReservedLocal
-    </span><span class="kw">pub fn </span>reserve_local(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../codec/error.rs.html#14">UserError</a>&gt; {
-        <span class="kw">match </span><a class="self" href="#220">self</a>.inner {
-            <a href="#57">Idle</a> =&gt; {
-                <a class="self" href="#220">self</a>.inner = <a href="#59">ReservedLocal</a>;
+    </span><span class="kw">pub fn </span>reserve_local(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), UserError&gt; {
+        <span class="kw">match </span><span class="self">self</span>.inner {
+            Idle =&gt; {
+                <span class="self">self</span>.inner = ReservedLocal;
                 <span class="prelude-val">Ok</span>(())
             }
-            <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(<a href="../../codec/error.rs.html#19">UserError::UnexpectedFrameType</a>),
+            <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(UserError::UnexpectedFrameType),
         }
     }
 
     <span class="doccomment">/// Indicates that the remote side will not send more data to the local.
-    </span><span class="kw">pub fn </span>recv_close(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../error.rs.html#10">Error</a>&gt; {
-        <span class="kw">match </span><a class="self" href="#231">self</a>.inner {
-            <a href="#61">Open</a> { local, .. } =&gt; {
+    </span><span class="kw">pub fn </span>recv_close(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
+        <span class="kw">match </span><span class="self">self</span>.inner {
+            Open { local, .. } =&gt; {
                 <span class="comment">// The remote side will continue to receive data.
-                </span><a class="macro" href="../../../../tracing/tracing/macro.trace.html">tracing::trace!</a>(<span class="string">&quot;recv_close: Open =&gt; HalfClosedRemote({:?})&quot;</span>, local);
-                <a class="self" href="#231">self</a>.inner = <a href="#63">HalfClosedRemote</a>(<a href="#233">local</a>);
+                </span><span class="macro">tracing::trace!</span>(<span class="string">&quot;recv_close: Open =&gt; HalfClosedRemote({:?})&quot;</span>, local);
+                <span class="self">self</span>.inner = HalfClosedRemote(local);
                 <span class="prelude-val">Ok</span>(())
             }
-            <a href="#62">HalfClosedLocal</a>(..) =&gt; {
-                <a class="macro" href="../../../../tracing/tracing/macro.trace.html">tracing::trace!</a>(<span class="string">&quot;recv_close: HalfClosedLocal =&gt; Closed&quot;</span>);
-                <a class="self" href="#231">self</a>.inner = <a href="#64">Closed</a>(<a href="#75">Cause::EndStream</a>);
+            HalfClosedLocal(..) =&gt; {
+                <span class="macro">tracing::trace!</span>(<span class="string">&quot;recv_close: HalfClosedLocal =&gt; Closed&quot;</span>);
+                <span class="self">self</span>.inner = Closed(Cause::EndStream);
                 <span class="prelude-val">Ok</span>(())
             }
             <span class="kw-2">ref </span>state =&gt; {
-                <a class="macro" href="../../lib.rs.html#85-92">proto_err!</a>(conn: <span class="string">&quot;recv_close: in unexpected state {:?}&quot;</span>, state);
+                <span class="macro">proto_err!</span>(conn: <span class="string">&quot;recv_close: in unexpected state {:?}&quot;</span>, state);
                 <span class="prelude-val">Err</span>(Error::library_go_away(Reason::PROTOCOL_ERROR))
             }
         }
@@ -725,11 +725,11 @@
     /// # Arguments
     /// - `frame`: the received RST_STREAM frame.
     /// - `queued`: true if this stream has frames in the pending send queue.
-    </span><span class="kw">pub fn </span>recv_reset(<span class="kw-2">&amp;mut </span><span class="self">self</span>, frame: <a href="../../frame/reset.rs.html#6">frame::Reset</a>, queued: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) {
-        <span class="kw">match </span><a class="self" href="#256">self</a>.inner {
+    </span><span class="kw">pub fn </span>recv_reset(<span class="kw-2">&amp;mut </span><span class="self">self</span>, frame: frame::Reset, queued: bool) {
+        <span class="kw">match </span><span class="self">self</span>.inner {
             <span class="comment">// If the stream is already in a `Closed` state, do nothing,
             // provided that there are no frames still in the send queue.
-            </span><a href="#64">Closed</a>(..) <span class="kw">if </span>!<a href="#256">queued</a> =&gt; {}
+            </span>Closed(..) <span class="kw">if </span>!queued =&gt; {}
             <span class="comment">// A notionally `Closed` stream may still have queued frames in
             // the following cases:
             //
@@ -745,202 +745,202 @@
             // previous state with the received RST_STREAM, so that the queue
             // will be cleared by `Prioritize::pop_frame`.
             </span><span class="kw-2">ref </span>state =&gt; {
-                <a class="macro" href="../../../../tracing/tracing/macro.trace.html">tracing::trace!</a>(
+                <span class="macro">tracing::trace!</span>(
                     <span class="string">&quot;recv_reset; frame={:?}; state={:?}; queued={:?}&quot;</span>,
                     frame,
                     state,
                     queued
                 );
-                <a class="self" href="#256">self</a>.inner = <a href="#64">Closed</a>(<a href="#76">Cause::Error</a>(Error::remote_reset(
-                    <a href="#256">frame</a>.<a href="../../frame/reset.rs.html#19">stream_id</a>(),
-                    <a href="#256">frame</a>.<a href="../../frame/reset.rs.html#23">reason</a>(),
+                <span class="self">self</span>.inner = Closed(Cause::Error(Error::remote_reset(
+                    frame.stream_id(),
+                    frame.reason(),
                 )));
             }
         }
     }
 
     <span class="doccomment">/// Handle a connection-level error.
-    </span><span class="kw">pub fn </span>handle_error(<span class="kw-2">&amp;mut </span><span class="self">self</span>, err: <span class="kw-2">&amp;</span><a href="../error.rs.html#10">proto::Error</a>) {
-        <span class="kw">match </span><a class="self" href="#291">self</a>.inner {
-            <a href="#64">Closed</a>(..) =&gt; {}
+    </span><span class="kw">pub fn </span>handle_error(<span class="kw-2">&amp;mut </span><span class="self">self</span>, err: <span class="kw-2">&amp;</span>proto::Error) {
+        <span class="kw">match </span><span class="self">self</span>.inner {
+            Closed(..) =&gt; {}
             <span class="kw">_ </span>=&gt; {
-                <a class="macro" href="../../../../tracing/tracing/macro.trace.html">tracing::trace!</a>(<span class="string">&quot;handle_error; err={:?}&quot;</span>, err);
-                <a class="self" href="#291">self</a>.inner = <a href="#64">Closed</a>(<a href="#76">Cause::Error</a>(<a href="#291">err</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()));
+                <span class="macro">tracing::trace!</span>(<span class="string">&quot;handle_error; err={:?}&quot;</span>, err);
+                <span class="self">self</span>.inner = Closed(Cause::Error(err.clone()));
             }
         }
     }
 
     <span class="kw">pub fn </span>recv_eof(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <span class="kw">match </span><a class="self" href="#301">self</a>.inner {
-            <a href="#64">Closed</a>(..) =&gt; {}
+        <span class="kw">match </span><span class="self">self</span>.inner {
+            Closed(..) =&gt; {}
             <span class="kw-2">ref </span>state =&gt; {
-                <a class="macro" href="../../../../tracing/tracing/macro.trace.html">tracing::trace!</a>(<span class="string">&quot;recv_eof; state={:?}&quot;</span>, state);
-                <a class="self" href="#301">self</a>.inner = <a href="#64">Closed</a>(<a href="#76">Cause::Error</a>(io::ErrorKind::BrokenPipe.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()));
+                <span class="macro">tracing::trace!</span>(<span class="string">&quot;recv_eof; state={:?}&quot;</span>, state);
+                <span class="self">self</span>.inner = Closed(Cause::Error(io::ErrorKind::BrokenPipe.into()));
             }
         }
     }
 
     <span class="doccomment">/// Indicates that the local side will not send more data to the local.
     </span><span class="kw">pub fn </span>send_close(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <span class="kw">match </span><a class="self" href="#312">self</a>.inner {
-            <a href="#61">Open</a> { remote, .. } =&gt; {
+        <span class="kw">match </span><span class="self">self</span>.inner {
+            Open { remote, .. } =&gt; {
                 <span class="comment">// The remote side will continue to receive data.
-                </span><a class="macro" href="../../../../tracing/tracing/macro.trace.html">tracing::trace!</a>(<span class="string">&quot;send_close: Open =&gt; HalfClosedLocal({:?})&quot;</span>, remote);
-                <a class="self" href="#312">self</a>.inner = <a href="#62">HalfClosedLocal</a>(<a href="#314">remote</a>);
+                </span><span class="macro">tracing::trace!</span>(<span class="string">&quot;send_close: Open =&gt; HalfClosedLocal({:?})&quot;</span>, remote);
+                <span class="self">self</span>.inner = HalfClosedLocal(remote);
             }
-            <a href="#63">HalfClosedRemote</a>(..) =&gt; {
-                <a class="macro" href="../../../../tracing/tracing/macro.trace.html">tracing::trace!</a>(<span class="string">&quot;send_close: HalfClosedRemote =&gt; Closed&quot;</span>);
-                <a class="self" href="#312">self</a>.inner = <a href="#64">Closed</a>(<a href="#75">Cause::EndStream</a>);
+            HalfClosedRemote(..) =&gt; {
+                <span class="macro">tracing::trace!</span>(<span class="string">&quot;send_close: HalfClosedRemote =&gt; Closed&quot;</span>);
+                <span class="self">self</span>.inner = Closed(Cause::EndStream);
             }
-            <span class="kw-2">ref </span>state =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(<span class="string">&quot;send_close: unexpected state {:?}&quot;</span>, state),
+            <span class="kw-2">ref </span>state =&gt; <span class="macro">panic!</span>(<span class="string">&quot;send_close: unexpected state {:?}&quot;</span>, state),
         }
     }
 
     <span class="doccomment">/// Set the stream state to reset locally.
-    </span><span class="kw">pub fn </span>set_reset(<span class="kw-2">&amp;mut </span><span class="self">self</span>, stream_id: <a href="../../frame/stream_id.rs.html#14">StreamId</a>, reason: <a href="../../frame/reason.rs.html#19">Reason</a>, initiator: <a href="../error.rs.html#17">Initiator</a>) {
-        <a class="self" href="#328">self</a>.inner = <a href="#64">Closed</a>(<a href="#76">Cause::Error</a>(<a href="../error.rs.html#11">Error::Reset</a>(<a href="#328">stream_id</a>, <a href="#328">reason</a>, <a href="#328">initiator</a>)));
+    </span><span class="kw">pub fn </span>set_reset(<span class="kw-2">&amp;mut </span><span class="self">self</span>, stream_id: StreamId, reason: Reason, initiator: Initiator) {
+        <span class="self">self</span>.inner = Closed(Cause::Error(Error::Reset(stream_id, reason, initiator)));
     }
 
     <span class="doccomment">/// Set the stream state to a scheduled reset.
-    </span><span class="kw">pub fn </span>set_scheduled_reset(<span class="kw-2">&amp;mut </span><span class="self">self</span>, reason: <a href="../../frame/reason.rs.html#19">Reason</a>) {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(!<span class="self">self</span>.is_closed());
-        <a class="self" href="#333">self</a>.inner = <a href="#64">Closed</a>(<a href="#85">Cause::ScheduledLibraryReset</a>(<a href="#333">reason</a>));
+    </span><span class="kw">pub fn </span>set_scheduled_reset(<span class="kw-2">&amp;mut </span><span class="self">self</span>, reason: Reason) {
+        <span class="macro">debug_assert!</span>(!<span class="self">self</span>.is_closed());
+        <span class="self">self</span>.inner = Closed(Cause::ScheduledLibraryReset(reason));
     }
 
-    <span class="kw">pub fn </span>get_scheduled_reset(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="../../frame/reason.rs.html#19">Reason</a>&gt; {
-        <span class="kw">match </span><a class="self" href="#338">self</a>.inner {
-            <a href="#64">Closed</a>(<a href="#85">Cause::ScheduledLibraryReset</a>(reason)) =&gt; <span class="prelude-val">Some</span>(<a href="#340">reason</a>),
+    <span class="kw">pub fn </span>get_scheduled_reset(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Reason&gt; {
+        <span class="kw">match </span><span class="self">self</span>.inner {
+            Closed(Cause::ScheduledLibraryReset(reason)) =&gt; <span class="prelude-val">Some</span>(reason),
             <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
         }
     }
 
-    <span class="kw">pub fn </span>is_scheduled_reset(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">match </span><a class="self" href="#345">self</a>.inner {
-            <a href="#64">Closed</a>(<a href="#85">Cause::ScheduledLibraryReset</a>(..)) =&gt; <span class="bool-val">true</span>,
+    <span class="kw">pub fn </span>is_scheduled_reset(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="kw">match </span><span class="self">self</span>.inner {
+            Closed(Cause::ScheduledLibraryReset(..)) =&gt; <span class="bool-val">true</span>,
             <span class="kw">_ </span>=&gt; <span class="bool-val">false</span>,
         }
     }
 
-    <span class="kw">pub fn </span>is_local_reset(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">match </span><a class="self" href="#352">self</a>.inner {
-            <a href="#64">Closed</a>(<a href="#76">Cause::Error</a>(<span class="kw-2">ref </span>e)) =&gt; <a href="#354">e</a>.<a href="../error.rs.html#24">is_local</a>(),
-            <a href="#64">Closed</a>(<a href="#85">Cause::ScheduledLibraryReset</a>(..)) =&gt; <span class="bool-val">true</span>,
+    <span class="kw">pub fn </span>is_local_reset(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="kw">match </span><span class="self">self</span>.inner {
+            Closed(Cause::Error(<span class="kw-2">ref </span>e)) =&gt; e.is_local(),
+            Closed(Cause::ScheduledLibraryReset(..)) =&gt; <span class="bool-val">true</span>,
             <span class="kw">_ </span>=&gt; <span class="bool-val">false</span>,
         }
     }
 
     <span class="doccomment">/// Returns true if the stream is already reset.
-    </span><span class="kw">pub fn </span>is_reset(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">match </span><a class="self" href="#361">self</a>.inner {
-            <a href="#64">Closed</a>(<a href="#75">Cause::EndStream</a>) =&gt; <span class="bool-val">false</span>,
-            <a href="#64">Closed</a>(<span class="kw">_</span>) =&gt; <span class="bool-val">true</span>,
+    </span><span class="kw">pub fn </span>is_reset(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="kw">match </span><span class="self">self</span>.inner {
+            Closed(Cause::EndStream) =&gt; <span class="bool-val">false</span>,
+            Closed(<span class="kw">_</span>) =&gt; <span class="bool-val">true</span>,
             <span class="kw">_ </span>=&gt; <span class="bool-val">false</span>,
         }
     }
 
-    <span class="kw">pub fn </span>is_send_streaming(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">match </span><a class="self" href="#369">self</a>.inner {
-            <a href="#61">Open</a> {
-                local: <a href="#70">Streaming</a>, ..
+    <span class="kw">pub fn </span>is_send_streaming(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="kw">match </span><span class="self">self</span>.inner {
+            Open {
+                local: Streaming, ..
             } =&gt; <span class="bool-val">true</span>,
-            <a href="#63">HalfClosedRemote</a>(<a href="#70">Streaming</a>) =&gt; <span class="bool-val">true</span>,
+            HalfClosedRemote(Streaming) =&gt; <span class="bool-val">true</span>,
             <span class="kw">_ </span>=&gt; <span class="bool-val">false</span>,
         }
     }
 
     <span class="doccomment">/// Returns true when the stream is in a state to receive headers
-    </span><span class="kw">pub fn </span>is_recv_headers(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">match </span><a class="self" href="#380">self</a>.inner {
-            <a href="#57">Idle</a> =&gt; <span class="bool-val">true</span>,
-            <a href="#61">Open</a> {
-                remote: <a href="#69">AwaitingHeaders</a>,
+    </span><span class="kw">pub fn </span>is_recv_headers(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="kw">match </span><span class="self">self</span>.inner {
+            Idle =&gt; <span class="bool-val">true</span>,
+            Open {
+                remote: AwaitingHeaders,
                 ..
             } =&gt; <span class="bool-val">true</span>,
-            <a href="#62">HalfClosedLocal</a>(<a href="#69">AwaitingHeaders</a>) =&gt; <span class="bool-val">true</span>,
-            <a href="#60">ReservedRemote</a> =&gt; <span class="bool-val">true</span>,
+            HalfClosedLocal(AwaitingHeaders) =&gt; <span class="bool-val">true</span>,
+            ReservedRemote =&gt; <span class="bool-val">true</span>,
             <span class="kw">_ </span>=&gt; <span class="bool-val">false</span>,
         }
     }
 
-    <span class="kw">pub fn </span>is_recv_streaming(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">match </span><a class="self" href="#393">self</a>.inner {
-            <a href="#61">Open</a> {
-                remote: <a href="#70">Streaming</a>, ..
+    <span class="kw">pub fn </span>is_recv_streaming(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="kw">match </span><span class="self">self</span>.inner {
+            Open {
+                remote: Streaming, ..
             } =&gt; <span class="bool-val">true</span>,
-            <a href="#62">HalfClosedLocal</a>(<a href="#70">Streaming</a>) =&gt; <span class="bool-val">true</span>,
+            HalfClosedLocal(Streaming) =&gt; <span class="bool-val">true</span>,
             <span class="kw">_ </span>=&gt; <span class="bool-val">false</span>,
         }
     }
 
-    <span class="kw">pub fn </span>is_closed(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">match </span><a class="self" href="#403">self</a>.inner {
-            <a href="#64">Closed</a>(<span class="kw">_</span>) =&gt; <span class="bool-val">true</span>,
+    <span class="kw">pub fn </span>is_closed(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="kw">match </span><span class="self">self</span>.inner {
+            Closed(<span class="kw">_</span>) =&gt; <span class="bool-val">true</span>,
             <span class="kw">_ </span>=&gt; <span class="bool-val">false</span>,
         }
     }
 
-    <span class="kw">pub fn </span>is_recv_closed(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">match </span><a class="self" href="#410">self</a>.inner {
-            <a href="#64">Closed</a>(..) | <a href="#63">HalfClosedRemote</a>(..) | <a href="#59">ReservedLocal</a> =&gt; <span class="bool-val">true</span>,
+    <span class="kw">pub fn </span>is_recv_closed(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="kw">match </span><span class="self">self</span>.inner {
+            Closed(..) | HalfClosedRemote(..) | ReservedLocal =&gt; <span class="bool-val">true</span>,
             <span class="kw">_ </span>=&gt; <span class="bool-val">false</span>,
         }
     }
 
-    <span class="kw">pub fn </span>is_send_closed(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">match </span><a class="self" href="#417">self</a>.inner {
-            <a href="#64">Closed</a>(..) | <a href="#62">HalfClosedLocal</a>(..) | <a href="#60">ReservedRemote</a> =&gt; <span class="bool-val">true</span>,
+    <span class="kw">pub fn </span>is_send_closed(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="kw">match </span><span class="self">self</span>.inner {
+            Closed(..) | HalfClosedLocal(..) | ReservedRemote =&gt; <span class="bool-val">true</span>,
             <span class="kw">_ </span>=&gt; <span class="bool-val">false</span>,
         }
     }
 
-    <span class="kw">pub fn </span>is_idle(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">match </span><a class="self" href="#424">self</a>.inner {
-            <a href="#57">Idle</a> =&gt; <span class="bool-val">true</span>,
+    <span class="kw">pub fn </span>is_idle(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="kw">match </span><span class="self">self</span>.inner {
+            Idle =&gt; <span class="bool-val">true</span>,
             <span class="kw">_ </span>=&gt; <span class="bool-val">false</span>,
         }
     }
 
-    <span class="kw">pub fn </span>ensure_recv_open(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>, <a href="../error.rs.html#10">proto::Error</a>&gt; {
+    <span class="kw">pub fn </span>ensure_recv_open(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;bool, proto::Error&gt; {
         <span class="comment">// TODO: Is this correct?
-        </span><span class="kw">match </span><a class="self" href="#431">self</a>.inner {
-            <a href="#64">Closed</a>(<a href="#76">Cause::Error</a>(<span class="kw-2">ref </span>e)) =&gt; <span class="prelude-val">Err</span>(<a href="#434">e</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()),
-            <a href="#64">Closed</a>(<a href="#85">Cause::ScheduledLibraryReset</a>(reason)) =&gt; {
-                <span class="prelude-val">Err</span>(proto::Error::library_go_away(<a href="#435">reason</a>))
+        </span><span class="kw">match </span><span class="self">self</span>.inner {
+            Closed(Cause::Error(<span class="kw-2">ref </span>e)) =&gt; <span class="prelude-val">Err</span>(e.clone()),
+            Closed(Cause::ScheduledLibraryReset(reason)) =&gt; {
+                <span class="prelude-val">Err</span>(proto::Error::library_go_away(reason))
             }
-            <a href="#64">Closed</a>(<a href="#75">Cause::EndStream</a>) | <a href="#63">HalfClosedRemote</a>(..) | <a href="#59">ReservedLocal</a> =&gt; <span class="prelude-val">Ok</span>(<span class="bool-val">false</span>),
+            Closed(Cause::EndStream) | HalfClosedRemote(..) | ReservedLocal =&gt; <span class="prelude-val">Ok</span>(<span class="bool-val">false</span>),
             <span class="kw">_ </span>=&gt; <span class="prelude-val">Ok</span>(<span class="bool-val">true</span>),
         }
     }
 
     <span class="doccomment">/// Returns a reason if the stream has been reset.
-    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>ensure_reason(<span class="kw-2">&amp;</span><span class="self">self</span>, mode: <a href="send.rs.html#45">PollReset</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<a href="../../frame/reason.rs.html#19">Reason</a>&gt;, <a href="../../error.rs.html#21"><span class="kw">crate</span>::Error</a>&gt; {
-        <span class="kw">match </span><a class="self" href="#444">self</a>.inner {
-            <a href="#64">Closed</a>(<a href="#76">Cause::Error</a>(<a href="../error.rs.html#11">Error::Reset</a>(<span class="kw">_</span>, reason, <span class="kw">_</span>)))
-            | <a href="#64">Closed</a>(<a href="#76">Cause::Error</a>(<a href="../error.rs.html#12">Error::GoAway</a>(<span class="kw">_</span>, reason, <span class="kw">_</span>)))
-            | <a href="#64">Closed</a>(<a href="#85">Cause::ScheduledLibraryReset</a>(reason)) =&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<a href="#446">reason</a>)),
-            <a href="#64">Closed</a>(<a href="#76">Cause::Error</a>(<span class="kw-2">ref </span>e)) =&gt; <span class="prelude-val">Err</span>(<a href="#449">e</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>().<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
-            <a href="#61">Open</a> {
-                local: <a href="#70">Streaming</a>, ..
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>ensure_reason(<span class="kw-2">&amp;</span><span class="self">self</span>, mode: PollReset) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;Reason&gt;, <span class="kw">crate</span>::Error&gt; {
+        <span class="kw">match </span><span class="self">self</span>.inner {
+            Closed(Cause::Error(Error::Reset(<span class="kw">_</span>, reason, <span class="kw">_</span>)))
+            | Closed(Cause::Error(Error::GoAway(<span class="kw">_</span>, reason, <span class="kw">_</span>)))
+            | Closed(Cause::ScheduledLibraryReset(reason)) =&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(reason)),
+            Closed(Cause::Error(<span class="kw-2">ref </span>e)) =&gt; <span class="prelude-val">Err</span>(e.clone().into()),
+            Open {
+                local: Streaming, ..
             }
-            | <a href="#63">HalfClosedRemote</a>(<a href="#70">Streaming</a>) =&gt; <span class="kw">match </span><a href="#444">mode</a> {
-                <a href="send.rs.html#46">PollReset::AwaitingHeaders</a> =&gt; <span class="prelude-val">Err</span>(<a href="../../codec/error.rs.html#42">UserError::PollResetAfterSendResponse</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
-                <a href="send.rs.html#47">PollReset::Streaming</a> =&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>),
+            | HalfClosedRemote(Streaming) =&gt; <span class="kw">match </span>mode {
+                PollReset::AwaitingHeaders =&gt; <span class="prelude-val">Err</span>(UserError::PollResetAfterSendResponse.into()),
+                PollReset::Streaming =&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>),
             },
             <span class="kw">_ </span>=&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>),
         }
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for </span><a href="#51">State</a> {
-    <span class="kw">fn </span>default() -&gt; <a href="#51">State</a> {
-        <a href="#51">State</a> { inner: <a href="#57">Inner::Idle</a> }
+<span class="kw">impl </span>Default <span class="kw">for </span>State {
+    <span class="kw">fn </span>default() -&gt; State {
+        State { inner: Inner::Idle }
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for </span><a href="#68">Peer</a> {
+<span class="kw">impl </span>Default <span class="kw">for </span>Peer {
     <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
-        <a href="#69">AwaitingHeaders</a>
+        AwaitingHeaders
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="h2" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="h2" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

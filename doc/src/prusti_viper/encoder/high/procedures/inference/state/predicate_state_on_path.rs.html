@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `prusti-viper/src/encoder/high/procedures/inference/state/predicate_state_on_path.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>predicate_state_on_path.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../../../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../../../../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../../../../../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../../../../../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../../../../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../../../../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../../../../../../source-files.js"></script><script defer src="../../../../../../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../../../../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../../../../../prusti_viper/index.html"><img class="rust-logo" src="../../../../../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `prusti-viper/src/encoder/high/procedures/inference/state/predicate_state_on_path.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>predicate_state_on_path.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../../../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../../../../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../../../../../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../../../../../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../../../../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../../../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../../../../../source-files.js"></script><script defer src="../../../../../../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../../../../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../../../../../prusti_viper/index.html"><img class="rust-logo" src="../../../../../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -432,38 +432,36 @@
 <a href="#432" id="432">432</a>
 <a href="#433" id="433">433</a>
 <a href="#434" id="434">434</a>
-<a href="#435" id="435">435</a>
-<a href="#436" id="436">436</a>
 </pre><pre class="rust"><code><span class="kw">use super</span>::{
-    <span class="kw">super</span>::permission::{<a href="../permission.rs.html#37">MutBorrowed</a>, <a href="../permission.rs.html#4">Permission</a>, <a href="../permission.rs.html#43">PermissionKind</a>},
-    <a href="places.rs.html#4">places::PlaceWithDeadLifetimes</a>,
-    <a href="places.rs.html#10">Places</a>,
+    <span class="kw">super</span>::permission::{MutBorrowed, Permission, PermissionKind},
+    places::PlaceWithDeadLifetimes,
+    Places,
 };
-<span class="kw">use </span><a href="../../../../errors/spanned_encoding_error.rs.html#23"><span class="kw">crate</span>::encoder::errors::SpannedEncodingResult</a>;
-<span class="kw">use </span><a href="../../../../../../../log/macro.debug.html">log::debug</a>;
-<span class="kw">use </span>std::collections::{<a href="https://doc.rust-lang.org/nightly/alloc/collections/btree/map/struct.BTreeMap.html">BTreeMap</a>, <a href="https://doc.rust-lang.org/nightly/alloc/collections/btree/set/struct.BTreeSet.html">BTreeSet</a>};
+<span class="kw">use </span><span class="kw">crate</span>::encoder::errors::SpannedEncodingResult;
+<span class="kw">use </span>log::debug;
+<span class="kw">use </span>std::collections::{BTreeMap, BTreeSet};
 <span class="kw">use </span>vir_crate::typed::{
-    <span class="self"><a href="../../../../../../../vir/typed/index.html">self</a> </span><span class="kw">as </span>vir_typed,
-    operations::{<a href="../../../../../../../vir/gen/typed/operations_internal/lifetimes/trait.WithLifetimes.html">lifetimes::WithLifetimes</a>, <a href="../../../../../../../vir/gen/typed/operations_internal/ty/trait.Typed.html">ty::Typed</a>},
+    <span class="self">self </span><span class="kw">as </span>vir_typed,
+    operations::{lifetimes::WithLifetimes, ty::Typed},
 };
 
 <span class="attr">#[derive(Clone, Default, Debug, PartialEq, Eq)]
 </span><span class="kw">pub</span>(<span class="kw">in </span><span class="kw">super</span>::<span class="kw">super</span>) <span class="kw">struct </span>PredicateStateOnPath {
-    owned_non_aliased: <a href="places.rs.html#10">Places</a>,
-    memory_block_stack: <a href="places.rs.html#10">Places</a>,
-    mut_borrowed: BTreeMap&lt;<a href="../../../../../../../vir/gen/typed/ast/expression/enum.Expression.html">vir_typed::Expression</a>, <a href="../../../../../../../vir/gen/typed/ast/ty/struct.LifetimeConst.html">vir_typed::ty::LifetimeConst</a>&gt;,
-    dead_lifetimes: BTreeSet&lt;<a href="../../../../../../../vir/gen/typed/ast/ty/struct.LifetimeConst.html">vir_typed::ty::LifetimeConst</a>&gt;,
+    owned_non_aliased: Places,
+    memory_block_stack: Places,
+    mut_borrowed: BTreeMap&lt;vir_typed::Expression, vir_typed::ty::LifetimeConst&gt;,
+    dead_lifetimes: BTreeSet&lt;vir_typed::ty::LifetimeConst&gt;,
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">std::fmt::Display</a> <span class="kw">for </span><a href="#15">PredicateStateOnPath</a> {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">std::fmt::Result</a> {
+<span class="kw">impl </span>std::fmt::Display <span class="kw">for </span>PredicateStateOnPath {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; std::fmt::Result {
         <span class="macro">writeln!</span>(
             f,
             <span class="string">&quot;    owned_non_aliased ({}):&quot;</span>,
             <span class="self">self</span>.owned_non_aliased.len()
         )<span class="question-mark">?</span>;
         <span class="kw">for </span>place <span class="kw">in </span><span class="kw-2">&amp;</span><span class="self">self</span>.owned_non_aliased {
-            <span class="macro">writeln!</span>(f, <span class="string">&quot;      {}&quot;</span>, place)<span class="question-mark">?</span>;
+            <span class="macro">writeln!</span>(f, <span class="string">&quot;      {place}&quot;</span>)<span class="question-mark">?</span>;
         }
         <span class="macro">writeln!</span>(
             f,
@@ -471,128 +469,127 @@
             <span class="self">self</span>.memory_block_stack.len()
         )<span class="question-mark">?</span>;
         <span class="kw">for </span>place <span class="kw">in </span><span class="kw-2">&amp;</span><span class="self">self</span>.memory_block_stack {
-            <span class="macro">writeln!</span>(f, <span class="string">&quot;      {}&quot;</span>, place)<span class="question-mark">?</span>;
+            <span class="macro">writeln!</span>(f, <span class="string">&quot;      {place}&quot;</span>)<span class="question-mark">?</span>;
         }
         <span class="macro">writeln!</span>(f, <span class="string">&quot;    mut_borrowed ({}):&quot;</span>, <span class="self">self</span>.mut_borrowed.len())<span class="question-mark">?</span>;
         <span class="kw">for </span>(place, lifetime) <span class="kw">in </span><span class="kw-2">&amp;</span><span class="self">self</span>.mut_borrowed {
-            <span class="macro">writeln!</span>(f, <span class="string">&quot;      &amp;{} {}&quot;</span>, lifetime, place)<span class="question-mark">?</span>;
+            <span class="macro">writeln!</span>(f, <span class="string">&quot;      &amp;{lifetime} {place}&quot;</span>)<span class="question-mark">?</span>;
         }
         <span class="prelude-val">Ok</span>(())
     }
 }
 
-<span class="kw">impl </span><a href="#15">PredicateStateOnPath</a> {
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>new(permission: <a href="../permission.rs.html#4">Permission</a>) -&gt; <span class="self">Self </span>{
+<span class="kw">impl </span>PredicateStateOnPath {
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>new(permission: Permission) -&gt; <span class="self">Self </span>{
         <span class="kw">let </span><span class="kw-2">mut </span>state = <span class="self">Self</span>::default();
-        <a href="#50">state</a>.<a href="#124">insert_permission</a>(<a href="#49">permission</a>);
-        <a href="#50">state</a>
+        state.insert_permission(permission);
+        state
     }
 
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>is_empty(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#55">self</a>.owned_non_aliased.<a href="places.rs.html#25">is_empty</a>()
-            &amp;&amp; <a class="self" href="#55">self</a>.memory_block_stack.<a href="places.rs.html#25">is_empty</a>()
-            &amp;&amp; <a class="self" href="#55">self</a>.mut_borrowed.is_empty()
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>is_empty(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.owned_non_aliased.is_empty()
+            &amp;&amp; <span class="self">self</span>.memory_block_stack.is_empty()
+            &amp;&amp; <span class="self">self</span>.mut_borrowed.is_empty()
     }
 
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>contains_only_leakable(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#61">self</a>.memory_block_stack.<a href="places.rs.html#25">is_empty</a>()
-            &amp;&amp; <a class="self" href="#61">self</a>.owned_non_aliased.<a href="places.rs.html#47">iter</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">all</a>(|place| {
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>contains_only_leakable(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.memory_block_stack.is_empty()
+            &amp;&amp; <span class="self">self</span>.owned_non_aliased.iter().all(|place| {
                 <span class="comment">// `UniqueRef` and `FracRef` predicates can be leaked.
-                </span><a href="#63">place</a>.get_dereference_base().is_some()
+                </span>place.get_dereference_base().is_some()
             })
     }
 
-    <span class="kw">fn </span>places_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>, kind: <a href="../permission.rs.html#43">PermissionKind</a>) -&gt; <span class="kw-2">&amp;mut </span><a href="places.rs.html#10">Places</a> {
-        <a class="self" href="#69">self</a>.<a href="#278">check_no_default_position</a>();
-        <span class="kw">match </span><a href="#69">kind</a> {
-            <a href="../permission.rs.html#44">PermissionKind::MemoryBlock</a> =&gt; <span class="kw-2">&amp;mut </span><a class="self" href="#69">self</a>.memory_block_stack,
-            <a href="../permission.rs.html#45">PermissionKind::Owned</a> =&gt; <span class="kw-2">&amp;mut </span><a class="self" href="#69">self</a>.owned_non_aliased,
+    <span class="kw">fn </span>places_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>, kind: PermissionKind) -&gt; <span class="kw-2">&amp;mut </span>Places {
+        <span class="self">self</span>.check_no_default_position();
+        <span class="kw">match </span>kind {
+            PermissionKind::MemoryBlock =&gt; <span class="kw-2">&amp;mut </span><span class="self">self</span>.memory_block_stack,
+            PermissionKind::Owned =&gt; <span class="kw-2">&amp;mut </span><span class="self">self</span>.owned_non_aliased,
         }
     }
 
-    <span class="kw">fn </span>places(<span class="kw-2">&amp;</span><span class="self">self</span>, kind: <a href="../permission.rs.html#43">PermissionKind</a>) -&gt; <span class="kw-2">&amp;</span><a href="places.rs.html#10">Places</a> {
-        <a class="self" href="#77">self</a>.<a href="#278">check_no_default_position</a>();
-        <span class="kw">match </span><a href="#77">kind</a> {
-            <a href="../permission.rs.html#44">PermissionKind::MemoryBlock</a> =&gt; <span class="kw-2">&amp;</span><a class="self" href="#77">self</a>.memory_block_stack,
-            <a href="../permission.rs.html#45">PermissionKind::Owned</a> =&gt; <span class="kw-2">&amp;</span><a class="self" href="#77">self</a>.owned_non_aliased,
+    <span class="kw">fn </span>places(<span class="kw-2">&amp;</span><span class="self">self</span>, kind: PermissionKind) -&gt; <span class="kw-2">&amp;</span>Places {
+        <span class="self">self</span>.check_no_default_position();
+        <span class="kw">match </span>kind {
+            PermissionKind::MemoryBlock =&gt; <span class="kw-2">&amp;</span><span class="self">self</span>.memory_block_stack,
+            PermissionKind::Owned =&gt; <span class="kw-2">&amp;</span><span class="self">self</span>.owned_non_aliased,
         }
     }
 
     <span class="kw">pub</span>(<span class="kw">in </span><span class="kw">super</span>::<span class="kw">super</span>) <span class="kw">fn </span>remove(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        kind: <a href="../permission.rs.html#43">PermissionKind</a>,
-        place: <span class="kw-2">&amp;</span><a href="../../../../../../../vir/gen/typed/ast/expression/enum.Expression.html">vir_typed::Expression</a>,
+        kind: PermissionKind,
+        place: <span class="kw-2">&amp;</span>vir_typed::Expression,
     ) -&gt; SpannedEncodingResult&lt;()&gt; {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(place.is_place());
+        <span class="macro">assert!</span>(place.is_place());
         <span class="kw">if </span>!<span class="self">self</span>.places_mut(kind).remove(place) {
-            <a class="macro" href="../../../../../../../log/macro.debug.html">debug!</a>(<span class="string">&quot;not found: {} in {:?}&quot;</span>, place, kind);
+            <span class="macro">debug!</span>(<span class="string">&quot;not found: {} in {:?}&quot;</span>, place, kind);
         }
         <span class="prelude-val">Ok</span>(())
     }
 
     <span class="kw">pub</span>(<span class="kw">in </span><span class="kw">super</span>::<span class="kw">super</span>) <span class="kw">fn </span>remove_mut_borrowed(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        place: <span class="kw-2">&amp;</span><a href="../../../../../../../vir/gen/typed/ast/expression/enum.Expression.html">vir_typed::Expression</a>,
+        place: <span class="kw-2">&amp;</span>vir_typed::Expression,
     ) -&gt; SpannedEncodingResult&lt;()&gt; {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(place.is_place());
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(
+        <span class="macro">assert!</span>(place.is_place());
+        <span class="macro">assert!</span>(
             <span class="self">self</span>.mut_borrowed.remove(place).is_some(),
-            <span class="string">&quot;not found in mut_borrowed: {}&quot;</span>,
-            place,
+            <span class="string">&quot;not found in mut_borrowed: {place}&quot;</span>,
         );
         <span class="prelude-val">Ok</span>(())
     }
 
     <span class="kw">pub</span>(<span class="kw">in </span><span class="kw">super</span>::<span class="kw">super</span>) <span class="kw">fn </span>insert(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        kind: <a href="../permission.rs.html#43">PermissionKind</a>,
-        place: <a href="../../../../../../../vir/gen/typed/ast/expression/enum.Expression.html">vir_typed::Expression</a>,
+        kind: PermissionKind,
+        place: vir_typed::Expression,
     ) -&gt; SpannedEncodingResult&lt;()&gt; {
-        <a href="#113">place</a>.check_no_default_position();
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(place.is_place());
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(
+        place.check_no_default_position();
+        <span class="macro">assert!</span>(place.is_place());
+        <span class="macro">assert!</span>(
             <span class="self">self</span>.places_mut(kind).insert(place),
             <span class="string">&quot;already contains a place&quot;
         </span>);
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>insert_permission(<span class="kw-2">&amp;mut </span><span class="self">self</span>, permission: <a href="../permission.rs.html#4">Permission</a>) {
-        <span class="kw">match </span><a href="#124">permission</a> {
-            <a href="../permission.rs.html#6">Permission::MemoryBlock</a>(place) =&gt; {
-                <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(<span class="self">self</span>.memory_block_stack.insert(place));
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>insert_permission(<span class="kw-2">&amp;mut </span><span class="self">self</span>, permission: Permission) {
+        <span class="kw">match </span>permission {
+            Permission::MemoryBlock(place) =&gt; {
+                <span class="macro">assert!</span>(<span class="self">self</span>.memory_block_stack.insert(place));
             }
-            <a href="../permission.rs.html#10">Permission::Owned</a>(place) =&gt; {
-                <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(<span class="self">self</span>.owned_non_aliased.insert(place));
+            Permission::Owned(place) =&gt; {
+                <span class="macro">assert!</span>(<span class="self">self</span>.owned_non_aliased.insert(place));
             }
-            <a href="../permission.rs.html#12">Permission::MutBorrowed</a>(<a href="../permission.rs.html#37">MutBorrowed</a> { lifetime, place }) =&gt; {
-                <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(<span class="self">self</span>.mut_borrowed.insert(place, lifetime).is_none());
+            Permission::MutBorrowed(MutBorrowed { lifetime, place }) =&gt; {
+                <span class="macro">assert!</span>(<span class="self">self</span>.mut_borrowed.insert(place, lifetime).is_none());
             }
         }
     }
 
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>remove_permission(<span class="kw-2">&amp;mut </span><span class="self">self</span>, permission: <span class="kw-2">&amp;</span><a href="../permission.rs.html#4">Permission</a>) {
-        <span class="kw">match </span><a href="#138">permission</a> {
-            <a href="../permission.rs.html#6">Permission::MemoryBlock</a>(place) =&gt; {
-                <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(<span class="self">self</span>.memory_block_stack.remove(place));
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>remove_permission(<span class="kw-2">&amp;mut </span><span class="self">self</span>, permission: <span class="kw-2">&amp;</span>Permission) {
+        <span class="kw">match </span>permission {
+            Permission::MemoryBlock(place) =&gt; {
+                <span class="macro">assert!</span>(<span class="self">self</span>.memory_block_stack.remove(place));
             }
-            <a href="../permission.rs.html#10">Permission::Owned</a>(place) =&gt; {
-                <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(<span class="self">self</span>.owned_non_aliased.remove(place));
+            Permission::Owned(place) =&gt; {
+                <span class="macro">assert!</span>(<span class="self">self</span>.owned_non_aliased.remove(place));
             }
-            <a href="../permission.rs.html#12">Permission::MutBorrowed</a>(<span class="kw">_</span>) =&gt; {
-                <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>()
+            Permission::MutBorrowed(<span class="kw">_</span>) =&gt; {
+                <span class="macro">unreachable!</span>()
             }
         }
     }
 
     <span class="kw">pub</span>(<span class="kw">in </span><span class="kw">super</span>::<span class="kw">super</span>) <span class="kw">fn </span>contains(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        kind: <a href="../permission.rs.html#43">PermissionKind</a>,
-        place: <span class="kw-2">&amp;</span><a href="../../../../../../../vir/gen/typed/ast/expression/enum.Expression.html">vir_typed::Expression</a>,
-    ) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#153">self</a>.<a href="#278">check_no_default_position</a>();
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(place.is_place());
-        <a class="self" href="#153">self</a>.<a href="#77">places</a>(<a href="#154">kind</a>).<a href="places.rs.html#42">contains</a>(<a href="#155">place</a>)
+        kind: PermissionKind,
+        place: <span class="kw-2">&amp;</span>vir_typed::Expression,
+    ) -&gt; bool {
+        <span class="self">self</span>.check_no_default_position();
+        <span class="macro">assert!</span>(place.is_place());
+        <span class="self">self</span>.places(kind).contains(place)
     }
 
     <span class="doccomment">/// Returns a witness if it exists.
@@ -601,14 +598,14 @@
     /// determining the variant statically.
     </span><span class="kw">pub</span>(<span class="kw">in </span><span class="kw">super</span>::<span class="kw">super</span>) <span class="kw">fn </span>contains_non_discriminant_with_prefix(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        kind: <a href="../permission.rs.html#43">PermissionKind</a>,
-        prefix: <span class="kw-2">&amp;</span><a href="../../../../../../../vir/gen/typed/ast/expression/enum.Expression.html">vir_typed::Expression</a>,
-    ) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="../../../../../../../vir/gen/typed/ast/expression/enum.Expression.html">vir_typed::Expression</a>&gt; {
-        <a class="self" href="#167">self</a>.<a href="#278">check_no_default_position</a>();
-        <a class="self" href="#167">self</a>.<a href="#77">places</a>(<a href="#168">kind</a>).<a href="places.rs.html#47">iter</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">find</a>(|p| {
-            <a href="#172">p</a>.has_prefix(<a href="#169">prefix</a>) &amp;&amp; {
-                <span class="kw">if let </span>vir_typed::Expression::Field(field) = <a href="#172">p</a> {
-                    !<a href="#174">field</a>.field.is_discriminant()
+        kind: PermissionKind,
+        prefix: <span class="kw-2">&amp;</span>vir_typed::Expression,
+    ) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>vir_typed::Expression&gt; {
+        <span class="self">self</span>.check_no_default_position();
+        <span class="self">self</span>.places(kind).iter().find(|p| {
+            p.has_prefix(prefix) &amp;&amp; {
+                <span class="kw">if let </span>vir_typed::Expression::Field(field) = p {
+                    !field.field.is_discriminant()
                 } <span class="kw">else </span>{
                     <span class="bool-val">true
                 </span>}
@@ -618,19 +615,19 @@
 
     <span class="kw">pub</span>(<span class="kw">in </span><span class="kw">super</span>::<span class="kw">super</span>) <span class="kw">fn </span>contains_discriminant_with_prefix(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        prefix: <span class="kw-2">&amp;</span><a href="../../../../../../../vir/gen/typed/ast/expression/enum.Expression.html">vir_typed::Expression</a>,
-    ) -&gt; <span class="prelude-ty">Option</span>&lt;(<a href="../permission.rs.html#43">PermissionKind</a>, <span class="kw-2">&amp;</span><a href="../../../../../../../vir/gen/typed/ast/expression/enum.Expression.html">vir_typed::Expression</a>)&gt; {
-        <span class="kw">let </span>owned = <span class="self"><a href="#184">self</a>
-            </span>.<a href="#77">places</a>(<a href="../permission.rs.html#45">PermissionKind::Owned</a>)
-            .<a href="places.rs.html#47">iter</a>()
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|place| (<a href="../permission.rs.html#45">PermissionKind::Owned</a>, <a href="#190">place</a>));
-        <span class="kw">let </span>memory_block = <span class="self"><a href="#184">self</a>
-            </span>.<a href="#77">places</a>(<a href="../permission.rs.html#44">PermissionKind::MemoryBlock</a>)
-            .<a href="places.rs.html#47">iter</a>()
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|place| (<a href="../permission.rs.html#44">PermissionKind::MemoryBlock</a>, <a href="#194">place</a>));
-        <a href="#187">owned</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">chain</a>(<a href="#191">memory_block</a>).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">find</a>(|(<span class="kw">_</span>, p)| {
-            <span class="kw">if let </span>vir_typed::Expression::Field(field) = <a href="#195">p</a> {
-                <a href="#196">field</a>.field.is_discriminant() &amp;&amp; <span class="kw-2">&amp;*</span><a href="#196">field</a>.base == <a href="#185">prefix</a>
+        prefix: <span class="kw-2">&amp;</span>vir_typed::Expression,
+    ) -&gt; <span class="prelude-ty">Option</span>&lt;(PermissionKind, <span class="kw-2">&amp;</span>vir_typed::Expression)&gt; {
+        <span class="kw">let </span>owned = <span class="self">self
+            </span>.places(PermissionKind::Owned)
+            .iter()
+            .map(|place| (PermissionKind::Owned, place));
+        <span class="kw">let </span>memory_block = <span class="self">self
+            </span>.places(PermissionKind::MemoryBlock)
+            .iter()
+            .map(|place| (PermissionKind::MemoryBlock, place));
+        owned.chain(memory_block).find(|(<span class="kw">_</span>, p)| {
+            <span class="kw">if let </span>vir_typed::Expression::Field(field) = p {
+                field.field.is_discriminant() &amp;&amp; <span class="kw-2">&amp;*</span>field.base == prefix
             } <span class="kw">else </span>{
                 <span class="bool-val">false
             </span>}
@@ -639,75 +636,75 @@
 
     <span class="kw">pub</span>(<span class="kw">in </span><span class="kw">super</span>::<span class="kw">super</span>) <span class="kw">fn </span>get_all_with_prefix&lt;<span class="lifetime">&#39;a</span>&gt;(
         <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="self">self</span>,
-        kind: <a href="../permission.rs.html#43">PermissionKind</a>,
-        prefix: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="../../../../../../../vir/gen/typed/ast/expression/enum.Expression.html">vir_typed::Expression</a>,
-    ) -&gt; <span class="kw">impl </span>Iterator&lt;Item = <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="../../../../../../../vir/gen/typed/ast/expression/enum.Expression.html">vir_typed::Expression</a>&gt; {
-        <a class="self" href="#205">self</a>.<a href="#278">check_no_default_position</a>();
-        <a class="self" href="#205">self</a>.<a href="#77">places</a>(<a href="#206">kind</a>).<a href="places.rs.html#47">iter</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter</a>(|p| <a href="#210">p</a>.has_prefix(<a href="#207">prefix</a>))
+        kind: PermissionKind,
+        prefix: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>vir_typed::Expression,
+    ) -&gt; <span class="kw">impl </span>Iterator&lt;Item = <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>vir_typed::Expression&gt; {
+        <span class="self">self</span>.check_no_default_position();
+        <span class="self">self</span>.places(kind).iter().filter(|p| p.has_prefix(prefix))
     }
 
     <span class="kw">pub</span>(<span class="kw">in </span><span class="kw">super</span>::<span class="kw">super</span>) <span class="kw">fn </span>contains_prefix_of(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        kind: <a href="../permission.rs.html#43">PermissionKind</a>,
-        place: <span class="kw-2">&amp;</span><a href="../../../../../../../vir/gen/typed/ast/expression/enum.Expression.html">vir_typed::Expression</a>,
-    ) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#214">self</a>.<a href="#278">check_no_default_position</a>();
-        <a class="self" href="#214">self</a>.<a href="#77">places</a>(<a href="#215">kind</a>).<a href="places.rs.html#47">iter</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">any</a>(|p| <a href="#216">place</a>.has_prefix(<a href="#219">p</a>))
+        kind: PermissionKind,
+        place: <span class="kw-2">&amp;</span>vir_typed::Expression,
+    ) -&gt; bool {
+        <span class="self">self</span>.check_no_default_position();
+        <span class="self">self</span>.places(kind).iter().any(|p| place.has_prefix(p))
     }
 
     <span class="kw">pub</span>(<span class="kw">in </span><span class="kw">super</span>::<span class="kw">super</span>) <span class="kw">fn </span>find_prefix(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        kind: <a href="../permission.rs.html#43">PermissionKind</a>,
-        place: <span class="kw-2">&amp;</span><a href="../../../../../../../vir/gen/typed/ast/expression/enum.Expression.html">vir_typed::Expression</a>,
-    ) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="../../../../../../../vir/gen/typed/ast/expression/enum.Expression.html">vir_typed::Expression</a>&gt; {
-        <a class="self" href="#223">self</a>.<a href="#278">check_no_default_position</a>();
-        <a class="self" href="#223">self</a>.<a href="#77">places</a>(<a href="#224">kind</a>)
-            .<a href="places.rs.html#47">iter</a>()
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">find</a>(|p| {
-                <a href="#230">p</a>.check_no_default_position();
-                <a href="#225">place</a>.has_prefix(<a href="#230">p</a>)
+        kind: PermissionKind,
+        place: <span class="kw-2">&amp;</span>vir_typed::Expression,
+    ) -&gt; <span class="prelude-ty">Option</span>&lt;vir_typed::Expression&gt; {
+        <span class="self">self</span>.check_no_default_position();
+        <span class="self">self</span>.places(kind)
+            .iter()
+            .find(|p| {
+                p.check_no_default_position();
+                place.has_prefix(p)
             })
             .cloned()
     }
 
     <span class="kw">pub</span>(<span class="kw">in </span><span class="kw">super</span>::<span class="kw">super</span>) <span class="kw">fn </span>collect_owned_with_prefix(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        prefix: <span class="kw-2">&amp;</span><a href="../../../../../../../vir/gen/typed/ast/expression/enum.Expression.html">vir_typed::Expression</a>,
-    ) -&gt; SpannedEncodingResult&lt;Vec&lt;<a href="../../../../../../../vir/gen/typed/ast/expression/enum.Expression.html">vir_typed::Expression</a>&gt;&gt; {
-        <a class="self" href="#238">self</a>.<a href="#278">check_no_default_position</a>();
-        <span class="kw">let </span>collected_places = <span class="self"><a href="#238">self</a>
+        prefix: <span class="kw-2">&amp;</span>vir_typed::Expression,
+    ) -&gt; SpannedEncodingResult&lt;Vec&lt;vir_typed::Expression&gt;&gt; {
+        <span class="self">self</span>.check_no_default_position();
+        <span class="kw">let </span>collected_places = <span class="self">self
             </span>.owned_non_aliased
-            .<a href="places.rs.html#47">iter</a>()
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter</a>(|place| <a href="#245">place</a>.has_prefix(<a href="#239">prefix</a>))
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">cloned</a>()
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
-        <span class="prelude-val">Ok</span>(<a href="#242">collected_places</a>)
+            .iter()
+            .filter(|place| place.has_prefix(prefix))
+            .cloned()
+            .collect();
+        <span class="prelude-val">Ok</span>(collected_places)
     }
 
     <span class="kw">pub</span>(<span class="kw">in </span><span class="kw">super</span>::<span class="kw">super</span>) <span class="kw">fn </span>contains_blocked(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        place: <span class="kw-2">&amp;</span><a href="../../../../../../../vir/gen/typed/ast/expression/enum.Expression.html">vir_typed::Expression</a>,
-    ) -&gt; SpannedEncodingResult&lt;<span class="prelude-ty">Option</span>&lt;(<span class="kw-2">&amp;</span><a href="../../../../../../../vir/gen/typed/ast/expression/enum.Expression.html">vir_typed::Expression</a>, <span class="kw-2">&amp;</span><a href="../../../../../../../vir/gen/typed/ast/ty/struct.LifetimeConst.html">vir_typed::ty::LifetimeConst</a>)&gt;&gt;
+        place: <span class="kw-2">&amp;</span>vir_typed::Expression,
+    ) -&gt; SpannedEncodingResult&lt;<span class="prelude-ty">Option</span>&lt;(<span class="kw-2">&amp;</span>vir_typed::Expression, <span class="kw-2">&amp;</span>vir_typed::ty::LifetimeConst)&gt;&gt;
     {
-        <span class="prelude-val">Ok</span>(<a class="self" href="#252">self</a>.mut_borrowed.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">find</a>(|(p, <span class="kw">_</span>)| {
-            <span class="kw">let </span>prefix_expr = <span class="kw">match </span><a href="#256">p</a> {
-                vir_typed::Expression::BuiltinFuncApp(<a href="../../../../../../../vir/gen/typed/ast/expression/struct.BuiltinFuncApp.html">vir_typed::BuiltinFuncApp</a> {
+        <span class="prelude-val">Ok</span>(<span class="self">self</span>.mut_borrowed.iter().find(|(p, <span class="kw">_</span>)| {
+            <span class="kw">let </span>prefix_expr = <span class="kw">match </span>p {
+                vir_typed::Expression::BuiltinFuncApp(vir_typed::BuiltinFuncApp {
                     function: vir_typed::BuiltinFunc::Index,
                     type_arguments: <span class="kw">_</span>,
                     arguments,
                     ..
-                }) =&gt; <span class="kw-2">&amp;</span><a href="#261">arguments</a>[<span class="number">0</span>],
-                <span class="kw">_ </span>=&gt; <span class="kw-2">*</span><a href="#256">p</a>,
+                }) =&gt; <span class="kw-2">&amp;</span>arguments[<span class="number">0</span>],
+                <span class="kw">_ </span>=&gt; <span class="kw-2">*</span>p,
             };
-            <a href="#253">place</a>.has_prefix(<a href="#257">prefix_expr</a>) || <a href="#257">prefix_expr</a>.has_prefix(<a href="#253">place</a>)
+            place.has_prefix(prefix_expr) || prefix_expr.has_prefix(place)
         }))
     }
 
     <span class="kw">pub</span>(<span class="kw">in </span><span class="kw">super</span>::<span class="kw">super</span>) <span class="kw">fn </span>clear(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; SpannedEncodingResult&lt;()&gt; {
-        <a class="self" href="#270">self</a>.owned_non_aliased.<a href="places.rs.html#51">clear</a>();
-        <a class="self" href="#270">self</a>.memory_block_stack.<a href="places.rs.html#51">clear</a>();
-        <a class="self" href="#270">self</a>.mut_borrowed.clear();
-        <a class="self" href="#270">self</a>.<a href="#278">check_no_default_position</a>();
+        <span class="self">self</span>.owned_non_aliased.clear();
+        <span class="self">self</span>.memory_block_stack.clear();
+        <span class="self">self</span>.mut_borrowed.clear();
+        <span class="self">self</span>.check_no_default_position();
         <span class="prelude-val">Ok</span>(())
     }
 
@@ -725,7 +722,7 @@
     }
 
     <span class="kw">pub</span>(<span class="kw">in </span><span class="kw">super</span>::<span class="kw">super</span>) <span class="kw">fn </span>check_consistency(<span class="kw-2">&amp;</span><span class="self">self</span>) {
-        <span class="kw">if </span><a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.cfg.html">cfg!</a>(debug_assertions) {
+        <span class="kw">if </span><span class="macro">cfg!</span>(debug_assertions) {
             <span class="kw">for </span>place1 <span class="kw">in </span><span class="kw-2">&amp;</span><span class="self">self</span>.owned_non_aliased {
                 <span class="kw">for </span>place2 <span class="kw">in </span><span class="kw-2">&amp;</span><span class="self">self</span>.owned_non_aliased {
                     <span class="kw">if </span>place1 != place2 {
@@ -762,7 +759,7 @@
                     }
                 }
             }
-            <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(!<span class="self">self</span>.is_empty(), <span class="string">&quot;self: {}&quot;</span>, <span class="self">self</span>);
+            <span class="macro">assert!</span>(!<span class="self">self</span>.is_empty(), <span class="string">&quot;self: {self}&quot;</span>);
         }
     }
 
@@ -821,17 +818,16 @@
     ///     reference.
     </span><span class="kw">pub</span>(<span class="kw">in </span><span class="kw">super</span>::<span class="kw">super</span>) <span class="kw">fn </span>mark_lifetime_dead(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        lifetime: <span class="kw-2">&amp;</span><a href="../../../../../../../vir/gen/typed/ast/ty/struct.LifetimeConst.html">vir_typed::ty::LifetimeConst</a>,
-    ) -&gt; (BTreeSet&lt;<a href="../../../../../../../vir/gen/typed/ast/expression/enum.Expression.html">vir_typed::Expression</a>&gt;, Vec&lt;<a href="places.rs.html#4">PlaceWithDeadLifetimes</a>&gt;) {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(
+        lifetime: <span class="kw-2">&amp;</span>vir_typed::ty::LifetimeConst,
+    ) -&gt; (BTreeSet&lt;vir_typed::Expression&gt;, Vec&lt;PlaceWithDeadLifetimes&gt;) {
+        <span class="macro">assert!</span>(
             !<span class="self">self</span>.dead_lifetimes.contains(lifetime),
-            <span class="string">&quot;The lifetime {} is already dead.&quot;</span>,
-            lifetime
-        );
-        <span class="kw">let </span>all_dead_references: Vec&lt;<span class="kw">_</span>&gt; = <span class="self"><a href="#387">self</a>
+            <span class="string">&quot;The lifetime {lifetime} is already dead.&quot;
+        </span>);
+        <span class="kw">let </span>all_dead_references: Vec&lt;<span class="kw">_</span>&gt; = <span class="self">self
             </span>.owned_non_aliased
-            .<a href="places.rs.html#55-60">drain_filter</a>(|place| <a href="#397">place</a>.is_deref_of_lifetime(<a href="#388">lifetime</a>))
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
+            .drain_filter(|place| place.is_deref_of_lifetime(lifetime))
+            .collect();
         <span class="comment">// Case 2.1.
         </span><span class="kw">let </span><span class="kw-2">mut </span>dead_references = BTreeSet::new();
         <span class="comment">// Case 2.2.
@@ -865,10 +861,10 @@
                 });
             }
         }
-        <a class="self" href="#387">self</a>.dead_lifetimes.insert(<a href="#388">lifetime</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
-        <a class="self" href="#387">self</a>.<a href="#291">check_consistency</a>();
-        (<a href="#400">dead_references</a>, <a href="#422">places_with_dead_lifetimes</a>)
+        <span class="self">self</span>.dead_lifetimes.insert(lifetime.clone());
+        <span class="self">self</span>.check_consistency();
+        (dead_references, places_with_dead_lifetimes)
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../../../../" data-static-root-path="../../../../../../../static.files/" data-current-crate="prusti_viper" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../../../../../" data-static-root-path="../../../../../../../static.files/" data-current-crate="prusti_viper" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

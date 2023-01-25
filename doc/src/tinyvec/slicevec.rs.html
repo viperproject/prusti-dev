@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tinyvec-1.6.0/src/slicevec.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>slicevec.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../tinyvec/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tinyvec-1.6.0/src/slicevec.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>slicevec.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../tinyvec/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -1095,10 +1095,10 @@
 /// * Has a variable length.
 </span><span class="kw">pub struct </span>SliceVec&lt;<span class="lifetime">&#39;s</span>, T&gt; {
   data: <span class="kw-2">&amp;</span><span class="lifetime">&#39;s </span><span class="kw-2">mut </span>[T],
-  len: <a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>,
+  len: usize,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;s</span>, T&gt; <a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for </span>SliceVec&lt;<span class="lifetime">&#39;s</span>, T&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;s</span>, T&gt; Default <span class="kw">for </span>SliceVec&lt;<span class="lifetime">&#39;s</span>, T&gt; {
   <span class="attr">#[inline(always)]
   #[must_use]
   </span><span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
@@ -1106,20 +1106,20 @@
   }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;s</span>, T&gt; <a href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.Deref.html">Deref</a> <span class="kw">for </span>SliceVec&lt;<span class="lifetime">&#39;s</span>, T&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;s</span>, T&gt; Deref <span class="kw">for </span>SliceVec&lt;<span class="lifetime">&#39;s</span>, T&gt; {
   <span class="kw">type </span>Target = [T];
   <span class="attr">#[inline(always)]
   #[must_use]
   </span><span class="kw">fn </span>deref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="self">Self</span>::Target {
-    <span class="kw-2">&amp;</span><a class="self" href="#33">self</a>.data[..<a class="self" href="#33">self</a>.len]
+    <span class="kw-2">&amp;</span><span class="self">self</span>.data[..<span class="self">self</span>.len]
   }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;s</span>, T&gt; <a href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.DerefMut.html">DerefMut</a> <span class="kw">for </span>SliceVec&lt;<span class="lifetime">&#39;s</span>, T&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;s</span>, T&gt; DerefMut <span class="kw">for </span>SliceVec&lt;<span class="lifetime">&#39;s</span>, T&gt; {
   <span class="attr">#[inline(always)]
   #[must_use]
   </span><span class="kw">fn </span>deref_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self</span>::Target {
-    <span class="kw-2">&amp;mut </span><a class="self" href="#41">self</a>.data[..<a class="self" href="#41">self</a>.len]
+    <span class="kw-2">&amp;mut </span><span class="self">self</span>.data[..<span class="self">self</span>.len]
   }
 }
 
@@ -1131,7 +1131,7 @@
   <span class="attr">#[inline(always)]
   #[must_use]
   </span><span class="kw">fn </span>index(<span class="kw-2">&amp;</span><span class="self">self</span>, index: I) -&gt; <span class="kw-2">&amp;</span><span class="self">Self</span>::Output {
-    <span class="kw-2">&amp;</span><a class="self" href="#53">self</a>.<a href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.Deref.html">deref</a>()[<a href="#53">index</a>]
+    <span class="kw-2">&amp;</span><span class="self">self</span>.deref()[index]
   }
 }
 
@@ -1142,7 +1142,7 @@
   <span class="attr">#[inline(always)]
   #[must_use]
   </span><span class="kw">fn </span>index_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>, index: I) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self</span>::Output {
-    <span class="kw-2">&amp;mut </span><a class="self" href="#64">self</a>.<a href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.DerefMut.html">deref_mut</a>()[<a href="#64">index</a>]
+    <span class="kw-2">&amp;mut </span><span class="self">self</span>.deref_mut()[index]
   }
 }
 
@@ -1150,7 +1150,7 @@
   <span class="attr">#[inline]
   </span><span class="kw">pub fn </span>append(<span class="kw-2">&amp;mut </span><span class="self">self</span>, other: <span class="kw-2">&amp;mut </span><span class="self">Self</span>)
   <span class="kw">where
-    </span>T: <a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a>,
+    </span>T: Default,
   {
     <span class="kw">for </span>item <span class="kw">in </span>other.drain(..) {
       <span class="self">self</span>.push(item)
@@ -1165,14 +1165,14 @@
   </span><span class="attr">#[inline(always)]
   #[must_use]
   </span><span class="kw">pub fn </span>as_mut_ptr(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">*mut </span>T {
-    <a class="self" href="#87">self</a>.data.as_mut_ptr()
+    <span class="self">self</span>.data.as_mut_ptr()
   }
 
   <span class="doccomment">/// Performs a `deref_mut`, into unique slice form.
   </span><span class="attr">#[inline(always)]
   #[must_use]
   </span><span class="kw">pub fn </span>as_mut_slice(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>[T] {
-    <a class="self" href="#94">self</a>.<a href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.DerefMut.html">deref_mut</a>()
+    <span class="self">self</span>.deref_mut()
   }
 
   <span class="doccomment">/// A `*const` pointer to the backing slice.
@@ -1183,14 +1183,14 @@
   </span><span class="attr">#[inline(always)]
   #[must_use]
   </span><span class="kw">pub fn </span>as_ptr(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">*const </span>T {
-    <a class="self" href="#105">self</a>.data.as_ptr()
+    <span class="self">self</span>.data.as_ptr()
   }
 
   <span class="doccomment">/// Performs a `deref`, into shared slice form.
   </span><span class="attr">#[inline(always)]
   #[must_use]
   </span><span class="kw">pub fn </span>as_slice(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[T] {
-    <a class="self" href="#112">self</a>.<a href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.Deref.html">deref</a>()
+    <span class="self">self</span>.deref()
   }
 
   <span class="doccomment">/// The capacity of the `SliceVec`.
@@ -1198,17 +1198,17 @@
   /// This the length of the initial backing slice.
   </span><span class="attr">#[inline(always)]
   #[must_use]
-  </span><span class="kw">pub fn </span>capacity(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a> {
-    <a class="self" href="#121">self</a>.data.len()
+  </span><span class="kw">pub fn </span>capacity(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+    <span class="self">self</span>.data.len()
   }
 
   <span class="doccomment">/// Truncates the `SliceVec` down to length 0.
   </span><span class="attr">#[inline(always)]
   </span><span class="kw">pub fn </span>clear(<span class="kw-2">&amp;mut </span><span class="self">self</span>)
   <span class="kw">where
-    </span>T: <a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a>,
+    </span>T: Default,
   {
-    <a class="self" href="#127">self</a>.<a href="#610-612">truncate</a>(<span class="number">0</span>)
+    <span class="self">self</span>.truncate(<span class="number">0</span>)
   }
 
   <span class="doccomment">/// Creates a draining iterator that removes the specified range in the vector
@@ -1231,64 +1231,64 @@
   /// assert_eq!(sv.as_slice(), &amp;[]);
   /// ```
   </span><span class="attr">#[inline]
-  </span><span class="kw">pub fn </span>drain&lt;<span class="lifetime">&#39;p</span>, R: RangeBounds&lt;<a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>&gt;&gt;(
+  </span><span class="kw">pub fn </span>drain&lt;<span class="lifetime">&#39;p</span>, R: RangeBounds&lt;usize&gt;&gt;(
     <span class="kw-2">&amp;</span><span class="lifetime">&#39;p </span><span class="kw-2">mut </span><span class="self">self</span>, range: R,
   ) -&gt; SliceVecDrain&lt;<span class="lifetime">&#39;p</span>, <span class="lifetime">&#39;s</span>, T&gt;
   <span class="kw">where
-    </span>T: <a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a>,
+    </span>T: Default,
   {
-    <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/ops/range/enum.Bound.html">core::ops::Bound</a>;
-    <span class="kw">let </span>start = <span class="kw">match </span><a href="#155">range</a>.<a href="https://doc.rust-lang.org/nightly/core/ops/range/trait.RangeBounds.html">start_bound</a>() {
-      Bound::Included(x) =&gt; <span class="kw-2">*</span><a href="#162">x</a>,
-      Bound::Excluded(x) =&gt; <a href="#163">x</a>.saturating_add(<span class="number">1</span>),
+    <span class="kw">use </span>core::ops::Bound;
+    <span class="kw">let </span>start = <span class="kw">match </span>range.start_bound() {
+      Bound::Included(x) =&gt; <span class="kw-2">*</span>x,
+      Bound::Excluded(x) =&gt; x.saturating_add(<span class="number">1</span>),
       Bound::Unbounded =&gt; <span class="number">0</span>,
     };
-    <span class="kw">let </span>end = <span class="kw">match </span><a href="#155">range</a>.<a href="https://doc.rust-lang.org/nightly/core/ops/range/trait.RangeBounds.html">end_bound</a>() {
-      Bound::Included(x) =&gt; <a href="#167">x</a>.saturating_add(<span class="number">1</span>),
-      Bound::Excluded(x) =&gt; <span class="kw-2">*</span><a href="#168">x</a>,
-      Bound::Unbounded =&gt; <a class="self" href="#155">self</a>.len,
+    <span class="kw">let </span>end = <span class="kw">match </span>range.end_bound() {
+      Bound::Included(x) =&gt; x.saturating_add(<span class="number">1</span>),
+      Bound::Excluded(x) =&gt; <span class="kw-2">*</span>x,
+      Bound::Unbounded =&gt; <span class="self">self</span>.len,
     };
-    <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(
+    <span class="macro">assert!</span>(
       start &lt;= end,
       <span class="string">&quot;SliceVec::drain&gt; Illegal range, {} to {}&quot;</span>,
       start,
       end
     );
-    <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(
+    <span class="macro">assert!</span>(
       end &lt;= <span class="self">self</span>.len,
       <span class="string">&quot;SliceVec::drain&gt; Range ends at {} but length is only {}!&quot;</span>,
       end,
       <span class="self">self</span>.len
     );
-    <a href="#716">SliceVecDrain</a> {
-      parent: <a class="self" href="#155">self</a>,
-      target_start: <a href="#161">start</a>,
-      target_index: <a href="#161">start</a>,
-      target_end: <a href="#166">end</a>,
+    SliceVecDrain {
+      parent: <span class="self">self</span>,
+      target_start: start,
+      target_index: start,
+      target_end: end,
     }
   }
 
   <span class="attr">#[inline]
   </span><span class="kw">pub fn </span>extend_from_slice(<span class="kw-2">&amp;mut </span><span class="self">self</span>, sli: <span class="kw-2">&amp;</span>[T])
   <span class="kw">where
-    </span>T: <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a>,
+    </span>T: Clone,
   {
     <span class="kw">if </span>sli.is_empty() {
       <span class="kw">return</span>;
     }
 
-    <span class="kw">let </span>new_len = <a class="self" href="#192">self</a>.len + <a href="#192">sli</a>.len();
+    <span class="kw">let </span>new_len = <span class="self">self</span>.len + sli.len();
     <span class="kw">if </span>new_len &gt; <span class="self">self</span>.capacity() {
-      <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.panic.html">panic!</a>(
+      <span class="macro">panic!</span>(
         <span class="string">&quot;SliceVec::extend_from_slice&gt; total length {} exceeds capacity {}&quot;</span>,
         new_len,
         <span class="self">self</span>.capacity()
       )
     }
 
-    <span class="kw">let </span>target = <span class="kw-2">&amp;mut </span><a class="self" href="#192">self</a>.data[<a class="self" href="#192">self</a>.len..<a href="#200">new_len</a>];
-    <a href="#209">target</a>.clone_from_slice(<a href="#192">sli</a>);
-    <a class="self" href="#192">self</a>.<a href="#524">set_len</a>(<a href="#200">new_len</a>);
+    <span class="kw">let </span>target = <span class="kw-2">&amp;mut </span><span class="self">self</span>.data[<span class="self">self</span>.len..new_len];
+    target.clone_from_slice(sli);
+    <span class="self">self</span>.set_len(new_len);
   }
 
   <span class="doccomment">/// Fill the vector until its capacity has been reached.
@@ -1319,11 +1319,11 @@
   /// ```
   </span><span class="attr">#[inline]
   </span><span class="kw">pub fn </span>fill&lt;I: IntoIterator&lt;Item = T&gt;&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, iter: I) -&gt; I::IntoIter {
-    <span class="kw">let </span><span class="kw-2">mut </span>iter = <a href="#241">iter</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>();
+    <span class="kw">let </span><span class="kw-2">mut </span>iter = iter.into_iter();
     <span class="kw">for </span>element <span class="kw">in </span>iter.by_ref().take(<span class="self">self</span>.capacity() - <span class="self">self</span>.len()) {
       <span class="self">self</span>.push(element);
     }
-    <a href="#242">iter</a>
+    iter
   }
 
   <span class="doccomment">/// Wraps up a slice and uses the given length as the initial length.
@@ -1337,9 +1337,9 @@
   </span><span class="attr">#[inline]
   #[must_use]
   #[allow(clippy::match_wild_err_arm)]
-  </span><span class="kw">pub fn </span>from_slice_len(data: <span class="kw-2">&amp;</span><span class="lifetime">&#39;s </span><span class="kw-2">mut </span>[T], len: <a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>) -&gt; <span class="self">Self </span>{
-    <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(len &lt;= data.len());
-    <span class="self">Self </span>{ <a href="#260">data</a>, <a href="#260">len</a> }
+  </span><span class="kw">pub fn </span>from_slice_len(data: <span class="kw-2">&amp;</span><span class="lifetime">&#39;s </span><span class="kw-2">mut </span>[T], len: usize) -&gt; <span class="self">Self </span>{
+    <span class="macro">assert!</span>(len &lt;= data.len());
+    <span class="self">Self </span>{ data, len }
   }
 
   <span class="doccomment">/// Inserts an item at the position given, moving all following elements +1
@@ -1360,29 +1360,29 @@
   /// assert_eq!(sv.as_slice(), &amp;[1, 4, 2, 3, 5]);
   /// ```
   </span><span class="attr">#[inline]
-  </span><span class="kw">pub fn </span>insert(<span class="kw-2">&amp;mut </span><span class="self">self</span>, index: <a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>, item: T) {
+  </span><span class="kw">pub fn </span>insert(<span class="kw-2">&amp;mut </span><span class="self">self</span>, index: usize, item: T) {
     <span class="kw">if </span>index &gt; <span class="self">self</span>.len {
-      <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.panic.html">panic!</a>(<span class="string">&quot;SliceVec::insert&gt; index {} is out of bounds {}&quot;</span>, index, <span class="self">self</span>.len);
+      <span class="macro">panic!</span>(<span class="string">&quot;SliceVec::insert&gt; index {} is out of bounds {}&quot;</span>, index, <span class="self">self</span>.len);
     }
 
     <span class="comment">// Try to push the element.
-    </span><a class="self" href="#283">self</a>.<a href="#354">push</a>(<a href="#283">item</a>);
+    </span><span class="self">self</span>.push(item);
     <span class="comment">// And move it into its place.
-    </span><a class="self" href="#283">self</a>.<a href="#94">as_mut_slice</a>()[<a href="#283">index</a>..].rotate_right(<span class="number">1</span>);
+    </span><span class="self">self</span>.as_mut_slice()[index..].rotate_right(<span class="number">1</span>);
   }
 
   <span class="doccomment">/// Checks if the length is 0.
   </span><span class="attr">#[inline(always)]
   #[must_use]
-  </span><span class="kw">pub fn </span>is_empty(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/primitive.bool.html">bool</a> {
-    <a class="self" href="#297">self</a>.len == <span class="number">0
+  </span><span class="kw">pub fn </span>is_empty(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+    <span class="self">self</span>.len == <span class="number">0
   </span>}
 
   <span class="doccomment">/// The length of the `SliceVec` (in elements).
   </span><span class="attr">#[inline(always)]
   #[must_use]
-  </span><span class="kw">pub fn </span>len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a> {
-    <a class="self" href="#304">self</a>.len
+  </span><span class="kw">pub fn </span>len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+    <span class="self">self</span>.len
   }
 
   <span class="doccomment">/// Remove and return the last element of the vec, if there is one.
@@ -1402,12 +1402,12 @@
   </span><span class="attr">#[inline]
   </span><span class="kw">pub fn </span>pop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;T&gt;
   <span class="kw">where
-    </span>T: <a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a>,
+    </span>T: Default,
   {
     <span class="kw">if </span><span class="self">self</span>.len &gt; <span class="number">0 </span>{
-      <a class="self" href="#323">self</a>.len -= <span class="number">1</span>;
-      <span class="kw">let </span>out = <a href="lib.rs.html#105">take</a>(<span class="kw-2">&amp;mut </span><a class="self" href="#323">self</a>.data[<a class="self" href="#323">self</a>.len]);
-      <span class="prelude-val">Some</span>(<a href="#329">out</a>)
+      <span class="self">self</span>.len -= <span class="number">1</span>;
+      <span class="kw">let </span>out = take(<span class="kw-2">&amp;mut </span><span class="self">self</span>.data[<span class="self">self</span>.len]);
+      <span class="prelude-val">Some</span>(out)
     } <span class="kw">else </span>{
       <span class="prelude-val">None
     </span>}
@@ -1433,10 +1433,10 @@
   </span><span class="attr">#[inline(always)]
   </span><span class="kw">pub fn </span>push(<span class="kw-2">&amp;mut </span><span class="self">self</span>, val: T) {
     <span class="kw">if </span><span class="self">self</span>.len &lt; <span class="self">self</span>.capacity() {
-      <a class="self" href="#354">self</a>.data[<a class="self" href="#354">self</a>.len] = <a href="#354">val</a>;
-      <a class="self" href="#354">self</a>.len += <span class="number">1</span>;
+      <span class="self">self</span>.data[<span class="self">self</span>.len] = val;
+      <span class="self">self</span>.len += <span class="number">1</span>;
     } <span class="kw">else </span>{
-      <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.panic.html">panic!</a>(<span class="string">&quot;SliceVec::push&gt; capacity overflow&quot;</span>)
+      <span class="macro">panic!</span>(<span class="string">&quot;SliceVec::push&gt; capacity overflow&quot;</span>)
     }
   }
 
@@ -1458,15 +1458,15 @@
   /// assert_eq!(&amp;sv[..], [1, 3]);
   /// ```
   </span><span class="attr">#[inline]
-  </span><span class="kw">pub fn </span>remove(<span class="kw-2">&amp;mut </span><span class="self">self</span>, index: <a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>) -&gt; T
+  </span><span class="kw">pub fn </span>remove(<span class="kw-2">&amp;mut </span><span class="self">self</span>, index: usize) -&gt; T
   <span class="kw">where
-    </span>T: <a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a>,
+    </span>T: Default,
   {
-    <span class="kw">let </span>targets: <span class="kw-2">&amp;mut </span>[T] = <span class="kw-2">&amp;mut </span><a class="self" href="#381">self</a>.<a href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.DerefMut.html">deref_mut</a>()[<a href="#381">index</a>..];
-    <span class="kw">let </span>item = <a href="lib.rs.html#105">take</a>(<span class="kw-2">&amp;mut </span><a href="#385">targets</a>[<span class="number">0</span>]);
-    <a href="#385">targets</a>.rotate_left(<span class="number">1</span>);
-    <a class="self" href="#381">self</a>.len -= <span class="number">1</span>;
-    <a href="#386">item</a>
+    <span class="kw">let </span>targets: <span class="kw-2">&amp;mut </span>[T] = <span class="kw-2">&amp;mut </span><span class="self">self</span>.deref_mut()[index..];
+    <span class="kw">let </span>item = take(<span class="kw-2">&amp;mut </span>targets[<span class="number">0</span>]);
+    targets.rotate_left(<span class="number">1</span>);
+    <span class="self">self</span>.len -= <span class="number">1</span>;
+    item
   }
 
   <span class="doccomment">/// As [`resize_with`](SliceVec::resize_with)
@@ -1489,11 +1489,11 @@
   /// assert_eq!(&amp;sv[..], [&#39;a&#39;, &#39;b&#39;]);
   /// ```
   </span><span class="attr">#[inline]
-  </span><span class="kw">pub fn </span>resize(<span class="kw-2">&amp;mut </span><span class="self">self</span>, new_len: <a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>, new_val: T)
+  </span><span class="kw">pub fn </span>resize(<span class="kw-2">&amp;mut </span><span class="self">self</span>, new_len: usize, new_val: T)
   <span class="kw">where
-    </span>T: <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a>,
+    </span>T: Clone,
   {
-    <a class="self" href="#412">self</a>.<a href="#446">resize_with</a>(<a href="#412">new_len</a>, || <a href="#412">new_val</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>())
+    <span class="self">self</span>.resize_with(new_len, || new_val.clone())
   }
 
   <span class="doccomment">/// Resize the vec to the new length.
@@ -1523,8 +1523,8 @@
   /// assert_eq!(&amp;sv[..], [2, 4, 8, 16]);
   /// ```
   </span><span class="attr">#[inline]
-  </span><span class="kw">pub fn </span>resize_with&lt;F: FnMut() -&gt; T&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, new_len: <a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>, <span class="kw-2">mut </span>f: F) {
-    <span class="kw">match </span><a href="#446">new_len</a>.checked_sub(<a class="self" href="#446">self</a>.len) {
+  </span><span class="kw">pub fn </span>resize_with&lt;F: FnMut() -&gt; T&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, new_len: usize, <span class="kw-2">mut </span>f: F) {
+    <span class="kw">match </span>new_len.checked_sub(<span class="self">self</span>.len) {
       <span class="prelude-val">None </span>=&gt; {
         <span class="kw">if </span>needs_drop::&lt;T&gt;() {
           <span class="kw">while </span><span class="self">self</span>.len() &gt; new_len {
@@ -1532,7 +1532,7 @@
             <span class="self">self</span>.data[<span class="self">self</span>.len] = f();
           }
         } <span class="kw">else </span>{
-          <a class="self" href="#446">self</a>.len = <a href="#446">new_len</a>;
+          <span class="self">self</span>.len = new_len;
         }
       }
       <span class="prelude-val">Some</span>(new_elements) =&gt; {
@@ -1556,26 +1556,26 @@
   /// assert_eq!(&amp;sv[..], [2, 4]);
   /// ```
   </span><span class="attr">#[inline]
-  </span><span class="kw">pub fn </span>retain&lt;F: FnMut(<span class="kw-2">&amp;</span>T) -&gt; <a href="https://doc.rust-lang.org/nightly/core/primitive.bool.html">bool</a>&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, <span class="kw-2">mut </span>acceptable: F)
+  </span><span class="kw">pub fn </span>retain&lt;F: FnMut(<span class="kw-2">&amp;</span>T) -&gt; bool&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, <span class="kw-2">mut </span>acceptable: F)
   <span class="kw">where
-    </span>T: <a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a>,
+    </span>T: Default,
   {
     <span class="comment">// Drop guard to contain exactly the remaining elements when the test
     // panics.
     </span><span class="kw">struct </span>JoinOnDrop&lt;<span class="lifetime">&#39;vec</span>, Item&gt; {
       items: <span class="kw-2">&amp;</span><span class="lifetime">&#39;vec </span><span class="kw-2">mut </span>[Item],
-      done_end: <a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>,
+      done_end: usize,
       <span class="comment">// Start of tail relative to `done_end`.
-      </span>tail_start: <a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>,
+      </span>tail_start: usize,
     }
 
-    <span class="kw">impl</span>&lt;Item&gt; <a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span>JoinOnDrop&lt;<span class="lifetime">&#39;_</span>, Item&gt; {
+    <span class="kw">impl</span>&lt;Item&gt; Drop <span class="kw">for </span>JoinOnDrop&lt;<span class="lifetime">&#39;_</span>, Item&gt; {
       <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <a class="self" href="#493">self</a>.items[<a class="self" href="#493">self</a>.done_end..].rotate_left(<a class="self" href="#493">self</a>.tail_start);
+        <span class="self">self</span>.items[<span class="self">self</span>.done_end..].rotate_left(<span class="self">self</span>.tail_start);
       }
     }
 
-    <span class="kw">let </span><span class="kw-2">mut </span>rest = <a href="#485">JoinOnDrop</a> { items: <a class="self" href="#479">self</a>.data, done_end: <span class="number">0</span>, tail_start: <span class="number">0 </span>};
+    <span class="kw">let </span><span class="kw-2">mut </span>rest = JoinOnDrop { items: <span class="self">self</span>.data, done_end: <span class="number">0</span>, tail_start: <span class="number">0 </span>};
 
     <span class="kw">for </span>idx <span class="kw">in </span><span class="number">0</span>..<span class="self">self</span>.len {
       <span class="comment">// Loop start invariant: idx = rest.done_end + rest.tail_start
@@ -1601,19 +1601,19 @@
   /// * Other than &quot;the memory is initialized&quot; there are no other guarantees
   ///   regarding what you find in the inactive portion of the vec.
   </span><span class="attr">#[inline(always)]
-  </span><span class="kw">pub fn </span>set_len(<span class="kw-2">&amp;mut </span><span class="self">self</span>, new_len: <a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>) {
+  </span><span class="kw">pub fn </span>set_len(<span class="kw-2">&amp;mut </span><span class="self">self</span>, new_len: usize) {
     <span class="kw">if </span>new_len &gt; <span class="self">self</span>.capacity() {
       <span class="comment">// Note(Lokathor): Technically we don&#39;t have to panic here, and we could
       // just let some other call later on trigger a panic on accident when the
       // length is wrong. However, it&#39;s a lot easier to catch bugs when things
       // are more &quot;fail-fast&quot;.
-      </span><a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.panic.html">panic!</a>(
+      </span><span class="macro">panic!</span>(
         <span class="string">&quot;SliceVec::set_len&gt; new length {} exceeds capacity {}&quot;</span>,
         new_len,
         <span class="self">self</span>.capacity()
       )
     } <span class="kw">else </span>{
-      <a class="self" href="#524">self</a>.len = <a href="#524">new_len</a>;
+      <span class="self">self</span>.len = new_len;
     }
   }
 
@@ -1636,15 +1636,15 @@
   /// assert_eq!(&amp;sv2[..], [2, 3]);
   /// ```
   </span><span class="attr">#[inline]
-  </span><span class="kw">pub fn </span>split_off&lt;<span class="lifetime">&#39;a</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span><span class="self">self</span>, at: <a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>) -&gt; SliceVec&lt;<span class="lifetime">&#39;s</span>, T&gt; {
+  </span><span class="kw">pub fn </span>split_off&lt;<span class="lifetime">&#39;a</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span><span class="self">self</span>, at: usize) -&gt; SliceVec&lt;<span class="lifetime">&#39;s</span>, T&gt; {
     <span class="kw">let </span><span class="kw-2">mut </span>new = <span class="self">Self</span>::default();
-    <span class="kw">let </span>backing: <span class="kw-2">&amp;</span><span class="lifetime">&#39;s </span><span class="kw-2">mut </span>[T] = <a href="https://doc.rust-lang.org/nightly/core/mem/fn.replace.html">replace</a>(<span class="kw-2">&amp;mut </span><a class="self" href="#559">self</a>.data, <span class="kw-2">&amp;mut </span>[]);
-    <span class="kw">let </span>(me, other) = <a href="#561">backing</a>.split_at_mut(<a href="#559">at</a>);
-    <a href="#560">new</a>.len = <a class="self" href="#559">self</a>.len - <a href="#559">at</a>;
-    <a href="#560">new</a>.data = <a href="#562">other</a>;
-    <a class="self" href="#559">self</a>.len = <a href="#562">me</a>.len();
-    <a class="self" href="#559">self</a>.data = <a href="#562">me</a>;
-    <a href="#560">new</a>
+    <span class="kw">let </span>backing: <span class="kw-2">&amp;</span><span class="lifetime">&#39;s </span><span class="kw-2">mut </span>[T] = replace(<span class="kw-2">&amp;mut </span><span class="self">self</span>.data, <span class="kw-2">&amp;mut </span>[]);
+    <span class="kw">let </span>(me, other) = backing.split_at_mut(at);
+    new.len = <span class="self">self</span>.len - at;
+    new.data = other;
+    <span class="self">self</span>.len = me.len();
+    <span class="self">self</span>.data = me;
+    new
   }
 
   <span class="doccomment">/// Remove an element, swapping the end of the vec into its place.
@@ -1665,21 +1665,21 @@
   /// assert_eq!(&amp;sv[..], [&quot;quack&quot;, &quot;zap&quot;]);
   /// ```
   </span><span class="attr">#[inline]
-  </span><span class="kw">pub fn </span>swap_remove(<span class="kw-2">&amp;mut </span><span class="self">self</span>, index: <a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>) -&gt; T
+  </span><span class="kw">pub fn </span>swap_remove(<span class="kw-2">&amp;mut </span><span class="self">self</span>, index: usize) -&gt; T
   <span class="kw">where
-    </span>T: <a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a>,
+    </span>T: Default,
   {
-    <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(
+    <span class="macro">assert!</span>(
       index &lt; <span class="self">self</span>.len,
       <span class="string">&quot;SliceVec::swap_remove&gt; index {} is out of bounds {}&quot;</span>,
       index,
       <span class="self">self</span>.len
     );
     <span class="kw">if </span>index == <span class="self">self</span>.len - <span class="number">1 </span>{
-      <a class="self" href="#588">self</a>.<a href="#323-325">pop</a>().unwrap()
+      <span class="self">self</span>.pop().unwrap()
     } <span class="kw">else </span>{
-      <span class="kw">let </span>i = <a class="self" href="#588">self</a>.<a href="#323-325">pop</a>().unwrap();
-      <a href="https://doc.rust-lang.org/nightly/core/mem/fn.replace.html">replace</a>(<span class="kw-2">&amp;mut </span><a class="self" href="#588">self</a>[<a href="#588">index</a>], <a href="#601">i</a>)
+      <span class="kw">let </span>i = <span class="self">self</span>.pop().unwrap();
+      replace(<span class="kw-2">&amp;mut </span><span class="self">self</span>[index], i)
     }
   }
 
@@ -1687,16 +1687,16 @@
   ///
   /// If the vec is already shorter than the input, nothing happens.
   </span><span class="attr">#[inline]
-  </span><span class="kw">pub fn </span>truncate(<span class="kw-2">&amp;mut </span><span class="self">self</span>, new_len: <a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>)
+  </span><span class="kw">pub fn </span>truncate(<span class="kw-2">&amp;mut </span><span class="self">self</span>, new_len: usize)
   <span class="kw">where
-    </span>T: <a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a>,
+    </span>T: Default,
   {
     <span class="kw">if </span>needs_drop::&lt;T&gt;() {
       <span class="kw">while </span><span class="self">self</span>.len &gt; new_len {
         <span class="self">self</span>.pop();
       }
     } <span class="kw">else </span>{
-      <a class="self" href="#610">self</a>.len = <a class="self" href="#610">self</a>.len.<a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Ord.html">min</a>(<a href="#610">new_len</a>);
+      <span class="self">self</span>.len = <span class="self">self</span>.len.min(new_len);
     }
   }
 
@@ -1710,9 +1710,9 @@
   /// If the given length is greater than the length of the slice you get
   /// `None`.
   </span><span class="attr">#[inline]
-  </span><span class="kw">pub fn </span>try_from_slice_len(data: <span class="kw-2">&amp;</span><span class="lifetime">&#39;s </span><span class="kw-2">mut </span>[T], len: <a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt; {
+  </span><span class="kw">pub fn </span>try_from_slice_len(data: <span class="kw-2">&amp;</span><span class="lifetime">&#39;s </span><span class="kw-2">mut </span>[T], len: usize) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt; {
     <span class="kw">if </span>len &lt;= data.len() {
-      <span class="prelude-val">Some</span>(<span class="self">Self </span>{ <a href="#633">data</a>, <a href="#633">len</a> })
+      <span class="prelude-val">Some</span>(<span class="self">Self </span>{ data, len })
     } <span class="kw">else </span>{
       <span class="prelude-val">None
     </span>}
@@ -1767,8 +1767,8 @@
   /// let mut sv = SliceVec::from(&amp;mut arr[..]);
   /// ```
   </span><span class="kw">fn </span>from(data: <span class="kw-2">&amp;</span><span class="lifetime">&#39;s </span><span class="kw-2">mut </span>[T]) -&gt; <span class="self">Self </span>{
-    <span class="kw">let </span>len = <a href="#689">data</a>.len();
-    <span class="self">Self </span>{ <a href="#689">data</a>, <a href="#690">len</a> }
+    <span class="kw">let </span>len = data.len();
+    <span class="self">Self </span>{ data, len }
   }
 }
 
@@ -1784,46 +1784,46 @@
   /// let mut sv = SliceVec::from(&amp;mut arr);
   /// ```
   </span><span class="kw">fn </span>from(a: <span class="kw-2">&amp;</span><span class="lifetime">&#39;s </span><span class="kw-2">mut </span>A) -&gt; <span class="self">Self </span>{
-    <span class="kw">let </span>data = <a href="#706">a</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsMut.html">as_mut</a>();
-    <span class="kw">let </span>len = <a href="#707">data</a>.len();
-    <span class="self">Self </span>{ <a href="#707">data</a>, <a href="#708">len</a> }
+    <span class="kw">let </span>data = a.as_mut();
+    <span class="kw">let </span>len = data.len();
+    <span class="self">Self </span>{ data, len }
   }
 }
 
 <span class="doccomment">/// Draining iterator for [`SliceVec`]
 ///
 /// See [`SliceVec::drain`](SliceVec::drain)
-</span><span class="kw">pub struct </span>SliceVecDrain&lt;<span class="lifetime">&#39;p</span>, <span class="lifetime">&#39;s</span>, T: <a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a>&gt; {
+</span><span class="kw">pub struct </span>SliceVecDrain&lt;<span class="lifetime">&#39;p</span>, <span class="lifetime">&#39;s</span>, T: Default&gt; {
   parent: <span class="kw-2">&amp;</span><span class="lifetime">&#39;p </span><span class="kw-2">mut </span>SliceVec&lt;<span class="lifetime">&#39;s</span>, T&gt;,
-  target_start: <a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>,
-  target_index: <a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>,
-  target_end: <a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>,
+  target_start: usize,
+  target_index: usize,
+  target_end: usize,
 }
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;p</span>, <span class="lifetime">&#39;s</span>, T: <a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a> <span class="kw">for </span>SliceVecDrain&lt;<span class="lifetime">&#39;p</span>, <span class="lifetime">&#39;s</span>, T&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;p</span>, <span class="lifetime">&#39;s</span>, T: Default&gt; Iterator <span class="kw">for </span>SliceVecDrain&lt;<span class="lifetime">&#39;p</span>, <span class="lifetime">&#39;s</span>, T&gt; {
   <span class="kw">type </span>Item = T;
   <span class="attr">#[inline]
   </span><span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt; {
     <span class="kw">if </span><span class="self">self</span>.target_index != <span class="self">self</span>.target_end {
-      <span class="kw">let </span>out = <a href="lib.rs.html#105">take</a>(<span class="kw-2">&amp;mut </span><a class="self" href="#725">self</a>.parent[<a class="self" href="#725">self</a>.target_index]);
-      <a class="self" href="#725">self</a>.target_index += <span class="number">1</span>;
-      <span class="prelude-val">Some</span>(<a href="#727">out</a>)
+      <span class="kw">let </span>out = take(<span class="kw-2">&amp;mut </span><span class="self">self</span>.parent[<span class="self">self</span>.target_index]);
+      <span class="self">self</span>.target_index += <span class="number">1</span>;
+      <span class="prelude-val">Some</span>(out)
     } <span class="kw">else </span>{
       <span class="prelude-val">None
     </span>}
   }
 }
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;p</span>, <span class="lifetime">&#39;s</span>, T: <a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/marker/trait.FusedIterator.html">FusedIterator</a> <span class="kw">for </span>SliceVecDrain&lt;<span class="lifetime">&#39;p</span>, <span class="lifetime">&#39;s</span>, T&gt; {}
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;p</span>, <span class="lifetime">&#39;s</span>, T: <a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span>SliceVecDrain&lt;<span class="lifetime">&#39;p</span>, <span class="lifetime">&#39;s</span>, T&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;p</span>, <span class="lifetime">&#39;s</span>, T: Default&gt; FusedIterator <span class="kw">for </span>SliceVecDrain&lt;<span class="lifetime">&#39;p</span>, <span class="lifetime">&#39;s</span>, T&gt; {}
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;p</span>, <span class="lifetime">&#39;s</span>, T: Default&gt; Drop <span class="kw">for </span>SliceVecDrain&lt;<span class="lifetime">&#39;p</span>, <span class="lifetime">&#39;s</span>, T&gt; {
   <span class="attr">#[inline]
   </span><span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
     <span class="comment">// Changed because it was moving `self`, it&#39;s also more clear and the std
     // does the same
-    </span><a class="self" href="#738">self</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">for_each</a>(<a href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>);
+    </span><span class="self">self</span>.for_each(drop);
     <span class="comment">// Implementation very similar to [`SliceVec::remove`](SliceVec::remove)
-    </span><span class="kw">let </span>count = <a class="self" href="#738">self</a>.target_end - <a class="self" href="#738">self</a>.target_start;
-    <span class="kw">let </span>targets: <span class="kw-2">&amp;mut </span>[T] = <span class="kw-2">&amp;mut </span><a class="self" href="#738">self</a>.parent.<a href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.DerefMut.html">deref_mut</a>()[<a class="self" href="#738">self</a>.target_start..];
-    <a href="#744">targets</a>.rotate_left(<a href="#743">count</a>);
-    <a class="self" href="#738">self</a>.parent.len -= <a href="#743">count</a>;
+    </span><span class="kw">let </span>count = <span class="self">self</span>.target_end - <span class="self">self</span>.target_start;
+    <span class="kw">let </span>targets: <span class="kw-2">&amp;mut </span>[T] = <span class="kw-2">&amp;mut </span><span class="self">self</span>.parent.deref_mut()[<span class="self">self</span>.target_start..];
+    targets.rotate_left(count);
+    <span class="self">self</span>.parent.len -= count;
   }
 }
 
@@ -1831,7 +1831,7 @@
   <span class="attr">#[inline(always)]
   #[must_use]
   </span><span class="kw">fn </span>as_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>[T] {
-    <span class="kw-2">&amp;mut *</span><span class="self"><a href="#753">self</a>
+    <span class="kw-2">&amp;mut *</span><span class="self">self
   </span>}
 }
 
@@ -1839,7 +1839,7 @@
   <span class="attr">#[inline(always)]
   #[must_use]
   </span><span class="kw">fn </span>as_ref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[T] {
-    <span class="kw-2">&amp;*</span><span class="self"><a href="#761">self</a>
+    <span class="kw-2">&amp;*</span><span class="self">self
   </span>}
 }
 
@@ -1847,7 +1847,7 @@
   <span class="attr">#[inline(always)]
   #[must_use]
   </span><span class="kw">fn </span>borrow(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[T] {
-    <span class="kw-2">&amp;*</span><span class="self"><a href="#769">self</a>
+    <span class="kw-2">&amp;*</span><span class="self">self
   </span>}
 }
 
@@ -1855,7 +1855,7 @@
   <span class="attr">#[inline(always)]
   #[must_use]
   </span><span class="kw">fn </span>borrow_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>[T] {
-    <span class="kw-2">&amp;mut *</span><span class="self"><a href="#777">self</a>
+    <span class="kw-2">&amp;mut *</span><span class="self">self
   </span>}
 }
 
@@ -1868,67 +1868,67 @@
   }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;s</span>, T&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">IntoIterator</a> <span class="kw">for </span>SliceVec&lt;<span class="lifetime">&#39;s</span>, T&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;s</span>, T&gt; IntoIterator <span class="kw">for </span>SliceVec&lt;<span class="lifetime">&#39;s</span>, T&gt; {
   <span class="kw">type </span>Item = <span class="kw-2">&amp;</span><span class="lifetime">&#39;s </span><span class="kw-2">mut </span>T;
   <span class="kw">type </span>IntoIter = core::slice::IterMut&lt;<span class="lifetime">&#39;s</span>, T&gt;;
   <span class="attr">#[inline(always)]
   #[must_use]
   </span><span class="kw">fn </span>into_iter(<span class="self">self</span>) -&gt; <span class="self">Self</span>::IntoIter {
-    <a class="self" href="#796">self</a>.data.iter_mut()
+    <span class="self">self</span>.data.iter_mut()
   }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;s</span>, T&gt; <a href="https://doc.rust-lang.org/nightly/core/cmp/trait.PartialEq.html">PartialEq</a> <span class="kw">for </span>SliceVec&lt;<span class="lifetime">&#39;s</span>, T&gt;
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;s</span>, T&gt; PartialEq <span class="kw">for </span>SliceVec&lt;<span class="lifetime">&#39;s</span>, T&gt;
 <span class="kw">where
-  </span>T: <a href="https://doc.rust-lang.org/nightly/core/cmp/trait.PartialEq.html">PartialEq</a>,
+  </span>T: PartialEq,
 {
   <span class="attr">#[inline]
   #[must_use]
-  </span><span class="kw">fn </span>eq(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/primitive.bool.html">bool</a> {
-    <a class="self" href="#807">self</a>.<a href="#112">as_slice</a>().<a href="https://doc.rust-lang.org/nightly/core/cmp/trait.PartialEq.html">eq</a>(<a href="#807">other</a>.<a href="#112">as_slice</a>())
+  </span><span class="kw">fn </span>eq(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; bool {
+    <span class="self">self</span>.as_slice().eq(other.as_slice())
   }
 }
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;s</span>, T&gt; <a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Eq.html">Eq</a> <span class="kw">for </span>SliceVec&lt;<span class="lifetime">&#39;s</span>, T&gt; <span class="kw">where </span>T: <a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Eq.html">Eq</a> {}
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;s</span>, T&gt; Eq <span class="kw">for </span>SliceVec&lt;<span class="lifetime">&#39;s</span>, T&gt; <span class="kw">where </span>T: Eq {}
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;s</span>, T&gt; <a href="https://doc.rust-lang.org/nightly/core/cmp/trait.PartialOrd.html">PartialOrd</a> <span class="kw">for </span>SliceVec&lt;<span class="lifetime">&#39;s</span>, T&gt;
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;s</span>, T&gt; PartialOrd <span class="kw">for </span>SliceVec&lt;<span class="lifetime">&#39;s</span>, T&gt;
 <span class="kw">where
-  </span>T: <a href="https://doc.rust-lang.org/nightly/core/cmp/trait.PartialOrd.html">PartialOrd</a>,
+  </span>T: PartialOrd,
 {
   <span class="attr">#[inline]
   #[must_use]
-  </span><span class="kw">fn </span>partial_cmp(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html">core::cmp::Ordering</a>&gt; {
-    <a class="self" href="#819">self</a>.<a href="#112">as_slice</a>().<a href="https://doc.rust-lang.org/nightly/core/cmp/trait.PartialOrd.html">partial_cmp</a>(<a href="#819">other</a>.<a href="#112">as_slice</a>())
+  </span><span class="kw">fn </span>partial_cmp(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;core::cmp::Ordering&gt; {
+    <span class="self">self</span>.as_slice().partial_cmp(other.as_slice())
   }
 }
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;s</span>, T&gt; <a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Ord.html">Ord</a> <span class="kw">for </span>SliceVec&lt;<span class="lifetime">&#39;s</span>, T&gt;
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;s</span>, T&gt; Ord <span class="kw">for </span>SliceVec&lt;<span class="lifetime">&#39;s</span>, T&gt;
 <span class="kw">where
-  </span>T: <a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Ord.html">Ord</a>,
+  </span>T: Ord,
 {
   <span class="attr">#[inline]
   #[must_use]
-  </span><span class="kw">fn </span>cmp(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html">core::cmp::Ordering</a> {
-    <a class="self" href="#829">self</a>.<a href="#112">as_slice</a>().<a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Ord.html">cmp</a>(<a href="#829">other</a>.<a href="#112">as_slice</a>())
+  </span><span class="kw">fn </span>cmp(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; core::cmp::Ordering {
+    <span class="self">self</span>.as_slice().cmp(other.as_slice())
   }
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;s</span>, T&gt; PartialEq&lt;<span class="kw-2">&amp;</span>[T]&gt; <span class="kw">for </span>SliceVec&lt;<span class="lifetime">&#39;s</span>, T&gt;
 <span class="kw">where
-  </span>T: <a href="https://doc.rust-lang.org/nightly/core/cmp/trait.PartialEq.html">PartialEq</a>,
+  </span>T: PartialEq,
 {
   <span class="attr">#[inline]
   #[must_use]
-  </span><span class="kw">fn </span>eq(<span class="kw-2">&amp;</span><span class="self">self</span>, other: &amp;&amp;[T]) -&gt; <a href="https://doc.rust-lang.org/nightly/core/primitive.bool.html">bool</a> {
-    <a class="self" href="#840">self</a>.<a href="#112">as_slice</a>().<a href="https://doc.rust-lang.org/nightly/core/cmp/trait.PartialEq.html">eq</a>(<span class="kw-2">*</span><a href="#840">other</a>)
+  </span><span class="kw">fn </span>eq(<span class="kw-2">&amp;</span><span class="self">self</span>, other: &amp;&amp;[T]) -&gt; bool {
+    <span class="self">self</span>.as_slice().eq(<span class="kw-2">*</span>other)
   }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;s</span>, T&gt; <a href="https://doc.rust-lang.org/nightly/core/hash/trait.Hash.html">Hash</a> <span class="kw">for </span>SliceVec&lt;<span class="lifetime">&#39;s</span>, T&gt;
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;s</span>, T&gt; Hash <span class="kw">for </span>SliceVec&lt;<span class="lifetime">&#39;s</span>, T&gt;
 <span class="kw">where
-  </span>T: <a href="https://doc.rust-lang.org/nightly/core/hash/trait.Hash.html">Hash</a>,
+  </span>T: Hash,
 {
   <span class="attr">#[inline]
-  </span><span class="kw">fn </span>hash&lt;H: <a href="https://doc.rust-lang.org/nightly/core/hash/trait.Hasher.html">Hasher</a>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, state: <span class="kw-2">&amp;mut </span>H) {
-    <a class="self" href="#850">self</a>.<a href="#112">as_slice</a>().<a href="https://doc.rust-lang.org/nightly/core/hash/trait.Hash.html">hash</a>(<a href="#850">state</a>)
+  </span><span class="kw">fn </span>hash&lt;H: Hasher&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, state: <span class="kw-2">&amp;mut </span>H) {
+    <span class="self">self</span>.as_slice().hash(state)
   }
 }
 
@@ -1952,12 +1952,12 @@
 // Formatting impls
 // // // // // // // //
 
-</span><span class="kw">impl</span>&lt;<span class="lifetime">&#39;s</span>, T&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Binary.html">Binary</a> <span class="kw">for </span>SliceVec&lt;<span class="lifetime">&#39;s</span>, T&gt;
+</span><span class="kw">impl</span>&lt;<span class="lifetime">&#39;s</span>, T&gt; Binary <span class="kw">for </span>SliceVec&lt;<span class="lifetime">&#39;s</span>, T&gt;
 <span class="kw">where
-  </span>T: <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Binary.html">Binary</a>,
+  </span>T: Binary,
 {
   <span class="attr">#[allow(clippy::missing_inline_in_public_items)]
-  </span><span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">Formatter</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">core::fmt::Result</a> {
+  </span><span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>Formatter) -&gt; core::fmt::Result {
     <span class="macro">write!</span>(f, <span class="string">&quot;[&quot;</span>)<span class="question-mark">?</span>;
     <span class="kw">if </span>f.alternate() {
       <span class="macro">write!</span>(f, <span class="string">&quot;\n    &quot;</span>)<span class="question-mark">?</span>;
@@ -1971,16 +1971,16 @@
     <span class="kw">if </span>f.alternate() {
       <span class="macro">write!</span>(f, <span class="string">&quot;,\n&quot;</span>)<span class="question-mark">?</span>;
     }
-    <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#880">f</a>, <span class="string">&quot;]&quot;</span>)
+    <span class="macro">write!</span>(f, <span class="string">&quot;]&quot;</span>)
   }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;s</span>, T&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">Debug</a> <span class="kw">for </span>SliceVec&lt;<span class="lifetime">&#39;s</span>, T&gt;
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;s</span>, T&gt; Debug <span class="kw">for </span>SliceVec&lt;<span class="lifetime">&#39;s</span>, T&gt;
 <span class="kw">where
-  </span>T: <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">Debug</a>,
+  </span>T: Debug,
 {
   <span class="attr">#[allow(clippy::missing_inline_in_public_items)]
-  </span><span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">Formatter</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">core::fmt::Result</a> {
+  </span><span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>Formatter) -&gt; core::fmt::Result {
     <span class="macro">write!</span>(f, <span class="string">&quot;[&quot;</span>)<span class="question-mark">?</span>;
     <span class="kw">if </span>f.alternate() {
       <span class="macro">write!</span>(f, <span class="string">&quot;\n    &quot;</span>)<span class="question-mark">?</span>;
@@ -1994,16 +1994,16 @@
     <span class="kw">if </span>f.alternate() {
       <span class="macro">write!</span>(f, <span class="string">&quot;,\n&quot;</span>)<span class="question-mark">?</span>;
     }
-    <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#903">f</a>, <span class="string">&quot;]&quot;</span>)
+    <span class="macro">write!</span>(f, <span class="string">&quot;]&quot;</span>)
   }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;s</span>, T&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">Display</a> <span class="kw">for </span>SliceVec&lt;<span class="lifetime">&#39;s</span>, T&gt;
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;s</span>, T&gt; Display <span class="kw">for </span>SliceVec&lt;<span class="lifetime">&#39;s</span>, T&gt;
 <span class="kw">where
-  </span>T: <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">Display</a>,
+  </span>T: Display,
 {
   <span class="attr">#[allow(clippy::missing_inline_in_public_items)]
-  </span><span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">Formatter</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">core::fmt::Result</a> {
+  </span><span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>Formatter) -&gt; core::fmt::Result {
     <span class="macro">write!</span>(f, <span class="string">&quot;[&quot;</span>)<span class="question-mark">?</span>;
     <span class="kw">if </span>f.alternate() {
       <span class="macro">write!</span>(f, <span class="string">&quot;\n    &quot;</span>)<span class="question-mark">?</span>;
@@ -2017,16 +2017,16 @@
     <span class="kw">if </span>f.alternate() {
       <span class="macro">write!</span>(f, <span class="string">&quot;,\n&quot;</span>)<span class="question-mark">?</span>;
     }
-    <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#926">f</a>, <span class="string">&quot;]&quot;</span>)
+    <span class="macro">write!</span>(f, <span class="string">&quot;]&quot;</span>)
   }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;s</span>, T&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.LowerExp.html">LowerExp</a> <span class="kw">for </span>SliceVec&lt;<span class="lifetime">&#39;s</span>, T&gt;
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;s</span>, T&gt; LowerExp <span class="kw">for </span>SliceVec&lt;<span class="lifetime">&#39;s</span>, T&gt;
 <span class="kw">where
-  </span>T: <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.LowerExp.html">LowerExp</a>,
+  </span>T: LowerExp,
 {
   <span class="attr">#[allow(clippy::missing_inline_in_public_items)]
-  </span><span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">Formatter</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">core::fmt::Result</a> {
+  </span><span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>Formatter) -&gt; core::fmt::Result {
     <span class="macro">write!</span>(f, <span class="string">&quot;[&quot;</span>)<span class="question-mark">?</span>;
     <span class="kw">if </span>f.alternate() {
       <span class="macro">write!</span>(f, <span class="string">&quot;\n    &quot;</span>)<span class="question-mark">?</span>;
@@ -2040,16 +2040,16 @@
     <span class="kw">if </span>f.alternate() {
       <span class="macro">write!</span>(f, <span class="string">&quot;,\n&quot;</span>)<span class="question-mark">?</span>;
     }
-    <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#949">f</a>, <span class="string">&quot;]&quot;</span>)
+    <span class="macro">write!</span>(f, <span class="string">&quot;]&quot;</span>)
   }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;s</span>, T&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.LowerHex.html">LowerHex</a> <span class="kw">for </span>SliceVec&lt;<span class="lifetime">&#39;s</span>, T&gt;
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;s</span>, T&gt; LowerHex <span class="kw">for </span>SliceVec&lt;<span class="lifetime">&#39;s</span>, T&gt;
 <span class="kw">where
-  </span>T: <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.LowerHex.html">LowerHex</a>,
+  </span>T: LowerHex,
 {
   <span class="attr">#[allow(clippy::missing_inline_in_public_items)]
-  </span><span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">Formatter</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">core::fmt::Result</a> {
+  </span><span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>Formatter) -&gt; core::fmt::Result {
     <span class="macro">write!</span>(f, <span class="string">&quot;[&quot;</span>)<span class="question-mark">?</span>;
     <span class="kw">if </span>f.alternate() {
       <span class="macro">write!</span>(f, <span class="string">&quot;\n    &quot;</span>)<span class="question-mark">?</span>;
@@ -2063,16 +2063,16 @@
     <span class="kw">if </span>f.alternate() {
       <span class="macro">write!</span>(f, <span class="string">&quot;,\n&quot;</span>)<span class="question-mark">?</span>;
     }
-    <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#972">f</a>, <span class="string">&quot;]&quot;</span>)
+    <span class="macro">write!</span>(f, <span class="string">&quot;]&quot;</span>)
   }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;s</span>, T&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Octal.html">Octal</a> <span class="kw">for </span>SliceVec&lt;<span class="lifetime">&#39;s</span>, T&gt;
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;s</span>, T&gt; Octal <span class="kw">for </span>SliceVec&lt;<span class="lifetime">&#39;s</span>, T&gt;
 <span class="kw">where
-  </span>T: <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Octal.html">Octal</a>,
+  </span>T: Octal,
 {
   <span class="attr">#[allow(clippy::missing_inline_in_public_items)]
-  </span><span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">Formatter</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">core::fmt::Result</a> {
+  </span><span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>Formatter) -&gt; core::fmt::Result {
     <span class="macro">write!</span>(f, <span class="string">&quot;[&quot;</span>)<span class="question-mark">?</span>;
     <span class="kw">if </span>f.alternate() {
       <span class="macro">write!</span>(f, <span class="string">&quot;\n    &quot;</span>)<span class="question-mark">?</span>;
@@ -2086,16 +2086,16 @@
     <span class="kw">if </span>f.alternate() {
       <span class="macro">write!</span>(f, <span class="string">&quot;,\n&quot;</span>)<span class="question-mark">?</span>;
     }
-    <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#995">f</a>, <span class="string">&quot;]&quot;</span>)
+    <span class="macro">write!</span>(f, <span class="string">&quot;]&quot;</span>)
   }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;s</span>, T&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Pointer.html">Pointer</a> <span class="kw">for </span>SliceVec&lt;<span class="lifetime">&#39;s</span>, T&gt;
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;s</span>, T&gt; Pointer <span class="kw">for </span>SliceVec&lt;<span class="lifetime">&#39;s</span>, T&gt;
 <span class="kw">where
-  </span>T: <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Pointer.html">Pointer</a>,
+  </span>T: Pointer,
 {
   <span class="attr">#[allow(clippy::missing_inline_in_public_items)]
-  </span><span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">Formatter</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">core::fmt::Result</a> {
+  </span><span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>Formatter) -&gt; core::fmt::Result {
     <span class="macro">write!</span>(f, <span class="string">&quot;[&quot;</span>)<span class="question-mark">?</span>;
     <span class="kw">if </span>f.alternate() {
       <span class="macro">write!</span>(f, <span class="string">&quot;\n    &quot;</span>)<span class="question-mark">?</span>;
@@ -2109,16 +2109,16 @@
     <span class="kw">if </span>f.alternate() {
       <span class="macro">write!</span>(f, <span class="string">&quot;,\n&quot;</span>)<span class="question-mark">?</span>;
     }
-    <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#1018">f</a>, <span class="string">&quot;]&quot;</span>)
+    <span class="macro">write!</span>(f, <span class="string">&quot;]&quot;</span>)
   }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;s</span>, T&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.UpperExp.html">UpperExp</a> <span class="kw">for </span>SliceVec&lt;<span class="lifetime">&#39;s</span>, T&gt;
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;s</span>, T&gt; UpperExp <span class="kw">for </span>SliceVec&lt;<span class="lifetime">&#39;s</span>, T&gt;
 <span class="kw">where
-  </span>T: <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.UpperExp.html">UpperExp</a>,
+  </span>T: UpperExp,
 {
   <span class="attr">#[allow(clippy::missing_inline_in_public_items)]
-  </span><span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">Formatter</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">core::fmt::Result</a> {
+  </span><span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>Formatter) -&gt; core::fmt::Result {
     <span class="macro">write!</span>(f, <span class="string">&quot;[&quot;</span>)<span class="question-mark">?</span>;
     <span class="kw">if </span>f.alternate() {
       <span class="macro">write!</span>(f, <span class="string">&quot;\n    &quot;</span>)<span class="question-mark">?</span>;
@@ -2132,16 +2132,16 @@
     <span class="kw">if </span>f.alternate() {
       <span class="macro">write!</span>(f, <span class="string">&quot;,\n&quot;</span>)<span class="question-mark">?</span>;
     }
-    <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#1041">f</a>, <span class="string">&quot;]&quot;</span>)
+    <span class="macro">write!</span>(f, <span class="string">&quot;]&quot;</span>)
   }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;s</span>, T&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.UpperHex.html">UpperHex</a> <span class="kw">for </span>SliceVec&lt;<span class="lifetime">&#39;s</span>, T&gt;
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;s</span>, T&gt; UpperHex <span class="kw">for </span>SliceVec&lt;<span class="lifetime">&#39;s</span>, T&gt;
 <span class="kw">where
-  </span>T: <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.UpperHex.html">UpperHex</a>,
+  </span>T: UpperHex,
 {
   <span class="attr">#[allow(clippy::missing_inline_in_public_items)]
-  </span><span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">Formatter</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">core::fmt::Result</a> {
+  </span><span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>Formatter) -&gt; core::fmt::Result {
     <span class="macro">write!</span>(f, <span class="string">&quot;[&quot;</span>)<span class="question-mark">?</span>;
     <span class="kw">if </span>f.alternate() {
       <span class="macro">write!</span>(f, <span class="string">&quot;\n    &quot;</span>)<span class="question-mark">?</span>;
@@ -2155,8 +2155,8 @@
     <span class="kw">if </span>f.alternate() {
       <span class="macro">write!</span>(f, <span class="string">&quot;,\n&quot;</span>)<span class="question-mark">?</span>;
     }
-    <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#1064">f</a>, <span class="string">&quot;]&quot;</span>)
+    <span class="macro">write!</span>(f, <span class="string">&quot;]&quot;</span>)
   }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="tinyvec" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="tinyvec" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

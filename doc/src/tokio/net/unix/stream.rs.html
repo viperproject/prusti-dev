@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.21.2/src/net/unix/stream.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>stream.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../../tokio/index.html"><img class="rust-logo" src="../../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.23.0/src/net/unix/stream.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>stream.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../../tokio/index.html"><img class="rust-logo" src="../../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -966,32 +966,44 @@
 <a href="#966" id="966">966</a>
 <a href="#967" id="967">967</a>
 <a href="#968" id="968">968</a>
-</pre><pre class="rust"><code><span class="kw">use </span><a href="../../future/poll_fn.rs.html#18-20"><span class="kw">crate</span>::future::poll_fn</a>;
-<span class="kw">use </span><span class="kw">crate</span>::io::{<a href="../../io/async_read.rs.html#43">AsyncRead</a>, <a href="../../io/async_write.rs.html#45">AsyncWrite</a>, <a href="../../io/interest.rs.html#14">Interest</a>, <a href="../../io/poll_evented.rs.html#64">PollEvented</a>, <a href="../../io/read_buf.rs.html#23">ReadBuf</a>, <a href="../../io/ready.rs.html#16">Ready</a>};
-<span class="kw">use </span><span class="kw">crate</span>::net::unix::split::{<a href="split.rs.html#51">split</a>, <a href="split.rs.html#33">ReadHalf</a>, <a href="split.rs.html#49">WriteHalf</a>};
-<span class="kw">use </span><span class="kw">crate</span>::net::unix::split_owned::{<a href="split_owned.rs.html#59">split_owned</a>, <a href="split_owned.rs.html#35">OwnedReadHalf</a>, <a href="split_owned.rs.html#54">OwnedWriteHalf</a>};
-<span class="kw">use </span><span class="kw">crate</span>::net::unix::ucred::{<a class="self" href="mod.rs.html#23">self</a>, <a href="ucred.rs.html#5">UCred</a>};
-<span class="kw">use </span><a href="socketaddr.rs.html#5"><span class="kw">crate</span>::net::unix::SocketAddr</a>;
+<a href="#969" id="969">969</a>
+<a href="#970" id="970">970</a>
+<a href="#971" id="971">971</a>
+<a href="#972" id="972">972</a>
+<a href="#973" id="973">973</a>
+<a href="#974" id="974">974</a>
+<a href="#975" id="975">975</a>
+<a href="#976" id="976">976</a>
+<a href="#977" id="977">977</a>
+<a href="#978" id="978">978</a>
+<a href="#979" id="979">979</a>
+<a href="#980" id="980">980</a>
+</pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::future::poll_fn;
+<span class="kw">use </span><span class="kw">crate</span>::io::{AsyncRead, AsyncWrite, Interest, PollEvented, ReadBuf, Ready};
+<span class="kw">use </span><span class="kw">crate</span>::net::unix::split::{split, ReadHalf, WriteHalf};
+<span class="kw">use </span><span class="kw">crate</span>::net::unix::split_owned::{split_owned, OwnedReadHalf, OwnedWriteHalf};
+<span class="kw">use </span><span class="kw">crate</span>::net::unix::ucred::{<span class="self">self</span>, UCred};
+<span class="kw">use </span><span class="kw">crate</span>::net::unix::SocketAddr;
 
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/convert/trait.TryFrom.html">std::convert::TryFrom</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">std::fmt</a>;
-<span class="kw">use </span>std::io::{<a class="self" href="https://doc.rust-lang.org/nightly/std/io/index.html">self</a>, <a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a>, <a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a>};
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/net/enum.Shutdown.html">std::net::Shutdown</a>;
-<span class="kw">use </span>std::os::unix::io::{<a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">AsRawFd</a>, <a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.FromRawFd.html">FromRawFd</a>, <a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.IntoRawFd.html">IntoRawFd</a>, <a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a>};
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/os/unix/net/index.html">std::os::unix::net</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">std::path::Path</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/pin/struct.Pin.html">std::pin::Pin</a>;
-<span class="kw">use </span>std::task::{<a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>, <a href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">Poll</a>};
+<span class="kw">use </span>std::convert::TryFrom;
+<span class="kw">use </span>std::fmt;
+<span class="kw">use </span>std::io::{<span class="self">self</span>, Read, Write};
+<span class="kw">use </span>std::net::Shutdown;
+<span class="kw">use </span>std::os::unix::io::{AsRawFd, FromRawFd, IntoRawFd, RawFd};
+<span class="kw">use </span>std::os::unix::net;
+<span class="kw">use </span>std::path::Path;
+<span class="kw">use </span>std::pin::Pin;
+<span class="kw">use </span>std::task::{Context, Poll};
 
 <span class="macro">cfg_io_util! </span>{
-    <span class="kw">use </span><a href="../../../../bytes/buf/buf_mut/trait.BufMut.html">bytes::BufMut</a>;
+    <span class="kw">use </span>bytes::BufMut;
 }
 
 <span class="macro">cfg_net_unix! </span>{
     <span class="doccomment">/// A structure representing a connected Unix socket.
     ///
-    /// This socket can be connected directly with `UnixStream::connect` or accepted
-    /// from a listener with `UnixListener::incoming`. Additionally, a pair of
+    /// This socket can be connected directly with [`UnixStream::connect`] or accepted
+    /// from a listener with [`UnixListener::accept`]. Additionally, a pair of
     /// anonymous Unix sockets can be created with `UnixStream::pair`.
     ///
     /// To shut down the stream in the write direction, you can call the
@@ -1000,20 +1012,21 @@
     /// the stream in one direction.
     ///
     /// [`shutdown()`]: fn@crate::io::AsyncWriteExt::shutdown
+    /// [`UnixListener::accept`]: crate::net::UnixListener::accept
     </span><span class="kw">pub struct </span>UnixStream {
-        io: PollEvented&lt;<a href="../../../../mio/net/uds/stream/struct.UnixStream.html">mio::net::UnixStream</a>&gt;,
+        io: PollEvented&lt;mio::net::UnixStream&gt;,
     }
 }
 
-<span class="kw">impl </span><a href="#35">UnixStream</a> {
+<span class="kw">impl </span>UnixStream {
     <span class="doccomment">/// Connects to the socket named by `path`.
     ///
     /// This function will create a new Unix socket and connect to the path
     /// specified, associating the returned stream with the default event loop&#39;s
     /// handle.
-    </span><span class="kw">pub async fn </span>connect&lt;P&gt;(path: P) -&gt; io::Result&lt;<a href="#35">UnixStream</a>&gt;
+    </span><span class="kw">pub async fn </span>connect&lt;P&gt;(path: P) -&gt; io::Result&lt;UnixStream&gt;
     <span class="kw">where
-        </span>P: AsRef&lt;<a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>&gt;,
+        </span>P: AsRef&lt;Path&gt;,
     {
         <span class="kw">let </span>stream = mio::net::UnixStream::connect(path)<span class="question-mark">?</span>;
         <span class="kw">let </span>stream = UnixStream::new(stream)<span class="question-mark">?</span>;
@@ -1032,6 +1045,12 @@
     /// This function is usually paired with `try_read()` or `try_write()`. It
     /// can be used to concurrently read / write to the same socket on a single
     /// task without splitting the socket.
+    ///
+    /// The function may complete without the socket being ready. This is a
+    /// false-positive and attempting an operation will return with
+    /// `io::ErrorKind::WouldBlock`. The function can also return with an empty
+    /// [`Ready`] set, so you should always check the returned value and possibly
+    /// wait again if the requested states are not set.
     ///
     /// # Cancel safety
     ///
@@ -1096,7 +1115,7 @@
     ///     }
     /// }
     /// ```
-    </span><span class="kw">pub async fn </span>ready(<span class="kw-2">&amp;</span><span class="self">self</span>, interest: <a href="../../io/interest.rs.html#14">Interest</a>) -&gt; io::Result&lt;<a href="../../io/ready.rs.html#16">Ready</a>&gt; {
+    </span><span class="kw">pub async fn </span>ready(<span class="kw-2">&amp;</span><span class="self">self</span>, interest: Interest) -&gt; io::Result&lt;Ready&gt; {
         <span class="kw">let </span>event = <span class="self">self</span>.io.registration().readiness(interest).<span class="kw">await</span><span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(event.ready)
     }
@@ -1188,7 +1207,7 @@
     ///
     /// [`readable`]: method@Self::readable
     </span><span class="kw">pub fn </span>poll_read_ready(<span class="kw-2">&amp;</span><span class="self">self</span>, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;io::Result&lt;()&gt;&gt; {
-        <a class="self" href="#222">self</a>.io.<a href="../../io/poll_evented.rs.html#127">registration</a>().<a href="../../runtime/io/registration.rs.html#107">poll_read_ready</a>(<a href="#222">cx</a>).map_ok(|<span class="kw">_</span>| ())
+        <span class="self">self</span>.io.registration().poll_read_ready(cx).map_ok(|<span class="kw">_</span>| ())
     }
 
     <span class="doccomment">/// Try to read data from the stream into the provided buffer, returning how
@@ -1256,10 +1275,10 @@
     ///     Ok(())
     /// }
     /// ```
-    </span><span class="kw">pub fn </span>try_read(<span class="kw-2">&amp;</span><span class="self">self</span>, buf: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
-        <a class="self" href="#291">self</a>.io
-            .<a href="../../io/poll_evented.rs.html#127">registration</a>()
-            .<a href="../../runtime/io/registration.rs.html#180-184">try_io</a>(Interest::READABLE, || (<span class="kw-2">&amp;*</span><a class="self" href="#291">self</a>.io).<a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">read</a>(<a href="#291">buf</a>))
+    </span><span class="kw">pub fn </span>try_read(<span class="kw-2">&amp;</span><span class="self">self</span>, buf: <span class="kw-2">&amp;mut </span>[u8]) -&gt; io::Result&lt;usize&gt; {
+        <span class="self">self</span>.io
+            .registration()
+            .try_io(Interest::READABLE, || (<span class="kw-2">&amp;*</span><span class="self">self</span>.io).read(buf))
     }
 
     <span class="doccomment">/// Tries to read data from the stream into the provided buffers, returning
@@ -1334,10 +1353,10 @@
     ///     Ok(())
     /// }
     /// ```
-    </span><span class="kw">pub fn </span>try_read_vectored(<span class="kw-2">&amp;</span><span class="self">self</span>, bufs: <span class="kw-2">&amp;mut </span>[io::IoSliceMut&lt;<span class="lifetime">&#39;_</span>&gt;]) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
-        <a class="self" href="#369">self</a>.io
-            .<a href="../../io/poll_evented.rs.html#127">registration</a>()
-            .<a href="../../runtime/io/registration.rs.html#180-184">try_io</a>(Interest::READABLE, || (<span class="kw-2">&amp;*</span><a class="self" href="#369">self</a>.io).<a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">read_vectored</a>(<a href="#369">bufs</a>))
+    </span><span class="kw">pub fn </span>try_read_vectored(<span class="kw-2">&amp;</span><span class="self">self</span>, bufs: <span class="kw-2">&amp;mut </span>[io::IoSliceMut&lt;<span class="lifetime">&#39;_</span>&gt;]) -&gt; io::Result&lt;usize&gt; {
+        <span class="self">self</span>.io
+            .registration()
+            .try_io(Interest::READABLE, || (<span class="kw-2">&amp;*</span><span class="self">self</span>.io).read_vectored(bufs))
     }
 
     <span class="macro">cfg_io_util! </span>{
@@ -1400,23 +1419,23 @@
         ///     Ok(())
         /// }
         /// ```
-        </span><span class="kw">pub fn </span>try_read_buf&lt;B: <a href="../../../../bytes/buf/buf_mut/trait.BufMut.html">BufMut</a>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, buf: <span class="kw-2">&amp;mut </span>B) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
-            <a class="self" href="#435">self</a>.io.<a href="../../io/poll_evented.rs.html#127">registration</a>().<a href="../../runtime/io/registration.rs.html#180-184">try_io</a>(Interest::READABLE, || {
-                <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">std::io::Read</a>;
+        </span><span class="kw">pub fn </span>try_read_buf&lt;B: BufMut&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, buf: <span class="kw-2">&amp;mut </span>B) -&gt; io::Result&lt;usize&gt; {
+            <span class="self">self</span>.io.registration().try_io(Interest::READABLE, || {
+                <span class="kw">use </span>std::io::Read;
 
-                <span class="kw">let </span>dst = <a href="#435">buf</a>.<a href="../../../../bytes/buf/buf_mut/trait.BufMut.html">chunk_mut</a>();
+                <span class="kw">let </span>dst = buf.chunk_mut();
                 <span class="kw">let </span>dst =
-                    <span class="kw">unsafe </span>{ <span class="kw-2">&amp;mut *</span>(<a href="#439">dst</a> <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_ as </span><span class="kw-2">*mut </span>[std::mem::MaybeUninit&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;] <span class="kw">as </span><span class="kw-2">*mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) };
+                    <span class="kw">unsafe </span>{ <span class="kw-2">&amp;mut *</span>(dst <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_ as </span><span class="kw-2">*mut </span>[std::mem::MaybeUninit&lt;u8&gt;] <span class="kw">as </span><span class="kw-2">*mut </span>[u8]) };
 
                 <span class="comment">// Safety: We trust `UnixStream::read` to have filled up `n` bytes in the
                 // buffer.
                 </span><span class="kw">let </span>n = (<span class="kw-2">&amp;*</span><span class="self">self</span>.io).read(dst)<span class="question-mark">?</span>;
 
                 <span class="kw">unsafe </span>{
-                    <a href="#435">buf</a>.<a href="../../../../bytes/buf/buf_mut/trait.BufMut.html">advance_mut</a>(<a href="#445">n</a>);
+                    buf.advance_mut(n);
                 }
 
-                <span class="prelude-val">Ok</span>(<a href="#445">n</a>)
+                <span class="prelude-val">Ok</span>(n)
             })
         }
     }
@@ -1504,7 +1523,7 @@
     ///
     /// [`writable`]: method@Self::writable
     </span><span class="kw">pub fn </span>poll_write_ready(<span class="kw-2">&amp;</span><span class="self">self</span>, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;io::Result&lt;()&gt;&gt; {
-        <a class="self" href="#538">self</a>.io.<a href="../../io/poll_evented.rs.html#127">registration</a>().<a href="../../runtime/io/registration.rs.html#113">poll_write_ready</a>(<a href="#538">cx</a>).map_ok(|<span class="kw">_</span>| ())
+        <span class="self">self</span>.io.registration().poll_write_ready(cx).map_ok(|<span class="kw">_</span>| ())
     }
 
     <span class="doccomment">/// Tries to write a buffer to the stream, returning how many bytes were
@@ -1557,10 +1576,10 @@
     ///     Ok(())
     /// }
     /// ```
-    </span><span class="kw">pub fn </span>try_write(<span class="kw-2">&amp;</span><span class="self">self</span>, buf: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
-        <a class="self" href="#592">self</a>.io
-            .<a href="../../io/poll_evented.rs.html#127">registration</a>()
-            .<a href="../../runtime/io/registration.rs.html#180-184">try_io</a>(Interest::WRITABLE, || (<span class="kw-2">&amp;*</span><a class="self" href="#592">self</a>.io).<a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">write</a>(<a href="#592">buf</a>))
+    </span><span class="kw">pub fn </span>try_write(<span class="kw-2">&amp;</span><span class="self">self</span>, buf: <span class="kw-2">&amp;</span>[u8]) -&gt; io::Result&lt;usize&gt; {
+        <span class="self">self</span>.io
+            .registration()
+            .try_io(Interest::WRITABLE, || (<span class="kw-2">&amp;*</span><span class="self">self</span>.io).write(buf))
     }
 
     <span class="doccomment">/// Tries to write several buffers to the stream, returning how many bytes
@@ -1619,16 +1638,16 @@
     ///     Ok(())
     /// }
     /// ```
-    </span><span class="kw">pub fn </span>try_write_vectored(<span class="kw-2">&amp;</span><span class="self">self</span>, buf: <span class="kw-2">&amp;</span>[io::IoSlice&lt;<span class="lifetime">&#39;_</span>&gt;]) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
-        <a class="self" href="#654">self</a>.io
-            .<a href="../../io/poll_evented.rs.html#127">registration</a>()
-            .<a href="../../runtime/io/registration.rs.html#180-184">try_io</a>(Interest::WRITABLE, || (<span class="kw-2">&amp;*</span><a class="self" href="#654">self</a>.io).<a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">write_vectored</a>(<a href="#654">buf</a>))
+    </span><span class="kw">pub fn </span>try_write_vectored(<span class="kw-2">&amp;</span><span class="self">self</span>, buf: <span class="kw-2">&amp;</span>[io::IoSlice&lt;<span class="lifetime">&#39;_</span>&gt;]) -&gt; io::Result&lt;usize&gt; {
+        <span class="self">self</span>.io
+            .registration()
+            .try_io(Interest::WRITABLE, || (<span class="kw-2">&amp;*</span><span class="self">self</span>.io).write_vectored(buf))
     }
 
     <span class="doccomment">/// Tries to read or write from the socket using a user-provided IO operation.
     ///
     /// If the socket is ready, the provided closure is called. The closure
-    /// should attempt to perform IO operation from the socket by manually
+    /// should attempt to perform IO operation on the socket by manually
     /// calling the appropriate syscall. If the operation fails because the
     /// socket is not actually ready, then the closure should return a
     /// `WouldBlock` error and the readiness flag is cleared. The return value
@@ -1647,6 +1666,11 @@
     /// defined on the Tokio `UnixStream` type, as this will mess with the
     /// readiness flag and can cause the socket to behave incorrectly.
     ///
+    /// This method is not intended to be used with combined interests.
+    /// The closure should perform only one type of IO operation, so it should not
+    /// require more than one ready state. This method may panic or sleep forever
+    /// if it is called with a combined interest.
+    ///
     /// Usually, [`readable()`], [`writable()`] or [`ready()`] is used with this function.
     ///
     /// [`readable()`]: UnixStream::readable()
@@ -1654,12 +1678,12 @@
     /// [`ready()`]: UnixStream::ready()
     </span><span class="kw">pub fn </span>try_io&lt;R&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        interest: <a href="../../io/interest.rs.html#14">Interest</a>,
+        interest: Interest,
         f: <span class="kw">impl </span>FnOnce() -&gt; io::Result&lt;R&gt;,
     ) -&gt; io::Result&lt;R&gt; {
-        <a class="self" href="#688">self</a>.io
-            .<a href="../../io/poll_evented.rs.html#127">registration</a>()
-            .<a href="../../runtime/io/registration.rs.html#180-184">try_io</a>(<a href="#689">interest</a>, || <a class="self" href="#688">self</a>.io.try_io(<a href="#690">f</a>))
+        <span class="self">self</span>.io
+            .registration()
+            .try_io(interest, || <span class="self">self</span>.io.try_io(f))
     }
 
     <span class="doccomment">/// Creates new `UnixStream` from a `std::os::unix::net::UnixStream`.
@@ -1678,11 +1702,11 @@
     /// from a future driven by a tokio runtime, otherwise runtime can be set
     /// explicitly with [`Runtime::enter`](crate::runtime::Runtime::enter) function.
     </span><span class="attr">#[track_caller]
-    </span><span class="kw">pub fn </span>from_std(stream: <a href="https://doc.rust-lang.org/nightly/std/os/unix/net/stream/struct.UnixStream.html">net::UnixStream</a>) -&gt; io::Result&lt;<a href="#35">UnixStream</a>&gt; {
-        <span class="kw">let </span>stream = mio::net::UnixStream::from_std(<a href="#713">stream</a>);
+    </span><span class="kw">pub fn </span>from_std(stream: net::UnixStream) -&gt; io::Result&lt;UnixStream&gt; {
+        <span class="kw">let </span>stream = mio::net::UnixStream::from_std(stream);
         <span class="kw">let </span>io = PollEvented::new(stream)<span class="question-mark">?</span>;
 
-        <span class="prelude-val">Ok</span>(<a href="#35">UnixStream</a> { <a href="#715">io</a> })
+        <span class="prelude-val">Ok</span>(UnixStream { io })
     }
 
     <span class="doccomment">/// Turns a [`tokio::net::UnixStream`] into a [`std::os::unix::net::UnixStream`].
@@ -1723,11 +1747,11 @@
     /// [`tokio::net::UnixStream`]: UnixStream
     /// [`std::os::unix::net::UnixStream`]: std::os::unix::net::UnixStream
     /// [`set_nonblocking`]: fn@std::os::unix::net::UnixStream::set_nonblocking
-    </span><span class="kw">pub fn </span>into_std(<span class="self">self</span>) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/os/unix/net/stream/struct.UnixStream.html">std::os::unix::net::UnixStream</a>&gt; {
-        <a class="self" href="#758">self</a>.io
-            .<a href="../../io/poll_evented.rs.html#133">into_inner</a>()
-            .map(|io| <a href="#761">io</a>.<a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.IntoRawFd.html">into_raw_fd</a>())
-            .map(|raw_fd| <span class="kw">unsafe </span>{ std::os::unix::net::UnixStream::from_raw_fd(<a href="#762">raw_fd</a>) })
+    </span><span class="kw">pub fn </span>into_std(<span class="self">self</span>) -&gt; io::Result&lt;std::os::unix::net::UnixStream&gt; {
+        <span class="self">self</span>.io
+            .into_inner()
+            .map(|io| io.into_raw_fd())
+            .map(|raw_fd| <span class="kw">unsafe </span>{ std::os::unix::net::UnixStream::from_raw_fd(raw_fd) })
     }
 
     <span class="doccomment">/// Creates an unnamed pair of connected sockets.
@@ -1735,17 +1759,17 @@
     /// This function will create a pair of interconnected Unix sockets for
     /// communicating back and forth between one another. Each socket will
     /// be associated with the default event loop&#39;s handle.
-    </span><span class="kw">pub fn </span>pair() -&gt; io::Result&lt;(<a href="#35">UnixStream</a>, <a href="#35">UnixStream</a>)&gt; {
+    </span><span class="kw">pub fn </span>pair() -&gt; io::Result&lt;(UnixStream, UnixStream)&gt; {
         <span class="kw">let </span>(a, b) = mio::net::UnixStream::pair()<span class="question-mark">?</span>;
         <span class="kw">let </span>a = UnixStream::new(a)<span class="question-mark">?</span>;
         <span class="kw">let </span>b = UnixStream::new(b)<span class="question-mark">?</span>;
 
-        <span class="prelude-val">Ok</span>((<a href="#772">a</a>, <a href="#773">b</a>))
+        <span class="prelude-val">Ok</span>((a, b))
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(stream: <a href="../../../../mio/net/uds/stream/struct.UnixStream.html">mio::net::UnixStream</a>) -&gt; io::Result&lt;<a href="#35">UnixStream</a>&gt; {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(stream: mio::net::UnixStream) -&gt; io::Result&lt;UnixStream&gt; {
         <span class="kw">let </span>io = PollEvented::new(stream)<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(<a href="#35">UnixStream</a> { <a href="#779">io</a> })
+        <span class="prelude-val">Ok</span>(UnixStream { io })
     }
 
     <span class="doccomment">/// Returns the socket address of the local half of this connection.
@@ -1764,8 +1788,8 @@
     /// # Ok(())
     /// # }
     /// ```
-    </span><span class="kw">pub fn </span>local_addr(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;<a href="socketaddr.rs.html#5">SocketAddr</a>&gt; {
-        <a class="self" href="#799">self</a>.io.local_addr().map(<a href="socketaddr.rs.html#5">SocketAddr</a>)
+    </span><span class="kw">pub fn </span>local_addr(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;SocketAddr&gt; {
+        <span class="self">self</span>.io.local_addr().map(SocketAddr)
     }
 
     <span class="doccomment">/// Returns the socket address of the remote half of this connection.
@@ -1784,18 +1808,18 @@
     /// # Ok(())
     /// # }
     /// ```
-    </span><span class="kw">pub fn </span>peer_addr(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;<a href="socketaddr.rs.html#5">SocketAddr</a>&gt; {
-        <a class="self" href="#819">self</a>.io.peer_addr().map(<a href="socketaddr.rs.html#5">SocketAddr</a>)
+    </span><span class="kw">pub fn </span>peer_addr(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;SocketAddr&gt; {
+        <span class="self">self</span>.io.peer_addr().map(SocketAddr)
     }
 
     <span class="doccomment">/// Returns effective credentials of the process which called `connect` or `pair`.
-    </span><span class="kw">pub fn </span>peer_cred(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;<a href="ucred.rs.html#5">UCred</a>&gt; {
-        <a href="ucred.rs.html#61">ucred::get_peer_cred</a>(<a class="self" href="#824">self</a>)
+    </span><span class="kw">pub fn </span>peer_cred(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;UCred&gt; {
+        ucred::get_peer_cred(<span class="self">self</span>)
     }
 
     <span class="doccomment">/// Returns the value of the `SO_ERROR` option.
-    </span><span class="kw">pub fn </span>take_error(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;<span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a>&gt;&gt; {
-        <a class="self" href="#829">self</a>.io.take_error()
+    </span><span class="kw">pub fn </span>take_error(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;<span class="prelude-ty">Option</span>&lt;io::Error&gt;&gt; {
+        <span class="self">self</span>.io.take_error()
     }
 
     <span class="doccomment">/// Shuts down the read, write, or both halves of this connection.
@@ -1803,8 +1827,8 @@
     /// This function will cause all pending and future I/O calls on the
     /// specified portions to immediately return with an appropriate value
     /// (see the documentation of `Shutdown`).
-    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>shutdown_std(<span class="kw-2">&amp;</span><span class="self">self</span>, how: <a href="https://doc.rust-lang.org/nightly/std/net/enum.Shutdown.html">Shutdown</a>) -&gt; io::Result&lt;()&gt; {
-        <a class="self" href="#838">self</a>.io.shutdown(<a href="#838">how</a>)
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>shutdown_std(<span class="kw-2">&amp;</span><span class="self">self</span>, how: Shutdown) -&gt; io::Result&lt;()&gt; {
+        <span class="self">self</span>.io.shutdown(how)
     }
 
     <span class="comment">// These lifetime markers also appear in the generated documentation, and make
@@ -1818,7 +1842,7 @@
     ///
     /// [`into_split`]: Self::into_split()
     </span><span class="kw">pub fn </span>split&lt;<span class="lifetime">&#39;a</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span><span class="self">self</span>) -&gt; (ReadHalf&lt;<span class="lifetime">&#39;a</span>&gt;, WriteHalf&lt;<span class="lifetime">&#39;a</span>&gt;) {
-        <a href="split.rs.html#51">split</a>(<a class="self" href="#852">self</a>)
+        split(<span class="self">self</span>)
     }
 
     <span class="doccomment">/// Splits a `UnixStream` into a read half and a write half, which can be used
@@ -1832,51 +1856,51 @@
     ///
     /// [`split`]: Self::split()
     /// [`shutdown()`]: fn@crate::io::AsyncWriteExt::shutdown
-    </span><span class="kw">pub fn </span>into_split(<span class="self">self</span>) -&gt; (<a href="split_owned.rs.html#35">OwnedReadHalf</a>, <a href="split_owned.rs.html#54">OwnedWriteHalf</a>) {
-        <a href="split_owned.rs.html#59">split_owned</a>(<a class="self" href="#867">self</a>)
+    </span><span class="kw">pub fn </span>into_split(<span class="self">self</span>) -&gt; (OwnedReadHalf, OwnedWriteHalf) {
+        split_owned(<span class="self">self</span>)
     }
 }
 
-<span class="kw">impl </span>TryFrom&lt;<a href="https://doc.rust-lang.org/nightly/std/os/unix/net/stream/struct.UnixStream.html">net::UnixStream</a>&gt; <span class="kw">for </span><a href="#35">UnixStream</a> {
-    <span class="kw">type </span>Error = <a href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a>;
+<span class="kw">impl </span>TryFrom&lt;net::UnixStream&gt; <span class="kw">for </span>UnixStream {
+    <span class="kw">type </span>Error = io::Error;
 
     <span class="doccomment">/// Consumes stream, returning the tokio I/O object.
     ///
     /// This is equivalent to
     /// [`UnixStream::from_std(stream)`](UnixStream::from_std).
-    </span><span class="kw">fn </span>try_from(stream: <a href="https://doc.rust-lang.org/nightly/std/os/unix/net/stream/struct.UnixStream.html">net::UnixStream</a>) -&gt; io::Result&lt;<span class="self">Self</span>&gt; {
-        <span class="self">Self</span>::from_std(<a href="#879">stream</a>)
+    </span><span class="kw">fn </span>try_from(stream: net::UnixStream) -&gt; io::Result&lt;<span class="self">Self</span>&gt; {
+        <span class="self">Self</span>::from_std(stream)
     }
 }
 
-<span class="kw">impl </span><a href="../../io/async_read.rs.html#43">AsyncRead</a> <span class="kw">for </span><a href="#35">UnixStream</a> {
+<span class="kw">impl </span>AsyncRead <span class="kw">for </span>UnixStream {
     <span class="kw">fn </span>poll_read(
         <span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;,
         cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
         buf: <span class="kw-2">&amp;mut </span>ReadBuf&lt;<span class="lifetime">&#39;_</span>&gt;,
     ) -&gt; Poll&lt;io::Result&lt;()&gt;&gt; {
-        <a class="self" href="#886">self</a>.<a href="#932-936">poll_read_priv</a>(<a href="#887">cx</a>, <a href="#888">buf</a>)
+        <span class="self">self</span>.poll_read_priv(cx, buf)
     }
 }
 
-<span class="kw">impl </span><a href="../../io/async_write.rs.html#45">AsyncWrite</a> <span class="kw">for </span><a href="#35">UnixStream</a> {
+<span class="kw">impl </span>AsyncWrite <span class="kw">for </span>UnixStream {
     <span class="kw">fn </span>poll_write(
         <span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;,
         cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
-        buf: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
-    ) -&gt; Poll&lt;io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;&gt; {
-        <a class="self" href="#896">self</a>.<a href="#941-945">poll_write_priv</a>(<a href="#897">cx</a>, <a href="#898">buf</a>)
+        buf: <span class="kw-2">&amp;</span>[u8],
+    ) -&gt; Poll&lt;io::Result&lt;usize&gt;&gt; {
+        <span class="self">self</span>.poll_write_priv(cx, buf)
     }
 
     <span class="kw">fn </span>poll_write_vectored(
         <span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;,
         cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
         bufs: <span class="kw-2">&amp;</span>[io::IoSlice&lt;<span class="lifetime">&#39;_</span>&gt;],
-    ) -&gt; Poll&lt;io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;&gt; {
-        <a class="self" href="#904">self</a>.<a href="#949-953">poll_write_vectored_priv</a>(<a href="#905">cx</a>, <a href="#906">bufs</a>)
+    ) -&gt; Poll&lt;io::Result&lt;usize&gt;&gt; {
+        <span class="self">self</span>.poll_write_vectored_priv(cx, bufs)
     }
 
-    <span class="kw">fn </span>is_write_vectored(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+    <span class="kw">fn </span>is_write_vectored(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="bool-val">true
     </span>}
 
@@ -1890,7 +1914,7 @@
     }
 }
 
-<span class="kw">impl </span><a href="#35">UnixStream</a> {
+<span class="kw">impl </span>UnixStream {
     <span class="comment">// == Poll IO functions that takes `&amp;self` ==
     //
     // To read or write without mutable access to the `UnixStream`, combine the
@@ -1903,36 +1927,36 @@
         buf: <span class="kw-2">&amp;mut </span>ReadBuf&lt;<span class="lifetime">&#39;_</span>&gt;,
     ) -&gt; Poll&lt;io::Result&lt;()&gt;&gt; {
         <span class="comment">// Safety: `UnixStream::read` correctly handles reads into uninitialized memory
-        </span><span class="kw">unsafe </span>{ <a class="self" href="#933">self</a>.io.<a href="../../io/poll_evented.rs.html#148-154">poll_read</a>(<a href="#934">cx</a>, <a href="#935">buf</a>) }
+        </span><span class="kw">unsafe </span>{ <span class="self">self</span>.io.poll_read(cx, buf) }
     }
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>poll_write_priv(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
-        buf: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
-    ) -&gt; Poll&lt;io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;&gt; {
-        <a class="self" href="#942">self</a>.io.<a href="../../io/poll_evented.rs.html#186-188">poll_write</a>(<a href="#943">cx</a>, <a href="#944">buf</a>)
+        buf: <span class="kw-2">&amp;</span>[u8],
+    ) -&gt; Poll&lt;io::Result&lt;usize&gt;&gt; {
+        <span class="self">self</span>.io.poll_write(cx, buf)
     }
 
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>poll_write_vectored_priv(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
         bufs: <span class="kw-2">&amp;</span>[io::IoSlice&lt;<span class="lifetime">&#39;_</span>&gt;],
-    ) -&gt; Poll&lt;io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;&gt; {
-        <a class="self" href="#950">self</a>.io.<a href="../../io/poll_evented.rs.html#195-201">poll_write_vectored</a>(<a href="#951">cx</a>, <a href="#952">bufs</a>)
+    ) -&gt; Poll&lt;io::Result&lt;usize&gt;&gt; {
+        <span class="self">self</span>.io.poll_write_vectored(cx, bufs)
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="#35">UnixStream</a> {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="self" href="#959">self</a>.io.<a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt</a>(<a href="#959">f</a>)
+<span class="kw">impl </span>fmt::Debug <span class="kw">for </span>UnixStream {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        <span class="self">self</span>.io.fmt(f)
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">AsRawFd</a> <span class="kw">for </span><a href="#35">UnixStream</a> {
-    <span class="kw">fn </span>as_raw_fd(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a> {
-        <a class="self" href="#965">self</a>.io.<a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">as_raw_fd</a>()
+<span class="kw">impl </span>AsRawFd <span class="kw">for </span>UnixStream {
+    <span class="kw">fn </span>as_raw_fd(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; RawFd {
+        <span class="self">self</span>.io.as_raw_fd()
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="tokio" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="tokio" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

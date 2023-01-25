@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `prusti-common/src/vir/optimizations/methods/unfolding_fixer.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>unfolding_fixer.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../../../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../../../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../../../../source-files.js"></script><script defer src="../../../../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../../../prusti_common/index.html"><img class="rust-logo" src="../../../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `prusti-common/src/vir/optimizations/methods/unfolding_fixer.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>unfolding_fixer.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../../../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../../../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../../../source-files.js"></script><script defer src="../../../../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../../../prusti_common/index.html"><img class="rust-logo" src="../../../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -111,12 +111,12 @@
 <a href="#111" id="111">111</a>
 <a href="#112" id="112">112</a>
 <a href="#113" id="113">113</a>
-</pre><pre class="rust"><code><span class="kw">use </span><a href="../../../../../prusti_common/vir/polymorphic_vir/index.html"><span class="kw">crate</span>::vir::polymorphic_vir</a> <span class="kw">as </span>vir;
-<span class="kw">use </span><a href="../../../../../fxhash/struct.FxHasher.html">fxhash::FxHasher</a>;
-<span class="kw">use </span><a href="../../../../../log/macro.debug.html">log::debug</a>;
+</pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::vir::polymorphic_vir <span class="kw">as </span>vir;
+<span class="kw">use </span>fxhash::FxHasher;
+<span class="kw">use </span>log::debug;
 <span class="kw">use </span>std::{
-    hash::{<a href="https://doc.rust-lang.org/nightly/core/hash/macros/derive.Hash.html">Hash</a>, <a href="https://doc.rust-lang.org/nightly/core/hash/trait.Hasher.html">Hasher</a>},
-    <a href="https://doc.rust-lang.org/nightly/core/mem/index.html">mem</a>,
+    hash::{Hash, Hasher},
+    mem,
 };
 
 <span class="doccomment">/// Looks for nested `unfolding (A) in B` Viper statements for which `A` is identical
@@ -124,34 +124,34 @@
 /// will complain about unfolding the same predicate more than once).
 ///
 /// Note: this can fix permission problems when the `optimize_folding` optimization is disabled.
-</span><span class="kw">pub fn </span>fix_unfoldings(cfg: <a href="../../../../../prusti_common/vir/polymorphic_vir/struct.CfgMethod.html">vir::CfgMethod</a>) -&gt; <a href="../../../../../prusti_common/vir/polymorphic_vir/struct.CfgMethod.html">vir::CfgMethod</a> {
+</span><span class="kw">pub fn </span>fix_unfoldings(cfg: vir::CfgMethod) -&gt; vir::CfgMethod {
     <span class="kw">let </span><span class="kw-2">mut </span>optimizer = Optimizer::new();
-    <a href="#15">optimizer</a>.<a href="#41">replace_cfg</a>(<a href="#14">cfg</a>)
+    optimizer.replace_cfg(cfg)
 }
 
 <span class="doccomment">/// Hashes only the fields that are needed for testing equality of nested `unfolding`s.
-</span><span class="kw">fn </span>hash_unfolding(unfolding: <span class="kw-2">&amp;</span><a href="../../../../../prusti_common/vir/polymorphic_vir/struct.Unfolding.html">vir::Unfolding</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> {
+</span><span class="kw">fn </span>hash_unfolding(unfolding: <span class="kw-2">&amp;</span>vir::Unfolding) -&gt; u64 {
     <span class="kw">let </span><span class="kw-2">mut </span>hasher = FxHasher::default();
-    <a href="#20">unfolding</a>.predicate.<a href="https://doc.rust-lang.org/nightly/core/hash/trait.Hash.html">hash</a>(<span class="kw-2">&amp;mut </span><a href="#21">hasher</a>);
-    <a href="#20">unfolding</a>.arguments.<a href="https://doc.rust-lang.org/nightly/core/hash/trait.Hash.html">hash</a>(<span class="kw-2">&amp;mut </span><a href="#21">hasher</a>);
-    <a href="#20">unfolding</a>.permission.<a href="https://doc.rust-lang.org/nightly/core/hash/trait.Hash.html">hash</a>(<span class="kw-2">&amp;mut </span><a href="#21">hasher</a>);
-    <a href="#21">hasher</a>.<a href="https://doc.rust-lang.org/nightly/core/hash/trait.Hasher.html">finish</a>()
+    unfolding.predicate.hash(<span class="kw-2">&amp;mut </span>hasher);
+    unfolding.arguments.hash(<span class="kw-2">&amp;mut </span>hasher);
+    unfolding.permission.hash(<span class="kw-2">&amp;mut </span>hasher);
+    hasher.finish()
 }
 
 <span class="kw">struct </span>Optimizer {
-    counter: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>,
-    stack: Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>&gt;,
+    counter: u32,
+    stack: Vec&lt;u64&gt;,
 }
 
-<span class="kw">impl </span><a href="#28">Optimizer</a> {
+<span class="kw">impl </span>Optimizer {
     <span class="kw">fn </span>new() -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
             counter: <span class="number">0</span>,
-            stack: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[],
+            stack: <span class="macro">vec!</span>[],
         }
     }
 
-    <span class="kw">fn </span>replace_cfg(<span class="kw-2">&amp;mut </span><span class="self">self</span>, <span class="kw-2">mut </span>cfg: <a href="../../../../../prusti_common/vir/polymorphic_vir/struct.CfgMethod.html">vir::CfgMethod</a>) -&gt; <a href="../../../../../prusti_common/vir/polymorphic_vir/struct.CfgMethod.html">vir::CfgMethod</a> {
+    <span class="kw">fn </span>replace_cfg(<span class="kw-2">&amp;mut </span><span class="self">self</span>, <span class="kw-2">mut </span>cfg: vir::CfgMethod) -&gt; vir::CfgMethod {
         <span class="kw">let </span><span class="kw-2">mut </span>sentinel_stmt = vir::Stmt::comment(<span class="string">&quot;moved out stmt&quot;</span>);
         <span class="kw">for </span>block <span class="kw">in </span><span class="kw-2">&amp;mut </span>cfg.basic_blocks {
             <span class="kw">for </span>stmt <span class="kw">in </span><span class="kw-2">&amp;mut </span>block.stmts {
@@ -160,69 +160,69 @@
                 mem::swap(<span class="kw-2">&amp;mut </span>sentinel_stmt, stmt);
             }
         }
-        <a href="#41">cfg</a>
+        cfg
     }
 
-    <span class="kw">fn </span>replace_stmt(<span class="kw-2">&amp;mut </span><span class="self">self</span>, stmt: <a href="../../../../../prusti_common/vir/polymorphic_vir/enum.Stmt.html">vir::Stmt</a>) -&gt; <a href="../../../../../prusti_common/vir/polymorphic_vir/enum.Stmt.html">vir::Stmt</a> {
-        <span class="kw">use </span><a href="../../../../../prusti_common/vir/polymorphic_vir/trait.StmtFolder.html"><span class="self">self</span>::vir::StmtFolder</a>;
-        <a class="self" href="#53">self</a>.<a href="../../../../../prusti_common/vir/polymorphic_vir/trait.StmtFolder.html">fold</a>(<a href="#53">stmt</a>)
+    <span class="kw">fn </span>replace_stmt(<span class="kw-2">&amp;mut </span><span class="self">self</span>, stmt: vir::Stmt) -&gt; vir::Stmt {
+        <span class="kw">use </span><span class="self">self</span>::vir::StmtFolder;
+        <span class="self">self</span>.fold(stmt)
     }
 
-    <span class="kw">fn </span>replace_expr_unfolding(<span class="kw-2">&amp;mut </span><span class="self">self</span>, expr: <a href="../../../../../prusti_common/vir/polymorphic_vir/enum.Expr.html">vir::Expr</a>) -&gt; <a href="../../../../../prusti_common/vir/polymorphic_vir/enum.Expr.html">vir::Expr</a> {
-        <span class="kw">use </span><a href="../../../../../prusti_common/vir/polymorphic_vir/trait.ExprFolder.html"><span class="self">self</span>::vir::ExprFolder</a>;
-        <a class="self" href="#58">self</a>.<a href="../../../../../prusti_common/vir/polymorphic_vir/trait.ExprFolder.html">fold</a>(<a href="#58">expr</a>)
+    <span class="kw">fn </span>replace_expr_unfolding(<span class="kw-2">&amp;mut </span><span class="self">self</span>, expr: vir::Expr) -&gt; vir::Expr {
+        <span class="kw">use </span><span class="self">self</span>::vir::ExprFolder;
+        <span class="self">self</span>.fold(expr)
     }
 }
 
-<span class="kw">impl </span><a href="../../../../../prusti_common/vir/polymorphic_vir/trait.StmtFolder.html">vir::StmtFolder</a> <span class="kw">for </span><a href="#28">Optimizer</a> {
-    <span class="kw">fn </span>fold_assert(<span class="kw-2">&amp;mut </span><span class="self">self</span>, <a href="../../../../../prusti_common/vir/polymorphic_vir/struct.Assert.html">vir::Assert</a> { expr, position }: <a href="../../../../../prusti_common/vir/polymorphic_vir/struct.Assert.html">vir::Assert</a>) -&gt; <a href="../../../../../prusti_common/vir/polymorphic_vir/enum.Stmt.html">vir::Stmt</a> {
-        vir::Stmt::Assert(<a href="../../../../../prusti_common/vir/polymorphic_vir/struct.Assert.html">vir::Assert</a> {
-            expr: <a class="self" href="#65">self</a>.<a href="#58">replace_expr_unfolding</a>(<a href="#65">expr</a>),
-            <a href="#65">position</a>,
+<span class="kw">impl </span>vir::StmtFolder <span class="kw">for </span>Optimizer {
+    <span class="kw">fn </span>fold_assert(<span class="kw-2">&amp;mut </span><span class="self">self</span>, vir::Assert { expr, position }: vir::Assert) -&gt; vir::Stmt {
+        vir::Stmt::Assert(vir::Assert {
+            expr: <span class="self">self</span>.replace_expr_unfolding(expr),
+            position,
         })
     }
-    <span class="kw">fn </span>fold_inhale(<span class="kw-2">&amp;mut </span><span class="self">self</span>, <a href="../../../../../prusti_common/vir/polymorphic_vir/struct.Inhale.html">vir::Inhale</a> { expr }: <a href="../../../../../prusti_common/vir/polymorphic_vir/struct.Inhale.html">vir::Inhale</a>) -&gt; <a href="../../../../../prusti_common/vir/polymorphic_vir/enum.Stmt.html">vir::Stmt</a> {
-        vir::Stmt::Inhale(<a href="../../../../../prusti_common/vir/polymorphic_vir/struct.Inhale.html">vir::Inhale</a> {
-            expr: <a class="self" href="#71">self</a>.<a href="#58">replace_expr_unfolding</a>(<a href="#71">expr</a>),
+    <span class="kw">fn </span>fold_inhale(<span class="kw-2">&amp;mut </span><span class="self">self</span>, vir::Inhale { expr }: vir::Inhale) -&gt; vir::Stmt {
+        vir::Stmt::Inhale(vir::Inhale {
+            expr: <span class="self">self</span>.replace_expr_unfolding(expr),
         })
     }
 }
 
-<span class="kw">impl </span><a href="../../../../../prusti_common/vir/polymorphic_vir/trait.ExprFolder.html">vir::ExprFolder</a> <span class="kw">for </span><a href="#28">Optimizer</a> {
-    <span class="kw">fn </span>fold_unfolding(<span class="kw-2">&amp;mut </span><span class="self">self</span>, unfolding: <a href="../../../../../prusti_common/vir/polymorphic_vir/struct.Unfolding.html">vir::Unfolding</a>) -&gt; <a href="../../../../../prusti_common/vir/polymorphic_vir/enum.Expr.html">vir::Expr</a> {
-        <span class="kw">let </span>is_nested_duplicate = <span class="self"><a href="#79">self</a>
+<span class="kw">impl </span>vir::ExprFolder <span class="kw">for </span>Optimizer {
+    <span class="kw">fn </span>fold_unfolding(<span class="kw-2">&amp;mut </span><span class="self">self</span>, unfolding: vir::Unfolding) -&gt; vir::Expr {
+        <span class="kw">let </span>is_nested_duplicate = <span class="self">self
             </span>.stack
             .iter()
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">any</a>(|ancestor_hash| <span class="kw-2">*</span><a href="#83">ancestor_hash</a> == <a href="#20">hash_unfolding</a>(<span class="kw-2">&amp;</span><a href="#79">unfolding</a>));
+            .any(|ancestor_hash| <span class="kw-2">*</span>ancestor_hash == hash_unfolding(<span class="kw-2">&amp;</span>unfolding));
         <span class="kw">if </span>is_nested_duplicate {
             <span class="comment">// remove the nested `unfolding (...) in` part because it&#39;s duplicate
-            </span><a class="self" href="#79">self</a>.counter += <span class="number">1</span>;
-            <a class="macro" href="../../../../../log/macro.debug.html">debug!</a>(<span class="string">&quot;Removing outer `unfolding` from: {}&quot;</span>, <span class="kw-2">&amp;</span>unfolding);
-            <a class="self" href="#79">self</a>.<a href="../../../../../prusti_common/vir/polymorphic_vir/trait.ExprFolder.html">fold</a>(<span class="kw-2">*</span><a href="#79">unfolding</a>.base)
+            </span><span class="self">self</span>.counter += <span class="number">1</span>;
+            <span class="macro">debug!</span>(<span class="string">&quot;Removing outer `unfolding` from: {}&quot;</span>, <span class="kw-2">&amp;</span>unfolding);
+            <span class="self">self</span>.fold(<span class="kw-2">*</span>unfolding.base)
         } <span class="kw">else </span>{
             <span class="comment">// this is not a duplicate `unfolding (...) in`, keep folding
-            </span><a class="self" href="#79">self</a>.stack.push(<a href="#20">hash_unfolding</a>(<span class="kw-2">&amp;</span><a href="#79">unfolding</a>));
-            <span class="kw">let </span><a href="../../../../../prusti_common/vir/polymorphic_vir/struct.Unfolding.html">vir::Unfolding</a> {
+            </span><span class="self">self</span>.stack.push(hash_unfolding(<span class="kw-2">&amp;</span>unfolding));
+            <span class="kw">let </span>vir::Unfolding {
                 predicate,
                 arguments,
                 base,
                 permission,
                 variant,
                 position,
-            } = <a href="#79">unfolding</a>;
-            <span class="kw">let </span>arguments = <a href="#94">arguments</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|e| <a class="self" href="#79">self</a>.<a href="../../../../../prusti_common/vir/polymorphic_vir/trait.ExprFolder.html">fold</a>(<a href="#100">e</a>)).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
-            <span class="kw">let </span>base = <a class="self" href="#79">self</a>.<a href="../../../../../prusti_common/vir/polymorphic_vir/trait.ExprFolder.html">fold_boxed</a>(<a href="#95">base</a>);
-            <a class="self" href="#79">self</a>.stack.pop().unwrap();
-            vir::Expr::Unfolding(<a href="../../../../../prusti_common/vir/polymorphic_vir/struct.Unfolding.html">vir::Unfolding</a> {
-                <a href="#93">predicate</a>,
-                <a href="#100">arguments</a>,
-                <a href="#101">base</a>,
-                <a href="#96">permission</a>,
-                <a href="#97">variant</a>,
-                <a href="#98">position</a>,
+            } = unfolding;
+            <span class="kw">let </span>arguments = arguments.into_iter().map(|e| <span class="self">self</span>.fold(e)).collect();
+            <span class="kw">let </span>base = <span class="self">self</span>.fold_boxed(base);
+            <span class="self">self</span>.stack.pop().unwrap();
+            vir::Expr::Unfolding(vir::Unfolding {
+                predicate,
+                arguments,
+                base,
+                permission,
+                variant,
+                position,
             })
         }
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../../" data-static-root-path="../../../../../static.files/" data-current-crate="prusti_common" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../../../" data-static-root-path="../../../../../static.files/" data-current-crate="prusti_common" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.21.2/src/io/util/async_read_ext.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>async_read_ext.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../../tokio/index.html"><img class="rust-logo" src="../../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.23.0/src/io/util/async_read_ext.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>async_read_ext.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../../tokio/index.html"><img class="rust-logo" src="../../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -1292,23 +1292,23 @@
 <a href="#1292" id="1292">1292</a>
 <a href="#1293" id="1293">1293</a>
 <a href="#1294" id="1294">1294</a>
-</pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::io::util::chain::{<a href="chain.rs.html#22-25">chain</a>, <a href="chain.rs.html#9-20">Chain</a>};
-<span class="kw">use </span><span class="kw">crate</span>::io::util::read::{<a href="read.rs.html#16-18">read</a>, <a href="read.rs.html#27-41">Read</a>};
-<span class="kw">use </span><span class="kw">crate</span>::io::util::read_buf::{<a href="read_buf.rs.html#11-14">read_buf</a>, <a href="read_buf.rs.html#23-33">ReadBuf</a>};
-<span class="kw">use </span><span class="kw">crate</span>::io::util::read_exact::{<a href="read_exact.rs.html#16-18">read_exact</a>, <a href="read_exact.rs.html#27-41">ReadExact</a>};
-<span class="kw">use </span><span class="kw">crate</span>::io::util::read_int::{<a href="read_int.rs.html#145">ReadF32</a>, <a href="read_int.rs.html#158">ReadF32Le</a>, <a href="read_int.rs.html#146">ReadF64</a>, <a href="read_int.rs.html#159">ReadF64Le</a>};
+</pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::io::util::chain::{chain, Chain};
+<span class="kw">use </span><span class="kw">crate</span>::io::util::read::{read, Read};
+<span class="kw">use </span><span class="kw">crate</span>::io::util::read_buf::{read_buf, ReadBuf};
+<span class="kw">use </span><span class="kw">crate</span>::io::util::read_exact::{read_exact, ReadExact};
+<span class="kw">use </span><span class="kw">crate</span>::io::util::read_int::{ReadF32, ReadF32Le, ReadF64, ReadF64Le};
 <span class="kw">use </span><span class="kw">crate</span>::io::util::read_int::{
-    <a href="read_int.rs.html#143">ReadI128</a>, <a href="read_int.rs.html#156">ReadI128Le</a>, <a href="read_int.rs.html#140">ReadI16</a>, <a href="read_int.rs.html#153">ReadI16Le</a>, <a href="read_int.rs.html#141">ReadI32</a>, <a href="read_int.rs.html#154">ReadI32Le</a>, <a href="read_int.rs.html#142">ReadI64</a>, <a href="read_int.rs.html#155">ReadI64Le</a>, <a href="read_int.rs.html#133">ReadI8</a>,
+    ReadI128, ReadI128Le, ReadI16, ReadI16Le, ReadI32, ReadI32Le, ReadI64, ReadI64Le, ReadI8,
 };
 <span class="kw">use </span><span class="kw">crate</span>::io::util::read_int::{
-    <a href="read_int.rs.html#138">ReadU128</a>, <a href="read_int.rs.html#151">ReadU128Le</a>, <a href="read_int.rs.html#135">ReadU16</a>, <a href="read_int.rs.html#148">ReadU16Le</a>, <a href="read_int.rs.html#136">ReadU32</a>, <a href="read_int.rs.html#149">ReadU32Le</a>, <a href="read_int.rs.html#137">ReadU64</a>, <a href="read_int.rs.html#150">ReadU64Le</a>, <a href="read_int.rs.html#132">ReadU8</a>,
+    ReadU128, ReadU128Le, ReadU16, ReadU16Le, ReadU32, ReadU32Le, ReadU64, ReadU64Le, ReadU8,
 };
-<span class="kw">use </span><span class="kw">crate</span>::io::util::read_to_end::{<a href="read_to_end.rs.html#27-29">read_to_end</a>, <a href="read_to_end.rs.html#12-25">ReadToEnd</a>};
-<span class="kw">use </span><span class="kw">crate</span>::io::util::read_to_string::{<a href="read_to_string.rs.html#33-38">read_to_string</a>, <a href="read_to_string.rs.html#13-31">ReadToString</a>};
-<span class="kw">use </span><span class="kw">crate</span>::io::util::take::{<a href="take.rs.html#21">take</a>, <a href="take.rs.html#8-19">Take</a>};
-<span class="kw">use </span><a href="../async_read.rs.html#43"><span class="kw">crate</span>::io::AsyncRead</a>;
+<span class="kw">use </span><span class="kw">crate</span>::io::util::read_to_end::{read_to_end, ReadToEnd};
+<span class="kw">use </span><span class="kw">crate</span>::io::util::read_to_string::{read_to_string, ReadToString};
+<span class="kw">use </span><span class="kw">crate</span>::io::util::take::{take, Take};
+<span class="kw">use </span><span class="kw">crate</span>::io::AsyncRead;
 
-<span class="kw">use </span><a href="../../../../bytes/buf/buf_mut/trait.BufMut.html">bytes::BufMut</a>;
+<span class="kw">use </span>bytes::BufMut;
 
 <span class="macro">cfg_io_util! </span>{
     <span class="doccomment">/// Defines numeric reader
@@ -1353,7 +1353,7 @@
     /// See [module][crate::io] documentation for more details.
     ///
     /// [`AsyncRead`]: AsyncRead
-    </span><span class="kw">pub trait </span>AsyncReadExt: <a href="../async_read.rs.html#43">AsyncRead</a> {
+    </span><span class="kw">pub trait </span>AsyncReadExt: AsyncRead {
         <span class="doccomment">/// Creates a new `AsyncRead` instance that chains this stream with
         /// `next`.
         ///
@@ -1385,10 +1385,10 @@
         /// ```
         </span><span class="kw">fn </span>chain&lt;R&gt;(<span class="self">self</span>, next: R) -&gt; Chain&lt;<span class="self">Self</span>, R&gt;
         <span class="kw">where
-            </span><span class="self">Self</span>: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>,
-            R: <a href="../async_read.rs.html#43">AsyncRead</a>,
+            </span><span class="self">Self</span>: Sized,
+            R: AsyncRead,
         {
-            <a href="chain.rs.html#22-25">chain</a>(<a class="self" href="#92">self</a>, <a href="#92">next</a>)
+            chain(<span class="self">self</span>, next)
         }
 
         <span class="doccomment">/// Pulls some bytes from this source into the specified buffer,
@@ -1459,11 +1459,11 @@
         ///     Ok(())
         /// }
         /// ```
-        </span><span class="kw">fn </span>read&lt;<span class="lifetime">&#39;a</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span><span class="self">self</span>, buf: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; Read&lt;<span class="lifetime">&#39;a</span>, <span class="self">Self</span>&gt;
+        </span><span class="kw">fn </span>read&lt;<span class="lifetime">&#39;a</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span><span class="self">self</span>, buf: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>[u8]) -&gt; Read&lt;<span class="lifetime">&#39;a</span>, <span class="self">Self</span>&gt;
         <span class="kw">where
-            </span><span class="self">Self</span>: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
+            </span><span class="self">Self</span>: Unpin,
         {
-            <a href="read.rs.html#16-18">read</a>(<a class="self" href="#168">self</a>, <a href="#168">buf</a>)
+            read(<span class="self">self</span>, buf)
         }
 
         <span class="doccomment">/// Pulls some bytes from this source into the specified buffer,
@@ -1536,10 +1536,10 @@
         /// ```
         </span><span class="kw">fn </span>read_buf&lt;<span class="lifetime">&#39;a</span>, B&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span><span class="self">self</span>, buf: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>B) -&gt; ReadBuf&lt;<span class="lifetime">&#39;a</span>, <span class="self">Self</span>, B&gt;
         <span class="kw">where
-            </span><span class="self">Self</span>: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
-            B: <a href="../../../../bytes/buf/buf_mut/trait.BufMut.html">BufMut</a>,
+            </span><span class="self">Self</span>: Sized + Unpin,
+            B: BufMut,
         {
-            <a href="read_buf.rs.html#11-14">read_buf</a>(<a class="self" href="#243">self</a>, <a href="#243">buf</a>)
+            read_buf(<span class="self">self</span>, buf)
         }
 
         <span class="doccomment">/// Reads the exact number of bytes required to fill `buf`.
@@ -1595,14 +1595,14 @@
         /// ```
         ///
         /// [`ErrorKind::UnexpectedEof`]: std::io::ErrorKind::UnexpectedEof
-        </span><span class="kw">fn </span>read_exact&lt;<span class="lifetime">&#39;a</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span><span class="self">self</span>, buf: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; ReadExact&lt;<span class="lifetime">&#39;a</span>, <span class="self">Self</span>&gt;
+        </span><span class="kw">fn </span>read_exact&lt;<span class="lifetime">&#39;a</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span><span class="self">self</span>, buf: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>[u8]) -&gt; ReadExact&lt;<span class="lifetime">&#39;a</span>, <span class="self">Self</span>&gt;
         <span class="kw">where
-            </span><span class="self">Self</span>: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
+            </span><span class="self">Self</span>: Unpin,
         {
-            <a href="read_exact.rs.html#16-18">read_exact</a>(<a class="self" href="#304">self</a>, <a href="#304">buf</a>)
+            read_exact(<span class="self">self</span>, buf)
         }
 
-        <a class="macro" href="#21-35">read_impl! </a>{
+        <span class="macro">read_impl! </span>{
             <span class="doccomment">/// Reads an unsigned 8 bit integer from the underlying reader.
             ///
             /// Equivalent to:
@@ -2491,11 +2491,11 @@
         /// file.)
         ///
         /// [`tokio::fs::read`]: fn@crate::fs::read
-        </span><span class="kw">fn </span>read_to_end&lt;<span class="lifetime">&#39;a</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span><span class="self">self</span>, buf: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;) -&gt; ReadToEnd&lt;<span class="lifetime">&#39;a</span>, <span class="self">Self</span>&gt;
+        </span><span class="kw">fn </span>read_to_end&lt;<span class="lifetime">&#39;a</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span><span class="self">self</span>, buf: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>Vec&lt;u8&gt;) -&gt; ReadToEnd&lt;<span class="lifetime">&#39;a</span>, <span class="self">Self</span>&gt;
         <span class="kw">where
-            </span><span class="self">Self</span>: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
+            </span><span class="self">Self</span>: Unpin,
         {
-            <a href="read_to_end.rs.html#27-29">read_to_end</a>(<a class="self" href="#1200">self</a>, <a href="#1200">buf</a>)
+            read_to_end(<span class="self">self</span>, buf)
         }
 
         <span class="doccomment">/// Reads all bytes until EOF in this source, appending them to `buf`.
@@ -2538,11 +2538,11 @@
         /// reading from a file.)
         ///
         /// [`crate::fs::read_to_string`]: fn@crate::fs::read_to_string
-        </span><span class="kw">fn </span>read_to_string&lt;<span class="lifetime">&#39;a</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span><span class="self">self</span>, dst: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span><a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>) -&gt; ReadToString&lt;<span class="lifetime">&#39;a</span>, <span class="self">Self</span>&gt;
+        </span><span class="kw">fn </span>read_to_string&lt;<span class="lifetime">&#39;a</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span><span class="self">self</span>, dst: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>String) -&gt; ReadToString&lt;<span class="lifetime">&#39;a</span>, <span class="self">Self</span>&gt;
         <span class="kw">where
-            </span><span class="self">Self</span>: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
+            </span><span class="self">Self</span>: Unpin,
         {
-            <a href="read_to_string.rs.html#33-38">read_to_string</a>(<a class="self" href="#1247">self</a>, <a href="#1247">dst</a>)
+            read_to_string(<span class="self">self</span>, dst)
         }
 
         <span class="doccomment">/// Creates an adaptor which reads at most `limit` bytes from it.
@@ -2576,15 +2576,15 @@
         ///     Ok(())
         /// }
         /// ```
-        </span><span class="kw">fn </span>take(<span class="self">self</span>, limit: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) -&gt; Take&lt;<span class="self">Self</span>&gt;
+        </span><span class="kw">fn </span>take(<span class="self">self</span>, limit: u64) -&gt; Take&lt;<span class="self">Self</span>&gt;
         <span class="kw">where
-            </span><span class="self">Self</span>: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>,
+            </span><span class="self">Self</span>: Sized,
         {
-            <a href="take.rs.html#21">take</a>(<a class="self" href="#1285">self</a>, <a href="#1285">limit</a>)
+            take(<span class="self">self</span>, limit)
         }
     }
 }
 
-<span class="kw">impl</span>&lt;R: <a href="../async_read.rs.html#43">AsyncRead</a> + <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>&gt; <a href="#62">AsyncReadExt</a> <span class="kw">for </span>R {}
+<span class="kw">impl</span>&lt;R: AsyncRead + <span class="question-mark">?</span>Sized&gt; AsyncReadExt <span class="kw">for </span>R {}
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="tokio" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="tokio" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

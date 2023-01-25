@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/git2-0.14.4/src/time.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>time.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../git2/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/git2-0.14.4/src/time.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>time.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../git2/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -125,118 +125,118 @@
 <a href="#125" id="125">125</a>
 <a href="#126" id="126">126</a>
 <a href="#127" id="127">127</a>
-</pre><pre class="rust"><code><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html">std::cmp::Ordering</a>;
+</pre><pre class="rust"><code><span class="kw">use </span>std::cmp::Ordering;
 
-<span class="kw">use </span>libc::{<a href="../../libc/unix/linux_like/linux/gnu/b64/x86_64/type.c_char.html">c_char</a>, <a href="../../libc/unix/type.c_int.html">c_int</a>};
+<span class="kw">use </span>libc::{c_char, c_int};
 
-<span class="kw">use </span><a href="../../libgit2_sys/index.html"><span class="kw">crate</span>::raw</a>;
-<span class="kw">use </span><a href="util.rs.html#25"><span class="kw">crate</span>::util::Binding</a>;
+<span class="kw">use </span><span class="kw">crate</span>::raw;
+<span class="kw">use </span><span class="kw">crate</span>::util::Binding;
 
 <span class="doccomment">/// Time in a signature
 </span><span class="attr">#[derive(Copy, Clone, Debug, Eq, PartialEq)]
 </span><span class="kw">pub struct </span>Time {
-    raw: <a href="../../libgit2_sys/struct.git_time.html">raw::git_time</a>,
+    raw: raw::git_time,
 }
 
 <span class="doccomment">/// Time structure used in a git index entry.
 </span><span class="attr">#[derive(Copy, Clone, Debug, Eq, PartialEq)]
 </span><span class="kw">pub struct </span>IndexTime {
-    raw: <a href="../../libgit2_sys/struct.git_index_time.html">raw::git_index_time</a>,
+    raw: raw::git_index_time,
 }
 
-<span class="kw">impl </span><a href="#10">Time</a> {
+<span class="kw">impl </span>Time {
     <span class="doccomment">/// Creates a new time structure from its components.
-    </span><span class="kw">pub fn </span>new(time: <a href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>, offset: <a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>) -&gt; <a href="#10">Time</a> {
+    </span><span class="kw">pub fn </span>new(time: i64, offset: i32) -&gt; Time {
         <span class="kw">unsafe </span>{
-            <a href="util.rs.html#28">Binding::from_raw</a>(<a href="../../libgit2_sys/struct.git_time.html">raw::git_time</a> {
-                time: <a href="#22">time</a> <span class="kw">as </span>raw::git_time_t,
-                offset: <a href="#22">offset</a> <span class="kw">as </span><a href="../../libc/unix/type.c_int.html">c_int</a>,
-                sign: <span class="kw">if </span>offset &lt; <span class="number">0 </span>{ <span class="string">&#39;-&#39; </span>} <span class="kw">else </span>{ <span class="string">&#39;+&#39; </span>} <span class="kw">as </span><a href="../../libc/unix/linux_like/linux/gnu/b64/x86_64/type.c_char.html">c_char</a>,
+            Binding::from_raw(raw::git_time {
+                time: time <span class="kw">as </span>raw::git_time_t,
+                offset: offset <span class="kw">as </span>c_int,
+                sign: <span class="kw">if </span>offset &lt; <span class="number">0 </span>{ <span class="string">&#39;-&#39; </span>} <span class="kw">else </span>{ <span class="string">&#39;+&#39; </span>} <span class="kw">as </span>c_char,
             })
         }
     }
 
     <span class="doccomment">/// Return the time, in seconds, from epoch
-    </span><span class="kw">pub fn </span>seconds(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a> {
-        <a class="self" href="#33">self</a>.raw.time <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>
+    </span><span class="kw">pub fn </span>seconds(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; i64 {
+        <span class="self">self</span>.raw.time <span class="kw">as </span>i64
     }
 
     <span class="doccomment">/// Return the timezone offset, in minutes
-    </span><span class="kw">pub fn </span>offset_minutes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a> {
-        <a class="self" href="#38">self</a>.raw.offset <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>
+    </span><span class="kw">pub fn </span>offset_minutes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; i32 {
+        <span class="self">self</span>.raw.offset <span class="kw">as </span>i32
     }
 
     <span class="doccomment">/// Return whether the offset was positive or negative. Primarily useful
     /// in case the offset is specified as a negative zero.
-    </span><span class="kw">pub fn </span>sign(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a> {
-        <a class="self" href="#44">self</a>.raw.sign <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>
+    </span><span class="kw">pub fn </span>sign(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; char {
+        <span class="self">self</span>.raw.sign <span class="kw">as </span>u8 <span class="kw">as </span>char
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/cmp/trait.PartialOrd.html">PartialOrd</a> <span class="kw">for </span><a href="#10">Time</a> {
-    <span class="kw">fn </span>partial_cmp(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><a href="#10">Time</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html">Ordering</a>&gt; {
-        <span class="prelude-val">Some</span>(<a class="self" href="#50">self</a>.<a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Ord.html">cmp</a>(<a href="#50">other</a>))
+<span class="kw">impl </span>PartialOrd <span class="kw">for </span>Time {
+    <span class="kw">fn </span>partial_cmp(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span>Time) -&gt; <span class="prelude-ty">Option</span>&lt;Ordering&gt; {
+        <span class="prelude-val">Some</span>(<span class="self">self</span>.cmp(other))
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Ord.html">Ord</a> <span class="kw">for </span><a href="#10">Time</a> {
-    <span class="kw">fn </span>cmp(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><a href="#10">Time</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html">Ordering</a> {
-        (<a class="self" href="#56">self</a>.raw.time, <a class="self" href="#56">self</a>.raw.offset).<a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Ord.html">cmp</a>(<span class="kw-2">&amp;</span>(<a href="#56">other</a>.raw.time, <a href="#56">other</a>.raw.offset))
+<span class="kw">impl </span>Ord <span class="kw">for </span>Time {
+    <span class="kw">fn </span>cmp(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span>Time) -&gt; Ordering {
+        (<span class="self">self</span>.raw.time, <span class="self">self</span>.raw.offset).cmp(<span class="kw-2">&amp;</span>(other.raw.time, other.raw.offset))
     }
 }
 
-<span class="kw">impl </span><a href="util.rs.html#25">Binding</a> <span class="kw">for </span><a href="#10">Time</a> {
-    <span class="kw">type </span>Raw = <a href="../../libgit2_sys/struct.git_time.html">raw::git_time</a>;
-    <span class="kw">unsafe fn </span>from_raw(raw: <a href="../../libgit2_sys/struct.git_time.html">raw::git_time</a>) -&gt; <a href="#10">Time</a> {
-        <a href="#10">Time</a> { <a href="#63">raw</a> }
+<span class="kw">impl </span>Binding <span class="kw">for </span>Time {
+    <span class="kw">type </span>Raw = raw::git_time;
+    <span class="kw">unsafe fn </span>from_raw(raw: raw::git_time) -&gt; Time {
+        Time { raw }
     }
-    <span class="kw">fn </span>raw(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../../libgit2_sys/struct.git_time.html">raw::git_time</a> {
-        <a class="self" href="#66">self</a>.raw
+    <span class="kw">fn </span>raw(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; raw::git_time {
+        <span class="self">self</span>.raw
     }
 }
 
-<span class="kw">impl </span><a href="#16">IndexTime</a> {
+<span class="kw">impl </span>IndexTime {
     <span class="doccomment">/// Creates a new time structure from its components.
-    </span><span class="kw">pub fn </span>new(seconds: <a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>, nanoseconds: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; <a href="#16">IndexTime</a> {
+    </span><span class="kw">pub fn </span>new(seconds: i32, nanoseconds: u32) -&gt; IndexTime {
         <span class="kw">unsafe </span>{
-            <a href="util.rs.html#28">Binding::from_raw</a>(<a href="../../libgit2_sys/struct.git_index_time.html">raw::git_index_time</a> {
-                <a href="#73">seconds</a>,
-                <a href="#73">nanoseconds</a>,
+            Binding::from_raw(raw::git_index_time {
+                seconds,
+                nanoseconds,
             })
         }
     }
 
     <span class="doccomment">/// Returns the number of seconds in the second component of this time.
-    </span><span class="kw">pub fn </span>seconds(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a> {
-        <a class="self" href="#83">self</a>.raw.seconds
+    </span><span class="kw">pub fn </span>seconds(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; i32 {
+        <span class="self">self</span>.raw.seconds
     }
     <span class="doccomment">/// Returns the nanosecond component of this time.
-    </span><span class="kw">pub fn </span>nanoseconds(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
-        <a class="self" href="#87">self</a>.raw.nanoseconds
+    </span><span class="kw">pub fn </span>nanoseconds(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u32 {
+        <span class="self">self</span>.raw.nanoseconds
     }
 }
 
-<span class="kw">impl </span><a href="util.rs.html#25">Binding</a> <span class="kw">for </span><a href="#16">IndexTime</a> {
-    <span class="kw">type </span>Raw = <a href="../../libgit2_sys/struct.git_index_time.html">raw::git_index_time</a>;
-    <span class="kw">unsafe fn </span>from_raw(raw: <a href="../../libgit2_sys/struct.git_index_time.html">raw::git_index_time</a>) -&gt; <a href="#16">IndexTime</a> {
-        <a href="#16">IndexTime</a> { <a href="#94">raw</a> }
+<span class="kw">impl </span>Binding <span class="kw">for </span>IndexTime {
+    <span class="kw">type </span>Raw = raw::git_index_time;
+    <span class="kw">unsafe fn </span>from_raw(raw: raw::git_index_time) -&gt; IndexTime {
+        IndexTime { raw }
     }
-    <span class="kw">fn </span>raw(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../../libgit2_sys/struct.git_index_time.html">raw::git_index_time</a> {
-        <a class="self" href="#97">self</a>.raw
-    }
-}
-
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/cmp/trait.PartialOrd.html">PartialOrd</a> <span class="kw">for </span><a href="#16">IndexTime</a> {
-    <span class="kw">fn </span>partial_cmp(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><a href="#16">IndexTime</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html">Ordering</a>&gt; {
-        <span class="prelude-val">Some</span>(<a class="self" href="#103">self</a>.<a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Ord.html">cmp</a>(<a href="#103">other</a>))
+    <span class="kw">fn </span>raw(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; raw::git_index_time {
+        <span class="self">self</span>.raw
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Ord.html">Ord</a> <span class="kw">for </span><a href="#16">IndexTime</a> {
-    <span class="kw">fn </span>cmp(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><a href="#16">IndexTime</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html">Ordering</a> {
-        <span class="kw">let </span>me = (<a class="self" href="#109">self</a>.raw.seconds, <a class="self" href="#109">self</a>.raw.nanoseconds);
-        <span class="kw">let </span>other = (<a href="#109">other</a>.raw.seconds, <a href="#109">other</a>.raw.nanoseconds);
-        <a href="#110">me</a>.<a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Ord.html">cmp</a>(<span class="kw-2">&amp;</span><a href="#111">other</a>)
+<span class="kw">impl </span>PartialOrd <span class="kw">for </span>IndexTime {
+    <span class="kw">fn </span>partial_cmp(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span>IndexTime) -&gt; <span class="prelude-ty">Option</span>&lt;Ordering&gt; {
+        <span class="prelude-val">Some</span>(<span class="self">self</span>.cmp(other))
+    }
+}
+
+<span class="kw">impl </span>Ord <span class="kw">for </span>IndexTime {
+    <span class="kw">fn </span>cmp(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span>IndexTime) -&gt; Ordering {
+        <span class="kw">let </span>me = (<span class="self">self</span>.raw.seconds, <span class="self">self</span>.raw.nanoseconds);
+        <span class="kw">let </span>other = (other.raw.seconds, other.raw.nanoseconds);
+        me.cmp(<span class="kw-2">&amp;</span>other)
     }
 }
 
@@ -253,4 +253,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="git2" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="git2" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

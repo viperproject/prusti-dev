@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `prusti-interface/src/environment/mir_body/graphviz.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>graphviz.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../../prusti_interface/index.html"><img class="rust-logo" src="../../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `prusti-interface/src/environment/mir_body/graphviz.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>graphviz.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../../prusti_interface/index.html"><img class="rust-logo" src="../../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -238,21 +238,21 @@
 <a href="#238" id="238">238</a>
 <a href="#239" id="239">239</a>
 </pre><pre class="rust"><code><span class="kw">use </span><span class="kw">super</span>::borrowck::{
-    facts::{<a href="borrowck/facts/mod.rs.html#15">AllInputFacts</a>, <a href="borrowck/facts/mod.rs.html#83">LocationTable</a>, <a href="borrowck/facts/mod.rs.html#42">RichLocation</a>},
-    lifetimes::{<a href="borrowck/lifetimes/mod.rs.html#13">Lifetimes</a>, <a href="borrowck/lifetimes/graphviz.rs.html#21">LifetimesGraphviz</a>},
+    facts::{AllInputFacts, LocationTable, RichLocation},
+    lifetimes::{Lifetimes, LifetimesGraphviz},
 };
 <span class="kw">use </span><span class="kw">crate</span>::environment::debug_utils::to_text::{
-    <a href="../debug_utils/to_text.rs.html#130-135">loan_containment_to_text</a>, <a href="../debug_utils/to_text.rs.html#117">loans_to_text</a>, <a href="../debug_utils/to_text.rs.html#103">point_to_text</a>, <a href="../debug_utils/to_text.rs.html#107">points_to_text</a>, <a href="../debug_utils/to_text.rs.html#5">ToText</a>,
+    loan_containment_to_text, loans_to_text, point_to_text, points_to_text, ToText,
 };
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/index.html">prusti_rustc_interface::middle::mir</a>;
-<span class="kw">use </span>vir::common::graphviz::{<a href="../../../../vir/common/graphviz/graph/struct.Graph.html">Graph</a>, <a href="../../../../vir/common/graphviz/builders/struct.NodeBuilder.html">NodeBuilder</a>};
+<span class="kw">use </span>prusti_rustc_interface::middle::mir;
+<span class="kw">use </span>vir::common::graphviz::{Graph, NodeBuilder};
 
 <span class="kw">pub fn </span>to_graphviz&lt;<span class="lifetime">&#39;tcx</span>&gt;(
-    borrowck_input_facts: <span class="kw-2">&amp;</span><a href="borrowck/facts/mod.rs.html#15">AllInputFacts</a>,
-    location_table: <span class="kw-2">&amp;</span><a href="borrowck/facts/mod.rs.html#83">LocationTable</a>,
+    borrowck_input_facts: <span class="kw-2">&amp;</span>AllInputFacts,
+    location_table: <span class="kw-2">&amp;</span>LocationTable,
     mir: <span class="kw-2">&amp;</span>mir::Body&lt;<span class="lifetime">&#39;tcx</span>&gt;,
-) -&gt; <a href="../../../../vir/common/graphviz/graph/struct.Graph.html">Graph</a> {
-    <span class="kw">let </span>lifetimes = Lifetimes::new(<a href="#12">borrowck_input_facts</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), <a href="#13">location_table</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
+) -&gt; Graph {
+    <span class="kw">let </span>lifetimes = Lifetimes::new(borrowck_input_facts.clone(), location_table.clone());
 
     <span class="kw">let </span><span class="kw-2">mut </span>graph = Graph::with_columns(<span class="kw-2">&amp;</span>[
         <span class="string">&quot;location&quot;</span>,
@@ -267,62 +267,62 @@
         <span class="string">&quot;derived lifetimes&quot;</span>,
     ]);
 
-    <span class="kw">let </span><span class="kw-2">mut </span>opaque_lifetimes_table = <a href="#18">graph</a>.create_table(<span class="string">&quot;Opaque lifetimes&quot;</span>, <span class="kw-2">&amp;</span>[<span class="string">&quot;lifetime&quot;</span>]);
+    <span class="kw">let </span><span class="kw-2">mut </span>opaque_lifetimes_table = graph.create_table(<span class="string">&quot;Opaque lifetimes&quot;</span>, <span class="kw-2">&amp;</span>[<span class="string">&quot;lifetime&quot;</span>]);
     <span class="kw">for </span>lifetime <span class="kw">in </span>lifetimes.get_opaque_lifetimes_with_inclusions() {
         opaque_lifetimes_table.add_row(<span class="macro">vec!</span>[lifetime.to_text()]);
     }
-    <a href="#31">opaque_lifetimes_table</a>.build();
+    opaque_lifetimes_table.build();
 
-    <span class="kw">let </span><span class="kw-2">mut </span>original_lifetimes_table = <a href="#18">graph</a>.create_table(<span class="string">&quot;Original lifetimes&quot;</span>, <span class="kw-2">&amp;</span>[<span class="string">&quot;lifetime&quot;</span>]);
+    <span class="kw">let </span><span class="kw-2">mut </span>original_lifetimes_table = graph.create_table(<span class="string">&quot;Original lifetimes&quot;</span>, <span class="kw-2">&amp;</span>[<span class="string">&quot;lifetime&quot;</span>]);
     <span class="kw">for </span>lifetime <span class="kw">in </span>lifetimes.get_original_lifetimes() {
         original_lifetimes_table.add_row(<span class="macro">vec!</span>[lifetime.to_text()]);
     }
-    <a href="#37">original_lifetimes_table</a>.build();
+    original_lifetimes_table.build();
 
-    <span class="kw">let </span><span class="kw-2">mut </span>parameters_table = <a href="#18">graph</a>.create_table(<span class="string">&quot;Function parameters&quot;</span>, <span class="kw-2">&amp;</span>[<span class="string">&quot;parameter&quot;</span>, <span class="string">&quot;type&quot;</span>]);
+    <span class="kw">let </span><span class="kw-2">mut </span>parameters_table = graph.create_table(<span class="string">&quot;Function parameters&quot;</span>, <span class="kw-2">&amp;</span>[<span class="string">&quot;parameter&quot;</span>, <span class="string">&quot;type&quot;</span>]);
     <span class="kw">for </span>parameter <span class="kw">in </span>mir.args_iter() {
         parameters_table.add_row(<span class="macro">vec!</span>[
             parameter.to_text(),
             mir.local_decls[parameter].ty.to_text(),
         ]);
     }
-    <a href="#43">parameters_table</a>.add_row(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[<span class="string">&quot;result&quot;</span>.to_text(), mir.return_ty().to_text()]);
-    <a href="#43">parameters_table</a>.build();
+    parameters_table.add_row(<span class="macro">vec!</span>[<span class="string">&quot;result&quot;</span>.to_text(), mir.return_ty().to_text()]);
+    parameters_table.build();
 
-    <span class="kw">let </span><span class="kw-2">mut </span>locals_table = <a href="#18">graph</a>.create_table(<span class="string">&quot;Function locals&quot;</span>, <span class="kw-2">&amp;</span>[<span class="string">&quot;local&quot;</span>, <span class="string">&quot;type&quot;</span>]);
+    <span class="kw">let </span><span class="kw-2">mut </span>locals_table = graph.create_table(<span class="string">&quot;Function locals&quot;</span>, <span class="kw-2">&amp;</span>[<span class="string">&quot;local&quot;</span>, <span class="string">&quot;type&quot;</span>]);
     <span class="kw">for </span>local <span class="kw">in </span>mir.vars_and_temps_iter() {
         locals_table.add_row(<span class="macro">vec!</span>[local.to_text(), mir.local_decls[local].ty.to_text()]);
     }
-    <a href="#53">locals_table</a>.build();
+    locals_table.build();
 
-    <a href="#64">visit_body</a>(<span class="kw-2">&amp;mut </span><a href="#18">graph</a>, <a href="#14">mir</a>, <span class="kw-2">&amp;</span><a href="#16">lifetimes</a>);
+    visit_body(<span class="kw-2">&amp;mut </span>graph, mir, <span class="kw-2">&amp;</span>lifetimes);
 
-    <a href="#18">graph</a>
+    graph
 }
 
-<span class="kw">fn </span>visit_body(graph: <span class="kw-2">&amp;mut </span><a href="../../../../vir/common/graphviz/graph/struct.Graph.html">Graph</a>, mir: <span class="kw-2">&amp;</span>mir::Body&lt;<span class="lifetime">&#39;_</span>&gt;, lifetimes: <span class="kw-2">&amp;</span><a href="borrowck/lifetimes/mod.rs.html#13">Lifetimes</a>) {
+<span class="kw">fn </span>visit_body(graph: <span class="kw-2">&amp;mut </span>Graph, mir: <span class="kw-2">&amp;</span>mir::Body&lt;<span class="lifetime">&#39;_</span>&gt;, lifetimes: <span class="kw-2">&amp;</span>Lifetimes) {
     <span class="kw">for </span>bb <span class="kw">in </span>mir.basic_blocks.indices() {
         visit_basic_block(graph, mir, bb, lifetimes);
     }
 }
 
 <span class="kw">fn </span>visit_basic_block(
-    graph: <span class="kw-2">&amp;mut </span><a href="../../../../vir/common/graphviz/graph/struct.Graph.html">Graph</a>,
+    graph: <span class="kw-2">&amp;mut </span>Graph,
     mir: <span class="kw-2">&amp;</span>mir::Body&lt;<span class="lifetime">&#39;_</span>&gt;,
-    bb: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.BasicBlock.html">mir::BasicBlock</a>,
-    lifetimes: <span class="kw-2">&amp;</span><a href="borrowck/lifetimes/mod.rs.html#13">Lifetimes</a>,
+    bb: mir::BasicBlock,
+    lifetimes: <span class="kw-2">&amp;</span>Lifetimes,
 ) {
-    <span class="kw">let </span><span class="kw-2">mut </span>node_builder = <a href="#71">graph</a>.create_node(<a href="#73">bb</a>.<a href="../debug_utils/to_text.rs.html#6">to_text</a>());
-    <span class="kw">let </span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.BasicBlockData.html">mir::BasicBlockData</a> {
+    <span class="kw">let </span><span class="kw-2">mut </span>node_builder = graph.create_node(bb.to_text());
+    <span class="kw">let </span>mir::BasicBlockData {
         statements,
         terminator,
         ..
-    } = <span class="kw-2">&amp;</span><a href="#72">mir</a>[<a href="#73">bb</a>];
-    <span class="kw">let </span><span class="kw-2">mut </span>location = <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Location.html">mir::Location</a> {
-        block: <a href="#73">bb</a>,
+    } = <span class="kw-2">&amp;</span>mir[bb];
+    <span class="kw">let </span><span class="kw-2">mut </span>location = mir::Location {
+        block: bb,
         statement_index: <span class="number">0</span>,
     };
-    <span class="kw">let </span>terminator_index = <a href="#78">statements</a>.len();
+    <span class="kw">let </span>terminator_index = statements.len();
     <span class="kw">while </span>location.statement_index &lt; terminator_index {
         visit_statement(
             <span class="kw-2">&amp;mut </span>node_builder,
@@ -332,149 +332,149 @@
         );
         location.statement_index += <span class="number">1</span>;
     }
-    <span class="kw">if let </span><span class="prelude-val">Some</span>(terminator) = <a href="#79">terminator</a> {
-        <a href="#105-110">visit_statement</a>(<span class="kw-2">&amp;mut </span><a href="#76">node_builder</a>, <a href="#82">location</a>, <a href="#96">terminator</a>.<a href="../debug_utils/to_text.rs.html#6">to_text</a>(), <a href="#74">lifetimes</a>);
+    <span class="kw">if let </span><span class="prelude-val">Some</span>(terminator) = terminator {
+        visit_statement(<span class="kw-2">&amp;mut </span>node_builder, location, terminator.to_text(), lifetimes);
     }
-    <a href="#76">node_builder</a>.build();
-    <span class="kw">if let </span><span class="prelude-val">Some</span>(terminator) = <a href="#79">terminator</a> {
-        <a href="#164">visit_terminator</a>(<a href="#71">graph</a>, <a href="#73">bb</a>, <a href="#100">terminator</a>);
+    node_builder.build();
+    <span class="kw">if let </span><span class="prelude-val">Some</span>(terminator) = terminator {
+        visit_terminator(graph, bb, terminator);
     }
 }
 
 <span class="kw">fn </span>visit_statement(
-    node_builder: <span class="kw-2">&amp;mut </span><a href="../../../../vir/common/graphviz/builders/struct.NodeBuilder.html">NodeBuilder</a>,
-    location: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Location.html">mir::Location</a>,
-    statement_text: <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>,
-    lifetimes: <span class="kw-2">&amp;</span><a href="borrowck/lifetimes/mod.rs.html#13">Lifetimes</a>,
+    node_builder: <span class="kw-2">&amp;mut </span>NodeBuilder,
+    location: mir::Location,
+    statement_text: String,
+    lifetimes: <span class="kw-2">&amp;</span>Lifetimes,
 ) {
-    <span class="kw">let </span>point_start = <a href="#109">lifetimes</a>.<a href="borrowck/lifetimes/graphviz.rs.html#29">location_to_point</a>(<a href="borrowck/facts/mod.rs.html#43">RichLocation::Start</a>(<a href="#107">location</a>));
-    <span class="kw">let </span>point_mid = <a href="#109">lifetimes</a>.<a href="borrowck/lifetimes/graphviz.rs.html#29">location_to_point</a>(<a href="borrowck/facts/mod.rs.html#44">RichLocation::Mid</a>(<a href="#107">location</a>));
-    <span class="kw">let </span>cfg_in_start = <a href="#109">lifetimes</a>.<a href="borrowck/lifetimes/graphviz.rs.html#22">get_cfg_incoming</a>(<a href="#111">point_start</a>);
-    <span class="kw">let </span>cfg_out_start = <a href="#109">lifetimes</a>.<a href="borrowck/lifetimes/graphviz.rs.html#23">get_cfg_outgoing</a>(<a href="#111">point_start</a>);
-    <span class="kw">let </span>cfg_in_mid = <a href="#109">lifetimes</a>.<a href="borrowck/lifetimes/graphviz.rs.html#22">get_cfg_incoming</a>(<a href="#112">point_mid</a>);
-    <span class="kw">let </span>cfg_out_mid = <a href="#109">lifetimes</a>.<a href="borrowck/lifetimes/graphviz.rs.html#23">get_cfg_outgoing</a>(<a href="#112">point_mid</a>);
-    <span class="kw">let </span>subset_base_start = <a href="#109">lifetimes</a>.<a href="borrowck/lifetimes/graphviz.rs.html#25">get_subset_base</a>(<a href="borrowck/facts/mod.rs.html#43">RichLocation::Start</a>(<a href="#107">location</a>));
-    <span class="kw">let </span>subset_base_mid = <a href="#109">lifetimes</a>.<a href="borrowck/lifetimes/graphviz.rs.html#25">get_subset_base</a>(<a href="borrowck/facts/mod.rs.html#44">RichLocation::Mid</a>(<a href="#107">location</a>));
-    <span class="kw">let </span>subset_start = <a href="#109">lifetimes</a>.<a href="borrowck/lifetimes/graphviz.rs.html#26">get_subset</a>(<a href="borrowck/facts/mod.rs.html#43">RichLocation::Start</a>(<a href="#107">location</a>));
-    <span class="kw">let </span>subset_mid = <a href="#109">lifetimes</a>.<a href="borrowck/lifetimes/graphviz.rs.html#26">get_subset</a>(<a href="borrowck/facts/mod.rs.html#44">RichLocation::Mid</a>(<a href="#107">location</a>));
+    <span class="kw">let </span>point_start = lifetimes.location_to_point(RichLocation::Start(location));
+    <span class="kw">let </span>point_mid = lifetimes.location_to_point(RichLocation::Mid(location));
+    <span class="kw">let </span>cfg_in_start = lifetimes.get_cfg_incoming(point_start);
+    <span class="kw">let </span>cfg_out_start = lifetimes.get_cfg_outgoing(point_start);
+    <span class="kw">let </span>cfg_in_mid = lifetimes.get_cfg_incoming(point_mid);
+    <span class="kw">let </span>cfg_out_mid = lifetimes.get_cfg_outgoing(point_mid);
+    <span class="kw">let </span>subset_base_start = lifetimes.get_subset_base(RichLocation::Start(location));
+    <span class="kw">let </span>subset_base_mid = lifetimes.get_subset_base(RichLocation::Mid(location));
+    <span class="kw">let </span>subset_start = lifetimes.get_subset(RichLocation::Start(location));
+    <span class="kw">let </span>subset_mid = lifetimes.get_subset(RichLocation::Mid(location));
     <span class="kw">let </span>origin_live_on_entry_start =
-        <a href="#109">lifetimes</a>.<a href="borrowck/lifetimes/graphviz.rs.html#27">get_origin_live_on_entry</a>(<a href="borrowck/facts/mod.rs.html#43">RichLocation::Start</a>(<a href="#107">location</a>));
-    <span class="kw">let </span>origin_live_on_entry_mid = <a href="#109">lifetimes</a>.<a href="borrowck/lifetimes/graphviz.rs.html#27">get_origin_live_on_entry</a>(<a href="borrowck/facts/mod.rs.html#44">RichLocation::Mid</a>(<a href="#107">location</a>));
-    <span class="kw">let </span>loan_live_at_start = <a href="#109">lifetimes</a>.<a href="borrowck/lifetimes/graphviz.rs.html#30">get_loan_live_at</a>(<a href="borrowck/facts/mod.rs.html#43">RichLocation::Start</a>(<a href="#107">location</a>));
-    <span class="kw">let </span>loan_live_at_mid = <a href="#109">lifetimes</a>.<a href="borrowck/lifetimes/graphviz.rs.html#30">get_loan_live_at</a>(<a href="borrowck/facts/mod.rs.html#44">RichLocation::Mid</a>(<a href="#107">location</a>));
+        lifetimes.get_origin_live_on_entry(RichLocation::Start(location));
+    <span class="kw">let </span>origin_live_on_entry_mid = lifetimes.get_origin_live_on_entry(RichLocation::Mid(location));
+    <span class="kw">let </span>loan_live_at_start = lifetimes.get_loan_live_at(RichLocation::Start(location));
+    <span class="kw">let </span>loan_live_at_mid = lifetimes.get_loan_live_at(RichLocation::Mid(location));
     <span class="kw">let </span>origin_contains_loan_at_start =
-        <a href="#109">lifetimes</a>.<a href="borrowck/lifetimes/graphviz.rs.html#31-34">get_origin_contains_loan_at</a>(<a href="borrowck/facts/mod.rs.html#43">RichLocation::Start</a>(<a href="#107">location</a>));
+        lifetimes.get_origin_contains_loan_at(RichLocation::Start(location));
     <span class="kw">let </span>origin_contains_loan_at_mid =
-        <a href="#109">lifetimes</a>.<a href="borrowck/lifetimes/graphviz.rs.html#31-34">get_origin_contains_loan_at</a>(<a href="borrowck/facts/mod.rs.html#44">RichLocation::Mid</a>(<a href="#107">location</a>));
+        lifetimes.get_origin_contains_loan_at(RichLocation::Mid(location));
 
-    <span class="kw">let </span><span class="kw-2">mut </span>row_builder_start = <a href="#106">node_builder</a>.create_row();
-    <a href="#131">row_builder_start</a>.set(<span class="string">&quot;location&quot;</span>, <a href="#107">location</a>.<a href="../debug_utils/to_text.rs.html#6">to_text</a>());
-    <a href="#131">row_builder_start</a>.set(<span class="string">&quot;point&quot;</span>, <a href="../debug_utils/to_text.rs.html#103">point_to_text</a>(<span class="kw-2">&amp;</span><a href="#111">point_start</a>));
-    <a href="#131">row_builder_start</a>.set(<span class="string">&quot;cfg_in&quot;</span>, <a href="../debug_utils/to_text.rs.html#107">points_to_text</a>(<span class="kw-2">&amp;</span><a href="#113">cfg_in_start</a>));
-    <a href="#131">row_builder_start</a>.set(<span class="string">&quot;cfg_out&quot;</span>, <a href="../debug_utils/to_text.rs.html#107">points_to_text</a>(<span class="kw-2">&amp;</span><a href="#114">cfg_out_start</a>));
-    <a href="#131">row_builder_start</a>.set(<span class="string">&quot;statement&quot;</span>, <a href="#108">statement_text</a>);
-    <a href="#131">row_builder_start</a>.set(<span class="string">&quot;subset_base&quot;</span>, <a href="#117">subset_base_start</a>.<a href="../debug_utils/to_text.rs.html#6">to_text</a>());
-    <a href="#131">row_builder_start</a>.set(<span class="string">&quot;subset&quot;</span>, <a href="#119">subset_start</a>.<a href="../debug_utils/to_text.rs.html#6">to_text</a>());
-    <a href="#131">row_builder_start</a>.set(<span class="string">&quot;origin_live_on_entry&quot;</span>, <a href="#121">origin_live_on_entry_start</a>.<a href="../debug_utils/to_text.rs.html#6">to_text</a>());
-    <a href="#131">row_builder_start</a>.set(<span class="string">&quot;original lifetimes&quot;</span>, <a href="../debug_utils/to_text.rs.html#117">loans_to_text</a>(<span class="kw-2">&amp;</span><a href="#124">loan_live_at_start</a>));
-    <a href="#131">row_builder_start</a>.set(
+    <span class="kw">let </span><span class="kw-2">mut </span>row_builder_start = node_builder.create_row();
+    row_builder_start.set(<span class="string">&quot;location&quot;</span>, location.to_text());
+    row_builder_start.set(<span class="string">&quot;point&quot;</span>, point_to_text(<span class="kw-2">&amp;</span>point_start));
+    row_builder_start.set(<span class="string">&quot;cfg_in&quot;</span>, points_to_text(<span class="kw-2">&amp;</span>cfg_in_start));
+    row_builder_start.set(<span class="string">&quot;cfg_out&quot;</span>, points_to_text(<span class="kw-2">&amp;</span>cfg_out_start));
+    row_builder_start.set(<span class="string">&quot;statement&quot;</span>, statement_text);
+    row_builder_start.set(<span class="string">&quot;subset_base&quot;</span>, subset_base_start.to_text());
+    row_builder_start.set(<span class="string">&quot;subset&quot;</span>, subset_start.to_text());
+    row_builder_start.set(<span class="string">&quot;origin_live_on_entry&quot;</span>, origin_live_on_entry_start.to_text());
+    row_builder_start.set(<span class="string">&quot;original lifetimes&quot;</span>, loans_to_text(<span class="kw-2">&amp;</span>loan_live_at_start));
+    row_builder_start.set(
         <span class="string">&quot;derived lifetimes&quot;</span>,
-        <a href="../debug_utils/to_text.rs.html#130-135">loan_containment_to_text</a>(<span class="kw-2">&amp;</span><a href="#126">origin_contains_loan_at_start</a>),
+        loan_containment_to_text(<span class="kw-2">&amp;</span>origin_contains_loan_at_start),
     );
-    <a href="#131">row_builder_start</a>.build();
+    row_builder_start.build();
 
-    <span class="kw">let </span><span class="kw-2">mut </span>row_builder_end = <a href="#106">node_builder</a>.create_row();
-    <a href="#147">row_builder_end</a>.set(<span class="string">&quot;location&quot;</span>, <span class="string">&quot;&quot;</span>.<a href="../debug_utils/to_text.rs.html#6">to_text</a>());
-    <a href="#147">row_builder_end</a>.set(<span class="string">&quot;point&quot;</span>, <a href="../debug_utils/to_text.rs.html#103">point_to_text</a>(<span class="kw-2">&amp;</span><a href="#112">point_mid</a>));
-    <a href="#147">row_builder_end</a>.set(<span class="string">&quot;cfg_in&quot;</span>, <a href="../debug_utils/to_text.rs.html#107">points_to_text</a>(<span class="kw-2">&amp;</span><a href="#115">cfg_in_mid</a>));
-    <a href="#147">row_builder_end</a>.set(<span class="string">&quot;cfg_out&quot;</span>, <a href="../debug_utils/to_text.rs.html#107">points_to_text</a>(<span class="kw-2">&amp;</span><a href="#116">cfg_out_mid</a>));
-    <a href="#147">row_builder_end</a>.set(<span class="string">&quot;statement&quot;</span>, <span class="string">&quot;&quot;</span>.<a href="../debug_utils/to_text.rs.html#6">to_text</a>());
-    <a href="#147">row_builder_end</a>.set(<span class="string">&quot;subset_base&quot;</span>, <a href="#118">subset_base_mid</a>.<a href="../debug_utils/to_text.rs.html#6">to_text</a>());
-    <a href="#147">row_builder_end</a>.set(<span class="string">&quot;subset&quot;</span>, <a href="#120">subset_mid</a>.<a href="../debug_utils/to_text.rs.html#6">to_text</a>());
-    <a href="#147">row_builder_end</a>.set(<span class="string">&quot;origin_live_on_entry&quot;</span>, <a href="#123">origin_live_on_entry_mid</a>.<a href="../debug_utils/to_text.rs.html#6">to_text</a>());
-    <a href="#147">row_builder_end</a>.set(<span class="string">&quot;original lifetimes&quot;</span>, <a href="../debug_utils/to_text.rs.html#117">loans_to_text</a>(<span class="kw-2">&amp;</span><a href="#125">loan_live_at_mid</a>));
-    <a href="#147">row_builder_end</a>.set(
+    <span class="kw">let </span><span class="kw-2">mut </span>row_builder_end = node_builder.create_row();
+    row_builder_end.set(<span class="string">&quot;location&quot;</span>, <span class="string">&quot;&quot;</span>.to_text());
+    row_builder_end.set(<span class="string">&quot;point&quot;</span>, point_to_text(<span class="kw-2">&amp;</span>point_mid));
+    row_builder_end.set(<span class="string">&quot;cfg_in&quot;</span>, points_to_text(<span class="kw-2">&amp;</span>cfg_in_mid));
+    row_builder_end.set(<span class="string">&quot;cfg_out&quot;</span>, points_to_text(<span class="kw-2">&amp;</span>cfg_out_mid));
+    row_builder_end.set(<span class="string">&quot;statement&quot;</span>, <span class="string">&quot;&quot;</span>.to_text());
+    row_builder_end.set(<span class="string">&quot;subset_base&quot;</span>, subset_base_mid.to_text());
+    row_builder_end.set(<span class="string">&quot;subset&quot;</span>, subset_mid.to_text());
+    row_builder_end.set(<span class="string">&quot;origin_live_on_entry&quot;</span>, origin_live_on_entry_mid.to_text());
+    row_builder_end.set(<span class="string">&quot;original lifetimes&quot;</span>, loans_to_text(<span class="kw-2">&amp;</span>loan_live_at_mid));
+    row_builder_end.set(
         <span class="string">&quot;derived lifetimes&quot;</span>,
-        <a href="../debug_utils/to_text.rs.html#130-135">loan_containment_to_text</a>(<span class="kw-2">&amp;</span><a href="#128">origin_contains_loan_at_mid</a>),
+        loan_containment_to_text(<span class="kw-2">&amp;</span>origin_contains_loan_at_mid),
     );
-    <a href="#147">row_builder_end</a>.build();
+    row_builder_end.build();
 }
 
-<span class="kw">fn </span>visit_terminator(graph: <span class="kw-2">&amp;mut </span><a href="../../../../vir/common/graphviz/graph/struct.Graph.html">Graph</a>, bb: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.BasicBlock.html">mir::BasicBlock</a>, terminator: <span class="kw-2">&amp;</span>mir::Terminator&lt;<span class="lifetime">&#39;_</span>&gt;) {
-    <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/syntax/enum.TerminatorKind.html">prusti_rustc_interface::middle::mir::TerminatorKind</a>;
-    <span class="kw">let </span>bb = <span class="kw-2">&amp;</span><a href="#164">bb</a>;
-    <span class="kw">match </span><span class="kw-2">&amp;</span><a href="#164">terminator</a>.kind {
-        <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/syntax/enum.TerminatorKind.html">TerminatorKind::Goto</a> { target } =&gt; {
-            <a href="#164">graph</a>.add_regular_edge(<a href="#166">bb</a>.<a href="../debug_utils/to_text.rs.html#6">to_text</a>(), <a href="#168">target</a>.<a href="../debug_utils/to_text.rs.html#6">to_text</a>());
+<span class="kw">fn </span>visit_terminator(graph: <span class="kw-2">&amp;mut </span>Graph, bb: mir::BasicBlock, terminator: <span class="kw-2">&amp;</span>mir::Terminator&lt;<span class="lifetime">&#39;_</span>&gt;) {
+    <span class="kw">use </span>prusti_rustc_interface::middle::mir::TerminatorKind;
+    <span class="kw">let </span>bb = <span class="kw-2">&amp;</span>bb;
+    <span class="kw">match </span><span class="kw-2">&amp;</span>terminator.kind {
+        TerminatorKind::Goto { target } =&gt; {
+            graph.add_regular_edge(bb.to_text(), target.to_text());
         }
-        <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/syntax/enum.TerminatorKind.html">TerminatorKind::SwitchInt</a> { <span class="kw-2">ref </span>targets, .. } =&gt; {
+        TerminatorKind::SwitchInt { <span class="kw-2">ref </span>targets, .. } =&gt; {
             <span class="kw">for </span>target <span class="kw">in </span>targets.all_targets() {
                 graph.add_regular_edge(bb.to_text(), target.to_text());
             }
         }
         TerminatorKind::Resume =&gt; {
-            <a href="#164">graph</a>.add_exit_edge(<a href="#166">bb</a>.<a href="../debug_utils/to_text.rs.html#6">to_text</a>(), <span class="string">&quot;resume&quot;</span>.<a href="../debug_utils/to_text.rs.html#6">to_text</a>());
+            graph.add_exit_edge(bb.to_text(), <span class="string">&quot;resume&quot;</span>.to_text());
         }
         TerminatorKind::Abort =&gt; {
-            <a href="#164">graph</a>.add_exit_edge(<a href="#166">bb</a>.<a href="../debug_utils/to_text.rs.html#6">to_text</a>(), <span class="string">&quot;abort&quot;</span>.<a href="../debug_utils/to_text.rs.html#6">to_text</a>());
+            graph.add_exit_edge(bb.to_text(), <span class="string">&quot;abort&quot;</span>.to_text());
         }
         TerminatorKind::Return =&gt; {
-            <a href="#164">graph</a>.add_exit_edge(<a href="#166">bb</a>.<a href="../debug_utils/to_text.rs.html#6">to_text</a>(), <span class="string">&quot;return&quot;</span>.<a href="../debug_utils/to_text.rs.html#6">to_text</a>());
+            graph.add_exit_edge(bb.to_text(), <span class="string">&quot;return&quot;</span>.to_text());
         }
         TerminatorKind::Unreachable =&gt; {
-            <a href="#164">graph</a>.add_exit_edge(<a href="#166">bb</a>.<a href="../debug_utils/to_text.rs.html#6">to_text</a>(), <span class="string">&quot;unreachable&quot;</span>.<a href="../debug_utils/to_text.rs.html#6">to_text</a>());
+            graph.add_exit_edge(bb.to_text(), <span class="string">&quot;unreachable&quot;</span>.to_text());
         }
-        <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/syntax/enum.TerminatorKind.html">TerminatorKind::DropAndReplace</a> { target, unwind, .. }
-        | <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/syntax/enum.TerminatorKind.html">TerminatorKind::Drop</a> { target, unwind, .. } =&gt; {
-            <a href="#164">graph</a>.add_regular_edge(<a href="#166">bb</a>.<a href="../debug_utils/to_text.rs.html#6">to_text</a>(), <a href="#188">target</a>.<a href="../debug_utils/to_text.rs.html#6">to_text</a>());
-            <span class="kw">if let </span><span class="prelude-val">Some</span>(target) = <a href="#188">unwind</a> {
-                <a href="#164">graph</a>.add_unwind_edge(<a href="#166">bb</a>.<a href="../debug_utils/to_text.rs.html#6">to_text</a>(), <a href="#191">target</a>.<a href="../debug_utils/to_text.rs.html#6">to_text</a>());
+        TerminatorKind::DropAndReplace { target, unwind, .. }
+        | TerminatorKind::Drop { target, unwind, .. } =&gt; {
+            graph.add_regular_edge(bb.to_text(), target.to_text());
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(target) = unwind {
+                graph.add_unwind_edge(bb.to_text(), target.to_text());
             }
         }
-        <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/syntax/enum.TerminatorKind.html">TerminatorKind::Call</a> {
+        TerminatorKind::Call {
             target, cleanup, ..
         } =&gt; {
-            <span class="kw">if let </span><span class="prelude-val">Some</span>(target) = <a href="#196">target</a> {
-                <a href="#164">graph</a>.add_regular_edge(<a href="#166">bb</a>.<a href="../debug_utils/to_text.rs.html#6">to_text</a>(), <a href="#198">target</a>.<a href="../debug_utils/to_text.rs.html#6">to_text</a>());
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(target) = target {
+                graph.add_regular_edge(bb.to_text(), target.to_text());
             }
-            <span class="kw">if let </span><span class="prelude-val">Some</span>(target) = <a href="#196">cleanup</a> {
-                <a href="#164">graph</a>.add_unwind_edge(<a href="#166">bb</a>.<a href="../debug_utils/to_text.rs.html#6">to_text</a>(), <a href="#201">target</a>.<a href="../debug_utils/to_text.rs.html#6">to_text</a>());
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(target) = cleanup {
+                graph.add_unwind_edge(bb.to_text(), target.to_text());
             }
         }
-        <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/syntax/enum.TerminatorKind.html">TerminatorKind::Assert</a> {
+        TerminatorKind::Assert {
             target, cleanup, ..
         } =&gt; {
-            <a href="#164">graph</a>.add_regular_edge(<a href="#166">bb</a>.<a href="../debug_utils/to_text.rs.html#6">to_text</a>(), <a href="#206">target</a>.<a href="../debug_utils/to_text.rs.html#6">to_text</a>());
-            <span class="kw">if let </span><span class="prelude-val">Some</span>(target) = <a href="#206">cleanup</a> {
-                <a href="#164">graph</a>.add_unwind_edge(<a href="#166">bb</a>.<a href="../debug_utils/to_text.rs.html#6">to_text</a>(), <a href="#209">target</a>.<a href="../debug_utils/to_text.rs.html#6">to_text</a>());
+            graph.add_regular_edge(bb.to_text(), target.to_text());
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(target) = cleanup {
+                graph.add_unwind_edge(bb.to_text(), target.to_text());
             }
         }
-        <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/syntax/enum.TerminatorKind.html">TerminatorKind::Yield</a> { .. } =&gt; {
-            <a href="#164">graph</a>.add_exit_edge(<a href="#166">bb</a>.<a href="../debug_utils/to_text.rs.html#6">to_text</a>(), <span class="string">&quot;yield&quot;</span>.<a href="../debug_utils/to_text.rs.html#6">to_text</a>());
+        TerminatorKind::Yield { .. } =&gt; {
+            graph.add_exit_edge(bb.to_text(), <span class="string">&quot;yield&quot;</span>.to_text());
         }
         TerminatorKind::GeneratorDrop =&gt; {
-            <a href="#164">graph</a>.add_exit_edge(<a href="#166">bb</a>.<a href="../debug_utils/to_text.rs.html#6">to_text</a>(), <span class="string">&quot;generator_drop&quot;</span>.<a href="../debug_utils/to_text.rs.html#6">to_text</a>());
+            graph.add_exit_edge(bb.to_text(), <span class="string">&quot;generator_drop&quot;</span>.to_text());
         }
-        <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/syntax/enum.TerminatorKind.html">TerminatorKind::FalseEdge</a> {
+        TerminatorKind::FalseEdge {
             real_target,
             imaginary_target,
         } =&gt; {
-            <a href="#164">graph</a>.add_regular_edge(<a href="#166">bb</a>.<a href="../debug_utils/to_text.rs.html#6">to_text</a>(), <a href="#220">real_target</a>.<a href="../debug_utils/to_text.rs.html#6">to_text</a>());
-            <a href="#164">graph</a>.add_imaginary_edge(<a href="#166">bb</a>.<a href="../debug_utils/to_text.rs.html#6">to_text</a>(), <a href="#221">imaginary_target</a>.<a href="../debug_utils/to_text.rs.html#6">to_text</a>());
+            graph.add_regular_edge(bb.to_text(), real_target.to_text());
+            graph.add_imaginary_edge(bb.to_text(), imaginary_target.to_text());
         }
-        <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/syntax/enum.TerminatorKind.html">TerminatorKind::FalseUnwind</a> {
+        TerminatorKind::FalseUnwind {
             real_target,
             unwind,
         } =&gt; {
-            <a href="#164">graph</a>.add_regular_edge(<a href="#166">bb</a>.<a href="../debug_utils/to_text.rs.html#6">to_text</a>(), <a href="#227">real_target</a>.<a href="../debug_utils/to_text.rs.html#6">to_text</a>());
-            <span class="kw">if let </span><span class="prelude-val">Some</span>(imaginary_target) = <a href="#228">unwind</a> {
-                <a href="#164">graph</a>.add_imaginary_edge(<a href="#166">bb</a>.<a href="../debug_utils/to_text.rs.html#6">to_text</a>(), <a href="#231">imaginary_target</a>.<a href="../debug_utils/to_text.rs.html#6">to_text</a>());
+            graph.add_regular_edge(bb.to_text(), real_target.to_text());
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(imaginary_target) = unwind {
+                graph.add_imaginary_edge(bb.to_text(), imaginary_target.to_text());
             }
         }
-        <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/syntax/enum.TerminatorKind.html">TerminatorKind::InlineAsm</a> { .. } =&gt; {
-            <a href="#164">graph</a>.add_exit_edge(<a href="#166">bb</a>.<a href="../debug_utils/to_text.rs.html#6">to_text</a>(), <span class="string">&quot;inline_asm&quot;</span>.<a href="../debug_utils/to_text.rs.html#6">to_text</a>());
+        TerminatorKind::InlineAsm { .. } =&gt; {
+            graph.add_exit_edge(bb.to_text(), <span class="string">&quot;inline_asm&quot;</span>.to_text());
         }
     };
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="prusti_interface" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="prusti_interface" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

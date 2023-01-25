@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/value-bag-1.0.0-alpha.9/src/visit.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>visit.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../value_bag/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/value-bag-1.0.0-alpha.9/src/visit.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>visit.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../value_bag/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -437,8 +437,8 @@
 //! ```
 
 </span><span class="kw">use crate</span>::{
-    internal::{<a class="self" href="lib.rs.html#24">self</a>, <a href="internal/mod.rs.html#143">InternalVisitor</a>},
-    <a href="error.rs.html#5">Error</a>, <a href="lib.rs.html#352">ValueBag</a>,
+    internal::{<span class="self">self</span>, InternalVisitor},
+    Error, ValueBag,
 };
 
 <span class="doccomment">/// A visitor for a `ValueBag`.
@@ -449,13 +449,13 @@
     /// more specific methods that aren&#39;t overridden.
     /// The `ValueBag` may be formatted using its `fmt::Debug` or `fmt::Display` implementation,
     /// or serialized using its `sval::Value` or `serde::Serialize` implementation.
-    </span><span class="kw">fn </span>visit_any(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: <a href="lib.rs.html#352">ValueBag</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#5">Error</a>&gt;;
+    </span><span class="kw">fn </span>visit_any(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: ValueBag) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt;;
 
     <span class="doccomment">/// Visit an unsigned integer.
     </span><span class="attr">#[inline]
     #[cfg(not(test))]
-    </span><span class="kw">fn </span>visit_u64(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: <a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#5">Error</a>&gt; {
-        <a class="self" href="#79">self</a>.<a href="#74">visit_any</a>(<a href="#79">value</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
+    </span><span class="kw">fn </span>visit_u64(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: u64) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
+        <span class="self">self</span>.visit_any(value.into())
     }
     <span class="attr">#[cfg(test)]
     </span><span class="kw">fn </span>visit_u64(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: u64) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt;;
@@ -463,8 +463,8 @@
     <span class="doccomment">/// Visit a signed integer.
     </span><span class="attr">#[inline]
     #[cfg(not(test))]
-    </span><span class="kw">fn </span>visit_i64(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: <a href="https://doc.rust-lang.org/nightly/core/primitive.i64.html">i64</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#5">Error</a>&gt; {
-        <a class="self" href="#88">self</a>.<a href="#74">visit_any</a>(<a href="#88">value</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
+    </span><span class="kw">fn </span>visit_i64(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: i64) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
+        <span class="self">self</span>.visit_any(value.into())
     }
     <span class="attr">#[cfg(test)]
     </span><span class="kw">fn </span>visit_i64(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: i64) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt;;
@@ -472,8 +472,8 @@
     <span class="doccomment">/// Visit a big unsigned integer.
     </span><span class="attr">#[inline]
     #[cfg(not(test))]
-    </span><span class="kw">fn </span>visit_u128(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: <a href="https://doc.rust-lang.org/nightly/core/primitive.u128.html">u128</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#5">Error</a>&gt; {
-        <a class="self" href="#97">self</a>.<a href="#74">visit_any</a>((<span class="kw-2">&amp;</span><a href="#97">value</a>).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
+    </span><span class="kw">fn </span>visit_u128(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: u128) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
+        <span class="self">self</span>.visit_any((<span class="kw-2">&amp;</span>value).into())
     }
     <span class="attr">#[cfg(test)]
     </span><span class="kw">fn </span>visit_u128(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: u128) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt;;
@@ -481,8 +481,8 @@
     <span class="doccomment">/// Visit a big signed integer.
     </span><span class="attr">#[inline]
     #[cfg(not(test))]
-    </span><span class="kw">fn </span>visit_i128(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: <a href="https://doc.rust-lang.org/nightly/core/primitive.i128.html">i128</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#5">Error</a>&gt; {
-        <a class="self" href="#106">self</a>.<a href="#74">visit_any</a>((<span class="kw-2">&amp;</span><a href="#106">value</a>).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
+    </span><span class="kw">fn </span>visit_i128(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: i128) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
+        <span class="self">self</span>.visit_any((<span class="kw-2">&amp;</span>value).into())
     }
     <span class="attr">#[cfg(test)]
     </span><span class="kw">fn </span>visit_i128(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: i128) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt;;
@@ -490,8 +490,8 @@
     <span class="doccomment">/// Visit a floating point.
     </span><span class="attr">#[inline]
     #[cfg(not(test))]
-    </span><span class="kw">fn </span>visit_f64(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: <a href="https://doc.rust-lang.org/nightly/core/primitive.f64.html">f64</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#5">Error</a>&gt; {
-        <a class="self" href="#115">self</a>.<a href="#74">visit_any</a>(<a href="#115">value</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
+    </span><span class="kw">fn </span>visit_f64(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: f64) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
+        <span class="self">self</span>.visit_any(value.into())
     }
     <span class="attr">#[cfg(test)]
     </span><span class="kw">fn </span>visit_f64(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: f64) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt;;
@@ -499,8 +499,8 @@
     <span class="doccomment">/// Visit a boolean.
     </span><span class="attr">#[inline]
     #[cfg(not(test))]
-    </span><span class="kw">fn </span>visit_bool(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: <a href="https://doc.rust-lang.org/nightly/core/primitive.bool.html">bool</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#5">Error</a>&gt; {
-        <a class="self" href="#124">self</a>.<a href="#74">visit_any</a>(<a href="#124">value</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
+    </span><span class="kw">fn </span>visit_bool(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: bool) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
+        <span class="self">self</span>.visit_any(value.into())
     }
     <span class="attr">#[cfg(test)]
     </span><span class="kw">fn </span>visit_bool(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: bool) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt;;
@@ -508,8 +508,8 @@
     <span class="doccomment">/// Visit a string.
     </span><span class="attr">#[inline]
     #[cfg(not(test))]
-    </span><span class="kw">fn </span>visit_str(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/core/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#5">Error</a>&gt; {
-        <a class="self" href="#133">self</a>.<a href="#74">visit_any</a>(<a href="#133">value</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
+    </span><span class="kw">fn </span>visit_str(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
+        <span class="self">self</span>.visit_any(value.into())
     }
     <span class="attr">#[cfg(test)]
     </span><span class="kw">fn </span>visit_str(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt;;
@@ -517,8 +517,8 @@
     <span class="doccomment">/// Visit a string.
     </span><span class="attr">#[inline]
     #[cfg(not(test))]
-    </span><span class="kw">fn </span>visit_borrowed_str(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: <span class="kw-2">&amp;</span><span class="lifetime">&#39;v </span><a href="https://doc.rust-lang.org/nightly/core/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#5">Error</a>&gt; {
-        <a class="self" href="#142">self</a>.<a href="#133">visit_str</a>(<a href="#142">value</a>)
+    </span><span class="kw">fn </span>visit_borrowed_str(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: <span class="kw-2">&amp;</span><span class="lifetime">&#39;v </span>str) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
+        <span class="self">self</span>.visit_str(value)
     }
     <span class="attr">#[cfg(test)]
     </span><span class="kw">fn </span>visit_borrowed_str(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: <span class="kw-2">&amp;</span><span class="lifetime">&#39;v </span>str) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt;;
@@ -526,9 +526,9 @@
     <span class="doccomment">/// Visit a Unicode character.
     </span><span class="attr">#[inline]
     #[cfg(not(test))]
-    </span><span class="kw">fn </span>visit_char(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: <a href="https://doc.rust-lang.org/nightly/core/primitive.char.html">char</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#5">Error</a>&gt; {
+    </span><span class="kw">fn </span>visit_char(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: char) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>b = [<span class="number">0</span>; <span class="number">4</span>];
-        <a class="self" href="#151">self</a>.<a href="#133">visit_str</a>(<span class="kw-2">&amp;*</span><a href="#151">value</a>.encode_utf8(<span class="kw-2">&amp;mut </span><a href="#152">b</a>))
+        <span class="self">self</span>.visit_str(<span class="kw-2">&amp;*</span>value.encode_utf8(<span class="kw-2">&amp;mut </span>b))
     }
     <span class="attr">#[cfg(test)]
     </span><span class="kw">fn </span>visit_char(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: char) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt;;
@@ -562,58 +562,58 @@
     ) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt;;
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;v</span>, T: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>&gt; Visit&lt;<span class="lifetime">&#39;v</span>&gt; <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>T
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;v</span>, T: <span class="question-mark">?</span>Sized&gt; Visit&lt;<span class="lifetime">&#39;v</span>&gt; <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>T
 <span class="kw">where
     </span>T: Visit&lt;<span class="lifetime">&#39;v</span>&gt;,
 {
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>visit_any(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: <a href="lib.rs.html#352">ValueBag</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#5">Error</a>&gt; {
-        (<span class="kw-2">**</span><a class="self" href="#192">self</a>).<a href="#74">visit_any</a>(<a href="#192">value</a>)
+    </span><span class="kw">fn </span>visit_any(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: ValueBag) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
+        (<span class="kw-2">**</span><span class="self">self</span>).visit_any(value)
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>visit_u64(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: <a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#5">Error</a>&gt; {
-        (<span class="kw-2">**</span><a class="self" href="#197">self</a>).<a href="#79">visit_u64</a>(<a href="#197">value</a>)
+    </span><span class="kw">fn </span>visit_u64(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: u64) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
+        (<span class="kw-2">**</span><span class="self">self</span>).visit_u64(value)
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>visit_i64(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: <a href="https://doc.rust-lang.org/nightly/core/primitive.i64.html">i64</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#5">Error</a>&gt; {
-        (<span class="kw-2">**</span><a class="self" href="#202">self</a>).<a href="#88">visit_i64</a>(<a href="#202">value</a>)
+    </span><span class="kw">fn </span>visit_i64(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: i64) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
+        (<span class="kw-2">**</span><span class="self">self</span>).visit_i64(value)
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>visit_u128(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: <a href="https://doc.rust-lang.org/nightly/core/primitive.u128.html">u128</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#5">Error</a>&gt; {
-        (<span class="kw-2">**</span><a class="self" href="#207">self</a>).<a href="#97">visit_u128</a>(<a href="#207">value</a>)
+    </span><span class="kw">fn </span>visit_u128(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: u128) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
+        (<span class="kw-2">**</span><span class="self">self</span>).visit_u128(value)
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>visit_i128(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: <a href="https://doc.rust-lang.org/nightly/core/primitive.i128.html">i128</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#5">Error</a>&gt; {
-        (<span class="kw-2">**</span><a class="self" href="#212">self</a>).<a href="#106">visit_i128</a>(<a href="#212">value</a>)
+    </span><span class="kw">fn </span>visit_i128(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: i128) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
+        (<span class="kw-2">**</span><span class="self">self</span>).visit_i128(value)
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>visit_f64(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: <a href="https://doc.rust-lang.org/nightly/core/primitive.f64.html">f64</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#5">Error</a>&gt; {
-        (<span class="kw-2">**</span><a class="self" href="#217">self</a>).<a href="#115">visit_f64</a>(<a href="#217">value</a>)
+    </span><span class="kw">fn </span>visit_f64(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: f64) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
+        (<span class="kw-2">**</span><span class="self">self</span>).visit_f64(value)
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>visit_bool(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: <a href="https://doc.rust-lang.org/nightly/core/primitive.bool.html">bool</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#5">Error</a>&gt; {
-        (<span class="kw-2">**</span><a class="self" href="#222">self</a>).<a href="#124">visit_bool</a>(<a href="#222">value</a>)
+    </span><span class="kw">fn </span>visit_bool(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: bool) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
+        (<span class="kw-2">**</span><span class="self">self</span>).visit_bool(value)
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>visit_str(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/core/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#5">Error</a>&gt; {
-        (<span class="kw-2">**</span><a class="self" href="#227">self</a>).<a href="#133">visit_str</a>(<a href="#227">value</a>)
+    </span><span class="kw">fn </span>visit_str(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
+        (<span class="kw-2">**</span><span class="self">self</span>).visit_str(value)
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>visit_borrowed_str(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: <span class="kw-2">&amp;</span><span class="lifetime">&#39;v </span><a href="https://doc.rust-lang.org/nightly/core/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#5">Error</a>&gt; {
-        (<span class="kw-2">**</span><a class="self" href="#232">self</a>).<a href="#142">visit_borrowed_str</a>(<a href="#232">value</a>)
+    </span><span class="kw">fn </span>visit_borrowed_str(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: <span class="kw-2">&amp;</span><span class="lifetime">&#39;v </span>str) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
+        (<span class="kw-2">**</span><span class="self">self</span>).visit_borrowed_str(value)
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>visit_char(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: <a href="https://doc.rust-lang.org/nightly/core/primitive.char.html">char</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#5">Error</a>&gt; {
-        (<span class="kw-2">**</span><a class="self" href="#237">self</a>).<a href="#151">visit_char</a>(<a href="#237">value</a>)
+    </span><span class="kw">fn </span>visit_char(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: char) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
+        (<span class="kw-2">**</span><span class="self">self</span>).visit_char(value)
     }
 
     <span class="attr">#[inline]
@@ -638,59 +638,59 @@
     /// The visitor isn&#39;t strictly required to inspect the contents of a value bag.
     /// It&#39;s useful for simple cases where a full framework like `serde` or `sval`
     /// isn&#39;t necessary.
-    </span><span class="kw">pub fn </span>visit(<span class="kw-2">&amp;</span><span class="self">self</span>, visitor: <span class="kw">impl </span>Visit&lt;<span class="lifetime">&#39;v</span>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#5">Error</a>&gt; {
+    </span><span class="kw">pub fn </span>visit(<span class="kw-2">&amp;</span><span class="self">self</span>, visitor: <span class="kw">impl </span>Visit&lt;<span class="lifetime">&#39;v</span>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
         <span class="kw">struct </span>Visitor&lt;V&gt;(V);
 
         <span class="kw">impl</span>&lt;<span class="lifetime">&#39;v</span>, V&gt; InternalVisitor&lt;<span class="lifetime">&#39;v</span>&gt; <span class="kw">for </span>Visitor&lt;V&gt;
         <span class="kw">where
             </span>V: Visit&lt;<span class="lifetime">&#39;v</span>&gt;,
         {
-            <span class="kw">fn </span>debug(<span class="kw-2">&amp;mut </span><span class="self">self</span>, v: <span class="kw-2">&amp;</span><span class="kw">dyn </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">internal::fmt::Debug</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#5">Error</a>&gt; {
-                <a class="self" href="#270">self</a>.<span class="number">0</span>.<a href="#74">visit_any</a>(ValueBag::from_dyn_debug(<a href="#270">v</a>))
+            <span class="kw">fn </span>debug(<span class="kw-2">&amp;mut </span><span class="self">self</span>, v: <span class="kw-2">&amp;</span><span class="kw">dyn </span>internal::fmt::Debug) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
+                <span class="self">self</span>.<span class="number">0</span>.visit_any(ValueBag::from_dyn_debug(v))
             }
 
-            <span class="kw">fn </span>display(<span class="kw-2">&amp;mut </span><span class="self">self</span>, v: <span class="kw-2">&amp;</span><span class="kw">dyn </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">internal::fmt::Display</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#5">Error</a>&gt; {
-                <a class="self" href="#274">self</a>.<span class="number">0</span>.<a href="#74">visit_any</a>(ValueBag::from_dyn_display(<a href="#274">v</a>))
+            <span class="kw">fn </span>display(<span class="kw-2">&amp;mut </span><span class="self">self</span>, v: <span class="kw-2">&amp;</span><span class="kw">dyn </span>internal::fmt::Display) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
+                <span class="self">self</span>.<span class="number">0</span>.visit_any(ValueBag::from_dyn_display(v))
             }
 
-            <span class="kw">fn </span>u64(<span class="kw-2">&amp;mut </span><span class="self">self</span>, v: <a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#5">Error</a>&gt; {
-                <a class="self" href="#278">self</a>.<span class="number">0</span>.<a href="#79">visit_u64</a>(<a href="#278">v</a>)
+            <span class="kw">fn </span>u64(<span class="kw-2">&amp;mut </span><span class="self">self</span>, v: u64) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
+                <span class="self">self</span>.<span class="number">0</span>.visit_u64(v)
             }
 
-            <span class="kw">fn </span>i64(<span class="kw-2">&amp;mut </span><span class="self">self</span>, v: <a href="https://doc.rust-lang.org/nightly/core/primitive.i64.html">i64</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#5">Error</a>&gt; {
-                <a class="self" href="#282">self</a>.<span class="number">0</span>.<a href="#88">visit_i64</a>(<a href="#282">v</a>)
+            <span class="kw">fn </span>i64(<span class="kw-2">&amp;mut </span><span class="self">self</span>, v: i64) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
+                <span class="self">self</span>.<span class="number">0</span>.visit_i64(v)
             }
 
-            <span class="kw">fn </span>u128(<span class="kw-2">&amp;mut </span><span class="self">self</span>, v: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/core/primitive.u128.html">u128</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#5">Error</a>&gt; {
-                <a class="self" href="#286">self</a>.<span class="number">0</span>.<a href="#97">visit_u128</a>(<span class="kw-2">*</span><a href="#286">v</a>)
+            <span class="kw">fn </span>u128(<span class="kw-2">&amp;mut </span><span class="self">self</span>, v: <span class="kw-2">&amp;</span>u128) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
+                <span class="self">self</span>.<span class="number">0</span>.visit_u128(<span class="kw-2">*</span>v)
             }
 
-            <span class="kw">fn </span>i128(<span class="kw-2">&amp;mut </span><span class="self">self</span>, v: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/core/primitive.i128.html">i128</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#5">Error</a>&gt; {
-                <a class="self" href="#290">self</a>.<span class="number">0</span>.<a href="#106">visit_i128</a>(<span class="kw-2">*</span><a href="#290">v</a>)
+            <span class="kw">fn </span>i128(<span class="kw-2">&amp;mut </span><span class="self">self</span>, v: <span class="kw-2">&amp;</span>i128) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
+                <span class="self">self</span>.<span class="number">0</span>.visit_i128(<span class="kw-2">*</span>v)
             }
 
-            <span class="kw">fn </span>f64(<span class="kw-2">&amp;mut </span><span class="self">self</span>, v: <a href="https://doc.rust-lang.org/nightly/core/primitive.f64.html">f64</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#5">Error</a>&gt; {
-                <a class="self" href="#294">self</a>.<span class="number">0</span>.<a href="#115">visit_f64</a>(<a href="#294">v</a>)
+            <span class="kw">fn </span>f64(<span class="kw-2">&amp;mut </span><span class="self">self</span>, v: f64) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
+                <span class="self">self</span>.<span class="number">0</span>.visit_f64(v)
             }
 
-            <span class="kw">fn </span>bool(<span class="kw-2">&amp;mut </span><span class="self">self</span>, v: <a href="https://doc.rust-lang.org/nightly/core/primitive.bool.html">bool</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#5">Error</a>&gt; {
-                <a class="self" href="#298">self</a>.<span class="number">0</span>.<a href="#124">visit_bool</a>(<a href="#298">v</a>)
+            <span class="kw">fn </span>bool(<span class="kw-2">&amp;mut </span><span class="self">self</span>, v: bool) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
+                <span class="self">self</span>.<span class="number">0</span>.visit_bool(v)
             }
 
-            <span class="kw">fn </span>char(<span class="kw-2">&amp;mut </span><span class="self">self</span>, v: <a href="https://doc.rust-lang.org/nightly/core/primitive.char.html">char</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#5">Error</a>&gt; {
-                <a class="self" href="#302">self</a>.<span class="number">0</span>.<a href="#151">visit_char</a>(<a href="#302">v</a>)
+            <span class="kw">fn </span>char(<span class="kw-2">&amp;mut </span><span class="self">self</span>, v: char) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
+                <span class="self">self</span>.<span class="number">0</span>.visit_char(v)
             }
 
-            <span class="kw">fn </span>str(<span class="kw-2">&amp;mut </span><span class="self">self</span>, v: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/core/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#5">Error</a>&gt; {
-                <a class="self" href="#306">self</a>.<span class="number">0</span>.<a href="#133">visit_str</a>(<a href="#306">v</a>)
+            <span class="kw">fn </span>str(<span class="kw-2">&amp;mut </span><span class="self">self</span>, v: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
+                <span class="self">self</span>.<span class="number">0</span>.visit_str(v)
             }
 
-            <span class="kw">fn </span>borrowed_str(<span class="kw-2">&amp;mut </span><span class="self">self</span>, v: <span class="kw-2">&amp;</span><span class="lifetime">&#39;v </span><a href="https://doc.rust-lang.org/nightly/core/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#5">Error</a>&gt; {
-                <a class="self" href="#310">self</a>.<span class="number">0</span>.<a href="#142">visit_borrowed_str</a>(<a href="#310">v</a>)
+            <span class="kw">fn </span>borrowed_str(<span class="kw-2">&amp;mut </span><span class="self">self</span>, v: <span class="kw-2">&amp;</span><span class="lifetime">&#39;v </span>str) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
+                <span class="self">self</span>.<span class="number">0</span>.visit_borrowed_str(v)
             }
 
-            <span class="kw">fn </span>none(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#5">Error</a>&gt; {
-                <a class="self" href="#314">self</a>.<span class="number">0</span>.<a href="#74">visit_any</a>(ValueBag::from(()))
+            <span class="kw">fn </span>none(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
+                <span class="self">self</span>.<span class="number">0</span>.visit_any(ValueBag::from(()))
             }
 
             <span class="attr">#[cfg(feature = <span class="string">&quot;error&quot;</span>)]
@@ -717,7 +717,7 @@
             }
         }
 
-        <a class="self" href="#263">self</a>.<a href="internal/mod.rs.html#94-97">internal_visit</a>(<span class="kw-2">&amp;mut </span><a href="#264">Visitor</a>(<a href="#263">visitor</a>))
+        <span class="self">self</span>.internal_visit(<span class="kw-2">&amp;mut </span>Visitor(visitor))
     }
 }
 
@@ -755,4 +755,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="value_bag" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="value_bag" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

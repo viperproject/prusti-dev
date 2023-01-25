@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/polling-2.4.0/src/epoll.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>epoll.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../polling/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/polling-2.5.2/src/epoll.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>epoll.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../polling/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -302,34 +302,33 @@
 <a href="#302" id="302">302</a>
 <a href="#303" id="303">303</a>
 <a href="#304" id="304">304</a>
-<a href="#305" id="305">305</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Bindings to epoll (Linux, Android).
 
-</span><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/convert/trait.TryInto.html">std::convert::TryInto</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/io/index.html">std::io</a>;
-<span class="kw">use </span>std::os::unix::io::{<a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">AsRawFd</a>, <a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a>};
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/ptr/index.html">std::ptr</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">std::time::Duration</a>;
+</span><span class="kw">use </span>std::convert::TryInto;
+<span class="kw">use </span>std::io;
+<span class="kw">use </span>std::os::unix::io::{AsRawFd, RawFd};
+<span class="kw">use </span>std::ptr;
+<span class="kw">use </span>std::time::Duration;
 
 <span class="attr">#[cfg(not(polling_no_io_safety))]
-</span><span class="kw">use </span>std::os::unix::io::{<a href="https://doc.rust-lang.org/nightly/std/os/fd/owned/trait.AsFd.html">AsFd</a>, <a href="https://doc.rust-lang.org/nightly/std/os/fd/owned/struct.BorrowedFd.html">BorrowedFd</a>};
+</span><span class="kw">use </span>std::os::unix::io::{AsFd, BorrowedFd};
 
-<span class="kw">use </span><a href="lib.rs.html#119"><span class="kw">crate</span>::Event</a>;
+<span class="kw">use </span><span class="kw">crate</span>::Event;
 
 <span class="doccomment">/// Interface to epoll.
 </span><span class="attr">#[derive(Debug)]
 </span><span class="kw">pub struct </span>Poller {
     <span class="doccomment">/// File descriptor for the epoll instance.
-    </span>epoll_fd: <a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a>,
+    </span>epoll_fd: RawFd,
     <span class="doccomment">/// File descriptor for the eventfd that produces notifications.
-    </span>event_fd: <a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a>,
+    </span>event_fd: RawFd,
     <span class="doccomment">/// File descriptor for the timerfd that produces timeouts.
-    </span>timer_fd: <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a>&gt;,
+    </span>timer_fd: <span class="prelude-ty">Option</span>&lt;RawFd&gt;,
 }
 
-<span class="kw">impl </span><a href="#16">Poller</a> {
+<span class="kw">impl </span>Poller {
     <span class="doccomment">/// Creates a new poller.
-    </span><span class="kw">pub fn </span>new() -&gt; io::Result&lt;<a href="#16">Poller</a>&gt; {
+    </span><span class="kw">pub fn </span>new() -&gt; io::Result&lt;Poller&gt; {
         <span class="comment">// Create an epoll instance.
         //
         // Use `epoll_create1` with `EPOLL_CLOEXEC`.
@@ -357,21 +356,21 @@
 
         <span class="comment">// Set up eventfd and timerfd.
         </span><span class="kw">let </span>event_fd = <span class="macro">syscall!</span>(eventfd(<span class="number">0</span>, libc::EFD_CLOEXEC | libc::EFD_NONBLOCK))<span class="question-mark">?</span>;
-        <span class="kw">let </span>timer_fd = <a class="macro" href="lib.rs.html#67-76">syscall!</a>(syscall(
+        <span class="kw">let </span>timer_fd = <span class="macro">syscall!</span>(syscall(
             libc::SYS_timerfd_create,
             libc::CLOCK_MONOTONIC <span class="kw">as </span>libc::c_int,
             (libc::TFD_CLOEXEC | libc::TFD_NONBLOCK) <span class="kw">as </span>libc::c_int,
         ))
-        .map(|fd| <a href="#60">fd</a> <span class="kw">as </span><a href="../../libc/unix/type.c_int.html">libc::c_int</a>)
+        .map(|fd| fd <span class="kw">as </span>libc::c_int)
         .ok();
 
-        <span class="kw">let </span>poller = <a href="#16">Poller</a> {
-            <a href="#31">epoll_fd</a>,
-            <a href="#54">event_fd</a>,
-            <a href="#55">timer_fd</a>,
+        <span class="kw">let </span>poller = Poller {
+            epoll_fd,
+            event_fd,
+            timer_fd,
         };
 
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(timer_fd) = <a href="#55">timer_fd</a> {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(timer_fd) = timer_fd {
             poller.add(timer_fd, Event::none(<span class="kw">crate</span>::NOTIFY_KEY))<span class="question-mark">?</span>;
         }
 
@@ -384,52 +383,53 @@
             },
         )<span class="question-mark">?</span>;
 
-        <a class="macro" href="../../log/log/macro.trace.html">log::trace!</a>(
+        <span class="macro">log::trace!</span>(
             <span class="string">&quot;new: epoll_fd={}, event_fd={}, timer_fd={:?}&quot;</span>,
             epoll_fd,
             event_fd,
             timer_fd
         );
-        <span class="prelude-val">Ok</span>(<a href="#63">poller</a>)
+        <span class="prelude-val">Ok</span>(poller)
     }
 
     <span class="doccomment">/// Adds a new file descriptor.
-    </span><span class="kw">pub fn </span>add(<span class="kw-2">&amp;</span><span class="self">self</span>, fd: <a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a>, ev: <a href="lib.rs.html#119">Event</a>) -&gt; io::Result&lt;()&gt; {
-        <a class="macro" href="../../log/log/macro.trace.html">log::trace!</a>(<span class="string">&quot;add: epoll_fd={}, fd={}, ev={:?}&quot;</span>, <span class="self">self</span>.epoll_fd, fd, ev);
-        <a class="self" href="#92">self</a>.<a href="#205">ctl</a>(libc::EPOLL_CTL_ADD, <a href="#92">fd</a>, <span class="prelude-val">Some</span>(<a href="#92">ev</a>))
+    </span><span class="kw">pub fn </span>add(<span class="kw-2">&amp;</span><span class="self">self</span>, fd: RawFd, ev: Event) -&gt; io::Result&lt;()&gt; {
+        <span class="macro">log::trace!</span>(<span class="string">&quot;add: epoll_fd={}, fd={}, ev={:?}&quot;</span>, <span class="self">self</span>.epoll_fd, fd, ev);
+        <span class="self">self</span>.ctl(libc::EPOLL_CTL_ADD, fd, <span class="prelude-val">Some</span>(ev))
     }
 
     <span class="doccomment">/// Modifies an existing file descriptor.
-    </span><span class="kw">pub fn </span>modify(<span class="kw-2">&amp;</span><span class="self">self</span>, fd: <a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a>, ev: <a href="lib.rs.html#119">Event</a>) -&gt; io::Result&lt;()&gt; {
-        <a class="macro" href="../../log/log/macro.trace.html">log::trace!</a>(<span class="string">&quot;modify: epoll_fd={}, fd={}, ev={:?}&quot;</span>, <span class="self">self</span>.epoll_fd, fd, ev);
-        <a class="self" href="#98">self</a>.<a href="#205">ctl</a>(libc::EPOLL_CTL_MOD, <a href="#98">fd</a>, <span class="prelude-val">Some</span>(<a href="#98">ev</a>))
+    </span><span class="kw">pub fn </span>modify(<span class="kw-2">&amp;</span><span class="self">self</span>, fd: RawFd, ev: Event) -&gt; io::Result&lt;()&gt; {
+        <span class="macro">log::trace!</span>(<span class="string">&quot;modify: epoll_fd={}, fd={}, ev={:?}&quot;</span>, <span class="self">self</span>.epoll_fd, fd, ev);
+        <span class="self">self</span>.ctl(libc::EPOLL_CTL_MOD, fd, <span class="prelude-val">Some</span>(ev))
     }
 
     <span class="doccomment">/// Deletes a file descriptor.
-    </span><span class="kw">pub fn </span>delete(<span class="kw-2">&amp;</span><span class="self">self</span>, fd: <a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a>) -&gt; io::Result&lt;()&gt; {
-        <a class="macro" href="../../log/log/macro.trace.html">log::trace!</a>(<span class="string">&quot;remove: epoll_fd={}, fd={}&quot;</span>, <span class="self">self</span>.epoll_fd, fd);
-        <a class="self" href="#104">self</a>.<a href="#205">ctl</a>(libc::EPOLL_CTL_DEL, <a href="#104">fd</a>, <span class="prelude-val">None</span>)
+    </span><span class="kw">pub fn </span>delete(<span class="kw-2">&amp;</span><span class="self">self</span>, fd: RawFd) -&gt; io::Result&lt;()&gt; {
+        <span class="macro">log::trace!</span>(<span class="string">&quot;remove: epoll_fd={}, fd={}&quot;</span>, <span class="self">self</span>.epoll_fd, fd);
+        <span class="self">self</span>.ctl(libc::EPOLL_CTL_DEL, fd, <span class="prelude-val">None</span>)
     }
 
     <span class="doccomment">/// Waits for I/O events with an optional timeout.
-    </span><span class="kw">pub fn </span>wait(<span class="kw-2">&amp;</span><span class="self">self</span>, events: <span class="kw-2">&amp;mut </span><a href="#281">Events</a>, timeout: <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a>&gt;) -&gt; io::Result&lt;()&gt; {
-        <a class="macro" href="../../log/log/macro.trace.html">log::trace!</a>(<span class="string">&quot;wait: epoll_fd={}, timeout={:?}&quot;</span>, <span class="self">self</span>.epoll_fd, timeout);
+    </span><span class="kw">pub fn </span>wait(<span class="kw-2">&amp;</span><span class="self">self</span>, events: <span class="kw-2">&amp;mut </span>Events, timeout: <span class="prelude-ty">Option</span>&lt;Duration&gt;) -&gt; io::Result&lt;()&gt; {
+        <span class="macro">log::trace!</span>(<span class="string">&quot;wait: epoll_fd={}, timeout={:?}&quot;</span>, <span class="self">self</span>.epoll_fd, timeout);
 
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(timer_fd) = <a class="self" href="#110">self</a>.timer_fd {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(timer_fd) = <span class="self">self</span>.timer_fd {
             <span class="comment">// Configure the timeout using timerfd.
-            </span><span class="kw">let </span>new_val = <a href="../../libc/unix/linux_like/linux/struct.itimerspec.html">libc::itimerspec</a> {
-                it_interval: <a href="#265">TS_ZERO</a>,
-                it_value: <span class="kw">match </span><a href="#110">timeout</a> {
-                    <span class="prelude-val">None </span>=&gt; <a href="#265">TS_ZERO</a>,
-                    <span class="prelude-val">Some</span>(t) =&gt; <a href="../../libc/unix/struct.timespec.html">libc::timespec</a> {
-                        tv_sec: <a href="#119">t</a>.as_secs() <span class="kw">as </span>libc::time_t,
-                        tv_nsec: (<a href="#119">t</a>.subsec_nanos() <span class="kw">as </span>libc::c_long).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
-                    },
+            </span><span class="kw">let </span>new_val = libc::itimerspec {
+                it_interval: TS_ZERO,
+                it_value: <span class="kw">match </span>timeout {
+                    <span class="prelude-val">None </span>=&gt; TS_ZERO,
+                    <span class="prelude-val">Some</span>(t) =&gt; {
+                        <span class="kw">let </span><span class="kw-2">mut </span>ts = TS_ZERO;
+                        ts.tv_sec = t.as_secs() <span class="kw">as </span>libc::time_t;
+                        ts.tv_nsec = (t.subsec_nanos() <span class="kw">as </span>libc::c_long).into();
+                        ts
+                    }
                 },
             };
 
-            <span class="macro">syscall!</span>(syscall(
-                libc::SYS_timerfd_settime,
+            <span class="macro">syscall!</span>(timerfd_settime(
                 timer_fd <span class="kw">as </span>libc::c_int,
                 <span class="number">0 </span><span class="kw">as </span>libc::c_int,
                 <span class="kw-2">&amp;</span>new_val <span class="kw">as </span><span class="kw-2">*const </span>libc::itimerspec,
@@ -448,15 +448,15 @@
         }
 
         <span class="comment">// Timeout in milliseconds for epoll.
-        </span><span class="kw">let </span>timeout_ms = <span class="kw">match </span>(<a class="self" href="#110">self</a>.timer_fd, <a href="#110">timeout</a>) {
-            (<span class="kw">_</span>, <span class="prelude-val">Some</span>(t)) <span class="kw">if </span><a href="#147">t</a> == Duration::from_secs(<span class="number">0</span>) =&gt; <span class="number">0</span>,
+        </span><span class="kw">let </span>timeout_ms = <span class="kw">match </span>(<span class="self">self</span>.timer_fd, timeout) {
+            (<span class="kw">_</span>, <span class="prelude-val">Some</span>(t)) <span class="kw">if </span>t == Duration::from_secs(<span class="number">0</span>) =&gt; <span class="number">0</span>,
             (<span class="prelude-val">None</span>, <span class="prelude-val">Some</span>(t)) =&gt; {
                 <span class="comment">// Round up to a whole millisecond.
-                </span><span class="kw">let </span><span class="kw-2">mut </span>ms = <a href="#148">t</a>.as_millis().<a href="https://doc.rust-lang.org/nightly/core/convert/trait.TryInto.html">try_into</a>().unwrap_or(std::i32::MAX);
+                </span><span class="kw">let </span><span class="kw-2">mut </span>ms = t.as_millis().try_into().unwrap_or(std::i32::MAX);
                 <span class="kw">if </span>Duration::from_millis(ms <span class="kw">as </span>u64) &lt; t {
-                    <a href="#150">ms</a> = <a href="#150">ms</a>.saturating_add(<span class="number">1</span>);
+                    ms = ms.saturating_add(<span class="number">1</span>);
                 }
-                <a href="#150">ms</a>
+                ms
             }
             <span class="kw">_ </span>=&gt; -<span class="number">1</span>,
         };
@@ -468,12 +468,12 @@
             events.list.len() <span class="kw">as </span>libc::c_int,
             timeout_ms <span class="kw">as </span>libc::c_int,
         ))<span class="question-mark">?</span>;
-        <a href="#110">events</a>.len = <a href="#160">res</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>;
-        <a class="macro" href="../../log/log/macro.trace.html">log::trace!</a>(<span class="string">&quot;new events: epoll_fd={}, res={}&quot;</span>, <span class="self">self</span>.epoll_fd, res);
+        events.len = res <span class="kw">as </span>usize;
+        <span class="macro">log::trace!</span>(<span class="string">&quot;new events: epoll_fd={}, res={}&quot;</span>, <span class="self">self</span>.epoll_fd, res);
 
         <span class="comment">// Clear the notification (if received) and re-register interest in it.
         </span><span class="kw">let </span><span class="kw-2">mut </span>buf = [<span class="number">0u8</span>; <span class="number">8</span>];
-        <span class="kw">let _ </span>= <a class="macro" href="lib.rs.html#67-76">syscall!</a>(read(
+        <span class="kw">let _ </span>= <span class="macro">syscall!</span>(read(
             <span class="self">self</span>.event_fd,
             buf.as_mut_ptr() <span class="kw">as </span><span class="kw-2">*mut </span>libc::c_void,
             buf.len()
@@ -491,14 +491,14 @@
 
     <span class="doccomment">/// Sends a notification to wake up the current or next `wait()` call.
     </span><span class="kw">pub fn </span>notify(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;()&gt; {
-        <a class="macro" href="../../log/log/macro.trace.html">log::trace!</a>(
+        <span class="macro">log::trace!</span>(
             <span class="string">&quot;notify: epoll_fd={}, event_fd={}&quot;</span>,
             <span class="self">self</span>.epoll_fd,
             <span class="self">self</span>.event_fd
         );
 
-        <span class="kw">let </span>buf: [<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="number">8</span>] = <span class="number">1u64</span>.to_ne_bytes();
-        <span class="kw">let _ </span>= <a class="macro" href="lib.rs.html#67-76">syscall!</a>(write(
+        <span class="kw">let </span>buf: [u8; <span class="number">8</span>] = <span class="number">1u64</span>.to_ne_bytes();
+        <span class="kw">let _ </span>= <span class="macro">syscall!</span>(write(
             <span class="self">self</span>.event_fd,
             buf.as_ptr() <span class="kw">as </span><span class="kw-2">*const </span>libc::c_void,
             buf.len()
@@ -507,18 +507,18 @@
     }
 
     <span class="doccomment">/// Passes arguments to `epoll_ctl`.
-    </span><span class="kw">fn </span>ctl(<span class="kw-2">&amp;</span><span class="self">self</span>, op: <a href="../../libc/unix/type.c_int.html">libc::c_int</a>, fd: <a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a>, ev: <span class="prelude-ty">Option</span>&lt;<a href="lib.rs.html#119">Event</a>&gt;) -&gt; io::Result&lt;()&gt; {
-        <span class="kw">let </span><span class="kw-2">mut </span>ev = <a href="#205">ev</a>.map(|ev| {
+    </span><span class="kw">fn </span>ctl(<span class="kw-2">&amp;</span><span class="self">self</span>, op: libc::c_int, fd: RawFd, ev: <span class="prelude-ty">Option</span>&lt;Event&gt;) -&gt; io::Result&lt;()&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>ev = ev.map(|ev| {
             <span class="kw">let </span><span class="kw-2">mut </span>flags = libc::EPOLLONESHOT;
             <span class="kw">if </span>ev.readable {
-                <a href="#207">flags</a> |= <a href="#271">read_flags</a>();
+                flags |= read_flags();
             }
             <span class="kw">if </span>ev.writable {
-                <a href="#207">flags</a> |= <a href="#276">write_flags</a>();
+                flags |= write_flags();
             }
-            <a href="../../libc/unix/linux_like/struct.epoll_event.html">libc::epoll_event</a> {
-                events: <a href="#207">flags</a> <span class="kw">as _</span>,
-                u64: <a href="#206">ev</a>.key <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>,
+            libc::epoll_event {
+                events: flags <span class="kw">as _</span>,
+                u64: ev.key <span class="kw">as </span>u64,
             }
         });
         <span class="macro">syscall!</span>(epoll_ctl(
@@ -533,80 +533,78 @@
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">AsRawFd</a> <span class="kw">for </span><a href="#16">Poller</a> {
-    <span class="kw">fn </span>as_raw_fd(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a> {
-        <a class="self" href="#232">self</a>.epoll_fd
+<span class="kw">impl </span>AsRawFd <span class="kw">for </span>Poller {
+    <span class="kw">fn </span>as_raw_fd(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; RawFd {
+        <span class="self">self</span>.epoll_fd
     }
 }
 
 <span class="attr">#[cfg(not(polling_no_io_safety))]
-</span><span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/std/os/fd/owned/trait.AsFd.html">AsFd</a> <span class="kw">for </span><a href="#16">Poller</a> {
+</span><span class="kw">impl </span>AsFd <span class="kw">for </span>Poller {
     <span class="kw">fn </span>as_fd(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; BorrowedFd&lt;<span class="lifetime">&#39;_</span>&gt; {
         <span class="comment">// SAFETY: lifetime is bound by &quot;self&quot;
-        </span><span class="kw">unsafe </span>{ BorrowedFd::borrow_raw(<a class="self" href="#239">self</a>.<a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">as_raw_fd</a>()) }
+        </span><span class="kw">unsafe </span>{ BorrowedFd::borrow_raw(<span class="self">self</span>.as_raw_fd()) }
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span><a href="#16">Poller</a> {
+<span class="kw">impl </span>Drop <span class="kw">for </span>Poller {
     <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <a class="macro" href="../../log/log/macro.trace.html">log::trace!</a>(
+        <span class="macro">log::trace!</span>(
             <span class="string">&quot;drop: epoll_fd={}, event_fd={}, timer_fd={:?}&quot;</span>,
             <span class="self">self</span>.epoll_fd,
             <span class="self">self</span>.event_fd,
             <span class="self">self</span>.timer_fd
         );
 
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(timer_fd) = <a class="self" href="#246">self</a>.timer_fd {
-            <span class="kw">let _ </span>= <a class="self" href="#246">self</a>.<a href="#104">delete</a>(<a href="#254">timer_fd</a>);
-            <span class="kw">let _ </span>= <a class="macro" href="lib.rs.html#67-76">syscall!</a>(close(timer_fd));
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(timer_fd) = <span class="self">self</span>.timer_fd {
+            <span class="kw">let _ </span>= <span class="self">self</span>.delete(timer_fd);
+            <span class="kw">let _ </span>= <span class="macro">syscall!</span>(close(timer_fd));
         }
-        <span class="kw">let _ </span>= <a class="self" href="#246">self</a>.<a href="#104">delete</a>(<a class="self" href="#246">self</a>.event_fd);
-        <span class="kw">let _ </span>= <a class="macro" href="lib.rs.html#67-76">syscall!</a>(close(<span class="self">self</span>.event_fd));
-        <span class="kw">let _ </span>= <a class="macro" href="lib.rs.html#67-76">syscall!</a>(close(<span class="self">self</span>.epoll_fd));
+        <span class="kw">let _ </span>= <span class="self">self</span>.delete(<span class="self">self</span>.event_fd);
+        <span class="kw">let _ </span>= <span class="macro">syscall!</span>(close(<span class="self">self</span>.event_fd));
+        <span class="kw">let _ </span>= <span class="macro">syscall!</span>(close(<span class="self">self</span>.epoll_fd));
     }
 }
 
 <span class="doccomment">/// `timespec` value that equals zero.
-</span><span class="kw">const </span>TS_ZERO: <a href="../../libc/unix/struct.timespec.html">libc::timespec</a> = <a href="../../libc/unix/struct.timespec.html">libc::timespec</a> {
-    tv_sec: <span class="number">0</span>,
-    tv_nsec: <span class="number">0</span>,
-};
+</span><span class="kw">const </span>TS_ZERO: libc::timespec =
+    <span class="kw">unsafe </span>{ std::mem::transmute([<span class="number">0u8</span>; std::mem::size_of::&lt;libc::timespec&gt;()]) };
 
 <span class="doccomment">/// Epoll flags for all possible readability events.
-</span><span class="kw">fn </span>read_flags() -&gt; <a href="../../libc/unix/type.c_int.html">libc::c_int</a> {
+</span><span class="kw">fn </span>read_flags() -&gt; libc::c_int {
     libc::EPOLLIN | libc::EPOLLRDHUP | libc::EPOLLHUP | libc::EPOLLERR | libc::EPOLLPRI
 }
 
 <span class="doccomment">/// Epoll flags for all possible writability events.
-</span><span class="kw">fn </span>write_flags() -&gt; <a href="../../libc/unix/type.c_int.html">libc::c_int</a> {
+</span><span class="kw">fn </span>write_flags() -&gt; libc::c_int {
     libc::EPOLLOUT | libc::EPOLLHUP | libc::EPOLLERR
 }
 
 <span class="doccomment">/// A list of reported I/O events.
 </span><span class="kw">pub struct </span>Events {
-    list: Box&lt;[<a href="../../libc/unix/linux_like/struct.epoll_event.html">libc::epoll_event</a>; <span class="number">1024</span>]&gt;,
-    len: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+    list: Box&lt;[libc::epoll_event; <span class="number">1024</span>]&gt;,
+    len: usize,
 }
 
-<span class="kw">unsafe impl </span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="kw">for </span><a href="#281">Events</a> {}
+<span class="kw">unsafe impl </span>Send <span class="kw">for </span>Events {}
 
-<span class="kw">impl </span><a href="#281">Events</a> {
+<span class="kw">impl </span>Events {
     <span class="doccomment">/// Creates an empty list.
-    </span><span class="kw">pub fn </span>new() -&gt; <a href="#281">Events</a> {
-        <span class="kw">let </span>ev = <a href="../../libc/unix/linux_like/struct.epoll_event.html">libc::epoll_event</a> { events: <span class="number">0</span>, u64: <span class="number">0 </span>};
-        <span class="kw">let </span>list = Box::new([<a href="#291">ev</a>; <span class="number">1024</span>]);
+    </span><span class="kw">pub fn </span>new() -&gt; Events {
+        <span class="kw">let </span>ev = libc::epoll_event { events: <span class="number">0</span>, u64: <span class="number">0 </span>};
+        <span class="kw">let </span>list = Box::new([ev; <span class="number">1024</span>]);
         <span class="kw">let </span>len = <span class="number">0</span>;
-        <a href="#281">Events</a> { <a href="#292">list</a>, <a href="#293">len</a> }
+        Events { list, len }
     }
 
     <span class="doccomment">/// Iterates over I/O events.
-    </span><span class="kw">pub fn </span>iter(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl </span>Iterator&lt;Item = <a href="lib.rs.html#119">Event</a>&gt; + <span class="lifetime">&#39;_ </span>{
-        <a class="self" href="#298">self</a>.list[..<a class="self" href="#298">self</a>.len].iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|ev| <a href="lib.rs.html#119">Event</a> {
-            key: <a href="#299">ev</a>.u64 <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-            readable: (<a href="#299">ev</a>.events <span class="kw">as </span><a href="../../libc/unix/type.c_int.html">libc::c_int</a> &amp; <a href="#271">read_flags</a>()) != <span class="number">0</span>,
-            writable: (<a href="#299">ev</a>.events <span class="kw">as </span><a href="../../libc/unix/type.c_int.html">libc::c_int</a> &amp; <a href="#276">write_flags</a>()) != <span class="number">0</span>,
+    </span><span class="kw">pub fn </span>iter(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl </span>Iterator&lt;Item = Event&gt; + <span class="lifetime">&#39;_ </span>{
+        <span class="self">self</span>.list[..<span class="self">self</span>.len].iter().map(|ev| Event {
+            key: ev.u64 <span class="kw">as </span>usize,
+            readable: (ev.events <span class="kw">as </span>libc::c_int &amp; read_flags()) != <span class="number">0</span>,
+            writable: (ev.events <span class="kw">as </span>libc::c_int &amp; write_flags()) != <span class="number">0</span>,
         })
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="polling" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="polling" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

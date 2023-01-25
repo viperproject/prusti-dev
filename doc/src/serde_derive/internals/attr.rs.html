@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/serde_derive-1.0.147/src/internals/attr.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>attr.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../serde_derive/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/serde_derive-1.0.152/src/internals/attr.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>attr.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../serde_derive/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -1950,16 +1950,16 @@
 <a href="#1950" id="1950">1950</a>
 <a href="#1951" id="1951">1951</a>
 <a href="#1952" id="1952">1952</a>
-</pre><pre class="rust"><code><span class="kw">use </span><a href="respan.rs.html#3">internals::respan::respan</a>;
-<span class="kw">use </span><a href="mod.rs.html#13">internals::symbol</a>::<span class="kw-2">*</span>;
-<span class="kw">use </span>internals::{<a href="mod.rs.html#23">ungroup</a>, <a href="ctxt.rs.html#13">Ctxt</a>};
-<span class="kw">use </span>proc_macro2::{<a href="https://docs.rs/proc-macro2/1.0.47/proc_macro2/enum.Spacing.html">Spacing</a>, <a href="https://docs.rs/proc-macro2/1.0.47/proc_macro2/struct.Span.html">Span</a>, <a href="https://docs.rs/proc-macro2/1.0.47/proc_macro2/struct.TokenStream.html">TokenStream</a>, <a href="https://docs.rs/proc-macro2/1.0.47/proc_macro2/enum.TokenTree.html">TokenTree</a>};
-<span class="kw">use </span><a href="https://docs.rs/quote/1.0.21/quote/to_tokens/trait.ToTokens.html">quote::ToTokens</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/borrow/enum.Cow.html">std::borrow::Cow</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/collections/btree/set/struct.BTreeSet.html">std::collections::BTreeSet</a>;
-<span class="kw">use </span><a href="https://docs.rs/syn/1.0.103/syn/index.html">syn</a>;
-<span class="kw">use </span>syn::parse::{<a class="self" href="https://docs.rs/syn/1.0.103/syn/parse/index.html">self</a>, <a href="https://docs.rs/syn/1.0.103/syn/parse/trait.Parse.html">Parse</a>, <a href="https://docs.rs/syn/1.0.103/syn/parse/type.ParseStream.html">ParseStream</a>};
-<span class="kw">use </span><a href="https://docs.rs/syn/1.0.103/syn/punctuated/struct.Punctuated.html">syn::punctuated::Punctuated</a>;
+</pre><pre class="rust"><code><span class="kw">use </span>internals::respan::respan;
+<span class="kw">use </span>internals::symbol::<span class="kw-2">*</span>;
+<span class="kw">use </span>internals::{ungroup, Ctxt};
+<span class="kw">use </span>proc_macro2::{Spacing, Span, TokenStream, TokenTree};
+<span class="kw">use </span>quote::ToTokens;
+<span class="kw">use </span>std::borrow::Cow;
+<span class="kw">use </span>std::collections::BTreeSet;
+<span class="kw">use </span>syn;
+<span class="kw">use </span>syn::parse::{<span class="self">self</span>, Parse, ParseStream};
+<span class="kw">use </span>syn::punctuated::Punctuated;
 <span class="kw">use </span>syn::Ident;
 <span class="kw">use </span>syn::Meta::{List, NameValue, Path};
 <span class="kw">use </span>syn::NestedMeta::{Lit, Meta};
@@ -1972,56 +1972,56 @@
 // user will see errors simultaneously for all bad attributes in the crate
 // rather than just the first.
 
-</span><span class="kw">pub use </span><a href="case.rs.html#14">internals::case::RenameRule</a>;
+</span><span class="kw">pub use </span>internals::case::RenameRule;
 
 <span class="kw">struct </span>Attr&lt;<span class="lifetime">&#39;c</span>, T&gt; {
-    cx: <span class="kw-2">&amp;</span><span class="lifetime">&#39;c </span><a href="ctxt.rs.html#13">Ctxt</a>,
-    name: <a href="symbol.rs.html#5">Symbol</a>,
-    tokens: <a href="https://docs.rs/proc-macro2/1.0.47/proc_macro2/struct.TokenStream.html">TokenStream</a>,
+    cx: <span class="kw-2">&amp;</span><span class="lifetime">&#39;c </span>Ctxt,
+    name: Symbol,
+    tokens: TokenStream,
     value: <span class="prelude-ty">Option</span>&lt;T&gt;,
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;c</span>, T&gt; Attr&lt;<span class="lifetime">&#39;c</span>, T&gt; {
-    <span class="kw">fn </span>none(cx: <span class="kw-2">&amp;</span><span class="lifetime">&#39;c </span><a href="ctxt.rs.html#13">Ctxt</a>, name: <a href="symbol.rs.html#5">Symbol</a>) -&gt; <span class="self">Self </span>{
-        <a href="#25">Attr</a> {
-            <a href="#33">cx</a>,
-            <a href="#33">name</a>,
+    <span class="kw">fn </span>none(cx: <span class="kw-2">&amp;</span><span class="lifetime">&#39;c </span>Ctxt, name: Symbol) -&gt; <span class="self">Self </span>{
+        Attr {
+            cx,
+            name,
             tokens: TokenStream::new(),
             value: <span class="prelude-val">None</span>,
         }
     }
 
-    <span class="kw">fn </span>set&lt;A: <a href="https://docs.rs/quote/1.0.21/quote/to_tokens/trait.ToTokens.html">ToTokens</a>&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, obj: A, value: T) {
-        <span class="kw">let </span>tokens = <a href="#42">obj</a>.<a href="https://docs.rs/quote/1.0.21/quote/to_tokens/trait.ToTokens.html">into_token_stream</a>();
+    <span class="kw">fn </span>set&lt;A: ToTokens&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, obj: A, value: T) {
+        <span class="kw">let </span>tokens = obj.into_token_stream();
 
         <span class="kw">if </span><span class="self">self</span>.value.is_some() {
-            <a class="self" href="#42">self</a>.cx
-                .<a href="ctxt.rs.html#32">error_spanned_by</a>(<a href="#43">tokens</a>, <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;duplicate serde attribute `{}`&quot;</span>, <span class="self">self</span>.name));
+            <span class="self">self</span>.cx
+                .error_spanned_by(tokens, <span class="macro">format!</span>(<span class="string">&quot;duplicate serde attribute `{}`&quot;</span>, <span class="self">self</span>.name));
         } <span class="kw">else </span>{
-            <a class="self" href="#42">self</a>.tokens = <a href="#43">tokens</a>;
-            <a class="self" href="#42">self</a>.value = <span class="prelude-val">Some</span>(<a href="#42">value</a>);
+            <span class="self">self</span>.tokens = tokens;
+            <span class="self">self</span>.value = <span class="prelude-val">Some</span>(value);
         }
     }
 
-    <span class="kw">fn </span>set_opt&lt;A: <a href="https://docs.rs/quote/1.0.21/quote/to_tokens/trait.ToTokens.html">ToTokens</a>&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, obj: A, value: <span class="prelude-ty">Option</span>&lt;T&gt;) {
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(value) = <a href="#54">value</a> {
-            <a class="self" href="#54">self</a>.<a href="#42">set</a>(<a href="#54">obj</a>, <a href="#55">value</a>);
+    <span class="kw">fn </span>set_opt&lt;A: ToTokens&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, obj: A, value: <span class="prelude-ty">Option</span>&lt;T&gt;) {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(value) = value {
+            <span class="self">self</span>.set(obj, value);
         }
     }
 
     <span class="kw">fn </span>set_if_none(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: T) {
         <span class="kw">if </span><span class="self">self</span>.value.is_none() {
-            <a class="self" href="#60">self</a>.value = <span class="prelude-val">Some</span>(<a href="#60">value</a>);
+            <span class="self">self</span>.value = <span class="prelude-val">Some</span>(value);
         }
     }
 
     <span class="kw">fn </span>get(<span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;T&gt; {
-        <a class="self" href="#66">self</a>.value
+        <span class="self">self</span>.value
     }
 
-    <span class="kw">fn </span>get_with_tokens(<span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;(<a href="https://docs.rs/proc-macro2/1.0.47/proc_macro2/struct.TokenStream.html">TokenStream</a>, T)&gt; {
-        <span class="kw">match </span><a class="self" href="#70">self</a>.value {
-            <span class="prelude-val">Some</span>(v) =&gt; <span class="prelude-val">Some</span>((<a class="self" href="#70">self</a>.tokens, <a href="#72">v</a>)),
+    <span class="kw">fn </span>get_with_tokens(<span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;(TokenStream, T)&gt; {
+        <span class="kw">match </span><span class="self">self</span>.value {
+            <span class="prelude-val">Some</span>(v) =&gt; <span class="prelude-val">Some</span>((<span class="self">self</span>.tokens, v)),
             <span class="prelude-val">None </span>=&gt; <span class="prelude-val">None</span>,
         }
     }
@@ -2030,153 +2030,153 @@
 <span class="kw">struct </span>BoolAttr&lt;<span class="lifetime">&#39;c</span>&gt;(Attr&lt;<span class="lifetime">&#39;c</span>, ()&gt;);
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;c</span>&gt; BoolAttr&lt;<span class="lifetime">&#39;c</span>&gt; {
-    <span class="kw">fn </span>none(cx: <span class="kw-2">&amp;</span><span class="lifetime">&#39;c </span><a href="ctxt.rs.html#13">Ctxt</a>, name: <a href="symbol.rs.html#5">Symbol</a>) -&gt; <span class="self">Self </span>{
-        <a href="#78">BoolAttr</a>(Attr::none(<a href="#81">cx</a>, <a href="#81">name</a>))
+    <span class="kw">fn </span>none(cx: <span class="kw-2">&amp;</span><span class="lifetime">&#39;c </span>Ctxt, name: Symbol) -&gt; <span class="self">Self </span>{
+        BoolAttr(Attr::none(cx, name))
     }
 
-    <span class="kw">fn </span>set_true&lt;A: <a href="https://docs.rs/quote/1.0.21/quote/to_tokens/trait.ToTokens.html">ToTokens</a>&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, obj: A) {
-        <a class="self" href="#85">self</a>.<span class="number">0</span>.<a href="#42">set</a>(<a href="#85">obj</a>, ());
+    <span class="kw">fn </span>set_true&lt;A: ToTokens&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, obj: A) {
+        <span class="self">self</span>.<span class="number">0</span>.set(obj, ());
     }
 
-    <span class="kw">fn </span>get(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#89">self</a>.<span class="number">0</span>.value.is_some()
+    <span class="kw">fn </span>get(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.<span class="number">0</span>.value.is_some()
     }
 }
 
 <span class="kw">struct </span>VecAttr&lt;<span class="lifetime">&#39;c</span>, T&gt; {
-    cx: <span class="kw-2">&amp;</span><span class="lifetime">&#39;c </span><a href="ctxt.rs.html#13">Ctxt</a>,
-    name: <a href="symbol.rs.html#5">Symbol</a>,
-    first_dup_tokens: <a href="https://docs.rs/proc-macro2/1.0.47/proc_macro2/struct.TokenStream.html">TokenStream</a>,
+    cx: <span class="kw-2">&amp;</span><span class="lifetime">&#39;c </span>Ctxt,
+    name: Symbol,
+    first_dup_tokens: TokenStream,
     values: Vec&lt;T&gt;,
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;c</span>, T&gt; VecAttr&lt;<span class="lifetime">&#39;c</span>, T&gt; {
-    <span class="kw">fn </span>none(cx: <span class="kw-2">&amp;</span><span class="lifetime">&#39;c </span><a href="ctxt.rs.html#13">Ctxt</a>, name: <a href="symbol.rs.html#5">Symbol</a>) -&gt; <span class="self">Self </span>{
-        <a href="#94">VecAttr</a> {
-            <a href="#102">cx</a>,
-            <a href="#102">name</a>,
+    <span class="kw">fn </span>none(cx: <span class="kw-2">&amp;</span><span class="lifetime">&#39;c </span>Ctxt, name: Symbol) -&gt; <span class="self">Self </span>{
+        VecAttr {
+            cx,
+            name,
             first_dup_tokens: TokenStream::new(),
             values: Vec::new(),
         }
     }
 
-    <span class="kw">fn </span>insert&lt;A: <a href="https://docs.rs/quote/1.0.21/quote/to_tokens/trait.ToTokens.html">ToTokens</a>&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, obj: A, value: T) {
+    <span class="kw">fn </span>insert&lt;A: ToTokens&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, obj: A, value: T) {
         <span class="kw">if </span><span class="self">self</span>.values.len() == <span class="number">1 </span>{
-            <a class="self" href="#111">self</a>.first_dup_tokens = <a href="#111">obj</a>.<a href="https://docs.rs/quote/1.0.21/quote/to_tokens/trait.ToTokens.html">into_token_stream</a>();
+            <span class="self">self</span>.first_dup_tokens = obj.into_token_stream();
         }
-        <a class="self" href="#111">self</a>.values.push(<a href="#111">value</a>);
+        <span class="self">self</span>.values.push(value);
     }
 
     <span class="kw">fn </span>at_most_one(<span class="kw-2">mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;T&gt;, ()&gt; {
         <span class="kw">if </span><span class="self">self</span>.values.len() &gt; <span class="number">1 </span>{
-            <span class="kw">let </span>dup_token = <a class="self" href="#118">self</a>.first_dup_tokens;
-            <a class="self" href="#118">self</a>.cx.<a href="ctxt.rs.html#32">error_spanned_by</a>(
-                <a href="#120">dup_token</a>,
-                <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;duplicate serde attribute `{}`&quot;</span>, <span class="self">self</span>.name),
+            <span class="kw">let </span>dup_token = <span class="self">self</span>.first_dup_tokens;
+            <span class="self">self</span>.cx.error_spanned_by(
+                dup_token,
+                <span class="macro">format!</span>(<span class="string">&quot;duplicate serde attribute `{}`&quot;</span>, <span class="self">self</span>.name),
             );
             <span class="prelude-val">Err</span>(())
         } <span class="kw">else </span>{
-            <span class="prelude-val">Ok</span>(<a class="self" href="#118">self</a>.values.pop())
+            <span class="prelude-val">Ok</span>(<span class="self">self</span>.values.pop())
         }
     }
 
     <span class="kw">fn </span>get(<span class="self">self</span>) -&gt; Vec&lt;T&gt; {
-        <a class="self" href="#131">self</a>.values
+        <span class="self">self</span>.values
     }
 }
 
 <span class="kw">pub struct </span>Name {
-    serialize: <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>,
-    serialize_renamed: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-    deserialize: <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>,
-    deserialize_renamed: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-    deserialize_aliases: Vec&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt;,
+    serialize: String,
+    serialize_renamed: bool,
+    deserialize: String,
+    deserialize_renamed: bool,
+    deserialize_aliases: Vec&lt;String&gt;,
 }
 
 <span class="attr">#[allow(deprecated)]
-</span><span class="kw">fn </span>unraw(ident: <span class="kw-2">&amp;</span><a href="https://docs.rs/proc-macro2/1.0.47/proc_macro2/struct.Ident.html">Ident</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a> {
+</span><span class="kw">fn </span>unraw(ident: <span class="kw-2">&amp;</span>Ident) -&gt; String {
     <span class="comment">// str::trim_start_matches was added in 1.30, trim_left_matches deprecated
     // in 1.33. We currently support rustc back to 1.15 so we need to continue
     // to use the deprecated one.
-    </span><a href="#145">ident</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>().trim_left_matches(<span class="string">&quot;r#&quot;</span>).<a href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">to_owned</a>()
+    </span>ident.to_string().trim_left_matches(<span class="string">&quot;r#&quot;</span>).to_owned()
 }
 
-<span class="kw">impl </span><a href="#136">Name</a> {
+<span class="kw">impl </span>Name {
     <span class="kw">fn </span>from_attrs(
-        source_name: <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>,
-        ser_name: Attr&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt;,
-        de_name: Attr&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt;,
-        de_aliases: <span class="prelude-ty">Option</span>&lt;VecAttr&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt;&gt;,
-    ) -&gt; <a href="#136">Name</a> {
-        <span class="kw">let </span>deserialize_aliases = <span class="kw">match </span><a href="#157">de_aliases</a> {
+        source_name: String,
+        ser_name: Attr&lt;String&gt;,
+        de_name: Attr&lt;String&gt;,
+        de_aliases: <span class="prelude-ty">Option</span>&lt;VecAttr&lt;String&gt;&gt;,
+    ) -&gt; Name {
+        <span class="kw">let </span>deserialize_aliases = <span class="kw">match </span>de_aliases {
             <span class="prelude-val">Some</span>(de_aliases) =&gt; {
                 <span class="kw">let </span><span class="kw-2">mut </span>alias_list = BTreeSet::new();
                 <span class="kw">for </span>alias_name <span class="kw">in </span>de_aliases.get() {
                     alias_list.insert(alias_name);
                 }
-                <a href="#161">alias_list</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>()
+                alias_list.into_iter().collect()
             }
             <span class="prelude-val">None </span>=&gt; Vec::new(),
         };
 
-        <span class="kw">let </span>ser_name = <a href="#155">ser_name</a>.<a href="#66">get</a>();
-        <span class="kw">let </span>ser_renamed = <a href="#170">ser_name</a>.is_some();
-        <span class="kw">let </span>de_name = <a href="#156">de_name</a>.<a href="#66">get</a>();
-        <span class="kw">let </span>de_renamed = <a href="#172">de_name</a>.is_some();
-        <a href="#136">Name</a> {
-            serialize: <a href="#170">ser_name</a>.unwrap_or_else(|| <a href="#154">source_name</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()),
-            serialize_renamed: <a href="#171">ser_renamed</a>,
-            deserialize: <a href="#172">de_name</a>.unwrap_or(<a href="#154">source_name</a>),
-            deserialize_renamed: <a href="#173">de_renamed</a>,
-            <a href="#159">deserialize_aliases</a>,
+        <span class="kw">let </span>ser_name = ser_name.get();
+        <span class="kw">let </span>ser_renamed = ser_name.is_some();
+        <span class="kw">let </span>de_name = de_name.get();
+        <span class="kw">let </span>de_renamed = de_name.is_some();
+        Name {
+            serialize: ser_name.unwrap_or_else(|| source_name.clone()),
+            serialize_renamed: ser_renamed,
+            deserialize: de_name.unwrap_or(source_name),
+            deserialize_renamed: de_renamed,
+            deserialize_aliases,
         }
     }
 
     <span class="doccomment">/// Return the container name for the container when serializing.
-    </span><span class="kw">pub fn </span>serialize_name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a> {
-        <a class="self" href="#184">self</a>.serialize.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()
+    </span><span class="kw">pub fn </span>serialize_name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; String {
+        <span class="self">self</span>.serialize.clone()
     }
 
     <span class="doccomment">/// Return the container name for the container when deserializing.
-    </span><span class="kw">pub fn </span>deserialize_name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a> {
-        <a class="self" href="#189">self</a>.deserialize.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()
+    </span><span class="kw">pub fn </span>deserialize_name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; String {
+        <span class="self">self</span>.deserialize.clone()
     }
 
-    <span class="kw">fn </span>deserialize_aliases(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Vec&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt; {
-        <span class="kw">let </span><span class="kw-2">mut </span>aliases = <a class="self" href="#193">self</a>.deserialize_aliases.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
-        <span class="kw">let </span>main_name = <a class="self" href="#193">self</a>.<a href="#189">deserialize_name</a>();
+    <span class="kw">fn </span>deserialize_aliases(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Vec&lt;String&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>aliases = <span class="self">self</span>.deserialize_aliases.clone();
+        <span class="kw">let </span>main_name = <span class="self">self</span>.deserialize_name();
         <span class="kw">if </span>!aliases.contains(<span class="kw-2">&amp;</span>main_name) {
-            <a href="#194">aliases</a>.push(<a href="#195">main_name</a>);
+            aliases.push(main_name);
         }
-        <a href="#194">aliases</a>
+        aliases
     }
 }
 
 <span class="kw">pub struct </span>RenameAllRules {
-    serialize: <a href="case.rs.html#14">RenameRule</a>,
-    deserialize: <a href="case.rs.html#14">RenameRule</a>,
+    serialize: RenameRule,
+    deserialize: RenameRule,
 }
 
 <span class="doccomment">/// Represents struct or enum attribute information.
 </span><span class="kw">pub struct </span>Container {
-    name: <a href="#136">Name</a>,
-    transparent: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-    deny_unknown_fields: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-    default: <a href="#1124">Default</a>,
-    rename_all_rules: <a href="#203">RenameAllRules</a>,
-    ser_bound: <span class="prelude-ty">Option</span>&lt;Vec&lt;<a href="https://docs.rs/syn/1.0.103/syn/generics/enum.WherePredicate.html">syn::WherePredicate</a>&gt;&gt;,
-    de_bound: <span class="prelude-ty">Option</span>&lt;Vec&lt;<a href="https://docs.rs/syn/1.0.103/syn/generics/enum.WherePredicate.html">syn::WherePredicate</a>&gt;&gt;,
-    tag: <a href="#231">TagType</a>,
-    type_from: <span class="prelude-ty">Option</span>&lt;<a href="https://docs.rs/syn/1.0.103/syn/ty/enum.Type.html">syn::Type</a>&gt;,
-    type_try_from: <span class="prelude-ty">Option</span>&lt;<a href="https://docs.rs/syn/1.0.103/syn/ty/enum.Type.html">syn::Type</a>&gt;,
-    type_into: <span class="prelude-ty">Option</span>&lt;<a href="https://docs.rs/syn/1.0.103/syn/ty/enum.Type.html">syn::Type</a>&gt;,
-    remote: <span class="prelude-ty">Option</span>&lt;<a href="https://docs.rs/syn/1.0.103/syn/path/struct.Path.html">syn::Path</a>&gt;,
-    identifier: <a href="#264">Identifier</a>,
-    has_flatten: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-    serde_path: <span class="prelude-ty">Option</span>&lt;<a href="https://docs.rs/syn/1.0.103/syn/path/struct.Path.html">syn::Path</a>&gt;,
-    is_packed: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
+    name: Name,
+    transparent: bool,
+    deny_unknown_fields: bool,
+    default: Default,
+    rename_all_rules: RenameAllRules,
+    ser_bound: <span class="prelude-ty">Option</span>&lt;Vec&lt;syn::WherePredicate&gt;&gt;,
+    de_bound: <span class="prelude-ty">Option</span>&lt;Vec&lt;syn::WherePredicate&gt;&gt;,
+    tag: TagType,
+    type_from: <span class="prelude-ty">Option</span>&lt;syn::Type&gt;,
+    type_try_from: <span class="prelude-ty">Option</span>&lt;syn::Type&gt;,
+    type_into: <span class="prelude-ty">Option</span>&lt;syn::Type&gt;,
+    remote: <span class="prelude-ty">Option</span>&lt;syn::Path&gt;,
+    identifier: Identifier,
+    has_flatten: bool,
+    serde_path: <span class="prelude-ty">Option</span>&lt;syn::Path&gt;,
+    is_packed: bool,
     <span class="doccomment">/// Error message generated when type can&#39;t be deserialized
-    </span>expecting: <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt;,
+    </span>expecting: <span class="prelude-ty">Option</span>&lt;String&gt;,
 }
 
 <span class="doccomment">/// Styles of representing an enum.
@@ -2193,14 +2193,14 @@
     /// ```json
     /// {&quot;type&quot;: &quot;variant1&quot;, &quot;key1&quot;: &quot;value1&quot;, &quot;key2&quot;: &quot;value2&quot;}
     /// ```
-    </span>Internal { tag: <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a> },
+    </span>Internal { tag: String },
 
     <span class="doccomment">/// `#[serde(tag = &quot;t&quot;, content = &quot;c&quot;)]`
     ///
     /// ```json
     /// {&quot;t&quot;: &quot;variant1&quot;, &quot;c&quot;: {&quot;key1&quot;: &quot;value1&quot;, &quot;key2&quot;: &quot;value2&quot;}}
     /// ```
-    </span>Adjacent { tag: <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, content: <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a> },
+    </span>Adjacent { tag: String, content: String },
 
     <span class="doccomment">/// `#[serde(untagged)]`
     ///
@@ -2227,7 +2227,7 @@
     </span>Variant,
 }
 
-<span class="kw">impl </span><a href="#264">Identifier</a> {
+<span class="kw">impl </span>Identifier {
     <span class="attr">#[cfg(feature = <span class="string">&quot;deserialize_in_place&quot;</span>)]
     </span><span class="kw">pub fn </span>is_some(<span class="self">self</span>) -&gt; bool {
         <span class="kw">match </span><span class="self">self </span>{
@@ -2237,29 +2237,29 @@
     }
 }
 
-<span class="kw">impl </span><a href="#209">Container</a> {
+<span class="kw">impl </span>Container {
     <span class="doccomment">/// Extract out the `#[serde(...)]` attributes from an item.
-    </span><span class="kw">pub fn </span>from_ast(cx: <span class="kw-2">&amp;</span><a href="ctxt.rs.html#13">Ctxt</a>, item: <span class="kw-2">&amp;</span><a href="https://docs.rs/syn/1.0.103/syn/derive/struct.DeriveInput.html">syn::DeriveInput</a>) -&gt; <span class="self">Self </span>{
-        <span class="kw">let </span><span class="kw-2">mut </span>ser_name = Attr::none(<a href="#290">cx</a>, <a href="symbol.rs.html#23">RENAME</a>);
-        <span class="kw">let </span><span class="kw-2">mut </span>de_name = Attr::none(<a href="#290">cx</a>, <a href="symbol.rs.html#23">RENAME</a>);
-        <span class="kw">let </span><span class="kw-2">mut </span>transparent = BoolAttr::none(<a href="#290">cx</a>, <a href="symbol.rs.html#33">TRANSPARENT</a>);
-        <span class="kw">let </span><span class="kw-2">mut </span>deny_unknown_fields = BoolAttr::none(<a href="#290">cx</a>, <a href="symbol.rs.html#13">DENY_UNKNOWN_FIELDS</a>);
-        <span class="kw">let </span><span class="kw-2">mut </span>default = Attr::none(<a href="#290">cx</a>, <a href="symbol.rs.html#12">DEFAULT</a>);
-        <span class="kw">let </span><span class="kw-2">mut </span>rename_all_ser_rule = Attr::none(<a href="#290">cx</a>, <a href="symbol.rs.html#24">RENAME_ALL</a>);
-        <span class="kw">let </span><span class="kw-2">mut </span>rename_all_de_rule = Attr::none(<a href="#290">cx</a>, <a href="symbol.rs.html#24">RENAME_ALL</a>);
-        <span class="kw">let </span><span class="kw-2">mut </span>ser_bound = Attr::none(<a href="#290">cx</a>, <a href="symbol.rs.html#9">BOUND</a>);
-        <span class="kw">let </span><span class="kw-2">mut </span>de_bound = Attr::none(<a href="#290">cx</a>, <a href="symbol.rs.html#9">BOUND</a>);
-        <span class="kw">let </span><span class="kw-2">mut </span>untagged = BoolAttr::none(<a href="#290">cx</a>, <a href="symbol.rs.html#35">UNTAGGED</a>);
-        <span class="kw">let </span><span class="kw-2">mut </span>internal_tag = Attr::none(<a href="#290">cx</a>, <a href="symbol.rs.html#32">TAG</a>);
-        <span class="kw">let </span><span class="kw-2">mut </span>content = Attr::none(<a href="#290">cx</a>, <a href="symbol.rs.html#10">CONTENT</a>);
-        <span class="kw">let </span><span class="kw-2">mut </span>type_from = Attr::none(<a href="#290">cx</a>, <a href="symbol.rs.html#18">FROM</a>);
-        <span class="kw">let </span><span class="kw-2">mut </span>type_try_from = Attr::none(<a href="#290">cx</a>, <a href="symbol.rs.html#34">TRY_FROM</a>);
-        <span class="kw">let </span><span class="kw-2">mut </span>type_into = Attr::none(<a href="#290">cx</a>, <a href="symbol.rs.html#20">INTO</a>);
-        <span class="kw">let </span><span class="kw-2">mut </span>remote = Attr::none(<a href="#290">cx</a>, <a href="symbol.rs.html#22">REMOTE</a>);
-        <span class="kw">let </span><span class="kw-2">mut </span>field_identifier = BoolAttr::none(<a href="#290">cx</a>, <a href="symbol.rs.html#16">FIELD_IDENTIFIER</a>);
-        <span class="kw">let </span><span class="kw-2">mut </span>variant_identifier = BoolAttr::none(<a href="#290">cx</a>, <a href="symbol.rs.html#36">VARIANT_IDENTIFIER</a>);
-        <span class="kw">let </span><span class="kw-2">mut </span>serde_path = Attr::none(<a href="#290">cx</a>, <a href="symbol.rs.html#11">CRATE</a>);
-        <span class="kw">let </span><span class="kw-2">mut </span>expecting = Attr::none(<a href="#290">cx</a>, <a href="symbol.rs.html#38">EXPECTING</a>);
+    </span><span class="kw">pub fn </span>from_ast(cx: <span class="kw-2">&amp;</span>Ctxt, item: <span class="kw-2">&amp;</span>syn::DeriveInput) -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span><span class="kw-2">mut </span>ser_name = Attr::none(cx, RENAME);
+        <span class="kw">let </span><span class="kw-2">mut </span>de_name = Attr::none(cx, RENAME);
+        <span class="kw">let </span><span class="kw-2">mut </span>transparent = BoolAttr::none(cx, TRANSPARENT);
+        <span class="kw">let </span><span class="kw-2">mut </span>deny_unknown_fields = BoolAttr::none(cx, DENY_UNKNOWN_FIELDS);
+        <span class="kw">let </span><span class="kw-2">mut </span>default = Attr::none(cx, DEFAULT);
+        <span class="kw">let </span><span class="kw-2">mut </span>rename_all_ser_rule = Attr::none(cx, RENAME_ALL);
+        <span class="kw">let </span><span class="kw-2">mut </span>rename_all_de_rule = Attr::none(cx, RENAME_ALL);
+        <span class="kw">let </span><span class="kw-2">mut </span>ser_bound = Attr::none(cx, BOUND);
+        <span class="kw">let </span><span class="kw-2">mut </span>de_bound = Attr::none(cx, BOUND);
+        <span class="kw">let </span><span class="kw-2">mut </span>untagged = BoolAttr::none(cx, UNTAGGED);
+        <span class="kw">let </span><span class="kw-2">mut </span>internal_tag = Attr::none(cx, TAG);
+        <span class="kw">let </span><span class="kw-2">mut </span>content = Attr::none(cx, CONTENT);
+        <span class="kw">let </span><span class="kw-2">mut </span>type_from = Attr::none(cx, FROM);
+        <span class="kw">let </span><span class="kw-2">mut </span>type_try_from = Attr::none(cx, TRY_FROM);
+        <span class="kw">let </span><span class="kw-2">mut </span>type_into = Attr::none(cx, INTO);
+        <span class="kw">let </span><span class="kw-2">mut </span>remote = Attr::none(cx, REMOTE);
+        <span class="kw">let </span><span class="kw-2">mut </span>field_identifier = BoolAttr::none(cx, FIELD_IDENTIFIER);
+        <span class="kw">let </span><span class="kw-2">mut </span>variant_identifier = BoolAttr::none(cx, VARIANT_IDENTIFIER);
+        <span class="kw">let </span><span class="kw-2">mut </span>serde_path = Attr::none(cx, CRATE);
+        <span class="kw">let </span><span class="kw-2">mut </span>expecting = Attr::none(cx, EXPECTING);
 
         <span class="kw">for </span>meta_item <span class="kw">in </span>item
             .attrs
@@ -2551,127 +2551,127 @@
             }
         }
 
-        <a href="#209">Container</a> {
-            name: Name::from_attrs(<a href="#145">unraw</a>(<span class="kw-2">&amp;</span><a href="#290">item</a>.ident), <a href="#291">ser_name</a>, <a href="#292">de_name</a>, <span class="prelude-val">None</span>),
-            transparent: <a href="#293">transparent</a>.<a href="#89">get</a>(),
-            deny_unknown_fields: <a href="#294">deny_unknown_fields</a>.<a href="#89">get</a>(),
-            default: <a href="#295">default</a>.<a href="#66">get</a>().unwrap_or(<a href="#1126">Default::None</a>),
-            rename_all_rules: <a href="#203">RenameAllRules</a> {
-                serialize: <a href="#296">rename_all_ser_rule</a>.<a href="#66">get</a>().unwrap_or(<a href="case.rs.html#16">RenameRule::None</a>),
-                deserialize: <a href="#297">rename_all_de_rule</a>.<a href="#66">get</a>().unwrap_or(<a href="case.rs.html#16">RenameRule::None</a>),
+        Container {
+            name: Name::from_attrs(unraw(<span class="kw-2">&amp;</span>item.ident), ser_name, de_name, <span class="prelude-val">None</span>),
+            transparent: transparent.get(),
+            deny_unknown_fields: deny_unknown_fields.get(),
+            default: default.get().unwrap_or(Default::None),
+            rename_all_rules: RenameAllRules {
+                serialize: rename_all_ser_rule.get().unwrap_or(RenameRule::None),
+                deserialize: rename_all_de_rule.get().unwrap_or(RenameRule::None),
             },
-            ser_bound: <a href="#298">ser_bound</a>.<a href="#66">get</a>(),
-            de_bound: <a href="#299">de_bound</a>.<a href="#66">get</a>(),
-            tag: <a href="#706-712">decide_tag</a>(<a href="#290">cx</a>, <a href="#290">item</a>, <a href="#300">untagged</a>, <a href="#301">internal_tag</a>, <a href="#302">content</a>),
-            type_from: <a href="#303">type_from</a>.<a href="#66">get</a>(),
-            type_try_from: <a href="#304">type_try_from</a>.<a href="#66">get</a>(),
-            type_into: <a href="#305">type_into</a>.<a href="#66">get</a>(),
-            remote: <a href="#306">remote</a>.<a href="#66">get</a>(),
-            identifier: <a href="#788-793">decide_identifier</a>(<a href="#290">cx</a>, <a href="#290">item</a>, <a href="#307">field_identifier</a>, <a href="#308">variant_identifier</a>),
+            ser_bound: ser_bound.get(),
+            de_bound: de_bound.get(),
+            tag: decide_tag(cx, item, untagged, internal_tag, content),
+            type_from: type_from.get(),
+            type_try_from: type_try_from.get(),
+            type_into: type_into.get(),
+            remote: remote.get(),
+            identifier: decide_identifier(cx, item, field_identifier, variant_identifier),
             has_flatten: <span class="bool-val">false</span>,
-            serde_path: <a href="#309">serde_path</a>.<a href="#66">get</a>(),
-            <a href="#588">is_packed</a>,
-            expecting: <a href="#310">expecting</a>.<a href="#66">get</a>(),
+            serde_path: serde_path.get(),
+            is_packed,
+            expecting: expecting.get(),
         }
     }
 
-    <span class="kw">pub fn </span>name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="#136">Name</a> {
-        <span class="kw-2">&amp;</span><a class="self" href="#626">self</a>.name
+    <span class="kw">pub fn </span>name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Name {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.name
     }
 
-    <span class="kw">pub fn </span>rename_all_rules(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="#203">RenameAllRules</a> {
-        <span class="kw-2">&amp;</span><a class="self" href="#630">self</a>.rename_all_rules
+    <span class="kw">pub fn </span>rename_all_rules(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>RenameAllRules {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.rename_all_rules
     }
 
-    <span class="kw">pub fn </span>transparent(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#634">self</a>.transparent
+    <span class="kw">pub fn </span>transparent(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.transparent
     }
 
-    <span class="kw">pub fn </span>deny_unknown_fields(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#638">self</a>.deny_unknown_fields
+    <span class="kw">pub fn </span>deny_unknown_fields(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.deny_unknown_fields
     }
 
-    <span class="kw">pub fn </span>default(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="#1124">Default</a> {
-        <span class="kw-2">&amp;</span><a class="self" href="#642">self</a>.default
+    <span class="kw">pub fn </span>default(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Default {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.default
     }
 
-    <span class="kw">pub fn </span>ser_bound(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>[<a href="https://docs.rs/syn/1.0.103/syn/generics/enum.WherePredicate.html">syn::WherePredicate</a>]&gt; {
-        <a class="self" href="#646">self</a>.ser_bound.as_ref().map(|vec| <span class="kw-2">&amp;</span><a href="#647">vec</a>[..])
+    <span class="kw">pub fn </span>ser_bound(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>[syn::WherePredicate]&gt; {
+        <span class="self">self</span>.ser_bound.as_ref().map(|vec| <span class="kw-2">&amp;</span>vec[..])
     }
 
-    <span class="kw">pub fn </span>de_bound(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>[<a href="https://docs.rs/syn/1.0.103/syn/generics/enum.WherePredicate.html">syn::WherePredicate</a>]&gt; {
-        <a class="self" href="#650">self</a>.de_bound.as_ref().map(|vec| <span class="kw-2">&amp;</span><a href="#651">vec</a>[..])
+    <span class="kw">pub fn </span>de_bound(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>[syn::WherePredicate]&gt; {
+        <span class="self">self</span>.de_bound.as_ref().map(|vec| <span class="kw-2">&amp;</span>vec[..])
     }
 
-    <span class="kw">pub fn </span>tag(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="#231">TagType</a> {
-        <span class="kw-2">&amp;</span><a class="self" href="#654">self</a>.tag
+    <span class="kw">pub fn </span>tag(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>TagType {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.tag
     }
 
-    <span class="kw">pub fn </span>type_from(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="https://docs.rs/syn/1.0.103/syn/ty/enum.Type.html">syn::Type</a>&gt; {
-        <a class="self" href="#658">self</a>.type_from.as_ref()
+    <span class="kw">pub fn </span>type_from(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>syn::Type&gt; {
+        <span class="self">self</span>.type_from.as_ref()
     }
 
-    <span class="kw">pub fn </span>type_try_from(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="https://docs.rs/syn/1.0.103/syn/ty/enum.Type.html">syn::Type</a>&gt; {
-        <a class="self" href="#662">self</a>.type_try_from.as_ref()
+    <span class="kw">pub fn </span>type_try_from(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>syn::Type&gt; {
+        <span class="self">self</span>.type_try_from.as_ref()
     }
 
-    <span class="kw">pub fn </span>type_into(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="https://docs.rs/syn/1.0.103/syn/ty/enum.Type.html">syn::Type</a>&gt; {
-        <a class="self" href="#666">self</a>.type_into.as_ref()
+    <span class="kw">pub fn </span>type_into(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>syn::Type&gt; {
+        <span class="self">self</span>.type_into.as_ref()
     }
 
-    <span class="kw">pub fn </span>remote(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="https://docs.rs/syn/1.0.103/syn/path/struct.Path.html">syn::Path</a>&gt; {
-        <a class="self" href="#670">self</a>.remote.as_ref()
+    <span class="kw">pub fn </span>remote(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>syn::Path&gt; {
+        <span class="self">self</span>.remote.as_ref()
     }
 
-    <span class="kw">pub fn </span>is_packed(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#674">self</a>.is_packed
+    <span class="kw">pub fn </span>is_packed(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.is_packed
     }
 
-    <span class="kw">pub fn </span>identifier(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="#264">Identifier</a> {
-        <a class="self" href="#678">self</a>.identifier
+    <span class="kw">pub fn </span>identifier(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Identifier {
+        <span class="self">self</span>.identifier
     }
 
-    <span class="kw">pub fn </span>has_flatten(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#682">self</a>.has_flatten
+    <span class="kw">pub fn </span>has_flatten(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.has_flatten
     }
 
     <span class="kw">pub fn </span>mark_has_flatten(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <a class="self" href="#686">self</a>.has_flatten = <span class="bool-val">true</span>;
+        <span class="self">self</span>.has_flatten = <span class="bool-val">true</span>;
     }
 
-    <span class="kw">pub fn </span>custom_serde_path(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="https://docs.rs/syn/1.0.103/syn/path/struct.Path.html">syn::Path</a>&gt; {
-        <a class="self" href="#690">self</a>.serde_path.as_ref()
+    <span class="kw">pub fn </span>custom_serde_path(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>syn::Path&gt; {
+        <span class="self">self</span>.serde_path.as_ref()
     }
 
-    <span class="kw">pub fn </span>serde_path(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Cow&lt;<a href="https://docs.rs/syn/1.0.103/syn/path/struct.Path.html">syn::Path</a>&gt; {
-        <a class="self" href="#694">self</a>.<a href="#690">custom_serde_path</a>()
-            .map_or_else(|| Cow::Owned(<a class="macro" href="https://docs.rs/syn/1.0.103/syn/macro.parse_quote.html">parse_quote!</a>(_serde)), Cow::Borrowed)
+    <span class="kw">pub fn </span>serde_path(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Cow&lt;syn::Path&gt; {
+        <span class="self">self</span>.custom_serde_path()
+            .map_or_else(|| Cow::Owned(<span class="macro">parse_quote!</span>(_serde)), Cow::Borrowed)
     }
 
     <span class="doccomment">/// Error message generated when type can&#39;t be deserialized.
     /// If `None`, default message will be used
-    </span><span class="kw">pub fn </span>expecting(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt; {
-        <a class="self" href="#701">self</a>.expecting.as_ref().map(String::as_ref)
+    </span><span class="kw">pub fn </span>expecting(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>str&gt; {
+        <span class="self">self</span>.expecting.as_ref().map(String::as_ref)
     }
 }
 
 <span class="kw">fn </span>decide_tag(
-    cx: <span class="kw-2">&amp;</span><a href="ctxt.rs.html#13">Ctxt</a>,
-    item: <span class="kw-2">&amp;</span><a href="https://docs.rs/syn/1.0.103/syn/derive/struct.DeriveInput.html">syn::DeriveInput</a>,
-    untagged: <a href="#78">BoolAttr</a>,
-    internal_tag: Attr&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt;,
-    content: Attr&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt;,
-) -&gt; <a href="#231">TagType</a> {
+    cx: <span class="kw-2">&amp;</span>Ctxt,
+    item: <span class="kw-2">&amp;</span>syn::DeriveInput,
+    untagged: BoolAttr,
+    internal_tag: Attr&lt;String&gt;,
+    content: Attr&lt;String&gt;,
+) -&gt; TagType {
     <span class="kw">match </span>(
-        <a href="#709">untagged</a>.<span class="number">0</span>.<a href="#70">get_with_tokens</a>(),
-        <a href="#710">internal_tag</a>.<a href="#70">get_with_tokens</a>(),
-        <a href="#711">content</a>.<a href="#70">get_with_tokens</a>(),
+        untagged.<span class="number">0</span>.get_with_tokens(),
+        internal_tag.get_with_tokens(),
+        content.get_with_tokens(),
     ) {
-        (<span class="prelude-val">None</span>, <span class="prelude-val">None</span>, <span class="prelude-val">None</span>) =&gt; <a href="#237">TagType::External</a>,
-        (<span class="prelude-val">Some</span>(<span class="kw">_</span>), <span class="prelude-val">None</span>, <span class="prelude-val">None</span>) =&gt; <a href="#258">TagType::None</a>,
+        (<span class="prelude-val">None</span>, <span class="prelude-val">None</span>, <span class="prelude-val">None</span>) =&gt; TagType::External,
+        (<span class="prelude-val">Some</span>(<span class="kw">_</span>), <span class="prelude-val">None</span>, <span class="prelude-val">None</span>) =&gt; TagType::None,
         (<span class="prelude-val">None</span>, <span class="prelude-val">Some</span>((<span class="kw">_</span>, tag)), <span class="prelude-val">None</span>) =&gt; {
             <span class="comment">// Check that there are no tuple variants.
-            </span><span class="kw">if let </span>syn::Data::Enum(data) = <span class="kw-2">&amp;</span><a href="#708">item</a>.data {
+            </span><span class="kw">if let </span>syn::Data::Enum(data) = <span class="kw-2">&amp;</span>item.data {
                 <span class="kw">for </span>variant <span class="kw">in </span><span class="kw-2">&amp;</span>data.variants {
                     <span class="kw">match </span><span class="kw-2">&amp;</span>variant.fields {
                         syn::Fields::Named(<span class="kw">_</span>) | syn::Fields::Unit =&gt; {}
@@ -2687,141 +2687,141 @@
                     }
                 }
             }
-            <a href="#244">TagType::Internal</a> { <a href="#720">tag</a> }
+            TagType::Internal { tag }
         }
         (<span class="prelude-val">Some</span>((untagged_tokens, <span class="kw">_</span>)), <span class="prelude-val">Some</span>((tag_tokens, <span class="kw">_</span>)), <span class="prelude-val">None</span>) =&gt; {
-            <a href="#707">cx</a>.<a href="ctxt.rs.html#32">error_spanned_by</a>(
-                <a href="#740">untagged_tokens</a>,
+            cx.error_spanned_by(
+                untagged_tokens,
                 <span class="string">&quot;enum cannot be both untagged and internally tagged&quot;</span>,
             );
-            <a href="#707">cx</a>.<a href="ctxt.rs.html#32">error_spanned_by</a>(
-                <a href="#740">tag_tokens</a>,
+            cx.error_spanned_by(
+                tag_tokens,
                 <span class="string">&quot;enum cannot be both untagged and internally tagged&quot;</span>,
             );
-            <a href="#237">TagType::External</a> <span class="comment">// doesn&#39;t matter, will error
+            TagType::External <span class="comment">// doesn&#39;t matter, will error
         </span>}
         (<span class="prelude-val">None</span>, <span class="prelude-val">None</span>, <span class="prelude-val">Some</span>((content_tokens, <span class="kw">_</span>))) =&gt; {
-            <a href="#707">cx</a>.<a href="ctxt.rs.html#32">error_spanned_by</a>(
-                <a href="#751">content_tokens</a>,
+            cx.error_spanned_by(
+                content_tokens,
                 <span class="string">&quot;#[serde(tag = \&quot;...\&quot;, content = \&quot;...\&quot;)] must be used together&quot;</span>,
             );
-            <a href="#237">TagType::External</a>
+            TagType::External
         }
         (<span class="prelude-val">Some</span>((untagged_tokens, <span class="kw">_</span>)), <span class="prelude-val">None</span>, <span class="prelude-val">Some</span>((content_tokens, <span class="kw">_</span>))) =&gt; {
-            <a href="#707">cx</a>.<a href="ctxt.rs.html#32">error_spanned_by</a>(
-                <a href="#758">untagged_tokens</a>,
+            cx.error_spanned_by(
+                untagged_tokens,
                 <span class="string">&quot;untagged enum cannot have #[serde(content = \&quot;...\&quot;)]&quot;</span>,
             );
-            <a href="#707">cx</a>.<a href="ctxt.rs.html#32">error_spanned_by</a>(
-                <a href="#758">content_tokens</a>,
+            cx.error_spanned_by(
+                content_tokens,
                 <span class="string">&quot;untagged enum cannot have #[serde(content = \&quot;...\&quot;)]&quot;</span>,
             );
-            <a href="#237">TagType::External</a>
+            TagType::External
         }
-        (<span class="prelude-val">None</span>, <span class="prelude-val">Some</span>((<span class="kw">_</span>, tag)), <span class="prelude-val">Some</span>((<span class="kw">_</span>, content))) =&gt; <a href="#251">TagType::Adjacent</a> { <a href="#769">tag</a>, <a href="#769">content</a> },
+        (<span class="prelude-val">None</span>, <span class="prelude-val">Some</span>((<span class="kw">_</span>, tag)), <span class="prelude-val">Some</span>((<span class="kw">_</span>, content))) =&gt; TagType::Adjacent { tag, content },
         (<span class="prelude-val">Some</span>((untagged_tokens, <span class="kw">_</span>)), <span class="prelude-val">Some</span>((tag_tokens, <span class="kw">_</span>)), <span class="prelude-val">Some</span>((content_tokens, <span class="kw">_</span>))) =&gt; {
-            <a href="#707">cx</a>.<a href="ctxt.rs.html#32">error_spanned_by</a>(
-                <a href="#770">untagged_tokens</a>,
+            cx.error_spanned_by(
+                untagged_tokens,
                 <span class="string">&quot;untagged enum cannot have #[serde(tag = \&quot;...\&quot;, content = \&quot;...\&quot;)]&quot;</span>,
             );
-            <a href="#707">cx</a>.<a href="ctxt.rs.html#32">error_spanned_by</a>(
-                <a href="#770">tag_tokens</a>,
+            cx.error_spanned_by(
+                tag_tokens,
                 <span class="string">&quot;untagged enum cannot have #[serde(tag = \&quot;...\&quot;, content = \&quot;...\&quot;)]&quot;</span>,
             );
-            <a href="#707">cx</a>.<a href="ctxt.rs.html#32">error_spanned_by</a>(
-                <a href="#770">content_tokens</a>,
+            cx.error_spanned_by(
+                content_tokens,
                 <span class="string">&quot;untagged enum cannot have #[serde(tag = \&quot;...\&quot;, content = \&quot;...\&quot;)]&quot;</span>,
             );
-            <a href="#237">TagType::External</a>
+            TagType::External
         }
     }
 }
 
 <span class="kw">fn </span>decide_identifier(
-    cx: <span class="kw-2">&amp;</span><a href="ctxt.rs.html#13">Ctxt</a>,
-    item: <span class="kw-2">&amp;</span><a href="https://docs.rs/syn/1.0.103/syn/derive/struct.DeriveInput.html">syn::DeriveInput</a>,
-    field_identifier: <a href="#78">BoolAttr</a>,
-    variant_identifier: <a href="#78">BoolAttr</a>,
-) -&gt; <a href="#264">Identifier</a> {
+    cx: <span class="kw-2">&amp;</span>Ctxt,
+    item: <span class="kw-2">&amp;</span>syn::DeriveInput,
+    field_identifier: BoolAttr,
+    variant_identifier: BoolAttr,
+) -&gt; Identifier {
     <span class="kw">match </span>(
-        <span class="kw-2">&amp;</span><a href="#790">item</a>.data,
-        <a href="#791">field_identifier</a>.<span class="number">0</span>.<a href="#70">get_with_tokens</a>(),
-        <a href="#792">variant_identifier</a>.<span class="number">0</span>.<a href="#70">get_with_tokens</a>(),
+        <span class="kw-2">&amp;</span>item.data,
+        field_identifier.<span class="number">0</span>.get_with_tokens(),
+        variant_identifier.<span class="number">0</span>.get_with_tokens(),
     ) {
-        (<span class="kw">_</span>, <span class="prelude-val">None</span>, <span class="prelude-val">None</span>) =&gt; <a href="#266">Identifier::No</a>,
+        (<span class="kw">_</span>, <span class="prelude-val">None</span>, <span class="prelude-val">None</span>) =&gt; Identifier::No,
         (<span class="kw">_</span>, <span class="prelude-val">Some</span>((field_identifier_tokens, <span class="kw">_</span>)), <span class="prelude-val">Some</span>((variant_identifier_tokens, <span class="kw">_</span>))) =&gt; {
-            <a href="#789">cx</a>.<a href="ctxt.rs.html#32">error_spanned_by</a>(
-                <a href="#800">field_identifier_tokens</a>,
+            cx.error_spanned_by(
+                field_identifier_tokens,
                 <span class="string">&quot;#[serde(field_identifier)] and #[serde(variant_identifier)] cannot both be set&quot;</span>,
             );
-            <a href="#789">cx</a>.<a href="ctxt.rs.html#32">error_spanned_by</a>(
-                <a href="#800">variant_identifier_tokens</a>,
+            cx.error_spanned_by(
+                variant_identifier_tokens,
                 <span class="string">&quot;#[serde(field_identifier)] and #[serde(variant_identifier)] cannot both be set&quot;</span>,
             );
-            <a href="#266">Identifier::No</a>
+            Identifier::No
         }
-        (syn::Data::Enum(<span class="kw">_</span>), <span class="prelude-val">Some</span>(<span class="kw">_</span>), <span class="prelude-val">None</span>) =&gt; <a href="#271">Identifier::Field</a>,
-        (syn::Data::Enum(<span class="kw">_</span>), <span class="prelude-val">None</span>, <span class="prelude-val">Some</span>(<span class="kw">_</span>)) =&gt; <a href="#275">Identifier::Variant</a>,
-        (syn::Data::Struct(<a href="https://docs.rs/syn/1.0.103/syn/derive/struct.DataStruct.html">syn::DataStruct</a> { struct_token, .. }), <span class="prelude-val">Some</span>(<span class="kw">_</span>), <span class="prelude-val">None</span>) =&gt; {
-            <a href="#789">cx</a>.<a href="ctxt.rs.html#32">error_spanned_by</a>(
-                <a href="#813">struct_token</a>,
+        (syn::Data::Enum(<span class="kw">_</span>), <span class="prelude-val">Some</span>(<span class="kw">_</span>), <span class="prelude-val">None</span>) =&gt; Identifier::Field,
+        (syn::Data::Enum(<span class="kw">_</span>), <span class="prelude-val">None</span>, <span class="prelude-val">Some</span>(<span class="kw">_</span>)) =&gt; Identifier::Variant,
+        (syn::Data::Struct(syn::DataStruct { struct_token, .. }), <span class="prelude-val">Some</span>(<span class="kw">_</span>), <span class="prelude-val">None</span>) =&gt; {
+            cx.error_spanned_by(
+                struct_token,
                 <span class="string">&quot;#[serde(field_identifier)] can only be used on an enum&quot;</span>,
             );
-            <a href="#266">Identifier::No</a>
+            Identifier::No
         }
-        (syn::Data::Union(<a href="https://docs.rs/syn/1.0.103/syn/derive/struct.DataUnion.html">syn::DataUnion</a> { union_token, .. }), <span class="prelude-val">Some</span>(<span class="kw">_</span>), <span class="prelude-val">None</span>) =&gt; {
-            <a href="#789">cx</a>.<a href="ctxt.rs.html#32">error_spanned_by</a>(
-                <a href="#820">union_token</a>,
+        (syn::Data::Union(syn::DataUnion { union_token, .. }), <span class="prelude-val">Some</span>(<span class="kw">_</span>), <span class="prelude-val">None</span>) =&gt; {
+            cx.error_spanned_by(
+                union_token,
                 <span class="string">&quot;#[serde(field_identifier)] can only be used on an enum&quot;</span>,
             );
-            <a href="#266">Identifier::No</a>
+            Identifier::No
         }
-        (syn::Data::Struct(<a href="https://docs.rs/syn/1.0.103/syn/derive/struct.DataStruct.html">syn::DataStruct</a> { struct_token, .. }), <span class="prelude-val">None</span>, <span class="prelude-val">Some</span>(<span class="kw">_</span>)) =&gt; {
-            <a href="#789">cx</a>.<a href="ctxt.rs.html#32">error_spanned_by</a>(
-                <a href="#827">struct_token</a>,
+        (syn::Data::Struct(syn::DataStruct { struct_token, .. }), <span class="prelude-val">None</span>, <span class="prelude-val">Some</span>(<span class="kw">_</span>)) =&gt; {
+            cx.error_spanned_by(
+                struct_token,
                 <span class="string">&quot;#[serde(variant_identifier)] can only be used on an enum&quot;</span>,
             );
-            <a href="#266">Identifier::No</a>
+            Identifier::No
         }
-        (syn::Data::Union(<a href="https://docs.rs/syn/1.0.103/syn/derive/struct.DataUnion.html">syn::DataUnion</a> { union_token, .. }), <span class="prelude-val">None</span>, <span class="prelude-val">Some</span>(<span class="kw">_</span>)) =&gt; {
-            <a href="#789">cx</a>.<a href="ctxt.rs.html#32">error_spanned_by</a>(
-                <a href="#834">union_token</a>,
+        (syn::Data::Union(syn::DataUnion { union_token, .. }), <span class="prelude-val">None</span>, <span class="prelude-val">Some</span>(<span class="kw">_</span>)) =&gt; {
+            cx.error_spanned_by(
+                union_token,
                 <span class="string">&quot;#[serde(variant_identifier)] can only be used on an enum&quot;</span>,
             );
-            <a href="#266">Identifier::No</a>
+            Identifier::No
         }
     }
 }
 
 <span class="doccomment">/// Represents variant attribute information
 </span><span class="kw">pub struct </span>Variant {
-    name: <a href="#136">Name</a>,
-    rename_all_rules: <a href="#203">RenameAllRules</a>,
-    ser_bound: <span class="prelude-ty">Option</span>&lt;Vec&lt;<a href="https://docs.rs/syn/1.0.103/syn/generics/enum.WherePredicate.html">syn::WherePredicate</a>&gt;&gt;,
-    de_bound: <span class="prelude-ty">Option</span>&lt;Vec&lt;<a href="https://docs.rs/syn/1.0.103/syn/generics/enum.WherePredicate.html">syn::WherePredicate</a>&gt;&gt;,
-    skip_deserializing: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-    skip_serializing: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-    other: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-    serialize_with: <span class="prelude-ty">Option</span>&lt;<a href="https://docs.rs/syn/1.0.103/syn/expr/struct.ExprPath.html">syn::ExprPath</a>&gt;,
-    deserialize_with: <span class="prelude-ty">Option</span>&lt;<a href="https://docs.rs/syn/1.0.103/syn/expr/struct.ExprPath.html">syn::ExprPath</a>&gt;,
-    borrow: <span class="prelude-ty">Option</span>&lt;<a href="https://docs.rs/syn/1.0.103/syn/attr/enum.Meta.html">syn::Meta</a>&gt;,
+    name: Name,
+    rename_all_rules: RenameAllRules,
+    ser_bound: <span class="prelude-ty">Option</span>&lt;Vec&lt;syn::WherePredicate&gt;&gt;,
+    de_bound: <span class="prelude-ty">Option</span>&lt;Vec&lt;syn::WherePredicate&gt;&gt;,
+    skip_deserializing: bool,
+    skip_serializing: bool,
+    other: bool,
+    serialize_with: <span class="prelude-ty">Option</span>&lt;syn::ExprPath&gt;,
+    deserialize_with: <span class="prelude-ty">Option</span>&lt;syn::ExprPath&gt;,
+    borrow: <span class="prelude-ty">Option</span>&lt;syn::Meta&gt;,
 }
 
-<span class="kw">impl </span><a href="#845">Variant</a> {
-    <span class="kw">pub fn </span>from_ast(cx: <span class="kw-2">&amp;</span><a href="ctxt.rs.html#13">Ctxt</a>, variant: <span class="kw-2">&amp;</span><a href="https://docs.rs/syn/1.0.103/syn/data/struct.Variant.html">syn::Variant</a>) -&gt; <span class="self">Self </span>{
-        <span class="kw">let </span><span class="kw-2">mut </span>ser_name = Attr::none(<a href="#859">cx</a>, <a href="symbol.rs.html#23">RENAME</a>);
-        <span class="kw">let </span><span class="kw-2">mut </span>de_name = Attr::none(<a href="#859">cx</a>, <a href="symbol.rs.html#23">RENAME</a>);
-        <span class="kw">let </span><span class="kw-2">mut </span>de_aliases = VecAttr::none(<a href="#859">cx</a>, <a href="symbol.rs.html#23">RENAME</a>);
-        <span class="kw">let </span><span class="kw-2">mut </span>skip_deserializing = BoolAttr::none(<a href="#859">cx</a>, <a href="symbol.rs.html#29">SKIP_DESERIALIZING</a>);
-        <span class="kw">let </span><span class="kw-2">mut </span>skip_serializing = BoolAttr::none(<a href="#859">cx</a>, <a href="symbol.rs.html#30">SKIP_SERIALIZING</a>);
-        <span class="kw">let </span><span class="kw-2">mut </span>rename_all_ser_rule = Attr::none(<a href="#859">cx</a>, <a href="symbol.rs.html#24">RENAME_ALL</a>);
-        <span class="kw">let </span><span class="kw-2">mut </span>rename_all_de_rule = Attr::none(<a href="#859">cx</a>, <a href="symbol.rs.html#24">RENAME_ALL</a>);
-        <span class="kw">let </span><span class="kw-2">mut </span>ser_bound = Attr::none(<a href="#859">cx</a>, <a href="symbol.rs.html#9">BOUND</a>);
-        <span class="kw">let </span><span class="kw-2">mut </span>de_bound = Attr::none(<a href="#859">cx</a>, <a href="symbol.rs.html#9">BOUND</a>);
-        <span class="kw">let </span><span class="kw-2">mut </span>other = BoolAttr::none(<a href="#859">cx</a>, <a href="symbol.rs.html#21">OTHER</a>);
-        <span class="kw">let </span><span class="kw-2">mut </span>serialize_with = Attr::none(<a href="#859">cx</a>, <a href="symbol.rs.html#27">SERIALIZE_WITH</a>);
-        <span class="kw">let </span><span class="kw-2">mut </span>deserialize_with = Attr::none(<a href="#859">cx</a>, <a href="symbol.rs.html#15">DESERIALIZE_WITH</a>);
-        <span class="kw">let </span><span class="kw-2">mut </span>borrow = Attr::none(<a href="#859">cx</a>, <a href="symbol.rs.html#8">BORROW</a>);
+<span class="kw">impl </span>Variant {
+    <span class="kw">pub fn </span>from_ast(cx: <span class="kw-2">&amp;</span>Ctxt, variant: <span class="kw-2">&amp;</span>syn::Variant) -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span><span class="kw-2">mut </span>ser_name = Attr::none(cx, RENAME);
+        <span class="kw">let </span><span class="kw-2">mut </span>de_name = Attr::none(cx, RENAME);
+        <span class="kw">let </span><span class="kw-2">mut </span>de_aliases = VecAttr::none(cx, RENAME);
+        <span class="kw">let </span><span class="kw-2">mut </span>skip_deserializing = BoolAttr::none(cx, SKIP_DESERIALIZING);
+        <span class="kw">let </span><span class="kw-2">mut </span>skip_serializing = BoolAttr::none(cx, SKIP_SERIALIZING);
+        <span class="kw">let </span><span class="kw-2">mut </span>rename_all_ser_rule = Attr::none(cx, RENAME_ALL);
+        <span class="kw">let </span><span class="kw-2">mut </span>rename_all_de_rule = Attr::none(cx, RENAME_ALL);
+        <span class="kw">let </span><span class="kw-2">mut </span>ser_bound = Attr::none(cx, BOUND);
+        <span class="kw">let </span><span class="kw-2">mut </span>de_bound = Attr::none(cx, BOUND);
+        <span class="kw">let </span><span class="kw-2">mut </span>other = BoolAttr::none(cx, OTHER);
+        <span class="kw">let </span><span class="kw-2">mut </span>serialize_with = Attr::none(cx, SERIALIZE_WITH);
+        <span class="kw">let </span><span class="kw-2">mut </span>deserialize_with = Attr::none(cx, DESERIALIZE_WITH);
+        <span class="kw">let </span><span class="kw-2">mut </span>borrow = Attr::none(cx, BORROW);
 
         <span class="kw">for </span>meta_item <span class="kw">in </span>variant
             .attrs
@@ -2988,88 +2988,88 @@
             }
         }
 
-        <a href="#845">Variant</a> {
-            name: Name::from_attrs(<a href="#145">unraw</a>(<span class="kw-2">&amp;</span><a href="#859">variant</a>.ident), <a href="#860">ser_name</a>, <a href="#861">de_name</a>, <span class="prelude-val">Some</span>(<a href="#862">de_aliases</a>)),
-            rename_all_rules: <a href="#203">RenameAllRules</a> {
-                serialize: <a href="#865">rename_all_ser_rule</a>.<a href="#66">get</a>().unwrap_or(<a href="case.rs.html#16">RenameRule::None</a>),
-                deserialize: <a href="#866">rename_all_de_rule</a>.<a href="#66">get</a>().unwrap_or(<a href="case.rs.html#16">RenameRule::None</a>),
+        Variant {
+            name: Name::from_attrs(unraw(<span class="kw-2">&amp;</span>variant.ident), ser_name, de_name, <span class="prelude-val">Some</span>(de_aliases)),
+            rename_all_rules: RenameAllRules {
+                serialize: rename_all_ser_rule.get().unwrap_or(RenameRule::None),
+                deserialize: rename_all_de_rule.get().unwrap_or(RenameRule::None),
             },
-            ser_bound: <a href="#867">ser_bound</a>.<a href="#66">get</a>(),
-            de_bound: <a href="#868">de_bound</a>.<a href="#66">get</a>(),
-            skip_deserializing: <a href="#863">skip_deserializing</a>.<a href="#89">get</a>(),
-            skip_serializing: <a href="#864">skip_serializing</a>.<a href="#89">get</a>(),
-            other: <a href="#869">other</a>.<a href="#89">get</a>(),
-            serialize_with: <a href="#870">serialize_with</a>.<a href="#66">get</a>(),
-            deserialize_with: <a href="#871">deserialize_with</a>.<a href="#66">get</a>(),
-            borrow: <a href="#872">borrow</a>.<a href="#66">get</a>(),
+            ser_bound: ser_bound.get(),
+            de_bound: de_bound.get(),
+            skip_deserializing: skip_deserializing.get(),
+            skip_serializing: skip_serializing.get(),
+            other: other.get(),
+            serialize_with: serialize_with.get(),
+            deserialize_with: deserialize_with.get(),
+            borrow: borrow.get(),
         }
     }
 
-    <span class="kw">pub fn </span>name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="#136">Name</a> {
-        <span class="kw-2">&amp;</span><a class="self" href="#1056">self</a>.name
+    <span class="kw">pub fn </span>name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Name {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.name
     }
 
-    <span class="kw">pub fn </span>aliases(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Vec&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt; {
-        <a class="self" href="#1060">self</a>.name.<a href="#193">deserialize_aliases</a>()
+    <span class="kw">pub fn </span>aliases(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Vec&lt;String&gt; {
+        <span class="self">self</span>.name.deserialize_aliases()
     }
 
-    <span class="kw">pub fn </span>rename_by_rules(<span class="kw-2">&amp;mut </span><span class="self">self</span>, rules: <span class="kw-2">&amp;</span><a href="#203">RenameAllRules</a>) {
+    <span class="kw">pub fn </span>rename_by_rules(<span class="kw-2">&amp;mut </span><span class="self">self</span>, rules: <span class="kw-2">&amp;</span>RenameAllRules) {
         <span class="kw">if </span>!<span class="self">self</span>.name.serialize_renamed {
-            <a class="self" href="#1064">self</a>.name.serialize = <a href="#1064">rules</a>.serialize.<a href="case.rs.html#62">apply_to_variant</a>(<span class="kw-2">&amp;</span><a class="self" href="#1064">self</a>.name.serialize);
+            <span class="self">self</span>.name.serialize = rules.serialize.apply_to_variant(<span class="kw-2">&amp;</span><span class="self">self</span>.name.serialize);
         }
         <span class="kw">if </span>!<span class="self">self</span>.name.deserialize_renamed {
-            <a class="self" href="#1064">self</a>.name.deserialize = <a href="#1064">rules</a>.deserialize.<a href="case.rs.html#62">apply_to_variant</a>(<span class="kw-2">&amp;</span><a class="self" href="#1064">self</a>.name.deserialize);
+            <span class="self">self</span>.name.deserialize = rules.deserialize.apply_to_variant(<span class="kw-2">&amp;</span><span class="self">self</span>.name.deserialize);
         }
     }
 
-    <span class="kw">pub fn </span>rename_all_rules(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="#203">RenameAllRules</a> {
-        <span class="kw-2">&amp;</span><a class="self" href="#1073">self</a>.rename_all_rules
+    <span class="kw">pub fn </span>rename_all_rules(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>RenameAllRules {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.rename_all_rules
     }
 
-    <span class="kw">pub fn </span>ser_bound(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>[<a href="https://docs.rs/syn/1.0.103/syn/generics/enum.WherePredicate.html">syn::WherePredicate</a>]&gt; {
-        <a class="self" href="#1077">self</a>.ser_bound.as_ref().map(|vec| <span class="kw-2">&amp;</span><a href="#1078">vec</a>[..])
+    <span class="kw">pub fn </span>ser_bound(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>[syn::WherePredicate]&gt; {
+        <span class="self">self</span>.ser_bound.as_ref().map(|vec| <span class="kw-2">&amp;</span>vec[..])
     }
 
-    <span class="kw">pub fn </span>de_bound(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>[<a href="https://docs.rs/syn/1.0.103/syn/generics/enum.WherePredicate.html">syn::WherePredicate</a>]&gt; {
-        <a class="self" href="#1081">self</a>.de_bound.as_ref().map(|vec| <span class="kw-2">&amp;</span><a href="#1082">vec</a>[..])
+    <span class="kw">pub fn </span>de_bound(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>[syn::WherePredicate]&gt; {
+        <span class="self">self</span>.de_bound.as_ref().map(|vec| <span class="kw-2">&amp;</span>vec[..])
     }
 
-    <span class="kw">pub fn </span>skip_deserializing(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#1085">self</a>.skip_deserializing
+    <span class="kw">pub fn </span>skip_deserializing(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.skip_deserializing
     }
 
-    <span class="kw">pub fn </span>skip_serializing(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#1089">self</a>.skip_serializing
+    <span class="kw">pub fn </span>skip_serializing(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.skip_serializing
     }
 
-    <span class="kw">pub fn </span>other(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#1093">self</a>.other
+    <span class="kw">pub fn </span>other(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.other
     }
 
-    <span class="kw">pub fn </span>serialize_with(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="https://docs.rs/syn/1.0.103/syn/expr/struct.ExprPath.html">syn::ExprPath</a>&gt; {
-        <a class="self" href="#1097">self</a>.serialize_with.as_ref()
+    <span class="kw">pub fn </span>serialize_with(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>syn::ExprPath&gt; {
+        <span class="self">self</span>.serialize_with.as_ref()
     }
 
-    <span class="kw">pub fn </span>deserialize_with(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="https://docs.rs/syn/1.0.103/syn/expr/struct.ExprPath.html">syn::ExprPath</a>&gt; {
-        <a class="self" href="#1101">self</a>.deserialize_with.as_ref()
+    <span class="kw">pub fn </span>deserialize_with(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>syn::ExprPath&gt; {
+        <span class="self">self</span>.deserialize_with.as_ref()
     }
 }
 
 <span class="doccomment">/// Represents field attribute information
 </span><span class="kw">pub struct </span>Field {
-    name: <a href="#136">Name</a>,
-    skip_serializing: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-    skip_deserializing: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-    skip_serializing_if: <span class="prelude-ty">Option</span>&lt;<a href="https://docs.rs/syn/1.0.103/syn/expr/struct.ExprPath.html">syn::ExprPath</a>&gt;,
-    default: <a href="#1124">Default</a>,
-    serialize_with: <span class="prelude-ty">Option</span>&lt;<a href="https://docs.rs/syn/1.0.103/syn/expr/struct.ExprPath.html">syn::ExprPath</a>&gt;,
-    deserialize_with: <span class="prelude-ty">Option</span>&lt;<a href="https://docs.rs/syn/1.0.103/syn/expr/struct.ExprPath.html">syn::ExprPath</a>&gt;,
-    ser_bound: <span class="prelude-ty">Option</span>&lt;Vec&lt;<a href="https://docs.rs/syn/1.0.103/syn/generics/enum.WherePredicate.html">syn::WherePredicate</a>&gt;&gt;,
-    de_bound: <span class="prelude-ty">Option</span>&lt;Vec&lt;<a href="https://docs.rs/syn/1.0.103/syn/generics/enum.WherePredicate.html">syn::WherePredicate</a>&gt;&gt;,
-    borrowed_lifetimes: BTreeSet&lt;<a href="https://docs.rs/syn/1.0.103/syn/lifetime/struct.Lifetime.html">syn::Lifetime</a>&gt;,
-    getter: <span class="prelude-ty">Option</span>&lt;<a href="https://docs.rs/syn/1.0.103/syn/expr/struct.ExprPath.html">syn::ExprPath</a>&gt;,
-    flatten: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-    transparent: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
+    name: Name,
+    skip_serializing: bool,
+    skip_deserializing: bool,
+    skip_serializing_if: <span class="prelude-ty">Option</span>&lt;syn::ExprPath&gt;,
+    default: Default,
+    serialize_with: <span class="prelude-ty">Option</span>&lt;syn::ExprPath&gt;,
+    deserialize_with: <span class="prelude-ty">Option</span>&lt;syn::ExprPath&gt;,
+    ser_bound: <span class="prelude-ty">Option</span>&lt;Vec&lt;syn::WherePredicate&gt;&gt;,
+    de_bound: <span class="prelude-ty">Option</span>&lt;Vec&lt;syn::WherePredicate&gt;&gt;,
+    borrowed_lifetimes: BTreeSet&lt;syn::Lifetime&gt;,
+    getter: <span class="prelude-ty">Option</span>&lt;syn::ExprPath&gt;,
+    flatten: bool,
+    transparent: bool,
 }
 
 <span class="doccomment">/// Represents the default to use for a field when deserializing.
@@ -3079,50 +3079,50 @@
     <span class="doccomment">/// The default is given by `std::default::Default::default()`.
     </span>Default,
     <span class="doccomment">/// The default is given by this function.
-    </span>Path(<a href="https://docs.rs/syn/1.0.103/syn/expr/struct.ExprPath.html">syn::ExprPath</a>),
+    </span>Path(syn::ExprPath),
 }
 
-<span class="kw">impl </span><a href="#1124">Default</a> {
-    <span class="kw">pub fn </span>is_none(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">match </span><span class="self"><a href="#1134">self</a> </span>{
-            <a href="#1126">Default::None</a> =&gt; <span class="bool-val">true</span>,
-            <a href="#1128">Default::Default</a> | <a href="#1130">Default::Path</a>(<span class="kw">_</span>) =&gt; <span class="bool-val">false</span>,
+<span class="kw">impl </span>Default {
+    <span class="kw">pub fn </span>is_none(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="kw">match </span><span class="self">self </span>{
+            Default::None =&gt; <span class="bool-val">true</span>,
+            Default::Default | Default::Path(<span class="kw">_</span>) =&gt; <span class="bool-val">false</span>,
         }
     }
 }
 
-<span class="kw">impl </span><a href="#1107">Field</a> {
+<span class="kw">impl </span>Field {
     <span class="doccomment">/// Extract out the `#[serde(...)]` attributes from a struct field.
     </span><span class="kw">pub fn </span>from_ast(
-        cx: <span class="kw-2">&amp;</span><a href="ctxt.rs.html#13">Ctxt</a>,
-        index: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-        field: <span class="kw-2">&amp;</span><a href="https://docs.rs/syn/1.0.103/syn/data/struct.Field.html">syn::Field</a>,
-        attrs: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="#845">Variant</a>&gt;,
-        container_default: <span class="kw-2">&amp;</span><a href="#1124">Default</a>,
+        cx: <span class="kw-2">&amp;</span>Ctxt,
+        index: usize,
+        field: <span class="kw-2">&amp;</span>syn::Field,
+        attrs: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Variant&gt;,
+        container_default: <span class="kw-2">&amp;</span>Default,
     ) -&gt; <span class="self">Self </span>{
-        <span class="kw">let </span><span class="kw-2">mut </span>ser_name = Attr::none(<a href="#1145">cx</a>, <a href="symbol.rs.html#23">RENAME</a>);
-        <span class="kw">let </span><span class="kw-2">mut </span>de_name = Attr::none(<a href="#1145">cx</a>, <a href="symbol.rs.html#23">RENAME</a>);
-        <span class="kw">let </span><span class="kw-2">mut </span>de_aliases = VecAttr::none(<a href="#1145">cx</a>, <a href="symbol.rs.html#23">RENAME</a>);
-        <span class="kw">let </span><span class="kw-2">mut </span>skip_serializing = BoolAttr::none(<a href="#1145">cx</a>, <a href="symbol.rs.html#30">SKIP_SERIALIZING</a>);
-        <span class="kw">let </span><span class="kw-2">mut </span>skip_deserializing = BoolAttr::none(<a href="#1145">cx</a>, <a href="symbol.rs.html#29">SKIP_DESERIALIZING</a>);
-        <span class="kw">let </span><span class="kw-2">mut </span>skip_serializing_if = Attr::none(<a href="#1145">cx</a>, <a href="symbol.rs.html#31">SKIP_SERIALIZING_IF</a>);
-        <span class="kw">let </span><span class="kw-2">mut </span>default = Attr::none(<a href="#1145">cx</a>, <a href="symbol.rs.html#12">DEFAULT</a>);
-        <span class="kw">let </span><span class="kw-2">mut </span>serialize_with = Attr::none(<a href="#1145">cx</a>, <a href="symbol.rs.html#27">SERIALIZE_WITH</a>);
-        <span class="kw">let </span><span class="kw-2">mut </span>deserialize_with = Attr::none(<a href="#1145">cx</a>, <a href="symbol.rs.html#15">DESERIALIZE_WITH</a>);
-        <span class="kw">let </span><span class="kw-2">mut </span>ser_bound = Attr::none(<a href="#1145">cx</a>, <a href="symbol.rs.html#9">BOUND</a>);
-        <span class="kw">let </span><span class="kw-2">mut </span>de_bound = Attr::none(<a href="#1145">cx</a>, <a href="symbol.rs.html#9">BOUND</a>);
-        <span class="kw">let </span><span class="kw-2">mut </span>borrowed_lifetimes = Attr::none(<a href="#1145">cx</a>, <a href="symbol.rs.html#8">BORROW</a>);
-        <span class="kw">let </span><span class="kw-2">mut </span>getter = Attr::none(<a href="#1145">cx</a>, <a href="symbol.rs.html#19">GETTER</a>);
-        <span class="kw">let </span><span class="kw-2">mut </span>flatten = BoolAttr::none(<a href="#1145">cx</a>, <a href="symbol.rs.html#17">FLATTEN</a>);
+        <span class="kw">let </span><span class="kw-2">mut </span>ser_name = Attr::none(cx, RENAME);
+        <span class="kw">let </span><span class="kw-2">mut </span>de_name = Attr::none(cx, RENAME);
+        <span class="kw">let </span><span class="kw-2">mut </span>de_aliases = VecAttr::none(cx, RENAME);
+        <span class="kw">let </span><span class="kw-2">mut </span>skip_serializing = BoolAttr::none(cx, SKIP_SERIALIZING);
+        <span class="kw">let </span><span class="kw-2">mut </span>skip_deserializing = BoolAttr::none(cx, SKIP_DESERIALIZING);
+        <span class="kw">let </span><span class="kw-2">mut </span>skip_serializing_if = Attr::none(cx, SKIP_SERIALIZING_IF);
+        <span class="kw">let </span><span class="kw-2">mut </span>default = Attr::none(cx, DEFAULT);
+        <span class="kw">let </span><span class="kw-2">mut </span>serialize_with = Attr::none(cx, SERIALIZE_WITH);
+        <span class="kw">let </span><span class="kw-2">mut </span>deserialize_with = Attr::none(cx, DESERIALIZE_WITH);
+        <span class="kw">let </span><span class="kw-2">mut </span>ser_bound = Attr::none(cx, BOUND);
+        <span class="kw">let </span><span class="kw-2">mut </span>de_bound = Attr::none(cx, BOUND);
+        <span class="kw">let </span><span class="kw-2">mut </span>borrowed_lifetimes = Attr::none(cx, BORROW);
+        <span class="kw">let </span><span class="kw-2">mut </span>getter = Attr::none(cx, GETTER);
+        <span class="kw">let </span><span class="kw-2">mut </span>flatten = BoolAttr::none(cx, FLATTEN);
 
-        <span class="kw">let </span>ident = <span class="kw">match </span><span class="kw-2">&amp;</span><a href="#1147">field</a>.ident {
-            <span class="prelude-val">Some</span>(ident) =&gt; <a href="#145">unraw</a>(<a href="#1167">ident</a>),
-            <span class="prelude-val">None </span>=&gt; <a href="#1146">index</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(),
+        <span class="kw">let </span>ident = <span class="kw">match </span><span class="kw-2">&amp;</span>field.ident {
+            <span class="prelude-val">Some</span>(ident) =&gt; unraw(ident),
+            <span class="prelude-val">None </span>=&gt; index.to_string(),
         };
 
-        <span class="kw">let </span>variant_borrow = <a href="#1148">attrs</a>
-            .and_then(|variant| <a href="#1172">variant</a>.borrow.as_ref())
-            .map(|borrow| Meta(<a href="#1173">borrow</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()));
+        <span class="kw">let </span>variant_borrow = attrs
+            .and_then(|variant| variant.borrow.as_ref())
+            .map(|borrow| Meta(borrow.clone()));
 
         <span class="kw">for </span>meta_item <span class="kw">in </span>field
             .attrs
@@ -3302,13 +3302,13 @@
         <span class="comment">// Is skip_deserializing, initialize the field to Default::default() unless a
         // different default is specified by `#[serde(default = &quot;...&quot;)]` on
         // ourselves or our container (e.g. the struct we are in).
-        </span><span class="kw">if let </span><a href="#1126">Default::None</a> = <span class="kw-2">*</span><a href="#1149">container_default</a> {
+        </span><span class="kw">if let </span>Default::None = <span class="kw-2">*</span>container_default {
             <span class="kw">if </span>skip_deserializing.<span class="number">0</span>.value.is_some() {
-                <a href="#1157">default</a>.<a href="#60">set_if_none</a>(<a href="#1128">Default::Default</a>);
+                default.set_if_none(Default::Default);
             }
         }
 
-        <span class="kw">let </span><span class="kw-2">mut </span>borrowed_lifetimes = <a href="#1162">borrowed_lifetimes</a>.<a href="#66">get</a>().unwrap_or_default();
+        <span class="kw">let </span><span class="kw-2">mut </span>borrowed_lifetimes = borrowed_lifetimes.get().unwrap_or_default();
         <span class="kw">if </span>!borrowed_lifetimes.is_empty() {
             <span class="comment">// Cow&lt;str&gt; and Cow&lt;[u8]&gt; never borrow by default:
             //
@@ -3320,147 +3320,147 @@
             //     impl&lt;&#39;de: &#39;a, &#39;a&gt; Deserialize&lt;&#39;de&gt; for Cow&lt;&#39;a, str&gt;
             //     impl&lt;&#39;de: &#39;a, &#39;a&gt; Deserialize&lt;&#39;de&gt; for Cow&lt;&#39;a, [u8]&gt;
             </span><span class="kw">if </span>is_cow(<span class="kw-2">&amp;</span>field.ty, is_str) {
-                <span class="kw">let </span><span class="kw-2">mut </span>path = <a href="https://docs.rs/syn/1.0.103/syn/path/struct.Path.html">syn::Path</a> {
+                <span class="kw">let </span><span class="kw-2">mut </span>path = syn::Path {
                     leading_colon: <span class="prelude-val">None</span>,
                     segments: Punctuated::new(),
                 };
                 <span class="kw">let </span>span = Span::call_site();
-                <a href="#1371">path</a>.segments.push(Ident::new(<span class="string">&quot;_serde&quot;</span>, <a href="#1375">span</a>).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>());
-                <a href="#1371">path</a>.segments.push(Ident::new(<span class="string">&quot;__private&quot;</span>, <a href="#1375">span</a>).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>());
-                <a href="#1371">path</a>.segments.push(Ident::new(<span class="string">&quot;de&quot;</span>, <a href="#1375">span</a>).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>());
-                <a href="#1371">path</a>.segments
-                    .push(Ident::new(<span class="string">&quot;borrow_cow_str&quot;</span>, <a href="#1375">span</a>).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>());
-                <span class="kw">let </span>expr = <a href="https://docs.rs/syn/1.0.103/syn/expr/struct.ExprPath.html">syn::ExprPath</a> {
+                path.segments.push(Ident::new(<span class="string">&quot;_serde&quot;</span>, span).into());
+                path.segments.push(Ident::new(<span class="string">&quot;__private&quot;</span>, span).into());
+                path.segments.push(Ident::new(<span class="string">&quot;de&quot;</span>, span).into());
+                path.segments
+                    .push(Ident::new(<span class="string">&quot;borrow_cow_str&quot;</span>, span).into());
+                <span class="kw">let </span>expr = syn::ExprPath {
                     attrs: Vec::new(),
                     qself: <span class="prelude-val">None</span>,
-                    <a href="#1371">path</a>,
+                    path,
                 };
-                <a href="#1159">deserialize_with</a>.<a href="#60">set_if_none</a>(<a href="#1381">expr</a>);
+                deserialize_with.set_if_none(expr);
             } <span class="kw">else if </span>is_cow(<span class="kw-2">&amp;</span>field.ty, is_slice_u8) {
-                <span class="kw">let </span><span class="kw-2">mut </span>path = <a href="https://docs.rs/syn/1.0.103/syn/path/struct.Path.html">syn::Path</a> {
+                <span class="kw">let </span><span class="kw-2">mut </span>path = syn::Path {
                     leading_colon: <span class="prelude-val">None</span>,
                     segments: Punctuated::new(),
                 };
                 <span class="kw">let </span>span = Span::call_site();
-                <a href="#1388">path</a>.segments.push(Ident::new(<span class="string">&quot;_serde&quot;</span>, <a href="#1392">span</a>).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>());
-                <a href="#1388">path</a>.segments.push(Ident::new(<span class="string">&quot;__private&quot;</span>, <a href="#1392">span</a>).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>());
-                <a href="#1388">path</a>.segments.push(Ident::new(<span class="string">&quot;de&quot;</span>, <a href="#1392">span</a>).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>());
-                <a href="#1388">path</a>.segments
-                    .push(Ident::new(<span class="string">&quot;borrow_cow_bytes&quot;</span>, <a href="#1392">span</a>).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>());
-                <span class="kw">let </span>expr = <a href="https://docs.rs/syn/1.0.103/syn/expr/struct.ExprPath.html">syn::ExprPath</a> {
+                path.segments.push(Ident::new(<span class="string">&quot;_serde&quot;</span>, span).into());
+                path.segments.push(Ident::new(<span class="string">&quot;__private&quot;</span>, span).into());
+                path.segments.push(Ident::new(<span class="string">&quot;de&quot;</span>, span).into());
+                path.segments
+                    .push(Ident::new(<span class="string">&quot;borrow_cow_bytes&quot;</span>, span).into());
+                <span class="kw">let </span>expr = syn::ExprPath {
                     attrs: Vec::new(),
                     qself: <span class="prelude-val">None</span>,
-                    <a href="#1388">path</a>,
+                    path,
                 };
-                <a href="#1159">deserialize_with</a>.<a href="#60">set_if_none</a>(<a href="#1398">expr</a>);
+                deserialize_with.set_if_none(expr);
             }
         } <span class="kw">else if </span>is_implicitly_borrowed(<span class="kw-2">&amp;</span>field.ty) {
             <span class="comment">// Types &amp;str and &amp;[u8] are always implicitly borrowed. No need for
             // a #[serde(borrow)].
-            </span><a href="#1855">collect_lifetimes</a>(<span class="kw-2">&amp;</span><a href="#1147">field</a>.ty, <span class="kw-2">&amp;mut </span><a href="#1359">borrowed_lifetimes</a>);
+            </span>collect_lifetimes(<span class="kw-2">&amp;</span>field.ty, <span class="kw-2">&amp;mut </span>borrowed_lifetimes);
         }
 
-        <a href="#1107">Field</a> {
-            name: Name::from_attrs(<a href="#1166">ident</a>, <a href="#1151">ser_name</a>, <a href="#1152">de_name</a>, <span class="prelude-val">Some</span>(<a href="#1153">de_aliases</a>)),
-            skip_serializing: <a href="#1154">skip_serializing</a>.<a href="#89">get</a>(),
-            skip_deserializing: <a href="#1155">skip_deserializing</a>.<a href="#89">get</a>(),
-            skip_serializing_if: <a href="#1156">skip_serializing_if</a>.<a href="#66">get</a>(),
-            default: <a href="#1157">default</a>.<a href="#66">get</a>().unwrap_or(<a href="#1126">Default::None</a>),
-            serialize_with: <a href="#1158">serialize_with</a>.<a href="#66">get</a>(),
-            deserialize_with: <a href="#1159">deserialize_with</a>.<a href="#66">get</a>(),
-            ser_bound: <a href="#1160">ser_bound</a>.<a href="#66">get</a>(),
-            de_bound: <a href="#1161">de_bound</a>.<a href="#66">get</a>(),
-            <a href="#1359">borrowed_lifetimes</a>,
-            getter: <a href="#1163">getter</a>.<a href="#66">get</a>(),
-            flatten: <a href="#1164">flatten</a>.<a href="#89">get</a>(),
+        Field {
+            name: Name::from_attrs(ident, ser_name, de_name, <span class="prelude-val">Some</span>(de_aliases)),
+            skip_serializing: skip_serializing.get(),
+            skip_deserializing: skip_deserializing.get(),
+            skip_serializing_if: skip_serializing_if.get(),
+            default: default.get().unwrap_or(Default::None),
+            serialize_with: serialize_with.get(),
+            deserialize_with: deserialize_with.get(),
+            ser_bound: ser_bound.get(),
+            de_bound: de_bound.get(),
+            borrowed_lifetimes,
+            getter: getter.get(),
+            flatten: flatten.get(),
             transparent: <span class="bool-val">false</span>,
         }
     }
 
-    <span class="kw">pub fn </span>name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="#136">Name</a> {
-        <span class="kw-2">&amp;</span><a class="self" href="#1428">self</a>.name
+    <span class="kw">pub fn </span>name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Name {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.name
     }
 
-    <span class="kw">pub fn </span>aliases(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Vec&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt; {
-        <a class="self" href="#1432">self</a>.name.<a href="#193">deserialize_aliases</a>()
+    <span class="kw">pub fn </span>aliases(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Vec&lt;String&gt; {
+        <span class="self">self</span>.name.deserialize_aliases()
     }
 
-    <span class="kw">pub fn </span>rename_by_rules(<span class="kw-2">&amp;mut </span><span class="self">self</span>, rules: <span class="kw-2">&amp;</span><a href="#203">RenameAllRules</a>) {
+    <span class="kw">pub fn </span>rename_by_rules(<span class="kw-2">&amp;mut </span><span class="self">self</span>, rules: <span class="kw-2">&amp;</span>RenameAllRules) {
         <span class="kw">if </span>!<span class="self">self</span>.name.serialize_renamed {
-            <a class="self" href="#1436">self</a>.name.serialize = <a href="#1436">rules</a>.serialize.<a href="case.rs.html#87">apply_to_field</a>(<span class="kw-2">&amp;</span><a class="self" href="#1436">self</a>.name.serialize);
+            <span class="self">self</span>.name.serialize = rules.serialize.apply_to_field(<span class="kw-2">&amp;</span><span class="self">self</span>.name.serialize);
         }
         <span class="kw">if </span>!<span class="self">self</span>.name.deserialize_renamed {
-            <a class="self" href="#1436">self</a>.name.deserialize = <a href="#1436">rules</a>.deserialize.<a href="case.rs.html#87">apply_to_field</a>(<span class="kw-2">&amp;</span><a class="self" href="#1436">self</a>.name.deserialize);
+            <span class="self">self</span>.name.deserialize = rules.deserialize.apply_to_field(<span class="kw-2">&amp;</span><span class="self">self</span>.name.deserialize);
         }
     }
 
-    <span class="kw">pub fn </span>skip_serializing(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#1445">self</a>.skip_serializing
+    <span class="kw">pub fn </span>skip_serializing(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.skip_serializing
     }
 
-    <span class="kw">pub fn </span>skip_deserializing(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#1449">self</a>.skip_deserializing
+    <span class="kw">pub fn </span>skip_deserializing(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.skip_deserializing
     }
 
-    <span class="kw">pub fn </span>skip_serializing_if(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="https://docs.rs/syn/1.0.103/syn/expr/struct.ExprPath.html">syn::ExprPath</a>&gt; {
-        <a class="self" href="#1453">self</a>.skip_serializing_if.as_ref()
+    <span class="kw">pub fn </span>skip_serializing_if(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>syn::ExprPath&gt; {
+        <span class="self">self</span>.skip_serializing_if.as_ref()
     }
 
-    <span class="kw">pub fn </span>default(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="#1124">Default</a> {
-        <span class="kw-2">&amp;</span><a class="self" href="#1457">self</a>.default
+    <span class="kw">pub fn </span>default(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Default {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.default
     }
 
-    <span class="kw">pub fn </span>serialize_with(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="https://docs.rs/syn/1.0.103/syn/expr/struct.ExprPath.html">syn::ExprPath</a>&gt; {
-        <a class="self" href="#1461">self</a>.serialize_with.as_ref()
+    <span class="kw">pub fn </span>serialize_with(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>syn::ExprPath&gt; {
+        <span class="self">self</span>.serialize_with.as_ref()
     }
 
-    <span class="kw">pub fn </span>deserialize_with(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="https://docs.rs/syn/1.0.103/syn/expr/struct.ExprPath.html">syn::ExprPath</a>&gt; {
-        <a class="self" href="#1465">self</a>.deserialize_with.as_ref()
+    <span class="kw">pub fn </span>deserialize_with(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>syn::ExprPath&gt; {
+        <span class="self">self</span>.deserialize_with.as_ref()
     }
 
-    <span class="kw">pub fn </span>ser_bound(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>[<a href="https://docs.rs/syn/1.0.103/syn/generics/enum.WherePredicate.html">syn::WherePredicate</a>]&gt; {
-        <a class="self" href="#1469">self</a>.ser_bound.as_ref().map(|vec| <span class="kw-2">&amp;</span><a href="#1470">vec</a>[..])
+    <span class="kw">pub fn </span>ser_bound(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>[syn::WherePredicate]&gt; {
+        <span class="self">self</span>.ser_bound.as_ref().map(|vec| <span class="kw-2">&amp;</span>vec[..])
     }
 
-    <span class="kw">pub fn </span>de_bound(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>[<a href="https://docs.rs/syn/1.0.103/syn/generics/enum.WherePredicate.html">syn::WherePredicate</a>]&gt; {
-        <a class="self" href="#1473">self</a>.de_bound.as_ref().map(|vec| <span class="kw-2">&amp;</span><a href="#1474">vec</a>[..])
+    <span class="kw">pub fn </span>de_bound(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>[syn::WherePredicate]&gt; {
+        <span class="self">self</span>.de_bound.as_ref().map(|vec| <span class="kw-2">&amp;</span>vec[..])
     }
 
-    <span class="kw">pub fn </span>borrowed_lifetimes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>BTreeSet&lt;<a href="https://docs.rs/syn/1.0.103/syn/lifetime/struct.Lifetime.html">syn::Lifetime</a>&gt; {
-        <span class="kw-2">&amp;</span><a class="self" href="#1477">self</a>.borrowed_lifetimes
+    <span class="kw">pub fn </span>borrowed_lifetimes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>BTreeSet&lt;syn::Lifetime&gt; {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.borrowed_lifetimes
     }
 
-    <span class="kw">pub fn </span>getter(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="https://docs.rs/syn/1.0.103/syn/expr/struct.ExprPath.html">syn::ExprPath</a>&gt; {
-        <a class="self" href="#1481">self</a>.getter.as_ref()
+    <span class="kw">pub fn </span>getter(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>syn::ExprPath&gt; {
+        <span class="self">self</span>.getter.as_ref()
     }
 
-    <span class="kw">pub fn </span>flatten(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#1485">self</a>.flatten
+    <span class="kw">pub fn </span>flatten(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.flatten
     }
 
-    <span class="kw">pub fn </span>transparent(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#1489">self</a>.transparent
+    <span class="kw">pub fn </span>transparent(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.transparent
     }
 
     <span class="kw">pub fn </span>mark_transparent(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <a class="self" href="#1493">self</a>.transparent = <span class="bool-val">true</span>;
+        <span class="self">self</span>.transparent = <span class="bool-val">true</span>;
     }
 }
 
 <span class="kw">type </span>SerAndDe&lt;T&gt; = (<span class="prelude-ty">Option</span>&lt;T&gt;, <span class="prelude-ty">Option</span>&lt;T&gt;);
 
 <span class="kw">fn </span>get_ser_and_de&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span>, T, F&gt;(
-    cx: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span><a href="ctxt.rs.html#13">Ctxt</a>,
-    attr_name: <a href="symbol.rs.html#5">Symbol</a>,
-    metas: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Punctuated&lt;<a href="https://docs.rs/syn/1.0.103/syn/attr/enum.NestedMeta.html">syn::NestedMeta</a>, <a class="macro" href="https://docs.rs/syn/1.0.103/syn/macro.Token.html">Token!</a>[,]&gt;,
+    cx: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span>Ctxt,
+    attr_name: Symbol,
+    metas: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Punctuated&lt;syn::NestedMeta, <span class="macro">Token!</span>[,]&gt;,
     f: F,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;(VecAttr&lt;<span class="lifetime">&#39;b</span>, T&gt;, VecAttr&lt;<span class="lifetime">&#39;b</span>, T&gt;), ()&gt;
 <span class="kw">where
     </span>T: <span class="lifetime">&#39;a</span>,
-    F: Fn(<span class="kw-2">&amp;</span><a href="ctxt.rs.html#13">Ctxt</a>, <a href="symbol.rs.html#5">Symbol</a>, <a href="symbol.rs.html#5">Symbol</a>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="https://docs.rs/syn/1.0.103/syn/lit/enum.Lit.html">syn::Lit</a>) -&gt; <span class="prelude-ty">Result</span>&lt;T, ()&gt;,
+    F: Fn(<span class="kw-2">&amp;</span>Ctxt, Symbol, Symbol, <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>syn::Lit) -&gt; <span class="prelude-ty">Result</span>&lt;T, ()&gt;,
 {
-    <span class="kw">let </span><span class="kw-2">mut </span>ser_meta = VecAttr::none(<a href="#1501">cx</a>, <a href="#1502">attr_name</a>);
-    <span class="kw">let </span><span class="kw-2">mut </span>de_meta = VecAttr::none(<a href="#1501">cx</a>, <a href="#1502">attr_name</a>);
+    <span class="kw">let </span><span class="kw-2">mut </span>ser_meta = VecAttr::none(cx, attr_name);
+    <span class="kw">let </span><span class="kw-2">mut </span>de_meta = VecAttr::none(cx, attr_name);
 
     <span class="kw">for </span>meta <span class="kw">in </span>metas {
         <span class="kw">match </span>meta {
@@ -3489,67 +3489,67 @@
         }
     }
 
-    <span class="prelude-val">Ok</span>((<a href="#1510">ser_meta</a>, <a href="#1511">de_meta</a>))
+    <span class="prelude-val">Ok</span>((ser_meta, de_meta))
 }
 
 <span class="kw">fn </span>get_renames&lt;<span class="lifetime">&#39;a</span>&gt;(
-    cx: <span class="kw-2">&amp;</span><a href="ctxt.rs.html#13">Ctxt</a>,
-    items: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Punctuated&lt;<a href="https://docs.rs/syn/1.0.103/syn/attr/enum.NestedMeta.html">syn::NestedMeta</a>, <a class="macro" href="https://docs.rs/syn/1.0.103/syn/macro.Token.html">Token!</a>[,]&gt;,
-) -&gt; <span class="prelude-ty">Result</span>&lt;SerAndDe&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="https://docs.rs/syn/1.0.103/syn/lit/struct.LitStr.html">syn::LitStr</a>&gt;, ()&gt; {
+    cx: <span class="kw-2">&amp;</span>Ctxt,
+    items: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Punctuated&lt;syn::NestedMeta, <span class="macro">Token!</span>[,]&gt;,
+) -&gt; <span class="prelude-ty">Result</span>&lt;SerAndDe&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>syn::LitStr&gt;, ()&gt; {
     <span class="kw">let </span>(ser, de) = get_ser_and_de(cx, RENAME, items, get_lit_str2)<span class="question-mark">?</span>;
     <span class="prelude-val">Ok</span>((ser.at_most_one()<span class="question-mark">?</span>, de.at_most_one()<span class="question-mark">?</span>))
 }
 
 <span class="kw">fn </span>get_multiple_renames&lt;<span class="lifetime">&#39;a</span>&gt;(
-    cx: <span class="kw-2">&amp;</span><a href="ctxt.rs.html#13">Ctxt</a>,
-    items: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Punctuated&lt;<a href="https://docs.rs/syn/1.0.103/syn/attr/enum.NestedMeta.html">syn::NestedMeta</a>, <a class="macro" href="https://docs.rs/syn/1.0.103/syn/macro.Token.html">Token!</a>[,]&gt;,
-) -&gt; <span class="prelude-ty">Result</span>&lt;(<span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="https://docs.rs/syn/1.0.103/syn/lit/struct.LitStr.html">syn::LitStr</a>&gt;, Vec&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="https://docs.rs/syn/1.0.103/syn/lit/struct.LitStr.html">syn::LitStr</a>&gt;), ()&gt; {
+    cx: <span class="kw-2">&amp;</span>Ctxt,
+    items: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Punctuated&lt;syn::NestedMeta, <span class="macro">Token!</span>[,]&gt;,
+) -&gt; <span class="prelude-ty">Result</span>&lt;(<span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>syn::LitStr&gt;, Vec&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>syn::LitStr&gt;), ()&gt; {
     <span class="kw">let </span>(ser, de) = get_ser_and_de(cx, RENAME, items, get_lit_str2)<span class="question-mark">?</span>;
-    <span class="prelude-val">Ok</span>((ser.at_most_one()<span class="question-mark">?</span>, <a href="#1555">de</a>.<a href="#131">get</a>()))
+    <span class="prelude-val">Ok</span>((ser.at_most_one()<span class="question-mark">?</span>, de.get()))
 }
 
 <span class="kw">fn </span>get_where_predicates(
-    cx: <span class="kw-2">&amp;</span><a href="ctxt.rs.html#13">Ctxt</a>,
-    items: <span class="kw-2">&amp;</span>Punctuated&lt;<a href="https://docs.rs/syn/1.0.103/syn/attr/enum.NestedMeta.html">syn::NestedMeta</a>, <a class="macro" href="https://docs.rs/syn/1.0.103/syn/macro.Token.html">Token!</a>[,]&gt;,
-) -&gt; <span class="prelude-ty">Result</span>&lt;SerAndDe&lt;Vec&lt;<a href="https://docs.rs/syn/1.0.103/syn/generics/enum.WherePredicate.html">syn::WherePredicate</a>&gt;&gt;, ()&gt; {
+    cx: <span class="kw-2">&amp;</span>Ctxt,
+    items: <span class="kw-2">&amp;</span>Punctuated&lt;syn::NestedMeta, <span class="macro">Token!</span>[,]&gt;,
+) -&gt; <span class="prelude-ty">Result</span>&lt;SerAndDe&lt;Vec&lt;syn::WherePredicate&gt;&gt;, ()&gt; {
     <span class="kw">let </span>(ser, de) = get_ser_and_de(cx, BOUND, items, parse_lit_into_where)<span class="question-mark">?</span>;
     <span class="prelude-val">Ok</span>((ser.at_most_one()<span class="question-mark">?</span>, de.at_most_one()<span class="question-mark">?</span>))
 }
 
-<span class="kw">pub fn </span>get_serde_meta_items(cx: <span class="kw-2">&amp;</span><a href="ctxt.rs.html#13">Ctxt</a>, attr: <span class="kw-2">&amp;</span><a href="https://docs.rs/syn/1.0.103/syn/attr/struct.Attribute.html">syn::Attribute</a>) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;<a href="https://docs.rs/syn/1.0.103/syn/attr/enum.NestedMeta.html">syn::NestedMeta</a>&gt;, ()&gt; {
+<span class="kw">pub fn </span>get_serde_meta_items(cx: <span class="kw-2">&amp;</span>Ctxt, attr: <span class="kw-2">&amp;</span>syn::Attribute) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;syn::NestedMeta&gt;, ()&gt; {
     <span class="kw">if </span>attr.path != SERDE {
         <span class="kw">return </span><span class="prelude-val">Ok</span>(Vec::new());
     }
 
-    <span class="kw">match </span><a href="#1567">attr</a>.parse_meta() {
-        <span class="prelude-val">Ok</span>(List(meta)) =&gt; <span class="prelude-val">Ok</span>(<a href="#1573">meta</a>.nested.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>()),
+    <span class="kw">match </span>attr.parse_meta() {
+        <span class="prelude-val">Ok</span>(List(meta)) =&gt; <span class="prelude-val">Ok</span>(meta.nested.into_iter().collect()),
         <span class="prelude-val">Ok</span>(other) =&gt; {
-            <a href="#1567">cx</a>.<a href="ctxt.rs.html#32">error_spanned_by</a>(<a href="#1574">other</a>, <span class="string">&quot;expected #[serde(...)]&quot;</span>);
+            cx.error_spanned_by(other, <span class="string">&quot;expected #[serde(...)]&quot;</span>);
             <span class="prelude-val">Err</span>(())
         }
         <span class="prelude-val">Err</span>(err) =&gt; {
-            <a href="#1567">cx</a>.<a href="ctxt.rs.html#42">syn_error</a>(<a href="#1578">err</a>);
+            cx.syn_error(err);
             <span class="prelude-val">Err</span>(())
         }
     }
 }
 
-<span class="kw">fn </span>get_lit_str&lt;<span class="lifetime">&#39;a</span>&gt;(cx: <span class="kw-2">&amp;</span><a href="ctxt.rs.html#13">Ctxt</a>, attr_name: <a href="symbol.rs.html#5">Symbol</a>, lit: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="https://docs.rs/syn/1.0.103/syn/lit/enum.Lit.html">syn::Lit</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="https://docs.rs/syn/1.0.103/syn/lit/struct.LitStr.html">syn::LitStr</a>, ()&gt; {
-    <a href="#1589-1594">get_lit_str2</a>(<a href="#1585">cx</a>, <a href="#1585">attr_name</a>, <a href="#1585">attr_name</a>, <a href="#1585">lit</a>)
+<span class="kw">fn </span>get_lit_str&lt;<span class="lifetime">&#39;a</span>&gt;(cx: <span class="kw-2">&amp;</span>Ctxt, attr_name: Symbol, lit: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>syn::Lit) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>syn::LitStr, ()&gt; {
+    get_lit_str2(cx, attr_name, attr_name, lit)
 }
 
 <span class="kw">fn </span>get_lit_str2&lt;<span class="lifetime">&#39;a</span>&gt;(
-    cx: <span class="kw-2">&amp;</span><a href="ctxt.rs.html#13">Ctxt</a>,
-    attr_name: <a href="symbol.rs.html#5">Symbol</a>,
-    meta_item_name: <a href="symbol.rs.html#5">Symbol</a>,
-    lit: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="https://docs.rs/syn/1.0.103/syn/lit/enum.Lit.html">syn::Lit</a>,
-) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="https://docs.rs/syn/1.0.103/syn/lit/struct.LitStr.html">syn::LitStr</a>, ()&gt; {
-    <span class="kw">if let </span>syn::Lit::Str(lit) = <a href="#1593">lit</a> {
-        <span class="prelude-val">Ok</span>(<a href="#1595">lit</a>)
+    cx: <span class="kw-2">&amp;</span>Ctxt,
+    attr_name: Symbol,
+    meta_item_name: Symbol,
+    lit: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>syn::Lit,
+) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>syn::LitStr, ()&gt; {
+    <span class="kw">if let </span>syn::Lit::Str(lit) = lit {
+        <span class="prelude-val">Ok</span>(lit)
     } <span class="kw">else </span>{
-        <a href="#1590">cx</a>.<a href="ctxt.rs.html#32">error_spanned_by</a>(
-            <a href="#1593">lit</a>,
-            <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(
+        cx.error_spanned_by(
+            lit,
+            <span class="macro">format!</span>(
                 <span class="string">&quot;expected serde {} attribute to be a string: `{} = \&quot;...\&quot;`&quot;</span>,
                 attr_name, meta_item_name
             ),
@@ -3558,49 +3558,49 @@
     }
 }
 
-<span class="kw">fn </span>parse_lit_into_path(cx: <span class="kw-2">&amp;</span><a href="ctxt.rs.html#13">Ctxt</a>, attr_name: <a href="symbol.rs.html#5">Symbol</a>, lit: <span class="kw-2">&amp;</span><a href="https://docs.rs/syn/1.0.103/syn/lit/enum.Lit.html">syn::Lit</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://docs.rs/syn/1.0.103/syn/path/struct.Path.html">syn::Path</a>, ()&gt; {
+<span class="kw">fn </span>parse_lit_into_path(cx: <span class="kw-2">&amp;</span>Ctxt, attr_name: Symbol, lit: <span class="kw-2">&amp;</span>syn::Lit) -&gt; <span class="prelude-ty">Result</span>&lt;syn::Path, ()&gt; {
     <span class="kw">let </span>string = get_lit_str(cx, attr_name, lit)<span class="question-mark">?</span>;
-    <a href="#1941-1943">parse_lit_str</a>(<a href="#1610">string</a>).map_err(|<span class="kw">_</span>| {
-        <a href="#1609">cx</a>.<a href="ctxt.rs.html#32">error_spanned_by</a>(<a href="#1609">lit</a>, <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;failed to parse path: {:?}&quot;</span>, string.value()));
+    parse_lit_str(string).map_err(|<span class="kw">_</span>| {
+        cx.error_spanned_by(lit, <span class="macro">format!</span>(<span class="string">&quot;failed to parse path: {:?}&quot;</span>, string.value()));
     })
 }
 
 <span class="kw">fn </span>parse_lit_into_expr_path(
-    cx: <span class="kw-2">&amp;</span><a href="ctxt.rs.html#13">Ctxt</a>,
-    attr_name: <a href="symbol.rs.html#5">Symbol</a>,
-    lit: <span class="kw-2">&amp;</span><a href="https://docs.rs/syn/1.0.103/syn/lit/enum.Lit.html">syn::Lit</a>,
-) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://docs.rs/syn/1.0.103/syn/expr/struct.ExprPath.html">syn::ExprPath</a>, ()&gt; {
+    cx: <span class="kw-2">&amp;</span>Ctxt,
+    attr_name: Symbol,
+    lit: <span class="kw-2">&amp;</span>syn::Lit,
+) -&gt; <span class="prelude-ty">Result</span>&lt;syn::ExprPath, ()&gt; {
     <span class="kw">let </span>string = get_lit_str(cx, attr_name, lit)<span class="question-mark">?</span>;
-    <a href="#1941-1943">parse_lit_str</a>(<a href="#1621">string</a>).map_err(|<span class="kw">_</span>| {
-        <a href="#1617">cx</a>.<a href="ctxt.rs.html#32">error_spanned_by</a>(<a href="#1619">lit</a>, <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;failed to parse path: {:?}&quot;</span>, string.value()));
+    parse_lit_str(string).map_err(|<span class="kw">_</span>| {
+        cx.error_spanned_by(lit, <span class="macro">format!</span>(<span class="string">&quot;failed to parse path: {:?}&quot;</span>, string.value()));
     })
 }
 
 <span class="kw">fn </span>parse_lit_into_where(
-    cx: <span class="kw-2">&amp;</span><a href="ctxt.rs.html#13">Ctxt</a>,
-    attr_name: <a href="symbol.rs.html#5">Symbol</a>,
-    meta_item_name: <a href="symbol.rs.html#5">Symbol</a>,
-    lit: <span class="kw-2">&amp;</span><a href="https://docs.rs/syn/1.0.103/syn/lit/enum.Lit.html">syn::Lit</a>,
-) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;<a href="https://docs.rs/syn/1.0.103/syn/generics/enum.WherePredicate.html">syn::WherePredicate</a>&gt;, ()&gt; {
+    cx: <span class="kw-2">&amp;</span>Ctxt,
+    attr_name: Symbol,
+    meta_item_name: Symbol,
+    lit: <span class="kw-2">&amp;</span>syn::Lit,
+) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;syn::WherePredicate&gt;, ()&gt; {
     <span class="kw">let </span>string = get_lit_str2(cx, attr_name, meta_item_name, lit)<span class="question-mark">?</span>;
     <span class="kw">if </span>string.value().is_empty() {
         <span class="kw">return </span><span class="prelude-val">Ok</span>(Vec::new());
     }
 
-    <span class="kw">let </span>where_string = syn::LitStr::new(<span class="kw-2">&amp;</span><a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;where {}&quot;</span>, string.value()), <a href="#1633">string</a>.span());
+    <span class="kw">let </span>where_string = syn::LitStr::new(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;where {}&quot;</span>, string.value()), string.span());
 
-    parse_lit_str::&lt;<a href="https://docs.rs/syn/1.0.103/syn/generics/struct.WhereClause.html">syn::WhereClause</a>&gt;(<span class="kw-2">&amp;</span><a href="#1638">where_string</a>)
-        .map(|wh| <a href="#1641">wh</a>.predicates.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>())
-        .map_err(|err| <a href="#1628">cx</a>.<a href="ctxt.rs.html#32">error_spanned_by</a>(<a href="#1631">lit</a>, <a href="#1642">err</a>))
+    parse_lit_str::&lt;syn::WhereClause&gt;(<span class="kw-2">&amp;</span>where_string)
+        .map(|wh| wh.predicates.into_iter().collect())
+        .map_err(|err| cx.error_spanned_by(lit, err))
 }
 
-<span class="kw">fn </span>parse_lit_into_ty(cx: <span class="kw-2">&amp;</span><a href="ctxt.rs.html#13">Ctxt</a>, attr_name: <a href="symbol.rs.html#5">Symbol</a>, lit: <span class="kw-2">&amp;</span><a href="https://docs.rs/syn/1.0.103/syn/lit/enum.Lit.html">syn::Lit</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://docs.rs/syn/1.0.103/syn/ty/enum.Type.html">syn::Type</a>, ()&gt; {
+<span class="kw">fn </span>parse_lit_into_ty(cx: <span class="kw-2">&amp;</span>Ctxt, attr_name: Symbol, lit: <span class="kw-2">&amp;</span>syn::Lit) -&gt; <span class="prelude-ty">Result</span>&lt;syn::Type, ()&gt; {
     <span class="kw">let </span>string = get_lit_str(cx, attr_name, lit)<span class="question-mark">?</span>;
 
-    <a href="#1941-1943">parse_lit_str</a>(<a href="#1646">string</a>).map_err(|<span class="kw">_</span>| {
-        <a href="#1645">cx</a>.<a href="ctxt.rs.html#32">error_spanned_by</a>(
-            <a href="#1645">lit</a>,
-            <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;failed to parse type: {} = {:?}&quot;</span>, attr_name, string.value()),
+    parse_lit_str(string).map_err(|<span class="kw">_</span>| {
+        cx.error_spanned_by(
+            lit,
+            <span class="macro">format!</span>(<span class="string">&quot;failed to parse type: {} = {:?}&quot;</span>, attr_name, string.value()),
         );
     })
 }
@@ -3608,47 +3608,47 @@
 <span class="comment">// Parses a string literal like &quot;&#39;a + &#39;b + &#39;c&quot; containing a nonempty list of
 // lifetimes separated by `+`.
 </span><span class="kw">fn </span>parse_lit_into_lifetimes(
-    cx: <span class="kw-2">&amp;</span><a href="ctxt.rs.html#13">Ctxt</a>,
-    attr_name: <a href="symbol.rs.html#5">Symbol</a>,
-    lit: <span class="kw-2">&amp;</span><a href="https://docs.rs/syn/1.0.103/syn/lit/enum.Lit.html">syn::Lit</a>,
-) -&gt; <span class="prelude-ty">Result</span>&lt;BTreeSet&lt;<a href="https://docs.rs/syn/1.0.103/syn/lifetime/struct.Lifetime.html">syn::Lifetime</a>&gt;, ()&gt; {
+    cx: <span class="kw-2">&amp;</span>Ctxt,
+    attr_name: Symbol,
+    lit: <span class="kw-2">&amp;</span>syn::Lit,
+) -&gt; <span class="prelude-ty">Result</span>&lt;BTreeSet&lt;syn::Lifetime&gt;, ()&gt; {
     <span class="kw">let </span>string = get_lit_str(cx, attr_name, lit)<span class="question-mark">?</span>;
     <span class="kw">if </span>string.value().is_empty() {
-        <a href="#1659">cx</a>.<a href="ctxt.rs.html#32">error_spanned_by</a>(<a href="#1661">lit</a>, <span class="string">&quot;at least one lifetime must be borrowed&quot;</span>);
+        cx.error_spanned_by(lit, <span class="string">&quot;at least one lifetime must be borrowed&quot;</span>);
         <span class="kw">return </span><span class="prelude-val">Err</span>(());
     }
 
-    <span class="kw">struct </span>BorrowedLifetimes(Punctuated&lt;<a href="https://docs.rs/syn/1.0.103/syn/lifetime/struct.Lifetime.html">syn::Lifetime</a>, <a class="macro" href="https://docs.rs/syn/1.0.103/syn/macro.Token.html">Token!</a>[+]&gt;);
+    <span class="kw">struct </span>BorrowedLifetimes(Punctuated&lt;syn::Lifetime, <span class="macro">Token!</span>[+]&gt;);
 
-    <span class="kw">impl </span><a href="https://docs.rs/syn/1.0.103/syn/parse/trait.Parse.html">Parse</a> <span class="kw">for </span><a href="#1669">BorrowedLifetimes</a> {
-        <span class="kw">fn </span>parse(input: <a href="https://docs.rs/syn/1.0.103/syn/parse/type.ParseStream.html">ParseStream</a>) -&gt; parse::Result&lt;<span class="self">Self</span>&gt; {
-            Punctuated::parse_separated_nonempty(<a href="#1672">input</a>).map(<a href="#1669">BorrowedLifetimes</a>)
+    <span class="kw">impl </span>Parse <span class="kw">for </span>BorrowedLifetimes {
+        <span class="kw">fn </span>parse(input: ParseStream) -&gt; parse::Result&lt;<span class="self">Self</span>&gt; {
+            Punctuated::parse_separated_nonempty(input).map(BorrowedLifetimes)
         }
     }
 
-    <span class="kw">if let </span><span class="prelude-val">Ok</span>(<a href="#1669">BorrowedLifetimes</a>(lifetimes)) = <a href="#1941-1943">parse_lit_str</a>(<a href="#1663">string</a>) {
+    <span class="kw">if let </span><span class="prelude-val">Ok</span>(BorrowedLifetimes(lifetimes)) = parse_lit_str(string) {
         <span class="kw">let </span><span class="kw-2">mut </span>set = BTreeSet::new();
         <span class="kw">for </span>lifetime <span class="kw">in </span>lifetimes {
             <span class="kw">if </span>!set.insert(lifetime.clone()) {
                 cx.error_spanned_by(lit, <span class="macro">format!</span>(<span class="string">&quot;duplicate borrowed lifetime `{}`&quot;</span>, lifetime));
             }
         }
-        <span class="kw">return </span><span class="prelude-val">Ok</span>(<a href="#1678">set</a>);
+        <span class="kw">return </span><span class="prelude-val">Ok</span>(set);
     }
 
-    <a href="#1659">cx</a>.<a href="ctxt.rs.html#32">error_spanned_by</a>(
-        <a href="#1661">lit</a>,
-        <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;failed to parse borrowed lifetimes: {:?}&quot;</span>, string.value()),
+    cx.error_spanned_by(
+        lit,
+        <span class="macro">format!</span>(<span class="string">&quot;failed to parse borrowed lifetimes: {:?}&quot;</span>, string.value()),
     );
     <span class="prelude-val">Err</span>(())
 }
 
-<span class="kw">fn </span>is_implicitly_borrowed(ty: <span class="kw-2">&amp;</span><a href="https://docs.rs/syn/1.0.103/syn/ty/enum.Type.html">syn::Type</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-    <a href="#1698">is_implicitly_borrowed_reference</a>(<a href="#1694">ty</a>) || <a href="#1751">is_option</a>(<a href="#1694">ty</a>, <a href="#1698">is_implicitly_borrowed_reference</a>)
+<span class="kw">fn </span>is_implicitly_borrowed(ty: <span class="kw-2">&amp;</span>syn::Type) -&gt; bool {
+    is_implicitly_borrowed_reference(ty) || is_option(ty, is_implicitly_borrowed_reference)
 }
 
-<span class="kw">fn </span>is_implicitly_borrowed_reference(ty: <span class="kw-2">&amp;</span><a href="https://docs.rs/syn/1.0.103/syn/ty/enum.Type.html">syn::Type</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-    <a href="#1798">is_reference</a>(<a href="#1698">ty</a>, <a href="#1805">is_str</a>) || <a href="#1798">is_reference</a>(<a href="#1698">ty</a>, <a href="#1809">is_slice_u8</a>)
+<span class="kw">fn </span>is_implicitly_borrowed_reference(ty: <span class="kw-2">&amp;</span>syn::Type) -&gt; bool {
+    is_reference(ty, is_str) || is_reference(ty, is_slice_u8)
 }
 
 <span class="comment">// Whether the type looks like it might be `std::borrow::Cow&lt;T&gt;` where elem=&quot;T&quot;.
@@ -3673,56 +3673,56 @@
 //         #[serde(borrow)]
 //         cow: Cow&lt;&#39;a, str&gt;,
 //     }
-</span><span class="kw">fn </span>is_cow(ty: <span class="kw-2">&amp;</span><a href="https://docs.rs/syn/1.0.103/syn/ty/enum.Type.html">syn::Type</a>, elem: <span class="kw">fn</span>(<span class="kw-2">&amp;</span><a href="https://docs.rs/syn/1.0.103/syn/ty/enum.Type.html">syn::Type</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-    <span class="kw">let </span>path = <span class="kw">match </span><a href="mod.rs.html#23">ungroup</a>(<a href="#1724">ty</a>) {
-        syn::Type::Path(ty) =&gt; <span class="kw-2">&amp;</span><a href="#1726">ty</a>.path,
+</span><span class="kw">fn </span>is_cow(ty: <span class="kw-2">&amp;</span>syn::Type, elem: <span class="kw">fn</span>(<span class="kw-2">&amp;</span>syn::Type) -&gt; bool) -&gt; bool {
+    <span class="kw">let </span>path = <span class="kw">match </span>ungroup(ty) {
+        syn::Type::Path(ty) =&gt; <span class="kw-2">&amp;</span>ty.path,
         <span class="kw">_ </span>=&gt; {
             <span class="kw">return </span><span class="bool-val">false</span>;
         }
     };
-    <span class="kw">let </span>seg = <span class="kw">match </span><a href="#1725">path</a>.segments.last() {
-        <span class="prelude-val">Some</span>(seg) =&gt; <a href="#1732">seg</a>,
+    <span class="kw">let </span>seg = <span class="kw">match </span>path.segments.last() {
+        <span class="prelude-val">Some</span>(seg) =&gt; seg,
         <span class="prelude-val">None </span>=&gt; {
             <span class="kw">return </span><span class="bool-val">false</span>;
         }
     };
-    <span class="kw">let </span>args = <span class="kw">match </span><span class="kw-2">&amp;</span><a href="#1731">seg</a>.arguments {
-        syn::PathArguments::AngleBracketed(bracketed) =&gt; <span class="kw-2">&amp;</span><a href="#1738">bracketed</a>.args,
+    <span class="kw">let </span>args = <span class="kw">match </span><span class="kw-2">&amp;</span>seg.arguments {
+        syn::PathArguments::AngleBracketed(bracketed) =&gt; <span class="kw-2">&amp;</span>bracketed.args,
         <span class="kw">_ </span>=&gt; {
             <span class="kw">return </span><span class="bool-val">false</span>;
         }
     };
-    <a href="#1731">seg</a>.ident == <span class="string">&quot;Cow&quot;
-        </span>&amp;&amp; <a href="#1737">args</a>.len() == <span class="number">2
-        </span>&amp;&amp; <span class="kw">match </span>(<span class="kw-2">&amp;</span><a href="#1737">args</a>[<span class="number">0</span>], <span class="kw-2">&amp;</span><a href="#1737">args</a>[<span class="number">1</span>]) {
-            (syn::GenericArgument::Lifetime(<span class="kw">_</span>), syn::GenericArgument::Type(arg)) =&gt; <a href="#1724">elem</a>(<a href="#1746">arg</a>),
+    seg.ident == <span class="string">&quot;Cow&quot;
+        </span>&amp;&amp; args.len() == <span class="number">2
+        </span>&amp;&amp; <span class="kw">match </span>(<span class="kw-2">&amp;</span>args[<span class="number">0</span>], <span class="kw-2">&amp;</span>args[<span class="number">1</span>]) {
+            (syn::GenericArgument::Lifetime(<span class="kw">_</span>), syn::GenericArgument::Type(arg)) =&gt; elem(arg),
             <span class="kw">_ </span>=&gt; <span class="bool-val">false</span>,
         }
 }
 
-<span class="kw">fn </span>is_option(ty: <span class="kw-2">&amp;</span><a href="https://docs.rs/syn/1.0.103/syn/ty/enum.Type.html">syn::Type</a>, elem: <span class="kw">fn</span>(<span class="kw-2">&amp;</span><a href="https://docs.rs/syn/1.0.103/syn/ty/enum.Type.html">syn::Type</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-    <span class="kw">let </span>path = <span class="kw">match </span><a href="mod.rs.html#23">ungroup</a>(<a href="#1751">ty</a>) {
-        syn::Type::Path(ty) =&gt; <span class="kw-2">&amp;</span><a href="#1753">ty</a>.path,
+<span class="kw">fn </span>is_option(ty: <span class="kw-2">&amp;</span>syn::Type, elem: <span class="kw">fn</span>(<span class="kw-2">&amp;</span>syn::Type) -&gt; bool) -&gt; bool {
+    <span class="kw">let </span>path = <span class="kw">match </span>ungroup(ty) {
+        syn::Type::Path(ty) =&gt; <span class="kw-2">&amp;</span>ty.path,
         <span class="kw">_ </span>=&gt; {
             <span class="kw">return </span><span class="bool-val">false</span>;
         }
     };
-    <span class="kw">let </span>seg = <span class="kw">match </span><a href="#1752">path</a>.segments.last() {
-        <span class="prelude-val">Some</span>(seg) =&gt; <a href="#1759">seg</a>,
+    <span class="kw">let </span>seg = <span class="kw">match </span>path.segments.last() {
+        <span class="prelude-val">Some</span>(seg) =&gt; seg,
         <span class="prelude-val">None </span>=&gt; {
             <span class="kw">return </span><span class="bool-val">false</span>;
         }
     };
-    <span class="kw">let </span>args = <span class="kw">match </span><span class="kw-2">&amp;</span><a href="#1758">seg</a>.arguments {
-        syn::PathArguments::AngleBracketed(bracketed) =&gt; <span class="kw-2">&amp;</span><a href="#1765">bracketed</a>.args,
+    <span class="kw">let </span>args = <span class="kw">match </span><span class="kw-2">&amp;</span>seg.arguments {
+        syn::PathArguments::AngleBracketed(bracketed) =&gt; <span class="kw-2">&amp;</span>bracketed.args,
         <span class="kw">_ </span>=&gt; {
             <span class="kw">return </span><span class="bool-val">false</span>;
         }
     };
-    <a href="#1758">seg</a>.ident == <span class="string">&quot;Option&quot;
-        </span>&amp;&amp; <a href="#1764">args</a>.len() == <span class="number">1
-        </span>&amp;&amp; <span class="kw">match </span><span class="kw-2">&amp;</span><a href="#1764">args</a>[<span class="number">0</span>] {
-            syn::GenericArgument::Type(arg) =&gt; <a href="#1751">elem</a>(<a href="#1773">arg</a>),
+    seg.ident == <span class="string">&quot;Option&quot;
+        </span>&amp;&amp; args.len() == <span class="number">1
+        </span>&amp;&amp; <span class="kw">match </span><span class="kw-2">&amp;</span>args[<span class="number">0</span>] {
+            syn::GenericArgument::Type(arg) =&gt; elem(arg),
             <span class="kw">_ </span>=&gt; <span class="bool-val">false</span>,
         }
 }
@@ -3747,36 +3747,36 @@
 //     struct S&lt;&#39;a&gt; {
 //         r: &amp;&#39;a str,
 //     }
-</span><span class="kw">fn </span>is_reference(ty: <span class="kw-2">&amp;</span><a href="https://docs.rs/syn/1.0.103/syn/ty/enum.Type.html">syn::Type</a>, elem: <span class="kw">fn</span>(<span class="kw-2">&amp;</span><a href="https://docs.rs/syn/1.0.103/syn/ty/enum.Type.html">syn::Type</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-    <span class="kw">match </span><a href="mod.rs.html#23">ungroup</a>(<a href="#1798">ty</a>) {
-        syn::Type::Reference(ty) =&gt; <a href="#1800">ty</a>.mutability.is_none() &amp;&amp; <a href="#1798">elem</a>(<span class="kw-2">&amp;</span><a href="#1800">ty</a>.elem),
+</span><span class="kw">fn </span>is_reference(ty: <span class="kw-2">&amp;</span>syn::Type, elem: <span class="kw">fn</span>(<span class="kw-2">&amp;</span>syn::Type) -&gt; bool) -&gt; bool {
+    <span class="kw">match </span>ungroup(ty) {
+        syn::Type::Reference(ty) =&gt; ty.mutability.is_none() &amp;&amp; elem(<span class="kw-2">&amp;</span>ty.elem),
         <span class="kw">_ </span>=&gt; <span class="bool-val">false</span>,
     }
 }
 
-<span class="kw">fn </span>is_str(ty: <span class="kw-2">&amp;</span><a href="https://docs.rs/syn/1.0.103/syn/ty/enum.Type.html">syn::Type</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-    <a href="#1816">is_primitive_type</a>(<a href="#1805">ty</a>, <span class="string">&quot;str&quot;</span>)
+<span class="kw">fn </span>is_str(ty: <span class="kw-2">&amp;</span>syn::Type) -&gt; bool {
+    is_primitive_type(ty, <span class="string">&quot;str&quot;</span>)
 }
 
-<span class="kw">fn </span>is_slice_u8(ty: <span class="kw-2">&amp;</span><a href="https://docs.rs/syn/1.0.103/syn/ty/enum.Type.html">syn::Type</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-    <span class="kw">match </span><a href="mod.rs.html#23">ungroup</a>(<a href="#1809">ty</a>) {
-        syn::Type::Slice(ty) =&gt; <a href="#1816">is_primitive_type</a>(<span class="kw-2">&amp;</span><a href="#1811">ty</a>.elem, <span class="string">&quot;u8&quot;</span>),
+<span class="kw">fn </span>is_slice_u8(ty: <span class="kw-2">&amp;</span>syn::Type) -&gt; bool {
+    <span class="kw">match </span>ungroup(ty) {
+        syn::Type::Slice(ty) =&gt; is_primitive_type(<span class="kw-2">&amp;</span>ty.elem, <span class="string">&quot;u8&quot;</span>),
         <span class="kw">_ </span>=&gt; <span class="bool-val">false</span>,
     }
 }
 
-<span class="kw">fn </span>is_primitive_type(ty: <span class="kw-2">&amp;</span><a href="https://docs.rs/syn/1.0.103/syn/ty/enum.Type.html">syn::Type</a>, primitive: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-    <span class="kw">match </span><a href="mod.rs.html#23">ungroup</a>(<a href="#1816">ty</a>) {
-        syn::Type::Path(ty) =&gt; <a href="#1818">ty</a>.qself.is_none() &amp;&amp; <a href="#1823">is_primitive_path</a>(<span class="kw-2">&amp;</span><a href="#1818">ty</a>.path, <a href="#1816">primitive</a>),
+<span class="kw">fn </span>is_primitive_type(ty: <span class="kw-2">&amp;</span>syn::Type, primitive: <span class="kw-2">&amp;</span>str) -&gt; bool {
+    <span class="kw">match </span>ungroup(ty) {
+        syn::Type::Path(ty) =&gt; ty.qself.is_none() &amp;&amp; is_primitive_path(<span class="kw-2">&amp;</span>ty.path, primitive),
         <span class="kw">_ </span>=&gt; <span class="bool-val">false</span>,
     }
 }
 
-<span class="kw">fn </span>is_primitive_path(path: <span class="kw-2">&amp;</span><a href="https://docs.rs/syn/1.0.103/syn/path/struct.Path.html">syn::Path</a>, primitive: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-    <a href="#1823">path</a>.leading_colon.is_none()
-        &amp;&amp; <a href="#1823">path</a>.segments.len() == <span class="number">1
-        </span>&amp;&amp; <a href="#1823">path</a>.segments[<span class="number">0</span>].ident == <a href="#1823">primitive</a>
-        &amp;&amp; <a href="#1823">path</a>.segments[<span class="number">0</span>].arguments.is_empty()
+<span class="kw">fn </span>is_primitive_path(path: <span class="kw-2">&amp;</span>syn::Path, primitive: <span class="kw-2">&amp;</span>str) -&gt; bool {
+    path.leading_colon.is_none()
+        &amp;&amp; path.segments.len() == <span class="number">1
+        </span>&amp;&amp; path.segments[<span class="number">0</span>].ident == primitive
+        &amp;&amp; path.segments[<span class="number">0</span>].arguments.is_empty()
 }
 
 <span class="comment">// All lifetimes that this type could borrow from a Deserializer.
@@ -3787,37 +3787,37 @@
 // This is used when there is an explicit or implicit `#[serde(borrow)]`
 // attribute on the field so there must be at least one borrowable lifetime.
 </span><span class="kw">fn </span>borrowable_lifetimes(
-    cx: <span class="kw-2">&amp;</span><a href="ctxt.rs.html#13">Ctxt</a>,
-    name: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>,
-    field: <span class="kw-2">&amp;</span><a href="https://docs.rs/syn/1.0.103/syn/data/struct.Field.html">syn::Field</a>,
-) -&gt; <span class="prelude-ty">Result</span>&lt;BTreeSet&lt;<a href="https://docs.rs/syn/1.0.103/syn/lifetime/struct.Lifetime.html">syn::Lifetime</a>&gt;, ()&gt; {
+    cx: <span class="kw-2">&amp;</span>Ctxt,
+    name: <span class="kw-2">&amp;</span>str,
+    field: <span class="kw-2">&amp;</span>syn::Field,
+) -&gt; <span class="prelude-ty">Result</span>&lt;BTreeSet&lt;syn::Lifetime&gt;, ()&gt; {
     <span class="kw">let </span><span class="kw-2">mut </span>lifetimes = BTreeSet::new();
-    <a href="#1855">collect_lifetimes</a>(<span class="kw-2">&amp;</span><a href="#1840">field</a>.ty, <span class="kw-2">&amp;mut </span><a href="#1842">lifetimes</a>);
+    collect_lifetimes(<span class="kw-2">&amp;</span>field.ty, <span class="kw-2">&amp;mut </span>lifetimes);
     <span class="kw">if </span>lifetimes.is_empty() {
-        <a href="#1838">cx</a>.<a href="ctxt.rs.html#32">error_spanned_by</a>(
-            <a href="#1840">field</a>,
-            <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;field `{}` has no lifetimes to borrow&quot;</span>, name),
+        cx.error_spanned_by(
+            field,
+            <span class="macro">format!</span>(<span class="string">&quot;field `{}` has no lifetimes to borrow&quot;</span>, name),
         );
         <span class="prelude-val">Err</span>(())
     } <span class="kw">else </span>{
-        <span class="prelude-val">Ok</span>(<a href="#1842">lifetimes</a>)
+        <span class="prelude-val">Ok</span>(lifetimes)
     }
 }
 
-<span class="kw">fn </span>collect_lifetimes(ty: <span class="kw-2">&amp;</span><a href="https://docs.rs/syn/1.0.103/syn/ty/enum.Type.html">syn::Type</a>, out: <span class="kw-2">&amp;mut </span>BTreeSet&lt;<a href="https://docs.rs/syn/1.0.103/syn/lifetime/struct.Lifetime.html">syn::Lifetime</a>&gt;) {
-    <span class="kw">match </span><a href="#1855">ty</a> {
+<span class="kw">fn </span>collect_lifetimes(ty: <span class="kw-2">&amp;</span>syn::Type, out: <span class="kw-2">&amp;mut </span>BTreeSet&lt;syn::Lifetime&gt;) {
+    <span class="kw">match </span>ty {
         syn::Type::Slice(ty) =&gt; {
-            <a href="#1855">collect_lifetimes</a>(<span class="kw-2">&amp;</span><a href="#1857">ty</a>.elem, <a href="#1855">out</a>);
+            collect_lifetimes(<span class="kw-2">&amp;</span>ty.elem, out);
         }
         syn::Type::Array(ty) =&gt; {
-            <a href="#1855">collect_lifetimes</a>(<span class="kw-2">&amp;</span><a href="#1860">ty</a>.elem, <a href="#1855">out</a>);
+            collect_lifetimes(<span class="kw-2">&amp;</span>ty.elem, out);
         }
         syn::Type::Ptr(ty) =&gt; {
-            <a href="#1855">collect_lifetimes</a>(<span class="kw-2">&amp;</span><a href="#1863">ty</a>.elem, <a href="#1855">out</a>);
+            collect_lifetimes(<span class="kw-2">&amp;</span>ty.elem, out);
         }
         syn::Type::Reference(ty) =&gt; {
-            <a href="#1855">out</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a href="#1866">ty</a>.lifetime.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">cloned</a>());
-            <a href="#1855">collect_lifetimes</a>(<span class="kw-2">&amp;</span><a href="#1866">ty</a>.elem, <a href="#1855">out</a>);
+            out.extend(ty.lifetime.iter().cloned());
+            collect_lifetimes(<span class="kw-2">&amp;</span>ty.elem, out);
         }
         syn::Type::Tuple(ty) =&gt; {
             <span class="kw">for </span>elem <span class="kw">in </span><span class="kw-2">&amp;</span>ty.elems {
@@ -3825,8 +3825,8 @@
             }
         }
         syn::Type::Path(ty) =&gt; {
-            <span class="kw">if let </span><span class="prelude-val">Some</span>(qself) = <span class="kw-2">&amp;</span><a href="#1875">ty</a>.qself {
-                <a href="#1855">collect_lifetimes</a>(<span class="kw-2">&amp;</span><a href="#1876">qself</a>.ty, <a href="#1855">out</a>);
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(qself) = <span class="kw-2">&amp;</span>ty.qself {
+                collect_lifetimes(<span class="kw-2">&amp;</span>qself.ty, out);
             }
             <span class="kw">for </span>seg <span class="kw">in </span><span class="kw-2">&amp;</span>ty.path.segments {
                 <span class="kw">if let </span>syn::PathArguments::AngleBracketed(bracketed) = <span class="kw-2">&amp;</span>seg.arguments {
@@ -3849,13 +3849,13 @@
             }
         }
         syn::Type::Paren(ty) =&gt; {
-            <a href="#1855">collect_lifetimes</a>(<span class="kw-2">&amp;</span><a href="#1899">ty</a>.elem, <a href="#1855">out</a>);
+            collect_lifetimes(<span class="kw-2">&amp;</span>ty.elem, out);
         }
         syn::Type::Group(ty) =&gt; {
-            <a href="#1855">collect_lifetimes</a>(<span class="kw-2">&amp;</span><a href="#1902">ty</a>.elem, <a href="#1855">out</a>);
+            collect_lifetimes(<span class="kw-2">&amp;</span>ty.elem, out);
         }
         syn::Type::Macro(ty) =&gt; {
-            <a href="#1920">collect_lifetimes_from_tokens</a>(<a href="#1905">ty</a>.mac.tokens.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), <a href="#1855">out</a>);
+            collect_lifetimes_from_tokens(ty.mac.tokens.clone(), out);
         }
         syn::Type::BareFn(<span class="kw">_</span>)
         | syn::Type::Never(<span class="kw">_</span>)
@@ -3869,8 +3869,8 @@
     }
 }
 
-<span class="kw">fn </span>collect_lifetimes_from_tokens(tokens: <a href="https://docs.rs/proc-macro2/1.0.47/proc_macro2/struct.TokenStream.html">TokenStream</a>, out: <span class="kw-2">&amp;mut </span>BTreeSet&lt;<a href="https://docs.rs/syn/1.0.103/syn/lifetime/struct.Lifetime.html">syn::Lifetime</a>&gt;) {
-    <span class="kw">let </span><span class="kw-2">mut </span>iter = <a href="#1920">tokens</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>();
+<span class="kw">fn </span>collect_lifetimes_from_tokens(tokens: TokenStream, out: <span class="kw-2">&amp;mut </span>BTreeSet&lt;syn::Lifetime&gt;) {
+    <span class="kw">let </span><span class="kw-2">mut </span>iter = tokens.into_iter();
     <span class="kw">while let </span><span class="prelude-val">Some</span>(tt) = iter.next() {
         <span class="kw">match </span><span class="kw-2">&amp;</span>tt {
             TokenTree::Punct(op) <span class="kw">if </span>op.as_char() == <span class="string">&#39;\&#39;&#39; </span>&amp;&amp; op.spacing() == Spacing::Joint =&gt; {
@@ -3890,17 +3890,17 @@
     }
 }
 
-<span class="kw">fn </span>parse_lit_str&lt;T&gt;(s: <span class="kw-2">&amp;</span><a href="https://docs.rs/syn/1.0.103/syn/lit/struct.LitStr.html">syn::LitStr</a>) -&gt; parse::Result&lt;T&gt;
+<span class="kw">fn </span>parse_lit_str&lt;T&gt;(s: <span class="kw-2">&amp;</span>syn::LitStr) -&gt; parse::Result&lt;T&gt;
 <span class="kw">where
-    </span>T: <a href="https://docs.rs/syn/1.0.103/syn/parse/trait.Parse.html">Parse</a>,
+    </span>T: Parse,
 {
     <span class="kw">let </span>tokens = spanned_tokens(s)<span class="question-mark">?</span>;
-    syn::parse2(<a href="#1945">tokens</a>)
+    syn::parse2(tokens)
 }
 
-<span class="kw">fn </span>spanned_tokens(s: <span class="kw-2">&amp;</span><a href="https://docs.rs/syn/1.0.103/syn/lit/struct.LitStr.html">syn::LitStr</a>) -&gt; parse::Result&lt;<a href="https://docs.rs/proc-macro2/1.0.47/proc_macro2/struct.TokenStream.html">TokenStream</a>&gt; {
+<span class="kw">fn </span>spanned_tokens(s: <span class="kw-2">&amp;</span>syn::LitStr) -&gt; parse::Result&lt;TokenStream&gt; {
     <span class="kw">let </span>stream = syn::parse_str(<span class="kw-2">&amp;</span>s.value())<span class="question-mark">?</span>;
-    <span class="prelude-val">Ok</span>(<a href="respan.rs.html#3">respan</a>(<a href="#1950">stream</a>, <a href="#1949">s</a>.span()))
+    <span class="prelude-val">Ok</span>(respan(stream, s.span()))
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="serde_derive" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="serde_derive" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

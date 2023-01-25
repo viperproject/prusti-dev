@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/hashbrown-0.12.3/src/raw/bitmask.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>bitmask.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../hashbrown/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/hashbrown-0.12.3/src/raw/bitmask.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>bitmask.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../hashbrown/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -120,7 +120,7 @@
 <a href="#120" id="120">120</a>
 <a href="#121" id="121">121</a>
 <a href="#122" id="122">122</a>
-</pre><pre class="rust"><code><span class="kw">use </span><span class="kw">super</span>::imp::{<a href="sse2.rs.html#10">BitMaskWord</a>, <a href="sse2.rs.html#12">BITMASK_MASK</a>, <a href="sse2.rs.html#11">BITMASK_STRIDE</a>};
+</pre><pre class="rust"><code><span class="kw">use </span><span class="kw">super</span>::imp::{BitMaskWord, BITMASK_MASK, BITMASK_STRIDE};
 <span class="attr">#[cfg(feature = <span class="string">&quot;nightly&quot;</span>)]
 </span><span class="kw">use </span>core::intrinsics;
 
@@ -136,15 +136,15 @@
 /// performed on counts/indices to normalize this difference. `BITMASK_MASK` is
 /// similarly a mask of all the actually-used bits.
 </span><span class="attr">#[derive(Copy, Clone)]
-</span><span class="kw">pub struct </span>BitMask(<span class="kw">pub </span><a href="sse2.rs.html#10">BitMaskWord</a>);
+</span><span class="kw">pub struct </span>BitMask(<span class="kw">pub </span>BitMaskWord);
 
 <span class="attr">#[allow(clippy::use_self)]
-</span><span class="kw">impl </span><a href="#17">BitMask</a> {
+</span><span class="kw">impl </span>BitMask {
     <span class="doccomment">/// Returns a new `BitMask` with all bits inverted.
     </span><span class="attr">#[inline]
     #[must_use]
     </span><span class="kw">pub fn </span>invert(<span class="self">self</span>) -&gt; <span class="self">Self </span>{
-        <a href="#17">BitMask</a>(<a class="self" href="#24">self</a>.<span class="number">0 </span>^ <a href="sse2.rs.html#12">BITMASK_MASK</a>)
+        BitMask(<span class="self">self</span>.<span class="number">0 </span>^ BITMASK_MASK)
     }
 
     <span class="doccomment">/// Flip the bit in the mask for the entry at the given index.
@@ -153,33 +153,33 @@
     </span><span class="attr">#[inline]
     #[allow(clippy::cast_ptr_alignment)]
     #[cfg(feature = <span class="string">&quot;raw&quot;</span>)]
-    </span><span class="kw">pub unsafe fn </span>flip(<span class="kw-2">&amp;mut </span><span class="self">self</span>, index: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+    </span><span class="kw">pub unsafe fn </span>flip(<span class="kw-2">&amp;mut </span><span class="self">self</span>, index: usize) -&gt; bool {
         <span class="comment">// NOTE: The + BITMASK_STRIDE - 1 is to set the high bit.
-        </span><span class="kw">let </span>mask = <span class="number">1 </span>&lt;&lt; (<a href="#34">index</a> * <a href="sse2.rs.html#11">BITMASK_STRIDE</a> + <a href="sse2.rs.html#11">BITMASK_STRIDE</a> - <span class="number">1</span>);
-        <a class="self" href="#34">self</a>.<span class="number">0 </span>^= <a href="#36">mask</a>;
+        </span><span class="kw">let </span>mask = <span class="number">1 </span>&lt;&lt; (index * BITMASK_STRIDE + BITMASK_STRIDE - <span class="number">1</span>);
+        <span class="self">self</span>.<span class="number">0 </span>^= mask;
         <span class="comment">// The bit was set if the bit is now 0.
-        </span><a class="self" href="#34">self</a>.<span class="number">0 </span>&amp; <a href="#36">mask</a> == <span class="number">0
+        </span><span class="self">self</span>.<span class="number">0 </span>&amp; mask == <span class="number">0
     </span>}
 
     <span class="doccomment">/// Returns a new `BitMask` with the lowest bit removed.
     </span><span class="attr">#[inline]
     #[must_use]
     </span><span class="kw">pub fn </span>remove_lowest_bit(<span class="self">self</span>) -&gt; <span class="self">Self </span>{
-        <a href="#17">BitMask</a>(<a class="self" href="#45">self</a>.<span class="number">0 </span>&amp; (<a class="self" href="#45">self</a>.<span class="number">0 </span>- <span class="number">1</span>))
+        BitMask(<span class="self">self</span>.<span class="number">0 </span>&amp; (<span class="self">self</span>.<span class="number">0 </span>- <span class="number">1</span>))
     }
     <span class="doccomment">/// Returns whether the `BitMask` has at least one set bit.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>any_bit_set(<span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#50">self</a>.<span class="number">0 </span>!= <span class="number">0
+    </span><span class="kw">pub fn </span>any_bit_set(<span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.<span class="number">0 </span>!= <span class="number">0
     </span>}
 
     <span class="doccomment">/// Returns the first set bit in the `BitMask`, if there is one.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>lowest_set_bit(<span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
+    </span><span class="kw">pub fn </span>lowest_set_bit(<span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;usize&gt; {
         <span class="kw">if </span><span class="self">self</span>.<span class="number">0 </span>== <span class="number">0 </span>{
             <span class="prelude-val">None
         </span>} <span class="kw">else </span>{
-            <span class="prelude-val">Some</span>(<span class="kw">unsafe </span>{ <a class="self" href="#56">self</a>.<a href="#73">lowest_set_bit_nonzero</a>() })
+            <span class="prelude-val">Some</span>(<span class="kw">unsafe </span>{ <span class="self">self</span>.lowest_set_bit_nonzero() })
         }
     }
 
@@ -192,55 +192,55 @@
     }
     <span class="attr">#[inline]
     #[cfg(not(feature = <span class="string">&quot;nightly&quot;</span>))]
-    </span><span class="kw">pub unsafe fn </span>lowest_set_bit_nonzero(<span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="self" href="#73">self</a>.<a href="#79">trailing_zeros</a>()
+    </span><span class="kw">pub unsafe fn </span>lowest_set_bit_nonzero(<span class="self">self</span>) -&gt; usize {
+        <span class="self">self</span>.trailing_zeros()
     }
 
     <span class="doccomment">/// Returns the number of trailing zeroes in the `BitMask`.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>trailing_zeros(<span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
+    </span><span class="kw">pub fn </span>trailing_zeros(<span class="self">self</span>) -&gt; usize {
         <span class="comment">// ARM doesn&#39;t have a trailing_zeroes instruction, and instead uses
         // reverse_bits (RBIT) + leading_zeroes (CLZ). However older ARM
         // versions (pre-ARMv7) don&#39;t have RBIT and need to emulate it
         // instead. Since we only have 1 bit set in each byte on ARM, we can
         // use swap_bytes (REV) + leading_zeroes instead.
         </span><span class="kw">if </span><span class="macro">cfg!</span>(target_arch = <span class="string">&quot;arm&quot;</span>) &amp;&amp; BITMASK_STRIDE % <span class="number">8 </span>== <span class="number">0 </span>{
-            <a class="self" href="#79">self</a>.<span class="number">0</span>.swap_bytes().leading_zeros() <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> / <a href="sse2.rs.html#11">BITMASK_STRIDE</a>
+            <span class="self">self</span>.<span class="number">0</span>.swap_bytes().leading_zeros() <span class="kw">as </span>usize / BITMASK_STRIDE
         } <span class="kw">else </span>{
-            <a class="self" href="#79">self</a>.<span class="number">0</span>.trailing_zeros() <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> / <a href="sse2.rs.html#11">BITMASK_STRIDE</a>
+            <span class="self">self</span>.<span class="number">0</span>.trailing_zeros() <span class="kw">as </span>usize / BITMASK_STRIDE
         }
     }
 
     <span class="doccomment">/// Returns the number of leading zeroes in the `BitMask`.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>leading_zeros(<span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="self" href="#94">self</a>.<span class="number">0</span>.leading_zeros() <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> / <a href="sse2.rs.html#11">BITMASK_STRIDE</a>
+    </span><span class="kw">pub fn </span>leading_zeros(<span class="self">self</span>) -&gt; usize {
+        <span class="self">self</span>.<span class="number">0</span>.leading_zeros() <span class="kw">as </span>usize / BITMASK_STRIDE
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">IntoIterator</a> <span class="kw">for </span><a href="#17">BitMask</a> {
-    <span class="kw">type </span>Item = <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>;
-    <span class="kw">type </span>IntoIter = <a href="#111">BitMaskIter</a>;
+<span class="kw">impl </span>IntoIterator <span class="kw">for </span>BitMask {
+    <span class="kw">type </span>Item = usize;
+    <span class="kw">type </span>IntoIter = BitMaskIter;
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>into_iter(<span class="self">self</span>) -&gt; <a href="#111">BitMaskIter</a> {
-        <a href="#111">BitMaskIter</a>(<a class="self" href="#104">self</a>)
+    </span><span class="kw">fn </span>into_iter(<span class="self">self</span>) -&gt; BitMaskIter {
+        BitMaskIter(<span class="self">self</span>)
     }
 }
 
 <span class="doccomment">/// Iterator over the contents of a `BitMask`, returning the indices of set
 /// bits.
-</span><span class="kw">pub struct </span>BitMaskIter(<a href="#17">BitMask</a>);
+</span><span class="kw">pub struct </span>BitMaskIter(BitMask);
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a> <span class="kw">for </span><a href="#111">BitMaskIter</a> {
-    <span class="kw">type </span>Item = <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>;
+<span class="kw">impl </span>Iterator <span class="kw">for </span>BitMaskIter {
+    <span class="kw">type </span>Item = usize;
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
+    </span><span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;usize&gt; {
         <span class="kw">let </span>bit = <span class="self">self</span>.<span class="number">0</span>.lowest_set_bit()<span class="question-mark">?</span>;
-        <a class="self" href="#117">self</a>.<span class="number">0 </span>= <a class="self" href="#117">self</a>.<span class="number">0</span>.<a href="#45">remove_lowest_bit</a>();
-        <span class="prelude-val">Some</span>(<a href="#118">bit</a>)
+        <span class="self">self</span>.<span class="number">0 </span>= <span class="self">self</span>.<span class="number">0</span>.remove_lowest_bit();
+        <span class="prelude-val">Some</span>(bit)
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="hashbrown" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="hashbrown" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

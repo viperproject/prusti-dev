@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-1.7.0/src/exec.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>exec.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../regex/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-1.7.0/src/exec.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>exec.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../regex/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -1653,33 +1653,33 @@
 <a href="#1653" id="1653">1653</a>
 <a href="#1654" id="1654">1654</a>
 <a href="#1655" id="1655">1655</a>
-</pre><pre class="rust"><code><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/cell/struct.RefCell.html">std::cell::RefCell</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/collections/hash/map/struct.HashMap.html">std::collections::HashMap</a>;
+</pre><pre class="rust"><code><span class="kw">use </span>std::cell::RefCell;
+<span class="kw">use </span>std::collections::HashMap;
 <span class="kw">use </span>std::panic::AssertUnwindSafe;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/sync/struct.Arc.html">std::sync::Arc</a>;
+<span class="kw">use </span>std::sync::Arc;
 
 <span class="attr">#[cfg(feature = <span class="string">&quot;perf-literal&quot;</span>)]
-</span><span class="kw">use </span>aho_corasick::{<a href="../../aho_corasick/ahocorasick/struct.AhoCorasick.html">AhoCorasick</a>, <a href="../../aho_corasick/ahocorasick/struct.AhoCorasickBuilder.html">AhoCorasickBuilder</a>, <a href="../../aho_corasick/ahocorasick/enum.MatchKind.html">MatchKind</a>};
-<span class="kw">use </span><a href="../../regex_syntax/hir/literal/struct.Literals.html">regex_syntax::hir::literal::Literals</a>;
-<span class="kw">use </span><a href="../../regex_syntax/hir/struct.Hir.html">regex_syntax::hir::Hir</a>;
-<span class="kw">use </span><a href="../../regex_syntax/parser/struct.ParserBuilder.html">regex_syntax::ParserBuilder</a>;
+</span><span class="kw">use </span>aho_corasick::{AhoCorasick, AhoCorasickBuilder, MatchKind};
+<span class="kw">use </span>regex_syntax::hir::literal::Literals;
+<span class="kw">use </span>regex_syntax::hir::Hir;
+<span class="kw">use </span>regex_syntax::ParserBuilder;
 
-<span class="kw">use </span><a href="lib.rs.html#735"><span class="kw">crate</span>::backtrack</a>;
-<span class="kw">use </span><a href="compile.rs.html#32"><span class="kw">crate</span>::compile::Compiler</a>;
+<span class="kw">use </span><span class="kw">crate</span>::backtrack;
+<span class="kw">use </span><span class="kw">crate</span>::compile::Compiler;
 <span class="attr">#[cfg(feature = <span class="string">&quot;perf-dfa&quot;</span>)]
-</span><span class="kw">use </span><a href="lib.rs.html#738"><span class="kw">crate</span>::dfa</a>;
-<span class="kw">use </span><a href="error.rs.html#6"><span class="kw">crate</span>::error::Error</a>;
-<span class="kw">use </span><span class="kw">crate</span>::input::{<a href="input.rs.html#226">ByteInput</a>, <a href="input.rs.html#140">CharInput</a>};
-<span class="kw">use </span><a href="literal/imp.rs.html#13"><span class="kw">crate</span>::literal::LiteralSearcher</a>;
-<span class="kw">use </span><a href="lib.rs.html#747"><span class="kw">crate</span>::pikevm</a>;
-<span class="kw">use </span><span class="kw">crate</span>::pool::{<a href="pool.rs.html#103">Pool</a>, <a href="pool.rs.html#171">PoolGuard</a>};
-<span class="kw">use </span><a href="prog.rs.html#18"><span class="kw">crate</span>::prog::Program</a>;
-<span class="kw">use </span><a href="re_builder.rs.html#4"><span class="kw">crate</span>::re_builder::RegexOptions</a>;
-<span class="kw">use </span><a href="lib.rs.html#751"><span class="kw">crate</span>::re_bytes</a>;
-<span class="kw">use </span><a href="lib.rs.html#752"><span class="kw">crate</span>::re_set</a>;
-<span class="kw">use </span><span class="kw">crate</span>::re_trait::{<a href="re_trait.rs.html#15">Locations</a>, <a href="re_trait.rs.html#104">RegularExpression</a>, <a href="re_trait.rs.html#7">Slot</a>};
-<span class="kw">use </span><a href="lib.rs.html#754"><span class="kw">crate</span>::re_unicode</a>;
-<span class="kw">use </span><a href="utf8.rs.html#23"><span class="kw">crate</span>::utf8::next_utf8</a>;
+</span><span class="kw">use </span><span class="kw">crate</span>::dfa;
+<span class="kw">use </span><span class="kw">crate</span>::error::Error;
+<span class="kw">use </span><span class="kw">crate</span>::input::{ByteInput, CharInput};
+<span class="kw">use </span><span class="kw">crate</span>::literal::LiteralSearcher;
+<span class="kw">use </span><span class="kw">crate</span>::pikevm;
+<span class="kw">use </span><span class="kw">crate</span>::pool::{Pool, PoolGuard};
+<span class="kw">use </span><span class="kw">crate</span>::prog::Program;
+<span class="kw">use </span><span class="kw">crate</span>::re_builder::RegexOptions;
+<span class="kw">use </span><span class="kw">crate</span>::re_bytes;
+<span class="kw">use </span><span class="kw">crate</span>::re_set;
+<span class="kw">use </span><span class="kw">crate</span>::re_trait::{Locations, RegularExpression, Slot};
+<span class="kw">use </span><span class="kw">crate</span>::re_unicode;
+<span class="kw">use </span><span class="kw">crate</span>::utf8::next_utf8;
 
 <span class="doccomment">/// `Exec` manages the execution of a regular expression.
 ///
@@ -1689,7 +1689,7 @@
 </span><span class="attr">#[derive(Debug)]
 </span><span class="kw">pub struct </span>Exec {
     <span class="doccomment">/// All read only state.
-    </span>ro: Arc&lt;<a href="#67">ExecReadOnly</a>&gt;,
+    </span>ro: Arc&lt;ExecReadOnly&gt;,
     <span class="doccomment">/// A pool of reusable values for the various matching engines.
     ///
     /// Note that boxing this value is not strictly necessary, but it is an
@@ -1698,7 +1698,7 @@
     /// time of writing for regex&#39;s use of this pool. At the time of writing,
     /// the size of a Regex on the stack is 856 bytes. Boxing this value
     /// reduces that size to 16 bytes.
-    </span>pool: Box&lt;Pool&lt;<a href="#1521">ProgramCache</a>&gt;&gt;,
+    </span>pool: Box&lt;Pool&lt;ProgramCache&gt;&gt;,
 }
 
 <span class="doccomment">/// `ExecNoSync` is like `Exec`, except it embeds a reference to a cache. This
@@ -1707,9 +1707,9 @@
 </span><span class="attr">#[derive(Debug)]
 </span><span class="kw">pub struct </span>ExecNoSync&lt;<span class="lifetime">&#39;c</span>&gt; {
     <span class="doccomment">/// All read only state.
-    </span>ro: <span class="kw-2">&amp;</span><span class="lifetime">&#39;c </span>Arc&lt;<a href="#67">ExecReadOnly</a>&gt;,
+    </span>ro: <span class="kw-2">&amp;</span><span class="lifetime">&#39;c </span>Arc&lt;ExecReadOnly&gt;,
     <span class="doccomment">/// Caches for the various matching engines.
-    </span>cache: PoolGuard&lt;<span class="lifetime">&#39;c</span>, <a href="#1521">ProgramCache</a>&gt;,
+    </span>cache: PoolGuard&lt;<span class="lifetime">&#39;c</span>, ProgramCache&gt;,
 }
 
 <span class="doccomment">/// `ExecNoSyncStr` is like `ExecNoSync`, but matches on &amp;str instead of &amp;[u8].
@@ -1721,28 +1721,28 @@
 </span><span class="attr">#[derive(Debug)]
 </span><span class="kw">struct </span>ExecReadOnly {
     <span class="doccomment">/// The original regular expressions given by the caller to compile.
-    </span>res: Vec&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt;,
+    </span>res: Vec&lt;String&gt;,
     <span class="doccomment">/// A compiled program that is used in the NFA simulation and backtracking.
     /// It can be byte-based or Unicode codepoint based.
     ///
     /// N.B. It is not possibly to make this byte-based from the public API.
     /// It is only used for testing byte based programs in the NFA simulations.
-    </span>nfa: <a href="prog.rs.html#18">Program</a>,
+    </span>nfa: Program,
     <span class="doccomment">/// A compiled byte based program for DFA execution. This is only used
     /// if a DFA can be executed. (Currently, only word boundary assertions are
     /// not supported.) Note that this program contains an embedded `.*?`
     /// preceding the first capture group, unless the regex is anchored at the
     /// beginning.
-    </span>dfa: <a href="prog.rs.html#18">Program</a>,
+    </span>dfa: Program,
     <span class="doccomment">/// The same as above, except the program is reversed (and there is no
     /// preceding `.*?`). This is used by the DFA to find the starting location
     /// of matches.
-    </span>dfa_reverse: <a href="prog.rs.html#18">Program</a>,
+    </span>dfa_reverse: Program,
     <span class="doccomment">/// A set of suffix literals extracted from the regex.
     ///
     /// Prefix literals are stored on the `Program`, since they are used inside
     /// the matching engines.
-    </span>suffixes: <a href="literal/imp.rs.html#13">LiteralSearcher</a>,
+    </span>suffixes: LiteralSearcher,
     <span class="doccomment">/// An Aho-Corasick automaton with leftmost-first match semantics.
     ///
     /// This is only set when the entire regex is a simple unanchored
@@ -1753,10 +1753,10 @@
     /// if we were to exhaust the ID space, we probably would have long
     /// surpassed the compilation size limit.
     </span><span class="attr">#[cfg(feature = <span class="string">&quot;perf-literal&quot;</span>)]
-    </span>ac: <span class="prelude-ty">Option</span>&lt;AhoCorasick&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>&gt;&gt;,
+    </span>ac: <span class="prelude-ty">Option</span>&lt;AhoCorasick&lt;u32&gt;&gt;,
     <span class="doccomment">/// match_type encodes as much upfront knowledge about how we&#39;re going to
     /// execute a search as possible.
-    </span>match_type: <a href="#1462">MatchType</a>,
+    </span>match_type: MatchType,
 }
 
 <span class="doccomment">/// Facilitates the construction of an executor by exposing various knobs
@@ -1766,29 +1766,29 @@
 // `Debug`.
 </span><span class="attr">#[allow(missing_debug_implementations)]
 </span><span class="kw">pub struct </span>ExecBuilder {
-    options: <a href="re_builder.rs.html#4">RegexOptions</a>,
-    match_type: <span class="prelude-ty">Option</span>&lt;<a href="#1462">MatchType</a>&gt;,
-    bytes: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-    only_utf8: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
+    options: RegexOptions,
+    match_type: <span class="prelude-ty">Option</span>&lt;MatchType&gt;,
+    bytes: bool,
+    only_utf8: bool,
 }
 
 <span class="doccomment">/// Parsed represents a set of parsed regular expressions and their detected
 /// literals.
 </span><span class="kw">struct </span>Parsed {
-    exprs: Vec&lt;<a href="../../regex_syntax/hir/struct.Hir.html">Hir</a>&gt;,
-    prefixes: <a href="../../regex_syntax/hir/literal/struct.Literals.html">Literals</a>,
-    suffixes: <a href="../../regex_syntax/hir/literal/struct.Literals.html">Literals</a>,
-    bytes: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
+    exprs: Vec&lt;Hir&gt;,
+    prefixes: Literals,
+    suffixes: Literals,
+    bytes: bool,
 }
 
-<span class="kw">impl </span><a href="#113">ExecBuilder</a> {
+<span class="kw">impl </span>ExecBuilder {
     <span class="doccomment">/// Create a regex execution builder.
     ///
     /// This uses default settings for everything except the regex itself,
     /// which must be provided. Further knobs can be set by calling methods,
     /// and then finally, `build` to actually create the executor.
-    </span><span class="kw">pub fn </span>new(re: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="self">Self </span>{
-        <span class="self">Self</span>::new_many(<span class="kw-2">&amp;</span>[<a href="#135">re</a>])
+    </span><span class="kw">pub fn </span>new(re: <span class="kw-2">&amp;</span>str) -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::new_many(<span class="kw-2">&amp;</span>[re])
     }
 
     <span class="doccomment">/// Like new, but compiles the union of the given regular expressions.
@@ -1798,18 +1798,18 @@
     /// won&#39;t work.)
     </span><span class="kw">pub fn </span>new_many&lt;I, S&gt;(res: I) -&gt; <span class="self">Self
     </span><span class="kw">where
-        </span>S: AsRef&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt;,
+        </span>S: AsRef&lt;str&gt;,
         I: IntoIterator&lt;Item = S&gt;,
     {
         <span class="kw">let </span><span class="kw-2">mut </span>opts = RegexOptions::default();
-        <a href="#149">opts</a>.pats = <a href="#144">res</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|s| <a href="#150">s</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>().<a href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">to_owned</a>()).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
-        <span class="self">Self</span>::new_options(<a href="#149">opts</a>)
+        opts.pats = res.into_iter().map(|s| s.as_ref().to_owned()).collect();
+        <span class="self">Self</span>::new_options(opts)
     }
 
     <span class="doccomment">/// Create a regex execution builder.
-    </span><span class="kw">pub fn </span>new_options(opts: <a href="re_builder.rs.html#4">RegexOptions</a>) -&gt; <span class="self">Self </span>{
-        <a href="#113">ExecBuilder</a> {
-            options: <a href="#155">opts</a>,
+    </span><span class="kw">pub fn </span>new_options(opts: RegexOptions) -&gt; <span class="self">Self </span>{
+        ExecBuilder {
+            options: opts,
             match_type: <span class="prelude-val">None</span>,
             bytes: <span class="bool-val">false</span>,
             only_utf8: <span class="bool-val">true</span>,
@@ -1824,8 +1824,8 @@
     /// This overrides whatever was previously set via the `nfa` or
     /// `bounded_backtracking` methods.
     </span><span class="kw">pub fn </span>automatic(<span class="kw-2">mut </span><span class="self">self</span>) -&gt; <span class="self">Self </span>{
-        <a class="self" href="#171">self</a>.match_type = <span class="prelude-val">None</span>;
-        <span class="self"><a href="#171">self</a>
+        <span class="self">self</span>.match_type = <span class="prelude-val">None</span>;
+        <span class="self">self
     </span>}
 
     <span class="doccomment">/// Sets the matching engine to use the NFA algorithm no matter what
@@ -1834,8 +1834,8 @@
     /// This overrides whatever was previously set via the `automatic` or
     /// `bounded_backtracking` methods.
     </span><span class="kw">pub fn </span>nfa(<span class="kw-2">mut </span><span class="self">self</span>) -&gt; <span class="self">Self </span>{
-        <a class="self" href="#181">self</a>.match_type = <span class="prelude-val">Some</span>(<a href="#1480">MatchType::Nfa</a>(<a href="#1512">MatchNfaType::PikeVM</a>));
-        <span class="self"><a href="#181">self</a>
+        <span class="self">self</span>.match_type = <span class="prelude-val">Some</span>(MatchType::Nfa(MatchNfaType::PikeVM));
+        <span class="self">self
     </span>}
 
     <span class="doccomment">/// Sets the matching engine to use a bounded backtracking engine no
@@ -1847,8 +1847,8 @@
     /// This overrides whatever was previously set via the `automatic` or
     /// `nfa` methods.
     </span><span class="kw">pub fn </span>bounded_backtracking(<span class="kw-2">mut </span><span class="self">self</span>) -&gt; <span class="self">Self </span>{
-        <a class="self" href="#194">self</a>.match_type = <span class="prelude-val">Some</span>(<a href="#1480">MatchType::Nfa</a>(<a href="#1507">MatchNfaType::Backtrack</a>));
-        <span class="self"><a href="#194">self</a>
+        <span class="self">self</span>.match_type = <span class="prelude-val">Some</span>(MatchType::Nfa(MatchNfaType::Backtrack));
+        <span class="self">self
     </span>}
 
     <span class="doccomment">/// Compiles byte based programs for use with the NFA matching engines.
@@ -1860,33 +1860,33 @@
     ///
     /// Note that this does not impact DFA matching engines, which always
     /// execute on bytes.
-    </span><span class="kw">pub fn </span>bytes(<span class="kw-2">mut </span><span class="self">self</span>, yes: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="self">Self </span>{
-        <a class="self" href="#208">self</a>.bytes = <a href="#208">yes</a>;
-        <span class="self"><a href="#208">self</a>
+    </span><span class="kw">pub fn </span>bytes(<span class="kw-2">mut </span><span class="self">self</span>, yes: bool) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.bytes = yes;
+        <span class="self">self
     </span>}
 
     <span class="doccomment">/// When disabled, the program compiled may match arbitrary bytes.
     ///
     /// When enabled (the default), all compiled programs exclusively match
     /// valid UTF-8 bytes.
-    </span><span class="kw">pub fn </span>only_utf8(<span class="kw-2">mut </span><span class="self">self</span>, yes: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="self">Self </span>{
-        <a class="self" href="#217">self</a>.only_utf8 = <a href="#217">yes</a>;
-        <span class="self"><a href="#217">self</a>
+    </span><span class="kw">pub fn </span>only_utf8(<span class="kw-2">mut </span><span class="self">self</span>, yes: bool) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.only_utf8 = yes;
+        <span class="self">self
     </span>}
 
     <span class="doccomment">/// Set the Unicode flag.
-    </span><span class="kw">pub fn </span>unicode(<span class="kw-2">mut </span><span class="self">self</span>, yes: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="self">Self </span>{
-        <a class="self" href="#223">self</a>.options.unicode = <a href="#223">yes</a>;
-        <span class="self"><a href="#223">self</a>
+    </span><span class="kw">pub fn </span>unicode(<span class="kw-2">mut </span><span class="self">self</span>, yes: bool) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.options.unicode = yes;
+        <span class="self">self
     </span>}
 
     <span class="doccomment">/// Parse the current set of patterns into their AST and extract literals.
-    </span><span class="kw">fn </span>parse(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#122">Parsed</a>, <a href="error.rs.html#6">Error</a>&gt; {
-        <span class="kw">let </span><span class="kw-2">mut </span>exprs = Vec::with_capacity(<a class="self" href="#229">self</a>.options.pats.len());
+    </span><span class="kw">fn </span>parse(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;Parsed, Error&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>exprs = Vec::with_capacity(<span class="self">self</span>.options.pats.len());
         <span class="kw">let </span><span class="kw-2">mut </span>prefixes = <span class="prelude-val">Some</span>(Literals::empty());
         <span class="kw">let </span><span class="kw-2">mut </span>suffixes = <span class="prelude-val">Some</span>(Literals::empty());
         <span class="kw">let </span><span class="kw-2">mut </span>bytes = <span class="bool-val">false</span>;
-        <span class="kw">let </span>is_set = <a class="self" href="#229">self</a>.options.pats.len() &gt; <span class="number">1</span>;
+        <span class="kw">let </span>is_set = <span class="self">self</span>.options.pats.len() &gt; <span class="number">1</span>;
         <span class="comment">// If we&#39;re compiling a regex set and that set has any anchored
         // expressions, then disable all literal optimizations.
         </span><span class="kw">for </span>pat <span class="kw">in </span><span class="kw-2">&amp;</span><span class="self">self</span>.options.pats {
@@ -1942,31 +1942,31 @@
             }
             exprs.push(expr);
         }
-        <span class="prelude-val">Ok</span>(<a href="#122">Parsed</a> {
-            <a href="#230">exprs</a>,
-            prefixes: <a href="#231">prefixes</a>.unwrap_or_else(Literals::empty),
-            suffixes: <a href="#232">suffixes</a>.unwrap_or_else(Literals::empty),
-            <a href="#233">bytes</a>,
+        <span class="prelude-val">Ok</span>(Parsed {
+            exprs,
+            prefixes: prefixes.unwrap_or_else(Literals::empty),
+            suffixes: suffixes.unwrap_or_else(Literals::empty),
+            bytes,
         })
     }
 
     <span class="doccomment">/// Build an executor that can run a regular expression.
-    </span><span class="kw">pub fn </span>build(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#35">Exec</a>, <a href="error.rs.html#6">Error</a>&gt; {
+    </span><span class="kw">pub fn </span>build(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;Exec, Error&gt; {
         <span class="comment">// Special case when we have no patterns to compile.
         // This can happen when compiling a regex set.
         </span><span class="kw">if </span><span class="self">self</span>.options.pats.is_empty() {
-            <span class="kw">let </span>ro = Arc::new(<a href="#67">ExecReadOnly</a> {
-                res: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[],
+            <span class="kw">let </span>ro = Arc::new(ExecReadOnly {
+                res: <span class="macro">vec!</span>[],
                 nfa: Program::new(),
                 dfa: Program::new(),
                 dfa_reverse: Program::new(),
                 suffixes: LiteralSearcher::empty(),
                 <span class="attr">#[cfg(feature = <span class="string">&quot;perf-literal&quot;</span>)]
                 </span>ac: <span class="prelude-val">None</span>,
-                match_type: <a href="#1482">MatchType::Nothing</a>,
+                match_type: MatchType::Nothing,
             });
-            <span class="kw">let </span>pool = ExecReadOnly::new_pool(<span class="kw-2">&amp;</span><a href="#303">ro</a>);
-            <span class="kw">return </span><span class="prelude-val">Ok</span>(<a href="#35">Exec</a> { <a href="#303">ro</a>, <a href="#313">pool</a> });
+            <span class="kw">let </span>pool = ExecReadOnly::new_pool(<span class="kw-2">&amp;</span>ro);
+            <span class="kw">return </span><span class="prelude-val">Ok</span>(Exec { ro, pool });
         }
         <span class="kw">let </span>parsed = <span class="self">self</span>.parse()<span class="question-mark">?</span>;
         <span class="kw">let </span><span class="kw-2">mut </span>nfa = Compiler::new()
@@ -1987,37 +1987,37 @@
             .compile(<span class="kw-2">&amp;</span>parsed.exprs)<span class="question-mark">?</span>;
 
         <span class="attr">#[cfg(feature = <span class="string">&quot;perf-literal&quot;</span>)]
-        </span><span class="kw">let </span>ac = <a class="self" href="#299">self</a>.<a href="#359">build_aho_corasick</a>(<span class="kw-2">&amp;</span><a href="#316">parsed</a>);
-        <a href="#317">nfa</a>.prefixes = LiteralSearcher::prefixes(<a href="#316">parsed</a>.prefixes);
-        <a href="#322">dfa</a>.prefixes = <a href="#317">nfa</a>.prefixes.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
-        <a href="#322">dfa</a>.dfa_size_limit = <a class="self" href="#299">self</a>.options.dfa_size_limit;
-        <a href="#327">dfa_reverse</a>.dfa_size_limit = <a class="self" href="#299">self</a>.options.dfa_size_limit;
+        </span><span class="kw">let </span>ac = <span class="self">self</span>.build_aho_corasick(<span class="kw-2">&amp;</span>parsed);
+        nfa.prefixes = LiteralSearcher::prefixes(parsed.prefixes);
+        dfa.prefixes = nfa.prefixes.clone();
+        dfa.dfa_size_limit = <span class="self">self</span>.options.dfa_size_limit;
+        dfa_reverse.dfa_size_limit = <span class="self">self</span>.options.dfa_size_limit;
 
-        <span class="kw">let </span><span class="kw-2">mut </span>ro = <a href="#67">ExecReadOnly</a> {
-            res: <a class="self" href="#299">self</a>.options.pats,
-            <a href="#317">nfa</a>,
-            <a href="#322">dfa</a>,
-            <a href="#327">dfa_reverse</a>,
-            suffixes: LiteralSearcher::suffixes(<a href="#316">parsed</a>.suffixes),
+        <span class="kw">let </span><span class="kw-2">mut </span>ro = ExecReadOnly {
+            res: <span class="self">self</span>.options.pats,
+            nfa,
+            dfa,
+            dfa_reverse,
+            suffixes: LiteralSearcher::suffixes(parsed.suffixes),
             <span class="attr">#[cfg(feature = <span class="string">&quot;perf-literal&quot;</span>)]
-            </span><a href="#335">ac</a>,
-            match_type: <a href="#1482">MatchType::Nothing</a>,
+            </span>ac,
+            match_type: MatchType::Nothing,
         };
-        <a href="#341">ro</a>.match_type = <a href="#341">ro</a>.<a href="#1324">choose_match_type</a>(<a class="self" href="#299">self</a>.match_type);
+        ro.match_type = ro.choose_match_type(<span class="self">self</span>.match_type);
 
-        <span class="kw">let </span>ro = Arc::new(<a href="#341">ro</a>);
-        <span class="kw">let </span>pool = ExecReadOnly::new_pool(<span class="kw-2">&amp;</span><a href="#353">ro</a>);
-        <span class="prelude-val">Ok</span>(<a href="#35">Exec</a> { <a href="#353">ro</a>, <a href="#354">pool</a> })
+        <span class="kw">let </span>ro = Arc::new(ro);
+        <span class="kw">let </span>pool = ExecReadOnly::new_pool(<span class="kw-2">&amp;</span>ro);
+        <span class="prelude-val">Ok</span>(Exec { ro, pool })
     }
 
     <span class="attr">#[cfg(feature = <span class="string">&quot;perf-literal&quot;</span>)]
-    </span><span class="kw">fn </span>build_aho_corasick(<span class="kw-2">&amp;</span><span class="self">self</span>, parsed: <span class="kw-2">&amp;</span><a href="#122">Parsed</a>) -&gt; <span class="prelude-ty">Option</span>&lt;AhoCorasick&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>&gt;&gt; {
+    </span><span class="kw">fn </span>build_aho_corasick(<span class="kw-2">&amp;</span><span class="self">self</span>, parsed: <span class="kw-2">&amp;</span>Parsed) -&gt; <span class="prelude-ty">Option</span>&lt;AhoCorasick&lt;u32&gt;&gt; {
         <span class="kw">if </span>parsed.exprs.len() != <span class="number">1 </span>{
             <span class="kw">return </span><span class="prelude-val">None</span>;
         }
-        <span class="kw">let </span>lits = <span class="kw">match </span><a href="#1549">alternation_literals</a>(<span class="kw-2">&amp;</span><a href="#359">parsed</a>.exprs[<span class="number">0</span>]) {
+        <span class="kw">let </span>lits = <span class="kw">match </span>alternation_literals(<span class="kw-2">&amp;</span>parsed.exprs[<span class="number">0</span>]) {
             <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="prelude-val">None</span>,
-            <span class="prelude-val">Some</span>(lits) =&gt; <a href="#365">lits</a>,
+            <span class="prelude-val">Some</span>(lits) =&gt; lits,
         };
         <span class="comment">// If we have a small number of literals, then let Teddy handle
         // things (see literal/mod.rs).
@@ -2027,8 +2027,8 @@
         <span class="prelude-val">Some</span>(
             AhoCorasickBuilder::new()
                 .match_kind(MatchKind::LeftmostFirst)
-                .auto_configure(<span class="kw-2">&amp;</span><a href="#363">lits</a>)
-                .build_with_size::&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>, <span class="kw">_</span>, <span class="kw">_</span>&gt;(<span class="kw-2">&amp;</span><a href="#363">lits</a>)
+                .auto_configure(<span class="kw-2">&amp;</span>lits)
+                .build_with_size::&lt;u32, <span class="kw">_</span>, <span class="kw">_</span>&gt;(<span class="kw-2">&amp;</span>lits)
                 <span class="comment">// This should never happen because we&#39;d long exceed the
                 // compilation limit for regexes first.
                 </span>.expect(<span class="string">&quot;AC automaton too big&quot;</span>),
@@ -2036,101 +2036,101 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;c</span>&gt; <a href="re_trait.rs.html#104">RegularExpression</a> <span class="kw">for </span>ExecNoSyncStr&lt;<span class="lifetime">&#39;c</span>&gt; {
-    <span class="kw">type </span>Text = <a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>;
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;c</span>&gt; RegularExpression <span class="kw">for </span>ExecNoSyncStr&lt;<span class="lifetime">&#39;c</span>&gt; {
+    <span class="kw">type </span>Text = str;
 
-    <span class="kw">fn </span>slots_len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="self" href="#387">self</a>.<span class="number">0</span>.<a href="re_trait.rs.html#110">slots_len</a>()
+    <span class="kw">fn </span>slots_len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+        <span class="self">self</span>.<span class="number">0</span>.slots_len()
     }
 
-    <span class="kw">fn </span>next_after_empty(<span class="kw-2">&amp;</span><span class="self">self</span>, text: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, i: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a href="utf8.rs.html#23">next_utf8</a>(<a href="#391">text</a>.as_bytes(), <a href="#391">i</a>)
-    }
-
-    <span class="attr">#[cfg_attr(feature = <span class="string">&quot;perf-inline&quot;</span>, inline(always))]
-    </span><span class="kw">fn </span>shortest_match_at(<span class="kw-2">&amp;</span><span class="self">self</span>, text: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, start: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
-        <a class="self" href="#396">self</a>.<span class="number">0</span>.<a href="re_trait.rs.html#125-129">shortest_match_at</a>(<a href="#396">text</a>.as_bytes(), <a href="#396">start</a>)
+    <span class="kw">fn </span>next_after_empty(<span class="kw-2">&amp;</span><span class="self">self</span>, text: <span class="kw-2">&amp;</span>str, i: usize) -&gt; usize {
+        next_utf8(text.as_bytes(), i)
     }
 
     <span class="attr">#[cfg_attr(feature = <span class="string">&quot;perf-inline&quot;</span>, inline(always))]
-    </span><span class="kw">fn </span>is_match_at(<span class="kw-2">&amp;</span><span class="self">self</span>, text: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, start: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#401">self</a>.<span class="number">0</span>.<a href="re_trait.rs.html#132">is_match_at</a>(<a href="#401">text</a>.as_bytes(), <a href="#401">start</a>)
+    </span><span class="kw">fn </span>shortest_match_at(<span class="kw-2">&amp;</span><span class="self">self</span>, text: <span class="kw-2">&amp;</span>str, start: usize) -&gt; <span class="prelude-ty">Option</span>&lt;usize&gt; {
+        <span class="self">self</span>.<span class="number">0</span>.shortest_match_at(text.as_bytes(), start)
     }
 
     <span class="attr">#[cfg_attr(feature = <span class="string">&quot;perf-inline&quot;</span>, inline(always))]
-    </span><span class="kw">fn </span>find_at(<span class="kw-2">&amp;</span><span class="self">self</span>, text: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, start: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="prelude-ty">Option</span>&lt;(<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>)&gt; {
-        <a class="self" href="#406">self</a>.<span class="number">0</span>.<a href="re_trait.rs.html#135-139">find_at</a>(<a href="#406">text</a>.as_bytes(), <a href="#406">start</a>)
+    </span><span class="kw">fn </span>is_match_at(<span class="kw-2">&amp;</span><span class="self">self</span>, text: <span class="kw-2">&amp;</span>str, start: usize) -&gt; bool {
+        <span class="self">self</span>.<span class="number">0</span>.is_match_at(text.as_bytes(), start)
+    }
+
+    <span class="attr">#[cfg_attr(feature = <span class="string">&quot;perf-inline&quot;</span>, inline(always))]
+    </span><span class="kw">fn </span>find_at(<span class="kw-2">&amp;</span><span class="self">self</span>, text: <span class="kw-2">&amp;</span>str, start: usize) -&gt; <span class="prelude-ty">Option</span>&lt;(usize, usize)&gt; {
+        <span class="self">self</span>.<span class="number">0</span>.find_at(text.as_bytes(), start)
     }
 
     <span class="attr">#[cfg_attr(feature = <span class="string">&quot;perf-inline&quot;</span>, inline(always))]
     </span><span class="kw">fn </span>captures_read_at(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        locs: <span class="kw-2">&amp;mut </span><a href="re_trait.rs.html#15">Locations</a>,
-        text: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>,
-        start: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-    ) -&gt; <span class="prelude-ty">Option</span>&lt;(<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>)&gt; {
-        <a class="self" href="#412">self</a>.<span class="number">0</span>.<a href="re_trait.rs.html#143-148">captures_read_at</a>(<a href="#413">locs</a>, <a href="#414">text</a>.as_bytes(), <a href="#415">start</a>)
+        locs: <span class="kw-2">&amp;mut </span>Locations,
+        text: <span class="kw-2">&amp;</span>str,
+        start: usize,
+    ) -&gt; <span class="prelude-ty">Option</span>&lt;(usize, usize)&gt; {
+        <span class="self">self</span>.<span class="number">0</span>.captures_read_at(locs, text.as_bytes(), start)
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;c</span>&gt; <a href="re_trait.rs.html#104">RegularExpression</a> <span class="kw">for </span>ExecNoSync&lt;<span class="lifetime">&#39;c</span>&gt; {
-    <span class="kw">type </span>Text = [<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>];
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;c</span>&gt; RegularExpression <span class="kw">for </span>ExecNoSync&lt;<span class="lifetime">&#39;c</span>&gt; {
+    <span class="kw">type </span>Text = [u8];
 
     <span class="doccomment">/// Returns the number of capture slots in the regular expression. (There
     /// are two slots for every capture group, corresponding to possibly empty
     /// start and end locations of the capture.)
-    </span><span class="kw">fn </span>slots_len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="self" href="#427">self</a>.ro.nfa.captures.len() * <span class="number">2
+    </span><span class="kw">fn </span>slots_len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+        <span class="self">self</span>.ro.nfa.captures.len() * <span class="number">2
     </span>}
 
-    <span class="kw">fn </span>next_after_empty(<span class="kw-2">&amp;</span><span class="self">self</span>, _text: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], i: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a href="#431">i</a> + <span class="number">1
+    <span class="kw">fn </span>next_after_empty(<span class="kw-2">&amp;</span><span class="self">self</span>, _text: <span class="kw-2">&amp;</span>[u8], i: usize) -&gt; usize {
+        i + <span class="number">1
     </span>}
 
     <span class="doccomment">/// Returns the end of a match location, possibly occurring before the
     /// end location of the correct leftmost-first match.
     </span><span class="attr">#[cfg_attr(feature = <span class="string">&quot;perf-inline&quot;</span>, inline(always))]
-    </span><span class="kw">fn </span>shortest_match_at(<span class="kw-2">&amp;</span><span class="self">self</span>, text: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], start: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
+    </span><span class="kw">fn </span>shortest_match_at(<span class="kw-2">&amp;</span><span class="self">self</span>, text: <span class="kw-2">&amp;</span>[u8], start: usize) -&gt; <span class="prelude-ty">Option</span>&lt;usize&gt; {
         <span class="kw">if </span>!<span class="self">self</span>.is_anchor_end_match(text) {
             <span class="kw">return </span><span class="prelude-val">None</span>;
         }
-        <span class="kw">match </span><a class="self" href="#438">self</a>.ro.match_type {
+        <span class="kw">match </span><span class="self">self</span>.ro.match_type {
             <span class="attr">#[cfg(feature = <span class="string">&quot;perf-literal&quot;</span>)]
-            </span><a href="#1466">MatchType::Literal</a>(ty) =&gt; {
-                <a class="self" href="#438">self</a>.<a href="#692-697">find_literals</a>(<a href="#444">ty</a>, <a href="#438">text</a>, <a href="#438">start</a>).map(|(<span class="kw">_</span>, e)| <a href="#445">e</a>)
+            </span>MatchType::Literal(ty) =&gt; {
+                <span class="self">self</span>.find_literals(ty, text, start).map(|(<span class="kw">_</span>, e)| e)
             }
             <span class="attr">#[cfg(feature = <span class="string">&quot;perf-dfa&quot;</span>)]
-            </span><a href="#1469">MatchType::Dfa</a> | <a href="#1478">MatchType::DfaMany</a> =&gt; {
-                <span class="kw">match </span><a class="self" href="#438">self</a>.<a href="#796">shortest_dfa</a>(<a href="#438">text</a>, <a href="#438">start</a>) {
-                    <a href="dfa.rs.html#210">dfa::Result::Match</a>(end) =&gt; <span class="prelude-val">Some</span>(<a href="#450">end</a>),
-                    <a href="dfa.rs.html#211">dfa::Result::NoMatch</a>(<span class="kw">_</span>) =&gt; <span class="prelude-val">None</span>,
-                    <a href="dfa.rs.html#212">dfa::Result::Quit</a> =&gt; <a class="self" href="#438">self</a>.<a href="#938">shortest_nfa</a>(<a href="#438">text</a>, <a href="#438">start</a>),
+            </span>MatchType::Dfa | MatchType::DfaMany =&gt; {
+                <span class="kw">match </span><span class="self">self</span>.shortest_dfa(text, start) {
+                    dfa::Result::Match(end) =&gt; <span class="prelude-val">Some</span>(end),
+                    dfa::Result::NoMatch(<span class="kw">_</span>) =&gt; <span class="prelude-val">None</span>,
+                    dfa::Result::Quit =&gt; <span class="self">self</span>.shortest_nfa(text, start),
                 }
             }
             <span class="attr">#[cfg(feature = <span class="string">&quot;perf-dfa&quot;</span>)]
-            </span><a href="#1472">MatchType::DfaAnchoredReverse</a> =&gt; {
+            </span>MatchType::DfaAnchoredReverse =&gt; {
                 <span class="kw">match </span>dfa::Fsm::reverse(
-                    <span class="kw-2">&amp;</span><a class="self" href="#438">self</a>.ro.dfa_reverse,
-                    <a class="self" href="#438">self</a>.cache.<a href="pool.rs.html#262">value</a>(),
+                    <span class="kw-2">&amp;</span><span class="self">self</span>.ro.dfa_reverse,
+                    <span class="self">self</span>.cache.value(),
                     <span class="bool-val">true</span>,
-                    <span class="kw-2">&amp;</span><a href="#438">text</a>[<a href="#438">start</a>..],
-                    <a href="#438">text</a>.len(),
+                    <span class="kw-2">&amp;</span>text[start..],
+                    text.len(),
                 ) {
-                    <a href="dfa.rs.html#210">dfa::Result::Match</a>(<span class="kw">_</span>) =&gt; <span class="prelude-val">Some</span>(<a href="#438">text</a>.len()),
-                    <a href="dfa.rs.html#211">dfa::Result::NoMatch</a>(<span class="kw">_</span>) =&gt; <span class="prelude-val">None</span>,
-                    <a href="dfa.rs.html#212">dfa::Result::Quit</a> =&gt; <a class="self" href="#438">self</a>.<a href="#938">shortest_nfa</a>(<a href="#438">text</a>, <a href="#438">start</a>),
+                    dfa::Result::Match(<span class="kw">_</span>) =&gt; <span class="prelude-val">Some</span>(text.len()),
+                    dfa::Result::NoMatch(<span class="kw">_</span>) =&gt; <span class="prelude-val">None</span>,
+                    dfa::Result::Quit =&gt; <span class="self">self</span>.shortest_nfa(text, start),
                 }
             }
             <span class="attr">#[cfg(all(feature = <span class="string">&quot;perf-dfa&quot;</span>, feature = <span class="string">&quot;perf-literal&quot;</span>))]
-            </span><a href="#1475">MatchType::DfaSuffix</a> =&gt; {
-                <span class="kw">match </span><a class="self" href="#438">self</a>.<a href="#804-808">shortest_dfa_reverse_suffix</a>(<a href="#438">text</a>, <a href="#438">start</a>) {
-                    <a href="dfa.rs.html#210">dfa::Result::Match</a>(e) =&gt; <span class="prelude-val">Some</span>(<a href="#472">e</a>),
-                    <a href="dfa.rs.html#211">dfa::Result::NoMatch</a>(<span class="kw">_</span>) =&gt; <span class="prelude-val">None</span>,
-                    <a href="dfa.rs.html#212">dfa::Result::Quit</a> =&gt; <a class="self" href="#438">self</a>.<a href="#938">shortest_nfa</a>(<a href="#438">text</a>, <a href="#438">start</a>),
+            </span>MatchType::DfaSuffix =&gt; {
+                <span class="kw">match </span><span class="self">self</span>.shortest_dfa_reverse_suffix(text, start) {
+                    dfa::Result::Match(e) =&gt; <span class="prelude-val">Some</span>(e),
+                    dfa::Result::NoMatch(<span class="kw">_</span>) =&gt; <span class="prelude-val">None</span>,
+                    dfa::Result::Quit =&gt; <span class="self">self</span>.shortest_nfa(text, start),
                 }
             }
-            <a href="#1480">MatchType::Nfa</a>(ty) =&gt; <a class="self" href="#438">self</a>.<a href="#943-948">shortest_nfa_type</a>(<a href="#477">ty</a>, <a href="#438">text</a>, <a href="#438">start</a>),
-            <a href="#1482">MatchType::Nothing</a> =&gt; <span class="prelude-val">None</span>,
+            MatchType::Nfa(ty) =&gt; <span class="self">self</span>.shortest_nfa_type(ty, text, start),
+            MatchType::Nothing =&gt; <span class="prelude-val">None</span>,
         }
     }
 
@@ -2139,96 +2139,96 @@
     /// For single regular expressions, this is equivalent to calling
     /// shortest_match(...).is_some().
     </span><span class="attr">#[cfg_attr(feature = <span class="string">&quot;perf-inline&quot;</span>, inline(always))]
-    </span><span class="kw">fn </span>is_match_at(<span class="kw-2">&amp;</span><span class="self">self</span>, text: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], start: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+    </span><span class="kw">fn </span>is_match_at(<span class="kw-2">&amp;</span><span class="self">self</span>, text: <span class="kw-2">&amp;</span>[u8], start: usize) -&gt; bool {
         <span class="kw">if </span>!<span class="self">self</span>.is_anchor_end_match(text) {
             <span class="kw">return </span><span class="bool-val">false</span>;
         }
         <span class="comment">// We need to do this dance because shortest_match relies on the NFA
         // filling in captures[1], but a RegexSet has no captures. In other
         // words, a RegexSet can&#39;t (currently) use shortest_match. ---AG
-        </span><span class="kw">match </span><a class="self" href="#487">self</a>.ro.match_type {
+        </span><span class="kw">match </span><span class="self">self</span>.ro.match_type {
             <span class="attr">#[cfg(feature = <span class="string">&quot;perf-literal&quot;</span>)]
-            </span><a href="#1466">MatchType::Literal</a>(ty) =&gt; {
-                <a class="self" href="#487">self</a>.<a href="#692-697">find_literals</a>(<a href="#496">ty</a>, <a href="#487">text</a>, <a href="#487">start</a>).is_some()
+            </span>MatchType::Literal(ty) =&gt; {
+                <span class="self">self</span>.find_literals(ty, text, start).is_some()
             }
             <span class="attr">#[cfg(feature = <span class="string">&quot;perf-dfa&quot;</span>)]
-            </span><a href="#1469">MatchType::Dfa</a> | <a href="#1478">MatchType::DfaMany</a> =&gt; {
-                <span class="kw">match </span><a class="self" href="#487">self</a>.<a href="#796">shortest_dfa</a>(<a href="#487">text</a>, <a href="#487">start</a>) {
-                    <a href="dfa.rs.html#210">dfa::Result::Match</a>(<span class="kw">_</span>) =&gt; <span class="bool-val">true</span>,
-                    <a href="dfa.rs.html#211">dfa::Result::NoMatch</a>(<span class="kw">_</span>) =&gt; <span class="bool-val">false</span>,
-                    <a href="dfa.rs.html#212">dfa::Result::Quit</a> =&gt; <a class="self" href="#487">self</a>.<a href="#913">match_nfa</a>(<a href="#487">text</a>, <a href="#487">start</a>),
+            </span>MatchType::Dfa | MatchType::DfaMany =&gt; {
+                <span class="kw">match </span><span class="self">self</span>.shortest_dfa(text, start) {
+                    dfa::Result::Match(<span class="kw">_</span>) =&gt; <span class="bool-val">true</span>,
+                    dfa::Result::NoMatch(<span class="kw">_</span>) =&gt; <span class="bool-val">false</span>,
+                    dfa::Result::Quit =&gt; <span class="self">self</span>.match_nfa(text, start),
                 }
             }
             <span class="attr">#[cfg(feature = <span class="string">&quot;perf-dfa&quot;</span>)]
-            </span><a href="#1472">MatchType::DfaAnchoredReverse</a> =&gt; {
+            </span>MatchType::DfaAnchoredReverse =&gt; {
                 <span class="kw">match </span>dfa::Fsm::reverse(
-                    <span class="kw-2">&amp;</span><a class="self" href="#487">self</a>.ro.dfa_reverse,
-                    <a class="self" href="#487">self</a>.cache.<a href="pool.rs.html#262">value</a>(),
+                    <span class="kw-2">&amp;</span><span class="self">self</span>.ro.dfa_reverse,
+                    <span class="self">self</span>.cache.value(),
                     <span class="bool-val">true</span>,
-                    <span class="kw-2">&amp;</span><a href="#487">text</a>[<a href="#487">start</a>..],
-                    <a href="#487">text</a>.len(),
+                    <span class="kw-2">&amp;</span>text[start..],
+                    text.len(),
                 ) {
-                    <a href="dfa.rs.html#210">dfa::Result::Match</a>(<span class="kw">_</span>) =&gt; <span class="bool-val">true</span>,
-                    <a href="dfa.rs.html#211">dfa::Result::NoMatch</a>(<span class="kw">_</span>) =&gt; <span class="bool-val">false</span>,
-                    <a href="dfa.rs.html#212">dfa::Result::Quit</a> =&gt; <a class="self" href="#487">self</a>.<a href="#913">match_nfa</a>(<a href="#487">text</a>, <a href="#487">start</a>),
+                    dfa::Result::Match(<span class="kw">_</span>) =&gt; <span class="bool-val">true</span>,
+                    dfa::Result::NoMatch(<span class="kw">_</span>) =&gt; <span class="bool-val">false</span>,
+                    dfa::Result::Quit =&gt; <span class="self">self</span>.match_nfa(text, start),
                 }
             }
             <span class="attr">#[cfg(all(feature = <span class="string">&quot;perf-dfa&quot;</span>, feature = <span class="string">&quot;perf-literal&quot;</span>))]
-            </span><a href="#1475">MatchType::DfaSuffix</a> =&gt; {
-                <span class="kw">match </span><a class="self" href="#487">self</a>.<a href="#804-808">shortest_dfa_reverse_suffix</a>(<a href="#487">text</a>, <a href="#487">start</a>) {
-                    <a href="dfa.rs.html#210">dfa::Result::Match</a>(<span class="kw">_</span>) =&gt; <span class="bool-val">true</span>,
-                    <a href="dfa.rs.html#211">dfa::Result::NoMatch</a>(<span class="kw">_</span>) =&gt; <span class="bool-val">false</span>,
-                    <a href="dfa.rs.html#212">dfa::Result::Quit</a> =&gt; <a class="self" href="#487">self</a>.<a href="#913">match_nfa</a>(<a href="#487">text</a>, <a href="#487">start</a>),
+            </span>MatchType::DfaSuffix =&gt; {
+                <span class="kw">match </span><span class="self">self</span>.shortest_dfa_reverse_suffix(text, start) {
+                    dfa::Result::Match(<span class="kw">_</span>) =&gt; <span class="bool-val">true</span>,
+                    dfa::Result::NoMatch(<span class="kw">_</span>) =&gt; <span class="bool-val">false</span>,
+                    dfa::Result::Quit =&gt; <span class="self">self</span>.match_nfa(text, start),
                 }
             }
-            <a href="#1480">MatchType::Nfa</a>(ty) =&gt; <a class="self" href="#487">self</a>.<a href="#918-923">match_nfa_type</a>(<a href="#529">ty</a>, <a href="#487">text</a>, <a href="#487">start</a>),
-            <a href="#1482">MatchType::Nothing</a> =&gt; <span class="bool-val">false</span>,
+            MatchType::Nfa(ty) =&gt; <span class="self">self</span>.match_nfa_type(ty, text, start),
+            MatchType::Nothing =&gt; <span class="bool-val">false</span>,
         }
     }
 
     <span class="doccomment">/// Finds the start and end location of the leftmost-first match, starting
     /// at the given location.
     </span><span class="attr">#[cfg_attr(feature = <span class="string">&quot;perf-inline&quot;</span>, inline(always))]
-    </span><span class="kw">fn </span>find_at(<span class="kw-2">&amp;</span><span class="self">self</span>, text: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], start: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="prelude-ty">Option</span>&lt;(<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>)&gt; {
+    </span><span class="kw">fn </span>find_at(<span class="kw-2">&amp;</span><span class="self">self</span>, text: <span class="kw-2">&amp;</span>[u8], start: usize) -&gt; <span class="prelude-ty">Option</span>&lt;(usize, usize)&gt; {
         <span class="kw">if </span>!<span class="self">self</span>.is_anchor_end_match(text) {
             <span class="kw">return </span><span class="prelude-val">None</span>;
         }
-        <span class="kw">match </span><a class="self" href="#537">self</a>.ro.match_type {
+        <span class="kw">match </span><span class="self">self</span>.ro.match_type {
             <span class="attr">#[cfg(feature = <span class="string">&quot;perf-literal&quot;</span>)]
-            </span><a href="#1466">MatchType::Literal</a>(ty) =&gt; <a class="self" href="#537">self</a>.<a href="#692-697">find_literals</a>(<a href="#543">ty</a>, <a href="#537">text</a>, <a href="#537">start</a>),
+            </span>MatchType::Literal(ty) =&gt; <span class="self">self</span>.find_literals(ty, text, start),
             <span class="attr">#[cfg(feature = <span class="string">&quot;perf-dfa&quot;</span>)]
-            </span><a href="#1469">MatchType::Dfa</a> =&gt; <span class="kw">match </span><a class="self" href="#537">self</a>.<a href="#734-738">find_dfa_forward</a>(<a href="#537">text</a>, <a href="#537">start</a>) {
-                <a href="dfa.rs.html#210">dfa::Result::Match</a>((s, e)) =&gt; <span class="prelude-val">Some</span>((<a href="#546">s</a>, <a href="#546">e</a>)),
-                <a href="dfa.rs.html#211">dfa::Result::NoMatch</a>(<span class="kw">_</span>) =&gt; <span class="prelude-val">None</span>,
-                <a href="dfa.rs.html#212">dfa::Result::Quit</a> =&gt; {
-                    <a class="self" href="#537">self</a>.<a href="#967-972">find_nfa</a>(<a href="#1502">MatchNfaType::Auto</a>, <a href="#537">text</a>, <a href="#537">start</a>)
+            </span>MatchType::Dfa =&gt; <span class="kw">match </span><span class="self">self</span>.find_dfa_forward(text, start) {
+                dfa::Result::Match((s, e)) =&gt; <span class="prelude-val">Some</span>((s, e)),
+                dfa::Result::NoMatch(<span class="kw">_</span>) =&gt; <span class="prelude-val">None</span>,
+                dfa::Result::Quit =&gt; {
+                    <span class="self">self</span>.find_nfa(MatchNfaType::Auto, text, start)
                 }
             },
             <span class="attr">#[cfg(feature = <span class="string">&quot;perf-dfa&quot;</span>)]
-            </span><a href="#1472">MatchType::DfaAnchoredReverse</a> =&gt; {
-                <span class="kw">match </span><a class="self" href="#537">self</a>.<a href="#774-778">find_dfa_anchored_reverse</a>(<a href="#537">text</a>, <a href="#537">start</a>) {
-                    <a href="dfa.rs.html#210">dfa::Result::Match</a>((s, e)) =&gt; <span class="prelude-val">Some</span>((<a href="#555">s</a>, <a href="#555">e</a>)),
-                    <a href="dfa.rs.html#211">dfa::Result::NoMatch</a>(<span class="kw">_</span>) =&gt; <span class="prelude-val">None</span>,
-                    <a href="dfa.rs.html#212">dfa::Result::Quit</a> =&gt; {
-                        <a class="self" href="#537">self</a>.<a href="#967-972">find_nfa</a>(<a href="#1502">MatchNfaType::Auto</a>, <a href="#537">text</a>, <a href="#537">start</a>)
+            </span>MatchType::DfaAnchoredReverse =&gt; {
+                <span class="kw">match </span><span class="self">self</span>.find_dfa_anchored_reverse(text, start) {
+                    dfa::Result::Match((s, e)) =&gt; <span class="prelude-val">Some</span>((s, e)),
+                    dfa::Result::NoMatch(<span class="kw">_</span>) =&gt; <span class="prelude-val">None</span>,
+                    dfa::Result::Quit =&gt; {
+                        <span class="self">self</span>.find_nfa(MatchNfaType::Auto, text, start)
                     }
                 }
             }
             <span class="attr">#[cfg(all(feature = <span class="string">&quot;perf-dfa&quot;</span>, feature = <span class="string">&quot;perf-literal&quot;</span>))]
-            </span><a href="#1475">MatchType::DfaSuffix</a> =&gt; {
-                <span class="kw">match </span><a class="self" href="#537">self</a>.<a href="#875-879">find_dfa_reverse_suffix</a>(<a href="#537">text</a>, <a href="#537">start</a>) {
-                    <a href="dfa.rs.html#210">dfa::Result::Match</a>((s, e)) =&gt; <span class="prelude-val">Some</span>((<a href="#565">s</a>, <a href="#565">e</a>)),
-                    <a href="dfa.rs.html#211">dfa::Result::NoMatch</a>(<span class="kw">_</span>) =&gt; <span class="prelude-val">None</span>,
-                    <a href="dfa.rs.html#212">dfa::Result::Quit</a> =&gt; {
-                        <a class="self" href="#537">self</a>.<a href="#967-972">find_nfa</a>(<a href="#1502">MatchNfaType::Auto</a>, <a href="#537">text</a>, <a href="#537">start</a>)
+            </span>MatchType::DfaSuffix =&gt; {
+                <span class="kw">match </span><span class="self">self</span>.find_dfa_reverse_suffix(text, start) {
+                    dfa::Result::Match((s, e)) =&gt; <span class="prelude-val">Some</span>((s, e)),
+                    dfa::Result::NoMatch(<span class="kw">_</span>) =&gt; <span class="prelude-val">None</span>,
+                    dfa::Result::Quit =&gt; {
+                        <span class="self">self</span>.find_nfa(MatchNfaType::Auto, text, start)
                     }
                 }
             }
-            <a href="#1480">MatchType::Nfa</a>(ty) =&gt; <a class="self" href="#537">self</a>.<a href="#967-972">find_nfa</a>(<a href="#572">ty</a>, <a href="#537">text</a>, <a href="#537">start</a>),
-            <a href="#1482">MatchType::Nothing</a> =&gt; <span class="prelude-val">None</span>,
+            MatchType::Nfa(ty) =&gt; <span class="self">self</span>.find_nfa(ty, text, start),
+            MatchType::Nothing =&gt; <span class="prelude-val">None</span>,
             <span class="attr">#[cfg(feature = <span class="string">&quot;perf-dfa&quot;</span>)]
-            </span><a href="#1478">MatchType::DfaMany</a> =&gt; {
-                <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(<span class="string">&quot;BUG: RegexSet cannot be used with find&quot;</span>)
+            </span>MatchType::DfaMany =&gt; {
+                <span class="macro">unreachable!</span>(<span class="string">&quot;BUG: RegexSet cannot be used with find&quot;</span>)
             }
         }
     }
@@ -2243,23 +2243,23 @@
     /// locations of the overall match.
     </span><span class="kw">fn </span>captures_read_at(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        locs: <span class="kw-2">&amp;mut </span><a href="re_trait.rs.html#15">Locations</a>,
-        text: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
-        start: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-    ) -&gt; <span class="prelude-ty">Option</span>&lt;(<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>)&gt; {
-        <span class="kw">let </span>slots = <a href="#591">locs</a>.<a href="re_trait.rs.html#46">as_slots</a>();
+        locs: <span class="kw-2">&amp;mut </span>Locations,
+        text: <span class="kw-2">&amp;</span>[u8],
+        start: usize,
+    ) -&gt; <span class="prelude-ty">Option</span>&lt;(usize, usize)&gt; {
+        <span class="kw">let </span>slots = locs.as_slots();
         <span class="kw">for </span>slot <span class="kw">in </span>slots.iter_mut() {
             <span class="kw-2">*</span>slot = <span class="prelude-val">None</span>;
         }
         <span class="comment">// If the caller unnecessarily uses this, then we try to save them
         // from themselves.
-        </span><span class="kw">match </span><a href="#595">slots</a>.len() {
-            <span class="number">0 </span>=&gt; <span class="kw">return </span><a class="self" href="#590">self</a>.<a href="re_trait.rs.html#135-139">find_at</a>(<a href="#592">text</a>, <a href="#593">start</a>),
+        </span><span class="kw">match </span>slots.len() {
+            <span class="number">0 </span>=&gt; <span class="kw">return </span><span class="self">self</span>.find_at(text, start),
             <span class="number">2 </span>=&gt; {
-                <span class="kw">return </span><a class="self" href="#590">self</a>.<a href="re_trait.rs.html#135-139">find_at</a>(<a href="#592">text</a>, <a href="#593">start</a>).map(|(s, e)| {
-                    <a href="#595">slots</a>[<span class="number">0</span>] = <span class="prelude-val">Some</span>(<a href="#604">s</a>);
-                    <a href="#595">slots</a>[<span class="number">1</span>] = <span class="prelude-val">Some</span>(<a href="#604">e</a>);
-                    (<a href="#604">s</a>, <a href="#604">e</a>)
+                <span class="kw">return </span><span class="self">self</span>.find_at(text, start).map(|(s, e)| {
+                    slots[<span class="number">0</span>] = <span class="prelude-val">Some</span>(s);
+                    slots[<span class="number">1</span>] = <span class="prelude-val">Some</span>(e);
+                    (s, e)
                 });
             }
             <span class="kw">_ </span>=&gt; {} <span class="comment">// fallthrough
@@ -2267,74 +2267,74 @@
         <span class="kw">if </span>!<span class="self">self</span>.is_anchor_end_match(text) {
             <span class="kw">return </span><span class="prelude-val">None</span>;
         }
-        <span class="kw">match </span><a class="self" href="#590">self</a>.ro.match_type {
+        <span class="kw">match </span><span class="self">self</span>.ro.match_type {
             <span class="attr">#[cfg(feature = <span class="string">&quot;perf-literal&quot;</span>)]
-            </span><a href="#1466">MatchType::Literal</a>(ty) =&gt; {
-                <a class="self" href="#590">self</a>.<a href="#692-697">find_literals</a>(<a href="#617">ty</a>, <a href="#592">text</a>, <a href="#593">start</a>).and_then(|(s, e)| {
-                    <a class="self" href="#590">self</a>.<a href="#1013-1020">captures_nfa_type</a>(
-                        <a href="#1502">MatchNfaType::Auto</a>,
-                        <a href="#595">slots</a>,
-                        <a href="#592">text</a>,
-                        <a href="#618">s</a>,
-                        <a href="#618">e</a>,
+            </span>MatchType::Literal(ty) =&gt; {
+                <span class="self">self</span>.find_literals(ty, text, start).and_then(|(s, e)| {
+                    <span class="self">self</span>.captures_nfa_type(
+                        MatchNfaType::Auto,
+                        slots,
+                        text,
+                        s,
+                        e,
                     )
                 })
             }
             <span class="attr">#[cfg(feature = <span class="string">&quot;perf-dfa&quot;</span>)]
-            </span><a href="#1469">MatchType::Dfa</a> =&gt; {
+            </span>MatchType::Dfa =&gt; {
                 <span class="kw">if </span><span class="self">self</span>.ro.nfa.is_anchored_start {
-                    <a class="self" href="#590">self</a>.<a href="#997-1002">captures_nfa</a>(<a href="#595">slots</a>, <a href="#592">text</a>, <a href="#593">start</a>)
+                    <span class="self">self</span>.captures_nfa(slots, text, start)
                 } <span class="kw">else </span>{
-                    <span class="kw">match </span><a class="self" href="#590">self</a>.<a href="#734-738">find_dfa_forward</a>(<a href="#592">text</a>, <a href="#593">start</a>) {
-                        <a href="dfa.rs.html#210">dfa::Result::Match</a>((s, e)) =&gt; <a class="self" href="#590">self</a>.<a href="#1013-1020">captures_nfa_type</a>(
-                            <a href="#1502">MatchNfaType::Auto</a>,
-                            <a href="#595">slots</a>,
-                            <a href="#592">text</a>,
-                            <a href="#634">s</a>,
-                            <a href="#634">e</a>,
+                    <span class="kw">match </span><span class="self">self</span>.find_dfa_forward(text, start) {
+                        dfa::Result::Match((s, e)) =&gt; <span class="self">self</span>.captures_nfa_type(
+                            MatchNfaType::Auto,
+                            slots,
+                            text,
+                            s,
+                            e,
                         ),
-                        <a href="dfa.rs.html#211">dfa::Result::NoMatch</a>(<span class="kw">_</span>) =&gt; <span class="prelude-val">None</span>,
-                        <a href="dfa.rs.html#212">dfa::Result::Quit</a> =&gt; {
-                            <a class="self" href="#590">self</a>.<a href="#997-1002">captures_nfa</a>(<a href="#595">slots</a>, <a href="#592">text</a>, <a href="#593">start</a>)
+                        dfa::Result::NoMatch(<span class="kw">_</span>) =&gt; <span class="prelude-val">None</span>,
+                        dfa::Result::Quit =&gt; {
+                            <span class="self">self</span>.captures_nfa(slots, text, start)
                         }
                     }
                 }
             }
             <span class="attr">#[cfg(feature = <span class="string">&quot;perf-dfa&quot;</span>)]
-            </span><a href="#1472">MatchType::DfaAnchoredReverse</a> =&gt; {
-                <span class="kw">match </span><a class="self" href="#590">self</a>.<a href="#774-778">find_dfa_anchored_reverse</a>(<a href="#592">text</a>, <a href="#593">start</a>) {
-                    <a href="dfa.rs.html#210">dfa::Result::Match</a>((s, e)) =&gt; <a class="self" href="#590">self</a>.<a href="#1013-1020">captures_nfa_type</a>(
-                        <a href="#1502">MatchNfaType::Auto</a>,
-                        <a href="#595">slots</a>,
-                        <a href="#592">text</a>,
-                        <a href="#651">s</a>,
-                        <a href="#651">e</a>,
+            </span>MatchType::DfaAnchoredReverse =&gt; {
+                <span class="kw">match </span><span class="self">self</span>.find_dfa_anchored_reverse(text, start) {
+                    dfa::Result::Match((s, e)) =&gt; <span class="self">self</span>.captures_nfa_type(
+                        MatchNfaType::Auto,
+                        slots,
+                        text,
+                        s,
+                        e,
                     ),
-                    <a href="dfa.rs.html#211">dfa::Result::NoMatch</a>(<span class="kw">_</span>) =&gt; <span class="prelude-val">None</span>,
-                    <a href="dfa.rs.html#212">dfa::Result::Quit</a> =&gt; <a class="self" href="#590">self</a>.<a href="#997-1002">captures_nfa</a>(<a href="#595">slots</a>, <a href="#592">text</a>, <a href="#593">start</a>),
+                    dfa::Result::NoMatch(<span class="kw">_</span>) =&gt; <span class="prelude-val">None</span>,
+                    dfa::Result::Quit =&gt; <span class="self">self</span>.captures_nfa(slots, text, start),
                 }
             }
             <span class="attr">#[cfg(all(feature = <span class="string">&quot;perf-dfa&quot;</span>, feature = <span class="string">&quot;perf-literal&quot;</span>))]
-            </span><a href="#1475">MatchType::DfaSuffix</a> =&gt; {
-                <span class="kw">match </span><a class="self" href="#590">self</a>.<a href="#875-879">find_dfa_reverse_suffix</a>(<a href="#592">text</a>, <a href="#593">start</a>) {
-                    <a href="dfa.rs.html#210">dfa::Result::Match</a>((s, e)) =&gt; <a class="self" href="#590">self</a>.<a href="#1013-1020">captures_nfa_type</a>(
-                        <a href="#1502">MatchNfaType::Auto</a>,
-                        <a href="#595">slots</a>,
-                        <a href="#592">text</a>,
-                        <a href="#665">s</a>,
-                        <a href="#665">e</a>,
+            </span>MatchType::DfaSuffix =&gt; {
+                <span class="kw">match </span><span class="self">self</span>.find_dfa_reverse_suffix(text, start) {
+                    dfa::Result::Match((s, e)) =&gt; <span class="self">self</span>.captures_nfa_type(
+                        MatchNfaType::Auto,
+                        slots,
+                        text,
+                        s,
+                        e,
                     ),
-                    <a href="dfa.rs.html#211">dfa::Result::NoMatch</a>(<span class="kw">_</span>) =&gt; <span class="prelude-val">None</span>,
-                    <a href="dfa.rs.html#212">dfa::Result::Quit</a> =&gt; <a class="self" href="#590">self</a>.<a href="#997-1002">captures_nfa</a>(<a href="#595">slots</a>, <a href="#592">text</a>, <a href="#593">start</a>),
+                    dfa::Result::NoMatch(<span class="kw">_</span>) =&gt; <span class="prelude-val">None</span>,
+                    dfa::Result::Quit =&gt; <span class="self">self</span>.captures_nfa(slots, text, start),
                 }
             }
-            <a href="#1480">MatchType::Nfa</a>(ty) =&gt; {
-                <a class="self" href="#590">self</a>.<a href="#1013-1020">captures_nfa_type</a>(<a href="#676">ty</a>, <a href="#595">slots</a>, <a href="#592">text</a>, <a href="#593">start</a>, <a href="#592">text</a>.len())
+            MatchType::Nfa(ty) =&gt; {
+                <span class="self">self</span>.captures_nfa_type(ty, slots, text, start, text.len())
             }
-            <a href="#1482">MatchType::Nothing</a> =&gt; <span class="prelude-val">None</span>,
+            MatchType::Nothing =&gt; <span class="prelude-val">None</span>,
             <span class="attr">#[cfg(feature = <span class="string">&quot;perf-dfa&quot;</span>)]
-            </span><a href="#1478">MatchType::DfaMany</a> =&gt; {
-                <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(<span class="string">&quot;BUG: RegexSet cannot be used with captures&quot;</span>)
+            </span>MatchType::DfaMany =&gt; {
+                <span class="macro">unreachable!</span>(<span class="string">&quot;BUG: RegexSet cannot be used with captures&quot;</span>)
             }
         }
     }
@@ -2346,37 +2346,37 @@
     #[cfg_attr(feature = <span class="string">&quot;perf-inline&quot;</span>, inline(always))]
     </span><span class="kw">fn </span>find_literals(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        ty: <a href="#1487">MatchLiteralType</a>,
-        text: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
-        start: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-    ) -&gt; <span class="prelude-ty">Option</span>&lt;(<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>)&gt; {
-        <span class="kw">use </span><a href="#1487"><span class="self">self</span>::MatchLiteralType</a>::<span class="kw-2">*</span>;
-        <span class="kw">match </span><a href="#694">ty</a> {
-            <a href="#1489">Unanchored</a> =&gt; {
-                <span class="kw">let </span>lits = <span class="kw-2">&amp;</span><a class="self" href="#693">self</a>.ro.nfa.prefixes;
-                <a href="#701">lits</a>.<a href="literal/imp.rs.html#79">find</a>(<span class="kw-2">&amp;</span><a href="#695">text</a>[<a href="#696">start</a>..]).map(|(s, e)| (<a href="#696">start</a> + <a href="#702">s</a>, <a href="#696">start</a> + <a href="#702">e</a>))
+        ty: MatchLiteralType,
+        text: <span class="kw-2">&amp;</span>[u8],
+        start: usize,
+    ) -&gt; <span class="prelude-ty">Option</span>&lt;(usize, usize)&gt; {
+        <span class="kw">use </span><span class="self">self</span>::MatchLiteralType::<span class="kw-2">*</span>;
+        <span class="kw">match </span>ty {
+            Unanchored =&gt; {
+                <span class="kw">let </span>lits = <span class="kw-2">&amp;</span><span class="self">self</span>.ro.nfa.prefixes;
+                lits.find(<span class="kw-2">&amp;</span>text[start..]).map(|(s, e)| (start + s, start + e))
             }
-            <a href="#1491">AnchoredStart</a> =&gt; {
-                <span class="kw">let </span>lits = <span class="kw-2">&amp;</span><a class="self" href="#693">self</a>.ro.nfa.prefixes;
+            AnchoredStart =&gt; {
+                <span class="kw">let </span>lits = <span class="kw-2">&amp;</span><span class="self">self</span>.ro.nfa.prefixes;
                 <span class="kw">if </span>start == <span class="number">0 </span>|| !<span class="self">self</span>.ro.nfa.is_anchored_start {
-                    <a href="#705">lits</a>.<a href="literal/imp.rs.html#95">find_start</a>(<span class="kw-2">&amp;</span><a href="#695">text</a>[<a href="#696">start</a>..])
-                        .map(|(s, e)| (<a href="#696">start</a> + <a href="#708">s</a>, <a href="#696">start</a> + <a href="#708">e</a>))
+                    lits.find_start(<span class="kw-2">&amp;</span>text[start..])
+                        .map(|(s, e)| (start + s, start + e))
                 } <span class="kw">else </span>{
                     <span class="prelude-val">None
                 </span>}
             }
-            <a href="#1493">AnchoredEnd</a> =&gt; {
-                <span class="kw">let </span>lits = <span class="kw-2">&amp;</span><a class="self" href="#693">self</a>.ro.suffixes;
-                <a href="#714">lits</a>.<a href="literal/imp.rs.html#108">find_end</a>(<span class="kw-2">&amp;</span><a href="#695">text</a>[<a href="#696">start</a>..])
-                    .map(|(s, e)| (<a href="#696">start</a> + <a href="#716">s</a>, <a href="#696">start</a> + <a href="#716">e</a>))
+            AnchoredEnd =&gt; {
+                <span class="kw">let </span>lits = <span class="kw-2">&amp;</span><span class="self">self</span>.ro.suffixes;
+                lits.find_end(<span class="kw-2">&amp;</span>text[start..])
+                    .map(|(s, e)| (start + s, start + e))
             }
-            <a href="#1496">AhoCorasick</a> =&gt; <span class="self"><a href="#693">self</a>
+            AhoCorasick =&gt; <span class="self">self
                 </span>.ro
                 .ac
                 .as_ref()
                 .unwrap()
-                .find(<span class="kw-2">&amp;</span><a href="#695">text</a>[<a href="#696">start</a>..])
-                .map(|m| (<a href="#696">start</a> + <a href="#724">m</a>.start(), <a href="#696">start</a> + <a href="#724">m</a>.end())),
+                .find(<span class="kw-2">&amp;</span>text[start..])
+                .map(|m| (start + m.start(), start + m.end())),
         }
     }
 
@@ -2388,33 +2388,33 @@
     #[cfg_attr(feature = <span class="string">&quot;perf-inline&quot;</span>, inline(always))]
     </span><span class="kw">fn </span>find_dfa_forward(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        text: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
-        start: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-    ) -&gt; dfa::Result&lt;(<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>)&gt; {
-        <span class="kw">use </span><a href="dfa.rs.html#209"><span class="kw">crate</span>::dfa::Result</a>::<span class="kw-2">*</span>;
+        text: <span class="kw-2">&amp;</span>[u8],
+        start: usize,
+    ) -&gt; dfa::Result&lt;(usize, usize)&gt; {
+        <span class="kw">use </span><span class="kw">crate</span>::dfa::Result::<span class="kw-2">*</span>;
         <span class="kw">let </span>end = <span class="kw">match </span>dfa::Fsm::forward(
-            <span class="kw-2">&amp;</span><a class="self" href="#735">self</a>.ro.dfa,
-            <a class="self" href="#735">self</a>.cache.<a href="pool.rs.html#262">value</a>(),
+            <span class="kw-2">&amp;</span><span class="self">self</span>.ro.dfa,
+            <span class="self">self</span>.cache.value(),
             <span class="bool-val">false</span>,
-            <a href="#736">text</a>,
-            <a href="#737">start</a>,
+            text,
+            start,
         ) {
-            <a href="dfa.rs.html#211">NoMatch</a>(i) =&gt; <span class="kw">return </span><a href="dfa.rs.html#211">NoMatch</a>(<a href="#747">i</a>),
-            <a href="dfa.rs.html#212">Quit</a> =&gt; <span class="kw">return </span><a href="dfa.rs.html#212">Quit</a>,
-            <a href="dfa.rs.html#210">Match</a>(end) <span class="kw">if </span><a href="#737">start</a> == <a href="#749">end</a> =&gt; <span class="kw">return </span><a href="dfa.rs.html#210">Match</a>((<a href="#737">start</a>, <a href="#737">start</a>)),
-            <a href="dfa.rs.html#210">Match</a>(end) =&gt; <a href="#750">end</a>,
+            NoMatch(i) =&gt; <span class="kw">return </span>NoMatch(i),
+            Quit =&gt; <span class="kw">return </span>Quit,
+            Match(end) <span class="kw">if </span>start == end =&gt; <span class="kw">return </span>Match((start, start)),
+            Match(end) =&gt; end,
         };
         <span class="comment">// Now run the DFA in reverse to find the start of the match.
         </span><span class="kw">match </span>dfa::Fsm::reverse(
-            <span class="kw-2">&amp;</span><a class="self" href="#735">self</a>.ro.dfa_reverse,
-            <a class="self" href="#735">self</a>.cache.<a href="pool.rs.html#262">value</a>(),
+            <span class="kw-2">&amp;</span><span class="self">self</span>.ro.dfa_reverse,
+            <span class="self">self</span>.cache.value(),
             <span class="bool-val">false</span>,
-            <span class="kw-2">&amp;</span><a href="#736">text</a>[<a href="#737">start</a>..],
-            <a href="#740">end</a> - <a href="#737">start</a>,
+            <span class="kw-2">&amp;</span>text[start..],
+            end - start,
         ) {
-            <a href="dfa.rs.html#210">Match</a>(s) =&gt; <a href="dfa.rs.html#210">Match</a>((<a href="#737">start</a> + <a href="#760">s</a>, <a href="#740">end</a>)),
-            <a href="dfa.rs.html#211">NoMatch</a>(i) =&gt; <a href="dfa.rs.html#211">NoMatch</a>(<a href="#761">i</a>),
-            <a href="dfa.rs.html#212">Quit</a> =&gt; <a href="dfa.rs.html#212">Quit</a>,
+            Match(s) =&gt; Match((start + s, end)),
+            NoMatch(i) =&gt; NoMatch(i),
+            Quit =&gt; Quit,
         }
     }
 
@@ -2428,28 +2428,28 @@
     #[cfg_attr(feature = <span class="string">&quot;perf-inline&quot;</span>, inline(always))]
     </span><span class="kw">fn </span>find_dfa_anchored_reverse(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        text: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
-        start: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-    ) -&gt; dfa::Result&lt;(<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>)&gt; {
-        <span class="kw">use </span><a href="dfa.rs.html#209"><span class="kw">crate</span>::dfa::Result</a>::<span class="kw-2">*</span>;
+        text: <span class="kw-2">&amp;</span>[u8],
+        start: usize,
+    ) -&gt; dfa::Result&lt;(usize, usize)&gt; {
+        <span class="kw">use </span><span class="kw">crate</span>::dfa::Result::<span class="kw-2">*</span>;
         <span class="kw">match </span>dfa::Fsm::reverse(
-            <span class="kw-2">&amp;</span><a class="self" href="#775">self</a>.ro.dfa_reverse,
-            <a class="self" href="#775">self</a>.cache.<a href="pool.rs.html#262">value</a>(),
+            <span class="kw-2">&amp;</span><span class="self">self</span>.ro.dfa_reverse,
+            <span class="self">self</span>.cache.value(),
             <span class="bool-val">false</span>,
-            <span class="kw-2">&amp;</span><a href="#776">text</a>[<a href="#777">start</a>..],
-            <a href="#776">text</a>.len() - <a href="#777">start</a>,
+            <span class="kw-2">&amp;</span>text[start..],
+            text.len() - start,
         ) {
-            <a href="dfa.rs.html#210">Match</a>(s) =&gt; <a href="dfa.rs.html#210">Match</a>((<a href="#777">start</a> + <a href="#787">s</a>, <a href="#776">text</a>.len())),
-            <a href="dfa.rs.html#211">NoMatch</a>(i) =&gt; <a href="dfa.rs.html#211">NoMatch</a>(<a href="#788">i</a>),
-            <a href="dfa.rs.html#212">Quit</a> =&gt; <a href="dfa.rs.html#212">Quit</a>,
+            Match(s) =&gt; Match((start + s, text.len())),
+            NoMatch(i) =&gt; NoMatch(i),
+            Quit =&gt; Quit,
         }
     }
 
     <span class="doccomment">/// Finds the end of the shortest match using only the DFA.
     </span><span class="attr">#[cfg(feature = <span class="string">&quot;perf-dfa&quot;</span>)]
     #[cfg_attr(feature = <span class="string">&quot;perf-inline&quot;</span>, inline(always))]
-    </span><span class="kw">fn </span>shortest_dfa(<span class="kw-2">&amp;</span><span class="self">self</span>, text: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], start: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; dfa::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
-        dfa::Fsm::forward(<span class="kw-2">&amp;</span><a class="self" href="#796">self</a>.ro.dfa, <a class="self" href="#796">self</a>.cache.<a href="pool.rs.html#262">value</a>(), <span class="bool-val">true</span>, <a href="#796">text</a>, <a href="#796">start</a>)
+    </span><span class="kw">fn </span>shortest_dfa(<span class="kw-2">&amp;</span><span class="self">self</span>, text: <span class="kw-2">&amp;</span>[u8], start: usize) -&gt; dfa::Result&lt;usize&gt; {
+        dfa::Fsm::forward(<span class="kw-2">&amp;</span><span class="self">self</span>.ro.dfa, <span class="self">self</span>.cache.value(), <span class="bool-val">true</span>, text, start)
     }
 
     <span class="doccomment">/// Finds the end of the shortest match using only the DFA by scanning for
@@ -2458,12 +2458,12 @@
     #[cfg_attr(feature = <span class="string">&quot;perf-inline&quot;</span>, inline(always))]
     </span><span class="kw">fn </span>shortest_dfa_reverse_suffix(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        text: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
-        start: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-    ) -&gt; dfa::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
-        <span class="kw">match </span><a class="self" href="#805">self</a>.<a href="#830-834">exec_dfa_reverse_suffix</a>(<a href="#806">text</a>, <a href="#807">start</a>) {
-            <span class="prelude-val">None </span>=&gt; <a class="self" href="#805">self</a>.<a href="#796">shortest_dfa</a>(<a href="#806">text</a>, <a href="#807">start</a>),
-            <span class="prelude-val">Some</span>(r) =&gt; <a href="#811">r</a>.<a href="dfa.rs.html#228">map</a>(|(<span class="kw">_</span>, end)| <a href="#811">end</a>),
+        text: <span class="kw-2">&amp;</span>[u8],
+        start: usize,
+    ) -&gt; dfa::Result&lt;usize&gt; {
+        <span class="kw">match </span><span class="self">self</span>.exec_dfa_reverse_suffix(text, start) {
+            <span class="prelude-val">None </span>=&gt; <span class="self">self</span>.shortest_dfa(text, start),
+            <span class="prelude-val">Some</span>(r) =&gt; r.map(|(<span class="kw">_</span>, end)| end),
         }
     }
 
@@ -2484,16 +2484,16 @@
     #[cfg_attr(feature = <span class="string">&quot;perf-inline&quot;</span>, inline(always))]
     </span><span class="kw">fn </span>exec_dfa_reverse_suffix(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        text: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
-        original_start: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-    ) -&gt; <span class="prelude-ty">Option</span>&lt;dfa::Result&lt;(<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>)&gt;&gt; {
-        <span class="kw">use </span><a href="dfa.rs.html#209"><span class="kw">crate</span>::dfa::Result</a>::<span class="kw-2">*</span>;
+        text: <span class="kw-2">&amp;</span>[u8],
+        original_start: usize,
+    ) -&gt; <span class="prelude-ty">Option</span>&lt;dfa::Result&lt;(usize, usize)&gt;&gt; {
+        <span class="kw">use </span><span class="kw">crate</span>::dfa::Result::<span class="kw-2">*</span>;
 
-        <span class="kw">let </span>lcs = <a class="self" href="#831">self</a>.ro.suffixes.<a href="literal/imp.rs.html#137">lcs</a>();
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(lcs.len() &gt;= <span class="number">1</span>);
-        <span class="kw">let </span><span class="kw-2">mut </span>start = <a href="#833">original_start</a>;
-        <span class="kw">let </span><span class="kw-2">mut </span>end = <a href="#839">start</a>;
-        <span class="kw">let </span><span class="kw-2">mut </span>last_literal = <a href="#839">start</a>;
+        <span class="kw">let </span>lcs = <span class="self">self</span>.ro.suffixes.lcs();
+        <span class="macro">debug_assert!</span>(lcs.len() &gt;= <span class="number">1</span>);
+        <span class="kw">let </span><span class="kw-2">mut </span>start = original_start;
+        <span class="kw">let </span><span class="kw-2">mut </span>end = start;
+        <span class="kw">let </span><span class="kw-2">mut </span>last_literal = start;
         <span class="kw">while </span>end &lt;= text.len() {
             last_literal += <span class="kw">match </span>lcs.find(<span class="kw-2">&amp;</span>text[last_literal..]) {
                 <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="prelude-val">Some</span>(NoMatch(text.len())),
@@ -2517,7 +2517,7 @@
                 Quit =&gt; <span class="kw">return </span><span class="prelude-val">Some</span>(Quit),
             };
         }
-        <span class="prelude-val">Some</span>(<a href="dfa.rs.html#211">NoMatch</a>(<a href="#832">text</a>.len()))
+        <span class="prelude-val">Some</span>(NoMatch(text.len()))
     }
 
     <span class="doccomment">/// Finds the leftmost-first match (start and end) using only the DFA
@@ -2529,15 +2529,15 @@
     #[cfg_attr(feature = <span class="string">&quot;perf-inline&quot;</span>, inline(always))]
     </span><span class="kw">fn </span>find_dfa_reverse_suffix(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        text: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
-        start: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-    ) -&gt; dfa::Result&lt;(<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>)&gt; {
-        <span class="kw">use </span><a href="dfa.rs.html#209"><span class="kw">crate</span>::dfa::Result</a>::<span class="kw-2">*</span>;
+        text: <span class="kw-2">&amp;</span>[u8],
+        start: usize,
+    ) -&gt; dfa::Result&lt;(usize, usize)&gt; {
+        <span class="kw">use </span><span class="kw">crate</span>::dfa::Result::<span class="kw-2">*</span>;
 
-        <span class="kw">let </span>match_start = <span class="kw">match </span><a class="self" href="#876">self</a>.<a href="#830-834">exec_dfa_reverse_suffix</a>(<a href="#877">text</a>, <a href="#878">start</a>) {
-            <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><a class="self" href="#876">self</a>.<a href="#734-738">find_dfa_forward</a>(<a href="#877">text</a>, <a href="#878">start</a>),
-            <span class="prelude-val">Some</span>(<a href="dfa.rs.html#210">Match</a>((start, <span class="kw">_</span>))) =&gt; <a href="#884">start</a>,
-            <span class="prelude-val">Some</span>(r) =&gt; <span class="kw">return </span><a href="#885">r</a>,
+        <span class="kw">let </span>match_start = <span class="kw">match </span><span class="self">self</span>.exec_dfa_reverse_suffix(text, start) {
+            <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="self">self</span>.find_dfa_forward(text, start),
+            <span class="prelude-val">Some</span>(Match((start, <span class="kw">_</span>))) =&gt; start,
+            <span class="prelude-val">Some</span>(r) =&gt; <span class="kw">return </span>r,
         };
         <span class="comment">// At this point, we&#39;ve found a match. The only way to quit now
         // without a match is if the DFA gives up (seems unlikely).
@@ -2547,15 +2547,15 @@
         // possible end location, which may appear before the end of the
         // leftmost-first match.)
         </span><span class="kw">match </span>dfa::Fsm::forward(
-            <span class="kw-2">&amp;</span><a class="self" href="#876">self</a>.ro.dfa,
-            <a class="self" href="#876">self</a>.cache.<a href="pool.rs.html#262">value</a>(),
+            <span class="kw-2">&amp;</span><span class="self">self</span>.ro.dfa,
+            <span class="self">self</span>.cache.value(),
             <span class="bool-val">false</span>,
-            <a href="#877">text</a>,
-            <a href="#882">match_start</a>,
+            text,
+            match_start,
         ) {
-            <a href="dfa.rs.html#211">NoMatch</a>(<span class="kw">_</span>) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(<span class="string">&quot;BUG: reverse match implies forward match&quot;</span>),
-            <a href="dfa.rs.html#212">Quit</a> =&gt; <a href="dfa.rs.html#212">Quit</a>,
-            <a href="dfa.rs.html#210">Match</a>(e) =&gt; <a href="dfa.rs.html#210">Match</a>((<a href="#882">match_start</a>, <a href="#903">e</a>)),
+            NoMatch(<span class="kw">_</span>) =&gt; <span class="macro">panic!</span>(<span class="string">&quot;BUG: reverse match implies forward match&quot;</span>),
+            Quit =&gt; Quit,
+            Match(e) =&gt; Match((match_start, e)),
         }
     }
 
@@ -2565,42 +2565,42 @@
     /// performance characteristics, but regex sets don&#39;t have captures, which
     /// shortest_nfa depends on.
     </span><span class="attr">#[cfg(feature = <span class="string">&quot;perf-dfa&quot;</span>)]
-    </span><span class="kw">fn </span>match_nfa(<span class="kw-2">&amp;</span><span class="self">self</span>, text: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], start: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#913">self</a>.<a href="#918-923">match_nfa_type</a>(<a href="#1502">MatchNfaType::Auto</a>, <a href="#913">text</a>, <a href="#913">start</a>)
+    </span><span class="kw">fn </span>match_nfa(<span class="kw-2">&amp;</span><span class="self">self</span>, text: <span class="kw-2">&amp;</span>[u8], start: usize) -&gt; bool {
+        <span class="self">self</span>.match_nfa_type(MatchNfaType::Auto, text, start)
     }
 
     <span class="doccomment">/// Like match_nfa, but allows specification of the type of NFA engine.
     </span><span class="kw">fn </span>match_nfa_type(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        ty: <a href="#1500">MatchNfaType</a>,
-        text: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
-        start: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-    ) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#919">self</a>.<a href="#1040-1050">exec_nfa</a>(
-            <a href="#920">ty</a>,
+        ty: MatchNfaType,
+        text: <span class="kw-2">&amp;</span>[u8],
+        start: usize,
+    ) -&gt; bool {
+        <span class="self">self</span>.exec_nfa(
+            ty,
             <span class="kw-2">&amp;mut </span>[<span class="bool-val">false</span>],
             <span class="kw-2">&amp;mut </span>[],
             <span class="bool-val">true</span>,
             <span class="bool-val">false</span>,
-            <a href="#921">text</a>,
-            <a href="#922">start</a>,
-            <a href="#921">text</a>.len(),
+            text,
+            start,
+            text.len(),
         )
     }
 
     <span class="doccomment">/// Finds the shortest match using an NFA.
     </span><span class="attr">#[cfg(feature = <span class="string">&quot;perf-dfa&quot;</span>)]
-    </span><span class="kw">fn </span>shortest_nfa(<span class="kw-2">&amp;</span><span class="self">self</span>, text: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], start: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
-        <a class="self" href="#938">self</a>.<a href="#943-948">shortest_nfa_type</a>(<a href="#1502">MatchNfaType::Auto</a>, <a href="#938">text</a>, <a href="#938">start</a>)
+    </span><span class="kw">fn </span>shortest_nfa(<span class="kw-2">&amp;</span><span class="self">self</span>, text: <span class="kw-2">&amp;</span>[u8], start: usize) -&gt; <span class="prelude-ty">Option</span>&lt;usize&gt; {
+        <span class="self">self</span>.shortest_nfa_type(MatchNfaType::Auto, text, start)
     }
 
     <span class="doccomment">/// Like shortest_nfa, but allows specification of the type of NFA engine.
     </span><span class="kw">fn </span>shortest_nfa_type(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        ty: <a href="#1500">MatchNfaType</a>,
-        text: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
-        start: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-    ) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
+        ty: MatchNfaType,
+        text: <span class="kw-2">&amp;</span>[u8],
+        start: usize,
+    ) -&gt; <span class="prelude-ty">Option</span>&lt;usize&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>slots = [<span class="prelude-val">None</span>, <span class="prelude-val">None</span>];
         <span class="kw">if </span><span class="self">self</span>.exec_nfa(
             ty,
@@ -2612,7 +2612,7 @@
             start,
             text.len(),
         ) {
-            <a href="#949">slots</a>[<span class="number">1</span>]
+            slots[<span class="number">1</span>]
         } <span class="kw">else </span>{
             <span class="prelude-val">None
         </span>}
@@ -2621,10 +2621,10 @@
     <span class="doccomment">/// Like find, but executes an NFA engine.
     </span><span class="kw">fn </span>find_nfa(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        ty: <a href="#1500">MatchNfaType</a>,
-        text: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
-        start: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-    ) -&gt; <span class="prelude-ty">Option</span>&lt;(<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>)&gt; {
+        ty: MatchNfaType,
+        text: <span class="kw-2">&amp;</span>[u8],
+        start: usize,
+    ) -&gt; <span class="prelude-ty">Option</span>&lt;(usize, usize)&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>slots = [<span class="prelude-val">None</span>, <span class="prelude-val">None</span>];
         <span class="kw">if </span><span class="self">self</span>.exec_nfa(
             ty,
@@ -2636,8 +2636,8 @@
             start,
             text.len(),
         ) {
-            <span class="kw">match </span>(<a href="#973">slots</a>[<span class="number">0</span>], <a href="#973">slots</a>[<span class="number">1</span>]) {
-                (<span class="prelude-val">Some</span>(s), <span class="prelude-val">Some</span>(e)) =&gt; <span class="prelude-val">Some</span>((<a href="#985">s</a>, <a href="#985">e</a>)),
+            <span class="kw">match </span>(slots[<span class="number">0</span>], slots[<span class="number">1</span>]) {
+                (<span class="prelude-val">Some</span>(s), <span class="prelude-val">Some</span>(e)) =&gt; <span class="prelude-val">Some</span>((s, e)),
                 <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
             }
         } <span class="kw">else </span>{
@@ -2651,28 +2651,28 @@
     </span><span class="attr">#[cfg(feature = <span class="string">&quot;perf-dfa&quot;</span>)]
     </span><span class="kw">fn </span>captures_nfa(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        slots: <span class="kw-2">&amp;mut </span>[<a href="re_trait.rs.html#7">Slot</a>],
-        text: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
-        start: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-    ) -&gt; <span class="prelude-ty">Option</span>&lt;(<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>)&gt; {
-        <a class="self" href="#998">self</a>.<a href="#1013-1020">captures_nfa_type</a>(
-            <a href="#1502">MatchNfaType::Auto</a>,
-            <a href="#999">slots</a>,
-            <a href="#1000">text</a>,
-            <a href="#1001">start</a>,
-            <a href="#1000">text</a>.len(),
+        slots: <span class="kw-2">&amp;mut </span>[Slot],
+        text: <span class="kw-2">&amp;</span>[u8],
+        start: usize,
+    ) -&gt; <span class="prelude-ty">Option</span>&lt;(usize, usize)&gt; {
+        <span class="self">self</span>.captures_nfa_type(
+            MatchNfaType::Auto,
+            slots,
+            text,
+            start,
+            text.len(),
         )
     }
 
     <span class="doccomment">/// Like captures_nfa, but allows specification of type of NFA engine.
     </span><span class="kw">fn </span>captures_nfa_type(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        ty: <a href="#1500">MatchNfaType</a>,
-        slots: <span class="kw-2">&amp;mut </span>[<a href="re_trait.rs.html#7">Slot</a>],
-        text: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
-        start: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-        end: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-    ) -&gt; <span class="prelude-ty">Option</span>&lt;(<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>)&gt; {
+        ty: MatchNfaType,
+        slots: <span class="kw-2">&amp;mut </span>[Slot],
+        text: <span class="kw-2">&amp;</span>[u8],
+        start: usize,
+        end: usize,
+    ) -&gt; <span class="prelude-ty">Option</span>&lt;(usize, usize)&gt; {
         <span class="kw">if </span><span class="self">self</span>.exec_nfa(
             ty,
             <span class="kw-2">&amp;mut </span>[<span class="bool-val">false</span>],
@@ -2683,8 +2683,8 @@
             start,
             end,
         ) {
-            <span class="kw">match </span>(<a href="#1016">slots</a>[<span class="number">0</span>], <a href="#1016">slots</a>[<span class="number">1</span>]) {
-                (<span class="prelude-val">Some</span>(s), <span class="prelude-val">Some</span>(e)) =&gt; <span class="prelude-val">Some</span>((<a href="#1032">s</a>, <a href="#1032">e</a>)),
+            <span class="kw">match </span>(slots[<span class="number">0</span>], slots[<span class="number">1</span>]) {
+                (<span class="prelude-val">Some</span>(s), <span class="prelude-val">Some</span>(e)) =&gt; <span class="prelude-val">Some</span>((s, e)),
                 <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
             }
         } <span class="kw">else </span>{
@@ -2694,71 +2694,71 @@
 
     <span class="kw">fn </span>exec_nfa(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="kw-2">mut </span>ty: <a href="#1500">MatchNfaType</a>,
-        matches: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>],
-        slots: <span class="kw-2">&amp;mut </span>[<a href="re_trait.rs.html#7">Slot</a>],
-        quit_after_match: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-        quit_after_match_with_pos: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-        text: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
-        start: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-        end: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-    ) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">use </span><a href="#1500"><span class="self">self</span>::MatchNfaType</a>::<span class="kw-2">*</span>;
-        <span class="kw">if let </span><a href="#1502">Auto</a> = <a href="#1042">ty</a> {
+        <span class="kw-2">mut </span>ty: MatchNfaType,
+        matches: <span class="kw-2">&amp;mut </span>[bool],
+        slots: <span class="kw-2">&amp;mut </span>[Slot],
+        quit_after_match: bool,
+        quit_after_match_with_pos: bool,
+        text: <span class="kw-2">&amp;</span>[u8],
+        start: usize,
+        end: usize,
+    ) -&gt; bool {
+        <span class="kw">use </span><span class="self">self</span>::MatchNfaType::<span class="kw-2">*</span>;
+        <span class="kw">if let </span>Auto = ty {
             <span class="kw">if </span>backtrack::should_exec(<span class="self">self</span>.ro.nfa.len(), text.len()) {
-                <a href="#1042">ty</a> = <a href="#1507">Backtrack</a>;
+                ty = Backtrack;
             } <span class="kw">else </span>{
-                <a href="#1042">ty</a> = <a href="#1512">PikeVM</a>;
+                ty = PikeVM;
             }
         }
         <span class="comment">// The backtracker can&#39;t return the shortest match position as it is
         // implemented today. So if someone calls `shortest_match` and we need
         // to run an NFA, then use the PikeVM.
         </span><span class="kw">if </span>quit_after_match_with_pos || ty == PikeVM {
-            <a class="self" href="#1041">self</a>.<a href="#1077-1085">exec_pikevm</a>(
-                <a href="#1043">matches</a>,
-                <a href="#1044">slots</a>,
-                <a href="#1045">quit_after_match</a>,
-                <a href="#1047">text</a>,
-                <a href="#1048">start</a>,
-                <a href="#1049">end</a>,
+            <span class="self">self</span>.exec_pikevm(
+                matches,
+                slots,
+                quit_after_match,
+                text,
+                start,
+                end,
             )
         } <span class="kw">else </span>{
-            <a class="self" href="#1041">self</a>.<a href="#1112-1119">exec_backtrack</a>(<a href="#1043">matches</a>, <a href="#1044">slots</a>, <a href="#1047">text</a>, <a href="#1048">start</a>, <a href="#1049">end</a>)
+            <span class="self">self</span>.exec_backtrack(matches, slots, text, start, end)
         }
     }
 
     <span class="doccomment">/// Always run the NFA algorithm.
     </span><span class="kw">fn </span>exec_pikevm(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        matches: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>],
-        slots: <span class="kw-2">&amp;mut </span>[<a href="re_trait.rs.html#7">Slot</a>],
-        quit_after_match: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-        text: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
-        start: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-        end: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-    ) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        matches: <span class="kw-2">&amp;mut </span>[bool],
+        slots: <span class="kw-2">&amp;mut </span>[Slot],
+        quit_after_match: bool,
+        text: <span class="kw-2">&amp;</span>[u8],
+        start: usize,
+        end: usize,
+    ) -&gt; bool {
         <span class="kw">if </span><span class="self">self</span>.ro.nfa.uses_bytes() {
             pikevm::Fsm::exec(
-                <span class="kw-2">&amp;</span><a class="self" href="#1078">self</a>.ro.nfa,
-                <a class="self" href="#1078">self</a>.cache.<a href="pool.rs.html#262">value</a>(),
-                <a href="#1079">matches</a>,
-                <a href="#1080">slots</a>,
-                <a href="#1081">quit_after_match</a>,
-                ByteInput::new(<a href="#1082">text</a>, <a class="self" href="#1078">self</a>.ro.nfa.only_utf8),
-                <a href="#1083">start</a>,
-                <a href="#1084">end</a>,
+                <span class="kw-2">&amp;</span><span class="self">self</span>.ro.nfa,
+                <span class="self">self</span>.cache.value(),
+                matches,
+                slots,
+                quit_after_match,
+                ByteInput::new(text, <span class="self">self</span>.ro.nfa.only_utf8),
+                start,
+                end,
             )
         } <span class="kw">else </span>{
             pikevm::Fsm::exec(
-                <span class="kw-2">&amp;</span><a class="self" href="#1078">self</a>.ro.nfa,
-                <a class="self" href="#1078">self</a>.cache.<a href="pool.rs.html#262">value</a>(),
-                <a href="#1079">matches</a>,
-                <a href="#1080">slots</a>,
-                <a href="#1081">quit_after_match</a>,
-                CharInput::new(<a href="#1082">text</a>),
-                <a href="#1083">start</a>,
-                <a href="#1084">end</a>,
+                <span class="kw-2">&amp;</span><span class="self">self</span>.ro.nfa,
+                <span class="self">self</span>.cache.value(),
+                matches,
+                slots,
+                quit_after_match,
+                CharInput::new(text),
+                start,
+                end,
             )
         }
     }
@@ -2766,31 +2766,31 @@
     <span class="doccomment">/// Always runs the NFA using bounded backtracking.
     </span><span class="kw">fn </span>exec_backtrack(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        matches: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>],
-        slots: <span class="kw-2">&amp;mut </span>[<a href="re_trait.rs.html#7">Slot</a>],
-        text: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
-        start: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-        end: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-    ) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        matches: <span class="kw-2">&amp;mut </span>[bool],
+        slots: <span class="kw-2">&amp;mut </span>[Slot],
+        text: <span class="kw-2">&amp;</span>[u8],
+        start: usize,
+        end: usize,
+    ) -&gt; bool {
         <span class="kw">if </span><span class="self">self</span>.ro.nfa.uses_bytes() {
             backtrack::Bounded::exec(
-                <span class="kw-2">&amp;</span><a class="self" href="#1113">self</a>.ro.nfa,
-                <a class="self" href="#1113">self</a>.cache.<a href="pool.rs.html#262">value</a>(),
-                <a href="#1114">matches</a>,
-                <a href="#1115">slots</a>,
-                ByteInput::new(<a href="#1116">text</a>, <a class="self" href="#1113">self</a>.ro.nfa.only_utf8),
-                <a href="#1117">start</a>,
-                <a href="#1118">end</a>,
+                <span class="kw-2">&amp;</span><span class="self">self</span>.ro.nfa,
+                <span class="self">self</span>.cache.value(),
+                matches,
+                slots,
+                ByteInput::new(text, <span class="self">self</span>.ro.nfa.only_utf8),
+                start,
+                end,
             )
         } <span class="kw">else </span>{
             backtrack::Bounded::exec(
-                <span class="kw-2">&amp;</span><a class="self" href="#1113">self</a>.ro.nfa,
-                <a class="self" href="#1113">self</a>.cache.<a href="pool.rs.html#262">value</a>(),
-                <a href="#1114">matches</a>,
-                <a href="#1115">slots</a>,
-                CharInput::new(<a href="#1116">text</a>),
-                <a href="#1117">start</a>,
-                <a href="#1118">end</a>,
+                <span class="kw-2">&amp;</span><span class="self">self</span>.ro.nfa,
+                <span class="self">self</span>.cache.value(),
+                matches,
+                slots,
+                CharInput::new(text),
+                start,
+                end,
             )
         }
     }
@@ -2804,93 +2804,93 @@
     /// match some text.
     </span><span class="kw">pub fn </span>many_matches_at(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        matches: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>],
-        text: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
-        start: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-    ) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">use </span><a href="#1462"><span class="self">self</span>::MatchType</a>::<span class="kw-2">*</span>;
+        matches: <span class="kw-2">&amp;mut </span>[bool],
+        text: <span class="kw-2">&amp;</span>[u8],
+        start: usize,
+    ) -&gt; bool {
+        <span class="kw">use </span><span class="self">self</span>::MatchType::<span class="kw-2">*</span>;
         <span class="kw">if </span>!<span class="self">self</span>.is_anchor_end_match(text) {
             <span class="kw">return </span><span class="bool-val">false</span>;
         }
-        <span class="kw">match </span><a class="self" href="#1151">self</a>.ro.match_type {
+        <span class="kw">match </span><span class="self">self</span>.ro.match_type {
             <span class="attr">#[cfg(feature = <span class="string">&quot;perf-literal&quot;</span>)]
-            </span><a href="#1466">Literal</a>(ty) =&gt; {
-                <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert_eq.html">debug_assert_eq!</a>(matches.len(), <span class="number">1</span>);
-                <a href="#1152">matches</a>[<span class="number">0</span>] = <a class="self" href="#1151">self</a>.<a href="#692-697">find_literals</a>(<a href="#1162">ty</a>, <a href="#1153">text</a>, <a href="#1154">start</a>).is_some();
-                <a href="#1152">matches</a>[<span class="number">0</span>]
+            </span>Literal(ty) =&gt; {
+                <span class="macro">debug_assert_eq!</span>(matches.len(), <span class="number">1</span>);
+                matches[<span class="number">0</span>] = <span class="self">self</span>.find_literals(ty, text, start).is_some();
+                matches[<span class="number">0</span>]
             }
             <span class="attr">#[cfg(feature = <span class="string">&quot;perf-dfa&quot;</span>)]
-            </span><a href="#1469">Dfa</a> | <a href="#1472">DfaAnchoredReverse</a> | <a href="#1478">DfaMany</a> =&gt; {
+            </span>Dfa | DfaAnchoredReverse | DfaMany =&gt; {
                 <span class="kw">match </span>dfa::Fsm::forward_many(
-                    <span class="kw-2">&amp;</span><a class="self" href="#1151">self</a>.ro.dfa,
-                    <a class="self" href="#1151">self</a>.cache.<a href="pool.rs.html#262">value</a>(),
-                    <a href="#1152">matches</a>,
-                    <a href="#1153">text</a>,
-                    <a href="#1154">start</a>,
+                    <span class="kw-2">&amp;</span><span class="self">self</span>.ro.dfa,
+                    <span class="self">self</span>.cache.value(),
+                    matches,
+                    text,
+                    start,
                 ) {
-                    <a href="dfa.rs.html#210">dfa::Result::Match</a>(<span class="kw">_</span>) =&gt; <span class="bool-val">true</span>,
-                    <a href="dfa.rs.html#211">dfa::Result::NoMatch</a>(<span class="kw">_</span>) =&gt; <span class="bool-val">false</span>,
-                    <a href="dfa.rs.html#212">dfa::Result::Quit</a> =&gt; <a class="self" href="#1151">self</a>.<a href="#1040-1050">exec_nfa</a>(
-                        <a href="#1502">MatchNfaType::Auto</a>,
-                        <a href="#1152">matches</a>,
+                    dfa::Result::Match(<span class="kw">_</span>) =&gt; <span class="bool-val">true</span>,
+                    dfa::Result::NoMatch(<span class="kw">_</span>) =&gt; <span class="bool-val">false</span>,
+                    dfa::Result::Quit =&gt; <span class="self">self</span>.exec_nfa(
+                        MatchNfaType::Auto,
+                        matches,
                         <span class="kw-2">&amp;mut </span>[],
                         <span class="bool-val">false</span>,
                         <span class="bool-val">false</span>,
-                        <a href="#1153">text</a>,
-                        <a href="#1154">start</a>,
-                        <a href="#1153">text</a>.len(),
+                        text,
+                        start,
+                        text.len(),
                     ),
                 }
             }
             <span class="attr">#[cfg(all(feature = <span class="string">&quot;perf-dfa&quot;</span>, feature = <span class="string">&quot;perf-literal&quot;</span>))]
-            </span><a href="#1475">DfaSuffix</a> =&gt; {
+            </span>DfaSuffix =&gt; {
                 <span class="kw">match </span>dfa::Fsm::forward_many(
-                    <span class="kw-2">&amp;</span><a class="self" href="#1151">self</a>.ro.dfa,
-                    <a class="self" href="#1151">self</a>.cache.<a href="pool.rs.html#262">value</a>(),
-                    <a href="#1152">matches</a>,
-                    <a href="#1153">text</a>,
-                    <a href="#1154">start</a>,
+                    <span class="kw-2">&amp;</span><span class="self">self</span>.ro.dfa,
+                    <span class="self">self</span>.cache.value(),
+                    matches,
+                    text,
+                    start,
                 ) {
-                    <a href="dfa.rs.html#210">dfa::Result::Match</a>(<span class="kw">_</span>) =&gt; <span class="bool-val">true</span>,
-                    <a href="dfa.rs.html#211">dfa::Result::NoMatch</a>(<span class="kw">_</span>) =&gt; <span class="bool-val">false</span>,
-                    <a href="dfa.rs.html#212">dfa::Result::Quit</a> =&gt; <a class="self" href="#1151">self</a>.<a href="#1040-1050">exec_nfa</a>(
-                        <a href="#1502">MatchNfaType::Auto</a>,
-                        <a href="#1152">matches</a>,
+                    dfa::Result::Match(<span class="kw">_</span>) =&gt; <span class="bool-val">true</span>,
+                    dfa::Result::NoMatch(<span class="kw">_</span>) =&gt; <span class="bool-val">false</span>,
+                    dfa::Result::Quit =&gt; <span class="self">self</span>.exec_nfa(
+                        MatchNfaType::Auto,
+                        matches,
                         <span class="kw-2">&amp;mut </span>[],
                         <span class="bool-val">false</span>,
                         <span class="bool-val">false</span>,
-                        <a href="#1153">text</a>,
-                        <a href="#1154">start</a>,
-                        <a href="#1153">text</a>.len(),
+                        text,
+                        start,
+                        text.len(),
                     ),
                 }
             }
-            <a href="#1480">Nfa</a>(ty) =&gt; <a class="self" href="#1151">self</a>.<a href="#1040-1050">exec_nfa</a>(
-                <a href="#1213">ty</a>,
-                <a href="#1152">matches</a>,
+            Nfa(ty) =&gt; <span class="self">self</span>.exec_nfa(
+                ty,
+                matches,
                 <span class="kw-2">&amp;mut </span>[],
                 <span class="bool-val">false</span>,
                 <span class="bool-val">false</span>,
-                <a href="#1153">text</a>,
-                <a href="#1154">start</a>,
-                <a href="#1153">text</a>.len(),
+                text,
+                start,
+                text.len(),
             ),
-            <a href="#1482">Nothing</a> =&gt; <span class="bool-val">false</span>,
+            Nothing =&gt; <span class="bool-val">false</span>,
         }
     }
 
     <span class="attr">#[cfg_attr(feature = <span class="string">&quot;perf-inline&quot;</span>, inline(always))]
-    </span><span class="kw">fn </span>is_anchor_end_match(<span class="kw-2">&amp;</span><span class="self">self</span>, text: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+    </span><span class="kw">fn </span>is_anchor_end_match(<span class="kw-2">&amp;</span><span class="self">self</span>, text: <span class="kw-2">&amp;</span>[u8]) -&gt; bool {
         <span class="attr">#[cfg(not(feature = <span class="string">&quot;perf-literal&quot;</span>))]
         </span><span class="kw">fn </span>imp(<span class="kw">_</span>: <span class="kw-2">&amp;</span>ExecReadOnly, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[u8]) -&gt; bool {
             <span class="bool-val">true
         </span>}
 
         <span class="attr">#[cfg(feature = <span class="string">&quot;perf-literal&quot;</span>)]
-        </span><span class="kw">fn </span>imp(ro: <span class="kw-2">&amp;</span><a href="#67">ExecReadOnly</a>, text: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        </span><span class="kw">fn </span>imp(ro: <span class="kw-2">&amp;</span>ExecReadOnly, text: <span class="kw-2">&amp;</span>[u8]) -&gt; bool {
             <span class="comment">// Only do this check if the haystack is big (&gt;1MB).
             </span><span class="kw">if </span>text.len() &gt; (<span class="number">1 </span>&lt;&lt; <span class="number">20</span>) &amp;&amp; ro.nfa.is_anchored_end {
-                <span class="kw">let </span>lcs = <a href="#1235">ro</a>.suffixes.<a href="literal/imp.rs.html#137">lcs</a>();
+                <span class="kw">let </span>lcs = ro.suffixes.lcs();
                 <span class="kw">if </span>lcs.len() &gt;= <span class="number">1 </span>&amp;&amp; !lcs.is_suffix(text) {
                     <span class="kw">return </span><span class="bool-val">false</span>;
                 }
@@ -2898,112 +2898,112 @@
             <span class="bool-val">true
         </span>}
 
-        <a href="#1235">imp</a>(<span class="kw-2">&amp;</span><a class="self" href="#1228">self</a>.ro, <a href="#1228">text</a>)
+        imp(<span class="kw-2">&amp;</span><span class="self">self</span>.ro, text)
     }
 
-    <span class="kw">pub fn </span>capture_name_idx(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Arc&lt;HashMap&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;&gt; {
-        <span class="kw-2">&amp;</span><a class="self" href="#1249">self</a>.ro.nfa.capture_name_idx
+    <span class="kw">pub fn </span>capture_name_idx(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Arc&lt;HashMap&lt;String, usize&gt;&gt; {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.ro.nfa.capture_name_idx
     }
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;c</span>&gt; ExecNoSyncStr&lt;<span class="lifetime">&#39;c</span>&gt; {
-    <span class="kw">pub fn </span>capture_name_idx(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Arc&lt;HashMap&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;&gt; {
-        <a class="self" href="#1255">self</a>.<span class="number">0</span>.<a href="#1249">capture_name_idx</a>()
+    <span class="kw">pub fn </span>capture_name_idx(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Arc&lt;HashMap&lt;String, usize&gt;&gt; {
+        <span class="self">self</span>.<span class="number">0</span>.capture_name_idx()
     }
 }
 
-<span class="kw">impl </span><a href="#35">Exec</a> {
+<span class="kw">impl </span>Exec {
     <span class="doccomment">/// Get a searcher that isn&#39;t Sync.
     </span><span class="attr">#[cfg_attr(feature = <span class="string">&quot;perf-inline&quot;</span>, inline(always))]
     </span><span class="kw">pub fn </span>searcher(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; ExecNoSync&lt;<span class="lifetime">&#39;_</span>&gt; {
-        <a href="#53">ExecNoSync</a> {
-            ro: <span class="kw-2">&amp;</span><a class="self" href="#1263">self</a>.ro, <span class="comment">// a clone is too expensive here! (and not needed)
-            </span>cache: <a class="self" href="#1263">self</a>.pool.<a href="pool.rs.html#196">get</a>(),
+        ExecNoSync {
+            ro: <span class="kw-2">&amp;</span><span class="self">self</span>.ro, <span class="comment">// a clone is too expensive here! (and not needed)
+            </span>cache: <span class="self">self</span>.pool.get(),
         }
     }
 
     <span class="doccomment">/// Get a searcher that isn&#39;t Sync and can match on &amp;str.
     </span><span class="attr">#[cfg_attr(feature = <span class="string">&quot;perf-inline&quot;</span>, inline(always))]
     </span><span class="kw">pub fn </span>searcher_str(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; ExecNoSyncStr&lt;<span class="lifetime">&#39;_</span>&gt; {
-        <a href="#62">ExecNoSyncStr</a>(<a class="self" href="#1272">self</a>.<a href="#1263">searcher</a>())
+        ExecNoSyncStr(<span class="self">self</span>.searcher())
     }
 
     <span class="doccomment">/// Build a Regex from this executor.
-    </span><span class="kw">pub fn </span>into_regex(<span class="self">self</span>) -&gt; <a href="re_unicode.rs.html#136">re_unicode::Regex</a> {
-        re_unicode::Regex::from(<a class="self" href="#1277">self</a>)
+    </span><span class="kw">pub fn </span>into_regex(<span class="self">self</span>) -&gt; re_unicode::Regex {
+        re_unicode::Regex::from(<span class="self">self</span>)
     }
 
     <span class="doccomment">/// Build a RegexSet from this executor.
-    </span><span class="kw">pub fn </span>into_regex_set(<span class="self">self</span>) -&gt; <a href="re_set.rs.html#451-478">re_set::unicode::RegexSet</a> {
-        re_set::unicode::RegexSet::from(<a class="self" href="#1282">self</a>)
+    </span><span class="kw">pub fn </span>into_regex_set(<span class="self">self</span>) -&gt; re_set::unicode::RegexSet {
+        re_set::unicode::RegexSet::from(<span class="self">self</span>)
     }
 
     <span class="doccomment">/// Build a Regex from this executor that can match arbitrary bytes.
-    </span><span class="kw">pub fn </span>into_byte_regex(<span class="self">self</span>) -&gt; <a href="re_bytes.rs.html#78">re_bytes::Regex</a> {
-        re_bytes::Regex::from(<a class="self" href="#1287">self</a>)
+    </span><span class="kw">pub fn </span>into_byte_regex(<span class="self">self</span>) -&gt; re_bytes::Regex {
+        re_bytes::Regex::from(<span class="self">self</span>)
     }
 
     <span class="doccomment">/// Build a RegexSet from this executor that can match arbitrary bytes.
-    </span><span class="kw">pub fn </span>into_byte_regex_set(<span class="self">self</span>) -&gt; <a href="re_set.rs.html#480-507">re_set::bytes::RegexSet</a> {
-        re_set::bytes::RegexSet::from(<a class="self" href="#1292">self</a>)
+    </span><span class="kw">pub fn </span>into_byte_regex_set(<span class="self">self</span>) -&gt; re_set::bytes::RegexSet {
+        re_set::bytes::RegexSet::from(<span class="self">self</span>)
     }
 
     <span class="doccomment">/// The original regular expressions given by the caller that were
     /// compiled.
-    </span><span class="kw">pub fn </span>regex_strings(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>] {
-        <span class="kw-2">&amp;</span><a class="self" href="#1298">self</a>.ro.res
+    </span><span class="kw">pub fn </span>regex_strings(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[String] {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.ro.res
     }
 
     <span class="doccomment">/// Return a slice of capture names.
     ///
     /// Any capture that isn&#39;t named is None.
-    </span><span class="kw">pub fn </span>capture_names(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[<span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt;] {
-        <span class="kw-2">&amp;</span><a class="self" href="#1305">self</a>.ro.nfa.captures
+    </span><span class="kw">pub fn </span>capture_names(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[<span class="prelude-ty">Option</span>&lt;String&gt;] {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.ro.nfa.captures
     }
 
     <span class="doccomment">/// Return a reference to named groups mapping (from group name to
     /// group position).
-    </span><span class="kw">pub fn </span>capture_name_idx(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Arc&lt;HashMap&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;&gt; {
-        <span class="kw-2">&amp;</span><a class="self" href="#1311">self</a>.ro.nfa.capture_name_idx
+    </span><span class="kw">pub fn </span>capture_name_idx(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Arc&lt;HashMap&lt;String, usize&gt;&gt; {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.ro.nfa.capture_name_idx
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> <span class="kw">for </span><a href="#35">Exec</a> {
-    <span class="kw">fn </span>clone(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="#35">Exec</a> {
-        <span class="kw">let </span>pool = ExecReadOnly::new_pool(<span class="kw-2">&amp;</span><a class="self" href="#1317">self</a>.ro);
-        <a href="#35">Exec</a> { ro: <a class="self" href="#1317">self</a>.ro.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), <a href="#1318">pool</a> }
+<span class="kw">impl </span>Clone <span class="kw">for </span>Exec {
+    <span class="kw">fn </span>clone(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Exec {
+        <span class="kw">let </span>pool = ExecReadOnly::new_pool(<span class="kw-2">&amp;</span><span class="self">self</span>.ro);
+        Exec { ro: <span class="self">self</span>.ro.clone(), pool }
     }
 }
 
-<span class="kw">impl </span><a href="#67">ExecReadOnly</a> {
-    <span class="kw">fn </span>choose_match_type(<span class="kw-2">&amp;</span><span class="self">self</span>, hint: <span class="prelude-ty">Option</span>&lt;<a href="#1462">MatchType</a>&gt;) -&gt; <a href="#1462">MatchType</a> {
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(<a href="#1480">MatchType::Nfa</a>(<span class="kw">_</span>)) = <a href="#1324">hint</a> {
-            <span class="kw">return </span><a href="#1324">hint</a>.unwrap();
+<span class="kw">impl </span>ExecReadOnly {
+    <span class="kw">fn </span>choose_match_type(<span class="kw-2">&amp;</span><span class="self">self</span>, hint: <span class="prelude-ty">Option</span>&lt;MatchType&gt;) -&gt; MatchType {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(MatchType::Nfa(<span class="kw">_</span>)) = hint {
+            <span class="kw">return </span>hint.unwrap();
         }
         <span class="comment">// If the NFA is empty, then we&#39;ll never match anything.
         </span><span class="kw">if </span><span class="self">self</span>.nfa.insts.is_empty() {
-            <span class="kw">return </span><a href="#1482">MatchType::Nothing</a>;
+            <span class="kw">return </span>MatchType::Nothing;
         }
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(literalty) = <a class="self" href="#1324">self</a>.<a href="#1344">choose_literal_match_type</a>() {
-            <span class="kw">return </span><a href="#1332">literalty</a>;
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(literalty) = <span class="self">self</span>.choose_literal_match_type() {
+            <span class="kw">return </span>literalty;
         }
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(dfaty) = <a class="self" href="#1324">self</a>.<a href="#1395">choose_dfa_match_type</a>() {
-            <span class="kw">return </span><a href="#1335">dfaty</a>;
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(dfaty) = <span class="self">self</span>.choose_dfa_match_type() {
+            <span class="kw">return </span>dfaty;
         }
         <span class="comment">// We&#39;re so totally hosed.
-        </span><a href="#1480">MatchType::Nfa</a>(<a href="#1502">MatchNfaType::Auto</a>)
+        </span>MatchType::Nfa(MatchNfaType::Auto)
     }
 
     <span class="doccomment">/// If a plain literal scan can be used, then a corresponding literal
     /// search type is returned.
-    </span><span class="kw">fn </span>choose_literal_match_type(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="#1462">MatchType</a>&gt; {
+    </span><span class="kw">fn </span>choose_literal_match_type(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;MatchType&gt; {
         <span class="attr">#[cfg(not(feature = <span class="string">&quot;perf-literal&quot;</span>))]
         </span><span class="kw">fn </span>imp(<span class="kw">_</span>: <span class="kw-2">&amp;</span>ExecReadOnly) -&gt; <span class="prelude-ty">Option</span>&lt;MatchType&gt; {
             <span class="prelude-val">None
         </span>}
 
         <span class="attr">#[cfg(feature = <span class="string">&quot;perf-literal&quot;</span>)]
-        </span><span class="kw">fn </span>imp(ro: <span class="kw-2">&amp;</span><a href="#67">ExecReadOnly</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="#1462">MatchType</a>&gt; {
+        </span><span class="kw">fn </span>imp(ro: <span class="kw-2">&amp;</span>ExecReadOnly) -&gt; <span class="prelude-ty">Option</span>&lt;MatchType&gt; {
             <span class="comment">// If our set of prefixes is complete, then we can use it to find
             // a match in lieu of a regex engine. This doesn&#39;t quite work well
             // in the presence of multiple regexes, so only do it when there&#39;s
@@ -3019,67 +3019,67 @@
                 <span class="kw">return </span><span class="prelude-val">None</span>;
             }
             <span class="kw">if </span>ro.ac.is_some() {
-                <span class="kw">return </span><span class="prelude-val">Some</span>(<a href="#1466">MatchType::Literal</a>(
-                    <a href="#1496">MatchLiteralType::AhoCorasick</a>,
+                <span class="kw">return </span><span class="prelude-val">Some</span>(MatchType::Literal(
+                    MatchLiteralType::AhoCorasick,
                 ));
             }
             <span class="kw">if </span>ro.nfa.prefixes.complete() {
                 <span class="kw">return if </span>ro.nfa.is_anchored_start {
-                    <span class="prelude-val">Some</span>(<a href="#1466">MatchType::Literal</a>(<a href="#1491">MatchLiteralType::AnchoredStart</a>))
+                    <span class="prelude-val">Some</span>(MatchType::Literal(MatchLiteralType::AnchoredStart))
                 } <span class="kw">else </span>{
-                    <span class="prelude-val">Some</span>(<a href="#1466">MatchType::Literal</a>(<a href="#1489">MatchLiteralType::Unanchored</a>))
+                    <span class="prelude-val">Some</span>(MatchType::Literal(MatchLiteralType::Unanchored))
                 };
             }
             <span class="kw">if </span>ro.suffixes.complete() {
                 <span class="kw">return if </span>ro.nfa.is_anchored_end {
-                    <span class="prelude-val">Some</span>(<a href="#1466">MatchType::Literal</a>(<a href="#1493">MatchLiteralType::AnchoredEnd</a>))
+                    <span class="prelude-val">Some</span>(MatchType::Literal(MatchLiteralType::AnchoredEnd))
                 } <span class="kw">else </span>{
                     <span class="comment">// This case shouldn&#39;t happen. When the regex isn&#39;t
                     // anchored, then complete prefixes should imply complete
                     // suffixes.
-                    </span><span class="prelude-val">Some</span>(<a href="#1466">MatchType::Literal</a>(<a href="#1489">MatchLiteralType::Unanchored</a>))
+                    </span><span class="prelude-val">Some</span>(MatchType::Literal(MatchLiteralType::Unanchored))
                 };
             }
             <span class="prelude-val">None
         </span>}
 
-        <a href="#1351">imp</a>(<a class="self" href="#1344">self</a>)
+        imp(<span class="self">self</span>)
     }
 
     <span class="doccomment">/// If a DFA scan can be used, then choose the appropriate DFA strategy.
-    </span><span class="kw">fn </span>choose_dfa_match_type(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="#1462">MatchType</a>&gt; {
+    </span><span class="kw">fn </span>choose_dfa_match_type(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;MatchType&gt; {
         <span class="attr">#[cfg(not(feature = <span class="string">&quot;perf-dfa&quot;</span>))]
         </span><span class="kw">fn </span>imp(<span class="kw">_</span>: <span class="kw-2">&amp;</span>ExecReadOnly) -&gt; <span class="prelude-ty">Option</span>&lt;MatchType&gt; {
             <span class="prelude-val">None
         </span>}
 
         <span class="attr">#[cfg(feature = <span class="string">&quot;perf-dfa&quot;</span>)]
-        </span><span class="kw">fn </span>imp(ro: <span class="kw-2">&amp;</span><a href="#67">ExecReadOnly</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="#1462">MatchType</a>&gt; {
+        </span><span class="kw">fn </span>imp(ro: <span class="kw-2">&amp;</span>ExecReadOnly) -&gt; <span class="prelude-ty">Option</span>&lt;MatchType&gt; {
             <span class="kw">if </span>!dfa::can_exec(<span class="kw-2">&amp;</span>ro.dfa) {
                 <span class="kw">return </span><span class="prelude-val">None</span>;
             }
             <span class="comment">// Regex sets require a slightly specialized path.
             </span><span class="kw">if </span>ro.res.len() &gt;= <span class="number">2 </span>{
-                <span class="kw">return </span><span class="prelude-val">Some</span>(<a href="#1478">MatchType::DfaMany</a>);
+                <span class="kw">return </span><span class="prelude-val">Some</span>(MatchType::DfaMany);
             }
             <span class="comment">// If the regex is anchored at the end but not the start, then
             // just match in reverse from the end of the haystack.
             </span><span class="kw">if </span>!ro.nfa.is_anchored_start &amp;&amp; ro.nfa.is_anchored_end {
-                <span class="kw">return </span><span class="prelude-val">Some</span>(<a href="#1472">MatchType::DfaAnchoredReverse</a>);
+                <span class="kw">return </span><span class="prelude-val">Some</span>(MatchType::DfaAnchoredReverse);
             }
             <span class="attr">#[cfg(feature = <span class="string">&quot;perf-literal&quot;</span>)]
             </span>{
                 <span class="comment">// If there&#39;s a longish suffix literal, then it might be faster
                 // to look for that first.
                 </span><span class="kw">if </span>ro.should_suffix_scan() {
-                    <span class="kw">return </span><span class="prelude-val">Some</span>(<a href="#1475">MatchType::DfaSuffix</a>);
+                    <span class="kw">return </span><span class="prelude-val">Some</span>(MatchType::DfaSuffix);
                 }
             }
             <span class="comment">// Fall back to your garden variety forward searching lazy DFA.
-            </span><span class="prelude-val">Some</span>(<a href="#1469">MatchType::Dfa</a>)
+            </span><span class="prelude-val">Some</span>(MatchType::Dfa)
         }
 
-        <a href="#1402">imp</a>(<a class="self" href="#1395">self</a>)
+        imp(<span class="self">self</span>)
     }
 
     <span class="doccomment">/// Returns true if the program is amenable to suffix scanning.
@@ -3097,18 +3097,18 @@
     /// strings are generally rarer, so we only enable this optimization when
     /// we have a meaty suffix.
     </span><span class="attr">#[cfg(all(feature = <span class="string">&quot;perf-dfa&quot;</span>, feature = <span class="string">&quot;perf-literal&quot;</span>))]
-    </span><span class="kw">fn </span>should_suffix_scan(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+    </span><span class="kw">fn </span>should_suffix_scan(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="kw">if </span><span class="self">self</span>.suffixes.is_empty() {
             <span class="kw">return </span><span class="bool-val">false</span>;
         }
-        <span class="kw">let </span>lcs_len = <a class="self" href="#1445">self</a>.suffixes.<a href="literal/imp.rs.html#137">lcs</a>().<a href="literal/imp.rs.html#391">char_len</a>();
-        <a href="#1449">lcs_len</a> &gt;= <span class="number">3 </span>&amp;&amp; <a href="#1449">lcs_len</a> &gt; <a class="self" href="#1445">self</a>.dfa.prefixes.<a href="literal/imp.rs.html#132">lcp</a>().<a href="literal/imp.rs.html#391">char_len</a>()
+        <span class="kw">let </span>lcs_len = <span class="self">self</span>.suffixes.lcs().char_len();
+        lcs_len &gt;= <span class="number">3 </span>&amp;&amp; lcs_len &gt; <span class="self">self</span>.dfa.prefixes.lcp().char_len()
     }
 
-    <span class="kw">fn </span>new_pool(ro: <span class="kw-2">&amp;</span>Arc&lt;<a href="#67">ExecReadOnly</a>&gt;) -&gt; Box&lt;Pool&lt;<a href="#1521">ProgramCache</a>&gt;&gt; {
-        <span class="kw">let </span>ro = <a href="#1453">ro</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
+    <span class="kw">fn </span>new_pool(ro: <span class="kw-2">&amp;</span>Arc&lt;ExecReadOnly&gt;) -&gt; Box&lt;Pool&lt;ProgramCache&gt;&gt; {
+        <span class="kw">let </span>ro = ro.clone();
         Box::new(Pool::new(Box::new(<span class="kw">move </span>|| {
-            AssertUnwindSafe(RefCell::new(ProgramCacheInner::new(<span class="kw-2">&amp;</span><a href="#1454">ro</a>)))
+            AssertUnwindSafe(RefCell::new(ProgramCacheInner::new(<span class="kw-2">&amp;</span>ro)))
         })))
     }
 }
@@ -3118,7 +3118,7 @@
     <span class="doccomment">/// A single or multiple literal search. This is only used when the regex
     /// can be decomposed into a literal search.
     </span><span class="attr">#[cfg(feature = <span class="string">&quot;perf-literal&quot;</span>)]
-    </span>Literal(<a href="#1487">MatchLiteralType</a>),
+    </span>Literal(MatchLiteralType),
     <span class="doccomment">/// A normal DFA search.
     </span><span class="attr">#[cfg(feature = <span class="string">&quot;perf-dfa&quot;</span>)]
     </span>Dfa,
@@ -3132,7 +3132,7 @@
     </span><span class="attr">#[cfg(feature = <span class="string">&quot;perf-dfa&quot;</span>)]
     </span>DfaMany,
     <span class="doccomment">/// An NFA variant.
-    </span>Nfa(<a href="#1500">MatchNfaType</a>),
+    </span>Nfa(MatchNfaType),
     <span class="doccomment">/// No match is ever possible, so don&#39;t ever try to search.
     </span>Nothing,
 }
@@ -3173,27 +3173,27 @@
 /// We declare this as unwind safe since it&#39;s a cache that&#39;s only used for
 /// performance purposes. If a panic occurs, it is (or should be) always safe
 /// to continue using the same regex object.
-</span><span class="kw">pub type </span>ProgramCache = AssertUnwindSafe&lt;RefCell&lt;<a href="#1524">ProgramCacheInner</a>&gt;&gt;;
+</span><span class="kw">pub type </span>ProgramCache = AssertUnwindSafe&lt;RefCell&lt;ProgramCacheInner&gt;&gt;;
 
 <span class="attr">#[derive(Debug)]
 </span><span class="kw">pub struct </span>ProgramCacheInner {
-    <span class="kw">pub </span>pikevm: <a href="pikevm.rs.html#42">pikevm::Cache</a>,
-    <span class="kw">pub </span>backtrack: <a href="backtrack.rs.html#55">backtrack::Cache</a>,
+    <span class="kw">pub </span>pikevm: pikevm::Cache,
+    <span class="kw">pub </span>backtrack: backtrack::Cache,
     <span class="attr">#[cfg(feature = <span class="string">&quot;perf-dfa&quot;</span>)]
-    </span><span class="kw">pub </span>dfa: <a href="dfa.rs.html#83">dfa::Cache</a>,
+    </span><span class="kw">pub </span>dfa: dfa::Cache,
     <span class="attr">#[cfg(feature = <span class="string">&quot;perf-dfa&quot;</span>)]
-    </span><span class="kw">pub </span>dfa_reverse: <a href="dfa.rs.html#83">dfa::Cache</a>,
+    </span><span class="kw">pub </span>dfa_reverse: dfa::Cache,
 }
 
-<span class="kw">impl </span><a href="#1524">ProgramCacheInner</a> {
-    <span class="kw">fn </span>new(ro: <span class="kw-2">&amp;</span><a href="#67">ExecReadOnly</a>) -&gt; <span class="self">Self </span>{
-        <a href="#1524">ProgramCacheInner</a> {
-            pikevm: pikevm::Cache::new(<span class="kw-2">&amp;</span><a href="#1534">ro</a>.nfa),
-            backtrack: backtrack::Cache::new(<span class="kw-2">&amp;</span><a href="#1534">ro</a>.nfa),
+<span class="kw">impl </span>ProgramCacheInner {
+    <span class="kw">fn </span>new(ro: <span class="kw-2">&amp;</span>ExecReadOnly) -&gt; <span class="self">Self </span>{
+        ProgramCacheInner {
+            pikevm: pikevm::Cache::new(<span class="kw-2">&amp;</span>ro.nfa),
+            backtrack: backtrack::Cache::new(<span class="kw-2">&amp;</span>ro.nfa),
             <span class="attr">#[cfg(feature = <span class="string">&quot;perf-dfa&quot;</span>)]
-            </span>dfa: dfa::Cache::new(<span class="kw-2">&amp;</span><a href="#1534">ro</a>.dfa),
+            </span>dfa: dfa::Cache::new(<span class="kw-2">&amp;</span>ro.dfa),
             <span class="attr">#[cfg(feature = <span class="string">&quot;perf-dfa&quot;</span>)]
-            </span>dfa_reverse: dfa::Cache::new(<span class="kw-2">&amp;</span><a href="#1534">ro</a>.dfa_reverse),
+            </span>dfa_reverse: dfa::Cache::new(<span class="kw-2">&amp;</span>ro.dfa_reverse),
         }
     }
 }
@@ -3201,8 +3201,8 @@
 <span class="doccomment">/// Alternation literals checks if the given HIR is a simple alternation of
 /// literals, and if so, returns them. Otherwise, this returns None.
 </span><span class="attr">#[cfg(feature = <span class="string">&quot;perf-literal&quot;</span>)]
-</span><span class="kw">fn </span>alternation_literals(expr: <span class="kw-2">&amp;</span><a href="../../regex_syntax/hir/struct.Hir.html">Hir</a>) -&gt; <span class="prelude-ty">Option</span>&lt;Vec&lt;Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;&gt;&gt; {
-    <span class="kw">use </span>regex_syntax::hir::{<a href="../../regex_syntax/hir/enum.HirKind.html">HirKind</a>, <a href="../../regex_syntax/hir/enum.Literal.html">Literal</a>};
+</span><span class="kw">fn </span>alternation_literals(expr: <span class="kw-2">&amp;</span>Hir) -&gt; <span class="prelude-ty">Option</span>&lt;Vec&lt;Vec&lt;u8&gt;&gt;&gt; {
+    <span class="kw">use </span>regex_syntax::hir::{HirKind, Literal};
 
     <span class="comment">// This is pretty hacky, but basically, if `is_alternation_literal` is
     // true, then we can make several assumptions about the structure of our
@@ -3215,22 +3215,22 @@
     </span><span class="kw">if </span>!expr.is_alternation_literal() {
         <span class="kw">return </span><span class="prelude-val">None</span>;
     }
-    <span class="kw">let </span>alts = <span class="kw">match </span><span class="kw-2">*</span><a href="#1549">expr</a>.kind() {
-        HirKind::Alternation(<span class="kw-2">ref </span>alts) =&gt; <a href="#1564">alts</a>,
+    <span class="kw">let </span>alts = <span class="kw">match </span><span class="kw-2">*</span>expr.kind() {
+        HirKind::Alternation(<span class="kw-2">ref </span>alts) =&gt; alts,
         <span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="prelude-val">None</span>, <span class="comment">// one literal isn&#39;t worth it
     </span>};
 
-    <span class="kw">let </span>extendlit = |lit: <span class="kw-2">&amp;</span><a href="../../regex_syntax/hir/enum.Literal.html">Literal</a>, dst: <span class="kw-2">&amp;mut </span>Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;| <span class="kw">match </span><span class="kw-2">*</span><a href="#1568">lit</a> {
+    <span class="kw">let </span>extendlit = |lit: <span class="kw-2">&amp;</span>Literal, dst: <span class="kw-2">&amp;mut </span>Vec&lt;u8&gt;| <span class="kw">match </span><span class="kw-2">*</span>lit {
         Literal::Unicode(c) =&gt; {
             <span class="kw">let </span><span class="kw-2">mut </span>buf = [<span class="number">0</span>; <span class="number">4</span>];
-            <a href="#1568">dst</a>.extend_from_slice(<a href="#1569">c</a>.encode_utf8(<span class="kw-2">&amp;mut </span><a href="#1570">buf</a>).as_bytes());
+            dst.extend_from_slice(c.encode_utf8(<span class="kw-2">&amp;mut </span>buf).as_bytes());
         }
         Literal::Byte(b) =&gt; {
-            <a href="#1568">dst</a>.push(<a href="#1573">b</a>);
+            dst.push(b);
         }
     };
 
-    <span class="kw">let </span><span class="kw-2">mut </span>lits = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[];
+    <span class="kw">let </span><span class="kw-2">mut </span>lits = <span class="macro">vec!</span>[];
     <span class="kw">for </span>alt <span class="kw">in </span>alts {
         <span class="kw">let </span><span class="kw-2">mut </span>lit = <span class="macro">vec!</span>[];
         <span class="kw">match </span><span class="kw-2">*</span>alt.kind() {
@@ -3247,7 +3247,7 @@
         }
         lits.push(lit);
     }
-    <span class="prelude-val">Some</span>(<a href="#1578">lits</a>)
+    <span class="prelude-val">Some</span>(lits)
 }
 
 <span class="attr">#[cfg(test)]
@@ -3309,4 +3309,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="regex" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="regex" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

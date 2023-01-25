@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/serde_derive-1.0.147/src/internals/receiver.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>receiver.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../serde_derive/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/serde_derive-1.0.152/src/internals/receiver.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>receiver.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../serde_derive/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -283,64 +283,64 @@
 <a href="#283" id="283">283</a>
 <a href="#284" id="284">284</a>
 <a href="#285" id="285">285</a>
-</pre><pre class="rust"><code><span class="kw">use </span><a href="respan.rs.html#3">internals::respan::respan</a>;
-<span class="kw">use </span><a href="https://docs.rs/proc-macro2/1.0.47/proc_macro2/struct.Span.html">proc_macro2::Span</a>;
-<span class="kw">use </span><a href="https://docs.rs/quote/1.0.21/quote/to_tokens/trait.ToTokens.html">quote::ToTokens</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/mem/index.html">std::mem</a>;
-<span class="kw">use </span><a href="https://docs.rs/syn/1.0.103/syn/punctuated/struct.Punctuated.html">syn::punctuated::Punctuated</a>;
+</pre><pre class="rust"><code><span class="kw">use </span>internals::respan::respan;
+<span class="kw">use </span>proc_macro2::Span;
+<span class="kw">use </span>quote::ToTokens;
+<span class="kw">use </span>std::mem;
+<span class="kw">use </span>syn::punctuated::Punctuated;
 <span class="kw">use </span>syn::{
-    <a href="https://docs.rs/syn/1.0.103/syn/macro.parse_quote.html">parse_quote</a>, <a href="https://docs.rs/syn/1.0.103/syn/derive/enum.Data.html">Data</a>, <a href="https://docs.rs/syn/1.0.103/syn/derive/struct.DeriveInput.html">DeriveInput</a>, <a href="https://docs.rs/syn/1.0.103/syn/expr/enum.Expr.html">Expr</a>, <a href="https://docs.rs/syn/1.0.103/syn/expr/struct.ExprPath.html">ExprPath</a>, <a href="https://docs.rs/syn/1.0.103/syn/path/enum.GenericArgument.html">GenericArgument</a>, <a href="https://docs.rs/syn/1.0.103/syn/generics/enum.GenericParam.html">GenericParam</a>, <a href="https://docs.rs/syn/1.0.103/syn/generics/struct.Generics.html">Generics</a>, <a href="https://docs.rs/syn/1.0.103/syn/mac/struct.Macro.html">Macro</a>,
-    <a href="https://docs.rs/syn/1.0.103/syn/path/struct.Path.html">Path</a>, <a href="https://docs.rs/syn/1.0.103/syn/path/enum.PathArguments.html">PathArguments</a>, <a href="https://docs.rs/syn/1.0.103/syn/path/struct.QSelf.html">QSelf</a>, <a href="https://docs.rs/syn/1.0.103/syn/ty/enum.ReturnType.html">ReturnType</a>, <a href="https://docs.rs/syn/1.0.103/syn/ty/enum.Type.html">Type</a>, <a href="https://docs.rs/syn/1.0.103/syn/generics/enum.TypeParamBound.html">TypeParamBound</a>, <a href="https://docs.rs/syn/1.0.103/syn/ty/struct.TypePath.html">TypePath</a>, <a href="https://docs.rs/syn/1.0.103/syn/generics/enum.WherePredicate.html">WherePredicate</a>,
+    parse_quote, Data, DeriveInput, Expr, ExprPath, GenericArgument, GenericParam, Generics, Macro,
+    Path, PathArguments, QSelf, ReturnType, Type, TypeParamBound, TypePath, WherePredicate,
 };
 
-<span class="kw">pub fn </span>replace_receiver(input: <span class="kw-2">&amp;mut </span><a href="https://docs.rs/syn/1.0.103/syn/derive/struct.DeriveInput.html">DeriveInput</a>) {
+<span class="kw">pub fn </span>replace_receiver(input: <span class="kw-2">&amp;mut </span>DeriveInput) {
     <span class="kw">let </span>self_ty = {
-        <span class="kw">let </span>ident = <span class="kw-2">&amp;</span><a href="#11">input</a>.ident;
-        <span class="kw">let </span>ty_generics = <a href="#11">input</a>.generics.split_for_impl().<span class="number">1</span>;
-        <a class="macro" href="https://docs.rs/syn/1.0.103/syn/macro.parse_quote.html">parse_quote!</a>(#ident #ty_generics)
+        <span class="kw">let </span>ident = <span class="kw-2">&amp;</span>input.ident;
+        <span class="kw">let </span>ty_generics = input.generics.split_for_impl().<span class="number">1</span>;
+        <span class="macro">parse_quote!</span>(#ident #ty_generics)
     };
-    <span class="kw">let </span><span class="kw-2">mut </span>visitor = <a href="#22">ReplaceReceiver</a>(<span class="kw-2">&amp;</span><a href="#12">self_ty</a>);
-    <a href="#17">visitor</a>.<a href="#212">visit_generics_mut</a>(<span class="kw-2">&amp;mut </span><a href="#11">input</a>.generics);
-    <a href="#17">visitor</a>.<a href="#238">visit_data_mut</a>(<span class="kw-2">&amp;mut </span><a href="#11">input</a>.data);
+    <span class="kw">let </span><span class="kw-2">mut </span>visitor = ReplaceReceiver(<span class="kw-2">&amp;</span>self_ty);
+    visitor.visit_generics_mut(<span class="kw-2">&amp;mut </span>input.generics);
+    visitor.visit_data_mut(<span class="kw-2">&amp;mut </span>input.data);
 }
 
-<span class="kw">struct </span>ReplaceReceiver&lt;<span class="lifetime">&#39;a</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="https://docs.rs/syn/1.0.103/syn/ty/struct.TypePath.html">TypePath</a>);
+<span class="kw">struct </span>ReplaceReceiver&lt;<span class="lifetime">&#39;a</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>TypePath);
 
 <span class="kw">impl </span>ReplaceReceiver&lt;<span class="lifetime">&#39;_</span>&gt; {
-    <span class="kw">fn </span>self_ty(<span class="kw-2">&amp;</span><span class="self">self</span>, span: <a href="https://docs.rs/proc-macro2/1.0.47/proc_macro2/struct.Span.html">Span</a>) -&gt; <a href="https://docs.rs/syn/1.0.103/syn/ty/struct.TypePath.html">TypePath</a> {
-        <span class="kw">let </span>tokens = <a class="self" href="#25">self</a>.<span class="number">0</span>.<a href="https://docs.rs/quote/1.0.21/quote/to_tokens/trait.ToTokens.html">to_token_stream</a>();
-        <span class="kw">let </span>respanned = <a href="respan.rs.html#3">respan</a>(<a href="#26">tokens</a>, <a href="#25">span</a>);
-        syn::parse2(<a href="#27">respanned</a>).unwrap()
+    <span class="kw">fn </span>self_ty(<span class="kw-2">&amp;</span><span class="self">self</span>, span: Span) -&gt; TypePath {
+        <span class="kw">let </span>tokens = <span class="self">self</span>.<span class="number">0</span>.to_token_stream();
+        <span class="kw">let </span>respanned = respan(tokens, span);
+        syn::parse2(respanned).unwrap()
     }
 
-    <span class="kw">fn </span>self_to_qself(<span class="kw-2">&amp;</span><span class="self">self</span>, qself: <span class="kw-2">&amp;mut </span><span class="prelude-ty">Option</span>&lt;<a href="https://docs.rs/syn/1.0.103/syn/path/struct.QSelf.html">QSelf</a>&gt;, path: <span class="kw-2">&amp;mut </span><a href="https://docs.rs/syn/1.0.103/syn/path/struct.Path.html">Path</a>) {
+    <span class="kw">fn </span>self_to_qself(<span class="kw-2">&amp;</span><span class="self">self</span>, qself: <span class="kw-2">&amp;mut </span><span class="prelude-ty">Option</span>&lt;QSelf&gt;, path: <span class="kw-2">&amp;mut </span>Path) {
         <span class="kw">if </span>path.leading_colon.is_some() || path.segments[<span class="number">0</span>].ident != <span class="string">&quot;Self&quot; </span>{
             <span class="kw">return</span>;
         }
 
         <span class="kw">if </span>path.segments.len() == <span class="number">1 </span>{
-            <a class="self" href="#31">self</a>.<a href="#56">self_to_expr_path</a>(<a href="#31">path</a>);
+            <span class="self">self</span>.self_to_expr_path(path);
             <span class="kw">return</span>;
         }
 
-        <span class="kw">let </span>span = <a href="#31">path</a>.segments[<span class="number">0</span>].ident.span();
-        <span class="kw-2">*</span><a href="#31">qself</a> = <span class="prelude-val">Some</span>(<a href="https://docs.rs/syn/1.0.103/syn/path/struct.QSelf.html">QSelf</a> {
-            lt_token: <a class="macro" href="https://docs.rs/syn/1.0.103/syn/macro.Token.html">Token!</a>[&lt;](<a href="#41">span</a>),
-            ty: Box::new(Type::Path(<a class="self" href="#31">self</a>.<a href="#25">self_ty</a>(<a href="#41">span</a>))),
+        <span class="kw">let </span>span = path.segments[<span class="number">0</span>].ident.span();
+        <span class="kw-2">*</span>qself = <span class="prelude-val">Some</span>(QSelf {
+            lt_token: <span class="macro">Token!</span>[&lt;](span),
+            ty: Box::new(Type::Path(<span class="self">self</span>.self_ty(span))),
             position: <span class="number">0</span>,
             as_token: <span class="prelude-val">None</span>,
-            gt_token: <a class="macro" href="https://docs.rs/syn/1.0.103/syn/macro.Token.html">Token!</a>[&gt;](<a href="#41">span</a>),
+            gt_token: <span class="macro">Token!</span>[&gt;](span),
         });
 
-        <a href="#31">path</a>.leading_colon = <span class="prelude-val">Some</span>(<span class="kw-2">**</span><a href="#31">path</a>.segments.pairs().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>().unwrap().punct().unwrap());
+        path.leading_colon = <span class="prelude-val">Some</span>(<span class="kw-2">**</span>path.segments.pairs().next().unwrap().punct().unwrap());
 
-        <span class="kw">let </span>segments = mem::replace(<span class="kw-2">&amp;mut </span><a href="#31">path</a>.segments, Punctuated::new());
-        <a href="#31">path</a>.segments = <a href="#52">segments</a>.into_pairs().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">skip</a>(<span class="number">1</span>).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
+        <span class="kw">let </span>segments = mem::replace(<span class="kw-2">&amp;mut </span>path.segments, Punctuated::new());
+        path.segments = segments.into_pairs().skip(<span class="number">1</span>).collect();
     }
 
-    <span class="kw">fn </span>self_to_expr_path(<span class="kw-2">&amp;</span><span class="self">self</span>, path: <span class="kw-2">&amp;mut </span><a href="https://docs.rs/syn/1.0.103/syn/path/struct.Path.html">Path</a>) {
-        <span class="kw">let </span>self_ty = <a class="self" href="#56">self</a>.<a href="#25">self_ty</a>(<a href="#56">path</a>.segments[<span class="number">0</span>].ident.span());
-        <span class="kw">let </span>variant = mem::replace(<a href="#56">path</a>, <a href="#57">self_ty</a>.path);
+    <span class="kw">fn </span>self_to_expr_path(<span class="kw-2">&amp;</span><span class="self">self</span>, path: <span class="kw-2">&amp;mut </span>Path) {
+        <span class="kw">let </span>self_ty = <span class="self">self</span>.self_ty(path.segments[<span class="number">0</span>].ident.span());
+        <span class="kw">let </span>variant = mem::replace(path, self_ty.path);
         <span class="kw">for </span>segment <span class="kw">in </span><span class="kw-2">&amp;mut </span>path.segments {
             <span class="kw">if let </span>PathArguments::AngleBracketed(bracketed) = <span class="kw-2">&amp;mut </span>segment.arguments {
                 <span class="kw">if </span>bracketed.colon2_token.is_none() &amp;&amp; !bracketed.args.is_empty() {
@@ -349,76 +349,76 @@
             }
         }
         <span class="kw">if </span>variant.segments.len() &gt; <span class="number">1 </span>{
-            <a href="#56">path</a>.segments.push_punct(&lt;<a class="macro" href="https://docs.rs/syn/1.0.103/syn/macro.Token.html">Token!</a>[::]&gt;::default());
-            <a href="#56">path</a>.segments.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a href="#58">variant</a>.segments.into_pairs().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">skip</a>(<span class="number">1</span>));
+            path.segments.push_punct(&lt;<span class="macro">Token!</span>[::]&gt;::default());
+            path.segments.extend(variant.segments.into_pairs().skip(<span class="number">1</span>));
         }
     }
 }
 
 <span class="kw">impl </span>ReplaceReceiver&lt;<span class="lifetime">&#39;_</span>&gt; {
     <span class="comment">// `Self` -&gt; `Receiver`
-    </span><span class="kw">fn </span>visit_type_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>, ty: <span class="kw-2">&amp;mut </span><a href="https://docs.rs/syn/1.0.103/syn/ty/enum.Type.html">Type</a>) {
-        <span class="kw">let </span>span = <span class="kw">if let </span>Type::Path(node) = <a href="#75">ty</a> {
+    </span><span class="kw">fn </span>visit_type_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>, ty: <span class="kw-2">&amp;mut </span>Type) {
+        <span class="kw">let </span>span = <span class="kw">if let </span>Type::Path(node) = ty {
             <span class="kw">if </span>node.qself.is_none() &amp;&amp; node.path.is_ident(<span class="string">&quot;Self&quot;</span>) {
-                <a href="#76">node</a>.path.segments[<span class="number">0</span>].ident.span()
+                node.path.segments[<span class="number">0</span>].ident.span()
             } <span class="kw">else </span>{
-                <a class="self" href="#75">self</a>.<a href="#91">visit_type_path_mut</a>(<a href="#76">node</a>);
+                <span class="self">self</span>.visit_type_path_mut(node);
                 <span class="kw">return</span>;
             }
         } <span class="kw">else </span>{
-            <a class="self" href="#75">self</a>.<a href="#108">visit_type_mut_impl</a>(<a href="#75">ty</a>);
+            <span class="self">self</span>.visit_type_mut_impl(ty);
             <span class="kw">return</span>;
         };
-        <span class="kw-2">*</span><a href="#75">ty</a> = <a class="self" href="#75">self</a>.<a href="#25">self_ty</a>(<a href="#76">span</a>).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>();
+        <span class="kw-2">*</span>ty = <span class="self">self</span>.self_ty(span).into();
     }
 
     <span class="comment">// `Self::Assoc` -&gt; `&lt;Receiver&gt;::Assoc`
-    </span><span class="kw">fn </span>visit_type_path_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>, ty: <span class="kw-2">&amp;mut </span><a href="https://docs.rs/syn/1.0.103/syn/ty/struct.TypePath.html">TypePath</a>) {
+    </span><span class="kw">fn </span>visit_type_path_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>, ty: <span class="kw-2">&amp;mut </span>TypePath) {
         <span class="kw">if </span>ty.qself.is_none() {
-            <a class="self" href="#91">self</a>.<a href="#31">self_to_qself</a>(<span class="kw-2">&amp;mut </span><a href="#91">ty</a>.qself, <span class="kw-2">&amp;mut </span><a href="#91">ty</a>.path);
+            <span class="self">self</span>.self_to_qself(<span class="kw-2">&amp;mut </span>ty.qself, <span class="kw-2">&amp;mut </span>ty.path);
         }
-        <a class="self" href="#91">self</a>.<a href="#155">visit_type_path_mut_impl</a>(<a href="#91">ty</a>);
+        <span class="self">self</span>.visit_type_path_mut_impl(ty);
     }
 
     <span class="comment">// `Self::method` -&gt; `&lt;Receiver&gt;::method`
-    </span><span class="kw">fn </span>visit_expr_path_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>, expr: <span class="kw-2">&amp;mut </span><a href="https://docs.rs/syn/1.0.103/syn/expr/struct.ExprPath.html">ExprPath</a>) {
+    </span><span class="kw">fn </span>visit_expr_path_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>, expr: <span class="kw-2">&amp;mut </span>ExprPath) {
         <span class="kw">if </span>expr.qself.is_none() {
-            <a class="self" href="#99">self</a>.<a href="#31">self_to_qself</a>(<span class="kw-2">&amp;mut </span><a href="#99">expr</a>.qself, <span class="kw-2">&amp;mut </span><a href="#99">expr</a>.path);
+            <span class="self">self</span>.self_to_qself(<span class="kw-2">&amp;mut </span>expr.qself, <span class="kw-2">&amp;mut </span>expr.path);
         }
-        <a class="self" href="#99">self</a>.<a href="#162">visit_expr_path_mut_impl</a>(<a href="#99">expr</a>);
+        <span class="self">self</span>.visit_expr_path_mut_impl(expr);
     }
 
     <span class="comment">// Everything below is simply traversing the syntax tree.
 
-    </span><span class="kw">fn </span>visit_type_mut_impl(<span class="kw-2">&amp;mut </span><span class="self">self</span>, ty: <span class="kw-2">&amp;mut </span><a href="https://docs.rs/syn/1.0.103/syn/ty/enum.Type.html">Type</a>) {
-        <span class="kw">match </span><a href="#108">ty</a> {
+    </span><span class="kw">fn </span>visit_type_mut_impl(<span class="kw-2">&amp;mut </span><span class="self">self</span>, ty: <span class="kw-2">&amp;mut </span>Type) {
+        <span class="kw">match </span>ty {
             Type::Array(ty) =&gt; {
-                <a class="self" href="#108">self</a>.<a href="#75">visit_type_mut</a>(<span class="kw-2">&amp;mut </span><a href="#110">ty</a>.elem);
-                <a class="self" href="#108">self</a>.<a href="#256">visit_expr_mut</a>(<span class="kw-2">&amp;mut </span><a href="#110">ty</a>.len);
+                <span class="self">self</span>.visit_type_mut(<span class="kw-2">&amp;mut </span>ty.elem);
+                <span class="self">self</span>.visit_expr_mut(<span class="kw-2">&amp;mut </span>ty.len);
             }
             Type::BareFn(ty) =&gt; {
                 <span class="kw">for </span>arg <span class="kw">in </span><span class="kw-2">&amp;mut </span>ty.inputs {
                     <span class="self">self</span>.visit_type_mut(<span class="kw-2">&amp;mut </span>arg.ty);
                 }
-                <a class="self" href="#108">self</a>.<a href="#198">visit_return_type_mut</a>(<span class="kw-2">&amp;mut </span><a href="#114">ty</a>.output);
+                <span class="self">self</span>.visit_return_type_mut(<span class="kw-2">&amp;mut </span>ty.output);
             }
-            Type::Group(ty) =&gt; <a class="self" href="#108">self</a>.<a href="#75">visit_type_mut</a>(<span class="kw-2">&amp;mut </span><a href="#120">ty</a>.elem),
+            Type::Group(ty) =&gt; <span class="self">self</span>.visit_type_mut(<span class="kw-2">&amp;mut </span>ty.elem),
             Type::ImplTrait(ty) =&gt; {
                 <span class="kw">for </span>bound <span class="kw">in </span><span class="kw-2">&amp;mut </span>ty.bounds {
                     <span class="self">self</span>.visit_type_param_bound_mut(bound);
                 }
             }
-            Type::Macro(ty) =&gt; <a class="self" href="#108">self</a>.<a href="#284">visit_macro_mut</a>(<span class="kw-2">&amp;mut </span><a href="#126">ty</a>.mac),
-            Type::Paren(ty) =&gt; <a class="self" href="#108">self</a>.<a href="#75">visit_type_mut</a>(<span class="kw-2">&amp;mut </span><a href="#127">ty</a>.elem),
+            Type::Macro(ty) =&gt; <span class="self">self</span>.visit_macro_mut(<span class="kw-2">&amp;mut </span>ty.mac),
+            Type::Paren(ty) =&gt; <span class="self">self</span>.visit_type_mut(<span class="kw-2">&amp;mut </span>ty.elem),
             Type::Path(ty) =&gt; {
-                <span class="kw">if let </span><span class="prelude-val">Some</span>(qself) = <span class="kw-2">&amp;mut </span><a href="#128">ty</a>.qself {
-                    <a class="self" href="#108">self</a>.<a href="#75">visit_type_mut</a>(<span class="kw-2">&amp;mut </span><a href="#129">qself</a>.ty);
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(qself) = <span class="kw-2">&amp;mut </span>ty.qself {
+                    <span class="self">self</span>.visit_type_mut(<span class="kw-2">&amp;mut </span>qself.ty);
                 }
-                <a class="self" href="#108">self</a>.<a href="#169">visit_path_mut</a>(<span class="kw-2">&amp;mut </span><a href="#128">ty</a>.path);
+                <span class="self">self</span>.visit_path_mut(<span class="kw-2">&amp;mut </span>ty.path);
             }
-            Type::Ptr(ty) =&gt; <a class="self" href="#108">self</a>.<a href="#75">visit_type_mut</a>(<span class="kw-2">&amp;mut </span><a href="#134">ty</a>.elem),
-            Type::Reference(ty) =&gt; <a class="self" href="#108">self</a>.<a href="#75">visit_type_mut</a>(<span class="kw-2">&amp;mut </span><a href="#135">ty</a>.elem),
-            Type::Slice(ty) =&gt; <a class="self" href="#108">self</a>.<a href="#75">visit_type_mut</a>(<span class="kw-2">&amp;mut </span><a href="#136">ty</a>.elem),
+            Type::Ptr(ty) =&gt; <span class="self">self</span>.visit_type_mut(<span class="kw-2">&amp;mut </span>ty.elem),
+            Type::Reference(ty) =&gt; <span class="self">self</span>.visit_type_mut(<span class="kw-2">&amp;mut </span>ty.elem),
+            Type::Slice(ty) =&gt; <span class="self">self</span>.visit_type_mut(<span class="kw-2">&amp;mut </span>ty.elem),
             Type::TraitObject(ty) =&gt; {
                 <span class="kw">for </span>bound <span class="kw">in </span><span class="kw-2">&amp;mut </span>ty.bounds {
                     <span class="self">self</span>.visit_type_param_bound_mut(bound);
@@ -437,28 +437,28 @@
         }
     }
 
-    <span class="kw">fn </span>visit_type_path_mut_impl(<span class="kw-2">&amp;mut </span><span class="self">self</span>, ty: <span class="kw-2">&amp;mut </span><a href="https://docs.rs/syn/1.0.103/syn/ty/struct.TypePath.html">TypePath</a>) {
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(qself) = <span class="kw-2">&amp;mut </span><a href="#155">ty</a>.qself {
-            <a class="self" href="#155">self</a>.<a href="#75">visit_type_mut</a>(<span class="kw-2">&amp;mut </span><a href="#156">qself</a>.ty);
+    <span class="kw">fn </span>visit_type_path_mut_impl(<span class="kw-2">&amp;mut </span><span class="self">self</span>, ty: <span class="kw-2">&amp;mut </span>TypePath) {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(qself) = <span class="kw-2">&amp;mut </span>ty.qself {
+            <span class="self">self</span>.visit_type_mut(<span class="kw-2">&amp;mut </span>qself.ty);
         }
-        <a class="self" href="#155">self</a>.<a href="#169">visit_path_mut</a>(<span class="kw-2">&amp;mut </span><a href="#155">ty</a>.path);
+        <span class="self">self</span>.visit_path_mut(<span class="kw-2">&amp;mut </span>ty.path);
     }
 
-    <span class="kw">fn </span>visit_expr_path_mut_impl(<span class="kw-2">&amp;mut </span><span class="self">self</span>, expr: <span class="kw-2">&amp;mut </span><a href="https://docs.rs/syn/1.0.103/syn/expr/struct.ExprPath.html">ExprPath</a>) {
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(qself) = <span class="kw-2">&amp;mut </span><a href="#162">expr</a>.qself {
-            <a class="self" href="#162">self</a>.<a href="#75">visit_type_mut</a>(<span class="kw-2">&amp;mut </span><a href="#163">qself</a>.ty);
+    <span class="kw">fn </span>visit_expr_path_mut_impl(<span class="kw-2">&amp;mut </span><span class="self">self</span>, expr: <span class="kw-2">&amp;mut </span>ExprPath) {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(qself) = <span class="kw-2">&amp;mut </span>expr.qself {
+            <span class="self">self</span>.visit_type_mut(<span class="kw-2">&amp;mut </span>qself.ty);
         }
-        <a class="self" href="#162">self</a>.<a href="#169">visit_path_mut</a>(<span class="kw-2">&amp;mut </span><a href="#162">expr</a>.path);
+        <span class="self">self</span>.visit_path_mut(<span class="kw-2">&amp;mut </span>expr.path);
     }
 
-    <span class="kw">fn </span>visit_path_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>, path: <span class="kw-2">&amp;mut </span><a href="https://docs.rs/syn/1.0.103/syn/path/struct.Path.html">Path</a>) {
+    <span class="kw">fn </span>visit_path_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>, path: <span class="kw-2">&amp;mut </span>Path) {
         <span class="kw">for </span>segment <span class="kw">in </span><span class="kw-2">&amp;mut </span>path.segments {
             <span class="self">self</span>.visit_path_arguments_mut(<span class="kw-2">&amp;mut </span>segment.arguments);
         }
     }
 
-    <span class="kw">fn </span>visit_path_arguments_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>, arguments: <span class="kw-2">&amp;mut </span><a href="https://docs.rs/syn/1.0.103/syn/path/enum.PathArguments.html">PathArguments</a>) {
-        <span class="kw">match </span><a href="#175">arguments</a> {
+    <span class="kw">fn </span>visit_path_arguments_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>, arguments: <span class="kw-2">&amp;mut </span>PathArguments) {
+        <span class="kw">match </span>arguments {
             PathArguments::None =&gt; {}
             PathArguments::AngleBracketed(arguments) =&gt; {
                 <span class="kw">for </span>arg <span class="kw">in </span><span class="kw-2">&amp;mut </span>arguments.args {
@@ -475,26 +475,26 @@
                 <span class="kw">for </span>argument <span class="kw">in </span><span class="kw-2">&amp;mut </span>arguments.inputs {
                     <span class="self">self</span>.visit_type_mut(argument);
                 }
-                <a class="self" href="#175">self</a>.<a href="#198">visit_return_type_mut</a>(<span class="kw-2">&amp;mut </span><a href="#189">arguments</a>.output);
+                <span class="self">self</span>.visit_return_type_mut(<span class="kw-2">&amp;mut </span>arguments.output);
             }
         }
     }
 
-    <span class="kw">fn </span>visit_return_type_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>, return_type: <span class="kw-2">&amp;mut </span><a href="https://docs.rs/syn/1.0.103/syn/ty/enum.ReturnType.html">ReturnType</a>) {
-        <span class="kw">match </span><a href="#198">return_type</a> {
+    <span class="kw">fn </span>visit_return_type_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>, return_type: <span class="kw-2">&amp;mut </span>ReturnType) {
+        <span class="kw">match </span>return_type {
             ReturnType::Default =&gt; {}
-            ReturnType::Type(<span class="kw">_</span>, output) =&gt; <a class="self" href="#198">self</a>.<a href="#75">visit_type_mut</a>(<a href="#201">output</a>),
+            ReturnType::Type(<span class="kw">_</span>, output) =&gt; <span class="self">self</span>.visit_type_mut(output),
         }
     }
 
-    <span class="kw">fn </span>visit_type_param_bound_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>, bound: <span class="kw-2">&amp;mut </span><a href="https://docs.rs/syn/1.0.103/syn/generics/enum.TypeParamBound.html">TypeParamBound</a>) {
-        <span class="kw">match </span><a href="#205">bound</a> {
-            TypeParamBound::Trait(bound) =&gt; <a class="self" href="#205">self</a>.<a href="#169">visit_path_mut</a>(<span class="kw-2">&amp;mut </span><a href="#207">bound</a>.path),
+    <span class="kw">fn </span>visit_type_param_bound_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>, bound: <span class="kw-2">&amp;mut </span>TypeParamBound) {
+        <span class="kw">match </span>bound {
+            TypeParamBound::Trait(bound) =&gt; <span class="self">self</span>.visit_path_mut(<span class="kw-2">&amp;mut </span>bound.path),
             TypeParamBound::Lifetime(<span class="kw">_</span>) =&gt; {}
         }
     }
 
-    <span class="kw">fn </span>visit_generics_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>, generics: <span class="kw-2">&amp;mut </span><a href="https://docs.rs/syn/1.0.103/syn/generics/struct.Generics.html">Generics</a>) {
+    <span class="kw">fn </span>visit_generics_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>, generics: <span class="kw-2">&amp;mut </span>Generics) {
         <span class="kw">for </span>param <span class="kw">in </span><span class="kw-2">&amp;mut </span>generics.params {
             <span class="kw">match </span>param {
                 GenericParam::Type(param) =&gt; {
@@ -505,7 +505,7 @@
                 GenericParam::Lifetime(<span class="kw">_</span>) | GenericParam::Const(<span class="kw">_</span>) =&gt; {}
             }
         }
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(where_clause) = <span class="kw-2">&amp;mut </span><a href="#212">generics</a>.where_clause {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(where_clause) = <span class="kw-2">&amp;mut </span>generics.where_clause {
             <span class="kw">for </span>predicate <span class="kw">in </span><span class="kw-2">&amp;mut </span>where_clause.predicates {
                 <span class="kw">match </span>predicate {
                     WherePredicate::Type(predicate) =&gt; {
@@ -520,8 +520,8 @@
         }
     }
 
-    <span class="kw">fn </span>visit_data_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>, data: <span class="kw-2">&amp;mut </span><a href="https://docs.rs/syn/1.0.103/syn/derive/enum.Data.html">Data</a>) {
-        <span class="kw">match </span><a href="#238">data</a> {
+    <span class="kw">fn </span>visit_data_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>, data: <span class="kw-2">&amp;mut </span>Data) {
+        <span class="kw">match </span>data {
             Data::Struct(data) =&gt; {
                 <span class="kw">for </span>field <span class="kw">in </span><span class="kw-2">&amp;mut </span>data.fields {
                     <span class="self">self</span>.visit_type_mut(<span class="kw-2">&amp;mut </span>field.ty);
@@ -538,35 +538,35 @@
         }
     }
 
-    <span class="kw">fn </span>visit_expr_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>, expr: <span class="kw-2">&amp;mut </span><a href="https://docs.rs/syn/1.0.103/syn/expr/enum.Expr.html">Expr</a>) {
-        <span class="kw">match </span><a href="#256">expr</a> {
+    <span class="kw">fn </span>visit_expr_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>, expr: <span class="kw-2">&amp;mut </span>Expr) {
+        <span class="kw">match </span>expr {
             Expr::Binary(expr) =&gt; {
-                <a class="self" href="#256">self</a>.<a href="#256">visit_expr_mut</a>(<span class="kw-2">&amp;mut </span><a href="#258">expr</a>.left);
-                <a class="self" href="#256">self</a>.<a href="#256">visit_expr_mut</a>(<span class="kw-2">&amp;mut </span><a href="#258">expr</a>.right);
+                <span class="self">self</span>.visit_expr_mut(<span class="kw-2">&amp;mut </span>expr.left);
+                <span class="self">self</span>.visit_expr_mut(<span class="kw-2">&amp;mut </span>expr.right);
             }
             Expr::Call(expr) =&gt; {
-                <a class="self" href="#256">self</a>.<a href="#256">visit_expr_mut</a>(<span class="kw-2">&amp;mut </span><a href="#262">expr</a>.func);
+                <span class="self">self</span>.visit_expr_mut(<span class="kw-2">&amp;mut </span>expr.func);
                 <span class="kw">for </span>arg <span class="kw">in </span><span class="kw-2">&amp;mut </span>expr.args {
                     <span class="self">self</span>.visit_expr_mut(arg);
                 }
             }
             Expr::Cast(expr) =&gt; {
-                <a class="self" href="#256">self</a>.<a href="#256">visit_expr_mut</a>(<span class="kw-2">&amp;mut </span><a href="#268">expr</a>.expr);
-                <a class="self" href="#256">self</a>.<a href="#75">visit_type_mut</a>(<span class="kw-2">&amp;mut </span><a href="#268">expr</a>.ty);
+                <span class="self">self</span>.visit_expr_mut(<span class="kw-2">&amp;mut </span>expr.expr);
+                <span class="self">self</span>.visit_type_mut(<span class="kw-2">&amp;mut </span>expr.ty);
             }
-            Expr::Field(expr) =&gt; <a class="self" href="#256">self</a>.<a href="#256">visit_expr_mut</a>(<span class="kw-2">&amp;mut </span><a href="#272">expr</a>.base),
+            Expr::Field(expr) =&gt; <span class="self">self</span>.visit_expr_mut(<span class="kw-2">&amp;mut </span>expr.base),
             Expr::Index(expr) =&gt; {
-                <a class="self" href="#256">self</a>.<a href="#256">visit_expr_mut</a>(<span class="kw-2">&amp;mut </span><a href="#273">expr</a>.expr);
-                <a class="self" href="#256">self</a>.<a href="#256">visit_expr_mut</a>(<span class="kw-2">&amp;mut </span><a href="#273">expr</a>.index);
+                <span class="self">self</span>.visit_expr_mut(<span class="kw-2">&amp;mut </span>expr.expr);
+                <span class="self">self</span>.visit_expr_mut(<span class="kw-2">&amp;mut </span>expr.index);
             }
-            Expr::Paren(expr) =&gt; <a class="self" href="#256">self</a>.<a href="#256">visit_expr_mut</a>(<span class="kw-2">&amp;mut </span><a href="#277">expr</a>.expr),
-            Expr::Path(expr) =&gt; <a class="self" href="#256">self</a>.<a href="#99">visit_expr_path_mut</a>(<a href="#278">expr</a>),
-            Expr::Unary(expr) =&gt; <a class="self" href="#256">self</a>.<a href="#256">visit_expr_mut</a>(<span class="kw-2">&amp;mut </span><a href="#279">expr</a>.expr),
+            Expr::Paren(expr) =&gt; <span class="self">self</span>.visit_expr_mut(<span class="kw-2">&amp;mut </span>expr.expr),
+            Expr::Path(expr) =&gt; <span class="self">self</span>.visit_expr_path_mut(expr),
+            Expr::Unary(expr) =&gt; <span class="self">self</span>.visit_expr_mut(<span class="kw-2">&amp;mut </span>expr.expr),
             <span class="kw">_ </span>=&gt; {}
         }
     }
 
-    <span class="kw">fn </span>visit_macro_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>, _mac: <span class="kw-2">&amp;mut </span><a href="https://docs.rs/syn/1.0.103/syn/mac/struct.Macro.html">Macro</a>) {}
+    <span class="kw">fn </span>visit_macro_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>, _mac: <span class="kw-2">&amp;mut </span>Macro) {}
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="serde_derive" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="serde_derive" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

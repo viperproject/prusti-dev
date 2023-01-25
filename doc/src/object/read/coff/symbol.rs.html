@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/object-0.29.0/src/read/coff/symbol.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>symbol.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../../object/index.html"><img class="rust-logo" src="../../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/object-0.30.1/src/read/coff/symbol.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>symbol.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../../object/index.html"><img class="rust-logo" src="../../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -516,34 +516,42 @@
 <a href="#516" id="516">516</a>
 <a href="#517" id="517">517</a>
 <a href="#518" id="518">518</a>
-</pre><pre class="rust"><code><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">alloc::fmt</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/vec/struct.Vec.html">alloc::vec::Vec</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/convert/trait.TryInto.html">core::convert::TryInto</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/str/index.html">core::str</a>;
+<a href="#519" id="519">519</a>
+<a href="#520" id="520">520</a>
+<a href="#521" id="521">521</a>
+<a href="#522" id="522">522</a>
+<a href="#523" id="523">523</a>
+<a href="#524" id="524">524</a>
+<a href="#525" id="525">525</a>
+<a href="#526" id="526">526</a>
+</pre><pre class="rust"><code><span class="kw">use </span>alloc::fmt;
+<span class="kw">use </span>alloc::vec::Vec;
+<span class="kw">use </span>core::convert::TryInto;
+<span class="kw">use </span>core::str;
 
-<span class="kw">use super</span>::{<a href="file.rs.html#17">CoffCommon</a>, <a href="section.rs.html#16">SectionTable</a>};
-<span class="kw">use </span><span class="kw">crate</span>::endian::{<a href="../../endian.rs.html#317">LittleEndian</a> <span class="kw">as </span>LE, <a href="../../endian.rs.html#612">U32Bytes</a>};
-<span class="kw">use </span><a href="../../lib.rs.html#112"><span class="kw">crate</span>::pe</a>;
-<span class="kw">use </span><span class="kw">crate</span>::pod::{<a href="../../pod.rs.html#128">bytes_of_slice</a>, <a href="../../pod.rs.html#21">Pod</a>};
-<span class="kw">use </span><a href="../util.rs.html#232"><span class="kw">crate</span>::read::util::StringTable</a>;
+<span class="kw">use super</span>::{CoffCommon, SectionTable};
+<span class="kw">use </span><span class="kw">crate</span>::endian::{LittleEndian <span class="kw">as </span>LE, U32Bytes};
+<span class="kw">use </span><span class="kw">crate</span>::pe;
+<span class="kw">use </span><span class="kw">crate</span>::pod::{bytes_of_slice, Pod};
+<span class="kw">use </span><span class="kw">crate</span>::read::util::StringTable;
 <span class="kw">use </span><span class="kw">crate</span>::read::{
-    <a class="self" href="../../lib.rs.html#98">self</a>, <a href="../util.rs.html#16">Bytes</a>, <a href="../traits.rs.html#397">ObjectSymbol</a>, <a href="../traits.rs.html#376">ObjectSymbolTable</a>, <a href="../mod.rs.html#79">ReadError</a>, <a href="../read_ref.rs.html#37">ReadRef</a>, <span class="prelude-ty">Result</span>, <a href="../mod.rs.html#263">SectionIndex</a>,
-    <a href="../../common.rs.html#428">SymbolFlags</a>, <a href="../mod.rs.html#267">SymbolIndex</a>, <a href="../../common.rs.html#227">SymbolKind</a>, <a href="../mod.rs.html#309">SymbolMap</a>, <a href="../mod.rs.html#302">SymbolMapEntry</a>, <a href="../../common.rs.html#248">SymbolScope</a>, <a href="../mod.rs.html#272">SymbolSection</a>,
+    <span class="self">self</span>, Bytes, ObjectSymbol, ObjectSymbolTable, ReadError, ReadRef, <span class="prelude-ty">Result</span>, SectionIndex,
+    SymbolFlags, SymbolIndex, SymbolKind, SymbolMap, SymbolMapEntry, SymbolScope, SymbolSection,
 };
 
 <span class="doccomment">/// A table of symbol entries in a COFF or PE file.
 ///
 /// Also includes the string table used for the symbol names.
 </span><span class="attr">#[derive(Debug)]
-</span><span class="kw">pub struct </span>SymbolTable&lt;<span class="lifetime">&#39;data</span>, R = <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;
+</span><span class="kw">pub struct </span>SymbolTable&lt;<span class="lifetime">&#39;data</span>, R = <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[u8]&gt;
 <span class="kw">where
     </span>R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt;,
 {
-    symbols: <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[<a href="../../pe.rs.html#799">pe::ImageSymbolBytes</a>],
+    symbols: <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[pe::ImageSymbolBytes],
     strings: StringTable&lt;<span class="lifetime">&#39;data</span>, R&gt;,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>, R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt;&gt; <a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for </span>SymbolTable&lt;<span class="lifetime">&#39;data</span>, R&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>, R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt;&gt; Default <span class="kw">for </span>SymbolTable&lt;<span class="lifetime">&#39;data</span>, R&gt; {
     <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
             symbols: <span class="kw-2">&amp;</span>[],
@@ -554,9 +562,9 @@
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>, R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt;&gt; SymbolTable&lt;<span class="lifetime">&#39;data</span>, R&gt; {
     <span class="doccomment">/// Read the symbol table.
-    </span><span class="kw">pub fn </span>parse(header: <span class="kw-2">&amp;</span><a href="../../pe.rs.html#261">pe::ImageFileHeader</a>, data: R) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
+    </span><span class="kw">pub fn </span>parse(header: <span class="kw-2">&amp;</span>pe::ImageFileHeader, data: R) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
         <span class="comment">// The symbol table may not be present.
-        </span><span class="kw">let </span><span class="kw-2">mut </span>offset = <a href="#39">header</a>.pointer_to_symbol_table.<a href="../../endian.rs.html#621">get</a>(<a href="../../endian.rs.html#317">LE</a>).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>();
+        </span><span class="kw">let </span><span class="kw-2">mut </span>offset = header.pointer_to_symbol_table.get(LE).into();
         <span class="kw">let </span>(symbols, strings) = <span class="kw">if </span>offset != <span class="number">0 </span>{
             <span class="kw">let </span>symbols = data
                 .read_slice(<span class="kw-2">&amp;mut </span>offset, header.number_of_symbols.get(LE) <span class="kw">as </span>usize)
@@ -566,105 +574,105 @@
             </span><span class="kw">let </span>length = data
                 .read_at::&lt;U32Bytes&lt;<span class="kw">_</span>&gt;&gt;(offset)
                 .read_error(<span class="string">&quot;Missing COFF string table&quot;</span>)<span class="question-mark">?
-                </span>.<a href="../../endian.rs.html#621">get</a>(<a href="../../endian.rs.html#317">LE</a>);
+                </span>.get(LE);
             <span class="kw">let </span>str_end = offset
                 .checked_add(length <span class="kw">as </span>u64)
                 .read_error(<span class="string">&quot;Invalid COFF string table length&quot;</span>)<span class="question-mark">?</span>;
-            <span class="kw">let </span>strings = StringTable::new(<a href="#39">data</a>, <a href="#41">offset</a>, <a href="#52">str_end</a>);
+            <span class="kw">let </span>strings = StringTable::new(data, offset, str_end);
 
-            (<a href="#43">symbols</a>, <a href="#55">strings</a>)
+            (symbols, strings)
         } <span class="kw">else </span>{
             (<span class="kw-2">&amp;</span>[][..], StringTable::default())
         };
 
-        <span class="prelude-val">Ok</span>(<a href="#20">SymbolTable</a> { <a href="#42">symbols</a>, <a href="#42">strings</a> })
+        <span class="prelude-val">Ok</span>(SymbolTable { symbols, strings })
     }
 
     <span class="doccomment">/// Return the string table used for the symbol names.
     </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>strings(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; StringTable&lt;<span class="lifetime">&#39;data</span>, R&gt; {
-        <a class="self" href="#67">self</a>.strings
+        <span class="self">self</span>.strings
     }
 
     <span class="doccomment">/// Return true if the symbol table is empty.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>is_empty(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#73">self</a>.symbols.is_empty()
+    </span><span class="kw">pub fn </span>is_empty(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.symbols.is_empty()
     }
 
     <span class="doccomment">/// The number of symbol table entries.
     ///
     /// This includes auxiliary symbol table entries.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="self" href="#81">self</a>.symbols.len()
+    </span><span class="kw">pub fn </span>len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+        <span class="self">self</span>.symbols.len()
     }
 
     <span class="doccomment">/// Iterate over the symbols.
     </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>iter&lt;<span class="lifetime">&#39;table</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;table </span><span class="self">self</span>) -&gt; SymbolIterator&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;table</span>, R&gt; {
-        <a href="#166">SymbolIterator</a> {
-            symbols: <a class="self" href="#87">self</a>,
+        SymbolIterator {
+            symbols: <span class="self">self</span>,
             index: <span class="number">0</span>,
         }
     }
 
     <span class="doccomment">/// Return the symbol table entry at the given index.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>symbol(<span class="kw-2">&amp;</span><span class="self">self</span>, index: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span><a href="../../pe.rs.html#785">pe::ImageSymbol</a>&gt; {
-        <a class="self" href="#96">self</a>.<a href="#134">get</a>::&lt;<a href="../../pe.rs.html#785">pe::ImageSymbol</a>&gt;(<a href="#96">index</a>, <span class="number">0</span>)
+    </span><span class="kw">pub fn </span>symbol(<span class="kw-2">&amp;</span><span class="self">self</span>, index: usize) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>pe::ImageSymbol&gt; {
+        <span class="self">self</span>.get::&lt;pe::ImageSymbol&gt;(index, <span class="number">0</span>)
     }
 
     <span class="doccomment">/// Return the auxiliary function symbol for the symbol table entry at the given index.
     ///
     /// Note that the index is of the symbol, not the first auxiliary record.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>aux_function(<span class="kw-2">&amp;</span><span class="self">self</span>, index: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span><a href="../../pe.rs.html#964">pe::ImageAuxSymbolFunction</a>&gt; {
-        <a class="self" href="#104">self</a>.<a href="#134">get</a>::&lt;<a href="../../pe.rs.html#964">pe::ImageAuxSymbolFunction</a>&gt;(<a href="#104">index</a>, <span class="number">1</span>)
+    </span><span class="kw">pub fn </span>aux_function(<span class="kw-2">&amp;</span><span class="self">self</span>, index: usize) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>pe::ImageAuxSymbolFunction&gt; {
+        <span class="self">self</span>.get::&lt;pe::ImageAuxSymbolFunction&gt;(index, <span class="number">1</span>)
     }
 
     <span class="doccomment">/// Return the auxiliary section symbol for the symbol table entry at the given index.
     ///
     /// Note that the index is of the symbol, not the first auxiliary record.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>aux_section(<span class="kw-2">&amp;</span><span class="self">self</span>, index: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span><a href="../../pe.rs.html#1003">pe::ImageAuxSymbolSection</a>&gt; {
-        <a class="self" href="#112">self</a>.<a href="#134">get</a>::&lt;<a href="../../pe.rs.html#1003">pe::ImageAuxSymbolSection</a>&gt;(<a href="#112">index</a>, <span class="number">1</span>)
+    </span><span class="kw">pub fn </span>aux_section(<span class="kw-2">&amp;</span><span class="self">self</span>, index: usize) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>pe::ImageAuxSymbolSection&gt; {
+        <span class="self">self</span>.get::&lt;pe::ImageAuxSymbolSection&gt;(index, <span class="number">1</span>)
     }
 
     <span class="doccomment">/// Return the auxiliary file name for the symbol table entry at the given index.
     ///
     /// Note that the index is of the symbol, not the first auxiliary record.
-    </span><span class="kw">pub fn </span>aux_file_name(<span class="kw-2">&amp;</span><span class="self">self</span>, index: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, aux_count: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt; {
+    </span><span class="kw">pub fn </span>aux_file_name(<span class="kw-2">&amp;</span><span class="self">self</span>, index: usize, aux_count: u8) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[u8]&gt; {
         <span class="kw">let </span>entries = index
             .checked_add(<span class="number">1</span>)
             .and_then(|x| <span class="prelude-val">Some</span>(x..x.checked_add(aux_count.into())<span class="question-mark">?</span>))
             .and_then(|x| <span class="self">self</span>.symbols.get(x))
             .read_error(<span class="string">&quot;Invalid COFF symbol index&quot;</span>)<span class="question-mark">?</span>;
-        <span class="kw">let </span>bytes = <a href="../../pod.rs.html#128">bytes_of_slice</a>(<a href="#120">entries</a>);
+        <span class="kw">let </span>bytes = bytes_of_slice(entries);
         <span class="comment">// The name is padded with nulls.
-        </span><span class="prelude-val">Ok</span>(<span class="kw">match </span>memchr::memchr(<span class="string">b&#39;\0&#39;</span>, <a href="#125">bytes</a>) {
-            <span class="prelude-val">Some</span>(end) =&gt; <span class="kw-2">&amp;</span><a href="#125">bytes</a>[..<a href="#128">end</a>],
-            <span class="prelude-val">None </span>=&gt; <a href="#125">bytes</a>,
+        </span><span class="prelude-val">Ok</span>(<span class="kw">match </span>memchr::memchr(<span class="string">b&#39;\0&#39;</span>, bytes) {
+            <span class="prelude-val">Some</span>(end) =&gt; <span class="kw-2">&amp;</span>bytes[..end],
+            <span class="prelude-val">None </span>=&gt; bytes,
         })
     }
 
     <span class="doccomment">/// Return the symbol table entry or auxiliary record at the given index and offset.
-    </span><span class="kw">pub fn </span>get&lt;T: <a href="../../pod.rs.html#21">Pod</a>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, index: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, offset: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>T&gt; {
+    </span><span class="kw">pub fn </span>get&lt;T: Pod&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, index: usize, offset: usize) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>T&gt; {
         <span class="kw">let </span>bytes = index
             .checked_add(offset)
             .and_then(|x| <span class="self">self</span>.symbols.get(x))
             .read_error(<span class="string">&quot;Invalid COFF symbol index&quot;</span>)<span class="question-mark">?</span>;
-        <a href="../util.rs.html#16">Bytes</a>(<span class="kw-2">&amp;</span><a href="#135">bytes</a>.<span class="number">0</span>[..])
-            .<a href="../util.rs.html#90">read</a>()
-            .<a href="../mod.rs.html#80">read_error</a>(<span class="string">&quot;Invalid COFF symbol data&quot;</span>)
+        Bytes(<span class="kw-2">&amp;</span>bytes.<span class="number">0</span>[..])
+            .read()
+            .read_error(<span class="string">&quot;Invalid COFF symbol data&quot;</span>)
     }
 
     <span class="doccomment">/// Construct a map from addresses to a user-defined map entry.
-    </span><span class="kw">pub fn </span>map&lt;Entry: <a href="../mod.rs.html#302">SymbolMapEntry</a>, F: Fn(<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span><a href="../../pe.rs.html#785">pe::ImageSymbol</a>) -&gt; <span class="prelude-ty">Option</span>&lt;Entry&gt;&gt;(
+    </span><span class="kw">pub fn </span>map&lt;Entry: SymbolMapEntry, F: Fn(<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>pe::ImageSymbol) -&gt; <span class="prelude-ty">Option</span>&lt;Entry&gt;&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         f: F,
     ) -&gt; SymbolMap&lt;Entry&gt; {
-        <span class="kw">let </span><span class="kw-2">mut </span>symbols = Vec::with_capacity(<a class="self" href="#146">self</a>.symbols.len());
+        <span class="kw">let </span><span class="kw-2">mut </span>symbols = Vec::with_capacity(<span class="self">self</span>.symbols.len());
         <span class="kw">for </span>(<span class="kw">_</span>, symbol) <span class="kw">in </span><span class="self">self</span>.iter() {
             <span class="kw">if </span>!symbol.is_definition() {
                 <span class="kw">continue</span>;
@@ -673,7 +681,7 @@
                 symbols.push(entry);
             }
         }
-        SymbolMap::new(<a href="#149">symbols</a>)
+        SymbolMap::new(symbols)
     }
 }
 
@@ -681,44 +689,44 @@
 ///
 /// Yields the index and symbol structure for each symbol.
 </span><span class="attr">#[derive(Debug)]
-</span><span class="kw">pub struct </span>SymbolIterator&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;table</span>, R = <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;
+</span><span class="kw">pub struct </span>SymbolIterator&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;table</span>, R = <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[u8]&gt;
 <span class="kw">where
     </span>R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt;,
 {
     symbols: <span class="kw-2">&amp;</span><span class="lifetime">&#39;table </span>SymbolTable&lt;<span class="lifetime">&#39;data</span>, R&gt;,
-    index: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+    index: usize,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;table</span>, R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt;&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a> <span class="kw">for </span>SymbolIterator&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;table</span>, R&gt; {
-    <span class="kw">type </span>Item = (<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span><a href="../../pe.rs.html#785">pe::ImageSymbol</a>);
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;table</span>, R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt;&gt; Iterator <span class="kw">for </span>SymbolIterator&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;table</span>, R&gt; {
+    <span class="kw">type </span>Item = (usize, <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>pe::ImageSymbol);
 
     <span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt; {
-        <span class="kw">let </span>index = <a class="self" href="#177">self</a>.index;
+        <span class="kw">let </span>index = <span class="self">self</span>.index;
         <span class="kw">let </span>symbol = <span class="self">self</span>.symbols.symbol(index).ok()<span class="question-mark">?</span>;
-        <a class="self" href="#177">self</a>.index += <span class="number">1 </span>+ <a href="#179">symbol</a>.number_of_aux_symbols <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>;
-        <span class="prelude-val">Some</span>((<a href="#178">index</a>, <a href="#179">symbol</a>))
+        <span class="self">self</span>.index += <span class="number">1 </span>+ symbol.number_of_aux_symbols <span class="kw">as </span>usize;
+        <span class="prelude-val">Some</span>((index, symbol))
     }
 }
 
-<span class="kw">impl </span><a href="../../pe.rs.html#785">pe::ImageSymbol</a> {
+<span class="kw">impl </span>pe::ImageSymbol {
     <span class="doccomment">/// Parse a COFF symbol name.
     ///
     /// `strings` must be the string table used for symbol names.
     </span><span class="kw">pub fn </span>name&lt;<span class="lifetime">&#39;data</span>, R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt;&gt;(
         <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span><span class="self">self</span>,
         strings: StringTable&lt;<span class="lifetime">&#39;data</span>, R&gt;,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt; {
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[u8]&gt; {
         <span class="kw">if </span><span class="self">self</span>.name[<span class="number">0</span>] == <span class="number">0 </span>{
             <span class="comment">// If the name starts with 0 then the last 4 bytes are a string table offset.
-            </span><span class="kw">let </span>offset = u32::from_le_bytes(<a class="self" href="#190">self</a>.name[<span class="number">4</span>..<span class="number">8</span>].<a href="https://doc.rust-lang.org/nightly/core/convert/trait.TryInto.html">try_into</a>().unwrap());
-            <a href="#191">strings</a>
-                .<a href="../util.rs.html#254">get</a>(<a href="#195">offset</a>)
-                .<a href="../mod.rs.html#80">read_error</a>(<span class="string">&quot;Invalid COFF symbol name offset&quot;</span>)
+            </span><span class="kw">let </span>offset = u32::from_le_bytes(<span class="self">self</span>.name[<span class="number">4</span>..<span class="number">8</span>].try_into().unwrap());
+            strings
+                .get(offset)
+                .read_error(<span class="string">&quot;Invalid COFF symbol name offset&quot;</span>)
         } <span class="kw">else </span>{
             <span class="comment">// The name is inline and padded with nulls.
-            </span><span class="prelude-val">Ok</span>(<span class="kw">match </span>memchr::memchr(<span class="string">b&#39;\0&#39;</span>, <span class="kw-2">&amp;</span><a class="self" href="#190">self</a>.name) {
-                <span class="prelude-val">Some</span>(end) =&gt; <span class="kw-2">&amp;</span><a class="self" href="#190">self</a>.name[..<a href="#202">end</a>],
-                <span class="prelude-val">None </span>=&gt; <span class="kw-2">&amp;</span><a class="self" href="#190">self</a>.name[..],
+            </span><span class="prelude-val">Ok</span>(<span class="kw">match </span>memchr::memchr(<span class="string">b&#39;\0&#39;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.name) {
+                <span class="prelude-val">Some</span>(end) =&gt; <span class="kw-2">&amp;</span><span class="self">self</span>.name[..end],
+                <span class="prelude-val">None </span>=&gt; <span class="kw-2">&amp;</span><span class="self">self</span>.name[..],
             })
         }
     }
@@ -726,58 +734,58 @@
     <span class="doccomment">/// Return the symbol address.
     ///
     /// This takes into account the image base and the section address.
-    </span><span class="kw">pub fn </span>address(<span class="kw-2">&amp;</span><span class="self">self</span>, image_base: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>, sections: <span class="kw-2">&amp;</span><a href="section.rs.html#16">SectionTable</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>&gt; {
-        <span class="kw">let </span>section_number = <a class="self" href="#211">self</a>.section_number.<a href="../../endian.rs.html#599">get</a>(<a href="../../endian.rs.html#317">LE</a>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>;
+    </span><span class="kw">pub fn </span>address(<span class="kw-2">&amp;</span><span class="self">self</span>, image_base: u64, sections: <span class="kw-2">&amp;</span>SectionTable) -&gt; <span class="prelude-ty">Result</span>&lt;u64&gt; {
+        <span class="kw">let </span>section_number = <span class="self">self</span>.section_number.get(LE) <span class="kw">as </span>usize;
         <span class="kw">let </span>section = sections.section(section_number)<span class="question-mark">?</span>;
-        <span class="kw">let </span>virtual_address = u64::from(<a href="#213">section</a>.virtual_address.<a href="../../endian.rs.html#621">get</a>(<a href="../../endian.rs.html#317">LE</a>));
-        <span class="kw">let </span>value = u64::from(<a class="self" href="#211">self</a>.value.<a href="../../endian.rs.html#621">get</a>(<a href="../../endian.rs.html#317">LE</a>));
-        <span class="prelude-val">Ok</span>(<a href="#211">image_base</a> + <a href="#214">virtual_address</a> + <a href="#215">value</a>)
+        <span class="kw">let </span>virtual_address = u64::from(section.virtual_address.get(LE));
+        <span class="kw">let </span>value = u64::from(<span class="self">self</span>.value.get(LE));
+        <span class="prelude-val">Ok</span>(image_base + virtual_address + value)
     }
 
     <span class="doccomment">/// Return true if the symbol is a definition of a function or data object.
-    </span><span class="kw">pub fn </span>is_definition(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">let </span>section_number = <a class="self" href="#220">self</a>.section_number.<a href="../../endian.rs.html#599">get</a>(<a href="../../endian.rs.html#317">LE</a>);
+    </span><span class="kw">pub fn </span>is_definition(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="kw">let </span>section_number = <span class="self">self</span>.section_number.get(LE);
         <span class="kw">if </span>section_number == pe::IMAGE_SYM_UNDEFINED {
             <span class="kw">return </span><span class="bool-val">false</span>;
         }
-        <span class="kw">match </span><a class="self" href="#220">self</a>.storage_class {
-            <a href="../../pe.rs.html#876">pe::IMAGE_SYM_CLASS_STATIC</a> =&gt; {
+        <span class="kw">match </span><span class="self">self</span>.storage_class {
+            pe::IMAGE_SYM_CLASS_STATIC =&gt; {
                 <span class="comment">// Exclude section symbols.
-                </span>!(<a class="self" href="#220">self</a>.value.<a href="../../endian.rs.html#621">get</a>(<a href="../../endian.rs.html#317">LE</a>) == <span class="number">0 </span>&amp;&amp; <a class="self" href="#220">self</a>.number_of_aux_symbols &gt; <span class="number">0</span>)
+                </span>!(<span class="self">self</span>.value.get(LE) == <span class="number">0 </span>&amp;&amp; <span class="self">self</span>.number_of_aux_symbols &gt; <span class="number">0</span>)
             }
-            <a href="../../pe.rs.html#875">pe::IMAGE_SYM_CLASS_EXTERNAL</a> | <a href="../../pe.rs.html#901">pe::IMAGE_SYM_CLASS_WEAK_EXTERNAL</a> =&gt; <span class="bool-val">true</span>,
+            pe::IMAGE_SYM_CLASS_EXTERNAL | pe::IMAGE_SYM_CLASS_WEAK_EXTERNAL =&gt; <span class="bool-val">true</span>,
             <span class="kw">_ </span>=&gt; <span class="bool-val">false</span>,
         }
     }
 
     <span class="doccomment">/// Return true if the symbol has an auxiliary file name.
-    </span><span class="kw">pub fn </span>has_aux_file_name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#236">self</a>.number_of_aux_symbols &gt; <span class="number">0 </span>&amp;&amp; <a class="self" href="#236">self</a>.storage_class == <a href="../../pe.rs.html#898">pe::IMAGE_SYM_CLASS_FILE</a>
+    </span><span class="kw">pub fn </span>has_aux_file_name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.number_of_aux_symbols &gt; <span class="number">0 </span>&amp;&amp; <span class="self">self</span>.storage_class == pe::IMAGE_SYM_CLASS_FILE
     }
 
     <span class="doccomment">/// Return true if the symbol has an auxiliary function symbol.
-    </span><span class="kw">pub fn </span>has_aux_function(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#241">self</a>.number_of_aux_symbols &gt; <span class="number">0 </span>&amp;&amp; <a class="self" href="#241">self</a>.<a href="../../pe.rs.html#923">derived_type</a>() == <a href="../../pe.rs.html#867">pe::IMAGE_SYM_DTYPE_FUNCTION</a>
+    </span><span class="kw">pub fn </span>has_aux_function(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.number_of_aux_symbols &gt; <span class="number">0 </span>&amp;&amp; <span class="self">self</span>.derived_type() == pe::IMAGE_SYM_DTYPE_FUNCTION
     }
 
     <span class="doccomment">/// Return true if the symbol has an auxiliary section symbol.
-    </span><span class="kw">pub fn </span>has_aux_section(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#246">self</a>.number_of_aux_symbols &gt; <span class="number">0
-            </span>&amp;&amp; <a class="self" href="#246">self</a>.storage_class == <a href="../../pe.rs.html#876">pe::IMAGE_SYM_CLASS_STATIC</a>
-            &amp;&amp; <a class="self" href="#246">self</a>.value.<a href="../../endian.rs.html#621">get</a>(<a href="../../endian.rs.html#317">LE</a>) == <span class="number">0
+    </span><span class="kw">pub fn </span>has_aux_section(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.number_of_aux_symbols &gt; <span class="number">0
+            </span>&amp;&amp; <span class="self">self</span>.storage_class == pe::IMAGE_SYM_CLASS_STATIC
+            &amp;&amp; <span class="self">self</span>.value.get(LE) == <span class="number">0
     </span>}
 }
 
 <span class="doccomment">/// A symbol table of a `CoffFile`.
 </span><span class="attr">#[derive(Debug, Clone, Copy)]
-</span><span class="kw">pub struct </span>CoffSymbolTable&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R = <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;
+</span><span class="kw">pub struct </span>CoffSymbolTable&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R = <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[u8]&gt;
 <span class="kw">where
     </span>R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt;,
 {
     <span class="kw">pub</span>(<span class="kw">crate</span>) file: <span class="kw-2">&amp;</span><span class="lifetime">&#39;file </span>CoffCommon&lt;<span class="lifetime">&#39;data</span>, R&gt;,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt;&gt; <a href="../mod.rs.html#59">read::private::Sealed</a> <span class="kw">for </span>CoffSymbolTable&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R&gt; {}
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt;&gt; read::private::Sealed <span class="kw">for </span>CoffSymbolTable&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R&gt; {}
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt;&gt; ObjectSymbolTable&lt;<span class="lifetime">&#39;data</span>&gt;
     <span class="kw">for </span>CoffSymbolTable&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R&gt;
@@ -786,95 +794,103 @@
     <span class="kw">type </span>SymbolIterator = CoffSymbolIterator&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R&gt;;
 
     <span class="kw">fn </span>symbols(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self</span>::SymbolIterator {
-        <a href="#288">CoffSymbolIterator</a> {
-            file: <a class="self" href="#270">self</a>.file,
+        CoffSymbolIterator {
+            file: <span class="self">self</span>.file,
             index: <span class="number">0</span>,
         }
     }
 
-    <span class="kw">fn </span>symbol_by_index(<span class="kw-2">&amp;</span><span class="self">self</span>, index: <a href="../mod.rs.html#267">SymbolIndex</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Symbol&gt; {
+    <span class="kw">fn </span>symbol_by_index(<span class="kw-2">&amp;</span><span class="self">self</span>, index: SymbolIndex) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Symbol&gt; {
         <span class="kw">let </span>symbol = <span class="self">self</span>.file.symbols.symbol(index.<span class="number">0</span>)<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(<a href="#319">CoffSymbol</a> {
-            file: <a class="self" href="#277">self</a>.file,
-            <a href="#277">index</a>,
-            <a href="#278">symbol</a>,
+        <span class="prelude-val">Ok</span>(CoffSymbol {
+            file: <span class="self">self</span>.file,
+            index,
+            symbol,
         })
     }
 }
 
 <span class="doccomment">/// An iterator over the symbols of a `CoffFile`.
-</span><span class="kw">pub struct </span>CoffSymbolIterator&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R = <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;
+</span><span class="kw">pub struct </span>CoffSymbolIterator&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R = <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[u8]&gt;
 <span class="kw">where
     </span>R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt;,
 {
     <span class="kw">pub</span>(<span class="kw">crate</span>) file: <span class="kw-2">&amp;</span><span class="lifetime">&#39;file </span>CoffCommon&lt;<span class="lifetime">&#39;data</span>, R&gt;,
-    <span class="kw">pub</span>(<span class="kw">crate</span>) index: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) index: usize,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt;&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span>CoffSymbolIterator&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R&gt; {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a href="#297">f</a>.debug_struct(<span class="string">&quot;CoffSymbolIterator&quot;</span>).finish()
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt;&gt; fmt::Debug <span class="kw">for </span>CoffSymbolIterator&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R&gt; {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        f.debug_struct(<span class="string">&quot;CoffSymbolIterator&quot;</span>).finish()
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt;&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a> <span class="kw">for </span>CoffSymbolIterator&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt;&gt; Iterator <span class="kw">for </span>CoffSymbolIterator&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R&gt; {
     <span class="kw">type </span>Item = CoffSymbol&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R&gt;;
 
     <span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt; {
-        <span class="kw">let </span>index = <a class="self" href="#305">self</a>.index;
+        <span class="kw">let </span>index = <span class="self">self</span>.index;
         <span class="kw">let </span>symbol = <span class="self">self</span>.file.symbols.symbol(index).ok()<span class="question-mark">?</span>;
-        <a class="self" href="#305">self</a>.index += <span class="number">1 </span>+ <a href="#307">symbol</a>.number_of_aux_symbols <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>;
-        <span class="prelude-val">Some</span>(<a href="#319">CoffSymbol</a> {
-            file: <a class="self" href="#305">self</a>.file,
-            index: <a href="../mod.rs.html#267">SymbolIndex</a>(<a href="#306">index</a>),
-            <a href="#307">symbol</a>,
+        <span class="self">self</span>.index += <span class="number">1 </span>+ symbol.number_of_aux_symbols <span class="kw">as </span>usize;
+        <span class="prelude-val">Some</span>(CoffSymbol {
+            file: <span class="self">self</span>.file,
+            index: SymbolIndex(index),
+            symbol,
         })
     }
 }
 
 <span class="doccomment">/// A symbol of a `CoffFile`.
 </span><span class="attr">#[derive(Debug, Clone, Copy)]
-</span><span class="kw">pub struct </span>CoffSymbol&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R = <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;
+</span><span class="kw">pub struct </span>CoffSymbol&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R = <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[u8]&gt;
 <span class="kw">where
     </span>R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt;,
 {
     <span class="kw">pub</span>(<span class="kw">crate</span>) file: <span class="kw-2">&amp;</span><span class="lifetime">&#39;file </span>CoffCommon&lt;<span class="lifetime">&#39;data</span>, R&gt;,
-    <span class="kw">pub</span>(<span class="kw">crate</span>) index: <a href="../mod.rs.html#267">SymbolIndex</a>,
-    <span class="kw">pub</span>(<span class="kw">crate</span>) symbol: <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span><a href="../../pe.rs.html#785">pe::ImageSymbol</a>,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) index: SymbolIndex,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) symbol: <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>pe::ImageSymbol,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt;&gt; <a href="../mod.rs.html#59">read::private::Sealed</a> <span class="kw">for </span>CoffSymbol&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R&gt; {}
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt;&gt; CoffSymbol&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R&gt; {
+    <span class="attr">#[inline]
+    </span><span class="doccomment">/// Get the raw `ImageSymbol` struct.
+    </span><span class="kw">pub fn </span>raw_symbol(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>pe::ImageSymbol {
+        <span class="self">self</span>.symbol
+    }
+}
+
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt;&gt; read::private::Sealed <span class="kw">for </span>CoffSymbol&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R&gt; {}
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt;&gt; ObjectSymbol&lt;<span class="lifetime">&#39;data</span>&gt; <span class="kw">for </span>CoffSymbol&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R&gt; {
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>index(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../mod.rs.html#267">SymbolIndex</a> {
-        <a class="self" href="#332">self</a>.index
+    </span><span class="kw">fn </span>index(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; SymbolIndex {
+        <span class="self">self</span>.index
     }
 
-    <span class="kw">fn </span>name_bytes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; read::Result&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt; {
+    <span class="kw">fn </span>name_bytes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; read::Result&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[u8]&gt; {
         <span class="kw">if </span><span class="self">self</span>.symbol.has_aux_file_name() {
-            <a class="self" href="#336">self</a>.file
+            <span class="self">self</span>.file
                 .symbols
-                .<a href="#119">aux_file_name</a>(<a class="self" href="#336">self</a>.index.<span class="number">0</span>, <a class="self" href="#336">self</a>.symbol.number_of_aux_symbols)
+                .aux_file_name(<span class="self">self</span>.index.<span class="number">0</span>, <span class="self">self</span>.symbol.number_of_aux_symbols)
         } <span class="kw">else </span>{
-            <a class="self" href="#336">self</a>.symbol.<a href="#189-192">name</a>(<a class="self" href="#336">self</a>.file.symbols.<a href="#67">strings</a>())
+            <span class="self">self</span>.symbol.name(<span class="self">self</span>.file.symbols.strings())
         }
     }
 
-    <span class="kw">fn </span>name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; read::Result&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt; {
+    <span class="kw">fn </span>name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; read::Result&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>str&gt; {
         <span class="kw">let </span>name = <span class="self">self</span>.name_bytes()<span class="question-mark">?</span>;
-        <a href="https://doc.rust-lang.org/nightly/core/str/converts/fn.from_utf8.html">str::from_utf8</a>(<a href="#347">name</a>)
+        str::from_utf8(name)
             .ok()
-            .<a href="../mod.rs.html#80">read_error</a>(<span class="string">&quot;Non UTF-8 COFF symbol name&quot;</span>)
+            .read_error(<span class="string">&quot;Non UTF-8 COFF symbol name&quot;</span>)
     }
 
-    <span class="kw">fn </span>address(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> {
+    <span class="kw">fn </span>address(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u64 {
         <span class="comment">// Only return an address for storage classes that we know use an address.
-        </span><span class="kw">match </span><a class="self" href="#353">self</a>.symbol.storage_class {
-            <a href="../../pe.rs.html#876">pe::IMAGE_SYM_CLASS_STATIC</a>
-            | <a href="../../pe.rs.html#901">pe::IMAGE_SYM_CLASS_WEAK_EXTERNAL</a>
-            | <a href="../../pe.rs.html#879">pe::IMAGE_SYM_CLASS_LABEL</a> =&gt; {}
-            <a href="../../pe.rs.html#875">pe::IMAGE_SYM_CLASS_EXTERNAL</a> =&gt; {
+        </span><span class="kw">match </span><span class="self">self</span>.symbol.storage_class {
+            pe::IMAGE_SYM_CLASS_STATIC
+            | pe::IMAGE_SYM_CLASS_WEAK_EXTERNAL
+            | pe::IMAGE_SYM_CLASS_LABEL =&gt; {}
+            pe::IMAGE_SYM_CLASS_EXTERNAL =&gt; {
                 <span class="kw">if </span><span class="self">self</span>.symbol.section_number.get(LE) == pe::IMAGE_SYM_UNDEFINED {
                     <span class="comment">// Undefined or common data, neither of which have an address.
                     </span><span class="kw">return </span><span class="number">0</span>;
@@ -882,18 +898,18 @@
             }
             <span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="number">0</span>,
         }
-        <a class="self" href="#353">self</a>.symbol
-            .<a href="#211">address</a>(<a class="self" href="#353">self</a>.file.image_base, <span class="kw-2">&amp;</span><a class="self" href="#353">self</a>.file.sections)
+        <span class="self">self</span>.symbol
+            .address(<span class="self">self</span>.file.image_base, <span class="kw-2">&amp;</span><span class="self">self</span>.file.sections)
             .unwrap_or(<span class="number">0</span>)
     }
 
-    <span class="kw">fn </span>size(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> {
-        <span class="kw">match </span><a class="self" href="#372">self</a>.symbol.storage_class {
-            <a href="../../pe.rs.html#876">pe::IMAGE_SYM_CLASS_STATIC</a> =&gt; {
+    <span class="kw">fn </span>size(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u64 {
+        <span class="kw">match </span><span class="self">self</span>.symbol.storage_class {
+            pe::IMAGE_SYM_CLASS_STATIC =&gt; {
                 <span class="comment">// Section symbols may duplicate the size from the section table.
                 </span><span class="kw">if </span><span class="self">self</span>.symbol.has_aux_section() {
-                    <span class="kw">if let </span><span class="prelude-val">Ok</span>(aux) = <a class="self" href="#372">self</a>.file.symbols.<a href="#112">aux_section</a>(<a class="self" href="#372">self</a>.index.<span class="number">0</span>) {
-                        u64::from(<a href="#377">aux</a>.length.<a href="../../endian.rs.html#621">get</a>(<a href="../../endian.rs.html#317">LE</a>))
+                    <span class="kw">if let </span><span class="prelude-val">Ok</span>(aux) = <span class="self">self</span>.file.symbols.aux_section(<span class="self">self</span>.index.<span class="number">0</span>) {
+                        u64::from(aux.length.get(LE))
                     } <span class="kw">else </span>{
                         <span class="number">0
                     </span>}
@@ -901,15 +917,15 @@
                     <span class="number">0
                 </span>}
             }
-            <a href="../../pe.rs.html#875">pe::IMAGE_SYM_CLASS_EXTERNAL</a> =&gt; {
+            pe::IMAGE_SYM_CLASS_EXTERNAL =&gt; {
                 <span class="kw">if </span><span class="self">self</span>.symbol.section_number.get(LE) == pe::IMAGE_SYM_UNDEFINED {
                     <span class="comment">// For undefined symbols, symbol.value is 0 and the size is 0.
                     // For common data, symbol.value is the size.
-                    </span>u64::from(<a class="self" href="#372">self</a>.symbol.value.<a href="../../endian.rs.html#621">get</a>(<a href="../../endian.rs.html#317">LE</a>))
+                    </span>u64::from(<span class="self">self</span>.symbol.value.get(LE))
                 } <span class="kw">else if </span><span class="self">self</span>.symbol.has_aux_function() {
                     <span class="comment">// Function symbols may have a size.
-                    </span><span class="kw">if let </span><span class="prelude-val">Ok</span>(aux) = <a class="self" href="#372">self</a>.file.symbols.<a href="#104">aux_function</a>(<a class="self" href="#372">self</a>.index.<span class="number">0</span>) {
-                        u64::from(<a href="#393">aux</a>.total_size.<a href="../../endian.rs.html#621">get</a>(<a href="../../endian.rs.html#317">LE</a>))
+                    </span><span class="kw">if let </span><span class="prelude-val">Ok</span>(aux) = <span class="self">self</span>.file.symbols.aux_function(<span class="self">self</span>.index.<span class="number">0</span>) {
+                        u64::from(aux.total_size.get(LE))
                     } <span class="kw">else </span>{
                         <span class="number">0
                     </span>}
@@ -922,117 +938,117 @@
         }
     }
 
-    <span class="kw">fn </span>kind(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../../common.rs.html#227">SymbolKind</a> {
+    <span class="kw">fn </span>kind(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; SymbolKind {
         <span class="kw">let </span>derived_kind = <span class="kw">if </span><span class="self">self</span>.symbol.derived_type() == pe::IMAGE_SYM_DTYPE_FUNCTION {
-            <a href="../../common.rs.html#233">SymbolKind::Text</a>
+            SymbolKind::Text
         } <span class="kw">else </span>{
-            <a href="../../common.rs.html#235">SymbolKind::Data</a>
+            SymbolKind::Data
         };
-        <span class="kw">match </span><a class="self" href="#407">self</a>.symbol.storage_class {
-            <a href="../../pe.rs.html#876">pe::IMAGE_SYM_CLASS_STATIC</a> =&gt; {
+        <span class="kw">match </span><span class="self">self</span>.symbol.storage_class {
+            pe::IMAGE_SYM_CLASS_STATIC =&gt; {
                 <span class="kw">if </span><span class="self">self</span>.symbol.value.get(LE) == <span class="number">0 </span>&amp;&amp; <span class="self">self</span>.symbol.number_of_aux_symbols &gt; <span class="number">0 </span>{
-                    <a href="../../common.rs.html#237">SymbolKind::Section</a>
+                    SymbolKind::Section
                 } <span class="kw">else </span>{
-                    <a href="#408">derived_kind</a>
+                    derived_kind
                 }
             }
-            <a href="../../pe.rs.html#875">pe::IMAGE_SYM_CLASS_EXTERNAL</a> | <a href="../../pe.rs.html#901">pe::IMAGE_SYM_CLASS_WEAK_EXTERNAL</a> =&gt; <a href="#408">derived_kind</a>,
-            <a href="../../pe.rs.html#900">pe::IMAGE_SYM_CLASS_SECTION</a> =&gt; <a href="../../common.rs.html#237">SymbolKind::Section</a>,
-            <a href="../../pe.rs.html#898">pe::IMAGE_SYM_CLASS_FILE</a> =&gt; <a href="../../common.rs.html#239">SymbolKind::File</a>,
-            <a href="../../pe.rs.html#879">pe::IMAGE_SYM_CLASS_LABEL</a> =&gt; <a href="../../common.rs.html#241">SymbolKind::Label</a>,
-            <span class="kw">_ </span>=&gt; <a href="../../common.rs.html#229">SymbolKind::Unknown</a>,
+            pe::IMAGE_SYM_CLASS_EXTERNAL | pe::IMAGE_SYM_CLASS_WEAK_EXTERNAL =&gt; derived_kind,
+            pe::IMAGE_SYM_CLASS_SECTION =&gt; SymbolKind::Section,
+            pe::IMAGE_SYM_CLASS_FILE =&gt; SymbolKind::File,
+            pe::IMAGE_SYM_CLASS_LABEL =&gt; SymbolKind::Label,
+            <span class="kw">_ </span>=&gt; SymbolKind::Unknown,
         }
     }
 
-    <span class="kw">fn </span>section(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../mod.rs.html#272">SymbolSection</a> {
-        <span class="kw">match </span><a class="self" href="#429">self</a>.symbol.section_number.<a href="../../endian.rs.html#599">get</a>(<a href="../../endian.rs.html#317">LE</a>) {
-            <a href="../../pe.rs.html#826">pe::IMAGE_SYM_UNDEFINED</a> =&gt; {
+    <span class="kw">fn </span>section(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; SymbolSection {
+        <span class="kw">match </span><span class="self">self</span>.symbol.section_number.get(LE) {
+            pe::IMAGE_SYM_UNDEFINED =&gt; {
                 <span class="kw">if </span><span class="self">self</span>.symbol.storage_class == pe::IMAGE_SYM_CLASS_EXTERNAL
                     &amp;&amp; <span class="self">self</span>.symbol.value.get(LE) == <span class="number">0
                 </span>{
-                    <a href="../mod.rs.html#278">SymbolSection::Undefined</a>
+                    SymbolSection::Undefined
                 } <span class="kw">else </span>{
-                    <a href="../mod.rs.html#282">SymbolSection::Common</a>
+                    SymbolSection::Common
                 }
             }
-            <a href="../../pe.rs.html#828">pe::IMAGE_SYM_ABSOLUTE</a> =&gt; <a href="../mod.rs.html#280">SymbolSection::Absolute</a>,
-            <a href="../../pe.rs.html#830">pe::IMAGE_SYM_DEBUG</a> =&gt; {
+            pe::IMAGE_SYM_ABSOLUTE =&gt; SymbolSection::Absolute,
+            pe::IMAGE_SYM_DEBUG =&gt; {
                 <span class="kw">if </span><span class="self">self</span>.symbol.storage_class == pe::IMAGE_SYM_CLASS_FILE {
-                    <a href="../mod.rs.html#276">SymbolSection::None</a>
+                    SymbolSection::None
                 } <span class="kw">else </span>{
-                    <a href="../mod.rs.html#274">SymbolSection::Unknown</a>
+                    SymbolSection::Unknown
                 }
             }
-            index <span class="kw">if </span><a href="#448">index</a> &gt; <span class="number">0 </span>=&gt; <a href="../mod.rs.html#284">SymbolSection::Section</a>(<a href="../mod.rs.html#263">SectionIndex</a>(<a href="#448">index</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())),
-            <span class="kw">_ </span>=&gt; <a href="../mod.rs.html#274">SymbolSection::Unknown</a>,
+            index <span class="kw">if </span>index &gt; <span class="number">0 </span>=&gt; SymbolSection::Section(SectionIndex(index.into())),
+            <span class="kw">_ </span>=&gt; SymbolSection::Unknown,
         }
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>is_undefined(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#454">self</a>.symbol.storage_class == <a href="../../pe.rs.html#875">pe::IMAGE_SYM_CLASS_EXTERNAL</a>
-            &amp;&amp; <a class="self" href="#454">self</a>.symbol.section_number.<a href="../../endian.rs.html#599">get</a>(<a href="../../endian.rs.html#317">LE</a>) == <a href="../../pe.rs.html#826">pe::IMAGE_SYM_UNDEFINED</a>
-            &amp;&amp; <a class="self" href="#454">self</a>.symbol.value.<a href="../../endian.rs.html#621">get</a>(<a href="../../endian.rs.html#317">LE</a>) == <span class="number">0
+    </span><span class="kw">fn </span>is_undefined(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.symbol.storage_class == pe::IMAGE_SYM_CLASS_EXTERNAL
+            &amp;&amp; <span class="self">self</span>.symbol.section_number.get(LE) == pe::IMAGE_SYM_UNDEFINED
+            &amp;&amp; <span class="self">self</span>.symbol.value.get(LE) == <span class="number">0
     </span>}
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>is_definition(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#461">self</a>.symbol.<a href="#220">is_definition</a>()
+    </span><span class="kw">fn </span>is_definition(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.symbol.is_definition()
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>is_common(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#466">self</a>.symbol.storage_class == <a href="../../pe.rs.html#875">pe::IMAGE_SYM_CLASS_EXTERNAL</a>
-            &amp;&amp; <a class="self" href="#466">self</a>.symbol.section_number.<a href="../../endian.rs.html#599">get</a>(<a href="../../endian.rs.html#317">LE</a>) == <a href="../../pe.rs.html#826">pe::IMAGE_SYM_UNDEFINED</a>
-            &amp;&amp; <a class="self" href="#466">self</a>.symbol.value.<a href="../../endian.rs.html#621">get</a>(<a href="../../endian.rs.html#317">LE</a>) != <span class="number">0
+    </span><span class="kw">fn </span>is_common(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.symbol.storage_class == pe::IMAGE_SYM_CLASS_EXTERNAL
+            &amp;&amp; <span class="self">self</span>.symbol.section_number.get(LE) == pe::IMAGE_SYM_UNDEFINED
+            &amp;&amp; <span class="self">self</span>.symbol.value.get(LE) != <span class="number">0
     </span>}
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>is_weak(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#473">self</a>.symbol.storage_class == <a href="../../pe.rs.html#901">pe::IMAGE_SYM_CLASS_WEAK_EXTERNAL</a>
+    </span><span class="kw">fn </span>is_weak(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.symbol.storage_class == pe::IMAGE_SYM_CLASS_WEAK_EXTERNAL
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>scope(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../../common.rs.html#248">SymbolScope</a> {
-        <span class="kw">match </span><a class="self" href="#478">self</a>.symbol.storage_class {
-            <a href="../../pe.rs.html#875">pe::IMAGE_SYM_CLASS_EXTERNAL</a> | <a href="../../pe.rs.html#901">pe::IMAGE_SYM_CLASS_WEAK_EXTERNAL</a> =&gt; {
+    </span><span class="kw">fn </span>scope(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; SymbolScope {
+        <span class="kw">match </span><span class="self">self</span>.symbol.storage_class {
+            pe::IMAGE_SYM_CLASS_EXTERNAL | pe::IMAGE_SYM_CLASS_WEAK_EXTERNAL =&gt; {
                 <span class="comment">// TODO: determine if symbol is exported
-                </span><a href="../../common.rs.html#254">SymbolScope::Linkage</a>
+                </span>SymbolScope::Linkage
             }
-            <span class="kw">_ </span>=&gt; <a href="../../common.rs.html#252">SymbolScope::Compilation</a>,
+            <span class="kw">_ </span>=&gt; SymbolScope::Compilation,
         }
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>is_global(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">match </span><a class="self" href="#489">self</a>.symbol.storage_class {
-            <a href="../../pe.rs.html#875">pe::IMAGE_SYM_CLASS_EXTERNAL</a> | <a href="../../pe.rs.html#901">pe::IMAGE_SYM_CLASS_WEAK_EXTERNAL</a> =&gt; <span class="bool-val">true</span>,
+    </span><span class="kw">fn </span>is_global(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="kw">match </span><span class="self">self</span>.symbol.storage_class {
+            pe::IMAGE_SYM_CLASS_EXTERNAL | pe::IMAGE_SYM_CLASS_WEAK_EXTERNAL =&gt; <span class="bool-val">true</span>,
             <span class="kw">_ </span>=&gt; <span class="bool-val">false</span>,
         }
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>is_local(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        !<a class="self" href="#497">self</a>.<a href="../traits.rs.html#449">is_global</a>()
+    </span><span class="kw">fn </span>is_local(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        !<span class="self">self</span>.is_global()
     }
 
-    <span class="kw">fn </span>flags(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; SymbolFlags&lt;<a href="../mod.rs.html#263">SectionIndex</a>&gt; {
+    <span class="kw">fn </span>flags(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; SymbolFlags&lt;SectionIndex&gt; {
         <span class="kw">if </span><span class="self">self</span>.symbol.has_aux_section() {
-            <span class="kw">if let </span><span class="prelude-val">Ok</span>(aux) = <a class="self" href="#501">self</a>.file.symbols.<a href="#112">aux_section</a>(<a class="self" href="#501">self</a>.index.<span class="number">0</span>) {
+            <span class="kw">if let </span><span class="prelude-val">Ok</span>(aux) = <span class="self">self</span>.file.symbols.aux_section(<span class="self">self</span>.index.<span class="number">0</span>) {
                 <span class="comment">// TODO: use high_number for bigobj
-                </span><span class="kw">let </span>number = <a href="#503">aux</a>.number.<a href="../../endian.rs.html#599">get</a>(<a href="../../endian.rs.html#317">LE</a>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>;
-                <span class="kw">return </span><a href="../../common.rs.html#444">SymbolFlags::CoffSection</a> {
-                    selection: <a href="#503">aux</a>.selection,
+                </span><span class="kw">let </span>number = aux.number.get(LE) <span class="kw">as </span>usize;
+                <span class="kw">return </span>SymbolFlags::CoffSection {
+                    selection: aux.selection,
                     associative_section: <span class="kw">if </span>number == <span class="number">0 </span>{
                         <span class="prelude-val">None
                     </span>} <span class="kw">else </span>{
-                        <span class="prelude-val">Some</span>(<a href="../mod.rs.html#263">SectionIndex</a>(<a href="#505">number</a>))
+                        <span class="prelude-val">Some</span>(SectionIndex(number))
                     },
                 };
             }
         }
-        <a href="../../common.rs.html#430">SymbolFlags::None</a>
+        SymbolFlags::None
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="object" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="object" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

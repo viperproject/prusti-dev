@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/gimli-0.26.2/src/arch.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>arch.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../gimli/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/gimli-0.27.0/src/arch.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>arch.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../gimli/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -601,7 +601,155 @@
 <a href="#601" id="601">601</a>
 <a href="#602" id="602">602</a>
 <a href="#603" id="603">603</a>
-</pre><pre class="rust"><code><span class="kw">use </span><a href="common.rs.html#88"><span class="kw">crate</span>::common::Register</a>;
+<a href="#604" id="604">604</a>
+<a href="#605" id="605">605</a>
+<a href="#606" id="606">606</a>
+<a href="#607" id="607">607</a>
+<a href="#608" id="608">608</a>
+<a href="#609" id="609">609</a>
+<a href="#610" id="610">610</a>
+<a href="#611" id="611">611</a>
+<a href="#612" id="612">612</a>
+<a href="#613" id="613">613</a>
+<a href="#614" id="614">614</a>
+<a href="#615" id="615">615</a>
+<a href="#616" id="616">616</a>
+<a href="#617" id="617">617</a>
+<a href="#618" id="618">618</a>
+<a href="#619" id="619">619</a>
+<a href="#620" id="620">620</a>
+<a href="#621" id="621">621</a>
+<a href="#622" id="622">622</a>
+<a href="#623" id="623">623</a>
+<a href="#624" id="624">624</a>
+<a href="#625" id="625">625</a>
+<a href="#626" id="626">626</a>
+<a href="#627" id="627">627</a>
+<a href="#628" id="628">628</a>
+<a href="#629" id="629">629</a>
+<a href="#630" id="630">630</a>
+<a href="#631" id="631">631</a>
+<a href="#632" id="632">632</a>
+<a href="#633" id="633">633</a>
+<a href="#634" id="634">634</a>
+<a href="#635" id="635">635</a>
+<a href="#636" id="636">636</a>
+<a href="#637" id="637">637</a>
+<a href="#638" id="638">638</a>
+<a href="#639" id="639">639</a>
+<a href="#640" id="640">640</a>
+<a href="#641" id="641">641</a>
+<a href="#642" id="642">642</a>
+<a href="#643" id="643">643</a>
+<a href="#644" id="644">644</a>
+<a href="#645" id="645">645</a>
+<a href="#646" id="646">646</a>
+<a href="#647" id="647">647</a>
+<a href="#648" id="648">648</a>
+<a href="#649" id="649">649</a>
+<a href="#650" id="650">650</a>
+<a href="#651" id="651">651</a>
+<a href="#652" id="652">652</a>
+<a href="#653" id="653">653</a>
+<a href="#654" id="654">654</a>
+<a href="#655" id="655">655</a>
+<a href="#656" id="656">656</a>
+<a href="#657" id="657">657</a>
+<a href="#658" id="658">658</a>
+<a href="#659" id="659">659</a>
+<a href="#660" id="660">660</a>
+<a href="#661" id="661">661</a>
+<a href="#662" id="662">662</a>
+<a href="#663" id="663">663</a>
+<a href="#664" id="664">664</a>
+<a href="#665" id="665">665</a>
+<a href="#666" id="666">666</a>
+<a href="#667" id="667">667</a>
+<a href="#668" id="668">668</a>
+<a href="#669" id="669">669</a>
+<a href="#670" id="670">670</a>
+<a href="#671" id="671">671</a>
+<a href="#672" id="672">672</a>
+<a href="#673" id="673">673</a>
+<a href="#674" id="674">674</a>
+<a href="#675" id="675">675</a>
+<a href="#676" id="676">676</a>
+<a href="#677" id="677">677</a>
+<a href="#678" id="678">678</a>
+<a href="#679" id="679">679</a>
+<a href="#680" id="680">680</a>
+<a href="#681" id="681">681</a>
+<a href="#682" id="682">682</a>
+<a href="#683" id="683">683</a>
+<a href="#684" id="684">684</a>
+<a href="#685" id="685">685</a>
+<a href="#686" id="686">686</a>
+<a href="#687" id="687">687</a>
+<a href="#688" id="688">688</a>
+<a href="#689" id="689">689</a>
+<a href="#690" id="690">690</a>
+<a href="#691" id="691">691</a>
+<a href="#692" id="692">692</a>
+<a href="#693" id="693">693</a>
+<a href="#694" id="694">694</a>
+<a href="#695" id="695">695</a>
+<a href="#696" id="696">696</a>
+<a href="#697" id="697">697</a>
+<a href="#698" id="698">698</a>
+<a href="#699" id="699">699</a>
+<a href="#700" id="700">700</a>
+<a href="#701" id="701">701</a>
+<a href="#702" id="702">702</a>
+<a href="#703" id="703">703</a>
+<a href="#704" id="704">704</a>
+<a href="#705" id="705">705</a>
+<a href="#706" id="706">706</a>
+<a href="#707" id="707">707</a>
+<a href="#708" id="708">708</a>
+<a href="#709" id="709">709</a>
+<a href="#710" id="710">710</a>
+<a href="#711" id="711">711</a>
+<a href="#712" id="712">712</a>
+<a href="#713" id="713">713</a>
+<a href="#714" id="714">714</a>
+<a href="#715" id="715">715</a>
+<a href="#716" id="716">716</a>
+<a href="#717" id="717">717</a>
+<a href="#718" id="718">718</a>
+<a href="#719" id="719">719</a>
+<a href="#720" id="720">720</a>
+<a href="#721" id="721">721</a>
+<a href="#722" id="722">722</a>
+<a href="#723" id="723">723</a>
+<a href="#724" id="724">724</a>
+<a href="#725" id="725">725</a>
+<a href="#726" id="726">726</a>
+<a href="#727" id="727">727</a>
+<a href="#728" id="728">728</a>
+<a href="#729" id="729">729</a>
+<a href="#730" id="730">730</a>
+<a href="#731" id="731">731</a>
+<a href="#732" id="732">732</a>
+<a href="#733" id="733">733</a>
+<a href="#734" id="734">734</a>
+<a href="#735" id="735">735</a>
+<a href="#736" id="736">736</a>
+<a href="#737" id="737">737</a>
+<a href="#738" id="738">738</a>
+<a href="#739" id="739">739</a>
+<a href="#740" id="740">740</a>
+<a href="#741" id="741">741</a>
+<a href="#742" id="742">742</a>
+<a href="#743" id="743">743</a>
+<a href="#744" id="744">744</a>
+<a href="#745" id="745">745</a>
+<a href="#746" id="746">746</a>
+<a href="#747" id="747">747</a>
+<a href="#748" id="748">748</a>
+<a href="#749" id="749">749</a>
+<a href="#750" id="750">750</a>
+<a href="#751" id="751">751</a>
+</pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::common::Register;
 
 <span class="macro">macro_rules! </span>registers {
     (<span class="macro-nonterminal">$struct_name</span>:ident, { $(<span class="macro-nonterminal">$name</span>:ident = (<span class="macro-nonterminal">$val</span>:expr, <span class="macro-nonterminal">$disp</span>:expr)),+ $(,)<span class="question-mark">? </span>}
@@ -651,7 +799,7 @@
 </span><span class="attr">#[derive(Debug, Clone, Copy)]
 </span><span class="kw">pub struct </span>Arm;
 
-<a class="macro" href="#3-43">registers!</a>(Arm, {
+<span class="macro">registers!</span>(Arm, {
     R0 = (<span class="number">0</span>, <span class="string">&quot;R0&quot;</span>),
     R1 = (<span class="number">1</span>, <span class="string">&quot;R1&quot;</span>),
     R2 = (<span class="number">2</span>, <span class="string">&quot;R2&quot;</span>),
@@ -826,7 +974,7 @@ aliases {
 </span><span class="attr">#[derive(Debug, Clone, Copy)]
 </span><span class="kw">pub struct </span>AArch64;
 
-<a class="macro" href="#3-43">registers!</a>(AArch64, {
+<span class="macro">registers!</span>(AArch64, {
     X0 = (<span class="number">0</span>, <span class="string">&quot;X0&quot;</span>),
     X1 = (<span class="number">1</span>, <span class="string">&quot;X1&quot;</span>),
     X2 = (<span class="number">2</span>, <span class="string">&quot;X2&quot;</span>),
@@ -894,13 +1042,161 @@ aliases {
     V31 = (<span class="number">95</span>, <span class="string">&quot;V31&quot;</span>),
 });
 
+<span class="doccomment">/// LoongArch architecture specific definitions.
+///
+/// See [LoongArch ELF psABI specification](https://loongson.github.io/LoongArch-Documentation/LoongArch-ELF-ABI-EN.html).
+</span><span class="attr">#[derive(Debug, Clone, Copy)]
+</span><span class="kw">pub struct </span>LoongArch;
+
+<span class="macro">registers!</span>(LoongArch, {
+    R0 = (<span class="number">0</span>, <span class="string">&quot;$r0&quot;</span>),
+    R1 = (<span class="number">1</span>, <span class="string">&quot;$r1&quot;</span>),
+    R2 = (<span class="number">2</span>, <span class="string">&quot;$r2&quot;</span>),
+    R3 = (<span class="number">3</span>, <span class="string">&quot;$r3&quot;</span>),
+    R4 = (<span class="number">4</span>, <span class="string">&quot;$r4&quot;</span>),
+    R5 = (<span class="number">5</span>, <span class="string">&quot;$r5&quot;</span>),
+    R6 = (<span class="number">6</span>, <span class="string">&quot;$r6&quot;</span>),
+    R7 = (<span class="number">7</span>, <span class="string">&quot;$r7&quot;</span>),
+    R8 = (<span class="number">8</span>, <span class="string">&quot;$r8&quot;</span>),
+    R9 = (<span class="number">9</span>, <span class="string">&quot;$r9&quot;</span>),
+    R10 = (<span class="number">10</span>, <span class="string">&quot;$r10&quot;</span>),
+    R11 = (<span class="number">11</span>, <span class="string">&quot;$r11&quot;</span>),
+    R12 = (<span class="number">12</span>, <span class="string">&quot;$r12&quot;</span>),
+    R13 = (<span class="number">13</span>, <span class="string">&quot;$r13&quot;</span>),
+    R14 = (<span class="number">14</span>, <span class="string">&quot;$r14&quot;</span>),
+    R15 = (<span class="number">15</span>, <span class="string">&quot;$r15&quot;</span>),
+    R16 = (<span class="number">16</span>, <span class="string">&quot;$r16&quot;</span>),
+    R17 = (<span class="number">17</span>, <span class="string">&quot;$r17&quot;</span>),
+    R18 = (<span class="number">18</span>, <span class="string">&quot;$r18&quot;</span>),
+    R19 = (<span class="number">19</span>, <span class="string">&quot;$r19&quot;</span>),
+    R20 = (<span class="number">20</span>, <span class="string">&quot;$r20&quot;</span>),
+    R21 = (<span class="number">21</span>, <span class="string">&quot;$r21&quot;</span>),
+    R22 = (<span class="number">22</span>, <span class="string">&quot;$r22&quot;</span>),
+    R23 = (<span class="number">23</span>, <span class="string">&quot;$r23&quot;</span>),
+    R24 = (<span class="number">24</span>, <span class="string">&quot;$r24&quot;</span>),
+    R25 = (<span class="number">25</span>, <span class="string">&quot;$r25&quot;</span>),
+    R26 = (<span class="number">26</span>, <span class="string">&quot;$r26&quot;</span>),
+    R27 = (<span class="number">27</span>, <span class="string">&quot;$r27&quot;</span>),
+    R28 = (<span class="number">28</span>, <span class="string">&quot;$r28&quot;</span>),
+    R29 = (<span class="number">29</span>, <span class="string">&quot;$r29&quot;</span>),
+    R30 = (<span class="number">30</span>, <span class="string">&quot;$r30&quot;</span>),
+    R31 = (<span class="number">31</span>, <span class="string">&quot;$r31&quot;</span>),
+
+    F0 = (<span class="number">32</span>, <span class="string">&quot;$f0&quot;</span>),
+    F1 = (<span class="number">33</span>, <span class="string">&quot;$f1&quot;</span>),
+    F2 = (<span class="number">34</span>, <span class="string">&quot;$f2&quot;</span>),
+    F3 = (<span class="number">35</span>, <span class="string">&quot;$f3&quot;</span>),
+    F4 = (<span class="number">36</span>, <span class="string">&quot;$f4&quot;</span>),
+    F5 = (<span class="number">37</span>, <span class="string">&quot;$f5&quot;</span>),
+    F6 = (<span class="number">38</span>, <span class="string">&quot;$f6&quot;</span>),
+    F7 = (<span class="number">39</span>, <span class="string">&quot;$f7&quot;</span>),
+    F8 = (<span class="number">40</span>, <span class="string">&quot;$f8&quot;</span>),
+    F9 = (<span class="number">41</span>, <span class="string">&quot;$f9&quot;</span>),
+    F10 = (<span class="number">42</span>, <span class="string">&quot;$f10&quot;</span>),
+    F11 = (<span class="number">43</span>, <span class="string">&quot;$f11&quot;</span>),
+    F12 = (<span class="number">44</span>, <span class="string">&quot;$f12&quot;</span>),
+    F13 = (<span class="number">45</span>, <span class="string">&quot;$f13&quot;</span>),
+    F14 = (<span class="number">46</span>, <span class="string">&quot;$f14&quot;</span>),
+    F15 = (<span class="number">47</span>, <span class="string">&quot;$f15&quot;</span>),
+    F16 = (<span class="number">48</span>, <span class="string">&quot;$f16&quot;</span>),
+    F17 = (<span class="number">49</span>, <span class="string">&quot;$f17&quot;</span>),
+    F18 = (<span class="number">50</span>, <span class="string">&quot;$f18&quot;</span>),
+    F19 = (<span class="number">51</span>, <span class="string">&quot;$f19&quot;</span>),
+    F20 = (<span class="number">52</span>, <span class="string">&quot;$f20&quot;</span>),
+    F21 = (<span class="number">53</span>, <span class="string">&quot;$f21&quot;</span>),
+    F22 = (<span class="number">54</span>, <span class="string">&quot;$f22&quot;</span>),
+    F23 = (<span class="number">55</span>, <span class="string">&quot;$f23&quot;</span>),
+    F24 = (<span class="number">56</span>, <span class="string">&quot;$f24&quot;</span>),
+    F25 = (<span class="number">57</span>, <span class="string">&quot;$f25&quot;</span>),
+    F26 = (<span class="number">58</span>, <span class="string">&quot;$f26&quot;</span>),
+    F27 = (<span class="number">59</span>, <span class="string">&quot;$f27&quot;</span>),
+    F28 = (<span class="number">60</span>, <span class="string">&quot;$f28&quot;</span>),
+    F29 = (<span class="number">61</span>, <span class="string">&quot;$f29&quot;</span>),
+    F30 = (<span class="number">62</span>, <span class="string">&quot;$f30&quot;</span>),
+    F31 = (<span class="number">63</span>, <span class="string">&quot;$f31&quot;</span>),
+    FCC0 = (<span class="number">64</span>, <span class="string">&quot;$fcc0&quot;</span>),
+    FCC1 = (<span class="number">65</span>, <span class="string">&quot;$fcc1&quot;</span>),
+    FCC2 = (<span class="number">66</span>, <span class="string">&quot;$fcc2&quot;</span>),
+    FCC3 = (<span class="number">67</span>, <span class="string">&quot;$fcc3&quot;</span>),
+    FCC4 = (<span class="number">68</span>, <span class="string">&quot;$fcc4&quot;</span>),
+    FCC5 = (<span class="number">69</span>, <span class="string">&quot;$fcc5&quot;</span>),
+    FCC6 = (<span class="number">70</span>, <span class="string">&quot;$fcc6&quot;</span>),
+    FCC7 = (<span class="number">71</span>, <span class="string">&quot;$fcc7&quot;</span>),
+},
+aliases {
+    ZERO = (<span class="number">0</span>, <span class="string">&quot;$zero&quot;</span>),
+    RA = (<span class="number">1</span>, <span class="string">&quot;$ra&quot;</span>),
+    TP = (<span class="number">2</span>, <span class="string">&quot;$tp&quot;</span>),
+    SP = (<span class="number">3</span>, <span class="string">&quot;$sp&quot;</span>),
+    A0 = (<span class="number">4</span>, <span class="string">&quot;$a0&quot;</span>),
+    A1 = (<span class="number">5</span>, <span class="string">&quot;$a1&quot;</span>),
+    A2 = (<span class="number">6</span>, <span class="string">&quot;$a2&quot;</span>),
+    A3 = (<span class="number">7</span>, <span class="string">&quot;$a3&quot;</span>),
+    A4 = (<span class="number">8</span>, <span class="string">&quot;$a4&quot;</span>),
+    A5 = (<span class="number">9</span>, <span class="string">&quot;$a5&quot;</span>),
+    A6 = (<span class="number">10</span>, <span class="string">&quot;$a6&quot;</span>),
+    A7 = (<span class="number">11</span>, <span class="string">&quot;$a7&quot;</span>),
+    T0 = (<span class="number">12</span>, <span class="string">&quot;$t0&quot;</span>),
+    T1 = (<span class="number">13</span>, <span class="string">&quot;$t1&quot;</span>),
+    T2 = (<span class="number">14</span>, <span class="string">&quot;$t2&quot;</span>),
+    T3 = (<span class="number">15</span>, <span class="string">&quot;$t3&quot;</span>),
+    T4 = (<span class="number">16</span>, <span class="string">&quot;$t4&quot;</span>),
+    T5 = (<span class="number">17</span>, <span class="string">&quot;$t5&quot;</span>),
+    T6 = (<span class="number">18</span>, <span class="string">&quot;$t6&quot;</span>),
+    T7 = (<span class="number">19</span>, <span class="string">&quot;$t7&quot;</span>),
+    T8 = (<span class="number">20</span>, <span class="string">&quot;$t8&quot;</span>),
+    FP = (<span class="number">22</span>, <span class="string">&quot;$fp&quot;</span>),
+    S0 = (<span class="number">23</span>, <span class="string">&quot;$s0&quot;</span>),
+    S1 = (<span class="number">24</span>, <span class="string">&quot;$s1&quot;</span>),
+    S2 = (<span class="number">25</span>, <span class="string">&quot;$s2&quot;</span>),
+    S3 = (<span class="number">26</span>, <span class="string">&quot;$s3&quot;</span>),
+    S4 = (<span class="number">27</span>, <span class="string">&quot;$s4&quot;</span>),
+    S5 = (<span class="number">28</span>, <span class="string">&quot;$s5&quot;</span>),
+    S6 = (<span class="number">29</span>, <span class="string">&quot;$s6&quot;</span>),
+    S7 = (<span class="number">30</span>, <span class="string">&quot;$s7&quot;</span>),
+    S8 = (<span class="number">31</span>, <span class="string">&quot;$s8&quot;</span>),
+
+    FA0 = (<span class="number">32</span>, <span class="string">&quot;$fa0&quot;</span>),
+    FA1 = (<span class="number">33</span>, <span class="string">&quot;$fa1&quot;</span>),
+    FA2 = (<span class="number">34</span>, <span class="string">&quot;$fa2&quot;</span>),
+    FA3 = (<span class="number">35</span>, <span class="string">&quot;$fa3&quot;</span>),
+    FA4 = (<span class="number">36</span>, <span class="string">&quot;$fa4&quot;</span>),
+    FA5 = (<span class="number">37</span>, <span class="string">&quot;$fa5&quot;</span>),
+    FA6 = (<span class="number">38</span>, <span class="string">&quot;$fa6&quot;</span>),
+    FA7 = (<span class="number">39</span>, <span class="string">&quot;$fa7&quot;</span>),
+    FT0 = (<span class="number">40</span>, <span class="string">&quot;$ft0&quot;</span>),
+    FT1 = (<span class="number">41</span>, <span class="string">&quot;$ft1&quot;</span>),
+    FT2 = (<span class="number">42</span>, <span class="string">&quot;$ft2&quot;</span>),
+    FT3 = (<span class="number">43</span>, <span class="string">&quot;$ft3&quot;</span>),
+    FT4 = (<span class="number">44</span>, <span class="string">&quot;$ft4&quot;</span>),
+    FT5 = (<span class="number">45</span>, <span class="string">&quot;$ft5&quot;</span>),
+    FT6 = (<span class="number">46</span>, <span class="string">&quot;$ft6&quot;</span>),
+    FT7 = (<span class="number">47</span>, <span class="string">&quot;$ft7&quot;</span>),
+    FT8 = (<span class="number">48</span>, <span class="string">&quot;$ft8&quot;</span>),
+    FT9 = (<span class="number">49</span>, <span class="string">&quot;$ft9&quot;</span>),
+    FT10 = (<span class="number">50</span>, <span class="string">&quot;$ft10&quot;</span>),
+    FT11 = (<span class="number">51</span>, <span class="string">&quot;$ft11&quot;</span>),
+    FT12 = (<span class="number">52</span>, <span class="string">&quot;$ft12&quot;</span>),
+    FT13 = (<span class="number">53</span>, <span class="string">&quot;$ft13&quot;</span>),
+    FT14 = (<span class="number">54</span>, <span class="string">&quot;$ft14&quot;</span>),
+    FT15 = (<span class="number">55</span>, <span class="string">&quot;$ft15&quot;</span>),
+    FS0 = (<span class="number">56</span>, <span class="string">&quot;$fs0&quot;</span>),
+    FS1 = (<span class="number">57</span>, <span class="string">&quot;$fs1&quot;</span>),
+    FS2 = (<span class="number">58</span>, <span class="string">&quot;$fs2&quot;</span>),
+    FS3 = (<span class="number">59</span>, <span class="string">&quot;$fs3&quot;</span>),
+    FS4 = (<span class="number">60</span>, <span class="string">&quot;$fs4&quot;</span>),
+    FS5 = (<span class="number">61</span>, <span class="string">&quot;$fs5&quot;</span>),
+    FS6 = (<span class="number">62</span>, <span class="string">&quot;$fs6&quot;</span>),
+    FS7 = (<span class="number">63</span>, <span class="string">&quot;$fs7&quot;</span>),
+});
+
 <span class="doccomment">/// RISC-V architecture specific definitions.
 ///
 /// See [RISC-V ELF psABI specification](https://github.com/riscv/riscv-elf-psabi-doc).
 </span><span class="attr">#[derive(Debug, Clone, Copy)]
 </span><span class="kw">pub struct </span>RiscV;
 
-<a class="macro" href="#3-43">registers!</a>(RiscV, {
+<span class="macro">registers!</span>(RiscV, {
     X0 = (<span class="number">0</span>, <span class="string">&quot;x0&quot;</span>),
     X1 = (<span class="number">1</span>, <span class="string">&quot;x1&quot;</span>),
     X2 = (<span class="number">2</span>, <span class="string">&quot;x2&quot;</span>),
@@ -1041,7 +1337,7 @@ aliases {
 </span><span class="attr">#[derive(Debug, Clone, Copy)]
 </span><span class="kw">pub struct </span>X86;
 
-<a class="macro" href="#3-43">registers!</a>(X86, {
+<span class="macro">registers!</span>(X86, {
     EAX = (<span class="number">0</span>, <span class="string">&quot;eax&quot;</span>),
     ECX = (<span class="number">1</span>, <span class="string">&quot;ecx&quot;</span>),
     EDX = (<span class="number">2</span>, <span class="string">&quot;edx&quot;</span>),
@@ -1103,7 +1399,7 @@ aliases {
 </span><span class="attr">#[derive(Debug, Clone, Copy)]
 </span><span class="kw">pub struct </span>X86_64;
 
-<a class="macro" href="#3-43">registers!</a>(X86_64, {
+<span class="macro">registers!</span>(X86_64, {
     RAX = (<span class="number">0</span>, <span class="string">&quot;rax&quot;</span>),
     RDX = (<span class="number">1</span>, <span class="string">&quot;rdx&quot;</span>),
     RCX = (<span class="number">2</span>, <span class="string">&quot;rcx&quot;</span>),
@@ -1205,4 +1501,4 @@ aliases {
     K7 = (<span class="number">125</span>, <span class="string">&quot;k7&quot;</span>),
 });
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="gimli" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="gimli" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

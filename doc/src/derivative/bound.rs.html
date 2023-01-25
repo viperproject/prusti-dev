@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/derivative-2.2.0/src/bound.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>bound.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../derivative/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/derivative-2.2.0/src/bound.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>bound.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../derivative/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -185,10 +185,10 @@
  *   except according to those terms.
  */
 
-</span><span class="kw">use </span><a href="lib.rs.html#20">ast</a>;
-<span class="kw">use </span><a href="lib.rs.html#21">attr</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/collections/hash/set/struct.HashSet.html">std::collections::HashSet</a>;
-<span class="kw">use </span>syn::{<a class="self" href="../../syn/index.html">self</a>, <a href="../../syn/gen/visit/index.html">visit</a>, <a href="../../syn/generics/enum.GenericParam.html">GenericParam</a>};
+</span><span class="kw">use </span>ast;
+<span class="kw">use </span>attr;
+<span class="kw">use </span>std::collections::HashSet;
+<span class="kw">use </span>syn::{<span class="self">self</span>, visit, GenericParam};
 
 <span class="comment">// use internals::ast::Item;
 // use internals::attr;
@@ -196,57 +196,57 @@
 </span><span class="doccomment">/// Remove the default from every type parameter because in the generated `impl`s
 /// they look like associated types: &quot;error: associated type bindings are not
 /// allowed here&quot;.
-</span><span class="kw">pub fn </span>without_defaults(generics: <span class="kw-2">&amp;</span><a href="../../syn/generics/struct.Generics.html">syn::Generics</a>) -&gt; <a href="../../syn/generics/struct.Generics.html">syn::Generics</a> {
-    <a href="../../syn/generics/struct.Generics.html">syn::Generics</a> {
-        params: <a href="#24">generics</a>
+</span><span class="kw">pub fn </span>without_defaults(generics: <span class="kw-2">&amp;</span>syn::Generics) -&gt; syn::Generics {
+    syn::Generics {
+        params: generics
             .params
             .iter()
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|generic_param| <span class="kw">match </span><span class="kw-2">*</span><a href="#29">generic_param</a> {
-                GenericParam::Type(<span class="kw-2">ref </span>ty_param) =&gt; syn::GenericParam::Type(<a href="../../syn/generics/struct.TypeParam.html">syn::TypeParam</a> {
+            .map(|generic_param| <span class="kw">match </span><span class="kw-2">*</span>generic_param {
+                GenericParam::Type(<span class="kw-2">ref </span>ty_param) =&gt; syn::GenericParam::Type(syn::TypeParam {
                     default: <span class="prelude-val">None</span>,
-                    ..<a href="#30">ty_param</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()
+                    ..ty_param.clone()
                 }),
-                <span class="kw-2">ref </span>param =&gt; <a href="#34">param</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+                <span class="kw-2">ref </span>param =&gt; param.clone(),
             })
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>(),
-        ..<a href="#24">generics</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()
+            .collect(),
+        ..generics.clone()
     }
 }
 
 <span class="kw">pub fn </span>with_where_predicates(
-    generics: <span class="kw-2">&amp;</span><a href="../../syn/generics/struct.Generics.html">syn::Generics</a>,
-    predicates: <span class="kw-2">&amp;</span>[<a href="../../syn/generics/enum.WherePredicate.html">syn::WherePredicate</a>],
-) -&gt; <a href="../../syn/generics/struct.Generics.html">syn::Generics</a> {
-    <span class="kw">let </span><span class="kw-2">mut </span>cloned = <a href="#42">generics</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
-    <a href="#45">cloned</a>
+    generics: <span class="kw-2">&amp;</span>syn::Generics,
+    predicates: <span class="kw-2">&amp;</span>[syn::WherePredicate],
+) -&gt; syn::Generics {
+    <span class="kw">let </span><span class="kw-2">mut </span>cloned = generics.clone();
+    cloned
         .make_where_clause()
         .predicates
-        .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a href="#43">predicates</a>.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">cloned</a>());
-    <a href="#45">cloned</a>
+        .extend(predicates.iter().cloned());
+    cloned
 }
 
 <span class="kw">pub fn </span>with_where_predicates_from_fields&lt;F&gt;(
-    item: <span class="kw-2">&amp;</span><a href="ast.rs.html#7">ast::Input</a>,
-    generics: <span class="kw-2">&amp;</span><a href="../../syn/generics/struct.Generics.html">syn::Generics</a>,
+    item: <span class="kw-2">&amp;</span>ast::Input,
+    generics: <span class="kw-2">&amp;</span>syn::Generics,
     from_field: F,
-) -&gt; <a href="../../syn/generics/struct.Generics.html">syn::Generics</a>
+) -&gt; syn::Generics
 <span class="kw">where
-    </span>F: Fn(<span class="kw-2">&amp;</span><a href="attr.rs.html#31">attr::Field</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>[<a href="../../syn/generics/enum.WherePredicate.html">syn::WherePredicate</a>]&gt;,
+    </span>F: Fn(<span class="kw-2">&amp;</span>attr::Field) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>[syn::WherePredicate]&gt;,
 {
-    <span class="kw">let </span><span class="kw-2">mut </span>cloned = <a href="#55">generics</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
+    <span class="kw">let </span><span class="kw-2">mut </span>cloned = generics.clone();
     {
-        <span class="kw">let </span>fields = <a href="#54">item</a>.body.<a href="ast.rs.html#87">all_fields</a>();
-        <span class="kw">let </span>field_where_predicates = <a href="#63">fields</a>
+        <span class="kw">let </span>fields = item.body.all_fields();
+        <span class="kw">let </span>field_where_predicates = fields
             .iter()
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">flat_map</a>(|field| <a href="#56">from_field</a>(<span class="kw-2">&amp;</span><a href="#66">field</a>.attrs))
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">flat_map</a>(|predicates| <a href="#67">predicates</a>.to_vec());
+            .flat_map(|field| from_field(<span class="kw-2">&amp;</span>field.attrs))
+            .flat_map(|predicates| predicates.to_vec());
 
-        <a href="#61">cloned</a>
+        cloned
             .make_where_clause()
             .predicates
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a href="#64">field_where_predicates</a>);
+            .extend(field_where_predicates);
     }
-    <a href="#61">cloned</a>
+    cloned
 }
 
 <span class="doccomment">/// Puts the given bound on any generic type parameters that are used in fields
@@ -263,90 +263,90 @@
 /// }
 /// ```
 </span><span class="kw">pub fn </span>with_bound&lt;F&gt;(
-    item: <span class="kw-2">&amp;</span><a href="ast.rs.html#7">ast::Input</a>,
-    generics: <span class="kw-2">&amp;</span><a href="../../syn/generics/struct.Generics.html">syn::Generics</a>,
+    item: <span class="kw-2">&amp;</span>ast::Input,
+    generics: <span class="kw-2">&amp;</span>syn::Generics,
     filter: F,
-    bound: <span class="kw-2">&amp;</span><a href="../../syn/path/struct.Path.html">syn::Path</a>,
-) -&gt; <a href="../../syn/generics/struct.Generics.html">syn::Generics</a>
+    bound: <span class="kw-2">&amp;</span>syn::Path,
+) -&gt; syn::Generics
 <span class="kw">where
-    </span>F: Fn(<span class="kw-2">&amp;</span><a href="attr.rs.html#31">attr::Field</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
+    </span>F: Fn(<span class="kw-2">&amp;</span>attr::Field) -&gt; bool,
 {
     <span class="attr">#[derive(Debug)]
     </span><span class="kw">struct </span>FindTyParams {
         <span class="doccomment">/// Set of all generic type parameters on the current struct (A, B, C in
         /// the example). Initialized up front.
-        </span>all_ty_params: HashSet&lt;<a href="../../proc_macro2/struct.Ident.html">syn::Ident</a>&gt;,
+        </span>all_ty_params: HashSet&lt;syn::Ident&gt;,
         <span class="doccomment">/// Set of generic type parameters used in fields for which filter
         /// returns true (A and B in the example). Filled in as the visitor sees
         /// them.
-        </span>relevant_ty_params: HashSet&lt;<a href="../../proc_macro2/struct.Ident.html">syn::Ident</a>&gt;,
+        </span>relevant_ty_params: HashSet&lt;syn::Ident&gt;,
     }
-    <span class="kw">impl</span>&lt;<span class="lifetime">&#39;ast</span>&gt; visit::Visit&lt;<span class="lifetime">&#39;ast</span>&gt; <span class="kw">for </span><a href="#100">FindTyParams</a> {
-        <span class="kw">fn </span>visit_path(<span class="kw-2">&amp;mut </span><span class="self">self</span>, path: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ast </span><a href="../../syn/path/struct.Path.html">syn::Path</a>) {
+    <span class="kw">impl</span>&lt;<span class="lifetime">&#39;ast</span>&gt; visit::Visit&lt;<span class="lifetime">&#39;ast</span>&gt; <span class="kw">for </span>FindTyParams {
+        <span class="kw">fn </span>visit_path(<span class="kw-2">&amp;mut </span><span class="self">self</span>, path: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ast </span>syn::Path) {
             <span class="kw">if </span>is_phantom_data(path) {
                 <span class="comment">// Hardcoded exception, because `PhantomData&lt;T&gt;` implements
                 // most traits whether or not `T` implements it.
                 </span><span class="kw">return</span>;
             }
             <span class="kw">if </span>path.leading_colon.is_none() &amp;&amp; path.segments.len() == <span class="number">1 </span>{
-                <span class="kw">let </span>id = <span class="kw-2">&amp;</span><a href="#110">path</a>.segments[<span class="number">0</span>].ident;
+                <span class="kw">let </span>id = <span class="kw-2">&amp;</span>path.segments[<span class="number">0</span>].ident;
                 <span class="kw">if </span><span class="self">self</span>.all_ty_params.contains(id) {
-                    <a class="self" href="#110">self</a>.relevant_ty_params.insert(<a href="#117">id</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
+                    <span class="self">self</span>.relevant_ty_params.insert(id.clone());
                 }
             }
-            visit::visit_path(<a class="self" href="#110">self</a>, <a href="#110">path</a>);
+            visit::visit_path(<span class="self">self</span>, path);
         }
     }
 
-    <span class="kw">let </span>all_ty_params: HashSet&lt;<span class="kw">_</span>&gt; = <a href="#92">generics</a>
+    <span class="kw">let </span>all_ty_params: HashSet&lt;<span class="kw">_</span>&gt; = generics
         .type_params()
-        .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|ty_param| <a href="#128">ty_param</a>.ident.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>())
-        .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
+        .map(|ty_param| ty_param.ident.clone())
+        .collect();
 
-    <span class="kw">let </span>relevant_tys = <a href="#91">item</a>
+    <span class="kw">let </span>relevant_tys = item
         .body
-        .<a href="ast.rs.html#87">all_fields</a>()
-        .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
-        .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter</a>(|field| {
-            <span class="kw">if let </span>syn::Type::Path(<a href="../../syn/ty/struct.TypePath.html">syn::TypePath</a> { <span class="kw-2">ref </span>path, .. }) = <span class="kw-2">*</span><a href="#135">field</a>.ty {
-                !<a href="#170">is_phantom_data</a>(<a href="#136">path</a>)
+        .all_fields()
+        .into_iter()
+        .filter(|field| {
+            <span class="kw">if let </span>syn::Type::Path(syn::TypePath { <span class="kw-2">ref </span>path, .. }) = <span class="kw-2">*</span>field.ty {
+                !is_phantom_data(path)
             } <span class="kw">else </span>{
                 <span class="bool-val">true
             </span>}
         })
-        .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter</a>(|field| <a href="#93">filter</a>(<span class="kw-2">&amp;</span><a href="#142">field</a>.attrs))
-        .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|field| <span class="kw-2">&amp;</span><a href="#143">field</a>.ty);
+        .filter(|field| filter(<span class="kw-2">&amp;</span>field.attrs))
+        .map(|field| <span class="kw-2">&amp;</span>field.ty);
 
-    <span class="kw">let </span><span class="kw-2">mut </span>visitor = <a href="#100">FindTyParams</a> {
-        <a href="#126">all_ty_params</a>,
+    <span class="kw">let </span><span class="kw-2">mut </span>visitor = FindTyParams {
+        all_ty_params,
         relevant_ty_params: HashSet::new(),
     };
     <span class="kw">for </span>ty <span class="kw">in </span>relevant_tys {
         visit::visit_type(<span class="kw-2">&amp;mut </span>visitor, ty);
     }
 
-    <span class="kw">let </span><span class="kw-2">mut </span>cloned = <a href="#92">generics</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
+    <span class="kw">let </span><span class="kw-2">mut </span>cloned = generics.clone();
     {
-        <span class="kw">let </span>relevant_where_predicates = <a href="#92">generics</a>
+        <span class="kw">let </span>relevant_where_predicates = generics
             .type_params()
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|ty_param| <span class="kw-2">&amp;</span><a href="#157">ty_param</a>.ident)
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter</a>(|id| <a href="#145">visitor</a>.relevant_ty_params.contains(<a href="#158">id</a>))
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|id| -&gt; <a href="../../syn/generics/enum.WherePredicate.html">syn::WherePredicate</a> { <a class="macro" href="../../syn/syn/macro.parse_quote.html">parse_quote!</a>( #id : #bound ) });
+            .map(|ty_param| <span class="kw-2">&amp;</span>ty_param.ident)
+            .filter(|id| visitor.relevant_ty_params.contains(id))
+            .map(|id| -&gt; syn::WherePredicate { <span class="macro">parse_quote!</span>( #id : #bound ) });
 
-        <a href="#153">cloned</a>
+        cloned
             .make_where_clause()
             .predicates
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a href="#155">relevant_where_predicates</a>);
+            .extend(relevant_where_predicates);
     }
-    <a href="#153">cloned</a>
+    cloned
 }
 
 <span class="attr">#[allow(clippy::match_like_matches_macro)] </span><span class="comment">// needs rustc 1.42
-</span><span class="kw">fn </span>is_phantom_data(path: <span class="kw-2">&amp;</span><a href="../../syn/path/struct.Path.html">syn::Path</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-    <span class="kw">match </span><a href="#170">path</a>.segments.last() {
-        <span class="prelude-val">Some</span>(path) <span class="kw">if </span><a href="#172">path</a>.ident == <span class="string">&quot;PhantomData&quot; </span>=&gt; <span class="bool-val">true</span>,
+</span><span class="kw">fn </span>is_phantom_data(path: <span class="kw-2">&amp;</span>syn::Path) -&gt; bool {
+    <span class="kw">match </span>path.segments.last() {
+        <span class="prelude-val">Some</span>(path) <span class="kw">if </span>path.ident == <span class="string">&quot;PhantomData&quot; </span>=&gt; <span class="bool-val">true</span>,
         <span class="kw">_ </span>=&gt; <span class="bool-val">false</span>,
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="derivative" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="derivative" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

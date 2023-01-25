@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/openssl-sys-0.9.77/src/./handwritten/bn.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>bn.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../openssl_sys/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/openssl-sys-0.9.80/src/./handwritten/bn.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>bn.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../openssl_sys/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -162,156 +162,164 @@
 <a href="#162" id="162">162</a>
 <a href="#163" id="163">163</a>
 <a href="#164" id="164">164</a>
-</pre><pre class="rust"><code><span class="kw">use </span><a href="../../../libc/index.html">libc</a>::<span class="kw-2">*</span>;
+<a href="#165" id="165">165</a>
+<a href="#166" id="166">166</a>
+<a href="#167" id="167">167</a>
+<a href="#168" id="168">168</a>
+</pre><pre class="rust"><code><span class="kw">use </span>libc::<span class="kw-2">*</span>;
 <span class="kw">use </span><span class="kw-2">*</span>;
 
 <span class="kw">extern </span><span class="string">&quot;C&quot; </span>{
-    <span class="kw">pub fn </span>BN_CTX_new() -&gt; <span class="kw-2">*mut </span><a href="types.rs.html#59">BN_CTX</a>;
+    <span class="kw">pub fn </span>BN_CTX_new() -&gt; <span class="kw-2">*mut </span>BN_CTX;
     <span class="attr">#[cfg(ossl110)]
-    </span><span class="kw">pub fn </span>BN_CTX_secure_new() -&gt; <span class="kw-2">*mut </span><a href="types.rs.html#59">BN_CTX</a>;
-    <span class="kw">pub fn </span>BN_CTX_free(ctx: <span class="kw-2">*mut </span><a href="types.rs.html#59">BN_CTX</a>);
-    <span class="kw">pub fn </span>BN_rand(r: <span class="kw-2">*mut </span><a href="types.rs.html#44">BIGNUM</a>, bits: <a href="../../../openssl_sys/type.c_int.html">c_int</a>, top: <a href="../../../openssl_sys/type.c_int.html">c_int</a>, bottom: <a href="../../../openssl_sys/type.c_int.html">c_int</a>) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
-    <span class="kw">pub fn </span>BN_pseudo_rand(r: <span class="kw-2">*mut </span><a href="types.rs.html#44">BIGNUM</a>, bits: <a href="../../../openssl_sys/type.c_int.html">c_int</a>, top: <a href="../../../openssl_sys/type.c_int.html">c_int</a>, bottom: <a href="../../../openssl_sys/type.c_int.html">c_int</a>) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
-    <span class="kw">pub fn </span>BN_rand_range(r: <span class="kw-2">*mut </span><a href="types.rs.html#44">BIGNUM</a>, range: <span class="kw-2">*const </span><a href="types.rs.html#44">BIGNUM</a>) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
-    <span class="kw">pub fn </span>BN_pseudo_rand_range(r: <span class="kw-2">*mut </span><a href="types.rs.html#44">BIGNUM</a>, range: <span class="kw-2">*const </span><a href="types.rs.html#44">BIGNUM</a>) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
-    <span class="kw">pub fn </span>BN_new() -&gt; <span class="kw-2">*mut </span><a href="types.rs.html#44">BIGNUM</a>;
+    </span><span class="kw">pub fn </span>BN_CTX_secure_new() -&gt; <span class="kw-2">*mut </span>BN_CTX;
+    <span class="kw">pub fn </span>BN_CTX_free(ctx: <span class="kw-2">*mut </span>BN_CTX);
+    <span class="kw">pub fn </span>BN_rand(r: <span class="kw-2">*mut </span>BIGNUM, bits: c_int, top: c_int, bottom: c_int) -&gt; c_int;
+    <span class="attr">#[cfg(not(osslconf = <span class="string">&quot;OPENSSL_NO_DEPRECATED_3_0&quot;</span>))]
+    </span><span class="kw">pub fn </span>BN_pseudo_rand(r: <span class="kw-2">*mut </span>BIGNUM, bits: c_int, top: c_int, bottom: c_int) -&gt; c_int;
+    <span class="kw">pub fn </span>BN_rand_range(r: <span class="kw-2">*mut </span>BIGNUM, range: <span class="kw-2">*const </span>BIGNUM) -&gt; c_int;
+    <span class="attr">#[cfg(not(osslconf = <span class="string">&quot;OPENSSL_NO_DEPRECATED_3_0&quot;</span>))]
+    </span><span class="kw">pub fn </span>BN_pseudo_rand_range(r: <span class="kw-2">*mut </span>BIGNUM, range: <span class="kw-2">*const </span>BIGNUM) -&gt; c_int;
+    <span class="kw">pub fn </span>BN_new() -&gt; <span class="kw-2">*mut </span>BIGNUM;
     <span class="attr">#[cfg(ossl110)]
-    </span><span class="kw">pub fn </span>BN_secure_new() -&gt; <span class="kw-2">*mut </span><a href="types.rs.html#44">BIGNUM</a>;
+    </span><span class="kw">pub fn </span>BN_secure_new() -&gt; <span class="kw-2">*mut </span>BIGNUM;
     <span class="attr">#[cfg(ossl110)]
-    </span><span class="kw">pub fn </span>BN_set_flags(b: <span class="kw-2">*mut </span><a href="types.rs.html#44">BIGNUM</a>, n: <a href="../../../openssl_sys/type.c_int.html">c_int</a>);
+    </span><span class="kw">pub fn </span>BN_set_flags(b: <span class="kw-2">*mut </span>BIGNUM, n: c_int);
     <span class="attr">#[cfg(ossl110)]
-    </span><span class="kw">pub fn </span>BN_get_flags(b: <span class="kw-2">*const </span><a href="types.rs.html#44">BIGNUM</a>, n: <a href="../../../openssl_sys/type.c_int.html">c_int</a>) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
-    <span class="kw">pub fn </span>BN_num_bits(bn: <span class="kw-2">*const </span><a href="types.rs.html#44">BIGNUM</a>) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
-    <span class="kw">pub fn </span>BN_clear_free(bn: <span class="kw-2">*mut </span><a href="types.rs.html#44">BIGNUM</a>);
-    <span class="kw">pub fn </span>BN_bin2bn(s: <span class="kw-2">*const </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>, size: <a href="../../../openssl_sys/type.c_int.html">c_int</a>, ret: <span class="kw-2">*mut </span><a href="types.rs.html#44">BIGNUM</a>) -&gt; <span class="kw-2">*mut </span><a href="types.rs.html#44">BIGNUM</a>;
-    <span class="kw">pub fn </span>BN_bn2bin(a: <span class="kw-2">*const </span><a href="types.rs.html#44">BIGNUM</a>, to: <span class="kw-2">*mut </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
+    </span><span class="kw">pub fn </span>BN_get_flags(b: <span class="kw-2">*const </span>BIGNUM, n: c_int) -&gt; c_int;
+    <span class="kw">pub fn </span>BN_num_bits(bn: <span class="kw-2">*const </span>BIGNUM) -&gt; c_int;
+    <span class="kw">pub fn </span>BN_clear_free(bn: <span class="kw-2">*mut </span>BIGNUM);
+    <span class="kw">pub fn </span>BN_bin2bn(s: <span class="kw-2">*const </span>u8, size: c_int, ret: <span class="kw-2">*mut </span>BIGNUM) -&gt; <span class="kw-2">*mut </span>BIGNUM;
+    <span class="kw">pub fn </span>BN_bn2bin(a: <span class="kw-2">*const </span>BIGNUM, to: <span class="kw-2">*mut </span>u8) -&gt; c_int;
     <span class="attr">#[cfg(ossl110)]
-    </span><span class="kw">pub fn </span>BN_bn2binpad(a: <span class="kw-2">*const </span><a href="types.rs.html#44">BIGNUM</a>, to: <span class="kw-2">*mut </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>, tolen: <a href="../../../openssl_sys/type.c_int.html">c_int</a>) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
-    <span class="kw">pub fn </span>BN_sub(r: <span class="kw-2">*mut </span><a href="types.rs.html#44">BIGNUM</a>, a: <span class="kw-2">*const </span><a href="types.rs.html#44">BIGNUM</a>, b: <span class="kw-2">*const </span><a href="types.rs.html#44">BIGNUM</a>) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
-    <span class="kw">pub fn </span>BN_add(r: <span class="kw-2">*mut </span><a href="types.rs.html#44">BIGNUM</a>, a: <span class="kw-2">*const </span><a href="types.rs.html#44">BIGNUM</a>, b: <span class="kw-2">*const </span><a href="types.rs.html#44">BIGNUM</a>) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
-    <span class="kw">pub fn </span>BN_mul(r: <span class="kw-2">*mut </span><a href="types.rs.html#44">BIGNUM</a>, a: <span class="kw-2">*const </span><a href="types.rs.html#44">BIGNUM</a>, b: <span class="kw-2">*const </span><a href="types.rs.html#44">BIGNUM</a>, ctx: <span class="kw-2">*mut </span><a href="types.rs.html#59">BN_CTX</a>) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
-    <span class="kw">pub fn </span>BN_sqr(r: <span class="kw-2">*mut </span><a href="types.rs.html#44">BIGNUM</a>, a: <span class="kw-2">*const </span><a href="types.rs.html#44">BIGNUM</a>, ctx: <span class="kw-2">*mut </span><a href="types.rs.html#59">BN_CTX</a>) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
-    <span class="kw">pub fn </span>BN_set_negative(bn: <span class="kw-2">*mut </span><a href="types.rs.html#44">BIGNUM</a>, n: <a href="../../../openssl_sys/type.c_int.html">c_int</a>);
+    </span><span class="kw">pub fn </span>BN_bn2binpad(a: <span class="kw-2">*const </span>BIGNUM, to: <span class="kw-2">*mut </span>u8, tolen: c_int) -&gt; c_int;
+    <span class="kw">pub fn </span>BN_sub(r: <span class="kw-2">*mut </span>BIGNUM, a: <span class="kw-2">*const </span>BIGNUM, b: <span class="kw-2">*const </span>BIGNUM) -&gt; c_int;
+    <span class="kw">pub fn </span>BN_add(r: <span class="kw-2">*mut </span>BIGNUM, a: <span class="kw-2">*const </span>BIGNUM, b: <span class="kw-2">*const </span>BIGNUM) -&gt; c_int;
+    <span class="kw">pub fn </span>BN_mul(r: <span class="kw-2">*mut </span>BIGNUM, a: <span class="kw-2">*const </span>BIGNUM, b: <span class="kw-2">*const </span>BIGNUM, ctx: <span class="kw-2">*mut </span>BN_CTX) -&gt; c_int;
+    <span class="kw">pub fn </span>BN_sqr(r: <span class="kw-2">*mut </span>BIGNUM, a: <span class="kw-2">*const </span>BIGNUM, ctx: <span class="kw-2">*mut </span>BN_CTX) -&gt; c_int;
+    <span class="kw">pub fn </span>BN_set_negative(bn: <span class="kw-2">*mut </span>BIGNUM, n: c_int);
     <span class="attr">#[cfg(any(ossl110, libressl350))]
-    </span><span class="kw">pub fn </span>BN_is_negative(b: <span class="kw-2">*const </span><a href="types.rs.html#44">::BIGNUM</a>) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
+    </span><span class="kw">pub fn </span>BN_is_negative(b: <span class="kw-2">*const </span>::BIGNUM) -&gt; c_int;
 
     <span class="kw">pub fn </span>BN_div(
-        dv: <span class="kw-2">*mut </span><a href="types.rs.html#44">BIGNUM</a>,
-        rem: <span class="kw-2">*mut </span><a href="types.rs.html#44">BIGNUM</a>,
-        a: <span class="kw-2">*const </span><a href="types.rs.html#44">BIGNUM</a>,
-        b: <span class="kw-2">*const </span><a href="types.rs.html#44">BIGNUM</a>,
-        ctx: <span class="kw-2">*mut </span><a href="types.rs.html#59">BN_CTX</a>,
-    ) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
+        dv: <span class="kw-2">*mut </span>BIGNUM,
+        rem: <span class="kw-2">*mut </span>BIGNUM,
+        a: <span class="kw-2">*const </span>BIGNUM,
+        b: <span class="kw-2">*const </span>BIGNUM,
+        ctx: <span class="kw-2">*mut </span>BN_CTX,
+    ) -&gt; c_int;
     <span class="kw">pub fn </span>BN_nnmod(
-        rem: <span class="kw-2">*mut </span><a href="types.rs.html#44">BIGNUM</a>,
-        a: <span class="kw-2">*const </span><a href="types.rs.html#44">BIGNUM</a>,
-        m: <span class="kw-2">*const </span><a href="types.rs.html#44">BIGNUM</a>,
-        ctx: <span class="kw-2">*mut </span><a href="types.rs.html#59">BN_CTX</a>,
-    ) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
+        rem: <span class="kw-2">*mut </span>BIGNUM,
+        a: <span class="kw-2">*const </span>BIGNUM,
+        m: <span class="kw-2">*const </span>BIGNUM,
+        ctx: <span class="kw-2">*mut </span>BN_CTX,
+    ) -&gt; c_int;
     <span class="kw">pub fn </span>BN_mod_add(
-        r: <span class="kw-2">*mut </span><a href="types.rs.html#44">BIGNUM</a>,
-        a: <span class="kw-2">*const </span><a href="types.rs.html#44">BIGNUM</a>,
-        b: <span class="kw-2">*const </span><a href="types.rs.html#44">BIGNUM</a>,
-        m: <span class="kw-2">*const </span><a href="types.rs.html#44">BIGNUM</a>,
-        ctx: <span class="kw-2">*mut </span><a href="types.rs.html#59">BN_CTX</a>,
-    ) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
+        r: <span class="kw-2">*mut </span>BIGNUM,
+        a: <span class="kw-2">*const </span>BIGNUM,
+        b: <span class="kw-2">*const </span>BIGNUM,
+        m: <span class="kw-2">*const </span>BIGNUM,
+        ctx: <span class="kw-2">*mut </span>BN_CTX,
+    ) -&gt; c_int;
     <span class="kw">pub fn </span>BN_mod_sub(
-        r: <span class="kw-2">*mut </span><a href="types.rs.html#44">BIGNUM</a>,
-        a: <span class="kw-2">*const </span><a href="types.rs.html#44">BIGNUM</a>,
-        b: <span class="kw-2">*const </span><a href="types.rs.html#44">BIGNUM</a>,
-        m: <span class="kw-2">*const </span><a href="types.rs.html#44">BIGNUM</a>,
-        ctx: <span class="kw-2">*mut </span><a href="types.rs.html#59">BN_CTX</a>,
-    ) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
+        r: <span class="kw-2">*mut </span>BIGNUM,
+        a: <span class="kw-2">*const </span>BIGNUM,
+        b: <span class="kw-2">*const </span>BIGNUM,
+        m: <span class="kw-2">*const </span>BIGNUM,
+        ctx: <span class="kw-2">*mut </span>BN_CTX,
+    ) -&gt; c_int;
     <span class="kw">pub fn </span>BN_mod_mul(
-        r: <span class="kw-2">*mut </span><a href="types.rs.html#44">BIGNUM</a>,
-        a: <span class="kw-2">*const </span><a href="types.rs.html#44">BIGNUM</a>,
-        b: <span class="kw-2">*const </span><a href="types.rs.html#44">BIGNUM</a>,
-        m: <span class="kw-2">*const </span><a href="types.rs.html#44">BIGNUM</a>,
-        ctx: <span class="kw-2">*mut </span><a href="types.rs.html#59">BN_CTX</a>,
-    ) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
+        r: <span class="kw-2">*mut </span>BIGNUM,
+        a: <span class="kw-2">*const </span>BIGNUM,
+        b: <span class="kw-2">*const </span>BIGNUM,
+        m: <span class="kw-2">*const </span>BIGNUM,
+        ctx: <span class="kw-2">*mut </span>BN_CTX,
+    ) -&gt; c_int;
     <span class="kw">pub fn </span>BN_mod_sqr(
-        r: <span class="kw-2">*mut </span><a href="types.rs.html#44">BIGNUM</a>,
-        a: <span class="kw-2">*const </span><a href="types.rs.html#44">BIGNUM</a>,
-        m: <span class="kw-2">*const </span><a href="types.rs.html#44">BIGNUM</a>,
-        ctx: <span class="kw-2">*mut </span><a href="types.rs.html#59">BN_CTX</a>,
-    ) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
+        r: <span class="kw-2">*mut </span>BIGNUM,
+        a: <span class="kw-2">*const </span>BIGNUM,
+        m: <span class="kw-2">*const </span>BIGNUM,
+        ctx: <span class="kw-2">*mut </span>BN_CTX,
+    ) -&gt; c_int;
 
-    <span class="kw">pub fn </span>BN_mod_word(r: <span class="kw-2">*const </span><a href="types.rs.html#44">BIGNUM</a>, w: <a href="../bn.rs.html#6">BN_ULONG</a>) -&gt; <a href="../bn.rs.html#6">BN_ULONG</a>;
-    <span class="kw">pub fn </span>BN_div_word(r: <span class="kw-2">*mut </span><a href="types.rs.html#44">BIGNUM</a>, w: <a href="../bn.rs.html#6">BN_ULONG</a>) -&gt; <a href="../bn.rs.html#6">BN_ULONG</a>;
-    <span class="kw">pub fn </span>BN_mul_word(r: <span class="kw-2">*mut </span><a href="types.rs.html#44">BIGNUM</a>, w: <a href="../bn.rs.html#6">BN_ULONG</a>) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
-    <span class="kw">pub fn </span>BN_add_word(r: <span class="kw-2">*mut </span><a href="types.rs.html#44">BIGNUM</a>, w: <a href="../bn.rs.html#6">BN_ULONG</a>) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
-    <span class="kw">pub fn </span>BN_sub_word(r: <span class="kw-2">*mut </span><a href="types.rs.html#44">BIGNUM</a>, w: <a href="../bn.rs.html#6">BN_ULONG</a>) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
-    <span class="kw">pub fn </span>BN_set_word(bn: <span class="kw-2">*mut </span><a href="types.rs.html#44">BIGNUM</a>, n: <a href="../bn.rs.html#6">BN_ULONG</a>) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
+    <span class="kw">pub fn </span>BN_mod_word(r: <span class="kw-2">*const </span>BIGNUM, w: BN_ULONG) -&gt; BN_ULONG;
+    <span class="kw">pub fn </span>BN_div_word(r: <span class="kw-2">*mut </span>BIGNUM, w: BN_ULONG) -&gt; BN_ULONG;
+    <span class="kw">pub fn </span>BN_mul_word(r: <span class="kw-2">*mut </span>BIGNUM, w: BN_ULONG) -&gt; c_int;
+    <span class="kw">pub fn </span>BN_add_word(r: <span class="kw-2">*mut </span>BIGNUM, w: BN_ULONG) -&gt; c_int;
+    <span class="kw">pub fn </span>BN_sub_word(r: <span class="kw-2">*mut </span>BIGNUM, w: BN_ULONG) -&gt; c_int;
+    <span class="kw">pub fn </span>BN_set_word(bn: <span class="kw-2">*mut </span>BIGNUM, n: BN_ULONG) -&gt; c_int;
 
-    <span class="kw">pub fn </span>BN_cmp(a: <span class="kw-2">*const </span><a href="types.rs.html#44">BIGNUM</a>, b: <span class="kw-2">*const </span><a href="types.rs.html#44">BIGNUM</a>) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
-    <span class="kw">pub fn </span>BN_free(bn: <span class="kw-2">*mut </span><a href="types.rs.html#44">BIGNUM</a>);
-    <span class="kw">pub fn </span>BN_is_bit_set(a: <span class="kw-2">*const </span><a href="types.rs.html#44">BIGNUM</a>, n: <a href="../../../openssl_sys/type.c_int.html">c_int</a>) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
-    <span class="kw">pub fn </span>BN_lshift(r: <span class="kw-2">*mut </span><a href="types.rs.html#44">BIGNUM</a>, a: <span class="kw-2">*const </span><a href="types.rs.html#44">BIGNUM</a>, n: <a href="../../../openssl_sys/type.c_int.html">c_int</a>) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
-    <span class="kw">pub fn </span>BN_lshift1(r: <span class="kw-2">*mut </span><a href="types.rs.html#44">BIGNUM</a>, a: <span class="kw-2">*const </span><a href="types.rs.html#44">BIGNUM</a>) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
-    <span class="kw">pub fn </span>BN_exp(r: <span class="kw-2">*mut </span><a href="types.rs.html#44">BIGNUM</a>, a: <span class="kw-2">*const </span><a href="types.rs.html#44">BIGNUM</a>, p: <span class="kw-2">*const </span><a href="types.rs.html#44">BIGNUM</a>, ctx: <span class="kw-2">*mut </span><a href="types.rs.html#59">BN_CTX</a>) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
+    <span class="kw">pub fn </span>BN_cmp(a: <span class="kw-2">*const </span>BIGNUM, b: <span class="kw-2">*const </span>BIGNUM) -&gt; c_int;
+    <span class="kw">pub fn </span>BN_free(bn: <span class="kw-2">*mut </span>BIGNUM);
+    <span class="kw">pub fn </span>BN_is_bit_set(a: <span class="kw-2">*const </span>BIGNUM, n: c_int) -&gt; c_int;
+    <span class="kw">pub fn </span>BN_lshift(r: <span class="kw-2">*mut </span>BIGNUM, a: <span class="kw-2">*const </span>BIGNUM, n: c_int) -&gt; c_int;
+    <span class="kw">pub fn </span>BN_lshift1(r: <span class="kw-2">*mut </span>BIGNUM, a: <span class="kw-2">*const </span>BIGNUM) -&gt; c_int;
+    <span class="kw">pub fn </span>BN_exp(r: <span class="kw-2">*mut </span>BIGNUM, a: <span class="kw-2">*const </span>BIGNUM, p: <span class="kw-2">*const </span>BIGNUM, ctx: <span class="kw-2">*mut </span>BN_CTX) -&gt; c_int;
 
     <span class="kw">pub fn </span>BN_mod_exp(
-        r: <span class="kw-2">*mut </span><a href="types.rs.html#44">BIGNUM</a>,
-        a: <span class="kw-2">*const </span><a href="types.rs.html#44">BIGNUM</a>,
-        p: <span class="kw-2">*const </span><a href="types.rs.html#44">BIGNUM</a>,
-        m: <span class="kw-2">*const </span><a href="types.rs.html#44">BIGNUM</a>,
-        ctx: <span class="kw-2">*mut </span><a href="types.rs.html#59">BN_CTX</a>,
-    ) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
+        r: <span class="kw-2">*mut </span>BIGNUM,
+        a: <span class="kw-2">*const </span>BIGNUM,
+        p: <span class="kw-2">*const </span>BIGNUM,
+        m: <span class="kw-2">*const </span>BIGNUM,
+        ctx: <span class="kw-2">*mut </span>BN_CTX,
+    ) -&gt; c_int;
 
-    <span class="kw">pub fn </span>BN_mask_bits(a: <span class="kw-2">*mut </span><a href="types.rs.html#44">BIGNUM</a>, n: <a href="../../../openssl_sys/type.c_int.html">c_int</a>) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
-    <span class="kw">pub fn </span>BN_rshift(r: <span class="kw-2">*mut </span><a href="types.rs.html#44">BIGNUM</a>, a: <span class="kw-2">*const </span><a href="types.rs.html#44">BIGNUM</a>, n: <a href="../../../openssl_sys/type.c_int.html">c_int</a>) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
-    <span class="kw">pub fn </span>BN_rshift1(r: <span class="kw-2">*mut </span><a href="types.rs.html#44">BIGNUM</a>, a: <span class="kw-2">*const </span><a href="types.rs.html#44">BIGNUM</a>) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
-    <span class="kw">pub fn </span>BN_bn2hex(a: <span class="kw-2">*const </span><a href="types.rs.html#44">BIGNUM</a>) -&gt; <span class="kw-2">*mut </span><a href="../../../openssl_sys/type.c_char.html">c_char</a>;
-    <span class="kw">pub fn </span>BN_bn2dec(a: <span class="kw-2">*const </span><a href="types.rs.html#44">BIGNUM</a>) -&gt; <span class="kw-2">*mut </span><a href="../../../openssl_sys/type.c_char.html">c_char</a>;
-    <span class="kw">pub fn </span>BN_hex2bn(a: <span class="kw-2">*mut *mut </span><a href="types.rs.html#44">BIGNUM</a>, s: <span class="kw-2">*const </span><a href="../../../openssl_sys/type.c_char.html">c_char</a>) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
-    <span class="kw">pub fn </span>BN_dec2bn(a: <span class="kw-2">*mut *mut </span><a href="types.rs.html#44">BIGNUM</a>, s: <span class="kw-2">*const </span><a href="../../../openssl_sys/type.c_char.html">c_char</a>) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
-    <span class="kw">pub fn </span>BN_gcd(r: <span class="kw-2">*mut </span><a href="types.rs.html#44">BIGNUM</a>, a: <span class="kw-2">*const </span><a href="types.rs.html#44">BIGNUM</a>, b: <span class="kw-2">*const </span><a href="types.rs.html#44">BIGNUM</a>, ctx: <span class="kw-2">*mut </span><a href="types.rs.html#59">BN_CTX</a>) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
+    <span class="kw">pub fn </span>BN_mask_bits(a: <span class="kw-2">*mut </span>BIGNUM, n: c_int) -&gt; c_int;
+    <span class="kw">pub fn </span>BN_rshift(r: <span class="kw-2">*mut </span>BIGNUM, a: <span class="kw-2">*const </span>BIGNUM, n: c_int) -&gt; c_int;
+    <span class="kw">pub fn </span>BN_rshift1(r: <span class="kw-2">*mut </span>BIGNUM, a: <span class="kw-2">*const </span>BIGNUM) -&gt; c_int;
+    <span class="kw">pub fn </span>BN_bn2hex(a: <span class="kw-2">*const </span>BIGNUM) -&gt; <span class="kw-2">*mut </span>c_char;
+    <span class="kw">pub fn </span>BN_bn2dec(a: <span class="kw-2">*const </span>BIGNUM) -&gt; <span class="kw-2">*mut </span>c_char;
+    <span class="kw">pub fn </span>BN_hex2bn(a: <span class="kw-2">*mut *mut </span>BIGNUM, s: <span class="kw-2">*const </span>c_char) -&gt; c_int;
+    <span class="kw">pub fn </span>BN_dec2bn(a: <span class="kw-2">*mut *mut </span>BIGNUM, s: <span class="kw-2">*const </span>c_char) -&gt; c_int;
+    <span class="kw">pub fn </span>BN_gcd(r: <span class="kw-2">*mut </span>BIGNUM, a: <span class="kw-2">*const </span>BIGNUM, b: <span class="kw-2">*const </span>BIGNUM, ctx: <span class="kw-2">*mut </span>BN_CTX) -&gt; c_int;
     <span class="kw">pub fn </span>BN_mod_inverse(
-        r: <span class="kw-2">*mut </span><a href="types.rs.html#44">BIGNUM</a>,
-        a: <span class="kw-2">*const </span><a href="types.rs.html#44">BIGNUM</a>,
-        n: <span class="kw-2">*const </span><a href="types.rs.html#44">BIGNUM</a>,
-        ctx: <span class="kw-2">*mut </span><a href="types.rs.html#59">BN_CTX</a>,
-    ) -&gt; <span class="kw-2">*mut </span><a href="types.rs.html#44">BIGNUM</a>;
-    <span class="kw">pub fn </span>BN_clear(bn: <span class="kw-2">*mut </span><a href="types.rs.html#44">BIGNUM</a>);
-    <span class="kw">pub fn </span>BN_dup(n: <span class="kw-2">*const </span><a href="types.rs.html#44">BIGNUM</a>) -&gt; <span class="kw-2">*mut </span><a href="types.rs.html#44">BIGNUM</a>;
-    <span class="kw">pub fn </span>BN_ucmp(a: <span class="kw-2">*const </span><a href="types.rs.html#44">BIGNUM</a>, b: <span class="kw-2">*const </span><a href="types.rs.html#44">BIGNUM</a>) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
-    <span class="kw">pub fn </span>BN_set_bit(a: <span class="kw-2">*mut </span><a href="types.rs.html#44">BIGNUM</a>, n: <a href="../../../openssl_sys/type.c_int.html">c_int</a>) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
-    <span class="kw">pub fn </span>BN_clear_bit(a: <span class="kw-2">*mut </span><a href="types.rs.html#44">BIGNUM</a>, n: <a href="../../../openssl_sys/type.c_int.html">c_int</a>) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
+        r: <span class="kw-2">*mut </span>BIGNUM,
+        a: <span class="kw-2">*const </span>BIGNUM,
+        n: <span class="kw-2">*const </span>BIGNUM,
+        ctx: <span class="kw-2">*mut </span>BN_CTX,
+    ) -&gt; <span class="kw-2">*mut </span>BIGNUM;
+    <span class="kw">pub fn </span>BN_clear(bn: <span class="kw-2">*mut </span>BIGNUM);
+    <span class="kw">pub fn </span>BN_dup(n: <span class="kw-2">*const </span>BIGNUM) -&gt; <span class="kw-2">*mut </span>BIGNUM;
+    <span class="kw">pub fn </span>BN_ucmp(a: <span class="kw-2">*const </span>BIGNUM, b: <span class="kw-2">*const </span>BIGNUM) -&gt; c_int;
+    <span class="kw">pub fn </span>BN_set_bit(a: <span class="kw-2">*mut </span>BIGNUM, n: c_int) -&gt; c_int;
+    <span class="kw">pub fn </span>BN_clear_bit(a: <span class="kw-2">*mut </span>BIGNUM, n: c_int) -&gt; c_int;
 
     <span class="kw">pub fn </span>BN_generate_prime_ex(
-        r: <span class="kw-2">*mut </span><a href="types.rs.html#44">BIGNUM</a>,
-        bits: <a href="../../../openssl_sys/type.c_int.html">c_int</a>,
-        safe: <a href="../../../openssl_sys/type.c_int.html">c_int</a>,
-        add: <span class="kw-2">*const </span><a href="types.rs.html#44">BIGNUM</a>,
-        rem: <span class="kw-2">*const </span><a href="types.rs.html#44">BIGNUM</a>,
-        cb: <span class="kw-2">*mut </span><a href="types.rs.html#60">BN_GENCB</a>,
-    ) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
-    <span class="kw">pub fn </span>BN_is_prime_ex(
-        p: <span class="kw-2">*const </span><a href="types.rs.html#44">BIGNUM</a>,
-        checks: <a href="../../../openssl_sys/type.c_int.html">c_int</a>,
-        ctx: <span class="kw-2">*mut </span><a href="types.rs.html#59">BN_CTX</a>,
-        cb: <span class="kw-2">*mut </span><a href="types.rs.html#60">BN_GENCB</a>,
-    ) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
-    <span class="kw">pub fn </span>BN_is_prime_fasttest_ex(
-        p: <span class="kw-2">*const </span><a href="types.rs.html#44">BIGNUM</a>,
-        checks: <a href="../../../openssl_sys/type.c_int.html">c_int</a>,
-        ctx: <span class="kw-2">*mut </span><a href="types.rs.html#59">BN_CTX</a>,
-        do_trial_division: <a href="../../../openssl_sys/type.c_int.html">c_int</a>,
-        cb: <span class="kw-2">*mut </span><a href="types.rs.html#60">BN_GENCB</a>,
-    ) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
+        r: <span class="kw-2">*mut </span>BIGNUM,
+        bits: c_int,
+        safe: c_int,
+        add: <span class="kw-2">*const </span>BIGNUM,
+        rem: <span class="kw-2">*const </span>BIGNUM,
+        cb: <span class="kw-2">*mut </span>BN_GENCB,
+    ) -&gt; c_int;
+    <span class="attr">#[cfg(not(osslconf = <span class="string">&quot;OPENSSL_NO_DEPRECATED_3_0&quot;</span>))]
+    </span><span class="kw">pub fn </span>BN_is_prime_ex(
+        p: <span class="kw-2">*const </span>BIGNUM,
+        checks: c_int,
+        ctx: <span class="kw-2">*mut </span>BN_CTX,
+        cb: <span class="kw-2">*mut </span>BN_GENCB,
+    ) -&gt; c_int;
+    <span class="attr">#[cfg(not(osslconf = <span class="string">&quot;OPENSSL_NO_DEPRECATED_3_0&quot;</span>))]
+    </span><span class="kw">pub fn </span>BN_is_prime_fasttest_ex(
+        p: <span class="kw-2">*const </span>BIGNUM,
+        checks: c_int,
+        ctx: <span class="kw-2">*mut </span>BN_CTX,
+        do_trial_division: c_int,
+        cb: <span class="kw-2">*mut </span>BN_GENCB,
+    ) -&gt; c_int;
 }
 
 <span class="macro">cfg_if! </span>{
     <span class="kw">if </span><span class="attr">#[cfg(any(ossl110, libressl350))] </span>{
         <span class="kw">extern </span><span class="string">&quot;C&quot; </span>{
-            <span class="kw">pub fn </span>BN_get_rfc2409_prime_768(bn: <span class="kw-2">*mut </span><a href="types.rs.html#44">BIGNUM</a>) -&gt; <span class="kw-2">*mut </span><a href="types.rs.html#44">BIGNUM</a>;
-            <span class="kw">pub fn </span>BN_get_rfc2409_prime_1024(bn: <span class="kw-2">*mut </span><a href="types.rs.html#44">BIGNUM</a>) -&gt; <span class="kw-2">*mut </span><a href="types.rs.html#44">BIGNUM</a>;
-            <span class="kw">pub fn </span>BN_get_rfc3526_prime_1536(bn: <span class="kw-2">*mut </span><a href="types.rs.html#44">BIGNUM</a>) -&gt; <span class="kw-2">*mut </span><a href="types.rs.html#44">BIGNUM</a>;
-            <span class="kw">pub fn </span>BN_get_rfc3526_prime_2048(bn: <span class="kw-2">*mut </span><a href="types.rs.html#44">BIGNUM</a>) -&gt; <span class="kw-2">*mut </span><a href="types.rs.html#44">BIGNUM</a>;
-            <span class="kw">pub fn </span>BN_get_rfc3526_prime_3072(bn: <span class="kw-2">*mut </span><a href="types.rs.html#44">BIGNUM</a>) -&gt; <span class="kw-2">*mut </span><a href="types.rs.html#44">BIGNUM</a>;
-            <span class="kw">pub fn </span>BN_get_rfc3526_prime_4096(bn: <span class="kw-2">*mut </span><a href="types.rs.html#44">BIGNUM</a>) -&gt; <span class="kw-2">*mut </span><a href="types.rs.html#44">BIGNUM</a>;
-            <span class="kw">pub fn </span>BN_get_rfc3526_prime_6144(bn: <span class="kw-2">*mut </span><a href="types.rs.html#44">BIGNUM</a>) -&gt; <span class="kw-2">*mut </span><a href="types.rs.html#44">BIGNUM</a>;
-            <span class="kw">pub fn </span>BN_get_rfc3526_prime_8192(bn: <span class="kw-2">*mut </span><a href="types.rs.html#44">BIGNUM</a>) -&gt; <span class="kw-2">*mut </span><a href="types.rs.html#44">BIGNUM</a>;
+            <span class="kw">pub fn </span>BN_get_rfc2409_prime_768(bn: <span class="kw-2">*mut </span>BIGNUM) -&gt; <span class="kw-2">*mut </span>BIGNUM;
+            <span class="kw">pub fn </span>BN_get_rfc2409_prime_1024(bn: <span class="kw-2">*mut </span>BIGNUM) -&gt; <span class="kw-2">*mut </span>BIGNUM;
+            <span class="kw">pub fn </span>BN_get_rfc3526_prime_1536(bn: <span class="kw-2">*mut </span>BIGNUM) -&gt; <span class="kw-2">*mut </span>BIGNUM;
+            <span class="kw">pub fn </span>BN_get_rfc3526_prime_2048(bn: <span class="kw-2">*mut </span>BIGNUM) -&gt; <span class="kw-2">*mut </span>BIGNUM;
+            <span class="kw">pub fn </span>BN_get_rfc3526_prime_3072(bn: <span class="kw-2">*mut </span>BIGNUM) -&gt; <span class="kw-2">*mut </span>BIGNUM;
+            <span class="kw">pub fn </span>BN_get_rfc3526_prime_4096(bn: <span class="kw-2">*mut </span>BIGNUM) -&gt; <span class="kw-2">*mut </span>BIGNUM;
+            <span class="kw">pub fn </span>BN_get_rfc3526_prime_6144(bn: <span class="kw-2">*mut </span>BIGNUM) -&gt; <span class="kw-2">*mut </span>BIGNUM;
+            <span class="kw">pub fn </span>BN_get_rfc3526_prime_8192(bn: <span class="kw-2">*mut </span>BIGNUM) -&gt; <span class="kw-2">*mut </span>BIGNUM;
         }
     } <span class="kw">else </span>{
         <span class="kw">extern </span><span class="string">&quot;C&quot; </span>{
@@ -327,4 +335,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="openssl_sys" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="openssl_sys" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

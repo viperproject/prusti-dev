@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/reqwest-0.11.13/src/dns/resolve.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>resolve.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../reqwest/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/reqwest-0.11.13/src/dns/resolve.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>resolve.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../reqwest/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -82,26 +82,26 @@
 <a href="#82" id="82">82</a>
 <a href="#83" id="83">83</a>
 <a href="#84" id="84">84</a>
-</pre><pre class="rust"><code><span class="kw">use </span><a href="../../../hyper/client/connect/dns/struct.Name.html">hyper::client::connect::dns::Name</a>;
-<span class="kw">use </span><a href="../../../tower_service/trait.Service.html">hyper::service::Service</a>;
+</pre><pre class="rust"><code><span class="kw">use </span>hyper::client::connect::dns::Name;
+<span class="kw">use </span>hyper::service::Service;
 
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/collections/hash/map/struct.HashMap.html">std::collections::HashMap</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">std::future::Future</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/net/socket_addr/enum.SocketAddr.html">std::net::SocketAddr</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/pin/struct.Pin.html">std::pin::Pin</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/sync/struct.Arc.html">std::sync::Arc</a>;
-<span class="kw">use </span>std::task::{<a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>, <a href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">Poll</a>};
+<span class="kw">use </span>std::collections::HashMap;
+<span class="kw">use </span>std::future::Future;
+<span class="kw">use </span>std::net::SocketAddr;
+<span class="kw">use </span>std::pin::Pin;
+<span class="kw">use </span>std::sync::Arc;
+<span class="kw">use </span>std::task::{Context, Poll};
 
-<span class="kw">use </span><a href="../error.rs.html#20"><span class="kw">crate</span>::error::BoxError</a>;
+<span class="kw">use </span><span class="kw">crate</span>::error::BoxError;
 
 <span class="doccomment">/// Alias for an `Iterator` trait object over `SocketAddr`.
-</span><span class="kw">pub type </span>Addrs = Box&lt;<span class="kw">dyn </span>Iterator&lt;Item = <a href="https://doc.rust-lang.org/nightly/std/net/socket_addr/enum.SocketAddr.html">SocketAddr</a>&gt; + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a>&gt;;
+</span><span class="kw">pub type </span>Addrs = Box&lt;<span class="kw">dyn </span>Iterator&lt;Item = SocketAddr&gt; + Send&gt;;
 
 <span class="doccomment">/// Alias for the `Future` type returned by a DNS resolver.
-</span><span class="kw">pub type </span>Resolving = Pin&lt;Box&lt;<span class="kw">dyn </span>Future&lt;Output = <span class="prelude-ty">Result</span>&lt;<a href="#14">Addrs</a>, <a href="../error.rs.html#20">BoxError</a>&gt;&gt; + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a>&gt;&gt;;
+</span><span class="kw">pub type </span>Resolving = Pin&lt;Box&lt;<span class="kw">dyn </span>Future&lt;Output = <span class="prelude-ty">Result</span>&lt;Addrs, BoxError&gt;&gt; + Send&gt;&gt;;
 
 <span class="doccomment">/// Trait for customizing DNS resolution in reqwest.
-</span><span class="kw">pub trait </span>Resolve: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> {
+</span><span class="kw">pub trait </span>Resolve: Send + Sync {
     <span class="doccomment">/// Performs DNS resolution on a `Name`.
     /// The return type is a future containing an iterator of `SocketAddr`.
     ///
@@ -110,61 +110,61 @@
     ///  * It does not need a mutable reference to `self`.
     ///  * Since trait objects cannot make use of associated types, it requires
     ///    wrapping the returned `Future` and its contained `Iterator` with `Box`.
-    </span><span class="kw">fn </span>resolve(<span class="kw-2">&amp;</span><span class="self">self</span>, name: <a href="../../../hyper/client/connect/dns/struct.Name.html">Name</a>) -&gt; <a href="#17">Resolving</a>;
+    </span><span class="kw">fn </span>resolve(<span class="kw-2">&amp;</span><span class="self">self</span>, name: Name) -&gt; Resolving;
 }
 
 <span class="attr">#[derive(Clone)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>DynResolver {
-    resolver: Arc&lt;<span class="kw">dyn </span><a href="#20">Resolve</a>&gt;,
+    resolver: Arc&lt;<span class="kw">dyn </span>Resolve&gt;,
 }
 
-<span class="kw">impl </span><a href="#33">DynResolver</a> {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(resolver: Arc&lt;<span class="kw">dyn </span><a href="#20">Resolve</a>&gt;) -&gt; <span class="self">Self </span>{
-        <span class="self">Self </span>{ <a href="#38">resolver</a> }
+<span class="kw">impl </span>DynResolver {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(resolver: Arc&lt;<span class="kw">dyn </span>Resolve&gt;) -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{ resolver }
     }
 }
 
-<span class="kw">impl </span>Service&lt;<a href="../../../hyper/client/connect/dns/struct.Name.html">Name</a>&gt; <span class="kw">for </span><a href="#33">DynResolver</a> {
-    <span class="kw">type </span>Response = <a href="#14">Addrs</a>;
-    <span class="kw">type </span>Error = <a href="../error.rs.html#20">BoxError</a>;
-    <span class="kw">type </span>Future = <a href="#17">Resolving</a>;
+<span class="kw">impl </span>Service&lt;Name&gt; <span class="kw">for </span>DynResolver {
+    <span class="kw">type </span>Response = Addrs;
+    <span class="kw">type </span>Error = BoxError;
+    <span class="kw">type </span>Future = Resolving;
 
     <span class="kw">fn </span>poll_ready(<span class="kw-2">&amp;mut </span><span class="self">self</span>, <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt;&gt; {
         Poll::Ready(<span class="prelude-val">Ok</span>(()))
     }
 
-    <span class="kw">fn </span>call(<span class="kw-2">&amp;mut </span><span class="self">self</span>, name: <a href="../../../hyper/client/connect/dns/struct.Name.html">Name</a>) -&gt; <span class="self">Self</span>::Future {
-        <a class="self" href="#52">self</a>.resolver.<a href="#29">resolve</a>(<a href="#52">name</a>)
+    <span class="kw">fn </span>call(<span class="kw-2">&amp;mut </span><span class="self">self</span>, name: Name) -&gt; <span class="self">Self</span>::Future {
+        <span class="self">self</span>.resolver.resolve(name)
     }
 }
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>DnsResolverWithOverrides {
-    dns_resolver: Arc&lt;<span class="kw">dyn </span><a href="#20">Resolve</a>&gt;,
-    overrides: Arc&lt;HashMap&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/net/socket_addr/enum.SocketAddr.html">SocketAddr</a>&gt;&gt;&gt;,
+    dns_resolver: Arc&lt;<span class="kw">dyn </span>Resolve&gt;,
+    overrides: Arc&lt;HashMap&lt;String, Vec&lt;SocketAddr&gt;&gt;&gt;,
 }
 
-<span class="kw">impl </span><a href="#57">DnsResolverWithOverrides</a> {
+<span class="kw">impl </span>DnsResolverWithOverrides {
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(
-        dns_resolver: Arc&lt;<span class="kw">dyn </span><a href="#20">Resolve</a>&gt;,
-        overrides: HashMap&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/net/socket_addr/enum.SocketAddr.html">SocketAddr</a>&gt;&gt;,
+        dns_resolver: Arc&lt;<span class="kw">dyn </span>Resolve&gt;,
+        overrides: HashMap&lt;String, Vec&lt;SocketAddr&gt;&gt;,
     ) -&gt; <span class="self">Self </span>{
-        <a href="#57">DnsResolverWithOverrides</a> {
-            <a href="#64">dns_resolver</a>,
-            overrides: Arc::new(<a href="#65">overrides</a>),
+        DnsResolverWithOverrides {
+            dns_resolver,
+            overrides: Arc::new(overrides),
         }
     }
 }
 
-<span class="kw">impl </span><a href="#20">Resolve</a> <span class="kw">for </span><a href="#57">DnsResolverWithOverrides</a> {
-    <span class="kw">fn </span>resolve(<span class="kw-2">&amp;</span><span class="self">self</span>, name: <a href="../../../hyper/client/connect/dns/struct.Name.html">Name</a>) -&gt; <a href="#17">Resolving</a> {
-        <span class="kw">match </span><a class="self" href="#75">self</a>.overrides.get(<a href="#75">name</a>.as_str()) {
+<span class="kw">impl </span>Resolve <span class="kw">for </span>DnsResolverWithOverrides {
+    <span class="kw">fn </span>resolve(<span class="kw-2">&amp;</span><span class="self">self</span>, name: Name) -&gt; Resolving {
+        <span class="kw">match </span><span class="self">self</span>.overrides.get(name.as_str()) {
             <span class="prelude-val">Some</span>(dest) =&gt; {
-                <span class="kw">let </span>addrs: <a href="#14">Addrs</a> = Box::new(<a href="#77">dest</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>());
-                Box::pin(futures_util::future::ready(<span class="prelude-val">Ok</span>(<a href="#78">addrs</a>)))
+                <span class="kw">let </span>addrs: Addrs = Box::new(dest.clone().into_iter());
+                Box::pin(futures_util::future::ready(<span class="prelude-val">Ok</span>(addrs)))
             }
-            <span class="prelude-val">None </span>=&gt; <a class="self" href="#75">self</a>.dns_resolver.<a href="#29">resolve</a>(<a href="#75">name</a>),
+            <span class="prelude-val">None </span>=&gt; <span class="self">self</span>.dns_resolver.resolve(name),
         }
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="reqwest" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="reqwest" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

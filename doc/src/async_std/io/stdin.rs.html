@@ -1,5 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/async-std-1.12.0/src/io/stdin.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>stdin.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../async_std/index.html">
-                        <img src="https://async.rs/images/logo--hero.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/async-std-1.12.0/src/io/stdin.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>stdin.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../async_std/index.html">
+                        <img src="https://async.rs/images/logo--hero.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -218,14 +218,14 @@
 <a href="#217" id="217">217</a>
 <a href="#218" id="218">218</a>
 <a href="#219" id="219">219</a>
-</pre><pre class="rust"><code><span class="kw">use </span><a href="../../../async_std/future/trait.Future.html">std::future::Future</a>;
-<span class="kw">use </span><a href="../../../async_std/pin/struct.Pin.html">std::pin::Pin</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/sync/mutex/struct.Mutex.html">std::sync::Mutex</a>;
+</pre><pre class="rust"><code><span class="kw">use </span>std::future::Future;
+<span class="kw">use </span>std::pin::Pin;
+<span class="kw">use </span>std::sync::Mutex;
 
-<span class="kw">use </span><a href="../lib.rs.html#302"><span class="kw">crate</span>::future</a>;
-<span class="kw">use </span><span class="kw">crate</span>::io::{<a class="self" href="../lib.rs.html#307">self</a>, <a href="../../../async_std/io/trait.Read.html">Read</a>};
-<span class="kw">use </span><span class="kw">crate</span>::task::{<a href="../task/spawn_blocking.rs.html#31-34">spawn_blocking</a>, <a href="../../../async_std/task/struct.Context.html">Context</a>, <a href="../task/join_handle.rs.html#15">JoinHandle</a>, <a href="../../../async_std/task/enum.Poll.html">Poll</a>};
-<span class="kw">use </span><a href="../utils.rs.html#58"><span class="kw">crate</span>::utils::Context</a> <span class="kw">as _</span>;
+<span class="kw">use </span><span class="kw">crate</span>::future;
+<span class="kw">use </span><span class="kw">crate</span>::io::{<span class="self">self</span>, Read};
+<span class="kw">use </span><span class="kw">crate</span>::task::{spawn_blocking, Context, JoinHandle, Poll};
+<span class="kw">use </span><span class="kw">crate</span>::utils::Context <span class="kw">as _</span>;
 
 <span class="doccomment">/// Constructs a new handle to the standard input of the current process.
 ///
@@ -252,8 +252,8 @@
 /// #
 /// # Ok(()) }) }
 /// ```
-</span><span class="kw">pub fn </span>stdin() -&gt; <a href="#57">Stdin</a> {
-    <a href="#57">Stdin</a>(Mutex::new(<a href="#65">State::Idle</a>(<span class="prelude-val">Some</span>(<a href="#75">Inner</a> {
+</span><span class="kw">pub fn </span>stdin() -&gt; Stdin {
+    Stdin(Mutex::new(State::Idle(<span class="prelude-val">Some</span>(Inner {
         stdin: std::io::stdin(),
         line: String::new(),
         buf: Vec::new(),
@@ -274,7 +274,7 @@
 ///
 /// [`stdin`]: fn.stdin.html
 </span><span class="attr">#[derive(Debug)]
-</span><span class="kw">pub struct </span>Stdin(Mutex&lt;<a href="#63">State</a>&gt;);
+</span><span class="kw">pub struct </span>Stdin(Mutex&lt;State&gt;);
 
 <span class="doccomment">/// The state of the asynchronous stdin.
 ///
@@ -282,38 +282,38 @@
 </span><span class="attr">#[derive(Debug)]
 </span><span class="kw">enum </span>State {
     <span class="doccomment">/// The stdin is idle.
-    </span>Idle(<span class="prelude-ty">Option</span>&lt;<a href="#75">Inner</a>&gt;),
+    </span>Idle(<span class="prelude-ty">Option</span>&lt;Inner&gt;),
 
     <span class="doccomment">/// The stdin is blocked on an asynchronous operation.
     ///
     /// Awaiting this operation will result in the new state of the stdin.
-    </span>Busy(JoinHandle&lt;<a href="#63">State</a>&gt;),
+    </span>Busy(JoinHandle&lt;State&gt;),
 }
 
 <span class="doccomment">/// Inner representation of the asynchronous stdin.
 </span><span class="attr">#[derive(Debug)]
 </span><span class="kw">struct </span>Inner {
     <span class="doccomment">/// The blocking stdin handle.
-    </span>stdin: <a href="https://doc.rust-lang.org/nightly/std/io/stdio/struct.Stdin.html">std::io::Stdin</a>,
+    </span>stdin: std::io::Stdin,
 
     <span class="doccomment">/// The line buffer.
-    </span>line: <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>,
+    </span>line: String,
 
     <span class="doccomment">/// The read buffer.
-    </span>buf: Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;,
+    </span>buf: Vec&lt;u8&gt;,
 
     <span class="doccomment">/// The result of the last asynchronous operation on the stdin.
-    </span>last_op: <span class="prelude-ty">Option</span>&lt;<a href="#91">Operation</a>&gt;,
+    </span>last_op: <span class="prelude-ty">Option</span>&lt;Operation&gt;,
 }
 
 <span class="doccomment">/// Possible results of an asynchronous operation on the stdin.
 </span><span class="attr">#[derive(Debug)]
 </span><span class="kw">enum </span>Operation {
-    ReadLine(io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;),
-    Read(io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;),
+    ReadLine(io::Result&lt;usize&gt;),
+    Read(io::Result&lt;usize&gt;),
 }
 
-<span class="kw">impl </span><a href="#57">Stdin</a> {
+<span class="kw">impl </span>Stdin {
     <span class="doccomment">/// Reads a line of input into the specified buffer.
     ///
     /// # Examples
@@ -329,7 +329,7 @@
     /// #
     /// # Ok(()) }) }
     /// ```
-    </span><span class="kw">pub async fn </span>read_line(<span class="kw-2">&amp;</span><span class="self">self</span>, buf: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
+    </span><span class="kw">pub async fn </span>read_line(<span class="kw-2">&amp;</span><span class="self">self</span>, buf: <span class="kw-2">&amp;mut </span>String) -&gt; io::Result&lt;usize&gt; {
         future::poll_fn(|cx| {
             <span class="kw">let </span>state = <span class="kw-2">&amp;mut *</span><span class="self">self</span>.<span class="number">0</span>.lock().unwrap();
 
@@ -367,63 +367,63 @@
     }
 }
 
-<span class="kw">impl </span><a href="../../../async_std/io/trait.Read.html">Read</a> <span class="kw">for </span><a href="#57">Stdin</a> {
+<span class="kw">impl </span>Read <span class="kw">for </span>Stdin {
     <span class="kw">fn </span>poll_read(
         <span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;,
         cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
-        buf: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
-    ) -&gt; Poll&lt;io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;&gt; {
-        <span class="kw">let </span><span class="kw-2">mut </span>state_guard = <a class="self" href="#152">self</a>.<span class="number">0</span>.lock().unwrap();
-        <span class="kw">let </span>state = <span class="kw-2">&amp;mut *</span><a href="#156">state_guard</a>;
+        buf: <span class="kw-2">&amp;mut </span>[u8],
+    ) -&gt; Poll&lt;io::Result&lt;usize&gt;&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>state_guard = <span class="self">self</span>.<span class="number">0</span>.lock().unwrap();
+        <span class="kw">let </span>state = <span class="kw-2">&amp;mut *</span>state_guard;
 
         <span class="kw">loop </span>{
-            <span class="kw">match </span><a href="#157">state</a> {
-                <a href="#65">State::Idle</a>(opt) =&gt; {
-                    <span class="kw">let </span>inner = <a href="#161">opt</a>.as_mut().unwrap();
+            <span class="kw">match </span>state {
+                State::Idle(opt) =&gt; {
+                    <span class="kw">let </span>inner = opt.as_mut().unwrap();
 
                     <span class="comment">// Check if the operation has completed.
-                    </span><span class="kw">if let </span><span class="prelude-val">Some</span>(<a href="#93">Operation::Read</a>(res)) = <a href="#162">inner</a>.last_op.take() {
+                    </span><span class="kw">if let </span><span class="prelude-val">Some</span>(Operation::Read(res)) = inner.last_op.take() {
                         <span class="kw">let </span>n = res<span class="question-mark">?</span>;
 
                         <span class="comment">// If more data was read than fits into the buffer, let&#39;s retry the read
                         // operation.
                         </span><span class="kw">if </span>n &lt;= buf.len() {
                             <span class="comment">// Copy the read data into the buffer and return.
-                            </span><a href="#154">buf</a>[..<a href="#166">n</a>].copy_from_slice(<span class="kw-2">&amp;</span><a href="#162">inner</a>.buf[..<a href="#166">n</a>]);
-                            <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Ok</span>(<a href="#166">n</a>));
+                            </span>buf[..n].copy_from_slice(<span class="kw-2">&amp;</span>inner.buf[..n]);
+                            <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Ok</span>(n));
                         }
                     } <span class="kw">else </span>{
-                        <span class="kw">let </span><span class="kw-2">mut </span>inner = <a href="#161">opt</a>.take().unwrap();
+                        <span class="kw">let </span><span class="kw-2">mut </span>inner = opt.take().unwrap();
 
                         <span class="comment">// Set the length of the inner buffer to the length of the provided buffer.
                         </span><span class="kw">if </span>inner.buf.len() &lt; buf.len() {
-                            <a href="#176">inner</a>.buf.reserve(<a href="#154">buf</a>.len() - <a href="#176">inner</a>.buf.len());
+                            inner.buf.reserve(buf.len() - inner.buf.len());
                         }
                         <span class="kw">unsafe </span>{
-                            <a href="#176">inner</a>.buf.set_len(<a href="#154">buf</a>.len());
+                            inner.buf.set_len(buf.len());
                         }
 
                         <span class="comment">// Start the operation asynchronously.
-                        </span><span class="kw-2">*</span><a href="#157">state</a> = <a href="#70">State::Busy</a>(<a href="../task/spawn_blocking.rs.html#31-34">spawn_blocking</a>(<span class="kw">move </span>|| {
-                            <span class="kw">let </span>res = <a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">std::io::Read::read</a>(<span class="kw-2">&amp;mut </span><a href="#176">inner</a>.stdin, <span class="kw-2">&amp;mut </span><a href="#176">inner</a>.buf);
-                            <a href="#176">inner</a>.last_op = <span class="prelude-val">Some</span>(<a href="#93">Operation::Read</a>(<a href="#188">res</a>));
-                            <a href="#65">State::Idle</a>(<span class="prelude-val">Some</span>(<a href="#176">inner</a>))
+                        </span><span class="kw-2">*</span>state = State::Busy(spawn_blocking(<span class="kw">move </span>|| {
+                            <span class="kw">let </span>res = std::io::Read::read(<span class="kw-2">&amp;mut </span>inner.stdin, <span class="kw-2">&amp;mut </span>inner.buf);
+                            inner.last_op = <span class="prelude-val">Some</span>(Operation::Read(res));
+                            State::Idle(<span class="prelude-val">Some</span>(inner))
                         }));
                     }
                 }
                 <span class="comment">// Poll the asynchronous operation the stdin is currently blocked on.
-                </span><a href="#70">State::Busy</a>(task) =&gt; <span class="kw-2">*</span><a href="#157">state</a> = <a class="macro" href="../../../async_std/task/macro.ready.html">futures_core::ready!</a>(Pin::new(task).poll(cx)),
+                </span>State::Busy(task) =&gt; <span class="kw-2">*</span>state = <span class="macro">futures_core::ready!</span>(Pin::new(task).poll(cx)),
             }
         }
     }
 }
 
 <span class="macro">cfg_unix! </span>{
-    <span class="kw">use </span><span class="kw">crate</span>::os::unix::io::{<a href="../../../async_std/os/unix/io/trait.AsRawFd.html">AsRawFd</a>, <a href="../../../async_std/os/unix/io/type.RawFd.html">RawFd</a>};
+    <span class="kw">use </span><span class="kw">crate</span>::os::unix::io::{AsRawFd, RawFd};
 
-    <span class="kw">impl </span><a href="../../../async_std/os/unix/io/trait.AsRawFd.html">AsRawFd</a> <span class="kw">for </span><a href="#57">Stdin</a> {
-        <span class="kw">fn </span>as_raw_fd(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../../../async_std/os/unix/io/type.RawFd.html">RawFd</a> {
-            std::io::stdin().<a href="../../../async_std/os/unix/io/trait.AsRawFd.html">as_raw_fd</a>()
+    <span class="kw">impl </span>AsRawFd <span class="kw">for </span>Stdin {
+        <span class="kw">fn </span>as_raw_fd(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; RawFd {
+            std::io::stdin().as_raw_fd()
         }
     }
 }
@@ -438,4 +438,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="async_std" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="async_std" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

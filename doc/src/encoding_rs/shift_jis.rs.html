@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/encoding_rs-0.8.31/src/shift_jis.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>shift_jis.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../encoding_rs/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/encoding_rs-0.8.31/src/shift_jis.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>shift_jis.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../encoding_rs/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -434,47 +434,47 @@
 // except according to those terms.
 
 </span><span class="kw">use super</span>::<span class="kw-2">*</span>;
-<span class="kw">use </span><a href="lib.rs.html#746"><span class="kw">crate</span>::data</a>::<span class="kw-2">*</span>;
-<span class="kw">use </span><a href="lib.rs.html#747"><span class="kw">crate</span>::handles</a>::<span class="kw-2">*</span>;
-<span class="kw">use </span><a href="lib.rs.html#748"><span class="kw">crate</span>::variant</a>::<span class="kw-2">*</span>;
+<span class="kw">use </span><span class="kw">crate</span>::data::<span class="kw-2">*</span>;
+<span class="kw">use </span><span class="kw">crate</span>::handles::<span class="kw-2">*</span>;
+<span class="kw">use </span><span class="kw">crate</span>::variant::<span class="kw-2">*</span>;
 <span class="comment">// Rust 1.14.0 requires the following despite the asterisk above.
-</span><span class="kw">use </span><a href="lib.rs.html#4882"><span class="kw">super</span>::in_inclusive_range</a>;
-<span class="kw">use </span><a href="lib.rs.html#4872"><span class="kw">super</span>::in_inclusive_range16</a>;
+</span><span class="kw">use </span><span class="kw">super</span>::in_inclusive_range;
+<span class="kw">use </span><span class="kw">super</span>::in_inclusive_range16;
 
 <span class="kw">pub struct </span>ShiftJisDecoder {
-    lead: <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>&gt;,
+    lead: <span class="prelude-ty">Option</span>&lt;u8&gt;,
 }
 
-<span class="kw">impl </span><a href="#18">ShiftJisDecoder</a> {
-    <span class="kw">pub fn </span>new() -&gt; <a href="variant.rs.html#35">VariantDecoder</a> {
-        <a href="variant.rs.html#42">VariantDecoder::ShiftJis</a>(<a href="#18">ShiftJisDecoder</a> { lead: <span class="prelude-val">None </span>})
+<span class="kw">impl </span>ShiftJisDecoder {
+    <span class="kw">pub fn </span>new() -&gt; VariantDecoder {
+        VariantDecoder::ShiftJis(ShiftJisDecoder { lead: <span class="prelude-val">None </span>})
     }
 
-    <span class="kw">pub fn </span>in_neutral_state(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/primitive.bool.html">bool</a> {
-        <a class="self" href="#27">self</a>.lead.is_none()
+    <span class="kw">pub fn </span>in_neutral_state(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.lead.is_none()
     }
 
-    <span class="kw">fn </span>plus_one_if_lead(<span class="kw-2">&amp;</span><span class="self">self</span>, byte_length: <a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>&gt; {
-        <a href="#31">byte_length</a>.checked_add(<span class="kw">match </span><a class="self" href="#31">self</a>.lead {
+    <span class="kw">fn </span>plus_one_if_lead(<span class="kw-2">&amp;</span><span class="self">self</span>, byte_length: usize) -&gt; <span class="prelude-ty">Option</span>&lt;usize&gt; {
+        byte_length.checked_add(<span class="kw">match </span><span class="self">self</span>.lead {
             <span class="prelude-val">None </span>=&gt; <span class="number">0</span>,
             <span class="prelude-val">Some</span>(<span class="kw">_</span>) =&gt; <span class="number">1</span>,
         })
     }
 
-    <span class="kw">pub fn </span>max_utf16_buffer_length(<span class="kw-2">&amp;</span><span class="self">self</span>, byte_length: <a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>&gt; {
-        <a class="self" href="#38">self</a>.<a href="#31">plus_one_if_lead</a>(<a href="#38">byte_length</a>)
+    <span class="kw">pub fn </span>max_utf16_buffer_length(<span class="kw-2">&amp;</span><span class="self">self</span>, byte_length: usize) -&gt; <span class="prelude-ty">Option</span>&lt;usize&gt; {
+        <span class="self">self</span>.plus_one_if_lead(byte_length)
     }
 
-    <span class="kw">pub fn </span>max_utf8_buffer_length_without_replacement(<span class="kw-2">&amp;</span><span class="self">self</span>, byte_length: <a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>&gt; {
+    <span class="kw">pub fn </span>max_utf8_buffer_length_without_replacement(<span class="kw-2">&amp;</span><span class="self">self</span>, byte_length: usize) -&gt; <span class="prelude-ty">Option</span>&lt;usize&gt; {
         <span class="comment">// worst case: 1 to 3 (half-width katakana)
-        </span><a class="self" href="#42">self</a>.<a href="#47">max_utf8_buffer_length</a>(<a href="#42">byte_length</a>)
+        </span><span class="self">self</span>.max_utf8_buffer_length(byte_length)
     }
 
-    <span class="kw">pub fn </span>max_utf8_buffer_length(<span class="kw-2">&amp;</span><span class="self">self</span>, byte_length: <a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>&gt; {
-        <a href="lib.rs.html#4905">checked_mul</a>(<span class="number">3</span>, <a class="self" href="#47">self</a>.<a href="#31">plus_one_if_lead</a>(<a href="#47">byte_length</a>))
+    <span class="kw">pub fn </span>max_utf8_buffer_length(<span class="kw-2">&amp;</span><span class="self">self</span>, byte_length: usize) -&gt; <span class="prelude-ty">Option</span>&lt;usize&gt; {
+        checked_mul(<span class="number">3</span>, <span class="self">self</span>.plus_one_if_lead(byte_length))
     }
 
-    <a class="macro" href="macros.rs.html#286-339">ascii_compatible_two_byte_decoder_functions!</a>(
+    <span class="macro">ascii_compatible_two_byte_decoder_functions!</span>(
         {
            <span class="comment">// If lead is between 0x81 and 0x9F, inclusive,
            // subtract offset 0x81. Else if lead is
@@ -605,49 +605,49 @@
 
 <span class="attr">#[cfg(not(feature = <span class="string">&quot;fast-kanji-encode&quot;</span>))]
 #[inline(always)]
-</span><span class="kw">fn </span>encode_kanji(bmp: <a href="https://doc.rust-lang.org/nightly/core/primitive.u16.html">u16</a>) -&gt; <span class="prelude-ty">Option</span>&lt;(<a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>, <a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>)&gt; {
-    <span class="kw">if let </span><span class="prelude-val">Some</span>((lead, trail)) = <a href="data.rs.html#114050">jis0208_level1_kanji_shift_jis_encode</a>(<a href="#182">bmp</a>) {
-        <span class="kw">return </span><span class="prelude-val">Some</span>((<a href="#183">lead</a>, <a href="#183">trail</a>));
+</span><span class="kw">fn </span>encode_kanji(bmp: u16) -&gt; <span class="prelude-ty">Option</span>&lt;(u8, u8)&gt; {
+    <span class="kw">if let </span><span class="prelude-val">Some</span>((lead, trail)) = jis0208_level1_kanji_shift_jis_encode(bmp) {
+        <span class="kw">return </span><span class="prelude-val">Some</span>((lead, trail));
     }
     <span class="kw">let </span>pointer = <span class="kw">if </span><span class="number">0x4EDD </span>== bmp {
         <span class="comment">// Ideograph on the symbol row!
         </span><span class="number">23
-    </span>} <span class="kw">else if let </span><span class="prelude-val">Some</span>(pos) = <a href="data.rs.html#114107">jis0208_level2_and_additional_kanji_encode</a>(<a href="#182">bmp</a>) {
-        <span class="number">4418 </span>+ <a href="#189">pos</a>
-    } <span class="kw">else if let </span><span class="prelude-val">Some</span>(pos) = <a href="data.rs.html#113734">position</a>(<span class="kw-2">&amp;</span><a href="data.rs.html#29428">IBM_KANJI</a>[..], <a href="#182">bmp</a>) {
-        <span class="number">10744 </span>+ <a href="#191">pos</a>
+    </span>} <span class="kw">else if let </span><span class="prelude-val">Some</span>(pos) = jis0208_level2_and_additional_kanji_encode(bmp) {
+        <span class="number">4418 </span>+ pos
+    } <span class="kw">else if let </span><span class="prelude-val">Some</span>(pos) = position(<span class="kw-2">&amp;</span>IBM_KANJI[..], bmp) {
+        <span class="number">10744 </span>+ pos
     } <span class="kw">else </span>{
         <span class="kw">return </span><span class="prelude-val">None</span>;
     };
-    <span class="kw">let </span>lead = <a href="#186">pointer</a> / <span class="number">188</span>;
+    <span class="kw">let </span>lead = pointer / <span class="number">188</span>;
     <span class="kw">let </span>lead_offset = <span class="kw">if </span>lead &lt; <span class="number">0x1F </span>{ <span class="number">0x81usize </span>} <span class="kw">else </span>{ <span class="number">0xC1usize </span>};
-    <span class="kw">let </span>trail = <a href="#186">pointer</a> % <span class="number">188</span>;
+    <span class="kw">let </span>trail = pointer % <span class="number">188</span>;
     <span class="kw">let </span>trail_offset = <span class="kw">if </span>trail &lt; <span class="number">0x3F </span>{ <span class="number">0x40usize </span>} <span class="kw">else </span>{ <span class="number">0x41usize </span>};
-    <span class="prelude-val">Some</span>(((<a href="#196">lead</a> + <a href="#197">lead_offset</a>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>, (<a href="#198">trail</a> + <a href="#199">trail_offset</a>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>))
+    <span class="prelude-val">Some</span>(((lead + lead_offset) <span class="kw">as </span>u8, (trail + trail_offset) <span class="kw">as </span>u8))
 }
 
 <span class="kw">pub struct </span>ShiftJisEncoder;
 
-<span class="kw">impl </span><a href="#203">ShiftJisEncoder</a> {
-    <span class="kw">pub fn </span>new(encoding: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><a href="lib.rs.html#2673">Encoding</a>) -&gt; <a href="lib.rs.html#4461">Encoder</a> {
-        Encoder::new(<a href="#206">encoding</a>, <a href="variant.rs.html#219">VariantEncoder::ShiftJis</a>(<a href="#203">ShiftJisEncoder</a>))
+<span class="kw">impl </span>ShiftJisEncoder {
+    <span class="kw">pub fn </span>new(encoding: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>Encoding) -&gt; Encoder {
+        Encoder::new(encoding, VariantEncoder::ShiftJis(ShiftJisEncoder))
     }
 
     <span class="kw">pub fn </span>max_buffer_length_from_utf16_without_replacement(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        u16_length: <a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>,
-    ) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>&gt; {
-        <a href="#212">u16_length</a>.checked_mul(<span class="number">2</span>)
+        u16_length: usize,
+    ) -&gt; <span class="prelude-ty">Option</span>&lt;usize&gt; {
+        u16_length.checked_mul(<span class="number">2</span>)
     }
 
     <span class="kw">pub fn </span>max_buffer_length_from_utf8_without_replacement(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        byte_length: <a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>,
-    ) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>&gt; {
-        <a href="#219">byte_length</a>.checked_add(<span class="number">1</span>)
+        byte_length: usize,
+    ) -&gt; <span class="prelude-ty">Option</span>&lt;usize&gt; {
+        byte_length.checked_add(<span class="number">1</span>)
     }
 
-    <a class="macro" href="macros.rs.html#1251-1281">ascii_compatible_bmp_encoder_functions!</a>(
+    <span class="macro">ascii_compatible_bmp_encoder_functions!</span>(
         {
             <span class="comment">// Lunde says 60% Hiragana, 30% Kanji, 10% Katakana
             </span><span class="kw">let </span>bmp_minus_hiragana = bmp.wrapping_sub(<span class="number">0x3041</span>);
@@ -851,4 +851,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="encoding_rs" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="encoding_rs" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

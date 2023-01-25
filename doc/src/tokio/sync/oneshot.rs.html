@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.21.2/src/sync/oneshot.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>oneshot.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../tokio/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.23.0/src/sync/oneshot.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>oneshot.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../tokio/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -1377,6 +1377,8 @@
 <a href="#1377" id="1377">1377</a>
 <a href="#1378" id="1378">1378</a>
 <a href="#1379" id="1379">1379</a>
+<a href="#1380" id="1380">1380</a>
+<a href="#1381" id="1381">1381</a>
 </pre><pre class="rust"><code><span class="attr">#![cfg_attr(not(feature = <span class="string">&quot;sync&quot;</span>), allow(dead_code, unreachable_pub))]
 
 </span><span class="doccomment">//! A one-shot channel is used for sending a single message between
@@ -1498,19 +1500,19 @@
 //! }
 //! ```
 
-</span><span class="kw">use </span><a href="../loom/std/unsafe_cell.rs.html#2"><span class="kw">crate</span>::loom::cell::UnsafeCell</a>;
-<span class="kw">use </span><a href="../loom/std/atomic_usize.rs.html#6"><span class="kw">crate</span>::loom::sync::atomic::AtomicUsize</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/sync/struct.Arc.html"><span class="kw">crate</span>::loom::sync::Arc</a>;
+</span><span class="kw">use </span><span class="kw">crate</span>::loom::cell::UnsafeCell;
+<span class="kw">use </span><span class="kw">crate</span>::loom::sync::atomic::AtomicUsize;
+<span class="kw">use </span><span class="kw">crate</span>::loom::sync::Arc;
 <span class="attr">#[cfg(all(tokio_unstable, feature = <span class="string">&quot;tracing&quot;</span>))]
 </span><span class="kw">use </span><span class="kw">crate</span>::util::trace;
 
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">std::fmt</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">std::future::Future</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/mem/maybe_uninit/union.MaybeUninit.html">std::mem::MaybeUninit</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/pin/struct.Pin.html">std::pin::Pin</a>;
-<span class="kw">use </span>std::sync::atomic::Ordering::{<a class="self" href="https://doc.rust-lang.org/nightly/core/sync/atomic/enum.Ordering.html">self</a>, AcqRel, Acquire};
+<span class="kw">use </span>std::fmt;
+<span class="kw">use </span>std::future::Future;
+<span class="kw">use </span>std::mem::MaybeUninit;
+<span class="kw">use </span>std::pin::Pin;
+<span class="kw">use </span>std::sync::atomic::Ordering::{<span class="self">self</span>, AcqRel, Acquire};
 <span class="kw">use </span>std::task::Poll::{Pending, Ready};
-<span class="kw">use </span>std::task::{<a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>, <a href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">Poll</a>, <a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Waker.html">Waker</a>};
+<span class="kw">use </span>std::task::{Context, Poll, Waker};
 
 <span class="doccomment">/// Sends a value to the associated [`Receiver`].
 ///
@@ -1606,7 +1608,7 @@
 /// [`channel`](fn@channel) function.
 ///
 /// This channel has no `recv` method because the receiver itself implements the
-/// [`Future`] trait. To receive a value, `.await` the `Receiver` object directly.
+/// [`Future`] trait. To receive a `Result&lt;T, `[`error::RecvError`]`&gt;`, `.await` the `Receiver` object directly.
 ///
 /// The `poll` method on the `Future` trait is allowed to spuriously return
 /// `Poll::Pending` even if the message has been sent. If such a spurious
@@ -1707,9 +1709,11 @@
 <span class="kw">pub mod </span>error {
     <span class="doccomment">//! Oneshot error types.
 
-    </span><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">std::fmt</a>;
+    </span><span class="kw">use </span>std::fmt;
 
     <span class="doccomment">/// Error returned by the `Future` implementation for `Receiver`.
+    ///
+    /// This error is returned by the receiver when the sender is dropped without sending.
     </span><span class="attr">#[derive(Debug, Eq, PartialEq, Clone)]
     </span><span class="kw">pub struct </span>RecvError(<span class="kw">pub</span>(<span class="kw">super</span>) ());
 
@@ -1725,33 +1729,33 @@
 
     <span class="comment">// ===== impl RecvError =====
 
-    </span><span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for </span><a href="#335">RecvError</a> {
-        <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, fmt: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-            <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#350">fmt</a>, <span class="string">&quot;channel closed&quot;</span>)
+    </span><span class="kw">impl </span>fmt::Display <span class="kw">for </span>RecvError {
+        <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, fmt: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+            <span class="macro">write!</span>(fmt, <span class="string">&quot;channel closed&quot;</span>)
         }
     }
 
-    <span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">std::error::Error</a> <span class="kw">for </span><a href="#335">RecvError</a> {}
+    <span class="kw">impl </span>std::error::Error <span class="kw">for </span>RecvError {}
 
     <span class="comment">// ===== impl TryRecvError =====
 
-    </span><span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for </span><a href="#339">TryRecvError</a> {
-        <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, fmt: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-            <span class="kw">match </span><span class="self"><a href="#360">self</a> </span>{
-                <a href="#341">TryRecvError::Empty</a> =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#360">fmt</a>, <span class="string">&quot;channel empty&quot;</span>),
-                <a href="#344">TryRecvError::Closed</a> =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#360">fmt</a>, <span class="string">&quot;channel closed&quot;</span>),
+    </span><span class="kw">impl </span>fmt::Display <span class="kw">for </span>TryRecvError {
+        <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, fmt: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+            <span class="kw">match </span><span class="self">self </span>{
+                TryRecvError::Empty =&gt; <span class="macro">write!</span>(fmt, <span class="string">&quot;channel empty&quot;</span>),
+                TryRecvError::Closed =&gt; <span class="macro">write!</span>(fmt, <span class="string">&quot;channel closed&quot;</span>),
             }
         }
     }
 
-    <span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">std::error::Error</a> <span class="kw">for </span><a href="#339">TryRecvError</a> {}
+    <span class="kw">impl </span>std::error::Error <span class="kw">for </span>TryRecvError {}
 }
 
-<span class="kw">use </span><a href="#328"><span class="self">self</span>::error</a>::<span class="kw-2">*</span>;
+<span class="kw">use </span><span class="self">self</span>::error::<span class="kw-2">*</span>;
 
 <span class="kw">struct </span>Inner&lt;T&gt; {
     <span class="doccomment">/// Manages the state of the inner cell.
-    </span>state: <a href="../loom/std/atomic_usize.rs.html#6">AtomicUsize</a>,
+    </span>state: AtomicUsize,
 
     <span class="doccomment">/// The value. This is set by `Sender` and read by `Receiver`. The state of
     /// the cell is tracked by `state`.
@@ -1763,7 +1767,7 @@
     ///
     /// The `TX_TASK_SET` bit in the `state` field is set if this field is
     /// initialized. If that bit is unset, this field may be uninitialized.
-    </span>tx_task: <a href="#398">Task</a>,
+    </span>tx_task: Task,
 
     <span class="doccomment">/// The task to notify when the value is sent.
     ///
@@ -1771,43 +1775,43 @@
     ///
     /// The `RX_TASK_SET` bit in the `state` field is set if this field is
     /// initialized. If that bit is unset, this field may be uninitialized.
-    </span>rx_task: <a href="#398">Task</a>,
+    </span>rx_task: Task,
 }
 
-<span class="kw">struct </span>Task(UnsafeCell&lt;MaybeUninit&lt;<a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Waker.html">Waker</a>&gt;&gt;);
+<span class="kw">struct </span>Task(UnsafeCell&lt;MaybeUninit&lt;Waker&gt;&gt;);
 
-<span class="kw">impl </span><a href="#398">Task</a> {
-    <span class="kw">unsafe fn </span>will_wake(<span class="kw-2">&amp;</span><span class="self">self</span>, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#401">self</a>.<a href="#405-407">with_task</a>(|w| <a href="#402">w</a>.will_wake(<a href="#401">cx</a>.waker()))
+<span class="kw">impl </span>Task {
+    <span class="kw">unsafe fn </span>will_wake(<span class="kw-2">&amp;</span><span class="self">self</span>, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; bool {
+        <span class="self">self</span>.with_task(|w| w.will_wake(cx.waker()))
     }
 
     <span class="kw">unsafe fn </span>with_task&lt;F, R&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, f: F) -&gt; R
     <span class="kw">where
-        </span>F: FnOnce(<span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Waker.html">Waker</a>) -&gt; R,
+        </span>F: FnOnce(<span class="kw-2">&amp;</span>Waker) -&gt; R,
     {
-        <a class="self" href="#405">self</a>.<span class="number">0</span>.<a href="../loom/std/unsafe_cell.rs.html#9">with</a>(|ptr| {
-            <span class="kw">let </span>waker: <span class="kw-2">*const </span><a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Waker.html">Waker</a> = (<span class="kw-2">&amp;*</span><a href="#409">ptr</a>).as_ptr();
-            <a href="#405">f</a>(<span class="kw-2">&amp;*</span><a href="#410">waker</a>)
+        <span class="self">self</span>.<span class="number">0</span>.with(|ptr| {
+            <span class="kw">let </span>waker: <span class="kw-2">*const </span>Waker = (<span class="kw-2">*</span>ptr).as_ptr();
+            f(<span class="kw-2">&amp;*</span>waker)
         })
     }
 
     <span class="kw">unsafe fn </span>drop_task(<span class="kw-2">&amp;</span><span class="self">self</span>) {
-        <a class="self" href="#415">self</a>.<span class="number">0</span>.<a href="../loom/std/unsafe_cell.rs.html#13">with_mut</a>(|ptr| {
-            <span class="kw">let </span>ptr: <span class="kw-2">*mut </span><a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Waker.html">Waker</a> = (<span class="kw-2">&amp;mut *</span><a href="#416">ptr</a>).as_mut_ptr();
-            <a href="#417">ptr</a>.drop_in_place();
+        <span class="self">self</span>.<span class="number">0</span>.with_mut(|ptr| {
+            <span class="kw">let </span>ptr: <span class="kw-2">*mut </span>Waker = (<span class="kw-2">*</span>ptr).as_mut_ptr();
+            ptr.drop_in_place();
         });
     }
 
     <span class="kw">unsafe fn </span>set_task(<span class="kw-2">&amp;</span><span class="self">self</span>, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) {
-        <a class="self" href="#422">self</a>.<span class="number">0</span>.<a href="../loom/std/unsafe_cell.rs.html#13">with_mut</a>(|ptr| {
-            <span class="kw">let </span>ptr: <span class="kw-2">*mut </span><a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Waker.html">Waker</a> = (<span class="kw-2">&amp;mut *</span><a href="#423">ptr</a>).as_mut_ptr();
-            <a href="#424">ptr</a>.write(<a href="#422">cx</a>.waker().<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
+        <span class="self">self</span>.<span class="number">0</span>.with_mut(|ptr| {
+            <span class="kw">let </span>ptr: <span class="kw-2">*mut </span>Waker = (<span class="kw-2">*</span>ptr).as_mut_ptr();
+            ptr.write(cx.waker().clone());
         });
     }
 }
 
 <span class="attr">#[derive(Clone, Copy)]
-</span><span class="kw">struct </span>State(<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>);
+</span><span class="kw">struct </span>State(usize);
 
 <span class="doccomment">/// Creates a new one-shot channel for sending single values across asynchronous
 /// tasks.
@@ -1889,15 +1893,15 @@
         resource_span
     };
 
-    <span class="kw">let </span>inner = Arc::new(<a href="#373">Inner</a> {
-        state: AtomicUsize::new(State::new().<a href="#1360">as_usize</a>()),
+    <span class="kw">let </span>inner = Arc::new(Inner {
+        state: AtomicUsize::new(State::new().as_usize()),
         value: UnsafeCell::new(<span class="prelude-val">None</span>),
-        tx_task: <a href="#398">Task</a>(UnsafeCell::new(MaybeUninit::uninit())),
-        rx_task: <a href="#398">Task</a>(UnsafeCell::new(MaybeUninit::uninit())),
+        tx_task: Task(UnsafeCell::new(MaybeUninit::uninit())),
+        rx_task: Task(UnsafeCell::new(MaybeUninit::uninit())),
     });
 
-    <span class="kw">let </span>tx = <a href="#218">Sender</a> {
-        inner: <span class="prelude-val">Some</span>(<a href="#513">inner</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()),
+    <span class="kw">let </span>tx = Sender {
+        inner: <span class="prelude-val">Some</span>(inner.clone()),
         <span class="attr">#[cfg(all(tokio_unstable, feature = <span class="string">&quot;tracing&quot;</span>))]
         </span>resource_span: resource_span.clone(),
     };
@@ -1910,8 +1914,8 @@
     </span><span class="kw">let </span>async_op_poll_span =
         async_op_span.in_scope(|| <span class="macro">tracing::trace_span!</span>(<span class="string">&quot;runtime.resource.async_op.poll&quot;</span>));
 
-    <span class="kw">let </span>rx = <a href="#318">Receiver</a> {
-        inner: <span class="prelude-val">Some</span>(<a href="#513">inner</a>),
+    <span class="kw">let </span>rx = Receiver {
+        inner: <span class="prelude-val">Some</span>(inner),
         <span class="attr">#[cfg(all(tokio_unstable, feature = <span class="string">&quot;tracing&quot;</span>))]
         </span>resource_span,
         <span class="attr">#[cfg(all(tokio_unstable, feature = <span class="string">&quot;tracing&quot;</span>))]
@@ -1920,7 +1924,7 @@
         </span>async_op_poll_span,
     };
 
-    (<a href="#520">tx</a>, <a href="#534">rx</a>)
+    (tx, rx)
 }
 
 <span class="kw">impl</span>&lt;T&gt; Sender&lt;T&gt; {
@@ -1965,9 +1969,9 @@
     /// }
     /// ```
     </span><span class="kw">pub fn </span>send(<span class="kw-2">mut </span><span class="self">self</span>, t: T) -&gt; <span class="prelude-ty">Result</span>&lt;(), T&gt; {
-        <span class="kw">let </span>inner = <a class="self" href="#588">self</a>.inner.take().unwrap();
+        <span class="kw">let </span>inner = <span class="self">self</span>.inner.take().unwrap();
 
-        <a href="#589">inner</a>.value.<a href="../loom/std/unsafe_cell.rs.html#13">with_mut</a>(|ptr| <span class="kw">unsafe </span>{
+        inner.value.with_mut(|ptr| <span class="kw">unsafe </span>{
             <span class="comment">// SAFETY: The receiver will not access the `UnsafeCell` unless the
             // channel has been marked as &quot;complete&quot; (the `VALUE_SENT` state bit
             // is set).
@@ -1975,7 +1979,7 @@
             // calling this method consumes `self`. Therefore, if it was possible to
             // call this method, we know that the `VALUE_SENT` bit is unset, and
             // the receiver is not currently accessing the `UnsafeCell`.
-            </span><span class="kw-2">*</span><a href="#591">ptr</a> = <span class="prelude-val">Some</span>(<a href="#588">t</a>);
+            </span><span class="kw-2">*</span>ptr = <span class="prelude-val">Some</span>(t);
         });
 
         <span class="kw">if </span>!inner.complete() {
@@ -1986,7 +1990,7 @@
                 // if it is not set. Thus, if `complete()` returned false, it is
                 // safe for us to access the value, because we know that the
                 // receiver will not.
-                </span><span class="kw">return </span><span class="prelude-val">Err</span>(<a href="#589">inner</a>.<a href="#1213">consume_value</a>().unwrap());
+                </span><span class="kw">return </span><span class="prelude-val">Err</span>(inner.consume_value().unwrap());
             }
         }
 
@@ -2115,11 +2119,11 @@
     ///     assert!(tx.send(&quot;never received&quot;).is_err());
     /// }
     /// ```
-    </span><span class="kw">pub fn </span>is_closed(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">let </span>inner = <a class="self" href="#739">self</a>.inner.as_ref().unwrap();
+    </span><span class="kw">pub fn </span>is_closed(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="kw">let </span>inner = <span class="self">self</span>.inner.as_ref().unwrap();
 
-        <span class="kw">let </span>state = State::load(<span class="kw-2">&amp;</span><a href="#740">inner</a>.state, Acquire);
-        <a href="#742">state</a>.<a href="#1335">is_closed</a>()
+        <span class="kw">let </span>state = State::load(<span class="kw-2">&amp;</span>inner.state, Acquire);
+        state.is_closed()
     }
 
     <span class="doccomment">/// Checks whether the oneshot channel has been closed, and if not, schedules the
@@ -2164,30 +2168,30 @@
     /// ```
     </span><span class="kw">pub fn </span>poll_closed(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;()&gt; {
         <span class="comment">// Keep track of task budget
-        </span><span class="kw">let </span>coop = <a class="macro" href="../macros/ready.rs.html#1-8">ready!</a>(<span class="kw">crate</span>::coop::poll_proceed(cx));
+        </span><span class="kw">let </span>coop = <span class="macro">ready!</span>(<span class="kw">crate</span>::runtime::coop::poll_proceed(cx));
 
-        <span class="kw">let </span>inner = <a class="self" href="#786">self</a>.inner.as_ref().unwrap();
+        <span class="kw">let </span>inner = <span class="self">self</span>.inner.as_ref().unwrap();
 
-        <span class="kw">let </span><span class="kw-2">mut </span>state = State::load(<span class="kw-2">&amp;</span><a href="#790">inner</a>.state, Acquire);
+        <span class="kw">let </span><span class="kw-2">mut </span>state = State::load(<span class="kw-2">&amp;</span>inner.state, Acquire);
 
         <span class="kw">if </span>state.is_closed() {
-            <a href="#788">coop</a>.<a href="../coop.rs.html#138">made_progress</a>();
+            coop.made_progress();
             <span class="kw">return </span>Poll::Ready(());
         }
 
         <span class="kw">if </span>state.is_tx_task_set() {
-            <span class="kw">let </span>will_notify = <span class="kw">unsafe </span>{ <a href="#790">inner</a>.tx_task.<a href="#401">will_wake</a>(<a href="#786">cx</a>) };
+            <span class="kw">let </span>will_notify = <span class="kw">unsafe </span>{ inner.tx_task.will_wake(cx) };
 
             <span class="kw">if </span>!will_notify {
-                <a href="#792">state</a> = State::unset_tx_task(<span class="kw-2">&amp;</span><a href="#790">inner</a>.state);
+                state = State::unset_tx_task(<span class="kw-2">&amp;</span>inner.state);
 
                 <span class="kw">if </span>state.is_closed() {
                     <span class="comment">// Set the flag again so that the waker is released in drop
-                    </span>State::set_tx_task(<span class="kw-2">&amp;</span><a href="#790">inner</a>.state);
-                    <a href="#788">coop</a>.<a href="../coop.rs.html#138">made_progress</a>();
+                    </span>State::set_tx_task(<span class="kw-2">&amp;</span>inner.state);
+                    coop.made_progress();
                     <span class="kw">return </span>Ready(());
                 } <span class="kw">else </span>{
-                    <span class="kw">unsafe </span>{ <a href="#790">inner</a>.tx_task.<a href="#415">drop_task</a>() };
+                    <span class="kw">unsafe </span>{ inner.tx_task.drop_task() };
                 }
             }
         }
@@ -2195,14 +2199,14 @@
         <span class="kw">if </span>!state.is_tx_task_set() {
             <span class="comment">// Attempt to set the task
             </span><span class="kw">unsafe </span>{
-                <a href="#790">inner</a>.tx_task.<a href="#422">set_task</a>(<a href="#786">cx</a>);
+                inner.tx_task.set_task(cx);
             }
 
             <span class="comment">// Update the state
-            </span><a href="#792">state</a> = State::set_tx_task(<span class="kw-2">&amp;</span><a href="#790">inner</a>.state);
+            </span>state = State::set_tx_task(<span class="kw-2">&amp;</span>inner.state);
 
             <span class="kw">if </span>state.is_closed() {
-                <a href="#788">coop</a>.<a href="../coop.rs.html#138">made_progress</a>();
+                coop.made_progress();
                 <span class="kw">return </span>Ready(());
             }
         }
@@ -2211,10 +2215,10 @@
     }
 }
 
-<span class="kw">impl</span>&lt;T&gt; <a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span>Sender&lt;T&gt; {
+<span class="kw">impl</span>&lt;T&gt; Drop <span class="kw">for </span>Sender&lt;T&gt; {
     <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(inner) = <a class="self" href="#836">self</a>.inner.as_ref() {
-            <a href="#837">inner</a>.<a href="#1108">complete</a>();
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(inner) = <span class="self">self</span>.inner.as_ref() {
+            inner.complete();
             <span class="attr">#[cfg(all(tokio_unstable, feature = <span class="string">&quot;tracing&quot;</span>))]
             </span><span class="self">self</span>.resource_span.in_scope(|| {
                 <span class="macro">tracing::trace!</span>(
@@ -2288,8 +2292,8 @@
     /// }
     /// ```
     </span><span class="kw">pub fn </span>close(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(inner) = <a class="self" href="#911">self</a>.inner.as_ref() {
-            <a href="#912">inner</a>.<a href="#1194">close</a>();
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(inner) = <span class="self">self</span>.inner.as_ref() {
+            inner.close();
             <span class="attr">#[cfg(all(tokio_unstable, feature = <span class="string">&quot;tracing&quot;</span>))]
             </span><span class="self">self</span>.resource_span.in_scope(|| {
                 <span class="macro">tracing::trace!</span>(
@@ -2368,9 +2372,9 @@
     ///     }
     /// }
     /// ```
-    </span><span class="kw">pub fn </span>try_recv(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;T, <a href="#339">TryRecvError</a>&gt; {
-        <span class="kw">let </span>result = <span class="kw">if let </span><span class="prelude-val">Some</span>(inner) = <a class="self" href="#992">self</a>.inner.as_ref() {
-            <span class="kw">let </span>state = State::load(<span class="kw-2">&amp;</span><a href="#993">inner</a>.state, Acquire);
+    </span><span class="kw">pub fn </span>try_recv(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;T, TryRecvError&gt; {
+        <span class="kw">let </span>result = <span class="kw">if let </span><span class="prelude-val">Some</span>(inner) = <span class="self">self</span>.inner.as_ref() {
+            <span class="kw">let </span>state = State::load(<span class="kw-2">&amp;</span>inner.state, Acquire);
 
             <span class="kw">if </span>state.is_complete() {
                 <span class="comment">// SAFETY: If `state.is_complete()` returns true, then the
@@ -2378,7 +2382,7 @@
                 // channel will no longer attempt to access the inner
                 // `UnsafeCell`. Therefore, it is now safe for us to access the
                 // cell.
-                </span><span class="kw">match unsafe </span>{ <a href="#993">inner</a>.<a href="#1213">consume_value</a>() } {
+                </span><span class="kw">match unsafe </span>{ inner.consume_value() } {
                     <span class="prelude-val">Some</span>(value) =&gt; {
                         <span class="attr">#[cfg(all(tokio_unstable, feature = <span class="string">&quot;tracing&quot;</span>))]
                         </span><span class="self">self</span>.resource_span.in_scope(|| {
@@ -2388,22 +2392,22 @@
                             value_received.op = <span class="string">&quot;override&quot;</span>,
                             )
                         });
-                        <span class="prelude-val">Ok</span>(<a href="#1003">value</a>)
+                        <span class="prelude-val">Ok</span>(value)
                     }
-                    <span class="prelude-val">None </span>=&gt; <span class="prelude-val">Err</span>(<a href="#344">TryRecvError::Closed</a>),
+                    <span class="prelude-val">None </span>=&gt; <span class="prelude-val">Err</span>(TryRecvError::Closed),
                 }
             } <span class="kw">else if </span>state.is_closed() {
-                <span class="prelude-val">Err</span>(<a href="#344">TryRecvError::Closed</a>)
+                <span class="prelude-val">Err</span>(TryRecvError::Closed)
             } <span class="kw">else </span>{
                 <span class="comment">// Not ready, this does not clear `inner`
-                </span><span class="kw">return </span><span class="prelude-val">Err</span>(<a href="#341">TryRecvError::Empty</a>);
+                </span><span class="kw">return </span><span class="prelude-val">Err</span>(TryRecvError::Empty);
             }
         } <span class="kw">else </span>{
-            <span class="prelude-val">Err</span>(<a href="#344">TryRecvError::Closed</a>)
+            <span class="prelude-val">Err</span>(TryRecvError::Closed)
         };
 
-        <a class="self" href="#992">self</a>.inner = <span class="prelude-val">None</span>;
-        <a href="#993">result</a>
+        <span class="self">self</span>.inner = <span class="prelude-val">None</span>;
+        result
     }
 
     <span class="doccomment">/// Blocking receive to call outside of asynchronous contexts.
@@ -2433,15 +2437,15 @@
     /// ```
     </span><span class="attr">#[track_caller]
     #[cfg(feature = <span class="string">&quot;sync&quot;</span>)]
-    </span><span class="kw">pub fn </span>blocking_recv(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;T, <a href="#335">RecvError</a>&gt; {
-        <a href="../future/block_on.rs.html#5"><span class="kw">crate</span>::future::block_on</a>(<a class="self" href="#1057">self</a>)
+    </span><span class="kw">pub fn </span>blocking_recv(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;T, RecvError&gt; {
+        <span class="kw">crate</span>::future::block_on(<span class="self">self</span>)
     }
 }
 
-<span class="kw">impl</span>&lt;T&gt; <a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span>Receiver&lt;T&gt; {
+<span class="kw">impl</span>&lt;T&gt; Drop <span class="kw">for </span>Receiver&lt;T&gt; {
     <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(inner) = <a class="self" href="#1063">self</a>.inner.as_ref() {
-            <a href="#1064">inner</a>.<a href="#1194">close</a>();
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(inner) = <span class="self">self</span>.inner.as_ref() {
+            inner.close();
             <span class="attr">#[cfg(all(tokio_unstable, feature = <span class="string">&quot;tracing&quot;</span>))]
             </span><span class="self">self</span>.resource_span.in_scope(|| {
                 <span class="macro">tracing::trace!</span>(
@@ -2454,8 +2458,8 @@
     }
 }
 
-<span class="kw">impl</span>&lt;T&gt; <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a> <span class="kw">for </span>Receiver&lt;T&gt; {
-    <span class="kw">type </span>Output = <span class="prelude-ty">Result</span>&lt;T, <a href="#335">RecvError</a>&gt;;
+<span class="kw">impl</span>&lt;T&gt; Future <span class="kw">for </span>Receiver&lt;T&gt; {
+    <span class="kw">type </span>Output = <span class="prelude-ty">Result</span>&lt;T, RecvError&gt;;
 
     <span class="kw">fn </span>poll(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
         <span class="comment">// If `inner` is `None`, then `poll()` has already completed.
@@ -2466,26 +2470,26 @@
         <span class="attr">#[cfg(all(tokio_unstable, feature = <span class="string">&quot;tracing&quot;</span>))]
         </span><span class="kw">let </span>_ao_poll_span = <span class="self">self</span>.async_op_poll_span.clone().entered();
 
-        <span class="kw">let </span>ret = <span class="kw">if let </span><span class="prelude-val">Some</span>(inner) = <a class="self" href="#1081">self</a>.as_ref().get_ref().inner.as_ref() {
+        <span class="kw">let </span>ret = <span class="kw">if let </span><span class="prelude-val">Some</span>(inner) = <span class="self">self</span>.as_ref().get_ref().inner.as_ref() {
             <span class="attr">#[cfg(all(tokio_unstable, feature = <span class="string">&quot;tracing&quot;</span>))]
             </span><span class="kw">let </span>res = <span class="macro">ready!</span>(<span class="macro">trace_poll_op!</span>(<span class="string">&quot;poll_recv&quot;</span>, inner.poll_recv(cx)))<span class="question-mark">?</span>;
 
             <span class="attr">#[cfg(any(not(tokio_unstable), not(feature = <span class="string">&quot;tracing&quot;</span>)))]
             </span><span class="kw">let </span>res = <span class="macro">ready!</span>(inner.poll_recv(cx))<span class="question-mark">?</span>;
 
-            <a href="#1095">res</a>
+            res
         } <span class="kw">else </span>{
-            <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(<span class="string">&quot;called after complete&quot;</span>);
+            <span class="macro">panic!</span>(<span class="string">&quot;called after complete&quot;</span>);
         };
 
-        <a class="self" href="#1081">self</a>.inner = <span class="prelude-val">None</span>;
-        Ready(<span class="prelude-val">Ok</span>(<a href="#1090">ret</a>))
+        <span class="self">self</span>.inner = <span class="prelude-val">None</span>;
+        Ready(<span class="prelude-val">Ok</span>(ret))
     }
 }
 
 <span class="kw">impl</span>&lt;T&gt; Inner&lt;T&gt; {
-    <span class="kw">fn </span>complete(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">let </span>prev = State::set_complete(<span class="kw-2">&amp;</span><a class="self" href="#1108">self</a>.state);
+    <span class="kw">fn </span>complete(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="kw">let </span>prev = State::set_complete(<span class="kw-2">&amp;</span><span class="self">self</span>.state);
 
         <span class="kw">if </span>prev.is_closed() {
             <span class="kw">return </span><span class="bool-val">false</span>;
@@ -2494,53 +2498,53 @@
         <span class="kw">if </span>prev.is_rx_task_set() {
             <span class="comment">// TODO: Consume waker?
             </span><span class="kw">unsafe </span>{
-                <a class="self" href="#1108">self</a>.rx_task.<a href="#405-407">with_task</a>(Waker::wake_by_ref);
+                <span class="self">self</span>.rx_task.with_task(Waker::wake_by_ref);
             }
         }
 
         <span class="bool-val">true
     </span>}
 
-    <span class="kw">fn </span>poll_recv(<span class="kw-2">&amp;</span><span class="self">self</span>, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;T, <a href="#335">RecvError</a>&gt;&gt; {
+    <span class="kw">fn </span>poll_recv(<span class="kw-2">&amp;</span><span class="self">self</span>, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;T, RecvError&gt;&gt; {
         <span class="comment">// Keep track of task budget
-        </span><span class="kw">let </span>coop = <a class="macro" href="../macros/ready.rs.html#1-8">ready!</a>(<span class="kw">crate</span>::coop::poll_proceed(cx));
+        </span><span class="kw">let </span>coop = <span class="macro">ready!</span>(<span class="kw">crate</span>::runtime::coop::poll_proceed(cx));
 
         <span class="comment">// Load the state
-        </span><span class="kw">let </span><span class="kw-2">mut </span>state = State::load(<span class="kw-2">&amp;</span><a class="self" href="#1125">self</a>.state, Acquire);
+        </span><span class="kw">let </span><span class="kw-2">mut </span>state = State::load(<span class="kw-2">&amp;</span><span class="self">self</span>.state, Acquire);
 
         <span class="kw">if </span>state.is_complete() {
-            <a href="#1127">coop</a>.<a href="../coop.rs.html#138">made_progress</a>();
-            <span class="kw">match unsafe </span>{ <a class="self" href="#1125">self</a>.<a href="#1213">consume_value</a>() } {
-                <span class="prelude-val">Some</span>(value) =&gt; Ready(<span class="prelude-val">Ok</span>(<a href="#1135">value</a>)),
-                <span class="prelude-val">None </span>=&gt; Ready(<span class="prelude-val">Err</span>(<a href="#335">RecvError</a>(()))),
+            coop.made_progress();
+            <span class="kw">match unsafe </span>{ <span class="self">self</span>.consume_value() } {
+                <span class="prelude-val">Some</span>(value) =&gt; Ready(<span class="prelude-val">Ok</span>(value)),
+                <span class="prelude-val">None </span>=&gt; Ready(<span class="prelude-val">Err</span>(RecvError(()))),
             }
         } <span class="kw">else if </span>state.is_closed() {
-            <a href="#1127">coop</a>.<a href="../coop.rs.html#138">made_progress</a>();
-            Ready(<span class="prelude-val">Err</span>(<a href="#335">RecvError</a>(())))
+            coop.made_progress();
+            Ready(<span class="prelude-val">Err</span>(RecvError(())))
         } <span class="kw">else </span>{
             <span class="kw">if </span>state.is_rx_task_set() {
-                <span class="kw">let </span>will_notify = <span class="kw">unsafe </span>{ <a class="self" href="#1125">self</a>.rx_task.<a href="#401">will_wake</a>(<a href="#1125">cx</a>) };
+                <span class="kw">let </span>will_notify = <span class="kw">unsafe </span>{ <span class="self">self</span>.rx_task.will_wake(cx) };
 
                 <span class="comment">// Check if the task is still the same
                 </span><span class="kw">if </span>!will_notify {
                     <span class="comment">// Unset the task
-                    </span><a href="#1130">state</a> = State::unset_rx_task(<span class="kw-2">&amp;</span><a class="self" href="#1125">self</a>.state);
+                    </span>state = State::unset_rx_task(<span class="kw-2">&amp;</span><span class="self">self</span>.state);
                     <span class="kw">if </span>state.is_complete() {
                         <span class="comment">// Set the flag again so that the waker is released in drop
-                        </span>State::set_rx_task(<span class="kw-2">&amp;</span><a class="self" href="#1125">self</a>.state);
+                        </span>State::set_rx_task(<span class="kw-2">&amp;</span><span class="self">self</span>.state);
 
-                        <a href="#1127">coop</a>.<a href="../coop.rs.html#138">made_progress</a>();
+                        coop.made_progress();
                         <span class="comment">// SAFETY: If `state.is_complete()` returns true, then the
                         // `VALUE_SENT` bit has been set and the sender side of the
                         // channel will no longer attempt to access the inner
                         // `UnsafeCell`. Therefore, it is now safe for us to access the
                         // cell.
-                        </span><span class="kw">return match unsafe </span>{ <a class="self" href="#1125">self</a>.<a href="#1213">consume_value</a>() } {
-                            <span class="prelude-val">Some</span>(value) =&gt; Ready(<span class="prelude-val">Ok</span>(<a href="#1160">value</a>)),
-                            <span class="prelude-val">None </span>=&gt; Ready(<span class="prelude-val">Err</span>(<a href="#335">RecvError</a>(()))),
+                        </span><span class="kw">return match unsafe </span>{ <span class="self">self</span>.consume_value() } {
+                            <span class="prelude-val">Some</span>(value) =&gt; Ready(<span class="prelude-val">Ok</span>(value)),
+                            <span class="prelude-val">None </span>=&gt; Ready(<span class="prelude-val">Err</span>(RecvError(()))),
                         };
                     } <span class="kw">else </span>{
-                        <span class="kw">unsafe </span>{ <a class="self" href="#1125">self</a>.rx_task.<a href="#415">drop_task</a>() };
+                        <span class="kw">unsafe </span>{ <span class="self">self</span>.rx_task.drop_task() };
                     }
                 }
             }
@@ -2548,17 +2552,17 @@
             <span class="kw">if </span>!state.is_rx_task_set() {
                 <span class="comment">// Attempt to set the task
                 </span><span class="kw">unsafe </span>{
-                    <a class="self" href="#1125">self</a>.rx_task.<a href="#422">set_task</a>(<a href="#1125">cx</a>);
+                    <span class="self">self</span>.rx_task.set_task(cx);
                 }
 
                 <span class="comment">// Update the state
-                </span><a href="#1130">state</a> = State::set_rx_task(<span class="kw-2">&amp;</span><a class="self" href="#1125">self</a>.state);
+                </span>state = State::set_rx_task(<span class="kw-2">&amp;</span><span class="self">self</span>.state);
 
                 <span class="kw">if </span>state.is_complete() {
-                    <a href="#1127">coop</a>.<a href="../coop.rs.html#138">made_progress</a>();
-                    <span class="kw">match unsafe </span>{ <a class="self" href="#1125">self</a>.<a href="#1213">consume_value</a>() } {
-                        <span class="prelude-val">Some</span>(value) =&gt; Ready(<span class="prelude-val">Ok</span>(<a href="#1181">value</a>)),
-                        <span class="prelude-val">None </span>=&gt; Ready(<span class="prelude-val">Err</span>(<a href="#335">RecvError</a>(()))),
+                    coop.made_progress();
+                    <span class="kw">match unsafe </span>{ <span class="self">self</span>.consume_value() } {
+                        <span class="prelude-val">Some</span>(value) =&gt; Ready(<span class="prelude-val">Ok</span>(value)),
+                        <span class="prelude-val">None </span>=&gt; Ready(<span class="prelude-val">Err</span>(RecvError(()))),
                     }
                 } <span class="kw">else </span>{
                     Pending
@@ -2571,11 +2575,11 @@
 
     <span class="doccomment">/// Called by `Receiver` to indicate that the value will never be received.
     </span><span class="kw">fn </span>close(<span class="kw-2">&amp;</span><span class="self">self</span>) {
-        <span class="kw">let </span>prev = State::set_closed(<span class="kw-2">&amp;</span><a class="self" href="#1194">self</a>.state);
+        <span class="kw">let </span>prev = State::set_closed(<span class="kw-2">&amp;</span><span class="self">self</span>.state);
 
         <span class="kw">if </span>prev.is_tx_task_set() &amp;&amp; !prev.is_complete() {
             <span class="kw">unsafe </span>{
-                <a class="self" href="#1194">self</a>.tx_task.<a href="#405-407">with_task</a>(Waker::wake_by_ref);
+                <span class="self">self</span>.tx_task.with_task(Waker::wake_by_ref);
             }
         }
     }
@@ -2590,41 +2594,41 @@
     /// If `VALUE_SENT` is not set, then only the sender may call this method;
     /// if it is set, then only the receiver may call this method.
     </span><span class="kw">unsafe fn </span>consume_value(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;T&gt; {
-        <a class="self" href="#1213">self</a>.value.<a href="../loom/std/unsafe_cell.rs.html#13">with_mut</a>(|ptr| (<span class="kw-2">*</span><a href="#1214">ptr</a>).take())
+        <span class="self">self</span>.value.with_mut(|ptr| (<span class="kw-2">*</span>ptr).take())
     }
 }
 
-<span class="kw">unsafe impl</span>&lt;T: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="kw">for </span>Inner&lt;T&gt; {}
-<span class="kw">unsafe impl</span>&lt;T: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> <span class="kw">for </span>Inner&lt;T&gt; {}
+<span class="kw">unsafe impl</span>&lt;T: Send&gt; Send <span class="kw">for </span>Inner&lt;T&gt; {}
+<span class="kw">unsafe impl</span>&lt;T: Send&gt; Sync <span class="kw">for </span>Inner&lt;T&gt; {}
 
-<span class="kw">fn </span>mut_load(this: <span class="kw-2">&amp;mut </span><a href="../loom/std/atomic_usize.rs.html#6">AtomicUsize</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-    <a href="#1221">this</a>.<a href="../loom/std/atomic_usize.rs.html#29">with_mut</a>(|v| <span class="kw-2">*</span><a href="#1222">v</a>)
+<span class="kw">fn </span>mut_load(this: <span class="kw-2">&amp;mut </span>AtomicUsize) -&gt; usize {
+    this.with_mut(|v| <span class="kw-2">*</span>v)
 }
 
-<span class="kw">impl</span>&lt;T&gt; <a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span>Inner&lt;T&gt; {
+<span class="kw">impl</span>&lt;T&gt; Drop <span class="kw">for </span>Inner&lt;T&gt; {
     <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <span class="kw">let </span>state = <a href="#431">State</a>(<a href="#1221">mut_load</a>(<span class="kw-2">&amp;mut </span><a class="self" href="#1226">self</a>.state));
+        <span class="kw">let </span>state = State(mut_load(<span class="kw-2">&amp;mut </span><span class="self">self</span>.state));
 
         <span class="kw">if </span>state.is_rx_task_set() {
             <span class="kw">unsafe </span>{
-                <a class="self" href="#1226">self</a>.rx_task.<a href="#415">drop_task</a>();
+                <span class="self">self</span>.rx_task.drop_task();
             }
         }
 
         <span class="kw">if </span>state.is_tx_task_set() {
             <span class="kw">unsafe </span>{
-                <a class="self" href="#1226">self</a>.tx_task.<a href="#415">drop_task</a>();
+                <span class="self">self</span>.tx_task.drop_task();
             }
         }
     }
 }
 
-<span class="kw">impl</span>&lt;T: <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span>Inner&lt;T&gt; {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, fmt: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+<span class="kw">impl</span>&lt;T: fmt::Debug&gt; fmt::Debug <span class="kw">for </span>Inner&lt;T&gt; {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, fmt: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
         <span class="kw">use </span>std::sync::atomic::Ordering::Relaxed;
 
-        <a href="#1244">fmt</a>.debug_struct(<span class="string">&quot;Inner&quot;</span>)
-            .field(<span class="string">&quot;state&quot;</span>, <span class="kw-2">&amp;</span>State::load(<span class="kw-2">&amp;</span><a class="self" href="#1244">self</a>.state, Relaxed))
+        fmt.debug_struct(<span class="string">&quot;Inner&quot;</span>)
+            .field(<span class="string">&quot;state&quot;</span>, <span class="kw-2">&amp;</span>State::load(<span class="kw-2">&amp;</span><span class="self">self</span>.state, Relaxed))
             .finish()
     }
 }
@@ -2634,7 +2638,7 @@
 /// # Safety
 ///
 /// If this bit is not set, the `rx_task` field may be uninitialized.
-</span><span class="kw">const </span>RX_TASK_SET: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> = <span class="number">0b00001</span>;
+</span><span class="kw">const </span>RX_TASK_SET: usize = <span class="number">0b00001</span>;
 <span class="doccomment">/// Indicates that a value has been stored in the channel&#39;s inner `UnsafeCell`.
 ///
 /// # Safety
@@ -2643,26 +2647,26 @@
 /// `UnsafeCell`. If it is set, the `UnsafeCell` may ONLY be accessed by the
 /// receiver. If this bit is NOT set, the `UnsafeCell` may ONLY be accessed by
 /// the sender.
-</span><span class="kw">const </span>VALUE_SENT: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> = <span class="number">0b00010</span>;
-<span class="kw">const </span>CLOSED: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> = <span class="number">0b00100</span>;
+</span><span class="kw">const </span>VALUE_SENT: usize = <span class="number">0b00010</span>;
+<span class="kw">const </span>CLOSED: usize = <span class="number">0b00100</span>;
 
 <span class="doccomment">/// Indicates that a waker for the sending task has been set.
 ///
 /// # Safety
 ///
 /// If this bit is not set, the `tx_task` field may be uninitialized.
-</span><span class="kw">const </span>TX_TASK_SET: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> = <span class="number">0b01000</span>;
+</span><span class="kw">const </span>TX_TASK_SET: usize = <span class="number">0b01000</span>;
 
-<span class="kw">impl </span><a href="#431">State</a> {
-    <span class="kw">fn </span>new() -&gt; <a href="#431">State</a> {
-        <a href="#431">State</a>(<span class="number">0</span>)
+<span class="kw">impl </span>State {
+    <span class="kw">fn </span>new() -&gt; State {
+        State(<span class="number">0</span>)
     }
 
-    <span class="kw">fn </span>is_complete(<span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#1282">self</a>.<span class="number">0 </span>&amp; <a href="#1267">VALUE_SENT</a> == <a href="#1267">VALUE_SENT</a>
+    <span class="kw">fn </span>is_complete(<span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.<span class="number">0 </span>&amp; VALUE_SENT == VALUE_SENT
     }
 
-    <span class="kw">fn </span>set_complete(cell: <span class="kw-2">&amp;</span><a href="../loom/std/atomic_usize.rs.html#6">AtomicUsize</a>) -&gt; <a href="#431">State</a> {
+    <span class="kw">fn </span>set_complete(cell: <span class="kw-2">&amp;</span>AtomicUsize) -&gt; State {
         <span class="comment">// This method is a compare-and-swap loop rather than a fetch-or like
         // other `set_$WHATEVER` methods on `State`. This is because we must
         // check if the state has been closed before setting the `VALUE_SENT`
@@ -2676,7 +2680,7 @@
         // `poll_recv` or `try_recv` call is occurring concurrently, both
         // threads may try to access the `UnsafeCell` if we were to set the
         // `VALUE_SENT` bit on a closed channel.
-        </span><span class="kw">let </span><span class="kw-2">mut </span>state = <a href="#1286">cell</a>.load(Ordering::Relaxed);
+        </span><span class="kw">let </span><span class="kw-2">mut </span>state = cell.load(Ordering::Relaxed);
         <span class="kw">loop </span>{
             <span class="kw">if </span>State(state).is_closed() {
                 <span class="kw">break</span>;
@@ -2684,77 +2688,77 @@
             <span class="comment">// TODO: This could be `Release`, followed by an `Acquire` fence *if*
             // the `RX_TASK_SET` flag is set. However, `loom` does not support
             // fences yet.
-            </span><span class="kw">match </span><a href="#1286">cell</a>.compare_exchange_weak(
-                <a href="#1300">state</a>,
-                <a href="#1300">state</a> | <a href="#1267">VALUE_SENT</a>,
+            </span><span class="kw">match </span>cell.compare_exchange_weak(
+                state,
+                state | VALUE_SENT,
                 Ordering::AcqRel,
                 Ordering::Acquire,
             ) {
                 <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; <span class="kw">break</span>,
-                <span class="prelude-val">Err</span>(actual) =&gt; <a href="#1300">state</a> = <a href="#1315">actual</a>,
+                <span class="prelude-val">Err</span>(actual) =&gt; state = actual,
             }
         }
-        <a href="#431">State</a>(<a href="#1300">state</a>)
+        State(state)
     }
 
-    <span class="kw">fn </span>is_rx_task_set(<span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#1321">self</a>.<span class="number">0 </span>&amp; <a href="#1258">RX_TASK_SET</a> == <a href="#1258">RX_TASK_SET</a>
+    <span class="kw">fn </span>is_rx_task_set(<span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.<span class="number">0 </span>&amp; RX_TASK_SET == RX_TASK_SET
     }
 
-    <span class="kw">fn </span>set_rx_task(cell: <span class="kw-2">&amp;</span><a href="../loom/std/atomic_usize.rs.html#6">AtomicUsize</a>) -&gt; <a href="#431">State</a> {
-        <span class="kw">let </span>val = <a href="#1325">cell</a>.fetch_or(<a href="#1258">RX_TASK_SET</a>, AcqRel);
-        <a href="#431">State</a>(<a href="#1326">val</a> | <a href="#1258">RX_TASK_SET</a>)
+    <span class="kw">fn </span>set_rx_task(cell: <span class="kw-2">&amp;</span>AtomicUsize) -&gt; State {
+        <span class="kw">let </span>val = cell.fetch_or(RX_TASK_SET, AcqRel);
+        State(val | RX_TASK_SET)
     }
 
-    <span class="kw">fn </span>unset_rx_task(cell: <span class="kw-2">&amp;</span><a href="../loom/std/atomic_usize.rs.html#6">AtomicUsize</a>) -&gt; <a href="#431">State</a> {
-        <span class="kw">let </span>val = <a href="#1330">cell</a>.fetch_and(!<a href="#1258">RX_TASK_SET</a>, AcqRel);
-        <a href="#431">State</a>(<a href="#1331">val</a> &amp; !<a href="#1258">RX_TASK_SET</a>)
+    <span class="kw">fn </span>unset_rx_task(cell: <span class="kw-2">&amp;</span>AtomicUsize) -&gt; State {
+        <span class="kw">let </span>val = cell.fetch_and(!RX_TASK_SET, AcqRel);
+        State(val &amp; !RX_TASK_SET)
     }
 
-    <span class="kw">fn </span>is_closed(<span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#1335">self</a>.<span class="number">0 </span>&amp; <a href="#1268">CLOSED</a> == <a href="#1268">CLOSED</a>
+    <span class="kw">fn </span>is_closed(<span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.<span class="number">0 </span>&amp; CLOSED == CLOSED
     }
 
-    <span class="kw">fn </span>set_closed(cell: <span class="kw-2">&amp;</span><a href="../loom/std/atomic_usize.rs.html#6">AtomicUsize</a>) -&gt; <a href="#431">State</a> {
+    <span class="kw">fn </span>set_closed(cell: <span class="kw-2">&amp;</span>AtomicUsize) -&gt; State {
         <span class="comment">// Acquire because we want all later writes (attempting to poll) to be
         // ordered after this.
-        </span><span class="kw">let </span>val = <a href="#1339">cell</a>.fetch_or(<a href="#1268">CLOSED</a>, Acquire);
-        <a href="#431">State</a>(<a href="#1342">val</a>)
+        </span><span class="kw">let </span>val = cell.fetch_or(CLOSED, Acquire);
+        State(val)
     }
 
-    <span class="kw">fn </span>set_tx_task(cell: <span class="kw-2">&amp;</span><a href="../loom/std/atomic_usize.rs.html#6">AtomicUsize</a>) -&gt; <a href="#431">State</a> {
-        <span class="kw">let </span>val = <a href="#1346">cell</a>.fetch_or(<a href="#1275">TX_TASK_SET</a>, AcqRel);
-        <a href="#431">State</a>(<a href="#1347">val</a> | <a href="#1275">TX_TASK_SET</a>)
+    <span class="kw">fn </span>set_tx_task(cell: <span class="kw-2">&amp;</span>AtomicUsize) -&gt; State {
+        <span class="kw">let </span>val = cell.fetch_or(TX_TASK_SET, AcqRel);
+        State(val | TX_TASK_SET)
     }
 
-    <span class="kw">fn </span>unset_tx_task(cell: <span class="kw-2">&amp;</span><a href="../loom/std/atomic_usize.rs.html#6">AtomicUsize</a>) -&gt; <a href="#431">State</a> {
-        <span class="kw">let </span>val = <a href="#1351">cell</a>.fetch_and(!<a href="#1275">TX_TASK_SET</a>, AcqRel);
-        <a href="#431">State</a>(<a href="#1352">val</a> &amp; !<a href="#1275">TX_TASK_SET</a>)
+    <span class="kw">fn </span>unset_tx_task(cell: <span class="kw-2">&amp;</span>AtomicUsize) -&gt; State {
+        <span class="kw">let </span>val = cell.fetch_and(!TX_TASK_SET, AcqRel);
+        State(val &amp; !TX_TASK_SET)
     }
 
-    <span class="kw">fn </span>is_tx_task_set(<span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#1356">self</a>.<span class="number">0 </span>&amp; <a href="#1275">TX_TASK_SET</a> == <a href="#1275">TX_TASK_SET</a>
+    <span class="kw">fn </span>is_tx_task_set(<span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.<span class="number">0 </span>&amp; TX_TASK_SET == TX_TASK_SET
     }
 
-    <span class="kw">fn </span>as_usize(<span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="self" href="#1360">self</a>.<span class="number">0
+    <span class="kw">fn </span>as_usize(<span class="self">self</span>) -&gt; usize {
+        <span class="self">self</span>.<span class="number">0
     </span>}
 
-    <span class="kw">fn </span>load(cell: <span class="kw-2">&amp;</span><a href="../loom/std/atomic_usize.rs.html#6">AtomicUsize</a>, order: <a href="https://doc.rust-lang.org/nightly/core/sync/atomic/enum.Ordering.html">Ordering</a>) -&gt; <a href="#431">State</a> {
-        <span class="kw">let </span>val = <a href="#1364">cell</a>.load(<a href="#1364">order</a>);
-        <a href="#431">State</a>(<a href="#1365">val</a>)
+    <span class="kw">fn </span>load(cell: <span class="kw-2">&amp;</span>AtomicUsize, order: Ordering) -&gt; State {
+        <span class="kw">let </span>val = cell.load(order);
+        State(val)
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="#431">State</a> {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, fmt: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a href="#1371">fmt</a>.debug_struct(<span class="string">&quot;State&quot;</span>)
-            .field(<span class="string">&quot;is_complete&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="#1371">self</a>.<a href="#1282">is_complete</a>())
-            .field(<span class="string">&quot;is_closed&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="#1371">self</a>.<a href="#1335">is_closed</a>())
-            .field(<span class="string">&quot;is_rx_task_set&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="#1371">self</a>.<a href="#1321">is_rx_task_set</a>())
-            .field(<span class="string">&quot;is_tx_task_set&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="#1371">self</a>.<a href="#1356">is_tx_task_set</a>())
+<span class="kw">impl </span>fmt::Debug <span class="kw">for </span>State {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, fmt: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        fmt.debug_struct(<span class="string">&quot;State&quot;</span>)
+            .field(<span class="string">&quot;is_complete&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.is_complete())
+            .field(<span class="string">&quot;is_closed&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.is_closed())
+            .field(<span class="string">&quot;is_rx_task_set&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.is_rx_task_set())
+            .field(<span class="string">&quot;is_tx_task_set&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.is_tx_task_set())
             .finish()
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="tokio" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="tokio" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-1.7.0/src/compile.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>compile.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../regex/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-1.7.0/src/compile.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>compile.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../regex/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -1262,30 +1262,30 @@
 <a href="#1262" id="1262">1262</a>
 <a href="#1263" id="1263">1263</a>
 <a href="#1264" id="1264">1264</a>
-</pre><pre class="rust"><code><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/collections/hash/map/struct.HashMap.html">std::collections::HashMap</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">std::fmt</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/iter/index.html">std::iter</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/result/index.html">std::result</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/sync/struct.Arc.html">std::sync::Arc</a>;
+</pre><pre class="rust"><code><span class="kw">use </span>std::collections::HashMap;
+<span class="kw">use </span>std::fmt;
+<span class="kw">use </span>std::iter;
+<span class="kw">use </span>std::result;
+<span class="kw">use </span>std::sync::Arc;
 
-<span class="kw">use </span>regex_syntax::hir::{<a class="self" href="../../regex_syntax/hir/index.html">self</a>, <a href="../../regex_syntax/hir/struct.Hir.html">Hir</a>};
-<span class="kw">use </span><a href="../../regex_syntax/fn.is_word_byte.html">regex_syntax::is_word_byte</a>;
-<span class="kw">use </span>regex_syntax::utf8::{<a href="../../regex_syntax/utf8/struct.Utf8Range.html">Utf8Range</a>, <a href="../../regex_syntax/utf8/enum.Utf8Sequence.html">Utf8Sequence</a>, <a href="../../regex_syntax/utf8/struct.Utf8Sequences.html">Utf8Sequences</a>};
+<span class="kw">use </span>regex_syntax::hir::{<span class="self">self</span>, Hir};
+<span class="kw">use </span>regex_syntax::is_word_byte;
+<span class="kw">use </span>regex_syntax::utf8::{Utf8Range, Utf8Sequence, Utf8Sequences};
 
 <span class="kw">use </span><span class="kw">crate</span>::prog::{
-    <a href="prog.rs.html#341">EmptyLook</a>, <a href="prog.rs.html#268">Inst</a>, <a href="prog.rs.html#419">InstBytes</a>, <a href="prog.rs.html#362">InstChar</a>, <a href="prog.rs.html#331">InstEmptyLook</a>, <a href="prog.rs.html#13">InstPtr</a>, <a href="prog.rs.html#372">InstRanges</a>,
-    <a href="prog.rs.html#310">InstSave</a>, <a href="prog.rs.html#320">InstSplit</a>, <a href="prog.rs.html#18">Program</a>,
+    EmptyLook, Inst, InstBytes, InstChar, InstEmptyLook, InstPtr, InstRanges,
+    InstSave, InstSplit, Program,
 };
 
-<span class="kw">use </span><a href="error.rs.html#6"><span class="kw">crate</span>::Error</a>;
+<span class="kw">use </span><span class="kw">crate</span>::Error;
 
-<span class="kw">type </span><span class="prelude-ty">Result </span>= result::Result&lt;<a href="#22">Patch</a>, <a href="error.rs.html#6">Error</a>&gt;;
-<span class="kw">type </span>ResultOrEmpty = result::Result&lt;<span class="prelude-ty">Option</span>&lt;<a href="#22">Patch</a>&gt;, <a href="error.rs.html#6">Error</a>&gt;;
+<span class="kw">type </span><span class="prelude-ty">Result </span>= result::Result&lt;Patch, Error&gt;;
+<span class="kw">type </span>ResultOrEmpty = result::Result&lt;<span class="prelude-ty">Option</span>&lt;Patch&gt;, Error&gt;;
 
 <span class="attr">#[derive(Debug)]
 </span><span class="kw">struct </span>Patch {
-    hole: <a href="#848">Hole</a>,
-    entry: <a href="prog.rs.html#13">InstPtr</a>,
+    hole: Hole,
+    entry: InstPtr,
 }
 
 <span class="doccomment">/// A compiler translates a regular expression AST to a sequence of
@@ -1294,14 +1294,14 @@
 // `Debug`.
 </span><span class="attr">#[allow(missing_debug_implementations)]
 </span><span class="kw">pub struct </span>Compiler {
-    insts: Vec&lt;<a href="#866">MaybeInst</a>&gt;,
-    compiled: <a href="prog.rs.html#18">Program</a>,
-    capture_name_idx: HashMap&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;,
-    num_exprs: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-    size_limit: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-    suffix_cache: <a href="#1097">SuffixCache</a>,
-    utf8_seqs: <span class="prelude-ty">Option</span>&lt;<a href="../../regex_syntax/utf8/struct.Utf8Sequences.html">Utf8Sequences</a>&gt;,
-    byte_classes: <a href="#1152">ByteClassSet</a>,
+    insts: Vec&lt;MaybeInst&gt;,
+    compiled: Program,
+    capture_name_idx: HashMap&lt;String, usize&gt;,
+    num_exprs: usize,
+    size_limit: usize,
+    suffix_cache: SuffixCache,
+    utf8_seqs: <span class="prelude-ty">Option</span>&lt;Utf8Sequences&gt;,
+    byte_classes: ByteClassSet,
     <span class="comment">// This keeps track of extra bytes allocated while compiling the regex
     // program. Currently, this corresponds to two things. First is the heap
     // memory allocated by Unicode character classes (&#39;InstRanges&#39;). Second is
@@ -1312,16 +1312,16 @@
     // the second case, if we don&#39;t bail, then an excessively large repetition
     // on an empty sub-expression can result in the compiler using a very large
     // amount of CPU time.
-    </span>extra_inst_bytes: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+    </span>extra_inst_bytes: usize,
 }
 
-<span class="kw">impl </span><a href="#32">Compiler</a> {
+<span class="kw">impl </span>Compiler {
     <span class="doccomment">/// Create a new regular expression compiler.
     ///
     /// Various options can be set before calling `compile` on an expression.
     </span><span class="kw">pub fn </span>new() -&gt; <span class="self">Self </span>{
-        <a href="#32">Compiler</a> {
-            insts: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[],
+        Compiler {
+            insts: <span class="macro">vec!</span>[],
             compiled: Program::new(),
             capture_name_idx: HashMap::new(),
             num_exprs: <span class="number">0</span>,
@@ -1336,9 +1336,9 @@
     <span class="doccomment">/// The size of the resulting program is limited by size_limit. If
     /// the program approximately exceeds the given size (in bytes), then
     /// compilation will stop and return an error.
-    </span><span class="kw">pub fn </span>size_limit(<span class="kw-2">mut </span><span class="self">self</span>, size_limit: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="self">Self </span>{
-        <a class="self" href="#75">self</a>.size_limit = <a href="#75">size_limit</a>;
-        <span class="self"><a href="#75">self</a>
+    </span><span class="kw">pub fn </span>size_limit(<span class="kw-2">mut </span><span class="self">self</span>, size_limit: usize) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.size_limit = size_limit;
+        <span class="self">self
     </span>}
 
     <span class="doccomment">/// If bytes is true, then the program is compiled as a byte based
@@ -1352,18 +1352,18 @@
     /// instruction is never produced.
     ///
     /// Note that `dfa(true)` implies `bytes(true)`.
-    </span><span class="kw">pub fn </span>bytes(<span class="kw-2">mut </span><span class="self">self</span>, yes: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="self">Self </span>{
-        <a class="self" href="#91">self</a>.compiled.is_bytes = <a href="#91">yes</a>;
-        <span class="self"><a href="#91">self</a>
+    </span><span class="kw">pub fn </span>bytes(<span class="kw-2">mut </span><span class="self">self</span>, yes: bool) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.compiled.is_bytes = yes;
+        <span class="self">self
     </span>}
 
     <span class="doccomment">/// When disabled, the program compiled may match arbitrary bytes.
     ///
     /// When enabled (the default), all compiled programs exclusively match
     /// valid UTF-8 bytes.
-    </span><span class="kw">pub fn </span>only_utf8(<span class="kw-2">mut </span><span class="self">self</span>, yes: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="self">Self </span>{
-        <a class="self" href="#100">self</a>.compiled.only_utf8 = <a href="#100">yes</a>;
-        <span class="self"><a href="#100">self</a>
+    </span><span class="kw">pub fn </span>only_utf8(<span class="kw-2">mut </span><span class="self">self</span>, yes: bool) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.compiled.only_utf8 = yes;
+        <span class="self">self
     </span>}
 
     <span class="doccomment">/// When set, the machine returned is suitable for use in the DFA matching
@@ -1373,16 +1373,16 @@
     /// beginning, then a preceding `.*?` is included in the program. (The NFA
     /// based engines handle the preceding `.*?` explicitly, which is difficult
     /// or impossible in the DFA engine.)
-    </span><span class="kw">pub fn </span>dfa(<span class="kw-2">mut </span><span class="self">self</span>, yes: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="self">Self </span>{
-        <a class="self" href="#112">self</a>.compiled.is_dfa = <a href="#112">yes</a>;
-        <span class="self"><a href="#112">self</a>
+    </span><span class="kw">pub fn </span>dfa(<span class="kw-2">mut </span><span class="self">self</span>, yes: bool) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.compiled.is_dfa = yes;
+        <span class="self">self
     </span>}
 
     <span class="doccomment">/// When set, the machine returned is suitable for matching text in
     /// reverse. In particular, all concatenations are flipped.
-    </span><span class="kw">pub fn </span>reverse(<span class="kw-2">mut </span><span class="self">self</span>, yes: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="self">Self </span>{
-        <a class="self" href="#119">self</a>.compiled.is_reverse = <a href="#119">yes</a>;
-        <span class="self"><a href="#119">self</a>
+    </span><span class="kw">pub fn </span>reverse(<span class="kw-2">mut </span><span class="self">self</span>, yes: bool) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.compiled.is_reverse = yes;
+        <span class="self">self
     </span>}
 
     <span class="doccomment">/// Compile a regular expression given its AST.
@@ -1390,62 +1390,62 @@
     /// The compiler is guaranteed to succeed unless the program exceeds the
     /// specified size limit. If the size limit is exceeded, then compilation
     /// stops and returns an error.
-    </span><span class="kw">pub fn </span>compile(<span class="kw-2">mut </span><span class="self">self</span>, exprs: <span class="kw-2">&amp;</span>[<a href="../../regex_syntax/hir/struct.Hir.html">Hir</a>]) -&gt; result::Result&lt;<a href="prog.rs.html#18">Program</a>, <a href="error.rs.html#6">Error</a>&gt; {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(!exprs.is_empty());
-        <a class="self" href="#129">self</a>.num_exprs = <a href="#129">exprs</a>.len();
+    </span><span class="kw">pub fn </span>compile(<span class="kw-2">mut </span><span class="self">self</span>, exprs: <span class="kw-2">&amp;</span>[Hir]) -&gt; result::Result&lt;Program, Error&gt; {
+        <span class="macro">debug_assert!</span>(!exprs.is_empty());
+        <span class="self">self</span>.num_exprs = exprs.len();
         <span class="kw">if </span>exprs.len() == <span class="number">1 </span>{
-            <a class="self" href="#129">self</a>.<a href="#139">compile_one</a>(<span class="kw-2">&amp;</span><a href="#129">exprs</a>[<span class="number">0</span>])
+            <span class="self">self</span>.compile_one(<span class="kw-2">&amp;</span>exprs[<span class="number">0</span>])
         } <span class="kw">else </span>{
-            <a class="self" href="#129">self</a>.<a href="#165-168">compile_many</a>(<a href="#129">exprs</a>)
+            <span class="self">self</span>.compile_many(exprs)
         }
     }
 
-    <span class="kw">fn </span>compile_one(<span class="kw-2">mut </span><span class="self">self</span>, expr: <span class="kw-2">&amp;</span><a href="../../regex_syntax/hir/struct.Hir.html">Hir</a>) -&gt; result::Result&lt;<a href="prog.rs.html#18">Program</a>, <a href="error.rs.html#6">Error</a>&gt; {
+    <span class="kw">fn </span>compile_one(<span class="kw-2">mut </span><span class="self">self</span>, expr: <span class="kw-2">&amp;</span>Hir) -&gt; result::Result&lt;Program, Error&gt; {
         <span class="comment">// If we&#39;re compiling a forward DFA and we aren&#39;t anchored, then
         // add a `.*?` before the first capture group.
         // Other matching engines handle this by baking the logic into the
         // matching engine itself.
-        </span><span class="kw">let </span><span class="kw-2">mut </span>dotstar_patch = <a href="#22">Patch</a> { hole: <a href="#849">Hole::None</a>, entry: <span class="number">0 </span>};
-        <a class="self" href="#139">self</a>.compiled.is_anchored_start = <a href="#139">expr</a>.is_anchored_start();
-        <a class="self" href="#139">self</a>.compiled.is_anchored_end = <a href="#139">expr</a>.is_anchored_end();
+        </span><span class="kw">let </span><span class="kw-2">mut </span>dotstar_patch = Patch { hole: Hole::None, entry: <span class="number">0 </span>};
+        <span class="self">self</span>.compiled.is_anchored_start = expr.is_anchored_start();
+        <span class="self">self</span>.compiled.is_anchored_end = expr.is_anchored_end();
         <span class="kw">if </span><span class="self">self</span>.compiled.needs_dotstar() {
-            <a href="#144">dotstar_patch</a> = <span class="self">self</span>.c_dotstar()<span class="question-mark">?</span>;
-            <a class="self" href="#139">self</a>.compiled.start = <a href="#144">dotstar_patch</a>.entry;
+            dotstar_patch = <span class="self">self</span>.c_dotstar()<span class="question-mark">?</span>;
+            <span class="self">self</span>.compiled.start = dotstar_patch.entry;
         }
-        <a class="self" href="#139">self</a>.compiled.captures = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[<span class="prelude-val">None</span>];
+        <span class="self">self</span>.compiled.captures = <span class="macro">vec!</span>[<span class="prelude-val">None</span>];
         <span class="kw">let </span>patch =
-            <span class="self">self</span>.c_capture(<span class="number">0</span>, expr)<span class="question-mark">?</span>.unwrap_or_else(|| <a class="self" href="#139">self</a>.<a href="#748">next_inst</a>());
+            <span class="self">self</span>.c_capture(<span class="number">0</span>, expr)<span class="question-mark">?</span>.unwrap_or_else(|| <span class="self">self</span>.next_inst());
         <span class="kw">if </span><span class="self">self</span>.compiled.needs_dotstar() {
-            <a class="self" href="#139">self</a>.<a href="#752">fill</a>(<a href="#144">dotstar_patch</a>.hole, <a href="#152">patch</a>.entry);
+            <span class="self">self</span>.fill(dotstar_patch.hole, patch.entry);
         } <span class="kw">else </span>{
-            <a class="self" href="#139">self</a>.compiled.start = <a href="#152">patch</a>.entry;
+            <span class="self">self</span>.compiled.start = patch.entry;
         }
-        <a class="self" href="#139">self</a>.<a href="#766">fill_to_next</a>(<a href="#152">patch</a>.hole);
-        <a class="self" href="#139">self</a>.compiled.matches = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[<span class="self">self</span>.insts.len()];
-        <a class="self" href="#139">self</a>.<a href="#813">push_compiled</a>(<a href="prog.rs.html#276">Inst::Match</a>(<span class="number">0</span>));
-        <a class="self" href="#139">self</a>.<a href="#205">compile_finish</a>()
+        <span class="self">self</span>.fill_to_next(patch.hole);
+        <span class="self">self</span>.compiled.matches = <span class="macro">vec!</span>[<span class="self">self</span>.insts.len()];
+        <span class="self">self</span>.push_compiled(Inst::Match(<span class="number">0</span>));
+        <span class="self">self</span>.compile_finish()
     }
 
     <span class="kw">fn </span>compile_many(
         <span class="kw-2">mut </span><span class="self">self</span>,
-        exprs: <span class="kw-2">&amp;</span>[<a href="../../regex_syntax/hir/struct.Hir.html">Hir</a>],
-    ) -&gt; result::Result&lt;<a href="prog.rs.html#18">Program</a>, <a href="error.rs.html#6">Error</a>&gt; {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(exprs.len() &gt; <span class="number">1</span>);
+        exprs: <span class="kw-2">&amp;</span>[Hir],
+    ) -&gt; result::Result&lt;Program, Error&gt; {
+        <span class="macro">debug_assert!</span>(exprs.len() &gt; <span class="number">1</span>);
 
-        <a class="self" href="#166">self</a>.compiled.is_anchored_start =
-            <a href="#167">exprs</a>.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">all</a>(|e| <a href="#172">e</a>.is_anchored_start());
-        <a class="self" href="#166">self</a>.compiled.is_anchored_end =
-            <a href="#167">exprs</a>.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">all</a>(|e| <a href="#174">e</a>.is_anchored_end());
-        <span class="kw">let </span><span class="kw-2">mut </span>dotstar_patch = <a href="#22">Patch</a> { hole: <a href="#849">Hole::None</a>, entry: <span class="number">0 </span>};
+        <span class="self">self</span>.compiled.is_anchored_start =
+            exprs.iter().all(|e| e.is_anchored_start());
+        <span class="self">self</span>.compiled.is_anchored_end =
+            exprs.iter().all(|e| e.is_anchored_end());
+        <span class="kw">let </span><span class="kw-2">mut </span>dotstar_patch = Patch { hole: Hole::None, entry: <span class="number">0 </span>};
         <span class="kw">if </span><span class="self">self</span>.compiled.needs_dotstar() {
-            <a href="#175">dotstar_patch</a> = <span class="self">self</span>.c_dotstar()<span class="question-mark">?</span>;
-            <a class="self" href="#166">self</a>.compiled.start = <a href="#175">dotstar_patch</a>.entry;
+            dotstar_patch = <span class="self">self</span>.c_dotstar()<span class="question-mark">?</span>;
+            <span class="self">self</span>.compiled.start = dotstar_patch.entry;
         } <span class="kw">else </span>{
-            <a class="self" href="#166">self</a>.compiled.start = <span class="number">0</span>; <span class="comment">// first instruction is always split
+            <span class="self">self</span>.compiled.start = <span class="number">0</span>; <span class="comment">// first instruction is always split
         </span>}
-        <a class="self" href="#166">self</a>.<a href="#766">fill_to_next</a>(<a href="#175">dotstar_patch</a>.hole);
+        <span class="self">self</span>.fill_to_next(dotstar_patch.hole);
 
-        <span class="kw">let </span><span class="kw-2">mut </span>prev_hole = <a href="#849">Hole::None</a>;
+        <span class="kw">let </span><span class="kw-2">mut </span>prev_hole = Hole::None;
         <span class="kw">for </span>(i, expr) <span class="kw">in </span>exprs[<span class="number">0</span>..exprs.len() - <span class="number">1</span>].iter().enumerate() {
             <span class="self">self</span>.fill_to_next(prev_hole);
             <span class="kw">let </span>split = <span class="self">self</span>.push_split_hole();
@@ -1456,22 +1456,22 @@
             <span class="self">self</span>.push_compiled(Inst::Match(i));
             prev_hole = <span class="self">self</span>.fill_split(split, <span class="prelude-val">Some</span>(entry), <span class="prelude-val">None</span>);
         }
-        <span class="kw">let </span>i = <a href="#167">exprs</a>.len() - <span class="number">1</span>;
-        <span class="kw">let </span><a href="#22">Patch</a> { hole, entry } =
-            <span class="self">self</span>.c_capture(<span class="number">0</span>, <span class="kw-2">&amp;</span>exprs[i])<span class="question-mark">?</span>.unwrap_or_else(|| <a class="self" href="#166">self</a>.<a href="#748">next_inst</a>());
-        <a class="self" href="#166">self</a>.<a href="#752">fill</a>(<a href="#184">prev_hole</a>, <a href="#196">entry</a>);
-        <a class="self" href="#166">self</a>.<a href="#766">fill_to_next</a>(<a href="#196">hole</a>);
-        <a class="self" href="#166">self</a>.compiled.matches.push(<a class="self" href="#166">self</a>.insts.len());
-        <a class="self" href="#166">self</a>.<a href="#813">push_compiled</a>(<a href="prog.rs.html#276">Inst::Match</a>(<a href="#195">i</a>));
-        <a class="self" href="#166">self</a>.<a href="#205">compile_finish</a>()
+        <span class="kw">let </span>i = exprs.len() - <span class="number">1</span>;
+        <span class="kw">let </span>Patch { hole, entry } =
+            <span class="self">self</span>.c_capture(<span class="number">0</span>, <span class="kw-2">&amp;</span>exprs[i])<span class="question-mark">?</span>.unwrap_or_else(|| <span class="self">self</span>.next_inst());
+        <span class="self">self</span>.fill(prev_hole, entry);
+        <span class="self">self</span>.fill_to_next(hole);
+        <span class="self">self</span>.compiled.matches.push(<span class="self">self</span>.insts.len());
+        <span class="self">self</span>.push_compiled(Inst::Match(i));
+        <span class="self">self</span>.compile_finish()
     }
 
-    <span class="kw">fn </span>compile_finish(<span class="kw-2">mut </span><span class="self">self</span>) -&gt; result::Result&lt;<a href="prog.rs.html#18">Program</a>, <a href="error.rs.html#6">Error</a>&gt; {
-        <a class="self" href="#205">self</a>.compiled.insts =
-            <a class="self" href="#205">self</a>.insts.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|inst| <a href="#207">inst</a>.<a href="#938">unwrap</a>()).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
-        <a class="self" href="#205">self</a>.compiled.byte_classes = <a class="self" href="#205">self</a>.byte_classes.<a href="#1183">byte_classes</a>();
-        <a class="self" href="#205">self</a>.compiled.capture_name_idx = Arc::new(<a class="self" href="#205">self</a>.capture_name_idx);
-        <span class="prelude-val">Ok</span>(<a class="self" href="#205">self</a>.compiled)
+    <span class="kw">fn </span>compile_finish(<span class="kw-2">mut </span><span class="self">self</span>) -&gt; result::Result&lt;Program, Error&gt; {
+        <span class="self">self</span>.compiled.insts =
+            <span class="self">self</span>.insts.into_iter().map(|inst| inst.unwrap()).collect();
+        <span class="self">self</span>.compiled.byte_classes = <span class="self">self</span>.byte_classes.byte_classes();
+        <span class="self">self</span>.compiled.capture_name_idx = Arc::new(<span class="self">self</span>.capture_name_idx);
+        <span class="prelude-val">Ok</span>(<span class="self">self</span>.compiled)
     }
 
     <span class="doccomment">/// Compile expr into self.insts, returning a patch on success,
@@ -1529,131 +1529,131 @@
     ///
     /// Ok(None) is returned when an expression is compiled to no
     /// instruction, and so no patch.entry value makes sense.
-    </span><span class="kw">fn </span>c(<span class="kw-2">&amp;mut </span><span class="self">self</span>, expr: <span class="kw-2">&amp;</span><a href="../../regex_syntax/hir/struct.Hir.html">Hir</a>) -&gt; <a href="#19">ResultOrEmpty</a> {
-        <span class="kw">use </span><a href="lib.rs.html#749"><span class="kw">crate</span>::prog</a>;
-        <span class="kw">use </span><a href="../../regex_syntax/hir/enum.HirKind.html">regex_syntax::hir::HirKind</a>::<span class="kw-2">*</span>;
+    </span><span class="kw">fn </span>c(<span class="kw-2">&amp;mut </span><span class="self">self</span>, expr: <span class="kw-2">&amp;</span>Hir) -&gt; ResultOrEmpty {
+        <span class="kw">use </span><span class="kw">crate</span>::prog;
+        <span class="kw">use </span>regex_syntax::hir::HirKind::<span class="kw-2">*</span>;
 
         <span class="self">self</span>.check_size()<span class="question-mark">?</span>;
-        <span class="kw">match </span><span class="kw-2">*</span><a href="#268">expr</a>.kind() {
-            Empty =&gt; <a class="self" href="#268">self</a>.<a href="#392">c_empty</a>(),
-            Literal(hir::Literal::Unicode(c)) =&gt; <a class="self" href="#268">self</a>.<a href="#440">c_char</a>(<a href="#275">c</a>),
+        <span class="kw">match </span><span class="kw-2">*</span>expr.kind() {
+            Empty =&gt; <span class="self">self</span>.c_empty(),
+            Literal(hir::Literal::Unicode(c)) =&gt; <span class="self">self</span>.c_char(c),
             Literal(hir::Literal::Byte(b)) =&gt; {
-                <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(<span class="self">self</span>.compiled.uses_bytes());
-                <a class="self" href="#268">self</a>.<a href="#477">c_byte</a>(<a href="#276">b</a>)
+                <span class="macro">assert!</span>(<span class="self">self</span>.compiled.uses_bytes());
+                <span class="self">self</span>.c_byte(b)
             }
-            Class(hir::Class::Unicode(<span class="kw-2">ref </span>cls)) =&gt; <a class="self" href="#268">self</a>.<a href="#457">c_class</a>(<a href="#280">cls</a>.ranges()),
+            Class(hir::Class::Unicode(<span class="kw-2">ref </span>cls)) =&gt; <span class="self">self</span>.c_class(cls.ranges()),
             Class(hir::Class::Bytes(<span class="kw-2">ref </span>cls)) =&gt; {
                 <span class="kw">if </span><span class="self">self</span>.compiled.uses_bytes() {
-                    <a class="self" href="#268">self</a>.<a href="#481-484">c_class_bytes</a>(<a href="#281">cls</a>.ranges())
+                    <span class="self">self</span>.c_class_bytes(cls.ranges())
                 } <span class="kw">else </span>{
-                    <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(cls.is_all_ascii());
-                    <span class="kw">let </span><span class="kw-2">mut </span>char_ranges = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[];
+                    <span class="macro">assert!</span>(cls.is_all_ascii());
+                    <span class="kw">let </span><span class="kw-2">mut </span>char_ranges = <span class="macro">vec!</span>[];
                     <span class="kw">for </span>r <span class="kw">in </span>cls.iter() {
                         <span class="kw">let </span>(s, e) = (r.start() <span class="kw">as </span>char, r.end() <span class="kw">as </span>char);
                         char_ranges.push(hir::ClassUnicodeRange::new(s, e));
                     }
-                    <a class="self" href="#268">self</a>.<a href="#457">c_class</a>(<span class="kw-2">&amp;</span><a href="#286">char_ranges</a>)
+                    <span class="self">self</span>.c_class(<span class="kw-2">&amp;</span>char_ranges)
                 }
             }
-            Anchor(hir::Anchor::StartLine) <span class="kw">if </span><a class="self" href="#268">self</a>.compiled.is_reverse =&gt; {
-                <a class="self" href="#268">self</a>.byte_classes.<a href="#1159">set_range</a>(<span class="string">b&#39;\n&#39;</span>, <span class="string">b&#39;\n&#39;</span>);
-                <a class="self" href="#268">self</a>.<a href="#511">c_empty_look</a>(<a href="prog.rs.html#345">prog::EmptyLook::EndLine</a>)
+            Anchor(hir::Anchor::StartLine) <span class="kw">if </span><span class="self">self</span>.compiled.is_reverse =&gt; {
+                <span class="self">self</span>.byte_classes.set_range(<span class="string">b&#39;\n&#39;</span>, <span class="string">b&#39;\n&#39;</span>);
+                <span class="self">self</span>.c_empty_look(prog::EmptyLook::EndLine)
             }
             Anchor(hir::Anchor::StartLine) =&gt; {
-                <a class="self" href="#268">self</a>.byte_classes.<a href="#1159">set_range</a>(<span class="string">b&#39;\n&#39;</span>, <span class="string">b&#39;\n&#39;</span>);
-                <a class="self" href="#268">self</a>.<a href="#511">c_empty_look</a>(<a href="prog.rs.html#343">prog::EmptyLook::StartLine</a>)
+                <span class="self">self</span>.byte_classes.set_range(<span class="string">b&#39;\n&#39;</span>, <span class="string">b&#39;\n&#39;</span>);
+                <span class="self">self</span>.c_empty_look(prog::EmptyLook::StartLine)
             }
-            Anchor(hir::Anchor::EndLine) <span class="kw">if </span><a class="self" href="#268">self</a>.compiled.is_reverse =&gt; {
-                <a class="self" href="#268">self</a>.byte_classes.<a href="#1159">set_range</a>(<span class="string">b&#39;\n&#39;</span>, <span class="string">b&#39;\n&#39;</span>);
-                <a class="self" href="#268">self</a>.<a href="#511">c_empty_look</a>(<a href="prog.rs.html#343">prog::EmptyLook::StartLine</a>)
+            Anchor(hir::Anchor::EndLine) <span class="kw">if </span><span class="self">self</span>.compiled.is_reverse =&gt; {
+                <span class="self">self</span>.byte_classes.set_range(<span class="string">b&#39;\n&#39;</span>, <span class="string">b&#39;\n&#39;</span>);
+                <span class="self">self</span>.c_empty_look(prog::EmptyLook::StartLine)
             }
             Anchor(hir::Anchor::EndLine) =&gt; {
-                <a class="self" href="#268">self</a>.byte_classes.<a href="#1159">set_range</a>(<span class="string">b&#39;\n&#39;</span>, <span class="string">b&#39;\n&#39;</span>);
-                <a class="self" href="#268">self</a>.<a href="#511">c_empty_look</a>(<a href="prog.rs.html#345">prog::EmptyLook::EndLine</a>)
+                <span class="self">self</span>.byte_classes.set_range(<span class="string">b&#39;\n&#39;</span>, <span class="string">b&#39;\n&#39;</span>);
+                <span class="self">self</span>.c_empty_look(prog::EmptyLook::EndLine)
             }
-            Anchor(hir::Anchor::StartText) <span class="kw">if </span><a class="self" href="#268">self</a>.compiled.is_reverse =&gt; {
-                <a class="self" href="#268">self</a>.<a href="#511">c_empty_look</a>(<a href="prog.rs.html#349">prog::EmptyLook::EndText</a>)
+            Anchor(hir::Anchor::StartText) <span class="kw">if </span><span class="self">self</span>.compiled.is_reverse =&gt; {
+                <span class="self">self</span>.c_empty_look(prog::EmptyLook::EndText)
             }
             Anchor(hir::Anchor::StartText) =&gt; {
-                <a class="self" href="#268">self</a>.<a href="#511">c_empty_look</a>(<a href="prog.rs.html#347">prog::EmptyLook::StartText</a>)
+                <span class="self">self</span>.c_empty_look(prog::EmptyLook::StartText)
             }
-            Anchor(hir::Anchor::EndText) <span class="kw">if </span><a class="self" href="#268">self</a>.compiled.is_reverse =&gt; {
-                <a class="self" href="#268">self</a>.<a href="#511">c_empty_look</a>(<a href="prog.rs.html#347">prog::EmptyLook::StartText</a>)
+            Anchor(hir::Anchor::EndText) <span class="kw">if </span><span class="self">self</span>.compiled.is_reverse =&gt; {
+                <span class="self">self</span>.c_empty_look(prog::EmptyLook::StartText)
             }
             Anchor(hir::Anchor::EndText) =&gt; {
-                <a class="self" href="#268">self</a>.<a href="#511">c_empty_look</a>(<a href="prog.rs.html#349">prog::EmptyLook::EndText</a>)
+                <span class="self">self</span>.c_empty_look(prog::EmptyLook::EndText)
             }
             WordBoundary(hir::WordBoundary::Unicode) =&gt; {
                 <span class="kw">if </span>!<span class="macro">cfg!</span>(feature = <span class="string">&quot;unicode-perl&quot;</span>) {
-                    <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="error.rs.html#8">Error::Syntax</a>(
+                    <span class="kw">return </span><span class="prelude-val">Err</span>(Error::Syntax(
                         <span class="string">&quot;Unicode word boundaries are unavailable when \
                          the unicode-perl feature is disabled&quot;
-                            </span>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(),
+                            </span>.to_string(),
                     ));
                 }
-                <a class="self" href="#268">self</a>.compiled.has_unicode_word_boundary = <span class="bool-val">true</span>;
-                <a class="self" href="#268">self</a>.byte_classes.<a href="#1167">set_word_boundary</a>();
+                <span class="self">self</span>.compiled.has_unicode_word_boundary = <span class="bool-val">true</span>;
+                <span class="self">self</span>.byte_classes.set_word_boundary();
                 <span class="comment">// We also make sure that all ASCII bytes are in a different
                 // class from non-ASCII bytes. Otherwise, it&#39;s possible for
                 // ASCII bytes to get lumped into the same class as non-ASCII
                 // bytes. This in turn may cause the lazy DFA to falsely start
                 // when it sees an ASCII byte that maps to a byte class with
                 // non-ASCII bytes. This ensures that never happens.
-                </span><a class="self" href="#268">self</a>.byte_classes.<a href="#1159">set_range</a>(<span class="number">0</span>, <span class="number">0x7F</span>);
-                <a class="self" href="#268">self</a>.<a href="#511">c_empty_look</a>(<a href="prog.rs.html#351">prog::EmptyLook::WordBoundary</a>)
+                </span><span class="self">self</span>.byte_classes.set_range(<span class="number">0</span>, <span class="number">0x7F</span>);
+                <span class="self">self</span>.c_empty_look(prog::EmptyLook::WordBoundary)
             }
             WordBoundary(hir::WordBoundary::UnicodeNegate) =&gt; {
                 <span class="kw">if </span>!<span class="macro">cfg!</span>(feature = <span class="string">&quot;unicode-perl&quot;</span>) {
-                    <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="error.rs.html#8">Error::Syntax</a>(
+                    <span class="kw">return </span><span class="prelude-val">Err</span>(Error::Syntax(
                         <span class="string">&quot;Unicode word boundaries are unavailable when \
                          the unicode-perl feature is disabled&quot;
-                            </span>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(),
+                            </span>.to_string(),
                     ));
                 }
-                <a class="self" href="#268">self</a>.compiled.has_unicode_word_boundary = <span class="bool-val">true</span>;
-                <a class="self" href="#268">self</a>.byte_classes.<a href="#1167">set_word_boundary</a>();
+                <span class="self">self</span>.compiled.has_unicode_word_boundary = <span class="bool-val">true</span>;
+                <span class="self">self</span>.byte_classes.set_word_boundary();
                 <span class="comment">// See comments above for why we set the ASCII range here.
-                </span><a class="self" href="#268">self</a>.byte_classes.<a href="#1159">set_range</a>(<span class="number">0</span>, <span class="number">0x7F</span>);
-                <a class="self" href="#268">self</a>.<a href="#511">c_empty_look</a>(<a href="prog.rs.html#353">prog::EmptyLook::NotWordBoundary</a>)
+                </span><span class="self">self</span>.byte_classes.set_range(<span class="number">0</span>, <span class="number">0x7F</span>);
+                <span class="self">self</span>.c_empty_look(prog::EmptyLook::NotWordBoundary)
             }
             WordBoundary(hir::WordBoundary::Ascii) =&gt; {
-                <a class="self" href="#268">self</a>.byte_classes.<a href="#1167">set_word_boundary</a>();
-                <a class="self" href="#268">self</a>.<a href="#511">c_empty_look</a>(<a href="prog.rs.html#355">prog::EmptyLook::WordBoundaryAscii</a>)
+                <span class="self">self</span>.byte_classes.set_word_boundary();
+                <span class="self">self</span>.c_empty_look(prog::EmptyLook::WordBoundaryAscii)
             }
             WordBoundary(hir::WordBoundary::AsciiNegate) =&gt; {
-                <a class="self" href="#268">self</a>.byte_classes.<a href="#1167">set_word_boundary</a>();
-                <a class="self" href="#268">self</a>.<a href="#511">c_empty_look</a>(<a href="prog.rs.html#357">prog::EmptyLook::NotWordBoundaryAscii</a>)
+                <span class="self">self</span>.byte_classes.set_word_boundary();
+                <span class="self">self</span>.c_empty_look(prog::EmptyLook::NotWordBoundaryAscii)
             }
-            Group(<span class="kw-2">ref </span>g) =&gt; <span class="kw">match </span><a href="#363">g</a>.kind {
-                hir::GroupKind::NonCapturing =&gt; <a class="self" href="#268">self</a>.<a href="#268">c</a>(<span class="kw-2">&amp;</span><a href="#363">g</a>.hir),
+            Group(<span class="kw-2">ref </span>g) =&gt; <span class="kw">match </span>g.kind {
+                hir::GroupKind::NonCapturing =&gt; <span class="self">self</span>.c(<span class="kw-2">&amp;</span>g.hir),
                 hir::GroupKind::CaptureIndex(index) =&gt; {
                     <span class="kw">if </span>index <span class="kw">as </span>usize &gt;= <span class="self">self</span>.compiled.captures.len() {
-                        <a class="self" href="#268">self</a>.compiled.captures.push(<span class="prelude-val">None</span>);
+                        <span class="self">self</span>.compiled.captures.push(<span class="prelude-val">None</span>);
                     }
-                    <a class="self" href="#268">self</a>.<a href="#405">c_capture</a>(<span class="number">2 </span>* <a href="#365">index</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="kw-2">&amp;</span><a href="#363">g</a>.hir)
+                    <span class="self">self</span>.c_capture(<span class="number">2 </span>* index <span class="kw">as </span>usize, <span class="kw-2">&amp;</span>g.hir)
                 }
-                <a href="../../regex_syntax/hir/enum.GroupKind.html">hir::GroupKind::CaptureName</a> { index, <span class="kw-2">ref </span>name } =&gt; {
+                hir::GroupKind::CaptureName { index, <span class="kw-2">ref </span>name } =&gt; {
                     <span class="kw">if </span>index <span class="kw">as </span>usize &gt;= <span class="self">self</span>.compiled.captures.len() {
-                        <span class="kw">let </span>n = <a href="#371">name</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>();
-                        <a class="self" href="#268">self</a>.compiled.captures.push(<span class="prelude-val">Some</span>(<a href="#373">n</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()));
-                        <a class="self" href="#268">self</a>.capture_name_idx.insert(<a href="#373">n</a>, <a href="#371">index</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>);
+                        <span class="kw">let </span>n = name.to_string();
+                        <span class="self">self</span>.compiled.captures.push(<span class="prelude-val">Some</span>(n.clone()));
+                        <span class="self">self</span>.capture_name_idx.insert(n, index <span class="kw">as </span>usize);
                     }
-                    <a class="self" href="#268">self</a>.<a href="#405">c_capture</a>(<span class="number">2 </span>* <a href="#371">index</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="kw-2">&amp;</span><a href="#363">g</a>.hir)
+                    <span class="self">self</span>.c_capture(<span class="number">2 </span>* index <span class="kw">as </span>usize, <span class="kw-2">&amp;</span>g.hir)
                 }
             },
             Concat(<span class="kw-2">ref </span>es) =&gt; {
                 <span class="kw">if </span><span class="self">self</span>.compiled.is_reverse {
-                    <a class="self" href="#268">self</a>.<a href="#516-518">c_concat</a>(<a href="#380">es</a>.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">rev</a>())
+                    <span class="self">self</span>.c_concat(es.iter().rev())
                 } <span class="kw">else </span>{
-                    <a class="self" href="#268">self</a>.<a href="#516-518">c_concat</a>(<a href="#380">es</a>)
+                    <span class="self">self</span>.c_concat(es)
                 }
             }
-            Alternation(<span class="kw-2">ref </span>es) =&gt; <a class="self" href="#268">self</a>.<a href="#540">c_alternate</a>(<span class="kw-2">&amp;**</span><a href="#387">es</a>),
-            Repetition(<span class="kw-2">ref </span>rep) =&gt; <a class="self" href="#268">self</a>.<a href="#589">c_repeat</a>(<a href="#388">rep</a>),
+            Alternation(<span class="kw-2">ref </span>es) =&gt; <span class="self">self</span>.c_alternate(<span class="kw-2">&amp;**</span>es),
+            Repetition(<span class="kw-2">ref </span>rep) =&gt; <span class="self">self</span>.c_repeat(rep),
         }
     }
 
-    <span class="kw">fn </span>c_empty(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <a href="#19">ResultOrEmpty</a> {
+    <span class="kw">fn </span>c_empty(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; ResultOrEmpty {
         <span class="comment">// See: https://github.com/rust-lang/regex/security/advisories/GHSA-m5pq-gvj9-9vr8
         // See: CVE-2022-24713
         //
@@ -1662,24 +1662,24 @@
         // size so that our &#39;check_size_limit&#39; routine will eventually
         // stop compilation if there are too many empty sub-expressions
         // (e.g., via a large repetition).
-        </span><a class="self" href="#392">self</a>.extra_inst_bytes += std::mem::size_of::&lt;<a href="prog.rs.html#268">Inst</a>&gt;();
+        </span><span class="self">self</span>.extra_inst_bytes += std::mem::size_of::&lt;Inst&gt;();
         <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>)
     }
 
-    <span class="kw">fn </span>c_capture(<span class="kw-2">&amp;mut </span><span class="self">self</span>, first_slot: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, expr: <span class="kw-2">&amp;</span><a href="../../regex_syntax/hir/struct.Hir.html">Hir</a>) -&gt; <a href="#19">ResultOrEmpty</a> {
+    <span class="kw">fn </span>c_capture(<span class="kw-2">&amp;mut </span><span class="self">self</span>, first_slot: usize, expr: <span class="kw-2">&amp;</span>Hir) -&gt; ResultOrEmpty {
         <span class="kw">if </span><span class="self">self</span>.num_exprs &gt; <span class="number">1 </span>|| <span class="self">self</span>.compiled.is_dfa {
             <span class="comment">// Don&#39;t ever compile Save instructions for regex sets because
             // they are never used. They are also never used in DFA programs
             // because DFAs can&#39;t handle captures.
-            </span><a class="self" href="#405">self</a>.<a href="#268">c</a>(<a href="#405">expr</a>)
+            </span><span class="self">self</span>.c(expr)
         } <span class="kw">else </span>{
-            <span class="kw">let </span>entry = <a class="self" href="#405">self</a>.insts.len();
-            <span class="kw">let </span>hole = <a class="self" href="#405">self</a>.<a href="#817">push_hole</a>(<a href="#952">InstHole::Save</a> { slot: <a href="#405">first_slot</a> });
-            <span class="kw">let </span>patch = <span class="self">self</span>.c(expr)<span class="question-mark">?</span>.unwrap_or_else(|| <a class="self" href="#405">self</a>.<a href="#748">next_inst</a>());
-            <a class="self" href="#405">self</a>.<a href="#752">fill</a>(<a href="#413">hole</a>, <a href="#414">patch</a>.entry);
-            <a class="self" href="#405">self</a>.<a href="#766">fill_to_next</a>(<a href="#414">patch</a>.hole);
-            <span class="kw">let </span>hole = <a class="self" href="#405">self</a>.<a href="#817">push_hole</a>(<a href="#952">InstHole::Save</a> { slot: <a href="#405">first_slot</a> + <span class="number">1 </span>});
-            <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<a href="#22">Patch</a> { <a href="#417">hole</a>, <a href="#412">entry</a> }))
+            <span class="kw">let </span>entry = <span class="self">self</span>.insts.len();
+            <span class="kw">let </span>hole = <span class="self">self</span>.push_hole(InstHole::Save { slot: first_slot });
+            <span class="kw">let </span>patch = <span class="self">self</span>.c(expr)<span class="question-mark">?</span>.unwrap_or_else(|| <span class="self">self</span>.next_inst());
+            <span class="self">self</span>.fill(hole, patch.entry);
+            <span class="self">self</span>.fill_to_next(patch.hole);
+            <span class="kw">let </span>hole = <span class="self">self</span>.push_hole(InstHole::Save { slot: first_slot + <span class="number">1 </span>});
+            <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(Patch { hole, entry }))
         }
     }
 
@@ -1701,56 +1701,56 @@
         })
     }
 
-    <span class="kw">fn </span>c_char(<span class="kw-2">&amp;mut </span><span class="self">self</span>, c: <a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>) -&gt; <a href="#19">ResultOrEmpty</a> {
+    <span class="kw">fn </span>c_char(<span class="kw-2">&amp;mut </span><span class="self">self</span>, c: char) -&gt; ResultOrEmpty {
         <span class="kw">if </span><span class="self">self</span>.compiled.uses_bytes() {
             <span class="kw">if </span>c.is_ascii() {
-                <span class="kw">let </span>b = <a href="#440">c</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>;
+                <span class="kw">let </span>b = c <span class="kw">as </span>u8;
                 <span class="kw">let </span>hole =
-                    <a class="self" href="#440">self</a>.<a href="#817">push_hole</a>(<a href="#956">InstHole::Bytes</a> { start: <a href="#443">b</a>, end: <a href="#443">b</a> });
-                <a class="self" href="#440">self</a>.byte_classes.<a href="#1159">set_range</a>(<a href="#443">b</a>, <a href="#443">b</a>);
-                <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<a href="#22">Patch</a> { <a href="#444">hole</a>, entry: <a class="self" href="#440">self</a>.insts.len() - <span class="number">1 </span>}))
+                    <span class="self">self</span>.push_hole(InstHole::Bytes { start: b, end: b });
+                <span class="self">self</span>.byte_classes.set_range(b, b);
+                <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(Patch { hole, entry: <span class="self">self</span>.insts.len() - <span class="number">1 </span>}))
             } <span class="kw">else </span>{
-                <a class="self" href="#440">self</a>.<a href="#457">c_class</a>(<span class="kw-2">&amp;</span>[hir::ClassUnicodeRange::new(<a href="#440">c</a>, <a href="#440">c</a>)])
+                <span class="self">self</span>.c_class(<span class="kw-2">&amp;</span>[hir::ClassUnicodeRange::new(c, c)])
             }
         } <span class="kw">else </span>{
-            <span class="kw">let </span>hole = <a class="self" href="#440">self</a>.<a href="#817">push_hole</a>(<a href="#954">InstHole::Char</a> { <a href="#440">c</a> });
-            <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<a href="#22">Patch</a> { <a href="#452">hole</a>, entry: <a class="self" href="#440">self</a>.insts.len() - <span class="number">1 </span>}))
+            <span class="kw">let </span>hole = <span class="self">self</span>.push_hole(InstHole::Char { c });
+            <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(Patch { hole, entry: <span class="self">self</span>.insts.len() - <span class="number">1 </span>}))
         }
     }
 
-    <span class="kw">fn </span>c_class(<span class="kw-2">&amp;mut </span><span class="self">self</span>, ranges: <span class="kw-2">&amp;</span>[<a href="../../regex_syntax/hir/struct.ClassUnicodeRange.html">hir::ClassUnicodeRange</a>]) -&gt; <a href="#19">ResultOrEmpty</a> {
+    <span class="kw">fn </span>c_class(<span class="kw-2">&amp;mut </span><span class="self">self</span>, ranges: <span class="kw-2">&amp;</span>[hir::ClassUnicodeRange]) -&gt; ResultOrEmpty {
         <span class="kw">use </span>std::mem::size_of;
 
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(!ranges.is_empty());
+        <span class="macro">assert!</span>(!ranges.is_empty());
         <span class="kw">if </span><span class="self">self</span>.compiled.uses_bytes() {
             <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(CompileClass { c: <span class="self">self</span>, ranges }.compile()<span class="question-mark">?</span>))
         } <span class="kw">else </span>{
-            <span class="kw">let </span>ranges: Vec&lt;(<a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>)&gt; =
-                <a href="#457">ranges</a>.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|r| (<a href="#465">r</a>.start(), <a href="#465">r</a>.end())).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
+            <span class="kw">let </span>ranges: Vec&lt;(char, char)&gt; =
+                ranges.iter().map(|r| (r.start(), r.end())).collect();
             <span class="kw">let </span>hole = <span class="kw">if </span>ranges.len() == <span class="number">1 </span>&amp;&amp; ranges[<span class="number">0</span>].<span class="number">0 </span>== ranges[<span class="number">0</span>].<span class="number">1 </span>{
-                <a class="self" href="#457">self</a>.<a href="#817">push_hole</a>(<a href="#954">InstHole::Char</a> { c: <a href="#464">ranges</a>[<span class="number">0</span>].<span class="number">0 </span>})
+                <span class="self">self</span>.push_hole(InstHole::Char { c: ranges[<span class="number">0</span>].<span class="number">0 </span>})
             } <span class="kw">else </span>{
-                <a class="self" href="#457">self</a>.extra_inst_bytes +=
-                    <a href="#464">ranges</a>.len() * (size_of::&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>&gt;() * <span class="number">2</span>);
-                <a class="self" href="#457">self</a>.<a href="#817">push_hole</a>(<a href="#955">InstHole::Ranges</a> { <a href="#464">ranges</a> })
+                <span class="self">self</span>.extra_inst_bytes +=
+                    ranges.len() * (size_of::&lt;char&gt;() * <span class="number">2</span>);
+                <span class="self">self</span>.push_hole(InstHole::Ranges { ranges })
             };
-            <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<a href="#22">Patch</a> { <a href="#466">hole</a>, entry: <a class="self" href="#457">self</a>.insts.len() - <span class="number">1 </span>}))
+            <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(Patch { hole, entry: <span class="self">self</span>.insts.len() - <span class="number">1 </span>}))
         }
     }
 
-    <span class="kw">fn </span>c_byte(<span class="kw-2">&amp;mut </span><span class="self">self</span>, b: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) -&gt; <a href="#19">ResultOrEmpty</a> {
-        <a class="self" href="#477">self</a>.<a href="#481-484">c_class_bytes</a>(<span class="kw-2">&amp;</span>[hir::ClassBytesRange::new(<a href="#477">b</a>, <a href="#477">b</a>)])
+    <span class="kw">fn </span>c_byte(<span class="kw-2">&amp;mut </span><span class="self">self</span>, b: u8) -&gt; ResultOrEmpty {
+        <span class="self">self</span>.c_class_bytes(<span class="kw-2">&amp;</span>[hir::ClassBytesRange::new(b, b)])
     }
 
     <span class="kw">fn </span>c_class_bytes(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        ranges: <span class="kw-2">&amp;</span>[<a href="../../regex_syntax/hir/struct.ClassBytesRange.html">hir::ClassBytesRange</a>],
-    ) -&gt; <a href="#19">ResultOrEmpty</a> {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(!ranges.is_empty());
+        ranges: <span class="kw-2">&amp;</span>[hir::ClassBytesRange],
+    ) -&gt; ResultOrEmpty {
+        <span class="macro">debug_assert!</span>(!ranges.is_empty());
 
-        <span class="kw">let </span>first_split_entry = <a class="self" href="#482">self</a>.insts.len();
-        <span class="kw">let </span><span class="kw-2">mut </span>holes = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[];
-        <span class="kw">let </span><span class="kw-2">mut </span>prev_hole = <a href="#849">Hole::None</a>;
+        <span class="kw">let </span>first_split_entry = <span class="self">self</span>.insts.len();
+        <span class="kw">let </span><span class="kw-2">mut </span>holes = <span class="macro">vec!</span>[];
+        <span class="kw">let </span><span class="kw-2">mut </span>prev_hole = Hole::None;
         <span class="kw">for </span>r <span class="kw">in </span><span class="kw-2">&amp;</span>ranges[<span class="number">0</span>..ranges.len() - <span class="number">1</span>] {
             <span class="self">self</span>.fill_to_next(prev_hole);
             <span class="kw">let </span>split = <span class="self">self</span>.push_split_hole();
@@ -1762,32 +1762,32 @@
             }));
             prev_hole = <span class="self">self</span>.fill_split(split, <span class="prelude-val">Some</span>(next), <span class="prelude-val">None</span>);
         }
-        <span class="kw">let </span>next = <a class="self" href="#482">self</a>.insts.len();
-        <span class="kw">let </span>r = <span class="kw-2">&amp;</span><a href="#483">ranges</a>[<a href="#483">ranges</a>.len() - <span class="number">1</span>];
-        <a class="self" href="#482">self</a>.byte_classes.<a href="#1159">set_range</a>(<a href="#502">r</a>.start(), <a href="#502">r</a>.end());
-        <a href="#488">holes</a>.push(
-            <a class="self" href="#482">self</a>.<a href="#817">push_hole</a>(<a href="#956">InstHole::Bytes</a> { start: <a href="#502">r</a>.start(), end: <a href="#502">r</a>.end() }),
+        <span class="kw">let </span>next = <span class="self">self</span>.insts.len();
+        <span class="kw">let </span>r = <span class="kw-2">&amp;</span>ranges[ranges.len() - <span class="number">1</span>];
+        <span class="self">self</span>.byte_classes.set_range(r.start(), r.end());
+        holes.push(
+            <span class="self">self</span>.push_hole(InstHole::Bytes { start: r.start(), end: r.end() }),
         );
-        <a class="self" href="#482">self</a>.<a href="#752">fill</a>(<a href="#489">prev_hole</a>, <a href="#501">next</a>);
-        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<a href="#22">Patch</a> { hole: <a href="#851">Hole::Many</a>(<a href="#488">holes</a>), entry: <a href="#487">first_split_entry</a> }))
+        <span class="self">self</span>.fill(prev_hole, next);
+        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(Patch { hole: Hole::Many(holes), entry: first_split_entry }))
     }
 
-    <span class="kw">fn </span>c_empty_look(<span class="kw-2">&amp;mut </span><span class="self">self</span>, look: <a href="prog.rs.html#341">EmptyLook</a>) -&gt; <a href="#19">ResultOrEmpty</a> {
-        <span class="kw">let </span>hole = <a class="self" href="#511">self</a>.<a href="#817">push_hole</a>(<a href="#953">InstHole::EmptyLook</a> { <a href="#511">look</a> });
-        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<a href="#22">Patch</a> { <a href="#512">hole</a>, entry: <a class="self" href="#511">self</a>.insts.len() - <span class="number">1 </span>}))
+    <span class="kw">fn </span>c_empty_look(<span class="kw-2">&amp;mut </span><span class="self">self</span>, look: EmptyLook) -&gt; ResultOrEmpty {
+        <span class="kw">let </span>hole = <span class="self">self</span>.push_hole(InstHole::EmptyLook { look });
+        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(Patch { hole, entry: <span class="self">self</span>.insts.len() - <span class="number">1 </span>}))
     }
 
-    <span class="kw">fn </span>c_concat&lt;<span class="lifetime">&#39;a</span>, I&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, exprs: I) -&gt; <a href="#19">ResultOrEmpty</a>
+    <span class="kw">fn </span>c_concat&lt;<span class="lifetime">&#39;a</span>, I&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, exprs: I) -&gt; ResultOrEmpty
     <span class="kw">where
-        </span>I: IntoIterator&lt;Item = <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="../../regex_syntax/hir/struct.Hir.html">Hir</a>&gt;,
+        </span>I: IntoIterator&lt;Item = <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Hir&gt;,
     {
-        <span class="kw">let </span><span class="kw-2">mut </span>exprs = <a href="#516">exprs</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>();
-        <span class="kw">let </span><a href="#22">Patch</a> { <span class="kw-2">mut </span>hole, entry } = <span class="kw">loop </span>{
-            <span class="kw">match </span><a href="#520">exprs</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>() {
-                <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><a class="self" href="#516">self</a>.<a href="#392">c_empty</a>(),
+        <span class="kw">let </span><span class="kw-2">mut </span>exprs = exprs.into_iter();
+        <span class="kw">let </span>Patch { <span class="kw-2">mut </span>hole, entry } = <span class="kw">loop </span>{
+            <span class="kw">match </span>exprs.next() {
+                <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="self">self</span>.c_empty(),
                 <span class="prelude-val">Some</span>(e) =&gt; {
                     <span class="kw">if let </span><span class="prelude-val">Some</span>(p) = <span class="self">self</span>.c(e)<span class="question-mark">? </span>{
-                        <span class="kw">break </span><a href="#525">p</a>;
+                        <span class="kw">break </span>p;
                     }
                 }
             }
@@ -1798,25 +1798,25 @@
                 hole = p.hole;
             }
         }
-        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<a href="#22">Patch</a> { <a href="#521">hole</a>, <a href="#521">entry</a> }))
+        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(Patch { hole, entry }))
     }
 
-    <span class="kw">fn </span>c_alternate(<span class="kw-2">&amp;mut </span><span class="self">self</span>, exprs: <span class="kw-2">&amp;</span>[<a href="../../regex_syntax/hir/struct.Hir.html">Hir</a>]) -&gt; <a href="#19">ResultOrEmpty</a> {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(
+    <span class="kw">fn </span>c_alternate(<span class="kw-2">&amp;mut </span><span class="self">self</span>, exprs: <span class="kw-2">&amp;</span>[Hir]) -&gt; ResultOrEmpty {
+        <span class="macro">debug_assert!</span>(
             exprs.len() &gt;= <span class="number">2</span>,
             <span class="string">&quot;alternates must have at least 2 exprs&quot;
         </span>);
 
         <span class="comment">// Initial entry point is always the first split.
-        </span><span class="kw">let </span>first_split_entry = <a class="self" href="#540">self</a>.insts.len();
+        </span><span class="kw">let </span>first_split_entry = <span class="self">self</span>.insts.len();
 
         <span class="comment">// Save up all of the holes from each alternate. They will all get
         // patched to point to the same location.
-        </span><span class="kw">let </span><span class="kw-2">mut </span>holes = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[];
+        </span><span class="kw">let </span><span class="kw-2">mut </span>holes = <span class="macro">vec!</span>[];
 
         <span class="comment">// true indicates that the hole is a split where we want to fill
         // the second branch.
-        </span><span class="kw">let </span><span class="kw-2">mut </span>prev_hole = (<a href="#849">Hole::None</a>, <span class="bool-val">false</span>);
+        </span><span class="kw">let </span><span class="kw-2">mut </span>prev_hole = (Hole::None, <span class="bool-val">false</span>);
         <span class="kw">for </span>e <span class="kw">in </span><span class="kw-2">&amp;</span>exprs[<span class="number">0</span>..exprs.len() - <span class="number">1</span>] {
             <span class="kw">if </span>prev_hole.<span class="number">1 </span>{
                 <span class="kw">let </span>next = <span class="self">self</span>.insts.len();
@@ -1834,117 +1834,117 @@
                 prev_hole = (split2, <span class="bool-val">true</span>);
             }
         }
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(<a href="#22">Patch</a> { hole, entry }) = <span class="self">self</span>.c(<span class="kw-2">&amp;</span>exprs[exprs.len() - <span class="number">1</span>])<span class="question-mark">? </span>{
-            <a href="#551">holes</a>.push(<a href="#573">hole</a>);
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(Patch { hole, entry }) = <span class="self">self</span>.c(<span class="kw-2">&amp;</span>exprs[exprs.len() - <span class="number">1</span>])<span class="question-mark">? </span>{
+            holes.push(hole);
             <span class="kw">if </span>prev_hole.<span class="number">1 </span>{
-                <a class="self" href="#540">self</a>.<a href="#771-776">fill_split</a>(<a href="#555">prev_hole</a>.<span class="number">0</span>, <span class="prelude-val">None</span>, <span class="prelude-val">Some</span>(<a href="#573">entry</a>));
+                <span class="self">self</span>.fill_split(prev_hole.<span class="number">0</span>, <span class="prelude-val">None</span>, <span class="prelude-val">Some</span>(entry));
             } <span class="kw">else </span>{
-                <a class="self" href="#540">self</a>.<a href="#752">fill</a>(<a href="#555">prev_hole</a>.<span class="number">0</span>, <a href="#573">entry</a>);
+                <span class="self">self</span>.fill(prev_hole.<span class="number">0</span>, entry);
             }
         } <span class="kw">else </span>{
             <span class="comment">// We ignore prev_hole.1. When it&#39;s true, it means we have two
             // empty branches both pushing prev_hole.0 into holes, so both
             // branches will go to the same place anyway.
-            </span><a href="#551">holes</a>.push(<a href="#555">prev_hole</a>.<span class="number">0</span>);
+            </span>holes.push(prev_hole.<span class="number">0</span>);
         }
-        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<a href="#22">Patch</a> { hole: <a href="#851">Hole::Many</a>(<a href="#551">holes</a>), entry: <a href="#547">first_split_entry</a> }))
+        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(Patch { hole: Hole::Many(holes), entry: first_split_entry }))
     }
 
-    <span class="kw">fn </span>c_repeat(<span class="kw-2">&amp;mut </span><span class="self">self</span>, rep: <span class="kw-2">&amp;</span><a href="../../regex_syntax/hir/struct.Repetition.html">hir::Repetition</a>) -&gt; <a href="#19">ResultOrEmpty</a> {
-        <span class="kw">use </span><a href="../../regex_syntax/hir/enum.RepetitionKind.html">regex_syntax::hir::RepetitionKind</a>::<span class="kw-2">*</span>;
-        <span class="kw">match </span><a href="#589">rep</a>.kind {
-            ZeroOrOne =&gt; <a class="self" href="#589">self</a>.<a href="#607-611">c_repeat_zero_or_one</a>(<span class="kw-2">&amp;</span><a href="#589">rep</a>.hir, <a href="#589">rep</a>.greedy),
-            ZeroOrMore =&gt; <a class="self" href="#589">self</a>.<a href="#627-631">c_repeat_zero_or_more</a>(<span class="kw-2">&amp;</span><a href="#589">rep</a>.hir, <a href="#589">rep</a>.greedy),
-            OneOrMore =&gt; <a class="self" href="#589">self</a>.<a href="#648-652">c_repeat_one_or_more</a>(<span class="kw-2">&amp;</span><a href="#589">rep</a>.hir, <a href="#589">rep</a>.greedy),
+    <span class="kw">fn </span>c_repeat(<span class="kw-2">&amp;mut </span><span class="self">self</span>, rep: <span class="kw-2">&amp;</span>hir::Repetition) -&gt; ResultOrEmpty {
+        <span class="kw">use </span>regex_syntax::hir::RepetitionKind::<span class="kw-2">*</span>;
+        <span class="kw">match </span>rep.kind {
+            ZeroOrOne =&gt; <span class="self">self</span>.c_repeat_zero_or_one(<span class="kw-2">&amp;</span>rep.hir, rep.greedy),
+            ZeroOrMore =&gt; <span class="self">self</span>.c_repeat_zero_or_more(<span class="kw-2">&amp;</span>rep.hir, rep.greedy),
+            OneOrMore =&gt; <span class="self">self</span>.c_repeat_one_or_more(<span class="kw-2">&amp;</span>rep.hir, rep.greedy),
             Range(hir::RepetitionRange::Exactly(min_max)) =&gt; {
-                <a class="self" href="#589">self</a>.<a href="#689-695">c_repeat_range</a>(<span class="kw-2">&amp;</span><a href="#589">rep</a>.hir, <a href="#589">rep</a>.greedy, <a href="#595">min_max</a>, <a href="#595">min_max</a>)
+                <span class="self">self</span>.c_repeat_range(<span class="kw-2">&amp;</span>rep.hir, rep.greedy, min_max, min_max)
             }
             Range(hir::RepetitionRange::AtLeast(min)) =&gt; {
-                <a class="self" href="#589">self</a>.<a href="#668-673">c_repeat_range_min_or_more</a>(<span class="kw-2">&amp;</span><a href="#589">rep</a>.hir, <a href="#589">rep</a>.greedy, <a href="#598">min</a>)
+                <span class="self">self</span>.c_repeat_range_min_or_more(<span class="kw-2">&amp;</span>rep.hir, rep.greedy, min)
             }
             Range(hir::RepetitionRange::Bounded(min, max)) =&gt; {
-                <a class="self" href="#589">self</a>.<a href="#689-695">c_repeat_range</a>(<span class="kw-2">&amp;</span><a href="#589">rep</a>.hir, <a href="#589">rep</a>.greedy, <a href="#601">min</a>, <a href="#601">max</a>)
+                <span class="self">self</span>.c_repeat_range(<span class="kw-2">&amp;</span>rep.hir, rep.greedy, min, max)
             }
         }
     }
 
     <span class="kw">fn </span>c_repeat_zero_or_one(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        expr: <span class="kw-2">&amp;</span><a href="../../regex_syntax/hir/struct.Hir.html">Hir</a>,
-        greedy: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-    ) -&gt; <a href="#19">ResultOrEmpty</a> {
-        <span class="kw">let </span>split_entry = <a class="self" href="#608">self</a>.insts.len();
-        <span class="kw">let </span>split = <a class="self" href="#608">self</a>.<a href="#823">push_split_hole</a>();
-        <span class="kw">let </span><a href="#22">Patch</a> { hole: hole_rep, entry: entry_rep } = <span class="kw">match </span><span class="self">self</span>.c(expr)<span class="question-mark">? </span>{
-            <span class="prelude-val">Some</span>(p) =&gt; <a href="#615">p</a>,
-            <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><a class="self" href="#608">self</a>.<a href="#829">pop_split_hole</a>(),
+        expr: <span class="kw-2">&amp;</span>Hir,
+        greedy: bool,
+    ) -&gt; ResultOrEmpty {
+        <span class="kw">let </span>split_entry = <span class="self">self</span>.insts.len();
+        <span class="kw">let </span>split = <span class="self">self</span>.push_split_hole();
+        <span class="kw">let </span>Patch { hole: hole_rep, entry: entry_rep } = <span class="kw">match </span><span class="self">self</span>.c(expr)<span class="question-mark">? </span>{
+            <span class="prelude-val">Some</span>(p) =&gt; p,
+            <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="self">self</span>.pop_split_hole(),
         };
         <span class="kw">let </span>split_hole = <span class="kw">if </span>greedy {
-            <a class="self" href="#608">self</a>.<a href="#771-776">fill_split</a>(<a href="#613">split</a>, <span class="prelude-val">Some</span>(<a href="#614">entry_rep</a>), <span class="prelude-val">None</span>)
+            <span class="self">self</span>.fill_split(split, <span class="prelude-val">Some</span>(entry_rep), <span class="prelude-val">None</span>)
         } <span class="kw">else </span>{
-            <a class="self" href="#608">self</a>.<a href="#771-776">fill_split</a>(<a href="#613">split</a>, <span class="prelude-val">None</span>, <span class="prelude-val">Some</span>(<a href="#614">entry_rep</a>))
+            <span class="self">self</span>.fill_split(split, <span class="prelude-val">None</span>, <span class="prelude-val">Some</span>(entry_rep))
         };
-        <span class="kw">let </span>holes = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[hole_rep, split_hole];
-        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<a href="#22">Patch</a> { hole: <a href="#851">Hole::Many</a>(<a href="#623">holes</a>), entry: <a href="#612">split_entry</a> }))
+        <span class="kw">let </span>holes = <span class="macro">vec!</span>[hole_rep, split_hole];
+        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(Patch { hole: Hole::Many(holes), entry: split_entry }))
     }
 
     <span class="kw">fn </span>c_repeat_zero_or_more(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        expr: <span class="kw-2">&amp;</span><a href="../../regex_syntax/hir/struct.Hir.html">Hir</a>,
-        greedy: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-    ) -&gt; <a href="#19">ResultOrEmpty</a> {
-        <span class="kw">let </span>split_entry = <a class="self" href="#628">self</a>.insts.len();
-        <span class="kw">let </span>split = <a class="self" href="#628">self</a>.<a href="#823">push_split_hole</a>();
-        <span class="kw">let </span><a href="#22">Patch</a> { hole: hole_rep, entry: entry_rep } = <span class="kw">match </span><span class="self">self</span>.c(expr)<span class="question-mark">? </span>{
-            <span class="prelude-val">Some</span>(p) =&gt; <a href="#635">p</a>,
-            <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><a class="self" href="#628">self</a>.<a href="#829">pop_split_hole</a>(),
+        expr: <span class="kw-2">&amp;</span>Hir,
+        greedy: bool,
+    ) -&gt; ResultOrEmpty {
+        <span class="kw">let </span>split_entry = <span class="self">self</span>.insts.len();
+        <span class="kw">let </span>split = <span class="self">self</span>.push_split_hole();
+        <span class="kw">let </span>Patch { hole: hole_rep, entry: entry_rep } = <span class="kw">match </span><span class="self">self</span>.c(expr)<span class="question-mark">? </span>{
+            <span class="prelude-val">Some</span>(p) =&gt; p,
+            <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="self">self</span>.pop_split_hole(),
         };
 
-        <a class="self" href="#628">self</a>.<a href="#752">fill</a>(<a href="#634">hole_rep</a>, <a href="#632">split_entry</a>);
+        <span class="self">self</span>.fill(hole_rep, split_entry);
         <span class="kw">let </span>split_hole = <span class="kw">if </span>greedy {
-            <a class="self" href="#628">self</a>.<a href="#771-776">fill_split</a>(<a href="#633">split</a>, <span class="prelude-val">Some</span>(<a href="#634">entry_rep</a>), <span class="prelude-val">None</span>)
+            <span class="self">self</span>.fill_split(split, <span class="prelude-val">Some</span>(entry_rep), <span class="prelude-val">None</span>)
         } <span class="kw">else </span>{
-            <a class="self" href="#628">self</a>.<a href="#771-776">fill_split</a>(<a href="#633">split</a>, <span class="prelude-val">None</span>, <span class="prelude-val">Some</span>(<a href="#634">entry_rep</a>))
+            <span class="self">self</span>.fill_split(split, <span class="prelude-val">None</span>, <span class="prelude-val">Some</span>(entry_rep))
         };
-        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<a href="#22">Patch</a> { hole: <a href="#640">split_hole</a>, entry: <a href="#632">split_entry</a> }))
+        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(Patch { hole: split_hole, entry: split_entry }))
     }
 
     <span class="kw">fn </span>c_repeat_one_or_more(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        expr: <span class="kw-2">&amp;</span><a href="../../regex_syntax/hir/struct.Hir.html">Hir</a>,
-        greedy: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-    ) -&gt; <a href="#19">ResultOrEmpty</a> {
-        <span class="kw">let </span><a href="#22">Patch</a> { hole: hole_rep, entry: entry_rep } = <span class="kw">match </span><span class="self">self</span>.c(expr)<span class="question-mark">? </span>{
-            <span class="prelude-val">Some</span>(p) =&gt; <a href="#654">p</a>,
+        expr: <span class="kw-2">&amp;</span>Hir,
+        greedy: bool,
+    ) -&gt; ResultOrEmpty {
+        <span class="kw">let </span>Patch { hole: hole_rep, entry: entry_rep } = <span class="kw">match </span><span class="self">self</span>.c(expr)<span class="question-mark">? </span>{
+            <span class="prelude-val">Some</span>(p) =&gt; p,
             <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>),
         };
-        <a class="self" href="#649">self</a>.<a href="#766">fill_to_next</a>(<a href="#653">hole_rep</a>);
-        <span class="kw">let </span>split = <a class="self" href="#649">self</a>.<a href="#823">push_split_hole</a>();
+        <span class="self">self</span>.fill_to_next(hole_rep);
+        <span class="kw">let </span>split = <span class="self">self</span>.push_split_hole();
 
         <span class="kw">let </span>split_hole = <span class="kw">if </span>greedy {
-            <a class="self" href="#649">self</a>.<a href="#771-776">fill_split</a>(<a href="#658">split</a>, <span class="prelude-val">Some</span>(<a href="#653">entry_rep</a>), <span class="prelude-val">None</span>)
+            <span class="self">self</span>.fill_split(split, <span class="prelude-val">Some</span>(entry_rep), <span class="prelude-val">None</span>)
         } <span class="kw">else </span>{
-            <a class="self" href="#649">self</a>.<a href="#771-776">fill_split</a>(<a href="#658">split</a>, <span class="prelude-val">None</span>, <span class="prelude-val">Some</span>(<a href="#653">entry_rep</a>))
+            <span class="self">self</span>.fill_split(split, <span class="prelude-val">None</span>, <span class="prelude-val">Some</span>(entry_rep))
         };
-        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<a href="#22">Patch</a> { hole: <a href="#660">split_hole</a>, entry: <a href="#653">entry_rep</a> }))
+        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(Patch { hole: split_hole, entry: entry_rep }))
     }
 
     <span class="kw">fn </span>c_repeat_range_min_or_more(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        expr: <span class="kw-2">&amp;</span><a href="../../regex_syntax/hir/struct.Hir.html">Hir</a>,
-        greedy: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-        min: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>,
-    ) -&gt; <a href="#19">ResultOrEmpty</a> {
-        <span class="kw">let </span>min = <a href="#1211">u32_to_usize</a>(<a href="#672">min</a>);
+        expr: <span class="kw-2">&amp;</span>Hir,
+        greedy: bool,
+        min: u32,
+    ) -&gt; ResultOrEmpty {
+        <span class="kw">let </span>min = u32_to_usize(min);
         <span class="comment">// Using next_inst() is ok, because we can&#39;t return it (concat would
         // have to return Some(_) while c_repeat_range_min_or_more returns
         // None).
         </span><span class="kw">let </span>patch_concat = <span class="self">self
             </span>.c_concat(iter::repeat(expr).take(min))<span class="question-mark">?
-            </span>.unwrap_or_else(|| <a class="self" href="#669">self</a>.<a href="#748">next_inst</a>());
+            </span>.unwrap_or_else(|| <span class="self">self</span>.next_inst());
         <span class="kw">if let </span><span class="prelude-val">Some</span>(patch_rep) = <span class="self">self</span>.c_repeat_zero_or_more(expr, greedy)<span class="question-mark">? </span>{
-            <a class="self" href="#669">self</a>.<a href="#752">fill</a>(<a href="#678">patch_concat</a>.hole, <a href="#681">patch_rep</a>.entry);
-            <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<a href="#22">Patch</a> { hole: <a href="#681">patch_rep</a>.hole, entry: <a href="#678">patch_concat</a>.entry }))
+            <span class="self">self</span>.fill(patch_concat.hole, patch_rep.entry);
+            <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(Patch { hole: patch_rep.hole, entry: patch_concat.entry }))
         } <span class="kw">else </span>{
             <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>)
         }
@@ -1952,21 +1952,21 @@
 
     <span class="kw">fn </span>c_repeat_range(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        expr: <span class="kw-2">&amp;</span><a href="../../regex_syntax/hir/struct.Hir.html">Hir</a>,
-        greedy: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-        min: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>,
-        max: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>,
-    ) -&gt; <a href="#19">ResultOrEmpty</a> {
-        <span class="kw">let </span>(min, max) = (<a href="#1211">u32_to_usize</a>(<a href="#693">min</a>), <a href="#1211">u32_to_usize</a>(<a href="#694">max</a>));
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(min &lt;= max);
+        expr: <span class="kw-2">&amp;</span>Hir,
+        greedy: bool,
+        min: u32,
+        max: u32,
+    ) -&gt; ResultOrEmpty {
+        <span class="kw">let </span>(min, max) = (u32_to_usize(min), u32_to_usize(max));
+        <span class="macro">debug_assert!</span>(min &lt;= max);
         <span class="kw">let </span>patch_concat = <span class="self">self</span>.c_concat(iter::repeat(expr).take(min))<span class="question-mark">?</span>;
         <span class="kw">if </span>min == max {
-            <span class="kw">return </span><span class="prelude-val">Ok</span>(<a href="#698">patch_concat</a>);
+            <span class="kw">return </span><span class="prelude-val">Ok</span>(patch_concat);
         }
         <span class="comment">// Same reasoning as in c_repeat_range_min_or_more (we know that min &lt;
         // max at this point).
-        </span><span class="kw">let </span>patch_concat = <a href="#698">patch_concat</a>.unwrap_or_else(|| <a class="self" href="#690">self</a>.<a href="#748">next_inst</a>());
-        <span class="kw">let </span>initial_entry = <a href="#704">patch_concat</a>.entry;
+        </span><span class="kw">let </span>patch_concat = patch_concat.unwrap_or_else(|| <span class="self">self</span>.next_inst());
+        <span class="kw">let </span>initial_entry = patch_concat.entry;
         <span class="comment">// It is much simpler to compile, e.g., `a{2,5}` as:
         //
         //     aaa?a?a?
@@ -1986,8 +1986,8 @@
         // This is *incredibly* inefficient because the splits end
         // up forming a chain, which has to be resolved everything a
         // transition is followed.
-        </span><span class="kw">let </span><span class="kw-2">mut </span>holes = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[];
-        <span class="kw">let </span><span class="kw-2">mut </span>prev_hole = <a href="#704">patch_concat</a>.hole;
+        </span><span class="kw">let </span><span class="kw-2">mut </span>holes = <span class="macro">vec!</span>[];
+        <span class="kw">let </span><span class="kw-2">mut </span>prev_hole = patch_concat.hole;
         <span class="kw">for _ in </span>min..max {
             <span class="self">self</span>.fill_to_next(prev_hole);
             <span class="kw">let </span>split = <span class="self">self</span>.push_split_hole();
@@ -2002,24 +2002,24 @@
                 holes.push(<span class="self">self</span>.fill_split(split, <span class="prelude-val">None</span>, <span class="prelude-val">Some</span>(entry)));
             }
         }
-        <a href="#725">holes</a>.push(<a href="#726">prev_hole</a>);
-        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<a href="#22">Patch</a> { hole: <a href="#851">Hole::Many</a>(<a href="#725">holes</a>), entry: <a href="#705">initial_entry</a> }))
+        holes.push(prev_hole);
+        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(Patch { hole: Hole::Many(holes), entry: initial_entry }))
     }
 
     <span class="doccomment">/// Can be used as a default value for the c_* functions when the call to
     /// c_function is followed by inserting at least one instruction that is
     /// always executed after the ones written by the c* function.
-    </span><span class="kw">fn </span>next_inst(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="#22">Patch</a> {
-        <a href="#22">Patch</a> { hole: <a href="#849">Hole::None</a>, entry: <a class="self" href="#748">self</a>.insts.len() }
+    </span><span class="kw">fn </span>next_inst(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Patch {
+        Patch { hole: Hole::None, entry: <span class="self">self</span>.insts.len() }
     }
 
-    <span class="kw">fn </span>fill(<span class="kw-2">&amp;mut </span><span class="self">self</span>, hole: <a href="#848">Hole</a>, goto: <a href="prog.rs.html#13">InstPtr</a>) {
-        <span class="kw">match </span><a href="#752">hole</a> {
-            <a href="#849">Hole::None</a> =&gt; {}
-            <a href="#850">Hole::One</a>(pc) =&gt; {
-                <a class="self" href="#752">self</a>.insts[<a href="#755">pc</a>].<a href="#875">fill</a>(<a href="#752">goto</a>);
+    <span class="kw">fn </span>fill(<span class="kw-2">&amp;mut </span><span class="self">self</span>, hole: Hole, goto: InstPtr) {
+        <span class="kw">match </span>hole {
+            Hole::None =&gt; {}
+            Hole::One(pc) =&gt; {
+                <span class="self">self</span>.insts[pc].fill(goto);
             }
-            <a href="#851">Hole::Many</a>(holes) =&gt; {
+            Hole::Many(holes) =&gt; {
                 <span class="kw">for </span>hole <span class="kw">in </span>holes {
                     <span class="self">self</span>.fill(hole, goto);
                 }
@@ -2027,81 +2027,81 @@
         }
     }
 
-    <span class="kw">fn </span>fill_to_next(<span class="kw-2">&amp;mut </span><span class="self">self</span>, hole: <a href="#848">Hole</a>) {
-        <span class="kw">let </span>next = <a class="self" href="#766">self</a>.insts.len();
-        <a class="self" href="#766">self</a>.<a href="#752">fill</a>(<a href="#766">hole</a>, <a href="#767">next</a>);
+    <span class="kw">fn </span>fill_to_next(<span class="kw-2">&amp;mut </span><span class="self">self</span>, hole: Hole) {
+        <span class="kw">let </span>next = <span class="self">self</span>.insts.len();
+        <span class="self">self</span>.fill(hole, next);
     }
 
     <span class="kw">fn </span>fill_split(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        hole: <a href="#848">Hole</a>,
-        goto1: <span class="prelude-ty">Option</span>&lt;<a href="prog.rs.html#13">InstPtr</a>&gt;,
-        goto2: <span class="prelude-ty">Option</span>&lt;<a href="prog.rs.html#13">InstPtr</a>&gt;,
-    ) -&gt; <a href="#848">Hole</a> {
-        <span class="kw">match </span><a href="#773">hole</a> {
-            <a href="#849">Hole::None</a> =&gt; <a href="#849">Hole::None</a>,
-            <a href="#850">Hole::One</a>(pc) =&gt; <span class="kw">match </span>(<a href="#774">goto1</a>, <a href="#775">goto2</a>) {
+        hole: Hole,
+        goto1: <span class="prelude-ty">Option</span>&lt;InstPtr&gt;,
+        goto2: <span class="prelude-ty">Option</span>&lt;InstPtr&gt;,
+    ) -&gt; Hole {
+        <span class="kw">match </span>hole {
+            Hole::None =&gt; Hole::None,
+            Hole::One(pc) =&gt; <span class="kw">match </span>(goto1, goto2) {
                 (<span class="prelude-val">Some</span>(goto1), <span class="prelude-val">Some</span>(goto2)) =&gt; {
-                    <a class="self" href="#772">self</a>.insts[<a href="#779">pc</a>].<a href="#902">fill_split</a>(<a href="#780">goto1</a>, <a href="#780">goto2</a>);
-                    <a href="#849">Hole::None</a>
+                    <span class="self">self</span>.insts[pc].fill_split(goto1, goto2);
+                    Hole::None
                 }
                 (<span class="prelude-val">Some</span>(goto1), <span class="prelude-val">None</span>) =&gt; {
-                    <a class="self" href="#772">self</a>.insts[<a href="#779">pc</a>].<a href="#914">half_fill_split_goto1</a>(<a href="#784">goto1</a>);
-                    <a href="#850">Hole::One</a>(<a href="#779">pc</a>)
+                    <span class="self">self</span>.insts[pc].half_fill_split_goto1(goto1);
+                    Hole::One(pc)
                 }
                 (<span class="prelude-val">None</span>, <span class="prelude-val">Some</span>(goto2)) =&gt; {
-                    <a class="self" href="#772">self</a>.insts[<a href="#779">pc</a>].<a href="#926">half_fill_split_goto2</a>(<a href="#788">goto2</a>);
-                    <a href="#850">Hole::One</a>(<a href="#779">pc</a>)
+                    <span class="self">self</span>.insts[pc].half_fill_split_goto2(goto2);
+                    Hole::One(pc)
                 }
-                (<span class="prelude-val">None</span>, <span class="prelude-val">None</span>) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(
+                (<span class="prelude-val">None</span>, <span class="prelude-val">None</span>) =&gt; <span class="macro">unreachable!</span>(
                     <span class="string">&quot;at least one of the split \
                      holes must be filled&quot;
                 </span>),
             },
-            <a href="#851">Hole::Many</a>(holes) =&gt; {
-                <span class="kw">let </span><span class="kw-2">mut </span>new_holes = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[];
+            Hole::Many(holes) =&gt; {
+                <span class="kw">let </span><span class="kw-2">mut </span>new_holes = <span class="macro">vec!</span>[];
                 <span class="kw">for </span>hole <span class="kw">in </span>holes {
                     new_holes.push(<span class="self">self</span>.fill_split(hole, goto1, goto2));
                 }
                 <span class="kw">if </span>new_holes.is_empty() {
-                    <a href="#849">Hole::None</a>
+                    Hole::None
                 } <span class="kw">else if </span>new_holes.len() == <span class="number">1 </span>{
-                    <a href="#798">new_holes</a>.pop().unwrap()
+                    new_holes.pop().unwrap()
                 } <span class="kw">else </span>{
-                    <a href="#851">Hole::Many</a>(<a href="#798">new_holes</a>)
+                    Hole::Many(new_holes)
                 }
             }
         }
     }
 
-    <span class="kw">fn </span>push_compiled(<span class="kw-2">&amp;mut </span><span class="self">self</span>, inst: <a href="prog.rs.html#268">Inst</a>) {
-        <a class="self" href="#813">self</a>.insts.push(<a href="#867">MaybeInst::Compiled</a>(<a href="#813">inst</a>));
+    <span class="kw">fn </span>push_compiled(<span class="kw-2">&amp;mut </span><span class="self">self</span>, inst: Inst) {
+        <span class="self">self</span>.insts.push(MaybeInst::Compiled(inst));
     }
 
-    <span class="kw">fn </span>push_hole(<span class="kw-2">&amp;mut </span><span class="self">self</span>, inst: <a href="#951">InstHole</a>) -&gt; <a href="#848">Hole</a> {
-        <span class="kw">let </span>hole = <a class="self" href="#817">self</a>.insts.len();
-        <a class="self" href="#817">self</a>.insts.push(<a href="#868">MaybeInst::Uncompiled</a>(<a href="#817">inst</a>));
-        <a href="#850">Hole::One</a>(<a href="#818">hole</a>)
+    <span class="kw">fn </span>push_hole(<span class="kw-2">&amp;mut </span><span class="self">self</span>, inst: InstHole) -&gt; Hole {
+        <span class="kw">let </span>hole = <span class="self">self</span>.insts.len();
+        <span class="self">self</span>.insts.push(MaybeInst::Uncompiled(inst));
+        Hole::One(hole)
     }
 
-    <span class="kw">fn </span>push_split_hole(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <a href="#848">Hole</a> {
-        <span class="kw">let </span>hole = <a class="self" href="#823">self</a>.insts.len();
-        <a class="self" href="#823">self</a>.insts.push(<a href="#869">MaybeInst::Split</a>);
-        <a href="#850">Hole::One</a>(<a href="#824">hole</a>)
+    <span class="kw">fn </span>push_split_hole(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; Hole {
+        <span class="kw">let </span>hole = <span class="self">self</span>.insts.len();
+        <span class="self">self</span>.insts.push(MaybeInst::Split);
+        Hole::One(hole)
     }
 
-    <span class="kw">fn </span>pop_split_hole(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <a href="#19">ResultOrEmpty</a> {
-        <a class="self" href="#829">self</a>.insts.pop();
+    <span class="kw">fn </span>pop_split_hole(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; ResultOrEmpty {
+        <span class="self">self</span>.insts.pop();
         <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>)
     }
 
-    <span class="kw">fn </span>check_size(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; result::Result&lt;(), <a href="error.rs.html#6">Error</a>&gt; {
+    <span class="kw">fn </span>check_size(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; result::Result&lt;(), Error&gt; {
         <span class="kw">use </span>std::mem::size_of;
 
         <span class="kw">let </span>size =
-            <a class="self" href="#834">self</a>.extra_inst_bytes + (<a class="self" href="#834">self</a>.insts.len() * size_of::&lt;<a href="prog.rs.html#268">Inst</a>&gt;());
+            <span class="self">self</span>.extra_inst_bytes + (<span class="self">self</span>.insts.len() * size_of::&lt;Inst&gt;());
         <span class="kw">if </span>size &gt; <span class="self">self</span>.size_limit {
-            <span class="prelude-val">Err</span>(<a href="error.rs.html#11">Error::CompiledTooBig</a>(<a class="self" href="#834">self</a>.size_limit))
+            <span class="prelude-val">Err</span>(Error::CompiledTooBig(<span class="self">self</span>.size_limit))
         } <span class="kw">else </span>{
             <span class="prelude-val">Ok</span>(())
         }
@@ -2111,16 +2111,16 @@
 <span class="attr">#[derive(Debug)]
 </span><span class="kw">enum </span>Hole {
     <span class="prelude-val">None</span>,
-    One(<a href="prog.rs.html#13">InstPtr</a>),
-    Many(Vec&lt;<a href="#848">Hole</a>&gt;),
+    One(InstPtr),
+    Many(Vec&lt;Hole&gt;),
 }
 
-<span class="kw">impl </span><a href="#848">Hole</a> {
+<span class="kw">impl </span>Hole {
     <span class="kw">fn </span>dup_one(<span class="self">self</span>) -&gt; (<span class="self">Self</span>, <span class="self">Self</span>) {
-        <span class="kw">match </span><span class="self"><a href="#855">self</a> </span>{
-            <a href="#850">Hole::One</a>(pc) =&gt; (<a href="#850">Hole::One</a>(<a href="#857">pc</a>), <a href="#850">Hole::One</a>(<a href="#857">pc</a>)),
-            <a href="#849">Hole::None</a> | <a href="#851">Hole::Many</a>(<span class="kw">_</span>) =&gt; {
-                <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(<span class="string">&quot;must be called on single hole&quot;</span>)
+        <span class="kw">match </span><span class="self">self </span>{
+            Hole::One(pc) =&gt; (Hole::One(pc), Hole::One(pc)),
+            Hole::None | Hole::Many(<span class="kw">_</span>) =&gt; {
+                <span class="macro">unreachable!</span>(<span class="string">&quot;must be called on single hole&quot;</span>)
             }
         }
     }
@@ -2128,81 +2128,81 @@
 
 <span class="attr">#[derive(Clone, Debug)]
 </span><span class="kw">enum </span>MaybeInst {
-    Compiled(<a href="prog.rs.html#268">Inst</a>),
-    Uncompiled(<a href="#951">InstHole</a>),
+    Compiled(Inst),
+    Uncompiled(InstHole),
     Split,
-    Split1(<a href="prog.rs.html#13">InstPtr</a>),
-    Split2(<a href="prog.rs.html#13">InstPtr</a>),
+    Split1(InstPtr),
+    Split2(InstPtr),
 }
 
-<span class="kw">impl </span><a href="#866">MaybeInst</a> {
-    <span class="kw">fn </span>fill(<span class="kw-2">&amp;mut </span><span class="self">self</span>, goto: <a href="prog.rs.html#13">InstPtr</a>) {
-        <span class="kw">let </span>maybeinst = <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="#875">self</a> </span>{
-            <a href="#869">MaybeInst::Split</a> =&gt; <a href="#870">MaybeInst::Split1</a>(<a href="#875">goto</a>),
-            <a href="#868">MaybeInst::Uncompiled</a>(<span class="kw-2">ref </span>inst) =&gt; {
-                <a href="#867">MaybeInst::Compiled</a>(<a href="#878">inst</a>.<a href="#960">fill</a>(<a href="#875">goto</a>))
+<span class="kw">impl </span>MaybeInst {
+    <span class="kw">fn </span>fill(<span class="kw-2">&amp;mut </span><span class="self">self</span>, goto: InstPtr) {
+        <span class="kw">let </span>maybeinst = <span class="kw">match </span><span class="kw-2">*</span><span class="self">self </span>{
+            MaybeInst::Split =&gt; MaybeInst::Split1(goto),
+            MaybeInst::Uncompiled(<span class="kw-2">ref </span>inst) =&gt; {
+                MaybeInst::Compiled(inst.fill(goto))
             }
-            <a href="#870">MaybeInst::Split1</a>(goto1) =&gt; {
-                <a href="#867">MaybeInst::Compiled</a>(<a href="prog.rs.html#282">Inst::Split</a>(<a href="prog.rs.html#320">InstSplit</a> {
-                    <a href="#881">goto1</a>,
-                    goto2: <a href="#875">goto</a>,
+            MaybeInst::Split1(goto1) =&gt; {
+                MaybeInst::Compiled(Inst::Split(InstSplit {
+                    goto1,
+                    goto2: goto,
                 }))
             }
-            <a href="#871">MaybeInst::Split2</a>(goto2) =&gt; {
-                <a href="#867">MaybeInst::Compiled</a>(<a href="prog.rs.html#282">Inst::Split</a>(<a href="prog.rs.html#320">InstSplit</a> {
-                    goto1: <a href="#875">goto</a>,
-                    <a href="#887">goto2</a>,
+            MaybeInst::Split2(goto2) =&gt; {
+                MaybeInst::Compiled(Inst::Split(InstSplit {
+                    goto1: goto,
+                    goto2,
                 }))
             }
-            <span class="kw">_ </span>=&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(
+            <span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>(
                 <span class="string">&quot;not all instructions were compiled! \
                  found uncompiled instruction: {:?}&quot;</span>,
                 <span class="self">self
             </span>),
         };
-        <span class="kw-2">*</span><span class="self"><a href="#875">self</a> </span>= <a href="#876">maybeinst</a>;
+        <span class="kw-2">*</span><span class="self">self </span>= maybeinst;
     }
 
-    <span class="kw">fn </span>fill_split(<span class="kw-2">&amp;mut </span><span class="self">self</span>, goto1: <a href="prog.rs.html#13">InstPtr</a>, goto2: <a href="prog.rs.html#13">InstPtr</a>) {
-        <span class="kw">let </span>filled = <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="#902">self</a> </span>{
-            <a href="#869">MaybeInst::Split</a> =&gt; <a href="prog.rs.html#282">Inst::Split</a>(<a href="prog.rs.html#320">InstSplit</a> { <a href="#902">goto1</a>, <a href="#902">goto2</a> }),
-            <span class="kw">_ </span>=&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(
+    <span class="kw">fn </span>fill_split(<span class="kw-2">&amp;mut </span><span class="self">self</span>, goto1: InstPtr, goto2: InstPtr) {
+        <span class="kw">let </span>filled = <span class="kw">match </span><span class="kw-2">*</span><span class="self">self </span>{
+            MaybeInst::Split =&gt; Inst::Split(InstSplit { goto1, goto2 }),
+            <span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>(
                 <span class="string">&quot;must be called on Split instruction, \
                  instead it was called on: {:?}&quot;</span>,
                 <span class="self">self
             </span>),
         };
-        <span class="kw-2">*</span><span class="self"><a href="#902">self</a> </span>= <a href="#867">MaybeInst::Compiled</a>(<a href="#903">filled</a>);
+        <span class="kw-2">*</span><span class="self">self </span>= MaybeInst::Compiled(filled);
     }
 
-    <span class="kw">fn </span>half_fill_split_goto1(<span class="kw-2">&amp;mut </span><span class="self">self</span>, goto1: <a href="prog.rs.html#13">InstPtr</a>) {
-        <span class="kw">let </span>half_filled = <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="#914">self</a> </span>{
-            <a href="#869">MaybeInst::Split</a> =&gt; <a href="#914">goto1</a>,
-            <span class="kw">_ </span>=&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(
+    <span class="kw">fn </span>half_fill_split_goto1(<span class="kw-2">&amp;mut </span><span class="self">self</span>, goto1: InstPtr) {
+        <span class="kw">let </span>half_filled = <span class="kw">match </span><span class="kw-2">*</span><span class="self">self </span>{
+            MaybeInst::Split =&gt; goto1,
+            <span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>(
                 <span class="string">&quot;must be called on Split instruction, \
                  instead it was called on: {:?}&quot;</span>,
                 <span class="self">self
             </span>),
         };
-        <span class="kw-2">*</span><span class="self"><a href="#914">self</a> </span>= <a href="#870">MaybeInst::Split1</a>(<a href="#915">half_filled</a>);
+        <span class="kw-2">*</span><span class="self">self </span>= MaybeInst::Split1(half_filled);
     }
 
-    <span class="kw">fn </span>half_fill_split_goto2(<span class="kw-2">&amp;mut </span><span class="self">self</span>, goto2: <a href="prog.rs.html#13">InstPtr</a>) {
-        <span class="kw">let </span>half_filled = <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="#926">self</a> </span>{
-            <a href="#869">MaybeInst::Split</a> =&gt; <a href="#926">goto2</a>,
-            <span class="kw">_ </span>=&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(
+    <span class="kw">fn </span>half_fill_split_goto2(<span class="kw-2">&amp;mut </span><span class="self">self</span>, goto2: InstPtr) {
+        <span class="kw">let </span>half_filled = <span class="kw">match </span><span class="kw-2">*</span><span class="self">self </span>{
+            MaybeInst::Split =&gt; goto2,
+            <span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>(
                 <span class="string">&quot;must be called on Split instruction, \
                  instead it was called on: {:?}&quot;</span>,
                 <span class="self">self
             </span>),
         };
-        <span class="kw-2">*</span><span class="self"><a href="#926">self</a> </span>= <a href="#871">MaybeInst::Split2</a>(<a href="#927">half_filled</a>);
+        <span class="kw-2">*</span><span class="self">self </span>= MaybeInst::Split2(half_filled);
     }
 
-    <span class="kw">fn </span>unwrap(<span class="self">self</span>) -&gt; <a href="prog.rs.html#268">Inst</a> {
-        <span class="kw">match </span><span class="self"><a href="#938">self</a> </span>{
-            <a href="#867">MaybeInst::Compiled</a>(inst) =&gt; <a href="#940">inst</a>,
-            <span class="kw">_ </span>=&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(
+    <span class="kw">fn </span>unwrap(<span class="self">self</span>) -&gt; Inst {
+        <span class="kw">match </span><span class="self">self </span>{
+            MaybeInst::Compiled(inst) =&gt; inst,
+            <span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>(
                 <span class="string">&quot;must be called on a compiled instruction, \
                  instead it was called on: {:?}&quot;</span>,
                 <span class="self">self
@@ -2213,44 +2213,44 @@
 
 <span class="attr">#[derive(Clone, Debug)]
 </span><span class="kw">enum </span>InstHole {
-    Save { slot: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> },
-    EmptyLook { look: <a href="prog.rs.html#341">EmptyLook</a> },
-    Char { c: <a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a> },
-    Ranges { ranges: Vec&lt;(<a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>)&gt; },
-    Bytes { start: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>, end: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a> },
+    Save { slot: usize },
+    EmptyLook { look: EmptyLook },
+    Char { c: char },
+    Ranges { ranges: Vec&lt;(char, char)&gt; },
+    Bytes { start: u8, end: u8 },
 }
 
-<span class="kw">impl </span><a href="#951">InstHole</a> {
-    <span class="kw">fn </span>fill(<span class="kw-2">&amp;</span><span class="self">self</span>, goto: <a href="prog.rs.html#13">InstPtr</a>) -&gt; <a href="prog.rs.html#268">Inst</a> {
-        <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="#960">self</a> </span>{
-            <a href="#952">InstHole::Save</a> { slot } =&gt; <a href="prog.rs.html#279">Inst::Save</a>(<a href="prog.rs.html#310">InstSave</a> { <a href="#960">goto</a>, <a href="#962">slot</a> }),
-            <a href="#953">InstHole::EmptyLook</a> { look } =&gt; {
-                <a href="prog.rs.html#285">Inst::EmptyLook</a>(<a href="prog.rs.html#331">InstEmptyLook</a> { <a href="#960">goto</a>, <a href="#963">look</a> })
+<span class="kw">impl </span>InstHole {
+    <span class="kw">fn </span>fill(<span class="kw-2">&amp;</span><span class="self">self</span>, goto: InstPtr) -&gt; Inst {
+        <span class="kw">match </span><span class="kw-2">*</span><span class="self">self </span>{
+            InstHole::Save { slot } =&gt; Inst::Save(InstSave { goto, slot }),
+            InstHole::EmptyLook { look } =&gt; {
+                Inst::EmptyLook(InstEmptyLook { goto, look })
             }
-            <a href="#954">InstHole::Char</a> { c } =&gt; <a href="prog.rs.html#288">Inst::Char</a>(<a href="prog.rs.html#362">InstChar</a> { <a href="#960">goto</a>, <a href="#966">c</a> }),
-            <a href="#955">InstHole::Ranges</a> { <span class="kw-2">ref </span>ranges } =&gt; <a href="prog.rs.html#291">Inst::Ranges</a>(<a href="prog.rs.html#372">InstRanges</a> {
-                <a href="#960">goto</a>,
-                ranges: <a href="#967">ranges</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>().into_boxed_slice(),
+            InstHole::Char { c } =&gt; Inst::Char(InstChar { goto, c }),
+            InstHole::Ranges { <span class="kw-2">ref </span>ranges } =&gt; Inst::Ranges(InstRanges {
+                goto,
+                ranges: ranges.clone().into_boxed_slice(),
             }),
-            <a href="#956">InstHole::Bytes</a> { start, end } =&gt; {
-                <a href="prog.rs.html#295">Inst::Bytes</a>(<a href="prog.rs.html#419">InstBytes</a> { <a href="#960">goto</a>, <a href="#971">start</a>, <a href="#971">end</a> })
+            InstHole::Bytes { start, end } =&gt; {
+                Inst::Bytes(InstBytes { goto, start, end })
             }
         }
     }
 }
 
 <span class="kw">struct </span>CompileClass&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span>&gt; {
-    c: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span><a href="#32">Compiler</a>,
-    ranges: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span>[<a href="../../regex_syntax/hir/struct.ClassUnicodeRange.html">hir::ClassUnicodeRange</a>],
+    c: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>Compiler,
+    ranges: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span>[hir::ClassUnicodeRange],
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span>&gt; CompileClass&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span>&gt; {
     <span class="kw">fn </span>compile(<span class="kw-2">mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result </span>{
-        <span class="kw">let </span><span class="kw-2">mut </span>holes = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[];
+        <span class="kw">let </span><span class="kw-2">mut </span>holes = <span class="macro">vec!</span>[];
         <span class="kw">let </span><span class="kw-2">mut </span>initial_entry = <span class="prelude-val">None</span>;
-        <span class="kw">let </span><span class="kw-2">mut </span>last_split = <a href="#849">Hole::None</a>;
-        <span class="kw">let </span><span class="kw-2">mut </span>utf8_seqs = <a class="self" href="#984">self</a>.c.utf8_seqs.take().unwrap();
-        <a class="self" href="#984">self</a>.c.suffix_cache.<a href="#1136">clear</a>();
+        <span class="kw">let </span><span class="kw-2">mut </span>last_split = Hole::None;
+        <span class="kw">let </span><span class="kw-2">mut </span>utf8_seqs = <span class="self">self</span>.c.utf8_seqs.take().unwrap();
+        <span class="self">self</span>.c.suffix_cache.clear();
 
         <span class="kw">for </span>(i, range) <span class="kw">in </span><span class="self">self</span>.ranges.iter().enumerate() {
             <span class="kw">let </span>is_last_range = i + <span class="number">1 </span>== <span class="self">self</span>.ranges.len();
@@ -2282,25 +2282,25 @@
                 }
             }
         }
-        <a class="self" href="#984">self</a>.c.utf8_seqs = <span class="prelude-val">Some</span>(<a href="#988">utf8_seqs</a>);
-        <span class="prelude-val">Ok</span>(<a href="#22">Patch</a> { hole: <a href="#851">Hole::Many</a>(<a href="#985">holes</a>), entry: <a href="#986">initial_entry</a>.unwrap() })
+        <span class="self">self</span>.c.utf8_seqs = <span class="prelude-val">Some</span>(utf8_seqs);
+        <span class="prelude-val">Ok</span>(Patch { hole: Hole::Many(holes), entry: initial_entry.unwrap() })
     }
 
-    <span class="kw">fn </span>c_utf8_seq(<span class="kw-2">&amp;mut </span><span class="self">self</span>, seq: <span class="kw-2">&amp;</span><a href="../../regex_syntax/utf8/enum.Utf8Sequence.html">Utf8Sequence</a>) -&gt; <span class="prelude-ty">Result </span>{
+    <span class="kw">fn </span>c_utf8_seq(<span class="kw-2">&amp;mut </span><span class="self">self</span>, seq: <span class="kw-2">&amp;</span>Utf8Sequence) -&gt; <span class="prelude-ty">Result </span>{
         <span class="kw">if </span><span class="self">self</span>.c.compiled.is_reverse {
-            <a class="self" href="#1025">self</a>.<a href="#1033-1035">c_utf8_seq_</a>(<a href="#1025">seq</a>)
+            <span class="self">self</span>.c_utf8_seq_(seq)
         } <span class="kw">else </span>{
-            <a class="self" href="#1025">self</a>.<a href="#1033-1035">c_utf8_seq_</a>(<a href="#1025">seq</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">rev</a>())
+            <span class="self">self</span>.c_utf8_seq_(seq.into_iter().rev())
         }
     }
 
     <span class="kw">fn </span>c_utf8_seq_&lt;<span class="lifetime">&#39;r</span>, I&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, seq: I) -&gt; <span class="prelude-ty">Result
     </span><span class="kw">where
-        </span>I: IntoIterator&lt;Item = <span class="kw-2">&amp;</span><span class="lifetime">&#39;r </span><a href="../../regex_syntax/utf8/struct.Utf8Range.html">Utf8Range</a>&gt;,
+        </span>I: IntoIterator&lt;Item = <span class="kw-2">&amp;</span><span class="lifetime">&#39;r </span>Utf8Range&gt;,
     {
         <span class="comment">// The initial instruction for each UTF-8 sequence should be the same.
         </span><span class="kw">let </span><span class="kw-2">mut </span>from_inst = ::std::usize::MAX;
-        <span class="kw">let </span><span class="kw-2">mut </span>last_hole = <a href="#849">Hole::None</a>;
+        <span class="kw">let </span><span class="kw-2">mut </span>last_hole = Hole::None;
         <span class="kw">for </span>byte_range <span class="kw">in </span>seq {
             <span class="kw">let </span>key = SuffixCacheKey {
                 from_inst,
@@ -2330,8 +2330,8 @@
             from_inst = <span class="self">self</span>.c.insts.len().checked_sub(<span class="number">1</span>).unwrap();
             <span class="macro">debug_assert!</span>(from_inst &lt; ::std::usize::MAX);
         }
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(from_inst &lt; ::std::usize::MAX);
-        <span class="prelude-val">Ok</span>(<a href="#22">Patch</a> { hole: <a href="#1039">last_hole</a>, entry: <a href="#1038">from_inst</a> })
+        <span class="macro">debug_assert!</span>(from_inst &lt; ::std::usize::MAX);
+        <span class="prelude-val">Ok</span>(Patch { hole: last_hole, entry: from_inst })
     }
 }
 
@@ -2359,81 +2359,81 @@
 /// validation against `dense` array.
 </span><span class="attr">#[derive(Debug)]
 </span><span class="kw">struct </span>SuffixCache {
-    sparse: Box&lt;[<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>]&gt;,
-    dense: Vec&lt;<a href="#1103">SuffixCacheEntry</a>&gt;,
+    sparse: Box&lt;[usize]&gt;,
+    dense: Vec&lt;SuffixCacheEntry&gt;,
 }
 
 <span class="attr">#[derive(Clone, Copy, Debug, Default, Eq, Hash, PartialEq)]
 </span><span class="kw">struct </span>SuffixCacheEntry {
-    key: <a href="#1109">SuffixCacheKey</a>,
-    pc: <a href="prog.rs.html#13">InstPtr</a>,
+    key: SuffixCacheKey,
+    pc: InstPtr,
 }
 
 <span class="attr">#[derive(Clone, Copy, Debug, Default, Eq, Hash, PartialEq)]
 </span><span class="kw">struct </span>SuffixCacheKey {
-    from_inst: <a href="prog.rs.html#13">InstPtr</a>,
-    start: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>,
-    end: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>,
+    from_inst: InstPtr,
+    start: u8,
+    end: u8,
 }
 
-<span class="kw">impl </span><a href="#1097">SuffixCache</a> {
-    <span class="kw">fn </span>new(size: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="self">Self </span>{
-        <a href="#1097">SuffixCache</a> {
-            sparse: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[<span class="number">0usize</span>; size].<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
-            dense: Vec::with_capacity(<a href="#1116">size</a>),
+<span class="kw">impl </span>SuffixCache {
+    <span class="kw">fn </span>new(size: usize) -&gt; <span class="self">Self </span>{
+        SuffixCache {
+            sparse: <span class="macro">vec!</span>[<span class="number">0usize</span>; size].into(),
+            dense: Vec::with_capacity(size),
         }
     }
 
-    <span class="kw">fn </span>get(<span class="kw-2">&amp;mut </span><span class="self">self</span>, key: <a href="#1109">SuffixCacheKey</a>, pc: <a href="prog.rs.html#13">InstPtr</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="prog.rs.html#13">InstPtr</a>&gt; {
-        <span class="kw">let </span>hash = <a class="self" href="#1123">self</a>.<a href="#1140">hash</a>(<span class="kw-2">&amp;</span><a href="#1123">key</a>);
-        <span class="kw">let </span>pos = <span class="kw-2">&amp;mut </span><a class="self" href="#1123">self</a>.sparse[<a href="#1124">hash</a>];
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(entry) = <a class="self" href="#1123">self</a>.dense.get(<span class="kw-2">*</span><a href="#1125">pos</a>) {
+    <span class="kw">fn </span>get(<span class="kw-2">&amp;mut </span><span class="self">self</span>, key: SuffixCacheKey, pc: InstPtr) -&gt; <span class="prelude-ty">Option</span>&lt;InstPtr&gt; {
+        <span class="kw">let </span>hash = <span class="self">self</span>.hash(<span class="kw-2">&amp;</span>key);
+        <span class="kw">let </span>pos = <span class="kw-2">&amp;mut </span><span class="self">self</span>.sparse[hash];
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(entry) = <span class="self">self</span>.dense.get(<span class="kw-2">*</span>pos) {
             <span class="kw">if </span>entry.key == key {
-                <span class="kw">return </span><span class="prelude-val">Some</span>(<a href="#1126">entry</a>.pc);
+                <span class="kw">return </span><span class="prelude-val">Some</span>(entry.pc);
             }
         }
-        <span class="kw-2">*</span><a href="#1125">pos</a> = <a class="self" href="#1123">self</a>.dense.len();
-        <a class="self" href="#1123">self</a>.dense.push(<a href="#1103">SuffixCacheEntry</a> { <a href="#1123">key</a>, <a href="#1123">pc</a> });
+        <span class="kw-2">*</span>pos = <span class="self">self</span>.dense.len();
+        <span class="self">self</span>.dense.push(SuffixCacheEntry { key, pc });
         <span class="prelude-val">None
     </span>}
 
     <span class="kw">fn </span>clear(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <a class="self" href="#1136">self</a>.dense.clear();
+        <span class="self">self</span>.dense.clear();
     }
 
-    <span class="kw">fn </span>hash(<span class="kw-2">&amp;</span><span class="self">self</span>, suffix: <span class="kw-2">&amp;</span><a href="#1109">SuffixCacheKey</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
+    <span class="kw">fn </span>hash(<span class="kw-2">&amp;</span><span class="self">self</span>, suffix: <span class="kw-2">&amp;</span>SuffixCacheKey) -&gt; usize {
         <span class="comment">// Basic FNV-1a hash as described:
         // https://en.wikipedia.org/wiki/Fowler%E2%80%93Noll%E2%80%93Vo_hash_function
-        </span><span class="kw">const </span>FNV_PRIME: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> = <span class="number">1_099_511_628_211</span>;
+        </span><span class="kw">const </span>FNV_PRIME: u64 = <span class="number">1_099_511_628_211</span>;
         <span class="kw">let </span><span class="kw-2">mut </span>h = <span class="number">14_695_981_039_346_656_037</span>;
-        <a href="#1144">h</a> = (<a href="#1144">h</a> ^ (<a href="#1140">suffix</a>.from_inst <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>)).wrapping_mul(<a href="#1143">FNV_PRIME</a>);
-        <a href="#1144">h</a> = (<a href="#1144">h</a> ^ (<a href="#1140">suffix</a>.start <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>)).wrapping_mul(<a href="#1143">FNV_PRIME</a>);
-        <a href="#1144">h</a> = (<a href="#1144">h</a> ^ (<a href="#1140">suffix</a>.end <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>)).wrapping_mul(<a href="#1143">FNV_PRIME</a>);
-        (<a href="#1144">h</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) % <a class="self" href="#1140">self</a>.sparse.len()
+        h = (h ^ (suffix.from_inst <span class="kw">as </span>u64)).wrapping_mul(FNV_PRIME);
+        h = (h ^ (suffix.start <span class="kw">as </span>u64)).wrapping_mul(FNV_PRIME);
+        h = (h ^ (suffix.end <span class="kw">as </span>u64)).wrapping_mul(FNV_PRIME);
+        (h <span class="kw">as </span>usize) % <span class="self">self</span>.sparse.len()
     }
 }
 
-<span class="kw">struct </span>ByteClassSet([<a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>; <span class="number">256</span>]);
+<span class="kw">struct </span>ByteClassSet([bool; <span class="number">256</span>]);
 
-<span class="kw">impl </span><a href="#1152">ByteClassSet</a> {
+<span class="kw">impl </span>ByteClassSet {
     <span class="kw">fn </span>new() -&gt; <span class="self">Self </span>{
-        <a href="#1152">ByteClassSet</a>([<span class="bool-val">false</span>; <span class="number">256</span>])
+        ByteClassSet([<span class="bool-val">false</span>; <span class="number">256</span>])
     }
 
-    <span class="kw">fn </span>set_range(<span class="kw-2">&amp;mut </span><span class="self">self</span>, start: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>, end: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(start &lt;= end);
+    <span class="kw">fn </span>set_range(<span class="kw-2">&amp;mut </span><span class="self">self</span>, start: u8, end: u8) {
+        <span class="macro">debug_assert!</span>(start &lt;= end);
         <span class="kw">if </span>start &gt; <span class="number">0 </span>{
-            <a class="self" href="#1159">self</a>.<span class="number">0</span>[<a href="#1159">start</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> - <span class="number">1</span>] = <span class="bool-val">true</span>;
+            <span class="self">self</span>.<span class="number">0</span>[start <span class="kw">as </span>usize - <span class="number">1</span>] = <span class="bool-val">true</span>;
         }
-        <a class="self" href="#1159">self</a>.<span class="number">0</span>[<a href="#1159">end</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>] = <span class="bool-val">true</span>;
+        <span class="self">self</span>.<span class="number">0</span>[end <span class="kw">as </span>usize] = <span class="bool-val">true</span>;
     }
 
     <span class="kw">fn </span>set_word_boundary(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="comment">// We need to mark all ranges of bytes whose pairs result in
         // evaluating \b differently.
-        </span><span class="kw">let </span>iswb = <a href="../../regex_syntax/fn.is_word_byte.html">is_word_byte</a>;
-        <span class="kw">let </span><span class="kw-2">mut </span>b1: <a href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a> = <span class="number">0</span>;
-        <span class="kw">let </span><span class="kw-2">mut </span>b2: <a href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>;
+        </span><span class="kw">let </span>iswb = is_word_byte;
+        <span class="kw">let </span><span class="kw-2">mut </span>b1: u16 = <span class="number">0</span>;
+        <span class="kw">let </span><span class="kw-2">mut </span>b2: u16;
         <span class="kw">while </span>b1 &lt;= <span class="number">255 </span>{
             b2 = b1 + <span class="number">1</span>;
             <span class="kw">while </span>b2 &lt;= <span class="number">255 </span>&amp;&amp; iswb(b1 <span class="kw">as </span>u8) == iswb(b2 <span class="kw">as </span>u8) {
@@ -2444,42 +2444,42 @@
         }
     }
 
-    <span class="kw">fn </span>byte_classes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt; {
+    <span class="kw">fn </span>byte_classes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Vec&lt;u8&gt; {
         <span class="comment">// N.B. If you&#39;re debugging the DFA, it&#39;s useful to simply return
         // `(0..256).collect()`, which effectively removes the byte classes
         // and makes the transitions easier to read.
         // (0usize..256).map(|x| x as u8).collect()
-        </span><span class="kw">let </span><span class="kw-2">mut </span>byte_classes = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[<span class="number">0</span>; <span class="number">256</span>];
+        </span><span class="kw">let </span><span class="kw-2">mut </span>byte_classes = <span class="macro">vec!</span>[<span class="number">0</span>; <span class="number">256</span>];
         <span class="kw">let </span><span class="kw-2">mut </span>class = <span class="number">0u8</span>;
         <span class="kw">let </span><span class="kw-2">mut </span>i = <span class="number">0</span>;
         <span class="kw">loop </span>{
-            <a href="#1188">byte_classes</a>[<a href="#1190">i</a>] = <a href="#1189">class</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>;
+            byte_classes[i] = class <span class="kw">as </span>u8;
             <span class="kw">if </span>i &gt;= <span class="number">255 </span>{
                 <span class="kw">break</span>;
             }
             <span class="kw">if </span><span class="self">self</span>.<span class="number">0</span>[i] {
-                <a href="#1189">class</a> = <a href="#1189">class</a>.checked_add(<span class="number">1</span>).unwrap();
+                class = class.checked_add(<span class="number">1</span>).unwrap();
             }
-            <a href="#1190">i</a> += <span class="number">1</span>;
+            i += <span class="number">1</span>;
         }
-        <a href="#1188">byte_classes</a>
+        byte_classes
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="#1152">ByteClassSet</a> {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a href="#1206">f</a>.debug_tuple(<span class="string">&quot;ByteClassSet&quot;</span>).field(&amp;&amp;<a class="self" href="#1206">self</a>.<span class="number">0</span>[..]).finish()
+<span class="kw">impl </span>fmt::Debug <span class="kw">for </span>ByteClassSet {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        f.debug_tuple(<span class="string">&quot;ByteClassSet&quot;</span>).field(&amp;&amp;<span class="self">self</span>.<span class="number">0</span>[..]).finish()
     }
 }
 
-<span class="kw">fn </span>u32_to_usize(n: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
+<span class="kw">fn </span>u32_to_usize(n: u32) -&gt; usize {
     <span class="comment">// In case usize is less than 32 bits, we need to guard against overflow.
     // On most platforms this compiles to nothing.
     // TODO Use `std::convert::TryFrom` once it&#39;s stable.
     </span><span class="kw">if </span>(n <span class="kw">as </span>u64) &gt; (::std::usize::MAX <span class="kw">as </span>u64) {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(<span class="string">&quot;BUG: {} is too big to be pointer sized&quot;</span>, n)
+        <span class="macro">panic!</span>(<span class="string">&quot;BUG: {} is too big to be pointer sized&quot;</span>, n)
     }
-    <a href="#1211">n</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>
+    n <span class="kw">as </span>usize
 }
 
 <span class="attr">#[cfg(test)]
@@ -2527,4 +2527,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="regex" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="regex" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

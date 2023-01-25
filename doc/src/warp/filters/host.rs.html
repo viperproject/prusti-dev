@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/warp-0.3.3/src/filters/host.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>host.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../warp/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/warp-0.3.3/src/filters/host.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>host.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../warp/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -96,11 +96,11 @@
 <a href="#96" id="96">96</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Host (&quot;authority&quot;) filter
 //!
-</span><span class="kw">use </span><span class="kw">crate</span>::filter::{<a href="../filter/mod.rs.html#458-465">filter_fn_one</a>, <a href="../filter/mod.rs.html#93">Filter</a>, <a href="../generic.rs.html#4">One</a>};
-<span class="kw">use </span><span class="kw">crate</span>::reject::{<a class="self" href="../lib.rs.html#95">self</a>, <a href="../reject.rs.html#205">Rejection</a>};
-<span class="kw">use </span><a href="../../../futures_util/future/index.html">futures_util::future</a>;
-<span class="kw">pub use </span><a href="../../../warp/filters/host/struct.Authority.html">http::uri::Authority</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/str/traits/trait.FromStr.html">std::str::FromStr</a>;
+</span><span class="kw">use </span><span class="kw">crate</span>::filter::{filter_fn_one, Filter, One};
+<span class="kw">use </span><span class="kw">crate</span>::reject::{<span class="self">self</span>, Rejection};
+<span class="kw">use </span>futures_util::future;
+<span class="kw">pub use </span>http::uri::Authority;
+<span class="kw">use </span>std::str::FromStr;
 
 <span class="doccomment">/// Creates a `Filter` that requires a specific authority (target server&#39;s
 /// host and port) in the request.
@@ -116,14 +116,14 @@
 ///     warp::host::exact(&quot;foo.com&quot;).map(|| &quot;you&#39;ve reached foo.com&quot;)
 ///     .or(warp::host::exact(&quot;bar.com&quot;).map(|| &quot;you&#39;ve reached bar.com&quot;));
 /// ```
-</span><span class="kw">pub fn </span>exact(expected: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="kw">impl </span>Filter&lt;Extract = (), Error = <a href="../reject.rs.html#205">Rejection</a>&gt; + <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> {
-    <span class="kw">let </span>expected = Authority::from_str(<a href="#23">expected</a>).expect(<span class="string">&quot;invalid host/authority&quot;</span>);
-    <a href="#58">optional</a>()
-        .<a href="../filter/mod.rs.html#255-260">and_then</a>(<span class="kw">move </span>|option: <span class="prelude-ty">Option</span>&lt;<a href="../../../warp/filters/host/struct.Authority.html">Authority</a>&gt;| <span class="kw">match </span><a href="#26">option</a> {
-            <span class="prelude-val">Some</span>(authority) <span class="kw">if </span><a href="#27">authority</a> == <a href="#24">expected</a> =&gt; future::ok(()),
-            <span class="kw">_ </span>=&gt; future::err(<a href="../reject.rs.html#81">reject::not_found</a>()),
+</span><span class="kw">pub fn </span>exact(expected: <span class="kw-2">&amp;</span>str) -&gt; <span class="kw">impl </span>Filter&lt;Extract = (), Error = Rejection&gt; + Clone {
+    <span class="kw">let </span>expected = Authority::from_str(expected).expect(<span class="string">&quot;invalid host/authority&quot;</span>);
+    optional()
+        .and_then(<span class="kw">move </span>|option: <span class="prelude-ty">Option</span>&lt;Authority&gt;| <span class="kw">match </span>option {
+            <span class="prelude-val">Some</span>(authority) <span class="kw">if </span>authority == expected =&gt; future::ok(()),
+            <span class="kw">_ </span>=&gt; future::err(reject::not_found()),
         })
-        .<a href="../filter/mod.rs.html#370-373">untuple_one</a>()
+        .untuple_one()
 }
 
 <span class="doccomment">/// Creates a `Filter` that looks for an authority (target server&#39;s host
@@ -151,8 +151,8 @@
 ///         }
 ///     });
 /// ```
-</span><span class="kw">pub fn </span>optional() -&gt; <span class="kw">impl </span>Filter&lt;Extract = One&lt;<span class="prelude-ty">Option</span>&lt;<a href="../../../warp/filters/host/struct.Authority.html">Authority</a>&gt;&gt;, Error = <a href="../reject.rs.html#205">Rejection</a>&gt; + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html">Copy</a> {
-    <a href="../filter/mod.rs.html#458-465">filter_fn_one</a>(<span class="kw">move </span>|route| {
+</span><span class="kw">pub fn </span>optional() -&gt; <span class="kw">impl </span>Filter&lt;Extract = One&lt;<span class="prelude-ty">Option</span>&lt;Authority&gt;&gt;, Error = Rejection&gt; + Copy {
+    filter_fn_one(<span class="kw">move </span>|route| {
         <span class="comment">// The authority can be sent by clients in various ways:
         //
         //  1) in the &quot;target URI&quot;
@@ -162,33 +162,33 @@
         //
         // Hyper transparently handles 1a/1b, but not 2, so we must look at both.
 
-        </span><span class="kw">let </span>from_uri = <a href="#59">route</a>.<a href="../route.rs.html#82">uri</a>().authority();
+        </span><span class="kw">let </span>from_uri = route.uri().authority();
 
         <span class="kw">let </span>name = <span class="string">&quot;host&quot;</span>;
-        <span class="kw">let </span>from_header = <a href="#59">route</a>.<a href="../route.rs.html#65">headers</a>()
-            .get(<a href="#71">name</a>)
+        <span class="kw">let </span>from_header = route.headers()
+            .get(name)
             .map(|value|
                 <span class="comment">// Header present, parse it
-                </span><a href="#74">value</a>.to_str().map_err(|<span class="kw">_</span>| <a href="../reject.rs.html#101">reject::invalid_header</a>(<a href="#71">name</a>))
-                    .and_then(|value| Authority::from_str(<a href="#77">value</a>).map_err(|<span class="kw">_</span>| <a href="../reject.rs.html#101">reject::invalid_header</a>(<a href="#71">name</a>)))
+                </span>value.to_str().map_err(|<span class="kw">_</span>| reject::invalid_header(name))
+                    .and_then(|value| Authority::from_str(value).map_err(|<span class="kw">_</span>| reject::invalid_header(name)))
             );
 
-        future::ready(<span class="kw">match </span>(<a href="#69">from_uri</a>, <a href="#72">from_header</a>) {
+        future::ready(<span class="kw">match </span>(from_uri, from_header) {
             <span class="comment">// no authority in the request (HTTP/1.0 or non-conforming)
             </span>(<span class="prelude-val">None</span>, <span class="prelude-val">None</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>),
 
             <span class="comment">// authority specified in either or both matching
-            </span>(<span class="prelude-val">Some</span>(a), <span class="prelude-val">None</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<a href="#85">a</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>())),
-            (<span class="prelude-val">None</span>, <span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(a))) =&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<a href="#86">a</a>)),
-            (<span class="prelude-val">Some</span>(a), <span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(b))) <span class="kw">if </span><span class="kw-2">*</span><a href="#87">a</a> == <a href="#87">b</a> =&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<a href="#87">b</a>)),
+            </span>(<span class="prelude-val">Some</span>(a), <span class="prelude-val">None</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(a.clone())),
+            (<span class="prelude-val">None</span>, <span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(a))) =&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(a)),
+            (<span class="prelude-val">Some</span>(a), <span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(b))) <span class="kw">if </span><span class="kw-2">*</span>a == b =&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(b)),
 
             <span class="comment">// mismatch
-            </span>(<span class="prelude-val">Some</span>(<span class="kw">_</span>), <span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(<span class="kw">_</span>))) =&gt; <span class="prelude-val">Err</span>(<a href="../reject.rs.html#101">reject::invalid_header</a>(<a href="#71">name</a>)),
+            </span>(<span class="prelude-val">Some</span>(<span class="kw">_</span>), <span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(<span class="kw">_</span>))) =&gt; <span class="prelude-val">Err</span>(reject::invalid_header(name)),
 
             <span class="comment">// parse error
-            </span>(<span class="kw">_</span>, <span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(r))) =&gt; <span class="prelude-val">Err</span>(<a href="#93">r</a>),
+            </span>(<span class="kw">_</span>, <span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(r))) =&gt; <span class="prelude-val">Err</span>(r),
         })
     })
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="warp" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="warp" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

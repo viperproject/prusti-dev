@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `prusti-interface/src/specs/decoder.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>decoder.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../prusti_interface/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `prusti-interface/src/specs/decoder.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>decoder.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../prusti_interface/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -135,44 +135,44 @@
 <a href="#135" id="135">135</a>
 <a href="#136" id="136">136</a>
 </pre><pre class="rust"><code><span class="kw">use </span>prusti_rustc_interface::{
-    hir::def_id::{<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.CrateNum.html">CrateNum</a>, <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.DefId.html">DefId</a>, <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.DefIndex.html">DefIndex</a>, DefPathHash},
+    hir::def_id::{CrateNum, DefId, DefIndex, DefPathHash},
     middle::{
-        <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/macro.implement_ty_decoder.html">implement_ty_decoder</a>,
-        ty::{codec::TyDecoder, <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/struct.Ty.html">Ty</a>, <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/context/struct.TyCtxt.html">TyCtxt</a>},
+        implement_ty_decoder,
+        ty::{codec::TyDecoder, Ty, TyCtxt},
     },
-    serialize::{<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_serialize/opaque/index.html">opaque</a>, <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_serialize/serialize/trait.Decodable.html">Decodable</a>},
-    <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.StableCrateId.html">session::StableCrateId</a>,
-    span::{<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/source_map/struct.StableSourceFileId.html">source_map::StableSourceFileId</a>, BytePos, <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/span_encoding/struct.Span.html">Span</a>, <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/hygiene/struct.SyntaxContext.html">SyntaxContext</a>},
+    serialize::{opaque, Decodable},
+    session::StableCrateId,
+    span::{source_map::StableSourceFileId, BytePos, Span, SyntaxContext},
 };
-<span class="kw">use </span><a href="../../../rustc_hash/type.FxHashMap.html">rustc_hash::FxHashMap</a>;
+<span class="kw">use </span>rustc_hash::FxHashMap;
 
 <span class="kw">pub struct </span>DefSpecsDecoder&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;tcx</span>&gt; {
     opaque: opaque::MemDecoder&lt;<span class="lifetime">&#39;a</span>&gt;,
     tcx: TyCtxt&lt;<span class="lifetime">&#39;tcx</span>&gt;,
-    ty_rcache: FxHashMap&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, Ty&lt;<span class="lifetime">&#39;tcx</span>&gt;&gt;,
+    ty_rcache: FxHashMap&lt;usize, Ty&lt;<span class="lifetime">&#39;tcx</span>&gt;&gt;,
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;tcx</span>&gt; DefSpecsDecoder&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;tcx</span>&gt; {
-    <span class="kw">pub fn </span>new(tcx: TyCtxt&lt;<span class="lifetime">&#39;tcx</span>&gt;, data: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="self">Self </span>{
-        <a href="#13">DefSpecsDecoder</a> {
-            opaque: opaque::MemDecoder::new(<a href="#20">data</a>, <span class="number">0</span>),
-            <a href="#20">tcx</a>,
-            ty_rcache: <a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default::default</a>(),
+    <span class="kw">pub fn </span>new(tcx: TyCtxt&lt;<span class="lifetime">&#39;tcx</span>&gt;, data: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[u8]) -&gt; <span class="self">Self </span>{
+        DefSpecsDecoder {
+            opaque: opaque::MemDecoder::new(data, <span class="number">0</span>),
+            tcx,
+            ty_rcache: Default::default(),
         }
     }
 
-    <span class="kw">fn </span>def_path_hash_to_def_id(<span class="kw-2">&amp;</span><span class="self">self</span>, hash: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.DefPathHash.html">DefPathHash</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.DefId.html">DefId</a> {
+    <span class="kw">fn </span>def_path_hash_to_def_id(<span class="kw-2">&amp;</span><span class="self">self</span>, hash: DefPathHash) -&gt; DefId {
         <span class="comment">// Sanity check
-        </span><span class="kw">let </span>cstore = std::panic::AssertUnwindSafe(<a class="self" href="#28">self</a>.tcx.cstore_untracked());
+        </span><span class="kw">let </span>cstore = std::panic::AssertUnwindSafe(<span class="self">self</span>.tcx.cstore_untracked());
         <span class="kw">let </span>result = std::panic::catch_unwind(|| {
-            <a href="#30">cstore</a>.stable_crate_id_to_crate_num(<a href="#28">hash</a>.stable_crate_id())
+            cstore.stable_crate_id_to_crate_num(hash.stable_crate_id())
         });
         <span class="kw">if </span>result.is_err() {
-            <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(<span class="string">&quot;A compiled dependency is out of sync. Try deleting the target folder (`cargo clean`).&quot;</span>)
+            <span class="macro">panic!</span>(<span class="string">&quot;A compiled dependency is out of sync. Try deleting the target folder (`cargo clean`).&quot;</span>)
         }
         <span class="comment">// Get `DefId`
-        </span><a class="self" href="#28">self</a>.tcx.def_path_hash_to_def_id(<a href="#28">hash</a>, <span class="kw-2">&amp;mut </span>|| {
-            <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(<span class="string">&quot;DefPathHash not found in the local crate&quot;</span>)
+        </span><span class="self">self</span>.tcx.def_path_hash_to_def_id(hash, <span class="kw-2">&amp;mut </span>|| {
+            <span class="macro">panic!</span>(<span class="string">&quot;DefPathHash not found in the local crate&quot;</span>)
         })
     }
 }
@@ -181,94 +181,94 @@
 // `DefIndex` that is not contained in a `DefId`. Such a case would be problematic
 // because we would not know how to transform the `DefIndex` to the current
 // context.
-</span><span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;tcx</span>&gt; Decodable&lt;DefSpecsDecoder&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;tcx</span>&gt;&gt; <span class="kw">for </span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.DefIndex.html">DefIndex</a> {
-    <span class="kw">fn </span>decode(<span class="kw">_</span>: <span class="kw-2">&amp;mut </span>DefSpecsDecoder&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;tcx</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.DefIndex.html">DefIndex</a> {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(<span class="string">&quot;trying to decode `DefIndex` outside the context of a `DefId`&quot;</span>)
+</span><span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;tcx</span>&gt; Decodable&lt;DefSpecsDecoder&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;tcx</span>&gt;&gt; <span class="kw">for </span>DefIndex {
+    <span class="kw">fn </span>decode(<span class="kw">_</span>: <span class="kw-2">&amp;mut </span>DefSpecsDecoder&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;tcx</span>&gt;) -&gt; DefIndex {
+        <span class="macro">panic!</span>(<span class="string">&quot;trying to decode `DefIndex` outside the context of a `DefId`&quot;</span>)
     }
 }
 
 <span class="comment">// Both the `CrateNum` and the `DefIndex` of a `DefId` can change in between two
 // compilation sessions. We use the `DefPathHash`, which is stable across
 // sessions, to map the old `DefId` to the new one.
-</span><span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;tcx</span>&gt; Decodable&lt;DefSpecsDecoder&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;tcx</span>&gt;&gt; <span class="kw">for </span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.DefId.html">DefId</a> {
+</span><span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;tcx</span>&gt; Decodable&lt;DefSpecsDecoder&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;tcx</span>&gt;&gt; <span class="kw">for </span>DefId {
     <span class="kw">fn </span>decode(d: <span class="kw-2">&amp;mut </span>DefSpecsDecoder&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;tcx</span>&gt;) -&gt; <span class="self">Self </span>{
-        <span class="kw">let </span>def_path_hash = DefPathHash::decode(<a href="#58">d</a>);
-        <a href="#58">d</a>.<a href="#28">def_path_hash_to_def_id</a>(<a href="#59">def_path_hash</a>)
+        <span class="kw">let </span>def_path_hash = DefPathHash::decode(d);
+        d.def_path_hash_to_def_id(def_path_hash)
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;tcx</span>&gt; Decodable&lt;DefSpecsDecoder&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;tcx</span>&gt;&gt; <span class="kw">for </span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.CrateNum.html">CrateNum</a> {
-    <span class="kw">fn </span>decode(d: <span class="kw-2">&amp;mut </span>DefSpecsDecoder&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;tcx</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.CrateNum.html">CrateNum</a> {
-        <span class="kw">let </span>stable_id = StableCrateId::decode(<a href="#65">d</a>);
-        <a href="#65">d</a>.tcx.stable_crate_id_to_crate_num(<a href="#66">stable_id</a>)
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;tcx</span>&gt; Decodable&lt;DefSpecsDecoder&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;tcx</span>&gt;&gt; <span class="kw">for </span>CrateNum {
+    <span class="kw">fn </span>decode(d: <span class="kw-2">&amp;mut </span>DefSpecsDecoder&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;tcx</span>&gt;) -&gt; CrateNum {
+        <span class="kw">let </span>stable_id = StableCrateId::decode(d);
+        d.tcx.stable_crate_id_to_crate_num(stable_id)
     }
 }
 
 <span class="comment">// See https://doc.rust-lang.org/nightly/nightly-rustc/rustc_metadata/rmeta/decoder/struct.DecodeContext.html
-</span><span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;tcx</span>&gt; Decodable&lt;DefSpecsDecoder&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;tcx</span>&gt;&gt; <span class="kw">for </span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/span_encoding/struct.Span.html">Span</a> {
-    <span class="kw">fn </span>decode(s: <span class="kw-2">&amp;mut </span>DefSpecsDecoder&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;tcx</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/span_encoding/struct.Span.html">Span</a> {
-        <span class="kw">let </span>sm = <a href="#73">s</a>.tcx.sess.source_map();
+</span><span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;tcx</span>&gt; Decodable&lt;DefSpecsDecoder&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;tcx</span>&gt;&gt; <span class="kw">for </span>Span {
+    <span class="kw">fn </span>decode(s: <span class="kw-2">&amp;mut </span>DefSpecsDecoder&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;tcx</span>&gt;) -&gt; Span {
+        <span class="kw">let </span>sm = s.tcx.sess.source_map();
         <span class="kw">let </span>pos = [(); <span class="number">2</span>].map(|<span class="kw">_</span>| {
-            <span class="kw">let </span>ssfi = StableSourceFileId::decode(<a href="#73">s</a>);
-            <span class="kw">let </span>rel_bp = BytePos::decode(<a href="#73">s</a>);
-            <a href="#74">sm</a>.source_file_by_stable_id(<a href="#76">ssfi</a>)
+            <span class="kw">let </span>ssfi = StableSourceFileId::decode(s);
+            <span class="kw">let </span>rel_bp = BytePos::decode(s);
+            sm.source_file_by_stable_id(ssfi)
                 <span class="comment">// See comment in &#39;encoder.rs&#39;
-                </span>.map(|sf| <a href="#80">sf</a>.start_pos + <a href="#77">rel_bp</a>)
+                </span>.map(|sf| sf.start_pos + rel_bp)
                 <span class="comment">// This should hopefully never fail,
                 // so maybe could be an `unwrap` instead?
                 </span>.unwrap_or(BytePos(<span class="number">0</span>))
         });
-        Span::new(<a href="#75">pos</a>[<span class="number">0</span>], <a href="#75">pos</a>[<span class="number">1</span>], SyntaxContext::root(), <span class="prelude-val">None</span>)
+        Span::new(pos[<span class="number">0</span>], pos[<span class="number">1</span>], SyntaxContext::root(), <span class="prelude-val">None</span>)
     }
 }
 
-<a class="macro" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/macro.implement_ty_decoder.html">implement_ty_decoder!</a>(DefSpecsDecoder&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;tcx</span>&gt;);
+<span class="macro">implement_ty_decoder!</span>(DefSpecsDecoder&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;tcx</span>&gt;);
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;tcx</span>&gt; TyDecoder <span class="kw">for </span>DefSpecsDecoder&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;tcx</span>&gt; {
     <span class="kw">type </span>I = TyCtxt&lt;<span class="lifetime">&#39;tcx</span>&gt;;
-    <span class="kw">const </span>CLEAR_CROSS_CRATE: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> = <span class="bool-val">true</span>;
+    <span class="kw">const </span>CLEAR_CROSS_CRATE: bool = <span class="bool-val">true</span>;
 
     <span class="kw">fn </span>interner(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self</span>::I {
-        <a class="self" href="#95">self</a>.tcx
+        <span class="self">self</span>.tcx
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>peek_byte(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a> {
-        <a class="self" href="#100">self</a>.opaque.data[<a class="self" href="#100">self</a>.opaque.position()]
+    </span><span class="kw">fn </span>peek_byte(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u8 {
+        <span class="self">self</span>.opaque.data[<span class="self">self</span>.opaque.position()]
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>position(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="self" href="#105">self</a>.opaque.position()
+    </span><span class="kw">fn </span>position(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+        <span class="self">self</span>.opaque.position()
     }
 
-    <span class="kw">fn </span>cached_ty_for_shorthand&lt;F&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, shorthand: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, or_insert_with: F) -&gt; Ty&lt;<span class="lifetime">&#39;tcx</span>&gt;
+    <span class="kw">fn </span>cached_ty_for_shorthand&lt;F&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, shorthand: usize, or_insert_with: F) -&gt; Ty&lt;<span class="lifetime">&#39;tcx</span>&gt;
     <span class="kw">where
         </span>F: FnOnce(<span class="kw-2">&amp;mut </span><span class="self">Self</span>) -&gt; Ty&lt;<span class="lifetime">&#39;tcx</span>&gt;,
     {
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>ty) = <a class="self" href="#109">self</a>.ty_rcache.get(<span class="kw-2">&amp;</span><a href="#109">shorthand</a>) {
-            <span class="kw">return </span><a href="#113">ty</a>;
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>ty) = <span class="self">self</span>.ty_rcache.get(<span class="kw-2">&amp;</span>shorthand) {
+            <span class="kw">return </span>ty;
         }
 
-        <span class="kw">let </span>ty = <a href="#109">or_insert_with</a>(<a class="self" href="#109">self</a>);
-        <a class="self" href="#109">self</a>.ty_rcache.insert(<a href="#109">shorthand</a>, <a href="#117">ty</a>);
-        <a href="#117">ty</a>
+        <span class="kw">let </span>ty = or_insert_with(<span class="self">self</span>);
+        <span class="self">self</span>.ty_rcache.insert(shorthand, ty);
+        ty
     }
 
-    <span class="kw">fn </span>with_position&lt;F, R&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, pos: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, f: F) -&gt; R
+    <span class="kw">fn </span>with_position&lt;F, R&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, pos: usize, f: F) -&gt; R
     <span class="kw">where
         </span>F: FnOnce(<span class="kw-2">&amp;mut </span><span class="self">Self</span>) -&gt; R,
     {
-        <span class="kw">let </span>new_opaque = opaque::MemDecoder::new(<a class="self" href="#122">self</a>.opaque.data, <a href="#122">pos</a>);
-        <span class="kw">let </span>old_opaque = std::mem::replace(<span class="kw-2">&amp;mut </span><a class="self" href="#122">self</a>.opaque, <a href="#126">new_opaque</a>);
-        <span class="kw">let </span>r = <a href="#122">f</a>(<a class="self" href="#122">self</a>);
-        <a class="self" href="#122">self</a>.opaque = <a href="#127">old_opaque</a>;
-        <a href="#128">r</a>
+        <span class="kw">let </span>new_opaque = opaque::MemDecoder::new(<span class="self">self</span>.opaque.data, pos);
+        <span class="kw">let </span>old_opaque = std::mem::replace(<span class="kw-2">&amp;mut </span><span class="self">self</span>.opaque, new_opaque);
+        <span class="kw">let </span>r = f(<span class="self">self</span>);
+        <span class="self">self</span>.opaque = old_opaque;
+        r
     }
 
-    <span class="kw">fn </span>decode_alloc_id(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/interpret/struct.AllocId.html">rustc_middle::mir::interpret::AllocId</a> {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unimplemented.html">unimplemented!</a>(<span class="string">&quot;decode_alloc_id&quot;</span>)
+    <span class="kw">fn </span>decode_alloc_id(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; rustc_middle::mir::interpret::AllocId {
+        <span class="macro">unimplemented!</span>(<span class="string">&quot;decode_alloc_id&quot;</span>)
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="prusti_interface" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="prusti_interface" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

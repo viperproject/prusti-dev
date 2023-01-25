@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/once_cell-1.16.0/src/imp_std.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>imp_std.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../once_cell/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/once_cell-1.17.0/src/imp_std.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>imp_std.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../once_cell/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -429,11 +429,11 @@
 //   * init function can fail
 
 </span><span class="kw">use </span>std::{
-    cell::{<a href="https://doc.rust-lang.org/nightly/core/cell/struct.Cell.html">Cell</a>, <a href="https://doc.rust-lang.org/nightly/core/cell/struct.UnsafeCell.html">UnsafeCell</a>},
+    cell::{Cell, UnsafeCell},
     marker::PhantomData,
-    panic::{<a href="https://doc.rust-lang.org/nightly/core/panic/unwind_safe/trait.RefUnwindSafe.html">RefUnwindSafe</a>, <a href="https://doc.rust-lang.org/nightly/core/panic/unwind_safe/trait.UnwindSafe.html">UnwindSafe</a>},
-    sync::atomic::{<a href="https://doc.rust-lang.org/nightly/core/sync/atomic/struct.AtomicBool.html">AtomicBool</a>, <a href="https://doc.rust-lang.org/nightly/core/sync/atomic/struct.AtomicPtr.html">AtomicPtr</a>, <a href="https://doc.rust-lang.org/nightly/core/sync/atomic/enum.Ordering.html">Ordering</a>},
-    thread::{<a class="self" href="https://doc.rust-lang.org/nightly/std/thread/index.html">self</a>, <a href="https://doc.rust-lang.org/nightly/std/thread/struct.Thread.html">Thread</a>},
+    panic::{RefUnwindSafe, UnwindSafe},
+    sync::atomic::{AtomicBool, AtomicPtr, Ordering},
+    thread::{<span class="self">self</span>, Thread},
 };
 
 <span class="attr">#[derive(Debug)]
@@ -446,8 +446,8 @@
     //
     // State is encoded in two low bits. Only `INCOMPLETE` and `RUNNING` states
     // allow waiters.
-    </span>queue: AtomicPtr&lt;<a href="#148">Waiter</a>&gt;,
-    _marker: PhantomData&lt;<span class="kw-2">*mut </span><a href="#148">Waiter</a>&gt;,
+    </span>queue: AtomicPtr&lt;Waiter&gt;,
+    _marker: PhantomData&lt;<span class="kw-2">*mut </span>Waiter&gt;,
     value: UnsafeCell&lt;<span class="prelude-ty">Option</span>&lt;T&gt;&gt;,
 }
 
@@ -456,37 +456,37 @@
 // scoped thread B, which fills the cell, which is
 // then destroyed by A. That is, destructor observes
 // a sent value.
-</span><span class="kw">unsafe impl</span>&lt;T: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> <span class="kw">for </span>OnceCell&lt;T&gt; {}
-<span class="kw">unsafe impl</span>&lt;T: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="kw">for </span>OnceCell&lt;T&gt; {}
+</span><span class="kw">unsafe impl</span>&lt;T: Sync + Send&gt; Sync <span class="kw">for </span>OnceCell&lt;T&gt; {}
+<span class="kw">unsafe impl</span>&lt;T: Send&gt; Send <span class="kw">for </span>OnceCell&lt;T&gt; {}
 
-<span class="kw">impl</span>&lt;T: <a href="https://doc.rust-lang.org/nightly/core/panic/unwind_safe/trait.RefUnwindSafe.html">RefUnwindSafe</a> + <a href="https://doc.rust-lang.org/nightly/core/panic/unwind_safe/trait.UnwindSafe.html">UnwindSafe</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/panic/unwind_safe/trait.RefUnwindSafe.html">RefUnwindSafe</a> <span class="kw">for </span>OnceCell&lt;T&gt; {}
-<span class="kw">impl</span>&lt;T: <a href="https://doc.rust-lang.org/nightly/core/panic/unwind_safe/trait.UnwindSafe.html">UnwindSafe</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/panic/unwind_safe/trait.UnwindSafe.html">UnwindSafe</a> <span class="kw">for </span>OnceCell&lt;T&gt; {}
+<span class="kw">impl</span>&lt;T: RefUnwindSafe + UnwindSafe&gt; RefUnwindSafe <span class="kw">for </span>OnceCell&lt;T&gt; {}
+<span class="kw">impl</span>&lt;T: UnwindSafe&gt; UnwindSafe <span class="kw">for </span>OnceCell&lt;T&gt; {}
 
 <span class="kw">impl</span>&lt;T&gt; OnceCell&lt;T&gt; {
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>new() -&gt; OnceCell&lt;T&gt; {
-        <a href="#15">OnceCell</a> {
-            queue: AtomicPtr::new(<a href="#138">INCOMPLETE_PTR</a>),
+        OnceCell {
+            queue: AtomicPtr::new(INCOMPLETE_PTR),
             _marker: PhantomData,
             value: UnsafeCell::new(<span class="prelude-val">None</span>),
         }
     }
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>with_value(value: T) -&gt; OnceCell&lt;T&gt; {
-        <a href="#15">OnceCell</a> {
-            queue: AtomicPtr::new(<a href="#139">COMPLETE_PTR</a>),
+        OnceCell {
+            queue: AtomicPtr::new(COMPLETE_PTR),
             _marker: PhantomData,
-            value: UnsafeCell::new(<span class="prelude-val">Some</span>(<a href="#49">value</a>)),
+            value: UnsafeCell::new(<span class="prelude-val">Some</span>(value)),
         }
     }
 
     <span class="doccomment">/// Safety: synchronizes with store to value via Release/(Acquire|SeqCst).
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>is_initialized(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>is_initialized(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="comment">// An `Acquire` load is enough because that makes all the initialization
         // operations visible to us, and, this being a fast path, weaker
         // ordering helps with performance. This `Acquire` synchronizes with
         // `SeqCst` operations on the slow path.
-        </span><a class="self" href="#59">self</a>.queue.load(Ordering::Acquire) == <a href="#139">COMPLETE_PTR</a>
+        </span><span class="self">self</span>.queue.load(Ordering::Acquire) == COMPLETE_PTR
     }
 
     <span class="doccomment">/// Safety: synchronizes with store to value via SeqCst read from state,
@@ -497,31 +497,31 @@
     <span class="kw">where
         </span>F: FnOnce() -&gt; <span class="prelude-ty">Result</span>&lt;T, E&gt;,
     {
-        <span class="kw">let </span><span class="kw-2">mut </span>f = <span class="prelude-val">Some</span>(<a href="#71">f</a>);
+        <span class="kw">let </span><span class="kw-2">mut </span>f = <span class="prelude-val">Some</span>(f);
         <span class="kw">let </span><span class="kw-2">mut </span>res: <span class="prelude-ty">Result</span>&lt;(), E&gt; = <span class="prelude-val">Ok</span>(());
-        <span class="kw">let </span>slot: <span class="kw-2">*mut </span><span class="prelude-ty">Option</span>&lt;T&gt; = <a class="self" href="#71">self</a>.value.get();
-        <a href="#187">initialize_or_wait</a>(
-            <span class="kw-2">&amp;</span><a class="self" href="#71">self</a>.queue,
+        <span class="kw">let </span>slot: <span class="kw-2">*mut </span><span class="prelude-ty">Option</span>&lt;T&gt; = <span class="self">self</span>.value.get();
+        initialize_or_wait(
+            <span class="kw-2">&amp;</span><span class="self">self</span>.queue,
             <span class="prelude-val">Some</span>(<span class="kw-2">&amp;mut </span>|| {
-                <span class="kw">let </span>f = <span class="kw">unsafe </span>{ <a href="lib.rs.html#1370"><span class="kw">crate</span>::unwrap_unchecked</a>(<a href="#75">f</a>.take()) };
-                <span class="kw">match </span><a href="#81">f</a>() {
+                <span class="kw">let </span>f = <span class="kw">unsafe </span>{ <span class="kw">crate</span>::unwrap_unchecked(f.take()) };
+                <span class="kw">match </span>f() {
                     <span class="prelude-val">Ok</span>(value) =&gt; {
-                        <span class="kw">unsafe </span>{ <span class="kw-2">*</span><a href="#77">slot</a> = <span class="prelude-val">Some</span>(<a href="#83">value</a>) };
+                        <span class="kw">unsafe </span>{ <span class="kw-2">*</span>slot = <span class="prelude-val">Some</span>(value) };
                         <span class="bool-val">true
                     </span>}
                     <span class="prelude-val">Err</span>(err) =&gt; {
-                        <a href="#76">res</a> = <span class="prelude-val">Err</span>(<a href="#87">err</a>);
+                        res = <span class="prelude-val">Err</span>(err);
                         <span class="bool-val">false
                     </span>}
                 }
             }),
         );
-        <a href="#76">res</a>
+        res
     }
 
     <span class="attr">#[cold]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>wait(<span class="kw-2">&amp;</span><span class="self">self</span>) {
-        <a href="#187">initialize_or_wait</a>(<span class="kw-2">&amp;</span><a class="self" href="#98">self</a>.queue, <span class="prelude-val">None</span>);
+        initialize_or_wait(<span class="kw-2">&amp;</span><span class="self">self</span>.queue, <span class="prelude-val">None</span>);
     }
 
     <span class="doccomment">/// Get the reference to the underlying value, without checking if the cell
@@ -532,16 +532,16 @@
     /// Caller must ensure that the cell is in initialized state, and that
     /// the contents are acquired by (synchronized to) this thread.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">unsafe fn </span>get_unchecked(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>T {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(<span class="self">self</span>.is_initialized());
-        <span class="kw">let </span>slot = <span class="kw-2">&amp;*</span><a class="self" href="#109">self</a>.value.get();
-        <a href="lib.rs.html#1370"><span class="kw">crate</span>::unwrap_unchecked</a>(<a href="#111">slot</a>.as_ref())
+        <span class="macro">debug_assert!</span>(<span class="self">self</span>.is_initialized());
+        <span class="kw">let </span>slot = <span class="kw-2">&amp;*</span><span class="self">self</span>.value.get();
+        <span class="kw">crate</span>::unwrap_unchecked(slot.as_ref())
     }
 
     <span class="doccomment">/// Gets the mutable reference to the underlying value.
     /// Returns `None` if the cell is empty.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;mut </span>T&gt; {
         <span class="comment">// Safe b/c we have a unique access.
-        </span><span class="kw">unsafe </span>{ <span class="kw-2">&amp;mut *</span><a class="self" href="#117">self</a>.value.get() }.as_mut()
+        </span><span class="kw">unsafe </span>{ <span class="kw-2">&amp;mut *</span><span class="self">self</span>.value.get() }.as_mut()
     }
 
     <span class="doccomment">/// Consumes this `OnceCell`, returning the wrapped value.
@@ -551,46 +551,46 @@
         <span class="comment">// Because `into_inner` takes `self` by value, the compiler statically
         // verifies that it is not currently borrowed.
         // So, it is safe to move out `Option&lt;T&gt;`.
-        </span><a class="self" href="#125">self</a>.value.into_inner()
+        </span><span class="self">self</span>.value.into_inner()
     }
 }
 
 <span class="comment">// Three states that a OnceCell can be in, encoded into the lower bits of `queue` in
 // the OnceCell structure.
-</span><span class="kw">const </span>INCOMPLETE: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> = <span class="number">0x0</span>;
-<span class="kw">const </span>RUNNING: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> = <span class="number">0x1</span>;
-<span class="kw">const </span>COMPLETE: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> = <span class="number">0x2</span>;
-<span class="kw">const </span>INCOMPLETE_PTR: <span class="kw-2">*mut </span><a href="#148">Waiter</a> = <a href="#135">INCOMPLETE</a> <span class="kw">as </span><span class="kw-2">*mut </span><a href="#148">Waiter</a>;
-<span class="kw">const </span>COMPLETE_PTR: <span class="kw-2">*mut </span><a href="#148">Waiter</a> = <a href="#137">COMPLETE</a> <span class="kw">as </span><span class="kw-2">*mut </span><a href="#148">Waiter</a>;
+</span><span class="kw">const </span>INCOMPLETE: usize = <span class="number">0x0</span>;
+<span class="kw">const </span>RUNNING: usize = <span class="number">0x1</span>;
+<span class="kw">const </span>COMPLETE: usize = <span class="number">0x2</span>;
+<span class="kw">const </span>INCOMPLETE_PTR: <span class="kw-2">*mut </span>Waiter = INCOMPLETE <span class="kw">as </span><span class="kw-2">*mut </span>Waiter;
+<span class="kw">const </span>COMPLETE_PTR: <span class="kw-2">*mut </span>Waiter = COMPLETE <span class="kw">as </span><span class="kw-2">*mut </span>Waiter;
 
 <span class="comment">// Mask to learn about the state. All other bits are the queue of waiters if
 // this is in the RUNNING state.
-</span><span class="kw">const </span>STATE_MASK: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> = <span class="number">0x3</span>;
+</span><span class="kw">const </span>STATE_MASK: usize = <span class="number">0x3</span>;
 
 <span class="doccomment">/// Representation of a node in the linked list of waiters in the RUNNING state.
 /// A waiters is stored on the stack of the waiting threads.
 </span><span class="attr">#[repr(align(<span class="number">4</span>))] </span><span class="comment">// Ensure the two lower bits are free to use as state bits.
 </span><span class="kw">struct </span>Waiter {
-    thread: Cell&lt;<span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/thread/struct.Thread.html">Thread</a>&gt;&gt;,
-    signaled: <a href="https://doc.rust-lang.org/nightly/core/sync/atomic/struct.AtomicBool.html">AtomicBool</a>,
-    next: <span class="kw-2">*mut </span><a href="#148">Waiter</a>,
+    thread: Cell&lt;<span class="prelude-ty">Option</span>&lt;Thread&gt;&gt;,
+    signaled: AtomicBool,
+    next: <span class="kw-2">*mut </span>Waiter,
 }
 
 <span class="doccomment">/// Drains and notifies the queue of waiters on drop.
 </span><span class="kw">struct </span>Guard&lt;<span class="lifetime">&#39;a</span>&gt; {
-    queue: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>AtomicPtr&lt;<a href="#148">Waiter</a>&gt;,
-    new_queue: <span class="kw-2">*mut </span><a href="#148">Waiter</a>,
+    queue: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>AtomicPtr&lt;Waiter&gt;,
+    new_queue: <span class="kw-2">*mut </span>Waiter,
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span>Guard&lt;<span class="lifetime">&#39;_</span>&gt; {
+<span class="kw">impl </span>Drop <span class="kw">for </span>Guard&lt;<span class="lifetime">&#39;_</span>&gt; {
     <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <span class="kw">let </span>queue = <a class="self" href="#161">self</a>.queue.swap(<a class="self" href="#161">self</a>.new_queue, Ordering::AcqRel);
+        <span class="kw">let </span>queue = <span class="self">self</span>.queue.swap(<span class="self">self</span>.new_queue, Ordering::AcqRel);
 
-        <span class="kw">let </span>state = <a href="#258-260">strict::addr</a>(<a href="#162">queue</a>) &amp; <a href="#143">STATE_MASK</a>;
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert_eq.html">assert_eq!</a>(state, RUNNING);
+        <span class="kw">let </span>state = strict::addr(queue) &amp; STATE_MASK;
+        <span class="macro">assert_eq!</span>(state, RUNNING);
 
         <span class="kw">unsafe </span>{
-            <span class="kw">let </span><span class="kw-2">mut </span>waiter = <a href="#291-293">strict::map_addr</a>(<a href="#162">queue</a>, |q| <a href="#168">q</a> &amp; !<a href="#143">STATE_MASK</a>);
+            <span class="kw">let </span><span class="kw-2">mut </span>waiter = strict::map_addr(queue, |q| q &amp; !STATE_MASK);
             <span class="kw">while </span>!waiter.is_null() {
                 <span class="kw">let </span>next = (<span class="kw-2">*</span>waiter).next;
                 <span class="kw">let </span>thread = (<span class="kw-2">*</span>waiter).thread.take().unwrap();
@@ -609,60 +609,60 @@
 //
 // Note: this is intentionally monomorphic
 </span><span class="attr">#[inline(never)]
-</span><span class="kw">fn </span>initialize_or_wait(queue: <span class="kw-2">&amp;</span>AtomicPtr&lt;<a href="#148">Waiter</a>&gt;, <span class="kw-2">mut </span>init: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;mut </span><span class="kw">dyn </span>FnMut() -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>&gt;) {
-    <span class="kw">let </span><span class="kw-2">mut </span>curr_queue = <a href="#187">queue</a>.load(Ordering::Acquire);
+</span><span class="kw">fn </span>initialize_or_wait(queue: <span class="kw-2">&amp;</span>AtomicPtr&lt;Waiter&gt;, <span class="kw-2">mut </span>init: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;mut </span><span class="kw">dyn </span>FnMut() -&gt; bool&gt;) {
+    <span class="kw">let </span><span class="kw-2">mut </span>curr_queue = queue.load(Ordering::Acquire);
 
     <span class="kw">loop </span>{
-        <span class="kw">let </span>curr_state = <a href="#258-260">strict::addr</a>(<a href="#188">curr_queue</a>) &amp; <a href="#143">STATE_MASK</a>;
-        <span class="kw">match </span>(<a href="#191">curr_state</a>, <span class="kw-2">&amp;mut </span><a href="#187">init</a>) {
-            (<a href="#137">COMPLETE</a>, <span class="kw">_</span>) =&gt; <span class="kw">return</span>,
-            (<a href="#135">INCOMPLETE</a>, <span class="prelude-val">Some</span>(init)) =&gt; {
-                <span class="kw">let </span>exchange = <a href="#187">queue</a>.compare_exchange(
-                    <a href="#188">curr_queue</a>,
-                    <a href="#291-293">strict::map_addr</a>(<a href="#188">curr_queue</a>, |q| (<a href="#197">q</a> &amp; !<a href="#143">STATE_MASK</a>) | <a href="#136">RUNNING</a>),
+        <span class="kw">let </span>curr_state = strict::addr(curr_queue) &amp; STATE_MASK;
+        <span class="kw">match </span>(curr_state, <span class="kw-2">&amp;mut </span>init) {
+            (COMPLETE, <span class="kw">_</span>) =&gt; <span class="kw">return</span>,
+            (INCOMPLETE, <span class="prelude-val">Some</span>(init)) =&gt; {
+                <span class="kw">let </span>exchange = queue.compare_exchange(
+                    curr_queue,
+                    strict::map_addr(curr_queue, |q| (q &amp; !STATE_MASK) | RUNNING),
                     Ordering::Acquire,
                     Ordering::Acquire,
                 );
-                <span class="kw">if let </span><span class="prelude-val">Err</span>(new_queue) = <a href="#195">exchange</a> {
-                    <a href="#188">curr_queue</a> = <a href="#201">new_queue</a>;
+                <span class="kw">if let </span><span class="prelude-val">Err</span>(new_queue) = exchange {
+                    curr_queue = new_queue;
                     <span class="kw">continue</span>;
                 }
-                <span class="kw">let </span><span class="kw-2">mut </span>guard = <a href="#155">Guard</a> { <a href="#187">queue</a>, new_queue: <a href="#138">INCOMPLETE_PTR</a> };
+                <span class="kw">let </span><span class="kw-2">mut </span>guard = Guard { queue, new_queue: INCOMPLETE_PTR };
                 <span class="kw">if </span>init() {
-                    <a href="#205">guard</a>.new_queue = <a href="#139">COMPLETE_PTR</a>;
+                    guard.new_queue = COMPLETE_PTR;
                 }
                 <span class="kw">return</span>;
             }
-            (<a href="#135">INCOMPLETE</a>, <span class="prelude-val">None</span>) | (<a href="#136">RUNNING</a>, <span class="kw">_</span>) =&gt; {
-                <a href="#220">wait</a>(<span class="kw-2">&amp;</span><a href="#187">queue</a>, <a href="#188">curr_queue</a>);
-                <a href="#188">curr_queue</a> = <a href="#187">queue</a>.load(Ordering::Acquire);
+            (INCOMPLETE, <span class="prelude-val">None</span>) | (RUNNING, <span class="kw">_</span>) =&gt; {
+                wait(<span class="kw-2">&amp;</span>queue, curr_queue);
+                curr_queue = queue.load(Ordering::Acquire);
             }
-            <span class="kw">_ </span>=&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(<span class="bool-val">false</span>),
+            <span class="kw">_ </span>=&gt; <span class="macro">debug_assert!</span>(<span class="bool-val">false</span>),
         }
     }
 }
 
-<span class="kw">fn </span>wait(queue: <span class="kw-2">&amp;</span>AtomicPtr&lt;<a href="#148">Waiter</a>&gt;, <span class="kw-2">mut </span>curr_queue: <span class="kw-2">*mut </span><a href="#148">Waiter</a>) {
-    <span class="kw">let </span>curr_state = <a href="#258-260">strict::addr</a>(<a href="#220">curr_queue</a>) &amp; <a href="#143">STATE_MASK</a>;
+<span class="kw">fn </span>wait(queue: <span class="kw-2">&amp;</span>AtomicPtr&lt;Waiter&gt;, <span class="kw-2">mut </span>curr_queue: <span class="kw-2">*mut </span>Waiter) {
+    <span class="kw">let </span>curr_state = strict::addr(curr_queue) &amp; STATE_MASK;
     <span class="kw">loop </span>{
-        <span class="kw">let </span>node = <a href="#148">Waiter</a> {
+        <span class="kw">let </span>node = Waiter {
             thread: Cell::new(<span class="prelude-val">Some</span>(thread::current())),
             signaled: AtomicBool::new(<span class="bool-val">false</span>),
-            next: <a href="#291-293">strict::map_addr</a>(<a href="#220">curr_queue</a>, |q| <a href="#226">q</a> &amp; !<a href="#143">STATE_MASK</a>),
+            next: strict::map_addr(curr_queue, |q| q &amp; !STATE_MASK),
         };
-        <span class="kw">let </span>me = <span class="kw-2">&amp;</span><a href="#223">node</a> <span class="kw">as </span><span class="kw-2">*const </span><a href="#148">Waiter</a> <span class="kw">as </span><span class="kw-2">*mut </span><a href="#148">Waiter</a>;
+        <span class="kw">let </span>me = <span class="kw-2">&amp;</span>node <span class="kw">as </span><span class="kw-2">*const </span>Waiter <span class="kw">as </span><span class="kw-2">*mut </span>Waiter;
 
-        <span class="kw">let </span>exchange = <a href="#220">queue</a>.compare_exchange(
-            <a href="#220">curr_queue</a>,
-            <a href="#291-293">strict::map_addr</a>(<a href="#228">me</a>, |q| <a href="#232">q</a> | <a href="#221">curr_state</a>),
+        <span class="kw">let </span>exchange = queue.compare_exchange(
+            curr_queue,
+            strict::map_addr(me, |q| q | curr_state),
             Ordering::Release,
             Ordering::Relaxed,
         );
-        <span class="kw">if let </span><span class="prelude-val">Err</span>(new_queue) = <a href="#230">exchange</a> {
+        <span class="kw">if let </span><span class="prelude-val">Err</span>(new_queue) = exchange {
             <span class="kw">if </span>strict::addr(new_queue) &amp; STATE_MASK != curr_state {
                 <span class="kw">return</span>;
             }
-            <a href="#220">curr_queue</a> = <a href="#236">new_queue</a>;
+            curr_queue = new_queue;
             <span class="kw">continue</span>;
         }
 
@@ -680,44 +680,44 @@
 </span><span class="kw">mod </span>strict {
     <span class="attr">#[must_use]
     #[inline]
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>addr&lt;T&gt;(ptr: <span class="kw-2">*mut </span>T) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>addr&lt;T&gt;(ptr: <span class="kw-2">*mut </span>T) -&gt; usize
     <span class="kw">where
-        </span>T: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>,
+        </span>T: Sized,
     {
         <span class="comment">// FIXME(strict_provenance_magic): I am magic and should be a compiler intrinsic.
         // SAFETY: Pointer-to-integer transmutes are valid (if you are okay with losing the
         // provenance).
-        </span><span class="kw">unsafe </span>{ core::mem::transmute(<a href="#258">ptr</a>) }
+        </span><span class="kw">unsafe </span>{ core::mem::transmute(ptr) }
     }
 
     <span class="attr">#[must_use]
     #[inline]
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>with_addr&lt;T&gt;(ptr: <span class="kw-2">*mut </span>T, addr: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="kw-2">*mut </span>T
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>with_addr&lt;T&gt;(ptr: <span class="kw-2">*mut </span>T, addr: usize) -&gt; <span class="kw-2">*mut </span>T
     <span class="kw">where
-        </span>T: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>,
+        </span>T: Sized,
     {
         <span class="comment">// FIXME(strict_provenance_magic): I am magic and should be a compiler intrinsic.
         //
         // In the mean-time, this operation is defined to be &quot;as if&quot; it was
         // a wrapping_offset, so we can emulate it as such. This should properly
         // restore pointer provenance even under today&#39;s compiler.
-        </span><span class="kw">let </span>self_addr = <a href="#258-260"><span class="self">self</span>::addr</a>(<a href="#270">ptr</a>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.isize.html">isize</a>;
-        <span class="kw">let </span>dest_addr = <a href="#270">addr</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.isize.html">isize</a>;
-        <span class="kw">let </span>offset = <a href="#280">dest_addr</a>.wrapping_sub(<a href="#279">self_addr</a>);
+        </span><span class="kw">let </span>self_addr = <span class="self">self</span>::addr(ptr) <span class="kw">as </span>isize;
+        <span class="kw">let </span>dest_addr = addr <span class="kw">as </span>isize;
+        <span class="kw">let </span>offset = dest_addr.wrapping_sub(self_addr);
 
         <span class="comment">// This is the canonical desugarring of this operation,
         // but `pointer::cast` was only stabilized in 1.38.
         // self.cast::&lt;u8&gt;().wrapping_offset(offset).cast::&lt;T&gt;()
-        </span>(<a href="#270">ptr</a> <span class="kw">as </span><span class="kw-2">*mut </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>).wrapping_offset(<a href="#281">offset</a>) <span class="kw">as </span><span class="kw-2">*mut </span>T
+        </span>(ptr <span class="kw">as </span><span class="kw-2">*mut </span>u8).wrapping_offset(offset) <span class="kw">as </span><span class="kw-2">*mut </span>T
     }
 
     <span class="attr">#[must_use]
     #[inline]
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>map_addr&lt;T&gt;(ptr: <span class="kw-2">*mut </span>T, f: <span class="kw">impl </span>FnOnce(<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="kw-2">*mut </span>T
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>map_addr&lt;T&gt;(ptr: <span class="kw-2">*mut </span>T, f: <span class="kw">impl </span>FnOnce(usize) -&gt; usize) -&gt; <span class="kw-2">*mut </span>T
     <span class="kw">where
-        </span>T: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>,
+        </span>T: Sized,
     {
-        <a href="#270-272"><span class="self">self</span>::with_addr</a>(<a href="#291">ptr</a>, <a href="#291">f</a>(<a href="#258-260">addr</a>(<a href="#291">ptr</a>)))
+        <span class="self">self</span>::with_addr(ptr, f(addr(ptr)))
     }
 }
 
@@ -849,4 +849,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="once_cell" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="once_cell" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

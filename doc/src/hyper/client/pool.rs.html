@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/hyper-0.14.23/src/client/pool.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>pool.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../hyper/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/hyper-0.14.23/src/client/pool.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>pool.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../hyper/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -1042,22 +1042,22 @@
 <a href="#1042" id="1042">1042</a>
 <a href="#1043" id="1043">1043</a>
 <a href="#1044" id="1044">1044</a>
-</pre><pre class="rust"><code><span class="kw">use </span>std::collections::{<a href="https://doc.rust-lang.org/nightly/std/collections/hash/map/struct.HashMap.html">HashMap</a>, <a href="https://doc.rust-lang.org/nightly/std/collections/hash/set/struct.HashSet.html">HashSet</a>, <a href="https://doc.rust-lang.org/nightly/alloc/collections/vec_deque/struct.VecDeque.html">VecDeque</a>};
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">std::error::Error</a> <span class="kw">as </span>StdError;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">std::fmt</a>;
-<span class="kw">use </span>std::ops::{<a href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.Deref.html">Deref</a>, <a href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.DerefMut.html">DerefMut</a>};
-<span class="kw">use </span>std::sync::{<a href="https://doc.rust-lang.org/nightly/alloc/sync/struct.Arc.html">Arc</a>, <a href="https://doc.rust-lang.org/nightly/std/sync/mutex/struct.Mutex.html">Mutex</a>, <a href="https://doc.rust-lang.org/nightly/alloc/sync/struct.Weak.html">Weak</a>};
+</pre><pre class="rust"><code><span class="kw">use </span>std::collections::{HashMap, HashSet, VecDeque};
+<span class="kw">use </span>std::error::Error <span class="kw">as </span>StdError;
+<span class="kw">use </span>std::fmt;
+<span class="kw">use </span>std::ops::{Deref, DerefMut};
+<span class="kw">use </span>std::sync::{Arc, Mutex, Weak};
 
 <span class="attr">#[cfg(not(feature = <span class="string">&quot;runtime&quot;</span>))]
 </span><span class="kw">use </span>std::time::{Duration, Instant};
 
-<span class="kw">use </span><a href="../../../futures_channel/oneshot/index.html">futures_channel::oneshot</a>;
+<span class="kw">use </span>futures_channel::oneshot;
 <span class="attr">#[cfg(feature = <span class="string">&quot;runtime&quot;</span>)]
-</span><span class="kw">use </span>tokio::time::{<a href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a>, <a href="../../../tokio/time/instant/struct.Instant.html">Instant</a>, <a href="../../../tokio/time/interval/struct.Interval.html">Interval</a>};
-<span class="kw">use </span>tracing::{<a href="../../../tracing/macro.debug.html">debug</a>, <a href="../../../tracing/macro.trace.html">trace</a>};
+</span><span class="kw">use </span>tokio::time::{Duration, Instant, Interval};
+<span class="kw">use </span>tracing::{debug, trace};
 
-<span class="kw">use </span><a href="client.rs.html#761"><span class="kw">super</span>::client::Ver</a>;
-<span class="kw">use </span><span class="kw">crate</span>::common::{<a href="../common/exec.rs.html#33">exec::Exec</a>, <a href="../common/mod.rs.html#26">task</a>, <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a>, <a href="https://doc.rust-lang.org/nightly/core/pin/struct.Pin.html">Pin</a>, <a href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">Poll</a>, <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>};
+<span class="kw">use </span><span class="kw">super</span>::client::Ver;
+<span class="kw">use </span><span class="kw">crate</span>::common::{exec::Exec, task, Future, Pin, Poll, Unpin};
 
 <span class="comment">// FIXME: allow() required due to `impl Trait` leaking types to this lint
 </span><span class="attr">#[allow(missing_debug_implementations)]
@@ -1071,13 +1071,13 @@
 // This is a trait to allow the `client::pool::tests` to work for `i32`.
 //
 // See https://github.com/hyperium/hyper/issues/1429
-</span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">trait </span>Poolable: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> + <span class="lifetime">&#39;static </span>{
-    <span class="kw">fn </span>is_open(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>;
+</span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">trait </span>Poolable: Unpin + Send + Sized + <span class="lifetime">&#39;static </span>{
+    <span class="kw">fn </span>is_open(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool;
     <span class="doccomment">/// Reserve this connection.
     ///
     /// Allows for HTTP/2 to return a shared reservation.
     </span><span class="kw">fn </span>reserve(<span class="self">self</span>) -&gt; Reservation&lt;<span class="self">Self</span>&gt;;
-    <span class="kw">fn </span>can_share(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>;
+    <span class="kw">fn </span>can_share(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool;
 }
 
 <span class="doccomment">/// When checking out a pooled connection, it might be that the connection
@@ -1099,17 +1099,17 @@
 }
 
 <span class="doccomment">/// Simple type alias in case the key type needs to be adjusted.
-</span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">type </span>Key = (<a href="../../../http/uri/scheme/struct.Scheme.html">http::uri::Scheme</a>, <a href="../../../http/uri/authority/struct.Authority.html">http::uri::Authority</a>); <span class="comment">//Arc&lt;String&gt;;
+</span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">type </span>Key = (http::uri::Scheme, http::uri::Authority); <span class="comment">//Arc&lt;String&gt;;
 
 </span><span class="kw">struct </span>PoolInner&lt;T&gt; {
     <span class="comment">// A flag that a connection is being established, and the connection
     // should be shared. This prevents making multiple HTTP/2 connections
     // to the same host.
-    </span>connecting: HashSet&lt;<a href="#58">Key</a>&gt;,
+    </span>connecting: HashSet&lt;Key&gt;,
     <span class="comment">// These are internal Conns sitting in the event loop in the KeepAlive
     // state, waiting to receive a new Request to send on the socket.
-    </span>idle: HashMap&lt;<a href="#58">Key</a>, Vec&lt;Idle&lt;T&gt;&gt;&gt;,
-    max_idle_per_host: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+    </span>idle: HashMap&lt;Key, Vec&lt;Idle&lt;T&gt;&gt;&gt;,
+    max_idle_per_host: usize,
     <span class="comment">// These are outstanding Checkouts that are waiting for a socket to be
     // able to send a Request one. This is used when &quot;racing&quot; for a new
     // connection.
@@ -1119,14 +1119,14 @@
     // this list is checked for any parked Checkouts, and tries to notify
     // them that the Conn could be used instead of waiting for a brand new
     // connection.
-    </span>waiters: HashMap&lt;<a href="#58">Key</a>, VecDeque&lt;oneshot::Sender&lt;T&gt;&gt;&gt;,
+    </span>waiters: HashMap&lt;Key, VecDeque&lt;oneshot::Sender&lt;T&gt;&gt;&gt;,
     <span class="comment">// A oneshot channel is used to allow the interval to be notified when
     // the Pool completely drops. That way, the interval can cancel immediately.
     </span><span class="attr">#[cfg(feature = <span class="string">&quot;runtime&quot;</span>)]
-    </span>idle_interval_ref: <span class="prelude-ty">Option</span>&lt;oneshot::Sender&lt;<a href="../common/never.rs.html#9"><span class="kw">crate</span>::common::Never</a>&gt;&gt;,
+    </span>idle_interval_ref: <span class="prelude-ty">Option</span>&lt;oneshot::Sender&lt;<span class="kw">crate</span>::common::Never&gt;&gt;,
     <span class="attr">#[cfg(feature = <span class="string">&quot;runtime&quot;</span>)]
-    </span>exec: <a href="../common/exec.rs.html#33">Exec</a>,
-    timeout: <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a>&gt;,
+    </span>exec: Exec,
+    timeout: <span class="prelude-ty">Option</span>&lt;Duration&gt;,
 }
 
 <span class="comment">// This is because `Weak::new()` *allocates* space for `T`, even if it
@@ -1135,39 +1135,39 @@
 
 <span class="attr">#[derive(Clone, Copy, Debug)]
 </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">struct </span>Config {
-    <span class="kw">pub</span>(<span class="kw">super</span>) idle_timeout: <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a>&gt;,
-    <span class="kw">pub</span>(<span class="kw">super</span>) max_idle_per_host: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+    <span class="kw">pub</span>(<span class="kw">super</span>) idle_timeout: <span class="prelude-ty">Option</span>&lt;Duration&gt;,
+    <span class="kw">pub</span>(<span class="kw">super</span>) max_idle_per_host: usize,
 }
 
-<span class="kw">impl </span><a href="#93">Config</a> {
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>is_enabled(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#99">self</a>.max_idle_per_host &gt; <span class="number">0
+<span class="kw">impl </span>Config {
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>is_enabled(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.max_idle_per_host &gt; <span class="number">0
     </span>}
 }
 
 <span class="kw">impl</span>&lt;T&gt; Pool&lt;T&gt; {
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>new(config: <a href="#93">Config</a>, __exec: <span class="kw-2">&amp;</span><a href="../common/exec.rs.html#33">Exec</a>) -&gt; Pool&lt;T&gt; {
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>new(config: Config, __exec: <span class="kw-2">&amp;</span>Exec) -&gt; Pool&lt;T&gt; {
         <span class="kw">let </span>inner = <span class="kw">if </span>config.is_enabled() {
-            <span class="prelude-val">Some</span>(Arc::new(Mutex::new(<a href="#60">PoolInner</a> {
+            <span class="prelude-val">Some</span>(Arc::new(Mutex::new(PoolInner {
                 connecting: HashSet::new(),
                 idle: HashMap::new(),
                 <span class="attr">#[cfg(feature = <span class="string">&quot;runtime&quot;</span>)]
                 </span>idle_interval_ref: <span class="prelude-val">None</span>,
-                max_idle_per_host: <a href="#105">config</a>.max_idle_per_host,
+                max_idle_per_host: config.max_idle_per_host,
                 waiters: HashMap::new(),
                 <span class="attr">#[cfg(feature = <span class="string">&quot;runtime&quot;</span>)]
-                </span>exec: <a href="#105">__exec</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
-                timeout: <a href="#105">config</a>.idle_timeout,
+                </span>exec: __exec.clone(),
+                timeout: config.idle_timeout,
             })))
         } <span class="kw">else </span>{
             <span class="prelude-val">None
         </span>};
 
-        <a href="#20">Pool</a> { <a href="#106">inner</a> }
+        Pool { inner }
     }
 
-    <span class="kw">fn </span>is_enabled(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#125">self</a>.inner.is_some()
+    <span class="kw">fn </span>is_enabled(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.inner.is_some()
     }
 
     <span class="attr">#[cfg(test)]
@@ -1183,39 +1183,39 @@
     }
 }
 
-<span class="kw">impl</span>&lt;T: <a href="#30">Poolable</a>&gt; Pool&lt;T&gt; {
+<span class="kw">impl</span>&lt;T: Poolable&gt; Pool&lt;T&gt; {
     <span class="doccomment">/// Returns a `Checkout` which is a future that resolves if an idle
     /// connection becomes available.
-    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>checkout(<span class="kw-2">&amp;</span><span class="self">self</span>, key: <a href="#58">Key</a>) -&gt; Checkout&lt;T&gt; {
-        <a href="#561">Checkout</a> {
-            <a href="#145">key</a>,
-            pool: <a class="self" href="#145">self</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>checkout(<span class="kw-2">&amp;</span><span class="self">self</span>, key: Key) -&gt; Checkout&lt;T&gt; {
+        Checkout {
+            key,
+            pool: <span class="self">self</span>.clone(),
             waiter: <span class="prelude-val">None</span>,
         }
     }
 
     <span class="doccomment">/// Ensure that there is only ever 1 connecting task for HTTP/2
     /// connections. This does nothing for HTTP/1.
-    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>connecting(<span class="kw-2">&amp;</span><span class="self">self</span>, key: <span class="kw-2">&amp;</span><a href="#58">Key</a>, ver: <a href="client.rs.html#761">Ver</a>) -&gt; <span class="prelude-ty">Option</span>&lt;Connecting&lt;T&gt;&gt; {
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>connecting(<span class="kw-2">&amp;</span><span class="self">self</span>, key: <span class="kw-2">&amp;</span>Key, ver: Ver) -&gt; <span class="prelude-ty">Option</span>&lt;Connecting&lt;T&gt;&gt; {
         <span class="kw">if </span>ver == Ver::Http2 {
-            <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">ref </span>enabled) = <a class="self" href="#155">self</a>.inner {
-                <span class="kw">let </span><span class="kw-2">mut </span>inner = <a href="#157">enabled</a>.lock().unwrap();
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">ref </span>enabled) = <span class="self">self</span>.inner {
+                <span class="kw">let </span><span class="kw-2">mut </span>inner = enabled.lock().unwrap();
                 <span class="kw">return if </span>inner.connecting.insert(key.clone()) {
-                    <span class="kw">let </span>connecting = <a href="#690">Connecting</a> {
-                        key: <a href="#155">key</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
-                        pool: WeakOpt::downgrade(<a href="#157">enabled</a>),
+                    <span class="kw">let </span>connecting = Connecting {
+                        key: key.clone(),
+                        pool: WeakOpt::downgrade(enabled),
                     };
-                    <span class="prelude-val">Some</span>(<a href="#160">connecting</a>)
+                    <span class="prelude-val">Some</span>(connecting)
                 } <span class="kw">else </span>{
-                    <a class="macro" href="../../../tracing/macro.trace.html">trace!</a>(<span class="string">&quot;HTTP/2 connecting already in progress for {:?}&quot;</span>, key);
+                    <span class="macro">trace!</span>(<span class="string">&quot;HTTP/2 connecting already in progress for {:?}&quot;</span>, key);
                     <span class="prelude-val">None
                 </span>};
             }
         }
 
         <span class="comment">// else
-        </span><span class="prelude-val">Some</span>(<a href="#690">Connecting</a> {
-            key: <a href="#155">key</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+        </span><span class="prelude-val">Some</span>(Connecting {
+            key: key.clone(),
             <span class="comment">// in HTTP/1&#39;s case, there is never a lock, so we don&#39;t
             // need to do anything in Drop.
             </span>pool: WeakOpt::none(),
@@ -1251,47 +1251,47 @@
         <span class="attr">#[cfg_attr(not(feature = <span class="string">&quot;http2&quot;</span>), allow(unused_mut))] </span><span class="kw-2">mut </span>connecting: Connecting&lt;T&gt;,
         value: T,
     ) -&gt; Pooled&lt;T&gt; {
-        <span class="kw">let </span>(value, pool_ref) = <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">ref </span>enabled) = <a class="self" href="#206">self</a>.inner {
-            <span class="kw">match </span><a href="#208">value</a>.<a href="#35">reserve</a>() {
+        <span class="kw">let </span>(value, pool_ref) = <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">ref </span>enabled) = <span class="self">self</span>.inner {
+            <span class="kw">match </span>value.reserve() {
                 <span class="attr">#[cfg(feature = <span class="string">&quot;http2&quot;</span>)]
-                </span><a href="#51">Reservation::Shared</a>(to_insert, to_return) =&gt; {
-                    <span class="kw">let </span><span class="kw-2">mut </span>inner = <a href="#210">enabled</a>.lock().unwrap();
-                    <a href="#214">inner</a>.<a href="#324">put</a>(<a href="#207">connecting</a>.key.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), <a href="#213">to_insert</a>, <a href="#210">enabled</a>);
+                </span>Reservation::Shared(to_insert, to_return) =&gt; {
+                    <span class="kw">let </span><span class="kw-2">mut </span>inner = enabled.lock().unwrap();
+                    inner.put(connecting.key.clone(), to_insert, enabled);
                     <span class="comment">// Do this here instead of Drop for Connecting because we
                     // already have a lock, no need to lock the mutex twice.
-                    </span><a href="#214">inner</a>.<a href="#394">connected</a>(<span class="kw-2">&amp;</span><a href="#207">connecting</a>.key);
+                    </span>inner.connected(<span class="kw-2">&amp;</span>connecting.key);
                     <span class="comment">// prevent the Drop of Connecting from repeating inner.connected()
-                    </span><a href="#207">connecting</a>.pool = WeakOpt::none();
+                    </span>connecting.pool = WeakOpt::none();
 
                     <span class="comment">// Shared reservations don&#39;t need a reference to the pool,
                     // since the pool always keeps a copy.
-                    </span>(<a href="#213">to_return</a>, WeakOpt::none())
+                    </span>(to_return, WeakOpt::none())
                 }
-                <a href="#54">Reservation::Unique</a>(value) =&gt; {
+                Reservation::Unique(value) =&gt; {
                     <span class="comment">// Unique reservations must take a reference to the pool
                     // since they hope to reinsert once the reservation is
                     // completed
-                    </span>(<a href="#226">value</a>, WeakOpt::downgrade(<a href="#210">enabled</a>))
+                    </span>(value, WeakOpt::downgrade(enabled))
                 }
             }
         } <span class="kw">else </span>{
             <span class="comment">// If pool is not enabled, skip all the things...
 
             // The Connecting should have had no pool ref
-            </span><a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(connecting.pool.upgrade().is_none());
+            </span><span class="macro">debug_assert!</span>(connecting.pool.upgrade().is_none());
 
-            (<a href="#208">value</a>, WeakOpt::none())
+            (value, WeakOpt::none())
         };
-        <a href="#488">Pooled</a> {
-            key: <a href="#207">connecting</a>.key.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+        Pooled {
+            key: connecting.key.clone(),
             is_reused: <span class="bool-val">false</span>,
-            pool: <a href="#210">pool_ref</a>,
-            value: <span class="prelude-val">Some</span>(<a href="#210">value</a>),
+            pool: pool_ref,
+            value: <span class="prelude-val">Some</span>(value),
         }
     }
 
-    <span class="kw">fn </span>reuse(<span class="kw-2">&amp;</span><span class="self">self</span>, key: <span class="kw-2">&amp;</span><a href="#58">Key</a>, value: T) -&gt; Pooled&lt;T&gt; {
-        <a class="macro" href="../../../tracing/macro.debug.html">debug!</a>(<span class="string">&quot;reuse idle connection for {:?}&quot;</span>, key);
+    <span class="kw">fn </span>reuse(<span class="kw-2">&amp;</span><span class="self">self</span>, key: <span class="kw-2">&amp;</span>Key, value: T) -&gt; Pooled&lt;T&gt; {
+        <span class="macro">debug!</span>(<span class="string">&quot;reuse idle connection for {:?}&quot;</span>, key);
         <span class="comment">// TODO: unhack this
         // In Pool::pooled(), which is used for inserting brand new connections,
         // there&#39;s some code that adjusts the pool reference taken depending
@@ -1302,28 +1302,28 @@
         // shared... :(
         </span><span class="kw">let </span><span class="kw-2">mut </span>pool_ref = WeakOpt::none();
         <span class="kw">if </span>!value.can_share() {
-            <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">ref </span>enabled) = <a class="self" href="#249">self</a>.inner {
-                <a href="#259">pool_ref</a> = WeakOpt::downgrade(<a href="#261">enabled</a>);
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">ref </span>enabled) = <span class="self">self</span>.inner {
+                pool_ref = WeakOpt::downgrade(enabled);
             }
         }
 
-        <a href="#488">Pooled</a> {
+        Pooled {
             is_reused: <span class="bool-val">true</span>,
-            key: <a href="#249">key</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
-            pool: <a href="#259">pool_ref</a>,
-            value: <span class="prelude-val">Some</span>(<a href="#249">value</a>),
+            key: key.clone(),
+            pool: pool_ref,
+            value: <span class="prelude-val">Some</span>(value),
         }
     }
 }
 
 <span class="doccomment">/// Pop off this list, looking for a usable connection that hasn&#39;t expired.
 </span><span class="kw">struct </span>IdlePopper&lt;<span class="lifetime">&#39;a</span>, T&gt; {
-    key: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="#58">Key</a>,
+    key: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Key,
     list: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>Vec&lt;Idle&lt;T&gt;&gt;,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T: <a href="#30">Poolable</a> + <span class="lifetime">&#39;a</span>&gt; IdlePopper&lt;<span class="lifetime">&#39;a</span>, T&gt; {
-    <span class="kw">fn </span>pop(<span class="self">self</span>, expiration: <span class="kw-2">&amp;</span><a href="#717">Expiration</a>) -&gt; <span class="prelude-ty">Option</span>&lt;Idle&lt;T&gt;&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T: Poolable + <span class="lifetime">&#39;a</span>&gt; IdlePopper&lt;<span class="lifetime">&#39;a</span>, T&gt; {
+    <span class="kw">fn </span>pop(<span class="self">self</span>, expiration: <span class="kw-2">&amp;</span>Expiration) -&gt; <span class="prelude-ty">Option</span>&lt;Idle&lt;T&gt;&gt; {
         <span class="kw">while let </span><span class="prelude-val">Some</span>(entry) = <span class="self">self</span>.list.pop() {
             <span class="comment">// If the connection has been closed, or is older than our idle
             // timeout, simply drop it and keep looking...
@@ -1364,16 +1364,16 @@
     </span>}
 }
 
-<span class="kw">impl</span>&lt;T: <a href="#30">Poolable</a>&gt; PoolInner&lt;T&gt; {
-    <span class="kw">fn </span>put(<span class="kw-2">&amp;mut </span><span class="self">self</span>, key: <a href="#58">Key</a>, value: T, __pool_ref: <span class="kw-2">&amp;</span>Arc&lt;Mutex&lt;PoolInner&lt;T&gt;&gt;&gt;) {
+<span class="kw">impl</span>&lt;T: Poolable&gt; PoolInner&lt;T&gt; {
+    <span class="kw">fn </span>put(<span class="kw-2">&amp;mut </span><span class="self">self</span>, key: Key, value: T, __pool_ref: <span class="kw-2">&amp;</span>Arc&lt;Mutex&lt;PoolInner&lt;T&gt;&gt;&gt;) {
         <span class="kw">if </span>value.can_share() &amp;&amp; <span class="self">self</span>.idle.contains_key(<span class="kw-2">&amp;</span>key) {
-            <a class="macro" href="../../../tracing/macro.trace.html">trace!</a>(<span class="string">&quot;put; existing idle HTTP/2 connection for {:?}&quot;</span>, key);
+            <span class="macro">trace!</span>(<span class="string">&quot;put; existing idle HTTP/2 connection for {:?}&quot;</span>, key);
             <span class="kw">return</span>;
         }
-        <a class="macro" href="../../../tracing/macro.trace.html">trace!</a>(<span class="string">&quot;put; add idle connection for {:?}&quot;</span>, key);
+        <span class="macro">trace!</span>(<span class="string">&quot;put; add idle connection for {:?}&quot;</span>, key);
         <span class="kw">let </span><span class="kw-2">mut </span>remove_waiters = <span class="bool-val">false</span>;
-        <span class="kw">let </span><span class="kw-2">mut </span>value = <span class="prelude-val">Some</span>(<a href="#324">value</a>);
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(waiters) = <a class="self" href="#324">self</a>.waiters.get_mut(<span class="kw-2">&amp;</span><a href="#324">key</a>) {
+        <span class="kw">let </span><span class="kw-2">mut </span>value = <span class="prelude-val">Some</span>(value);
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(waiters) = <span class="self">self</span>.waiters.get_mut(<span class="kw-2">&amp;</span>key) {
             <span class="kw">while let </span><span class="prelude-val">Some</span>(tx) = waiters.pop_front() {
                 <span class="kw">if </span>!tx.is_canceled() {
                     <span class="kw">let </span>reserved = value.take().expect(<span class="string">&quot;value already sent&quot;</span>);
@@ -1401,47 +1401,47 @@
 
                 <span class="macro">trace!</span>(<span class="string">&quot;put; removing canceled waiter for {:?}&quot;</span>, key);
             }
-            <a href="#330">remove_waiters</a> = <a href="#332">waiters</a>.is_empty();
+            remove_waiters = waiters.is_empty();
         }
         <span class="kw">if </span>remove_waiters {
-            <a class="self" href="#324">self</a>.waiters.remove(<span class="kw-2">&amp;</span><a href="#324">key</a>);
+            <span class="self">self</span>.waiters.remove(<span class="kw-2">&amp;</span>key);
         }
 
-        <span class="kw">match </span><a href="#331">value</a> {
+        <span class="kw">match </span>value {
             <span class="prelude-val">Some</span>(value) =&gt; {
                 <span class="comment">// borrow-check scope...
                 </span>{
-                    <span class="kw">let </span>idle_list = <a class="self" href="#324">self</a>.idle.entry(<a href="#324">key</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()).or_insert_with(Vec::new);
+                    <span class="kw">let </span>idle_list = <span class="self">self</span>.idle.entry(key.clone()).or_insert_with(Vec::new);
                     <span class="kw">if </span><span class="self">self</span>.max_idle_per_host &lt;= idle_list.len() {
-                        <a class="macro" href="../../../tracing/macro.trace.html">trace!</a>(<span class="string">&quot;max idle per host for {:?}, dropping connection&quot;</span>, key);
+                        <span class="macro">trace!</span>(<span class="string">&quot;max idle per host for {:?}, dropping connection&quot;</span>, key);
                         <span class="kw">return</span>;
                     }
 
-                    <a class="macro" href="../../../tracing/macro.debug.html">debug!</a>(<span class="string">&quot;pooling idle connection for {:?}&quot;</span>, key);
-                    <a href="#370">idle_list</a>.push(<a href="#554">Idle</a> {
-                        <a href="#367">value</a>,
+                    <span class="macro">debug!</span>(<span class="string">&quot;pooling idle connection for {:?}&quot;</span>, key);
+                    idle_list.push(Idle {
+                        value,
                         idle_at: Instant::now(),
                     });
                 }
 
                 <span class="attr">#[cfg(feature = <span class="string">&quot;runtime&quot;</span>)]
                 </span>{
-                    <a class="self" href="#324">self</a>.<a href="#404">spawn_idle_interval</a>(<a href="#324">__pool_ref</a>);
+                    <span class="self">self</span>.spawn_idle_interval(__pool_ref);
                 }
             }
-            <span class="prelude-val">None </span>=&gt; <a class="macro" href="../../../tracing/macro.trace.html">trace!</a>(<span class="string">&quot;put; found waiter for {:?}&quot;</span>, key),
+            <span class="prelude-val">None </span>=&gt; <span class="macro">trace!</span>(<span class="string">&quot;put; found waiter for {:?}&quot;</span>, key),
         }
     }
 
     <span class="doccomment">/// A `Connecting` task is complete. Not necessarily successfully,
     /// but the lock is going away, so clean up.
-    </span><span class="kw">fn </span>connected(<span class="kw-2">&amp;mut </span><span class="self">self</span>, key: <span class="kw-2">&amp;</span><a href="#58">Key</a>) {
-        <span class="kw">let </span>existed = <a class="self" href="#394">self</a>.connecting.remove(<a href="#394">key</a>);
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(existed, <span class="string">&quot;Connecting dropped, key not in pool.connecting&quot;</span>);
+    </span><span class="kw">fn </span>connected(<span class="kw-2">&amp;mut </span><span class="self">self</span>, key: <span class="kw-2">&amp;</span>Key) {
+        <span class="kw">let </span>existed = <span class="self">self</span>.connecting.remove(key);
+        <span class="macro">debug_assert!</span>(existed, <span class="string">&quot;Connecting dropped, key not in pool.connecting&quot;</span>);
         <span class="comment">// cancel any waiters. if there are any, it&#39;s because
         // this Connecting task didn&#39;t complete successfully.
         // those waiters would never receive a connection.
-        </span><a class="self" href="#394">self</a>.waiters.remove(<a href="#394">key</a>);
+        </span><span class="self">self</span>.waiters.remove(key);
     }
 
     <span class="attr">#[cfg(feature = <span class="string">&quot;runtime&quot;</span>)]
@@ -1451,22 +1451,22 @@
                 <span class="kw">return</span>;
             }
 
-            <span class="kw">if let </span><span class="prelude-val">Some</span>(dur) = <a class="self" href="#404">self</a>.timeout {
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(dur) = <span class="self">self</span>.timeout {
                 <span class="kw">let </span>(tx, rx) = oneshot::channel();
-                <a class="self" href="#404">self</a>.idle_interval_ref = <span class="prelude-val">Some</span>(<a href="#411">tx</a>);
-                (<a href="#410">dur</a>, <a href="#411">rx</a>)
+                <span class="self">self</span>.idle_interval_ref = <span class="prelude-val">Some</span>(tx);
+                (dur, rx)
             } <span class="kw">else </span>{
                 <span class="kw">return</span>;
             }
         };
 
-        <span class="kw">let </span>interval = <a href="#734-745">IdleTask</a> {
-            interval: tokio::time::interval(<a href="#405">dur</a>),
-            pool: WeakOpt::downgrade(<a href="#404">pool_ref</a>),
-            pool_drop_notifier: <a href="#405">rx</a>,
+        <span class="kw">let </span>interval = IdleTask {
+            interval: tokio::time::interval(dur),
+            pool: WeakOpt::downgrade(pool_ref),
+            pool_drop_notifier: rx,
         };
 
-        <a class="self" href="#404">self</a>.exec.<a href="../common/exec.rs.html#41-43">execute</a>(<a href="#419">interval</a>);
+        <span class="self">self</span>.exec.execute(interval);
     }
 }
 
@@ -1475,37 +1475,37 @@
     /// and possibly inserted into the pool that it is waiting for an idle
     /// connection. If a user ever dropped that future, we need to clean out
     /// those parked senders.
-    </span><span class="kw">fn </span>clean_waiters(<span class="kw-2">&amp;mut </span><span class="self">self</span>, key: <span class="kw-2">&amp;</span><a href="#58">Key</a>) {
+    </span><span class="kw">fn </span>clean_waiters(<span class="kw-2">&amp;mut </span><span class="self">self</span>, key: <span class="kw-2">&amp;</span>Key) {
         <span class="kw">let </span><span class="kw-2">mut </span>remove_waiters = <span class="bool-val">false</span>;
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(waiters) = <a class="self" href="#434">self</a>.waiters.get_mut(<a href="#434">key</a>) {
-            <a href="#436">waiters</a>.retain(|tx| !<a href="#437">tx</a>.is_canceled());
-            <a href="#435">remove_waiters</a> = <a href="#436">waiters</a>.is_empty();
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(waiters) = <span class="self">self</span>.waiters.get_mut(key) {
+            waiters.retain(|tx| !tx.is_canceled());
+            remove_waiters = waiters.is_empty();
         }
         <span class="kw">if </span>remove_waiters {
-            <a class="self" href="#434">self</a>.waiters.remove(<a href="#434">key</a>);
+            <span class="self">self</span>.waiters.remove(key);
         }
     }
 }
 
 <span class="attr">#[cfg(feature = <span class="string">&quot;runtime&quot;</span>)]
-</span><span class="kw">impl</span>&lt;T: <a href="#30">Poolable</a>&gt; PoolInner&lt;T&gt; {
+</span><span class="kw">impl</span>&lt;T: Poolable&gt; PoolInner&lt;T&gt; {
     <span class="doccomment">/// This should *only* be called by the IdleTask
     </span><span class="kw">fn </span>clear_expired(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <span class="kw">let </span>dur = <a class="self" href="#449">self</a>.timeout.expect(<span class="string">&quot;interval assumes timeout&quot;</span>);
+        <span class="kw">let </span>dur = <span class="self">self</span>.timeout.expect(<span class="string">&quot;interval assumes timeout&quot;</span>);
 
         <span class="kw">let </span>now = Instant::now();
         <span class="comment">//self.last_idle_check_at = now;
 
-        </span><a class="self" href="#449">self</a>.idle.retain(|key, values| {
-            <a href="#455">values</a>.retain(|entry| {
+        </span><span class="self">self</span>.idle.retain(|key, values| {
+            values.retain(|entry| {
                 <span class="kw">if </span>!entry.value.is_open() {
-                    <a class="macro" href="../../../tracing/macro.trace.html">trace!</a>(<span class="string">&quot;idle interval evicting closed for {:?}&quot;</span>, key);
+                    <span class="macro">trace!</span>(<span class="string">&quot;idle interval evicting closed for {:?}&quot;</span>, key);
                     <span class="kw">return </span><span class="bool-val">false</span>;
                 }
 
                 <span class="comment">// Avoid `Instant::sub` to avoid issues like rust-lang/rust#86470.
                 </span><span class="kw">if </span>now.saturating_duration_since(entry.idle_at) &gt; dur {
-                    <a class="macro" href="../../../tracing/macro.trace.html">trace!</a>(<span class="string">&quot;idle interval evicting expired for {:?}&quot;</span>, key);
+                    <span class="macro">trace!</span>(<span class="string">&quot;idle interval evicting expired for {:?}&quot;</span>, key);
                     <span class="kw">return </span><span class="bool-val">false</span>;
                 }
 
@@ -1514,74 +1514,74 @@
             </span>});
 
             <span class="comment">// returning false evicts this key/val
-            </span>!<a href="#455">values</a>.is_empty()
+            </span>!values.is_empty()
         });
     }
 }
 
-<span class="kw">impl</span>&lt;T&gt; <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> <span class="kw">for </span>Pool&lt;T&gt; {
+<span class="kw">impl</span>&lt;T&gt; Clone <span class="kw">for </span>Pool&lt;T&gt; {
     <span class="kw">fn </span>clone(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Pool&lt;T&gt; {
-        <a href="#20">Pool</a> {
-            inner: <a class="self" href="#479">self</a>.inner.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+        Pool {
+            inner: <span class="self">self</span>.inner.clone(),
         }
     }
 }
 
 <span class="doccomment">/// A wrapped poolable value that tries to reinsert to the Pool on Drop.
 </span><span class="comment">// Note: The bounds `T: Poolable` is needed for the Drop impl.
-</span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">struct </span>Pooled&lt;T: <a href="#30">Poolable</a>&gt; {
+</span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">struct </span>Pooled&lt;T: Poolable&gt; {
     value: <span class="prelude-ty">Option</span>&lt;T&gt;,
-    is_reused: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-    key: <a href="#58">Key</a>,
+    is_reused: bool,
+    key: Key,
     pool: WeakOpt&lt;Mutex&lt;PoolInner&lt;T&gt;&gt;&gt;,
 }
 
-<span class="kw">impl</span>&lt;T: <a href="#30">Poolable</a>&gt; Pooled&lt;T&gt; {
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>is_reused(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#496">self</a>.is_reused
+<span class="kw">impl</span>&lt;T: Poolable&gt; Pooled&lt;T&gt; {
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>is_reused(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.is_reused
     }
 
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>is_pool_enabled(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#500">self</a>.pool.<span class="number">0</span>.is_some()
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>is_pool_enabled(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.pool.<span class="number">0</span>.is_some()
     }
 
     <span class="kw">fn </span>as_ref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>T {
-        <a class="self" href="#504">self</a>.value.as_ref().expect(<span class="string">&quot;not dropped&quot;</span>)
+        <span class="self">self</span>.value.as_ref().expect(<span class="string">&quot;not dropped&quot;</span>)
     }
 
     <span class="kw">fn </span>as_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>T {
-        <a class="self" href="#508">self</a>.value.as_mut().expect(<span class="string">&quot;not dropped&quot;</span>)
+        <span class="self">self</span>.value.as_mut().expect(<span class="string">&quot;not dropped&quot;</span>)
     }
 }
 
-<span class="kw">impl</span>&lt;T: <a href="#30">Poolable</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.Deref.html">Deref</a> <span class="kw">for </span>Pooled&lt;T&gt; {
+<span class="kw">impl</span>&lt;T: Poolable&gt; Deref <span class="kw">for </span>Pooled&lt;T&gt; {
     <span class="kw">type </span>Target = T;
     <span class="kw">fn </span>deref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>T {
-        <a class="self" href="#515">self</a>.<a href="#504">as_ref</a>()
+        <span class="self">self</span>.as_ref()
     }
 }
 
-<span class="kw">impl</span>&lt;T: <a href="#30">Poolable</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.DerefMut.html">DerefMut</a> <span class="kw">for </span>Pooled&lt;T&gt; {
+<span class="kw">impl</span>&lt;T: Poolable&gt; DerefMut <span class="kw">for </span>Pooled&lt;T&gt; {
     <span class="kw">fn </span>deref_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>T {
-        <a class="self" href="#521">self</a>.<a href="#508">as_mut</a>()
+        <span class="self">self</span>.as_mut()
     }
 }
 
-<span class="kw">impl</span>&lt;T: <a href="#30">Poolable</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span>Pooled&lt;T&gt; {
+<span class="kw">impl</span>&lt;T: Poolable&gt; Drop <span class="kw">for </span>Pooled&lt;T&gt; {
     <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(value) = <a class="self" href="#527">self</a>.value.take() {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(value) = <span class="self">self</span>.value.take() {
             <span class="kw">if </span>!value.is_open() {
                 <span class="comment">// If we *already* know the connection is done here,
                 // it shouldn&#39;t be re-inserted back into the pool.
                 </span><span class="kw">return</span>;
             }
 
-            <span class="kw">if let </span><span class="prelude-val">Some</span>(pool) = <a class="self" href="#527">self</a>.pool.<a href="#786">upgrade</a>() {
-                <span class="kw">if let </span><span class="prelude-val">Ok</span>(<span class="kw-2">mut </span>inner) = <a href="#535">pool</a>.lock() {
-                    <a href="#536">inner</a>.<a href="#324">put</a>(<a class="self" href="#527">self</a>.key.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), <a href="#528">value</a>, <span class="kw-2">&amp;</span><a href="#535">pool</a>);
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(pool) = <span class="self">self</span>.pool.upgrade() {
+                <span class="kw">if let </span><span class="prelude-val">Ok</span>(<span class="kw-2">mut </span>inner) = pool.lock() {
+                    inner.put(<span class="self">self</span>.key.clone(), value, <span class="kw-2">&amp;</span>pool);
                 }
             } <span class="kw">else if </span>!value.can_share() {
-                <a class="macro" href="../../../tracing/macro.trace.html">trace!</a>(<span class="string">&quot;pool dropped, dropping pooled ({:?})&quot;</span>, <span class="self">self</span>.key);
+                <span class="macro">trace!</span>(<span class="string">&quot;pool dropped, dropping pooled ({:?})&quot;</span>, <span class="self">self</span>.key);
             }
             <span class="comment">// Ver::Http2 is already in the Pool (or dead), so we wouldn&#39;t
             // have an actual reference to the Pool.
@@ -1589,21 +1589,21 @@
     }
 }
 
-<span class="kw">impl</span>&lt;T: <a href="#30">Poolable</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span>Pooled&lt;T&gt; {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a href="#549">f</a>.debug_struct(<span class="string">&quot;Pooled&quot;</span>).field(<span class="string">&quot;key&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="#549">self</a>.key).finish()
+<span class="kw">impl</span>&lt;T: Poolable&gt; fmt::Debug <span class="kw">for </span>Pooled&lt;T&gt; {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        f.debug_struct(<span class="string">&quot;Pooled&quot;</span>).field(<span class="string">&quot;key&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.key).finish()
     }
 }
 
 <span class="kw">struct </span>Idle&lt;T&gt; {
-    idle_at: <a href="../../../tokio/time/instant/struct.Instant.html">Instant</a>,
+    idle_at: Instant,
     value: T,
 }
 
 <span class="comment">// FIXME: allow() required due to `impl Trait` leaking types to this lint
 </span><span class="attr">#[allow(missing_debug_implementations)]
 </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">struct </span>Checkout&lt;T&gt; {
-    key: <a href="#58">Key</a>,
+    key: Key,
     pool: Pool&lt;T&gt;,
     waiter: <span class="prelude-ty">Option</span>&lt;oneshot::Receiver&lt;T&gt;&gt;,
 }
@@ -1611,36 +1611,36 @@
 <span class="attr">#[derive(Debug)]
 </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">struct </span>CheckoutIsClosedError;
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">StdError</a> <span class="kw">for </span><a href="#568">CheckoutIsClosedError</a> {}
+<span class="kw">impl </span>StdError <span class="kw">for </span>CheckoutIsClosedError {}
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for </span><a href="#568">CheckoutIsClosedError</a> {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a href="#573">f</a>.write_str(<span class="string">&quot;checked out connection was closed&quot;</span>)
+<span class="kw">impl </span>fmt::Display <span class="kw">for </span>CheckoutIsClosedError {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        f.write_str(<span class="string">&quot;checked out connection was closed&quot;</span>)
     }
 }
 
-<span class="kw">impl</span>&lt;T: <a href="#30">Poolable</a>&gt; Checkout&lt;T&gt; {
+<span class="kw">impl</span>&lt;T: Poolable&gt; Checkout&lt;T&gt; {
     <span class="kw">fn </span>poll_waiter(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         cx: <span class="kw-2">&amp;mut </span>task::Context&lt;<span class="lifetime">&#39;_</span>&gt;,
     ) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;<span class="kw">crate</span>::Result&lt;Pooled&lt;T&gt;&gt;&gt;&gt; {
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">mut </span>rx) = <a class="self" href="#580">self</a>.waiter.take() {
-            <span class="kw">match </span>Pin::new(<span class="kw-2">&amp;mut </span><a href="#583">rx</a>).<a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">poll</a>(<a href="#581">cx</a>) {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">mut </span>rx) = <span class="self">self</span>.waiter.take() {
+            <span class="kw">match </span>Pin::new(<span class="kw-2">&amp;mut </span>rx).poll(cx) {
                 Poll::Ready(<span class="prelude-val">Ok</span>(value)) =&gt; {
                     <span class="kw">if </span>value.is_open() {
-                        Poll::Ready(<span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(<a class="self" href="#580">self</a>.pool.<a href="#249">reuse</a>(<span class="kw-2">&amp;</span><a class="self" href="#580">self</a>.key, <a href="#585">value</a>))))
+                        Poll::Ready(<span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(<span class="self">self</span>.pool.reuse(<span class="kw-2">&amp;</span><span class="self">self</span>.key, value))))
                     } <span class="kw">else </span>{
                         Poll::Ready(<span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(
-                            <span class="kw">crate</span>::Error::new_canceled().<a href="../error.rs.html#219">with</a>(<a href="#568">CheckoutIsClosedError</a>)
+                            <span class="kw">crate</span>::Error::new_canceled().with(CheckoutIsClosedError)
                         )))
                     }
                 }
                 Poll::Pending =&gt; {
-                    <a class="self" href="#580">self</a>.waiter = <span class="prelude-val">Some</span>(<a href="#583">rx</a>);
+                    <span class="self">self</span>.waiter = <span class="prelude-val">Some</span>(rx);
                     Poll::Pending
                 }
                 Poll::Ready(<span class="prelude-val">Err</span>(_canceled)) =&gt; Poll::Ready(<span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(
-                    <span class="kw">crate</span>::Error::new_canceled().<a href="../error.rs.html#219">with</a>(<span class="string">&quot;request has been canceled&quot;</span>)
+                    <span class="kw">crate</span>::Error::new_canceled().with(<span class="string">&quot;request has been canceled&quot;</span>)
                 ))),
             }
         } <span class="kw">else </span>{
@@ -1651,79 +1651,79 @@
     <span class="kw">fn </span>checkout(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cx: <span class="kw-2">&amp;mut </span>task::Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;Pooled&lt;T&gt;&gt; {
         <span class="kw">let </span>entry = {
             <span class="kw">let </span><span class="kw-2">mut </span>inner = <span class="self">self</span>.pool.inner.as_ref()<span class="question-mark">?</span>.lock().unwrap();
-            <span class="kw">let </span>expiration = Expiration::new(<a href="#609">inner</a>.timeout);
-            <span class="kw">let </span>maybe_entry = <a href="#609">inner</a>.idle.get_mut(<span class="kw-2">&amp;</span><a class="self" href="#607">self</a>.key).and_then(|list| {
-                <a class="macro" href="../../../tracing/macro.trace.html">trace!</a>(<span class="string">&quot;take? {:?}: expiration = {:?}&quot;</span>, <span class="self">self</span>.key, expiration.<span class="number">0</span>);
+            <span class="kw">let </span>expiration = Expiration::new(inner.timeout);
+            <span class="kw">let </span>maybe_entry = inner.idle.get_mut(<span class="kw-2">&amp;</span><span class="self">self</span>.key).and_then(|list| {
+                <span class="macro">trace!</span>(<span class="string">&quot;take? {:?}: expiration = {:?}&quot;</span>, <span class="self">self</span>.key, expiration.<span class="number">0</span>);
                 <span class="comment">// A block to end the mutable borrow on list,
                 // so the map below can check is_empty()
                 </span>{
-                    <span class="kw">let </span>popper = <a href="#276">IdlePopper</a> {
-                        key: <span class="kw-2">&amp;</span><a class="self" href="#607">self</a>.key,
-                        <a href="#611">list</a>,
+                    <span class="kw">let </span>popper = IdlePopper {
+                        key: <span class="kw-2">&amp;</span><span class="self">self</span>.key,
+                        list,
                     };
-                    <a href="#616">popper</a>.<a href="#282">pop</a>(<span class="kw-2">&amp;</span><a href="#610">expiration</a>)
+                    popper.pop(<span class="kw-2">&amp;</span>expiration)
                 }
-                .map(|e| (<a href="#622">e</a>, <a href="#611">list</a>.is_empty()))
+                .map(|e| (e, list.is_empty()))
             });
 
-            <span class="kw">let </span>(entry, empty) = <span class="kw">if let </span><span class="prelude-val">Some</span>((e, empty)) = <a href="#611">maybe_entry</a> {
-                (<span class="prelude-val">Some</span>(<a href="#625">e</a>), <a href="#625">empty</a>)
+            <span class="kw">let </span>(entry, empty) = <span class="kw">if let </span><span class="prelude-val">Some</span>((e, empty)) = maybe_entry {
+                (<span class="prelude-val">Some</span>(e), empty)
             } <span class="kw">else </span>{
                 <span class="comment">// No entry found means nuke the list for sure.
                 </span>(<span class="prelude-val">None</span>, <span class="bool-val">true</span>)
             };
             <span class="kw">if </span>empty {
                 <span class="comment">//TODO: This could be done with the HashMap::entry API instead.
-                </span><a href="#609">inner</a>.idle.remove(<span class="kw-2">&amp;</span><a class="self" href="#607">self</a>.key);
+                </span>inner.idle.remove(<span class="kw-2">&amp;</span><span class="self">self</span>.key);
             }
 
             <span class="kw">if </span>entry.is_none() &amp;&amp; <span class="self">self</span>.waiter.is_none() {
                 <span class="kw">let </span>(tx, <span class="kw-2">mut </span>rx) = oneshot::channel();
-                <a class="macro" href="../../../tracing/macro.trace.html">trace!</a>(<span class="string">&quot;checkout waiting for idle connection: {:?}&quot;</span>, <span class="self">self</span>.key);
-                <a href="#609">inner</a>
+                <span class="macro">trace!</span>(<span class="string">&quot;checkout waiting for idle connection: {:?}&quot;</span>, <span class="self">self</span>.key);
+                inner
                     .waiters
-                    .entry(<a class="self" href="#607">self</a>.key.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>())
+                    .entry(<span class="self">self</span>.key.clone())
                     .or_insert_with(VecDeque::new)
-                    .push_back(<a href="#637">tx</a>);
+                    .push_back(tx);
 
                 <span class="comment">// register the waker with this oneshot
-                </span><a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(Pin::new(<span class="kw-2">&amp;mut </span>rx).poll(cx).is_pending());
-                <a class="self" href="#607">self</a>.waiter = <span class="prelude-val">Some</span>(<a href="#637">rx</a>);
+                </span><span class="macro">assert!</span>(Pin::new(<span class="kw-2">&amp;mut </span>rx).poll(cx).is_pending());
+                <span class="self">self</span>.waiter = <span class="prelude-val">Some</span>(rx);
             }
 
-            <a href="#625">entry</a>
+            entry
         };
 
-        <a href="#608">entry</a>.map(|e| <a class="self" href="#607">self</a>.pool.<a href="#249">reuse</a>(<span class="kw-2">&amp;</span><a class="self" href="#607">self</a>.key, <a href="#653">e</a>.value))
+        entry.map(|e| <span class="self">self</span>.pool.reuse(<span class="kw-2">&amp;</span><span class="self">self</span>.key, e.value))
     }
 }
 
-<span class="kw">impl</span>&lt;T: <a href="#30">Poolable</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a> <span class="kw">for </span>Checkout&lt;T&gt; {
+<span class="kw">impl</span>&lt;T: Poolable&gt; Future <span class="kw">for </span>Checkout&lt;T&gt; {
     <span class="kw">type </span>Output = <span class="kw">crate</span>::Result&lt;Pooled&lt;T&gt;&gt;;
 
     <span class="kw">fn </span>poll(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>task::Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(pooled) = <a class="macro" href="../common/mod.rs.html#1-8">ready!</a>(<span class="self">self</span>.poll_waiter(cx)<span class="question-mark">?</span>) {
-            <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Ok</span>(<a href="#661">pooled</a>));
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(pooled) = <span class="macro">ready!</span>(<span class="self">self</span>.poll_waiter(cx)<span class="question-mark">?</span>) {
+            <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Ok</span>(pooled));
         }
 
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(pooled) = <a class="self" href="#660">self</a>.<a href="#607">checkout</a>(<a href="#660">cx</a>) {
-            Poll::Ready(<span class="prelude-val">Ok</span>(<a href="#665">pooled</a>))
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(pooled) = <span class="self">self</span>.checkout(cx) {
+            Poll::Ready(<span class="prelude-val">Ok</span>(pooled))
         } <span class="kw">else if </span>!<span class="self">self</span>.pool.is_enabled() {
-            Poll::Ready(<span class="prelude-val">Err</span>(<span class="kw">crate</span>::Error::new_canceled().<a href="../error.rs.html#219">with</a>(<span class="string">&quot;pool is disabled&quot;</span>)))
+            Poll::Ready(<span class="prelude-val">Err</span>(<span class="kw">crate</span>::Error::new_canceled().with(<span class="string">&quot;pool is disabled&quot;</span>)))
         } <span class="kw">else </span>{
             <span class="comment">// There&#39;s a new waiter, already registered in self.checkout()
-            </span><a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(<span class="self">self</span>.waiter.is_some());
+            </span><span class="macro">debug_assert!</span>(<span class="self">self</span>.waiter.is_some());
             Poll::Pending
         }
     }
 }
 
-<span class="kw">impl</span>&lt;T&gt; <a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span>Checkout&lt;T&gt; {
+<span class="kw">impl</span>&lt;T&gt; Drop <span class="kw">for </span>Checkout&lt;T&gt; {
     <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="kw">if </span><span class="self">self</span>.waiter.take().is_some() {
-            <a class="macro" href="../../../tracing/macro.trace.html">trace!</a>(<span class="string">&quot;checkout dropped for {:?}&quot;</span>, <span class="self">self</span>.key);
-            <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(<span class="kw-2">mut </span>inner)) = <a class="self" href="#678">self</a>.pool.inner.as_ref().map(|i| <a href="#681">i</a>.lock()) {
-                <a href="#681">inner</a>.<a href="#434">clean_waiters</a>(<span class="kw-2">&amp;</span><a class="self" href="#678">self</a>.key);
+            <span class="macro">trace!</span>(<span class="string">&quot;checkout dropped for {:?}&quot;</span>, <span class="self">self</span>.key);
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(<span class="kw-2">mut </span>inner)) = <span class="self">self</span>.pool.inner.as_ref().map(|i| i.lock()) {
+                inner.clean_waiters(<span class="kw-2">&amp;</span><span class="self">self</span>.key);
             }
         }
     }
@@ -1731,85 +1731,85 @@
 
 <span class="comment">// FIXME: allow() required due to `impl Trait` leaking types to this lint
 </span><span class="attr">#[allow(missing_debug_implementations)]
-</span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">struct </span>Connecting&lt;T: <a href="#30">Poolable</a>&gt; {
-    key: <a href="#58">Key</a>,
+</span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">struct </span>Connecting&lt;T: Poolable&gt; {
+    key: Key,
     pool: WeakOpt&lt;Mutex&lt;PoolInner&lt;T&gt;&gt;&gt;,
 }
 
-<span class="kw">impl</span>&lt;T: <a href="#30">Poolable</a>&gt; Connecting&lt;T&gt; {
+<span class="kw">impl</span>&lt;T: Poolable&gt; Connecting&lt;T&gt; {
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>alpn_h2(<span class="self">self</span>, pool: <span class="kw-2">&amp;</span>Pool&lt;T&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt; {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(
+        <span class="macro">debug_assert!</span>(
             <span class="self">self</span>.pool.<span class="number">0</span>.is_none(),
             <span class="string">&quot;Connecting::alpn_h2 but already Http2&quot;
         </span>);
 
-        <a href="#696">pool</a>.<a href="#155">connecting</a>(<span class="kw-2">&amp;</span><a class="self" href="#696">self</a>.key, <a href="client.rs.html#763">Ver::Http2</a>)
+        pool.connecting(<span class="kw-2">&amp;</span><span class="self">self</span>.key, Ver::Http2)
     }
 }
 
-<span class="kw">impl</span>&lt;T: <a href="#30">Poolable</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span>Connecting&lt;T&gt; {
+<span class="kw">impl</span>&lt;T: Poolable&gt; Drop <span class="kw">for </span>Connecting&lt;T&gt; {
     <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(pool) = <a class="self" href="#707">self</a>.pool.<a href="#786">upgrade</a>() {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(pool) = <span class="self">self</span>.pool.upgrade() {
             <span class="comment">// No need to panic on drop, that could abort!
-            </span><span class="kw">if let </span><span class="prelude-val">Ok</span>(<span class="kw-2">mut </span>inner) = <a href="#708">pool</a>.lock() {
-                <a href="#710">inner</a>.<a href="#394">connected</a>(<span class="kw-2">&amp;</span><a class="self" href="#707">self</a>.key);
+            </span><span class="kw">if let </span><span class="prelude-val">Ok</span>(<span class="kw-2">mut </span>inner) = pool.lock() {
+                inner.connected(<span class="kw-2">&amp;</span><span class="self">self</span>.key);
             }
         }
     }
 }
 
-<span class="kw">struct </span>Expiration(<span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a>&gt;);
+<span class="kw">struct </span>Expiration(<span class="prelude-ty">Option</span>&lt;Duration&gt;);
 
-<span class="kw">impl </span><a href="#717">Expiration</a> {
-    <span class="kw">fn </span>new(dur: <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a>&gt;) -&gt; <a href="#717">Expiration</a> {
-        <a href="#717">Expiration</a>(<a href="#720">dur</a>)
+<span class="kw">impl </span>Expiration {
+    <span class="kw">fn </span>new(dur: <span class="prelude-ty">Option</span>&lt;Duration&gt;) -&gt; Expiration {
+        Expiration(dur)
     }
 
-    <span class="kw">fn </span>expires(<span class="kw-2">&amp;</span><span class="self">self</span>, instant: <a href="../../../tokio/time/instant/struct.Instant.html">Instant</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">match </span><a class="self" href="#724">self</a>.<span class="number">0 </span>{
+    <span class="kw">fn </span>expires(<span class="kw-2">&amp;</span><span class="self">self</span>, instant: Instant) -&gt; bool {
+        <span class="kw">match </span><span class="self">self</span>.<span class="number">0 </span>{
             <span class="comment">// Avoid `Instant::elapsed` to avoid issues like rust-lang/rust#86470.
-            </span><span class="prelude-val">Some</span>(timeout) =&gt; Instant::now().saturating_duration_since(<a href="#724">instant</a>) &gt; <a href="#727">timeout</a>,
+            </span><span class="prelude-val">Some</span>(timeout) =&gt; Instant::now().saturating_duration_since(instant) &gt; timeout,
             <span class="prelude-val">None </span>=&gt; <span class="bool-val">false</span>,
         }
     }
 }
 
 <span class="attr">#[cfg(feature = <span class="string">&quot;runtime&quot;</span>)]
-</span><a class="macro" href="../../../pin_project_lite/macro.pin_project.html">pin_project_lite::pin_project! </a>{
+</span><span class="macro">pin_project_lite::pin_project! </span>{
     <span class="kw">struct </span>IdleTask&lt;T&gt; {
         <span class="attr">#[pin]
-        </span>interval: <a href="../../../tokio/time/interval/struct.Interval.html">Interval</a>,
+        </span>interval: Interval,
         pool: WeakOpt&lt;Mutex&lt;PoolInner&lt;T&gt;&gt;&gt;,
         <span class="comment">// This allows the IdleTask to be notified as soon as the entire
         // Pool is fully dropped, and shutdown. This channel is never sent on,
         // but Err(Canceled) will be received when the Pool is dropped.
         </span><span class="attr">#[pin]
-        </span>pool_drop_notifier: oneshot::Receiver&lt;<a href="../common/never.rs.html#9"><span class="kw">crate</span>::common::Never</a>&gt;,
+        </span>pool_drop_notifier: oneshot::Receiver&lt;<span class="kw">crate</span>::common::Never&gt;,
     }
 }
 
 <span class="attr">#[cfg(feature = <span class="string">&quot;runtime&quot;</span>)]
-</span><span class="kw">impl</span>&lt;T: <a href="#30">Poolable</a> + <span class="lifetime">&#39;static</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a> <span class="kw">for </span>IdleTask&lt;T&gt; {
+</span><span class="kw">impl</span>&lt;T: Poolable + <span class="lifetime">&#39;static</span>&gt; Future <span class="kw">for </span>IdleTask&lt;T&gt; {
     <span class="kw">type </span>Output = ();
 
     <span class="kw">fn </span>poll(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>task::Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
-        <span class="kw">let </span><span class="kw-2">mut </span>this = <a class="self" href="#751">self</a>.<a href="#734-745">project</a>();
+        <span class="kw">let </span><span class="kw-2">mut </span>this = <span class="self">self</span>.project();
         <span class="kw">loop </span>{
-            <span class="kw">match </span><a href="#752">this</a>.pool_drop_notifier.as_mut().<a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">poll</a>(<a href="#751">cx</a>) {
-                Poll::Ready(<span class="prelude-val">Ok</span>(n)) =&gt; <span class="kw">match </span><a href="#755">n</a> {},
+            <span class="kw">match </span>this.pool_drop_notifier.as_mut().poll(cx) {
+                Poll::Ready(<span class="prelude-val">Ok</span>(n)) =&gt; <span class="kw">match </span>n {},
                 Poll::Pending =&gt; (),
                 Poll::Ready(<span class="prelude-val">Err</span>(_canceled)) =&gt; {
-                    <a class="macro" href="../../../tracing/macro.trace.html">trace!</a>(<span class="string">&quot;pool closed, canceling idle interval&quot;</span>);
+                    <span class="macro">trace!</span>(<span class="string">&quot;pool closed, canceling idle interval&quot;</span>);
                     <span class="kw">return </span>Poll::Ready(());
                 }
             }
 
-            <a class="macro" href="../common/mod.rs.html#1-8">ready!</a>(this.interval.as_mut().poll_tick(cx));
+            <span class="macro">ready!</span>(this.interval.as_mut().poll_tick(cx));
 
-            <span class="kw">if let </span><span class="prelude-val">Some</span>(inner) = <a href="#752">this</a>.pool.<a href="#786">upgrade</a>() {
-                <span class="kw">if let </span><span class="prelude-val">Ok</span>(<span class="kw-2">mut </span>inner) = <a href="#765">inner</a>.lock() {
-                    <a class="macro" href="../../../tracing/macro.trace.html">trace!</a>(<span class="string">&quot;idle interval checking for expired&quot;</span>);
-                    <a href="#766">inner</a>.<a href="#449">clear_expired</a>();
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(inner) = this.pool.upgrade() {
+                <span class="kw">if let </span><span class="prelude-val">Ok</span>(<span class="kw-2">mut </span>inner) = inner.lock() {
+                    <span class="macro">trace!</span>(<span class="string">&quot;idle interval checking for expired&quot;</span>);
+                    inner.clear_expired();
                     <span class="kw">continue</span>;
                 }
             }
@@ -1820,15 +1820,15 @@
 
 <span class="kw">impl</span>&lt;T&gt; WeakOpt&lt;T&gt; {
     <span class="kw">fn </span>none() -&gt; <span class="self">Self </span>{
-        <a href="#90">WeakOpt</a>(<span class="prelude-val">None</span>)
+        WeakOpt(<span class="prelude-val">None</span>)
     }
 
     <span class="kw">fn </span>downgrade(arc: <span class="kw-2">&amp;</span>Arc&lt;T&gt;) -&gt; <span class="self">Self </span>{
-        <a href="#90">WeakOpt</a>(<span class="prelude-val">Some</span>(Arc::downgrade(<a href="#782">arc</a>)))
+        WeakOpt(<span class="prelude-val">Some</span>(Arc::downgrade(arc)))
     }
 
     <span class="kw">fn </span>upgrade(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Arc&lt;T&gt;&gt; {
-        <a class="self" href="#786">self</a>.<span class="number">0</span>.as_ref().and_then(Weak::upgrade)
+        <span class="self">self</span>.<span class="number">0</span>.as_ref().and_then(Weak::upgrade)
     }
 }
 
@@ -2087,4 +2087,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="hyper" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="hyper" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

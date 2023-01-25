@@ -1,5 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/async-std-1.12.0/src/io/buf_writer.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>buf_writer.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../async_std/index.html">
-                        <img src="https://async.rs/images/logo--hero.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/async-std-1.12.0/src/io/buf_writer.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>buf_writer.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../async_std/index.html">
+                        <img src="https://async.rs/images/logo--hero.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -350,16 +350,16 @@
 <a href="#349" id="349">349</a>
 <a href="#350" id="350">350</a>
 <a href="#351" id="351">351</a>
-</pre><pre class="rust"><code><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">std::fmt</a>;
-<span class="kw">use </span><a href="../../../async_std/pin/struct.Pin.html">std::pin::Pin</a>;
+</pre><pre class="rust"><code><span class="kw">use </span>std::fmt;
+<span class="kw">use </span>std::pin::Pin;
 
-<span class="kw">use </span><a href="../../../pin_project_lite/macro.pin_project.html">pin_project_lite::pin_project</a>;
+<span class="kw">use </span>pin_project_lite::pin_project;
 
-<span class="kw">use </span><a href="write/mod.rs.html#22"><span class="kw">crate</span>::io::write::WriteExt</a>;
-<span class="kw">use </span><span class="kw">crate</span>::io::{<a class="self" href="../lib.rs.html#307">self</a>, <a href="../../../async_std/io/trait.Seek.html">Seek</a>, <a href="../../../async_std/io/enum.SeekFrom.html">SeekFrom</a>, <a href="../../../async_std/io/trait.Write.html">Write</a>, <a href="mod.rs.html#272">DEFAULT_BUF_SIZE</a>};
-<span class="kw">use </span><span class="kw">crate</span>::task::{<a href="../../../async_std/task/struct.Context.html">Context</a>, <a href="../../../async_std/task/enum.Poll.html">Poll</a>, <a href="../../../async_std/task/macro.ready.html">ready</a>};
+<span class="kw">use </span><span class="kw">crate</span>::io::write::WriteExt;
+<span class="kw">use </span><span class="kw">crate</span>::io::{<span class="self">self</span>, Seek, SeekFrom, Write, DEFAULT_BUF_SIZE};
+<span class="kw">use </span><span class="kw">crate</span>::task::{Context, Poll, ready};
 
-<a class="macro" href="../../../pin_project_lite/macro.pin_project.html">pin_project! </a>{
+<span class="macro">pin_project! </span>{
     <span class="doccomment">/// Wraps a writer and buffers its output.
     ///
     /// It can be excessively inefficient to work directly with something that
@@ -436,8 +436,8 @@
     </span><span class="kw">pub struct </span>BufWriter&lt;W&gt; {
         <span class="attr">#[pin]
         </span>inner: W,
-        buf: Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;,
-        written: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+        buf: Vec&lt;u8&gt;,
+        written: usize,
     }
 }
 
@@ -466,9 +466,9 @@
 /// # Ok(()) }) }
 ///```
 </span><span class="attr">#[derive(Debug)]
-</span><span class="kw">pub struct </span>IntoInnerError&lt;W&gt;(W, <a href="../../../async_std/io/struct.Error.html"><span class="kw">crate</span>::io::Error</a>);
+</span><span class="kw">pub struct </span>IntoInnerError&lt;W&gt;(W, <span class="kw">crate</span>::io::Error);
 
-<span class="kw">impl</span>&lt;W: <a href="../../../async_std/io/trait.Write.html">Write</a>&gt; BufWriter&lt;W&gt; {
+<span class="kw">impl</span>&lt;W: Write&gt; BufWriter&lt;W&gt; {
     <span class="doccomment">/// Creates a new `BufWriter` with a default buffer capacity. The default is currently 8 KB,
     /// but may change in the future.
     ///
@@ -485,7 +485,7 @@
     /// # Ok(()) }) }
     /// ```
     </span><span class="kw">pub fn </span>new(inner: W) -&gt; BufWriter&lt;W&gt; {
-        BufWriter::with_capacity(<a href="mod.rs.html#272">DEFAULT_BUF_SIZE</a>, <a href="#135">inner</a>)
+        BufWriter::with_capacity(DEFAULT_BUF_SIZE, inner)
     }
 
     <span class="doccomment">/// Creates a new `BufWriter` with the specified buffer capacity.
@@ -505,10 +505,10 @@
     /// #
     /// # Ok(()) }) }
     /// ```
-    </span><span class="kw">pub fn </span>with_capacity(capacity: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, inner: W) -&gt; BufWriter&lt;W&gt; {
-        <a href="#10-90">BufWriter</a> {
-            <a href="#156">inner</a>,
-            buf: Vec::with_capacity(<a href="#156">capacity</a>),
+    </span><span class="kw">pub fn </span>with_capacity(capacity: usize, inner: W) -&gt; BufWriter&lt;W&gt; {
+        BufWriter {
+            inner,
+            buf: Vec::with_capacity(capacity),
             written: <span class="number">0</span>,
         }
     }
@@ -531,7 +531,7 @@
     /// # Ok(()) }) }
     /// ```
     </span><span class="kw">pub fn </span>get_ref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>W {
-        <span class="kw-2">&amp;</span><a class="self" href="#181">self</a>.inner
+        <span class="kw-2">&amp;</span><span class="self">self</span>.inner
     }
 
     <span class="doccomment">/// Gets a mutable reference to the underlying writer.
@@ -553,14 +553,14 @@
     /// # Ok(()) }) }
     /// ```
     </span><span class="kw">pub fn </span>get_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>W {
-        <span class="kw-2">&amp;mut </span><a class="self" href="#203">self</a>.inner
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>.inner
     }
 
     <span class="doccomment">/// Gets a pinned mutable reference to the underlying writer.
     ///
     /// It is inadvisable to directly write to the underlying writer.
     </span><span class="kw">fn </span>get_pin_mut(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;) -&gt; Pin&lt;<span class="kw-2">&amp;mut </span>W&gt; {
-        <a class="self" href="#210">self</a>.<a href="#10-90">project</a>().inner
+        <span class="self">self</span>.project().inner
     }
 
     <span class="doccomment">/// Consumes BufWriter, returning the underlying writer
@@ -585,7 +585,7 @@
     /// ```
     </span><span class="kw">pub async fn </span>into_inner(<span class="kw-2">mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;W, IntoInnerError&lt;BufWriter&lt;W&gt;&gt;&gt;
     <span class="kw">where
-        </span><span class="self">Self</span>: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
+        </span><span class="self">Self</span>: Unpin,
     {
         <span class="kw">match </span><span class="self">self</span>.flush().<span class="kw">await </span>{
             <span class="prelude-val">Err</span>(e) =&gt; <span class="prelude-val">Err</span>(IntoInnerError(<span class="self">self</span>, e)),
@@ -609,8 +609,8 @@
     /// #
     /// # Ok(()) }) }
     /// ```
-    </span><span class="kw">pub fn </span>buffer(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>] {
-        <span class="kw-2">&amp;</span><a class="self" href="#260">self</a>.buf
+    </span><span class="kw">pub fn </span>buffer(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[u8] {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.buf
     }
 
     <span class="doccomment">/// Poll buffer flushing until completion
@@ -619,8 +619,8 @@
     ///
     /// [`LineWriter`]: struct.LineWriter.html
     </span><span class="kw">fn </span>poll_flush_buf(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;io::Result&lt;()&gt;&gt; {
-        <span class="kw">let </span><span class="kw-2">mut </span>this = <a class="self" href="#269">self</a>.<a href="#10-90">project</a>();
-        <span class="kw">let </span>len = <a href="#270">this</a>.buf.len();
+        <span class="kw">let </span><span class="kw-2">mut </span>this = <span class="self">self</span>.project();
+        <span class="kw">let </span>len = this.buf.len();
         <span class="kw">let </span><span class="kw-2">mut </span>ret = <span class="prelude-val">Ok</span>(());
         <span class="kw">while </span><span class="kw-2">*</span>this.written &lt; len {
             <span class="kw">match </span>this
@@ -645,61 +645,61 @@
             }
         }
         <span class="kw">if </span><span class="kw-2">*</span>this.written &gt; <span class="number">0 </span>{
-            <a href="#270">this</a>.buf.drain(..<span class="kw-2">*</span><a href="#270">this</a>.written);
+            this.buf.drain(..<span class="kw-2">*</span>this.written);
         }
-        <span class="kw-2">*</span><a href="#270">this</a>.written = <span class="number">0</span>;
-        Poll::Ready(<a href="#272">ret</a>)
+        <span class="kw-2">*</span>this.written = <span class="number">0</span>;
+        Poll::Ready(ret)
     }
 }
 
-<span class="kw">impl</span>&lt;W: <a href="../../../async_std/io/trait.Write.html">Write</a>&gt; <a href="../../../async_std/io/trait.Write.html">Write</a> <span class="kw">for </span>BufWriter&lt;W&gt; {
+<span class="kw">impl</span>&lt;W: Write&gt; Write <span class="kw">for </span>BufWriter&lt;W&gt; {
     <span class="kw">fn </span>poll_write(
         <span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;,
         cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
-        buf: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
-    ) -&gt; Poll&lt;io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;&gt; {
+        buf: <span class="kw-2">&amp;</span>[u8],
+    ) -&gt; Poll&lt;io::Result&lt;usize&gt;&gt; {
         <span class="kw">if </span><span class="self">self</span>.buf.len() + buf.len() &gt; <span class="self">self</span>.buf.capacity() {
             <span class="macro">ready!</span>(<span class="self">self</span>.as_mut().poll_flush_buf(cx))<span class="question-mark">?</span>;
         }
         <span class="kw">if </span>buf.len() &gt;= <span class="self">self</span>.buf.capacity() {
-            <a class="self" href="#305">self</a>.<a href="#210">get_pin_mut</a>().<a href="../../../async_std/io/trait.Write.html">poll_write</a>(<a href="#306">cx</a>, <a href="#307">buf</a>)
+            <span class="self">self</span>.get_pin_mut().poll_write(cx, buf)
         } <span class="kw">else </span>{
-            Pin::new(<span class="kw-2">&amp;mut *</span><a class="self" href="#305">self</a>.<a href="#10-90">project</a>().buf).<a href="../../../async_std/io/trait.Write.html">poll_write</a>(<a href="#306">cx</a>, <a href="#307">buf</a>)
+            Pin::new(<span class="kw-2">&amp;mut *</span><span class="self">self</span>.project().buf).poll_write(cx, buf)
         }
     }
 
     <span class="kw">fn </span>poll_flush(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;io::Result&lt;()&gt;&gt; {
         <span class="macro">ready!</span>(<span class="self">self</span>.as_mut().poll_flush_buf(cx))<span class="question-mark">?</span>;
-        <a class="self" href="#319">self</a>.<a href="#210">get_pin_mut</a>().<a href="../../../async_std/io/trait.Write.html">poll_flush</a>(<a href="#319">cx</a>)
+        <span class="self">self</span>.get_pin_mut().poll_flush(cx)
     }
 
     <span class="kw">fn </span>poll_close(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;io::Result&lt;()&gt;&gt; {
         <span class="macro">ready!</span>(<span class="self">self</span>.as_mut().poll_flush_buf(cx))<span class="question-mark">?</span>;
-        <a class="self" href="#324">self</a>.<a href="#210">get_pin_mut</a>().<a href="../../../async_std/io/trait.Write.html">poll_close</a>(<a href="#324">cx</a>)
+        <span class="self">self</span>.get_pin_mut().poll_close(cx)
     }
 }
 
-<span class="kw">impl</span>&lt;W: <a href="../../../async_std/io/trait.Write.html">Write</a> + <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span>BufWriter&lt;W&gt; {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a href="#331">f</a>.debug_struct(<span class="string">&quot;BufWriter&quot;</span>)
-            .field(<span class="string">&quot;writer&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="#331">self</a>.inner)
-            .field(<span class="string">&quot;buf&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="#331">self</a>.buf)
+<span class="kw">impl</span>&lt;W: Write + fmt::Debug&gt; fmt::Debug <span class="kw">for </span>BufWriter&lt;W&gt; {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        f.debug_struct(<span class="string">&quot;BufWriter&quot;</span>)
+            .field(<span class="string">&quot;writer&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.inner)
+            .field(<span class="string">&quot;buf&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.buf)
             .finish()
     }
 }
 
-<span class="kw">impl</span>&lt;W: <a href="../../../async_std/io/trait.Write.html">Write</a> + <a href="../../../async_std/io/trait.Seek.html">Seek</a>&gt; <a href="../../../async_std/io/trait.Seek.html">Seek</a> <span class="kw">for </span>BufWriter&lt;W&gt; {
+<span class="kw">impl</span>&lt;W: Write + Seek&gt; Seek <span class="kw">for </span>BufWriter&lt;W&gt; {
     <span class="doccomment">/// Seek to the offset, in bytes, in the underlying writer.
     ///
     /// Seeking always writes out the internal buffer before seeking.
     </span><span class="kw">fn </span>poll_seek(
         <span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;,
         cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
-        pos: <a href="../../../async_std/io/enum.SeekFrom.html">SeekFrom</a>,
-    ) -&gt; Poll&lt;io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>&gt;&gt; {
+        pos: SeekFrom,
+    ) -&gt; Poll&lt;io::Result&lt;u64&gt;&gt; {
         <span class="macro">ready!</span>(<span class="self">self</span>.as_mut().poll_flush_buf(cx))<span class="question-mark">?</span>;
-        <a class="self" href="#344">self</a>.<a href="#210">get_pin_mut</a>().<a href="../../../async_std/io/trait.Seek.html">poll_seek</a>(<a href="#345">cx</a>, <a href="#346">pos</a>)
+        <span class="self">self</span>.get_pin_mut().poll_seek(cx, pos)
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="async_std" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="async_std" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

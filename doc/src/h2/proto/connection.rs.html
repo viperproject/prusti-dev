@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/h2-0.3.15/src/proto/connection.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>connection.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../h2/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/h2-0.3.15/src/proto/connection.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>connection.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../h2/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -581,27 +581,27 @@
 <a href="#581" id="581">581</a>
 <a href="#582" id="582">582</a>
 <a href="#583" id="583">583</a>
-</pre><pre class="rust"><code><span class="kw">use </span><a href="../codec/error.rs.html#14"><span class="kw">crate</span>::codec::UserError</a>;
-<span class="kw">use </span><span class="kw">crate</span>::frame::{<a href="../frame/reason.rs.html#19">Reason</a>, <a href="../frame/stream_id.rs.html#14">StreamId</a>};
-<span class="kw">use crate</span>::{<a href="../lib.rs.html#122">client</a>, <a href="../lib.rs.html#116">frame</a>, <a href="../lib.rs.html#124">server</a>};
+</pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::codec::UserError;
+<span class="kw">use </span><span class="kw">crate</span>::frame::{Reason, StreamId};
+<span class="kw">use crate</span>::{client, frame, server};
 
-<span class="kw">use </span><a href="../frame/settings.rs.html#44"><span class="kw">crate</span>::frame::DEFAULT_INITIAL_WINDOW_SIZE</a>;
-<span class="kw">use </span><a href="../lib.rs.html#109"><span class="kw">crate</span>::proto</a>::<span class="kw-2">*</span>;
+<span class="kw">use </span><span class="kw">crate</span>::frame::DEFAULT_INITIAL_WINDOW_SIZE;
+<span class="kw">use </span><span class="kw">crate</span>::proto::<span class="kw-2">*</span>;
 
-<span class="kw">use </span>bytes::{<a href="../../../bytes/buf/buf_impl/trait.Buf.html">Buf</a>, <a href="../../../bytes/bytes/struct.Bytes.html">Bytes</a>};
-<span class="kw">use </span><a href="../../../futures_core/stream/trait.Stream.html">futures_core::Stream</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/io/index.html">std::io</a>;
+<span class="kw">use </span>bytes::{Buf, Bytes};
+<span class="kw">use </span>futures_core::Stream;
+<span class="kw">use </span>std::io;
 <span class="kw">use </span>std::marker::PhantomData;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/pin/struct.Pin.html">std::pin::Pin</a>;
-<span class="kw">use </span>std::task::{<a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>, <a href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">Poll</a>};
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">std::time::Duration</a>;
-<span class="kw">use </span>tokio::io::{<a href="../../../tokio/io/async_read/trait.AsyncRead.html">AsyncRead</a>, <a href="../../../tokio/io/async_write/trait.AsyncWrite.html">AsyncWrite</a>};
+<span class="kw">use </span>std::pin::Pin;
+<span class="kw">use </span>std::task::{Context, Poll};
+<span class="kw">use </span>std::time::Duration;
+<span class="kw">use </span>tokio::io::{AsyncRead, AsyncWrite};
 
 <span class="doccomment">/// An H2 connection
 </span><span class="attr">#[derive(Debug)]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>Connection&lt;T, P, B: <a href="../../../bytes/buf/buf_impl/trait.Buf.html">Buf</a> = <a href="../../../bytes/bytes/struct.Bytes.html">Bytes</a>&gt;
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>Connection&lt;T, P, B: Buf = Bytes&gt;
 <span class="kw">where
-    </span>P: <a href="peer.rs.html#10">Peer</a>,
+    </span>P: Peer,
 {
     <span class="doccomment">/// Read / write frame values
     </span>codec: Codec&lt;T, Prioritized&lt;B&gt;&gt;,
@@ -612,58 +612,58 @@
 <span class="comment">// Extracted part of `Connection` which does not depend on `T`. Reduces the amount of duplicated
 // method instantiations.
 </span><span class="attr">#[derive(Debug)]
-</span><span class="kw">struct </span>ConnectionInner&lt;P, B: <a href="../../../bytes/buf/buf_impl/trait.Buf.html">Buf</a> = <a href="../../../bytes/bytes/struct.Bytes.html">Bytes</a>&gt;
+</span><span class="kw">struct </span>ConnectionInner&lt;P, B: Buf = Bytes&gt;
 <span class="kw">where
-    </span>P: <a href="peer.rs.html#10">Peer</a>,
+    </span>P: Peer,
 {
     <span class="doccomment">/// Tracks the connection level state transitions.
-    </span>state: <a href="#87">State</a>,
+    </span>state: State,
 
     <span class="doccomment">/// An error to report back once complete.
     ///
     /// This exists separately from State in order to support
     /// graceful shutdown.
-    </span>error: <span class="prelude-ty">Option</span>&lt;<a href="../frame/go_away.rs.html#8">frame::GoAway</a>&gt;,
+    </span>error: <span class="prelude-ty">Option</span>&lt;frame::GoAway&gt;,
 
     <span class="doccomment">/// Pending GOAWAY frames to write.
-    </span>go_away: <a href="go_away.rs.html#11">GoAway</a>,
+    </span>go_away: GoAway,
 
     <span class="doccomment">/// Ping/pong handler
-    </span>ping_pong: <a href="ping_pong.rs.html#15">PingPong</a>,
+    </span>ping_pong: PingPong,
 
     <span class="doccomment">/// Connection settings
-    </span>settings: <a href="settings.rs.html#8">Settings</a>,
+    </span>settings: Settings,
 
     <span class="doccomment">/// Stream state handler
     </span>streams: Streams&lt;B, P&gt;,
 
     <span class="doccomment">/// A `tracing` span tracking the lifetime of the connection.
-    </span>span: <a href="../../../tracing/span/struct.Span.html">tracing::Span</a>,
+    </span>span: tracing::Span,
 
     <span class="doccomment">/// Client or server
     </span>_phantom: PhantomData&lt;P&gt;,
 }
 
-<span class="kw">struct </span>DynConnection&lt;<span class="lifetime">&#39;a</span>, B: <a href="../../../bytes/buf/buf_impl/trait.Buf.html">Buf</a> = <a href="../../../bytes/bytes/struct.Bytes.html">Bytes</a>&gt; {
-    state: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span><a href="#87">State</a>,
+<span class="kw">struct </span>DynConnection&lt;<span class="lifetime">&#39;a</span>, B: Buf = Bytes&gt; {
+    state: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>State,
 
-    go_away: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span><a href="go_away.rs.html#11">GoAway</a>,
+    go_away: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>GoAway,
 
     streams: DynStreams&lt;<span class="lifetime">&#39;a</span>, B&gt;,
 
-    error: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span><span class="prelude-ty">Option</span>&lt;<a href="../frame/go_away.rs.html#8">frame::GoAway</a>&gt;,
+    error: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span><span class="prelude-ty">Option</span>&lt;frame::GoAway&gt;,
 
-    ping_pong: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span><a href="ping_pong.rs.html#15">PingPong</a>,
+    ping_pong: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>PingPong,
 }
 
 <span class="attr">#[derive(Debug, Clone)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>Config {
-    <span class="kw">pub </span>next_stream_id: <a href="../frame/stream_id.rs.html#14">StreamId</a>,
-    <span class="kw">pub </span>initial_max_send_streams: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-    <span class="kw">pub </span>max_send_buffer_size: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-    <span class="kw">pub </span>reset_stream_duration: <a href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a>,
-    <span class="kw">pub </span>reset_stream_max: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-    <span class="kw">pub </span>settings: <a href="../frame/settings.rs.html#7">frame::Settings</a>,
+    <span class="kw">pub </span>next_stream_id: StreamId,
+    <span class="kw">pub </span>initial_max_send_streams: usize,
+    <span class="kw">pub </span>max_send_buffer_size: usize,
+    <span class="kw">pub </span>reset_stream_duration: Duration,
+    <span class="kw">pub </span>reset_stream_max: usize,
+    <span class="kw">pub </span>settings: frame::Settings,
 }
 
 <span class="attr">#[derive(Debug)]
@@ -672,97 +672,97 @@
     </span>Open,
 
     <span class="doccomment">/// The codec must be flushed
-    </span>Closing(<a href="../frame/reason.rs.html#19">Reason</a>, <a href="error.rs.html#17">Initiator</a>),
+    </span>Closing(Reason, Initiator),
 
     <span class="doccomment">/// In a closed state
-    </span>Closed(<a href="../frame/reason.rs.html#19">Reason</a>, <a href="error.rs.html#17">Initiator</a>),
+    </span>Closed(Reason, Initiator),
 }
 
 <span class="kw">impl</span>&lt;T, P, B&gt; Connection&lt;T, P, B&gt;
 <span class="kw">where
-    </span>T: <a href="../../../tokio/io/async_read/trait.AsyncRead.html">AsyncRead</a> + <a href="../../../tokio/io/async_write/trait.AsyncWrite.html">AsyncWrite</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
-    P: <a href="peer.rs.html#10">Peer</a>,
-    B: <a href="../../../bytes/buf/buf_impl/trait.Buf.html">Buf</a>,
+    </span>T: AsyncRead + AsyncWrite + Unpin,
+    P: Peer,
+    B: Buf,
 {
-    <span class="kw">pub fn </span>new(codec: Codec&lt;T, Prioritized&lt;B&gt;&gt;, config: <a href="#77">Config</a>) -&gt; Connection&lt;T, P, B&gt; {
-        <span class="kw">fn </span>streams_config(config: <span class="kw-2">&amp;</span><a href="#77">Config</a>) -&gt; <a href="streams/mod.rs.html#34">streams::Config</a> {
-            <a href="streams/mod.rs.html#34">streams::Config</a> {
-                local_init_window_sz: <a href="#105">config</a>
+    <span class="kw">pub fn </span>new(codec: Codec&lt;T, Prioritized&lt;B&gt;&gt;, config: Config) -&gt; Connection&lt;T, P, B&gt; {
+        <span class="kw">fn </span>streams_config(config: <span class="kw-2">&amp;</span>Config) -&gt; streams::Config {
+            streams::Config {
+                local_init_window_sz: config
                     .settings
-                    .<a href="../frame/settings.rs.html#69">initial_window_size</a>()
-                    .unwrap_or(<a href="../frame/settings.rs.html#44">DEFAULT_INITIAL_WINDOW_SIZE</a>),
-                initial_max_send_streams: <a href="#105">config</a>.initial_max_send_streams,
-                local_max_buffer_size: <a href="#105">config</a>.max_send_buffer_size,
-                local_next_stream_id: <a href="#105">config</a>.next_stream_id,
-                local_push_enabled: <a href="#105">config</a>.settings.<a href="../frame/settings.rs.html#104">is_push_enabled</a>().unwrap_or(<span class="bool-val">true</span>),
-                extended_connect_protocol_enabled: <a href="#105">config</a>
+                    .initial_window_size()
+                    .unwrap_or(DEFAULT_INITIAL_WINDOW_SIZE),
+                initial_max_send_streams: config.initial_max_send_streams,
+                local_max_buffer_size: config.max_send_buffer_size,
+                local_next_stream_id: config.next_stream_id,
+                local_push_enabled: config.settings.is_push_enabled().unwrap_or(<span class="bool-val">true</span>),
+                extended_connect_protocol_enabled: config
                     .settings
-                    .<a href="../frame/settings.rs.html#112">is_extended_connect_protocol_enabled</a>()
+                    .is_extended_connect_protocol_enabled()
                     .unwrap_or(<span class="bool-val">false</span>),
-                local_reset_duration: <a href="#105">config</a>.reset_stream_duration,
-                local_reset_max: <a href="#105">config</a>.reset_stream_max,
-                remote_init_window_sz: <a href="../frame/settings.rs.html#44">DEFAULT_INITIAL_WINDOW_SIZE</a>,
-                remote_max_initiated: <a href="#105">config</a>
+                local_reset_duration: config.reset_stream_duration,
+                local_reset_max: config.reset_stream_max,
+                remote_init_window_sz: DEFAULT_INITIAL_WINDOW_SIZE,
+                remote_max_initiated: config
                     .settings
-                    .<a href="../frame/settings.rs.html#77">max_concurrent_streams</a>()
-                    .map(|max| <a href="#125">max</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>),
+                    .max_concurrent_streams()
+                    .map(|max| max <span class="kw">as </span>usize),
             }
         }
-        <span class="kw">let </span>streams = Streams::new(<a href="#105">streams_config</a>(<span class="kw-2">&amp;</span><a href="#104">config</a>));
-        <a href="#19">Connection</a> {
-            <a href="#104">codec</a>,
-            inner: <a href="#32">ConnectionInner</a> {
-                state: <a href="#89">State::Open</a>,
+        <span class="kw">let </span>streams = Streams::new(streams_config(<span class="kw-2">&amp;</span>config));
+        Connection {
+            codec,
+            inner: ConnectionInner {
+                state: State::Open,
                 error: <span class="prelude-val">None</span>,
                 go_away: GoAway::new(),
                 ping_pong: PingPong::new(),
-                settings: Settings::new(<a href="#104">config</a>.settings),
-                <a href="#128">streams</a>,
-                span: <a class="macro" href="../../../tracing/tracing/macro.debug_span.html">tracing::debug_span!</a>(<span class="string">&quot;Connection&quot;</span>, peer = %P::NAME),
+                settings: Settings::new(config.settings),
+                streams,
+                span: <span class="macro">tracing::debug_span!</span>(<span class="string">&quot;Connection&quot;</span>, peer = %P::NAME),
                 _phantom: PhantomData,
             },
         }
     }
 
     <span class="doccomment">/// connection flow control
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_target_window_size(<span class="kw-2">&amp;mut </span><span class="self">self</span>, size: <a href="mod.rs.html#30">WindowSize</a>) {
-        <a class="self" href="#145">self</a>.inner.streams.<a href="streams/streams.rs.html#121">set_target_connection_window_size</a>(<a href="#145">size</a>);
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_target_window_size(<span class="kw-2">&amp;mut </span><span class="self">self</span>, size: WindowSize) {
+        <span class="self">self</span>.inner.streams.set_target_connection_window_size(size);
     }
 
     <span class="doccomment">/// Send a new SETTINGS frame with an updated initial window size.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_initial_window_size(<span class="kw-2">&amp;mut </span><span class="self">self</span>, size: <a href="mod.rs.html#30">WindowSize</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../codec/error.rs.html#14">UserError</a>&gt; {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_initial_window_size(<span class="kw-2">&amp;mut </span><span class="self">self</span>, size: WindowSize) -&gt; <span class="prelude-ty">Result</span>&lt;(), UserError&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>settings = frame::Settings::default();
-        <a href="#151">settings</a>.<a href="../frame/settings.rs.html#73">set_initial_window_size</a>(<span class="prelude-val">Some</span>(<a href="#150">size</a>));
-        <a class="self" href="#150">self</a>.inner.settings.<a href="settings.rs.html#83">send_settings</a>(<a href="#151">settings</a>)
+        settings.set_initial_window_size(<span class="prelude-val">Some</span>(size));
+        <span class="self">self</span>.inner.settings.send_settings(settings)
     }
 
     <span class="doccomment">/// Send a new SETTINGS frame with extended CONNECT protocol enabled.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_enable_connect_protocol(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../codec/error.rs.html#14">UserError</a>&gt; {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_enable_connect_protocol(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), UserError&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>settings = frame::Settings::default();
-        <a href="#158">settings</a>.<a href="../frame/settings.rs.html#116">set_enable_connect_protocol</a>(<span class="prelude-val">Some</span>(<span class="number">1</span>));
-        <a class="self" href="#157">self</a>.inner.settings.<a href="settings.rs.html#83">send_settings</a>(<a href="#158">settings</a>)
+        settings.set_enable_connect_protocol(<span class="prelude-val">Some</span>(<span class="number">1</span>));
+        <span class="self">self</span>.inner.settings.send_settings(settings)
     }
 
     <span class="doccomment">/// Returns the maximum number of concurrent streams that may be initiated
     /// by this peer.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>max_send_streams(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="self" href="#165">self</a>.inner.streams.<a href="streams/streams.rs.html#961">max_send_streams</a>()
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>max_send_streams(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+        <span class="self">self</span>.inner.streams.max_send_streams()
     }
 
     <span class="doccomment">/// Returns the maximum number of concurrent streams that may be initiated
     /// by the remote peer.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>max_recv_streams(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="self" href="#171">self</a>.inner.streams.<a href="streams/streams.rs.html#965">max_recv_streams</a>()
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>max_recv_streams(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+        <span class="self">self</span>.inner.streams.max_recv_streams()
     }
 
     <span class="doccomment">/// Returns `Ready` when the connection is ready to receive a frame.
     ///
     /// Returns `Error` as this may raise errors that are caused by delayed
     /// processing of received frames.
-    </span><span class="kw">fn </span>poll_ready(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cx: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#10">Error</a>&gt;&gt; {
-        <span class="kw">let </span>_e = <a class="self" href="#179">self</a>.inner.span.enter();
-        <span class="kw">let </span>span = <a class="macro" href="../../../tracing/tracing/macro.trace_span.html">tracing::trace_span!</a>(<span class="string">&quot;poll_ready&quot;</span>);
-        <span class="kw">let </span>_e = <a href="#181">span</a>.enter();
+    </span><span class="kw">fn </span>poll_ready(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cx: <span class="kw-2">&amp;mut </span>Context) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;(), Error&gt;&gt; {
+        <span class="kw">let </span>_e = <span class="self">self</span>.inner.span.enter();
+        <span class="kw">let </span>span = <span class="macro">tracing::trace_span!</span>(<span class="string">&quot;poll_ready&quot;</span>);
+        <span class="kw">let </span>_e = span.enter();
         <span class="comment">// The order of these calls don&#39;t really matter too much
         </span><span class="macro">ready!</span>(<span class="self">self</span>.inner.ping_pong.send_pending_pong(cx, <span class="kw-2">&amp;mut </span><span class="self">self</span>.codec))<span class="question-mark">?</span>;
         <span class="macro">ready!</span>(<span class="self">self</span>.inner.ping_pong.send_pending_ping(cx, <span class="kw-2">&amp;mut </span><span class="self">self</span>.codec))<span class="question-mark">?</span>;
@@ -779,32 +779,32 @@
     ///
     /// This will return `Some(reason)` if the connection should be closed
     /// afterwards. If this is a graceful shutdown, this returns `None`.
-    </span><span class="kw">fn </span>poll_go_away(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cx: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;io::Result&lt;<a href="../frame/reason.rs.html#19">Reason</a>&gt;&gt;&gt; {
-        <a class="self" href="#199">self</a>.inner.go_away.<a href="go_away.rs.html#124-131">send_pending_go_away</a>(<a href="#199">cx</a>, <span class="kw-2">&amp;mut </span><a class="self" href="#199">self</a>.codec)
+    </span><span class="kw">fn </span>poll_go_away(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cx: <span class="kw-2">&amp;mut </span>Context) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;io::Result&lt;Reason&gt;&gt;&gt; {
+        <span class="self">self</span>.inner.go_away.send_pending_go_away(cx, <span class="kw-2">&amp;mut </span><span class="self">self</span>.codec)
     }
 
-    <span class="kw">pub fn </span>go_away_from_user(<span class="kw-2">&amp;mut </span><span class="self">self</span>, e: <a href="../frame/reason.rs.html#19">Reason</a>) {
-        <a class="self" href="#203">self</a>.inner.<a href="#358">as_dyn</a>().<a href="#394">go_away_from_user</a>(<a href="#203">e</a>)
+    <span class="kw">pub fn </span>go_away_from_user(<span class="kw-2">&amp;mut </span><span class="self">self</span>, e: Reason) {
+        <span class="self">self</span>.inner.as_dyn().go_away_from_user(e)
     }
 
-    <span class="kw">fn </span>take_error(<span class="kw-2">&amp;mut </span><span class="self">self</span>, ours: <a href="../frame/reason.rs.html#19">Reason</a>, initiator: <a href="error.rs.html#17">Initiator</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#10">Error</a>&gt; {
-        <span class="kw">let </span>(debug_data, theirs) = <span class="self"><a href="#207">self</a>
+    <span class="kw">fn </span>take_error(<span class="kw-2">&amp;mut </span><span class="self">self</span>, ours: Reason, initiator: Initiator) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
+        <span class="kw">let </span>(debug_data, theirs) = <span class="self">self
             </span>.inner
             .error
             .take()
             .as_ref()
             .map_or((Bytes::new(), Reason::NO_ERROR), |frame| {
-                (<a href="#213">frame</a>.<a href="../frame/go_away.rs.html#32">debug_data</a>().<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), <a href="#213">frame</a>.<a href="../frame/go_away.rs.html#28">reason</a>())
+                (frame.debug_data().clone(), frame.reason())
             });
 
-        <span class="kw">match </span>(<a href="#207">ours</a>, <a href="#208">theirs</a>) {
+        <span class="kw">match </span>(ours, theirs) {
             (Reason::NO_ERROR, Reason::NO_ERROR) =&gt; <span class="kw">return </span><span class="prelude-val">Ok</span>(()),
-            (ours, Reason::NO_ERROR) =&gt; <span class="prelude-val">Err</span>(<a href="error.rs.html#12">Error::GoAway</a>(Bytes::new(), <a href="#219">ours</a>, <a href="#207">initiator</a>)),
+            (ours, Reason::NO_ERROR) =&gt; <span class="prelude-val">Err</span>(Error::GoAway(Bytes::new(), ours, initiator)),
             <span class="comment">// If both sides reported an error, give their
             // error back to th user. We assume our error
             // was a consequence of their error, and less
             // important.
-            </span>(<span class="kw">_</span>, theirs) =&gt; <span class="prelude-val">Err</span>(Error::remote_go_away(<a href="#208">debug_data</a>, <a href="#224">theirs</a>)),
+            </span>(<span class="kw">_</span>, theirs) =&gt; <span class="prelude-val">Err</span>(Error::remote_go_away(debug_data, theirs)),
         }
     }
 
@@ -814,33 +814,33 @@
         <span class="comment">// If we poll() and realize that there are no streams or references
         // then we can close the connection by transitioning to GOAWAY
         </span><span class="kw">if </span>!<span class="self">self</span>.inner.streams.has_streams_or_other_references() {
-            <a class="self" href="#230">self</a>.inner.<a href="#358">as_dyn</a>().<a href="#388">go_away_now</a>(Reason::NO_ERROR);
+            <span class="self">self</span>.inner.as_dyn().go_away_now(Reason::NO_ERROR);
         }
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>take_user_pings(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="ping_pong.rs.html#22">UserPings</a>&gt; {
-        <a class="self" href="#238">self</a>.inner.ping_pong.<a href="ping_pong.rs.html#73">take_user_pings</a>()
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>take_user_pings(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;UserPings&gt; {
+        <span class="self">self</span>.inner.ping_pong.take_user_pings()
     }
 
     <span class="doccomment">/// Advances the internal state of the connection.
-    </span><span class="kw">pub fn </span>poll(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cx: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#10">Error</a>&gt;&gt; {
+    </span><span class="kw">pub fn </span>poll(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cx: <span class="kw-2">&amp;mut </span>Context) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;(), Error&gt;&gt; {
         <span class="comment">// XXX(eliza): cloning the span is unfortunately necessary here in
         // order to placate the borrow checker — `self` is mutably borrowed by
         // `poll2`, which means that we can&#39;t borrow `self.span` to enter it.
         // The clone is just an atomic ref bump.
-        </span><span class="kw">let </span>span = <a class="self" href="#243">self</a>.inner.span.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
-        <span class="kw">let </span>_e = <a href="#248">span</a>.enter();
-        <span class="kw">let </span>span = <a class="macro" href="../../../tracing/tracing/macro.trace_span.html">tracing::trace_span!</a>(<span class="string">&quot;poll&quot;</span>);
-        <span class="kw">let </span>_e = <a href="#250">span</a>.enter();
+        </span><span class="kw">let </span>span = <span class="self">self</span>.inner.span.clone();
+        <span class="kw">let </span>_e = span.enter();
+        <span class="kw">let </span>span = <span class="macro">tracing::trace_span!</span>(<span class="string">&quot;poll&quot;</span>);
+        <span class="kw">let </span>_e = span.enter();
 
         <span class="kw">loop </span>{
-            <a class="macro" href="../../../tracing/tracing/macro.trace.html">tracing::trace!</a>(connection.state = <span class="question-mark">?</span><span class="self">self</span>.inner.state);
+            <span class="macro">tracing::trace!</span>(connection.state = <span class="question-mark">?</span><span class="self">self</span>.inner.state);
             <span class="comment">// TODO: probably clean up this glob of code
-            </span><span class="kw">match </span><a class="self" href="#243">self</a>.inner.state {
+            </span><span class="kw">match </span><span class="self">self</span>.inner.state {
                 <span class="comment">// When open, continue to poll a frame
-                </span><a href="#89">State::Open</a> =&gt; {
-                    <span class="kw">let </span>result = <span class="kw">match </span><a class="self" href="#243">self</a>.<a href="#297">poll2</a>(<a href="#243">cx</a>) {
-                        Poll::Ready(result) =&gt; <a href="#260">result</a>,
+                </span>State::Open =&gt; {
+                    <span class="kw">let </span>result = <span class="kw">match </span><span class="self">self</span>.poll2(cx) {
+                        Poll::Ready(result) =&gt; result,
                         <span class="comment">// The connection is not ready to make progress
                         </span>Poll::Pending =&gt; {
                             <span class="comment">// Ensure all window updates have been sent.
@@ -852,7 +852,7 @@
                                 || <span class="self">self</span>.inner.go_away.should_close_on_idle())
                                 &amp;&amp; !<span class="self">self</span>.inner.streams.has_streams()
                             {
-                                <a class="self" href="#243">self</a>.inner.<a href="#358">as_dyn</a>().<a href="#388">go_away_now</a>(Reason::NO_ERROR);
+                                <span class="self">self</span>.inner.as_dyn().go_away_now(Reason::NO_ERROR);
                                 <span class="kw">continue</span>;
                             }
 
@@ -862,26 +862,26 @@
 
                     <span class="self">self</span>.inner.as_dyn().handle_poll2_result(result)<span class="question-mark">?
                 </span>}
-                <a href="#92">State::Closing</a>(reason, initiator) =&gt; {
-                    <a class="macro" href="../../../tracing/tracing/macro.trace.html">tracing::trace!</a>(<span class="string">&quot;connection closing after flush&quot;</span>);
+                State::Closing(reason, initiator) =&gt; {
+                    <span class="macro">tracing::trace!</span>(<span class="string">&quot;connection closing after flush&quot;</span>);
                     <span class="comment">// Flush/shutdown the codec
                     </span><span class="macro">ready!</span>(<span class="self">self</span>.codec.shutdown(cx))<span class="question-mark">?</span>;
 
                     <span class="comment">// Transition the state to error
-                    </span><a class="self" href="#243">self</a>.inner.state = <a href="#95">State::Closed</a>(<a href="#282">reason</a>, <a href="#282">initiator</a>);
+                    </span><span class="self">self</span>.inner.state = State::Closed(reason, initiator);
                 }
-                <a href="#95">State::Closed</a>(reason, initiator) =&gt; {
-                    <span class="kw">return </span>Poll::Ready(<a class="self" href="#243">self</a>.<a href="#207">take_error</a>(<a href="#290">reason</a>, <a href="#290">initiator</a>));
+                State::Closed(reason, initiator) =&gt; {
+                    <span class="kw">return </span>Poll::Ready(<span class="self">self</span>.take_error(reason, initiator));
                 }
             }
         }
     }
 
-    <span class="kw">fn </span>poll2(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cx: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#10">Error</a>&gt;&gt; {
+    <span class="kw">fn </span>poll2(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cx: <span class="kw-2">&amp;mut </span>Context) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;(), Error&gt;&gt; {
         <span class="comment">// This happens outside of the loop to prevent needing to do a clock
         // check and then comparison of the queue possibly multiple times a
         // second (and thus, the clock wouldn&#39;t have changed enough to matter).
-        </span><a class="self" href="#297">self</a>.<a href="#348">clear_expired_reset_streams</a>();
+        </span><span class="self">self</span>.clear_expired_reset_streams();
 
         <span class="kw">loop </span>{
             <span class="comment">// First, ensure that the `Connection` is able to receive a frame
@@ -889,18 +889,18 @@
             // The order here matters:
             // - poll_go_away may buffer a graceful shutdown GOAWAY frame
             // - If it has, we&#39;ve also added a PING to be sent in poll_ready
-            </span><span class="kw">if let </span><span class="prelude-val">Some</span>(reason) = <a class="macro" href="../lib.rs.html#94-101">ready!</a>(<span class="self">self</span>.poll_go_away(cx)<span class="question-mark">?</span>) {
+            </span><span class="kw">if let </span><span class="prelude-val">Some</span>(reason) = <span class="macro">ready!</span>(<span class="self">self</span>.poll_go_away(cx)<span class="question-mark">?</span>) {
                 <span class="kw">if </span><span class="self">self</span>.inner.go_away.should_close_now() {
                     <span class="kw">if </span><span class="self">self</span>.inner.go_away.is_user_initiated() {
                         <span class="comment">// A user initiated abrupt shutdown shouldn&#39;t return
                         // the same error back to the user.
                         </span><span class="kw">return </span>Poll::Ready(<span class="prelude-val">Ok</span>(()));
                     } <span class="kw">else </span>{
-                        <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Err</span>(Error::library_go_away(<a href="#309">reason</a>)));
+                        <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Err</span>(Error::library_go_away(reason)));
                     }
                 }
                 <span class="comment">// Only NO_ERROR should be waiting for idle
-                </span><a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert_eq.html">debug_assert_eq!</a>(
+                </span><span class="macro">debug_assert_eq!</span>(
                     reason,
                     Reason::NO_ERROR,
                     <span class="string">&quot;graceful GOAWAY should be NO_ERROR&quot;
@@ -913,15 +913,15 @@
                 .as_dyn()
                 .recv_frame(<span class="macro">ready!</span>(Pin::new(<span class="kw-2">&amp;mut </span><span class="self">self</span>.codec).poll_next(cx)<span class="question-mark">?</span>))<span class="question-mark">?
             </span>{
-                <a href="#524">ReceivedFrame::Settings</a>(frame) =&gt; {
+                ReceivedFrame::Settings(frame) =&gt; {
                     <span class="self">self</span>.inner.settings.recv_settings(
                         frame,
                         <span class="kw-2">&amp;mut </span><span class="self">self</span>.codec,
                         <span class="kw-2">&amp;mut </span><span class="self">self</span>.inner.streams,
                     )<span class="question-mark">?</span>;
                 }
-                <a href="#525">ReceivedFrame::Continue</a> =&gt; (),
-                <a href="#526">ReceivedFrame::Done</a> =&gt; {
+                ReceivedFrame::Continue =&gt; (),
+                ReceivedFrame::Done =&gt; {
                     <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Ok</span>(()));
                 }
             }
@@ -929,73 +929,73 @@
     }
 
     <span class="kw">fn </span>clear_expired_reset_streams(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <a class="self" href="#348">self</a>.inner.streams.<a href="streams/streams.rs.html#163">clear_expired_reset_streams</a>();
+        <span class="self">self</span>.inner.streams.clear_expired_reset_streams();
     }
 }
 
 <span class="kw">impl</span>&lt;P, B&gt; ConnectionInner&lt;P, B&gt;
 <span class="kw">where
-    </span>P: <a href="peer.rs.html#10">Peer</a>,
-    B: <a href="../../../bytes/buf/buf_impl/trait.Buf.html">Buf</a>,
+    </span>P: Peer,
+    B: Buf,
 {
     <span class="kw">fn </span>as_dyn(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; DynConnection&lt;<span class="lifetime">&#39;_</span>, B&gt; {
-        <span class="kw">let </span><a href="#32">ConnectionInner</a> {
+        <span class="kw">let </span>ConnectionInner {
             state,
             go_away,
             streams,
             error,
             ping_pong,
             ..
-        } = <a class="self" href="#358">self</a>;
-        <span class="kw">let </span>streams = <a href="#362">streams</a>.<a href="streams/streams.rs.html#941">as_dyn</a>();
-        <a href="#64">DynConnection</a> {
-            <a href="#360">state</a>,
-            <a href="#361">go_away</a>,
-            <a href="#367">streams</a>,
-            <a href="#363">error</a>,
-            <a href="#364">ping_pong</a>,
+        } = <span class="self">self</span>;
+        <span class="kw">let </span>streams = streams.as_dyn();
+        DynConnection {
+            state,
+            go_away,
+            streams,
+            error,
+            ping_pong,
         }
     }
 }
 
 <span class="kw">impl</span>&lt;B&gt; DynConnection&lt;<span class="lifetime">&#39;_</span>, B&gt;
 <span class="kw">where
-    </span>B: <a href="../../../bytes/buf/buf_impl/trait.Buf.html">Buf</a>,
+    </span>B: Buf,
 {
-    <span class="kw">fn </span>go_away(<span class="kw-2">&amp;mut </span><span class="self">self</span>, id: <a href="../frame/stream_id.rs.html#14">StreamId</a>, e: <a href="../frame/reason.rs.html#19">Reason</a>) {
-        <span class="kw">let </span>frame = frame::GoAway::new(<a href="#382">id</a>, <a href="#382">e</a>);
-        <a class="self" href="#382">self</a>.streams.<a href="streams/streams.rs.html#364">send_go_away</a>(<a href="#382">id</a>);
-        <a class="self" href="#382">self</a>.go_away.<a href="go_away.rs.html#57">go_away</a>(<a href="#383">frame</a>);
+    <span class="kw">fn </span>go_away(<span class="kw-2">&amp;mut </span><span class="self">self</span>, id: StreamId, e: Reason) {
+        <span class="kw">let </span>frame = frame::GoAway::new(id, e);
+        <span class="self">self</span>.streams.send_go_away(id);
+        <span class="self">self</span>.go_away.go_away(frame);
     }
 
-    <span class="kw">fn </span>go_away_now(<span class="kw-2">&amp;mut </span><span class="self">self</span>, e: <a href="../frame/reason.rs.html#19">Reason</a>) {
-        <span class="kw">let </span>last_processed_id = <a class="self" href="#388">self</a>.streams.<a href="streams/streams.rs.html#340">last_processed_id</a>();
-        <span class="kw">let </span>frame = frame::GoAway::new(<a href="#389">last_processed_id</a>, <a href="#388">e</a>);
-        <a class="self" href="#388">self</a>.go_away.<a href="go_away.rs.html#75">go_away_now</a>(<a href="#390">frame</a>);
+    <span class="kw">fn </span>go_away_now(<span class="kw-2">&amp;mut </span><span class="self">self</span>, e: Reason) {
+        <span class="kw">let </span>last_processed_id = <span class="self">self</span>.streams.last_processed_id();
+        <span class="kw">let </span>frame = frame::GoAway::new(last_processed_id, e);
+        <span class="self">self</span>.go_away.go_away_now(frame);
     }
 
-    <span class="kw">fn </span>go_away_from_user(<span class="kw-2">&amp;mut </span><span class="self">self</span>, e: <a href="../frame/reason.rs.html#19">Reason</a>) {
-        <span class="kw">let </span>last_processed_id = <a class="self" href="#394">self</a>.streams.<a href="streams/streams.rs.html#340">last_processed_id</a>();
-        <span class="kw">let </span>frame = frame::GoAway::new(<a href="#395">last_processed_id</a>, <a href="#394">e</a>);
-        <a class="self" href="#394">self</a>.go_away.<a href="go_away.rs.html#87">go_away_from_user</a>(<a href="#396">frame</a>);
+    <span class="kw">fn </span>go_away_from_user(<span class="kw-2">&amp;mut </span><span class="self">self</span>, e: Reason) {
+        <span class="kw">let </span>last_processed_id = <span class="self">self</span>.streams.last_processed_id();
+        <span class="kw">let </span>frame = frame::GoAway::new(last_processed_id, e);
+        <span class="self">self</span>.go_away.go_away_from_user(frame);
 
         <span class="comment">// Notify all streams of reason we&#39;re abruptly closing.
-        </span><a class="self" href="#394">self</a>.streams.<a href="streams/streams.rs.html#330">handle_error</a>(Error::user_go_away(<a href="#394">e</a>));
+        </span><span class="self">self</span>.streams.handle_error(Error::user_go_away(e));
     }
 
-    <span class="kw">fn </span>handle_poll2_result(<span class="kw-2">&amp;mut </span><span class="self">self</span>, result: <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#10">Error</a>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#10">Error</a>&gt; {
-        <span class="kw">match </span><a href="#403">result</a> {
+    <span class="kw">fn </span>handle_poll2_result(<span class="kw-2">&amp;mut </span><span class="self">self</span>, result: <span class="prelude-ty">Result</span>&lt;(), Error&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
+        <span class="kw">match </span>result {
             <span class="comment">// The connection has shutdown normally
             </span><span class="prelude-val">Ok</span>(()) =&gt; {
-                <span class="kw-2">*</span><a class="self" href="#403">self</a>.state = <a href="#92">State::Closing</a>(Reason::NO_ERROR, <a href="error.rs.html#19">Initiator::Library</a>);
+                <span class="kw-2">*</span><span class="self">self</span>.state = State::Closing(Reason::NO_ERROR, Initiator::Library);
                 <span class="prelude-val">Ok</span>(())
             }
             <span class="comment">// Attempting to read a frame resulted in a connection level
             // error. This is handled by setting a GOAWAY frame followed by
             // terminating the connection.
-            </span><span class="prelude-val">Err</span>(<a href="error.rs.html#12">Error::GoAway</a>(debug_data, reason, initiator)) =&gt; {
-                <span class="kw">let </span>e = <a href="error.rs.html#12">Error::GoAway</a>(<a href="#413">debug_data</a>, <a href="#413">reason</a>, <a href="#413">initiator</a>);
-                <a class="macro" href="../../../tracing/tracing/macro.debug.html">tracing::debug!</a>(error = <span class="question-mark">?</span>e, <span class="string">&quot;Connection::poll; connection error&quot;</span>);
+            </span><span class="prelude-val">Err</span>(Error::GoAway(debug_data, reason, initiator)) =&gt; {
+                <span class="kw">let </span>e = Error::GoAway(debug_data, reason, initiator);
+                <span class="macro">tracing::debug!</span>(error = <span class="question-mark">?</span>e, <span class="string">&quot;Connection::poll; connection error&quot;</span>);
 
                 <span class="comment">// We may have already sent a GOAWAY for this error,
                 // if so, don&#39;t send another, just flush and close up.
@@ -1004,128 +1004,128 @@
                     .going_away()
                     .map_or(<span class="bool-val">false</span>, |frame| frame.reason() == reason)
                 {
-                    <a class="macro" href="../../../tracing/tracing/macro.trace.html">tracing::trace!</a>(<span class="string">&quot;    -&gt; already going away&quot;</span>);
-                    <span class="kw-2">*</span><a class="self" href="#403">self</a>.state = <a href="#92">State::Closing</a>(<a href="#413">reason</a>, <a href="#413">initiator</a>);
+                    <span class="macro">tracing::trace!</span>(<span class="string">&quot;    -&gt; already going away&quot;</span>);
+                    <span class="kw-2">*</span><span class="self">self</span>.state = State::Closing(reason, initiator);
                     <span class="kw">return </span><span class="prelude-val">Ok</span>(());
                 }
 
                 <span class="comment">// Reset all active streams
-                </span><a class="self" href="#403">self</a>.streams.<a href="streams/streams.rs.html#330">handle_error</a>(<a href="#414">e</a>);
-                <a class="self" href="#403">self</a>.<a href="#388">go_away_now</a>(<a href="#413">reason</a>);
+                </span><span class="self">self</span>.streams.handle_error(e);
+                <span class="self">self</span>.go_away_now(reason);
                 <span class="prelude-val">Ok</span>(())
             }
             <span class="comment">// Attempting to read a frame resulted in a stream level error.
             // This is handled by resetting the frame then trying to read
             // another frame.
-            </span><span class="prelude-val">Err</span>(<a href="error.rs.html#11">Error::Reset</a>(id, reason, initiator)) =&gt; {
-                <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert_eq.html">debug_assert_eq!</a>(initiator, Initiator::Library);
-                <a class="macro" href="../../../tracing/tracing/macro.trace.html">tracing::trace!</a>(<span class="question-mark">?</span>id, <span class="question-mark">?</span>reason, <span class="string">&quot;stream error&quot;</span>);
-                <a class="self" href="#403">self</a>.streams.<a href="streams/streams.rs.html#359">send_reset</a>(<a href="#437">id</a>, <a href="#437">reason</a>);
+            </span><span class="prelude-val">Err</span>(Error::Reset(id, reason, initiator)) =&gt; {
+                <span class="macro">debug_assert_eq!</span>(initiator, Initiator::Library);
+                <span class="macro">tracing::trace!</span>(<span class="question-mark">?</span>id, <span class="question-mark">?</span>reason, <span class="string">&quot;stream error&quot;</span>);
+                <span class="self">self</span>.streams.send_reset(id, reason);
                 <span class="prelude-val">Ok</span>(())
             }
             <span class="comment">// Attempting to read a frame resulted in an I/O error. All
             // active streams must be reset.
             //
             // TODO: Are I/O errors recoverable?
-            </span><span class="prelude-val">Err</span>(<a href="error.rs.html#13">Error::Io</a>(e, inner)) =&gt; {
-                <a class="macro" href="../../../tracing/tracing/macro.debug.html">tracing::debug!</a>(error = <span class="question-mark">?</span>e, <span class="string">&quot;Connection::poll; IO error&quot;</span>);
-                <span class="kw">let </span>e = <a href="error.rs.html#13">Error::Io</a>(<a href="#447">e</a>, <a href="#447">inner</a>);
+            </span><span class="prelude-val">Err</span>(Error::Io(e, inner)) =&gt; {
+                <span class="macro">tracing::debug!</span>(error = <span class="question-mark">?</span>e, <span class="string">&quot;Connection::poll; IO error&quot;</span>);
+                <span class="kw">let </span>e = Error::Io(e, inner);
 
                 <span class="comment">// Reset all active streams
-                </span><a class="self" href="#403">self</a>.streams.<a href="streams/streams.rs.html#330">handle_error</a>(<a href="#449">e</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
+                </span><span class="self">self</span>.streams.handle_error(e.clone());
 
                 <span class="comment">// Return the error
-                </span><span class="prelude-val">Err</span>(<a href="#449">e</a>)
+                </span><span class="prelude-val">Err</span>(e)
             }
         }
     }
 
-    <span class="kw">fn </span>recv_frame(<span class="kw-2">&amp;mut </span><span class="self">self</span>, frame: <span class="prelude-ty">Option</span>&lt;<a href="../frame/mod.rs.html#80">Frame</a>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#523">ReceivedFrame</a>, <a href="error.rs.html#10">Error</a>&gt; {
-        <span class="kw">use </span><a href="../frame/mod.rs.html#80"><span class="kw">crate</span>::frame::Frame</a>::<span class="kw-2">*</span>;
-        <span class="kw">match </span><a href="#460">frame</a> {
-            <span class="prelude-val">Some</span>(<a href="../frame/mod.rs.html#82">Headers</a>(frame)) =&gt; {
-                <a class="macro" href="../../../tracing/tracing/macro.trace.html">tracing::trace!</a>(<span class="question-mark">?</span>frame, <span class="string">&quot;recv HEADERS&quot;</span>);
+    <span class="kw">fn </span>recv_frame(<span class="kw-2">&amp;mut </span><span class="self">self</span>, frame: <span class="prelude-ty">Option</span>&lt;Frame&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;ReceivedFrame, Error&gt; {
+        <span class="kw">use </span><span class="kw">crate</span>::frame::Frame::<span class="kw-2">*</span>;
+        <span class="kw">match </span>frame {
+            <span class="prelude-val">Some</span>(Headers(frame)) =&gt; {
+                <span class="macro">tracing::trace!</span>(<span class="question-mark">?</span>frame, <span class="string">&quot;recv HEADERS&quot;</span>);
                 <span class="self">self</span>.streams.recv_headers(frame)<span class="question-mark">?</span>;
             }
-            <span class="prelude-val">Some</span>(<a href="../frame/mod.rs.html#81">Data</a>(frame)) =&gt; {
-                <a class="macro" href="../../../tracing/tracing/macro.trace.html">tracing::trace!</a>(<span class="question-mark">?</span>frame, <span class="string">&quot;recv DATA&quot;</span>);
+            <span class="prelude-val">Some</span>(Data(frame)) =&gt; {
+                <span class="macro">tracing::trace!</span>(<span class="question-mark">?</span>frame, <span class="string">&quot;recv DATA&quot;</span>);
                 <span class="self">self</span>.streams.recv_data(frame)<span class="question-mark">?</span>;
             }
-            <span class="prelude-val">Some</span>(<a href="../frame/mod.rs.html#89">Reset</a>(frame)) =&gt; {
-                <a class="macro" href="../../../tracing/tracing/macro.trace.html">tracing::trace!</a>(<span class="question-mark">?</span>frame, <span class="string">&quot;recv RST_STREAM&quot;</span>);
+            <span class="prelude-val">Some</span>(Reset(frame)) =&gt; {
+                <span class="macro">tracing::trace!</span>(<span class="question-mark">?</span>frame, <span class="string">&quot;recv RST_STREAM&quot;</span>);
                 <span class="self">self</span>.streams.recv_reset(frame)<span class="question-mark">?</span>;
             }
-            <span class="prelude-val">Some</span>(<a href="../frame/mod.rs.html#84">PushPromise</a>(frame)) =&gt; {
-                <a class="macro" href="../../../tracing/tracing/macro.trace.html">tracing::trace!</a>(<span class="question-mark">?</span>frame, <span class="string">&quot;recv PUSH_PROMISE&quot;</span>);
+            <span class="prelude-val">Some</span>(PushPromise(frame)) =&gt; {
+                <span class="macro">tracing::trace!</span>(<span class="question-mark">?</span>frame, <span class="string">&quot;recv PUSH_PROMISE&quot;</span>);
                 <span class="self">self</span>.streams.recv_push_promise(frame)<span class="question-mark">?</span>;
             }
-            <span class="prelude-val">Some</span>(<a href="../frame/mod.rs.html#85">Settings</a>(frame)) =&gt; {
-                <a class="macro" href="../../../tracing/tracing/macro.trace.html">tracing::trace!</a>(<span class="question-mark">?</span>frame, <span class="string">&quot;recv SETTINGS&quot;</span>);
-                <span class="kw">return </span><span class="prelude-val">Ok</span>(<a href="#524">ReceivedFrame::Settings</a>(<a href="#479">frame</a>));
+            <span class="prelude-val">Some</span>(Settings(frame)) =&gt; {
+                <span class="macro">tracing::trace!</span>(<span class="question-mark">?</span>frame, <span class="string">&quot;recv SETTINGS&quot;</span>);
+                <span class="kw">return </span><span class="prelude-val">Ok</span>(ReceivedFrame::Settings(frame));
             }
-            <span class="prelude-val">Some</span>(<a href="../frame/mod.rs.html#87">GoAway</a>(frame)) =&gt; {
-                <a class="macro" href="../../../tracing/tracing/macro.trace.html">tracing::trace!</a>(<span class="question-mark">?</span>frame, <span class="string">&quot;recv GOAWAY&quot;</span>);
+            <span class="prelude-val">Some</span>(GoAway(frame)) =&gt; {
+                <span class="macro">tracing::trace!</span>(<span class="question-mark">?</span>frame, <span class="string">&quot;recv GOAWAY&quot;</span>);
                 <span class="comment">// This should prevent starting new streams,
                 // but should allow continuing to process current streams
                 // until they are all EOS. Once they are, State should
                 // transition to GoAway.
                 </span><span class="self">self</span>.streams.recv_go_away(<span class="kw-2">&amp;</span>frame)<span class="question-mark">?</span>;
-                <span class="kw-2">*</span><a class="self" href="#460">self</a>.error = <span class="prelude-val">Some</span>(<a href="#483">frame</a>);
+                <span class="kw-2">*</span><span class="self">self</span>.error = <span class="prelude-val">Some</span>(frame);
             }
-            <span class="prelude-val">Some</span>(<a href="../frame/mod.rs.html#86">Ping</a>(frame)) =&gt; {
-                <a class="macro" href="../../../tracing/tracing/macro.trace.html">tracing::trace!</a>(<span class="question-mark">?</span>frame, <span class="string">&quot;recv PING&quot;</span>);
-                <span class="kw">let </span>status = <a class="self" href="#460">self</a>.ping_pong.<a href="ping_pong.rs.html#97">recv_ping</a>(<a href="#492">frame</a>);
+            <span class="prelude-val">Some</span>(Ping(frame)) =&gt; {
+                <span class="macro">tracing::trace!</span>(<span class="question-mark">?</span>frame, <span class="string">&quot;recv PING&quot;</span>);
+                <span class="kw">let </span>status = <span class="self">self</span>.ping_pong.recv_ping(frame);
                 <span class="kw">if </span>status.is_shutdown() {
-                    <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(
+                    <span class="macro">assert!</span>(
                         <span class="self">self</span>.go_away.is_going_away(),
                         <span class="string">&quot;received unexpected shutdown ping&quot;
                     </span>);
 
-                    <span class="kw">let </span>last_processed_id = <a class="self" href="#460">self</a>.streams.<a href="streams/streams.rs.html#340">last_processed_id</a>();
-                    <a class="self" href="#460">self</a>.<a href="#382">go_away</a>(<a href="#501">last_processed_id</a>, Reason::NO_ERROR);
+                    <span class="kw">let </span>last_processed_id = <span class="self">self</span>.streams.last_processed_id();
+                    <span class="self">self</span>.go_away(last_processed_id, Reason::NO_ERROR);
                 }
             }
-            <span class="prelude-val">Some</span>(<a href="../frame/mod.rs.html#88">WindowUpdate</a>(frame)) =&gt; {
-                <a class="macro" href="../../../tracing/tracing/macro.trace.html">tracing::trace!</a>(<span class="question-mark">?</span>frame, <span class="string">&quot;recv WINDOW_UPDATE&quot;</span>);
+            <span class="prelude-val">Some</span>(WindowUpdate(frame)) =&gt; {
+                <span class="macro">tracing::trace!</span>(<span class="question-mark">?</span>frame, <span class="string">&quot;recv WINDOW_UPDATE&quot;</span>);
                 <span class="self">self</span>.streams.recv_window_update(frame)<span class="question-mark">?</span>;
             }
-            <span class="prelude-val">Some</span>(<a href="../frame/mod.rs.html#83">Priority</a>(frame)) =&gt; {
-                <a class="macro" href="../../../tracing/tracing/macro.trace.html">tracing::trace!</a>(<span class="question-mark">?</span>frame, <span class="string">&quot;recv PRIORITY&quot;</span>);
+            <span class="prelude-val">Some</span>(Priority(frame)) =&gt; {
+                <span class="macro">tracing::trace!</span>(<span class="question-mark">?</span>frame, <span class="string">&quot;recv PRIORITY&quot;</span>);
                 <span class="comment">// TODO: handle
             </span>}
             <span class="prelude-val">None </span>=&gt; {
-                <a class="macro" href="../../../tracing/tracing/macro.trace.html">tracing::trace!</a>(<span class="string">&quot;codec closed&quot;</span>);
-                <a class="self" href="#460">self</a>.streams.<a href="streams/streams.rs.html#354">recv_eof</a>(<span class="bool-val">false</span>).expect(<span class="string">&quot;mutex poisoned&quot;</span>);
-                <span class="kw">return </span><span class="prelude-val">Ok</span>(<a href="#526">ReceivedFrame::Done</a>);
+                <span class="macro">tracing::trace!</span>(<span class="string">&quot;codec closed&quot;</span>);
+                <span class="self">self</span>.streams.recv_eof(<span class="bool-val">false</span>).expect(<span class="string">&quot;mutex poisoned&quot;</span>);
+                <span class="kw">return </span><span class="prelude-val">Ok</span>(ReceivedFrame::Done);
             }
         }
-        <span class="prelude-val">Ok</span>(<a href="#525">ReceivedFrame::Continue</a>)
+        <span class="prelude-val">Ok</span>(ReceivedFrame::Continue)
     }
 }
 
 <span class="kw">enum </span>ReceivedFrame {
-    Settings(<a href="../frame/settings.rs.html#7">frame::Settings</a>),
+    Settings(frame::Settings),
     Continue,
     Done,
 }
 
-<span class="kw">impl</span>&lt;T, B&gt; Connection&lt;T, <a href="../client.rs.html#338">client::Peer</a>, B&gt;
+<span class="kw">impl</span>&lt;T, B&gt; Connection&lt;T, client::Peer, B&gt;
 <span class="kw">where
-    </span>T: <a href="../../../tokio/io/async_read/trait.AsyncRead.html">AsyncRead</a> + <a href="../../../tokio/io/async_write/trait.AsyncWrite.html">AsyncWrite</a>,
-    B: <a href="../../../bytes/buf/buf_impl/trait.Buf.html">Buf</a>,
+    </span>T: AsyncRead + AsyncWrite,
+    B: Buf,
 {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>streams(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Streams&lt;B, <a href="../client.rs.html#338">client::Peer</a>&gt; {
-        <span class="kw-2">&amp;</span><a class="self" href="#534">self</a>.inner.streams
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>streams(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Streams&lt;B, client::Peer&gt; {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.inner.streams
     }
 }
 
-<span class="kw">impl</span>&lt;T, B&gt; Connection&lt;T, <a href="../server.rs.html#320">server::Peer</a>, B&gt;
+<span class="kw">impl</span>&lt;T, B&gt; Connection&lt;T, server::Peer, B&gt;
 <span class="kw">where
-    </span>T: <a href="../../../tokio/io/async_read/trait.AsyncRead.html">AsyncRead</a> + <a href="../../../tokio/io/async_write/trait.AsyncWrite.html">AsyncWrite</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
-    B: <a href="../../../bytes/buf/buf_impl/trait.Buf.html">Buf</a>,
+    </span>T: AsyncRead + AsyncWrite + Unpin,
+    B: Buf,
 {
     <span class="kw">pub fn </span>next_incoming(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;StreamRef&lt;B&gt;&gt; {
-        <a class="self" href="#544">self</a>.inner.streams.<a href="streams/streams.rs.html#130">next_incoming</a>()
+        <span class="self">self</span>.inner.streams.next_incoming()
     }
 
     <span class="comment">// Graceful shutdown only makes sense for server peers.
@@ -1146,23 +1146,23 @@
         // &gt; send another GOAWAY frame with an updated last stream identifier.
         // &gt; This ensures that a connection can be cleanly shut down without
         // &gt; losing requests.
-        </span><a class="self" href="#549">self</a>.inner.<a href="#358">as_dyn</a>().<a href="#382">go_away</a>(StreamId::MAX, Reason::NO_ERROR);
+        </span><span class="self">self</span>.inner.as_dyn().go_away(StreamId::MAX, Reason::NO_ERROR);
 
         <span class="comment">// We take the advice of waiting 1 RTT literally, and wait
         // for a pong before proceeding.
-        </span><a class="self" href="#549">self</a>.inner.ping_pong.<a href="ping_pong.rs.html#87">ping_shutdown</a>();
+        </span><span class="self">self</span>.inner.ping_pong.ping_shutdown();
     }
 }
 
-<span class="kw">impl</span>&lt;T, P, B&gt; <a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span>Connection&lt;T, P, B&gt;
+<span class="kw">impl</span>&lt;T, P, B&gt; Drop <span class="kw">for </span>Connection&lt;T, P, B&gt;
 <span class="kw">where
-    </span>P: <a href="peer.rs.html#10">Peer</a>,
-    B: <a href="../../../bytes/buf/buf_impl/trait.Buf.html">Buf</a>,
+    </span>P: Peer,
+    B: Buf,
 {
     <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="comment">// Ignore errors as this indicates that the mutex is poisoned.
-        </span><span class="kw">let _ </span>= <a class="self" href="#579">self</a>.inner.streams.<a href="streams/streams.rs.html#957">recv_eof</a>(<span class="bool-val">true</span>);
+        </span><span class="kw">let _ </span>= <span class="self">self</span>.inner.streams.recv_eof(<span class="bool-val">true</span>);
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="h2" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="h2" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

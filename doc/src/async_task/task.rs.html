@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/async-task-4.3.0/src/task.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>task.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../async_task/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/async-task-4.3.0/src/task.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>task.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../async_task/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -530,17 +530,17 @@
 <a href="#530" id="530">530</a>
 <a href="#531" id="531">531</a>
 <a href="#532" id="532">532</a>
-</pre><pre class="rust"><code><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/fmt/index.html">core::fmt</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">core::future::Future</a>;
-<span class="kw">use </span>core::marker::{PhantomData, <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>};
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/mem/index.html">core::mem</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/pin/struct.Pin.html">core::pin::Pin</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/ptr/non_null/struct.NonNull.html">core::ptr::NonNull</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/sync/atomic/enum.Ordering.html">core::sync::atomic::Ordering</a>;
-<span class="kw">use </span>core::task::{<a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>, <a href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">Poll</a>};
+</pre><pre class="rust"><code><span class="kw">use </span>core::fmt;
+<span class="kw">use </span>core::future::Future;
+<span class="kw">use </span>core::marker::{PhantomData, Unpin};
+<span class="kw">use </span>core::mem;
+<span class="kw">use </span>core::pin::Pin;
+<span class="kw">use </span>core::ptr::NonNull;
+<span class="kw">use </span>core::sync::atomic::Ordering;
+<span class="kw">use </span>core::task::{Context, Poll};
 
-<span class="kw">use </span><a href="header.rs.html#13"><span class="kw">crate</span>::header::Header</a>;
-<span class="kw">use </span><a href="lib.rs.html#91"><span class="kw">crate</span>::state</a>::<span class="kw-2">*</span>;
+<span class="kw">use </span><span class="kw">crate</span>::header::Header;
+<span class="kw">use </span><span class="kw">crate</span>::state::<span class="kw-2">*</span>;
 
 <span class="doccomment">/// A spawned task.
 ///
@@ -584,15 +584,15 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) _marker: PhantomData&lt;T&gt;,
 }
 
-<span class="kw">unsafe impl</span>&lt;T: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="kw">for </span>Task&lt;T&gt; {}
-<span class="kw">unsafe impl</span>&lt;T&gt; <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> <span class="kw">for </span>Task&lt;T&gt; {}
+<span class="kw">unsafe impl</span>&lt;T: Send&gt; Send <span class="kw">for </span>Task&lt;T&gt; {}
+<span class="kw">unsafe impl</span>&lt;T&gt; Sync <span class="kw">for </span>Task&lt;T&gt; {}
 
-<span class="kw">impl</span>&lt;T&gt; <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a> <span class="kw">for </span>Task&lt;T&gt; {}
+<span class="kw">impl</span>&lt;T&gt; Unpin <span class="kw">for </span>Task&lt;T&gt; {}
 
 <span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
-</span><span class="kw">impl</span>&lt;T&gt; <a href="https://doc.rust-lang.org/nightly/core/panic/unwind_safe/trait.UnwindSafe.html">std::panic::UnwindSafe</a> <span class="kw">for </span>Task&lt;T&gt; {}
+</span><span class="kw">impl</span>&lt;T&gt; std::panic::UnwindSafe <span class="kw">for </span>Task&lt;T&gt; {}
 <span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
-</span><span class="kw">impl</span>&lt;T&gt; <a href="https://doc.rust-lang.org/nightly/core/panic/unwind_safe/trait.RefUnwindSafe.html">std::panic::RefUnwindSafe</a> <span class="kw">for </span>Task&lt;T&gt; {}
+</span><span class="kw">impl</span>&lt;T&gt; std::panic::RefUnwindSafe <span class="kw">for </span>Task&lt;T&gt; {}
 
 <span class="kw">impl</span>&lt;T&gt; Task&lt;T&gt; {
     <span class="doccomment">/// Detaches the task to let it keep running in the background.
@@ -615,9 +615,9 @@
     /// .detach();
     /// ```
     </span><span class="kw">pub fn </span>detach(<span class="self">self</span>) {
-        <span class="kw">let </span><span class="kw-2">mut </span>this = <a class="self" href="#85">self</a>;
-        <span class="kw">let </span>_out = <a href="#86">this</a>.<a href="#229">set_detached</a>();
-        mem::forget(<a href="#86">this</a>);
+        <span class="kw">let </span><span class="kw-2">mut </span>this = <span class="self">self</span>;
+        <span class="kw">let </span>_out = this.set_detached();
+        mem::forget(this);
     }
 
     <span class="doccomment">/// Cancels the task and waits for it to stop running.
@@ -706,16 +706,16 @@
     /// assert_eq!(future::block_on(task.fallible()), None);
     /// ```
     </span><span class="kw">pub fn </span>fallible(<span class="self">self</span>) -&gt; FallibleTask&lt;T&gt; {
-        <a href="#449">FallibleTask</a> { task: <span class="self"><a href="#176">self</a> </span>}
+        FallibleTask { task: <span class="self">self </span>}
     }
 
     <span class="doccomment">/// Puts the task in canceled state.
     </span><span class="kw">fn </span>set_canceled(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <span class="kw">let </span>ptr = <a class="self" href="#181">self</a>.ptr.as_ptr();
-        <span class="kw">let </span>header = <a href="#182">ptr</a> <span class="kw">as </span><span class="kw-2">*const </span><a href="header.rs.html#13">Header</a>;
+        <span class="kw">let </span>ptr = <span class="self">self</span>.ptr.as_ptr();
+        <span class="kw">let </span>header = ptr <span class="kw">as </span><span class="kw-2">*const </span>Header;
 
         <span class="kw">unsafe </span>{
-            <span class="kw">let </span><span class="kw-2">mut </span>state = (<span class="kw-2">*</span><a href="#183">header</a>).state.load(Ordering::Acquire);
+            <span class="kw">let </span><span class="kw-2">mut </span>state = (<span class="kw-2">*</span>header).state.load(Ordering::Acquire);
 
             <span class="kw">loop </span>{
                 <span class="comment">// If the task has been completed or closed, it can&#39;t be canceled.
@@ -725,15 +725,15 @@
 
                 <span class="comment">// If the task is not scheduled nor running, we&#39;ll need to schedule it.
                 </span><span class="kw">let </span>new = <span class="kw">if </span>state &amp; (SCHEDULED | RUNNING) == <span class="number">0 </span>{
-                    (<a href="#186">state</a> | <a href="state.rs.html#7">SCHEDULED</a> | <a href="state.rs.html#35">CLOSED</a>) + <a href="state.rs.html#69">REFERENCE</a>
+                    (state | SCHEDULED | CLOSED) + REFERENCE
                 } <span class="kw">else </span>{
-                    <a href="#186">state</a> | <a href="state.rs.html#35">CLOSED</a>
+                    state | CLOSED
                 };
 
                 <span class="comment">// Mark the task as closed.
-                </span><span class="kw">match </span>(<span class="kw-2">*</span><a href="#183">header</a>).state.compare_exchange_weak(
-                    <a href="#186">state</a>,
-                    <a href="#195">new</a>,
+                </span><span class="kw">match </span>(<span class="kw-2">*</span>header).state.compare_exchange_weak(
+                    state,
+                    new,
                     Ordering::AcqRel,
                     Ordering::Acquire,
                 ) {
@@ -741,17 +741,17 @@
                         <span class="comment">// If the task is not scheduled nor running, schedule it one more time so
                         // that its future gets dropped by the executor.
                         </span><span class="kw">if </span>state &amp; (SCHEDULED | RUNNING) == <span class="number">0 </span>{
-                            ((<span class="kw-2">*</span><a href="#183">header</a>).vtable.schedule)(<a href="#182">ptr</a>);
+                            ((<span class="kw-2">*</span>header).vtable.schedule)(ptr);
                         }
 
                         <span class="comment">// Notify the awaiter that the task has been closed.
                         </span><span class="kw">if </span>state &amp; AWAITER != <span class="number">0 </span>{
-                            (<span class="kw-2">*</span><a href="#183">header</a>).<a href="header.rs.html#36">notify</a>(<span class="prelude-val">None</span>);
+                            (<span class="kw-2">*</span>header).notify(<span class="prelude-val">None</span>);
                         }
 
                         <span class="kw">break</span>;
                     }
-                    <span class="prelude-val">Err</span>(s) =&gt; <a href="#186">state</a> = <a href="#222">s</a>,
+                    <span class="prelude-val">Err</span>(s) =&gt; state = s,
                 }
             }
         }
@@ -759,8 +759,8 @@
 
     <span class="doccomment">/// Puts the task in detached state.
     </span><span class="kw">fn </span>set_detached(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;T&gt; {
-        <span class="kw">let </span>ptr = <a class="self" href="#229">self</a>.ptr.as_ptr();
-        <span class="kw">let </span>header = <a href="#230">ptr</a> <span class="kw">as </span><span class="kw-2">*const </span><a href="header.rs.html#13">Header</a>;
+        <span class="kw">let </span>ptr = <span class="self">self</span>.ptr.as_ptr();
+        <span class="kw">let </span>header = ptr <span class="kw">as </span><span class="kw-2">*const </span>Header;
 
         <span class="kw">unsafe </span>{
             <span class="comment">// A place where the output will be stored in case it needs to be dropped.
@@ -769,9 +769,9 @@
             <span class="comment">// Optimistically assume the `Task` is being detached just after creating the task.
             // This is a common case so if the `Task` is datached, the overhead of it is only one
             // compare-exchange operation.
-            </span><span class="kw">if let </span><span class="prelude-val">Err</span>(<span class="kw-2">mut </span>state) = (<span class="kw-2">*</span><a href="#231">header</a>).state.compare_exchange_weak(
-                <a href="state.rs.html#7">SCHEDULED</a> | <a href="state.rs.html#41">TASK</a> | <a href="state.rs.html#69">REFERENCE</a>,
-                <a href="state.rs.html#7">SCHEDULED</a> | <a href="state.rs.html#69">REFERENCE</a>,
+            </span><span class="kw">if let </span><span class="prelude-val">Err</span>(<span class="kw-2">mut </span>state) = (<span class="kw-2">*</span>header).state.compare_exchange_weak(
+                SCHEDULED | TASK | REFERENCE,
+                SCHEDULED | REFERENCE,
                 Ordering::AcqRel,
                 Ordering::Acquire,
             ) {
@@ -780,36 +780,36 @@
                     // must be dropped.
                     </span><span class="kw">if </span>state &amp; COMPLETED != <span class="number">0 </span>&amp;&amp; state &amp; CLOSED == <span class="number">0 </span>{
                         <span class="comment">// Mark the task as closed in order to grab its output.
-                        </span><span class="kw">match </span>(<span class="kw-2">*</span><a href="#231">header</a>).state.compare_exchange_weak(
-                            <a href="#240">state</a>,
-                            <a href="#240">state</a> | <a href="state.rs.html#35">CLOSED</a>,
+                        </span><span class="kw">match </span>(<span class="kw-2">*</span>header).state.compare_exchange_weak(
+                            state,
+                            state | CLOSED,
                             Ordering::AcqRel,
                             Ordering::Acquire,
                         ) {
                             <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; {
                                 <span class="comment">// Read the output.
-                                </span><a href="#235">output</a> =
-                                    <span class="prelude-val">Some</span>((((<span class="kw-2">*</span><a href="#231">header</a>).vtable.get_output)(<a href="#230">ptr</a>) <span class="kw">as </span><span class="kw-2">*mut </span>T).read());
+                                </span>output =
+                                    <span class="prelude-val">Some</span>((((<span class="kw-2">*</span>header).vtable.get_output)(ptr) <span class="kw">as </span><span class="kw-2">*mut </span>T).read());
 
                                 <span class="comment">// Update the state variable because we&#39;re continuing the loop.
-                                </span><a href="#240">state</a> |= <a href="state.rs.html#35">CLOSED</a>;
+                                </span>state |= CLOSED;
                             }
-                            <span class="prelude-val">Err</span>(s) =&gt; <a href="#240">state</a> = <a href="#265">s</a>,
+                            <span class="prelude-val">Err</span>(s) =&gt; state = s,
                         }
                     } <span class="kw">else </span>{
                         <span class="comment">// If this is the last reference to the task and it&#39;s not closed, then
                         // close it and schedule one more time so that its future gets dropped by
                         // the executor.
                         </span><span class="kw">let </span>new = <span class="kw">if </span>state &amp; (!(REFERENCE - <span class="number">1</span>) | CLOSED) == <span class="number">0 </span>{
-                            <a href="state.rs.html#7">SCHEDULED</a> | <a href="state.rs.html#35">CLOSED</a> | <a href="state.rs.html#69">REFERENCE</a>
+                            SCHEDULED | CLOSED | REFERENCE
                         } <span class="kw">else </span>{
-                            <a href="#240">state</a> &amp; !<a href="state.rs.html#41">TASK</a>
+                            state &amp; !TASK
                         };
 
                         <span class="comment">// Unset the `TASK` flag.
-                        </span><span class="kw">match </span>(<span class="kw-2">*</span><a href="#231">header</a>).state.compare_exchange_weak(
-                            <a href="#240">state</a>,
-                            <a href="#271">new</a>,
+                        </span><span class="kw">match </span>(<span class="kw-2">*</span>header).state.compare_exchange_weak(
+                            state,
+                            new,
                             Ordering::AcqRel,
                             Ordering::Acquire,
                         ) {
@@ -818,21 +818,21 @@
                                 // schedule dropping its future or destroy it.
                                 </span><span class="kw">if </span>state &amp; !(REFERENCE - <span class="number">1</span>) == <span class="number">0 </span>{
                                     <span class="kw">if </span>state &amp; CLOSED == <span class="number">0 </span>{
-                                        ((<span class="kw-2">*</span><a href="#231">header</a>).vtable.schedule)(<a href="#230">ptr</a>);
+                                        ((<span class="kw-2">*</span>header).vtable.schedule)(ptr);
                                     } <span class="kw">else </span>{
-                                        ((<span class="kw-2">*</span><a href="#231">header</a>).vtable.destroy)(<a href="#230">ptr</a>);
+                                        ((<span class="kw-2">*</span>header).vtable.destroy)(ptr);
                                     }
                                 }
 
                                 <span class="kw">break</span>;
                             }
-                            <span class="prelude-val">Err</span>(s) =&gt; <a href="#240">state</a> = <a href="#297">s</a>,
+                            <span class="prelude-val">Err</span>(s) =&gt; state = s,
                         }
                     }
                 }
             }
 
-            <a href="#235">output</a>
+            output
         }
     }
 
@@ -847,11 +847,11 @@
     /// 3. It panics while polling the future.
     /// 4. It is completed and the `Task` gets dropped.
     </span><span class="kw">fn </span>poll_task(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;T&gt;&gt; {
-        <span class="kw">let </span>ptr = <a class="self" href="#317">self</a>.ptr.as_ptr();
-        <span class="kw">let </span>header = <a href="#318">ptr</a> <span class="kw">as </span><span class="kw-2">*const </span><a href="header.rs.html#13">Header</a>;
+        <span class="kw">let </span>ptr = <span class="self">self</span>.ptr.as_ptr();
+        <span class="kw">let </span>header = ptr <span class="kw">as </span><span class="kw-2">*const </span>Header;
 
         <span class="kw">unsafe </span>{
-            <span class="kw">let </span><span class="kw-2">mut </span>state = (<span class="kw-2">*</span><a href="#319">header</a>).state.load(Ordering::Acquire);
+            <span class="kw">let </span><span class="kw-2">mut </span>state = (<span class="kw-2">*</span>header).state.load(Ordering::Acquire);
 
             <span class="kw">loop </span>{
                 <span class="comment">// If the task has been closed, notify the awaiter and return `None`.
@@ -860,11 +860,11 @@
                     // dropped.
                     </span><span class="kw">if </span>state &amp; (SCHEDULED | RUNNING) != <span class="number">0 </span>{
                         <span class="comment">// Replace the waker with one associated with the current task.
-                        </span>(<span class="kw-2">*</span><a href="#319">header</a>).<a href="header.rs.html#76">register</a>(<a href="#317">cx</a>.waker());
+                        </span>(<span class="kw-2">*</span>header).register(cx.waker());
 
                         <span class="comment">// Reload the state after registering. It is possible changes occurred just
                         // before registration so we need to check for that.
-                        </span><a href="#322">state</a> = (<span class="kw-2">*</span><a href="#319">header</a>).state.load(Ordering::Acquire);
+                        </span>state = (<span class="kw-2">*</span>header).state.load(Ordering::Acquire);
 
                         <span class="comment">// If the task is still scheduled or running, we need to wait because its
                         // future is not dropped yet.
@@ -875,18 +875,18 @@
 
                     <span class="comment">// Even though the awaiter is most likely the current task, it could also be
                     // another task.
-                    </span>(<span class="kw-2">*</span><a href="#319">header</a>).<a href="header.rs.html#36">notify</a>(<span class="prelude-val">Some</span>(<a href="#317">cx</a>.waker()));
+                    </span>(<span class="kw-2">*</span>header).notify(<span class="prelude-val">Some</span>(cx.waker()));
                     <span class="kw">return </span>Poll::Ready(<span class="prelude-val">None</span>);
                 }
 
                 <span class="comment">// If the task is not completed, register the current task.
                 </span><span class="kw">if </span>state &amp; COMPLETED == <span class="number">0 </span>{
                     <span class="comment">// Replace the waker with one associated with the current task.
-                    </span>(<span class="kw-2">*</span><a href="#319">header</a>).<a href="header.rs.html#76">register</a>(<a href="#317">cx</a>.waker());
+                    </span>(<span class="kw-2">*</span>header).register(cx.waker());
 
                     <span class="comment">// Reload the state after registering. It is possible that the task became
                     // completed or closed just before registration so we need to check for that.
-                    </span><a href="#322">state</a> = (<span class="kw-2">*</span><a href="#319">header</a>).state.load(Ordering::Acquire);
+                    </span>state = (<span class="kw-2">*</span>header).state.load(Ordering::Acquire);
 
                     <span class="comment">// If the task has been closed, restart.
                     </span><span class="kw">if </span>state &amp; CLOSED != <span class="number">0 </span>{
@@ -900,9 +900,9 @@
                 }
 
                 <span class="comment">// Since the task is now completed, mark it as closed in order to grab its output.
-                </span><span class="kw">match </span>(<span class="kw-2">*</span><a href="#319">header</a>).state.compare_exchange(
-                    <a href="#322">state</a>,
-                    <a href="#322">state</a> | <a href="state.rs.html#35">CLOSED</a>,
+                </span><span class="kw">match </span>(<span class="kw-2">*</span>header).state.compare_exchange(
+                    state,
+                    state | CLOSED,
                     Ordering::AcqRel,
                     Ordering::Acquire,
                 ) {
@@ -910,61 +910,61 @@
                         <span class="comment">// Notify the awaiter. Even though the awaiter is most likely the current
                         // task, it could also be another task.
                         </span><span class="kw">if </span>state &amp; AWAITER != <span class="number">0 </span>{
-                            (<span class="kw-2">*</span><a href="#319">header</a>).<a href="header.rs.html#36">notify</a>(<span class="prelude-val">Some</span>(<a href="#317">cx</a>.waker()));
+                            (<span class="kw-2">*</span>header).notify(<span class="prelude-val">Some</span>(cx.waker()));
                         }
 
                         <span class="comment">// Take the output from the task.
-                        </span><span class="kw">let </span>output = ((<span class="kw-2">*</span><a href="#319">header</a>).vtable.get_output)(<a href="#318">ptr</a>) <span class="kw">as </span><span class="kw-2">*mut </span>T;
-                        <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Some</span>(<a href="#385">output</a>.read()));
+                        </span><span class="kw">let </span>output = ((<span class="kw-2">*</span>header).vtable.get_output)(ptr) <span class="kw">as </span><span class="kw-2">*mut </span>T;
+                        <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Some</span>(output.read()));
                     }
-                    <span class="prelude-val">Err</span>(s) =&gt; <a href="#322">state</a> = <a href="#388">s</a>,
+                    <span class="prelude-val">Err</span>(s) =&gt; state = s,
                 }
             }
         }
     }
 
-    <span class="kw">fn </span>header(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="header.rs.html#13">Header</a> {
-        <span class="kw">let </span>ptr = <a class="self" href="#394">self</a>.ptr.as_ptr();
-        <span class="kw">let </span>header = <a href="#395">ptr</a> <span class="kw">as </span><span class="kw-2">*const </span><a href="header.rs.html#13">Header</a>;
-        <span class="kw">unsafe </span>{ <span class="kw-2">&amp;*</span><a href="#396">header</a> }
+    <span class="kw">fn </span>header(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Header {
+        <span class="kw">let </span>ptr = <span class="self">self</span>.ptr.as_ptr();
+        <span class="kw">let </span>header = ptr <span class="kw">as </span><span class="kw-2">*const </span>Header;
+        <span class="kw">unsafe </span>{ <span class="kw-2">&amp;*</span>header }
     }
 
     <span class="doccomment">/// Returns `true` if the current task is finished.
     ///
     /// Note that in a multithreaded environment, this task can change finish immediately after calling this function.
-    </span><span class="kw">pub fn </span>is_finished(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">let </span>ptr = <a class="self" href="#403">self</a>.ptr.as_ptr();
-        <span class="kw">let </span>header = <a href="#404">ptr</a> <span class="kw">as </span><span class="kw-2">*const </span><a href="header.rs.html#13">Header</a>;
+    </span><span class="kw">pub fn </span>is_finished(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="kw">let </span>ptr = <span class="self">self</span>.ptr.as_ptr();
+        <span class="kw">let </span>header = ptr <span class="kw">as </span><span class="kw-2">*const </span>Header;
 
         <span class="kw">unsafe </span>{
-            <span class="kw">let </span>state = (<span class="kw-2">*</span><a href="#405">header</a>).state.load(Ordering::Acquire);
-            <a href="#408">state</a> &amp; (<a href="state.rs.html#35">CLOSED</a> | <a href="state.rs.html#24">COMPLETED</a>) != <span class="number">0
+            <span class="kw">let </span>state = (<span class="kw-2">*</span>header).state.load(Ordering::Acquire);
+            state &amp; (CLOSED | COMPLETED) != <span class="number">0
         </span>}
     }
 }
 
-<span class="kw">impl</span>&lt;T&gt; <a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span>Task&lt;T&gt; {
+<span class="kw">impl</span>&lt;T&gt; Drop <span class="kw">for </span>Task&lt;T&gt; {
     <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <a class="self" href="#415">self</a>.<a href="#181">set_canceled</a>();
-        <a class="self" href="#415">self</a>.<a href="#229">set_detached</a>();
+        <span class="self">self</span>.set_canceled();
+        <span class="self">self</span>.set_detached();
     }
 }
 
-<span class="kw">impl</span>&lt;T&gt; <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a> <span class="kw">for </span>Task&lt;T&gt; {
+<span class="kw">impl</span>&lt;T&gt; Future <span class="kw">for </span>Task&lt;T&gt; {
     <span class="kw">type </span>Output = T;
 
     <span class="kw">fn </span>poll(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
-        <span class="kw">match </span><a class="self" href="#424">self</a>.<a href="#317">poll_task</a>(<a href="#424">cx</a>) {
-            Poll::Ready(t) =&gt; Poll::Ready(<a href="#426">t</a>.expect(<span class="string">&quot;task has failed&quot;</span>)),
+        <span class="kw">match </span><span class="self">self</span>.poll_task(cx) {
+            Poll::Ready(t) =&gt; Poll::Ready(t.expect(<span class="string">&quot;task has failed&quot;</span>)),
             Poll::Pending =&gt; Poll::Pending,
         }
     }
 }
 
-<span class="kw">impl</span>&lt;T&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span>Task&lt;T&gt; {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a href="#433">f</a>.debug_struct(<span class="string">&quot;Task&quot;</span>)
-            .field(<span class="string">&quot;header&quot;</span>, <a class="self" href="#433">self</a>.<a href="#394">header</a>())
+<span class="kw">impl</span>&lt;T&gt; fmt::Debug <span class="kw">for </span>Task&lt;T&gt; {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        f.debug_struct(<span class="string">&quot;Task&quot;</span>)
+            .field(<span class="string">&quot;header&quot;</span>, <span class="self">self</span>.header())
             .finish()
     }
 }
@@ -1004,7 +1004,7 @@
     /// .detach();
     /// ```
     </span><span class="kw">pub fn </span>detach(<span class="self">self</span>) {
-        <a class="self" href="#474">self</a>.task.<a href="#85">detach</a>()
+        <span class="self">self</span>.task.detach()
     }
 
     <span class="doccomment">/// Cancels the task and waits for it to stop running.
@@ -1047,20 +1047,20 @@
     </span>}
 }
 
-<span class="kw">impl</span>&lt;T&gt; <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a> <span class="kw">for </span>FallibleTask&lt;T&gt; {
+<span class="kw">impl</span>&lt;T&gt; Future <span class="kw">for </span>FallibleTask&lt;T&gt; {
     <span class="kw">type </span>Output = <span class="prelude-ty">Option</span>&lt;T&gt;;
 
     <span class="kw">fn </span>poll(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
-        <a class="self" href="#521">self</a>.task.<a href="#317">poll_task</a>(<a href="#521">cx</a>)
+        <span class="self">self</span>.task.poll_task(cx)
     }
 }
 
-<span class="kw">impl</span>&lt;T&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span>FallibleTask&lt;T&gt; {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a href="#527">f</a>.debug_struct(<span class="string">&quot;FallibleTask&quot;</span>)
-            .field(<span class="string">&quot;header&quot;</span>, <a class="self" href="#527">self</a>.task.<a href="#394">header</a>())
+<span class="kw">impl</span>&lt;T&gt; fmt::Debug <span class="kw">for </span>FallibleTask&lt;T&gt; {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        f.debug_struct(<span class="string">&quot;FallibleTask&quot;</span>)
+            .field(<span class="string">&quot;header&quot;</span>, <span class="self">self</span>.task.header())
             .finish()
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="async_task" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="async_task" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

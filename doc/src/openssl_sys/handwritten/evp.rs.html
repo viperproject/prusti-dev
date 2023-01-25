@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/openssl-sys-0.9.77/src/./handwritten/evp.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>evp.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../openssl_sys/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/openssl-sys-0.9.80/src/./handwritten/evp.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>evp.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../openssl_sys/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -563,34 +563,70 @@
 <a href="#563" id="563">563</a>
 <a href="#564" id="564">564</a>
 <a href="#565" id="565">565</a>
-</pre><pre class="rust"><code><span class="kw">use </span><a href="../../../libc/index.html">libc</a>::<span class="kw-2">*</span>;
+<a href="#566" id="566">566</a>
+<a href="#567" id="567">567</a>
+<a href="#568" id="568">568</a>
+<a href="#569" id="569">569</a>
+<a href="#570" id="570">570</a>
+<a href="#571" id="571">571</a>
+<a href="#572" id="572">572</a>
+<a href="#573" id="573">573</a>
+<a href="#574" id="574">574</a>
+<a href="#575" id="575">575</a>
+<a href="#576" id="576">576</a>
+<a href="#577" id="577">577</a>
+<a href="#578" id="578">578</a>
+<a href="#579" id="579">579</a>
+<a href="#580" id="580">580</a>
+<a href="#581" id="581">581</a>
+<a href="#582" id="582">582</a>
+<a href="#583" id="583">583</a>
+<a href="#584" id="584">584</a>
+<a href="#585" id="585">585</a>
+<a href="#586" id="586">586</a>
+<a href="#587" id="587">587</a>
+<a href="#588" id="588">588</a>
+<a href="#589" id="589">589</a>
+<a href="#590" id="590">590</a>
+<a href="#591" id="591">591</a>
+<a href="#592" id="592">592</a>
+<a href="#593" id="593">593</a>
+<a href="#594" id="594">594</a>
+<a href="#595" id="595">595</a>
+<a href="#596" id="596">596</a>
+<a href="#597" id="597">597</a>
+<a href="#598" id="598">598</a>
+<a href="#599" id="599">599</a>
+<a href="#600" id="600">600</a>
+</pre><pre class="rust"><code><span class="kw">use </span>libc::<span class="kw-2">*</span>;
 <span class="kw">use </span><span class="kw-2">*</span>;
 
 <span class="macro">cfg_if! </span>{
     <span class="kw">if </span><span class="attr">#[cfg(ossl300)] </span>{
         <span class="kw">extern </span><span class="string">&quot;C&quot; </span>{
-            <span class="kw">pub fn </span>EVP_MD_get_block_size(md: <span class="kw-2">*const </span><a href="types.rs.html#92">EVP_MD</a>) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
-            <span class="kw">pub fn </span>EVP_MD_get_size(md: <span class="kw-2">*const </span><a href="types.rs.html#92">EVP_MD</a>) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
-            <span class="kw">pub fn </span>EVP_MD_get_type(md: <span class="kw-2">*const </span><a href="types.rs.html#92">EVP_MD</a>) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
+            <span class="kw">pub fn </span>EVP_MD_get_block_size(md: <span class="kw-2">*const </span>EVP_MD) -&gt; c_int;
+            <span class="kw">pub fn </span>EVP_MD_get_size(md: <span class="kw-2">*const </span>EVP_MD) -&gt; c_int;
+            <span class="kw">pub fn </span>EVP_MD_get_type(md: <span class="kw-2">*const </span>EVP_MD) -&gt; c_int;
 
-            <span class="kw">pub fn </span>EVP_MD_CTX_get0_md(ctx: <span class="kw-2">*const </span><a href="types.rs.html#95">EVP_MD_CTX</a>) -&gt; <span class="kw-2">*const </span><a href="types.rs.html#92">EVP_MD</a>;
+            <span class="kw">pub fn </span>EVP_MD_CTX_get0_md(ctx: <span class="kw-2">*const </span>EVP_MD_CTX) -&gt; <span class="kw-2">*const </span>EVP_MD;
 
-            <span class="kw">pub fn </span>EVP_CIPHER_get_key_length(cipher: <span class="kw-2">*const </span><a href="types.rs.html#64">EVP_CIPHER</a>) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
-            <span class="kw">pub fn </span>EVP_CIPHER_get_block_size(cipher: <span class="kw-2">*const </span><a href="types.rs.html#64">EVP_CIPHER</a>) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
-            <span class="kw">pub fn </span>EVP_CIPHER_get_iv_length(cipher: <span class="kw-2">*const </span><a href="types.rs.html#64">EVP_CIPHER</a>) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
-            <span class="kw">pub fn </span>EVP_CIPHER_get_nid(cipher: <span class="kw-2">*const </span><a href="types.rs.html#64">EVP_CIPHER</a>) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
+            <span class="kw">pub fn </span>EVP_CIPHER_get_key_length(cipher: <span class="kw-2">*const </span>EVP_CIPHER) -&gt; c_int;
+            <span class="kw">pub fn </span>EVP_CIPHER_get_block_size(cipher: <span class="kw-2">*const </span>EVP_CIPHER) -&gt; c_int;
+            <span class="kw">pub fn </span>EVP_CIPHER_get_iv_length(cipher: <span class="kw-2">*const </span>EVP_CIPHER) -&gt; c_int;
+            <span class="kw">pub fn </span>EVP_CIPHER_get_nid(cipher: <span class="kw-2">*const </span>EVP_CIPHER) -&gt; c_int;
             <span class="kw">pub fn </span>EVP_CIPHER_fetch(
-                ctx: <span class="kw-2">*mut </span><a href="types.rs.html#1078">OSSL_LIB_CTX</a>,
-                algorithm: <span class="kw-2">*const </span><a href="../../../openssl_sys/type.c_char.html">c_char</a>,
-                properties: <span class="kw-2">*const </span><a href="../../../openssl_sys/type.c_char.html">c_char</a>,
-            ) -&gt; <span class="kw-2">*mut </span><a href="types.rs.html#64">EVP_CIPHER</a>;
-            <span class="kw">pub fn </span>EVP_CIPHER_free(cipher: <span class="kw-2">*mut </span><a href="types.rs.html#64">EVP_CIPHER</a>);
+                ctx: <span class="kw-2">*mut </span>OSSL_LIB_CTX,
+                algorithm: <span class="kw-2">*const </span>c_char,
+                properties: <span class="kw-2">*const </span>c_char,
+            ) -&gt; <span class="kw-2">*mut </span>EVP_CIPHER;
+            <span class="kw">pub fn </span>EVP_CIPHER_free(cipher: <span class="kw-2">*mut </span>EVP_CIPHER);
 
-            <span class="kw">pub fn </span>EVP_CIPHER_CTX_get0_cipher(ctx: <span class="kw-2">*const </span><a href="types.rs.html#91">EVP_CIPHER_CTX</a>) -&gt; <span class="kw-2">*const </span><a href="types.rs.html#64">EVP_CIPHER</a>;
-            <span class="kw">pub fn </span>EVP_CIPHER_CTX_get_block_size(ctx: <span class="kw-2">*const </span><a href="types.rs.html#91">EVP_CIPHER_CTX</a>) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
-            <span class="kw">pub fn </span>EVP_CIPHER_CTX_get_key_length(ctx: <span class="kw-2">*const </span><a href="types.rs.html#91">EVP_CIPHER_CTX</a>) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
-            <span class="kw">pub fn </span>EVP_CIPHER_CTX_get_iv_length(ctx: <span class="kw-2">*const </span><a href="types.rs.html#91">EVP_CIPHER_CTX</a>) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
-            <span class="kw">pub fn </span>EVP_CIPHER_CTX_get_tag_length(ctx: <span class="kw-2">*const </span><a href="types.rs.html#91">EVP_CIPHER_CTX</a>) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
+            <span class="kw">pub fn </span>EVP_CIPHER_CTX_get0_cipher(ctx: <span class="kw-2">*const </span>EVP_CIPHER_CTX) -&gt; <span class="kw-2">*const </span>EVP_CIPHER;
+            <span class="kw">pub fn </span>EVP_CIPHER_CTX_get_block_size(ctx: <span class="kw-2">*const </span>EVP_CIPHER_CTX) -&gt; c_int;
+            <span class="kw">pub fn </span>EVP_CIPHER_CTX_get_key_length(ctx: <span class="kw-2">*const </span>EVP_CIPHER_CTX) -&gt; c_int;
+            <span class="kw">pub fn </span>EVP_CIPHER_CTX_get_iv_length(ctx: <span class="kw-2">*const </span>EVP_CIPHER_CTX) -&gt; c_int;
+            <span class="kw">pub fn </span>EVP_CIPHER_CTX_get_tag_length(ctx: <span class="kw-2">*const </span>EVP_CIPHER_CTX) -&gt; c_int;
+            <span class="kw">pub fn </span>EVP_CIPHER_CTX_get_num(ctx: <span class="kw-2">*const </span>EVP_CIPHER_CTX) -&gt; c_int;
         }
     } <span class="kw">else </span>{
         <span class="kw">extern </span><span class="string">&quot;C&quot; </span>{
@@ -609,6 +645,8 @@
             <span class="kw">pub fn </span>EVP_CIPHER_CTX_block_size(ctx: <span class="kw-2">*const </span>EVP_CIPHER_CTX) -&gt; c_int;
             <span class="kw">pub fn </span>EVP_CIPHER_CTX_key_length(ctx: <span class="kw-2">*const </span>EVP_CIPHER_CTX) -&gt; c_int;
             <span class="kw">pub fn </span>EVP_CIPHER_CTX_iv_length(ctx: <span class="kw-2">*const </span>EVP_CIPHER_CTX) -&gt; c_int;
+            <span class="attr">#[cfg(ossl110)]
+            </span><span class="kw">pub fn </span>EVP_CIPHER_CTX_num(ctx: <span class="kw-2">*const </span>EVP_CIPHER_CTX) -&gt; c_int;
         }
     }
 }
@@ -616,8 +654,8 @@
 <span class="macro">cfg_if! </span>{
     <span class="kw">if </span><span class="attr">#[cfg(ossl110)] </span>{
         <span class="kw">extern </span><span class="string">&quot;C&quot; </span>{
-            <span class="kw">pub fn </span>EVP_MD_CTX_new() -&gt; <span class="kw-2">*mut </span><a href="types.rs.html#95">EVP_MD_CTX</a>;
-            <span class="kw">pub fn </span>EVP_MD_CTX_free(ctx: <span class="kw-2">*mut </span><a href="types.rs.html#95">EVP_MD_CTX</a>);
+            <span class="kw">pub fn </span>EVP_MD_CTX_new() -&gt; <span class="kw-2">*mut </span>EVP_MD_CTX;
+            <span class="kw">pub fn </span>EVP_MD_CTX_free(ctx: <span class="kw-2">*mut </span>EVP_MD_CTX);
         }
     } <span class="kw">else </span>{
         <span class="kw">extern </span><span class="string">&quot;C&quot; </span>{
@@ -628,160 +666,160 @@
 }
 
 <span class="kw">extern </span><span class="string">&quot;C&quot; </span>{
-    <span class="kw">pub fn </span>EVP_DigestInit_ex(ctx: <span class="kw-2">*mut </span><a href="types.rs.html#95">EVP_MD_CTX</a>, typ: <span class="kw-2">*const </span><a href="types.rs.html#92">EVP_MD</a>, imple: <span class="kw-2">*mut </span><a href="types.rs.html#455">ENGINE</a>)
-        -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
-    <span class="kw">pub fn </span>EVP_DigestUpdate(ctx: <span class="kw-2">*mut </span><a href="types.rs.html#95">EVP_MD_CTX</a>, data: <span class="kw-2">*const </span><a href="../../../openssl_sys/enum.c_void.html">c_void</a>, n: <a href="../../../openssl_sys/type.size_t.html">size_t</a>) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
-    <span class="kw">pub fn </span>EVP_DigestFinal_ex(ctx: <span class="kw-2">*mut </span><a href="types.rs.html#95">EVP_MD_CTX</a>, res: <span class="kw-2">*mut </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>, n: <span class="kw-2">*mut </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
+    <span class="kw">pub fn </span>EVP_DigestInit_ex(ctx: <span class="kw-2">*mut </span>EVP_MD_CTX, typ: <span class="kw-2">*const </span>EVP_MD, imple: <span class="kw-2">*mut </span>ENGINE)
+        -&gt; c_int;
+    <span class="kw">pub fn </span>EVP_DigestUpdate(ctx: <span class="kw-2">*mut </span>EVP_MD_CTX, data: <span class="kw-2">*const </span>c_void, n: size_t) -&gt; c_int;
+    <span class="kw">pub fn </span>EVP_DigestFinal_ex(ctx: <span class="kw-2">*mut </span>EVP_MD_CTX, res: <span class="kw-2">*mut </span>u8, n: <span class="kw-2">*mut </span>u32) -&gt; c_int;
     <span class="attr">#[cfg(ossl300)]
     </span><span class="kw">pub fn </span>EVP_Q_digest(
-        libctx: <span class="kw-2">*mut </span><a href="types.rs.html#1078">OSSL_LIB_CTX</a>,
-        name: <span class="kw-2">*const </span><a href="../../../openssl_sys/type.c_char.html">c_char</a>,
-        propq: <span class="kw-2">*const </span><a href="../../../openssl_sys/type.c_char.html">c_char</a>,
-        data: <span class="kw-2">*const </span><a href="../../../openssl_sys/enum.c_void.html">c_void</a>,
-        count: <a href="../../../openssl_sys/type.size_t.html">size_t</a>,
-        md: <span class="kw-2">*mut </span><a href="../../../openssl_sys/type.c_uchar.html">c_uchar</a>,
-        size: <span class="kw-2">*mut </span><a href="../../../openssl_sys/type.size_t.html">size_t</a>,
-    ) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
-    <span class="kw">pub fn </span>EVP_DigestInit(ctx: <span class="kw-2">*mut </span><a href="types.rs.html#95">EVP_MD_CTX</a>, typ: <span class="kw-2">*const </span><a href="types.rs.html#92">EVP_MD</a>) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
-    <span class="kw">pub fn </span>EVP_DigestFinal(ctx: <span class="kw-2">*mut </span><a href="types.rs.html#95">EVP_MD_CTX</a>, res: <span class="kw-2">*mut </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>, n: <span class="kw-2">*mut </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
+        libctx: <span class="kw-2">*mut </span>OSSL_LIB_CTX,
+        name: <span class="kw-2">*const </span>c_char,
+        propq: <span class="kw-2">*const </span>c_char,
+        data: <span class="kw-2">*const </span>c_void,
+        count: size_t,
+        md: <span class="kw-2">*mut </span>c_uchar,
+        size: <span class="kw-2">*mut </span>size_t,
+    ) -&gt; c_int;
+    <span class="kw">pub fn </span>EVP_DigestInit(ctx: <span class="kw-2">*mut </span>EVP_MD_CTX, typ: <span class="kw-2">*const </span>EVP_MD) -&gt; c_int;
+    <span class="kw">pub fn </span>EVP_DigestFinal(ctx: <span class="kw-2">*mut </span>EVP_MD_CTX, res: <span class="kw-2">*mut </span>u8, n: <span class="kw-2">*mut </span>u32) -&gt; c_int;
     <span class="attr">#[cfg(ossl111)]
-    </span><span class="kw">pub fn </span>EVP_DigestFinalXOF(ctx: <span class="kw-2">*mut </span><a href="types.rs.html#95">EVP_MD_CTX</a>, res: <span class="kw-2">*mut </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>, len: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
+    </span><span class="kw">pub fn </span>EVP_DigestFinalXOF(ctx: <span class="kw-2">*mut </span>EVP_MD_CTX, res: <span class="kw-2">*mut </span>u8, len: usize) -&gt; c_int;
 
     <span class="attr">#[cfg(ossl300)]
     </span><span class="kw">pub fn </span>EVP_MD_fetch(
-        ctx: <span class="kw-2">*mut </span><a href="types.rs.html#1078">OSSL_LIB_CTX</a>,
-        algorithm: <span class="kw-2">*const </span><a href="../../../openssl_sys/type.c_char.html">c_char</a>,
-        properties: <span class="kw-2">*const </span><a href="../../../openssl_sys/type.c_char.html">c_char</a>,
-    ) -&gt; <span class="kw-2">*mut </span><a href="types.rs.html#92">EVP_MD</a>;
+        ctx: <span class="kw-2">*mut </span>OSSL_LIB_CTX,
+        algorithm: <span class="kw-2">*const </span>c_char,
+        properties: <span class="kw-2">*const </span>c_char,
+    ) -&gt; <span class="kw-2">*mut </span>EVP_MD;
 
     <span class="attr">#[cfg(ossl300)]
-    </span><span class="kw">pub fn </span>EVP_MD_free(md: <span class="kw-2">*mut </span><a href="types.rs.html#92">EVP_MD</a>);
+    </span><span class="kw">pub fn </span>EVP_MD_free(md: <span class="kw-2">*mut </span>EVP_MD);
 
     <span class="kw">pub fn </span>EVP_BytesToKey(
-        typ: <span class="kw-2">*const </span><a href="types.rs.html#64">EVP_CIPHER</a>,
-        md: <span class="kw-2">*const </span><a href="types.rs.html#92">EVP_MD</a>,
-        salt: <span class="kw-2">*const </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>,
-        data: <span class="kw-2">*const </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>,
-        datalen: <a href="../../../openssl_sys/type.c_int.html">c_int</a>,
-        count: <a href="../../../openssl_sys/type.c_int.html">c_int</a>,
-        key: <span class="kw-2">*mut </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>,
-        iv: <span class="kw-2">*mut </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>,
-    ) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
+        typ: <span class="kw-2">*const </span>EVP_CIPHER,
+        md: <span class="kw-2">*const </span>EVP_MD,
+        salt: <span class="kw-2">*const </span>u8,
+        data: <span class="kw-2">*const </span>u8,
+        datalen: c_int,
+        count: c_int,
+        key: <span class="kw-2">*mut </span>u8,
+        iv: <span class="kw-2">*mut </span>u8,
+    ) -&gt; c_int;
 
     <span class="kw">pub fn </span>EVP_CipherInit(
-        ctx: <span class="kw-2">*mut </span><a href="types.rs.html#91">EVP_CIPHER_CTX</a>,
-        evp: <span class="kw-2">*const </span><a href="types.rs.html#64">EVP_CIPHER</a>,
-        key: <span class="kw-2">*const </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>,
-        iv: <span class="kw-2">*const </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>,
-        mode: <a href="../../../openssl_sys/type.c_int.html">c_int</a>,
-    ) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
+        ctx: <span class="kw-2">*mut </span>EVP_CIPHER_CTX,
+        evp: <span class="kw-2">*const </span>EVP_CIPHER,
+        key: <span class="kw-2">*const </span>u8,
+        iv: <span class="kw-2">*const </span>u8,
+        mode: c_int,
+    ) -&gt; c_int;
     <span class="kw">pub fn </span>EVP_CipherInit_ex(
-        ctx: <span class="kw-2">*mut </span><a href="types.rs.html#91">EVP_CIPHER_CTX</a>,
-        type_: <span class="kw-2">*const </span><a href="types.rs.html#64">EVP_CIPHER</a>,
-        impl_: <span class="kw-2">*mut </span><a href="types.rs.html#455">ENGINE</a>,
-        key: <span class="kw-2">*const </span><a href="../../../openssl_sys/type.c_uchar.html">c_uchar</a>,
-        iv: <span class="kw-2">*const </span><a href="../../../openssl_sys/type.c_uchar.html">c_uchar</a>,
-        enc: <a href="../../../openssl_sys/type.c_int.html">c_int</a>,
-    ) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
+        ctx: <span class="kw-2">*mut </span>EVP_CIPHER_CTX,
+        type_: <span class="kw-2">*const </span>EVP_CIPHER,
+        impl_: <span class="kw-2">*mut </span>ENGINE,
+        key: <span class="kw-2">*const </span>c_uchar,
+        iv: <span class="kw-2">*const </span>c_uchar,
+        enc: c_int,
+    ) -&gt; c_int;
     <span class="kw">pub fn </span>EVP_CipherUpdate(
-        ctx: <span class="kw-2">*mut </span><a href="types.rs.html#91">EVP_CIPHER_CTX</a>,
-        outbuf: <span class="kw-2">*mut </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>,
-        outlen: <span class="kw-2">*mut </span><a href="../../../openssl_sys/type.c_int.html">c_int</a>,
-        inbuf: <span class="kw-2">*const </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>,
-        inlen: <a href="../../../openssl_sys/type.c_int.html">c_int</a>,
-    ) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
-    <span class="kw">pub fn </span>EVP_CipherFinal(ctx: <span class="kw-2">*mut </span><a href="types.rs.html#91">EVP_CIPHER_CTX</a>, res: <span class="kw-2">*mut </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>, len: <span class="kw-2">*mut </span><a href="../../../openssl_sys/type.c_int.html">c_int</a>) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
+        ctx: <span class="kw-2">*mut </span>EVP_CIPHER_CTX,
+        outbuf: <span class="kw-2">*mut </span>u8,
+        outlen: <span class="kw-2">*mut </span>c_int,
+        inbuf: <span class="kw-2">*const </span>u8,
+        inlen: c_int,
+    ) -&gt; c_int;
+    <span class="kw">pub fn </span>EVP_CipherFinal(ctx: <span class="kw-2">*mut </span>EVP_CIPHER_CTX, res: <span class="kw-2">*mut </span>u8, len: <span class="kw-2">*mut </span>c_int) -&gt; c_int;
 
     <span class="kw">pub fn </span>EVP_DigestSignInit(
-        ctx: <span class="kw-2">*mut </span><a href="types.rs.html#95">EVP_MD_CTX</a>,
-        pctx: <span class="kw-2">*mut *mut </span><a href="types.rs.html#113">EVP_PKEY_CTX</a>,
-        type_: <span class="kw-2">*const </span><a href="types.rs.html#92">EVP_MD</a>,
-        e: <span class="kw-2">*mut </span><a href="types.rs.html#455">ENGINE</a>,
-        pkey: <span class="kw-2">*mut </span><a href="../types.rs.html#6">EVP_PKEY</a>,
-    ) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
+        ctx: <span class="kw-2">*mut </span>EVP_MD_CTX,
+        pctx: <span class="kw-2">*mut *mut </span>EVP_PKEY_CTX,
+        type_: <span class="kw-2">*const </span>EVP_MD,
+        e: <span class="kw-2">*mut </span>ENGINE,
+        pkey: <span class="kw-2">*mut </span>EVP_PKEY,
+    ) -&gt; c_int;
 
     <span class="attr">#[cfg(ossl300)]
-    </span><span class="kw">pub fn </span>EVP_DigestSignUpdate(ctx: <span class="kw-2">*mut </span><a href="types.rs.html#95">EVP_MD_CTX</a>, data: <span class="kw-2">*const </span><a href="../../../openssl_sys/enum.c_void.html">c_void</a>, dsize: <a href="../../../openssl_sys/type.size_t.html">size_t</a>) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
+    </span><span class="kw">pub fn </span>EVP_DigestSignUpdate(ctx: <span class="kw-2">*mut </span>EVP_MD_CTX, data: <span class="kw-2">*const </span>c_void, dsize: size_t) -&gt; c_int;
     <span class="kw">pub fn </span>EVP_DigestSignFinal(
-        ctx: <span class="kw-2">*mut </span><a href="types.rs.html#95">EVP_MD_CTX</a>,
-        sig: <span class="kw-2">*mut </span><a href="../../../openssl_sys/type.c_uchar.html">c_uchar</a>,
-        siglen: <span class="kw-2">*mut </span><a href="../../../openssl_sys/type.size_t.html">size_t</a>,
-    ) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
+        ctx: <span class="kw-2">*mut </span>EVP_MD_CTX,
+        sig: <span class="kw-2">*mut </span>c_uchar,
+        siglen: <span class="kw-2">*mut </span>size_t,
+    ) -&gt; c_int;
     <span class="kw">pub fn </span>EVP_DigestVerifyInit(
-        ctx: <span class="kw-2">*mut </span><a href="types.rs.html#95">EVP_MD_CTX</a>,
-        pctx: <span class="kw-2">*mut *mut </span><a href="types.rs.html#113">EVP_PKEY_CTX</a>,
-        type_: <span class="kw-2">*const </span><a href="types.rs.html#92">EVP_MD</a>,
-        e: <span class="kw-2">*mut </span><a href="types.rs.html#455">ENGINE</a>,
-        pkey: <span class="kw-2">*mut </span><a href="../types.rs.html#6">EVP_PKEY</a>,
-    ) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
+        ctx: <span class="kw-2">*mut </span>EVP_MD_CTX,
+        pctx: <span class="kw-2">*mut *mut </span>EVP_PKEY_CTX,
+        type_: <span class="kw-2">*const </span>EVP_MD,
+        e: <span class="kw-2">*mut </span>ENGINE,
+        pkey: <span class="kw-2">*mut </span>EVP_PKEY,
+    ) -&gt; c_int;
     <span class="attr">#[cfg(ossl300)]
     </span><span class="kw">pub fn </span>EVP_DigestVerifyUpdate(
-        ctx: <span class="kw-2">*mut </span><a href="types.rs.html#95">EVP_MD_CTX</a>,
-        data: <span class="kw-2">*const </span><a href="../../../openssl_sys/enum.c_void.html">c_void</a>,
-        dsize: <a href="../../../openssl_sys/type.size_t.html">size_t</a>,
-    ) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
+        ctx: <span class="kw-2">*mut </span>EVP_MD_CTX,
+        data: <span class="kw-2">*const </span>c_void,
+        dsize: size_t,
+    ) -&gt; c_int;
     <span class="kw">pub fn </span>EVP_SealInit(
-        ctx: <span class="kw-2">*mut </span><a href="types.rs.html#91">EVP_CIPHER_CTX</a>,
-        type_: <span class="kw-2">*const </span><a href="types.rs.html#64">EVP_CIPHER</a>,
-        ek: <span class="kw-2">*mut *mut </span><a href="../../../openssl_sys/type.c_uchar.html">c_uchar</a>,
-        ekl: <span class="kw-2">*mut </span><a href="../../../openssl_sys/type.c_int.html">c_int</a>,
-        iv: <span class="kw-2">*mut </span><a href="../../../openssl_sys/type.c_uchar.html">c_uchar</a>,
-        pubk: <span class="kw-2">*mut *mut </span><a href="../types.rs.html#6">EVP_PKEY</a>,
-        npubk: <a href="../../../openssl_sys/type.c_int.html">c_int</a>,
-    ) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
-    <span class="kw">pub fn </span>EVP_SealFinal(ctx: <span class="kw-2">*mut </span><a href="types.rs.html#91">EVP_CIPHER_CTX</a>, out: <span class="kw-2">*mut </span><a href="../../../openssl_sys/type.c_uchar.html">c_uchar</a>, outl: <span class="kw-2">*mut </span><a href="../../../openssl_sys/type.c_int.html">c_int</a>) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
+        ctx: <span class="kw-2">*mut </span>EVP_CIPHER_CTX,
+        type_: <span class="kw-2">*const </span>EVP_CIPHER,
+        ek: <span class="kw-2">*mut *mut </span>c_uchar,
+        ekl: <span class="kw-2">*mut </span>c_int,
+        iv: <span class="kw-2">*mut </span>c_uchar,
+        pubk: <span class="kw-2">*mut *mut </span>EVP_PKEY,
+        npubk: c_int,
+    ) -&gt; c_int;
+    <span class="kw">pub fn </span>EVP_SealFinal(ctx: <span class="kw-2">*mut </span>EVP_CIPHER_CTX, out: <span class="kw-2">*mut </span>c_uchar, outl: <span class="kw-2">*mut </span>c_int) -&gt; c_int;
     <span class="kw">pub fn </span>EVP_EncryptInit_ex(
-        ctx: <span class="kw-2">*mut </span><a href="types.rs.html#91">EVP_CIPHER_CTX</a>,
-        cipher: <span class="kw-2">*const </span><a href="types.rs.html#64">EVP_CIPHER</a>,
-        impl_: <span class="kw-2">*mut </span><a href="types.rs.html#455">ENGINE</a>,
-        key: <span class="kw-2">*const </span><a href="../../../openssl_sys/type.c_uchar.html">c_uchar</a>,
-        iv: <span class="kw-2">*const </span><a href="../../../openssl_sys/type.c_uchar.html">c_uchar</a>,
-    ) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
+        ctx: <span class="kw-2">*mut </span>EVP_CIPHER_CTX,
+        cipher: <span class="kw-2">*const </span>EVP_CIPHER,
+        impl_: <span class="kw-2">*mut </span>ENGINE,
+        key: <span class="kw-2">*const </span>c_uchar,
+        iv: <span class="kw-2">*const </span>c_uchar,
+    ) -&gt; c_int;
     <span class="kw">pub fn </span>EVP_EncryptUpdate(
-        ctx: <span class="kw-2">*mut </span><a href="types.rs.html#91">EVP_CIPHER_CTX</a>,
-        out: <span class="kw-2">*mut </span><a href="../../../openssl_sys/type.c_uchar.html">c_uchar</a>,
-        outl: <span class="kw-2">*mut </span><a href="../../../openssl_sys/type.c_int.html">c_int</a>,
-        in_: <span class="kw-2">*const </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>,
-        inl: <a href="../../../openssl_sys/type.c_int.html">c_int</a>,
-    ) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
+        ctx: <span class="kw-2">*mut </span>EVP_CIPHER_CTX,
+        out: <span class="kw-2">*mut </span>c_uchar,
+        outl: <span class="kw-2">*mut </span>c_int,
+        in_: <span class="kw-2">*const </span>u8,
+        inl: c_int,
+    ) -&gt; c_int;
     <span class="kw">pub fn </span>EVP_EncryptFinal_ex(
-        ctx: <span class="kw-2">*mut </span><a href="types.rs.html#91">EVP_CIPHER_CTX</a>,
-        out: <span class="kw-2">*mut </span><a href="../../../openssl_sys/type.c_uchar.html">c_uchar</a>,
-        outl: <span class="kw-2">*mut </span><a href="../../../openssl_sys/type.c_int.html">c_int</a>,
-    ) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
+        ctx: <span class="kw-2">*mut </span>EVP_CIPHER_CTX,
+        out: <span class="kw-2">*mut </span>c_uchar,
+        outl: <span class="kw-2">*mut </span>c_int,
+    ) -&gt; c_int;
     <span class="kw">pub fn </span>EVP_OpenInit(
-        ctx: <span class="kw-2">*mut </span><a href="types.rs.html#91">EVP_CIPHER_CTX</a>,
-        type_: <span class="kw-2">*const </span><a href="types.rs.html#64">EVP_CIPHER</a>,
-        ek: <span class="kw-2">*const </span><a href="../../../openssl_sys/type.c_uchar.html">c_uchar</a>,
-        ekl: <a href="../../../openssl_sys/type.c_int.html">c_int</a>,
-        iv: <span class="kw-2">*const </span><a href="../../../openssl_sys/type.c_uchar.html">c_uchar</a>,
-        priv_: <span class="kw-2">*mut </span><a href="../types.rs.html#6">EVP_PKEY</a>,
-    ) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
-    <span class="kw">pub fn </span>EVP_OpenFinal(ctx: <span class="kw-2">*mut </span><a href="types.rs.html#91">EVP_CIPHER_CTX</a>, out: <span class="kw-2">*mut </span><a href="../../../openssl_sys/type.c_uchar.html">c_uchar</a>, outl: <span class="kw-2">*mut </span><a href="../../../openssl_sys/type.c_int.html">c_int</a>) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
+        ctx: <span class="kw-2">*mut </span>EVP_CIPHER_CTX,
+        type_: <span class="kw-2">*const </span>EVP_CIPHER,
+        ek: <span class="kw-2">*const </span>c_uchar,
+        ekl: c_int,
+        iv: <span class="kw-2">*const </span>c_uchar,
+        priv_: <span class="kw-2">*mut </span>EVP_PKEY,
+    ) -&gt; c_int;
+    <span class="kw">pub fn </span>EVP_OpenFinal(ctx: <span class="kw-2">*mut </span>EVP_CIPHER_CTX, out: <span class="kw-2">*mut </span>c_uchar, outl: <span class="kw-2">*mut </span>c_int) -&gt; c_int;
     <span class="kw">pub fn </span>EVP_DecryptInit_ex(
-        ctx: <span class="kw-2">*mut </span><a href="types.rs.html#91">EVP_CIPHER_CTX</a>,
-        cipher: <span class="kw-2">*const </span><a href="types.rs.html#64">EVP_CIPHER</a>,
-        impl_: <span class="kw-2">*mut </span><a href="types.rs.html#455">ENGINE</a>,
-        key: <span class="kw-2">*const </span><a href="../../../openssl_sys/type.c_uchar.html">c_uchar</a>,
-        iv: <span class="kw-2">*const </span><a href="../../../openssl_sys/type.c_uchar.html">c_uchar</a>,
-    ) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
+        ctx: <span class="kw-2">*mut </span>EVP_CIPHER_CTX,
+        cipher: <span class="kw-2">*const </span>EVP_CIPHER,
+        impl_: <span class="kw-2">*mut </span>ENGINE,
+        key: <span class="kw-2">*const </span>c_uchar,
+        iv: <span class="kw-2">*const </span>c_uchar,
+    ) -&gt; c_int;
     <span class="kw">pub fn </span>EVP_DecryptUpdate(
-        ctx: <span class="kw-2">*mut </span><a href="types.rs.html#91">EVP_CIPHER_CTX</a>,
-        out: <span class="kw-2">*mut </span><a href="../../../openssl_sys/type.c_uchar.html">c_uchar</a>,
-        outl: <span class="kw-2">*mut </span><a href="../../../openssl_sys/type.c_int.html">c_int</a>,
-        in_: <span class="kw-2">*const </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>,
-        inl: <a href="../../../openssl_sys/type.c_int.html">c_int</a>,
-    ) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
+        ctx: <span class="kw-2">*mut </span>EVP_CIPHER_CTX,
+        out: <span class="kw-2">*mut </span>c_uchar,
+        outl: <span class="kw-2">*mut </span>c_int,
+        in_: <span class="kw-2">*const </span>u8,
+        inl: c_int,
+    ) -&gt; c_int;
     <span class="kw">pub fn </span>EVP_DecryptFinal_ex(
-        ctx: <span class="kw-2">*mut </span><a href="types.rs.html#91">EVP_CIPHER_CTX</a>,
-        outm: <span class="kw-2">*mut </span><a href="../../../openssl_sys/type.c_uchar.html">c_uchar</a>,
-        outl: <span class="kw-2">*mut </span><a href="../../../openssl_sys/type.c_int.html">c_int</a>,
-    ) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
+        ctx: <span class="kw-2">*mut </span>EVP_CIPHER_CTX,
+        outm: <span class="kw-2">*mut </span>c_uchar,
+        outl: <span class="kw-2">*mut </span>c_int,
+    ) -&gt; c_int;
 }
 <span class="macro">cfg_if! </span>{
     <span class="kw">if </span><span class="attr">#[cfg(ossl300)] </span>{
         <span class="kw">extern </span><span class="string">&quot;C&quot; </span>{
-            <span class="kw">pub fn </span>EVP_PKEY_get_size(pkey: <span class="kw-2">*const </span><a href="../types.rs.html#6">EVP_PKEY</a>) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
+            <span class="kw">pub fn </span>EVP_PKEY_get_size(pkey: <span class="kw-2">*const </span>EVP_PKEY) -&gt; c_int;
         }
     } <span class="kw">else </span>{
         <span class="macro">const_ptr_api! </span>{
@@ -795,163 +833,193 @@
     <span class="kw">if </span><span class="attr">#[cfg(ossl111)] </span>{
         <span class="kw">extern </span><span class="string">&quot;C&quot; </span>{
             <span class="kw">pub fn </span>EVP_DigestSign(
-                ctx: <span class="kw-2">*mut </span><a href="types.rs.html#95">EVP_MD_CTX</a>,
-                sigret: <span class="kw-2">*mut </span><a href="../../../openssl_sys/type.c_uchar.html">c_uchar</a>,
-                siglen: <span class="kw-2">*mut </span><a href="../../../openssl_sys/type.size_t.html">size_t</a>,
-                tbs: <span class="kw-2">*const </span><a href="../../../openssl_sys/type.c_uchar.html">c_uchar</a>,
-                tbslen: <a href="../../../openssl_sys/type.size_t.html">size_t</a>
-            ) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
+                ctx: <span class="kw-2">*mut </span>EVP_MD_CTX,
+                sigret: <span class="kw-2">*mut </span>c_uchar,
+                siglen: <span class="kw-2">*mut </span>size_t,
+                tbs: <span class="kw-2">*const </span>c_uchar,
+                tbslen: size_t
+            ) -&gt; c_int;
 
             <span class="kw">pub fn </span>EVP_DigestVerify(
-                ctx: <span class="kw-2">*mut </span><a href="types.rs.html#95">EVP_MD_CTX</a>,
-                sigret: <span class="kw-2">*const </span><a href="../../../openssl_sys/type.c_uchar.html">c_uchar</a>,
-                siglen: <a href="../../../openssl_sys/type.size_t.html">size_t</a>,
-                tbs: <span class="kw-2">*const </span><a href="../../../openssl_sys/type.c_uchar.html">c_uchar</a>,
-                tbslen: <a href="../../../openssl_sys/type.size_t.html">size_t</a>
-            ) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
+                ctx: <span class="kw-2">*mut </span>EVP_MD_CTX,
+                sigret: <span class="kw-2">*const </span>c_uchar,
+                siglen: size_t,
+                tbs: <span class="kw-2">*const </span>c_uchar,
+                tbslen: size_t
+            ) -&gt; c_int;
         }
     }
 }
 <span class="macro">const_ptr_api! </span>{
     <span class="kw">extern </span><span class="string">&quot;C&quot; </span>{
         <span class="kw">pub fn </span>EVP_DigestVerifyFinal(
-            ctx: <span class="kw-2">*mut </span><a href="types.rs.html#95">EVP_MD_CTX</a>,
-            sigret: <span class="attr">#[const_ptr_if(any(ossl102, libressl280))] </span><a href="../../../openssl_sys/type.c_uchar.html">c_uchar</a>,
-            siglen: <a href="../../../openssl_sys/type.size_t.html">size_t</a>,
-        ) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
+            ctx: <span class="kw-2">*mut </span>EVP_MD_CTX,
+            sigret: <span class="attr">#[const_ptr_if(any(ossl102, libressl280))] </span>c_uchar,
+            siglen: size_t,
+        ) -&gt; c_int;
     }
 }
 
 <span class="kw">extern </span><span class="string">&quot;C&quot; </span>{
-    <span class="kw">pub fn </span>EVP_CIPHER_CTX_new() -&gt; <span class="kw-2">*mut </span><a href="types.rs.html#91">EVP_CIPHER_CTX</a>;
-    <span class="kw">pub fn </span>EVP_CIPHER_CTX_free(ctx: <span class="kw-2">*mut </span><a href="types.rs.html#91">EVP_CIPHER_CTX</a>);
-    <span class="kw">pub fn </span>EVP_MD_CTX_copy_ex(dst: <span class="kw-2">*mut </span><a href="types.rs.html#95">EVP_MD_CTX</a>, src: <span class="kw-2">*const </span><a href="types.rs.html#95">EVP_MD_CTX</a>) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
+    <span class="kw">pub fn </span>EVP_CIPHER_CTX_new() -&gt; <span class="kw-2">*mut </span>EVP_CIPHER_CTX;
+    <span class="kw">pub fn </span>EVP_CIPHER_CTX_free(ctx: <span class="kw-2">*mut </span>EVP_CIPHER_CTX);
+    <span class="kw">pub fn </span>EVP_MD_CTX_copy_ex(dst: <span class="kw-2">*mut </span>EVP_MD_CTX, src: <span class="kw-2">*const </span>EVP_MD_CTX) -&gt; c_int;
     <span class="attr">#[cfg(ossl111)]
-    </span><span class="kw">pub fn </span>EVP_MD_CTX_reset(ctx: <span class="kw-2">*mut </span><a href="types.rs.html#95">EVP_MD_CTX</a>) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
-    <span class="kw">pub fn </span>EVP_CIPHER_CTX_set_key_length(ctx: <span class="kw-2">*mut </span><a href="types.rs.html#91">EVP_CIPHER_CTX</a>, keylen: <a href="../../../openssl_sys/type.c_int.html">c_int</a>) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
-    <span class="kw">pub fn </span>EVP_CIPHER_CTX_set_padding(ctx: <span class="kw-2">*mut </span><a href="types.rs.html#91">EVP_CIPHER_CTX</a>, padding: <a href="../../../openssl_sys/type.c_int.html">c_int</a>) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
+    </span><span class="kw">pub fn </span>EVP_MD_CTX_reset(ctx: <span class="kw-2">*mut </span>EVP_MD_CTX) -&gt; c_int;
+    <span class="kw">pub fn </span>EVP_CIPHER_CTX_set_key_length(ctx: <span class="kw-2">*mut </span>EVP_CIPHER_CTX, keylen: c_int) -&gt; c_int;
+    <span class="kw">pub fn </span>EVP_CIPHER_CTX_set_padding(ctx: <span class="kw-2">*mut </span>EVP_CIPHER_CTX, padding: c_int) -&gt; c_int;
     <span class="kw">pub fn </span>EVP_CIPHER_CTX_ctrl(
-        ctx: <span class="kw-2">*mut </span><a href="types.rs.html#91">EVP_CIPHER_CTX</a>,
-        type_: <a href="../../../openssl_sys/type.c_int.html">c_int</a>,
-        arg: <a href="../../../openssl_sys/type.c_int.html">c_int</a>,
-        ptr: <span class="kw-2">*mut </span><a href="../../../openssl_sys/enum.c_void.html">c_void</a>,
-    ) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
-    <span class="kw">pub fn </span>EVP_CIPHER_CTX_rand_key(ctx: <span class="kw-2">*mut </span><a href="types.rs.html#91">EVP_CIPHER_CTX</a>, key: <span class="kw-2">*mut </span><a href="../../../openssl_sys/type.c_uchar.html">c_uchar</a>) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
+        ctx: <span class="kw-2">*mut </span>EVP_CIPHER_CTX,
+        type_: c_int,
+        arg: c_int,
+        ptr: <span class="kw-2">*mut </span>c_void,
+    ) -&gt; c_int;
+    <span class="kw">pub fn </span>EVP_CIPHER_CTX_rand_key(ctx: <span class="kw-2">*mut </span>EVP_CIPHER_CTX, key: <span class="kw-2">*mut </span>c_uchar) -&gt; c_int;
 
-    <span class="kw">pub fn </span>EVP_md_null() -&gt; <span class="kw-2">*const </span><a href="types.rs.html#92">EVP_MD</a>;
-    <span class="kw">pub fn </span>EVP_md5() -&gt; <span class="kw-2">*const </span><a href="types.rs.html#92">EVP_MD</a>;
-    <span class="kw">pub fn </span>EVP_sha1() -&gt; <span class="kw-2">*const </span><a href="types.rs.html#92">EVP_MD</a>;
-    <span class="kw">pub fn </span>EVP_sha224() -&gt; <span class="kw-2">*const </span><a href="types.rs.html#92">EVP_MD</a>;
-    <span class="kw">pub fn </span>EVP_sha256() -&gt; <span class="kw-2">*const </span><a href="types.rs.html#92">EVP_MD</a>;
-    <span class="kw">pub fn </span>EVP_sha384() -&gt; <span class="kw-2">*const </span><a href="types.rs.html#92">EVP_MD</a>;
-    <span class="kw">pub fn </span>EVP_sha512() -&gt; <span class="kw-2">*const </span><a href="types.rs.html#92">EVP_MD</a>;
+    <span class="kw">pub fn </span>EVP_md_null() -&gt; <span class="kw-2">*const </span>EVP_MD;
+    <span class="kw">pub fn </span>EVP_md5() -&gt; <span class="kw-2">*const </span>EVP_MD;
+    <span class="kw">pub fn </span>EVP_sha1() -&gt; <span class="kw-2">*const </span>EVP_MD;
+    <span class="kw">pub fn </span>EVP_sha224() -&gt; <span class="kw-2">*const </span>EVP_MD;
+    <span class="kw">pub fn </span>EVP_sha256() -&gt; <span class="kw-2">*const </span>EVP_MD;
+    <span class="kw">pub fn </span>EVP_sha384() -&gt; <span class="kw-2">*const </span>EVP_MD;
+    <span class="kw">pub fn </span>EVP_sha512() -&gt; <span class="kw-2">*const </span>EVP_MD;
     <span class="attr">#[cfg(ossl111)]
-    </span><span class="kw">pub fn </span>EVP_sha3_224() -&gt; <span class="kw-2">*const </span><a href="types.rs.html#92">EVP_MD</a>;
+    </span><span class="kw">pub fn </span>EVP_sha3_224() -&gt; <span class="kw-2">*const </span>EVP_MD;
     <span class="attr">#[cfg(ossl111)]
-    </span><span class="kw">pub fn </span>EVP_sha3_256() -&gt; <span class="kw-2">*const </span><a href="types.rs.html#92">EVP_MD</a>;
+    </span><span class="kw">pub fn </span>EVP_sha3_256() -&gt; <span class="kw-2">*const </span>EVP_MD;
     <span class="attr">#[cfg(ossl111)]
-    </span><span class="kw">pub fn </span>EVP_sha3_384() -&gt; <span class="kw-2">*const </span><a href="types.rs.html#92">EVP_MD</a>;
+    </span><span class="kw">pub fn </span>EVP_sha3_384() -&gt; <span class="kw-2">*const </span>EVP_MD;
     <span class="attr">#[cfg(ossl111)]
-    </span><span class="kw">pub fn </span>EVP_sha3_512() -&gt; <span class="kw-2">*const </span><a href="types.rs.html#92">EVP_MD</a>;
+    </span><span class="kw">pub fn </span>EVP_sha3_512() -&gt; <span class="kw-2">*const </span>EVP_MD;
     <span class="attr">#[cfg(ossl111)]
-    </span><span class="kw">pub fn </span>EVP_shake128() -&gt; <span class="kw-2">*const </span><a href="types.rs.html#92">EVP_MD</a>;
+    </span><span class="kw">pub fn </span>EVP_shake128() -&gt; <span class="kw-2">*const </span>EVP_MD;
     <span class="attr">#[cfg(ossl111)]
-    </span><span class="kw">pub fn </span>EVP_shake256() -&gt; <span class="kw-2">*const </span><a href="types.rs.html#92">EVP_MD</a>;
-    <span class="kw">pub fn </span>EVP_ripemd160() -&gt; <span class="kw-2">*const </span><a href="types.rs.html#92">EVP_MD</a>;
+    </span><span class="kw">pub fn </span>EVP_shake256() -&gt; <span class="kw-2">*const </span>EVP_MD;
+    <span class="kw">pub fn </span>EVP_ripemd160() -&gt; <span class="kw-2">*const </span>EVP_MD;
     <span class="attr">#[cfg(all(any(ossl111, libressl291), not(osslconf = <span class="string">&quot;OPENSSL_NO_SM3&quot;</span>)))]
-    </span><span class="kw">pub fn </span>EVP_sm3() -&gt; <span class="kw-2">*const </span><a href="types.rs.html#92">EVP_MD</a>;
-    <span class="kw">pub fn </span>EVP_des_ecb() -&gt; <span class="kw-2">*const </span><a href="types.rs.html#64">EVP_CIPHER</a>;
-    <span class="kw">pub fn </span>EVP_des_ede3() -&gt; <span class="kw-2">*const </span><a href="types.rs.html#64">EVP_CIPHER</a>;
-    <span class="kw">pub fn </span>EVP_des_ede3_cbc() -&gt; <span class="kw-2">*const </span><a href="types.rs.html#64">EVP_CIPHER</a>;
-    <span class="kw">pub fn </span>EVP_des_ede3_cfb64() -&gt; <span class="kw-2">*const </span><a href="types.rs.html#64">EVP_CIPHER</a>;
-    <span class="kw">pub fn </span>EVP_des_cbc() -&gt; <span class="kw-2">*const </span><a href="types.rs.html#64">EVP_CIPHER</a>;
-    <span class="kw">pub fn </span>EVP_rc4() -&gt; <span class="kw-2">*const </span><a href="types.rs.html#64">EVP_CIPHER</a>;
-    <span class="kw">pub fn </span>EVP_bf_ecb() -&gt; <span class="kw-2">*const </span><a href="types.rs.html#64">EVP_CIPHER</a>;
-    <span class="kw">pub fn </span>EVP_bf_cbc() -&gt; <span class="kw-2">*const </span><a href="types.rs.html#64">EVP_CIPHER</a>;
-    <span class="kw">pub fn </span>EVP_bf_cfb64() -&gt; <span class="kw-2">*const </span><a href="types.rs.html#64">EVP_CIPHER</a>;
-    <span class="kw">pub fn </span>EVP_bf_ofb() -&gt; <span class="kw-2">*const </span><a href="types.rs.html#64">EVP_CIPHER</a>;
-    <span class="kw">pub fn </span>EVP_aes_128_ecb() -&gt; <span class="kw-2">*const </span><a href="types.rs.html#64">EVP_CIPHER</a>;
-    <span class="kw">pub fn </span>EVP_aes_128_cbc() -&gt; <span class="kw-2">*const </span><a href="types.rs.html#64">EVP_CIPHER</a>;
-    <span class="kw">pub fn </span>EVP_aes_128_cfb1() -&gt; <span class="kw-2">*const </span><a href="types.rs.html#64">EVP_CIPHER</a>;
-    <span class="kw">pub fn </span>EVP_aes_128_cfb8() -&gt; <span class="kw-2">*const </span><a href="types.rs.html#64">EVP_CIPHER</a>;
-    <span class="kw">pub fn </span>EVP_aes_128_cfb128() -&gt; <span class="kw-2">*const </span><a href="types.rs.html#64">EVP_CIPHER</a>;
-    <span class="kw">pub fn </span>EVP_aes_128_ctr() -&gt; <span class="kw-2">*const </span><a href="types.rs.html#64">EVP_CIPHER</a>;
-    <span class="kw">pub fn </span>EVP_aes_128_ccm() -&gt; <span class="kw-2">*const </span><a href="types.rs.html#64">EVP_CIPHER</a>;
-    <span class="kw">pub fn </span>EVP_aes_128_gcm() -&gt; <span class="kw-2">*const </span><a href="types.rs.html#64">EVP_CIPHER</a>;
-    <span class="kw">pub fn </span>EVP_aes_128_xts() -&gt; <span class="kw-2">*const </span><a href="types.rs.html#64">EVP_CIPHER</a>;
-    <span class="kw">pub fn </span>EVP_aes_128_ofb() -&gt; <span class="kw-2">*const </span><a href="types.rs.html#64">EVP_CIPHER</a>;
+    </span><span class="kw">pub fn </span>EVP_sm3() -&gt; <span class="kw-2">*const </span>EVP_MD;
+    <span class="kw">pub fn </span>EVP_des_ecb() -&gt; <span class="kw-2">*const </span>EVP_CIPHER;
+    <span class="kw">pub fn </span>EVP_des_ede3() -&gt; <span class="kw-2">*const </span>EVP_CIPHER;
+    <span class="kw">pub fn </span>EVP_des_ede3_cbc() -&gt; <span class="kw-2">*const </span>EVP_CIPHER;
+    <span class="kw">pub fn </span>EVP_des_ede3_cfb64() -&gt; <span class="kw-2">*const </span>EVP_CIPHER;
+    <span class="kw">pub fn </span>EVP_des_cbc() -&gt; <span class="kw-2">*const </span>EVP_CIPHER;
+    <span class="kw">pub fn </span>EVP_rc4() -&gt; <span class="kw-2">*const </span>EVP_CIPHER;
+    <span class="kw">pub fn </span>EVP_bf_ecb() -&gt; <span class="kw-2">*const </span>EVP_CIPHER;
+    <span class="kw">pub fn </span>EVP_bf_cbc() -&gt; <span class="kw-2">*const </span>EVP_CIPHER;
+    <span class="kw">pub fn </span>EVP_bf_cfb64() -&gt; <span class="kw-2">*const </span>EVP_CIPHER;
+    <span class="kw">pub fn </span>EVP_bf_ofb() -&gt; <span class="kw-2">*const </span>EVP_CIPHER;
+    <span class="kw">pub fn </span>EVP_aes_128_ecb() -&gt; <span class="kw-2">*const </span>EVP_CIPHER;
+    <span class="kw">pub fn </span>EVP_aes_128_cbc() -&gt; <span class="kw-2">*const </span>EVP_CIPHER;
+    <span class="kw">pub fn </span>EVP_aes_128_cfb1() -&gt; <span class="kw-2">*const </span>EVP_CIPHER;
+    <span class="kw">pub fn </span>EVP_aes_128_cfb8() -&gt; <span class="kw-2">*const </span>EVP_CIPHER;
+    <span class="kw">pub fn </span>EVP_aes_128_cfb128() -&gt; <span class="kw-2">*const </span>EVP_CIPHER;
+    <span class="kw">pub fn </span>EVP_aes_128_ctr() -&gt; <span class="kw-2">*const </span>EVP_CIPHER;
+    <span class="kw">pub fn </span>EVP_aes_128_ccm() -&gt; <span class="kw-2">*const </span>EVP_CIPHER;
+    <span class="kw">pub fn </span>EVP_aes_128_gcm() -&gt; <span class="kw-2">*const </span>EVP_CIPHER;
+    <span class="kw">pub fn </span>EVP_aes_128_xts() -&gt; <span class="kw-2">*const </span>EVP_CIPHER;
+    <span class="kw">pub fn </span>EVP_aes_128_ofb() -&gt; <span class="kw-2">*const </span>EVP_CIPHER;
     <span class="attr">#[cfg(ossl110)]
-    </span><span class="kw">pub fn </span>EVP_aes_128_ocb() -&gt; <span class="kw-2">*const </span><a href="types.rs.html#64">EVP_CIPHER</a>;
-    <span class="kw">pub fn </span>EVP_aes_192_ecb() -&gt; <span class="kw-2">*const </span><a href="types.rs.html#64">EVP_CIPHER</a>;
-    <span class="kw">pub fn </span>EVP_aes_192_cbc() -&gt; <span class="kw-2">*const </span><a href="types.rs.html#64">EVP_CIPHER</a>;
-    <span class="kw">pub fn </span>EVP_aes_192_cfb1() -&gt; <span class="kw-2">*const </span><a href="types.rs.html#64">EVP_CIPHER</a>;
-    <span class="kw">pub fn </span>EVP_aes_192_cfb8() -&gt; <span class="kw-2">*const </span><a href="types.rs.html#64">EVP_CIPHER</a>;
-    <span class="kw">pub fn </span>EVP_aes_192_cfb128() -&gt; <span class="kw-2">*const </span><a href="types.rs.html#64">EVP_CIPHER</a>;
-    <span class="kw">pub fn </span>EVP_aes_192_ctr() -&gt; <span class="kw-2">*const </span><a href="types.rs.html#64">EVP_CIPHER</a>;
-    <span class="kw">pub fn </span>EVP_aes_192_ccm() -&gt; <span class="kw-2">*const </span><a href="types.rs.html#64">EVP_CIPHER</a>;
-    <span class="kw">pub fn </span>EVP_aes_192_gcm() -&gt; <span class="kw-2">*const </span><a href="types.rs.html#64">EVP_CIPHER</a>;
-    <span class="kw">pub fn </span>EVP_aes_192_ofb() -&gt; <span class="kw-2">*const </span><a href="types.rs.html#64">EVP_CIPHER</a>;
+    </span><span class="kw">pub fn </span>EVP_aes_128_ocb() -&gt; <span class="kw-2">*const </span>EVP_CIPHER;
+    <span class="kw">pub fn </span>EVP_aes_192_ecb() -&gt; <span class="kw-2">*const </span>EVP_CIPHER;
+    <span class="kw">pub fn </span>EVP_aes_192_cbc() -&gt; <span class="kw-2">*const </span>EVP_CIPHER;
+    <span class="kw">pub fn </span>EVP_aes_192_cfb1() -&gt; <span class="kw-2">*const </span>EVP_CIPHER;
+    <span class="kw">pub fn </span>EVP_aes_192_cfb8() -&gt; <span class="kw-2">*const </span>EVP_CIPHER;
+    <span class="kw">pub fn </span>EVP_aes_192_cfb128() -&gt; <span class="kw-2">*const </span>EVP_CIPHER;
+    <span class="kw">pub fn </span>EVP_aes_192_ctr() -&gt; <span class="kw-2">*const </span>EVP_CIPHER;
+    <span class="kw">pub fn </span>EVP_aes_192_ccm() -&gt; <span class="kw-2">*const </span>EVP_CIPHER;
+    <span class="kw">pub fn </span>EVP_aes_192_gcm() -&gt; <span class="kw-2">*const </span>EVP_CIPHER;
+    <span class="kw">pub fn </span>EVP_aes_192_ofb() -&gt; <span class="kw-2">*const </span>EVP_CIPHER;
     <span class="attr">#[cfg(ossl110)]
-    </span><span class="kw">pub fn </span>EVP_aes_192_ocb() -&gt; <span class="kw-2">*const </span><a href="types.rs.html#64">EVP_CIPHER</a>;
-    <span class="kw">pub fn </span>EVP_aes_256_ecb() -&gt; <span class="kw-2">*const </span><a href="types.rs.html#64">EVP_CIPHER</a>;
-    <span class="kw">pub fn </span>EVP_aes_256_cbc() -&gt; <span class="kw-2">*const </span><a href="types.rs.html#64">EVP_CIPHER</a>;
-    <span class="kw">pub fn </span>EVP_aes_256_cfb1() -&gt; <span class="kw-2">*const </span><a href="types.rs.html#64">EVP_CIPHER</a>;
-    <span class="kw">pub fn </span>EVP_aes_256_cfb8() -&gt; <span class="kw-2">*const </span><a href="types.rs.html#64">EVP_CIPHER</a>;
-    <span class="kw">pub fn </span>EVP_aes_256_cfb128() -&gt; <span class="kw-2">*const </span><a href="types.rs.html#64">EVP_CIPHER</a>;
-    <span class="kw">pub fn </span>EVP_aes_256_ctr() -&gt; <span class="kw-2">*const </span><a href="types.rs.html#64">EVP_CIPHER</a>;
-    <span class="kw">pub fn </span>EVP_aes_256_ccm() -&gt; <span class="kw-2">*const </span><a href="types.rs.html#64">EVP_CIPHER</a>;
-    <span class="kw">pub fn </span>EVP_aes_256_gcm() -&gt; <span class="kw-2">*const </span><a href="types.rs.html#64">EVP_CIPHER</a>;
-    <span class="kw">pub fn </span>EVP_aes_256_xts() -&gt; <span class="kw-2">*const </span><a href="types.rs.html#64">EVP_CIPHER</a>;
-    <span class="kw">pub fn </span>EVP_aes_256_ofb() -&gt; <span class="kw-2">*const </span><a href="types.rs.html#64">EVP_CIPHER</a>;
+    </span><span class="kw">pub fn </span>EVP_aes_192_ocb() -&gt; <span class="kw-2">*const </span>EVP_CIPHER;
+    <span class="kw">pub fn </span>EVP_aes_256_ecb() -&gt; <span class="kw-2">*const </span>EVP_CIPHER;
+    <span class="kw">pub fn </span>EVP_aes_256_cbc() -&gt; <span class="kw-2">*const </span>EVP_CIPHER;
+    <span class="kw">pub fn </span>EVP_aes_256_cfb1() -&gt; <span class="kw-2">*const </span>EVP_CIPHER;
+    <span class="kw">pub fn </span>EVP_aes_256_cfb8() -&gt; <span class="kw-2">*const </span>EVP_CIPHER;
+    <span class="kw">pub fn </span>EVP_aes_256_cfb128() -&gt; <span class="kw-2">*const </span>EVP_CIPHER;
+    <span class="kw">pub fn </span>EVP_aes_256_ctr() -&gt; <span class="kw-2">*const </span>EVP_CIPHER;
+    <span class="kw">pub fn </span>EVP_aes_256_ccm() -&gt; <span class="kw-2">*const </span>EVP_CIPHER;
+    <span class="kw">pub fn </span>EVP_aes_256_gcm() -&gt; <span class="kw-2">*const </span>EVP_CIPHER;
+    <span class="kw">pub fn </span>EVP_aes_256_xts() -&gt; <span class="kw-2">*const </span>EVP_CIPHER;
+    <span class="kw">pub fn </span>EVP_aes_256_ofb() -&gt; <span class="kw-2">*const </span>EVP_CIPHER;
     <span class="attr">#[cfg(ossl110)]
-    </span><span class="kw">pub fn </span>EVP_aes_256_ocb() -&gt; <span class="kw-2">*const </span><a href="types.rs.html#64">EVP_CIPHER</a>;
+    </span><span class="kw">pub fn </span>EVP_aes_256_ocb() -&gt; <span class="kw-2">*const </span>EVP_CIPHER;
     <span class="attr">#[cfg(all(ossl110, not(osslconf = <span class="string">&quot;OPENSSL_NO_CHACHA&quot;</span>)))]
-    </span><span class="kw">pub fn </span>EVP_chacha20() -&gt; <span class="kw-2">*const </span><a href="types.rs.html#64">::EVP_CIPHER</a>;
+    </span><span class="kw">pub fn </span>EVP_chacha20() -&gt; <span class="kw-2">*const </span>::EVP_CIPHER;
     <span class="attr">#[cfg(all(ossl110, not(osslconf = <span class="string">&quot;OPENSSL_NO_CHACHA&quot;</span>)))]
-    </span><span class="kw">pub fn </span>EVP_chacha20_poly1305() -&gt; <span class="kw-2">*const </span><a href="types.rs.html#64">::EVP_CIPHER</a>;
+    </span><span class="kw">pub fn </span>EVP_chacha20_poly1305() -&gt; <span class="kw-2">*const </span>::EVP_CIPHER;
     <span class="attr">#[cfg(not(osslconf = <span class="string">&quot;OPENSSL_NO_SEED&quot;</span>))]
-    </span><span class="kw">pub fn </span>EVP_seed_cbc() -&gt; <span class="kw-2">*const </span><a href="types.rs.html#64">EVP_CIPHER</a>;
+    </span><span class="kw">pub fn </span>EVP_seed_cbc() -&gt; <span class="kw-2">*const </span>EVP_CIPHER;
     <span class="attr">#[cfg(not(osslconf = <span class="string">&quot;OPENSSL_NO_SEED&quot;</span>))]
-    </span><span class="kw">pub fn </span>EVP_seed_cfb128() -&gt; <span class="kw-2">*const </span><a href="types.rs.html#64">EVP_CIPHER</a>;
+    </span><span class="kw">pub fn </span>EVP_seed_cfb128() -&gt; <span class="kw-2">*const </span>EVP_CIPHER;
     <span class="attr">#[cfg(not(osslconf = <span class="string">&quot;OPENSSL_NO_SEED&quot;</span>))]
-    </span><span class="kw">pub fn </span>EVP_seed_ecb() -&gt; <span class="kw-2">*const </span><a href="types.rs.html#64">EVP_CIPHER</a>;
+    </span><span class="kw">pub fn </span>EVP_seed_ecb() -&gt; <span class="kw-2">*const </span>EVP_CIPHER;
     <span class="attr">#[cfg(not(osslconf = <span class="string">&quot;OPENSSL_NO_SEED&quot;</span>))]
-    </span><span class="kw">pub fn </span>EVP_seed_ofb() -&gt; <span class="kw-2">*const </span><a href="types.rs.html#64">EVP_CIPHER</a>;
+    </span><span class="kw">pub fn </span>EVP_seed_ofb() -&gt; <span class="kw-2">*const </span>EVP_CIPHER;
 
     <span class="attr">#[cfg(all(any(ossl111, libressl291), not(osslconf = <span class="string">&quot;OPENSSL_NO_SM4&quot;</span>)))]
-    </span><span class="kw">pub fn </span>EVP_sm4_ecb() -&gt; <span class="kw-2">*const </span><a href="types.rs.html#64">EVP_CIPHER</a>;
+    </span><span class="kw">pub fn </span>EVP_sm4_ecb() -&gt; <span class="kw-2">*const </span>EVP_CIPHER;
     <span class="attr">#[cfg(all(any(ossl111, libressl291), not(osslconf = <span class="string">&quot;OPENSSL_NO_SM4&quot;</span>)))]
-    </span><span class="kw">pub fn </span>EVP_sm4_cbc() -&gt; <span class="kw-2">*const </span><a href="types.rs.html#64">EVP_CIPHER</a>;
+    </span><span class="kw">pub fn </span>EVP_sm4_cbc() -&gt; <span class="kw-2">*const </span>EVP_CIPHER;
     <span class="attr">#[cfg(all(any(ossl111, libressl291), not(osslconf = <span class="string">&quot;OPENSSL_NO_SM4&quot;</span>)))]
-    </span><span class="kw">pub fn </span>EVP_sm4_cfb128() -&gt; <span class="kw-2">*const </span><a href="types.rs.html#64">EVP_CIPHER</a>;
+    </span><span class="kw">pub fn </span>EVP_sm4_cfb128() -&gt; <span class="kw-2">*const </span>EVP_CIPHER;
     <span class="attr">#[cfg(all(any(ossl111, libressl291), not(osslconf = <span class="string">&quot;OPENSSL_NO_SM4&quot;</span>)))]
-    </span><span class="kw">pub fn </span>EVP_sm4_ofb() -&gt; <span class="kw-2">*const </span><a href="types.rs.html#64">EVP_CIPHER</a>;
+    </span><span class="kw">pub fn </span>EVP_sm4_ofb() -&gt; <span class="kw-2">*const </span>EVP_CIPHER;
     <span class="attr">#[cfg(all(any(ossl111, libressl291), not(osslconf = <span class="string">&quot;OPENSSL_NO_SM4&quot;</span>)))]
-    </span><span class="kw">pub fn </span>EVP_sm4_ctr() -&gt; <span class="kw-2">*const </span><a href="types.rs.html#64">EVP_CIPHER</a>;
+    </span><span class="kw">pub fn </span>EVP_sm4_ctr() -&gt; <span class="kw-2">*const </span>EVP_CIPHER;
+
+    <span class="attr">#[cfg(not(any(boringssl, osslconf = <span class="string">&quot;OPENSSL_NO_CAMELLIA&quot;</span>)))]
+    </span><span class="kw">pub fn </span>EVP_camellia_128_cfb128() -&gt; <span class="kw-2">*const </span>EVP_CIPHER;
+    <span class="attr">#[cfg(not(any(boringssl, osslconf = <span class="string">&quot;OPENSSL_NO_CAMELLIA&quot;</span>)))]
+    </span><span class="kw">pub fn </span>EVP_camellia_128_ecb() -&gt; <span class="kw-2">*const </span>EVP_CIPHER;
+    <span class="attr">#[cfg(not(any(boringssl, osslconf = <span class="string">&quot;OPENSSL_NO_CAMELLIA&quot;</span>)))]
+    </span><span class="kw">pub fn </span>EVP_camellia_192_cfb128() -&gt; <span class="kw-2">*const </span>EVP_CIPHER;
+    <span class="attr">#[cfg(not(any(boringssl, osslconf = <span class="string">&quot;OPENSSL_NO_CAMELLIA&quot;</span>)))]
+    </span><span class="kw">pub fn </span>EVP_camellia_192_ecb() -&gt; <span class="kw-2">*const </span>EVP_CIPHER;
+    <span class="attr">#[cfg(not(any(boringssl, osslconf = <span class="string">&quot;OPENSSL_NO_CAMELLIA&quot;</span>)))]
+    </span><span class="kw">pub fn </span>EVP_camellia_256_cfb128() -&gt; <span class="kw-2">*const </span>EVP_CIPHER;
+    <span class="attr">#[cfg(not(any(boringssl, osslconf = <span class="string">&quot;OPENSSL_NO_CAMELLIA&quot;</span>)))]
+    </span><span class="kw">pub fn </span>EVP_camellia_256_ecb() -&gt; <span class="kw-2">*const </span>EVP_CIPHER;
+
+    <span class="attr">#[cfg(not(boringssl))]
+    </span><span class="kw">pub fn </span>EVP_cast5_cfb64() -&gt; <span class="kw-2">*const </span>EVP_CIPHER;
+    <span class="attr">#[cfg(not(boringssl))]
+    </span><span class="kw">pub fn </span>EVP_cast5_ecb() -&gt; <span class="kw-2">*const </span>EVP_CIPHER;
+
+    <span class="attr">#[cfg(not(any(boringssl, osslconf = <span class="string">&quot;OPENSSL_NO_IDEA&quot;</span>)))]
+    </span><span class="kw">pub fn </span>EVP_idea_cfb64() -&gt; <span class="kw-2">*const </span>EVP_CIPHER;
+    <span class="attr">#[cfg(not(any(boringssl, osslconf = <span class="string">&quot;OPENSSL_NO_IDEA&quot;</span>)))]
+    </span><span class="kw">pub fn </span>EVP_idea_ecb() -&gt; <span class="kw-2">*const </span>EVP_CIPHER;
 
     <span class="attr">#[cfg(not(ossl110))]
     </span><span class="kw">pub fn </span>OPENSSL_add_all_algorithms_noconf();
 
-    <span class="kw">pub fn </span>EVP_get_digestbyname(name: <span class="kw-2">*const </span><a href="../../../openssl_sys/type.c_char.html">c_char</a>) -&gt; <span class="kw-2">*const </span><a href="types.rs.html#92">EVP_MD</a>;
-    <span class="kw">pub fn </span>EVP_get_cipherbyname(name: <span class="kw-2">*const </span><a href="../../../openssl_sys/type.c_char.html">c_char</a>) -&gt; <span class="kw-2">*const </span><a href="types.rs.html#64">EVP_CIPHER</a>;
+    <span class="kw">pub fn </span>EVP_get_digestbyname(name: <span class="kw-2">*const </span>c_char) -&gt; <span class="kw-2">*const </span>EVP_MD;
+    <span class="kw">pub fn </span>EVP_get_cipherbyname(name: <span class="kw-2">*const </span>c_char) -&gt; <span class="kw-2">*const </span>EVP_CIPHER;
 }
 
 <span class="macro">cfg_if! </span>{
     <span class="kw">if </span><span class="attr">#[cfg(ossl300)] </span>{
         <span class="kw">extern </span><span class="string">&quot;C&quot; </span>{
-            <span class="kw">pub fn </span>EVP_PKEY_get_id(pkey: <span class="kw-2">*const </span><a href="../types.rs.html#6">EVP_PKEY</a>) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
-            <span class="kw">pub fn </span>EVP_PKEY_get_bits(key: <span class="kw-2">*const </span><a href="../types.rs.html#6">EVP_PKEY</a>) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
+            <span class="kw">pub fn </span>EVP_PKEY_get_id(pkey: <span class="kw-2">*const </span>EVP_PKEY) -&gt; c_int;
+            <span class="kw">pub fn </span>EVP_PKEY_get_bits(key: <span class="kw-2">*const </span>EVP_PKEY) -&gt; c_int;
+            <span class="kw">pub fn </span>EVP_PKEY_get_security_bits(key: <span class="kw-2">*const </span>EVP_PKEY) -&gt; c_int;
         }
 
         <span class="attr">#[inline]
-        </span><span class="kw">pub unsafe fn </span>EVP_PKEY_id(pkey: <span class="kw-2">*const </span><a href="../types.rs.html#6">EVP_PKEY</a>) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a> {
-            <a href="#377">EVP_PKEY_get_id</a>(<a href="#382">pkey</a>)
+        </span><span class="kw">pub unsafe fn </span>EVP_PKEY_id(pkey: <span class="kw-2">*const </span>EVP_PKEY) -&gt; c_int {
+            EVP_PKEY_get_id(pkey)
         }
 
         <span class="attr">#[inline]
-        </span><span class="kw">pub unsafe fn </span>EVP_PKEY_bits(pkey: <span class="kw-2">*const </span><a href="../types.rs.html#6">EVP_PKEY</a>) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a> {
-            <a href="#378">EVP_PKEY_get_bits</a>(<a href="#387">pkey</a>)
+        </span><span class="kw">pub unsafe fn </span>EVP_PKEY_bits(pkey: <span class="kw-2">*const </span>EVP_PKEY) -&gt; c_int {
+            EVP_PKEY_get_bits(pkey)
         }
+
+        <span class="attr">#[inline]
+        </span><span class="kw">pub unsafe fn </span>EVP_PKEY_security_bits(pkey: <span class="kw-2">*const </span>EVP_PKEY) -&gt; c_int {
+            EVP_PKEY_get_security_bits(pkey)
+        }
+
     } <span class="kw">else </span>{
         <span class="kw">extern </span><span class="string">&quot;C&quot; </span>{
             <span class="kw">pub fn </span>EVP_PKEY_id(pkey: <span class="kw-2">*const </span>EVP_PKEY) -&gt; c_int;
@@ -959,139 +1027,141 @@
         <span class="macro">const_ptr_api! </span>{
             <span class="kw">extern </span><span class="string">&quot;C&quot; </span>{
                 <span class="kw">pub fn </span>EVP_PKEY_bits(key: <span class="attr">#[const_ptr_if(any(ossl110, libressl280))] </span>EVP_PKEY) -&gt; c_int;
+                <span class="attr">#[cfg(any(ossl110, libressl360))]
+                </span><span class="kw">pub fn </span>EVP_PKEY_security_bits(pkey: <span class="attr">#[const_ptr_if(any(ossl110, libressl280))] </span>EVP_PKEY) -&gt; c_int;
             }
         }
     }
 }
 <span class="kw">extern </span><span class="string">&quot;C&quot; </span>{
-    <span class="kw">pub fn </span>EVP_PKEY_assign(pkey: <span class="kw-2">*mut </span><a href="../types.rs.html#6">EVP_PKEY</a>, typ: <a href="../../../openssl_sys/type.c_int.html">c_int</a>, key: <span class="kw-2">*mut </span><a href="../../../openssl_sys/enum.c_void.html">c_void</a>) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
+    <span class="kw">pub fn </span>EVP_PKEY_assign(pkey: <span class="kw-2">*mut </span>EVP_PKEY, typ: c_int, key: <span class="kw-2">*mut </span>c_void) -&gt; c_int;
 
-    <span class="kw">pub fn </span>EVP_PKEY_set1_RSA(k: <span class="kw-2">*mut </span><a href="../types.rs.html#6">EVP_PKEY</a>, r: <span class="kw-2">*mut </span><a href="types.rs.html#191">RSA</a>) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
-    <span class="kw">pub fn </span>EVP_PKEY_get1_RSA(k: <span class="kw-2">*mut </span><a href="../types.rs.html#6">EVP_PKEY</a>) -&gt; <span class="kw-2">*mut </span><a href="types.rs.html#191">RSA</a>;
-    <span class="kw">pub fn </span>EVP_PKEY_get1_DSA(k: <span class="kw-2">*mut </span><a href="../types.rs.html#6">EVP_PKEY</a>) -&gt; <span class="kw-2">*mut </span><a href="types.rs.html#162">DSA</a>;
-    <span class="kw">pub fn </span>EVP_PKEY_get1_DH(k: <span class="kw-2">*mut </span><a href="../types.rs.html#6">EVP_PKEY</a>) -&gt; <span class="kw-2">*mut </span><a href="types.rs.html#133">DH</a>;
-    <span class="kw">pub fn </span>EVP_PKEY_get1_EC_KEY(k: <span class="kw-2">*mut </span><a href="../types.rs.html#6">EVP_PKEY</a>) -&gt; <span class="kw-2">*mut </span><a href="types.rs.html#253">EC_KEY</a>;
+    <span class="kw">pub fn </span>EVP_PKEY_set1_RSA(k: <span class="kw-2">*mut </span>EVP_PKEY, r: <span class="kw-2">*mut </span>RSA) -&gt; c_int;
+    <span class="kw">pub fn </span>EVP_PKEY_get1_RSA(k: <span class="kw-2">*mut </span>EVP_PKEY) -&gt; <span class="kw-2">*mut </span>RSA;
+    <span class="kw">pub fn </span>EVP_PKEY_get1_DSA(k: <span class="kw-2">*mut </span>EVP_PKEY) -&gt; <span class="kw-2">*mut </span>DSA;
+    <span class="kw">pub fn </span>EVP_PKEY_get1_DH(k: <span class="kw-2">*mut </span>EVP_PKEY) -&gt; <span class="kw-2">*mut </span>DH;
+    <span class="kw">pub fn </span>EVP_PKEY_get1_EC_KEY(k: <span class="kw-2">*mut </span>EVP_PKEY) -&gt; <span class="kw-2">*mut </span>EC_KEY;
 
-    <span class="kw">pub fn </span>EVP_PKEY_new() -&gt; <span class="kw-2">*mut </span><a href="../types.rs.html#6">EVP_PKEY</a>;
-    <span class="kw">pub fn </span>EVP_PKEY_free(k: <span class="kw-2">*mut </span><a href="../types.rs.html#6">EVP_PKEY</a>);
+    <span class="kw">pub fn </span>EVP_PKEY_new() -&gt; <span class="kw-2">*mut </span>EVP_PKEY;
+    <span class="kw">pub fn </span>EVP_PKEY_free(k: <span class="kw-2">*mut </span>EVP_PKEY);
     <span class="attr">#[cfg(any(ossl110, libressl270))]
-    </span><span class="kw">pub fn </span>EVP_PKEY_up_ref(pkey: <span class="kw-2">*mut </span><a href="../types.rs.html#6">EVP_PKEY</a>) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
+    </span><span class="kw">pub fn </span>EVP_PKEY_up_ref(pkey: <span class="kw-2">*mut </span>EVP_PKEY) -&gt; c_int;
 
     <span class="kw">pub fn </span>d2i_AutoPrivateKey(
-        a: <span class="kw-2">*mut *mut </span><a href="../types.rs.html#6">EVP_PKEY</a>,
-        pp: <span class="kw-2">*mut *const </span><a href="../../../openssl_sys/type.c_uchar.html">c_uchar</a>,
-        length: <a href="../../../openssl_sys/type.c_long.html">c_long</a>,
-    ) -&gt; <span class="kw-2">*mut </span><a href="../types.rs.html#6">EVP_PKEY</a>;
+        a: <span class="kw-2">*mut *mut </span>EVP_PKEY,
+        pp: <span class="kw-2">*mut *const </span>c_uchar,
+        length: c_long,
+    ) -&gt; <span class="kw-2">*mut </span>EVP_PKEY;
 
-    <span class="kw">pub fn </span>EVP_PKEY_cmp(a: <span class="kw-2">*const </span><a href="../types.rs.html#6">EVP_PKEY</a>, b: <span class="kw-2">*const </span><a href="../types.rs.html#6">EVP_PKEY</a>) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
+    <span class="kw">pub fn </span>EVP_PKEY_cmp(a: <span class="kw-2">*const </span>EVP_PKEY, b: <span class="kw-2">*const </span>EVP_PKEY) -&gt; c_int;
 
-    <span class="kw">pub fn </span>EVP_PKEY_copy_parameters(to: <span class="kw-2">*mut </span><a href="../types.rs.html#6">EVP_PKEY</a>, from: <span class="kw-2">*const </span><a href="../types.rs.html#6">EVP_PKEY</a>) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
+    <span class="kw">pub fn </span>EVP_PKEY_copy_parameters(to: <span class="kw-2">*mut </span>EVP_PKEY, from: <span class="kw-2">*const </span>EVP_PKEY) -&gt; c_int;
 
     <span class="kw">pub fn </span>PKCS5_PBKDF2_HMAC_SHA1(
-        pass: <span class="kw-2">*const </span><a href="../../../openssl_sys/type.c_char.html">c_char</a>,
-        passlen: <a href="../../../openssl_sys/type.c_int.html">c_int</a>,
-        salt: <span class="kw-2">*const </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>,
-        saltlen: <a href="../../../openssl_sys/type.c_int.html">c_int</a>,
-        iter: <a href="../../../openssl_sys/type.c_int.html">c_int</a>,
-        keylen: <a href="../../../openssl_sys/type.c_int.html">c_int</a>,
-        out: <span class="kw-2">*mut </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>,
-    ) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
+        pass: <span class="kw-2">*const </span>c_char,
+        passlen: c_int,
+        salt: <span class="kw-2">*const </span>u8,
+        saltlen: c_int,
+        iter: c_int,
+        keylen: c_int,
+        out: <span class="kw-2">*mut </span>u8,
+    ) -&gt; c_int;
     <span class="kw">pub fn </span>PKCS5_PBKDF2_HMAC(
-        pass: <span class="kw-2">*const </span><a href="../../../openssl_sys/type.c_char.html">c_char</a>,
-        passlen: <a href="../../../openssl_sys/type.c_int.html">c_int</a>,
-        salt: <span class="kw-2">*const </span><a href="../../../openssl_sys/type.c_uchar.html">c_uchar</a>,
-        saltlen: <a href="../../../openssl_sys/type.c_int.html">c_int</a>,
-        iter: <a href="../../../openssl_sys/type.c_int.html">c_int</a>,
-        digest: <span class="kw-2">*const </span><a href="types.rs.html#92">EVP_MD</a>,
-        keylen: <a href="../../../openssl_sys/type.c_int.html">c_int</a>,
-        out: <span class="kw-2">*mut </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>,
-    ) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
+        pass: <span class="kw-2">*const </span>c_char,
+        passlen: c_int,
+        salt: <span class="kw-2">*const </span>c_uchar,
+        saltlen: c_int,
+        iter: c_int,
+        digest: <span class="kw-2">*const </span>EVP_MD,
+        keylen: c_int,
+        out: <span class="kw-2">*mut </span>u8,
+    ) -&gt; c_int;
 
     <span class="attr">#[cfg(ossl110)]
     </span><span class="kw">pub fn </span>EVP_PBE_scrypt(
-        pass: <span class="kw-2">*const </span><a href="../../../openssl_sys/type.c_char.html">c_char</a>,
-        passlen: <a href="../../../openssl_sys/type.size_t.html">size_t</a>,
-        salt: <span class="kw-2">*const </span><a href="../../../openssl_sys/type.c_uchar.html">c_uchar</a>,
-        saltlen: <a href="../../../openssl_sys/type.size_t.html">size_t</a>,
-        N: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>,
-        r: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>,
-        p: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>,
-        maxmem: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>,
-        key: <span class="kw-2">*mut </span><a href="../../../openssl_sys/type.c_uchar.html">c_uchar</a>,
-        keylen: <a href="../../../openssl_sys/type.size_t.html">size_t</a>,
-    ) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
+        pass: <span class="kw-2">*const </span>c_char,
+        passlen: size_t,
+        salt: <span class="kw-2">*const </span>c_uchar,
+        saltlen: size_t,
+        N: u64,
+        r: u64,
+        p: u64,
+        maxmem: u64,
+        key: <span class="kw-2">*mut </span>c_uchar,
+        keylen: size_t,
+    ) -&gt; c_int;
 
-    <span class="kw">pub fn </span>EVP_PKEY_CTX_new(k: <span class="kw-2">*mut </span><a href="../types.rs.html#6">EVP_PKEY</a>, e: <span class="kw-2">*mut </span><a href="types.rs.html#455">ENGINE</a>) -&gt; <span class="kw-2">*mut </span><a href="types.rs.html#113">EVP_PKEY_CTX</a>;
-    <span class="kw">pub fn </span>EVP_PKEY_CTX_new_id(id: <a href="../../../openssl_sys/type.c_int.html">c_int</a>, e: <span class="kw-2">*mut </span><a href="types.rs.html#455">ENGINE</a>) -&gt; <span class="kw-2">*mut </span><a href="types.rs.html#113">EVP_PKEY_CTX</a>;
-    <span class="kw">pub fn </span>EVP_PKEY_CTX_free(ctx: <span class="kw-2">*mut </span><a href="types.rs.html#113">EVP_PKEY_CTX</a>);
+    <span class="kw">pub fn </span>EVP_PKEY_CTX_new(k: <span class="kw-2">*mut </span>EVP_PKEY, e: <span class="kw-2">*mut </span>ENGINE) -&gt; <span class="kw-2">*mut </span>EVP_PKEY_CTX;
+    <span class="kw">pub fn </span>EVP_PKEY_CTX_new_id(id: c_int, e: <span class="kw-2">*mut </span>ENGINE) -&gt; <span class="kw-2">*mut </span>EVP_PKEY_CTX;
+    <span class="kw">pub fn </span>EVP_PKEY_CTX_free(ctx: <span class="kw-2">*mut </span>EVP_PKEY_CTX);
 
     <span class="kw">pub fn </span>EVP_PKEY_CTX_ctrl(
-        ctx: <span class="kw-2">*mut </span><a href="types.rs.html#113">EVP_PKEY_CTX</a>,
-        keytype: <a href="../../../openssl_sys/type.c_int.html">c_int</a>,
-        optype: <a href="../../../openssl_sys/type.c_int.html">c_int</a>,
-        cmd: <a href="../../../openssl_sys/type.c_int.html">c_int</a>,
-        p1: <a href="../../../openssl_sys/type.c_int.html">c_int</a>,
-        p2: <span class="kw-2">*mut </span><a href="../../../openssl_sys/enum.c_void.html">c_void</a>,
-    ) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
+        ctx: <span class="kw-2">*mut </span>EVP_PKEY_CTX,
+        keytype: c_int,
+        optype: c_int,
+        cmd: c_int,
+        p1: c_int,
+        p2: <span class="kw-2">*mut </span>c_void,
+    ) -&gt; c_int;
 
     <span class="kw">pub fn </span>EVP_PKEY_new_mac_key(
-        type_: <a href="../../../openssl_sys/type.c_int.html">c_int</a>,
-        e: <span class="kw-2">*mut </span><a href="types.rs.html#455">ENGINE</a>,
-        key: <span class="kw-2">*const </span><a href="../../../openssl_sys/type.c_uchar.html">c_uchar</a>,
-        keylen: <a href="../../../openssl_sys/type.c_int.html">c_int</a>,
-    ) -&gt; <span class="kw-2">*mut </span><a href="../types.rs.html#6">EVP_PKEY</a>;
+        type_: c_int,
+        e: <span class="kw-2">*mut </span>ENGINE,
+        key: <span class="kw-2">*const </span>c_uchar,
+        keylen: c_int,
+    ) -&gt; <span class="kw-2">*mut </span>EVP_PKEY;
 
-    <span class="kw">pub fn </span>EVP_PKEY_derive_init(ctx: <span class="kw-2">*mut </span><a href="types.rs.html#113">EVP_PKEY_CTX</a>) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
-    <span class="kw">pub fn </span>EVP_PKEY_derive_set_peer(ctx: <span class="kw-2">*mut </span><a href="types.rs.html#113">EVP_PKEY_CTX</a>, peer: <span class="kw-2">*mut </span><a href="../types.rs.html#6">EVP_PKEY</a>) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
-    <span class="kw">pub fn </span>EVP_PKEY_derive(ctx: <span class="kw-2">*mut </span><a href="types.rs.html#113">EVP_PKEY_CTX</a>, key: <span class="kw-2">*mut </span><a href="../../../openssl_sys/type.c_uchar.html">c_uchar</a>, size: <span class="kw-2">*mut </span><a href="../../../openssl_sys/type.size_t.html">size_t</a>) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
+    <span class="kw">pub fn </span>EVP_PKEY_derive_init(ctx: <span class="kw-2">*mut </span>EVP_PKEY_CTX) -&gt; c_int;
+    <span class="kw">pub fn </span>EVP_PKEY_derive_set_peer(ctx: <span class="kw-2">*mut </span>EVP_PKEY_CTX, peer: <span class="kw-2">*mut </span>EVP_PKEY) -&gt; c_int;
+    <span class="kw">pub fn </span>EVP_PKEY_derive(ctx: <span class="kw-2">*mut </span>EVP_PKEY_CTX, key: <span class="kw-2">*mut </span>c_uchar, size: <span class="kw-2">*mut </span>size_t) -&gt; c_int;
 
     <span class="attr">#[cfg(ossl300)]
     </span><span class="kw">pub fn </span>EVP_PKEY_Q_keygen(
-        libctx: <span class="kw-2">*mut </span><a href="types.rs.html#1078">OSSL_LIB_CTX</a>,
-        propq: <span class="kw-2">*const </span><a href="../../../openssl_sys/type.c_char.html">c_char</a>,
-        type_: <span class="kw-2">*const </span><a href="../../../openssl_sys/type.c_char.html">c_char</a>,
+        libctx: <span class="kw-2">*mut </span>OSSL_LIB_CTX,
+        propq: <span class="kw-2">*const </span>c_char,
+        type_: <span class="kw-2">*const </span>c_char,
         ...
-    ) -&gt; <span class="kw-2">*mut </span><a href="../types.rs.html#6">EVP_PKEY</a>;
-    <span class="kw">pub fn </span>EVP_PKEY_keygen_init(ctx: <span class="kw-2">*mut </span><a href="types.rs.html#113">EVP_PKEY_CTX</a>) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
-    <span class="kw">pub fn </span>EVP_PKEY_keygen(ctx: <span class="kw-2">*mut </span><a href="types.rs.html#113">EVP_PKEY_CTX</a>, key: <span class="kw-2">*mut *mut </span><a href="../types.rs.html#6">EVP_PKEY</a>) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
+    ) -&gt; <span class="kw-2">*mut </span>EVP_PKEY;
+    <span class="kw">pub fn </span>EVP_PKEY_keygen_init(ctx: <span class="kw-2">*mut </span>EVP_PKEY_CTX) -&gt; c_int;
+    <span class="kw">pub fn </span>EVP_PKEY_keygen(ctx: <span class="kw-2">*mut </span>EVP_PKEY_CTX, key: <span class="kw-2">*mut *mut </span>EVP_PKEY) -&gt; c_int;
 
-    <span class="kw">pub fn </span>EVP_PKEY_sign_init(ctx: <span class="kw-2">*mut </span><a href="types.rs.html#113">EVP_PKEY_CTX</a>) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
+    <span class="kw">pub fn </span>EVP_PKEY_sign_init(ctx: <span class="kw-2">*mut </span>EVP_PKEY_CTX) -&gt; c_int;
     <span class="kw">pub fn </span>EVP_PKEY_sign(
-        ctx: <span class="kw-2">*mut </span><a href="types.rs.html#113">EVP_PKEY_CTX</a>,
-        sig: <span class="kw-2">*mut </span><a href="../../../openssl_sys/type.c_uchar.html">c_uchar</a>,
-        siglen: <span class="kw-2">*mut </span><a href="../../../openssl_sys/type.size_t.html">size_t</a>,
-        tbs: <span class="kw-2">*const </span><a href="../../../openssl_sys/type.c_uchar.html">c_uchar</a>,
-        tbslen: <a href="../../../openssl_sys/type.size_t.html">size_t</a>,
-    ) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
-    <span class="kw">pub fn </span>EVP_PKEY_verify_init(ctx: <span class="kw-2">*mut </span><a href="types.rs.html#113">EVP_PKEY_CTX</a>) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
+        ctx: <span class="kw-2">*mut </span>EVP_PKEY_CTX,
+        sig: <span class="kw-2">*mut </span>c_uchar,
+        siglen: <span class="kw-2">*mut </span>size_t,
+        tbs: <span class="kw-2">*const </span>c_uchar,
+        tbslen: size_t,
+    ) -&gt; c_int;
+    <span class="kw">pub fn </span>EVP_PKEY_verify_init(ctx: <span class="kw-2">*mut </span>EVP_PKEY_CTX) -&gt; c_int;
     <span class="kw">pub fn </span>EVP_PKEY_verify(
-        ctx: <span class="kw-2">*mut </span><a href="types.rs.html#113">EVP_PKEY_CTX</a>,
-        sig: <span class="kw-2">*const </span><a href="../../../openssl_sys/type.c_uchar.html">c_uchar</a>,
-        siglen: <a href="../../../openssl_sys/type.size_t.html">size_t</a>,
-        tbs: <span class="kw-2">*const </span><a href="../../../openssl_sys/type.c_uchar.html">c_uchar</a>,
-        tbslen: <a href="../../../openssl_sys/type.size_t.html">size_t</a>,
-    ) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
-    <span class="kw">pub fn </span>EVP_PKEY_encrypt_init(ctx: <span class="kw-2">*mut </span><a href="types.rs.html#113">EVP_PKEY_CTX</a>) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
+        ctx: <span class="kw-2">*mut </span>EVP_PKEY_CTX,
+        sig: <span class="kw-2">*const </span>c_uchar,
+        siglen: size_t,
+        tbs: <span class="kw-2">*const </span>c_uchar,
+        tbslen: size_t,
+    ) -&gt; c_int;
+    <span class="kw">pub fn </span>EVP_PKEY_encrypt_init(ctx: <span class="kw-2">*mut </span>EVP_PKEY_CTX) -&gt; c_int;
     <span class="kw">pub fn </span>EVP_PKEY_encrypt(
-        ctx: <span class="kw-2">*mut </span><a href="types.rs.html#113">EVP_PKEY_CTX</a>,
-        pout: <span class="kw-2">*mut </span><a href="../../../openssl_sys/type.c_uchar.html">c_uchar</a>,
-        poutlen: <span class="kw-2">*mut </span><a href="../../../openssl_sys/type.size_t.html">size_t</a>,
-        pin: <span class="kw-2">*const </span><a href="../../../openssl_sys/type.c_uchar.html">c_uchar</a>,
-        pinlen: <a href="../../../openssl_sys/type.size_t.html">size_t</a>,
-    ) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
-    <span class="kw">pub fn </span>EVP_PKEY_decrypt_init(ctx: <span class="kw-2">*mut </span><a href="types.rs.html#113">EVP_PKEY_CTX</a>) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
+        ctx: <span class="kw-2">*mut </span>EVP_PKEY_CTX,
+        pout: <span class="kw-2">*mut </span>c_uchar,
+        poutlen: <span class="kw-2">*mut </span>size_t,
+        pin: <span class="kw-2">*const </span>c_uchar,
+        pinlen: size_t,
+    ) -&gt; c_int;
+    <span class="kw">pub fn </span>EVP_PKEY_decrypt_init(ctx: <span class="kw-2">*mut </span>EVP_PKEY_CTX) -&gt; c_int;
     <span class="kw">pub fn </span>EVP_PKEY_decrypt(
-        ctx: <span class="kw-2">*mut </span><a href="types.rs.html#113">EVP_PKEY_CTX</a>,
-        pout: <span class="kw-2">*mut </span><a href="../../../openssl_sys/type.c_uchar.html">c_uchar</a>,
-        poutlen: <span class="kw-2">*mut </span><a href="../../../openssl_sys/type.size_t.html">size_t</a>,
-        pin: <span class="kw-2">*const </span><a href="../../../openssl_sys/type.c_uchar.html">c_uchar</a>,
-        pinlen: <a href="../../../openssl_sys/type.size_t.html">size_t</a>,
-    ) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
+        ctx: <span class="kw-2">*mut </span>EVP_PKEY_CTX,
+        pout: <span class="kw-2">*mut </span>c_uchar,
+        poutlen: <span class="kw-2">*mut </span>size_t,
+        pin: <span class="kw-2">*const </span>c_uchar,
+        pinlen: size_t,
+    ) -&gt; c_int;
 }
 
 <span class="macro">const_ptr_api! </span>{
     <span class="kw">extern </span><span class="string">&quot;C&quot; </span>{
-        <span class="kw">pub fn </span>EVP_PKCS82PKEY(p8: <span class="attr">#[const_ptr_if(any(ossl110, libressl280))] </span><a href="types.rs.html#109">PKCS8_PRIV_KEY_INFO</a>) -&gt; <span class="kw-2">*mut </span><a href="../types.rs.html#6">EVP_PKEY</a>;
+        <span class="kw">pub fn </span>EVP_PKCS82PKEY(p8: <span class="attr">#[const_ptr_if(any(ossl110, libressl280))] </span>PKCS8_PRIV_KEY_INFO) -&gt; <span class="kw-2">*mut </span>EVP_PKEY;
     }
 }
 
@@ -1099,34 +1169,34 @@
     <span class="kw">if </span><span class="attr">#[cfg(any(ossl111))] </span>{
         <span class="kw">extern </span><span class="string">&quot;C&quot; </span>{
             <span class="kw">pub fn </span>EVP_PKEY_get_raw_public_key(
-                pkey: <span class="kw-2">*const </span><a href="../types.rs.html#6">EVP_PKEY</a>,
-                ppub: <span class="kw-2">*mut </span><a href="../../../openssl_sys/type.c_uchar.html">c_uchar</a>,
-                len: <span class="kw-2">*mut </span><a href="../../../openssl_sys/type.size_t.html">size_t</a>,
-            ) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
+                pkey: <span class="kw-2">*const </span>EVP_PKEY,
+                ppub: <span class="kw-2">*mut </span>c_uchar,
+                len: <span class="kw-2">*mut </span>size_t,
+            ) -&gt; c_int;
             <span class="kw">pub fn </span>EVP_PKEY_new_raw_public_key(
-                ttype: <a href="../../../openssl_sys/type.c_int.html">c_int</a>,
-                e: <span class="kw-2">*mut </span><a href="types.rs.html#455">ENGINE</a>,
-                key: <span class="kw-2">*const </span><a href="../../../openssl_sys/type.c_uchar.html">c_uchar</a>,
-                keylen: <a href="../../../openssl_sys/type.size_t.html">size_t</a>,
-            ) -&gt; <span class="kw-2">*mut </span><a href="../types.rs.html#6">EVP_PKEY</a>;
+                ttype: c_int,
+                e: <span class="kw-2">*mut </span>ENGINE,
+                key: <span class="kw-2">*const </span>c_uchar,
+                keylen: size_t,
+            ) -&gt; <span class="kw-2">*mut </span>EVP_PKEY;
             <span class="kw">pub fn </span>EVP_PKEY_get_raw_private_key(
-                pkey: <span class="kw-2">*const </span><a href="../types.rs.html#6">EVP_PKEY</a>,
-                ppriv: <span class="kw-2">*mut </span><a href="../../../openssl_sys/type.c_uchar.html">c_uchar</a>,
-                len: <span class="kw-2">*mut </span><a href="../../../openssl_sys/type.size_t.html">size_t</a>,
-            ) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
+                pkey: <span class="kw-2">*const </span>EVP_PKEY,
+                ppriv: <span class="kw-2">*mut </span>c_uchar,
+                len: <span class="kw-2">*mut </span>size_t,
+            ) -&gt; c_int;
             <span class="kw">pub fn </span>EVP_PKEY_new_raw_private_key(
-                ttype: <a href="../../../openssl_sys/type.c_int.html">c_int</a>,
-                e: <span class="kw-2">*mut </span><a href="types.rs.html#455">ENGINE</a>,
-                key: <span class="kw-2">*const </span><a href="../../../openssl_sys/type.c_uchar.html">c_uchar</a>,
-                keylen: <a href="../../../openssl_sys/type.size_t.html">size_t</a>,
-            ) -&gt; <span class="kw-2">*mut </span><a href="../types.rs.html#6">EVP_PKEY</a>;
+                ttype: c_int,
+                e: <span class="kw-2">*mut </span>ENGINE,
+                key: <span class="kw-2">*const </span>c_uchar,
+                keylen: size_t,
+            ) -&gt; <span class="kw-2">*mut </span>EVP_PKEY;
         }
     }
 }
 
 <span class="kw">extern </span><span class="string">&quot;C&quot; </span>{
-    <span class="kw">pub fn </span>EVP_EncodeBlock(dst: <span class="kw-2">*mut </span><a href="../../../openssl_sys/type.c_uchar.html">c_uchar</a>, src: <span class="kw-2">*const </span><a href="../../../openssl_sys/type.c_uchar.html">c_uchar</a>, src_len: <a href="../../../openssl_sys/type.c_int.html">c_int</a>) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
-    <span class="kw">pub fn </span>EVP_DecodeBlock(dst: <span class="kw-2">*mut </span><a href="../../../openssl_sys/type.c_uchar.html">c_uchar</a>, src: <span class="kw-2">*const </span><a href="../../../openssl_sys/type.c_uchar.html">c_uchar</a>, src_len: <a href="../../../openssl_sys/type.c_int.html">c_int</a>) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
+    <span class="kw">pub fn </span>EVP_EncodeBlock(dst: <span class="kw-2">*mut </span>c_uchar, src: <span class="kw-2">*const </span>c_uchar, src_len: c_int) -&gt; c_int;
+    <span class="kw">pub fn </span>EVP_DecodeBlock(dst: <span class="kw-2">*mut </span>c_uchar, src: <span class="kw-2">*const </span>c_uchar, src_len: c_int) -&gt; c_int;
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="openssl_sys" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="openssl_sys" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

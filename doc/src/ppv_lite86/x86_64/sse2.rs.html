@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/ppv-lite86-0.2.17/src/x86_64/sse2.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>sse2.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../ppv_lite86/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/ppv-lite86-0.2.17/src/x86_64/sse2.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>sse2.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../ppv_lite86/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -1701,16 +1701,16 @@
 <a href="#1701" id="1701">1701</a>
 <a href="#1702" id="1702">1702</a>
 <a href="#1703" id="1703">1703</a>
-</pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::soft::{<a href="../soft.rs.html#10">x2</a>, <a href="../soft.rs.html#225">x4</a>};
-<span class="kw">use </span><a href="../lib.rs.html#9"><span class="kw">crate</span>::types</a>::<span class="kw-2">*</span>;
-<span class="kw">use </span><a href="mod.rs.html#110"><span class="kw">crate</span>::vec128_storage</a>;
-<span class="kw">use </span><a href="mod.rs.html#70"><span class="kw">crate</span>::x86_64::Avx2Machine</a>;
-<span class="kw">use </span><a href="mod.rs.html#36"><span class="kw">crate</span>::x86_64::SseMachine</a> <span class="kw">as </span>Machine86;
-<span class="kw">use </span><span class="kw">crate</span>::x86_64::{<a href="mod.rs.html#11">NoS3</a>, <a href="mod.rs.html#16">NoS4</a>, <a href="mod.rs.html#9">YesS3</a>, <a href="mod.rs.html#14">YesS4</a>};
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/core_arch/arch/x86_64/index.html">core::arch::x86_64</a>::<span class="kw-2">*</span>;
+</pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::soft::{x2, x4};
+<span class="kw">use </span><span class="kw">crate</span>::types::<span class="kw-2">*</span>;
+<span class="kw">use </span><span class="kw">crate</span>::vec128_storage;
+<span class="kw">use </span><span class="kw">crate</span>::x86_64::Avx2Machine;
+<span class="kw">use </span><span class="kw">crate</span>::x86_64::SseMachine <span class="kw">as </span>Machine86;
+<span class="kw">use </span><span class="kw">crate</span>::x86_64::{NoS3, NoS4, YesS3, YesS4};
+<span class="kw">use </span>core::arch::x86_64::<span class="kw-2">*</span>;
 <span class="kw">use </span>core::marker::PhantomData;
 <span class="kw">use </span>core::ops::{
-    <a href="https://doc.rust-lang.org/nightly/core/ops/arith/trait.Add.html">Add</a>, <a href="https://doc.rust-lang.org/nightly/core/ops/arith/trait.AddAssign.html">AddAssign</a>, <a href="https://doc.rust-lang.org/nightly/core/ops/bit/trait.BitAnd.html">BitAnd</a>, <a href="https://doc.rust-lang.org/nightly/core/ops/bit/trait.BitAndAssign.html">BitAndAssign</a>, <a href="https://doc.rust-lang.org/nightly/core/ops/bit/trait.BitOr.html">BitOr</a>, <a href="https://doc.rust-lang.org/nightly/core/ops/bit/trait.BitOrAssign.html">BitOrAssign</a>, <a href="https://doc.rust-lang.org/nightly/core/ops/bit/trait.BitXor.html">BitXor</a>, <a href="https://doc.rust-lang.org/nightly/core/ops/bit/trait.BitXorAssign.html">BitXorAssign</a>, <a href="https://doc.rust-lang.org/nightly/core/ops/bit/trait.Not.html">Not</a>,
+    Add, AddAssign, BitAnd, BitAndAssign, BitOr, BitOrAssign, BitXor, BitXorAssign, Not,
 };
 
 <span class="macro">macro_rules! </span>impl_binop {
@@ -1888,40 +1888,40 @@
         }
     };
 }
-<span class="kw">impl</span>&lt;S4: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html">Copy</a>, NI: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html">Copy</a>&gt; <a href="../types.rs.html#31">RotateEachWord32</a> <span class="kw">for </span>u32x4_sse2&lt;<a href="mod.rs.html#9">YesS3</a>, S4, NI&gt; {
-    <a class="macro" href="#175-187">rotr_32!</a>(rotate_each_word_right7, <span class="number">7</span>);
-    <a class="macro" href="#167-174">rotr_32_s3!</a>(
+<span class="kw">impl</span>&lt;S4: Copy, NI: Copy&gt; RotateEachWord32 <span class="kw">for </span>u32x4_sse2&lt;YesS3, S4, NI&gt; {
+    <span class="macro">rotr_32!</span>(rotate_each_word_right7, <span class="number">7</span>);
+    <span class="macro">rotr_32_s3!</span>(
         rotate_each_word_right8,
         <span class="number">0x0c0f_0e0d_080b_0a09</span>,
         <span class="number">0x0407_0605_0003_0201
     </span>);
-    <a class="macro" href="#175-187">rotr_32!</a>(rotate_each_word_right11, <span class="number">11</span>);
-    <a class="macro" href="#175-187">rotr_32!</a>(rotate_each_word_right12, <span class="number">12</span>);
-    <a class="macro" href="#167-174">rotr_32_s3!</a>(
+    <span class="macro">rotr_32!</span>(rotate_each_word_right11, <span class="number">11</span>);
+    <span class="macro">rotr_32!</span>(rotate_each_word_right12, <span class="number">12</span>);
+    <span class="macro">rotr_32_s3!</span>(
         rotate_each_word_right16,
         <span class="number">0x0d0c_0f0e_0908_0b0a</span>,
         <span class="number">0x0504_0706_0100_0302
     </span>);
-    <a class="macro" href="#175-187">rotr_32!</a>(rotate_each_word_right20, <span class="number">20</span>);
-    <a class="macro" href="#167-174">rotr_32_s3!</a>(
+    <span class="macro">rotr_32!</span>(rotate_each_word_right20, <span class="number">20</span>);
+    <span class="macro">rotr_32_s3!</span>(
         rotate_each_word_right24,
         <span class="number">0x0e0d_0c0f_0a09_080b</span>,
         <span class="number">0x0605_0407_0201_0003
     </span>);
-    <a class="macro" href="#175-187">rotr_32!</a>(rotate_each_word_right25, <span class="number">25</span>);
+    <span class="macro">rotr_32!</span>(rotate_each_word_right25, <span class="number">25</span>);
 }
-<span class="kw">impl</span>&lt;S4: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html">Copy</a>, NI: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html">Copy</a>&gt; <a href="../types.rs.html#31">RotateEachWord32</a> <span class="kw">for </span>u32x4_sse2&lt;<a href="mod.rs.html#11">NoS3</a>, S4, NI&gt; {
-    <a class="macro" href="#175-187">rotr_32!</a>(rotate_each_word_right7, <span class="number">7</span>);
-    <a class="macro" href="#175-187">rotr_32!</a>(rotate_each_word_right8, <span class="number">8</span>);
-    <a class="macro" href="#175-187">rotr_32!</a>(rotate_each_word_right11, <span class="number">11</span>);
-    <a class="macro" href="#175-187">rotr_32!</a>(rotate_each_word_right12, <span class="number">12</span>);
+<span class="kw">impl</span>&lt;S4: Copy, NI: Copy&gt; RotateEachWord32 <span class="kw">for </span>u32x4_sse2&lt;NoS3, S4, NI&gt; {
+    <span class="macro">rotr_32!</span>(rotate_each_word_right7, <span class="number">7</span>);
+    <span class="macro">rotr_32!</span>(rotate_each_word_right8, <span class="number">8</span>);
+    <span class="macro">rotr_32!</span>(rotate_each_word_right11, <span class="number">11</span>);
+    <span class="macro">rotr_32!</span>(rotate_each_word_right12, <span class="number">12</span>);
     <span class="attr">#[inline(always)]
     </span><span class="kw">fn </span>rotate_each_word_right16(<span class="self">self</span>) -&gt; <span class="self">Self </span>{
-        <span class="self">Self</span>::new(<a href="#790">swap16_s2</a>(<a class="self" href="#216">self</a>.x))
+        <span class="self">Self</span>::new(swap16_s2(<span class="self">self</span>.x))
     }
-    <a class="macro" href="#175-187">rotr_32!</a>(rotate_each_word_right20, <span class="number">20</span>);
-    <a class="macro" href="#175-187">rotr_32!</a>(rotate_each_word_right24, <span class="number">24</span>);
-    <a class="macro" href="#175-187">rotr_32!</a>(rotate_each_word_right25, <span class="number">25</span>);
+    <span class="macro">rotr_32!</span>(rotate_each_word_right20, <span class="number">20</span>);
+    <span class="macro">rotr_32!</span>(rotate_each_word_right24, <span class="number">24</span>);
+    <span class="macro">rotr_32!</span>(rotate_each_word_right25, <span class="number">25</span>);
 }
 
 <span class="macro">macro_rules! </span>rotr_64_s3 {
@@ -1945,45 +1945,45 @@
         }
     };
 }
-<span class="kw">impl</span>&lt;S4: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html">Copy</a>, NI: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html">Copy</a>&gt; <a href="../types.rs.html#31">RotateEachWord32</a> <span class="kw">for </span>u64x2_sse2&lt;<a href="mod.rs.html#9">YesS3</a>, S4, NI&gt; {
-    <a class="macro" href="#232-244">rotr_64!</a>(rotate_each_word_right7, <span class="number">7</span>);
-    <a class="macro" href="#224-231">rotr_64_s3!</a>(
+<span class="kw">impl</span>&lt;S4: Copy, NI: Copy&gt; RotateEachWord32 <span class="kw">for </span>u64x2_sse2&lt;YesS3, S4, NI&gt; {
+    <span class="macro">rotr_64!</span>(rotate_each_word_right7, <span class="number">7</span>);
+    <span class="macro">rotr_64_s3!</span>(
         rotate_each_word_right8,
         <span class="number">0x080f_0e0d_0c0b_0a09</span>,
         <span class="number">0x0007_0605_0403_0201
     </span>);
-    <a class="macro" href="#232-244">rotr_64!</a>(rotate_each_word_right11, <span class="number">11</span>);
-    <a class="macro" href="#232-244">rotr_64!</a>(rotate_each_word_right12, <span class="number">12</span>);
-    <a class="macro" href="#224-231">rotr_64_s3!</a>(
+    <span class="macro">rotr_64!</span>(rotate_each_word_right11, <span class="number">11</span>);
+    <span class="macro">rotr_64!</span>(rotate_each_word_right12, <span class="number">12</span>);
+    <span class="macro">rotr_64_s3!</span>(
         rotate_each_word_right16,
         <span class="number">0x0908_0f0e_0d0c_0b0a</span>,
         <span class="number">0x0100_0706_0504_0302
     </span>);
-    <a class="macro" href="#232-244">rotr_64!</a>(rotate_each_word_right20, <span class="number">20</span>);
-    <a class="macro" href="#224-231">rotr_64_s3!</a>(
+    <span class="macro">rotr_64!</span>(rotate_each_word_right20, <span class="number">20</span>);
+    <span class="macro">rotr_64_s3!</span>(
         rotate_each_word_right24,
         <span class="number">0x0a09_080f_0e0d_0c0b</span>,
         <span class="number">0x0201_0007_0605_0403
     </span>);
-    <a class="macro" href="#232-244">rotr_64!</a>(rotate_each_word_right25, <span class="number">25</span>);
+    <span class="macro">rotr_64!</span>(rotate_each_word_right25, <span class="number">25</span>);
 }
-<span class="kw">impl</span>&lt;S4: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html">Copy</a>, NI: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html">Copy</a>&gt; <a href="../types.rs.html#31">RotateEachWord32</a> <span class="kw">for </span>u64x2_sse2&lt;<a href="mod.rs.html#11">NoS3</a>, S4, NI&gt; {
-    <a class="macro" href="#232-244">rotr_64!</a>(rotate_each_word_right7, <span class="number">7</span>);
-    <a class="macro" href="#232-244">rotr_64!</a>(rotate_each_word_right8, <span class="number">8</span>);
-    <a class="macro" href="#232-244">rotr_64!</a>(rotate_each_word_right11, <span class="number">11</span>);
-    <a class="macro" href="#232-244">rotr_64!</a>(rotate_each_word_right12, <span class="number">12</span>);
+<span class="kw">impl</span>&lt;S4: Copy, NI: Copy&gt; RotateEachWord32 <span class="kw">for </span>u64x2_sse2&lt;NoS3, S4, NI&gt; {
+    <span class="macro">rotr_64!</span>(rotate_each_word_right7, <span class="number">7</span>);
+    <span class="macro">rotr_64!</span>(rotate_each_word_right8, <span class="number">8</span>);
+    <span class="macro">rotr_64!</span>(rotate_each_word_right11, <span class="number">11</span>);
+    <span class="macro">rotr_64!</span>(rotate_each_word_right12, <span class="number">12</span>);
     <span class="attr">#[inline(always)]
     </span><span class="kw">fn </span>rotate_each_word_right16(<span class="self">self</span>) -&gt; <span class="self">Self </span>{
-        <span class="self">Self</span>::new(<a href="#790">swap16_s2</a>(<a class="self" href="#273">self</a>.x))
+        <span class="self">Self</span>::new(swap16_s2(<span class="self">self</span>.x))
     }
-    <a class="macro" href="#232-244">rotr_64!</a>(rotate_each_word_right20, <span class="number">20</span>);
-    <a class="macro" href="#232-244">rotr_64!</a>(rotate_each_word_right24, <span class="number">24</span>);
-    <a class="macro" href="#232-244">rotr_64!</a>(rotate_each_word_right25, <span class="number">25</span>);
+    <span class="macro">rotr_64!</span>(rotate_each_word_right20, <span class="number">20</span>);
+    <span class="macro">rotr_64!</span>(rotate_each_word_right24, <span class="number">24</span>);
+    <span class="macro">rotr_64!</span>(rotate_each_word_right25, <span class="number">25</span>);
 }
-<span class="kw">impl</span>&lt;S3: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html">Copy</a>, S4: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html">Copy</a>, NI: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html">Copy</a>&gt; <a href="../types.rs.html#42">RotateEachWord64</a> <span class="kw">for </span>u64x2_sse2&lt;S3, S4, NI&gt; {
+<span class="kw">impl</span>&lt;S3: Copy, S4: Copy, NI: Copy&gt; RotateEachWord64 <span class="kw">for </span>u64x2_sse2&lt;S3, S4, NI&gt; {
     <span class="attr">#[inline(always)]
     </span><span class="kw">fn </span>rotate_each_word_right32(<span class="self">self</span>) -&gt; <span class="self">Self </span>{
-        <span class="self">Self</span>::new(<span class="kw">unsafe </span>{ _mm_shuffle_epi32(<a class="self" href="#282">self</a>.x, <span class="number">0b10110001</span>) })
+        <span class="self">Self</span>::new(<span class="kw">unsafe </span>{ _mm_shuffle_epi32(<span class="self">self</span>.x, <span class="number">0b10110001</span>) })
     }
 }
 
@@ -2001,129 +2001,129 @@
     };
 }
 <span class="comment">// TODO: completely unoptimized
-</span><span class="kw">impl</span>&lt;S3: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html">Copy</a>, S4: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html">Copy</a>, NI: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html">Copy</a>&gt; <a href="../types.rs.html#31">RotateEachWord32</a> <span class="kw">for </span>u128x1_sse2&lt;S3, S4, NI&gt; {
-    <a class="macro" href="#287-299">rotr_128!</a>(rotate_each_word_right7, <span class="number">7</span>);
-    <a class="macro" href="#287-299">rotr_128!</a>(rotate_each_word_right8, <span class="number">8</span>);
-    <a class="macro" href="#287-299">rotr_128!</a>(rotate_each_word_right11, <span class="number">11</span>);
-    <a class="macro" href="#287-299">rotr_128!</a>(rotate_each_word_right12, <span class="number">12</span>);
-    <a class="macro" href="#287-299">rotr_128!</a>(rotate_each_word_right16, <span class="number">16</span>);
-    <a class="macro" href="#287-299">rotr_128!</a>(rotate_each_word_right20, <span class="number">20</span>);
-    <a class="macro" href="#287-299">rotr_128!</a>(rotate_each_word_right24, <span class="number">24</span>);
-    <a class="macro" href="#287-299">rotr_128!</a>(rotate_each_word_right25, <span class="number">25</span>);
+</span><span class="kw">impl</span>&lt;S3: Copy, S4: Copy, NI: Copy&gt; RotateEachWord32 <span class="kw">for </span>u128x1_sse2&lt;S3, S4, NI&gt; {
+    <span class="macro">rotr_128!</span>(rotate_each_word_right7, <span class="number">7</span>);
+    <span class="macro">rotr_128!</span>(rotate_each_word_right8, <span class="number">8</span>);
+    <span class="macro">rotr_128!</span>(rotate_each_word_right11, <span class="number">11</span>);
+    <span class="macro">rotr_128!</span>(rotate_each_word_right12, <span class="number">12</span>);
+    <span class="macro">rotr_128!</span>(rotate_each_word_right16, <span class="number">16</span>);
+    <span class="macro">rotr_128!</span>(rotate_each_word_right20, <span class="number">20</span>);
+    <span class="macro">rotr_128!</span>(rotate_each_word_right24, <span class="number">24</span>);
+    <span class="macro">rotr_128!</span>(rotate_each_word_right25, <span class="number">25</span>);
 }
 <span class="comment">// TODO: completely unoptimized
-</span><span class="kw">impl</span>&lt;S3: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html">Copy</a>, S4: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html">Copy</a>, NI: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html">Copy</a>&gt; <a href="../types.rs.html#42">RotateEachWord64</a> <span class="kw">for </span>u128x1_sse2&lt;S3, S4, NI&gt; {
-    <a class="macro" href="#287-299">rotr_128!</a>(rotate_each_word_right32, <span class="number">32</span>);
+</span><span class="kw">impl</span>&lt;S3: Copy, S4: Copy, NI: Copy&gt; RotateEachWord64 <span class="kw">for </span>u128x1_sse2&lt;S3, S4, NI&gt; {
+    <span class="macro">rotr_128!</span>(rotate_each_word_right32, <span class="number">32</span>);
 }
-<span class="kw">impl</span>&lt;S3: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html">Copy</a>, S4: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html">Copy</a>, NI: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html">Copy</a>&gt; <a href="../types.rs.html#46">RotateEachWord128</a> <span class="kw">for </span>u128x1_sse2&lt;S3, S4, NI&gt; {}
+<span class="kw">impl</span>&lt;S3: Copy, S4: Copy, NI: Copy&gt; RotateEachWord128 <span class="kw">for </span>u128x1_sse2&lt;S3, S4, NI&gt; {}
 
-<a class="macro" href="#39-136">def_vec!</a>(u32x4_sse2, u32);
-<a class="macro" href="#39-136">def_vec!</a>(u64x2_sse2, u64);
-<a class="macro" href="#39-136">def_vec!</a>(u128x1_sse2, u128);
+<span class="macro">def_vec!</span>(u32x4_sse2, u32);
+<span class="macro">def_vec!</span>(u64x2_sse2, u64);
+<span class="macro">def_vec!</span>(u128x1_sse2, u128);
 
-<span class="kw">impl</span>&lt;S3, NI&gt; MultiLane&lt;[<a href="https://doc.rust-lang.org/nightly/core/primitive.u32.html">u32</a>; <span class="number">4</span>]&gt; <span class="kw">for </span>u32x4_sse2&lt;S3, <a href="mod.rs.html#14">YesS4</a>, NI&gt; {
+<span class="kw">impl</span>&lt;S3, NI&gt; MultiLane&lt;[u32; <span class="number">4</span>]&gt; <span class="kw">for </span>u32x4_sse2&lt;S3, YesS4, NI&gt; {
     <span class="attr">#[inline(always)]
-    </span><span class="kw">fn </span>to_lanes(<span class="self">self</span>) -&gt; [<a href="https://doc.rust-lang.org/nightly/core/primitive.u32.html">u32</a>; <span class="number">4</span>] {
+    </span><span class="kw">fn </span>to_lanes(<span class="self">self</span>) -&gt; [u32; <span class="number">4</span>] {
         <span class="kw">unsafe </span>{
-            <span class="kw">let </span>x = _mm_cvtsi128_si64(<a class="self" href="#323">self</a>.x) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>;
-            <span class="kw">let </span>y = _mm_extract_epi64(<a class="self" href="#323">self</a>.x, <span class="number">1</span>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>;
-            [<a href="#325">x</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.u32.html">u32</a>, (<a href="#325">x</a> &gt;&gt; <span class="number">32</span>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.u32.html">u32</a>, <a href="#326">y</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.u32.html">u32</a>, (<a href="#326">y</a> &gt;&gt; <span class="number">32</span>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.u32.html">u32</a>]
+            <span class="kw">let </span>x = _mm_cvtsi128_si64(<span class="self">self</span>.x) <span class="kw">as </span>u64;
+            <span class="kw">let </span>y = _mm_extract_epi64(<span class="self">self</span>.x, <span class="number">1</span>) <span class="kw">as </span>u64;
+            [x <span class="kw">as </span>u32, (x &gt;&gt; <span class="number">32</span>) <span class="kw">as </span>u32, y <span class="kw">as </span>u32, (y &gt;&gt; <span class="number">32</span>) <span class="kw">as </span>u32]
         }
     }
     <span class="attr">#[inline(always)]
-    </span><span class="kw">fn </span>from_lanes(xs: [<a href="https://doc.rust-lang.org/nightly/core/primitive.u32.html">u32</a>; <span class="number">4</span>]) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">fn </span>from_lanes(xs: [u32; <span class="number">4</span>]) -&gt; <span class="self">Self </span>{
         <span class="kw">unsafe </span>{
-            <span class="kw">let </span><span class="kw-2">mut </span>x = _mm_cvtsi64_si128((<a href="#331">xs</a>[<span class="number">0</span>] <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a> | ((<a href="#331">xs</a>[<span class="number">1</span>] <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>) &lt;&lt; <span class="number">32</span>)) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.i64.html">i64</a>);
-            <a href="#333">x</a> = _mm_insert_epi64(<a href="#333">x</a>, (<a href="#331">xs</a>[<span class="number">2</span>] <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a> | ((<a href="#331">xs</a>[<span class="number">3</span>] <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>) &lt;&lt; <span class="number">32</span>)) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.i64.html">i64</a>, <span class="number">1</span>);
-            <span class="self">Self</span>::new(<a href="#333">x</a>)
-        }
-    }
-}
-<span class="kw">impl</span>&lt;S3, NI&gt; MultiLane&lt;[<a href="https://doc.rust-lang.org/nightly/core/primitive.u32.html">u32</a>; <span class="number">4</span>]&gt; <span class="kw">for </span>u32x4_sse2&lt;S3, <a href="mod.rs.html#16">NoS4</a>, NI&gt; {
-    <span class="attr">#[inline(always)]
-    </span><span class="kw">fn </span>to_lanes(<span class="self">self</span>) -&gt; [<a href="https://doc.rust-lang.org/nightly/core/primitive.u32.html">u32</a>; <span class="number">4</span>] {
-        <span class="kw">unsafe </span>{
-            <span class="kw">let </span>x = _mm_cvtsi128_si64(<a class="self" href="#341">self</a>.x) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>;
-            <span class="kw">let </span>y = _mm_cvtsi128_si64(_mm_shuffle_epi32(<a class="self" href="#341">self</a>.x, <span class="number">0b11101110</span>)) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>;
-            [<a href="#343">x</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.u32.html">u32</a>, (<a href="#343">x</a> &gt;&gt; <span class="number">32</span>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.u32.html">u32</a>, <a href="#344">y</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.u32.html">u32</a>, (<a href="#344">y</a> &gt;&gt; <span class="number">32</span>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.u32.html">u32</a>]
-        }
-    }
-    <span class="attr">#[inline(always)]
-    </span><span class="kw">fn </span>from_lanes(xs: [<a href="https://doc.rust-lang.org/nightly/core/primitive.u32.html">u32</a>; <span class="number">4</span>]) -&gt; <span class="self">Self </span>{
-        <span class="kw">unsafe </span>{
-            <span class="kw">let </span>x = (<a href="#349">xs</a>[<span class="number">0</span>] <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a> | ((<a href="#349">xs</a>[<span class="number">1</span>] <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>) &lt;&lt; <span class="number">32</span>)) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.i64.html">i64</a>;
-            <span class="kw">let </span>y = (<a href="#349">xs</a>[<span class="number">2</span>] <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a> | ((<a href="#349">xs</a>[<span class="number">3</span>] <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>) &lt;&lt; <span class="number">32</span>)) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.i64.html">i64</a>;
-            <span class="kw">let </span>x = _mm_cvtsi64_si128(<a href="#351">x</a>);
-            <span class="kw">let </span>y = _mm_slli_si128(_mm_cvtsi64_si128(<a href="#352">y</a>), <span class="number">8</span>);
-            <span class="self">Self</span>::new(_mm_or_si128(<a href="#353">x</a>, <a href="#354">y</a>))
+            <span class="kw">let </span><span class="kw-2">mut </span>x = _mm_cvtsi64_si128((xs[<span class="number">0</span>] <span class="kw">as </span>u64 | ((xs[<span class="number">1</span>] <span class="kw">as </span>u64) &lt;&lt; <span class="number">32</span>)) <span class="kw">as </span>i64);
+            x = _mm_insert_epi64(x, (xs[<span class="number">2</span>] <span class="kw">as </span>u64 | ((xs[<span class="number">3</span>] <span class="kw">as </span>u64) &lt;&lt; <span class="number">32</span>)) <span class="kw">as </span>i64, <span class="number">1</span>);
+            <span class="self">Self</span>::new(x)
         }
     }
 }
-<span class="kw">impl</span>&lt;S3, NI&gt; MultiLane&lt;[<a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>; <span class="number">2</span>]&gt; <span class="kw">for </span>u64x2_sse2&lt;S3, <a href="mod.rs.html#14">YesS4</a>, NI&gt; {
+<span class="kw">impl</span>&lt;S3, NI&gt; MultiLane&lt;[u32; <span class="number">4</span>]&gt; <span class="kw">for </span>u32x4_sse2&lt;S3, NoS4, NI&gt; {
     <span class="attr">#[inline(always)]
-    </span><span class="kw">fn </span>to_lanes(<span class="self">self</span>) -&gt; [<a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>; <span class="number">2</span>] {
+    </span><span class="kw">fn </span>to_lanes(<span class="self">self</span>) -&gt; [u32; <span class="number">4</span>] {
+        <span class="kw">unsafe </span>{
+            <span class="kw">let </span>x = _mm_cvtsi128_si64(<span class="self">self</span>.x) <span class="kw">as </span>u64;
+            <span class="kw">let </span>y = _mm_cvtsi128_si64(_mm_shuffle_epi32(<span class="self">self</span>.x, <span class="number">0b11101110</span>)) <span class="kw">as </span>u64;
+            [x <span class="kw">as </span>u32, (x &gt;&gt; <span class="number">32</span>) <span class="kw">as </span>u32, y <span class="kw">as </span>u32, (y &gt;&gt; <span class="number">32</span>) <span class="kw">as </span>u32]
+        }
+    }
+    <span class="attr">#[inline(always)]
+    </span><span class="kw">fn </span>from_lanes(xs: [u32; <span class="number">4</span>]) -&gt; <span class="self">Self </span>{
+        <span class="kw">unsafe </span>{
+            <span class="kw">let </span>x = (xs[<span class="number">0</span>] <span class="kw">as </span>u64 | ((xs[<span class="number">1</span>] <span class="kw">as </span>u64) &lt;&lt; <span class="number">32</span>)) <span class="kw">as </span>i64;
+            <span class="kw">let </span>y = (xs[<span class="number">2</span>] <span class="kw">as </span>u64 | ((xs[<span class="number">3</span>] <span class="kw">as </span>u64) &lt;&lt; <span class="number">32</span>)) <span class="kw">as </span>i64;
+            <span class="kw">let </span>x = _mm_cvtsi64_si128(x);
+            <span class="kw">let </span>y = _mm_slli_si128(_mm_cvtsi64_si128(y), <span class="number">8</span>);
+            <span class="self">Self</span>::new(_mm_or_si128(x, y))
+        }
+    }
+}
+<span class="kw">impl</span>&lt;S3, NI&gt; MultiLane&lt;[u64; <span class="number">2</span>]&gt; <span class="kw">for </span>u64x2_sse2&lt;S3, YesS4, NI&gt; {
+    <span class="attr">#[inline(always)]
+    </span><span class="kw">fn </span>to_lanes(<span class="self">self</span>) -&gt; [u64; <span class="number">2</span>] {
         <span class="kw">unsafe </span>{
             [
-                _mm_cvtsi128_si64(<a class="self" href="#361">self</a>.x) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>,
-                _mm_extract_epi64(<a class="self" href="#361">self</a>.x, <span class="number">1</span>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>,
+                _mm_cvtsi128_si64(<span class="self">self</span>.x) <span class="kw">as </span>u64,
+                _mm_extract_epi64(<span class="self">self</span>.x, <span class="number">1</span>) <span class="kw">as </span>u64,
             ]
         }
     }
     <span class="attr">#[inline(always)]
-    </span><span class="kw">fn </span>from_lanes(xs: [<a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>; <span class="number">2</span>]) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">fn </span>from_lanes(xs: [u64; <span class="number">2</span>]) -&gt; <span class="self">Self </span>{
         <span class="kw">unsafe </span>{
-            <span class="kw">let </span><span class="kw-2">mut </span>x = _mm_cvtsi64_si128(<a href="#370">xs</a>[<span class="number">0</span>] <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.i64.html">i64</a>);
-            <a href="#372">x</a> = _mm_insert_epi64(<a href="#372">x</a>, <a href="#370">xs</a>[<span class="number">1</span>] <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.i64.html">i64</a>, <span class="number">1</span>);
-            <span class="self">Self</span>::new(<a href="#372">x</a>)
+            <span class="kw">let </span><span class="kw-2">mut </span>x = _mm_cvtsi64_si128(xs[<span class="number">0</span>] <span class="kw">as </span>i64);
+            x = _mm_insert_epi64(x, xs[<span class="number">1</span>] <span class="kw">as </span>i64, <span class="number">1</span>);
+            <span class="self">Self</span>::new(x)
         }
     }
 }
-<span class="kw">impl</span>&lt;S3, NI&gt; MultiLane&lt;[<a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>; <span class="number">2</span>]&gt; <span class="kw">for </span>u64x2_sse2&lt;S3, <a href="mod.rs.html#16">NoS4</a>, NI&gt; {
+<span class="kw">impl</span>&lt;S3, NI&gt; MultiLane&lt;[u64; <span class="number">2</span>]&gt; <span class="kw">for </span>u64x2_sse2&lt;S3, NoS4, NI&gt; {
     <span class="attr">#[inline(always)]
-    </span><span class="kw">fn </span>to_lanes(<span class="self">self</span>) -&gt; [<a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>; <span class="number">2</span>] {
+    </span><span class="kw">fn </span>to_lanes(<span class="self">self</span>) -&gt; [u64; <span class="number">2</span>] {
         <span class="kw">unsafe </span>{
             [
-                _mm_cvtsi128_si64(<a class="self" href="#380">self</a>.x) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>,
-                _mm_cvtsi128_si64(_mm_srli_si128(<a class="self" href="#380">self</a>.x, <span class="number">8</span>)) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>,
+                _mm_cvtsi128_si64(<span class="self">self</span>.x) <span class="kw">as </span>u64,
+                _mm_cvtsi128_si64(_mm_srli_si128(<span class="self">self</span>.x, <span class="number">8</span>)) <span class="kw">as </span>u64,
             ]
         }
     }
     <span class="attr">#[inline(always)]
-    </span><span class="kw">fn </span>from_lanes(xs: [<a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>; <span class="number">2</span>]) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">fn </span>from_lanes(xs: [u64; <span class="number">2</span>]) -&gt; <span class="self">Self </span>{
         <span class="kw">unsafe </span>{
-            <span class="kw">let </span>x = _mm_cvtsi64_si128(<a href="#389">xs</a>[<span class="number">0</span>] <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.i64.html">i64</a>);
-            <span class="kw">let </span>y = _mm_slli_si128(_mm_cvtsi64_si128(<a href="#389">xs</a>[<span class="number">1</span>] <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.i64.html">i64</a>), <span class="number">8</span>);
-            <span class="self">Self</span>::new(_mm_or_si128(<a href="#391">x</a>, <a href="#392">y</a>))
+            <span class="kw">let </span>x = _mm_cvtsi64_si128(xs[<span class="number">0</span>] <span class="kw">as </span>i64);
+            <span class="kw">let </span>y = _mm_slli_si128(_mm_cvtsi64_si128(xs[<span class="number">1</span>] <span class="kw">as </span>i64), <span class="number">8</span>);
+            <span class="self">Self</span>::new(_mm_or_si128(x, y))
         }
     }
 }
-<span class="kw">impl</span>&lt;S3, S4, NI&gt; MultiLane&lt;[<a href="https://doc.rust-lang.org/nightly/core/primitive.u128.html">u128</a>; <span class="number">1</span>]&gt; <span class="kw">for </span>u128x1_sse2&lt;S3, S4, NI&gt; {
+<span class="kw">impl</span>&lt;S3, S4, NI&gt; MultiLane&lt;[u128; <span class="number">1</span>]&gt; <span class="kw">for </span>u128x1_sse2&lt;S3, S4, NI&gt; {
     <span class="attr">#[inline(always)]
-    </span><span class="kw">fn </span>to_lanes(<span class="self">self</span>) -&gt; [<a href="https://doc.rust-lang.org/nightly/core/primitive.u128.html">u128</a>; <span class="number">1</span>] {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unimplemented.html">unimplemented!</a>()
+    </span><span class="kw">fn </span>to_lanes(<span class="self">self</span>) -&gt; [u128; <span class="number">1</span>] {
+        <span class="macro">unimplemented!</span>()
     }
     <span class="attr">#[inline(always)]
-    </span><span class="kw">fn </span>from_lanes(xs: [<a href="https://doc.rust-lang.org/nightly/core/primitive.u128.html">u128</a>; <span class="number">1</span>]) -&gt; <span class="self">Self </span>{
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unimplemented.html">unimplemented!</a>(<span class="string">&quot;{:?}&quot;</span>, xs)
+    </span><span class="kw">fn </span>from_lanes(xs: [u128; <span class="number">1</span>]) -&gt; <span class="self">Self </span>{
+        <span class="macro">unimplemented!</span>(<span class="string">&quot;{:?}&quot;</span>, xs)
     }
 }
 
-<span class="kw">impl</span>&lt;S3, S4, NI&gt; MultiLane&lt;[<a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>; <span class="number">4</span>]&gt; <span class="kw">for </span>u64x4_sse2&lt;S3, S4, NI&gt;
+<span class="kw">impl</span>&lt;S3, S4, NI&gt; MultiLane&lt;[u64; <span class="number">4</span>]&gt; <span class="kw">for </span>u64x4_sse2&lt;S3, S4, NI&gt;
 <span class="kw">where
-    </span>u64x2_sse2&lt;S3, S4, NI&gt;: MultiLane&lt;[<a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>; <span class="number">2</span>]&gt; + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html">Copy</a>,
+    </span>u64x2_sse2&lt;S3, S4, NI&gt;: MultiLane&lt;[u64; <span class="number">2</span>]&gt; + Copy,
 {
     <span class="attr">#[inline(always)]
-    </span><span class="kw">fn </span>to_lanes(<span class="self">self</span>) -&gt; [<a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>; <span class="number">4</span>] {
-        <span class="kw">let </span>(a, b) = (<a class="self" href="#413">self</a>.<span class="number">0</span>[<span class="number">0</span>].<a href="../types.rs.html#211">to_lanes</a>(), <a class="self" href="#413">self</a>.<span class="number">0</span>[<span class="number">1</span>].<a href="../types.rs.html#211">to_lanes</a>());
-        [<a href="#414">a</a>[<span class="number">0</span>], <a href="#414">a</a>[<span class="number">1</span>], <a href="#414">b</a>[<span class="number">0</span>], <a href="#414">b</a>[<span class="number">1</span>]]
+    </span><span class="kw">fn </span>to_lanes(<span class="self">self</span>) -&gt; [u64; <span class="number">4</span>] {
+        <span class="kw">let </span>(a, b) = (<span class="self">self</span>.<span class="number">0</span>[<span class="number">0</span>].to_lanes(), <span class="self">self</span>.<span class="number">0</span>[<span class="number">1</span>].to_lanes());
+        [a[<span class="number">0</span>], a[<span class="number">1</span>], b[<span class="number">0</span>], b[<span class="number">1</span>]]
     }
     <span class="attr">#[inline(always)]
-    </span><span class="kw">fn </span>from_lanes(xs: [<a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>; <span class="number">4</span>]) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">fn </span>from_lanes(xs: [u64; <span class="number">4</span>]) -&gt; <span class="self">Self </span>{
         <span class="kw">let </span>(a, b) = (
-            u64x2_sse2::from_lanes([<a href="#418">xs</a>[<span class="number">0</span>], <a href="#418">xs</a>[<span class="number">1</span>]]),
-            u64x2_sse2::from_lanes([<a href="#418">xs</a>[<span class="number">2</span>], <a href="#418">xs</a>[<span class="number">3</span>]]),
+            u64x2_sse2::from_lanes([xs[<span class="number">0</span>], xs[<span class="number">1</span>]]),
+            u64x2_sse2::from_lanes([xs[<span class="number">2</span>], xs[<span class="number">3</span>]]),
         );
-        x2::new([<a href="#419">a</a>, <a href="#419">b</a>])
+        x2::new([a, b])
     }
 }
 
@@ -2138,183 +2138,183 @@
     };
 }
 
-<a class="macro" href="#427-436">impl_into!</a>(u128x1_sse2, u32x4_sse2);
-<a class="macro" href="#427-436">impl_into!</a>(u128x1_sse2, u64x2_sse2);
+<span class="macro">impl_into!</span>(u128x1_sse2, u32x4_sse2);
+<span class="macro">impl_into!</span>(u128x1_sse2, u64x2_sse2);
 
-<a class="macro" href="#138-145">impl_bitops32!</a>(u32x4_sse2);
-<a class="macro" href="#147-155">impl_bitops64!</a>(u64x2_sse2);
-<a class="macro" href="#157-165">impl_bitops128!</a>(u128x1_sse2);
+<span class="macro">impl_bitops32!</span>(u32x4_sse2);
+<span class="macro">impl_bitops64!</span>(u64x2_sse2);
+<span class="macro">impl_bitops128!</span>(u128x1_sse2);
 
-<span class="kw">impl</span>&lt;S3: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html">Copy</a>, S4: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html">Copy</a>, NI: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html">Copy</a>&gt; <a href="../types.rs.html#12">ArithOps</a> <span class="kw">for </span>u32x4_sse2&lt;S3, S4, NI&gt; <span class="kw">where
-    </span>u32x4_sse2&lt;S3, S4, NI&gt;: <a href="../types.rs.html#8">BSwap</a>
+<span class="kw">impl</span>&lt;S3: Copy, S4: Copy, NI: Copy&gt; ArithOps <span class="kw">for </span>u32x4_sse2&lt;S3, S4, NI&gt; <span class="kw">where
+    </span>u32x4_sse2&lt;S3, S4, NI&gt;: BSwap
 {
 }
-<span class="kw">impl</span>&lt;S3: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html">Copy</a>, S4: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html">Copy</a>, NI: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html">Copy</a>&gt; <a href="../types.rs.html#12">ArithOps</a> <span class="kw">for </span>u64x2_sse2&lt;S3, S4, NI&gt; <span class="kw">where
-    </span>u64x2_sse2&lt;S3, S4, NI&gt;: <a href="../types.rs.html#8">BSwap</a>
+<span class="kw">impl</span>&lt;S3: Copy, S4: Copy, NI: Copy&gt; ArithOps <span class="kw">for </span>u64x2_sse2&lt;S3, S4, NI&gt; <span class="kw">where
+    </span>u64x2_sse2&lt;S3, S4, NI&gt;: BSwap
 {
 }
-<a class="macro" href="#13-23">impl_binop!</a>(u32x4_sse2, Add, add, _mm_add_epi32);
-<a class="macro" href="#13-23">impl_binop!</a>(u64x2_sse2, Add, add, _mm_add_epi64);
-<a class="macro" href="#25-37">impl_binop_assign!</a>(u32x4_sse2, AddAssign, add_assign, add);
-<a class="macro" href="#25-37">impl_binop_assign!</a>(u64x2_sse2, AddAssign, add_assign, add);
+<span class="macro">impl_binop!</span>(u32x4_sse2, Add, add, _mm_add_epi32);
+<span class="macro">impl_binop!</span>(u64x2_sse2, Add, add, _mm_add_epi64);
+<span class="macro">impl_binop_assign!</span>(u32x4_sse2, AddAssign, add_assign, add);
+<span class="macro">impl_binop_assign!</span>(u64x2_sse2, AddAssign, add_assign, add);
 
-<span class="kw">impl</span>&lt;S3: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html">Copy</a>, S4: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html">Copy</a>, NI: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html">Copy</a>&gt; u32x4&lt;Machine86&lt;S3, S4, NI&gt;&gt; <span class="kw">for </span>u32x4_sse2&lt;S3, S4, NI&gt;
+<span class="kw">impl</span>&lt;S3: Copy, S4: Copy, NI: Copy&gt; u32x4&lt;Machine86&lt;S3, S4, NI&gt;&gt; <span class="kw">for </span>u32x4_sse2&lt;S3, S4, NI&gt;
 <span class="kw">where
-    </span>u32x4_sse2&lt;S3, S4, NI&gt;: <a href="../types.rs.html#31">RotateEachWord32</a> + <a href="../types.rs.html#8">BSwap</a> + MultiLane&lt;[<a href="https://doc.rust-lang.org/nightly/core/primitive.u32.html">u32</a>; <span class="number">4</span>]&gt; + Vec4&lt;<a href="https://doc.rust-lang.org/nightly/core/primitive.u32.html">u32</a>&gt;,
-    Machine86&lt;S3, S4, NI&gt;: <a href="../types.rs.html#231">Machine</a>,
+    </span>u32x4_sse2&lt;S3, S4, NI&gt;: RotateEachWord32 + BSwap + MultiLane&lt;[u32; <span class="number">4</span>]&gt; + Vec4&lt;u32&gt;,
+    Machine86&lt;S3, S4, NI&gt;: Machine,
 {
 }
-<span class="kw">impl</span>&lt;S3: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html">Copy</a>, S4: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html">Copy</a>, NI: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html">Copy</a>&gt; u64x2&lt;Machine86&lt;S3, S4, NI&gt;&gt; <span class="kw">for </span>u64x2_sse2&lt;S3, S4, NI&gt;
+<span class="kw">impl</span>&lt;S3: Copy, S4: Copy, NI: Copy&gt; u64x2&lt;Machine86&lt;S3, S4, NI&gt;&gt; <span class="kw">for </span>u64x2_sse2&lt;S3, S4, NI&gt;
 <span class="kw">where
     </span>u64x2_sse2&lt;S3, S4, NI&gt;:
-        <a href="../types.rs.html#42">RotateEachWord64</a> + <a href="../types.rs.html#31">RotateEachWord32</a> + <a href="../types.rs.html#8">BSwap</a> + MultiLane&lt;[<a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>; <span class="number">2</span>]&gt; + Vec2&lt;<a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>&gt;,
-    Machine86&lt;S3, S4, NI&gt;: <a href="../types.rs.html#231">Machine</a>,
+        RotateEachWord64 + RotateEachWord32 + BSwap + MultiLane&lt;[u64; <span class="number">2</span>]&gt; + Vec2&lt;u64&gt;,
+    Machine86&lt;S3, S4, NI&gt;: Machine,
 {
 }
-<span class="kw">impl</span>&lt;S3: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html">Copy</a>, S4: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html">Copy</a>, NI: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html">Copy</a>&gt; u128x1&lt;Machine86&lt;S3, S4, NI&gt;&gt; <span class="kw">for </span>u128x1_sse2&lt;S3, S4, NI&gt;
+<span class="kw">impl</span>&lt;S3: Copy, S4: Copy, NI: Copy&gt; u128x1&lt;Machine86&lt;S3, S4, NI&gt;&gt; <span class="kw">for </span>u128x1_sse2&lt;S3, S4, NI&gt;
 <span class="kw">where
-    </span>u128x1_sse2&lt;S3, S4, NI&gt;: <a href="../types.rs.html#103">Swap64</a> + <a href="../types.rs.html#42">RotateEachWord64</a> + <a href="../types.rs.html#31">RotateEachWord32</a> + <a href="../types.rs.html#8">BSwap</a>,
-    Machine86&lt;S3, S4, NI&gt;: <a href="../types.rs.html#231">Machine</a>,
+    </span>u128x1_sse2&lt;S3, S4, NI&gt;: Swap64 + RotateEachWord64 + RotateEachWord32 + BSwap,
+    Machine86&lt;S3, S4, NI&gt;: Machine,
     u128x1_sse2&lt;S3, S4, NI&gt;: Into&lt;&lt;Machine86&lt;S3, S4, NI&gt; <span class="kw">as </span>Machine&gt;::u32x4&gt;,
     u128x1_sse2&lt;S3, S4, NI&gt;: Into&lt;&lt;Machine86&lt;S3, S4, NI&gt; <span class="kw">as </span>Machine&gt;::u64x2&gt;,
 {
 }
 
-<span class="kw">impl</span>&lt;NI: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html">Copy</a>&gt; u32x4&lt;Avx2Machine&lt;NI&gt;&gt; <span class="kw">for </span>u32x4_sse2&lt;<a href="mod.rs.html#9">YesS3</a>, <a href="mod.rs.html#14">YesS4</a>, NI&gt;
+<span class="kw">impl</span>&lt;NI: Copy&gt; u32x4&lt;Avx2Machine&lt;NI&gt;&gt; <span class="kw">for </span>u32x4_sse2&lt;YesS3, YesS4, NI&gt;
 <span class="kw">where
-    </span>u32x4_sse2&lt;<a href="mod.rs.html#9">YesS3</a>, <a href="mod.rs.html#14">YesS4</a>, NI&gt;: <a href="../types.rs.html#31">RotateEachWord32</a> + <a href="../types.rs.html#8">BSwap</a> + MultiLane&lt;[<a href="https://doc.rust-lang.org/nightly/core/primitive.u32.html">u32</a>; <span class="number">4</span>]&gt; + Vec4&lt;<a href="https://doc.rust-lang.org/nightly/core/primitive.u32.html">u32</a>&gt;,
-    Machine86&lt;<a href="mod.rs.html#9">YesS3</a>, <a href="mod.rs.html#14">YesS4</a>, NI&gt;: <a href="../types.rs.html#231">Machine</a>,
+    </span>u32x4_sse2&lt;YesS3, YesS4, NI&gt;: RotateEachWord32 + BSwap + MultiLane&lt;[u32; <span class="number">4</span>]&gt; + Vec4&lt;u32&gt;,
+    Machine86&lt;YesS3, YesS4, NI&gt;: Machine,
 {
 }
-<span class="kw">impl</span>&lt;NI: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html">Copy</a>&gt; u64x2&lt;Avx2Machine&lt;NI&gt;&gt; <span class="kw">for </span>u64x2_sse2&lt;<a href="mod.rs.html#9">YesS3</a>, <a href="mod.rs.html#14">YesS4</a>, NI&gt;
+<span class="kw">impl</span>&lt;NI: Copy&gt; u64x2&lt;Avx2Machine&lt;NI&gt;&gt; <span class="kw">for </span>u64x2_sse2&lt;YesS3, YesS4, NI&gt;
 <span class="kw">where
-    </span>u64x2_sse2&lt;<a href="mod.rs.html#9">YesS3</a>, <a href="mod.rs.html#14">YesS4</a>, NI&gt;:
-        <a href="../types.rs.html#42">RotateEachWord64</a> + <a href="../types.rs.html#31">RotateEachWord32</a> + <a href="../types.rs.html#8">BSwap</a> + MultiLane&lt;[<a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>; <span class="number">2</span>]&gt; + Vec2&lt;<a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>&gt;,
-    Machine86&lt;<a href="mod.rs.html#9">YesS3</a>, <a href="mod.rs.html#14">YesS4</a>, NI&gt;: <a href="../types.rs.html#231">Machine</a>,
+    </span>u64x2_sse2&lt;YesS3, YesS4, NI&gt;:
+        RotateEachWord64 + RotateEachWord32 + BSwap + MultiLane&lt;[u64; <span class="number">2</span>]&gt; + Vec2&lt;u64&gt;,
+    Machine86&lt;YesS3, YesS4, NI&gt;: Machine,
 {
 }
-<span class="kw">impl</span>&lt;NI: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html">Copy</a>&gt; u128x1&lt;Avx2Machine&lt;NI&gt;&gt; <span class="kw">for </span>u128x1_sse2&lt;<a href="mod.rs.html#9">YesS3</a>, <a href="mod.rs.html#14">YesS4</a>, NI&gt;
+<span class="kw">impl</span>&lt;NI: Copy&gt; u128x1&lt;Avx2Machine&lt;NI&gt;&gt; <span class="kw">for </span>u128x1_sse2&lt;YesS3, YesS4, NI&gt;
 <span class="kw">where
-    </span>u128x1_sse2&lt;<a href="mod.rs.html#9">YesS3</a>, <a href="mod.rs.html#14">YesS4</a>, NI&gt;: <a href="../types.rs.html#103">Swap64</a> + <a href="../types.rs.html#42">RotateEachWord64</a> + <a href="../types.rs.html#31">RotateEachWord32</a> + <a href="../types.rs.html#8">BSwap</a>,
-    Machine86&lt;<a href="mod.rs.html#9">YesS3</a>, <a href="mod.rs.html#14">YesS4</a>, NI&gt;: <a href="../types.rs.html#231">Machine</a>,
-    u128x1_sse2&lt;<a href="mod.rs.html#9">YesS3</a>, <a href="mod.rs.html#14">YesS4</a>, NI&gt;: Into&lt;&lt;Machine86&lt;<a href="mod.rs.html#9">YesS3</a>, <a href="mod.rs.html#14">YesS4</a>, NI&gt; <span class="kw">as </span>Machine&gt;::u32x4&gt;,
-    u128x1_sse2&lt;<a href="mod.rs.html#9">YesS3</a>, <a href="mod.rs.html#14">YesS4</a>, NI&gt;: Into&lt;&lt;Machine86&lt;<a href="mod.rs.html#9">YesS3</a>, <a href="mod.rs.html#14">YesS4</a>, NI&gt; <span class="kw">as </span>Machine&gt;::u64x2&gt;,
+    </span>u128x1_sse2&lt;YesS3, YesS4, NI&gt;: Swap64 + RotateEachWord64 + RotateEachWord32 + BSwap,
+    Machine86&lt;YesS3, YesS4, NI&gt;: Machine,
+    u128x1_sse2&lt;YesS3, YesS4, NI&gt;: Into&lt;&lt;Machine86&lt;YesS3, YesS4, NI&gt; <span class="kw">as </span>Machine&gt;::u32x4&gt;,
+    u128x1_sse2&lt;YesS3, YesS4, NI&gt;: Into&lt;&lt;Machine86&lt;YesS3, YesS4, NI&gt; <span class="kw">as </span>Machine&gt;::u64x2&gt;,
 {
 }
 
-<span class="kw">impl</span>&lt;S3, S4, NI&gt; UnsafeFrom&lt;[<a href="https://doc.rust-lang.org/nightly/core/primitive.u32.html">u32</a>; <span class="number">4</span>]&gt; <span class="kw">for </span>u32x4_sse2&lt;S3, S4, NI&gt; {
+<span class="kw">impl</span>&lt;S3, S4, NI&gt; UnsafeFrom&lt;[u32; <span class="number">4</span>]&gt; <span class="kw">for </span>u32x4_sse2&lt;S3, S4, NI&gt; {
     <span class="attr">#[inline(always)]
-    </span><span class="kw">unsafe fn </span>unsafe_from(xs: [<a href="https://doc.rust-lang.org/nightly/core/primitive.u32.html">u32</a>; <span class="number">4</span>]) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">unsafe fn </span>unsafe_from(xs: [u32; <span class="number">4</span>]) -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>::new(_mm_set_epi32(
-            <a href="#504">xs</a>[<span class="number">3</span>] <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.i32.html">i32</a>,
-            <a href="#504">xs</a>[<span class="number">2</span>] <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.i32.html">i32</a>,
-            <a href="#504">xs</a>[<span class="number">1</span>] <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.i32.html">i32</a>,
-            <a href="#504">xs</a>[<span class="number">0</span>] <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.i32.html">i32</a>,
+            xs[<span class="number">3</span>] <span class="kw">as </span>i32,
+            xs[<span class="number">2</span>] <span class="kw">as </span>i32,
+            xs[<span class="number">1</span>] <span class="kw">as </span>i32,
+            xs[<span class="number">0</span>] <span class="kw">as </span>i32,
         ))
     }
 }
 
-<span class="kw">impl</span>&lt;S3, NI&gt; Vec4&lt;<a href="https://doc.rust-lang.org/nightly/core/primitive.u32.html">u32</a>&gt; <span class="kw">for </span>u32x4_sse2&lt;S3, <a href="mod.rs.html#14">YesS4</a>, NI&gt;
+<span class="kw">impl</span>&lt;S3, NI&gt; Vec4&lt;u32&gt; <span class="kw">for </span>u32x4_sse2&lt;S3, YesS4, NI&gt;
 <span class="kw">where
-    </span><span class="self">Self</span>: MultiLane&lt;[<a href="https://doc.rust-lang.org/nightly/core/primitive.u32.html">u32</a>; <span class="number">4</span>]&gt;,
+    </span><span class="self">Self</span>: MultiLane&lt;[u32; <span class="number">4</span>]&gt;,
 {
     <span class="attr">#[inline(always)]
-    </span><span class="kw">fn </span>extract(<span class="self">self</span>, i: <a href="https://doc.rust-lang.org/nightly/core/primitive.u32.html">u32</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/primitive.u32.html">u32</a> {
-        <a class="self" href="#519">self</a>.<a href="../types.rs.html#211">to_lanes</a>()[<a href="#519">i</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>]
+    </span><span class="kw">fn </span>extract(<span class="self">self</span>, i: u32) -&gt; u32 {
+        <span class="self">self</span>.to_lanes()[i <span class="kw">as </span>usize]
     }
     <span class="attr">#[inline(always)]
-    </span><span class="kw">fn </span>insert(<span class="self">self</span>, v: <a href="https://doc.rust-lang.org/nightly/core/primitive.u32.html">u32</a>, i: <a href="https://doc.rust-lang.org/nightly/core/primitive.u32.html">u32</a>) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">fn </span>insert(<span class="self">self</span>, v: u32, i: u32) -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>::new(<span class="kw">unsafe </span>{
-            <span class="kw">match </span><a href="#523">i</a> {
-                <span class="number">0 </span>=&gt; _mm_insert_epi32(<a class="self" href="#523">self</a>.x, <a href="#523">v</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.i32.html">i32</a>, <span class="number">0</span>),
-                <span class="number">1 </span>=&gt; _mm_insert_epi32(<a class="self" href="#523">self</a>.x, <a href="#523">v</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.i32.html">i32</a>, <span class="number">1</span>),
-                <span class="number">2 </span>=&gt; _mm_insert_epi32(<a class="self" href="#523">self</a>.x, <a href="#523">v</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.i32.html">i32</a>, <span class="number">2</span>),
-                <span class="number">3 </span>=&gt; _mm_insert_epi32(<a class="self" href="#523">self</a>.x, <a href="#523">v</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.i32.html">i32</a>, <span class="number">3</span>),
-                <span class="kw">_ </span>=&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(),
+            <span class="kw">match </span>i {
+                <span class="number">0 </span>=&gt; _mm_insert_epi32(<span class="self">self</span>.x, v <span class="kw">as </span>i32, <span class="number">0</span>),
+                <span class="number">1 </span>=&gt; _mm_insert_epi32(<span class="self">self</span>.x, v <span class="kw">as </span>i32, <span class="number">1</span>),
+                <span class="number">2 </span>=&gt; _mm_insert_epi32(<span class="self">self</span>.x, v <span class="kw">as </span>i32, <span class="number">2</span>),
+                <span class="number">3 </span>=&gt; _mm_insert_epi32(<span class="self">self</span>.x, v <span class="kw">as </span>i32, <span class="number">3</span>),
+                <span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>(),
             }
         })
     }
 }
-<span class="kw">impl</span>&lt;S3, NI&gt; Vec4&lt;<a href="https://doc.rust-lang.org/nightly/core/primitive.u32.html">u32</a>&gt; <span class="kw">for </span>u32x4_sse2&lt;S3, <a href="mod.rs.html#16">NoS4</a>, NI&gt;
+<span class="kw">impl</span>&lt;S3, NI&gt; Vec4&lt;u32&gt; <span class="kw">for </span>u32x4_sse2&lt;S3, NoS4, NI&gt;
 <span class="kw">where
-    </span><span class="self">Self</span>: MultiLane&lt;[<a href="https://doc.rust-lang.org/nightly/core/primitive.u32.html">u32</a>; <span class="number">4</span>]&gt;,
+    </span><span class="self">Self</span>: MultiLane&lt;[u32; <span class="number">4</span>]&gt;,
 {
     <span class="attr">#[inline(always)]
-    </span><span class="kw">fn </span>extract(<span class="self">self</span>, i: <a href="https://doc.rust-lang.org/nightly/core/primitive.u32.html">u32</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/primitive.u32.html">u32</a> {
-        <a class="self" href="#540">self</a>.<a href="../types.rs.html#211">to_lanes</a>()[<a href="#540">i</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>]
+    </span><span class="kw">fn </span>extract(<span class="self">self</span>, i: u32) -&gt; u32 {
+        <span class="self">self</span>.to_lanes()[i <span class="kw">as </span>usize]
     }
     <span class="attr">#[inline(always)]
-    </span><span class="kw">fn </span>insert(<span class="self">self</span>, v: <a href="https://doc.rust-lang.org/nightly/core/primitive.u32.html">u32</a>, i: <a href="https://doc.rust-lang.org/nightly/core/primitive.u32.html">u32</a>) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">fn </span>insert(<span class="self">self</span>, v: u32, i: u32) -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>::new(<span class="kw">unsafe </span>{
-            <span class="kw">match </span><a href="#544">i</a> {
+            <span class="kw">match </span>i {
                 <span class="number">0 </span>=&gt; {
-                    <span class="kw">let </span>x = _mm_andnot_si128(_mm_cvtsi32_si128(-<span class="number">1</span>), <a class="self" href="#544">self</a>.x);
-                    _mm_or_si128(<a href="#548">x</a>, _mm_cvtsi32_si128(<a href="#544">v</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.i32.html">i32</a>))
+                    <span class="kw">let </span>x = _mm_andnot_si128(_mm_cvtsi32_si128(-<span class="number">1</span>), <span class="self">self</span>.x);
+                    _mm_or_si128(x, _mm_cvtsi32_si128(v <span class="kw">as </span>i32))
                 }
                 <span class="number">1 </span>=&gt; {
-                    <span class="kw">let </span><span class="kw-2">mut </span>x = _mm_shuffle_epi32(<a class="self" href="#544">self</a>.x, <span class="number">0b0111_1000</span>);
-                    <a href="#552">x</a> = _mm_slli_si128(<a href="#552">x</a>, <span class="number">4</span>);
-                    <a href="#552">x</a> = _mm_or_si128(<a href="#552">x</a>, _mm_cvtsi32_si128(<a href="#544">v</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.i32.html">i32</a>));
-                    _mm_shuffle_epi32(<a href="#552">x</a>, <span class="number">0b1110_0001</span>)
+                    <span class="kw">let </span><span class="kw-2">mut </span>x = _mm_shuffle_epi32(<span class="self">self</span>.x, <span class="number">0b0111_1000</span>);
+                    x = _mm_slli_si128(x, <span class="number">4</span>);
+                    x = _mm_or_si128(x, _mm_cvtsi32_si128(v <span class="kw">as </span>i32));
+                    _mm_shuffle_epi32(x, <span class="number">0b1110_0001</span>)
                 }
                 <span class="number">2 </span>=&gt; {
-                    <span class="kw">let </span><span class="kw-2">mut </span>x = _mm_shuffle_epi32(<a class="self" href="#544">self</a>.x, <span class="number">0b1011_0100</span>);
-                    <a href="#558">x</a> = _mm_slli_si128(<a href="#558">x</a>, <span class="number">4</span>);
-                    <a href="#558">x</a> = _mm_or_si128(<a href="#558">x</a>, _mm_cvtsi32_si128(<a href="#544">v</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.i32.html">i32</a>));
-                    _mm_shuffle_epi32(<a href="#558">x</a>, <span class="number">0b1100_1001</span>)
+                    <span class="kw">let </span><span class="kw-2">mut </span>x = _mm_shuffle_epi32(<span class="self">self</span>.x, <span class="number">0b1011_0100</span>);
+                    x = _mm_slli_si128(x, <span class="number">4</span>);
+                    x = _mm_or_si128(x, _mm_cvtsi32_si128(v <span class="kw">as </span>i32));
+                    _mm_shuffle_epi32(x, <span class="number">0b1100_1001</span>)
                 }
                 <span class="number">3 </span>=&gt; {
-                    <span class="kw">let </span><span class="kw-2">mut </span>x = _mm_slli_si128(<a class="self" href="#544">self</a>.x, <span class="number">4</span>);
-                    <a href="#564">x</a> = _mm_or_si128(<a href="#564">x</a>, _mm_cvtsi32_si128(<a href="#544">v</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.i32.html">i32</a>));
-                    _mm_shuffle_epi32(<a href="#564">x</a>, <span class="number">0b0011_1001</span>)
+                    <span class="kw">let </span><span class="kw-2">mut </span>x = _mm_slli_si128(<span class="self">self</span>.x, <span class="number">4</span>);
+                    x = _mm_or_si128(x, _mm_cvtsi32_si128(v <span class="kw">as </span>i32));
+                    _mm_shuffle_epi32(x, <span class="number">0b0011_1001</span>)
                 }
-                <span class="kw">_ </span>=&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(),
+                <span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>(),
             }
         })
     }
 }
 
-<span class="kw">impl</span>&lt;S3, S4, NI&gt; <a href="../types.rs.html#95">LaneWords4</a> <span class="kw">for </span>u32x4_sse2&lt;S3, S4, NI&gt; {
+<span class="kw">impl</span>&lt;S3, S4, NI&gt; LaneWords4 <span class="kw">for </span>u32x4_sse2&lt;S3, S4, NI&gt; {
     <span class="attr">#[inline(always)]
     </span><span class="kw">fn </span>shuffle_lane_words2301(<span class="self">self</span>) -&gt; <span class="self">Self </span>{
-        <a class="self" href="#576">self</a>.<a href="../types.rs.html#90">shuffle2301</a>()
+        <span class="self">self</span>.shuffle2301()
     }
     <span class="attr">#[inline(always)]
     </span><span class="kw">fn </span>shuffle_lane_words1230(<span class="self">self</span>) -&gt; <span class="self">Self </span>{
-        <a class="self" href="#580">self</a>.<a href="../types.rs.html#89">shuffle1230</a>()
+        <span class="self">self</span>.shuffle1230()
     }
     <span class="attr">#[inline(always)]
     </span><span class="kw">fn </span>shuffle_lane_words3012(<span class="self">self</span>) -&gt; <span class="self">Self </span>{
-        <a class="self" href="#584">self</a>.<a href="../types.rs.html#91">shuffle3012</a>()
+        <span class="self">self</span>.shuffle3012()
     }
 }
 
-<span class="kw">impl</span>&lt;S3, S4, NI&gt; <a href="../types.rs.html#88">Words4</a> <span class="kw">for </span>u32x4_sse2&lt;S3, S4, NI&gt; {
+<span class="kw">impl</span>&lt;S3, S4, NI&gt; Words4 <span class="kw">for </span>u32x4_sse2&lt;S3, S4, NI&gt; {
     <span class="attr">#[inline(always)]
     </span><span class="kw">fn </span>shuffle2301(<span class="self">self</span>) -&gt; <span class="self">Self </span>{
-        <span class="self">Self</span>::new(<span class="kw">unsafe </span>{ _mm_shuffle_epi32(<a class="self" href="#591">self</a>.x, <span class="number">0b0100_1110</span>) })
+        <span class="self">Self</span>::new(<span class="kw">unsafe </span>{ _mm_shuffle_epi32(<span class="self">self</span>.x, <span class="number">0b0100_1110</span>) })
     }
     <span class="attr">#[inline(always)]
     </span><span class="kw">fn </span>shuffle1230(<span class="self">self</span>) -&gt; <span class="self">Self </span>{
-        <span class="self">Self</span>::new(<span class="kw">unsafe </span>{ _mm_shuffle_epi32(<a class="self" href="#595">self</a>.x, <span class="number">0b1001_0011</span>) })
+        <span class="self">Self</span>::new(<span class="kw">unsafe </span>{ _mm_shuffle_epi32(<span class="self">self</span>.x, <span class="number">0b1001_0011</span>) })
     }
     <span class="attr">#[inline(always)]
     </span><span class="kw">fn </span>shuffle3012(<span class="self">self</span>) -&gt; <span class="self">Self </span>{
-        <span class="self">Self</span>::new(<span class="kw">unsafe </span>{ _mm_shuffle_epi32(<a class="self" href="#599">self</a>.x, <span class="number">0b0011_1001</span>) })
+        <span class="self">Self</span>::new(<span class="kw">unsafe </span>{ _mm_shuffle_epi32(<span class="self">self</span>.x, <span class="number">0b0011_1001</span>) })
     }
 }
 
-<span class="kw">impl</span>&lt;S4, NI&gt; <a href="../types.rs.html#88">Words4</a> <span class="kw">for </span>u64x4_sse2&lt;<a href="mod.rs.html#9">YesS3</a>, S4, NI&gt; {
+<span class="kw">impl</span>&lt;S4, NI&gt; Words4 <span class="kw">for </span>u64x4_sse2&lt;YesS3, S4, NI&gt; {
     <span class="attr">#[inline(always)]
     </span><span class="kw">fn </span>shuffle2301(<span class="self">self</span>) -&gt; <span class="self">Self </span>{
-        x2::new([u64x2_sse2::new(<a class="self" href="#606">self</a>.<span class="number">0</span>[<span class="number">1</span>].x), u64x2_sse2::new(<a class="self" href="#606">self</a>.<span class="number">0</span>[<span class="number">0</span>].x)])
+        x2::new([u64x2_sse2::new(<span class="self">self</span>.<span class="number">0</span>[<span class="number">1</span>].x), u64x2_sse2::new(<span class="self">self</span>.<span class="number">0</span>[<span class="number">0</span>].x)])
     }
     <span class="attr">#[inline(always)]
     </span><span class="kw">fn </span>shuffle3012(<span class="self">self</span>) -&gt; <span class="self">Self </span>{
         <span class="kw">unsafe </span>{
             x2::new([
-                u64x2_sse2::new(_mm_alignr_epi8(<a class="self" href="#610">self</a>.<span class="number">0</span>[<span class="number">1</span>].x, <a class="self" href="#610">self</a>.<span class="number">0</span>[<span class="number">0</span>].x, <span class="number">8</span>)),
-                u64x2_sse2::new(_mm_alignr_epi8(<a class="self" href="#610">self</a>.<span class="number">0</span>[<span class="number">0</span>].x, <a class="self" href="#610">self</a>.<span class="number">0</span>[<span class="number">1</span>].x, <span class="number">8</span>)),
+                u64x2_sse2::new(_mm_alignr_epi8(<span class="self">self</span>.<span class="number">0</span>[<span class="number">1</span>].x, <span class="self">self</span>.<span class="number">0</span>[<span class="number">0</span>].x, <span class="number">8</span>)),
+                u64x2_sse2::new(_mm_alignr_epi8(<span class="self">self</span>.<span class="number">0</span>[<span class="number">0</span>].x, <span class="self">self</span>.<span class="number">0</span>[<span class="number">1</span>].x, <span class="number">8</span>)),
             ])
         }
     }
@@ -2322,158 +2322,158 @@
     </span><span class="kw">fn </span>shuffle1230(<span class="self">self</span>) -&gt; <span class="self">Self </span>{
         <span class="kw">unsafe </span>{
             x2::new([
-                u64x2_sse2::new(_mm_alignr_epi8(<a class="self" href="#619">self</a>.<span class="number">0</span>[<span class="number">0</span>].x, <a class="self" href="#619">self</a>.<span class="number">0</span>[<span class="number">1</span>].x, <span class="number">8</span>)),
-                u64x2_sse2::new(_mm_alignr_epi8(<a class="self" href="#619">self</a>.<span class="number">0</span>[<span class="number">1</span>].x, <a class="self" href="#619">self</a>.<span class="number">0</span>[<span class="number">0</span>].x, <span class="number">8</span>)),
+                u64x2_sse2::new(_mm_alignr_epi8(<span class="self">self</span>.<span class="number">0</span>[<span class="number">0</span>].x, <span class="self">self</span>.<span class="number">0</span>[<span class="number">1</span>].x, <span class="number">8</span>)),
+                u64x2_sse2::new(_mm_alignr_epi8(<span class="self">self</span>.<span class="number">0</span>[<span class="number">1</span>].x, <span class="self">self</span>.<span class="number">0</span>[<span class="number">0</span>].x, <span class="number">8</span>)),
             ])
         }
     }
 }
-<span class="kw">impl</span>&lt;S4, NI&gt; <a href="../types.rs.html#88">Words4</a> <span class="kw">for </span>u64x4_sse2&lt;<a href="mod.rs.html#11">NoS3</a>, S4, NI&gt; {
+<span class="kw">impl</span>&lt;S4, NI&gt; Words4 <span class="kw">for </span>u64x4_sse2&lt;NoS3, S4, NI&gt; {
     <span class="attr">#[inline(always)]
     </span><span class="kw">fn </span>shuffle2301(<span class="self">self</span>) -&gt; <span class="self">Self </span>{
-        x2::new([u64x2_sse2::new(<a class="self" href="#630">self</a>.<span class="number">0</span>[<span class="number">1</span>].x), u64x2_sse2::new(<a class="self" href="#630">self</a>.<span class="number">0</span>[<span class="number">0</span>].x)])
+        x2::new([u64x2_sse2::new(<span class="self">self</span>.<span class="number">0</span>[<span class="number">1</span>].x), u64x2_sse2::new(<span class="self">self</span>.<span class="number">0</span>[<span class="number">0</span>].x)])
     }
     <span class="attr">#[inline(always)]
     </span><span class="kw">fn </span>shuffle3012(<span class="self">self</span>) -&gt; <span class="self">Self </span>{
         <span class="kw">unsafe </span>{
-            <span class="kw">let </span>a = _mm_srli_si128(<a class="self" href="#634">self</a>.<span class="number">0</span>[<span class="number">0</span>].x, <span class="number">8</span>);
-            <span class="kw">let </span>b = _mm_slli_si128(<a class="self" href="#634">self</a>.<span class="number">0</span>[<span class="number">0</span>].x, <span class="number">8</span>);
-            <span class="kw">let </span>c = _mm_srli_si128(<a class="self" href="#634">self</a>.<span class="number">0</span>[<span class="number">1</span>].x, <span class="number">8</span>);
-            <span class="kw">let </span>d = _mm_slli_si128(<a class="self" href="#634">self</a>.<span class="number">0</span>[<span class="number">1</span>].x, <span class="number">8</span>);
-            <span class="kw">let </span>da = _mm_or_si128(<a href="#639">d</a>, <a href="#636">a</a>);
-            <span class="kw">let </span>bc = _mm_or_si128(<a href="#637">b</a>, <a href="#638">c</a>);
-            x2::new([u64x2_sse2::new(<a href="#640">da</a>), u64x2_sse2::new(<a href="#641">bc</a>)])
+            <span class="kw">let </span>a = _mm_srli_si128(<span class="self">self</span>.<span class="number">0</span>[<span class="number">0</span>].x, <span class="number">8</span>);
+            <span class="kw">let </span>b = _mm_slli_si128(<span class="self">self</span>.<span class="number">0</span>[<span class="number">0</span>].x, <span class="number">8</span>);
+            <span class="kw">let </span>c = _mm_srli_si128(<span class="self">self</span>.<span class="number">0</span>[<span class="number">1</span>].x, <span class="number">8</span>);
+            <span class="kw">let </span>d = _mm_slli_si128(<span class="self">self</span>.<span class="number">0</span>[<span class="number">1</span>].x, <span class="number">8</span>);
+            <span class="kw">let </span>da = _mm_or_si128(d, a);
+            <span class="kw">let </span>bc = _mm_or_si128(b, c);
+            x2::new([u64x2_sse2::new(da), u64x2_sse2::new(bc)])
         }
     }
     <span class="attr">#[inline(always)]
     </span><span class="kw">fn </span>shuffle1230(<span class="self">self</span>) -&gt; <span class="self">Self </span>{
         <span class="kw">unsafe </span>{
-            <span class="kw">let </span>a = _mm_srli_si128(<a class="self" href="#646">self</a>.<span class="number">0</span>[<span class="number">0</span>].x, <span class="number">8</span>);
-            <span class="kw">let </span>b = _mm_slli_si128(<a class="self" href="#646">self</a>.<span class="number">0</span>[<span class="number">0</span>].x, <span class="number">8</span>);
-            <span class="kw">let </span>c = _mm_srli_si128(<a class="self" href="#646">self</a>.<span class="number">0</span>[<span class="number">1</span>].x, <span class="number">8</span>);
-            <span class="kw">let </span>d = _mm_slli_si128(<a class="self" href="#646">self</a>.<span class="number">0</span>[<span class="number">1</span>].x, <span class="number">8</span>);
-            <span class="kw">let </span>da = _mm_or_si128(<a href="#651">d</a>, <a href="#648">a</a>);
-            <span class="kw">let </span>bc = _mm_or_si128(<a href="#649">b</a>, <a href="#650">c</a>);
-            x2::new([u64x2_sse2::new(<a href="#653">bc</a>), u64x2_sse2::new(<a href="#652">da</a>)])
+            <span class="kw">let </span>a = _mm_srli_si128(<span class="self">self</span>.<span class="number">0</span>[<span class="number">0</span>].x, <span class="number">8</span>);
+            <span class="kw">let </span>b = _mm_slli_si128(<span class="self">self</span>.<span class="number">0</span>[<span class="number">0</span>].x, <span class="number">8</span>);
+            <span class="kw">let </span>c = _mm_srli_si128(<span class="self">self</span>.<span class="number">0</span>[<span class="number">1</span>].x, <span class="number">8</span>);
+            <span class="kw">let </span>d = _mm_slli_si128(<span class="self">self</span>.<span class="number">0</span>[<span class="number">1</span>].x, <span class="number">8</span>);
+            <span class="kw">let </span>da = _mm_or_si128(d, a);
+            <span class="kw">let </span>bc = _mm_or_si128(b, c);
+            x2::new([u64x2_sse2::new(bc), u64x2_sse2::new(da)])
         }
     }
 }
 
-<span class="kw">impl</span>&lt;S3, S4, NI&gt; UnsafeFrom&lt;[<a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>; <span class="number">2</span>]&gt; <span class="kw">for </span>u64x2_sse2&lt;S3, S4, NI&gt; {
+<span class="kw">impl</span>&lt;S3, S4, NI&gt; UnsafeFrom&lt;[u64; <span class="number">2</span>]&gt; <span class="kw">for </span>u64x2_sse2&lt;S3, S4, NI&gt; {
     <span class="attr">#[inline(always)]
-    </span><span class="kw">unsafe fn </span>unsafe_from(xs: [<a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>; <span class="number">2</span>]) -&gt; <span class="self">Self </span>{
-        <span class="self">Self</span>::new(_mm_set_epi64x(<a href="#661">xs</a>[<span class="number">1</span>] <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.i64.html">i64</a>, <a href="#661">xs</a>[<span class="number">0</span>] <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.i64.html">i64</a>))
+    </span><span class="kw">unsafe fn </span>unsafe_from(xs: [u64; <span class="number">2</span>]) -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::new(_mm_set_epi64x(xs[<span class="number">1</span>] <span class="kw">as </span>i64, xs[<span class="number">0</span>] <span class="kw">as </span>i64))
     }
 }
 
-<span class="kw">impl</span>&lt;S3, NI&gt; Vec2&lt;<a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>&gt; <span class="kw">for </span>u64x2_sse2&lt;S3, <a href="mod.rs.html#14">YesS4</a>, NI&gt; {
+<span class="kw">impl</span>&lt;S3, NI&gt; Vec2&lt;u64&gt; <span class="kw">for </span>u64x2_sse2&lt;S3, YesS4, NI&gt; {
     <span class="attr">#[inline(always)]
-    </span><span class="kw">fn </span>extract(<span class="self">self</span>, i: <a href="https://doc.rust-lang.org/nightly/core/primitive.u32.html">u32</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a> {
+    </span><span class="kw">fn </span>extract(<span class="self">self</span>, i: u32) -&gt; u64 {
         <span class="kw">unsafe </span>{
-            <span class="kw">match </span><a href="#668">i</a> {
-                <span class="number">0 </span>=&gt; _mm_cvtsi128_si64(<a class="self" href="#668">self</a>.x) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>,
-                <span class="number">1 </span>=&gt; _mm_extract_epi64(<a class="self" href="#668">self</a>.x, <span class="number">1</span>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>,
-                <span class="kw">_ </span>=&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(),
+            <span class="kw">match </span>i {
+                <span class="number">0 </span>=&gt; _mm_cvtsi128_si64(<span class="self">self</span>.x) <span class="kw">as </span>u64,
+                <span class="number">1 </span>=&gt; _mm_extract_epi64(<span class="self">self</span>.x, <span class="number">1</span>) <span class="kw">as </span>u64,
+                <span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>(),
             }
         }
     }
     <span class="attr">#[inline(always)]
-    </span><span class="kw">fn </span>insert(<span class="self">self</span>, x: <a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>, i: <a href="https://doc.rust-lang.org/nightly/core/primitive.u32.html">u32</a>) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">fn </span>insert(<span class="self">self</span>, x: u64, i: u32) -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>::new(<span class="kw">unsafe </span>{
-            <span class="kw">match </span><a href="#678">i</a> {
-                <span class="number">0 </span>=&gt; _mm_insert_epi64(<a class="self" href="#678">self</a>.x, <a href="#678">x</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.i64.html">i64</a>, <span class="number">0</span>),
-                <span class="number">1 </span>=&gt; _mm_insert_epi64(<a class="self" href="#678">self</a>.x, <a href="#678">x</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.i64.html">i64</a>, <span class="number">1</span>),
-                <span class="kw">_ </span>=&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(),
+            <span class="kw">match </span>i {
+                <span class="number">0 </span>=&gt; _mm_insert_epi64(<span class="self">self</span>.x, x <span class="kw">as </span>i64, <span class="number">0</span>),
+                <span class="number">1 </span>=&gt; _mm_insert_epi64(<span class="self">self</span>.x, x <span class="kw">as </span>i64, <span class="number">1</span>),
+                <span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>(),
             }
         })
     }
 }
-<span class="kw">impl</span>&lt;S3, NI&gt; Vec2&lt;<a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>&gt; <span class="kw">for </span>u64x2_sse2&lt;S3, <a href="mod.rs.html#16">NoS4</a>, NI&gt; {
+<span class="kw">impl</span>&lt;S3, NI&gt; Vec2&lt;u64&gt; <span class="kw">for </span>u64x2_sse2&lt;S3, NoS4, NI&gt; {
     <span class="attr">#[inline(always)]
-    </span><span class="kw">fn </span>extract(<span class="self">self</span>, i: <a href="https://doc.rust-lang.org/nightly/core/primitive.u32.html">u32</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a> {
+    </span><span class="kw">fn </span>extract(<span class="self">self</span>, i: u32) -&gt; u64 {
         <span class="kw">unsafe </span>{
-            <span class="kw">match </span><a href="#690">i</a> {
-                <span class="number">0 </span>=&gt; _mm_cvtsi128_si64(<a class="self" href="#690">self</a>.x) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>,
-                <span class="number">1 </span>=&gt; _mm_cvtsi128_si64(_mm_shuffle_epi32(<a class="self" href="#690">self</a>.x, <span class="number">0b11101110</span>)) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>,
-                <span class="kw">_ </span>=&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(),
+            <span class="kw">match </span>i {
+                <span class="number">0 </span>=&gt; _mm_cvtsi128_si64(<span class="self">self</span>.x) <span class="kw">as </span>u64,
+                <span class="number">1 </span>=&gt; _mm_cvtsi128_si64(_mm_shuffle_epi32(<span class="self">self</span>.x, <span class="number">0b11101110</span>)) <span class="kw">as </span>u64,
+                <span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>(),
             }
         }
     }
     <span class="attr">#[inline(always)]
-    </span><span class="kw">fn </span>insert(<span class="self">self</span>, x: <a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>, i: <a href="https://doc.rust-lang.org/nightly/core/primitive.u32.html">u32</a>) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">fn </span>insert(<span class="self">self</span>, x: u64, i: u32) -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>::new(<span class="kw">unsafe </span>{
-            <span class="kw">match </span><a href="#700">i</a> {
+            <span class="kw">match </span>i {
                 <span class="number">0 </span>=&gt; _mm_or_si128(
-                    _mm_andnot_si128(_mm_cvtsi64_si128(-<span class="number">1</span>), <a class="self" href="#700">self</a>.x),
-                    _mm_cvtsi64_si128(<a href="#700">x</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.i64.html">i64</a>),
+                    _mm_andnot_si128(_mm_cvtsi64_si128(-<span class="number">1</span>), <span class="self">self</span>.x),
+                    _mm_cvtsi64_si128(x <span class="kw">as </span>i64),
                 ),
                 <span class="number">1 </span>=&gt; _mm_or_si128(
-                    _mm_move_epi64(<a class="self" href="#700">self</a>.x),
-                    _mm_slli_si128(_mm_cvtsi64_si128(<a href="#700">x</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.i64.html">i64</a>), <span class="number">8</span>),
+                    _mm_move_epi64(<span class="self">self</span>.x),
+                    _mm_slli_si128(_mm_cvtsi64_si128(x <span class="kw">as </span>i64), <span class="number">8</span>),
                 ),
-                <span class="kw">_ </span>=&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(),
+                <span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>(),
             }
         })
     }
 }
 
-<span class="kw">impl</span>&lt;S4, NI&gt; <a href="../types.rs.html#8">BSwap</a> <span class="kw">for </span>u32x4_sse2&lt;<a href="mod.rs.html#9">YesS3</a>, S4, NI&gt; {
+<span class="kw">impl</span>&lt;S4, NI&gt; BSwap <span class="kw">for </span>u32x4_sse2&lt;YesS3, S4, NI&gt; {
     <span class="attr">#[inline(always)]
     </span><span class="kw">fn </span>bswap(<span class="self">self</span>) -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>::new(<span class="kw">unsafe </span>{
             <span class="kw">let </span>k = _mm_set_epi64x(<span class="number">0x0c0d_0e0f_0809_0a0b</span>, <span class="number">0x0405_0607_0001_0203</span>);
-            _mm_shuffle_epi8(<a class="self" href="#719">self</a>.x, <a href="#721">k</a>)
+            _mm_shuffle_epi8(<span class="self">self</span>.x, k)
         })
     }
 }
 <span class="attr">#[inline(always)]
-</span><span class="kw">fn </span>bswap32_s2(x: <a href="https://doc.rust-lang.org/nightly/core/core_arch/x86/struct.__m128i.html">__m128i</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/core_arch/x86/struct.__m128i.html">__m128i</a> {
+</span><span class="kw">fn </span>bswap32_s2(x: __m128i) -&gt; __m128i {
     <span class="kw">unsafe </span>{
-        <span class="kw">let </span><span class="kw-2">mut </span>y = _mm_unpacklo_epi8(<a href="#727">x</a>, _mm_setzero_si128());
-        <a href="#729">y</a> = _mm_shufflehi_epi16(<a href="#729">y</a>, <span class="number">0b0001_1011</span>);
-        <a href="#729">y</a> = _mm_shufflelo_epi16(<a href="#729">y</a>, <span class="number">0b0001_1011</span>);
-        <span class="kw">let </span><span class="kw-2">mut </span>z = _mm_unpackhi_epi8(<a href="#727">x</a>, _mm_setzero_si128());
-        <a href="#732">z</a> = _mm_shufflehi_epi16(<a href="#732">z</a>, <span class="number">0b0001_1011</span>);
-        <a href="#732">z</a> = _mm_shufflelo_epi16(<a href="#732">z</a>, <span class="number">0b0001_1011</span>);
-        _mm_packus_epi16(<a href="#729">y</a>, <a href="#732">z</a>)
+        <span class="kw">let </span><span class="kw-2">mut </span>y = _mm_unpacklo_epi8(x, _mm_setzero_si128());
+        y = _mm_shufflehi_epi16(y, <span class="number">0b0001_1011</span>);
+        y = _mm_shufflelo_epi16(y, <span class="number">0b0001_1011</span>);
+        <span class="kw">let </span><span class="kw-2">mut </span>z = _mm_unpackhi_epi8(x, _mm_setzero_si128());
+        z = _mm_shufflehi_epi16(z, <span class="number">0b0001_1011</span>);
+        z = _mm_shufflelo_epi16(z, <span class="number">0b0001_1011</span>);
+        _mm_packus_epi16(y, z)
     }
 }
-<span class="kw">impl</span>&lt;S4, NI&gt; <a href="../types.rs.html#8">BSwap</a> <span class="kw">for </span>u32x4_sse2&lt;<a href="mod.rs.html#11">NoS3</a>, S4, NI&gt; {
+<span class="kw">impl</span>&lt;S4, NI&gt; BSwap <span class="kw">for </span>u32x4_sse2&lt;NoS3, S4, NI&gt; {
     <span class="attr">#[inline(always)]
     </span><span class="kw">fn </span>bswap(<span class="self">self</span>) -&gt; <span class="self">Self </span>{
-        <span class="self">Self</span>::new(<a href="#727">bswap32_s2</a>(<a class="self" href="#740">self</a>.x))
+        <span class="self">Self</span>::new(bswap32_s2(<span class="self">self</span>.x))
     }
 }
 
-<span class="kw">impl</span>&lt;S4, NI&gt; <a href="../types.rs.html#8">BSwap</a> <span class="kw">for </span>u64x2_sse2&lt;<a href="mod.rs.html#9">YesS3</a>, S4, NI&gt; {
+<span class="kw">impl</span>&lt;S4, NI&gt; BSwap <span class="kw">for </span>u64x2_sse2&lt;YesS3, S4, NI&gt; {
     <span class="attr">#[inline(always)]
     </span><span class="kw">fn </span>bswap(<span class="self">self</span>) -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>::new(<span class="kw">unsafe </span>{
             <span class="kw">let </span>k = _mm_set_epi64x(<span class="number">0x0809_0a0b_0c0d_0e0f</span>, <span class="number">0x0001_0203_0405_0607</span>);
-            _mm_shuffle_epi8(<a class="self" href="#747">self</a>.x, <a href="#749">k</a>)
+            _mm_shuffle_epi8(<span class="self">self</span>.x, k)
         })
     }
 }
-<span class="kw">impl</span>&lt;S4, NI&gt; <a href="../types.rs.html#8">BSwap</a> <span class="kw">for </span>u64x2_sse2&lt;<a href="mod.rs.html#11">NoS3</a>, S4, NI&gt; {
+<span class="kw">impl</span>&lt;S4, NI&gt; BSwap <span class="kw">for </span>u64x2_sse2&lt;NoS3, S4, NI&gt; {
     <span class="attr">#[inline(always)]
     </span><span class="kw">fn </span>bswap(<span class="self">self</span>) -&gt; <span class="self">Self </span>{
-        <span class="self">Self</span>::new(<span class="kw">unsafe </span>{ <a href="#727">bswap32_s2</a>(_mm_shuffle_epi32(<a class="self" href="#756">self</a>.x, <span class="number">0b1011_0001</span>)) })
+        <span class="self">Self</span>::new(<span class="kw">unsafe </span>{ bswap32_s2(_mm_shuffle_epi32(<span class="self">self</span>.x, <span class="number">0b1011_0001</span>)) })
     }
 }
 
-<span class="kw">impl</span>&lt;S4, NI&gt; <a href="../types.rs.html#8">BSwap</a> <span class="kw">for </span>u128x1_sse2&lt;<a href="mod.rs.html#9">YesS3</a>, S4, NI&gt; {
+<span class="kw">impl</span>&lt;S4, NI&gt; BSwap <span class="kw">for </span>u128x1_sse2&lt;YesS3, S4, NI&gt; {
     <span class="attr">#[inline(always)]
     </span><span class="kw">fn </span>bswap(<span class="self">self</span>) -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>::new(<span class="kw">unsafe </span>{
             <span class="kw">let </span>k = _mm_set_epi64x(<span class="number">0x0f0e_0d0c_0b0a_0908</span>, <span class="number">0x0706_0504_0302_0100</span>);
-            _mm_shuffle_epi8(<a class="self" href="#763">self</a>.x, <a href="#765">k</a>)
+            _mm_shuffle_epi8(<span class="self">self</span>.x, k)
         })
     }
 }
-<span class="kw">impl</span>&lt;S4, NI&gt; <a href="../types.rs.html#8">BSwap</a> <span class="kw">for </span>u128x1_sse2&lt;<a href="mod.rs.html#11">NoS3</a>, S4, NI&gt; {
+<span class="kw">impl</span>&lt;S4, NI&gt; BSwap <span class="kw">for </span>u128x1_sse2&lt;NoS3, S4, NI&gt; {
     <span class="attr">#[inline(always)]
     </span><span class="kw">fn </span>bswap(<span class="self">self</span>) -&gt; <span class="self">Self </span>{
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unimplemented.html">unimplemented!</a>()
+        <span class="macro">unimplemented!</span>()
     }
 }
 
@@ -2490,75 +2490,75 @@
     };
 }
 <span class="attr">#[inline(always)]
-</span><span class="kw">fn </span>swap16_s2(x: <a href="https://doc.rust-lang.org/nightly/core/core_arch/x86/struct.__m128i.html">__m128i</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/core_arch/x86/struct.__m128i.html">__m128i</a> {
-    <span class="kw">unsafe </span>{ _mm_shufflehi_epi16(_mm_shufflelo_epi16(<a href="#790">x</a>, <span class="number">0b1011_0001</span>), <span class="number">0b1011_0001</span>) }
+</span><span class="kw">fn </span>swap16_s2(x: __m128i) -&gt; __m128i {
+    <span class="kw">unsafe </span>{ _mm_shufflehi_epi16(_mm_shufflelo_epi16(x, <span class="number">0b1011_0001</span>), <span class="number">0b1011_0001</span>) }
 }
-<span class="kw">impl</span>&lt;S4, NI&gt; <a href="../types.rs.html#103">Swap64</a> <span class="kw">for </span>u128x1_sse2&lt;<a href="mod.rs.html#9">YesS3</a>, S4, NI&gt; {
+<span class="kw">impl</span>&lt;S4, NI&gt; Swap64 <span class="kw">for </span>u128x1_sse2&lt;YesS3, S4, NI&gt; {
     <span class="attr">#[inline(always)]
     </span><span class="kw">fn </span>swap1(<span class="self">self</span>) -&gt; <span class="self">Self </span>{
-        <a class="macro" href="#777-788">swapi!</a>(<span class="self">self</span>, <span class="number">1</span>, <span class="number">0xaa</span>)
+        <span class="macro">swapi!</span>(<span class="self">self</span>, <span class="number">1</span>, <span class="number">0xaa</span>)
     }
     <span class="attr">#[inline(always)]
     </span><span class="kw">fn </span>swap2(<span class="self">self</span>) -&gt; <span class="self">Self </span>{
-        <a class="macro" href="#777-788">swapi!</a>(<span class="self">self</span>, <span class="number">2</span>, <span class="number">0xcc</span>)
+        <span class="macro">swapi!</span>(<span class="self">self</span>, <span class="number">2</span>, <span class="number">0xcc</span>)
     }
     <span class="attr">#[inline(always)]
     </span><span class="kw">fn </span>swap4(<span class="self">self</span>) -&gt; <span class="self">Self </span>{
-        <a class="macro" href="#777-788">swapi!</a>(<span class="self">self</span>, <span class="number">4</span>, <span class="number">0xf0</span>)
+        <span class="macro">swapi!</span>(<span class="self">self</span>, <span class="number">4</span>, <span class="number">0xf0</span>)
     }
     <span class="attr">#[inline(always)]
     </span><span class="kw">fn </span>swap8(<span class="self">self</span>) -&gt; <span class="self">Self </span>{
         u128x1_sse2::new(<span class="kw">unsafe </span>{
             <span class="kw">let </span>k = _mm_set_epi64x(<span class="number">0x0e0f_0c0d_0a0b_0809</span>, <span class="number">0x0607_0405_0203_0001</span>);
-            _mm_shuffle_epi8(<a class="self" href="#807">self</a>.x, <a href="#809">k</a>)
+            _mm_shuffle_epi8(<span class="self">self</span>.x, k)
         })
     }
     <span class="attr">#[inline(always)]
     </span><span class="kw">fn </span>swap16(<span class="self">self</span>) -&gt; <span class="self">Self </span>{
         u128x1_sse2::new(<span class="kw">unsafe </span>{
             <span class="kw">let </span>k = _mm_set_epi64x(<span class="number">0x0d0c_0f0e_0908_0b0a</span>, <span class="number">0x0504_0706_0100_0302</span>);
-            _mm_shuffle_epi8(<a class="self" href="#814">self</a>.x, <a href="#816">k</a>)
+            _mm_shuffle_epi8(<span class="self">self</span>.x, k)
         })
     }
     <span class="attr">#[inline(always)]
     </span><span class="kw">fn </span>swap32(<span class="self">self</span>) -&gt; <span class="self">Self </span>{
-        u128x1_sse2::new(<span class="kw">unsafe </span>{ _mm_shuffle_epi32(<a class="self" href="#821">self</a>.x, <span class="number">0b1011_0001</span>) })
+        u128x1_sse2::new(<span class="kw">unsafe </span>{ _mm_shuffle_epi32(<span class="self">self</span>.x, <span class="number">0b1011_0001</span>) })
     }
     <span class="attr">#[inline(always)]
     </span><span class="kw">fn </span>swap64(<span class="self">self</span>) -&gt; <span class="self">Self </span>{
-        u128x1_sse2::new(<span class="kw">unsafe </span>{ _mm_shuffle_epi32(<a class="self" href="#825">self</a>.x, <span class="number">0b0100_1110</span>) })
+        u128x1_sse2::new(<span class="kw">unsafe </span>{ _mm_shuffle_epi32(<span class="self">self</span>.x, <span class="number">0b0100_1110</span>) })
     }
 }
-<span class="kw">impl</span>&lt;S4, NI&gt; <a href="../types.rs.html#103">Swap64</a> <span class="kw">for </span>u128x1_sse2&lt;<a href="mod.rs.html#11">NoS3</a>, S4, NI&gt; {
+<span class="kw">impl</span>&lt;S4, NI&gt; Swap64 <span class="kw">for </span>u128x1_sse2&lt;NoS3, S4, NI&gt; {
     <span class="attr">#[inline(always)]
     </span><span class="kw">fn </span>swap1(<span class="self">self</span>) -&gt; <span class="self">Self </span>{
-        <a class="macro" href="#777-788">swapi!</a>(<span class="self">self</span>, <span class="number">1</span>, <span class="number">0xaa</span>)
+        <span class="macro">swapi!</span>(<span class="self">self</span>, <span class="number">1</span>, <span class="number">0xaa</span>)
     }
     <span class="attr">#[inline(always)]
     </span><span class="kw">fn </span>swap2(<span class="self">self</span>) -&gt; <span class="self">Self </span>{
-        <a class="macro" href="#777-788">swapi!</a>(<span class="self">self</span>, <span class="number">2</span>, <span class="number">0xcc</span>)
+        <span class="macro">swapi!</span>(<span class="self">self</span>, <span class="number">2</span>, <span class="number">0xcc</span>)
     }
     <span class="attr">#[inline(always)]
     </span><span class="kw">fn </span>swap4(<span class="self">self</span>) -&gt; <span class="self">Self </span>{
-        <a class="macro" href="#777-788">swapi!</a>(<span class="self">self</span>, <span class="number">4</span>, <span class="number">0xf0</span>)
+        <span class="macro">swapi!</span>(<span class="self">self</span>, <span class="number">4</span>, <span class="number">0xf0</span>)
     }
     <span class="attr">#[inline(always)]
     </span><span class="kw">fn </span>swap8(<span class="self">self</span>) -&gt; <span class="self">Self </span>{
         u128x1_sse2::new(<span class="kw">unsafe </span>{
-            _mm_or_si128(_mm_slli_epi16(<a class="self" href="#843">self</a>.x, <span class="number">8</span>), _mm_srli_epi16(<a class="self" href="#843">self</a>.x, <span class="number">8</span>))
+            _mm_or_si128(_mm_slli_epi16(<span class="self">self</span>.x, <span class="number">8</span>), _mm_srli_epi16(<span class="self">self</span>.x, <span class="number">8</span>))
         })
     }
     <span class="attr">#[inline(always)]
     </span><span class="kw">fn </span>swap16(<span class="self">self</span>) -&gt; <span class="self">Self </span>{
-        u128x1_sse2::new(<a href="#790">swap16_s2</a>(<a class="self" href="#849">self</a>.x))
+        u128x1_sse2::new(swap16_s2(<span class="self">self</span>.x))
     }
     <span class="attr">#[inline(always)]
     </span><span class="kw">fn </span>swap32(<span class="self">self</span>) -&gt; <span class="self">Self </span>{
-        u128x1_sse2::new(<span class="kw">unsafe </span>{ _mm_shuffle_epi32(<a class="self" href="#853">self</a>.x, <span class="number">0b1011_0001</span>) })
+        u128x1_sse2::new(<span class="kw">unsafe </span>{ _mm_shuffle_epi32(<span class="self">self</span>.x, <span class="number">0b1011_0001</span>) })
     }
     <span class="attr">#[inline(always)]
     </span><span class="kw">fn </span>swap64(<span class="self">self</span>) -&gt; <span class="self">Self </span>{
-        u128x1_sse2::new(<span class="kw">unsafe </span>{ _mm_shuffle_epi32(<a class="self" href="#857">self</a>.x, <span class="number">0b0100_1110</span>) })
+        u128x1_sse2::new(<span class="kw">unsafe </span>{ _mm_shuffle_epi32(<span class="self">self</span>.x, <span class="number">0b0100_1110</span>) })
     }
 }
 
@@ -2568,13 +2568,13 @@
 </span><span class="kw">pub struct </span>G1;
 
 <span class="attr">#[allow(non_camel_case_types)]
-</span><span class="kw">pub type </span>u32x4x2_sse2&lt;S3, S4, NI&gt; = x2&lt;u32x4_sse2&lt;S3, S4, NI&gt;, <a href="#863">G0</a>&gt;;
+</span><span class="kw">pub type </span>u32x4x2_sse2&lt;S3, S4, NI&gt; = x2&lt;u32x4_sse2&lt;S3, S4, NI&gt;, G0&gt;;
 <span class="attr">#[allow(non_camel_case_types)]
-</span><span class="kw">pub type </span>u64x2x2_sse2&lt;S3, S4, NI&gt; = x2&lt;u64x2_sse2&lt;S3, S4, NI&gt;, <a href="#863">G0</a>&gt;;
+</span><span class="kw">pub type </span>u64x2x2_sse2&lt;S3, S4, NI&gt; = x2&lt;u64x2_sse2&lt;S3, S4, NI&gt;, G0&gt;;
 <span class="attr">#[allow(non_camel_case_types)]
-</span><span class="kw">pub type </span>u64x4_sse2&lt;S3, S4, NI&gt; = x2&lt;u64x2_sse2&lt;S3, S4, NI&gt;, <a href="#865">G1</a>&gt;;
+</span><span class="kw">pub type </span>u64x4_sse2&lt;S3, S4, NI&gt; = x2&lt;u64x2_sse2&lt;S3, S4, NI&gt;, G1&gt;;
 <span class="attr">#[allow(non_camel_case_types)]
-</span><span class="kw">pub type </span>u128x2_sse2&lt;S3, S4, NI&gt; = x2&lt;u128x1_sse2&lt;S3, S4, NI&gt;, <a href="#863">G0</a>&gt;;
+</span><span class="kw">pub type </span>u128x2_sse2&lt;S3, S4, NI&gt; = x2&lt;u128x1_sse2&lt;S3, S4, NI&gt;, G0&gt;;
 
 <span class="attr">#[allow(non_camel_case_types)]
 </span><span class="kw">pub type </span>u32x4x4_sse2&lt;S3, S4, NI&gt; = x4&lt;u32x4_sse2&lt;S3, S4, NI&gt;&gt;;
@@ -2583,40 +2583,40 @@
 <span class="attr">#[allow(non_camel_case_types)]
 </span><span class="kw">pub type </span>u128x4_sse2&lt;S3, S4, NI&gt; = x4&lt;u128x1_sse2&lt;S3, S4, NI&gt;&gt;;
 
-<span class="kw">impl</span>&lt;S3, S4, NI&gt; Vector&lt;[<a href="https://doc.rust-lang.org/nightly/core/primitive.u32.html">u32</a>; <span class="number">16</span>]&gt; <span class="kw">for </span>u32x4x4_sse2&lt;S3, S4, NI&gt; {
+<span class="kw">impl</span>&lt;S3, S4, NI&gt; Vector&lt;[u32; <span class="number">16</span>]&gt; <span class="kw">for </span>u32x4x4_sse2&lt;S3, S4, NI&gt; {
     <span class="attr">#[inline(always)]
-    </span><span class="kw">fn </span>to_scalars(<span class="self">self</span>) -&gt; [<a href="https://doc.rust-lang.org/nightly/core/primitive.u32.html">u32</a>; <span class="number">16</span>] {
-        <span class="kw">unsafe </span>{ core::mem::transmute(<a class="self" href="#885">self</a>) }
+    </span><span class="kw">fn </span>to_scalars(<span class="self">self</span>) -&gt; [u32; <span class="number">16</span>] {
+        <span class="kw">unsafe </span>{ core::mem::transmute(<span class="self">self</span>) }
     }
 }
 
-<span class="kw">impl</span>&lt;S3: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html">Copy</a>, S4: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html">Copy</a>, NI: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html">Copy</a>&gt; u32x4x2&lt;Machine86&lt;S3, S4, NI&gt;&gt; <span class="kw">for </span>u32x4x2_sse2&lt;S3, S4, NI&gt;
+<span class="kw">impl</span>&lt;S3: Copy, S4: Copy, NI: Copy&gt; u32x4x2&lt;Machine86&lt;S3, S4, NI&gt;&gt; <span class="kw">for </span>u32x4x2_sse2&lt;S3, S4, NI&gt;
 <span class="kw">where
-    </span>u32x4_sse2&lt;S3, S4, NI&gt;: <a href="../types.rs.html#31">RotateEachWord32</a> + <a href="../types.rs.html#8">BSwap</a>,
-    Machine86&lt;S3, S4, NI&gt;: <a href="../types.rs.html#231">Machine</a>,
+    </span>u32x4_sse2&lt;S3, S4, NI&gt;: RotateEachWord32 + BSwap,
+    Machine86&lt;S3, S4, NI&gt;: Machine,
     u32x4x2_sse2&lt;S3, S4, NI&gt;: MultiLane&lt;[&lt;Machine86&lt;S3, S4, NI&gt; <span class="kw">as </span>Machine&gt;::u32x4; <span class="number">2</span>]&gt;,
     u32x4x2_sse2&lt;S3, S4, NI&gt;: Vec2&lt;&lt;Machine86&lt;S3, S4, NI&gt; <span class="kw">as </span>Machine&gt;::u32x4&gt;,
 {
 }
-<span class="kw">impl</span>&lt;S3: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html">Copy</a>, S4: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html">Copy</a>, NI: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html">Copy</a>&gt; u64x2x2&lt;Machine86&lt;S3, S4, NI&gt;&gt; <span class="kw">for </span>u64x2x2_sse2&lt;S3, S4, NI&gt;
+<span class="kw">impl</span>&lt;S3: Copy, S4: Copy, NI: Copy&gt; u64x2x2&lt;Machine86&lt;S3, S4, NI&gt;&gt; <span class="kw">for </span>u64x2x2_sse2&lt;S3, S4, NI&gt;
 <span class="kw">where
-    </span>u64x2_sse2&lt;S3, S4, NI&gt;: <a href="../types.rs.html#42">RotateEachWord64</a> + <a href="../types.rs.html#31">RotateEachWord32</a> + <a href="../types.rs.html#8">BSwap</a>,
-    Machine86&lt;S3, S4, NI&gt;: <a href="../types.rs.html#231">Machine</a>,
+    </span>u64x2_sse2&lt;S3, S4, NI&gt;: RotateEachWord64 + RotateEachWord32 + BSwap,
+    Machine86&lt;S3, S4, NI&gt;: Machine,
     u64x2x2_sse2&lt;S3, S4, NI&gt;: MultiLane&lt;[&lt;Machine86&lt;S3, S4, NI&gt; <span class="kw">as </span>Machine&gt;::u64x2; <span class="number">2</span>]&gt;,
     u64x2x2_sse2&lt;S3, S4, NI&gt;: Vec2&lt;&lt;Machine86&lt;S3, S4, NI&gt; <span class="kw">as </span>Machine&gt;::u64x2&gt;,
 {
 }
-<span class="kw">impl</span>&lt;S3: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html">Copy</a>, S4: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html">Copy</a>, NI: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html">Copy</a>&gt; u64x4&lt;Machine86&lt;S3, S4, NI&gt;&gt; <span class="kw">for </span>u64x4_sse2&lt;S3, S4, NI&gt;
+<span class="kw">impl</span>&lt;S3: Copy, S4: Copy, NI: Copy&gt; u64x4&lt;Machine86&lt;S3, S4, NI&gt;&gt; <span class="kw">for </span>u64x4_sse2&lt;S3, S4, NI&gt;
 <span class="kw">where
-    </span>u64x2_sse2&lt;S3, S4, NI&gt;: <a href="../types.rs.html#42">RotateEachWord64</a> + <a href="../types.rs.html#31">RotateEachWord32</a> + <a href="../types.rs.html#8">BSwap</a>,
-    Machine86&lt;S3, S4, NI&gt;: <a href="../types.rs.html#231">Machine</a>,
-    u64x4_sse2&lt;S3, S4, NI&gt;: MultiLane&lt;[<a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>; <span class="number">4</span>]&gt; + Vec4&lt;<a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>&gt; + <a href="../types.rs.html#88">Words4</a>,
+    </span>u64x2_sse2&lt;S3, S4, NI&gt;: RotateEachWord64 + RotateEachWord32 + BSwap,
+    Machine86&lt;S3, S4, NI&gt;: Machine,
+    u64x4_sse2&lt;S3, S4, NI&gt;: MultiLane&lt;[u64; <span class="number">4</span>]&gt; + Vec4&lt;u64&gt; + Words4,
 {
 }
-<span class="kw">impl</span>&lt;S3: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html">Copy</a>, S4: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html">Copy</a>, NI: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html">Copy</a>&gt; u128x2&lt;Machine86&lt;S3, S4, NI&gt;&gt; <span class="kw">for </span>u128x2_sse2&lt;S3, S4, NI&gt;
+<span class="kw">impl</span>&lt;S3: Copy, S4: Copy, NI: Copy&gt; u128x2&lt;Machine86&lt;S3, S4, NI&gt;&gt; <span class="kw">for </span>u128x2_sse2&lt;S3, S4, NI&gt;
 <span class="kw">where
-    </span>u128x1_sse2&lt;S3, S4, NI&gt;: <a href="../types.rs.html#103">Swap64</a> + <a href="../types.rs.html#8">BSwap</a>,
-    Machine86&lt;S3, S4, NI&gt;: <a href="../types.rs.html#231">Machine</a>,
+    </span>u128x1_sse2&lt;S3, S4, NI&gt;: Swap64 + BSwap,
+    Machine86&lt;S3, S4, NI&gt;: Machine,
     u128x2_sse2&lt;S3, S4, NI&gt;: MultiLane&lt;[&lt;Machine86&lt;S3, S4, NI&gt; <span class="kw">as </span>Machine&gt;::u128x1; <span class="number">2</span>]&gt;,
     u128x2_sse2&lt;S3, S4, NI&gt;: Vec2&lt;&lt;Machine86&lt;S3, S4, NI&gt; <span class="kw">as </span>Machine&gt;::u128x1&gt;,
     u128x2_sse2&lt;S3, S4, NI&gt;: Into&lt;&lt;Machine86&lt;S3, S4, NI&gt; <span class="kw">as </span>Machine&gt;::u32x4x2&gt;,
@@ -2625,90 +2625,90 @@
 {
 }
 
-<span class="kw">impl</span>&lt;NI: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html">Copy</a>&gt; u32x4x2&lt;Avx2Machine&lt;NI&gt;&gt; <span class="kw">for </span>u32x4x2_sse2&lt;<a href="mod.rs.html#9">YesS3</a>, <a href="mod.rs.html#14">YesS4</a>, NI&gt;
+<span class="kw">impl</span>&lt;NI: Copy&gt; u32x4x2&lt;Avx2Machine&lt;NI&gt;&gt; <span class="kw">for </span>u32x4x2_sse2&lt;YesS3, YesS4, NI&gt;
 <span class="kw">where
-    </span>u32x4_sse2&lt;<a href="mod.rs.html#9">YesS3</a>, <a href="mod.rs.html#14">YesS4</a>, NI&gt;: <a href="../types.rs.html#31">RotateEachWord32</a> + <a href="../types.rs.html#8">BSwap</a>,
-    Avx2Machine&lt;NI&gt;: <a href="../types.rs.html#231">Machine</a>,
-    u32x4x2_sse2&lt;<a href="mod.rs.html#9">YesS3</a>, <a href="mod.rs.html#14">YesS4</a>, NI&gt;: MultiLane&lt;[&lt;Avx2Machine&lt;NI&gt; <span class="kw">as </span>Machine&gt;::u32x4; <span class="number">2</span>]&gt;,
-    u32x4x2_sse2&lt;<a href="mod.rs.html#9">YesS3</a>, <a href="mod.rs.html#14">YesS4</a>, NI&gt;: Vec2&lt;&lt;Avx2Machine&lt;NI&gt; <span class="kw">as </span>Machine&gt;::u32x4&gt;,
+    </span>u32x4_sse2&lt;YesS3, YesS4, NI&gt;: RotateEachWord32 + BSwap,
+    Avx2Machine&lt;NI&gt;: Machine,
+    u32x4x2_sse2&lt;YesS3, YesS4, NI&gt;: MultiLane&lt;[&lt;Avx2Machine&lt;NI&gt; <span class="kw">as </span>Machine&gt;::u32x4; <span class="number">2</span>]&gt;,
+    u32x4x2_sse2&lt;YesS3, YesS4, NI&gt;: Vec2&lt;&lt;Avx2Machine&lt;NI&gt; <span class="kw">as </span>Machine&gt;::u32x4&gt;,
 {
 }
-<span class="kw">impl</span>&lt;NI: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html">Copy</a>&gt; u64x2x2&lt;Avx2Machine&lt;NI&gt;&gt; <span class="kw">for </span>u64x2x2_sse2&lt;<a href="mod.rs.html#9">YesS3</a>, <a href="mod.rs.html#14">YesS4</a>, NI&gt;
+<span class="kw">impl</span>&lt;NI: Copy&gt; u64x2x2&lt;Avx2Machine&lt;NI&gt;&gt; <span class="kw">for </span>u64x2x2_sse2&lt;YesS3, YesS4, NI&gt;
 <span class="kw">where
-    </span>u64x2_sse2&lt;<a href="mod.rs.html#9">YesS3</a>, <a href="mod.rs.html#14">YesS4</a>, NI&gt;: <a href="../types.rs.html#42">RotateEachWord64</a> + <a href="../types.rs.html#31">RotateEachWord32</a> + <a href="../types.rs.html#8">BSwap</a>,
-    Avx2Machine&lt;NI&gt;: <a href="../types.rs.html#231">Machine</a>,
-    u64x2x2_sse2&lt;<a href="mod.rs.html#9">YesS3</a>, <a href="mod.rs.html#14">YesS4</a>, NI&gt;: MultiLane&lt;[&lt;Avx2Machine&lt;NI&gt; <span class="kw">as </span>Machine&gt;::u64x2; <span class="number">2</span>]&gt;,
-    u64x2x2_sse2&lt;<a href="mod.rs.html#9">YesS3</a>, <a href="mod.rs.html#14">YesS4</a>, NI&gt;: Vec2&lt;&lt;Avx2Machine&lt;NI&gt; <span class="kw">as </span>Machine&gt;::u64x2&gt;,
+    </span>u64x2_sse2&lt;YesS3, YesS4, NI&gt;: RotateEachWord64 + RotateEachWord32 + BSwap,
+    Avx2Machine&lt;NI&gt;: Machine,
+    u64x2x2_sse2&lt;YesS3, YesS4, NI&gt;: MultiLane&lt;[&lt;Avx2Machine&lt;NI&gt; <span class="kw">as </span>Machine&gt;::u64x2; <span class="number">2</span>]&gt;,
+    u64x2x2_sse2&lt;YesS3, YesS4, NI&gt;: Vec2&lt;&lt;Avx2Machine&lt;NI&gt; <span class="kw">as </span>Machine&gt;::u64x2&gt;,
 {
 }
-<span class="kw">impl</span>&lt;NI: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html">Copy</a>&gt; u64x4&lt;Avx2Machine&lt;NI&gt;&gt; <span class="kw">for </span>u64x4_sse2&lt;<a href="mod.rs.html#9">YesS3</a>, <a href="mod.rs.html#14">YesS4</a>, NI&gt;
+<span class="kw">impl</span>&lt;NI: Copy&gt; u64x4&lt;Avx2Machine&lt;NI&gt;&gt; <span class="kw">for </span>u64x4_sse2&lt;YesS3, YesS4, NI&gt;
 <span class="kw">where
-    </span>u64x2_sse2&lt;<a href="mod.rs.html#9">YesS3</a>, <a href="mod.rs.html#14">YesS4</a>, NI&gt;: <a href="../types.rs.html#42">RotateEachWord64</a> + <a href="../types.rs.html#31">RotateEachWord32</a> + <a href="../types.rs.html#8">BSwap</a>,
-    Avx2Machine&lt;NI&gt;: <a href="../types.rs.html#231">Machine</a>,
-    u64x4_sse2&lt;<a href="mod.rs.html#9">YesS3</a>, <a href="mod.rs.html#14">YesS4</a>, NI&gt;: MultiLane&lt;[<a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>; <span class="number">4</span>]&gt; + Vec4&lt;<a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>&gt; + <a href="../types.rs.html#88">Words4</a>,
+    </span>u64x2_sse2&lt;YesS3, YesS4, NI&gt;: RotateEachWord64 + RotateEachWord32 + BSwap,
+    Avx2Machine&lt;NI&gt;: Machine,
+    u64x4_sse2&lt;YesS3, YesS4, NI&gt;: MultiLane&lt;[u64; <span class="number">4</span>]&gt; + Vec4&lt;u64&gt; + Words4,
 {
 }
-<span class="kw">impl</span>&lt;NI: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html">Copy</a>&gt; u128x2&lt;Avx2Machine&lt;NI&gt;&gt; <span class="kw">for </span>u128x2_sse2&lt;<a href="mod.rs.html#9">YesS3</a>, <a href="mod.rs.html#14">YesS4</a>, NI&gt;
+<span class="kw">impl</span>&lt;NI: Copy&gt; u128x2&lt;Avx2Machine&lt;NI&gt;&gt; <span class="kw">for </span>u128x2_sse2&lt;YesS3, YesS4, NI&gt;
 <span class="kw">where
-    </span>u128x1_sse2&lt;<a href="mod.rs.html#9">YesS3</a>, <a href="mod.rs.html#14">YesS4</a>, NI&gt;: <a href="../types.rs.html#103">Swap64</a> + <a href="../types.rs.html#8">BSwap</a>,
-    Avx2Machine&lt;NI&gt;: <a href="../types.rs.html#231">Machine</a>,
-    u128x2_sse2&lt;<a href="mod.rs.html#9">YesS3</a>, <a href="mod.rs.html#14">YesS4</a>, NI&gt;: MultiLane&lt;[&lt;Avx2Machine&lt;NI&gt; <span class="kw">as </span>Machine&gt;::u128x1; <span class="number">2</span>]&gt;,
-    u128x2_sse2&lt;<a href="mod.rs.html#9">YesS3</a>, <a href="mod.rs.html#14">YesS4</a>, NI&gt;: Vec2&lt;&lt;Avx2Machine&lt;NI&gt; <span class="kw">as </span>Machine&gt;::u128x1&gt;,
-    u128x2_sse2&lt;<a href="mod.rs.html#9">YesS3</a>, <a href="mod.rs.html#14">YesS4</a>, NI&gt;: Into&lt;&lt;Avx2Machine&lt;NI&gt; <span class="kw">as </span>Machine&gt;::u32x4x2&gt;,
-    u128x2_sse2&lt;<a href="mod.rs.html#9">YesS3</a>, <a href="mod.rs.html#14">YesS4</a>, NI&gt;: Into&lt;&lt;Avx2Machine&lt;NI&gt; <span class="kw">as </span>Machine&gt;::u64x2x2&gt;,
-    u128x2_sse2&lt;<a href="mod.rs.html#9">YesS3</a>, <a href="mod.rs.html#14">YesS4</a>, NI&gt;: Into&lt;&lt;Avx2Machine&lt;NI&gt; <span class="kw">as </span>Machine&gt;::u64x4&gt;,
+    </span>u128x1_sse2&lt;YesS3, YesS4, NI&gt;: Swap64 + BSwap,
+    Avx2Machine&lt;NI&gt;: Machine,
+    u128x2_sse2&lt;YesS3, YesS4, NI&gt;: MultiLane&lt;[&lt;Avx2Machine&lt;NI&gt; <span class="kw">as </span>Machine&gt;::u128x1; <span class="number">2</span>]&gt;,
+    u128x2_sse2&lt;YesS3, YesS4, NI&gt;: Vec2&lt;&lt;Avx2Machine&lt;NI&gt; <span class="kw">as </span>Machine&gt;::u128x1&gt;,
+    u128x2_sse2&lt;YesS3, YesS4, NI&gt;: Into&lt;&lt;Avx2Machine&lt;NI&gt; <span class="kw">as </span>Machine&gt;::u32x4x2&gt;,
+    u128x2_sse2&lt;YesS3, YesS4, NI&gt;: Into&lt;&lt;Avx2Machine&lt;NI&gt; <span class="kw">as </span>Machine&gt;::u64x2x2&gt;,
+    u128x2_sse2&lt;YesS3, YesS4, NI&gt;: Into&lt;&lt;Avx2Machine&lt;NI&gt; <span class="kw">as </span>Machine&gt;::u64x4&gt;,
 {
 }
 
-<span class="kw">impl</span>&lt;S3, S4, NI&gt; Vec4&lt;<a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>&gt; <span class="kw">for </span>u64x4_sse2&lt;S3, S4, NI&gt;
+<span class="kw">impl</span>&lt;S3, S4, NI&gt; Vec4&lt;u64&gt; <span class="kw">for </span>u64x4_sse2&lt;S3, S4, NI&gt;
 <span class="kw">where
-    </span>u64x2_sse2&lt;S3, S4, NI&gt;: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html">Copy</a> + Vec2&lt;<a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>&gt;,
+    </span>u64x2_sse2&lt;S3, S4, NI&gt;: Copy + Vec2&lt;u64&gt;,
 {
     <span class="attr">#[inline(always)]
-    </span><span class="kw">fn </span>extract(<span class="self">self</span>, i: <a href="https://doc.rust-lang.org/nightly/core/primitive.u32.html">u32</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a> {
-        <span class="kw">match </span><a href="#965">i</a> {
-            <span class="number">0 </span>=&gt; <a class="self" href="#965">self</a>.<span class="number">0</span>[<span class="number">0</span>].<a href="../types.rs.html#65">extract</a>(<span class="number">0</span>),
-            <span class="number">1 </span>=&gt; <a class="self" href="#965">self</a>.<span class="number">0</span>[<span class="number">0</span>].<a href="../types.rs.html#65">extract</a>(<span class="number">1</span>),
-            <span class="number">2 </span>=&gt; <a class="self" href="#965">self</a>.<span class="number">0</span>[<span class="number">1</span>].<a href="../types.rs.html#65">extract</a>(<span class="number">0</span>),
-            <span class="number">3 </span>=&gt; <a class="self" href="#965">self</a>.<span class="number">0</span>[<span class="number">1</span>].<a href="../types.rs.html#65">extract</a>(<span class="number">1</span>),
-            <span class="kw">_ </span>=&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.panic.html">panic!</a>(),
+    </span><span class="kw">fn </span>extract(<span class="self">self</span>, i: u32) -&gt; u64 {
+        <span class="kw">match </span>i {
+            <span class="number">0 </span>=&gt; <span class="self">self</span>.<span class="number">0</span>[<span class="number">0</span>].extract(<span class="number">0</span>),
+            <span class="number">1 </span>=&gt; <span class="self">self</span>.<span class="number">0</span>[<span class="number">0</span>].extract(<span class="number">1</span>),
+            <span class="number">2 </span>=&gt; <span class="self">self</span>.<span class="number">0</span>[<span class="number">1</span>].extract(<span class="number">0</span>),
+            <span class="number">3 </span>=&gt; <span class="self">self</span>.<span class="number">0</span>[<span class="number">1</span>].extract(<span class="number">1</span>),
+            <span class="kw">_ </span>=&gt; <span class="macro">panic!</span>(),
         }
     }
     <span class="attr">#[inline(always)]
-    </span><span class="kw">fn </span>insert(<span class="kw-2">mut </span><span class="self">self</span>, w: <a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>, i: <a href="https://doc.rust-lang.org/nightly/core/primitive.u32.html">u32</a>) -&gt; <span class="self">Self </span>{
-        <span class="kw">match </span><a href="#975">i</a> {
-            <span class="number">0 </span>=&gt; <a class="self" href="#975">self</a>.<span class="number">0</span>[<span class="number">0</span>] = <a class="self" href="#975">self</a>.<span class="number">0</span>[<span class="number">0</span>].<a href="../types.rs.html#66">insert</a>(<a href="#975">w</a>, <span class="number">0</span>),
-            <span class="number">1 </span>=&gt; <a class="self" href="#975">self</a>.<span class="number">0</span>[<span class="number">0</span>] = <a class="self" href="#975">self</a>.<span class="number">0</span>[<span class="number">0</span>].<a href="../types.rs.html#66">insert</a>(<a href="#975">w</a>, <span class="number">1</span>),
-            <span class="number">2 </span>=&gt; <a class="self" href="#975">self</a>.<span class="number">0</span>[<span class="number">1</span>] = <a class="self" href="#975">self</a>.<span class="number">0</span>[<span class="number">1</span>].<a href="../types.rs.html#66">insert</a>(<a href="#975">w</a>, <span class="number">0</span>),
-            <span class="number">3 </span>=&gt; <a class="self" href="#975">self</a>.<span class="number">0</span>[<span class="number">1</span>] = <a class="self" href="#975">self</a>.<span class="number">0</span>[<span class="number">1</span>].<a href="../types.rs.html#66">insert</a>(<a href="#975">w</a>, <span class="number">1</span>),
-            <span class="kw">_ </span>=&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.panic.html">panic!</a>(),
+    </span><span class="kw">fn </span>insert(<span class="kw-2">mut </span><span class="self">self</span>, w: u64, i: u32) -&gt; <span class="self">Self </span>{
+        <span class="kw">match </span>i {
+            <span class="number">0 </span>=&gt; <span class="self">self</span>.<span class="number">0</span>[<span class="number">0</span>] = <span class="self">self</span>.<span class="number">0</span>[<span class="number">0</span>].insert(w, <span class="number">0</span>),
+            <span class="number">1 </span>=&gt; <span class="self">self</span>.<span class="number">0</span>[<span class="number">0</span>] = <span class="self">self</span>.<span class="number">0</span>[<span class="number">0</span>].insert(w, <span class="number">1</span>),
+            <span class="number">2 </span>=&gt; <span class="self">self</span>.<span class="number">0</span>[<span class="number">1</span>] = <span class="self">self</span>.<span class="number">0</span>[<span class="number">1</span>].insert(w, <span class="number">0</span>),
+            <span class="number">3 </span>=&gt; <span class="self">self</span>.<span class="number">0</span>[<span class="number">1</span>] = <span class="self">self</span>.<span class="number">0</span>[<span class="number">1</span>].insert(w, <span class="number">1</span>),
+            <span class="kw">_ </span>=&gt; <span class="macro">panic!</span>(),
         };
-        <span class="self"><a href="#975">self</a>
+        <span class="self">self
     </span>}
 }
 
-<span class="kw">impl</span>&lt;S3: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html">Copy</a>, S4: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html">Copy</a>, NI: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html">Copy</a>&gt; u32x4x4&lt;Machine86&lt;S3, S4, NI&gt;&gt; <span class="kw">for </span>u32x4x4_sse2&lt;S3, S4, NI&gt;
+<span class="kw">impl</span>&lt;S3: Copy, S4: Copy, NI: Copy&gt; u32x4x4&lt;Machine86&lt;S3, S4, NI&gt;&gt; <span class="kw">for </span>u32x4x4_sse2&lt;S3, S4, NI&gt;
 <span class="kw">where
-    </span>u32x4_sse2&lt;S3, S4, NI&gt;: <a href="../types.rs.html#31">RotateEachWord32</a> + <a href="../types.rs.html#8">BSwap</a>,
-    Machine86&lt;S3, S4, NI&gt;: <a href="../types.rs.html#231">Machine</a>,
+    </span>u32x4_sse2&lt;S3, S4, NI&gt;: RotateEachWord32 + BSwap,
+    Machine86&lt;S3, S4, NI&gt;: Machine,
     u32x4x4_sse2&lt;S3, S4, NI&gt;: MultiLane&lt;[&lt;Machine86&lt;S3, S4, NI&gt; <span class="kw">as </span>Machine&gt;::u32x4; <span class="number">4</span>]&gt;,
     u32x4x4_sse2&lt;S3, S4, NI&gt;: Vec4&lt;&lt;Machine86&lt;S3, S4, NI&gt; <span class="kw">as </span>Machine&gt;::u32x4&gt;,
     u32x4x4_sse2&lt;S3, S4, NI&gt;: Vec4Ext&lt;&lt;Machine86&lt;S3, S4, NI&gt; <span class="kw">as </span>Machine&gt;::u32x4&gt;,
-    u32x4x4_sse2&lt;S3, S4, NI&gt;: Vector&lt;[<a href="https://doc.rust-lang.org/nightly/core/primitive.u32.html">u32</a>; <span class="number">16</span>]&gt;,
+    u32x4x4_sse2&lt;S3, S4, NI&gt;: Vector&lt;[u32; <span class="number">16</span>]&gt;,
 {
 }
-<span class="kw">impl</span>&lt;S3: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html">Copy</a>, S4: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html">Copy</a>, NI: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html">Copy</a>&gt; u64x2x4&lt;Machine86&lt;S3, S4, NI&gt;&gt; <span class="kw">for </span>u64x2x4_sse2&lt;S3, S4, NI&gt;
+<span class="kw">impl</span>&lt;S3: Copy, S4: Copy, NI: Copy&gt; u64x2x4&lt;Machine86&lt;S3, S4, NI&gt;&gt; <span class="kw">for </span>u64x2x4_sse2&lt;S3, S4, NI&gt;
 <span class="kw">where
-    </span>u64x2_sse2&lt;S3, S4, NI&gt;: <a href="../types.rs.html#42">RotateEachWord64</a> + <a href="../types.rs.html#31">RotateEachWord32</a> + <a href="../types.rs.html#8">BSwap</a>,
-    Machine86&lt;S3, S4, NI&gt;: <a href="../types.rs.html#231">Machine</a>,
+    </span>u64x2_sse2&lt;S3, S4, NI&gt;: RotateEachWord64 + RotateEachWord32 + BSwap,
+    Machine86&lt;S3, S4, NI&gt;: Machine,
     u64x2x4_sse2&lt;S3, S4, NI&gt;: MultiLane&lt;[&lt;Machine86&lt;S3, S4, NI&gt; <span class="kw">as </span>Machine&gt;::u64x2; <span class="number">4</span>]&gt;,
     u64x2x4_sse2&lt;S3, S4, NI&gt;: Vec4&lt;&lt;Machine86&lt;S3, S4, NI&gt; <span class="kw">as </span>Machine&gt;::u64x2&gt;,
 {
 }
-<span class="kw">impl</span>&lt;S3: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html">Copy</a>, S4: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html">Copy</a>, NI: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html">Copy</a>&gt; u128x4&lt;Machine86&lt;S3, S4, NI&gt;&gt; <span class="kw">for </span>u128x4_sse2&lt;S3, S4, NI&gt;
+<span class="kw">impl</span>&lt;S3: Copy, S4: Copy, NI: Copy&gt; u128x4&lt;Machine86&lt;S3, S4, NI&gt;&gt; <span class="kw">for </span>u128x4_sse2&lt;S3, S4, NI&gt;
 <span class="kw">where
-    </span>u128x1_sse2&lt;S3, S4, NI&gt;: <a href="../types.rs.html#103">Swap64</a> + <a href="../types.rs.html#8">BSwap</a>,
-    Machine86&lt;S3, S4, NI&gt;: <a href="../types.rs.html#231">Machine</a>,
+    </span>u128x1_sse2&lt;S3, S4, NI&gt;: Swap64 + BSwap,
+    Machine86&lt;S3, S4, NI&gt;: Machine,
     u128x4_sse2&lt;S3, S4, NI&gt;: MultiLane&lt;[&lt;Machine86&lt;S3, S4, NI&gt; <span class="kw">as </span>Machine&gt;::u128x1; <span class="number">4</span>]&gt;,
     u128x4_sse2&lt;S3, S4, NI&gt;: Vec4&lt;&lt;Machine86&lt;S3, S4, NI&gt; <span class="kw">as </span>Machine&gt;::u128x1&gt;,
     u128x4_sse2&lt;S3, S4, NI&gt;: Into&lt;&lt;Machine86&lt;S3, S4, NI&gt; <span class="kw">as </span>Machine&gt;::u32x4x4&gt;,
@@ -2716,22 +2716,22 @@
 {
 }
 
-<span class="kw">impl</span>&lt;NI: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html">Copy</a>&gt; u64x2x4&lt;Avx2Machine&lt;NI&gt;&gt; <span class="kw">for </span>u64x2x4_sse2&lt;<a href="mod.rs.html#9">YesS3</a>, <a href="mod.rs.html#14">YesS4</a>, NI&gt;
+<span class="kw">impl</span>&lt;NI: Copy&gt; u64x2x4&lt;Avx2Machine&lt;NI&gt;&gt; <span class="kw">for </span>u64x2x4_sse2&lt;YesS3, YesS4, NI&gt;
 <span class="kw">where
-    </span>u64x2_sse2&lt;<a href="mod.rs.html#9">YesS3</a>, <a href="mod.rs.html#14">YesS4</a>, NI&gt;: <a href="../types.rs.html#42">RotateEachWord64</a> + <a href="../types.rs.html#31">RotateEachWord32</a> + <a href="../types.rs.html#8">BSwap</a>,
-    Avx2Machine&lt;NI&gt;: <a href="../types.rs.html#231">Machine</a>,
-    u64x2x4_sse2&lt;<a href="mod.rs.html#9">YesS3</a>, <a href="mod.rs.html#14">YesS4</a>, NI&gt;: MultiLane&lt;[&lt;Avx2Machine&lt;NI&gt; <span class="kw">as </span>Machine&gt;::u64x2; <span class="number">4</span>]&gt;,
-    u64x2x4_sse2&lt;<a href="mod.rs.html#9">YesS3</a>, <a href="mod.rs.html#14">YesS4</a>, NI&gt;: Vec4&lt;&lt;Avx2Machine&lt;NI&gt; <span class="kw">as </span>Machine&gt;::u64x2&gt;,
+    </span>u64x2_sse2&lt;YesS3, YesS4, NI&gt;: RotateEachWord64 + RotateEachWord32 + BSwap,
+    Avx2Machine&lt;NI&gt;: Machine,
+    u64x2x4_sse2&lt;YesS3, YesS4, NI&gt;: MultiLane&lt;[&lt;Avx2Machine&lt;NI&gt; <span class="kw">as </span>Machine&gt;::u64x2; <span class="number">4</span>]&gt;,
+    u64x2x4_sse2&lt;YesS3, YesS4, NI&gt;: Vec4&lt;&lt;Avx2Machine&lt;NI&gt; <span class="kw">as </span>Machine&gt;::u64x2&gt;,
 {
 }
-<span class="kw">impl</span>&lt;NI: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html">Copy</a>&gt; u128x4&lt;Avx2Machine&lt;NI&gt;&gt; <span class="kw">for </span>u128x4_sse2&lt;<a href="mod.rs.html#9">YesS3</a>, <a href="mod.rs.html#14">YesS4</a>, NI&gt;
+<span class="kw">impl</span>&lt;NI: Copy&gt; u128x4&lt;Avx2Machine&lt;NI&gt;&gt; <span class="kw">for </span>u128x4_sse2&lt;YesS3, YesS4, NI&gt;
 <span class="kw">where
-    </span>u128x1_sse2&lt;<a href="mod.rs.html#9">YesS3</a>, <a href="mod.rs.html#14">YesS4</a>, NI&gt;: <a href="../types.rs.html#103">Swap64</a> + <a href="../types.rs.html#8">BSwap</a>,
-    Avx2Machine&lt;NI&gt;: <a href="../types.rs.html#231">Machine</a>,
-    u128x4_sse2&lt;<a href="mod.rs.html#9">YesS3</a>, <a href="mod.rs.html#14">YesS4</a>, NI&gt;: MultiLane&lt;[&lt;Avx2Machine&lt;NI&gt; <span class="kw">as </span>Machine&gt;::u128x1; <span class="number">4</span>]&gt;,
-    u128x4_sse2&lt;<a href="mod.rs.html#9">YesS3</a>, <a href="mod.rs.html#14">YesS4</a>, NI&gt;: Vec4&lt;&lt;Avx2Machine&lt;NI&gt; <span class="kw">as </span>Machine&gt;::u128x1&gt;,
-    u128x4_sse2&lt;<a href="mod.rs.html#9">YesS3</a>, <a href="mod.rs.html#14">YesS4</a>, NI&gt;: Into&lt;&lt;Avx2Machine&lt;NI&gt; <span class="kw">as </span>Machine&gt;::u32x4x4&gt;,
-    u128x4_sse2&lt;<a href="mod.rs.html#9">YesS3</a>, <a href="mod.rs.html#14">YesS4</a>, NI&gt;: Into&lt;&lt;Avx2Machine&lt;NI&gt; <span class="kw">as </span>Machine&gt;::u64x2x4&gt;,
+    </span>u128x1_sse2&lt;YesS3, YesS4, NI&gt;: Swap64 + BSwap,
+    Avx2Machine&lt;NI&gt;: Machine,
+    u128x4_sse2&lt;YesS3, YesS4, NI&gt;: MultiLane&lt;[&lt;Avx2Machine&lt;NI&gt; <span class="kw">as </span>Machine&gt;::u128x1; <span class="number">4</span>]&gt;,
+    u128x4_sse2&lt;YesS3, YesS4, NI&gt;: Vec4&lt;&lt;Avx2Machine&lt;NI&gt; <span class="kw">as </span>Machine&gt;::u128x1&gt;,
+    u128x4_sse2&lt;YesS3, YesS4, NI&gt;: Into&lt;&lt;Avx2Machine&lt;NI&gt; <span class="kw">as </span>Machine&gt;::u32x4x4&gt;,
+    u128x4_sse2&lt;YesS3, YesS4, NI&gt;: Into&lt;&lt;Avx2Machine&lt;NI&gt; <span class="kw">as </span>Machine&gt;::u64x2x4&gt;,
 {
 }
 
@@ -2758,75 +2758,75 @@
         }
     };
 }
-<a class="macro" href="#1035-1057">impl_into_x!</a>(u128x1_sse2, u64x2_sse2);
-<a class="macro" href="#1035-1057">impl_into_x!</a>(u128x1_sse2, u32x4_sse2);
+<span class="macro">impl_into_x!</span>(u128x1_sse2, u64x2_sse2);
+<span class="macro">impl_into_x!</span>(u128x1_sse2, u32x4_sse2);
 
 <span class="comment">///// Debugging
 
-</span><span class="kw">use </span>core::fmt::{<a href="https://doc.rust-lang.org/nightly/core/fmt/macros/derive.Debug.html">Debug</a>, <a href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">Formatter</a>, <span class="prelude-ty">Result</span>};
+</span><span class="kw">use </span>core::fmt::{Debug, Formatter, <span class="prelude-ty">Result</span>};
 
-<span class="kw">impl</span>&lt;W: <a href="https://doc.rust-lang.org/nightly/core/cmp/trait.PartialEq.html">PartialEq</a>, G&gt; <a href="https://doc.rust-lang.org/nightly/core/cmp/trait.PartialEq.html">PartialEq</a> <span class="kw">for </span>x2&lt;W, G&gt; {
+<span class="kw">impl</span>&lt;W: PartialEq, G&gt; PartialEq <span class="kw">for </span>x2&lt;W, G&gt; {
     <span class="attr">#[inline(always)]
-    </span><span class="kw">fn </span>eq(<span class="kw-2">&amp;</span><span class="self">self</span>, rhs: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/primitive.bool.html">bool</a> {
-        <a class="self" href="#1067">self</a>.<span class="number">0</span>[<span class="number">0</span>] == <a href="#1067">rhs</a>.<span class="number">0</span>[<span class="number">0</span>] &amp;&amp; <a class="self" href="#1067">self</a>.<span class="number">0</span>[<span class="number">1</span>] == <a href="#1067">rhs</a>.<span class="number">0</span>[<span class="number">1</span>]
+    </span><span class="kw">fn </span>eq(<span class="kw-2">&amp;</span><span class="self">self</span>, rhs: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; bool {
+        <span class="self">self</span>.<span class="number">0</span>[<span class="number">0</span>] == rhs.<span class="number">0</span>[<span class="number">0</span>] &amp;&amp; <span class="self">self</span>.<span class="number">0</span>[<span class="number">1</span>] == rhs.<span class="number">0</span>[<span class="number">1</span>]
     }
 }
 
 <span class="attr">#[allow(unused)]
 #[inline(always)]
-</span><span class="kw">unsafe fn </span>eq128_s4(x: <a href="https://doc.rust-lang.org/nightly/core/core_arch/x86/struct.__m128i.html">__m128i</a>, y: <a href="https://doc.rust-lang.org/nightly/core/core_arch/x86/struct.__m128i.html">__m128i</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/primitive.bool.html">bool</a> {
-    <span class="kw">let </span>q = _mm_shuffle_epi32(_mm_cmpeq_epi64(<a href="#1074">x</a>, <a href="#1074">y</a>), <span class="number">0b1100_0110</span>);
-    _mm_cvtsi128_si64(<a href="#1075">q</a>) == -<span class="number">1
+</span><span class="kw">unsafe fn </span>eq128_s4(x: __m128i, y: __m128i) -&gt; bool {
+    <span class="kw">let </span>q = _mm_shuffle_epi32(_mm_cmpeq_epi64(x, y), <span class="number">0b1100_0110</span>);
+    _mm_cvtsi128_si64(q) == -<span class="number">1
 </span>}
 
 <span class="attr">#[inline(always)]
-</span><span class="kw">unsafe fn </span>eq128_s2(x: <a href="https://doc.rust-lang.org/nightly/core/core_arch/x86/struct.__m128i.html">__m128i</a>, y: <a href="https://doc.rust-lang.org/nightly/core/core_arch/x86/struct.__m128i.html">__m128i</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/primitive.bool.html">bool</a> {
-    <span class="kw">let </span>q = _mm_cmpeq_epi32(<a href="#1080">x</a>, <a href="#1080">y</a>);
-    <span class="kw">let </span>p = _mm_cvtsi128_si64(_mm_srli_si128(<a href="#1081">q</a>, <span class="number">8</span>));
-    <span class="kw">let </span>q = _mm_cvtsi128_si64(<a href="#1081">q</a>);
-    (<a href="#1082">p</a> &amp; <a href="#1083">q</a>) == -<span class="number">1
+</span><span class="kw">unsafe fn </span>eq128_s2(x: __m128i, y: __m128i) -&gt; bool {
+    <span class="kw">let </span>q = _mm_cmpeq_epi32(x, y);
+    <span class="kw">let </span>p = _mm_cvtsi128_si64(_mm_srli_si128(q, <span class="number">8</span>));
+    <span class="kw">let </span>q = _mm_cvtsi128_si64(q);
+    (p &amp; q) == -<span class="number">1
 </span>}
 
-<span class="kw">impl</span>&lt;S3, S4, NI&gt; <a href="https://doc.rust-lang.org/nightly/core/cmp/trait.PartialEq.html">PartialEq</a> <span class="kw">for </span>u32x4_sse2&lt;S3, S4, NI&gt; {
+<span class="kw">impl</span>&lt;S3, S4, NI&gt; PartialEq <span class="kw">for </span>u32x4_sse2&lt;S3, S4, NI&gt; {
     <span class="attr">#[inline(always)]
-    </span><span class="kw">fn </span>eq(<span class="kw-2">&amp;</span><span class="self">self</span>, rhs: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/primitive.bool.html">bool</a> {
-        <span class="kw">unsafe </span>{ <a href="#1080">eq128_s2</a>(<a class="self" href="#1089">self</a>.x, <a href="#1089">rhs</a>.x) }
+    </span><span class="kw">fn </span>eq(<span class="kw-2">&amp;</span><span class="self">self</span>, rhs: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; bool {
+        <span class="kw">unsafe </span>{ eq128_s2(<span class="self">self</span>.x, rhs.x) }
     }
 }
-<span class="kw">impl</span>&lt;S3, S4, NI&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">Debug</a> <span class="kw">for </span>u32x4_sse2&lt;S3, S4, NI&gt;
+<span class="kw">impl</span>&lt;S3, S4, NI&gt; Debug <span class="kw">for </span>u32x4_sse2&lt;S3, S4, NI&gt;
 <span class="kw">where
-    </span><span class="self">Self</span>: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html">Copy</a> + MultiLane&lt;[<a href="https://doc.rust-lang.org/nightly/core/primitive.u32.html">u32</a>; <span class="number">4</span>]&gt;,
+    </span><span class="self">Self</span>: Copy + MultiLane&lt;[u32; <span class="number">4</span>]&gt;,
 {
     <span class="attr">#[cold]
-    </span><span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, fmt: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">Formatter</a>) -&gt; <span class="prelude-ty">Result </span>{
-        <a href="#1098">fmt</a>.write_fmt(<a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.format_args.html">format_args!</a>(<span class="string">&quot;{:08x?}&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.to_lanes()))
+    </span><span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, fmt: <span class="kw-2">&amp;mut </span>Formatter) -&gt; <span class="prelude-ty">Result </span>{
+        fmt.write_fmt(<span class="macro">format_args!</span>(<span class="string">&quot;{:08x?}&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.to_lanes()))
     }
 }
 
-<span class="kw">impl</span>&lt;S3, S4, NI&gt; <a href="https://doc.rust-lang.org/nightly/core/cmp/trait.PartialEq.html">PartialEq</a> <span class="kw">for </span>u64x2_sse2&lt;S3, S4, NI&gt; {
+<span class="kw">impl</span>&lt;S3, S4, NI&gt; PartialEq <span class="kw">for </span>u64x2_sse2&lt;S3, S4, NI&gt; {
     <span class="attr">#[inline(always)]
-    </span><span class="kw">fn </span>eq(<span class="kw-2">&amp;</span><span class="self">self</span>, rhs: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/primitive.bool.html">bool</a> {
-        <span class="kw">unsafe </span>{ <a href="#1080">eq128_s2</a>(<a class="self" href="#1105">self</a>.x, <a href="#1105">rhs</a>.x) }
+    </span><span class="kw">fn </span>eq(<span class="kw-2">&amp;</span><span class="self">self</span>, rhs: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; bool {
+        <span class="kw">unsafe </span>{ eq128_s2(<span class="self">self</span>.x, rhs.x) }
     }
 }
-<span class="kw">impl</span>&lt;S3, S4, NI&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">Debug</a> <span class="kw">for </span>u64x2_sse2&lt;S3, S4, NI&gt;
+<span class="kw">impl</span>&lt;S3, S4, NI&gt; Debug <span class="kw">for </span>u64x2_sse2&lt;S3, S4, NI&gt;
 <span class="kw">where
-    </span><span class="self">Self</span>: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html">Copy</a> + MultiLane&lt;[<a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>; <span class="number">2</span>]&gt;,
+    </span><span class="self">Self</span>: Copy + MultiLane&lt;[u64; <span class="number">2</span>]&gt;,
 {
     <span class="attr">#[cold]
-    </span><span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, fmt: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">Formatter</a>) -&gt; <span class="prelude-ty">Result </span>{
-        <a href="#1114">fmt</a>.write_fmt(<a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.format_args.html">format_args!</a>(<span class="string">&quot;{:016x?}&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.to_lanes()))
+    </span><span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, fmt: <span class="kw-2">&amp;mut </span>Formatter) -&gt; <span class="prelude-ty">Result </span>{
+        fmt.write_fmt(<span class="macro">format_args!</span>(<span class="string">&quot;{:016x?}&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.to_lanes()))
     }
 }
 
-<span class="kw">impl</span>&lt;S3, S4, NI&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">Debug</a> <span class="kw">for </span>u64x4_sse2&lt;S3, S4, NI&gt;
+<span class="kw">impl</span>&lt;S3, S4, NI&gt; Debug <span class="kw">for </span>u64x4_sse2&lt;S3, S4, NI&gt;
 <span class="kw">where
-    </span>u64x2_sse2&lt;S3, S4, NI&gt;: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html">Copy</a> + MultiLane&lt;[<a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>; <span class="number">2</span>]&gt;,
+    </span>u64x2_sse2&lt;S3, S4, NI&gt;: Copy + MultiLane&lt;[u64; <span class="number">2</span>]&gt;,
 {
     <span class="attr">#[cold]
-    </span><span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, fmt: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">Formatter</a>) -&gt; <span class="prelude-ty">Result </span>{
-        <span class="kw">let </span>(a, b) = (<a class="self" href="#1124">self</a>.<span class="number">0</span>[<span class="number">0</span>].<a href="../types.rs.html#211">to_lanes</a>(), <a class="self" href="#1124">self</a>.<span class="number">0</span>[<span class="number">1</span>].<a href="../types.rs.html#211">to_lanes</a>());
-        <a href="#1124">fmt</a>.write_fmt(<a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.format_args.html">format_args!</a>(<span class="string">&quot;{:016x?}&quot;</span>, <span class="kw-2">&amp;</span>[a[<span class="number">0</span>], a[<span class="number">1</span>], b[<span class="number">0</span>], b[<span class="number">1</span>]]))
+    </span><span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, fmt: <span class="kw-2">&amp;mut </span>Formatter) -&gt; <span class="prelude-ty">Result </span>{
+        <span class="kw">let </span>(a, b) = (<span class="self">self</span>.<span class="number">0</span>[<span class="number">0</span>].to_lanes(), <span class="self">self</span>.<span class="number">0</span>[<span class="number">1</span>].to_lanes());
+        fmt.write_fmt(<span class="macro">format_args!</span>(<span class="string">&quot;{:016x?}&quot;</span>, <span class="kw-2">&amp;</span>[a[<span class="number">0</span>], a[<span class="number">1</span>], b[<span class="number">0</span>], b[<span class="number">1</span>]]))
     }
 }
 
@@ -3078,95 +3078,95 @@
 
 <span class="kw">pub mod </span>avx2 {
     <span class="attr">#![allow(non_camel_case_types)]
-    </span><span class="kw">use </span><span class="kw">crate</span>::soft::{<a href="../soft.rs.html#10">x2</a>, <a href="../soft.rs.html#225">x4</a>};
-    <span class="kw">use </span><a href="../lib.rs.html#9"><span class="kw">crate</span>::types</a>::<span class="kw-2">*</span>;
-    <span class="kw">use </span><span class="kw">crate</span>::x86_64::sse2::{<a href="#319">u128x1_sse2</a>, <a href="#317">u32x4_sse2</a>, <a href="#863">G0</a>};
-    <span class="kw">use </span><span class="kw">crate</span>::x86_64::{<a href="mod.rs.html#150">vec256_storage</a>, <a href="mod.rs.html#189">vec512_storage</a>, <a href="mod.rs.html#70">Avx2Machine</a>, <a href="mod.rs.html#9">YesS3</a>, <a href="mod.rs.html#14">YesS4</a>};
-    <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/core_arch/arch/x86_64/index.html">core::arch::x86_64</a>::<span class="kw-2">*</span>;
+    </span><span class="kw">use </span><span class="kw">crate</span>::soft::{x2, x4};
+    <span class="kw">use </span><span class="kw">crate</span>::types::<span class="kw-2">*</span>;
+    <span class="kw">use </span><span class="kw">crate</span>::x86_64::sse2::{u128x1_sse2, u32x4_sse2, G0};
+    <span class="kw">use </span><span class="kw">crate</span>::x86_64::{vec256_storage, vec512_storage, Avx2Machine, YesS3, YesS4};
+    <span class="kw">use </span>core::arch::x86_64::<span class="kw-2">*</span>;
     <span class="kw">use </span>core::marker::PhantomData;
-    <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/ops/index.html">core::ops</a>::<span class="kw-2">*</span>;
+    <span class="kw">use </span>core::ops::<span class="kw-2">*</span>;
 
     <span class="attr">#[derive(Copy, Clone)]
     </span><span class="kw">pub struct </span>u32x4x2_avx2&lt;NI&gt; {
-        x: <a href="https://doc.rust-lang.org/nightly/core/core_arch/x86/struct.__m256i.html">__m256i</a>,
+        x: __m256i,
         ni: PhantomData&lt;NI&gt;,
     }
 
     <span class="kw">impl</span>&lt;NI&gt; u32x4x2_avx2&lt;NI&gt; {
         <span class="attr">#[inline(always)]
-        </span><span class="kw">fn </span>new(x: <a href="https://doc.rust-lang.org/nightly/core/core_arch/x86/struct.__m256i.html">__m256i</a>) -&gt; <span class="self">Self </span>{
-            <span class="self">Self </span>{ <a href="#1394">x</a>, ni: PhantomData }
+        </span><span class="kw">fn </span>new(x: __m256i) -&gt; <span class="self">Self </span>{
+            <span class="self">Self </span>{ x, ni: PhantomData }
         }
     }
 
-    <span class="kw">impl</span>&lt;NI&gt; u32x4x2&lt;Avx2Machine&lt;NI&gt;&gt; <span class="kw">for </span>u32x4x2_avx2&lt;NI&gt; <span class="kw">where </span>NI: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html">Copy</a> {}
-    <span class="kw">impl</span>&lt;NI&gt; Store&lt;<a href="mod.rs.html#150">vec256_storage</a>&gt; <span class="kw">for </span>u32x4x2_avx2&lt;NI&gt; {
+    <span class="kw">impl</span>&lt;NI&gt; u32x4x2&lt;Avx2Machine&lt;NI&gt;&gt; <span class="kw">for </span>u32x4x2_avx2&lt;NI&gt; <span class="kw">where </span>NI: Copy {}
+    <span class="kw">impl</span>&lt;NI&gt; Store&lt;vec256_storage&gt; <span class="kw">for </span>u32x4x2_avx2&lt;NI&gt; {
         <span class="attr">#[inline(always)]
-        </span><span class="kw">unsafe fn </span>unpack(p: <a href="mod.rs.html#150">vec256_storage</a>) -&gt; <span class="self">Self </span>{
-            <span class="self">Self</span>::new(<a href="#1402">p</a>.avx)
+        </span><span class="kw">unsafe fn </span>unpack(p: vec256_storage) -&gt; <span class="self">Self </span>{
+            <span class="self">Self</span>::new(p.avx)
         }
     }
-    <span class="kw">impl</span>&lt;NI&gt; <a href="../types.rs.html#287">StoreBytes</a> <span class="kw">for </span>u32x4x2_avx2&lt;NI&gt; {
+    <span class="kw">impl</span>&lt;NI&gt; StoreBytes <span class="kw">for </span>u32x4x2_avx2&lt;NI&gt; {
         <span class="attr">#[inline(always)]
-        </span><span class="kw">unsafe fn </span>unsafe_read_le(input: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>]) -&gt; <span class="self">Self </span>{
-            <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert_eq.html">assert_eq!</a>(input.len(), <span class="number">32</span>);
-            <span class="self">Self</span>::new(_mm256_loadu_si256(<a href="#1408">input</a>.as_ptr() <span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_</span>))
+        </span><span class="kw">unsafe fn </span>unsafe_read_le(input: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="self">Self </span>{
+            <span class="macro">assert_eq!</span>(input.len(), <span class="number">32</span>);
+            <span class="self">Self</span>::new(_mm256_loadu_si256(input.as_ptr() <span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_</span>))
         }
         <span class="attr">#[inline(always)]
-        </span><span class="kw">unsafe fn </span>unsafe_read_be(input: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>]) -&gt; <span class="self">Self </span>{
-            <span class="self">Self</span>::unsafe_read_le(<a href="#1413">input</a>).<a href="../types.rs.html#9">bswap</a>()
+        </span><span class="kw">unsafe fn </span>unsafe_read_be(input: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="self">Self </span>{
+            <span class="self">Self</span>::unsafe_read_le(input).bswap()
         }
         <span class="attr">#[inline(always)]
-        </span><span class="kw">fn </span>write_le(<span class="self">self</span>, out: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>]) {
+        </span><span class="kw">fn </span>write_le(<span class="self">self</span>, out: <span class="kw-2">&amp;mut </span>[u8]) {
             <span class="kw">unsafe </span>{
-                <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert_eq.html">assert_eq!</a>(out.len(), <span class="number">32</span>);
-                _mm256_storeu_si256(<a href="#1417">out</a>.as_mut_ptr() <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>, <a class="self" href="#1417">self</a>.x)
+                <span class="macro">assert_eq!</span>(out.len(), <span class="number">32</span>);
+                _mm256_storeu_si256(out.as_mut_ptr() <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>, <span class="self">self</span>.x)
             }
         }
         <span class="attr">#[inline(always)]
-        </span><span class="kw">fn </span>write_be(<span class="self">self</span>, out: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>]) {
-            <a class="self" href="#1424">self</a>.<a href="../types.rs.html#9">bswap</a>().<a href="../types.rs.html#296">write_le</a>(<a href="#1424">out</a>)
+        </span><span class="kw">fn </span>write_be(<span class="self">self</span>, out: <span class="kw-2">&amp;mut </span>[u8]) {
+            <span class="self">self</span>.bswap().write_le(out)
         }
     }
-    <span class="kw">impl</span>&lt;NI&gt; MultiLane&lt;[u32x4_sse2&lt;<a href="mod.rs.html#9">YesS3</a>, <a href="mod.rs.html#14">YesS4</a>, NI&gt;; <span class="number">2</span>]&gt; <span class="kw">for </span>u32x4x2_avx2&lt;NI&gt; {
+    <span class="kw">impl</span>&lt;NI&gt; MultiLane&lt;[u32x4_sse2&lt;YesS3, YesS4, NI&gt;; <span class="number">2</span>]&gt; <span class="kw">for </span>u32x4x2_avx2&lt;NI&gt; {
         <span class="attr">#[inline(always)]
-        </span><span class="kw">fn </span>to_lanes(<span class="self">self</span>) -&gt; [u32x4_sse2&lt;<a href="mod.rs.html#9">YesS3</a>, <a href="mod.rs.html#14">YesS4</a>, NI&gt;; <span class="number">2</span>] {
+        </span><span class="kw">fn </span>to_lanes(<span class="self">self</span>) -&gt; [u32x4_sse2&lt;YesS3, YesS4, NI&gt;; <span class="number">2</span>] {
             <span class="kw">unsafe </span>{
                 [
-                    u32x4_sse2::new(_mm256_extracti128_si256(<a class="self" href="#1430">self</a>.x, <span class="number">0</span>)),
-                    u32x4_sse2::new(_mm256_extracti128_si256(<a class="self" href="#1430">self</a>.x, <span class="number">1</span>)),
+                    u32x4_sse2::new(_mm256_extracti128_si256(<span class="self">self</span>.x, <span class="number">0</span>)),
+                    u32x4_sse2::new(_mm256_extracti128_si256(<span class="self">self</span>.x, <span class="number">1</span>)),
                 ]
             }
         }
         <span class="attr">#[inline(always)]
-        </span><span class="kw">fn </span>from_lanes(x: [u32x4_sse2&lt;<a href="mod.rs.html#9">YesS3</a>, <a href="mod.rs.html#14">YesS4</a>, NI&gt;; <span class="number">2</span>]) -&gt; <span class="self">Self </span>{
-            <span class="self">Self</span>::new(<span class="kw">unsafe </span>{ _mm256_setr_m128i(<a href="#1439">x</a>[<span class="number">0</span>].x, <a href="#1439">x</a>[<span class="number">1</span>].x) })
+        </span><span class="kw">fn </span>from_lanes(x: [u32x4_sse2&lt;YesS3, YesS4, NI&gt;; <span class="number">2</span>]) -&gt; <span class="self">Self </span>{
+            <span class="self">Self</span>::new(<span class="kw">unsafe </span>{ _mm256_setr_m128i(x[<span class="number">0</span>].x, x[<span class="number">1</span>].x) })
         }
     }
-    <span class="kw">impl</span>&lt;NI&gt; Vec2&lt;u32x4_sse2&lt;<a href="mod.rs.html#9">YesS3</a>, <a href="mod.rs.html#14">YesS4</a>, NI&gt;&gt; <span class="kw">for </span>u32x4x2_avx2&lt;NI&gt; {
+    <span class="kw">impl</span>&lt;NI&gt; Vec2&lt;u32x4_sse2&lt;YesS3, YesS4, NI&gt;&gt; <span class="kw">for </span>u32x4x2_avx2&lt;NI&gt; {
         <span class="attr">#[inline(always)]
-        </span><span class="kw">fn </span>extract(<span class="self">self</span>, i: <a href="https://doc.rust-lang.org/nightly/core/primitive.u32.html">u32</a>) -&gt; u32x4_sse2&lt;<a href="mod.rs.html#9">YesS3</a>, <a href="mod.rs.html#14">YesS4</a>, NI&gt; {
+        </span><span class="kw">fn </span>extract(<span class="self">self</span>, i: u32) -&gt; u32x4_sse2&lt;YesS3, YesS4, NI&gt; {
             <span class="kw">unsafe </span>{
-                <span class="kw">match </span><a href="#1445">i</a> {
-                    <span class="number">0 </span>=&gt; u32x4_sse2::new(_mm256_extracti128_si256(<a class="self" href="#1445">self</a>.x, <span class="number">0</span>)),
-                    <span class="number">1 </span>=&gt; u32x4_sse2::new(_mm256_extracti128_si256(<a class="self" href="#1445">self</a>.x, <span class="number">1</span>)),
-                    <span class="kw">_ </span>=&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.panic.html">panic!</a>(),
+                <span class="kw">match </span>i {
+                    <span class="number">0 </span>=&gt; u32x4_sse2::new(_mm256_extracti128_si256(<span class="self">self</span>.x, <span class="number">0</span>)),
+                    <span class="number">1 </span>=&gt; u32x4_sse2::new(_mm256_extracti128_si256(<span class="self">self</span>.x, <span class="number">1</span>)),
+                    <span class="kw">_ </span>=&gt; <span class="macro">panic!</span>(),
                 }
             }
         }
         <span class="attr">#[inline(always)]
-        </span><span class="kw">fn </span>insert(<span class="self">self</span>, w: u32x4_sse2&lt;<a href="mod.rs.html#9">YesS3</a>, <a href="mod.rs.html#14">YesS4</a>, NI&gt;, i: <a href="https://doc.rust-lang.org/nightly/core/primitive.u32.html">u32</a>) -&gt; <span class="self">Self </span>{
+        </span><span class="kw">fn </span>insert(<span class="self">self</span>, w: u32x4_sse2&lt;YesS3, YesS4, NI&gt;, i: u32) -&gt; <span class="self">Self </span>{
             <span class="self">Self</span>::new(<span class="kw">unsafe </span>{
-                <span class="kw">match </span><a href="#1455">i</a> {
-                    <span class="number">0 </span>=&gt; _mm256_inserti128_si256(<a class="self" href="#1455">self</a>.x, <a href="#1455">w</a>.x, <span class="number">0</span>),
-                    <span class="number">1 </span>=&gt; _mm256_inserti128_si256(<a class="self" href="#1455">self</a>.x, <a href="#1455">w</a>.x, <span class="number">1</span>),
-                    <span class="kw">_ </span>=&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.panic.html">panic!</a>(),
+                <span class="kw">match </span>i {
+                    <span class="number">0 </span>=&gt; _mm256_inserti128_si256(<span class="self">self</span>.x, w.x, <span class="number">0</span>),
+                    <span class="number">1 </span>=&gt; _mm256_inserti128_si256(<span class="self">self</span>.x, w.x, <span class="number">1</span>),
+                    <span class="kw">_ </span>=&gt; <span class="macro">panic!</span>(),
                 }
             })
         }
     }
-    <span class="kw">impl</span>&lt;NI&gt; <a href="../types.rs.html#27">BitOps32</a> <span class="kw">for </span>u32x4x2_avx2&lt;NI&gt; <span class="kw">where </span>NI: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html">Copy</a> {}
-    <span class="kw">impl</span>&lt;NI&gt; <a href="../types.rs.html#12">ArithOps</a> <span class="kw">for </span>u32x4x2_avx2&lt;NI&gt; <span class="kw">where </span>NI: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html">Copy</a> {}
+    <span class="kw">impl</span>&lt;NI&gt; BitOps32 <span class="kw">for </span>u32x4x2_avx2&lt;NI&gt; <span class="kw">where </span>NI: Copy {}
+    <span class="kw">impl</span>&lt;NI&gt; ArithOps <span class="kw">for </span>u32x4x2_avx2&lt;NI&gt; <span class="kw">where </span>NI: Copy {}
     <span class="macro">macro_rules! </span>shuf_lane_bytes {
         (<span class="macro-nonterminal">$name</span>:ident, <span class="macro-nonterminal">$k0</span>:expr, <span class="macro-nonterminal">$k1</span>:expr) =&gt; {
             <span class="attr">#[inline(always)]
@@ -3190,33 +3190,33 @@
             }
         };
     }
-    <span class="kw">impl</span>&lt;NI: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html">Copy</a>&gt; <a href="../types.rs.html#31">RotateEachWord32</a> <span class="kw">for </span>u32x4x2_avx2&lt;NI&gt; {
-        <a class="macro" href="#1477-1489">rotr_32!</a>(rotate_each_word_right7, <span class="number">7</span>);
-        <a class="macro" href="#1467-1476">shuf_lane_bytes!</a>(
+    <span class="kw">impl</span>&lt;NI: Copy&gt; RotateEachWord32 <span class="kw">for </span>u32x4x2_avx2&lt;NI&gt; {
+        <span class="macro">rotr_32!</span>(rotate_each_word_right7, <span class="number">7</span>);
+        <span class="macro">shuf_lane_bytes!</span>(
             rotate_each_word_right8,
             <span class="number">0x0c0f_0e0d_080b_0a09</span>,
             <span class="number">0x0407_0605_0003_0201
         </span>);
-        <a class="macro" href="#1477-1489">rotr_32!</a>(rotate_each_word_right11, <span class="number">11</span>);
-        <a class="macro" href="#1477-1489">rotr_32!</a>(rotate_each_word_right12, <span class="number">12</span>);
-        <a class="macro" href="#1467-1476">shuf_lane_bytes!</a>(
+        <span class="macro">rotr_32!</span>(rotate_each_word_right11, <span class="number">11</span>);
+        <span class="macro">rotr_32!</span>(rotate_each_word_right12, <span class="number">12</span>);
+        <span class="macro">shuf_lane_bytes!</span>(
             rotate_each_word_right16,
             <span class="number">0x0d0c_0f0e_0908_0b0a</span>,
             <span class="number">0x0504_0706_0100_0302
         </span>);
-        <a class="macro" href="#1477-1489">rotr_32!</a>(rotate_each_word_right20, <span class="number">20</span>);
-        <a class="macro" href="#1467-1476">shuf_lane_bytes!</a>(
+        <span class="macro">rotr_32!</span>(rotate_each_word_right20, <span class="number">20</span>);
+        <span class="macro">shuf_lane_bytes!</span>(
             rotate_each_word_right24,
             <span class="number">0x0e0d_0c0f_0a09_080b</span>,
             <span class="number">0x0605_0407_0201_0003
         </span>);
-        <a class="macro" href="#1477-1489">rotr_32!</a>(rotate_each_word_right25, <span class="number">25</span>);
+        <span class="macro">rotr_32!</span>(rotate_each_word_right25, <span class="number">25</span>);
     }
-    <span class="kw">impl</span>&lt;NI&gt; <a href="../types.rs.html#14-23">BitOps0</a> <span class="kw">for </span>u32x4x2_avx2&lt;NI&gt; <span class="kw">where </span>NI: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html">Copy</a> {}
-    <span class="kw">impl</span>&lt;NI&gt; From&lt;u32x4x2_avx2&lt;NI&gt;&gt; <span class="kw">for </span><a href="mod.rs.html#150">vec256_storage</a> {
+    <span class="kw">impl</span>&lt;NI&gt; BitOps0 <span class="kw">for </span>u32x4x2_avx2&lt;NI&gt; <span class="kw">where </span>NI: Copy {}
+    <span class="kw">impl</span>&lt;NI&gt; From&lt;u32x4x2_avx2&lt;NI&gt;&gt; <span class="kw">for </span>vec256_storage {
         <span class="attr">#[inline(always)]
         </span><span class="kw">fn </span>from(x: u32x4x2_avx2&lt;NI&gt;) -&gt; <span class="self">Self </span>{
-            <span class="self">Self </span>{ avx: <a href="#1515">x</a>.x }
+            <span class="self">Self </span>{ avx: x.x }
         }
     }
 
@@ -3233,10 +3233,10 @@
             }
         };
     }
-    <a class="macro" href="#1520-1532">impl_assign!</a>(u32x4x2_avx2, BitXorAssign, bitxor_assign, bitxor);
-    <a class="macro" href="#1520-1532">impl_assign!</a>(u32x4x2_avx2, BitOrAssign, bitor_assign, bitor);
-    <a class="macro" href="#1520-1532">impl_assign!</a>(u32x4x2_avx2, BitAndAssign, bitand_assign, bitand);
-    <a class="macro" href="#1520-1532">impl_assign!</a>(u32x4x2_avx2, AddAssign, add_assign, add);
+    <span class="macro">impl_assign!</span>(u32x4x2_avx2, BitXorAssign, bitxor_assign, bitxor);
+    <span class="macro">impl_assign!</span>(u32x4x2_avx2, BitOrAssign, bitor_assign, bitor);
+    <span class="macro">impl_assign!</span>(u32x4x2_avx2, BitAndAssign, bitand_assign, bitand);
+    <span class="macro">impl_assign!</span>(u32x4x2_avx2, AddAssign, add_assign, add);
 
     <span class="macro">macro_rules! </span>impl_bitop {
         (<span class="macro-nonterminal">$vec</span>:ident, <span class="macro-nonterminal">$Op</span>:ident, <span class="macro-nonterminal">$op_fn</span>:ident, <span class="macro-nonterminal">$impl_fn</span>:ident) =&gt; {
@@ -3249,101 +3249,101 @@
             }
         };
     }
-    <a class="macro" href="#1538-1548">impl_bitop!</a>(u32x4x2_avx2, BitXor, bitxor, _mm256_xor_si256);
-    <a class="macro" href="#1538-1548">impl_bitop!</a>(u32x4x2_avx2, BitOr, bitor, _mm256_or_si256);
-    <a class="macro" href="#1538-1548">impl_bitop!</a>(u32x4x2_avx2, BitAnd, bitand, _mm256_and_si256);
-    <a class="macro" href="#1538-1548">impl_bitop!</a>(u32x4x2_avx2, AndNot, andnot, _mm256_andnot_si256);
-    <a class="macro" href="#1538-1548">impl_bitop!</a>(u32x4x2_avx2, Add, add, _mm256_add_epi32);
+    <span class="macro">impl_bitop!</span>(u32x4x2_avx2, BitXor, bitxor, _mm256_xor_si256);
+    <span class="macro">impl_bitop!</span>(u32x4x2_avx2, BitOr, bitor, _mm256_or_si256);
+    <span class="macro">impl_bitop!</span>(u32x4x2_avx2, BitAnd, bitand, _mm256_and_si256);
+    <span class="macro">impl_bitop!</span>(u32x4x2_avx2, AndNot, andnot, _mm256_andnot_si256);
+    <span class="macro">impl_bitop!</span>(u32x4x2_avx2, Add, add, _mm256_add_epi32);
 
-    <span class="kw">impl</span>&lt;NI&gt; <a href="https://doc.rust-lang.org/nightly/core/ops/bit/trait.Not.html">Not</a> <span class="kw">for </span>u32x4x2_avx2&lt;NI&gt; {
+    <span class="kw">impl</span>&lt;NI&gt; Not <span class="kw">for </span>u32x4x2_avx2&lt;NI&gt; {
         <span class="kw">type </span>Output = <span class="self">Self</span>;
         <span class="attr">#[inline(always)]
         </span><span class="kw">fn </span>not(<span class="self">self</span>) -&gt; <span class="self">Self</span>::Output {
             <span class="kw">unsafe </span>{
                 <span class="kw">let </span>f = _mm256_set1_epi8(-<span class="number">0x7f</span>);
-                <span class="self">Self</span>::new(<a href="#1560">f</a>) ^ <span class="self"><a href="#1558">self</a>
+                <span class="self">Self</span>::new(f) ^ <span class="self">self
             </span>}
         }
     }
 
-    <span class="kw">impl</span>&lt;NI&gt; <a href="../types.rs.html#8">BSwap</a> <span class="kw">for </span>u32x4x2_avx2&lt;NI&gt; {
-        <a class="macro" href="#1467-1476">shuf_lane_bytes!</a>(bswap, <span class="number">0x0c0d_0e0f_0809_0a0b</span>, <span class="number">0x0405_0607_0001_0203</span>);
+    <span class="kw">impl</span>&lt;NI&gt; BSwap <span class="kw">for </span>u32x4x2_avx2&lt;NI&gt; {
+        <span class="macro">shuf_lane_bytes!</span>(bswap, <span class="number">0x0c0d_0e0f_0809_0a0b</span>, <span class="number">0x0405_0607_0001_0203</span>);
     }
 
-    <span class="kw">impl</span>&lt;NI&gt; From&lt;x2&lt;u128x1_sse2&lt;<a href="mod.rs.html#9">YesS3</a>, <a href="mod.rs.html#14">YesS4</a>, NI&gt;, <a href="#863">G0</a>&gt;&gt; <span class="kw">for </span>u32x4x2_avx2&lt;NI&gt;
+    <span class="kw">impl</span>&lt;NI&gt; From&lt;x2&lt;u128x1_sse2&lt;YesS3, YesS4, NI&gt;, G0&gt;&gt; <span class="kw">for </span>u32x4x2_avx2&lt;NI&gt;
     <span class="kw">where
-        </span>NI: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html">Copy</a>,
+        </span>NI: Copy,
     {
         <span class="attr">#[inline(always)]
-        </span><span class="kw">fn </span>from(x: x2&lt;u128x1_sse2&lt;<a href="mod.rs.html#9">YesS3</a>, <a href="mod.rs.html#14">YesS4</a>, NI&gt;, <a href="#863">G0</a>&gt;) -&gt; <span class="self">Self </span>{
-            <span class="self">Self</span>::new(<span class="kw">unsafe </span>{ _mm256_setr_m128i(<a href="#1575">x</a>.<span class="number">0</span>[<span class="number">0</span>].x, <a href="#1575">x</a>.<span class="number">0</span>[<span class="number">1</span>].x) })
+        </span><span class="kw">fn </span>from(x: x2&lt;u128x1_sse2&lt;YesS3, YesS4, NI&gt;, G0&gt;) -&gt; <span class="self">Self </span>{
+            <span class="self">Self</span>::new(<span class="kw">unsafe </span>{ _mm256_setr_m128i(x.<span class="number">0</span>[<span class="number">0</span>].x, x.<span class="number">0</span>[<span class="number">1</span>].x) })
         }
     }
 
-    <span class="kw">impl</span>&lt;NI&gt; <a href="../types.rs.html#95">LaneWords4</a> <span class="kw">for </span>u32x4x2_avx2&lt;NI&gt; {
+    <span class="kw">impl</span>&lt;NI&gt; LaneWords4 <span class="kw">for </span>u32x4x2_avx2&lt;NI&gt; {
         <span class="attr">#[inline(always)]
         </span><span class="kw">fn </span>shuffle_lane_words1230(<span class="self">self</span>) -&gt; <span class="self">Self </span>{
-            <span class="self">Self</span>::new(<span class="kw">unsafe </span>{ _mm256_shuffle_epi32(<a class="self" href="#1582">self</a>.x, <span class="number">0b1001_0011</span>) })
+            <span class="self">Self</span>::new(<span class="kw">unsafe </span>{ _mm256_shuffle_epi32(<span class="self">self</span>.x, <span class="number">0b1001_0011</span>) })
         }
         <span class="attr">#[inline(always)]
         </span><span class="kw">fn </span>shuffle_lane_words2301(<span class="self">self</span>) -&gt; <span class="self">Self </span>{
-            <span class="self">Self</span>::new(<span class="kw">unsafe </span>{ _mm256_shuffle_epi32(<a class="self" href="#1586">self</a>.x, <span class="number">0b0100_1110</span>) })
+            <span class="self">Self</span>::new(<span class="kw">unsafe </span>{ _mm256_shuffle_epi32(<span class="self">self</span>.x, <span class="number">0b0100_1110</span>) })
         }
         <span class="attr">#[inline(always)]
         </span><span class="kw">fn </span>shuffle_lane_words3012(<span class="self">self</span>) -&gt; <span class="self">Self </span>{
-            <span class="self">Self</span>::new(<span class="kw">unsafe </span>{ _mm256_shuffle_epi32(<a class="self" href="#1590">self</a>.x, <span class="number">0b0011_1001</span>) })
+            <span class="self">Self</span>::new(<span class="kw">unsafe </span>{ _mm256_shuffle_epi32(<span class="self">self</span>.x, <span class="number">0b0011_1001</span>) })
         }
     }
 
     <span class="comment">///////////////////////////////////////////////////////////////////////////////////////////
 
-    </span><span class="kw">pub type </span>u32x4x4_avx2&lt;NI&gt; = x2&lt;u32x4x2_avx2&lt;NI&gt;, <a href="#863">G0</a>&gt;;
-    <span class="kw">impl</span>&lt;NI: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html">Copy</a>&gt; u32x4x4&lt;Avx2Machine&lt;NI&gt;&gt; <span class="kw">for </span>u32x4x4_avx2&lt;NI&gt; {}
+    </span><span class="kw">pub type </span>u32x4x4_avx2&lt;NI&gt; = x2&lt;u32x4x2_avx2&lt;NI&gt;, G0&gt;;
+    <span class="kw">impl</span>&lt;NI: Copy&gt; u32x4x4&lt;Avx2Machine&lt;NI&gt;&gt; <span class="kw">for </span>u32x4x4_avx2&lt;NI&gt; {}
 
-    <span class="kw">impl</span>&lt;NI: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html">Copy</a>&gt; Store&lt;<a href="mod.rs.html#189">vec512_storage</a>&gt; <span class="kw">for </span>u32x4x4_avx2&lt;NI&gt; {
+    <span class="kw">impl</span>&lt;NI: Copy&gt; Store&lt;vec512_storage&gt; <span class="kw">for </span>u32x4x4_avx2&lt;NI&gt; {
         <span class="attr">#[inline(always)]
-        </span><span class="kw">unsafe fn </span>unpack(p: <a href="mod.rs.html#189">vec512_storage</a>) -&gt; <span class="self">Self </span>{
+        </span><span class="kw">unsafe fn </span>unpack(p: vec512_storage) -&gt; <span class="self">Self </span>{
             <span class="self">Self</span>::new([
-                u32x4x2_avx2::unpack(<a href="#1602">p</a>.avx[<span class="number">0</span>]),
-                u32x4x2_avx2::unpack(<a href="#1602">p</a>.avx[<span class="number">1</span>]),
+                u32x4x2_avx2::unpack(p.avx[<span class="number">0</span>]),
+                u32x4x2_avx2::unpack(p.avx[<span class="number">1</span>]),
             ])
         }
     }
-    <span class="kw">impl</span>&lt;NI: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html">Copy</a>&gt; MultiLane&lt;[u32x4_sse2&lt;<a href="mod.rs.html#9">YesS3</a>, <a href="mod.rs.html#14">YesS4</a>, NI&gt;; <span class="number">4</span>]&gt; <span class="kw">for </span>u32x4x4_avx2&lt;NI&gt; {
+    <span class="kw">impl</span>&lt;NI: Copy&gt; MultiLane&lt;[u32x4_sse2&lt;YesS3, YesS4, NI&gt;; <span class="number">4</span>]&gt; <span class="kw">for </span>u32x4x4_avx2&lt;NI&gt; {
         <span class="attr">#[inline(always)]
-        </span><span class="kw">fn </span>to_lanes(<span class="self">self</span>) -&gt; [u32x4_sse2&lt;<a href="mod.rs.html#9">YesS3</a>, <a href="mod.rs.html#14">YesS4</a>, NI&gt;; <span class="number">4</span>] {
-            <span class="kw">let </span>[a, b] = <a class="self" href="#1611">self</a>.<span class="number">0</span>[<span class="number">0</span>].<a href="../types.rs.html#211">to_lanes</a>();
-            <span class="kw">let </span>[c, d] = <a class="self" href="#1611">self</a>.<span class="number">0</span>[<span class="number">1</span>].<a href="../types.rs.html#211">to_lanes</a>();
-            [<a href="#1612">a</a>, <a href="#1612">b</a>, <a href="#1613">c</a>, <a href="#1613">d</a>]
+        </span><span class="kw">fn </span>to_lanes(<span class="self">self</span>) -&gt; [u32x4_sse2&lt;YesS3, YesS4, NI&gt;; <span class="number">4</span>] {
+            <span class="kw">let </span>[a, b] = <span class="self">self</span>.<span class="number">0</span>[<span class="number">0</span>].to_lanes();
+            <span class="kw">let </span>[c, d] = <span class="self">self</span>.<span class="number">0</span>[<span class="number">1</span>].to_lanes();
+            [a, b, c, d]
         }
         <span class="attr">#[inline(always)]
-        </span><span class="kw">fn </span>from_lanes(x: [u32x4_sse2&lt;<a href="mod.rs.html#9">YesS3</a>, <a href="mod.rs.html#14">YesS4</a>, NI&gt;; <span class="number">4</span>]) -&gt; <span class="self">Self </span>{
-            <span class="kw">let </span>ab = u32x4x2_avx2::from_lanes([<a href="#1617">x</a>[<span class="number">0</span>], <a href="#1617">x</a>[<span class="number">1</span>]]);
-            <span class="kw">let </span>cd = u32x4x2_avx2::from_lanes([<a href="#1617">x</a>[<span class="number">2</span>], <a href="#1617">x</a>[<span class="number">3</span>]]);
-            <span class="self">Self</span>::new([<a href="#1618">ab</a>, <a href="#1619">cd</a>])
+        </span><span class="kw">fn </span>from_lanes(x: [u32x4_sse2&lt;YesS3, YesS4, NI&gt;; <span class="number">4</span>]) -&gt; <span class="self">Self </span>{
+            <span class="kw">let </span>ab = u32x4x2_avx2::from_lanes([x[<span class="number">0</span>], x[<span class="number">1</span>]]);
+            <span class="kw">let </span>cd = u32x4x2_avx2::from_lanes([x[<span class="number">2</span>], x[<span class="number">3</span>]]);
+            <span class="self">Self</span>::new([ab, cd])
         }
     }
-    <span class="kw">impl</span>&lt;NI: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html">Copy</a>&gt; Vec4&lt;u32x4_sse2&lt;<a href="mod.rs.html#9">YesS3</a>, <a href="mod.rs.html#14">YesS4</a>, NI&gt;&gt; <span class="kw">for </span>u32x4x4_avx2&lt;NI&gt; {
+    <span class="kw">impl</span>&lt;NI: Copy&gt; Vec4&lt;u32x4_sse2&lt;YesS3, YesS4, NI&gt;&gt; <span class="kw">for </span>u32x4x4_avx2&lt;NI&gt; {
         <span class="attr">#[inline(always)]
-        </span><span class="kw">fn </span>extract(<span class="self">self</span>, i: <a href="https://doc.rust-lang.org/nightly/core/primitive.u32.html">u32</a>) -&gt; u32x4_sse2&lt;<a href="mod.rs.html#9">YesS3</a>, <a href="mod.rs.html#14">YesS4</a>, NI&gt; {
-            <span class="kw">match </span><a href="#1625">i</a> {
-                <span class="number">0 </span>=&gt; <a class="self" href="#1625">self</a>.<span class="number">0</span>[<span class="number">0</span>].<a href="../types.rs.html#65">extract</a>(<span class="number">0</span>),
-                <span class="number">1 </span>=&gt; <a class="self" href="#1625">self</a>.<span class="number">0</span>[<span class="number">0</span>].<a href="../types.rs.html#65">extract</a>(<span class="number">1</span>),
-                <span class="number">2 </span>=&gt; <a class="self" href="#1625">self</a>.<span class="number">0</span>[<span class="number">1</span>].<a href="../types.rs.html#65">extract</a>(<span class="number">0</span>),
-                <span class="number">3 </span>=&gt; <a class="self" href="#1625">self</a>.<span class="number">0</span>[<span class="number">1</span>].<a href="../types.rs.html#65">extract</a>(<span class="number">1</span>),
-                <span class="kw">_ </span>=&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.panic.html">panic!</a>(),
+        </span><span class="kw">fn </span>extract(<span class="self">self</span>, i: u32) -&gt; u32x4_sse2&lt;YesS3, YesS4, NI&gt; {
+            <span class="kw">match </span>i {
+                <span class="number">0 </span>=&gt; <span class="self">self</span>.<span class="number">0</span>[<span class="number">0</span>].extract(<span class="number">0</span>),
+                <span class="number">1 </span>=&gt; <span class="self">self</span>.<span class="number">0</span>[<span class="number">0</span>].extract(<span class="number">1</span>),
+                <span class="number">2 </span>=&gt; <span class="self">self</span>.<span class="number">0</span>[<span class="number">1</span>].extract(<span class="number">0</span>),
+                <span class="number">3 </span>=&gt; <span class="self">self</span>.<span class="number">0</span>[<span class="number">1</span>].extract(<span class="number">1</span>),
+                <span class="kw">_ </span>=&gt; <span class="macro">panic!</span>(),
             }
         }
         <span class="attr">#[inline(always)]
-        </span><span class="kw">fn </span>insert(<span class="self">self</span>, w: u32x4_sse2&lt;<a href="mod.rs.html#9">YesS3</a>, <a href="mod.rs.html#14">YesS4</a>, NI&gt;, i: <a href="https://doc.rust-lang.org/nightly/core/primitive.u32.html">u32</a>) -&gt; <span class="self">Self </span>{
-            <span class="self">Self</span>::new(<span class="kw">match </span><a href="#1635">i</a> {
-                <span class="number">0 </span>| <span class="number">1 </span>=&gt; [<a class="self" href="#1635">self</a>.<span class="number">0</span>[<span class="number">0</span>].<a href="../types.rs.html#66">insert</a>(<a href="#1635">w</a>, <a href="#1635">i</a>), <a class="self" href="#1635">self</a>.<span class="number">0</span>[<span class="number">1</span>]],
-                <span class="number">2 </span>| <span class="number">3 </span>=&gt; [<a class="self" href="#1635">self</a>.<span class="number">0</span>[<span class="number">0</span>], <a class="self" href="#1635">self</a>.<span class="number">0</span>[<span class="number">1</span>].<a href="../types.rs.html#66">insert</a>(<a href="#1635">w</a>, <a href="#1635">i</a> - <span class="number">2</span>)],
-                <span class="kw">_ </span>=&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.panic.html">panic!</a>(),
+        </span><span class="kw">fn </span>insert(<span class="self">self</span>, w: u32x4_sse2&lt;YesS3, YesS4, NI&gt;, i: u32) -&gt; <span class="self">Self </span>{
+            <span class="self">Self</span>::new(<span class="kw">match </span>i {
+                <span class="number">0 </span>| <span class="number">1 </span>=&gt; [<span class="self">self</span>.<span class="number">0</span>[<span class="number">0</span>].insert(w, i), <span class="self">self</span>.<span class="number">0</span>[<span class="number">1</span>]],
+                <span class="number">2 </span>| <span class="number">3 </span>=&gt; [<span class="self">self</span>.<span class="number">0</span>[<span class="number">0</span>], <span class="self">self</span>.<span class="number">0</span>[<span class="number">1</span>].insert(w, i - <span class="number">2</span>)],
+                <span class="kw">_ </span>=&gt; <span class="macro">panic!</span>(),
             })
         }
     }
-    <span class="kw">impl</span>&lt;NI: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html">Copy</a>&gt; Vec4Ext&lt;u32x4_sse2&lt;<a href="mod.rs.html#9">YesS3</a>, <a href="mod.rs.html#14">YesS4</a>, NI&gt;&gt; <span class="kw">for </span>u32x4x4_avx2&lt;NI&gt; {
+    <span class="kw">impl</span>&lt;NI: Copy&gt; Vec4Ext&lt;u32x4_sse2&lt;YesS3, YesS4, NI&gt;&gt; <span class="kw">for </span>u32x4x4_avx2&lt;NI&gt; {
         <span class="attr">#[inline(always)]
         </span><span class="kw">fn </span>transpose4(a: <span class="self">Self</span>, b: <span class="self">Self</span>, c: <span class="self">Self</span>, d: <span class="self">Self</span>) -&gt; (<span class="self">Self</span>, <span class="self">Self</span>, <span class="self">Self</span>, <span class="self">Self</span>) {
             <span class="comment">/*
@@ -3358,51 +3358,51 @@
              * a11:b11 c11:d11
              */
             </span><span class="kw">unsafe </span>{
-                <span class="kw">let </span>ab00 = u32x4x2_avx2::new(_mm256_permute2x128_si256(<a href="#1645">a</a>.<span class="number">0</span>[<span class="number">0</span>].x, <a href="#1645">b</a>.<span class="number">0</span>[<span class="number">0</span>].x, <span class="number">0x20</span>));
-                <span class="kw">let </span>ab01 = u32x4x2_avx2::new(_mm256_permute2x128_si256(<a href="#1645">a</a>.<span class="number">0</span>[<span class="number">0</span>].x, <a href="#1645">b</a>.<span class="number">0</span>[<span class="number">0</span>].x, <span class="number">0x31</span>));
-                <span class="kw">let </span>ab10 = u32x4x2_avx2::new(_mm256_permute2x128_si256(<a href="#1645">a</a>.<span class="number">0</span>[<span class="number">1</span>].x, <a href="#1645">b</a>.<span class="number">0</span>[<span class="number">1</span>].x, <span class="number">0x20</span>));
-                <span class="kw">let </span>ab11 = u32x4x2_avx2::new(_mm256_permute2x128_si256(<a href="#1645">a</a>.<span class="number">0</span>[<span class="number">1</span>].x, <a href="#1645">b</a>.<span class="number">0</span>[<span class="number">1</span>].x, <span class="number">0x31</span>));
-                <span class="kw">let </span>cd00 = u32x4x2_avx2::new(_mm256_permute2x128_si256(<a href="#1645">c</a>.<span class="number">0</span>[<span class="number">0</span>].x, <a href="#1645">d</a>.<span class="number">0</span>[<span class="number">0</span>].x, <span class="number">0x20</span>));
-                <span class="kw">let </span>cd01 = u32x4x2_avx2::new(_mm256_permute2x128_si256(<a href="#1645">c</a>.<span class="number">0</span>[<span class="number">0</span>].x, <a href="#1645">d</a>.<span class="number">0</span>[<span class="number">0</span>].x, <span class="number">0x31</span>));
-                <span class="kw">let </span>cd10 = u32x4x2_avx2::new(_mm256_permute2x128_si256(<a href="#1645">c</a>.<span class="number">0</span>[<span class="number">1</span>].x, <a href="#1645">d</a>.<span class="number">0</span>[<span class="number">1</span>].x, <span class="number">0x20</span>));
-                <span class="kw">let </span>cd11 = u32x4x2_avx2::new(_mm256_permute2x128_si256(<a href="#1645">c</a>.<span class="number">0</span>[<span class="number">1</span>].x, <a href="#1645">d</a>.<span class="number">0</span>[<span class="number">1</span>].x, <span class="number">0x31</span>));
+                <span class="kw">let </span>ab00 = u32x4x2_avx2::new(_mm256_permute2x128_si256(a.<span class="number">0</span>[<span class="number">0</span>].x, b.<span class="number">0</span>[<span class="number">0</span>].x, <span class="number">0x20</span>));
+                <span class="kw">let </span>ab01 = u32x4x2_avx2::new(_mm256_permute2x128_si256(a.<span class="number">0</span>[<span class="number">0</span>].x, b.<span class="number">0</span>[<span class="number">0</span>].x, <span class="number">0x31</span>));
+                <span class="kw">let </span>ab10 = u32x4x2_avx2::new(_mm256_permute2x128_si256(a.<span class="number">0</span>[<span class="number">1</span>].x, b.<span class="number">0</span>[<span class="number">1</span>].x, <span class="number">0x20</span>));
+                <span class="kw">let </span>ab11 = u32x4x2_avx2::new(_mm256_permute2x128_si256(a.<span class="number">0</span>[<span class="number">1</span>].x, b.<span class="number">0</span>[<span class="number">1</span>].x, <span class="number">0x31</span>));
+                <span class="kw">let </span>cd00 = u32x4x2_avx2::new(_mm256_permute2x128_si256(c.<span class="number">0</span>[<span class="number">0</span>].x, d.<span class="number">0</span>[<span class="number">0</span>].x, <span class="number">0x20</span>));
+                <span class="kw">let </span>cd01 = u32x4x2_avx2::new(_mm256_permute2x128_si256(c.<span class="number">0</span>[<span class="number">0</span>].x, d.<span class="number">0</span>[<span class="number">0</span>].x, <span class="number">0x31</span>));
+                <span class="kw">let </span>cd10 = u32x4x2_avx2::new(_mm256_permute2x128_si256(c.<span class="number">0</span>[<span class="number">1</span>].x, d.<span class="number">0</span>[<span class="number">1</span>].x, <span class="number">0x20</span>));
+                <span class="kw">let </span>cd11 = u32x4x2_avx2::new(_mm256_permute2x128_si256(c.<span class="number">0</span>[<span class="number">1</span>].x, d.<span class="number">0</span>[<span class="number">1</span>].x, <span class="number">0x31</span>));
                 (
-                    <span class="self">Self</span>::new([<a href="#1658">ab00</a>, <a href="#1662">cd00</a>]),
-                    <span class="self">Self</span>::new([<a href="#1659">ab01</a>, <a href="#1663">cd01</a>]),
-                    <span class="self">Self</span>::new([<a href="#1660">ab10</a>, <a href="#1664">cd10</a>]),
-                    <span class="self">Self</span>::new([<a href="#1661">ab11</a>, <a href="#1665">cd11</a>]),
+                    <span class="self">Self</span>::new([ab00, cd00]),
+                    <span class="self">Self</span>::new([ab01, cd01]),
+                    <span class="self">Self</span>::new([ab10, cd10]),
+                    <span class="self">Self</span>::new([ab11, cd11]),
                 )
             }
         }
     }
-    <span class="kw">impl</span>&lt;NI: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html">Copy</a>&gt; Vector&lt;[<a href="https://doc.rust-lang.org/nightly/core/primitive.u32.html">u32</a>; <span class="number">16</span>]&gt; <span class="kw">for </span>u32x4x4_avx2&lt;NI&gt; {
+    <span class="kw">impl</span>&lt;NI: Copy&gt; Vector&lt;[u32; <span class="number">16</span>]&gt; <span class="kw">for </span>u32x4x4_avx2&lt;NI&gt; {
         <span class="attr">#[inline(always)]
-        </span><span class="kw">fn </span>to_scalars(<span class="self">self</span>) -&gt; [<a href="https://doc.rust-lang.org/nightly/core/primitive.u32.html">u32</a>; <span class="number">16</span>] {
-            <span class="kw">unsafe </span>{ core::mem::transmute(<a class="self" href="#1677">self</a>) }
+        </span><span class="kw">fn </span>to_scalars(<span class="self">self</span>) -&gt; [u32; <span class="number">16</span>] {
+            <span class="kw">unsafe </span>{ core::mem::transmute(<span class="self">self</span>) }
         }
     }
-    <span class="kw">impl</span>&lt;NI: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html">Copy</a>&gt; From&lt;u32x4x4_avx2&lt;NI&gt;&gt; <span class="kw">for </span><a href="mod.rs.html#189">vec512_storage</a> {
+    <span class="kw">impl</span>&lt;NI: Copy&gt; From&lt;u32x4x4_avx2&lt;NI&gt;&gt; <span class="kw">for </span>vec512_storage {
         <span class="attr">#[inline(always)]
         </span><span class="kw">fn </span>from(x: u32x4x4_avx2&lt;NI&gt;) -&gt; <span class="self">Self </span>{
             <span class="self">Self </span>{
                 avx: [
-                    <a href="mod.rs.html#150">vec256_storage</a> { avx: <a href="#1683">x</a>.<span class="number">0</span>[<span class="number">0</span>].x },
-                    <a href="mod.rs.html#150">vec256_storage</a> { avx: <a href="#1683">x</a>.<span class="number">0</span>[<span class="number">1</span>].x },
+                    vec256_storage { avx: x.<span class="number">0</span>[<span class="number">0</span>].x },
+                    vec256_storage { avx: x.<span class="number">0</span>[<span class="number">1</span>].x },
                 ],
             }
         }
     }
-    <span class="kw">impl</span>&lt;NI: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html">Copy</a>&gt; From&lt;x4&lt;u128x1_sse2&lt;<a href="mod.rs.html#9">YesS3</a>, <a href="mod.rs.html#14">YesS4</a>, NI&gt;&gt;&gt; <span class="kw">for </span>u32x4x4_avx2&lt;NI&gt; {
+    <span class="kw">impl</span>&lt;NI: Copy&gt; From&lt;x4&lt;u128x1_sse2&lt;YesS3, YesS4, NI&gt;&gt;&gt; <span class="kw">for </span>u32x4x4_avx2&lt;NI&gt; {
         <span class="attr">#[inline(always)]
-        </span><span class="kw">fn </span>from(x: x4&lt;u128x1_sse2&lt;<a href="mod.rs.html#9">YesS3</a>, <a href="mod.rs.html#14">YesS4</a>, NI&gt;&gt;) -&gt; <span class="self">Self </span>{
+        </span><span class="kw">fn </span>from(x: x4&lt;u128x1_sse2&lt;YesS3, YesS4, NI&gt;&gt;) -&gt; <span class="self">Self </span>{
             <span class="self">Self</span>::new(<span class="kw">unsafe </span>{
                 [
-                    u32x4x2_avx2::new(_mm256_setr_m128i(<a href="#1694">x</a>.<span class="number">0</span>[<span class="number">0</span>].x, <a href="#1694">x</a>.<span class="number">0</span>[<span class="number">1</span>].x)),
-                    u32x4x2_avx2::new(_mm256_setr_m128i(<a href="#1694">x</a>.<span class="number">0</span>[<span class="number">2</span>].x, <a href="#1694">x</a>.<span class="number">0</span>[<span class="number">3</span>].x)),
+                    u32x4x2_avx2::new(_mm256_setr_m128i(x.<span class="number">0</span>[<span class="number">0</span>].x, x.<span class="number">0</span>[<span class="number">1</span>].x)),
+                    u32x4x2_avx2::new(_mm256_setr_m128i(x.<span class="number">0</span>[<span class="number">2</span>].x, x.<span class="number">0</span>[<span class="number">3</span>].x)),
                 ]
             })
         }
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="ppv_lite86" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="ppv_lite86" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/openssl-0.10.42/src/envelope.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>envelope.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../openssl/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/openssl-0.10.45/src/envelope.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>envelope.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../openssl/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -202,28 +202,28 @@
 //! enc_len += seal.finalize(&amp;mut encrypted[enc_len..]).unwrap();
 //! encrypted.truncate(enc_len);
 //! ```
-</span><span class="kw">use </span><a href="cipher.rs.html#392"><span class="kw">crate</span>::cipher::CipherRef</a>;
-<span class="kw">use </span><a href="cipher_ctx.rs.html#73-81"><span class="kw">crate</span>::cipher_ctx::CipherCtx</a>;
-<span class="kw">use </span><a href="error.rs.html#39"><span class="kw">crate</span>::error::ErrorStack</a>;
-<span class="kw">use </span><span class="kw">crate</span>::pkey::{<a href="pkey.rs.html#128">HasPrivate</a>, <a href="pkey.rs.html#121">HasPublic</a>, <a href="pkey.rs.html#132-140">PKey</a>, <a href="pkey.rs.html#132-140">PKeyRef</a>};
-<span class="kw">use </span><a href="symm.rs.html#73"><span class="kw">crate</span>::symm::Cipher</a>;
-<span class="kw">use </span><a href="../../foreign_types_shared/trait.ForeignTypeRef.html">foreign_types::ForeignTypeRef</a>;
+</span><span class="kw">use </span><span class="kw">crate</span>::cipher::CipherRef;
+<span class="kw">use </span><span class="kw">crate</span>::cipher_ctx::CipherCtx;
+<span class="kw">use </span><span class="kw">crate</span>::error::ErrorStack;
+<span class="kw">use </span><span class="kw">crate</span>::pkey::{HasPrivate, HasPublic, PKey, PKeyRef};
+<span class="kw">use </span><span class="kw">crate</span>::symm::Cipher;
+<span class="kw">use </span>foreign_types::ForeignTypeRef;
 
 <span class="doccomment">/// Represents an EVP_Seal context.
 </span><span class="kw">pub struct </span>Seal {
-    ctx: <a href="cipher_ctx.rs.html#73-81">CipherCtx</a>,
-    iv: <span class="prelude-ty">Option</span>&lt;Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;&gt;,
-    enc_keys: Vec&lt;Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;&gt;,
+    ctx: CipherCtx,
+    iv: <span class="prelude-ty">Option</span>&lt;Vec&lt;u8&gt;&gt;,
+    enc_keys: Vec&lt;Vec&lt;u8&gt;&gt;,
 }
 
-<span class="kw">impl </span><a href="#32">Seal</a> {
+<span class="kw">impl </span>Seal {
     <span class="doccomment">/// Creates a new `Seal`.
-    </span><span class="kw">pub fn </span>new&lt;T&gt;(cipher: <a href="symm.rs.html#73">Cipher</a>, pub_keys: <span class="kw-2">&amp;</span>[PKey&lt;T&gt;]) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#32">Seal</a>, <a href="error.rs.html#39">ErrorStack</a>&gt;
+    </span><span class="kw">pub fn </span>new&lt;T&gt;(cipher: Cipher, pub_keys: <span class="kw-2">&amp;</span>[PKey&lt;T&gt;]) -&gt; <span class="prelude-ty">Result</span>&lt;Seal, ErrorStack&gt;
     <span class="kw">where
-        </span>T: <a href="pkey.rs.html#121">HasPublic</a>,
+        </span>T: HasPublic,
     {
-        <span class="kw">let </span><span class="kw-2">mut </span>iv = <a href="#40">cipher</a>.<a href="symm.rs.html#370">iv_len</a>().map(|len| <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[<span class="number">0</span>; len]);
-        <span class="kw">let </span><span class="kw-2">mut </span>enc_keys = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[<span class="macro">vec!</span>[]; pub_keys.len()];
+        <span class="kw">let </span><span class="kw-2">mut </span>iv = cipher.iv_len().map(|len| <span class="macro">vec!</span>[<span class="number">0</span>; len]);
+        <span class="kw">let </span><span class="kw-2">mut </span>enc_keys = <span class="macro">vec!</span>[<span class="macro">vec!</span>[]; pub_keys.len()];
 
         <span class="kw">let </span><span class="kw-2">mut </span>ctx = CipherCtx::new()<span class="question-mark">?</span>;
         ctx.seal_init(
@@ -233,18 +233,18 @@
             iv.as_deref_mut(),
         )<span class="question-mark">?</span>;
 
-        <span class="prelude-val">Ok</span>(<a href="#32">Seal</a> { <a href="#47">ctx</a>, <a href="#44">iv</a>, <a href="#45">enc_keys</a> })
+        <span class="prelude-val">Ok</span>(Seal { ctx, iv, enc_keys })
     }
 
     <span class="doccomment">/// Returns the initialization vector, if the cipher uses one.
     </span><span class="attr">#[allow(clippy::option_as_ref_deref)]
-    </span><span class="kw">pub fn </span>iv(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt; {
-        <a class="self" href="#60">self</a>.iv.as_ref().map(|v| <span class="kw-2">&amp;**</span><a href="#61">v</a>)
+    </span><span class="kw">pub fn </span>iv(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>[u8]&gt; {
+        <span class="self">self</span>.iv.as_ref().map(|v| <span class="kw-2">&amp;**</span>v)
     }
 
     <span class="doccomment">/// Returns the encrypted keys.
-    </span><span class="kw">pub fn </span>encrypted_keys(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;] {
-        <span class="kw-2">&amp;</span><a class="self" href="#65">self</a>.enc_keys
+    </span><span class="kw">pub fn </span>encrypted_keys(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[Vec&lt;u8&gt;] {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.enc_keys
     }
 
     <span class="doccomment">/// Feeds data from `input` through the cipher, writing encrypted bytes into `output`.
@@ -257,8 +257,8 @@
     /// Panics if `output.len() &lt; input.len() + block_size` where `block_size` is
     /// the block size of the cipher (see `Cipher::block_size`), or if
     /// `output.len() &gt; c_int::max_value()`.
-    </span><span class="kw">pub fn </span>update(<span class="kw-2">&amp;mut </span><span class="self">self</span>, input: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], output: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="error.rs.html#39">ErrorStack</a>&gt; {
-        <a class="self" href="#79">self</a>.ctx.<a href="cipher_ctx.rs.html#506-510">cipher_update</a>(<a href="#79">input</a>, <span class="prelude-val">Some</span>(<a href="#79">output</a>))
+    </span><span class="kw">pub fn </span>update(<span class="kw-2">&amp;mut </span><span class="self">self</span>, input: <span class="kw-2">&amp;</span>[u8], output: <span class="kw-2">&amp;mut </span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;usize, ErrorStack&gt; {
+        <span class="self">self</span>.ctx.cipher_update(input, <span class="prelude-val">Some</span>(output))
     }
 
     <span class="doccomment">/// Finishes the encryption process, writing any remaining data to `output`.
@@ -270,26 +270,26 @@
     /// # Panics
     ///
     /// Panics if `output` is less than the cipher&#39;s block size.
-    </span><span class="kw">pub fn </span>finalize(<span class="kw-2">&amp;mut </span><span class="self">self</span>, output: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="error.rs.html#39">ErrorStack</a>&gt; {
-        <a class="self" href="#92">self</a>.ctx.<a href="cipher_ctx.rs.html#559">cipher_final</a>(<a href="#92">output</a>)
+    </span><span class="kw">pub fn </span>finalize(<span class="kw-2">&amp;mut </span><span class="self">self</span>, output: <span class="kw-2">&amp;mut </span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;usize, ErrorStack&gt; {
+        <span class="self">self</span>.ctx.cipher_final(output)
     }
 }
 
 <span class="doccomment">/// Represents an EVP_Open context.
 </span><span class="kw">pub struct </span>Open {
-    ctx: <a href="cipher_ctx.rs.html#73-81">CipherCtx</a>,
+    ctx: CipherCtx,
 }
 
-<span class="kw">impl </span><a href="#98">Open</a> {
+<span class="kw">impl </span>Open {
     <span class="doccomment">/// Creates a new `Open`.
     </span><span class="kw">pub fn </span>new&lt;T&gt;(
-        cipher: <a href="symm.rs.html#73">Cipher</a>,
+        cipher: Cipher,
         priv_key: <span class="kw-2">&amp;</span>PKeyRef&lt;T&gt;,
-        iv: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;,
-        encrypted_key: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#98">Open</a>, <a href="error.rs.html#39">ErrorStack</a>&gt;
+        iv: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>[u8]&gt;,
+        encrypted_key: <span class="kw-2">&amp;</span>[u8],
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;Open, ErrorStack&gt;
     <span class="kw">where
-        </span>T: <a href="pkey.rs.html#128">HasPrivate</a>,
+        </span>T: HasPrivate,
     {
         <span class="kw">let </span><span class="kw-2">mut </span>ctx = CipherCtx::new()<span class="question-mark">?</span>;
         ctx.open_init(
@@ -299,7 +299,7 @@
             <span class="prelude-val">Some</span>(priv_key),
         )<span class="question-mark">?</span>;
 
-        <span class="prelude-val">Ok</span>(<a href="#98">Open</a> { <a href="#113">ctx</a> })
+        <span class="prelude-val">Ok</span>(Open { ctx })
     }
 
     <span class="doccomment">/// Feeds data from `input` through the cipher, writing decrypted bytes into `output`.
@@ -312,8 +312,8 @@
     /// Panics if `output.len() &lt; input.len() + block_size` where
     /// `block_size` is the block size of the cipher (see `Cipher::block_size`),
     /// or if `output.len() &gt; c_int::max_value()`.
-    </span><span class="kw">pub fn </span>update(<span class="kw-2">&amp;mut </span><span class="self">self</span>, input: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], output: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="error.rs.html#39">ErrorStack</a>&gt; {
-        <a class="self" href="#134">self</a>.ctx.<a href="cipher_ctx.rs.html#506-510">cipher_update</a>(<a href="#134">input</a>, <span class="prelude-val">Some</span>(<a href="#134">output</a>))
+    </span><span class="kw">pub fn </span>update(<span class="kw-2">&amp;mut </span><span class="self">self</span>, input: <span class="kw-2">&amp;</span>[u8], output: <span class="kw-2">&amp;mut </span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;usize, ErrorStack&gt; {
+        <span class="self">self</span>.ctx.cipher_update(input, <span class="prelude-val">Some</span>(output))
     }
 
     <span class="doccomment">/// Finishes the decryption process, writing any remaining data to `output`.
@@ -325,8 +325,8 @@
     /// # Panics
     ///
     /// Panics if `output` is less than the cipher&#39;s block size.
-    </span><span class="kw">pub fn </span>finalize(<span class="kw-2">&amp;mut </span><span class="self">self</span>, output: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="error.rs.html#39">ErrorStack</a>&gt; {
-        <a class="self" href="#147">self</a>.ctx.<a href="cipher_ctx.rs.html#559">cipher_final</a>(<a href="#147">output</a>)
+    </span><span class="kw">pub fn </span>finalize(<span class="kw-2">&amp;mut </span><span class="self">self</span>, output: <span class="kw-2">&amp;mut </span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;usize, ErrorStack&gt; {
+        <span class="self">self</span>.ctx.cipher_final(output)
     }
 }
 
@@ -361,4 +361,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="openssl" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="openssl" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/aho-corasick-0.7.19/src/state_id.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>state_id.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../aho_corasick/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/aho-corasick-0.7.20/src/state_id.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>state_id.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../aho_corasick/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -190,10 +190,10 @@
 <a href="#190" id="190">190</a>
 <a href="#191" id="191">191</a>
 <a href="#192" id="192">192</a>
-</pre><pre class="rust"><code><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/fmt/macros/derive.Debug.html">std::fmt::Debug</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/hash/macros/derive.Hash.html">std::hash::Hash</a>;
+</pre><pre class="rust"><code><span class="kw">use </span>std::fmt::Debug;
+<span class="kw">use </span>std::hash::Hash;
 
-<span class="kw">use </span><span class="kw">crate</span>::error::{<a href="error.rs.html#10">Error</a>, <span class="prelude-ty">Result</span>};
+<span class="kw">use </span><span class="kw">crate</span>::error::{Error, <span class="prelude-ty">Result</span>};
 
 <span class="comment">// NOTE: Most of this code was copied from regex-automata, but without the
 // (de)serialization specific stuff.
@@ -201,16 +201,16 @@
 </span><span class="doccomment">/// Check that the premultiplication of the given state identifier can
 /// fit into the representation indicated by `S`. If it cannot, or if it
 /// overflows `usize` itself, then an error is returned.
-</span><span class="kw">pub fn </span>premultiply_overflow_error&lt;S: <a href="#72-81">StateID</a>&gt;(
+</span><span class="kw">pub fn </span>premultiply_overflow_error&lt;S: StateID&gt;(
     last_state: S,
-    alphabet_len: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+    alphabet_len: usize,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
-    <span class="kw">let </span>requested = <span class="kw">match </span><a href="#13">last_state</a>.<a href="#98">to_usize</a>().checked_mul(<a href="#14">alphabet_len</a>) {
-        <span class="prelude-val">Some</span>(requested) =&gt; <a href="#17">requested</a>,
+    <span class="kw">let </span>requested = <span class="kw">match </span>last_state.to_usize().checked_mul(alphabet_len) {
+        <span class="prelude-val">Some</span>(requested) =&gt; requested,
         <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(Error::premultiply_overflow(<span class="number">0</span>, <span class="number">0</span>)),
     };
     <span class="kw">if </span>requested &gt; S::max_id() {
-        <span class="kw">return </span><span class="prelude-val">Err</span>(Error::premultiply_overflow(S::max_id(), <a href="#16">requested</a>));
+        <span class="kw">return </span><span class="prelude-val">Err</span>(Error::premultiply_overflow(S::max_id(), requested));
     }
     <span class="prelude-val">Ok</span>(())
 }
@@ -218,23 +218,23 @@
 <span class="doccomment">/// Convert the given `usize` to the chosen state identifier
 /// representation. If the given value cannot fit in the chosen
 /// representation, then an error is returned.
-</span><span class="kw">pub fn </span>usize_to_state_id&lt;S: <a href="#72-81">StateID</a>&gt;(value: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="prelude-ty">Result</span>&lt;S&gt; {
+</span><span class="kw">pub fn </span>usize_to_state_id&lt;S: StateID&gt;(value: usize) -&gt; <span class="prelude-ty">Result</span>&lt;S&gt; {
     <span class="kw">if </span>value &gt; S::max_id() {
         <span class="prelude-val">Err</span>(Error::state_id_overflow(S::max_id()))
     } <span class="kw">else </span>{
-        <span class="prelude-val">Ok</span>(S::from_usize(<a href="#29">value</a>))
+        <span class="prelude-val">Ok</span>(S::from_usize(value))
     }
 }
 
 <span class="doccomment">/// Return the unique identifier for an automaton&#39;s fail state in the chosen
 /// representation indicated by `S`.
-</span><span class="kw">pub fn </span>fail_id&lt;S: <a href="#72-81">StateID</a>&gt;() -&gt; S {
+</span><span class="kw">pub fn </span>fail_id&lt;S: StateID&gt;() -&gt; S {
     S::from_usize(<span class="number">0</span>)
 }
 
 <span class="doccomment">/// Return the unique identifier for an automaton&#39;s fail state in the chosen
 /// representation indicated by `S`.
-</span><span class="kw">pub fn </span>dead_id&lt;S: <a href="#72-81">StateID</a>&gt;() -&gt; S {
+</span><span class="kw">pub fn </span>dead_id&lt;S: StateID&gt;() -&gt; S {
     S::from_usize(<span class="number">1</span>)
 }
 
@@ -242,11 +242,11 @@
     <span class="doccomment">/// Sealed stops crates other than aho-corasick from implementing any
     /// traits that use it.
     </span><span class="kw">pub trait </span>Sealed {}
-    <span class="kw">impl </span><a href="#52">Sealed</a> <span class="kw">for </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a> {}
-    <span class="kw">impl </span><a href="#52">Sealed</a> <span class="kw">for </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a> {}
-    <span class="kw">impl </span><a href="#52">Sealed</a> <span class="kw">for </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {}
-    <span class="kw">impl </span><a href="#52">Sealed</a> <span class="kw">for </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> {}
-    <span class="kw">impl </span><a href="#52">Sealed</a> <span class="kw">for </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {}
+    <span class="kw">impl </span>Sealed <span class="kw">for </span>u8 {}
+    <span class="kw">impl </span>Sealed <span class="kw">for </span>u16 {}
+    <span class="kw">impl </span>Sealed <span class="kw">for </span>u32 {}
+    <span class="kw">impl </span>Sealed <span class="kw">for </span>u64 {}
+    <span class="kw">impl </span>Sealed <span class="kw">for </span>usize {}
 }
 
 <span class="doccomment">/// A trait describing the representation of an automaton&#39;s state identifier.
@@ -262,22 +262,22 @@
 /// `u16`, `u32`, `u64` and `usize`. (`u32` and `u64` are only provided for
 /// targets that can represent all corresponding values in a `usize`.)
 </span><span class="kw">pub trait </span>StateID:
-    <a href="#52">private::Sealed</a>
-    + <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a>
-    + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html">Copy</a>
-    + <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">Debug</a>
-    + <a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Eq.html">Eq</a>
-    + <a href="https://doc.rust-lang.org/nightly/core/hash/trait.Hash.html">Hash</a>
-    + <a href="https://doc.rust-lang.org/nightly/core/cmp/trait.PartialEq.html">PartialEq</a>
-    + <a href="https://doc.rust-lang.org/nightly/core/cmp/trait.PartialOrd.html">PartialOrd</a>
-    + <a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Ord.html">Ord</a>
+    private::Sealed
+    + Clone
+    + Copy
+    + Debug
+    + Eq
+    + Hash
+    + PartialEq
+    + PartialOrd
+    + Ord
 {
     <span class="doccomment">/// Convert from a `usize` to this implementation&#39;s representation.
     ///
     /// Implementors may assume that `n &lt;= Self::max_id`. That is, implementors
     /// do not need to check whether `n` can fit inside this implementation&#39;s
     /// representation.
-    </span><span class="kw">fn </span>from_usize(n: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="self">Self</span>;
+    </span><span class="kw">fn </span>from_usize(n: usize) -&gt; <span class="self">Self</span>;
 
     <span class="doccomment">/// Convert this implementation&#39;s representation to a `usize`.
     ///
@@ -287,100 +287,100 @@
     /// way for implementors to achieve this is to simply not provide
     /// implementations of `StateID` that cannot fit into the target platform&#39;s
     /// `usize`.
-    </span><span class="kw">fn </span>to_usize(<span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>;
+    </span><span class="kw">fn </span>to_usize(<span class="self">self</span>) -&gt; usize;
 
     <span class="doccomment">/// Return the maximum state identifier supported by this representation.
     ///
     /// Implementors must return a correct bound. Doing otherwise may result
     /// in unspecified behavior (but will not violate memory safety).
-    </span><span class="kw">fn </span>max_id() -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>;
+    </span><span class="kw">fn </span>max_id() -&gt; usize;
 }
 
-<span class="kw">impl </span><a href="#72-81">StateID</a> <span class="kw">for </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
+<span class="kw">impl </span>StateID <span class="kw">for </span>usize {
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>from_usize(n: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a href="#109">n</a>
+    </span><span class="kw">fn </span>from_usize(n: usize) -&gt; usize {
+        n
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>to_usize(<span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <span class="self"><a href="#114">self</a>
+    </span><span class="kw">fn </span>to_usize(<span class="self">self</span>) -&gt; usize {
+        <span class="self">self
     </span>}
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>max_id() -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
+    </span><span class="kw">fn </span>max_id() -&gt; usize {
         ::std::usize::MAX
     }
 }
 
-<span class="kw">impl </span><a href="#72-81">StateID</a> <span class="kw">for </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a> {
+<span class="kw">impl </span>StateID <span class="kw">for </span>u8 {
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>from_usize(n: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a> {
-        <a href="#126">n</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>
+    </span><span class="kw">fn </span>from_usize(n: usize) -&gt; u8 {
+        n <span class="kw">as </span>u8
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>to_usize(<span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <span class="self"><a href="#131">self</a> </span><span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>
+    </span><span class="kw">fn </span>to_usize(<span class="self">self</span>) -&gt; usize {
+        <span class="self">self </span><span class="kw">as </span>usize
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>max_id() -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        ::std::u8::MAX <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>
+    </span><span class="kw">fn </span>max_id() -&gt; usize {
+        ::std::u8::MAX <span class="kw">as </span>usize
     }
 }
 
-<span class="kw">impl </span><a href="#72-81">StateID</a> <span class="kw">for </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a> {
+<span class="kw">impl </span>StateID <span class="kw">for </span>u16 {
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>from_usize(n: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a> {
-        <a href="#143">n</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>
+    </span><span class="kw">fn </span>from_usize(n: usize) -&gt; u16 {
+        n <span class="kw">as </span>u16
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>to_usize(<span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <span class="self"><a href="#148">self</a> </span><span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>
+    </span><span class="kw">fn </span>to_usize(<span class="self">self</span>) -&gt; usize {
+        <span class="self">self </span><span class="kw">as </span>usize
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>max_id() -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        ::std::u16::MAX <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>
+    </span><span class="kw">fn </span>max_id() -&gt; usize {
+        ::std::u16::MAX <span class="kw">as </span>usize
     }
 }
 
 <span class="attr">#[cfg(any(target_pointer_width = <span class="string">&quot;32&quot;</span>, target_pointer_width = <span class="string">&quot;64&quot;</span>))]
-</span><span class="kw">impl </span><a href="#72-81">StateID</a> <span class="kw">for </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
+</span><span class="kw">impl </span>StateID <span class="kw">for </span>u32 {
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>from_usize(n: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
-        <a href="#161">n</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>
+    </span><span class="kw">fn </span>from_usize(n: usize) -&gt; u32 {
+        n <span class="kw">as </span>u32
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>to_usize(<span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <span class="self"><a href="#166">self</a> </span><span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>
+    </span><span class="kw">fn </span>to_usize(<span class="self">self</span>) -&gt; usize {
+        <span class="self">self </span><span class="kw">as </span>usize
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>max_id() -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        ::std::u32::MAX <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>
+    </span><span class="kw">fn </span>max_id() -&gt; usize {
+        ::std::u32::MAX <span class="kw">as </span>usize
     }
 }
 
 <span class="attr">#[cfg(target_pointer_width = <span class="string">&quot;64&quot;</span>)]
-</span><span class="kw">impl </span><a href="#72-81">StateID</a> <span class="kw">for </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> {
+</span><span class="kw">impl </span>StateID <span class="kw">for </span>u64 {
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>from_usize(n: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> {
-        <a href="#179">n</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>
+    </span><span class="kw">fn </span>from_usize(n: usize) -&gt; u64 {
+        n <span class="kw">as </span>u64
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>to_usize(<span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <span class="self"><a href="#184">self</a> </span><span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>
+    </span><span class="kw">fn </span>to_usize(<span class="self">self</span>) -&gt; usize {
+        <span class="self">self </span><span class="kw">as </span>usize
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>max_id() -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        ::std::u64::MAX <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>
+    </span><span class="kw">fn </span>max_id() -&gt; usize {
+        ::std::u64::MAX <span class="kw">as </span>usize
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="aho_corasick" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="aho_corasick" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

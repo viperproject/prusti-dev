@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/socket2-0.4.7/src/socket.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>socket.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../socket2/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/socket2-0.4.7/src/socket.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>socket.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../socket2/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -1909,22 +1909,22 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
-</span><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">std::fmt</a>;
-<span class="kw">use </span>std::io::{<a class="self" href="https://doc.rust-lang.org/nightly/std/io/index.html">self</a>, <a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a>, <a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a>};
+</span><span class="kw">use </span>std::fmt;
+<span class="kw">use </span>std::io::{<span class="self">self</span>, Read, Write};
 <span class="attr">#[cfg(not(target_os = <span class="string">&quot;redox&quot;</span>))]
-</span><span class="kw">use </span>std::io::{<a href="https://doc.rust-lang.org/nightly/std/io/struct.IoSlice.html">IoSlice</a>, <a href="https://doc.rust-lang.org/nightly/std/io/struct.IoSliceMut.html">IoSliceMut</a>};
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/mem/maybe_uninit/union.MaybeUninit.html">std::mem::MaybeUninit</a>;
-<span class="kw">use </span>std::net::{<a class="self" href="https://doc.rust-lang.org/nightly/std/net/index.html">self</a>, <a href="https://doc.rust-lang.org/nightly/std/net/ip_addr/struct.Ipv4Addr.html">Ipv4Addr</a>, <a href="https://doc.rust-lang.org/nightly/std/net/ip_addr/struct.Ipv6Addr.html">Ipv6Addr</a>, <a href="https://doc.rust-lang.org/nightly/std/net/enum.Shutdown.html">Shutdown</a>};
+</span><span class="kw">use </span>std::io::{IoSlice, IoSliceMut};
+<span class="kw">use </span>std::mem::MaybeUninit;
+<span class="kw">use </span>std::net::{<span class="self">self</span>, Ipv4Addr, Ipv6Addr, Shutdown};
 <span class="attr">#[cfg(unix)]
-</span><span class="kw">use </span>std::os::unix::io::{<a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.FromRawFd.html">FromRawFd</a>, <a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.IntoRawFd.html">IntoRawFd</a>};
+</span><span class="kw">use </span>std::os::unix::io::{FromRawFd, IntoRawFd};
 <span class="attr">#[cfg(windows)]
 </span><span class="kw">use </span>std::os::windows::io::{FromRawSocket, IntoRawSocket};
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">std::time::Duration</a>;
+<span class="kw">use </span>std::time::Duration;
 
-<span class="kw">use </span><span class="kw">crate</span>::sys::{<a class="self" href="lib.rs.html#124">self</a>, <a href="../../libc/unix/type.c_int.html">c_int</a>, <a href="sys/unix.rs.html#966">getsockopt</a>, <a href="sys/unix.rs.html#984-989">setsockopt</a>, <a href="sys/unix.rs.html#159">Bool</a>};
-<span class="kw">use crate</span>::{<a href="lib.rs.html#154">Domain</a>, <a href="lib.rs.html#238">Protocol</a>, <a href="sockaddr.rs.html#17">SockAddr</a>, <a href="lib.rs.html#329">TcpKeepalive</a>, <a href="lib.rs.html#194">Type</a>};
+<span class="kw">use </span><span class="kw">crate</span>::sys::{<span class="self">self</span>, c_int, getsockopt, setsockopt, Bool};
+<span class="kw">use crate</span>::{Domain, Protocol, SockAddr, TcpKeepalive, Type};
 <span class="attr">#[cfg(not(target_os = <span class="string">&quot;redox&quot;</span>))]
-</span><span class="kw">use crate</span>::{<a href="lib.rs.html#292">MaybeUninitSlice</a>, <a href="lib.rs.html#272">RecvFlags</a>};
+</span><span class="kw">use crate</span>::{MaybeUninitSlice, RecvFlags};
 
 <span class="doccomment">/// Owned wrapper around a system socket.
 ///
@@ -1973,21 +1973,21 @@
 /// # Ok(()) }
 /// ```
 </span><span class="kw">pub struct </span>Socket {
-    inner: <a href="#77">Inner</a>,
+    inner: Inner,
 }
 
 <span class="doccomment">/// Store a `TcpStream` internally to take advantage of its niche optimizations on Unix platforms.
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type </span>Inner = <a href="https://doc.rust-lang.org/nightly/std/net/tcp/struct.TcpStream.html">std::net::TcpStream</a>;
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type </span>Inner = std::net::TcpStream;
 
-<span class="kw">impl </span><a href="#72">Socket</a> {
+<span class="kw">impl </span>Socket {
     <span class="doccomment">/// # Safety
     ///
     /// The caller must ensure `raw` is a valid file descriptor/socket. NOTE:
     /// this should really be marked `unsafe`, but this being an internal
     /// function, often passed as mapping function, it&#39;s makes it very
     /// inconvenient to mark it as `unsafe`.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>from_raw(raw: <a href="sys/unix.rs.html#581">sys::Socket</a>) -&gt; <a href="#72">Socket</a> {
-        <a href="#72">Socket</a> {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>from_raw(raw: sys::Socket) -&gt; Socket {
+        Socket {
             inner: <span class="kw">unsafe </span>{
                 <span class="comment">// SAFETY: the caller must ensure that `raw` is a valid file
                 // descriptor, but when it isn&#39;t it could return I/O errors, or
@@ -2003,18 +2003,18 @@
                 // something we don&#39;t want. So check for that we have this
                 // `assert!`.
                 </span><span class="attr">#[cfg(unix)]
-                </span><a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(raw &gt;= <span class="number">0</span>, <span class="string">&quot;tried to create a `Socket` with an invalid fd&quot;</span>);
-                <a href="sys/unix.rs.html#583">sys::socket_from_raw</a>(<a href="#86">raw</a>)
+                </span><span class="macro">assert!</span>(raw &gt;= <span class="number">0</span>, <span class="string">&quot;tried to create a `Socket` with an invalid fd&quot;</span>);
+                sys::socket_from_raw(raw)
             },
         }
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>as_raw(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="sys/unix.rs.html#581">sys::Socket</a> {
-        <a href="sys/unix.rs.html#587">sys::socket_as_raw</a>(<span class="kw-2">&amp;</span><a class="self" href="#109">self</a>.inner)
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>as_raw(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; sys::Socket {
+        sys::socket_as_raw(<span class="kw-2">&amp;</span><span class="self">self</span>.inner)
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>into_raw(<span class="self">self</span>) -&gt; <a href="sys/unix.rs.html#581">sys::Socket</a> {
-        <a href="sys/unix.rs.html#591">sys::socket_into_raw</a>(<a class="self" href="#113">self</a>.inner)
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>into_raw(<span class="self">self</span>) -&gt; sys::Socket {
+        sys::socket_into_raw(<span class="self">self</span>.inner)
     }
 
     <span class="doccomment">/// Creates a new socket and sets common flags.
@@ -2027,18 +2027,18 @@
     /// the socket is made non-inheritable.
     ///
     /// [`Socket::new_raw`] can be used if you don&#39;t want these flags to be set.
-    </span><span class="kw">pub fn </span>new(domain: <a href="lib.rs.html#154">Domain</a>, ty: <a href="lib.rs.html#194">Type</a>, protocol: <span class="prelude-ty">Option</span>&lt;<a href="lib.rs.html#238">Protocol</a>&gt;) -&gt; io::Result&lt;<a href="#72">Socket</a>&gt; {
-        <span class="kw">let </span>ty = <a href="#668">set_common_type</a>(<a href="#127">ty</a>);
-        Socket::new_raw(<a href="#127">domain</a>, <a href="#128">ty</a>, <a href="#127">protocol</a>).and_then(<a href="#692">set_common_flags</a>)
+    </span><span class="kw">pub fn </span>new(domain: Domain, ty: Type, protocol: <span class="prelude-ty">Option</span>&lt;Protocol&gt;) -&gt; io::Result&lt;Socket&gt; {
+        <span class="kw">let </span>ty = set_common_type(ty);
+        Socket::new_raw(domain, ty, protocol).and_then(set_common_flags)
     }
 
     <span class="doccomment">/// Creates a new socket ready to be configured.
     ///
     /// This function corresponds to `socket(2)` on Unix and `WSASocketW` on
     /// Windows and simply creates a new socket, no other configuration is done.
-    </span><span class="kw">pub fn </span>new_raw(domain: <a href="lib.rs.html#154">Domain</a>, ty: <a href="lib.rs.html#194">Type</a>, protocol: <span class="prelude-ty">Option</span>&lt;<a href="lib.rs.html#238">Protocol</a>&gt;) -&gt; io::Result&lt;<a href="#72">Socket</a>&gt; {
-        <span class="kw">let </span>protocol = <a href="#136">protocol</a>.map(|p| <a href="#137">p</a>.<span class="number">0</span>).unwrap_or(<span class="number">0</span>);
-        <a href="sys/unix.rs.html#595">sys::socket</a>(<a href="#136">domain</a>.<span class="number">0</span>, <a href="#136">ty</a>.<span class="number">0</span>, <a href="#137">protocol</a>).map(Socket::from_raw)
+    </span><span class="kw">pub fn </span>new_raw(domain: Domain, ty: Type, protocol: <span class="prelude-ty">Option</span>&lt;Protocol&gt;) -&gt; io::Result&lt;Socket&gt; {
+        <span class="kw">let </span>protocol = protocol.map(|p| p.<span class="number">0</span>).unwrap_or(<span class="number">0</span>);
+        sys::socket(domain.<span class="number">0</span>, ty.<span class="number">0</span>, protocol).map(Socket::from_raw)
     }
 
     <span class="doccomment">/// Creates a pair of sockets which are connected to each other.
@@ -2050,15 +2050,15 @@
     </span><span class="attr">#[cfg(any(doc, all(feature = <span class="string">&quot;all&quot;</span>, unix)))]
     #[cfg_attr(docsrs, doc(cfg(all(feature = <span class="string">&quot;all&quot;</span>, unix))))]
     </span><span class="kw">pub fn </span>pair(
-        domain: <a href="lib.rs.html#154">Domain</a>,
-        ty: <a href="lib.rs.html#194">Type</a>,
-        protocol: <span class="prelude-ty">Option</span>&lt;<a href="lib.rs.html#238">Protocol</a>&gt;,
-    ) -&gt; io::Result&lt;(<a href="#72">Socket</a>, <a href="#72">Socket</a>)&gt; {
-        <span class="kw">let </span>ty = <a href="#668">set_common_type</a>(<a href="#151">ty</a>);
+        domain: Domain,
+        ty: Type,
+        protocol: <span class="prelude-ty">Option</span>&lt;Protocol&gt;,
+    ) -&gt; io::Result&lt;(Socket, Socket)&gt; {
+        <span class="kw">let </span>ty = set_common_type(ty);
         <span class="kw">let </span>(a, b) = Socket::pair_raw(domain, ty, protocol)<span class="question-mark">?</span>;
         <span class="kw">let </span>a = set_common_flags(a)<span class="question-mark">?</span>;
         <span class="kw">let </span>b = set_common_flags(b)<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>((<a href="#156">a</a>, <a href="#157">b</a>))
+        <span class="prelude-val">Ok</span>((a, b))
     }
 
     <span class="doccomment">/// Creates a pair of sockets which are connected to each other.
@@ -2067,21 +2067,21 @@
     </span><span class="attr">#[cfg(any(doc, all(feature = <span class="string">&quot;all&quot;</span>, unix)))]
     #[cfg_attr(docsrs, doc(cfg(all(feature = <span class="string">&quot;all&quot;</span>, unix))))]
     </span><span class="kw">pub fn </span>pair_raw(
-        domain: <a href="lib.rs.html#154">Domain</a>,
-        ty: <a href="lib.rs.html#194">Type</a>,
-        protocol: <span class="prelude-ty">Option</span>&lt;<a href="lib.rs.html#238">Protocol</a>&gt;,
-    ) -&gt; io::Result&lt;(<a href="#72">Socket</a>, <a href="#72">Socket</a>)&gt; {
-        <span class="kw">let </span>protocol = <a href="#169">protocol</a>.map(|p| <a href="#171">p</a>.<span class="number">0</span>).unwrap_or(<span class="number">0</span>);
-        <a href="sys/unix.rs.html#600">sys::socketpair</a>(<a href="#167">domain</a>.<span class="number">0</span>, <a href="#168">ty</a>.<span class="number">0</span>, <a href="#171">protocol</a>)
-            .map(|[a, b]| (Socket::from_raw(<a href="#173">a</a>), Socket::from_raw(<a href="#173">b</a>)))
+        domain: Domain,
+        ty: Type,
+        protocol: <span class="prelude-ty">Option</span>&lt;Protocol&gt;,
+    ) -&gt; io::Result&lt;(Socket, Socket)&gt; {
+        <span class="kw">let </span>protocol = protocol.map(|p| p.<span class="number">0</span>).unwrap_or(<span class="number">0</span>);
+        sys::socketpair(domain.<span class="number">0</span>, ty.<span class="number">0</span>, protocol)
+            .map(|[a, b]| (Socket::from_raw(a), Socket::from_raw(b)))
     }
 
     <span class="doccomment">/// Binds this socket to the specified address.
     ///
     /// This function directly corresponds to the `bind(2)` function on Windows
     /// and Unix.
-    </span><span class="kw">pub fn </span>bind(<span class="kw-2">&amp;</span><span class="self">self</span>, address: <span class="kw-2">&amp;</span><a href="sockaddr.rs.html#17">SockAddr</a>) -&gt; io::Result&lt;()&gt; {
-        <a href="sys/unix.rs.html#605">sys::bind</a>(<a class="self" href="#180">self</a>.<a href="#109">as_raw</a>(), <a href="#180">address</a>)
+    </span><span class="kw">pub fn </span>bind(<span class="kw-2">&amp;</span><span class="self">self</span>, address: <span class="kw-2">&amp;</span>SockAddr) -&gt; io::Result&lt;()&gt; {
+        sys::bind(<span class="self">self</span>.as_raw(), address)
     }
 
     <span class="doccomment">/// Initiate a connection on this socket to the specified address.
@@ -2098,8 +2098,8 @@
     /// non-blocking mode before calling this function), socket option can&#39;t be
     /// set *while connecting*. This will cause errors on Windows. Socket
     /// options can be safely set before and after connecting the socket.
-    </span><span class="kw">pub fn </span>connect(<span class="kw-2">&amp;</span><span class="self">self</span>, address: <span class="kw-2">&amp;</span><a href="sockaddr.rs.html#17">SockAddr</a>) -&gt; io::Result&lt;()&gt; {
-        <a href="sys/unix.rs.html#609">sys::connect</a>(<a class="self" href="#198">self</a>.<a href="#109">as_raw</a>(), <a href="#198">address</a>)
+    </span><span class="kw">pub fn </span>connect(<span class="kw-2">&amp;</span><span class="self">self</span>, address: <span class="kw-2">&amp;</span>SockAddr) -&gt; io::Result&lt;()&gt; {
+        sys::connect(<span class="self">self</span>.as_raw(), address)
     }
 
     <span class="doccomment">/// Initiate a connection on this socket to the specified address, only
@@ -2121,20 +2121,20 @@
     ///
     /// If the connection request times out, it may still be processing in the
     /// background - a second call to `connect` or `connect_timeout` may fail.
-    </span><span class="kw">pub fn </span>connect_timeout(<span class="kw-2">&amp;</span><span class="self">self</span>, addr: <span class="kw-2">&amp;</span><a href="sockaddr.rs.html#17">SockAddr</a>, timeout: <a href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a>) -&gt; io::Result&lt;()&gt; {
+    </span><span class="kw">pub fn </span>connect_timeout(<span class="kw-2">&amp;</span><span class="self">self</span>, addr: <span class="kw-2">&amp;</span>SockAddr, timeout: Duration) -&gt; io::Result&lt;()&gt; {
         <span class="self">self</span>.set_nonblocking(<span class="bool-val">true</span>)<span class="question-mark">?</span>;
-        <span class="kw">let </span>res = <a class="self" href="#221">self</a>.<a href="#198">connect</a>(<a href="#221">addr</a>);
+        <span class="kw">let </span>res = <span class="self">self</span>.connect(addr);
         <span class="self">self</span>.set_nonblocking(<span class="bool-val">false</span>)<span class="question-mark">?</span>;
 
-        <span class="kw">match </span><a href="#223">res</a> {
+        <span class="kw">match </span>res {
             <span class="prelude-val">Ok</span>(()) =&gt; <span class="kw">return </span><span class="prelude-val">Ok</span>(()),
-            <span class="prelude-val">Err</span>(<span class="kw-2">ref </span>e) <span class="kw">if </span><a href="#228">e</a>.kind() == io::ErrorKind::WouldBlock =&gt; {}
+            <span class="prelude-val">Err</span>(<span class="kw-2">ref </span>e) <span class="kw">if </span>e.kind() == io::ErrorKind::WouldBlock =&gt; {}
             <span class="attr">#[cfg(unix)]
-            </span><span class="prelude-val">Err</span>(<span class="kw-2">ref </span>e) <span class="kw">if </span><a href="#230">e</a>.raw_os_error() == <span class="prelude-val">Some</span>(libc::EINPROGRESS) =&gt; {}
-            <span class="prelude-val">Err</span>(e) =&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="#231">e</a>),
+            </span><span class="prelude-val">Err</span>(<span class="kw-2">ref </span>e) <span class="kw">if </span>e.raw_os_error() == <span class="prelude-val">Some</span>(libc::EINPROGRESS) =&gt; {}
+            <span class="prelude-val">Err</span>(e) =&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(e),
         }
 
-        <a href="sys/unix.rs.html#613">sys::poll_connect</a>(<a class="self" href="#221">self</a>, <a href="#221">timeout</a>)
+        sys::poll_connect(<span class="self">self</span>, timeout)
     }
 
     <span class="doccomment">/// Mark a socket as ready to accept incoming connection requests using
@@ -2145,8 +2145,8 @@
     ///
     /// An error will be returned if `listen` or `connect` has already been
     /// called on this builder.
-    </span><span class="kw">pub fn </span>listen(<span class="kw-2">&amp;</span><span class="self">self</span>, backlog: <a href="../../libc/unix/type.c_int.html">c_int</a>) -&gt; io::Result&lt;()&gt; {
-        <a href="sys/unix.rs.html#670">sys::listen</a>(<a class="self" href="#245">self</a>.<a href="#109">as_raw</a>(), <a href="#245">backlog</a>)
+    </span><span class="kw">pub fn </span>listen(<span class="kw-2">&amp;</span><span class="self">self</span>, backlog: c_int) -&gt; io::Result&lt;()&gt; {
+        sys::listen(<span class="self">self</span>.as_raw(), backlog)
     }
 
     <span class="doccomment">/// Accept a new incoming connection from this listener.
@@ -2156,7 +2156,7 @@
     ///
     /// This function sets the same flags as in done for [`Socket::new`],
     /// [`Socket::accept_raw`] can be used if you don&#39;t want to set those flags.
-    </span><span class="kw">pub fn </span>accept(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;(<a href="#72">Socket</a>, <a href="sockaddr.rs.html#17">SockAddr</a>)&gt; {
+    </span><span class="kw">pub fn </span>accept(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;(Socket, SockAddr)&gt; {
         <span class="comment">// Use `accept4` on platforms that support it.
         </span><span class="attr">#[cfg(any(
             target_os = <span class="string">&quot;android&quot;</span>,
@@ -2168,7 +2168,7 @@
             target_os = <span class="string">&quot;netbsd&quot;</span>,
             target_os = <span class="string">&quot;openbsd&quot;</span>,
         ))]
-        </span><span class="kw">return </span><a class="self" href="#256">self</a>.<a href="sys/unix.rs.html#1102">_accept4</a>(libc::SOCK_CLOEXEC);
+        </span><span class="kw">return </span><span class="self">self</span>._accept4(libc::SOCK_CLOEXEC);
 
         <span class="comment">// Fall back to `accept` on platforms that do not support `accept4`.
         </span><span class="attr">#[cfg(not(any(
@@ -2196,8 +2196,8 @@
     ///
     /// This function directly corresponds to the `accept(2)` function on
     /// Windows and Unix.
-    </span><span class="kw">pub fn </span>accept_raw(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;(<a href="#72">Socket</a>, <a href="sockaddr.rs.html#17">SockAddr</a>)&gt; {
-        <a href="sys/unix.rs.html#674">sys::accept</a>(<a class="self" href="#296">self</a>.<a href="#109">as_raw</a>()).map(|(inner, addr)| (Socket::from_raw(<a href="#297">inner</a>), <a href="#297">addr</a>))
+    </span><span class="kw">pub fn </span>accept_raw(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;(Socket, SockAddr)&gt; {
+        sys::accept(<span class="self">self</span>.as_raw()).map(|(inner, addr)| (Socket::from_raw(inner), addr))
     }
 
     <span class="doccomment">/// Returns the socket address of the local half of this socket.
@@ -2208,8 +2208,8 @@
     /// [bound].
     ///
     /// [bound]: Socket::bind
-    </span><span class="kw">pub fn </span>local_addr(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;<a href="sockaddr.rs.html#17">SockAddr</a>&gt; {
-        <a href="sys/unix.rs.html#679">sys::getsockname</a>(<a class="self" href="#308">self</a>.<a href="#109">as_raw</a>())
+    </span><span class="kw">pub fn </span>local_addr(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;SockAddr&gt; {
+        sys::getsockname(<span class="self">self</span>.as_raw())
     }
 
     <span class="doccomment">/// Returns the socket address of the remote peer of this socket.
@@ -2219,14 +2219,14 @@
     /// This returns an error if the socket is not [`connect`ed].
     ///
     /// [`connect`ed]: Socket::connect
-    </span><span class="kw">pub fn </span>peer_addr(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;<a href="sockaddr.rs.html#17">SockAddr</a>&gt; {
-        <a href="sys/unix.rs.html#685">sys::getpeername</a>(<a class="self" href="#319">self</a>.<a href="#109">as_raw</a>())
+    </span><span class="kw">pub fn </span>peer_addr(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;SockAddr&gt; {
+        sys::getpeername(<span class="self">self</span>.as_raw())
     }
 
     <span class="doccomment">/// Returns the [`Type`] of this socket by checking the `SO_TYPE` option on
     /// this socket.
-    </span><span class="kw">pub fn </span>r#type(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;<a href="lib.rs.html#194">Type</a>&gt; {
-        <span class="kw">unsafe </span>{ getsockopt::&lt;<a href="../../libc/unix/type.c_int.html">c_int</a>&gt;(<a class="self" href="#325">self</a>.<a href="#109">as_raw</a>(), <a href="../../libc/unix/linux_like/linux/arch/generic/constant.SOL_SOCKET.html">sys::SOL_SOCKET</a>, <a href="../../libc/unix/linux_like/linux/arch/generic/constant.SO_TYPE.html">sys::SO_TYPE</a>).map(<a href="lib.rs.html#194">Type</a>) }
+    </span><span class="kw">pub fn </span>r#type(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;Type&gt; {
+        <span class="kw">unsafe </span>{ getsockopt::&lt;c_int&gt;(<span class="self">self</span>.as_raw(), sys::SOL_SOCKET, sys::SO_TYPE).map(Type) }
     }
 
     <span class="doccomment">/// Creates a new independently owned handle to the underlying socket.
@@ -2242,8 +2242,8 @@
     /// On Windows this can **not** be used function cannot be used on a
     /// QOS-enabled socket, see
     /// &lt;https://docs.microsoft.com/en-us/windows/win32/api/winsock2/nf-winsock2-wsaduplicatesocketw&gt;.
-    </span><span class="kw">pub fn </span>try_clone(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;<a href="#72">Socket</a>&gt; {
-        <a href="sys/unix.rs.html#691">sys::try_clone</a>(<a class="self" href="#342">self</a>.<a href="#109">as_raw</a>()).map(Socket::from_raw)
+    </span><span class="kw">pub fn </span>try_clone(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;Socket&gt; {
+        sys::try_clone(<span class="self">self</span>.as_raw()).map(Socket::from_raw)
     }
 
     <span class="doccomment">/// Moves this TCP stream into or out of nonblocking mode.
@@ -2254,16 +2254,16 @@
     ///
     /// On Windows this corresponds to calling `ioctlsocket` (un)setting
     /// `FIONBIO`.
-    </span><span class="kw">pub fn </span>set_nonblocking(<span class="kw-2">&amp;</span><span class="self">self</span>, nonblocking: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; io::Result&lt;()&gt; {
-        <a href="sys/unix.rs.html#695">sys::set_nonblocking</a>(<a class="self" href="#354">self</a>.<a href="#109">as_raw</a>(), <a href="#354">nonblocking</a>)
+    </span><span class="kw">pub fn </span>set_nonblocking(<span class="kw-2">&amp;</span><span class="self">self</span>, nonblocking: bool) -&gt; io::Result&lt;()&gt; {
+        sys::set_nonblocking(<span class="self">self</span>.as_raw(), nonblocking)
     }
 
     <span class="doccomment">/// Shuts down the read, write, or both halves of this connection.
     ///
     /// This function will cause all pending and future I/O on the specified
     /// portions to return immediately with an appropriate value.
-    </span><span class="kw">pub fn </span>shutdown(<span class="kw-2">&amp;</span><span class="self">self</span>, how: <a href="https://doc.rust-lang.org/nightly/std/net/enum.Shutdown.html">Shutdown</a>) -&gt; io::Result&lt;()&gt; {
-        <a href="sys/unix.rs.html#703">sys::shutdown</a>(<a class="self" href="#362">self</a>.<a href="#109">as_raw</a>(), <a href="#362">how</a>)
+    </span><span class="kw">pub fn </span>shutdown(<span class="kw-2">&amp;</span><span class="self">self</span>, how: Shutdown) -&gt; io::Result&lt;()&gt; {
+        sys::shutdown(<span class="self">self</span>.as_raw(), how)
     }
 
     <span class="doccomment">/// Receives data on the socket from the remote address to which it is
@@ -2286,8 +2286,8 @@
     /// Note that the [`io::Read::read`] implementation calls this function with
     /// a `buf`fer of type `&amp;mut [u8]`, allowing initialised buffers to be used
     /// without using `unsafe`.
-    </span><span class="kw">pub fn </span>recv(<span class="kw-2">&amp;</span><span class="self">self</span>, buf: <span class="kw-2">&amp;mut </span>[MaybeUninit&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;]) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
-        <a class="self" href="#386">self</a>.<a href="#405-409">recv_with_flags</a>(<a href="#386">buf</a>, <span class="number">0</span>)
+    </span><span class="kw">pub fn </span>recv(<span class="kw-2">&amp;</span><span class="self">self</span>, buf: <span class="kw-2">&amp;mut </span>[MaybeUninit&lt;u8&gt;]) -&gt; io::Result&lt;usize&gt; {
+        <span class="self">self</span>.recv_with_flags(buf, <span class="number">0</span>)
     }
 
     <span class="doccomment">/// Receives out-of-band (OOB) data on the socket from the remote address to
@@ -2297,8 +2297,8 @@
     ///
     /// [`recv`]: Socket::recv
     /// [`out_of_band_inline`]: Socket::out_of_band_inline
-    </span><span class="kw">pub fn </span>recv_out_of_band(<span class="kw-2">&amp;</span><span class="self">self</span>, buf: <span class="kw-2">&amp;mut </span>[MaybeUninit&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;]) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
-        <a class="self" href="#397">self</a>.<a href="#405-409">recv_with_flags</a>(<a href="#397">buf</a>, <a href="../../libc/unix/linux_like/constant.MSG_OOB.html">sys::MSG_OOB</a>)
+    </span><span class="kw">pub fn </span>recv_out_of_band(<span class="kw-2">&amp;</span><span class="self">self</span>, buf: <span class="kw-2">&amp;mut </span>[MaybeUninit&lt;u8&gt;]) -&gt; io::Result&lt;usize&gt; {
+        <span class="self">self</span>.recv_with_flags(buf, sys::MSG_OOB)
     }
 
     <span class="doccomment">/// Identical to [`recv`] but allows for specification of arbitrary flags to
@@ -2307,10 +2307,10 @@
     /// [`recv`]: Socket::recv
     </span><span class="kw">pub fn </span>recv_with_flags(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        buf: <span class="kw-2">&amp;mut </span>[MaybeUninit&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;],
-        flags: <a href="../../libc/unix/type.c_int.html">sys::c_int</a>,
-    ) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
-        <a href="sys/unix.rs.html#712">sys::recv</a>(<a class="self" href="#406">self</a>.<a href="#109">as_raw</a>(), <a href="#407">buf</a>, <a href="#408">flags</a>)
+        buf: <span class="kw-2">&amp;mut </span>[MaybeUninit&lt;u8&gt;],
+        flags: sys::c_int,
+    ) -&gt; io::Result&lt;usize&gt; {
+        sys::recv(<span class="self">self</span>.as_raw(), buf, flags)
     }
 
     <span class="doccomment">/// Receives data on the socket from the remote address to which it is
@@ -2343,8 +2343,8 @@
     </span><span class="kw">pub fn </span>recv_vectored(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         bufs: <span class="kw-2">&amp;mut </span>[MaybeUninitSlice&lt;<span class="lifetime">&#39;_</span>&gt;],
-    ) -&gt; io::Result&lt;(<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="lib.rs.html#272">RecvFlags</a>)&gt; {
-        <a class="self" href="#441">self</a>.<a href="#460-464">recv_vectored_with_flags</a>(<a href="#442">bufs</a>, <span class="number">0</span>)
+    ) -&gt; io::Result&lt;(usize, RecvFlags)&gt; {
+        <span class="self">self</span>.recv_vectored_with_flags(bufs, <span class="number">0</span>)
     }
 
     <span class="doccomment">/// Identical to [`recv_vectored`] but allows for specification of arbitrary
@@ -2363,9 +2363,9 @@
     </span><span class="kw">pub fn </span>recv_vectored_with_flags(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         bufs: <span class="kw-2">&amp;mut </span>[MaybeUninitSlice&lt;<span class="lifetime">&#39;_</span>&gt;],
-        flags: <a href="../../libc/unix/type.c_int.html">c_int</a>,
-    ) -&gt; io::Result&lt;(<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="lib.rs.html#272">RecvFlags</a>)&gt; {
-        <a href="sys/unix.rs.html#744-748">sys::recv_vectored</a>(<a class="self" href="#461">self</a>.<a href="#109">as_raw</a>(), <a href="#462">bufs</a>, <a href="#463">flags</a>)
+        flags: c_int,
+    ) -&gt; io::Result&lt;(usize, RecvFlags)&gt; {
+        sys::recv_vectored(<span class="self">self</span>.as_raw(), bufs, flags)
     }
 
     <span class="doccomment">/// Receives data on the socket from the remote adress to which it is
@@ -2381,8 +2381,8 @@
     /// [`recv`].
     ///
     /// [`recv`]: Socket::recv
-    </span><span class="kw">pub fn </span>peek(<span class="kw-2">&amp;</span><span class="self">self</span>, buf: <span class="kw-2">&amp;mut </span>[MaybeUninit&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;]) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
-        <a class="self" href="#481">self</a>.<a href="#405-409">recv_with_flags</a>(<a href="#481">buf</a>, <a href="../../libc/unix/linux_like/constant.MSG_PEEK.html">sys::MSG_PEEK</a>)
+    </span><span class="kw">pub fn </span>peek(<span class="kw-2">&amp;</span><span class="self">self</span>, buf: <span class="kw-2">&amp;mut </span>[MaybeUninit&lt;u8&gt;]) -&gt; io::Result&lt;usize&gt; {
+        <span class="self">self</span>.recv_with_flags(buf, sys::MSG_PEEK)
     }
 
     <span class="doccomment">/// Receives data from the socket. On success, returns the number of bytes
@@ -2394,8 +2394,8 @@
     /// [`recv`].
     ///
     /// [`recv`]: Socket::recv
-    </span><span class="kw">pub fn </span>recv_from(<span class="kw-2">&amp;</span><span class="self">self</span>, buf: <span class="kw-2">&amp;mut </span>[MaybeUninit&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;]) -&gt; io::Result&lt;(<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="sockaddr.rs.html#17">SockAddr</a>)&gt; {
-        <a class="self" href="#494">self</a>.<a href="#502-506">recv_from_with_flags</a>(<a href="#494">buf</a>, <span class="number">0</span>)
+    </span><span class="kw">pub fn </span>recv_from(<span class="kw-2">&amp;</span><span class="self">self</span>, buf: <span class="kw-2">&amp;mut </span>[MaybeUninit&lt;u8&gt;]) -&gt; io::Result&lt;(usize, SockAddr)&gt; {
+        <span class="self">self</span>.recv_from_with_flags(buf, <span class="number">0</span>)
     }
 
     <span class="doccomment">/// Identical to [`recv_from`] but allows for specification of arbitrary
@@ -2404,10 +2404,10 @@
     /// [`recv_from`]: Socket::recv_from
     </span><span class="kw">pub fn </span>recv_from_with_flags(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        buf: <span class="kw-2">&amp;mut </span>[MaybeUninit&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;],
-        flags: <a href="../../libc/unix/type.c_int.html">c_int</a>,
-    ) -&gt; io::Result&lt;(<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="sockaddr.rs.html#17">SockAddr</a>)&gt; {
-        <a href="sys/unix.rs.html#722-726">sys::recv_from</a>(<a class="self" href="#503">self</a>.<a href="#109">as_raw</a>(), <a href="#504">buf</a>, <a href="#505">flags</a>)
+        buf: <span class="kw-2">&amp;mut </span>[MaybeUninit&lt;u8&gt;],
+        flags: c_int,
+    ) -&gt; io::Result&lt;(usize, SockAddr)&gt; {
+        sys::recv_from(<span class="self">self</span>.as_raw(), buf, flags)
     }
 
     <span class="doccomment">/// Receives data from the socket. Returns the amount of bytes read, the
@@ -2427,8 +2427,8 @@
     </span><span class="kw">pub fn </span>recv_from_vectored(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         bufs: <span class="kw-2">&amp;mut </span>[MaybeUninitSlice&lt;<span class="lifetime">&#39;_</span>&gt;],
-    ) -&gt; io::Result&lt;(<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="lib.rs.html#272">RecvFlags</a>, <a href="sockaddr.rs.html#17">SockAddr</a>)&gt; {
-        <a class="self" href="#525">self</a>.<a href="#544-548">recv_from_vectored_with_flags</a>(<a href="#526">bufs</a>, <span class="number">0</span>)
+    ) -&gt; io::Result&lt;(usize, RecvFlags, SockAddr)&gt; {
+        <span class="self">self</span>.recv_from_vectored_with_flags(bufs, <span class="number">0</span>)
     }
 
     <span class="doccomment">/// Identical to [`recv_from_vectored`] but allows for specification of
@@ -2447,9 +2447,9 @@
     </span><span class="kw">pub fn </span>recv_from_vectored_with_flags(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         bufs: <span class="kw-2">&amp;mut </span>[MaybeUninitSlice&lt;<span class="lifetime">&#39;_</span>&gt;],
-        flags: <a href="../../libc/unix/type.c_int.html">c_int</a>,
-    ) -&gt; io::Result&lt;(<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="lib.rs.html#272">RecvFlags</a>, <a href="sockaddr.rs.html#17">SockAddr</a>)&gt; {
-        <a href="sys/unix.rs.html#753-757">sys::recv_from_vectored</a>(<a class="self" href="#545">self</a>.<a href="#109">as_raw</a>(), <a href="#546">bufs</a>, <a href="#547">flags</a>)
+        flags: c_int,
+    ) -&gt; io::Result&lt;(usize, RecvFlags, SockAddr)&gt; {
+        sys::recv_from_vectored(<span class="self">self</span>.as_raw(), bufs, flags)
     }
 
     <span class="doccomment">/// Receives data from the socket, without removing it from the queue.
@@ -2466,8 +2466,8 @@
     /// [`recv`].
     ///
     /// [`recv`]: Socket::recv
-    </span><span class="kw">pub fn </span>peek_from(<span class="kw-2">&amp;</span><span class="self">self</span>, buf: <span class="kw-2">&amp;mut </span>[MaybeUninit&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;]) -&gt; io::Result&lt;(<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="sockaddr.rs.html#17">SockAddr</a>)&gt; {
-        <a class="self" href="#566">self</a>.<a href="#502-506">recv_from_with_flags</a>(<a href="#566">buf</a>, <a href="../../libc/unix/linux_like/constant.MSG_PEEK.html">sys::MSG_PEEK</a>)
+    </span><span class="kw">pub fn </span>peek_from(<span class="kw-2">&amp;</span><span class="self">self</span>, buf: <span class="kw-2">&amp;mut </span>[MaybeUninit&lt;u8&gt;]) -&gt; io::Result&lt;(usize, SockAddr)&gt; {
+        <span class="self">self</span>.recv_from_with_flags(buf, sys::MSG_PEEK)
     }
 
     <span class="doccomment">/// Sends data on the socket to a connected peer.
@@ -2476,23 +2476,23 @@
     /// been connected.
     ///
     /// On success returns the number of bytes that were sent.
-    </span><span class="kw">pub fn </span>send(<span class="kw-2">&amp;</span><span class="self">self</span>, buf: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
-        <a class="self" href="#576">self</a>.<a href="#584">send_with_flags</a>(<a href="#576">buf</a>, <span class="number">0</span>)
+    </span><span class="kw">pub fn </span>send(<span class="kw-2">&amp;</span><span class="self">self</span>, buf: <span class="kw-2">&amp;</span>[u8]) -&gt; io::Result&lt;usize&gt; {
+        <span class="self">self</span>.send_with_flags(buf, <span class="number">0</span>)
     }
 
     <span class="doccomment">/// Identical to [`send`] but allows for specification of arbitrary flags to the underlying
     /// `send` call.
     ///
     /// [`send`]: #method.send
-    </span><span class="kw">pub fn </span>send_with_flags(<span class="kw-2">&amp;</span><span class="self">self</span>, buf: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], flags: <a href="../../libc/unix/type.c_int.html">c_int</a>) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
-        <a href="sys/unix.rs.html#795">sys::send</a>(<a class="self" href="#584">self</a>.<a href="#109">as_raw</a>(), <a href="#584">buf</a>, <a href="#584">flags</a>)
+    </span><span class="kw">pub fn </span>send_with_flags(<span class="kw-2">&amp;</span><span class="self">self</span>, buf: <span class="kw-2">&amp;</span>[u8], flags: c_int) -&gt; io::Result&lt;usize&gt; {
+        sys::send(<span class="self">self</span>.as_raw(), buf, flags)
     }
 
     <span class="doccomment">/// Send data to the connected peer. Returns the amount of bytes written.
     </span><span class="attr">#[cfg(not(target_os = <span class="string">&quot;redox&quot;</span>))]
     #[cfg_attr(docsrs, doc(cfg(not(target_os = <span class="string">&quot;redox&quot;</span>))))]
-    </span><span class="kw">pub fn </span>send_vectored(<span class="kw-2">&amp;</span><span class="self">self</span>, bufs: <span class="kw-2">&amp;</span>[IoSlice&lt;<span class="lifetime">&#39;_</span>&gt;]) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
-        <a class="self" href="#591">self</a>.<a href="#601-605">send_vectored_with_flags</a>(<a href="#591">bufs</a>, <span class="number">0</span>)
+    </span><span class="kw">pub fn </span>send_vectored(<span class="kw-2">&amp;</span><span class="self">self</span>, bufs: <span class="kw-2">&amp;</span>[IoSlice&lt;<span class="lifetime">&#39;_</span>&gt;]) -&gt; io::Result&lt;usize&gt; {
+        <span class="self">self</span>.send_vectored_with_flags(bufs, <span class="number">0</span>)
     }
 
     <span class="doccomment">/// Identical to [`send_vectored`] but allows for specification of arbitrary
@@ -2504,9 +2504,9 @@
     </span><span class="kw">pub fn </span>send_vectored_with_flags(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         bufs: <span class="kw-2">&amp;</span>[IoSlice&lt;<span class="lifetime">&#39;_</span>&gt;],
-        flags: <a href="../../libc/unix/type.c_int.html">c_int</a>,
-    ) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
-        <a href="sys/unix.rs.html#806">sys::send_vectored</a>(<a class="self" href="#602">self</a>.<a href="#109">as_raw</a>(), <a href="#603">bufs</a>, <a href="#604">flags</a>)
+        flags: c_int,
+    ) -&gt; io::Result&lt;usize&gt; {
+        sys::send_vectored(<span class="self">self</span>.as_raw(), bufs, flags)
     }
 
     <span class="doccomment">/// Sends out-of-band (OOB) data on the socket to connected peer
@@ -2516,16 +2516,16 @@
     ///
     /// [`send`]: #method.send
     /// [`out_of_band_inline`]: #method.out_of_band_inline
-    </span><span class="kw">pub fn </span>send_out_of_band(<span class="kw-2">&amp;</span><span class="self">self</span>, buf: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
-        <a class="self" href="#616">self</a>.<a href="#584">send_with_flags</a>(<a href="#616">buf</a>, <a href="../../libc/unix/linux_like/constant.MSG_OOB.html">sys::MSG_OOB</a>)
+    </span><span class="kw">pub fn </span>send_out_of_band(<span class="kw-2">&amp;</span><span class="self">self</span>, buf: <span class="kw-2">&amp;</span>[u8]) -&gt; io::Result&lt;usize&gt; {
+        <span class="self">self</span>.send_with_flags(buf, sys::MSG_OOB)
     }
 
     <span class="doccomment">/// Sends data on the socket to the given address. On success, returns the
     /// number of bytes written.
     ///
     /// This is typically used on UDP or datagram-oriented sockets.
-    </span><span class="kw">pub fn </span>send_to(<span class="kw-2">&amp;</span><span class="self">self</span>, buf: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], addr: <span class="kw-2">&amp;</span><a href="sockaddr.rs.html#17">SockAddr</a>) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
-        <a class="self" href="#624">self</a>.<a href="#632-637">send_to_with_flags</a>(<a href="#624">buf</a>, <a href="#624">addr</a>, <span class="number">0</span>)
+    </span><span class="kw">pub fn </span>send_to(<span class="kw-2">&amp;</span><span class="self">self</span>, buf: <span class="kw-2">&amp;</span>[u8], addr: <span class="kw-2">&amp;</span>SockAddr) -&gt; io::Result&lt;usize&gt; {
+        <span class="self">self</span>.send_to_with_flags(buf, addr, <span class="number">0</span>)
     }
 
     <span class="doccomment">/// Identical to [`send_to`] but allows for specification of arbitrary flags
@@ -2534,19 +2534,19 @@
     /// [`send_to`]: Socket::send_to
     </span><span class="kw">pub fn </span>send_to_with_flags(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        buf: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
-        addr: <span class="kw-2">&amp;</span><a href="sockaddr.rs.html#17">SockAddr</a>,
-        flags: <a href="../../libc/unix/type.c_int.html">c_int</a>,
-    ) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
-        <a href="sys/unix.rs.html#810">sys::send_to</a>(<a class="self" href="#633">self</a>.<a href="#109">as_raw</a>(), <a href="#634">buf</a>, <a href="#635">addr</a>, <a href="#636">flags</a>)
+        buf: <span class="kw-2">&amp;</span>[u8],
+        addr: <span class="kw-2">&amp;</span>SockAddr,
+        flags: c_int,
+    ) -&gt; io::Result&lt;usize&gt; {
+        sys::send_to(<span class="self">self</span>.as_raw(), buf, addr, flags)
     }
 
     <span class="doccomment">/// Send data to a peer listening on `addr`. Returns the amount of bytes
     /// written.
     </span><span class="attr">#[cfg(not(target_os = <span class="string">&quot;redox&quot;</span>))]
     #[cfg_attr(docsrs, doc(cfg(not(target_os = <span class="string">&quot;redox&quot;</span>))))]
-    </span><span class="kw">pub fn </span>send_to_vectored(<span class="kw-2">&amp;</span><span class="self">self</span>, bufs: <span class="kw-2">&amp;</span>[IoSlice&lt;<span class="lifetime">&#39;_</span>&gt;], addr: <span class="kw-2">&amp;</span><a href="sockaddr.rs.html#17">SockAddr</a>) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
-        <a class="self" href="#645">self</a>.<a href="#655-660">send_to_vectored_with_flags</a>(<a href="#645">bufs</a>, <a href="#645">addr</a>, <span class="number">0</span>)
+    </span><span class="kw">pub fn </span>send_to_vectored(<span class="kw-2">&amp;</span><span class="self">self</span>, bufs: <span class="kw-2">&amp;</span>[IoSlice&lt;<span class="lifetime">&#39;_</span>&gt;], addr: <span class="kw-2">&amp;</span>SockAddr) -&gt; io::Result&lt;usize&gt; {
+        <span class="self">self</span>.send_to_vectored_with_flags(bufs, addr, <span class="number">0</span>)
     }
 
     <span class="doccomment">/// Identical to [`send_to_vectored`] but allows for specification of
@@ -2558,17 +2558,17 @@
     </span><span class="kw">pub fn </span>send_to_vectored_with_flags(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         bufs: <span class="kw-2">&amp;</span>[IoSlice&lt;<span class="lifetime">&#39;_</span>&gt;],
-        addr: <span class="kw-2">&amp;</span><a href="sockaddr.rs.html#17">SockAddr</a>,
-        flags: <a href="../../libc/unix/type.c_int.html">c_int</a>,
-    ) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
-        <a href="sys/unix.rs.html#823-828">sys::send_to_vectored</a>(<a class="self" href="#656">self</a>.<a href="#109">as_raw</a>(), <a href="#657">bufs</a>, <a href="#658">addr</a>, <a href="#659">flags</a>)
+        addr: <span class="kw-2">&amp;</span>SockAddr,
+        flags: c_int,
+    ) -&gt; io::Result&lt;usize&gt; {
+        sys::send_to_vectored(<span class="self">self</span>.as_raw(), bufs, addr, flags)
     }
 }
 
 <span class="doccomment">/// Set `SOCK_CLOEXEC` and `NO_HANDLE_INHERIT` on the `ty`pe on platforms that
 /// support it.
 </span><span class="attr">#[inline(always)]
-</span><span class="kw">fn </span>set_common_type(ty: <a href="lib.rs.html#194">Type</a>) -&gt; <a href="lib.rs.html#194">Type</a> {
+</span><span class="kw">fn </span>set_common_type(ty: Type) -&gt; Type {
     <span class="comment">// On platforms that support it set `SOCK_CLOEXEC`.
     </span><span class="attr">#[cfg(any(
         target_os = <span class="string">&quot;android&quot;</span>,
@@ -2580,19 +2580,19 @@
         target_os = <span class="string">&quot;netbsd&quot;</span>,
         target_os = <span class="string">&quot;openbsd&quot;</span>,
     ))]
-    </span><span class="kw">let </span>ty = <a href="#668">ty</a>.<a href="sys/unix.rs.html#352">_cloexec</a>();
+    </span><span class="kw">let </span>ty = ty._cloexec();
 
     <span class="comment">// On windows set `NO_HANDLE_INHERIT`.
     </span><span class="attr">#[cfg(windows)]
     </span><span class="kw">let </span>ty = ty._no_inherit();
 
-    <a href="#680">ty</a>
+    ty
 }
 
 <span class="doccomment">/// Set `FD_CLOEXEC` and `NOSIGPIPE` on the `socket` for platforms that need it.
 </span><span class="attr">#[inline(always)]
 #[allow(clippy::unnecessary_wraps)]
-</span><span class="kw">fn </span>set_common_flags(socket: <a href="#72">Socket</a>) -&gt; io::Result&lt;<a href="#72">Socket</a>&gt; {
+</span><span class="kw">fn </span>set_common_flags(socket: Socket) -&gt; io::Result&lt;Socket&gt; {
     <span class="comment">// On platforms that don&#39;t have `SOCK_CLOEXEC` use `FD_CLOEXEC`.
     </span><span class="attr">#[cfg(all(
         unix,
@@ -2613,7 +2613,7 @@
     </span><span class="attr">#[cfg(target_vendor = <span class="string">&quot;apple&quot;</span>)]
     </span>socket._set_nosigpipe(<span class="bool-val">true</span>)<span class="question-mark">?</span>;
 
-    <span class="prelude-val">Ok</span>(<a href="#692">socket</a>)
+    <span class="prelude-val">Ok</span>(socket)
 }
 
 <span class="doccomment">/// A local interface specified by its index or an address assigned to it.
@@ -2630,9 +2630,9 @@
 #[derive(Debug)]
 </span><span class="kw">pub enum </span>InterfaceIndexOrAddress {
     <span class="doccomment">/// An interface index.
-    </span>Index(<a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>),
+    </span>Index(u32),
     <span class="doccomment">/// An address assigned to an interface.
-    </span>Address(<a href="https://doc.rust-lang.org/nightly/std/net/ip_addr/struct.Ipv4Addr.html">Ipv4Addr</a>),
+    </span>Address(Ipv4Addr),
 }
 
 <span class="doccomment">/// Socket options get/set using `SOL_SOCKET`.
@@ -2640,16 +2640,16 @@
 /// Additional documentation can be found in documentation of the OS.
 /// * Linux: &lt;https://man7.org/linux/man-pages/man7/socket.7.html&gt;
 /// * Windows: &lt;https://docs.microsoft.com/en-us/windows/win32/winsock/sol-socket-socket-options&gt;
-</span><span class="kw">impl </span><a href="#72">Socket</a> {
+</span><span class="kw">impl </span>Socket {
     <span class="doccomment">/// Get the value of the `SO_BROADCAST` option for this socket.
     ///
     /// For more information about this option, see [`set_broadcast`].
     ///
     /// [`set_broadcast`]: Socket::set_broadcast
-    </span><span class="kw">pub fn </span>broadcast(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>&gt; {
+    </span><span class="kw">pub fn </span>broadcast(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;bool&gt; {
         <span class="kw">unsafe </span>{
-            getsockopt::&lt;<a href="../../libc/unix/type.c_int.html">c_int</a>&gt;(<a class="self" href="#746">self</a>.<a href="#109">as_raw</a>(), <a href="../../libc/unix/linux_like/linux/arch/generic/constant.SOL_SOCKET.html">sys::SOL_SOCKET</a>, <a href="../../libc/unix/linux_like/linux/arch/generic/constant.SO_BROADCAST.html">sys::SO_BROADCAST</a>)
-                .map(|broadcast| <a href="#749">broadcast</a> != <span class="number">0</span>)
+            getsockopt::&lt;c_int&gt;(<span class="self">self</span>.as_raw(), sys::SOL_SOCKET, sys::SO_BROADCAST)
+                .map(|broadcast| broadcast != <span class="number">0</span>)
         }
     }
 
@@ -2657,13 +2657,13 @@
     ///
     /// When enabled, this socket is allowed to send packets to a broadcast
     /// address.
-    </span><span class="kw">pub fn </span>set_broadcast(<span class="kw-2">&amp;</span><span class="self">self</span>, broadcast: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; io::Result&lt;()&gt; {
+    </span><span class="kw">pub fn </span>set_broadcast(<span class="kw-2">&amp;</span><span class="self">self</span>, broadcast: bool) -&gt; io::Result&lt;()&gt; {
         <span class="kw">unsafe </span>{
-            <a href="sys/unix.rs.html#984-989">setsockopt</a>(
-                <a class="self" href="#757">self</a>.<a href="#109">as_raw</a>(),
-                <a href="../../libc/unix/linux_like/linux/arch/generic/constant.SOL_SOCKET.html">sys::SOL_SOCKET</a>,
-                <a href="../../libc/unix/linux_like/linux/arch/generic/constant.SO_BROADCAST.html">sys::SO_BROADCAST</a>,
-                <a href="#757">broadcast</a> <span class="kw">as </span><a href="../../libc/unix/type.c_int.html">c_int</a>,
+            setsockopt(
+                <span class="self">self</span>.as_raw(),
+                sys::SOL_SOCKET,
+                sys::SO_BROADCAST,
+                broadcast <span class="kw">as </span>c_int,
             )
         }
     }
@@ -2673,11 +2673,11 @@
     /// This will retrieve the stored error in the underlying socket, clearing
     /// the field in the process. This can be useful for checking errors between
     /// calls.
-    </span><span class="kw">pub fn </span>take_error(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;<span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a>&gt;&gt; {
-        <span class="kw">match unsafe </span>{ getsockopt::&lt;<a href="../../libc/unix/type.c_int.html">c_int</a>&gt;(<a class="self" href="#773">self</a>.<a href="#109">as_raw</a>(), <a href="../../libc/unix/linux_like/linux/arch/generic/constant.SOL_SOCKET.html">sys::SOL_SOCKET</a>, <a href="../../libc/unix/linux_like/linux/arch/generic/constant.SO_ERROR.html">sys::SO_ERROR</a>) } {
+    </span><span class="kw">pub fn </span>take_error(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;<span class="prelude-ty">Option</span>&lt;io::Error&gt;&gt; {
+        <span class="kw">match unsafe </span>{ getsockopt::&lt;c_int&gt;(<span class="self">self</span>.as_raw(), sys::SOL_SOCKET, sys::SO_ERROR) } {
             <span class="prelude-val">Ok</span>(<span class="number">0</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>),
-            <span class="prelude-val">Ok</span>(errno) =&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(io::Error::from_raw_os_error(<a href="#776">errno</a>))),
-            <span class="prelude-val">Err</span>(err) =&gt; <span class="prelude-val">Err</span>(<a href="#777">err</a>),
+            <span class="prelude-val">Ok</span>(errno) =&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(io::Error::from_raw_os_error(errno))),
+            <span class="prelude-val">Err</span>(err) =&gt; <span class="prelude-val">Err</span>(err),
         }
     }
 
@@ -2686,23 +2686,23 @@
     /// For more information about this option, see [`set_keepalive`].
     ///
     /// [`set_keepalive`]: Socket::set_keepalive
-    </span><span class="kw">pub fn </span>keepalive(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>&gt; {
+    </span><span class="kw">pub fn </span>keepalive(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;bool&gt; {
         <span class="kw">unsafe </span>{
-            getsockopt::&lt;<a href="sys/unix.rs.html#159">Bool</a>&gt;(<a class="self" href="#786">self</a>.<a href="#109">as_raw</a>(), <a href="../../libc/unix/linux_like/linux/arch/generic/constant.SOL_SOCKET.html">sys::SOL_SOCKET</a>, <a href="../../libc/unix/linux_like/linux/arch/generic/constant.SO_KEEPALIVE.html">sys::SO_KEEPALIVE</a>)
-                .map(|keepalive| <a href="#789">keepalive</a> != <span class="number">0</span>)
+            getsockopt::&lt;Bool&gt;(<span class="self">self</span>.as_raw(), sys::SOL_SOCKET, sys::SO_KEEPALIVE)
+                .map(|keepalive| keepalive != <span class="number">0</span>)
         }
     }
 
     <span class="doccomment">/// Set value for the `SO_KEEPALIVE` option on this socket.
     ///
     /// Enable sending of keep-alive messages on connection-oriented sockets.
-    </span><span class="kw">pub fn </span>set_keepalive(<span class="kw-2">&amp;</span><span class="self">self</span>, keepalive: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; io::Result&lt;()&gt; {
+    </span><span class="kw">pub fn </span>set_keepalive(<span class="kw-2">&amp;</span><span class="self">self</span>, keepalive: bool) -&gt; io::Result&lt;()&gt; {
         <span class="kw">unsafe </span>{
-            <a href="sys/unix.rs.html#984-989">setsockopt</a>(
-                <a class="self" href="#796">self</a>.<a href="#109">as_raw</a>(),
-                <a href="../../libc/unix/linux_like/linux/arch/generic/constant.SOL_SOCKET.html">sys::SOL_SOCKET</a>,
-                <a href="../../libc/unix/linux_like/linux/arch/generic/constant.SO_KEEPALIVE.html">sys::SO_KEEPALIVE</a>,
-                <a href="#796">keepalive</a> <span class="kw">as </span><a href="../../libc/unix/type.c_int.html">c_int</a>,
+            setsockopt(
+                <span class="self">self</span>.as_raw(),
+                sys::SOL_SOCKET,
+                sys::SO_KEEPALIVE,
+                keepalive <span class="kw">as </span>c_int,
             )
         }
     }
@@ -2712,10 +2712,10 @@
     /// For more information about this option, see [`set_linger`].
     ///
     /// [`set_linger`]: Socket::set_linger
-    </span><span class="kw">pub fn </span>linger(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;<span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a>&gt;&gt; {
+    </span><span class="kw">pub fn </span>linger(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;<span class="prelude-ty">Option</span>&lt;Duration&gt;&gt; {
         <span class="kw">unsafe </span>{
-            getsockopt::&lt;<a href="../../libc/unix/struct.linger.html">sys::linger</a>&gt;(<a class="self" href="#812">self</a>.<a href="#109">as_raw</a>(), <a href="../../libc/unix/linux_like/linux/arch/generic/constant.SOL_SOCKET.html">sys::SOL_SOCKET</a>, <a href="../../libc/unix/linux_like/linux/arch/generic/constant.SO_LINGER.html">sys::SO_LINGER</a>)
-                .map(<a href="#986">from_linger</a>)
+            getsockopt::&lt;sys::linger&gt;(<span class="self">self</span>.as_raw(), sys::SOL_SOCKET, sys::SO_LINGER)
+                .map(from_linger)
         }
     }
 
@@ -2733,9 +2733,9 @@
     /// silently truncated.
     ///
     /// On Apple platforms (e.g. macOS, iOS, etc) this uses `SO_LINGER_SEC`.
-    </span><span class="kw">pub fn </span>set_linger(<span class="kw-2">&amp;</span><span class="self">self</span>, linger: <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a>&gt;) -&gt; io::Result&lt;()&gt; {
-        <span class="kw">let </span>linger = <a href="#994">into_linger</a>(<a href="#833">linger</a>);
-        <span class="kw">unsafe </span>{ <a href="sys/unix.rs.html#984-989">setsockopt</a>(<a class="self" href="#833">self</a>.<a href="#109">as_raw</a>(), <a href="../../libc/unix/linux_like/linux/arch/generic/constant.SOL_SOCKET.html">sys::SOL_SOCKET</a>, <a href="../../libc/unix/linux_like/linux/arch/generic/constant.SO_LINGER.html">sys::SO_LINGER</a>, <a href="#834">linger</a>) }
+    </span><span class="kw">pub fn </span>set_linger(<span class="kw-2">&amp;</span><span class="self">self</span>, linger: <span class="prelude-ty">Option</span>&lt;Duration&gt;) -&gt; io::Result&lt;()&gt; {
+        <span class="kw">let </span>linger = into_linger(linger);
+        <span class="kw">unsafe </span>{ setsockopt(<span class="self">self</span>.as_raw(), sys::SOL_SOCKET, sys::SO_LINGER, linger) }
     }
 
     <span class="doccomment">/// Get value for the `SO_OOBINLINE` option on this socket.
@@ -2745,10 +2745,10 @@
     /// [`set_out_of_band_inline`]: Socket::set_out_of_band_inline
     </span><span class="attr">#[cfg(not(target_os = <span class="string">&quot;redox&quot;</span>))]
     #[cfg_attr(docsrs, doc(cfg(not(target_os = <span class="string">&quot;redox&quot;</span>))))]
-    </span><span class="kw">pub fn </span>out_of_band_inline(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>&gt; {
+    </span><span class="kw">pub fn </span>out_of_band_inline(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;bool&gt; {
         <span class="kw">unsafe </span>{
-            getsockopt::&lt;<a href="../../libc/unix/type.c_int.html">c_int</a>&gt;(<a class="self" href="#845">self</a>.<a href="#109">as_raw</a>(), <a href="../../libc/unix/linux_like/linux/arch/generic/constant.SOL_SOCKET.html">sys::SOL_SOCKET</a>, <a href="../../libc/unix/linux_like/linux/arch/generic/constant.SO_OOBINLINE.html">sys::SO_OOBINLINE</a>)
-                .map(|oob_inline| <a href="#848">oob_inline</a> != <span class="number">0</span>)
+            getsockopt::&lt;c_int&gt;(<span class="self">self</span>.as_raw(), sys::SOL_SOCKET, sys::SO_OOBINLINE)
+                .map(|oob_inline| oob_inline != <span class="number">0</span>)
         }
     }
 
@@ -2760,13 +2760,13 @@
     /// using the Urgent mechanism are encouraged to set this flag.
     </span><span class="attr">#[cfg(not(target_os = <span class="string">&quot;redox&quot;</span>))]
     #[cfg_attr(docsrs, doc(cfg(not(target_os = <span class="string">&quot;redox&quot;</span>))))]
-    </span><span class="kw">pub fn </span>set_out_of_band_inline(<span class="kw-2">&amp;</span><span class="self">self</span>, oob_inline: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; io::Result&lt;()&gt; {
+    </span><span class="kw">pub fn </span>set_out_of_band_inline(<span class="kw-2">&amp;</span><span class="self">self</span>, oob_inline: bool) -&gt; io::Result&lt;()&gt; {
         <span class="kw">unsafe </span>{
-            <a href="sys/unix.rs.html#984-989">setsockopt</a>(
-                <a class="self" href="#860">self</a>.<a href="#109">as_raw</a>(),
-                <a href="../../libc/unix/linux_like/linux/arch/generic/constant.SOL_SOCKET.html">sys::SOL_SOCKET</a>,
-                <a href="../../libc/unix/linux_like/linux/arch/generic/constant.SO_OOBINLINE.html">sys::SO_OOBINLINE</a>,
-                <a href="#860">oob_inline</a> <span class="kw">as </span><a href="../../libc/unix/type.c_int.html">c_int</a>,
+            setsockopt(
+                <span class="self">self</span>.as_raw(),
+                sys::SOL_SOCKET,
+                sys::SO_OOBINLINE,
+                oob_inline <span class="kw">as </span>c_int,
             )
         }
     }
@@ -2776,10 +2776,10 @@
     /// For more information about this option, see [`set_recv_buffer_size`].
     ///
     /// [`set_recv_buffer_size`]: Socket::set_recv_buffer_size
-    </span><span class="kw">pub fn </span>recv_buffer_size(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
+    </span><span class="kw">pub fn </span>recv_buffer_size(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;usize&gt; {
         <span class="kw">unsafe </span>{
-            getsockopt::&lt;<a href="../../libc/unix/type.c_int.html">c_int</a>&gt;(<a class="self" href="#876">self</a>.<a href="#109">as_raw</a>(), <a href="../../libc/unix/linux_like/linux/arch/generic/constant.SOL_SOCKET.html">sys::SOL_SOCKET</a>, <a href="../../libc/unix/linux_like/linux/arch/generic/constant.SO_RCVBUF.html">sys::SO_RCVBUF</a>)
-                .map(|size| <a href="#879">size</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>)
+            getsockopt::&lt;c_int&gt;(<span class="self">self</span>.as_raw(), sys::SOL_SOCKET, sys::SO_RCVBUF)
+                .map(|size| size <span class="kw">as </span>usize)
         }
     }
 
@@ -2787,13 +2787,13 @@
     ///
     /// Changes the size of the operating system&#39;s receive buffer associated
     /// with the socket.
-    </span><span class="kw">pub fn </span>set_recv_buffer_size(<span class="kw-2">&amp;</span><span class="self">self</span>, size: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; io::Result&lt;()&gt; {
+    </span><span class="kw">pub fn </span>set_recv_buffer_size(<span class="kw-2">&amp;</span><span class="self">self</span>, size: usize) -&gt; io::Result&lt;()&gt; {
         <span class="kw">unsafe </span>{
-            <a href="sys/unix.rs.html#984-989">setsockopt</a>(
-                <a class="self" href="#887">self</a>.<a href="#109">as_raw</a>(),
-                <a href="../../libc/unix/linux_like/linux/arch/generic/constant.SOL_SOCKET.html">sys::SOL_SOCKET</a>,
-                <a href="../../libc/unix/linux_like/linux/arch/generic/constant.SO_RCVBUF.html">sys::SO_RCVBUF</a>,
-                <a href="#887">size</a> <span class="kw">as </span><a href="../../libc/unix/type.c_int.html">c_int</a>,
+            setsockopt(
+                <span class="self">self</span>.as_raw(),
+                sys::SOL_SOCKET,
+                sys::SO_RCVBUF,
+                size <span class="kw">as </span>c_int,
             )
         }
     }
@@ -2802,16 +2802,16 @@
     ///
     /// If the returned timeout is `None`, then `read` and `recv` calls will
     /// block indefinitely.
-    </span><span class="kw">pub fn </span>read_timeout(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;<span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a>&gt;&gt; {
-        <a href="sys/unix.rs.html#855">sys::timeout_opt</a>(<a class="self" href="#902">self</a>.<a href="#109">as_raw</a>(), <a href="../../libc/unix/linux_like/linux/arch/generic/constant.SOL_SOCKET.html">sys::SOL_SOCKET</a>, <a href="../../libc/unix/linux_like/linux/arch/generic/constant.SO_RCVTIMEO.html">sys::SO_RCVTIMEO</a>)
+    </span><span class="kw">pub fn </span>read_timeout(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;<span class="prelude-ty">Option</span>&lt;Duration&gt;&gt; {
+        sys::timeout_opt(<span class="self">self</span>.as_raw(), sys::SOL_SOCKET, sys::SO_RCVTIMEO)
     }
 
     <span class="doccomment">/// Set value for the `SO_RCVTIMEO` option on this socket.
     ///
     /// If `timeout` is `None`, then `read` and `recv` calls will block
     /// indefinitely.
-    </span><span class="kw">pub fn </span>set_read_timeout(<span class="kw-2">&amp;</span><span class="self">self</span>, duration: <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a>&gt;) -&gt; io::Result&lt;()&gt; {
-        <a href="sys/unix.rs.html#870-875">sys::set_timeout_opt</a>(<a class="self" href="#910">self</a>.<a href="#109">as_raw</a>(), <a href="../../libc/unix/linux_like/linux/arch/generic/constant.SOL_SOCKET.html">sys::SOL_SOCKET</a>, <a href="../../libc/unix/linux_like/linux/arch/generic/constant.SO_RCVTIMEO.html">sys::SO_RCVTIMEO</a>, <a href="#910">duration</a>)
+    </span><span class="kw">pub fn </span>set_read_timeout(<span class="kw-2">&amp;</span><span class="self">self</span>, duration: <span class="prelude-ty">Option</span>&lt;Duration&gt;) -&gt; io::Result&lt;()&gt; {
+        sys::set_timeout_opt(<span class="self">self</span>.as_raw(), sys::SOL_SOCKET, sys::SO_RCVTIMEO, duration)
     }
 
     <span class="doccomment">/// Get the value of the `SO_REUSEADDR` option on this socket.
@@ -2819,10 +2819,10 @@
     /// For more information about this option, see [`set_reuse_address`].
     ///
     /// [`set_reuse_address`]: Socket::set_reuse_address
-    </span><span class="kw">pub fn </span>reuse_address(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>&gt; {
+    </span><span class="kw">pub fn </span>reuse_address(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;bool&gt; {
         <span class="kw">unsafe </span>{
-            getsockopt::&lt;<a href="../../libc/unix/type.c_int.html">c_int</a>&gt;(<a class="self" href="#919">self</a>.<a href="#109">as_raw</a>(), <a href="../../libc/unix/linux_like/linux/arch/generic/constant.SOL_SOCKET.html">sys::SOL_SOCKET</a>, <a href="../../libc/unix/linux_like/linux/arch/generic/constant.SO_REUSEADDR.html">sys::SO_REUSEADDR</a>)
-                .map(|reuse| <a href="#922">reuse</a> != <span class="number">0</span>)
+            getsockopt::&lt;c_int&gt;(<span class="self">self</span>.as_raw(), sys::SOL_SOCKET, sys::SO_REUSEADDR)
+                .map(|reuse| reuse != <span class="number">0</span>)
         }
     }
 
@@ -2831,13 +2831,13 @@
     /// This indicates that futher calls to `bind` may allow reuse of local
     /// addresses. For IPv4 sockets this means that a socket may bind even when
     /// there&#39;s a socket already listening on this port.
-    </span><span class="kw">pub fn </span>set_reuse_address(<span class="kw-2">&amp;</span><span class="self">self</span>, reuse: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; io::Result&lt;()&gt; {
+    </span><span class="kw">pub fn </span>set_reuse_address(<span class="kw-2">&amp;</span><span class="self">self</span>, reuse: bool) -&gt; io::Result&lt;()&gt; {
         <span class="kw">unsafe </span>{
-            <a href="sys/unix.rs.html#984-989">setsockopt</a>(
-                <a class="self" href="#931">self</a>.<a href="#109">as_raw</a>(),
-                <a href="../../libc/unix/linux_like/linux/arch/generic/constant.SOL_SOCKET.html">sys::SOL_SOCKET</a>,
-                <a href="../../libc/unix/linux_like/linux/arch/generic/constant.SO_REUSEADDR.html">sys::SO_REUSEADDR</a>,
-                <a href="#931">reuse</a> <span class="kw">as </span><a href="../../libc/unix/type.c_int.html">c_int</a>,
+            setsockopt(
+                <span class="self">self</span>.as_raw(),
+                sys::SOL_SOCKET,
+                sys::SO_REUSEADDR,
+                reuse <span class="kw">as </span>c_int,
             )
         }
     }
@@ -2847,10 +2847,10 @@
     /// For more information about this option, see [`set_send_buffer_size`].
     ///
     /// [`set_send_buffer_size`]: Socket::set_send_buffer_size
-    </span><span class="kw">pub fn </span>send_buffer_size(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
+    </span><span class="kw">pub fn </span>send_buffer_size(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;usize&gt; {
         <span class="kw">unsafe </span>{
-            getsockopt::&lt;<a href="../../libc/unix/type.c_int.html">c_int</a>&gt;(<a class="self" href="#947">self</a>.<a href="#109">as_raw</a>(), <a href="../../libc/unix/linux_like/linux/arch/generic/constant.SOL_SOCKET.html">sys::SOL_SOCKET</a>, <a href="../../libc/unix/linux_like/linux/arch/generic/constant.SO_SNDBUF.html">sys::SO_SNDBUF</a>)
-                .map(|size| <a href="#950">size</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>)
+            getsockopt::&lt;c_int&gt;(<span class="self">self</span>.as_raw(), sys::SOL_SOCKET, sys::SO_SNDBUF)
+                .map(|size| size <span class="kw">as </span>usize)
         }
     }
 
@@ -2858,13 +2858,13 @@
     ///
     /// Changes the size of the operating system&#39;s send buffer associated with
     /// the socket.
-    </span><span class="kw">pub fn </span>set_send_buffer_size(<span class="kw-2">&amp;</span><span class="self">self</span>, size: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; io::Result&lt;()&gt; {
+    </span><span class="kw">pub fn </span>set_send_buffer_size(<span class="kw-2">&amp;</span><span class="self">self</span>, size: usize) -&gt; io::Result&lt;()&gt; {
         <span class="kw">unsafe </span>{
-            <a href="sys/unix.rs.html#984-989">setsockopt</a>(
-                <a class="self" href="#958">self</a>.<a href="#109">as_raw</a>(),
-                <a href="../../libc/unix/linux_like/linux/arch/generic/constant.SOL_SOCKET.html">sys::SOL_SOCKET</a>,
-                <a href="../../libc/unix/linux_like/linux/arch/generic/constant.SO_SNDBUF.html">sys::SO_SNDBUF</a>,
-                <a href="#958">size</a> <span class="kw">as </span><a href="../../libc/unix/type.c_int.html">c_int</a>,
+            setsockopt(
+                <span class="self">self</span>.as_raw(),
+                sys::SOL_SOCKET,
+                sys::SO_SNDBUF,
+                size <span class="kw">as </span>c_int,
             )
         }
     }
@@ -2873,34 +2873,34 @@
     ///
     /// If the returned timeout is `None`, then `write` and `send` calls will
     /// block indefinitely.
-    </span><span class="kw">pub fn </span>write_timeout(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;<span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a>&gt;&gt; {
-        <a href="sys/unix.rs.html#855">sys::timeout_opt</a>(<a class="self" href="#973">self</a>.<a href="#109">as_raw</a>(), <a href="../../libc/unix/linux_like/linux/arch/generic/constant.SOL_SOCKET.html">sys::SOL_SOCKET</a>, <a href="../../libc/unix/linux_like/linux/arch/generic/constant.SO_SNDTIMEO.html">sys::SO_SNDTIMEO</a>)
+    </span><span class="kw">pub fn </span>write_timeout(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;<span class="prelude-ty">Option</span>&lt;Duration&gt;&gt; {
+        sys::timeout_opt(<span class="self">self</span>.as_raw(), sys::SOL_SOCKET, sys::SO_SNDTIMEO)
     }
 
     <span class="doccomment">/// Set value for the `SO_SNDTIMEO` option on this socket.
     ///
     /// If `timeout` is `None`, then `write` and `send` calls will block
     /// indefinitely.
-    </span><span class="kw">pub fn </span>set_write_timeout(<span class="kw-2">&amp;</span><span class="self">self</span>, duration: <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a>&gt;) -&gt; io::Result&lt;()&gt; {
-        <a href="sys/unix.rs.html#870-875">sys::set_timeout_opt</a>(<a class="self" href="#981">self</a>.<a href="#109">as_raw</a>(), <a href="../../libc/unix/linux_like/linux/arch/generic/constant.SOL_SOCKET.html">sys::SOL_SOCKET</a>, <a href="../../libc/unix/linux_like/linux/arch/generic/constant.SO_SNDTIMEO.html">sys::SO_SNDTIMEO</a>, <a href="#981">duration</a>)
+    </span><span class="kw">pub fn </span>set_write_timeout(<span class="kw-2">&amp;</span><span class="self">self</span>, duration: <span class="prelude-ty">Option</span>&lt;Duration&gt;) -&gt; io::Result&lt;()&gt; {
+        sys::set_timeout_opt(<span class="self">self</span>.as_raw(), sys::SOL_SOCKET, sys::SO_SNDTIMEO, duration)
     }
 }
 
-<span class="kw">fn </span>from_linger(linger: <a href="../../libc/unix/struct.linger.html">sys::linger</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a>&gt; {
+<span class="kw">fn </span>from_linger(linger: sys::linger) -&gt; <span class="prelude-ty">Option</span>&lt;Duration&gt; {
     <span class="kw">if </span>linger.l_onoff == <span class="number">0 </span>{
         <span class="prelude-val">None
     </span>} <span class="kw">else </span>{
-        <span class="prelude-val">Some</span>(Duration::from_secs(<a href="#986">linger</a>.l_linger <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>))
+        <span class="prelude-val">Some</span>(Duration::from_secs(linger.l_linger <span class="kw">as </span>u64))
     }
 }
 
-<span class="kw">fn </span>into_linger(duration: <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a>&gt;) -&gt; <a href="../../libc/unix/struct.linger.html">sys::linger</a> {
-    <span class="kw">match </span><a href="#994">duration</a> {
-        <span class="prelude-val">Some</span>(duration) =&gt; <a href="../../libc/unix/struct.linger.html">sys::linger</a> {
+<span class="kw">fn </span>into_linger(duration: <span class="prelude-ty">Option</span>&lt;Duration&gt;) -&gt; sys::linger {
+    <span class="kw">match </span>duration {
+        <span class="prelude-val">Some</span>(duration) =&gt; sys::linger {
             l_onoff: <span class="number">1</span>,
-            l_linger: <a href="#996">duration</a>.as_secs() <span class="kw">as _</span>,
+            l_linger: duration.as_secs() <span class="kw">as _</span>,
         },
-        <span class="prelude-val">None </span>=&gt; <a href="../../libc/unix/struct.linger.html">sys::linger</a> {
+        <span class="prelude-val">None </span>=&gt; sys::linger {
             l_onoff: <span class="number">0</span>,
             l_linger: <span class="number">0</span>,
         },
@@ -2912,7 +2912,7 @@
 /// Additional documentation can be found in documentation of the OS.
 /// * Linux: &lt;https://man7.org/linux/man-pages/man7/ip.7.html&gt;
 /// * Windows: &lt;https://docs.microsoft.com/en-us/windows/win32/winsock/ipproto-ip-socket-options&gt;
-</span><span class="kw">impl </span><a href="#72">Socket</a> {
+</span><span class="kw">impl </span>Socket {
     <span class="doccomment">/// Get the value of the `IP_HDRINCL` option on this socket.
     ///
     /// For more information about this option, see [`set_header_included`].
@@ -2920,10 +2920,10 @@
     /// [`set_header_included`]: Socket::set_header_included
     </span><span class="attr">#[cfg(all(feature = <span class="string">&quot;all&quot;</span>, not(target_os = <span class="string">&quot;redox&quot;</span>)))]
     #[cfg_attr(docsrs, doc(all(feature = <span class="string">&quot;all&quot;</span>, not(target_os = <span class="string">&quot;redox&quot;</span>))))]
-    </span><span class="kw">pub fn </span>header_included(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>&gt; {
+    </span><span class="kw">pub fn </span>header_included(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;bool&gt; {
         <span class="kw">unsafe </span>{
-            getsockopt::&lt;<a href="../../libc/unix/type.c_int.html">c_int</a>&gt;(<a class="self" href="#1020">self</a>.<a href="#109">as_raw</a>(), <a href="../../libc/unix/constant.IPPROTO_IP.html">sys::IPPROTO_IP</a>, <a href="../../libc/unix/linux_like/constant.IP_HDRINCL.html">sys::IP_HDRINCL</a>)
-                .map(|included| <a href="#1023">included</a> != <span class="number">0</span>)
+            getsockopt::&lt;c_int&gt;(<span class="self">self</span>.as_raw(), sys::IPPROTO_IP, sys::IP_HDRINCL)
+                .map(|included| included != <span class="number">0</span>)
         }
     }
 
@@ -2940,13 +2940,13 @@
     /// [`IP_TOS`]: Socket::set_tos
     </span><span class="attr">#[cfg(all(feature = <span class="string">&quot;all&quot;</span>, not(target_os = <span class="string">&quot;redox&quot;</span>)))]
     #[cfg_attr(docsrs, doc(all(feature = <span class="string">&quot;all&quot;</span>, not(target_os = <span class="string">&quot;redox&quot;</span>))))]
-    </span><span class="kw">pub fn </span>set_header_included(<span class="kw-2">&amp;</span><span class="self">self</span>, included: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; io::Result&lt;()&gt; {
+    </span><span class="kw">pub fn </span>set_header_included(<span class="kw-2">&amp;</span><span class="self">self</span>, included: bool) -&gt; io::Result&lt;()&gt; {
         <span class="kw">unsafe </span>{
-            <a href="sys/unix.rs.html#984-989">setsockopt</a>(
-                <a class="self" href="#1040">self</a>.<a href="#109">as_raw</a>(),
-                <a href="../../libc/unix/constant.IPPROTO_IP.html">sys::IPPROTO_IP</a>,
-                <a href="../../libc/unix/linux_like/constant.IP_HDRINCL.html">sys::IP_HDRINCL</a>,
-                <a href="#1040">included</a> <span class="kw">as </span><a href="../../libc/unix/type.c_int.html">c_int</a>,
+            setsockopt(
+                <span class="self">self</span>.as_raw(),
+                sys::IPPROTO_IP,
+                sys::IP_HDRINCL,
+                included <span class="kw">as </span>c_int,
             )
         }
     }
@@ -2958,10 +2958,10 @@
     /// [`set_ip_transparent`]: Socket::set_ip_transparent
     </span><span class="attr">#[cfg(any(doc, all(feature = <span class="string">&quot;all&quot;</span>, target_os = <span class="string">&quot;linux&quot;</span>)))]
     #[cfg_attr(docsrs, doc(cfg(all(feature = <span class="string">&quot;all&quot;</span>, target_os = <span class="string">&quot;linux&quot;</span>))))]
-    </span><span class="kw">pub fn </span>ip_transparent(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>&gt; {
+    </span><span class="kw">pub fn </span>ip_transparent(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;bool&gt; {
         <span class="kw">unsafe </span>{
-            getsockopt::&lt;<a href="../../libc/unix/type.c_int.html">c_int</a>&gt;(<a class="self" href="#1058">self</a>.<a href="#109">as_raw</a>(), <a href="../../libc/unix/constant.IPPROTO_IP.html">sys::IPPROTO_IP</a>, libc::IP_TRANSPARENT)
-                .map(|transparent| <a href="#1061">transparent</a> != <span class="number">0</span>)
+            getsockopt::&lt;c_int&gt;(<span class="self">self</span>.as_raw(), sys::IPPROTO_IP, libc::IP_TRANSPARENT)
+                .map(|transparent| transparent != <span class="number">0</span>)
         }
     }
 
@@ -2982,13 +2982,13 @@
     /// requires that this option be set on the redirected socket.
     </span><span class="attr">#[cfg(any(doc, all(feature = <span class="string">&quot;all&quot;</span>, target_os = <span class="string">&quot;linux&quot;</span>)))]
     #[cfg_attr(docsrs, doc(cfg(all(feature = <span class="string">&quot;all&quot;</span>, target_os = <span class="string">&quot;linux&quot;</span>))))]
-    </span><span class="kw">pub fn </span>set_ip_transparent(<span class="kw-2">&amp;</span><span class="self">self</span>, transparent: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; io::Result&lt;()&gt; {
+    </span><span class="kw">pub fn </span>set_ip_transparent(<span class="kw-2">&amp;</span><span class="self">self</span>, transparent: bool) -&gt; io::Result&lt;()&gt; {
         <span class="kw">unsafe </span>{
-            <a href="sys/unix.rs.html#984-989">setsockopt</a>(
-                <a class="self" href="#1082">self</a>.<a href="#109">as_raw</a>(),
-                <a href="../../libc/unix/constant.IPPROTO_IP.html">sys::IPPROTO_IP</a>,
+            setsockopt(
+                <span class="self">self</span>.as_raw(),
+                sys::IPPROTO_IP,
                 libc::IP_TRANSPARENT,
-                <a href="#1082">transparent</a> <span class="kw">as </span><a href="../../libc/unix/type.c_int.html">c_int</a>,
+                transparent <span class="kw">as </span>c_int,
             )
         }
     }
@@ -3000,12 +3000,12 @@
     /// address of the local interface with which the system should join the
     /// multicast group. If it&#39;s [`Ipv4Addr::UNSPECIFIED`] (`INADDR_ANY`) then
     /// an appropriate interface is chosen by the system.
-    </span><span class="kw">pub fn </span>join_multicast_v4(<span class="kw-2">&amp;</span><span class="self">self</span>, multiaddr: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/net/ip_addr/struct.Ipv4Addr.html">Ipv4Addr</a>, interface: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/net/ip_addr/struct.Ipv4Addr.html">Ipv4Addr</a>) -&gt; io::Result&lt;()&gt; {
-        <span class="kw">let </span>mreq = <a href="../../libc/unix/linux_like/struct.ip_mreq.html">sys::IpMreq</a> {
-            imr_multiaddr: <a href="sys/unix.rs.html#1001">sys::to_in_addr</a>(<a href="#1100">multiaddr</a>),
-            imr_interface: <a href="sys/unix.rs.html#1001">sys::to_in_addr</a>(<a href="#1100">interface</a>),
+    </span><span class="kw">pub fn </span>join_multicast_v4(<span class="kw-2">&amp;</span><span class="self">self</span>, multiaddr: <span class="kw-2">&amp;</span>Ipv4Addr, interface: <span class="kw-2">&amp;</span>Ipv4Addr) -&gt; io::Result&lt;()&gt; {
+        <span class="kw">let </span>mreq = sys::IpMreq {
+            imr_multiaddr: sys::to_in_addr(multiaddr),
+            imr_interface: sys::to_in_addr(interface),
         };
-        <span class="kw">unsafe </span>{ <a href="sys/unix.rs.html#984-989">setsockopt</a>(<a class="self" href="#1100">self</a>.<a href="#109">as_raw</a>(), <a href="../../libc/unix/constant.IPPROTO_IP.html">sys::IPPROTO_IP</a>, <a href="../../libc/unix/linux_like/constant.IP_ADD_MEMBERSHIP.html">sys::IP_ADD_MEMBERSHIP</a>, <a href="#1101">mreq</a>) }
+        <span class="kw">unsafe </span>{ setsockopt(<span class="self">self</span>.as_raw(), sys::IPPROTO_IP, sys::IP_ADD_MEMBERSHIP, mreq) }
     }
 
     <span class="doccomment">/// Leave a multicast group using `IP_DROP_MEMBERSHIP` option on this socket.
@@ -3013,17 +3013,17 @@
     /// For more information about this option, see [`join_multicast_v4`].
     ///
     /// [`join_multicast_v4`]: Socket::join_multicast_v4
-    </span><span class="kw">pub fn </span>leave_multicast_v4(<span class="kw-2">&amp;</span><span class="self">self</span>, multiaddr: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/net/ip_addr/struct.Ipv4Addr.html">Ipv4Addr</a>, interface: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/net/ip_addr/struct.Ipv4Addr.html">Ipv4Addr</a>) -&gt; io::Result&lt;()&gt; {
-        <span class="kw">let </span>mreq = <a href="../../libc/unix/linux_like/struct.ip_mreq.html">sys::IpMreq</a> {
-            imr_multiaddr: <a href="sys/unix.rs.html#1001">sys::to_in_addr</a>(<a href="#1113">multiaddr</a>),
-            imr_interface: <a href="sys/unix.rs.html#1001">sys::to_in_addr</a>(<a href="#1113">interface</a>),
+    </span><span class="kw">pub fn </span>leave_multicast_v4(<span class="kw-2">&amp;</span><span class="self">self</span>, multiaddr: <span class="kw-2">&amp;</span>Ipv4Addr, interface: <span class="kw-2">&amp;</span>Ipv4Addr) -&gt; io::Result&lt;()&gt; {
+        <span class="kw">let </span>mreq = sys::IpMreq {
+            imr_multiaddr: sys::to_in_addr(multiaddr),
+            imr_interface: sys::to_in_addr(interface),
         };
         <span class="kw">unsafe </span>{
-            <a href="sys/unix.rs.html#984-989">setsockopt</a>(
-                <a class="self" href="#1113">self</a>.<a href="#109">as_raw</a>(),
-                <a href="../../libc/unix/constant.IPPROTO_IP.html">sys::IPPROTO_IP</a>,
-                <a href="../../libc/unix/linux_like/constant.IP_DROP_MEMBERSHIP.html">sys::IP_DROP_MEMBERSHIP</a>,
-                <a href="#1114">mreq</a>,
+            setsockopt(
+                <span class="self">self</span>.as_raw(),
+                sys::IPPROTO_IP,
+                sys::IP_DROP_MEMBERSHIP,
+                mreq,
             )
         }
     }
@@ -3044,16 +3044,16 @@
     )))]
     </span><span class="kw">pub fn </span>join_multicast_v4_n(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        multiaddr: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/net/ip_addr/struct.Ipv4Addr.html">Ipv4Addr</a>,
-        interface: <span class="kw-2">&amp;</span><a href="#728">InterfaceIndexOrAddress</a>,
+        multiaddr: <span class="kw-2">&amp;</span>Ipv4Addr,
+        interface: <span class="kw-2">&amp;</span>InterfaceIndexOrAddress,
     ) -&gt; io::Result&lt;()&gt; {
-        <span class="kw">let </span>mreqn = <a href="sys/unix.rs.html#1032-1035">sys::to_mreqn</a>(<a href="#1144">multiaddr</a>, <a href="#1145">interface</a>);
+        <span class="kw">let </span>mreqn = sys::to_mreqn(multiaddr, interface);
         <span class="kw">unsafe </span>{
-            <a href="sys/unix.rs.html#984-989">setsockopt</a>(
-                <a class="self" href="#1143">self</a>.<a href="#109">as_raw</a>(),
-                <a href="../../libc/unix/constant.IPPROTO_IP.html">sys::IPPROTO_IP</a>,
-                <a href="../../libc/unix/linux_like/constant.IP_ADD_MEMBERSHIP.html">sys::IP_ADD_MEMBERSHIP</a>,
-                <a href="#1147">mreqn</a>,
+            setsockopt(
+                <span class="self">self</span>.as_raw(),
+                sys::IPPROTO_IP,
+                sys::IP_ADD_MEMBERSHIP,
+                mreqn,
             )
         }
     }
@@ -3073,16 +3073,16 @@
     )))]
     </span><span class="kw">pub fn </span>leave_multicast_v4_n(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        multiaddr: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/net/ip_addr/struct.Ipv4Addr.html">Ipv4Addr</a>,
-        interface: <span class="kw-2">&amp;</span><a href="#728">InterfaceIndexOrAddress</a>,
+        multiaddr: <span class="kw-2">&amp;</span>Ipv4Addr,
+        interface: <span class="kw-2">&amp;</span>InterfaceIndexOrAddress,
     ) -&gt; io::Result&lt;()&gt; {
-        <span class="kw">let </span>mreqn = <a href="sys/unix.rs.html#1032-1035">sys::to_mreqn</a>(<a href="#1173">multiaddr</a>, <a href="#1174">interface</a>);
+        <span class="kw">let </span>mreqn = sys::to_mreqn(multiaddr, interface);
         <span class="kw">unsafe </span>{
-            <a href="sys/unix.rs.html#984-989">setsockopt</a>(
-                <a class="self" href="#1172">self</a>.<a href="#109">as_raw</a>(),
-                <a href="../../libc/unix/constant.IPPROTO_IP.html">sys::IPPROTO_IP</a>,
-                <a href="../../libc/unix/linux_like/constant.IP_DROP_MEMBERSHIP.html">sys::IP_DROP_MEMBERSHIP</a>,
-                <a href="#1176">mreqn</a>,
+            setsockopt(
+                <span class="self">self</span>.as_raw(),
+                sys::IPPROTO_IP,
+                sys::IP_DROP_MEMBERSHIP,
+                mreqn,
             )
         }
     }
@@ -3104,21 +3104,21 @@
     )))]
     </span><span class="kw">pub fn </span>join_ssm_v4(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        source: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/net/ip_addr/struct.Ipv4Addr.html">Ipv4Addr</a>,
-        group: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/net/ip_addr/struct.Ipv4Addr.html">Ipv4Addr</a>,
-        interface: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/net/ip_addr/struct.Ipv4Addr.html">Ipv4Addr</a>,
+        source: <span class="kw-2">&amp;</span>Ipv4Addr,
+        group: <span class="kw-2">&amp;</span>Ipv4Addr,
+        interface: <span class="kw-2">&amp;</span>Ipv4Addr,
     ) -&gt; io::Result&lt;()&gt; {
-        <span class="kw">let </span>mreqs = <a href="../../libc/unix/linux_like/struct.ip_mreq_source.html">sys::IpMreqSource</a> {
-            imr_multiaddr: <a href="sys/unix.rs.html#1001">sys::to_in_addr</a>(<a href="#1205">group</a>),
-            imr_interface: <a href="sys/unix.rs.html#1001">sys::to_in_addr</a>(<a href="#1206">interface</a>),
-            imr_sourceaddr: <a href="sys/unix.rs.html#1001">sys::to_in_addr</a>(<a href="#1204">source</a>),
+        <span class="kw">let </span>mreqs = sys::IpMreqSource {
+            imr_multiaddr: sys::to_in_addr(group),
+            imr_interface: sys::to_in_addr(interface),
+            imr_sourceaddr: sys::to_in_addr(source),
         };
         <span class="kw">unsafe </span>{
-            <a href="sys/unix.rs.html#984-989">setsockopt</a>(
-                <a class="self" href="#1203">self</a>.<a href="#109">as_raw</a>(),
-                <a href="../../libc/unix/constant.IPPROTO_IP.html">sys::IPPROTO_IP</a>,
-                <a href="../../libc/unix/linux_like/constant.IP_ADD_SOURCE_MEMBERSHIP.html">sys::IP_ADD_SOURCE_MEMBERSHIP</a>,
-                <a href="#1208">mreqs</a>,
+            setsockopt(
+                <span class="self">self</span>.as_raw(),
+                sys::IPPROTO_IP,
+                sys::IP_ADD_SOURCE_MEMBERSHIP,
+                mreqs,
             )
         }
     }
@@ -3138,21 +3138,21 @@
     )))]
     </span><span class="kw">pub fn </span>leave_ssm_v4(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        source: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/net/ip_addr/struct.Ipv4Addr.html">Ipv4Addr</a>,
-        group: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/net/ip_addr/struct.Ipv4Addr.html">Ipv4Addr</a>,
-        interface: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/net/ip_addr/struct.Ipv4Addr.html">Ipv4Addr</a>,
+        source: <span class="kw-2">&amp;</span>Ipv4Addr,
+        group: <span class="kw-2">&amp;</span>Ipv4Addr,
+        interface: <span class="kw-2">&amp;</span>Ipv4Addr,
     ) -&gt; io::Result&lt;()&gt; {
-        <span class="kw">let </span>mreqs = <a href="../../libc/unix/linux_like/struct.ip_mreq_source.html">sys::IpMreqSource</a> {
-            imr_multiaddr: <a href="sys/unix.rs.html#1001">sys::to_in_addr</a>(<a href="#1239">group</a>),
-            imr_interface: <a href="sys/unix.rs.html#1001">sys::to_in_addr</a>(<a href="#1240">interface</a>),
-            imr_sourceaddr: <a href="sys/unix.rs.html#1001">sys::to_in_addr</a>(<a href="#1238">source</a>),
+        <span class="kw">let </span>mreqs = sys::IpMreqSource {
+            imr_multiaddr: sys::to_in_addr(group),
+            imr_interface: sys::to_in_addr(interface),
+            imr_sourceaddr: sys::to_in_addr(source),
         };
         <span class="kw">unsafe </span>{
-            <a href="sys/unix.rs.html#984-989">setsockopt</a>(
-                <a class="self" href="#1237">self</a>.<a href="#109">as_raw</a>(),
-                <a href="../../libc/unix/constant.IPPROTO_IP.html">sys::IPPROTO_IP</a>,
-                <a href="../../libc/unix/linux_like/constant.IP_DROP_SOURCE_MEMBERSHIP.html">sys::IP_DROP_SOURCE_MEMBERSHIP</a>,
-                <a href="#1242">mreqs</a>,
+            setsockopt(
+                <span class="self">self</span>.as_raw(),
+                sys::IPPROTO_IP,
+                sys::IP_DROP_SOURCE_MEMBERSHIP,
+                mreqs,
             )
         }
     }
@@ -3162,23 +3162,23 @@
     /// For more information about this option, see [`set_multicast_if_v4`].
     ///
     /// [`set_multicast_if_v4`]: Socket::set_multicast_if_v4
-    </span><span class="kw">pub fn </span>multicast_if_v4(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/net/ip_addr/struct.Ipv4Addr.html">Ipv4Addr</a>&gt; {
+    </span><span class="kw">pub fn </span>multicast_if_v4(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;Ipv4Addr&gt; {
         <span class="kw">unsafe </span>{
-            <a href="sys/unix.rs.html#966">getsockopt</a>(<a class="self" href="#1262">self</a>.<a href="#109">as_raw</a>(), <a href="../../libc/unix/constant.IPPROTO_IP.html">sys::IPPROTO_IP</a>, <a href="../../libc/unix/linux_like/constant.IP_MULTICAST_IF.html">sys::IP_MULTICAST_IF</a>).map(<a href="sys/unix.rs.html#1010">sys::from_in_addr</a>)
+            getsockopt(<span class="self">self</span>.as_raw(), sys::IPPROTO_IP, sys::IP_MULTICAST_IF).map(sys::from_in_addr)
         }
     }
 
     <span class="doccomment">/// Set the value of the `IP_MULTICAST_IF` option for this socket.
     ///
     /// Specifies the interface to use for routing multicast packets.
-    </span><span class="kw">pub fn </span>set_multicast_if_v4(<span class="kw-2">&amp;</span><span class="self">self</span>, interface: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/net/ip_addr/struct.Ipv4Addr.html">Ipv4Addr</a>) -&gt; io::Result&lt;()&gt; {
-        <span class="kw">let </span>interface = <a href="sys/unix.rs.html#1001">sys::to_in_addr</a>(<a href="#1271">interface</a>);
+    </span><span class="kw">pub fn </span>set_multicast_if_v4(<span class="kw-2">&amp;</span><span class="self">self</span>, interface: <span class="kw-2">&amp;</span>Ipv4Addr) -&gt; io::Result&lt;()&gt; {
+        <span class="kw">let </span>interface = sys::to_in_addr(interface);
         <span class="kw">unsafe </span>{
-            <a href="sys/unix.rs.html#984-989">setsockopt</a>(
-                <a class="self" href="#1271">self</a>.<a href="#109">as_raw</a>(),
-                <a href="../../libc/unix/constant.IPPROTO_IP.html">sys::IPPROTO_IP</a>,
-                <a href="../../libc/unix/linux_like/constant.IP_MULTICAST_IF.html">sys::IP_MULTICAST_IF</a>,
-                <a href="#1272">interface</a>,
+            setsockopt(
+                <span class="self">self</span>.as_raw(),
+                sys::IPPROTO_IP,
+                sys::IP_MULTICAST_IF,
+                interface,
             )
         }
     }
@@ -3188,10 +3188,10 @@
     /// For more information about this option, see [`set_multicast_loop_v4`].
     ///
     /// [`set_multicast_loop_v4`]: Socket::set_multicast_loop_v4
-    </span><span class="kw">pub fn </span>multicast_loop_v4(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>&gt; {
+    </span><span class="kw">pub fn </span>multicast_loop_v4(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;bool&gt; {
         <span class="kw">unsafe </span>{
-            getsockopt::&lt;<a href="../../libc/unix/type.c_int.html">c_int</a>&gt;(<a class="self" href="#1288">self</a>.<a href="#109">as_raw</a>(), <a href="../../libc/unix/constant.IPPROTO_IP.html">sys::IPPROTO_IP</a>, <a href="../../libc/unix/linux_like/constant.IP_MULTICAST_LOOP.html">sys::IP_MULTICAST_LOOP</a>)
-                .map(|loop_v4| <a href="#1291">loop_v4</a> != <span class="number">0</span>)
+            getsockopt::&lt;c_int&gt;(<span class="self">self</span>.as_raw(), sys::IPPROTO_IP, sys::IP_MULTICAST_LOOP)
+                .map(|loop_v4| loop_v4 != <span class="number">0</span>)
         }
     }
 
@@ -3199,13 +3199,13 @@
     ///
     /// If enabled, multicast packets will be looped back to the local socket.
     /// Note that this may not have any affect on IPv6 sockets.
-    </span><span class="kw">pub fn </span>set_multicast_loop_v4(<span class="kw-2">&amp;</span><span class="self">self</span>, loop_v4: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; io::Result&lt;()&gt; {
+    </span><span class="kw">pub fn </span>set_multicast_loop_v4(<span class="kw-2">&amp;</span><span class="self">self</span>, loop_v4: bool) -&gt; io::Result&lt;()&gt; {
         <span class="kw">unsafe </span>{
-            <a href="sys/unix.rs.html#984-989">setsockopt</a>(
-                <a class="self" href="#1299">self</a>.<a href="#109">as_raw</a>(),
-                <a href="../../libc/unix/constant.IPPROTO_IP.html">sys::IPPROTO_IP</a>,
-                <a href="../../libc/unix/linux_like/constant.IP_MULTICAST_LOOP.html">sys::IP_MULTICAST_LOOP</a>,
-                <a href="#1299">loop_v4</a> <span class="kw">as </span><a href="../../libc/unix/type.c_int.html">c_int</a>,
+            setsockopt(
+                <span class="self">self</span>.as_raw(),
+                sys::IPPROTO_IP,
+                sys::IP_MULTICAST_LOOP,
+                loop_v4 <span class="kw">as </span>c_int,
             )
         }
     }
@@ -3215,10 +3215,10 @@
     /// For more information about this option, see [`set_multicast_ttl_v4`].
     ///
     /// [`set_multicast_ttl_v4`]: Socket::set_multicast_ttl_v4
-    </span><span class="kw">pub fn </span>multicast_ttl_v4(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>&gt; {
+    </span><span class="kw">pub fn </span>multicast_ttl_v4(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;u32&gt; {
         <span class="kw">unsafe </span>{
-            getsockopt::&lt;<a href="../../libc/unix/type.c_int.html">c_int</a>&gt;(<a class="self" href="#1315">self</a>.<a href="#109">as_raw</a>(), <a href="../../libc/unix/constant.IPPROTO_IP.html">sys::IPPROTO_IP</a>, <a href="../../libc/unix/linux_like/constant.IP_MULTICAST_TTL.html">sys::IP_MULTICAST_TTL</a>)
-                .map(|ttl| <a href="#1318">ttl</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>)
+            getsockopt::&lt;c_int&gt;(<span class="self">self</span>.as_raw(), sys::IPPROTO_IP, sys::IP_MULTICAST_TTL)
+                .map(|ttl| ttl <span class="kw">as </span>u32)
         }
     }
 
@@ -3229,13 +3229,13 @@
     /// don&#39;t leave the local network unless explicitly requested.
     ///
     /// Note that this may not have any affect on IPv6 sockets.
-    </span><span class="kw">pub fn </span>set_multicast_ttl_v4(<span class="kw-2">&amp;</span><span class="self">self</span>, ttl: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; io::Result&lt;()&gt; {
+    </span><span class="kw">pub fn </span>set_multicast_ttl_v4(<span class="kw-2">&amp;</span><span class="self">self</span>, ttl: u32) -&gt; io::Result&lt;()&gt; {
         <span class="kw">unsafe </span>{
-            <a href="sys/unix.rs.html#984-989">setsockopt</a>(
-                <a class="self" href="#1329">self</a>.<a href="#109">as_raw</a>(),
-                <a href="../../libc/unix/constant.IPPROTO_IP.html">sys::IPPROTO_IP</a>,
-                <a href="../../libc/unix/linux_like/constant.IP_MULTICAST_TTL.html">sys::IP_MULTICAST_TTL</a>,
-                <a href="#1329">ttl</a> <span class="kw">as </span><a href="../../libc/unix/type.c_int.html">c_int</a>,
+            setsockopt(
+                <span class="self">self</span>.as_raw(),
+                sys::IPPROTO_IP,
+                sys::IP_MULTICAST_TTL,
+                ttl <span class="kw">as </span>c_int,
             )
         }
     }
@@ -3245,9 +3245,9 @@
     /// For more information about this option, see [`set_ttl`].
     ///
     /// [`set_ttl`]: Socket::set_ttl
-    </span><span class="kw">pub fn </span>ttl(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>&gt; {
+    </span><span class="kw">pub fn </span>ttl(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;u32&gt; {
         <span class="kw">unsafe </span>{
-            getsockopt::&lt;<a href="../../libc/unix/type.c_int.html">c_int</a>&gt;(<a class="self" href="#1345">self</a>.<a href="#109">as_raw</a>(), <a href="../../libc/unix/constant.IPPROTO_IP.html">sys::IPPROTO_IP</a>, <a href="../../libc/unix/linux_like/constant.IP_TTL.html">sys::IP_TTL</a>).map(|ttl| <a href="#1347">ttl</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>)
+            getsockopt::&lt;c_int&gt;(<span class="self">self</span>.as_raw(), sys::IPPROTO_IP, sys::IP_TTL).map(|ttl| ttl <span class="kw">as </span>u32)
         }
     }
 
@@ -3255,8 +3255,8 @@
     ///
     /// This value sets the time-to-live field that is used in every packet sent
     /// from this socket.
-    </span><span class="kw">pub fn </span>set_ttl(<span class="kw-2">&amp;</span><span class="self">self</span>, ttl: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; io::Result&lt;()&gt; {
-        <span class="kw">unsafe </span>{ <a href="sys/unix.rs.html#984-989">setsockopt</a>(<a class="self" href="#1355">self</a>.<a href="#109">as_raw</a>(), <a href="../../libc/unix/constant.IPPROTO_IP.html">sys::IPPROTO_IP</a>, <a href="../../libc/unix/linux_like/constant.IP_TTL.html">sys::IP_TTL</a>, <a href="#1355">ttl</a> <span class="kw">as </span><a href="../../libc/unix/type.c_int.html">c_int</a>) }
+    </span><span class="kw">pub fn </span>set_ttl(<span class="kw-2">&amp;</span><span class="self">self</span>, ttl: u32) -&gt; io::Result&lt;()&gt; {
+        <span class="kw">unsafe </span>{ setsockopt(<span class="self">self</span>.as_raw(), sys::IPPROTO_IP, sys::IP_TTL, ttl <span class="kw">as </span>c_int) }
     }
 
     <span class="doccomment">/// Set the value of the `IP_TOS` option for this socket.
@@ -3272,8 +3272,8 @@
         target_os = <span class="string">&quot;solaris&quot;</span>,
         target_os = <span class="string">&quot;illumos&quot;</span>,
     )))]
-    </span><span class="kw">pub fn </span>set_tos(<span class="kw-2">&amp;</span><span class="self">self</span>, tos: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; io::Result&lt;()&gt; {
-        <span class="kw">unsafe </span>{ <a href="sys/unix.rs.html#984-989">setsockopt</a>(<a class="self" href="#1372">self</a>.<a href="#109">as_raw</a>(), <a href="../../libc/unix/constant.IPPROTO_IP.html">sys::IPPROTO_IP</a>, <a href="../../libc/unix/linux_like/constant.IP_TOS.html">sys::IP_TOS</a>, <a href="#1372">tos</a> <span class="kw">as </span><a href="../../libc/unix/type.c_int.html">c_int</a>) }
+    </span><span class="kw">pub fn </span>set_tos(<span class="kw-2">&amp;</span><span class="self">self</span>, tos: u32) -&gt; io::Result&lt;()&gt; {
+        <span class="kw">unsafe </span>{ setsockopt(<span class="self">self</span>.as_raw(), sys::IPPROTO_IP, sys::IP_TOS, tos <span class="kw">as </span>c_int) }
     }
 
     <span class="doccomment">/// Get the value of the `IP_TOS` option for this socket.
@@ -3290,9 +3290,9 @@
         target_os = <span class="string">&quot;solaris&quot;</span>,
         target_os = <span class="string">&quot;illumos&quot;</span>,
     )))]
-    </span><span class="kw">pub fn </span>tos(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>&gt; {
+    </span><span class="kw">pub fn </span>tos(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;u32&gt; {
         <span class="kw">unsafe </span>{
-            getsockopt::&lt;<a href="../../libc/unix/type.c_int.html">c_int</a>&gt;(<a class="self" href="#1390">self</a>.<a href="#109">as_raw</a>(), <a href="../../libc/unix/constant.IPPROTO_IP.html">sys::IPPROTO_IP</a>, <a href="../../libc/unix/linux_like/constant.IP_TOS.html">sys::IP_TOS</a>).map(|tos| <a href="#1392">tos</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>)
+            getsockopt::&lt;c_int&gt;(<span class="self">self</span>.as_raw(), sys::IPPROTO_IP, sys::IP_TOS).map(|tos| tos <span class="kw">as </span>u32)
         }
     }
 
@@ -3311,15 +3311,15 @@
         target_os = <span class="string">&quot;solaris&quot;</span>,
         target_os = <span class="string">&quot;windows&quot;</span>,
     )))]
-    </span><span class="kw">pub fn </span>set_recv_tos(<span class="kw-2">&amp;</span><span class="self">self</span>, recv_tos: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; io::Result&lt;()&gt; {
+    </span><span class="kw">pub fn </span>set_recv_tos(<span class="kw-2">&amp;</span><span class="self">self</span>, recv_tos: bool) -&gt; io::Result&lt;()&gt; {
         <span class="kw">let </span>recv_tos = <span class="kw">if </span>recv_tos { <span class="number">1 </span>} <span class="kw">else </span>{ <span class="number">0 </span>};
 
         <span class="kw">unsafe </span>{
-            <a href="sys/unix.rs.html#984-989">setsockopt</a>(
-                <a class="self" href="#1411">self</a>.<a href="#109">as_raw</a>(),
-                <a href="../../libc/unix/constant.IPPROTO_IP.html">sys::IPPROTO_IP</a>,
-                <a href="../../libc/unix/linux_like/constant.IP_RECVTOS.html">sys::IP_RECVTOS</a>,
-                <a href="#1412">recv_tos</a> <span class="kw">as </span><a href="../../libc/unix/type.c_int.html">c_int</a>,
+            setsockopt(
+                <span class="self">self</span>.as_raw(),
+                sys::IPPROTO_IP,
+                sys::IP_RECVTOS,
+                recv_tos <span class="kw">as </span>c_int,
             )
         }
     }
@@ -3339,10 +3339,10 @@
         target_os = <span class="string">&quot;solaris&quot;</span>,
         target_os = <span class="string">&quot;windows&quot;</span>,
     )))]
-    </span><span class="kw">pub fn </span>recv_tos(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>&gt; {
+    </span><span class="kw">pub fn </span>recv_tos(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;bool&gt; {
         <span class="kw">unsafe </span>{
-            getsockopt::&lt;<a href="../../libc/unix/type.c_int.html">c_int</a>&gt;(<a class="self" href="#1439">self</a>.<a href="#109">as_raw</a>(), <a href="../../libc/unix/constant.IPPROTO_IP.html">sys::IPPROTO_IP</a>, <a href="../../libc/unix/linux_like/constant.IP_RECVTOS.html">sys::IP_RECVTOS</a>)
-                .map(|recv_tos| <a href="#1442">recv_tos</a> &gt; <span class="number">0</span>)
+            getsockopt::&lt;c_int&gt;(<span class="self">self</span>.as_raw(), sys::IPPROTO_IP, sys::IP_RECVTOS)
+                .map(|recv_tos| recv_tos &gt; <span class="number">0</span>)
         }
     }
 }
@@ -3352,7 +3352,7 @@
 /// Additional documentation can be found in documentation of the OS.
 /// * Linux: &lt;https://man7.org/linux/man-pages/man7/ipv6.7.html&gt;
 /// * Windows: &lt;https://docs.microsoft.com/en-us/windows/win32/winsock/ipproto-ipv6-socket-options&gt;
-</span><span class="kw">impl </span><a href="#72">Socket</a> {
+</span><span class="kw">impl </span>Socket {
     <span class="doccomment">/// Join a multicast group using `IPV6_ADD_MEMBERSHIP` option on this socket.
     ///
     /// Some OSs use `IPV6_JOIN_GROUP` for this option.
@@ -3360,18 +3360,18 @@
     /// This function specifies a new multicast group for this socket to join.
     /// The address must be a valid multicast address, and `interface` is the
     /// index of the interface to join/leave (or 0 to indicate any interface).
-    </span><span class="kw">pub fn </span>join_multicast_v6(<span class="kw-2">&amp;</span><span class="self">self</span>, multiaddr: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/net/ip_addr/struct.Ipv6Addr.html">Ipv6Addr</a>, interface: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; io::Result&lt;()&gt; {
-        <span class="kw">let </span>mreq = <a href="../../libc/unix/struct.ipv6_mreq.html">sys::Ipv6Mreq</a> {
-            ipv6mr_multiaddr: <a href="sys/unix.rs.html#1014">sys::to_in6_addr</a>(<a href="#1460">multiaddr</a>),
+    </span><span class="kw">pub fn </span>join_multicast_v6(<span class="kw-2">&amp;</span><span class="self">self</span>, multiaddr: <span class="kw-2">&amp;</span>Ipv6Addr, interface: u32) -&gt; io::Result&lt;()&gt; {
+        <span class="kw">let </span>mreq = sys::Ipv6Mreq {
+            ipv6mr_multiaddr: sys::to_in6_addr(multiaddr),
             <span class="comment">// NOTE: some OSs use `c_int`, others use `c_uint`.
-            </span>ipv6mr_interface: <a href="#1460">interface</a> <span class="kw">as _</span>,
+            </span>ipv6mr_interface: interface <span class="kw">as _</span>,
         };
         <span class="kw">unsafe </span>{
-            <a href="sys/unix.rs.html#984-989">setsockopt</a>(
-                <a class="self" href="#1460">self</a>.<a href="#109">as_raw</a>(),
-                <a href="../../libc/unix/constant.IPPROTO_IPV6.html">sys::IPPROTO_IPV6</a>,
-                <a href="../../libc/unix/linux_like/constant.IPV6_ADD_MEMBERSHIP.html">sys::IPV6_ADD_MEMBERSHIP</a>,
-                <a href="#1461">mreq</a>,
+            setsockopt(
+                <span class="self">self</span>.as_raw(),
+                sys::IPPROTO_IPV6,
+                sys::IPV6_ADD_MEMBERSHIP,
+                mreq,
             )
         }
     }
@@ -3383,18 +3383,18 @@
     /// For more information about this option, see [`join_multicast_v6`].
     ///
     /// [`join_multicast_v6`]: Socket::join_multicast_v6
-    </span><span class="kw">pub fn </span>leave_multicast_v6(<span class="kw-2">&amp;</span><span class="self">self</span>, multiaddr: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/net/ip_addr/struct.Ipv6Addr.html">Ipv6Addr</a>, interface: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; io::Result&lt;()&gt; {
-        <span class="kw">let </span>mreq = <a href="../../libc/unix/struct.ipv6_mreq.html">sys::Ipv6Mreq</a> {
-            ipv6mr_multiaddr: <a href="sys/unix.rs.html#1014">sys::to_in6_addr</a>(<a href="#1483">multiaddr</a>),
+    </span><span class="kw">pub fn </span>leave_multicast_v6(<span class="kw-2">&amp;</span><span class="self">self</span>, multiaddr: <span class="kw-2">&amp;</span>Ipv6Addr, interface: u32) -&gt; io::Result&lt;()&gt; {
+        <span class="kw">let </span>mreq = sys::Ipv6Mreq {
+            ipv6mr_multiaddr: sys::to_in6_addr(multiaddr),
             <span class="comment">// NOTE: some OSs use `c_int`, others use `c_uint`.
-            </span>ipv6mr_interface: <a href="#1483">interface</a> <span class="kw">as _</span>,
+            </span>ipv6mr_interface: interface <span class="kw">as _</span>,
         };
         <span class="kw">unsafe </span>{
-            <a href="sys/unix.rs.html#984-989">setsockopt</a>(
-                <a class="self" href="#1483">self</a>.<a href="#109">as_raw</a>(),
-                <a href="../../libc/unix/constant.IPPROTO_IPV6.html">sys::IPPROTO_IPV6</a>,
-                <a href="../../libc/unix/linux_like/constant.IPV6_DROP_MEMBERSHIP.html">sys::IPV6_DROP_MEMBERSHIP</a>,
-                <a href="#1484">mreq</a>,
+            setsockopt(
+                <span class="self">self</span>.as_raw(),
+                sys::IPPROTO_IPV6,
+                sys::IPV6_DROP_MEMBERSHIP,
+                mreq,
             )
         }
     }
@@ -3404,10 +3404,10 @@
     /// For more information about this option, see [`set_multicast_hops_v6`].
     ///
     /// [`set_multicast_hops_v6`]: Socket::set_multicast_hops_v6
-    </span><span class="kw">pub fn </span>multicast_hops_v6(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>&gt; {
+    </span><span class="kw">pub fn </span>multicast_hops_v6(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;u32&gt; {
         <span class="kw">unsafe </span>{
-            getsockopt::&lt;<a href="../../libc/unix/type.c_int.html">c_int</a>&gt;(<a class="self" href="#1504">self</a>.<a href="#109">as_raw</a>(), <a href="../../libc/unix/constant.IPPROTO_IPV6.html">sys::IPPROTO_IPV6</a>, <a href="../../libc/unix/linux_like/constant.IPV6_MULTICAST_HOPS.html">sys::IPV6_MULTICAST_HOPS</a>)
-                .map(|hops| <a href="#1507">hops</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>)
+            getsockopt::&lt;c_int&gt;(<span class="self">self</span>.as_raw(), sys::IPPROTO_IPV6, sys::IPV6_MULTICAST_HOPS)
+                .map(|hops| hops <span class="kw">as </span>u32)
         }
     }
 
@@ -3416,13 +3416,13 @@
     /// Indicates the number of &quot;routers&quot; multicast packets will transit for
     /// this socket. The default value is 1 which means that multicast packets
     /// don&#39;t leave the local network unless explicitly requested.
-    </span><span class="kw">pub fn </span>set_multicast_hops_v6(<span class="kw-2">&amp;</span><span class="self">self</span>, hops: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; io::Result&lt;()&gt; {
+    </span><span class="kw">pub fn </span>set_multicast_hops_v6(<span class="kw-2">&amp;</span><span class="self">self</span>, hops: u32) -&gt; io::Result&lt;()&gt; {
         <span class="kw">unsafe </span>{
-            <a href="sys/unix.rs.html#984-989">setsockopt</a>(
-                <a class="self" href="#1516">self</a>.<a href="#109">as_raw</a>(),
-                <a href="../../libc/unix/constant.IPPROTO_IPV6.html">sys::IPPROTO_IPV6</a>,
-                <a href="../../libc/unix/linux_like/constant.IPV6_MULTICAST_HOPS.html">sys::IPV6_MULTICAST_HOPS</a>,
-                <a href="#1516">hops</a> <span class="kw">as </span><a href="../../libc/unix/type.c_int.html">c_int</a>,
+            setsockopt(
+                <span class="self">self</span>.as_raw(),
+                sys::IPPROTO_IPV6,
+                sys::IPV6_MULTICAST_HOPS,
+                hops <span class="kw">as </span>c_int,
             )
         }
     }
@@ -3432,10 +3432,10 @@
     /// For more information about this option, see [`set_multicast_if_v6`].
     ///
     /// [`set_multicast_if_v6`]: Socket::set_multicast_if_v6
-    </span><span class="kw">pub fn </span>multicast_if_v6(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>&gt; {
+    </span><span class="kw">pub fn </span>multicast_if_v6(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;u32&gt; {
         <span class="kw">unsafe </span>{
-            getsockopt::&lt;<a href="../../libc/unix/type.c_int.html">c_int</a>&gt;(<a class="self" href="#1532">self</a>.<a href="#109">as_raw</a>(), <a href="../../libc/unix/constant.IPPROTO_IPV6.html">sys::IPPROTO_IPV6</a>, <a href="../../libc/unix/linux_like/constant.IPV6_MULTICAST_IF.html">sys::IPV6_MULTICAST_IF</a>)
-                .map(|interface| <a href="#1535">interface</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>)
+            getsockopt::&lt;c_int&gt;(<span class="self">self</span>.as_raw(), sys::IPPROTO_IPV6, sys::IPV6_MULTICAST_IF)
+                .map(|interface| interface <span class="kw">as </span>u32)
         }
     }
 
@@ -3444,13 +3444,13 @@
     /// Specifies the interface to use for routing multicast packets. Unlike
     /// ipv4, this is generally required in ipv6 contexts where network routing
     /// prefixes may overlap.
-    </span><span class="kw">pub fn </span>set_multicast_if_v6(<span class="kw-2">&amp;</span><span class="self">self</span>, interface: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; io::Result&lt;()&gt; {
+    </span><span class="kw">pub fn </span>set_multicast_if_v6(<span class="kw-2">&amp;</span><span class="self">self</span>, interface: u32) -&gt; io::Result&lt;()&gt; {
         <span class="kw">unsafe </span>{
-            <a href="sys/unix.rs.html#984-989">setsockopt</a>(
-                <a class="self" href="#1544">self</a>.<a href="#109">as_raw</a>(),
-                <a href="../../libc/unix/constant.IPPROTO_IPV6.html">sys::IPPROTO_IPV6</a>,
-                <a href="../../libc/unix/linux_like/constant.IPV6_MULTICAST_IF.html">sys::IPV6_MULTICAST_IF</a>,
-                <a href="#1544">interface</a> <span class="kw">as </span><a href="../../libc/unix/type.c_int.html">c_int</a>,
+            setsockopt(
+                <span class="self">self</span>.as_raw(),
+                sys::IPPROTO_IPV6,
+                sys::IPV6_MULTICAST_IF,
+                interface <span class="kw">as </span>c_int,
             )
         }
     }
@@ -3460,10 +3460,10 @@
     /// For more information about this option, see [`set_multicast_loop_v6`].
     ///
     /// [`set_multicast_loop_v6`]: Socket::set_multicast_loop_v6
-    </span><span class="kw">pub fn </span>multicast_loop_v6(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>&gt; {
+    </span><span class="kw">pub fn </span>multicast_loop_v6(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;bool&gt; {
         <span class="kw">unsafe </span>{
-            getsockopt::&lt;<a href="../../libc/unix/type.c_int.html">c_int</a>&gt;(<a class="self" href="#1560">self</a>.<a href="#109">as_raw</a>(), <a href="../../libc/unix/constant.IPPROTO_IPV6.html">sys::IPPROTO_IPV6</a>, <a href="../../libc/unix/linux_like/constant.IPV6_MULTICAST_LOOP.html">sys::IPV6_MULTICAST_LOOP</a>)
-                .map(|loop_v6| <a href="#1563">loop_v6</a> != <span class="number">0</span>)
+            getsockopt::&lt;c_int&gt;(<span class="self">self</span>.as_raw(), sys::IPPROTO_IPV6, sys::IPV6_MULTICAST_LOOP)
+                .map(|loop_v6| loop_v6 != <span class="number">0</span>)
         }
     }
 
@@ -3471,13 +3471,13 @@
     ///
     /// Controls whether this socket sees the multicast packets it sends itself.
     /// Note that this may not have any affect on IPv4 sockets.
-    </span><span class="kw">pub fn </span>set_multicast_loop_v6(<span class="kw-2">&amp;</span><span class="self">self</span>, loop_v6: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; io::Result&lt;()&gt; {
+    </span><span class="kw">pub fn </span>set_multicast_loop_v6(<span class="kw-2">&amp;</span><span class="self">self</span>, loop_v6: bool) -&gt; io::Result&lt;()&gt; {
         <span class="kw">unsafe </span>{
-            <a href="sys/unix.rs.html#984-989">setsockopt</a>(
-                <a class="self" href="#1571">self</a>.<a href="#109">as_raw</a>(),
-                <a href="../../libc/unix/constant.IPPROTO_IPV6.html">sys::IPPROTO_IPV6</a>,
-                <a href="../../libc/unix/linux_like/constant.IPV6_MULTICAST_LOOP.html">sys::IPV6_MULTICAST_LOOP</a>,
-                <a href="#1571">loop_v6</a> <span class="kw">as </span><a href="../../libc/unix/type.c_int.html">c_int</a>,
+            setsockopt(
+                <span class="self">self</span>.as_raw(),
+                sys::IPPROTO_IPV6,
+                sys::IPV6_MULTICAST_LOOP,
+                loop_v6 <span class="kw">as </span>c_int,
             )
         }
     }
@@ -3485,23 +3485,23 @@
     <span class="doccomment">/// Get the value of the `IPV6_UNICAST_HOPS` option for this socket.
     ///
     /// Specifies the hop limit for ipv6 unicast packets
-    </span><span class="kw">pub fn </span>unicast_hops_v6(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>&gt; {
+    </span><span class="kw">pub fn </span>unicast_hops_v6(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;u32&gt; {
         <span class="kw">unsafe </span>{
-            getsockopt::&lt;<a href="../../libc/unix/type.c_int.html">c_int</a>&gt;(<a class="self" href="#1585">self</a>.<a href="#109">as_raw</a>(), <a href="../../libc/unix/constant.IPPROTO_IPV6.html">sys::IPPROTO_IPV6</a>, <a href="../../libc/unix/linux_like/constant.IPV6_UNICAST_HOPS.html">sys::IPV6_UNICAST_HOPS</a>)
-                .map(|hops| <a href="#1588">hops</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>)
+            getsockopt::&lt;c_int&gt;(<span class="self">self</span>.as_raw(), sys::IPPROTO_IPV6, sys::IPV6_UNICAST_HOPS)
+                .map(|hops| hops <span class="kw">as </span>u32)
         }
     }
 
     <span class="doccomment">/// Set the value for the `IPV6_UNICAST_HOPS` option on this socket.
     ///
     /// Specifies the hop limit for ipv6 unicast packets
-    </span><span class="kw">pub fn </span>set_unicast_hops_v6(<span class="kw-2">&amp;</span><span class="self">self</span>, hops: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; io::Result&lt;()&gt; {
+    </span><span class="kw">pub fn </span>set_unicast_hops_v6(<span class="kw-2">&amp;</span><span class="self">self</span>, hops: u32) -&gt; io::Result&lt;()&gt; {
         <span class="kw">unsafe </span>{
-            <a href="sys/unix.rs.html#984-989">setsockopt</a>(
-                <a class="self" href="#1595">self</a>.<a href="#109">as_raw</a>(),
-                <a href="../../libc/unix/constant.IPPROTO_IPV6.html">sys::IPPROTO_IPV6</a>,
-                <a href="../../libc/unix/linux_like/constant.IPV6_UNICAST_HOPS.html">sys::IPV6_UNICAST_HOPS</a>,
-                <a href="#1595">hops</a> <span class="kw">as </span><a href="../../libc/unix/type.c_int.html">c_int</a>,
+            setsockopt(
+                <span class="self">self</span>.as_raw(),
+                sys::IPPROTO_IPV6,
+                sys::IPV6_UNICAST_HOPS,
+                hops <span class="kw">as </span>c_int,
             )
         }
     }
@@ -3511,10 +3511,10 @@
     /// For more information about this option, see [`set_only_v6`].
     ///
     /// [`set_only_v6`]: Socket::set_only_v6
-    </span><span class="kw">pub fn </span>only_v6(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>&gt; {
+    </span><span class="kw">pub fn </span>only_v6(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;bool&gt; {
         <span class="kw">unsafe </span>{
-            getsockopt::&lt;<a href="../../libc/unix/type.c_int.html">c_int</a>&gt;(<a class="self" href="#1611">self</a>.<a href="#109">as_raw</a>(), <a href="../../libc/unix/constant.IPPROTO_IPV6.html">sys::IPPROTO_IPV6</a>, <a href="../../libc/unix/linux_like/constant.IPV6_V6ONLY.html">sys::IPV6_V6ONLY</a>)
-                .map(|only_v6| <a href="#1614">only_v6</a> != <span class="number">0</span>)
+            getsockopt::&lt;c_int&gt;(<span class="self">self</span>.as_raw(), sys::IPPROTO_IPV6, sys::IPV6_V6ONLY)
+                .map(|only_v6| only_v6 != <span class="number">0</span>)
         }
     }
 
@@ -3526,13 +3526,13 @@
     ///
     /// If this is set to `false` then the socket can be used to send and
     /// receive packets from an IPv4-mapped IPv6 address.
-    </span><span class="kw">pub fn </span>set_only_v6(<span class="kw-2">&amp;</span><span class="self">self</span>, only_v6: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; io::Result&lt;()&gt; {
+    </span><span class="kw">pub fn </span>set_only_v6(<span class="kw-2">&amp;</span><span class="self">self</span>, only_v6: bool) -&gt; io::Result&lt;()&gt; {
         <span class="kw">unsafe </span>{
-            <a href="sys/unix.rs.html#984-989">setsockopt</a>(
-                <a class="self" href="#1626">self</a>.<a href="#109">as_raw</a>(),
-                <a href="../../libc/unix/constant.IPPROTO_IPV6.html">sys::IPPROTO_IPV6</a>,
-                <a href="../../libc/unix/linux_like/constant.IPV6_V6ONLY.html">sys::IPV6_V6ONLY</a>,
-                <a href="#1626">only_v6</a> <span class="kw">as </span><a href="../../libc/unix/type.c_int.html">c_int</a>,
+            setsockopt(
+                <span class="self">self</span>.as_raw(),
+                sys::IPPROTO_IPV6,
+                sys::IPV6_V6ONLY,
+                only_v6 <span class="kw">as </span>c_int,
             )
         }
     }
@@ -3543,7 +3543,7 @@
 /// Additional documentation can be found in documentation of the OS.
 /// * Linux: &lt;https://man7.org/linux/man-pages/man7/tcp.7.html&gt;
 /// * Windows: &lt;https://docs.microsoft.com/en-us/windows/win32/winsock/ipproto-tcp-socket-options&gt;
-</span><span class="kw">impl </span><a href="#72">Socket</a> {
+</span><span class="kw">impl </span>Socket {
     <span class="doccomment">/// Get the value of the `TCP_KEEPIDLE` option on this socket.
     ///
     /// This returns the value of `TCP_KEEPALIVE` on macOS and iOS and `TCP_KEEPIDLE` on all other
@@ -3562,8 +3562,8 @@
             not(any(windows, target_os = <span class="string">&quot;haiku&quot;</span>, target_os = <span class="string">&quot;openbsd&quot;</span>))
         )))
     )]
-    </span><span class="kw">pub fn </span>keepalive_time(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a>&gt; {
-        <a href="sys/unix.rs.html#897">sys::keepalive_time</a>(<a class="self" href="#1662">self</a>.<a href="#109">as_raw</a>())
+    </span><span class="kw">pub fn </span>keepalive_time(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;Duration&gt; {
+        sys::keepalive_time(<span class="self">self</span>.as_raw())
     }
 
     <span class="doccomment">/// Get the value of the `TCP_KEEPINTVL` option on this socket.
@@ -3601,10 +3601,10 @@
             )
         )))
     )]
-    </span><span class="kw">pub fn </span>keepalive_interval(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a>&gt; {
+    </span><span class="kw">pub fn </span>keepalive_interval(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;Duration&gt; {
         <span class="kw">unsafe </span>{
-            getsockopt::&lt;<a href="../../libc/unix/type.c_int.html">c_int</a>&gt;(<a class="self" href="#1701">self</a>.<a href="#109">as_raw</a>(), <a href="../../libc/unix/constant.IPPROTO_TCP.html">sys::IPPROTO_TCP</a>, <a href="../../libc/unix/linux_like/constant.TCP_KEEPINTVL.html">sys::TCP_KEEPINTVL</a>)
-                .map(|secs| Duration::from_secs(<a href="#1704">secs</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>))
+            getsockopt::&lt;c_int&gt;(<span class="self">self</span>.as_raw(), sys::IPPROTO_TCP, sys::TCP_KEEPINTVL)
+                .map(|secs| Duration::from_secs(secs <span class="kw">as </span>u64))
         }
     }
 
@@ -3643,10 +3643,10 @@
             )
         )))
     )]
-    </span><span class="kw">pub fn </span>keepalive_retries(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>&gt; {
+    </span><span class="kw">pub fn </span>keepalive_retries(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;u32&gt; {
         <span class="kw">unsafe </span>{
-            getsockopt::&lt;<a href="../../libc/unix/type.c_int.html">c_int</a>&gt;(<a class="self" href="#1743">self</a>.<a href="#109">as_raw</a>(), <a href="../../libc/unix/constant.IPPROTO_TCP.html">sys::IPPROTO_TCP</a>, <a href="../../libc/unix/linux_like/constant.TCP_KEEPCNT.html">sys::TCP_KEEPCNT</a>)
-                .map(|retries| <a href="#1746">retries</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>)
+            getsockopt::&lt;c_int&gt;(<span class="self">self</span>.as_raw(), sys::IPPROTO_TCP, sys::TCP_KEEPCNT)
+                .map(|retries| retries <span class="kw">as </span>u32)
         }
     }
 
@@ -3688,9 +3688,9 @@
     /// # Ok(()) }
     /// ```
     ///
-    </span><span class="kw">pub fn </span>set_tcp_keepalive(<span class="kw-2">&amp;</span><span class="self">self</span>, params: <span class="kw-2">&amp;</span><a href="lib.rs.html#329">TcpKeepalive</a>) -&gt; io::Result&lt;()&gt; {
+    </span><span class="kw">pub fn </span>set_tcp_keepalive(<span class="kw-2">&amp;</span><span class="self">self</span>, params: <span class="kw-2">&amp;</span>TcpKeepalive) -&gt; io::Result&lt;()&gt; {
         <span class="self">self</span>.set_keepalive(<span class="bool-val">true</span>)<span class="question-mark">?</span>;
-        <a href="sys/unix.rs.html#905">sys::set_tcp_keepalive</a>(<a class="self" href="#1788">self</a>.<a href="#109">as_raw</a>(), <a href="#1788">params</a>)
+        sys::set_tcp_keepalive(<span class="self">self</span>.as_raw(), params)
     }
 
     <span class="doccomment">/// Get the value of the `TCP_NODELAY` option on this socket.
@@ -3698,10 +3698,10 @@
     /// For more information about this option, see [`set_nodelay`].
     ///
     /// [`set_nodelay`]: Socket::set_nodelay
-    </span><span class="kw">pub fn </span>nodelay(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>&gt; {
+    </span><span class="kw">pub fn </span>nodelay(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;bool&gt; {
         <span class="kw">unsafe </span>{
-            getsockopt::&lt;<a href="sys/unix.rs.html#159">Bool</a>&gt;(<a class="self" href="#1798">self</a>.<a href="#109">as_raw</a>(), <a href="../../libc/unix/constant.IPPROTO_TCP.html">sys::IPPROTO_TCP</a>, <a href="../../libc/unix/linux_like/constant.TCP_NODELAY.html">sys::TCP_NODELAY</a>)
-                .map(|nodelay| <a href="#1801">nodelay</a> != <span class="number">0</span>)
+            getsockopt::&lt;Bool&gt;(<span class="self">self</span>.as_raw(), sys::IPPROTO_TCP, sys::TCP_NODELAY)
+                .map(|nodelay| nodelay != <span class="number">0</span>)
         }
     }
 
@@ -3712,60 +3712,60 @@
     /// small amount of data. When not set, data is buffered until there is a
     /// sufficient amount to send out, thereby avoiding the frequent sending of
     /// small packets.
-    </span><span class="kw">pub fn </span>set_nodelay(<span class="kw-2">&amp;</span><span class="self">self</span>, nodelay: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; io::Result&lt;()&gt; {
+    </span><span class="kw">pub fn </span>set_nodelay(<span class="kw-2">&amp;</span><span class="self">self</span>, nodelay: bool) -&gt; io::Result&lt;()&gt; {
         <span class="kw">unsafe </span>{
-            <a href="sys/unix.rs.html#984-989">setsockopt</a>(
-                <a class="self" href="#1812">self</a>.<a href="#109">as_raw</a>(),
-                <a href="../../libc/unix/constant.IPPROTO_TCP.html">sys::IPPROTO_TCP</a>,
-                <a href="../../libc/unix/linux_like/constant.TCP_NODELAY.html">sys::TCP_NODELAY</a>,
-                <a href="#1812">nodelay</a> <span class="kw">as </span><a href="../../libc/unix/type.c_int.html">c_int</a>,
+            setsockopt(
+                <span class="self">self</span>.as_raw(),
+                sys::IPPROTO_TCP,
+                sys::TCP_NODELAY,
+                nodelay <span class="kw">as </span>c_int,
             )
         }
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a> <span class="kw">for </span><a href="#72">Socket</a> {
-    <span class="kw">fn </span>read(<span class="kw-2">&amp;mut </span><span class="self">self</span>, buf: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
+<span class="kw">impl </span>Read <span class="kw">for </span>Socket {
+    <span class="kw">fn </span>read(<span class="kw-2">&amp;mut </span><span class="self">self</span>, buf: <span class="kw-2">&amp;mut </span>[u8]) -&gt; io::Result&lt;usize&gt; {
         <span class="comment">// Safety: the `recv` implementation promises not to write uninitialised
         // bytes to the `buf`fer, so this casting is safe.
-        </span><span class="kw">let </span>buf = <span class="kw">unsafe </span>{ <span class="kw-2">&amp;mut *</span>(<a href="#1825">buf</a> <span class="kw">as </span><span class="kw-2">*mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>] <span class="kw">as </span><span class="kw-2">*mut </span>[MaybeUninit&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;]) };
-        <a class="self" href="#1825">self</a>.<a href="#386">recv</a>(<a href="#1828">buf</a>)
+        </span><span class="kw">let </span>buf = <span class="kw">unsafe </span>{ <span class="kw-2">&amp;mut *</span>(buf <span class="kw">as </span><span class="kw-2">*mut </span>[u8] <span class="kw">as </span><span class="kw-2">*mut </span>[MaybeUninit&lt;u8&gt;]) };
+        <span class="self">self</span>.recv(buf)
     }
 
     <span class="attr">#[cfg(not(target_os = <span class="string">&quot;redox&quot;</span>))]
-    </span><span class="kw">fn </span>read_vectored(<span class="kw-2">&amp;mut </span><span class="self">self</span>, bufs: <span class="kw-2">&amp;mut </span>[IoSliceMut&lt;<span class="lifetime">&#39;_</span>&gt;]) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
+    </span><span class="kw">fn </span>read_vectored(<span class="kw-2">&amp;mut </span><span class="self">self</span>, bufs: <span class="kw-2">&amp;mut </span>[IoSliceMut&lt;<span class="lifetime">&#39;_</span>&gt;]) -&gt; io::Result&lt;usize&gt; {
         <span class="comment">// Safety: both `IoSliceMut` and `MaybeUninitSlice` promise to have the
         // same layout, that of `iovec`/`WSABUF`. Furthermore `recv_vectored`
         // promises to not write unitialised bytes to the `bufs` and pass it
         // directly to the `recvmsg` system call, so this is safe.
-        </span><span class="kw">let </span>bufs = <span class="kw">unsafe </span>{ <span class="kw-2">&amp;mut *</span>(<a href="#1833">bufs</a> <span class="kw">as </span><span class="kw-2">*mut </span>[IoSliceMut&lt;<span class="lifetime">&#39;_</span>&gt;] <span class="kw">as </span><span class="kw-2">*mut </span>[MaybeUninitSlice&lt;<span class="lifetime">&#39;_</span>&gt;]) };
-        <a class="self" href="#1833">self</a>.<a href="#440-443">recv_vectored</a>(<a href="#1838">bufs</a>).map(|(n, <span class="kw">_</span>)| <a href="#1839">n</a>)
+        </span><span class="kw">let </span>bufs = <span class="kw">unsafe </span>{ <span class="kw-2">&amp;mut *</span>(bufs <span class="kw">as </span><span class="kw-2">*mut </span>[IoSliceMut&lt;<span class="lifetime">&#39;_</span>&gt;] <span class="kw">as </span><span class="kw-2">*mut </span>[MaybeUninitSlice&lt;<span class="lifetime">&#39;_</span>&gt;]) };
+        <span class="self">self</span>.recv_vectored(bufs).map(|(n, <span class="kw">_</span>)| n)
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; <a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a> <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="#72">Socket</a> {
-    <span class="kw">fn </span>read(<span class="kw-2">&amp;mut </span><span class="self">self</span>, buf: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; Read <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Socket {
+    <span class="kw">fn </span>read(<span class="kw-2">&amp;mut </span><span class="self">self</span>, buf: <span class="kw-2">&amp;mut </span>[u8]) -&gt; io::Result&lt;usize&gt; {
         <span class="comment">// Safety: see other `Read::read` impl.
-        </span><span class="kw">let </span>buf = <span class="kw">unsafe </span>{ <span class="kw-2">&amp;mut *</span>(<a href="#1844">buf</a> <span class="kw">as </span><span class="kw-2">*mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>] <span class="kw">as </span><span class="kw-2">*mut </span>[MaybeUninit&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;]) };
-        <a class="self" href="#1844">self</a>.<a href="#386">recv</a>(<a href="#1846">buf</a>)
+        </span><span class="kw">let </span>buf = <span class="kw">unsafe </span>{ <span class="kw-2">&amp;mut *</span>(buf <span class="kw">as </span><span class="kw-2">*mut </span>[u8] <span class="kw">as </span><span class="kw-2">*mut </span>[MaybeUninit&lt;u8&gt;]) };
+        <span class="self">self</span>.recv(buf)
     }
 
     <span class="attr">#[cfg(not(target_os = <span class="string">&quot;redox&quot;</span>))]
-    </span><span class="kw">fn </span>read_vectored(<span class="kw-2">&amp;mut </span><span class="self">self</span>, bufs: <span class="kw-2">&amp;mut </span>[IoSliceMut&lt;<span class="lifetime">&#39;_</span>&gt;]) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
+    </span><span class="kw">fn </span>read_vectored(<span class="kw-2">&amp;mut </span><span class="self">self</span>, bufs: <span class="kw-2">&amp;mut </span>[IoSliceMut&lt;<span class="lifetime">&#39;_</span>&gt;]) -&gt; io::Result&lt;usize&gt; {
         <span class="comment">// Safety: see other `Read::read` impl.
-        </span><span class="kw">let </span>bufs = <span class="kw">unsafe </span>{ <span class="kw-2">&amp;mut *</span>(<a href="#1851">bufs</a> <span class="kw">as </span><span class="kw-2">*mut </span>[IoSliceMut&lt;<span class="lifetime">&#39;_</span>&gt;] <span class="kw">as </span><span class="kw-2">*mut </span>[MaybeUninitSlice&lt;<span class="lifetime">&#39;_</span>&gt;]) };
-        <a class="self" href="#1851">self</a>.<a href="#440-443">recv_vectored</a>(<a href="#1853">bufs</a>).map(|(n, <span class="kw">_</span>)| <a href="#1854">n</a>)
+        </span><span class="kw">let </span>bufs = <span class="kw">unsafe </span>{ <span class="kw-2">&amp;mut *</span>(bufs <span class="kw">as </span><span class="kw-2">*mut </span>[IoSliceMut&lt;<span class="lifetime">&#39;_</span>&gt;] <span class="kw">as </span><span class="kw-2">*mut </span>[MaybeUninitSlice&lt;<span class="lifetime">&#39;_</span>&gt;]) };
+        <span class="self">self</span>.recv_vectored(bufs).map(|(n, <span class="kw">_</span>)| n)
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a> <span class="kw">for </span><a href="#72">Socket</a> {
-    <span class="kw">fn </span>write(<span class="kw-2">&amp;mut </span><span class="self">self</span>, buf: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
-        <a class="self" href="#1859">self</a>.<a href="#576">send</a>(<a href="#1859">buf</a>)
+<span class="kw">impl </span>Write <span class="kw">for </span>Socket {
+    <span class="kw">fn </span>write(<span class="kw-2">&amp;mut </span><span class="self">self</span>, buf: <span class="kw-2">&amp;</span>[u8]) -&gt; io::Result&lt;usize&gt; {
+        <span class="self">self</span>.send(buf)
     }
 
     <span class="attr">#[cfg(not(target_os = <span class="string">&quot;redox&quot;</span>))]
-    </span><span class="kw">fn </span>write_vectored(<span class="kw-2">&amp;mut </span><span class="self">self</span>, bufs: <span class="kw-2">&amp;</span>[IoSlice&lt;<span class="lifetime">&#39;_</span>&gt;]) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
-        <a class="self" href="#1864">self</a>.<a href="#591">send_vectored</a>(<a href="#1864">bufs</a>)
+    </span><span class="kw">fn </span>write_vectored(<span class="kw-2">&amp;mut </span><span class="self">self</span>, bufs: <span class="kw-2">&amp;</span>[IoSlice&lt;<span class="lifetime">&#39;_</span>&gt;]) -&gt; io::Result&lt;usize&gt; {
+        <span class="self">self</span>.send_vectored(bufs)
     }
 
     <span class="kw">fn </span>flush(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; io::Result&lt;()&gt; {
@@ -3773,14 +3773,14 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; <a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a> <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="#72">Socket</a> {
-    <span class="kw">fn </span>write(<span class="kw-2">&amp;mut </span><span class="self">self</span>, buf: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
-        <a class="self" href="#1874">self</a>.<a href="#576">send</a>(<a href="#1874">buf</a>)
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; Write <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Socket {
+    <span class="kw">fn </span>write(<span class="kw-2">&amp;mut </span><span class="self">self</span>, buf: <span class="kw-2">&amp;</span>[u8]) -&gt; io::Result&lt;usize&gt; {
+        <span class="self">self</span>.send(buf)
     }
 
     <span class="attr">#[cfg(not(target_os = <span class="string">&quot;redox&quot;</span>))]
-    </span><span class="kw">fn </span>write_vectored(<span class="kw-2">&amp;mut </span><span class="self">self</span>, bufs: <span class="kw-2">&amp;</span>[IoSlice&lt;<span class="lifetime">&#39;_</span>&gt;]) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
-        <a class="self" href="#1879">self</a>.<a href="#591">send_vectored</a>(<a href="#1879">bufs</a>)
+    </span><span class="kw">fn </span>write_vectored(<span class="kw-2">&amp;mut </span><span class="self">self</span>, bufs: <span class="kw-2">&amp;</span>[IoSlice&lt;<span class="lifetime">&#39;_</span>&gt;]) -&gt; io::Result&lt;usize&gt; {
+        <span class="self">self</span>.send_vectored(bufs)
     }
 
     <span class="kw">fn </span>flush(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; io::Result&lt;()&gt; {
@@ -3788,21 +3788,21 @@
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="#72">Socket</a> {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a href="#1889">f</a>.debug_struct(<span class="string">&quot;Socket&quot;</span>)
-            .field(<span class="string">&quot;raw&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="#1889">self</a>.<a href="#109">as_raw</a>())
-            .field(<span class="string">&quot;local_addr&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="#1889">self</a>.<a href="#308">local_addr</a>().ok())
-            .field(<span class="string">&quot;peer_addr&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="#1889">self</a>.<a href="#319">peer_addr</a>().ok())
+<span class="kw">impl </span>fmt::Debug <span class="kw">for </span>Socket {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        f.debug_struct(<span class="string">&quot;Socket&quot;</span>)
+            .field(<span class="string">&quot;raw&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.as_raw())
+            .field(<span class="string">&quot;local_addr&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.local_addr().ok())
+            .field(<span class="string">&quot;peer_addr&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.peer_addr().ok())
             .finish()
     }
 }
 
-<a class="macro" href="lib.rs.html#101-116">from!</a>(<a href="https://doc.rust-lang.org/nightly/std/net/tcp/struct.TcpStream.html">net::TcpStream</a>, <a href="#72">Socket</a>);
-<a class="macro" href="lib.rs.html#101-116">from!</a>(<a href="https://doc.rust-lang.org/nightly/std/net/tcp/struct.TcpListener.html">net::TcpListener</a>, <a href="#72">Socket</a>);
-<a class="macro" href="lib.rs.html#101-116">from!</a>(<a href="https://doc.rust-lang.org/nightly/std/net/udp/struct.UdpSocket.html">net::UdpSocket</a>, <a href="#72">Socket</a>);
-<a class="macro" href="lib.rs.html#101-116">from!</a>(<a href="#72">Socket</a>, <a href="https://doc.rust-lang.org/nightly/std/net/tcp/struct.TcpStream.html">net::TcpStream</a>);
-<a class="macro" href="lib.rs.html#101-116">from!</a>(<a href="#72">Socket</a>, <a href="https://doc.rust-lang.org/nightly/std/net/tcp/struct.TcpListener.html">net::TcpListener</a>);
-<a class="macro" href="lib.rs.html#101-116">from!</a>(<a href="#72">Socket</a>, <a href="https://doc.rust-lang.org/nightly/std/net/udp/struct.UdpSocket.html">net::UdpSocket</a>);
+<span class="macro">from!</span>(net::TcpStream, Socket);
+<span class="macro">from!</span>(net::TcpListener, Socket);
+<span class="macro">from!</span>(net::UdpSocket, Socket);
+<span class="macro">from!</span>(Socket, net::TcpStream);
+<span class="macro">from!</span>(Socket, net::TcpListener);
+<span class="macro">from!</span>(Socket, net::UdpSocket);
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="socket2" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="socket2" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

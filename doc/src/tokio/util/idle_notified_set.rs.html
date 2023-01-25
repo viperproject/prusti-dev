@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.21.2/src/util/idle_notified_set.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>idle_notified_set.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../tokio/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.23.0/src/util/idle_notified_set.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>idle_notified_set.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../tokio/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -469,14 +469,14 @@
 //! similar.
 
 </span><span class="kw">use </span>std::marker::PhantomPinned;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/mem/manually_drop/struct.ManuallyDrop.html">std::mem::ManuallyDrop</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/ptr/non_null/struct.NonNull.html">std::ptr::NonNull</a>;
-<span class="kw">use </span>std::task::{<a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>, <a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Waker.html">Waker</a>};
+<span class="kw">use </span>std::mem::ManuallyDrop;
+<span class="kw">use </span>std::ptr::NonNull;
+<span class="kw">use </span>std::task::{Context, Waker};
 
-<span class="kw">use </span><a href="../loom/std/unsafe_cell.rs.html#2"><span class="kw">crate</span>::loom::cell::UnsafeCell</a>;
-<span class="kw">use </span><span class="kw">crate</span>::loom::sync::{<a href="https://doc.rust-lang.org/nightly/alloc/sync/struct.Arc.html">Arc</a>, <a href="../loom/std/mutex.rs.html#6">Mutex</a>};
-<span class="kw">use </span><span class="kw">crate</span>::util::linked_list::{<a class="self" href="mod.rs.html#50">self</a>, <a href="linked_list.rs.html#43">Link</a>};
-<span class="kw">use </span><span class="kw">crate</span>::util::{<a href="wake.rs.html#33">waker_ref</a>, <a href="wake.rs.html#9">Wake</a>};
+<span class="kw">use </span><span class="kw">crate</span>::loom::cell::UnsafeCell;
+<span class="kw">use </span><span class="kw">crate</span>::loom::sync::{Arc, Mutex};
+<span class="kw">use </span><span class="kw">crate</span>::util::linked_list::{<span class="self">self</span>, Link};
+<span class="kw">use </span><span class="kw">crate</span>::util::{waker_ref, Wake};
 
 <span class="kw">type </span>LinkedList&lt;T&gt; =
     linked_list::LinkedList&lt;ListEntry&lt;T&gt;, &lt;ListEntry&lt;T&gt; <span class="kw">as </span>linked_list::Link&gt;::Target&gt;;
@@ -484,7 +484,7 @@
 <span class="doccomment">/// This is the main handle to the collection.
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>IdleNotifiedSet&lt;T&gt; {
     lists: Arc&lt;Lists&lt;T&gt;&gt;,
-    length: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+    length: usize,
 }
 
 <span class="doccomment">/// A handle to an entry that is guaranteed to be stored in the idle or notified
@@ -513,7 +513,7 @@
     idle: LinkedList&lt;T&gt;,
     <span class="doccomment">/// Whenever an element in the `notified` list is woken, this waker will be
     /// notified and consumed, if it exists.
-    </span>waker: <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Waker.html">Waker</a>&gt;,
+    </span>waker: <span class="prelude-ty">Option</span>&lt;Waker&gt;,
 }
 
 <span class="doccomment">/// Which of the two lists in the shared Lists object is this entry stored in?
@@ -558,12 +558,12 @@
     <span class="doccomment">/// The value stored in this entry.
     </span>value: UnsafeCell&lt;ManuallyDrop&lt;T&gt;&gt;,
     <span class="doccomment">/// Used to remember which list this entry is in.
-    </span>my_list: UnsafeCell&lt;<a href="#65">List</a>&gt;,
+    </span>my_list: UnsafeCell&lt;List&gt;,
     <span class="doccomment">/// Required by the `linked_list::Pointers` field.
-    </span>_pin: <a href="https://doc.rust-lang.org/nightly/core/marker/struct.PhantomPinned.html">PhantomPinned</a>,
+    </span>_pin: PhantomPinned,
 }
 
-<a class="macro" href="../macros/addr_of.rs.html#5-23">generate_addr_of_methods! </a>{
+<span class="macro">generate_addr_of_methods! </span>{
     <span class="kw">impl</span>&lt;T&gt; ListEntry&lt;T&gt; {
         <span class="kw">unsafe fn </span>addr_of_pointers(<span class="self">self</span>: NonNull&lt;<span class="self">Self</span>&gt;) -&gt; NonNull&lt;linked_list::Pointers&lt;ListEntry&lt;T&gt;&gt;&gt; {
             <span class="kw-2">&amp;</span><span class="self">self</span>.pointers
@@ -573,65 +573,65 @@
 
 <span class="comment">// With mutable access to the `IdleNotifiedSet`, you can get mutable access to
 // the values.
-</span><span class="kw">unsafe impl</span>&lt;T: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="kw">for </span>IdleNotifiedSet&lt;T&gt; {}
+</span><span class="kw">unsafe impl</span>&lt;T: Send&gt; Send <span class="kw">for </span>IdleNotifiedSet&lt;T&gt; {}
 <span class="comment">// With the current API we strictly speaking don&#39;t even need `T: Sync`, but we
 // require it anyway to support adding &amp;self APIs that access the values in the
 // future.
-</span><span class="kw">unsafe impl</span>&lt;T: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> <span class="kw">for </span>IdleNotifiedSet&lt;T&gt; {}
+</span><span class="kw">unsafe impl</span>&lt;T: Sync&gt; Sync <span class="kw">for </span>IdleNotifiedSet&lt;T&gt; {}
 
 <span class="comment">// These impls control when it is safe to create a Waker. Since the waker does
 // not allow access to the value in any way (including its destructor), it is
 // not necessary for `T` to be Send or Sync.
-</span><span class="kw">unsafe impl</span>&lt;T&gt; <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="kw">for </span>ListEntry&lt;T&gt; {}
-<span class="kw">unsafe impl</span>&lt;T&gt; <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> <span class="kw">for </span>ListEntry&lt;T&gt; {}
+</span><span class="kw">unsafe impl</span>&lt;T&gt; Send <span class="kw">for </span>ListEntry&lt;T&gt; {}
+<span class="kw">unsafe impl</span>&lt;T&gt; Sync <span class="kw">for </span>ListEntry&lt;T&gt; {}
 
 <span class="kw">impl</span>&lt;T&gt; IdleNotifiedSet&lt;T&gt; {
     <span class="doccomment">/// Create a new IdleNotifiedSet.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new() -&gt; <span class="self">Self </span>{
-        <span class="kw">let </span>lists = Mutex::new(<a href="#49">ListsInner</a> {
+        <span class="kw">let </span>lists = Mutex::new(ListsInner {
             notified: LinkedList::new(),
             idle: LinkedList::new(),
             waker: <span class="prelude-val">None</span>,
         });
 
-        <a href="#23">IdleNotifiedSet</a> {
-            lists: Arc::new(<a href="#129">lists</a>),
+        IdleNotifiedSet {
+            lists: Arc::new(lists),
             length: <span class="number">0</span>,
         }
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="self" href="#141">self</a>.length
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+        <span class="self">self</span>.length
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>is_empty(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#145">self</a>.length == <span class="number">0
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>is_empty(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.length == <span class="number">0
     </span>}
 
     <span class="doccomment">/// Insert the given value into the `idle` list.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>insert_idle(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: T) -&gt; EntryInOneOfTheLists&lt;<span class="lifetime">&#39;_</span>, T&gt; {
-        <a class="self" href="#150">self</a>.length += <span class="number">1</span>;
+        <span class="self">self</span>.length += <span class="number">1</span>;
 
-        <span class="kw">let </span>entry = Arc::new(<a href="#91">ListEntry</a> {
-            parent: <a class="self" href="#150">self</a>.lists.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
-            value: UnsafeCell::new(ManuallyDrop::new(<a href="#150">value</a>)),
-            my_list: UnsafeCell::new(<a href="#67">List::Idle</a>),
+        <span class="kw">let </span>entry = Arc::new(ListEntry {
+            parent: <span class="self">self</span>.lists.clone(),
+            value: UnsafeCell::new(ManuallyDrop::new(value)),
+            my_list: UnsafeCell::new(List::Idle),
             pointers: linked_list::Pointers::new(),
             _pin: PhantomPinned,
         });
 
         {
-            <span class="kw">let </span><span class="kw-2">mut </span>lock = <a class="self" href="#150">self</a>.lists.<a href="../loom/std/mutex.rs.html#16">lock</a>();
-            <a href="#162">lock</a>.idle.<a href="linked_list.rs.html#126">push_front</a>(<a href="#153">entry</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
+            <span class="kw">let </span><span class="kw-2">mut </span>lock = <span class="self">self</span>.lists.lock();
+            lock.idle.push_front(entry.clone());
         }
 
         <span class="comment">// Safety: We just put the entry in the idle list, so it is in one of the lists.
-        </span><a href="#38">EntryInOneOfTheLists</a> { <a href="#153">entry</a>, set: <span class="self"><a href="#150">self</a> </span>}
+        </span>EntryInOneOfTheLists { entry, set: <span class="self">self </span>}
     }
 
     <span class="doccomment">/// Pop an entry from the notified list to poll it. The entry is moved to
     /// the idle list atomically.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>pop_notified(<span class="kw-2">&amp;mut </span><span class="self">self</span>, waker: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Waker.html">Waker</a>) -&gt; <span class="prelude-ty">Option</span>&lt;EntryInOneOfTheLists&lt;<span class="lifetime">&#39;_</span>, T&gt;&gt; {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>pop_notified(<span class="kw-2">&amp;mut </span><span class="self">self</span>, waker: <span class="kw-2">&amp;</span>Waker) -&gt; <span class="prelude-ty">Option</span>&lt;EntryInOneOfTheLists&lt;<span class="lifetime">&#39;_</span>, T&gt;&gt; {
         <span class="comment">// We don&#39;t decrement the length because this call moves the entry to
         // the idle list rather than removing it.
         </span><span class="kw">if </span><span class="self">self</span>.length == <span class="number">0 </span>{
@@ -639,36 +639,36 @@
             </span><span class="kw">return </span><span class="prelude-val">None</span>;
         }
 
-        <span class="kw">let </span><span class="kw-2">mut </span>lock = <a class="self" href="#172">self</a>.lists.<a href="../loom/std/mutex.rs.html#16">lock</a>();
+        <span class="kw">let </span><span class="kw-2">mut </span>lock = <span class="self">self</span>.lists.lock();
 
-        <span class="kw">let </span>should_update_waker = <span class="kw">match </span><a href="#180">lock</a>.waker.as_mut() {
-            <span class="prelude-val">Some</span>(cur_waker) =&gt; !<a href="#172">waker</a>.will_wake(<a href="#183">cur_waker</a>),
+        <span class="kw">let </span>should_update_waker = <span class="kw">match </span>lock.waker.as_mut() {
+            <span class="prelude-val">Some</span>(cur_waker) =&gt; !waker.will_wake(cur_waker),
             <span class="prelude-val">None </span>=&gt; <span class="bool-val">true</span>,
         };
         <span class="kw">if </span>should_update_waker {
-            <a href="#180">lock</a>.waker = <span class="prelude-val">Some</span>(<a href="#172">waker</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
+            lock.waker = <span class="prelude-val">Some</span>(waker.clone());
         }
 
         <span class="comment">// Pop the entry, returning None if empty.
         </span><span class="kw">let </span>entry = lock.notified.pop_back()<span class="question-mark">?</span>;
 
-        <a href="#180">lock</a>.idle.<a href="linked_list.rs.html#126">push_front</a>(<a href="#191">entry</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
+        lock.idle.push_front(entry.clone());
 
         <span class="comment">// Safety: We are holding the lock.
-        </span><a href="#191">entry</a>.my_list.<a href="../loom/std/unsafe_cell.rs.html#13">with_mut</a>(|ptr| <span class="kw">unsafe </span>{
-            <span class="kw-2">*</span><a href="#196">ptr</a> = <a href="#67">List::Idle</a>;
+        </span>entry.my_list.with_mut(|ptr| <span class="kw">unsafe </span>{
+            <span class="kw-2">*</span>ptr = List::Idle;
         });
 
-        <a href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>(<a href="#180">lock</a>);
+        drop(lock);
 
         <span class="comment">// Safety: We just put the entry in the idle list, so it is in one of the lists.
-        </span><span class="prelude-val">Some</span>(<a href="#38">EntryInOneOfTheLists</a> { <a href="#191">entry</a>, set: <span class="self"><a href="#172">self</a> </span>})
+        </span><span class="prelude-val">Some</span>(EntryInOneOfTheLists { entry, set: <span class="self">self </span>})
     }
 
     <span class="doccomment">/// Call a function on every element in this list.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>for_each&lt;F: FnMut(<span class="kw-2">&amp;mut </span>T)&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, <span class="kw-2">mut </span>func: F) {
         <span class="kw">fn </span>get_ptrs&lt;T&gt;(list: <span class="kw-2">&amp;mut </span>LinkedList&lt;T&gt;, ptrs: <span class="kw-2">&amp;mut </span>Vec&lt;<span class="kw-2">*mut </span>T&gt;) {
-            <span class="kw">let </span><span class="kw-2">mut </span>node = <a href="#208">list</a>.<a href="linked_list.rs.html#235">last</a>();
+            <span class="kw">let </span><span class="kw-2">mut </span>node = list.last();
 
             <span class="kw">while let </span><span class="prelude-val">Some</span>(entry) = node {
                 ptrs.push(entry.value.with_mut(|ptr| {
@@ -688,14 +688,14 @@
         // to get moved from the idle list to the notified list during the
         // operation, which would otherwise result in some value being listed
         // twice.
-        </span><span class="kw">let </span><span class="kw-2">mut </span>ptrs = Vec::with_capacity(<a class="self" href="#207">self</a>.<a href="#141">len</a>());
+        </span><span class="kw">let </span><span class="kw-2">mut </span>ptrs = Vec::with_capacity(<span class="self">self</span>.len());
         {
-            <span class="kw">let </span><span class="kw-2">mut </span>lock = <a class="self" href="#207">self</a>.lists.<a href="../loom/std/mutex.rs.html#16">lock</a>();
+            <span class="kw">let </span><span class="kw-2">mut </span>lock = <span class="self">self</span>.lists.lock();
 
-            <a href="#208">get_ptrs</a>(<span class="kw-2">&amp;mut </span><a href="#231">lock</a>.idle, <span class="kw-2">&amp;mut </span><a href="#229">ptrs</a>);
-            <a href="#208">get_ptrs</a>(<span class="kw-2">&amp;mut </span><a href="#231">lock</a>.notified, <span class="kw-2">&amp;mut </span><a href="#229">ptrs</a>);
+            get_ptrs(<span class="kw-2">&amp;mut </span>lock.idle, <span class="kw-2">&amp;mut </span>ptrs);
+            get_ptrs(<span class="kw-2">&amp;mut </span>lock.notified, <span class="kw-2">&amp;mut </span>ptrs);
         }
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert_eq.html">debug_assert_eq!</a>(ptrs.len(), ptrs.capacity());
+        <span class="macro">debug_assert_eq!</span>(ptrs.len(), ptrs.capacity());
 
         <span class="kw">for </span>ptr <span class="kw">in </span>ptrs {
             <span class="comment">// Safety: When we grabbed the pointers, the entries were in one of
@@ -717,7 +717,7 @@
             <span class="comment">// Fast path.
             </span><span class="kw">return</span>;
         }
-        <a class="self" href="#253">self</a>.length = <span class="number">0</span>;
+        <span class="self">self</span>.length = <span class="number">0</span>;
 
         <span class="comment">// The LinkedList is not cleared on panic, so we use a bomb to clear it.
         //
@@ -730,13 +730,13 @@
         }
 
         <span class="kw">impl</span>&lt;T, F: FnMut(T)&gt; AllEntries&lt;T, F&gt; {
-            <span class="kw">fn </span>pop_next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-                <span class="kw">if let </span><span class="prelude-val">Some</span>(entry) = <a class="self" href="#271">self</a>.all_entries.<a href="linked_list.rs.html#149">pop_back</a>() {
+            <span class="kw">fn </span>pop_next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; bool {
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(entry) = <span class="self">self</span>.all_entries.pop_back() {
                     <span class="comment">// Safety: We just took this value from the list, so we can
                     // destroy the value in the entry.
-                    </span><a href="#272">entry</a>
+                    </span>entry
                         .value
-                        .<a href="../loom/std/unsafe_cell.rs.html#13">with_mut</a>(|ptr| <span class="kw">unsafe </span>{ (<a class="self" href="#271">self</a>.func)(ManuallyDrop::take(<span class="kw-2">&amp;mut *</span><a href="#277">ptr</a>)) });
+                        .with_mut(|ptr| <span class="kw">unsafe </span>{ (<span class="self">self</span>.func)(ManuallyDrop::take(<span class="kw-2">&amp;mut *</span>ptr)) });
                     <span class="bool-val">true
                 </span>} <span class="kw">else </span>{
                     <span class="bool-val">false
@@ -744,26 +744,26 @@
             }
         }
 
-        <span class="kw">impl</span>&lt;T, F: FnMut(T)&gt; <a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span>AllEntries&lt;T, F&gt; {
+        <span class="kw">impl</span>&lt;T, F: FnMut(T)&gt; Drop <span class="kw">for </span>AllEntries&lt;T, F&gt; {
             <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
                 <span class="kw">while </span><span class="self">self</span>.pop_next() {}
             }
         }
 
-        <span class="kw">let </span><span class="kw-2">mut </span>all_entries = <a href="#265">AllEntries</a> {
+        <span class="kw">let </span><span class="kw-2">mut </span>all_entries = AllEntries {
             all_entries: LinkedList::new(),
-            <a href="#253">func</a>,
+            func,
         };
 
         <span class="comment">// Atomically move all entries to the new linked list in the AllEntries
         // object.
         </span>{
-            <span class="kw">let </span><span class="kw-2">mut </span>lock = <a class="self" href="#253">self</a>.lists.<a href="../loom/std/mutex.rs.html#16">lock</a>();
+            <span class="kw">let </span><span class="kw-2">mut </span>lock = <span class="self">self</span>.lists.lock();
             <span class="kw">unsafe </span>{
                 <span class="comment">// Safety: We are holding the lock and `all_entries` is a new
                 // LinkedList.
-                </span><a href="#321">move_to_new_list</a>(<span class="kw-2">&amp;mut </span><a href="#299">lock</a>.idle, <span class="kw-2">&amp;mut </span><a href="#291">all_entries</a>.all_entries);
-                <a href="#321">move_to_new_list</a>(<span class="kw-2">&amp;mut </span><a href="#299">lock</a>.notified, <span class="kw-2">&amp;mut </span><a href="#291">all_entries</a>.all_entries);
+                </span>move_to_new_list(<span class="kw-2">&amp;mut </span>lock.idle, <span class="kw-2">&amp;mut </span>all_entries.all_entries);
+                move_to_new_list(<span class="kw-2">&amp;mut </span>lock.notified, <span class="kw-2">&amp;mut </span>all_entries.all_entries);
             }
         }
 
@@ -796,30 +796,30 @@
     /// This consumes the value, since it is no longer guaranteed to be in a
     /// list.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>remove(<span class="self">self</span>) -&gt; T {
-        <a class="self" href="#336">self</a>.set.length -= <span class="number">1</span>;
+        <span class="self">self</span>.set.length -= <span class="number">1</span>;
 
         {
-            <span class="kw">let </span><span class="kw-2">mut </span>lock = <a class="self" href="#336">self</a>.set.lists.<a href="../loom/std/mutex.rs.html#16">lock</a>();
+            <span class="kw">let </span><span class="kw-2">mut </span>lock = <span class="self">self</span>.set.lists.lock();
 
             <span class="comment">// Safety: We are holding the lock so there is no race, and we will
             // remove the entry afterwards to uphold invariants.
-            </span><span class="kw">let </span>old_my_list = <a class="self" href="#336">self</a>.entry.my_list.<a href="../loom/std/unsafe_cell.rs.html#13">with_mut</a>(|ptr| <span class="kw">unsafe </span>{
-                <span class="kw">let </span>old_my_list = <span class="kw-2">*</span><a href="#344">ptr</a>;
-                <span class="kw-2">*</span><a href="#344">ptr</a> = <a href="#68">List::Neither</a>;
-                <a href="#345">old_my_list</a>
+            </span><span class="kw">let </span>old_my_list = <span class="self">self</span>.entry.my_list.with_mut(|ptr| <span class="kw">unsafe </span>{
+                <span class="kw">let </span>old_my_list = <span class="kw-2">*</span>ptr;
+                <span class="kw-2">*</span>ptr = List::Neither;
+                old_my_list
             });
 
-            <span class="kw">let </span>list = <span class="kw">match </span><a href="#344">old_my_list</a> {
-                <a href="#67">List::Idle</a> =&gt; <span class="kw-2">&amp;mut </span><a href="#340">lock</a>.idle,
-                <a href="#66">List::Notified</a> =&gt; <span class="kw-2">&amp;mut </span><a href="#340">lock</a>.notified,
+            <span class="kw">let </span>list = <span class="kw">match </span>old_my_list {
+                List::Idle =&gt; <span class="kw-2">&amp;mut </span>lock.idle,
+                List::Notified =&gt; <span class="kw-2">&amp;mut </span>lock.notified,
                 <span class="comment">// An entry in one of the lists is in one of the lists.
-                </span><a href="#68">List::Neither</a> =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(),
+                </span>List::Neither =&gt; <span class="macro">unreachable!</span>(),
             };
 
             <span class="kw">unsafe </span>{
                 <span class="comment">// Safety: We just checked that the entry is in this particular
                 // list.
-                </span><a href="#350">list</a>.<a href="linked_list.rs.html#183">remove</a>(ListEntry::as_raw(<span class="kw-2">&amp;</span><a class="self" href="#336">self</a>.entry)).unwrap();
+                </span>list.remove(ListEntry::as_raw(<span class="kw-2">&amp;</span><span class="self">self</span>.entry)).unwrap();
             }
         }
 
@@ -828,9 +828,9 @@
         //
         // Safety: We have a mutable reference to the `IdleNotifiedSet` that
         // owns this entry, so we can use its permission to access the value.
-        </span><a class="self" href="#336">self</a>.entry
+        </span><span class="self">self</span>.entry
             .value
-            .<a href="../loom/std/unsafe_cell.rs.html#13">with_mut</a>(|ptr| <span class="kw">unsafe </span>{ ManuallyDrop::take(<span class="kw-2">&amp;mut *</span><a href="#371">ptr</a>) })
+            .with_mut(|ptr| <span class="kw">unsafe </span>{ ManuallyDrop::take(<span class="kw-2">&amp;mut *</span>ptr) })
     }
 
     <span class="doccomment">/// Access the value in this entry together with a context for its waker.
@@ -839,88 +839,88 @@
         </span>F: FnOnce(<span class="kw-2">&amp;mut </span>T, <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; U,
         T: <span class="lifetime">&#39;static</span>,
     {
-        <span class="kw">let </span>waker = <a href="wake.rs.html#33">waker_ref</a>(<span class="kw-2">&amp;</span><a class="self" href="#375">self</a>.entry);
+        <span class="kw">let </span>waker = waker_ref(<span class="kw-2">&amp;</span><span class="self">self</span>.entry);
 
-        <span class="kw">let </span><span class="kw-2">mut </span>context = Context::from_waker(<span class="kw-2">&amp;</span><a href="#380">waker</a>);
+        <span class="kw">let </span><span class="kw-2">mut </span>context = Context::from_waker(<span class="kw-2">&amp;</span>waker);
 
         <span class="comment">// Safety: We have a mutable reference to the `IdleNotifiedSet` that
         // owns this entry, so we can use its permission to access the value.
-        </span><a class="self" href="#375">self</a>.entry
+        </span><span class="self">self</span>.entry
             .value
-            .<a href="../loom/std/unsafe_cell.rs.html#13">with_mut</a>(|ptr| <span class="kw">unsafe </span>{ <a href="#375">func</a>(<span class="kw-2">&amp;mut *</span><a href="#388">ptr</a>, <span class="kw-2">&amp;mut </span><a href="#382">context</a>) })
+            .with_mut(|ptr| <span class="kw">unsafe </span>{ func(<span class="kw-2">&amp;mut *</span>ptr, <span class="kw-2">&amp;mut </span>context) })
     }
 }
 
-<span class="kw">impl</span>&lt;T&gt; <a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span>IdleNotifiedSet&lt;T&gt; {
+<span class="kw">impl</span>&lt;T&gt; Drop <span class="kw">for </span>IdleNotifiedSet&lt;T&gt; {
     <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="comment">// Clear both lists.
-        </span><a class="self" href="#393">self</a>.<a href="#253">drain</a>(<a href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>);
+        </span><span class="self">self</span>.drain(drop);
 
         <span class="attr">#[cfg(debug_assertions)]
         </span><span class="kw">if </span>!std::thread::panicking() {
-            <span class="kw">let </span>lock = <a class="self" href="#393">self</a>.lists.<a href="../loom/std/mutex.rs.html#16">lock</a>();
-            <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(lock.idle.is_empty());
-            <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(lock.notified.is_empty());
+            <span class="kw">let </span>lock = <span class="self">self</span>.lists.lock();
+            <span class="macro">assert!</span>(lock.idle.is_empty());
+            <span class="macro">assert!</span>(lock.notified.is_empty());
         }
     }
 }
 
-<span class="kw">impl</span>&lt;T: <span class="lifetime">&#39;static</span>&gt; <a href="wake.rs.html#9">Wake</a> <span class="kw">for </span>ListEntry&lt;T&gt; {
+<span class="kw">impl</span>&lt;T: <span class="lifetime">&#39;static</span>&gt; Wake <span class="kw">for </span>ListEntry&lt;T&gt; {
     <span class="kw">fn </span>wake_by_ref(me: <span class="kw-2">&amp;</span>Arc&lt;<span class="self">Self</span>&gt;) {
-        <span class="kw">let </span><span class="kw-2">mut </span>lock = <a href="#407">me</a>.parent.<a href="../loom/std/mutex.rs.html#16">lock</a>();
+        <span class="kw">let </span><span class="kw-2">mut </span>lock = me.parent.lock();
 
         <span class="comment">// Safety: We are holding the lock and we will update the lists to
         // maintain invariants.
-        </span><span class="kw">let </span>old_my_list = <a href="#407">me</a>.my_list.<a href="../loom/std/unsafe_cell.rs.html#13">with_mut</a>(|ptr| <span class="kw">unsafe </span>{
-            <span class="kw">let </span>old_my_list = <span class="kw-2">*</span><a href="#412">ptr</a>;
+        </span><span class="kw">let </span>old_my_list = me.my_list.with_mut(|ptr| <span class="kw">unsafe </span>{
+            <span class="kw">let </span>old_my_list = <span class="kw-2">*</span>ptr;
             <span class="kw">if </span>old_my_list == List::Idle {
-                <span class="kw-2">*</span><a href="#412">ptr</a> = <a href="#66">List::Notified</a>;
+                <span class="kw-2">*</span>ptr = List::Notified;
             }
-            <a href="#413">old_my_list</a>
+            old_my_list
         });
 
         <span class="kw">if </span>old_my_list == List::Idle {
             <span class="comment">// We move ourself to the notified list.
             </span><span class="kw">let </span>me = <span class="kw">unsafe </span>{
                 <span class="comment">// Safety: We just checked that we are in this particular list.
-                </span><a href="#408">lock</a>.idle.<a href="linked_list.rs.html#183">remove</a>(NonNull::from(<span class="kw-2">&amp;**</span><a href="#407">me</a>)).unwrap()
+                </span>lock.idle.remove(NonNull::from(<span class="kw-2">&amp;**</span>me)).unwrap()
             };
-            <a href="#408">lock</a>.notified.<a href="linked_list.rs.html#126">push_front</a>(<a href="#422">me</a>);
+            lock.notified.push_front(me);
 
-            <span class="kw">if let </span><span class="prelude-val">Some</span>(waker) = <a href="#408">lock</a>.waker.take() {
-                <a href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>(<a href="#408">lock</a>);
-                <a href="#428">waker</a>.wake();
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(waker) = lock.waker.take() {
+                drop(lock);
+                waker.wake();
             }
         }
     }
 
     <span class="kw">fn </span>wake(me: Arc&lt;<span class="self">Self</span>&gt;) {
-        <span class="self">Self</span>::wake_by_ref(<span class="kw-2">&amp;</span><a href="#435">me</a>)
+        <span class="self">Self</span>::wake_by_ref(<span class="kw-2">&amp;</span>me)
     }
 }
 
 <span class="doccomment">/// # Safety
 ///
 /// `ListEntry` is forced to be !Unpin.
-</span><span class="kw">unsafe impl</span>&lt;T&gt; <a href="linked_list.rs.html#43">linked_list::Link</a> <span class="kw">for </span>ListEntry&lt;T&gt; {
+</span><span class="kw">unsafe impl</span>&lt;T&gt; linked_list::Link <span class="kw">for </span>ListEntry&lt;T&gt; {
     <span class="kw">type </span>Handle = Arc&lt;ListEntry&lt;T&gt;&gt;;
     <span class="kw">type </span>Target = ListEntry&lt;T&gt;;
 
     <span class="kw">fn </span>as_raw(handle: <span class="kw-2">&amp;</span><span class="self">Self</span>::Handle) -&gt; NonNull&lt;ListEntry&lt;T&gt;&gt; {
-        <span class="kw">let </span>ptr: <span class="kw-2">*const </span>ListEntry&lt;T&gt; = Arc::as_ptr(<a href="#447">handle</a>);
+        <span class="kw">let </span>ptr: <span class="kw-2">*const </span>ListEntry&lt;T&gt; = Arc::as_ptr(handle);
         <span class="comment">// Safety: We can&#39;t get a null pointer from `Arc::as_ptr`.
-        </span><span class="kw">unsafe </span>{ NonNull::new_unchecked(<a href="#448">ptr</a> <span class="kw">as </span><span class="kw-2">*mut </span>ListEntry&lt;T&gt;) }
+        </span><span class="kw">unsafe </span>{ NonNull::new_unchecked(ptr <span class="kw">as </span><span class="kw-2">*mut </span>ListEntry&lt;T&gt;) }
     }
 
     <span class="kw">unsafe fn </span>from_raw(ptr: NonNull&lt;ListEntry&lt;T&gt;&gt;) -&gt; Arc&lt;ListEntry&lt;T&gt;&gt; {
-        Arc::from_raw(<a href="#453">ptr</a>.as_ptr())
+        Arc::from_raw(ptr.as_ptr())
     }
 
     <span class="kw">unsafe fn </span>pointers(
         target: NonNull&lt;ListEntry&lt;T&gt;&gt;,
     ) -&gt; NonNull&lt;linked_list::Pointers&lt;ListEntry&lt;T&gt;&gt;&gt; {
-        ListEntry::addr_of_pointers(<a href="#458">target</a>)
+        ListEntry::addr_of_pointers(target)
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="tokio" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="tokio" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

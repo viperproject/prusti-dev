@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/openssl-0.10.42/src/provider.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>provider.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../openssl/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/openssl-0.10.45/src/provider.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>provider.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../openssl/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -59,16 +59,32 @@
 <a href="#59" id="59">59</a>
 <a href="#60" id="60">60</a>
 <a href="#61" id="61">61</a>
-</pre><pre class="rust"><code><span class="kw">use </span><a href="lib.rs.html#193"><span class="kw">crate</span>::cvt_p</a>;
-<span class="kw">use </span><a href="error.rs.html#39"><span class="kw">crate</span>::error::ErrorStack</a>;
-<span class="kw">use </span><a href="lib_ctx.rs.html#6-12"><span class="kw">crate</span>::lib_ctx::LibCtxRef</a>;
-<span class="kw">use </span>foreign_types::{<a href="../../foreign_types_shared/trait.ForeignType.html">ForeignType</a>, <a href="../../foreign_types_shared/trait.ForeignTypeRef.html">ForeignTypeRef</a>};
-<span class="kw">use </span><a href="../../openssl_macros/attr.corresponds.html">openssl_macros::corresponds</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/ffi/c_str/struct.CString.html">std::ffi::CString</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/ptr/index.html">std::ptr</a>;
+<a href="#62" id="62">62</a>
+<a href="#63" id="63">63</a>
+<a href="#64" id="64">64</a>
+<a href="#65" id="65">65</a>
+<a href="#66" id="66">66</a>
+<a href="#67" id="67">67</a>
+<a href="#68" id="68">68</a>
+<a href="#69" id="69">69</a>
+<a href="#70" id="70">70</a>
+<a href="#71" id="71">71</a>
+<a href="#72" id="72">72</a>
+<a href="#73" id="73">73</a>
+<a href="#74" id="74">74</a>
+<a href="#75" id="75">75</a>
+<a href="#76" id="76">76</a>
+<a href="#77" id="77">77</a>
+</pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::error::ErrorStack;
+<span class="kw">use </span><span class="kw">crate</span>::lib_ctx::LibCtxRef;
+<span class="kw">use crate</span>::{cvt, cvt_p};
+<span class="kw">use </span>foreign_types::{ForeignType, ForeignTypeRef};
+<span class="kw">use </span>openssl_macros::corresponds;
+<span class="kw">use </span>std::ffi::CString;
+<span class="kw">use </span>std::ptr;
 
-<a class="macro" href="macros.rs.html#134-163">foreign_type_and_impl_send_sync! </a>{
-    <span class="kw">type </span>CType = <a href="../../openssl_sys/openssl/handwritten/types/enum.OSSL_PROVIDER.html">ffi::OSSL_PROVIDER</a>;
+<span class="macro">foreign_type_and_impl_send_sync! </span>{
+    <span class="kw">type </span>CType = ffi::OSSL_PROVIDER;
     <span class="kw">fn </span>drop = ossl_provider_free;
 
     <span class="kw">pub struct </span>Provider;
@@ -77,24 +93,24 @@
 }
 
 <span class="attr">#[inline]
-</span><span class="kw">unsafe fn </span>ossl_provider_free(p: <span class="kw-2">*mut </span><a href="../../openssl_sys/openssl/handwritten/types/enum.OSSL_PROVIDER.html">ffi::OSSL_PROVIDER</a>) {
-    ffi::OSSL_PROVIDER_unload(<a href="#19">p</a>);
+</span><span class="kw">unsafe fn </span>ossl_provider_free(p: <span class="kw-2">*mut </span>ffi::OSSL_PROVIDER) {
+    ffi::OSSL_PROVIDER_unload(p);
 }
 
-<span class="kw">impl </span><a href="#9-16">Provider</a> {
+<span class="kw">impl </span>Provider {
     <span class="doccomment">/// Loads a new provider into the specified library context, disabling the fallback providers.
     ///
     /// If `ctx` is `None`, the provider will be loaded in to the default library context.
     </span><span class="attr">#[corresponds(OSSL_provider_load)]
-    </span><span class="kw">pub fn </span>load(ctx: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="lib_ctx.rs.html#6-12">LibCtxRef</a>&gt;, name: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, <a href="error.rs.html#39">ErrorStack</a>&gt; {
-        <span class="kw">let </span>name = CString::new(<a href="#28">name</a>).unwrap();
+    </span><span class="kw">pub fn </span>load(ctx: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>LibCtxRef&gt;, name: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, ErrorStack&gt; {
+        <span class="kw">let </span>name = CString::new(name).unwrap();
         <span class="kw">unsafe </span>{
             <span class="kw">let </span>p = cvt_p(ffi::OSSL_PROVIDER_load(
                 ctx.map_or(ptr::null_mut(), ForeignTypeRef::as_ptr),
                 name.as_ptr(),
             ))<span class="question-mark">?</span>;
 
-            <span class="prelude-val">Ok</span>(Provider::from_ptr(<a href="#31">p</a>))
+            <span class="prelude-val">Ok</span>(Provider::from_ptr(p))
         }
     }
 
@@ -104,11 +120,11 @@
     /// If `ctx` is `None`, the provider will be loaded into the default library context.
     </span><span class="attr">#[corresponds(OSSL_provider_try_load)]
     </span><span class="kw">pub fn </span>try_load(
-        ctx: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="lib_ctx.rs.html#6-12">LibCtxRef</a>&gt;,
-        name: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>,
-        retain_fallbacks: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, <a href="error.rs.html#39">ErrorStack</a>&gt; {
-        <span class="kw">let </span>name = CString::new(<a href="#47">name</a>).unwrap();
+        ctx: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>LibCtxRef&gt;,
+        name: <span class="kw-2">&amp;</span>str,
+        retain_fallbacks: bool,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, ErrorStack&gt; {
+        <span class="kw">let </span>name = CString::new(name).unwrap();
         <span class="kw">unsafe </span>{
             <span class="kw">let </span>p = cvt_p(ffi::OSSL_PROVIDER_try_load(
                 ctx.map_or(ptr::null_mut(), ForeignTypeRef::as_ptr),
@@ -116,9 +132,25 @@
                 retain_fallbacks <span class="kw">as _</span>,
             ))<span class="question-mark">?</span>;
 
-            <span class="prelude-val">Ok</span>(Provider::from_ptr(<a href="#52">p</a>))
+            <span class="prelude-val">Ok</span>(Provider::from_ptr(p))
+        }
+    }
+
+    <span class="doccomment">/// Specifies the default search path that is to be used for looking for providers in the specified library context.
+    /// If left unspecified, an environment variable and a fall back default value will be used instead
+    ///
+    /// If `ctx` is `None`, the provider will be loaded into the default library context.
+    </span><span class="attr">#[corresponds(OSSL_PROVIDER_set_default_search_path)]
+    </span><span class="kw">pub fn </span>set_default_search_path(ctx: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>LibCtxRef&gt;, path: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;(), ErrorStack&gt; {
+        <span class="kw">let </span>path = CString::new(path).unwrap();
+        <span class="kw">unsafe </span>{
+            cvt(ffi::OSSL_PROVIDER_set_default_search_path(
+                ctx.map_or(ptr::null_mut(), ForeignTypeRef::as_ptr),
+                path.as_ptr(),
+            ))
+            .map(|<span class="kw">_</span>| ())
         }
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="openssl" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="openssl" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

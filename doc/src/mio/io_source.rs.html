@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/mio-0.8.5/src/io_source.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>io_source.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../mio/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/mio-0.8.5/src/io_source.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>io_source.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../mio/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -332,19 +332,19 @@
 <a href="#332" id="332">332</a>
 <a href="#333" id="333">333</a>
 <a href="#334" id="334">334</a>
-</pre><pre class="rust"><code><span class="kw">use </span>std::ops::{<a href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.Deref.html">Deref</a>, <a href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.DerefMut.html">DerefMut</a>};
+</pre><pre class="rust"><code><span class="kw">use </span>std::ops::{Deref, DerefMut};
 <span class="attr">#[cfg(unix)]
-</span><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">std::os::unix::io::AsRawFd</a>;
+</span><span class="kw">use </span>std::os::unix::io::AsRawFd;
 <span class="attr">#[cfg(target_os = <span class="string">&quot;wasi&quot;</span>)]
 </span><span class="kw">use </span>std::os::wasi::io::AsRawFd;
 <span class="attr">#[cfg(windows)]
 </span><span class="kw">use </span>std::os::windows::io::AsRawSocket;
 <span class="attr">#[cfg(debug_assertions)]
-</span><span class="kw">use </span>std::sync::atomic::{<a href="https://doc.rust-lang.org/nightly/core/sync/atomic/struct.AtomicUsize.html">AtomicUsize</a>, <a href="https://doc.rust-lang.org/nightly/core/sync/atomic/enum.Ordering.html">Ordering</a>};
-<span class="kw">use </span>std::{<a href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">fmt</a>, <a href="https://doc.rust-lang.org/nightly/std/io/index.html">io</a>};
+</span><span class="kw">use </span>std::sync::atomic::{AtomicUsize, Ordering};
+<span class="kw">use </span>std::{fmt, io};
 
-<span class="kw">use </span><a href="sys/unix/mod.rs.html#39"><span class="kw">crate</span>::sys::IoSourceState</a>;
-<span class="kw">use crate</span>::{<a href="lib.rs.html#54">event</a>, <a href="interest.rs.html#17">Interest</a>, <a href="poll.rs.html#254">Registry</a>, <a href="token.rs.html#132">Token</a>};
+<span class="kw">use </span><span class="kw">crate</span>::sys::IoSourceState;
+<span class="kw">use crate</span>::{event, Interest, Registry, Token};
 
 <span class="doccomment">/// Adapter for a [`RawFd`] or [`RawSocket`] providing an [`event::Source`]
 /// implementation.
@@ -394,18 +394,18 @@
 /// ```
 */
 </span><span class="kw">pub struct </span>IoSource&lt;T&gt; {
-    state: <a href="sys/unix/mod.rs.html#39">IoSourceState</a>,
+    state: IoSourceState,
     inner: T,
     <span class="attr">#[cfg(debug_assertions)]
-    </span>selector_id: <a href="#255">SelectorId</a>,
+    </span>selector_id: SelectorId,
 }
 
 <span class="kw">impl</span>&lt;T&gt; IoSource&lt;T&gt; {
     <span class="doccomment">/// Create a new `IoSource`.
     </span><span class="kw">pub fn </span>new(io: T) -&gt; IoSource&lt;T&gt; {
-        <a href="#62">IoSource</a> {
+        IoSource {
             state: IoSourceState::new(),
-            inner: <a href="#71">io</a>,
+            inner: io,
             <span class="attr">#[cfg(debug_assertions)]
             </span>selector_id: SelectorId::new(),
         }
@@ -425,7 +425,7 @@
     <span class="kw">where
         </span>F: FnOnce(<span class="kw-2">&amp;</span>T) -&gt; io::Result&lt;R&gt;,
     {
-        <a class="self" href="#90">self</a>.state.<a href="sys/unix/mod.rs.html#46-48">do_io</a>(<a href="#90">f</a>, <span class="kw-2">&amp;</span><a class="self" href="#90">self</a>.inner)
+        <span class="self">self</span>.state.do_io(f, <span class="kw-2">&amp;</span><span class="self">self</span>.inner)
     }
 
     <span class="doccomment">/// Returns the I/O source, dropping the state.
@@ -437,7 +437,7 @@
     ///
     /// [`deregister`]: Registry::deregister
     </span><span class="kw">pub fn </span>into_inner(<span class="self">self</span>) -&gt; T {
-        <a class="self" href="#105">self</a>.inner
+        <span class="self">self</span>.inner
     }
 }
 
@@ -445,11 +445,11 @@
 /// through the [`do_io`] method.
 ///
 /// [`do_io`]: IoSource::do_io
-</span><span class="kw">impl</span>&lt;T&gt; <a href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.Deref.html">Deref</a> <span class="kw">for </span>IoSource&lt;T&gt; {
+</span><span class="kw">impl</span>&lt;T&gt; Deref <span class="kw">for </span>IoSource&lt;T&gt; {
     <span class="kw">type </span>Target = T;
 
     <span class="kw">fn </span>deref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="self">Self</span>::Target {
-        <span class="kw-2">&amp;</span><a class="self" href="#117">self</a>.inner
+        <span class="kw-2">&amp;</span><span class="self">self</span>.inner
     }
 }
 
@@ -457,47 +457,47 @@
 /// through the [`do_io`] method.
 ///
 /// [`do_io`]: IoSource::do_io
-</span><span class="kw">impl</span>&lt;T&gt; <a href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.DerefMut.html">DerefMut</a> <span class="kw">for </span>IoSource&lt;T&gt; {
+</span><span class="kw">impl</span>&lt;T&gt; DerefMut <span class="kw">for </span>IoSource&lt;T&gt; {
     <span class="kw">fn </span>deref_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self</span>::Target {
-        <span class="kw-2">&amp;mut </span><a class="self" href="#127">self</a>.inner
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>.inner
     }
 }
 
 <span class="attr">#[cfg(unix)]
-</span><span class="kw">impl</span>&lt;T&gt; <a href="event/source.rs.html#75">event::Source</a> <span class="kw">for </span>IoSource&lt;T&gt;
+</span><span class="kw">impl</span>&lt;T&gt; event::Source <span class="kw">for </span>IoSource&lt;T&gt;
 <span class="kw">where
-    </span>T: <a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">AsRawFd</a>,
+    </span>T: AsRawFd,
 {
     <span class="kw">fn </span>register(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        registry: <span class="kw-2">&amp;</span><a href="poll.rs.html#254">Registry</a>,
-        token: <a href="token.rs.html#132">Token</a>,
-        interests: <a href="interest.rs.html#17">Interest</a>,
+        registry: <span class="kw-2">&amp;</span>Registry,
+        token: Token,
+        interests: Interest,
     ) -&gt; io::Result&lt;()&gt; {
         <span class="attr">#[cfg(debug_assertions)]
         </span><span class="self">self</span>.selector_id.associate(registry)<span class="question-mark">?</span>;
-        <a href="#139">registry</a>
-            .<a href="poll.rs.html#689">selector</a>()
-            .<a href="sys/unix/selector/epoll.rs.html#119">register</a>(<a class="self" href="#138">self</a>.inner.<a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">as_raw_fd</a>(), <a href="#140">token</a>, <a href="#141">interests</a>)
+        registry
+            .selector()
+            .register(<span class="self">self</span>.inner.as_raw_fd(), token, interests)
     }
 
     <span class="kw">fn </span>reregister(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        registry: <span class="kw-2">&amp;</span><a href="poll.rs.html#254">Registry</a>,
-        token: <a href="token.rs.html#132">Token</a>,
-        interests: <a href="interest.rs.html#17">Interest</a>,
+        registry: <span class="kw-2">&amp;</span>Registry,
+        token: Token,
+        interests: Interest,
     ) -&gt; io::Result&lt;()&gt; {
         <span class="attr">#[cfg(debug_assertions)]
         </span><span class="self">self</span>.selector_id.check_association(registry)<span class="question-mark">?</span>;
-        <a href="#152">registry</a>
-            .<a href="poll.rs.html#689">selector</a>()
-            .<a href="sys/unix/selector/epoll.rs.html#130">reregister</a>(<a class="self" href="#151">self</a>.inner.<a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">as_raw_fd</a>(), <a href="#153">token</a>, <a href="#154">interests</a>)
+        registry
+            .selector()
+            .reregister(<span class="self">self</span>.inner.as_raw_fd(), token, interests)
     }
 
-    <span class="kw">fn </span>deregister(<span class="kw-2">&amp;mut </span><span class="self">self</span>, registry: <span class="kw-2">&amp;</span><a href="poll.rs.html#254">Registry</a>) -&gt; io::Result&lt;()&gt; {
+    <span class="kw">fn </span>deregister(<span class="kw-2">&amp;mut </span><span class="self">self</span>, registry: <span class="kw-2">&amp;</span>Registry) -&gt; io::Result&lt;()&gt; {
         <span class="attr">#[cfg(debug_assertions)]
         </span><span class="self">self</span>.selector_id.remove_association(registry)<span class="question-mark">?</span>;
-        <a href="#163">registry</a>.<a href="poll.rs.html#689">selector</a>().<a href="sys/unix/selector/epoll.rs.html#141">deregister</a>(<a class="self" href="#163">self</a>.inner.<a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">as_raw_fd</a>())
+        registry.selector().deregister(<span class="self">self</span>.inner.as_raw_fd())
     }
 }
 
@@ -574,12 +574,12 @@
     }
 }
 
-<span class="kw">impl</span>&lt;T&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span>IoSource&lt;T&gt;
+<span class="kw">impl</span>&lt;T&gt; fmt::Debug <span class="kw">for </span>IoSource&lt;T&gt;
 <span class="kw">where
-    </span>T: <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a>,
+    </span>T: fmt::Debug,
 {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="self" href="#247">self</a>.inner.<a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt</a>(<a href="#247">f</a>)
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        <span class="self">self</span>.inner.fmt(f)
     }
 }
 
@@ -587,27 +587,27 @@
 </span><span class="attr">#[cfg(debug_assertions)]
 #[derive(Debug)]
 </span><span class="kw">struct </span>SelectorId {
-    id: <a href="https://doc.rust-lang.org/nightly/core/sync/atomic/struct.AtomicUsize.html">AtomicUsize</a>,
+    id: AtomicUsize,
 }
 
 <span class="attr">#[cfg(debug_assertions)]
-</span><span class="kw">impl </span><a href="#255">SelectorId</a> {
+</span><span class="kw">impl </span>SelectorId {
     <span class="doccomment">/// Value of `id` if `SelectorId` is not associated with any
     /// `sys::Selector`. Valid selector ids start at 1.
-    </span><span class="kw">const </span>UNASSOCIATED: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> = <span class="number">0</span>;
+    </span><span class="kw">const </span>UNASSOCIATED: usize = <span class="number">0</span>;
 
     <span class="doccomment">/// Create a new `SelectorId`.
-    </span><span class="kw">const fn </span>new() -&gt; <a href="#255">SelectorId</a> {
-        <a href="#255">SelectorId</a> {
+    </span><span class="kw">const fn </span>new() -&gt; SelectorId {
+        SelectorId {
             id: AtomicUsize::new(<span class="self">Self</span>::UNASSOCIATED),
         }
     }
 
     <span class="doccomment">/// Associate an I/O source with `registry`, returning an error if its
     /// already registered.
-    </span><span class="kw">fn </span>associate(<span class="kw-2">&amp;</span><span class="self">self</span>, registry: <span class="kw-2">&amp;</span><a href="poll.rs.html#254">Registry</a>) -&gt; io::Result&lt;()&gt; {
-        <span class="kw">let </span>registry_id = <a href="#274">registry</a>.<a href="poll.rs.html#689">selector</a>().<a href="sys/unix/selector/epoll.rs.html#154">id</a>();
-        <span class="kw">let </span>previous_id = <a class="self" href="#274">self</a>.id.swap(<a href="#275">registry_id</a>, Ordering::AcqRel);
+    </span><span class="kw">fn </span>associate(<span class="kw-2">&amp;</span><span class="self">self</span>, registry: <span class="kw-2">&amp;</span>Registry) -&gt; io::Result&lt;()&gt; {
+        <span class="kw">let </span>registry_id = registry.selector().id();
+        <span class="kw">let </span>previous_id = <span class="self">self</span>.id.swap(registry_id, Ordering::AcqRel);
 
         <span class="kw">if </span>previous_id == <span class="self">Self</span>::UNASSOCIATED {
             <span class="prelude-val">Ok</span>(())
@@ -622,9 +622,9 @@
     <span class="doccomment">/// Check the association of an I/O source with `registry`, returning an
     /// error if its registered with a different `Registry` or not registered at
     /// all.
-    </span><span class="kw">fn </span>check_association(<span class="kw-2">&amp;</span><span class="self">self</span>, registry: <span class="kw-2">&amp;</span><a href="poll.rs.html#254">Registry</a>) -&gt; io::Result&lt;()&gt; {
-        <span class="kw">let </span>registry_id = <a href="#291">registry</a>.<a href="poll.rs.html#689">selector</a>().<a href="sys/unix/selector/epoll.rs.html#154">id</a>();
-        <span class="kw">let </span>id = <a class="self" href="#291">self</a>.id.load(Ordering::Acquire);
+    </span><span class="kw">fn </span>check_association(<span class="kw-2">&amp;</span><span class="self">self</span>, registry: <span class="kw-2">&amp;</span>Registry) -&gt; io::Result&lt;()&gt; {
+        <span class="kw">let </span>registry_id = registry.selector().id();
+        <span class="kw">let </span>id = <span class="self">self</span>.id.load(Ordering::Acquire);
 
         <span class="kw">if </span>id == registry_id {
             <span class="prelude-val">Ok</span>(())
@@ -643,9 +643,9 @@
 
     <span class="doccomment">/// Remove a previously made association from `registry`, returns an error
     /// if it was not previously associated with `registry`.
-    </span><span class="kw">fn </span>remove_association(<span class="kw-2">&amp;</span><span class="self">self</span>, registry: <span class="kw-2">&amp;</span><a href="poll.rs.html#254">Registry</a>) -&gt; io::Result&lt;()&gt; {
-        <span class="kw">let </span>registry_id = <a href="#312">registry</a>.<a href="poll.rs.html#689">selector</a>().<a href="sys/unix/selector/epoll.rs.html#154">id</a>();
-        <span class="kw">let </span>previous_id = <a class="self" href="#312">self</a>.id.swap(<span class="self">Self</span>::UNASSOCIATED, Ordering::AcqRel);
+    </span><span class="kw">fn </span>remove_association(<span class="kw-2">&amp;</span><span class="self">self</span>, registry: <span class="kw-2">&amp;</span>Registry) -&gt; io::Result&lt;()&gt; {
+        <span class="kw">let </span>registry_id = registry.selector().id();
+        <span class="kw">let </span>previous_id = <span class="self">self</span>.id.swap(<span class="self">Self</span>::UNASSOCIATED, Ordering::AcqRel);
 
         <span class="kw">if </span>previous_id == registry_id {
             <span class="prelude-val">Ok</span>(())
@@ -659,12 +659,12 @@
 }
 
 <span class="attr">#[cfg(debug_assertions)]
-</span><span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> <span class="kw">for </span><a href="#255">SelectorId</a> {
-    <span class="kw">fn </span>clone(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="#255">SelectorId</a> {
-        <a href="#255">SelectorId</a> {
-            id: AtomicUsize::new(<a class="self" href="#329">self</a>.id.load(Ordering::Acquire)),
+</span><span class="kw">impl </span>Clone <span class="kw">for </span>SelectorId {
+    <span class="kw">fn </span>clone(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; SelectorId {
+        SelectorId {
+            id: AtomicUsize::new(<span class="self">self</span>.id.load(Ordering::Acquire)),
         }
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="mio" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="mio" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

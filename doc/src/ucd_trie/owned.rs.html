@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/ucd-trie-0.1.5/src/owned.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>owned.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../ucd_trie/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/ucd-trie-0.1.5/src/owned.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>owned.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../ucd_trie/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -369,14 +369,14 @@
 <a href="#369" id="369">369</a>
 <a href="#370" id="370">370</a>
 <a href="#371" id="371">371</a>
-</pre><pre class="rust"><code><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/borrow/trait.Borrow.html">std::borrow::Borrow</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/collections/hash/map/struct.HashMap.html">std::collections::HashMap</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/error/index.html">std::error</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">std::fmt</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/io/index.html">std::io</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/result/index.html">std::result</a>;
+</pre><pre class="rust"><code><span class="kw">use </span>std::borrow::Borrow;
+<span class="kw">use </span>std::collections::HashMap;
+<span class="kw">use </span>std::error;
+<span class="kw">use </span>std::fmt;
+<span class="kw">use </span>std::io;
+<span class="kw">use </span>std::result;
 
-<span class="kw">use super</span>::{<a href="lib.rs.html#47">TrieSetSlice</a>, <a href="lib.rs.html#40">CHUNK_SIZE</a>};
+<span class="kw">use super</span>::{TrieSetSlice, CHUNK_SIZE};
 
 <span class="comment">// This implementation was pretty much cribbed from raphlinus&#39; contribution
 // to the standard library: https://github.com/rust-lang/rust/pull/33098/files
@@ -427,10 +427,10 @@
 // then the trie will store empty slices for those levels. The `contains`
 // check knows to return `false` in those cases.
 
-</span><span class="kw">const </span>CHUNKS: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> = <span class="number">0x110000 </span>/ <a href="lib.rs.html#40">CHUNK_SIZE</a>;
+</span><span class="kw">const </span>CHUNKS: usize = <span class="number">0x110000 </span>/ CHUNK_SIZE;
 
 <span class="doccomment">/// A type alias that maps to `std::result::Result&lt;T, ucd_trie::Error&gt;`.
-</span><span class="kw">pub type </span><span class="prelude-ty">Result</span>&lt;T&gt; = result::Result&lt;T, <a href="#66">Error</a>&gt;;
+</span><span class="kw">pub type </span><span class="prelude-ty">Result</span>&lt;T&gt; = result::Result&lt;T, Error&gt;;
 
 <span class="doccomment">/// An error that can occur during construction of a trie.
 </span><span class="attr">#[derive(Clone, Debug)]
@@ -438,57 +438,57 @@
     <span class="doccomment">/// This error is returned when an invalid codepoint is given to
     /// `TrieSetOwned::from_codepoints`. An invalid codepoint is a `u32` that
     /// is greater than `0x10FFFF`.
-    </span>InvalidCodepoint(<a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>),
+    </span>InvalidCodepoint(u32),
     <span class="doccomment">/// This error is returned when a set of Unicode codepoints could not be
     /// sufficiently compressed into the trie provided by this crate. There is
     /// no work-around for this error at this time.
     </span>GaveUp,
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">error::Error</a> <span class="kw">for </span><a href="#66">Error</a> {}
+<span class="kw">impl </span>error::Error <span class="kw">for </span>Error {}
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for </span><a href="#66">Error</a> {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="#80">self</a> </span>{
-            <a href="#70">Error::InvalidCodepoint</a>(cp) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(
-                <a href="#80">f</a>,
+<span class="kw">impl </span>fmt::Display <span class="kw">for </span>Error {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        <span class="kw">match </span><span class="kw-2">*</span><span class="self">self </span>{
+            Error::InvalidCodepoint(cp) =&gt; <span class="macro">write!</span>(
+                f,
                 <span class="string">&quot;could not construct trie set containing an \
                  invalid Unicode codepoint: 0x{:X}&quot;</span>,
                 cp
             ),
-            <a href="#74">Error::GaveUp</a> =&gt; {
-                <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#80">f</a>, <span class="string">&quot;could not compress codepoint set into a trie&quot;</span>)
+            Error::GaveUp =&gt; {
+                <span class="macro">write!</span>(f, <span class="string">&quot;could not compress codepoint set into a trie&quot;</span>)
             }
         }
     }
 }
 
-<span class="kw">impl </span>From&lt;<a href="#66">Error</a>&gt; <span class="kw">for </span><a href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a> {
-    <span class="kw">fn </span>from(err: <a href="#66">Error</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a> {
-        io::Error::new(io::ErrorKind::Other, <a href="#96">err</a>)
+<span class="kw">impl </span>From&lt;Error&gt; <span class="kw">for </span>io::Error {
+    <span class="kw">fn </span>from(err: Error) -&gt; io::Error {
+        io::Error::new(io::ErrorKind::Other, err)
     }
 }
 
 <span class="doccomment">/// An owned trie set.
 </span><span class="attr">#[derive(Clone)]
 </span><span class="kw">pub struct </span>TrieSetOwned {
-    tree1_level1: Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>&gt;,
-    tree2_level1: Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;,
-    tree2_level2: Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>&gt;,
-    tree3_level1: Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;,
-    tree3_level2: Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;,
-    tree3_level3: Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>&gt;,
+    tree1_level1: Vec&lt;u64&gt;,
+    tree2_level1: Vec&lt;u8&gt;,
+    tree2_level2: Vec&lt;u64&gt;,
+    tree3_level1: Vec&lt;u8&gt;,
+    tree3_level2: Vec&lt;u8&gt;,
+    tree3_level3: Vec&lt;u64&gt;,
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="#103">TrieSetOwned</a> {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#113">f</a>, <span class="string">&quot;TrieSetOwned(...)&quot;</span>)
+<span class="kw">impl </span>fmt::Debug <span class="kw">for </span>TrieSetOwned {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        <span class="macro">write!</span>(f, <span class="string">&quot;TrieSetOwned(...)&quot;</span>)
     }
 }
 
-<span class="kw">impl </span><a href="#103">TrieSetOwned</a> {
-    <span class="kw">fn </span>new(all: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>]) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#103">TrieSetOwned</a>&gt; {
-        <span class="kw">let </span><span class="kw-2">mut </span>bitvectors = Vec::with_capacity(<a href="#59">CHUNKS</a>);
+<span class="kw">impl </span>TrieSetOwned {
+    <span class="kw">fn </span>new(all: <span class="kw-2">&amp;</span>[bool]) -&gt; <span class="prelude-ty">Result</span>&lt;TrieSetOwned&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>bitvectors = Vec::with_capacity(CHUNKS);
         <span class="kw">for </span>i <span class="kw">in </span><span class="number">0</span>..CHUNKS {
             <span class="kw">let </span><span class="kw-2">mut </span>bitvector = <span class="number">0u64</span>;
             <span class="kw">for </span>j <span class="kw">in </span><span class="number">0</span>..CHUNK_SIZE {
@@ -500,14 +500,14 @@
         }
 
         <span class="kw">let </span>tree1_level1 =
-            <a href="#120">bitvectors</a>.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">cloned</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">take</a>(<span class="number">0x800 </span>/ <a href="lib.rs.html#40">CHUNK_SIZE</a>).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
+            bitvectors.iter().cloned().take(<span class="number">0x800 </span>/ CHUNK_SIZE).collect();
 
         <span class="kw">let </span>(<span class="kw-2">mut </span>tree2_level1, <span class="kw-2">mut </span>tree2_level2) = compress_postfix_leaves(
             <span class="kw-2">&amp;</span>bitvectors[<span class="number">0x800 </span>/ CHUNK_SIZE..<span class="number">0x10000 </span>/ CHUNK_SIZE],
         )<span class="question-mark">?</span>;
         <span class="kw">if </span>tree2_level2.len() == <span class="number">1 </span>&amp;&amp; tree2_level2[<span class="number">0</span>] == <span class="number">0 </span>{
-            <a href="#134">tree2_level1</a>.clear();
-            <a href="#134">tree2_level2</a>.clear();
+            tree2_level1.clear();
+            tree2_level2.clear();
         }
 
         <span class="kw">let </span>(mid, <span class="kw-2">mut </span>tree3_level3) = compress_postfix_leaves(
@@ -516,18 +516,18 @@
         <span class="kw">let </span>(<span class="kw-2">mut </span>tree3_level1, <span class="kw-2">mut </span>tree3_level2) =
             compress_postfix_mid(<span class="kw-2">&amp;</span>mid, <span class="number">64</span>)<span class="question-mark">?</span>;
         <span class="kw">if </span>tree3_level3.len() == <span class="number">1 </span>&amp;&amp; tree3_level3[<span class="number">0</span>] == <span class="number">0 </span>{
-            <a href="#145">tree3_level1</a>.clear();
-            <a href="#145">tree3_level2</a>.clear();
-            <a href="#142">tree3_level3</a>.clear();
+            tree3_level1.clear();
+            tree3_level2.clear();
+            tree3_level3.clear();
         }
 
-        <span class="prelude-val">Ok</span>(<a href="#103">TrieSetOwned</a> {
-            <a href="#131">tree1_level1</a>,
-            <a href="#134">tree2_level1</a>,
-            <a href="#134">tree2_level2</a>,
-            <a href="#145">tree3_level1</a>,
-            <a href="#145">tree3_level2</a>,
-            <a href="#142">tree3_level3</a>,
+        <span class="prelude-val">Ok</span>(TrieSetOwned {
+            tree1_level1,
+            tree2_level1,
+            tree2_level2,
+            tree3_level1,
+            tree3_level2,
+            tree3_level3,
         })
     }
 
@@ -535,16 +535,16 @@
     ///
     /// This returns an error if a set could not be sufficiently compressed to
     /// fit into a trie.
-    </span><span class="kw">pub fn </span>from_scalars&lt;I, C&gt;(scalars: I) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#103">TrieSetOwned</a>&gt;
+    </span><span class="kw">pub fn </span>from_scalars&lt;I, C&gt;(scalars: I) -&gt; <span class="prelude-ty">Result</span>&lt;TrieSetOwned&gt;
     <span class="kw">where
         </span>I: IntoIterator&lt;Item = C&gt;,
-        C: Borrow&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>&gt;,
+        C: Borrow&lt;char&gt;,
     {
-        <span class="kw">let </span><span class="kw-2">mut </span>all = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[<span class="bool-val">false</span>; <span class="number">0x110000</span>];
+        <span class="kw">let </span><span class="kw-2">mut </span>all = <span class="macro">vec!</span>[<span class="bool-val">false</span>; <span class="number">0x110000</span>];
         <span class="kw">for </span>s <span class="kw">in </span>scalars {
             all[<span class="kw-2">*</span>s.borrow() <span class="kw">as </span>usize] = <span class="bool-val">true</span>;
         }
-        TrieSetOwned::new(<span class="kw-2">&amp;</span><a href="#172">all</a>)
+        TrieSetOwned::new(<span class="kw-2">&amp;</span>all)
     }
 
     <span class="doccomment">/// Create a new trie set from a set of Unicode scalar values.
@@ -552,12 +552,12 @@
     /// This returns an error if a set could not be sufficiently compressed to
     /// fit into a trie. This also returns an error if any of the given
     /// codepoints are greater than `0x10FFFF`.
-    </span><span class="kw">pub fn </span>from_codepoints&lt;I, C&gt;(codepoints: I) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#103">TrieSetOwned</a>&gt;
+    </span><span class="kw">pub fn </span>from_codepoints&lt;I, C&gt;(codepoints: I) -&gt; <span class="prelude-ty">Result</span>&lt;TrieSetOwned&gt;
     <span class="kw">where
         </span>I: IntoIterator&lt;Item = C&gt;,
-        C: Borrow&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>&gt;,
+        C: Borrow&lt;u32&gt;,
     {
-        <span class="kw">let </span><span class="kw-2">mut </span>all = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[<span class="bool-val">false</span>; <span class="number">0x110000</span>];
+        <span class="kw">let </span><span class="kw-2">mut </span>all = <span class="macro">vec!</span>[<span class="bool-val">false</span>; <span class="number">0x110000</span>];
         <span class="kw">for </span>cp <span class="kw">in </span>codepoints {
             <span class="kw">let </span>cp = <span class="kw-2">*</span>cp.borrow();
             <span class="kw">if </span>cp &gt; <span class="number">0x10FFFF </span>{
@@ -565,40 +565,40 @@
             }
             all[cp <span class="kw">as </span>usize] = <span class="bool-val">true</span>;
         }
-        TrieSetOwned::new(<span class="kw-2">&amp;</span><a href="#189">all</a>)
+        TrieSetOwned::new(<span class="kw-2">&amp;</span>all)
     }
 
     <span class="doccomment">/// Return this set as a slice.
     </span><span class="attr">#[inline(always)]
     </span><span class="kw">pub fn </span>as_slice(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; TrieSetSlice&lt;<span class="lifetime">&#39;_</span>&gt; {
-        <a href="lib.rs.html#47">TrieSetSlice</a> {
-            tree1_level1: <span class="kw-2">&amp;</span><a class="self" href="#202">self</a>.tree1_level1,
-            tree2_level1: <span class="kw-2">&amp;</span><a class="self" href="#202">self</a>.tree2_level1,
-            tree2_level2: <span class="kw-2">&amp;</span><a class="self" href="#202">self</a>.tree2_level2,
-            tree3_level1: <span class="kw-2">&amp;</span><a class="self" href="#202">self</a>.tree3_level1,
-            tree3_level2: <span class="kw-2">&amp;</span><a class="self" href="#202">self</a>.tree3_level2,
-            tree3_level3: <span class="kw-2">&amp;</span><a class="self" href="#202">self</a>.tree3_level3,
+        TrieSetSlice {
+            tree1_level1: <span class="kw-2">&amp;</span><span class="self">self</span>.tree1_level1,
+            tree2_level1: <span class="kw-2">&amp;</span><span class="self">self</span>.tree2_level1,
+            tree2_level2: <span class="kw-2">&amp;</span><span class="self">self</span>.tree2_level2,
+            tree3_level1: <span class="kw-2">&amp;</span><span class="self">self</span>.tree3_level1,
+            tree3_level2: <span class="kw-2">&amp;</span><span class="self">self</span>.tree3_level2,
+            tree3_level3: <span class="kw-2">&amp;</span><span class="self">self</span>.tree3_level3,
         }
     }
 
     <span class="doccomment">/// Returns true if and only if the given Unicode scalar value is in this
     /// set.
-    </span><span class="kw">pub fn </span>contains_char(<span class="kw-2">&amp;</span><span class="self">self</span>, c: <a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#215">self</a>.<a href="#202">as_slice</a>().<a href="lib.rs.html#77">contains_char</a>(<a href="#215">c</a>)
+    </span><span class="kw">pub fn </span>contains_char(<span class="kw-2">&amp;</span><span class="self">self</span>, c: char) -&gt; bool {
+        <span class="self">self</span>.as_slice().contains_char(c)
     }
 
     <span class="doccomment">/// Returns true if and only if the given codepoint is in this set.
     ///
     /// If the given value exceeds the codepoint range (i.e., it&#39;s greater
     /// than `0x10FFFF`), then this returns false.
-    </span><span class="kw">pub fn </span>contains_u32(<span class="kw-2">&amp;</span><span class="self">self</span>, cp: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#223">self</a>.<a href="#202">as_slice</a>().<a href="lib.rs.html#85">contains_u32</a>(<a href="#223">cp</a>)
+    </span><span class="kw">pub fn </span>contains_u32(<span class="kw-2">&amp;</span><span class="self">self</span>, cp: u32) -&gt; bool {
+        <span class="self">self</span>.as_slice().contains_u32(cp)
     }
 }
 
-<span class="kw">fn </span>compress_postfix_leaves(chunks: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>]) -&gt; <span class="prelude-ty">Result</span>&lt;(Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;, Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>&gt;)&gt; {
-    <span class="kw">let </span><span class="kw-2">mut </span>root = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[];
-    <span class="kw">let </span><span class="kw-2">mut </span>children = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[];
+<span class="kw">fn </span>compress_postfix_leaves(chunks: <span class="kw-2">&amp;</span>[u64]) -&gt; <span class="prelude-ty">Result</span>&lt;(Vec&lt;u8&gt;, Vec&lt;u64&gt;)&gt; {
+    <span class="kw">let </span><span class="kw-2">mut </span>root = <span class="macro">vec!</span>[];
+    <span class="kw">let </span><span class="kw-2">mut </span>children = <span class="macro">vec!</span>[];
     <span class="kw">let </span><span class="kw-2">mut </span>bychild = HashMap::new();
     <span class="kw">for </span><span class="kw-2">&amp;</span>chunk <span class="kw">in </span>chunks {
         <span class="kw">if </span>!bychild.contains_key(<span class="kw-2">&amp;</span>chunk) {
@@ -611,15 +611,15 @@
         }
         root.push(bychild[<span class="kw-2">&amp;</span>chunk]);
     }
-    <span class="prelude-val">Ok</span>((<a href="#229">root</a>, <a href="#230">children</a>))
+    <span class="prelude-val">Ok</span>((root, children))
 }
 
 <span class="kw">fn </span>compress_postfix_mid(
-    chunks: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
-    chunk_size: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-) -&gt; <span class="prelude-ty">Result</span>&lt;(Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;, Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;)&gt; {
-    <span class="kw">let </span><span class="kw-2">mut </span>root = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[];
-    <span class="kw">let </span><span class="kw-2">mut </span>children = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[];
+    chunks: <span class="kw-2">&amp;</span>[u8],
+    chunk_size: usize,
+) -&gt; <span class="prelude-ty">Result</span>&lt;(Vec&lt;u8&gt;, Vec&lt;u8&gt;)&gt; {
+    <span class="kw">let </span><span class="kw-2">mut </span>root = <span class="macro">vec!</span>[];
+    <span class="kw">let </span><span class="kw-2">mut </span>children = <span class="macro">vec!</span>[];
     <span class="kw">let </span><span class="kw-2">mut </span>bychild = HashMap::new();
     <span class="kw">for </span>i <span class="kw">in </span><span class="number">0</span>..(chunks.len() / chunk_size) {
         <span class="kw">let </span>chunk = <span class="kw-2">&amp;</span>chunks[i * chunk_size..(i + <span class="number">1</span>) * chunk_size];
@@ -633,7 +633,7 @@
         }
         root.push(bychild[chunk]);
     }
-    <span class="prelude-val">Ok</span>((<a href="#250">root</a>, <a href="#251">children</a>))
+    <span class="prelude-val">Ok</span>((root, children))
 }
 
 <span class="attr">#[cfg(test)]
@@ -741,4 +741,4 @@
     <span class="macro">category_test!</span>(gencat_uppercase_letter, UPPERCASE_LETTER);
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="ucd_trie" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="ucd_trie" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

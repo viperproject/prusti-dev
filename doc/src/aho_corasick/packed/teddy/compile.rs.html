@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/aho-corasick-0.7.19/src/packed/teddy/compile.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>compile.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../../aho_corasick/index.html"><img class="rust-logo" src="../../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/aho-corasick-0.7.20/src/packed/teddy/compile.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>compile.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../../aho_corasick/index.html"><img class="rust-logo" src="../../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -414,12 +414,12 @@
 <a href="#414" id="414">414</a>
 </pre><pre class="rust"><code><span class="comment">// See the README in this directory for an explanation of the Teddy algorithm.
 
-</span><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/cmp/index.html">std::cmp</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/collections/btree/map/struct.BTreeMap.html">std::collections::BTreeMap</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">std::fmt</a>;
+</span><span class="kw">use </span>std::cmp;
+<span class="kw">use </span>std::collections::BTreeMap;
+<span class="kw">use </span>std::fmt;
 
-<span class="kw">use </span><span class="kw">crate</span>::packed::pattern::{<a href="../pattern.rs.html#13">PatternID</a>, <a href="../pattern.rs.html#25">Patterns</a>};
-<span class="kw">use </span><a href="runtime.rs.html#75"><span class="kw">crate</span>::packed::teddy::Teddy</a>;
+<span class="kw">use </span><span class="kw">crate</span>::packed::pattern::{PatternID, Patterns};
+<span class="kw">use </span><span class="kw">crate</span>::packed::teddy::Teddy;
 
 <span class="doccomment">/// A builder for constructing a Teddy matcher.
 ///
@@ -433,25 +433,25 @@
     /// slim Teddy is used (8 buckets) and `true` means fat Teddy is used
     /// (16 buckets). Fat Teddy requires AVX2, so if that CPU feature isn&#39;t
     /// available and Fat Teddy was requested, no matcher will be built.
-    </span>fat: <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>&gt;,
+    </span>fat: <span class="prelude-ty">Option</span>&lt;bool&gt;,
     <span class="doccomment">/// When none, this is automatically determined. Otherwise, `false` means
     /// that 128-bit vectors will be used (up to SSSE3 instructions) where as
     /// `true` means that 256-bit vectors will be used. As with `fat`, if
     /// 256-bit vectors are requested and they aren&#39;t available, then a
     /// searcher will not be built.
-    </span>avx: <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>&gt;,
+    </span>avx: <span class="prelude-ty">Option</span>&lt;bool&gt;,
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for </span><a href="#17">Builder</a> {
-    <span class="kw">fn </span>default() -&gt; <a href="#17">Builder</a> {
+<span class="kw">impl </span>Default <span class="kw">for </span>Builder {
+    <span class="kw">fn </span>default() -&gt; Builder {
         Builder::new()
     }
 }
 
-<span class="kw">impl </span><a href="#17">Builder</a> {
+<span class="kw">impl </span>Builder {
     <span class="doccomment">/// Create a new builder for configuring a Teddy matcher.
-    </span><span class="kw">pub fn </span>new() -&gt; <a href="#17">Builder</a> {
-        <a href="#17">Builder</a> { fat: <span class="prelude-val">None</span>, avx: <span class="prelude-val">None </span>}
+    </span><span class="kw">pub fn </span>new() -&gt; Builder {
+        Builder { fat: <span class="prelude-val">None</span>, avx: <span class="prelude-val">None </span>}
     }
 
     <span class="doccomment">/// Build a matcher for the set of patterns given. If a matcher could not
@@ -460,8 +460,8 @@
     /// Generally, a matcher isn&#39;t built if the necessary CPU features aren&#39;t
     /// available, an unsupported target or if the searcher is believed to be
     /// slower than standard techniques (i.e., if there are too many literals).
-    </span><span class="kw">pub fn </span>build(<span class="kw-2">&amp;</span><span class="self">self</span>, patterns: <span class="kw-2">&amp;</span><a href="../pattern.rs.html#25">Patterns</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="runtime.rs.html#75">Teddy</a>&gt; {
-        <a class="self" href="#49">self</a>.<a href="#75">build_imp</a>(<a href="#49">patterns</a>)
+    </span><span class="kw">pub fn </span>build(<span class="kw-2">&amp;</span><span class="self">self</span>, patterns: <span class="kw-2">&amp;</span>Patterns) -&gt; <span class="prelude-ty">Option</span>&lt;Teddy&gt; {
+        <span class="self">self</span>.build_imp(patterns)
     }
 
     <span class="doccomment">/// Require the use of Fat (true) or Slim (false) Teddy. Fat Teddy uses
@@ -470,9 +470,9 @@
     ///
     /// `None` is the default, which results in an automatic selection based
     /// on the number of literals and available CPU features.
-    </span><span class="kw">pub fn </span>fat(<span class="kw-2">&amp;mut </span><span class="self">self</span>, yes: <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>&gt;) -&gt; <span class="kw-2">&amp;mut </span><a href="#17">Builder</a> {
-        <a class="self" href="#59">self</a>.fat = <a href="#59">yes</a>;
-        <span class="self"><a href="#59">self</a>
+    </span><span class="kw">pub fn </span>fat(<span class="kw-2">&amp;mut </span><span class="self">self</span>, yes: <span class="prelude-ty">Option</span>&lt;bool&gt;) -&gt; <span class="kw-2">&amp;mut </span>Builder {
+        <span class="self">self</span>.fat = yes;
+        <span class="self">self
     </span>}
 
     <span class="doccomment">/// Request the use of 256-bit vectors (true) or 128-bit vectors (false).
@@ -481,13 +481,13 @@
     ///
     /// `None` is the default, which results in an automatic selection based on
     /// the number of literals and available CPU features.
-    </span><span class="kw">pub fn </span>avx(<span class="kw-2">&amp;mut </span><span class="self">self</span>, yes: <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>&gt;) -&gt; <span class="kw-2">&amp;mut </span><a href="#17">Builder</a> {
-        <a class="self" href="#70">self</a>.avx = <a href="#70">yes</a>;
-        <span class="self"><a href="#70">self</a>
+    </span><span class="kw">pub fn </span>avx(<span class="kw-2">&amp;mut </span><span class="self">self</span>, yes: <span class="prelude-ty">Option</span>&lt;bool&gt;) -&gt; <span class="kw-2">&amp;mut </span>Builder {
+        <span class="self">self</span>.avx = yes;
+        <span class="self">self
     </span>}
 
-    <span class="kw">fn </span>build_imp(<span class="kw-2">&amp;</span><span class="self">self</span>, patterns: <span class="kw-2">&amp;</span><a href="../pattern.rs.html#25">Patterns</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="runtime.rs.html#75">Teddy</a>&gt; {
-        <span class="kw">use </span><a href="mod.rs.html#13"><span class="kw">crate</span>::packed::teddy::runtime</a>;
+    <span class="kw">fn </span>build_imp(<span class="kw-2">&amp;</span><span class="self">self</span>, patterns: <span class="kw-2">&amp;</span>Patterns) -&gt; <span class="prelude-ty">Option</span>&lt;Teddy&gt; {
+        <span class="kw">use </span><span class="kw">crate</span>::packed::teddy::runtime;
 
         <span class="comment">// Most of the logic here is just about selecting the optimal settings,
         // or perhaps even rejecting construction altogether. The choices
@@ -500,8 +500,8 @@
         </span><span class="kw">if </span>patterns.len() &gt; <span class="number">64 </span>{
             <span class="kw">return </span><span class="prelude-val">None</span>;
         }
-        <span class="kw">let </span>has_ssse3 = <a class="macro" href="https://doc.rust-lang.org/nightly/std_detect/macro.is_x86_feature_detected.html">is_x86_feature_detected!</a>(<span class="string">&quot;ssse3&quot;</span>);
-        <span class="kw">let </span>has_avx = <a class="macro" href="https://doc.rust-lang.org/nightly/std_detect/macro.is_x86_feature_detected.html">is_x86_feature_detected!</a>(<span class="string">&quot;avx2&quot;</span>);
+        <span class="kw">let </span>has_ssse3 = <span class="macro">is_x86_feature_detected!</span>(<span class="string">&quot;ssse3&quot;</span>);
+        <span class="kw">let </span>has_avx = <span class="macro">is_x86_feature_detected!</span>(<span class="string">&quot;avx2&quot;</span>);
         <span class="kw">let </span>avx = <span class="kw">if </span><span class="self">self</span>.avx == <span class="prelude-val">Some</span>(<span class="bool-val">true</span>) {
             <span class="kw">if </span>!has_avx {
                 <span class="kw">return </span><span class="prelude-val">None</span>;
@@ -515,114 +515,114 @@
         </span>} <span class="kw">else if </span>!has_ssse3 &amp;&amp; !has_avx {
             <span class="kw">return </span><span class="prelude-val">None</span>;
         } <span class="kw">else </span>{
-            <a href="#90">has_avx</a>
+            has_avx
         };
-        <span class="kw">let </span>fat = <span class="kw">match </span><a class="self" href="#75">self</a>.fat {
-            <span class="prelude-val">None </span>=&gt; <a href="#91">avx</a> &amp;&amp; <a href="#75">patterns</a>.<a href="../pattern.rs.html#109">len</a>() &gt; <span class="number">32</span>,
+        <span class="kw">let </span>fat = <span class="kw">match </span><span class="self">self</span>.fat {
+            <span class="prelude-val">None </span>=&gt; avx &amp;&amp; patterns.len() &gt; <span class="number">32</span>,
             <span class="prelude-val">Some</span>(<span class="bool-val">false</span>) =&gt; <span class="bool-val">false</span>,
-            <span class="prelude-val">Some</span>(<span class="bool-val">true</span>) <span class="kw">if </span>!<a href="#91">avx</a> =&gt; <span class="kw">return </span><span class="prelude-val">None</span>,
+            <span class="prelude-val">Some</span>(<span class="bool-val">true</span>) <span class="kw">if </span>!avx =&gt; <span class="kw">return </span><span class="prelude-val">None</span>,
             <span class="prelude-val">Some</span>(<span class="bool-val">true</span>) =&gt; <span class="bool-val">true</span>,
         };
 
-        <span class="kw">let </span><span class="kw-2">mut </span>compiler = Compiler::new(<a href="#75">patterns</a>, <a href="#106">fat</a>);
-        <a href="#113">compiler</a>.<a href="#242">compile</a>();
-        <span class="kw">let </span><a href="#219">Compiler</a> { buckets, masks, .. } = <a href="#113">compiler</a>;
+        <span class="kw">let </span><span class="kw-2">mut </span>compiler = Compiler::new(patterns, fat);
+        compiler.compile();
+        <span class="kw">let </span>Compiler { buckets, masks, .. } = compiler;
         <span class="comment">// SAFETY: It is required that the builder only produce Teddy matchers
         // that are allowed to run on the current CPU, since we later assume
         // that the presence of (for example) TeddySlim1Mask256 means it is
         // safe to call functions marked with the `avx2` target feature.
-        </span><span class="kw">match </span>(<a href="#115">masks</a>.len(), <a href="#91">avx</a>, <a href="#106">fat</a>) {
-            (<span class="number">1</span>, <span class="bool-val">false</span>, <span class="kw">_</span>) =&gt; <span class="prelude-val">Some</span>(<a href="runtime.rs.html#75">Teddy</a> {
-                <a href="#115">buckets</a>,
-                max_pattern_id: <a href="#75">patterns</a>.<a href="../pattern.rs.html#139">max_pattern_id</a>(),
-                exec: <a href="runtime.rs.html#411">runtime::Exec::TeddySlim1Mask128</a>(
-                    <a href="runtime.rs.html#427">runtime::TeddySlim1Mask128</a> {
-                        mask1: runtime::Mask128::new(<a href="#115">masks</a>[<span class="number">0</span>]),
+        </span><span class="kw">match </span>(masks.len(), avx, fat) {
+            (<span class="number">1</span>, <span class="bool-val">false</span>, <span class="kw">_</span>) =&gt; <span class="prelude-val">Some</span>(Teddy {
+                buckets,
+                max_pattern_id: patterns.max_pattern_id(),
+                exec: runtime::Exec::TeddySlim1Mask128(
+                    runtime::TeddySlim1Mask128 {
+                        mask1: runtime::Mask128::new(masks[<span class="number">0</span>]),
                     },
                 ),
             }),
-            (<span class="number">1</span>, <span class="bool-val">true</span>, <span class="bool-val">false</span>) =&gt; <span class="prelude-val">Some</span>(<a href="runtime.rs.html#75">Teddy</a> {
-                <a href="#115">buckets</a>,
-                max_pattern_id: <a href="#75">patterns</a>.<a href="../pattern.rs.html#139">max_pattern_id</a>(),
-                exec: <a href="runtime.rs.html#412">runtime::Exec::TeddySlim1Mask256</a>(
-                    <a href="runtime.rs.html#477">runtime::TeddySlim1Mask256</a> {
-                        mask1: runtime::Mask256::new(<a href="#115">masks</a>[<span class="number">0</span>]),
+            (<span class="number">1</span>, <span class="bool-val">true</span>, <span class="bool-val">false</span>) =&gt; <span class="prelude-val">Some</span>(Teddy {
+                buckets,
+                max_pattern_id: patterns.max_pattern_id(),
+                exec: runtime::Exec::TeddySlim1Mask256(
+                    runtime::TeddySlim1Mask256 {
+                        mask1: runtime::Mask256::new(masks[<span class="number">0</span>]),
                     },
                 ),
             }),
-            (<span class="number">1</span>, <span class="bool-val">true</span>, <span class="bool-val">true</span>) =&gt; <span class="prelude-val">Some</span>(<a href="runtime.rs.html#75">Teddy</a> {
-                <a href="#115">buckets</a>,
-                max_pattern_id: <a href="#75">patterns</a>.<a href="../pattern.rs.html#139">max_pattern_id</a>(),
-                exec: <a href="runtime.rs.html#413">runtime::Exec::TeddyFat1Mask256</a>(
-                    <a href="runtime.rs.html#527">runtime::TeddyFat1Mask256</a> {
-                        mask1: runtime::Mask256::new(<a href="#115">masks</a>[<span class="number">0</span>]),
+            (<span class="number">1</span>, <span class="bool-val">true</span>, <span class="bool-val">true</span>) =&gt; <span class="prelude-val">Some</span>(Teddy {
+                buckets,
+                max_pattern_id: patterns.max_pattern_id(),
+                exec: runtime::Exec::TeddyFat1Mask256(
+                    runtime::TeddyFat1Mask256 {
+                        mask1: runtime::Mask256::new(masks[<span class="number">0</span>]),
                     },
                 ),
             }),
-            (<span class="number">2</span>, <span class="bool-val">false</span>, <span class="kw">_</span>) =&gt; <span class="prelude-val">Some</span>(<a href="runtime.rs.html#75">Teddy</a> {
-                <a href="#115">buckets</a>,
-                max_pattern_id: <a href="#75">patterns</a>.<a href="../pattern.rs.html#139">max_pattern_id</a>(),
-                exec: <a href="runtime.rs.html#414">runtime::Exec::TeddySlim2Mask128</a>(
-                    <a href="runtime.rs.html#577">runtime::TeddySlim2Mask128</a> {
-                        mask1: runtime::Mask128::new(<a href="#115">masks</a>[<span class="number">0</span>]),
-                        mask2: runtime::Mask128::new(<a href="#115">masks</a>[<span class="number">1</span>]),
+            (<span class="number">2</span>, <span class="bool-val">false</span>, <span class="kw">_</span>) =&gt; <span class="prelude-val">Some</span>(Teddy {
+                buckets,
+                max_pattern_id: patterns.max_pattern_id(),
+                exec: runtime::Exec::TeddySlim2Mask128(
+                    runtime::TeddySlim2Mask128 {
+                        mask1: runtime::Mask128::new(masks[<span class="number">0</span>]),
+                        mask2: runtime::Mask128::new(masks[<span class="number">1</span>]),
                     },
                 ),
             }),
-            (<span class="number">2</span>, <span class="bool-val">true</span>, <span class="bool-val">false</span>) =&gt; <span class="prelude-val">Some</span>(<a href="runtime.rs.html#75">Teddy</a> {
-                <a href="#115">buckets</a>,
-                max_pattern_id: <a href="#75">patterns</a>.<a href="../pattern.rs.html#139">max_pattern_id</a>(),
-                exec: <a href="runtime.rs.html#415">runtime::Exec::TeddySlim2Mask256</a>(
-                    <a href="runtime.rs.html#639">runtime::TeddySlim2Mask256</a> {
-                        mask1: runtime::Mask256::new(<a href="#115">masks</a>[<span class="number">0</span>]),
-                        mask2: runtime::Mask256::new(<a href="#115">masks</a>[<span class="number">1</span>]),
+            (<span class="number">2</span>, <span class="bool-val">true</span>, <span class="bool-val">false</span>) =&gt; <span class="prelude-val">Some</span>(Teddy {
+                buckets,
+                max_pattern_id: patterns.max_pattern_id(),
+                exec: runtime::Exec::TeddySlim2Mask256(
+                    runtime::TeddySlim2Mask256 {
+                        mask1: runtime::Mask256::new(masks[<span class="number">0</span>]),
+                        mask2: runtime::Mask256::new(masks[<span class="number">1</span>]),
                     },
                 ),
             }),
-            (<span class="number">2</span>, <span class="bool-val">true</span>, <span class="bool-val">true</span>) =&gt; <span class="prelude-val">Some</span>(<a href="runtime.rs.html#75">Teddy</a> {
-                <a href="#115">buckets</a>,
-                max_pattern_id: <a href="#75">patterns</a>.<a href="../pattern.rs.html#139">max_pattern_id</a>(),
-                exec: <a href="runtime.rs.html#416">runtime::Exec::TeddyFat2Mask256</a>(
-                    <a href="runtime.rs.html#703">runtime::TeddyFat2Mask256</a> {
-                        mask1: runtime::Mask256::new(<a href="#115">masks</a>[<span class="number">0</span>]),
-                        mask2: runtime::Mask256::new(<a href="#115">masks</a>[<span class="number">1</span>]),
+            (<span class="number">2</span>, <span class="bool-val">true</span>, <span class="bool-val">true</span>) =&gt; <span class="prelude-val">Some</span>(Teddy {
+                buckets,
+                max_pattern_id: patterns.max_pattern_id(),
+                exec: runtime::Exec::TeddyFat2Mask256(
+                    runtime::TeddyFat2Mask256 {
+                        mask1: runtime::Mask256::new(masks[<span class="number">0</span>]),
+                        mask2: runtime::Mask256::new(masks[<span class="number">1</span>]),
                     },
                 ),
             }),
-            (<span class="number">3</span>, <span class="bool-val">false</span>, <span class="kw">_</span>) =&gt; <span class="prelude-val">Some</span>(<a href="runtime.rs.html#75">Teddy</a> {
-                <a href="#115">buckets</a>,
-                max_pattern_id: <a href="#75">patterns</a>.<a href="../pattern.rs.html#139">max_pattern_id</a>(),
-                exec: <a href="runtime.rs.html#417">runtime::Exec::TeddySlim3Mask128</a>(
-                    <a href="runtime.rs.html#769">runtime::TeddySlim3Mask128</a> {
-                        mask1: runtime::Mask128::new(<a href="#115">masks</a>[<span class="number">0</span>]),
-                        mask2: runtime::Mask128::new(<a href="#115">masks</a>[<span class="number">1</span>]),
-                        mask3: runtime::Mask128::new(<a href="#115">masks</a>[<span class="number">2</span>]),
+            (<span class="number">3</span>, <span class="bool-val">false</span>, <span class="kw">_</span>) =&gt; <span class="prelude-val">Some</span>(Teddy {
+                buckets,
+                max_pattern_id: patterns.max_pattern_id(),
+                exec: runtime::Exec::TeddySlim3Mask128(
+                    runtime::TeddySlim3Mask128 {
+                        mask1: runtime::Mask128::new(masks[<span class="number">0</span>]),
+                        mask2: runtime::Mask128::new(masks[<span class="number">1</span>]),
+                        mask3: runtime::Mask128::new(masks[<span class="number">2</span>]),
                     },
                 ),
             }),
-            (<span class="number">3</span>, <span class="bool-val">true</span>, <span class="bool-val">false</span>) =&gt; <span class="prelude-val">Some</span>(<a href="runtime.rs.html#75">Teddy</a> {
-                <a href="#115">buckets</a>,
-                max_pattern_id: <a href="#75">patterns</a>.<a href="../pattern.rs.html#139">max_pattern_id</a>(),
-                exec: <a href="runtime.rs.html#418">runtime::Exec::TeddySlim3Mask256</a>(
-                    <a href="runtime.rs.html#839">runtime::TeddySlim3Mask256</a> {
-                        mask1: runtime::Mask256::new(<a href="#115">masks</a>[<span class="number">0</span>]),
-                        mask2: runtime::Mask256::new(<a href="#115">masks</a>[<span class="number">1</span>]),
-                        mask3: runtime::Mask256::new(<a href="#115">masks</a>[<span class="number">2</span>]),
+            (<span class="number">3</span>, <span class="bool-val">true</span>, <span class="bool-val">false</span>) =&gt; <span class="prelude-val">Some</span>(Teddy {
+                buckets,
+                max_pattern_id: patterns.max_pattern_id(),
+                exec: runtime::Exec::TeddySlim3Mask256(
+                    runtime::TeddySlim3Mask256 {
+                        mask1: runtime::Mask256::new(masks[<span class="number">0</span>]),
+                        mask2: runtime::Mask256::new(masks[<span class="number">1</span>]),
+                        mask3: runtime::Mask256::new(masks[<span class="number">2</span>]),
                     },
                 ),
             }),
-            (<span class="number">3</span>, <span class="bool-val">true</span>, <span class="bool-val">true</span>) =&gt; <span class="prelude-val">Some</span>(<a href="runtime.rs.html#75">Teddy</a> {
-                <a href="#115">buckets</a>,
-                max_pattern_id: <a href="#75">patterns</a>.<a href="../pattern.rs.html#139">max_pattern_id</a>(),
-                exec: <a href="runtime.rs.html#419">runtime::Exec::TeddyFat3Mask256</a>(
-                    <a href="runtime.rs.html#910">runtime::TeddyFat3Mask256</a> {
-                        mask1: runtime::Mask256::new(<a href="#115">masks</a>[<span class="number">0</span>]),
-                        mask2: runtime::Mask256::new(<a href="#115">masks</a>[<span class="number">1</span>]),
-                        mask3: runtime::Mask256::new(<a href="#115">masks</a>[<span class="number">2</span>]),
+            (<span class="number">3</span>, <span class="bool-val">true</span>, <span class="bool-val">true</span>) =&gt; <span class="prelude-val">Some</span>(Teddy {
+                buckets,
+                max_pattern_id: patterns.max_pattern_id(),
+                exec: runtime::Exec::TeddyFat3Mask256(
+                    runtime::TeddyFat3Mask256 {
+                        mask1: runtime::Mask256::new(masks[<span class="number">0</span>]),
+                        mask2: runtime::Mask256::new(masks[<span class="number">1</span>]),
+                        mask3: runtime::Mask256::new(masks[<span class="number">2</span>]),
                     },
                 ),
             }),
-            <span class="kw">_ </span>=&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(),
+            <span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>(),
         }
     }
 }
@@ -631,9 +631,9 @@
 /// the masks necessary for searching.
 </span><span class="attr">#[derive(Clone)]
 </span><span class="kw">struct </span>Compiler&lt;<span class="lifetime">&#39;p</span>&gt; {
-    patterns: <span class="kw-2">&amp;</span><span class="lifetime">&#39;p </span><a href="../pattern.rs.html#25">Patterns</a>,
-    buckets: Vec&lt;Vec&lt;<a href="../pattern.rs.html#13">PatternID</a>&gt;&gt;,
-    masks: Vec&lt;<a href="#331">Mask</a>&gt;,
+    patterns: <span class="kw-2">&amp;</span><span class="lifetime">&#39;p </span>Patterns,
+    buckets: Vec&lt;Vec&lt;PatternID&gt;&gt;,
+    masks: Vec&lt;Mask&gt;,
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;p</span>&gt; Compiler&lt;<span class="lifetime">&#39;p</span>&gt; {
@@ -641,20 +641,20 @@
     /// then 16 buckets will be used instead of 8.
     ///
     /// This panics if any of the patterns given are empty.
-    </span><span class="kw">fn </span>new(patterns: <span class="kw-2">&amp;</span><span class="lifetime">&#39;p </span><a href="../pattern.rs.html#25">Patterns</a>, fat: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; Compiler&lt;<span class="lifetime">&#39;p</span>&gt; {
-        <span class="kw">let </span>mask_len = cmp::min(<span class="number">3</span>, <a href="#230">patterns</a>.<a href="../pattern.rs.html#147">minimum_len</a>());
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(<span class="number">1 </span>&lt;= mask_len &amp;&amp; mask_len &lt;= <span class="number">3</span>);
+    </span><span class="kw">fn </span>new(patterns: <span class="kw-2">&amp;</span><span class="lifetime">&#39;p </span>Patterns, fat: bool) -&gt; Compiler&lt;<span class="lifetime">&#39;p</span>&gt; {
+        <span class="kw">let </span>mask_len = cmp::min(<span class="number">3</span>, patterns.minimum_len());
+        <span class="macro">assert!</span>(<span class="number">1 </span>&lt;= mask_len &amp;&amp; mask_len &lt;= <span class="number">3</span>);
 
-        <a href="#219">Compiler</a> {
-            <a href="#230">patterns</a>,
-            buckets: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[<span class="macro">vec!</span>[]; <span class="kw">if </span>fat { <span class="number">16 </span>} <span class="kw">else </span>{ <span class="number">8 </span>}],
-            masks: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[Mask::default(); mask_len],
+        Compiler {
+            patterns,
+            buckets: <span class="macro">vec!</span>[<span class="macro">vec!</span>[]; <span class="kw">if </span>fat { <span class="number">16 </span>} <span class="kw">else </span>{ <span class="number">8 </span>}],
+            masks: <span class="macro">vec!</span>[Mask::default(); mask_len],
         }
     }
 
     <span class="doccomment">/// Compile the patterns in this compiler into buckets and masks.
     </span><span class="kw">fn </span>compile(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <span class="kw">let </span><span class="kw-2">mut </span>lonibble_to_bucket: BTreeMap&lt;Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;, <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; = BTreeMap::new();
+        <span class="kw">let </span><span class="kw-2">mut </span>lonibble_to_bucket: BTreeMap&lt;Vec&lt;u8&gt;, usize&gt; = BTreeMap::new();
         <span class="kw">for </span>(id, pattern) <span class="kw">in </span><span class="self">self</span>.patterns.iter() {
             <span class="comment">// We try to be slightly clever in how we assign patterns into
             // buckets. Generally speaking, we want patterns with the same
@@ -709,17 +709,17 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;p</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span>Compiler&lt;<span class="lifetime">&#39;p</span>&gt; {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <span class="kw">let </span><span class="kw-2">mut </span>buckets = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[<span class="macro">vec!</span>[]; <span class="self">self</span>.buckets.len()];
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;p</span>&gt; fmt::Debug <span class="kw">for </span>Compiler&lt;<span class="lifetime">&#39;p</span>&gt; {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        <span class="kw">let </span><span class="kw-2">mut </span>buckets = <span class="macro">vec!</span>[<span class="macro">vec!</span>[]; <span class="self">self</span>.buckets.len()];
         <span class="kw">for </span>(i, bucket) <span class="kw">in </span><span class="self">self</span>.buckets.iter().enumerate() {
             <span class="kw">for </span><span class="kw-2">&amp;</span>patid <span class="kw">in </span>bucket {
                 buckets[i].push(<span class="self">self</span>.patterns.get(patid));
             }
         }
-        <a href="#299">f</a>.debug_struct(<span class="string">&quot;Compiler&quot;</span>)
-            .field(<span class="string">&quot;buckets&quot;</span>, <span class="kw-2">&amp;</span><a href="#300">buckets</a>)
-            .field(<span class="string">&quot;masks&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="#299">self</a>.masks)
+        f.debug_struct(<span class="string">&quot;Compiler&quot;</span>)
+            .field(<span class="string">&quot;buckets&quot;</span>, <span class="kw-2">&amp;</span>buckets)
+            .field(<span class="string">&quot;masks&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.masks)
             .finish()
     }
 }
@@ -743,88 +743,88 @@
 /// (See the README is this directory for more details.)
 </span><span class="attr">#[derive(Clone, Copy, Default)]
 </span><span class="kw">pub struct </span>Mask {
-    lo: [<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="number">32</span>],
-    hi: [<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="number">32</span>],
+    lo: [u8; <span class="number">32</span>],
+    hi: [u8; <span class="number">32</span>],
 }
 
-<span class="kw">impl </span><a href="#331">Mask</a> {
+<span class="kw">impl </span>Mask {
     <span class="doccomment">/// Update this mask by adding the given byte to the given bucket. The
     /// given bucket must be in the range 0-7.
     ///
     /// This is for &quot;slim&quot; Teddy, where there are only 8 buckets.
-    </span><span class="kw">fn </span>add_slim(<span class="kw-2">&amp;mut </span><span class="self">self</span>, bucket: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>, byte: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(bucket &lt; <span class="number">8</span>);
+    </span><span class="kw">fn </span>add_slim(<span class="kw-2">&amp;mut </span><span class="self">self</span>, bucket: u8, byte: u8) {
+        <span class="macro">assert!</span>(bucket &lt; <span class="number">8</span>);
 
-        <span class="kw">let </span>byte_lo = (<a href="#341">byte</a> &amp; <span class="number">0xF</span>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>;
-        <span class="kw">let </span>byte_hi = ((<a href="#341">byte</a> &gt;&gt; <span class="number">4</span>) &amp; <span class="number">0xF</span>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>;
+        <span class="kw">let </span>byte_lo = (byte &amp; <span class="number">0xF</span>) <span class="kw">as </span>usize;
+        <span class="kw">let </span>byte_hi = ((byte &gt;&gt; <span class="number">4</span>) &amp; <span class="number">0xF</span>) <span class="kw">as </span>usize;
         <span class="comment">// When using 256-bit vectors, we need to set this bucket assignment in
         // the low and high 128-bit portions of the mask. This allows us to
         // process 32 bytes at a time. Namely, AVX2 shuffles operate on each
         // of the 128-bit lanes, rather than the full 256-bit vector at once.
-        </span><a class="self" href="#341">self</a>.lo[<a href="#344">byte_lo</a>] |= <span class="number">1 </span>&lt;&lt; <a href="#341">bucket</a>;
-        <a class="self" href="#341">self</a>.lo[<a href="#344">byte_lo</a> + <span class="number">16</span>] |= <span class="number">1 </span>&lt;&lt; <a href="#341">bucket</a>;
-        <a class="self" href="#341">self</a>.hi[<a href="#345">byte_hi</a>] |= <span class="number">1 </span>&lt;&lt; <a href="#341">bucket</a>;
-        <a class="self" href="#341">self</a>.hi[<a href="#345">byte_hi</a> + <span class="number">16</span>] |= <span class="number">1 </span>&lt;&lt; <a href="#341">bucket</a>;
+        </span><span class="self">self</span>.lo[byte_lo] |= <span class="number">1 </span>&lt;&lt; bucket;
+        <span class="self">self</span>.lo[byte_lo + <span class="number">16</span>] |= <span class="number">1 </span>&lt;&lt; bucket;
+        <span class="self">self</span>.hi[byte_hi] |= <span class="number">1 </span>&lt;&lt; bucket;
+        <span class="self">self</span>.hi[byte_hi + <span class="number">16</span>] |= <span class="number">1 </span>&lt;&lt; bucket;
     }
 
     <span class="doccomment">/// Update this mask by adding the given byte to the given bucket. The
     /// given bucket must be in the range 0-15.
     ///
     /// This is for &quot;fat&quot; Teddy, where there are 16 buckets.
-    </span><span class="kw">fn </span>add_fat(<span class="kw-2">&amp;mut </span><span class="self">self</span>, bucket: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>, byte: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(bucket &lt; <span class="number">16</span>);
+    </span><span class="kw">fn </span>add_fat(<span class="kw-2">&amp;mut </span><span class="self">self</span>, bucket: u8, byte: u8) {
+        <span class="macro">assert!</span>(bucket &lt; <span class="number">16</span>);
 
-        <span class="kw">let </span>byte_lo = (<a href="#360">byte</a> &amp; <span class="number">0xF</span>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>;
-        <span class="kw">let </span>byte_hi = ((<a href="#360">byte</a> &gt;&gt; <span class="number">4</span>) &amp; <span class="number">0xF</span>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>;
+        <span class="kw">let </span>byte_lo = (byte &amp; <span class="number">0xF</span>) <span class="kw">as </span>usize;
+        <span class="kw">let </span>byte_hi = ((byte &gt;&gt; <span class="number">4</span>) &amp; <span class="number">0xF</span>) <span class="kw">as </span>usize;
         <span class="comment">// Unlike slim teddy, fat teddy only works with AVX2. For fat teddy,
         // the high 128 bits of our mask correspond to buckets 8-15, while the
         // low 128 bits correspond to buckets 0-7.
         </span><span class="kw">if </span>bucket &lt; <span class="number">8 </span>{
-            <a class="self" href="#360">self</a>.lo[<a href="#363">byte_lo</a>] |= <span class="number">1 </span>&lt;&lt; <a href="#360">bucket</a>;
-            <a class="self" href="#360">self</a>.hi[<a href="#364">byte_hi</a>] |= <span class="number">1 </span>&lt;&lt; <a href="#360">bucket</a>;
+            <span class="self">self</span>.lo[byte_lo] |= <span class="number">1 </span>&lt;&lt; bucket;
+            <span class="self">self</span>.hi[byte_hi] |= <span class="number">1 </span>&lt;&lt; bucket;
         } <span class="kw">else </span>{
-            <a class="self" href="#360">self</a>.lo[<a href="#363">byte_lo</a> + <span class="number">16</span>] |= <span class="number">1 </span>&lt;&lt; (<a href="#360">bucket</a> % <span class="number">8</span>);
-            <a class="self" href="#360">self</a>.hi[<a href="#364">byte_hi</a> + <span class="number">16</span>] |= <span class="number">1 </span>&lt;&lt; (<a href="#360">bucket</a> % <span class="number">8</span>);
+            <span class="self">self</span>.lo[byte_lo + <span class="number">16</span>] |= <span class="number">1 </span>&lt;&lt; (bucket % <span class="number">8</span>);
+            <span class="self">self</span>.hi[byte_hi + <span class="number">16</span>] |= <span class="number">1 </span>&lt;&lt; (bucket % <span class="number">8</span>);
         }
     }
 
     <span class="doccomment">/// Return the low 128 bits of the low-nybble mask.
-    </span><span class="kw">pub fn </span>lo128(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; [<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="number">16</span>] {
+    </span><span class="kw">pub fn </span>lo128(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; [u8; <span class="number">16</span>] {
         <span class="kw">let </span><span class="kw-2">mut </span>tmp = [<span class="number">0</span>; <span class="number">16</span>];
-        <a href="#379">tmp</a>.copy_from_slice(<span class="kw-2">&amp;</span><a class="self" href="#378">self</a>.lo[..<span class="number">16</span>]);
-        <a href="#379">tmp</a>
+        tmp.copy_from_slice(<span class="kw-2">&amp;</span><span class="self">self</span>.lo[..<span class="number">16</span>]);
+        tmp
     }
 
     <span class="doccomment">/// Return the full low-nybble mask.
-    </span><span class="kw">pub fn </span>lo256(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; [<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="number">32</span>] {
-        <a class="self" href="#385">self</a>.lo
+    </span><span class="kw">pub fn </span>lo256(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; [u8; <span class="number">32</span>] {
+        <span class="self">self</span>.lo
     }
 
     <span class="doccomment">/// Return the low 128 bits of the high-nybble mask.
-    </span><span class="kw">pub fn </span>hi128(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; [<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="number">16</span>] {
+    </span><span class="kw">pub fn </span>hi128(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; [u8; <span class="number">16</span>] {
         <span class="kw">let </span><span class="kw-2">mut </span>tmp = [<span class="number">0</span>; <span class="number">16</span>];
-        <a href="#391">tmp</a>.copy_from_slice(<span class="kw-2">&amp;</span><a class="self" href="#390">self</a>.hi[..<span class="number">16</span>]);
-        <a href="#391">tmp</a>
+        tmp.copy_from_slice(<span class="kw-2">&amp;</span><span class="self">self</span>.hi[..<span class="number">16</span>]);
+        tmp
     }
 
     <span class="doccomment">/// Return the full high-nybble mask.
-    </span><span class="kw">pub fn </span>hi256(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; [<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="number">32</span>] {
-        <a class="self" href="#397">self</a>.hi
+    </span><span class="kw">pub fn </span>hi256(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; [u8; <span class="number">32</span>] {
+        <span class="self">self</span>.hi
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="#331">Mask</a> {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <span class="kw">let </span>(<span class="kw-2">mut </span>parts_lo, <span class="kw-2">mut </span>parts_hi) = (<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[], <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[]);
+<span class="kw">impl </span>fmt::Debug <span class="kw">for </span>Mask {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        <span class="kw">let </span>(<span class="kw-2">mut </span>parts_lo, <span class="kw-2">mut </span>parts_hi) = (<span class="macro">vec!</span>[], <span class="macro">vec!</span>[]);
         <span class="kw">for </span>i <span class="kw">in </span><span class="number">0</span>..<span class="number">32 </span>{
             parts_lo.push(<span class="macro">format!</span>(<span class="string">&quot;{:02}: {:08b}&quot;</span>, i, <span class="self">self</span>.lo[i]));
             parts_hi.push(<span class="macro">format!</span>(<span class="string">&quot;{:02}: {:08b}&quot;</span>, i, <span class="self">self</span>.hi[i]));
         }
-        <a href="#403">f</a>.debug_struct(<span class="string">&quot;Mask&quot;</span>)
-            .field(<span class="string">&quot;lo&quot;</span>, <span class="kw-2">&amp;</span><a href="#404">parts_lo</a>)
-            .field(<span class="string">&quot;hi&quot;</span>, <span class="kw-2">&amp;</span><a href="#404">parts_hi</a>)
+        f.debug_struct(<span class="string">&quot;Mask&quot;</span>)
+            .field(<span class="string">&quot;lo&quot;</span>, <span class="kw-2">&amp;</span>parts_lo)
+            .field(<span class="string">&quot;hi&quot;</span>, <span class="kw-2">&amp;</span>parts_hi)
             .finish()
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="aho_corasick" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="aho_corasick" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

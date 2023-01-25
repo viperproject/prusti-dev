@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `prusti-viper/src/encoder/purifier.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>purifier.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../prusti_viper/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `prusti-viper/src/encoder/purifier.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>purifier.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../prusti_viper/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -521,19 +521,19 @@
 // TODO: add a vir::Type::SnapOf(t: Box&lt;vir::Type&gt;) variant to vir::Type to
 // represent types like &quot;snapshot of X&quot;. Resolve SnapOf in snapshot patcher.
 
-</span><span class="kw">use </span>rustc_hash::{<a href="../../../rustc_hash/type.FxHashMap.html">FxHashMap</a>, <a href="../../../rustc_hash/type.FxHashSet.html">FxHashSet</a>};
-<span class="kw">use </span>vir_crate::polymorphic::{<span class="self"><a href="../../../vir/polymorphic/index.html">self</a> </span><span class="kw">as </span>vir, <a href="../../../vir/gen/polymorphic/ast/expr_transformers/trait.ExprFolder.html">ExprFolder</a>, <a href="../../../vir/gen/polymorphic/ast/expr_transformers/trait.ExprWalker.html">ExprWalker</a>, <a href="../../../vir/gen/polymorphic/ast/stmt/trait.StmtFolder.html">StmtFolder</a>, <a href="../../../vir/gen/polymorphic/ast/stmt/trait.StmtWalker.html">StmtWalker</a>};
+</span><span class="kw">use </span>rustc_hash::{FxHashMap, FxHashSet};
+<span class="kw">use </span>vir_crate::polymorphic::{<span class="self">self </span><span class="kw">as </span>vir, ExprFolder, ExprWalker, StmtFolder, StmtWalker};
 
-<span class="kw">use </span><span class="kw">crate</span>::encoder::{<a href="high/types/interface.rs.html#127">high::types::HighTypeEncoderInterface</a>, <a href="encoder.rs.html#67">Encoder</a>};
-<span class="kw">use </span>log::{<a href="../../../log/macro.debug.html">debug</a>, <a href="../../../log/macro.trace.html">trace</a>};
+<span class="kw">use </span><span class="kw">crate</span>::encoder::{high::types::HighTypeEncoderInterface, Encoder};
+<span class="kw">use </span>log::{debug, trace};
 
-<span class="kw">use </span><a href="snapshot/interface.rs.html#12"><span class="kw">crate</span>::encoder::snapshot::interface::SnapshotEncoderInterface</a>;
+<span class="kw">use </span><span class="kw">crate</span>::encoder::snapshot::interface::SnapshotEncoderInterface;
 
 <span class="doccomment">/// Replaces shared references to pure Viper variables.
-</span><span class="kw">pub fn </span>purify_method(encoder: <span class="kw-2">&amp;</span><a href="encoder.rs.html#67">Encoder</a>, method: <span class="kw-2">&amp;mut </span><a href="../../../vir/gen/polymorphic/cfg/method/struct.CfgMethod.html">vir::CfgMethod</a>) {
+</span><span class="kw">pub fn </span>purify_method(encoder: <span class="kw-2">&amp;</span>Encoder, method: <span class="kw-2">&amp;mut </span>vir::CfgMethod) {
     <span class="comment">// A set of candidate references to be purified.
     </span><span class="kw">let </span><span class="kw-2">mut </span>candidates = FxHashSet::default();
-    <a class="macro" href="../../../log/macro.debug.html">debug!</a>(<span class="string">&quot;method: {}&quot;</span>, method.name());
+    <span class="macro">debug!</span>(<span class="string">&quot;method: {}&quot;</span>, method.name());
     <span class="kw">for </span>var <span class="kw">in </span><span class="kw-2">&amp;</span>method.local_vars {
         <span class="kw">match </span>var.typ {
             vir::Type::TypedRef(<span class="kw-2">ref </span>typed_ref) <span class="kw">if </span>typed_ref.label.starts_with(<span class="string">&quot;ref$&quot;</span>) =&gt; {
@@ -549,34 +549,34 @@
 
     <span class="comment">// Collect variables that are dereferenced.
     </span><span class="kw">let </span><span class="kw-2">mut </span>collector = VarDependencyCollector::default();
-    vir::utils::walk_method(<a href="#15">method</a>, <span class="kw-2">&amp;mut </span><a href="#33">collector</a>);
-    <a class="macro" href="../../../log/macro.debug.html">debug!</a>(
+    vir::utils::walk_method(method, <span class="kw-2">&amp;mut </span>collector);
+    <span class="macro">debug!</span>(
         <span class="string">&quot;VarDependencyCollector for method {} after collection {:?}&quot;</span>,
         method.name(),
         collector
     );
-    <a href="#33">collector</a>.<a href="#101">compute_dereferenced_variables_fixpoint</a>();
-    <a class="macro" href="../../../log/macro.debug.html">debug!</a>(
+    collector.compute_dereferenced_variables_fixpoint();
+    <span class="macro">debug!</span>(
         <span class="string">&quot;Dereferenced variables for method {} after fixpoint {:?}&quot;</span>,
         method.name(),
         collector.dereferenced_variables
     );
-    <a href="#33">collector</a>.<a href="#118">compute_borrowing_variables_fixpoint</a>();
-    <a class="macro" href="../../../log/macro.debug.html">debug!</a>(
+    collector.compute_borrowing_variables_fixpoint();
+    <span class="macro">debug!</span>(
         <span class="string">&quot;Borrowing variables for method {} after fixpoint {:?}&quot;</span>,
         method.name(),
         collector.borrowing_variables
     );
     <span class="comment">// Filter out variables that are dereferenced.
-    </span><a href="#17">candidates</a>.retain(|var| !<a href="#33">collector</a>.dereferenced_variables.contains(<a href="#53">var</a>));
-    <a href="#17">candidates</a>.retain(|var| !<a href="#33">collector</a>.borrowing_variables.contains(<a href="#54">var</a>));
-    <a class="macro" href="../../../log/macro.debug.html">debug!</a>(
+    </span>candidates.retain(|var| !collector.dereferenced_variables.contains(var));
+    candidates.retain(|var| !collector.borrowing_variables.contains(var));
+    <span class="macro">debug!</span>(
         <span class="string">&quot;Variables in method {} to be purified {:?}&quot;</span>,
         method.name(),
         candidates
     );
 
-    <span class="kw">let </span><span class="kw-2">mut </span>purifier = Purifier::new(<a href="#15">encoder</a>, <a href="#17">candidates</a>);
+    <span class="kw">let </span><span class="kw-2">mut </span>purifier = Purifier::new(encoder, candidates);
 
     <span class="kw">for </span>block <span class="kw">in </span><span class="kw-2">&amp;mut </span>method.basic_blocks {
         block.stmts = block
@@ -596,7 +596,7 @@
         }
     }
 
-    <a href="#15">method</a>.local_vars.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a href="#61">purifier</a>.fresh_variables);
+    method.local_vars.extend(purifier.fresh_variables);
 }
 
 <span class="doccomment">/// This is a ExprWalkerand StmtWalker used to collect information about which
@@ -604,16 +604,16 @@
 </span><span class="attr">#[derive(Debug, Default)]
 </span><span class="kw">struct </span>VarDependencyCollector {
     <span class="doccomment">/// (Potentially) references that are dereferenced.
-    </span>dereferenced_variables: FxHashSet&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt;,
+    </span>dereferenced_variables: FxHashSet&lt;String&gt;,
     <span class="doccomment">/// (Potentially) references that borrow other variables.
-    </span>borrowing_variables: FxHashSet&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt;,
+    </span>borrowing_variables: FxHashSet&lt;String&gt;,
     <span class="doccomment">/// Variables that are potentially reborrowed.
-    </span>dependencies: FxHashMap&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, FxHashSet&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt;&gt;,
+    </span>dependencies: FxHashMap&lt;String, FxHashSet&lt;String&gt;&gt;,
     <span class="doccomment">/// Variables that are potentially reborrowed.
-    </span>dependents: FxHashMap&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, FxHashSet&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt;&gt;,
+    </span>dependents: FxHashMap&lt;String, FxHashSet&lt;String&gt;&gt;,
 }
 
-<span class="kw">impl </span><a href="#87">VarDependencyCollector</a> {
+<span class="kw">impl </span>VarDependencyCollector {
     <span class="doccomment">/// Compute the fix-point of all dereferenced variables: dependencies of all
     /// dereferenced variables are also dereferenced variables.
     </span><span class="kw">fn </span>compute_dereferenced_variables_fixpoint(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
@@ -650,40 +650,40 @@
     }
 }
 
-<span class="kw">impl </span><a href="../../../vir/gen/polymorphic/ast/expr_transformers/trait.ExprWalker.html">ExprWalker</a> <span class="kw">for </span><a href="#87">VarDependencyCollector</a> {
-    <span class="kw">fn </span>walk_field(<span class="kw-2">&amp;mut </span><span class="self">self</span>, <a href="../../../vir/gen/polymorphic/ast/expr/struct.FieldExpr.html">vir::FieldExpr</a> { <span class="kw">box </span>base, .. }: <span class="kw-2">&amp;</span><a href="../../../vir/gen/polymorphic/ast/expr/struct.FieldExpr.html">vir::FieldExpr</a>) {
-        <span class="kw">match </span><a href="#136">base</a> {
+<span class="kw">impl </span>ExprWalker <span class="kw">for </span>VarDependencyCollector {
+    <span class="kw">fn </span>walk_field(<span class="kw-2">&amp;mut </span><span class="self">self</span>, vir::FieldExpr { <span class="kw">box </span>base, .. }: <span class="kw-2">&amp;</span>vir::FieldExpr) {
+        <span class="kw">match </span>base {
             <span class="comment">// If we have a variable that is accessed two levels down, we assume
             // that it is dereferenced without checking the actual type.
-            </span>vir::Expr::Field(<a href="../../../vir/gen/polymorphic/ast/expr/struct.FieldExpr.html">vir::FieldExpr</a> {
+            </span>vir::Expr::Field(vir::FieldExpr {
                 base:
-                    <span class="kw">box </span>vir::Expr::Local(<a href="../../../vir/gen/polymorphic/ast/expr/struct.Local.html">vir::Local</a> {
+                    <span class="kw">box </span>vir::Expr::Local(vir::Local {
                         variable: local_var,
                         ..
                     }),
                 ..
             }) =&gt; {
-                <a class="self" href="#136">self</a>.dereferenced_variables.insert(<a href="#143">local_var</a>.name.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
+                <span class="self">self</span>.dereferenced_variables.insert(local_var.name.clone());
             }
-            <span class="kw">_ </span>=&gt; <a href="../../../vir/gen/polymorphic/ast/expr_transformers/trait.ExprWalker.html">ExprWalker::walk</a>(<a class="self" href="#136">self</a>, <a href="#136">base</a>),
+            <span class="kw">_ </span>=&gt; ExprWalker::walk(<span class="self">self</span>, base),
         }
     }
 }
 
-<span class="kw">impl </span><a href="../../../vir/gen/polymorphic/ast/stmt/trait.StmtWalker.html">StmtWalker</a> <span class="kw">for </span><a href="#87">VarDependencyCollector</a> {
-    <span class="kw">fn </span>walk_expr(<span class="kw-2">&amp;mut </span><span class="self">self</span>, expr: <span class="kw-2">&amp;</span><a href="../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a>) {
-        <a href="../../../vir/gen/polymorphic/ast/expr_transformers/trait.ExprWalker.html">ExprWalker::walk</a>(<a class="self" href="#156">self</a>, <a href="#156">expr</a>);
+<span class="kw">impl </span>StmtWalker <span class="kw">for </span>VarDependencyCollector {
+    <span class="kw">fn </span>walk_expr(<span class="kw-2">&amp;mut </span><span class="self">self</span>, expr: <span class="kw-2">&amp;</span>vir::Expr) {
+        ExprWalker::walk(<span class="self">self</span>, expr);
     }
     <span class="kw">fn </span>walk_assign(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        <a href="../../../vir/gen/polymorphic/ast/stmt/struct.Assign.html">vir::Assign</a> {
+        vir::Assign {
             target,
             source,
             kind,
-        }: <span class="kw-2">&amp;</span><a href="../../../vir/gen/polymorphic/ast/stmt/struct.Assign.html">vir::Assign</a>,
+        }: <span class="kw-2">&amp;</span>vir::Assign,
     ) {
-        <span class="kw">let </span>dependencies = <a href="#215">collect_variables</a>(<a href="#163">source</a>);
-        <span class="kw">let </span>dependents = <a href="#215">collect_variables</a>(<a href="#162">target</a>);
+        <span class="kw">let </span>dependencies = collect_variables(source);
+        <span class="kw">let </span>dependents = collect_variables(target);
         <span class="kw">for </span>dependent <span class="kw">in </span><span class="kw-2">&amp;</span>dependents {
             <span class="kw">let </span>entry = <span class="self">self
                 </span>.dependencies
@@ -698,341 +698,341 @@
                 .or_insert_with(FxHashSet::default);
             entry.extend(dependents.iter().cloned());
         }
-        <span class="kw">match </span><a href="#164">kind</a> {
+        <span class="kw">match </span>kind {
             vir::AssignKind::SharedBorrow(<span class="kw">_</span>) | vir::AssignKind::MutableBorrow(<span class="kw">_</span>) =&gt; {
-                <span class="kw">if let </span>vir::Expr::Field(<a href="../../../vir/gen/polymorphic/ast/expr/struct.FieldExpr.html">vir::FieldExpr</a> {
+                <span class="kw">if let </span>vir::Expr::Field(vir::FieldExpr {
                     base:
-                        <span class="kw">box </span>vir::Expr::Local(<a href="../../../vir/gen/polymorphic/ast/expr/struct.Local.html">vir::Local</a> {
+                        <span class="kw">box </span>vir::Expr::Local(vir::Local {
                             variable: local_var,
                             ..
                         }),
                     ..
-                }) = <a href="#162">target</a>
+                }) = target
                 {
-                    <span class="kw">match </span><a href="#163">source</a> {
-                        vir::Expr::Field(<a href="../../../vir/gen/polymorphic/ast/expr/struct.FieldExpr.html">vir::FieldExpr</a> {
+                    <span class="kw">match </span>source {
+                        vir::Expr::Field(vir::FieldExpr {
                             base: <span class="kw">box </span>vir::Expr::Local(<span class="kw">_</span>),
-                            field: <a href="../../../vir/gen/polymorphic/ast/common/struct.Field.html">vir::Field</a> { name, .. },
+                            field: vir::Field { name, .. },
                             ..
-                        }) <span class="kw">if </span><a href="#197">name</a> == <span class="string">&quot;val_ref&quot; </span>=&gt; {
+                        }) <span class="kw">if </span>name == <span class="string">&quot;val_ref&quot; </span>=&gt; {
                             <span class="comment">// Reborrowing is fine.
                         </span>}
                         <span class="kw">_ </span>=&gt; {
-                            <a class="self" href="#160">self</a>.borrowing_variables.insert(<a href="#188">local_var</a>.name.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
+                            <span class="self">self</span>.borrowing_variables.insert(local_var.name.clone());
                         }
                     }
                 }
             }
             <span class="kw">_ </span>=&gt; {}
         }
-        <a class="self" href="#160">self</a>.<a href="../../../vir/gen/polymorphic/ast/stmt/trait.StmtWalker.html">walk_expr</a>(<a href="#162">target</a>);
-        <a class="self" href="#160">self</a>.<a href="../../../vir/gen/polymorphic/ast/stmt/trait.StmtWalker.html">walk_expr</a>(<a href="#163">source</a>);
+        <span class="self">self</span>.walk_expr(target);
+        <span class="self">self</span>.walk_expr(source);
     }
 }
 
-<span class="kw">fn </span>collect_variables(expr: <span class="kw-2">&amp;</span><a href="../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a>) -&gt; FxHashSet&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt; {
-    <span class="kw">let </span><span class="kw-2">mut </span>collector = <a href="#223">VariableCollector</a> {
+<span class="kw">fn </span>collect_variables(expr: <span class="kw-2">&amp;</span>vir::Expr) -&gt; FxHashSet&lt;String&gt; {
+    <span class="kw">let </span><span class="kw-2">mut </span>collector = VariableCollector {
         vars: FxHashSet::default(),
     };
-    <a href="../../../vir/gen/polymorphic/ast/expr_transformers/trait.ExprWalker.html">ExprWalker::walk</a>(<span class="kw-2">&amp;mut </span><a href="#216">collector</a>, <a href="#215">expr</a>);
-    <a href="#216">collector</a>.vars
+    ExprWalker::walk(<span class="kw-2">&amp;mut </span>collector, expr);
+    collector.vars
 }
 
 <span class="kw">struct </span>VariableCollector {
-    vars: FxHashSet&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt;,
+    vars: FxHashSet&lt;String&gt;,
 }
 
-<span class="kw">impl </span><a href="../../../vir/gen/polymorphic/ast/expr_transformers/trait.ExprWalker.html">ExprWalker</a> <span class="kw">for </span><a href="#223">VariableCollector</a> {
-    <span class="kw">fn </span>walk_local(<span class="kw-2">&amp;mut </span><span class="self">self</span>, <a href="../../../vir/gen/polymorphic/ast/expr/struct.Local.html">vir::Local</a> { variable, .. }: <span class="kw-2">&amp;</span><a href="../../../vir/gen/polymorphic/ast/expr/struct.Local.html">vir::Local</a>) {
+<span class="kw">impl </span>ExprWalker <span class="kw">for </span>VariableCollector {
+    <span class="kw">fn </span>walk_local(<span class="kw-2">&amp;mut </span><span class="self">self</span>, vir::Local { variable, .. }: <span class="kw-2">&amp;</span>vir::Local) {
         <span class="kw">if </span>!<span class="self">self</span>.vars.contains(<span class="kw-2">&amp;</span>variable.name) {
-            <a class="self" href="#228">self</a>.vars.insert(<a href="#228">variable</a>.name.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
+            <span class="self">self</span>.vars.insert(variable.name.clone());
         }
     }
 }
 
-<span class="kw">fn </span>translate_type&lt;<span class="lifetime">&#39;tcx</span>&gt;(encoder: <span class="kw-2">&amp;</span>Encoder&lt;<span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;tcx</span>&gt;, typ: <a href="../../../vir/gen/polymorphic/ast/common/enum.Type.html">vir::Type</a>) -&gt; <a href="../../../vir/gen/polymorphic/ast/common/enum.Type.html">vir::Type</a> {
-    <span class="kw">match </span><a href="#235">typ</a> {
+<span class="kw">fn </span>translate_type&lt;<span class="lifetime">&#39;tcx</span>&gt;(encoder: <span class="kw-2">&amp;</span>Encoder&lt;<span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;tcx</span>&gt;, typ: vir::Type) -&gt; vir::Type {
+    <span class="kw">match </span>typ {
         vir::Type::Int
         | vir::Type::Bool
         | vir::Type::Float(<span class="kw">_</span>)
         | vir::Type::BitVector(<span class="kw">_</span>)
         | vir::Type::Snapshot(<span class="kw">_</span>)
-        | vir::Type::Domain(<span class="kw">_</span>) =&gt; <a href="#235">typ</a>,
+        | vir::Type::Domain(<span class="kw">_</span>) =&gt; typ,
         vir::Type::TypedRef(<span class="kw">_</span>) | vir::Type::TypeVar(<span class="kw">_</span>) =&gt; {
-            <span class="kw">let </span>mir_typ = <a href="#235">encoder</a>.<a href="high/types/interface.rs.html#139">decode_type_predicate_type</a>(<span class="kw-2">&amp;</span><a href="#235">typ</a>).unwrap(); <span class="comment">// FIXME: unwrap
-            </span><a href="#235">encoder</a>.<a href="snapshot/interface.rs.html#33">encode_snapshot_type</a>(<a href="#244">mir_typ</a>).unwrap() <span class="comment">// FIXME: unwrap
+            <span class="kw">let </span>mir_typ = encoder.decode_type_predicate_type(<span class="kw-2">&amp;</span>typ).unwrap(); <span class="comment">// FIXME: unwrap
+            </span>encoder.encode_snapshot_type(mir_typ).unwrap() <span class="comment">// FIXME: unwrap
         </span>}
-        vir::Type::Ref | vir::Type::Seq(<span class="kw">_</span>) | vir::Type::Map(<span class="kw">_</span>) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(),
+        vir::Type::Ref | vir::Type::Seq(<span class="kw">_</span>) | vir::Type::Map(<span class="kw">_</span>) =&gt; <span class="macro">unreachable!</span>(),
     }
 }
 
 <span class="kw">struct </span>Purifier&lt;<span class="lifetime">&#39;p</span>, <span class="lifetime">&#39;v</span>: <span class="lifetime">&#39;p</span>, <span class="lifetime">&#39;tcx</span>: <span class="lifetime">&#39;v</span>&gt; {
     encoder: <span class="kw-2">&amp;</span><span class="lifetime">&#39;p </span>Encoder&lt;<span class="lifetime">&#39;v</span>, <span class="lifetime">&#39;tcx</span>&gt;,
-    vars: FxHashSet&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt;,
-    fresh_variables: Vec&lt;<a href="../../../vir/gen/polymorphic/ast/common/struct.LocalVar.html">vir::LocalVar</a>&gt;,
-    change_var_types: FxHashMap&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, <a href="../../../vir/gen/polymorphic/ast/common/enum.Type.html">vir::Type</a>&gt;,
+    vars: FxHashSet&lt;String&gt;,
+    fresh_variables: Vec&lt;vir::LocalVar&gt;,
+    change_var_types: FxHashMap&lt;String, vir::Type&gt;,
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;p</span>, <span class="lifetime">&#39;v</span>: <span class="lifetime">&#39;p</span>, <span class="lifetime">&#39;tcx</span>: <span class="lifetime">&#39;v</span>&gt; Purifier&lt;<span class="lifetime">&#39;p</span>, <span class="lifetime">&#39;v</span>, <span class="lifetime">&#39;tcx</span>&gt; {
-    <span class="kw">fn </span>new(encoder: <span class="kw-2">&amp;</span><span class="lifetime">&#39;p </span>Encoder&lt;<span class="lifetime">&#39;v</span>, <span class="lifetime">&#39;tcx</span>&gt;, vars: FxHashSet&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt;) -&gt; <span class="self">Self </span>{
+    <span class="kw">fn </span>new(encoder: <span class="kw-2">&amp;</span><span class="lifetime">&#39;p </span>Encoder&lt;<span class="lifetime">&#39;v</span>, <span class="lifetime">&#39;tcx</span>&gt;, vars: FxHashSet&lt;String&gt;) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
-            <a href="#259">encoder</a>,
-            <a href="#259">vars</a>,
+            encoder,
+            vars,
             fresh_variables: Vec::new(),
             change_var_types: FxHashMap::default(),
         }
     }
-    <span class="kw">fn </span>fresh_variable(<span class="kw-2">&amp;mut </span><span class="self">self</span>, typ: <span class="kw-2">&amp;</span><a href="../../../vir/gen/polymorphic/ast/common/enum.Type.html">vir::Type</a>) -&gt; <a href="../../../vir/gen/polymorphic/ast/common/struct.LocalVar.html">vir::LocalVar</a> {
-        <span class="kw">let </span>name = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;havoc${}&quot;</span>, <span class="self">self</span>.fresh_variables.len());
-        <span class="kw">let </span>var = <a href="../../../vir/gen/polymorphic/ast/common/struct.LocalVar.html">vir::LocalVar</a> {
-            <a href="#268">name</a>,
-            typ: <a href="#235">translate_type</a>(<a class="self" href="#267">self</a>.encoder, <a href="#267">typ</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()),
+    <span class="kw">fn </span>fresh_variable(<span class="kw-2">&amp;mut </span><span class="self">self</span>, typ: <span class="kw-2">&amp;</span>vir::Type) -&gt; vir::LocalVar {
+        <span class="kw">let </span>name = <span class="macro">format!</span>(<span class="string">&quot;havoc${}&quot;</span>, <span class="self">self</span>.fresh_variables.len());
+        <span class="kw">let </span>var = vir::LocalVar {
+            name,
+            typ: translate_type(<span class="self">self</span>.encoder, typ.clone()),
         };
-        <a class="self" href="#267">self</a>.fresh_variables.push(<a href="#269">var</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
-        <a href="#269">var</a>
+        <span class="self">self</span>.fresh_variables.push(var.clone());
+        var
     }
 }
 
-<span class="kw">impl </span><a href="../../../vir/gen/polymorphic/ast/stmt/trait.StmtFolder.html">StmtFolder</a> <span class="kw">for </span>Purifier&lt;<span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;_</span>&gt; {
-    <span class="kw">fn </span>fold_expr(<span class="kw-2">&amp;mut </span><span class="self">self</span>, expr: <a href="../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a>) -&gt; <a href="../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a> {
-        <a href="../../../vir/gen/polymorphic/ast/expr_transformers/trait.ExprFolder.html">ExprFolder::fold</a>(<a class="self" href="#279">self</a>, <a href="#279">expr</a>)
+<span class="kw">impl </span>StmtFolder <span class="kw">for </span>Purifier&lt;<span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;_</span>&gt; {
+    <span class="kw">fn </span>fold_expr(<span class="kw-2">&amp;mut </span><span class="self">self</span>, expr: vir::Expr) -&gt; vir::Expr {
+        ExprFolder::fold(<span class="self">self</span>, expr)
     }
     <span class="kw">fn </span>fold_method_call(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        <a href="../../../vir/gen/polymorphic/ast/stmt/struct.MethodCall.html">vir::MethodCall</a> {
+        vir::MethodCall {
             method_name,
             arguments,
             targets,
-        }: <a href="../../../vir/gen/polymorphic/ast/stmt/struct.MethodCall.html">vir::MethodCall</a>,
-    ) -&gt; <a href="../../../vir/gen/polymorphic/ast/stmt/enum.Stmt.html">vir::Stmt</a> {
-        <span class="kw">match </span><a href="#287">targets</a>.as_slice() {
-            [local_var] <span class="kw">if </span><a class="self" href="#283">self</a>.vars.contains(<span class="kw-2">&amp;</span><a href="#291">local_var</a>.name) =&gt; {
-                <span class="kw">return </span>vir::Stmt::Assign(<a href="../../../vir/gen/polymorphic/ast/stmt/struct.Assign.html">vir::Assign</a> {
-                    target: <a href="../../../vir/gen/polymorphic/ast/common/struct.LocalVar.html">vir::LocalVar</a> {
-                        name: <a href="#291">local_var</a>.name.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
-                        typ: <a href="#235">translate_type</a>(<a class="self" href="#283">self</a>.encoder, <a href="#291">local_var</a>.typ.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()),
+        }: vir::MethodCall,
+    ) -&gt; vir::Stmt {
+        <span class="kw">match </span>targets.as_slice() {
+            [local_var] <span class="kw">if </span><span class="self">self</span>.vars.contains(<span class="kw-2">&amp;</span>local_var.name) =&gt; {
+                <span class="kw">return </span>vir::Stmt::Assign(vir::Assign {
+                    target: vir::LocalVar {
+                        name: local_var.name.clone(),
+                        typ: translate_type(<span class="self">self</span>.encoder, local_var.typ.clone()),
                     }
-                    .<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
-                    source: <a class="self" href="#283">self</a>.<a href="#267">fresh_variable</a>(<span class="kw-2">&amp;</span><a href="#291">local_var</a>.typ).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
+                    .into(),
+                    source: <span class="self">self</span>.fresh_variable(<span class="kw-2">&amp;</span>local_var.typ).into(),
                     kind: vir::AssignKind::Ghost,
                 });
             }
             <span class="kw">_ </span>=&gt; {}
         }
-        vir::Stmt::MethodCall(<a href="../../../vir/gen/polymorphic/ast/stmt/struct.MethodCall.html">vir::MethodCall</a> {
-            <a href="#285">method_name</a>,
-            arguments: <a href="#286">arguments</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|e| <a class="self" href="#283">self</a>.<a href="../../../vir/gen/polymorphic/ast/stmt/trait.StmtFolder.html">fold_expr</a>(<a href="#306">e</a>)).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>(),
-            <a href="#287">targets</a>,
+        vir::Stmt::MethodCall(vir::MethodCall {
+            method_name,
+            arguments: arguments.into_iter().map(|e| <span class="self">self</span>.fold_expr(e)).collect(),
+            targets,
         })
     }
     <span class="kw">fn </span>fold_assign(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        <a href="../../../vir/gen/polymorphic/ast/stmt/struct.Assign.html">vir::Assign</a> {
+        vir::Assign {
             target,
             source,
             kind,
-        }: <a href="../../../vir/gen/polymorphic/ast/stmt/struct.Assign.html">vir::Assign</a>,
-    ) -&gt; <a href="../../../vir/gen/polymorphic/ast/stmt/enum.Stmt.html">vir::Stmt</a> {
-        <span class="kw">let </span><span class="kw-2">mut </span>target = <a class="self" href="#311">self</a>.<a href="../../../vir/gen/polymorphic/ast/stmt/trait.StmtFolder.html">fold_expr</a>(<a href="#313">target</a>);
-        <span class="kw">let </span><span class="kw-2">mut </span>source = <a class="self" href="#311">self</a>.<a href="../../../vir/gen/polymorphic/ast/stmt/trait.StmtFolder.html">fold_expr</a>(<a href="#314">source</a>);
-        <span class="kw">match </span>(<span class="kw-2">&amp;mut </span><a href="#318">target</a>, <span class="kw-2">&amp;mut </span><a href="#319">source</a>) {
+        }: vir::Assign,
+    ) -&gt; vir::Stmt {
+        <span class="kw">let </span><span class="kw-2">mut </span>target = <span class="self">self</span>.fold_expr(target);
+        <span class="kw">let </span><span class="kw-2">mut </span>source = <span class="self">self</span>.fold_expr(source);
+        <span class="kw">match </span>(<span class="kw-2">&amp;mut </span>target, <span class="kw-2">&amp;mut </span>source) {
             (
-                vir::Expr::Local(<a href="../../../vir/gen/polymorphic/ast/expr/struct.Local.html">vir::Local</a> {
+                vir::Expr::Local(vir::Local {
                     variable: target_var,
                     ..
                 }),
-                vir::Expr::Local(<a href="../../../vir/gen/polymorphic/ast/expr/struct.Local.html">vir::Local</a> {
+                vir::Expr::Local(vir::Local {
                     variable: source_var,
                     ..
                 }),
-            ) <span class="kw">if </span>(<a href="#323">target_var</a>.name.starts_with(<span class="string">&quot;_preserve&quot;</span>)
-                || <a href="#323">target_var</a>.name.starts_with(<span class="string">&quot;_old$&quot;</span>))
-                &amp;&amp; <a class="self" href="#311">self</a>.vars.contains(<span class="kw-2">&amp;</span><a href="#327">source_var</a>.name) =&gt;
+            ) <span class="kw">if </span>(target_var.name.starts_with(<span class="string">&quot;_preserve&quot;</span>)
+                || target_var.name.starts_with(<span class="string">&quot;_old$&quot;</span>))
+                &amp;&amp; <span class="self">self</span>.vars.contains(<span class="kw-2">&amp;</span>source_var.name) =&gt;
             {
-                <a href="#323">target_var</a>.typ = <a href="#235">translate_type</a>(<a class="self" href="#311">self</a>.encoder, <a href="#327">source_var</a>.typ.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
-                <a class="self" href="#311">self</a>.change_var_types
-                    .insert(<a href="#323">target_var</a>.name.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), <a href="#327">source_var</a>.typ.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
+                target_var.typ = translate_type(<span class="self">self</span>.encoder, source_var.typ.clone());
+                <span class="self">self</span>.change_var_types
+                    .insert(target_var.name.clone(), source_var.typ.clone());
             }
             <span class="kw">_ </span>=&gt; {}
         }
-        vir::Stmt::Assign(<a href="../../../vir/gen/polymorphic/ast/stmt/struct.Assign.html">vir::Assign</a> {
-            <a href="#318">target</a>,
-            <a href="#319">source</a>,
-            <a href="#315">kind</a>,
+        vir::Stmt::Assign(vir::Assign {
+            target,
+            source,
+            kind,
         })
     }
 }
 
-<span class="kw">impl </span><a href="../../../vir/gen/polymorphic/ast/expr_transformers/trait.ExprFolder.html">ExprFolder</a> <span class="kw">for </span>Purifier&lt;<span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;_</span>&gt; {
+<span class="kw">impl </span>ExprFolder <span class="kw">for </span>Purifier&lt;<span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;_</span>&gt; {
     <span class="kw">fn </span>fold_field_access_predicate(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        <a href="../../../vir/gen/polymorphic/ast/expr/struct.FieldAccessPredicate.html">vir::FieldAccessPredicate</a> {
+        vir::FieldAccessPredicate {
             base: receiver,
             permission,
             position,
-        }: <a href="../../../vir/gen/polymorphic/ast/expr/struct.FieldAccessPredicate.html">vir::FieldAccessPredicate</a>,
-    ) -&gt; <a href="../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a> {
-        <span class="kw">match </span><span class="kw-2">&amp;*</span><a href="#352">receiver</a> {
-            vir::Expr::Field(<a href="../../../vir/gen/polymorphic/ast/expr/struct.FieldExpr.html">vir::FieldExpr</a> {
+        }: vir::FieldAccessPredicate,
+    ) -&gt; vir::Expr {
+        <span class="kw">match </span><span class="kw-2">&amp;*</span>receiver {
+            vir::Expr::Field(vir::FieldExpr {
                 base:
-                    <span class="kw">box </span>vir::Expr::Local(<a href="../../../vir/gen/polymorphic/ast/expr/struct.Local.html">vir::Local</a> {
+                    <span class="kw">box </span>vir::Expr::Local(vir::Local {
                         variable: local_var,
                         ..
                     }),
                 ..
-            }) <span class="kw">if </span><a class="self" href="#350">self</a>.vars.contains(<span class="kw-2">&amp;</span><a href="#361">local_var</a>.name) =&gt; {
-                <span class="kw">return </span><span class="bool-val">true</span>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>();
+            }) <span class="kw">if </span><span class="self">self</span>.vars.contains(<span class="kw-2">&amp;</span>local_var.name) =&gt; {
+                <span class="kw">return </span><span class="bool-val">true</span>.into();
             }
             <span class="kw">_ </span>=&gt; {}
         }
-        vir::Expr::FieldAccessPredicate(<a href="../../../vir/gen/polymorphic/ast/expr/struct.FieldAccessPredicate.html">vir::FieldAccessPredicate</a> {
-            base: <a href="#352">receiver</a>,
-            <a href="#353">permission</a>,
-            <a href="#354">position</a>,
+        vir::Expr::FieldAccessPredicate(vir::FieldAccessPredicate {
+            base: receiver,
+            permission,
+            position,
         })
     }
     <span class="kw">fn </span>fold_predicate_access_predicate(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        <a href="../../../vir/gen/polymorphic/ast/expr/struct.PredicateAccessPredicate.html">vir::PredicateAccessPredicate</a> {
+        vir::PredicateAccessPredicate {
             predicate_type,
             argument,
             permission,
             position,
-        }: <a href="../../../vir/gen/polymorphic/ast/expr/struct.PredicateAccessPredicate.html">vir::PredicateAccessPredicate</a>,
-    ) -&gt; <a href="../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a> {
-        <span class="kw">let </span>argument = <a class="self" href="#377">self</a>.<a href="../../../vir/gen/polymorphic/ast/expr_transformers/trait.ExprFolder.html">fold_boxed</a>(<a href="#380">argument</a>);
-        <span class="kw">match </span><span class="kw-2">&amp;*</span><a href="#385">argument</a> {
-            vir::Expr::Local(<a href="../../../vir/gen/polymorphic/ast/expr/struct.Local.html">vir::Local</a> {
+        }: vir::PredicateAccessPredicate,
+    ) -&gt; vir::Expr {
+        <span class="kw">let </span>argument = <span class="self">self</span>.fold_boxed(argument);
+        <span class="kw">match </span><span class="kw-2">&amp;*</span>argument {
+            vir::Expr::Local(vir::Local {
                 variable: local_var,
                 ..
-            }) <span class="kw">if </span><a class="self" href="#377">self</a>.vars.contains(<span class="kw-2">&amp;</span><a href="#388">local_var</a>.name)
-                || <a class="self" href="#377">self</a>.change_var_types.contains_key(<span class="kw-2">&amp;</span><a href="#388">local_var</a>.name) =&gt;
+            }) <span class="kw">if </span><span class="self">self</span>.vars.contains(<span class="kw-2">&amp;</span>local_var.name)
+                || <span class="self">self</span>.change_var_types.contains_key(<span class="kw-2">&amp;</span>local_var.name) =&gt;
             {
-                <span class="kw">return </span><span class="bool-val">true</span>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>();
+                <span class="kw">return </span><span class="bool-val">true</span>.into();
             }
             <span class="kw">_ </span>=&gt; {}
         }
-        vir::Expr::PredicateAccessPredicate(<a href="../../../vir/gen/polymorphic/ast/expr/struct.PredicateAccessPredicate.html">vir::PredicateAccessPredicate</a> {
-            <a href="#379">predicate_type</a>,
-            <a href="#385">argument</a>,
-            <a href="#381">permission</a>,
-            <a href="#382">position</a>,
+        vir::Expr::PredicateAccessPredicate(vir::PredicateAccessPredicate {
+            predicate_type,
+            argument,
+            permission,
+            position,
         })
     }
     <span class="kw">fn </span>fold_labelled_old(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        <a href="../../../vir/gen/polymorphic/ast/expr/struct.LabelledOld.html">vir::LabelledOld</a> {
+        vir::LabelledOld {
             label,
             base,
             position,
-        }: <a href="../../../vir/gen/polymorphic/ast/expr/struct.LabelledOld.html">vir::LabelledOld</a>,
-    ) -&gt; <a href="../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a> {
-        <span class="kw">let </span>body = <a class="self" href="#405">self</a>.<a href="../../../vir/gen/polymorphic/ast/expr_transformers/trait.ExprFolder.html">fold_boxed</a>(<a href="#408">base</a>);
+        }: vir::LabelledOld,
+    ) -&gt; vir::Expr {
+        <span class="kw">let </span>body = <span class="self">self</span>.fold_boxed(base);
         <span class="kw">if </span>!body.is_heap_dependent() {
-            <span class="kw">return </span><span class="kw-2">*</span><a href="#412">body</a>;
+            <span class="kw">return </span><span class="kw-2">*</span>body;
         }
-        vir::Expr::LabelledOld(<a href="../../../vir/gen/polymorphic/ast/expr/struct.LabelledOld.html">vir::LabelledOld</a> {
-            <a href="#407">label</a>,
-            base: <a href="#412">body</a>,
-            <a href="#409">position</a>,
+        vir::Expr::LabelledOld(vir::LabelledOld {
+            label,
+            base: body,
+            position,
         })
     }
     <span class="kw">fn </span>fold_local(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        <a href="../../../vir/gen/polymorphic/ast/expr/struct.Local.html">vir::Local</a> {
+        vir::Local {
             <span class="kw-2">mut </span>variable,
             position,
-        }: <a href="../../../vir/gen/polymorphic/ast/expr/struct.Local.html">vir::Local</a>,
-    ) -&gt; <a href="../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a> {
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(new_type) = <a class="self" href="#423">self</a>.change_var_types.get(<span class="kw-2">&amp;</span><a href="#425">variable</a>.name) {
-            <a href="#425">variable</a>.typ = <a href="#235">translate_type</a>(<a class="self" href="#423">self</a>.encoder, <a href="#429">new_type</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
+        }: vir::Local,
+    ) -&gt; vir::Expr {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(new_type) = <span class="self">self</span>.change_var_types.get(<span class="kw-2">&amp;</span>variable.name) {
+            variable.typ = translate_type(<span class="self">self</span>.encoder, new_type.clone());
         }
-        vir::Expr::local_with_pos(<a href="#425">variable</a>, <a href="#426">position</a>)
+        vir::Expr::local_with_pos(variable, position)
     }
     <span class="kw">fn </span>fold_field(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        <a href="../../../vir/gen/polymorphic/ast/expr/struct.FieldExpr.html">vir::FieldExpr</a> {
+        vir::FieldExpr {
             base: receiver,
             field,
             position,
-        }: <a href="../../../vir/gen/polymorphic/ast/expr/struct.FieldExpr.html">vir::FieldExpr</a>,
-    ) -&gt; <a href="../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a> {
-        <span class="kw">match </span><a href="#437">receiver</a> {
-            <span class="kw">box </span>vir::Expr::Local(<a href="../../../vir/gen/polymorphic/ast/expr/struct.Local.html">vir::Local</a> {
+        }: vir::FieldExpr,
+    ) -&gt; vir::Expr {
+        <span class="kw">match </span>receiver {
+            <span class="kw">box </span>vir::Expr::Local(vir::Local {
                 variable: local_var,
                 ..
-            }) <span class="kw">if </span><a class="self" href="#435">self</a>.vars.contains(<span class="kw-2">&amp;</span><a href="#444">local_var</a>.name) =&gt; {
-                <span class="kw">return </span><a href="../../../vir/gen/polymorphic/ast/common/struct.LocalVar.html">vir::LocalVar</a> {
-                    name: <a href="#444">local_var</a>.name,
-                    typ: <a href="#235">translate_type</a>(<a class="self" href="#435">self</a>.encoder, <a href="#444">local_var</a>.typ),
+            }) <span class="kw">if </span><span class="self">self</span>.vars.contains(<span class="kw-2">&amp;</span>local_var.name) =&gt; {
+                <span class="kw">return </span>vir::LocalVar {
+                    name: local_var.name,
+                    typ: translate_type(<span class="self">self</span>.encoder, local_var.typ),
                 }
-                .<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>();
+                .into();
             }
             <span class="kw">_ </span>=&gt; {}
         }
-        vir::Expr::Field(<a href="../../../vir/gen/polymorphic/ast/expr/struct.FieldExpr.html">vir::FieldExpr</a> {
-            base: <a href="#437">receiver</a>,
-            <a href="#438">field</a>,
-            <a href="#439">position</a>,
+        vir::Expr::Field(vir::FieldExpr {
+            base: receiver,
+            field,
+            position,
         })
     }
     <span class="kw">fn </span>fold_func_app(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        <a href="../../../vir/gen/polymorphic/ast/expr/struct.FuncApp.html">vir::FuncApp</a> {
+        vir::FuncApp {
             function_name,
             type_arguments,
             arguments,
             formal_arguments,
             return_type,
             position,
-        }: <a href="../../../vir/gen/polymorphic/ast/expr/struct.FuncApp.html">vir::FuncApp</a>,
-    ) -&gt; <a href="../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a> {
-        <span class="kw">let </span>arguments: Vec&lt;<span class="kw">_</span>&gt; = <a href="#466">arguments</a>
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|e| <a href="../../../vir/gen/polymorphic/ast/expr_transformers/trait.ExprFolder.html">ExprFolder::fold</a>(<a class="self" href="#462">self</a>, <a href="#474">e</a>))
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
-        <span class="kw">if let </span>[vir::Expr::Local(<a href="../../../vir/gen/polymorphic/ast/expr/struct.Local.html">vir::Local</a> {
+        }: vir::FuncApp,
+    ) -&gt; vir::Expr {
+        <span class="kw">let </span>arguments: Vec&lt;<span class="kw">_</span>&gt; = arguments
+            .into_iter()
+            .map(|e| ExprFolder::fold(<span class="self">self</span>, e))
+            .collect();
+        <span class="kw">if let </span>[vir::Expr::Local(vir::Local {
             variable: local_var,
             position: local_pos,
-        })] = <a href="#472">arguments</a>.as_slice()
+        })] = arguments.as_slice()
         {
             <span class="kw">if </span><span class="self">self</span>.vars.contains(<span class="kw-2">&amp;</span>local_var.name)
                 || <span class="self">self</span>.change_var_types.contains_key(<span class="kw-2">&amp;</span>local_var.name)
             {
                 <span class="kw">if </span>function_name.starts_with(<span class="string">&quot;snap$&quot;</span>) {
-                    <span class="kw">return </span>vir::Expr::Local(<a href="../../../vir/gen/polymorphic/ast/expr/struct.Local.html">vir::Local</a> {
-                        variable: <a href="#477">local_var</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
-                        position: <span class="kw-2">*</span><a href="#478">local_pos</a>,
+                    <span class="kw">return </span>vir::Expr::Local(vir::Local {
+                        variable: local_var.clone(),
+                        position: <span class="kw-2">*</span>local_pos,
                     });
                 }
                 <span class="kw">if </span>function_name.ends_with(<span class="string">&quot;$$discriminant$$&quot;</span>) {
-                    <span class="kw">let </span>predicate_name = <a href="#467">formal_arguments</a>[<span class="number">0</span>].typ.name();
-                    <span class="kw">let </span>domain_name = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;Snap${}&quot;</span>, predicate_name);
-                    <span class="kw">let </span>arg_dom_expr = vir::Expr::Local(<a href="../../../vir/gen/polymorphic/ast/expr/struct.Local.html">vir::Local</a> {
-                        variable: <a href="#477">local_var</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
-                        position: <span class="kw-2">*</span><a href="#478">local_pos</a>,
+                    <span class="kw">let </span>predicate_name = formal_arguments[<span class="number">0</span>].typ.name();
+                    <span class="kw">let </span>domain_name = <span class="macro">format!</span>(<span class="string">&quot;Snap${predicate_name}&quot;</span>);
+                    <span class="kw">let </span>arg_dom_expr = vir::Expr::Local(vir::Local {
+                        variable: local_var.clone(),
+                        position: <span class="kw-2">*</span>local_pos,
                     });
-                    <span class="kw">let </span>discriminant_func = <a href="../../../vir/gen/polymorphic/ast/domain/struct.DomainFunc.html">vir::DomainFunc</a> {
-                        name: <span class="string">&quot;discriminant$&quot;</span>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(),
-                        <a href="#465">type_arguments</a>,
-                        formal_args: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[local_var.clone()],
+                    <span class="kw">let </span>discriminant_func = vir::DomainFunc {
+                        name: <span class="string">&quot;discriminant$&quot;</span>.to_string(),
+                        type_arguments,
+                        formal_args: <span class="macro">vec!</span>[local_var.clone()],
                         return_type: vir::Type::Int,
                         unique: <span class="bool-val">false</span>,
-                        <a href="#492">domain_name</a>,
+                        domain_name,
                     };
-                    <span class="kw">return </span><a href="#497">discriminant_func</a>.apply(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[arg_dom_expr]);
+                    <span class="kw">return </span>discriminant_func.apply(<span class="macro">vec!</span>[arg_dom_expr]);
                 }
             }
         }
-        vir::Expr::FuncApp(<a href="../../../vir/gen/polymorphic/ast/expr/struct.FuncApp.html">vir::FuncApp</a> {
-            <a href="#464">function_name</a>,
-            <a href="#465">type_arguments</a>,
-            <a href="#472">arguments</a>,
-            <a href="#467">formal_arguments</a>,
-            <a href="#468">return_type</a>,
-            <a href="#469">position</a>,
+        vir::Expr::FuncApp(vir::FuncApp {
+            function_name,
+            type_arguments,
+            arguments,
+            formal_arguments,
+            return_type,
+            position,
         })
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="prusti_viper" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="prusti_viper" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

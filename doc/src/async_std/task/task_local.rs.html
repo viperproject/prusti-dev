@@ -1,5 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/async-std-1.12.0/src/task/task_local.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>task_local.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../async_std/index.html">
-                        <img src="https://async.rs/images/logo--hero.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/async-std-1.12.0/src/task/task_local.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>task_local.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../async_std/index.html">
+                        <img src="https://async.rs/images/logo--hero.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -212,27 +212,27 @@
 <a href="#211" id="211">211</a>
 <a href="#212" id="212">212</a>
 <a href="#213" id="213">213</a>
-</pre><pre class="rust"><code><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/cell/struct.UnsafeCell.html">std::cell::UnsafeCell</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">std::error::Error</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">std::fmt</a>;
-<span class="kw">use </span>std::sync::atomic::{<a href="https://doc.rust-lang.org/nightly/core/sync/atomic/struct.AtomicU32.html">AtomicU32</a>, <a href="https://doc.rust-lang.org/nightly/core/sync/atomic/enum.Ordering.html">Ordering</a>};
+</pre><pre class="rust"><code><span class="kw">use </span>std::cell::UnsafeCell;
+<span class="kw">use </span>std::error::Error;
+<span class="kw">use </span>std::fmt;
+<span class="kw">use </span>std::sync::atomic::{AtomicU32, Ordering};
 
-<span class="kw">use </span><a href="task_locals_wrapper.rs.html#13"><span class="kw">crate</span>::task::TaskLocalsWrapper</a>;
+<span class="kw">use </span><span class="kw">crate</span>::task::TaskLocalsWrapper;
 
 <span class="doccomment">/// The key for accessing a task-local value.
 ///
 /// Every task-local value is lazily initialized on first access and destroyed when the task
 /// completes.
 </span><span class="attr">#[derive(Debug)]
-</span><span class="kw">pub struct </span>LocalKey&lt;T: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <span class="lifetime">&#39;static</span>&gt; {
+</span><span class="kw">pub struct </span>LocalKey&lt;T: Send + <span class="lifetime">&#39;static</span>&gt; {
     <span class="attr">#[doc(hidden)]
     </span><span class="kw">pub </span>__init: <span class="kw">fn</span>() -&gt; T,
 
     <span class="attr">#[doc(hidden)]
-    </span><span class="kw">pub </span>__key: <a href="https://doc.rust-lang.org/nightly/core/sync/atomic/struct.AtomicU32.html">AtomicU32</a>,
+    </span><span class="kw">pub </span>__key: AtomicU32,
 }
 
-<span class="kw">impl</span>&lt;T: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <span class="lifetime">&#39;static</span>&gt; LocalKey&lt;T&gt; {
+<span class="kw">impl</span>&lt;T: Send + <span class="lifetime">&#39;static</span>&gt; LocalKey&lt;T&gt; {
     <span class="doccomment">/// Gets a reference to the task-local value with this key.
     ///
     /// The passed closure receives a reference to the task-local value.
@@ -270,7 +270,7 @@
     <span class="kw">where
         </span>F: FnOnce(<span class="kw-2">&amp;</span>T) -&gt; R,
     {
-        <a class="self" href="#55">self</a>.<a href="#97-99">try_with</a>(<a href="#55">f</a>)
+        <span class="self">self</span>.try_with(f)
             .expect(<span class="string">&quot;`LocalKey::with` called outside the context of a task&quot;</span>)
     }
 
@@ -308,45 +308,45 @@
     /// // Returns an error because not called within the context of a task.
     /// assert!(VAL.try_with(|c| c.get()).is_err());
     /// ```
-    </span><span class="kw">pub fn </span>try_with&lt;F, R&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><span class="self">self</span>, f: F) -&gt; <span class="prelude-ty">Result</span>&lt;R, <a href="#144">AccessError</a>&gt;
+    </span><span class="kw">pub fn </span>try_with&lt;F, R&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><span class="self">self</span>, f: F) -&gt; <span class="prelude-ty">Result</span>&lt;R, AccessError&gt;
     <span class="kw">where
         </span>F: FnOnce(<span class="kw-2">&amp;</span>T) -&gt; R,
     {
         TaskLocalsWrapper::get_current(|task| <span class="kw">unsafe </span>{
             <span class="comment">// Prepare the numeric key, initialization function, and the map of task-locals.
-            </span><span class="kw">let </span>key = <a class="self" href="#97">self</a>.<a href="#117">key</a>();
-            <span class="kw">let </span>init = || Box::new((<a class="self" href="#97">self</a>.__init)()) <span class="kw">as </span>Box&lt;<span class="kw">dyn </span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a>&gt;;
+            </span><span class="kw">let </span>key = <span class="self">self</span>.key();
+            <span class="kw">let </span>init = || Box::new((<span class="self">self</span>.__init)()) <span class="kw">as </span>Box&lt;<span class="kw">dyn </span>Send&gt;;
 
             <span class="comment">// Get the value in the map of task-locals, or initialize and insert one.
-            </span><span class="kw">let </span>value: <span class="kw-2">*const </span><span class="kw">dyn </span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> = <a href="#101">task</a>.<a href="task_locals_wrapper.rs.html#46">locals</a>().<a href="#187">get_or_insert</a>(<a href="#103">key</a>, <a href="#104">init</a>);
+            </span><span class="kw">let </span>value: <span class="kw-2">*const </span><span class="kw">dyn </span>Send = task.locals().get_or_insert(key, init);
 
             <span class="comment">// Call the closure with the value passed as an argument.
-            </span><a href="#97">f</a>(<span class="kw-2">&amp;*</span>(<a href="#107">value</a> <span class="kw">as </span><span class="kw-2">*const </span>T))
+            </span>f(<span class="kw-2">&amp;*</span>(value <span class="kw">as </span><span class="kw-2">*const </span>T))
         })
-        .ok_or(<a href="#144">AccessError</a> { _private: () })
+        .ok_or(AccessError { _private: () })
     }
 
     <span class="doccomment">/// Returns the numeric key associated with this task-local.
     </span><span class="attr">#[inline]
-    </span><span class="kw">fn </span>key(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
+    </span><span class="kw">fn </span>key(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u32 {
         <span class="attr">#[cold]
-        </span><span class="kw">fn </span>init(key: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/core/sync/atomic/struct.AtomicU32.html">AtomicU32</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
-            <span class="kw">static </span>COUNTER: <a href="https://doc.rust-lang.org/nightly/core/sync/atomic/struct.AtomicU32.html">AtomicU32</a> = AtomicU32::new(<span class="number">1</span>);
+        </span><span class="kw">fn </span>init(key: <span class="kw-2">&amp;</span>AtomicU32) -&gt; u32 {
+            <span class="kw">static </span>COUNTER: AtomicU32 = AtomicU32::new(<span class="number">1</span>);
 
-            <span class="kw">let </span>counter = <a href="#120">COUNTER</a>.fetch_add(<span class="number">1</span>, Ordering::Relaxed);
+            <span class="kw">let </span>counter = COUNTER.fetch_add(<span class="number">1</span>, Ordering::Relaxed);
             <span class="kw">if </span>counter &gt; u32::max_value() / <span class="number">2 </span>{
-                <a href="../../../async_std/process/fn.abort.html">std::process::abort</a>();
+                std::process::abort();
             }
 
-            <span class="kw">match </span><a href="#119">key</a>.compare_exchange(<span class="number">0</span>, <a href="#122">counter</a>, Ordering::AcqRel, Ordering::Acquire) {
-                <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; <a href="#122">counter</a>,
-                <span class="prelude-val">Err</span>(k) =&gt; <a href="#129">k</a>,
+            <span class="kw">match </span>key.compare_exchange(<span class="number">0</span>, counter, Ordering::AcqRel, Ordering::Acquire) {
+                <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; counter,
+                <span class="prelude-val">Err</span>(k) =&gt; k,
             }
         }
 
-        <span class="kw">match </span><a class="self" href="#117">self</a>.__key.load(Ordering::Acquire) {
-            <span class="number">0 </span>=&gt; <a href="#119">init</a>(<span class="kw-2">&amp;</span><a class="self" href="#117">self</a>.__key),
-            k =&gt; <a href="#135">k</a>,
+        <span class="kw">match </span><span class="self">self</span>.__key.load(Ordering::Acquire) {
+            <span class="number">0 </span>=&gt; init(<span class="kw-2">&amp;</span><span class="self">self</span>.__key),
+            k =&gt; k,
         }
     }
 }
@@ -359,58 +359,58 @@
     _private: (),
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="#144">AccessError</a> {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a href="#149">f</a>.debug_struct(<span class="string">&quot;AccessError&quot;</span>).finish()
+<span class="kw">impl </span>fmt::Debug <span class="kw">for </span>AccessError {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        f.debug_struct(<span class="string">&quot;AccessError&quot;</span>).finish()
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for </span><a href="#144">AccessError</a> {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <span class="string">&quot;already destroyed or called outside the context of a task&quot;</span>.<a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt</a>(<a href="#155">f</a>)
+<span class="kw">impl </span>fmt::Display <span class="kw">for </span>AccessError {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        <span class="string">&quot;already destroyed or called outside the context of a task&quot;</span>.fmt(f)
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">Error</a> <span class="kw">for </span><a href="#144">AccessError</a> {}
+<span class="kw">impl </span>Error <span class="kw">for </span>AccessError {}
 
 <span class="doccomment">/// A key-value entry in a map of task-locals.
 </span><span class="kw">struct </span>Entry {
     <span class="doccomment">/// Key identifying the task-local variable.
-    </span>key: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>,
+    </span>key: u32,
 
     <span class="doccomment">/// Value stored in this entry.
-    </span>value: Box&lt;<span class="kw">dyn </span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a>&gt;,
+    </span>value: Box&lt;<span class="kw">dyn </span>Send&gt;,
 }
 
 <span class="doccomment">/// A map that holds task-locals.
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>LocalsMap {
     <span class="doccomment">/// A list of key-value entries sorted by the key.
-    </span>entries: UnsafeCell&lt;<span class="prelude-ty">Option</span>&lt;Vec&lt;<a href="#163">Entry</a>&gt;&gt;&gt;,
+    </span>entries: UnsafeCell&lt;<span class="prelude-ty">Option</span>&lt;Vec&lt;Entry&gt;&gt;&gt;,
 }
 
-<span class="kw">impl </span><a href="#172">LocalsMap</a> {
+<span class="kw">impl </span>LocalsMap {
     <span class="doccomment">/// Creates an empty map of task-locals.
-    </span><span class="kw">pub fn </span>new() -&gt; <a href="#172">LocalsMap</a> {
-        <a href="#172">LocalsMap</a> {
+    </span><span class="kw">pub fn </span>new() -&gt; LocalsMap {
+        LocalsMap {
             entries: UnsafeCell::new(<span class="prelude-val">Some</span>(Vec::new())),
         }
     }
 
     <span class="doccomment">/// Returns a task-local value associated with `key` or inserts one constructed by `init`.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>get_or_insert(<span class="kw-2">&amp;</span><span class="self">self</span>, key: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>, init: <span class="kw">impl </span>FnOnce() -&gt; Box&lt;<span class="kw">dyn </span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a>&gt;) -&gt; <span class="kw-2">&amp;</span><span class="kw">dyn </span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> {
-        <span class="kw">match unsafe </span>{ (<span class="kw-2">*</span><a class="self" href="#187">self</a>.entries.get()).as_mut() } {
-            <span class="prelude-val">None </span>=&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(<span class="string">&quot;can&#39;t access task-locals while the task is being dropped&quot;</span>),
+    </span><span class="kw">pub fn </span>get_or_insert(<span class="kw-2">&amp;</span><span class="self">self</span>, key: u32, init: <span class="kw">impl </span>FnOnce() -&gt; Box&lt;<span class="kw">dyn </span>Send&gt;) -&gt; <span class="kw-2">&amp;</span><span class="kw">dyn </span>Send {
+        <span class="kw">match unsafe </span>{ (<span class="kw-2">*</span><span class="self">self</span>.entries.get()).as_mut() } {
+            <span class="prelude-val">None </span>=&gt; <span class="macro">panic!</span>(<span class="string">&quot;can&#39;t access task-locals while the task is being dropped&quot;</span>),
             <span class="prelude-val">Some</span>(entries) =&gt; {
-                <span class="kw">let </span>index = <span class="kw">match </span><a href="#190">entries</a>.binary_search_by_key(<span class="kw-2">&amp;</span><a href="#187">key</a>, |e| <a href="#191">e</a>.key) {
-                    <span class="prelude-val">Ok</span>(i) =&gt; <a href="#192">i</a>,
+                <span class="kw">let </span>index = <span class="kw">match </span>entries.binary_search_by_key(<span class="kw-2">&amp;</span>key, |e| e.key) {
+                    <span class="prelude-val">Ok</span>(i) =&gt; i,
                     <span class="prelude-val">Err</span>(i) =&gt; {
-                        <span class="kw">let </span>value = <a href="#187">init</a>();
-                        <a href="#190">entries</a>.insert(<a href="#193">i</a>, <a href="#163">Entry</a> { <a href="#187">key</a>, <a href="#194">value</a> });
-                        <a href="#193">i</a>
+                        <span class="kw">let </span>value = init();
+                        entries.insert(i, Entry { key, value });
+                        i
                     }
                 };
-                <span class="kw-2">&amp;*</span><a href="#190">entries</a>[<a href="#191">index</a>].value
+                <span class="kw-2">&amp;*</span>entries[index].value
             }
         }
     }
@@ -421,9 +421,9 @@
     </span><span class="kw">pub unsafe fn </span>clear(<span class="kw-2">&amp;</span><span class="self">self</span>) {
         <span class="comment">// Since destructors may attempt to access task-locals, we musnt&#39;t hold a mutable reference
         // to the `Vec` while dropping them. Instead, we first take the `Vec` out and then drop it.
-        </span><span class="kw">let </span>entries = (<span class="kw-2">*</span><a class="self" href="#207">self</a>.entries.get()).take();
-        <a href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>(<a href="#210">entries</a>);
+        </span><span class="kw">let </span>entries = (<span class="kw-2">*</span><span class="self">self</span>.entries.get()).take();
+        drop(entries);
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="async_std" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="async_std" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

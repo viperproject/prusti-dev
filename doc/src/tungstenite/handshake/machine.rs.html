@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tungstenite-0.17.3/src/handshake/machine.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>machine.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../tungstenite/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tungstenite-0.17.3/src/handshake/machine.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>machine.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../tungstenite/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -120,87 +120,87 @@
 <a href="#120" id="120">120</a>
 <a href="#121" id="121">121</a>
 <a href="#122" id="122">122</a>
-</pre><pre class="rust"><code><span class="kw">use </span><a href="../../../bytes/buf/buf_impl/trait.Buf.html">bytes::Buf</a>;
-<span class="kw">use </span><a href="../../../log/index.html">log</a>::<span class="kw-2">*</span>;
-<span class="kw">use </span>std::io::{<a href="https://doc.rust-lang.org/nightly/std/io/cursor/struct.Cursor.html">Cursor</a>, <a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a>, <a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a>};
+</pre><pre class="rust"><code><span class="kw">use </span>bytes::Buf;
+<span class="kw">use </span>log::<span class="kw-2">*</span>;
+<span class="kw">use </span>std::io::{Cursor, Read, Write};
 
 <span class="kw">use crate</span>::{
-    error::{<a href="../error.rs.html#14">Error</a>, <a href="../error.rs.html#142">ProtocolError</a>, <span class="prelude-ty">Result</span>},
-    <a href="../util.rs.html#37">util::NonBlockingResult</a>,
-    <a href="../lib.rs.html#29">ReadBuffer</a>,
+    error::{Error, ProtocolError, <span class="prelude-ty">Result</span>},
+    util::NonBlockingResult,
+    ReadBuffer,
 };
 
 <span class="doccomment">/// A generic handshake state machine.
 </span><span class="attr">#[derive(Debug)]
 </span><span class="kw">pub struct </span>HandshakeMachine&lt;Stream&gt; {
     stream: Stream,
-    state: <a href="#117">HandshakeState</a>,
+    state: HandshakeState,
 }
 
 <span class="kw">impl</span>&lt;Stream&gt; HandshakeMachine&lt;Stream&gt; {
     <span class="doccomment">/// Start reading data from the peer.
     </span><span class="kw">pub fn </span>start_read(stream: Stream) -&gt; <span class="self">Self </span>{
-        <a href="#13">HandshakeMachine</a> { <a href="#20">stream</a>, state: <a href="#119">HandshakeState::Reading</a>(ReadBuffer::new()) }
+        HandshakeMachine { stream, state: HandshakeState::Reading(ReadBuffer::new()) }
     }
     <span class="doccomment">/// Start writing data to the peer.
-    </span><span class="kw">pub fn </span>start_write&lt;D: Into&lt;Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;&gt;&gt;(stream: Stream, data: D) -&gt; <span class="self">Self </span>{
-        <a href="#13">HandshakeMachine</a> { <a href="#24">stream</a>, state: <a href="#121">HandshakeState::Writing</a>(Cursor::new(<a href="#24">data</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())) }
+    </span><span class="kw">pub fn </span>start_write&lt;D: Into&lt;Vec&lt;u8&gt;&gt;&gt;(stream: Stream, data: D) -&gt; <span class="self">Self </span>{
+        HandshakeMachine { stream, state: HandshakeState::Writing(Cursor::new(data.into())) }
     }
     <span class="doccomment">/// Returns a shared reference to the inner stream.
     </span><span class="kw">pub fn </span>get_ref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Stream {
-        <span class="kw-2">&amp;</span><a class="self" href="#28">self</a>.stream
+        <span class="kw-2">&amp;</span><span class="self">self</span>.stream
     }
     <span class="doccomment">/// Returns a mutable reference to the inner stream.
     </span><span class="kw">pub fn </span>get_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>Stream {
-        <span class="kw-2">&amp;mut </span><a class="self" href="#32">self</a>.stream
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>.stream
     }
 }
 
-<span class="kw">impl</span>&lt;Stream: <a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a> + <a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a>&gt; HandshakeMachine&lt;Stream&gt; {
+<span class="kw">impl</span>&lt;Stream: Read + Write&gt; HandshakeMachine&lt;Stream&gt; {
     <span class="doccomment">/// Perform a single handshake round.
-    </span><span class="kw">pub fn </span>single_round&lt;Obj: <a href="#110">TryParse</a>&gt;(<span class="kw-2">mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;RoundResult&lt;Obj, Stream&gt;&gt; {
-        <a class="macro" href="../../../log/log/macro.trace.html">trace!</a>(<span class="string">&quot;Doing handshake round.&quot;</span>);
-        <span class="kw">match </span><a class="self" href="#39">self</a>.state {
-            <a href="#119">HandshakeState::Reading</a>(<span class="kw-2">mut </span>buf) =&gt; {
+    </span><span class="kw">pub fn </span>single_round&lt;Obj: TryParse&gt;(<span class="kw-2">mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;RoundResult&lt;Obj, Stream&gt;&gt; {
+        <span class="macro">trace!</span>(<span class="string">&quot;Doing handshake round.&quot;</span>);
+        <span class="kw">match </span><span class="self">self</span>.state {
+            HandshakeState::Reading(<span class="kw-2">mut </span>buf) =&gt; {
                 <span class="kw">let </span>read = buf.read_from(<span class="kw-2">&amp;mut </span><span class="self">self</span>.stream).no_block()<span class="question-mark">?</span>;
-                <span class="kw">match </span><a href="#43">read</a> {
-                    <span class="prelude-val">Some</span>(<span class="number">0</span>) =&gt; <span class="prelude-val">Err</span>(<a href="../error.rs.html#54">Error::Protocol</a>(<a href="../error.rs.html#175">ProtocolError::HandshakeIncomplete</a>)),
+                <span class="kw">match </span>read {
+                    <span class="prelude-val">Some</span>(<span class="number">0</span>) =&gt; <span class="prelude-val">Err</span>(Error::Protocol(ProtocolError::HandshakeIncomplete)),
                     <span class="prelude-val">Some</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="kw">if let </span><span class="prelude-val">Some</span>((size, obj)) = Obj::try_parse(Buf::chunk(<span class="kw-2">&amp;</span>buf))<span class="question-mark">? </span>{
-                        <a href="#42">buf</a>.<a href="../../../bytes/buf/buf_impl/trait.Buf.html">advance</a>(<a href="#46">size</a>);
-                        <a href="#97">RoundResult::StageFinished</a>(<a href="#104">StageResult::DoneReading</a> {
-                            result: <a href="#46">obj</a>,
-                            stream: <a class="self" href="#39">self</a>.stream,
-                            tail: <a href="#42">buf</a>.<a href="../buffer.rs.html#45">into_vec</a>(),
+                        buf.advance(size);
+                        RoundResult::StageFinished(StageResult::DoneReading {
+                            result: obj,
+                            stream: <span class="self">self</span>.stream,
+                            tail: buf.into_vec(),
                         })
                     } <span class="kw">else </span>{
-                        <a href="#95">RoundResult::Incomplete</a>(<a href="#13">HandshakeMachine</a> {
-                            state: <a href="#119">HandshakeState::Reading</a>(<a href="#42">buf</a>),
-                            ..<span class="self"><a href="#39">self</a>
+                        RoundResult::Incomplete(HandshakeMachine {
+                            state: HandshakeState::Reading(buf),
+                            ..<span class="self">self
                         </span>})
                     }),
-                    <span class="prelude-val">None </span>=&gt; <span class="prelude-val">Ok</span>(<a href="#93">RoundResult::WouldBlock</a>(<a href="#13">HandshakeMachine</a> {
-                        state: <a href="#119">HandshakeState::Reading</a>(<a href="#42">buf</a>),
-                        ..<span class="self"><a href="#39">self</a>
+                    <span class="prelude-val">None </span>=&gt; <span class="prelude-val">Ok</span>(RoundResult::WouldBlock(HandshakeMachine {
+                        state: HandshakeState::Reading(buf),
+                        ..<span class="self">self
                     </span>})),
                 }
             }
-            <a href="#121">HandshakeState::Writing</a>(<span class="kw-2">mut </span>buf) =&gt; {
-                <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(buf.has_remaining());
+            HandshakeState::Writing(<span class="kw-2">mut </span>buf) =&gt; {
+                <span class="macro">assert!</span>(buf.has_remaining());
                 <span class="kw">if let </span><span class="prelude-val">Some</span>(size) = <span class="self">self</span>.stream.write(Buf::chunk(<span class="kw-2">&amp;</span>buf)).no_block()<span class="question-mark">? </span>{
-                    <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(size &gt; <span class="number">0</span>);
-                    <a href="#65">buf</a>.<a href="../../../bytes/buf/buf_impl/trait.Buf.html">advance</a>(<a href="#67">size</a>);
+                    <span class="macro">assert!</span>(size &gt; <span class="number">0</span>);
+                    buf.advance(size);
                     <span class="prelude-val">Ok</span>(<span class="kw">if </span>buf.has_remaining() {
-                        <a href="#95">RoundResult::Incomplete</a>(<a href="#13">HandshakeMachine</a> {
-                            state: <a href="#121">HandshakeState::Writing</a>(<a href="#65">buf</a>),
-                            ..<span class="self"><a href="#39">self</a>
+                        RoundResult::Incomplete(HandshakeMachine {
+                            state: HandshakeState::Writing(buf),
+                            ..<span class="self">self
                         </span>})
                     } <span class="kw">else </span>{
-                        <a href="#97">RoundResult::StageFinished</a>(<a href="#106">StageResult::DoneWriting</a>(<a class="self" href="#39">self</a>.stream))
+                        RoundResult::StageFinished(StageResult::DoneWriting(<span class="self">self</span>.stream))
                     })
                 } <span class="kw">else </span>{
-                    <span class="prelude-val">Ok</span>(<a href="#93">RoundResult::WouldBlock</a>(<a href="#13">HandshakeMachine</a> {
-                        state: <a href="#121">HandshakeState::Writing</a>(<a href="#65">buf</a>),
-                        ..<span class="self"><a href="#39">self</a>
+                    <span class="prelude-val">Ok</span>(RoundResult::WouldBlock(HandshakeMachine {
+                        state: HandshakeState::Writing(buf),
+                        ..<span class="self">self
                     </span>}))
                 }
             }
@@ -223,24 +223,24 @@
 </span><span class="attr">#[derive(Debug)]
 </span><span class="kw">pub enum </span>StageResult&lt;Obj, Stream&gt; {
     <span class="doccomment">/// Reading round finished.
-    </span>DoneReading { result: Obj, stream: Stream, tail: Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt; },
+    </span>DoneReading { result: Obj, stream: Stream, tail: Vec&lt;u8&gt; },
     <span class="doccomment">/// Writing round finished.
     </span>DoneWriting(Stream),
 }
 
 <span class="doccomment">/// The parseable object.
-</span><span class="kw">pub trait </span>TryParse: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> {
+</span><span class="kw">pub trait </span>TryParse: Sized {
     <span class="doccomment">/// Return Ok(None) if incomplete, Err on syntax error.
-    </span><span class="kw">fn </span>try_parse(data: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;(<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="self">Self</span>)&gt;&gt;;
+    </span><span class="kw">fn </span>try_parse(data: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;(usize, <span class="self">Self</span>)&gt;&gt;;
 }
 
 <span class="doccomment">/// The handshake state.
 </span><span class="attr">#[derive(Debug)]
 </span><span class="kw">enum </span>HandshakeState {
     <span class="doccomment">/// Reading data from the peer.
-    </span>Reading(<a href="../lib.rs.html#29">ReadBuffer</a>),
+    </span>Reading(ReadBuffer),
     <span class="doccomment">/// Sending data to the peer.
-    </span>Writing(Cursor&lt;Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;&gt;),
+    </span>Writing(Cursor&lt;Vec&lt;u8&gt;&gt;),
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="tungstenite" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="tungstenite" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

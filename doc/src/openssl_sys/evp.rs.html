@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/openssl-sys-0.9.77/src/./evp.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>evp.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../openssl_sys/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/openssl-sys-0.9.80/src/./evp.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>evp.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../openssl_sys/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -273,104 +273,119 @@
 <a href="#273" id="273">273</a>
 <a href="#274" id="274">274</a>
 <a href="#275" id="275">275</a>
-</pre><pre class="rust"><code><span class="kw">use </span><a href="../../libc/index.html">libc</a>::<span class="kw-2">*</span>;
+<a href="#276" id="276">276</a>
+<a href="#277" id="277">277</a>
+<a href="#278" id="278">278</a>
+<a href="#279" id="279">279</a>
+<a href="#280" id="280">280</a>
+<a href="#281" id="281">281</a>
+<a href="#282" id="282">282</a>
+<a href="#283" id="283">283</a>
+<a href="#284" id="284">284</a>
+<a href="#285" id="285">285</a>
+</pre><pre class="rust"><code><span class="kw">use </span>libc::<span class="kw-2">*</span>;
 <span class="kw">use </span><span class="kw-2">*</span>;
 
-<span class="kw">pub const </span>EVP_MAX_MD_SIZE: <a href="../../openssl_sys/type.c_uint.html">c_uint</a> = <span class="number">64</span>;
+<span class="kw">pub const </span>EVP_MAX_MD_SIZE: c_uint = <span class="number">64</span>;
 
-<span class="kw">pub const </span>PKCS5_SALT_LEN: <a href="../../openssl_sys/type.c_int.html">c_int</a> = <span class="number">8</span>;
-<span class="kw">pub const </span>PKCS12_DEFAULT_ITER: <a href="../../openssl_sys/type.c_int.html">c_int</a> = <span class="number">2048</span>;
+<span class="kw">pub const </span>PKCS5_SALT_LEN: c_int = <span class="number">8</span>;
+<span class="kw">pub const </span>PKCS12_DEFAULT_ITER: c_int = <span class="number">2048</span>;
 
-<span class="kw">pub const </span>EVP_PKEY_RSA: <a href="../../openssl_sys/type.c_int.html">c_int</a> = <a href="obj_mac.rs.html#118">NID_rsaEncryption</a>;
-<span class="kw">pub const </span>EVP_PKEY_DSA: <a href="../../openssl_sys/type.c_int.html">c_int</a> = <a href="obj_mac.rs.html#22">NID_dsa</a>;
-<span class="kw">pub const </span>EVP_PKEY_DH: <a href="../../openssl_sys/type.c_int.html">c_int</a> = <a href="obj_mac.rs.html#131">NID_dhKeyAgreement</a>;
-<span class="kw">pub const </span>EVP_PKEY_EC: <a href="../../openssl_sys/type.c_int.html">c_int</a> = <a href="obj_mac.rs.html#31">NID_X9_62_id_ecPublicKey</a>;
+<span class="kw">pub const </span>EVP_PKEY_RSA: c_int = NID_rsaEncryption;
+<span class="kw">pub const </span>EVP_PKEY_DSA: c_int = NID_dsa;
+<span class="kw">pub const </span>EVP_PKEY_DH: c_int = NID_dhKeyAgreement;
+<span class="kw">pub const </span>EVP_PKEY_EC: c_int = NID_X9_62_id_ecPublicKey;
 <span class="attr">#[cfg(ossl111)]
-</span><span class="kw">pub const </span>EVP_PKEY_X25519: <a href="../../openssl_sys/type.c_int.html">c_int</a> = <a href="obj_mac.rs.html#916">NID_X25519</a>;
+</span><span class="kw">pub const </span>EVP_PKEY_X25519: c_int = NID_X25519;
 <span class="attr">#[cfg(ossl111)]
-</span><span class="kw">pub const </span>EVP_PKEY_ED25519: <a href="../../openssl_sys/type.c_int.html">c_int</a> = <a href="obj_mac.rs.html#922">NID_ED25519</a>;
+</span><span class="kw">pub const </span>EVP_PKEY_ED25519: c_int = NID_ED25519;
 <span class="attr">#[cfg(ossl111)]
-</span><span class="kw">pub const </span>EVP_PKEY_X448: <a href="../../openssl_sys/type.c_int.html">c_int</a> = <a href="obj_mac.rs.html#918">NID_X448</a>;
+</span><span class="kw">pub const </span>EVP_PKEY_X448: c_int = NID_X448;
 <span class="attr">#[cfg(ossl111)]
-</span><span class="kw">pub const </span>EVP_PKEY_ED448: <a href="../../openssl_sys/type.c_int.html">c_int</a> = <a href="obj_mac.rs.html#924">NID_ED448</a>;
-<span class="kw">pub const </span>EVP_PKEY_HMAC: <a href="../../openssl_sys/type.c_int.html">c_int</a> = <a href="obj_mac.rs.html#909">NID_hmac</a>;
-<span class="kw">pub const </span>EVP_PKEY_CMAC: <a href="../../openssl_sys/type.c_int.html">c_int</a> = <a href="obj_mac.rs.html#910">NID_cmac</a>;
+</span><span class="kw">pub const </span>EVP_PKEY_ED448: c_int = NID_ED448;
+<span class="kw">pub const </span>EVP_PKEY_HMAC: c_int = NID_hmac;
+<span class="kw">pub const </span>EVP_PKEY_CMAC: c_int = NID_cmac;
 <span class="attr">#[cfg(ossl110)]
-</span><span class="kw">pub const </span>EVP_PKEY_HKDF: <a href="../../openssl_sys/type.c_int.html">c_int</a> = <a href="obj_mac.rs.html#920">NID_hkdf</a>;
+</span><span class="kw">pub const </span>EVP_PKEY_HKDF: c_int = NID_hkdf;
 
-<span class="kw">pub const </span>EVP_CTRL_GCM_SET_IVLEN: <a href="../../openssl_sys/type.c_int.html">c_int</a> = <span class="number">0x9</span>;
-<span class="kw">pub const </span>EVP_CTRL_GCM_GET_TAG: <a href="../../openssl_sys/type.c_int.html">c_int</a> = <span class="number">0x10</span>;
-<span class="kw">pub const </span>EVP_CTRL_GCM_SET_TAG: <a href="../../openssl_sys/type.c_int.html">c_int</a> = <span class="number">0x11</span>;
+<span class="kw">pub const </span>EVP_CTRL_GCM_SET_IVLEN: c_int = <span class="number">0x9</span>;
+<span class="kw">pub const </span>EVP_CTRL_GCM_GET_TAG: c_int = <span class="number">0x10</span>;
+<span class="kw">pub const </span>EVP_CTRL_GCM_SET_TAG: c_int = <span class="number">0x11</span>;
 
-<span class="kw">pub unsafe fn </span>EVP_get_digestbynid(type_: <a href="../../openssl_sys/type.c_int.html">c_int</a>) -&gt; <span class="kw-2">*const </span><a href="handwritten/types.rs.html#92">EVP_MD</a> {
-    <a href="handwritten/evp.rs.html#370">EVP_get_digestbyname</a>(<a href="handwritten/object.rs.html#7">OBJ_nid2sn</a>(<a href="#30">type_</a>))
+<span class="kw">pub unsafe fn </span>EVP_get_digestbynid(type_: c_int) -&gt; <span class="kw-2">*const </span>EVP_MD {
+    EVP_get_digestbyname(OBJ_nid2sn(type_))
 }
 
 <span class="macro">cfg_if! </span>{
     <span class="kw">if </span><span class="attr">#[cfg(ossl300)] </span>{
         <span class="attr">#[inline]
-        </span><span class="kw">pub unsafe fn </span>EVP_MD_CTX_md(ctx: <span class="kw-2">*const </span><a href="handwritten/types.rs.html#95">EVP_MD_CTX</a>) -&gt; <span class="kw-2">*const </span><a href="handwritten/types.rs.html#92">EVP_MD</a> {
-            <a href="handwritten/evp.rs.html#11">EVP_MD_CTX_get0_md</a>(<a href="#37">ctx</a>)
+        </span><span class="kw">pub unsafe fn </span>EVP_MD_CTX_md(ctx: <span class="kw-2">*const </span>EVP_MD_CTX) -&gt; <span class="kw-2">*const </span>EVP_MD {
+            EVP_MD_CTX_get0_md(ctx)
         }
 
         <span class="attr">#[inline]
-        </span><span class="kw">pub unsafe fn </span>EVP_MD_CTX_get_size(ctx: <span class="kw-2">*const </span><a href="handwritten/types.rs.html#95">EVP_MD_CTX</a>) -&gt; <a href="../../openssl_sys/type.c_int.html">c_int</a> {
-            <a href="handwritten/evp.rs.html#8">EVP_MD_get_size</a>(<a href="handwritten/evp.rs.html#11">EVP_MD_CTX_get0_md</a>(<a href="#42">ctx</a>))
+        </span><span class="kw">pub unsafe fn </span>EVP_MD_CTX_get_size(ctx: <span class="kw-2">*const </span>EVP_MD_CTX) -&gt; c_int {
+            EVP_MD_get_size(EVP_MD_CTX_get0_md(ctx))
         }
 
         <span class="attr">#[inline]
-        </span><span class="kw">pub unsafe fn </span>EVP_MD_CTX_size(ctx: <span class="kw-2">*const </span><a href="handwritten/types.rs.html#95">EVP_MD_CTX</a>) -&gt; <a href="../../openssl_sys/type.c_int.html">c_int</a> {
-            <a href="#42">EVP_MD_CTX_get_size</a>(<a href="#47">ctx</a>)
+        </span><span class="kw">pub unsafe fn </span>EVP_MD_CTX_size(ctx: <span class="kw-2">*const </span>EVP_MD_CTX) -&gt; c_int {
+            EVP_MD_CTX_get_size(ctx)
         }
 
         <span class="attr">#[inline]
-        </span><span class="kw">pub unsafe fn </span>EVP_MD_block_size(md: <span class="kw-2">*const </span><a href="handwritten/types.rs.html#92">EVP_MD</a>) -&gt; <a href="../../openssl_sys/type.c_int.html">c_int</a> {
-            <a href="handwritten/evp.rs.html#7">EVP_MD_get_block_size</a>(<a href="#52">md</a>)
+        </span><span class="kw">pub unsafe fn </span>EVP_MD_block_size(md: <span class="kw-2">*const </span>EVP_MD) -&gt; c_int {
+            EVP_MD_get_block_size(md)
         }
 
         <span class="attr">#[inline]
-        </span><span class="kw">pub unsafe fn </span>EVP_MD_size(md: <span class="kw-2">*const </span><a href="handwritten/types.rs.html#92">EVP_MD</a>) -&gt; <a href="../../openssl_sys/type.c_int.html">c_int</a> {
-            <a href="handwritten/evp.rs.html#8">EVP_MD_get_size</a>(<a href="#57">md</a>)
+        </span><span class="kw">pub unsafe fn </span>EVP_MD_size(md: <span class="kw-2">*const </span>EVP_MD) -&gt; c_int {
+            EVP_MD_get_size(md)
         }
 
         <span class="attr">#[inline]
-        </span><span class="kw">pub unsafe fn </span>EVP_MD_type(md: <span class="kw-2">*const </span><a href="handwritten/types.rs.html#92">EVP_MD</a>) -&gt; <a href="../../openssl_sys/type.c_int.html">c_int</a> {
-            <a href="handwritten/evp.rs.html#9">EVP_MD_get_type</a>(<a href="#62">md</a>)
+        </span><span class="kw">pub unsafe fn </span>EVP_MD_type(md: <span class="kw-2">*const </span>EVP_MD) -&gt; c_int {
+            EVP_MD_get_type(md)
         }
 
         <span class="attr">#[inline]
-        </span><span class="kw">pub unsafe fn </span>EVP_CIPHER_key_length(cipher: <span class="kw-2">*const </span><a href="handwritten/types.rs.html#64">EVP_CIPHER</a>) -&gt; <a href="../../openssl_sys/type.c_int.html">c_int</a> {
-            <a href="handwritten/evp.rs.html#13">EVP_CIPHER_get_key_length</a>(<a href="#67">cipher</a>)
+        </span><span class="kw">pub unsafe fn </span>EVP_CIPHER_key_length(cipher: <span class="kw-2">*const </span>EVP_CIPHER) -&gt; c_int {
+            EVP_CIPHER_get_key_length(cipher)
         }
 
         <span class="attr">#[inline]
-        </span><span class="kw">pub unsafe fn </span>EVP_CIPHER_block_size(cipher: <span class="kw-2">*const </span><a href="handwritten/types.rs.html#64">EVP_CIPHER</a>) -&gt; <a href="../../openssl_sys/type.c_int.html">c_int</a> {
-            <a href="handwritten/evp.rs.html#14">EVP_CIPHER_get_block_size</a>(<a href="#72">cipher</a>)
+        </span><span class="kw">pub unsafe fn </span>EVP_CIPHER_block_size(cipher: <span class="kw-2">*const </span>EVP_CIPHER) -&gt; c_int {
+            EVP_CIPHER_get_block_size(cipher)
         }
 
         <span class="attr">#[inline]
-        </span><span class="kw">pub unsafe fn </span>EVP_CIPHER_iv_length(cipher: <span class="kw-2">*const </span><a href="handwritten/types.rs.html#64">EVP_CIPHER</a>) -&gt; <a href="../../openssl_sys/type.c_int.html">c_int</a> {
-            <a href="handwritten/evp.rs.html#15">EVP_CIPHER_get_iv_length</a>(<a href="#77">cipher</a>)
+        </span><span class="kw">pub unsafe fn </span>EVP_CIPHER_iv_length(cipher: <span class="kw-2">*const </span>EVP_CIPHER) -&gt; c_int {
+            EVP_CIPHER_get_iv_length(cipher)
         }
 
         <span class="attr">#[inline]
-        </span><span class="kw">pub unsafe fn </span>EVP_CIPHER_nid(cipher: <span class="kw-2">*const </span><a href="handwritten/types.rs.html#64">EVP_CIPHER</a>) -&gt; <a href="../../openssl_sys/type.c_int.html">c_int</a> {
-            <a href="handwritten/evp.rs.html#16">EVP_CIPHER_get_nid</a>(<a href="#82">cipher</a>)
+        </span><span class="kw">pub unsafe fn </span>EVP_CIPHER_nid(cipher: <span class="kw-2">*const </span>EVP_CIPHER) -&gt; c_int {
+            EVP_CIPHER_get_nid(cipher)
         }
 
         <span class="attr">#[inline]
-        </span><span class="kw">pub unsafe fn </span>EVP_CIPHER_CTX_block_size(ctx: <span class="kw-2">*const </span><a href="handwritten/types.rs.html#91">EVP_CIPHER_CTX</a>) -&gt; <a href="../../openssl_sys/type.c_int.html">c_int</a> {
-            <a href="handwritten/evp.rs.html#25">EVP_CIPHER_CTX_get_block_size</a>(<a href="#87">ctx</a>)
+        </span><span class="kw">pub unsafe fn </span>EVP_CIPHER_CTX_block_size(ctx: <span class="kw-2">*const </span>EVP_CIPHER_CTX) -&gt; c_int {
+            EVP_CIPHER_CTX_get_block_size(ctx)
         }
 
         <span class="attr">#[inline]
-        </span><span class="kw">pub unsafe fn </span>EVP_CIPHER_CTX_key_length(ctx: <span class="kw-2">*const </span><a href="handwritten/types.rs.html#91">EVP_CIPHER_CTX</a>) -&gt; <a href="../../openssl_sys/type.c_int.html">c_int</a> {
-            <a href="handwritten/evp.rs.html#26">EVP_CIPHER_CTX_get_key_length</a>(<a href="#92">ctx</a>)
+        </span><span class="kw">pub unsafe fn </span>EVP_CIPHER_CTX_key_length(ctx: <span class="kw-2">*const </span>EVP_CIPHER_CTX) -&gt; c_int {
+            EVP_CIPHER_CTX_get_key_length(ctx)
         }
 
         <span class="attr">#[inline]
-        </span><span class="kw">pub unsafe fn </span>EVP_CIPHER_CTX_iv_length(ctx: <span class="kw-2">*const </span><a href="handwritten/types.rs.html#91">EVP_CIPHER_CTX</a>) -&gt; <a href="../../openssl_sys/type.c_int.html">c_int</a> {
-            <a href="handwritten/evp.rs.html#27">EVP_CIPHER_CTX_get_iv_length</a>(<a href="#97">ctx</a>)
+        </span><span class="kw">pub unsafe fn </span>EVP_CIPHER_CTX_iv_length(ctx: <span class="kw-2">*const </span>EVP_CIPHER_CTX) -&gt; c_int {
+            EVP_CIPHER_CTX_get_iv_length(ctx)
+        }
+
+        <span class="attr">#[inline]
+        </span><span class="kw">pub unsafe fn </span>EVP_CIPHER_CTX_num(ctx: <span class="kw-2">*const </span>EVP_CIPHER_CTX) -&gt; c_int {
+            EVP_CIPHER_CTX_get_num(ctx)
         }
     } <span class="kw">else </span>{
         <span class="kw">pub unsafe fn </span>EVP_MD_CTX_size(ctx: <span class="kw-2">*const </span>EVP_MD_CTX) -&gt; c_int {
@@ -398,35 +413,40 @@
 }
 <span class="attr">#[cfg(ossl300)]
 #[inline]
-</span><span class="kw">pub unsafe fn </span>EVP_PKEY_size(pkey: <span class="kw-2">*const </span><a href="types.rs.html#6">EVP_PKEY</a>) -&gt; <a href="../../openssl_sys/type.c_int.html">c_int</a> {
-    <a href="handwritten/evp.rs.html#219">EVP_PKEY_get_size</a>(<a href="#126">pkey</a>)
+</span><span class="kw">pub unsafe fn </span>EVP_PKEY_size(pkey: <span class="kw-2">*const </span>EVP_PKEY) -&gt; c_int {
+    EVP_PKEY_get_size(pkey)
 }
 
 <span class="macro">cfg_if! </span>{
     <span class="kw">if </span><span class="attr">#[cfg(ossl300)] </span>{
         <span class="attr">#[inline]
-        </span><span class="kw">pub unsafe fn </span>EVP_PKEY_id(pkey: <span class="kw-2">*const </span><a href="types.rs.html#6">EVP_PKEY</a>) -&gt; <a href="../../openssl_sys/type.c_int.html">c_int</a> {
-            <a href="handwritten/evp.rs.html#377">EVP_PKEY_get_id</a>(<a href="#133">pkey</a>)
+        </span><span class="kw">pub unsafe fn </span>EVP_PKEY_id(pkey: <span class="kw-2">*const </span>EVP_PKEY) -&gt; c_int {
+            EVP_PKEY_get_id(pkey)
         }
 
         <span class="attr">#[inline]
-        </span><span class="kw">pub unsafe fn </span>EVP_PKEY_bits(pkey: <span class="kw-2">*const </span><a href="types.rs.html#6">EVP_PKEY</a>) -&gt; <a href="../../openssl_sys/type.c_int.html">c_int</a> {
-            <a href="handwritten/evp.rs.html#378">EVP_PKEY_get_bits</a>(<a href="#138">pkey</a>)
+        </span><span class="kw">pub unsafe fn </span>EVP_PKEY_bits(pkey: <span class="kw-2">*const </span>EVP_PKEY) -&gt; c_int {
+            EVP_PKEY_get_bits(pkey)
+        }
+
+        <span class="attr">#[inline]
+        </span><span class="kw">pub unsafe fn </span>EVP_PKEY_security_bits(pkey: <span class="kw-2">*const </span>EVP_PKEY) -&gt; c_int {
+            EVP_PKEY_get_security_bits(pkey)
         }
     }
 }
 
-<span class="kw">pub const </span>EVP_PKEY_OP_KEYGEN: <a href="../../openssl_sys/type.c_int.html">c_int</a> = <span class="number">1 </span>&lt;&lt; <span class="number">2</span>;
+<span class="kw">pub const </span>EVP_PKEY_OP_KEYGEN: c_int = <span class="number">1 </span>&lt;&lt; <span class="number">2</span>;
 <span class="macro">cfg_if! </span>{
     <span class="kw">if </span><span class="attr">#[cfg(ossl300)] </span>{
-        <span class="kw">pub const </span>EVP_PKEY_OP_SIGN: <a href="../../openssl_sys/type.c_int.html">c_int</a> = <span class="number">1 </span>&lt;&lt; <span class="number">4</span>;
-        <span class="kw">pub const </span>EVP_PKEY_OP_VERIFY: <a href="../../openssl_sys/type.c_int.html">c_int</a> = <span class="number">1 </span>&lt;&lt; <span class="number">5</span>;
-        <span class="kw">pub const </span>EVP_PKEY_OP_VERIFYRECOVER: <a href="../../openssl_sys/type.c_int.html">c_int</a> = <span class="number">1 </span>&lt;&lt; <span class="number">6</span>;
-        <span class="kw">pub const </span>EVP_PKEY_OP_SIGNCTX: <a href="../../openssl_sys/type.c_int.html">c_int</a> = <span class="number">1 </span>&lt;&lt; <span class="number">7</span>;
-        <span class="kw">pub const </span>EVP_PKEY_OP_VERIFYCTX: <a href="../../openssl_sys/type.c_int.html">c_int</a> = <span class="number">1 </span>&lt;&lt; <span class="number">8</span>;
-        <span class="kw">pub const </span>EVP_PKEY_OP_ENCRYPT: <a href="../../openssl_sys/type.c_int.html">c_int</a> = <span class="number">1 </span>&lt;&lt; <span class="number">9</span>;
-        <span class="kw">pub const </span>EVP_PKEY_OP_DECRYPT: <a href="../../openssl_sys/type.c_int.html">c_int</a> = <span class="number">1 </span>&lt;&lt; <span class="number">10</span>;
-        <span class="kw">pub const </span>EVP_PKEY_OP_DERIVE: <a href="../../openssl_sys/type.c_int.html">c_int</a> = <span class="number">1 </span>&lt;&lt; <span class="number">11</span>;
+        <span class="kw">pub const </span>EVP_PKEY_OP_SIGN: c_int = <span class="number">1 </span>&lt;&lt; <span class="number">4</span>;
+        <span class="kw">pub const </span>EVP_PKEY_OP_VERIFY: c_int = <span class="number">1 </span>&lt;&lt; <span class="number">5</span>;
+        <span class="kw">pub const </span>EVP_PKEY_OP_VERIFYRECOVER: c_int = <span class="number">1 </span>&lt;&lt; <span class="number">6</span>;
+        <span class="kw">pub const </span>EVP_PKEY_OP_SIGNCTX: c_int = <span class="number">1 </span>&lt;&lt; <span class="number">7</span>;
+        <span class="kw">pub const </span>EVP_PKEY_OP_VERIFYCTX: c_int = <span class="number">1 </span>&lt;&lt; <span class="number">8</span>;
+        <span class="kw">pub const </span>EVP_PKEY_OP_ENCRYPT: c_int = <span class="number">1 </span>&lt;&lt; <span class="number">9</span>;
+        <span class="kw">pub const </span>EVP_PKEY_OP_DECRYPT: c_int = <span class="number">1 </span>&lt;&lt; <span class="number">10</span>;
+        <span class="kw">pub const </span>EVP_PKEY_OP_DERIVE: c_int = <span class="number">1 </span>&lt;&lt; <span class="number">11</span>;
     } <span class="kw">else </span>{
         <span class="kw">pub const </span>EVP_PKEY_OP_SIGN: c_int = <span class="number">1 </span>&lt;&lt; <span class="number">3</span>;
         <span class="kw">pub const </span>EVP_PKEY_OP_VERIFY: c_int = <span class="number">1 </span>&lt;&lt; <span class="number">4</span>;
@@ -439,43 +459,43 @@
     }
 }
 
-<span class="kw">pub const </span>EVP_PKEY_OP_TYPE_SIG: <a href="../../openssl_sys/type.c_int.html">c_int</a> = <a href="#147">EVP_PKEY_OP_SIGN</a>
-    | <a href="#148">EVP_PKEY_OP_VERIFY</a>
-    | <a href="#149">EVP_PKEY_OP_VERIFYRECOVER</a>
-    | <a href="#150">EVP_PKEY_OP_SIGNCTX</a>
-    | <a href="#151">EVP_PKEY_OP_VERIFYCTX</a>;
+<span class="kw">pub const </span>EVP_PKEY_OP_TYPE_SIG: c_int = EVP_PKEY_OP_SIGN
+    | EVP_PKEY_OP_VERIFY
+    | EVP_PKEY_OP_VERIFYRECOVER
+    | EVP_PKEY_OP_SIGNCTX
+    | EVP_PKEY_OP_VERIFYCTX;
 
-<span class="kw">pub const </span>EVP_PKEY_OP_TYPE_CRYPT: <a href="../../openssl_sys/type.c_int.html">c_int</a> = <a href="#152">EVP_PKEY_OP_ENCRYPT</a> | <a href="#153">EVP_PKEY_OP_DECRYPT</a>;
+<span class="kw">pub const </span>EVP_PKEY_OP_TYPE_CRYPT: c_int = EVP_PKEY_OP_ENCRYPT | EVP_PKEY_OP_DECRYPT;
 
-<span class="kw">pub const </span>EVP_PKEY_CTRL_SET_MAC_KEY: <a href="../../openssl_sys/type.c_int.html">c_int</a> = <span class="number">6</span>;
+<span class="kw">pub const </span>EVP_PKEY_CTRL_SET_MAC_KEY: c_int = <span class="number">6</span>;
 
-<span class="kw">pub const </span>EVP_PKEY_CTRL_CIPHER: <a href="../../openssl_sys/type.c_int.html">c_int</a> = <span class="number">12</span>;
+<span class="kw">pub const </span>EVP_PKEY_CTRL_CIPHER: c_int = <span class="number">12</span>;
 
-<span class="kw">pub const </span>EVP_PKEY_ALG_CTRL: <a href="../../openssl_sys/type.c_int.html">c_int</a> = <span class="number">0x1000</span>;
-
-<span class="attr">#[cfg(ossl111)]
-</span><span class="kw">pub const </span>EVP_PKEY_HKDEF_MODE_EXTRACT_AND_EXPAND: <a href="../../openssl_sys/type.c_int.html">c_int</a> = <span class="number">0</span>;
+<span class="kw">pub const </span>EVP_PKEY_ALG_CTRL: c_int = <span class="number">0x1000</span>;
 
 <span class="attr">#[cfg(ossl111)]
-</span><span class="kw">pub const </span>EVP_PKEY_HKDEF_MODE_EXTRACT_ONLY: <a href="../../openssl_sys/type.c_int.html">c_int</a> = <span class="number">1</span>;
+</span><span class="kw">pub const </span>EVP_PKEY_HKDEF_MODE_EXTRACT_AND_EXPAND: c_int = <span class="number">0</span>;
 
 <span class="attr">#[cfg(ossl111)]
-</span><span class="kw">pub const </span>EVP_PKEY_HKDEF_MODE_EXPAND_ONLY: <a href="../../openssl_sys/type.c_int.html">c_int</a> = <span class="number">2</span>;
-
-<span class="attr">#[cfg(ossl110)]
-</span><span class="kw">pub const </span>EVP_PKEY_CTRL_HKDF_MD: <a href="../../openssl_sys/type.c_int.html">c_int</a> = <a href="#179">EVP_PKEY_ALG_CTRL</a> + <span class="number">3</span>;
-
-<span class="attr">#[cfg(ossl110)]
-</span><span class="kw">pub const </span>EVP_PKEY_CTRL_HKDF_SALT: <a href="../../openssl_sys/type.c_int.html">c_int</a> = <a href="#179">EVP_PKEY_ALG_CTRL</a> + <span class="number">4</span>;
-
-<span class="attr">#[cfg(ossl110)]
-</span><span class="kw">pub const </span>EVP_PKEY_CTRL_HKDF_KEY: <a href="../../openssl_sys/type.c_int.html">c_int</a> = <a href="#179">EVP_PKEY_ALG_CTRL</a> + <span class="number">5</span>;
-
-<span class="attr">#[cfg(ossl110)]
-</span><span class="kw">pub const </span>EVP_PKEY_CTRL_HKDF_INFO: <a href="../../openssl_sys/type.c_int.html">c_int</a> = <a href="#179">EVP_PKEY_ALG_CTRL</a> + <span class="number">6</span>;
+</span><span class="kw">pub const </span>EVP_PKEY_HKDEF_MODE_EXTRACT_ONLY: c_int = <span class="number">1</span>;
 
 <span class="attr">#[cfg(ossl111)]
-</span><span class="kw">pub const </span>EVP_PKEY_CTRL_HKDF_MODE: <a href="../../openssl_sys/type.c_int.html">c_int</a> = <a href="#179">EVP_PKEY_ALG_CTRL</a> + <span class="number">7</span>;
+</span><span class="kw">pub const </span>EVP_PKEY_HKDEF_MODE_EXPAND_ONLY: c_int = <span class="number">2</span>;
+
+<span class="attr">#[cfg(ossl110)]
+</span><span class="kw">pub const </span>EVP_PKEY_CTRL_HKDF_MD: c_int = EVP_PKEY_ALG_CTRL + <span class="number">3</span>;
+
+<span class="attr">#[cfg(ossl110)]
+</span><span class="kw">pub const </span>EVP_PKEY_CTRL_HKDF_SALT: c_int = EVP_PKEY_ALG_CTRL + <span class="number">4</span>;
+
+<span class="attr">#[cfg(ossl110)]
+</span><span class="kw">pub const </span>EVP_PKEY_CTRL_HKDF_KEY: c_int = EVP_PKEY_ALG_CTRL + <span class="number">5</span>;
+
+<span class="attr">#[cfg(ossl110)]
+</span><span class="kw">pub const </span>EVP_PKEY_CTRL_HKDF_INFO: c_int = EVP_PKEY_ALG_CTRL + <span class="number">6</span>;
+
+<span class="attr">#[cfg(ossl111)]
+</span><span class="kw">pub const </span>EVP_PKEY_CTRL_HKDF_MODE: c_int = EVP_PKEY_ALG_CTRL + <span class="number">7</span>;
 
 <span class="attr">#[cfg(all(ossl111, not(ossl300)))]
 </span><span class="kw">pub unsafe fn </span>EVP_PKEY_CTX_set_hkdf_mode(ctx: <span class="kw-2">*mut </span>EVP_PKEY_CTX, mode: c_int) -&gt; c_int {
@@ -549,4 +569,4 @@
     )
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="openssl_sys" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="openssl_sys" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

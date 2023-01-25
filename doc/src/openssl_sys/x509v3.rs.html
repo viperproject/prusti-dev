@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/openssl-sys-0.9.77/src/./x509v3.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>x509v3.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../openssl_sys/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/openssl-sys-0.9.80/src/./x509v3.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>x509v3.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../openssl_sys/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -79,86 +79,86 @@
 <a href="#79" id="79">79</a>
 <a href="#80" id="80">80</a>
 <a href="#81" id="81">81</a>
-</pre><pre class="rust"><code><span class="kw">use </span><a href="../../libc/index.html">libc</a>::<span class="kw-2">*</span>;
+</pre><pre class="rust"><code><span class="kw">use </span>libc::<span class="kw-2">*</span>;
 
 <span class="kw">use </span><span class="kw-2">*</span>;
 
 <span class="attr">#[repr(C)]
 </span><span class="kw">pub struct </span>GENERAL_NAME {
-    <span class="kw">pub </span>type_: <a href="../../openssl_sys/type.c_int.html">c_int</a>,
+    <span class="kw">pub </span>type_: c_int,
     <span class="comment">// FIXME should be a union
-    </span><span class="kw">pub </span>d: <span class="kw-2">*mut </span><a href="../../openssl_sys/enum.c_void.html">c_void</a>,
+    </span><span class="kw">pub </span>d: <span class="kw-2">*mut </span>c_void,
 }
 
 <span class="macro">stack!</span>(stack_st_GENERAL_NAME);
 
-<span class="kw">pub const </span>GEN_OTHERNAME: <a href="../../openssl_sys/type.c_int.html">c_int</a> = <span class="number">0</span>;
-<span class="kw">pub const </span>GEN_EMAIL: <a href="../../openssl_sys/type.c_int.html">c_int</a> = <span class="number">1</span>;
-<span class="kw">pub const </span>GEN_DNS: <a href="../../openssl_sys/type.c_int.html">c_int</a> = <span class="number">2</span>;
-<span class="kw">pub const </span>GEN_X400: <a href="../../openssl_sys/type.c_int.html">c_int</a> = <span class="number">3</span>;
-<span class="kw">pub const </span>GEN_DIRNAME: <a href="../../openssl_sys/type.c_int.html">c_int</a> = <span class="number">4</span>;
-<span class="kw">pub const </span>GEN_EDIPARTY: <a href="../../openssl_sys/type.c_int.html">c_int</a> = <span class="number">5</span>;
-<span class="kw">pub const </span>GEN_URI: <a href="../../openssl_sys/type.c_int.html">c_int</a> = <span class="number">6</span>;
-<span class="kw">pub const </span>GEN_IPADD: <a href="../../openssl_sys/type.c_int.html">c_int</a> = <span class="number">7</span>;
-<span class="kw">pub const </span>GEN_RID: <a href="../../openssl_sys/type.c_int.html">c_int</a> = <span class="number">8</span>;
+<span class="kw">pub const </span>GEN_OTHERNAME: c_int = <span class="number">0</span>;
+<span class="kw">pub const </span>GEN_EMAIL: c_int = <span class="number">1</span>;
+<span class="kw">pub const </span>GEN_DNS: c_int = <span class="number">2</span>;
+<span class="kw">pub const </span>GEN_X400: c_int = <span class="number">3</span>;
+<span class="kw">pub const </span>GEN_DIRNAME: c_int = <span class="number">4</span>;
+<span class="kw">pub const </span>GEN_EDIPARTY: c_int = <span class="number">5</span>;
+<span class="kw">pub const </span>GEN_URI: c_int = <span class="number">6</span>;
+<span class="kw">pub const </span>GEN_IPADD: c_int = <span class="number">7</span>;
+<span class="kw">pub const </span>GEN_RID: c_int = <span class="number">8</span>;
 
 <span class="attr">#[cfg(any(ossl102, libressl261))]
-</span><span class="kw">pub const </span>X509_CHECK_FLAG_ALWAYS_CHECK_SUBJECT: <a href="../../openssl_sys/type.c_uint.html">c_uint</a> = <span class="number">0x1</span>;
+</span><span class="kw">pub const </span>X509_CHECK_FLAG_ALWAYS_CHECK_SUBJECT: c_uint = <span class="number">0x1</span>;
 <span class="attr">#[cfg(any(ossl102, libressl261))]
-</span><span class="kw">pub const </span>X509_CHECK_FLAG_NO_WILDCARDS: <a href="../../openssl_sys/type.c_uint.html">c_uint</a> = <span class="number">0x2</span>;
+</span><span class="kw">pub const </span>X509_CHECK_FLAG_NO_WILDCARDS: c_uint = <span class="number">0x2</span>;
 <span class="attr">#[cfg(any(ossl102, libressl261))]
-</span><span class="kw">pub const </span>X509_CHECK_FLAG_NO_PARTIAL_WILDCARDS: <a href="../../openssl_sys/type.c_uint.html">c_uint</a> = <span class="number">0x4</span>;
+</span><span class="kw">pub const </span>X509_CHECK_FLAG_NO_PARTIAL_WILDCARDS: c_uint = <span class="number">0x4</span>;
 <span class="attr">#[cfg(any(ossl102, libressl261))]
-</span><span class="kw">pub const </span>X509_CHECK_FLAG_MULTI_LABEL_WILDCARDS: <a href="../../openssl_sys/type.c_uint.html">c_uint</a> = <span class="number">0x8</span>;
+</span><span class="kw">pub const </span>X509_CHECK_FLAG_MULTI_LABEL_WILDCARDS: c_uint = <span class="number">0x8</span>;
 <span class="attr">#[cfg(any(ossl102, libressl261))]
-</span><span class="kw">pub const </span>X509_CHECK_FLAG_SINGLE_LABEL_SUBDOMAINS: <a href="../../openssl_sys/type.c_uint.html">c_uint</a> = <span class="number">0x10</span>;
+</span><span class="kw">pub const </span>X509_CHECK_FLAG_SINGLE_LABEL_SUBDOMAINS: c_uint = <span class="number">0x10</span>;
 <span class="attr">#[cfg(ossl110)]
-</span><span class="kw">pub const </span>X509_CHECK_FLAG_NEVER_CHECK_SUBJECT: <a href="../../openssl_sys/type.c_uint.html">c_uint</a> = <span class="number">0x20</span>;
+</span><span class="kw">pub const </span>X509_CHECK_FLAG_NEVER_CHECK_SUBJECT: c_uint = <span class="number">0x20</span>;
 
-<span class="kw">pub const </span>X509V3_ADD_DEFAULT: <a href="../../openssl_sys/type.c_ulong.html">c_ulong</a> = <span class="number">0</span>;
-<span class="kw">pub const </span>X509V3_ADD_APPEND: <a href="../../openssl_sys/type.c_ulong.html">c_ulong</a> = <span class="number">1</span>;
-<span class="kw">pub const </span>X509V3_ADD_REPLACE: <a href="../../openssl_sys/type.c_ulong.html">c_ulong</a> = <span class="number">2</span>;
-<span class="kw">pub const </span>X509V3_ADD_REPLACE_EXISTING: <a href="../../openssl_sys/type.c_ulong.html">c_ulong</a> = <span class="number">3</span>;
-<span class="kw">pub const </span>X509V3_ADD_KEEP_EXISTING: <a href="../../openssl_sys/type.c_ulong.html">c_ulong</a> = <span class="number">4</span>;
-<span class="kw">pub const </span>X509V3_ADD_DELETE: <a href="../../openssl_sys/type.c_ulong.html">c_ulong</a> = <span class="number">5</span>;
-<span class="kw">pub const </span>X509V3_ADD_SILENT: <a href="../../openssl_sys/type.c_ulong.html">c_ulong</a> = <span class="number">0x10</span>;
+<span class="kw">pub const </span>X509V3_ADD_DEFAULT: c_ulong = <span class="number">0</span>;
+<span class="kw">pub const </span>X509V3_ADD_APPEND: c_ulong = <span class="number">1</span>;
+<span class="kw">pub const </span>X509V3_ADD_REPLACE: c_ulong = <span class="number">2</span>;
+<span class="kw">pub const </span>X509V3_ADD_REPLACE_EXISTING: c_ulong = <span class="number">3</span>;
+<span class="kw">pub const </span>X509V3_ADD_KEEP_EXISTING: c_ulong = <span class="number">4</span>;
+<span class="kw">pub const </span>X509V3_ADD_DELETE: c_ulong = <span class="number">5</span>;
+<span class="kw">pub const </span>X509V3_ADD_SILENT: c_ulong = <span class="number">0x10</span>;
 
-<span class="kw">pub const </span>EXFLAG_BCONS: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> = <span class="number">0x1</span>;
-<span class="kw">pub const </span>EXFLAG_KUSAGE: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> = <span class="number">0x2</span>;
-<span class="kw">pub const </span>EXFLAG_XKUSAGE: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> = <span class="number">0x4</span>;
-<span class="kw">pub const </span>EXFLAG_NSCERT: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> = <span class="number">0x8</span>;
-<span class="kw">pub const </span>EXFLAG_CA: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> = <span class="number">0x10</span>;
-<span class="kw">pub const </span>EXFLAG_SI: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> = <span class="number">0x20</span>;
-<span class="kw">pub const </span>EXFLAG_V1: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> = <span class="number">0x40</span>;
-<span class="kw">pub const </span>EXFLAG_INVALID: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> = <span class="number">0x80</span>;
-<span class="kw">pub const </span>EXFLAG_SET: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> = <span class="number">0x100</span>;
-<span class="kw">pub const </span>EXFLAG_CRITICAL: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> = <span class="number">0x200</span>;
-<span class="kw">pub const </span>EXFLAG_PROXY: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> = <span class="number">0x400</span>;
-<span class="kw">pub const </span>EXFLAG_INVALID_POLICY: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> = <span class="number">0x800</span>;
-<span class="kw">pub const </span>EXFLAG_FRESHEST: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> = <span class="number">0x1000</span>;
+<span class="kw">pub const </span>EXFLAG_BCONS: u32 = <span class="number">0x1</span>;
+<span class="kw">pub const </span>EXFLAG_KUSAGE: u32 = <span class="number">0x2</span>;
+<span class="kw">pub const </span>EXFLAG_XKUSAGE: u32 = <span class="number">0x4</span>;
+<span class="kw">pub const </span>EXFLAG_NSCERT: u32 = <span class="number">0x8</span>;
+<span class="kw">pub const </span>EXFLAG_CA: u32 = <span class="number">0x10</span>;
+<span class="kw">pub const </span>EXFLAG_SI: u32 = <span class="number">0x20</span>;
+<span class="kw">pub const </span>EXFLAG_V1: u32 = <span class="number">0x40</span>;
+<span class="kw">pub const </span>EXFLAG_INVALID: u32 = <span class="number">0x80</span>;
+<span class="kw">pub const </span>EXFLAG_SET: u32 = <span class="number">0x100</span>;
+<span class="kw">pub const </span>EXFLAG_CRITICAL: u32 = <span class="number">0x200</span>;
+<span class="kw">pub const </span>EXFLAG_PROXY: u32 = <span class="number">0x400</span>;
+<span class="kw">pub const </span>EXFLAG_INVALID_POLICY: u32 = <span class="number">0x800</span>;
+<span class="kw">pub const </span>EXFLAG_FRESHEST: u32 = <span class="number">0x1000</span>;
 <span class="attr">#[cfg(any(ossl102, libressl261))]
-</span><span class="kw">pub const </span>EXFLAG_SS: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> = <span class="number">0x2000</span>;
+</span><span class="kw">pub const </span>EXFLAG_SS: u32 = <span class="number">0x2000</span>;
 
-<span class="kw">pub const </span>X509v3_KU_DIGITAL_SIGNATURE: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> = <span class="number">0x0080</span>;
-<span class="kw">pub const </span>X509v3_KU_NON_REPUDIATION: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> = <span class="number">0x0040</span>;
-<span class="kw">pub const </span>X509v3_KU_KEY_ENCIPHERMENT: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> = <span class="number">0x0020</span>;
-<span class="kw">pub const </span>X509v3_KU_DATA_ENCIPHERMENT: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> = <span class="number">0x0010</span>;
-<span class="kw">pub const </span>X509v3_KU_KEY_AGREEMENT: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> = <span class="number">0x0008</span>;
-<span class="kw">pub const </span>X509v3_KU_KEY_CERT_SIGN: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> = <span class="number">0x0004</span>;
-<span class="kw">pub const </span>X509v3_KU_CRL_SIGN: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> = <span class="number">0x0002</span>;
-<span class="kw">pub const </span>X509v3_KU_ENCIPHER_ONLY: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> = <span class="number">0x0001</span>;
-<span class="kw">pub const </span>X509v3_KU_DECIPHER_ONLY: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> = <span class="number">0x8000</span>;
-<span class="kw">pub const </span>X509v3_KU_UNDEF: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> = <span class="number">0xffff</span>;
+<span class="kw">pub const </span>X509v3_KU_DIGITAL_SIGNATURE: u32 = <span class="number">0x0080</span>;
+<span class="kw">pub const </span>X509v3_KU_NON_REPUDIATION: u32 = <span class="number">0x0040</span>;
+<span class="kw">pub const </span>X509v3_KU_KEY_ENCIPHERMENT: u32 = <span class="number">0x0020</span>;
+<span class="kw">pub const </span>X509v3_KU_DATA_ENCIPHERMENT: u32 = <span class="number">0x0010</span>;
+<span class="kw">pub const </span>X509v3_KU_KEY_AGREEMENT: u32 = <span class="number">0x0008</span>;
+<span class="kw">pub const </span>X509v3_KU_KEY_CERT_SIGN: u32 = <span class="number">0x0004</span>;
+<span class="kw">pub const </span>X509v3_KU_CRL_SIGN: u32 = <span class="number">0x0002</span>;
+<span class="kw">pub const </span>X509v3_KU_ENCIPHER_ONLY: u32 = <span class="number">0x0001</span>;
+<span class="kw">pub const </span>X509v3_KU_DECIPHER_ONLY: u32 = <span class="number">0x8000</span>;
+<span class="kw">pub const </span>X509v3_KU_UNDEF: u32 = <span class="number">0xffff</span>;
 
-<span class="kw">pub const </span>XKU_SSL_SERVER: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> = <span class="number">0x1</span>;
-<span class="kw">pub const </span>XKU_SSL_CLIENT: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> = <span class="number">0x2</span>;
-<span class="kw">pub const </span>XKU_SMIME: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> = <span class="number">0x4</span>;
-<span class="kw">pub const </span>XKU_CODE_SIGN: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> = <span class="number">0x8</span>;
-<span class="kw">pub const </span>XKU_SGC: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> = <span class="number">0x10</span>;
-<span class="kw">pub const </span>XKU_OCSP_SIGN: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> = <span class="number">0x20</span>;
-<span class="kw">pub const </span>XKU_TIMESTAMP: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> = <span class="number">0x40</span>;
-<span class="kw">pub const </span>XKU_DVCS: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> = <span class="number">0x80</span>;
+<span class="kw">pub const </span>XKU_SSL_SERVER: u32 = <span class="number">0x1</span>;
+<span class="kw">pub const </span>XKU_SSL_CLIENT: u32 = <span class="number">0x2</span>;
+<span class="kw">pub const </span>XKU_SMIME: u32 = <span class="number">0x4</span>;
+<span class="kw">pub const </span>XKU_CODE_SIGN: u32 = <span class="number">0x8</span>;
+<span class="kw">pub const </span>XKU_SGC: u32 = <span class="number">0x10</span>;
+<span class="kw">pub const </span>XKU_OCSP_SIGN: u32 = <span class="number">0x20</span>;
+<span class="kw">pub const </span>XKU_TIMESTAMP: u32 = <span class="number">0x40</span>;
+<span class="kw">pub const </span>XKU_DVCS: u32 = <span class="number">0x80</span>;
 <span class="attr">#[cfg(ossl110)]
-</span><span class="kw">pub const </span>XKU_ANYEKU: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> = <span class="number">0x100</span>;
+</span><span class="kw">pub const </span>XKU_ANYEKU: u32 = <span class="number">0x100</span>;
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="openssl_sys" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="openssl_sys" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

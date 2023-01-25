@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-syntax-0.6.28/src/ast/visitor.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>visitor.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../regex_syntax/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-syntax-0.6.28/src/ast/visitor.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>visitor.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../regex_syntax/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -515,9 +515,9 @@
 <a href="#515" id="515">515</a>
 <a href="#516" id="516">516</a>
 <a href="#517" id="517">517</a>
-</pre><pre class="rust"><code><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">std::fmt</a>;
+</pre><pre class="rust"><code><span class="kw">use </span>std::fmt;
 
-<span class="kw">use </span><span class="kw">crate</span>::ast::{<a class="self" href="../lib.rs.html#165">self</a>, <a href="mod.rs.html#469">Ast</a>};
+<span class="kw">use </span><span class="kw">crate</span>::ast::{<span class="self">self</span>, Ast};
 
 <span class="doccomment">/// A trait for visiting an abstract syntax tree (AST) in depth first order.
 ///
@@ -552,13 +552,13 @@
 
     <span class="doccomment">/// This method is called on an `Ast` before descending into child `Ast`
     /// nodes.
-    </span><span class="kw">fn </span>visit_pre(<span class="kw-2">&amp;mut </span><span class="self">self</span>, _ast: <span class="kw-2">&amp;</span><a href="mod.rs.html#469">Ast</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Err&gt; {
+    </span><span class="kw">fn </span>visit_pre(<span class="kw-2">&amp;mut </span><span class="self">self</span>, _ast: <span class="kw-2">&amp;</span>Ast) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Err&gt; {
         <span class="prelude-val">Ok</span>(())
     }
 
     <span class="doccomment">/// This method is called on an `Ast` after descending all of its child
     /// `Ast` nodes.
-    </span><span class="kw">fn </span>visit_post(<span class="kw-2">&amp;mut </span><span class="self">self</span>, _ast: <span class="kw-2">&amp;</span><a href="mod.rs.html#469">Ast</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Err&gt; {
+    </span><span class="kw">fn </span>visit_post(<span class="kw-2">&amp;mut </span><span class="self">self</span>, _ast: <span class="kw-2">&amp;</span>Ast) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Err&gt; {
         <span class="prelude-val">Ok</span>(())
     }
 
@@ -573,7 +573,7 @@
     /// before descending into child nodes.
     </span><span class="kw">fn </span>visit_class_set_item_pre(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        _ast: <span class="kw-2">&amp;</span><a href="mod.rs.html#955">ast::ClassSetItem</a>,
+        _ast: <span class="kw-2">&amp;</span>ast::ClassSetItem,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Err&gt; {
         <span class="prelude-val">Ok</span>(())
     }
@@ -583,7 +583,7 @@
     /// after descending into child nodes.
     </span><span class="kw">fn </span>visit_class_set_item_post(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        _ast: <span class="kw-2">&amp;</span><a href="mod.rs.html#955">ast::ClassSetItem</a>,
+        _ast: <span class="kw-2">&amp;</span>ast::ClassSetItem,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Err&gt; {
         <span class="prelude-val">Ok</span>(())
     }
@@ -593,7 +593,7 @@
     /// before descending into child nodes.
     </span><span class="kw">fn </span>visit_class_set_binary_op_pre(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        _ast: <span class="kw-2">&amp;</span><a href="mod.rs.html#1063">ast::ClassSetBinaryOp</a>,
+        _ast: <span class="kw-2">&amp;</span>ast::ClassSetBinaryOp,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Err&gt; {
         <span class="prelude-val">Ok</span>(())
     }
@@ -603,7 +603,7 @@
     /// after descending into child nodes.
     </span><span class="kw">fn </span>visit_class_set_binary_op_post(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        _ast: <span class="kw-2">&amp;</span><a href="mod.rs.html#1063">ast::ClassSetBinaryOp</a>,
+        _ast: <span class="kw-2">&amp;</span>ast::ClassSetBinaryOp,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Err&gt; {
         <span class="prelude-val">Ok</span>(())
     }
@@ -612,7 +612,7 @@
     /// of a [`ClassSetBinaryOp`](struct.ClassSetBinaryOp.html).
     </span><span class="kw">fn </span>visit_class_set_binary_op_in(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        _ast: <span class="kw-2">&amp;</span><a href="mod.rs.html#1063">ast::ClassSetBinaryOp</a>,
+        _ast: <span class="kw-2">&amp;</span>ast::ClassSetBinaryOp,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Err&gt; {
         <span class="prelude-val">Ok</span>(())
     }
@@ -633,8 +633,8 @@
 ///
 /// If the visitor returns an error at any point, then visiting is stopped and
 /// the error is returned.
-</span><span class="kw">pub fn </span>visit&lt;V: <a href="#23">Visitor</a>&gt;(ast: <span class="kw-2">&amp;</span><a href="mod.rs.html#469">Ast</a>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Output, V::Err&gt; {
-    HeapVisitor::new().<a href="#206-210">visit</a>(<a href="#119">ast</a>, <a href="#119">visitor</a>)
+</span><span class="kw">pub fn </span>visit&lt;V: Visitor&gt;(ast: <span class="kw-2">&amp;</span>Ast, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Output, V::Err&gt; {
+    HeapVisitor::new().visit(ast, visitor)
 }
 
 <span class="doccomment">/// HeapVisitor visits every item in an `Ast` recursively using constant stack
@@ -642,7 +642,7 @@
 </span><span class="kw">struct </span>HeapVisitor&lt;<span class="lifetime">&#39;a</span>&gt; {
     <span class="doccomment">/// A stack of `Ast` nodes. This is roughly analogous to the call stack
     /// used in a typical recursive visitor.
-    </span>stack: Vec&lt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="mod.rs.html#469">Ast</a>, Frame&lt;<span class="lifetime">&#39;a</span>&gt;)&gt;,
+    </span>stack: Vec&lt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Ast, Frame&lt;<span class="lifetime">&#39;a</span>&gt;)&gt;,
     <span class="doccomment">/// Similar to the `Ast` stack above, but is used only for character
     /// classes. In particular, character classes embed their own mini
     /// recursive syntax.
@@ -654,25 +654,25 @@
 </span><span class="kw">enum </span>Frame&lt;<span class="lifetime">&#39;a</span>&gt; {
     <span class="doccomment">/// A stack frame allocated just before descending into a repetition
     /// operator&#39;s child node.
-    </span>Repetition(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="mod.rs.html#1119">ast::Repetition</a>),
+    </span>Repetition(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>ast::Repetition),
     <span class="doccomment">/// A stack frame allocated just before descending into a group&#39;s child
     /// node.
-    </span>Group(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="mod.rs.html#1184">ast::Group</a>),
+    </span>Group(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>ast::Group),
     <span class="doccomment">/// The stack frame used while visiting every child node of a concatenation
     /// of expressions.
     </span>Concat {
         <span class="doccomment">/// The child node we are currently visiting.
-        </span>head: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="mod.rs.html#469">Ast</a>,
+        </span>head: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Ast,
         <span class="doccomment">/// The remaining child nodes to visit (which may be empty).
-        </span>tail: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[<a href="mod.rs.html#469">Ast</a>],
+        </span>tail: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[Ast],
     },
     <span class="doccomment">/// The stack frame used while visiting every child node of an alternation
     /// of expressions.
     </span>Alternation {
         <span class="doccomment">/// The child node we are currently visiting.
-        </span>head: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="mod.rs.html#469">Ast</a>,
+        </span>head: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Ast,
         <span class="doccomment">/// The remaining child nodes to visit (which may be empty).
-        </span>tail: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[<a href="mod.rs.html#469">Ast</a>],
+        </span>tail: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[Ast],
     },
 }
 
@@ -683,22 +683,22 @@
     /// character class items.
     </span>Union {
         <span class="doccomment">/// The child node we are currently visiting.
-        </span>head: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="mod.rs.html#955">ast::ClassSetItem</a>,
+        </span>head: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>ast::ClassSetItem,
         <span class="doccomment">/// The remaining child nodes to visit (which may be empty).
-        </span>tail: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[<a href="mod.rs.html#955">ast::ClassSetItem</a>],
+        </span>tail: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[ast::ClassSetItem],
     },
     <span class="doccomment">/// The stack frame used while a binary class operation.
-    </span>Binary { op: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="mod.rs.html#1063">ast::ClassSetBinaryOp</a> },
+    </span>Binary { op: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>ast::ClassSetBinaryOp },
     <span class="doccomment">/// A stack frame allocated just before descending into a binary operator&#39;s
     /// left hand child node.
     </span>BinaryLHS {
-        op: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="mod.rs.html#1063">ast::ClassSetBinaryOp</a>,
-        lhs: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="mod.rs.html#922">ast::ClassSet</a>,
-        rhs: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="mod.rs.html#922">ast::ClassSet</a>,
+        op: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>ast::ClassSetBinaryOp,
+        lhs: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>ast::ClassSet,
+        rhs: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>ast::ClassSet,
     },
     <span class="doccomment">/// A stack frame allocated just before descending into a binary operator&#39;s
     /// right hand child node.
-    </span>BinaryRHS { op: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="mod.rs.html#1063">ast::ClassSetBinaryOp</a>, rhs: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="mod.rs.html#922">ast::ClassSet</a> },
+    </span>BinaryRHS { op: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>ast::ClassSetBinaryOp, rhs: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>ast::ClassSet },
 }
 
 <span class="doccomment">/// A representation of the inductive step when performing structural induction
@@ -711,30 +711,30 @@
 /// because that would imply binary operations can be unioned in the concrete
 /// syntax, which is not possible.)
 </span><span class="kw">enum </span>ClassInduct&lt;<span class="lifetime">&#39;a</span>&gt; {
-    Item(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="mod.rs.html#955">ast::ClassSetItem</a>),
-    BinaryOp(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="mod.rs.html#1063">ast::ClassSetBinaryOp</a>),
+    Item(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>ast::ClassSetItem),
+    BinaryOp(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>ast::ClassSetBinaryOp),
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; HeapVisitor&lt;<span class="lifetime">&#39;a</span>&gt; {
     <span class="kw">fn </span>new() -&gt; HeapVisitor&lt;<span class="lifetime">&#39;a</span>&gt; {
-        <a href="#125">HeapVisitor</a> { stack: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[], stack_class: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[] }
+        HeapVisitor { stack: <span class="macro">vec!</span>[], stack_class: <span class="macro">vec!</span>[] }
     }
 
-    <span class="kw">fn </span>visit&lt;V: <a href="#23">Visitor</a>&gt;(
+    <span class="kw">fn </span>visit&lt;V: Visitor&gt;(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        <span class="kw-2">mut </span>ast: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="mod.rs.html#469">Ast</a>,
+        <span class="kw-2">mut </span>ast: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Ast,
         <span class="kw-2">mut </span>visitor: V,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;V::Output, V::Err&gt; {
-        <a class="self" href="#207">self</a>.stack.clear();
-        <a class="self" href="#207">self</a>.stack_class.clear();
+        <span class="self">self</span>.stack.clear();
+        <span class="self">self</span>.stack_class.clear();
 
-        <a href="#209">visitor</a>.<a href="#34">start</a>();
+        visitor.start();
         <span class="kw">loop </span>{
             visitor.visit_pre(ast)<span class="question-mark">?</span>;
             <span class="kw">if let </span><span class="prelude-val">Some</span>(x) = <span class="self">self</span>.induct(ast, <span class="kw-2">&amp;mut </span>visitor)<span class="question-mark">? </span>{
-                <span class="kw">let </span>child = <a href="#217">x</a>.<a href="#438">child</a>();
-                <a class="self" href="#207">self</a>.stack.push((<a href="#208">ast</a>, <a href="#217">x</a>));
-                <a href="#208">ast</a> = <a href="#218">child</a>;
+                <span class="kw">let </span>child = x.child();
+                <span class="self">self</span>.stack.push((ast, x));
+                ast = child;
                 <span class="kw">continue</span>;
             }
             <span class="comment">// No induction means we have a base case, so we can post visit
@@ -744,18 +744,18 @@
             <span class="comment">// At this point, we now try to pop our call stack until it is
             // either empty or we hit another inductive case.
             </span><span class="kw">loop </span>{
-                <span class="kw">let </span>(post_ast, frame) = <span class="kw">match </span><a class="self" href="#207">self</a>.stack.pop() {
-                    <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><a href="#209">visitor</a>.<a href="#31">finish</a>(),
-                    <span class="prelude-val">Some</span>((post_ast, frame)) =&gt; (<a href="#232">post_ast</a>, <a href="#232">frame</a>),
+                <span class="kw">let </span>(post_ast, frame) = <span class="kw">match </span><span class="self">self</span>.stack.pop() {
+                    <span class="prelude-val">None </span>=&gt; <span class="kw">return </span>visitor.finish(),
+                    <span class="prelude-val">Some</span>((post_ast, frame)) =&gt; (post_ast, frame),
                 };
                 <span class="comment">// If this is a concat/alternate, then we might have additional
                 // inductive steps to process.
-                </span><span class="kw">if let </span><span class="prelude-val">Some</span>(x) = <a class="self" href="#207">self</a>.<a href="#283">pop</a>(<a href="#230">frame</a>) {
-                    <span class="kw">if let </span><a href="#154">Frame::Alternation</a> { .. } = <a href="#236">x</a> {
+                </span><span class="kw">if let </span><span class="prelude-val">Some</span>(x) = <span class="self">self</span>.pop(frame) {
+                    <span class="kw">if let </span>Frame::Alternation { .. } = x {
                         visitor.visit_alternation_in()<span class="question-mark">?</span>;
                     }
-                    <a href="#208">ast</a> = <a href="#236">x</a>.<a href="#438">child</a>();
-                    <a class="self" href="#207">self</a>.stack.push((<a href="#230">post_ast</a>, <a href="#236">x</a>));
+                    ast = x.child();
+                    <span class="self">self</span>.stack.push((post_ast, x));
                     <span class="kw">break</span>;
                 }
                 <span class="comment">// Otherwise, we&#39;ve finished visiting all the child nodes for
@@ -770,26 +770,26 @@
     ///
     /// If this visits a class, then the underlying visitor implementation may
     /// return an error which will be passed on here.
-    </span><span class="kw">fn </span>induct&lt;V: <a href="#23">Visitor</a>&gt;(
+    </span><span class="kw">fn </span>induct&lt;V: Visitor&gt;(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        ast: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="mod.rs.html#469">Ast</a>,
+        ast: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Ast,
         visitor: <span class="kw-2">&amp;mut </span>V,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;Frame&lt;<span class="lifetime">&#39;a</span>&gt;&gt;, V::Err&gt; {
-        <span class="prelude-val">Ok</span>(<span class="kw">match </span><span class="kw-2">*</span><a href="#258">ast</a> {
-            <a href="mod.rs.html#482">Ast::Class</a>(<a href="mod.rs.html#714">ast::Class::Bracketed</a>(<span class="kw-2">ref </span>x)) =&gt; {
+        <span class="prelude-val">Ok</span>(<span class="kw">match </span><span class="kw-2">*</span>ast {
+            Ast::Class(ast::Class::Bracketed(<span class="kw-2">ref </span>x)) =&gt; {
                 <span class="self">self</span>.visit_class(x, visitor)<span class="question-mark">?</span>;
                 <span class="prelude-val">None
             </span>}
-            <a href="mod.rs.html#484">Ast::Repetition</a>(<span class="kw-2">ref </span>x) =&gt; <span class="prelude-val">Some</span>(<a href="#140">Frame::Repetition</a>(<a href="#266">x</a>)),
-            <a href="mod.rs.html#486">Ast::Group</a>(<span class="kw-2">ref </span>x) =&gt; <span class="prelude-val">Some</span>(<a href="#143">Frame::Group</a>(<a href="#267">x</a>)),
-            <a href="mod.rs.html#490">Ast::Concat</a>(<span class="kw-2">ref </span>x) <span class="kw">if </span><a href="#268">x</a>.asts.is_empty() =&gt; <span class="prelude-val">None</span>,
-            <a href="mod.rs.html#490">Ast::Concat</a>(<span class="kw-2">ref </span>x) =&gt; {
-                <span class="prelude-val">Some</span>(<a href="#146">Frame::Concat</a> { head: <span class="kw-2">&amp;</span><a href="#269">x</a>.asts[<span class="number">0</span>], tail: <span class="kw-2">&amp;</span><a href="#269">x</a>.asts[<span class="number">1</span>..] })
+            Ast::Repetition(<span class="kw-2">ref </span>x) =&gt; <span class="prelude-val">Some</span>(Frame::Repetition(x)),
+            Ast::Group(<span class="kw-2">ref </span>x) =&gt; <span class="prelude-val">Some</span>(Frame::Group(x)),
+            Ast::Concat(<span class="kw-2">ref </span>x) <span class="kw">if </span>x.asts.is_empty() =&gt; <span class="prelude-val">None</span>,
+            Ast::Concat(<span class="kw-2">ref </span>x) =&gt; {
+                <span class="prelude-val">Some</span>(Frame::Concat { head: <span class="kw-2">&amp;</span>x.asts[<span class="number">0</span>], tail: <span class="kw-2">&amp;</span>x.asts[<span class="number">1</span>..] })
             }
-            <a href="mod.rs.html#488">Ast::Alternation</a>(<span class="kw-2">ref </span>x) <span class="kw">if </span><a href="#272">x</a>.asts.is_empty() =&gt; <span class="prelude-val">None</span>,
-            <a href="mod.rs.html#488">Ast::Alternation</a>(<span class="kw-2">ref </span>x) =&gt; <span class="prelude-val">Some</span>(<a href="#154">Frame::Alternation</a> {
-                head: <span class="kw-2">&amp;</span><a href="#273">x</a>.asts[<span class="number">0</span>],
-                tail: <span class="kw-2">&amp;</span><a href="#273">x</a>.asts[<span class="number">1</span>..],
+            Ast::Alternation(<span class="kw-2">ref </span>x) <span class="kw">if </span>x.asts.is_empty() =&gt; <span class="prelude-val">None</span>,
+            Ast::Alternation(<span class="kw-2">ref </span>x) =&gt; <span class="prelude-val">Some</span>(Frame::Alternation {
+                head: <span class="kw-2">&amp;</span>x.asts[<span class="number">0</span>],
+                tail: <span class="kw-2">&amp;</span>x.asts[<span class="number">1</span>..],
             }),
             <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
         })
@@ -798,41 +798,41 @@
     <span class="doccomment">/// Pops the given frame. If the frame has an additional inductive step,
     /// then return it, otherwise return `None`.
     </span><span class="kw">fn </span>pop(<span class="kw-2">&amp;</span><span class="self">self</span>, induct: Frame&lt;<span class="lifetime">&#39;a</span>&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;Frame&lt;<span class="lifetime">&#39;a</span>&gt;&gt; {
-        <span class="kw">match </span><a href="#283">induct</a> {
-            <a href="#140">Frame::Repetition</a>(<span class="kw">_</span>) =&gt; <span class="prelude-val">None</span>,
-            <a href="#143">Frame::Group</a>(<span class="kw">_</span>) =&gt; <span class="prelude-val">None</span>,
-            <a href="#146">Frame::Concat</a> { tail, .. } =&gt; {
+        <span class="kw">match </span>induct {
+            Frame::Repetition(<span class="kw">_</span>) =&gt; <span class="prelude-val">None</span>,
+            Frame::Group(<span class="kw">_</span>) =&gt; <span class="prelude-val">None</span>,
+            Frame::Concat { tail, .. } =&gt; {
                 <span class="kw">if </span>tail.is_empty() {
                     <span class="prelude-val">None
                 </span>} <span class="kw">else </span>{
-                    <span class="prelude-val">Some</span>(<a href="#146">Frame::Concat</a> { head: <span class="kw-2">&amp;</span><a href="#287">tail</a>[<span class="number">0</span>], tail: <span class="kw-2">&amp;</span><a href="#287">tail</a>[<span class="number">1</span>..] })
+                    <span class="prelude-val">Some</span>(Frame::Concat { head: <span class="kw-2">&amp;</span>tail[<span class="number">0</span>], tail: <span class="kw-2">&amp;</span>tail[<span class="number">1</span>..] })
                 }
             }
-            <a href="#154">Frame::Alternation</a> { tail, .. } =&gt; {
+            Frame::Alternation { tail, .. } =&gt; {
                 <span class="kw">if </span>tail.is_empty() {
                     <span class="prelude-val">None
                 </span>} <span class="kw">else </span>{
-                    <span class="prelude-val">Some</span>(<a href="#154">Frame::Alternation</a> {
-                        head: <span class="kw-2">&amp;</span><a href="#294">tail</a>[<span class="number">0</span>],
-                        tail: <span class="kw-2">&amp;</span><a href="#294">tail</a>[<span class="number">1</span>..],
+                    <span class="prelude-val">Some</span>(Frame::Alternation {
+                        head: <span class="kw-2">&amp;</span>tail[<span class="number">0</span>],
+                        tail: <span class="kw-2">&amp;</span>tail[<span class="number">1</span>..],
                     })
                 }
             }
         }
     }
 
-    <span class="kw">fn </span>visit_class&lt;V: <a href="#23">Visitor</a>&gt;(
+    <span class="kw">fn </span>visit_class&lt;V: Visitor&gt;(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        ast: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="mod.rs.html#904">ast::ClassBracketed</a>,
+        ast: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>ast::ClassBracketed,
         visitor: <span class="kw-2">&amp;mut </span>V,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;(), V::Err&gt; {
-        <span class="kw">let </span><span class="kw-2">mut </span>ast = ClassInduct::from_bracketed(<a href="#309">ast</a>);
+        <span class="kw">let </span><span class="kw-2">mut </span>ast = ClassInduct::from_bracketed(ast);
         <span class="kw">loop </span>{
             <span class="self">self</span>.visit_class_pre(<span class="kw-2">&amp;</span>ast, visitor)<span class="question-mark">?</span>;
-            <span class="kw">if let </span><span class="prelude-val">Some</span>(x) = <a class="self" href="#308">self</a>.<a href="#383">induct_class</a>(<span class="kw-2">&amp;</span><a href="#312">ast</a>) {
-                <span class="kw">let </span>child = <a href="#315">x</a>.<a href="#451">child</a>();
-                <a class="self" href="#308">self</a>.stack_class.push((<a href="#312">ast</a>, <a href="#315">x</a>));
-                <a href="#312">ast</a> = <a href="#316">child</a>;
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(x) = <span class="self">self</span>.induct_class(<span class="kw-2">&amp;</span>ast) {
+                <span class="kw">let </span>child = x.child();
+                <span class="self">self</span>.stack_class.push((ast, x));
+                ast = child;
                 <span class="kw">continue</span>;
             }
             <span class="self">self</span>.visit_class_post(<span class="kw-2">&amp;</span>ast, visitor)<span class="question-mark">?</span>;
@@ -840,18 +840,18 @@
             <span class="comment">// At this point, we now try to pop our call stack until it is
             // either empty or we hit another inductive case.
             </span><span class="kw">loop </span>{
-                <span class="kw">let </span>(post_ast, frame) = <span class="kw">match </span><a class="self" href="#308">self</a>.stack_class.pop() {
+                <span class="kw">let </span>(post_ast, frame) = <span class="kw">match </span><span class="self">self</span>.stack_class.pop() {
                     <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="prelude-val">Ok</span>(()),
-                    <span class="prelude-val">Some</span>((post_ast, frame)) =&gt; (<a href="#328">post_ast</a>, <a href="#328">frame</a>),
+                    <span class="prelude-val">Some</span>((post_ast, frame)) =&gt; (post_ast, frame),
                 };
                 <span class="comment">// If this is a union or a binary op, then we might have
                 // additional inductive steps to process.
-                </span><span class="kw">if let </span><span class="prelude-val">Some</span>(x) = <a class="self" href="#308">self</a>.<a href="#414">pop_class</a>(<a href="#326">frame</a>) {
-                    <span class="kw">if let </span><a href="#184">ClassFrame::BinaryRHS</a> { <span class="kw-2">ref </span>op, .. } = <a href="#332">x</a> {
+                </span><span class="kw">if let </span><span class="prelude-val">Some</span>(x) = <span class="self">self</span>.pop_class(frame) {
+                    <span class="kw">if let </span>ClassFrame::BinaryRHS { <span class="kw-2">ref </span>op, .. } = x {
                         visitor.visit_class_set_binary_op_in(op)<span class="question-mark">?</span>;
                     }
-                    <a href="#312">ast</a> = <a href="#332">x</a>.<a href="#451">child</a>();
-                    <a class="self" href="#308">self</a>.stack_class.push((<a href="#326">post_ast</a>, <a href="#332">x</a>));
+                    ast = x.child();
+                    <span class="self">self</span>.stack_class.push((post_ast, x));
                     <span class="kw">break</span>;
                 }
                 <span class="comment">// Otherwise, we&#39;ve finished visiting all the child nodes for
@@ -862,16 +862,16 @@
     }
 
     <span class="doccomment">/// Call the appropriate `Visitor` methods given an inductive step.
-    </span><span class="kw">fn </span>visit_class_pre&lt;V: <a href="#23">Visitor</a>&gt;(
+    </span><span class="kw">fn </span>visit_class_pre&lt;V: Visitor&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         ast: <span class="kw-2">&amp;</span>ClassInduct&lt;<span class="lifetime">&#39;a</span>&gt;,
         visitor: <span class="kw-2">&amp;mut </span>V,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;(), V::Err&gt; {
-        <span class="kw">match </span><span class="kw-2">*</span><a href="#350">ast</a> {
-            <a href="#197">ClassInduct::Item</a>(item) =&gt; {
+        <span class="kw">match </span><span class="kw-2">*</span>ast {
+            ClassInduct::Item(item) =&gt; {
                 visitor.visit_class_set_item_pre(item)<span class="question-mark">?</span>;
             }
-            <a href="#198">ClassInduct::BinaryOp</a>(op) =&gt; {
+            ClassInduct::BinaryOp(op) =&gt; {
                 visitor.visit_class_set_binary_op_pre(op)<span class="question-mark">?</span>;
             }
         }
@@ -879,16 +879,16 @@
     }
 
     <span class="doccomment">/// Call the appropriate `Visitor` methods given an inductive step.
-    </span><span class="kw">fn </span>visit_class_post&lt;V: <a href="#23">Visitor</a>&gt;(
+    </span><span class="kw">fn </span>visit_class_post&lt;V: Visitor&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         ast: <span class="kw-2">&amp;</span>ClassInduct&lt;<span class="lifetime">&#39;a</span>&gt;,
         visitor: <span class="kw-2">&amp;mut </span>V,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;(), V::Err&gt; {
-        <span class="kw">match </span><span class="kw-2">*</span><a href="#367">ast</a> {
-            <a href="#197">ClassInduct::Item</a>(item) =&gt; {
+        <span class="kw">match </span><span class="kw-2">*</span>ast {
+            ClassInduct::Item(item) =&gt; {
                 visitor.visit_class_set_item_post(item)<span class="question-mark">?</span>;
             }
-            <a href="#198">ClassInduct::BinaryOp</a>(op) =&gt; {
+            ClassInduct::BinaryOp(op) =&gt; {
                 visitor.visit_class_set_binary_op_post(op)<span class="question-mark">?</span>;
             }
         }
@@ -898,29 +898,29 @@
     <span class="doccomment">/// Build a stack frame for the given class node if one is needed (which
     /// occurs if and only if there are child nodes). Otherwise, return None.
     </span><span class="kw">fn </span>induct_class(<span class="kw-2">&amp;</span><span class="self">self</span>, ast: <span class="kw-2">&amp;</span>ClassInduct&lt;<span class="lifetime">&#39;a</span>&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;ClassFrame&lt;<span class="lifetime">&#39;a</span>&gt;&gt; {
-        <span class="kw">match </span><span class="kw-2">*</span><a href="#383">ast</a> {
-            <a href="#197">ClassInduct::Item</a>(<span class="kw-2">&amp;</span><a href="mod.rs.html#975">ast::ClassSetItem::Bracketed</a>(<span class="kw-2">ref </span>x)) =&gt; {
-                <span class="kw">match </span><a href="#385">x</a>.kind {
-                    <a href="mod.rs.html#925">ast::ClassSet::Item</a>(<span class="kw-2">ref </span>item) =&gt; {
-                        <span class="prelude-val">Some</span>(<a href="#167">ClassFrame::Union</a> { head: <a href="#387">item</a>, tail: <span class="kw-2">&amp;</span>[] })
+        <span class="kw">match </span><span class="kw-2">*</span>ast {
+            ClassInduct::Item(<span class="kw-2">&amp;</span>ast::ClassSetItem::Bracketed(<span class="kw-2">ref </span>x)) =&gt; {
+                <span class="kw">match </span>x.kind {
+                    ast::ClassSet::Item(<span class="kw-2">ref </span>item) =&gt; {
+                        <span class="prelude-val">Some</span>(ClassFrame::Union { head: item, tail: <span class="kw-2">&amp;</span>[] })
                     }
-                    <a href="mod.rs.html#927">ast::ClassSet::BinaryOp</a>(<span class="kw-2">ref </span>op) =&gt; {
-                        <span class="prelude-val">Some</span>(<a href="#174">ClassFrame::Binary</a> { <a href="#390">op</a> })
+                    ast::ClassSet::BinaryOp(<span class="kw-2">ref </span>op) =&gt; {
+                        <span class="prelude-val">Some</span>(ClassFrame::Binary { op })
                     }
                 }
             }
-            <a href="#197">ClassInduct::Item</a>(<span class="kw-2">&amp;</span><a href="mod.rs.html#977">ast::ClassSetItem::Union</a>(<span class="kw-2">ref </span>x)) =&gt; {
+            ClassInduct::Item(<span class="kw-2">&amp;</span>ast::ClassSetItem::Union(<span class="kw-2">ref </span>x)) =&gt; {
                 <span class="kw">if </span>x.items.is_empty() {
                     <span class="prelude-val">None
                 </span>} <span class="kw">else </span>{
-                    <span class="prelude-val">Some</span>(<a href="#167">ClassFrame::Union</a> {
-                        head: <span class="kw-2">&amp;</span><a href="#395">x</a>.items[<span class="number">0</span>],
-                        tail: <span class="kw-2">&amp;</span><a href="#395">x</a>.items[<span class="number">1</span>..],
+                    <span class="prelude-val">Some</span>(ClassFrame::Union {
+                        head: <span class="kw-2">&amp;</span>x.items[<span class="number">0</span>],
+                        tail: <span class="kw-2">&amp;</span>x.items[<span class="number">1</span>..],
                     })
                 }
             }
-            <a href="#198">ClassInduct::BinaryOp</a>(op) =&gt; {
-                <span class="prelude-val">Some</span>(<a href="#177">ClassFrame::BinaryLHS</a> { <a href="#405">op</a>, lhs: <span class="kw-2">&amp;</span><a href="#405">op</a>.lhs, rhs: <span class="kw-2">&amp;</span><a href="#405">op</a>.rhs })
+            ClassInduct::BinaryOp(op) =&gt; {
+                <span class="prelude-val">Some</span>(ClassFrame::BinaryLHS { op, lhs: <span class="kw-2">&amp;</span>op.lhs, rhs: <span class="kw-2">&amp;</span>op.rhs })
             }
             <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
         }
@@ -929,22 +929,22 @@
     <span class="doccomment">/// Pops the given frame. If the frame has an additional inductive step,
     /// then return it, otherwise return `None`.
     </span><span class="kw">fn </span>pop_class(<span class="kw-2">&amp;</span><span class="self">self</span>, induct: ClassFrame&lt;<span class="lifetime">&#39;a</span>&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;ClassFrame&lt;<span class="lifetime">&#39;a</span>&gt;&gt; {
-        <span class="kw">match </span><a href="#414">induct</a> {
-            <a href="#167">ClassFrame::Union</a> { tail, .. } =&gt; {
+        <span class="kw">match </span>induct {
+            ClassFrame::Union { tail, .. } =&gt; {
                 <span class="kw">if </span>tail.is_empty() {
                     <span class="prelude-val">None
                 </span>} <span class="kw">else </span>{
-                    <span class="prelude-val">Some</span>(<a href="#167">ClassFrame::Union</a> {
-                        head: <span class="kw-2">&amp;</span><a href="#416">tail</a>[<span class="number">0</span>],
-                        tail: <span class="kw-2">&amp;</span><a href="#416">tail</a>[<span class="number">1</span>..],
+                    <span class="prelude-val">Some</span>(ClassFrame::Union {
+                        head: <span class="kw-2">&amp;</span>tail[<span class="number">0</span>],
+                        tail: <span class="kw-2">&amp;</span>tail[<span class="number">1</span>..],
                     })
                 }
             }
-            <a href="#174">ClassFrame::Binary</a> { .. } =&gt; <span class="prelude-val">None</span>,
-            <a href="#177">ClassFrame::BinaryLHS</a> { op, rhs, .. } =&gt; {
-                <span class="prelude-val">Some</span>(<a href="#184">ClassFrame::BinaryRHS</a> { <a href="#427">op</a>, <a href="#427">rhs</a> })
+            ClassFrame::Binary { .. } =&gt; <span class="prelude-val">None</span>,
+            ClassFrame::BinaryLHS { op, rhs, .. } =&gt; {
+                <span class="prelude-val">Some</span>(ClassFrame::BinaryRHS { op, rhs })
             }
-            <a href="#184">ClassFrame::BinaryRHS</a> { .. } =&gt; <span class="prelude-val">None</span>,
+            ClassFrame::BinaryRHS { .. } =&gt; <span class="prelude-val">None</span>,
         }
     }
 }
@@ -952,12 +952,12 @@
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; Frame&lt;<span class="lifetime">&#39;a</span>&gt; {
     <span class="doccomment">/// Perform the next inductive step on this frame and return the next
     /// child AST node to visit.
-    </span><span class="kw">fn </span>child(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="mod.rs.html#469">Ast</a> {
-        <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="#438">self</a> </span>{
-            <a href="#140">Frame::Repetition</a>(rep) =&gt; <span class="kw-2">&amp;</span><a href="#440">rep</a>.ast,
-            <a href="#143">Frame::Group</a>(group) =&gt; <span class="kw-2">&amp;</span><a href="#441">group</a>.ast,
-            <a href="#146">Frame::Concat</a> { head, .. } =&gt; <a href="#442">head</a>,
-            <a href="#154">Frame::Alternation</a> { head, .. } =&gt; <a href="#443">head</a>,
+    </span><span class="kw">fn </span>child(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Ast {
+        <span class="kw">match </span><span class="kw-2">*</span><span class="self">self </span>{
+            Frame::Repetition(rep) =&gt; <span class="kw-2">&amp;</span>rep.ast,
+            Frame::Group(group) =&gt; <span class="kw-2">&amp;</span>group.ast,
+            Frame::Concat { head, .. } =&gt; head,
+            Frame::Alternation { head, .. } =&gt; head,
         }
     }
 }
@@ -966,71 +966,71 @@
     <span class="doccomment">/// Perform the next inductive step on this frame and return the next
     /// child class node to visit.
     </span><span class="kw">fn </span>child(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; ClassInduct&lt;<span class="lifetime">&#39;a</span>&gt; {
-        <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="#451">self</a> </span>{
-            <a href="#167">ClassFrame::Union</a> { head, .. } =&gt; <a href="#197">ClassInduct::Item</a>(<a href="#453">head</a>),
-            <a href="#174">ClassFrame::Binary</a> { op, .. } =&gt; <a href="#198">ClassInduct::BinaryOp</a>(<a href="#454">op</a>),
-            <a href="#177">ClassFrame::BinaryLHS</a> { <span class="kw-2">ref </span>lhs, .. } =&gt; {
-                ClassInduct::from_set(<a href="#455">lhs</a>)
+        <span class="kw">match </span><span class="kw-2">*</span><span class="self">self </span>{
+            ClassFrame::Union { head, .. } =&gt; ClassInduct::Item(head),
+            ClassFrame::Binary { op, .. } =&gt; ClassInduct::BinaryOp(op),
+            ClassFrame::BinaryLHS { <span class="kw-2">ref </span>lhs, .. } =&gt; {
+                ClassInduct::from_set(lhs)
             }
-            <a href="#184">ClassFrame::BinaryRHS</a> { <span class="kw-2">ref </span>rhs, .. } =&gt; {
-                ClassInduct::from_set(<a href="#458">rhs</a>)
+            ClassFrame::BinaryRHS { <span class="kw-2">ref </span>rhs, .. } =&gt; {
+                ClassInduct::from_set(rhs)
             }
         }
     }
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; ClassInduct&lt;<span class="lifetime">&#39;a</span>&gt; {
-    <span class="kw">fn </span>from_bracketed(ast: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="mod.rs.html#904">ast::ClassBracketed</a>) -&gt; ClassInduct&lt;<span class="lifetime">&#39;a</span>&gt; {
-        ClassInduct::from_set(<span class="kw-2">&amp;</span><a href="#466">ast</a>.kind)
+    <span class="kw">fn </span>from_bracketed(ast: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>ast::ClassBracketed) -&gt; ClassInduct&lt;<span class="lifetime">&#39;a</span>&gt; {
+        ClassInduct::from_set(<span class="kw-2">&amp;</span>ast.kind)
     }
 
-    <span class="kw">fn </span>from_set(ast: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="mod.rs.html#922">ast::ClassSet</a>) -&gt; ClassInduct&lt;<span class="lifetime">&#39;a</span>&gt; {
-        <span class="kw">match </span><span class="kw-2">*</span><a href="#470">ast</a> {
-            <a href="mod.rs.html#925">ast::ClassSet::Item</a>(<span class="kw-2">ref </span>item) =&gt; <a href="#197">ClassInduct::Item</a>(<a href="#472">item</a>),
-            <a href="mod.rs.html#927">ast::ClassSet::BinaryOp</a>(<span class="kw-2">ref </span>op) =&gt; <a href="#198">ClassInduct::BinaryOp</a>(<a href="#473">op</a>),
+    <span class="kw">fn </span>from_set(ast: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>ast::ClassSet) -&gt; ClassInduct&lt;<span class="lifetime">&#39;a</span>&gt; {
+        <span class="kw">match </span><span class="kw-2">*</span>ast {
+            ast::ClassSet::Item(<span class="kw-2">ref </span>item) =&gt; ClassInduct::Item(item),
+            ast::ClassSet::BinaryOp(<span class="kw-2">ref </span>op) =&gt; ClassInduct::BinaryOp(op),
         }
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span>ClassFrame&lt;<span class="lifetime">&#39;a</span>&gt; {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <span class="kw">let </span>x = <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="#479">self</a> </span>{
-            <a href="#167">ClassFrame::Union</a> { .. } =&gt; <span class="string">&quot;Union&quot;</span>,
-            <a href="#174">ClassFrame::Binary</a> { .. } =&gt; <span class="string">&quot;Binary&quot;</span>,
-            <a href="#177">ClassFrame::BinaryLHS</a> { .. } =&gt; <span class="string">&quot;BinaryLHS&quot;</span>,
-            <a href="#184">ClassFrame::BinaryRHS</a> { .. } =&gt; <span class="string">&quot;BinaryRHS&quot;</span>,
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; fmt::Debug <span class="kw">for </span>ClassFrame&lt;<span class="lifetime">&#39;a</span>&gt; {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        <span class="kw">let </span>x = <span class="kw">match </span><span class="kw-2">*</span><span class="self">self </span>{
+            ClassFrame::Union { .. } =&gt; <span class="string">&quot;Union&quot;</span>,
+            ClassFrame::Binary { .. } =&gt; <span class="string">&quot;Binary&quot;</span>,
+            ClassFrame::BinaryLHS { .. } =&gt; <span class="string">&quot;BinaryLHS&quot;</span>,
+            ClassFrame::BinaryRHS { .. } =&gt; <span class="string">&quot;BinaryRHS&quot;</span>,
         };
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#479">f</a>, <span class="string">&quot;{}&quot;</span>, x)
+        <span class="macro">write!</span>(f, <span class="string">&quot;{}&quot;</span>, x)
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span>ClassInduct&lt;<span class="lifetime">&#39;a</span>&gt; {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <span class="kw">let </span>x = <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="#491">self</a> </span>{
-            <a href="#197">ClassInduct::Item</a>(it) =&gt; <span class="kw">match </span><span class="kw-2">*</span><a href="#493">it</a> {
-                <a href="mod.rs.html#961">ast::ClassSetItem::Empty</a>(<span class="kw">_</span>) =&gt; <span class="string">&quot;Item(Empty)&quot;</span>,
-                <a href="mod.rs.html#963">ast::ClassSetItem::Literal</a>(<span class="kw">_</span>) =&gt; <span class="string">&quot;Item(Literal)&quot;</span>,
-                <a href="mod.rs.html#965">ast::ClassSetItem::Range</a>(<span class="kw">_</span>) =&gt; <span class="string">&quot;Item(Range)&quot;</span>,
-                <a href="mod.rs.html#967">ast::ClassSetItem::Ascii</a>(<span class="kw">_</span>) =&gt; <span class="string">&quot;Item(Ascii)&quot;</span>,
-                <a href="mod.rs.html#971">ast::ClassSetItem::Perl</a>(<span class="kw">_</span>) =&gt; <span class="string">&quot;Item(Perl)&quot;</span>,
-                <a href="mod.rs.html#969">ast::ClassSetItem::Unicode</a>(<span class="kw">_</span>) =&gt; <span class="string">&quot;Item(Unicode)&quot;</span>,
-                <a href="mod.rs.html#975">ast::ClassSetItem::Bracketed</a>(<span class="kw">_</span>) =&gt; <span class="string">&quot;Item(Bracketed)&quot;</span>,
-                <a href="mod.rs.html#977">ast::ClassSetItem::Union</a>(<span class="kw">_</span>) =&gt; <span class="string">&quot;Item(Union)&quot;</span>,
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; fmt::Debug <span class="kw">for </span>ClassInduct&lt;<span class="lifetime">&#39;a</span>&gt; {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        <span class="kw">let </span>x = <span class="kw">match </span><span class="kw-2">*</span><span class="self">self </span>{
+            ClassInduct::Item(it) =&gt; <span class="kw">match </span><span class="kw-2">*</span>it {
+                ast::ClassSetItem::Empty(<span class="kw">_</span>) =&gt; <span class="string">&quot;Item(Empty)&quot;</span>,
+                ast::ClassSetItem::Literal(<span class="kw">_</span>) =&gt; <span class="string">&quot;Item(Literal)&quot;</span>,
+                ast::ClassSetItem::Range(<span class="kw">_</span>) =&gt; <span class="string">&quot;Item(Range)&quot;</span>,
+                ast::ClassSetItem::Ascii(<span class="kw">_</span>) =&gt; <span class="string">&quot;Item(Ascii)&quot;</span>,
+                ast::ClassSetItem::Perl(<span class="kw">_</span>) =&gt; <span class="string">&quot;Item(Perl)&quot;</span>,
+                ast::ClassSetItem::Unicode(<span class="kw">_</span>) =&gt; <span class="string">&quot;Item(Unicode)&quot;</span>,
+                ast::ClassSetItem::Bracketed(<span class="kw">_</span>) =&gt; <span class="string">&quot;Item(Bracketed)&quot;</span>,
+                ast::ClassSetItem::Union(<span class="kw">_</span>) =&gt; <span class="string">&quot;Item(Union)&quot;</span>,
             },
-            <a href="#198">ClassInduct::BinaryOp</a>(it) =&gt; <span class="kw">match </span><a href="#503">it</a>.kind {
-                <a href="mod.rs.html#1082">ast::ClassSetBinaryOpKind::Intersection</a> =&gt; {
+            ClassInduct::BinaryOp(it) =&gt; <span class="kw">match </span>it.kind {
+                ast::ClassSetBinaryOpKind::Intersection =&gt; {
                     <span class="string">&quot;BinaryOp(Intersection)&quot;
                 </span>}
-                <a href="mod.rs.html#1084">ast::ClassSetBinaryOpKind::Difference</a> =&gt; {
+                ast::ClassSetBinaryOpKind::Difference =&gt; {
                     <span class="string">&quot;BinaryOp(Difference)&quot;
                 </span>}
-                <a href="mod.rs.html#1088">ast::ClassSetBinaryOpKind::SymmetricDifference</a> =&gt; {
+                ast::ClassSetBinaryOpKind::SymmetricDifference =&gt; {
                     <span class="string">&quot;BinaryOp(SymmetricDifference)&quot;
                 </span>}
             },
         };
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#491">f</a>, <span class="string">&quot;{}&quot;</span>, x)
+        <span class="macro">write!</span>(f, <span class="string">&quot;{}&quot;</span>, x)
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="regex_syntax" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="regex_syntax" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

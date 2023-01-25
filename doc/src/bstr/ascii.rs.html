@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/bstr-0.2.17/src/ascii.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>ascii.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../bstr/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/bstr-0.2.17/src/ascii.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>ascii.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../bstr/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -334,7 +334,7 @@
 <a href="#334" id="334">334</a>
 <a href="#335" id="335">335</a>
 <a href="#336" id="336">336</a>
-</pre><pre class="rust"><code><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/mem/index.html">core::mem</a>;
+</pre><pre class="rust"><code><span class="kw">use </span>core::mem;
 
 <span class="comment">// The following ~400 lines of code exists for exactly one purpose, which is
 // to optimize this code:
@@ -377,7 +377,7 @@
 ///
 /// If slice only contains ASCII bytes, then the length of the slice is
 /// returned.
-</span><span class="kw">pub fn </span>first_non_ascii_byte(slice: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
+</span><span class="kw">pub fn </span>first_non_ascii_byte(slice: <span class="kw-2">&amp;</span>[u8]) -&gt; usize {
     <span class="attr">#[cfg(not(target_arch = <span class="string">&quot;x86_64&quot;</span>))]
     </span>{
         first_non_ascii_byte_fallback(slice)
@@ -385,7 +385,7 @@
 
     <span class="attr">#[cfg(target_arch = <span class="string">&quot;x86_64&quot;</span>)]
     </span>{
-        <a href="#119">first_non_ascii_byte_sse2</a>(<a href="#44">slice</a>)
+        first_non_ascii_byte_sse2(slice)
     }
 }
 
@@ -452,31 +452,31 @@
 }
 
 <span class="attr">#[cfg(target_arch = <span class="string">&quot;x86_64&quot;</span>)]
-</span><span class="kw">fn </span>first_non_ascii_byte_sse2(slice: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
+</span><span class="kw">fn </span>first_non_ascii_byte_sse2(slice: <span class="kw-2">&amp;</span>[u8]) -&gt; usize {
     <span class="kw">use </span>core::arch::x86_64::<span class="kw-2">*</span>;
 
-    <span class="kw">const </span>VECTOR_SIZE: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> = mem::size_of::&lt;<a href="https://doc.rust-lang.org/nightly/core/core_arch/x86/struct.__m128i.html">__m128i</a>&gt;();
-    <span class="kw">const </span>VECTOR_ALIGN: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> = <a href="#122">VECTOR_SIZE</a> - <span class="number">1</span>;
-    <span class="kw">const </span>VECTOR_LOOP_SIZE: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> = <span class="number">4 </span>* <a href="#122">VECTOR_SIZE</a>;
+    <span class="kw">const </span>VECTOR_SIZE: usize = mem::size_of::&lt;__m128i&gt;();
+    <span class="kw">const </span>VECTOR_ALIGN: usize = VECTOR_SIZE - <span class="number">1</span>;
+    <span class="kw">const </span>VECTOR_LOOP_SIZE: usize = <span class="number">4 </span>* VECTOR_SIZE;
 
-    <span class="kw">let </span>start_ptr = <a href="#119">slice</a>.as_ptr();
-    <span class="kw">let </span>end_ptr = <a href="#119">slice</a>[<a href="#119">slice</a>.len()..].as_ptr();
-    <span class="kw">let </span><span class="kw-2">mut </span>ptr = <a href="#126">start_ptr</a>;
+    <span class="kw">let </span>start_ptr = slice.as_ptr();
+    <span class="kw">let </span>end_ptr = slice[slice.len()..].as_ptr();
+    <span class="kw">let </span><span class="kw-2">mut </span>ptr = start_ptr;
 
     <span class="kw">unsafe </span>{
         <span class="kw">if </span>slice.len() &lt; VECTOR_SIZE {
-            <span class="kw">return </span><a href="#200-204">first_non_ascii_byte_slow</a>(<a href="#126">start_ptr</a>, <a href="#127">end_ptr</a>, <a href="#128">ptr</a>);
+            <span class="kw">return </span>first_non_ascii_byte_slow(start_ptr, end_ptr, ptr);
         }
 
-        <span class="kw">let </span>chunk = _mm_loadu_si128(<a href="#128">ptr</a> <span class="kw">as </span><span class="kw-2">*const </span><a href="https://doc.rust-lang.org/nightly/core/core_arch/x86/struct.__m128i.html">__m128i</a>);
-        <span class="kw">let </span>mask = _mm_movemask_epi8(<a href="#135">chunk</a>);
+        <span class="kw">let </span>chunk = _mm_loadu_si128(ptr <span class="kw">as </span><span class="kw-2">*const </span>__m128i);
+        <span class="kw">let </span>mask = _mm_movemask_epi8(chunk);
         <span class="kw">if </span>mask != <span class="number">0 </span>{
-            <span class="kw">return </span><a href="#136">mask</a>.trailing_zeros() <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>;
+            <span class="kw">return </span>mask.trailing_zeros() <span class="kw">as </span>usize;
         }
 
-        <a href="#128">ptr</a> = <a href="#128">ptr</a>.add(<a href="#122">VECTOR_SIZE</a> - (<a href="#126">start_ptr</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> &amp; <a href="#123">VECTOR_ALIGN</a>));
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(ptr &gt; start_ptr);
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(end_ptr.sub(VECTOR_SIZE) &gt;= start_ptr);
+        ptr = ptr.add(VECTOR_SIZE - (start_ptr <span class="kw">as </span>usize &amp; VECTOR_ALIGN));
+        <span class="macro">debug_assert!</span>(ptr &gt; start_ptr);
+        <span class="macro">debug_assert!</span>(end_ptr.sub(VECTOR_SIZE) &gt;= start_ptr);
         <span class="kw">if </span>slice.len() &gt;= VECTOR_LOOP_SIZE {
             <span class="kw">while </span>ptr &lt;= ptr_sub(end_ptr, VECTOR_LOOP_SIZE) {
                 <span class="macro">debug_assert_eq!</span>(<span class="number">0</span>, (ptr <span class="kw">as </span>usize) % VECTOR_SIZE);
@@ -528,18 +528,18 @@
             }
             ptr = ptr.add(VECTOR_SIZE);
         }
-        <a href="#200-204">first_non_ascii_byte_slow</a>(<a href="#126">start_ptr</a>, <a href="#127">end_ptr</a>, <a href="#128">ptr</a>)
+        first_non_ascii_byte_slow(start_ptr, end_ptr, ptr)
     }
 }
 
 <span class="attr">#[inline(always)]
 </span><span class="kw">unsafe fn </span>first_non_ascii_byte_slow(
-    start_ptr: <span class="kw-2">*const </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>,
-    end_ptr: <span class="kw-2">*const </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>,
-    <span class="kw-2">mut </span>ptr: <span class="kw-2">*const </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>,
-) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-    <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(start_ptr &lt;= ptr);
-    <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(ptr &lt;= end_ptr);
+    start_ptr: <span class="kw-2">*const </span>u8,
+    end_ptr: <span class="kw-2">*const </span>u8,
+    <span class="kw-2">mut </span>ptr: <span class="kw-2">*const </span>u8,
+) -&gt; usize {
+    <span class="macro">debug_assert!</span>(start_ptr &lt;= ptr);
+    <span class="macro">debug_assert!</span>(ptr &lt;= end_ptr);
 
     <span class="kw">while </span>ptr &lt; end_ptr {
         <span class="kw">if </span><span class="kw-2">*</span>ptr &gt; <span class="number">0x7F </span>{
@@ -547,7 +547,7 @@
         }
         ptr = ptr.offset(<span class="number">1</span>);
     }
-    <a href="#259">sub</a>(<a href="#202">end_ptr</a>, <a href="#201">start_ptr</a>)
+    sub(end_ptr, start_ptr)
 }
 
 <span class="doccomment">/// Compute the position of the first ASCII byte in the given mask.
@@ -570,15 +570,15 @@
 }
 
 <span class="doccomment">/// Increment the given pointer by the given amount.
-</span><span class="kw">unsafe fn </span>ptr_add(ptr: <span class="kw-2">*const </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>, amt: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="kw-2">*const </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a> {
-    <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(amt &lt; ::core::isize::MAX <span class="kw">as </span>usize);
-    <a href="#237">ptr</a>.offset(<a href="#237">amt</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.isize.html">isize</a>)
+</span><span class="kw">unsafe fn </span>ptr_add(ptr: <span class="kw-2">*const </span>u8, amt: usize) -&gt; <span class="kw-2">*const </span>u8 {
+    <span class="macro">debug_assert!</span>(amt &lt; ::core::isize::MAX <span class="kw">as </span>usize);
+    ptr.offset(amt <span class="kw">as </span>isize)
 }
 
 <span class="doccomment">/// Decrement the given pointer by the given amount.
-</span><span class="kw">unsafe fn </span>ptr_sub(ptr: <span class="kw-2">*const </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>, amt: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="kw-2">*const </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a> {
-    <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(amt &lt; ::core::isize::MAX <span class="kw">as </span>usize);
-    <a href="#243">ptr</a>.offset((<a href="#243">amt</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.isize.html">isize</a>).wrapping_neg())
+</span><span class="kw">unsafe fn </span>ptr_sub(ptr: <span class="kw-2">*const </span>u8, amt: usize) -&gt; <span class="kw-2">*const </span>u8 {
+    <span class="macro">debug_assert!</span>(amt &lt; ::core::isize::MAX <span class="kw">as </span>usize);
+    ptr.offset((amt <span class="kw">as </span>isize).wrapping_neg())
 }
 
 <span class="attr">#[cfg(any(test, not(target_arch = <span class="string">&quot;x86_64&quot;</span>)))]
@@ -592,9 +592,9 @@
 
 <span class="doccomment">/// Subtract `b` from `a` and return the difference. `a` should be greater than
 /// or equal to `b`.
-</span><span class="kw">fn </span>sub(a: <span class="kw-2">*const </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>, b: <span class="kw-2">*const </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-    <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(a &gt;= b);
-    (<a href="#259">a</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) - (<a href="#259">b</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>)
+</span><span class="kw">fn </span>sub(a: <span class="kw-2">*const </span>u8, b: <span class="kw-2">*const </span>u8) -&gt; usize {
+    <span class="macro">debug_assert!</span>(a &gt;= b);
+    (a <span class="kw">as </span>usize) - (b <span class="kw">as </span>usize)
 }
 
 <span class="attr">#[cfg(test)]
@@ -671,4 +671,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="bstr" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="bstr" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

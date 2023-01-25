@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-stream-0.1.11/src/stream_ext.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>stream_ext.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../tokio_stream/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-stream-0.1.11/src/stream_ext.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>stream_ext.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../tokio_stream/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -1080,71 +1080,71 @@
 <a href="#1080" id="1080">1080</a>
 <a href="#1081" id="1081">1081</a>
 <a href="#1082" id="1082">1082</a>
-</pre><pre class="rust"><code><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">core::future::Future</a>;
-<span class="kw">use </span><a href="../../futures_core/stream/trait.Stream.html">futures_core::Stream</a>;
+</pre><pre class="rust"><code><span class="kw">use </span>core::future::Future;
+<span class="kw">use </span>futures_core::Stream;
 
-<span class="kw">mod </span><a href="stream_ext/all.rs.html#1-58">all</a>;
-<span class="kw">use </span><a href="stream_ext/all.rs.html#9-20">all::AllFuture</a>;
+<span class="kw">mod </span>all;
+<span class="kw">use </span>all::AllFuture;
 
-<span class="kw">mod </span><a href="stream_ext/any.rs.html#1-58">any</a>;
-<span class="kw">use </span><a href="stream_ext/any.rs.html#9-20">any::AnyFuture</a>;
+<span class="kw">mod </span>any;
+<span class="kw">use </span>any::AnyFuture;
 
-<span class="kw">mod </span><a href="stream_ext/chain.rs.html#1-50">chain</a>;
-<span class="kw">use </span><a href="stream_ext/chain.rs.html#8-16">chain::Chain</a>;
+<span class="kw">mod </span>chain;
+<span class="kw">use </span>chain::Chain;
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span><a href="stream_ext/collect.rs.html#1-233">collect</a>;
-<span class="kw">use </span>collect::{<a href="stream_ext/collect.rs.html#11-27">Collect</a>, <a href="stream_ext/collect.rs.html#39">FromStream</a>};
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span>collect;
+<span class="kw">use </span>collect::{Collect, FromStream};
 
-<span class="kw">mod </span><a href="stream_ext/filter.rs.html#1-58">filter</a>;
-<span class="kw">use </span><a href="stream_ext/filter.rs.html#8-16">filter::Filter</a>;
+<span class="kw">mod </span>filter;
+<span class="kw">use </span>filter::Filter;
 
-<span class="kw">mod </span><a href="stream_ext/filter_map.rs.html#1-58">filter_map</a>;
-<span class="kw">use </span><a href="stream_ext/filter_map.rs.html#8-16">filter_map::FilterMap</a>;
+<span class="kw">mod </span>filter_map;
+<span class="kw">use </span>filter_map::FilterMap;
 
-<span class="kw">mod </span><a href="stream_ext/fold.rs.html#1-57">fold</a>;
-<span class="kw">use </span><a href="stream_ext/fold.rs.html#9-22">fold::FoldFuture</a>;
+<span class="kw">mod </span>fold;
+<span class="kw">use </span>fold::FoldFuture;
 
-<span class="kw">mod </span><a href="stream_ext/fuse.rs.html#1-53">fuse</a>;
-<span class="kw">use </span><a href="stream_ext/fuse.rs.html#7-14">fuse::Fuse</a>;
+<span class="kw">mod </span>fuse;
+<span class="kw">use </span>fuse::Fuse;
 
-<span class="kw">mod </span><a href="stream_ext/map.rs.html#1-51">map</a>;
-<span class="kw">use </span><a href="stream_ext/map.rs.html#8-16">map::Map</a>;
+<span class="kw">mod </span>map;
+<span class="kw">use </span>map::Map;
 
-<span class="kw">mod </span><a href="stream_ext/map_while.rs.html#1-52">map_while</a>;
-<span class="kw">use </span><a href="stream_ext/map_while.rs.html#8-16">map_while::MapWhile</a>;
+<span class="kw">mod </span>map_while;
+<span class="kw">use </span>map_while::MapWhile;
 
-<span class="kw">mod </span><a href="stream_ext/merge.rs.html#1-90">merge</a>;
-<span class="kw">use </span><a href="stream_ext/merge.rs.html#8-18">merge::Merge</a>;
+<span class="kw">mod </span>merge;
+<span class="kw">use </span>merge::Merge;
 
-<span class="kw">mod </span><a href="stream_ext/next.rs.html#1-44">next</a>;
-<span class="kw">use </span><a href="stream_ext/next.rs.html#9-26">next::Next</a>;
+<span class="kw">mod </span>next;
+<span class="kw">use </span>next::Next;
 
-<span class="kw">mod </span><a href="stream_ext/skip.rs.html#1-63">skip</a>;
-<span class="kw">use </span><a href="stream_ext/skip.rs.html#8-16">skip::Skip</a>;
+<span class="kw">mod </span>skip;
+<span class="kw">use </span>skip::Skip;
 
-<span class="kw">mod </span><a href="stream_ext/skip_while.rs.html#1-73">skip_while</a>;
-<span class="kw">use </span><a href="stream_ext/skip_while.rs.html#8-16">skip_while::SkipWhile</a>;
+<span class="kw">mod </span>skip_while;
+<span class="kw">use </span>skip_while::SkipWhile;
 
-<span class="kw">mod </span><a href="stream_ext/take.rs.html#1-76">take</a>;
-<span class="kw">use </span><a href="stream_ext/take.rs.html#9-17">take::Take</a>;
+<span class="kw">mod </span>take;
+<span class="kw">use </span>take::Take;
 
-<span class="kw">mod </span><a href="stream_ext/take_while.rs.html#1-79">take_while</a>;
-<span class="kw">use </span><a href="stream_ext/take_while.rs.html#8-17">take_while::TakeWhile</a>;
+<span class="kw">mod </span>take_while;
+<span class="kw">use </span>take_while::TakeWhile;
 
-<span class="kw">mod </span><a href="stream_ext/then.rs.html#1-83">then</a>;
-<span class="kw">use </span><a href="stream_ext/then.rs.html#9-19">then::Then</a>;
+<span class="kw">mod </span>then;
+<span class="kw">use </span>then::Then;
 
-<span class="kw">mod </span><a href="stream_ext/try_next.rs.html#1-45">try_next</a>;
-<span class="kw">use </span><a href="stream_ext/try_next.rs.html#10-27">try_next::TryNext</a>;
+<span class="kw">mod </span>try_next;
+<span class="kw">use </span>try_next::TryNext;
 
 <span class="macro">cfg_time! </span>{
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span><a href="stream_ext/timeout.rs.html#1-107">timeout</a>;
-    <span class="kw">use </span><a href="stream_ext/timeout.rs.html#12-24">timeout::Timeout</a>;
-    <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">tokio::time::Duration</a>;
-    <span class="kw">mod </span><a href="stream_ext/throttle.rs.html#1-98">throttle</a>;
-    <span class="kw">use </span>throttle::{<a href="stream_ext/throttle.rs.html#13-15">throttle</a>, <a href="stream_ext/throttle.rs.html#25-42">Throttle</a>};
-    <span class="kw">mod </span><a href="stream_ext/chunks_timeout.rs.html#1-86">chunks_timeout</a>;
-    <span class="kw">use </span><a href="stream_ext/chunks_timeout.rs.html#11-24">chunks_timeout::ChunksTimeout</a>;
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span>timeout;
+    <span class="kw">use </span>timeout::Timeout;
+    <span class="kw">use </span>tokio::time::Duration;
+    <span class="kw">mod </span>throttle;
+    <span class="kw">use </span>throttle::{throttle, Throttle};
+    <span class="kw">mod </span>chunks_timeout;
+    <span class="kw">use </span>chunks_timeout::ChunksTimeout;
 }
 
 <span class="doccomment">/// An extension trait for the [`Stream`] trait that provides a variety of
@@ -1180,7 +1180,7 @@
 /// [`Stream`]: crate::Stream
 /// [futures]: https://docs.rs/futures
 /// [futures-StreamExt]: https://docs.rs/futures/0.3/futures/stream/trait.StreamExt.html
-</span><span class="kw">pub trait </span>StreamExt: <a href="../../futures_core/stream/trait.Stream.html">Stream</a> {
+</span><span class="kw">pub trait </span>StreamExt: Stream {
     <span class="doccomment">/// Consumes and returns the next value in the stream or `None` if the
     /// stream is finished.
     ///
@@ -1220,9 +1220,9 @@
     /// ```
     </span><span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; Next&lt;<span class="lifetime">&#39;_</span>, <span class="self">Self</span>&gt;
     <span class="kw">where
-        </span><span class="self">Self</span>: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
+        </span><span class="self">Self</span>: Unpin,
     {
-        Next::new(<a class="self" href="#139">self</a>)
+        Next::new(<span class="self">self</span>)
     }
 
     <span class="doccomment">/// Consumes and returns the next item in the stream. If an error is
@@ -1261,9 +1261,9 @@
     /// ```
     </span><span class="kw">fn </span>try_next&lt;T, E&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; TryNext&lt;<span class="lifetime">&#39;_</span>, <span class="self">Self</span>&gt;
     <span class="kw">where
-        </span><span class="self">Self</span>: Stream&lt;Item = <span class="prelude-ty">Result</span>&lt;T, E&gt;&gt; + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
+        </span><span class="self">Self</span>: Stream&lt;Item = <span class="prelude-ty">Result</span>&lt;T, E&gt;&gt; + Unpin,
     {
-        TryNext::new(<a class="self" href="#180">self</a>)
+        TryNext::new(<span class="self">self</span>)
     }
 
     <span class="doccomment">/// Maps this stream&#39;s items to a different type, returning a new stream of
@@ -1295,9 +1295,9 @@
     </span><span class="kw">fn </span>map&lt;T, F&gt;(<span class="self">self</span>, f: F) -&gt; Map&lt;<span class="self">Self</span>, F&gt;
     <span class="kw">where
         </span>F: FnMut(<span class="self">Self</span>::Item) -&gt; T,
-        <span class="self">Self</span>: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>,
+        <span class="self">Self</span>: Sized,
     {
-        Map::new(<a class="self" href="#213">self</a>, <a href="#213">f</a>)
+        Map::new(<span class="self">self</span>, f)
     }
 
     <span class="doccomment">/// Map this stream&#39;s items to a different type for as long as determined by
@@ -1337,9 +1337,9 @@
     </span><span class="kw">fn </span>map_while&lt;T, F&gt;(<span class="self">self</span>, f: F) -&gt; MapWhile&lt;<span class="self">Self</span>, F&gt;
     <span class="kw">where
         </span>F: FnMut(<span class="self">Self</span>::Item) -&gt; <span class="prelude-ty">Option</span>&lt;T&gt;,
-        <span class="self">Self</span>: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>,
+        <span class="self">Self</span>: Sized,
     {
-        MapWhile::new(<a class="self" href="#255">self</a>, <a href="#255">f</a>)
+        MapWhile::new(<span class="self">self</span>, f)
     }
 
     <span class="doccomment">/// Maps this stream&#39;s items asynchronously to a different type, returning a
@@ -1381,10 +1381,10 @@
     </span><span class="kw">fn </span>then&lt;F, Fut&gt;(<span class="self">self</span>, f: F) -&gt; Then&lt;<span class="self">Self</span>, Fut, F&gt;
     <span class="kw">where
         </span>F: FnMut(<span class="self">Self</span>::Item) -&gt; Fut,
-        Fut: <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a>,
-        <span class="self">Self</span>: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>,
+        Fut: Future,
+        <span class="self">Self</span>: Sized,
     {
-        Then::new(<a class="self" href="#299">self</a>, <a href="#299">f</a>)
+        Then::new(<span class="self">self</span>, f)
     }
 
     <span class="doccomment">/// Combine two streams into one by interleaving the output of both as it
@@ -1474,9 +1474,9 @@
     </span><span class="kw">fn </span>merge&lt;U&gt;(<span class="self">self</span>, other: U) -&gt; Merge&lt;<span class="self">Self</span>, U&gt;
     <span class="kw">where
         </span>U: Stream&lt;Item = <span class="self">Self</span>::Item&gt;,
-        <span class="self">Self</span>: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>,
+        <span class="self">Self</span>: Sized,
     {
-        Merge::new(<a class="self" href="#392">self</a>, <a href="#392">other</a>)
+        Merge::new(<span class="self">self</span>, other)
     }
 
     <span class="doccomment">/// Filters the values produced by this stream according to the provided
@@ -1511,10 +1511,10 @@
     /// ```
     </span><span class="kw">fn </span>filter&lt;F&gt;(<span class="self">self</span>, f: F) -&gt; Filter&lt;<span class="self">Self</span>, F&gt;
     <span class="kw">where
-        </span>F: FnMut(<span class="kw-2">&amp;</span><span class="self">Self</span>::Item) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-        <span class="self">Self</span>: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>,
+        </span>F: FnMut(<span class="kw-2">&amp;</span><span class="self">Self</span>::Item) -&gt; bool,
+        <span class="self">Self</span>: Sized,
     {
-        Filter::new(<a class="self" href="#430">self</a>, <a href="#430">f</a>)
+        Filter::new(<span class="self">self</span>, f)
     }
 
     <span class="doccomment">/// Filters the values produced by this stream while simultaneously mapping
@@ -1550,9 +1550,9 @@
     </span><span class="kw">fn </span>filter_map&lt;T, F&gt;(<span class="self">self</span>, f: F) -&gt; FilterMap&lt;<span class="self">Self</span>, F&gt;
     <span class="kw">where
         </span>F: FnMut(<span class="self">Self</span>::Item) -&gt; <span class="prelude-ty">Option</span>&lt;T&gt;,
-        <span class="self">Self</span>: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>,
+        <span class="self">Self</span>: Sized,
     {
-        FilterMap::new(<a class="self" href="#468">self</a>, <a href="#468">f</a>)
+        FilterMap::new(<span class="self">self</span>, f)
     }
 
     <span class="doccomment">/// Creates a stream which ends after the first `None`.
@@ -1615,9 +1615,9 @@
     /// ```
     </span><span class="kw">fn </span>fuse(<span class="self">self</span>) -&gt; Fuse&lt;<span class="self">Self</span>&gt;
     <span class="kw">where
-        </span><span class="self">Self</span>: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>,
+        </span><span class="self">Self</span>: Sized,
     {
-        Fuse::new(<a class="self" href="#534">self</a>)
+        Fuse::new(<span class="self">self</span>)
     }
 
     <span class="doccomment">/// Creates a new stream of at most `n` items of the underlying stream.
@@ -1640,11 +1640,11 @@
     /// assert_eq!(None, stream.next().await);
     /// # }
     /// ```
-    </span><span class="kw">fn </span>take(<span class="self">self</span>, n: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; Take&lt;<span class="self">Self</span>&gt;
+    </span><span class="kw">fn </span>take(<span class="self">self</span>, n: usize) -&gt; Take&lt;<span class="self">Self</span>&gt;
     <span class="kw">where
-        </span><span class="self">Self</span>: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>,
+        </span><span class="self">Self</span>: Sized,
     {
-        Take::new(<a class="self" href="#561">self</a>, <a href="#561">n</a>)
+        Take::new(<span class="self">self</span>, n)
     }
 
     <span class="doccomment">/// Take elements from this stream while the provided predicate
@@ -1671,10 +1671,10 @@
     /// ```
     </span><span class="kw">fn </span>take_while&lt;F&gt;(<span class="self">self</span>, f: F) -&gt; TakeWhile&lt;<span class="self">Self</span>, F&gt;
     <span class="kw">where
-        </span>F: FnMut(<span class="kw-2">&amp;</span><span class="self">Self</span>::Item) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-        <span class="self">Self</span>: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>,
+        </span>F: FnMut(<span class="kw-2">&amp;</span><span class="self">Self</span>::Item) -&gt; bool,
+        <span class="self">Self</span>: Sized,
     {
-        TakeWhile::new(<a class="self" href="#590">self</a>, <a href="#590">f</a>)
+        TakeWhile::new(<span class="self">self</span>, f)
     }
 
     <span class="doccomment">/// Creates a new stream that will skip the `n` first items of the
@@ -1695,11 +1695,11 @@
     /// assert_eq!(None, stream.next().await);
     /// # }
     /// ```
-    </span><span class="kw">fn </span>skip(<span class="self">self</span>, n: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; Skip&lt;<span class="self">Self</span>&gt;
+    </span><span class="kw">fn </span>skip(<span class="self">self</span>, n: usize) -&gt; Skip&lt;<span class="self">Self</span>&gt;
     <span class="kw">where
-        </span><span class="self">Self</span>: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>,
+        </span><span class="self">Self</span>: Sized,
     {
-        Skip::new(<a class="self" href="#616">self</a>, <a href="#616">n</a>)
+        Skip::new(<span class="self">self</span>, n)
     }
 
     <span class="doccomment">/// Skip elements from the underlying stream while the provided predicate
@@ -1727,10 +1727,10 @@
     /// ```
     </span><span class="kw">fn </span>skip_while&lt;F&gt;(<span class="self">self</span>, f: F) -&gt; SkipWhile&lt;<span class="self">Self</span>, F&gt;
     <span class="kw">where
-        </span>F: FnMut(<span class="kw-2">&amp;</span><span class="self">Self</span>::Item) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-        <span class="self">Self</span>: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>,
+        </span>F: FnMut(<span class="kw-2">&amp;</span><span class="self">Self</span>::Item) -&gt; bool,
+        <span class="self">Self</span>: Sized,
     {
-        SkipWhile::new(<a class="self" href="#646">self</a>, <a href="#646">f</a>)
+        SkipWhile::new(<span class="self">self</span>, f)
     }
 
     <span class="doccomment">/// Tests if every element of the stream matches a predicate.
@@ -1788,10 +1788,10 @@
     /// ```
     </span><span class="kw">fn </span>all&lt;F&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, f: F) -&gt; AllFuture&lt;<span class="lifetime">&#39;_</span>, <span class="self">Self</span>, F&gt;
     <span class="kw">where
-        </span><span class="self">Self</span>: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
-        F: FnMut(<span class="self">Self</span>::Item) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
+        </span><span class="self">Self</span>: Unpin,
+        F: FnMut(<span class="self">Self</span>::Item) -&gt; bool,
     {
-        AllFuture::new(<a class="self" href="#707">self</a>, <a href="#707">f</a>)
+        AllFuture::new(<span class="self">self</span>, f)
     }
 
     <span class="doccomment">/// Tests if any element of the stream matches a predicate.
@@ -1847,10 +1847,10 @@
     /// ```
     </span><span class="kw">fn </span>any&lt;F&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, f: F) -&gt; AnyFuture&lt;<span class="lifetime">&#39;_</span>, <span class="self">Self</span>, F&gt;
     <span class="kw">where
-        </span><span class="self">Self</span>: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
-        F: FnMut(<span class="self">Self</span>::Item) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
+        </span><span class="self">Self</span>: Unpin,
+        F: FnMut(<span class="self">Self</span>::Item) -&gt; bool,
     {
-        AnyFuture::new(<a class="self" href="#766">self</a>, <a href="#766">f</a>)
+        AnyFuture::new(<span class="self">self</span>, f)
     }
 
     <span class="doccomment">/// Combine two streams into one by first returning all values from the
@@ -1883,9 +1883,9 @@
     </span><span class="kw">fn </span>chain&lt;U&gt;(<span class="self">self</span>, other: U) -&gt; Chain&lt;<span class="self">Self</span>, U&gt;
     <span class="kw">where
         </span>U: Stream&lt;Item = <span class="self">Self</span>::Item&gt;,
-        <span class="self">Self</span>: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>,
+        <span class="self">Self</span>: Sized,
     {
-        Chain::new(<a class="self" href="#801">self</a>, <a href="#801">other</a>)
+        Chain::new(<span class="self">self</span>, other)
     }
 
     <span class="doccomment">/// A combinator that applies a function to every element in a stream
@@ -1912,10 +1912,10 @@
     /// ```
     </span><span class="kw">fn </span>fold&lt;B, F&gt;(<span class="self">self</span>, init: B, f: F) -&gt; FoldFuture&lt;<span class="self">Self</span>, B, F&gt;
     <span class="kw">where
-        </span><span class="self">Self</span>: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>,
+        </span><span class="self">Self</span>: Sized,
         F: FnMut(B, <span class="self">Self</span>::Item) -&gt; B,
     {
-        FoldFuture::new(<a class="self" href="#831">self</a>, <a href="#831">init</a>, <a href="#831">f</a>)
+        FoldFuture::new(<span class="self">self</span>, init, f)
     }
 
     <span class="doccomment">/// Drain stream pushing all emitted values into a collection.
@@ -1993,9 +1993,9 @@
     </span><span class="kw">fn </span>collect&lt;T&gt;(<span class="self">self</span>) -&gt; Collect&lt;<span class="self">Self</span>, T&gt;
     <span class="kw">where
         </span>T: FromStream&lt;<span class="self">Self</span>::Item&gt;,
-        <span class="self">Self</span>: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>,
+        <span class="self">Self</span>: Sized,
     {
-        Collect::new(<a class="self" href="#911">self</a>)
+        Collect::new(<span class="self">self</span>)
     }
 
     <span class="doccomment">/// Applies a per-item timeout to the passed stream.
@@ -2055,11 +2055,11 @@
     /// ```
     </span><span class="attr">#[cfg(all(feature = <span class="string">&quot;time&quot;</span>))]
     #[cfg_attr(docsrs, doc(cfg(feature = <span class="string">&quot;time&quot;</span>)))]
-    </span><span class="kw">fn </span>timeout(<span class="self">self</span>, duration: <a href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a>) -&gt; Timeout&lt;<span class="self">Self</span>&gt;
+    </span><span class="kw">fn </span>timeout(<span class="self">self</span>, duration: Duration) -&gt; Timeout&lt;<span class="self">Self</span>&gt;
     <span class="kw">where
-        </span><span class="self">Self</span>: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>,
+        </span><span class="self">Self</span>: Sized,
     {
-        Timeout::new(<a class="self" href="#976">self</a>, <a href="#976">duration</a>)
+        Timeout::new(<span class="self">self</span>, duration)
     }
 
     <span class="doccomment">/// Slows down a stream by enforcing a delay between items.
@@ -2083,11 +2083,11 @@
     /// ```
     </span><span class="attr">#[cfg(all(feature = <span class="string">&quot;time&quot;</span>))]
     #[cfg_attr(docsrs, doc(cfg(feature = <span class="string">&quot;time&quot;</span>)))]
-    </span><span class="kw">fn </span>throttle(<span class="self">self</span>, duration: <a href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a>) -&gt; Throttle&lt;<span class="self">Self</span>&gt;
+    </span><span class="kw">fn </span>throttle(<span class="self">self</span>, duration: Duration) -&gt; Throttle&lt;<span class="self">Self</span>&gt;
     <span class="kw">where
-        </span><span class="self">Self</span>: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>,
+        </span><span class="self">Self</span>: Sized,
     {
-        <a href="stream_ext/throttle.rs.html#13-15">throttle</a>(<a href="#1004">duration</a>, <a class="self" href="#1004">self</a>)
+        throttle(duration, <span class="self">self</span>)
     }
 
     <span class="doccomment">/// Batches the items in the given stream using a maximum duration and size for each batch.
@@ -2139,28 +2139,28 @@
     </span><span class="attr">#[cfg(feature = <span class="string">&quot;time&quot;</span>)]
     #[cfg_attr(docsrs, doc(cfg(feature = <span class="string">&quot;time&quot;</span>)))]
     #[track_caller]
-    </span><span class="kw">fn </span>chunks_timeout(<span class="self">self</span>, max_size: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, duration: <a href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a>) -&gt; ChunksTimeout&lt;<span class="self">Self</span>&gt;
+    </span><span class="kw">fn </span>chunks_timeout(<span class="self">self</span>, max_size: usize, duration: Duration) -&gt; ChunksTimeout&lt;<span class="self">Self</span>&gt;
     <span class="kw">where
-        </span><span class="self">Self</span>: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>,
+        </span><span class="self">Self</span>: Sized,
     {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(max_size &gt; <span class="number">0</span>, <span class="string">&quot;`max_size` must be non-zero.&quot;</span>);
-        ChunksTimeout::new(<a class="self" href="#1060">self</a>, <a href="#1060">max_size</a>, <a href="#1060">duration</a>)
+        <span class="macro">assert!</span>(max_size &gt; <span class="number">0</span>, <span class="string">&quot;`max_size` must be non-zero.&quot;</span>);
+        ChunksTimeout::new(<span class="self">self</span>, max_size, duration)
     }
 }
 
-<span class="kw">impl</span>&lt;St: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>&gt; <a href="#101">StreamExt</a> <span class="kw">for </span>St <span class="kw">where </span>St: <a href="../../futures_core/stream/trait.Stream.html">Stream</a> {}
+<span class="kw">impl</span>&lt;St: <span class="question-mark">?</span>Sized&gt; StreamExt <span class="kw">for </span>St <span class="kw">where </span>St: Stream {}
 
 <span class="doccomment">/// Merge the size hints from two streams.
 </span><span class="kw">fn </span>merge_size_hints(
-    (left_low, left_high): (<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;),
-    (right_low, right_high): (<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;),
-) -&gt; (<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;) {
-    <span class="kw">let </span>low = <a href="#1073">left_low</a>.saturating_add(<a href="#1074">right_low</a>);
-    <span class="kw">let </span>high = <span class="kw">match </span>(<a href="#1073">left_high</a>, <a href="#1074">right_high</a>) {
-        (<span class="prelude-val">Some</span>(h1), <span class="prelude-val">Some</span>(h2)) =&gt; <a href="#1078">h1</a>.checked_add(<a href="#1078">h2</a>),
+    (left_low, left_high): (usize, <span class="prelude-ty">Option</span>&lt;usize&gt;),
+    (right_low, right_high): (usize, <span class="prelude-ty">Option</span>&lt;usize&gt;),
+) -&gt; (usize, <span class="prelude-ty">Option</span>&lt;usize&gt;) {
+    <span class="kw">let </span>low = left_low.saturating_add(right_low);
+    <span class="kw">let </span>high = <span class="kw">match </span>(left_high, right_high) {
+        (<span class="prelude-val">Some</span>(h1), <span class="prelude-val">Some</span>(h2)) =&gt; h1.checked_add(h2),
         <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
     };
-    (<a href="#1076">low</a>, <a href="#1077">high</a>)
+    (low, high)
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="tokio_stream" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="tokio_stream" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/object-0.29.0/src/read/elf/comdat.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>comdat.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../../object/index.html"><img class="rust-logo" src="../../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/object-0.30.1/src/read/elf/comdat.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>comdat.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../../object/index.html"><img class="rust-logo" src="../../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -160,43 +160,43 @@
 <a href="#160" id="160">160</a>
 <a href="#161" id="161">161</a>
 <a href="#162" id="162">162</a>
-</pre><pre class="rust"><code><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/fmt/macros/derive.Debug.html">core::fmt::Debug</a>;
-<span class="kw">use </span>core::{<a href="https://doc.rust-lang.org/nightly/core/iter/index.html">iter</a>, <a href="https://doc.rust-lang.org/nightly/core/slice/index.html">slice</a>, <a href="https://doc.rust-lang.org/nightly/core/str/index.html">str</a>};
+</pre><pre class="rust"><code><span class="kw">use </span>core::fmt::Debug;
+<span class="kw">use </span>core::{iter, slice, str};
 
-<span class="kw">use </span><a href="../../lib.rs.html#108"><span class="kw">crate</span>::elf</a>;
-<span class="kw">use </span><span class="kw">crate</span>::endian::{<a href="../../endian.rs.html#278">Endianness</a>, <a href="../../endian.rs.html#612">U32Bytes</a>};
-<span class="kw">use </span><span class="kw">crate</span>::read::{<a class="self" href="../../lib.rs.html#98">self</a>, <a href="../../common.rs.html#195">ComdatKind</a>, <a href="../traits.rs.html#353">ObjectComdat</a>, <a href="../mod.rs.html#79">ReadError</a>, <a href="../read_ref.rs.html#37">ReadRef</a>, <a href="../mod.rs.html#263">SectionIndex</a>, <a href="../mod.rs.html#267">SymbolIndex</a>};
+<span class="kw">use </span><span class="kw">crate</span>::elf;
+<span class="kw">use </span><span class="kw">crate</span>::endian::{Endianness, U32Bytes};
+<span class="kw">use </span><span class="kw">crate</span>::read::{<span class="self">self</span>, ComdatKind, ObjectComdat, ReadError, ReadRef, SectionIndex, SymbolIndex};
 
-<span class="kw">use super</span>::{<a href="file.rs.html#30">ElfFile</a>, <a href="file.rs.html#437">FileHeader</a>, <a href="section.rs.html#605">SectionHeader</a>, <a href="symbol.rs.html#442">Sym</a>};
+<span class="kw">use super</span>::{ElfFile, FileHeader, SectionHeader, Sym};
 
 <span class="doccomment">/// An iterator over the COMDAT section groups of an `ElfFile32`.
-</span><span class="kw">pub type </span>ElfComdatIterator32&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Endian = <a href="../../endian.rs.html#278">Endianness</a>, R = <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt; =
+</span><span class="kw">pub type </span>ElfComdatIterator32&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Endian = Endianness, R = <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[u8]&gt; =
     ElfComdatIterator&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, elf::FileHeader32&lt;Endian&gt;, R&gt;;
 <span class="doccomment">/// An iterator over the COMDAT section groups of an `ElfFile64`.
-</span><span class="kw">pub type </span>ElfComdatIterator64&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Endian = <a href="../../endian.rs.html#278">Endianness</a>, R = <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt; =
+</span><span class="kw">pub type </span>ElfComdatIterator64&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Endian = Endianness, R = <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[u8]&gt; =
     ElfComdatIterator&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, elf::FileHeader64&lt;Endian&gt;, R&gt;;
 
 <span class="doccomment">/// An iterator over the COMDAT section groups of an `ElfFile`.
 </span><span class="attr">#[derive(Debug)]
-</span><span class="kw">pub struct </span>ElfComdatIterator&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Elf, R = <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;
+</span><span class="kw">pub struct </span>ElfComdatIterator&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Elf, R = <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[u8]&gt;
 <span class="kw">where
     </span><span class="lifetime">&#39;data</span>: <span class="lifetime">&#39;file</span>,
-    Elf: <a href="file.rs.html#437">FileHeader</a>,
+    Elf: FileHeader,
     R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt;,
 {
     <span class="kw">pub</span>(<span class="kw">super</span>) file: <span class="kw-2">&amp;</span><span class="lifetime">&#39;file </span>ElfFile&lt;<span class="lifetime">&#39;data</span>, Elf, R&gt;,
     <span class="kw">pub</span>(<span class="kw">super</span>) iter: iter::Enumerate&lt;slice::Iter&lt;<span class="lifetime">&#39;data</span>, Elf::SectionHeader&gt;&gt;,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Elf, R&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a> <span class="kw">for </span>ElfComdatIterator&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Elf, R&gt;
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Elf, R&gt; Iterator <span class="kw">for </span>ElfComdatIterator&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Elf, R&gt;
 <span class="kw">where
-    </span>Elf: <a href="file.rs.html#437">FileHeader</a>,
+    </span>Elf: FileHeader,
     R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt;,
 {
     <span class="kw">type </span>Item = ElfComdat&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Elf, R&gt;;
 
     <span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt; {
-        <span class="kw">while let </span><span class="prelude-val">Some</span>((_index, section)) = <span class="self">self</span>.iter.next() {
+        <span class="kw">for </span>(_index, section) <span class="kw">in </span><span class="self">self</span>.iter.by_ref() {
             <span class="kw">if let </span><span class="prelude-val">Some</span>(comdat) = ElfComdat::parse(<span class="self">self</span>.file, section) {
                 <span class="kw">return </span><span class="prelude-val">Some</span>(comdat);
             }
@@ -206,17 +206,17 @@
 }
 
 <span class="doccomment">/// A COMDAT section group of an `ElfFile32`.
-</span><span class="kw">pub type </span>ElfComdat32&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Endian = <a href="../../endian.rs.html#278">Endianness</a>, R = <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt; =
+</span><span class="kw">pub type </span>ElfComdat32&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Endian = Endianness, R = <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[u8]&gt; =
     ElfComdat&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, elf::FileHeader32&lt;Endian&gt;, R&gt;;
 <span class="doccomment">/// A COMDAT section group of an `ElfFile64`.
-</span><span class="kw">pub type </span>ElfComdat64&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Endian = <a href="../../endian.rs.html#278">Endianness</a>, R = <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt; =
+</span><span class="kw">pub type </span>ElfComdat64&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Endian = Endianness, R = <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[u8]&gt; =
     ElfComdat&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, elf::FileHeader64&lt;Endian&gt;, R&gt;;
 
 <span class="doccomment">/// A COMDAT section group of an `ElfFile`.
 </span><span class="attr">#[derive(Debug)]
-</span><span class="kw">pub struct </span>ElfComdat&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Elf, R = <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;
+</span><span class="kw">pub struct </span>ElfComdat&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Elf, R = <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[u8]&gt;
 <span class="kw">where
-    </span>Elf: <a href="file.rs.html#437">FileHeader</a>,
+    </span>Elf: FileHeader,
     R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt;,
 {
     file: <span class="kw-2">&amp;</span><span class="lifetime">&#39;file </span>ElfFile&lt;<span class="lifetime">&#39;data</span>, Elf, R&gt;,
@@ -226,7 +226,7 @@
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Elf, R&gt; ElfComdat&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Elf, R&gt;
 <span class="kw">where
-    </span>Elf: <a href="file.rs.html#437">FileHeader</a>,
+    </span>Elf: FileHeader,
     R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt;,
 {
     <span class="kw">fn </span>parse(
@@ -237,90 +237,90 @@
         <span class="kw">if </span>flag != elf::GRP_COMDAT {
             <span class="kw">return </span><span class="prelude-val">None</span>;
         }
-        <span class="prelude-val">Some</span>(<a href="#55">ElfComdat</a> {
-            <a href="#71">file</a>,
-            <a href="#72">section</a>,
-            <a href="#74">sections</a>,
+        <span class="prelude-val">Some</span>(ElfComdat {
+            file,
+            section,
+            sections,
         })
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Elf, R&gt; <a href="../mod.rs.html#59">read::private::Sealed</a> <span class="kw">for </span>ElfComdat&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Elf, R&gt;
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Elf, R&gt; read::private::Sealed <span class="kw">for </span>ElfComdat&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Elf, R&gt;
 <span class="kw">where
-    </span>Elf: <a href="file.rs.html#437">FileHeader</a>,
+    </span>Elf: FileHeader,
     R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt;,
 {
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Elf, R&gt; ObjectComdat&lt;<span class="lifetime">&#39;data</span>&gt; <span class="kw">for </span>ElfComdat&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Elf, R&gt;
 <span class="kw">where
-    </span>Elf: <a href="file.rs.html#437">FileHeader</a>,
+    </span>Elf: FileHeader,
     R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt;,
 {
     <span class="kw">type </span>SectionIterator = ElfComdatSectionIterator&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Elf, R&gt;;
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>kind(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../../common.rs.html#195">ComdatKind</a> {
-        <a href="../../common.rs.html#203">ComdatKind::Any</a>
+    </span><span class="kw">fn </span>kind(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; ComdatKind {
+        ComdatKind::Any
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>symbol(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../mod.rs.html#267">SymbolIndex</a> {
-        <a href="../mod.rs.html#267">SymbolIndex</a>(<a class="self" href="#106">self</a>.section.<a href="section.rs.html#617">sh_info</a>(<a class="self" href="#106">self</a>.file.endian) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>)
+    </span><span class="kw">fn </span>symbol(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; SymbolIndex {
+        SymbolIndex(<span class="self">self</span>.section.sh_info(<span class="self">self</span>.file.endian) <span class="kw">as </span>usize)
     }
 
-    <span class="kw">fn </span>name_bytes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; read::Result&lt;<span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt; {
+    <span class="kw">fn </span>name_bytes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; read::Result&lt;<span class="kw-2">&amp;</span>[u8]&gt; {
         <span class="comment">// FIXME: check sh_link
-        </span><span class="kw">let </span>index = <a class="self" href="#110">self</a>.section.<a href="section.rs.html#617">sh_info</a>(<a class="self" href="#110">self</a>.file.endian) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>;
+        </span><span class="kw">let </span>index = <span class="self">self</span>.section.sh_info(<span class="self">self</span>.file.endian) <span class="kw">as </span>usize;
         <span class="kw">let </span>symbol = <span class="self">self</span>.file.symbols.symbol(index)<span class="question-mark">?</span>;
-        <a href="#113">symbol</a>.<a href="symbol.rs.html#457-461">name</a>(<a class="self" href="#110">self</a>.file.endian, <a class="self" href="#110">self</a>.file.symbols.<a href="symbol.rs.html#111">strings</a>())
+        symbol.name(<span class="self">self</span>.file.endian, <span class="self">self</span>.file.symbols.strings())
     }
 
-    <span class="kw">fn </span>name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; read::Result&lt;<span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt; {
+    <span class="kw">fn </span>name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; read::Result&lt;<span class="kw-2">&amp;</span>str&gt; {
         <span class="kw">let </span>name = <span class="self">self</span>.name_bytes()<span class="question-mark">?</span>;
-        <a href="https://doc.rust-lang.org/nightly/core/str/converts/fn.from_utf8.html">str::from_utf8</a>(<a href="#118">name</a>)
+        str::from_utf8(name)
             .ok()
-            .<a href="../mod.rs.html#80">read_error</a>(<span class="string">&quot;Non UTF-8 ELF COMDAT name&quot;</span>)
+            .read_error(<span class="string">&quot;Non UTF-8 ELF COMDAT name&quot;</span>)
     }
 
     <span class="kw">fn </span>sections(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self</span>::SectionIterator {
-        <a href="#141">ElfComdatSectionIterator</a> {
-            file: <a class="self" href="#124">self</a>.file,
-            sections: <a class="self" href="#124">self</a>.sections.iter(),
+        ElfComdatSectionIterator {
+            file: <span class="self">self</span>.file,
+            sections: <span class="self">self</span>.sections.iter(),
         }
     }
 }
 
 <span class="doccomment">/// An iterator over the sections in a COMDAT section group of an `ElfFile32`.
-</span><span class="kw">pub type </span>ElfComdatSectionIterator32&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Endian = <a href="../../endian.rs.html#278">Endianness</a>, R = <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt; =
+</span><span class="kw">pub type </span>ElfComdatSectionIterator32&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Endian = Endianness, R = <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[u8]&gt; =
     ElfComdatSectionIterator&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, elf::FileHeader32&lt;Endian&gt;, R&gt;;
 <span class="doccomment">/// An iterator over the sections in a COMDAT section group of an `ElfFile64`.
-</span><span class="kw">pub type </span>ElfComdatSectionIterator64&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Endian = <a href="../../endian.rs.html#278">Endianness</a>, R = <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt; =
+</span><span class="kw">pub type </span>ElfComdatSectionIterator64&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Endian = Endianness, R = <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[u8]&gt; =
     ElfComdatSectionIterator&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, elf::FileHeader64&lt;Endian&gt;, R&gt;;
 
 <span class="doccomment">/// An iterator over the sections in a COMDAT section group of an `ElfFile`.
 </span><span class="attr">#[derive(Debug)]
-</span><span class="kw">pub struct </span>ElfComdatSectionIterator&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Elf, R = <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;
+</span><span class="kw">pub struct </span>ElfComdatSectionIterator&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Elf, R = <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[u8]&gt;
 <span class="kw">where
     </span><span class="lifetime">&#39;data</span>: <span class="lifetime">&#39;file</span>,
-    Elf: <a href="file.rs.html#437">FileHeader</a>,
+    Elf: FileHeader,
     R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt;,
 {
     file: <span class="kw-2">&amp;</span><span class="lifetime">&#39;file </span>ElfFile&lt;<span class="lifetime">&#39;data</span>, Elf, R&gt;,
     sections: slice::Iter&lt;<span class="lifetime">&#39;data</span>, U32Bytes&lt;Elf::Endian&gt;&gt;,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Elf, R&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a> <span class="kw">for </span>ElfComdatSectionIterator&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Elf, R&gt;
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Elf, R&gt; Iterator <span class="kw">for </span>ElfComdatSectionIterator&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Elf, R&gt;
 <span class="kw">where
-    </span>Elf: <a href="file.rs.html#437">FileHeader</a>,
+    </span>Elf: FileHeader,
     R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt;,
 {
-    <span class="kw">type </span>Item = <a href="../mod.rs.html#263">SectionIndex</a>;
+    <span class="kw">type </span>Item = SectionIndex;
 
     <span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt; {
         <span class="kw">let </span>index = <span class="self">self</span>.sections.next()<span class="question-mark">?</span>;
-        <span class="prelude-val">Some</span>(<a href="../mod.rs.html#263">SectionIndex</a>(<a href="#159">index</a>.<a href="../../endian.rs.html#621">get</a>(<a class="self" href="#158">self</a>.file.endian) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>))
+        <span class="prelude-val">Some</span>(SectionIndex(index.get(<span class="self">self</span>.file.endian) <span class="kw">as </span>usize))
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="object" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="object" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

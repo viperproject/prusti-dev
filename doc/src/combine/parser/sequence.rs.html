@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/combine-4.6.6/src/parser/sequence.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>sequence.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../combine/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/combine-4.6.6/src/parser/sequence.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>sequence.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../combine/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -911,16 +911,16 @@
 
 </span><span class="kw">use crate</span>::{
     error::{
-        <a href="../error.rs.html#456">ParseError</a>,
-        ParseResult::{<a class="self" href="../error.rs.html#946">self</a>, <span class="kw-2">*</span>},
-        <a href="../error.rs.html#367">StreamError</a>, <a href="../error.rs.html#926">Tracked</a>,
+        ParseError,
+        ParseResult::{<span class="self">self</span>, <span class="kw-2">*</span>},
+        StreamError, Tracked,
     },
     lib::marker::PhantomData,
     parser::{
-        combinator::{<a href="combinator.rs.html#712-715">ignore</a>, <a href="combinator.rs.html#677">Ignore</a>, <a href="combinator.rs.html#215">Map</a>},
-        <a href="mod.rs.html#1104">ParseMode</a>,
+        combinator::{ignore, Ignore, Map},
+        ParseMode,
     },
-    <a href="../lib.rs.html#627">ErrorOffset</a>, <a href="mod.rs.html#84">Parser</a>, <a href="../stream/mod.rs.html#163">Stream</a>, <a href="../stream/mod.rs.html#116">StreamOnce</a>,
+    ErrorOffset, Parser, Stream, StreamOnce,
 };
 
 <span class="macro">macro_rules! </span>count {
@@ -935,9 +935,9 @@
     <span class="kw">pub </span>state: U,
 }
 
-<span class="kw">impl</span>&lt;T, U: <a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for </span>SequenceState&lt;T, U&gt; {
+<span class="kw">impl</span>&lt;T, U: Default&gt; Default <span class="kw">for </span>SequenceState&lt;T, U&gt; {
     <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
-        <a href="#24">SequenceState</a> {
+        SequenceState {
             value: <span class="prelude-val">None</span>,
             state: U::default(),
         }
@@ -946,12 +946,12 @@
 
 <span class="kw">impl</span>&lt;T, U&gt; SequenceState&lt;T, U&gt;
 <span class="kw">where
-    </span>U: <a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a>,
+    </span>U: Default,
 {
     <span class="kw">unsafe fn </span>unwrap_value(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; T {
-        <span class="kw">match </span><a class="self" href="#42">self</a>.value.take() {
-            <span class="prelude-val">Some</span>(t) =&gt; <a href="#44">t</a>,
-            <span class="prelude-val">None </span>=&gt; <a href="https://doc.rust-lang.org/nightly/core/hint/fn.unreachable_unchecked.html">core::hint::unreachable_unchecked</a>(),
+        <span class="kw">match </span><span class="self">self</span>.value.take() {
+            <span class="prelude-val">Some</span>(t) =&gt; t,
+            <span class="prelude-val">None </span>=&gt; core::hint::unreachable_unchecked(),
         }
     }
 }
@@ -962,33 +962,33 @@
 }
 
 <span class="kw">fn </span>add_sequence_error&lt;Input&gt;(
-    i: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-    first_empty_parser: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-    inner_offset: <a href="../lib.rs.html#627">ErrorOffset</a>,
+    i: <span class="kw-2">&amp;mut </span>usize,
+    first_empty_parser: usize,
+    inner_offset: ErrorOffset,
     err: <span class="kw-2">&amp;mut </span>Tracked&lt;Input::Error&gt;,
     parser: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>Parser&lt;Input&gt;,
-) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>
+) -&gt; bool
 <span class="kw">where
-    </span>Input: <a href="../stream/mod.rs.html#163">Stream</a>,
+    </span>Input: Stream,
 {
     <span class="kw">if </span><span class="kw-2">*</span>i + <span class="number">1 </span>== first_empty_parser {
-        <a href="mod.rs.html#330">Parser::add_committed_expected_error</a>(<a href="#60">parser</a>, <a href="#59">err</a>);
+        Parser::add_committed_expected_error(parser, err);
     }
     <span class="kw">if </span><span class="kw-2">*</span>i &gt;= first_empty_parser {
         <span class="kw">if </span>err.offset &lt;= ErrorOffset(<span class="number">1</span>) {
             <span class="comment">// We reached the last parser we need to add errors to (and the
             // parser that actually returned the error), use the returned
             // offset for that parser.
-            </span><a href="#59">err</a>.offset = <a href="#58">inner_offset</a>;
+            </span>err.offset = inner_offset;
         }
-        <a href="mod.rs.html#206">Parser::add_error</a>(<a href="#60">parser</a>, <a href="#59">err</a>);
+        Parser::add_error(parser, err);
         <span class="kw">if </span>err.offset &lt;= ErrorOffset(<span class="number">1</span>) {
             <span class="kw">return </span><span class="bool-val">false</span>;
         }
     }
-    <a href="#59">err</a>.offset = <a href="../lib.rs.html#627">ErrorOffset</a>(<a href="#59">err</a>.offset.<span class="number">0</span>.saturating_sub(<a href="mod.rs.html#324">Parser::parser_count</a>(<a href="#60">parser</a>).<span class="number">0</span>));
+    err.offset = ErrorOffset(err.offset.<span class="number">0</span>.saturating_sub(Parser::parser_count(parser).<span class="number">0</span>));
 
-    <span class="kw-2">*</span><a href="#56">i</a> += <span class="number">1</span>;
+    <span class="kw-2">*</span>i += <span class="number">1</span>;
     <span class="bool-val">true
 </span>}
 
@@ -1204,26 +1204,26 @@
     }
 }
 
-<a class="macro" href="#86-296">tuple_parser!</a>(PartialState1; A);
-<a class="macro" href="#86-296">tuple_parser!</a>(PartialState2; A, B);
-<a class="macro" href="#86-296">tuple_parser!</a>(PartialState3; A, B, C);
-<a class="macro" href="#86-296">tuple_parser!</a>(PartialState4; A, B, C, D);
-<a class="macro" href="#86-296">tuple_parser!</a>(PartialState5; A, B, C, D, E);
-<a class="macro" href="#86-296">tuple_parser!</a>(PartialState6; A, B, C, D, E, F);
-<a class="macro" href="#86-296">tuple_parser!</a>(PartialState7; A, B, C, D, E, F, G);
-<a class="macro" href="#86-296">tuple_parser!</a>(PartialState8; A, B, C, D, E, F, G, H);
-<a class="macro" href="#86-296">tuple_parser!</a>(PartialState9; A, B, C, D, E, F, G, H, I);
-<a class="macro" href="#86-296">tuple_parser!</a>(PartialState10; A, B, C, D, E, F, G, H, I, J);
-<a class="macro" href="#86-296">tuple_parser!</a>(PartialState11; A, B, C, D, E, F, G, H, I, J, K);
-<a class="macro" href="#86-296">tuple_parser!</a>(PartialState12; A, B, C, D, E, F, G, H, I, J, K, L);
-<a class="macro" href="#86-296">tuple_parser!</a>(PartialState13; A, B, C, D, E, F, G, H, I, J, K, L, M);
-<a class="macro" href="#86-296">tuple_parser!</a>(PartialState14; A, B, C, D, E, F, G, H, I, J, K, L, M, N);
-<a class="macro" href="#86-296">tuple_parser!</a>(PartialState15; A, B, C, D, E, F, G, H, I, J, K, L, M, N, P);
-<a class="macro" href="#86-296">tuple_parser!</a>(PartialState16; A, B, C, D, E, F, G, H, I, J, K, L, M, N, P, Q);
-<a class="macro" href="#86-296">tuple_parser!</a>(PartialState17; A, B, C, D, E, F, G, H, I, J, K, L, M, N, P, Q, R);
-<a class="macro" href="#86-296">tuple_parser!</a>(PartialState18; A, B, C, D, E, F, G, H, I, J, K, L, M, N, P, Q, R, S);
-<a class="macro" href="#86-296">tuple_parser!</a>(PartialState19; A, B, C, D, E, F, G, H, I, J, K, L, M, N, P, Q, R, S, T);
-<a class="macro" href="#86-296">tuple_parser!</a>(PartialState20; A, B, C, D, E, F, G, H, I, J, K, L, M, N, P, Q, R, S, T, U);
+<span class="macro">tuple_parser!</span>(PartialState1; A);
+<span class="macro">tuple_parser!</span>(PartialState2; A, B);
+<span class="macro">tuple_parser!</span>(PartialState3; A, B, C);
+<span class="macro">tuple_parser!</span>(PartialState4; A, B, C, D);
+<span class="macro">tuple_parser!</span>(PartialState5; A, B, C, D, E);
+<span class="macro">tuple_parser!</span>(PartialState6; A, B, C, D, E, F);
+<span class="macro">tuple_parser!</span>(PartialState7; A, B, C, D, E, F, G);
+<span class="macro">tuple_parser!</span>(PartialState8; A, B, C, D, E, F, G, H);
+<span class="macro">tuple_parser!</span>(PartialState9; A, B, C, D, E, F, G, H, I);
+<span class="macro">tuple_parser!</span>(PartialState10; A, B, C, D, E, F, G, H, I, J);
+<span class="macro">tuple_parser!</span>(PartialState11; A, B, C, D, E, F, G, H, I, J, K);
+<span class="macro">tuple_parser!</span>(PartialState12; A, B, C, D, E, F, G, H, I, J, K, L);
+<span class="macro">tuple_parser!</span>(PartialState13; A, B, C, D, E, F, G, H, I, J, K, L, M);
+<span class="macro">tuple_parser!</span>(PartialState14; A, B, C, D, E, F, G, H, I, J, K, L, M, N);
+<span class="macro">tuple_parser!</span>(PartialState15; A, B, C, D, E, F, G, H, I, J, K, L, M, N, P);
+<span class="macro">tuple_parser!</span>(PartialState16; A, B, C, D, E, F, G, H, I, J, K, L, M, N, P, Q);
+<span class="macro">tuple_parser!</span>(PartialState17; A, B, C, D, E, F, G, H, I, J, K, L, M, N, P, Q, R);
+<span class="macro">tuple_parser!</span>(PartialState18; A, B, C, D, E, F, G, H, I, J, K, L, M, N, P, Q, R, S);
+<span class="macro">tuple_parser!</span>(PartialState19; A, B, C, D, E, F, G, H, I, J, K, L, M, N, P, Q, R, S, T);
+<span class="macro">tuple_parser!</span>(PartialState20; A, B, C, D, E, F, G, H, I, J, K, L, M, N, P, Q, R, S, T, U);
 
 <span class="attr">#[macro_export]
 #[doc(hidden)]
@@ -1420,7 +1420,7 @@
 </span><span class="kw">pub struct </span>With&lt;P1, P2&gt;((Ignore&lt;P1&gt;, P2));
 <span class="kw">impl</span>&lt;Input, P1, P2&gt; Parser&lt;Input&gt; <span class="kw">for </span>With&lt;P1, P2&gt;
 <span class="kw">where
-    </span>Input: <a href="../stream/mod.rs.html#163">Stream</a>,
+    </span>Input: Stream,
     P1: Parser&lt;Input&gt;,
     P2: Parser&lt;Input&gt;,
 {
@@ -1432,10 +1432,10 @@
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         input: <span class="kw-2">&amp;mut </span>Input,
     ) -&gt; ParseResult&lt;<span class="self">Self</span>::Output, &lt;Input <span class="kw">as </span>StreamOnce&gt;::Error&gt; {
-        <a class="self" href="#523">self</a>.<span class="number">0</span>.<a href="mod.rs.html#180-183">parse_lazy</a>(<a href="#524">input</a>).<a href="../error.rs.html#1016-1018">map</a>(|(<span class="kw">_</span>, b)| <a href="#526">b</a>)
+        <span class="self">self</span>.<span class="number">0</span>.parse_lazy(input).map(|(<span class="kw">_</span>, b)| b)
     }
 
-    <a class="macro" href="mod.rs.html#36-56">parse_mode!</a>(Input);
+    <span class="macro">parse_mode!</span>(Input);
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>parse_mode_impl&lt;M&gt;(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
@@ -1444,12 +1444,12 @@
         state: <span class="kw-2">&amp;mut </span><span class="self">Self</span>::PartialState,
     ) -&gt; ParseResult&lt;<span class="self">Self</span>::Output, &lt;Input <span class="kw">as </span>StreamOnce&gt;::Error&gt;
     <span class="kw">where
-        </span>M: <a href="mod.rs.html#1104">ParseMode</a>,
+        </span>M: ParseMode,
     {
-        <a class="self" href="#532">self</a>.<span class="number">0</span>.<a href="mod.rs.html#267-275">parse_mode</a>(<a href="#533">mode</a>, <a href="#534">input</a>, <a href="#535">state</a>).<a href="../error.rs.html#1016-1018">map</a>(|(<span class="kw">_</span>, b)| <a href="#540">b</a>)
+        <span class="self">self</span>.<span class="number">0</span>.parse_mode(mode, input, state).map(|(<span class="kw">_</span>, b)| b)
     }
 
-    <a class="macro" href="../lib.rs.html#531-597">forward_parser!</a>(Input, add_error add_committed_expected_error parser_count, <span class="number">0</span>);
+    <span class="macro">forward_parser!</span>(Input, add_error add_committed_expected_error parser_count, <span class="number">0</span>);
 }
 
 <span class="doccomment">/// Equivalent to [`p1.with(p2)`].
@@ -1457,25 +1457,25 @@
 /// [`p1.with(p2)`]: ../trait.Parser.html#method.with
 </span><span class="kw">pub fn </span>with&lt;Input, P1, P2&gt;(p1: P1, p2: P2) -&gt; With&lt;P1, P2&gt;
 <span class="kw">where
-    </span>Input: <a href="../stream/mod.rs.html#163">Stream</a>,
+    </span>Input: Stream,
     P1: Parser&lt;Input&gt;,
     P2: Parser&lt;Input&gt;,
 {
-    <a href="#511">With</a>((<a href="combinator.rs.html#712-715">ignore</a>(<a href="#549">p1</a>), <a href="#549">p2</a>))
+    With((ignore(p1), p2))
 }
 
 <span class="attr">#[derive(Copy, Clone)]
 </span><span class="kw">pub struct </span>Skip&lt;P1, P2&gt;((P1, Ignore&lt;P2&gt;));
 <span class="kw">impl</span>&lt;Input, P1, P2&gt; Parser&lt;Input&gt; <span class="kw">for </span>Skip&lt;P1, P2&gt;
 <span class="kw">where
-    </span>Input: <a href="../stream/mod.rs.html#163">Stream</a>,
+    </span>Input: Stream,
     P1: Parser&lt;Input&gt;,
     P2: Parser&lt;Input&gt;,
 {
     <span class="kw">type </span>Output = P1::Output;
     <span class="kw">type </span>PartialState = &lt;(P1, Ignore&lt;P2&gt;) <span class="kw">as </span>Parser&lt;Input&gt;&gt;::PartialState;
 
-    <a class="macro" href="mod.rs.html#36-56">parse_mode!</a>(Input);
+    <span class="macro">parse_mode!</span>(Input);
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>parse_mode_impl&lt;M&gt;(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
@@ -1484,24 +1484,24 @@
         state: <span class="kw-2">&amp;mut </span><span class="self">Self</span>::PartialState,
     ) -&gt; ParseResult&lt;<span class="self">Self</span>::Output, &lt;Input <span class="kw">as </span>StreamOnce&gt;::Error&gt;
     <span class="kw">where
-        </span>M: <a href="mod.rs.html#1104">ParseMode</a>,
+        </span>M: ParseMode,
     {
-        <a class="self" href="#572">self</a>.<span class="number">0</span>.<a href="mod.rs.html#267-275">parse_mode</a>(<a href="#573">mode</a>, <a href="#574">input</a>, <a href="#575">state</a>).<a href="../error.rs.html#1016-1018">map</a>(|(a, <span class="kw">_</span>)| <a href="#580">a</a>)
+        <span class="self">self</span>.<span class="number">0</span>.parse_mode(mode, input, state).map(|(a, <span class="kw">_</span>)| a)
     }
 
-    <a class="macro" href="../lib.rs.html#531-597">forward_parser!</a>(Input, add_error add_committed_expected_error parser_count, <span class="number">0</span>);
+    <span class="macro">forward_parser!</span>(Input, add_error add_committed_expected_error parser_count, <span class="number">0</span>);
 }
 
 <span class="kw">pub fn </span>skip&lt;Input, P1, P2&gt;(p1: P1, p2: P2) -&gt; Skip&lt;P1, P2&gt;
 <span class="kw">where
-    </span>Input: <a href="../stream/mod.rs.html#163">Stream</a>,
+    </span>Input: Stream,
     P1: Parser&lt;Input&gt;,
     P2: Parser&lt;Input&gt;,
 {
-    <a href="#559">Skip</a>((<a href="#586">p1</a>, <a href="combinator.rs.html#712-715">ignore</a>(<a href="#586">p2</a>)))
+    Skip((p1, ignore(p2)))
 }
 
-<a class="macro" href="../lib.rs.html#326-403">parser! </a>{
+<span class="macro">parser! </span>{
     <span class="attr">#[derive(Copy, Clone)]
     </span><span class="kw">pub struct </span>Between;
     <span class="kw">type </span>PartialState = &lt;Map&lt;(L, P, R), <span class="kw">fn </span>((L::Output, P::Output, R::Output)) -&gt; P::Output&gt; <span class="kw">as </span>Parser&lt;Input&gt;&gt;::PartialState;
@@ -1521,7 +1521,7 @@
 /// ```
 </span><span class="kw">pub fn </span>between[Input, L, R, P](open: L, close: R, parser: P)(Input) -&gt; P::Output
 <span class="kw">where </span>[
-    Input: <a href="../stream/mod.rs.html#163">Stream</a>,
+    Input: Stream,
     L: Parser&lt; Input&gt;,
     R: Parser&lt; Input&gt;,
     P: Parser&lt; Input&gt;,
@@ -1538,15 +1538,15 @@
 </span><span class="kw">pub struct </span>Then&lt;P, F&gt;(P, F);
 <span class="kw">impl</span>&lt;Input, P, N, F&gt; Parser&lt;Input&gt; <span class="kw">for </span>Then&lt;P, F&gt;
 <span class="kw">where
-    </span>Input: <a href="../stream/mod.rs.html#163">Stream</a>,
+    </span>Input: Stream,
     F: FnMut(P::Output) -&gt; N,
     P: Parser&lt;Input&gt;,
     N: Parser&lt;Input&gt;,
 {
     <span class="kw">type </span>Output = N::Output;
-    <span class="kw">type </span>PartialState = (P::PartialState, <span class="prelude-ty">Option</span>&lt;(<a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>, N)&gt;, N::PartialState);
+    <span class="kw">type </span>PartialState = (P::PartialState, <span class="prelude-ty">Option</span>&lt;(bool, N)&gt;, N::PartialState);
 
-    <a class="macro" href="mod.rs.html#36-56">parse_mode!</a>(Input);
+    <span class="macro">parse_mode!</span>(Input);
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>parse_mode_impl&lt;M&gt;(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
@@ -1555,59 +1555,59 @@
         state: <span class="kw-2">&amp;mut </span><span class="self">Self</span>::PartialState,
     ) -&gt; ParseResult&lt;<span class="self">Self</span>::Output, &lt;Input <span class="kw">as </span>StreamOnce&gt;::Error&gt;
     <span class="kw">where
-        </span>M: <a href="mod.rs.html#1104">ParseMode</a>,
+        </span>M: ParseMode,
     {
-        <span class="kw">let </span>(<span class="kw-2">ref mut </span>p_state, <span class="kw-2">ref mut </span>n_parser_cache, <span class="kw-2">ref mut </span>n_state) = <span class="kw-2">*</span><a href="#646">state</a>;
+        <span class="kw">let </span>(<span class="kw-2">ref mut </span>p_state, <span class="kw-2">ref mut </span>n_parser_cache, <span class="kw-2">ref mut </span>n_state) = <span class="kw-2">*</span>state;
 
         <span class="kw">if </span>mode.is_first() || n_parser_cache.is_none() {
-            <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(n_parser_cache.is_none());
+            <span class="macro">debug_assert!</span>(n_parser_cache.is_none());
 
-            <span class="kw">let </span>(value, committed) = <span class="kw">match </span><a class="self" href="#643">self</a>.<span class="number">0</span>.<a href="mod.rs.html#267-275">parse_mode</a>(<a href="#644">mode</a>, <a href="#645">input</a>, <a href="#651">p_state</a>) {
-                <a href="../error.rs.html#952">PeekOk</a>(value) =&gt; (<a href="#657">value</a>, <span class="bool-val">false</span>),
-                <a href="../error.rs.html#949">CommitOk</a>(value) =&gt; (<a href="#658">value</a>, <span class="bool-val">true</span>),
+            <span class="kw">let </span>(value, committed) = <span class="kw">match </span><span class="self">self</span>.<span class="number">0</span>.parse_mode(mode, input, p_state) {
+                PeekOk(value) =&gt; (value, <span class="bool-val">false</span>),
+                CommitOk(value) =&gt; (value, <span class="bool-val">true</span>),
 
-                <a href="../error.rs.html#956">PeekErr</a>(err) =&gt; <span class="kw">return </span><a href="../error.rs.html#956">PeekErr</a>(<a href="#660">err</a>),
-                <a href="../error.rs.html#954">CommitErr</a>(err) =&gt; <span class="kw">return </span><a href="../error.rs.html#954">CommitErr</a>(<a href="#661">err</a>),
+                PeekErr(err) =&gt; <span class="kw">return </span>PeekErr(err),
+                CommitErr(err) =&gt; <span class="kw">return </span>CommitErr(err),
             };
 
-            <span class="kw-2">*</span><a href="#651">n_parser_cache</a> = <span class="prelude-val">Some</span>((<a href="#656">committed</a>, (<a class="self" href="#643">self</a>.<span class="number">1</span>)(<a href="#656">value</a>)));
-            <a href="#644">mode</a>.<a href="mod.rs.html#1109">set_first</a>();
+            <span class="kw-2">*</span>n_parser_cache = <span class="prelude-val">Some</span>((committed, (<span class="self">self</span>.<span class="number">1</span>)(value)));
+            mode.set_first();
         }
 
-        <span class="kw">let </span>result = <a href="#651">n_parser_cache</a>
+        <span class="kw">let </span>result = n_parser_cache
             .as_mut()
             .unwrap()
             .<span class="number">1
-            </span>.<a href="mod.rs.html#303-311">parse_committed_mode</a>(<a href="#644">mode</a>, <a href="#645">input</a>, <a href="#651">n_state</a>);
-        <span class="kw">match </span><a href="#668">result</a> {
-            <a href="../error.rs.html#952">PeekOk</a>(x) =&gt; {
-                <span class="kw">let </span>(committed, <span class="kw">_</span>) = <span class="kw-2">*</span><a href="#651">n_parser_cache</a>.as_ref().unwrap();
-                <span class="kw-2">*</span><a href="#651">n_parser_cache</a> = <span class="prelude-val">None</span>;
+            </span>.parse_committed_mode(mode, input, n_state);
+        <span class="kw">match </span>result {
+            PeekOk(x) =&gt; {
+                <span class="kw">let </span>(committed, <span class="kw">_</span>) = <span class="kw-2">*</span>n_parser_cache.as_ref().unwrap();
+                <span class="kw-2">*</span>n_parser_cache = <span class="prelude-val">None</span>;
                 <span class="kw">if </span>committed {
-                    <a href="../error.rs.html#949">CommitOk</a>(<a href="#674">x</a>)
+                    CommitOk(x)
                 } <span class="kw">else </span>{
-                    <a href="../error.rs.html#952">PeekOk</a>(<a href="#674">x</a>)
+                    PeekOk(x)
                 }
             }
-            <a href="../error.rs.html#949">CommitOk</a>(x) =&gt; {
-                <span class="kw-2">*</span><a href="#651">n_parser_cache</a> = <span class="prelude-val">None</span>;
-                <a href="../error.rs.html#949">CommitOk</a>(<a href="#683">x</a>)
+            CommitOk(x) =&gt; {
+                <span class="kw-2">*</span>n_parser_cache = <span class="prelude-val">None</span>;
+                CommitOk(x)
             }
-            <a href="../error.rs.html#956">PeekErr</a>(x) =&gt; {
-                <span class="kw">let </span>(committed, <span class="kw">_</span>) = <span class="kw-2">*</span><a href="#651">n_parser_cache</a>.as_ref().unwrap();
-                <span class="kw-2">*</span><a href="#651">n_parser_cache</a> = <span class="prelude-val">None</span>;
+            PeekErr(x) =&gt; {
+                <span class="kw">let </span>(committed, <span class="kw">_</span>) = <span class="kw-2">*</span>n_parser_cache.as_ref().unwrap();
+                <span class="kw-2">*</span>n_parser_cache = <span class="prelude-val">None</span>;
                 <span class="kw">if </span>committed {
-                    <a href="../error.rs.html#954">CommitErr</a>(<a href="#687">x</a>.error)
+                    CommitErr(x.error)
                 } <span class="kw">else </span>{
-                    <a href="../error.rs.html#956">PeekErr</a>(<a href="#687">x</a>)
+                    PeekErr(x)
                 }
             }
-            <a href="../error.rs.html#954">CommitErr</a>(x) =&gt; <a href="../error.rs.html#954">CommitErr</a>(<a href="#696">x</a>),
+            CommitErr(x) =&gt; CommitErr(x),
         }
     }
 
     <span class="kw">fn </span>add_error(<span class="kw-2">&amp;mut </span><span class="self">self</span>, errors: <span class="kw-2">&amp;mut </span>Tracked&lt;&lt;Input <span class="kw">as </span>StreamOnce&gt;::Error&gt;) {
-        <a class="self" href="#700">self</a>.<span class="number">0</span>.<a href="mod.rs.html#206">add_error</a>(<a href="#700">errors</a>);
+        <span class="self">self</span>.<span class="number">0</span>.add_error(errors);
     }
 }
 
@@ -1616,27 +1616,27 @@
 /// [`p.then(f)`]: ../trait.Parser.html#method.then
 </span><span class="kw">pub fn </span>then&lt;Input, P, F, N&gt;(p: P, f: F) -&gt; Then&lt;P, F&gt;
 <span class="kw">where
-    </span>Input: <a href="../stream/mod.rs.html#163">Stream</a>,
+    </span>Input: Stream,
     F: FnMut(P::Output) -&gt; N,
     P: Parser&lt;Input&gt;,
     N: Parser&lt;Input&gt;,
 {
-    <a href="#629">Then</a>(<a href="#708">p</a>, <a href="#708">f</a>)
+    Then(p, f)
 }
 
 <span class="attr">#[derive(Copy, Clone)]
 </span><span class="kw">pub struct </span>ThenPartial&lt;P, F&gt;(P, F);
 <span class="kw">impl</span>&lt;Input, P, N, F&gt; Parser&lt;Input&gt; <span class="kw">for </span>ThenPartial&lt;P, F&gt;
 <span class="kw">where
-    </span>Input: <a href="../stream/mod.rs.html#163">Stream</a>,
+    </span>Input: Stream,
     F: FnMut(<span class="kw-2">&amp;mut </span>P::Output) -&gt; N,
     P: Parser&lt;Input&gt;,
     N: Parser&lt;Input&gt;,
 {
     <span class="kw">type </span>Output = N::Output;
-    <span class="kw">type </span>PartialState = (P::PartialState, <span class="prelude-ty">Option</span>&lt;(<a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>, P::Output)&gt;, N::PartialState);
+    <span class="kw">type </span>PartialState = (P::PartialState, <span class="prelude-ty">Option</span>&lt;(bool, P::Output)&gt;, N::PartialState);
 
-    <a class="macro" href="mod.rs.html#36-56">parse_mode!</a>(Input);
+    <span class="macro">parse_mode!</span>(Input);
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>parse_mode_impl&lt;M&gt;(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
@@ -1645,55 +1645,55 @@
         state: <span class="kw-2">&amp;mut </span><span class="self">Self</span>::PartialState,
     ) -&gt; ParseResult&lt;<span class="self">Self</span>::Output, &lt;Input <span class="kw">as </span>StreamOnce&gt;::Error&gt;
     <span class="kw">where
-        </span>M: <a href="mod.rs.html#1104">ParseMode</a>,
+        </span>M: ParseMode,
     {
-        <span class="kw">let </span>(<span class="kw-2">ref mut </span>p_state, <span class="kw-2">ref mut </span>n_parser_cache, <span class="kw-2">ref mut </span>n_state) = <span class="kw-2">*</span><a href="#736">state</a>;
+        <span class="kw">let </span>(<span class="kw-2">ref mut </span>p_state, <span class="kw-2">ref mut </span>n_parser_cache, <span class="kw-2">ref mut </span>n_state) = <span class="kw-2">*</span>state;
 
         <span class="kw">if </span>mode.is_first() || n_parser_cache.is_none() {
-            <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(n_parser_cache.is_none());
+            <span class="macro">debug_assert!</span>(n_parser_cache.is_none());
 
-            <span class="kw">match </span><a class="self" href="#733">self</a>.<span class="number">0</span>.<a href="mod.rs.html#267-275">parse_mode</a>(<a href="#734">mode</a>, <a href="#735">input</a>, <a href="#741">p_state</a>) {
-                <a href="../error.rs.html#952">PeekOk</a>(value) =&gt; {
-                    <span class="kw-2">*</span><a href="#741">n_parser_cache</a> = <span class="prelude-val">Some</span>((<span class="bool-val">false</span>, <a href="#747">value</a>));
+            <span class="kw">match </span><span class="self">self</span>.<span class="number">0</span>.parse_mode(mode, input, p_state) {
+                PeekOk(value) =&gt; {
+                    <span class="kw-2">*</span>n_parser_cache = <span class="prelude-val">Some</span>((<span class="bool-val">false</span>, value));
                 }
-                <a href="../error.rs.html#949">CommitOk</a>(value) =&gt; {
-                    <span class="kw-2">*</span><a href="#741">n_parser_cache</a> = <span class="prelude-val">Some</span>((<span class="bool-val">true</span>, <a href="#750">value</a>));
+                CommitOk(value) =&gt; {
+                    <span class="kw-2">*</span>n_parser_cache = <span class="prelude-val">Some</span>((<span class="bool-val">true</span>, value));
                 }
-                <a href="../error.rs.html#956">PeekErr</a>(err) =&gt; <span class="kw">return </span><a href="../error.rs.html#956">PeekErr</a>(<a href="#753">err</a>),
-                <a href="../error.rs.html#954">CommitErr</a>(err) =&gt; <span class="kw">return </span><a href="../error.rs.html#954">CommitErr</a>(<a href="#754">err</a>),
+                PeekErr(err) =&gt; <span class="kw">return </span>PeekErr(err),
+                CommitErr(err) =&gt; <span class="kw">return </span>CommitErr(err),
             }
-            <a href="#734">mode</a>.<a href="mod.rs.html#1109">set_first</a>();
+            mode.set_first();
         }
 
-        <span class="kw">let </span>result = (<a class="self" href="#733">self</a>.<span class="number">1</span>)(<span class="kw-2">&amp;mut </span><a href="#741">n_parser_cache</a>.as_mut().unwrap().<span class="number">1</span>)
-            .<a href="mod.rs.html#303-311">parse_committed_mode</a>(<a href="#734">mode</a>, <a href="#735">input</a>, <a href="#741">n_state</a>);
-        <span class="kw">match </span><a href="#759">result</a> {
-            <a href="../error.rs.html#952">PeekOk</a>(x) =&gt; {
-                <span class="kw">let </span>(committed, <span class="kw">_</span>) = <a href="#741">n_parser_cache</a>.take().unwrap();
+        <span class="kw">let </span>result = (<span class="self">self</span>.<span class="number">1</span>)(<span class="kw-2">&amp;mut </span>n_parser_cache.as_mut().unwrap().<span class="number">1</span>)
+            .parse_committed_mode(mode, input, n_state);
+        <span class="kw">match </span>result {
+            PeekOk(x) =&gt; {
+                <span class="kw">let </span>(committed, <span class="kw">_</span>) = n_parser_cache.take().unwrap();
                 <span class="kw">if </span>committed {
-                    <a href="../error.rs.html#949">CommitOk</a>(<a href="#762">x</a>)
+                    CommitOk(x)
                 } <span class="kw">else </span>{
-                    <a href="../error.rs.html#952">PeekOk</a>(<a href="#762">x</a>)
+                    PeekOk(x)
                 }
             }
-            <a href="../error.rs.html#949">CommitOk</a>(x) =&gt; {
-                <span class="kw-2">*</span><a href="#741">n_parser_cache</a> = <span class="prelude-val">None</span>;
-                <a href="../error.rs.html#949">CommitOk</a>(<a href="#770">x</a>)
+            CommitOk(x) =&gt; {
+                <span class="kw-2">*</span>n_parser_cache = <span class="prelude-val">None</span>;
+                CommitOk(x)
             }
-            <a href="../error.rs.html#956">PeekErr</a>(x) =&gt; {
-                <span class="kw">let </span>(committed, <span class="kw">_</span>) = <a href="#741">n_parser_cache</a>.take().unwrap();
+            PeekErr(x) =&gt; {
+                <span class="kw">let </span>(committed, <span class="kw">_</span>) = n_parser_cache.take().unwrap();
                 <span class="kw">if </span>committed {
-                    <a href="../error.rs.html#954">CommitErr</a>(<a href="#774">x</a>.error)
+                    CommitErr(x.error)
                 } <span class="kw">else </span>{
-                    <a href="../error.rs.html#956">PeekErr</a>(<a href="#774">x</a>)
+                    PeekErr(x)
                 }
             }
-            <a href="../error.rs.html#954">CommitErr</a>(x) =&gt; <a href="../error.rs.html#954">CommitErr</a>(<a href="#782">x</a>),
+            CommitErr(x) =&gt; CommitErr(x),
         }
     }
 
     <span class="kw">fn </span>add_error(<span class="kw-2">&amp;mut </span><span class="self">self</span>, errors: <span class="kw-2">&amp;mut </span>Tracked&lt;&lt;Input <span class="kw">as </span>StreamOnce&gt;::Error&gt;) {
-        <a class="self" href="#786">self</a>.<span class="number">0</span>.<a href="mod.rs.html#206">add_error</a>(<a href="#786">errors</a>);
+        <span class="self">self</span>.<span class="number">0</span>.add_error(errors);
     }
 }
 
@@ -1702,12 +1702,12 @@
 /// [`p.then_partial(f)`]: ../trait.Parser.html#method.then_partial
 </span><span class="kw">pub fn </span>then_partial&lt;Input, P, F, N&gt;(p: P, f: F) -&gt; ThenPartial&lt;P, F&gt;
 <span class="kw">where
-    </span>Input: <a href="../stream/mod.rs.html#163">Stream</a>,
+    </span>Input: Stream,
     F: FnMut(<span class="kw-2">&amp;mut </span>P::Output) -&gt; N,
     P: Parser&lt;Input&gt;,
     N: Parser&lt;Input&gt;,
 {
-    <a href="#719">ThenPartial</a>(<a href="#794">p</a>, <a href="#794">f</a>)
+    ThenPartial(p, f)
 }
 
 <span class="attr">#[cfg(all(feature = <span class="string">&quot;std&quot;</span>, test))]
@@ -1725,7 +1725,7 @@
 </span><span class="kw">pub struct </span>ThenRef&lt;P, F&gt;(P, F);
 <span class="kw">impl</span>&lt;Input, P, N, F&gt; Parser&lt;Input&gt; <span class="kw">for </span>ThenRef&lt;P, F&gt;
 <span class="kw">where
-    </span>Input: <a href="../stream/mod.rs.html#163">Stream</a>,
+    </span>Input: Stream,
     F: FnMut(<span class="kw-2">&amp;</span>P::Output) -&gt; N,
     P: Parser&lt;Input&gt;,
     N: Parser&lt;Input&gt;,
@@ -1733,11 +1733,11 @@
     <span class="kw">type </span>Output = (P::Output, N::Output);
     <span class="kw">type </span>PartialState = (
         P::PartialState,
-        <span class="prelude-ty">Option</span>&lt;(<a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>, P::Output, N)&gt;,
+        <span class="prelude-ty">Option</span>&lt;(bool, P::Output, N)&gt;,
         N::PartialState,
     );
 
-    <a class="macro" href="mod.rs.html#36-56">parse_mode!</a>(Input);
+    <span class="macro">parse_mode!</span>(Input);
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>parse_mode_impl&lt;M&gt;(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
@@ -1746,61 +1746,61 @@
         state: <span class="kw-2">&amp;mut </span><span class="self">Self</span>::PartialState,
     ) -&gt; ParseResult&lt;<span class="self">Self</span>::Output, &lt;Input <span class="kw">as </span>StreamOnce&gt;::Error&gt;
     <span class="kw">where
-        </span>M: <a href="mod.rs.html#1104">ParseMode</a>,
+        </span>M: ParseMode,
     {
-        <span class="kw">let </span>(<span class="kw-2">ref mut </span>p_state, <span class="kw-2">ref mut </span>n_parser_cache, <span class="kw-2">ref mut </span>n_state) = <span class="kw-2">*</span><a href="#837">state</a>;
+        <span class="kw">let </span>(<span class="kw-2">ref mut </span>p_state, <span class="kw-2">ref mut </span>n_parser_cache, <span class="kw-2">ref mut </span>n_state) = <span class="kw-2">*</span>state;
 
         <span class="kw">if </span>mode.is_first() || n_parser_cache.is_none() {
-            <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(n_parser_cache.is_none());
+            <span class="macro">debug_assert!</span>(n_parser_cache.is_none());
 
-            <span class="kw">let </span>(value, committed) = <span class="kw">match </span><a class="self" href="#834">self</a>.<span class="number">0</span>.<a href="mod.rs.html#267-275">parse_mode</a>(<a href="#835">mode</a>, <a href="#836">input</a>, <a href="#842">p_state</a>) {
-                <a href="../error.rs.html#952">PeekOk</a>(value) =&gt; (<a href="#848">value</a>, <span class="bool-val">false</span>),
-                <a href="../error.rs.html#949">CommitOk</a>(value) =&gt; (<a href="#849">value</a>, <span class="bool-val">true</span>),
+            <span class="kw">let </span>(value, committed) = <span class="kw">match </span><span class="self">self</span>.<span class="number">0</span>.parse_mode(mode, input, p_state) {
+                PeekOk(value) =&gt; (value, <span class="bool-val">false</span>),
+                CommitOk(value) =&gt; (value, <span class="bool-val">true</span>),
 
-                <a href="../error.rs.html#956">PeekErr</a>(err) =&gt; <span class="kw">return </span><a href="../error.rs.html#956">PeekErr</a>(<a href="#851">err</a>),
-                <a href="../error.rs.html#954">CommitErr</a>(err) =&gt; <span class="kw">return </span><a href="../error.rs.html#954">CommitErr</a>(<a href="#852">err</a>),
+                PeekErr(err) =&gt; <span class="kw">return </span>PeekErr(err),
+                CommitErr(err) =&gt; <span class="kw">return </span>CommitErr(err),
             };
 
-            <span class="kw">let </span>parser = (<a class="self" href="#834">self</a>.<span class="number">1</span>)(<span class="kw-2">&amp;</span><a href="#847">value</a>);
-            <span class="kw-2">*</span><a href="#842">n_parser_cache</a> = <span class="prelude-val">Some</span>((<a href="#847">committed</a>, <a href="#847">value</a>, <a href="#855">parser</a>));
+            <span class="kw">let </span>parser = (<span class="self">self</span>.<span class="number">1</span>)(<span class="kw-2">&amp;</span>value);
+            <span class="kw-2">*</span>n_parser_cache = <span class="prelude-val">Some</span>((committed, value, parser));
 
-            <a href="#835">mode</a>.<a href="mod.rs.html#1109">set_first</a>();
+            mode.set_first();
         }
 
-        <span class="kw">let </span>result = <a href="#842">n_parser_cache</a>
+        <span class="kw">let </span>result = n_parser_cache
             .as_mut()
             .unwrap()
             .<span class="number">2
-            </span>.<a href="mod.rs.html#303-311">parse_committed_mode</a>(<a href="#835">mode</a>, <a href="#836">input</a>, <a href="#842">n_state</a>);
-        <span class="kw">match </span><a href="#861">result</a> {
-            <a href="../error.rs.html#952">PeekOk</a>(x) =&gt; {
-                <span class="kw">let </span>(committed, in_value, <span class="kw">_</span>) = <a href="#842">n_parser_cache</a>.take().unwrap();
+            </span>.parse_committed_mode(mode, input, n_state);
+        <span class="kw">match </span>result {
+            PeekOk(x) =&gt; {
+                <span class="kw">let </span>(committed, in_value, <span class="kw">_</span>) = n_parser_cache.take().unwrap();
                 <span class="kw">if </span>committed {
-                    <a href="../error.rs.html#949">CommitOk</a>((<a href="#868">in_value</a>, <a href="#867">x</a>))
+                    CommitOk((in_value, x))
                 } <span class="kw">else </span>{
-                    <a href="../error.rs.html#952">PeekOk</a>((<a href="#868">in_value</a>, <a href="#867">x</a>))
+                    PeekOk((in_value, x))
                 }
             }
-            <a href="../error.rs.html#949">CommitOk</a>(x) =&gt; {
-                <span class="kw">let </span>(<span class="kw">_</span>, in_value, <span class="kw">_</span>) = <a href="#842">n_parser_cache</a>.take().unwrap();
-                <span class="kw-2">*</span><a href="#842">n_parser_cache</a> = <span class="prelude-val">None</span>;
-                <a href="../error.rs.html#949">CommitOk</a>((<a href="#876">in_value</a>, <a href="#875">x</a>))
+            CommitOk(x) =&gt; {
+                <span class="kw">let </span>(<span class="kw">_</span>, in_value, <span class="kw">_</span>) = n_parser_cache.take().unwrap();
+                <span class="kw-2">*</span>n_parser_cache = <span class="prelude-val">None</span>;
+                CommitOk((in_value, x))
             }
-            <a href="../error.rs.html#956">PeekErr</a>(x) =&gt; {
-                <span class="kw">let </span>(committed, <span class="kw">_</span>, <span class="kw">_</span>) = <a href="#842">n_parser_cache</a>.take().unwrap();
-                <span class="kw-2">*</span><a href="#842">n_parser_cache</a> = <span class="prelude-val">None</span>;
+            PeekErr(x) =&gt; {
+                <span class="kw">let </span>(committed, <span class="kw">_</span>, <span class="kw">_</span>) = n_parser_cache.take().unwrap();
+                <span class="kw-2">*</span>n_parser_cache = <span class="prelude-val">None</span>;
                 <span class="kw">if </span>committed {
-                    <a href="../error.rs.html#954">CommitErr</a>(<a href="#880">x</a>.error)
+                    CommitErr(x.error)
                 } <span class="kw">else </span>{
-                    <a href="../error.rs.html#956">PeekErr</a>(<a href="#880">x</a>)
+                    PeekErr(x)
                 }
             }
-            <a href="../error.rs.html#954">CommitErr</a>(x) =&gt; <a href="../error.rs.html#954">CommitErr</a>(<a href="#889">x</a>),
+            CommitErr(x) =&gt; CommitErr(x),
         }
     }
 
     <span class="kw">fn </span>add_error(<span class="kw-2">&amp;mut </span><span class="self">self</span>, errors: <span class="kw-2">&amp;mut </span>Tracked&lt;&lt;Input <span class="kw">as </span>StreamOnce&gt;::Error&gt;) {
-        <a class="self" href="#893">self</a>.<span class="number">0</span>.<a href="mod.rs.html#206">add_error</a>(<a href="#893">errors</a>);
+        <span class="self">self</span>.<span class="number">0</span>.add_error(errors);
     }
 }
 
@@ -1809,12 +1809,12 @@
 /// [`p.then_ref(f)`]: ../trait.Parser.html#method.then
 </span><span class="kw">pub fn </span>then_ref&lt;Input, P, F, N&gt;(p: P, f: F) -&gt; ThenRef&lt;P, F&gt;
 <span class="kw">where
-    </span>Input: <a href="../stream/mod.rs.html#163">Stream</a>,
+    </span>Input: Stream,
     F: FnMut(<span class="kw-2">&amp;</span>P::Output) -&gt; N,
     P: Parser&lt;Input&gt;,
     N: Parser&lt;Input&gt;,
 {
-    <a href="#816">ThenRef</a>(<a href="#901">p</a>, <a href="#901">f</a>)
+    ThenRef(p, f)
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="combine" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="combine" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

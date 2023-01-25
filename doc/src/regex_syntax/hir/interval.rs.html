@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-syntax-0.6.28/src/hir/interval.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>interval.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../regex_syntax/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-syntax-0.6.28/src/hir/interval.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>interval.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../regex_syntax/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -518,13 +518,13 @@
 <a href="#518" id="518">518</a>
 <a href="#519" id="519">519</a>
 <a href="#520" id="520">520</a>
-</pre><pre class="rust"><code><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/char/index.html">std::char</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/cmp/index.html">std::cmp</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/fmt/macros/derive.Debug.html">std::fmt::Debug</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/slice/index.html">std::slice</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/u8/index.html">std::u8</a>;
+</pre><pre class="rust"><code><span class="kw">use </span>std::char;
+<span class="kw">use </span>std::cmp;
+<span class="kw">use </span>std::fmt::Debug;
+<span class="kw">use </span>std::slice;
+<span class="kw">use </span>std::u8;
 
-<span class="kw">use </span><a href="../lib.rs.html#170"><span class="kw">crate</span>::unicode</a>;
+<span class="kw">use </span><span class="kw">crate</span>::unicode;
 
 <span class="comment">// This module contains an *internal* implementation of interval sets.
 //
@@ -557,38 +557,38 @@
     ranges: Vec&lt;I&gt;,
 }
 
-<span class="kw">impl</span>&lt;I: <a href="#335-336">Interval</a>&gt; IntervalSet&lt;I&gt; {
+<span class="kw">impl</span>&lt;I: Interval&gt; IntervalSet&lt;I&gt; {
     <span class="doccomment">/// Create a new set from a sequence of intervals. Each interval is
     /// specified as a pair of bounds, where both bounds are inclusive.
     ///
     /// The given ranges do not need to be in any specific order, and ranges
     /// may overlap.
     </span><span class="kw">pub fn </span>new&lt;T: IntoIterator&lt;Item = I&gt;&gt;(intervals: T) -&gt; IntervalSet&lt;I&gt; {
-        <span class="kw">let </span><span class="kw-2">mut </span>set = <a href="#36">IntervalSet</a> { ranges: <a href="#46">intervals</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>() };
-        <a href="#47">set</a>.<a href="#282">canonicalize</a>();
-        <a href="#47">set</a>
+        <span class="kw">let </span><span class="kw-2">mut </span>set = IntervalSet { ranges: intervals.into_iter().collect() };
+        set.canonicalize();
+        set
     }
 
     <span class="doccomment">/// Add a new interval to this set.
     </span><span class="kw">pub fn </span>push(<span class="kw-2">&amp;mut </span><span class="self">self</span>, interval: I) {
         <span class="comment">// TODO: This could be faster. e.g., Push the interval such that
         // it preserves canonicalization.
-        </span><a class="self" href="#53">self</a>.ranges.push(<a href="#53">interval</a>);
-        <a class="self" href="#53">self</a>.<a href="#282">canonicalize</a>();
+        </span><span class="self">self</span>.ranges.push(interval);
+        <span class="self">self</span>.canonicalize();
     }
 
     <span class="doccomment">/// Return an iterator over all intervals in this set.
     ///
     /// The iterator yields intervals in ascending order.
     </span><span class="kw">pub fn </span>iter(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; IntervalSetIter&lt;<span class="lifetime">&#39;_</span>, I&gt; {
-        <a href="#325">IntervalSetIter</a>(<a class="self" href="#63">self</a>.ranges.iter())
+        IntervalSetIter(<span class="self">self</span>.ranges.iter())
     }
 
     <span class="doccomment">/// Return an immutable slice of intervals in this set.
     ///
     /// The sequence returned is in canonical ordering.
     </span><span class="kw">pub fn </span>intervals(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[I] {
-        <span class="kw-2">&amp;</span><a class="self" href="#70">self</a>.ranges
+        <span class="kw-2">&amp;</span><span class="self">self</span>.ranges
     }
 
     <span class="doccomment">/// Expand this interval set such that it contains all case folded
@@ -598,8 +598,8 @@
     ///
     /// This returns an error if the necessary case mapping data is not
     /// available.
-    </span><span class="kw">pub fn </span>case_fold_simple(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../unicode.rs.html#36">unicode::CaseFoldError</a>&gt; {
-        <span class="kw">let </span>len = <a class="self" href="#81">self</a>.ranges.len();
+    </span><span class="kw">pub fn </span>case_fold_simple(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), unicode::CaseFoldError&gt; {
+        <span class="kw">let </span>len = <span class="self">self</span>.ranges.len();
         <span class="kw">for </span>i <span class="kw">in </span><span class="number">0</span>..len {
             <span class="kw">let </span>range = <span class="self">self</span>.ranges[i];
             <span class="kw">if let </span><span class="prelude-val">Err</span>(err) = range.case_fold_simple(<span class="kw-2">&amp;mut </span><span class="self">self</span>.ranges) {
@@ -607,15 +607,15 @@
                 <span class="kw">return </span><span class="prelude-val">Err</span>(err);
             }
         }
-        <a class="self" href="#81">self</a>.<a href="#282">canonicalize</a>();
+        <span class="self">self</span>.canonicalize();
         <span class="prelude-val">Ok</span>(())
     }
 
     <span class="doccomment">/// Union this set with the given set, in place.
     </span><span class="kw">pub fn </span>union(<span class="kw-2">&amp;mut </span><span class="self">self</span>, other: <span class="kw-2">&amp;</span>IntervalSet&lt;I&gt;) {
         <span class="comment">// This could almost certainly be done more efficiently.
-        </span><a class="self" href="#95">self</a>.ranges.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<span class="kw-2">&amp;</span><a href="#95">other</a>.ranges);
-        <a class="self" href="#95">self</a>.<a href="#282">canonicalize</a>();
+        </span><span class="self">self</span>.ranges.extend(<span class="kw-2">&amp;</span>other.ranges);
+        <span class="self">self</span>.canonicalize();
     }
 
     <span class="doccomment">/// Intersect this set with the given set, in place.
@@ -624,7 +624,7 @@
             <span class="kw">return</span>;
         }
         <span class="kw">if </span>other.ranges.is_empty() {
-            <a class="self" href="#102">self</a>.ranges.clear();
+            <span class="self">self</span>.ranges.clear();
             <span class="kw">return</span>;
         }
 
@@ -632,28 +632,28 @@
         // but I couldn&#39;t figure out a simple way to do it. So just append
         // the intersection to the end of this range, and then drain it before
         // we&#39;re done.
-        </span><span class="kw">let </span>drain_end = <a class="self" href="#102">self</a>.ranges.len();
+        </span><span class="kw">let </span>drain_end = <span class="self">self</span>.ranges.len();
 
-        <span class="kw">let </span><span class="kw-2">mut </span>ita = <span class="number">0</span>..<a href="#115">drain_end</a>;
-        <span class="kw">let </span><span class="kw-2">mut </span>itb = <span class="number">0</span>..<a href="#102">other</a>.ranges.len();
-        <span class="kw">let </span><span class="kw-2">mut </span>a = <a href="#117">ita</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>().unwrap();
-        <span class="kw">let </span><span class="kw-2">mut </span>b = <a href="#118">itb</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>().unwrap();
+        <span class="kw">let </span><span class="kw-2">mut </span>ita = <span class="number">0</span>..drain_end;
+        <span class="kw">let </span><span class="kw-2">mut </span>itb = <span class="number">0</span>..other.ranges.len();
+        <span class="kw">let </span><span class="kw-2">mut </span>a = ita.next().unwrap();
+        <span class="kw">let </span><span class="kw-2">mut </span>b = itb.next().unwrap();
         <span class="kw">loop </span>{
-            <span class="kw">if let </span><span class="prelude-val">Some</span>(ab) = <a class="self" href="#102">self</a>.ranges[<a href="#119">a</a>].<a href="#377">intersect</a>(<span class="kw-2">&amp;</span><a href="#102">other</a>.ranges[<a href="#120">b</a>]) {
-                <a class="self" href="#102">self</a>.ranges.push(<a href="#122">ab</a>);
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(ab) = <span class="self">self</span>.ranges[a].intersect(<span class="kw-2">&amp;</span>other.ranges[b]) {
+                <span class="self">self</span>.ranges.push(ab);
             }
             <span class="kw">let </span>(it, aorb) =
                 <span class="kw">if </span><span class="self">self</span>.ranges[a].upper() &lt; other.ranges[b].upper() {
-                    (<span class="kw-2">&amp;mut </span><a href="#117">ita</a>, <span class="kw-2">&amp;mut </span><a href="#119">a</a>)
+                    (<span class="kw-2">&amp;mut </span>ita, <span class="kw-2">&amp;mut </span>a)
                 } <span class="kw">else </span>{
-                    (<span class="kw-2">&amp;mut </span><a href="#118">itb</a>, <span class="kw-2">&amp;mut </span><a href="#120">b</a>)
+                    (<span class="kw-2">&amp;mut </span>itb, <span class="kw-2">&amp;mut </span>b)
                 };
-            <span class="kw">match </span><a href="#125">it</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>() {
-                <span class="prelude-val">Some</span>(v) =&gt; <span class="kw-2">*</span><a href="#125">aorb</a> = <a href="#132">v</a>,
+            <span class="kw">match </span>it.next() {
+                <span class="prelude-val">Some</span>(v) =&gt; <span class="kw-2">*</span>aorb = v,
                 <span class="prelude-val">None </span>=&gt; <span class="kw">break</span>,
             }
         }
-        <a class="self" href="#102">self</a>.ranges.drain(..<a href="#115">drain_end</a>);
+        <span class="self">self</span>.ranges.drain(..drain_end);
     }
 
     <span class="doccomment">/// Subtract the given set from this set, in place.
@@ -674,7 +674,7 @@
         // Remember, we can assume the canonical format invariant here, which
         // says that all ranges are sorted, not overlapping and not adjacent in
         // each class.
-        </span><span class="kw">let </span>drain_end = <a class="self" href="#140">self</a>.ranges.len();
+        </span><span class="kw">let </span>drain_end = <span class="self">self</span>.ranges.len();
         <span class="kw">let </span>(<span class="kw-2">mut </span>a, <span class="kw-2">mut </span>b) = (<span class="number">0</span>, <span class="number">0</span>);
         <span class="lifetime">&#39;LOOP</span>: <span class="kw">while </span>a &lt; drain_end &amp;&amp; b &lt; other.ranges.len() {
             <span class="comment">// Basically, the easy cases are when neither range overlaps with
@@ -745,7 +745,7 @@
             <span class="self">self</span>.ranges.push(range);
             a += <span class="number">1</span>;
         }
-        <a class="self" href="#140">self</a>.ranges.drain(..<a href="#157">drain_end</a>);
+        <span class="self">self</span>.ranges.drain(..drain_end);
     }
 
     <span class="doccomment">/// Compute the symmetric difference of the two sets, in place.
@@ -757,10 +757,10 @@
     /// but will not contain any elements that are in both sets.
     </span><span class="kw">pub fn </span>symmetric_difference(<span class="kw-2">&amp;mut </span><span class="self">self</span>, other: <span class="kw-2">&amp;</span>IntervalSet&lt;I&gt;) {
         <span class="comment">// TODO(burntsushi): Fix this so that it amortizes allocation.
-        </span><span class="kw">let </span><span class="kw-2">mut </span>intersection = <a class="self" href="#238">self</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
-        <a href="#240">intersection</a>.<a href="#102">intersect</a>(<a href="#238">other</a>);
-        <a class="self" href="#238">self</a>.<a href="#95">union</a>(<a href="#238">other</a>);
-        <a class="self" href="#238">self</a>.<a href="#140">difference</a>(<span class="kw-2">&amp;</span><a href="#240">intersection</a>);
+        </span><span class="kw">let </span><span class="kw-2">mut </span>intersection = <span class="self">self</span>.clone();
+        intersection.intersect(other);
+        <span class="self">self</span>.union(other);
+        <span class="self">self</span>.difference(<span class="kw-2">&amp;</span>intersection);
     }
 
     <span class="doccomment">/// Negate this interval set.
@@ -770,7 +770,7 @@
     </span><span class="kw">pub fn </span>negate(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="kw">if </span><span class="self">self</span>.ranges.is_empty() {
             <span class="kw">let </span>(min, max) = (I::Bound::min_value(), I::Bound::max_value());
-            <a class="self" href="#250">self</a>.ranges.push(I::create(<a href="#252">min</a>, <a href="#252">max</a>));
+            <span class="self">self</span>.ranges.push(I::create(min, max));
             <span class="kw">return</span>;
         }
 
@@ -778,13 +778,13 @@
         // but I couldn&#39;t figure out a simple way to do it. So just append
         // the negation to the end of this range, and then drain it before
         // we&#39;re done.
-        </span><span class="kw">let </span>drain_end = <a class="self" href="#250">self</a>.ranges.len();
+        </span><span class="kw">let </span>drain_end = <span class="self">self</span>.ranges.len();
 
         <span class="comment">// We do checked arithmetic below because of the canonical ordering
         // invariant.
         </span><span class="kw">if </span><span class="self">self</span>.ranges[<span class="number">0</span>].lower() &gt; I::Bound::min_value() {
-            <span class="kw">let </span>upper = <a class="self" href="#250">self</a>.ranges[<span class="number">0</span>].<a href="#340">lower</a>().<a href="#473">decrement</a>();
-            <a class="self" href="#250">self</a>.ranges.push(I::create(I::Bound::min_value(), <a href="#266">upper</a>));
+            <span class="kw">let </span>upper = <span class="self">self</span>.ranges[<span class="number">0</span>].lower().decrement();
+            <span class="self">self</span>.ranges.push(I::create(I::Bound::min_value(), upper));
         }
         <span class="kw">for </span>i <span class="kw">in </span><span class="number">1</span>..drain_end {
             <span class="kw">let </span>lower = <span class="self">self</span>.ranges[i - <span class="number">1</span>].upper().increment();
@@ -792,10 +792,10 @@
             <span class="self">self</span>.ranges.push(I::create(lower, upper));
         }
         <span class="kw">if </span><span class="self">self</span>.ranges[drain_end - <span class="number">1</span>].upper() &lt; I::Bound::max_value() {
-            <span class="kw">let </span>lower = <a class="self" href="#250">self</a>.ranges[<a href="#261">drain_end</a> - <span class="number">1</span>].<a href="#341">upper</a>().<a href="#472">increment</a>();
-            <a class="self" href="#250">self</a>.ranges.push(I::create(<a href="#275">lower</a>, I::Bound::max_value()));
+            <span class="kw">let </span>lower = <span class="self">self</span>.ranges[drain_end - <span class="number">1</span>].upper().increment();
+            <span class="self">self</span>.ranges.push(I::create(lower, I::Bound::max_value()));
         }
-        <a class="self" href="#250">self</a>.ranges.drain(..<a href="#261">drain_end</a>);
+        <span class="self">self</span>.ranges.drain(..drain_end);
     }
 
     <span class="doccomment">/// Converts this set into a canonical ordering.
@@ -803,13 +803,13 @@
         <span class="kw">if </span><span class="self">self</span>.is_canonical() {
             <span class="kw">return</span>;
         }
-        <a class="self" href="#282">self</a>.ranges.sort();
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(!<span class="self">self</span>.ranges.is_empty());
+        <span class="self">self</span>.ranges.sort();
+        <span class="macro">assert!</span>(!<span class="self">self</span>.ranges.is_empty());
 
         <span class="comment">// Is there a way to do this in-place with constant memory? I couldn&#39;t
         // figure out a way to do it. So just append the canonicalization to
         // the end of this range, and then drain it before we&#39;re done.
-        </span><span class="kw">let </span>drain_end = <a class="self" href="#282">self</a>.ranges.len();
+        </span><span class="kw">let </span>drain_end = <span class="self">self</span>.ranges.len();
         <span class="kw">for </span>oldi <span class="kw">in </span><span class="number">0</span>..drain_end {
             <span class="comment">// If we&#39;ve added at least one new range, then check if we can
             // merge this range in the previously added range.
@@ -823,11 +823,11 @@
             <span class="kw">let </span>range = <span class="self">self</span>.ranges[oldi];
             <span class="self">self</span>.ranges.push(range);
         }
-        <a class="self" href="#282">self</a>.ranges.drain(..<a href="#292">drain_end</a>);
+        <span class="self">self</span>.ranges.drain(..drain_end);
     }
 
     <span class="doccomment">/// Returns true if and only if this class is in a canonical ordering.
-    </span><span class="kw">fn </span>is_canonical(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+    </span><span class="kw">fn </span>is_canonical(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="kw">for </span>pair <span class="kw">in </span><span class="self">self</span>.ranges.windows(<span class="number">2</span>) {
             <span class="kw">if </span>pair[<span class="number">0</span>] &gt;= pair[<span class="number">1</span>] {
                 <span class="kw">return </span><span class="bool-val">false</span>;
@@ -844,18 +844,18 @@
 </span><span class="attr">#[derive(Debug)]
 </span><span class="kw">pub struct </span>IntervalSetIter&lt;<span class="lifetime">&#39;a</span>, I&gt;(slice::Iter&lt;<span class="lifetime">&#39;a</span>, I&gt;);
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, I&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a> <span class="kw">for </span>IntervalSetIter&lt;<span class="lifetime">&#39;a</span>, I&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, I&gt; Iterator <span class="kw">for </span>IntervalSetIter&lt;<span class="lifetime">&#39;a</span>, I&gt; {
     <span class="kw">type </span>Item = <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>I;
 
     <span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>I&gt; {
-        <a class="self" href="#330">self</a>.<span class="number">0</span>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>()
+        <span class="self">self</span>.<span class="number">0</span>.next()
     }
 }
 
 <span class="kw">pub trait </span>Interval:
-    <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html">Copy</a> + <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">Debug</a> + <a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> + <a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Eq.html">Eq</a> + <a href="https://doc.rust-lang.org/nightly/core/cmp/trait.PartialEq.html">PartialEq</a> + <a href="https://doc.rust-lang.org/nightly/core/cmp/trait.PartialOrd.html">PartialOrd</a> + <a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Ord.html">Ord</a>
+    Clone + Copy + Debug + Default + Eq + PartialEq + PartialOrd + Ord
 {
-    <span class="kw">type </span>Bound: <a href="#466-467">Bound</a>;
+    <span class="kw">type </span>Bound: Bound;
 
     <span class="kw">fn </span>lower(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self</span>::Bound;
     <span class="kw">fn </span>upper(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self</span>::Bound;
@@ -864,19 +864,19 @@
     <span class="kw">fn </span>case_fold_simple(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         intervals: <span class="kw-2">&amp;mut </span>Vec&lt;<span class="self">Self</span>&gt;,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../unicode.rs.html#36">unicode::CaseFoldError</a>&gt;;
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), unicode::CaseFoldError&gt;;
 
     <span class="doccomment">/// Create a new interval.
     </span><span class="kw">fn </span>create(lower: <span class="self">Self</span>::Bound, upper: <span class="self">Self</span>::Bound) -&gt; <span class="self">Self </span>{
         <span class="kw">let </span><span class="kw-2">mut </span>int = <span class="self">Self</span>::default();
         <span class="kw">if </span>lower &lt;= upper {
-            <a href="#351">int</a>.<a href="#342">set_lower</a>(<a href="#350">lower</a>);
-            <a href="#351">int</a>.<a href="#343">set_upper</a>(<a href="#350">upper</a>);
+            int.set_lower(lower);
+            int.set_upper(upper);
         } <span class="kw">else </span>{
-            <a href="#351">int</a>.<a href="#342">set_lower</a>(<a href="#350">upper</a>);
-            <a href="#351">int</a>.<a href="#343">set_upper</a>(<a href="#350">lower</a>);
+            int.set_lower(upper);
+            int.set_upper(lower);
         }
-        <a href="#351">int</a>
+        int
     }
 
     <span class="doccomment">/// Union the given overlapping range into this range.
@@ -886,19 +886,19 @@
         <span class="kw">if </span>!<span class="self">self</span>.is_contiguous(other) {
             <span class="kw">return </span><span class="prelude-val">None</span>;
         }
-        <span class="kw">let </span>lower = cmp::min(<a class="self" href="#365">self</a>.<a href="#340">lower</a>(), <a href="#365">other</a>.<a href="#340">lower</a>());
-        <span class="kw">let </span>upper = cmp::max(<a class="self" href="#365">self</a>.<a href="#341">upper</a>(), <a href="#365">other</a>.<a href="#341">upper</a>());
-        <span class="prelude-val">Some</span>(<span class="self">Self</span>::create(<a href="#369">lower</a>, <a href="#370">upper</a>))
+        <span class="kw">let </span>lower = cmp::min(<span class="self">self</span>.lower(), other.lower());
+        <span class="kw">let </span>upper = cmp::max(<span class="self">self</span>.upper(), other.upper());
+        <span class="prelude-val">Some</span>(<span class="self">Self</span>::create(lower, upper))
     }
 
     <span class="doccomment">/// Intersect this range with the given range and return the result.
     ///
     /// If the intersection is empty, then this returns `None`.
     </span><span class="kw">fn </span>intersect(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt; {
-        <span class="kw">let </span>lower = cmp::max(<a class="self" href="#377">self</a>.<a href="#340">lower</a>(), <a href="#377">other</a>.<a href="#340">lower</a>());
-        <span class="kw">let </span>upper = cmp::min(<a class="self" href="#377">self</a>.<a href="#341">upper</a>(), <a href="#377">other</a>.<a href="#341">upper</a>());
+        <span class="kw">let </span>lower = cmp::max(<span class="self">self</span>.lower(), other.lower());
+        <span class="kw">let </span>upper = cmp::min(<span class="self">self</span>.upper(), other.upper());
         <span class="kw">if </span>lower &lt;= upper {
-            <span class="prelude-val">Some</span>(<span class="self">Self</span>::create(<a href="#378">lower</a>, <a href="#379">upper</a>))
+            <span class="prelude-val">Some</span>(<span class="self">Self</span>::create(lower, upper))
         } <span class="kw">else </span>{
             <span class="prelude-val">None
         </span>}
@@ -914,28 +914,28 @@
             <span class="kw">return </span>(<span class="prelude-val">None</span>, <span class="prelude-val">None</span>);
         }
         <span class="kw">if </span><span class="self">self</span>.is_intersection_empty(other) {
-            <span class="kw">return </span>(<span class="prelude-val">Some</span>(<a class="self" href="#392">self</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()), <span class="prelude-val">None</span>);
+            <span class="kw">return </span>(<span class="prelude-val">Some</span>(<span class="self">self</span>.clone()), <span class="prelude-val">None</span>);
         }
-        <span class="kw">let </span>add_lower = <a href="#392">other</a>.<a href="#340">lower</a>() &gt; <a class="self" href="#392">self</a>.<a href="#340">lower</a>();
-        <span class="kw">let </span>add_upper = <a href="#392">other</a>.<a href="#341">upper</a>() &lt; <a class="self" href="#392">self</a>.<a href="#341">upper</a>();
+        <span class="kw">let </span>add_lower = other.lower() &gt; <span class="self">self</span>.lower();
+        <span class="kw">let </span>add_upper = other.upper() &lt; <span class="self">self</span>.upper();
         <span class="comment">// We know this because !self.is_subset(other) and the ranges have
         // a non-empty intersection.
-        </span><a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(add_lower || add_upper);
+        </span><span class="macro">assert!</span>(add_lower || add_upper);
         <span class="kw">let </span><span class="kw-2">mut </span>ret = (<span class="prelude-val">None</span>, <span class="prelude-val">None</span>);
         <span class="kw">if </span>add_lower {
-            <span class="kw">let </span>upper = <a href="#392">other</a>.<a href="#340">lower</a>().<a href="#473">decrement</a>();
-            <a href="#404">ret</a>.<span class="number">0 </span>= <span class="prelude-val">Some</span>(<span class="self">Self</span>::create(<a class="self" href="#392">self</a>.<a href="#340">lower</a>(), <a href="#406">upper</a>));
+            <span class="kw">let </span>upper = other.lower().decrement();
+            ret.<span class="number">0 </span>= <span class="prelude-val">Some</span>(<span class="self">Self</span>::create(<span class="self">self</span>.lower(), upper));
         }
         <span class="kw">if </span>add_upper {
-            <span class="kw">let </span>lower = <a href="#392">other</a>.<a href="#341">upper</a>().<a href="#472">increment</a>();
-            <span class="kw">let </span>range = <span class="self">Self</span>::create(<a href="#410">lower</a>, <a class="self" href="#392">self</a>.<a href="#341">upper</a>());
+            <span class="kw">let </span>lower = other.upper().increment();
+            <span class="kw">let </span>range = <span class="self">Self</span>::create(lower, <span class="self">self</span>.upper());
             <span class="kw">if </span>ret.<span class="number">0</span>.is_none() {
-                <a href="#404">ret</a>.<span class="number">0 </span>= <span class="prelude-val">Some</span>(<a href="#411">range</a>);
+                ret.<span class="number">0 </span>= <span class="prelude-val">Some</span>(range);
             } <span class="kw">else </span>{
-                <a href="#404">ret</a>.<span class="number">1 </span>= <span class="prelude-val">Some</span>(<a href="#411">range</a>);
+                ret.<span class="number">1 </span>= <span class="prelude-val">Some</span>(range);
             }
         }
-        <a href="#404">ret</a>
+        ret
     }
 
     <span class="doccomment">/// Compute the symmetric difference the given range from this range. This
@@ -944,99 +944,99 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         other: <span class="kw-2">&amp;</span><span class="self">Self</span>,
     ) -&gt; (<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt;, <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt;) {
-        <span class="kw">let </span>union = <span class="kw">match </span><a class="self" href="#424">self</a>.<a href="#365">union</a>(<a href="#425">other</a>) {
-            <span class="prelude-val">None </span>=&gt; <span class="kw">return </span>(<span class="prelude-val">Some</span>(<a class="self" href="#424">self</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()), <span class="prelude-val">Some</span>(<a href="#425">other</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>())),
-            <span class="prelude-val">Some</span>(union) =&gt; <a href="#429">union</a>,
+        <span class="kw">let </span>union = <span class="kw">match </span><span class="self">self</span>.union(other) {
+            <span class="prelude-val">None </span>=&gt; <span class="kw">return </span>(<span class="prelude-val">Some</span>(<span class="self">self</span>.clone()), <span class="prelude-val">Some</span>(other.clone())),
+            <span class="prelude-val">Some</span>(union) =&gt; union,
         };
-        <span class="kw">let </span>intersection = <span class="kw">match </span><a class="self" href="#424">self</a>.<a href="#377">intersect</a>(<a href="#425">other</a>) {
-            <span class="prelude-val">None </span>=&gt; <span class="kw">return </span>(<span class="prelude-val">Some</span>(<a class="self" href="#424">self</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()), <span class="prelude-val">Some</span>(<a href="#425">other</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>())),
-            <span class="prelude-val">Some</span>(intersection) =&gt; <a href="#433">intersection</a>,
+        <span class="kw">let </span>intersection = <span class="kw">match </span><span class="self">self</span>.intersect(other) {
+            <span class="prelude-val">None </span>=&gt; <span class="kw">return </span>(<span class="prelude-val">Some</span>(<span class="self">self</span>.clone()), <span class="prelude-val">Some</span>(other.clone())),
+            <span class="prelude-val">Some</span>(intersection) =&gt; intersection,
         };
-        <a href="#427">union</a>.<a href="#392">difference</a>(<span class="kw-2">&amp;</span><a href="#431">intersection</a>)
+        union.difference(<span class="kw-2">&amp;</span>intersection)
     }
 
     <span class="doccomment">/// Returns true if and only if the two ranges are contiguous. Two ranges
     /// are contiguous if and only if the ranges are either overlapping or
     /// adjacent.
-    </span><span class="kw">fn </span>is_contiguous(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">let </span>lower1 = <a class="self" href="#441">self</a>.<a href="#340">lower</a>().<a href="#471">as_u32</a>();
-        <span class="kw">let </span>upper1 = <a class="self" href="#441">self</a>.<a href="#341">upper</a>().<a href="#471">as_u32</a>();
-        <span class="kw">let </span>lower2 = <a href="#441">other</a>.<a href="#340">lower</a>().<a href="#471">as_u32</a>();
-        <span class="kw">let </span>upper2 = <a href="#441">other</a>.<a href="#341">upper</a>().<a href="#471">as_u32</a>();
-        cmp::max(<a href="#442">lower1</a>, <a href="#444">lower2</a>) &lt;= cmp::min(<a href="#443">upper1</a>, <a href="#445">upper2</a>).saturating_add(<span class="number">1</span>)
+    </span><span class="kw">fn </span>is_contiguous(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; bool {
+        <span class="kw">let </span>lower1 = <span class="self">self</span>.lower().as_u32();
+        <span class="kw">let </span>upper1 = <span class="self">self</span>.upper().as_u32();
+        <span class="kw">let </span>lower2 = other.lower().as_u32();
+        <span class="kw">let </span>upper2 = other.upper().as_u32();
+        cmp::max(lower1, lower2) &lt;= cmp::min(upper1, upper2).saturating_add(<span class="number">1</span>)
     }
 
     <span class="doccomment">/// Returns true if and only if the intersection of this range and the
     /// other range is empty.
-    </span><span class="kw">fn </span>is_intersection_empty(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">let </span>(lower1, upper1) = (<a class="self" href="#451">self</a>.<a href="#340">lower</a>(), <a class="self" href="#451">self</a>.<a href="#341">upper</a>());
-        <span class="kw">let </span>(lower2, upper2) = (<a href="#451">other</a>.<a href="#340">lower</a>(), <a href="#451">other</a>.<a href="#341">upper</a>());
-        cmp::max(<a href="#452">lower1</a>, <a href="#453">lower2</a>) &gt; cmp::min(<a href="#452">upper1</a>, <a href="#453">upper2</a>)
+    </span><span class="kw">fn </span>is_intersection_empty(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; bool {
+        <span class="kw">let </span>(lower1, upper1) = (<span class="self">self</span>.lower(), <span class="self">self</span>.upper());
+        <span class="kw">let </span>(lower2, upper2) = (other.lower(), other.upper());
+        cmp::max(lower1, lower2) &gt; cmp::min(upper1, upper2)
     }
 
     <span class="doccomment">/// Returns true if and only if this range is a subset of the other range.
-    </span><span class="kw">fn </span>is_subset(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">let </span>(lower1, upper1) = (<a class="self" href="#458">self</a>.<a href="#340">lower</a>(), <a class="self" href="#458">self</a>.<a href="#341">upper</a>());
-        <span class="kw">let </span>(lower2, upper2) = (<a href="#458">other</a>.<a href="#340">lower</a>(), <a href="#458">other</a>.<a href="#341">upper</a>());
-        (<a href="#460">lower2</a> &lt;= <a href="#459">lower1</a> &amp;&amp; <a href="#459">lower1</a> &lt;= <a href="#460">upper2</a>)
-            &amp;&amp; (<a href="#460">lower2</a> &lt;= <a href="#459">upper1</a> &amp;&amp; <a href="#459">upper1</a> &lt;= <a href="#460">upper2</a>)
+    </span><span class="kw">fn </span>is_subset(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; bool {
+        <span class="kw">let </span>(lower1, upper1) = (<span class="self">self</span>.lower(), <span class="self">self</span>.upper());
+        <span class="kw">let </span>(lower2, upper2) = (other.lower(), other.upper());
+        (lower2 &lt;= lower1 &amp;&amp; lower1 &lt;= upper2)
+            &amp;&amp; (lower2 &lt;= upper1 &amp;&amp; upper1 &lt;= upper2)
     }
 }
 
 <span class="kw">pub trait </span>Bound:
-    <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html">Copy</a> + <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> + <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">Debug</a> + <a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Eq.html">Eq</a> + <a href="https://doc.rust-lang.org/nightly/core/cmp/trait.PartialEq.html">PartialEq</a> + <a href="https://doc.rust-lang.org/nightly/core/cmp/trait.PartialOrd.html">PartialOrd</a> + <a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Ord.html">Ord</a>
+    Copy + Clone + Debug + Eq + PartialEq + PartialOrd + Ord
 {
     <span class="kw">fn </span>min_value() -&gt; <span class="self">Self</span>;
     <span class="kw">fn </span>max_value() -&gt; <span class="self">Self</span>;
-    <span class="kw">fn </span>as_u32(<span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>;
+    <span class="kw">fn </span>as_u32(<span class="self">self</span>) -&gt; u32;
     <span class="kw">fn </span>increment(<span class="self">self</span>) -&gt; <span class="self">Self</span>;
     <span class="kw">fn </span>decrement(<span class="self">self</span>) -&gt; <span class="self">Self</span>;
 }
 
-<span class="kw">impl </span><a href="#466-467">Bound</a> <span class="kw">for </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a> {
+<span class="kw">impl </span>Bound <span class="kw">for </span>u8 {
     <span class="kw">fn </span>min_value() -&gt; <span class="self">Self </span>{
         u8::MIN
     }
     <span class="kw">fn </span>max_value() -&gt; <span class="self">Self </span>{
         u8::MAX
     }
-    <span class="kw">fn </span>as_u32(<span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
-        <span class="self"><a href="#483">self</a> </span><span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>
+    <span class="kw">fn </span>as_u32(<span class="self">self</span>) -&gt; u32 {
+        <span class="self">self </span><span class="kw">as </span>u32
     }
     <span class="kw">fn </span>increment(<span class="self">self</span>) -&gt; <span class="self">Self </span>{
-        <a class="self" href="#486">self</a>.checked_add(<span class="number">1</span>).unwrap()
+        <span class="self">self</span>.checked_add(<span class="number">1</span>).unwrap()
     }
     <span class="kw">fn </span>decrement(<span class="self">self</span>) -&gt; <span class="self">Self </span>{
-        <a class="self" href="#489">self</a>.checked_sub(<span class="number">1</span>).unwrap()
+        <span class="self">self</span>.checked_sub(<span class="number">1</span>).unwrap()
     }
 }
 
-<span class="kw">impl </span><a href="#466-467">Bound</a> <span class="kw">for </span><a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a> {
+<span class="kw">impl </span>Bound <span class="kw">for </span>char {
     <span class="kw">fn </span>min_value() -&gt; <span class="self">Self </span>{
         <span class="string">&#39;\x00&#39;
     </span>}
     <span class="kw">fn </span>max_value() -&gt; <span class="self">Self </span>{
         <span class="string">&#39;\u{10FFFF}&#39;
     </span>}
-    <span class="kw">fn </span>as_u32(<span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
-        <span class="self"><a href="#501">self</a> </span><span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>
+    <span class="kw">fn </span>as_u32(<span class="self">self</span>) -&gt; u32 {
+        <span class="self">self </span><span class="kw">as </span>u32
     }
 
     <span class="kw">fn </span>increment(<span class="self">self</span>) -&gt; <span class="self">Self </span>{
-        <span class="kw">match </span><span class="self"><a href="#505">self</a> </span>{
+        <span class="kw">match </span><span class="self">self </span>{
             <span class="string">&#39;\u{D7FF}&#39; </span>=&gt; <span class="string">&#39;\u{E000}&#39;</span>,
-            c =&gt; char::from_u32((<a href="#508">c</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>).checked_add(<span class="number">1</span>).unwrap()).unwrap(),
+            c =&gt; char::from_u32((c <span class="kw">as </span>u32).checked_add(<span class="number">1</span>).unwrap()).unwrap(),
         }
     }
 
     <span class="kw">fn </span>decrement(<span class="self">self</span>) -&gt; <span class="self">Self </span>{
-        <span class="kw">match </span><span class="self"><a href="#512">self</a> </span>{
+        <span class="kw">match </span><span class="self">self </span>{
             <span class="string">&#39;\u{E000}&#39; </span>=&gt; <span class="string">&#39;\u{D7FF}&#39;</span>,
-            c =&gt; char::from_u32((<a href="#515">c</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>).checked_sub(<span class="number">1</span>).unwrap()).unwrap(),
+            c =&gt; char::from_u32((c <span class="kw">as </span>u32).checked_sub(<span class="number">1</span>).unwrap()).unwrap(),
         }
     }
 }
 
 <span class="comment">// Tests for interval sets are written in src/hir.rs against the public API.
 </span></code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="regex_syntax" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="regex_syntax" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

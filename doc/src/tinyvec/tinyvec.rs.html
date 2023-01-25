@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tinyvec-1.6.0/src/tinyvec.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>tinyvec.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../tinyvec/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tinyvec-1.6.0/src/tinyvec.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>tinyvec.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../tinyvec/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -1742,9 +1742,9 @@
 
 </span><span class="kw">use super</span>::<span class="kw-2">*</span>;
 
-<span class="kw">use </span>alloc::vec::{<a class="self" href="https://doc.rust-lang.org/nightly/alloc/vec/index.html">self</a>, <a href="https://doc.rust-lang.org/nightly/alloc/vec/struct.Vec.html">Vec</a>};
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/convert/trait.TryFrom.html">core::convert::TryFrom</a>;
-<span class="kw">use </span><a href="../../tinyvec_macros/macro.impl_mirrored.html">tinyvec_macros::impl_mirrored</a>;
+<span class="kw">use </span>alloc::vec::{<span class="self">self</span>, Vec};
+<span class="kw">use </span>core::convert::TryFrom;
+<span class="kw">use </span>tinyvec_macros::impl_mirrored;
 
 <span class="attr">#[cfg(feature = <span class="string">&quot;rustc_1_57&quot;</span>)]
 </span><span class="kw">use </span>alloc::collections::TryReserveError;
@@ -1808,7 +1808,7 @@
 }
 
 <span class="attr">#[<span class="macro-nonterminal">doc</span>(hidden)] </span><span class="comment">// Internal implementation details of `tiny_vec!`
-</span><span class="kw">pub enum </span>TinyVecConstructor&lt;A: <a href="array.rs.html#19">Array</a>&gt; {
+</span><span class="kw">pub enum </span>TinyVecConstructor&lt;A: Array&gt; {
   Inline(<span class="kw">fn</span>(ArrayVec&lt;A&gt;) -&gt; TinyVec&lt;A&gt;),
   Heap(<span class="kw">fn</span>(Vec&lt;A::Item&gt;) -&gt; TinyVec&lt;A&gt;),
 }
@@ -1835,53 +1835,53 @@
 /// let some_ints = tiny_vec!([i32; 4] =&gt; 1, 2, 3);
 /// ```
 </span><span class="attr">#[cfg_attr(docs_rs, doc(cfg(feature = <span class="string">&quot;alloc&quot;</span>)))]
-</span><span class="kw">pub enum </span>TinyVec&lt;A: <a href="array.rs.html#19">Array</a>&gt; {
+</span><span class="kw">pub enum </span>TinyVec&lt;A: Array&gt; {
   <span class="attr">#[allow(missing_docs)]
   </span>Inline(ArrayVec&lt;A&gt;),
   <span class="attr">#[allow(missing_docs)]
   </span>Heap(Vec&lt;A::Item&gt;),
 }
 
-<span class="kw">impl</span>&lt;A&gt; <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> <span class="kw">for </span>TinyVec&lt;A&gt;
+<span class="kw">impl</span>&lt;A&gt; Clone <span class="kw">for </span>TinyVec&lt;A&gt;
 <span class="kw">where
-  </span>A: <a href="array.rs.html#19">Array</a> + <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a>,
-  A::Item: <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a>,
+  </span>A: Array + Clone,
+  A::Item: Clone,
 {
   <span class="attr">#[inline]
   </span><span class="kw">fn </span>clone(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self </span>{
-    <span class="kw">match </span><span class="self"><a href="#111">self</a> </span>{
-      <a href="#102">TinyVec::Heap</a>(v) =&gt; <a href="#102">TinyVec::Heap</a>(<a href="#113">v</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()),
-      <a href="#100">TinyVec::Inline</a>(v) =&gt; <a href="#100">TinyVec::Inline</a>(<a href="#114">v</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()),
+    <span class="kw">match </span><span class="self">self </span>{
+      TinyVec::Heap(v) =&gt; TinyVec::Heap(v.clone()),
+      TinyVec::Inline(v) =&gt; TinyVec::Inline(v.clone()),
     }
   }
 
   <span class="attr">#[inline]
   </span><span class="kw">fn </span>clone_from(<span class="kw-2">&amp;mut </span><span class="self">self</span>, o: <span class="kw-2">&amp;</span><span class="self">Self</span>) {
     <span class="kw">if </span>o.len() &gt; <span class="self">self</span>.len() {
-      <a class="self" href="#119">self</a>.<a href="#391">reserve</a>(<a href="#119">o</a>.<a href="#556-640">len</a>() - <a class="self" href="#119">self</a>.<a href="#556-640">len</a>());
+      <span class="self">self</span>.reserve(o.len() - <span class="self">self</span>.len());
     } <span class="kw">else </span>{
-      <a class="self" href="#119">self</a>.<a href="#556-640">truncate</a>(<a href="#119">o</a>.<a href="#556-640">len</a>());
+      <span class="self">self</span>.truncate(o.len());
     }
-    <span class="kw">let </span>(start, end) = <a href="#119">o</a>.split_at(<a class="self" href="#119">self</a>.<a href="#556-640">len</a>());
+    <span class="kw">let </span>(start, end) = o.split_at(<span class="self">self</span>.len());
     <span class="kw">for </span>(dst, src) <span class="kw">in </span><span class="self">self</span>.iter_mut().zip(start) {
       dst.clone_from(src);
     }
-    <a class="self" href="#119">self</a>.<a href="#757-759">extend_from_slice</a>(<a href="#125">end</a>);
+    <span class="self">self</span>.extend_from_slice(end);
   }
 }
 
-<span class="kw">impl</span>&lt;A: <a href="array.rs.html#19">Array</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for </span>TinyVec&lt;A&gt; {
+<span class="kw">impl</span>&lt;A: Array&gt; Default <span class="kw">for </span>TinyVec&lt;A&gt; {
   <span class="attr">#[inline]
   #[must_use]
   </span><span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
-    <a href="#100">TinyVec::Inline</a>(ArrayVec::default())
+    TinyVec::Inline(ArrayVec::default())
   }
 }
 
-<span class="kw">impl</span>&lt;A: <a href="array.rs.html#19">Array</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.Deref.html">Deref</a> <span class="kw">for </span>TinyVec&lt;A&gt; {
+<span class="kw">impl</span>&lt;A: Array&gt; Deref <span class="kw">for </span>TinyVec&lt;A&gt; {
   <span class="kw">type </span>Target = [A::Item];
 
-  <a class="macro" href="../../tinyvec_macros/macro.impl_mirrored.html">impl_mirrored! </a>{
+  <span class="macro">impl_mirrored! </span>{
     <span class="kw">type </span>Mirror = TinyVec;
     <span class="attr">#[inline(always)]
     #[must_use]
@@ -1889,8 +1889,8 @@
   }
 }
 
-<span class="kw">impl</span>&lt;A: <a href="array.rs.html#19">Array</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.DerefMut.html">DerefMut</a> <span class="kw">for </span>TinyVec&lt;A&gt; {
-  <a class="macro" href="../../tinyvec_macros/macro.impl_mirrored.html">impl_mirrored! </a>{
+<span class="kw">impl</span>&lt;A: Array&gt; DerefMut <span class="kw">for </span>TinyVec&lt;A&gt; {
+  <span class="macro">impl_mirrored! </span>{
     <span class="kw">type </span>Mirror = TinyVec;
     <span class="attr">#[inline(always)]
     #[must_use]
@@ -1898,20 +1898,20 @@
   }
 }
 
-<span class="kw">impl</span>&lt;A: <a href="array.rs.html#19">Array</a>, I: SliceIndex&lt;[A::Item]&gt;&gt; Index&lt;I&gt; <span class="kw">for </span>TinyVec&lt;A&gt; {
+<span class="kw">impl</span>&lt;A: Array, I: SliceIndex&lt;[A::Item]&gt;&gt; Index&lt;I&gt; <span class="kw">for </span>TinyVec&lt;A&gt; {
   <span class="kw">type </span>Output = &lt;I <span class="kw">as </span>SliceIndex&lt;[A::Item]&gt;&gt;::Output;
   <span class="attr">#[inline(always)]
   #[must_use]
   </span><span class="kw">fn </span>index(<span class="kw-2">&amp;</span><span class="self">self</span>, index: I) -&gt; <span class="kw-2">&amp;</span><span class="self">Self</span>::Output {
-    <span class="kw-2">&amp;</span><a class="self" href="#165">self</a>.<a href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.Deref.html">deref</a>()[<a href="#165">index</a>]
+    <span class="kw-2">&amp;</span><span class="self">self</span>.deref()[index]
   }
 }
 
-<span class="kw">impl</span>&lt;A: <a href="array.rs.html#19">Array</a>, I: SliceIndex&lt;[A::Item]&gt;&gt; IndexMut&lt;I&gt; <span class="kw">for </span>TinyVec&lt;A&gt; {
+<span class="kw">impl</span>&lt;A: Array, I: SliceIndex&lt;[A::Item]&gt;&gt; IndexMut&lt;I&gt; <span class="kw">for </span>TinyVec&lt;A&gt; {
   <span class="attr">#[inline(always)]
   #[must_use]
   </span><span class="kw">fn </span>index_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>, index: I) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self</span>::Output {
-    <span class="kw-2">&amp;mut </span><a class="self" href="#173">self</a>.<a href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.DerefMut.html">deref_mut</a>()[<a href="#173">index</a>]
+    <span class="kw-2">&amp;mut </span><span class="self">self</span>.deref_mut()[index]
   }
 }
 
@@ -1978,21 +1978,21 @@
   }
 }
 
-<span class="kw">impl</span>&lt;A: <a href="array.rs.html#19">Array</a>&gt; TinyVec&lt;A&gt; {
+<span class="kw">impl</span>&lt;A: Array&gt; TinyVec&lt;A&gt; {
   <span class="doccomment">/// Returns whether elements are on heap
   </span><span class="attr">#[inline(always)]
   #[must_use]
-  </span><span class="kw">pub fn </span>is_heap(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/primitive.bool.html">bool</a> {
-    <span class="kw">match </span><span class="self"><a href="#245">self</a> </span>{
-      <a href="#102">TinyVec::Heap</a>(<span class="kw">_</span>) =&gt; <span class="bool-val">true</span>,
-      <a href="#100">TinyVec::Inline</a>(<span class="kw">_</span>) =&gt; <span class="bool-val">false</span>,
+  </span><span class="kw">pub fn </span>is_heap(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+    <span class="kw">match </span><span class="self">self </span>{
+      TinyVec::Heap(<span class="kw">_</span>) =&gt; <span class="bool-val">true</span>,
+      TinyVec::Inline(<span class="kw">_</span>) =&gt; <span class="bool-val">false</span>,
     }
   }
   <span class="doccomment">/// Returns whether elements are on stack
   </span><span class="attr">#[inline(always)]
   #[must_use]
-  </span><span class="kw">pub fn </span>is_inline(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/primitive.bool.html">bool</a> {
-    !<a class="self" href="#254">self</a>.<a href="#245">is_heap</a>()
+  </span><span class="kw">pub fn </span>is_inline(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+    !<span class="self">self</span>.is_heap()
   }
 
   <span class="doccomment">/// Shrinks the capacity of the vector as much as possible.\
@@ -2007,21 +2007,21 @@
   /// assert!(tv.is_inline());
   /// ```
   </span><span class="kw">pub fn </span>shrink_to_fit(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-    <span class="kw">let </span>vec = <span class="kw">match </span><span class="self"><a href="#269">self</a> </span>{
-      <a href="#100">TinyVec::Inline</a>(<span class="kw">_</span>) =&gt; <span class="kw">return</span>,
-      <a href="#102">TinyVec::Heap</a>(h) =&gt; <a href="#272">h</a>,
+    <span class="kw">let </span>vec = <span class="kw">match </span><span class="self">self </span>{
+      TinyVec::Inline(<span class="kw">_</span>) =&gt; <span class="kw">return</span>,
+      TinyVec::Heap(h) =&gt; h,
     };
 
     <span class="kw">if </span>vec.len() &gt; A::CAPACITY {
-      <span class="kw">return </span><a href="#270">vec</a>.shrink_to_fit();
+      <span class="kw">return </span>vec.shrink_to_fit();
     }
 
-    <span class="kw">let </span>moved_vec = <a href="https://doc.rust-lang.org/nightly/core/mem/fn.replace.html">core::mem::replace</a>(<a href="#270">vec</a>, Vec::new());
+    <span class="kw">let </span>moved_vec = core::mem::replace(vec, Vec::new());
 
     <span class="kw">let </span><span class="kw-2">mut </span>av = ArrayVec::default();
-    <span class="kw">let </span><span class="kw-2">mut </span>rest = <a href="#281">av</a>.<a href="arrayvec.rs.html#458-460">fill</a>(<a href="#279">moved_vec</a>);
-    <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(rest.next().is_none());
-    <span class="kw-2">*</span><span class="self"><a href="#269">self</a> </span>= <a href="#100">TinyVec::Inline</a>(<a href="#281">av</a>);
+    <span class="kw">let </span><span class="kw-2">mut </span>rest = av.fill(moved_vec);
+    <span class="macro">debug_assert!</span>(rest.next().is_none());
+    <span class="kw-2">*</span><span class="self">self </span>= TinyVec::Inline(av);
   }
 
   <span class="doccomment">/// Moves the content of the TinyVec to the heap, if it&#39;s inline.
@@ -2034,13 +2034,13 @@
   /// ```
   </span><span class="attr">#[allow(clippy::missing_inline_in_public_items)]
   </span><span class="kw">pub fn </span>move_to_the_heap(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-    <span class="kw">let </span>arr = <span class="kw">match </span><span class="self"><a href="#296">self</a> </span>{
-      <a href="#102">TinyVec::Heap</a>(<span class="kw">_</span>) =&gt; <span class="kw">return</span>,
-      <a href="#100">TinyVec::Inline</a>(a) =&gt; <a href="#299">a</a>,
+    <span class="kw">let </span>arr = <span class="kw">match </span><span class="self">self </span>{
+      TinyVec::Heap(<span class="kw">_</span>) =&gt; <span class="kw">return</span>,
+      TinyVec::Inline(a) =&gt; a,
     };
 
-    <span class="kw">let </span>v = <a href="#297">arr</a>.<a href="arrayvec.rs.html#1814">drain_to_vec</a>();
-    <span class="kw-2">*</span><span class="self"><a href="#296">self</a> </span>= <a href="#102">TinyVec::Heap</a>(<a href="#302">v</a>);
+    <span class="kw">let </span>v = arr.drain_to_vec();
+    <span class="kw-2">*</span><span class="self">self </span>= TinyVec::Heap(v);
   }
 
   <span class="doccomment">/// Tries to move the content of the TinyVec to the heap, if it&#39;s inline.
@@ -2079,14 +2079,14 @@
   /// assert!(tv.is_heap());
   /// assert!(tv.capacity() &gt;= 35);
   /// ```
-  </span><span class="kw">pub fn </span>move_to_the_heap_and_reserve(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: <a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>) {
-    <span class="kw">let </span>arr = <span class="kw">match </span><span class="self"><a href="#342">self</a> </span>{
-      <a href="#102">TinyVec::Heap</a>(h) =&gt; <span class="kw">return </span><a href="#344">h</a>.reserve(<a href="#342">n</a>),
-      <a href="#100">TinyVec::Inline</a>(a) =&gt; <a href="#345">a</a>,
+  </span><span class="kw">pub fn </span>move_to_the_heap_and_reserve(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: usize) {
+    <span class="kw">let </span>arr = <span class="kw">match </span><span class="self">self </span>{
+      TinyVec::Heap(h) =&gt; <span class="kw">return </span>h.reserve(n),
+      TinyVec::Inline(a) =&gt; a,
     };
 
-    <span class="kw">let </span>v = <a href="#343">arr</a>.<a href="arrayvec.rs.html#1769">drain_to_vec_and_reserve</a>(<a href="#342">n</a>);
-    <span class="kw-2">*</span><span class="self"><a href="#342">self</a> </span>= <a href="#102">TinyVec::Heap</a>(<a href="#348">v</a>);
+    <span class="kw">let </span>v = arr.drain_to_vec_and_reserve(n);
+    <span class="kw-2">*</span><span class="self">self </span>= TinyVec::Heap(v);
   }
 
   <span class="doccomment">/// If TinyVec is inline, try to move the content of it to the heap.
@@ -2128,15 +2128,15 @@
   /// assert!(tv.is_heap());
   /// assert!(tv.capacity() &gt;= 5);
   /// ```
-  </span><span class="kw">pub fn </span>reserve(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: <a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>) {
-    <span class="kw">let </span>arr = <span class="kw">match </span><span class="self"><a href="#391">self</a> </span>{
-      <a href="#102">TinyVec::Heap</a>(h) =&gt; <span class="kw">return </span><a href="#393">h</a>.reserve(<a href="#391">n</a>),
-      <a href="#100">TinyVec::Inline</a>(a) =&gt; <a href="#394">a</a>,
+  </span><span class="kw">pub fn </span>reserve(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: usize) {
+    <span class="kw">let </span>arr = <span class="kw">match </span><span class="self">self </span>{
+      TinyVec::Heap(h) =&gt; <span class="kw">return </span>h.reserve(n),
+      TinyVec::Inline(a) =&gt; a,
     };
 
     <span class="kw">if </span>n &gt; arr.capacity() - arr.len() {
-      <span class="kw">let </span>v = <a href="#392">arr</a>.<a href="arrayvec.rs.html#1769">drain_to_vec_and_reserve</a>(<a href="#391">n</a>);
-      <span class="kw-2">*</span><span class="self"><a href="#391">self</a> </span>= <a href="#102">TinyVec::Heap</a>(<a href="#398">v</a>);
+      <span class="kw">let </span>v = arr.drain_to_vec_and_reserve(n);
+      <span class="kw-2">*</span><span class="self">self </span>= TinyVec::Heap(v);
     }
 
     <span class="comment">/* In this place array has enough place, so no work is needed more */
@@ -2191,15 +2191,15 @@
   /// assert!(tv.is_heap());
   /// assert!(tv.capacity() &gt;= 5);
   /// ```
-  </span><span class="kw">pub fn </span>reserve_exact(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: <a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>) {
-    <span class="kw">let </span>arr = <span class="kw">match </span><span class="self"><a href="#454">self</a> </span>{
-      <a href="#102">TinyVec::Heap</a>(h) =&gt; <span class="kw">return </span><a href="#456">h</a>.reserve_exact(<a href="#454">n</a>),
-      <a href="#100">TinyVec::Inline</a>(a) =&gt; <a href="#457">a</a>,
+  </span><span class="kw">pub fn </span>reserve_exact(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: usize) {
+    <span class="kw">let </span>arr = <span class="kw">match </span><span class="self">self </span>{
+      TinyVec::Heap(h) =&gt; <span class="kw">return </span>h.reserve_exact(n),
+      TinyVec::Inline(a) =&gt; a,
     };
 
     <span class="kw">if </span>n &gt; arr.capacity() - arr.len() {
-      <span class="kw">let </span>v = <a href="#455">arr</a>.<a href="arrayvec.rs.html#1769">drain_to_vec_and_reserve</a>(<a href="#454">n</a>);
-      <span class="kw-2">*</span><span class="self"><a href="#454">self</a> </span>= <a href="#102">TinyVec::Heap</a>(<a href="#461">v</a>);
+      <span class="kw">let </span>v = arr.drain_to_vec_and_reserve(n);
+      <span class="kw-2">*</span><span class="self">self </span>= TinyVec::Heap(v);
     }
 
     <span class="comment">/* In this place array has enough place, so no work is needed more */
@@ -2259,16 +2259,16 @@
   /// ```
   </span><span class="attr">#[inline]
   #[must_use]
-  </span><span class="kw">pub fn </span>with_capacity(cap: <a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>) -&gt; <span class="self">Self </span>{
+  </span><span class="kw">pub fn </span>with_capacity(cap: usize) -&gt; <span class="self">Self </span>{
     <span class="kw">if </span>cap &lt;= A::CAPACITY {
-      <a href="#100">TinyVec::Inline</a>(ArrayVec::default())
+      TinyVec::Inline(ArrayVec::default())
     } <span class="kw">else </span>{
-      <a href="#102">TinyVec::Heap</a>(Vec::with_capacity(<a href="#522">cap</a>))
+      TinyVec::Heap(Vec::with_capacity(cap))
     }
   }
 }
 
-<span class="kw">impl</span>&lt;A: <a href="array.rs.html#19">Array</a>&gt; TinyVec&lt;A&gt; {
+<span class="kw">impl</span>&lt;A: Array&gt; TinyVec&lt;A&gt; {
   <span class="doccomment">/// Move all values from `other` into this vec.
   </span><span class="attr">#[cfg(feature = <span class="string">&quot;rustc_1_40&quot;</span>)]
   #[inline]
@@ -2287,13 +2287,13 @@
   </span><span class="attr">#[cfg(not(feature = <span class="string">&quot;rustc_1_40&quot;</span>))]
   #[inline]
   </span><span class="kw">pub fn </span>append(<span class="kw-2">&amp;mut </span><span class="self">self</span>, other: <span class="kw-2">&amp;mut </span><span class="self">Self</span>) {
-    <span class="kw">match </span><a href="#549">other</a> {
-      <a href="#100">TinyVec::Inline</a>(a) =&gt; <a class="self" href="#549">self</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a href="#551">a</a>.<a href="arrayvec.rs.html#369-371">drain</a>(..)),
-      <a href="#102">TinyVec::Heap</a>(h) =&gt; <a class="self" href="#549">self</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a href="#552">h</a>.drain(..)),
+    <span class="kw">match </span>other {
+      TinyVec::Inline(a) =&gt; <span class="self">self</span>.extend(a.drain(..)),
+      TinyVec::Heap(h) =&gt; <span class="self">self</span>.extend(h.drain(..)),
     }
   }
 
-  <a class="macro" href="../../tinyvec_macros/macro.impl_mirrored.html">impl_mirrored! </a>{
+  <span class="macro">impl_mirrored! </span>{
     <span class="kw">type </span>Mirror = TinyVec;
 
     <span class="doccomment">/// Remove an element, swapping the end of the vec into its place.
@@ -2313,7 +2313,7 @@
     /// assert_eq!(tv.as_slice(), &amp;[&quot;quack&quot;, &quot;zap&quot;][..]);
     /// ```
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>swap_remove(<span class="self">self</span>: <span class="kw-2">&amp;mut </span><span class="self">Self</span>, index: <a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>) -&gt; A::Item;
+    </span><span class="kw">pub fn </span>swap_remove(<span class="self">self</span>: <span class="kw-2">&amp;mut </span><span class="self">Self</span>, index: usize) -&gt; A::Item;
 
     <span class="doccomment">/// Remove and return the last element of the vec, if there is one.
     ///
@@ -2339,12 +2339,12 @@
     /// assert_eq!(tv.as_slice(), &amp;[1, 3][..]);
     /// ```
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>remove(<span class="self">self</span>: <span class="kw-2">&amp;mut </span><span class="self">Self</span>, index: <a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>) -&gt; A::Item;
+    </span><span class="kw">pub fn </span>remove(<span class="self">self</span>: <span class="kw-2">&amp;mut </span><span class="self">Self</span>, index: usize) -&gt; A::Item;
 
     <span class="doccomment">/// The length of the vec (in elements).
     </span><span class="attr">#[inline(always)]
     #[must_use]
-    </span><span class="kw">pub fn </span>len(<span class="self">self</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>;
+    </span><span class="kw">pub fn </span>len(<span class="self">self</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; usize;
 
     <span class="doccomment">/// The capacity of the `TinyVec`.
     ///
@@ -2352,13 +2352,13 @@
     /// Otherwise its the result of the underlying Vec::capacity.
     </span><span class="attr">#[inline(always)]
     #[must_use]
-    </span><span class="kw">pub fn </span>capacity(<span class="self">self</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>;
+    </span><span class="kw">pub fn </span>capacity(<span class="self">self</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; usize;
 
     <span class="doccomment">/// Reduces the vec&#39;s length to the given value.
     ///
     /// If the vec is already shorter than the input, nothing happens.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>truncate(<span class="self">self</span>: <span class="kw-2">&amp;mut </span><span class="self">Self</span>, new_len: <a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>);
+    </span><span class="kw">pub fn </span>truncate(<span class="self">self</span>: <span class="kw-2">&amp;mut </span><span class="self">Self</span>, new_len: usize);
 
     <span class="doccomment">/// A mutable pointer to the backing array.
     ///
@@ -2391,10 +2391,10 @@
   /// assert_eq!(tv.as_slice(), &amp;[2, 4][..]);
   /// ```
   </span><span class="attr">#[inline]
-  </span><span class="kw">pub fn </span>retain&lt;F: FnMut(<span class="kw-2">&amp;</span>A::Item) -&gt; <a href="https://doc.rust-lang.org/nightly/core/primitive.bool.html">bool</a>&gt;(<span class="self">self</span>: <span class="kw-2">&amp;mut </span><span class="self">Self</span>, acceptable: F) {
-    <span class="kw">match </span><span class="self"><a href="#654">self</a> </span>{
-      <a href="#100">TinyVec::Inline</a>(i) =&gt; <a href="#656">i</a>.<a href="arrayvec.rs.html#769">retain</a>(<a href="#654">acceptable</a>),
-      <a href="#102">TinyVec::Heap</a>(h) =&gt; <a href="#657">h</a>.retain(<a href="#654">acceptable</a>),
+  </span><span class="kw">pub fn </span>retain&lt;F: FnMut(<span class="kw-2">&amp;</span>A::Item) -&gt; bool&gt;(<span class="self">self</span>: <span class="kw-2">&amp;mut </span><span class="self">Self</span>, acceptable: F) {
+    <span class="kw">match </span><span class="self">self </span>{
+      TinyVec::Inline(i) =&gt; i.retain(acceptable),
+      TinyVec::Heap(h) =&gt; h.retain(acceptable),
     }
   }
 
@@ -2402,20 +2402,20 @@
   </span><span class="attr">#[inline(always)]
   #[must_use]
   </span><span class="kw">pub fn </span>as_mut_slice(<span class="self">self</span>: <span class="kw-2">&amp;mut </span><span class="self">Self</span>) -&gt; <span class="kw-2">&amp;mut </span>[A::Item] {
-    <a class="self" href="#664">self</a>.<a href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.DerefMut.html">deref_mut</a>()
+    <span class="self">self</span>.deref_mut()
   }
 
   <span class="doccomment">/// Helper for getting the shared slice.
   </span><span class="attr">#[inline(always)]
   #[must_use]
   </span><span class="kw">pub fn </span>as_slice(<span class="self">self</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="kw-2">&amp;</span>[A::Item] {
-    <a class="self" href="#671">self</a>.<a href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.Deref.html">deref</a>()
+    <span class="self">self</span>.deref()
   }
 
   <span class="doccomment">/// Removes all elements from the vec.
   </span><span class="attr">#[inline(always)]
   </span><span class="kw">pub fn </span>clear(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-    <a class="self" href="#677">self</a>.<a href="#556-640">truncate</a>(<span class="number">0</span>)
+    <span class="self">self</span>.truncate(<span class="number">0</span>)
   }
 
   <span class="doccomment">/// De-duplicates the vec.
@@ -2477,12 +2477,12 @@
   /// assert_eq!(tv.as_slice(), &amp;[]);
   /// ```
   </span><span class="attr">#[inline]
-  </span><span class="kw">pub fn </span>drain&lt;R: RangeBounds&lt;<a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>&gt;&gt;(
+  </span><span class="kw">pub fn </span>drain&lt;R: RangeBounds&lt;usize&gt;&gt;(
     <span class="kw-2">&amp;mut </span><span class="self">self</span>, range: R,
   ) -&gt; TinyVecDrain&lt;<span class="lifetime">&#39;_</span>, A&gt; {
-    <span class="kw">match </span><span class="self"><a href="#741">self</a> </span>{
-      <a href="#100">TinyVec::Inline</a>(i) =&gt; <a href="#1065">TinyVecDrain::Inline</a>(<a href="#744">i</a>.<a href="arrayvec.rs.html#369-371">drain</a>(<a href="#741">range</a>)),
-      <a href="#102">TinyVec::Heap</a>(h) =&gt; <a href="#1067">TinyVecDrain::Heap</a>(<a href="#745">h</a>.drain(<a href="#741">range</a>)),
+    <span class="kw">match </span><span class="self">self </span>{
+      TinyVec::Inline(i) =&gt; TinyVecDrain::Inline(i.drain(range)),
+      TinyVec::Heap(h) =&gt; TinyVecDrain::Heap(h.drain(range)),
     }
   }
 
@@ -2496,12 +2496,12 @@
   </span><span class="attr">#[inline]
   </span><span class="kw">pub fn </span>extend_from_slice(<span class="kw-2">&amp;mut </span><span class="self">self</span>, sli: <span class="kw-2">&amp;</span>[A::Item])
   <span class="kw">where
-    </span>A::Item: <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a>,
+    </span>A::Item: Clone,
   {
-    <a class="self" href="#757">self</a>.<a href="#391">reserve</a>(<a href="#757">sli</a>.len());
-    <span class="kw">match </span><span class="self"><a href="#757">self</a> </span>{
-      <a href="#100">TinyVec::Inline</a>(a) =&gt; <a href="#763">a</a>.<a href="arrayvec.rs.html#411-413">extend_from_slice</a>(<a href="#757">sli</a>),
-      <a href="#102">TinyVec::Heap</a>(h) =&gt; <a href="#764">h</a>.extend_from_slice(<a href="#757">sli</a>),
+    <span class="self">self</span>.reserve(sli.len());
+    <span class="kw">match </span><span class="self">self </span>{
+      TinyVec::Inline(a) =&gt; a.extend_from_slice(sli),
+      TinyVec::Heap(h) =&gt; h.extend_from_slice(sli),
     }
   }
 
@@ -2515,11 +2515,11 @@
   </span><span class="attr">#[inline]
   #[must_use]
   #[allow(clippy::match_wild_err_arm)]
-  </span><span class="kw">pub fn </span>from_array_len(data: A, len: <a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>) -&gt; <span class="self">Self </span>{
-    <span class="kw">match </span><span class="self">Self</span>::try_from_array_len(<a href="#778">data</a>, <a href="#778">len</a>) {
-      <span class="prelude-val">Ok</span>(out) =&gt; <a href="#780">out</a>,
+  </span><span class="kw">pub fn </span>from_array_len(data: A, len: usize) -&gt; <span class="self">Self </span>{
+    <span class="kw">match </span><span class="self">Self</span>::try_from_array_len(data, len) {
+      <span class="prelude-val">Ok</span>(out) =&gt; out,
       <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.panic.html">panic!</a>(<span class="string">&quot;TinyVec: length {} exceeds capacity {}!&quot;</span>, len, A::CAPACITY)
+        <span class="macro">panic!</span>(<span class="string">&quot;TinyVec: length {} exceeds capacity {}!&quot;</span>, len, A::CAPACITY)
       }
     }
   }
@@ -2529,11 +2529,11 @@
   /// SemVer guarantee.
   </span><span class="attr">#[inline(always)]
   #[doc(hidden)]
-  </span><span class="kw">pub fn </span>constructor_for_capacity(cap: <a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>) -&gt; TinyVecConstructor&lt;A&gt; {
+  </span><span class="kw">pub fn </span>constructor_for_capacity(cap: usize) -&gt; TinyVecConstructor&lt;A&gt; {
     <span class="kw">if </span>cap &lt;= A::CAPACITY {
-      <a href="#72">TinyVecConstructor::Inline</a>(<a href="#100">TinyVec::Inline</a>)
+      TinyVecConstructor::Inline(TinyVec::Inline)
     } <span class="kw">else </span>{
-      <a href="#73">TinyVecConstructor::Heap</a>(<a href="#102">TinyVec::Heap</a>)
+      TinyVecConstructor::Heap(TinyVec::Heap)
     }
   }
 
@@ -2553,35 +2553,35 @@
   /// assert_eq!(tv.as_slice(), &amp;[1, 4, 2, 3, 5]);
   /// ```
   </span><span class="attr">#[inline]
-  </span><span class="kw">pub fn </span>insert(<span class="kw-2">&amp;mut </span><span class="self">self</span>, index: <a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>, item: A::Item) {
-    <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(
+  </span><span class="kw">pub fn </span>insert(<span class="kw-2">&amp;mut </span><span class="self">self</span>, index: usize, item: A::Item) {
+    <span class="macro">assert!</span>(
       index &lt;= <span class="self">self</span>.len(),
       <span class="string">&quot;insertion index (is {}) should be &lt;= len (is {})&quot;</span>,
       index,
       <span class="self">self</span>.len()
     );
 
-    <span class="kw">let </span>arr = <span class="kw">match </span><span class="self"><a href="#816">self</a> </span>{
-      <a href="#102">TinyVec::Heap</a>(v) =&gt; <span class="kw">return </span><a href="#825">v</a>.insert(<a href="#816">index</a>, <a href="#816">item</a>),
-      <a href="#100">TinyVec::Inline</a>(a) =&gt; <a href="#826">a</a>,
+    <span class="kw">let </span>arr = <span class="kw">match </span><span class="self">self </span>{
+      TinyVec::Heap(v) =&gt; <span class="kw">return </span>v.insert(index, item),
+      TinyVec::Inline(a) =&gt; a,
     };
 
-    <span class="kw">if let </span><span class="prelude-val">Some</span>(x) = <a href="#824">arr</a>.<a href="arrayvec.rs.html#538-540">try_insert</a>(<a href="#816">index</a>, <a href="#816">item</a>) {
-      <span class="kw">let </span><span class="kw-2">mut </span>v = Vec::with_capacity(<a href="#824">arr</a>.<a href="arrayvec.rs.html#578">len</a>() * <span class="number">2</span>);
+    <span class="kw">if let </span><span class="prelude-val">Some</span>(x) = arr.try_insert(index, item) {
+      <span class="kw">let </span><span class="kw-2">mut </span>v = Vec::with_capacity(arr.len() * <span class="number">2</span>);
       <span class="kw">let </span><span class="kw-2">mut </span>it =
-        <a href="#824">arr</a>.iter_mut().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|r| <a href="https://doc.rust-lang.org/nightly/core/mem/fn.replace.html">core::mem::replace</a>(<a href="#832">r</a>, <a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default::default</a>()));
-      <a href="#830">v</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a href="#831">it</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">by_ref</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">take</a>(<a href="#816">index</a>));
-      <a href="#830">v</a>.push(<a href="#829">x</a>);
-      <a href="#830">v</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a href="#831">it</a>);
-      <span class="kw-2">*</span><span class="self"><a href="#816">self</a> </span>= <a href="#102">TinyVec::Heap</a>(<a href="#830">v</a>);
+        arr.iter_mut().map(|r| core::mem::replace(r, Default::default()));
+      v.extend(it.by_ref().take(index));
+      v.push(x);
+      v.extend(it);
+      <span class="kw-2">*</span><span class="self">self </span>= TinyVec::Heap(v);
     }
   }
 
   <span class="doccomment">/// If the vec is empty.
   </span><span class="attr">#[inline(always)]
   #[must_use]
-  </span><span class="kw">pub fn </span>is_empty(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/primitive.bool.html">bool</a> {
-    <a class="self" href="#843">self</a>.<a href="#556-640">len</a>() == <span class="number">0
+  </span><span class="kw">pub fn </span>is_empty(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+    <span class="self">self</span>.len() == <span class="number">0
   </span>}
 
   <span class="doccomment">/// Makes a new, empty vec.
@@ -2612,20 +2612,20 @@
     // inlined together, and we take the extra cost of a function call only
     // in rare cases.
     </span><span class="attr">#[cold]
-    </span><span class="kw">fn </span>drain_to_heap_and_push&lt;A: <a href="array.rs.html#19">Array</a>&gt;(
+    </span><span class="kw">fn </span>drain_to_heap_and_push&lt;A: Array&gt;(
       arr: <span class="kw-2">&amp;mut </span>ArrayVec&lt;A&gt;, val: A::Item,
     ) -&gt; TinyVec&lt;A&gt; {
       <span class="comment">/* Make the Vec twice the size to amortize the cost of draining */
-      </span><span class="kw">let </span><span class="kw-2">mut </span>v = <a href="#876">arr</a>.<a href="arrayvec.rs.html#1769">drain_to_vec_and_reserve</a>(<a href="#876">arr</a>.<a href="arrayvec.rs.html#578">len</a>());
-      <a href="#879">v</a>.push(<a href="#876">val</a>);
-      <a href="#102">TinyVec::Heap</a>(<a href="#879">v</a>)
+      </span><span class="kw">let </span><span class="kw-2">mut </span>v = arr.drain_to_vec_and_reserve(arr.len());
+      v.push(val);
+      TinyVec::Heap(v)
     }
 
-    <span class="kw">match </span><span class="self"><a href="#864">self</a> </span>{
-      <a href="#102">TinyVec::Heap</a>(v) =&gt; <a href="#885">v</a>.push(<a href="#864">val</a>),
-      <a href="#100">TinyVec::Inline</a>(arr) =&gt; {
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(x) = <a href="#886">arr</a>.<a href="arrayvec.rs.html#649">try_push</a>(<a href="#864">val</a>) {
-          <span class="kw-2">*</span><span class="self"><a href="#864">self</a> </span>= <a href="#875-877">drain_to_heap_and_push</a>(<a href="#886">arr</a>, <a href="#887">x</a>);
+    <span class="kw">match </span><span class="self">self </span>{
+      TinyVec::Heap(v) =&gt; v.push(val),
+      TinyVec::Inline(arr) =&gt; {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(x) = arr.try_push(val) {
+          <span class="kw-2">*</span><span class="self">self </span>= drain_to_heap_and_push(arr, x);
         }
       }
     }
@@ -2650,11 +2650,11 @@
   /// assert_eq!(tv.as_slice(), &amp;[1, 2][..]);
   /// ```
   </span><span class="attr">#[inline]
-  </span><span class="kw">pub fn </span>resize(<span class="kw-2">&amp;mut </span><span class="self">self</span>, new_len: <a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>, new_val: A::Item)
+  </span><span class="kw">pub fn </span>resize(<span class="kw-2">&amp;mut </span><span class="self">self</span>, new_len: usize, new_val: A::Item)
   <span class="kw">where
-    </span>A::Item: <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a>,
+    </span>A::Item: Clone,
   {
-    <a class="self" href="#913">self</a>.<a href="#943">resize_with</a>(<a href="#913">new_len</a>, || <a href="#913">new_val</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
+    <span class="self">self</span>.resize_with(new_len, || new_val.clone());
   }
 
   <span class="doccomment">/// Resize the vec to the new length.
@@ -2680,15 +2680,15 @@
   /// assert_eq!(tv.as_slice(), &amp;[2, 4, 8, 16][..]);
   /// ```
   </span><span class="attr">#[inline]
-  </span><span class="kw">pub fn </span>resize_with&lt;F: FnMut() -&gt; A::Item&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, new_len: <a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>, f: F) {
-    <span class="kw">match </span><a href="#943">new_len</a>.checked_sub(<a class="self" href="#943">self</a>.<a href="#556-640">len</a>()) {
-      <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><a class="self" href="#943">self</a>.<a href="#556-640">truncate</a>(<a href="#943">new_len</a>),
-      <span class="prelude-val">Some</span>(n) =&gt; <a class="self" href="#943">self</a>.<a href="#391">reserve</a>(<a href="#946">n</a>),
+  </span><span class="kw">pub fn </span>resize_with&lt;F: FnMut() -&gt; A::Item&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, new_len: usize, f: F) {
+    <span class="kw">match </span>new_len.checked_sub(<span class="self">self</span>.len()) {
+      <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="self">self</span>.truncate(new_len),
+      <span class="prelude-val">Some</span>(n) =&gt; <span class="self">self</span>.reserve(n),
     }
 
-    <span class="kw">match </span><span class="self"><a href="#943">self</a> </span>{
-      <a href="#100">TinyVec::Inline</a>(a) =&gt; <a href="#950">a</a>.<a href="arrayvec.rs.html#744-746">resize_with</a>(<a href="#943">new_len</a>, <a href="#943">f</a>),
-      <a href="#102">TinyVec::Heap</a>(v) =&gt; <a href="#951">v</a>.resize_with(<a href="#943">new_len</a>, <a href="#943">f</a>),
+    <span class="kw">match </span><span class="self">self </span>{
+      TinyVec::Inline(a) =&gt; a.resize_with(new_len, f),
+      TinyVec::Heap(v) =&gt; v.resize_with(new_len, f),
     }
   }
 
@@ -2710,10 +2710,10 @@
   /// assert_eq!(tv2.as_slice(), &amp;[2, 3][..]);
   /// ```
   </span><span class="attr">#[inline]
-  </span><span class="kw">pub fn </span>split_off(<span class="kw-2">&amp;mut </span><span class="self">self</span>, at: <a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>) -&gt; <span class="self">Self </span>{
-    <span class="kw">match </span><span class="self"><a href="#973">self</a> </span>{
-      <a href="#100">TinyVec::Inline</a>(a) =&gt; <a href="#100">TinyVec::Inline</a>(<a href="#975">a</a>.<a href="arrayvec.rs.html#853">split_off</a>(<a href="#973">at</a>)),
-      <a href="#102">TinyVec::Heap</a>(v) =&gt; <a href="#102">TinyVec::Heap</a>(<a href="#976">v</a>.split_off(<a href="#973">at</a>)),
+  </span><span class="kw">pub fn </span>split_off(<span class="kw-2">&amp;mut </span><span class="self">self</span>, at: usize) -&gt; <span class="self">Self </span>{
+    <span class="kw">match </span><span class="self">self </span>{
+      TinyVec::Inline(a) =&gt; TinyVec::Inline(a.split_off(at)),
+      TinyVec::Heap(v) =&gt; TinyVec::Heap(v.split_off(at)),
     }
   }
 
@@ -2745,38 +2745,38 @@
     <span class="kw-2">&amp;mut </span><span class="self">self</span>, range: R, replacement: I,
   ) -&gt; TinyVecSplice&lt;<span class="lifetime">&#39;_</span>, A, core::iter::Fuse&lt;I::IntoIter&gt;&gt;
   <span class="kw">where
-    </span>R: RangeBounds&lt;<a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>&gt;,
+    </span>R: RangeBounds&lt;usize&gt;,
     I: IntoIterator&lt;Item = A::Item&gt;,
   {
-    <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/ops/range/enum.Bound.html">core::ops::Bound</a>;
-    <span class="kw">let </span>start = <span class="kw">match </span><a href="#1005">range</a>.<a href="https://doc.rust-lang.org/nightly/core/ops/range/trait.RangeBounds.html">start_bound</a>() {
-      Bound::Included(x) =&gt; <span class="kw-2">*</span><a href="#1013">x</a>,
-      Bound::Excluded(x) =&gt; <a href="#1014">x</a>.saturating_add(<span class="number">1</span>),
+    <span class="kw">use </span>core::ops::Bound;
+    <span class="kw">let </span>start = <span class="kw">match </span>range.start_bound() {
+      Bound::Included(x) =&gt; <span class="kw-2">*</span>x,
+      Bound::Excluded(x) =&gt; x.saturating_add(<span class="number">1</span>),
       Bound::Unbounded =&gt; <span class="number">0</span>,
     };
-    <span class="kw">let </span>end = <span class="kw">match </span><a href="#1005">range</a>.<a href="https://doc.rust-lang.org/nightly/core/ops/range/trait.RangeBounds.html">end_bound</a>() {
-      Bound::Included(x) =&gt; <a href="#1018">x</a>.saturating_add(<span class="number">1</span>),
-      Bound::Excluded(x) =&gt; <span class="kw-2">*</span><a href="#1019">x</a>,
-      Bound::Unbounded =&gt; <a class="self" href="#1005">self</a>.<a href="#556-640">len</a>(),
+    <span class="kw">let </span>end = <span class="kw">match </span>range.end_bound() {
+      Bound::Included(x) =&gt; x.saturating_add(<span class="number">1</span>),
+      Bound::Excluded(x) =&gt; <span class="kw-2">*</span>x,
+      Bound::Unbounded =&gt; <span class="self">self</span>.len(),
     };
-    <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(
+    <span class="macro">assert!</span>(
       start &lt;= end,
       <span class="string">&quot;TinyVec::splice&gt; Illegal range, {} to {}&quot;</span>,
       start,
       end
     );
-    <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(
+    <span class="macro">assert!</span>(
       end &lt;= <span class="self">self</span>.len(),
       <span class="string">&quot;TinyVec::splice&gt; Range ends at {} but length is only {}!&quot;</span>,
       end,
       <span class="self">self</span>.len()
     );
 
-    <a href="#1113">TinyVecSplice</a> {
-      removal_start: <a href="#1012">start</a>,
-      removal_end: <a href="#1017">end</a>,
-      parent: <a class="self" href="#1005">self</a>,
-      replacement: <a href="#1005">replacement</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">fuse</a>(),
+    TinyVecSplice {
+      removal_start: start,
+      removal_end: end,
+      parent: <span class="self">self</span>,
+      replacement: replacement.into_iter().fuse(),
     }
   }
 
@@ -2790,9 +2790,9 @@
   /// If the given length is greater than the capacity of the array this will
   /// error, and you&#39;ll get the array back in the `Err`.
   </span><span class="attr">#[inline]
-  </span><span class="kw">pub fn </span>try_from_array_len(data: A, len: <a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, A&gt; {
+  </span><span class="kw">pub fn </span>try_from_array_len(data: A, len: usize) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, A&gt; {
     <span class="kw">let </span>arr = ArrayVec::try_from_array_len(data, len)<span class="question-mark">?</span>;
-    <span class="prelude-val">Ok</span>(<a href="#100">TinyVec::Inline</a>(<a href="#1054">arr</a>))
+    <span class="prelude-val">Ok</span>(TinyVec::Inline(arr))
   }
 }
 
@@ -2800,42 +2800,42 @@
 ///
 /// See [`TinyVecDrain::drain`](TinyVecDrain::&lt;A&gt;::drain)
 </span><span class="attr">#[cfg_attr(docs_rs, doc(cfg(feature = <span class="string">&quot;alloc&quot;</span>)))]
-</span><span class="kw">pub enum </span>TinyVecDrain&lt;<span class="lifetime">&#39;p</span>, A: <a href="array.rs.html#19">Array</a>&gt; {
+</span><span class="kw">pub enum </span>TinyVecDrain&lt;<span class="lifetime">&#39;p</span>, A: Array&gt; {
   <span class="attr">#[allow(missing_docs)]
   </span>Inline(ArrayVecDrain&lt;<span class="lifetime">&#39;p</span>, A::Item&gt;),
   <span class="attr">#[allow(missing_docs)]
   </span>Heap(vec::Drain&lt;<span class="lifetime">&#39;p</span>, A::Item&gt;),
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;p</span>, A: <a href="array.rs.html#19">Array</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a> <span class="kw">for </span>TinyVecDrain&lt;<span class="lifetime">&#39;p</span>, A&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;p</span>, A: Array&gt; Iterator <span class="kw">for </span>TinyVecDrain&lt;<span class="lifetime">&#39;p</span>, A&gt; {
   <span class="kw">type </span>Item = A::Item;
 
-  <a class="macro" href="../../tinyvec_macros/macro.impl_mirrored.html">impl_mirrored! </a>{
+  <span class="macro">impl_mirrored! </span>{
     <span class="kw">type </span>Mirror = TinyVecDrain;
 
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>next(<span class="self">self</span>: <span class="kw-2">&amp;mut </span><span class="self">Self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt;;
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>nth(<span class="self">self</span>: <span class="kw-2">&amp;mut </span><span class="self">Self</span>, n: <a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt;;
+    </span><span class="kw">fn </span>nth(<span class="self">self</span>: <span class="kw-2">&amp;mut </span><span class="self">Self</span>, n: usize) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt;;
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>size_hint(<span class="self">self</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; (<a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>, <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>&gt;);
+    </span><span class="kw">fn </span>size_hint(<span class="self">self</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; (usize, <span class="prelude-ty">Option</span>&lt;usize&gt;);
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>last(<span class="self">self</span>: <span class="self">Self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt;;
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>count(<span class="self">self</span>: <span class="self">Self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>;
+    </span><span class="kw">fn </span>count(<span class="self">self</span>: <span class="self">Self</span>) -&gt; usize;
   }
 
   <span class="attr">#[inline]
   </span><span class="kw">fn </span>for_each&lt;F: FnMut(<span class="self">Self</span>::Item)&gt;(<span class="self">self</span>, f: F) {
-    <span class="kw">match </span><span class="self"><a href="#1089">self</a> </span>{
-      <a href="#1065">TinyVecDrain::Inline</a>(i) =&gt; <a href="#1091">i</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">for_each</a>(<a href="#1089">f</a>),
-      <a href="#1067">TinyVecDrain::Heap</a>(h) =&gt; <a href="#1092">h</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">for_each</a>(<a href="#1089">f</a>),
+    <span class="kw">match </span><span class="self">self </span>{
+      TinyVecDrain::Inline(i) =&gt; i.for_each(f),
+      TinyVecDrain::Heap(h) =&gt; h.for_each(f),
     }
   }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;p</span>, A: <a href="array.rs.html#19">Array</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/double_ended/trait.DoubleEndedIterator.html">DoubleEndedIterator</a> <span class="kw">for </span>TinyVecDrain&lt;<span class="lifetime">&#39;p</span>, A&gt; {
-  <a class="macro" href="../../tinyvec_macros/macro.impl_mirrored.html">impl_mirrored! </a>{
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;p</span>, A: Array&gt; DoubleEndedIterator <span class="kw">for </span>TinyVecDrain&lt;<span class="lifetime">&#39;p</span>, A&gt; {
+  <span class="macro">impl_mirrored! </span>{
     <span class="kw">type </span>Mirror = TinyVecDrain;
 
     <span class="attr">#[inline]
@@ -2850,16 +2850,16 @@
 <span class="doccomment">/// Splicing iterator for `TinyVec`
 /// See [`TinyVec::splice`](TinyVec::&lt;A&gt;::splice)
 </span><span class="attr">#[cfg_attr(docs_rs, doc(cfg(feature = <span class="string">&quot;alloc&quot;</span>)))]
-</span><span class="kw">pub struct </span>TinyVecSplice&lt;<span class="lifetime">&#39;p</span>, A: <a href="array.rs.html#19">Array</a>, I: Iterator&lt;Item = A::Item&gt;&gt; {
+</span><span class="kw">pub struct </span>TinyVecSplice&lt;<span class="lifetime">&#39;p</span>, A: Array, I: Iterator&lt;Item = A::Item&gt;&gt; {
   parent: <span class="kw-2">&amp;</span><span class="lifetime">&#39;p </span><span class="kw-2">mut </span>TinyVec&lt;A&gt;,
-  removal_start: <a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>,
-  removal_end: <a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>,
+  removal_start: usize,
+  removal_end: usize,
   replacement: I,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;p</span>, A, I&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a> <span class="kw">for </span>TinyVecSplice&lt;<span class="lifetime">&#39;p</span>, A, I&gt;
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;p</span>, A, I&gt; Iterator <span class="kw">for </span>TinyVecSplice&lt;<span class="lifetime">&#39;p</span>, A, I&gt;
 <span class="kw">where
-  </span>A: <a href="array.rs.html#19">Array</a>,
+  </span>A: Array,
   I: Iterator&lt;Item = A::Item&gt;,
 {
   <span class="kw">type </span>Item = A::Item;
@@ -2867,19 +2867,19 @@
   <span class="attr">#[inline]
   </span><span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;A::Item&gt; {
     <span class="kw">if </span><span class="self">self</span>.removal_start &lt; <span class="self">self</span>.removal_end {
-      <span class="kw">match </span><a class="self" href="#1128">self</a>.replacement.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>() {
+      <span class="kw">match </span><span class="self">self</span>.replacement.next() {
         <span class="prelude-val">Some</span>(replacement) =&gt; {
-          <span class="kw">let </span>removed = <a href="https://doc.rust-lang.org/nightly/core/mem/fn.replace.html">core::mem::replace</a>(
-            <span class="kw-2">&amp;mut </span><a class="self" href="#1128">self</a>.parent[<a class="self" href="#1128">self</a>.removal_start],
-            <a href="#1131">replacement</a>,
+          <span class="kw">let </span>removed = core::mem::replace(
+            <span class="kw-2">&amp;mut </span><span class="self">self</span>.parent[<span class="self">self</span>.removal_start],
+            replacement,
           );
-          <a class="self" href="#1128">self</a>.removal_start += <span class="number">1</span>;
-          <span class="prelude-val">Some</span>(<a href="#1132">removed</a>)
+          <span class="self">self</span>.removal_start += <span class="number">1</span>;
+          <span class="prelude-val">Some</span>(removed)
         }
         <span class="prelude-val">None </span>=&gt; {
-          <span class="kw">let </span>removed = <a class="self" href="#1128">self</a>.parent.<a href="#556-640">remove</a>(<a class="self" href="#1128">self</a>.removal_start);
-          <a class="self" href="#1128">self</a>.removal_end -= <span class="number">1</span>;
-          <span class="prelude-val">Some</span>(<a href="#1140">removed</a>)
+          <span class="kw">let </span>removed = <span class="self">self</span>.parent.remove(<span class="self">self</span>.removal_start);
+          <span class="self">self</span>.removal_end -= <span class="number">1</span>;
+          <span class="prelude-val">Some</span>(removed)
         }
       }
     } <span class="kw">else </span>{
@@ -2888,51 +2888,51 @@
   }
 
   <span class="attr">#[inline]
-  </span><span class="kw">fn </span>size_hint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (<a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>, <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>&gt;) {
-    <span class="kw">let </span>len = <a class="self" href="#1151">self</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/exact_size/trait.ExactSizeIterator.html">len</a>();
-    (<a href="#1152">len</a>, <span class="prelude-val">Some</span>(<a href="#1152">len</a>))
+  </span><span class="kw">fn </span>size_hint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (usize, <span class="prelude-ty">Option</span>&lt;usize&gt;) {
+    <span class="kw">let </span>len = <span class="self">self</span>.len();
+    (len, <span class="prelude-val">Some</span>(len))
   }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;p</span>, A, I&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/exact_size/trait.ExactSizeIterator.html">ExactSizeIterator</a> <span class="kw">for </span>TinyVecSplice&lt;<span class="lifetime">&#39;p</span>, A, I&gt;
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;p</span>, A, I&gt; ExactSizeIterator <span class="kw">for </span>TinyVecSplice&lt;<span class="lifetime">&#39;p</span>, A, I&gt;
 <span class="kw">where
-  </span>A: <a href="array.rs.html#19">Array</a>,
+  </span>A: Array,
   I: Iterator&lt;Item = A::Item&gt;,
 {
   <span class="attr">#[inline]
-  </span><span class="kw">fn </span>len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a> {
-    <a class="self" href="#1163">self</a>.removal_end - <a class="self" href="#1163">self</a>.removal_start
+  </span><span class="kw">fn </span>len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+    <span class="self">self</span>.removal_end - <span class="self">self</span>.removal_start
   }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;p</span>, A, I&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/marker/trait.FusedIterator.html">FusedIterator</a> <span class="kw">for </span>TinyVecSplice&lt;<span class="lifetime">&#39;p</span>, A, I&gt;
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;p</span>, A, I&gt; FusedIterator <span class="kw">for </span>TinyVecSplice&lt;<span class="lifetime">&#39;p</span>, A, I&gt;
 <span class="kw">where
-  </span>A: <a href="array.rs.html#19">Array</a>,
+  </span>A: Array,
   I: Iterator&lt;Item = A::Item&gt;,
 {
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;p</span>, A, I&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/double_ended/trait.DoubleEndedIterator.html">DoubleEndedIterator</a> <span class="kw">for </span>TinyVecSplice&lt;<span class="lifetime">&#39;p</span>, A, I&gt;
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;p</span>, A, I&gt; DoubleEndedIterator <span class="kw">for </span>TinyVecSplice&lt;<span class="lifetime">&#39;p</span>, A, I&gt;
 <span class="kw">where
-  </span>A: <a href="array.rs.html#19">Array</a>,
-  I: Iterator&lt;Item = A::Item&gt; + <a href="https://doc.rust-lang.org/nightly/core/iter/traits/double_ended/trait.DoubleEndedIterator.html">DoubleEndedIterator</a>,
+  </span>A: Array,
+  I: Iterator&lt;Item = A::Item&gt; + DoubleEndedIterator,
 {
   <span class="attr">#[inline]
   </span><span class="kw">fn </span>next_back(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;A::Item&gt; {
     <span class="kw">if </span><span class="self">self</span>.removal_start &lt; <span class="self">self</span>.removal_end {
-      <span class="kw">match </span><a class="self" href="#1181">self</a>.replacement.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/double_ended/trait.DoubleEndedIterator.html">next_back</a>() {
+      <span class="kw">match </span><span class="self">self</span>.replacement.next_back() {
         <span class="prelude-val">Some</span>(replacement) =&gt; {
-          <span class="kw">let </span>removed = <a href="https://doc.rust-lang.org/nightly/core/mem/fn.replace.html">core::mem::replace</a>(
-            <span class="kw-2">&amp;mut </span><a class="self" href="#1181">self</a>.parent[<a class="self" href="#1181">self</a>.removal_end - <span class="number">1</span>],
-            <a href="#1184">replacement</a>,
+          <span class="kw">let </span>removed = core::mem::replace(
+            <span class="kw-2">&amp;mut </span><span class="self">self</span>.parent[<span class="self">self</span>.removal_end - <span class="number">1</span>],
+            replacement,
           );
-          <a class="self" href="#1181">self</a>.removal_end -= <span class="number">1</span>;
-          <span class="prelude-val">Some</span>(<a href="#1185">removed</a>)
+          <span class="self">self</span>.removal_end -= <span class="number">1</span>;
+          <span class="prelude-val">Some</span>(removed)
         }
         <span class="prelude-val">None </span>=&gt; {
-          <span class="kw">let </span>removed = <a class="self" href="#1181">self</a>.parent.<a href="#556-640">remove</a>(<a class="self" href="#1181">self</a>.removal_end - <span class="number">1</span>);
-          <a class="self" href="#1181">self</a>.removal_end -= <span class="number">1</span>;
-          <span class="prelude-val">Some</span>(<a href="#1193">removed</a>)
+          <span class="kw">let </span>removed = <span class="self">self</span>.parent.remove(<span class="self">self</span>.removal_end - <span class="number">1</span>);
+          <span class="self">self</span>.removal_end -= <span class="number">1</span>;
+          <span class="prelude-val">Some</span>(removed)
         }
       }
     } <span class="kw">else </span>{
@@ -2941,14 +2941,14 @@
   }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;p</span>, A: <a href="array.rs.html#19">Array</a>, I: Iterator&lt;Item = A::Item&gt;&gt; <a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a>
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;p</span>, A: Array, I: Iterator&lt;Item = A::Item&gt;&gt; Drop
   <span class="kw">for </span>TinyVecSplice&lt;<span class="lifetime">&#39;p</span>, A, I&gt;
 {
   <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
     <span class="kw">for _ in </span><span class="self">self</span>.by_ref() {}
 
-    <span class="kw">let </span>(lower_bound, <span class="kw">_</span>) = <a class="self" href="#1207">self</a>.replacement.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">size_hint</a>();
-    <a class="self" href="#1207">self</a>.parent.<a href="#391">reserve</a>(<a href="#1210">lower_bound</a>);
+    <span class="kw">let </span>(lower_bound, <span class="kw">_</span>) = <span class="self">self</span>.replacement.size_hint();
+    <span class="self">self</span>.parent.reserve(lower_bound);
 
     <span class="kw">for </span>replacement <span class="kw">in </span><span class="self">self</span>.replacement.by_ref() {
       <span class="self">self</span>.parent.insert(<span class="self">self</span>.removal_end, replacement);
@@ -2957,128 +2957,128 @@
   }
 }
 
-<span class="kw">impl</span>&lt;A: <a href="array.rs.html#19">Array</a>&gt; AsMut&lt;[A::Item]&gt; <span class="kw">for </span>TinyVec&lt;A&gt; {
+<span class="kw">impl</span>&lt;A: Array&gt; AsMut&lt;[A::Item]&gt; <span class="kw">for </span>TinyVec&lt;A&gt; {
   <span class="attr">#[inline(always)]
   #[must_use]
   </span><span class="kw">fn </span>as_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>[A::Item] {
-    <span class="kw-2">&amp;mut *</span><span class="self"><a href="#1223">self</a>
+    <span class="kw-2">&amp;mut *</span><span class="self">self
   </span>}
 }
 
-<span class="kw">impl</span>&lt;A: <a href="array.rs.html#19">Array</a>&gt; AsRef&lt;[A::Item]&gt; <span class="kw">for </span>TinyVec&lt;A&gt; {
+<span class="kw">impl</span>&lt;A: Array&gt; AsRef&lt;[A::Item]&gt; <span class="kw">for </span>TinyVec&lt;A&gt; {
   <span class="attr">#[inline(always)]
   #[must_use]
   </span><span class="kw">fn </span>as_ref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[A::Item] {
-    <span class="kw-2">&amp;*</span><span class="self"><a href="#1231">self</a>
+    <span class="kw-2">&amp;*</span><span class="self">self
   </span>}
 }
 
-<span class="kw">impl</span>&lt;A: <a href="array.rs.html#19">Array</a>&gt; Borrow&lt;[A::Item]&gt; <span class="kw">for </span>TinyVec&lt;A&gt; {
+<span class="kw">impl</span>&lt;A: Array&gt; Borrow&lt;[A::Item]&gt; <span class="kw">for </span>TinyVec&lt;A&gt; {
   <span class="attr">#[inline(always)]
   #[must_use]
   </span><span class="kw">fn </span>borrow(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[A::Item] {
-    <span class="kw-2">&amp;*</span><span class="self"><a href="#1239">self</a>
+    <span class="kw-2">&amp;*</span><span class="self">self
   </span>}
 }
 
-<span class="kw">impl</span>&lt;A: <a href="array.rs.html#19">Array</a>&gt; BorrowMut&lt;[A::Item]&gt; <span class="kw">for </span>TinyVec&lt;A&gt; {
+<span class="kw">impl</span>&lt;A: Array&gt; BorrowMut&lt;[A::Item]&gt; <span class="kw">for </span>TinyVec&lt;A&gt; {
   <span class="attr">#[inline(always)]
   #[must_use]
   </span><span class="kw">fn </span>borrow_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>[A::Item] {
-    <span class="kw-2">&amp;mut *</span><span class="self"><a href="#1247">self</a>
+    <span class="kw-2">&amp;mut *</span><span class="self">self
   </span>}
 }
 
-<span class="kw">impl</span>&lt;A: <a href="array.rs.html#19">Array</a>&gt; Extend&lt;A::Item&gt; <span class="kw">for </span>TinyVec&lt;A&gt; {
+<span class="kw">impl</span>&lt;A: Array&gt; Extend&lt;A::Item&gt; <span class="kw">for </span>TinyVec&lt;A&gt; {
   <span class="attr">#[inline]
   </span><span class="kw">fn </span>extend&lt;T: IntoIterator&lt;Item = A::Item&gt;&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, iter: T) {
-    <span class="kw">let </span>iter = <a href="#1254">iter</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>();
-    <span class="kw">let </span>(lower_bound, <span class="kw">_</span>) = <a href="#1255">iter</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">size_hint</a>();
-    <a class="self" href="#1254">self</a>.<a href="#391">reserve</a>(<a href="#1256">lower_bound</a>);
+    <span class="kw">let </span>iter = iter.into_iter();
+    <span class="kw">let </span>(lower_bound, <span class="kw">_</span>) = iter.size_hint();
+    <span class="self">self</span>.reserve(lower_bound);
 
-    <span class="kw">let </span>a = <span class="kw">match </span><span class="self"><a href="#1254">self</a> </span>{
-      <a href="#102">TinyVec::Heap</a>(h) =&gt; <span class="kw">return </span><a href="#1260">h</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a href="#1255">iter</a>),
-      <a href="#100">TinyVec::Inline</a>(a) =&gt; <a href="#1261">a</a>,
+    <span class="kw">let </span>a = <span class="kw">match </span><span class="self">self </span>{
+      TinyVec::Heap(h) =&gt; <span class="kw">return </span>h.extend(iter),
+      TinyVec::Inline(a) =&gt; a,
     };
 
-    <span class="kw">let </span><span class="kw-2">mut </span>iter = <a href="#1259">a</a>.<a href="arrayvec.rs.html#458-460">fill</a>(<a href="#1255">iter</a>);
-    <span class="kw">let </span>maybe = <a href="#1264">iter</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>();
+    <span class="kw">let </span><span class="kw-2">mut </span>iter = a.fill(iter);
+    <span class="kw">let </span>maybe = iter.next();
 
-    <span class="kw">let </span>surely = <span class="kw">match </span><a href="#1265">maybe</a> {
-      <span class="prelude-val">Some</span>(x) =&gt; <a href="#1268">x</a>,
+    <span class="kw">let </span>surely = <span class="kw">match </span>maybe {
+      <span class="prelude-val">Some</span>(x) =&gt; x,
       <span class="prelude-val">None </span>=&gt; <span class="kw">return</span>,
     };
 
-    <span class="kw">let </span><span class="kw-2">mut </span>v = <a href="#1259">a</a>.<a href="arrayvec.rs.html#1769">drain_to_vec_and_reserve</a>(<a href="#1259">a</a>.<a href="arrayvec.rs.html#578">len</a>());
-    <a href="#1272">v</a>.push(<a href="#1267">surely</a>);
-    <a href="#1272">v</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a href="#1264">iter</a>);
-    <span class="kw-2">*</span><span class="self"><a href="#1254">self</a> </span>= <a href="#102">TinyVec::Heap</a>(<a href="#1272">v</a>);
+    <span class="kw">let </span><span class="kw-2">mut </span>v = a.drain_to_vec_and_reserve(a.len());
+    v.push(surely);
+    v.extend(iter);
+    <span class="kw-2">*</span><span class="self">self </span>= TinyVec::Heap(v);
   }
 }
 
-<span class="kw">impl</span>&lt;A: <a href="array.rs.html#19">Array</a>&gt; From&lt;ArrayVec&lt;A&gt;&gt; <span class="kw">for </span>TinyVec&lt;A&gt; {
+<span class="kw">impl</span>&lt;A: Array&gt; From&lt;ArrayVec&lt;A&gt;&gt; <span class="kw">for </span>TinyVec&lt;A&gt; {
   <span class="attr">#[inline(always)]
   #[must_use]
   </span><span class="kw">fn </span>from(arr: ArrayVec&lt;A&gt;) -&gt; <span class="self">Self </span>{
-    <a href="#100">TinyVec::Inline</a>(<a href="#1282">arr</a>)
+    TinyVec::Inline(arr)
   }
 }
 
-<span class="kw">impl</span>&lt;A: <a href="array.rs.html#19">Array</a>&gt; From&lt;A&gt; <span class="kw">for </span>TinyVec&lt;A&gt; {
+<span class="kw">impl</span>&lt;A: Array&gt; From&lt;A&gt; <span class="kw">for </span>TinyVec&lt;A&gt; {
   <span class="kw">fn </span>from(array: A) -&gt; <span class="self">Self </span>{
-    <a href="#100">TinyVec::Inline</a>(ArrayVec::from(<a href="#1288">array</a>))
+    TinyVec::Inline(ArrayVec::from(array))
   }
 }
 
 <span class="kw">impl</span>&lt;T, A&gt; From&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;_ </span>[T]&gt; <span class="kw">for </span>TinyVec&lt;A&gt;
 <span class="kw">where
-  </span>T: <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> + <a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a>,
+  </span>T: Clone + Default,
   A: Array&lt;Item = T&gt;,
 {
   <span class="attr">#[inline]
   #[must_use]
   </span><span class="kw">fn </span>from(slice: <span class="kw-2">&amp;</span>[T]) -&gt; <span class="self">Self </span>{
-    <span class="kw">if let </span><span class="prelude-val">Ok</span>(arr) = ArrayVec::try_from(<a href="#1300">slice</a>) {
-      <a href="#100">TinyVec::Inline</a>(<a href="#1301">arr</a>)
+    <span class="kw">if let </span><span class="prelude-val">Ok</span>(arr) = ArrayVec::try_from(slice) {
+      TinyVec::Inline(arr)
     } <span class="kw">else </span>{
-      <a href="#102">TinyVec::Heap</a>(<a href="#1300">slice</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
+      TinyVec::Heap(slice.into())
     }
   }
 }
 
 <span class="kw">impl</span>&lt;T, A&gt; From&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;_ </span><span class="kw-2">mut </span>[T]&gt; <span class="kw">for </span>TinyVec&lt;A&gt;
 <span class="kw">where
-  </span>T: <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> + <a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a>,
+  </span>T: Clone + Default,
   A: Array&lt;Item = T&gt;,
 {
   <span class="attr">#[inline]
   #[must_use]
   </span><span class="kw">fn </span>from(slice: <span class="kw-2">&amp;mut </span>[T]) -&gt; <span class="self">Self </span>{
-    <span class="self">Self</span>::from(<span class="kw-2">&amp;*</span><a href="#1316">slice</a>)
+    <span class="self">Self</span>::from(<span class="kw-2">&amp;*</span>slice)
   }
 }
 
-<span class="kw">impl</span>&lt;A: <a href="array.rs.html#19">Array</a>&gt; FromIterator&lt;A::Item&gt; <span class="kw">for </span>TinyVec&lt;A&gt; {
+<span class="kw">impl</span>&lt;A: Array&gt; FromIterator&lt;A::Item&gt; <span class="kw">for </span>TinyVec&lt;A&gt; {
   <span class="attr">#[inline]
   #[must_use]
   </span><span class="kw">fn </span>from_iter&lt;T: IntoIterator&lt;Item = A::Item&gt;&gt;(iter: T) -&gt; <span class="self">Self </span>{
     <span class="kw">let </span><span class="kw-2">mut </span>av = <span class="self">Self</span>::default();
-    <a href="#1325">av</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a href="#1324">iter</a>);
-    <a href="#1325">av</a>
+    av.extend(iter);
+    av
   }
 }
 
 <span class="doccomment">/// Iterator for consuming an `TinyVec` and returning owned elements.
 </span><span class="attr">#[cfg_attr(docs_rs, doc(cfg(feature = <span class="string">&quot;alloc&quot;</span>)))]
-</span><span class="kw">pub enum </span>TinyVecIterator&lt;A: <a href="array.rs.html#19">Array</a>&gt; {
+</span><span class="kw">pub enum </span>TinyVecIterator&lt;A: Array&gt; {
   <span class="attr">#[allow(missing_docs)]
   </span>Inline(ArrayVecIterator&lt;A&gt;),
   <span class="attr">#[allow(missing_docs)]
   </span>Heap(alloc::vec::IntoIter&lt;A::Item&gt;),
 }
 
-<span class="kw">impl</span>&lt;A: <a href="array.rs.html#19">Array</a>&gt; TinyVecIterator&lt;A&gt; {
-  <a class="macro" href="../../tinyvec_macros/macro.impl_mirrored.html">impl_mirrored! </a>{
+<span class="kw">impl</span>&lt;A: Array&gt; TinyVecIterator&lt;A&gt; {
+  <span class="macro">impl_mirrored! </span>{
     <span class="kw">type </span>Mirror = TinyVecIterator;
     <span class="doccomment">/// Returns the remaining items of this iterator as a slice.
     </span><span class="attr">#[inline]
@@ -3087,12 +3087,12 @@
   }
 }
 
-<span class="kw">impl</span>&lt;A: <a href="array.rs.html#19">Array</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/marker/trait.FusedIterator.html">FusedIterator</a> <span class="kw">for </span>TinyVecIterator&lt;A&gt; {}
+<span class="kw">impl</span>&lt;A: Array&gt; FusedIterator <span class="kw">for </span>TinyVecIterator&lt;A&gt; {}
 
-<span class="kw">impl</span>&lt;A: <a href="array.rs.html#19">Array</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a> <span class="kw">for </span>TinyVecIterator&lt;A&gt; {
+<span class="kw">impl</span>&lt;A: Array&gt; Iterator <span class="kw">for </span>TinyVecIterator&lt;A&gt; {
   <span class="kw">type </span>Item = A::Item;
 
-  <a class="macro" href="../../tinyvec_macros/macro.impl_mirrored.html">impl_mirrored! </a>{
+  <span class="macro">impl_mirrored! </span>{
     <span class="kw">type </span>Mirror = TinyVecIterator;
 
     <span class="attr">#[inline]
@@ -3100,21 +3100,21 @@
 
     <span class="attr">#[inline(always)]
     #[must_use]
-    </span><span class="kw">fn </span>size_hint(<span class="self">self</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; (<a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>, <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>&gt;);
+    </span><span class="kw">fn </span>size_hint(<span class="self">self</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; (usize, <span class="prelude-ty">Option</span>&lt;usize&gt;);
 
     <span class="attr">#[inline(always)]
-    </span><span class="kw">fn </span>count(<span class="self">self</span>: <span class="self">Self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>;
+    </span><span class="kw">fn </span>count(<span class="self">self</span>: <span class="self">Self</span>) -&gt; usize;
 
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>last(<span class="self">self</span>: <span class="self">Self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt;;
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>nth(<span class="self">self</span>: <span class="kw-2">&amp;mut </span><span class="self">Self</span>, n: <a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>) -&gt; <span class="prelude-ty">Option</span>&lt;A::Item&gt;;
+    </span><span class="kw">fn </span>nth(<span class="self">self</span>: <span class="kw-2">&amp;mut </span><span class="self">Self</span>, n: usize) -&gt; <span class="prelude-ty">Option</span>&lt;A::Item&gt;;
   }
 }
 
-<span class="kw">impl</span>&lt;A: <a href="array.rs.html#19">Array</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/double_ended/trait.DoubleEndedIterator.html">DoubleEndedIterator</a> <span class="kw">for </span>TinyVecIterator&lt;A&gt; {
-  <a class="macro" href="../../tinyvec_macros/macro.impl_mirrored.html">impl_mirrored! </a>{
+<span class="kw">impl</span>&lt;A: Array&gt; DoubleEndedIterator <span class="kw">for </span>TinyVecIterator&lt;A&gt; {
+  <span class="macro">impl_mirrored! </span>{
     <span class="kw">type </span>Mirror = TinyVecIterator;
 
     <span class="attr">#[inline]
@@ -3126,111 +3126,111 @@
   }
 }
 
-<span class="kw">impl</span>&lt;A: <a href="array.rs.html#19">Array</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">Debug</a> <span class="kw">for </span>TinyVecIterator&lt;A&gt;
+<span class="kw">impl</span>&lt;A: Array&gt; Debug <span class="kw">for </span>TinyVecIterator&lt;A&gt;
 <span class="kw">where
-  </span>A::Item: <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">Debug</a>,
+  </span>A::Item: Debug,
 {
   <span class="attr">#[allow(clippy::missing_inline_in_public_items)]
-  </span><span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">core::fmt::Result</a> {
-    <a href="#1394">f</a>.debug_tuple(<span class="string">&quot;TinyVecIterator&quot;</span>).field(<span class="kw-2">&amp;</span><a class="self" href="#1394">self</a>.<a href="#1341-1347">as_slice</a>()).finish()
+  </span><span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; core::fmt::Result {
+    f.debug_tuple(<span class="string">&quot;TinyVecIterator&quot;</span>).field(<span class="kw-2">&amp;</span><span class="self">self</span>.as_slice()).finish()
   }
 }
 
-<span class="kw">impl</span>&lt;A: <a href="array.rs.html#19">Array</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">IntoIterator</a> <span class="kw">for </span>TinyVec&lt;A&gt; {
+<span class="kw">impl</span>&lt;A: Array&gt; IntoIterator <span class="kw">for </span>TinyVec&lt;A&gt; {
   <span class="kw">type </span>Item = A::Item;
   <span class="kw">type </span>IntoIter = TinyVecIterator&lt;A&gt;;
   <span class="attr">#[inline(always)]
   #[must_use]
   </span><span class="kw">fn </span>into_iter(<span class="self">self</span>) -&gt; <span class="self">Self</span>::IntoIter {
-    <span class="kw">match </span><span class="self"><a href="#1404">self</a> </span>{
-      <a href="#100">TinyVec::Inline</a>(a) =&gt; <a href="#1335">TinyVecIterator::Inline</a>(<a href="#1406">a</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()),
-      <a href="#102">TinyVec::Heap</a>(v) =&gt; <a href="#1337">TinyVecIterator::Heap</a>(<a href="#1407">v</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()),
+    <span class="kw">match </span><span class="self">self </span>{
+      TinyVec::Inline(a) =&gt; TinyVecIterator::Inline(a.into_iter()),
+      TinyVec::Heap(v) =&gt; TinyVecIterator::Heap(v.into_iter()),
     }
   }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, A: <a href="array.rs.html#19">Array</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">IntoIterator</a> <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>TinyVec&lt;A&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, A: Array&gt; IntoIterator <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>TinyVec&lt;A&gt; {
   <span class="kw">type </span>Item = <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>A::Item;
   <span class="kw">type </span>IntoIter = core::slice::IterMut&lt;<span class="lifetime">&#39;a</span>, A::Item&gt;;
   <span class="attr">#[inline(always)]
   #[must_use]
   </span><span class="kw">fn </span>into_iter(<span class="self">self</span>) -&gt; <span class="self">Self</span>::IntoIter {
-    <a class="self" href="#1417">self</a>.iter_mut()
+    <span class="self">self</span>.iter_mut()
   }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, A: <a href="array.rs.html#19">Array</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">IntoIterator</a> <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>TinyVec&lt;A&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, A: Array&gt; IntoIterator <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>TinyVec&lt;A&gt; {
   <span class="kw">type </span>Item = <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>A::Item;
   <span class="kw">type </span>IntoIter = core::slice::Iter&lt;<span class="lifetime">&#39;a</span>, A::Item&gt;;
   <span class="attr">#[inline(always)]
   #[must_use]
   </span><span class="kw">fn </span>into_iter(<span class="self">self</span>) -&gt; <span class="self">Self</span>::IntoIter {
-    <a class="self" href="#1427">self</a>.iter()
+    <span class="self">self</span>.iter()
   }
 }
 
-<span class="kw">impl</span>&lt;A: <a href="array.rs.html#19">Array</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/cmp/trait.PartialEq.html">PartialEq</a> <span class="kw">for </span>TinyVec&lt;A&gt;
+<span class="kw">impl</span>&lt;A: Array&gt; PartialEq <span class="kw">for </span>TinyVec&lt;A&gt;
 <span class="kw">where
-  </span>A::Item: <a href="https://doc.rust-lang.org/nightly/core/cmp/trait.PartialEq.html">PartialEq</a>,
+  </span>A::Item: PartialEq,
 {
   <span class="attr">#[inline]
   #[must_use]
-  </span><span class="kw">fn </span>eq(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/primitive.bool.html">bool</a> {
-    <a class="self" href="#1438">self</a>.<a href="#671">as_slice</a>().<a href="https://doc.rust-lang.org/nightly/core/cmp/trait.PartialEq.html">eq</a>(<a href="#1438">other</a>.<a href="#671">as_slice</a>())
+  </span><span class="kw">fn </span>eq(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; bool {
+    <span class="self">self</span>.as_slice().eq(other.as_slice())
   }
 }
-<span class="kw">impl</span>&lt;A: <a href="array.rs.html#19">Array</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Eq.html">Eq</a> <span class="kw">for </span>TinyVec&lt;A&gt; <span class="kw">where </span>A::Item: <a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Eq.html">Eq</a> {}
+<span class="kw">impl</span>&lt;A: Array&gt; Eq <span class="kw">for </span>TinyVec&lt;A&gt; <span class="kw">where </span>A::Item: Eq {}
 
-<span class="kw">impl</span>&lt;A: <a href="array.rs.html#19">Array</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/cmp/trait.PartialOrd.html">PartialOrd</a> <span class="kw">for </span>TinyVec&lt;A&gt;
+<span class="kw">impl</span>&lt;A: Array&gt; PartialOrd <span class="kw">for </span>TinyVec&lt;A&gt;
 <span class="kw">where
-  </span>A::Item: <a href="https://doc.rust-lang.org/nightly/core/cmp/trait.PartialOrd.html">PartialOrd</a>,
+  </span>A::Item: PartialOrd,
 {
   <span class="attr">#[inline]
   #[must_use]
-  </span><span class="kw">fn </span>partial_cmp(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html">core::cmp::Ordering</a>&gt; {
-    <a class="self" href="#1450">self</a>.<a href="#671">as_slice</a>().<a href="https://doc.rust-lang.org/nightly/core/cmp/trait.PartialOrd.html">partial_cmp</a>(<a href="#1450">other</a>.<a href="#671">as_slice</a>())
+  </span><span class="kw">fn </span>partial_cmp(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;core::cmp::Ordering&gt; {
+    <span class="self">self</span>.as_slice().partial_cmp(other.as_slice())
   }
 }
-<span class="kw">impl</span>&lt;A: <a href="array.rs.html#19">Array</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Ord.html">Ord</a> <span class="kw">for </span>TinyVec&lt;A&gt;
+<span class="kw">impl</span>&lt;A: Array&gt; Ord <span class="kw">for </span>TinyVec&lt;A&gt;
 <span class="kw">where
-  </span>A::Item: <a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Ord.html">Ord</a>,
+  </span>A::Item: Ord,
 {
   <span class="attr">#[inline]
   #[must_use]
-  </span><span class="kw">fn </span>cmp(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html">core::cmp::Ordering</a> {
-    <a class="self" href="#1460">self</a>.<a href="#671">as_slice</a>().<a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Ord.html">cmp</a>(<a href="#1460">other</a>.<a href="#671">as_slice</a>())
-  }
-}
-
-<span class="kw">impl</span>&lt;A: <a href="array.rs.html#19">Array</a>&gt; PartialEq&lt;<span class="kw-2">&amp;</span>A&gt; <span class="kw">for </span>TinyVec&lt;A&gt;
-<span class="kw">where
-  </span>A::Item: <a href="https://doc.rust-lang.org/nightly/core/cmp/trait.PartialEq.html">PartialEq</a>,
-{
-  <span class="attr">#[inline]
-  #[must_use]
-  </span><span class="kw">fn </span>eq(<span class="kw-2">&amp;</span><span class="self">self</span>, other: &amp;&amp;A) -&gt; <a href="https://doc.rust-lang.org/nightly/core/primitive.bool.html">bool</a> {
-    <a class="self" href="#1471">self</a>.<a href="#671">as_slice</a>().<a href="https://doc.rust-lang.org/nightly/core/cmp/trait.PartialEq.html">eq</a>(<a href="#1471">other</a>.<a href="array.rs.html#30">as_slice</a>())
+  </span><span class="kw">fn </span>cmp(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; core::cmp::Ordering {
+    <span class="self">self</span>.as_slice().cmp(other.as_slice())
   }
 }
 
-<span class="kw">impl</span>&lt;A: <a href="array.rs.html#19">Array</a>&gt; PartialEq&lt;<span class="kw-2">&amp;</span>[A::Item]&gt; <span class="kw">for </span>TinyVec&lt;A&gt;
+<span class="kw">impl</span>&lt;A: Array&gt; PartialEq&lt;<span class="kw-2">&amp;</span>A&gt; <span class="kw">for </span>TinyVec&lt;A&gt;
 <span class="kw">where
-  </span>A::Item: <a href="https://doc.rust-lang.org/nightly/core/cmp/trait.PartialEq.html">PartialEq</a>,
+  </span>A::Item: PartialEq,
 {
   <span class="attr">#[inline]
   #[must_use]
-  </span><span class="kw">fn </span>eq(<span class="kw-2">&amp;</span><span class="self">self</span>, other: &amp;&amp;[A::Item]) -&gt; <a href="https://doc.rust-lang.org/nightly/core/primitive.bool.html">bool</a> {
-    <a class="self" href="#1482">self</a>.<a href="#671">as_slice</a>().<a href="https://doc.rust-lang.org/nightly/core/cmp/trait.PartialEq.html">eq</a>(<span class="kw-2">*</span><a href="#1482">other</a>)
+  </span><span class="kw">fn </span>eq(<span class="kw-2">&amp;</span><span class="self">self</span>, other: &amp;&amp;A) -&gt; bool {
+    <span class="self">self</span>.as_slice().eq(other.as_slice())
   }
 }
 
-<span class="kw">impl</span>&lt;A: <a href="array.rs.html#19">Array</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/hash/trait.Hash.html">Hash</a> <span class="kw">for </span>TinyVec&lt;A&gt;
+<span class="kw">impl</span>&lt;A: Array&gt; PartialEq&lt;<span class="kw-2">&amp;</span>[A::Item]&gt; <span class="kw">for </span>TinyVec&lt;A&gt;
 <span class="kw">where
-  </span>A::Item: <a href="https://doc.rust-lang.org/nightly/core/hash/trait.Hash.html">Hash</a>,
+  </span>A::Item: PartialEq,
 {
   <span class="attr">#[inline]
-  </span><span class="kw">fn </span>hash&lt;H: <a href="https://doc.rust-lang.org/nightly/core/hash/trait.Hasher.html">Hasher</a>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, state: <span class="kw-2">&amp;mut </span>H) {
-    <a class="self" href="#1492">self</a>.<a href="#671">as_slice</a>().<a href="https://doc.rust-lang.org/nightly/core/hash/trait.Hash.html">hash</a>(<a href="#1492">state</a>)
+  #[must_use]
+  </span><span class="kw">fn </span>eq(<span class="kw-2">&amp;</span><span class="self">self</span>, other: &amp;&amp;[A::Item]) -&gt; bool {
+    <span class="self">self</span>.as_slice().eq(<span class="kw-2">*</span>other)
+  }
+}
+
+<span class="kw">impl</span>&lt;A: Array&gt; Hash <span class="kw">for </span>TinyVec&lt;A&gt;
+<span class="kw">where
+  </span>A::Item: Hash,
+{
+  <span class="attr">#[inline]
+  </span><span class="kw">fn </span>hash&lt;H: Hasher&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, state: <span class="kw-2">&amp;mut </span>H) {
+    <span class="self">self</span>.as_slice().hash(state)
   }
 }
 
@@ -3238,12 +3238,12 @@
 // Formatting impls
 // // // // // // // //
 
-</span><span class="kw">impl</span>&lt;A: <a href="array.rs.html#19">Array</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Binary.html">Binary</a> <span class="kw">for </span>TinyVec&lt;A&gt;
+</span><span class="kw">impl</span>&lt;A: Array&gt; Binary <span class="kw">for </span>TinyVec&lt;A&gt;
 <span class="kw">where
-  </span>A::Item: <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Binary.html">Binary</a>,
+  </span>A::Item: Binary,
 {
   <span class="attr">#[allow(clippy::missing_inline_in_public_items)]
-  </span><span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">Formatter</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">core::fmt::Result</a> {
+  </span><span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>Formatter) -&gt; core::fmt::Result {
     <span class="macro">write!</span>(f, <span class="string">&quot;[&quot;</span>)<span class="question-mark">?</span>;
     <span class="kw">if </span>f.alternate() {
       <span class="macro">write!</span>(f, <span class="string">&quot;\n    &quot;</span>)<span class="question-mark">?</span>;
@@ -3257,16 +3257,16 @@
     <span class="kw">if </span>f.alternate() {
       <span class="macro">write!</span>(f, <span class="string">&quot;,\n&quot;</span>)<span class="question-mark">?</span>;
     }
-    <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#1506">f</a>, <span class="string">&quot;]&quot;</span>)
+    <span class="macro">write!</span>(f, <span class="string">&quot;]&quot;</span>)
   }
 }
 
-<span class="kw">impl</span>&lt;A: <a href="array.rs.html#19">Array</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">Debug</a> <span class="kw">for </span>TinyVec&lt;A&gt;
+<span class="kw">impl</span>&lt;A: Array&gt; Debug <span class="kw">for </span>TinyVec&lt;A&gt;
 <span class="kw">where
-  </span>A::Item: <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">Debug</a>,
+  </span>A::Item: Debug,
 {
   <span class="attr">#[allow(clippy::missing_inline_in_public_items)]
-  </span><span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">Formatter</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">core::fmt::Result</a> {
+  </span><span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>Formatter) -&gt; core::fmt::Result {
     <span class="macro">write!</span>(f, <span class="string">&quot;[&quot;</span>)<span class="question-mark">?</span>;
     <span class="kw">if </span>f.alternate() {
       <span class="macro">write!</span>(f, <span class="string">&quot;\n    &quot;</span>)<span class="question-mark">?</span>;
@@ -3280,16 +3280,16 @@
     <span class="kw">if </span>f.alternate() {
       <span class="macro">write!</span>(f, <span class="string">&quot;,\n&quot;</span>)<span class="question-mark">?</span>;
     }
-    <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#1529">f</a>, <span class="string">&quot;]&quot;</span>)
+    <span class="macro">write!</span>(f, <span class="string">&quot;]&quot;</span>)
   }
 }
 
-<span class="kw">impl</span>&lt;A: <a href="array.rs.html#19">Array</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">Display</a> <span class="kw">for </span>TinyVec&lt;A&gt;
+<span class="kw">impl</span>&lt;A: Array&gt; Display <span class="kw">for </span>TinyVec&lt;A&gt;
 <span class="kw">where
-  </span>A::Item: <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">Display</a>,
+  </span>A::Item: Display,
 {
   <span class="attr">#[allow(clippy::missing_inline_in_public_items)]
-  </span><span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">Formatter</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">core::fmt::Result</a> {
+  </span><span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>Formatter) -&gt; core::fmt::Result {
     <span class="macro">write!</span>(f, <span class="string">&quot;[&quot;</span>)<span class="question-mark">?</span>;
     <span class="kw">if </span>f.alternate() {
       <span class="macro">write!</span>(f, <span class="string">&quot;\n    &quot;</span>)<span class="question-mark">?</span>;
@@ -3303,16 +3303,16 @@
     <span class="kw">if </span>f.alternate() {
       <span class="macro">write!</span>(f, <span class="string">&quot;,\n&quot;</span>)<span class="question-mark">?</span>;
     }
-    <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#1552">f</a>, <span class="string">&quot;]&quot;</span>)
+    <span class="macro">write!</span>(f, <span class="string">&quot;]&quot;</span>)
   }
 }
 
-<span class="kw">impl</span>&lt;A: <a href="array.rs.html#19">Array</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.LowerExp.html">LowerExp</a> <span class="kw">for </span>TinyVec&lt;A&gt;
+<span class="kw">impl</span>&lt;A: Array&gt; LowerExp <span class="kw">for </span>TinyVec&lt;A&gt;
 <span class="kw">where
-  </span>A::Item: <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.LowerExp.html">LowerExp</a>,
+  </span>A::Item: LowerExp,
 {
   <span class="attr">#[allow(clippy::missing_inline_in_public_items)]
-  </span><span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">Formatter</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">core::fmt::Result</a> {
+  </span><span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>Formatter) -&gt; core::fmt::Result {
     <span class="macro">write!</span>(f, <span class="string">&quot;[&quot;</span>)<span class="question-mark">?</span>;
     <span class="kw">if </span>f.alternate() {
       <span class="macro">write!</span>(f, <span class="string">&quot;\n    &quot;</span>)<span class="question-mark">?</span>;
@@ -3326,16 +3326,16 @@
     <span class="kw">if </span>f.alternate() {
       <span class="macro">write!</span>(f, <span class="string">&quot;,\n&quot;</span>)<span class="question-mark">?</span>;
     }
-    <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#1575">f</a>, <span class="string">&quot;]&quot;</span>)
+    <span class="macro">write!</span>(f, <span class="string">&quot;]&quot;</span>)
   }
 }
 
-<span class="kw">impl</span>&lt;A: <a href="array.rs.html#19">Array</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.LowerHex.html">LowerHex</a> <span class="kw">for </span>TinyVec&lt;A&gt;
+<span class="kw">impl</span>&lt;A: Array&gt; LowerHex <span class="kw">for </span>TinyVec&lt;A&gt;
 <span class="kw">where
-  </span>A::Item: <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.LowerHex.html">LowerHex</a>,
+  </span>A::Item: LowerHex,
 {
   <span class="attr">#[allow(clippy::missing_inline_in_public_items)]
-  </span><span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">Formatter</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">core::fmt::Result</a> {
+  </span><span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>Formatter) -&gt; core::fmt::Result {
     <span class="macro">write!</span>(f, <span class="string">&quot;[&quot;</span>)<span class="question-mark">?</span>;
     <span class="kw">if </span>f.alternate() {
       <span class="macro">write!</span>(f, <span class="string">&quot;\n    &quot;</span>)<span class="question-mark">?</span>;
@@ -3349,16 +3349,16 @@
     <span class="kw">if </span>f.alternate() {
       <span class="macro">write!</span>(f, <span class="string">&quot;,\n&quot;</span>)<span class="question-mark">?</span>;
     }
-    <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#1598">f</a>, <span class="string">&quot;]&quot;</span>)
+    <span class="macro">write!</span>(f, <span class="string">&quot;]&quot;</span>)
   }
 }
 
-<span class="kw">impl</span>&lt;A: <a href="array.rs.html#19">Array</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Octal.html">Octal</a> <span class="kw">for </span>TinyVec&lt;A&gt;
+<span class="kw">impl</span>&lt;A: Array&gt; Octal <span class="kw">for </span>TinyVec&lt;A&gt;
 <span class="kw">where
-  </span>A::Item: <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Octal.html">Octal</a>,
+  </span>A::Item: Octal,
 {
   <span class="attr">#[allow(clippy::missing_inline_in_public_items)]
-  </span><span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">Formatter</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">core::fmt::Result</a> {
+  </span><span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>Formatter) -&gt; core::fmt::Result {
     <span class="macro">write!</span>(f, <span class="string">&quot;[&quot;</span>)<span class="question-mark">?</span>;
     <span class="kw">if </span>f.alternate() {
       <span class="macro">write!</span>(f, <span class="string">&quot;\n    &quot;</span>)<span class="question-mark">?</span>;
@@ -3372,16 +3372,16 @@
     <span class="kw">if </span>f.alternate() {
       <span class="macro">write!</span>(f, <span class="string">&quot;,\n&quot;</span>)<span class="question-mark">?</span>;
     }
-    <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#1621">f</a>, <span class="string">&quot;]&quot;</span>)
+    <span class="macro">write!</span>(f, <span class="string">&quot;]&quot;</span>)
   }
 }
 
-<span class="kw">impl</span>&lt;A: <a href="array.rs.html#19">Array</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Pointer.html">Pointer</a> <span class="kw">for </span>TinyVec&lt;A&gt;
+<span class="kw">impl</span>&lt;A: Array&gt; Pointer <span class="kw">for </span>TinyVec&lt;A&gt;
 <span class="kw">where
-  </span>A::Item: <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Pointer.html">Pointer</a>,
+  </span>A::Item: Pointer,
 {
   <span class="attr">#[allow(clippy::missing_inline_in_public_items)]
-  </span><span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">Formatter</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">core::fmt::Result</a> {
+  </span><span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>Formatter) -&gt; core::fmt::Result {
     <span class="macro">write!</span>(f, <span class="string">&quot;[&quot;</span>)<span class="question-mark">?</span>;
     <span class="kw">if </span>f.alternate() {
       <span class="macro">write!</span>(f, <span class="string">&quot;\n    &quot;</span>)<span class="question-mark">?</span>;
@@ -3395,16 +3395,16 @@
     <span class="kw">if </span>f.alternate() {
       <span class="macro">write!</span>(f, <span class="string">&quot;,\n&quot;</span>)<span class="question-mark">?</span>;
     }
-    <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#1644">f</a>, <span class="string">&quot;]&quot;</span>)
+    <span class="macro">write!</span>(f, <span class="string">&quot;]&quot;</span>)
   }
 }
 
-<span class="kw">impl</span>&lt;A: <a href="array.rs.html#19">Array</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.UpperExp.html">UpperExp</a> <span class="kw">for </span>TinyVec&lt;A&gt;
+<span class="kw">impl</span>&lt;A: Array&gt; UpperExp <span class="kw">for </span>TinyVec&lt;A&gt;
 <span class="kw">where
-  </span>A::Item: <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.UpperExp.html">UpperExp</a>,
+  </span>A::Item: UpperExp,
 {
   <span class="attr">#[allow(clippy::missing_inline_in_public_items)]
-  </span><span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">Formatter</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">core::fmt::Result</a> {
+  </span><span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>Formatter) -&gt; core::fmt::Result {
     <span class="macro">write!</span>(f, <span class="string">&quot;[&quot;</span>)<span class="question-mark">?</span>;
     <span class="kw">if </span>f.alternate() {
       <span class="macro">write!</span>(f, <span class="string">&quot;\n    &quot;</span>)<span class="question-mark">?</span>;
@@ -3418,16 +3418,16 @@
     <span class="kw">if </span>f.alternate() {
       <span class="macro">write!</span>(f, <span class="string">&quot;,\n&quot;</span>)<span class="question-mark">?</span>;
     }
-    <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#1667">f</a>, <span class="string">&quot;]&quot;</span>)
+    <span class="macro">write!</span>(f, <span class="string">&quot;]&quot;</span>)
   }
 }
 
-<span class="kw">impl</span>&lt;A: <a href="array.rs.html#19">Array</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.UpperHex.html">UpperHex</a> <span class="kw">for </span>TinyVec&lt;A&gt;
+<span class="kw">impl</span>&lt;A: Array&gt; UpperHex <span class="kw">for </span>TinyVec&lt;A&gt;
 <span class="kw">where
-  </span>A::Item: <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.UpperHex.html">UpperHex</a>,
+  </span>A::Item: UpperHex,
 {
   <span class="attr">#[allow(clippy::missing_inline_in_public_items)]
-  </span><span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">Formatter</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">core::fmt::Result</a> {
+  </span><span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>Formatter) -&gt; core::fmt::Result {
     <span class="macro">write!</span>(f, <span class="string">&quot;[&quot;</span>)<span class="question-mark">?</span>;
     <span class="kw">if </span>f.alternate() {
       <span class="macro">write!</span>(f, <span class="string">&quot;\n    &quot;</span>)<span class="question-mark">?</span>;
@@ -3441,7 +3441,7 @@
     <span class="kw">if </span>f.alternate() {
       <span class="macro">write!</span>(f, <span class="string">&quot;,\n&quot;</span>)<span class="question-mark">?</span>;
     }
-    <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#1690">f</a>, <span class="string">&quot;]&quot;</span>)
+    <span class="macro">write!</span>(f, <span class="string">&quot;]&quot;</span>)
   }
 }
 
@@ -3479,4 +3479,4 @@
   }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="tinyvec" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="tinyvec" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

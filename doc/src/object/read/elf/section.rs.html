@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/object-0.29.0/src/read/elf/section.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>section.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../../object/index.html"><img class="rust-logo" src="../../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/object-0.30.1/src/read/elf/section.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>section.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../../object/index.html"><img class="rust-logo" src="../../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -1088,27 +1088,27 @@
 <a href="#1088" id="1088">1088</a>
 <a href="#1089" id="1089">1089</a>
 <a href="#1090" id="1090">1090</a>
-</pre><pre class="rust"><code><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/fmt/macros/derive.Debug.html">core::fmt::Debug</a>;
-<span class="kw">use </span>core::{<a href="https://doc.rust-lang.org/nightly/core/iter/index.html">iter</a>, <a href="https://doc.rust-lang.org/nightly/core/mem/index.html">mem</a>, <a href="https://doc.rust-lang.org/nightly/core/slice/index.html">slice</a>, <a href="https://doc.rust-lang.org/nightly/core/str/index.html">str</a>};
+</pre><pre class="rust"><code><span class="kw">use </span>core::fmt::Debug;
+<span class="kw">use </span>core::{iter, mem, slice, str};
 
-<span class="kw">use </span><a href="../../lib.rs.html#108"><span class="kw">crate</span>::elf</a>;
-<span class="kw">use </span><span class="kw">crate</span>::endian::{<a class="self" href="../../lib.rs.html#90">self</a>, <a href="../../endian.rs.html#278">Endianness</a>, <a href="../../endian.rs.html#612">U32Bytes</a>};
-<span class="kw">use </span><a href="../../pod.rs.html#21"><span class="kw">crate</span>::pod::Pod</a>;
+<span class="kw">use </span><span class="kw">crate</span>::elf;
+<span class="kw">use </span><span class="kw">crate</span>::endian::{<span class="self">self</span>, Endianness, U32Bytes};
+<span class="kw">use </span><span class="kw">crate</span>::pod::Pod;
 <span class="kw">use </span><span class="kw">crate</span>::read::{
-    <a class="self" href="../../lib.rs.html#98">self</a>, <a href="../util.rs.html#16">Bytes</a>, <a href="../mod.rs.html#659">CompressedData</a>, <a href="../mod.rs.html#612">CompressedFileRange</a>, <a href="../mod.rs.html#599">CompressionFormat</a>, <a href="../mod.rs.html#64">Error</a>, <a href="../traits.rs.html#270">ObjectSection</a>,
-    <a href="../mod.rs.html#79">ReadError</a>, <a href="../read_ref.rs.html#37">ReadRef</a>, <a href="../../common.rs.html#405">SectionFlags</a>, <a href="../mod.rs.html#263">SectionIndex</a>, <a href="../../common.rs.html#96">SectionKind</a>, <a href="../util.rs.html#232">StringTable</a>,
+    <span class="self">self</span>, Bytes, CompressedData, CompressedFileRange, CompressionFormat, Error, ObjectSection,
+    ReadError, ReadRef, SectionFlags, SectionIndex, SectionKind, StringTable,
 };
 
 <span class="kw">use super</span>::{
-    <a href="compression.rs.html#9">CompressionHeader</a>, <a href="file.rs.html#30">ElfFile</a>, <a href="relocation.rs.html#175">ElfSectionRelocationIterator</a>, <a href="file.rs.html#437">FileHeader</a>, <a href="hash.rs.html#74">GnuHashTable</a>, <a href="hash.rs.html#11">HashTable</a>,
-    <a href="note.rs.html#14">NoteIterator</a>, <a href="relocation.rs.html#18">RelocationSections</a>, <a href="symbol.rs.html#22">SymbolTable</a>, <a href="version.rs.html#215">VerdefIterator</a>, <a href="version.rs.html#298">VerneedIterator</a>, <a href="version.rs.html#63">VersionTable</a>,
+    CompressionHeader, ElfFile, ElfSectionRelocationIterator, FileHeader, GnuHashTable, HashTable,
+    NoteIterator, RelocationSections, SymbolTable, VerdefIterator, VerneedIterator, VersionTable,
 };
 
 <span class="doccomment">/// The table of section headers in an ELF file.
 ///
 /// Also includes the string table used for the section names.
 </span><span class="attr">#[derive(Debug, Default, Clone, Copy)]
-</span><span class="kw">pub struct </span>SectionTable&lt;<span class="lifetime">&#39;data</span>, Elf: <a href="file.rs.html#437">FileHeader</a>, R = <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;
+</span><span class="kw">pub struct </span>SectionTable&lt;<span class="lifetime">&#39;data</span>, Elf: FileHeader, R = <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[u8]&gt;
 <span class="kw">where
     </span>R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt;,
 {
@@ -1116,36 +1116,36 @@
     strings: StringTable&lt;<span class="lifetime">&#39;data</span>, R&gt;,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>, Elf: <a href="file.rs.html#437">FileHeader</a>, R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt;&gt; SectionTable&lt;<span class="lifetime">&#39;data</span>, Elf, R&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>, Elf: FileHeader, R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt;&gt; SectionTable&lt;<span class="lifetime">&#39;data</span>, Elf, R&gt; {
     <span class="doccomment">/// Create a new section table.
     </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>new(sections: <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[Elf::SectionHeader], strings: StringTable&lt;<span class="lifetime">&#39;data</span>, R&gt;) -&gt; <span class="self">Self </span>{
-        <a href="#21">SectionTable</a> { <a href="#32">sections</a>, <a href="#32">strings</a> }
+        SectionTable { sections, strings }
     }
 
     <span class="doccomment">/// Iterate over the section headers.
     </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>iter(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; slice::Iter&lt;<span class="lifetime">&#39;data</span>, Elf::SectionHeader&gt; {
-        <a class="self" href="#38">self</a>.sections.iter()
+        <span class="self">self</span>.sections.iter()
     }
 
     <span class="doccomment">/// Return true if the section table is empty.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>is_empty(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#44">self</a>.sections.is_empty()
+    </span><span class="kw">pub fn </span>is_empty(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.sections.is_empty()
     }
 
     <span class="doccomment">/// The number of section headers.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="self" href="#50">self</a>.sections.len()
+    </span><span class="kw">pub fn </span>len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+        <span class="self">self</span>.sections.len()
     }
 
     <span class="doccomment">/// Return the section header at the given index.
-    </span><span class="kw">pub fn </span>section(<span class="kw-2">&amp;</span><span class="self">self</span>, index: <a href="../mod.rs.html#263">SectionIndex</a>) -&gt; read::Result&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>Elf::SectionHeader&gt; {
-        <a class="self" href="#55">self</a>.sections
-            .get(<a href="#55">index</a>.<span class="number">0</span>)
-            .<a href="../mod.rs.html#80">read_error</a>(<span class="string">&quot;Invalid ELF section index&quot;</span>)
+    </span><span class="kw">pub fn </span>section(<span class="kw-2">&amp;</span><span class="self">self</span>, index: SectionIndex) -&gt; read::Result&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>Elf::SectionHeader&gt; {
+        <span class="self">self</span>.sections
+            .get(index.<span class="number">0</span>)
+            .read_error(<span class="string">&quot;Invalid ELF section index&quot;</span>)
     }
 
     <span class="doccomment">/// Return the section header with the given name.
@@ -1154,12 +1154,12 @@
     </span><span class="kw">pub fn </span>section_by_name(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         endian: Elf::Endian,
-        name: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
-    ) -&gt; <span class="prelude-ty">Option</span>&lt;(<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>Elf::SectionHeader)&gt; {
-        <a class="self" href="#65">self</a>.sections
+        name: <span class="kw-2">&amp;</span>[u8],
+    ) -&gt; <span class="prelude-ty">Option</span>&lt;(usize, <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>Elf::SectionHeader)&gt; {
+        <span class="self">self</span>.sections
             .iter()
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">enumerate</a>()
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">find</a>(|(<span class="kw">_</span>, section)| <a class="self" href="#65">self</a>.<a href="#76-80">section_name</a>(<a href="#66">endian</a>, <a href="#72">section</a>) == <span class="prelude-val">Ok</span>(<a href="#67">name</a>))
+            .enumerate()
+            .find(|(<span class="kw">_</span>, section)| <span class="self">self</span>.section_name(endian, section) == <span class="prelude-val">Ok</span>(name))
     }
 
     <span class="doccomment">/// Return the section name for the given section header.
@@ -1167,8 +1167,8 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         endian: Elf::Endian,
         section: <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>Elf::SectionHeader,
-    ) -&gt; read::Result&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt; {
-        <a href="#79">section</a>.<a href="#622-626">name</a>(<a href="#78">endian</a>, <a class="self" href="#77">self</a>.strings)
+    ) -&gt; read::Result&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[u8]&gt; {
+        section.name(endian, <span class="self">self</span>.strings)
     }
 
     <span class="doccomment">/// Return the string table at the given section index.
@@ -1179,11 +1179,11 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         endian: Elf::Endian,
         data: R,
-        index: <a href="../mod.rs.html#263">SectionIndex</a>,
+        index: SectionIndex,
     ) -&gt; read::Result&lt;StringTable&lt;<span class="lifetime">&#39;data</span>, R&gt;&gt; {
         <span class="self">self</span>.section(index)<span class="question-mark">?
             </span>.strings(endian, data)<span class="question-mark">?
-            </span>.<a href="../mod.rs.html#80">read_error</a>(<span class="string">&quot;Invalid ELF string section type&quot;</span>)
+            </span>.read_error(<span class="string">&quot;Invalid ELF string section type&quot;</span>)
     }
 
     <span class="doccomment">/// Return the symbol table of the given section type.
@@ -1194,20 +1194,20 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         endian: Elf::Endian,
         data: R,
-        sh_type: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>,
+        sh_type: u32,
     ) -&gt; read::Result&lt;SymbolTable&lt;<span class="lifetime">&#39;data</span>, Elf, R&gt;&gt; {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(sh_type == elf::SHT_DYNSYM || sh_type == elf::SHT_SYMTAB);
+        <span class="macro">debug_assert!</span>(sh_type == elf::SHT_DYNSYM || sh_type == elf::SHT_SYMTAB);
 
-        <span class="kw">let </span>(index, section) = <span class="kw">match </span><span class="self"><a href="#104">self</a>
-            </span>.<a href="#38">iter</a>()
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">enumerate</a>()
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">find</a>(|s| <a href="#114">s</a>.<span class="number">1</span>.<a href="#611">sh_type</a>(<a href="#105">endian</a>) == <a href="#107">sh_type</a>)
+        <span class="kw">let </span>(index, section) = <span class="kw">match </span><span class="self">self
+            </span>.iter()
+            .enumerate()
+            .find(|s| s.<span class="number">1</span>.sh_type(endian) == sh_type)
         {
-            <span class="prelude-val">Some</span>(s) =&gt; <a href="#116">s</a>,
+            <span class="prelude-val">Some</span>(s) =&gt; s,
             <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="prelude-val">Ok</span>(SymbolTable::default()),
         };
 
-        SymbolTable::parse(<a href="#105">endian</a>, <a href="#106">data</a>, <a class="self" href="#104">self</a>, <a href="../mod.rs.html#263">SectionIndex</a>(<a href="#111">index</a>), <a href="#111">section</a>)
+        SymbolTable::parse(endian, data, <span class="self">self</span>, SectionIndex(index), section)
     }
 
     <span class="doccomment">/// Return the symbol table at the given section index.
@@ -1218,14 +1218,14 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         endian: Elf::Endian,
         data: R,
-        index: <a href="../mod.rs.html#263">SectionIndex</a>,
+        index: SectionIndex,
     ) -&gt; read::Result&lt;SymbolTable&lt;<span class="lifetime">&#39;data</span>, Elf, R&gt;&gt; {
         <span class="kw">let </span>section = <span class="self">self</span>.section(index)<span class="question-mark">?</span>;
-        <span class="kw">match </span><a href="#133">section</a>.<a href="#611">sh_type</a>(<a href="#129">endian</a>) {
-            <a href="../../elf.rs.html#699">elf::SHT_DYNSYM</a> | <a href="../../elf.rs.html#681">elf::SHT_SYMTAB</a> =&gt; {}
-            <span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../mod.rs.html#64">Error</a>(<span class="string">&quot;Invalid ELF symbol table section type&quot;</span>)),
+        <span class="kw">match </span>section.sh_type(endian) {
+            elf::SHT_DYNSYM | elf::SHT_SYMTAB =&gt; {}
+            <span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(Error(<span class="string">&quot;Invalid ELF symbol table section type&quot;</span>)),
         }
-        SymbolTable::parse(<a href="#129">endian</a>, <a href="#130">data</a>, <a class="self" href="#128">self</a>, <a href="#131">index</a>, <a href="#133">section</a>)
+        SymbolTable::parse(endian, data, <span class="self">self</span>, index, section)
     }
 
     <span class="doccomment">/// Create a mapping from section index to associated relocation sections.
@@ -1233,9 +1233,9 @@
     </span><span class="kw">pub fn </span>relocation_sections(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         endian: Elf::Endian,
-        symbol_section: <a href="../mod.rs.html#263">SectionIndex</a>,
-    ) -&gt; read::Result&lt;<a href="relocation.rs.html#18">RelocationSections</a>&gt; {
-        RelocationSections::parse(<a href="#145">endian</a>, <a class="self" href="#144">self</a>, <a href="#146">symbol_section</a>)
+        symbol_section: SectionIndex,
+    ) -&gt; read::Result&lt;RelocationSections&gt; {
+        RelocationSections::parse(endian, <span class="self">self</span>, symbol_section)
     }
 
     <span class="doccomment">/// Return the contents of a dynamic section.
@@ -1248,7 +1248,7 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         endian: Elf::Endian,
         data: R,
-    ) -&gt; read::Result&lt;<span class="prelude-ty">Option</span>&lt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[Elf::Dyn], <a href="../mod.rs.html#263">SectionIndex</a>)&gt;&gt; {
+    ) -&gt; read::Result&lt;<span class="prelude-ty">Option</span>&lt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[Elf::Dyn], SectionIndex)&gt;&gt; {
         <span class="kw">for </span>section <span class="kw">in </span><span class="self">self</span>.sections {
             <span class="kw">if let </span><span class="prelude-val">Some</span>(dynamic) = section.dynamic(endian, data)<span class="question-mark">? </span>{
                 <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(dynamic));
@@ -1284,7 +1284,7 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         endian: Elf::Endian,
         data: R,
-    ) -&gt; read::Result&lt;<span class="prelude-ty">Option</span>&lt;(HashTable&lt;<span class="lifetime">&#39;data</span>, Elf&gt;, <a href="../mod.rs.html#263">SectionIndex</a>)&gt;&gt; {
+    ) -&gt; read::Result&lt;<span class="prelude-ty">Option</span>&lt;(HashTable&lt;<span class="lifetime">&#39;data</span>, Elf&gt;, SectionIndex)&gt;&gt; {
         <span class="kw">for </span>section <span class="kw">in </span><span class="self">self</span>.sections {
             <span class="kw">if let </span><span class="prelude-val">Some</span>(hash) = section.hash(endian, data)<span class="question-mark">? </span>{
                 <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(hash));
@@ -1320,7 +1320,7 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         endian: Elf::Endian,
         data: R,
-    ) -&gt; read::Result&lt;<span class="prelude-ty">Option</span>&lt;(GnuHashTable&lt;<span class="lifetime">&#39;data</span>, Elf&gt;, <a href="../mod.rs.html#263">SectionIndex</a>)&gt;&gt; {
+    ) -&gt; read::Result&lt;<span class="prelude-ty">Option</span>&lt;(GnuHashTable&lt;<span class="lifetime">&#39;data</span>, Elf&gt;, SectionIndex)&gt;&gt; {
         <span class="kw">for </span>section <span class="kw">in </span><span class="self">self</span>.sections {
             <span class="kw">if let </span><span class="prelude-val">Some</span>(hash) = section.gnu_hash(endian, data)<span class="question-mark">? </span>{
                 <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(hash));
@@ -1339,7 +1339,7 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         endian: Elf::Endian,
         data: R,
-    ) -&gt; read::Result&lt;<span class="prelude-ty">Option</span>&lt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[elf::Versym&lt;Elf::Endian&gt;], <a href="../mod.rs.html#263">SectionIndex</a>)&gt;&gt; {
+    ) -&gt; read::Result&lt;<span class="prelude-ty">Option</span>&lt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[elf::Versym&lt;Elf::Endian&gt;], SectionIndex)&gt;&gt; {
         <span class="kw">for </span>section <span class="kw">in </span><span class="self">self</span>.sections {
             <span class="kw">if let </span><span class="prelude-val">Some</span>(syms) = section.gnu_versym(endian, data)<span class="question-mark">? </span>{
                 <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(syms));
@@ -1358,7 +1358,7 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         endian: Elf::Endian,
         data: R,
-    ) -&gt; read::Result&lt;<span class="prelude-ty">Option</span>&lt;(VerdefIterator&lt;<span class="lifetime">&#39;data</span>, Elf&gt;, <a href="../mod.rs.html#263">SectionIndex</a>)&gt;&gt; {
+    ) -&gt; read::Result&lt;<span class="prelude-ty">Option</span>&lt;(VerdefIterator&lt;<span class="lifetime">&#39;data</span>, Elf&gt;, SectionIndex)&gt;&gt; {
         <span class="kw">for </span>section <span class="kw">in </span><span class="self">self</span>.sections {
             <span class="kw">if let </span><span class="prelude-val">Some</span>(defs) = section.gnu_verdef(endian, data)<span class="question-mark">? </span>{
                 <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(defs));
@@ -1377,7 +1377,7 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         endian: Elf::Endian,
         data: R,
-    ) -&gt; read::Result&lt;<span class="prelude-ty">Option</span>&lt;(VerneedIterator&lt;<span class="lifetime">&#39;data</span>, Elf&gt;, <a href="../mod.rs.html#263">SectionIndex</a>)&gt;&gt; {
+    ) -&gt; read::Result&lt;<span class="prelude-ty">Option</span>&lt;(VerneedIterator&lt;<span class="lifetime">&#39;data</span>, Elf&gt;, SectionIndex)&gt;&gt; {
         <span class="kw">for </span>section <span class="kw">in </span><span class="self">self</span>.sections {
             <span class="kw">if let </span><span class="prelude-val">Some</span>(needs) = section.gnu_verneed(endian, data)<span class="question-mark">? </span>{
                 <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(needs));
@@ -1396,80 +1396,80 @@
         data: R,
     ) -&gt; read::Result&lt;<span class="prelude-ty">Option</span>&lt;VersionTable&lt;<span class="lifetime">&#39;data</span>, Elf&gt;&gt;&gt; {
         <span class="kw">let </span>(versyms, link) = <span class="kw">match </span><span class="self">self</span>.gnu_versym(endian, data)<span class="question-mark">? </span>{
-            <span class="prelude-val">Some</span>(val) =&gt; <a href="#309">val</a>,
+            <span class="prelude-val">Some</span>(val) =&gt; val,
             <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>),
         };
-        <span class="kw">let </span>strings = <span class="self">self</span>.symbol_table_by_index(endian, data, link)<span class="question-mark">?</span>.<a href="symbol.rs.html#111">strings</a>();
+        <span class="kw">let </span>strings = <span class="self">self</span>.symbol_table_by_index(endian, data, link)<span class="question-mark">?</span>.strings();
         <span class="comment">// TODO: check links?
-        </span><span class="kw">let </span>verdefs = <span class="self">self</span>.gnu_verdef(endian, data)<span class="question-mark">?</span>.map(|x| <a href="#314">x</a>.<span class="number">0</span>);
-        <span class="kw">let </span>verneeds = <span class="self">self</span>.gnu_verneed(endian, data)<span class="question-mark">?</span>.map(|x| <a href="#315">x</a>.<span class="number">0</span>);
-        VersionTable::parse(<a href="#305">endian</a>, <a href="#308">versyms</a>, <a href="#314">verdefs</a>, <a href="#315">verneeds</a>, <a href="#312">strings</a>).map(<span class="prelude-val">Some</span>)
+        </span><span class="kw">let </span>verdefs = <span class="self">self</span>.gnu_verdef(endian, data)<span class="question-mark">?</span>.map(|x| x.<span class="number">0</span>);
+        <span class="kw">let </span>verneeds = <span class="self">self</span>.gnu_verneed(endian, data)<span class="question-mark">?</span>.map(|x| x.<span class="number">0</span>);
+        VersionTable::parse(endian, versyms, verdefs, verneeds, strings).map(<span class="prelude-val">Some</span>)
     }
 }
 
 <span class="doccomment">/// An iterator over the sections of an `ElfFile32`.
-</span><span class="kw">pub type </span>ElfSectionIterator32&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Endian = <a href="../../endian.rs.html#278">Endianness</a>, R = <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt; =
+</span><span class="kw">pub type </span>ElfSectionIterator32&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Endian = Endianness, R = <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[u8]&gt; =
     ElfSectionIterator&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, elf::FileHeader32&lt;Endian&gt;, R&gt;;
 <span class="doccomment">/// An iterator over the sections of an `ElfFile64`.
-</span><span class="kw">pub type </span>ElfSectionIterator64&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Endian = <a href="../../endian.rs.html#278">Endianness</a>, R = <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt; =
+</span><span class="kw">pub type </span>ElfSectionIterator64&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Endian = Endianness, R = <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[u8]&gt; =
     ElfSectionIterator&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, elf::FileHeader64&lt;Endian&gt;, R&gt;;
 
 <span class="doccomment">/// An iterator over the sections of an `ElfFile`.
 </span><span class="attr">#[derive(Debug)]
-</span><span class="kw">pub struct </span>ElfSectionIterator&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Elf, R = <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;
+</span><span class="kw">pub struct </span>ElfSectionIterator&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Elf, R = <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[u8]&gt;
 <span class="kw">where
-    </span>Elf: <a href="file.rs.html#437">FileHeader</a>,
+    </span>Elf: FileHeader,
     R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt;,
 {
     <span class="kw">pub</span>(<span class="kw">super</span>) file: <span class="kw-2">&amp;</span><span class="lifetime">&#39;file </span>ElfFile&lt;<span class="lifetime">&#39;data</span>, Elf, R&gt;,
     <span class="kw">pub</span>(<span class="kw">super</span>) iter: iter::Enumerate&lt;slice::Iter&lt;<span class="lifetime">&#39;data</span>, Elf::SectionHeader&gt;&gt;,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Elf, R&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a> <span class="kw">for </span>ElfSectionIterator&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Elf, R&gt;
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Elf, R&gt; Iterator <span class="kw">for </span>ElfSectionIterator&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Elf, R&gt;
 <span class="kw">where
-    </span>Elf: <a href="file.rs.html#437">FileHeader</a>,
+    </span>Elf: FileHeader,
     R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt;,
 {
     <span class="kw">type </span>Item = ElfSection&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Elf, R&gt;;
 
     <span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt; {
-        <a class="self" href="#345">self</a>.iter.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>().map(|(index, section)| <a href="#363">ElfSection</a> {
-            index: <a href="../mod.rs.html#263">SectionIndex</a>(<a href="#346">index</a>),
-            file: <a class="self" href="#345">self</a>.file,
-            <a href="#346">section</a>,
+        <span class="self">self</span>.iter.next().map(|(index, section)| ElfSection {
+            index: SectionIndex(index),
+            file: <span class="self">self</span>.file,
+            section,
         })
     }
 }
 
 <span class="doccomment">/// A section of an `ElfFile32`.
-</span><span class="kw">pub type </span>ElfSection32&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Endian = <a href="../../endian.rs.html#278">Endianness</a>, R = <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt; =
+</span><span class="kw">pub type </span>ElfSection32&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Endian = Endianness, R = <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[u8]&gt; =
     ElfSection&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, elf::FileHeader32&lt;Endian&gt;, R&gt;;
 <span class="doccomment">/// A section of an `ElfFile64`.
-</span><span class="kw">pub type </span>ElfSection64&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Endian = <a href="../../endian.rs.html#278">Endianness</a>, R = <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt; =
+</span><span class="kw">pub type </span>ElfSection64&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Endian = Endianness, R = <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[u8]&gt; =
     ElfSection&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, elf::FileHeader64&lt;Endian&gt;, R&gt;;
 
 <span class="doccomment">/// A section of an `ElfFile`.
 </span><span class="attr">#[derive(Debug)]
-</span><span class="kw">pub struct </span>ElfSection&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Elf, R = <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;
+</span><span class="kw">pub struct </span>ElfSection&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Elf, R = <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[u8]&gt;
 <span class="kw">where
     </span><span class="lifetime">&#39;data</span>: <span class="lifetime">&#39;file</span>,
-    Elf: <a href="file.rs.html#437">FileHeader</a>,
+    Elf: FileHeader,
     R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt;,
 {
     <span class="kw">pub</span>(<span class="kw">super</span>) file: <span class="kw-2">&amp;</span><span class="lifetime">&#39;file </span>ElfFile&lt;<span class="lifetime">&#39;data</span>, Elf, R&gt;,
-    <span class="kw">pub</span>(<span class="kw">super</span>) index: <a href="../mod.rs.html#263">SectionIndex</a>,
+    <span class="kw">pub</span>(<span class="kw">super</span>) index: SectionIndex,
     <span class="kw">pub</span>(<span class="kw">super</span>) section: <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>Elf::SectionHeader,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Elf: <a href="file.rs.html#437">FileHeader</a>, R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt;&gt; ElfSection&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Elf, R&gt; {
-    <span class="kw">fn </span>bytes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; read::Result&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt; {
-        <a class="self" href="#375">self</a>.section
-            .<a href="#647-651">data</a>(<a class="self" href="#375">self</a>.file.endian, <a class="self" href="#375">self</a>.file.data)
-            .<a href="../mod.rs.html#80">read_error</a>(<span class="string">&quot;Invalid ELF section size or offset&quot;</span>)
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Elf: FileHeader, R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt;&gt; ElfSection&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Elf, R&gt; {
+    <span class="kw">fn </span>bytes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; read::Result&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[u8]&gt; {
+        <span class="self">self</span>.section
+            .data(<span class="self">self</span>.file.endian, <span class="self">self</span>.file.data)
+            .read_error(<span class="string">&quot;Invalid ELF section size or offset&quot;</span>)
     }
 
-    <span class="kw">fn </span>maybe_compressed(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; read::Result&lt;<span class="prelude-ty">Option</span>&lt;<a href="../mod.rs.html#612">CompressedFileRange</a>&gt;&gt; {
-        <span class="kw">let </span>endian = <a class="self" href="#381">self</a>.file.endian;
+    <span class="kw">fn </span>maybe_compressed(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; read::Result&lt;<span class="prelude-ty">Option</span>&lt;CompressedFileRange&gt;&gt; {
+        <span class="kw">let </span>endian = <span class="self">self</span>.file.endian;
         <span class="kw">if </span>(<span class="self">self</span>.section.sh_flags(endian).into() &amp; u64::from(elf::SHF_COMPRESSED)) == <span class="number">0 </span>{
             <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>);
         }
@@ -1477,31 +1477,31 @@
             </span>.section
             .file_range(endian)
             .read_error(<span class="string">&quot;Invalid ELF compressed section type&quot;</span>)<span class="question-mark">?</span>;
-        <span class="kw">let </span><span class="kw-2">mut </span>offset = <a href="#386">section_offset</a>;
+        <span class="kw">let </span><span class="kw-2">mut </span>offset = section_offset;
         <span class="kw">let </span>header = <span class="self">self
             </span>.file
             .data
             .read::&lt;Elf::CompressionHeader&gt;(<span class="kw-2">&amp;mut </span>offset)
             .read_error(<span class="string">&quot;Invalid ELF compressed section offset&quot;</span>)<span class="question-mark">?</span>;
         <span class="kw">if </span>header.ch_type(endian) != elf::ELFCOMPRESS_ZLIB {
-            <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../mod.rs.html#64">Error</a>(<span class="string">&quot;Unsupported ELF compression type&quot;</span>));
+            <span class="kw">return </span><span class="prelude-val">Err</span>(Error(<span class="string">&quot;Unsupported ELF compression type&quot;</span>));
         }
-        <span class="kw">let </span>uncompressed_size = <a href="#391">header</a>.<a href="compression.rs.html#14">ch_size</a>(<a href="#382">endian</a>).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>();
+        <span class="kw">let </span>uncompressed_size = header.ch_size(endian).into();
         <span class="kw">let </span>compressed_size = section_size
             .checked_sub(offset - section_offset)
             .read_error(<span class="string">&quot;Invalid ELF compressed section size&quot;</span>)<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<a href="../mod.rs.html#612">CompressedFileRange</a> {
-            format: <a href="../mod.rs.html#607">CompressionFormat::Zlib</a>,
-            <a href="#390">offset</a>,
-            <a href="#400">compressed_size</a>,
-            <a href="#399">uncompressed_size</a>,
+        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(CompressedFileRange {
+            format: CompressionFormat::Zlib,
+            offset,
+            compressed_size,
+            uncompressed_size,
         }))
     }
 
     <span class="doccomment">/// Try GNU-style &quot;ZLIB&quot; header decompression.
-    </span><span class="kw">fn </span>maybe_compressed_gnu(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; read::Result&lt;<span class="prelude-ty">Option</span>&lt;<a href="../mod.rs.html#612">CompressedFileRange</a>&gt;&gt; {
-        <span class="kw">let </span>name = <span class="kw">match </span><a class="self" href="#412">self</a>.<a href="../traits.rs.html#332">name</a>() {
-            <span class="prelude-val">Ok</span>(name) =&gt; <a href="#414">name</a>,
+    </span><span class="kw">fn </span>maybe_compressed_gnu(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; read::Result&lt;<span class="prelude-ty">Option</span>&lt;CompressedFileRange&gt;&gt; {
+        <span class="kw">let </span>name = <span class="kw">match </span><span class="self">self</span>.name() {
+            <span class="prelude-val">Ok</span>(name) =&gt; name,
             <span class="comment">// I think it&#39;s ok to ignore this error?
             </span><span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>),
         };
@@ -1512,8 +1512,8 @@
             </span>.section
             .file_range(<span class="self">self</span>.file.endian)
             .read_error(<span class="string">&quot;Invalid ELF GNU compressed section type&quot;</span>)<span class="question-mark">?</span>;
-        <span class="kw">let </span><span class="kw-2">mut </span>offset = <a href="#421">section_offset</a>;
-        <span class="kw">let </span>data = <a class="self" href="#412">self</a>.file.data;
+        <span class="kw">let </span><span class="kw-2">mut </span>offset = section_offset;
+        <span class="kw">let </span>data = <span class="self">self</span>.file.data;
         <span class="comment">// Assume ZLIB-style uncompressed data is no more than 4GB to avoid accidentally
         // huge allocations. This also reduces the chance of accidentally matching on a
         // .debug_str that happens to start with &quot;ZLIB&quot;.
@@ -1522,189 +1522,189 @@
             .read_error(<span class="string">&quot;ELF GNU compressed section is too short&quot;</span>)<span class="question-mark">?
             </span>!= <span class="string">b&quot;ZLIB\0\0\0\0&quot;
         </span>{
-            <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../mod.rs.html#64">Error</a>(<span class="string">&quot;Invalid ELF GNU compressed section header&quot;</span>));
+            <span class="kw">return </span><span class="prelude-val">Err</span>(Error(<span class="string">&quot;Invalid ELF GNU compressed section header&quot;</span>));
         }
         <span class="kw">let </span>uncompressed_size = data
             .read::&lt;U32Bytes&lt;<span class="kw">_</span>&gt;&gt;(<span class="kw-2">&amp;mut </span>offset)
             .read_error(<span class="string">&quot;ELF GNU compressed section is too short&quot;</span>)<span class="question-mark">?
-            </span>.<a href="../../endian.rs.html#621">get</a>(<a href="../../endian.rs.html#344">endian::BigEndian</a>)
-            .<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>();
+            </span>.get(endian::BigEndian)
+            .into();
         <span class="kw">let </span>compressed_size = section_size
             .checked_sub(offset - section_offset)
             .read_error(<span class="string">&quot;ELF GNU compressed section is too short&quot;</span>)<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<a href="../mod.rs.html#612">CompressedFileRange</a> {
-            format: <a href="../mod.rs.html#607">CompressionFormat::Zlib</a>,
-            <a href="#425">offset</a>,
-            <a href="#442">compressed_size</a>,
-            <a href="#437">uncompressed_size</a>,
+        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(CompressedFileRange {
+            format: CompressionFormat::Zlib,
+            offset,
+            compressed_size,
+            uncompressed_size,
         }))
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Elf, R&gt; <a href="../mod.rs.html#59">read::private::Sealed</a> <span class="kw">for </span>ElfSection&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Elf, R&gt;
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Elf, R&gt; read::private::Sealed <span class="kw">for </span>ElfSection&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Elf, R&gt;
 <span class="kw">where
-    </span>Elf: <a href="file.rs.html#437">FileHeader</a>,
+    </span>Elf: FileHeader,
     R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt;,
 {
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Elf, R&gt; ObjectSection&lt;<span class="lifetime">&#39;data</span>&gt; <span class="kw">for </span>ElfSection&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Elf, R&gt;
 <span class="kw">where
-    </span>Elf: <a href="file.rs.html#437">FileHeader</a>,
+    </span>Elf: FileHeader,
     R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt;,
 {
     <span class="kw">type </span>RelocationIterator = ElfSectionRelocationIterator&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Elf, R&gt;;
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>index(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../mod.rs.html#263">SectionIndex</a> {
-        <a class="self" href="#469">self</a>.index
+    </span><span class="kw">fn </span>index(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; SectionIndex {
+        <span class="self">self</span>.index
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>address(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> {
-        <a class="self" href="#474">self</a>.section.<a href="#613">sh_addr</a>(<a class="self" href="#474">self</a>.file.endian).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()
+    </span><span class="kw">fn </span>address(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u64 {
+        <span class="self">self</span>.section.sh_addr(<span class="self">self</span>.file.endian).into()
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>size(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> {
-        <a class="self" href="#479">self</a>.section.<a href="#615">sh_size</a>(<a class="self" href="#479">self</a>.file.endian).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()
+    </span><span class="kw">fn </span>size(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u64 {
+        <span class="self">self</span>.section.sh_size(<span class="self">self</span>.file.endian).into()
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>align(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> {
-        <a class="self" href="#484">self</a>.section.<a href="#618">sh_addralign</a>(<a class="self" href="#484">self</a>.file.endian).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()
+    </span><span class="kw">fn </span>align(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u64 {
+        <span class="self">self</span>.section.sh_addralign(<span class="self">self</span>.file.endian).into()
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>file_range(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;(<a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>)&gt; {
-        <a class="self" href="#489">self</a>.section.<a href="#635">file_range</a>(<a class="self" href="#489">self</a>.file.endian)
+    </span><span class="kw">fn </span>file_range(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;(u64, u64)&gt; {
+        <span class="self">self</span>.section.file_range(<span class="self">self</span>.file.endian)
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>data(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; read::Result&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt; {
-        <a class="self" href="#494">self</a>.<a href="#375">bytes</a>()
+    </span><span class="kw">fn </span>data(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; read::Result&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[u8]&gt; {
+        <span class="self">self</span>.bytes()
     }
 
-    <span class="kw">fn </span>data_range(<span class="kw-2">&amp;</span><span class="self">self</span>, address: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>, size: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) -&gt; read::Result&lt;<span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;&gt; {
-        <span class="prelude-val">Ok</span>(<a href="../util.rs.html#217-222">read::util::data_range</a>(
+    <span class="kw">fn </span>data_range(<span class="kw-2">&amp;</span><span class="self">self</span>, address: u64, size: u64) -&gt; read::Result&lt;<span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[u8]&gt;&gt; {
+        <span class="prelude-val">Ok</span>(read::util::data_range(
             <span class="self">self</span>.bytes()<span class="question-mark">?</span>,
-            <a class="self" href="#498">self</a>.<a href="../traits.rs.html#281">address</a>(),
-            <a href="#498">address</a>,
-            <a href="#498">size</a>,
+            <span class="self">self</span>.address(),
+            address,
+            size,
         ))
     }
 
-    <span class="kw">fn </span>compressed_file_range(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; read::Result&lt;<a href="../mod.rs.html#612">CompressedFileRange</a>&gt; {
+    <span class="kw">fn </span>compressed_file_range(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; read::Result&lt;CompressedFileRange&gt; {
         <span class="prelude-val">Ok</span>(<span class="kw">if let </span><span class="prelude-val">Some</span>(data) = <span class="self">self</span>.maybe_compressed()<span class="question-mark">? </span>{
-            <a href="#508">data</a>
+            data
         } <span class="kw">else if let </span><span class="prelude-val">Some</span>(data) = <span class="self">self</span>.maybe_compressed_gnu()<span class="question-mark">? </span>{
-            <a href="#510">data</a>
+            data
         } <span class="kw">else </span>{
-            CompressedFileRange::none(<a class="self" href="#507">self</a>.<a href="../traits.rs.html#290">file_range</a>())
+            CompressedFileRange::none(<span class="self">self</span>.file_range())
         })
     }
 
     <span class="kw">fn </span>compressed_data(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; read::Result&lt;CompressedData&lt;<span class="lifetime">&#39;data</span>&gt;&gt; {
-        <span class="self">self</span>.compressed_file_range()<span class="question-mark">?</span>.<a href="../mod.rs.html#645">data</a>(<a class="self" href="#517">self</a>.file.data)
+        <span class="self">self</span>.compressed_file_range()<span class="question-mark">?</span>.data(<span class="self">self</span>.file.data)
     }
 
-    <span class="kw">fn </span>name_bytes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; read::Result&lt;<span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt; {
-        <a class="self" href="#521">self</a>.file
+    <span class="kw">fn </span>name_bytes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; read::Result&lt;<span class="kw-2">&amp;</span>[u8]&gt; {
+        <span class="self">self</span>.file
             .sections
-            .<a href="#76-80">section_name</a>(<a class="self" href="#521">self</a>.file.endian, <a class="self" href="#521">self</a>.section)
+            .section_name(<span class="self">self</span>.file.endian, <span class="self">self</span>.section)
     }
 
-    <span class="kw">fn </span>name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; read::Result&lt;<span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt; {
+    <span class="kw">fn </span>name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; read::Result&lt;<span class="kw-2">&amp;</span>str&gt; {
         <span class="kw">let </span>name = <span class="self">self</span>.name_bytes()<span class="question-mark">?</span>;
-        <a href="https://doc.rust-lang.org/nightly/core/str/converts/fn.from_utf8.html">str::from_utf8</a>(<a href="#528">name</a>)
+        str::from_utf8(name)
             .ok()
-            .<a href="../mod.rs.html#80">read_error</a>(<span class="string">&quot;Non UTF-8 ELF section name&quot;</span>)
+            .read_error(<span class="string">&quot;Non UTF-8 ELF section name&quot;</span>)
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>segment_name_bytes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; read::Result&lt;<span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;&gt; {
+    </span><span class="kw">fn </span>segment_name_bytes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; read::Result&lt;<span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>[u8]&gt;&gt; {
         <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>)
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>segment_name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; read::Result&lt;<span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt;&gt; {
+    </span><span class="kw">fn </span>segment_name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; read::Result&lt;<span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>str&gt;&gt; {
         <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>)
     }
 
-    <span class="kw">fn </span>kind(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../../common.rs.html#96">SectionKind</a> {
-        <span class="kw">let </span>flags = <a class="self" href="#544">self</a>.section.<a href="#612">sh_flags</a>(<a class="self" href="#544">self</a>.file.endian).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>();
-        <span class="kw">let </span>sh_type = <a class="self" href="#544">self</a>.section.<a href="#611">sh_type</a>(<a class="self" href="#544">self</a>.file.endian);
-        <span class="kw">match </span><a href="#546">sh_type</a> {
-            <a href="../../elf.rs.html#679">elf::SHT_PROGBITS</a> =&gt; {
+    <span class="kw">fn </span>kind(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; SectionKind {
+        <span class="kw">let </span>flags = <span class="self">self</span>.section.sh_flags(<span class="self">self</span>.file.endian).into();
+        <span class="kw">let </span>sh_type = <span class="self">self</span>.section.sh_type(<span class="self">self</span>.file.endian);
+        <span class="kw">match </span>sh_type {
+            elf::SHT_PROGBITS =&gt; {
                 <span class="kw">if </span>flags &amp; u64::from(elf::SHF_ALLOC) != <span class="number">0 </span>{
                     <span class="kw">if </span>flags &amp; u64::from(elf::SHF_EXECINSTR) != <span class="number">0 </span>{
-                        <a href="../../common.rs.html#104">SectionKind::Text</a>
+                        SectionKind::Text
                     } <span class="kw">else if </span>flags &amp; u64::from(elf::SHF_TLS) != <span class="number">0 </span>{
-                        <a href="../../common.rs.html#138">SectionKind::Tls</a>
+                        SectionKind::Tls
                     } <span class="kw">else if </span>flags &amp; u64::from(elf::SHF_WRITE) != <span class="number">0 </span>{
-                        <a href="../../common.rs.html#110">SectionKind::Data</a>
+                        SectionKind::Data
                     } <span class="kw">else if </span>flags &amp; u64::from(elf::SHF_STRINGS) != <span class="number">0 </span>{
-                        <a href="../../common.rs.html#122">SectionKind::ReadOnlyString</a>
+                        SectionKind::ReadOnlyString
                     } <span class="kw">else </span>{
-                        <a href="../../common.rs.html#116">SectionKind::ReadOnlyData</a>
+                        SectionKind::ReadOnlyData
                     }
                 } <span class="kw">else if </span>flags &amp; u64::from(elf::SHF_STRINGS) != <span class="number">0 </span>{
-                    <a href="../../common.rs.html#154">SectionKind::OtherString</a>
+                    SectionKind::OtherString
                 } <span class="kw">else </span>{
-                    <a href="../../common.rs.html#158">SectionKind::Other</a>
+                    SectionKind::Other
                 }
             }
-            <a href="../../elf.rs.html#693">elf::SHT_NOBITS</a> =&gt; {
+            elf::SHT_NOBITS =&gt; {
                 <span class="kw">if </span>flags &amp; u64::from(elf::SHF_TLS) != <span class="number">0 </span>{
-                    <a href="../../common.rs.html#144">SectionKind::UninitializedTls</a>
+                    SectionKind::UninitializedTls
                 } <span class="kw">else </span>{
-                    <a href="../../common.rs.html#128">SectionKind::UninitializedData</a>
+                    SectionKind::UninitializedData
                 }
             }
-            <a href="../../elf.rs.html#691">elf::SHT_NOTE</a> =&gt; <a href="../../common.rs.html#168">SectionKind::Note</a>,
-            <a href="../../elf.rs.html#677">elf::SHT_NULL</a>
-            | <a href="../../elf.rs.html#681">elf::SHT_SYMTAB</a>
-            | <a href="../../elf.rs.html#683">elf::SHT_STRTAB</a>
-            | <a href="../../elf.rs.html#685">elf::SHT_RELA</a>
-            | <a href="../../elf.rs.html#687">elf::SHT_HASH</a>
-            | <a href="../../elf.rs.html#689">elf::SHT_DYNAMIC</a>
-            | <a href="../../elf.rs.html#695">elf::SHT_REL</a>
-            | <a href="../../elf.rs.html#699">elf::SHT_DYNSYM</a>
-            | <a href="../../elf.rs.html#707">elf::SHT_GROUP</a> =&gt; <a href="../../common.rs.html#172">SectionKind::Metadata</a>,
-            <span class="kw">_ </span>=&gt; <a href="../../common.rs.html#177">SectionKind::Elf</a>(<a href="#546">sh_type</a>),
+            elf::SHT_NOTE =&gt; SectionKind::Note,
+            elf::SHT_NULL
+            | elf::SHT_SYMTAB
+            | elf::SHT_STRTAB
+            | elf::SHT_RELA
+            | elf::SHT_HASH
+            | elf::SHT_DYNAMIC
+            | elf::SHT_REL
+            | elf::SHT_DYNSYM
+            | elf::SHT_GROUP =&gt; SectionKind::Metadata,
+            <span class="kw">_ </span>=&gt; SectionKind::Elf(sh_type),
         }
     }
 
     <span class="kw">fn </span>relocations(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; ElfSectionRelocationIterator&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Elf, R&gt; {
-        <a href="relocation.rs.html#175">ElfSectionRelocationIterator</a> {
-            section_index: <a class="self" href="#588">self</a>.index,
-            file: <a class="self" href="#588">self</a>.file,
+        ElfSectionRelocationIterator {
+            section_index: <span class="self">self</span>.index,
+            file: <span class="self">self</span>.file,
             relocations: <span class="prelude-val">None</span>,
         }
     }
 
-    <span class="kw">fn </span>flags(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../../common.rs.html#405">SectionFlags</a> {
-        <a href="../../common.rs.html#409">SectionFlags::Elf</a> {
-            sh_flags: <a class="self" href="#596">self</a>.section.<a href="#612">sh_flags</a>(<a class="self" href="#596">self</a>.file.endian).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
+    <span class="kw">fn </span>flags(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; SectionFlags {
+        SectionFlags::Elf {
+            sh_flags: <span class="self">self</span>.section.sh_flags(<span class="self">self</span>.file.endian).into(),
         }
     }
 }
 
 <span class="doccomment">/// A trait for generic access to `SectionHeader32` and `SectionHeader64`.
 </span><span class="attr">#[allow(missing_docs)]
-</span><span class="kw">pub trait </span>SectionHeader: <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">Debug</a> + <a href="../../pod.rs.html#21">Pod</a> {
+</span><span class="kw">pub trait </span>SectionHeader: Debug + Pod {
     <span class="kw">type </span>Elf: FileHeader&lt;SectionHeader = <span class="self">Self</span>, Endian = <span class="self">Self</span>::Endian, Word = <span class="self">Self</span>::Word&gt;;
-    <span class="kw">type </span>Word: Into&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>&gt;;
-    <span class="kw">type </span>Endian: <a href="../../endian.rs.html#13">endian::Endian</a>;
+    <span class="kw">type </span>Word: Into&lt;u64&gt;;
+    <span class="kw">type </span>Endian: endian::Endian;
 
-    <span class="kw">fn </span>sh_name(<span class="kw-2">&amp;</span><span class="self">self</span>, endian: <span class="self">Self</span>::Endian) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>;
-    <span class="kw">fn </span>sh_type(<span class="kw-2">&amp;</span><span class="self">self</span>, endian: <span class="self">Self</span>::Endian) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>;
+    <span class="kw">fn </span>sh_name(<span class="kw-2">&amp;</span><span class="self">self</span>, endian: <span class="self">Self</span>::Endian) -&gt; u32;
+    <span class="kw">fn </span>sh_type(<span class="kw-2">&amp;</span><span class="self">self</span>, endian: <span class="self">Self</span>::Endian) -&gt; u32;
     <span class="kw">fn </span>sh_flags(<span class="kw-2">&amp;</span><span class="self">self</span>, endian: <span class="self">Self</span>::Endian) -&gt; <span class="self">Self</span>::Word;
     <span class="kw">fn </span>sh_addr(<span class="kw-2">&amp;</span><span class="self">self</span>, endian: <span class="self">Self</span>::Endian) -&gt; <span class="self">Self</span>::Word;
     <span class="kw">fn </span>sh_offset(<span class="kw-2">&amp;</span><span class="self">self</span>, endian: <span class="self">Self</span>::Endian) -&gt; <span class="self">Self</span>::Word;
     <span class="kw">fn </span>sh_size(<span class="kw-2">&amp;</span><span class="self">self</span>, endian: <span class="self">Self</span>::Endian) -&gt; <span class="self">Self</span>::Word;
-    <span class="kw">fn </span>sh_link(<span class="kw-2">&amp;</span><span class="self">self</span>, endian: <span class="self">Self</span>::Endian) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>;
-    <span class="kw">fn </span>sh_info(<span class="kw-2">&amp;</span><span class="self">self</span>, endian: <span class="self">Self</span>::Endian) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>;
+    <span class="kw">fn </span>sh_link(<span class="kw-2">&amp;</span><span class="self">self</span>, endian: <span class="self">Self</span>::Endian) -&gt; u32;
+    <span class="kw">fn </span>sh_info(<span class="kw-2">&amp;</span><span class="self">self</span>, endian: <span class="self">Self</span>::Endian) -&gt; u32;
     <span class="kw">fn </span>sh_addralign(<span class="kw-2">&amp;</span><span class="self">self</span>, endian: <span class="self">Self</span>::Endian) -&gt; <span class="self">Self</span>::Word;
     <span class="kw">fn </span>sh_entsize(<span class="kw-2">&amp;</span><span class="self">self</span>, endian: <span class="self">Self</span>::Endian) -&gt; <span class="self">Self</span>::Word;
 
@@ -1713,20 +1713,20 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         endian: <span class="self">Self</span>::Endian,
         strings: StringTable&lt;<span class="lifetime">&#39;data</span>, R&gt;,
-    ) -&gt; read::Result&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt; {
-        <a href="#625">strings</a>
-            .<a href="../util.rs.html#254">get</a>(<a class="self" href="#623">self</a>.<a href="#610">sh_name</a>(<a href="#624">endian</a>))
-            .<a href="../mod.rs.html#80">read_error</a>(<span class="string">&quot;Invalid ELF section name offset&quot;</span>)
+    ) -&gt; read::Result&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[u8]&gt; {
+        strings
+            .get(<span class="self">self</span>.sh_name(endian))
+            .read_error(<span class="string">&quot;Invalid ELF section name offset&quot;</span>)
     }
 
     <span class="doccomment">/// Return the offset and size of the section in the file.
     ///
     /// Returns `None` for sections that have no data in the file.
-    </span><span class="kw">fn </span>file_range(<span class="kw-2">&amp;</span><span class="self">self</span>, endian: <span class="self">Self</span>::Endian) -&gt; <span class="prelude-ty">Option</span>&lt;(<a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>)&gt; {
+    </span><span class="kw">fn </span>file_range(<span class="kw-2">&amp;</span><span class="self">self</span>, endian: <span class="self">Self</span>::Endian) -&gt; <span class="prelude-ty">Option</span>&lt;(u64, u64)&gt; {
         <span class="kw">if </span><span class="self">self</span>.sh_type(endian) == elf::SHT_NOBITS {
             <span class="prelude-val">None
         </span>} <span class="kw">else </span>{
-            <span class="prelude-val">Some</span>((<a class="self" href="#635">self</a>.<a href="#614">sh_offset</a>(<a href="#635">endian</a>).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(), <a class="self" href="#635">self</a>.<a href="#615">sh_size</a>(<a href="#635">endian</a>).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()))
+            <span class="prelude-val">Some</span>((<span class="self">self</span>.sh_offset(endian).into(), <span class="self">self</span>.sh_size(endian).into()))
         }
     }
 
@@ -1738,10 +1738,10 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         endian: <span class="self">Self</span>::Endian,
         data: R,
-    ) -&gt; read::Result&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt; {
-        <span class="kw">if let </span><span class="prelude-val">Some</span>((offset, size)) = <a class="self" href="#648">self</a>.<a href="#635">file_range</a>(<a href="#649">endian</a>) {
-            <a href="#650">data</a>.<a href="../read_ref.rs.html#44">read_bytes_at</a>(<a href="#652">offset</a>, <a href="#652">size</a>)
-                .<a href="../mod.rs.html#80">read_error</a>(<span class="string">&quot;Invalid ELF section size or offset&quot;</span>)
+    ) -&gt; read::Result&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[u8]&gt; {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>((offset, size)) = <span class="self">self</span>.file_range(endian) {
+            data.read_bytes_at(offset, size)
+                .read_error(<span class="string">&quot;Invalid ELF section size or offset&quot;</span>)
         } <span class="kw">else </span>{
             <span class="prelude-val">Ok</span>(<span class="kw-2">&amp;</span>[])
         }
@@ -1752,14 +1752,14 @@
     /// Allows padding at the end of the data.
     /// Returns `Ok(&amp;[])` if the section has no data.
     /// Returns `Err` for invalid values, including bad alignment.
-    </span><span class="kw">fn </span>data_as_array&lt;<span class="lifetime">&#39;data</span>, T: <a href="../../pod.rs.html#21">Pod</a>, R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt;&gt;(
+    </span><span class="kw">fn </span>data_as_array&lt;<span class="lifetime">&#39;data</span>, T: Pod, R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt;&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         endian: <span class="self">Self</span>::Endian,
         data: R,
     ) -&gt; read::Result&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[T]&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>data = <span class="self">self</span>.data(endian, data).map(Bytes)<span class="question-mark">?</span>;
-        <a href="#670">data</a>.<a href="../util.rs.html#118">read_slice</a>(<a href="#670">data</a>.<a href="../util.rs.html#27">len</a>() / mem::size_of::&lt;T&gt;())
-            .<a href="../mod.rs.html#80">read_error</a>(<span class="string">&quot;Invalid ELF section size or offset&quot;</span>)
+        data.read_slice(data.len() / mem::size_of::&lt;T&gt;())
+            .read_error(<span class="string">&quot;Invalid ELF section size or offset&quot;</span>)
     }
 
     <span class="doccomment">/// Return the strings in the section.
@@ -1774,12 +1774,12 @@
         <span class="kw">if </span><span class="self">self</span>.sh_type(endian) != elf::SHT_STRTAB {
             <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>);
         }
-        <span class="kw">let </span>str_offset = <a class="self" href="#680">self</a>.<a href="#614">sh_offset</a>(<a href="#681">endian</a>).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>();
-        <span class="kw">let </span>str_size = <a class="self" href="#680">self</a>.<a href="#615">sh_size</a>(<a href="#681">endian</a>).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>();
+        <span class="kw">let </span>str_offset = <span class="self">self</span>.sh_offset(endian).into();
+        <span class="kw">let </span>str_size = <span class="self">self</span>.sh_size(endian).into();
         <span class="kw">let </span>str_end = str_offset
             .checked_add(str_size)
             .read_error(<span class="string">&quot;Invalid ELF string section offset or size&quot;</span>)<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(StringTable::new(<a href="#682">data</a>, <a href="#687">str_offset</a>, <a href="#689">str_end</a>)))
+        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(StringTable::new(data, str_offset, str_end)))
     }
 
     <span class="doccomment">/// Return the symbols in the section.
@@ -1796,13 +1796,13 @@
         endian: <span class="self">Self</span>::Endian,
         data: R,
         sections: <span class="kw-2">&amp;</span>SectionTable&lt;<span class="lifetime">&#39;data</span>, <span class="self">Self</span>::Elf, R&gt;,
-        section_index: <a href="../mod.rs.html#263">SectionIndex</a>,
+        section_index: SectionIndex,
     ) -&gt; read::Result&lt;<span class="prelude-ty">Option</span>&lt;SymbolTable&lt;<span class="lifetime">&#39;data</span>, <span class="self">Self</span>::Elf, R&gt;&gt;&gt; {
-        <span class="kw">let </span>sh_type = <a class="self" href="#705">self</a>.<a href="#611">sh_type</a>(<a href="#706">endian</a>);
+        <span class="kw">let </span>sh_type = <span class="self">self</span>.sh_type(endian);
         <span class="kw">if </span>sh_type != elf::SHT_SYMTAB &amp;&amp; sh_type != elf::SHT_DYNSYM {
             <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>);
         }
-        SymbolTable::parse(<a href="#706">endian</a>, <a href="#707">data</a>, <a href="#708">sections</a>, <a href="#709">section_index</a>, <a class="self" href="#705">self</a>).map(<span class="prelude-val">Some</span>)
+        SymbolTable::parse(endian, data, sections, section_index, <span class="self">self</span>).map(<span class="prelude-val">Some</span>)
     }
 
     <span class="doccomment">/// Return the `Elf::Rel` entries in the section.
@@ -1815,15 +1815,15 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         endian: <span class="self">Self</span>::Endian,
         data: R,
-    ) -&gt; read::Result&lt;<span class="prelude-ty">Option</span>&lt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[&lt;<span class="self">Self</span>::Elf <span class="kw">as </span>FileHeader&gt;::Rel], <a href="../mod.rs.html#263">SectionIndex</a>)&gt;&gt; {
+    ) -&gt; read::Result&lt;<span class="prelude-ty">Option</span>&lt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[&lt;<span class="self">Self</span>::Elf <span class="kw">as </span>FileHeader&gt;::Rel], SectionIndex)&gt;&gt; {
         <span class="kw">if </span><span class="self">self</span>.sh_type(endian) != elf::SHT_REL {
             <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>);
         }
         <span class="kw">let </span>rel = <span class="self">self
             </span>.data_as_array(endian, data)
             .read_error(<span class="string">&quot;Invalid ELF relocation section offset or size&quot;</span>)<span class="question-mark">?</span>;
-        <span class="kw">let </span>link = <a href="../mod.rs.html#263">SectionIndex</a>(<a class="self" href="#725">self</a>.<a href="#616">sh_link</a>(<a href="#726">endian</a>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>);
-        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>((<a href="#732">rel</a>, <a href="#735">link</a>)))
+        <span class="kw">let </span>link = SectionIndex(<span class="self">self</span>.sh_link(endian) <span class="kw">as </span>usize);
+        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>((rel, link)))
     }
 
     <span class="doccomment">/// Return the `Elf::Rela` entries in the section.
@@ -1836,15 +1836,15 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         endian: <span class="self">Self</span>::Endian,
         data: R,
-    ) -&gt; read::Result&lt;<span class="prelude-ty">Option</span>&lt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[&lt;<span class="self">Self</span>::Elf <span class="kw">as </span>FileHeader&gt;::Rela], <a href="../mod.rs.html#263">SectionIndex</a>)&gt;&gt; {
+    ) -&gt; read::Result&lt;<span class="prelude-ty">Option</span>&lt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[&lt;<span class="self">Self</span>::Elf <span class="kw">as </span>FileHeader&gt;::Rela], SectionIndex)&gt;&gt; {
         <span class="kw">if </span><span class="self">self</span>.sh_type(endian) != elf::SHT_RELA {
             <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>);
         }
         <span class="kw">let </span>rela = <span class="self">self
             </span>.data_as_array(endian, data)
             .read_error(<span class="string">&quot;Invalid ELF relocation section offset or size&quot;</span>)<span class="question-mark">?</span>;
-        <span class="kw">let </span>link = <a href="../mod.rs.html#263">SectionIndex</a>(<a class="self" href="#746">self</a>.<a href="#616">sh_link</a>(<a href="#747">endian</a>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>);
-        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>((<a href="#753">rela</a>, <a href="#756">link</a>)))
+        <span class="kw">let </span>link = SectionIndex(<span class="self">self</span>.sh_link(endian) <span class="kw">as </span>usize);
+        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>((rela, link)))
     }
 
     <span class="doccomment">/// Return entries in a dynamic section.
@@ -1857,15 +1857,15 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         endian: <span class="self">Self</span>::Endian,
         data: R,
-    ) -&gt; read::Result&lt;<span class="prelude-ty">Option</span>&lt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[&lt;<span class="self">Self</span>::Elf <span class="kw">as </span>FileHeader&gt;::Dyn], <a href="../mod.rs.html#263">SectionIndex</a>)&gt;&gt; {
+    ) -&gt; read::Result&lt;<span class="prelude-ty">Option</span>&lt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[&lt;<span class="self">Self</span>::Elf <span class="kw">as </span>FileHeader&gt;::Dyn], SectionIndex)&gt;&gt; {
         <span class="kw">if </span><span class="self">self</span>.sh_type(endian) != elf::SHT_DYNAMIC {
             <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>);
         }
         <span class="kw">let </span>dynamic = <span class="self">self
             </span>.data_as_array(endian, data)
             .read_error(<span class="string">&quot;Invalid ELF dynamic section offset or size&quot;</span>)<span class="question-mark">?</span>;
-        <span class="kw">let </span>link = <a href="../mod.rs.html#263">SectionIndex</a>(<a class="self" href="#767">self</a>.<a href="#616">sh_link</a>(<a href="#768">endian</a>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>);
-        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>((<a href="#774">dynamic</a>, <a href="#777">link</a>)))
+        <span class="kw">let </span>link = SectionIndex(<span class="self">self</span>.sh_link(endian) <span class="kw">as </span>usize);
+        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>((dynamic, link)))
     }
 
     <span class="doccomment">/// Return a note iterator for the section data.
@@ -1884,7 +1884,7 @@
             </span>.data(endian, data)
             .read_error(<span class="string">&quot;Invalid ELF note section offset or size&quot;</span>)<span class="question-mark">?</span>;
         <span class="kw">let </span>notes = NoteIterator::new(endian, <span class="self">self</span>.sh_addralign(endian), data)<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<a href="#796">notes</a>))
+        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(notes))
     }
 
     <span class="doccomment">/// Return the contents of a group section.
@@ -1898,7 +1898,7 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         endian: <span class="self">Self</span>::Endian,
         data: R,
-    ) -&gt; read::Result&lt;<span class="prelude-ty">Option</span>&lt;(<a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[U32Bytes&lt;<span class="self">Self</span>::Endian&gt;])&gt;&gt; {
+    ) -&gt; read::Result&lt;<span class="prelude-ty">Option</span>&lt;(u32, <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[U32Bytes&lt;<span class="self">Self</span>::Endian&gt;])&gt;&gt; {
         <span class="kw">if </span><span class="self">self</span>.sh_type(endian) != elf::SHT_GROUP {
             <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>);
         }
@@ -1909,12 +1909,12 @@
         <span class="kw">let </span>flag = data
             .read::&lt;U32Bytes&lt;<span class="kw">_</span>&gt;&gt;()
             .read_error(<span class="string">&quot;Invalid ELF group section offset or size&quot;</span>)<span class="question-mark">?
-            </span>.<a href="../../endian.rs.html#621">get</a>(<a href="#809">endian</a>);
-        <span class="kw">let </span>count = <a href="#815">data</a>.<a href="../util.rs.html#27">len</a>() / mem::size_of::&lt;U32Bytes&lt;<span class="self">Self</span>::Endian&gt;&gt;();
+            </span>.get(endian);
+        <span class="kw">let </span>count = data.len() / mem::size_of::&lt;U32Bytes&lt;<span class="self">Self</span>::Endian&gt;&gt;();
         <span class="kw">let </span>sections = data
             .read_slice(count)
             .read_error(<span class="string">&quot;Invalid ELF group section offset or size&quot;</span>)<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>((<a href="#819">flag</a>, <a href="#824">sections</a>)))
+        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>((flag, sections)))
     }
 
     <span class="doccomment">/// Return the header of a SysV hash section.
@@ -1935,7 +1935,7 @@
         <span class="kw">let </span>header = data
             .read_at::&lt;elf::HashHeader&lt;<span class="self">Self</span>::Endian&gt;&gt;(<span class="number">0</span>)
             .read_error(<span class="string">&quot;Invalid hash header&quot;</span>)<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<a href="#845">header</a>))
+        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(header))
     }
 
     <span class="doccomment">/// Return the contents of a SysV hash section.
@@ -1948,7 +1948,7 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         endian: <span class="self">Self</span>::Endian,
         data: R,
-    ) -&gt; read::Result&lt;<span class="prelude-ty">Option</span>&lt;(HashTable&lt;<span class="lifetime">&#39;data</span>, <span class="self">Self</span>::Elf&gt;, <a href="../mod.rs.html#263">SectionIndex</a>)&gt;&gt; {
+    ) -&gt; read::Result&lt;<span class="prelude-ty">Option</span>&lt;(HashTable&lt;<span class="lifetime">&#39;data</span>, <span class="self">Self</span>::Elf&gt;, SectionIndex)&gt;&gt; {
         <span class="kw">if </span><span class="self">self</span>.sh_type(endian) != elf::SHT_HASH {
             <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>);
         }
@@ -1956,8 +1956,8 @@
             </span>.data(endian, data)
             .read_error(<span class="string">&quot;Invalid ELF hash section offset or size&quot;</span>)<span class="question-mark">?</span>;
         <span class="kw">let </span>hash = HashTable::parse(endian, data)<span class="question-mark">?</span>;
-        <span class="kw">let </span>link = <a href="../mod.rs.html#263">SectionIndex</a>(<a class="self" href="#858">self</a>.<a href="#616">sh_link</a>(<a href="#859">endian</a>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>);
-        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>((<a href="#868">hash</a>, <a href="#869">link</a>)))
+        <span class="kw">let </span>link = SectionIndex(<span class="self">self</span>.sh_link(endian) <span class="kw">as </span>usize);
+        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>((hash, link)))
     }
 
     <span class="doccomment">/// Return the header of a GNU hash section.
@@ -1978,7 +1978,7 @@
         <span class="kw">let </span>header = data
             .read_at::&lt;elf::GnuHashHeader&lt;<span class="self">Self</span>::Endian&gt;&gt;(<span class="number">0</span>)
             .read_error(<span class="string">&quot;Invalid GNU hash header&quot;</span>)<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<a href="#888">header</a>))
+        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(header))
     }
 
     <span class="doccomment">/// Return the contents of a GNU hash section.
@@ -1991,7 +1991,7 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         endian: <span class="self">Self</span>::Endian,
         data: R,
-    ) -&gt; read::Result&lt;<span class="prelude-ty">Option</span>&lt;(GnuHashTable&lt;<span class="lifetime">&#39;data</span>, <span class="self">Self</span>::Elf&gt;, <a href="../mod.rs.html#263">SectionIndex</a>)&gt;&gt; {
+    ) -&gt; read::Result&lt;<span class="prelude-ty">Option</span>&lt;(GnuHashTable&lt;<span class="lifetime">&#39;data</span>, <span class="self">Self</span>::Elf&gt;, SectionIndex)&gt;&gt; {
         <span class="kw">if </span><span class="self">self</span>.sh_type(endian) != elf::SHT_GNU_HASH {
             <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>);
         }
@@ -1999,8 +1999,8 @@
             </span>.data(endian, data)
             .read_error(<span class="string">&quot;Invalid ELF GNU hash section offset or size&quot;</span>)<span class="question-mark">?</span>;
         <span class="kw">let </span>hash = GnuHashTable::parse(endian, data)<span class="question-mark">?</span>;
-        <span class="kw">let </span>link = <a href="../mod.rs.html#263">SectionIndex</a>(<a class="self" href="#901">self</a>.<a href="#616">sh_link</a>(<a href="#902">endian</a>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>);
-        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>((<a href="#911">hash</a>, <a href="#912">link</a>)))
+        <span class="kw">let </span>link = SectionIndex(<span class="self">self</span>.sh_link(endian) <span class="kw">as </span>usize);
+        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>((hash, link)))
     }
 
     <span class="doccomment">/// Return the contents of a `SHT_GNU_VERSYM` section.
@@ -2013,15 +2013,15 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         endian: <span class="self">Self</span>::Endian,
         data: R,
-    ) -&gt; read::Result&lt;<span class="prelude-ty">Option</span>&lt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[elf::Versym&lt;<span class="self">Self</span>::Endian&gt;], <a href="../mod.rs.html#263">SectionIndex</a>)&gt;&gt; {
+    ) -&gt; read::Result&lt;<span class="prelude-ty">Option</span>&lt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[elf::Versym&lt;<span class="self">Self</span>::Endian&gt;], SectionIndex)&gt;&gt; {
         <span class="kw">if </span><span class="self">self</span>.sh_type(endian) != elf::SHT_GNU_VERSYM {
             <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>);
         }
         <span class="kw">let </span>versym = <span class="self">self
             </span>.data_as_array(endian, data)
             .read_error(<span class="string">&quot;Invalid ELF GNU versym section offset or size&quot;</span>)<span class="question-mark">?</span>;
-        <span class="kw">let </span>link = <a href="../mod.rs.html#263">SectionIndex</a>(<a class="self" href="#923">self</a>.<a href="#616">sh_link</a>(<a href="#924">endian</a>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>);
-        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>((<a href="#930">versym</a>, <a href="#933">link</a>)))
+        <span class="kw">let </span>link = SectionIndex(<span class="self">self</span>.sh_link(endian) <span class="kw">as </span>usize);
+        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>((versym, link)))
     }
 
     <span class="doccomment">/// Return an iterator for the entries of a `SHT_GNU_VERDEF` section.
@@ -2034,15 +2034,15 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         endian: <span class="self">Self</span>::Endian,
         data: R,
-    ) -&gt; read::Result&lt;<span class="prelude-ty">Option</span>&lt;(VerdefIterator&lt;<span class="lifetime">&#39;data</span>, <span class="self">Self</span>::Elf&gt;, <a href="../mod.rs.html#263">SectionIndex</a>)&gt;&gt; {
+    ) -&gt; read::Result&lt;<span class="prelude-ty">Option</span>&lt;(VerdefIterator&lt;<span class="lifetime">&#39;data</span>, <span class="self">Self</span>::Elf&gt;, SectionIndex)&gt;&gt; {
         <span class="kw">if </span><span class="self">self</span>.sh_type(endian) != elf::SHT_GNU_VERDEF {
             <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>);
         }
         <span class="kw">let </span>verdef = <span class="self">self
             </span>.data(endian, data)
             .read_error(<span class="string">&quot;Invalid ELF GNU verdef section offset or size&quot;</span>)<span class="question-mark">?</span>;
-        <span class="kw">let </span>link = <a href="../mod.rs.html#263">SectionIndex</a>(<a class="self" href="#944">self</a>.<a href="#616">sh_link</a>(<a href="#945">endian</a>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>);
-        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>((VerdefIterator::new(<a href="#945">endian</a>, <a href="#951">verdef</a>), <a href="#954">link</a>)))
+        <span class="kw">let </span>link = SectionIndex(<span class="self">self</span>.sh_link(endian) <span class="kw">as </span>usize);
+        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>((VerdefIterator::new(endian, verdef), link)))
     }
 
     <span class="doccomment">/// Return an iterator for the entries of a `SHT_GNU_VERNEED` section.
@@ -2055,128 +2055,128 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         endian: <span class="self">Self</span>::Endian,
         data: R,
-    ) -&gt; read::Result&lt;<span class="prelude-ty">Option</span>&lt;(VerneedIterator&lt;<span class="lifetime">&#39;data</span>, <span class="self">Self</span>::Elf&gt;, <a href="../mod.rs.html#263">SectionIndex</a>)&gt;&gt; {
+    ) -&gt; read::Result&lt;<span class="prelude-ty">Option</span>&lt;(VerneedIterator&lt;<span class="lifetime">&#39;data</span>, <span class="self">Self</span>::Elf&gt;, SectionIndex)&gt;&gt; {
         <span class="kw">if </span><span class="self">self</span>.sh_type(endian) != elf::SHT_GNU_VERNEED {
             <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>);
         }
         <span class="kw">let </span>verneed = <span class="self">self
             </span>.data(endian, data)
             .read_error(<span class="string">&quot;Invalid ELF GNU verneed section offset or size&quot;</span>)<span class="question-mark">?</span>;
-        <span class="kw">let </span>link = <a href="../mod.rs.html#263">SectionIndex</a>(<a class="self" href="#965">self</a>.<a href="#616">sh_link</a>(<a href="#966">endian</a>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>);
-        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>((VerneedIterator::new(<a href="#966">endian</a>, <a href="#972">verneed</a>), <a href="#975">link</a>)))
+        <span class="kw">let </span>link = SectionIndex(<span class="self">self</span>.sh_link(endian) <span class="kw">as </span>usize);
+        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>((VerneedIterator::new(endian, verneed), link)))
     }
 }
 
-<span class="kw">impl</span>&lt;Endian: <a href="../../endian.rs.html#13">endian::Endian</a>&gt; <a href="#605">SectionHeader</a> <span class="kw">for </span>elf::SectionHeader32&lt;Endian&gt; {
+<span class="kw">impl</span>&lt;Endian: endian::Endian&gt; SectionHeader <span class="kw">for </span>elf::SectionHeader32&lt;Endian&gt; {
     <span class="kw">type </span>Elf = elf::FileHeader32&lt;Endian&gt;;
-    <span class="kw">type </span>Word = <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>;
+    <span class="kw">type </span>Word = u32;
     <span class="kw">type </span>Endian = Endian;
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>sh_name(<span class="kw-2">&amp;</span><span class="self">self</span>, endian: <span class="self">Self</span>::Endian) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
-        <a class="self" href="#986">self</a>.sh_name.<a href="../../endian.rs.html#621">get</a>(<a href="#986">endian</a>)
+    </span><span class="kw">fn </span>sh_name(<span class="kw-2">&amp;</span><span class="self">self</span>, endian: <span class="self">Self</span>::Endian) -&gt; u32 {
+        <span class="self">self</span>.sh_name.get(endian)
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>sh_type(<span class="kw-2">&amp;</span><span class="self">self</span>, endian: <span class="self">Self</span>::Endian) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
-        <a class="self" href="#991">self</a>.sh_type.<a href="../../endian.rs.html#621">get</a>(<a href="#991">endian</a>)
+    </span><span class="kw">fn </span>sh_type(<span class="kw-2">&amp;</span><span class="self">self</span>, endian: <span class="self">Self</span>::Endian) -&gt; u32 {
+        <span class="self">self</span>.sh_type.get(endian)
     }
 
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>sh_flags(<span class="kw-2">&amp;</span><span class="self">self</span>, endian: <span class="self">Self</span>::Endian) -&gt; <span class="self">Self</span>::Word {
-        <a class="self" href="#996">self</a>.sh_flags.<a href="../../endian.rs.html#621">get</a>(<a href="#996">endian</a>)
+        <span class="self">self</span>.sh_flags.get(endian)
     }
 
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>sh_addr(<span class="kw-2">&amp;</span><span class="self">self</span>, endian: <span class="self">Self</span>::Endian) -&gt; <span class="self">Self</span>::Word {
-        <a class="self" href="#1001">self</a>.sh_addr.<a href="../../endian.rs.html#621">get</a>(<a href="#1001">endian</a>)
+        <span class="self">self</span>.sh_addr.get(endian)
     }
 
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>sh_offset(<span class="kw-2">&amp;</span><span class="self">self</span>, endian: <span class="self">Self</span>::Endian) -&gt; <span class="self">Self</span>::Word {
-        <a class="self" href="#1006">self</a>.sh_offset.<a href="../../endian.rs.html#621">get</a>(<a href="#1006">endian</a>)
+        <span class="self">self</span>.sh_offset.get(endian)
     }
 
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>sh_size(<span class="kw-2">&amp;</span><span class="self">self</span>, endian: <span class="self">Self</span>::Endian) -&gt; <span class="self">Self</span>::Word {
-        <a class="self" href="#1011">self</a>.sh_size.<a href="../../endian.rs.html#621">get</a>(<a href="#1011">endian</a>)
+        <span class="self">self</span>.sh_size.get(endian)
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>sh_link(<span class="kw-2">&amp;</span><span class="self">self</span>, endian: <span class="self">Self</span>::Endian) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
-        <a class="self" href="#1016">self</a>.sh_link.<a href="../../endian.rs.html#621">get</a>(<a href="#1016">endian</a>)
+    </span><span class="kw">fn </span>sh_link(<span class="kw-2">&amp;</span><span class="self">self</span>, endian: <span class="self">Self</span>::Endian) -&gt; u32 {
+        <span class="self">self</span>.sh_link.get(endian)
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>sh_info(<span class="kw-2">&amp;</span><span class="self">self</span>, endian: <span class="self">Self</span>::Endian) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
-        <a class="self" href="#1021">self</a>.sh_info.<a href="../../endian.rs.html#621">get</a>(<a href="#1021">endian</a>)
+    </span><span class="kw">fn </span>sh_info(<span class="kw-2">&amp;</span><span class="self">self</span>, endian: <span class="self">Self</span>::Endian) -&gt; u32 {
+        <span class="self">self</span>.sh_info.get(endian)
     }
 
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>sh_addralign(<span class="kw-2">&amp;</span><span class="self">self</span>, endian: <span class="self">Self</span>::Endian) -&gt; <span class="self">Self</span>::Word {
-        <a class="self" href="#1026">self</a>.sh_addralign.<a href="../../endian.rs.html#621">get</a>(<a href="#1026">endian</a>)
+        <span class="self">self</span>.sh_addralign.get(endian)
     }
 
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>sh_entsize(<span class="kw-2">&amp;</span><span class="self">self</span>, endian: <span class="self">Self</span>::Endian) -&gt; <span class="self">Self</span>::Word {
-        <a class="self" href="#1031">self</a>.sh_entsize.<a href="../../endian.rs.html#621">get</a>(<a href="#1031">endian</a>)
+        <span class="self">self</span>.sh_entsize.get(endian)
     }
 }
 
-<span class="kw">impl</span>&lt;Endian: <a href="../../endian.rs.html#13">endian::Endian</a>&gt; <a href="#605">SectionHeader</a> <span class="kw">for </span>elf::SectionHeader64&lt;Endian&gt; {
-    <span class="kw">type </span>Word = <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>;
+<span class="kw">impl</span>&lt;Endian: endian::Endian&gt; SectionHeader <span class="kw">for </span>elf::SectionHeader64&lt;Endian&gt; {
+    <span class="kw">type </span>Word = u64;
     <span class="kw">type </span>Endian = Endian;
     <span class="kw">type </span>Elf = elf::FileHeader64&lt;Endian&gt;;
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>sh_name(<span class="kw-2">&amp;</span><span class="self">self</span>, endian: <span class="self">Self</span>::Endian) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
-        <a class="self" href="#1042">self</a>.sh_name.<a href="../../endian.rs.html#621">get</a>(<a href="#1042">endian</a>)
+    </span><span class="kw">fn </span>sh_name(<span class="kw-2">&amp;</span><span class="self">self</span>, endian: <span class="self">Self</span>::Endian) -&gt; u32 {
+        <span class="self">self</span>.sh_name.get(endian)
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>sh_type(<span class="kw-2">&amp;</span><span class="self">self</span>, endian: <span class="self">Self</span>::Endian) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
-        <a class="self" href="#1047">self</a>.sh_type.<a href="../../endian.rs.html#621">get</a>(<a href="#1047">endian</a>)
+    </span><span class="kw">fn </span>sh_type(<span class="kw-2">&amp;</span><span class="self">self</span>, endian: <span class="self">Self</span>::Endian) -&gt; u32 {
+        <span class="self">self</span>.sh_type.get(endian)
     }
 
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>sh_flags(<span class="kw-2">&amp;</span><span class="self">self</span>, endian: <span class="self">Self</span>::Endian) -&gt; <span class="self">Self</span>::Word {
-        <a class="self" href="#1052">self</a>.sh_flags.<a href="../../endian.rs.html#643">get</a>(<a href="#1052">endian</a>)
+        <span class="self">self</span>.sh_flags.get(endian)
     }
 
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>sh_addr(<span class="kw-2">&amp;</span><span class="self">self</span>, endian: <span class="self">Self</span>::Endian) -&gt; <span class="self">Self</span>::Word {
-        <a class="self" href="#1057">self</a>.sh_addr.<a href="../../endian.rs.html#643">get</a>(<a href="#1057">endian</a>)
+        <span class="self">self</span>.sh_addr.get(endian)
     }
 
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>sh_offset(<span class="kw-2">&amp;</span><span class="self">self</span>, endian: <span class="self">Self</span>::Endian) -&gt; <span class="self">Self</span>::Word {
-        <a class="self" href="#1062">self</a>.sh_offset.<a href="../../endian.rs.html#643">get</a>(<a href="#1062">endian</a>)
+        <span class="self">self</span>.sh_offset.get(endian)
     }
 
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>sh_size(<span class="kw-2">&amp;</span><span class="self">self</span>, endian: <span class="self">Self</span>::Endian) -&gt; <span class="self">Self</span>::Word {
-        <a class="self" href="#1067">self</a>.sh_size.<a href="../../endian.rs.html#643">get</a>(<a href="#1067">endian</a>)
+        <span class="self">self</span>.sh_size.get(endian)
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>sh_link(<span class="kw-2">&amp;</span><span class="self">self</span>, endian: <span class="self">Self</span>::Endian) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
-        <a class="self" href="#1072">self</a>.sh_link.<a href="../../endian.rs.html#621">get</a>(<a href="#1072">endian</a>)
+    </span><span class="kw">fn </span>sh_link(<span class="kw-2">&amp;</span><span class="self">self</span>, endian: <span class="self">Self</span>::Endian) -&gt; u32 {
+        <span class="self">self</span>.sh_link.get(endian)
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>sh_info(<span class="kw-2">&amp;</span><span class="self">self</span>, endian: <span class="self">Self</span>::Endian) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
-        <a class="self" href="#1077">self</a>.sh_info.<a href="../../endian.rs.html#621">get</a>(<a href="#1077">endian</a>)
+    </span><span class="kw">fn </span>sh_info(<span class="kw-2">&amp;</span><span class="self">self</span>, endian: <span class="self">Self</span>::Endian) -&gt; u32 {
+        <span class="self">self</span>.sh_info.get(endian)
     }
 
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>sh_addralign(<span class="kw-2">&amp;</span><span class="self">self</span>, endian: <span class="self">Self</span>::Endian) -&gt; <span class="self">Self</span>::Word {
-        <a class="self" href="#1082">self</a>.sh_addralign.<a href="../../endian.rs.html#643">get</a>(<a href="#1082">endian</a>)
+        <span class="self">self</span>.sh_addralign.get(endian)
     }
 
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>sh_entsize(<span class="kw-2">&amp;</span><span class="self">self</span>, endian: <span class="self">Self</span>::Endian) -&gt; <span class="self">Self</span>::Word {
-        <a class="self" href="#1087">self</a>.sh_entsize.<a href="../../endian.rs.html#643">get</a>(<a href="#1087">endian</a>)
+        <span class="self">self</span>.sh_entsize.get(endian)
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="object" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="object" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/openssl-0.10.42/src/aes.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>aes.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../openssl/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/openssl-0.10.45/src/aes.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>aes.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../openssl/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -315,6 +315,8 @@
 <a href="#315" id="315">315</a>
 <a href="#316" id="316">316</a>
 <a href="#317" id="317">317</a>
+<a href="#318" id="318">318</a>
+<a href="#319" id="319">319</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Low level AES IGE and key wrapping functionality
 //!
 //! AES ECB, CBC, XTS, CTR, CFB, GCM and other conventional symmetric encryption
@@ -340,7 +342,7 @@
 //! # Examples
 
 </span><span class="attr">#![cfg_attr(
-    not(boringssl),
+    all(not(boringssl), not(osslconf = <span class="string">&quot;OPENSSL_NO_DEPRECATED_3_0&quot;</span>)),
     doc = <span class="string">r#&quot;\
 ## AES IGE
 ```rust
@@ -377,53 +379,53 @@ let mut iv = *b&quot;\x00\x01\x02\x03\x04\x05\x06\x07\x08\x09\x0A\x0B\x0C\x0D\x0
 //! assert_eq!(&amp;orig_key[..], &amp;key_to_wrap[..]);
 //! ```
 //!
-</span><span class="kw">use </span><a href="../../cfg_if/macro.cfg_if.html">cfg_if::cfg_if</a>;
-<span class="kw">use </span>libc::{<a href="../../libc/unix/type.c_int.html">c_int</a>, <a href="../../libc/unix/type.c_uint.html">c_uint</a>};
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/mem/maybe_uninit/union.MaybeUninit.html">std::mem::MaybeUninit</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/ptr/index.html">std::ptr</a>;
+</span><span class="kw">use </span>cfg_if::cfg_if;
+<span class="kw">use </span>libc::{c_int, c_uint};
+<span class="kw">use </span>std::mem::MaybeUninit;
+<span class="kw">use </span>std::ptr;
 
 <span class="attr">#[cfg(not(boringssl))]
-</span><span class="kw">use </span><a href="symm.rs.html#62"><span class="kw">crate</span>::symm::Mode</a>;
-<span class="kw">use </span><a href="../../openssl_macros/attr.corresponds.html">openssl_macros::corresponds</a>;
+</span><span class="kw">use </span><span class="kw">crate</span>::symm::Mode;
+<span class="kw">use </span>openssl_macros::corresponds;
 
 <span class="doccomment">/// Provides Error handling for parsing keys.
 </span><span class="attr">#[derive(Debug)]
 </span><span class="kw">pub struct </span>KeyError(());
 
 <span class="doccomment">/// The key used to encrypt or decrypt cipher blocks.
-</span><span class="kw">pub struct </span>AesKey(<a href="../../openssl_sys/openssl/handwritten/aes/struct.AES_KEY.html">ffi::AES_KEY</a>);
+</span><span class="kw">pub struct </span>AesKey(ffi::AES_KEY);
 
 <span class="macro">cfg_if! </span>{
     <span class="kw">if </span><span class="attr">#[cfg(boringssl)] </span>{
         <span class="kw">type </span>AesBitType = c_uint;
         <span class="kw">type </span>AesSizeType = usize;
     } <span class="kw">else </span>{
-        <span class="kw">type </span>AesBitType = <a href="../../libc/unix/type.c_int.html">c_int</a>;
-        <span class="kw">type </span>AesSizeType = <a href="../../libc/unix/type.c_uint.html">c_uint</a>;
+        <span class="kw">type </span>AesBitType = c_int;
+        <span class="kw">type </span>AesSizeType = c_uint;
     }
 }
 
-<span class="kw">impl </span><a href="#77">AesKey</a> {
+<span class="kw">impl </span>AesKey {
     <span class="doccomment">/// Prepares a key for encryption.
     ///
     /// # Failure
     ///
     /// Returns an error if the key is not 128, 192, or 256 bits.
     </span><span class="attr">#[corresponds(AES_set_encrypt_key)]
-    </span><span class="kw">pub fn </span>new_encrypt(key: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#77">AesKey</a>, <a href="#74">KeyError</a>&gt; {
+    </span><span class="kw">pub fn </span>new_encrypt(key: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;AesKey, KeyError&gt; {
         <span class="kw">unsafe </span>{
-            <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(key.len() &lt;= c_int::max_value() <span class="kw">as </span>usize / <span class="number">8</span>);
+            <span class="macro">assert!</span>(key.len() &lt;= c_int::max_value() <span class="kw">as </span>usize / <span class="number">8</span>);
 
             <span class="kw">let </span><span class="kw-2">mut </span>aes_key = MaybeUninit::uninit();
             <span class="kw">let </span>r = ffi::AES_set_encrypt_key(
-                <a href="#96">key</a>.as_ptr() <span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_</span>,
-                <a href="#96">key</a>.len() <span class="kw">as </span><a href="#84">AesBitType</a> * <span class="number">8</span>,
-                <a href="#100">aes_key</a>.as_mut_ptr(),
+                key.as_ptr() <span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_</span>,
+                key.len() <span class="kw">as </span>AesBitType * <span class="number">8</span>,
+                aes_key.as_mut_ptr(),
             );
             <span class="kw">if </span>r == <span class="number">0 </span>{
-                <span class="prelude-val">Ok</span>(<a href="#77">AesKey</a>(<a href="#100">aes_key</a>.assume_init()))
+                <span class="prelude-val">Ok</span>(AesKey(aes_key.assume_init()))
             } <span class="kw">else </span>{
-                <span class="prelude-val">Err</span>(<a href="#74">KeyError</a>(()))
+                <span class="prelude-val">Err</span>(KeyError(()))
             }
         }
     }
@@ -434,21 +436,21 @@ let mut iv = *b&quot;\x00\x01\x02\x03\x04\x05\x06\x07\x08\x09\x0A\x0B\x0C\x0D\x0
     ///
     /// Returns an error if the key is not 128, 192, or 256 bits.
     </span><span class="attr">#[corresponds(AES_set_decrypt_key)]
-    </span><span class="kw">pub fn </span>new_decrypt(key: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#77">AesKey</a>, <a href="#74">KeyError</a>&gt; {
+    </span><span class="kw">pub fn </span>new_decrypt(key: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;AesKey, KeyError&gt; {
         <span class="kw">unsafe </span>{
-            <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(key.len() &lt;= c_int::max_value() <span class="kw">as </span>usize / <span class="number">8</span>);
+            <span class="macro">assert!</span>(key.len() &lt;= c_int::max_value() <span class="kw">as </span>usize / <span class="number">8</span>);
 
             <span class="kw">let </span><span class="kw-2">mut </span>aes_key = MaybeUninit::uninit();
             <span class="kw">let </span>r = ffi::AES_set_decrypt_key(
-                <a href="#120">key</a>.as_ptr() <span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_</span>,
-                <a href="#120">key</a>.len() <span class="kw">as </span><a href="#84">AesBitType</a> * <span class="number">8</span>,
-                <a href="#124">aes_key</a>.as_mut_ptr(),
+                key.as_ptr() <span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_</span>,
+                key.len() <span class="kw">as </span>AesBitType * <span class="number">8</span>,
+                aes_key.as_mut_ptr(),
             );
 
             <span class="kw">if </span>r == <span class="number">0 </span>{
-                <span class="prelude-val">Ok</span>(<a href="#77">AesKey</a>(<a href="#124">aes_key</a>.assume_init()))
+                <span class="prelude-val">Ok</span>(AesKey(aes_key.assume_init()))
             } <span class="kw">else </span>{
-                <span class="prelude-val">Err</span>(<a href="#74">KeyError</a>(()))
+                <span class="prelude-val">Err</span>(KeyError(()))
             }
         }
     }
@@ -473,24 +475,25 @@ let mut iv = *b&quot;\x00\x01\x02\x03\x04\x05\x06\x07\x08\x09\x0A\x0B\x0C\x0D\x0
 /// Panics if `in_` is not the same length as `out`, if that length is not a multiple of 16, or if
 /// `iv` is not at least 32 bytes.
 </span><span class="attr">#[cfg(not(boringssl))]
+#[cfg(not(osslconf = <span class="string">&quot;OPENSSL_NO_DEPRECATED_3_0&quot;</span>))]
 #[corresponds(AES_ige_encrypt)]
-</span><span class="kw">pub fn </span>aes_ige(in_: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], out: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], key: <span class="kw-2">&amp;</span><a href="#77">AesKey</a>, iv: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], mode: <a href="symm.rs.html#62">Mode</a>) {
+</span><span class="kw">pub fn </span>aes_ige(in_: <span class="kw-2">&amp;</span>[u8], out: <span class="kw-2">&amp;mut </span>[u8], key: <span class="kw-2">&amp;</span>AesKey, iv: <span class="kw-2">&amp;mut </span>[u8], mode: Mode) {
     <span class="kw">unsafe </span>{
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(in_.len() == out.len());
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(in_.len() % ffi::AES_BLOCK_SIZE <span class="kw">as </span>usize == <span class="number">0</span>);
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(iv.len() &gt;= ffi::AES_BLOCK_SIZE <span class="kw">as </span>usize * <span class="number">2</span>);
+        <span class="macro">assert!</span>(in_.len() == out.len());
+        <span class="macro">assert!</span>(in_.len() % ffi::AES_BLOCK_SIZE <span class="kw">as </span>usize == <span class="number">0</span>);
+        <span class="macro">assert!</span>(iv.len() &gt;= ffi::AES_BLOCK_SIZE <span class="kw">as </span>usize * <span class="number">2</span>);
 
-        <span class="kw">let </span>mode = <span class="kw">match </span><a href="#160">mode</a> {
-            <a href="symm.rs.html#63">Mode::Encrypt</a> =&gt; ffi::AES_ENCRYPT,
-            <a href="symm.rs.html#64">Mode::Decrypt</a> =&gt; ffi::AES_DECRYPT,
+        <span class="kw">let </span>mode = <span class="kw">match </span>mode {
+            Mode::Encrypt =&gt; ffi::AES_ENCRYPT,
+            Mode::Decrypt =&gt; ffi::AES_DECRYPT,
         };
         ffi::AES_ige_encrypt(
-            <a href="#160">in_</a>.as_ptr() <span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_</span>,
-            <a href="#160">out</a>.as_mut_ptr() <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>,
-            <a href="#160">in_</a>.len(),
-            <span class="kw-2">&amp;</span><a href="#160">key</a>.<span class="number">0</span>,
-            <a href="#160">iv</a>.as_mut_ptr() <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>,
-            <a href="#166">mode</a>,
+            in_.as_ptr() <span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_</span>,
+            out.as_mut_ptr() <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>,
+            in_.len(),
+            <span class="kw-2">&amp;</span>key.<span class="number">0</span>,
+            iv.as_mut_ptr() <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>,
+            mode,
         );
     }
 }
@@ -510,26 +513,26 @@ let mut iv = *b&quot;\x00\x01\x02\x03\x04\x05\x06\x07\x08\x09\x0A\x0B\x0C\x0D\x0
 /// `out` is not 8 bytes longer than `in_`
 </span><span class="attr">#[corresponds(AES_wrap_key)]
 </span><span class="kw">pub fn </span>wrap_key(
-    key: <span class="kw-2">&amp;</span><a href="#77">AesKey</a>,
-    iv: <span class="prelude-ty">Option</span>&lt;[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="number">8</span>]&gt;,
-    out: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
-    in_: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
-) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="#74">KeyError</a>&gt; {
+    key: <span class="kw-2">&amp;</span>AesKey,
+    iv: <span class="prelude-ty">Option</span>&lt;[u8; <span class="number">8</span>]&gt;,
+    out: <span class="kw-2">&amp;mut </span>[u8],
+    in_: <span class="kw-2">&amp;</span>[u8],
+) -&gt; <span class="prelude-ty">Result</span>&lt;usize, KeyError&gt; {
     <span class="kw">unsafe </span>{
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(out.len() &gt;= in_.len() + <span class="number">8</span>); <span class="comment">// Ciphertext is 64 bits longer (see 2.2.1)
+        <span class="macro">assert!</span>(out.len() &gt;= in_.len() + <span class="number">8</span>); <span class="comment">// Ciphertext is 64 bits longer (see 2.2.1)
 
         </span><span class="kw">let </span>written = ffi::AES_wrap_key(
-            <span class="kw-2">&amp;</span><a href="#196">key</a>.<span class="number">0 </span><span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_ as </span><span class="kw-2">*mut </span><span class="kw">_</span>, <span class="comment">// this is safe, the implementation only uses the key as a const pointer.
-            </span><a href="#197">iv</a>.as_ref()
-                .map_or(ptr::null(), |iv| <a href="#207">iv</a>.as_ptr() <span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_</span>),
-            <a href="#198">out</a>.as_ptr() <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>,
-            <a href="#199">in_</a>.as_ptr() <span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_</span>,
-            <a href="#199">in_</a>.len() <span class="kw">as </span><a href="#85">AesSizeType</a>,
+            <span class="kw-2">&amp;</span>key.<span class="number">0 </span><span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_ as </span><span class="kw-2">*mut </span><span class="kw">_</span>, <span class="comment">// this is safe, the implementation only uses the key as a const pointer.
+            </span>iv.as_ref()
+                .map_or(ptr::null(), |iv| iv.as_ptr() <span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_</span>),
+            out.as_ptr() <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>,
+            in_.as_ptr() <span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_</span>,
+            in_.len() <span class="kw">as </span>AesSizeType,
         );
         <span class="kw">if </span>written &lt;= <span class="number">0 </span>{
-            <span class="prelude-val">Err</span>(<a href="#74">KeyError</a>(()))
+            <span class="prelude-val">Err</span>(KeyError(()))
         } <span class="kw">else </span>{
-            <span class="prelude-val">Ok</span>(<a href="#204">written</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>)
+            <span class="prelude-val">Ok</span>(written <span class="kw">as </span>usize)
         }
     }
 }
@@ -549,27 +552,27 @@ let mut iv = *b&quot;\x00\x01\x02\x03\x04\x05\x06\x07\x08\x09\x0A\x0B\x0C\x0D\x0
 /// if `in_` is not 8 bytes longer than `out`
 </span><span class="attr">#[corresponds(AES_unwrap_key)]
 </span><span class="kw">pub fn </span>unwrap_key(
-    key: <span class="kw-2">&amp;</span><a href="#77">AesKey</a>,
-    iv: <span class="prelude-ty">Option</span>&lt;[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="number">8</span>]&gt;,
-    out: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
-    in_: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
-) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="#74">KeyError</a>&gt; {
+    key: <span class="kw-2">&amp;</span>AesKey,
+    iv: <span class="prelude-ty">Option</span>&lt;[u8; <span class="number">8</span>]&gt;,
+    out: <span class="kw-2">&amp;mut </span>[u8],
+    in_: <span class="kw-2">&amp;</span>[u8],
+) -&gt; <span class="prelude-ty">Result</span>&lt;usize, KeyError&gt; {
     <span class="kw">unsafe </span>{
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(out.len() + <span class="number">8 </span>&lt;= in_.len());
+        <span class="macro">assert!</span>(out.len() + <span class="number">8 </span>&lt;= in_.len());
 
         <span class="kw">let </span>written = ffi::AES_unwrap_key(
-            <span class="kw-2">&amp;</span><a href="#235">key</a>.<span class="number">0 </span><span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_ as </span><span class="kw-2">*mut </span><span class="kw">_</span>, <span class="comment">// this is safe, the implementation only uses the key as a const pointer.
-            </span><a href="#236">iv</a>.as_ref()
-                .map_or(ptr::null(), |iv| <a href="#246">iv</a>.as_ptr() <span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_</span>),
-            <a href="#237">out</a>.as_ptr() <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>,
-            <a href="#238">in_</a>.as_ptr() <span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_</span>,
-            <a href="#238">in_</a>.len() <span class="kw">as </span><a href="#85">AesSizeType</a>,
+            <span class="kw-2">&amp;</span>key.<span class="number">0 </span><span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_ as </span><span class="kw-2">*mut </span><span class="kw">_</span>, <span class="comment">// this is safe, the implementation only uses the key as a const pointer.
+            </span>iv.as_ref()
+                .map_or(ptr::null(), |iv| iv.as_ptr() <span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_</span>),
+            out.as_ptr() <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>,
+            in_.as_ptr() <span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_</span>,
+            in_.len() <span class="kw">as </span>AesSizeType,
         );
 
         <span class="kw">if </span>written &lt;= <span class="number">0 </span>{
-            <span class="prelude-val">Err</span>(<a href="#74">KeyError</a>(()))
+            <span class="prelude-val">Err</span>(KeyError(()))
         } <span class="kw">else </span>{
-            <span class="prelude-val">Ok</span>(<a href="#243">written</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>)
+            <span class="prelude-val">Ok</span>(written <span class="kw">as </span>usize)
         }
     }
 }
@@ -585,6 +588,7 @@ let mut iv = *b&quot;\x00\x01\x02\x03\x04\x05\x06\x07\x08\x09\x0A\x0B\x0C\x0D\x0
     <span class="comment">// From https://www.mgp25.com/AESIGE/
     </span><span class="attr">#[test]
     #[cfg(not(boringssl))]
+    #[cfg(not(osslconf = <span class="string">&quot;OPENSSL_NO_DEPRECATED_3_0&quot;</span>))]
     </span><span class="kw">fn </span>ige_vector_1() {
         <span class="kw">let </span>raw_key = <span class="string">&quot;000102030405060708090A0B0C0D0E0F&quot;</span>;
         <span class="kw">let </span>raw_iv = <span class="string">&quot;000102030405060708090A0B0C0D0E0F101112131415161718191A1B1C1D1E1F&quot;</span>;
@@ -633,4 +637,4 @@ let mut iv = *b&quot;\x00\x01\x02\x03\x04\x05\x06\x07\x08\x09\x0A\x0B\x0C\x0D\x0
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="openssl" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="openssl" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

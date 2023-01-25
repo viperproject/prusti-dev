@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/crossbeam-utils-0.8.12/src/thread.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>thread.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../crossbeam_utils/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/crossbeam-utils-0.8.14/src/thread.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>thread.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../crossbeam_utils/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -698,16 +698,16 @@
 //! }).unwrap();
 //! ```
 
-</span><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">std::fmt</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/io/index.html">std::io</a>;
+</span><span class="kw">use </span>std::fmt;
+<span class="kw">use </span>std::io;
 <span class="kw">use </span>std::marker::PhantomData;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/mem/index.html">std::mem</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/macro.panic.html">std::panic</a>;
-<span class="kw">use </span>std::sync::{<a href="https://doc.rust-lang.org/nightly/alloc/sync/struct.Arc.html">Arc</a>, <a href="https://doc.rust-lang.org/nightly/std/sync/mutex/struct.Mutex.html">Mutex</a>};
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/thread/index.html">std::thread</a>;
+<span class="kw">use </span>std::mem;
+<span class="kw">use </span>std::panic;
+<span class="kw">use </span>std::sync::{Arc, Mutex};
+<span class="kw">use </span>std::thread;
 
-<span class="kw">use </span><a href="sync/wait_group.rs.html#46"><span class="kw">crate</span>::sync::WaitGroup</a>;
-<span class="kw">use </span><a href="../../cfg_if/macro.cfg_if.html">cfg_if::cfg_if</a>;
+<span class="kw">use </span><span class="kw">crate</span>::sync::WaitGroup;
+<span class="kw">use </span>cfg_if::cfg_if;
 
 <span class="kw">type </span>SharedVec&lt;T&gt; = Arc&lt;Mutex&lt;Vec&lt;T&gt;&gt;&gt;;
 <span class="kw">type </span>SharedOption&lt;T&gt; = Arc&lt;Mutex&lt;<span class="prelude-ty">Option</span>&lt;T&gt;&gt;&gt;;
@@ -740,38 +740,38 @@
     <span class="kw">let </span>wg = WaitGroup::new();
     <span class="kw">let </span>scope = Scope::&lt;<span class="lifetime">&#39;env</span>&gt; {
         handles: SharedVec::default(),
-        wait_group: <a href="#153">wg</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+        wait_group: wg.clone(),
         _marker: PhantomData,
     };
 
     <span class="comment">// Execute the scoped function, but catch any panics.
-    </span><span class="kw">let </span>result = <a href="https://doc.rust-lang.org/nightly/std/panic/fn.catch_unwind.html">panic::catch_unwind</a>(panic::AssertUnwindSafe(|| <a href="#149">f</a>(<span class="kw-2">&amp;</span><a href="#154">scope</a>)));
+    </span><span class="kw">let </span>result = panic::catch_unwind(panic::AssertUnwindSafe(|| f(<span class="kw-2">&amp;</span>scope)));
 
     <span class="comment">// Wait until all nested scopes are dropped.
-    </span><a href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>(<a href="#154">scope</a>.wait_group);
-    <a href="#153">wg</a>.<a href="sync/wait_group.rs.html#103">wait</a>();
+    </span>drop(scope.wait_group);
+    wg.wait();
 
     <span class="comment">// Join all remaining spawned threads.
-    </span><span class="kw">let </span>panics: Vec&lt;<span class="kw">_</span>&gt; = <a href="#154">scope</a>
+    </span><span class="kw">let </span>panics: Vec&lt;<span class="kw">_</span>&gt; = scope
         .handles
         .lock()
         .unwrap()
         <span class="comment">// Filter handles that haven&#39;t been joined, join them, and collect errors.
         </span>.drain(..)
-        .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter_map</a>(|handle| <a href="#174">handle</a>.lock().unwrap().take())
-        .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter_map</a>(|handle| <a href="#175">handle</a>.join().err())
-        .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
+        .filter_map(|handle| handle.lock().unwrap().take())
+        .filter_map(|handle| handle.join().err())
+        .collect();
 
     <span class="comment">// If `f` has panicked, resume unwinding.
     // If any of the child threads have panicked, return the panic errors.
     // Otherwise, everything is OK and return the result of `f`.
-    </span><span class="kw">match </span><a href="#161">result</a> {
-        <span class="prelude-val">Err</span>(err) =&gt; panic::resume_unwind(<a href="#182">err</a>),
+    </span><span class="kw">match </span>result {
+        <span class="prelude-val">Err</span>(err) =&gt; panic::resume_unwind(err),
         <span class="prelude-val">Ok</span>(res) =&gt; {
             <span class="kw">if </span>panics.is_empty() {
-                <span class="prelude-val">Ok</span>(<a href="#183">res</a>)
+                <span class="prelude-val">Ok</span>(res)
             } <span class="kw">else </span>{
-                <span class="prelude-val">Err</span>(Box::new(<a href="#168">panics</a>))
+                <span class="prelude-val">Err</span>(Box::new(panics))
             }
         }
     }
@@ -783,13 +783,13 @@
     </span>handles: SharedVec&lt;SharedOption&lt;thread::JoinHandle&lt;()&gt;&gt;&gt;,
 
     <span class="doccomment">/// Used to wait until all subscopes all dropped.
-    </span>wait_group: <a href="sync/wait_group.rs.html#46">WaitGroup</a>,
+    </span>wait_group: WaitGroup,
 
     <span class="doccomment">/// Borrows data with invariant lifetime `&#39;env`.
     </span>_marker: PhantomData&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;env </span><span class="kw-2">mut &amp;</span><span class="lifetime">&#39;env </span>()&gt;,
 }
 
-<span class="kw">unsafe impl </span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> <span class="kw">for </span>Scope&lt;<span class="lifetime">&#39;_</span>&gt; {}
+<span class="kw">unsafe impl </span>Sync <span class="kw">for </span>Scope&lt;<span class="lifetime">&#39;_</span>&gt; {}
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;env</span>&gt; Scope&lt;<span class="lifetime">&#39;env</span>&gt; {
     <span class="doccomment">/// Spawns a scoped thread.
@@ -833,11 +833,11 @@
     </span><span class="kw">pub fn </span>spawn&lt;<span class="lifetime">&#39;scope</span>, F, T&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;scope </span><span class="self">self</span>, f: F) -&gt; ScopedJoinHandle&lt;<span class="lifetime">&#39;scope</span>, T&gt;
     <span class="kw">where
         </span>F: FnOnce(<span class="kw-2">&amp;</span>Scope&lt;<span class="lifetime">&#39;env</span>&gt;) -&gt; T,
-        F: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <span class="lifetime">&#39;env</span>,
-        T: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <span class="lifetime">&#39;env</span>,
+        F: Send + <span class="lifetime">&#39;env</span>,
+        T: Send + <span class="lifetime">&#39;env</span>,
     {
-        <a class="self" href="#246">self</a>.<a href="#270">builder</a>()
-            .<a href="#411-415">spawn</a>(<a href="#246">f</a>)
+        <span class="self">self</span>.builder()
+            .spawn(f)
             .expect(<span class="string">&quot;failed to spawn scoped thread&quot;</span>)
     }
 
@@ -855,16 +855,16 @@
     /// }).unwrap();
     /// ```
     </span><span class="kw">pub fn </span>builder&lt;<span class="lifetime">&#39;scope</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;scope </span><span class="self">self</span>) -&gt; ScopedThreadBuilder&lt;<span class="lifetime">&#39;scope</span>, <span class="lifetime">&#39;env</span>&gt; {
-        <a href="#317">ScopedThreadBuilder</a> {
-            scope: <a class="self" href="#270">self</a>,
+        ScopedThreadBuilder {
+            scope: <span class="self">self</span>,
             builder: thread::Builder::new(),
         }
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span>Scope&lt;<span class="lifetime">&#39;_</span>&gt; {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a href="#279">f</a>.pad(<span class="string">&quot;Scope { .. }&quot;</span>)
+<span class="kw">impl </span>fmt::Debug <span class="kw">for </span>Scope&lt;<span class="lifetime">&#39;_</span>&gt; {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        f.pad(<span class="string">&quot;Scope { .. }&quot;</span>)
     }
 }
 
@@ -903,7 +903,7 @@
 </span><span class="attr">#[derive(Debug)]
 </span><span class="kw">pub struct </span>ScopedThreadBuilder&lt;<span class="lifetime">&#39;scope</span>, <span class="lifetime">&#39;env</span>&gt; {
     scope: <span class="kw-2">&amp;</span><span class="lifetime">&#39;scope </span>Scope&lt;<span class="lifetime">&#39;env</span>&gt;,
-    builder: <a href="https://doc.rust-lang.org/nightly/std/thread/struct.Builder.html">thread::Builder</a>,
+    builder: thread::Builder,
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;scope</span>, <span class="lifetime">&#39;env</span>&gt; ScopedThreadBuilder&lt;<span class="lifetime">&#39;scope</span>, <span class="lifetime">&#39;env</span>&gt; {
@@ -928,9 +928,9 @@
     /// ```
     ///
     /// [naming-threads]: std::thread#naming-threads
-    </span><span class="kw">pub fn </span>name(<span class="kw-2">mut </span><span class="self">self</span>, name: <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>) -&gt; ScopedThreadBuilder&lt;<span class="lifetime">&#39;scope</span>, <span class="lifetime">&#39;env</span>&gt; {
-        <a class="self" href="#344">self</a>.builder = <a class="self" href="#344">self</a>.builder.name(<a href="#344">name</a>);
-        <span class="self"><a href="#344">self</a>
+    </span><span class="kw">pub fn </span>name(<span class="kw-2">mut </span><span class="self">self</span>, name: String) -&gt; ScopedThreadBuilder&lt;<span class="lifetime">&#39;scope</span>, <span class="lifetime">&#39;env</span>&gt; {
+        <span class="self">self</span>.builder = <span class="self">self</span>.builder.name(name);
+        <span class="self">self
     </span>}
 
     <span class="doccomment">/// Sets the size of the stack for the new thread.
@@ -953,9 +953,9 @@
     /// ```
     ///
     /// [stack-size]: std::thread#stack-size
-    </span><span class="kw">pub fn </span>stack_size(<span class="kw-2">mut </span><span class="self">self</span>, size: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; ScopedThreadBuilder&lt;<span class="lifetime">&#39;scope</span>, <span class="lifetime">&#39;env</span>&gt; {
-        <a class="self" href="#369">self</a>.builder = <a class="self" href="#369">self</a>.builder.stack_size(<a href="#369">size</a>);
-        <span class="self"><a href="#369">self</a>
+    </span><span class="kw">pub fn </span>stack_size(<span class="kw-2">mut </span><span class="self">self</span>, size: usize) -&gt; ScopedThreadBuilder&lt;<span class="lifetime">&#39;scope</span>, <span class="lifetime">&#39;env</span>&gt; {
+        <span class="self">self</span>.builder = <span class="self">self</span>.builder.stack_size(size);
+        <span class="self">self
     </span>}
 
     <span class="doccomment">/// Spawns a scoped thread with this configuration.
@@ -998,20 +998,20 @@
     </span><span class="kw">pub fn </span>spawn&lt;F, T&gt;(<span class="self">self</span>, f: F) -&gt; io::Result&lt;ScopedJoinHandle&lt;<span class="lifetime">&#39;scope</span>, T&gt;&gt;
     <span class="kw">where
         </span>F: FnOnce(<span class="kw-2">&amp;</span>Scope&lt;<span class="lifetime">&#39;env</span>&gt;) -&gt; T,
-        F: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <span class="lifetime">&#39;env</span>,
-        T: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <span class="lifetime">&#39;env</span>,
+        F: Send + <span class="lifetime">&#39;env</span>,
+        T: Send + <span class="lifetime">&#39;env</span>,
     {
         <span class="comment">// The result of `f` will be stored here.
         </span><span class="kw">let </span>result = SharedOption::default();
 
         <span class="comment">// Spawn the thread and grab its join handle and thread handle.
         </span><span class="kw">let </span>(handle, thread) = {
-            <span class="kw">let </span>result = Arc::clone(<span class="kw-2">&amp;</span><a href="#418">result</a>);
+            <span class="kw">let </span>result = Arc::clone(<span class="kw-2">&amp;</span>result);
 
             <span class="comment">// A clone of the scope that will be moved into the new thread.
             </span><span class="kw">let </span>scope = Scope::&lt;<span class="lifetime">&#39;env</span>&gt; {
-                handles: Arc::clone(<span class="kw-2">&amp;</span><a class="self" href="#411">self</a>.scope.handles),
-                wait_group: <a class="self" href="#411">self</a>.scope.wait_group.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+                handles: Arc::clone(<span class="kw-2">&amp;</span><span class="self">self</span>.scope.handles),
+                wait_group: <span class="self">self</span>.scope.wait_group.clone(),
                 _marker: PhantomData,
             };
 
@@ -1019,43 +1019,43 @@
             </span><span class="kw">let </span>handle = {
                 <span class="kw">let </span>closure = <span class="kw">move </span>|| {
                     <span class="comment">// Make sure the scope is inside the closure with the proper `&#39;env` lifetime.
-                    </span><span class="kw">let </span>scope: Scope&lt;<span class="lifetime">&#39;env</span>&gt; = <a href="#425">scope</a>;
+                    </span><span class="kw">let </span>scope: Scope&lt;<span class="lifetime">&#39;env</span>&gt; = scope;
 
                     <span class="comment">// Run the closure.
-                    </span><span class="kw">let </span>res = <a href="#411">f</a>(<span class="kw-2">&amp;</span><a href="#435">scope</a>);
+                    </span><span class="kw">let </span>res = f(<span class="kw-2">&amp;</span>scope);
 
                     <span class="comment">// Store the result if the closure didn&#39;t panic.
-                    </span><span class="kw-2">*</span><a href="#422">result</a>.lock().unwrap() = <span class="prelude-val">Some</span>(<a href="#438">res</a>);
+                    </span><span class="kw-2">*</span>result.lock().unwrap() = <span class="prelude-val">Some</span>(res);
                 };
 
                 <span class="comment">// Allocate `closure` on the heap and erase the `&#39;env` bound.
-                </span><span class="kw">let </span>closure: Box&lt;<span class="kw">dyn </span>FnOnce() + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <span class="lifetime">&#39;env</span>&gt; = Box::new(<a href="#433">closure</a>);
-                <span class="kw">let </span>closure: Box&lt;<span class="kw">dyn </span>FnOnce() + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <span class="lifetime">&#39;static</span>&gt; =
-                    <span class="kw">unsafe </span>{ mem::transmute(<a href="#445">closure</a>) };
+                </span><span class="kw">let </span>closure: Box&lt;<span class="kw">dyn </span>FnOnce() + Send + <span class="lifetime">&#39;env</span>&gt; = Box::new(closure);
+                <span class="kw">let </span>closure: Box&lt;<span class="kw">dyn </span>FnOnce() + Send + <span class="lifetime">&#39;static</span>&gt; =
+                    <span class="kw">unsafe </span>{ mem::transmute(closure) };
 
                 <span class="comment">// Finally, spawn the closure.
                 </span><span class="self">self</span>.builder.spawn(closure)<span class="question-mark">?
             </span>};
 
-            <span class="kw">let </span>thread = <a href="#432">handle</a>.thread().<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
-            <span class="kw">let </span>handle = Arc::new(Mutex::new(<span class="prelude-val">Some</span>(<a href="#432">handle</a>)));
-            (<a href="#454">handle</a>, <a href="#453">thread</a>)
+            <span class="kw">let </span>thread = handle.thread().clone();
+            <span class="kw">let </span>handle = Arc::new(Mutex::new(<span class="prelude-val">Some</span>(handle)));
+            (handle, thread)
         };
 
         <span class="comment">// Add the handle to the shared list of join handles.
-        </span><a class="self" href="#411">self</a>.scope.handles.lock().unwrap().push(Arc::clone(<span class="kw-2">&amp;</span><a href="#421">handle</a>));
+        </span><span class="self">self</span>.scope.handles.lock().unwrap().push(Arc::clone(<span class="kw-2">&amp;</span>handle));
 
-        <span class="prelude-val">Ok</span>(<a href="#477">ScopedJoinHandle</a> {
-            <a href="#421">handle</a>,
-            <a href="#418">result</a>,
-            <a href="#421">thread</a>,
+        <span class="prelude-val">Ok</span>(ScopedJoinHandle {
+            handle,
+            result,
+            thread,
             _marker: PhantomData,
         })
     }
 }
 
-<span class="kw">unsafe impl</span>&lt;T&gt; <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="kw">for </span>ScopedJoinHandle&lt;<span class="lifetime">&#39;_</span>, T&gt; {}
-<span class="kw">unsafe impl</span>&lt;T&gt; <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> <span class="kw">for </span>ScopedJoinHandle&lt;<span class="lifetime">&#39;_</span>, T&gt; {}
+<span class="kw">unsafe impl</span>&lt;T&gt; Send <span class="kw">for </span>ScopedJoinHandle&lt;<span class="lifetime">&#39;_</span>, T&gt; {}
+<span class="kw">unsafe impl</span>&lt;T&gt; Sync <span class="kw">for </span>ScopedJoinHandle&lt;<span class="lifetime">&#39;_</span>, T&gt; {}
 
 <span class="doccomment">/// A handle that can be used to join its scoped thread.
 ///
@@ -1069,7 +1069,7 @@
     </span>result: SharedOption&lt;T&gt;,
 
     <span class="doccomment">/// A handle to the the spawned thread.
-    </span>thread: <a href="https://doc.rust-lang.org/nightly/std/thread/struct.Thread.html">thread::Thread</a>,
+    </span>thread: thread::Thread,
 
     <span class="doccomment">/// Borrows the parent scope with lifetime `&#39;scope`.
     </span>_marker: PhantomData&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;scope </span>()&gt;,
@@ -1107,12 +1107,12 @@
     </span><span class="kw">pub fn </span>join(<span class="self">self</span>) -&gt; thread::Result&lt;T&gt; {
         <span class="comment">// Take out the handle. The handle will surely be available because the root scope waits
         // for nested scopes before joining remaining threads.
-        </span><span class="kw">let </span>handle = <a class="self" href="#520">self</a>.handle.lock().unwrap().take().unwrap();
+        </span><span class="kw">let </span>handle = <span class="self">self</span>.handle.lock().unwrap().take().unwrap();
 
         <span class="comment">// Join the thread and then take the result out of its inner closure.
-        </span><a href="#523">handle</a>
+        </span>handle
             .join()
-            .map(|()| <a class="self" href="#520">self</a>.result.lock().unwrap().take().unwrap())
+            .map(|()| <span class="self">self</span>.result.lock().unwrap().take().unwrap())
     }
 
     <span class="doccomment">/// Returns a handle to the underlying thread.
@@ -1127,24 +1127,24 @@
     ///     println!(&quot;The child thread ID: {:?}&quot;, handle.thread().id());
     /// }).unwrap();
     /// ```
-    </span><span class="kw">pub fn </span>thread(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/thread/struct.Thread.html">thread::Thread</a> {
-        <span class="kw-2">&amp;</span><a class="self" href="#543">self</a>.thread
+    </span><span class="kw">pub fn </span>thread(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>thread::Thread {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.thread
     }
 }
 
 <span class="macro">cfg_if! </span>{
     <span class="kw">if </span><span class="attr">#[cfg(unix)] </span>{
-        <span class="kw">use </span>std::os::unix::thread::{<a href="https://doc.rust-lang.org/nightly/std/os/unix/thread/trait.JoinHandleExt.html">JoinHandleExt</a>, <a href="https://doc.rust-lang.org/nightly/std/os/unix/thread/type.RawPthread.html">RawPthread</a>};
+        <span class="kw">use </span>std::os::unix::thread::{JoinHandleExt, RawPthread};
 
-        <span class="kw">impl</span>&lt;T&gt; <a href="https://doc.rust-lang.org/nightly/std/os/unix/thread/trait.JoinHandleExt.html">JoinHandleExt</a> <span class="kw">for </span>ScopedJoinHandle&lt;<span class="lifetime">&#39;_</span>, T&gt; {
-            <span class="kw">fn </span>as_pthread_t(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/os/unix/thread/type.RawPthread.html">RawPthread</a> {
+        <span class="kw">impl</span>&lt;T&gt; JoinHandleExt <span class="kw">for </span>ScopedJoinHandle&lt;<span class="lifetime">&#39;_</span>, T&gt; {
+            <span class="kw">fn </span>as_pthread_t(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; RawPthread {
                 <span class="comment">// Borrow the handle. The handle will surely be available because the root scope waits
                 // for nested scopes before joining remaining threads.
-                </span><span class="kw">let </span>handle = <a class="self" href="#553">self</a>.handle.lock().unwrap();
-                <a href="#556">handle</a>.as_ref().unwrap().<a href="https://doc.rust-lang.org/nightly/std/os/unix/thread/trait.JoinHandleExt.html">as_pthread_t</a>()
+                </span><span class="kw">let </span>handle = <span class="self">self</span>.handle.lock().unwrap();
+                handle.as_ref().unwrap().as_pthread_t()
             }
-            <span class="kw">fn </span>into_pthread_t(<span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/os/unix/thread/type.RawPthread.html">RawPthread</a> {
-                <a class="self" href="#559">self</a>.<a href="https://doc.rust-lang.org/nightly/std/os/unix/thread/trait.JoinHandleExt.html">as_pthread_t</a>()
+            <span class="kw">fn </span>into_pthread_t(<span class="self">self</span>) -&gt; RawPthread {
+                <span class="self">self</span>.as_pthread_t()
             }
         }
     } <span class="kw">else if </span><span class="attr">#[cfg(windows)] </span>{
@@ -1167,10 +1167,10 @@
     }
 }
 
-<span class="kw">impl</span>&lt;T&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span>ScopedJoinHandle&lt;<span class="lifetime">&#39;_</span>, T&gt; {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a href="#584">f</a>.pad(<span class="string">&quot;ScopedJoinHandle { .. }&quot;</span>)
+<span class="kw">impl</span>&lt;T&gt; fmt::Debug <span class="kw">for </span>ScopedJoinHandle&lt;<span class="lifetime">&#39;_</span>, T&gt; {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        f.pad(<span class="string">&quot;ScopedJoinHandle { .. }&quot;</span>)
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="crossbeam_utils" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="crossbeam_utils" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

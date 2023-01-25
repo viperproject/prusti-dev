@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/rustwide-0.15.2/src/logging.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>logging.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../rustwide/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/rustwide-0.15.2/src/logging.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>logging.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../rustwide/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -355,60 +355,60 @@
 <a href="#355" id="355">355</a>
 </pre><pre class="rust"><code><span class="doccomment">//! rustwide&#39;s logging system and related utilities.
 
-</span><span class="kw">use </span>log::{<a href="../../log/enum.Level.html">Level</a>, <a href="../../log/enum.LevelFilter.html">LevelFilter</a>, <a href="../../log/trait.Log.html">Log</a>, <a href="../../log/struct.Metadata.html">Metadata</a>, <a href="../../log/struct.Record.html">Record</a>};
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/cell/struct.RefCell.html">std::cell::RefCell</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">std::fmt</a>;
+</span><span class="kw">use </span>log::{Level, LevelFilter, Log, Metadata, Record};
+<span class="kw">use </span>std::cell::RefCell;
+<span class="kw">use </span>std::fmt;
 <span class="kw">use </span>std::sync::{
-    atomic::{<a href="https://doc.rust-lang.org/nightly/core/sync/atomic/struct.AtomicBool.html">AtomicBool</a>, <a href="https://doc.rust-lang.org/nightly/core/sync/atomic/enum.Ordering.html">Ordering</a>},
-    <a href="https://doc.rust-lang.org/nightly/alloc/sync/struct.Arc.html">Arc</a>, <a href="https://doc.rust-lang.org/nightly/std/sync/mutex/struct.Mutex.html">Mutex</a>, <a href="https://doc.rust-lang.org/nightly/std/sync/once/struct.Once.html">Once</a>,
+    atomic::{AtomicBool, Ordering},
+    Arc, Mutex, Once,
 };
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/thread/local/struct.LocalKey.html">std::thread::LocalKey</a>;
+<span class="kw">use </span>std::thread::LocalKey;
 
-<span class="kw">static </span>INIT_LOGS: <a href="https://doc.rust-lang.org/nightly/std/sync/once/struct.Once.html">Once</a> = Once::new();
-<span class="kw">static </span>INITIALIZED: <a href="https://doc.rust-lang.org/nightly/core/sync/atomic/struct.AtomicBool.html">AtomicBool</a> = AtomicBool::new(<span class="bool-val">false</span>);
+<span class="kw">static </span>INIT_LOGS: Once = Once::new();
+<span class="kw">static </span>INITIALIZED: AtomicBool = AtomicBool::new(<span class="bool-val">false</span>);
 
-<a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.thread_local.html">thread_local! </a>{
+<span class="macro">thread_local! </span>{
     <span class="kw">static </span>SCOPED: RefCell&lt;Vec&lt;Box&lt;<span class="kw">dyn </span>SealedLog&gt;&gt;&gt; = RefCell::new(Vec::new());
 }
 
 <span class="kw">trait </span>SealedLog {
-    <span class="kw">fn </span>enabled(<span class="kw-2">&amp;</span><span class="self">self</span>, metadata: <span class="kw-2">&amp;</span><a href="../../log/struct.Metadata.html">Metadata</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>;
-    <span class="kw">fn </span>log(<span class="kw-2">&amp;</span><span class="self">self</span>, record: <span class="kw-2">&amp;</span><a href="../../log/struct.Record.html">Record</a>);
+    <span class="kw">fn </span>enabled(<span class="kw-2">&amp;</span><span class="self">self</span>, metadata: <span class="kw-2">&amp;</span>Metadata) -&gt; bool;
+    <span class="kw">fn </span>log(<span class="kw-2">&amp;</span><span class="self">self</span>, record: <span class="kw-2">&amp;</span>Record);
     <span class="kw">fn </span>flush(<span class="kw-2">&amp;</span><span class="self">self</span>);
 }
 
-<span class="kw">impl </span><a href="#19">SealedLog</a> <span class="kw">for </span>Box&lt;<span class="kw">dyn </span><a href="../../log/trait.Log.html">Log</a>&gt; {
-    <span class="kw">fn </span>enabled(<span class="kw-2">&amp;</span><span class="self">self</span>, metadata: <span class="kw-2">&amp;</span><a href="../../log/struct.Metadata.html">Metadata</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        (<a class="self" href="#26">self</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>() <span class="kw">as </span><span class="kw-2">&amp;</span><span class="kw">dyn </span><a href="../../log/trait.Log.html">Log</a>).<a href="../../log/trait.Log.html">enabled</a>(<a href="#26">metadata</a>)
+<span class="kw">impl </span>SealedLog <span class="kw">for </span>Box&lt;<span class="kw">dyn </span>Log&gt; {
+    <span class="kw">fn </span>enabled(<span class="kw-2">&amp;</span><span class="self">self</span>, metadata: <span class="kw-2">&amp;</span>Metadata) -&gt; bool {
+        (<span class="self">self</span>.as_ref() <span class="kw">as </span><span class="kw-2">&amp;</span><span class="kw">dyn </span>Log).enabled(metadata)
     }
 
-    <span class="kw">fn </span>log(<span class="kw-2">&amp;</span><span class="self">self</span>, record: <span class="kw-2">&amp;</span><a href="../../log/struct.Record.html">Record</a>) {
-        (<a class="self" href="#30">self</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>() <span class="kw">as </span><span class="kw-2">&amp;</span><span class="kw">dyn </span><a href="../../log/trait.Log.html">Log</a>).<a href="../../log/trait.Log.html">log</a>(<a href="#30">record</a>);
+    <span class="kw">fn </span>log(<span class="kw-2">&amp;</span><span class="self">self</span>, record: <span class="kw-2">&amp;</span>Record) {
+        (<span class="self">self</span>.as_ref() <span class="kw">as </span><span class="kw-2">&amp;</span><span class="kw">dyn </span>Log).log(record);
     }
 
     <span class="kw">fn </span>flush(<span class="kw-2">&amp;</span><span class="self">self</span>) {
-        (<a class="self" href="#34">self</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>() <span class="kw">as </span><span class="kw-2">&amp;</span><span class="kw">dyn </span><a href="../../log/trait.Log.html">Log</a>).<a href="../../log/trait.Log.html">flush</a>();
+        (<span class="self">self</span>.as_ref() <span class="kw">as </span><span class="kw-2">&amp;</span><span class="kw">dyn </span>Log).flush();
     }
 }
 
 <span class="kw">struct </span>ScopedLogger {
-    global: <span class="prelude-ty">Option</span>&lt;Box&lt;<span class="kw">dyn </span><a href="../../log/trait.Log.html">Log</a>&gt;&gt;,
-    scoped: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>LocalKey&lt;RefCell&lt;Vec&lt;Box&lt;<span class="kw">dyn </span><a href="#19">SealedLog</a>&gt;&gt;&gt;&gt;,
+    global: <span class="prelude-ty">Option</span>&lt;Box&lt;<span class="kw">dyn </span>Log&gt;&gt;,
+    scoped: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>LocalKey&lt;RefCell&lt;Vec&lt;Box&lt;<span class="kw">dyn </span>SealedLog&gt;&gt;&gt;&gt;,
 }
 
-<span class="kw">impl </span><a href="#39">ScopedLogger</a> {
+<span class="kw">impl </span>ScopedLogger {
     <span class="kw">fn </span>new(
-        global: <span class="prelude-ty">Option</span>&lt;Box&lt;<span class="kw">dyn </span><a href="../../log/trait.Log.html">Log</a>&gt;&gt;,
-        scoped: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>LocalKey&lt;RefCell&lt;Vec&lt;Box&lt;<span class="kw">dyn </span><a href="#19">SealedLog</a>&gt;&gt;&gt;&gt;,
+        global: <span class="prelude-ty">Option</span>&lt;Box&lt;<span class="kw">dyn </span>Log&gt;&gt;,
+        scoped: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>LocalKey&lt;RefCell&lt;Vec&lt;Box&lt;<span class="kw">dyn </span>SealedLog&gt;&gt;&gt;&gt;,
     ) -&gt; <span class="self">Self </span>{
-        <a href="#39">ScopedLogger</a> { <a href="#46">global</a>, <a href="#47">scoped</a> }
+        ScopedLogger { global, scoped }
     }
 
-    <span class="kw">fn </span>each&lt;F: FnMut(<span class="kw-2">&amp;</span><span class="kw">dyn </span><a href="#19">SealedLog</a>)&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw-2">mut </span>f: F) {
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(global) = <span class="kw-2">&amp;</span><a class="self" href="#52">self</a>.global {
-            <a href="#52">f</a>(<a href="#53">global</a>);
+    <span class="kw">fn </span>each&lt;F: FnMut(<span class="kw-2">&amp;</span><span class="kw">dyn </span>SealedLog)&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw-2">mut </span>f: F) {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(global) = <span class="kw-2">&amp;</span><span class="self">self</span>.global {
+            f(global);
         }
-        <a class="self" href="#52">self</a>.scoped.with(|scoped| {
+        <span class="self">self</span>.scoped.with(|scoped| {
             <span class="kw">for </span>logger <span class="kw">in </span><span class="kw-2">&amp;*</span>scoped.borrow() {
                 f(logger.as_ref());
             }
@@ -416,26 +416,26 @@
     }
 }
 
-<span class="kw">impl </span><a href="../../log/trait.Log.html">Log</a> <span class="kw">for </span><a href="#39">ScopedLogger</a> {
-    <span class="kw">fn </span>enabled(<span class="kw-2">&amp;</span><span class="self">self</span>, metadata: <span class="kw-2">&amp;</span><a href="../../log/struct.Metadata.html">Metadata</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+<span class="kw">impl </span>Log <span class="kw">for </span>ScopedLogger {
+    <span class="kw">fn </span>enabled(<span class="kw-2">&amp;</span><span class="self">self</span>, metadata: <span class="kw-2">&amp;</span>Metadata) -&gt; bool {
         <span class="kw">let </span><span class="kw-2">mut </span>result = <span class="bool-val">false</span>;
-        <a class="self" href="#65">self</a>.<a href="#52">each</a>(|logger| {
+        <span class="self">self</span>.each(|logger| {
             <span class="kw">if </span>logger.enabled(metadata) {
-                <a href="#66">result</a> = <span class="bool-val">true</span>;
+                result = <span class="bool-val">true</span>;
             }
         });
-        <a href="#66">result</a>
+        result
     }
 
-    <span class="kw">fn </span>log(<span class="kw-2">&amp;</span><span class="self">self</span>, record: <span class="kw-2">&amp;</span><a href="../../log/struct.Record.html">Record</a>) {
-        <a class="self" href="#75">self</a>.<a href="#52">each</a>(|logger| {
-            <a href="#76">logger</a>.<a href="#21">log</a>(<a href="#75">record</a>);
+    <span class="kw">fn </span>log(<span class="kw-2">&amp;</span><span class="self">self</span>, record: <span class="kw-2">&amp;</span>Record) {
+        <span class="self">self</span>.each(|logger| {
+            logger.log(record);
         });
     }
 
     <span class="kw">fn </span>flush(<span class="kw-2">&amp;</span><span class="self">self</span>) {
-        <a class="self" href="#81">self</a>.<a href="#52">each</a>(|logger| {
-            <a href="#82">logger</a>.<a href="#22">flush</a>();
+        <span class="self">self</span>.each(|logger| {
+            logger.flush();
         });
     }
 }
@@ -443,15 +443,15 @@
 <span class="attr">#[derive(Clone)]
 #[cfg_attr(test, derive(Debug, PartialEq, Eq))]
 </span><span class="kw">struct </span>StoredRecord {
-    level: <a href="../../log/enum.Level.html">Level</a>,
-    message: <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>,
+    level: Level,
+    message: String,
 }
 
 <span class="attr">#[derive(Clone)]
 </span><span class="kw">struct </span>InnerStorage {
-    records: Vec&lt;<a href="#90">StoredRecord</a>&gt;,
-    size: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-    truncated: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
+    records: Vec&lt;StoredRecord&gt;,
+    size: usize,
+    truncated: bool,
 }
 
 <span class="doccomment">/// Store logs captured by [`capture`] and retrieve them later.
@@ -464,97 +464,97 @@
 /// [`capture`]: fn.capture.html
 </span><span class="attr">#[derive(Clone)]
 </span><span class="kw">pub struct </span>LogStorage {
-    inner: Arc&lt;Mutex&lt;<a href="#96">InnerStorage</a>&gt;&gt;,
-    min_level: <a href="../../log/enum.LevelFilter.html">LevelFilter</a>,
-    max_size: <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;,
-    max_lines: <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;,
+    inner: Arc&lt;Mutex&lt;InnerStorage&gt;&gt;,
+    min_level: LevelFilter,
+    max_size: <span class="prelude-ty">Option</span>&lt;usize&gt;,
+    max_lines: <span class="prelude-ty">Option</span>&lt;usize&gt;,
 }
 
-<span class="kw">impl </span><a href="#111">LogStorage</a> {
+<span class="kw">impl </span>LogStorage {
     <span class="doccomment">/// Create a new log storage.
-    </span><span class="kw">pub fn </span>new(min_level: <a href="../../log/enum.LevelFilter.html">LevelFilter</a>) -&gt; <span class="self">Self </span>{
-        <a href="#111">LogStorage</a> {
-            inner: Arc::new(Mutex::new(<a href="#96">InnerStorage</a> {
+    </span><span class="kw">pub fn </span>new(min_level: LevelFilter) -&gt; <span class="self">Self </span>{
+        LogStorage {
+            inner: Arc::new(Mutex::new(InnerStorage {
                 records: Vec::new(),
                 truncated: <span class="bool-val">false</span>,
                 size: <span class="number">0</span>,
             })),
-            <a href="#120">min_level</a>,
+            min_level,
             max_size: <span class="prelude-val">None</span>,
             max_lines: <span class="prelude-val">None</span>,
         }
     }
 
     <span class="doccomment">/// Set the maximum amount of bytes stored in this struct before truncating the output.
-    </span><span class="kw">pub fn </span>set_max_size(<span class="kw-2">&amp;mut </span><span class="self">self</span>, size: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
-        <a class="self" href="#134">self</a>.max_size = <span class="prelude-val">Some</span>(<a href="#134">size</a>);
+    </span><span class="kw">pub fn </span>set_max_size(<span class="kw-2">&amp;mut </span><span class="self">self</span>, size: usize) {
+        <span class="self">self</span>.max_size = <span class="prelude-val">Some</span>(size);
     }
 
     <span class="doccomment">/// Set the maximum amount of lines stored in this struct before truncating the output.
-    </span><span class="kw">pub fn </span>set_max_lines(<span class="kw-2">&amp;mut </span><span class="self">self</span>, lines: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
-        <a class="self" href="#139">self</a>.max_lines = <span class="prelude-val">Some</span>(<a href="#139">lines</a>);
+    </span><span class="kw">pub fn </span>set_max_lines(<span class="kw-2">&amp;mut </span><span class="self">self</span>, lines: usize) {
+        <span class="self">self</span>.max_lines = <span class="prelude-val">Some</span>(lines);
     }
 
     <span class="doccomment">/// Duplicate the log storage, returning a new, unrelated storage with the same content and
     /// configuration.
-    </span><span class="kw">pub fn </span>duplicate(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="#111">LogStorage</a> {
-        <span class="kw">let </span>inner = <a class="self" href="#145">self</a>.inner.lock().unwrap();
-        <a href="#111">LogStorage</a> {
-            inner: Arc::new(Mutex::new(<a href="#146">inner</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>())),
-            min_level: <a class="self" href="#145">self</a>.min_level,
-            max_size: <a class="self" href="#145">self</a>.max_size,
-            max_lines: <a class="self" href="#145">self</a>.max_lines,
+    </span><span class="kw">pub fn </span>duplicate(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; LogStorage {
+        <span class="kw">let </span>inner = <span class="self">self</span>.inner.lock().unwrap();
+        LogStorage {
+            inner: Arc::new(Mutex::new(inner.clone())),
+            min_level: <span class="self">self</span>.min_level,
+            max_size: <span class="self">self</span>.max_size,
+            max_lines: <span class="self">self</span>.max_lines,
         }
     }
 }
 
-<span class="kw">impl </span><a href="#19">SealedLog</a> <span class="kw">for </span><a href="#111">LogStorage</a> {
-    <span class="kw">fn </span>enabled(<span class="kw-2">&amp;</span><span class="self">self</span>, metadata: <span class="kw-2">&amp;</span><a href="../../log/struct.Metadata.html">Metadata</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a href="#157">metadata</a>.level() &gt; <a class="self" href="#157">self</a>.min_level
+<span class="kw">impl </span>SealedLog <span class="kw">for </span>LogStorage {
+    <span class="kw">fn </span>enabled(<span class="kw-2">&amp;</span><span class="self">self</span>, metadata: <span class="kw-2">&amp;</span>Metadata) -&gt; bool {
+        metadata.level() &gt; <span class="self">self</span>.min_level
     }
 
-    <span class="kw">fn </span>log(<span class="kw-2">&amp;</span><span class="self">self</span>, record: <span class="kw-2">&amp;</span><a href="../../log/struct.Record.html">Record</a>) {
+    <span class="kw">fn </span>log(<span class="kw-2">&amp;</span><span class="self">self</span>, record: <span class="kw-2">&amp;</span>Record) {
         <span class="kw">if </span>record.level() &gt; <span class="self">self</span>.min_level {
             <span class="kw">return</span>;
         }
-        <span class="kw">let </span><span class="kw-2">mut </span>inner = <a class="self" href="#161">self</a>.inner.lock().unwrap();
+        <span class="kw">let </span><span class="kw-2">mut </span>inner = <span class="self">self</span>.inner.lock().unwrap();
         <span class="kw">if </span>inner.truncated {
             <span class="kw">return</span>;
         }
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(max_lines) = <a class="self" href="#161">self</a>.max_lines {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(max_lines) = <span class="self">self</span>.max_lines {
             <span class="kw">if </span>inner.records.len() &gt;= max_lines {
-                <a href="#165">inner</a>.records.push(<a href="#90">StoredRecord</a> {
+                inner.records.push(StoredRecord {
                     level: Level::Warn,
-                    message: <span class="string">&quot;too many lines in the log, truncating it&quot;</span>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
+                    message: <span class="string">&quot;too many lines in the log, truncating it&quot;</span>.into(),
                 });
-                <a href="#165">inner</a>.truncated = <span class="bool-val">true</span>;
+                inner.truncated = <span class="bool-val">true</span>;
                 <span class="kw">return</span>;
             }
         }
-        <span class="kw">let </span>message = <a href="#161">record</a>.args().<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>();
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(max_size) = <a class="self" href="#161">self</a>.max_size {
+        <span class="kw">let </span>message = record.args().to_string();
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(max_size) = <span class="self">self</span>.max_size {
             <span class="kw">if </span>inner.size + message.len() &gt;= max_size {
-                <a href="#165">inner</a>.records.push(<a href="#90">StoredRecord</a> {
+                inner.records.push(StoredRecord {
                     level: Level::Warn,
-                    message: <span class="string">&quot;too much data in the log, truncating it&quot;</span>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
+                    message: <span class="string">&quot;too much data in the log, truncating it&quot;</span>.into(),
                 });
-                <a href="#165">inner</a>.truncated = <span class="bool-val">true</span>;
+                inner.truncated = <span class="bool-val">true</span>;
                 <span class="kw">return</span>;
             }
         }
-        <a href="#165">inner</a>.size += <a href="#179">message</a>.len();
-        <a href="#165">inner</a>.records.push(<a href="#90">StoredRecord</a> {
-            level: <a href="#161">record</a>.level(),
-            <a href="#179">message</a>,
+        inner.size += message.len();
+        inner.records.push(StoredRecord {
+            level: record.level(),
+            message,
         });
     }
 
     <span class="kw">fn </span>flush(<span class="kw-2">&amp;</span><span class="self">self</span>) {}
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for </span><a href="#111">LogStorage</a> {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <span class="kw">let </span>inner = <a class="self" href="#201">self</a>.inner.lock().unwrap();
+<span class="kw">impl </span>fmt::Display <span class="kw">for </span>LogStorage {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter) -&gt; fmt::Result {
+        <span class="kw">let </span>inner = <span class="self">self</span>.inner.lock().unwrap();
         <span class="kw">for </span>record <span class="kw">in </span><span class="kw-2">&amp;</span>inner.records {
             <span class="macro">writeln!</span>(f, <span class="string">&quot;[{}] {}&quot;</span>, record.level, record.message)<span class="question-mark">?</span>;
         }
@@ -587,18 +587,18 @@
 /// [`LogStorage`]: struct.LogStorage.html
 /// [`init`]: fn.init.html
 /// [`init_with`]: fn.init_with.html
-</span><span class="kw">pub fn </span>capture&lt;R&gt;(storage: <span class="kw-2">&amp;</span><a href="#111">LogStorage</a>, f: <span class="kw">impl </span>FnOnce() -&gt; R) -&gt; R {
+</span><span class="kw">pub fn </span>capture&lt;R&gt;(storage: <span class="kw-2">&amp;</span>LogStorage, f: <span class="kw">impl </span>FnOnce() -&gt; R) -&gt; R {
     <span class="kw">if </span>!INITIALIZED.load(Ordering::SeqCst) {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(<span class="string">&quot;called capture without initializing rustwide::logging&quot;</span>);
+        <span class="macro">panic!</span>(<span class="string">&quot;called capture without initializing rustwide::logging&quot;</span>);
     }
 
-    <span class="kw">let </span>storage = Box::new(<a href="#235">storage</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
-    <a href="#15-17">SCOPED</a>.with(|scoped| <a href="#241">scoped</a>.borrow_mut().push(<a href="#240">storage</a>));
-    <span class="kw">let </span>result = <a href="#235">f</a>();
-    <a href="#15-17">SCOPED</a>.with(|scoped| {
-        <span class="kw">let _ </span>= <a href="#243">scoped</a>.borrow_mut().pop();
+    <span class="kw">let </span>storage = Box::new(storage.clone());
+    SCOPED.with(|scoped| scoped.borrow_mut().push(storage));
+    <span class="kw">let </span>result = f();
+    SCOPED.with(|scoped| {
+        <span class="kw">let _ </span>= scoped.borrow_mut().pop();
     });
-    <a href="#242">result</a>
+    result
 }
 
 <span class="doccomment">/// Initialize rustwide&#39;s logging system, enabling the use of the [`capture`] function.
@@ -610,7 +610,7 @@
 /// [`capture`]: fn.capture.html
 /// [`init_with`]: fn.init_with.html
 </span><span class="kw">pub fn </span>init() {
-    <a href="#272">init_inner</a>(<span class="prelude-val">None</span>)
+    init_inner(<span class="prelude-val">None</span>)
 }
 
 <span class="doccomment">/// Initialize rustwide&#39;s logging system wrapping an existing logger, enabling the use of the
@@ -620,15 +620,15 @@
 ///
 /// [`capture`]: fn.capture.html
 /// [`init`]: fn.init.html
-</span><span class="kw">pub fn </span>init_with&lt;L: <a href="../../log/trait.Log.html">Log</a> + <span class="lifetime">&#39;static</span>&gt;(logger: L) {
-    <a href="#272">init_inner</a>(<span class="prelude-val">Some</span>(Box::new(<a href="#268">logger</a>)));
+</span><span class="kw">pub fn </span>init_with&lt;L: Log + <span class="lifetime">&#39;static</span>&gt;(logger: L) {
+    init_inner(<span class="prelude-val">Some</span>(Box::new(logger)));
 }
 
-<span class="kw">fn </span>init_inner(logger: <span class="prelude-ty">Option</span>&lt;Box&lt;<span class="kw">dyn </span><a href="../../log/trait.Log.html">Log</a>&gt;&gt;) {
-    <a href="#13">INITIALIZED</a>.store(<span class="bool-val">true</span>, Ordering::SeqCst);
-    <a href="#12">INIT_LOGS</a>.call_once(|| {
-        <span class="kw">let </span>multi = ScopedLogger::new(<a href="#272">logger</a>, <span class="kw-2">&amp;</span><a href="#15-17">SCOPED</a>);
-        log::set_logger(Box::leak(Box::new(<a href="#275">multi</a>))).unwrap();
+<span class="kw">fn </span>init_inner(logger: <span class="prelude-ty">Option</span>&lt;Box&lt;<span class="kw">dyn </span>Log&gt;&gt;) {
+    INITIALIZED.store(<span class="bool-val">true</span>, Ordering::SeqCst);
+    INIT_LOGS.call_once(|| {
+        <span class="kw">let </span>multi = ScopedLogger::new(logger, <span class="kw-2">&amp;</span>SCOPED);
+        log::set_logger(Box::leak(Box::new(multi))).unwrap();
         log::set_max_level(log::LevelFilter::Trace);
     });
 }
@@ -709,4 +709,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="rustwide" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="rustwide" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

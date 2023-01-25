@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/concurrent-queue-2.0.0/src/bounded.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>bounded.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../concurrent_queue/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/concurrent-queue-2.0.0/src/bounded.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>bounded.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../concurrent_queue/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -341,21 +341,21 @@
 <a href="#341" id="341">341</a>
 <a href="#342" id="342">342</a>
 <a href="#343" id="343">343</a>
-</pre><pre class="rust"><code><span class="kw">use </span>alloc::{<a href="https://doc.rust-lang.org/nightly/alloc/boxed/struct.Box.html">boxed::Box</a>, <a href="https://doc.rust-lang.org/nightly/alloc/vec/struct.Vec.html">vec::Vec</a>};
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/mem/maybe_uninit/union.MaybeUninit.html">core::mem::MaybeUninit</a>;
+</pre><pre class="rust"><code><span class="kw">use </span>alloc::{boxed::Box, vec::Vec};
+<span class="kw">use </span>core::mem::MaybeUninit;
 
-<span class="kw">use </span><a href="../../crossbeam_utils/cache_padded/struct.CachePadded.html">crossbeam_utils::CachePadded</a>;
+<span class="kw">use </span>crossbeam_utils::CachePadded;
 
-<span class="kw">use </span><span class="kw">crate</span>::sync::atomic::{<a href="https://doc.rust-lang.org/nightly/core/sync/atomic/struct.AtomicUsize.html">AtomicUsize</a>, <a href="https://doc.rust-lang.org/nightly/core/sync/atomic/enum.Ordering.html">Ordering</a>};
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/cell/struct.UnsafeCell.html"><span class="kw">crate</span>::sync::cell::UnsafeCell</a>;
+<span class="kw">use </span><span class="kw">crate</span>::sync::atomic::{AtomicUsize, Ordering};
+<span class="kw">use </span><span class="kw">crate</span>::sync::cell::UnsafeCell;
 <span class="attr">#[allow(unused_imports)]
-</span><span class="kw">use </span><a href="sync.rs.html#59"><span class="kw">crate</span>::sync::prelude</a>::<span class="kw-2">*</span>;
-<span class="kw">use crate</span>::{<a href="sync.rs.html#47">busy_wait</a>, <a href="lib.rs.html#374">PopError</a>, <a href="lib.rs.html#423">PushError</a>};
+</span><span class="kw">use </span><span class="kw">crate</span>::sync::prelude::<span class="kw-2">*</span>;
+<span class="kw">use crate</span>::{busy_wait, PopError, PushError};
 
 <span class="doccomment">/// A slot in a queue.
 </span><span class="kw">struct </span>Slot&lt;T&gt; {
     <span class="doccomment">/// The current stamp.
-    </span>stamp: <a href="https://doc.rust-lang.org/nightly/core/sync/atomic/struct.AtomicUsize.html">AtomicUsize</a>,
+    </span>stamp: AtomicUsize,
 
     <span class="doccomment">/// The value in this slot.
     </span>value: UnsafeCell&lt;MaybeUninit&lt;T&gt;&gt;,
@@ -370,7 +370,7 @@
     /// represent the lap. The mark bit in the head is always zero.
     ///
     /// Values are popped from the head of the queue.
-    </span>head: CachePadded&lt;<a href="https://doc.rust-lang.org/nightly/core/sync/atomic/struct.AtomicUsize.html">AtomicUsize</a>&gt;,
+    </span>head: CachePadded&lt;AtomicUsize&gt;,
 
     <span class="doccomment">/// The tail of the queue.
     ///
@@ -379,22 +379,22 @@
     /// represent the lap. The mark bit indicates that the queue is closed.
     ///
     /// Values are pushed into the tail of the queue.
-    </span>tail: CachePadded&lt;<a href="https://doc.rust-lang.org/nightly/core/sync/atomic/struct.AtomicUsize.html">AtomicUsize</a>&gt;,
+    </span>tail: CachePadded&lt;AtomicUsize&gt;,
 
     <span class="doccomment">/// The buffer holding slots.
     </span>buffer: Box&lt;[Slot&lt;T&gt;]&gt;,
 
     <span class="doccomment">/// A stamp with the value of `{ lap: 1, mark: 0, index: 0 }`.
-    </span>one_lap: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+    </span>one_lap: usize,
 
     <span class="doccomment">/// If this bit is set in the tail, that means the queue is closed.
-    </span>mark_bit: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+    </span>mark_bit: usize,
 }
 
 <span class="kw">impl</span>&lt;T&gt; Bounded&lt;T&gt; {
     <span class="doccomment">/// Creates a new bounded queue.
-    </span><span class="kw">pub fn </span>new(cap: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; Bounded&lt;T&gt; {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(cap &gt; <span class="number">0</span>, <span class="string">&quot;capacity must be positive&quot;</span>);
+    </span><span class="kw">pub fn </span>new(cap: usize) -&gt; Bounded&lt;T&gt; {
+        <span class="macro">assert!</span>(cap &gt; <span class="number">0</span>, <span class="string">&quot;capacity must be positive&quot;</span>);
 
         <span class="comment">// Head is initialized to `{ lap: 0, mark: 0, index: 0 }`.
         </span><span class="kw">let </span>head = <span class="number">0</span>;
@@ -402,7 +402,7 @@
         </span><span class="kw">let </span>tail = <span class="number">0</span>;
 
         <span class="comment">// Allocate a buffer of `cap` slots initialized with stamps.
-        </span><span class="kw">let </span><span class="kw-2">mut </span>buffer = Vec::with_capacity(<a href="#53">cap</a>);
+        </span><span class="kw">let </span><span class="kw-2">mut </span>buffer = Vec::with_capacity(cap);
         <span class="kw">for </span>i <span class="kw">in </span><span class="number">0</span>..cap {
             <span class="comment">// Set the stamp to `{ lap: 0, mark: 0, index: i }`.
             </span>buffer.push(Slot {
@@ -412,146 +412,146 @@
         }
 
         <span class="comment">// Compute constants `mark_bit` and `one_lap`.
-        </span><span class="kw">let </span>mark_bit = (<a href="#53">cap</a> + <span class="number">1</span>).next_power_of_two();
-        <span class="kw">let </span>one_lap = <a href="#72">mark_bit</a> * <span class="number">2</span>;
+        </span><span class="kw">let </span>mark_bit = (cap + <span class="number">1</span>).next_power_of_two();
+        <span class="kw">let </span>one_lap = mark_bit * <span class="number">2</span>;
 
-        <a href="#22">Bounded</a> {
-            buffer: <a href="#62">buffer</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
-            <a href="#73">one_lap</a>,
-            <a href="#72">mark_bit</a>,
-            head: CachePadded::new(AtomicUsize::new(<a href="#57">head</a>)),
-            tail: CachePadded::new(AtomicUsize::new(<a href="#59">tail</a>)),
+        Bounded {
+            buffer: buffer.into(),
+            one_lap,
+            mark_bit,
+            head: CachePadded::new(AtomicUsize::new(head)),
+            tail: CachePadded::new(AtomicUsize::new(tail)),
         }
     }
 
     <span class="doccomment">/// Attempts to push an item into the queue.
     </span><span class="kw">pub fn </span>push(<span class="kw-2">&amp;</span><span class="self">self</span>, value: T) -&gt; <span class="prelude-ty">Result</span>&lt;(), PushError&lt;T&gt;&gt; {
-        <span class="kw">let </span><span class="kw-2">mut </span>tail = <a class="self" href="#85">self</a>.tail.load(Ordering::Relaxed);
+        <span class="kw">let </span><span class="kw-2">mut </span>tail = <span class="self">self</span>.tail.load(Ordering::Relaxed);
 
         <span class="kw">loop </span>{
             <span class="comment">// Check if the queue is closed.
             </span><span class="kw">if </span>tail &amp; <span class="self">self</span>.mark_bit != <span class="number">0 </span>{
-                <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="lib.rs.html#428">PushError::Closed</a>(<a href="#85">value</a>));
+                <span class="kw">return </span><span class="prelude-val">Err</span>(PushError::Closed(value));
             }
 
             <span class="comment">// Deconstruct the tail.
-            </span><span class="kw">let </span>index = <a href="#86">tail</a> &amp; (<a class="self" href="#85">self</a>.mark_bit - <span class="number">1</span>);
-            <span class="kw">let </span>lap = <a href="#86">tail</a> &amp; !(<a class="self" href="#85">self</a>.one_lap - <span class="number">1</span>);
+            </span><span class="kw">let </span>index = tail &amp; (<span class="self">self</span>.mark_bit - <span class="number">1</span>);
+            <span class="kw">let </span>lap = tail &amp; !(<span class="self">self</span>.one_lap - <span class="number">1</span>);
 
             <span class="comment">// Inspect the corresponding slot.
-            </span><span class="kw">let </span>slot = <span class="kw-2">&amp;</span><a class="self" href="#85">self</a>.buffer[<a href="#95">index</a>];
-            <span class="kw">let </span>stamp = <a href="#99">slot</a>.stamp.load(Ordering::Acquire);
+            </span><span class="kw">let </span>slot = <span class="kw-2">&amp;</span><span class="self">self</span>.buffer[index];
+            <span class="kw">let </span>stamp = slot.stamp.load(Ordering::Acquire);
 
             <span class="comment">// If the tail and the stamp match, we may attempt to push.
             </span><span class="kw">if </span>tail == stamp {
                 <span class="kw">let </span>new_tail = <span class="kw">if </span>index + <span class="number">1 </span>&lt; <span class="self">self</span>.buffer.len() {
                     <span class="comment">// Same lap, incremented index.
                     // Set to `{ lap: lap, mark: 0, index: index + 1 }`.
-                    </span><a href="#86">tail</a> + <span class="number">1
+                    </span>tail + <span class="number">1
                 </span>} <span class="kw">else </span>{
                     <span class="comment">// One lap forward, index wraps around to zero.
                     // Set to `{ lap: lap.wrapping_add(1), mark: 0, index: 0 }`.
-                    </span><a href="#96">lap</a>.wrapping_add(<a class="self" href="#85">self</a>.one_lap)
+                    </span>lap.wrapping_add(<span class="self">self</span>.one_lap)
                 };
 
                 <span class="comment">// Try moving the tail.
-                </span><span class="kw">match </span><a class="self" href="#85">self</a>.tail.compare_exchange_weak(
-                    <a href="#86">tail</a>,
-                    <a href="#104">new_tail</a>,
+                </span><span class="kw">match </span><span class="self">self</span>.tail.compare_exchange_weak(
+                    tail,
+                    new_tail,
                     Ordering::SeqCst,
                     Ordering::Relaxed,
                 ) {
                     <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; {
                         <span class="comment">// Write the value into the slot and update the stamp.
-                        </span><a href="#99">slot</a>.value.<a href="sync.rs.html#70-72">with_mut</a>(|slot| <span class="kw">unsafe </span>{
-                            <a href="#123">slot</a>.write(MaybeUninit::new(<a href="#85">value</a>));
+                        </span>slot.value.with_mut(|slot| <span class="kw">unsafe </span>{
+                            slot.write(MaybeUninit::new(value));
                         });
-                        <a href="#99">slot</a>.stamp.store(<a href="#86">tail</a> + <span class="number">1</span>, Ordering::Release);
+                        slot.stamp.store(tail + <span class="number">1</span>, Ordering::Release);
                         <span class="kw">return </span><span class="prelude-val">Ok</span>(());
                     }
                     <span class="prelude-val">Err</span>(t) =&gt; {
-                        <a href="#86">tail</a> = <a href="#129">t</a>;
+                        tail = t;
                     }
                 }
             } <span class="kw">else if </span>stamp.wrapping_add(<span class="self">self</span>.one_lap) == tail + <span class="number">1 </span>{
-                <a href="lib.rs.html#480"><span class="kw">crate</span>::full_fence</a>();
-                <span class="kw">let </span>head = <a class="self" href="#85">self</a>.head.load(Ordering::Relaxed);
+                <span class="kw">crate</span>::full_fence();
+                <span class="kw">let </span>head = <span class="self">self</span>.head.load(Ordering::Relaxed);
 
                 <span class="comment">// If the head lags one lap behind the tail as well...
                 </span><span class="kw">if </span>head.wrapping_add(<span class="self">self</span>.one_lap) == tail {
                     <span class="comment">// ...then the queue is full.
-                    </span><span class="kw">return </span><span class="prelude-val">Err</span>(<a href="lib.rs.html#425">PushError::Full</a>(<a href="#85">value</a>));
+                    </span><span class="kw">return </span><span class="prelude-val">Err</span>(PushError::Full(value));
                 }
 
                 <span class="comment">// Loom complains if there isn&#39;t an explicit busy wait here.
                 </span><span class="attr">#[cfg(loom)]
                 </span>busy_wait();
 
-                <a href="#86">tail</a> = <a class="self" href="#85">self</a>.tail.load(Ordering::Relaxed);
+                tail = <span class="self">self</span>.tail.load(Ordering::Relaxed);
             } <span class="kw">else </span>{
                 <span class="comment">// Yield because we need to wait for the stamp to get updated.
-                </span><a href="sync.rs.html#47">busy_wait</a>();
-                <a href="#86">tail</a> = <a class="self" href="#85">self</a>.tail.load(Ordering::Relaxed);
+                </span>busy_wait();
+                tail = <span class="self">self</span>.tail.load(Ordering::Relaxed);
             }
         }
     }
 
     <span class="doccomment">/// Attempts to pop an item from the queue.
-    </span><span class="kw">pub fn </span>pop(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;T, <a href="lib.rs.html#374">PopError</a>&gt; {
-        <span class="kw">let </span><span class="kw-2">mut </span>head = <a class="self" href="#157">self</a>.head.load(Ordering::Relaxed);
+    </span><span class="kw">pub fn </span>pop(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;T, PopError&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>head = <span class="self">self</span>.head.load(Ordering::Relaxed);
 
         <span class="kw">loop </span>{
             <span class="comment">// Deconstruct the head.
-            </span><span class="kw">let </span>index = <a href="#158">head</a> &amp; (<a class="self" href="#157">self</a>.mark_bit - <span class="number">1</span>);
-            <span class="kw">let </span>lap = <a href="#158">head</a> &amp; !(<a class="self" href="#157">self</a>.one_lap - <span class="number">1</span>);
+            </span><span class="kw">let </span>index = head &amp; (<span class="self">self</span>.mark_bit - <span class="number">1</span>);
+            <span class="kw">let </span>lap = head &amp; !(<span class="self">self</span>.one_lap - <span class="number">1</span>);
 
             <span class="comment">// Inspect the corresponding slot.
-            </span><span class="kw">let </span>slot = <span class="kw-2">&amp;</span><a class="self" href="#157">self</a>.buffer[<a href="#162">index</a>];
-            <span class="kw">let </span>stamp = <a href="#166">slot</a>.stamp.load(Ordering::Acquire);
+            </span><span class="kw">let </span>slot = <span class="kw-2">&amp;</span><span class="self">self</span>.buffer[index];
+            <span class="kw">let </span>stamp = slot.stamp.load(Ordering::Acquire);
 
             <span class="comment">// If the the stamp is ahead of the head by 1, we may attempt to pop.
             </span><span class="kw">if </span>head + <span class="number">1 </span>== stamp {
                 <span class="kw">let </span>new = <span class="kw">if </span>index + <span class="number">1 </span>&lt; <span class="self">self</span>.buffer.len() {
                     <span class="comment">// Same lap, incremented index.
                     // Set to `{ lap: lap, mark: 0, index: index + 1 }`.
-                    </span><a href="#158">head</a> + <span class="number">1
+                    </span>head + <span class="number">1
                 </span>} <span class="kw">else </span>{
                     <span class="comment">// One lap forward, index wraps around to zero.
                     // Set to `{ lap: lap.wrapping_add(1), mark: 0, index: 0 }`.
-                    </span><a href="#163">lap</a>.wrapping_add(<a class="self" href="#157">self</a>.one_lap)
+                    </span>lap.wrapping_add(<span class="self">self</span>.one_lap)
                 };
 
                 <span class="comment">// Try moving the head.
-                </span><span class="kw">match </span><a class="self" href="#157">self</a>.head.compare_exchange_weak(
-                    <a href="#158">head</a>,
-                    <a href="#171">new</a>,
+                </span><span class="kw">match </span><span class="self">self</span>.head.compare_exchange_weak(
+                    head,
+                    new,
                     Ordering::SeqCst,
                     Ordering::Relaxed,
                 ) {
                     <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; {
                         <span class="comment">// Read the value from the slot and update the stamp.
-                        </span><span class="kw">let </span>value = <a href="#166">slot</a>
+                        </span><span class="kw">let </span>value = slot
                             .value
-                            .<a href="sync.rs.html#70-72">with_mut</a>(|slot| <span class="kw">unsafe </span>{ <a href="#192">slot</a>.read().assume_init() });
-                        <a href="#166">slot</a>.stamp
-                            .store(<a href="#158">head</a>.wrapping_add(<a class="self" href="#157">self</a>.one_lap), Ordering::Release);
-                        <span class="kw">return </span><span class="prelude-val">Ok</span>(<a href="#190">value</a>);
+                            .with_mut(|slot| <span class="kw">unsafe </span>{ slot.read().assume_init() });
+                        slot.stamp
+                            .store(head.wrapping_add(<span class="self">self</span>.one_lap), Ordering::Release);
+                        <span class="kw">return </span><span class="prelude-val">Ok</span>(value);
                     }
                     <span class="prelude-val">Err</span>(h) =&gt; {
-                        <a href="#158">head</a> = <a href="#197">h</a>;
+                        head = h;
                     }
                 }
             } <span class="kw">else if </span>stamp == head {
-                <a href="lib.rs.html#480"><span class="kw">crate</span>::full_fence</a>();
-                <span class="kw">let </span>tail = <a class="self" href="#157">self</a>.tail.load(Ordering::Relaxed);
+                <span class="kw">crate</span>::full_fence();
+                <span class="kw">let </span>tail = <span class="self">self</span>.tail.load(Ordering::Relaxed);
 
                 <span class="comment">// If the tail equals the head, that means the queue is empty.
                 </span><span class="kw">if </span>(tail &amp; !<span class="self">self</span>.mark_bit) == head {
                     <span class="comment">// Check if the queue is closed.
                     </span><span class="kw">if </span>tail &amp; <span class="self">self</span>.mark_bit != <span class="number">0 </span>{
-                        <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="lib.rs.html#379">PopError::Closed</a>);
+                        <span class="kw">return </span><span class="prelude-val">Err</span>(PopError::Closed);
                     } <span class="kw">else </span>{
-                        <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="lib.rs.html#376">PopError::Empty</a>);
+                        <span class="kw">return </span><span class="prelude-val">Err</span>(PopError::Empty);
                     }
                 }
 
@@ -559,84 +559,84 @@
                 </span><span class="attr">#[cfg(loom)]
                 </span>busy_wait();
 
-                <a href="#158">head</a> = <a class="self" href="#157">self</a>.head.load(Ordering::Relaxed);
+                head = <span class="self">self</span>.head.load(Ordering::Relaxed);
             } <span class="kw">else </span>{
                 <span class="comment">// Yield because we need to wait for the stamp to get updated.
-                </span><a href="sync.rs.html#47">busy_wait</a>();
-                <a href="#158">head</a> = <a class="self" href="#157">self</a>.head.load(Ordering::Relaxed);
+                </span>busy_wait();
+                head = <span class="self">self</span>.head.load(Ordering::Relaxed);
             }
         }
     }
 
     <span class="doccomment">/// Returns the number of items in the queue.
-    </span><span class="kw">pub fn </span>len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
+    </span><span class="kw">pub fn </span>len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
         <span class="kw">loop </span>{
             <span class="comment">// Load the tail, then load the head.
-            </span><span class="kw">let </span>tail = <a class="self" href="#229">self</a>.tail.load(Ordering::SeqCst);
-            <span class="kw">let </span>head = <a class="self" href="#229">self</a>.head.load(Ordering::SeqCst);
+            </span><span class="kw">let </span>tail = <span class="self">self</span>.tail.load(Ordering::SeqCst);
+            <span class="kw">let </span>head = <span class="self">self</span>.head.load(Ordering::SeqCst);
 
             <span class="comment">// If the tail didn&#39;t change, we&#39;ve got consistent values to work with.
             </span><span class="kw">if </span><span class="self">self</span>.tail.load(Ordering::SeqCst) == tail {
-                <span class="kw">let </span>hix = <a href="#233">head</a> &amp; (<a class="self" href="#229">self</a>.mark_bit - <span class="number">1</span>);
-                <span class="kw">let </span>tix = <a href="#232">tail</a> &amp; (<a class="self" href="#229">self</a>.mark_bit - <span class="number">1</span>);
+                <span class="kw">let </span>hix = head &amp; (<span class="self">self</span>.mark_bit - <span class="number">1</span>);
+                <span class="kw">let </span>tix = tail &amp; (<span class="self">self</span>.mark_bit - <span class="number">1</span>);
 
                 <span class="kw">return if </span>hix &lt; tix {
-                    <a href="#238">tix</a> - <a href="#237">hix</a>
+                    tix - hix
                 } <span class="kw">else if </span>hix &gt; tix {
-                    <a class="self" href="#229">self</a>.buffer.len() - <a href="#237">hix</a> + <a href="#238">tix</a>
+                    <span class="self">self</span>.buffer.len() - hix + tix
                 } <span class="kw">else if </span>(tail &amp; !<span class="self">self</span>.mark_bit) == head {
                     <span class="number">0
                 </span>} <span class="kw">else </span>{
-                    <a class="self" href="#229">self</a>.buffer.len()
+                    <span class="self">self</span>.buffer.len()
                 };
             }
         }
     }
 
     <span class="doccomment">/// Returns `true` if the queue is empty.
-    </span><span class="kw">pub fn </span>is_empty(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">let </span>head = <a class="self" href="#254">self</a>.head.load(Ordering::SeqCst);
-        <span class="kw">let </span>tail = <a class="self" href="#254">self</a>.tail.load(Ordering::SeqCst);
+    </span><span class="kw">pub fn </span>is_empty(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="kw">let </span>head = <span class="self">self</span>.head.load(Ordering::SeqCst);
+        <span class="kw">let </span>tail = <span class="self">self</span>.tail.load(Ordering::SeqCst);
 
         <span class="comment">// Is the tail equal to the head?
         //
         // Note: If the head changes just before we load the tail, that means there was a moment
         // when the queue was not empty, so it is safe to just return `false`.
-        </span>(<a href="#256">tail</a> &amp; !<a class="self" href="#254">self</a>.mark_bit) == <a href="#255">head</a>
+        </span>(tail &amp; !<span class="self">self</span>.mark_bit) == head
     }
 
     <span class="doccomment">/// Returns `true` if the queue is full.
-    </span><span class="kw">pub fn </span>is_full(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">let </span>tail = <a class="self" href="#266">self</a>.tail.load(Ordering::SeqCst);
-        <span class="kw">let </span>head = <a class="self" href="#266">self</a>.head.load(Ordering::SeqCst);
+    </span><span class="kw">pub fn </span>is_full(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="kw">let </span>tail = <span class="self">self</span>.tail.load(Ordering::SeqCst);
+        <span class="kw">let </span>head = <span class="self">self</span>.head.load(Ordering::SeqCst);
 
         <span class="comment">// Is the head lagging one lap behind tail?
         //
         // Note: If the tail changes just before we load the head, that means there was a moment
         // when the queue was not full, so it is safe to just return `false`.
-        </span><a href="#268">head</a>.wrapping_add(<a class="self" href="#266">self</a>.one_lap) == <a href="#267">tail</a> &amp; !<a class="self" href="#266">self</a>.mark_bit
+        </span>head.wrapping_add(<span class="self">self</span>.one_lap) == tail &amp; !<span class="self">self</span>.mark_bit
     }
 
     <span class="doccomment">/// Returns the capacity of the queue.
-    </span><span class="kw">pub fn </span>capacity(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="self" href="#278">self</a>.buffer.len()
+    </span><span class="kw">pub fn </span>capacity(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+        <span class="self">self</span>.buffer.len()
     }
 
     <span class="doccomment">/// Closes the queue.
     ///
     /// Returns `true` if this call closed the queue.
-    </span><span class="kw">pub fn </span>close(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">let </span>tail = <a class="self" href="#285">self</a>.tail.fetch_or(<a class="self" href="#285">self</a>.mark_bit, Ordering::SeqCst);
-        <a href="#286">tail</a> &amp; <a class="self" href="#285">self</a>.mark_bit == <span class="number">0
+    </span><span class="kw">pub fn </span>close(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="kw">let </span>tail = <span class="self">self</span>.tail.fetch_or(<span class="self">self</span>.mark_bit, Ordering::SeqCst);
+        tail &amp; <span class="self">self</span>.mark_bit == <span class="number">0
     </span>}
 
     <span class="doccomment">/// Returns `true` if the queue is closed.
-    </span><span class="kw">pub fn </span>is_closed(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#291">self</a>.tail.load(Ordering::SeqCst) &amp; <a class="self" href="#291">self</a>.mark_bit != <span class="number">0
+    </span><span class="kw">pub fn </span>is_closed(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.tail.load(Ordering::SeqCst) &amp; <span class="self">self</span>.mark_bit != <span class="number">0
     </span>}
 }
 
-<span class="kw">impl</span>&lt;T&gt; <a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span>Bounded&lt;T&gt; {
+<span class="kw">impl</span>&lt;T&gt; Drop <span class="kw">for </span>Bounded&lt;T&gt; {
     <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="comment">// Get the index of the head.
         </span><span class="kw">let </span><span class="self">Self </span>{
@@ -645,23 +645,23 @@
             buffer,
             mark_bit,
             ..
-        } = <a class="self" href="#297">self</a>;
+        } = <span class="self">self</span>;
 
-        <span class="kw">let </span>mark_bit = <span class="kw-2">*</span><a href="#303">mark_bit</a>;
+        <span class="kw">let </span>mark_bit = <span class="kw-2">*</span>mark_bit;
 
-        <a href="#300">head</a>.<a href="sync.rs.html#97-99">with_mut</a>(|<span class="kw-2">&amp;mut </span>head| {
-            <a href="#301">tail</a>.<a href="sync.rs.html#97-99">with_mut</a>(|<span class="kw-2">&amp;mut </span>tail| {
-                <span class="kw">let </span>hix = <a href="#309">head</a> &amp; (<a href="#307">mark_bit</a> - <span class="number">1</span>);
-                <span class="kw">let </span>tix = <a href="#310">tail</a> &amp; (<a href="#307">mark_bit</a> - <span class="number">1</span>);
+        head.with_mut(|<span class="kw-2">&amp;mut </span>head| {
+            tail.with_mut(|<span class="kw-2">&amp;mut </span>tail| {
+                <span class="kw">let </span>hix = head &amp; (mark_bit - <span class="number">1</span>);
+                <span class="kw">let </span>tix = tail &amp; (mark_bit - <span class="number">1</span>);
 
                 <span class="kw">let </span>len = <span class="kw">if </span>hix &lt; tix {
-                    <a href="#312">tix</a> - <a href="#311">hix</a>
+                    tix - hix
                 } <span class="kw">else if </span>hix &gt; tix {
-                    <a href="#302">buffer</a>.len() - <a href="#311">hix</a> + <a href="#312">tix</a>
+                    buffer.len() - hix + tix
                 } <span class="kw">else if </span>(tail &amp; !mark_bit) == head {
                     <span class="number">0
                 </span>} <span class="kw">else </span>{
-                    <a href="#302">buffer</a>.len()
+                    buffer.len()
                 };
 
                 <span class="comment">// Loop over all slots that hold a value and drop them.
@@ -685,4 +685,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="concurrent_queue" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="concurrent_queue" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

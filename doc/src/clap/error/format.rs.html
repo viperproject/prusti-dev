@@ -1,5 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/clap-4.0.26/src/error/format.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>format.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../clap/index.html">
-                        <img src="https://raw.githubusercontent.com/clap-rs/clap/master/assets/clap.png" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/clap-4.0.32/src/error/format.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>format.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../clap/index.html">
+                        <img src="https://raw.githubusercontent.com/clap-rs/clap/master/assets/clap.png" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -444,19 +444,19 @@
 #![cfg_attr(not(feature = <span class="string">&quot;error-context&quot;</span>), allow(dead_code))]
 #![cfg_attr(not(feature = <span class="string">&quot;error-context&quot;</span>), allow(unused_imports))]
 
-</span><span class="kw">use </span><a href="../builder/command.rs.html#71"><span class="kw">crate</span>::builder::Command</a>;
-<span class="kw">use </span><a href="../builder/styled_str.rs.html#3"><span class="kw">crate</span>::builder::StyledStr</a>;
+</span><span class="kw">use </span><span class="kw">crate</span>::builder::Command;
+<span class="kw">use </span><span class="kw">crate</span>::builder::StyledStr;
 <span class="attr">#[cfg(feature = <span class="string">&quot;error-context&quot;</span>)]
-</span><span class="kw">use </span><a href="context.rs.html#5"><span class="kw">crate</span>::error::ContextKind</a>;
+</span><span class="kw">use </span><span class="kw">crate</span>::error::ContextKind;
 <span class="attr">#[cfg(feature = <span class="string">&quot;error-context&quot;</span>)]
-</span><span class="kw">use </span><a href="context.rs.html#77"><span class="kw">crate</span>::error::ContextValue</a>;
-<span class="kw">use </span><a href="kind.rs.html#4"><span class="kw">crate</span>::error::ErrorKind</a>;
-<span class="kw">use </span><a href="../output/mod.rs.html#21"><span class="kw">crate</span>::output::TAB</a>;
+</span><span class="kw">use </span><span class="kw">crate</span>::error::ContextValue;
+<span class="kw">use </span><span class="kw">crate</span>::error::ErrorKind;
+<span class="kw">use </span><span class="kw">crate</span>::output::TAB;
 
 <span class="doccomment">/// Defines how to format an error for displaying to the user
-</span><span class="kw">pub trait </span>ErrorFormatter: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> {
+</span><span class="kw">pub trait </span>ErrorFormatter: Sized {
     <span class="doccomment">/// Stylize the error for the terminal
-    </span><span class="kw">fn </span>format_error(error: <span class="kw-2">&amp;</span><span class="kw">crate</span>::error::Error&lt;<span class="self">Self</span>&gt;) -&gt; <a href="../builder/styled_str.rs.html#3">StyledStr</a>;
+    </span><span class="kw">fn </span>format_error(error: <span class="kw-2">&amp;</span><span class="kw">crate</span>::error::Error&lt;<span class="self">Self</span>&gt;) -&gt; StyledStr;
 }
 
 <span class="doccomment">/// Report [`ErrorKind`]
@@ -468,19 +468,19 @@
 </span><span class="attr">#[non_exhaustive]
 </span><span class="kw">pub struct </span>KindFormatter;
 
-<span class="kw">impl </span><a href="#16">ErrorFormatter</a> <span class="kw">for </span><a href="#28">KindFormatter</a> {
-    <span class="kw">fn </span>format_error(error: <span class="kw-2">&amp;</span><span class="kw">crate</span>::error::Error&lt;<span class="self">Self</span>&gt;) -&gt; <a href="../builder/styled_str.rs.html#3">StyledStr</a> {
+<span class="kw">impl </span>ErrorFormatter <span class="kw">for </span>KindFormatter {
+    <span class="kw">fn </span>format_error(error: <span class="kw-2">&amp;</span><span class="kw">crate</span>::error::Error&lt;<span class="self">Self</span>&gt;) -&gt; StyledStr {
         <span class="kw">let </span><span class="kw-2">mut </span>styled = StyledStr::new();
-        <a href="#99">start_error</a>(<span class="kw-2">&amp;mut </span><a href="#32">styled</a>);
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(msg) = <a href="#31">error</a>.<a href="mod.rs.html#173">kind</a>().<a href="kind.rs.html#317">as_str</a>() {
-            <a href="#32">styled</a>.<a href="../builder/styled_str.rs.html#62">none</a>(<a href="#34">msg</a>.<a href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">to_owned</a>());
-        } <span class="kw">else if let </span><span class="prelude-val">Some</span>(source) = <a href="#31">error</a>.inner.source.as_ref() {
-            <a href="#32">styled</a>.<a href="../builder/styled_str.rs.html#62">none</a>(<a href="#36">source</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
+        start_error(<span class="kw-2">&amp;mut </span>styled);
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(msg) = error.kind().as_str() {
+            styled.none(msg.to_owned());
+        } <span class="kw">else if let </span><span class="prelude-val">Some</span>(source) = error.inner.source.as_ref() {
+            styled.none(source.to_string());
         } <span class="kw">else </span>{
-            <a href="#32">styled</a>.<a href="../builder/styled_str.rs.html#62">none</a>(<span class="string">&quot;Unknown cause&quot;</span>);
+            styled.none(<span class="string">&quot;Unknown cause&quot;</span>);
         }
-        <a href="#32">styled</a>.<a href="../builder/styled_str.rs.html#62">none</a>(<span class="string">&quot;\n&quot;</span>);
-        <a href="#32">styled</a>
+        styled.none(<span class="string">&quot;\n&quot;</span>);
+        styled
     }
 }
 
@@ -490,35 +490,35 @@
 </span><span class="kw">pub struct </span>RichFormatter;
 
 <span class="attr">#[cfg(feature = <span class="string">&quot;error-context&quot;</span>)]
-</span><span class="kw">impl </span><a href="#16">ErrorFormatter</a> <span class="kw">for </span><a href="#49">RichFormatter</a> {
-    <span class="kw">fn </span>format_error(error: <span class="kw-2">&amp;</span><span class="kw">crate</span>::error::Error&lt;<span class="self">Self</span>&gt;) -&gt; <a href="../builder/styled_str.rs.html#3">StyledStr</a> {
+</span><span class="kw">impl </span>ErrorFormatter <span class="kw">for </span>RichFormatter {
+    <span class="kw">fn </span>format_error(error: <span class="kw-2">&amp;</span><span class="kw">crate</span>::error::Error&lt;<span class="self">Self</span>&gt;) -&gt; StyledStr {
         <span class="kw">let </span><span class="kw-2">mut </span>styled = StyledStr::new();
-        <a href="#99">start_error</a>(<span class="kw-2">&amp;mut </span><a href="#54">styled</a>);
+        start_error(<span class="kw-2">&amp;mut </span>styled);
 
         <span class="kw">if </span>!write_dynamic_context(error, <span class="kw-2">&amp;mut </span>styled) {
-            <span class="kw">if let </span><span class="prelude-val">Some</span>(msg) = <a href="#53">error</a>.<a href="mod.rs.html#173">kind</a>().<a href="kind.rs.html#317">as_str</a>() {
-                <a href="#54">styled</a>.<a href="../builder/styled_str.rs.html#62">none</a>(<a href="#58">msg</a>.<a href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">to_owned</a>());
-            } <span class="kw">else if let </span><span class="prelude-val">Some</span>(source) = <a href="#53">error</a>.inner.source.as_ref() {
-                <a href="#54">styled</a>.<a href="../builder/styled_str.rs.html#62">none</a>(<a href="#60">source</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(msg) = error.kind().as_str() {
+                styled.none(msg.to_owned());
+            } <span class="kw">else if let </span><span class="prelude-val">Some</span>(source) = error.inner.source.as_ref() {
+                styled.none(source.to_string());
             } <span class="kw">else </span>{
-                <a href="#54">styled</a>.<a href="../builder/styled_str.rs.html#62">none</a>(<span class="string">&quot;Unknown cause&quot;</span>);
+                styled.none(<span class="string">&quot;Unknown cause&quot;</span>);
             }
         }
 
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(valid) = <a href="#53">error</a>.<a href="mod.rs.html#186">get</a>(<a href="context.rs.html#27">ContextKind::SuggestedSubcommand</a>) {
-            <a href="#54">styled</a>.<a href="../builder/styled_str.rs.html#62">none</a>(<span class="string">&quot;\n\n&quot;</span>);
-            <a href="#412">did_you_mean</a>(<span class="kw-2">&amp;mut </span><a href="#54">styled</a>, <a href="#67">valid</a>);
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(valid) = error.get(ContextKind::SuggestedSubcommand) {
+            styled.none(<span class="string">&quot;\n\n&quot;</span>);
+            did_you_mean(<span class="kw-2">&amp;mut </span>styled, valid);
         }
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(valid) = <a href="#53">error</a>.<a href="mod.rs.html#186">get</a>(<a href="context.rs.html#29">ContextKind::SuggestedArg</a>) {
-            <a href="#54">styled</a>.<a href="../builder/styled_str.rs.html#62">none</a>(<span class="string">&quot;\n\n&quot;</span>);
-            <a href="#412">did_you_mean</a>(<span class="kw-2">&amp;mut </span><a href="#54">styled</a>, <a href="#71">valid</a>);
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(valid) = error.get(ContextKind::SuggestedArg) {
+            styled.none(<span class="string">&quot;\n\n&quot;</span>);
+            did_you_mean(<span class="kw-2">&amp;mut </span>styled, valid);
         }
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(valid) = <a href="#53">error</a>.<a href="mod.rs.html#186">get</a>(<a href="context.rs.html#31">ContextKind::SuggestedValue</a>) {
-            <a href="#54">styled</a>.<a href="../builder/styled_str.rs.html#62">none</a>(<span class="string">&quot;\n\n&quot;</span>);
-            <a href="#412">did_you_mean</a>(<span class="kw-2">&amp;mut </span><a href="#54">styled</a>, <a href="#75">valid</a>);
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(valid) = error.get(ContextKind::SuggestedValue) {
+            styled.none(<span class="string">&quot;\n\n&quot;</span>);
+            did_you_mean(<span class="kw-2">&amp;mut </span>styled, valid);
         }
-        <span class="kw">let </span>suggestions = <a href="#53">error</a>.<a href="mod.rs.html#186">get</a>(<a href="context.rs.html#35">ContextKind::Suggested</a>);
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(<a href="context.rs.html#89">ContextValue::StyledStrs</a>(suggestions)) = <a href="#79">suggestions</a> {
+        <span class="kw">let </span>suggestions = error.get(ContextKind::Suggested);
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(ContextValue::StyledStrs(suggestions)) = suggestions {
             <span class="kw">for </span>suggestion <span class="kw">in </span>suggestions {
                 styled.none(<span class="string">&quot;\n\n&quot;</span>);
                 styled.none(TAB);
@@ -526,57 +526,57 @@
             }
         }
 
-        <span class="kw">let </span>usage = <a href="#53">error</a>.<a href="mod.rs.html#186">get</a>(<a href="context.rs.html#37">ContextKind::Usage</a>);
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(<a href="context.rs.html#87">ContextValue::StyledStr</a>(usage)) = <a href="#88">usage</a> {
-            <a href="#386">put_usage</a>(<span class="kw-2">&amp;mut </span><a href="#54">styled</a>, <a href="#89">usage</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
+        <span class="kw">let </span>usage = error.get(ContextKind::Usage);
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(ContextValue::StyledStr(usage)) = usage {
+            put_usage(<span class="kw-2">&amp;mut </span>styled, usage.clone());
         }
 
-        <a href="#401">try_help</a>(<span class="kw-2">&amp;mut </span><a href="#54">styled</a>, <a href="#53">error</a>.inner.help_flag);
+        try_help(<span class="kw-2">&amp;mut </span>styled, error.inner.help_flag);
 
-        <a href="#54">styled</a>
+        styled
     }
 }
 
-<span class="kw">fn </span>start_error(styled: <span class="kw-2">&amp;mut </span><a href="../builder/styled_str.rs.html#3">StyledStr</a>) {
-    <a href="#99">styled</a>.<a href="../builder/styled_str.rs.html#53">error</a>(<span class="string">&quot;error:&quot;</span>);
-    <a href="#99">styled</a>.<a href="../builder/styled_str.rs.html#62">none</a>(<span class="string">&quot; &quot;</span>);
+<span class="kw">fn </span>start_error(styled: <span class="kw-2">&amp;mut </span>StyledStr) {
+    styled.error(<span class="string">&quot;error:&quot;</span>);
+    styled.none(<span class="string">&quot; &quot;</span>);
 }
 
 <span class="attr">#[must_use]
 #[cfg(feature = <span class="string">&quot;error-context&quot;</span>)]
-</span><span class="kw">fn </span>write_dynamic_context(error: <span class="kw-2">&amp;</span><a href="mod.rs.html#59"><span class="kw">crate</span>::error::Error</a>, styled: <span class="kw-2">&amp;mut </span><a href="../builder/styled_str.rs.html#3">StyledStr</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-    <span class="kw">match </span><a href="#106">error</a>.<a href="mod.rs.html#173">kind</a>() {
-        <a href="kind.rs.html#174">ErrorKind::ArgumentConflict</a> =&gt; {
-            <span class="kw">let </span>invalid_arg = <a href="#106">error</a>.<a href="mod.rs.html#186">get</a>(<a href="context.rs.html#9">ContextKind::InvalidArg</a>);
-            <span class="kw">let </span>prior_arg = <a href="#106">error</a>.<a href="mod.rs.html#186">get</a>(<a href="context.rs.html#11">ContextKind::PriorArg</a>);
-            <span class="kw">if let </span>(<span class="prelude-val">Some</span>(<a href="context.rs.html#83">ContextValue::String</a>(invalid_arg)), <span class="prelude-val">Some</span>(prior_arg)) =
-                (<a href="#109">invalid_arg</a>, <a href="#110">prior_arg</a>)
+</span><span class="kw">fn </span>write_dynamic_context(error: <span class="kw-2">&amp;</span><span class="kw">crate</span>::error::Error, styled: <span class="kw-2">&amp;mut </span>StyledStr) -&gt; bool {
+    <span class="kw">match </span>error.kind() {
+        ErrorKind::ArgumentConflict =&gt; {
+            <span class="kw">let </span>invalid_arg = error.get(ContextKind::InvalidArg);
+            <span class="kw">let </span>prior_arg = error.get(ContextKind::PriorArg);
+            <span class="kw">if let </span>(<span class="prelude-val">Some</span>(ContextValue::String(invalid_arg)), <span class="prelude-val">Some</span>(prior_arg)) =
+                (invalid_arg, prior_arg)
             {
                 <span class="kw">if </span>ContextValue::String(invalid_arg.clone()) == <span class="kw-2">*</span>prior_arg {
-                    <a href="#106">styled</a>.<a href="../builder/styled_str.rs.html#62">none</a>(<span class="string">&quot;The argument &#39;&quot;</span>);
-                    <a href="#106">styled</a>.<a href="../builder/styled_str.rs.html#49">warning</a>(<a href="#111">invalid_arg</a>);
-                    <a href="#106">styled</a>.<a href="../builder/styled_str.rs.html#62">none</a>(<span class="string">&quot;&#39; was provided more than once, but cannot be used multiple times&quot;</span>);
+                    styled.none(<span class="string">&quot;The argument &#39;&quot;</span>);
+                    styled.warning(invalid_arg);
+                    styled.none(<span class="string">&quot;&#39; was provided more than once, but cannot be used multiple times&quot;</span>);
                 } <span class="kw">else </span>{
-                    <a href="#106">styled</a>.<a href="../builder/styled_str.rs.html#62">none</a>(<span class="string">&quot;The argument &#39;&quot;</span>);
-                    <a href="#106">styled</a>.<a href="../builder/styled_str.rs.html#49">warning</a>(<a href="#111">invalid_arg</a>);
-                    <a href="#106">styled</a>.<a href="../builder/styled_str.rs.html#62">none</a>(<span class="string">&quot;&#39; cannot be used with&quot;</span>);
+                    styled.none(<span class="string">&quot;The argument &#39;&quot;</span>);
+                    styled.warning(invalid_arg);
+                    styled.none(<span class="string">&quot;&#39; cannot be used with&quot;</span>);
 
-                    <span class="kw">match </span><a href="#111">prior_arg</a> {
-                        <a href="context.rs.html#85">ContextValue::Strings</a>(values) =&gt; {
-                            <a href="#106">styled</a>.<a href="../builder/styled_str.rs.html#62">none</a>(<span class="string">&quot;:&quot;</span>);
+                    <span class="kw">match </span>prior_arg {
+                        ContextValue::Strings(values) =&gt; {
+                            styled.none(<span class="string">&quot;:&quot;</span>);
                             <span class="kw">for </span>v <span class="kw">in </span>values {
                                 styled.none(<span class="string">&quot;\n&quot;</span>);
                                 styled.none(TAB);
                                 styled.warning(<span class="kw-2">&amp;**</span>v);
                             }
                         }
-                        <a href="context.rs.html#83">ContextValue::String</a>(value) =&gt; {
-                            <a href="#106">styled</a>.<a href="../builder/styled_str.rs.html#62">none</a>(<span class="string">&quot; &#39;&quot;</span>);
-                            <a href="#106">styled</a>.<a href="../builder/styled_str.rs.html#49">warning</a>(<a href="#132">value</a>);
-                            <a href="#106">styled</a>.<a href="../builder/styled_str.rs.html#62">none</a>(<span class="string">&quot;&#39;&quot;</span>);
+                        ContextValue::String(value) =&gt; {
+                            styled.none(<span class="string">&quot; &#39;&quot;</span>);
+                            styled.warning(value);
+                            styled.none(<span class="string">&quot;&#39;&quot;</span>);
                         }
                         <span class="kw">_ </span>=&gt; {
-                            <a href="#106">styled</a>.<a href="../builder/styled_str.rs.html#62">none</a>(<span class="string">&quot; one or more of the other specified arguments&quot;</span>);
+                            styled.none(<span class="string">&quot; one or more of the other specified arguments&quot;</span>);
                         }
                     }
                 }
@@ -585,51 +585,51 @@
                 <span class="bool-val">false
             </span>}
         }
-        <a href="kind.rs.html#73">ErrorKind::NoEquals</a> =&gt; {
-            <span class="kw">let </span>invalid_arg = <a href="#106">error</a>.<a href="mod.rs.html#186">get</a>(<a href="context.rs.html#9">ContextKind::InvalidArg</a>);
-            <span class="kw">if let </span><span class="prelude-val">Some</span>(<a href="context.rs.html#83">ContextValue::String</a>(invalid_arg)) = <a href="#148">invalid_arg</a> {
-                <a href="#106">styled</a>.<a href="../builder/styled_str.rs.html#62">none</a>(<span class="string">&quot;Equal sign is needed when assigning values to &#39;&quot;</span>);
-                <a href="#106">styled</a>.<a href="../builder/styled_str.rs.html#49">warning</a>(<a href="#149">invalid_arg</a>);
-                <a href="#106">styled</a>.<a href="../builder/styled_str.rs.html#62">none</a>(<span class="string">&quot;&#39;&quot;</span>);
+        ErrorKind::NoEquals =&gt; {
+            <span class="kw">let </span>invalid_arg = error.get(ContextKind::InvalidArg);
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(ContextValue::String(invalid_arg)) = invalid_arg {
+                styled.none(<span class="string">&quot;Equal sign is needed when assigning values to &#39;&quot;</span>);
+                styled.warning(invalid_arg);
+                styled.none(<span class="string">&quot;&#39;&quot;</span>);
                 <span class="bool-val">true
             </span>} <span class="kw">else </span>{
                 <span class="bool-val">false
             </span>}
         }
-        <a href="kind.rs.html#19">ErrorKind::InvalidValue</a> =&gt; {
-            <span class="kw">let </span>invalid_arg = <a href="#106">error</a>.<a href="mod.rs.html#186">get</a>(<a href="context.rs.html#9">ContextKind::InvalidArg</a>);
-            <span class="kw">let </span>invalid_value = <a href="#106">error</a>.<a href="mod.rs.html#186">get</a>(<a href="context.rs.html#17">ContextKind::InvalidValue</a>);
+        ErrorKind::InvalidValue =&gt; {
+            <span class="kw">let </span>invalid_arg = error.get(ContextKind::InvalidArg);
+            <span class="kw">let </span>invalid_value = error.get(ContextKind::InvalidValue);
             <span class="kw">if let </span>(
-                <span class="prelude-val">Some</span>(<a href="context.rs.html#83">ContextValue::String</a>(invalid_arg)),
-                <span class="prelude-val">Some</span>(<a href="context.rs.html#83">ContextValue::String</a>(invalid_value)),
-            ) = (<a href="#159">invalid_arg</a>, <a href="#160">invalid_value</a>)
+                <span class="prelude-val">Some</span>(ContextValue::String(invalid_arg)),
+                <span class="prelude-val">Some</span>(ContextValue::String(invalid_value)),
+            ) = (invalid_arg, invalid_value)
             {
                 <span class="kw">if </span>invalid_value.is_empty() {
-                    <a href="#106">styled</a>.<a href="../builder/styled_str.rs.html#62">none</a>(<span class="string">&quot;The argument &#39;&quot;</span>);
-                    <a href="#106">styled</a>.<a href="../builder/styled_str.rs.html#49">warning</a>(<a href="#162">invalid_arg</a>);
-                    <a href="#106">styled</a>.<a href="../builder/styled_str.rs.html#62">none</a>(<span class="string">&quot;&#39; requires a value but none was supplied&quot;</span>);
+                    styled.none(<span class="string">&quot;The argument &#39;&quot;</span>);
+                    styled.warning(invalid_arg);
+                    styled.none(<span class="string">&quot;&#39; requires a value but none was supplied&quot;</span>);
                 } <span class="kw">else </span>{
-                    <a href="#106">styled</a>.<a href="../builder/styled_str.rs.html#62">none</a>(<span class="string">&quot;&#39;&quot;</span>);
-                    <a href="#106">styled</a>.<a href="../builder/styled_str.rs.html#62">none</a>(<a href="#163">invalid_value</a>);
-                    <a href="#106">styled</a>.<a href="../builder/styled_str.rs.html#62">none</a>(<span class="string">&quot;&#39; isn&#39;t a valid value for &#39;&quot;</span>);
-                    <a href="#106">styled</a>.<a href="../builder/styled_str.rs.html#49">warning</a>(<a href="#162">invalid_arg</a>);
-                    <a href="#106">styled</a>.<a href="../builder/styled_str.rs.html#62">none</a>(<span class="string">&quot;&#39;&quot;</span>);
+                    styled.none(<span class="string">&quot;&#39;&quot;</span>);
+                    styled.none(invalid_value);
+                    styled.none(<span class="string">&quot;&#39; isn&#39;t a valid value for &#39;&quot;</span>);
+                    styled.warning(invalid_arg);
+                    styled.none(<span class="string">&quot;&#39;&quot;</span>);
                 }
 
-                <span class="kw">let </span>possible_values = <a href="#106">error</a>.<a href="mod.rs.html#186">get</a>(<a href="context.rs.html#15">ContextKind::ValidValue</a>);
-                <span class="kw">if let </span><span class="prelude-val">Some</span>(<a href="context.rs.html#85">ContextValue::Strings</a>(possible_values)) = <a href="#178">possible_values</a> {
+                <span class="kw">let </span>possible_values = error.get(ContextKind::ValidValue);
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(ContextValue::Strings(possible_values)) = possible_values {
                     <span class="kw">if </span>!possible_values.is_empty() {
-                        <a href="#106">styled</a>.<a href="../builder/styled_str.rs.html#62">none</a>(<span class="string">&quot;\n&quot;</span>);
-                        <a href="#106">styled</a>.<a href="../builder/styled_str.rs.html#62">none</a>(<a href="../output/mod.rs.html#21">TAB</a>);
-                        <a href="#106">styled</a>.<a href="../builder/styled_str.rs.html#62">none</a>(<span class="string">&quot;[possible values: &quot;</span>);
-                        <span class="kw">if let </span><span class="prelude-val">Some</span>((last, elements)) = <a href="#179">possible_values</a>.split_last() {
+                        styled.none(<span class="string">&quot;\n&quot;</span>);
+                        styled.none(TAB);
+                        styled.none(<span class="string">&quot;[possible values: &quot;</span>);
+                        <span class="kw">if let </span><span class="prelude-val">Some</span>((last, elements)) = possible_values.split_last() {
                             <span class="kw">for </span>v <span class="kw">in </span>elements {
                                 styled.good(escape(v));
                                 styled.none(<span class="string">&quot;, &quot;</span>);
                             }
-                            <a href="#106">styled</a>.<a href="../builder/styled_str.rs.html#44">good</a>(<a href="#433">escape</a>(<a href="#184">last</a>));
+                            styled.good(escape(last));
                         }
-                        <a href="#106">styled</a>.<a href="../builder/styled_str.rs.html#62">none</a>(<span class="string">&quot;]&quot;</span>);
+                        styled.none(<span class="string">&quot;]&quot;</span>);
                     }
                 }
                 <span class="bool-val">true
@@ -637,21 +637,21 @@
                 <span class="bool-val">false
             </span>}
         }
-        <a href="kind.rs.html#57">ErrorKind::InvalidSubcommand</a> =&gt; {
-            <span class="kw">let </span>invalid_sub = <a href="#106">error</a>.<a href="mod.rs.html#186">get</a>(<a href="context.rs.html#7">ContextKind::InvalidSubcommand</a>);
-            <span class="kw">if let </span><span class="prelude-val">Some</span>(<a href="context.rs.html#83">ContextValue::String</a>(invalid_sub)) = <a href="#200">invalid_sub</a> {
-                <a href="#106">styled</a>.<a href="../builder/styled_str.rs.html#62">none</a>(<span class="string">&quot;The subcommand &#39;&quot;</span>);
-                <a href="#106">styled</a>.<a href="../builder/styled_str.rs.html#49">warning</a>(<a href="#201">invalid_sub</a>);
-                <a href="#106">styled</a>.<a href="../builder/styled_str.rs.html#62">none</a>(<span class="string">&quot;&#39; wasn&#39;t recognized&quot;</span>);
+        ErrorKind::InvalidSubcommand =&gt; {
+            <span class="kw">let </span>invalid_sub = error.get(ContextKind::InvalidSubcommand);
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(ContextValue::String(invalid_sub)) = invalid_sub {
+                styled.none(<span class="string">&quot;The subcommand &#39;&quot;</span>);
+                styled.warning(invalid_sub);
+                styled.none(<span class="string">&quot;&#39; wasn&#39;t recognized&quot;</span>);
                 <span class="bool-val">true
             </span>} <span class="kw">else </span>{
                 <span class="bool-val">false
             </span>}
         }
-        <a href="kind.rs.html#189">ErrorKind::MissingRequiredArgument</a> =&gt; {
-            <span class="kw">let </span>invalid_arg = <a href="#106">error</a>.<a href="mod.rs.html#186">get</a>(<a href="context.rs.html#9">ContextKind::InvalidArg</a>);
-            <span class="kw">if let </span><span class="prelude-val">Some</span>(<a href="context.rs.html#85">ContextValue::Strings</a>(invalid_arg)) = <a href="#211">invalid_arg</a> {
-                <a href="#106">styled</a>.<a href="../builder/styled_str.rs.html#62">none</a>(<span class="string">&quot;The following required arguments were not provided:&quot;</span>);
+        ErrorKind::MissingRequiredArgument =&gt; {
+            <span class="kw">let </span>invalid_arg = error.get(ContextKind::InvalidArg);
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(ContextValue::Strings(invalid_arg)) = invalid_arg {
+                styled.none(<span class="string">&quot;The following required arguments were not provided:&quot;</span>);
                 <span class="kw">for </span>v <span class="kw">in </span>invalid_arg {
                     styled.none(<span class="string">&quot;\n&quot;</span>);
                     styled.none(TAB);
@@ -662,27 +662,27 @@
                 <span class="bool-val">false
             </span>}
         }
-        <a href="kind.rs.html#210">ErrorKind::MissingSubcommand</a> =&gt; {
-            <span class="kw">let </span>invalid_sub = <a href="#106">error</a>.<a href="mod.rs.html#186">get</a>(<a href="context.rs.html#7">ContextKind::InvalidSubcommand</a>);
-            <span class="kw">if let </span><span class="prelude-val">Some</span>(<a href="context.rs.html#83">ContextValue::String</a>(invalid_sub)) = <a href="#225">invalid_sub</a> {
-                <a href="#106">styled</a>.<a href="../builder/styled_str.rs.html#62">none</a>(<span class="string">&quot;&#39;&quot;</span>);
-                <a href="#106">styled</a>.<a href="../builder/styled_str.rs.html#49">warning</a>(<a href="#226">invalid_sub</a>);
-                <a href="#106">styled</a>.<a href="../builder/styled_str.rs.html#62">none</a>(<span class="string">&quot;&#39; requires a subcommand but one was not provided&quot;</span>);
+        ErrorKind::MissingSubcommand =&gt; {
+            <span class="kw">let </span>invalid_sub = error.get(ContextKind::InvalidSubcommand);
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(ContextValue::String(invalid_sub)) = invalid_sub {
+                styled.none(<span class="string">&quot;&#39;&quot;</span>);
+                styled.warning(invalid_sub);
+                styled.none(<span class="string">&quot;&#39; requires a subcommand but one was not provided&quot;</span>);
 
-                <span class="kw">let </span>possible_values = <a href="#106">error</a>.<a href="mod.rs.html#186">get</a>(<a href="context.rs.html#13">ContextKind::ValidSubcommand</a>);
-                <span class="kw">if let </span><span class="prelude-val">Some</span>(<a href="context.rs.html#85">ContextValue::Strings</a>(possible_values)) = <a href="#231">possible_values</a> {
+                <span class="kw">let </span>possible_values = error.get(ContextKind::ValidSubcommand);
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(ContextValue::Strings(possible_values)) = possible_values {
                     <span class="kw">if </span>!possible_values.is_empty() {
-                        <a href="#106">styled</a>.<a href="../builder/styled_str.rs.html#62">none</a>(<span class="string">&quot;\n&quot;</span>);
-                        <a href="#106">styled</a>.<a href="../builder/styled_str.rs.html#62">none</a>(<a href="../output/mod.rs.html#21">TAB</a>);
-                        <a href="#106">styled</a>.<a href="../builder/styled_str.rs.html#62">none</a>(<span class="string">&quot;[subcommands: &quot;</span>);
-                        <span class="kw">if let </span><span class="prelude-val">Some</span>((last, elements)) = <a href="#232">possible_values</a>.split_last() {
+                        styled.none(<span class="string">&quot;\n&quot;</span>);
+                        styled.none(TAB);
+                        styled.none(<span class="string">&quot;[subcommands: &quot;</span>);
+                        <span class="kw">if let </span><span class="prelude-val">Some</span>((last, elements)) = possible_values.split_last() {
                             <span class="kw">for </span>v <span class="kw">in </span>elements {
                                 styled.good(escape(v));
                                 styled.none(<span class="string">&quot;, &quot;</span>);
                             }
-                            <a href="#106">styled</a>.<a href="../builder/styled_str.rs.html#44">good</a>(<a href="#433">escape</a>(<a href="#237">last</a>));
+                            styled.good(escape(last));
                         }
-                        <a href="#106">styled</a>.<a href="../builder/styled_str.rs.html#62">none</a>(<span class="string">&quot;]&quot;</span>);
+                        styled.none(<span class="string">&quot;]&quot;</span>);
                     }
                 }
 
@@ -691,132 +691,132 @@
                 <span class="bool-val">false
             </span>}
         }
-        <a href="kind.rs.html#243">ErrorKind::InvalidUtf8</a> =&gt; <span class="bool-val">false</span>,
-        <a href="kind.rs.html#113">ErrorKind::TooManyValues</a> =&gt; {
-            <span class="kw">let </span>invalid_arg = <a href="#106">error</a>.<a href="mod.rs.html#186">get</a>(<a href="context.rs.html#9">ContextKind::InvalidArg</a>);
-            <span class="kw">let </span>invalid_value = <a href="#106">error</a>.<a href="mod.rs.html#186">get</a>(<a href="context.rs.html#17">ContextKind::InvalidValue</a>);
+        ErrorKind::InvalidUtf8 =&gt; <span class="bool-val">false</span>,
+        ErrorKind::TooManyValues =&gt; {
+            <span class="kw">let </span>invalid_arg = error.get(ContextKind::InvalidArg);
+            <span class="kw">let </span>invalid_value = error.get(ContextKind::InvalidValue);
             <span class="kw">if let </span>(
-                <span class="prelude-val">Some</span>(<a href="context.rs.html#83">ContextValue::String</a>(invalid_arg)),
-                <span class="prelude-val">Some</span>(<a href="context.rs.html#83">ContextValue::String</a>(invalid_value)),
-            ) = (<a href="#255">invalid_arg</a>, <a href="#256">invalid_value</a>)
+                <span class="prelude-val">Some</span>(ContextValue::String(invalid_arg)),
+                <span class="prelude-val">Some</span>(ContextValue::String(invalid_value)),
+            ) = (invalid_arg, invalid_value)
             {
-                <a href="#106">styled</a>.<a href="../builder/styled_str.rs.html#62">none</a>(<span class="string">&quot;The value &#39;&quot;</span>);
-                <a href="#106">styled</a>.<a href="../builder/styled_str.rs.html#49">warning</a>(<a href="#259">invalid_value</a>);
-                <a href="#106">styled</a>.<a href="../builder/styled_str.rs.html#62">none</a>(<span class="string">&quot;&#39; was provided to &#39;&quot;</span>);
-                <a href="#106">styled</a>.<a href="../builder/styled_str.rs.html#49">warning</a>(<a href="#258">invalid_arg</a>);
-                <a href="#106">styled</a>.<a href="../builder/styled_str.rs.html#62">none</a>(<span class="string">&quot;&#39; but it wasn&#39;t expecting any more values&quot;</span>);
+                styled.none(<span class="string">&quot;The value &#39;&quot;</span>);
+                styled.warning(invalid_value);
+                styled.none(<span class="string">&quot;&#39; was provided to &#39;&quot;</span>);
+                styled.warning(invalid_arg);
+                styled.none(<span class="string">&quot;&#39; but it wasn&#39;t expecting any more values&quot;</span>);
                 <span class="bool-val">true
             </span>} <span class="kw">else </span>{
                 <span class="bool-val">false
             </span>}
         }
-        <a href="kind.rs.html#131">ErrorKind::TooFewValues</a> =&gt; {
-            <span class="kw">let </span>invalid_arg = <a href="#106">error</a>.<a href="mod.rs.html#186">get</a>(<a href="context.rs.html#9">ContextKind::InvalidArg</a>);
-            <span class="kw">let </span>actual_num_values = <a href="#106">error</a>.<a href="mod.rs.html#186">get</a>(<a href="context.rs.html#19">ContextKind::ActualNumValues</a>);
-            <span class="kw">let </span>min_values = <a href="#106">error</a>.<a href="mod.rs.html#186">get</a>(<a href="context.rs.html#23">ContextKind::MinValues</a>);
+        ErrorKind::TooFewValues =&gt; {
+            <span class="kw">let </span>invalid_arg = error.get(ContextKind::InvalidArg);
+            <span class="kw">let </span>actual_num_values = error.get(ContextKind::ActualNumValues);
+            <span class="kw">let </span>min_values = error.get(ContextKind::MinValues);
             <span class="kw">if let </span>(
-                <span class="prelude-val">Some</span>(<a href="context.rs.html#83">ContextValue::String</a>(invalid_arg)),
-                <span class="prelude-val">Some</span>(<a href="context.rs.html#91">ContextValue::Number</a>(actual_num_values)),
-                <span class="prelude-val">Some</span>(<a href="context.rs.html#91">ContextValue::Number</a>(min_values)),
-            ) = (<a href="#273">invalid_arg</a>, <a href="#274">actual_num_values</a>, <a href="#275">min_values</a>)
+                <span class="prelude-val">Some</span>(ContextValue::String(invalid_arg)),
+                <span class="prelude-val">Some</span>(ContextValue::Number(actual_num_values)),
+                <span class="prelude-val">Some</span>(ContextValue::Number(min_values)),
+            ) = (invalid_arg, actual_num_values, min_values)
             {
-                <span class="kw">let </span>were_provided = <a href="#378">singular_or_plural</a>(<span class="kw-2">*</span><a href="#278">actual_num_values</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>);
-                <a href="#106">styled</a>.<a href="../builder/styled_str.rs.html#62">none</a>(<span class="string">&quot;The argument &#39;&quot;</span>);
-                <a href="#106">styled</a>.<a href="../builder/styled_str.rs.html#49">warning</a>(<a href="#277">invalid_arg</a>);
-                <a href="#106">styled</a>.<a href="../builder/styled_str.rs.html#62">none</a>(<span class="string">&quot;&#39; requires at least &quot;</span>);
-                <a href="#106">styled</a>.<a href="../builder/styled_str.rs.html#49">warning</a>(<a href="#279">min_values</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
-                <a href="#106">styled</a>.<a href="../builder/styled_str.rs.html#62">none</a>(<span class="string">&quot; values but only &quot;</span>);
-                <a href="#106">styled</a>.<a href="../builder/styled_str.rs.html#49">warning</a>(<a href="#278">actual_num_values</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
-                <a href="#106">styled</a>.<a href="../builder/styled_str.rs.html#62">none</a>(<a href="#282">were_provided</a>);
+                <span class="kw">let </span>were_provided = singular_or_plural(<span class="kw-2">*</span>actual_num_values <span class="kw">as </span>usize);
+                styled.none(<span class="string">&quot;The argument &#39;&quot;</span>);
+                styled.warning(invalid_arg);
+                styled.none(<span class="string">&quot;&#39; requires at least &quot;</span>);
+                styled.warning(min_values.to_string());
+                styled.none(<span class="string">&quot; values but only &quot;</span>);
+                styled.warning(actual_num_values.to_string());
+                styled.none(were_provided);
                 <span class="bool-val">true
             </span>} <span class="kw">else </span>{
                 <span class="bool-val">false
             </span>}
         }
-        <a href="kind.rs.html#96">ErrorKind::ValueValidation</a> =&gt; {
-            <span class="kw">let </span>invalid_arg = <a href="#106">error</a>.<a href="mod.rs.html#186">get</a>(<a href="context.rs.html#9">ContextKind::InvalidArg</a>);
-            <span class="kw">let </span>invalid_value = <a href="#106">error</a>.<a href="mod.rs.html#186">get</a>(<a href="context.rs.html#17">ContextKind::InvalidValue</a>);
+        ErrorKind::ValueValidation =&gt; {
+            <span class="kw">let </span>invalid_arg = error.get(ContextKind::InvalidArg);
+            <span class="kw">let </span>invalid_value = error.get(ContextKind::InvalidValue);
             <span class="kw">if let </span>(
-                <span class="prelude-val">Some</span>(<a href="context.rs.html#83">ContextValue::String</a>(invalid_arg)),
-                <span class="prelude-val">Some</span>(<a href="context.rs.html#83">ContextValue::String</a>(invalid_value)),
-            ) = (<a href="#296">invalid_arg</a>, <a href="#297">invalid_value</a>)
+                <span class="prelude-val">Some</span>(ContextValue::String(invalid_arg)),
+                <span class="prelude-val">Some</span>(ContextValue::String(invalid_value)),
+            ) = (invalid_arg, invalid_value)
             {
-                <a href="#106">styled</a>.<a href="../builder/styled_str.rs.html#62">none</a>(<span class="string">&quot;Invalid value &#39;&quot;</span>);
-                <a href="#106">styled</a>.<a href="../builder/styled_str.rs.html#49">warning</a>(<a href="#300">invalid_value</a>);
-                <a href="#106">styled</a>.<a href="../builder/styled_str.rs.html#62">none</a>(<span class="string">&quot;&#39; for &#39;&quot;</span>);
-                <a href="#106">styled</a>.<a href="../builder/styled_str.rs.html#49">warning</a>(<a href="#299">invalid_arg</a>);
-                <span class="kw">if let </span><span class="prelude-val">Some</span>(source) = <a href="#106">error</a>.inner.source.as_deref() {
-                    <a href="#106">styled</a>.<a href="../builder/styled_str.rs.html#62">none</a>(<span class="string">&quot;&#39;: &quot;</span>);
-                    <a href="#106">styled</a>.<a href="../builder/styled_str.rs.html#62">none</a>(<a href="#307">source</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
+                styled.none(<span class="string">&quot;Invalid value &#39;&quot;</span>);
+                styled.warning(invalid_value);
+                styled.none(<span class="string">&quot;&#39; for &#39;&quot;</span>);
+                styled.warning(invalid_arg);
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(source) = error.inner.source.as_deref() {
+                    styled.none(<span class="string">&quot;&#39;: &quot;</span>);
+                    styled.none(source.to_string());
                 } <span class="kw">else </span>{
-                    <a href="#106">styled</a>.<a href="../builder/styled_str.rs.html#62">none</a>(<span class="string">&quot;&#39;&quot;</span>);
+                    styled.none(<span class="string">&quot;&#39;&quot;</span>);
                 }
                 <span class="bool-val">true
             </span>} <span class="kw">else </span>{
                 <span class="bool-val">false
             </span>}
         }
-        <a href="kind.rs.html#153">ErrorKind::WrongNumberOfValues</a> =&gt; {
-            <span class="kw">let </span>invalid_arg = <a href="#106">error</a>.<a href="mod.rs.html#186">get</a>(<a href="context.rs.html#9">ContextKind::InvalidArg</a>);
-            <span class="kw">let </span>actual_num_values = <a href="#106">error</a>.<a href="mod.rs.html#186">get</a>(<a href="context.rs.html#19">ContextKind::ActualNumValues</a>);
-            <span class="kw">let </span>num_values = <a href="#106">error</a>.<a href="mod.rs.html#186">get</a>(<a href="context.rs.html#21">ContextKind::ExpectedNumValues</a>);
+        ErrorKind::WrongNumberOfValues =&gt; {
+            <span class="kw">let </span>invalid_arg = error.get(ContextKind::InvalidArg);
+            <span class="kw">let </span>actual_num_values = error.get(ContextKind::ActualNumValues);
+            <span class="kw">let </span>num_values = error.get(ContextKind::ExpectedNumValues);
             <span class="kw">if let </span>(
-                <span class="prelude-val">Some</span>(<a href="context.rs.html#83">ContextValue::String</a>(invalid_arg)),
-                <span class="prelude-val">Some</span>(<a href="context.rs.html#91">ContextValue::Number</a>(actual_num_values)),
-                <span class="prelude-val">Some</span>(<a href="context.rs.html#91">ContextValue::Number</a>(num_values)),
-            ) = (<a href="#319">invalid_arg</a>, <a href="#320">actual_num_values</a>, <a href="#321">num_values</a>)
+                <span class="prelude-val">Some</span>(ContextValue::String(invalid_arg)),
+                <span class="prelude-val">Some</span>(ContextValue::Number(actual_num_values)),
+                <span class="prelude-val">Some</span>(ContextValue::Number(num_values)),
+            ) = (invalid_arg, actual_num_values, num_values)
             {
-                <span class="kw">let </span>were_provided = <a href="#378">singular_or_plural</a>(<span class="kw-2">*</span><a href="#324">actual_num_values</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>);
-                <a href="#106">styled</a>.<a href="../builder/styled_str.rs.html#62">none</a>(<span class="string">&quot;The argument &#39;&quot;</span>);
-                <a href="#106">styled</a>.<a href="../builder/styled_str.rs.html#49">warning</a>(<a href="#323">invalid_arg</a>);
-                <a href="#106">styled</a>.<a href="../builder/styled_str.rs.html#62">none</a>(<span class="string">&quot;&#39; requires &quot;</span>);
-                <a href="#106">styled</a>.<a href="../builder/styled_str.rs.html#49">warning</a>(<a href="#325">num_values</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
-                <a href="#106">styled</a>.<a href="../builder/styled_str.rs.html#62">none</a>(<span class="string">&quot; values, but &quot;</span>);
-                <a href="#106">styled</a>.<a href="../builder/styled_str.rs.html#49">warning</a>(<a href="#324">actual_num_values</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
-                <a href="#106">styled</a>.<a href="../builder/styled_str.rs.html#62">none</a>(<a href="#328">were_provided</a>);
+                <span class="kw">let </span>were_provided = singular_or_plural(<span class="kw-2">*</span>actual_num_values <span class="kw">as </span>usize);
+                styled.none(<span class="string">&quot;The argument &#39;&quot;</span>);
+                styled.warning(invalid_arg);
+                styled.none(<span class="string">&quot;&#39; requires &quot;</span>);
+                styled.warning(num_values.to_string());
+                styled.none(<span class="string">&quot; values, but &quot;</span>);
+                styled.warning(actual_num_values.to_string());
+                styled.none(were_provided);
                 <span class="bool-val">true
             </span>} <span class="kw">else </span>{
                 <span class="bool-val">false
             </span>}
         }
-        <a href="kind.rs.html#33">ErrorKind::UnknownArgument</a> =&gt; {
-            <span class="kw">let </span>invalid_arg = <a href="#106">error</a>.<a href="mod.rs.html#186">get</a>(<a href="context.rs.html#9">ContextKind::InvalidArg</a>);
-            <span class="kw">if let </span><span class="prelude-val">Some</span>(<a href="context.rs.html#83">ContextValue::String</a>(invalid_arg)) = <a href="#342">invalid_arg</a> {
-                <a href="#106">styled</a>.<a href="../builder/styled_str.rs.html#62">none</a>(<span class="string">&quot;Found argument &#39;&quot;</span>);
-                <a href="#106">styled</a>.<a href="../builder/styled_str.rs.html#49">warning</a>(<a href="#343">invalid_arg</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
-                <a href="#106">styled</a>.<a href="../builder/styled_str.rs.html#62">none</a>(<span class="string">&quot;&#39; which wasn&#39;t expected, or isn&#39;t valid in this context&quot;</span>);
+        ErrorKind::UnknownArgument =&gt; {
+            <span class="kw">let </span>invalid_arg = error.get(ContextKind::InvalidArg);
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(ContextValue::String(invalid_arg)) = invalid_arg {
+                styled.none(<span class="string">&quot;Found argument &#39;&quot;</span>);
+                styled.warning(invalid_arg.to_string());
+                styled.none(<span class="string">&quot;&#39; which wasn&#39;t expected, or isn&#39;t valid in this context&quot;</span>);
                 <span class="bool-val">true
             </span>} <span class="kw">else </span>{
                 <span class="bool-val">false
             </span>}
         }
-        <a href="kind.rs.html#261">ErrorKind::DisplayHelp</a>
-        | <a href="kind.rs.html#284">ErrorKind::DisplayHelpOnMissingArgumentOrSubcommand</a>
-        | <a href="kind.rs.html#299">ErrorKind::DisplayVersion</a>
-        | <a href="kind.rs.html#305">ErrorKind::Io</a>
-        | <a href="kind.rs.html#312">ErrorKind::Format</a> =&gt; <span class="bool-val">false</span>,
+        ErrorKind::DisplayHelp
+        | ErrorKind::DisplayHelpOnMissingArgumentOrSubcommand
+        | ErrorKind::DisplayVersion
+        | ErrorKind::Io
+        | ErrorKind::Format =&gt; <span class="bool-val">false</span>,
     }
 }
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>format_error_message(
-    message: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>,
-    cmd: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="../builder/command.rs.html#71">Command</a>&gt;,
-    usage: <span class="prelude-ty">Option</span>&lt;<a href="../builder/styled_str.rs.html#3">StyledStr</a>&gt;,
-) -&gt; <a href="../builder/styled_str.rs.html#3">StyledStr</a> {
+    message: <span class="kw-2">&amp;</span>str,
+    cmd: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Command&gt;,
+    usage: <span class="prelude-ty">Option</span>&lt;StyledStr&gt;,
+) -&gt; StyledStr {
     <span class="kw">let </span><span class="kw-2">mut </span>styled = StyledStr::new();
-    <a href="#99">start_error</a>(<span class="kw-2">&amp;mut </span><a href="#365">styled</a>);
-    <a href="#365">styled</a>.<a href="../builder/styled_str.rs.html#62">none</a>(<a href="#361">message</a>);
-    <span class="kw">if let </span><span class="prelude-val">Some</span>(usage) = <a href="#363">usage</a> {
-        <a href="#386">put_usage</a>(<span class="kw-2">&amp;mut </span><a href="#365">styled</a>, <a href="#368">usage</a>);
+    start_error(<span class="kw-2">&amp;mut </span>styled);
+    styled.none(message);
+    <span class="kw">if let </span><span class="prelude-val">Some</span>(usage) = usage {
+        put_usage(<span class="kw-2">&amp;mut </span>styled, usage);
     }
-    <span class="kw">if let </span><span class="prelude-val">Some</span>(cmd) = <a href="#362">cmd</a> {
-        <a href="#401">try_help</a>(<span class="kw-2">&amp;mut </span><a href="#365">styled</a>, <a href="#391">get_help_flag</a>(<a href="#371">cmd</a>));
+    <span class="kw">if let </span><span class="prelude-val">Some</span>(cmd) = cmd {
+        try_help(<span class="kw-2">&amp;mut </span>styled, get_help_flag(cmd));
     }
-    <a href="#365">styled</a>
+    styled
 }
 
 <span class="doccomment">/// Returns the singular or plural form on the verb to be based on the argument&#39;s value.
-</span><span class="kw">fn </span>singular_or_plural(n: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> {
+</span><span class="kw">fn </span>singular_or_plural(n: usize) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str {
     <span class="kw">if </span>n &gt; <span class="number">1 </span>{
         <span class="string">&quot; were provided&quot;
     </span>} <span class="kw">else </span>{
@@ -824,12 +824,12 @@
     </span>}
 }
 
-<span class="kw">fn </span>put_usage(styled: <span class="kw-2">&amp;mut </span><a href="../builder/styled_str.rs.html#3">StyledStr</a>, usage: <a href="../builder/styled_str.rs.html#3">StyledStr</a>) {
-    <a href="#386">styled</a>.<a href="../builder/styled_str.rs.html#62">none</a>(<span class="string">&quot;\n\n&quot;</span>);
-    <a href="#386">styled</a>.<a href="../builder/styled_str.rs.html#186-189">extend</a>(<a href="#386">usage</a>.<a href="../builder/styled_str.rs.html#177">into_iter</a>());
+<span class="kw">fn </span>put_usage(styled: <span class="kw-2">&amp;mut </span>StyledStr, usage: StyledStr) {
+    styled.none(<span class="string">&quot;\n\n&quot;</span>);
+    styled.extend(usage.into_iter());
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_help_flag(cmd: <span class="kw-2">&amp;</span><a href="../builder/command.rs.html#71">Command</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt; {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_help_flag(cmd: <span class="kw-2">&amp;</span>Command) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str&gt; {
     <span class="kw">if </span>!cmd.is_disable_help_flag_set() {
         <span class="prelude-val">Some</span>(<span class="string">&quot;--help&quot;</span>)
     } <span class="kw">else if </span>cmd.has_subcommands() &amp;&amp; !cmd.is_disable_help_subcommand_set() {
@@ -839,26 +839,26 @@
     </span>}
 }
 
-<span class="kw">fn </span>try_help(styled: <span class="kw-2">&amp;mut </span><a href="../builder/styled_str.rs.html#3">StyledStr</a>, help: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt;) {
-    <span class="kw">if let </span><span class="prelude-val">Some</span>(help) = <a href="#401">help</a> {
-        <a href="#401">styled</a>.<a href="../builder/styled_str.rs.html#62">none</a>(<span class="string">&quot;\n\nFor more information try &#39;&quot;</span>);
-        <a href="#401">styled</a>.<a href="../builder/styled_str.rs.html#35">literal</a>(<a href="#402">help</a>.<a href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">to_owned</a>());
-        <a href="#401">styled</a>.<a href="../builder/styled_str.rs.html#62">none</a>(<span class="string">&quot;&#39;\n&quot;</span>);
+<span class="kw">fn </span>try_help(styled: <span class="kw-2">&amp;mut </span>StyledStr, help: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>str&gt;) {
+    <span class="kw">if let </span><span class="prelude-val">Some</span>(help) = help {
+        styled.none(<span class="string">&quot;\n\nFor more information try &#39;&quot;</span>);
+        styled.literal(help.to_owned());
+        styled.none(<span class="string">&quot;&#39;\n&quot;</span>);
     } <span class="kw">else </span>{
-        <a href="#401">styled</a>.<a href="../builder/styled_str.rs.html#62">none</a>(<span class="string">&quot;\n&quot;</span>);
+        styled.none(<span class="string">&quot;\n&quot;</span>);
     }
 }
 
 <span class="attr">#[cfg(feature = <span class="string">&quot;error-context&quot;</span>)]
-</span><span class="kw">fn </span>did_you_mean(styled: <span class="kw-2">&amp;mut </span><a href="../builder/styled_str.rs.html#3">StyledStr</a>, valid: <span class="kw-2">&amp;</span><a href="context.rs.html#77">ContextValue</a>) {
-    <span class="kw">if let </span><a href="context.rs.html#83">ContextValue::String</a>(valid) = <a href="#412">valid</a> {
-        <a href="#412">styled</a>.<a href="../builder/styled_str.rs.html#62">none</a>(<a href="../output/mod.rs.html#21">TAB</a>);
-        <a href="#412">styled</a>.<a href="../builder/styled_str.rs.html#62">none</a>(<span class="string">&quot;Did you mean &#39;&quot;</span>);
-        <a href="#412">styled</a>.<a href="../builder/styled_str.rs.html#44">good</a>(<a href="#413">valid</a>);
-        <a href="#412">styled</a>.<a href="../builder/styled_str.rs.html#62">none</a>(<span class="string">&quot;&#39;?&quot;</span>);
-    } <span class="kw">else if let </span><a href="context.rs.html#85">ContextValue::Strings</a>(valid) = <a href="#412">valid</a> {
-        <a href="#412">styled</a>.<a href="../builder/styled_str.rs.html#62">none</a>(<a href="../output/mod.rs.html#21">TAB</a>);
-        <a href="#412">styled</a>.<a href="../builder/styled_str.rs.html#62">none</a>(<span class="string">&quot;Did you mean &quot;</span>);
+</span><span class="kw">fn </span>did_you_mean(styled: <span class="kw-2">&amp;mut </span>StyledStr, valid: <span class="kw-2">&amp;</span>ContextValue) {
+    <span class="kw">if let </span>ContextValue::String(valid) = valid {
+        styled.none(TAB);
+        styled.none(<span class="string">&quot;Did you mean &#39;&quot;</span>);
+        styled.good(valid);
+        styled.none(<span class="string">&quot;&#39;?&quot;</span>);
+    } <span class="kw">else if let </span>ContextValue::Strings(valid) = valid {
+        styled.none(TAB);
+        styled.none(<span class="string">&quot;Did you mean &quot;</span>);
         <span class="kw">for </span>(i, valid) <span class="kw">in </span>valid.iter().enumerate() {
             <span class="kw">if </span>i != <span class="number">0 </span>{
                 styled.none(<span class="string">&quot;, &quot;</span>);
@@ -867,17 +867,17 @@
             styled.good(valid);
             styled.none(<span class="string">&quot;&#39;&quot;</span>);
         }
-        <a href="#412">styled</a>.<a href="../builder/styled_str.rs.html#62">none</a>(<span class="string">&quot;?&quot;</span>);
+        styled.none(<span class="string">&quot;?&quot;</span>);
     }
 }
 
-<span class="kw">fn </span>escape(s: <span class="kw">impl </span>AsRef&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a> {
-    <span class="kw">let </span>s = <a href="#433">s</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>();
+<span class="kw">fn </span>escape(s: <span class="kw">impl </span>AsRef&lt;str&gt;) -&gt; String {
+    <span class="kw">let </span>s = s.as_ref();
     <span class="kw">if </span>s.contains(char::is_whitespace) {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;{:?}&quot;</span>, s)
+        <span class="macro">format!</span>(<span class="string">&quot;{:?}&quot;</span>, s)
     } <span class="kw">else </span>{
-        <a href="#434">s</a>.<a href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">to_owned</a>()
+        s.to_owned()
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="clap" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="clap" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-util-0.7.4/src/sync/mpsc.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mpsc.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../tokio_util/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-util-0.7.4/src/sync/mpsc.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mpsc.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../tokio_util/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -282,14 +282,14 @@
 <a href="#282" id="282">282</a>
 <a href="#283" id="283">283</a>
 <a href="#284" id="284">284</a>
-</pre><pre class="rust"><code><span class="kw">use </span><a href="../../../futures_sink/trait.Sink.html">futures_sink::Sink</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/pin/struct.Pin.html">std::pin::Pin</a>;
-<span class="kw">use </span>std::task::{<a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>, <a href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">Poll</a>};
-<span class="kw">use </span>std::{<a href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">fmt</a>, <a href="https://doc.rust-lang.org/nightly/core/mem/index.html">mem</a>};
-<span class="kw">use </span><a href="../../../tokio/sync/mpsc/bounded/struct.OwnedPermit.html">tokio::sync::mpsc::OwnedPermit</a>;
-<span class="kw">use </span><a href="../../../tokio/sync/mpsc/bounded/struct.Sender.html">tokio::sync::mpsc::Sender</a>;
+</pre><pre class="rust"><code><span class="kw">use </span>futures_sink::Sink;
+<span class="kw">use </span>std::pin::Pin;
+<span class="kw">use </span>std::task::{Context, Poll};
+<span class="kw">use </span>std::{fmt, mem};
+<span class="kw">use </span>tokio::sync::mpsc::OwnedPermit;
+<span class="kw">use </span>tokio::sync::mpsc::Sender;
 
-<span class="kw">use </span><a href="reusable_box.rs.html#14"><span class="kw">super</span>::ReusableBoxFuture</a>;
+<span class="kw">use </span><span class="kw">super</span>::ReusableBoxFuture;
 
 <span class="doccomment">/// Error returned by the `PollSender` when the channel is closed.
 </span><span class="attr">#[derive(Debug)]
@@ -301,17 +301,17 @@
     /// If this error was encountered when calling `start_send`/`send_item`, this will be the item
     /// that the caller attempted to send.  Otherwise, it will be `None`.
     </span><span class="kw">pub fn </span>into_inner(<span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;T&gt; {
-        <a class="self" href="#19">self</a>.<span class="number">0
+        <span class="self">self</span>.<span class="number">0
     </span>}
 }
 
-<span class="kw">impl</span>&lt;T&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for </span>PollSendError&lt;T&gt; {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, fmt: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#25">fmt</a>, <span class="string">&quot;channel closed&quot;</span>)
+<span class="kw">impl</span>&lt;T&gt; fmt::Display <span class="kw">for </span>PollSendError&lt;T&gt; {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, fmt: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        <span class="macro">write!</span>(fmt, <span class="string">&quot;channel closed&quot;</span>)
     }
 }
 
-<span class="kw">impl</span>&lt;T: <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">std::error::Error</a> <span class="kw">for </span>PollSendError&lt;T&gt; {}
+<span class="kw">impl</span>&lt;T: fmt::Debug&gt; std::error::Error <span class="kw">for </span>PollSendError&lt;T&gt; {}
 
 <span class="attr">#[derive(Debug)]
 </span><span class="kw">enum </span>State&lt;T&gt; {
@@ -348,18 +348,18 @@
     }
 }
 
-<span class="kw">impl</span>&lt;T: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <span class="lifetime">&#39;static</span>&gt; PollSender&lt;T&gt; {
+<span class="kw">impl</span>&lt;T: Send + <span class="lifetime">&#39;static</span>&gt; PollSender&lt;T&gt; {
     <span class="doccomment">/// Creates a new `PollSender`.
     </span><span class="kw">pub fn </span>new(sender: Sender&lt;T&gt;) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
-            sender: <span class="prelude-val">Some</span>(<a href="#69">sender</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()),
-            state: <a href="#34">State::Idle</a>(<a href="#69">sender</a>),
-            acquire: ReusableBoxFuture::new(<a href="#55-57">make_acquire_future</a>(<span class="prelude-val">None</span>)),
+            sender: <span class="prelude-val">Some</span>(sender.clone()),
+            state: State::Idle(sender),
+            acquire: ReusableBoxFuture::new(make_acquire_future(<span class="prelude-val">None</span>)),
         }
     }
 
     <span class="kw">fn </span>take_state(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; State&lt;T&gt; {
-        mem::replace(<span class="kw-2">&amp;mut </span><a class="self" href="#77">self</a>.state, <a href="#37">State::Closed</a>)
+        mem::replace(<span class="kw-2">&amp;mut </span><span class="self">self</span>.state, State::Closed)
     }
 
     <span class="doccomment">/// Attempts to prepare the sender to receive a value.
@@ -377,32 +377,32 @@
     /// If the channel is closed, an error will be returned.  This is a permanent state.
     </span><span class="kw">pub fn </span>poll_reserve(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;(), PollSendError&lt;T&gt;&gt;&gt; {
         <span class="kw">loop </span>{
-            <span class="kw">let </span>(result, next_state) = <span class="kw">match </span><a class="self" href="#94">self</a>.<a href="#77">take_state</a>() {
-                <a href="#34">State::Idle</a>(sender) =&gt; {
+            <span class="kw">let </span>(result, next_state) = <span class="kw">match </span><span class="self">self</span>.take_state() {
+                State::Idle(sender) =&gt; {
                     <span class="comment">// Start trying to acquire a permit to reserve a slot for our send, and
                     // immediately loop back around to poll it the first time.
-                    </span><a class="self" href="#94">self</a>.acquire.<a href="reusable_box.rs.html#33-35">set</a>(<a href="#55-57">make_acquire_future</a>(<span class="prelude-val">Some</span>(<a href="#97">sender</a>)));
-                    (<span class="prelude-val">None</span>, <a href="#35">State::Acquiring</a>)
+                    </span><span class="self">self</span>.acquire.set(make_acquire_future(<span class="prelude-val">Some</span>(sender)));
+                    (<span class="prelude-val">None</span>, State::Acquiring)
                 }
-                <a href="#35">State::Acquiring</a> =&gt; <span class="kw">match </span><a class="self" href="#94">self</a>.acquire.<a href="reusable_box.rs.html#77">poll</a>(<a href="#94">cx</a>) {
+                State::Acquiring =&gt; <span class="kw">match </span><span class="self">self</span>.acquire.poll(cx) {
                     <span class="comment">// Channel has capacity.
                     </span>Poll::Ready(<span class="prelude-val">Ok</span>(permit)) =&gt; {
-                        (<span class="prelude-val">Some</span>(Poll::Ready(<span class="prelude-val">Ok</span>(()))), <a href="#36">State::ReadyToSend</a>(<a href="#105">permit</a>))
+                        (<span class="prelude-val">Some</span>(Poll::Ready(<span class="prelude-val">Ok</span>(()))), State::ReadyToSend(permit))
                     }
                     <span class="comment">// Channel is closed.
-                    </span>Poll::Ready(<span class="prelude-val">Err</span>(e)) =&gt; (<span class="prelude-val">Some</span>(Poll::Ready(<span class="prelude-val">Err</span>(<a href="#109">e</a>))), <a href="#37">State::Closed</a>),
+                    </span>Poll::Ready(<span class="prelude-val">Err</span>(e)) =&gt; (<span class="prelude-val">Some</span>(Poll::Ready(<span class="prelude-val">Err</span>(e))), State::Closed),
                     <span class="comment">// Channel doesn&#39;t have capacity yet, so we need to wait.
-                    </span>Poll::Pending =&gt; (<span class="prelude-val">Some</span>(Poll::Pending), <a href="#35">State::Acquiring</a>),
+                    </span>Poll::Pending =&gt; (<span class="prelude-val">Some</span>(Poll::Pending), State::Acquiring),
                 },
                 <span class="comment">// We&#39;re closed, either by choice or because the underlying sender was closed.
-                </span>s @ <a href="#37">State::Closed</a> =&gt; (<span class="prelude-val">Some</span>(Poll::Ready(<span class="prelude-val">Err</span>(<a href="#12">PollSendError</a>(<span class="prelude-val">None</span>)))), <a href="#114">s</a>),
+                </span>s @ State::Closed =&gt; (<span class="prelude-val">Some</span>(Poll::Ready(<span class="prelude-val">Err</span>(PollSendError(<span class="prelude-val">None</span>)))), s),
                 <span class="comment">// We&#39;re already ready to send an item.
-                </span>s @ <a href="#36">State::ReadyToSend</a>(<span class="kw">_</span>) =&gt; (<span class="prelude-val">Some</span>(Poll::Ready(<span class="prelude-val">Ok</span>(()))), <a href="#116">s</a>),
+                </span>s @ State::ReadyToSend(<span class="kw">_</span>) =&gt; (<span class="prelude-val">Some</span>(Poll::Ready(<span class="prelude-val">Ok</span>(()))), s),
             };
 
-            <a class="self" href="#94">self</a>.state = <a href="#96">next_state</a>;
-            <span class="kw">if let </span><span class="prelude-val">Some</span>(result) = <a href="#96">result</a> {
-                <span class="kw">return </span><a href="#120">result</a>;
+            <span class="self">self</span>.state = next_state;
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(result) = result {
+                <span class="kw">return </span>result;
             }
         }
     }
@@ -422,30 +422,30 @@
     /// will panic.
     </span><span class="attr">#[track_caller]
     </span><span class="kw">pub fn </span>send_item(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: T) -&gt; <span class="prelude-ty">Result</span>&lt;(), PollSendError&lt;T&gt;&gt; {
-        <span class="kw">let </span>(result, next_state) = <span class="kw">match </span><a class="self" href="#140">self</a>.<a href="#77">take_state</a>() {
-            <a href="#34">State::Idle</a>(<span class="kw">_</span>) | <a href="#35">State::Acquiring</a> =&gt; {
-                <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(<span class="string">&quot;`send_item` called without first calling `poll_reserve`&quot;</span>)
+        <span class="kw">let </span>(result, next_state) = <span class="kw">match </span><span class="self">self</span>.take_state() {
+            State::Idle(<span class="kw">_</span>) | State::Acquiring =&gt; {
+                <span class="macro">panic!</span>(<span class="string">&quot;`send_item` called without first calling `poll_reserve`&quot;</span>)
             }
             <span class="comment">// We have a permit to send our item, so go ahead, which gets us our sender back.
-            </span><a href="#36">State::ReadyToSend</a>(permit) =&gt; (<span class="prelude-val">Ok</span>(()), <a href="#34">State::Idle</a>(<a href="#146">permit</a>.send(<a href="#140">value</a>))),
+            </span>State::ReadyToSend(permit) =&gt; (<span class="prelude-val">Ok</span>(()), State::Idle(permit.send(value))),
             <span class="comment">// We&#39;re closed, either by choice or because the underlying sender was closed.
-            </span><a href="#37">State::Closed</a> =&gt; (<span class="prelude-val">Err</span>(<a href="#12">PollSendError</a>(<span class="prelude-val">Some</span>(<a href="#140">value</a>))), <a href="#37">State::Closed</a>),
+            </span>State::Closed =&gt; (<span class="prelude-val">Err</span>(PollSendError(<span class="prelude-val">Some</span>(value))), State::Closed),
         };
 
         <span class="comment">// Handle deferred closing if `close` was called between `poll_reserve` and `send_item`.
-        </span><a class="self" href="#140">self</a>.state = <span class="kw">if </span><span class="self">self</span>.sender.is_some() {
-            <a href="#141">next_state</a>
+        </span><span class="self">self</span>.state = <span class="kw">if </span><span class="self">self</span>.sender.is_some() {
+            next_state
         } <span class="kw">else </span>{
-            <a href="#37">State::Closed</a>
+            State::Closed
         };
-        <a href="#141">result</a>
+        result
     }
 
     <span class="doccomment">/// Checks whether this sender is been closed.
     ///
     /// The underlying channel that this sender was wrapping may still be open.
-    </span><span class="kw">pub fn </span>is_closed(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.matches.html">matches!</a>(<span class="self">self</span>.state, State::Closed) || <a class="self" href="#163">self</a>.sender.is_none()
+    </span><span class="kw">pub fn </span>is_closed(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="macro">matches!</span>(<span class="self">self</span>.state, State::Closed) || <span class="self">self</span>.sender.is_none()
     }
 
     <span class="doccomment">/// Gets a reference to the `Sender` of the underlying channel.
@@ -453,7 +453,7 @@
     /// If `PollSender` has been closed, `None` is returned. The underlying channel that this sender
     /// was wrapping may still be open.
     </span><span class="kw">pub fn </span>get_ref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Sender&lt;T&gt;&gt; {
-        <a class="self" href="#171">self</a>.sender.as_ref()
+        <span class="self">self</span>.sender.as_ref()
     }
 
     <span class="doccomment">/// Closes this sender.
@@ -470,16 +470,16 @@
     /// [`Receiver`]: tokio::sync::mpsc::Receiver
     </span><span class="kw">pub fn </span>close(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="comment">// Mark ourselves officially closed by dropping our main sender.
-        </span><a class="self" href="#187">self</a>.sender = <span class="prelude-val">None</span>;
+        </span><span class="self">self</span>.sender = <span class="prelude-val">None</span>;
 
         <span class="comment">// If we&#39;re already idle, closed, or we haven&#39;t yet reserved a slot, we can quickly
         // transition to the closed state.  Otherwise, leave the existing permit in place for the
         // caller if they want to complete the send.
-        </span><span class="kw">match </span><a class="self" href="#187">self</a>.state {
-            <a href="#34">State::Idle</a>(<span class="kw">_</span>) =&gt; <a class="self" href="#187">self</a>.state = <a href="#37">State::Closed</a>,
-            <a href="#35">State::Acquiring</a> =&gt; {
-                <a class="self" href="#187">self</a>.acquire.<a href="reusable_box.rs.html#33-35">set</a>(<a href="#55-57">make_acquire_future</a>(<span class="prelude-val">None</span>));
-                <a class="self" href="#187">self</a>.state = <a href="#37">State::Closed</a>;
+        </span><span class="kw">match </span><span class="self">self</span>.state {
+            State::Idle(<span class="kw">_</span>) =&gt; <span class="self">self</span>.state = State::Closed,
+            State::Acquiring =&gt; {
+                <span class="self">self</span>.acquire.set(make_acquire_future(<span class="prelude-val">None</span>));
+                <span class="self">self</span>.state = State::Closed;
             }
             <span class="kw">_ </span>=&gt; {}
         }
@@ -490,67 +490,67 @@
     /// Returns `true` if a send was aborted.  If the sender was closed prior to calling
     /// `abort_send`, then the sender will remain in the closed state, otherwise the sender will be
     /// ready to attempt another send.
-    </span><span class="kw">pub fn </span>abort_send(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+    </span><span class="kw">pub fn </span>abort_send(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; bool {
         <span class="comment">// We may have been closed in the meantime, after a call to `poll_reserve` already
         // succeeded.  We&#39;ll check if `self.sender` is `None` to see if we should transition to the
         // closed state when we actually abort a send, rather than resetting ourselves back to idle.
 
-        </span><span class="kw">let </span>(result, next_state) = <span class="kw">match </span><a class="self" href="#209">self</a>.<a href="#77">take_state</a>() {
+        </span><span class="kw">let </span>(result, next_state) = <span class="kw">match </span><span class="self">self</span>.take_state() {
             <span class="comment">// We&#39;re currently trying to reserve a slot to send into.
-            </span><a href="#35">State::Acquiring</a> =&gt; {
+            </span>State::Acquiring =&gt; {
                 <span class="comment">// Replacing the future drops the in-flight one.
-                </span><a class="self" href="#209">self</a>.acquire.<a href="reusable_box.rs.html#33-35">set</a>(<a href="#55-57">make_acquire_future</a>(<span class="prelude-val">None</span>));
+                </span><span class="self">self</span>.acquire.set(make_acquire_future(<span class="prelude-val">None</span>));
 
                 <span class="comment">// If we haven&#39;t closed yet, we have to clone our stored sender since we have no way
                 // to get it back from the acquire future we just dropped.
-                </span><span class="kw">let </span>state = <span class="kw">match </span><a class="self" href="#209">self</a>.sender.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>() {
-                    <span class="prelude-val">Some</span>(sender) =&gt; <a href="#34">State::Idle</a>(<a href="#223">sender</a>),
-                    <span class="prelude-val">None </span>=&gt; <a href="#37">State::Closed</a>,
+                </span><span class="kw">let </span>state = <span class="kw">match </span><span class="self">self</span>.sender.clone() {
+                    <span class="prelude-val">Some</span>(sender) =&gt; State::Idle(sender),
+                    <span class="prelude-val">None </span>=&gt; State::Closed,
                 };
-                (<span class="bool-val">true</span>, <a href="#222">state</a>)
+                (<span class="bool-val">true</span>, state)
             }
             <span class="comment">// We got the permit.  If we haven&#39;t closed yet, get the sender back.
-            </span><a href="#36">State::ReadyToSend</a>(permit) =&gt; {
+            </span>State::ReadyToSend(permit) =&gt; {
                 <span class="kw">let </span>state = <span class="kw">if </span><span class="self">self</span>.sender.is_some() {
-                    <a href="#34">State::Idle</a>(<a href="#229">permit</a>.release())
+                    State::Idle(permit.release())
                 } <span class="kw">else </span>{
-                    <a href="#37">State::Closed</a>
+                    State::Closed
                 };
-                (<span class="bool-val">true</span>, <a href="#230">state</a>)
+                (<span class="bool-val">true</span>, state)
             }
-            s =&gt; (<span class="bool-val">false</span>, <a href="#237">s</a>),
+            s =&gt; (<span class="bool-val">false</span>, s),
         };
 
-        <a class="self" href="#209">self</a>.state = <a href="#214">next_state</a>;
-        <a href="#214">result</a>
+        <span class="self">self</span>.state = next_state;
+        result
     }
 }
 
-<span class="kw">impl</span>&lt;T&gt; <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> <span class="kw">for </span>PollSender&lt;T&gt; {
+<span class="kw">impl</span>&lt;T&gt; Clone <span class="kw">for </span>PollSender&lt;T&gt; {
     <span class="doccomment">/// Clones this `PollSender`.
     ///
     /// The resulting `PollSender` will have an initial state identical to calling `PollSender::new`.
     </span><span class="kw">fn </span>clone(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; PollSender&lt;T&gt; {
-        <span class="kw">let </span>(sender, state) = <span class="kw">match </span><a class="self" href="#249">self</a>.sender.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>() {
-            <span class="prelude-val">Some</span>(sender) =&gt; (<span class="prelude-val">Some</span>(<a href="#251">sender</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()), <a href="#34">State::Idle</a>(<a href="#251">sender</a>)),
-            <span class="prelude-val">None </span>=&gt; (<span class="prelude-val">None</span>, <a href="#37">State::Closed</a>),
+        <span class="kw">let </span>(sender, state) = <span class="kw">match </span><span class="self">self</span>.sender.clone() {
+            <span class="prelude-val">Some</span>(sender) =&gt; (<span class="prelude-val">Some</span>(sender.clone()), State::Idle(sender)),
+            <span class="prelude-val">None </span>=&gt; (<span class="prelude-val">None</span>, State::Closed),
         };
 
         <span class="self">Self </span>{
-            <a href="#250">sender</a>,
-            <a href="#250">state</a>,
+            sender,
+            state,
             <span class="comment">// We don&#39;t use `make_acquire_future` here because our relaxed bounds on `T` are not
             // compatible with the transitive bounds required by `Sender&lt;T&gt;`.
-            </span>acquire: ReusableBoxFuture::new(<span class="kw">async </span>{ <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>() }),
+            </span>acquire: ReusableBoxFuture::new(<span class="kw">async </span>{ <span class="macro">unreachable!</span>() }),
         }
     }
 }
 
-<span class="kw">impl</span>&lt;T: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <span class="lifetime">&#39;static</span>&gt; Sink&lt;T&gt; <span class="kw">for </span>PollSender&lt;T&gt; {
+<span class="kw">impl</span>&lt;T: Send + <span class="lifetime">&#39;static</span>&gt; Sink&lt;T&gt; <span class="kw">for </span>PollSender&lt;T&gt; {
     <span class="kw">type </span>Error = PollSendError&lt;T&gt;;
 
     <span class="kw">fn </span>poll_ready(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt;&gt; {
-        Pin::into_inner(<a class="self" href="#268">self</a>).<a href="#94">poll_reserve</a>(<a href="#268">cx</a>)
+        Pin::into_inner(<span class="self">self</span>).poll_reserve(cx)
     }
 
     <span class="kw">fn </span>poll_flush(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, _cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt;&gt; {
@@ -558,13 +558,13 @@
     }
 
     <span class="kw">fn </span>start_send(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, item: T) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt; {
-        Pin::into_inner(<a class="self" href="#276">self</a>).<a href="#140">send_item</a>(<a href="#276">item</a>)
+        Pin::into_inner(<span class="self">self</span>).send_item(item)
     }
 
     <span class="kw">fn </span>poll_close(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, _cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt;&gt; {
-        Pin::into_inner(<a class="self" href="#280">self</a>).<a href="#187">close</a>();
+        Pin::into_inner(<span class="self">self</span>).close();
         Poll::Ready(<span class="prelude-val">Ok</span>(()))
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="tokio_util" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="tokio_util" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

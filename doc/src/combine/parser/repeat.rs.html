@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/combine-4.6.6/src/parser/repeat.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>repeat.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../combine/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/combine-4.6.6/src/parser/repeat.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>repeat.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../combine/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -1622,24 +1622,24 @@
 
 </span><span class="kw">use crate</span>::{
     error::{
-        <a href="../error.rs.html#213">Commit</a>, <a href="../error.rs.html#456">ParseError</a>,
-        ParseResult::{<a class="self" href="../error.rs.html#946">self</a>, <span class="kw-2">*</span>},
-        <a href="../error.rs.html#10">ResultExt</a>, <a href="../error.rs.html#359">StdParseResult</a>, <a href="../error.rs.html#367">StreamError</a>, <a href="../error.rs.html#926">Tracked</a>,
+        Commit, ParseError,
+        ParseResult::{<span class="self">self</span>, <span class="kw-2">*</span>},
+        ResultExt, StdParseResult, StreamError, Tracked,
     },
-    lib::{<a href="https://doc.rust-lang.org/nightly/core/borrow/trait.BorrowMut.html">borrow::BorrowMut</a>, <a href="https://doc.rust-lang.org/nightly/core/cmp/index.html">cmp</a>, marker::PhantomData, <a href="https://doc.rust-lang.org/nightly/core/mem/index.html">mem</a>},
+    lib::{borrow::BorrowMut, cmp, marker::PhantomData, mem},
     parser::{
-        choice::{<a href="choice.rs.html#683-686">optional</a>, <a href="choice.rs.html#634">Optional</a>, <a href="choice.rs.html#561">Or</a>},
-        combinator::{<a href="combinator.rs.html#712-715">ignore</a>, <a href="combinator.rs.html#677">Ignore</a>},
-        function::{<a href="function.rs.html#61-64">parser</a>, <a href="function.rs.html#23">FnParser</a>},
-        <a href="sequence.rs.html#511">sequence::With</a>,
-        token::{<a href="token.rs.html#606-609">value</a>, <a href="token.rs.html#580">Value</a>},
-        <a href="mod.rs.html#1151">FirstMode</a>, <a href="mod.rs.html#1104">ParseMode</a>,
+        choice::{optional, Optional, Or},
+        combinator::{ignore, Ignore},
+        function::{parser, FnParser},
+        sequence::With,
+        token::{value, Value},
+        FirstMode, ParseMode,
     },
-    stream::{<a href="../stream/mod.rs.html#173-175">uncons</a>, <a href="../stream/mod.rs.html#163">Stream</a>, <a href="../stream/mod.rs.html#116">StreamOnce</a>},
-    <a href="../lib.rs.html#627">ErrorOffset</a>, <a href="mod.rs.html#84">Parser</a>,
+    stream::{uncons, Stream, StreamOnce},
+    ErrorOffset, Parser,
 };
 
-<a class="macro" href="../lib.rs.html#326-403">parser! </a>{
+<span class="macro">parser! </span>{
 <span class="kw">pub struct </span>Count;
 
 <span class="doccomment">/// Parses `parser` from zero up to `count` times.
@@ -1656,20 +1656,20 @@
 /// assert_eq!(result, Ok((b&quot;aa&quot;[..].to_owned(), &amp;b&quot;ab&quot;[..])));
 /// # }
 /// ```
-</span><span class="kw">pub fn </span>count[F, Input, P](count: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, parser: P)(Input) -&gt; F
+</span><span class="kw">pub fn </span>count[F, Input, P](count: usize, parser: P)(Input) -&gt; F
 <span class="kw">where </span>[
-    Input: <a href="../stream/mod.rs.html#163">Stream</a>,
+    Input: Stream,
     P: Parser&lt;Input&gt;,
-    F: Extend&lt;P::Output&gt; + <a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a>,
+    F: Extend&lt;P::Output&gt; + Default,
 ]
 {
     count_min_max(<span class="number">0</span>, <span class="kw-2">*</span>count, parser)
 }
 }
 
-<a class="macro" href="../lib.rs.html#326-403">parser! </a>{
+<span class="macro">parser! </span>{
     <span class="kw">pub struct </span>SkipCount;
-    <span class="kw">type </span>PartialState = &lt;With&lt;Count&lt;<a href="#541">Sink</a>, Input, P&gt;, Value&lt;Input, ()&gt;&gt; <span class="kw">as </span>Parser&lt;Input&gt;&gt;::PartialState;
+    <span class="kw">type </span>PartialState = &lt;With&lt;Count&lt;Sink, Input, P&gt;, Value&lt;Input, ()&gt;&gt; <span class="kw">as </span>Parser&lt;Input&gt;&gt;::PartialState;
     <span class="doccomment">/// Parses `parser` from zero up to `count` times skipping the output of `parser`.
     ///
     /// ```
@@ -1683,7 +1683,7 @@
     /// assert_eq!(result, Ok(((), &amp;b&quot;ab&quot;[..])));
     /// # }
     /// ```
-    </span><span class="kw">pub fn </span>skip_count[Input, P](count: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, parser: P)(Input) -&gt; ()
+    </span><span class="kw">pub fn </span>skip_count[Input, P](count: usize, parser: P)(Input) -&gt; ()
     <span class="kw">where </span>[
         P: Parser&lt;Input&gt;
     ]
@@ -1695,57 +1695,57 @@
 <span class="attr">#[derive(Copy, Clone)]
 </span><span class="kw">pub struct </span>CountMinMax&lt;F, P&gt; {
     parser: P,
-    min: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-    max: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+    min: usize,
+    max: usize,
     _marker: PhantomData&lt;<span class="kw">fn</span>() -&gt; F&gt;,
 }
 
 <span class="kw">struct </span>SuggestSizeHint&lt;I&gt; {
     iterator: I,
-    min: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-    max: <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;,
+    min: usize,
+    max: <span class="prelude-ty">Option</span>&lt;usize&gt;,
 }
 
-<span class="kw">impl</span>&lt;I&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a> <span class="kw">for </span>SuggestSizeHint&lt;I&gt;
+<span class="kw">impl</span>&lt;I&gt; Iterator <span class="kw">for </span>SuggestSizeHint&lt;I&gt;
 <span class="kw">where
-    </span>I: <a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a>,
+    </span>I: Iterator,
 {
     <span class="kw">type </span>Item = I::Item;
 
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt; {
-        <a class="self" href="#96">self</a>.iterator.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>()
+        <span class="self">self</span>.iterator.next()
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>size_hint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;) {
-        (<a class="self" href="#101">self</a>.min, <a class="self" href="#101">self</a>.max)
+    </span><span class="kw">fn </span>size_hint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (usize, <span class="prelude-ty">Option</span>&lt;usize&gt;) {
+        (<span class="self">self</span>.min, <span class="self">self</span>.max)
     }
 }
 
-<span class="kw">fn </span>suggest_size_hint&lt;I&gt;(iterator: I, (min, max): (<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;)) -&gt; SuggestSizeHint&lt;I&gt;
+<span class="kw">fn </span>suggest_size_hint&lt;I&gt;(iterator: I, (min, max): (usize, <span class="prelude-ty">Option</span>&lt;usize&gt;)) -&gt; SuggestSizeHint&lt;I&gt;
 <span class="kw">where
-    </span>I: <a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a>,
+    </span>I: Iterator,
 {
-    <a href="#83">SuggestSizeHint</a> {
-        <a href="#106">iterator</a>,
+    SuggestSizeHint {
+        iterator,
         <span class="comment">// Invalid input may report an extreme size so we guard against that (while still
         // optimizing by preallocating for the expected case of success)
-        </span>min: <a href="https://doc.rust-lang.org/nightly/core/cmp/fn.min.html">cmp::min</a>(<a href="#106">min</a>, <span class="number">4096</span>),
-        <a href="#106">max</a>,
+        </span>min: cmp::min(min, <span class="number">4096</span>),
+        max,
     }
 }
 
 <span class="kw">impl</span>&lt;Input, P, F&gt; Parser&lt;Input&gt; <span class="kw">for </span>CountMinMax&lt;F, P&gt;
 <span class="kw">where
-    </span>Input: <a href="../stream/mod.rs.html#163">Stream</a>,
+    </span>Input: Stream,
     P: Parser&lt;Input&gt;,
-    F: Extend&lt;P::Output&gt; + <a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a>,
+    F: Extend&lt;P::Output&gt; + Default,
 {
     <span class="kw">type </span>Output = F;
-    <span class="kw">type </span>PartialState = (<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, F, P::PartialState);
+    <span class="kw">type </span>PartialState = (usize, F, P::PartialState);
 
-    <a class="macro" href="mod.rs.html#36-56">parse_mode!</a>(Input);
+    <span class="macro">parse_mode!</span>(Input);
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>parse_mode_impl&lt;M&gt;(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
@@ -1754,33 +1754,33 @@
         state: <span class="kw-2">&amp;mut </span><span class="self">Self</span>::PartialState,
     ) -&gt; ParseResult&lt;<span class="self">Self</span>::Output, Input::Error&gt;
     <span class="kw">where
-        </span>M: <a href="mod.rs.html#1104">ParseMode</a>,
+        </span>M: ParseMode,
     {
-        <span class="kw">let </span>(count, elements, child_state) = <a href="#134">state</a>;
+        <span class="kw">let </span>(count, elements, child_state) = state;
 
-        <span class="kw">let </span><span class="kw-2">mut </span>iter = <a class="self" href="#131">self</a>.parser.<a href="mod.rs.html#357-359">by_ref</a>().<a href="mod.rs.html#820-828">partial_iter</a>(<a href="#132">mode</a>, <a href="#133">input</a>, <a href="#139">child_state</a>);
-        <span class="kw">let </span>remaining_min = <a class="self" href="#131">self</a>.min.saturating_sub(<span class="kw-2">*</span><a href="#139">count</a>);
-        <span class="kw">let </span>remaining_max = <a class="self" href="#131">self</a>.max - <span class="kw-2">*</span><a href="#139">count</a>;
-        <a href="#139">elements</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a href="#106-108">suggest_size_hint</a>(
-            <a href="#141">iter</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">by_ref</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">take</a>(<a href="#143">remaining_max</a>).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">inspect</a>(|<span class="kw">_</span>| <span class="kw-2">*</span><a href="#139">count</a> += <span class="number">1</span>),
-            (<a href="#142">remaining_min</a>, <span class="prelude-val">Some</span>(<a href="#143">remaining_max</a>)),
+        <span class="kw">let </span><span class="kw-2">mut </span>iter = <span class="self">self</span>.parser.by_ref().partial_iter(mode, input, child_state);
+        <span class="kw">let </span>remaining_min = <span class="self">self</span>.min.saturating_sub(<span class="kw-2">*</span>count);
+        <span class="kw">let </span>remaining_max = <span class="self">self</span>.max - <span class="kw-2">*</span>count;
+        elements.extend(suggest_size_hint(
+            iter.by_ref().take(remaining_max).inspect(|<span class="kw">_</span>| <span class="kw-2">*</span>count += <span class="number">1</span>),
+            (remaining_min, <span class="prelude-val">Some</span>(remaining_max)),
         ));
         <span class="kw">if </span><span class="kw-2">*</span>count &lt; <span class="self">self</span>.min {
-            <span class="kw">let </span>err = <a href="../error.rs.html#410-412">StreamError::message_format</a>(<a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.format_args.html">format_args!</a>(
+            <span class="kw">let </span>err = StreamError::message_format(<span class="macro">format_args!</span>(
                 <span class="string">&quot;expected {} more elements&quot;</span>,
                 <span class="self">self</span>.min - <span class="kw-2">*</span>count
             ));
-            <a href="#141">iter</a>.<a href="#304-311">fail</a>(<a href="#149">err</a>)
+            iter.fail(err)
         } <span class="kw">else </span>{
-            <a href="#141">iter</a>.<a href="#287-289">into_result_fast</a>(<a href="#139">elements</a>).<a href="../error.rs.html#1016-1018">map</a>(|x| {
-                <span class="kw-2">*</span><a href="#139">count</a> = <span class="number">0</span>;
-                <a href="#155">x</a>
+            iter.into_result_fast(elements).map(|x| {
+                <span class="kw-2">*</span>count = <span class="number">0</span>;
+                x
             })
         }
     }
 
     <span class="kw">fn </span>add_error(<span class="kw-2">&amp;mut </span><span class="self">self</span>, error: <span class="kw-2">&amp;mut </span>Tracked&lt;&lt;Input <span class="kw">as </span>StreamOnce&gt;::Error&gt;) {
-        <a class="self" href="#162">self</a>.parser.<a href="mod.rs.html#206">add_error</a>(<a href="#162">error</a>)
+        <span class="self">self</span>.parser.add_error(error)
     }
 }
 
@@ -1803,25 +1803,25 @@
 /// # Panics
 ///
 /// If `min` &gt; `max`.
-</span><span class="kw">pub fn </span>count_min_max&lt;F, Input, P&gt;(min: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, max: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, parser: P) -&gt; CountMinMax&lt;F, P&gt;
+</span><span class="kw">pub fn </span>count_min_max&lt;F, Input, P&gt;(min: usize, max: usize, parser: P) -&gt; CountMinMax&lt;F, P&gt;
 <span class="kw">where
-    </span>Input: <a href="../stream/mod.rs.html#163">Stream</a>,
+    </span>Input: Stream,
     P: Parser&lt;Input&gt;,
-    F: Extend&lt;P::Output&gt; + <a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a>,
+    F: Extend&lt;P::Output&gt; + Default,
 {
-    <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(min &lt;= max);
+    <span class="macro">assert!</span>(min &lt;= max);
 
-    <a href="#76">CountMinMax</a> {
-        <a href="#186">parser</a>,
-        <a href="#186">min</a>,
-        <a href="#186">max</a>,
+    CountMinMax {
+        parser,
+        min,
+        max,
         _marker: PhantomData,
     }
 }
 
-<a class="macro" href="../lib.rs.html#326-403">parser! </a>{
+<span class="macro">parser! </span>{
     <span class="kw">pub struct </span>SkipCountMinMax;
-    <span class="kw">type </span>PartialState = &lt;With&lt;CountMinMax&lt;<a href="#541">Sink</a>, P&gt;, Value&lt;Input, ()&gt;&gt; <span class="kw">as </span>Parser&lt;Input&gt;&gt;::PartialState;
+    <span class="kw">type </span>PartialState = &lt;With&lt;CountMinMax&lt;Sink, P&gt;, Value&lt;Input, ()&gt;&gt; <span class="kw">as </span>Parser&lt;Input&gt;&gt;::PartialState;
     <span class="doccomment">/// Parses `parser` from `min` to `max` times (including `min` and `max`)
     /// skipping the output of `parser`.
     ///
@@ -1841,7 +1841,7 @@
     /// # Panics
     ///
     /// If `min` &gt; `max`.
-    </span><span class="kw">pub fn </span>skip_count_min_max[Input, P](min: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, max: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, parser: P)(Input) -&gt; ()
+    </span><span class="kw">pub fn </span>skip_count_min_max[Input, P](min: usize, max: usize, parser: P)(Input) -&gt; ()
     <span class="kw">where </span>[
         P: Parser&lt;Input&gt;,
     ]
@@ -1852,12 +1852,12 @@
 
 <span class="kw">pub struct </span>Iter&lt;<span class="lifetime">&#39;a</span>, Input, P, S, M&gt;
 <span class="kw">where
-    </span>Input: <a href="../stream/mod.rs.html#163">Stream</a>,
+    </span>Input: Stream,
     P: Parser&lt;Input&gt;,
 {
     parser: P,
     input: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>Input,
-    committed: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
+    committed: bool,
     state: State&lt;&lt;Input <span class="kw">as </span>StreamOnce&gt;::Error&gt;,
     partial_state: S,
     mode: M,
@@ -1871,53 +1871,53 @@
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, Input, P, S, M&gt; Iter&lt;<span class="lifetime">&#39;a</span>, Input, P, S, M&gt;
 <span class="kw">where
-    </span>Input: <a href="../stream/mod.rs.html#163">Stream</a>,
+    </span>Input: Stream,
     P: Parser&lt;Input&gt;,
     S: BorrowMut&lt;P::PartialState&gt;,
 {
     <span class="kw">pub fn </span>new(parser: P, mode: M, input: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>Input, partial_state: S) -&gt; <span class="self">Self </span>{
-        <a href="#233">Iter</a> {
-            <a href="#258">parser</a>,
-            <a href="#258">input</a>,
+        Iter {
+            parser,
+            input,
             committed: <span class="bool-val">false</span>,
-            state: <a href="#247">State::Ok</a>,
-            <a href="#258">partial_state</a>,
-            <a href="#258">mode</a>,
+            state: State::Ok,
+            partial_state,
+            mode,
         }
     }
     <span class="doccomment">/// Converts the iterator to a `ParseResult`, returning `Ok` if the parsing so far has be done
     /// without any errors which committed data.
     </span><span class="kw">pub fn </span>into_result&lt;O&gt;(<span class="self">self</span>, value: O) -&gt; StdParseResult&lt;O, Input&gt; {
-        <a class="self" href="#270">self</a>.<a href="#274">into_result_</a>(<a href="#270">value</a>).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()
+        <span class="self">self</span>.into_result_(value).into()
     }
 
     <span class="kw">fn </span>into_result_&lt;O&gt;(<span class="self">self</span>, value: O) -&gt; ParseResult&lt;O, Input::Error&gt; {
-        <span class="kw">match </span><a class="self" href="#274">self</a>.state {
-            <a href="#247">State::Ok</a> | <a href="#248">State::PeekErr</a>(<span class="kw">_</span>) =&gt; {
+        <span class="kw">match </span><span class="self">self</span>.state {
+            State::Ok | State::PeekErr(<span class="kw">_</span>) =&gt; {
                 <span class="kw">if </span><span class="self">self</span>.committed {
-                    <a href="../error.rs.html#949">CommitOk</a>(<a href="#274">value</a>)
+                    CommitOk(value)
                 } <span class="kw">else </span>{
-                    <a href="../error.rs.html#952">PeekOk</a>(<a href="#274">value</a>)
+                    PeekOk(value)
                 }
             }
-            <a href="#249">State::CommitErr</a>(e) =&gt; <a href="../error.rs.html#954">CommitErr</a>(<a href="#283">e</a>),
+            State::CommitErr(e) =&gt; CommitErr(e),
         }
     }
 
     <span class="kw">fn </span>into_result_fast&lt;O&gt;(<span class="self">self</span>, value: <span class="kw-2">&amp;mut </span>O) -&gt; ParseResult&lt;O, Input::Error&gt;
     <span class="kw">where
-        </span>O: <a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a>,
+        </span>O: Default,
     {
-        <span class="kw">match </span><a class="self" href="#287">self</a>.state {
-            <a href="#247">State::Ok</a> | <a href="#248">State::PeekErr</a>(<span class="kw">_</span>) =&gt; {
-                <span class="kw">let </span>value = <a href="https://doc.rust-lang.org/nightly/core/mem/fn.take.html">mem::take</a>(<a href="#287">value</a>);
+        <span class="kw">match </span><span class="self">self</span>.state {
+            State::Ok | State::PeekErr(<span class="kw">_</span>) =&gt; {
+                <span class="kw">let </span>value = mem::take(value);
                 <span class="kw">if </span><span class="self">self</span>.committed {
-                    <a href="../error.rs.html#949">CommitOk</a>(<a href="#293">value</a>)
+                    CommitOk(value)
                 } <span class="kw">else </span>{
-                    <a href="../error.rs.html#952">PeekOk</a>(<a href="#293">value</a>)
+                    PeekOk(value)
                 }
             }
-            <a href="#249">State::CommitErr</a>(e) =&gt; <a href="../error.rs.html#954">CommitErr</a>(<a href="#300">e</a>),
+            State::CommitErr(e) =&gt; CommitErr(e),
         }
     }
 
@@ -1929,65 +1929,65 @@
             &lt;Input <span class="kw">as </span>StreamOnce&gt;::Position,
         &gt;&gt;::StreamError,
     ) -&gt; ParseResult&lt;T, Input::Error&gt; {
-        <span class="kw">match </span><a class="self" href="#305">self</a>.state {
-            <a href="#247">State::Ok</a> =&gt; {
-                <span class="kw">let </span>err = &lt;Input <span class="kw">as </span>StreamOnce&gt;::Error::from_error(<a class="self" href="#305">self</a>.input.<a href="../stream/mod.rs.html#78">position</a>(), <a href="#306">err</a>);
+        <span class="kw">match </span><span class="self">self</span>.state {
+            State::Ok =&gt; {
+                <span class="kw">let </span>err = &lt;Input <span class="kw">as </span>StreamOnce&gt;::Error::from_error(<span class="self">self</span>.input.position(), err);
                 <span class="kw">if </span><span class="self">self</span>.committed {
-                    <a href="../error.rs.html#954">CommitErr</a>(<a href="#314">err</a>)
+                    CommitErr(err)
                 } <span class="kw">else </span>{
-                    <a href="../error.rs.html#956">PeekErr</a>(<a href="#314">err</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
+                    PeekErr(err.into())
                 }
             }
-            <a href="#248">State::PeekErr</a>(<span class="kw-2">mut </span>e) =&gt; {
-                <span class="kw">let </span>err = &lt;Input <span class="kw">as </span>StreamOnce&gt;::Error::from_error(<a class="self" href="#305">self</a>.input.<a href="../stream/mod.rs.html#78">position</a>(), <a href="#306">err</a>);
-                <a href="#321">e</a> = <a href="#321">e</a>.<a href="../error.rs.html#482">merge</a>(<a href="#322">err</a>);
+            State::PeekErr(<span class="kw-2">mut </span>e) =&gt; {
+                <span class="kw">let </span>err = &lt;Input <span class="kw">as </span>StreamOnce&gt;::Error::from_error(<span class="self">self</span>.input.position(), err);
+                e = e.merge(err);
                 <span class="kw">if </span><span class="self">self</span>.committed {
-                    <a href="../error.rs.html#954">CommitErr</a>(<a href="#321">e</a>)
+                    CommitErr(e)
                 } <span class="kw">else </span>{
-                    <a href="../error.rs.html#956">PeekErr</a>(<a href="#321">e</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
+                    PeekErr(e.into())
                 }
             }
-            <a href="#249">State::CommitErr</a>(<span class="kw-2">mut </span>e) =&gt; {
-                <a href="#330">e</a>.<a href="../error.rs.html#490">add</a>(<a href="#306">err</a>);
-                <a href="../error.rs.html#954">CommitErr</a>(<a href="#330">e</a>)
+            State::CommitErr(<span class="kw-2">mut </span>e) =&gt; {
+                e.add(err);
+                CommitErr(e)
             }
         }
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, Input, P, S, M&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a> <span class="kw">for </span>Iter&lt;<span class="lifetime">&#39;a</span>, Input, P, S, M&gt;
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, Input, P, S, M&gt; Iterator <span class="kw">for </span>Iter&lt;<span class="lifetime">&#39;a</span>, Input, P, S, M&gt;
 <span class="kw">where
-    </span>Input: <a href="../stream/mod.rs.html#163">Stream</a>,
+    </span>Input: Stream,
     P: Parser&lt;Input&gt;,
     S: BorrowMut&lt;P::PartialState&gt;,
-    M: <a href="mod.rs.html#1104">ParseMode</a>,
+    M: ParseMode,
 {
     <span class="kw">type </span>Item = P::Output;
 
     <span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;P::Output&gt; {
-        <span class="kw">let </span>before = <a class="self" href="#347">self</a>.input.<a href="../stream/mod.rs.html#148">checkpoint</a>();
-        <span class="kw">match </span><span class="self"><a href="#347">self</a>
+        <span class="kw">let </span>before = <span class="self">self</span>.input.checkpoint();
+        <span class="kw">match </span><span class="self">self
             </span>.parser
-            .<a href="mod.rs.html#267-275">parse_mode</a>(<a class="self" href="#347">self</a>.mode, <a class="self" href="#347">self</a>.input, <a class="self" href="#347">self</a>.partial_state.<a href="https://doc.rust-lang.org/nightly/core/borrow/trait.BorrowMut.html">borrow_mut</a>())
+            .parse_mode(<span class="self">self</span>.mode, <span class="self">self</span>.input, <span class="self">self</span>.partial_state.borrow_mut())
         {
-            <a href="../error.rs.html#952">PeekOk</a>(v) =&gt; {
-                <a class="self" href="#347">self</a>.mode.<a href="mod.rs.html#1109">set_first</a>();
-                <span class="prelude-val">Some</span>(<a href="#353">v</a>)
+            PeekOk(v) =&gt; {
+                <span class="self">self</span>.mode.set_first();
+                <span class="prelude-val">Some</span>(v)
             }
-            <a href="../error.rs.html#949">CommitOk</a>(v) =&gt; {
-                <a class="self" href="#347">self</a>.mode.<a href="mod.rs.html#1109">set_first</a>();
-                <a class="self" href="#347">self</a>.committed = <span class="bool-val">true</span>;
-                <span class="prelude-val">Some</span>(<a href="#357">v</a>)
+            CommitOk(v) =&gt; {
+                <span class="self">self</span>.mode.set_first();
+                <span class="self">self</span>.committed = <span class="bool-val">true</span>;
+                <span class="prelude-val">Some</span>(v)
             }
-            <a href="../error.rs.html#956">PeekErr</a>(e) =&gt; {
-                <a class="self" href="#347">self</a>.state = <span class="kw">match </span><a class="self" href="#347">self</a>.input.<a href="../stream/mod.rs.html#150">reset</a>(<a href="#348">before</a>) {
-                    <span class="prelude-val">Err</span>(err) =&gt; <a href="#249">State::CommitErr</a>(<a href="#364">err</a>),
-                    <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; <a href="#248">State::PeekErr</a>(<a href="#362">e</a>.error),
+            PeekErr(e) =&gt; {
+                <span class="self">self</span>.state = <span class="kw">match </span><span class="self">self</span>.input.reset(before) {
+                    <span class="prelude-val">Err</span>(err) =&gt; State::CommitErr(err),
+                    <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; State::PeekErr(e.error),
                 };
                 <span class="prelude-val">None
             </span>}
-            <a href="../error.rs.html#954">CommitErr</a>(e) =&gt; {
-                <a class="self" href="#347">self</a>.state = <a href="#249">State::CommitErr</a>(<a href="#369">e</a>);
+            CommitErr(e) =&gt; {
+                <span class="self">self</span>.state = State::CommitErr(e);
                 <span class="prelude-val">None
             </span>}
         }
@@ -1999,14 +1999,14 @@
 
 <span class="kw">impl</span>&lt;F, Input, P&gt; Parser&lt;Input&gt; <span class="kw">for </span>Many&lt;F, P&gt;
 <span class="kw">where
-    </span>Input: <a href="../stream/mod.rs.html#163">Stream</a>,
+    </span>Input: Stream,
     P: Parser&lt;Input&gt;,
-    F: Extend&lt;P::Output&gt; + <a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a>,
+    F: Extend&lt;P::Output&gt; + Default,
 {
     <span class="kw">type </span>Output = F;
     <span class="kw">type </span>PartialState = (F, P::PartialState);
 
-    <a class="macro" href="mod.rs.html#36-56">parse_mode!</a>(Input);
+    <span class="macro">parse_mode!</span>(Input);
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>parse_mode_impl&lt;M&gt;(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
@@ -2015,26 +2015,26 @@
         state: <span class="kw-2">&amp;mut </span><span class="self">Self</span>::PartialState,
     ) -&gt; ParseResult&lt;<span class="self">Self</span>::Output, Input::Error&gt;
     <span class="kw">where
-        </span>M: <a href="mod.rs.html#1104">ParseMode</a>,
+        </span>M: ParseMode,
     {
         <span class="comment">// TODO
-        </span><span class="kw">let </span>(<span class="kw-2">ref mut </span>elements, <span class="kw-2">ref mut </span>child_state) = <span class="kw-2">*</span><a href="#395">state</a>;
+        </span><span class="kw">let </span>(<span class="kw-2">ref mut </span>elements, <span class="kw-2">ref mut </span>child_state) = <span class="kw-2">*</span>state;
 
-        <span class="kw">let </span><span class="kw-2">mut </span>iter = (<span class="kw-2">&amp;mut </span><a class="self" href="#392">self</a>.<span class="number">0</span>).<a href="mod.rs.html#820-828">partial_iter</a>(<a href="#393">mode</a>, <a href="#394">input</a>, <a href="#401">child_state</a>);
-        <a href="#401">elements</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a href="#403">iter</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">by_ref</a>());
-        <a href="#403">iter</a>.<a href="#287-289">into_result_fast</a>(<a href="#401">elements</a>)
+        <span class="kw">let </span><span class="kw-2">mut </span>iter = (<span class="kw-2">&amp;mut </span><span class="self">self</span>.<span class="number">0</span>).partial_iter(mode, input, child_state);
+        elements.extend(iter.by_ref());
+        iter.into_result_fast(elements)
     }
 
     <span class="kw">fn </span>add_error(<span class="kw-2">&amp;mut </span><span class="self">self</span>, errors: <span class="kw-2">&amp;mut </span>Tracked&lt;&lt;Input <span class="kw">as </span>StreamOnce&gt;::Error&gt;) {
-        <a class="self" href="#408">self</a>.<span class="number">0</span>.<a href="mod.rs.html#206">add_error</a>(<a href="#408">errors</a>)
+        <span class="self">self</span>.<span class="number">0</span>.add_error(errors)
     }
 
     <span class="kw">fn </span>add_committed_expected_error(<span class="kw-2">&amp;mut </span><span class="self">self</span>, errors: <span class="kw-2">&amp;mut </span>Tracked&lt;&lt;Input <span class="kw">as </span>StreamOnce&gt;::Error&gt;) {
-        <a class="self" href="#412">self</a>.<a href="mod.rs.html#206">add_error</a>(<a href="#412">errors</a>);
+        <span class="self">self</span>.add_error(errors);
     }
 
-    <span class="kw">fn </span>parser_count(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../lib.rs.html#627">ErrorOffset</a> {
-        <a class="self" href="#416">self</a>.<span class="number">0</span>.<a href="mod.rs.html#324">parser_count</a>()
+    <span class="kw">fn </span>parser_count(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; ErrorOffset {
+        <span class="self">self</span>.<span class="number">0</span>.parser_count()
     }
 }
 
@@ -2060,25 +2060,25 @@
 /// ```
 </span><span class="kw">pub fn </span>many&lt;F, Input, P&gt;(p: P) -&gt; Many&lt;F, P&gt;
 <span class="kw">where
-    </span>Input: <a href="../stream/mod.rs.html#163">Stream</a>,
+    </span>Input: Stream,
     P: Parser&lt;Input&gt;,
-    F: Extend&lt;P::Output&gt; + <a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a>,
+    F: Extend&lt;P::Output&gt; + Default,
 {
-    <a href="#378">Many</a>(<a href="#441">p</a>, PhantomData)
+    Many(p, PhantomData)
 }
 
 <span class="attr">#[derive(Copy, Clone)]
 </span><span class="kw">pub struct </span>Many1&lt;F, P&gt;(P, PhantomData&lt;<span class="kw">fn</span>() -&gt; F&gt;);
 <span class="kw">impl</span>&lt;F, Input, P&gt; Parser&lt;Input&gt; <span class="kw">for </span>Many1&lt;F, P&gt;
 <span class="kw">where
-    </span>Input: <a href="../stream/mod.rs.html#163">Stream</a>,
-    F: Extend&lt;P::Output&gt; + <a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a>,
+    </span>Input: Stream,
+    F: Extend&lt;P::Output&gt; + Default,
     P: Parser&lt;Input&gt;,
 {
     <span class="kw">type </span>Output = F;
-    <span class="kw">type </span>PartialState = (<a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>, F, P::PartialState);
+    <span class="kw">type </span>PartialState = (bool, bool, F, P::PartialState);
 
-    <a class="macro" href="mod.rs.html#36-56">parse_mode!</a>(Input);
+    <span class="macro">parse_mode!</span>(Input);
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>parse_mode_impl&lt;M&gt;(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
@@ -2087,43 +2087,43 @@
         state: <span class="kw-2">&amp;mut </span><span class="self">Self</span>::PartialState,
     ) -&gt; ParseResult&lt;F, Input::Error&gt;
     <span class="kw">where
-        </span>M: <a href="mod.rs.html#1104">ParseMode</a>,
+        </span>M: ParseMode,
     {
         <span class="kw">let </span>(<span class="kw-2">ref mut </span>parsed_one, <span class="kw-2">ref mut </span>committed_state, <span class="kw-2">ref mut </span>elements, <span class="kw-2">ref mut </span>child_state) =
-            <span class="kw-2">*</span><a href="#467">state</a>;
+            <span class="kw-2">*</span>state;
 
         <span class="kw">if </span>mode.is_first() || !<span class="kw-2">*</span>parsed_one {
-            <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(!<span class="kw-2">*</span>parsed_one);
+            <span class="macro">debug_assert!</span>(!<span class="kw-2">*</span>parsed_one);
 
-            <span class="kw">let </span>(first, committed) = <a class="macro" href="../error.rs.html#25-38">ctry!</a>(<span class="self">self</span>.<span class="number">0</span>.parse_mode(mode, input, child_state));
-            <a href="#472">elements</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<span class="prelude-val">Some</span>(<a href="#478">first</a>));
+            <span class="kw">let </span>(first, committed) = <span class="macro">ctry!</span>(<span class="self">self</span>.<span class="number">0</span>.parse_mode(mode, input, child_state));
+            elements.extend(<span class="prelude-val">Some</span>(first));
             <span class="comment">// TODO Should PeekOk be an error?
-            </span><span class="kw-2">*</span><a href="#472">committed_state</a> = !<a href="#478">committed</a>.<a href="../error.rs.html#240">is_peek</a>();
-            <span class="kw-2">*</span><a href="#472">parsed_one</a> = <span class="bool-val">true</span>;
-            <a href="#465">mode</a>.<a href="mod.rs.html#1109">set_first</a>();
+            </span><span class="kw-2">*</span>committed_state = !committed.is_peek();
+            <span class="kw-2">*</span>parsed_one = <span class="bool-val">true</span>;
+            mode.set_first();
         }
 
-        <span class="kw">let </span><span class="kw-2">mut </span>iter = <a href="#233">Iter</a> {
-            parser: <span class="kw-2">&amp;mut </span><a class="self" href="#464">self</a>.<span class="number">0</span>,
-            committed: <span class="kw-2">*</span><a href="#472">committed_state</a>,
-            <a href="#466">input</a>,
-            state: <a href="#247">State::Ok</a>,
-            partial_state: <a href="#472">child_state</a>,
-            <a href="#465">mode</a>,
+        <span class="kw">let </span><span class="kw-2">mut </span>iter = Iter {
+            parser: <span class="kw-2">&amp;mut </span><span class="self">self</span>.<span class="number">0</span>,
+            committed: <span class="kw-2">*</span>committed_state,
+            input,
+            state: State::Ok,
+            partial_state: child_state,
+            mode,
         };
-        <a href="#472">elements</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a href="#486">iter</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">by_ref</a>());
+        elements.extend(iter.by_ref());
 
-        <a href="#486">iter</a>.<a href="#287-289">into_result_fast</a>(<a href="#472">elements</a>).<a href="../error.rs.html#1016-1018">map</a>(|x| {
-            <span class="kw-2">*</span><a href="#472">parsed_one</a> = <span class="bool-val">false</span>;
-            <a href="#496">x</a>
+        iter.into_result_fast(elements).map(|x| {
+            <span class="kw-2">*</span>parsed_one = <span class="bool-val">false</span>;
+            x
         })
     }
 
     <span class="kw">fn </span>add_committed_expected_error(<span class="kw-2">&amp;mut </span><span class="self">self</span>, errors: <span class="kw-2">&amp;mut </span>Tracked&lt;&lt;Input <span class="kw">as </span>StreamOnce&gt;::Error&gt;) {
-        <a class="self" href="#502">self</a>.<a href="mod.rs.html#206">add_error</a>(<a href="#502">errors</a>);
+        <span class="self">self</span>.add_error(errors);
     }
 
-    <a class="macro" href="../lib.rs.html#531-597">forward_parser!</a>(Input, add_error parser_count, <span class="number">0</span>);
+    <span class="macro">forward_parser!</span>(Input, add_error parser_count, <span class="number">0</span>);
 }
 
 <span class="doccomment">/// Parses `p` one or more times returning a collection with the values from `p`.
@@ -2148,11 +2148,11 @@
 /// ```
 </span><span class="kw">pub fn </span>many1&lt;F, Input, P&gt;(p: P) -&gt; Many1&lt;F, P&gt;
 <span class="kw">where
-    </span>Input: <a href="../stream/mod.rs.html#163">Stream</a>,
-    F: Extend&lt;P::Output&gt; + <a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a>,
+    </span>Input: Stream,
+    F: Extend&lt;P::Output&gt; + Default,
     P: Parser&lt;Input&gt;,
 {
-    <a href="#451">Many1</a>(<a href="#529">p</a>, PhantomData)
+    Many1(p, PhantomData)
 }
 
 <span class="attr">#[derive(Clone)]
@@ -2160,13 +2160,13 @@
 </span><span class="comment">// FIXME Should not be public
 </span><span class="kw">pub struct </span>Sink;
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for </span><a href="#541">Sink</a> {
+<span class="kw">impl </span>Default <span class="kw">for </span>Sink {
     <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
-        <a href="#541">Sink</a>
+        Sink
     }
 }
 
-<span class="kw">impl</span>&lt;A&gt; Extend&lt;A&gt; <span class="kw">for </span><a href="#541">Sink</a> {
+<span class="kw">impl</span>&lt;A&gt; Extend&lt;A&gt; <span class="kw">for </span>Sink {
     <span class="kw">fn </span>extend&lt;T&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, iter: T)
     <span class="kw">where
         </span>T: IntoIterator&lt;Item = A&gt;,
@@ -2175,9 +2175,9 @@
     }
 }
 
-<a class="macro" href="../lib.rs.html#326-403">parser! </a>{
+<span class="macro">parser! </span>{
     <span class="kw">pub struct </span>SkipMany;
-    <span class="kw">type </span>PartialState = &lt;Ignore&lt;Many&lt;<a href="#541">Sink</a>, Ignore&lt;P&gt;&gt;&gt; <span class="kw">as </span>Parser&lt;Input&gt;&gt;::PartialState;
+    <span class="kw">type </span>PartialState = &lt;Ignore&lt;Many&lt;Sink, Ignore&lt;P&gt;&gt;&gt; <span class="kw">as </span>Parser&lt;Input&gt;&gt;::PartialState;
 <span class="doccomment">/// Parses `p` zero or more times ignoring the result.
 ///
 /// NOTE: If `p` can succeed without consuming any input this may hang forever as `skip_many` will
@@ -2202,9 +2202,9 @@
 }
 }
 
-<a class="macro" href="../lib.rs.html#326-403">parser! </a>{
+<span class="macro">parser! </span>{
     <span class="kw">pub struct </span>SkipMany1;
-    <span class="kw">type </span>PartialState = &lt;Ignore&lt;Many1&lt;<a href="#541">Sink</a>, Ignore&lt;P&gt;&gt;&gt; <span class="kw">as </span>Parser&lt;Input&gt;&gt;::PartialState;
+    <span class="kw">type </span>PartialState = &lt;Ignore&lt;Many1&lt;Sink, Ignore&lt;P&gt;&gt;&gt; <span class="kw">as </span>Parser&lt;Input&gt;&gt;::PartialState;
 <span class="doccomment">/// Parses `p` one or more times ignoring the result.
 ///
 /// NOTE: If `p` can succeed without consuming any input this may hang forever as `skip_many1` will
@@ -2237,8 +2237,8 @@
 }
 <span class="kw">impl</span>&lt;F, Input, P, S&gt; Parser&lt;Input&gt; <span class="kw">for </span>SepBy&lt;F, P, S&gt;
 <span class="kw">where
-    </span>Input: <a href="../stream/mod.rs.html#163">Stream</a>,
-    F: Extend&lt;P::Output&gt; + <a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a>,
+    </span>Input: Stream,
+    F: Extend&lt;P::Output&gt; + Default,
     P: Parser&lt;Input&gt;,
     S: Parser&lt;Input&gt;,
 {
@@ -2248,7 +2248,7 @@
         FnParser&lt;Input, <span class="kw">fn</span>(<span class="kw-2">&amp;mut </span>Input) -&gt; StdParseResult&lt;F, Input&gt;&gt;,
     &gt; <span class="kw">as </span>Parser&lt;Input&gt;&gt;::PartialState;
 
-    <a class="macro" href="mod.rs.html#36-56">parse_mode!</a>(Input);
+    <span class="macro">parse_mode!</span>(Input);
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>parse_mode_impl&lt;M&gt;(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
@@ -2257,18 +2257,18 @@
         state: <span class="kw-2">&amp;mut </span><span class="self">Self</span>::PartialState,
     ) -&gt; ParseResult&lt;F, Input::Error&gt;
     <span class="kw">where
-        </span>M: <a href="mod.rs.html#1104">ParseMode</a>,
+        </span>M: ParseMode,
     {
-        <a href="#780-785">sep_by1</a>(<span class="kw-2">&amp;mut </span><a class="self" href="#634">self</a>.parser, <span class="kw-2">&amp;mut </span><a class="self" href="#634">self</a>.separator)
-            .<a href="mod.rs.html#463-466">or</a>(<a href="function.rs.html#61-64">parser</a>(|<span class="kw">_</span>| <span class="prelude-val">Ok</span>((F::default(), <a href="../error.rs.html#219">Commit::Peek</a>(())))))
-            .<a href="mod.rs.html#267-275">parse_mode</a>(<a href="#635">mode</a>, <a href="#636">input</a>, <a href="#637">state</a>)
+        sep_by1(<span class="kw-2">&amp;mut </span><span class="self">self</span>.parser, <span class="kw-2">&amp;mut </span><span class="self">self</span>.separator)
+            .or(parser(|<span class="kw">_</span>| <span class="prelude-val">Ok</span>((F::default(), Commit::Peek(())))))
+            .parse_mode(mode, input, state)
     }
 
     <span class="kw">fn </span>add_committed_expected_error(<span class="kw-2">&amp;mut </span><span class="self">self</span>, errors: <span class="kw-2">&amp;mut </span>Tracked&lt;&lt;Input <span class="kw">as </span>StreamOnce&gt;::Error&gt;) {
-        <a class="self" href="#647">self</a>.separator.<a href="mod.rs.html#206">add_error</a>(<a href="#647">errors</a>)
+        <span class="self">self</span>.separator.add_error(errors)
     }
 
-    <a class="macro" href="../lib.rs.html#531-597">forward_parser!</a>(Input, add_error parser_count, parser);
+    <span class="macro">forward_parser!</span>(Input, add_error parser_count, parser);
 }
 
 <span class="doccomment">/// Parses `parser` zero or more time separated by `separator`, returning a collection with the
@@ -2292,14 +2292,14 @@
 /// ```
 </span><span class="kw">pub fn </span>sep_by&lt;F, Input, P, S&gt;(parser: P, separator: S) -&gt; SepBy&lt;F, P, S&gt;
 <span class="kw">where
-    </span>Input: <a href="../stream/mod.rs.html#163">Stream</a>,
-    F: Extend&lt;P::Output&gt; + <a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a>,
+    </span>Input: Stream,
+    F: Extend&lt;P::Output&gt; + Default,
     P: Parser&lt;Input&gt;,
     S: Parser&lt;Input&gt;,
 {
-    <a href="#613">SepBy</a> {
-        <a href="#673">parser</a>,
-        <a href="#673">separator</a>,
+    SepBy {
+        parser,
+        separator,
         _marker: PhantomData,
     }
 }
@@ -2312,8 +2312,8 @@
 }
 <span class="kw">impl</span>&lt;F, Input, P, S&gt; Parser&lt;Input&gt; <span class="kw">for </span>SepBy1&lt;F, P, S&gt;
 <span class="kw">where
-    </span>Input: <a href="../stream/mod.rs.html#163">Stream</a>,
-    F: Extend&lt;P::Output&gt; + <a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a>,
+    </span>Input: Stream,
+    F: Extend&lt;P::Output&gt; + Default,
     P: Parser&lt;Input&gt;,
     S: Parser&lt;Input&gt;,
 {
@@ -2324,7 +2324,7 @@
         &lt;With&lt;S, P&gt; <span class="kw">as </span>Parser&lt;Input&gt;&gt;::PartialState,
     );
 
-    <a class="macro" href="mod.rs.html#36-56">parse_mode!</a>(Input);
+    <span class="macro">parse_mode!</span>(Input);
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>parse_mode_impl&lt;M&gt;(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
@@ -2333,40 +2333,40 @@
         state: <span class="kw-2">&amp;mut </span><span class="self">Self</span>::PartialState,
     ) -&gt; ParseResult&lt;<span class="self">Self</span>::Output, Input::Error&gt;
     <span class="kw">where
-        </span>M: <a href="mod.rs.html#1104">ParseMode</a>,
+        </span>M: ParseMode,
     {
-        <span class="kw">let </span>(<span class="kw-2">ref mut </span>parsed_one, <span class="kw-2">ref mut </span>elements, <span class="kw-2">ref mut </span>child_state) = <span class="kw-2">*</span><a href="#713">state</a>;
+        <span class="kw">let </span>(<span class="kw-2">ref mut </span>parsed_one, <span class="kw-2">ref mut </span>elements, <span class="kw-2">ref mut </span>child_state) = <span class="kw-2">*</span>state;
 
-        <span class="kw">let </span>rest = <span class="kw">match </span><span class="kw-2">*</span><a href="#718">parsed_one</a> {
-            <span class="prelude-val">Some</span>(rest) =&gt; <a href="#721">rest</a>,
+        <span class="kw">let </span>rest = <span class="kw">match </span><span class="kw-2">*</span>parsed_one {
+            <span class="prelude-val">Some</span>(rest) =&gt; rest,
             <span class="prelude-val">None </span>=&gt; {
                 <span class="kw">let </span>(first, rest) =
-                    <a class="macro" href="../error.rs.html#25-38">ctry!</a>(<span class="self">self
+                    <span class="macro">ctry!</span>(<span class="self">self
                         </span>.parser
                         .parse_mode(mode, input, <span class="kw-2">&amp;mut </span>child_state.B.state));
-                <a href="#718">elements</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<span class="prelude-val">Some</span>(<a href="#723">first</a>));
-                <a href="#723">rest</a>
+                elements.extend(<span class="prelude-val">Some</span>(first));
+                rest
             }
         };
 
-        <a href="#720">rest</a>.<a href="../error.rs.html#338-340">combine_commit</a>(<span class="kw">move </span>|<span class="kw">_</span>| {
-            <span class="kw">let </span>rest = (<span class="kw-2">&amp;mut </span><a class="self" href="#710">self</a>.separator).<a href="mod.rs.html#379-382">with</a>(<span class="kw-2">&amp;mut </span><a class="self" href="#710">self</a>.parser);
-            <span class="kw">let </span><span class="kw-2">mut </span>iter = Iter::new(<a href="#733">rest</a>, <a href="#711">mode</a>, <a href="#712">input</a>, <a href="#718">child_state</a>);
+        rest.combine_commit(<span class="kw">move </span>|<span class="kw">_</span>| {
+            <span class="kw">let </span>rest = (<span class="kw-2">&amp;mut </span><span class="self">self</span>.separator).with(<span class="kw-2">&amp;mut </span><span class="self">self</span>.parser);
+            <span class="kw">let </span><span class="kw-2">mut </span>iter = Iter::new(rest, mode, input, child_state);
 
-            <a href="#718">elements</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a href="#734">iter</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">by_ref</a>());
+            elements.extend(iter.by_ref());
 
-            <a href="#734">iter</a>.<a href="#287-289">into_result_fast</a>(<a href="#718">elements</a>).<a href="../error.rs.html#1016-1018">map</a>(|x| {
-                <span class="kw-2">*</span><a href="#718">parsed_one</a> = <span class="prelude-val">None</span>;
-                <a href="#738">x</a>
+            iter.into_result_fast(elements).map(|x| {
+                <span class="kw-2">*</span>parsed_one = <span class="prelude-val">None</span>;
+                x
             })
         })
     }
 
     <span class="kw">fn </span>add_committed_expected_error(<span class="kw-2">&amp;mut </span><span class="self">self</span>, errors: <span class="kw-2">&amp;mut </span>Tracked&lt;&lt;Input <span class="kw">as </span>StreamOnce&gt;::Error&gt;) {
-        <a class="self" href="#745">self</a>.separator.<a href="mod.rs.html#206">add_error</a>(<a href="#745">errors</a>)
+        <span class="self">self</span>.separator.add_error(errors)
     }
 
-    <a class="macro" href="../lib.rs.html#531-597">forward_parser!</a>(Input, add_error parser_count, parser);
+    <span class="macro">forward_parser!</span>(Input, add_error parser_count, parser);
 }
 
 <span class="doccomment">/// Parses `parser` one or more time separated by `separator`, returning a collection with the
@@ -2399,14 +2399,14 @@
 /// ```
 </span><span class="kw">pub fn </span>sep_by1&lt;F, Input, P, S&gt;(parser: P, separator: S) -&gt; SepBy1&lt;F, P, S&gt;
 <span class="kw">where
-    </span>Input: <a href="../stream/mod.rs.html#163">Stream</a>,
-    F: Extend&lt;P::Output&gt; + <a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a>,
+    </span>Input: Stream,
+    F: Extend&lt;P::Output&gt; + Default,
     P: Parser&lt;Input&gt;,
     S: Parser&lt;Input&gt;,
 {
-    <a href="#688">SepBy1</a> {
-        <a href="#780">parser</a>,
-        <a href="#780">separator</a>,
+    SepBy1 {
+        parser,
+        separator,
         _marker: PhantomData,
     }
 }
@@ -2420,8 +2420,8 @@
 
 <span class="kw">impl</span>&lt;F, Input, P, S&gt; Parser&lt;Input&gt; <span class="kw">for </span>SepEndBy&lt;F, P, S&gt;
 <span class="kw">where
-    </span>Input: <a href="../stream/mod.rs.html#163">Stream</a>,
-    F: Extend&lt;P::Output&gt; + <a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a>,
+    </span>Input: Stream,
+    F: Extend&lt;P::Output&gt; + Default,
     P: Parser&lt;Input&gt;,
     S: Parser&lt;Input&gt;,
 {
@@ -2431,7 +2431,7 @@
         FnParser&lt;Input, <span class="kw">fn</span>(<span class="kw-2">&amp;mut </span>Input) -&gt; StdParseResult&lt;F, Input&gt;&gt;,
     &gt; <span class="kw">as </span>Parser&lt;Input&gt;&gt;::PartialState;
 
-    <a class="macro" href="mod.rs.html#36-56">parse_mode!</a>(Input);
+    <span class="macro">parse_mode!</span>(Input);
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>parse_mode_impl&lt;M&gt;(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
@@ -2440,15 +2440,15 @@
         state: <span class="kw-2">&amp;mut </span><span class="self">Self</span>::PartialState,
     ) -&gt; ParseResult&lt;<span class="self">Self</span>::Output, Input::Error&gt;
     <span class="kw">where
-        </span>M: <a href="mod.rs.html#1104">ParseMode</a>,
+        </span>M: ParseMode,
     {
-        <a href="#966-971">sep_end_by1</a>(<span class="kw-2">&amp;mut </span><a class="self" href="#817">self</a>.parser, <span class="kw-2">&amp;mut </span><a class="self" href="#817">self</a>.separator)
-            .<a href="mod.rs.html#463-466">or</a>(<a href="function.rs.html#61-64">parser</a>(|<span class="kw">_</span>| <span class="prelude-val">Ok</span>((F::default(), <a href="../error.rs.html#219">Commit::Peek</a>(())))))
-            .<a href="mod.rs.html#267-275">parse_mode</a>(<a href="#818">mode</a>, <a href="#819">input</a>, <a href="#820">state</a>)
+        sep_end_by1(<span class="kw-2">&amp;mut </span><span class="self">self</span>.parser, <span class="kw-2">&amp;mut </span><span class="self">self</span>.separator)
+            .or(parser(|<span class="kw">_</span>| <span class="prelude-val">Ok</span>((F::default(), Commit::Peek(())))))
+            .parse_mode(mode, input, state)
     }
 
     <span class="kw">fn </span>add_error(<span class="kw-2">&amp;mut </span><span class="self">self</span>, errors: <span class="kw-2">&amp;mut </span>Tracked&lt;&lt;Input <span class="kw">as </span>StreamOnce&gt;::Error&gt;) {
-        <a class="self" href="#830">self</a>.parser.<a href="mod.rs.html#206">add_error</a>(<a href="#830">errors</a>)
+        <span class="self">self</span>.parser.add_error(errors)
     }
 }
 
@@ -2473,14 +2473,14 @@
 /// ```
 </span><span class="kw">pub fn </span>sep_end_by&lt;F, Input, P, S&gt;(parser: P, separator: S) -&gt; SepEndBy&lt;F, P, S&gt;
 <span class="kw">where
-    </span>Input: <a href="../stream/mod.rs.html#163">Stream</a>,
-    F: Extend&lt;P::Output&gt; + <a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a>,
+    </span>Input: Stream,
+    F: Extend&lt;P::Output&gt; + Default,
     P: Parser&lt;Input&gt;,
     S: Parser&lt;Input&gt;,
 {
-    <a href="#795">SepEndBy</a> {
-        <a href="#854">parser</a>,
-        <a href="#854">separator</a>,
+    SepEndBy {
+        parser,
+        separator,
         _marker: PhantomData,
     }
 }
@@ -2494,8 +2494,8 @@
 
 <span class="kw">impl</span>&lt;F, Input, P, S&gt; Parser&lt;Input&gt; <span class="kw">for </span>SepEndBy1&lt;F, P, S&gt;
 <span class="kw">where
-    </span>Input: <a href="../stream/mod.rs.html#163">Stream</a>,
-    F: Extend&lt;P::Output&gt; + <a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a>,
+    </span>Input: Stream,
+    F: Extend&lt;P::Output&gt; + Default,
     P: Parser&lt;Input&gt;,
     S: Parser&lt;Input&gt;,
 {
@@ -2506,7 +2506,7 @@
         &lt;With&lt;S, Optional&lt;P&gt;&gt; <span class="kw">as </span>Parser&lt;Input&gt;&gt;::PartialState,
     );
 
-    <a class="macro" href="mod.rs.html#36-56">parse_mode!</a>(Input);
+    <span class="macro">parse_mode!</span>(Input);
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>parse_mode_impl&lt;M&gt;(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
@@ -2515,43 +2515,43 @@
         state: <span class="kw-2">&amp;mut </span><span class="self">Self</span>::PartialState,
     ) -&gt; ParseResult&lt;<span class="self">Self</span>::Output, Input::Error&gt;
     <span class="kw">where
-        </span>M: <a href="mod.rs.html#1104">ParseMode</a>,
+        </span>M: ParseMode,
     {
-        <span class="kw">let </span>(<span class="kw-2">ref mut </span>parsed_one, <span class="kw-2">ref mut </span>elements, <span class="kw-2">ref mut </span>child_state) = <span class="kw-2">*</span><a href="#895">state</a>;
+        <span class="kw">let </span>(<span class="kw-2">ref mut </span>parsed_one, <span class="kw-2">ref mut </span>elements, <span class="kw-2">ref mut </span>child_state) = <span class="kw-2">*</span>state;
 
-        <span class="kw">let </span>rest = <span class="kw">match </span><span class="kw-2">*</span><a href="#900">parsed_one</a> {
-            <span class="prelude-val">Some</span>(rest) =&gt; <a href="#903">rest</a>,
+        <span class="kw">let </span>rest = <span class="kw">match </span><span class="kw-2">*</span>parsed_one {
+            <span class="prelude-val">Some</span>(rest) =&gt; rest,
             <span class="prelude-val">None </span>=&gt; {
                 <span class="kw">let </span>(first, rest) =
-                    <a class="macro" href="../error.rs.html#25-38">ctry!</a>(<span class="self">self
+                    <span class="macro">ctry!</span>(<span class="self">self
                         </span>.parser
                         .parse_mode(mode, input, <span class="kw-2">&amp;mut </span>child_state.B.state));
-                <span class="kw-2">*</span><a href="#900">parsed_one</a> = <span class="prelude-val">Some</span>(<a href="#905">rest</a>);
-                <a href="#900">elements</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<span class="prelude-val">Some</span>(<a href="#905">first</a>));
-                <a href="#905">rest</a>
+                <span class="kw-2">*</span>parsed_one = <span class="prelude-val">Some</span>(rest);
+                elements.extend(<span class="prelude-val">Some</span>(first));
+                rest
             }
         };
 
-        <a href="#902">rest</a>.<a href="../error.rs.html#338-340">combine_commit</a>(|<span class="kw">_</span>| {
-            <span class="kw">let </span>rest = (<span class="kw-2">&amp;mut </span><a class="self" href="#892">self</a>.separator).<a href="mod.rs.html#379-382">with</a>(<a href="choice.rs.html#683-686">optional</a>(<span class="kw-2">&amp;mut </span><a class="self" href="#892">self</a>.parser));
-            <span class="kw">let </span><span class="kw-2">mut </span>iter = Iter::new(<a href="#916">rest</a>, <a href="#893">mode</a>, <a href="#894">input</a>, <a href="#900">child_state</a>);
+        rest.combine_commit(|<span class="kw">_</span>| {
+            <span class="kw">let </span>rest = (<span class="kw-2">&amp;mut </span><span class="self">self</span>.separator).with(optional(<span class="kw-2">&amp;mut </span><span class="self">self</span>.parser));
+            <span class="kw">let </span><span class="kw-2">mut </span>iter = Iter::new(rest, mode, input, child_state);
 
             <span class="comment">// Parse elements until `self.parser` returns `None`
-            </span><a href="#900">elements</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a href="#917">iter</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">by_ref</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">scan</a>((), |<span class="kw">_</span>, x| <a href="#920">x</a>));
+            </span>elements.extend(iter.by_ref().scan((), |<span class="kw">_</span>, x| x));
 
             <span class="kw">if </span>iter.committed {
-                <span class="kw-2">*</span><a href="#900">parsed_one</a> = <span class="prelude-val">Some</span>(<a href="../error.rs.html#216">Commit::Commit</a>(()));
+                <span class="kw-2">*</span>parsed_one = <span class="prelude-val">Some</span>(Commit::Commit(()));
             }
 
-            <a href="#917">iter</a>.<a href="#287-289">into_result_fast</a>(<a href="#900">elements</a>).<a href="../error.rs.html#1016-1018">map</a>(|x| {
-                <span class="kw-2">*</span><a href="#900">parsed_one</a> = <span class="prelude-val">None</span>;
-                <a href="#926">x</a>
+            iter.into_result_fast(elements).map(|x| {
+                <span class="kw-2">*</span>parsed_one = <span class="prelude-val">None</span>;
+                x
             })
         })
     }
 
     <span class="kw">fn </span>add_error(<span class="kw-2">&amp;mut </span><span class="self">self</span>, errors: <span class="kw-2">&amp;mut </span>Tracked&lt;&lt;Input <span class="kw">as </span>StreamOnce&gt;::Error&gt;) {
-        <a class="self" href="#933">self</a>.parser.<a href="mod.rs.html#206">add_error</a>(<a href="#933">errors</a>)
+        <span class="self">self</span>.parser.add_error(errors)
     }
 }
 
@@ -2585,14 +2585,14 @@
 /// ```
 </span><span class="kw">pub fn </span>sep_end_by1&lt;F, Input, P, S&gt;(parser: P, separator: S) -&gt; SepEndBy1&lt;F, P, S&gt;
 <span class="kw">where
-    </span>Input: <a href="../stream/mod.rs.html#163">Stream</a>,
-    F: Extend&lt;P::Output&gt; + <a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a>,
+    </span>Input: Stream,
+    F: Extend&lt;P::Output&gt; + Default,
     P: Parser&lt;Input&gt;,
     S: Parser&lt;Input&gt;,
 {
-    <a href="#869">SepEndBy1</a> {
-        <a href="#966">parser</a>,
-        <a href="#966">separator</a>,
+    SepEndBy1 {
+        parser,
+        separator,
         _marker: PhantomData,
     }
 }
@@ -2601,7 +2601,7 @@
 </span><span class="kw">pub struct </span>Chainl1&lt;P, Op&gt;(P, Op);
 <span class="kw">impl</span>&lt;Input, P, Op&gt; Parser&lt;Input&gt; <span class="kw">for </span>Chainl1&lt;P, Op&gt;
 <span class="kw">where
-    </span>Input: <a href="../stream/mod.rs.html#163">Stream</a>,
+    </span>Input: Stream,
     P: Parser&lt;Input&gt;,
     Op: Parser&lt;Input&gt;,
     Op::Output: FnOnce(P::Output, P::Output) -&gt; P::Output,
@@ -2612,7 +2612,7 @@
         &lt;(Op, P) <span class="kw">as </span>Parser&lt;Input&gt;&gt;::PartialState,
     );
 
-    <a class="macro" href="mod.rs.html#36-56">parse_mode!</a>(Input);
+    <span class="macro">parse_mode!</span>(Input);
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>parse_mode_impl&lt;M&gt;(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
@@ -2621,45 +2621,45 @@
         state: <span class="kw-2">&amp;mut </span><span class="self">Self</span>::PartialState,
     ) -&gt; ParseResult&lt;<span class="self">Self</span>::Output, Input::Error&gt;
     <span class="kw">where
-        </span>M: <a href="mod.rs.html#1104">ParseMode</a>,
+        </span>M: ParseMode,
     {
-        <span class="kw">let </span>(<span class="kw-2">ref mut </span>l_state, <span class="kw-2">ref mut </span>child_state) = <span class="kw-2">*</span><a href="#1001">state</a>;
+        <span class="kw">let </span>(<span class="kw-2">ref mut </span>l_state, <span class="kw-2">ref mut </span>child_state) = <span class="kw-2">*</span>state;
 
-        <span class="kw">let </span>(<span class="kw-2">mut </span>l, <span class="kw-2">mut </span>committed) = <span class="kw">match </span><a href="#1006">l_state</a>.take() {
-            <span class="prelude-val">Some</span>(x) =&gt; <a href="#1009">x</a>,
+        <span class="kw">let </span>(<span class="kw-2">mut </span>l, <span class="kw-2">mut </span>committed) = <span class="kw">match </span>l_state.take() {
+            <span class="prelude-val">Some</span>(x) =&gt; x,
             <span class="prelude-val">None </span>=&gt; {
-                <span class="kw">let </span>x = <a class="macro" href="../error.rs.html#25-38">ctry!</a>(<span class="self">self</span>.<span class="number">0</span>.parse_partial(input, <span class="kw-2">&amp;mut </span>child_state.B.state));
-                <a href="#999">mode</a>.<a href="mod.rs.html#1109">set_first</a>();
-                <a href="#1011">x</a>
+                <span class="kw">let </span>x = <span class="macro">ctry!</span>(<span class="self">self</span>.<span class="number">0</span>.parse_partial(input, <span class="kw-2">&amp;mut </span>child_state.B.state));
+                mode.set_first();
+                x
             }
         };
 
         <span class="kw">loop </span>{
-            <span class="kw">let </span>before = <a href="#1000">input</a>.<a href="../stream/mod.rs.html#148">checkpoint</a>();
-            <span class="kw">match </span>(<span class="kw-2">&amp;mut </span><a class="self" href="#998">self</a>.<span class="number">1</span>, <span class="kw-2">&amp;mut </span><a class="self" href="#998">self</a>.<span class="number">0</span>)
-                .<a href="mod.rs.html#267-275">parse_mode</a>(<a href="#999">mode</a>, <a href="#1000">input</a>, <a href="#1006">child_state</a>)
-                .<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()
+            <span class="kw">let </span>before = input.checkpoint();
+            <span class="kw">match </span>(<span class="kw-2">&amp;mut </span><span class="self">self</span>.<span class="number">1</span>, <span class="kw-2">&amp;mut </span><span class="self">self</span>.<span class="number">0</span>)
+                .parse_mode(mode, input, child_state)
+                .into()
             {
                 <span class="prelude-val">Ok</span>(((op, r), rest)) =&gt; {
-                    <a href="#1008">l</a> = <a href="#1023">op</a>(<a href="#1008">l</a>, <a href="#1023">r</a>);
-                    <a href="#1008">committed</a> = <a href="#1008">committed</a>.<a href="../error.rs.html#275">merge</a>(<a href="#1023">rest</a>);
-                    <a href="#999">mode</a>.<a href="mod.rs.html#1109">set_first</a>();
+                    l = op(l, r);
+                    committed = committed.merge(rest);
+                    mode.set_first();
                 }
-                <span class="prelude-val">Err</span>(<a href="../error.rs.html#216">Commit::Commit</a>(err)) =&gt; {
-                    <span class="kw-2">*</span><a href="#1006">l_state</a> = <span class="prelude-val">Some</span>((<a href="#1008">l</a>, <a href="#1008">committed</a>));
-                    <span class="kw">return </span><a href="../error.rs.html#954">CommitErr</a>(<a href="#1028">err</a>.error);
+                <span class="prelude-val">Err</span>(Commit::Commit(err)) =&gt; {
+                    <span class="kw-2">*</span>l_state = <span class="prelude-val">Some</span>((l, committed));
+                    <span class="kw">return </span>CommitErr(err.error);
                 }
-                <span class="prelude-val">Err</span>(<a href="../error.rs.html#219">Commit::Peek</a>(<span class="kw">_</span>)) =&gt; {
-                    <a class="macro" href="../error.rs.html#25-38">ctry!</a>(input.reset(before).committed());
+                <span class="prelude-val">Err</span>(Commit::Peek(<span class="kw">_</span>)) =&gt; {
+                    <span class="macro">ctry!</span>(input.reset(before).committed());
                     <span class="kw">break</span>;
                 }
             }
         }
-        <span class="prelude-val">Ok</span>((<a href="#1008">l</a>, <a href="#1008">committed</a>)).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()
+        <span class="prelude-val">Ok</span>((l, committed)).into()
     }
 
     <span class="kw">fn </span>add_error(<span class="kw-2">&amp;mut </span><span class="self">self</span>, errors: <span class="kw-2">&amp;mut </span>Tracked&lt;&lt;Input <span class="kw">as </span>StreamOnce&gt;::Error&gt;) {
-        <a class="self" href="#1041">self</a>.<span class="number">0</span>.<a href="mod.rs.html#206">add_error</a>(<a href="#1041">errors</a>)
+        <span class="self">self</span>.<span class="number">0</span>.add_error(errors)
     }
 }
 
@@ -2679,19 +2679,19 @@
 /// ```
 </span><span class="kw">pub fn </span>chainl1&lt;Input, P, Op&gt;(parser: P, op: Op) -&gt; Chainl1&lt;P, Op&gt;
 <span class="kw">where
-    </span>Input: <a href="../stream/mod.rs.html#163">Stream</a>,
+    </span>Input: Stream,
     P: Parser&lt;Input&gt;,
     Op: Parser&lt;Input&gt;,
     Op::Output: FnOnce(P::Output, P::Output) -&gt; P::Output,
 {
-    <a href="#981">Chainl1</a>(<a href="#1060">parser</a>, <a href="#1060">op</a>)
+    Chainl1(parser, op)
 }
 
 <span class="attr">#[derive(Copy, Clone)]
 </span><span class="kw">pub struct </span>Chainr1&lt;P, Op&gt;(P, Op);
 <span class="kw">impl</span>&lt;Input, P, Op&gt; Parser&lt;Input&gt; <span class="kw">for </span>Chainr1&lt;P, Op&gt;
 <span class="kw">where
-    </span>Input: <a href="../stream/mod.rs.html#163">Stream</a>,
+    </span>Input: Stream,
     P: Parser&lt;Input&gt;,
     Op: Parser&lt;Input&gt;,
     Op::Output: FnOnce(P::Output, P::Output) -&gt; P::Output,
@@ -2701,37 +2701,37 @@
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>parse_lazy(<span class="kw-2">&amp;mut </span><span class="self">self</span>, input: <span class="kw-2">&amp;mut </span>Input) -&gt; ParseResult&lt;P::Output, Input::Error&gt; {
         <span class="comment">// FIXME FastResult
-        </span><span class="kw">let </span>(<span class="kw-2">mut </span>l, <span class="kw-2">mut </span>committed) = <a class="macro" href="../error.rs.html#25-38">ctry!</a>(<span class="self">self</span>.<span class="number">0</span>.parse_lazy(input));
+        </span><span class="kw">let </span>(<span class="kw-2">mut </span>l, <span class="kw-2">mut </span>committed) = <span class="macro">ctry!</span>(<span class="self">self</span>.<span class="number">0</span>.parse_lazy(input));
         <span class="kw">loop </span>{
-            <span class="kw">let </span>before = <a href="#1082">input</a>.<a href="../stream/mod.rs.html#148">checkpoint</a>();
-            <span class="kw">let </span>op = <span class="kw">match </span><a class="self" href="#1082">self</a>.<span class="number">1</span>.<a href="mod.rs.html#180-183">parse_lazy</a>(<a href="#1082">input</a>).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>() {
+            <span class="kw">let </span>before = input.checkpoint();
+            <span class="kw">let </span>op = <span class="kw">match </span><span class="self">self</span>.<span class="number">1</span>.parse_lazy(input).into() {
                 <span class="prelude-val">Ok</span>((x, rest)) =&gt; {
-                    <a href="#1084">committed</a> = <a href="#1084">committed</a>.<a href="../error.rs.html#275">merge</a>(<a href="#1088">rest</a>);
-                    <a href="#1088">x</a>
+                    committed = committed.merge(rest);
+                    x
                 }
-                <span class="prelude-val">Err</span>(<a href="../error.rs.html#216">Commit::Commit</a>(err)) =&gt; <span class="kw">return </span><a href="../error.rs.html#954">CommitErr</a>(<a href="#1092">err</a>.error),
-                <span class="prelude-val">Err</span>(<a href="../error.rs.html#219">Commit::Peek</a>(<span class="kw">_</span>)) =&gt; {
-                    <a class="macro" href="../error.rs.html#25-38">ctry!</a>(input.reset(before).committed());
+                <span class="prelude-val">Err</span>(Commit::Commit(err)) =&gt; <span class="kw">return </span>CommitErr(err.error),
+                <span class="prelude-val">Err</span>(Commit::Peek(<span class="kw">_</span>)) =&gt; {
+                    <span class="macro">ctry!</span>(input.reset(before).committed());
                     <span class="kw">break</span>;
                 }
             };
-            <span class="kw">let </span>before = <a href="#1082">input</a>.<a href="../stream/mod.rs.html#148">checkpoint</a>();
-            <span class="kw">match </span><a class="self" href="#1082">self</a>.<a href="mod.rs.html#180-183">parse_lazy</a>(<a href="#1082">input</a>).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>() {
+            <span class="kw">let </span>before = input.checkpoint();
+            <span class="kw">match </span><span class="self">self</span>.parse_lazy(input).into() {
                 <span class="prelude-val">Ok</span>((r, rest)) =&gt; {
-                    <a href="#1084">l</a> = <a href="#1087">op</a>(<a href="#1084">l</a>, <a href="#1100">r</a>);
-                    <a href="#1084">committed</a> = <a href="#1084">committed</a>.<a href="../error.rs.html#275">merge</a>(<a href="#1100">rest</a>);
+                    l = op(l, r);
+                    committed = committed.merge(rest);
                 }
-                <span class="prelude-val">Err</span>(<a href="../error.rs.html#216">Commit::Commit</a>(err)) =&gt; <span class="kw">return </span><a href="../error.rs.html#954">CommitErr</a>(<a href="#1104">err</a>.error),
-                <span class="prelude-val">Err</span>(<a href="../error.rs.html#219">Commit::Peek</a>(<span class="kw">_</span>)) =&gt; {
-                    <a class="macro" href="../error.rs.html#25-38">ctry!</a>(input.reset(before).committed());
+                <span class="prelude-val">Err</span>(Commit::Commit(err)) =&gt; <span class="kw">return </span>CommitErr(err.error),
+                <span class="prelude-val">Err</span>(Commit::Peek(<span class="kw">_</span>)) =&gt; {
+                    <span class="macro">ctry!</span>(input.reset(before).committed());
                     <span class="kw">break</span>;
                 }
             }
         }
-        <span class="prelude-val">Ok</span>((<a href="#1084">l</a>, <a href="#1084">committed</a>)).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()
+        <span class="prelude-val">Ok</span>((l, committed)).into()
     }
     <span class="kw">fn </span>add_error(<span class="kw-2">&amp;mut </span><span class="self">self</span>, errors: <span class="kw-2">&amp;mut </span>Tracked&lt;&lt;Input <span class="kw">as </span>StreamOnce&gt;::Error&gt;) {
-        <a class="self" href="#1113">self</a>.<span class="number">0</span>.<a href="mod.rs.html#206">add_error</a>(<a href="#1113">errors</a>)
+        <span class="self">self</span>.<span class="number">0</span>.add_error(errors)
     }
 }
 
@@ -2751,12 +2751,12 @@
 /// ```
 </span><span class="kw">pub fn </span>chainr1&lt;Input, P, Op&gt;(parser: P, op: Op) -&gt; Chainr1&lt;P, Op&gt;
 <span class="kw">where
-    </span>Input: <a href="../stream/mod.rs.html#163">Stream</a>,
+    </span>Input: Stream,
     P: Parser&lt;Input&gt;,
     Op: Parser&lt;Input&gt;,
     Op::Output: FnOnce(P::Output, P::Output) -&gt; P::Output,
 {
-    <a href="#1071">Chainr1</a>(<a href="#1132">parser</a>, <a href="#1132">op</a>)
+    Chainr1(parser, op)
 }
 
 <span class="attr">#[derive(Copy, Clone)]
@@ -2766,14 +2766,14 @@
 }
 <span class="kw">impl</span>&lt;F, Input, P&gt; Parser&lt;Input&gt; <span class="kw">for </span>TakeUntil&lt;F, P&gt;
 <span class="kw">where
-    </span>Input: <a href="../stream/mod.rs.html#163">Stream</a>,
-    F: Extend&lt;&lt;Input <span class="kw">as </span>StreamOnce&gt;::Token&gt; + <a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a>,
+    </span>Input: Stream,
+    F: Extend&lt;&lt;Input <span class="kw">as </span>StreamOnce&gt;::Token&gt; + Default,
     P: Parser&lt;Input&gt;,
 {
     <span class="kw">type </span>Output = F;
     <span class="kw">type </span>PartialState = (F, P::PartialState);
 
-    <a class="macro" href="mod.rs.html#36-56">parse_mode!</a>(Input);
+    <span class="macro">parse_mode!</span>(Input);
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>parse_mode_impl&lt;M&gt;(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
@@ -2782,29 +2782,29 @@
         state: <span class="kw-2">&amp;mut </span><span class="self">Self</span>::PartialState,
     ) -&gt; ParseResult&lt;<span class="self">Self</span>::Output, Input::Error&gt;
     <span class="kw">where
-        </span>M: <a href="mod.rs.html#1104">ParseMode</a>,
+        </span>M: ParseMode,
     {
-        <span class="kw">let </span>(<span class="kw-2">ref mut </span>output, <span class="kw-2">ref mut </span>end_state) = <span class="kw-2">*</span><a href="#1162">state</a>;
+        <span class="kw">let </span>(<span class="kw-2">ref mut </span>output, <span class="kw-2">ref mut </span>end_state) = <span class="kw-2">*</span>state;
 
-        <span class="kw">let </span><span class="kw-2">mut </span>committed = <a href="../error.rs.html#219">Commit::Peek</a>(());
+        <span class="kw">let </span><span class="kw-2">mut </span>committed = Commit::Peek(());
         <span class="kw">loop </span>{
-            <span class="kw">let </span>before = <a href="#1161">input</a>.<a href="../stream/mod.rs.html#148">checkpoint</a>();
-            <span class="kw">match </span><a class="self" href="#1159">self</a>.end.<a href="mod.rs.html#267-275">parse_mode</a>(<a href="#1160">mode</a>, <a href="#1161">input</a>, <a href="#1167">end_state</a>).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>() {
+            <span class="kw">let </span>before = input.checkpoint();
+            <span class="kw">match </span><span class="self">self</span>.end.parse_mode(mode, input, end_state).into() {
                 <span class="prelude-val">Ok</span>((<span class="kw">_</span>, rest)) =&gt; {
-                    <a class="macro" href="../error.rs.html#25-38">ctry!</a>(input.reset(before).committed());
-                    <span class="kw">return match </span><a href="#1169">committed</a>.<a href="../error.rs.html#275">merge</a>(<a href="#1173">rest</a>) {
-                        <a href="../error.rs.html#216">Commit::Commit</a>(()) =&gt; <a href="../error.rs.html#949">CommitOk</a>(<a href="https://doc.rust-lang.org/nightly/core/mem/fn.take.html">mem::take</a>(<a href="#1167">output</a>)),
-                        <a href="../error.rs.html#219">Commit::Peek</a>(()) =&gt; <a href="../error.rs.html#952">PeekOk</a>(<a href="https://doc.rust-lang.org/nightly/core/mem/fn.take.html">mem::take</a>(<a href="#1167">output</a>)),
+                    <span class="macro">ctry!</span>(input.reset(before).committed());
+                    <span class="kw">return match </span>committed.merge(rest) {
+                        Commit::Commit(()) =&gt; CommitOk(mem::take(output)),
+                        Commit::Peek(()) =&gt; PeekOk(mem::take(output)),
                     };
                 }
-                <span class="prelude-val">Err</span>(<a href="../error.rs.html#219">Commit::Peek</a>(<span class="kw">_</span>)) =&gt; {
-                    <a class="macro" href="../error.rs.html#25-38">ctry!</a>(input.reset(before).committed());
-                    <a href="#1167">output</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<span class="prelude-val">Some</span>(<a class="macro" href="../error.rs.html#25-38">ctry!</a>(uncons(input)).<span class="number">0</span>));
-                    <a href="#1169">committed</a> = <a href="../error.rs.html#216">Commit::Commit</a>(());
+                <span class="prelude-val">Err</span>(Commit::Peek(<span class="kw">_</span>)) =&gt; {
+                    <span class="macro">ctry!</span>(input.reset(before).committed());
+                    output.extend(<span class="prelude-val">Some</span>(<span class="macro">ctry!</span>(uncons(input)).<span class="number">0</span>));
+                    committed = Commit::Commit(());
                 }
-                <span class="prelude-val">Err</span>(<a href="../error.rs.html#216">Commit::Commit</a>(e)) =&gt; {
-                    <a class="macro" href="../error.rs.html#25-38">ctry!</a>(input.reset(before).committed());
-                    <span class="kw">return </span><a href="../error.rs.html#954">CommitErr</a>(<a href="#1185">e</a>.error);
+                <span class="prelude-val">Err</span>(Commit::Commit(e)) =&gt; {
+                    <span class="macro">ctry!</span>(input.reset(before).committed());
+                    <span class="kw">return </span>CommitErr(e.error);
                 }
             };
         }
@@ -2836,19 +2836,19 @@
 /// ```
 </span><span class="kw">pub fn </span>take_until&lt;F, Input, P&gt;(end: P) -&gt; TakeUntil&lt;F, P&gt;
 <span class="kw">where
-    </span>Input: <a href="../stream/mod.rs.html#163">Stream</a>,
-    F: Extend&lt;&lt;Input <span class="kw">as </span>StreamOnce&gt;::Token&gt; + <a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a>,
+    </span>Input: Stream,
+    F: Extend&lt;&lt;Input <span class="kw">as </span>StreamOnce&gt;::Token&gt; + Default,
     P: Parser&lt;Input&gt;,
 {
-    <a href="#1143">TakeUntil</a> {
-        <a href="#1217">end</a>,
+    TakeUntil {
+        end,
         _marker: PhantomData,
     }
 }
 
-<a class="macro" href="../lib.rs.html#326-403">parser! </a>{
+<span class="macro">parser! </span>{
     <span class="kw">pub struct </span>SkipUntil;
-    <span class="kw">type </span>PartialState = &lt;With&lt;TakeUntil&lt;<a href="#541">Sink</a>, P&gt;, Value&lt;Input, ()&gt;&gt; <span class="kw">as </span>Parser&lt;Input&gt;&gt;::PartialState;
+    <span class="kw">type </span>PartialState = &lt;With&lt;TakeUntil&lt;Sink, P&gt;, Value&lt;Input, ()&gt;&gt; <span class="kw">as </span>Parser&lt;Input&gt;&gt;::PartialState;
     <span class="doccomment">/// Skips input until `end` is encountered or `end` indicates that it has committed input before
     /// failing (`attempt` can be used to make it look like it has not committed any input)
     ///
@@ -2889,15 +2889,15 @@
 }
 <span class="kw">impl</span>&lt;F, Input, P, E&gt; Parser&lt;Input&gt; <span class="kw">for </span>RepeatUntil&lt;F, P, E&gt;
 <span class="kw">where
-    </span>Input: <a href="../stream/mod.rs.html#163">Stream</a>,
-    F: Extend&lt;P::Output&gt; + <a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a>,
+    </span>Input: Stream,
+    F: Extend&lt;P::Output&gt; + Default,
     P: Parser&lt;Input&gt;,
     E: Parser&lt;Input&gt;,
 {
     <span class="kw">type </span>Output = F;
-    <span class="kw">type </span>PartialState = (F, <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>, P::PartialState, E::PartialState);
+    <span class="kw">type </span>PartialState = (F, bool, P::PartialState, E::PartialState);
 
-    <a class="macro" href="mod.rs.html#36-56">parse_mode!</a>(Input);
+    <span class="macro">parse_mode!</span>(Input);
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>parse_mode_impl&lt;M&gt;(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
@@ -2906,35 +2906,35 @@
         state: <span class="kw-2">&amp;mut </span><span class="self">Self</span>::PartialState,
     ) -&gt; ParseResult&lt;<span class="self">Self</span>::Output, Input::Error&gt;
     <span class="kw">where
-        </span>M: <a href="mod.rs.html#1104">ParseMode</a>,
+        </span>M: ParseMode,
     {
-        <span class="kw">let </span>(output, is_parse, parse_state, end_state) = <a href="#1286">state</a>;
+        <span class="kw">let </span>(output, is_parse, parse_state, end_state) = state;
 
-        <span class="kw">let </span><span class="kw-2">mut </span>committed = <a href="../error.rs.html#219">Commit::Peek</a>(());
+        <span class="kw">let </span><span class="kw-2">mut </span>committed = Commit::Peek(());
         <span class="kw">loop </span>{
             <span class="kw">if </span><span class="kw-2">*</span>is_parse {
-                <span class="kw">let </span>(token, c) = <a class="macro" href="../error.rs.html#25-38">ctry!</a>(<span class="self">self</span>.parser.parse_mode(mode, input, parse_state));
-                <a href="#1291">output</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<span class="prelude-val">Some</span>(<a href="#1296">token</a>));
-                <a href="#1293">committed</a> = <a href="#1293">committed</a>.<a href="../error.rs.html#275">merge</a>(<a href="#1296">c</a>);
-                <span class="kw-2">*</span><a href="#1291">is_parse</a> = <span class="bool-val">false</span>;
+                <span class="kw">let </span>(token, c) = <span class="macro">ctry!</span>(<span class="self">self</span>.parser.parse_mode(mode, input, parse_state));
+                output.extend(<span class="prelude-val">Some</span>(token));
+                committed = committed.merge(c);
+                <span class="kw-2">*</span>is_parse = <span class="bool-val">false</span>;
             } <span class="kw">else </span>{
-                <span class="kw">let </span>before = <a href="#1285">input</a>.<a href="../stream/mod.rs.html#148">checkpoint</a>();
-                <span class="kw">match </span><a class="self" href="#1283">self</a>.end.<a href="mod.rs.html#267-275">parse_mode</a>(<a href="#1284">mode</a>, <a href="#1285">input</a>, <a href="#1291">end_state</a>).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>() {
+                <span class="kw">let </span>before = input.checkpoint();
+                <span class="kw">match </span><span class="self">self</span>.end.parse_mode(mode, input, end_state).into() {
                     <span class="prelude-val">Ok</span>((<span class="kw">_</span>, rest)) =&gt; {
-                        <a class="macro" href="../error.rs.html#25-38">ctry!</a>(input.reset(before).committed());
-                        <span class="kw">return match </span><a href="#1293">committed</a>.<a href="../error.rs.html#275">merge</a>(<a href="#1303">rest</a>) {
-                            <a href="../error.rs.html#216">Commit::Commit</a>(()) =&gt; <a href="../error.rs.html#949">CommitOk</a>(<a href="https://doc.rust-lang.org/nightly/core/mem/fn.take.html">mem::take</a>(<a href="#1291">output</a>)),
-                            <a href="../error.rs.html#219">Commit::Peek</a>(()) =&gt; <a href="../error.rs.html#952">PeekOk</a>(<a href="https://doc.rust-lang.org/nightly/core/mem/fn.take.html">mem::take</a>(<a href="#1291">output</a>)),
+                        <span class="macro">ctry!</span>(input.reset(before).committed());
+                        <span class="kw">return match </span>committed.merge(rest) {
+                            Commit::Commit(()) =&gt; CommitOk(mem::take(output)),
+                            Commit::Peek(()) =&gt; PeekOk(mem::take(output)),
                         };
                     }
-                    <span class="prelude-val">Err</span>(<a href="../error.rs.html#219">Commit::Peek</a>(<span class="kw">_</span>)) =&gt; {
-                        <a class="macro" href="../error.rs.html#25-38">ctry!</a>(input.reset(before).committed());
-                        <a href="#1284">mode</a>.<a href="mod.rs.html#1109">set_first</a>();
-                        <span class="kw-2">*</span><a href="#1291">is_parse</a> = <span class="bool-val">true</span>;
+                    <span class="prelude-val">Err</span>(Commit::Peek(<span class="kw">_</span>)) =&gt; {
+                        <span class="macro">ctry!</span>(input.reset(before).committed());
+                        mode.set_first();
+                        <span class="kw-2">*</span>is_parse = <span class="bool-val">true</span>;
                     }
-                    <span class="prelude-val">Err</span>(<a href="../error.rs.html#216">Commit::Commit</a>(e)) =&gt; {
-                        <a class="macro" href="../error.rs.html#25-38">ctry!</a>(input.reset(before).committed());
-                        <span class="kw">return </span><a href="../error.rs.html#954">CommitErr</a>(<a href="#1315">e</a>.error);
+                    <span class="prelude-val">Err</span>(Commit::Commit(e)) =&gt; {
+                        <span class="macro">ctry!</span>(input.reset(before).committed());
+                        <span class="kw">return </span>CommitErr(e.error);
                     }
                 }
             }
@@ -2944,21 +2944,21 @@
 
 <span class="kw">pub fn </span>repeat_until&lt;F, Input, P, E&gt;(parser: P, end: E) -&gt; RepeatUntil&lt;F, P, E&gt;
 <span class="kw">where
-    </span>Input: <a href="../stream/mod.rs.html#163">Stream</a>,
-    F: Extend&lt;P::Output&gt; + <a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a>,
+    </span>Input: Stream,
+    F: Extend&lt;P::Output&gt; + Default,
     P: Parser&lt;Input&gt;,
     E: Parser&lt;Input&gt;,
 {
-    <a href="#1265">RepeatUntil</a> {
-        <a href="#1325">parser</a>,
-        <a href="#1325">end</a>,
+    RepeatUntil {
+        parser,
+        end,
         _marker: PhantomData,
     }
 }
 
-<a class="macro" href="../lib.rs.html#326-403">parser! </a>{
+<span class="macro">parser! </span>{
     <span class="kw">pub struct </span>SkipRepeatUntil;
-    <span class="kw">type </span>PartialState = &lt;With&lt;RepeatUntil&lt;<a href="#541">Sink</a>, P, E&gt;, Value&lt;Input, ()&gt;&gt; <span class="kw">as </span>Parser&lt;Input&gt;&gt;::PartialState;
+    <span class="kw">type </span>PartialState = &lt;With&lt;RepeatUntil&lt;Sink, P, E&gt;, Value&lt;Input, ()&gt;&gt; <span class="kw">as </span>Parser&lt;Input&gt;&gt;::PartialState;
     <span class="doccomment">/// Skips input until `end` is encountered or `end` indicates that it has committed input before
     /// failing (`attempt` can be used to continue skipping even if `end` has committed input)
     ///
@@ -3003,65 +3003,65 @@
 }
 <span class="kw">impl</span>&lt;Input, P, Q&gt; Parser&lt;Input&gt; <span class="kw">for </span>Escaped&lt;P, Q, Input::Token&gt;
 <span class="kw">where
-    </span>Input: <a href="../stream/mod.rs.html#163">Stream</a>,
+    </span>Input: Stream,
     P: Parser&lt;Input&gt;,
-    &lt;Input <span class="kw">as </span>StreamOnce&gt;::Token: <a href="https://doc.rust-lang.org/nightly/core/cmp/trait.PartialEq.html">PartialEq</a>,
+    &lt;Input <span class="kw">as </span>StreamOnce&gt;::Token: PartialEq,
     Q: Parser&lt;Input&gt;,
 {
     <span class="kw">type </span>Output = ();
     <span class="kw">type </span>PartialState = EscapedState&lt;P::PartialState, Q::PartialState&gt;;
 
     <span class="kw">fn </span>parse_lazy(<span class="kw-2">&amp;mut </span><span class="self">self</span>, input: <span class="kw-2">&amp;mut </span>Input) -&gt; ParseResult&lt;<span class="self">Self</span>::Output, Input::Error&gt; {
-        <span class="kw">let </span><span class="kw-2">mut </span>committed = <a href="../error.rs.html#219">Commit::Peek</a>(());
+        <span class="kw">let </span><span class="kw-2">mut </span>committed = Commit::Peek(());
         <span class="kw">loop </span>{
-            <span class="kw">match </span><a class="self" href="#1394">self</a>.parser.<a href="mod.rs.html#180-183">parse_lazy</a>(<a href="#1394">input</a>) {
-                <a href="../error.rs.html#952">PeekOk</a>(<span class="kw">_</span>) =&gt; {}
-                <a href="../error.rs.html#949">CommitOk</a>(<span class="kw">_</span>) =&gt; {
-                    <a href="#1395">committed</a> = <a href="../error.rs.html#216">Commit::Commit</a>(());
+            <span class="kw">match </span><span class="self">self</span>.parser.parse_lazy(input) {
+                PeekOk(<span class="kw">_</span>) =&gt; {}
+                CommitOk(<span class="kw">_</span>) =&gt; {
+                    committed = Commit::Commit(());
                 }
-                <a href="../error.rs.html#956">PeekErr</a>(<span class="kw">_</span>) =&gt; {
-                    <span class="kw">let </span>checkpoint = <a href="#1394">input</a>.<a href="../stream/mod.rs.html#148">checkpoint</a>();
-                    <span class="kw">match </span><a href="../stream/mod.rs.html#173-175">uncons</a>(<a href="#1394">input</a>) {
-                        <a href="../error.rs.html#949">CommitOk</a>(<span class="kw-2">ref </span>c) | <a href="../error.rs.html#952">PeekOk</a>(<span class="kw-2">ref </span>c) <span class="kw">if </span><span class="kw-2">*</span><a href="#1405">c</a> == <a class="self" href="#1394">self</a>.escape =&gt; {
-                            <span class="kw">match </span><a class="self" href="#1394">self</a>.escape_parser.<a href="mod.rs.html#303-311">parse_committed_mode</a>(
-                                <a href="mod.rs.html#1151">FirstMode</a>,
-                                <a href="#1394">input</a>,
-                                <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default::default</a>(),
+                PeekErr(<span class="kw">_</span>) =&gt; {
+                    <span class="kw">let </span>checkpoint = input.checkpoint();
+                    <span class="kw">match </span>uncons(input) {
+                        CommitOk(<span class="kw-2">ref </span>c) | PeekOk(<span class="kw-2">ref </span>c) <span class="kw">if </span><span class="kw-2">*</span>c == <span class="self">self</span>.escape =&gt; {
+                            <span class="kw">match </span><span class="self">self</span>.escape_parser.parse_committed_mode(
+                                FirstMode,
+                                input,
+                                <span class="kw-2">&amp;mut </span>Default::default(),
                             ) {
-                                <a href="../error.rs.html#952">PeekOk</a>(<span class="kw">_</span>) =&gt; {}
-                                <a href="../error.rs.html#949">CommitOk</a>(<span class="kw">_</span>) =&gt; {
-                                    <a href="#1395">committed</a> = <a href="../error.rs.html#216">Commit::Commit</a>(());
+                                PeekOk(<span class="kw">_</span>) =&gt; {}
+                                CommitOk(<span class="kw">_</span>) =&gt; {
+                                    committed = Commit::Commit(());
                                 }
-                                <a href="../error.rs.html#954">CommitErr</a>(err) =&gt; <span class="kw">return </span><a href="../error.rs.html#954">CommitErr</a>(<a href="#1415">err</a>),
-                                <a href="../error.rs.html#956">PeekErr</a>(err) =&gt; {
-                                    <span class="kw">return </span><a href="../error.rs.html#954">CommitErr</a>(<a href="#1416">err</a>.error);
+                                CommitErr(err) =&gt; <span class="kw">return </span>CommitErr(err),
+                                PeekErr(err) =&gt; {
+                                    <span class="kw">return </span>CommitErr(err.error);
                                 }
                             }
                         }
-                        <a href="../error.rs.html#954">CommitErr</a>(err) =&gt; {
-                            <span class="kw">return </span><a href="../error.rs.html#954">CommitErr</a>(<a href="#1421">err</a>);
+                        CommitErr(err) =&gt; {
+                            <span class="kw">return </span>CommitErr(err);
                         }
                         <span class="kw">_ </span>=&gt; {
-                            <a class="macro" href="../error.rs.html#25-38">ctry!</a>(input.reset(checkpoint).committed());
+                            <span class="macro">ctry!</span>(input.reset(checkpoint).committed());
                             <span class="kw">return if </span>committed.is_peek() {
-                                <a href="../error.rs.html#952">PeekOk</a>(())
+                                PeekOk(())
                             } <span class="kw">else </span>{
-                                <a href="../error.rs.html#949">CommitOk</a>(())
+                                CommitOk(())
                             };
                         }
                     }
                 }
-                <a href="../error.rs.html#954">CommitErr</a>(err) =&gt; <span class="kw">return </span><a href="../error.rs.html#954">CommitErr</a>(<a href="#1434">err</a>),
+                CommitErr(err) =&gt; <span class="kw">return </span>CommitErr(err),
             }
         }
     }
 
     <span class="kw">fn </span>add_error(<span class="kw-2">&amp;mut </span><span class="self">self</span>, errors: <span class="kw-2">&amp;mut </span>Tracked&lt;&lt;Input <span class="kw">as </span>StreamOnce&gt;::Error&gt;) {
-        <span class="kw">use </span><a href="../lib.rs.html#616"><span class="kw">crate</span>::error</a>;
+        <span class="kw">use </span><span class="kw">crate</span>::error;
 
-        <a class="self" href="#1439">self</a>.parser.<a href="mod.rs.html#206">add_error</a>(<a href="#1439">errors</a>);
+        <span class="self">self</span>.parser.add_error(errors);
 
-        <a href="#1439">errors</a>.error.<a href="../error.rs.html#492-494">add_expected</a>(<a href="../error.rs.html#126">error::Token</a>(<a class="self" href="#1439">self</a>.escape.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()));
+        errors.error.add_expected(error::Token(<span class="self">self</span>.escape.clone()));
     }
 }
 
@@ -3095,15 +3095,15 @@
     escape_parser: Q,
 ) -&gt; Escaped&lt;P, Q, Input::Token&gt;
 <span class="kw">where
-    </span>Input: <a href="../stream/mod.rs.html#163">Stream</a>,
+    </span>Input: Stream,
     P: Parser&lt;Input&gt;,
-    &lt;Input <span class="kw">as </span>StreamOnce&gt;::Token: <a href="https://doc.rust-lang.org/nightly/core/cmp/trait.PartialEq.html">PartialEq</a>,
+    &lt;Input <span class="kw">as </span>StreamOnce&gt;::Token: PartialEq,
     Q: Parser&lt;Input&gt;,
 {
-    <a href="#1379">Escaped</a> {
-        <a href="#1473">parser</a>,
-        <a href="#1474">escape</a>,
-        <a href="#1475">escape_parser</a>,
+    Escaped {
+        parser,
+        escape,
+        escape_parser,
     }
 }
 
@@ -3116,19 +3116,19 @@
 <span class="kw">where
     </span>P: FnMut(<span class="kw-2">&amp;</span>J::Item, <span class="kw-2">&amp;mut </span>I) -&gt; Q,
     Q: Parser&lt;I&gt;,
-    I: <a href="../stream/mod.rs.html#163">Stream</a>,
-    J: <a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">IntoIterator</a> + <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a>,
-    F: Extend&lt;Q::Output&gt; + <a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a>,
+    I: Stream,
+    J: IntoIterator + Clone,
+    F: Extend&lt;Q::Output&gt; + Default,
 {
     <span class="kw">type </span>Output = F;
     <span class="kw">type </span>PartialState = (
         <span class="prelude-ty">Option</span>&lt;(J::IntoIter, <span class="prelude-ty">Option</span>&lt;J::Item&gt;)&gt;,
-        <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
+        bool,
         F,
         Q::PartialState,
     );
 
-    <a class="macro" href="mod.rs.html#36-56">parse_mode!</a>(I);
+    <span class="macro">parse_mode!</span>(I);
 
     <span class="kw">fn </span>parse_mode_impl&lt;M&gt;(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
@@ -3137,79 +3137,79 @@
         state: <span class="kw-2">&amp;mut </span><span class="self">Self</span>::PartialState,
     ) -&gt; ParseResult&lt;<span class="self">Self</span>::Output, I::Error&gt;
     <span class="kw">where
-        </span>M: <a href="mod.rs.html#1104">ParseMode</a>,
+        </span>M: ParseMode,
     {
-        <span class="kw">let </span>(opt_iter, committed, buf, next) = <a href="#1517">state</a>;
-        <span class="kw">let </span>(iter, next_item) = <span class="kw">match </span><a href="#1522">opt_iter</a> {
-            <span class="prelude-val">Some</span>(iter) <span class="kw">if </span>!<a href="#1515">mode</a>.<a href="mod.rs.html#1107">is_first</a>() =&gt; <a href="#1524">iter</a>,
+        <span class="kw">let </span>(opt_iter, committed, buf, next) = state;
+        <span class="kw">let </span>(iter, next_item) = <span class="kw">match </span>opt_iter {
+            <span class="prelude-val">Some</span>(iter) <span class="kw">if </span>!mode.is_first() =&gt; iter,
             <span class="kw">_ </span>=&gt; {
-                <span class="kw-2">*</span><a href="#1522">opt_iter</a> = <span class="prelude-val">Some</span>((<a class="self" href="#1514">self</a>.iterable.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>(), <span class="prelude-val">None</span>));
-                <a href="#1522">opt_iter</a>.as_mut().unwrap()
+                <span class="kw-2">*</span>opt_iter = <span class="prelude-val">Some</span>((<span class="self">self</span>.iterable.clone().into_iter(), <span class="prelude-val">None</span>));
+                opt_iter.as_mut().unwrap()
             }
         };
 
         <span class="kw">let </span><span class="kw-2">mut </span>consume = |item: J::Item| {
-            <span class="kw">let </span><span class="kw-2">mut </span>parser = (<a class="self" href="#1514">self</a>.parser)(<span class="kw-2">&amp;</span><a href="#1531">item</a>, <a href="#1516">input</a>);
-            <span class="kw">let </span>before = <a href="#1516">input</a>.<a href="../stream/mod.rs.html#148">checkpoint</a>();
-            <span class="kw">match </span><a href="#1532">parser</a>.<a href="mod.rs.html#267-275">parse_mode</a>(<a href="#1515">mode</a>, <a href="#1516">input</a>, <a href="#1522">next</a>) {
-                <a href="../error.rs.html#952">PeekOk</a>(v) =&gt; {
-                    <a href="#1515">mode</a>.<a href="mod.rs.html#1109">set_first</a>();
-                    <span class="prelude-val">Ok</span>(<a href="#1535">v</a>)
+            <span class="kw">let </span><span class="kw-2">mut </span>parser = (<span class="self">self</span>.parser)(<span class="kw-2">&amp;</span>item, input);
+            <span class="kw">let </span>before = input.checkpoint();
+            <span class="kw">match </span>parser.parse_mode(mode, input, next) {
+                PeekOk(v) =&gt; {
+                    mode.set_first();
+                    <span class="prelude-val">Ok</span>(v)
                 }
-                <a href="../error.rs.html#949">CommitOk</a>(v) =&gt; {
-                    <a href="#1515">mode</a>.<a href="mod.rs.html#1109">set_first</a>();
-                    <span class="kw-2">*</span><a href="#1522">committed</a> = <span class="bool-val">true</span>;
-                    <span class="prelude-val">Ok</span>(<a href="#1539">v</a>)
+                CommitOk(v) =&gt; {
+                    mode.set_first();
+                    <span class="kw-2">*</span>committed = <span class="bool-val">true</span>;
+                    <span class="prelude-val">Ok</span>(v)
                 }
-                <a href="../error.rs.html#956">PeekErr</a>(err) =&gt; {
-                    <span class="kw">if let </span><span class="prelude-val">Err</span>(err) = <a href="#1516">input</a>.<a href="../stream/mod.rs.html#150">reset</a>(<a href="#1533">before</a>) {
-                        <span class="kw">return </span><span class="prelude-val">Err</span>((<a href="#1531">item</a>, <a href="../error.rs.html#954">CommitErr</a>(<a href="#1545">err</a>)));
+                PeekErr(err) =&gt; {
+                    <span class="kw">if let </span><span class="prelude-val">Err</span>(err) = input.reset(before) {
+                        <span class="kw">return </span><span class="prelude-val">Err</span>((item, CommitErr(err)));
                     }
                     <span class="prelude-val">Err</span>((
-                        <a href="#1531">item</a>,
+                        item,
                         <span class="kw">if </span><span class="kw-2">*</span>committed {
-                            <a href="../error.rs.html#954">CommitErr</a>(<a href="#1544">err</a>.error)
+                            CommitErr(err.error)
                         } <span class="kw">else </span>{
-                            <a href="../error.rs.html#956">PeekErr</a>(<a href="#1544">err</a>)
+                            PeekErr(err)
                         },
                     ))
                 }
-                <a href="../error.rs.html#954">CommitErr</a>(err) =&gt; <span class="prelude-val">Err</span>((<a href="#1531">item</a>, <a href="../error.rs.html#954">CommitErr</a>(<a href="#1557">err</a>))),
+                CommitErr(err) =&gt; <span class="prelude-val">Err</span>((item, CommitErr(err))),
             }
         };
 
         <span class="kw">let </span>result = (|| {
-            <span class="kw">if let </span><span class="prelude-val">Some</span>(item) = <a href="#1523">next_item</a>.take() {
-                <a href="#1522">buf</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<span class="prelude-val">Some</span>(consume(item)<span class="question-mark">?</span>));
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(item) = next_item.take() {
+                buf.extend(<span class="prelude-val">Some</span>(consume(item)<span class="question-mark">?</span>));
             }
             <span class="kw">let </span><span class="kw-2">mut </span>result = <span class="prelude-val">Ok</span>(());
-            <span class="kw">let </span>size_hint = <a href="#1523">iter</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">size_hint</a>();
-            <a href="#1522">buf</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a href="#106-108">suggest_size_hint</a>(
-                <a href="#1523">iter</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">scan</a>((), |<span class="kw">_</span>, item| <span class="kw">match </span><a href="#1531">consume</a>(<a href="#1568">item</a>) {
-                    <span class="prelude-val">Ok</span>(item) =&gt; <span class="prelude-val">Some</span>(<a href="#1569">item</a>),
+            <span class="kw">let </span>size_hint = iter.size_hint();
+            buf.extend(suggest_size_hint(
+                iter.scan((), |<span class="kw">_</span>, item| <span class="kw">match </span>consume(item) {
+                    <span class="prelude-val">Ok</span>(item) =&gt; <span class="prelude-val">Some</span>(item),
                     <span class="prelude-val">Err</span>(err) =&gt; {
-                        <a href="#1565">result</a> = <span class="prelude-val">Err</span>(<a href="#1570">err</a>);
+                        result = <span class="prelude-val">Err</span>(err);
                         <span class="prelude-val">None
                     </span>}
                 }),
-                <a href="#1566">size_hint</a>,
+                size_hint,
             ));
-            <a href="#1565">result</a>
+            result
         })();
 
-        <span class="kw">if let </span><span class="prelude-val">Err</span>((item, err)) = <a href="#1561">result</a> {
-            <span class="kw-2">*</span><a href="#1523">next_item</a> = <span class="prelude-val">Some</span>(<a href="#1580">item</a>);
-            <span class="kw">return </span><a href="#1580">err</a>;
+        <span class="kw">if let </span><span class="prelude-val">Err</span>((item, err)) = result {
+            <span class="kw-2">*</span>next_item = <span class="prelude-val">Some</span>(item);
+            <span class="kw">return </span>err;
         }
 
-        <a href="#1522">opt_iter</a>.take();
+        opt_iter.take();
 
-        <span class="kw">let </span>value = <a href="https://doc.rust-lang.org/nightly/core/mem/fn.take.html">mem::take</a>(<a href="#1522">buf</a>);
+        <span class="kw">let </span>value = mem::take(buf);
         <span class="kw">if </span><span class="kw-2">*</span>committed {
-            <span class="kw-2">*</span><a href="#1522">committed</a> = <span class="bool-val">false</span>;
-            <a href="../error.rs.html#949">CommitOk</a>(<a href="#1587">value</a>)
+            <span class="kw-2">*</span>committed = <span class="bool-val">false</span>;
+            CommitOk(value)
         } <span class="kw">else </span>{
-            <a href="../error.rs.html#952">PeekOk</a>(<a href="#1587">value</a>)
+            PeekOk(value)
         }
     }
 }
@@ -3228,15 +3228,15 @@
 <span class="kw">where
     </span>P: FnMut(<span class="kw-2">&amp;</span>J::Item, <span class="kw-2">&amp;mut </span>I) -&gt; Q,
     Q: Parser&lt;I&gt;,
-    I: <a href="../stream/mod.rs.html#163">Stream</a>,
-    J: <a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">IntoIterator</a> + <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a>,
-    F: Extend&lt;Q::Output&gt; + <a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a>,
+    I: Stream,
+    J: IntoIterator + Clone,
+    F: Extend&lt;Q::Output&gt; + Default,
 {
-    <a href="#1490">Iterate</a> {
-        <a href="#1607">parser</a>,
-        <a href="#1607">iterable</a>,
+    Iterate {
+        parser,
+        iterable,
         _marker: PhantomData,
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="combine" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="combine" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.21.2/src/io/util/write_int.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>write_int.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../../tokio/index.html"><img class="rust-logo" src="../../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.23.0/src/io/util/write_int.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>write_int.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../../tokio/index.html"><img class="rust-logo" src="../../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -150,16 +150,16 @@
 <a href="#150" id="150">150</a>
 <a href="#151" id="151">151</a>
 <a href="#152" id="152">152</a>
-</pre><pre class="rust"><code><span class="kw">use </span><a href="../async_write.rs.html#45"><span class="kw">crate</span>::io::AsyncWrite</a>;
+</pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::io::AsyncWrite;
 
-<span class="kw">use </span><a href="../../../../bytes/buf/buf_mut/trait.BufMut.html">bytes::BufMut</a>;
-<span class="kw">use </span><a href="../../../../pin_project_lite/macro.pin_project.html">pin_project_lite::pin_project</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">std::future::Future</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/io/index.html">std::io</a>;
+<span class="kw">use </span>bytes::BufMut;
+<span class="kw">use </span>pin_project_lite::pin_project;
+<span class="kw">use </span>std::future::Future;
+<span class="kw">use </span>std::io;
 <span class="kw">use </span>std::marker::PhantomPinned;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/mem/fn.size_of.html">std::mem::size_of</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/pin/struct.Pin.html">std::pin::Pin</a>;
-<span class="kw">use </span>std::task::{<a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>, <a href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">Poll</a>};
+<span class="kw">use </span>std::mem::size_of;
+<span class="kw">use </span>std::pin::Pin;
+<span class="kw">use </span>std::task::{Context, Poll};
 
 <span class="macro">macro_rules! </span>writer {
     (<span class="macro-nonterminal">$name</span>:ident, <span class="macro-nonterminal">$ty</span>:ty, <span class="macro-nonterminal">$writer</span>:ident) =&gt; {
@@ -274,33 +274,33 @@
     };
 }
 
-<a class="macro" href="#77-123">writer8!</a>(WriteU8, <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>);
-<a class="macro" href="#77-123">writer8!</a>(WriteI8, <a href="https://doc.rust-lang.org/nightly/std/primitive.i8.html">i8</a>);
+<span class="macro">writer8!</span>(WriteU8, u8);
+<span class="macro">writer8!</span>(WriteI8, i8);
 
-<a class="macro" href="#12-75">writer!</a>(WriteU16, <a href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>, put_u16);
-<a class="macro" href="#12-75">writer!</a>(WriteU32, <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>, put_u32);
-<a class="macro" href="#12-75">writer!</a>(WriteU64, <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>, put_u64);
-<a class="macro" href="#12-75">writer!</a>(WriteU128, <a href="https://doc.rust-lang.org/nightly/std/primitive.u128.html">u128</a>, put_u128);
+<span class="macro">writer!</span>(WriteU16, u16, put_u16);
+<span class="macro">writer!</span>(WriteU32, u32, put_u32);
+<span class="macro">writer!</span>(WriteU64, u64, put_u64);
+<span class="macro">writer!</span>(WriteU128, u128, put_u128);
 
-<a class="macro" href="#12-75">writer!</a>(WriteI16, <a href="https://doc.rust-lang.org/nightly/std/primitive.i16.html">i16</a>, put_i16);
-<a class="macro" href="#12-75">writer!</a>(WriteI32, <a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>, put_i32);
-<a class="macro" href="#12-75">writer!</a>(WriteI64, <a href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>, put_i64);
-<a class="macro" href="#12-75">writer!</a>(WriteI128, <a href="https://doc.rust-lang.org/nightly/std/primitive.i128.html">i128</a>, put_i128);
+<span class="macro">writer!</span>(WriteI16, i16, put_i16);
+<span class="macro">writer!</span>(WriteI32, i32, put_i32);
+<span class="macro">writer!</span>(WriteI64, i64, put_i64);
+<span class="macro">writer!</span>(WriteI128, i128, put_i128);
 
-<a class="macro" href="#12-75">writer!</a>(WriteF32, <a href="https://doc.rust-lang.org/nightly/std/primitive.f32.html">f32</a>, put_f32);
-<a class="macro" href="#12-75">writer!</a>(WriteF64, <a href="https://doc.rust-lang.org/nightly/std/primitive.f64.html">f64</a>, put_f64);
+<span class="macro">writer!</span>(WriteF32, f32, put_f32);
+<span class="macro">writer!</span>(WriteF64, f64, put_f64);
 
-<a class="macro" href="#12-75">writer!</a>(WriteU16Le, <a href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>, put_u16_le);
-<a class="macro" href="#12-75">writer!</a>(WriteU32Le, <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>, put_u32_le);
-<a class="macro" href="#12-75">writer!</a>(WriteU64Le, <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>, put_u64_le);
-<a class="macro" href="#12-75">writer!</a>(WriteU128Le, <a href="https://doc.rust-lang.org/nightly/std/primitive.u128.html">u128</a>, put_u128_le);
+<span class="macro">writer!</span>(WriteU16Le, u16, put_u16_le);
+<span class="macro">writer!</span>(WriteU32Le, u32, put_u32_le);
+<span class="macro">writer!</span>(WriteU64Le, u64, put_u64_le);
+<span class="macro">writer!</span>(WriteU128Le, u128, put_u128_le);
 
-<a class="macro" href="#12-75">writer!</a>(WriteI16Le, <a href="https://doc.rust-lang.org/nightly/std/primitive.i16.html">i16</a>, put_i16_le);
-<a class="macro" href="#12-75">writer!</a>(WriteI32Le, <a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>, put_i32_le);
-<a class="macro" href="#12-75">writer!</a>(WriteI64Le, <a href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>, put_i64_le);
-<a class="macro" href="#12-75">writer!</a>(WriteI128Le, <a href="https://doc.rust-lang.org/nightly/std/primitive.i128.html">i128</a>, put_i128_le);
+<span class="macro">writer!</span>(WriteI16Le, i16, put_i16_le);
+<span class="macro">writer!</span>(WriteI32Le, i32, put_i32_le);
+<span class="macro">writer!</span>(WriteI64Le, i64, put_i64_le);
+<span class="macro">writer!</span>(WriteI128Le, i128, put_i128_le);
 
-<a class="macro" href="#12-75">writer!</a>(WriteF32Le, <a href="https://doc.rust-lang.org/nightly/std/primitive.f32.html">f32</a>, put_f32_le);
-<a class="macro" href="#12-75">writer!</a>(WriteF64Le, <a href="https://doc.rust-lang.org/nightly/std/primitive.f64.html">f64</a>, put_f64_le);
+<span class="macro">writer!</span>(WriteF32Le, f32, put_f32_le);
+<span class="macro">writer!</span>(WriteF64Le, f64, put_f64_le);
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="tokio" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="tokio" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

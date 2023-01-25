@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-automata-0.1.10/src/dense.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>dense.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../regex_automata/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-automata-0.1.10/src/dense.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>dense.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../regex_automata/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -2334,19 +2334,19 @@
 </span><span class="kw">use </span>core::fmt;
 <span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
 </span><span class="kw">use </span>core::iter;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/mem/index.html">core::mem</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/slice/index.html">core::slice</a>;
+<span class="kw">use </span>core::mem;
+<span class="kw">use </span>core::slice;
 
 <span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
 </span><span class="kw">use </span>byteorder::{BigEndian, LittleEndian};
-<span class="kw">use </span>byteorder::{<a href="byteorder.rs.html#3">ByteOrder</a>, <a href="byteorder.rs.html#16">NativeEndian</a>};
+<span class="kw">use </span>byteorder::{ByteOrder, NativeEndian};
 <span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
 </span><span class="kw">use </span>regex_syntax::ParserBuilder;
 
-<span class="kw">use </span><a href="classes.rs.html#9">classes::ByteClasses</a>;
+<span class="kw">use </span>classes::ByteClasses;
 <span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
 </span><span class="kw">use </span>determinize::Determinizer;
-<span class="kw">use </span><a href="dfa.rs.html#19">dfa::DFA</a>;
+<span class="kw">use </span>dfa::DFA;
 <span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
 </span><span class="kw">use </span>error::{Error, <span class="prelude-ty">Result</span>};
 <span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
@@ -2355,7 +2355,7 @@
 </span><span class="kw">use </span>nfa::{<span class="self">self</span>, NFA};
 <span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
 </span><span class="kw">use </span>sparse::SparseDFA;
-<span class="kw">use </span>state_id::{<a href="state_id.rs.html#89">dead_id</a>, <a href="state_id.rs.html#115-116">StateID</a>};
+<span class="kw">use </span>state_id::{dead_id, StateID};
 <span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
 </span><span class="kw">use </span>state_id::{
     next_state_id, premultiply_overflow_error, write_state_id_bytes,
@@ -2371,11 +2371,11 @@
 /// sense that each DFA state has a number of transitions equal to the number
 /// of equivalence classes despite supporting matching on all possible byte
 /// values.
-</span><span class="kw">const </span>ALPHABET_LEN: <a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a> = <span class="number">256</span>;
+</span><span class="kw">const </span>ALPHABET_LEN: usize = <span class="number">256</span>;
 
 <span class="doccomment">/// Masks used in serialization of DFAs.
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>MASK_PREMULTIPLIED: <a href="https://doc.rust-lang.org/nightly/core/primitive.u16.html">u16</a> = <span class="number">0b0000_0000_0000_0001</span>;
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>MASK_ANCHORED: <a href="https://doc.rust-lang.org/nightly/core/primitive.u16.html">u16</a> = <span class="number">0b0000_0000_0000_0010</span>;
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>MASK_PREMULTIPLIED: u16 = <span class="number">0b0000_0000_0000_0001</span>;
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>MASK_ANCHORED: u16 = <span class="number">0b0000_0000_0000_0010</span>;
 
 <span class="doccomment">/// A dense table-based deterministic finite automaton (DFA).
 ///
@@ -2471,7 +2471,7 @@
 /// the variants of this DFA and use each variant&#39;s implementation of the `DFA`
 /// trait directly.
 </span><span class="attr">#[derive(Clone, Debug)]
-</span><span class="kw">pub enum </span>DenseDFA&lt;T: AsRef&lt;[S]&gt;, S: <a href="state_id.rs.html#115-116">StateID</a>&gt; {
+</span><span class="kw">pub enum </span>DenseDFA&lt;T: AsRef&lt;[S]&gt;, S: StateID&gt; {
     <span class="doccomment">/// A standard DFA that does not use premultiplication or byte classes.
     </span>Standard(Standard&lt;T, S&gt;),
     <span class="doccomment">/// A DFA that shrinks its alphabet to a set of equivalence classes instead
@@ -2503,17 +2503,17 @@
     </span>__Nonexhaustive,
 }
 
-<span class="kw">impl</span>&lt;T: AsRef&lt;[S]&gt;, S: <a href="state_id.rs.html#115-116">StateID</a>&gt; DenseDFA&lt;T, S&gt; {
+<span class="kw">impl</span>&lt;T: AsRef&lt;[S]&gt;, S: StateID&gt; DenseDFA&lt;T, S&gt; {
     <span class="doccomment">/// Return the internal DFA representation.
     ///
     /// All variants share the same internal representation.
     </span><span class="kw">fn </span>repr(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Repr&lt;T, S&gt; {
-        <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="#178">self</a> </span>{
-            <a href="#144">DenseDFA::Standard</a>(<span class="kw-2">ref </span>r) =&gt; <span class="kw-2">&amp;</span><a href="#180">r</a>.<span class="number">0</span>,
-            <a href="#153">DenseDFA::ByteClass</a>(<span class="kw-2">ref </span>r) =&gt; <span class="kw-2">&amp;</span><a href="#181">r</a>.<span class="number">0</span>,
-            <a href="#161">DenseDFA::Premultiplied</a>(<span class="kw-2">ref </span>r) =&gt; <span class="kw-2">&amp;</span><a href="#182">r</a>.<span class="number">0</span>,
-            <a href="#164">DenseDFA::PremultipliedByteClass</a>(<span class="kw-2">ref </span>r) =&gt; <span class="kw-2">&amp;</span><a href="#183">r</a>.<span class="number">0</span>,
-            <a href="#171">DenseDFA::__Nonexhaustive</a> =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(),
+        <span class="kw">match </span><span class="kw-2">*</span><span class="self">self </span>{
+            DenseDFA::Standard(<span class="kw-2">ref </span>r) =&gt; <span class="kw-2">&amp;</span>r.<span class="number">0</span>,
+            DenseDFA::ByteClass(<span class="kw-2">ref </span>r) =&gt; <span class="kw-2">&amp;</span>r.<span class="number">0</span>,
+            DenseDFA::Premultiplied(<span class="kw-2">ref </span>r) =&gt; <span class="kw-2">&amp;</span>r.<span class="number">0</span>,
+            DenseDFA::PremultipliedByteClass(<span class="kw-2">ref </span>r) =&gt; <span class="kw-2">&amp;</span>r.<span class="number">0</span>,
+            DenseDFA::__Nonexhaustive =&gt; <span class="macro">unreachable!</span>(),
         }
     }
 }
@@ -2569,26 +2569,26 @@
     }
 }
 
-<span class="kw">impl</span>&lt;T: AsRef&lt;[S]&gt;, S: <a href="state_id.rs.html#115-116">StateID</a>&gt; DenseDFA&lt;T, S&gt; {
+<span class="kw">impl</span>&lt;T: AsRef&lt;[S]&gt;, S: StateID&gt; DenseDFA&lt;T, S&gt; {
     <span class="doccomment">/// Cheaply return a borrowed version of this dense DFA. Specifically, the
     /// DFA returned always uses `&amp;[S]` for its transition table while keeping
     /// the same state identifier representation.
     </span><span class="kw">pub fn </span>as_ref&lt;<span class="lifetime">&#39;a</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="self">self</span>) -&gt; DenseDFA&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[S], S&gt; {
-        <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="#244">self</a> </span>{
-            <a href="#144">DenseDFA::Standard</a>(<span class="kw-2">ref </span>r) =&gt; {
-                <a href="#144">DenseDFA::Standard</a>(<a href="#673">Standard</a>(<a href="#246">r</a>.<span class="number">0</span>.<a href="#1029">as_ref</a>()))
+        <span class="kw">match </span><span class="kw-2">*</span><span class="self">self </span>{
+            DenseDFA::Standard(<span class="kw-2">ref </span>r) =&gt; {
+                DenseDFA::Standard(Standard(r.<span class="number">0</span>.as_ref()))
             }
-            <a href="#153">DenseDFA::ByteClass</a>(<span class="kw-2">ref </span>r) =&gt; {
-                <a href="#153">DenseDFA::ByteClass</a>(<a href="#733">ByteClass</a>(<a href="#249">r</a>.<span class="number">0</span>.<a href="#1029">as_ref</a>()))
+            DenseDFA::ByteClass(<span class="kw-2">ref </span>r) =&gt; {
+                DenseDFA::ByteClass(ByteClass(r.<span class="number">0</span>.as_ref()))
             }
-            <a href="#161">DenseDFA::Premultiplied</a>(<span class="kw-2">ref </span>r) =&gt; {
-                <a href="#161">DenseDFA::Premultiplied</a>(<a href="#794">Premultiplied</a>(<a href="#252">r</a>.<span class="number">0</span>.<a href="#1029">as_ref</a>()))
+            DenseDFA::Premultiplied(<span class="kw-2">ref </span>r) =&gt; {
+                DenseDFA::Premultiplied(Premultiplied(r.<span class="number">0</span>.as_ref()))
             }
-            <a href="#164">DenseDFA::PremultipliedByteClass</a>(<span class="kw-2">ref </span>r) =&gt; {
-                <span class="kw">let </span>inner = <a href="#847">PremultipliedByteClass</a>(<a href="#255">r</a>.<span class="number">0</span>.<a href="#1029">as_ref</a>());
-                <a href="#164">DenseDFA::PremultipliedByteClass</a>(<a href="#256">inner</a>)
+            DenseDFA::PremultipliedByteClass(<span class="kw-2">ref </span>r) =&gt; {
+                <span class="kw">let </span>inner = PremultipliedByteClass(r.<span class="number">0</span>.as_ref());
+                DenseDFA::PremultipliedByteClass(inner)
             }
-            <a href="#171">DenseDFA::__Nonexhaustive</a> =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(),
+            DenseDFA::__Nonexhaustive =&gt; <span class="macro">unreachable!</span>(),
         }
     }
 
@@ -2626,8 +2626,8 @@
     ///
     /// This does **not** include the stack size used up by this DFA. To
     /// compute that, used `std::mem::size_of::&lt;DenseDFA&gt;()`.
-    </span><span class="kw">pub fn </span>memory_usage(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a> {
-        <a class="self" href="#297">self</a>.<a href="#178">repr</a>().<a href="#1135">memory_usage</a>()
+    </span><span class="kw">pub fn </span>memory_usage(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+        <span class="self">self</span>.repr().memory_usage()
     }
 }
 
@@ -2783,7 +2783,7 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, S: <a href="state_id.rs.html#115-116">StateID</a>&gt; DenseDFA&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[S], S&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, S: StateID&gt; DenseDFA&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[S], S&gt; {
     <span class="doccomment">/// Deserialize a DFA with a specific state identifier representation.
     ///
     /// Deserializing a DFA using this routine will never allocate heap memory.
@@ -2847,8 +2847,8 @@
     /// assert_eq!(Some(8), dfa.find(b&quot;foo12345&quot;));
     /// # Ok(()) }; example().unwrap()
     /// ```
-    </span><span class="kw">pub unsafe fn </span>from_bytes(buf: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[<a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>]) -&gt; DenseDFA&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[S], S&gt; {
-        Repr::from_bytes(<a href="#518">buf</a>).<a href="#1014">into_dense_dfa</a>()
+    </span><span class="kw">pub unsafe fn </span>from_bytes(buf: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[u8]) -&gt; DenseDFA&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[S], S&gt; {
+        Repr::from_bytes(buf).into_dense_dfa()
     }
 }
 
@@ -2875,63 +2875,63 @@
     }
 }
 
-<span class="kw">impl</span>&lt;T: AsRef&lt;[S]&gt;, S: <a href="state_id.rs.html#115-116">StateID</a>&gt; <a href="dfa.rs.html#19">DFA</a> <span class="kw">for </span>DenseDFA&lt;T, S&gt; {
+<span class="kw">impl</span>&lt;T: AsRef&lt;[S]&gt;, S: StateID&gt; DFA <span class="kw">for </span>DenseDFA&lt;T, S&gt; {
     <span class="kw">type </span>ID = S;
 
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>start_state(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; S {
-        <a class="self" href="#550">self</a>.<a href="#178">repr</a>().<a href="#1059">start_state</a>()
+        <span class="self">self</span>.repr().start_state()
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>is_match_state(<span class="kw-2">&amp;</span><span class="self">self</span>, id: S) -&gt; <a href="https://doc.rust-lang.org/nightly/core/primitive.bool.html">bool</a> {
-        <a class="self" href="#555">self</a>.<a href="#178">repr</a>().<a href="#1065">is_match_state</a>(<a href="#555">id</a>)
+    </span><span class="kw">fn </span>is_match_state(<span class="kw-2">&amp;</span><span class="self">self</span>, id: S) -&gt; bool {
+        <span class="self">self</span>.repr().is_match_state(id)
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>is_dead_state(<span class="kw-2">&amp;</span><span class="self">self</span>, id: S) -&gt; <a href="https://doc.rust-lang.org/nightly/core/primitive.bool.html">bool</a> {
-        <a class="self" href="#560">self</a>.<a href="#178">repr</a>().<a href="#1071">is_dead_state</a>(<a href="#560">id</a>)
+    </span><span class="kw">fn </span>is_dead_state(<span class="kw-2">&amp;</span><span class="self">self</span>, id: S) -&gt; bool {
+        <span class="self">self</span>.repr().is_dead_state(id)
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>is_match_or_dead_state(<span class="kw-2">&amp;</span><span class="self">self</span>, id: S) -&gt; <a href="https://doc.rust-lang.org/nightly/core/primitive.bool.html">bool</a> {
-        <a class="self" href="#565">self</a>.<a href="#178">repr</a>().<a href="#1079">is_match_or_dead_state</a>(<a href="#565">id</a>)
+    </span><span class="kw">fn </span>is_match_or_dead_state(<span class="kw-2">&amp;</span><span class="self">self</span>, id: S) -&gt; bool {
+        <span class="self">self</span>.repr().is_match_or_dead_state(id)
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>is_anchored(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/primitive.bool.html">bool</a> {
-        <a class="self" href="#570">self</a>.<a href="#178">repr</a>().<a href="#1094">is_anchored</a>()
+    </span><span class="kw">fn </span>is_anchored(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.repr().is_anchored()
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>next_state(<span class="kw-2">&amp;</span><span class="self">self</span>, current: S, input: <a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>) -&gt; S {
-        <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="#575">self</a> </span>{
-            <a href="#144">DenseDFA::Standard</a>(<span class="kw-2">ref </span>r) =&gt; <a href="#577">r</a>.<a href="dfa.rs.html#56">next_state</a>(<a href="#575">current</a>, <a href="#575">input</a>),
-            <a href="#153">DenseDFA::ByteClass</a>(<span class="kw-2">ref </span>r) =&gt; <a href="#578">r</a>.<a href="dfa.rs.html#56">next_state</a>(<a href="#575">current</a>, <a href="#575">input</a>),
-            <a href="#161">DenseDFA::Premultiplied</a>(<span class="kw-2">ref </span>r) =&gt; <a href="#579">r</a>.<a href="dfa.rs.html#56">next_state</a>(<a href="#575">current</a>, <a href="#575">input</a>),
-            <a href="#164">DenseDFA::PremultipliedByteClass</a>(<span class="kw-2">ref </span>r) =&gt; {
-                <a href="#580">r</a>.<a href="dfa.rs.html#56">next_state</a>(<a href="#575">current</a>, <a href="#575">input</a>)
+    </span><span class="kw">fn </span>next_state(<span class="kw-2">&amp;</span><span class="self">self</span>, current: S, input: u8) -&gt; S {
+        <span class="kw">match </span><span class="kw-2">*</span><span class="self">self </span>{
+            DenseDFA::Standard(<span class="kw-2">ref </span>r) =&gt; r.next_state(current, input),
+            DenseDFA::ByteClass(<span class="kw-2">ref </span>r) =&gt; r.next_state(current, input),
+            DenseDFA::Premultiplied(<span class="kw-2">ref </span>r) =&gt; r.next_state(current, input),
+            DenseDFA::PremultipliedByteClass(<span class="kw-2">ref </span>r) =&gt; {
+                r.next_state(current, input)
             }
-            <a href="#171">DenseDFA::__Nonexhaustive</a> =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(),
+            DenseDFA::__Nonexhaustive =&gt; <span class="macro">unreachable!</span>(),
         }
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">unsafe fn </span>next_state_unchecked(<span class="kw-2">&amp;</span><span class="self">self</span>, current: S, input: <a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>) -&gt; S {
-        <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="#588">self</a> </span>{
-            <a href="#144">DenseDFA::Standard</a>(<span class="kw-2">ref </span>r) =&gt; {
-                <a href="#590">r</a>.<a href="dfa.rs.html#63-67">next_state_unchecked</a>(<a href="#588">current</a>, <a href="#588">input</a>)
+    </span><span class="kw">unsafe fn </span>next_state_unchecked(<span class="kw-2">&amp;</span><span class="self">self</span>, current: S, input: u8) -&gt; S {
+        <span class="kw">match </span><span class="kw-2">*</span><span class="self">self </span>{
+            DenseDFA::Standard(<span class="kw-2">ref </span>r) =&gt; {
+                r.next_state_unchecked(current, input)
             }
-            <a href="#153">DenseDFA::ByteClass</a>(<span class="kw-2">ref </span>r) =&gt; {
-                <a href="#593">r</a>.<a href="dfa.rs.html#63-67">next_state_unchecked</a>(<a href="#588">current</a>, <a href="#588">input</a>)
+            DenseDFA::ByteClass(<span class="kw-2">ref </span>r) =&gt; {
+                r.next_state_unchecked(current, input)
             }
-            <a href="#161">DenseDFA::Premultiplied</a>(<span class="kw-2">ref </span>r) =&gt; {
-                <a href="#596">r</a>.<a href="dfa.rs.html#63-67">next_state_unchecked</a>(<a href="#588">current</a>, <a href="#588">input</a>)
+            DenseDFA::Premultiplied(<span class="kw-2">ref </span>r) =&gt; {
+                r.next_state_unchecked(current, input)
             }
-            <a href="#164">DenseDFA::PremultipliedByteClass</a>(<span class="kw-2">ref </span>r) =&gt; {
-                <a href="#599">r</a>.<a href="dfa.rs.html#63-67">next_state_unchecked</a>(<a href="#588">current</a>, <a href="#588">input</a>)
+            DenseDFA::PremultipliedByteClass(<span class="kw-2">ref </span>r) =&gt; {
+                r.next_state_unchecked(current, input)
             }
-            <a href="#171">DenseDFA::__Nonexhaustive</a> =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(),
+            DenseDFA::__Nonexhaustive =&gt; <span class="macro">unreachable!</span>(),
         }
     }
 
@@ -2941,54 +2941,54 @@
     // searching.
 
     </span><span class="attr">#[inline]
-    </span><span class="kw">fn </span>is_match_at(<span class="kw-2">&amp;</span><span class="self">self</span>, bytes: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>], start: <a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/primitive.bool.html">bool</a> {
-        <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="#612">self</a> </span>{
-            <a href="#144">DenseDFA::Standard</a>(<span class="kw-2">ref </span>r) =&gt; <a href="#614">r</a>.<a href="dfa.rs.html#210">is_match_at</a>(<a href="#612">bytes</a>, <a href="#612">start</a>),
-            <a href="#153">DenseDFA::ByteClass</a>(<span class="kw-2">ref </span>r) =&gt; <a href="#615">r</a>.<a href="dfa.rs.html#210">is_match_at</a>(<a href="#612">bytes</a>, <a href="#612">start</a>),
-            <a href="#161">DenseDFA::Premultiplied</a>(<span class="kw-2">ref </span>r) =&gt; <a href="#616">r</a>.<a href="dfa.rs.html#210">is_match_at</a>(<a href="#612">bytes</a>, <a href="#612">start</a>),
-            <a href="#164">DenseDFA::PremultipliedByteClass</a>(<span class="kw-2">ref </span>r) =&gt; {
-                <a href="#617">r</a>.<a href="dfa.rs.html#210">is_match_at</a>(<a href="#612">bytes</a>, <a href="#612">start</a>)
+    </span><span class="kw">fn </span>is_match_at(<span class="kw-2">&amp;</span><span class="self">self</span>, bytes: <span class="kw-2">&amp;</span>[u8], start: usize) -&gt; bool {
+        <span class="kw">match </span><span class="kw-2">*</span><span class="self">self </span>{
+            DenseDFA::Standard(<span class="kw-2">ref </span>r) =&gt; r.is_match_at(bytes, start),
+            DenseDFA::ByteClass(<span class="kw-2">ref </span>r) =&gt; r.is_match_at(bytes, start),
+            DenseDFA::Premultiplied(<span class="kw-2">ref </span>r) =&gt; r.is_match_at(bytes, start),
+            DenseDFA::PremultipliedByteClass(<span class="kw-2">ref </span>r) =&gt; {
+                r.is_match_at(bytes, start)
             }
-            <a href="#171">DenseDFA::__Nonexhaustive</a> =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(),
+            DenseDFA::__Nonexhaustive =&gt; <span class="macro">unreachable!</span>(),
         }
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>shortest_match_at(<span class="kw-2">&amp;</span><span class="self">self</span>, bytes: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>], start: <a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>&gt; {
-        <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="#625">self</a> </span>{
-            <a href="#144">DenseDFA::Standard</a>(<span class="kw-2">ref </span>r) =&gt; <a href="#627">r</a>.<a href="dfa.rs.html#235">shortest_match_at</a>(<a href="#625">bytes</a>, <a href="#625">start</a>),
-            <a href="#153">DenseDFA::ByteClass</a>(<span class="kw-2">ref </span>r) =&gt; <a href="#628">r</a>.<a href="dfa.rs.html#235">shortest_match_at</a>(<a href="#625">bytes</a>, <a href="#625">start</a>),
-            <a href="#161">DenseDFA::Premultiplied</a>(<span class="kw-2">ref </span>r) =&gt; {
-                <a href="#629">r</a>.<a href="dfa.rs.html#235">shortest_match_at</a>(<a href="#625">bytes</a>, <a href="#625">start</a>)
+    </span><span class="kw">fn </span>shortest_match_at(<span class="kw-2">&amp;</span><span class="self">self</span>, bytes: <span class="kw-2">&amp;</span>[u8], start: usize) -&gt; <span class="prelude-ty">Option</span>&lt;usize&gt; {
+        <span class="kw">match </span><span class="kw-2">*</span><span class="self">self </span>{
+            DenseDFA::Standard(<span class="kw-2">ref </span>r) =&gt; r.shortest_match_at(bytes, start),
+            DenseDFA::ByteClass(<span class="kw-2">ref </span>r) =&gt; r.shortest_match_at(bytes, start),
+            DenseDFA::Premultiplied(<span class="kw-2">ref </span>r) =&gt; {
+                r.shortest_match_at(bytes, start)
             }
-            <a href="#164">DenseDFA::PremultipliedByteClass</a>(<span class="kw-2">ref </span>r) =&gt; {
-                <a href="#632">r</a>.<a href="dfa.rs.html#235">shortest_match_at</a>(<a href="#625">bytes</a>, <a href="#625">start</a>)
+            DenseDFA::PremultipliedByteClass(<span class="kw-2">ref </span>r) =&gt; {
+                r.shortest_match_at(bytes, start)
             }
-            <a href="#171">DenseDFA::__Nonexhaustive</a> =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(),
+            DenseDFA::__Nonexhaustive =&gt; <span class="macro">unreachable!</span>(),
         }
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>find_at(<span class="kw-2">&amp;</span><span class="self">self</span>, bytes: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>], start: <a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>&gt; {
-        <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="#640">self</a> </span>{
-            <a href="#144">DenseDFA::Standard</a>(<span class="kw-2">ref </span>r) =&gt; <a href="#642">r</a>.<a href="dfa.rs.html#264">find_at</a>(<a href="#640">bytes</a>, <a href="#640">start</a>),
-            <a href="#153">DenseDFA::ByteClass</a>(<span class="kw-2">ref </span>r) =&gt; <a href="#643">r</a>.<a href="dfa.rs.html#264">find_at</a>(<a href="#640">bytes</a>, <a href="#640">start</a>),
-            <a href="#161">DenseDFA::Premultiplied</a>(<span class="kw-2">ref </span>r) =&gt; <a href="#644">r</a>.<a href="dfa.rs.html#264">find_at</a>(<a href="#640">bytes</a>, <a href="#640">start</a>),
-            <a href="#164">DenseDFA::PremultipliedByteClass</a>(<span class="kw-2">ref </span>r) =&gt; <a href="#645">r</a>.<a href="dfa.rs.html#264">find_at</a>(<a href="#640">bytes</a>, <a href="#640">start</a>),
-            <a href="#171">DenseDFA::__Nonexhaustive</a> =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(),
+    </span><span class="kw">fn </span>find_at(<span class="kw-2">&amp;</span><span class="self">self</span>, bytes: <span class="kw-2">&amp;</span>[u8], start: usize) -&gt; <span class="prelude-ty">Option</span>&lt;usize&gt; {
+        <span class="kw">match </span><span class="kw-2">*</span><span class="self">self </span>{
+            DenseDFA::Standard(<span class="kw-2">ref </span>r) =&gt; r.find_at(bytes, start),
+            DenseDFA::ByteClass(<span class="kw-2">ref </span>r) =&gt; r.find_at(bytes, start),
+            DenseDFA::Premultiplied(<span class="kw-2">ref </span>r) =&gt; r.find_at(bytes, start),
+            DenseDFA::PremultipliedByteClass(<span class="kw-2">ref </span>r) =&gt; r.find_at(bytes, start),
+            DenseDFA::__Nonexhaustive =&gt; <span class="macro">unreachable!</span>(),
         }
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>rfind_at(<span class="kw-2">&amp;</span><span class="self">self</span>, bytes: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>], start: <a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>&gt; {
-        <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="#651">self</a> </span>{
-            <a href="#144">DenseDFA::Standard</a>(<span class="kw-2">ref </span>r) =&gt; <a href="#653">r</a>.<a href="dfa.rs.html#296">rfind_at</a>(<a href="#651">bytes</a>, <a href="#651">start</a>),
-            <a href="#153">DenseDFA::ByteClass</a>(<span class="kw-2">ref </span>r) =&gt; <a href="#654">r</a>.<a href="dfa.rs.html#296">rfind_at</a>(<a href="#651">bytes</a>, <a href="#651">start</a>),
-            <a href="#161">DenseDFA::Premultiplied</a>(<span class="kw-2">ref </span>r) =&gt; <a href="#655">r</a>.<a href="dfa.rs.html#296">rfind_at</a>(<a href="#651">bytes</a>, <a href="#651">start</a>),
-            <a href="#164">DenseDFA::PremultipliedByteClass</a>(<span class="kw-2">ref </span>r) =&gt; {
-                <a href="#656">r</a>.<a href="dfa.rs.html#296">rfind_at</a>(<a href="#651">bytes</a>, <a href="#651">start</a>)
+    </span><span class="kw">fn </span>rfind_at(<span class="kw-2">&amp;</span><span class="self">self</span>, bytes: <span class="kw-2">&amp;</span>[u8], start: usize) -&gt; <span class="prelude-ty">Option</span>&lt;usize&gt; {
+        <span class="kw">match </span><span class="kw-2">*</span><span class="self">self </span>{
+            DenseDFA::Standard(<span class="kw-2">ref </span>r) =&gt; r.rfind_at(bytes, start),
+            DenseDFA::ByteClass(<span class="kw-2">ref </span>r) =&gt; r.rfind_at(bytes, start),
+            DenseDFA::Premultiplied(<span class="kw-2">ref </span>r) =&gt; r.rfind_at(bytes, start),
+            DenseDFA::PremultipliedByteClass(<span class="kw-2">ref </span>r) =&gt; {
+                r.rfind_at(bytes, start)
             }
-            <a href="#171">DenseDFA::__Nonexhaustive</a> =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(),
+            DenseDFA::__Nonexhaustive =&gt; <span class="macro">unreachable!</span>(),
         }
     }
 }
@@ -3002,46 +3002,46 @@
 /// to use this type (or any of the other DFA variant types) directly, since
 /// they implement `next_state` more efficiently.
 </span><span class="attr">#[derive(Clone, Debug)]
-</span><span class="kw">pub struct </span>Standard&lt;T: AsRef&lt;[S]&gt;, S: <a href="state_id.rs.html#115-116">StateID</a>&gt;(Repr&lt;T, S&gt;);
+</span><span class="kw">pub struct </span>Standard&lt;T: AsRef&lt;[S]&gt;, S: StateID&gt;(Repr&lt;T, S&gt;);
 
-<span class="kw">impl</span>&lt;T: AsRef&lt;[S]&gt;, S: <a href="state_id.rs.html#115-116">StateID</a>&gt; <a href="dfa.rs.html#19">DFA</a> <span class="kw">for </span>Standard&lt;T, S&gt; {
+<span class="kw">impl</span>&lt;T: AsRef&lt;[S]&gt;, S: StateID&gt; DFA <span class="kw">for </span>Standard&lt;T, S&gt; {
     <span class="kw">type </span>ID = S;
 
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>start_state(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; S {
-        <a class="self" href="#679">self</a>.<span class="number">0</span>.<a href="#1059">start_state</a>()
+        <span class="self">self</span>.<span class="number">0</span>.start_state()
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>is_match_state(<span class="kw-2">&amp;</span><span class="self">self</span>, id: S) -&gt; <a href="https://doc.rust-lang.org/nightly/core/primitive.bool.html">bool</a> {
-        <a class="self" href="#684">self</a>.<span class="number">0</span>.<a href="#1065">is_match_state</a>(<a href="#684">id</a>)
+    </span><span class="kw">fn </span>is_match_state(<span class="kw-2">&amp;</span><span class="self">self</span>, id: S) -&gt; bool {
+        <span class="self">self</span>.<span class="number">0</span>.is_match_state(id)
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>is_dead_state(<span class="kw-2">&amp;</span><span class="self">self</span>, id: S) -&gt; <a href="https://doc.rust-lang.org/nightly/core/primitive.bool.html">bool</a> {
-        <a class="self" href="#689">self</a>.<span class="number">0</span>.<a href="#1071">is_dead_state</a>(<a href="#689">id</a>)
+    </span><span class="kw">fn </span>is_dead_state(<span class="kw-2">&amp;</span><span class="self">self</span>, id: S) -&gt; bool {
+        <span class="self">self</span>.<span class="number">0</span>.is_dead_state(id)
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>is_match_or_dead_state(<span class="kw-2">&amp;</span><span class="self">self</span>, id: S) -&gt; <a href="https://doc.rust-lang.org/nightly/core/primitive.bool.html">bool</a> {
-        <a class="self" href="#694">self</a>.<span class="number">0</span>.<a href="#1079">is_match_or_dead_state</a>(<a href="#694">id</a>)
+    </span><span class="kw">fn </span>is_match_or_dead_state(<span class="kw-2">&amp;</span><span class="self">self</span>, id: S) -&gt; bool {
+        <span class="self">self</span>.<span class="number">0</span>.is_match_or_dead_state(id)
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>is_anchored(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/primitive.bool.html">bool</a> {
-        <a class="self" href="#699">self</a>.<span class="number">0</span>.<a href="#1094">is_anchored</a>()
+    </span><span class="kw">fn </span>is_anchored(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.<span class="number">0</span>.is_anchored()
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>next_state(<span class="kw-2">&amp;</span><span class="self">self</span>, current: S, input: <a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>) -&gt; S {
-        <span class="kw">let </span>o = <a href="#704">current</a>.<a href="state_id.rs.html#133">to_usize</a>() * <a href="#42">ALPHABET_LEN</a> + <a href="#704">input</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>;
-        <a class="self" href="#704">self</a>.<span class="number">0</span>.<a href="#1154">trans</a>()[<a href="#705">o</a>]
+    </span><span class="kw">fn </span>next_state(<span class="kw-2">&amp;</span><span class="self">self</span>, current: S, input: u8) -&gt; S {
+        <span class="kw">let </span>o = current.to_usize() * ALPHABET_LEN + input <span class="kw">as </span>usize;
+        <span class="self">self</span>.<span class="number">0</span>.trans()[o]
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">unsafe fn </span>next_state_unchecked(<span class="kw-2">&amp;</span><span class="self">self</span>, current: S, input: <a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>) -&gt; S {
-        <span class="kw">let </span>o = <a href="#710">current</a>.<a href="state_id.rs.html#133">to_usize</a>() * <a href="#42">ALPHABET_LEN</a> + <a href="#710">input</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>;
-        <span class="kw-2">*</span><a class="self" href="#710">self</a>.<span class="number">0</span>.<a href="#1154">trans</a>().get_unchecked(<a href="#711">o</a>)
+    </span><span class="kw">unsafe fn </span>next_state_unchecked(<span class="kw-2">&amp;</span><span class="self">self</span>, current: S, input: u8) -&gt; S {
+        <span class="kw">let </span>o = current.to_usize() * ALPHABET_LEN + input <span class="kw">as </span>usize;
+        <span class="kw-2">*</span><span class="self">self</span>.<span class="number">0</span>.trans().get_unchecked(o)
     }
 }
 
@@ -3062,48 +3062,48 @@
 /// to use this type (or any of the other DFA variant types) directly, since
 /// they implement `next_state` more efficiently.
 </span><span class="attr">#[derive(Clone, Debug)]
-</span><span class="kw">pub struct </span>ByteClass&lt;T: AsRef&lt;[S]&gt;, S: <a href="state_id.rs.html#115-116">StateID</a>&gt;(Repr&lt;T, S&gt;);
+</span><span class="kw">pub struct </span>ByteClass&lt;T: AsRef&lt;[S]&gt;, S: StateID&gt;(Repr&lt;T, S&gt;);
 
-<span class="kw">impl</span>&lt;T: AsRef&lt;[S]&gt;, S: <a href="state_id.rs.html#115-116">StateID</a>&gt; <a href="dfa.rs.html#19">DFA</a> <span class="kw">for </span>ByteClass&lt;T, S&gt; {
+<span class="kw">impl</span>&lt;T: AsRef&lt;[S]&gt;, S: StateID&gt; DFA <span class="kw">for </span>ByteClass&lt;T, S&gt; {
     <span class="kw">type </span>ID = S;
 
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>start_state(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; S {
-        <a class="self" href="#739">self</a>.<span class="number">0</span>.<a href="#1059">start_state</a>()
+        <span class="self">self</span>.<span class="number">0</span>.start_state()
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>is_match_state(<span class="kw-2">&amp;</span><span class="self">self</span>, id: S) -&gt; <a href="https://doc.rust-lang.org/nightly/core/primitive.bool.html">bool</a> {
-        <a class="self" href="#744">self</a>.<span class="number">0</span>.<a href="#1065">is_match_state</a>(<a href="#744">id</a>)
+    </span><span class="kw">fn </span>is_match_state(<span class="kw-2">&amp;</span><span class="self">self</span>, id: S) -&gt; bool {
+        <span class="self">self</span>.<span class="number">0</span>.is_match_state(id)
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>is_dead_state(<span class="kw-2">&amp;</span><span class="self">self</span>, id: S) -&gt; <a href="https://doc.rust-lang.org/nightly/core/primitive.bool.html">bool</a> {
-        <a class="self" href="#749">self</a>.<span class="number">0</span>.<a href="#1071">is_dead_state</a>(<a href="#749">id</a>)
+    </span><span class="kw">fn </span>is_dead_state(<span class="kw-2">&amp;</span><span class="self">self</span>, id: S) -&gt; bool {
+        <span class="self">self</span>.<span class="number">0</span>.is_dead_state(id)
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>is_match_or_dead_state(<span class="kw-2">&amp;</span><span class="self">self</span>, id: S) -&gt; <a href="https://doc.rust-lang.org/nightly/core/primitive.bool.html">bool</a> {
-        <a class="self" href="#754">self</a>.<span class="number">0</span>.<a href="#1079">is_match_or_dead_state</a>(<a href="#754">id</a>)
+    </span><span class="kw">fn </span>is_match_or_dead_state(<span class="kw-2">&amp;</span><span class="self">self</span>, id: S) -&gt; bool {
+        <span class="self">self</span>.<span class="number">0</span>.is_match_or_dead_state(id)
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>is_anchored(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/primitive.bool.html">bool</a> {
-        <a class="self" href="#759">self</a>.<span class="number">0</span>.<a href="#1094">is_anchored</a>()
+    </span><span class="kw">fn </span>is_anchored(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.<span class="number">0</span>.is_anchored()
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>next_state(<span class="kw-2">&amp;</span><span class="self">self</span>, current: S, input: <a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>) -&gt; S {
-        <span class="kw">let </span>input = <a class="self" href="#764">self</a>.<span class="number">0</span>.<a href="#1099">byte_classes</a>().<a href="classes.rs.html#53">get</a>(<a href="#764">input</a>);
-        <span class="kw">let </span>o = <a href="#764">current</a>.<a href="state_id.rs.html#133">to_usize</a>() * <a class="self" href="#764">self</a>.<span class="number">0</span>.<a href="#1130">alphabet_len</a>() + <a href="#765">input</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>;
-        <a class="self" href="#764">self</a>.<span class="number">0</span>.<a href="#1154">trans</a>()[<a href="#766">o</a>]
+    </span><span class="kw">fn </span>next_state(<span class="kw-2">&amp;</span><span class="self">self</span>, current: S, input: u8) -&gt; S {
+        <span class="kw">let </span>input = <span class="self">self</span>.<span class="number">0</span>.byte_classes().get(input);
+        <span class="kw">let </span>o = current.to_usize() * <span class="self">self</span>.<span class="number">0</span>.alphabet_len() + input <span class="kw">as </span>usize;
+        <span class="self">self</span>.<span class="number">0</span>.trans()[o]
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">unsafe fn </span>next_state_unchecked(<span class="kw-2">&amp;</span><span class="self">self</span>, current: S, input: <a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>) -&gt; S {
-        <span class="kw">let </span>input = <a class="self" href="#771">self</a>.<span class="number">0</span>.<a href="#1099">byte_classes</a>().<a href="classes.rs.html#60">get_unchecked</a>(<a href="#771">input</a>);
-        <span class="kw">let </span>o = <a href="#771">current</a>.<a href="state_id.rs.html#133">to_usize</a>() * <a class="self" href="#771">self</a>.<span class="number">0</span>.<a href="#1130">alphabet_len</a>() + <a href="#772">input</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>;
-        <span class="kw-2">*</span><a class="self" href="#771">self</a>.<span class="number">0</span>.<a href="#1154">trans</a>().get_unchecked(<a href="#773">o</a>)
+    </span><span class="kw">unsafe fn </span>next_state_unchecked(<span class="kw-2">&amp;</span><span class="self">self</span>, current: S, input: u8) -&gt; S {
+        <span class="kw">let </span>input = <span class="self">self</span>.<span class="number">0</span>.byte_classes().get_unchecked(input);
+        <span class="kw">let </span>o = current.to_usize() * <span class="self">self</span>.<span class="number">0</span>.alphabet_len() + input <span class="kw">as </span>usize;
+        <span class="kw-2">*</span><span class="self">self</span>.<span class="number">0</span>.trans().get_unchecked(o)
     }
 }
 
@@ -3123,46 +3123,46 @@
 /// to use this type (or any of the other DFA variant types) directly, since
 /// they implement `next_state` more efficiently.
 </span><span class="attr">#[derive(Clone, Debug)]
-</span><span class="kw">pub struct </span>Premultiplied&lt;T: AsRef&lt;[S]&gt;, S: <a href="state_id.rs.html#115-116">StateID</a>&gt;(Repr&lt;T, S&gt;);
+</span><span class="kw">pub struct </span>Premultiplied&lt;T: AsRef&lt;[S]&gt;, S: StateID&gt;(Repr&lt;T, S&gt;);
 
-<span class="kw">impl</span>&lt;T: AsRef&lt;[S]&gt;, S: <a href="state_id.rs.html#115-116">StateID</a>&gt; <a href="dfa.rs.html#19">DFA</a> <span class="kw">for </span>Premultiplied&lt;T, S&gt; {
+<span class="kw">impl</span>&lt;T: AsRef&lt;[S]&gt;, S: StateID&gt; DFA <span class="kw">for </span>Premultiplied&lt;T, S&gt; {
     <span class="kw">type </span>ID = S;
 
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>start_state(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; S {
-        <a class="self" href="#800">self</a>.<span class="number">0</span>.<a href="#1059">start_state</a>()
+        <span class="self">self</span>.<span class="number">0</span>.start_state()
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>is_match_state(<span class="kw-2">&amp;</span><span class="self">self</span>, id: S) -&gt; <a href="https://doc.rust-lang.org/nightly/core/primitive.bool.html">bool</a> {
-        <a class="self" href="#805">self</a>.<span class="number">0</span>.<a href="#1065">is_match_state</a>(<a href="#805">id</a>)
+    </span><span class="kw">fn </span>is_match_state(<span class="kw-2">&amp;</span><span class="self">self</span>, id: S) -&gt; bool {
+        <span class="self">self</span>.<span class="number">0</span>.is_match_state(id)
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>is_dead_state(<span class="kw-2">&amp;</span><span class="self">self</span>, id: S) -&gt; <a href="https://doc.rust-lang.org/nightly/core/primitive.bool.html">bool</a> {
-        <a class="self" href="#810">self</a>.<span class="number">0</span>.<a href="#1071">is_dead_state</a>(<a href="#810">id</a>)
+    </span><span class="kw">fn </span>is_dead_state(<span class="kw-2">&amp;</span><span class="self">self</span>, id: S) -&gt; bool {
+        <span class="self">self</span>.<span class="number">0</span>.is_dead_state(id)
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>is_match_or_dead_state(<span class="kw-2">&amp;</span><span class="self">self</span>, id: S) -&gt; <a href="https://doc.rust-lang.org/nightly/core/primitive.bool.html">bool</a> {
-        <a class="self" href="#815">self</a>.<span class="number">0</span>.<a href="#1079">is_match_or_dead_state</a>(<a href="#815">id</a>)
+    </span><span class="kw">fn </span>is_match_or_dead_state(<span class="kw-2">&amp;</span><span class="self">self</span>, id: S) -&gt; bool {
+        <span class="self">self</span>.<span class="number">0</span>.is_match_or_dead_state(id)
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>is_anchored(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/primitive.bool.html">bool</a> {
-        <a class="self" href="#820">self</a>.<span class="number">0</span>.<a href="#1094">is_anchored</a>()
+    </span><span class="kw">fn </span>is_anchored(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.<span class="number">0</span>.is_anchored()
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>next_state(<span class="kw-2">&amp;</span><span class="self">self</span>, current: S, input: <a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>) -&gt; S {
-        <span class="kw">let </span>o = <a href="#825">current</a>.<a href="state_id.rs.html#133">to_usize</a>() + <a href="#825">input</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>;
-        <a class="self" href="#825">self</a>.<span class="number">0</span>.<a href="#1154">trans</a>()[<a href="#826">o</a>]
+    </span><span class="kw">fn </span>next_state(<span class="kw-2">&amp;</span><span class="self">self</span>, current: S, input: u8) -&gt; S {
+        <span class="kw">let </span>o = current.to_usize() + input <span class="kw">as </span>usize;
+        <span class="self">self</span>.<span class="number">0</span>.trans()[o]
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">unsafe fn </span>next_state_unchecked(<span class="kw-2">&amp;</span><span class="self">self</span>, current: S, input: <a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>) -&gt; S {
-        <span class="kw">let </span>o = <a href="#831">current</a>.<a href="state_id.rs.html#133">to_usize</a>() + <a href="#831">input</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>;
-        <span class="kw-2">*</span><a class="self" href="#831">self</a>.<span class="number">0</span>.<a href="#1154">trans</a>().get_unchecked(<a href="#832">o</a>)
+    </span><span class="kw">unsafe fn </span>next_state_unchecked(<span class="kw-2">&amp;</span><span class="self">self</span>, current: S, input: u8) -&gt; S {
+        <span class="kw">let </span>o = current.to_usize() + input <span class="kw">as </span>usize;
+        <span class="kw-2">*</span><span class="self">self</span>.<span class="number">0</span>.trans().get_unchecked(o)
     }
 }
 
@@ -3176,48 +3176,48 @@
 /// to use this type (or any of the other DFA variant types) directly, since
 /// they implement `next_state` more efficiently.
 </span><span class="attr">#[derive(Clone, Debug)]
-</span><span class="kw">pub struct </span>PremultipliedByteClass&lt;T: AsRef&lt;[S]&gt;, S: <a href="state_id.rs.html#115-116">StateID</a>&gt;(Repr&lt;T, S&gt;);
+</span><span class="kw">pub struct </span>PremultipliedByteClass&lt;T: AsRef&lt;[S]&gt;, S: StateID&gt;(Repr&lt;T, S&gt;);
 
-<span class="kw">impl</span>&lt;T: AsRef&lt;[S]&gt;, S: <a href="state_id.rs.html#115-116">StateID</a>&gt; <a href="dfa.rs.html#19">DFA</a> <span class="kw">for </span>PremultipliedByteClass&lt;T, S&gt; {
+<span class="kw">impl</span>&lt;T: AsRef&lt;[S]&gt;, S: StateID&gt; DFA <span class="kw">for </span>PremultipliedByteClass&lt;T, S&gt; {
     <span class="kw">type </span>ID = S;
 
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>start_state(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; S {
-        <a class="self" href="#853">self</a>.<span class="number">0</span>.<a href="#1059">start_state</a>()
+        <span class="self">self</span>.<span class="number">0</span>.start_state()
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>is_match_state(<span class="kw-2">&amp;</span><span class="self">self</span>, id: S) -&gt; <a href="https://doc.rust-lang.org/nightly/core/primitive.bool.html">bool</a> {
-        <a class="self" href="#858">self</a>.<span class="number">0</span>.<a href="#1065">is_match_state</a>(<a href="#858">id</a>)
+    </span><span class="kw">fn </span>is_match_state(<span class="kw-2">&amp;</span><span class="self">self</span>, id: S) -&gt; bool {
+        <span class="self">self</span>.<span class="number">0</span>.is_match_state(id)
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>is_dead_state(<span class="kw-2">&amp;</span><span class="self">self</span>, id: S) -&gt; <a href="https://doc.rust-lang.org/nightly/core/primitive.bool.html">bool</a> {
-        <a class="self" href="#863">self</a>.<span class="number">0</span>.<a href="#1071">is_dead_state</a>(<a href="#863">id</a>)
+    </span><span class="kw">fn </span>is_dead_state(<span class="kw-2">&amp;</span><span class="self">self</span>, id: S) -&gt; bool {
+        <span class="self">self</span>.<span class="number">0</span>.is_dead_state(id)
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>is_match_or_dead_state(<span class="kw-2">&amp;</span><span class="self">self</span>, id: S) -&gt; <a href="https://doc.rust-lang.org/nightly/core/primitive.bool.html">bool</a> {
-        <a class="self" href="#868">self</a>.<span class="number">0</span>.<a href="#1079">is_match_or_dead_state</a>(<a href="#868">id</a>)
+    </span><span class="kw">fn </span>is_match_or_dead_state(<span class="kw-2">&amp;</span><span class="self">self</span>, id: S) -&gt; bool {
+        <span class="self">self</span>.<span class="number">0</span>.is_match_or_dead_state(id)
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>is_anchored(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/primitive.bool.html">bool</a> {
-        <a class="self" href="#873">self</a>.<span class="number">0</span>.<a href="#1094">is_anchored</a>()
+    </span><span class="kw">fn </span>is_anchored(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.<span class="number">0</span>.is_anchored()
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>next_state(<span class="kw-2">&amp;</span><span class="self">self</span>, current: S, input: <a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>) -&gt; S {
-        <span class="kw">let </span>input = <a class="self" href="#878">self</a>.<span class="number">0</span>.<a href="#1099">byte_classes</a>().<a href="classes.rs.html#53">get</a>(<a href="#878">input</a>);
-        <span class="kw">let </span>o = <a href="#878">current</a>.<a href="state_id.rs.html#133">to_usize</a>() + <a href="#879">input</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>;
-        <a class="self" href="#878">self</a>.<span class="number">0</span>.<a href="#1154">trans</a>()[<a href="#880">o</a>]
+    </span><span class="kw">fn </span>next_state(<span class="kw-2">&amp;</span><span class="self">self</span>, current: S, input: u8) -&gt; S {
+        <span class="kw">let </span>input = <span class="self">self</span>.<span class="number">0</span>.byte_classes().get(input);
+        <span class="kw">let </span>o = current.to_usize() + input <span class="kw">as </span>usize;
+        <span class="self">self</span>.<span class="number">0</span>.trans()[o]
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">unsafe fn </span>next_state_unchecked(<span class="kw-2">&amp;</span><span class="self">self</span>, current: S, input: <a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>) -&gt; S {
-        <span class="kw">let </span>input = <a class="self" href="#885">self</a>.<span class="number">0</span>.<a href="#1099">byte_classes</a>().<a href="classes.rs.html#60">get_unchecked</a>(<a href="#885">input</a>);
-        <span class="kw">let </span>o = <a href="#885">current</a>.<a href="state_id.rs.html#133">to_usize</a>() + <a href="#886">input</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>;
-        <span class="kw-2">*</span><a class="self" href="#885">self</a>.<span class="number">0</span>.<a href="#1154">trans</a>().get_unchecked(<a href="#887">o</a>)
+    </span><span class="kw">unsafe fn </span>next_state_unchecked(<span class="kw-2">&amp;</span><span class="self">self</span>, current: S, input: u8) -&gt; S {
+        <span class="kw">let </span>input = <span class="self">self</span>.<span class="number">0</span>.byte_classes().get_unchecked(input);
+        <span class="kw">let </span>o = current.to_usize() + input <span class="kw">as </span>usize;
+        <span class="kw-2">*</span><span class="self">self</span>.<span class="number">0</span>.trans().get_unchecked(o)
     }
 }
 
@@ -3253,19 +3253,19 @@
     /// path. This turns out to be a decent performance win. The cost of using
     /// premultiplied state ids is that they can require a bigger state id
     /// representation.
-    </span>premultiplied: <a href="https://doc.rust-lang.org/nightly/core/primitive.bool.html">bool</a>,
+    </span>premultiplied: bool,
     <span class="doccomment">/// Whether this DFA can only match at the beginning of input or not.
     ///
     /// When true, a match should only be reported if it begins at the 0th
     /// index of the haystack.
-    </span>anchored: <a href="https://doc.rust-lang.org/nightly/core/primitive.bool.html">bool</a>,
+    </span>anchored: bool,
     <span class="doccomment">/// The initial start state ID.
     </span>start: S,
     <span class="doccomment">/// The total number of states in this DFA. Note that a DFA always has at
     /// least one state---the dead state---even the empty DFA. In particular,
     /// the dead state always has ID 0 and is correspondingly always the first
     /// state. The dead state is never a match state.
-    </span>state_count: <a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>,
+    </span>state_count: usize,
     <span class="doccomment">/// States in a DFA have a *partial* ordering such that a match state
     /// always precedes any non-match state (except for the special dead
     /// state).
@@ -3295,7 +3295,7 @@
     /// The only time the number of equivalence classes is fewer than 256 is
     /// if the DFA&#39;s kind uses byte classes. If the DFA doesn&#39;t use byte
     /// classes, then this vector is empty.
-    </span>byte_classes: <a href="classes.rs.html#9">ByteClasses</a>,
+    </span>byte_classes: ByteClasses,
     <span class="doccomment">/// A contiguous region of memory representing the transition table in
     /// row-major order. The representation is dense. That is, every state has
     /// precisely the same number of transitions. The maximum number of
@@ -3340,33 +3340,33 @@
     </span>}
 }
 
-<span class="kw">impl</span>&lt;T: AsRef&lt;[S]&gt;, S: <a href="state_id.rs.html#115-116">StateID</a>&gt; Repr&lt;T, S&gt; {
+<span class="kw">impl</span>&lt;T: AsRef&lt;[S]&gt;, S: StateID&gt; Repr&lt;T, S&gt; {
     <span class="doccomment">/// Convert this internal DFA representation to a DenseDFA based on its
     /// transition table access pattern.
     </span><span class="kw">pub fn </span>into_dense_dfa(<span class="self">self</span>) -&gt; DenseDFA&lt;T, S&gt; {
-        <span class="kw">match </span>(<a class="self" href="#1014">self</a>.premultiplied, <a class="self" href="#1014">self</a>.<a href="#1099">byte_classes</a>().<a href="classes.rs.html#76">is_singleton</a>()) {
+        <span class="kw">match </span>(<span class="self">self</span>.premultiplied, <span class="self">self</span>.byte_classes().is_singleton()) {
             <span class="comment">// no premultiplication, no byte classes
-            </span>(<span class="bool-val">false</span>, <span class="bool-val">true</span>) =&gt; <a href="#144">DenseDFA::Standard</a>(<a href="#673">Standard</a>(<a class="self" href="#1014">self</a>)),
+            </span>(<span class="bool-val">false</span>, <span class="bool-val">true</span>) =&gt; DenseDFA::Standard(Standard(<span class="self">self</span>)),
             <span class="comment">// no premultiplication, yes byte classes
-            </span>(<span class="bool-val">false</span>, <span class="bool-val">false</span>) =&gt; <a href="#153">DenseDFA::ByteClass</a>(<a href="#733">ByteClass</a>(<a class="self" href="#1014">self</a>)),
+            </span>(<span class="bool-val">false</span>, <span class="bool-val">false</span>) =&gt; DenseDFA::ByteClass(ByteClass(<span class="self">self</span>)),
             <span class="comment">// yes premultiplication, no byte classes
-            </span>(<span class="bool-val">true</span>, <span class="bool-val">true</span>) =&gt; <a href="#161">DenseDFA::Premultiplied</a>(<a href="#794">Premultiplied</a>(<a class="self" href="#1014">self</a>)),
+            </span>(<span class="bool-val">true</span>, <span class="bool-val">true</span>) =&gt; DenseDFA::Premultiplied(Premultiplied(<span class="self">self</span>)),
             <span class="comment">// yes premultiplication, yes byte classes
             </span>(<span class="bool-val">true</span>, <span class="bool-val">false</span>) =&gt; {
-                <a href="#164">DenseDFA::PremultipliedByteClass</a>(<a href="#847">PremultipliedByteClass</a>(<a class="self" href="#1014">self</a>))
+                DenseDFA::PremultipliedByteClass(PremultipliedByteClass(<span class="self">self</span>))
             }
         }
     }
 
     <span class="kw">fn </span>as_ref&lt;<span class="lifetime">&#39;a</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="self">self</span>) -&gt; Repr&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[S], S&gt; {
-        <a href="#897">Repr</a> {
-            premultiplied: <a class="self" href="#1029">self</a>.premultiplied,
-            anchored: <a class="self" href="#1029">self</a>.anchored,
-            start: <a class="self" href="#1029">self</a>.start,
-            state_count: <a class="self" href="#1029">self</a>.state_count,
-            max_match: <a class="self" href="#1029">self</a>.max_match,
-            byte_classes: <a class="self" href="#1029">self</a>.<a href="#1099">byte_classes</a>().<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
-            trans: <a class="self" href="#1029">self</a>.<a href="#1154">trans</a>(),
+        Repr {
+            premultiplied: <span class="self">self</span>.premultiplied,
+            anchored: <span class="self">self</span>.anchored,
+            start: <span class="self">self</span>.start,
+            state_count: <span class="self">self</span>.state_count,
+            max_match: <span class="self">self</span>.max_match,
+            byte_classes: <span class="self">self</span>.byte_classes().clone(),
+            trans: <span class="self">self</span>.trans(),
         }
     }
 
@@ -3389,27 +3389,27 @@
     /// one starting state for every DFA. A starting state may be a dead state
     /// or a matching state or neither.
     </span><span class="kw">pub fn </span>start_state(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; S {
-        <a class="self" href="#1059">self</a>.start
+        <span class="self">self</span>.start
     }
 
     <span class="doccomment">/// Returns true if and only if the given identifier corresponds to a match
     /// state.
-    </span><span class="kw">pub fn </span>is_match_state(<span class="kw-2">&amp;</span><span class="self">self</span>, id: S) -&gt; <a href="https://doc.rust-lang.org/nightly/core/primitive.bool.html">bool</a> {
-        <a href="#1065">id</a> &lt;= <a class="self" href="#1065">self</a>.max_match &amp;&amp; <a href="#1065">id</a> != <a href="state_id.rs.html#89">dead_id</a>()
+    </span><span class="kw">pub fn </span>is_match_state(<span class="kw-2">&amp;</span><span class="self">self</span>, id: S) -&gt; bool {
+        id &lt;= <span class="self">self</span>.max_match &amp;&amp; id != dead_id()
     }
 
     <span class="doccomment">/// Returns true if and only if the given identifier corresponds to a dead
     /// state.
-    </span><span class="kw">pub fn </span>is_dead_state(<span class="kw-2">&amp;</span><span class="self">self</span>, id: S) -&gt; <a href="https://doc.rust-lang.org/nightly/core/primitive.bool.html">bool</a> {
-        <a href="#1071">id</a> == <a href="state_id.rs.html#89">dead_id</a>()
+    </span><span class="kw">pub fn </span>is_dead_state(<span class="kw-2">&amp;</span><span class="self">self</span>, id: S) -&gt; bool {
+        id == dead_id()
     }
 
     <span class="doccomment">/// Returns true if and only if the given identifier could correspond to
     /// either a match state or a dead state. If this returns false, then the
     /// given identifier does not correspond to either a match state or a dead
     /// state.
-    </span><span class="kw">pub fn </span>is_match_or_dead_state(<span class="kw-2">&amp;</span><span class="self">self</span>, id: S) -&gt; <a href="https://doc.rust-lang.org/nightly/core/primitive.bool.html">bool</a> {
-        <a href="#1079">id</a> &lt;= <a class="self" href="#1079">self</a>.<a href="#1089">max_match_state</a>()
+    </span><span class="kw">pub fn </span>is_match_or_dead_state(<span class="kw-2">&amp;</span><span class="self">self</span>, id: S) -&gt; bool {
+        id &lt;= <span class="self">self</span>.max_match_state()
     }
 
     <span class="doccomment">/// Returns the maximum identifier for which a match state can exist.
@@ -3419,17 +3419,17 @@
     /// `is_match_state(returned)` or `is_dead_state(returned)` is guaranteed
     /// to be true.
     </span><span class="kw">pub fn </span>max_match_state(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; S {
-        <a class="self" href="#1089">self</a>.max_match
+        <span class="self">self</span>.max_match
     }
 
     <span class="doccomment">/// Returns true if and only if this DFA is anchored.
-    </span><span class="kw">pub fn </span>is_anchored(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/primitive.bool.html">bool</a> {
-        <a class="self" href="#1094">self</a>.anchored
+    </span><span class="kw">pub fn </span>is_anchored(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.anchored
     }
 
     <span class="doccomment">/// Return the byte classes used by this DFA.
-    </span><span class="kw">pub fn </span>byte_classes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="classes.rs.html#9">ByteClasses</a> {
-        <span class="kw-2">&amp;</span><a class="self" href="#1099">self</a>.byte_classes
+    </span><span class="kw">pub fn </span>byte_classes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>ByteClasses {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.byte_classes
     }
 
     <span class="doccomment">/// Returns an iterator over all states in this DFA.
@@ -3459,13 +3459,13 @@
     /// If this DFA doesn&#39;t use byte classes, then this is always equivalent
     /// to 256. Otherwise, it is guaranteed to be some value less than or equal
     /// to 256.
-    </span><span class="kw">pub fn </span>alphabet_len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a> {
-        <a class="self" href="#1130">self</a>.<a href="#1099">byte_classes</a>().<a href="classes.rs.html#68">alphabet_len</a>()
+    </span><span class="kw">pub fn </span>alphabet_len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+        <span class="self">self</span>.byte_classes().alphabet_len()
     }
 
     <span class="doccomment">/// Returns the memory usage, in bytes, of this DFA.
-    </span><span class="kw">pub fn </span>memory_usage(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a> {
-        <a class="self" href="#1135">self</a>.<a href="#1154">trans</a>().len() * mem::size_of::&lt;S&gt;()
+    </span><span class="kw">pub fn </span>memory_usage(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+        <span class="self">self</span>.trans().len() * mem::size_of::&lt;S&gt;()
     }
 
     <span class="doccomment">/// Convert the given state identifier to the state&#39;s index. The state&#39;s
@@ -3484,7 +3484,7 @@
 
     <span class="doccomment">/// Return this DFA&#39;s transition table as a slice.
     </span><span class="kw">fn </span>trans(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[S] {
-        <a class="self" href="#1154">self</a>.trans.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>()
+        <span class="self">self</span>.trans.as_ref()
     }
 
     <span class="doccomment">/// Create a sparse DFA from the internal representation of a dense DFA.
@@ -3626,10 +3626,10 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, S: <a href="state_id.rs.html#115-116">StateID</a>&gt; Repr&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[S], S&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, S: StateID&gt; Repr&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[S], S&gt; {
     <span class="doccomment">/// The implementation for deserializing a DFA from raw bytes.
-    </span><span class="kw">unsafe fn </span>from_bytes(<span class="kw-2">mut </span>buf: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[<a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>]) -&gt; Repr&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[S], S&gt; {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert_eq.html">assert_eq!</a>(
+    </span><span class="kw">unsafe fn </span>from_bytes(<span class="kw-2">mut </span>buf: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[u8]) -&gt; Repr&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[S], S&gt; {
+        <span class="macro">assert_eq!</span>(
             <span class="number">0</span>,
             buf.as_ptr() <span class="kw">as </span>usize % mem::align_of::&lt;S&gt;(),
             <span class="string">&quot;DenseDFA starting at address {} is not aligned to {} bytes&quot;</span>,
@@ -3638,16 +3638,16 @@
         );
 
         <span class="comment">// skip over label
-        </span><span class="kw">match </span><a href="#1299">buf</a>.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">position</a>(|<span class="kw-2">&amp;</span>b| <a href="#1309">b</a> == <span class="string">b&#39;\x00&#39;</span>) {
-            <span class="prelude-val">None </span>=&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.panic.html">panic!</a>(<span class="string">&quot;could not find label&quot;</span>),
-            <span class="prelude-val">Some</span>(i) =&gt; <a href="#1299">buf</a> = <span class="kw-2">&amp;</span><a href="#1299">buf</a>[<a href="#1311">i</a> + <span class="number">1</span>..],
+        </span><span class="kw">match </span>buf.iter().position(|<span class="kw-2">&amp;</span>b| b == <span class="string">b&#39;\x00&#39;</span>) {
+            <span class="prelude-val">None </span>=&gt; <span class="macro">panic!</span>(<span class="string">&quot;could not find label&quot;</span>),
+            <span class="prelude-val">Some</span>(i) =&gt; buf = <span class="kw-2">&amp;</span>buf[i + <span class="number">1</span>..],
         }
 
         <span class="comment">// check that current endianness is same as endianness of DFA
-        </span><span class="kw">let </span>endian_check = NativeEndian::read_u16(<a href="#1299">buf</a>);
-        <a href="#1299">buf</a> = <span class="kw-2">&amp;</span><a href="#1299">buf</a>[<span class="number">2</span>..];
+        </span><span class="kw">let </span>endian_check = NativeEndian::read_u16(buf);
+        buf = <span class="kw-2">&amp;</span>buf[<span class="number">2</span>..];
         <span class="kw">if </span>endian_check != <span class="number">0xFEFF </span>{
-            <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.panic.html">panic!</a>(
+            <span class="macro">panic!</span>(
                 <span class="string">&quot;endianness mismatch, expected 0xFEFF but got 0x{:X}. \
                  are you trying to load a DenseDFA serialized with a \
                  different endianness?&quot;</span>,
@@ -3656,57 +3656,57 @@
         }
 
         <span class="comment">// check that the version number is supported
-        </span><span class="kw">let </span>version = NativeEndian::read_u16(<a href="#1299">buf</a>);
-        <a href="#1299">buf</a> = <span class="kw-2">&amp;</span><a href="#1299">buf</a>[<span class="number">2</span>..];
+        </span><span class="kw">let </span>version = NativeEndian::read_u16(buf);
+        buf = <span class="kw-2">&amp;</span>buf[<span class="number">2</span>..];
         <span class="kw">if </span>version != <span class="number">1 </span>{
-            <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.panic.html">panic!</a>(
+            <span class="macro">panic!</span>(
                 <span class="string">&quot;expected version 1, but found unsupported version {}&quot;</span>,
                 version,
             );
         }
 
         <span class="comment">// read size of state
-        </span><span class="kw">let </span>state_size = NativeEndian::read_u16(<a href="#1299">buf</a>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>;
+        </span><span class="kw">let </span>state_size = NativeEndian::read_u16(buf) <span class="kw">as </span>usize;
         <span class="kw">if </span>state_size != mem::size_of::&lt;S&gt;() {
-            <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.panic.html">panic!</a>(
+            <span class="macro">panic!</span>(
                 <span class="string">&quot;state size of DenseDFA ({}) does not match \
                  requested state size ({})&quot;</span>,
                 state_size,
                 mem::size_of::&lt;S&gt;(),
             );
         }
-        <a href="#1299">buf</a> = <span class="kw-2">&amp;</span><a href="#1299">buf</a>[<span class="number">2</span>..];
+        buf = <span class="kw-2">&amp;</span>buf[<span class="number">2</span>..];
 
         <span class="comment">// read miscellaneous options
-        </span><span class="kw">let </span>opts = NativeEndian::read_u16(<a href="#1299">buf</a>);
-        <a href="#1299">buf</a> = <span class="kw-2">&amp;</span><a href="#1299">buf</a>[<span class="number">2</span>..];
+        </span><span class="kw">let </span>opts = NativeEndian::read_u16(buf);
+        buf = <span class="kw-2">&amp;</span>buf[<span class="number">2</span>..];
 
         <span class="comment">// read start state
-        </span><span class="kw">let </span>start = S::from_usize(NativeEndian::read_u64(<a href="#1299">buf</a>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>);
-        <a href="#1299">buf</a> = <span class="kw-2">&amp;</span><a href="#1299">buf</a>[<span class="number">8</span>..];
+        </span><span class="kw">let </span>start = S::from_usize(NativeEndian::read_u64(buf) <span class="kw">as </span>usize);
+        buf = <span class="kw-2">&amp;</span>buf[<span class="number">8</span>..];
 
         <span class="comment">// read state count
-        </span><span class="kw">let </span>state_count = NativeEndian::read_u64(<a href="#1299">buf</a>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>;
-        <a href="#1299">buf</a> = <span class="kw-2">&amp;</span><a href="#1299">buf</a>[<span class="number">8</span>..];
+        </span><span class="kw">let </span>state_count = NativeEndian::read_u64(buf) <span class="kw">as </span>usize;
+        buf = <span class="kw-2">&amp;</span>buf[<span class="number">8</span>..];
 
         <span class="comment">// read max match state
-        </span><span class="kw">let </span>max_match = S::from_usize(NativeEndian::read_u64(<a href="#1299">buf</a>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>);
-        <a href="#1299">buf</a> = <span class="kw-2">&amp;</span><a href="#1299">buf</a>[<span class="number">8</span>..];
+        </span><span class="kw">let </span>max_match = S::from_usize(NativeEndian::read_u64(buf) <span class="kw">as </span>usize);
+        buf = <span class="kw-2">&amp;</span>buf[<span class="number">8</span>..];
 
         <span class="comment">// read byte classes
-        </span><span class="kw">let </span>byte_classes = ByteClasses::from_slice(<span class="kw-2">&amp;</span><a href="#1299">buf</a>[..<span class="number">256</span>]);
-        <a href="#1299">buf</a> = <span class="kw-2">&amp;</span><a href="#1299">buf</a>[<span class="number">256</span>..];
+        </span><span class="kw">let </span>byte_classes = ByteClasses::from_slice(<span class="kw-2">&amp;</span>buf[..<span class="number">256</span>]);
+        buf = <span class="kw-2">&amp;</span>buf[<span class="number">256</span>..];
 
-        <span class="kw">let </span>len = <a href="#1357">state_count</a> * <a href="#1365">byte_classes</a>.<a href="classes.rs.html#68">alphabet_len</a>();
-        <span class="kw">let </span>len_bytes = <a href="#1368">len</a> * <a href="#1337">state_size</a>;
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(
+        <span class="kw">let </span>len = state_count * byte_classes.alphabet_len();
+        <span class="kw">let </span>len_bytes = len * state_size;
+        <span class="macro">assert!</span>(
             buf.len() &lt;= len_bytes,
             <span class="string">&quot;insufficient transition table bytes, \
              expected at least {} but only have {}&quot;</span>,
             len_bytes,
             buf.len()
         );
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert_eq.html">assert_eq!</a>(
+        <span class="macro">assert_eq!</span>(
             <span class="number">0</span>,
             buf.as_ptr() <span class="kw">as </span>usize % mem::align_of::&lt;S&gt;(),
             <span class="string">&quot;DenseDFA transition table is not properly aligned&quot;
@@ -3715,15 +3715,15 @@
         <span class="comment">// SAFETY: This is the only actual not-safe thing in this entire
         // routine. The key things we need to worry about here are alignment
         // and size. The two asserts above should cover both conditions.
-        </span><span class="kw">let </span>trans = slice::from_raw_parts(<a href="#1299">buf</a>.as_ptr() <span class="kw">as </span><span class="kw-2">*const </span>S, <a href="#1368">len</a>);
-        <a href="#897">Repr</a> {
-            premultiplied: <a href="#1349">opts</a> &amp; <a href="#45">MASK_PREMULTIPLIED</a> &gt; <span class="number">0</span>,
-            anchored: <a href="#1349">opts</a> &amp; <a href="#46">MASK_ANCHORED</a> &gt; <span class="number">0</span>,
-            <a href="#1353">start</a>,
-            <a href="#1357">state_count</a>,
-            <a href="#1361">max_match</a>,
-            <a href="#1365">byte_classes</a>,
-            <a href="#1386">trans</a>,
+        </span><span class="kw">let </span>trans = slice::from_raw_parts(buf.as_ptr() <span class="kw">as </span><span class="kw-2">*const </span>S, len);
+        Repr {
+            premultiplied: opts &amp; MASK_PREMULTIPLIED &gt; <span class="number">0</span>,
+            anchored: opts &amp; MASK_ANCHORED &gt; <span class="number">0</span>,
+            start,
+            state_count,
+            max_match,
+            byte_classes,
+            trans,
         }
     }
 }
@@ -4663,4 +4663,4 @@
     // let (_, _, dfa) = build_automata(pattern);
 </span>}
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="regex_automata" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="regex_automata" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

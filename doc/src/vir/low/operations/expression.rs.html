@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `vir/src/low/operations/expression.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>expression.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../../vir/index.html"><img class="rust-logo" src="../../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `vir/src/low/operations/expression.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>expression.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../../vir/index.html"><img class="rust-logo" src="../../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -174,185 +174,181 @@
 <a href="#174" id="174">174</a>
 <a href="#175" id="175">175</a>
 <a href="#176" id="176">176</a>
-<a href="#177" id="177">177</a>
-<a href="#178" id="178">178</a>
-</pre><pre class="rust"><code><span class="kw">use </span><a href="ty.rs.html#6"><span class="kw">super</span>::ty::Typed</a>;
+</pre><pre class="rust"><code><span class="kw">use </span><span class="kw">super</span>::ty::Typed;
 <span class="kw">use </span><span class="kw">crate</span>::low::ast::expression::{
-    visitors::{<a href="../../up/gen/low/ast/expression/visitors.rs.html#669-672">default_fold_expression</a>, <a href="../../up/gen/low/ast/expression/visitors.rs.html#495">ExpressionFolder</a>},
+    visitors::{default_fold_expression, ExpressionFolder},
     <span class="kw-2">*</span>,
 };
-<span class="kw">use </span><a href="../../../../rustc_hash/type.FxHashMap.html">rustc_hash::FxHashMap</a>;
+<span class="kw">use </span>rustc_hash::FxHashMap;
 
-<span class="kw">impl </span>From&lt;<a href="../../up/gen/low/ast/variable.rs.html#4">VariableDecl</a>&gt; <span class="kw">for </span><a href="../../up/gen/low/ast/expression/mod.rs.html#15">Expression</a> {
-    <span class="kw">fn </span>from(variable: <a href="../../up/gen/low/ast/variable.rs.html#4">VariableDecl</a>) -&gt; <span class="self">Self </span>{
-        <span class="self">Self</span>::local_no_pos(<a href="#9">variable</a>)
+<span class="kw">impl </span>From&lt;VariableDecl&gt; <span class="kw">for </span>Expression {
+    <span class="kw">fn </span>from(variable: VariableDecl) -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::local_no_pos(variable)
     }
 }
 
-<span class="kw">impl </span><a href="../../up/gen/low/ast/expression/mod.rs.html#156">BinaryOpKind</a> {
-    <span class="kw">pub fn </span>get_result_type(<span class="self">self</span>, argument_type: <span class="kw-2">&amp;</span><a href="../../up/gen/low/ast/ty/mod.rs.html#13">Type</a>) -&gt; <span class="kw-2">&amp;</span><a href="../../up/gen/low/ast/ty/mod.rs.html#13">Type</a> {
-        <span class="kw">match </span><span class="self"><a href="#15">self</a> </span>{
-            <a href="../../up/gen/low/ast/expression/mod.rs.html#157">BinaryOpKind::EqCmp</a>
-            | <a href="../../up/gen/low/ast/expression/mod.rs.html#158">BinaryOpKind::NeCmp</a>
-            | <a href="../../up/gen/low/ast/expression/mod.rs.html#159">BinaryOpKind::GtCmp</a>
-            | <a href="../../up/gen/low/ast/expression/mod.rs.html#160">BinaryOpKind::GeCmp</a>
-            | <a href="../../up/gen/low/ast/expression/mod.rs.html#161">BinaryOpKind::LtCmp</a>
-            | <a href="../../up/gen/low/ast/expression/mod.rs.html#162">BinaryOpKind::LeCmp</a>
-            | <a href="../../up/gen/low/ast/expression/mod.rs.html#168">BinaryOpKind::And</a>
-            | <a href="../../up/gen/low/ast/expression/mod.rs.html#169">BinaryOpKind::Or</a>
-            | <a href="../../up/gen/low/ast/expression/mod.rs.html#170">BinaryOpKind::Implies</a> =&gt; <span class="kw-2">&amp;</span><a href="../../up/gen/low/ast/ty/mod.rs.html#15">Type::Bool</a>,
-            <a href="../../up/gen/low/ast/expression/mod.rs.html#163">BinaryOpKind::Add</a>
-            | <a href="../../up/gen/low/ast/expression/mod.rs.html#164">BinaryOpKind::Sub</a>
-            | <a href="../../up/gen/low/ast/expression/mod.rs.html#165">BinaryOpKind::Mul</a>
-            | <a href="../../up/gen/low/ast/expression/mod.rs.html#166">BinaryOpKind::Div</a>
-            | <a href="../../up/gen/low/ast/expression/mod.rs.html#167">BinaryOpKind::Mod</a> =&gt; <a href="#15">argument_type</a>,
+<span class="kw">impl </span>BinaryOpKind {
+    <span class="kw">pub fn </span>get_result_type(<span class="self">self</span>, argument_type: <span class="kw-2">&amp;</span>Type) -&gt; <span class="kw-2">&amp;</span>Type {
+        <span class="kw">match </span><span class="self">self </span>{
+            BinaryOpKind::EqCmp
+            | BinaryOpKind::NeCmp
+            | BinaryOpKind::GtCmp
+            | BinaryOpKind::GeCmp
+            | BinaryOpKind::LtCmp
+            | BinaryOpKind::LeCmp
+            | BinaryOpKind::And
+            | BinaryOpKind::Or
+            | BinaryOpKind::Implies =&gt; <span class="kw-2">&amp;</span>Type::Bool,
+            BinaryOpKind::Add
+            | BinaryOpKind::Sub
+            | BinaryOpKind::Mul
+            | BinaryOpKind::Div
+            | BinaryOpKind::Mod =&gt; argument_type,
         }
     }
 }
 
-<span class="kw">impl </span><a href="../../up/gen/low/ast/expression/mod.rs.html#15">Expression</a> {
-    <span class="kw">pub fn </span>function_call&lt;S: Into&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt;&gt;(
+<span class="kw">impl </span>Expression {
+    <span class="kw">pub fn </span>function_call&lt;S: Into&lt;String&gt;&gt;(
         name: S,
-        arguments: Vec&lt;<a href="../../up/gen/low/ast/expression/mod.rs.html#15">Expression</a>&gt;,
-        return_type: <a href="../../up/gen/low/ast/ty/mod.rs.html#13">Type</a>,
-    ) -&gt; <a href="../../up/gen/low/ast/expression/mod.rs.html#15">Expression</a> {
-        <span class="kw">let </span>parameters = <a href="#38">arguments</a>
+        arguments: Vec&lt;Expression&gt;,
+        return_type: Type,
+    ) -&gt; Expression {
+        <span class="kw">let </span>parameters = arguments
             .iter()
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">enumerate</a>()
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|(i, argument)| <a href="../../up/gen/low/ast/variable.rs.html#4">VariableDecl</a> {
-                name: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;_{}&quot;</span>, i),
-                ty: <a href="#44">argument</a>.<a href="ty.rs.html#7">get_type</a>().<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+            .enumerate()
+            .map(|(i, argument)| VariableDecl {
+                name: <span class="macro">format!</span>(<span class="string">&quot;_{i}&quot;</span>),
+                ty: argument.get_type().clone(),
             })
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
-        Expression::func_app_no_pos(<a href="#37">name</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(), <a href="#38">arguments</a>, <a href="#41">parameters</a>, <a href="#39">return_type</a>)
+            .collect();
+        Expression::func_app_no_pos(name.into(), arguments, parameters, return_type)
     }
     <span class="kw">pub fn </span>domain_function_call(
-        domain_name: <span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">ToString</a>,
-        function_name: <span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">ToString</a>,
-        arguments: Vec&lt;<a href="../../up/gen/low/ast/expression/mod.rs.html#15">Expression</a>&gt;,
-        return_type: <a href="../../up/gen/low/ast/ty/mod.rs.html#13">Type</a>,
-    ) -&gt; <a href="../../up/gen/low/ast/expression/mod.rs.html#15">Expression</a> {
-        <span class="kw">let </span>parameters = <a href="#54">arguments</a>
+        domain_name: <span class="kw">impl </span>ToString,
+        function_name: <span class="kw">impl </span>ToString,
+        arguments: Vec&lt;Expression&gt;,
+        return_type: Type,
+    ) -&gt; Expression {
+        <span class="kw">let </span>parameters = arguments
             .iter()
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">enumerate</a>()
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|(i, argument)| <a href="../../up/gen/low/ast/variable.rs.html#4">VariableDecl</a> {
-                name: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;_{}&quot;</span>, i),
-                ty: <a href="#60">argument</a>.<a href="ty.rs.html#7">get_type</a>().<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+            .enumerate()
+            .map(|(i, argument)| VariableDecl {
+                name: <span class="macro">format!</span>(<span class="string">&quot;_{i}&quot;</span>),
+                ty: argument.get_type().clone(),
             })
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
+            .collect();
         Expression::domain_func_app_no_pos(
-            <a href="#52">domain_name</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(),
-            <a href="#53">function_name</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(),
-            <a href="#54">arguments</a>,
-            <a href="#57">parameters</a>,
-            <a href="#55">return_type</a>,
+            domain_name.to_string(),
+            function_name.to_string(),
+            arguments,
+            parameters,
+            return_type,
         )
     }
     <span class="attr">#[must_use]
-    </span><span class="kw">pub fn </span>set_default_position(<span class="self">self</span>, new_position: <a href="../../common/position.rs.html#16">Position</a>) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub fn </span>set_default_position(<span class="self">self</span>, new_position: Position) -&gt; <span class="self">Self </span>{
         <span class="kw">struct </span>DefaultPositionReplacer {
-            new_position: <a href="../../common/position.rs.html#16">Position</a>,
+            new_position: Position,
         }
-        <span class="kw">impl </span><a href="../../up/gen/low/ast/expression/visitors.rs.html#495">ExpressionFolder</a> <span class="kw">for </span><a href="#75">DefaultPositionReplacer</a> {
-            <span class="kw">fn </span>fold_position(<span class="kw-2">&amp;mut </span><span class="self">self</span>, position: <a href="../../common/position.rs.html#16">Position</a>) -&gt; <a href="../../common/position.rs.html#16">Position</a> {
+        <span class="kw">impl </span>ExpressionFolder <span class="kw">for </span>DefaultPositionReplacer {
+            <span class="kw">fn </span>fold_position(<span class="kw-2">&amp;mut </span><span class="self">self</span>, position: Position) -&gt; Position {
                 <span class="kw">if </span>position.is_default() {
-                    <a class="self" href="#79">self</a>.new_position
+                    <span class="self">self</span>.new_position
                 } <span class="kw">else </span>{
-                    <a href="#79">position</a>
+                    position
                 }
             }
         }
-        <a href="#75">DefaultPositionReplacer</a> { <a href="#74">new_position</a> }.<a href="../../up/gen/low/ast/expression/visitors.rs.html#499">fold_expression</a>(<a class="self" href="#74">self</a>)
+        DefaultPositionReplacer { new_position }.fold_expression(<span class="self">self</span>)
     }
-    <span class="kw">pub fn </span>is_place(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">match </span><span class="self"><a href="#89">self</a> </span>{
-            <a href="../../up/gen/low/ast/expression/mod.rs.html#19">Expression::Local</a>(<span class="kw">_</span>) =&gt; <span class="bool-val">true</span>,
-            <a href="../../up/gen/low/ast/expression/mod.rs.html#23">Expression::Field</a>(<a href="../../up/gen/low/ast/expression/mod.rs.html#50">Field</a> { base, .. })
-            | <a href="../../up/gen/low/ast/expression/mod.rs.html#24">Expression::LabelledOld</a>(<a href="../../up/gen/low/ast/expression/mod.rs.html#57">LabelledOld</a> { base, .. }) =&gt; <a href="#92">base</a>.<a href="#89">is_place</a>(),
+    <span class="kw">pub fn </span>is_place(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="kw">match </span><span class="self">self </span>{
+            Expression::Local(<span class="kw">_</span>) =&gt; <span class="bool-val">true</span>,
+            Expression::Field(Field { base, .. })
+            | Expression::LabelledOld(LabelledOld { base, .. }) =&gt; base.is_place(),
             <span class="kw">_ </span>=&gt; <span class="bool-val">false</span>,
         }
     }
     <span class="attr">#[must_use]
-    </span><span class="kw">pub fn </span>replace_place(<span class="self">self</span>, target: <span class="kw-2">&amp;</span><a href="../../up/gen/low/ast/expression/mod.rs.html#15">Expression</a>, replacement: <span class="kw-2">&amp;</span><a href="../../up/gen/low/ast/expression/mod.rs.html#15">Expression</a>) -&gt; <span class="self">Self </span>{
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(target.is_place());
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert_eq.html">assert_eq!</a>(
+    </span><span class="kw">pub fn </span>replace_place(<span class="self">self</span>, target: <span class="kw-2">&amp;</span>Expression, replacement: <span class="kw-2">&amp;</span>Expression) -&gt; <span class="self">Self </span>{
+        <span class="macro">debug_assert!</span>(target.is_place());
+        <span class="macro">assert_eq!</span>(
             target.get_type(),
             replacement.get_type(),
-            <span class="string">&quot;{} → {}&quot;</span>,
-            target,
-            replacement
-        );
+            <span class="string">&quot;{target} → {replacement}&quot;
+        </span>);
         <span class="kw">struct </span>PlaceReplacer&lt;<span class="lifetime">&#39;a</span>&gt; {
-            target: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="../../up/gen/low/ast/expression/mod.rs.html#15">Expression</a>,
-            replacement: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="../../up/gen/low/ast/expression/mod.rs.html#15">Expression</a>,
+            target: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Expression,
+            replacement: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Expression,
         }
-        <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; <a href="../../up/gen/low/ast/expression/visitors.rs.html#495">ExpressionFolder</a> <span class="kw">for </span>PlaceReplacer&lt;<span class="lifetime">&#39;a</span>&gt; {
-            <span class="kw">fn </span>fold_expression(<span class="kw-2">&amp;mut </span><span class="self">self</span>, expression: <a href="../../up/gen/low/ast/expression/mod.rs.html#15">Expression</a>) -&gt; <a href="../../up/gen/low/ast/expression/mod.rs.html#15">Expression</a> {
+        <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; ExpressionFolder <span class="kw">for </span>PlaceReplacer&lt;<span class="lifetime">&#39;a</span>&gt; {
+            <span class="kw">fn </span>fold_expression(<span class="kw-2">&amp;mut </span><span class="self">self</span>, expression: Expression) -&gt; Expression {
                 <span class="kw">if </span>expression.is_place() &amp;&amp; <span class="kw-2">&amp;</span>expression == <span class="self">self</span>.target {
-                    <a class="self" href="#112">self</a>.replacement.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()
+                    <span class="self">self</span>.replacement.clone()
                 } <span class="kw">else </span>{
-                    <a href="../../up/gen/low/ast/expression/visitors.rs.html#669-672">default_fold_expression</a>(<a class="self" href="#112">self</a>, <a href="#112">expression</a>)
+                    default_fold_expression(<span class="self">self</span>, expression)
                 }
             }
         }
-        <span class="kw">let </span><span class="kw-2">mut </span>replacer = <a href="#107">PlaceReplacer</a> {
-            <a href="#98">target</a>,
-            <a href="#98">replacement</a>,
+        <span class="kw">let </span><span class="kw-2">mut </span>replacer = PlaceReplacer {
+            target,
+            replacement,
         };
-        <a href="#120">replacer</a>.<a href="../../up/gen/low/ast/expression/visitors.rs.html#499">fold_expression</a>(<a class="self" href="#98">self</a>)
+        replacer.fold_expression(<span class="self">self</span>)
     }
     <span class="attr">#[must_use]
     </span><span class="kw">pub fn </span>substitute_variables(
         <span class="self">self</span>,
-        replacements: <span class="kw-2">&amp;</span>FxHashMap&lt;<span class="kw-2">&amp;</span><a href="../../up/gen/low/ast/variable.rs.html#4">VariableDecl</a>, <span class="kw-2">&amp;</span><a href="../../up/gen/low/ast/expression/mod.rs.html#15">Expression</a>&gt;,
+        replacements: <span class="kw-2">&amp;</span>FxHashMap&lt;<span class="kw-2">&amp;</span>VariableDecl, <span class="kw-2">&amp;</span>Expression&gt;,
     ) -&gt; <span class="self">Self </span>{
         <span class="kw">struct </span>PlaceReplacer&lt;<span class="lifetime">&#39;a</span>&gt; {
-            replacements: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>FxHashMap&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="../../up/gen/low/ast/variable.rs.html#4">VariableDecl</a>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="../../up/gen/low/ast/expression/mod.rs.html#15">Expression</a>&gt;,
+            replacements: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>FxHashMap&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>VariableDecl, <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Expression&gt;,
         }
-        <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; <a href="../../up/gen/low/ast/expression/visitors.rs.html#495">ExpressionFolder</a> <span class="kw">for </span>PlaceReplacer&lt;<span class="lifetime">&#39;a</span>&gt; {
-            <span class="kw">fn </span>fold_local_enum(<span class="kw-2">&amp;mut </span><span class="self">self</span>, local: <a href="../../up/gen/low/ast/expression/mod.rs.html#44">Local</a>) -&gt; <a href="../../up/gen/low/ast/expression/mod.rs.html#15">Expression</a> {
-                <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>expression) = <a class="self" href="#135">self</a>.replacements.get(<span class="kw-2">&amp;</span><a href="#135">local</a>.variable) {
-                    <a href="#136">expression</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()
+        <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; ExpressionFolder <span class="kw">for </span>PlaceReplacer&lt;<span class="lifetime">&#39;a</span>&gt; {
+            <span class="kw">fn </span>fold_local_enum(<span class="kw-2">&amp;mut </span><span class="self">self</span>, local: Local) -&gt; Expression {
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>expression) = <span class="self">self</span>.replacements.get(<span class="kw-2">&amp;</span>local.variable) {
+                    expression.clone()
                 } <span class="kw">else </span>{
-                    <a href="../../up/gen/low/ast/expression/mod.rs.html#19">Expression::Local</a>(<a href="#135">local</a>)
+                    Expression::Local(local)
                 }
             }
         }
-        <a href="#131">PlaceReplacer</a> { <a href="#129">replacements</a> }.<a href="../../up/gen/low/ast/expression/visitors.rs.html#499">fold_expression</a>(<a class="self" href="#128">self</a>)
+        PlaceReplacer { replacements }.fold_expression(<span class="self">self</span>)
     }
     <span class="attr">#[must_use]
-    </span><span class="kw">pub fn </span>replace_discriminant(<span class="self">self</span>, new_discriminant: <span class="kw-2">&amp;</span><a href="../../up/gen/low/ast/expression/mod.rs.html#15">Expression</a>) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub fn </span>replace_discriminant(<span class="self">self</span>, new_discriminant: <span class="kw-2">&amp;</span>Expression) -&gt; <span class="self">Self </span>{
         <span class="kw">struct </span>DiscriminantReplacer&lt;<span class="lifetime">&#39;a</span>&gt; {
-            new_discriminant: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="../../up/gen/low/ast/expression/mod.rs.html#15">Expression</a>,
+            new_discriminant: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Expression,
         }
-        <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; <a href="../../up/gen/low/ast/expression/visitors.rs.html#495">ExpressionFolder</a> <span class="kw">for </span>DiscriminantReplacer&lt;<span class="lifetime">&#39;a</span>&gt; {
-            <span class="kw">fn </span>fold_expression(<span class="kw-2">&amp;mut </span><span class="self">self</span>, expression: <a href="../../up/gen/low/ast/expression/mod.rs.html#15">Expression</a>) -&gt; <a href="../../up/gen/low/ast/expression/mod.rs.html#15">Expression</a> {
+        <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; ExpressionFolder <span class="kw">for </span>DiscriminantReplacer&lt;<span class="lifetime">&#39;a</span>&gt; {
+            <span class="kw">fn </span>fold_expression(<span class="kw-2">&amp;mut </span><span class="self">self</span>, expression: Expression) -&gt; Expression {
                 <span class="kw">if </span>expression.is_discriminant() {
-                    <a class="self" href="#151">self</a>.new_discriminant.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()
+                    <span class="self">self</span>.new_discriminant.clone()
                 } <span class="kw">else </span>{
-                    <a href="../../up/gen/low/ast/expression/visitors.rs.html#669-672">default_fold_expression</a>(<a class="self" href="#151">self</a>, <a href="#151">expression</a>)
+                    default_fold_expression(<span class="self">self</span>, expression)
                 }
             }
         }
-        <span class="kw">let </span><span class="kw-2">mut </span>replacer = <a href="#147">DiscriminantReplacer</a> { <a href="#146">new_discriminant</a> };
-        <a href="#159">replacer</a>.<a href="../../up/gen/low/ast/expression/visitors.rs.html#499">fold_expression</a>(<a class="self" href="#146">self</a>)
+        <span class="kw">let </span><span class="kw-2">mut </span>replacer = DiscriminantReplacer { new_discriminant };
+        replacer.fold_expression(<span class="self">self</span>)
     }
     <span class="kw">pub fn </span>full_permission() -&gt; <span class="self">Self </span>{
-        <span class="self">Self</span>::constant_no_pos(<span class="number">1</span>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(), <a href="../../up/gen/low/ast/ty/mod.rs.html#16">Type::Perm</a>)
+        <span class="self">Self</span>::constant_no_pos(<span class="number">1</span>.into(), Type::Perm)
     }
     <span class="kw">pub fn </span>no_permission() -&gt; <span class="self">Self </span>{
-        <span class="self">Self</span>::constant_no_pos(<span class="number">0</span>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(), <a href="../../up/gen/low/ast/ty/mod.rs.html#16">Type::Perm</a>)
+        <span class="self">Self</span>::constant_no_pos(<span class="number">0</span>.into(), Type::Perm)
     }
     <span class="kw">pub fn </span>wildcard_permission() -&gt; <span class="self">Self </span>{
-        <span class="self">Self</span>::constant_no_pos((-<span class="number">1i64</span>).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(), <a href="../../up/gen/low/ast/ty/mod.rs.html#16">Type::Perm</a>)
+        <span class="self">Self</span>::constant_no_pos((-<span class="number">1i64</span>).into(), Type::Perm)
     }
-    <span class="kw">pub fn </span>fractional_permission(denominator: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; <span class="self">Self </span>{
+    <span class="kw">pub fn </span>fractional_permission(denominator: u32) -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>::perm_binary_op_no_pos(
-            <a href="../../up/gen/low/ast/expression/mod.rs.html#195">PermBinaryOpKind::Div</a>,
+            PermBinaryOpKind::Div,
             <span class="self">Self</span>::full_permission(),
-            <a href="#171">denominator</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
+            denominator.into(),
         )
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="vir" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="vir" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

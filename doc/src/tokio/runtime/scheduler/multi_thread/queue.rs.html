@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.21.2/src/runtime/scheduler/multi_thread/queue.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>queue.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../../../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../../../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../../../../source-files.js"></script><script defer src="../../../../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../../../tokio/index.html"><img class="rust-logo" src="../../../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.23.0/src/runtime/scheduler/multi_thread/queue.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>queue.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../../../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../../../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../../../source-files.js"></script><script defer src="../../../../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../../../tokio/index.html"><img class="rust-logo" src="../../../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -509,17 +509,53 @@
 <a href="#509" id="509">509</a>
 <a href="#510" id="510">510</a>
 <a href="#511" id="511">511</a>
+<a href="#512" id="512">512</a>
+<a href="#513" id="513">513</a>
+<a href="#514" id="514">514</a>
+<a href="#515" id="515">515</a>
+<a href="#516" id="516">516</a>
+<a href="#517" id="517">517</a>
+<a href="#518" id="518">518</a>
+<a href="#519" id="519">519</a>
+<a href="#520" id="520">520</a>
+<a href="#521" id="521">521</a>
+<a href="#522" id="522">522</a>
+<a href="#523" id="523">523</a>
+<a href="#524" id="524">524</a>
+<a href="#525" id="525">525</a>
+<a href="#526" id="526">526</a>
+<a href="#527" id="527">527</a>
+<a href="#528" id="528">528</a>
+<a href="#529" id="529">529</a>
+<a href="#530" id="530">530</a>
+<a href="#531" id="531">531</a>
+<a href="#532" id="532">532</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Run-queue structures to support a work-stealing scheduler
 
-</span><span class="kw">use </span><a href="../../../loom/std/unsafe_cell.rs.html#2"><span class="kw">crate</span>::loom::cell::UnsafeCell</a>;
-<span class="kw">use </span><span class="kw">crate</span>::loom::sync::atomic::{<a href="../../../loom/std/atomic_u16.rs.html#6">AtomicU16</a>, <a href="../../../loom/std/atomic_u32.rs.html#6">AtomicU32</a>};
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/sync/struct.Arc.html"><span class="kw">crate</span>::loom::sync::Arc</a>;
-<span class="kw">use </span><span class="kw">crate</span>::runtime::task::{<a class="self" href="../../mod.rs.html#187">self</a>, <a href="../../task/inject.rs.html#13">Inject</a>};
-<span class="kw">use </span><a href="../../metrics/mock.rs.html#7"><span class="kw">crate</span>::runtime::MetricsBatch</a>;
+</span><span class="kw">use </span><span class="kw">crate</span>::loom::cell::UnsafeCell;
+<span class="kw">use </span><span class="kw">crate</span>::loom::sync::Arc;
+<span class="kw">use </span><span class="kw">crate</span>::runtime::task::{<span class="self">self</span>, Inject};
+<span class="kw">use </span><span class="kw">crate</span>::runtime::MetricsBatch;
 
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/mem/maybe_uninit/union.MaybeUninit.html">std::mem::MaybeUninit</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/ptr/index.html">std::ptr</a>;
+<span class="kw">use </span>std::mem::{<span class="self">self</span>, MaybeUninit};
+<span class="kw">use </span>std::ptr;
 <span class="kw">use </span>std::sync::atomic::Ordering::{AcqRel, Acquire, Relaxed, Release};
+
+<span class="comment">// Use wider integers when possible to increase ABA resilience.
+//
+// See issue #5041: &lt;https://github.com/tokio-rs/tokio/issues/5041&gt;.
+</span><span class="macro">cfg_has_atomic_u64! </span>{
+    <span class="kw">type </span>UnsignedShort = u32;
+    <span class="kw">type </span>UnsignedLong = u64;
+    <span class="kw">type </span>AtomicUnsignedShort = <span class="kw">crate</span>::loom::sync::atomic::AtomicU32;
+    <span class="kw">type </span>AtomicUnsignedLong = <span class="kw">crate</span>::loom::sync::atomic::AtomicU64;
+}
+<span class="macro">cfg_not_has_atomic_u64! </span>{
+    <span class="kw">type </span>UnsignedShort = u16;
+    <span class="kw">type </span>UnsignedLong = u32;
+    <span class="kw">type </span>AtomicUnsignedShort = <span class="kw">crate</span>::loom::sync::atomic::AtomicU16;
+    <span class="kw">type </span>AtomicUnsignedLong = <span class="kw">crate</span>::loom::sync::atomic::AtomicU32;
+}
 
 <span class="doccomment">/// Producer handle. May only be used from a single thread.
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>Local&lt;T: <span class="lifetime">&#39;static</span>&gt; {
@@ -532,29 +568,31 @@
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>Inner&lt;T: <span class="lifetime">&#39;static</span>&gt; {
     <span class="doccomment">/// Concurrently updated by many threads.
     ///
-    /// Contains two `u16` values. The LSB byte is the &quot;real&quot; head of the queue.
-    /// The `u16` in the MSB is set by a stealer in process of stealing values.
-    /// It represents the first value being stolen in the batch. `u16` is used
-    /// in order to distinguish between `head == tail` and `head == tail -
-    /// capacity`.
+    /// Contains two `UnsignedShort` values. The LSB byte is the &quot;real&quot; head of
+    /// the queue. The `UnsignedShort` in the MSB is set by a stealer in process
+    /// of stealing values. It represents the first value being stolen in the
+    /// batch. The `UnsignedShort` indices are intentionally wider than strictly
+    /// required for buffer indexing in order to provide ABA mitigation and make
+    /// it possible to distinguish between full and empty buffers.
     ///
-    /// When both `u16` values are the same, there is no active stealer.
+    /// When both `UnsignedShort` values are the same, there is no active
+    /// stealer.
     ///
     /// Tracking an in-progress stealer prevents a wrapping scenario.
-    </span>head: <a href="../../../loom/std/atomic_u32.rs.html#6">AtomicU32</a>,
+    </span>head: AtomicUnsignedLong,
 
     <span class="doccomment">/// Only updated by producer thread but read by many threads.
-    </span>tail: <a href="../../../loom/std/atomic_u16.rs.html#6">AtomicU16</a>,
+    </span>tail: AtomicUnsignedShort,
 
     <span class="doccomment">/// Elements
-    </span>buffer: Box&lt;[UnsafeCell&lt;MaybeUninit&lt;task::Notified&lt;T&gt;&gt;&gt;; <a href="#46">LOCAL_QUEUE_CAPACITY</a>]&gt;,
+    </span>buffer: Box&lt;[UnsafeCell&lt;MaybeUninit&lt;task::Notified&lt;T&gt;&gt;&gt;; LOCAL_QUEUE_CAPACITY]&gt;,
 }
 
-<span class="kw">unsafe impl</span>&lt;T&gt; <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="kw">for </span>Inner&lt;T&gt; {}
-<span class="kw">unsafe impl</span>&lt;T&gt; <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> <span class="kw">for </span>Inner&lt;T&gt; {}
+<span class="kw">unsafe impl</span>&lt;T&gt; Send <span class="kw">for </span>Inner&lt;T&gt; {}
+<span class="kw">unsafe impl</span>&lt;T&gt; Sync <span class="kw">for </span>Inner&lt;T&gt; {}
 
 <span class="attr">#[cfg(not(loom))]
-</span><span class="kw">const </span>LOCAL_QUEUE_CAPACITY: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> = <span class="number">256</span>;
+</span><span class="kw">const </span>LOCAL_QUEUE_CAPACITY: usize = <span class="number">256</span>;
 
 <span class="comment">// Shrink the size of the local queue when using loom. This shouldn&#39;t impact
 // logic, but allows loom to test more edge cases in a reasonable a mount of
@@ -562,54 +600,54 @@
 </span><span class="attr">#[cfg(loom)]
 </span><span class="kw">const </span>LOCAL_QUEUE_CAPACITY: usize = <span class="number">4</span>;
 
-<span class="kw">const </span>MASK: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> = <a href="#46">LOCAL_QUEUE_CAPACITY</a> - <span class="number">1</span>;
+<span class="kw">const </span>MASK: usize = LOCAL_QUEUE_CAPACITY - <span class="number">1</span>;
 
 <span class="comment">// Constructing the fixed size array directly is very awkward. The only way to
 // do it is to repeat `UnsafeCell::new(MaybeUninit::uninit())` 256 times, as
 // the contents are not Copy. The trick with defining a const doesn&#39;t work for
 // generic types.
-</span><span class="kw">fn </span>make_fixed_size&lt;T&gt;(buffer: Box&lt;[T]&gt;) -&gt; Box&lt;[T; <a href="#46">LOCAL_QUEUE_CAPACITY</a>]&gt; {
-    <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert_eq.html">assert_eq!</a>(buffer.len(), LOCAL_QUEUE_CAPACITY);
+</span><span class="kw">fn </span>make_fixed_size&lt;T&gt;(buffer: Box&lt;[T]&gt;) -&gt; Box&lt;[T; LOCAL_QUEUE_CAPACITY]&gt; {
+    <span class="macro">assert_eq!</span>(buffer.len(), LOCAL_QUEUE_CAPACITY);
 
     <span class="comment">// safety: We check that the length is correct.
-    </span><span class="kw">unsafe </span>{ Box::from_raw(Box::into_raw(<a href="#60">buffer</a>).cast()) }
+    </span><span class="kw">unsafe </span>{ Box::from_raw(Box::into_raw(buffer).cast()) }
 }
 
 <span class="doccomment">/// Create a new local run-queue
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>local&lt;T: <span class="lifetime">&#39;static</span>&gt;() -&gt; (Steal&lt;T&gt;, Local&lt;T&gt;) {
-    <span class="kw">let </span><span class="kw-2">mut </span>buffer = Vec::with_capacity(<a href="#46">LOCAL_QUEUE_CAPACITY</a>);
+    <span class="kw">let </span><span class="kw-2">mut </span>buffer = Vec::with_capacity(LOCAL_QUEUE_CAPACITY);
 
     <span class="kw">for _ in </span><span class="number">0</span>..LOCAL_QUEUE_CAPACITY {
         buffer.push(UnsafeCell::new(MaybeUninit::uninit()));
     }
 
-    <span class="kw">let </span>inner = Arc::new(<a href="#21">Inner</a> {
-        head: AtomicU32::new(<span class="number">0</span>),
-        tail: AtomicU16::new(<span class="number">0</span>),
-        buffer: <a href="#60">make_fixed_size</a>(<a href="#69">buffer</a>.into_boxed_slice()),
+    <span class="kw">let </span>inner = Arc::new(Inner {
+        head: AtomicUnsignedLong::new(<span class="number">0</span>),
+        tail: AtomicUnsignedShort::new(<span class="number">0</span>),
+        buffer: make_fixed_size(buffer.into_boxed_slice()),
     });
 
-    <span class="kw">let </span>local = <a href="#14">Local</a> {
-        inner: <a href="#75">inner</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+    <span class="kw">let </span>local = Local {
+        inner: inner.clone(),
     };
 
-    <span class="kw">let </span>remote = <a href="#19">Steal</a>(<a href="#75">inner</a>);
+    <span class="kw">let </span>remote = Steal(inner);
 
-    (<a href="#85">remote</a>, <a href="#81">local</a>)
+    (remote, local)
 }
 
 <span class="kw">impl</span>&lt;T&gt; Local&lt;T&gt; {
     <span class="doccomment">/// Returns true if the queue has entries that can be stolen.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>is_stealable(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        !<a class="self" href="#92">self</a>.inner.<a href="#489">is_empty</a>()
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>is_stealable(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        !<span class="self">self</span>.inner.is_empty()
     }
 
     <span class="doccomment">/// Returns false if there are any entries in the queue
     ///
     /// Separate to is_stealable so that refactors of is_stealable to &quot;protect&quot;
     /// some tasks from stealing won&#39;t affect this
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>has_tasks(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        !<a class="self" href="#100">self</a>.inner.<a href="#489">is_empty</a>()
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>has_tasks(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        !<span class="self">self</span>.inner.is_empty()
     }
 
     <span class="doccomment">/// Pushes a task to the back of the local queue, skipping the LIFO slot.
@@ -617,53 +655,53 @@
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         <span class="kw-2">mut </span>task: task::Notified&lt;T&gt;,
         inject: <span class="kw-2">&amp;</span>Inject&lt;T&gt;,
-        metrics: <span class="kw-2">&amp;mut </span><a href="../../metrics/mock.rs.html#7">MetricsBatch</a>,
+        metrics: <span class="kw-2">&amp;mut </span>MetricsBatch,
     ) {
         <span class="kw">let </span>tail = <span class="kw">loop </span>{
-            <span class="kw">let </span>head = <a class="self" href="#106">self</a>.inner.head.load(Acquire);
-            <span class="kw">let </span>(steal, real) = <a href="#496">unpack</a>(<a href="#112">head</a>);
+            <span class="kw">let </span>head = <span class="self">self</span>.inner.head.load(Acquire);
+            <span class="kw">let </span>(steal, real) = unpack(head);
 
             <span class="comment">// safety: this is the **only** thread that updates this cell.
-            </span><span class="kw">let </span>tail = <span class="kw">unsafe </span>{ <a class="self" href="#106">self</a>.inner.tail.<a href="../../../loom/std/atomic_u16.rs.html#25">unsync_load</a>() };
+            </span><span class="kw">let </span>tail = <span class="kw">unsafe </span>{ <span class="self">self</span>.inner.tail.unsync_load() };
 
-            <span class="kw">if </span>tail.wrapping_sub(steal) &lt; LOCAL_QUEUE_CAPACITY <span class="kw">as </span>u16 {
+            <span class="kw">if </span>tail.wrapping_sub(steal) &lt; LOCAL_QUEUE_CAPACITY <span class="kw">as </span>UnsignedShort {
                 <span class="comment">// There is capacity for the task
-                </span><span class="kw">break </span><a href="#116">tail</a>;
+                </span><span class="kw">break </span>tail;
             } <span class="kw">else if </span>steal != real {
                 <span class="comment">// Concurrently stealing, this will free up capacity, so only
                 // push the task onto the inject queue
-                </span><a href="#108">inject</a>.<a href="../../task/inject.rs.html#79">push</a>(<a href="#107">task</a>);
+                </span>inject.push(task);
                 <span class="kw">return</span>;
             } <span class="kw">else </span>{
                 <span class="comment">// Push the current task and half of the queue into the
                 // inject queue.
-                </span><span class="kw">match </span><a class="self" href="#106">self</a>.<a href="#165-172">push_overflow</a>(<a href="#107">task</a>, <a href="#113">real</a>, <a href="#116">tail</a>, <a href="#108">inject</a>, <a href="#109">metrics</a>) {
+                </span><span class="kw">match </span><span class="self">self</span>.push_overflow(task, real, tail, inject, metrics) {
                     <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; <span class="kw">return</span>,
                     <span class="comment">// Lost the race, try again
                     </span><span class="prelude-val">Err</span>(v) =&gt; {
-                        <a href="#107">task</a> = <a href="#132">v</a>;
+                        task = v;
                     }
                 }
             }
         };
 
         <span class="comment">// Map the position to a slot index.
-        </span><span class="kw">let </span>idx = <a href="#111">tail</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> &amp; <a href="#54">MASK</a>;
+        </span><span class="kw">let </span>idx = tail <span class="kw">as </span>usize &amp; MASK;
 
-        <a class="self" href="#106">self</a>.inner.buffer[<a href="#140">idx</a>].<a href="../../../loom/std/unsafe_cell.rs.html#13">with_mut</a>(|ptr| {
+        <span class="self">self</span>.inner.buffer[idx].with_mut(|ptr| {
             <span class="comment">// Write the task to the slot
             //
             // Safety: There is only one producer and the above `if`
             // condition ensures we don&#39;t touch a cell if there is a
             // value, thus no consumer.
             </span><span class="kw">unsafe </span>{
-                ptr::write((<span class="kw-2">*</span><a href="#142">ptr</a>).as_mut_ptr(), <a href="#107">task</a>);
+                ptr::write((<span class="kw-2">*</span>ptr).as_mut_ptr(), task);
             }
         });
 
         <span class="comment">// Make the task available. Synchronizes with a load in
         // `steal_into2`.
-        </span><a class="self" href="#106">self</a>.inner.tail.store(<a href="#111">tail</a>.wrapping_add(<span class="number">1</span>), Release);
+        </span><span class="self">self</span>.inner.tail.store(tail.wrapping_add(<span class="number">1</span>), Release);
     }
 
     <span class="doccomment">/// Moves a batch of tasks into the inject queue.
@@ -676,18 +714,18 @@
     </span><span class="kw">fn </span>push_overflow(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         task: task::Notified&lt;T&gt;,
-        head: <a href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>,
-        tail: <a href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>,
+        head: UnsignedShort,
+        tail: UnsignedShort,
         inject: <span class="kw-2">&amp;</span>Inject&lt;T&gt;,
-        metrics: <span class="kw-2">&amp;mut </span><a href="../../metrics/mock.rs.html#7">MetricsBatch</a>,
+        metrics: <span class="kw-2">&amp;mut </span>MetricsBatch,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;(), task::Notified&lt;T&gt;&gt; {
         <span class="doccomment">/// How many elements are we taking from the local queue.
         ///
         /// This is one less than the number of tasks pushed to the inject
         /// queue as we are also inserting the `task` argument.
-        </span><span class="kw">const </span>NUM_TASKS_TAKEN: <a href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a> = (<a href="#46">LOCAL_QUEUE_CAPACITY</a> / <span class="number">2</span>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>;
+        </span><span class="kw">const </span>NUM_TASKS_TAKEN: UnsignedShort = (LOCAL_QUEUE_CAPACITY / <span class="number">2</span>) <span class="kw">as </span>UnsignedShort;
 
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert_eq.html">assert_eq!</a>(
+        <span class="macro">assert_eq!</span>(
             tail.wrapping_sub(head) <span class="kw">as </span>usize,
             LOCAL_QUEUE_CAPACITY,
             <span class="string">&quot;queue is not full; tail = {}; head = {}&quot;</span>,
@@ -695,7 +733,7 @@
             head
         );
 
-        <span class="kw">let </span>prev = <a href="#504">pack</a>(<a href="#168">head</a>, <a href="#168">head</a>);
+        <span class="kw">let </span>prev = pack(head, head);
 
         <span class="comment">// Claim a bunch of tasks
         //
@@ -724,114 +762,114 @@
             <span class="comment">// We failed to claim the tasks, losing the race. Return out of
             // this function and try the full `push` routine again. The queue
             // may not be full anymore.
-            </span><span class="kw">return </span><span class="prelude-val">Err</span>(<a href="#167">task</a>);
+            </span><span class="kw">return </span><span class="prelude-val">Err</span>(task);
         }
 
         <span class="doccomment">/// An iterator that takes elements out of the run queue.
         </span><span class="kw">struct </span>BatchTaskIter&lt;<span class="lifetime">&#39;a</span>, T: <span class="lifetime">&#39;static</span>&gt; {
-            buffer: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[UnsafeCell&lt;MaybeUninit&lt;task::Notified&lt;T&gt;&gt;&gt;; <a href="#46">LOCAL_QUEUE_CAPACITY</a>],
-            head: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>,
-            i: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>,
+            buffer: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[UnsafeCell&lt;MaybeUninit&lt;task::Notified&lt;T&gt;&gt;&gt;; LOCAL_QUEUE_CAPACITY],
+            head: UnsignedLong,
+            i: UnsignedLong,
         }
-        <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T: <span class="lifetime">&#39;static</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a> <span class="kw">for </span>BatchTaskIter&lt;<span class="lifetime">&#39;a</span>, T&gt; {
+        <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T: <span class="lifetime">&#39;static</span>&gt; Iterator <span class="kw">for </span>BatchTaskIter&lt;<span class="lifetime">&#39;a</span>, T&gt; {
             <span class="kw">type </span>Item = task::Notified&lt;T&gt;;
 
             <span class="attr">#[inline]
             </span><span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;task::Notified&lt;T&gt;&gt; {
-                <span class="kw">if </span><span class="self">self</span>.i == u32::from(NUM_TASKS_TAKEN) {
+                <span class="kw">if </span><span class="self">self</span>.i == UnsignedLong::from(NUM_TASKS_TAKEN) {
                     <span class="prelude-val">None
                 </span>} <span class="kw">else </span>{
-                    <span class="kw">let </span>i_idx = <a class="self" href="#229">self</a>.i.wrapping_add(<a class="self" href="#229">self</a>.head) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> &amp; <a href="#54">MASK</a>;
-                    <span class="kw">let </span>slot = <span class="kw-2">&amp;</span><a class="self" href="#229">self</a>.buffer[<a href="#233">i_idx</a>];
+                    <span class="kw">let </span>i_idx = <span class="self">self</span>.i.wrapping_add(<span class="self">self</span>.head) <span class="kw">as </span>usize &amp; MASK;
+                    <span class="kw">let </span>slot = <span class="kw-2">&amp;</span><span class="self">self</span>.buffer[i_idx];
 
                     <span class="comment">// safety: Our CAS from before has assumed exclusive ownership
                     // of the task pointers in this range.
-                    </span><span class="kw">let </span>task = <a href="#234">slot</a>.<a href="../../../loom/std/unsafe_cell.rs.html#9">with</a>(|ptr| <span class="kw">unsafe </span>{ ptr::read((<span class="kw-2">*</span><a href="#238">ptr</a>).as_ptr()) });
+                    </span><span class="kw">let </span>task = slot.with(|ptr| <span class="kw">unsafe </span>{ ptr::read((<span class="kw-2">*</span>ptr).as_ptr()) });
 
-                    <a class="self" href="#229">self</a>.i += <span class="number">1</span>;
-                    <span class="prelude-val">Some</span>(<a href="#238">task</a>)
+                    <span class="self">self</span>.i += <span class="number">1</span>;
+                    <span class="prelude-val">Some</span>(task)
                 }
             }
         }
 
         <span class="comment">// safety: The CAS above ensures that no consumer will look at these
         // values again, and we are the only producer.
-        </span><span class="kw">let </span>batch_iter = <a href="#220">BatchTaskIter</a> {
-            buffer: <span class="kw-2">&amp;*</span><a class="self" href="#166">self</a>.inner.buffer,
-            head: <a href="#168">head</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>,
+        </span><span class="kw">let </span>batch_iter = BatchTaskIter {
+            buffer: <span class="kw-2">&amp;*</span><span class="self">self</span>.inner.buffer,
+            head: head <span class="kw">as </span>UnsignedLong,
             i: <span class="number">0</span>,
         };
-        <a href="#170">inject</a>.<a href="../../task/inject.rs.html#109-111">push_batch</a>(<a href="#248">batch_iter</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">chain</a>(<a href="https://doc.rust-lang.org/nightly/core/iter/sources/once/fn.once.html">std::iter::once</a>(<a href="#167">task</a>)));
+        inject.push_batch(batch_iter.chain(std::iter::once(task)));
 
         <span class="comment">// Add 1 to factor in the task currently being scheduled.
-        </span><a href="#171">metrics</a>.<a href="../../metrics/mock.rs.html#41">incr_overflow_count</a>();
+        </span>metrics.incr_overflow_count();
 
         <span class="prelude-val">Ok</span>(())
     }
 
     <span class="doccomment">/// Pops a task from the local queue.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>pop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;task::Notified&lt;T&gt;&gt; {
-        <span class="kw">let </span><span class="kw-2">mut </span>head = <a class="self" href="#262">self</a>.inner.head.load(Acquire);
+        <span class="kw">let </span><span class="kw-2">mut </span>head = <span class="self">self</span>.inner.head.load(Acquire);
 
         <span class="kw">let </span>idx = <span class="kw">loop </span>{
-            <span class="kw">let </span>(steal, real) = <a href="#496">unpack</a>(<a href="#263">head</a>);
+            <span class="kw">let </span>(steal, real) = unpack(head);
 
             <span class="comment">// safety: this is the **only** thread that updates this cell.
-            </span><span class="kw">let </span>tail = <span class="kw">unsafe </span>{ <a class="self" href="#262">self</a>.inner.tail.<a href="../../../loom/std/atomic_u16.rs.html#25">unsync_load</a>() };
+            </span><span class="kw">let </span>tail = <span class="kw">unsafe </span>{ <span class="self">self</span>.inner.tail.unsync_load() };
 
             <span class="kw">if </span>real == tail {
                 <span class="comment">// queue is empty
                 </span><span class="kw">return </span><span class="prelude-val">None</span>;
             }
 
-            <span class="kw">let </span>next_real = <a href="#266">real</a>.wrapping_add(<span class="number">1</span>);
+            <span class="kw">let </span>next_real = real.wrapping_add(<span class="number">1</span>);
 
             <span class="comment">// If `steal == real` there are no concurrent stealers. Both `steal`
             // and `real` are updated.
             </span><span class="kw">let </span>next = <span class="kw">if </span>steal == real {
-                <a href="#504">pack</a>(<a href="#276">next_real</a>, <a href="#276">next_real</a>)
+                pack(next_real, next_real)
             } <span class="kw">else </span>{
-                <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert_ne.html">assert_ne!</a>(steal, next_real);
-                <a href="#504">pack</a>(<a href="#266">steal</a>, <a href="#276">next_real</a>)
+                <span class="macro">assert_ne!</span>(steal, next_real);
+                pack(steal, next_real)
             };
 
             <span class="comment">// Attempt to claim a task.
-            </span><span class="kw">let </span>res = <span class="self"><a href="#262">self</a>
+            </span><span class="kw">let </span>res = <span class="self">self
                 </span>.inner
                 .head
-                .compare_exchange(<a href="#263">head</a>, <a href="#280">next</a>, AcqRel, Acquire);
+                .compare_exchange(head, next, AcqRel, Acquire);
 
-            <span class="kw">match </span><a href="#288">res</a> {
-                <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; <span class="kw">break </span><a href="#266">real</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> &amp; <a href="#54">MASK</a>,
-                <span class="prelude-val">Err</span>(actual) =&gt; <a href="#263">head</a> = <a href="#295">actual</a>,
+            <span class="kw">match </span>res {
+                <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; <span class="kw">break </span>real <span class="kw">as </span>usize &amp; MASK,
+                <span class="prelude-val">Err</span>(actual) =&gt; head = actual,
             }
         };
 
-        <span class="prelude-val">Some</span>(<a class="self" href="#262">self</a>.inner.buffer[<a href="#265">idx</a>].<a href="../../../loom/std/unsafe_cell.rs.html#9">with</a>(|ptr| <span class="kw">unsafe </span>{ ptr::read(<a href="#299">ptr</a>).assume_init() }))
+        <span class="prelude-val">Some</span>(<span class="self">self</span>.inner.buffer[idx].with(|ptr| <span class="kw">unsafe </span>{ ptr::read(ptr).assume_init() }))
     }
 }
 
 <span class="kw">impl</span>&lt;T&gt; Steal&lt;T&gt; {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>is_empty(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#304">self</a>.<span class="number">0</span>.<a href="#489">is_empty</a>()
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>is_empty(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.<span class="number">0</span>.is_empty()
     }
 
     <span class="doccomment">/// Steals half the tasks from self and place them into `dst`.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>steal_into(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         dst: <span class="kw-2">&amp;mut </span>Local&lt;T&gt;,
-        dst_metrics: <span class="kw-2">&amp;mut </span><a href="../../metrics/mock.rs.html#7">MetricsBatch</a>,
+        dst_metrics: <span class="kw-2">&amp;mut </span>MetricsBatch,
     ) -&gt; <span class="prelude-ty">Option</span>&lt;task::Notified&lt;T&gt;&gt; {
         <span class="comment">// Safety: the caller is the only thread that mutates `dst.tail` and
         // holds a mutable reference.
-        </span><span class="kw">let </span>dst_tail = <span class="kw">unsafe </span>{ <a href="#311">dst</a>.inner.tail.<a href="../../../loom/std/atomic_u16.rs.html#25">unsync_load</a>() };
+        </span><span class="kw">let </span>dst_tail = <span class="kw">unsafe </span>{ dst.inner.tail.unsync_load() };
 
         <span class="comment">// To the caller, `dst` may **look** empty but still have values
         // contained in the buffer. If another thread is concurrently stealing
         // from `dst` there may not be enough capacity to steal.
-        </span><span class="kw">let </span>(steal, <span class="kw">_</span>) = <a href="#496">unpack</a>(<a href="#311">dst</a>.inner.head.load(Acquire));
+        </span><span class="kw">let </span>(steal, <span class="kw">_</span>) = unpack(dst.inner.head.load(Acquire));
 
-        <span class="kw">if </span>dst_tail.wrapping_sub(steal) &gt; LOCAL_QUEUE_CAPACITY <span class="kw">as </span>u16 / <span class="number">2 </span>{
+        <span class="kw">if </span>dst_tail.wrapping_sub(steal) &gt; LOCAL_QUEUE_CAPACITY <span class="kw">as </span>UnsignedShort / <span class="number">2 </span>{
             <span class="comment">// we *could* try to steal less here, but for simplicity, we&#39;re just
             // going to abort.
             </span><span class="kw">return </span><span class="prelude-val">None</span>;
@@ -839,45 +877,45 @@
 
         <span class="comment">// Steal the tasks into `dst`&#39;s buffer. This does not yet expose the
         // tasks in `dst`.
-        </span><span class="kw">let </span><span class="kw-2">mut </span>n = <a class="self" href="#310">self</a>.<a href="#363">steal_into2</a>(<a href="#311">dst</a>, <a href="#316">dst_tail</a>);
+        </span><span class="kw">let </span><span class="kw-2">mut </span>n = <span class="self">self</span>.steal_into2(dst, dst_tail);
 
         <span class="kw">if </span>n == <span class="number">0 </span>{
             <span class="comment">// No tasks were stolen
             </span><span class="kw">return </span><span class="prelude-val">None</span>;
         }
 
-        <a href="#312">dst_metrics</a>.<a href="../../metrics/mock.rs.html#40">incr_steal_count</a>(<a href="#331">n</a>);
+        dst_metrics.incr_steal_count(n <span class="kw">as </span>u16);
 
         <span class="comment">// We are returning a task here
-        </span><a href="#331">n</a> -= <span class="number">1</span>;
+        </span>n -= <span class="number">1</span>;
 
-        <span class="kw">let </span>ret_pos = <a href="#316">dst_tail</a>.wrapping_add(<a href="#331">n</a>);
-        <span class="kw">let </span>ret_idx = <a href="#343">ret_pos</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> &amp; <a href="#54">MASK</a>;
+        <span class="kw">let </span>ret_pos = dst_tail.wrapping_add(n);
+        <span class="kw">let </span>ret_idx = ret_pos <span class="kw">as </span>usize &amp; MASK;
 
         <span class="comment">// safety: the value was written as part of `steal_into2` and not
         // exposed to stealers, so no other thread can access it.
-        </span><span class="kw">let </span>ret = <a href="#311">dst</a>.inner.buffer[<a href="#344">ret_idx</a>].<a href="../../../loom/std/unsafe_cell.rs.html#9">with</a>(|ptr| <span class="kw">unsafe </span>{ ptr::read((<span class="kw-2">*</span><a href="#348">ptr</a>).as_ptr()) });
+        </span><span class="kw">let </span>ret = dst.inner.buffer[ret_idx].with(|ptr| <span class="kw">unsafe </span>{ ptr::read((<span class="kw-2">*</span>ptr).as_ptr()) });
 
         <span class="kw">if </span>n == <span class="number">0 </span>{
             <span class="comment">// The `dst` queue is empty, but a single task was stolen
-            </span><span class="kw">return </span><span class="prelude-val">Some</span>(<a href="#348">ret</a>);
+            </span><span class="kw">return </span><span class="prelude-val">Some</span>(ret);
         }
 
         <span class="comment">// Make the stolen items available to consumers
-        </span><a href="#311">dst</a>.inner.tail.store(<a href="#316">dst_tail</a>.wrapping_add(<a href="#331">n</a>), Release);
+        </span>dst.inner.tail.store(dst_tail.wrapping_add(n), Release);
 
-        <span class="prelude-val">Some</span>(<a href="#348">ret</a>)
+        <span class="prelude-val">Some</span>(ret)
     }
 
     <span class="comment">// Steal tasks from `self`, placing them into `dst`. Returns the number of
     // tasks that were stolen.
-    </span><span class="kw">fn </span>steal_into2(<span class="kw-2">&amp;</span><span class="self">self</span>, dst: <span class="kw-2">&amp;mut </span>Local&lt;T&gt;, dst_tail: <a href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a> {
-        <span class="kw">let </span><span class="kw-2">mut </span>prev_packed = <a class="self" href="#363">self</a>.<span class="number">0</span>.head.load(Acquire);
+    </span><span class="kw">fn </span>steal_into2(<span class="kw-2">&amp;</span><span class="self">self</span>, dst: <span class="kw-2">&amp;mut </span>Local&lt;T&gt;, dst_tail: UnsignedShort) -&gt; UnsignedShort {
+        <span class="kw">let </span><span class="kw-2">mut </span>prev_packed = <span class="self">self</span>.<span class="number">0</span>.head.load(Acquire);
         <span class="kw">let </span><span class="kw-2">mut </span>next_packed;
 
         <span class="kw">let </span>n = <span class="kw">loop </span>{
-            <span class="kw">let </span>(src_head_steal, src_head_real) = <a href="#496">unpack</a>(<a href="#364">prev_packed</a>);
-            <span class="kw">let </span>src_tail = <a class="self" href="#363">self</a>.<span class="number">0</span>.tail.load(Acquire);
+            <span class="kw">let </span>(src_head_steal, src_head_real) = unpack(prev_packed);
+            <span class="kw">let </span>src_tail = <span class="self">self</span>.<span class="number">0</span>.tail.load(Acquire);
 
             <span class="comment">// If these two do not match, another thread is concurrently
             // stealing from the queue.
@@ -886,8 +924,8 @@
             }
 
             <span class="comment">// Number of available tasks to steal
-            </span><span class="kw">let </span>n = <a href="#369">src_tail</a>.wrapping_sub(<a href="#368">src_head_real</a>);
-            <span class="kw">let </span>n = <a href="#378">n</a> - <a href="#378">n</a> / <span class="number">2</span>;
+            </span><span class="kw">let </span>n = src_tail.wrapping_sub(src_head_real);
+            <span class="kw">let </span>n = n - n / <span class="number">2</span>;
 
             <span class="kw">if </span>n == <span class="number">0 </span>{
                 <span class="comment">// No tasks available to steal
@@ -895,27 +933,31 @@
             }
 
             <span class="comment">// Update the real head index to acquire the tasks.
-            </span><span class="kw">let </span>steal_to = <a href="#368">src_head_real</a>.wrapping_add(<a href="#379">n</a>);
-            <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert_ne.html">assert_ne!</a>(src_head_steal, steal_to);
-            <a href="#365">next_packed</a> = <a href="#504">pack</a>(<a href="#368">src_head_steal</a>, <a href="#387">steal_to</a>);
+            </span><span class="kw">let </span>steal_to = src_head_real.wrapping_add(n);
+            <span class="macro">assert_ne!</span>(src_head_steal, steal_to);
+            next_packed = pack(src_head_steal, steal_to);
 
             <span class="comment">// Claim all those tasks. This is done by incrementing the &quot;real&quot;
             // head but not the steal. By doing this, no other thread is able to
             // steal from this queue until the current thread completes.
-            </span><span class="kw">let </span>res = <span class="self"><a href="#363">self</a>
+            </span><span class="kw">let </span>res = <span class="self">self
                 </span>.<span class="number">0
                 </span>.head
-                .compare_exchange(<a href="#364">prev_packed</a>, <a href="#365">next_packed</a>, AcqRel, Acquire);
+                .compare_exchange(prev_packed, next_packed, AcqRel, Acquire);
 
-            <span class="kw">match </span><a href="#394">res</a> {
-                <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; <span class="kw">break </span><a href="#379">n</a>,
-                <span class="prelude-val">Err</span>(actual) =&gt; <a href="#364">prev_packed</a> = <a href="#401">actual</a>,
+            <span class="kw">match </span>res {
+                <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; <span class="kw">break </span>n,
+                <span class="prelude-val">Err</span>(actual) =&gt; prev_packed = actual,
             }
         };
 
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(n &lt;= LOCAL_QUEUE_CAPACITY <span class="kw">as </span>u16 / <span class="number">2</span>, <span class="string">&quot;actual = {}&quot;</span>, n);
+        <span class="macro">assert!</span>(
+            n &lt;= LOCAL_QUEUE_CAPACITY <span class="kw">as </span>UnsignedShort / <span class="number">2</span>,
+            <span class="string">&quot;actual = {}&quot;</span>,
+            n
+        );
 
-        <span class="kw">let </span>(first, <span class="kw">_</span>) = <a href="#496">unpack</a>(<a href="#365">next_packed</a>);
+        <span class="kw">let </span>(first, <span class="kw">_</span>) = unpack(next_packed);
 
         <span class="comment">// Take all the tasks
         </span><span class="kw">for </span>i <span class="kw">in </span><span class="number">0</span>..n {
@@ -940,27 +982,27 @@
                 .with_mut(|ptr| <span class="kw">unsafe </span>{ ptr::write((<span class="kw-2">*</span>ptr).as_mut_ptr(), task) });
         }
 
-        <span class="kw">let </span><span class="kw-2">mut </span>prev_packed = <a href="#365">next_packed</a>;
+        <span class="kw">let </span><span class="kw-2">mut </span>prev_packed = next_packed;
 
         <span class="comment">// Update `src_head_steal` to match `src_head_real` signalling that the
         // stealing routine is complete.
         </span><span class="kw">loop </span>{
-            <span class="kw">let </span>head = <a href="#496">unpack</a>(<a href="#432">prev_packed</a>).<span class="number">1</span>;
-            <a href="#365">next_packed</a> = <a href="#504">pack</a>(<a href="#437">head</a>, <a href="#437">head</a>);
+            <span class="kw">let </span>head = unpack(prev_packed).<span class="number">1</span>;
+            next_packed = pack(head, head);
 
-            <span class="kw">let </span>res = <span class="self"><a href="#363">self</a>
+            <span class="kw">let </span>res = <span class="self">self
                 </span>.<span class="number">0
                 </span>.head
-                .compare_exchange(<a href="#432">prev_packed</a>, <a href="#365">next_packed</a>, AcqRel, Acquire);
+                .compare_exchange(prev_packed, next_packed, AcqRel, Acquire);
 
-            <span class="kw">match </span><a href="#440">res</a> {
-                <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; <span class="kw">return </span><a href="#367">n</a>,
+            <span class="kw">match </span>res {
+                <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; <span class="kw">return </span>n,
                 <span class="prelude-val">Err</span>(actual) =&gt; {
-                    <span class="kw">let </span>(actual_steal, actual_real) = <a href="#496">unpack</a>(<a href="#447">actual</a>);
+                    <span class="kw">let </span>(actual_steal, actual_real) = unpack(actual);
 
-                    <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert_ne.html">assert_ne!</a>(actual_steal, actual_real);
+                    <span class="macro">assert_ne!</span>(actual_steal, actual_real);
 
-                    <a href="#432">prev_packed</a> = <a href="#447">actual</a>;
+                    prev_packed = actual;
                 }
             }
         }
@@ -975,45 +1017,45 @@
     }
 }
 
-<span class="kw">impl</span>&lt;T&gt; <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> <span class="kw">for </span>Steal&lt;T&gt; {
+<span class="kw">impl</span>&lt;T&gt; Clone <span class="kw">for </span>Steal&lt;T&gt; {
     <span class="kw">fn </span>clone(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Steal&lt;T&gt; {
-        <a href="#19">Steal</a>(<a class="self" href="#468">self</a>.<span class="number">0</span>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>())
+        Steal(<span class="self">self</span>.<span class="number">0</span>.clone())
     }
 }
 
-<span class="kw">impl</span>&lt;T&gt; <a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span>Local&lt;T&gt; {
+<span class="kw">impl</span>&lt;T&gt; Drop <span class="kw">for </span>Local&lt;T&gt; {
     <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="kw">if </span>!std::thread::panicking() {
-            <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(<span class="self">self</span>.pop().is_none(), <span class="string">&quot;queue not empty&quot;</span>);
+            <span class="macro">assert!</span>(<span class="self">self</span>.pop().is_none(), <span class="string">&quot;queue not empty&quot;</span>);
         }
     }
 }
 
 <span class="kw">impl</span>&lt;T&gt; Inner&lt;T&gt; {
-    <span class="kw">fn </span>len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a> {
-        <span class="kw">let </span>(<span class="kw">_</span>, head) = <a href="#496">unpack</a>(<a class="self" href="#482">self</a>.head.load(Acquire));
-        <span class="kw">let </span>tail = <a class="self" href="#482">self</a>.tail.load(Acquire);
+    <span class="kw">fn </span>len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; UnsignedShort {
+        <span class="kw">let </span>(<span class="kw">_</span>, head) = unpack(<span class="self">self</span>.head.load(Acquire));
+        <span class="kw">let </span>tail = <span class="self">self</span>.tail.load(Acquire);
 
-        <a href="#484">tail</a>.wrapping_sub(<a href="#483">head</a>)
+        tail.wrapping_sub(head)
     }
 
-    <span class="kw">fn </span>is_empty(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#489">self</a>.<a href="#482">len</a>() == <span class="number">0
+    <span class="kw">fn </span>is_empty(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.len() == <span class="number">0
     </span>}
 }
 
 <span class="doccomment">/// Split the head value into the real head and the index a stealer is working
 /// on.
-</span><span class="kw">fn </span>unpack(n: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; (<a href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>) {
-    <span class="kw">let </span>real = <a href="#496">n</a> &amp; u16::MAX <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>;
-    <span class="kw">let </span>steal = <a href="#496">n</a> &gt;&gt; <span class="number">16</span>;
+</span><span class="kw">fn </span>unpack(n: UnsignedLong) -&gt; (UnsignedShort, UnsignedShort) {
+    <span class="kw">let </span>real = n &amp; UnsignedShort::MAX <span class="kw">as </span>UnsignedLong;
+    <span class="kw">let </span>steal = n &gt;&gt; (mem::size_of::&lt;UnsignedShort&gt;() * <span class="number">8</span>);
 
-    (<a href="#498">steal</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>, <a href="#497">real</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>)
+    (steal <span class="kw">as </span>UnsignedShort, real <span class="kw">as </span>UnsignedShort)
 }
 
 <span class="doccomment">/// Join the two head values
-</span><span class="kw">fn </span>pack(steal: <a href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>, real: <a href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
-    (<a href="#504">real</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) | ((<a href="#504">steal</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) &lt;&lt; <span class="number">16</span>)
+</span><span class="kw">fn </span>pack(steal: UnsignedShort, real: UnsignedShort) -&gt; UnsignedLong {
+    (real <span class="kw">as </span>UnsignedLong) | ((steal <span class="kw">as </span>UnsignedLong) &lt;&lt; (mem::size_of::&lt;UnsignedShort&gt;() * <span class="number">8</span>))
 }
 
 <span class="attr">#[test]
@@ -1021,4 +1063,4 @@
     <span class="macro">assert!</span>(LOCAL_QUEUE_CAPACITY - <span class="number">1 </span>&lt;= u8::MAX <span class="kw">as </span>usize);
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../../" data-static-root-path="../../../../../static.files/" data-current-crate="tokio" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../../../" data-static-root-path="../../../../../static.files/" data-current-crate="tokio" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

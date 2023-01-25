@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/memchr-2.5.0/src/memmem/genericsimd.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>genericsimd.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../memchr/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/memchr-2.5.0/src/memmem/genericsimd.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>genericsimd.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../memchr/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -264,14 +264,14 @@
 <a href="#264" id="264">264</a>
 <a href="#265" id="265">265</a>
 <a href="#266" id="266">266</a>
-</pre><pre class="rust"><code><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/mem/fn.size_of.html">core::mem::size_of</a>;
+</pre><pre class="rust"><code><span class="kw">use </span>core::mem::size_of;
 
-<span class="kw">use </span><span class="kw">crate</span>::memmem::{<a href="util.rs.html#32">util::memcmp</a>, <a href="vector.rs.html#21">vector::Vector</a>, <a href="mod.rs.html#767">NeedleInfo</a>};
+<span class="kw">use </span><span class="kw">crate</span>::memmem::{util::memcmp, vector::Vector, NeedleInfo};
 
 <span class="doccomment">/// The minimum length of a needle required for this algorithm. The minimum
 /// is 2 since a length of 1 should just use memchr and a length of 0 isn&#39;t
 /// a case handled by this searcher.
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>MIN_NEEDLE_LEN: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> = <span class="number">2</span>;
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>MIN_NEEDLE_LEN: usize = <span class="number">2</span>;
 
 <span class="doccomment">/// The maximum length of a needle required for this algorithm.
 ///
@@ -298,7 +298,7 @@
 /// impact of pathological cases. I did try 64, and some benchmarks got a
 /// little better, and others (particularly the pathological ones), got a lot
 /// worse. So... 32 it is?
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>MAX_NEEDLE_LEN: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> = <span class="number">32</span>;
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>MAX_NEEDLE_LEN: usize = <span class="number">32</span>;
 
 <span class="doccomment">/// The implementation of the forward vector accelerated substring search.
 ///
@@ -320,15 +320,15 @@
 /// case for accelerated reverse search, please file an issue.
 </span><span class="attr">#[derive(Clone, Copy, Debug)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>Forward {
-    rare1i: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>,
-    rare2i: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>,
+    rare1i: u8,
+    rare2i: u8,
 }
 
-<span class="kw">impl </span><a href="#56">Forward</a> {
+<span class="kw">impl </span>Forward {
     <span class="doccomment">/// Create a new &quot;generic simd&quot; forward searcher. If one could not be
     /// created from the given inputs, then None is returned.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(ninfo: <span class="kw-2">&amp;</span><a href="mod.rs.html#767">NeedleInfo</a>, needle: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="#56">Forward</a>&gt; {
-        <span class="kw">let </span>(rare1i, rare2i) = <a href="#64">ninfo</a>.rarebytes.<a href="rarebytes.rs.html#108">as_rare_ordered_u8</a>();
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(ninfo: <span class="kw-2">&amp;</span>NeedleInfo, needle: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Option</span>&lt;Forward&gt; {
+        <span class="kw">let </span>(rare1i, rare2i) = ninfo.rarebytes.as_rare_ordered_u8();
         <span class="comment">// If the needle is too short or too long, give up. Also, give up
         // if the rare bytes detected are at the same position. (It likely
         // suggests a degenerate case, although it should technically not be
@@ -339,15 +339,15 @@
         {
             <span class="kw">return </span><span class="prelude-val">None</span>;
         }
-        <span class="prelude-val">Some</span>(<a href="#56">Forward</a> { <a href="#65">rare1i</a>, <a href="#65">rare2i</a> })
+        <span class="prelude-val">Some</span>(Forward { rare1i, rare2i })
     }
 
     <span class="doccomment">/// Returns the minimum length of haystack that is needed for this searcher
     /// to work for a particular vector. Passing a haystack with a length
     /// smaller than this will cause `fwd_find` to panic.
     </span><span class="attr">#[inline(always)]
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>min_haystack_len&lt;V: <a href="vector.rs.html#21">Vector</a>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="self" href="#83">self</a>.rare2i <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> + size_of::&lt;V&gt;()
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>min_haystack_len&lt;V: Vector&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+        <span class="self">self</span>.rare2i <span class="kw">as </span>usize + size_of::&lt;V&gt;()
     }
 }
 
@@ -366,11 +366,11 @@
 /// supports the vector functions that this function is specialized for. (For
 /// the specific vector functions used, see the Vector trait implementations.)
 </span><span class="attr">#[inline(always)]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">unsafe fn </span>fwd_find&lt;V: <a href="vector.rs.html#21">Vector</a>&gt;(
-    fwd: <span class="kw-2">&amp;</span><a href="#56">Forward</a>,
-    haystack: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
-    needle: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
-) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">unsafe fn </span>fwd_find&lt;V: Vector&gt;(
+    fwd: <span class="kw-2">&amp;</span>Forward,
+    haystack: <span class="kw-2">&amp;</span>[u8],
+    needle: <span class="kw-2">&amp;</span>[u8],
+) -&gt; <span class="prelude-ty">Option</span>&lt;usize&gt; {
     <span class="comment">// It would be nice if we didn&#39;t have this check here, since the meta
     // searcher should handle it for us. But without this, I don&#39;t think we
     // guarantee that end_ptr.sub(needle.len()) won&#39;t result in UB. We could
@@ -379,28 +379,28 @@
     </span><span class="kw">if </span>haystack.len() &lt; needle.len() {
         <span class="kw">return </span><span class="prelude-val">None</span>;
     }
-    <span class="kw">let </span>min_haystack_len = <a href="#104">fwd</a>.<a href="#83">min_haystack_len</a>::&lt;V&gt;();
-    <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(haystack.len() &gt;= min_haystack_len, <span class="string">&quot;haystack too small&quot;</span>);
-    <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(needle.len() &lt;= haystack.len());
-    <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(
+    <span class="kw">let </span>min_haystack_len = fwd.min_haystack_len::&lt;V&gt;();
+    <span class="macro">assert!</span>(haystack.len() &gt;= min_haystack_len, <span class="string">&quot;haystack too small&quot;</span>);
+    <span class="macro">debug_assert!</span>(needle.len() &lt;= haystack.len());
+    <span class="macro">debug_assert!</span>(
         needle.len() &gt;= MIN_NEEDLE_LEN,
         <span class="string">&quot;needle must be at least {} bytes&quot;</span>,
         MIN_NEEDLE_LEN,
     );
-    <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(
+    <span class="macro">debug_assert!</span>(
         needle.len() &lt;= MAX_NEEDLE_LEN,
         <span class="string">&quot;needle must be at most {} bytes&quot;</span>,
         MAX_NEEDLE_LEN,
     );
 
-    <span class="kw">let </span>(rare1i, rare2i) = (<a href="#104">fwd</a>.rare1i <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="#104">fwd</a>.rare2i <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>);
-    <span class="kw">let </span>rare1chunk = V::splat(<a href="#106">needle</a>[<a href="#130">rare1i</a>]);
-    <span class="kw">let </span>rare2chunk = V::splat(<a href="#106">needle</a>[<a href="#130">rare2i</a>]);
+    <span class="kw">let </span>(rare1i, rare2i) = (fwd.rare1i <span class="kw">as </span>usize, fwd.rare2i <span class="kw">as </span>usize);
+    <span class="kw">let </span>rare1chunk = V::splat(needle[rare1i]);
+    <span class="kw">let </span>rare2chunk = V::splat(needle[rare2i]);
 
-    <span class="kw">let </span>start_ptr = <a href="#105">haystack</a>.as_ptr();
-    <span class="kw">let </span>end_ptr = <a href="#134">start_ptr</a>.add(<a href="#105">haystack</a>.len());
-    <span class="kw">let </span>max_ptr = <a href="#135">end_ptr</a>.sub(<a href="#116">min_haystack_len</a>);
-    <span class="kw">let </span><span class="kw-2">mut </span>ptr = <a href="#134">start_ptr</a>;
+    <span class="kw">let </span>start_ptr = haystack.as_ptr();
+    <span class="kw">let </span>end_ptr = start_ptr.add(haystack.len());
+    <span class="kw">let </span>max_ptr = end_ptr.sub(min_haystack_len);
+    <span class="kw">let </span><span class="kw-2">mut </span>ptr = start_ptr;
 
     <span class="comment">// N.B. I did experiment with unrolling the loop to deal with size(V)
     // bytes at a time and 2*size(V) bytes at a time. The double unroll was
@@ -417,8 +417,8 @@
         ptr = ptr.add(size_of::&lt;V&gt;());
     }
     <span class="kw">if </span>ptr &lt; end_ptr {
-        <span class="kw">let </span>remaining = <a href="#263">diff</a>(<a href="#135">end_ptr</a>, <a href="#137">ptr</a>);
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(
+        <span class="kw">let </span>remaining = diff(end_ptr, ptr);
+        <span class="macro">debug_assert!</span>(
             remaining &lt; min_haystack_len,
             <span class="string">&quot;remaining bytes should be smaller than the minimum haystack \
              length of {}, but there are {} bytes remaining&quot;</span>,
@@ -428,17 +428,17 @@
         <span class="kw">if </span>remaining &lt; needle.len() {
             <span class="kw">return </span><span class="prelude-val">None</span>;
         }
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(
+        <span class="macro">debug_assert!</span>(
             max_ptr &lt; ptr,
             <span class="string">&quot;after main loop, ptr should have exceeded max_ptr&quot;</span>,
         );
-        <span class="kw">let </span>overlap = <a href="#263">diff</a>(<a href="#137">ptr</a>, <a href="#136">max_ptr</a>);
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(
+        <span class="kw">let </span>overlap = diff(ptr, max_ptr);
+        <span class="macro">debug_assert!</span>(
             overlap &gt; <span class="number">0</span>,
             <span class="string">&quot;overlap ({}) must always be non-zero&quot;</span>,
             overlap,
         );
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(
+        <span class="macro">debug_assert!</span>(
             overlap &lt; size_of::&lt;V&gt;(),
             <span class="string">&quot;overlap ({}) cannot possibly be &gt;= than a vector ({})&quot;</span>,
             overlap,
@@ -448,13 +448,13 @@
         // significant bits, where N=overlap. This way, any matches that
         // occur in find_in_chunk within the overlap are automatically
         // ignored.
-        </span><span class="kw">let </span>mask = !((<span class="number">1 </span>&lt;&lt; <a href="#169">overlap</a>) - <span class="number">1</span>);
-        <a href="#137">ptr</a> = <a href="#136">max_ptr</a>;
-        <span class="kw">let </span>m = <a href="#217-225">fwd_find_in_chunk</a>(
-            <a href="#104">fwd</a>, <a href="#106">needle</a>, <a href="#137">ptr</a>, <a href="#135">end_ptr</a>, <a href="#131">rare1chunk</a>, <a href="#132">rare2chunk</a>, <a href="#185">mask</a>,
+        </span><span class="kw">let </span>mask = !((<span class="number">1 </span>&lt;&lt; overlap) - <span class="number">1</span>);
+        ptr = max_ptr;
+        <span class="kw">let </span>m = fwd_find_in_chunk(
+            fwd, needle, ptr, end_ptr, rare1chunk, rare2chunk, mask,
         );
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(chunki) = <a href="#187">m</a> {
-            <span class="kw">return </span><span class="prelude-val">Some</span>(<a href="#257">matched</a>(<a href="#134">start_ptr</a>, <a href="#137">ptr</a>, <a href="#190">chunki</a>));
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(chunki) = m {
+            <span class="kw">return </span><span class="prelude-val">Some</span>(matched(start_ptr, ptr, chunki));
         }
     }
     <span class="prelude-val">None
@@ -480,22 +480,22 @@
 /// (ptr + rare1i) and (ptr + rare2i). It must also be safe to do unaligned
 /// loads on ptr up to (end_ptr - needle.len()).
 </span><span class="attr">#[inline(always)]
-</span><span class="kw">unsafe fn </span>fwd_find_in_chunk&lt;V: <a href="vector.rs.html#21">Vector</a>&gt;(
-    fwd: <span class="kw-2">&amp;</span><a href="#56">Forward</a>,
-    needle: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
-    ptr: <span class="kw-2">*const </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>,
-    end_ptr: <span class="kw-2">*const </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>,
+</span><span class="kw">unsafe fn </span>fwd_find_in_chunk&lt;V: Vector&gt;(
+    fwd: <span class="kw-2">&amp;</span>Forward,
+    needle: <span class="kw-2">&amp;</span>[u8],
+    ptr: <span class="kw-2">*const </span>u8,
+    end_ptr: <span class="kw-2">*const </span>u8,
     rare1chunk: V,
     rare2chunk: V,
-    mask: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>,
-) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
-    <span class="kw">let </span>chunk0 = V::load_unaligned(<a href="#220">ptr</a>.add(<a href="#218">fwd</a>.rare1i <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>));
-    <span class="kw">let </span>chunk1 = V::load_unaligned(<a href="#220">ptr</a>.add(<a href="#218">fwd</a>.rare2i <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>));
+    mask: u32,
+) -&gt; <span class="prelude-ty">Option</span>&lt;usize&gt; {
+    <span class="kw">let </span>chunk0 = V::load_unaligned(ptr.add(fwd.rare1i <span class="kw">as </span>usize));
+    <span class="kw">let </span>chunk1 = V::load_unaligned(ptr.add(fwd.rare2i <span class="kw">as </span>usize));
 
-    <span class="kw">let </span>eq0 = <a href="#226">chunk0</a>.<a href="vector.rs.html#29">cmpeq</a>(<a href="#222">rare1chunk</a>);
-    <span class="kw">let </span>eq1 = <a href="#227">chunk1</a>.<a href="vector.rs.html#29">cmpeq</a>(<a href="#223">rare2chunk</a>);
+    <span class="kw">let </span>eq0 = chunk0.cmpeq(rare1chunk);
+    <span class="kw">let </span>eq1 = chunk1.cmpeq(rare2chunk);
 
-    <span class="kw">let </span><span class="kw-2">mut </span>match_offsets = <a href="#229">eq0</a>.<a href="vector.rs.html#31">and</a>(<a href="#230">eq1</a>).<a href="vector.rs.html#27">movemask</a>() &amp; <a href="#224">mask</a>;
+    <span class="kw">let </span><span class="kw-2">mut </span>match_offsets = eq0.and(eq1).movemask() &amp; mask;
     <span class="kw">while </span>match_offsets != <span class="number">0 </span>{
         <span class="kw">let </span>offset = match_offsets.trailing_zeros() <span class="kw">as </span>usize;
         <span class="kw">let </span>ptr = ptr.add(offset);
@@ -520,15 +520,15 @@
 /// it does improve some benchmarks, like prebuiltiter/huge-en/common-you.)
 </span><span class="attr">#[cold]
 #[inline(never)]
-</span><span class="kw">fn </span>matched(start_ptr: <span class="kw-2">*const </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>, ptr: <span class="kw-2">*const </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>, chunki: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-    <a href="#263">diff</a>(<a href="#257">ptr</a>, <a href="#257">start_ptr</a>) + <a href="#257">chunki</a>
+</span><span class="kw">fn </span>matched(start_ptr: <span class="kw-2">*const </span>u8, ptr: <span class="kw-2">*const </span>u8, chunki: usize) -&gt; usize {
+    diff(ptr, start_ptr) + chunki
 }
 
 <span class="doccomment">/// Subtract `b` from `a` and return the difference. `a` must be greater than
 /// or equal to `b`.
-</span><span class="kw">fn </span>diff(a: <span class="kw-2">*const </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>, b: <span class="kw-2">*const </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-    <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(a &gt;= b);
-    (<a href="#263">a</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) - (<a href="#263">b</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>)
+</span><span class="kw">fn </span>diff(a: <span class="kw-2">*const </span>u8, b: <span class="kw-2">*const </span>u8) -&gt; usize {
+    <span class="macro">debug_assert!</span>(a &gt;= b);
+    (a <span class="kw">as </span>usize) - (b <span class="kw">as </span>usize)
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="memchr" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="memchr" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

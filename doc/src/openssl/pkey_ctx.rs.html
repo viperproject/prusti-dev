@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/openssl-0.10.42/src/pkey_ctx.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>pkey_ctx.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../openssl/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/openssl-0.10.45/src/pkey_ctx.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>pkey_ctx.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../openssl/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -841,32 +841,32 @@ let cmac_key = ctx.keygen().unwrap();
 //! assert!(valid);
 //! ```
 </span><span class="attr">#[cfg(not(boringssl))]
-</span><span class="kw">use </span><a href="cipher.rs.html#392"><span class="kw">crate</span>::cipher::CipherRef</a>;
-<span class="kw">use </span><a href="error.rs.html#39"><span class="kw">crate</span>::error::ErrorStack</a>;
-<span class="kw">use </span><a href="md.rs.html#203"><span class="kw">crate</span>::md::MdRef</a>;
-<span class="kw">use </span><span class="kw">crate</span>::pkey::{<a href="pkey.rs.html#128">HasPrivate</a>, <a href="pkey.rs.html#121">HasPublic</a>, <a href="pkey.rs.html#77">Id</a>, <a href="pkey.rs.html#132-140">PKey</a>, <a href="pkey.rs.html#132-140">PKeyRef</a>, <a href="pkey.rs.html#73">Private</a>};
-<span class="kw">use </span><a href="rsa.rs.html#46"><span class="kw">crate</span>::rsa::Padding</a>;
-<span class="kw">use crate</span>::{<a href="lib.rs.html#202">cvt</a>, <a href="lib.rs.html#211">cvt_n</a>, <a href="lib.rs.html#193">cvt_p</a>};
-<span class="kw">use </span>foreign_types::{<a href="../../foreign_types_shared/trait.ForeignType.html">ForeignType</a>, <a href="../../foreign_types_shared/trait.ForeignTypeRef.html">ForeignTypeRef</a>};
+</span><span class="kw">use </span><span class="kw">crate</span>::cipher::CipherRef;
+<span class="kw">use </span><span class="kw">crate</span>::error::ErrorStack;
+<span class="kw">use </span><span class="kw">crate</span>::md::MdRef;
+<span class="kw">use </span><span class="kw">crate</span>::pkey::{HasPrivate, HasPublic, Id, PKey, PKeyRef, Private};
+<span class="kw">use </span><span class="kw">crate</span>::rsa::Padding;
+<span class="kw">use crate</span>::{cvt, cvt_n, cvt_p};
+<span class="kw">use </span>foreign_types::{ForeignType, ForeignTypeRef};
 <span class="attr">#[cfg(not(boringssl))]
-</span><span class="kw">use </span><a href="../../libc/unix/type.c_int.html">libc::c_int</a>;
-<span class="kw">use </span><a href="../../openssl_macros/attr.corresponds.html">openssl_macros::corresponds</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/convert/trait.TryFrom.html">std::convert::TryFrom</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/ptr/index.html">std::ptr</a>;
+</span><span class="kw">use </span>libc::c_int;
+<span class="kw">use </span>openssl_macros::corresponds;
+<span class="kw">use </span>std::convert::TryFrom;
+<span class="kw">use </span>std::ptr;
 
 <span class="doccomment">/// HKDF modes of operation.
 </span><span class="attr">#[cfg(ossl111)]
-</span><span class="kw">pub struct </span>HkdfMode(<a href="../../libc/unix/type.c_int.html">c_int</a>);
+</span><span class="kw">pub struct </span>HkdfMode(c_int);
 
 <span class="attr">#[cfg(ossl111)]
-</span><span class="kw">impl </span><a href="#83">HkdfMode</a> {
-    <span class="kw">pub const </span>EXTRACT_THEN_EXPAND: <span class="self">Self </span>= <a href="#83">HkdfMode</a>(ffi::EVP_PKEY_HKDEF_MODE_EXTRACT_AND_EXPAND);
-    <span class="kw">pub const </span>EXTRACT_ONLY: <span class="self">Self </span>= <a href="#83">HkdfMode</a>(ffi::EVP_PKEY_HKDEF_MODE_EXTRACT_ONLY);
-    <span class="kw">pub const </span>EXPAND_ONLY: <span class="self">Self </span>= <a href="#83">HkdfMode</a>(ffi::EVP_PKEY_HKDEF_MODE_EXPAND_ONLY);
+</span><span class="kw">impl </span>HkdfMode {
+    <span class="kw">pub const </span>EXTRACT_THEN_EXPAND: <span class="self">Self </span>= HkdfMode(ffi::EVP_PKEY_HKDEF_MODE_EXTRACT_AND_EXPAND);
+    <span class="kw">pub const </span>EXTRACT_ONLY: <span class="self">Self </span>= HkdfMode(ffi::EVP_PKEY_HKDEF_MODE_EXTRACT_ONLY);
+    <span class="kw">pub const </span>EXPAND_ONLY: <span class="self">Self </span>= HkdfMode(ffi::EVP_PKEY_HKDEF_MODE_EXPAND_ONLY);
 }
 
-<a class="macro" href="macros.rs.html#165-270">generic_foreign_type_and_impl_send_sync! </a>{
-    <span class="kw">type </span>CType = <a href="../../openssl_sys/openssl/handwritten/types/enum.EVP_PKEY_CTX.html">ffi::EVP_PKEY_CTX</a>;
+<span class="macro">generic_foreign_type_and_impl_send_sync! </span>{
+    <span class="kw">type </span>CType = ffi::EVP_PKEY_CTX;
     <span class="kw">fn </span>drop = ffi::EVP_PKEY_CTX_free;
 
     <span class="doccomment">/// A context object which can perform asymmetric cryptography operations.
@@ -879,10 +879,10 @@ let cmac_key = ctx.keygen().unwrap();
     <span class="doccomment">/// Creates a new pkey context using the provided key.
     </span><span class="attr">#[corresponds(EVP_PKEY_CTX_new)]
     #[inline]
-    </span><span class="kw">pub fn </span>new(pkey: <span class="kw-2">&amp;</span>PKeyRef&lt;T&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, <a href="error.rs.html#39">ErrorStack</a>&gt; {
+    </span><span class="kw">pub fn </span>new(pkey: <span class="kw-2">&amp;</span>PKeyRef&lt;T&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, ErrorStack&gt; {
         <span class="kw">unsafe </span>{
             <span class="kw">let </span>ptr = cvt_p(ffi::EVP_PKEY_CTX_new(pkey.as_ptr(), ptr::null_mut()))<span class="question-mark">?</span>;
-            <span class="prelude-val">Ok</span>(PkeyCtx::from_ptr(<a href="#108">ptr</a>))
+            <span class="prelude-val">Ok</span>(PkeyCtx::from_ptr(ptr))
         }
     }
 }
@@ -891,22 +891,22 @@ let cmac_key = ctx.keygen().unwrap();
     <span class="doccomment">/// Creates a new pkey context for the specified algorithm ID.
     </span><span class="attr">#[corresponds(EVP_PKEY_new_id)]
     #[inline]
-    </span><span class="kw">pub fn </span>new_id(id: <a href="pkey.rs.html#77">Id</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, <a href="error.rs.html#39">ErrorStack</a>&gt; {
+    </span><span class="kw">pub fn </span>new_id(id: Id) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, ErrorStack&gt; {
         <span class="kw">unsafe </span>{
             <span class="kw">let </span>ptr = cvt_p(ffi::EVP_PKEY_CTX_new_id(id.as_raw(), ptr::null_mut()))<span class="question-mark">?</span>;
-            <span class="prelude-val">Ok</span>(PkeyCtx::from_ptr(<a href="#120">ptr</a>))
+            <span class="prelude-val">Ok</span>(PkeyCtx::from_ptr(ptr))
         }
     }
 }
 
 <span class="kw">impl</span>&lt;T&gt; PkeyCtxRef&lt;T&gt;
 <span class="kw">where
-    </span>T: <a href="pkey.rs.html#121">HasPublic</a>,
+    </span>T: HasPublic,
 {
     <span class="doccomment">/// Prepares the context for encryption using the public key.
     </span><span class="attr">#[corresponds(EVP_PKEY_encrypt_init)]
     #[inline]
-    </span><span class="kw">pub fn </span>encrypt_init(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#39">ErrorStack</a>&gt; {
+    </span><span class="kw">pub fn </span>encrypt_init(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), ErrorStack&gt; {
         <span class="kw">unsafe </span>{
             cvt(ffi::EVP_PKEY_encrypt_init(<span class="self">self</span>.as_ptr()))<span class="question-mark">?</span>;
         }
@@ -917,7 +917,7 @@ let cmac_key = ctx.keygen().unwrap();
     <span class="doccomment">/// Prepares the context for signature verification using the public key.
     </span><span class="attr">#[corresponds(EVP_PKEY_verify_init)]
     #[inline]
-    </span><span class="kw">pub fn </span>verify_init(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#39">ErrorStack</a>&gt; {
+    </span><span class="kw">pub fn </span>verify_init(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), ErrorStack&gt; {
         <span class="kw">unsafe </span>{
             cvt(ffi::EVP_PKEY_verify_init(<span class="self">self</span>.as_ptr()))<span class="question-mark">?</span>;
         }
@@ -931,8 +931,8 @@ let cmac_key = ctx.keygen().unwrap();
     /// returned.
     </span><span class="attr">#[corresponds(EVP_PKEY_encrypt)]
     #[inline]
-    </span><span class="kw">pub fn </span>encrypt(<span class="kw-2">&amp;mut </span><span class="self">self</span>, from: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], to: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="error.rs.html#39">ErrorStack</a>&gt; {
-        <span class="kw">let </span><span class="kw-2">mut </span>written = <a href="#158">to</a>.as_ref().map_or(<span class="number">0</span>, |b| <a href="#159">b</a>.len());
+    </span><span class="kw">pub fn </span>encrypt(<span class="kw-2">&amp;mut </span><span class="self">self</span>, from: <span class="kw-2">&amp;</span>[u8], to: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;mut </span>[u8]&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;usize, ErrorStack&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>written = to.as_ref().map_or(<span class="number">0</span>, |b| b.len());
         <span class="kw">unsafe </span>{
             cvt(ffi::EVP_PKEY_encrypt(
                 <span class="self">self</span>.as_ptr(),
@@ -943,17 +943,17 @@ let cmac_key = ctx.keygen().unwrap();
             ))<span class="question-mark">?</span>;
         }
 
-        <span class="prelude-val">Ok</span>(<a href="#159">written</a>)
+        <span class="prelude-val">Ok</span>(written)
     }
 
     <span class="doccomment">/// Like [`Self::encrypt`] but appends ciphertext to a [`Vec`].
-    </span><span class="kw">pub fn </span>encrypt_to_vec(<span class="kw-2">&amp;mut </span><span class="self">self</span>, from: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], out: <span class="kw-2">&amp;mut </span>Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="error.rs.html#39">ErrorStack</a>&gt; {
-        <span class="kw">let </span>base = <a href="#174">out</a>.len();
+    </span><span class="kw">pub fn </span>encrypt_to_vec(<span class="kw-2">&amp;mut </span><span class="self">self</span>, from: <span class="kw-2">&amp;</span>[u8], out: <span class="kw-2">&amp;mut </span>Vec&lt;u8&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;usize, ErrorStack&gt; {
+        <span class="kw">let </span>base = out.len();
         <span class="kw">let </span>len = <span class="self">self</span>.encrypt(from, <span class="prelude-val">None</span>)<span class="question-mark">?</span>;
-        <a href="#174">out</a>.resize(<a href="#175">base</a> + <a href="#176">len</a>, <span class="number">0</span>);
+        out.resize(base + len, <span class="number">0</span>);
         <span class="kw">let </span>len = <span class="self">self</span>.encrypt(from, <span class="prelude-val">Some</span>(<span class="kw-2">&amp;mut </span>out[base..]))<span class="question-mark">?</span>;
-        <a href="#174">out</a>.truncate(<a href="#175">base</a> + <a href="#178">len</a>);
-        <span class="prelude-val">Ok</span>(<a href="#178">len</a>)
+        out.truncate(base + len);
+        <span class="prelude-val">Ok</span>(len)
     }
 
     <span class="doccomment">/// Verifies the signature of data using the public key.
@@ -968,7 +968,7 @@ let cmac_key = ctx.keygen().unwrap();
     /// that.
     </span><span class="attr">#[corresponds(EVP_PKEY_verify)]
     #[inline]
-    </span><span class="kw">pub fn </span>verify(<span class="kw-2">&amp;mut </span><span class="self">self</span>, data: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], sig: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>, <a href="error.rs.html#39">ErrorStack</a>&gt; {
+    </span><span class="kw">pub fn </span>verify(<span class="kw-2">&amp;mut </span><span class="self">self</span>, data: <span class="kw-2">&amp;</span>[u8], sig: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;bool, ErrorStack&gt; {
         <span class="kw">unsafe </span>{
             <span class="kw">let </span>r = cvt_n(ffi::EVP_PKEY_verify(
                 <span class="self">self</span>.as_ptr(),
@@ -977,19 +977,19 @@ let cmac_key = ctx.keygen().unwrap();
                 data.as_ptr(),
                 data.len(),
             ))<span class="question-mark">?</span>;
-            <span class="prelude-val">Ok</span>(<a href="#197">r</a> == <span class="number">1</span>)
+            <span class="prelude-val">Ok</span>(r == <span class="number">1</span>)
         }
     }
 }
 
 <span class="kw">impl</span>&lt;T&gt; PkeyCtxRef&lt;T&gt;
 <span class="kw">where
-    </span>T: <a href="pkey.rs.html#128">HasPrivate</a>,
+    </span>T: HasPrivate,
 {
     <span class="doccomment">/// Prepares the context for decryption using the private key.
     </span><span class="attr">#[corresponds(EVP_PKEY_decrypt_init)]
     #[inline]
-    </span><span class="kw">pub fn </span>decrypt_init(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#39">ErrorStack</a>&gt; {
+    </span><span class="kw">pub fn </span>decrypt_init(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), ErrorStack&gt; {
         <span class="kw">unsafe </span>{
             cvt(ffi::EVP_PKEY_decrypt_init(<span class="self">self</span>.as_ptr()))<span class="question-mark">?</span>;
         }
@@ -1000,7 +1000,7 @@ let cmac_key = ctx.keygen().unwrap();
     <span class="doccomment">/// Prepares the context for signing using the private key.
     </span><span class="attr">#[corresponds(EVP_PKEY_sign_init)]
     #[inline]
-    </span><span class="kw">pub fn </span>sign_init(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#39">ErrorStack</a>&gt; {
+    </span><span class="kw">pub fn </span>sign_init(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), ErrorStack&gt; {
         <span class="kw">unsafe </span>{
             cvt(ffi::EVP_PKEY_sign_init(<span class="self">self</span>.as_ptr()))<span class="question-mark">?</span>;
         }
@@ -1010,9 +1010,9 @@ let cmac_key = ctx.keygen().unwrap();
 
     <span class="doccomment">/// Sets the peer key used for secret derivation.
     </span><span class="attr">#[corresponds(EVP_PKEY_derive_set_peer)]
-    </span><span class="kw">pub fn </span>derive_set_peer&lt;U&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, key: <span class="kw-2">&amp;</span>PKeyRef&lt;U&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#39">ErrorStack</a>&gt;
+    </span><span class="kw">pub fn </span>derive_set_peer&lt;U&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, key: <span class="kw-2">&amp;</span>PKeyRef&lt;U&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;(), ErrorStack&gt;
     <span class="kw">where
-        </span>U: <a href="pkey.rs.html#121">HasPublic</a>,
+        </span>U: HasPublic,
     {
         <span class="kw">unsafe </span>{
             cvt(ffi::EVP_PKEY_derive_set_peer(<span class="self">self</span>.as_ptr(), key.as_ptr()))<span class="question-mark">?</span>;
@@ -1027,8 +1027,8 @@ let cmac_key = ctx.keygen().unwrap();
     /// returned.
     </span><span class="attr">#[corresponds(EVP_PKEY_decrypt)]
     #[inline]
-    </span><span class="kw">pub fn </span>decrypt(<span class="kw-2">&amp;mut </span><span class="self">self</span>, from: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], to: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="error.rs.html#39">ErrorStack</a>&gt; {
-        <span class="kw">let </span><span class="kw-2">mut </span>written = <a href="#254">to</a>.as_ref().map_or(<span class="number">0</span>, |b| <a href="#255">b</a>.len());
+    </span><span class="kw">pub fn </span>decrypt(<span class="kw-2">&amp;mut </span><span class="self">self</span>, from: <span class="kw-2">&amp;</span>[u8], to: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;mut </span>[u8]&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;usize, ErrorStack&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>written = to.as_ref().map_or(<span class="number">0</span>, |b| b.len());
         <span class="kw">unsafe </span>{
             cvt(ffi::EVP_PKEY_decrypt(
                 <span class="self">self</span>.as_ptr(),
@@ -1039,17 +1039,17 @@ let cmac_key = ctx.keygen().unwrap();
             ))<span class="question-mark">?</span>;
         }
 
-        <span class="prelude-val">Ok</span>(<a href="#255">written</a>)
+        <span class="prelude-val">Ok</span>(written)
     }
 
     <span class="doccomment">/// Like [`Self::decrypt`] but appends plaintext to a [`Vec`].
-    </span><span class="kw">pub fn </span>decrypt_to_vec(<span class="kw-2">&amp;mut </span><span class="self">self</span>, from: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], out: <span class="kw-2">&amp;mut </span>Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="error.rs.html#39">ErrorStack</a>&gt; {
-        <span class="kw">let </span>base = <a href="#270">out</a>.len();
+    </span><span class="kw">pub fn </span>decrypt_to_vec(<span class="kw-2">&amp;mut </span><span class="self">self</span>, from: <span class="kw-2">&amp;</span>[u8], out: <span class="kw-2">&amp;mut </span>Vec&lt;u8&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;usize, ErrorStack&gt; {
+        <span class="kw">let </span>base = out.len();
         <span class="kw">let </span>len = <span class="self">self</span>.decrypt(from, <span class="prelude-val">None</span>)<span class="question-mark">?</span>;
-        <a href="#270">out</a>.resize(<a href="#271">base</a> + <a href="#272">len</a>, <span class="number">0</span>);
+        out.resize(base + len, <span class="number">0</span>);
         <span class="kw">let </span>len = <span class="self">self</span>.decrypt(from, <span class="prelude-val">Some</span>(<span class="kw-2">&amp;mut </span>out[base..]))<span class="question-mark">?</span>;
-        <a href="#270">out</a>.truncate(<a href="#271">base</a> + <a href="#274">len</a>);
-        <span class="prelude-val">Ok</span>(<a href="#274">len</a>)
+        out.truncate(base + len);
+        <span class="prelude-val">Ok</span>(len)
     }
 
     <span class="doccomment">/// Signs the contents of `data`.
@@ -1063,8 +1063,8 @@ let cmac_key = ctx.keygen().unwrap();
     /// an arbitrary amount of data. The [`MdCtx`](crate::md_ctx::MdCtx) type can be used to do that.
     </span><span class="attr">#[corresponds(EVP_PKEY_sign)]
     #[inline]
-    </span><span class="kw">pub fn </span>sign(<span class="kw-2">&amp;mut </span><span class="self">self</span>, data: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], sig: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="error.rs.html#39">ErrorStack</a>&gt; {
-        <span class="kw">let </span><span class="kw-2">mut </span>written = <a href="#290">sig</a>.as_ref().map_or(<span class="number">0</span>, |b| <a href="#291">b</a>.len());
+    </span><span class="kw">pub fn </span>sign(<span class="kw-2">&amp;mut </span><span class="self">self</span>, data: <span class="kw-2">&amp;</span>[u8], sig: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;mut </span>[u8]&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;usize, ErrorStack&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>written = sig.as_ref().map_or(<span class="number">0</span>, |b| b.len());
         <span class="kw">unsafe </span>{
             cvt(ffi::EVP_PKEY_sign(
                 <span class="self">self</span>.as_ptr(),
@@ -1075,17 +1075,17 @@ let cmac_key = ctx.keygen().unwrap();
             ))<span class="question-mark">?</span>;
         }
 
-        <span class="prelude-val">Ok</span>(<a href="#291">written</a>)
+        <span class="prelude-val">Ok</span>(written)
     }
 
     <span class="doccomment">/// Like [`Self::sign`] but appends the signature to a [`Vec`].
-    </span><span class="kw">pub fn </span>sign_to_vec(<span class="kw-2">&amp;mut </span><span class="self">self</span>, data: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], sig: <span class="kw-2">&amp;mut </span>Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="error.rs.html#39">ErrorStack</a>&gt; {
-        <span class="kw">let </span>base = <a href="#306">sig</a>.len();
+    </span><span class="kw">pub fn </span>sign_to_vec(<span class="kw-2">&amp;mut </span><span class="self">self</span>, data: <span class="kw-2">&amp;</span>[u8], sig: <span class="kw-2">&amp;mut </span>Vec&lt;u8&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;usize, ErrorStack&gt; {
+        <span class="kw">let </span>base = sig.len();
         <span class="kw">let </span>len = <span class="self">self</span>.sign(data, <span class="prelude-val">None</span>)<span class="question-mark">?</span>;
-        <a href="#306">sig</a>.resize(<a href="#307">base</a> + <a href="#308">len</a>, <span class="number">0</span>);
+        sig.resize(base + len, <span class="number">0</span>);
         <span class="kw">let </span>len = <span class="self">self</span>.sign(data, <span class="prelude-val">Some</span>(<span class="kw-2">&amp;mut </span>sig[base..]))<span class="question-mark">?</span>;
-        <a href="#306">sig</a>.truncate(<a href="#307">base</a> + <a href="#310">len</a>);
-        <span class="prelude-val">Ok</span>(<a href="#310">len</a>)
+        sig.truncate(base + len);
+        <span class="prelude-val">Ok</span>(len)
     }
 }
 
@@ -1093,7 +1093,7 @@ let cmac_key = ctx.keygen().unwrap();
     <span class="doccomment">/// Prepares the context for shared secret derivation.
     </span><span class="attr">#[corresponds(EVP_PKEY_derive_init)]
     #[inline]
-    </span><span class="kw">pub fn </span>derive_init(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#39">ErrorStack</a>&gt; {
+    </span><span class="kw">pub fn </span>derive_init(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), ErrorStack&gt; {
         <span class="kw">unsafe </span>{
             cvt(ffi::EVP_PKEY_derive_init(<span class="self">self</span>.as_ptr()))<span class="question-mark">?</span>;
         }
@@ -1104,7 +1104,7 @@ let cmac_key = ctx.keygen().unwrap();
     <span class="doccomment">/// Prepares the context for key generation.
     </span><span class="attr">#[corresponds(EVP_PKEY_keygen_init)]
     #[inline]
-    </span><span class="kw">pub fn </span>keygen_init(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#39">ErrorStack</a>&gt; {
+    </span><span class="kw">pub fn </span>keygen_init(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), ErrorStack&gt; {
         <span class="kw">unsafe </span>{
             cvt(ffi::EVP_PKEY_keygen_init(<span class="self">self</span>.as_ptr()))<span class="question-mark">?</span>;
         }
@@ -1117,13 +1117,13 @@ let cmac_key = ctx.keygen().unwrap();
     /// This is only useful for RSA keys.
     </span><span class="attr">#[corresponds(EVP_PKEY_CTX_get_rsa_padding)]
     #[inline]
-    </span><span class="kw">pub fn </span>rsa_padding(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="rsa.rs.html#46">Padding</a>, <a href="error.rs.html#39">ErrorStack</a>&gt; {
+    </span><span class="kw">pub fn </span>rsa_padding(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;Padding, ErrorStack&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>pad = <span class="number">0</span>;
         <span class="kw">unsafe </span>{
             cvt(ffi::EVP_PKEY_CTX_get_rsa_padding(<span class="self">self</span>.as_ptr(), <span class="kw-2">&amp;mut </span>pad))<span class="question-mark">?</span>;
         }
 
-        <span class="prelude-val">Ok</span>(Padding::from_raw(<a href="#345">pad</a>))
+        <span class="prelude-val">Ok</span>(Padding::from_raw(pad))
     }
 
     <span class="doccomment">/// Sets the RSA padding mode.
@@ -1131,7 +1131,7 @@ let cmac_key = ctx.keygen().unwrap();
     /// This is only useful for RSA keys.
     </span><span class="attr">#[corresponds(EVP_PKEY_CTX_set_rsa_padding)]
     #[inline]
-    </span><span class="kw">pub fn </span>set_rsa_padding(<span class="kw-2">&amp;mut </span><span class="self">self</span>, padding: <a href="rsa.rs.html#46">Padding</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#39">ErrorStack</a>&gt; {
+    </span><span class="kw">pub fn </span>set_rsa_padding(<span class="kw-2">&amp;mut </span><span class="self">self</span>, padding: Padding) -&gt; <span class="prelude-ty">Result</span>&lt;(), ErrorStack&gt; {
         <span class="kw">unsafe </span>{
             cvt(ffi::EVP_PKEY_CTX_set_rsa_padding(
                 <span class="self">self</span>.as_ptr(),
@@ -1147,7 +1147,7 @@ let cmac_key = ctx.keygen().unwrap();
     /// This is only useful for RSA keys.
     </span><span class="attr">#[corresponds(EVP_PKEY_CTX_set_rsa_mgf1_md)]
     #[inline]
-    </span><span class="kw">pub fn </span>set_rsa_mgf1_md(<span class="kw-2">&amp;mut </span><span class="self">self</span>, md: <span class="kw-2">&amp;</span><a href="md.rs.html#203">MdRef</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#39">ErrorStack</a>&gt; {
+    </span><span class="kw">pub fn </span>set_rsa_mgf1_md(<span class="kw-2">&amp;mut </span><span class="self">self</span>, md: <span class="kw-2">&amp;</span>MdRef) -&gt; <span class="prelude-ty">Result</span>&lt;(), ErrorStack&gt; {
         <span class="kw">unsafe </span>{
             cvt(ffi::EVP_PKEY_CTX_set_rsa_mgf1_md(
                 <span class="self">self</span>.as_ptr(),
@@ -1164,7 +1164,7 @@ let cmac_key = ctx.keygen().unwrap();
     </span><span class="attr">#[corresponds(EVP_PKEY_CTX_set_rsa_oaep_md)]
     #[cfg(any(ossl102, libressl310))]
     #[inline]
-    </span><span class="kw">pub fn </span>set_rsa_oaep_md(<span class="kw-2">&amp;mut </span><span class="self">self</span>, md: <span class="kw-2">&amp;</span><a href="md.rs.html#203">MdRef</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#39">ErrorStack</a>&gt; {
+    </span><span class="kw">pub fn </span>set_rsa_oaep_md(<span class="kw-2">&amp;mut </span><span class="self">self</span>, md: <span class="kw-2">&amp;</span>MdRef) -&gt; <span class="prelude-ty">Result</span>&lt;(), ErrorStack&gt; {
         <span class="kw">unsafe </span>{
             cvt(ffi::EVP_PKEY_CTX_set_rsa_oaep_md(
                 <span class="self">self</span>.as_ptr(),
@@ -1180,21 +1180,21 @@ let cmac_key = ctx.keygen().unwrap();
     /// This is only useful for RSA keys.
     </span><span class="attr">#[corresponds(EVP_PKEY_CTX_set0_rsa_oaep_label)]
     #[cfg(any(ossl102, libressl310, boringssl))]
-    </span><span class="kw">pub fn </span>set_rsa_oaep_label(<span class="kw-2">&amp;mut </span><span class="self">self</span>, label: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#39">ErrorStack</a>&gt; {
-        <span class="kw">use </span><a href="lib.rs.html#190"><span class="kw">crate</span>::LenType</a>;
-        <span class="kw">let </span>len = LenType::try_from(<a href="#407">label</a>.len()).unwrap();
+    </span><span class="kw">pub fn </span>set_rsa_oaep_label(<span class="kw-2">&amp;mut </span><span class="self">self</span>, label: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;(), ErrorStack&gt; {
+        <span class="kw">use </span><span class="kw">crate</span>::LenType;
+        <span class="kw">let </span>len = LenType::try_from(label.len()).unwrap();
 
         <span class="kw">unsafe </span>{
-            <span class="kw">let </span>p = ffi::OPENSSL_malloc(<a href="#407">label</a>.len() <span class="kw">as _</span>);
-            ptr::copy_nonoverlapping(<a href="#407">label</a>.as_ptr(), <a href="#412">p</a> <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>, <a href="#407">label</a>.len());
+            <span class="kw">let </span>p = ffi::OPENSSL_malloc(label.len() <span class="kw">as _</span>);
+            ptr::copy_nonoverlapping(label.as_ptr(), p <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>, label.len());
 
-            <span class="kw">let </span>r = <a href="lib.rs.html#202">cvt</a>(ffi::EVP_PKEY_CTX_set0_rsa_oaep_label(
-                <a class="self" href="#407">self</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
-                <a href="#412">p</a> <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>,
-                <a href="#409">len</a>,
+            <span class="kw">let </span>r = cvt(ffi::EVP_PKEY_CTX_set0_rsa_oaep_label(
+                <span class="self">self</span>.as_ptr(),
+                p <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>,
+                len,
             ));
             <span class="kw">if </span>r.is_err() {
-                ffi::OPENSSL_free(<a href="#412">p</a>);
+                ffi::OPENSSL_free(p);
             }
             r<span class="question-mark">?</span>;
         }
@@ -1206,7 +1206,7 @@ let cmac_key = ctx.keygen().unwrap();
     </span><span class="attr">#[cfg(not(boringssl))]
     #[corresponds(EVP_PKEY_CTX_ctrl)]
     #[inline]
-    </span><span class="kw">pub fn </span>set_keygen_cipher(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cipher: <span class="kw-2">&amp;</span><a href="cipher.rs.html#392">CipherRef</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#39">ErrorStack</a>&gt; {
+    </span><span class="kw">pub fn </span>set_keygen_cipher(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cipher: <span class="kw-2">&amp;</span>CipherRef) -&gt; <span class="prelude-ty">Result</span>&lt;(), ErrorStack&gt; {
         <span class="kw">unsafe </span>{
             cvt(ffi::EVP_PKEY_CTX_ctrl(
                 <span class="self">self</span>.as_ptr(),
@@ -1225,8 +1225,8 @@ let cmac_key = ctx.keygen().unwrap();
     </span><span class="attr">#[cfg(not(boringssl))]
     #[corresponds(EVP_PKEY_CTX_ctrl)]
     #[inline]
-    </span><span class="kw">pub fn </span>set_keygen_mac_key(<span class="kw-2">&amp;mut </span><span class="self">self</span>, key: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#39">ErrorStack</a>&gt; {
-        <span class="kw">let </span>len = c_int::try_from(<a href="#452">key</a>.len()).unwrap();
+    </span><span class="kw">pub fn </span>set_keygen_mac_key(<span class="kw-2">&amp;mut </span><span class="self">self</span>, key: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;(), ErrorStack&gt; {
+        <span class="kw">let </span>len = c_int::try_from(key.len()).unwrap();
 
         <span class="kw">unsafe </span>{
             cvt(ffi::EVP_PKEY_CTX_ctrl(
@@ -1248,7 +1248,7 @@ let cmac_key = ctx.keygen().unwrap();
     </span><span class="attr">#[corresponds(EVP_PKEY_CTX_set_hkdf_md)]
     #[cfg(ossl110)]
     #[inline]
-    </span><span class="kw">pub fn </span>set_hkdf_md(<span class="kw-2">&amp;mut </span><span class="self">self</span>, digest: <span class="kw-2">&amp;</span><a href="md.rs.html#203">MdRef</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#39">ErrorStack</a>&gt; {
+    </span><span class="kw">pub fn </span>set_hkdf_md(<span class="kw-2">&amp;mut </span><span class="self">self</span>, digest: <span class="kw-2">&amp;</span>MdRef) -&gt; <span class="prelude-ty">Result</span>&lt;(), ErrorStack&gt; {
         <span class="kw">unsafe </span>{
             cvt(ffi::EVP_PKEY_CTX_set_hkdf_md(
                 <span class="self">self</span>.as_ptr(),
@@ -1267,7 +1267,7 @@ let cmac_key = ctx.keygen().unwrap();
     </span><span class="attr">#[corresponds(EVP_PKEY_CTX_set_hkdf_mode)]
     #[cfg(ossl111)]
     #[inline]
-    </span><span class="kw">pub fn </span>set_hkdf_mode(<span class="kw-2">&amp;mut </span><span class="self">self</span>, mode: <a href="#83">HkdfMode</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#39">ErrorStack</a>&gt; {
+    </span><span class="kw">pub fn </span>set_hkdf_mode(<span class="kw-2">&amp;mut </span><span class="self">self</span>, mode: HkdfMode) -&gt; <span class="prelude-ty">Result</span>&lt;(), ErrorStack&gt; {
         <span class="kw">unsafe </span>{
             cvt(ffi::EVP_PKEY_CTX_set_hkdf_mode(<span class="self">self</span>.as_ptr(), mode.<span class="number">0</span>))<span class="question-mark">?</span>;
         }
@@ -1281,8 +1281,8 @@ let cmac_key = ctx.keygen().unwrap();
     </span><span class="attr">#[corresponds(EVP_PKEY_CTX_set1_hkdf_key)]
     #[cfg(ossl110)]
     #[inline]
-    </span><span class="kw">pub fn </span>set_hkdf_key(<span class="kw-2">&amp;mut </span><span class="self">self</span>, key: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#39">ErrorStack</a>&gt; {
-        <span class="kw">let </span>len = c_int::try_from(<a href="#508">key</a>.len()).unwrap();
+    </span><span class="kw">pub fn </span>set_hkdf_key(<span class="kw-2">&amp;mut </span><span class="self">self</span>, key: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;(), ErrorStack&gt; {
+        <span class="kw">let </span>len = c_int::try_from(key.len()).unwrap();
 
         <span class="kw">unsafe </span>{
             cvt(ffi::EVP_PKEY_CTX_set1_hkdf_key(
@@ -1301,8 +1301,8 @@ let cmac_key = ctx.keygen().unwrap();
     </span><span class="attr">#[corresponds(EVP_PKEY_CTX_set1_hkdf_salt)]
     #[cfg(ossl110)]
     #[inline]
-    </span><span class="kw">pub fn </span>set_hkdf_salt(<span class="kw-2">&amp;mut </span><span class="self">self</span>, salt: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#39">ErrorStack</a>&gt; {
-        <span class="kw">let </span>len = c_int::try_from(<a href="#528">salt</a>.len()).unwrap();
+    </span><span class="kw">pub fn </span>set_hkdf_salt(<span class="kw-2">&amp;mut </span><span class="self">self</span>, salt: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;(), ErrorStack&gt; {
+        <span class="kw">let </span>len = c_int::try_from(salt.len()).unwrap();
 
         <span class="kw">unsafe </span>{
             cvt(ffi::EVP_PKEY_CTX_set1_hkdf_salt(
@@ -1321,8 +1321,8 @@ let cmac_key = ctx.keygen().unwrap();
     </span><span class="attr">#[corresponds(EVP_PKEY_CTX_add1_hkdf_info)]
     #[cfg(ossl110)]
     #[inline]
-    </span><span class="kw">pub fn </span>add_hkdf_info(<span class="kw-2">&amp;mut </span><span class="self">self</span>, info: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#39">ErrorStack</a>&gt; {
-        <span class="kw">let </span>len = c_int::try_from(<a href="#548">info</a>.len()).unwrap();
+    </span><span class="kw">pub fn </span>add_hkdf_info(<span class="kw-2">&amp;mut </span><span class="self">self</span>, info: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;(), ErrorStack&gt; {
+        <span class="kw">let </span>len = c_int::try_from(info.len()).unwrap();
 
         <span class="kw">unsafe </span>{
             cvt(ffi::EVP_PKEY_CTX_add1_hkdf_info(
@@ -1339,8 +1339,8 @@ let cmac_key = ctx.keygen().unwrap();
     ///
     /// If `buf` is set to `None`, an upper bound on the number of bytes required for the buffer will be returned.
     </span><span class="attr">#[corresponds(EVP_PKEY_derive)]
-    </span><span class="kw">pub fn </span>derive(<span class="kw-2">&amp;mut </span><span class="self">self</span>, buf: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="error.rs.html#39">ErrorStack</a>&gt; {
-        <span class="kw">let </span><span class="kw-2">mut </span>len = <a href="#566">buf</a>.as_ref().map_or(<span class="number">0</span>, |b| <a href="#567">b</a>.len());
+    </span><span class="kw">pub fn </span>derive(<span class="kw-2">&amp;mut </span><span class="self">self</span>, buf: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;mut </span>[u8]&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;usize, ErrorStack&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>len = buf.as_ref().map_or(<span class="number">0</span>, |b| b.len());
         <span class="kw">unsafe </span>{
             cvt(ffi::EVP_PKEY_derive(
                 <span class="self">self</span>.as_ptr(),
@@ -1349,27 +1349,27 @@ let cmac_key = ctx.keygen().unwrap();
             ))<span class="question-mark">?</span>;
         }
 
-        <span class="prelude-val">Ok</span>(<a href="#567">len</a>)
+        <span class="prelude-val">Ok</span>(len)
     }
 
     <span class="doccomment">/// Like [`Self::derive`] but appends the secret to a [`Vec`].
-    </span><span class="kw">pub fn </span>derive_to_vec(<span class="kw-2">&amp;mut </span><span class="self">self</span>, buf: <span class="kw-2">&amp;mut </span>Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="error.rs.html#39">ErrorStack</a>&gt; {
-        <span class="kw">let </span>base = <a href="#580">buf</a>.len();
+    </span><span class="kw">pub fn </span>derive_to_vec(<span class="kw-2">&amp;mut </span><span class="self">self</span>, buf: <span class="kw-2">&amp;mut </span>Vec&lt;u8&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;usize, ErrorStack&gt; {
+        <span class="kw">let </span>base = buf.len();
         <span class="kw">let </span>len = <span class="self">self</span>.derive(<span class="prelude-val">None</span>)<span class="question-mark">?</span>;
-        <a href="#580">buf</a>.resize(<a href="#581">base</a> + <a href="#582">len</a>, <span class="number">0</span>);
+        buf.resize(base + len, <span class="number">0</span>);
         <span class="kw">let </span>len = <span class="self">self</span>.derive(<span class="prelude-val">Some</span>(<span class="kw-2">&amp;mut </span>buf[base..]))<span class="question-mark">?</span>;
-        <a href="#580">buf</a>.truncate(<a href="#581">base</a> + <a href="#584">len</a>);
-        <span class="prelude-val">Ok</span>(<a href="#584">len</a>)
+        buf.truncate(base + len);
+        <span class="prelude-val">Ok</span>(len)
     }
 
     <span class="doccomment">/// Generates a new public/private keypair.
     </span><span class="attr">#[corresponds(EVP_PKEY_keygen)]
     #[inline]
-    </span><span class="kw">pub fn </span>keygen(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;PKey&lt;<a href="pkey.rs.html#73">Private</a>&gt;, <a href="error.rs.html#39">ErrorStack</a>&gt; {
+    </span><span class="kw">pub fn </span>keygen(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;PKey&lt;Private&gt;, ErrorStack&gt; {
         <span class="kw">unsafe </span>{
             <span class="kw">let </span><span class="kw-2">mut </span>key = ptr::null_mut();
             cvt(ffi::EVP_PKEY_keygen(<span class="self">self</span>.as_ptr(), <span class="kw-2">&amp;mut </span>key))<span class="question-mark">?</span>;
-            <span class="prelude-val">Ok</span>(PKey::from_ptr(<a href="#594">key</a>))
+            <span class="prelude-val">Ok</span>(PKey::from_ptr(key))
         }
     }
 }
@@ -1551,4 +1551,4 @@ let cmac_key = ctx.keygen().unwrap();
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="openssl" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="openssl" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

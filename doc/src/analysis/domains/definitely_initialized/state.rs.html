@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `analysis/src/domains/definitely_initialized/state.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>state.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../../analysis/index.html"><img class="rust-logo" src="../../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `analysis/src/domains/definitely_initialized/state.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>state.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../../analysis/index.html"><img class="rust-logo" src="../../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -404,26 +404,20 @@
 <a href="#404" id="404">404</a>
 <a href="#405" id="405">405</a>
 <a href="#406" id="406">406</a>
-<a href="#407" id="407">407</a>
-<a href="#408" id="408">408</a>
-<a href="#409" id="409">409</a>
-<a href="#410" id="410">410</a>
-<a href="#411" id="411">411</a>
-<a href="#412" id="412">412</a>
 </pre><pre class="rust"><code><span class="comment">// © 2021, ETH Zurich
 //
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-</span><span class="kw">use crate</span>::{<a href="../../abstract_interpretation/abstract_state.rs.html#45">abstract_interpretation::AbstractState</a>, <a href="../../lib.rs.html#13">mir_utils</a>::<span class="kw-2">*</span>, <a href="../../analysis_error.rs.html#11">AnalysisError</a>};
+</span><span class="kw">use crate</span>::{abstract_interpretation::AbstractState, mir_utils::<span class="kw-2">*</span>, AnalysisError};
 <span class="kw">use </span>prusti_rustc_interface::{
-    <a href="../../../../rustc_hash/type.FxHashSet.html">data_structures::fx::FxHashSet</a>,
-    middle::{<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/index.html">mir</a>, <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/context/struct.TyCtxt.html">ty::TyCtxt</a>},
-    <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.DefId.html">span::def_id::DefId</a>,
+    data_structures::fx::FxHashSet,
+    middle::{mir, ty::TyCtxt},
+    span::def_id::DefId,
 };
-<span class="kw">use </span>serde::{<a href="../../../../serde/ser/trait.SerializeSeq.html">ser::SerializeSeq</a>, <a href="../../../../serde_derive/derive.Serialize.html">Serialize</a>, <a href="../../../../serde/ser/trait.Serializer.html">Serializer</a>};
-<span class="kw">use </span>std::{<a href="https://doc.rust-lang.org/nightly/alloc/collections/btree/set/struct.BTreeSet.html">collections::BTreeSet</a>, <a href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">fmt</a>, <a href="https://doc.rust-lang.org/nightly/core/mem/index.html">mem</a>};
+<span class="kw">use </span>serde::{ser::SerializeSeq, Serialize, Serializer};
+<span class="kw">use </span>std::{collections::BTreeSet, fmt, mem};
 
 <span class="doccomment">/// A set of MIR places that are definitely initialized at a program point
 ///
@@ -433,22 +427,22 @@
 </span><span class="attr">#[derive(Clone)]
 </span><span class="kw">pub struct </span>DefinitelyInitializedState&lt;<span class="lifetime">&#39;mir</span>, <span class="lifetime">&#39;tcx</span>: <span class="lifetime">&#39;mir</span>&gt; {
     <span class="kw">pub</span>(<span class="kw">super</span>) def_init_places: FxHashSet&lt;Place&lt;<span class="lifetime">&#39;tcx</span>&gt;&gt;,
-    <span class="kw">pub</span>(<span class="kw">super</span>) def_id: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.DefId.html">DefId</a>,
+    <span class="kw">pub</span>(<span class="kw">super</span>) def_id: DefId,
     <span class="kw">pub</span>(<span class="kw">super</span>) mir: <span class="kw-2">&amp;</span><span class="lifetime">&#39;mir </span>mir::Body&lt;<span class="lifetime">&#39;tcx</span>&gt;,
     <span class="kw">pub</span>(<span class="kw">super</span>) tcx: TyCtxt&lt;<span class="lifetime">&#39;tcx</span>&gt;,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;mir</span>, <span class="lifetime">&#39;tcx</span>: <span class="lifetime">&#39;mir</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span>DefinitelyInitializedState&lt;<span class="lifetime">&#39;mir</span>, <span class="lifetime">&#39;tcx</span>&gt; {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;mir</span>, <span class="lifetime">&#39;tcx</span>: <span class="lifetime">&#39;mir</span>&gt; fmt::Debug <span class="kw">for </span>DefinitelyInitializedState&lt;<span class="lifetime">&#39;mir</span>, <span class="lifetime">&#39;tcx</span>&gt; {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter) -&gt; fmt::Result {
         <span class="comment">// ignore tcx &amp; mir
-        </span><a href="#30">f</a>.debug_struct(<span class="string">&quot;DefinitelyInitializedState&quot;</span>)
-            .field(<span class="string">&quot;def_init_places&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="#30">self</a>.def_init_places)
+        </span>f.debug_struct(<span class="string">&quot;DefinitelyInitializedState&quot;</span>)
+            .field(<span class="string">&quot;def_init_places&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.def_init_places)
             .finish()
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;mir</span>, <span class="lifetime">&#39;tcx</span>: <span class="lifetime">&#39;mir</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/cmp/trait.PartialEq.html">PartialEq</a> <span class="kw">for </span>DefinitelyInitializedState&lt;<span class="lifetime">&#39;mir</span>, <span class="lifetime">&#39;tcx</span>&gt; {
-    <span class="kw">fn </span>eq(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;mir</span>, <span class="lifetime">&#39;tcx</span>: <span class="lifetime">&#39;mir</span>&gt; PartialEq <span class="kw">for </span>DefinitelyInitializedState&lt;<span class="lifetime">&#39;mir</span>, <span class="lifetime">&#39;tcx</span>&gt; {
+    <span class="kw">fn </span>eq(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; bool {
         <span class="comment">// TODO: This assert is commented out because the stable hasher crashes
         // on MIR that has region ids.
         //
@@ -470,44 +464,44 @@
         //         stable_hasher.finish::&lt;Fingerprint&gt;()
         //     },
         // );
-        </span><a class="self" href="#39">self</a>.def_init_places == <a href="#39">other</a>.def_init_places
+        </span><span class="self">self</span>.def_init_places == other.def_init_places
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;mir</span>, <span class="lifetime">&#39;tcx</span>: <span class="lifetime">&#39;mir</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Eq.html">Eq</a> <span class="kw">for </span>DefinitelyInitializedState&lt;<span class="lifetime">&#39;mir</span>, <span class="lifetime">&#39;tcx</span>&gt; {}
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;mir</span>, <span class="lifetime">&#39;tcx</span>: <span class="lifetime">&#39;mir</span>&gt; Eq <span class="kw">for </span>DefinitelyInitializedState&lt;<span class="lifetime">&#39;mir</span>, <span class="lifetime">&#39;tcx</span>&gt; {}
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;mir</span>, <span class="lifetime">&#39;tcx</span>: <span class="lifetime">&#39;mir</span>&gt; <a href="../../../../serde/ser/trait.Serialize.html">Serialize</a> <span class="kw">for </span>DefinitelyInitializedState&lt;<span class="lifetime">&#39;mir</span>, <span class="lifetime">&#39;tcx</span>&gt; {
-    <span class="kw">fn </span>serialize&lt;Se: <a href="../../../../serde/ser/trait.Serializer.html">Serializer</a>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, serializer: Se) -&gt; <span class="prelude-ty">Result</span>&lt;Se::Ok, Se::Error&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;mir</span>, <span class="lifetime">&#39;tcx</span>: <span class="lifetime">&#39;mir</span>&gt; Serialize <span class="kw">for </span>DefinitelyInitializedState&lt;<span class="lifetime">&#39;mir</span>, <span class="lifetime">&#39;tcx</span>&gt; {
+    <span class="kw">fn </span>serialize&lt;Se: Serializer&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, serializer: Se) -&gt; <span class="prelude-ty">Result</span>&lt;Se::Ok, Se::Error&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>seq = serializer.serialize_seq(<span class="prelude-val">Some</span>(<span class="self">self</span>.def_init_places.len()))<span class="question-mark">?</span>;
-        <span class="kw">let </span>ordered_place_set: BTreeSet&lt;<span class="kw">_</span>&gt; = <a class="self" href="#68">self</a>.def_init_places.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
+        <span class="kw">let </span>ordered_place_set: BTreeSet&lt;<span class="kw">_</span>&gt; = <span class="self">self</span>.def_init_places.iter().collect();
         <span class="kw">for </span>place <span class="kw">in </span>ordered_place_set {
-            seq.serialize_element(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;{:?}&quot;</span>, place))<span class="question-mark">?</span>;
+            seq.serialize_element(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;{place:?}&quot;</span>))<span class="question-mark">?</span>;
         }
-        <a href="#69">seq</a>.<a href="../../../../serde/ser/trait.SerializeSeq.html">end</a>()
+        seq.end()
     }
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;mir</span>, <span class="lifetime">&#39;tcx</span>: <span class="lifetime">&#39;mir</span>&gt; DefinitelyInitializedState&lt;<span class="lifetime">&#39;mir</span>, <span class="lifetime">&#39;tcx</span>&gt; {
     <span class="kw">pub fn </span>get_def_init_places(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>FxHashSet&lt;Place&lt;<span class="lifetime">&#39;tcx</span>&gt;&gt; {
-        <span class="kw-2">&amp;</span><a class="self" href="#79">self</a>.def_init_places
+        <span class="kw-2">&amp;</span><span class="self">self</span>.def_init_places
     }
 
     <span class="kw">pub fn </span>get_def_init_mir_places(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; FxHashSet&lt;mir::Place&lt;<span class="lifetime">&#39;tcx</span>&gt;&gt; {
-        <a class="self" href="#83">self</a>.def_init_places.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|place| <span class="kw-2">**</span><a href="#84">place</a>).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>()
+        <span class="self">self</span>.def_init_places.iter().map(|place| <span class="kw-2">**</span>place).collect()
     }
 
     <span class="doccomment">/// The top element of the lattice contains no places
-    </span><span class="kw">pub fn </span>new_top(def_id: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.DefId.html">DefId</a>, mir: <span class="kw-2">&amp;</span><span class="lifetime">&#39;mir </span>mir::Body&lt;<span class="lifetime">&#39;tcx</span>&gt;, tcx: TyCtxt&lt;<span class="lifetime">&#39;tcx</span>&gt;) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub fn </span>new_top(def_id: DefId, mir: <span class="kw-2">&amp;</span><span class="lifetime">&#39;mir </span>mir::Body&lt;<span class="lifetime">&#39;tcx</span>&gt;, tcx: TyCtxt&lt;<span class="lifetime">&#39;tcx</span>&gt;) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
             def_init_places: FxHashSet::default(),
-            <a href="#88">def_id</a>,
-            <a href="#88">mir</a>,
-            <a href="#88">tcx</a>,
+            def_id,
+            mir,
+            tcx,
         }
     }
 
-    <span class="kw">pub fn </span>is_top(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#97">self</a>.def_init_places.is_empty()
+    <span class="kw">pub fn </span>is_top(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.def_init_places.is_empty()
     }
 
     <span class="kw">pub fn </span>check_invariant(<span class="kw-2">&amp;</span><span class="self">self</span>) {
@@ -516,16 +510,12 @@
                 <span class="kw">if </span>place1 != place2 {
                     <span class="macro">debug_assert!</span>(
                         !is_prefix(place1, place2),
-                        <span class="string">&quot;The place {:?} is a prefix of the place {:?}&quot;</span>,
-                        place2,
-                        place1
-                    );
+                        <span class="string">&quot;The place {place2:?} is a prefix of the place {place1:?}&quot;
+                    </span>);
                     <span class="macro">debug_assert!</span>(
                         !is_prefix(place2, place1),
-                        <span class="string">&quot;The place {:?} is a prefix of the place {:?}&quot;</span>,
-                        place1,
-                        place2
-                    );
+                        <span class="string">&quot;The place {place1:?} is a prefix of the place {place2:?}&quot;
+                    </span>);
                 }
             }
         }
@@ -533,9 +523,9 @@
 
     <span class="doccomment">/// Sets `place` as definitely initialized (see place_set/insert()
     </span><span class="kw">fn </span>set_place_initialised(<span class="kw-2">&amp;mut </span><span class="self">self</span>, place: mir::Place&lt;<span class="lifetime">&#39;tcx</span>&gt;) {
-        <span class="kw">let </span>place = <a href="#123">place</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>();
-        <span class="kw">if </span><a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.cfg.html">cfg!</a>(debug_assertions) {
-            <a class="self" href="#123">self</a>.<a href="#101">check_invariant</a>();
+        <span class="kw">let </span>place = place.into();
+        <span class="kw">if </span><span class="macro">cfg!</span>(debug_assertions) {
+            <span class="self">self</span>.check_invariant();
         }
 
         <span class="comment">// First, check that the place is not already marked as
@@ -548,27 +538,27 @@
             <span class="comment">// To maintain the invariant that we do not have a place and its
             // prefix in the set, we remove all places for which the given
             // one is a prefix.
-            </span><a class="self" href="#123">self</a>.def_init_places
-                .retain(|<span class="kw-2">&amp;</span>current| !<a href="../../mir_utils.rs.html#103">is_prefix</a>(<a href="#140">current</a>, <a href="#124">place</a>));
-            <a class="self" href="#123">self</a>.def_init_places.insert(<a href="#124">place</a>);
+            </span><span class="self">self</span>.def_init_places
+                .retain(|<span class="kw-2">&amp;</span>current| !is_prefix(current, place));
+            <span class="self">self</span>.def_init_places.insert(place);
             <span class="comment">// If all fields of a struct are definitely initialized,
             // just keep info that the struct is definitely initialized.
-            </span><a href="../../mir_utils.rs.html#270-275">collapse</a>(<a class="self" href="#123">self</a>.mir, <a class="self" href="#123">self</a>.tcx, <span class="kw-2">&amp;mut </span><a class="self" href="#123">self</a>.def_init_places, <a href="#124">place</a>);
+            </span>collapse(<span class="self">self</span>.mir, <span class="self">self</span>.tcx, <span class="kw-2">&amp;mut </span><span class="self">self</span>.def_init_places, place);
         }
 
-        <span class="kw">if </span><a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.cfg.html">cfg!</a>(debug_assertions) {
-            <a class="self" href="#123">self</a>.<a href="#101">check_invariant</a>();
+        <span class="kw">if </span><span class="macro">cfg!</span>(debug_assertions) {
+            <span class="self">self</span>.check_invariant();
         }
     }
 
     <span class="doccomment">/// Sets `place` as (possibly) uninitialised (see place_set/remove())
     </span><span class="kw">fn </span>set_place_uninitialised(<span class="kw-2">&amp;mut </span><span class="self">self</span>, place: mir::Place&lt;<span class="lifetime">&#39;tcx</span>&gt;) {
-        <span class="kw">let </span>place = <a href="#153">place</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>();
-        <span class="kw">if </span><a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.cfg.html">cfg!</a>(debug_assertions) {
-            <a class="self" href="#153">self</a>.<a href="#101">check_invariant</a>();
+        <span class="kw">let </span>place = place.into();
+        <span class="kw">if </span><span class="macro">cfg!</span>(debug_assertions) {
+            <span class="self">self</span>.check_invariant();
         }
 
-        <span class="kw">let </span>old_places = mem::take(<span class="kw-2">&amp;mut </span><a class="self" href="#153">self</a>.def_init_places);
+        <span class="kw">let </span>old_places = mem::take(<span class="kw-2">&amp;mut </span><span class="self">self</span>.def_init_places);
         <span class="kw">for </span>old_place <span class="kw">in </span>old_places {
             <span class="kw">if </span>is_prefix(place, old_place) {
                 <span class="comment">// We are uninitializing a field of the place `old_place`.
@@ -589,29 +579,27 @@
         </span><span class="kw">for </span><span class="kw-2">&amp;</span>place1 <span class="kw">in </span><span class="self">self</span>.def_init_places.iter() {
             <span class="macro">debug_assert!</span>(
                 !is_prefix(place1, place) &amp;&amp; !is_prefix(place, place1),
-                <span class="string">&quot;Bug: failed to ensure that there are no prefixes: place={:?} place1={:?}&quot;</span>,
-                place,
-                place1
-            );
+                <span class="string">&quot;Bug: failed to ensure that there are no prefixes: place={place:?} place1={place1:?}&quot;
+            </span>);
         }
 
-        <span class="kw">if </span><a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.cfg.html">cfg!</a>(debug_assertions) {
-            <a class="self" href="#153">self</a>.<a href="#101">check_invariant</a>();
+        <span class="kw">if </span><span class="macro">cfg!</span>(debug_assertions) {
+            <span class="self">self</span>.check_invariant();
         }
     }
 
     <span class="doccomment">/// If the operand is move, make the place uninitialised
     /// If the place is a Copy type, uninitialise the place iif `move_out_copy_types` is true.
-    </span><span class="kw">fn </span>apply_operand_effect(<span class="kw-2">&amp;mut </span><span class="self">self</span>, operand: <span class="kw-2">&amp;</span>mir::Operand&lt;<span class="lifetime">&#39;tcx</span>&gt;, move_out_copy_types: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) {
-        <span class="kw">if let </span>mir::Operand::Move(place) = <a href="#193">operand</a> {
+    </span><span class="kw">fn </span>apply_operand_effect(<span class="kw-2">&amp;mut </span><span class="self">self</span>, operand: <span class="kw-2">&amp;</span>mir::Operand&lt;<span class="lifetime">&#39;tcx</span>&gt;, move_out_copy_types: bool) {
+        <span class="kw">if let </span>mir::Operand::Move(place) = operand {
             <span class="kw">let </span><span class="kw-2">mut </span>uninitialise = <span class="bool-val">true</span>;
             <span class="kw">if </span>!move_out_copy_types {
-                <span class="kw">let </span>ty = <a href="#194">place</a>.ty(<span class="kw-2">&amp;</span><a class="self" href="#193">self</a>.mir.local_decls, <a class="self" href="#193">self</a>.tcx).ty;
-                <span class="kw">let </span>param_env = <a class="self" href="#193">self</a>.tcx.param_env(<a class="self" href="#193">self</a>.def_id);
-                <a href="#195">uninitialise</a> = !<a href="../../mir_utils.rs.html#320-324">is_copy</a>(<a class="self" href="#193">self</a>.tcx, <a href="#197">ty</a>, <a href="#198">param_env</a>);
+                <span class="kw">let </span>ty = place.ty(<span class="kw-2">&amp;</span><span class="self">self</span>.mir.local_decls, <span class="self">self</span>.tcx).ty;
+                <span class="kw">let </span>param_env = <span class="self">self</span>.tcx.param_env(<span class="self">self</span>.def_id);
+                uninitialise = !is_copy(<span class="self">self</span>.tcx, ty, param_env);
             }
             <span class="kw">if </span>uninitialise {
-                <a class="self" href="#193">self</a>.<a href="#153">set_place_uninitialised</a>(<span class="kw-2">*</span><a href="#194">place</a>);
+                <span class="self">self</span>.set_place_uninitialised(<span class="kw-2">*</span>place);
             }
         }
     }
@@ -619,23 +607,23 @@
     <span class="doccomment">/// If the place is a Copy type, uninitialise the place iif `move_out_copy_types` is true.
     </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>apply_statement_effect(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        location: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Location.html">mir::Location</a>,
-        move_out_copy_types: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../analysis_error.rs.html#11">AnalysisError</a>&gt; {
-        <span class="kw">let </span>statement = <span class="kw-2">&amp;</span><a class="self" href="#209">self</a>.mir[<a href="#210">location</a>.block].statements[<a href="#210">location</a>.statement_index];
-        <span class="kw">match </span><a href="#213">statement</a>.kind {
+        location: mir::Location,
+        move_out_copy_types: bool,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), AnalysisError&gt; {
+        <span class="kw">let </span>statement = <span class="kw-2">&amp;</span><span class="self">self</span>.mir[location.block].statements[location.statement_index];
+        <span class="kw">match </span>statement.kind {
             mir::StatementKind::Assign(<span class="kw">box </span>(target, <span class="kw-2">ref </span>source)) =&gt; {
-                <span class="kw">match </span><a href="#215">source</a> {
+                <span class="kw">match </span>source {
                     mir::Rvalue::Repeat(<span class="kw-2">ref </span>operand, <span class="kw">_</span>)
                     | mir::Rvalue::Cast(<span class="kw">_</span>, <span class="kw-2">ref </span>operand, <span class="kw">_</span>)
                     | mir::Rvalue::UnaryOp(<span class="kw">_</span>, <span class="kw-2">ref </span>operand)
                     | mir::Rvalue::Use(<span class="kw-2">ref </span>operand) =&gt; {
-                        <a class="self" href="#209">self</a>.<a href="#193">apply_operand_effect</a>(<a href="#217">operand</a>, <a href="#211">move_out_copy_types</a>);
+                        <span class="self">self</span>.apply_operand_effect(operand, move_out_copy_types);
                     }
                     mir::Rvalue::BinaryOp(<span class="kw">_</span>, <span class="kw">box </span>(<span class="kw-2">ref </span>operand1, <span class="kw-2">ref </span>operand2))
                     | mir::Rvalue::CheckedBinaryOp(<span class="kw">_</span>, <span class="kw">box </span>(<span class="kw-2">ref </span>operand1, <span class="kw-2">ref </span>operand2)) =&gt; {
-                        <a class="self" href="#209">self</a>.<a href="#193">apply_operand_effect</a>(<a href="#223">operand1</a>, <a href="#211">move_out_copy_types</a>);
-                        <a class="self" href="#209">self</a>.<a href="#193">apply_operand_effect</a>(<a href="#223">operand2</a>, <a href="#211">move_out_copy_types</a>);
+                        <span class="self">self</span>.apply_operand_effect(operand1, move_out_copy_types);
+                        <span class="self">self</span>.apply_operand_effect(operand2, move_out_copy_types);
                     }
                     mir::Rvalue::Aggregate(<span class="kw">_</span>, <span class="kw-2">ref </span>operands) =&gt; {
                         <span class="kw">for </span>operand <span class="kw">in </span>operands.iter() {
@@ -645,10 +633,10 @@
                     <span class="kw">_ </span>=&gt; {}
                 }
 
-                <a class="self" href="#209">self</a>.<a href="#123">set_place_initialised</a>(<a href="#215">target</a>);
+                <span class="self">self</span>.set_place_initialised(target);
             }
             mir::StatementKind::StorageDead(local) =&gt; {
-                <a class="self" href="#209">self</a>.<a href="#153">set_place_uninitialised</a>(<a href="#238">local</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>());
+                <span class="self">self</span>.set_place_uninitialised(local.into());
             }
             <span class="kw">_ </span>=&gt; {}
         }
@@ -659,52 +647,52 @@
     <span class="doccomment">/// If the place is a Copy type, uninitialise the place iif `move_out_copy_types` is true.
     </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>apply_terminator_effect(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        location: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Location.html">mir::Location</a>,
-        move_out_copy_types: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;(<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.BasicBlock.html">mir::BasicBlock</a>, <span class="self">Self</span>)&gt;, <a href="../../analysis_error.rs.html#11">AnalysisError</a>&gt; {
-        <span class="kw">let </span><span class="kw-2">mut </span>new_state = <a class="self" href="#249">self</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
+        location: mir::Location,
+        move_out_copy_types: bool,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;(mir::BasicBlock, <span class="self">Self</span>)&gt;, AnalysisError&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>new_state = <span class="self">self</span>.clone();
         <span class="kw">let </span><span class="kw-2">mut </span>res_vec = Vec::new();
-        <span class="kw">let </span>terminator = <a class="self" href="#249">self</a>.mir[<a href="#250">location</a>.block].terminator();
-        <span class="kw">match </span><a href="#255">terminator</a>.kind {
-            <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/syntax/enum.TerminatorKind.html">mir::TerminatorKind::SwitchInt</a> { <span class="kw-2">ref </span>discr, .. } =&gt; {
+        <span class="kw">let </span>terminator = <span class="self">self</span>.mir[location.block].terminator();
+        <span class="kw">match </span>terminator.kind {
+            mir::TerminatorKind::SwitchInt { <span class="kw-2">ref </span>discr, .. } =&gt; {
                 <span class="comment">// only operand has an effect on definitely initialized places, all successors
                 // get the same state
-                </span><a href="#253">new_state</a>.<a href="#193">apply_operand_effect</a>(<a href="#257">discr</a>, <a href="#251">move_out_copy_types</a>);
+                </span>new_state.apply_operand_effect(discr, move_out_copy_types);
 
                 <span class="kw">for </span>bb <span class="kw">in </span>terminator.successors() {
                     res_vec.push((bb, new_state.clone()));
                 }
             }
-            <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/syntax/enum.TerminatorKind.html">mir::TerminatorKind::Drop</a> {
+            mir::TerminatorKind::Drop {
                 place,
                 target,
                 unwind,
             } =&gt; {
-                <a href="#253">new_state</a>.<a href="#153">set_place_uninitialised</a>(<a href="#267">place</a>);
-                <a href="#254">res_vec</a>.push((<a href="#268">target</a>, <a href="#253">new_state</a>));
+                new_state.set_place_uninitialised(place);
+                res_vec.push((target, new_state));
 
-                <span class="kw">if let </span><span class="prelude-val">Some</span>(bb) = <a href="#269">unwind</a> {
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(bb) = unwind {
                     <span class="comment">// imprecision for error states
-                    </span><a href="#254">res_vec</a>.push((<a href="#274">bb</a>, <span class="self">Self</span>::new_top(<a class="self" href="#249">self</a>.def_id, <a class="self" href="#249">self</a>.mir, <a class="self" href="#249">self</a>.tcx)));
+                    </span>res_vec.push((bb, <span class="self">Self</span>::new_top(<span class="self">self</span>.def_id, <span class="self">self</span>.mir, <span class="self">self</span>.tcx)));
                 }
             }
-            <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/syntax/enum.TerminatorKind.html">mir::TerminatorKind::DropAndReplace</a> {
+            mir::TerminatorKind::DropAndReplace {
                 place,
                 <span class="kw-2">ref </span>value,
                 target,
                 unwind,
             } =&gt; {
-                <a href="#253">new_state</a>.<a href="#153">set_place_uninitialised</a>(<a href="#280">place</a>);
-                <a href="#253">new_state</a>.<a href="#193">apply_operand_effect</a>(<a href="#281">value</a>, <a href="#251">move_out_copy_types</a>);
-                <a href="#253">new_state</a>.<a href="#123">set_place_initialised</a>(<a href="#280">place</a>);
-                <a href="#254">res_vec</a>.push((<a href="#282">target</a>, <a href="#253">new_state</a>));
+                new_state.set_place_uninitialised(place);
+                new_state.apply_operand_effect(value, move_out_copy_types);
+                new_state.set_place_initialised(place);
+                res_vec.push((target, new_state));
 
-                <span class="kw">if let </span><span class="prelude-val">Some</span>(bb) = <a href="#283">unwind</a> {
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(bb) = unwind {
                     <span class="comment">// imprecision for error states
-                    </span><a href="#254">res_vec</a>.push((<a href="#290">bb</a>, <span class="self">Self</span>::new_top(<a class="self" href="#249">self</a>.def_id, <a class="self" href="#249">self</a>.mir, <a class="self" href="#249">self</a>.tcx)));
+                    </span>res_vec.push((bb, <span class="self">Self</span>::new_top(<span class="self">self</span>.def_id, <span class="self">self</span>.mir, <span class="self">self</span>.tcx)));
                 }
             }
-            <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/syntax/enum.TerminatorKind.html">mir::TerminatorKind::Call</a> {
+            mir::TerminatorKind::Call {
                 <span class="kw-2">ref </span>func,
                 <span class="kw-2">ref </span>args,
                 destination,
@@ -715,48 +703,48 @@
                 <span class="kw">for </span>arg <span class="kw">in </span>args.iter() {
                     new_state.apply_operand_effect(arg, move_out_copy_types);
                 }
-                <a href="#253">new_state</a>.<a href="#193">apply_operand_effect</a>(<a href="#296">func</a>, <a href="#251">move_out_copy_types</a>);
-                <span class="kw">if let </span><span class="prelude-val">Some</span>(bb) = <a href="#299">target</a> {
-                    <a href="#253">new_state</a>.<a href="#123">set_place_initialised</a>(<a href="#298">destination</a>);
-                    <a href="#254">res_vec</a>.push((<a href="#307">bb</a>, <a href="#253">new_state</a>));
+                new_state.apply_operand_effect(func, move_out_copy_types);
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(bb) = target {
+                    new_state.set_place_initialised(destination);
+                    res_vec.push((bb, new_state));
                 }
 
-                <span class="kw">if let </span><span class="prelude-val">Some</span>(bb) = <a href="#300">cleanup</a> {
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(bb) = cleanup {
                     <span class="comment">// imprecision for error states
-                    </span><a href="#254">res_vec</a>.push((<a href="#312">bb</a>, <span class="self">Self</span>::new_top(<a class="self" href="#249">self</a>.def_id, <a class="self" href="#249">self</a>.mir, <a class="self" href="#249">self</a>.tcx)));
+                    </span>res_vec.push((bb, <span class="self">Self</span>::new_top(<span class="self">self</span>.def_id, <span class="self">self</span>.mir, <span class="self">self</span>.tcx)));
                 }
             }
-            <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/syntax/enum.TerminatorKind.html">mir::TerminatorKind::Assert</a> {
+            mir::TerminatorKind::Assert {
                 <span class="kw-2">ref </span>cond,
                 target,
                 cleanup,
                 ..
             } =&gt; {
-                <a href="#253">new_state</a>.<a href="#193">apply_operand_effect</a>(<a href="#318">cond</a>, <a href="#251">move_out_copy_types</a>);
-                <a href="#254">res_vec</a>.push((<a href="#319">target</a>, <a href="#253">new_state</a>));
+                new_state.apply_operand_effect(cond, move_out_copy_types);
+                res_vec.push((target, new_state));
 
-                <span class="kw">if let </span><span class="prelude-val">Some</span>(bb) = <a href="#320">cleanup</a> {
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(bb) = cleanup {
                     <span class="comment">// imprecision for error states
-                    </span><a href="#254">res_vec</a>.push((<a href="#326">bb</a>, <span class="self">Self</span>::new_top(<a class="self" href="#249">self</a>.def_id, <a class="self" href="#249">self</a>.mir, <a class="self" href="#249">self</a>.tcx)));
+                    </span>res_vec.push((bb, <span class="self">Self</span>::new_top(<span class="self">self</span>.def_id, <span class="self">self</span>.mir, <span class="self">self</span>.tcx)));
                 }
             }
-            <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/syntax/enum.TerminatorKind.html">mir::TerminatorKind::Yield</a> {
+            mir::TerminatorKind::Yield {
                 <span class="kw-2">ref </span>value,
                 resume,
                 drop,
                 ..
             } =&gt; {
                 <span class="comment">// TODO: resume_arg?
-                </span><a href="#253">new_state</a>.<a href="#193">apply_operand_effect</a>(<a href="#332">value</a>, <a href="#251">move_out_copy_types</a>);
-                <a href="#254">res_vec</a>.push((<a href="#333">resume</a>, <a href="#253">new_state</a>));
+                </span>new_state.apply_operand_effect(value, move_out_copy_types);
+                res_vec.push((resume, new_state));
 
-                <span class="kw">if let </span><span class="prelude-val">Some</span>(bb) = <a href="#334">drop</a> {
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(bb) = drop {
                     <span class="comment">// imprecision for error states
-                    </span><a href="#254">res_vec</a>.push((<a href="#341">bb</a>, <span class="self">Self</span>::new_top(<a class="self" href="#249">self</a>.def_id, <a class="self" href="#249">self</a>.mir, <a class="self" href="#249">self</a>.tcx)));
+                    </span>res_vec.push((bb, <span class="self">Self</span>::new_top(<span class="self">self</span>.def_id, <span class="self">self</span>.mir, <span class="self">self</span>.tcx)));
                 }
             }
-            <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/syntax/enum.TerminatorKind.html">mir::TerminatorKind::InlineAsm</a> { .. } =&gt; {
-                <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../analysis_error.rs.html#12">AnalysisError::UnsupportedStatement</a>(<a href="#250">location</a>))
+            mir::TerminatorKind::InlineAsm { .. } =&gt; {
+                <span class="kw">return </span><span class="prelude-val">Err</span>(AnalysisError::UnsupportedStatement(location))
             }
 
             <span class="kw">_ </span>=&gt; {
@@ -767,17 +755,17 @@
             }
         }
 
-        <span class="prelude-val">Ok</span>(<a href="#254">res_vec</a>)
+        <span class="prelude-val">Ok</span>(res_vec)
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;mir</span>, <span class="lifetime">&#39;tcx</span>: <span class="lifetime">&#39;mir</span>&gt; <a href="../../abstract_interpretation/abstract_state.rs.html#45">AbstractState</a> <span class="kw">for </span>DefinitelyInitializedState&lt;<span class="lifetime">&#39;mir</span>, <span class="lifetime">&#39;tcx</span>&gt; {
-    <span class="kw">fn </span>is_bottom(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;mir</span>, <span class="lifetime">&#39;tcx</span>: <span class="lifetime">&#39;mir</span>&gt; AbstractState <span class="kw">for </span>DefinitelyInitializedState&lt;<span class="lifetime">&#39;mir</span>, <span class="lifetime">&#39;tcx</span>&gt; {
+    <span class="kw">fn </span>is_bottom(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="kw">if </span><span class="self">self</span>.def_init_places.len() == <span class="self">self</span>.mir.local_decls.len() {
-            <a class="self" href="#363">self</a>.mir
+            <span class="self">self</span>.mir
                 .local_decls
                 .indices()
-                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">all</a>(|local| <a class="self" href="#363">self</a>.def_init_places.contains(<span class="kw-2">&amp;</span><a href="#368">local</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()))
+                .all(|local| <span class="self">self</span>.def_init_places.contains(<span class="kw-2">&amp;</span>local.into()))
         } <span class="kw">else </span>{
             <span class="bool-val">false
         </span>}
@@ -785,9 +773,9 @@
 
     <span class="doccomment">/// The lattice join intersects the two place sets
     </span><span class="kw">fn </span>join(<span class="kw-2">&amp;mut </span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>) {
-        <span class="kw">if </span><a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.cfg.html">cfg!</a>(debug_assertions) {
-            <a class="self" href="#375">self</a>.<a href="#101">check_invariant</a>();
-            <a href="#375">other</a>.<a href="#101">check_invariant</a>();
+        <span class="kw">if </span><span class="macro">cfg!</span>(debug_assertions) {
+            <span class="self">self</span>.check_invariant();
+            other.check_invariant();
         }
 
         <span class="kw">let </span><span class="kw-2">mut </span>intersection = FxHashSet::default();
@@ -807,20 +795,20 @@
                 }
             };
 
-        <span class="kw">let </span>self_places = <span class="kw-2">&amp;</span><a class="self" href="#375">self</a>.def_init_places;
-        <span class="kw">let </span>other_places = <span class="kw-2">&amp;</span><a href="#375">other</a>.def_init_places;
-        <a href="#383">propagate_places_fn</a>(<a href="#398">self_places</a>, <a href="#399">other_places</a>);
-        <a href="#383">propagate_places_fn</a>(<a href="#399">other_places</a>, <a href="#398">self_places</a>);
-        <a class="self" href="#375">self</a>.def_init_places = <a href="#381">intersection</a>;
+        <span class="kw">let </span>self_places = <span class="kw-2">&amp;</span><span class="self">self</span>.def_init_places;
+        <span class="kw">let </span>other_places = <span class="kw-2">&amp;</span>other.def_init_places;
+        propagate_places_fn(self_places, other_places);
+        propagate_places_fn(other_places, self_places);
+        <span class="self">self</span>.def_init_places = intersection;
 
-        <span class="kw">if </span><a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.cfg.html">cfg!</a>(debug_assertions) {
-            <a class="self" href="#375">self</a>.<a href="#101">check_invariant</a>();
+        <span class="kw">if </span><span class="macro">cfg!</span>(debug_assertions) {
+            <span class="self">self</span>.check_invariant();
         }
     }
 
     <span class="kw">fn </span>widen(<span class="kw-2">&amp;mut </span><span class="self">self</span>, _previous: <span class="kw-2">&amp;</span><span class="self">Self</span>) {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unimplemented.html">unimplemented!</a>()
+        <span class="macro">unimplemented!</span>()
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="analysis" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="analysis" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

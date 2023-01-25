@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/futures-macro-0.3.25/src/join.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>join.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../futures_macro/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/futures-macro-0.3.25/src/join.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>join.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../futures_macro/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -144,18 +144,18 @@
 <a href="#144" id="144">144</a>
 </pre><pre class="rust"><code><span class="doccomment">//! The futures-rs `join! macro implementation.
 
-</span><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/proc_macro/struct.TokenStream.html">proc_macro::TokenStream</a>;
-<span class="kw">use </span>proc_macro2::{<a href="https://docs.rs/proc-macro2/1.0.47/proc_macro2/struct.Span.html">Span</a>, <a href="https://docs.rs/proc-macro2/1.0.47/proc_macro2/struct.TokenStream.html">TokenStream</a> <span class="kw">as </span>TokenStream2};
-<span class="kw">use </span>quote::{<a href="https://docs.rs/quote/1.0.21/quote/macro.format_ident.html">format_ident</a>, <a href="https://docs.rs/quote/1.0.21/quote/macro.quote.html">quote</a>};
-<span class="kw">use </span>syn::parse::{<a href="https://docs.rs/syn/1.0.103/syn/parse/trait.Parse.html">Parse</a>, <a href="https://docs.rs/syn/1.0.103/syn/parse/type.ParseStream.html">ParseStream</a>};
-<span class="kw">use </span>syn::{<a href="https://docs.rs/syn/1.0.103/syn/expr/enum.Expr.html">Expr</a>, Ident, <a href="https://docs.rs/syn/1.0.103/syn/macro.Token.html">Token</a>};
+</span><span class="kw">use </span>proc_macro::TokenStream;
+<span class="kw">use </span>proc_macro2::{Span, TokenStream <span class="kw">as </span>TokenStream2};
+<span class="kw">use </span>quote::{format_ident, quote};
+<span class="kw">use </span>syn::parse::{Parse, ParseStream};
+<span class="kw">use </span>syn::{Expr, Ident, Token};
 
 <span class="attr">#[derive(Default)]
 </span><span class="kw">struct </span>Join {
-    fut_exprs: Vec&lt;<a href="https://docs.rs/syn/1.0.103/syn/expr/enum.Expr.html">Expr</a>&gt;,
+    fut_exprs: Vec&lt;Expr&gt;,
 }
 
-<span class="kw">impl </span><a href="https://docs.rs/syn/1.0.103/syn/parse/trait.Parse.html">Parse</a> <span class="kw">for </span><a href="#10">Join</a> {
+<span class="kw">impl </span>Parse <span class="kw">for </span>Join {
     <span class="kw">fn </span>parse(input: ParseStream&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; syn::Result&lt;<span class="self">Self</span>&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>join = <span class="self">Self</span>::default();
 
@@ -167,52 +167,52 @@
             }
         }
 
-        <span class="prelude-val">Ok</span>(<a href="#16">join</a>)
+        <span class="prelude-val">Ok</span>(join)
     }
 }
 
-<span class="kw">fn </span>bind_futures(fut_exprs: Vec&lt;<a href="https://docs.rs/syn/1.0.103/syn/expr/enum.Expr.html">Expr</a>&gt;, span: <a href="https://docs.rs/proc-macro2/1.0.47/proc_macro2/struct.Span.html">Span</a>) -&gt; (Vec&lt;<a href="https://docs.rs/proc-macro2/1.0.47/proc_macro2/struct.TokenStream.html">TokenStream2</a>&gt;, Vec&lt;<a href="https://docs.rs/proc-macro2/1.0.47/proc_macro2/struct.Ident.html">Ident</a>&gt;) {
-    <span class="kw">let </span><span class="kw-2">mut </span>future_let_bindings = Vec::with_capacity(<a href="#30">fut_exprs</a>.len());
-    <span class="kw">let </span>future_names: Vec&lt;<span class="kw">_</span>&gt; = <a href="#30">fut_exprs</a>
-        .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
-        .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">enumerate</a>()
-        .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|(i, expr)| {
-            <span class="kw">let </span>name = <a class="macro" href="https://docs.rs/quote/1.0.21/quote/macro.format_ident.html">format_ident!</a>(<span class="string">&quot;_fut{}&quot;</span>, i, span = span);
-            <a href="#31">future_let_bindings</a>.push(<a class="macro" href="https://docs.rs/quote/1.0.21/quote/macro.quote.html">quote! </a>{
+<span class="kw">fn </span>bind_futures(fut_exprs: Vec&lt;Expr&gt;, span: Span) -&gt; (Vec&lt;TokenStream2&gt;, Vec&lt;Ident&gt;) {
+    <span class="kw">let </span><span class="kw-2">mut </span>future_let_bindings = Vec::with_capacity(fut_exprs.len());
+    <span class="kw">let </span>future_names: Vec&lt;<span class="kw">_</span>&gt; = fut_exprs
+        .into_iter()
+        .enumerate()
+        .map(|(i, expr)| {
+            <span class="kw">let </span>name = <span class="macro">format_ident!</span>(<span class="string">&quot;_fut{}&quot;</span>, i, span = span);
+            future_let_bindings.push(<span class="macro">quote! </span>{
                 <span class="comment">// Move future into a local so that it is pinned in one place and
                 // is no longer accessible by the end user.
                 </span><span class="kw">let </span><span class="kw-2">mut </span>#name = __futures_crate::future::maybe_done(#expr);
                 <span class="kw">let </span><span class="kw-2">mut </span>#name = <span class="kw">unsafe </span>{ __futures_crate::Pin::new_unchecked(<span class="kw-2">&amp;mut </span>#name) };
             });
-            <a href="#36">name</a>
+            name
         })
-        .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
+        .collect();
 
-    (<a href="#31">future_let_bindings</a>, <a href="#32">future_names</a>)
+    (future_let_bindings, future_names)
 }
 
 <span class="doccomment">/// The `join!` macro.
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>join(input: <a href="https://doc.rust-lang.org/nightly/proc_macro/struct.TokenStream.html">TokenStream</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/proc_macro/struct.TokenStream.html">TokenStream</a> {
-    <span class="kw">let </span>parsed = <a class="macro" href="https://docs.rs/syn/1.0.103/syn/macro.parse_macro_input.html">syn::parse_macro_input!</a>(input <span class="kw">as </span>Join);
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>join(input: TokenStream) -&gt; TokenStream {
+    <span class="kw">let </span>parsed = <span class="macro">syn::parse_macro_input!</span>(input <span class="kw">as </span>Join);
 
     <span class="comment">// should be def_site, but that&#39;s unstable
     </span><span class="kw">let </span>span = Span::call_site();
 
-    <span class="kw">let </span>(future_let_bindings, future_names) = <a href="#30">bind_futures</a>(<a href="#52">parsed</a>.fut_exprs, <a href="#55">span</a>);
+    <span class="kw">let </span>(future_let_bindings, future_names) = bind_futures(parsed.fut_exprs, span);
 
-    <span class="kw">let </span>poll_futures = <a href="#57">future_names</a>.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|fut| {
-        <a class="macro" href="https://docs.rs/quote/1.0.21/quote/macro.quote.html">quote! </a>{
+    <span class="kw">let </span>poll_futures = future_names.iter().map(|fut| {
+        <span class="macro">quote! </span>{
             __all_done &amp;= __futures_crate::future::Future::poll(
                 #fut.as_mut(), __cx).is_ready();
         }
     });
-    <span class="kw">let </span>take_outputs = <a href="#57">future_names</a>.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|fut| {
-        <a class="macro" href="https://docs.rs/quote/1.0.21/quote/macro.quote.html">quote! </a>{
+    <span class="kw">let </span>take_outputs = future_names.iter().map(|fut| {
+        <span class="macro">quote! </span>{
             #fut.as_mut().take_output().unwrap(),
         }
     });
 
-    TokenStream::from(<a class="macro" href="https://docs.rs/quote/1.0.21/quote/macro.quote.html">quote! </a>{ {
+    TokenStream::from(<span class="macro">quote! </span>{ {
         #( #future_let_bindings )*
 
         __futures_crate::future::poll_fn(<span class="kw">move </span>|__cx: <span class="kw-2">&amp;mut </span>__futures_crate::task::Context&lt;<span class="lifetime">&#39;_</span>&gt;| {
@@ -230,16 +230,16 @@
 }
 
 <span class="doccomment">/// The `try_join!` macro.
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>try_join(input: <a href="https://doc.rust-lang.org/nightly/proc_macro/struct.TokenStream.html">TokenStream</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/proc_macro/struct.TokenStream.html">TokenStream</a> {
-    <span class="kw">let </span>parsed = <a class="macro" href="https://docs.rs/syn/1.0.103/syn/macro.parse_macro_input.html">syn::parse_macro_input!</a>(input <span class="kw">as </span>Join);
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>try_join(input: TokenStream) -&gt; TokenStream {
+    <span class="kw">let </span>parsed = <span class="macro">syn::parse_macro_input!</span>(input <span class="kw">as </span>Join);
 
     <span class="comment">// should be def_site, but that&#39;s unstable
     </span><span class="kw">let </span>span = Span::call_site();
 
-    <span class="kw">let </span>(future_let_bindings, future_names) = <a href="#30">bind_futures</a>(<a href="#90">parsed</a>.fut_exprs, <a href="#93">span</a>);
+    <span class="kw">let </span>(future_let_bindings, future_names) = bind_futures(parsed.fut_exprs, span);
 
-    <span class="kw">let </span>poll_futures = <a href="#95">future_names</a>.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|fut| {
-        <a class="macro" href="https://docs.rs/quote/1.0.21/quote/macro.quote.html">quote! </a>{
+    <span class="kw">let </span>poll_futures = future_names.iter().map(|fut| {
+        <span class="macro">quote! </span>{
             <span class="kw">if </span>__futures_crate::future::Future::poll(
                 #fut.as_mut(), __cx).is_pending()
             {
@@ -257,8 +257,8 @@
             }
         }
     });
-    <span class="kw">let </span>take_outputs = <a href="#95">future_names</a>.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|fut| {
-        <a class="macro" href="https://docs.rs/quote/1.0.21/quote/macro.quote.html">quote! </a>{
+    <span class="kw">let </span>take_outputs = future_names.iter().map(|fut| {
+        <span class="macro">quote! </span>{
             <span class="comment">// `.ok().unwrap()` rather than `.unwrap()` so that we don&#39;t introduce
             // an `E: Debug` bound.
             // Also, for an ok type of ! any code after `ok().unwrap()` is unreachable.
@@ -267,7 +267,7 @@
         }
     });
 
-    TokenStream::from(<a class="macro" href="https://docs.rs/quote/1.0.21/quote/macro.quote.html">quote! </a>{ {
+    TokenStream::from(<span class="macro">quote! </span>{ {
         #( #future_let_bindings )*
 
         <span class="attr">#[allow(clippy::diverging_sub_expression)]
@@ -287,4 +287,4 @@
     </span>} })
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="futures_macro" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="futures_macro" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

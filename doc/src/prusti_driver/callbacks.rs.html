@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `prusti/src/callbacks.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>callbacks.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../prusti_driver/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `prusti/src/callbacks.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>callbacks.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../prusti_driver/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -123,20 +123,21 @@
 <a href="#123" id="123">123</a>
 <a href="#124" id="124">124</a>
 <a href="#125" id="125">125</a>
-</pre><pre class="rust"><code><span class="kw">use </span><a href="verifier.rs.html#12"><span class="kw">crate</span>::verifier::verify</a>;
-<span class="kw">use </span><a href="../../prusti_utils/config/index.html">prusti_common::config</a>;
+<a href="#126" id="126">126</a>
+</pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::verifier::verify;
+<span class="kw">use </span>prusti_common::config;
 <span class="kw">use </span>prusti_interface::{
-    environment::{<a href="../../prusti_interface/environment/mir_storage/index.html">mir_storage</a>, <a href="../../prusti_interface/environment/struct.Environment.html">Environment</a>},
-    specs::{<a class="self" href="../../prusti_interface/specs/index.html">self</a>, cross_crate::CrossCrateSpecs, <a href="../../prusti_interface/specs/fn.is_spec_fn.html">is_spec_fn</a>},
+    environment::{mir_storage, Environment},
+    specs::{<span class="self">self</span>, cross_crate::CrossCrateSpecs, is_spec_fn},
 };
 <span class="kw">use </span>prusti_rustc_interface::{
-    <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_driver/enum.Compilation.html">driver::Compilation</a>,
-    <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.LocalDefId.html">hir::def_id::LocalDefId</a>,
+    driver::Compilation,
+    hir::def_id::LocalDefId,
     interface::{interface::Compiler, Config, Queries},
     middle::ty::{
-        <a class="self" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/index.html">self</a>,
-        query::{<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/query/query_values/type.mir_borrowck.html">query_values::mir_borrowck</a>, <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/query/struct.ExternProviders.html">ExternProviders</a>, <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/query/struct.Providers.html">Providers</a>},
-        <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/context/struct.TyCtxt.html">TyCtxt</a>,
+        <span class="self">self</span>,
+        query::{query_values::mir_borrowck, ExternProviders, Providers},
+        TyCtxt,
     },
     session::Session,
 };
@@ -148,45 +149,45 @@
 // necessary; for crates which won&#39;t be verified or spec_fns it suffices to load just the fn body
 
 </span><span class="attr">#[allow(clippy::needless_lifetimes)]
-</span><span class="kw">fn </span>mir_borrowck&lt;<span class="lifetime">&#39;tcx</span>&gt;(tcx: TyCtxt&lt;<span class="lifetime">&#39;tcx</span>&gt;, def_id: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.LocalDefId.html">LocalDefId</a>) -&gt; mir_borrowck&lt;<span class="lifetime">&#39;tcx</span>&gt; {
+</span><span class="kw">fn </span>mir_borrowck&lt;<span class="lifetime">&#39;tcx</span>&gt;(tcx: TyCtxt&lt;<span class="lifetime">&#39;tcx</span>&gt;, def_id: LocalDefId) -&gt; mir_borrowck&lt;<span class="lifetime">&#39;tcx</span>&gt; {
     <span class="comment">// *Don&#39;t take MIR bodies with borrowck info if we won&#39;t need them*
     </span><span class="kw">if </span>!is_spec_fn(tcx, def_id.to_def_id()) {
         <span class="kw">let </span>body_with_facts =
             prusti_rustc_interface::borrowck::consumers::get_body_with_borrowck_facts(
-                <a href="#26">tcx</a>,
-                ty::WithOptConstParam::unknown(<a href="#26">def_id</a>),
+                tcx,
+                ty::WithOptConstParam::unknown(def_id),
             );
         <span class="comment">// SAFETY: This is safe because we are feeding in the same `tcx` that is
         // going to be used as a witness when pulling out the data.
         </span><span class="kw">unsafe </span>{
-            mir_storage::store_mir_body(<a href="#26">tcx</a>, <a href="#26">def_id</a>, <a href="#29">body_with_facts</a>);
+            mir_storage::store_mir_body(tcx, def_id, body_with_facts);
         }
     }
     <span class="kw">let </span><span class="kw-2">mut </span>providers = Providers::default();
-    prusti_rustc_interface::borrowck::provide(<span class="kw-2">&amp;mut </span><a href="#40">providers</a>);
-    <span class="kw">let </span>original_mir_borrowck = <a href="#40">providers</a>.mir_borrowck;
-    <a href="#42">original_mir_borrowck</a>(<a href="#26">tcx</a>, <a href="#26">def_id</a>)
+    prusti_rustc_interface::borrowck::provide(<span class="kw-2">&amp;mut </span>providers);
+    <span class="kw">let </span>original_mir_borrowck = providers.mir_borrowck;
+    original_mir_borrowck(tcx, def_id)
 }
 
-<span class="kw">fn </span>override_queries(_session: <span class="kw-2">&amp;</span>Session, local: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/query/struct.Providers.html">Providers</a>, _external: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/query/struct.ExternProviders.html">ExternProviders</a>) {
-    <a href="#46">local</a>.mir_borrowck = <a href="#26">mir_borrowck</a>;
+<span class="kw">fn </span>override_queries(_session: <span class="kw-2">&amp;</span>Session, local: <span class="kw-2">&amp;mut </span>Providers, _external: <span class="kw-2">&amp;mut </span>ExternProviders) {
+    local.mir_borrowck = mir_borrowck;
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_driver/trait.Callbacks.html">prusti_rustc_interface::driver::Callbacks</a> <span class="kw">for </span><a href="#20">PrustiCompilerCalls</a> {
+<span class="kw">impl </span>prusti_rustc_interface::driver::Callbacks <span class="kw">for </span>PrustiCompilerCalls {
     <span class="kw">fn </span>config(<span class="kw-2">&amp;mut </span><span class="self">self</span>, config: <span class="kw-2">&amp;mut </span>Config) {
         <span class="comment">// *Don&#39;t take MIR bodies with borrowck info if we won&#39;t need them*
         </span><span class="kw">if </span>!config::no_verify() {
-            <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(config.override_queries.is_none());
-            <a href="#51">config</a>.override_queries = <span class="prelude-val">Some</span>(<a href="#46">override_queries</a>);
+            <span class="macro">assert!</span>(config.override_queries.is_none());
+            config.override_queries = <span class="prelude-val">Some</span>(override_queries);
         }
     }
     <span class="kw">fn </span>after_expansion&lt;<span class="lifetime">&#39;tcx</span>&gt;(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         compiler: <span class="kw-2">&amp;</span>Compiler,
         queries: <span class="kw-2">&amp;</span><span class="lifetime">&#39;tcx </span>Queries&lt;<span class="lifetime">&#39;tcx</span>&gt;,
-    ) -&gt; <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_driver/enum.Compilation.html">Compilation</a> {
+    ) -&gt; Compilation {
         <span class="kw">if </span>compiler.session().rust_2015() {
-            <a href="#60">compiler</a>
+            compiler
                 .session()
                 .struct_warn(
                     <span class="string">&quot;Prusti specifications are supported only from 2018 edition. Please \
@@ -195,13 +196,14 @@
                 )
                 .emit();
         }
-        <a href="#60">compiler</a>.session().abort_if_errors();
-        <span class="kw">let </span>(krate, _resolver, _lint_store) = <span class="kw-2">&amp;mut *</span><a href="#61">queries</a>.expansion().unwrap().peek_mut();
+        compiler.session().abort_if_errors();
+        <span class="kw">let </span><span class="kw-2">mut </span>expansion_result = queries.expansion().unwrap();
+        <span class="kw">let </span>(krate, _resolver, _lint_store) = expansion_result.get_mut();
         <span class="kw">if </span>config::print_desugared_specs() {
             prusti_rustc_interface::driver::pretty::print_after_parsing(
-                <a href="#60">compiler</a>.session(),
-                <a href="#60">compiler</a>.input(),
-                <a href="#74">krate</a>,
+                compiler.session(),
+                compiler.input(),
+                krate,
                 prusti_rustc_interface::session::config::PpMode::Source(
                     prusti_rustc_interface::session::config::PpSourceMode::Normal,
                 ),
@@ -214,33 +216,33 @@
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         compiler: <span class="kw-2">&amp;</span>Compiler,
         queries: <span class="kw-2">&amp;</span><span class="lifetime">&#39;tcx </span>Queries&lt;<span class="lifetime">&#39;tcx</span>&gt;,
-    ) -&gt; <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_driver/enum.Compilation.html">Compilation</a> {
-        <a href="#90">compiler</a>.session().abort_if_errors();
-        <a href="#91">queries</a>.global_ctxt().unwrap().peek_mut().enter(|tcx| {
-            <span class="kw">let </span><span class="kw-2">mut </span>env = Environment::new(<a href="#94">tcx</a>, <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.env.html">env!</a>(<span class="string">&quot;CARGO_PKG_VERSION&quot;</span>));
+    ) -&gt; Compilation {
+        compiler.session().abort_if_errors();
+        queries.global_ctxt().unwrap().enter(|tcx| {
+            <span class="kw">let </span><span class="kw-2">mut </span>env = Environment::new(tcx, <span class="macro">env!</span>(<span class="string">&quot;CARGO_PKG_VERSION&quot;</span>));
             <span class="kw">let </span>spec_checker = specs::checker::SpecChecker::new();
-            <a href="#96">spec_checker</a>.check(<span class="kw-2">&amp;</span><a href="#95">env</a>);
-            <a href="#90">compiler</a>.session().abort_if_errors();
+            spec_checker.check(<span class="kw-2">&amp;</span>env);
+            compiler.session().abort_if_errors();
 
-            <span class="kw">let </span>hir = <a href="#95">env</a>.query.hir();
-            <span class="kw">let </span><span class="kw-2">mut </span>spec_collector = specs::SpecCollector::new(<span class="kw-2">&amp;mut </span><a href="#95">env</a>);
-            <a href="#100">hir</a>.walk_toplevel_module(<span class="kw-2">&amp;mut </span><a href="#101">spec_collector</a>);
-            <a href="#100">hir</a>.walk_attributes(<span class="kw-2">&amp;mut </span><a href="#101">spec_collector</a>);
+            <span class="kw">let </span>hir = env.query.hir();
+            <span class="kw">let </span><span class="kw-2">mut </span>spec_collector = specs::SpecCollector::new(<span class="kw-2">&amp;mut </span>env);
+            hir.walk_toplevel_module(<span class="kw-2">&amp;mut </span>spec_collector);
+            hir.walk_attributes(<span class="kw-2">&amp;mut </span>spec_collector);
 
-            <span class="kw">let </span><span class="kw-2">mut </span>def_spec = <a href="#101">spec_collector</a>.build_def_specs();
+            <span class="kw">let </span><span class="kw-2">mut </span>def_spec = spec_collector.build_def_specs();
             <span class="comment">// Do print_typeckd_specs prior to importing cross crate
             </span><span class="kw">if </span>config::print_typeckd_specs() {
                 <span class="kw">for </span>value <span class="kw">in </span>def_spec.all_values_debug(config::hide_uuids()) {
-                    <span class="macro">println!</span>(<span class="string">&quot;{}&quot;</span>, value);
+                    <span class="macro">println!</span>(<span class="string">&quot;{value}&quot;</span>);
                 }
             }
-            CrossCrateSpecs::import_export_cross_crate(<span class="kw-2">&amp;mut </span><a href="#95">env</a>, <span class="kw-2">&amp;mut </span><a href="#105">def_spec</a>);
+            CrossCrateSpecs::import_export_cross_crate(<span class="kw-2">&amp;mut </span>env, <span class="kw-2">&amp;mut </span>def_spec);
             <span class="kw">if </span>!config::no_verify() {
-                <a href="verifier.rs.html#12">verify</a>(<a href="#95">env</a>, <a href="#105">def_spec</a>);
+                verify(env, def_spec);
             }
         });
 
-        <a href="#90">compiler</a>.session().abort_if_errors();
+        compiler.session().abort_if_errors();
         <span class="kw">if </span>config::full_compilation() {
             Compilation::Continue
         } <span class="kw">else </span>{
@@ -249,4 +251,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="prusti_driver" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="prusti_driver" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

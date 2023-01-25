@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/derive_more-0.99.17/src/parsing.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>parsing.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../derive_more/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/derive_more-0.99.17/src/parsing.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>parsing.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../derive_more/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -881,33 +881,33 @@
 <a href="#881" id="881">881</a>
 <a href="#882" id="882">882</a>
 <a href="#883" id="883">883</a>
-</pre><pre class="rust"><code><span class="kw">use </span><span class="self">self</span>::RuleResult::{<a href="#13">Failed</a>, <a href="#12">Matched</a>};
-<span class="kw">fn </span>escape_default(s: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a> {
-    <a href="#2">s</a>.chars().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">flat_map</a>(|c| <a href="#3">c</a>.escape_default()).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>()
+</pre><pre class="rust"><code><span class="kw">use </span><span class="self">self</span>::RuleResult::{Failed, Matched};
+<span class="kw">fn </span>escape_default(s: <span class="kw-2">&amp;</span>str) -&gt; String {
+    s.chars().flat_map(|c| c.escape_default()).collect()
 }
-<span class="kw">fn </span>char_range_at(s: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, pos: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; (<a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
-    <span class="kw">let </span>c = <span class="kw-2">&amp;</span><a href="#5">s</a>[<a href="#5">pos</a>..].chars().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>().unwrap();
-    <span class="kw">let </span>next_pos = <a href="#5">pos</a> + <a href="#6">c</a>.len_utf8();
-    (<span class="kw-2">*</span><a href="#6">c</a>, <a href="#7">next_pos</a>)
+<span class="kw">fn </span>char_range_at(s: <span class="kw-2">&amp;</span>str, pos: usize) -&gt; (char, usize) {
+    <span class="kw">let </span>c = <span class="kw-2">&amp;</span>s[pos..].chars().next().unwrap();
+    <span class="kw">let </span>next_pos = pos + c.len_utf8();
+    (<span class="kw-2">*</span>c, next_pos)
 }
 <span class="attr">#[derive(Clone)]
 </span><span class="kw">enum </span>RuleResult&lt;T&gt; {
-    Matched(<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, T),
+    Matched(usize, T),
     Failed,
 }
 <span class="attr">#[derive(PartialEq, Eq, Debug, Clone)]
 </span><span class="kw">pub struct </span>ParseError {
-    <span class="kw">pub </span>line: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-    <span class="kw">pub </span>column: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-    <span class="kw">pub </span>offset: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-    <span class="kw">pub </span>expected: ::std::collections::HashSet&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt;,
+    <span class="kw">pub </span>line: usize,
+    <span class="kw">pub </span>column: usize,
+    <span class="kw">pub </span>offset: usize,
+    <span class="kw">pub </span>expected: ::std::collections::HashSet&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str&gt;,
 }
-<span class="kw">pub type </span>ParseResult&lt;T&gt; = <span class="prelude-ty">Result</span>&lt;T, <a href="#16">ParseError</a>&gt;;
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">::std::fmt::Display</a> <span class="kw">for </span><a href="#16">ParseError</a> {
+<span class="kw">pub type </span>ParseResult&lt;T&gt; = <span class="prelude-ty">Result</span>&lt;T, ParseError&gt;;
+<span class="kw">impl </span>::std::fmt::Display <span class="kw">for </span>ParseError {
     <span class="kw">fn </span>fmt(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        fmt: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">::std::fmt::Formatter</a>,
-    ) -&gt; ::std::result::Result&lt;(), <a href="https://doc.rust-lang.org/nightly/core/fmt/struct.Error.html">::std::fmt::Error</a>&gt; {
+        fmt: <span class="kw-2">&amp;mut </span>::std::fmt::Formatter,
+    ) -&gt; ::std::result::Result&lt;(), ::std::fmt::Error&gt; {
         <span class="macro">write!</span>(fmt, <span class="string">&quot;error at {}:{}: expected &quot;</span>, <span class="self">self</span>.line, <span class="self">self</span>.column)<span class="question-mark">?</span>;
         <span class="kw">if </span><span class="self">self</span>.expected.len() == <span class="number">0 </span>{
             <span class="macro">write!</span>(fmt, <span class="string">&quot;EOF&quot;</span>)<span class="question-mark">?</span>;
@@ -918,7 +918,7 @@
                 escape_default(<span class="self">self</span>.expected.iter().next().unwrap())
             )<span class="question-mark">?</span>;
         } <span class="kw">else </span>{
-            <span class="kw">let </span><span class="kw-2">mut </span>iter = <a class="self" href="#25">self</a>.expected.iter();
+            <span class="kw">let </span><span class="kw-2">mut </span>iter = <span class="self">self</span>.expected.iter();
             <span class="macro">write!</span>(fmt, <span class="string">&quot;one of `{}`&quot;</span>, escape_default(iter.next().unwrap()))<span class="question-mark">?</span>;
             <span class="kw">for </span>elem <span class="kw">in </span>iter {
                 <span class="macro">write!</span>(fmt, <span class="string">&quot;, `{}`&quot;</span>, escape_default(elem))<span class="question-mark">?</span>;
@@ -927,36 +927,36 @@
         <span class="prelude-val">Ok</span>(())
     }
 }
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">::std::error::Error</a> <span class="kw">for </span><a href="#16">ParseError</a> {
-    <span class="kw">fn </span>description(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> {
+<span class="kw">impl </span>::std::error::Error <span class="kw">for </span>ParseError {
+    <span class="kw">fn </span>description(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>str {
         <span class="string">&quot;parse error&quot;
     </span>}
 }
 <span class="kw">fn </span>slice_eq(
-    input: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>,
-    state: <span class="kw-2">&amp;mut </span><a href="#116">ParseState</a>,
-    pos: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-    m: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>,
+    input: <span class="kw-2">&amp;</span>str,
+    state: <span class="kw-2">&amp;mut </span>ParseState,
+    pos: usize,
+    m: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
 ) -&gt; RuleResult&lt;()&gt; {
     <span class="attr">#![inline]
     #![allow(dead_code)]
-    </span><span class="kw">let </span>l = <a href="#56">m</a>.len();
+    </span><span class="kw">let </span>l = m.len();
     <span class="kw">if </span>input.len() &gt;= pos + l &amp;&amp; <span class="kw-2">&amp;</span>input.as_bytes()[pos..pos + l] == m.as_bytes() {
-        <a href="#12">Matched</a>(<a href="#55">pos</a> + <a href="#60">l</a>, ())
+        Matched(pos + l, ())
     } <span class="kw">else </span>{
-        <a href="#54">state</a>.<a href="#103">mark_failure</a>(<a href="#55">pos</a>, <a href="#56">m</a>)
+        state.mark_failure(pos, m)
     }
 }
 <span class="kw">fn </span>slice_eq_case_insensitive(
-    input: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>,
-    state: <span class="kw-2">&amp;mut </span><a href="#116">ParseState</a>,
-    pos: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-    m: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>,
+    input: <span class="kw-2">&amp;</span>str,
+    state: <span class="kw-2">&amp;mut </span>ParseState,
+    pos: usize,
+    m: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
 ) -&gt; RuleResult&lt;()&gt; {
     <span class="attr">#![inline]
     #![allow(dead_code)]
     </span><span class="kw">let </span><span class="kw-2">mut </span>used = <span class="number">0usize</span>;
-    <span class="kw">let </span><span class="kw-2">mut </span>input_iter = <a href="#68">input</a>[<a href="#70">pos</a>..].chars().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">flat_map</a>(|x| <a href="#76">x</a>.to_uppercase());
+    <span class="kw">let </span><span class="kw-2">mut </span>input_iter = input[pos..].chars().flat_map(|x| x.to_uppercase());
     <span class="kw">for </span>m_char_upper <span class="kw">in </span>m.chars().flat_map(|x| x.to_uppercase()) {
         used += m_char_upper.len_utf8();
         <span class="kw">let </span>input_char_result = input_iter.next();
@@ -964,47 +964,47 @@
             <span class="kw">return </span>state.mark_failure(pos, m);
         }
     }
-    <a href="#12">Matched</a>(<a href="#70">pos</a> + <a href="#75">used</a>, ())
+    Matched(pos + used, ())
 }
-<span class="kw">fn </span>any_char(input: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, state: <span class="kw-2">&amp;mut </span><a href="#116">ParseState</a>, pos: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; RuleResult&lt;()&gt; {
+<span class="kw">fn </span>any_char(input: <span class="kw-2">&amp;</span>str, state: <span class="kw-2">&amp;mut </span>ParseState, pos: usize) -&gt; RuleResult&lt;()&gt; {
     <span class="attr">#![inline]
     #![allow(dead_code)]
     </span><span class="kw">if </span>input.len() &gt; pos {
-        <span class="kw">let </span>(<span class="kw">_</span>, next) = <a href="#5">char_range_at</a>(<a href="#86">input</a>, <a href="#86">pos</a>);
-        <a href="#12">Matched</a>(<a href="#90">next</a>, ())
+        <span class="kw">let </span>(<span class="kw">_</span>, next) = char_range_at(input, pos);
+        Matched(next, ())
     } <span class="kw">else </span>{
-        <a href="#86">state</a>.<a href="#103">mark_failure</a>(<a href="#86">pos</a>, <span class="string">&quot;&lt;character&gt;&quot;</span>)
+        state.mark_failure(pos, <span class="string">&quot;&lt;character&gt;&quot;</span>)
     }
 }
-<span class="kw">fn </span>pos_to_line(input: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, pos: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; (<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
-    <span class="kw">let </span>before = <span class="kw-2">&amp;</span><a href="#96">input</a>[..<a href="#96">pos</a>];
-    <span class="kw">let </span>line = <a href="#97">before</a>.as_bytes().iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter</a>(|&amp;&amp;c| <a href="#98">c</a> == <span class="string">b&#39;\n&#39;</span>).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">count</a>() + <span class="number">1</span>;
-    <span class="kw">let </span>col = <a href="#97">before</a>.chars().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">rev</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">take_while</a>(|<span class="kw-2">&amp;</span>c| <a href="#99">c</a> != <span class="string">&#39;\n&#39;</span>).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">count</a>() + <span class="number">1</span>;
-    (<a href="#98">line</a>, <a href="#99">col</a>)
+<span class="kw">fn </span>pos_to_line(input: <span class="kw-2">&amp;</span>str, pos: usize) -&gt; (usize, usize) {
+    <span class="kw">let </span>before = <span class="kw-2">&amp;</span>input[..pos];
+    <span class="kw">let </span>line = before.as_bytes().iter().filter(|&amp;&amp;c| c == <span class="string">b&#39;\n&#39;</span>).count() + <span class="number">1</span>;
+    <span class="kw">let </span>col = before.chars().rev().take_while(|<span class="kw-2">&amp;</span>c| c != <span class="string">&#39;\n&#39;</span>).count() + <span class="number">1</span>;
+    (line, col)
 }
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;input</span>&gt; ParseState&lt;<span class="lifetime">&#39;input</span>&gt; {
-    <span class="kw">fn </span>mark_failure(<span class="kw-2">&amp;mut </span><span class="self">self</span>, pos: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, expected: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; RuleResult&lt;()&gt; {
+    <span class="kw">fn </span>mark_failure(<span class="kw-2">&amp;mut </span><span class="self">self</span>, pos: usize, expected: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str) -&gt; RuleResult&lt;()&gt; {
         <span class="kw">if </span><span class="self">self</span>.suppress_fail == <span class="number">0 </span>{
             <span class="kw">if </span>pos &gt; <span class="self">self</span>.max_err_pos {
-                <a class="self" href="#103">self</a>.max_err_pos = <a href="#103">pos</a>;
-                <a class="self" href="#103">self</a>.expected.clear();
+                <span class="self">self</span>.max_err_pos = pos;
+                <span class="self">self</span>.expected.clear();
             }
             <span class="kw">if </span>pos == <span class="self">self</span>.max_err_pos {
-                <a class="self" href="#103">self</a>.expected.insert(<a href="#103">expected</a>);
+                <span class="self">self</span>.expected.insert(expected);
             }
         }
-        <a href="#13">Failed</a>
+        Failed
     }
 }
 <span class="kw">struct </span>ParseState&lt;<span class="lifetime">&#39;input</span>&gt; {
-    max_err_pos: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-    suppress_fail: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-    expected: ::std::collections::HashSet&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt;,
+    max_err_pos: usize,
+    suppress_fail: usize,
+    expected: ::std::collections::HashSet&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str&gt;,
     _phantom: ::std::marker::PhantomData&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;input </span>()&gt;,
 }
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;input</span>&gt; ParseState&lt;<span class="lifetime">&#39;input</span>&gt; {
     <span class="kw">fn </span>new() -&gt; ParseState&lt;<span class="lifetime">&#39;input</span>&gt; {
-        <a href="#116">ParseState</a> {
+        ParseState {
             max_err_pos: <span class="number">0</span>,
             suppress_fail: <span class="number">0</span>,
             expected: ::std::collections::HashSet::new(),
@@ -1014,275 +1014,275 @@
 }
 
 <span class="kw">fn </span>__parse_discard_doubles&lt;<span class="lifetime">&#39;input</span>&gt;(
-    __input: <span class="kw-2">&amp;</span><span class="lifetime">&#39;input </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>,
+    __input: <span class="kw-2">&amp;</span><span class="lifetime">&#39;input </span>str,
     __state: <span class="kw-2">&amp;mut </span>ParseState&lt;<span class="lifetime">&#39;input</span>&gt;,
-    __pos: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-) -&gt; RuleResult&lt;<span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;input </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt;&gt; {
+    __pos: usize,
+) -&gt; RuleResult&lt;<span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;input </span>str&gt;&gt; {
     <span class="attr">#![allow(non_snake_case, unused)]
     </span>{
         <span class="kw">let </span>__seq_res = {
             <span class="kw">let </span>__choice_res = {
-                <span class="kw">let </span>__seq_res = <a href="#52-57">slice_eq</a>(<a href="#134">__input</a>, <a href="#135">__state</a>, <a href="#136">__pos</a>, <span class="string">&quot;{&quot;</span>);
-                <span class="kw">match </span><a href="#142">__seq_res</a> {
-                    <a href="#12">Matched</a>(__pos, <span class="kw">_</span>) =&gt; <a href="#52-57">slice_eq</a>(<a href="#134">__input</a>, <a href="#135">__state</a>, <a href="#144">__pos</a>, <span class="string">&quot;{&quot;</span>),
-                    <a href="#13">Failed</a> =&gt; <a href="#13">Failed</a>,
+                <span class="kw">let </span>__seq_res = slice_eq(__input, __state, __pos, <span class="string">&quot;{&quot;</span>);
+                <span class="kw">match </span>__seq_res {
+                    Matched(__pos, <span class="kw">_</span>) =&gt; slice_eq(__input, __state, __pos, <span class="string">&quot;{&quot;</span>),
+                    Failed =&gt; Failed,
                 }
             };
-            <span class="kw">match </span><a href="#141">__choice_res</a> {
-                <a href="#12">Matched</a>(__pos, __value) =&gt; <a href="#12">Matched</a>(<a href="#149">__pos</a>, <a href="#149">__value</a>),
-                <a href="#13">Failed</a> =&gt; {
-                    <span class="kw">let </span>__seq_res = <a href="#52-57">slice_eq</a>(<a href="#134">__input</a>, <a href="#135">__state</a>, <a href="#136">__pos</a>, <span class="string">&quot;}&quot;</span>);
-                    <span class="kw">match </span><a href="#151">__seq_res</a> {
-                        <a href="#12">Matched</a>(__pos, <span class="kw">_</span>) =&gt; <a href="#52-57">slice_eq</a>(<a href="#134">__input</a>, <a href="#135">__state</a>, <a href="#153">__pos</a>, <span class="string">&quot;}&quot;</span>),
-                        <a href="#13">Failed</a> =&gt; <a href="#13">Failed</a>,
+            <span class="kw">match </span>__choice_res {
+                Matched(__pos, __value) =&gt; Matched(__pos, __value),
+                Failed =&gt; {
+                    <span class="kw">let </span>__seq_res = slice_eq(__input, __state, __pos, <span class="string">&quot;}&quot;</span>);
+                    <span class="kw">match </span>__seq_res {
+                        Matched(__pos, <span class="kw">_</span>) =&gt; slice_eq(__input, __state, __pos, <span class="string">&quot;}&quot;</span>),
+                        Failed =&gt; Failed,
                     }
                 }
             }
         };
-        <span class="kw">match </span><a href="#140">__seq_res</a> {
-            <a href="#12">Matched</a>(__pos, <span class="kw">_</span>) =&gt; <a href="#12">Matched</a>(<a href="#160">__pos</a>, { <span class="prelude-val">None </span>}),
-            <a href="#13">Failed</a> =&gt; <a href="#13">Failed</a>,
+        <span class="kw">match </span>__seq_res {
+            Matched(__pos, <span class="kw">_</span>) =&gt; Matched(__pos, { <span class="prelude-val">None </span>}),
+            Failed =&gt; Failed,
         }
     }
 }
 
 <span class="kw">fn </span>__parse_placeholder_inner&lt;<span class="lifetime">&#39;input</span>&gt;(
-    __input: <span class="kw-2">&amp;</span><span class="lifetime">&#39;input </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>,
+    __input: <span class="kw-2">&amp;</span><span class="lifetime">&#39;input </span>str,
     __state: <span class="kw-2">&amp;mut </span>ParseState&lt;<span class="lifetime">&#39;input</span>&gt;,
-    __pos: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-) -&gt; RuleResult&lt;<span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;input </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt;&gt; {
+    __pos: usize,
+) -&gt; RuleResult&lt;<span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;input </span>str&gt;&gt; {
     <span class="attr">#![allow(non_snake_case, unused)]
     </span>{
         <span class="kw">let </span>__seq_res = {
-            <span class="kw">let </span>str_start = <a href="#169">__pos</a>;
+            <span class="kw">let </span>str_start = __pos;
             <span class="kw">match </span>{
                 <span class="kw">let </span>__seq_res = <span class="kw">if </span>__input.len() &gt; __pos {
-                    <span class="kw">let </span>(__ch, __next) = <a href="#5">char_range_at</a>(<a href="#167">__input</a>, <a href="#169">__pos</a>);
-                    <span class="kw">match </span><a href="#177">__ch</a> {
-                        <span class="string">&#39;{&#39; </span>=&gt; <a href="#12">Matched</a>(<a href="#177">__next</a>, ()),
-                        <span class="kw">_ </span>=&gt; <a href="#168">__state</a>.<a href="#103">mark_failure</a>(<a href="#169">__pos</a>, <span class="string">&quot;[{]&quot;</span>),
+                    <span class="kw">let </span>(__ch, __next) = char_range_at(__input, __pos);
+                    <span class="kw">match </span>__ch {
+                        <span class="string">&#39;{&#39; </span>=&gt; Matched(__next, ()),
+                        <span class="kw">_ </span>=&gt; __state.mark_failure(__pos, <span class="string">&quot;[{]&quot;</span>),
                     }
                 } <span class="kw">else </span>{
-                    <a href="#168">__state</a>.<a href="#103">mark_failure</a>(<a href="#169">__pos</a>, <span class="string">&quot;[{]&quot;</span>)
+                    __state.mark_failure(__pos, <span class="string">&quot;[{]&quot;</span>)
                 };
-                <span class="kw">match </span><a href="#176">__seq_res</a> {
-                    <a href="#12">Matched</a>(__pos, <span class="kw">_</span>) =&gt; {
+                <span class="kw">match </span>__seq_res {
+                    Matched(__pos, <span class="kw">_</span>) =&gt; {
                         <span class="kw">let </span>__seq_res = {
-                            <span class="kw">let </span><span class="kw-2">mut </span>__repeat_pos = <a href="#186">__pos</a>;
+                            <span class="kw">let </span><span class="kw-2">mut </span>__repeat_pos = __pos;
                             <span class="kw">loop </span>{
-                                <span class="kw">let </span>__pos = <a href="#188">__repeat_pos</a>;
+                                <span class="kw">let </span>__pos = __repeat_pos;
                                 <span class="kw">let </span>__step_res = {
                                     <span class="kw">let </span>__seq_res = {
-                                        <a href="#168">__state</a>.suppress_fail += <span class="number">1</span>;
+                                        __state.suppress_fail += <span class="number">1</span>;
                                         <span class="kw">let </span>__assert_res = <span class="kw">if </span>__input.len() &gt; __pos {
                                             <span class="kw">let </span>(__ch, __next) =
-                                                <a href="#5">char_range_at</a>(<a href="#167">__input</a>, <a href="#190">__pos</a>);
-                                            <span class="kw">match </span><a href="#195">__ch</a> {
-                                                <span class="string">&#39;{&#39; </span>| <span class="string">&#39;}&#39; </span>=&gt; <a href="#12">Matched</a>(<a href="#195">__next</a>, ()),
+                                                char_range_at(__input, __pos);
+                                            <span class="kw">match </span>__ch {
+                                                <span class="string">&#39;{&#39; </span>| <span class="string">&#39;}&#39; </span>=&gt; Matched(__next, ()),
                                                 <span class="kw">_ </span>=&gt; {
-                                                    <a href="#168">__state</a>.<a href="#103">mark_failure</a>(<a href="#190">__pos</a>, <span class="string">&quot;[{}]&quot;</span>)
+                                                    __state.mark_failure(__pos, <span class="string">&quot;[{}]&quot;</span>)
                                                 }
                                             }
                                         } <span class="kw">else </span>{
-                                            <a href="#168">__state</a>.<a href="#103">mark_failure</a>(<a href="#190">__pos</a>, <span class="string">&quot;[{}]&quot;</span>)
+                                            __state.mark_failure(__pos, <span class="string">&quot;[{}]&quot;</span>)
                                         };
-                                        <a href="#168">__state</a>.suppress_fail -= <span class="number">1</span>;
-                                        <span class="kw">match </span><a href="#194">__assert_res</a> {
-                                            <a href="#13">Failed</a> =&gt; <a href="#12">Matched</a>(<a href="#190">__pos</a>, ()),
-                                            <a href="#12">Matched</a>(..) =&gt; <a href="#13">Failed</a>,
+                                        __state.suppress_fail -= <span class="number">1</span>;
+                                        <span class="kw">match </span>__assert_res {
+                                            Failed =&gt; Matched(__pos, ()),
+                                            Matched(..) =&gt; Failed,
                                         }
                                     };
-                                    <span class="kw">match </span><a href="#192">__seq_res</a> {
-                                        <a href="#12">Matched</a>(__pos, <span class="kw">_</span>) =&gt; {
-                                            <a href="#86">any_char</a>(<a href="#167">__input</a>, <a href="#168">__state</a>, <a href="#213">__pos</a>)
+                                    <span class="kw">match </span>__seq_res {
+                                        Matched(__pos, <span class="kw">_</span>) =&gt; {
+                                            any_char(__input, __state, __pos)
                                         }
-                                        <a href="#13">Failed</a> =&gt; <a href="#13">Failed</a>,
+                                        Failed =&gt; Failed,
                                     }
                                 };
-                                <span class="kw">match </span><a href="#191">__step_res</a> {
-                                    <a href="#12">Matched</a>(__newpos, __value) =&gt; {
-                                        <a href="#188">__repeat_pos</a> = <a href="#220">__newpos</a>;
+                                <span class="kw">match </span>__step_res {
+                                    Matched(__newpos, __value) =&gt; {
+                                        __repeat_pos = __newpos;
                                     }
-                                    <a href="#13">Failed</a> =&gt; {
+                                    Failed =&gt; {
                                         <span class="kw">break</span>;
                                     }
                                 }
                             }
-                            <a href="#12">Matched</a>(<a href="#188">__repeat_pos</a>, ())
+                            Matched(__repeat_pos, ())
                         };
-                        <span class="kw">match </span><a href="#187">__seq_res</a> {
-                            <a href="#12">Matched</a>(__pos, <span class="kw">_</span>) =&gt; {
+                        <span class="kw">match </span>__seq_res {
+                            Matched(__pos, <span class="kw">_</span>) =&gt; {
                                 <span class="kw">if </span>__input.len() &gt; __pos {
-                                    <span class="kw">let </span>(__ch, __next) = <a href="#5">char_range_at</a>(<a href="#167">__input</a>, <a href="#231">__pos</a>);
-                                    <span class="kw">match </span><a href="#233">__ch</a> {
-                                        <span class="string">&#39;}&#39; </span>=&gt; <a href="#12">Matched</a>(<a href="#233">__next</a>, ()),
-                                        <span class="kw">_ </span>=&gt; <a href="#168">__state</a>.<a href="#103">mark_failure</a>(<a href="#231">__pos</a>, <span class="string">&quot;[}]&quot;</span>),
+                                    <span class="kw">let </span>(__ch, __next) = char_range_at(__input, __pos);
+                                    <span class="kw">match </span>__ch {
+                                        <span class="string">&#39;}&#39; </span>=&gt; Matched(__next, ()),
+                                        <span class="kw">_ </span>=&gt; __state.mark_failure(__pos, <span class="string">&quot;[}]&quot;</span>),
                                     }
                                 } <span class="kw">else </span>{
-                                    <a href="#168">__state</a>.<a href="#103">mark_failure</a>(<a href="#231">__pos</a>, <span class="string">&quot;[}]&quot;</span>)
+                                    __state.mark_failure(__pos, <span class="string">&quot;[}]&quot;</span>)
                                 }
                             }
-                            <a href="#13">Failed</a> =&gt; <a href="#13">Failed</a>,
+                            Failed =&gt; Failed,
                         }
                     }
-                    <a href="#13">Failed</a> =&gt; <a href="#13">Failed</a>,
+                    Failed =&gt; Failed,
                 }
             } {
-                <a href="#12">Matched</a>(__newpos, <span class="kw">_</span>) =&gt; {
-                    <a href="#12">Matched</a>(<a href="#248">__newpos</a>, <span class="kw-2">&amp;</span><a href="#167">__input</a>[<a href="#174">str_start</a>..<a href="#248">__newpos</a>])
+                Matched(__newpos, <span class="kw">_</span>) =&gt; {
+                    Matched(__newpos, <span class="kw-2">&amp;</span>__input[str_start..__newpos])
                 }
-                <a href="#13">Failed</a> =&gt; <a href="#13">Failed</a>,
+                Failed =&gt; Failed,
             }
         };
-        <span class="kw">match </span><a href="#173">__seq_res</a> {
-            <a href="#12">Matched</a>(__pos, n) =&gt; <a href="#12">Matched</a>(<a href="#255">__pos</a>, { <span class="prelude-val">Some</span>(<a href="#255">n</a>) }),
-            <a href="#13">Failed</a> =&gt; <a href="#13">Failed</a>,
+        <span class="kw">match </span>__seq_res {
+            Matched(__pos, n) =&gt; Matched(__pos, { <span class="prelude-val">Some</span>(n) }),
+            Failed =&gt; Failed,
         }
     }
 }
 
 <span class="kw">fn </span>__parse_discard_any&lt;<span class="lifetime">&#39;input</span>&gt;(
-    __input: <span class="kw-2">&amp;</span><span class="lifetime">&#39;input </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>,
+    __input: <span class="kw-2">&amp;</span><span class="lifetime">&#39;input </span>str,
     __state: <span class="kw-2">&amp;mut </span>ParseState&lt;<span class="lifetime">&#39;input</span>&gt;,
-    __pos: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-) -&gt; RuleResult&lt;<span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;input </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt;&gt; {
+    __pos: usize,
+) -&gt; RuleResult&lt;<span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;input </span>str&gt;&gt; {
     <span class="attr">#![allow(non_snake_case, unused)]
     </span>{
-        <span class="kw">let </span>__seq_res = <a href="#86">any_char</a>(<a href="#262">__input</a>, <a href="#263">__state</a>, <a href="#264">__pos</a>);
-        <span class="kw">match </span><a href="#268">__seq_res</a> {
-            <a href="#12">Matched</a>(__pos, <span class="kw">_</span>) =&gt; <a href="#12">Matched</a>(<a href="#270">__pos</a>, { <span class="prelude-val">None </span>}),
-            <a href="#13">Failed</a> =&gt; <a href="#13">Failed</a>,
+        <span class="kw">let </span>__seq_res = any_char(__input, __state, __pos);
+        <span class="kw">match </span>__seq_res {
+            Matched(__pos, <span class="kw">_</span>) =&gt; Matched(__pos, { <span class="prelude-val">None </span>}),
+            Failed =&gt; Failed,
         }
     }
 }
 
 <span class="kw">fn </span>__parse_arg&lt;<span class="lifetime">&#39;input</span>&gt;(
-    __input: <span class="kw-2">&amp;</span><span class="lifetime">&#39;input </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>,
+    __input: <span class="kw-2">&amp;</span><span class="lifetime">&#39;input </span>str,
     __state: <span class="kw-2">&amp;mut </span>ParseState&lt;<span class="lifetime">&#39;input</span>&gt;,
-    __pos: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-) -&gt; RuleResult&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
+    __pos: usize,
+) -&gt; RuleResult&lt;usize&gt; {
     <span class="attr">#![allow(non_snake_case, unused)]
     </span>{
         <span class="kw">let </span>__seq_res = {
-            <span class="kw">let </span>str_start = <a href="#279">__pos</a>;
+            <span class="kw">let </span>str_start = __pos;
             <span class="kw">match </span>{
-                <span class="kw">let </span><span class="kw-2">mut </span>__repeat_pos = <a href="#279">__pos</a>;
-                <span class="kw">let </span><span class="kw-2">mut </span>__repeat_value = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[];
+                <span class="kw">let </span><span class="kw-2">mut </span>__repeat_pos = __pos;
+                <span class="kw">let </span><span class="kw-2">mut </span>__repeat_value = <span class="macro">vec!</span>[];
                 <span class="kw">loop </span>{
-                    <span class="kw">let </span>__pos = <a href="#286">__repeat_pos</a>;
+                    <span class="kw">let </span>__pos = __repeat_pos;
                     <span class="kw">let </span>__step_res = <span class="kw">if </span>__input.len() &gt; __pos {
-                        <span class="kw">let </span>(__ch, __next) = <a href="#5">char_range_at</a>(<a href="#277">__input</a>, <a href="#289">__pos</a>);
-                        <span class="kw">match </span><a href="#291">__ch</a> {
-                            <span class="string">&#39;0&#39;</span>...<span class="string">&#39;9&#39; </span>=&gt; <a href="#12">Matched</a>(<a href="#291">__next</a>, ()),
-                            <span class="kw">_ </span>=&gt; <a href="#278">__state</a>.<a href="#103">mark_failure</a>(<a href="#289">__pos</a>, <span class="string">&quot;[0-9]&quot;</span>),
+                        <span class="kw">let </span>(__ch, __next) = char_range_at(__input, __pos);
+                        <span class="kw">match </span>__ch {
+                            <span class="string">&#39;0&#39;</span>...<span class="string">&#39;9&#39; </span>=&gt; Matched(__next, ()),
+                            <span class="kw">_ </span>=&gt; __state.mark_failure(__pos, <span class="string">&quot;[0-9]&quot;</span>),
                         }
                     } <span class="kw">else </span>{
-                        <a href="#278">__state</a>.<a href="#103">mark_failure</a>(<a href="#289">__pos</a>, <span class="string">&quot;[0-9]&quot;</span>)
+                        __state.mark_failure(__pos, <span class="string">&quot;[0-9]&quot;</span>)
                     };
-                    <span class="kw">match </span><a href="#290">__step_res</a> {
-                        <a href="#12">Matched</a>(__newpos, __value) =&gt; {
-                            <a href="#286">__repeat_pos</a> = <a href="#300">__newpos</a>;
-                            <a href="#287">__repeat_value</a>.push(<a href="#300">__value</a>);
+                    <span class="kw">match </span>__step_res {
+                        Matched(__newpos, __value) =&gt; {
+                            __repeat_pos = __newpos;
+                            __repeat_value.push(__value);
                         }
-                        <a href="#13">Failed</a> =&gt; {
+                        Failed =&gt; {
                             <span class="kw">break</span>;
                         }
                     }
                 }
                 <span class="kw">if </span>__repeat_value.len() &gt;= <span class="number">1 </span>{
-                    <a href="#12">Matched</a>(<a href="#286">__repeat_pos</a>, ())
+                    Matched(__repeat_pos, ())
                 } <span class="kw">else </span>{
-                    <a href="#13">Failed</a>
+                    Failed
                 }
             } {
-                <a href="#12">Matched</a>(__newpos, <span class="kw">_</span>) =&gt; {
-                    <a href="#12">Matched</a>(<a href="#315">__newpos</a>, <span class="kw-2">&amp;</span><a href="#277">__input</a>[<a href="#284">str_start</a>..<a href="#315">__newpos</a>])
+                Matched(__newpos, <span class="kw">_</span>) =&gt; {
+                    Matched(__newpos, <span class="kw-2">&amp;</span>__input[str_start..__newpos])
                 }
-                <a href="#13">Failed</a> =&gt; <a href="#13">Failed</a>,
+                Failed =&gt; Failed,
             }
         };
-        <span class="kw">match </span><a href="#283">__seq_res</a> {
-            <a href="#12">Matched</a>(__pos, n) =&gt; <a href="#12">Matched</a>(<a href="#322">__pos</a>, { <a href="#322">n</a>.parse().unwrap() }),
-            <a href="#13">Failed</a> =&gt; <a href="#13">Failed</a>,
+        <span class="kw">match </span>__seq_res {
+            Matched(__pos, n) =&gt; Matched(__pos, { n.parse().unwrap() }),
+            Failed =&gt; Failed,
         }
     }
 }
 
 <span class="kw">fn </span>__parse_ty&lt;<span class="lifetime">&#39;input</span>&gt;(
-    __input: <span class="kw-2">&amp;</span><span class="lifetime">&#39;input </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>,
+    __input: <span class="kw-2">&amp;</span><span class="lifetime">&#39;input </span>str,
     __state: <span class="kw-2">&amp;mut </span>ParseState&lt;<span class="lifetime">&#39;input</span>&gt;,
-    __pos: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-) -&gt; RuleResult&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;input </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt; {
+    __pos: usize,
+) -&gt; RuleResult&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;input </span>str&gt; {
     <span class="attr">#![allow(non_snake_case, unused)]
     </span>{
         <span class="kw">let </span>__seq_res = {
-            <span class="kw">let </span>str_start = <a href="#331">__pos</a>;
+            <span class="kw">let </span>str_start = __pos;
             <span class="kw">match </span>{
                 <span class="kw">let </span>__choice_res = {
-                    <span class="kw">let </span>__choice_res = <a href="#52-57">slice_eq</a>(<a href="#329">__input</a>, <a href="#330">__state</a>, <a href="#331">__pos</a>, <span class="string">&quot;x?&quot;</span>);
-                    <span class="kw">match </span><a href="#339">__choice_res</a> {
-                        <a href="#12">Matched</a>(__pos, __value) =&gt; <a href="#12">Matched</a>(<a href="#341">__pos</a>, <a href="#341">__value</a>),
-                        <a href="#13">Failed</a> =&gt; <a href="#52-57">slice_eq</a>(<a href="#329">__input</a>, <a href="#330">__state</a>, <a href="#331">__pos</a>, <span class="string">&quot;X?&quot;</span>),
+                    <span class="kw">let </span>__choice_res = slice_eq(__input, __state, __pos, <span class="string">&quot;x?&quot;</span>);
+                    <span class="kw">match </span>__choice_res {
+                        Matched(__pos, __value) =&gt; Matched(__pos, __value),
+                        Failed =&gt; slice_eq(__input, __state, __pos, <span class="string">&quot;X?&quot;</span>),
                     }
                 };
-                <span class="kw">match </span><a href="#338">__choice_res</a> {
-                    <a href="#12">Matched</a>(__pos, __value) =&gt; <a href="#12">Matched</a>(<a href="#346">__pos</a>, <a href="#346">__value</a>),
-                    <a href="#13">Failed</a> =&gt; {
-                        <span class="kw">let </span>__choice_res = <a href="#52-57">slice_eq</a>(<a href="#329">__input</a>, <a href="#330">__state</a>, <a href="#331">__pos</a>, <span class="string">&quot;o&quot;</span>);
-                        <span class="kw">match </span><a href="#348">__choice_res</a> {
-                            <a href="#12">Matched</a>(__pos, __value) =&gt; <a href="#12">Matched</a>(<a href="#350">__pos</a>, <a href="#350">__value</a>),
-                            <a href="#13">Failed</a> =&gt; {
+                <span class="kw">match </span>__choice_res {
+                    Matched(__pos, __value) =&gt; Matched(__pos, __value),
+                    Failed =&gt; {
+                        <span class="kw">let </span>__choice_res = slice_eq(__input, __state, __pos, <span class="string">&quot;o&quot;</span>);
+                        <span class="kw">match </span>__choice_res {
+                            Matched(__pos, __value) =&gt; Matched(__pos, __value),
+                            Failed =&gt; {
                                 <span class="kw">let </span>__choice_res =
-                                    <a href="#52-57">slice_eq</a>(<a href="#329">__input</a>, <a href="#330">__state</a>, <a href="#331">__pos</a>, <span class="string">&quot;x&quot;</span>);
-                                <span class="kw">match </span><a href="#352">__choice_res</a> {
-                                    <a href="#12">Matched</a>(__pos, __value) =&gt; <a href="#12">Matched</a>(<a href="#355">__pos</a>, <a href="#355">__value</a>),
-                                    <a href="#13">Failed</a> =&gt; {
+                                    slice_eq(__input, __state, __pos, <span class="string">&quot;x&quot;</span>);
+                                <span class="kw">match </span>__choice_res {
+                                    Matched(__pos, __value) =&gt; Matched(__pos, __value),
+                                    Failed =&gt; {
                                         <span class="kw">let </span>__choice_res =
-                                            <a href="#52-57">slice_eq</a>(<a href="#329">__input</a>, <a href="#330">__state</a>, <a href="#331">__pos</a>, <span class="string">&quot;X&quot;</span>);
-                                        <span class="kw">match </span><a href="#357">__choice_res</a> {
-                                            <a href="#12">Matched</a>(__pos, __value) =&gt; {
-                                                <a href="#12">Matched</a>(<a href="#360">__pos</a>, <a href="#360">__value</a>)
+                                            slice_eq(__input, __state, __pos, <span class="string">&quot;X&quot;</span>);
+                                        <span class="kw">match </span>__choice_res {
+                                            Matched(__pos, __value) =&gt; {
+                                                Matched(__pos, __value)
                                             }
-                                            <a href="#13">Failed</a> =&gt; {
-                                                <span class="kw">let </span>__choice_res = <a href="#52-57">slice_eq</a>(
-                                                    <a href="#329">__input</a>, <a href="#330">__state</a>, <a href="#331">__pos</a>, <span class="string">&quot;p&quot;</span>,
+                                            Failed =&gt; {
+                                                <span class="kw">let </span>__choice_res = slice_eq(
+                                                    __input, __state, __pos, <span class="string">&quot;p&quot;</span>,
                                                 );
-                                                <span class="kw">match </span><a href="#364">__choice_res</a> {
-                                                    <a href="#12">Matched</a>(__pos, __value) =&gt; {
-                                                        <a href="#12">Matched</a>(<a href="#368">__pos</a>, <a href="#368">__value</a>)
+                                                <span class="kw">match </span>__choice_res {
+                                                    Matched(__pos, __value) =&gt; {
+                                                        Matched(__pos, __value)
                                                     }
-                                                    <a href="#13">Failed</a> =&gt; {
-                                                        <span class="kw">let </span>__choice_res = <a href="#52-57">slice_eq</a>(
-                                                            <a href="#329">__input</a>, <a href="#330">__state</a>, <a href="#331">__pos</a>,
+                                                    Failed =&gt; {
+                                                        <span class="kw">let </span>__choice_res = slice_eq(
+                                                            __input, __state, __pos,
                                                             <span class="string">&quot;b&quot;</span>,
                                                         );
-                                                        <span class="kw">match </span><a href="#372">__choice_res</a> {
-                                                            <a href="#12">Matched</a>(__pos, __value) =&gt; {
-                                                                <a href="#12">Matched</a>(<a href="#377">__pos</a>, <a href="#377">__value</a>)
+                                                        <span class="kw">match </span>__choice_res {
+                                                            Matched(__pos, __value) =&gt; {
+                                                                Matched(__pos, __value)
                                                             }
-                                                            <a href="#13">Failed</a> =&gt; {
+                                                            Failed =&gt; {
                                                                 <span class="kw">let </span>__choice_res =
-                                                                    <a href="#52-57">slice_eq</a>(
-                                                                        <a href="#329">__input</a>,
-                                                                        <a href="#330">__state</a>, <a href="#331">__pos</a>,
+                                                                    slice_eq(
+                                                                        __input,
+                                                                        __state, __pos,
                                                                         <span class="string">&quot;e&quot;</span>,
                                                                     );
-                                                                <span class="kw">match </span><a href="#381">__choice_res</a> {
-                                                                    <a href="#12">Matched</a>(
+                                                                <span class="kw">match </span>__choice_res {
+                                                                    Matched(
                                                                         __pos,
                                                                         __value,
-                                                                    ) =&gt; <a href="#12">Matched</a>(
-                                                                        <a href="#389">__pos</a>, <a href="#390">__value</a>,
+                                                                    ) =&gt; Matched(
+                                                                        __pos, __value,
                                                                     ),
-                                                                    <a href="#13">Failed</a> =&gt; {
+                                                                    Failed =&gt; {
                                                                         <span class="kw">let </span>__choice_res =
-                                                                            <a href="#52-57">slice_eq</a>(
-                                                                                <a href="#329">__input</a>,
-                                                                                <a href="#330">__state</a>,
-                                                                                <a href="#331">__pos</a>,
+                                                                            slice_eq(
+                                                                                __input,
+                                                                                __state,
+                                                                                __pos,
                                                                                 <span class="string">&quot;E&quot;</span>,
                                                                             );
-                                                                        <span class="kw">match </span><a href="#395">__choice_res</a> { <a href="#12">Matched</a> ( __pos , __value ) =&gt; <a href="#12">Matched</a> ( <a href="#402">__pos</a> , <a href="#402">__value</a> ) , <a href="#13">Failed</a> =&gt; <a href="#52-57">slice_eq</a> ( <a href="#329">__input</a> , <a href="#330">__state</a> , <a href="#331">__pos</a> , <span class="string">&quot;?&quot; </span>) }
+                                                                        <span class="kw">match </span>__choice_res { Matched ( __pos , __value ) =&gt; Matched ( __pos , __value ) , Failed =&gt; slice_eq ( __input , __state , __pos , <span class="string">&quot;?&quot; </span>) }
                                                                     }
                                                                 }
                                                             }
@@ -1298,471 +1298,471 @@
                     }
                 }
             } {
-                <a href="#12">Matched</a>(__newpos, <span class="kw">_</span>) =&gt; {
-                    <a href="#12">Matched</a>(<a href="#418">__newpos</a>, <span class="kw-2">&amp;</span><a href="#329">__input</a>[<a href="#336">str_start</a>..<a href="#418">__newpos</a>])
+                Matched(__newpos, <span class="kw">_</span>) =&gt; {
+                    Matched(__newpos, <span class="kw-2">&amp;</span>__input[str_start..__newpos])
                 }
-                <a href="#13">Failed</a> =&gt; <a href="#13">Failed</a>,
+                Failed =&gt; Failed,
             }
         };
-        <span class="kw">match </span><a href="#335">__seq_res</a> {
-            <a href="#12">Matched</a>(__pos, n) =&gt; <a href="#12">Matched</a>(<a href="#425">__pos</a>, { <a href="#425">n</a> }),
-            <a href="#13">Failed</a> =&gt; <a href="#13">Failed</a>,
+        <span class="kw">match </span>__seq_res {
+            Matched(__pos, n) =&gt; Matched(__pos, { n }),
+            Failed =&gt; Failed,
         }
     }
 }
 
 <span class="kw">fn </span>__parse_format_spec&lt;<span class="lifetime">&#39;input</span>&gt;(
-    __input: <span class="kw-2">&amp;</span><span class="lifetime">&#39;input </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>,
+    __input: <span class="kw-2">&amp;</span><span class="lifetime">&#39;input </span>str,
     __state: <span class="kw-2">&amp;mut </span>ParseState&lt;<span class="lifetime">&#39;input</span>&gt;,
-    __pos: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-) -&gt; RuleResult&lt;<span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;input </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt;&gt; {
+    __pos: usize,
+) -&gt; RuleResult&lt;<span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;input </span>str&gt;&gt; {
     <span class="attr">#![allow(non_snake_case, unused)]
     </span>{
-        <span class="kw">let </span>__seq_res = <a href="#52-57">slice_eq</a>(<a href="#432">__input</a>, <a href="#433">__state</a>, <a href="#434">__pos</a>, <span class="string">&quot;:&quot;</span>);
-        <span class="kw">match </span><a href="#438">__seq_res</a> {
-            <a href="#12">Matched</a>(__pos, <span class="kw">_</span>) =&gt; {
+        <span class="kw">let </span>__seq_res = slice_eq(__input, __state, __pos, <span class="string">&quot;:&quot;</span>);
+        <span class="kw">match </span>__seq_res {
+            Matched(__pos, <span class="kw">_</span>) =&gt; {
                 <span class="kw">let </span>__seq_res = <span class="kw">match </span>{
                     <span class="kw">let </span>__seq_res = <span class="kw">match </span>{
                         <span class="kw">let </span>__seq_res = {
-                            <a href="#433">__state</a>.suppress_fail += <span class="number">1</span>;
+                            __state.suppress_fail += <span class="number">1</span>;
                             <span class="kw">let </span>__assert_res = <span class="kw">if </span>__input.len() &gt; __pos {
-                                <span class="kw">let </span>(__ch, __next) = <a href="#5">char_range_at</a>(<a href="#432">__input</a>, <a href="#440">__pos</a>);
-                                <span class="kw">match </span><a href="#446">__ch</a> {
-                                    <span class="string">&#39;&lt;&#39; </span>| <span class="string">&#39;^&#39; </span>| <span class="string">&#39;&gt;&#39; </span>=&gt; <a href="#12">Matched</a>(<a href="#446">__next</a>, ()),
-                                    <span class="kw">_ </span>=&gt; <a href="#433">__state</a>.<a href="#103">mark_failure</a>(<a href="#440">__pos</a>, <span class="string">&quot;[&lt;^&gt;]&quot;</span>),
+                                <span class="kw">let </span>(__ch, __next) = char_range_at(__input, __pos);
+                                <span class="kw">match </span>__ch {
+                                    <span class="string">&#39;&lt;&#39; </span>| <span class="string">&#39;^&#39; </span>| <span class="string">&#39;&gt;&#39; </span>=&gt; Matched(__next, ()),
+                                    <span class="kw">_ </span>=&gt; __state.mark_failure(__pos, <span class="string">&quot;[&lt;^&gt;]&quot;</span>),
                                 }
                             } <span class="kw">else </span>{
-                                <a href="#433">__state</a>.<a href="#103">mark_failure</a>(<a href="#440">__pos</a>, <span class="string">&quot;[&lt;^&gt;]&quot;</span>)
+                                __state.mark_failure(__pos, <span class="string">&quot;[&lt;^&gt;]&quot;</span>)
                             };
-                            <a href="#433">__state</a>.suppress_fail -= <span class="number">1</span>;
-                            <span class="kw">match </span><a href="#445">__assert_res</a> {
-                                <a href="#13">Failed</a> =&gt; <a href="#12">Matched</a>(<a href="#440">__pos</a>, ()),
-                                <a href="#12">Matched</a>(..) =&gt; <a href="#13">Failed</a>,
+                            __state.suppress_fail -= <span class="number">1</span>;
+                            <span class="kw">match </span>__assert_res {
+                                Failed =&gt; Matched(__pos, ()),
+                                Matched(..) =&gt; Failed,
                             }
                         };
-                        <span class="kw">match </span><a href="#443">__seq_res</a> {
-                            <a href="#12">Matched</a>(__pos, <span class="kw">_</span>) =&gt; <a href="#86">any_char</a>(<a href="#432">__input</a>, <a href="#433">__state</a>, <a href="#461">__pos</a>),
-                            <a href="#13">Failed</a> =&gt; <a href="#13">Failed</a>,
+                        <span class="kw">match </span>__seq_res {
+                            Matched(__pos, <span class="kw">_</span>) =&gt; any_char(__input, __state, __pos),
+                            Failed =&gt; Failed,
                         }
                     } {
-                        <a href="#12">Matched</a>(__newpos, <span class="kw">_</span>) =&gt; <a href="#12">Matched</a>(<a href="#465">__newpos</a>, ()),
-                        <a href="#13">Failed</a> =&gt; <a href="#12">Matched</a>(<a href="#440">__pos</a>, ()),
+                        Matched(__newpos, <span class="kw">_</span>) =&gt; Matched(__newpos, ()),
+                        Failed =&gt; Matched(__pos, ()),
                     };
-                    <span class="kw">match </span><a href="#442">__seq_res</a> {
-                        <a href="#12">Matched</a>(__pos, <span class="kw">_</span>) =&gt; {
+                    <span class="kw">match </span>__seq_res {
+                        Matched(__pos, <span class="kw">_</span>) =&gt; {
                             <span class="kw">if </span>__input.len() &gt; __pos {
-                                <span class="kw">let </span>(__ch, __next) = <a href="#5">char_range_at</a>(<a href="#432">__input</a>, <a href="#469">__pos</a>);
-                                <span class="kw">match </span><a href="#471">__ch</a> {
-                                    <span class="string">&#39;&lt;&#39; </span>| <span class="string">&#39;^&#39; </span>| <span class="string">&#39;&gt;&#39; </span>=&gt; <a href="#12">Matched</a>(<a href="#471">__next</a>, ()),
-                                    <span class="kw">_ </span>=&gt; <a href="#433">__state</a>.<a href="#103">mark_failure</a>(<a href="#469">__pos</a>, <span class="string">&quot;[&lt;^&gt;]&quot;</span>),
+                                <span class="kw">let </span>(__ch, __next) = char_range_at(__input, __pos);
+                                <span class="kw">match </span>__ch {
+                                    <span class="string">&#39;&lt;&#39; </span>| <span class="string">&#39;^&#39; </span>| <span class="string">&#39;&gt;&#39; </span>=&gt; Matched(__next, ()),
+                                    <span class="kw">_ </span>=&gt; __state.mark_failure(__pos, <span class="string">&quot;[&lt;^&gt;]&quot;</span>),
                                 }
                             } <span class="kw">else </span>{
-                                <a href="#433">__state</a>.<a href="#103">mark_failure</a>(<a href="#469">__pos</a>, <span class="string">&quot;[&lt;^&gt;]&quot;</span>)
+                                __state.mark_failure(__pos, <span class="string">&quot;[&lt;^&gt;]&quot;</span>)
                             }
                         }
-                        <a href="#13">Failed</a> =&gt; <a href="#13">Failed</a>,
+                        Failed =&gt; Failed,
                     }
                 } {
-                    <a href="#12">Matched</a>(__newpos, <span class="kw">_</span>) =&gt; <a href="#12">Matched</a>(<a href="#483">__newpos</a>, ()),
-                    <a href="#13">Failed</a> =&gt; <a href="#12">Matched</a>(<a href="#440">__pos</a>, ()),
+                    Matched(__newpos, <span class="kw">_</span>) =&gt; Matched(__newpos, ()),
+                    Failed =&gt; Matched(__pos, ()),
                 };
-                <span class="kw">match </span><a href="#441">__seq_res</a> {
-                    <a href="#12">Matched</a>(__pos, <span class="kw">_</span>) =&gt; {
+                <span class="kw">match </span>__seq_res {
+                    Matched(__pos, <span class="kw">_</span>) =&gt; {
                         <span class="kw">let </span>__seq_res = <span class="kw">match </span>{
-                            <span class="kw">let </span>__choice_res = <a href="#52-57">slice_eq</a>(<a href="#432">__input</a>, <a href="#433">__state</a>, <a href="#487">__pos</a>, <span class="string">&quot;+&quot;</span>);
-                            <span class="kw">match </span><a href="#489">__choice_res</a> {
-                                <a href="#12">Matched</a>(__pos, __value) =&gt; <a href="#12">Matched</a>(<a href="#491">__pos</a>, <a href="#491">__value</a>),
-                                <a href="#13">Failed</a> =&gt; <a href="#52-57">slice_eq</a>(<a href="#432">__input</a>, <a href="#433">__state</a>, <a href="#487">__pos</a>, <span class="string">&quot;-&quot;</span>),
+                            <span class="kw">let </span>__choice_res = slice_eq(__input, __state, __pos, <span class="string">&quot;+&quot;</span>);
+                            <span class="kw">match </span>__choice_res {
+                                Matched(__pos, __value) =&gt; Matched(__pos, __value),
+                                Failed =&gt; slice_eq(__input, __state, __pos, <span class="string">&quot;-&quot;</span>),
                             }
                         } {
-                            <a href="#12">Matched</a>(__newpos, <span class="kw">_</span>) =&gt; <a href="#12">Matched</a>(<a href="#495">__newpos</a>, ()),
-                            <a href="#13">Failed</a> =&gt; <a href="#12">Matched</a>(<a href="#487">__pos</a>, ()),
+                            Matched(__newpos, <span class="kw">_</span>) =&gt; Matched(__newpos, ()),
+                            Failed =&gt; Matched(__pos, ()),
                         };
-                        <span class="kw">match </span><a href="#488">__seq_res</a> {
-                            <a href="#12">Matched</a>(__pos, <span class="kw">_</span>) =&gt; {
+                        <span class="kw">match </span>__seq_res {
+                            Matched(__pos, <span class="kw">_</span>) =&gt; {
                                 <span class="kw">let </span>__seq_res =
-                                    <span class="kw">match </span><a href="#52-57">slice_eq</a>(<a href="#432">__input</a>, <a href="#433">__state</a>, <a href="#499">__pos</a>, <span class="string">&quot;#&quot;</span>) {
-                                        <a href="#12">Matched</a>(__newpos, <span class="kw">_</span>) =&gt; <a href="#12">Matched</a>(<a href="#502">__newpos</a>, ()),
-                                        <a href="#13">Failed</a> =&gt; <a href="#12">Matched</a>(<a href="#499">__pos</a>, ()),
+                                    <span class="kw">match </span>slice_eq(__input, __state, __pos, <span class="string">&quot;#&quot;</span>) {
+                                        Matched(__newpos, <span class="kw">_</span>) =&gt; Matched(__newpos, ()),
+                                        Failed =&gt; Matched(__pos, ()),
                                     };
-                                <span class="kw">match </span><a href="#500">__seq_res</a> {
-                                    <a href="#12">Matched</a>(__pos, <span class="kw">_</span>) =&gt; {
+                                <span class="kw">match </span>__seq_res {
+                                    Matched(__pos, <span class="kw">_</span>) =&gt; {
                                         <span class="kw">let </span>__seq_res = <span class="kw">match </span>{
                                             <span class="kw">let </span>__choice_res = {
                                                 <span class="kw">let </span>__seq_res = {
-                                                    <span class="kw">let </span><span class="kw-2">mut </span>__repeat_pos = <a href="#506">__pos</a>;
-                                                    <span class="kw">let </span><span class="kw-2">mut </span>__repeat_value = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[];
+                                                    <span class="kw">let </span><span class="kw-2">mut </span>__repeat_pos = __pos;
+                                                    <span class="kw">let </span><span class="kw-2">mut </span>__repeat_value = <span class="macro">vec!</span>[];
                                                     <span class="kw">loop </span>{
-                                                        <span class="kw">let </span>__pos = <a href="#510">__repeat_pos</a>;
+                                                        <span class="kw">let </span>__pos = __repeat_pos;
                                                         <span class="kw">let </span>__step_res =
                                                             <span class="kw">if </span>__input.len() &gt; __pos {
                                                                 <span class="kw">let </span>(__ch, __next) =
-                                                                    <a href="#5">char_range_at</a>(
-                                                                        <a href="#432">__input</a>, <a href="#513">__pos</a>,
+                                                                    char_range_at(
+                                                                        __input, __pos,
                                                                     );
-                                                                <span class="kw">match </span><a href="#516">__ch</a> {
+                                                                <span class="kw">match </span>__ch {
                                                                     <span class="string">&#39;A&#39;</span>...<span class="string">&#39;Z&#39;
                                                                     </span>| <span class="string">&#39;a&#39;</span>...<span class="string">&#39;z&#39;
                                                                     </span>| <span class="string">&#39;0&#39;</span>...<span class="string">&#39;9&#39;
-                                                                    </span>| <span class="string">&#39;_&#39; </span>=&gt; <a href="#12">Matched</a>(
-                                                                        <a href="#516">__next</a>,
+                                                                    </span>| <span class="string">&#39;_&#39; </span>=&gt; Matched(
+                                                                        __next,
                                                                         (),
                                                                     ),
-                                                                    <span class="kw">_ </span>=&gt; <a href="#433">__state</a>
-                                                                        .<a href="#103">mark_failure</a>(
-                                                                        <a href="#513">__pos</a>,
+                                                                    <span class="kw">_ </span>=&gt; __state
+                                                                        .mark_failure(
+                                                                        __pos,
                                                                         <span class="string">&quot;[A-Za-z0-9_]&quot;</span>,
                                                                     ),
                                                                 }
                                                             } <span class="kw">else </span>{
-                                                                <a href="#433">__state</a>.<a href="#103">mark_failure</a>(
-                                                                    <a href="#513">__pos</a>,
+                                                                __state.mark_failure(
+                                                                    __pos,
                                                                     <span class="string">&quot;[A-Za-z0-9_]&quot;</span>,
                                                                 )
                                                             };
-                                                        <span class="kw">match </span><a href="#514">__step_res</a> {
-                                                            <a href="#12">Matched</a>(
+                                                        <span class="kw">match </span>__step_res {
+                                                            Matched(
                                                                 __newpos,
                                                                 __value,
                                                             ) =&gt; {
-                                                                <a href="#510">__repeat_pos</a> = <a href="#542">__newpos</a>;
-                                                                <a href="#511">__repeat_value</a>
-                                                                    .push(<a href="#543">__value</a>);
+                                                                __repeat_pos = __newpos;
+                                                                __repeat_value
+                                                                    .push(__value);
                                                             }
-                                                            <a href="#13">Failed</a> =&gt; {
+                                                            Failed =&gt; {
                                                                 <span class="kw">break</span>;
                                                             }
                                                         }
                                                     }
                                                     <span class="kw">if </span>__repeat_value.len() &gt;= <span class="number">1 </span>{
-                                                        <a href="#12">Matched</a>(<a href="#510">__repeat_pos</a>, ())
+                                                        Matched(__repeat_pos, ())
                                                     } <span class="kw">else </span>{
-                                                        <a href="#13">Failed</a>
+                                                        Failed
                                                     }
                                                 };
-                                                <span class="kw">match </span><a href="#509">__seq_res</a> {
-                                                    <a href="#12">Matched</a>(__pos, <span class="kw">_</span>) =&gt; <a href="#52-57">slice_eq</a>(
-                                                        <a href="#432">__input</a>, <a href="#433">__state</a>, <a href="#561">__pos</a>, <span class="string">&quot;$&quot;</span>,
+                                                <span class="kw">match </span>__seq_res {
+                                                    Matched(__pos, <span class="kw">_</span>) =&gt; slice_eq(
+                                                        __input, __state, __pos, <span class="string">&quot;$&quot;</span>,
                                                     ),
-                                                    <a href="#13">Failed</a> =&gt; <a href="#13">Failed</a>,
+                                                    Failed =&gt; Failed,
                                                 }
                                             };
-                                            <span class="kw">match </span><a href="#508">__choice_res</a> {
-                                                <a href="#12">Matched</a>(__pos, __value) =&gt; {
-                                                    <a href="#12">Matched</a>(<a href="#568">__pos</a>, <a href="#568">__value</a>)
+                                            <span class="kw">match </span>__choice_res {
+                                                Matched(__pos, __value) =&gt; {
+                                                    Matched(__pos, __value)
                                                 }
-                                                <a href="#13">Failed</a> =&gt; {
-                                                    <span class="kw">let </span><span class="kw-2">mut </span>__repeat_pos = <a href="#506">__pos</a>;
-                                                    <span class="kw">let </span><span class="kw-2">mut </span>__repeat_value = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[];
+                                                Failed =&gt; {
+                                                    <span class="kw">let </span><span class="kw-2">mut </span>__repeat_pos = __pos;
+                                                    <span class="kw">let </span><span class="kw-2">mut </span>__repeat_value = <span class="macro">vec!</span>[];
                                                     <span class="kw">loop </span>{
-                                                        <span class="kw">let </span>__pos = <a href="#572">__repeat_pos</a>;
+                                                        <span class="kw">let </span>__pos = __repeat_pos;
                                                         <span class="kw">let </span>__step_res = <span class="kw">if </span>__input
                                                             .len()
                                                             &gt; __pos
                                                         {
                                                             <span class="kw">let </span>(__ch, __next) =
-                                                                <a href="#5">char_range_at</a>(
-                                                                    <a href="#432">__input</a>, <a href="#575">__pos</a>,
+                                                                char_range_at(
+                                                                    __input, __pos,
                                                                 );
-                                                            <span class="kw">match </span><a href="#580">__ch</a> {
+                                                            <span class="kw">match </span>__ch {
                                                                 <span class="string">&#39;0&#39;</span>...<span class="string">&#39;9&#39; </span>=&gt; {
-                                                                    <a href="#12">Matched</a>(<a href="#580">__next</a>, ())
+                                                                    Matched(__next, ())
                                                                 }
-                                                                <span class="kw">_ </span>=&gt; <a href="#433">__state</a>
-                                                                    .<a href="#103">mark_failure</a>(
-                                                                        <a href="#575">__pos</a>, <span class="string">&quot;[0-9]&quot;</span>,
+                                                                <span class="kw">_ </span>=&gt; __state
+                                                                    .mark_failure(
+                                                                        __pos, <span class="string">&quot;[0-9]&quot;</span>,
                                                                     ),
                                                             }
                                                         } <span class="kw">else </span>{
-                                                            <a href="#433">__state</a>.<a href="#103">mark_failure</a>(
-                                                                <a href="#575">__pos</a>, <span class="string">&quot;[0-9]&quot;</span>,
+                                                            __state.mark_failure(
+                                                                __pos, <span class="string">&quot;[0-9]&quot;</span>,
                                                             )
                                                         };
-                                                        <span class="kw">match </span><a href="#576">__step_res</a> {
-                                                            <a href="#12">Matched</a>(
+                                                        <span class="kw">match </span>__step_res {
+                                                            Matched(
                                                                 __newpos,
                                                                 __value,
                                                             ) =&gt; {
-                                                                <a href="#572">__repeat_pos</a> = <a href="#600">__newpos</a>;
-                                                                <a href="#573">__repeat_value</a>
-                                                                    .push(<a href="#601">__value</a>);
+                                                                __repeat_pos = __newpos;
+                                                                __repeat_value
+                                                                    .push(__value);
                                                             }
-                                                            <a href="#13">Failed</a> =&gt; {
+                                                            Failed =&gt; {
                                                                 <span class="kw">break</span>;
                                                             }
                                                         }
                                                     }
                                                     <span class="kw">if </span>__repeat_value.len() &gt;= <span class="number">1 </span>{
-                                                        <a href="#12">Matched</a>(<a href="#572">__repeat_pos</a>, ())
+                                                        Matched(__repeat_pos, ())
                                                     } <span class="kw">else </span>{
-                                                        <a href="#13">Failed</a>
+                                                        Failed
                                                     }
                                                 }
                                             }
                                         } {
-                                            <a href="#12">Matched</a>(__newpos, <span class="kw">_</span>) =&gt; {
-                                                <a href="#12">Matched</a>(<a href="#620">__newpos</a>, ())
+                                            Matched(__newpos, <span class="kw">_</span>) =&gt; {
+                                                Matched(__newpos, ())
                                             }
-                                            <a href="#13">Failed</a> =&gt; <a href="#12">Matched</a>(<a href="#506">__pos</a>, ()),
+                                            Failed =&gt; Matched(__pos, ()),
                                         };
-                                        <span class="kw">match </span><a href="#507">__seq_res</a> {
-                                            <a href="#12">Matched</a>(__pos, <span class="kw">_</span>) =&gt; {
-                                                <span class="kw">let </span>__seq_res = <span class="kw">match </span><a href="#52-57">slice_eq</a>(
-                                                    <a href="#432">__input</a>, <a href="#433">__state</a>, <a href="#626">__pos</a>, <span class="string">&quot;0&quot;</span>,
+                                        <span class="kw">match </span>__seq_res {
+                                            Matched(__pos, <span class="kw">_</span>) =&gt; {
+                                                <span class="kw">let </span>__seq_res = <span class="kw">match </span>slice_eq(
+                                                    __input, __state, __pos, <span class="string">&quot;0&quot;</span>,
                                                 ) {
-                                                    <a href="#12">Matched</a>(__newpos, <span class="kw">_</span>) =&gt; {
-                                                        <a href="#12">Matched</a>(<a href="#630">__newpos</a>, ())
+                                                    Matched(__newpos, <span class="kw">_</span>) =&gt; {
+                                                        Matched(__newpos, ())
                                                     }
-                                                    <a href="#13">Failed</a> =&gt; <a href="#12">Matched</a>(<a href="#626">__pos</a>, ()),
+                                                    Failed =&gt; Matched(__pos, ()),
                                                 };
-                                                <span class="kw">match </span><a href="#627">__seq_res</a> {
-                                                    <a href="#12">Matched</a>(__pos, <span class="kw">_</span>) =&gt; {
+                                                <span class="kw">match </span>__seq_res {
+                                                    Matched(__pos, <span class="kw">_</span>) =&gt; {
                                                         <span class="kw">let </span>__seq_res = <span class="kw">match </span>{
-                                                            <span class="kw">let </span>__seq_res = <a href="#52-57">slice_eq</a>(
-                                                                <a href="#432">__input</a>, <a href="#433">__state</a>,
-                                                                <a href="#636">__pos</a>, <span class="string">&quot;.&quot;</span>,
+                                                            <span class="kw">let </span>__seq_res = slice_eq(
+                                                                __input, __state,
+                                                                __pos, <span class="string">&quot;.&quot;</span>,
                                                             );
-                                                            <span class="kw">match </span><a href="#638">__seq_res</a> {
-                                                                <a href="#12">Matched</a>(__pos, <span class="kw">_</span>) =&gt; {
+                                                            <span class="kw">match </span>__seq_res {
+                                                                Matched(__pos, <span class="kw">_</span>) =&gt; {
                                                                     <span class="kw">let </span>__choice_res = {
                                                                         <span class="kw">let </span>__seq_res = {
                                                                             <span class="kw">let </span><span class="kw-2">mut
                                                                             </span>__repeat_pos =
-                                                                                <a href="#643">__pos</a>;
+                                                                                __pos;
                                                                             <span class="kw">let </span><span class="kw-2">mut
                                                                             </span>__repeat_value =
-                                                                                <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[];
+                                                                                <span class="macro">vec!</span>[];
                                                                             <span class="kw">loop </span>{
-                                                                                <span class="kw">let </span>__pos = <a href="#646-647">__repeat_pos</a> ;
-                                                                                <span class="kw">let </span>__step_res = <span class="kw">if </span>__input . len ( ) &gt; __pos { <span class="kw">let </span>( __ch , __next ) = <a href="#5">char_range_at</a> ( <a href="#432">__input</a> , <a href="#653">__pos</a> ) ; <span class="kw">match </span><a href="#654">__ch</a> { <span class="string">&#39;A&#39; </span>... <span class="string">&#39;Z&#39; </span>| <span class="string">&#39;a&#39; </span>... <span class="string">&#39;z&#39; </span>| <span class="string">&#39;0&#39; </span>... <span class="string">&#39;9&#39; </span>| <span class="string">&#39;_&#39; </span>=&gt; <a href="#12">Matched</a> ( <a href="#654">__next</a> , ( ) ) , <span class="kw">_ </span>=&gt; <a href="#433">__state</a> . <a href="#103">mark_failure</a> ( <a href="#653">__pos</a> , <span class="string">&quot;[A-Za-z0-9_]&quot; </span>) , } } <span class="kw">else </span>{ <a href="#433">__state</a> . <a href="#103">mark_failure</a> ( <a href="#653">__pos</a> , <span class="string">&quot;[A-Za-z0-9_]&quot; </span>) } ;
-                                                                                <span class="kw">match </span><a href="#654">__step_res</a> { <a href="#12">Matched</a> ( __newpos , __value ) =&gt; { <a href="#646-647">__repeat_pos</a> = <a href="#655">__newpos</a> ; <a href="#649-650">__repeat_value</a> . push ( <a href="#655">__value</a> ) ; } , <a href="#13">Failed</a> =&gt; { <span class="kw">break </span>; } }
+                                                                                <span class="kw">let </span>__pos = __repeat_pos ;
+                                                                                <span class="kw">let </span>__step_res = <span class="kw">if </span>__input . len ( ) &gt; __pos { <span class="kw">let </span>( __ch , __next ) = char_range_at ( __input , __pos ) ; <span class="kw">match </span>__ch { <span class="string">&#39;A&#39; </span>... <span class="string">&#39;Z&#39; </span>| <span class="string">&#39;a&#39; </span>... <span class="string">&#39;z&#39; </span>| <span class="string">&#39;0&#39; </span>... <span class="string">&#39;9&#39; </span>| <span class="string">&#39;_&#39; </span>=&gt; Matched ( __next , ( ) ) , <span class="kw">_ </span>=&gt; __state . mark_failure ( __pos , <span class="string">&quot;[A-Za-z0-9_]&quot; </span>) , } } <span class="kw">else </span>{ __state . mark_failure ( __pos , <span class="string">&quot;[A-Za-z0-9_]&quot; </span>) } ;
+                                                                                <span class="kw">match </span>__step_res { Matched ( __newpos , __value ) =&gt; { __repeat_pos = __newpos ; __repeat_value . push ( __value ) ; } , Failed =&gt; { <span class="kw">break </span>; } }
                                                                             }
-                                                                            <span class="kw">if </span>__repeat_value . len ( ) &gt;= <span class="number">1 </span>{ <a href="#12">Matched</a> ( <a href="#646-647">__repeat_pos</a> , ( ) ) } <span class="kw">else </span>{ <a href="#13">Failed</a> }
+                                                                            <span class="kw">if </span>__repeat_value . len ( ) &gt;= <span class="number">1 </span>{ Matched ( __repeat_pos , ( ) ) } <span class="kw">else </span>{ Failed }
                                                                         };
-                                                                        <span class="kw">match </span><a href="#645">__seq_res</a> { <a href="#12">Matched</a> ( __pos , <span class="kw">_ </span>) =&gt; { <a href="#52-57">slice_eq</a> ( <a href="#432">__input</a> , <a href="#433">__state</a> , <a href="#659">__pos</a> , <span class="string">&quot;$&quot; </span>) } <a href="#13">Failed</a> =&gt; <a href="#13">Failed</a> , }
+                                                                        <span class="kw">match </span>__seq_res { Matched ( __pos , <span class="kw">_ </span>) =&gt; { slice_eq ( __input , __state , __pos , <span class="string">&quot;$&quot; </span>) } Failed =&gt; Failed , }
                                                                     };
-                                                                    <span class="kw">match </span><a href="#644">__choice_res</a> {
-                                                                        <a href="#12">Matched</a>(
+                                                                    <span class="kw">match </span>__choice_res {
+                                                                        Matched(
                                                                             __pos,
                                                                             __value,
-                                                                        ) =&gt; <a href="#12">Matched</a>(
-                                                                            <a href="#663">__pos</a>,
-                                                                            <a href="#664">__value</a>,
+                                                                        ) =&gt; Matched(
+                                                                            __pos,
+                                                                            __value,
                                                                         ),
-                                                                        <a href="#13">Failed</a> =&gt; {
+                                                                        Failed =&gt; {
                                                                             <span class="kw">let </span>__choice_res = {
-                                                                                <span class="kw">let </span><span class="kw-2">mut </span>__repeat_pos = <a href="#643">__pos</a> ;
+                                                                                <span class="kw">let </span><span class="kw-2">mut </span>__repeat_pos = __pos ;
                                                                                 <span class="kw">let </span><span class="kw-2">mut
-                                                                                </span>__repeat_value = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[];
+                                                                                </span>__repeat_value = <span class="macro">vec!</span>[];
                                                                                 <span class="kw">loop </span>{
-                                                                                    <span class="kw">let </span>__pos = <a href="#671">__repeat_pos</a> ;
-                                                                                    <span class="kw">let </span>__step_res = <span class="kw">if </span>__input . len ( ) &gt; __pos { <span class="kw">let </span>( __ch , __next ) = <a href="#5">char_range_at</a> ( <a href="#432">__input</a> , <a href="#675">__pos</a> ) ; <span class="kw">match </span><a href="#676">__ch</a> { <span class="string">&#39;0&#39; </span>... <span class="string">&#39;9&#39; </span>=&gt; <a href="#12">Matched</a> ( <a href="#676">__next</a> , ( ) ) , <span class="kw">_ </span>=&gt; <a href="#433">__state</a> . <a href="#103">mark_failure</a> ( <a href="#675">__pos</a> , <span class="string">&quot;[0-9]&quot; </span>) , } } <span class="kw">else </span>{ <a href="#433">__state</a> . <a href="#103">mark_failure</a> ( <a href="#675">__pos</a> , <span class="string">&quot;[0-9]&quot; </span>) } ;
-                                                                                    <span class="kw">match </span><a href="#676">__step_res</a> { <a href="#12">Matched</a> ( __newpos , __value ) =&gt; { <a href="#671">__repeat_pos</a> = <a href="#677">__newpos</a> ; <a href="#672-673">__repeat_value</a> . push ( <a href="#677">__value</a> ) ; } , <a href="#13">Failed</a> =&gt; { <span class="kw">break </span>; } }
+                                                                                    <span class="kw">let </span>__pos = __repeat_pos ;
+                                                                                    <span class="kw">let </span>__step_res = <span class="kw">if </span>__input . len ( ) &gt; __pos { <span class="kw">let </span>( __ch , __next ) = char_range_at ( __input , __pos ) ; <span class="kw">match </span>__ch { <span class="string">&#39;0&#39; </span>... <span class="string">&#39;9&#39; </span>=&gt; Matched ( __next , ( ) ) , <span class="kw">_ </span>=&gt; __state . mark_failure ( __pos , <span class="string">&quot;[0-9]&quot; </span>) , } } <span class="kw">else </span>{ __state . mark_failure ( __pos , <span class="string">&quot;[0-9]&quot; </span>) } ;
+                                                                                    <span class="kw">match </span>__step_res { Matched ( __newpos , __value ) =&gt; { __repeat_pos = __newpos ; __repeat_value . push ( __value ) ; } , Failed =&gt; { <span class="kw">break </span>; } }
                                                                                 }
-                                                                                <span class="kw">if </span>__repeat_value . len ( ) &gt;= <span class="number">1 </span>{ <a href="#12">Matched</a> ( <a href="#671">__repeat_pos</a> , ( ) ) } <span class="kw">else </span>{ <a href="#13">Failed</a> }
+                                                                                <span class="kw">if </span>__repeat_value . len ( ) &gt;= <span class="number">1 </span>{ Matched ( __repeat_pos , ( ) ) } <span class="kw">else </span>{ Failed }
                                                                             };
-                                                                            <span class="kw">match </span><a href="#670">__choice_res</a> { <a href="#12">Matched</a> ( __pos , __value ) =&gt; <a href="#12">Matched</a> ( <a href="#681">__pos</a> , <a href="#681">__value</a> ) , <a href="#13">Failed</a> =&gt; <a href="#52-57">slice_eq</a> ( <a href="#432">__input</a> , <a href="#433">__state</a> , <a href="#643">__pos</a> , <span class="string">&quot;*&quot; </span>) }
+                                                                            <span class="kw">match </span>__choice_res { Matched ( __pos , __value ) =&gt; Matched ( __pos , __value ) , Failed =&gt; slice_eq ( __input , __state , __pos , <span class="string">&quot;*&quot; </span>) }
                                                                         }
                                                                     }
                                                                 }
-                                                                <a href="#13">Failed</a> =&gt; <a href="#13">Failed</a>,
+                                                                Failed =&gt; Failed,
                                                             }
                                                         } {
-                                                            <a href="#12">Matched</a>(__newpos, <span class="kw">_</span>) =&gt; {
-                                                                <a href="#12">Matched</a>(<a href="#688">__newpos</a>, ())
+                                                            Matched(__newpos, <span class="kw">_</span>) =&gt; {
+                                                                Matched(__newpos, ())
                                                             }
-                                                            <a href="#13">Failed</a> =&gt; {
-                                                                <a href="#12">Matched</a>(<a href="#636">__pos</a>, ())
+                                                            Failed =&gt; {
+                                                                Matched(__pos, ())
                                                             }
                                                         };
-                                                        <span class="kw">match </span><a href="#637">__seq_res</a> {
-                                                            <a href="#12">Matched</a>(__pos, <span class="kw">_</span>) =&gt; {
+                                                        <span class="kw">match </span>__seq_res {
+                                                            Matched(__pos, <span class="kw">_</span>) =&gt; {
                                                                 <span class="kw">let </span>__seq_res =
-                                                                    <span class="kw">match </span><a href="#328-332">__parse_ty</a>(
-                                                                        <a href="#432">__input</a>,
-                                                                        <a href="#433">__state</a>, <a href="#696">__pos</a>,
+                                                                    <span class="kw">match </span>__parse_ty(
+                                                                        __input,
+                                                                        __state, __pos,
                                                                     ) {
-                                                                        <a href="#12">Matched</a>(
+                                                                        Matched(
                                                                             __newpos,
                                                                             __value,
-                                                                        ) =&gt; <a href="#12">Matched</a>(
-                                                                            <a href="#703">__newpos</a>,
+                                                                        ) =&gt; Matched(
+                                                                            __newpos,
                                                                             <span class="prelude-val">Some</span>(
-                                                                                <a href="#704">__value</a>,
+                                                                                __value,
                                                                             ),
                                                                         ),
-                                                                        <a href="#13">Failed</a> =&gt; {
-                                                                            <a href="#12">Matched</a>(
-                                                                                <a href="#696">__pos</a>,
+                                                                        Failed =&gt; {
+                                                                            Matched(
+                                                                                __pos,
                                                                                 <span class="prelude-val">None</span>,
                                                                             )
                                                                         }
                                                                     };
-                                                                <span class="kw">match </span><a href="#697">__seq_res</a> {
-                                                                    <a href="#12">Matched</a>(
+                                                                <span class="kw">match </span>__seq_res {
+                                                                    Matched(
                                                                         __pos,
                                                                         n,
-                                                                    ) =&gt; <a href="#12">Matched</a>(
-                                                                        <a href="#720">__pos</a>,
-                                                                        { <a href="#721">n</a> },
+                                                                    ) =&gt; Matched(
+                                                                        __pos,
+                                                                        { n },
                                                                     ),
-                                                                    <a href="#13">Failed</a> =&gt; <a href="#13">Failed</a>,
+                                                                    Failed =&gt; Failed,
                                                                 }
                                                             }
-                                                            <a href="#13">Failed</a> =&gt; <a href="#13">Failed</a>,
+                                                            Failed =&gt; Failed,
                                                         }
                                                     }
-                                                    <a href="#13">Failed</a> =&gt; <a href="#13">Failed</a>,
+                                                    Failed =&gt; Failed,
                                                 }
                                             }
-                                            <a href="#13">Failed</a> =&gt; <a href="#13">Failed</a>,
+                                            Failed =&gt; Failed,
                                         }
                                     }
-                                    <a href="#13">Failed</a> =&gt; <a href="#13">Failed</a>,
+                                    Failed =&gt; Failed,
                                 }
                             }
-                            <a href="#13">Failed</a> =&gt; <a href="#13">Failed</a>,
+                            Failed =&gt; Failed,
                         }
                     }
-                    <a href="#13">Failed</a> =&gt; <a href="#13">Failed</a>,
+                    Failed =&gt; Failed,
                 }
             }
-            <a href="#13">Failed</a> =&gt; <a href="#13">Failed</a>,
+            Failed =&gt; Failed,
         }
     }
 }
 
 <span class="kw">fn </span>__parse_all_placeholders&lt;<span class="lifetime">&#39;input</span>&gt;(
-    __input: <span class="kw-2">&amp;</span><span class="lifetime">&#39;input </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>,
+    __input: <span class="kw-2">&amp;</span><span class="lifetime">&#39;input </span>str,
     __state: <span class="kw-2">&amp;mut </span>ParseState&lt;<span class="lifetime">&#39;input</span>&gt;,
-    __pos: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-) -&gt; RuleResult&lt;Vec&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;input </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt;&gt; {
+    __pos: usize,
+) -&gt; RuleResult&lt;Vec&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;input </span>str&gt;&gt; {
     <span class="attr">#![allow(non_snake_case, unused)]
     </span>{
         <span class="kw">let </span>__seq_res = {
-            <span class="kw">let </span><span class="kw-2">mut </span>__repeat_pos = <a href="#755">__pos</a>;
-            <span class="kw">let </span><span class="kw-2">mut </span>__repeat_value = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[];
+            <span class="kw">let </span><span class="kw-2">mut </span>__repeat_pos = __pos;
+            <span class="kw">let </span><span class="kw-2">mut </span>__repeat_value = <span class="macro">vec!</span>[];
             <span class="kw">loop </span>{
-                <span class="kw">let </span>__pos = <a href="#760">__repeat_pos</a>;
+                <span class="kw">let </span>__pos = __repeat_pos;
                 <span class="kw">let </span>__step_res = {
-                    <span class="kw">let </span>__choice_res = <a href="#133-137">__parse_discard_doubles</a>(<a href="#753">__input</a>, <a href="#754">__state</a>, <a href="#763">__pos</a>);
-                    <span class="kw">match </span><a href="#765">__choice_res</a> {
-                        <a href="#12">Matched</a>(__pos, __value) =&gt; <a href="#12">Matched</a>(<a href="#767">__pos</a>, <a href="#767">__value</a>),
-                        <a href="#13">Failed</a> =&gt; {
+                    <span class="kw">let </span>__choice_res = __parse_discard_doubles(__input, __state, __pos);
+                    <span class="kw">match </span>__choice_res {
+                        Matched(__pos, __value) =&gt; Matched(__pos, __value),
+                        Failed =&gt; {
                             <span class="kw">let </span>__choice_res =
-                                <a href="#166-170">__parse_placeholder_inner</a>(<a href="#753">__input</a>, <a href="#754">__state</a>, <a href="#763">__pos</a>);
-                            <span class="kw">match </span><a href="#769">__choice_res</a> {
-                                <a href="#12">Matched</a>(__pos, __value) =&gt; <a href="#12">Matched</a>(<a href="#772">__pos</a>, <a href="#772">__value</a>),
-                                <a href="#13">Failed</a> =&gt; <a href="#261-265">__parse_discard_any</a>(<a href="#753">__input</a>, <a href="#754">__state</a>, <a href="#763">__pos</a>),
+                                __parse_placeholder_inner(__input, __state, __pos);
+                            <span class="kw">match </span>__choice_res {
+                                Matched(__pos, __value) =&gt; Matched(__pos, __value),
+                                Failed =&gt; __parse_discard_any(__input, __state, __pos),
                             }
                         }
                     }
                 };
-                <span class="kw">match </span><a href="#764">__step_res</a> {
-                    <a href="#12">Matched</a>(__newpos, __value) =&gt; {
-                        <a href="#760">__repeat_pos</a> = <a href="#779">__newpos</a>;
-                        <a href="#761">__repeat_value</a>.push(<a href="#779">__value</a>);
+                <span class="kw">match </span>__step_res {
+                    Matched(__newpos, __value) =&gt; {
+                        __repeat_pos = __newpos;
+                        __repeat_value.push(__value);
                     }
-                    <a href="#13">Failed</a> =&gt; {
+                    Failed =&gt; {
                         <span class="kw">break</span>;
                     }
                 }
             }
-            <a href="#12">Matched</a>(<a href="#760">__repeat_pos</a>, <a href="#761">__repeat_value</a>)
+            Matched(__repeat_pos, __repeat_value)
         };
-        <span class="kw">match </span><a href="#759">__seq_res</a> {
-            <a href="#12">Matched</a>(__pos, x) =&gt; {
-                <a href="#12">Matched</a>(<a href="#791">__pos</a>, { <a href="#791">x</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">flat_map</a>(|x| <a href="#792">x</a>).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>() })
+        <span class="kw">match </span>__seq_res {
+            Matched(__pos, x) =&gt; {
+                Matched(__pos, { x.into_iter().flat_map(|x| x).collect() })
             }
-            <a href="#13">Failed</a> =&gt; <a href="#13">Failed</a>,
+            Failed =&gt; Failed,
         }
     }
 }
 
 <span class="kw">fn </span>__parse_format&lt;<span class="lifetime">&#39;input</span>&gt;(
-    __input: <span class="kw-2">&amp;</span><span class="lifetime">&#39;input </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>,
+    __input: <span class="kw-2">&amp;</span><span class="lifetime">&#39;input </span>str,
     __state: <span class="kw-2">&amp;mut </span>ParseState&lt;<span class="lifetime">&#39;input</span>&gt;,
-    __pos: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-) -&gt; RuleResult&lt;(<span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;, <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;input </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt;)&gt; {
+    __pos: usize,
+) -&gt; RuleResult&lt;(<span class="prelude-ty">Option</span>&lt;usize&gt;, <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;input </span>str&gt;)&gt; {
     <span class="attr">#![allow(non_snake_case, unused)]
     </span>{
-        <span class="kw">let </span>__seq_res = <a href="#52-57">slice_eq</a>(<a href="#800">__input</a>, <a href="#801">__state</a>, <a href="#802">__pos</a>, <span class="string">&quot;{&quot;</span>);
-        <span class="kw">match </span><a href="#806">__seq_res</a> {
-            <a href="#12">Matched</a>(__pos, <span class="kw">_</span>) =&gt; {
-                <span class="kw">let </span>__seq_res = <span class="kw">match </span><a href="#276-280">__parse_arg</a>(<a href="#800">__input</a>, <a href="#801">__state</a>, <a href="#808">__pos</a>) {
-                    <a href="#12">Matched</a>(__newpos, __value) =&gt; <a href="#12">Matched</a>(<a href="#810">__newpos</a>, <span class="prelude-val">Some</span>(<a href="#810">__value</a>)),
-                    <a href="#13">Failed</a> =&gt; <a href="#12">Matched</a>(<a href="#808">__pos</a>, <span class="prelude-val">None</span>),
+        <span class="kw">let </span>__seq_res = slice_eq(__input, __state, __pos, <span class="string">&quot;{&quot;</span>);
+        <span class="kw">match </span>__seq_res {
+            Matched(__pos, <span class="kw">_</span>) =&gt; {
+                <span class="kw">let </span>__seq_res = <span class="kw">match </span>__parse_arg(__input, __state, __pos) {
+                    Matched(__newpos, __value) =&gt; Matched(__newpos, <span class="prelude-val">Some</span>(__value)),
+                    Failed =&gt; Matched(__pos, <span class="prelude-val">None</span>),
                 };
-                <span class="kw">match </span><a href="#809">__seq_res</a> {
-                    <a href="#12">Matched</a>(__pos, n) =&gt; {
+                <span class="kw">match </span>__seq_res {
+                    Matched(__pos, n) =&gt; {
                         <span class="kw">let </span>__seq_res =
-                            <span class="kw">match </span><a href="#431-435">__parse_format_spec</a>(<a href="#800">__input</a>, <a href="#801">__state</a>, <a href="#814">__pos</a>) {
-                                <a href="#12">Matched</a>(__newpos, __value) =&gt; {
-                                    <a href="#12">Matched</a>(<a href="#817">__newpos</a>, <span class="prelude-val">Some</span>(<a href="#817">__value</a>))
+                            <span class="kw">match </span>__parse_format_spec(__input, __state, __pos) {
+                                Matched(__newpos, __value) =&gt; {
+                                    Matched(__newpos, <span class="prelude-val">Some</span>(__value))
                                 }
-                                <a href="#13">Failed</a> =&gt; <a href="#12">Matched</a>(<a href="#814">__pos</a>, <span class="prelude-val">None</span>),
+                                Failed =&gt; Matched(__pos, <span class="prelude-val">None</span>),
                             };
-                        <span class="kw">match </span><a href="#815">__seq_res</a> {
-                            <a href="#12">Matched</a>(__pos, o) =&gt; {
-                                <span class="kw">let </span>__seq_res = <a href="#52-57">slice_eq</a>(<a href="#800">__input</a>, <a href="#801">__state</a>, <a href="#823">__pos</a>, <span class="string">&quot;}&quot;</span>);
-                                <span class="kw">match </span><a href="#824">__seq_res</a> {
-                                    <a href="#12">Matched</a>(__pos, <span class="kw">_</span>) =&gt; {
-                                        <a href="#12">Matched</a>(<a href="#826">__pos</a>, { (<a href="#814">n</a>, <a href="#823">o</a>.and_then(|x| <a href="#827">x</a>)) })
+                        <span class="kw">match </span>__seq_res {
+                            Matched(__pos, o) =&gt; {
+                                <span class="kw">let </span>__seq_res = slice_eq(__input, __state, __pos, <span class="string">&quot;}&quot;</span>);
+                                <span class="kw">match </span>__seq_res {
+                                    Matched(__pos, <span class="kw">_</span>) =&gt; {
+                                        Matched(__pos, { (n, o.and_then(|x| x)) })
                                     }
-                                    <a href="#13">Failed</a> =&gt; <a href="#13">Failed</a>,
+                                    Failed =&gt; Failed,
                                 }
                             }
-                            <a href="#13">Failed</a> =&gt; <a href="#13">Failed</a>,
+                            Failed =&gt; Failed,
                         }
                     }
-                    <a href="#13">Failed</a> =&gt; <a href="#13">Failed</a>,
+                    Failed =&gt; Failed,
                 }
             }
-            <a href="#13">Failed</a> =&gt; <a href="#13">Failed</a>,
+            Failed =&gt; Failed,
         }
     }
 }
 
-<span class="kw">pub fn </span>all_placeholders&lt;<span class="lifetime">&#39;input</span>&gt;(__input: <span class="kw-2">&amp;</span><span class="lifetime">&#39;input </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; ParseResult&lt;Vec&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;input </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt;&gt; {
+<span class="kw">pub fn </span>all_placeholders&lt;<span class="lifetime">&#39;input</span>&gt;(__input: <span class="kw-2">&amp;</span><span class="lifetime">&#39;input </span>str) -&gt; ParseResult&lt;Vec&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;input </span>str&gt;&gt; {
     <span class="attr">#![allow(non_snake_case, unused)]
     </span><span class="kw">let </span><span class="kw-2">mut </span>__state = ParseState::new();
-    <span class="kw">match </span><a href="#752-756">__parse_all_placeholders</a>(<a href="#843">__input</a>, <span class="kw-2">&amp;mut </span><a href="#845">__state</a>, <span class="number">0</span>) {
-        <a href="#12">Matched</a>(__pos, __value) =&gt; {
+    <span class="kw">match </span>__parse_all_placeholders(__input, <span class="kw-2">&amp;mut </span>__state, <span class="number">0</span>) {
+        Matched(__pos, __value) =&gt; {
             <span class="kw">if </span>__pos == __input.len() {
-                <span class="kw">return </span><span class="prelude-val">Ok</span>(<a href="#847">__value</a>);
+                <span class="kw">return </span><span class="prelude-val">Ok</span>(__value);
             }
         }
         <span class="kw">_ </span>=&gt; {}
     }
-    <span class="kw">let </span>(__line, __col) = <a href="#96">pos_to_line</a>(<a href="#843">__input</a>, <a href="#845">__state</a>.max_err_pos);
-    <span class="prelude-val">Err</span>(<a href="#16">ParseError</a> {
-        line: <a href="#854">__line</a>,
-        column: <a href="#854">__col</a>,
-        offset: <a href="#845">__state</a>.max_err_pos,
-        expected: <a href="#845">__state</a>.expected,
+    <span class="kw">let </span>(__line, __col) = pos_to_line(__input, __state.max_err_pos);
+    <span class="prelude-val">Err</span>(ParseError {
+        line: __line,
+        column: __col,
+        offset: __state.max_err_pos,
+        expected: __state.expected,
     })
 }
 
 <span class="kw">pub fn </span>format&lt;<span class="lifetime">&#39;input</span>&gt;(
-    __input: <span class="kw-2">&amp;</span><span class="lifetime">&#39;input </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>,
-) -&gt; ParseResult&lt;(<span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;, <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;input </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt;)&gt; {
+    __input: <span class="kw-2">&amp;</span><span class="lifetime">&#39;input </span>str,
+) -&gt; ParseResult&lt;(<span class="prelude-ty">Option</span>&lt;usize&gt;, <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;input </span>str&gt;)&gt; {
     <span class="attr">#![allow(non_snake_case, unused)]
     </span><span class="kw">let </span><span class="kw-2">mut </span>__state = ParseState::new();
-    <span class="kw">match </span><a href="#799-803">__parse_format</a>(<a href="#864">__input</a>, <span class="kw-2">&amp;mut </span><a href="#867">__state</a>, <span class="number">0</span>) {
-        <a href="#12">Matched</a>(__pos, __value) =&gt; {
+    <span class="kw">match </span>__parse_format(__input, <span class="kw-2">&amp;mut </span>__state, <span class="number">0</span>) {
+        Matched(__pos, __value) =&gt; {
             <span class="kw">if </span>__pos == __input.len() {
-                <span class="kw">return </span><span class="prelude-val">Ok</span>(<a href="#869">__value</a>);
+                <span class="kw">return </span><span class="prelude-val">Ok</span>(__value);
             }
         }
         <span class="kw">_ </span>=&gt; {}
     }
-    <span class="kw">let </span>(__line, __col) = <a href="#96">pos_to_line</a>(<a href="#864">__input</a>, <a href="#867">__state</a>.max_err_pos);
-    <span class="prelude-val">Err</span>(<a href="#16">ParseError</a> {
-        line: <a href="#876">__line</a>,
-        column: <a href="#876">__col</a>,
-        offset: <a href="#867">__state</a>.max_err_pos,
-        expected: <a href="#867">__state</a>.expected,
+    <span class="kw">let </span>(__line, __col) = pos_to_line(__input, __state.max_err_pos);
+    <span class="prelude-val">Err</span>(ParseError {
+        line: __line,
+        column: __col,
+        offset: __state.max_err_pos,
+        expected: __state.expected,
     })
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="derive_more" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="derive_more" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

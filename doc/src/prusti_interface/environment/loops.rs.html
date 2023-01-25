@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `prusti-interface/src/environment/loops.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>loops.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../prusti_interface/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `prusti-interface/src/environment/loops.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>loops.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../prusti_interface/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -616,32 +616,32 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 </span><span class="kw">use crate</span>::{
-    environment::{<a href="mir_sets/place_set.rs.html#19">mir_sets::PlaceSet</a>, <a href="mir_utils/real_edges.rs.html#12">mir_utils::RealEdges</a>, <a href="procedure.rs.html#24">procedure::BasicBlockIndex</a>},
-    <a href="../lib.rs.html#24">utils</a>,
+    environment::{mir_sets::PlaceSet, mir_utils::RealEdges, procedure::BasicBlockIndex},
+    utils,
 };
-<span class="kw">use </span>log::{<a href="../../../log/macro.debug.html">debug</a>, <a href="../../../log/macro.trace.html">trace</a>};
+<span class="kw">use </span>log::{debug, trace};
 <span class="kw">use </span>prusti_rustc_interface::{
-    <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_data_structures/graph/dominators/struct.Dominators.html">data_structures::graph::dominators::Dominators</a>,
+    data_structures::graph::dominators::Dominators,
     index::vec::{Idx, IndexVec},
-    middle::{<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/index.html">mir</a>, <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/visit/trait.Visitor.html">mir::visit::Visitor</a>},
+    middle::{mir, mir::visit::Visitor},
 };
-<span class="kw">use </span>rustc_hash::{<a href="../../../rustc_hash/type.FxHashMap.html">FxHashMap</a>, <a href="../../../rustc_hash/type.FxHashSet.html">FxHashSet</a>};
+<span class="kw">use </span>rustc_hash::{FxHashMap, FxHashSet};
 
 <span class="attr">#[derive(Clone, Debug)]
 </span><span class="kw">pub enum </span>LoopAnalysisError {
     <span class="doccomment">/// The loop contains unsupported place contexts
-    </span>UnsupportedPlaceContext(<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/visit/enum.PlaceContext.html">mir::visit::PlaceContext</a>, <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Location.html">mir::Location</a>),
+    </span>UnsupportedPlaceContext(mir::visit::PlaceContext, mir::Location),
 }
 
 <span class="doccomment">/// Walk up the CFG graph an collect all basic blocks that belong to the loop body.
 </span><span class="kw">fn </span>collect_loop_body(
-    head: <a href="procedure.rs.html#24">BasicBlockIndex</a>,
-    back_edge_source: <a href="procedure.rs.html#24">BasicBlockIndex</a>,
-    real_edges: <span class="kw-2">&amp;</span><a href="mir_utils/real_edges.rs.html#12">RealEdges</a>,
-    body: <span class="kw-2">&amp;mut </span>FxHashSet&lt;<a href="procedure.rs.html#24">BasicBlockIndex</a>&gt;,
+    head: BasicBlockIndex,
+    back_edge_source: BasicBlockIndex,
+    real_edges: <span class="kw-2">&amp;</span>RealEdges,
+    body: <span class="kw-2">&amp;mut </span>FxHashSet&lt;BasicBlockIndex&gt;,
 ) {
-    <span class="kw">let </span><span class="kw-2">mut </span>work_queue = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[back_edge_source];
-    <a href="#30">body</a>.insert(<a href="#28">back_edge_source</a>);
+    <span class="kw">let </span><span class="kw-2">mut </span>work_queue = <span class="macro">vec!</span>[back_edge_source];
+    body.insert(back_edge_source);
     <span class="kw">while </span>!work_queue.is_empty() {
         <span class="kw">let </span>current = work_queue.pop().unwrap();
         <span class="kw">for </span><span class="kw-2">&amp;</span>predecessor <span class="kw">in </span>real_edges.predecessors(current).iter() {
@@ -654,7 +654,7 @@
             }
         }
     }
-    <a class="macro" href="../../../log/macro.debug.html">debug!</a>(<span class="string">&quot;Loop body (head={:?}): {:?}&quot;</span>, head, body);
+    <span class="macro">debug!</span>(<span class="string">&quot;Loop body (head={:?}): {:?}&quot;</span>, head, body);
 }
 
 <span class="attr">#[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -671,14 +671,14 @@
     </span>MutableBorrow,
 }
 
-<span class="kw">impl </span><a href="#50">PlaceAccessKind</a> {
+<span class="kw">impl </span>PlaceAccessKind {
     <span class="doccomment">/// Does the access write to the path?
-    </span><span class="kw">fn </span>is_write_access(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">match </span><span class="kw-2">&amp;</span><span class="self"><a href="#65">self</a> </span>{
-            <a href="#52">PlaceAccessKind::Store</a> | <a href="#56">PlaceAccessKind::Move</a> =&gt; <span class="bool-val">true</span>,
-            <a href="#54">PlaceAccessKind::Read</a>
-            | <a href="#60">PlaceAccessKind::MutableBorrow</a>
-            | <a href="#58">PlaceAccessKind::SharedBorrow</a> =&gt; <span class="bool-val">false</span>,
+    </span><span class="kw">fn </span>is_write_access(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="kw">match </span><span class="kw-2">&amp;</span><span class="self">self </span>{
+            PlaceAccessKind::Store | PlaceAccessKind::Move =&gt; <span class="bool-val">true</span>,
+            PlaceAccessKind::Read
+            | PlaceAccessKind::MutableBorrow
+            | PlaceAccessKind::SharedBorrow =&gt; <span class="bool-val">false</span>,
         }
     }
 }
@@ -686,9 +686,9 @@
 <span class="doccomment">/// A place access inside a loop.
 </span><span class="attr">#[derive(Clone, Debug)]
 </span><span class="kw">pub struct </span>PlaceAccess&lt;<span class="lifetime">&#39;tcx</span>&gt; {
-    <span class="kw">pub </span>location: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Location.html">mir::Location</a>,
+    <span class="kw">pub </span>location: mir::Location,
     <span class="kw">pub </span>place: mir::Place&lt;<span class="lifetime">&#39;tcx</span>&gt;,
-    <span class="kw">pub </span>kind: <a href="#50">PlaceAccessKind</a>,
+    <span class="kw">pub </span>kind: PlaceAccessKind,
 }
 
 <span class="doccomment">/// A visitor that collects places that are defined before the loop and
@@ -699,56 +699,56 @@
 </span><span class="attr">#[derive(Debug)]
 </span><span class="kw">struct </span>AccessCollector&lt;<span class="lifetime">&#39;b</span>, <span class="lifetime">&#39;tcx</span>&gt; {
     <span class="doccomment">/// Loop body.
-    </span><span class="kw">pub </span>body: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span>FxHashSet&lt;<a href="procedure.rs.html#24">BasicBlockIndex</a>&gt;,
+    </span><span class="kw">pub </span>body: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span>FxHashSet&lt;BasicBlockIndex&gt;,
     <span class="doccomment">/// The places that are defined before the loop and accessed inside a loop.
     </span><span class="kw">pub </span>accessed_places: Vec&lt;PlaceAccess&lt;<span class="lifetime">&#39;tcx</span>&gt;&gt;,
     <span class="doccomment">/// Errors raised while visiting the loop
-    </span><span class="kw">pub </span>errors: Vec&lt;<a href="#20">LoopAnalysisError</a>&gt;,
+    </span><span class="kw">pub </span>errors: Vec&lt;LoopAnalysisError&gt;,
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;b</span>, <span class="lifetime">&#39;tcx</span>&gt; Visitor&lt;<span class="lifetime">&#39;tcx</span>&gt; <span class="kw">for </span>AccessCollector&lt;<span class="lifetime">&#39;b</span>, <span class="lifetime">&#39;tcx</span>&gt; {
     <span class="kw">fn </span>visit_place(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         place: <span class="kw-2">&amp;</span>mir::Place&lt;<span class="lifetime">&#39;tcx</span>&gt;,
-        context: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/visit/enum.PlaceContext.html">mir::visit::PlaceContext</a>,
-        location: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Location.html">mir::Location</a>,
+        context: mir::visit::PlaceContext,
+        location: mir::Location,
     ) {
         <span class="comment">// TODO: using `location`, skip the places that are used for typechecking
         // because that part of the generated code contains closures.
         </span><span class="kw">if </span><span class="self">self</span>.body.contains(<span class="kw-2">&amp;</span>location.block) &amp;&amp; context.is_use() {
-            <a class="macro" href="../../../log/macro.trace.html">trace!</a>(
+            <span class="macro">trace!</span>(
                 <span class="string">&quot;visit_place(place={:?}, context={:?}, location={:?})&quot;</span>,
                 place,
                 context,
                 location
             );
-            <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/visit/enum.PlaceContext.html">prusti_rustc_interface::middle::mir::visit::PlaceContext</a>::<span class="kw-2">*</span>;
-            <span class="kw">let </span>access_kind = <span class="kw">match </span><a href="#102">context</a> {
-                MutatingUse(mir::visit::MutatingUseContext::Store) =&gt; <a href="#52">PlaceAccessKind::Store</a>,
-                MutatingUse(mir::visit::MutatingUseContext::Call) =&gt; <a href="#52">PlaceAccessKind::Store</a>,
+            <span class="kw">use </span>prusti_rustc_interface::middle::mir::visit::PlaceContext::<span class="kw-2">*</span>;
+            <span class="kw">let </span>access_kind = <span class="kw">match </span>context {
+                MutatingUse(mir::visit::MutatingUseContext::Store) =&gt; PlaceAccessKind::Store,
+                MutatingUse(mir::visit::MutatingUseContext::Call) =&gt; PlaceAccessKind::Store,
                 MutatingUse(mir::visit::MutatingUseContext::Borrow) =&gt; {
-                    <a href="#60">PlaceAccessKind::MutableBorrow</a>
+                    PlaceAccessKind::MutableBorrow
                 }
-                MutatingUse(mir::visit::MutatingUseContext::Drop) =&gt; <a href="#56">PlaceAccessKind::Move</a>,
-                NonMutatingUse(mir::visit::NonMutatingUseContext::Copy) =&gt; <a href="#54">PlaceAccessKind::Read</a>,
-                NonMutatingUse(mir::visit::NonMutatingUseContext::Move) =&gt; <a href="#56">PlaceAccessKind::Move</a>,
-                NonMutatingUse(mir::visit::NonMutatingUseContext::Inspect) =&gt; <a href="#54">PlaceAccessKind::Read</a>,
+                MutatingUse(mir::visit::MutatingUseContext::Drop) =&gt; PlaceAccessKind::Move,
+                NonMutatingUse(mir::visit::NonMutatingUseContext::Copy) =&gt; PlaceAccessKind::Read,
+                NonMutatingUse(mir::visit::NonMutatingUseContext::Move) =&gt; PlaceAccessKind::Move,
+                NonMutatingUse(mir::visit::NonMutatingUseContext::Inspect) =&gt; PlaceAccessKind::Read,
                 NonMutatingUse(mir::visit::NonMutatingUseContext::SharedBorrow) =&gt; {
-                    <a href="#58">PlaceAccessKind::SharedBorrow</a>
+                    PlaceAccessKind::SharedBorrow
                 }
                 <span class="kw">_ </span>=&gt; {
-                    <a class="self" href="#100">self</a>.errors.push(<a href="#22">LoopAnalysisError::UnsupportedPlaceContext</a>(
-                        <a href="#102">context</a>, <a href="#103">location</a>,
+                    <span class="self">self</span>.errors.push(LoopAnalysisError::UnsupportedPlaceContext(
+                        context, location,
                     ));
                     <span class="kw">return</span>;
                 }
             };
-            <span class="kw">let </span>access = <a href="#77">PlaceAccess</a> {
-                <a href="#103">location</a>,
-                place: <span class="kw-2">*</span><a href="#101">place</a>,
-                kind: <a href="#115">access_kind</a>,
+            <span class="kw">let </span>access = PlaceAccess {
+                location,
+                place: <span class="kw-2">*</span>place,
+                kind: access_kind,
             };
-            <a class="self" href="#100">self</a>.accessed_places.push(<a href="#135">access</a>);
+            <span class="self">self</span>.accessed_places.push(access);
         }
     }
 }
@@ -756,33 +756,33 @@
 <span class="doccomment">/// Returns the list of basic blocks ordered in the topological order (ignoring back edges).
 </span><span class="kw">fn </span>order_basic_blocks&lt;<span class="lifetime">&#39;tcx</span>&gt;(
     mir: <span class="kw-2">&amp;</span>mir::Body&lt;<span class="lifetime">&#39;tcx</span>&gt;,
-    real_edges: <span class="kw-2">&amp;</span><a href="mir_utils/real_edges.rs.html#12">RealEdges</a>,
-    back_edges: <span class="kw-2">&amp;</span>FxHashSet&lt;(<a href="procedure.rs.html#24">BasicBlockIndex</a>, <a href="procedure.rs.html#24">BasicBlockIndex</a>)&gt;,
-    loop_depth: <span class="kw-2">&amp;</span><span class="kw">dyn </span>Fn(<a href="procedure.rs.html#24">BasicBlockIndex</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-) -&gt; Vec&lt;<a href="procedure.rs.html#24">BasicBlockIndex</a>&gt; {
-    <span class="kw">let </span>basic_blocks = <span class="kw-2">&amp;</span><a href="#147">mir</a>.basic_blocks;
+    real_edges: <span class="kw-2">&amp;</span>RealEdges,
+    back_edges: <span class="kw-2">&amp;</span>FxHashSet&lt;(BasicBlockIndex, BasicBlockIndex)&gt;,
+    loop_depth: <span class="kw-2">&amp;</span><span class="kw">dyn </span>Fn(BasicBlockIndex) -&gt; usize,
+) -&gt; Vec&lt;BasicBlockIndex&gt; {
+    <span class="kw">let </span>basic_blocks = <span class="kw-2">&amp;</span>mir.basic_blocks;
     <span class="kw">let </span><span class="kw-2">mut </span>sorted_blocks = Vec::new();
     <span class="kw">let </span><span class="kw-2">mut </span>permanent_mark =
-        IndexVec::&lt;<a href="procedure.rs.html#24">BasicBlockIndex</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>&gt;::from_elem_n(<span class="bool-val">false</span>, <a href="#152">basic_blocks</a>.len());
-    <span class="kw">let </span><span class="kw-2">mut </span>temporary_mark = <a href="#154">permanent_mark</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
+        IndexVec::&lt;BasicBlockIndex, bool&gt;::from_elem_n(<span class="bool-val">false</span>, basic_blocks.len());
+    <span class="kw">let </span><span class="kw-2">mut </span>temporary_mark = permanent_mark.clone();
 
     <span class="kw">fn </span>visit(
-        real_edges: <span class="kw-2">&amp;</span><a href="mir_utils/real_edges.rs.html#12">RealEdges</a>,
-        back_edges: <span class="kw-2">&amp;</span>FxHashSet&lt;(<a href="procedure.rs.html#24">BasicBlockIndex</a>, <a href="procedure.rs.html#24">BasicBlockIndex</a>)&gt;,
-        loop_depth: <span class="kw-2">&amp;</span><span class="kw">dyn </span>Fn(<a href="procedure.rs.html#24">BasicBlockIndex</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-        current: <a href="procedure.rs.html#24">BasicBlockIndex</a>,
-        sorted_blocks: <span class="kw-2">&amp;mut </span>Vec&lt;<a href="procedure.rs.html#24">BasicBlockIndex</a>&gt;,
-        permanent_mark: <span class="kw-2">&amp;mut </span>IndexVec&lt;<a href="procedure.rs.html#24">BasicBlockIndex</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>&gt;,
-        temporary_mark: <span class="kw-2">&amp;mut </span>IndexVec&lt;<a href="procedure.rs.html#24">BasicBlockIndex</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>&gt;,
+        real_edges: <span class="kw-2">&amp;</span>RealEdges,
+        back_edges: <span class="kw-2">&amp;</span>FxHashSet&lt;(BasicBlockIndex, BasicBlockIndex)&gt;,
+        loop_depth: <span class="kw-2">&amp;</span><span class="kw">dyn </span>Fn(BasicBlockIndex) -&gt; usize,
+        current: BasicBlockIndex,
+        sorted_blocks: <span class="kw-2">&amp;mut </span>Vec&lt;BasicBlockIndex&gt;,
+        permanent_mark: <span class="kw-2">&amp;mut </span>IndexVec&lt;BasicBlockIndex, bool&gt;,
+        temporary_mark: <span class="kw-2">&amp;mut </span>IndexVec&lt;BasicBlockIndex, bool&gt;,
     ) {
         <span class="kw">if </span>permanent_mark[current] {
             <span class="kw">return</span>;
         }
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(!temporary_mark[current], <span class="string">&quot;Not a DAG!&quot;</span>);
-        <a href="#165">temporary_mark</a>[<a href="#162">current</a>] = <span class="bool-val">true</span>;
-        <span class="kw">let </span>curr_depth = <a href="#161">loop_depth</a>(<a href="#162">current</a>);
+        <span class="macro">assert!</span>(!temporary_mark[current], <span class="string">&quot;Not a DAG!&quot;</span>);
+        temporary_mark[current] = <span class="bool-val">true</span>;
+        <span class="kw">let </span>curr_depth = loop_depth(current);
         <span class="comment">// We want to order the loop body before exit edges
-        </span><span class="kw">let </span>successors_groups: Vec&lt;Vec&lt;<span class="kw">_</span>&gt;&gt; = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[
+        </span><span class="kw">let </span>successors_groups: Vec&lt;Vec&lt;<span class="kw">_</span>&gt;&gt; = <span class="macro">vec!</span>[
             real_edges
                 .successors(current)
                 .iter()
@@ -812,8 +812,8 @@
                 );
             }
         }
-        <a href="#164">permanent_mark</a>[<a href="#162">current</a>] = <span class="bool-val">true</span>;
-        <a href="#163">sorted_blocks</a>.push(<a href="#162">current</a>);
+        permanent_mark[current] = <span class="bool-val">true</span>;
+        sorted_blocks.push(current);
     }
 
     <span class="kw">while let </span><span class="prelude-val">Some</span>(index) = permanent_mark.iter().position(|x| !<span class="kw-2">*</span>x) {
@@ -828,33 +828,33 @@
             <span class="kw-2">&amp;mut </span>temporary_mark,
         );
     }
-    <a href="#153">sorted_blocks</a>.reverse();
-    <a href="#153">sorted_blocks</a>
+    sorted_blocks.reverse();
+    sorted_blocks
 }
 
 <span class="doccomment">/// Struct that contains information about all loops in the procedure.
 </span><span class="attr">#[derive(Clone)]
 </span><span class="kw">pub struct </span>ProcedureLoops {
     <span class="doccomment">/// A list of basic blocks that are loop heads.
-    </span><span class="kw">pub </span>loop_heads: FxHashSet&lt;<a href="procedure.rs.html#24">BasicBlockIndex</a>&gt;,
+    </span><span class="kw">pub </span>loop_heads: FxHashSet&lt;BasicBlockIndex&gt;,
     <span class="doccomment">/// The depth of each loop head, starting from one for a simple single loop.
-    </span><span class="kw">pub </span>loop_head_depths: FxHashMap&lt;<a href="procedure.rs.html#24">BasicBlockIndex</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;,
+    </span><span class="kw">pub </span>loop_head_depths: FxHashMap&lt;BasicBlockIndex, usize&gt;,
     <span class="doccomment">/// A map from loop heads to the corresponding bodies.
-    </span><span class="kw">pub </span>loop_bodies: FxHashMap&lt;<a href="procedure.rs.html#24">BasicBlockIndex</a>, FxHashSet&lt;<a href="procedure.rs.html#24">BasicBlockIndex</a>&gt;&gt;,
-    <span class="kw">pub </span>ordered_loop_bodies: FxHashMap&lt;<a href="procedure.rs.html#24">BasicBlockIndex</a>, Vec&lt;<a href="procedure.rs.html#24">BasicBlockIndex</a>&gt;&gt;,
+    </span><span class="kw">pub </span>loop_bodies: FxHashMap&lt;BasicBlockIndex, FxHashSet&lt;BasicBlockIndex&gt;&gt;,
+    <span class="kw">pub </span>ordered_loop_bodies: FxHashMap&lt;BasicBlockIndex, Vec&lt;BasicBlockIndex&gt;&gt;,
     <span class="doccomment">/// A map from loop bodies to the ordered vector of enclosing loop heads (from outer to inner).
-    </span>enclosing_loop_heads: FxHashMap&lt;<a href="procedure.rs.html#24">BasicBlockIndex</a>, Vec&lt;<a href="procedure.rs.html#24">BasicBlockIndex</a>&gt;&gt;,
+    </span>enclosing_loop_heads: FxHashMap&lt;BasicBlockIndex, Vec&lt;BasicBlockIndex&gt;&gt;,
     <span class="doccomment">/// A map from loop heads to the ordered blocks from which a CFG edge exits from the loop.
-    </span>loop_exit_blocks: FxHashMap&lt;<a href="procedure.rs.html#24">BasicBlockIndex</a>, Vec&lt;<a href="procedure.rs.html#24">BasicBlockIndex</a>&gt;&gt;,
+    </span>loop_exit_blocks: FxHashMap&lt;BasicBlockIndex, Vec&lt;BasicBlockIndex&gt;&gt;,
     <span class="doccomment">/// A map from loop heads to the nonconditional blocks (i.e. those that are always executed
     /// in any loop iteration).
-    </span>nonconditional_loop_blocks: FxHashMap&lt;<a href="procedure.rs.html#24">BasicBlockIndex</a>, FxHashSet&lt;<a href="procedure.rs.html#24">BasicBlockIndex</a>&gt;&gt;,
+    </span>nonconditional_loop_blocks: FxHashMap&lt;BasicBlockIndex, FxHashSet&lt;BasicBlockIndex&gt;&gt;,
     <span class="doccomment">/// Back edges.
-    </span><span class="kw">pub </span>back_edges: FxHashSet&lt;(<a href="procedure.rs.html#24">BasicBlockIndex</a>, <a href="procedure.rs.html#24">BasicBlockIndex</a>)&gt;,
+    </span><span class="kw">pub </span>back_edges: FxHashSet&lt;(BasicBlockIndex, BasicBlockIndex)&gt;,
     <span class="doccomment">/// Dominators graph.
-    </span>dominators: Dominators&lt;<a href="procedure.rs.html#24">BasicBlockIndex</a>&gt;,
+    </span>dominators: Dominators&lt;BasicBlockIndex&gt;,
     <span class="doccomment">/// The list of basic blocks ordered in the topological order (ignoring back edges).
-    </span><span class="kw">pub </span>ordered_blocks: Vec&lt;<a href="procedure.rs.html#24">BasicBlockIndex</a>&gt;,
+    </span><span class="kw">pub </span>ordered_blocks: Vec&lt;BasicBlockIndex&gt;,
 }
 
 <span class="kw">pub type </span>ReadAndWriteLeaves&lt;<span class="lifetime">&#39;tcx</span>&gt; = (
@@ -863,9 +863,9 @@
     Vec&lt;mir::Place&lt;<span class="lifetime">&#39;tcx</span>&gt;&gt;,
 );
 
-<span class="kw">impl </span><a href="#226">ProcedureLoops</a> {
-    <span class="kw">pub fn </span>new&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;tcx</span>: <span class="lifetime">&#39;a</span>&gt;(mir: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>mir::Body&lt;<span class="lifetime">&#39;tcx</span>&gt;, real_edges: <span class="kw-2">&amp;</span><a href="mir_utils/real_edges.rs.html#12">RealEdges</a>) -&gt; <a href="#226">ProcedureLoops</a> {
-        <span class="kw">let </span>dominators = <a href="#256">mir</a>.basic_blocks.dominators();
+<span class="kw">impl </span>ProcedureLoops {
+    <span class="kw">pub fn </span>new&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;tcx</span>: <span class="lifetime">&#39;a</span>&gt;(mir: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>mir::Body&lt;<span class="lifetime">&#39;tcx</span>&gt;, real_edges: <span class="kw-2">&amp;</span>RealEdges) -&gt; ProcedureLoops {
+        <span class="kw">let </span>dominators = mir.basic_blocks.dominators();
 
         <span class="kw">let </span><span class="kw-2">mut </span>back_edges: FxHashSet&lt;(<span class="kw">_</span>, <span class="kw">_</span>)&gt; = FxHashSet::default();
         <span class="kw">for </span>bb <span class="kw">in </span>mir.basic_blocks.indices() {
@@ -883,7 +883,7 @@
             collect_loop_body(target, source, real_edges, body);
         }
 
-        <span class="kw">let </span><span class="kw-2">mut </span>enclosing_loop_heads_set: FxHashMap&lt;<a href="procedure.rs.html#24">BasicBlockIndex</a>, FxHashSet&lt;<a href="procedure.rs.html#24">BasicBlockIndex</a>&gt;&gt; =
+        <span class="kw">let </span><span class="kw-2">mut </span>enclosing_loop_heads_set: FxHashMap&lt;BasicBlockIndex, FxHashSet&lt;BasicBlockIndex&gt;&gt; =
             FxHashMap::default();
         <span class="kw">for </span>(<span class="kw-2">&amp;</span>loop_head, loop_body) <span class="kw">in </span>loop_bodies.iter() {
             <span class="kw">for </span><span class="kw-2">&amp;</span>block <span class="kw">in </span>loop_body.iter() {
@@ -894,7 +894,7 @@
             }
         }
 
-        <span class="kw">let </span>loop_heads: FxHashSet&lt;<span class="kw">_</span>&gt; = <a href="#269">loop_bodies</a>.keys().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">copied</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
+        <span class="kw">let </span>loop_heads: FxHashSet&lt;<span class="kw">_</span>&gt; = loop_bodies.keys().copied().collect();
         <span class="kw">let </span><span class="kw-2">mut </span>loop_head_depths = FxHashMap::default();
         <span class="kw">for </span><span class="kw-2">&amp;</span>loop_head <span class="kw">in </span>loop_heads.iter() {
             loop_head_depths.insert(loop_head, enclosing_loop_heads_set[<span class="kw-2">&amp;</span>loop_head].len());
@@ -907,22 +907,22 @@
             enclosing_loop_heads.insert(block, heads);
         }
 
-        <span class="kw">let </span>get_loop_depth = |bb: <a href="procedure.rs.html#24">BasicBlockIndex</a>| {
-            <a href="#292">enclosing_loop_heads</a>
-                .get(<span class="kw-2">&amp;</span><a href="#299">bb</a>)
-                .and_then(|heads| <a href="#302">heads</a>.last())
-                .map(|bb_head| <a href="#287">loop_head_depths</a>[<a href="#303">bb_head</a>])
+        <span class="kw">let </span>get_loop_depth = |bb: BasicBlockIndex| {
+            enclosing_loop_heads
+                .get(<span class="kw-2">&amp;</span>bb)
+                .and_then(|heads| heads.last())
+                .map(|bb_head| loop_head_depths[bb_head])
                 .unwrap_or(<span class="number">0</span>)
         };
 
-        <span class="kw">let </span>ordered_blocks = <a href="#146-151">order_basic_blocks</a>(<a href="#256">mir</a>, <a href="#256">real_edges</a>, <span class="kw-2">&amp;</span><a href="#259">back_edges</a>, <span class="kw-2">&amp;</span><a href="#299">get_loop_depth</a>);
-        <span class="kw">let </span>block_order: FxHashMap&lt;<a href="procedure.rs.html#24">BasicBlockIndex</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; = <a href="#307">ordered_blocks</a>
+        <span class="kw">let </span>ordered_blocks = order_basic_blocks(mir, real_edges, <span class="kw-2">&amp;</span>back_edges, <span class="kw-2">&amp;</span>get_loop_depth);
+        <span class="kw">let </span>block_order: FxHashMap&lt;BasicBlockIndex, usize&gt; = ordered_blocks
             .iter()
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">cloned</a>()
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">enumerate</a>()
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|(i, v)| (<a href="#312">v</a>, <a href="#312">i</a>))
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
-        <a class="macro" href="../../../log/macro.debug.html">debug!</a>(<span class="string">&quot;ordered_blocks: {:?}&quot;</span>, ordered_blocks);
+            .cloned()
+            .enumerate()
+            .map(|(i, v)| (v, i))
+            .collect();
+        <span class="macro">debug!</span>(<span class="string">&quot;ordered_blocks: {:?}&quot;</span>, ordered_blocks);
 
         <span class="kw">let </span><span class="kw-2">mut </span>ordered_loop_bodies = FxHashMap::default();
         <span class="kw">for </span>(<span class="kw-2">&amp;</span>loop_head, loop_body) <span class="kw">in </span>loop_bodies.iter() {
@@ -975,7 +975,7 @@
 
             loop_exit_blocks.insert(loop_head, exit_blocks);
         }
-        <a class="macro" href="../../../log/macro.debug.html">debug!</a>(<span class="string">&quot;loop_exit_blocks: {:?}&quot;</span>, loop_exit_blocks);
+        <span class="macro">debug!</span>(<span class="string">&quot;loop_exit_blocks: {:?}&quot;</span>, loop_exit_blocks);
 
         <span class="comment">// The nonconditional blocks of a loop are those blocks of the loop body that dominate all
         // the blocks from which a back-edge starts.
@@ -990,50 +990,50 @@
                 .copied()
                 .collect();
         }
-        <a class="macro" href="../../../log/macro.debug.html">debug!</a>(
+        <span class="macro">debug!</span>(
             <span class="string">&quot;nonconditional_loop_blocks: {:?}&quot;</span>,
             nonconditional_loop_blocks
         );
 
-        <a href="#226">ProcedureLoops</a> {
-            <a href="#286">loop_heads</a>,
-            <a href="#287">loop_head_depths</a>,
-            <a href="#269">loop_bodies</a>,
-            <a href="#316">ordered_loop_bodies</a>,
-            <a href="#292">enclosing_loop_heads</a>,
-            <a href="#329">loop_exit_blocks</a>,
-            <a href="#371">nonconditional_loop_blocks</a>,
-            <a href="#259">back_edges</a>,
-            <a href="#257">dominators</a>,
-            <a href="#307">ordered_blocks</a>,
+        ProcedureLoops {
+            loop_heads,
+            loop_head_depths,
+            loop_bodies,
+            ordered_loop_bodies,
+            enclosing_loop_heads,
+            loop_exit_blocks,
+            nonconditional_loop_blocks,
+            back_edges,
+            dominators,
+            ordered_blocks,
         }
     }
 
-    <span class="kw">pub fn </span>count_loop_heads(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="self" href="#401">self</a>.loop_heads.len()
+    <span class="kw">pub fn </span>count_loop_heads(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+        <span class="self">self</span>.loop_heads.len()
     }
 
-    <span class="kw">pub fn </span>max_loop_nesting(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="self" href="#405">self</a>.loop_head_depths.values().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">max</a>().cloned().unwrap_or(<span class="number">0</span>)
+    <span class="kw">pub fn </span>max_loop_nesting(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+        <span class="self">self</span>.loop_head_depths.values().max().cloned().unwrap_or(<span class="number">0</span>)
     }
 
-    <span class="kw">pub fn </span>is_loop_head(<span class="kw-2">&amp;</span><span class="self">self</span>, bbi: <a href="procedure.rs.html#24">BasicBlockIndex</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#409">self</a>.loop_heads.contains(<span class="kw-2">&amp;</span><a href="#409">bbi</a>)
+    <span class="kw">pub fn </span>is_loop_head(<span class="kw-2">&amp;</span><span class="self">self</span>, bbi: BasicBlockIndex) -&gt; bool {
+        <span class="self">self</span>.loop_heads.contains(<span class="kw-2">&amp;</span>bbi)
     }
 
-    <span class="kw">pub fn </span>get_loop_exit_blocks(<span class="kw-2">&amp;</span><span class="self">self</span>, bbi: <a href="procedure.rs.html#24">BasicBlockIndex</a>) -&gt; <span class="kw-2">&amp;</span>[<a href="procedure.rs.html#24">BasicBlockIndex</a>] {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(<span class="self">self</span>.is_loop_head(bbi));
-        <span class="kw-2">&amp;</span><a class="self" href="#413">self</a>.loop_exit_blocks[<span class="kw-2">&amp;</span><a href="#413">bbi</a>]
+    <span class="kw">pub fn </span>get_loop_exit_blocks(<span class="kw-2">&amp;</span><span class="self">self</span>, bbi: BasicBlockIndex) -&gt; <span class="kw-2">&amp;</span>[BasicBlockIndex] {
+        <span class="macro">debug_assert!</span>(<span class="self">self</span>.is_loop_head(bbi));
+        <span class="kw-2">&amp;</span><span class="self">self</span>.loop_exit_blocks[<span class="kw-2">&amp;</span>bbi]
     }
 
-    <span class="kw">pub fn </span>is_conditional_branch(<span class="kw-2">&amp;</span><span class="self">self</span>, loop_head: <a href="procedure.rs.html#24">BasicBlockIndex</a>, bbi: <a href="procedure.rs.html#24">BasicBlockIndex</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(<span class="self">self</span>.is_loop_head(loop_head));
-        !<a class="self" href="#418">self</a>.nonconditional_loop_blocks[<span class="kw-2">&amp;</span><a href="#418">loop_head</a>].contains(<span class="kw-2">&amp;</span><a href="#418">bbi</a>)
+    <span class="kw">pub fn </span>is_conditional_branch(<span class="kw-2">&amp;</span><span class="self">self</span>, loop_head: BasicBlockIndex, bbi: BasicBlockIndex) -&gt; bool {
+        <span class="macro">debug_assert!</span>(<span class="self">self</span>.is_loop_head(loop_head));
+        !<span class="self">self</span>.nonconditional_loop_blocks[<span class="kw-2">&amp;</span>loop_head].contains(<span class="kw-2">&amp;</span>bbi)
     }
 
-    <span class="kw">pub fn </span>get_enclosing_loop_heads(<span class="kw-2">&amp;</span><span class="self">self</span>, bbi: <a href="procedure.rs.html#24">BasicBlockIndex</a>) -&gt; <span class="kw-2">&amp;</span>[<a href="procedure.rs.html#24">BasicBlockIndex</a>] {
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(heads) = <a class="self" href="#423">self</a>.enclosing_loop_heads.get(<span class="kw-2">&amp;</span><a href="#423">bbi</a>) {
-            <a href="#424">heads</a>
+    <span class="kw">pub fn </span>get_enclosing_loop_heads(<span class="kw-2">&amp;</span><span class="self">self</span>, bbi: BasicBlockIndex) -&gt; <span class="kw-2">&amp;</span>[BasicBlockIndex] {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(heads) = <span class="self">self</span>.enclosing_loop_heads.get(<span class="kw-2">&amp;</span>bbi) {
+            heads
         } <span class="kw">else </span>{
             <span class="kw-2">&amp;</span>[]
         }
@@ -1041,40 +1041,40 @@
 
     <span class="doccomment">/// Get the loop head, if any
     /// Note: a loop head **is** loop head of itself
-    </span><span class="kw">pub fn </span>get_loop_head(<span class="kw-2">&amp;</span><span class="self">self</span>, bbi: <a href="procedure.rs.html#24">BasicBlockIndex</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="procedure.rs.html#24">BasicBlockIndex</a>&gt; {
-        <a class="self" href="#433">self</a>.enclosing_loop_heads
-            .get(<span class="kw-2">&amp;</span><a href="#433">bbi</a>)
-            .and_then(|heads| <a href="#436">heads</a>.last())
+    </span><span class="kw">pub fn </span>get_loop_head(<span class="kw-2">&amp;</span><span class="self">self</span>, bbi: BasicBlockIndex) -&gt; <span class="prelude-ty">Option</span>&lt;BasicBlockIndex&gt; {
+        <span class="self">self</span>.enclosing_loop_heads
+            .get(<span class="kw-2">&amp;</span>bbi)
+            .and_then(|heads| heads.last())
             .cloned()
     }
 
     <span class="doccomment">/// Get the depth of a loop head, starting from one for a simple loop
-    </span><span class="kw">pub fn </span>get_loop_head_depth(<span class="kw-2">&amp;</span><span class="self">self</span>, bbi: <a href="procedure.rs.html#24">BasicBlockIndex</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(<span class="self">self</span>.is_loop_head(bbi));
-        <a class="self" href="#441">self</a>.loop_head_depths[<span class="kw-2">&amp;</span><a href="#441">bbi</a>]
+    </span><span class="kw">pub fn </span>get_loop_head_depth(<span class="kw-2">&amp;</span><span class="self">self</span>, bbi: BasicBlockIndex) -&gt; usize {
+        <span class="macro">debug_assert!</span>(<span class="self">self</span>.is_loop_head(bbi));
+        <span class="self">self</span>.loop_head_depths[<span class="kw-2">&amp;</span>bbi]
     }
 
     <span class="doccomment">/// Get the loop-depth of a block (zero if it&#39;s not in a loop).
-    </span><span class="kw">pub fn </span>get_loop_depth(<span class="kw-2">&amp;</span><span class="self">self</span>, bbi: <a href="procedure.rs.html#24">BasicBlockIndex</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="self" href="#447">self</a>.<a href="#433">get_loop_head</a>(<a href="#447">bbi</a>)
-            .map(|x| <a class="self" href="#447">self</a>.<a href="#441">get_loop_head_depth</a>(<a href="#449">x</a>))
+    </span><span class="kw">pub fn </span>get_loop_depth(<span class="kw-2">&amp;</span><span class="self">self</span>, bbi: BasicBlockIndex) -&gt; usize {
+        <span class="self">self</span>.get_loop_head(bbi)
+            .map(|x| <span class="self">self</span>.get_loop_head_depth(x))
             .unwrap_or(<span class="number">0</span>)
     }
 
     <span class="doccomment">/// Get the (topologically ordered) body of a loop, given a loop head
-    </span><span class="kw">pub fn </span>get_loop_body(<span class="kw-2">&amp;</span><span class="self">self</span>, loop_head: <a href="procedure.rs.html#24">BasicBlockIndex</a>) -&gt; <span class="kw-2">&amp;</span>[<a href="procedure.rs.html#24">BasicBlockIndex</a>] {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(<span class="self">self</span>.is_loop_head(loop_head));
-        <span class="kw-2">&amp;</span><a class="self" href="#454">self</a>.ordered_loop_bodies[<span class="kw-2">&amp;</span><a href="#454">loop_head</a>]
+    </span><span class="kw">pub fn </span>get_loop_body(<span class="kw-2">&amp;</span><span class="self">self</span>, loop_head: BasicBlockIndex) -&gt; <span class="kw-2">&amp;</span>[BasicBlockIndex] {
+        <span class="macro">debug_assert!</span>(<span class="self">self</span>.is_loop_head(loop_head));
+        <span class="kw-2">&amp;</span><span class="self">self</span>.ordered_loop_bodies[<span class="kw-2">&amp;</span>loop_head]
     }
 
     <span class="doccomment">/// Does this edge exit a loop?
-    </span><span class="kw">pub fn </span>is_out_edge(<span class="kw-2">&amp;</span><span class="self">self</span>, from: <a href="procedure.rs.html#24">BasicBlockIndex</a>, to: <a href="procedure.rs.html#24">BasicBlockIndex</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(from_loop_head) = <a class="self" href="#460">self</a>.<a href="#433">get_loop_head</a>(<a href="#460">from</a>) {
-            <span class="kw">if let </span><span class="prelude-val">Some</span>(to_loop_head) = <a class="self" href="#460">self</a>.<a href="#433">get_loop_head</a>(<a href="#460">to</a>) {
+    </span><span class="kw">pub fn </span>is_out_edge(<span class="kw-2">&amp;</span><span class="self">self</span>, from: BasicBlockIndex, to: BasicBlockIndex) -&gt; bool {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(from_loop_head) = <span class="self">self</span>.get_loop_head(from) {
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(to_loop_head) = <span class="self">self</span>.get_loop_head(to) {
                 <span class="kw">if </span>from_loop_head == to_loop_head || to == to_loop_head {
                     <span class="bool-val">false
                 </span>} <span class="kw">else </span>{
-                    !<a class="self" href="#460">self</a>.enclosing_loop_heads[<span class="kw-2">&amp;</span><a href="#460">to</a>].contains(<span class="kw-2">&amp;</span><a href="#461">from_loop_head</a>)
+                    !<span class="self">self</span>.enclosing_loop_heads[<span class="kw-2">&amp;</span>to].contains(<span class="kw-2">&amp;</span>from_loop_head)
                 }
             } <span class="kw">else </span>{
                 <span class="bool-val">true
@@ -1085,27 +1085,27 @@
     }
 
     <span class="doccomment">/// Check if ``block`` is inside a given loop.
-    </span><span class="kw">pub fn </span>is_block_in_loop(<span class="kw-2">&amp;</span><span class="self">self</span>, loop_head: <a href="procedure.rs.html#24">BasicBlockIndex</a>, block: <a href="procedure.rs.html#24">BasicBlockIndex</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#477">self</a>.dominators.is_dominated_by(<a href="#477">block</a>, <a href="#477">loop_head</a>)
+    </span><span class="kw">pub fn </span>is_block_in_loop(<span class="kw-2">&amp;</span><span class="self">self</span>, loop_head: BasicBlockIndex, block: BasicBlockIndex) -&gt; bool {
+        <span class="self">self</span>.dominators.is_dominated_by(block, loop_head)
     }
 
     <span class="doccomment">/// Compute what paths that are accessed inside the loop.
     </span><span class="kw">fn </span>compute_used_paths&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;tcx</span>: <span class="lifetime">&#39;a</span>&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        loop_head: <a href="procedure.rs.html#24">BasicBlockIndex</a>,
+        loop_head: BasicBlockIndex,
         mir: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>mir::Body&lt;<span class="lifetime">&#39;tcx</span>&gt;,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;PlaceAccess&lt;<span class="lifetime">&#39;tcx</span>&gt;&gt;, <a href="#20">LoopAnalysisError</a>&gt; {
-        <span class="kw">let </span>body = <a class="self" href="#483">self</a>.loop_bodies.get(<span class="kw-2">&amp;</span><a href="#484">loop_head</a>).unwrap();
-        <span class="kw">let </span><span class="kw-2">mut </span>visitor = <a href="#89">AccessCollector</a> {
-            <a href="#487">body</a>,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;PlaceAccess&lt;<span class="lifetime">&#39;tcx</span>&gt;&gt;, LoopAnalysisError&gt; {
+        <span class="kw">let </span>body = <span class="self">self</span>.loop_bodies.get(<span class="kw-2">&amp;</span>loop_head).unwrap();
+        <span class="kw">let </span><span class="kw-2">mut </span>visitor = AccessCollector {
+            body,
             accessed_places: Vec::new(),
             errors: Vec::new(),
         };
-        <a href="#488">visitor</a>.<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/visit/trait.Visitor.html">visit_body</a>(<a href="#485">mir</a>);
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(error) = <a href="#488">visitor</a>.errors.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>() {
-            <span class="prelude-val">Err</span>(<a href="#494">error</a>)
+        visitor.visit_body(mir);
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(error) = visitor.errors.into_iter().next() {
+            <span class="prelude-val">Err</span>(error)
         } <span class="kw">else </span>{
-            <span class="prelude-val">Ok</span>(<a href="#488">visitor</a>.accessed_places)
+            <span class="prelude-val">Ok</span>(visitor.accessed_places)
         }
     }
 
@@ -1113,10 +1113,10 @@
     /// definitely initialised.
     </span><span class="kw">pub fn </span>compute_read_and_write_leaves&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;tcx</span>: <span class="lifetime">&#39;a</span>&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        loop_head: <a href="procedure.rs.html#24">BasicBlockIndex</a>,
+        loop_head: BasicBlockIndex,
         mir: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>mir::Body&lt;<span class="lifetime">&#39;tcx</span>&gt;,
         definitely_initalised_paths: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>PlaceSet&lt;<span class="lifetime">&#39;tcx</span>&gt;&gt;,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;ReadAndWriteLeaves&lt;<span class="lifetime">&#39;tcx</span>&gt;, <a href="#20">LoopAnalysisError</a>&gt; {
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;ReadAndWriteLeaves&lt;<span class="lifetime">&#39;tcx</span>&gt;, LoopAnalysisError&gt; {
         <span class="comment">// 1.  Let ``A1`` be a set of pairs ``(p, t)`` where ``p`` is a prefix
         //     accessed in the loop body and ``t`` is the type of access (read,
         //     destructive read, …).
@@ -1139,33 +1139,33 @@
 
         // Paths accessed inside the loop body.
         </span><span class="kw">let </span>accesses = <span class="self">self</span>.compute_used_paths(loop_head, mir)<span class="question-mark">?</span>;
-        <a class="macro" href="../../../log/macro.debug.html">debug!</a>(<span class="string">&quot;accesses = {:?}&quot;</span>, accesses);
-        <span class="kw">let </span><span class="kw-2">mut </span>accesses_pairs: Vec&lt;<span class="kw">_</span>&gt; = <a href="#530">accesses</a>
+        <span class="macro">debug!</span>(<span class="string">&quot;accesses = {:?}&quot;</span>, accesses);
+        <span class="kw">let </span><span class="kw-2">mut </span>accesses_pairs: Vec&lt;<span class="kw">_</span>&gt; = accesses
             .iter()
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|<a href="#77">PlaceAccess</a> { place, kind, .. }| (<span class="kw-2">*</span><a href="#534">place</a>, <span class="kw-2">*</span><a href="#534">kind</a>))
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
-        <a class="macro" href="../../../log/macro.debug.html">debug!</a>(<span class="string">&quot;accesses_pairs = {:?}&quot;</span>, accesses_pairs);
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(paths) = <a href="#507">definitely_initalised_paths</a> {
-            <a class="macro" href="../../../log/macro.debug.html">debug!</a>(<span class="string">&quot;definitely_initalised_paths = {:?}&quot;</span>, paths);
-            <a href="#532">accesses_pairs</a>.retain(|(place, kind)| {
-                <a href="#537">paths</a>.<a href="mir_sets/place_set.rs.html#55">iter</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">any</a>(|initialised_place|
+            .map(|PlaceAccess { place, kind, .. }| (<span class="kw-2">*</span>place, <span class="kw-2">*</span>kind))
+            .collect();
+        <span class="macro">debug!</span>(<span class="string">&quot;accesses_pairs = {:?}&quot;</span>, accesses_pairs);
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(paths) = definitely_initalised_paths {
+            <span class="macro">debug!</span>(<span class="string">&quot;definitely_initalised_paths = {:?}&quot;</span>, paths);
+            accesses_pairs.retain(|(place, kind)| {
+                paths.iter().any(|initialised_place|
                         <span class="comment">// If the prefix is definitely initialised, then this place is a potential
                         // loop invariant.
-                        </span><a href="../utils.rs.html#22">utils::is_prefix</a>(<span class="kw-2">*</span><a href="#539">place</a>, <span class="kw-2">*</span><a href="#540">initialised_place</a>) ||
+                        </span>utils::is_prefix(<span class="kw-2">*</span>place, <span class="kw-2">*</span>initialised_place) ||
                         <span class="comment">// If the access is store, then we only need the path to exist, which is
                         // guaranteed if we have at least some of the leaves still initialised.
                         //
                         // Note that the Rust compiler is even more permissive as explained in this
                         // issue: https://github.com/rust-lang/rust/issues/21232.
                         </span>(
-                            <span class="kw-2">*</span><a href="#539">kind</a> == <a href="#52">PlaceAccessKind::Store</a> &amp;&amp;
-                            <a href="../utils.rs.html#22">utils::is_prefix</a>(<span class="kw-2">*</span><a href="#540">initialised_place</a>, <span class="kw-2">*</span><a href="#539">place</a>)
+                            <span class="kw-2">*</span>kind == PlaceAccessKind::Store &amp;&amp;
+                            utils::is_prefix(<span class="kw-2">*</span>initialised_place, <span class="kw-2">*</span>place)
                         ))
             });
         }
-        <a class="macro" href="../../../log/macro.debug.html">debug!</a>(<span class="string">&quot;accesses_pairs = {:?}&quot;</span>, accesses_pairs);
+        <span class="macro">debug!</span>(<span class="string">&quot;accesses_pairs = {:?}&quot;</span>, accesses_pairs);
         <span class="comment">// Paths to whose leaves we need write permissions.
-        </span><span class="kw">let </span><span class="kw-2">mut </span>write_leaves: Vec&lt;<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/syntax/struct.Place.html">mir::Place</a>&gt; = Vec::new();
+        </span><span class="kw">let </span><span class="kw-2">mut </span>write_leaves: Vec&lt;mir::Place&gt; = Vec::new();
         <span class="kw">for </span>(place, kind) <span class="kw">in </span>accesses_pairs.iter() {
             <span class="kw">if </span>kind.is_write_access() {
                 <span class="kw">let </span>has_prefix = accesses_pairs.iter().any(|(potential_prefix, kind)| {
@@ -1178,10 +1178,10 @@
                 }
             }
         }
-        <a class="macro" href="../../../log/macro.debug.html">debug!</a>(<span class="string">&quot;write_leaves = {:?}&quot;</span>, write_leaves);
+        <span class="macro">debug!</span>(<span class="string">&quot;write_leaves = {:?}&quot;</span>, write_leaves);
 
         <span class="comment">// Paths to whose leaves are roots of trees to which we need write permissions.
-        </span><span class="kw">let </span><span class="kw-2">mut </span>mut_borrow_leaves: Vec&lt;<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/syntax/struct.Place.html">mir::Place</a>&gt; = Vec::new();
+        </span><span class="kw">let </span><span class="kw-2">mut </span>mut_borrow_leaves: Vec&lt;mir::Place&gt; = Vec::new();
         <span class="kw">for </span>(place, kind) <span class="kw">in </span>accesses_pairs.iter() {
             <span class="kw">if </span><span class="kw-2">*</span>kind == PlaceAccessKind::MutableBorrow {
                 <span class="kw">let </span>has_prefix = accesses_pairs.iter().any(|(potential_prefix, kind)| {
@@ -1197,10 +1197,10 @@
                 }
             }
         }
-        <a class="macro" href="../../../log/macro.debug.html">debug!</a>(<span class="string">&quot;mut_borrow_leaves = {:?}&quot;</span>, write_leaves);
+        <span class="macro">debug!</span>(<span class="string">&quot;mut_borrow_leaves = {:?}&quot;</span>, write_leaves);
 
         <span class="comment">// Paths to whose leaves we need read permissions.
-        </span><span class="kw">let </span><span class="kw-2">mut </span>read_leaves: Vec&lt;<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/syntax/struct.Place.html">mir::Place</a>&gt; = Vec::new();
+        </span><span class="kw">let </span><span class="kw-2">mut </span>read_leaves: Vec&lt;mir::Place&gt; = Vec::new();
         <span class="kw">for </span>(place, kind) <span class="kw">in </span>accesses_pairs.iter() {
             <span class="kw">if </span>!kind.is_write_access() {
                 <span class="kw">let </span>has_prefix = accesses_pairs.iter().any(|(potential_prefix, _kind)| {
@@ -1215,10 +1215,10 @@
                 }
             }
         }
-        <a class="macro" href="../../../log/macro.debug.html">debug!</a>(<span class="string">&quot;read_leaves = {:?}&quot;</span>, read_leaves);
+        <span class="macro">debug!</span>(<span class="string">&quot;read_leaves = {:?}&quot;</span>, read_leaves);
 
-        <span class="prelude-val">Ok</span>((<a href="#557">write_leaves</a>, <a href="#573">mut_borrow_leaves</a>, <a href="#592">read_leaves</a>))
+        <span class="prelude-val">Ok</span>((write_leaves, mut_borrow_leaves, read_leaves))
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="prusti_interface" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="prusti_interface" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

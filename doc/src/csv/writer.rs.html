@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/csv-1.1.6/src/writer.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>writer.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../csv/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/csv-1.1.6/src/writer.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>writer.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../csv/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -1413,21 +1413,21 @@
 <a href="#1413" id="1413">1413</a>
 <a href="#1414" id="1414">1414</a>
 <a href="#1415" id="1415">1415</a>
-</pre><pre class="rust"><code><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/fs/struct.File.html">std::fs::File</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/io/index.html">std::io</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">std::path::Path</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/result/index.html">std::result</a>;
+</pre><pre class="rust"><code><span class="kw">use </span>std::fs::File;
+<span class="kw">use </span>std::io;
+<span class="kw">use </span>std::path::Path;
+<span class="kw">use </span>std::result;
 
 <span class="kw">use </span>csv_core::{
-    <a class="self" href="../../csv_core/index.html">self</a>, <a href="../../csv_core/writer/enum.WriteResult.html">WriteResult</a>, <a href="../../csv_core/writer/struct.Writer.html">Writer</a> <span class="kw">as </span>CoreWriter,
-    <a href="../../csv_core/writer/struct.WriterBuilder.html">WriterBuilder</a> <span class="kw">as </span>CoreWriterBuilder,
+    <span class="self">self</span>, WriteResult, Writer <span class="kw">as </span>CoreWriter,
+    WriterBuilder <span class="kw">as </span>CoreWriterBuilder,
 };
-<span class="kw">use </span><a href="../../serde_derive/derive.Serialize.html">serde::Serialize</a>;
+<span class="kw">use </span>serde::Serialize;
 
-<span class="kw">use </span><a href="byte_record.rs.html#34"><span class="kw">crate</span>::byte_record::ByteRecord</a>;
-<span class="kw">use </span><span class="kw">crate</span>::error::{<a href="error.rs.html#21">Error</a>, <a href="error.rs.html#61">ErrorKind</a>, <a href="error.rs.html#307">IntoInnerError</a>, <span class="prelude-ty">Result</span>};
-<span class="kw">use </span><span class="kw">crate</span>::serializer::{<a href="serializer.rs.html#19-22">serialize</a>, <a href="serializer.rs.html#386-389">serialize_header</a>};
-<span class="kw">use crate</span>::{<a href="lib.rs.html#181">QuoteStyle</a>, <a href="lib.rs.html#230">Terminator</a>};
+<span class="kw">use </span><span class="kw">crate</span>::byte_record::ByteRecord;
+<span class="kw">use </span><span class="kw">crate</span>::error::{Error, ErrorKind, IntoInnerError, <span class="prelude-ty">Result</span>};
+<span class="kw">use </span><span class="kw">crate</span>::serializer::{serialize, serialize_header};
+<span class="kw">use crate</span>::{QuoteStyle, Terminator};
 
 <span class="doccomment">/// Builds a CSV writer with various configuration knobs.
 ///
@@ -1436,15 +1436,15 @@
 /// changed.
 </span><span class="attr">#[derive(Debug)]
 </span><span class="kw">pub struct </span>WriterBuilder {
-    builder: <a href="../../csv_core/writer/struct.WriterBuilder.html">CoreWriterBuilder</a>,
-    capacity: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-    flexible: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-    has_headers: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
+    builder: CoreWriterBuilder,
+    capacity: usize,
+    flexible: bool,
+    has_headers: bool,
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for </span><a href="#23">WriterBuilder</a> {
-    <span class="kw">fn </span>default() -&gt; <a href="#23">WriterBuilder</a> {
-        <a href="#23">WriterBuilder</a> {
+<span class="kw">impl </span>Default <span class="kw">for </span>WriterBuilder {
+    <span class="kw">fn </span>default() -&gt; WriterBuilder {
+        WriterBuilder {
             builder: CoreWriterBuilder::default(),
             capacity: <span class="number">8 </span>* (<span class="number">1 </span>&lt;&lt; <span class="number">10</span>),
             flexible: <span class="bool-val">false</span>,
@@ -1453,7 +1453,7 @@
     }
 }
 
-<span class="kw">impl </span><a href="#23">WriterBuilder</a> {
+<span class="kw">impl </span>WriterBuilder {
     <span class="doccomment">/// Create a new builder for configuring CSV writing.
     ///
     /// To convert a builder into a writer, call one of the methods starting
@@ -1476,7 +1476,7 @@
     ///     Ok(())
     /// }
     /// ```
-    </span><span class="kw">pub fn </span>new() -&gt; <a href="#23">WriterBuilder</a> {
+    </span><span class="kw">pub fn </span>new() -&gt; WriterBuilder {
         WriterBuilder::default()
     }
 
@@ -1501,8 +1501,8 @@
     ///     Ok(())
     /// }
     /// ```
-    </span><span class="kw">pub fn </span>from_path&lt;P: AsRef&lt;<a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>&gt;&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, path: P) -&gt; <span class="prelude-ty">Result</span>&lt;Writer&lt;<a href="https://doc.rust-lang.org/nightly/std/fs/struct.File.html">File</a>&gt;&gt; {
-        <span class="prelude-val">Ok</span>(Writer::new(<a class="self" href="#89">self</a>, File::create(path)<span class="question-mark">?</span>))
+    </span><span class="kw">pub fn </span>from_path&lt;P: AsRef&lt;Path&gt;&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, path: P) -&gt; <span class="prelude-ty">Result</span>&lt;Writer&lt;File&gt;&gt; {
+        <span class="prelude-val">Ok</span>(Writer::new(<span class="self">self</span>, File::create(path)<span class="question-mark">?</span>))
     }
 
     <span class="doccomment">/// Build a CSV writer from this configuration that writes data to `wtr`.
@@ -1527,8 +1527,8 @@
     ///     Ok(())
     /// }
     /// ```
-    </span><span class="kw">pub fn </span>from_writer&lt;W: <a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">io::Write</a>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, wtr: W) -&gt; Writer&lt;W&gt; {
-        Writer::new(<a class="self" href="#115">self</a>, <a href="#115">wtr</a>)
+    </span><span class="kw">pub fn </span>from_writer&lt;W: io::Write&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, wtr: W) -&gt; Writer&lt;W&gt; {
+        Writer::new(<span class="self">self</span>, wtr)
     }
 
     <span class="doccomment">/// The field delimiter to use when writing CSV.
@@ -1554,9 +1554,9 @@
     ///     Ok(())
     /// }
     /// ```
-    </span><span class="kw">pub fn </span>delimiter(<span class="kw-2">&amp;mut </span><span class="self">self</span>, delimiter: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) -&gt; <span class="kw-2">&amp;mut </span><a href="#23">WriterBuilder</a> {
-        <a class="self" href="#142">self</a>.builder.delimiter(<a href="#142">delimiter</a>);
-        <span class="self"><a href="#142">self</a>
+    </span><span class="kw">pub fn </span>delimiter(<span class="kw-2">&amp;mut </span><span class="self">self</span>, delimiter: u8) -&gt; <span class="kw-2">&amp;mut </span>WriterBuilder {
+        <span class="self">self</span>.builder.delimiter(delimiter);
+        <span class="self">self
     </span>}
 
     <span class="doccomment">/// Whether to write a header row before writing any other row.
@@ -1642,9 +1642,9 @@
     ///     Ok(())
     /// }
     /// ```
-    </span><span class="kw">pub fn </span>has_headers(<span class="kw-2">&amp;mut </span><span class="self">self</span>, yes: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="kw-2">&amp;mut </span><a href="#23">WriterBuilder</a> {
-        <a class="self" href="#230">self</a>.has_headers = <a href="#230">yes</a>;
-        <span class="self"><a href="#230">self</a>
+    </span><span class="kw">pub fn </span>has_headers(<span class="kw-2">&amp;mut </span><span class="self">self</span>, yes: bool) -&gt; <span class="kw-2">&amp;mut </span>WriterBuilder {
+        <span class="self">self</span>.has_headers = yes;
+        <span class="self">self
     </span>}
 
     <span class="doccomment">/// Whether the number of fields in records is allowed to change or not.
@@ -1700,9 +1700,9 @@
     ///     Ok(())
     /// }
     /// ```
-    </span><span class="kw">pub fn </span>flexible(<span class="kw-2">&amp;mut </span><span class="self">self</span>, yes: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="kw-2">&amp;mut </span><a href="#23">WriterBuilder</a> {
-        <a class="self" href="#288">self</a>.flexible = <a href="#288">yes</a>;
-        <span class="self"><a href="#288">self</a>
+    </span><span class="kw">pub fn </span>flexible(<span class="kw-2">&amp;mut </span><span class="self">self</span>, yes: bool) -&gt; <span class="kw-2">&amp;mut </span>WriterBuilder {
+        <span class="self">self</span>.flexible = yes;
+        <span class="self">self
     </span>}
 
     <span class="doccomment">/// The record terminator to use when writing CSV.
@@ -1733,9 +1733,9 @@
     ///     Ok(())
     /// }
     /// ```
-    </span><span class="kw">pub fn </span>terminator(<span class="kw-2">&amp;mut </span><span class="self">self</span>, term: <a href="lib.rs.html#230">Terminator</a>) -&gt; <span class="kw-2">&amp;mut </span><a href="#23">WriterBuilder</a> {
-        <a class="self" href="#321">self</a>.builder.terminator(<a href="#321">term</a>.<a href="lib.rs.html#246">to_core</a>());
-        <span class="self"><a href="#321">self</a>
+    </span><span class="kw">pub fn </span>terminator(<span class="kw-2">&amp;mut </span><span class="self">self</span>, term: Terminator) -&gt; <span class="kw-2">&amp;mut </span>WriterBuilder {
+        <span class="self">self</span>.builder.terminator(term.to_core());
+        <span class="self">self
     </span>}
 
     <span class="doccomment">/// The quoting style to use when writing CSV.
@@ -1790,9 +1790,9 @@
     ///     Ok(())
     /// }
     /// ```
-    </span><span class="kw">pub fn </span>quote_style(<span class="kw-2">&amp;mut </span><span class="self">self</span>, style: <a href="lib.rs.html#181">QuoteStyle</a>) -&gt; <span class="kw-2">&amp;mut </span><a href="#23">WriterBuilder</a> {
-        <a class="self" href="#378">self</a>.builder.quote_style(<a href="#378">style</a>.<a href="lib.rs.html#208">to_core</a>());
-        <span class="self"><a href="#378">self</a>
+    </span><span class="kw">pub fn </span>quote_style(<span class="kw-2">&amp;mut </span><span class="self">self</span>, style: QuoteStyle) -&gt; <span class="kw-2">&amp;mut </span>WriterBuilder {
+        <span class="self">self</span>.builder.quote_style(style.to_core());
+        <span class="self">self
     </span>}
 
     <span class="doccomment">/// The quote character to use when writing CSV.
@@ -1818,9 +1818,9 @@
     ///     Ok(())
     /// }
     /// ```
-    </span><span class="kw">pub fn </span>quote(<span class="kw-2">&amp;mut </span><span class="self">self</span>, quote: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) -&gt; <span class="kw-2">&amp;mut </span><a href="#23">WriterBuilder</a> {
-        <a class="self" href="#406">self</a>.builder.quote(<a href="#406">quote</a>);
-        <span class="self"><a href="#406">self</a>
+    </span><span class="kw">pub fn </span>quote(<span class="kw-2">&amp;mut </span><span class="self">self</span>, quote: u8) -&gt; <span class="kw-2">&amp;mut </span>WriterBuilder {
+        <span class="self">self</span>.builder.quote(quote);
+        <span class="self">self
     </span>}
 
     <span class="doccomment">/// Enable double quote escapes.
@@ -1847,9 +1847,9 @@
     ///     Ok(())
     /// }
     /// ```
-    </span><span class="kw">pub fn </span>double_quote(<span class="kw-2">&amp;mut </span><span class="self">self</span>, yes: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="kw-2">&amp;mut </span><a href="#23">WriterBuilder</a> {
-        <a class="self" href="#435">self</a>.builder.double_quote(<a href="#435">yes</a>);
-        <span class="self"><a href="#435">self</a>
+    </span><span class="kw">pub fn </span>double_quote(<span class="kw-2">&amp;mut </span><span class="self">self</span>, yes: bool) -&gt; <span class="kw-2">&amp;mut </span>WriterBuilder {
+        <span class="self">self</span>.builder.double_quote(yes);
+        <span class="self">self
     </span>}
 
     <span class="doccomment">/// The escape character to use when writing CSV.
@@ -1880,16 +1880,16 @@
     ///     Ok(())
     /// }
     /// ```
-    </span><span class="kw">pub fn </span>escape(<span class="kw-2">&amp;mut </span><span class="self">self</span>, escape: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) -&gt; <span class="kw-2">&amp;mut </span><a href="#23">WriterBuilder</a> {
-        <a class="self" href="#468">self</a>.builder.escape(<a href="#468">escape</a>);
-        <span class="self"><a href="#468">self</a>
+    </span><span class="kw">pub fn </span>escape(<span class="kw-2">&amp;mut </span><span class="self">self</span>, escape: u8) -&gt; <span class="kw-2">&amp;mut </span>WriterBuilder {
+        <span class="self">self</span>.builder.escape(escape);
+        <span class="self">self
     </span>}
 
     <span class="doccomment">/// Set the capacity (in bytes) of the internal buffer used in the CSV
     /// writer. This defaults to a reasonable setting.
-    </span><span class="kw">pub fn </span>buffer_capacity(<span class="kw-2">&amp;mut </span><span class="self">self</span>, capacity: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="kw-2">&amp;mut </span><a href="#23">WriterBuilder</a> {
-        <a class="self" href="#475">self</a>.capacity = <a href="#475">capacity</a>;
-        <span class="self"><a href="#475">self</a>
+    </span><span class="kw">pub fn </span>buffer_capacity(<span class="kw-2">&amp;mut </span><span class="self">self</span>, capacity: usize) -&gt; <span class="kw-2">&amp;mut </span>WriterBuilder {
+        <span class="self">self</span>.capacity = capacity;
+        <span class="self">self
     </span>}
 }
 
@@ -1920,30 +1920,30 @@
 /// `terminator` method on `WriterBuilder` to set the terminator to `\r\n` if
 /// it&#39;s desired.
 </span><span class="attr">#[derive(Debug)]
-</span><span class="kw">pub struct </span>Writer&lt;W: <a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">io::Write</a>&gt; {
-    core: <a href="../../csv_core/writer/struct.Writer.html">CoreWriter</a>,
+</span><span class="kw">pub struct </span>Writer&lt;W: io::Write&gt; {
+    core: CoreWriter,
     wtr: <span class="prelude-ty">Option</span>&lt;W&gt;,
-    buf: <a href="#554">Buffer</a>,
-    state: <a href="#516">WriterState</a>,
+    buf: Buffer,
+    state: WriterState,
 }
 
 <span class="attr">#[derive(Debug)]
 </span><span class="kw">struct </span>WriterState {
     <span class="doccomment">/// Whether the Serde serializer should attempt to write a header row.
-    </span>header: <a href="#536">HeaderState</a>,
+    </span>header: HeaderState,
     <span class="doccomment">/// Whether inconsistent record lengths are allowed.
-    </span>flexible: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
+    </span>flexible: bool,
     <span class="doccomment">/// The number of fields writtein in the first record. This is compared
     /// with `fields_written` on all subsequent records to check for
     /// inconsistent record lengths.
-    </span>first_field_count: <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>&gt;,
+    </span>first_field_count: <span class="prelude-ty">Option</span>&lt;u64&gt;,
     <span class="doccomment">/// The number of fields written in this record. This is used to report
     /// errors for inconsistent record lengths if `flexible` is disabled.
-    </span>fields_written: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>,
+    </span>fields_written: u64,
     <span class="doccomment">/// This is set immediately before flushing the buffer and then unset
     /// immediately after flushing the buffer. This avoids flushing the buffer
     /// twice if the inner writer panics.
-    </span>panicked: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
+    </span>panicked: bool,
 }
 
 <span class="doccomment">/// HeaderState encodes a small state machine for handling header writes.
@@ -1968,20 +1968,20 @@
 </span><span class="attr">#[derive(Debug)]
 </span><span class="kw">struct </span>Buffer {
     <span class="doccomment">/// The contents of the buffer.
-    </span>buf: Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;,
+    </span>buf: Vec&lt;u8&gt;,
     <span class="doccomment">/// The number of bytes written to the buffer.
-    </span>len: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+    </span>len: usize,
 }
 
-<span class="kw">impl</span>&lt;W: <a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">io::Write</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span>Writer&lt;W&gt; {
+<span class="kw">impl</span>&lt;W: io::Write&gt; Drop <span class="kw">for </span>Writer&lt;W&gt; {
     <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="kw">if </span><span class="self">self</span>.wtr.is_some() &amp;&amp; !<span class="self">self</span>.state.panicked {
-            <span class="kw">let _ </span>= <a class="self" href="#562">self</a>.<a href="#1057">flush</a>();
+            <span class="kw">let _ </span>= <span class="self">self</span>.flush();
         }
     }
 }
 
-<span class="kw">impl </span>Writer&lt;<a href="https://doc.rust-lang.org/nightly/std/fs/struct.File.html">File</a>&gt; {
+<span class="kw">impl </span>Writer&lt;File&gt; {
     <span class="doccomment">/// Build a CSV writer with a default configuration that writes data to the
     /// given file path. The file is truncated if it already exists.
     ///
@@ -2003,25 +2003,25 @@
     ///     Ok(())
     /// }
     /// ```
-    </span><span class="kw">pub fn </span>from_path&lt;P: AsRef&lt;<a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>&gt;&gt;(path: P) -&gt; <span class="prelude-ty">Result</span>&lt;Writer&lt;<a href="https://doc.rust-lang.org/nightly/std/fs/struct.File.html">File</a>&gt;&gt; {
-        WriterBuilder::new().<a href="#89">from_path</a>(<a href="#591">path</a>)
+    </span><span class="kw">pub fn </span>from_path&lt;P: AsRef&lt;Path&gt;&gt;(path: P) -&gt; <span class="prelude-ty">Result</span>&lt;Writer&lt;File&gt;&gt; {
+        WriterBuilder::new().from_path(path)
     }
 }
 
-<span class="kw">impl</span>&lt;W: <a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">io::Write</a>&gt; Writer&lt;W&gt; {
-    <span class="kw">fn </span>new(builder: <span class="kw-2">&amp;</span><a href="#23">WriterBuilder</a>, wtr: W) -&gt; Writer&lt;W&gt; {
+<span class="kw">impl</span>&lt;W: io::Write&gt; Writer&lt;W&gt; {
+    <span class="kw">fn </span>new(builder: <span class="kw-2">&amp;</span>WriterBuilder, wtr: W) -&gt; Writer&lt;W&gt; {
         <span class="kw">let </span>header_state = <span class="kw">if </span>builder.has_headers {
-            <a href="#538">HeaderState::Write</a>
+            HeaderState::Write
         } <span class="kw">else </span>{
-            <a href="#546">HeaderState::None</a>
+            HeaderState::None
         };
-        <a href="#508">Writer</a> {
-            core: <a href="#597">builder</a>.builder.build(),
-            wtr: <span class="prelude-val">Some</span>(<a href="#597">wtr</a>),
-            buf: <a href="#554">Buffer</a> { buf: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[<span class="number">0</span>; builder.capacity], len: <span class="number">0 </span>},
-            state: <a href="#516">WriterState</a> {
-                header: <a href="#598">header_state</a>,
-                flexible: <a href="#597">builder</a>.flexible,
+        Writer {
+            core: builder.builder.build(),
+            wtr: <span class="prelude-val">Some</span>(wtr),
+            buf: Buffer { buf: <span class="macro">vec!</span>[<span class="number">0</span>; builder.capacity], len: <span class="number">0 </span>},
+            state: WriterState {
+                header: header_state,
+                flexible: builder.flexible,
                 first_field_count: <span class="prelude-val">None</span>,
                 fields_written: <span class="number">0</span>,
                 panicked: <span class="bool-val">false</span>,
@@ -2053,7 +2053,7 @@
     /// }
     /// ```
     </span><span class="kw">pub fn </span>from_writer(wtr: W) -&gt; Writer&lt;W&gt; {
-        WriterBuilder::new().<a href="#115">from_writer</a>(<a href="#640">wtr</a>)
+        WriterBuilder::new().from_writer(wtr)
     }
 
     <span class="doccomment">/// Serialize a single record using Serde.
@@ -2264,14 +2264,14 @@
     /// | `Foo { x: 5, y: (6, 7) }` | *error: restriction 1* | `5,6,7` |
     /// | `(5, Foo { x: 6, y: 7 }` | *error: restriction 2* | `5,6,7` |
     /// | `(Foo { x: 5, y: 6 }, true)` | *error: restriction 2* | `5,6,true` |
-    </span><span class="kw">pub fn </span>serialize&lt;S: <a href="../../serde/ser/trait.Serialize.html">Serialize</a>&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, record: S) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
-        <span class="kw">if let </span><a href="#538">HeaderState::Write</a> = <a class="self" href="#852">self</a>.state.header {
+    </span><span class="kw">pub fn </span>serialize&lt;S: Serialize&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, record: S) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+        <span class="kw">if let </span>HeaderState::Write = <span class="self">self</span>.state.header {
             <span class="kw">let </span>wrote_header = serialize_header(<span class="self">self</span>, <span class="kw-2">&amp;</span>record)<span class="question-mark">?</span>;
             <span class="kw">if </span>wrote_header {
                 <span class="self">self</span>.write_terminator()<span class="question-mark">?</span>;
-                <a class="self" href="#852">self</a>.state.header = <a href="#540">HeaderState::DidWrite</a>;
+                <span class="self">self</span>.state.header = HeaderState::DidWrite;
             } <span class="kw">else </span>{
-                <a class="self" href="#852">self</a>.state.header = <a href="#543">HeaderState::DidNotWrite</a>;
+                <span class="self">self</span>.state.header = HeaderState::DidNotWrite;
             };
         }
         serialize(<span class="self">self</span>, <span class="kw-2">&amp;</span>record)<span class="question-mark">?</span>;
@@ -2308,12 +2308,12 @@
     </span><span class="kw">pub fn </span>write_record&lt;I, T&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, record: I) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt;
     <span class="kw">where
         </span>I: IntoIterator&lt;Item = T&gt;,
-        T: AsRef&lt;[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;,
+        T: AsRef&lt;[u8]&gt;,
     {
         <span class="kw">for </span>field <span class="kw">in </span>record.into_iter() {
             <span class="self">self</span>.write_field_impl(field)<span class="question-mark">?</span>;
         }
-        <a class="self" href="#893">self</a>.<a href="#1098">write_terminator</a>()
+        <span class="self">self</span>.write_terminator()
     }
 
     <span class="doccomment">/// Write a single `ByteRecord`.
@@ -2347,9 +2347,9 @@
     /// }
     /// ```
     </span><span class="attr">#[inline(never)]
-    </span><span class="kw">pub fn </span>write_byte_record(<span class="kw-2">&amp;mut </span><span class="self">self</span>, record: <span class="kw-2">&amp;</span><a href="byte_record.rs.html#34">ByteRecord</a>) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+    </span><span class="kw">pub fn </span>write_byte_record(<span class="kw-2">&amp;mut </span><span class="self">self</span>, record: <span class="kw-2">&amp;</span>ByteRecord) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
         <span class="kw">if </span>record.as_slice().is_empty() {
-            <span class="kw">return </span><a class="self" href="#935">self</a>.<a href="#893-896">write_record</a>(<a href="#935">record</a>);
+            <span class="kw">return </span><span class="self">self</span>.write_record(record);
         }
         <span class="comment">// The idea here is to find a fast path for shuffling our record into
         // our buffer as quickly as possible. We do this because the underlying
@@ -2361,15 +2361,15 @@
         // the upper bound on the space required:
         </span><span class="kw">let </span>upper_bound =
             <span class="comment">// The data itself plus the worst case: every byte is a quote.
-            </span>(<span class="number">2 </span>* <a href="#935">record</a>.<a href="byte_record.rs.html#496">as_slice</a>().len())
+            </span>(<span class="number">2 </span>* record.as_slice().len())
             <span class="comment">// The number of field delimiters.
-            </span>+ (<a href="#935">record</a>.<a href="byte_record.rs.html#298">len</a>().saturating_sub(<span class="number">1</span>))
+            </span>+ (record.len().saturating_sub(<span class="number">1</span>))
             <span class="comment">// The maximum number of quotes inserted around each field.
-            </span>+ (<span class="number">2 </span>* <a href="#935">record</a>.<a href="byte_record.rs.html#298">len</a>())
+            </span>+ (<span class="number">2 </span>* record.len())
             <span class="comment">// The maximum number of bytes for the terminator.
             </span>+ <span class="number">2</span>;
         <span class="kw">if </span><span class="self">self</span>.buf.writable().len() &lt; upper_bound {
-            <span class="kw">return </span><a class="self" href="#935">self</a>.<a href="#893-896">write_record</a>(<a href="#935">record</a>);
+            <span class="kw">return </span><span class="self">self</span>.write_record(record);
         }
         <span class="kw">let </span><span class="kw-2">mut </span>first = <span class="bool-val">true</span>;
         <span class="kw">for </span>field <span class="kw">in </span>record.iter() {
@@ -2399,8 +2399,8 @@
                 <span class="self">self</span>.buf.written(<span class="number">1</span>);
             }
         }
-        <a class="self" href="#935">self</a>.state.fields_written = <a href="#935">record</a>.<a href="byte_record.rs.html#298">len</a>() <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>;
-        <a class="self" href="#935">self</a>.<a href="#1116">write_terminator_into_buffer</a>()
+        <span class="self">self</span>.state.fields_written = record.len() <span class="kw">as </span>u64;
+        <span class="self">self</span>.write_terminator_into_buffer()
     }
 
     <span class="doccomment">/// Write a single field.
@@ -2435,8 +2435,8 @@
     ///     Ok(())
     /// }
     /// ```
-    </span><span class="kw">pub fn </span>write_field&lt;T: AsRef&lt;[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, field: T) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
-        <a class="self" href="#1023">self</a>.<a href="#1032">write_field_impl</a>(<a href="#1023">field</a>)
+    </span><span class="kw">pub fn </span>write_field&lt;T: AsRef&lt;[u8]&gt;&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, field: T) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+        <span class="self">self</span>.write_field_impl(field)
     }
 
     <span class="doccomment">/// Implementation of write_field.
@@ -2444,18 +2444,18 @@
     /// This is a separate method so we can force the compiler to inline it
     /// into write_record.
     </span><span class="attr">#[inline(always)]
-    </span><span class="kw">fn </span>write_field_impl&lt;T: AsRef&lt;[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, field: T) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+    </span><span class="kw">fn </span>write_field_impl&lt;T: AsRef&lt;[u8]&gt;&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, field: T) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
         <span class="kw">if </span><span class="self">self</span>.state.fields_written &gt; <span class="number">0 </span>{
             <span class="self">self</span>.write_delimiter()<span class="question-mark">?</span>;
         }
-        <span class="kw">let </span><span class="kw-2">mut </span>field = <a href="#1032">field</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>();
+        <span class="kw">let </span><span class="kw-2">mut </span>field = field.as_ref();
         <span class="kw">loop </span>{
-            <span class="kw">let </span>(res, nin, nout) = <a class="self" href="#1032">self</a>.core.field(<a href="#1036">field</a>, <a class="self" href="#1032">self</a>.buf.<a href="#1168">writable</a>());
-            <a href="#1036">field</a> = <span class="kw-2">&amp;</span><a href="#1036">field</a>[<a href="#1038">nin</a>..];
-            <a class="self" href="#1032">self</a>.buf.<a href="#1174">written</a>(<a href="#1038">nout</a>);
-            <span class="kw">match </span><a href="#1038">res</a> {
+            <span class="kw">let </span>(res, nin, nout) = <span class="self">self</span>.core.field(field, <span class="self">self</span>.buf.writable());
+            field = <span class="kw-2">&amp;</span>field[nin..];
+            <span class="self">self</span>.buf.written(nout);
+            <span class="kw">match </span>res {
                 WriteResult::InputEmpty =&gt; {
-                    <a class="self" href="#1032">self</a>.state.fields_written += <span class="number">1</span>;
+                    <span class="self">self</span>.state.fields_written += <span class="number">1</span>;
                     <span class="kw">return </span><span class="prelude-val">Ok</span>(());
                 }
                 WriteResult::OutputFull =&gt; <span class="self">self</span>.flush_buf()<span class="question-mark">?</span>,
@@ -2478,11 +2478,11 @@
     <span class="doccomment">/// Flush the contents of the internal buffer to the underlying writer,
     /// without flushing the underlying writer.
     </span><span class="kw">fn </span>flush_buf(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; io::Result&lt;()&gt; {
-        <a class="self" href="#1065">self</a>.state.panicked = <span class="bool-val">true</span>;
-        <span class="kw">let </span>result = <a class="self" href="#1065">self</a>.wtr.as_mut().unwrap().<a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">write_all</a>(<a class="self" href="#1065">self</a>.buf.<a href="#1160">readable</a>());
-        <a class="self" href="#1065">self</a>.state.panicked = <span class="bool-val">false</span>;
+        <span class="self">self</span>.state.panicked = <span class="bool-val">true</span>;
+        <span class="kw">let </span>result = <span class="self">self</span>.wtr.as_mut().unwrap().write_all(<span class="self">self</span>.buf.readable());
+        <span class="self">self</span>.state.panicked = <span class="bool-val">false</span>;
         result<span class="question-mark">?</span>;
-        <a class="self" href="#1065">self</a>.buf.<a href="#1180">clear</a>();
+        <span class="self">self</span>.buf.clear();
         <span class="prelude-val">Ok</span>(())
     }
 
@@ -2491,18 +2491,18 @@
     </span><span class="kw">pub fn </span>into_inner(
         <span class="kw-2">mut </span><span class="self">self</span>,
     ) -&gt; result::Result&lt;W, IntoInnerError&lt;Writer&lt;W&gt;&gt;&gt; {
-        <span class="kw">match </span><a class="self" href="#1077">self</a>.<a href="#1057">flush</a>() {
-            <span class="prelude-val">Ok</span>(()) =&gt; <span class="prelude-val">Ok</span>(<a class="self" href="#1077">self</a>.wtr.take().unwrap()),
-            <span class="prelude-val">Err</span>(err) =&gt; <span class="prelude-val">Err</span>(IntoInnerError::new(<a class="self" href="#1077">self</a>, <a href="#1081">err</a>)),
+        <span class="kw">match </span><span class="self">self</span>.flush() {
+            <span class="prelude-val">Ok</span>(()) =&gt; <span class="prelude-val">Ok</span>(<span class="self">self</span>.wtr.take().unwrap()),
+            <span class="prelude-val">Err</span>(err) =&gt; <span class="prelude-val">Err</span>(IntoInnerError::new(<span class="self">self</span>, err)),
         }
     }
 
     <span class="doccomment">/// Write a CSV delimiter.
     </span><span class="kw">fn </span>write_delimiter(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
         <span class="kw">loop </span>{
-            <span class="kw">let </span>(res, nout) = <a class="self" href="#1086">self</a>.core.delimiter(<a class="self" href="#1086">self</a>.buf.<a href="#1168">writable</a>());
-            <a class="self" href="#1086">self</a>.buf.<a href="#1174">written</a>(<a href="#1088">nout</a>);
-            <span class="kw">match </span><a href="#1088">res</a> {
+            <span class="kw">let </span>(res, nout) = <span class="self">self</span>.core.delimiter(<span class="self">self</span>.buf.writable());
+            <span class="self">self</span>.buf.written(nout);
+            <span class="kw">match </span>res {
                 WriteResult::InputEmpty =&gt; <span class="kw">return </span><span class="prelude-val">Ok</span>(()),
                 WriteResult::OutputFull =&gt; <span class="self">self</span>.flush_buf()<span class="question-mark">?</span>,
             }
@@ -2513,11 +2513,11 @@
     </span><span class="kw">fn </span>write_terminator(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
         <span class="self">self</span>.check_field_count()<span class="question-mark">?</span>;
         <span class="kw">loop </span>{
-            <span class="kw">let </span>(res, nout) = <a class="self" href="#1098">self</a>.core.terminator(<a class="self" href="#1098">self</a>.buf.<a href="#1168">writable</a>());
-            <a class="self" href="#1098">self</a>.buf.<a href="#1174">written</a>(<a href="#1101">nout</a>);
-            <span class="kw">match </span><a href="#1101">res</a> {
+            <span class="kw">let </span>(res, nout) = <span class="self">self</span>.core.terminator(<span class="self">self</span>.buf.writable());
+            <span class="self">self</span>.buf.written(nout);
+            <span class="kw">match </span>res {
                 WriteResult::InputEmpty =&gt; {
-                    <a class="self" href="#1098">self</a>.state.fields_written = <span class="number">0</span>;
+                    <span class="self">self</span>.state.fields_written = <span class="number">0</span>;
                     <span class="kw">return </span><span class="prelude-val">Ok</span>(());
                 }
                 WriteResult::OutputFull =&gt; <span class="self">self</span>.flush_buf()<span class="question-mark">?</span>,
@@ -2530,34 +2530,34 @@
     </span><span class="attr">#[inline(never)]
     </span><span class="kw">fn </span>write_terminator_into_buffer(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
         <span class="self">self</span>.check_field_count()<span class="question-mark">?</span>;
-        <span class="kw">match </span><a class="self" href="#1116">self</a>.core.get_terminator() {
+        <span class="kw">match </span><span class="self">self</span>.core.get_terminator() {
             csv_core::Terminator::CRLF =&gt; {
-                <a class="self" href="#1116">self</a>.buf.<a href="#1168">writable</a>()[<span class="number">0</span>] = <span class="string">b&#39;\r&#39;</span>;
-                <a class="self" href="#1116">self</a>.buf.<a href="#1168">writable</a>()[<span class="number">1</span>] = <span class="string">b&#39;\n&#39;</span>;
-                <a class="self" href="#1116">self</a>.buf.<a href="#1174">written</a>(<span class="number">2</span>);
+                <span class="self">self</span>.buf.writable()[<span class="number">0</span>] = <span class="string">b&#39;\r&#39;</span>;
+                <span class="self">self</span>.buf.writable()[<span class="number">1</span>] = <span class="string">b&#39;\n&#39;</span>;
+                <span class="self">self</span>.buf.written(<span class="number">2</span>);
             }
             csv_core::Terminator::Any(b) =&gt; {
-                <a class="self" href="#1116">self</a>.buf.<a href="#1168">writable</a>()[<span class="number">0</span>] = <a href="#1124">b</a>;
-                <a class="self" href="#1116">self</a>.buf.<a href="#1174">written</a>(<span class="number">1</span>);
+                <span class="self">self</span>.buf.writable()[<span class="number">0</span>] = b;
+                <span class="self">self</span>.buf.written(<span class="number">1</span>);
             }
-            <span class="kw">_ </span>=&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(),
+            <span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>(),
         }
-        <a class="self" href="#1116">self</a>.state.fields_written = <span class="number">0</span>;
+        <span class="self">self</span>.state.fields_written = <span class="number">0</span>;
         <span class="prelude-val">Ok</span>(())
     }
 
     <span class="kw">fn </span>check_field_count(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
         <span class="kw">if </span>!<span class="self">self</span>.state.flexible {
-            <span class="kw">match </span><a class="self" href="#1134">self</a>.state.first_field_count {
+            <span class="kw">match </span><span class="self">self</span>.state.first_field_count {
                 <span class="prelude-val">None </span>=&gt; {
-                    <a class="self" href="#1134">self</a>.state.first_field_count =
-                        <span class="prelude-val">Some</span>(<a class="self" href="#1134">self</a>.state.fields_written);
+                    <span class="self">self</span>.state.first_field_count =
+                        <span class="prelude-val">Some</span>(<span class="self">self</span>.state.fields_written);
                 }
-                <span class="prelude-val">Some</span>(expected) <span class="kw">if </span><a href="#1141">expected</a> != <a class="self" href="#1134">self</a>.state.fields_written =&gt; {
-                    <span class="kw">return </span><span class="prelude-val">Err</span>(Error::new(<a href="error.rs.html#76">ErrorKind::UnequalLengths</a> {
+                <span class="prelude-val">Some</span>(expected) <span class="kw">if </span>expected != <span class="self">self</span>.state.fields_written =&gt; {
+                    <span class="kw">return </span><span class="prelude-val">Err</span>(Error::new(ErrorKind::UnequalLengths {
                         pos: <span class="prelude-val">None</span>,
-                        expected_len: <a href="#1141">expected</a>,
-                        len: <a class="self" href="#1134">self</a>.state.fields_written,
+                        expected_len: expected,
+                        len: <span class="self">self</span>.state.fields_written,
                     }))
                 }
                 <span class="prelude-val">Some</span>(<span class="kw">_</span>) =&gt; {}
@@ -2567,33 +2567,33 @@
     }
 }
 
-<span class="kw">impl </span><a href="#554">Buffer</a> {
+<span class="kw">impl </span>Buffer {
     <span class="doccomment">/// Returns a slice of the buffer&#39;s current contents.
     ///
     /// The slice returned may be empty.
     </span><span class="attr">#[inline]
-    </span><span class="kw">fn </span>readable(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>] {
-        <span class="kw-2">&amp;</span><a class="self" href="#1160">self</a>.buf[..<a class="self" href="#1160">self</a>.len]
+    </span><span class="kw">fn </span>readable(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[u8] {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.buf[..<span class="self">self</span>.len]
     }
 
     <span class="doccomment">/// Returns a mutable slice of the remaining space in this buffer.
     ///
     /// The slice returned may be empty.
     </span><span class="attr">#[inline]
-    </span><span class="kw">fn </span>writable(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>] {
-        <span class="kw-2">&amp;mut </span><a class="self" href="#1168">self</a>.buf[<a class="self" href="#1168">self</a>.len..]
+    </span><span class="kw">fn </span>writable(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>[u8] {
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>.buf[<span class="self">self</span>.len..]
     }
 
     <span class="doccomment">/// Indicates that `n` bytes have been written to this buffer.
     </span><span class="attr">#[inline]
-    </span><span class="kw">fn </span>written(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
-        <a class="self" href="#1174">self</a>.len += <a href="#1174">n</a>;
+    </span><span class="kw">fn </span>written(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: usize) {
+        <span class="self">self</span>.len += n;
     }
 
     <span class="doccomment">/// Clear the buffer.
     </span><span class="attr">#[inline]
     </span><span class="kw">fn </span>clear(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <a class="self" href="#1180">self</a>.len = <span class="number">0</span>;
+        <span class="self">self</span>.len = <span class="number">0</span>;
     }
 }
 
@@ -2829,4 +2829,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="csv" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="csv" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

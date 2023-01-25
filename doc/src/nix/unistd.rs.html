@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/nix-0.25.0/src/unistd.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>unistd.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../nix/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/nix-0.26.1/src/unistd.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>unistd.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../nix/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -3344,14 +3344,51 @@
 <a href="#3344" id="3344">3344</a>
 <a href="#3345" id="3345">3345</a>
 <a href="#3346" id="3346">3346</a>
+<a href="#3347" id="3347">3347</a>
+<a href="#3348" id="3348">3348</a>
+<a href="#3349" id="3349">3349</a>
+<a href="#3350" id="3350">3350</a>
+<a href="#3351" id="3351">3351</a>
+<a href="#3352" id="3352">3352</a>
+<a href="#3353" id="3353">3353</a>
+<a href="#3354" id="3354">3354</a>
+<a href="#3355" id="3355">3355</a>
+<a href="#3356" id="3356">3356</a>
+<a href="#3357" id="3357">3357</a>
+<a href="#3358" id="3358">3358</a>
+<a href="#3359" id="3359">3359</a>
+<a href="#3360" id="3360">3360</a>
+<a href="#3361" id="3361">3361</a>
+<a href="#3362" id="3362">3362</a>
+<a href="#3363" id="3363">3363</a>
+<a href="#3364" id="3364">3364</a>
+<a href="#3365" id="3365">3365</a>
+<a href="#3366" id="3366">3366</a>
+<a href="#3367" id="3367">3367</a>
+<a href="#3368" id="3368">3368</a>
+<a href="#3369" id="3369">3369</a>
+<a href="#3370" id="3370">3370</a>
+<a href="#3371" id="3371">3371</a>
+<a href="#3372" id="3372">3372</a>
+<a href="#3373" id="3373">3373</a>
+<a href="#3374" id="3374">3374</a>
+<a href="#3375" id="3375">3375</a>
+<a href="#3376" id="3376">3376</a>
+<a href="#3377" id="3377">3377</a>
+<a href="#3378" id="3378">3378</a>
+<a href="#3379" id="3379">3379</a>
+<a href="#3380" id="3380">3380</a>
+<a href="#3381" id="3381">3381</a>
+<a href="#3382" id="3382">3382</a>
+<a href="#3383" id="3383">3383</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Safe wrappers around functions found in libc &quot;unistd.h&quot; header
 
-</span><span class="kw">use </span><span class="kw">crate</span>::errno::{<a class="self" href="lib.rs.html#76">self</a>, <a href="errno.rs.html#1163">Errno</a>};
+</span><span class="kw">use </span><span class="kw">crate</span>::errno::{<span class="self">self</span>, Errno};
 <span class="attr">#[cfg(not(target_os = <span class="string">&quot;redox&quot;</span>))]
 #[cfg(feature = <span class="string">&quot;fs&quot;</span>)]
-</span><span class="kw">use </span><span class="kw">crate</span>::fcntl::{<a href="fcntl.rs.html#373">at_rawfd</a>, <a href="fcntl.rs.html#28-41">AtFlags</a>};
+</span><span class="kw">use </span><span class="kw">crate</span>::fcntl::{at_rawfd, AtFlags};
 <span class="attr">#[cfg(feature = <span class="string">&quot;fs&quot;</span>)]
-</span><span class="kw">use </span><span class="kw">crate</span>::fcntl::{<a href="fcntl.rs.html#457">fcntl</a>, <a href="fcntl.rs.html#418">FcntlArg::F_SETFD</a>, <a href="fcntl.rs.html#399-406">FdFlag</a>, <a href="fcntl.rs.html#44-189">OFlag</a>};
+</span><span class="kw">use </span><span class="kw">crate</span>::fcntl::{fcntl, FcntlArg::F_SETFD, FdFlag, OFlag};
 <span class="attr">#[cfg(all(
     feature = <span class="string">&quot;fs&quot;</span>,
     any(
@@ -3365,29 +3402,29 @@
 ))]
 </span><span class="kw">use </span><span class="kw">crate</span>::sys::stat::FileFlag;
 <span class="attr">#[cfg(feature = <span class="string">&quot;fs&quot;</span>)]
-</span><span class="kw">use </span><a href="sys/stat.rs.html#33-52"><span class="kw">crate</span>::sys::stat::Mode</a>;
-<span class="kw">use crate</span>::{<a href="lib.rs.html#179">Error</a>, <a href="lib.rs.html#182">NixPath</a>, <span class="prelude-ty">Result</span>};
+</span><span class="kw">use </span><span class="kw">crate</span>::sys::stat::Mode;
+<span class="kw">use crate</span>::{Error, NixPath, <span class="prelude-ty">Result</span>};
 <span class="attr">#[cfg(not(target_os = <span class="string">&quot;redox&quot;</span>))]
-</span><span class="kw">use </span><a href="../../cfg_if/macro.cfg_if.html">cfg_if::cfg_if</a>;
+</span><span class="kw">use </span>cfg_if::cfg_if;
 <span class="kw">use </span>libc::{
-    <a class="self" href="../../libc/index.html">self</a>, <a href="../../libc/unix/linux_like/linux/gnu/b64/x86_64/type.c_char.html">c_char</a>, <a href="../../libc/unix/type.c_int.html">c_int</a>, <a href="../../libc/unix/linux_like/linux/gnu/b64/x86_64/not_x32/type.c_long.html">c_long</a>, <a href="../../libc/unix/type.c_uint.html">c_uint</a>, <a href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>, <a href="../../libc/unix/type.gid_t.html">gid_t</a>, <a href="../../nix/sys/stat/type.mode_t.html">mode_t</a>, <a href="../../libc/unix/linux_like/linux/gnu/b64/type.off_t.html">off_t</a>, <a href="../../nix/pty/type.SessionId.html">pid_t</a>,
-    <a href="../../libc/unix/type.size_t.html">size_t</a>, <a href="../../libc/unix/type.uid_t.html">uid_t</a>, <a href="../../libc/unix/linux_like/constant.PATH_MAX.html">PATH_MAX</a>,
+    <span class="self">self</span>, c_char, c_int, c_long, c_uint, c_void, gid_t, mode_t, off_t, pid_t,
+    size_t, uid_t, PATH_MAX,
 };
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/convert/enum.Infallible.html">std::convert::Infallible</a>;
-<span class="kw">use </span>std::ffi::{<a href="https://doc.rust-lang.org/nightly/core/ffi/c_str/struct.CStr.html">CStr</a>, <a href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsString.html">OsString</a>};
+<span class="kw">use </span>std::convert::Infallible;
+<span class="kw">use </span>std::ffi::{CStr, OsString};
 <span class="attr">#[cfg(not(target_os = <span class="string">&quot;redox&quot;</span>))]
-</span><span class="kw">use </span>std::ffi::{<a href="https://doc.rust-lang.org/nightly/alloc/ffi/c_str/struct.CString.html">CString</a>, <a href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsStr.html">OsStr</a>};
+</span><span class="kw">use </span>std::ffi::{CString, OsStr};
 <span class="attr">#[cfg(not(target_os = <span class="string">&quot;redox&quot;</span>))]
-</span><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/os/unix/ffi/os_str/trait.OsStrExt.html">std::os::unix::ffi::OsStrExt</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/os/unix/ffi/os_str/trait.OsStringExt.html">std::os::unix::ffi::OsStringExt</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">std::os::unix::io::RawFd</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/path/struct.PathBuf.html">std::path::PathBuf</a>;
-<span class="kw">use </span>std::{<a href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">fmt</a>, <a href="https://doc.rust-lang.org/nightly/core/mem/index.html">mem</a>, <a href="https://doc.rust-lang.org/nightly/core/ptr/index.html">ptr</a>};
+</span><span class="kw">use </span>std::os::unix::ffi::OsStrExt;
+<span class="kw">use </span>std::os::unix::ffi::OsStringExt;
+<span class="kw">use </span>std::os::unix::io::RawFd;
+<span class="kw">use </span>std::path::PathBuf;
+<span class="kw">use </span>std::{fmt, mem, ptr};
 
 <span class="macro">feature! </span>{
     <span class="attr">#![feature = <span class="string">&quot;fs&quot;</span>]
     #[cfg(any(target_os = <span class="string">&quot;android&quot;</span>, target_os = <span class="string">&quot;linux&quot;</span>))]
-    </span><span class="kw">pub use </span><a href="#2735"><span class="self">self</span>::pivot_root</a>::<span class="kw-2">*</span>;
+    </span><span class="kw">pub use </span><span class="self">self</span>::pivot_root::<span class="kw-2">*</span>;
 }
 
 <span class="attr">#[cfg(any(
@@ -3397,7 +3434,7 @@
     target_os = <span class="string">&quot;linux&quot;</span>,
     target_os = <span class="string">&quot;openbsd&quot;
 </span>))]
-</span><span class="kw">pub use </span><a href="#2761"><span class="self">self</span>::setres</a>::<span class="kw-2">*</span>;
+</span><span class="kw">pub use </span><span class="self">self</span>::setres::<span class="kw-2">*</span>;
 
 <span class="attr">#[cfg(any(
     target_os = <span class="string">&quot;android&quot;</span>,
@@ -3406,7 +3443,7 @@
     target_os = <span class="string">&quot;linux&quot;</span>,
     target_os = <span class="string">&quot;openbsd&quot;
 </span>))]
-</span><span class="kw">pub use </span><a href="#2810"><span class="self">self</span>::getres</a>::<span class="kw-2">*</span>;
+</span><span class="kw">pub use </span><span class="self">self</span>::getres::<span class="kw-2">*</span>;
 
 <span class="macro">feature! </span>{
 <span class="attr">#![feature = <span class="string">&quot;user&quot;</span>]
@@ -3416,104 +3453,104 @@
 /// Newtype pattern around `uid_t` (which is just alias). It prevents bugs caused by accidentally
 /// passing wrong value.
 </span><span class="attr">#[derive(Debug, Copy, Clone, Eq, PartialEq, Hash)]
-</span><span class="kw">pub struct </span>Uid(<a href="../../libc/unix/type.uid_t.html">uid_t</a>);
+</span><span class="kw">pub struct </span>Uid(uid_t);
 
-<span class="kw">impl </span><a href="#73">Uid</a> {
+<span class="kw">impl </span>Uid {
     <span class="doccomment">/// Creates `Uid` from raw `uid_t`.
-    </span><span class="kw">pub const fn </span>from_raw(uid: <a href="../../libc/unix/type.uid_t.html">uid_t</a>) -&gt; <span class="self">Self </span>{
-        <a href="#73">Uid</a>(<a href="#77">uid</a>)
+    </span><span class="kw">pub const fn </span>from_raw(uid: uid_t) -&gt; <span class="self">Self </span>{
+        Uid(uid)
     }
 
     <span class="doccomment">/// Returns Uid of calling process. This is practically a more Rusty alias for `getuid`.
-    </span><span class="attr">#[cfg_attr(has_doc_alias, doc(alias(<span class="string">&quot;getuid&quot;</span>)))]
+    </span><span class="attr">#[doc(alias(<span class="string">&quot;getuid&quot;</span>))]
     </span><span class="kw">pub fn </span>current() -&gt; <span class="self">Self </span>{
-        <a href="#1397">getuid</a>()
+        getuid()
     }
 
     <span class="doccomment">/// Returns effective Uid of calling process. This is practically a more Rusty alias for `geteuid`.
-    </span><span class="attr">#[cfg_attr(has_doc_alias, doc(alias(<span class="string">&quot;geteuid&quot;</span>)))]
+    </span><span class="attr">#[doc(alias(<span class="string">&quot;geteuid&quot;</span>))]
     </span><span class="kw">pub fn </span>effective() -&gt; <span class="self">Self </span>{
-        <a href="#1407">geteuid</a>()
+        geteuid()
     }
 
     <span class="doccomment">/// Returns true if the `Uid` represents privileged user - root. (If it equals zero.)
-    </span><span class="kw">pub const fn </span>is_root(<span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#94">self</a>.<span class="number">0 </span>== <a href="#123">ROOT</a>.<span class="number">0
+    </span><span class="kw">pub const fn </span>is_root(<span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.<span class="number">0 </span>== ROOT.<span class="number">0
     </span>}
 
     <span class="doccomment">/// Get the raw `uid_t` wrapped by `self`.
-    </span><span class="kw">pub const fn </span>as_raw(<span class="self">self</span>) -&gt; <a href="../../libc/unix/type.uid_t.html">uid_t</a> {
-        <a class="self" href="#99">self</a>.<span class="number">0
+    </span><span class="kw">pub const fn </span>as_raw(<span class="self">self</span>) -&gt; uid_t {
+        <span class="self">self</span>.<span class="number">0
     </span>}
 }
 
-<span class="kw">impl </span>From&lt;<a href="#73">Uid</a>&gt; <span class="kw">for </span><a href="../../libc/unix/type.uid_t.html">uid_t</a> {
-    <span class="kw">fn </span>from(uid: <a href="#73">Uid</a>) -&gt; <span class="self">Self </span>{
-        <a href="#105">uid</a>.<span class="number">0
+<span class="kw">impl </span>From&lt;Uid&gt; <span class="kw">for </span>uid_t {
+    <span class="kw">fn </span>from(uid: Uid) -&gt; <span class="self">Self </span>{
+        uid.<span class="number">0
     </span>}
 }
 
-<span class="kw">impl </span>From&lt;<a href="../../libc/unix/type.uid_t.html">uid_t</a>&gt; <span class="kw">for </span><a href="#73">Uid</a> {
-    <span class="kw">fn </span>from(uid: <a href="../../libc/unix/type.uid_t.html">uid_t</a>) -&gt; <span class="self">Self </span>{
-        <a href="#73">Uid</a>(<a href="#111">uid</a>)
+<span class="kw">impl </span>From&lt;uid_t&gt; <span class="kw">for </span>Uid {
+    <span class="kw">fn </span>from(uid: uid_t) -&gt; <span class="self">Self </span>{
+        Uid(uid)
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for </span><a href="#73">Uid</a> {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display::fmt</a>(<span class="kw-2">&amp;</span><a class="self" href="#117">self</a>.<span class="number">0</span>, <a href="#117">f</a>)
+<span class="kw">impl </span>fmt::Display <span class="kw">for </span>Uid {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter) -&gt; fmt::Result {
+        fmt::Display::fmt(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="number">0</span>, f)
     }
 }
 
 <span class="doccomment">/// Constant for UID = 0
-</span><span class="kw">pub const </span>ROOT: <a href="#73">Uid</a> = <a href="#73">Uid</a>(<span class="number">0</span>);
+</span><span class="kw">pub const </span>ROOT: Uid = Uid(<span class="number">0</span>);
 
 <span class="doccomment">/// Group identifier
 ///
 /// Newtype pattern around `gid_t` (which is just alias). It prevents bugs caused by accidentally
 /// passing wrong value.
 </span><span class="attr">#[derive(Debug, Copy, Clone, Eq, PartialEq, Hash)]
-</span><span class="kw">pub struct </span>Gid(<a href="../../libc/unix/type.gid_t.html">gid_t</a>);
+</span><span class="kw">pub struct </span>Gid(gid_t);
 
-<span class="kw">impl </span><a href="#130">Gid</a> {
+<span class="kw">impl </span>Gid {
     <span class="doccomment">/// Creates `Gid` from raw `gid_t`.
-    </span><span class="kw">pub const fn </span>from_raw(gid: <a href="../../libc/unix/type.gid_t.html">gid_t</a>) -&gt; <span class="self">Self </span>{
-        <a href="#130">Gid</a>(<a href="#134">gid</a>)
+    </span><span class="kw">pub const fn </span>from_raw(gid: gid_t) -&gt; <span class="self">Self </span>{
+        Gid(gid)
     }
 
     <span class="doccomment">/// Returns Gid of calling process. This is practically a more Rusty alias for `getgid`.
-    </span><span class="attr">#[cfg_attr(has_doc_alias, doc(alias(<span class="string">&quot;getgid&quot;</span>)))]
+    </span><span class="attr">#[doc(alias(<span class="string">&quot;getgid&quot;</span>))]
     </span><span class="kw">pub fn </span>current() -&gt; <span class="self">Self </span>{
-        <a href="#1417">getgid</a>()
+        getgid()
     }
 
     <span class="doccomment">/// Returns effective Gid of calling process. This is practically a more Rusty alias for `getegid`.
-    </span><span class="attr">#[cfg_attr(has_doc_alias, doc(alias(<span class="string">&quot;getegid&quot;</span>)))]
+    </span><span class="attr">#[doc(alias(<span class="string">&quot;getegid&quot;</span>))]
     </span><span class="kw">pub fn </span>effective() -&gt; <span class="self">Self </span>{
-        <a href="#1427">getegid</a>()
+        getegid()
     }
 
     <span class="doccomment">/// Get the raw `gid_t` wrapped by `self`.
-    </span><span class="kw">pub const fn </span>as_raw(<span class="self">self</span>) -&gt; <a href="../../libc/unix/type.gid_t.html">gid_t</a> {
-        <a class="self" href="#151">self</a>.<span class="number">0
+    </span><span class="kw">pub const fn </span>as_raw(<span class="self">self</span>) -&gt; gid_t {
+        <span class="self">self</span>.<span class="number">0
     </span>}
 }
 
-<span class="kw">impl </span>From&lt;<a href="#130">Gid</a>&gt; <span class="kw">for </span><a href="../../libc/unix/type.gid_t.html">gid_t</a> {
-    <span class="kw">fn </span>from(gid: <a href="#130">Gid</a>) -&gt; <span class="self">Self </span>{
-        <a href="#157">gid</a>.<span class="number">0
+<span class="kw">impl </span>From&lt;Gid&gt; <span class="kw">for </span>gid_t {
+    <span class="kw">fn </span>from(gid: Gid) -&gt; <span class="self">Self </span>{
+        gid.<span class="number">0
     </span>}
 }
 
-<span class="kw">impl </span>From&lt;<a href="../../libc/unix/type.gid_t.html">gid_t</a>&gt; <span class="kw">for </span><a href="#130">Gid</a> {
-    <span class="kw">fn </span>from(gid: <a href="../../libc/unix/type.gid_t.html">gid_t</a>) -&gt; <span class="self">Self </span>{
-        <a href="#130">Gid</a>(<a href="#163">gid</a>)
+<span class="kw">impl </span>From&lt;gid_t&gt; <span class="kw">for </span>Gid {
+    <span class="kw">fn </span>from(gid: gid_t) -&gt; <span class="self">Self </span>{
+        Gid(gid)
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for </span><a href="#130">Gid</a> {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display::fmt</a>(<span class="kw-2">&amp;</span><a class="self" href="#169">self</a>.<span class="number">0</span>, <a href="#169">f</a>)
+<span class="kw">impl </span>fmt::Display <span class="kw">for </span>Gid {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter) -&gt; fmt::Result {
+        fmt::Display::fmt(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="number">0</span>, f)
     }
 }
 }
@@ -3525,41 +3562,41 @@
 /// Newtype pattern around `pid_t` (which is just alias). It prevents bugs caused by accidentally
 /// passing wrong value.
 </span><span class="attr">#[derive(Debug, Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
-</span><span class="kw">pub struct </span>Pid(<a href="../../nix/pty/type.SessionId.html">pid_t</a>);
+</span><span class="kw">pub struct </span>Pid(pid_t);
 
-<span class="kw">impl </span><a href="#182">Pid</a> {
+<span class="kw">impl </span>Pid {
     <span class="doccomment">/// Creates `Pid` from raw `pid_t`.
-    </span><span class="kw">pub const fn </span>from_raw(pid: <a href="../../nix/pty/type.SessionId.html">pid_t</a>) -&gt; <span class="self">Self </span>{
-        <a href="#182">Pid</a>(<a href="#186">pid</a>)
+    </span><span class="kw">pub const fn </span>from_raw(pid: pid_t) -&gt; <span class="self">Self </span>{
+        Pid(pid)
     }
 
     <span class="doccomment">/// Returns PID of calling process
-    </span><span class="attr">#[cfg_attr(has_doc_alias, doc(alias(<span class="string">&quot;getpid&quot;</span>)))]
+    </span><span class="attr">#[doc(alias(<span class="string">&quot;getpid&quot;</span>))]
     </span><span class="kw">pub fn </span>this() -&gt; <span class="self">Self </span>{
-        <a href="#308">getpid</a>()
+        getpid()
     }
 
     <span class="doccomment">/// Returns PID of parent of calling process
-    </span><span class="attr">#[cfg_attr(has_doc_alias, doc(alias(<span class="string">&quot;getppid&quot;</span>)))]
+    </span><span class="attr">#[doc(alias(<span class="string">&quot;getppid&quot;</span>))]
     </span><span class="kw">pub fn </span>parent() -&gt; <span class="self">Self </span>{
-        <a href="#318">getppid</a>()
+        getppid()
     }
 
     <span class="doccomment">/// Get the raw `pid_t` wrapped by `self`.
-    </span><span class="kw">pub const fn </span>as_raw(<span class="self">self</span>) -&gt; <a href="../../nix/pty/type.SessionId.html">pid_t</a> {
-        <a class="self" href="#203">self</a>.<span class="number">0
+    </span><span class="kw">pub const fn </span>as_raw(<span class="self">self</span>) -&gt; pid_t {
+        <span class="self">self</span>.<span class="number">0
     </span>}
 }
 
-<span class="kw">impl </span>From&lt;<a href="#182">Pid</a>&gt; <span class="kw">for </span><a href="../../nix/pty/type.SessionId.html">pid_t</a> {
-    <span class="kw">fn </span>from(pid: <a href="#182">Pid</a>) -&gt; <span class="self">Self </span>{
-        <a href="#209">pid</a>.<span class="number">0
+<span class="kw">impl </span>From&lt;Pid&gt; <span class="kw">for </span>pid_t {
+    <span class="kw">fn </span>from(pid: Pid) -&gt; <span class="self">Self </span>{
+        pid.<span class="number">0
     </span>}
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for </span><a href="#182">Pid</a> {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display::fmt</a>(<span class="kw-2">&amp;</span><a class="self" href="#215">self</a>.<span class="number">0</span>, <a href="#215">f</a>)
+<span class="kw">impl </span>fmt::Display <span class="kw">for </span>Pid {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter) -&gt; fmt::Result {
+        fmt::Display::fmt(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="number">0</span>, f)
     }
 }
 
@@ -3571,22 +3608,22 @@
 /// you are now executing in the parent process or in the child.
 </span><span class="attr">#[derive(Clone, Copy, Debug)]
 </span><span class="kw">pub enum </span>ForkResult {
-    Parent { child: <a href="#182">Pid</a> },
+    Parent { child: Pid },
     Child,
 }
 
-<span class="kw">impl </span><a href="#227">ForkResult</a> {
+<span class="kw">impl </span>ForkResult {
 
     <span class="doccomment">/// Return `true` if this is the child process of the `fork()`
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>is_child(<span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.matches.html">matches!</a>(<span class="self">self</span>, ForkResult::Child)
+    </span><span class="kw">pub fn </span>is_child(<span class="self">self</span>) -&gt; bool {
+        <span class="macro">matches!</span>(<span class="self">self</span>, ForkResult::Child)
     }
 
     <span class="doccomment">/// Returns `true` if this is the parent process of the `fork()`
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>is_parent(<span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        !<a class="self" href="#242">self</a>.<a href="#236">is_child</a>()
+    </span><span class="kw">pub fn </span>is_parent(<span class="self">self</span>) -&gt; bool {
+        !<span class="self">self</span>.is_child()
     }
 }
 
@@ -3635,13 +3672,13 @@
 ///
 /// [async-signal-safe]: https://man7.org/linux/man-pages/man7/signal-safety.7.html
 </span><span class="attr">#[inline]
-</span><span class="kw">pub unsafe fn </span>fork() -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#227">ForkResult</a>&gt; {
-    <span class="kw">use </span><a href="#227"><span class="self">self</span>::ForkResult</a>::<span class="kw-2">*</span>;
+</span><span class="kw">pub unsafe fn </span>fork() -&gt; <span class="prelude-ty">Result</span>&lt;ForkResult&gt; {
+    <span class="kw">use </span><span class="self">self</span>::ForkResult::<span class="kw-2">*</span>;
     <span class="kw">let </span>res = libc::fork();
 
-    Errno::result(<a href="#294">res</a>).map(|res| <span class="kw">match </span><a href="#296">res</a> {
-        <span class="number">0 </span>=&gt; <a href="#229">Child</a>,
-        res =&gt; <a href="#228">Parent</a> { child: <a href="#182">Pid</a>(<a href="#298">res</a>) },
+    Errno::result(res).map(|res| <span class="kw">match </span>res {
+        <span class="number">0 </span>=&gt; Child,
+        res =&gt; Parent { child: Pid(res) },
     })
 }
 
@@ -3651,8 +3688,8 @@
 /// Since you are running code, there is always a pid to return, so there
 /// is no error case that needs to be handled.
 </span><span class="attr">#[inline]
-</span><span class="kw">pub fn </span>getpid() -&gt; <a href="#182">Pid</a> {
-    <a href="#182">Pid</a>(<span class="kw">unsafe </span>{ libc::getpid() })
+</span><span class="kw">pub fn </span>getpid() -&gt; Pid {
+    Pid(<span class="kw">unsafe </span>{ libc::getpid() })
 }
 
 <span class="doccomment">/// Get the pid of this processes&#39; parent (see
@@ -3661,8 +3698,8 @@
 /// There is always a parent pid to return, so there is no error case that needs
 /// to be handled.
 </span><span class="attr">#[inline]
-</span><span class="kw">pub fn </span>getppid() -&gt; <a href="#182">Pid</a> {
-    <a href="#182">Pid</a>(<span class="kw">unsafe </span>{ libc::getppid() }) <span class="comment">// no error handling, according to man page: &quot;These functions are always successful.&quot;
+</span><span class="kw">pub fn </span>getppid() -&gt; Pid {
+    Pid(<span class="kw">unsafe </span>{ libc::getppid() }) <span class="comment">// no error handling, according to man page: &quot;These functions are always successful.&quot;
 </span>}
 
 <span class="doccomment">/// Set a process group ID (see
@@ -3675,21 +3712,21 @@
 ///
 /// `setsid()` may be used to create a new process group.
 </span><span class="attr">#[inline]
-</span><span class="kw">pub fn </span>setpgid(pid: <a href="#182">Pid</a>, pgid: <a href="#182">Pid</a>) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
-    <span class="kw">let </span>res = <span class="kw">unsafe </span>{ libc::setpgid(<a href="#332">pid</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(), <a href="#332">pgid</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()) };
-    Errno::result(<a href="#333">res</a>).map(<a href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>)
+</span><span class="kw">pub fn </span>setpgid(pid: Pid, pgid: Pid) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+    <span class="kw">let </span>res = <span class="kw">unsafe </span>{ libc::setpgid(pid.into(), pgid.into()) };
+    Errno::result(res).map(drop)
 }
 <span class="attr">#[inline]
-</span><span class="kw">pub fn </span>getpgid(pid: <span class="prelude-ty">Option</span>&lt;<a href="#182">Pid</a>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#182">Pid</a>&gt; {
-    <span class="kw">let </span>res = <span class="kw">unsafe </span>{ libc::getpgid(<a href="#337">pid</a>.unwrap_or(<a href="#182">Pid</a>(<span class="number">0</span>)).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()) };
-    Errno::result(<a href="#338">res</a>).map(<a href="#182">Pid</a>)
+</span><span class="kw">pub fn </span>getpgid(pid: <span class="prelude-ty">Option</span>&lt;Pid&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;Pid&gt; {
+    <span class="kw">let </span>res = <span class="kw">unsafe </span>{ libc::getpgid(pid.unwrap_or(Pid(<span class="number">0</span>)).into()) };
+    Errno::result(res).map(Pid)
 }
 
 <span class="doccomment">/// Create new session and set process group id (see
 /// [setsid(2)](https://pubs.opengroup.org/onlinepubs/9699919799/functions/setsid.html)).
 </span><span class="attr">#[inline]
-</span><span class="kw">pub fn </span>setsid() -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#182">Pid</a>&gt; {
-    Errno::result(<span class="kw">unsafe </span>{ libc::setsid() }).map(<a href="#182">Pid</a>)
+</span><span class="kw">pub fn </span>setsid() -&gt; <span class="prelude-ty">Result</span>&lt;Pid&gt; {
+    Errno::result(<span class="kw">unsafe </span>{ libc::setsid() }).map(Pid)
 }
 
 <span class="doccomment">/// Get the process group ID of a session leader
@@ -3699,9 +3736,9 @@
 /// by pid. If pid is zero, it specifies the calling process.
 </span><span class="attr">#[inline]
 #[cfg(not(target_os = <span class="string">&quot;redox&quot;</span>))]
-</span><span class="kw">pub fn </span>getsid(pid: <span class="prelude-ty">Option</span>&lt;<a href="#182">Pid</a>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#182">Pid</a>&gt; {
-    <span class="kw">let </span>res = <span class="kw">unsafe </span>{ libc::getsid(<a href="#356">pid</a>.unwrap_or(<a href="#182">Pid</a>(<span class="number">0</span>)).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()) };
-    Errno::result(<a href="#357">res</a>).map(<a href="#182">Pid</a>)
+</span><span class="kw">pub fn </span>getsid(pid: <span class="prelude-ty">Option</span>&lt;Pid&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;Pid&gt; {
+    <span class="kw">let </span>res = <span class="kw">unsafe </span>{ libc::getsid(pid.unwrap_or(Pid(<span class="number">0</span>)).into()) };
+    Errno::result(res).map(Pid)
 }
 }
 
@@ -3713,9 +3750,9 @@
 /// Get the group process id (GPID) of the foreground process group on the
 /// terminal associated to file descriptor (FD).
 </span><span class="attr">#[inline]
-</span><span class="kw">pub fn </span>tcgetpgrp(fd: <a href="../../libc/unix/type.c_int.html">c_int</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#182">Pid</a>&gt; {
-    <span class="kw">let </span>res = <span class="kw">unsafe </span>{ libc::tcgetpgrp(<a href="#370">fd</a>) };
-    Errno::result(<a href="#371">res</a>).map(<a href="#182">Pid</a>)
+</span><span class="kw">pub fn </span>tcgetpgrp(fd: c_int) -&gt; <span class="prelude-ty">Result</span>&lt;Pid&gt; {
+    <span class="kw">let </span>res = <span class="kw">unsafe </span>{ libc::tcgetpgrp(fd) };
+    Errno::result(res).map(Pid)
 }
 <span class="doccomment">/// Set the terminal foreground process group (see
 /// [tcgetpgrp(3)](https://pubs.opengroup.org/onlinepubs/9699919799/functions/tcsetpgrp.html)).
@@ -3723,9 +3760,9 @@
 /// Get the group process id (PGID) to the foreground process group on the
 /// terminal associated to file descriptor (FD).
 </span><span class="attr">#[inline]
-</span><span class="kw">pub fn </span>tcsetpgrp(fd: <a href="../../libc/unix/type.c_int.html">c_int</a>, pgrp: <a href="#182">Pid</a>) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
-    <span class="kw">let </span>res = <span class="kw">unsafe </span>{ libc::tcsetpgrp(<a href="#380">fd</a>, <a href="#380">pgrp</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()) };
-    Errno::result(<a href="#381">res</a>).map(<a href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>)
+</span><span class="kw">pub fn </span>tcsetpgrp(fd: c_int, pgrp: Pid) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+    <span class="kw">let </span>res = <span class="kw">unsafe </span>{ libc::tcsetpgrp(fd, pgrp.into()) };
+    Errno::result(res).map(drop)
 }
 }
 
@@ -3737,8 +3774,8 @@
 /// Get the process group id (PGID) of the calling process.
 /// According to the man page it is always successful.
 </span><span class="attr">#[inline]
-</span><span class="kw">pub fn </span>getpgrp() -&gt; <a href="#182">Pid</a> {
-    <a href="#182">Pid</a>(<span class="kw">unsafe </span>{ libc::getpgrp() })
+</span><span class="kw">pub fn </span>getpgrp() -&gt; Pid {
+    Pid(<span class="kw">unsafe </span>{ libc::getpgrp() })
 }
 
 <span class="doccomment">/// Get the caller&#39;s thread ID (see
@@ -3753,8 +3790,8 @@
 /// process, even if threads are not being used.
 </span><span class="attr">#[cfg(any(target_os = <span class="string">&quot;linux&quot;</span>, target_os = <span class="string">&quot;android&quot;</span>))]
 #[inline]
-</span><span class="kw">pub fn </span>gettid() -&gt; <a href="#182">Pid</a> {
-    <a href="#182">Pid</a>(<span class="kw">unsafe </span>{ libc::syscall(libc::SYS_gettid) <span class="kw">as </span><a href="../../nix/pty/type.SessionId.html">pid_t</a> })
+</span><span class="kw">pub fn </span>gettid() -&gt; Pid {
+    Pid(<span class="kw">unsafe </span>{ libc::syscall(libc::SYS_gettid) <span class="kw">as </span>pid_t })
 }
 }
 
@@ -3763,7 +3800,7 @@
 </span><span class="doccomment">/// Create a copy of the specified file descriptor (see
 /// [dup(2)](https://pubs.opengroup.org/onlinepubs/9699919799/functions/dup.html)).
 ///
-/// The new file descriptor will be have a new index but refer to the same
+/// The new file descriptor will have a new index but refer to the same
 /// resource as the old file descriptor and the old and new file descriptors may
 /// be used interchangeably.  The new and old file descriptor share the same
 /// underlying resource, offset, and file status flags.  The actual index used
@@ -3771,10 +3808,10 @@
 ///
 /// The two file descriptors do not share file descriptor flags (e.g. `OFlag::FD_CLOEXEC`).
 </span><span class="attr">#[inline]
-</span><span class="kw">pub fn </span>dup(oldfd: <a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a>&gt; {
-    <span class="kw">let </span>res = <span class="kw">unsafe </span>{ libc::dup(<a href="#428">oldfd</a>) };
+</span><span class="kw">pub fn </span>dup(oldfd: RawFd) -&gt; <span class="prelude-ty">Result</span>&lt;RawFd&gt; {
+    <span class="kw">let </span>res = <span class="kw">unsafe </span>{ libc::dup(oldfd) };
 
-    Errno::result(<a href="#429">res</a>)
+    Errno::result(res)
 }
 
 <span class="doccomment">/// Create a copy of the specified file descriptor using the specified fd (see
@@ -3784,10 +3821,10 @@
 /// specified fd instead of allocating a new one.  See the man pages for more
 /// detail on the exact behavior of this function.
 </span><span class="attr">#[inline]
-</span><span class="kw">pub fn </span>dup2(oldfd: <a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a>, newfd: <a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a>&gt; {
-    <span class="kw">let </span>res = <span class="kw">unsafe </span>{ libc::dup2(<a href="#441">oldfd</a>, <a href="#441">newfd</a>) };
+</span><span class="kw">pub fn </span>dup2(oldfd: RawFd, newfd: RawFd) -&gt; <span class="prelude-ty">Result</span>&lt;RawFd&gt; {
+    <span class="kw">let </span>res = <span class="kw">unsafe </span>{ libc::dup2(oldfd, newfd) };
 
-    Errno::result(<a href="#442">res</a>)
+    Errno::result(res)
 }
 
 <span class="doccomment">/// Create a new copy of the specified file descriptor using the specified fd
@@ -3795,26 +3832,26 @@
 ///
 /// This function behaves similar to `dup2()` but allows for flags to be
 /// specified.
-</span><span class="kw">pub fn </span>dup3(oldfd: <a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a>, newfd: <a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a>, flags: <a href="fcntl.rs.html#44-189">OFlag</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a>&gt; {
-    <a href="#457">dup3_polyfill</a>(<a href="#452">oldfd</a>, <a href="#452">newfd</a>, <a href="#452">flags</a>)
+</span><span class="kw">pub fn </span>dup3(oldfd: RawFd, newfd: RawFd, flags: OFlag) -&gt; <span class="prelude-ty">Result</span>&lt;RawFd&gt; {
+    dup3_polyfill(oldfd, newfd, flags)
 }
 
 <span class="attr">#[inline]
-</span><span class="kw">fn </span>dup3_polyfill(oldfd: <a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a>, newfd: <a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a>, flags: <a href="fcntl.rs.html#44-189">OFlag</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a>&gt; {
+</span><span class="kw">fn </span>dup3_polyfill(oldfd: RawFd, newfd: RawFd, flags: OFlag) -&gt; <span class="prelude-ty">Result</span>&lt;RawFd&gt; {
     <span class="kw">if </span>oldfd == newfd {
-        <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="errno.rs.html#1186">Errno::EINVAL</a>);
+        <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EINVAL);
     }
 
     <span class="kw">let </span>fd = dup2(oldfd, newfd)<span class="question-mark">?</span>;
 
     <span class="kw">if </span>flags.contains(OFlag::O_CLOEXEC) {
-        <span class="kw">if let </span><span class="prelude-val">Err</span>(e) = <a href="fcntl.rs.html#457">fcntl</a>(<a href="#462">fd</a>, <a href="fcntl.rs.html#418">F_SETFD</a>(FdFlag::FD_CLOEXEC)) {
-            <span class="kw">let _ </span>= <a href="#1063">close</a>(<a href="#462">fd</a>);
-            <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="#465">e</a>);
+        <span class="kw">if let </span><span class="prelude-val">Err</span>(e) = fcntl(fd, F_SETFD(FdFlag::FD_CLOEXEC)) {
+            <span class="kw">let _ </span>= close(fd);
+            <span class="kw">return </span><span class="prelude-val">Err</span>(e);
         }
     }
 
-    <span class="prelude-val">Ok</span>(<a href="#462">fd</a>)
+    <span class="prelude-val">Ok</span>(fd)
 }
 
 <span class="doccomment">/// Change the current working directory of the calling process (see
@@ -3823,12 +3860,12 @@
 /// This function may fail in a number of different scenarios.  See the man
 /// pages for additional details on possible failure cases.
 </span><span class="attr">#[inline]
-</span><span class="kw">pub fn </span>chdir&lt;P: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> + <a href="lib.rs.html#182">NixPath</a>&gt;(path: <span class="kw-2">&amp;</span>P) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+</span><span class="kw">pub fn </span>chdir&lt;P: <span class="question-mark">?</span>Sized + NixPath&gt;(path: <span class="kw-2">&amp;</span>P) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
     <span class="kw">let </span>res = path.with_nix_path(|cstr| {
         <span class="kw">unsafe </span>{ libc::chdir(cstr.as_ptr()) }
     })<span class="question-mark">?</span>;
 
-    Errno::result(<a href="#481">res</a>).map(<a href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>)
+    Errno::result(res).map(drop)
 }
 
 <span class="doccomment">/// Change the current working directory of the process to the one
@@ -3839,10 +3876,10 @@
 /// pages for additional details on possible failure cases.
 </span><span class="attr">#[inline]
 #[cfg(not(target_os = <span class="string">&quot;fuchsia&quot;</span>))]
-</span><span class="kw">pub fn </span>fchdir(dirfd: <a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a>) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
-    <span class="kw">let </span>res = <span class="kw">unsafe </span>{ libc::fchdir(<a href="#496">dirfd</a>) };
+</span><span class="kw">pub fn </span>fchdir(dirfd: RawFd) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+    <span class="kw">let </span>res = <span class="kw">unsafe </span>{ libc::fchdir(dirfd) };
 
-    Errno::result(<a href="#497">res</a>).map(<a href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>)
+    Errno::result(res).map(drop)
 }
 
 <span class="doccomment">/// Creates new directory `path` with access rights `mode`.  (see [mkdir(2)](https://pubs.opengroup.org/onlinepubs/9699919799/functions/mkdir.html))
@@ -3872,12 +3909,12 @@
 /// }
 /// ```
 </span><span class="attr">#[inline]
-</span><span class="kw">pub fn </span>mkdir&lt;P: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> + <a href="lib.rs.html#182">NixPath</a>&gt;(path: <span class="kw-2">&amp;</span>P, mode: <a href="sys/stat.rs.html#33-52">Mode</a>) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+</span><span class="kw">pub fn </span>mkdir&lt;P: <span class="question-mark">?</span>Sized + NixPath&gt;(path: <span class="kw-2">&amp;</span>P, mode: Mode) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
     <span class="kw">let </span>res = path.with_nix_path(|cstr| {
         <span class="kw">unsafe </span>{ libc::mkdir(cstr.as_ptr(), mode.bits() <span class="kw">as </span>mode_t) }
     })<span class="question-mark">?</span>;
 
-    Errno::result(<a href="#530">res</a>).map(<a href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>)
+    Errno::result(res).map(drop)
 }
 
 <span class="doccomment">/// Creates new fifo special file (named pipe) with path `path` and access rights `mode`.
@@ -3911,12 +3948,12 @@
 /// ```
 </span><span class="attr">#[inline]
 #[cfg(not(target_os = <span class="string">&quot;redox&quot;</span>))] </span><span class="comment">// RedoxFS does not support fifo yet
-</span><span class="kw">pub fn </span>mkfifo&lt;P: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> + <a href="lib.rs.html#182">NixPath</a>&gt;(path: <span class="kw-2">&amp;</span>P, mode: <a href="sys/stat.rs.html#33-52">Mode</a>) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+</span><span class="kw">pub fn </span>mkfifo&lt;P: <span class="question-mark">?</span>Sized + NixPath&gt;(path: <span class="kw-2">&amp;</span>P, mode: Mode) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
     <span class="kw">let </span>res = path.with_nix_path(|cstr| {
         <span class="kw">unsafe </span>{ libc::mkfifo(cstr.as_ptr(), mode.bits() <span class="kw">as </span>mode_t) }
     })<span class="question-mark">?</span>;
 
-    Errno::result(<a href="#569">res</a>).map(<a href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>)
+    Errno::result(res).map(drop)
 }
 
 <span class="doccomment">/// Creates new fifo special file (named pipe) with path `path` and access rights `mode`.
@@ -3933,12 +3970,12 @@
 #[cfg(not(any(
     target_os = <span class="string">&quot;macos&quot;</span>, target_os = <span class="string">&quot;ios&quot;</span>, target_os = <span class="string">&quot;haiku&quot;</span>,
     target_os = <span class="string">&quot;android&quot;</span>, target_os = <span class="string">&quot;redox&quot;</span>)))]
-</span><span class="kw">pub fn </span>mkfifoat&lt;P: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> + <a href="lib.rs.html#182">NixPath</a>&gt;(dirfd: <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a>&gt;, path: <span class="kw-2">&amp;</span>P, mode: <a href="sys/stat.rs.html#33-52">Mode</a>) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+</span><span class="kw">pub fn </span>mkfifoat&lt;P: <span class="question-mark">?</span>Sized + NixPath&gt;(dirfd: <span class="prelude-ty">Option</span>&lt;RawFd&gt;, path: <span class="kw-2">&amp;</span>P, mode: Mode) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
     <span class="kw">let </span>res = path.with_nix_path(|cstr| <span class="kw">unsafe </span>{
         libc::mkfifoat(at_rawfd(dirfd), cstr.as_ptr(), mode.bits() <span class="kw">as </span>mode_t)
     })<span class="question-mark">?</span>;
 
-    Errno::result(<a href="#591">res</a>).map(<a href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>)
+    Errno::result(res).map(drop)
 }
 
 <span class="doccomment">/// Creates a symbolic link at `path2` which points to `path1`.
@@ -3951,9 +3988,9 @@
 ///
 /// See also [symlinkat(2)](https://pubs.opengroup.org/onlinepubs/9699919799/functions/symlinkat.html).
 </span><span class="attr">#[cfg(not(target_os = <span class="string">&quot;redox&quot;</span>))]
-</span><span class="kw">pub fn </span>symlinkat&lt;P1: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> + <a href="lib.rs.html#182">NixPath</a>, P2: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> + <a href="lib.rs.html#182">NixPath</a>&gt;(
+</span><span class="kw">pub fn </span>symlinkat&lt;P1: <span class="question-mark">?</span>Sized + NixPath, P2: <span class="question-mark">?</span>Sized + NixPath&gt;(
     path1: <span class="kw-2">&amp;</span>P1,
-    dirfd: <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a>&gt;,
+    dirfd: <span class="prelude-ty">Option</span>&lt;RawFd&gt;,
     path2: <span class="kw-2">&amp;</span>P2) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
     <span class="kw">let </span>res =
         path1.with_nix_path(|path1| {
@@ -3967,22 +4004,22 @@
                 }
             })
         })<span class="question-mark">??</span>;
-    Errno::result(<a href="#612">res</a>).map(<a href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>)
+    Errno::result(res).map(drop)
 }
 }
 
 <span class="comment">// Double the buffer capacity up to limit. In case it already has
 // reached the limit, return Errno::ERANGE.
 </span><span class="attr">#[cfg(any(feature = <span class="string">&quot;fs&quot;</span>, feature = <span class="string">&quot;user&quot;</span>))]
-</span><span class="kw">fn </span>reserve_double_buffer_size&lt;T&gt;(buf: <span class="kw-2">&amp;mut </span>Vec&lt;T&gt;, limit: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+</span><span class="kw">fn </span>reserve_double_buffer_size&lt;T&gt;(buf: <span class="kw-2">&amp;mut </span>Vec&lt;T&gt;, limit: usize) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
     <span class="kw">use </span>std::cmp::min;
 
     <span class="kw">if </span>buf.capacity() &gt;= limit {
-        <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="errno.rs.html#1198">Errno::ERANGE</a>);
+        <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::ERANGE);
     }
 
-    <span class="kw">let </span>capacity = min(<a href="#631">buf</a>.capacity() * <span class="number">2</span>, <a href="#631">limit</a>);
-    <a href="#631">buf</a>.reserve(<a href="#638">capacity</a>);
+    <span class="kw">let </span>capacity = min(buf.capacity() * <span class="number">2</span>, limit);
+    buf.reserve(capacity);
 
     <span class="prelude-val">Ok</span>(())
 }
@@ -4005,26 +4042,26 @@
 /// println!(&quot;The current directory is {:?}&quot;, dir);
 /// ```
 </span><span class="attr">#[inline]
-</span><span class="kw">pub fn </span>getcwd() -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/path/struct.PathBuf.html">PathBuf</a>&gt; {
+</span><span class="kw">pub fn </span>getcwd() -&gt; <span class="prelude-ty">Result</span>&lt;PathBuf&gt; {
     <span class="kw">let </span><span class="kw-2">mut </span>buf = Vec::with_capacity(<span class="number">512</span>);
     <span class="kw">loop </span>{
         <span class="kw">unsafe </span>{
-            <span class="kw">let </span>ptr = <a href="#663">buf</a>.as_mut_ptr() <span class="kw">as </span><span class="kw-2">*mut </span><a href="../../libc/unix/linux_like/linux/gnu/b64/x86_64/type.c_char.html">c_char</a>;
+            <span class="kw">let </span>ptr = buf.as_mut_ptr() <span class="kw">as </span><span class="kw-2">*mut </span>c_char;
 
             <span class="comment">// The buffer must be large enough to store the absolute pathname plus
             // a terminating null byte, or else null is returned.
             // To safely handle this we start with a reasonable size (512 bytes)
             // and double the buffer size upon every error
             </span><span class="kw">if </span>!libc::getcwd(ptr, buf.capacity()).is_null() {
-                <span class="kw">let </span>len = CStr::from_ptr(<a href="#663">buf</a>.as_ptr() <span class="kw">as </span><span class="kw-2">*const </span><a href="../../libc/unix/linux_like/linux/gnu/b64/x86_64/type.c_char.html">c_char</a>).to_bytes().len();
-                <a href="#663">buf</a>.set_len(<a href="#673">len</a>);
-                <a href="#663">buf</a>.shrink_to_fit();
-                <span class="kw">return </span><span class="prelude-val">Ok</span>(PathBuf::from(OsString::from_vec(<a href="#663">buf</a>)));
+                <span class="kw">let </span>len = CStr::from_ptr(buf.as_ptr() <span class="kw">as </span><span class="kw-2">*const </span>c_char).to_bytes().len();
+                buf.set_len(len);
+                buf.shrink_to_fit();
+                <span class="kw">return </span><span class="prelude-val">Ok</span>(PathBuf::from(OsString::from_vec(buf)));
             } <span class="kw">else </span>{
                 <span class="kw">let </span>error = Errno::last();
                 <span class="comment">// ERANGE means buffer was too small to store directory name
                 </span><span class="kw">if </span>error != Errno::ERANGE {
-                    <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="#678">error</a>);
+                    <span class="kw">return </span><span class="prelude-val">Err</span>(error);
                 }
            }
 
@@ -4041,15 +4078,15 @@
 </span><span class="doccomment">/// Computes the raw UID and GID values to pass to a `*chown` call.
 </span><span class="comment">// The cast is not unnecessary on all platforms.
 </span><span class="attr">#[allow(clippy::unnecessary_cast)]
-</span><span class="kw">fn </span>chown_raw_ids(owner: <span class="prelude-ty">Option</span>&lt;<a href="#73">Uid</a>&gt;, group: <span class="prelude-ty">Option</span>&lt;<a href="#130">Gid</a>&gt;) -&gt; (<a href="../../libc/unix/type.uid_t.html">libc::uid_t</a>, <a href="../../libc/unix/type.gid_t.html">libc::gid_t</a>) {
+</span><span class="kw">fn </span>chown_raw_ids(owner: <span class="prelude-ty">Option</span>&lt;Uid&gt;, group: <span class="prelude-ty">Option</span>&lt;Gid&gt;) -&gt; (libc::uid_t, libc::gid_t) {
     <span class="comment">// According to the POSIX specification, -1 is used to indicate that owner and group
     // are not to be changed.  Since uid_t and gid_t are unsigned types, we have to wrap
     // around to get -1.
-    </span><span class="kw">let </span>uid = <a href="#698">owner</a>.map(<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">Into::into</a>)
-        .unwrap_or_else(|| (<span class="number">0 </span><span class="kw">as </span><a href="../../libc/unix/type.uid_t.html">uid_t</a>).wrapping_sub(<span class="number">1</span>));
-    <span class="kw">let </span>gid = <a href="#698">group</a>.map(<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">Into::into</a>)
-        .unwrap_or_else(|| (<span class="number">0 </span><span class="kw">as </span><a href="../../libc/unix/type.gid_t.html">gid_t</a>).wrapping_sub(<span class="number">1</span>));
-    (<a href="#702">uid</a>, <a href="#704">gid</a>)
+    </span><span class="kw">let </span>uid = owner.map(Into::into)
+        .unwrap_or_else(|| (<span class="number">0 </span><span class="kw">as </span>uid_t).wrapping_sub(<span class="number">1</span>));
+    <span class="kw">let </span>gid = group.map(Into::into)
+        .unwrap_or_else(|| (<span class="number">0 </span><span class="kw">as </span>gid_t).wrapping_sub(<span class="number">1</span>));
+    (uid, gid)
 }
 
 <span class="doccomment">/// Change the ownership of the file at `path` to be owned by the specified
@@ -4060,13 +4097,13 @@
 /// provided for that argument.  Ownership change will be attempted for the path
 /// only if `Some` owner/group is provided.
 </span><span class="attr">#[inline]
-</span><span class="kw">pub fn </span>chown&lt;P: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> + <a href="lib.rs.html#182">NixPath</a>&gt;(path: <span class="kw-2">&amp;</span>P, owner: <span class="prelude-ty">Option</span>&lt;<a href="#73">Uid</a>&gt;, group: <span class="prelude-ty">Option</span>&lt;<a href="#130">Gid</a>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+</span><span class="kw">pub fn </span>chown&lt;P: <span class="question-mark">?</span>Sized + NixPath&gt;(path: <span class="kw-2">&amp;</span>P, owner: <span class="prelude-ty">Option</span>&lt;Uid&gt;, group: <span class="prelude-ty">Option</span>&lt;Gid&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
     <span class="kw">let </span>res = path.with_nix_path(|cstr| {
         <span class="kw">let </span>(uid, gid) = chown_raw_ids(owner, group);
         <span class="kw">unsafe </span>{ libc::chown(cstr.as_ptr(), uid, gid) }
     })<span class="question-mark">?</span>;
 
-    Errno::result(<a href="#718">res</a>).map(<a href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>)
+    Errno::result(res).map(drop)
 }
 
 <span class="doccomment">/// Change the ownership of the file referred to by the open file descriptor `fd` to be owned by
@@ -4077,10 +4114,10 @@
 /// provided for that argument.  Ownership change will be attempted for the path
 /// only if `Some` owner/group is provided.
 </span><span class="attr">#[inline]
-</span><span class="kw">pub fn </span>fchown(fd: <a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a>, owner: <span class="prelude-ty">Option</span>&lt;<a href="#73">Uid</a>&gt;, group: <span class="prelude-ty">Option</span>&lt;<a href="#130">Gid</a>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
-    <span class="kw">let </span>(uid, gid) = <a href="#698">chown_raw_ids</a>(<a href="#734">owner</a>, <a href="#734">group</a>);
-    <span class="kw">let </span>res = <span class="kw">unsafe </span>{ libc::fchown(<a href="#734">fd</a>, <a href="#735">uid</a>, <a href="#735">gid</a>) };
-    Errno::result(<a href="#736">res</a>).map(<a href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>)
+</span><span class="kw">pub fn </span>fchown(fd: RawFd, owner: <span class="prelude-ty">Option</span>&lt;Uid&gt;, group: <span class="prelude-ty">Option</span>&lt;Gid&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+    <span class="kw">let </span>(uid, gid) = chown_raw_ids(owner, group);
+    <span class="kw">let </span>res = <span class="kw">unsafe </span>{ libc::fchown(fd, uid, gid) };
+    Errno::result(res).map(drop)
 }
 
 <span class="doccomment">/// Flags for `fchownat` function.
@@ -4112,17 +4149,17 @@
 ///
 /// [fchownat(2)](https://pubs.opengroup.org/onlinepubs/9699919799/functions/fchownat.html).
 </span><span class="attr">#[cfg(not(target_os = <span class="string">&quot;redox&quot;</span>))]
-</span><span class="kw">pub fn </span>fchownat&lt;P: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> + <a href="lib.rs.html#182">NixPath</a>&gt;(
-    dirfd: <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a>&gt;,
+</span><span class="kw">pub fn </span>fchownat&lt;P: <span class="question-mark">?</span>Sized + NixPath&gt;(
+    dirfd: <span class="prelude-ty">Option</span>&lt;RawFd&gt;,
     path: <span class="kw-2">&amp;</span>P,
-    owner: <span class="prelude-ty">Option</span>&lt;<a href="#73">Uid</a>&gt;,
-    group: <span class="prelude-ty">Option</span>&lt;<a href="#130">Gid</a>&gt;,
-    flag: <a href="#742">FchownatFlags</a>,
+    owner: <span class="prelude-ty">Option</span>&lt;Uid&gt;,
+    group: <span class="prelude-ty">Option</span>&lt;Gid&gt;,
+    flag: FchownatFlags,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
     <span class="kw">let </span>atflag =
-        <span class="kw">match </span><a href="#774">flag</a> {
-            <a href="#743">FchownatFlags::FollowSymlink</a> =&gt; AtFlags::empty(),
-            <a href="#744">FchownatFlags::NoFollowSymlink</a> =&gt; AtFlags::AT_SYMLINK_NOFOLLOW,
+        <span class="kw">match </span>flag {
+            FchownatFlags::FollowSymlink =&gt; AtFlags::empty(),
+            FchownatFlags::NoFollowSymlink =&gt; AtFlags::AT_SYMLINK_NOFOLLOW,
         };
     <span class="kw">let </span>res = path.with_nix_path(|cstr| <span class="kw">unsafe </span>{
         <span class="kw">let </span>(uid, gid) = chown_raw_ids(owner, group);
@@ -4130,18 +4167,18 @@
                        atflag.bits() <span class="kw">as </span>libc::c_int)
     })<span class="question-mark">?</span>;
 
-    Errno::result(<a href="#781">res</a>).map(<a href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>)
+    Errno::result(res).map(drop)
 }
 }
 
 <span class="macro">feature! </span>{
 <span class="attr">#![feature = <span class="string">&quot;process&quot;</span>]
-</span><span class="kw">fn </span>to_exec_array&lt;S: AsRef&lt;<a href="https://doc.rust-lang.org/nightly/core/ffi/c_str/struct.CStr.html">CStr</a>&gt;&gt;(args: <span class="kw-2">&amp;</span>[S]) -&gt; Vec&lt;<span class="kw-2">*const </span><a href="../../libc/unix/linux_like/linux/gnu/b64/x86_64/type.c_char.html">c_char</a>&gt; {
-    <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/iter/sources/once/fn.once.html">std::iter::once</a>;
-    <a href="#793">args</a>.iter()
-        .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|s| <a href="#796">s</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>().as_ptr())
-        .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">chain</a>(<a href="https://doc.rust-lang.org/nightly/core/iter/sources/once/fn.once.html">once</a>(<a href="https://doc.rust-lang.org/nightly/core/ptr/fn.null.html">ptr::null</a>()))
-        .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>()
+</span><span class="kw">fn </span>to_exec_array&lt;S: AsRef&lt;CStr&gt;&gt;(args: <span class="kw-2">&amp;</span>[S]) -&gt; Vec&lt;<span class="kw-2">*const </span>c_char&gt; {
+    <span class="kw">use </span>std::iter::once;
+    args.iter()
+        .map(|s| s.as_ref().as_ptr())
+        .chain(once(ptr::null()))
+        .collect()
 }
 
 <span class="doccomment">/// Replace the current process image with a new one (see
@@ -4151,11 +4188,11 @@
 /// performs the same action but does not allow for customization of the
 /// environment for the new process.
 </span><span class="attr">#[inline]
-</span><span class="kw">pub fn </span>execv&lt;S: AsRef&lt;<a href="https://doc.rust-lang.org/nightly/core/ffi/c_str/struct.CStr.html">CStr</a>&gt;&gt;(path: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/core/ffi/c_str/struct.CStr.html">CStr</a>, argv: <span class="kw-2">&amp;</span>[S]) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/convert/enum.Infallible.html">Infallible</a>&gt; {
-    <span class="kw">let </span>args_p = <a href="#793">to_exec_array</a>(<a href="#808">argv</a>);
+</span><span class="kw">pub fn </span>execv&lt;S: AsRef&lt;CStr&gt;&gt;(path: <span class="kw-2">&amp;</span>CStr, argv: <span class="kw-2">&amp;</span>[S]) -&gt; <span class="prelude-ty">Result</span>&lt;Infallible&gt; {
+    <span class="kw">let </span>args_p = to_exec_array(argv);
 
     <span class="kw">unsafe </span>{
-        libc::execv(<a href="#808">path</a>.as_ptr(), <a href="#809">args_p</a>.as_ptr())
+        libc::execv(path.as_ptr(), args_p.as_ptr())
     };
 
     <span class="prelude-val">Err</span>(Errno::last())
@@ -4175,12 +4212,12 @@
 /// in the `args` list is an argument to the new process. Each element in the
 /// `env` list should be a string in the form &quot;key=value&quot;.
 </span><span class="attr">#[inline]
-</span><span class="kw">pub fn </span>execve&lt;SA: AsRef&lt;<a href="https://doc.rust-lang.org/nightly/core/ffi/c_str/struct.CStr.html">CStr</a>&gt;, SE: AsRef&lt;<a href="https://doc.rust-lang.org/nightly/core/ffi/c_str/struct.CStr.html">CStr</a>&gt;&gt;(path: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/core/ffi/c_str/struct.CStr.html">CStr</a>, args: <span class="kw-2">&amp;</span>[SA], env: <span class="kw-2">&amp;</span>[SE]) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/convert/enum.Infallible.html">Infallible</a>&gt; {
-    <span class="kw">let </span>args_p = <a href="#793">to_exec_array</a>(<a href="#832">args</a>);
-    <span class="kw">let </span>env_p = <a href="#793">to_exec_array</a>(<a href="#832">env</a>);
+</span><span class="kw">pub fn </span>execve&lt;SA: AsRef&lt;CStr&gt;, SE: AsRef&lt;CStr&gt;&gt;(path: <span class="kw-2">&amp;</span>CStr, args: <span class="kw-2">&amp;</span>[SA], env: <span class="kw-2">&amp;</span>[SE]) -&gt; <span class="prelude-ty">Result</span>&lt;Infallible&gt; {
+    <span class="kw">let </span>args_p = to_exec_array(args);
+    <span class="kw">let </span>env_p = to_exec_array(env);
 
     <span class="kw">unsafe </span>{
-        libc::execve(<a href="#832">path</a>.as_ptr(), <a href="#833">args_p</a>.as_ptr(), <a href="#834">env_p</a>.as_ptr())
+        libc::execve(path.as_ptr(), args_p.as_ptr(), env_p.as_ptr())
     };
 
     <span class="prelude-val">Err</span>(Errno::last())
@@ -4196,11 +4233,11 @@
 /// would not work if &quot;bash&quot; was specified for the path argument, but `execvp`
 /// would assuming that a bash executable was on the system `PATH`.
 </span><span class="attr">#[inline]
-</span><span class="kw">pub fn </span>execvp&lt;S: AsRef&lt;<a href="https://doc.rust-lang.org/nightly/core/ffi/c_str/struct.CStr.html">CStr</a>&gt;&gt;(filename: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/core/ffi/c_str/struct.CStr.html">CStr</a>, args: <span class="kw-2">&amp;</span>[S]) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/convert/enum.Infallible.html">Infallible</a>&gt; {
-    <span class="kw">let </span>args_p = <a href="#793">to_exec_array</a>(<a href="#853">args</a>);
+</span><span class="kw">pub fn </span>execvp&lt;S: AsRef&lt;CStr&gt;&gt;(filename: <span class="kw-2">&amp;</span>CStr, args: <span class="kw-2">&amp;</span>[S]) -&gt; <span class="prelude-ty">Result</span>&lt;Infallible&gt; {
+    <span class="kw">let </span>args_p = to_exec_array(args);
 
     <span class="kw">unsafe </span>{
-        libc::execvp(<a href="#853">filename</a>.as_ptr(), <a href="#854">args_p</a>.as_ptr())
+        libc::execvp(filename.as_ptr(), args_p.as_ptr())
     };
 
     <span class="prelude-val">Err</span>(Errno::last())
@@ -4216,12 +4253,12 @@
 </span><span class="attr">#[cfg(any(target_os = <span class="string">&quot;haiku&quot;</span>,
           target_os = <span class="string">&quot;linux&quot;</span>,
           target_os = <span class="string">&quot;openbsd&quot;</span>))]
-</span><span class="kw">pub fn </span>execvpe&lt;SA: AsRef&lt;<a href="https://doc.rust-lang.org/nightly/core/ffi/c_str/struct.CStr.html">CStr</a>&gt;, SE: AsRef&lt;<a href="https://doc.rust-lang.org/nightly/core/ffi/c_str/struct.CStr.html">CStr</a>&gt;&gt;(filename: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/core/ffi/c_str/struct.CStr.html">CStr</a>, args: <span class="kw-2">&amp;</span>[SA], env: <span class="kw-2">&amp;</span>[SE]) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/convert/enum.Infallible.html">Infallible</a>&gt; {
-    <span class="kw">let </span>args_p = <a href="#793">to_exec_array</a>(<a href="#873">args</a>);
-    <span class="kw">let </span>env_p = <a href="#793">to_exec_array</a>(<a href="#873">env</a>);
+</span><span class="kw">pub fn </span>execvpe&lt;SA: AsRef&lt;CStr&gt;, SE: AsRef&lt;CStr&gt;&gt;(filename: <span class="kw-2">&amp;</span>CStr, args: <span class="kw-2">&amp;</span>[SA], env: <span class="kw-2">&amp;</span>[SE]) -&gt; <span class="prelude-ty">Result</span>&lt;Infallible&gt; {
+    <span class="kw">let </span>args_p = to_exec_array(args);
+    <span class="kw">let </span>env_p = to_exec_array(env);
 
     <span class="kw">unsafe </span>{
-        libc::execvpe(<a href="#873">filename</a>.as_ptr(), <a href="#874">args_p</a>.as_ptr(), <a href="#875">env_p</a>.as_ptr())
+        libc::execvpe(filename.as_ptr(), args_p.as_ptr(), env_p.as_ptr())
     };
 
     <span class="prelude-val">Err</span>(Errno::last())
@@ -4242,12 +4279,12 @@
           target_os = <span class="string">&quot;dragonfly&quot;</span>,
           target_os = <span class="string">&quot;freebsd&quot;</span>))]
 #[inline]
-</span><span class="kw">pub fn </span>fexecve&lt;SA: AsRef&lt;<a href="https://doc.rust-lang.org/nightly/core/ffi/c_str/struct.CStr.html">CStr</a>&gt; ,SE: AsRef&lt;<a href="https://doc.rust-lang.org/nightly/core/ffi/c_str/struct.CStr.html">CStr</a>&gt;&gt;(fd: <a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a>, args: <span class="kw-2">&amp;</span>[SA], env: <span class="kw-2">&amp;</span>[SE]) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/convert/enum.Infallible.html">Infallible</a>&gt; {
-    <span class="kw">let </span>args_p = <a href="#793">to_exec_array</a>(<a href="#899">args</a>);
-    <span class="kw">let </span>env_p = <a href="#793">to_exec_array</a>(<a href="#899">env</a>);
+</span><span class="kw">pub fn </span>fexecve&lt;SA: AsRef&lt;CStr&gt; ,SE: AsRef&lt;CStr&gt;&gt;(fd: RawFd, args: <span class="kw-2">&amp;</span>[SA], env: <span class="kw-2">&amp;</span>[SE]) -&gt; <span class="prelude-ty">Result</span>&lt;Infallible&gt; {
+    <span class="kw">let </span>args_p = to_exec_array(args);
+    <span class="kw">let </span>env_p = to_exec_array(env);
 
     <span class="kw">unsafe </span>{
-        libc::fexecve(<a href="#899">fd</a>, <a href="#900">args_p</a>.as_ptr(), <a href="#901">env_p</a>.as_ptr())
+        libc::fexecve(fd, args_p.as_ptr(), env_p.as_ptr())
     };
 
     <span class="prelude-val">Err</span>(Errno::last())
@@ -4265,14 +4302,14 @@
 /// is referenced as a file descriptor to the base directory plus a path.
 </span><span class="attr">#[cfg(any(target_os = <span class="string">&quot;android&quot;</span>, target_os = <span class="string">&quot;linux&quot;</span>))]
 #[inline]
-</span><span class="kw">pub fn </span>execveat&lt;SA: AsRef&lt;<a href="https://doc.rust-lang.org/nightly/core/ffi/c_str/struct.CStr.html">CStr</a>&gt;,SE: AsRef&lt;<a href="https://doc.rust-lang.org/nightly/core/ffi/c_str/struct.CStr.html">CStr</a>&gt;&gt;(dirfd: <a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a>, pathname: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/core/ffi/c_str/struct.CStr.html">CStr</a>, args: <span class="kw-2">&amp;</span>[SA],
-                env: <span class="kw-2">&amp;</span>[SE], flags: <a href="fcntl.rs.html#28-41"><span class="kw">super</span>::fcntl::AtFlags</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/convert/enum.Infallible.html">Infallible</a>&gt; {
-    <span class="kw">let </span>args_p = <a href="#793">to_exec_array</a>(<a href="#922">args</a>);
-    <span class="kw">let </span>env_p = <a href="#793">to_exec_array</a>(<a href="#923">env</a>);
+</span><span class="kw">pub fn </span>execveat&lt;SA: AsRef&lt;CStr&gt;,SE: AsRef&lt;CStr&gt;&gt;(dirfd: RawFd, pathname: <span class="kw-2">&amp;</span>CStr, args: <span class="kw-2">&amp;</span>[SA],
+                env: <span class="kw-2">&amp;</span>[SE], flags: <span class="kw">super</span>::fcntl::AtFlags) -&gt; <span class="prelude-ty">Result</span>&lt;Infallible&gt; {
+    <span class="kw">let </span>args_p = to_exec_array(args);
+    <span class="kw">let </span>env_p = to_exec_array(env);
 
     <span class="kw">unsafe </span>{
-        libc::syscall(libc::SYS_execveat, <a href="#922">dirfd</a>, <a href="#922">pathname</a>.as_ptr(),
-                      <a href="#924">args_p</a>.as_ptr(), <a href="#925">env_p</a>.as_ptr(), <a href="#923">flags</a>);
+        libc::syscall(libc::SYS_execveat, dirfd, pathname.as_ptr(),
+                      args_p.as_ptr(), env_p.as_ptr(), flags);
     };
 
     <span class="prelude-val">Err</span>(Errno::last())
@@ -4311,9 +4348,9 @@
           target_os = <span class="string">&quot;netbsd&quot;</span>,
           target_os = <span class="string">&quot;openbsd&quot;</span>,
           target_os = <span class="string">&quot;solaris&quot;</span>))]
-</span><span class="kw">pub fn </span>daemon(nochdir: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>, noclose: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
-    <span class="kw">let </span>res = <span class="kw">unsafe </span>{ libc::daemon(<a href="#968">nochdir</a> <span class="kw">as </span><a href="../../libc/unix/type.c_int.html">c_int</a>, <a href="#968">noclose</a> <span class="kw">as </span><a href="../../libc/unix/type.c_int.html">c_int</a>) };
-    Errno::result(<a href="#969">res</a>).map(<a href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>)
+</span><span class="kw">pub fn </span>daemon(nochdir: bool, noclose: bool) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+    <span class="kw">let </span>res = <span class="kw">unsafe </span>{ libc::daemon(nochdir <span class="kw">as </span>c_int, noclose <span class="kw">as </span>c_int) };
+    Errno::result(res).map(drop)
 }
 }
 
@@ -4328,7 +4365,7 @@
 /// will be returned if the name is not valid or the current process does not
 /// have permissions to update the host name.
 </span><span class="attr">#[cfg(not(target_os = <span class="string">&quot;redox&quot;</span>))]
-</span><span class="kw">pub fn </span>sethostname&lt;S: AsRef&lt;<a href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsStr.html">OsStr</a>&gt;&gt;(name: S) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+</span><span class="kw">pub fn </span>sethostname&lt;S: AsRef&lt;OsStr&gt;&gt;(name: S) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
     <span class="comment">// Handle some differences in type of the len arg across platforms.
     </span><span class="macro">cfg_if! </span>{
         <span class="kw">if </span><span class="attr">#[cfg(any(target_os = <span class="string">&quot;dragonfly&quot;</span>,
@@ -4339,14 +4376,14 @@
                      target_os = <span class="string">&quot;solaris&quot;</span>, ))] </span>{
             <span class="kw">type </span>sethostname_len_t = c_int;
         } <span class="kw">else </span>{
-            <span class="kw">type </span>sethostname_len_t = <a href="../../libc/unix/type.size_t.html">size_t</a>;
+            <span class="kw">type </span>sethostname_len_t = size_t;
         }
     }
-    <span class="kw">let </span>ptr = <a href="#985">name</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>().<a href="https://doc.rust-lang.org/nightly/std/os/unix/ffi/os_str/trait.OsStrExt.html">as_bytes</a>().as_ptr() <span class="kw">as </span><span class="kw-2">*const </span><a href="../../libc/unix/linux_like/linux/gnu/b64/x86_64/type.c_char.html">c_char</a>;
-    <span class="kw">let </span>len = <a href="#985">name</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>().len() <span class="kw">as </span><a href="#996">sethostname_len_t</a>;
+    <span class="kw">let </span>ptr = name.as_ref().as_bytes().as_ptr() <span class="kw">as </span><span class="kw-2">*const </span>c_char;
+    <span class="kw">let </span>len = name.as_ref().len() <span class="kw">as </span>sethostname_len_t;
 
-    <span class="kw">let </span>res = <span class="kw">unsafe </span>{ libc::sethostname(<a href="#999">ptr</a>, <a href="#1000">len</a>) };
-    Errno::result(<a href="#1002">res</a>).map(<a href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>)
+    <span class="kw">let </span>res = <span class="kw">unsafe </span>{ libc::sethostname(ptr, len) };
+    Errno::result(res).map(drop)
 }
 
 <span class="doccomment">/// Get the host name and store it in an internally allocated buffer, returning an
@@ -4363,20 +4400,20 @@
 /// let hostname = hostname.into_string().expect(&quot;Hostname wasn&#39;t valid UTF-8&quot;);
 /// println!(&quot;Hostname: {}&quot;, hostname);
 /// ```
-</span><span class="kw">pub fn </span>gethostname() -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsString.html">OsString</a>&gt; {
+</span><span class="kw">pub fn </span>gethostname() -&gt; <span class="prelude-ty">Result</span>&lt;OsString&gt; {
     <span class="comment">// The capacity is the max length of a hostname plus the NUL terminator.
-    </span><span class="kw">let </span><span class="kw-2">mut </span>buffer: Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt; = Vec::with_capacity(<span class="number">256</span>);
-    <span class="kw">let </span>ptr = <a href="#1022">buffer</a>.as_mut_ptr() <span class="kw">as </span><span class="kw-2">*mut </span><a href="../../libc/unix/linux_like/linux/gnu/b64/x86_64/type.c_char.html">c_char</a>;
-    <span class="kw">let </span>len = <a href="#1022">buffer</a>.capacity() <span class="kw">as </span><a href="../../libc/unix/type.size_t.html">size_t</a>;
+    </span><span class="kw">let </span><span class="kw-2">mut </span>buffer: Vec&lt;u8&gt; = Vec::with_capacity(<span class="number">256</span>);
+    <span class="kw">let </span>ptr = buffer.as_mut_ptr() <span class="kw">as </span><span class="kw-2">*mut </span>c_char;
+    <span class="kw">let </span>len = buffer.capacity() <span class="kw">as </span>size_t;
 
-    <span class="kw">let </span>res = <span class="kw">unsafe </span>{ libc::gethostname(<a href="#1023">ptr</a>, <a href="#1024">len</a>) };
-    Errno::result(<a href="#1026">res</a>).map(|<span class="kw">_</span>| {
+    <span class="kw">let </span>res = <span class="kw">unsafe </span>{ libc::gethostname(ptr, len) };
+    Errno::result(res).map(|<span class="kw">_</span>| {
         <span class="kw">unsafe </span>{
-            <a href="#1022">buffer</a>.as_mut_ptr().wrapping_add(<a href="#1024">len</a> - <span class="number">1</span>).write(<span class="number">0</span>); <span class="comment">// ensure always null-terminated
-            </span><span class="kw">let </span>len = CStr::from_ptr(<a href="#1022">buffer</a>.as_ptr() <span class="kw">as </span><span class="kw-2">*const </span><a href="../../libc/unix/linux_like/linux/gnu/b64/x86_64/type.c_char.html">c_char</a>).<a href="lib.rs.html#187">len</a>();
-            <a href="#1022">buffer</a>.set_len(<a href="#1030">len</a>);
+            buffer.as_mut_ptr().wrapping_add(len - <span class="number">1</span>).write(<span class="number">0</span>); <span class="comment">// ensure always null-terminated
+            </span><span class="kw">let </span>len = CStr::from_ptr(buffer.as_ptr() <span class="kw">as </span><span class="kw-2">*const </span>c_char).len();
+            buffer.set_len(len);
         }
-        OsString::from_vec(<a href="#1022">buffer</a>)
+        OsString::from_vec(buffer)
     })
 }
 }
@@ -4406,31 +4443,31 @@
 /// let f = tempfile::tempfile().unwrap();
 /// close(f.into_raw_fd()).unwrap(); // Good.  into_raw_fd consumes f
 /// ```
-</span><span class="kw">pub fn </span>close(fd: <a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a>) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
-    <span class="kw">let </span>res = <span class="kw">unsafe </span>{ libc::close(<a href="#1063">fd</a>) };
-    Errno::result(<a href="#1064">res</a>).map(<a href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>)
+</span><span class="kw">pub fn </span>close(fd: RawFd) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+    <span class="kw">let </span>res = <span class="kw">unsafe </span>{ libc::close(fd) };
+    Errno::result(res).map(drop)
 }
 
 <span class="doccomment">/// Read from a raw file descriptor.
 ///
 /// See also [read(2)](https://pubs.opengroup.org/onlinepubs/9699919799/functions/read.html)
-</span><span class="kw">pub fn </span>read(fd: <a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a>, buf: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
+</span><span class="kw">pub fn </span>read(fd: RawFd, buf: <span class="kw-2">&amp;mut </span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;usize&gt; {
     <span class="kw">let </span>res = <span class="kw">unsafe </span>{
-        libc::read(<a href="#1071">fd</a>, <a href="#1071">buf</a>.as_mut_ptr() <span class="kw">as </span><span class="kw-2">*mut </span><a href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>, <a href="#1071">buf</a>.len() <span class="kw">as </span><a href="../../libc/unix/type.size_t.html">size_t</a>)
+        libc::read(fd, buf.as_mut_ptr() <span class="kw">as </span><span class="kw-2">*mut </span>c_void, buf.len() <span class="kw">as </span>size_t)
     };
 
-    Errno::result(<a href="#1072">res</a>).map(|r| <a href="#1076">r</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>)
+    Errno::result(res).map(|r| r <span class="kw">as </span>usize)
 }
 
 <span class="doccomment">/// Write to a raw file descriptor.
 ///
 /// See also [write(2)](https://pubs.opengroup.org/onlinepubs/9699919799/functions/write.html)
-</span><span class="kw">pub fn </span>write(fd: <a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a>, buf: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
+</span><span class="kw">pub fn </span>write(fd: RawFd, buf: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;usize&gt; {
     <span class="kw">let </span>res = <span class="kw">unsafe </span>{
-        libc::write(<a href="#1082">fd</a>, <a href="#1082">buf</a>.as_ptr() <span class="kw">as </span><span class="kw-2">*const </span><a href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>, <a href="#1082">buf</a>.len() <span class="kw">as </span><a href="../../libc/unix/type.size_t.html">size_t</a>)
+        libc::write(fd, buf.as_ptr() <span class="kw">as </span><span class="kw-2">*const </span>c_void, buf.len() <span class="kw">as </span>size_t)
     };
 
-    Errno::result(<a href="#1083">res</a>).map(|r| <a href="#1087">r</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>)
+    Errno::result(res).map(|r| r <span class="kw">as </span>usize)
 }
 
 <span class="macro">feature! </span>{
@@ -4474,31 +4511,31 @@
 <span class="doccomment">/// Move the read/write file offset.
 ///
 /// See also [lseek(2)](https://pubs.opengroup.org/onlinepubs/9699919799/functions/lseek.html)
-</span><span class="kw">pub fn </span>lseek(fd: <a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a>, offset: <a href="../../libc/unix/linux_like/linux/gnu/b64/type.off_t.html">off_t</a>, whence: <a href="#1099">Whence</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../libc/unix/linux_like/linux/gnu/b64/type.off_t.html">off_t</a>&gt; {
-    <span class="kw">let </span>res = <span class="kw">unsafe </span>{ libc::lseek(<a href="#1131">fd</a>, <a href="#1131">offset</a>, <a href="#1131">whence</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>) };
+</span><span class="kw">pub fn </span>lseek(fd: RawFd, offset: off_t, whence: Whence) -&gt; <span class="prelude-ty">Result</span>&lt;off_t&gt; {
+    <span class="kw">let </span>res = <span class="kw">unsafe </span>{ libc::lseek(fd, offset, whence <span class="kw">as </span>i32) };
 
-    Errno::result(<a href="#1132">res</a>).map(|r| <a href="#1134">r</a> <span class="kw">as </span><a href="../../libc/unix/linux_like/linux/gnu/b64/type.off_t.html">off_t</a>)
+    Errno::result(res).map(|r| r <span class="kw">as </span>off_t)
 }
 
 <span class="attr">#[cfg(any(target_os = <span class="string">&quot;linux&quot;</span>, target_os = <span class="string">&quot;android&quot;</span>))]
-</span><span class="kw">pub fn </span>lseek64(fd: <a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a>, offset: <a href="../../libc/unix/linux_like/linux/type.off64_t.html">libc::off64_t</a>, whence: <a href="#1099">Whence</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../libc/unix/linux_like/linux/type.off64_t.html">libc::off64_t</a>&gt; {
-    <span class="kw">let </span>res = <span class="kw">unsafe </span>{ libc::lseek64(<a href="#1138">fd</a>, <a href="#1138">offset</a>, <a href="#1138">whence</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>) };
+</span><span class="kw">pub fn </span>lseek64(fd: RawFd, offset: libc::off64_t, whence: Whence) -&gt; <span class="prelude-ty">Result</span>&lt;libc::off64_t&gt; {
+    <span class="kw">let </span>res = <span class="kw">unsafe </span>{ libc::lseek64(fd, offset, whence <span class="kw">as </span>i32) };
 
-    Errno::result(<a href="#1139">res</a>).map(|r| <a href="#1141">r</a> <span class="kw">as </span><a href="../../libc/unix/linux_like/linux/type.off64_t.html">libc::off64_t</a>)
+    Errno::result(res).map(|r| r <span class="kw">as </span>libc::off64_t)
 }
 }
 
 <span class="doccomment">/// Create an interprocess channel.
 ///
 /// See also [pipe(2)](https://pubs.opengroup.org/onlinepubs/9699919799/functions/pipe.html)
-</span><span class="kw">pub fn </span>pipe() -&gt; std::result::Result&lt;(<a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a>, <a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a>), <a href="lib.rs.html#179">Error</a>&gt; {
-    <span class="kw">let </span><span class="kw-2">mut </span>fds = mem::MaybeUninit::&lt;[<a href="../../libc/unix/type.c_int.html">c_int</a>; <span class="number">2</span>]&gt;::uninit();
+</span><span class="kw">pub fn </span>pipe() -&gt; std::result::Result&lt;(RawFd, RawFd), Error&gt; {
+    <span class="kw">let </span><span class="kw-2">mut </span>fds = mem::MaybeUninit::&lt;[c_int; <span class="number">2</span>]&gt;::uninit();
 
-    <span class="kw">let </span>res = <span class="kw">unsafe </span>{ libc::pipe(<a href="#1149">fds</a>.as_mut_ptr() <span class="kw">as </span><span class="kw-2">*mut </span><a href="../../libc/unix/type.c_int.html">c_int</a>) };
+    <span class="kw">let </span>res = <span class="kw">unsafe </span>{ libc::pipe(fds.as_mut_ptr() <span class="kw">as </span><span class="kw-2">*mut </span>c_int) };
 
     Error::result(res)<span class="question-mark">?</span>;
 
-    <span class="kw">unsafe </span>{ <span class="prelude-val">Ok</span>((<a href="#1149">fds</a>.assume_init()[<span class="number">0</span>], <a href="#1149">fds</a>.assume_init()[<span class="number">1</span>])) }
+    <span class="kw">unsafe </span>{ <span class="prelude-val">Ok</span>((fds.assume_init()[<span class="number">0</span>], fds.assume_init()[<span class="number">1</span>])) }
 }
 
 <span class="macro">feature! </span>{
@@ -4524,16 +4561,16 @@
           target_os = <span class="string">&quot;netbsd&quot;</span>,
           target_os = <span class="string">&quot;openbsd&quot;</span>,
           target_os = <span class="string">&quot;solaris&quot;</span>))]
-</span><span class="kw">pub fn </span>pipe2(flags: <a href="fcntl.rs.html#44-189">OFlag</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(<a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a>, <a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a>)&gt; {
-    <span class="kw">let </span><span class="kw-2">mut </span>fds = mem::MaybeUninit::&lt;[<a href="../../libc/unix/type.c_int.html">c_int</a>; <span class="number">2</span>]&gt;::uninit();
+</span><span class="kw">pub fn </span>pipe2(flags: OFlag) -&gt; <span class="prelude-ty">Result</span>&lt;(RawFd, RawFd)&gt; {
+    <span class="kw">let </span><span class="kw-2">mut </span>fds = mem::MaybeUninit::&lt;[c_int; <span class="number">2</span>]&gt;::uninit();
 
     <span class="kw">let </span>res = <span class="kw">unsafe </span>{
-        libc::pipe2(<a href="#1182">fds</a>.as_mut_ptr() <span class="kw">as </span><span class="kw-2">*mut </span><a href="../../libc/unix/type.c_int.html">c_int</a>, <a href="#1181">flags</a>.<a href="fcntl.rs.html#44-189">bits</a>())
+        libc::pipe2(fds.as_mut_ptr() <span class="kw">as </span><span class="kw-2">*mut </span>c_int, flags.bits())
     };
 
     Errno::result(res)<span class="question-mark">?</span>;
 
-    <span class="kw">unsafe </span>{ <span class="prelude-val">Ok</span>((<a href="#1182">fds</a>.assume_init()[<span class="number">0</span>], <a href="#1182">fds</a>.assume_init()[<span class="number">1</span>])) }
+    <span class="kw">unsafe </span>{ <span class="prelude-val">Ok</span>((fds.assume_init()[<span class="number">0</span>], fds.assume_init()[<span class="number">1</span>])) }
 }
 
 <span class="doccomment">/// Truncate a file to a specified length
@@ -4541,25 +4578,25 @@
 /// See also
 /// [truncate(2)](https://pubs.opengroup.org/onlinepubs/9699919799/functions/truncate.html)
 </span><span class="attr">#[cfg(not(any(target_os = <span class="string">&quot;redox&quot;</span>, target_os = <span class="string">&quot;fuchsia&quot;</span>)))]
-</span><span class="kw">pub fn </span>truncate&lt;P: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> + <a href="lib.rs.html#182">NixPath</a>&gt;(path: <span class="kw-2">&amp;</span>P, len: <a href="../../libc/unix/linux_like/linux/gnu/b64/type.off_t.html">off_t</a>) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+</span><span class="kw">pub fn </span>truncate&lt;P: <span class="question-mark">?</span>Sized + NixPath&gt;(path: <span class="kw-2">&amp;</span>P, len: off_t) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
     <span class="kw">let </span>res = path.with_nix_path(|cstr| {
         <span class="kw">unsafe </span>{
             libc::truncate(cstr.as_ptr(), len)
         }
     })<span class="question-mark">?</span>;
 
-    Errno::result(<a href="#1199">res</a>).map(<a href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>)
+    Errno::result(res).map(drop)
 }
 
 <span class="doccomment">/// Truncate a file to a specified length
 ///
 /// See also
 /// [ftruncate(2)](https://pubs.opengroup.org/onlinepubs/9699919799/functions/ftruncate.html)
-</span><span class="kw">pub fn </span>ftruncate(fd: <a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a>, len: <a href="../../libc/unix/linux_like/linux/gnu/b64/type.off_t.html">off_t</a>) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
-    Errno::result(<span class="kw">unsafe </span>{ libc::ftruncate(<a href="#1212">fd</a>, <a href="#1212">len</a>) }).map(<a href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>)
+</span><span class="kw">pub fn </span>ftruncate(fd: RawFd, len: off_t) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+    Errno::result(<span class="kw">unsafe </span>{ libc::ftruncate(fd, len) }).map(drop)
 }
 
-<span class="kw">pub fn </span>isatty(fd: <a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>&gt; {
+<span class="kw">pub fn </span>isatty(fd: RawFd) -&gt; <span class="prelude-ty">Result</span>&lt;bool&gt; {
     <span class="kw">unsafe </span>{
         <span class="comment">// ENOTTY means `fd` is a valid file descriptor, but not a TTY, so
         // we return `Ok(false)`
@@ -4567,8 +4604,8 @@
             <span class="prelude-val">Ok</span>(<span class="bool-val">true</span>)
         } <span class="kw">else </span>{
             <span class="kw">match </span>Errno::last() {
-                <a href="errno.rs.html#1189">Errno::ENOTTY</a> =&gt; <span class="prelude-val">Ok</span>(<span class="bool-val">false</span>),
-                err =&gt; <span class="prelude-val">Err</span>(<a href="#1225">err</a>),
+                Errno::ENOTTY =&gt; <span class="prelude-val">Ok</span>(<span class="bool-val">false</span>),
+                err =&gt; <span class="prelude-val">Err</span>(err),
             }
        }
     }
@@ -4595,18 +4632,18 @@
 /// # References
 /// See also [linkat(2)](https://pubs.opengroup.org/onlinepubs/9699919799/functions/linkat.html)
 </span><span class="attr">#[cfg(not(target_os = <span class="string">&quot;redox&quot;</span>))] </span><span class="comment">// RedoxFS does not support symlinks yet
-</span><span class="kw">pub fn </span>linkat&lt;P: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> + <a href="lib.rs.html#182">NixPath</a>&gt;(
-    olddirfd: <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a>&gt;,
+</span><span class="kw">pub fn </span>linkat&lt;P: <span class="question-mark">?</span>Sized + NixPath&gt;(
+    olddirfd: <span class="prelude-ty">Option</span>&lt;RawFd&gt;,
     oldpath: <span class="kw-2">&amp;</span>P,
-    newdirfd: <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a>&gt;,
+    newdirfd: <span class="prelude-ty">Option</span>&lt;RawFd&gt;,
     newpath: <span class="kw-2">&amp;</span>P,
-    flag: <a href="#1233">LinkatFlags</a>,
+    flag: LinkatFlags,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
 
     <span class="kw">let </span>atflag =
-        <span class="kw">match </span><a href="#1257">flag</a> {
-            <a href="#1234">LinkatFlags::SymlinkFollow</a> =&gt; AtFlags::AT_SYMLINK_FOLLOW,
-            <a href="#1235">LinkatFlags::NoSymlinkFollow</a> =&gt; AtFlags::empty(),
+        <span class="kw">match </span>flag {
+            LinkatFlags::SymlinkFollow =&gt; AtFlags::AT_SYMLINK_FOLLOW,
+            LinkatFlags::NoSymlinkFollow =&gt; AtFlags::empty(),
         };
 
     <span class="kw">let </span>res =
@@ -4623,20 +4660,20 @@
                 }
             })
         })<span class="question-mark">??</span>;
-    Errno::result(<a href="#1266">res</a>).map(<a href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>)
+    Errno::result(res).map(drop)
 }
 
 
 <span class="doccomment">/// Remove a directory entry
 ///
 /// See also [unlink(2)](https://pubs.opengroup.org/onlinepubs/9699919799/functions/unlink.html)
-</span><span class="kw">pub fn </span>unlink&lt;P: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> + <a href="lib.rs.html#182">NixPath</a>&gt;(path: <span class="kw-2">&amp;</span>P) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+</span><span class="kw">pub fn </span>unlink&lt;P: <span class="question-mark">?</span>Sized + NixPath&gt;(path: <span class="kw-2">&amp;</span>P) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
     <span class="kw">let </span>res = path.with_nix_path(|cstr| {
         <span class="kw">unsafe </span>{
             libc::unlink(cstr.as_ptr())
         }
     })<span class="question-mark">?</span>;
-    Errno::result(<a href="#1288">res</a>).map(<a href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>)
+    Errno::result(res).map(drop)
 }
 
 <span class="doccomment">/// Flags for `unlinkat` function.
@@ -4657,33 +4694,33 @@
 /// # References
 /// See also [unlinkat(2)](https://pubs.opengroup.org/onlinepubs/9699919799/functions/unlinkat.html)
 </span><span class="attr">#[cfg(not(target_os = <span class="string">&quot;redox&quot;</span>))]
-</span><span class="kw">pub fn </span>unlinkat&lt;P: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> + <a href="lib.rs.html#182">NixPath</a>&gt;(
-    dirfd: <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a>&gt;,
+</span><span class="kw">pub fn </span>unlinkat&lt;P: <span class="question-mark">?</span>Sized + NixPath&gt;(
+    dirfd: <span class="prelude-ty">Option</span>&lt;RawFd&gt;,
     path: <span class="kw-2">&amp;</span>P,
-    flag: <a href="#1298">UnlinkatFlags</a>,
+    flag: UnlinkatFlags,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
     <span class="kw">let </span>atflag =
-        <span class="kw">match </span><a href="#1317">flag</a> {
-            <a href="#1299">UnlinkatFlags::RemoveDir</a> =&gt; AtFlags::AT_REMOVEDIR,
-            <a href="#1300">UnlinkatFlags::NoRemoveDir</a> =&gt; AtFlags::empty(),
+        <span class="kw">match </span>flag {
+            UnlinkatFlags::RemoveDir =&gt; AtFlags::AT_REMOVEDIR,
+            UnlinkatFlags::NoRemoveDir =&gt; AtFlags::empty(),
         };
     <span class="kw">let </span>res = path.with_nix_path(|cstr| {
         <span class="kw">unsafe </span>{
             libc::unlinkat(at_rawfd(dirfd), cstr.as_ptr(), atflag.bits() <span class="kw">as </span>libc::c_int)
         }
     })<span class="question-mark">?</span>;
-    Errno::result(<a href="#1324">res</a>).map(<a href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>)
+    Errno::result(res).map(drop)
 }
 
 
 <span class="attr">#[inline]
 #[cfg(not(target_os = <span class="string">&quot;fuchsia&quot;</span>))]
-</span><span class="kw">pub fn </span>chroot&lt;P: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> + <a href="lib.rs.html#182">NixPath</a>&gt;(path: <span class="kw-2">&amp;</span>P) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+</span><span class="kw">pub fn </span>chroot&lt;P: <span class="question-mark">?</span>Sized + NixPath&gt;(path: <span class="kw-2">&amp;</span>P) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
     <span class="kw">let </span>res = path.with_nix_path(|cstr| {
         <span class="kw">unsafe </span>{ libc::chroot(cstr.as_ptr()) }
     })<span class="question-mark">?</span>;
 
-    Errno::result(<a href="#1336">res</a>).map(<a href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>)
+    Errno::result(res).map(drop)
 }
 
 <span class="doccomment">/// Commit filesystem caches to disk
@@ -4700,14 +4737,25 @@
     <span class="kw">unsafe </span>{ libc::sync() };
 }
 
+<span class="doccomment">/// Commit filesystem caches containing file referred to by the open file
+/// descriptor `fd` to disk
+///
+/// See also [syncfs(2)](https://man7.org/linux/man-pages/man2/sync.2.html)
+</span><span class="attr">#[cfg(target_os = <span class="string">&quot;linux&quot;</span>)]
+</span><span class="kw">pub fn </span>syncfs(fd: RawFd) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+    <span class="kw">let </span>res = <span class="kw">unsafe </span>{ libc::syncfs(fd) };
+
+    Errno::result(res).map(drop)
+}
+
 <span class="doccomment">/// Synchronize changes to a file
 ///
 /// See also [fsync(2)](https://pubs.opengroup.org/onlinepubs/9699919799/functions/fsync.html)
 </span><span class="attr">#[inline]
-</span><span class="kw">pub fn </span>fsync(fd: <a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a>) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
-    <span class="kw">let </span>res = <span class="kw">unsafe </span>{ libc::fsync(<a href="#1361">fd</a>) };
+</span><span class="kw">pub fn </span>fsync(fd: RawFd) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+    <span class="kw">let </span>res = <span class="kw">unsafe </span>{ libc::fsync(fd) };
 
-    Errno::result(<a href="#1362">res</a>).map(<a href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>)
+    Errno::result(res).map(drop)
 }
 
 <span class="doccomment">/// Synchronize the data of a file
@@ -4724,10 +4772,10 @@
           target_os = <span class="string">&quot;illumos&quot;</span>,
           target_os = <span class="string">&quot;solaris&quot;</span>))]
 #[inline]
-</span><span class="kw">pub fn </span>fdatasync(fd: <a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a>) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
-    <span class="kw">let </span>res = <span class="kw">unsafe </span>{ libc::fdatasync(<a href="#1381">fd</a>) };
+</span><span class="kw">pub fn </span>fdatasync(fd: RawFd) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+    <span class="kw">let </span>res = <span class="kw">unsafe </span>{ libc::fdatasync(fd) };
 
-    Errno::result(<a href="#1382">res</a>).map(<a href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>)
+    Errno::result(res).map(drop)
 }
 }
 
@@ -4740,8 +4788,8 @@
 </span><span class="comment">// POSIX requires that getuid is always successful, so no need to check return
 // value or errno.
 </span><span class="attr">#[inline]
-</span><span class="kw">pub fn </span>getuid() -&gt; <a href="#73">Uid</a> {
-    <a href="#73">Uid</a>(<span class="kw">unsafe </span>{ libc::getuid() })
+</span><span class="kw">pub fn </span>getuid() -&gt; Uid {
+    Uid(<span class="kw">unsafe </span>{ libc::getuid() })
 }
 
 <span class="doccomment">/// Get the effective user ID
@@ -4750,8 +4798,8 @@
 </span><span class="comment">// POSIX requires that geteuid is always successful, so no need to check return
 // value or errno.
 </span><span class="attr">#[inline]
-</span><span class="kw">pub fn </span>geteuid() -&gt; <a href="#73">Uid</a> {
-    <a href="#73">Uid</a>(<span class="kw">unsafe </span>{ libc::geteuid() })
+</span><span class="kw">pub fn </span>geteuid() -&gt; Uid {
+    Uid(<span class="kw">unsafe </span>{ libc::geteuid() })
 }
 
 <span class="doccomment">/// Get the real group ID
@@ -4760,8 +4808,8 @@
 </span><span class="comment">// POSIX requires that getgid is always successful, so no need to check return
 // value or errno.
 </span><span class="attr">#[inline]
-</span><span class="kw">pub fn </span>getgid() -&gt; <a href="#130">Gid</a> {
-    <a href="#130">Gid</a>(<span class="kw">unsafe </span>{ libc::getgid() })
+</span><span class="kw">pub fn </span>getgid() -&gt; Gid {
+    Gid(<span class="kw">unsafe </span>{ libc::getgid() })
 }
 
 <span class="doccomment">/// Get the effective group ID
@@ -4770,48 +4818,48 @@
 </span><span class="comment">// POSIX requires that getegid is always successful, so no need to check return
 // value or errno.
 </span><span class="attr">#[inline]
-</span><span class="kw">pub fn </span>getegid() -&gt; <a href="#130">Gid</a> {
-    <a href="#130">Gid</a>(<span class="kw">unsafe </span>{ libc::getegid() })
+</span><span class="kw">pub fn </span>getegid() -&gt; Gid {
+    Gid(<span class="kw">unsafe </span>{ libc::getegid() })
 }
 
 <span class="doccomment">/// Set the effective user ID
 ///
 /// See also [seteuid(2)](https://pubs.opengroup.org/onlinepubs/9699919799/functions/seteuid.html)
 </span><span class="attr">#[inline]
-</span><span class="kw">pub fn </span>seteuid(euid: <a href="#73">Uid</a>) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
-    <span class="kw">let </span>res = <span class="kw">unsafe </span>{ libc::seteuid(<a href="#1435">euid</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()) };
+</span><span class="kw">pub fn </span>seteuid(euid: Uid) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+    <span class="kw">let </span>res = <span class="kw">unsafe </span>{ libc::seteuid(euid.into()) };
 
-    Errno::result(<a href="#1436">res</a>).map(<a href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>)
+    Errno::result(res).map(drop)
 }
 
 <span class="doccomment">/// Set the effective group ID
 ///
 /// See also [setegid(2)](https://pubs.opengroup.org/onlinepubs/9699919799/functions/setegid.html)
 </span><span class="attr">#[inline]
-</span><span class="kw">pub fn </span>setegid(egid: <a href="#130">Gid</a>) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
-    <span class="kw">let </span>res = <span class="kw">unsafe </span>{ libc::setegid(<a href="#1445">egid</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()) };
+</span><span class="kw">pub fn </span>setegid(egid: Gid) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+    <span class="kw">let </span>res = <span class="kw">unsafe </span>{ libc::setegid(egid.into()) };
 
-    Errno::result(<a href="#1446">res</a>).map(<a href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>)
+    Errno::result(res).map(drop)
 }
 
 <span class="doccomment">/// Set the user ID
 ///
 /// See also [setuid(2)](https://pubs.opengroup.org/onlinepubs/9699919799/functions/setuid.html)
 </span><span class="attr">#[inline]
-</span><span class="kw">pub fn </span>setuid(uid: <a href="#73">Uid</a>) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
-    <span class="kw">let </span>res = <span class="kw">unsafe </span>{ libc::setuid(<a href="#1455">uid</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()) };
+</span><span class="kw">pub fn </span>setuid(uid: Uid) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+    <span class="kw">let </span>res = <span class="kw">unsafe </span>{ libc::setuid(uid.into()) };
 
-    Errno::result(<a href="#1456">res</a>).map(<a href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>)
+    Errno::result(res).map(drop)
 }
 
 <span class="doccomment">/// Set the group ID
 ///
 /// See also [setgid(2)](https://pubs.opengroup.org/onlinepubs/9699919799/functions/setgid.html)
 </span><span class="attr">#[inline]
-</span><span class="kw">pub fn </span>setgid(gid: <a href="#130">Gid</a>) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
-    <span class="kw">let </span>res = <span class="kw">unsafe </span>{ libc::setgid(<a href="#1465">gid</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()) };
+</span><span class="kw">pub fn </span>setgid(gid: Gid) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+    <span class="kw">let </span>res = <span class="kw">unsafe </span>{ libc::setgid(gid.into()) };
 
-    Errno::result(<a href="#1466">res</a>).map(<a href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>)
+    Errno::result(res).map(drop)
 }
 }
 
@@ -4823,9 +4871,9 @@
 ///
 /// See also [setfsuid(2)](https://man7.org/linux/man-pages/man2/setfsuid.2.html)
 </span><span class="attr">#[cfg(any(target_os = <span class="string">&quot;linux&quot;</span>, target_os = <span class="string">&quot;android&quot;</span>))]
-</span><span class="kw">pub fn </span>setfsuid(uid: <a href="#73">Uid</a>) -&gt; <a href="#73">Uid</a> {
-    <span class="kw">let </span>prev_fsuid = <span class="kw">unsafe </span>{ libc::setfsuid(<a href="#1480">uid</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()) };
-    Uid::from_raw(<a href="#1481">prev_fsuid</a> <span class="kw">as </span><a href="../../libc/unix/type.uid_t.html">uid_t</a>)
+</span><span class="kw">pub fn </span>setfsuid(uid: Uid) -&gt; Uid {
+    <span class="kw">let </span>prev_fsuid = <span class="kw">unsafe </span>{ libc::setfsuid(uid.into()) };
+    Uid::from_raw(prev_fsuid <span class="kw">as </span>uid_t)
 }
 
 <span class="doccomment">/// Set the group identity used for filesystem checks per-thread.
@@ -4834,9 +4882,9 @@
 ///
 /// See also [setfsgid(2)](https://man7.org/linux/man-pages/man2/setfsgid.2.html)
 </span><span class="attr">#[cfg(any(target_os = <span class="string">&quot;linux&quot;</span>, target_os = <span class="string">&quot;android&quot;</span>))]
-</span><span class="kw">pub fn </span>setfsgid(gid: <a href="#130">Gid</a>) -&gt; <a href="#130">Gid</a> {
-    <span class="kw">let </span>prev_fsgid = <span class="kw">unsafe </span>{ libc::setfsgid(<a href="#1491">gid</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()) };
-    Gid::from_raw(<a href="#1492">prev_fsgid</a> <span class="kw">as </span><a href="../../libc/unix/type.gid_t.html">gid_t</a>)
+</span><span class="kw">pub fn </span>setfsgid(gid: Gid) -&gt; Gid {
+    <span class="kw">let </span>prev_fsgid = <span class="kw">unsafe </span>{ libc::setfsgid(gid.into()) };
+    Gid::from_raw(prev_fsgid <span class="kw">as </span>gid_t)
 }
 }
 
@@ -4851,17 +4899,17 @@
 /// platforms, checking group membership should be achieved via communication
 /// with the `opendirectoryd` service.
 </span><span class="attr">#[cfg(not(any(target_os = <span class="string">&quot;ios&quot;</span>, target_os = <span class="string">&quot;macos&quot;</span>)))]
-</span><span class="kw">pub fn </span>getgroups() -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;<a href="#130">Gid</a>&gt;&gt; {
+</span><span class="kw">pub fn </span>getgroups() -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;Gid&gt;&gt; {
     <span class="comment">// First get the maximum number of groups. The value returned
     // shall always be greater than or equal to one and less than or
     // equal to the value of {NGROUPS_MAX} + 1.
-    </span><span class="kw">let </span>ngroups_max = <span class="kw">match </span><a href="#2714">sysconf</a>(<a href="#2207">SysconfVar::NGROUPS_MAX</a>) {
-        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(n)) =&gt; (<a href="#1513">n</a> + <span class="number">1</span>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-        <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>) | <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; &lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;::max_value(),
+    </span><span class="kw">let </span>ngroups_max = <span class="kw">match </span>sysconf(SysconfVar::NGROUPS_MAX) {
+        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(n)) =&gt; (n + <span class="number">1</span>) <span class="kw">as </span>usize,
+        <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>) | <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; &lt;usize&gt;::max_value(),
     };
 
     <span class="comment">// Next, get the number of groups so we can size our Vec
-    </span><span class="kw">let </span>ngroups = <span class="kw">unsafe </span>{ libc::getgroups(<span class="number">0</span>, <a href="https://doc.rust-lang.org/nightly/core/ptr/fn.null_mut.html">ptr::null_mut</a>()) };
+    </span><span class="kw">let </span>ngroups = <span class="kw">unsafe </span>{ libc::getgroups(<span class="number">0</span>, ptr::null_mut()) };
 
     <span class="comment">// If there are no supplementary groups, return early.
     // This prevents a potential buffer over-read if the number of groups
@@ -4874,27 +4922,27 @@
     <span class="comment">// Now actually get the groups. We try multiple times in case the number of
     // groups has changed since the first call to getgroups() and the buffer is
     // now too small.
-    </span><span class="kw">let </span><span class="kw-2">mut </span>groups = Vec::&lt;<a href="#130">Gid</a>&gt;::with_capacity(Errno::result(ngroups)<span class="question-mark">? </span><span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>);
+    </span><span class="kw">let </span><span class="kw-2">mut </span>groups = Vec::&lt;Gid&gt;::with_capacity(Errno::result(ngroups)<span class="question-mark">? </span><span class="kw">as </span>usize);
     <span class="kw">loop </span>{
         <span class="comment">// FIXME: On the platforms we currently support, the `Gid` struct has
         // the same representation in memory as a bare `gid_t`. This is not
         // necessarily the case on all Rust platforms, though. See RFC 1785.
         </span><span class="kw">let </span>ngroups = <span class="kw">unsafe </span>{
-            libc::getgroups(<a href="#1531">groups</a>.capacity() <span class="kw">as </span><a href="../../libc/unix/type.c_int.html">c_int</a>, <a href="#1531">groups</a>.as_mut_ptr() <span class="kw">as </span><span class="kw-2">*mut </span><a href="../../libc/unix/type.gid_t.html">gid_t</a>)
+            libc::getgroups(groups.capacity() <span class="kw">as </span>c_int, groups.as_mut_ptr() <span class="kw">as </span><span class="kw-2">*mut </span>gid_t)
         };
 
-        <span class="kw">match </span>Errno::result(<a href="#1536">ngroups</a>) {
+        <span class="kw">match </span>Errno::result(ngroups) {
             <span class="prelude-val">Ok</span>(s) =&gt; {
-                <span class="kw">unsafe </span>{ <a href="#1531">groups</a>.set_len(<a href="#1541">s</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) };
-                <span class="kw">return </span><span class="prelude-val">Ok</span>(<a href="#1531">groups</a>);
+                <span class="kw">unsafe </span>{ groups.set_len(s <span class="kw">as </span>usize) };
+                <span class="kw">return </span><span class="prelude-val">Ok</span>(groups);
             },
-            <span class="prelude-val">Err</span>(<a href="errno.rs.html#1186">Errno::EINVAL</a>) =&gt; {
+            <span class="prelude-val">Err</span>(Errno::EINVAL) =&gt; {
                 <span class="comment">// EINVAL indicates that the buffer size was too
                 // small, resize it up to ngroups_max as limit.
                 </span>reserve_double_buffer_size(<span class="kw-2">&amp;mut </span>groups, ngroups_max)
                     .or(<span class="prelude-val">Err</span>(Errno::EINVAL))<span class="question-mark">?</span>;
             },
-            <span class="prelude-val">Err</span>(e) =&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="#1551">e</a>)
+            <span class="prelude-val">Err</span>(e) =&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(e)
         }
     }
 }
@@ -4931,7 +4979,7 @@
 /// # try_main().unwrap();
 /// ```
 </span><span class="attr">#[cfg(not(any(target_os = <span class="string">&quot;ios&quot;</span>, target_os = <span class="string">&quot;macos&quot;</span>, target_os = <span class="string">&quot;redox&quot;</span>, target_os = <span class="string">&quot;haiku&quot;</span>)))]
-</span><span class="kw">pub fn </span>setgroups(groups: <span class="kw-2">&amp;</span>[<a href="#130">Gid</a>]) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+</span><span class="kw">pub fn </span>setgroups(groups: <span class="kw-2">&amp;</span>[Gid]) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
     <span class="macro">cfg_if! </span>{
         <span class="kw">if </span><span class="attr">#[cfg(any(target_os = <span class="string">&quot;dragonfly&quot;</span>,
                      target_os = <span class="string">&quot;freebsd&quot;</span>,
@@ -4943,17 +4991,17 @@
                      target_os = <span class="string">&quot;openbsd&quot;</span>))] </span>{
             <span class="kw">type </span>setgroups_ngroups_t = c_int;
         } <span class="kw">else </span>{
-            <span class="kw">type </span>setgroups_ngroups_t = <a href="../../libc/unix/type.size_t.html">size_t</a>;
+            <span class="kw">type </span>setgroups_ngroups_t = size_t;
         }
     }
     <span class="comment">// FIXME: On the platforms we currently support, the `Gid` struct has the
     // same representation in memory as a bare `gid_t`. This is not necessarily
     // the case on all Rust platforms, though. See RFC 1785.
     </span><span class="kw">let </span>res = <span class="kw">unsafe </span>{
-        libc::setgroups(<a href="#1588">groups</a>.len() <span class="kw">as </span><a href="#1600">setgroups_ngroups_t</a>, <a href="#1588">groups</a>.as_ptr() <span class="kw">as </span><span class="kw-2">*const </span><a href="../../libc/unix/type.gid_t.html">gid_t</a>)
+        libc::setgroups(groups.len() <span class="kw">as </span>setgroups_ngroups_t, groups.as_ptr() <span class="kw">as </span><span class="kw-2">*const </span>gid_t)
     };
 
-    Errno::result(<a href="#1606">res</a>).map(<a href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>)
+    Errno::result(res).map(drop)
 }
 
 <span class="doccomment">/// Calculate the supplementary group access list.
@@ -4980,34 +5028,34 @@
               target_os = <span class="string">&quot;ios&quot;</span>,
               target_os = <span class="string">&quot;macos&quot;</span>,
               target_os = <span class="string">&quot;redox&quot;</span>)))]
-</span><span class="kw">pub fn </span>getgrouplist(user: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/core/ffi/c_str/struct.CStr.html">CStr</a>, group: <a href="#130">Gid</a>) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;<a href="#130">Gid</a>&gt;&gt; {
-    <span class="kw">let </span>ngroups_max = <span class="kw">match </span><a href="#2714">sysconf</a>(<a href="#2207">SysconfVar::NGROUPS_MAX</a>) {
-        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(n)) =&gt; <a href="#1639">n</a> <span class="kw">as </span><a href="../../libc/unix/type.c_int.html">c_int</a>,
-        <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>) | <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; &lt;<a href="../../libc/unix/type.c_int.html">c_int</a>&gt;::max_value(),
+</span><span class="kw">pub fn </span>getgrouplist(user: <span class="kw-2">&amp;</span>CStr, group: Gid) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;Gid&gt;&gt; {
+    <span class="kw">let </span>ngroups_max = <span class="kw">match </span>sysconf(SysconfVar::NGROUPS_MAX) {
+        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(n)) =&gt; n <span class="kw">as </span>c_int,
+        <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>) | <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; &lt;c_int&gt;::max_value(),
     };
     <span class="kw">use </span>std::cmp::min;
-    <span class="kw">let </span><span class="kw-2">mut </span>groups = Vec::&lt;<a href="#130">Gid</a>&gt;::with_capacity(min(<a href="#1638">ngroups_max</a>, <span class="number">8</span>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>);
+    <span class="kw">let </span><span class="kw-2">mut </span>groups = Vec::&lt;Gid&gt;::with_capacity(min(ngroups_max, <span class="number">8</span>) <span class="kw">as </span>usize);
     <span class="macro">cfg_if! </span>{
         <span class="kw">if </span><span class="attr">#[cfg(any(target_os = <span class="string">&quot;ios&quot;</span>, target_os = <span class="string">&quot;macos&quot;</span>))] </span>{
             <span class="kw">type </span>getgrouplist_group_t = c_int;
         } <span class="kw">else </span>{
-            <span class="kw">type </span>getgrouplist_group_t = <a href="../../libc/unix/type.gid_t.html">gid_t</a>;
+            <span class="kw">type </span>getgrouplist_group_t = gid_t;
         }
     }
-    <span class="kw">let </span>gid: <a href="../../libc/unix/type.gid_t.html">gid_t</a> = <a href="#1637">group</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>();
+    <span class="kw">let </span>gid: gid_t = group.into();
     <span class="kw">loop </span>{
-        <span class="kw">let </span><span class="kw-2">mut </span>ngroups = <a href="#1643">groups</a>.capacity() <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>;
+        <span class="kw">let </span><span class="kw-2">mut </span>ngroups = groups.capacity() <span class="kw">as </span>i32;
         <span class="kw">let </span>ret = <span class="kw">unsafe </span>{
-            libc::getgrouplist(<a href="#1637">user</a>.as_ptr(),
-                               <a href="#1651">gid</a> <span class="kw">as </span><a href="#1648">getgrouplist_group_t</a>,
-                               <a href="#1643">groups</a>.as_mut_ptr() <span class="kw">as </span><span class="kw-2">*mut </span><a href="#1648">getgrouplist_group_t</a>,
-                               <span class="kw-2">&amp;mut </span><a href="#1653">ngroups</a>)
+            libc::getgrouplist(user.as_ptr(),
+                               gid <span class="kw">as </span>getgrouplist_group_t,
+                               groups.as_mut_ptr() <span class="kw">as </span><span class="kw-2">*mut </span>getgrouplist_group_t,
+                               <span class="kw-2">&amp;mut </span>ngroups)
         };
 
         <span class="comment">// BSD systems only return 0 or -1, Linux returns ngroups on success.
         </span><span class="kw">if </span>ret &gt;= <span class="number">0 </span>{
-            <span class="kw">unsafe </span>{ <a href="#1643">groups</a>.set_len(<a href="#1653">ngroups</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) };
-            <span class="kw">return </span><span class="prelude-val">Ok</span>(<a href="#1643">groups</a>);
+            <span class="kw">unsafe </span>{ groups.set_len(ngroups <span class="kw">as </span>usize) };
+            <span class="kw">return </span><span class="prelude-val">Ok</span>(groups);
         } <span class="kw">else if </span>ret == -<span class="number">1 </span>{
             <span class="comment">// Returns -1 if ngroups is too small, but does not set errno.
             // BSD systems will still fill the groups buffer with as many
@@ -5058,18 +5106,18 @@
 /// # try_main().unwrap();
 /// ```
 </span><span class="attr">#[cfg(not(any(target_os = <span class="string">&quot;ios&quot;</span>, target_os = <span class="string">&quot;macos&quot;</span>, target_os = <span class="string">&quot;redox&quot;</span>, target_os = <span class="string">&quot;haiku&quot;</span>)))]
-</span><span class="kw">pub fn </span>initgroups(user: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/core/ffi/c_str/struct.CStr.html">CStr</a>, group: <a href="#130">Gid</a>) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+</span><span class="kw">pub fn </span>initgroups(user: <span class="kw-2">&amp;</span>CStr, group: Gid) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
     <span class="macro">cfg_if! </span>{
         <span class="kw">if </span><span class="attr">#[cfg(any(target_os = <span class="string">&quot;ios&quot;</span>, target_os = <span class="string">&quot;macos&quot;</span>))] </span>{
             <span class="kw">type </span>initgroups_group_t = c_int;
         } <span class="kw">else </span>{
-            <span class="kw">type </span>initgroups_group_t = <a href="../../libc/unix/type.gid_t.html">gid_t</a>;
+            <span class="kw">type </span>initgroups_group_t = gid_t;
         }
     }
-    <span class="kw">let </span>gid: <a href="../../libc/unix/type.gid_t.html">gid_t</a> = <a href="#1715">group</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>();
-    <span class="kw">let </span>res = <span class="kw">unsafe </span>{ libc::initgroups(<a href="#1715">user</a>.as_ptr(), <a href="#1723">gid</a> <span class="kw">as </span><a href="#1720">initgroups_group_t</a>) };
+    <span class="kw">let </span>gid: gid_t = group.into();
+    <span class="kw">let </span>res = <span class="kw">unsafe </span>{ libc::initgroups(user.as_ptr(), gid <span class="kw">as </span>initgroups_group_t) };
 
-    Errno::result(<a href="#1724">res</a>).map(<a href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>)
+    Errno::result(res).map(drop)
 }
 }
 
@@ -5153,22 +5201,22 @@
     /// process after the specified number of seconds have elapsed.
     ///
     /// Returns the leftover time of a previously set alarm if there was one.
-    </span><span class="kw">pub fn </span>set(secs: <a href="../../libc/unix/type.c_uint.html">libc::c_uint</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="../../libc/unix/type.c_uint.html">libc::c_uint</a>&gt; {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(secs != <span class="number">0</span>, <span class="string">&quot;passing 0 to `alarm::set` is not allowed, to cancel an alarm use `alarm::cancel`&quot;</span>);
-        <a href="#1822">alarm</a>(<a href="#1810">secs</a>)
+    </span><span class="kw">pub fn </span>set(secs: libc::c_uint) -&gt; <span class="prelude-ty">Option</span>&lt;libc::c_uint&gt; {
+        <span class="macro">assert!</span>(secs != <span class="number">0</span>, <span class="string">&quot;passing 0 to `alarm::set` is not allowed, to cancel an alarm use `alarm::cancel`&quot;</span>);
+        alarm(secs)
     }
 
     <span class="doccomment">/// Cancel an previously set alarm signal.
     ///
     /// Returns the leftover time of a previously set alarm if there was one.
-    </span><span class="kw">pub fn </span>cancel() -&gt; <span class="prelude-ty">Option</span>&lt;<a href="../../libc/unix/type.c_uint.html">libc::c_uint</a>&gt; {
-        <a href="#1822">alarm</a>(<span class="number">0</span>)
+    </span><span class="kw">pub fn </span>cancel() -&gt; <span class="prelude-ty">Option</span>&lt;libc::c_uint&gt; {
+        alarm(<span class="number">0</span>)
     }
 
-    <span class="kw">fn </span>alarm(secs: <a href="../../libc/unix/type.c_uint.html">libc::c_uint</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="../../libc/unix/type.c_uint.html">libc::c_uint</a>&gt; {
-        <span class="kw">match unsafe </span>{ libc::alarm(<a href="#1822">secs</a>) } {
+    <span class="kw">fn </span>alarm(secs: libc::c_uint) -&gt; <span class="prelude-ty">Option</span>&lt;libc::c_uint&gt; {
+        <span class="kw">match unsafe </span>{ libc::alarm(secs) } {
             <span class="number">0 </span>=&gt; <span class="prelude-val">None</span>,
-            secs =&gt; <span class="prelude-val">Some</span>(<a href="#1825">secs</a>),
+            secs =&gt; <span class="prelude-val">Some</span>(secs),
         }
     }
 }
@@ -5179,8 +5227,8 @@
 /// See also [sleep(2)](https://pubs.opengroup.org/onlinepubs/009695399/functions/sleep.html#tag_03_705_05)
 </span><span class="comment">// Per POSIX, does not fail
 </span><span class="attr">#[inline]
-</span><span class="kw">pub fn </span>sleep(seconds: <a href="../../libc/unix/type.c_uint.html">c_uint</a>) -&gt; <a href="../../libc/unix/type.c_uint.html">c_uint</a> {
-    <span class="kw">unsafe </span>{ libc::sleep(<a href="#1836">seconds</a>) }
+</span><span class="kw">pub fn </span>sleep(seconds: c_uint) -&gt; c_uint {
+    <span class="kw">unsafe </span>{ libc::sleep(seconds) }
 }
 
 <span class="macro">feature! </span>{
@@ -5188,26 +5236,26 @@
 
 #[cfg(not(any(target_os = <span class="string">&quot;redox&quot;</span>, target_os = <span class="string">&quot;haiku&quot;</span>)))]
 </span><span class="kw">pub mod </span>acct {
-    <span class="kw">use crate</span>::{<span class="prelude-ty">Result</span>, <a href="lib.rs.html#182">NixPath</a>};
-    <span class="kw">use </span><a href="errno.rs.html#1163"><span class="kw">crate</span>::errno::Errno</a>;
-    <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/ptr/index.html">std::ptr</a>;
+    <span class="kw">use crate</span>::{<span class="prelude-ty">Result</span>, NixPath};
+    <span class="kw">use </span><span class="kw">crate</span>::errno::Errno;
+    <span class="kw">use </span>std::ptr;
 
     <span class="doccomment">/// Enable process accounting
     ///
     /// See also [acct(2)](https://linux.die.net/man/2/acct)
-    </span><span class="kw">pub fn </span>enable&lt;P: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> + <a href="lib.rs.html#182">NixPath</a>&gt;(filename: <span class="kw-2">&amp;</span>P) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+    </span><span class="kw">pub fn </span>enable&lt;P: <span class="question-mark">?</span>Sized + NixPath&gt;(filename: <span class="kw-2">&amp;</span>P) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
         <span class="kw">let </span>res = filename.with_nix_path(|cstr| {
             <span class="kw">unsafe </span>{ libc::acct(cstr.as_ptr()) }
         })<span class="question-mark">?</span>;
 
-        Errno::result(<a href="#1853">res</a>).map(<a href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>)
+        Errno::result(res).map(drop)
     }
 
     <span class="doccomment">/// Disable process accounting
     </span><span class="kw">pub fn </span>disable() -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
-        <span class="kw">let </span>res = <span class="kw">unsafe </span>{ libc::acct(<a href="https://doc.rust-lang.org/nightly/core/ptr/fn.null.html">ptr::null</a>()) };
+        <span class="kw">let </span>res = <span class="kw">unsafe </span>{ libc::acct(ptr::null()) };
 
-        Errno::result(<a href="#1862">res</a>).map(<a href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>)
+        Errno::result(res).map(drop)
     }
 }
 }
@@ -5239,15 +5287,15 @@
 /// // do something with fd
 /// ```
 </span><span class="attr">#[inline]
-</span><span class="kw">pub fn </span>mkstemp&lt;P: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> + <a href="lib.rs.html#182">NixPath</a>&gt;(template: <span class="kw-2">&amp;</span>P) -&gt; <span class="prelude-ty">Result</span>&lt;(<a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a>, <a href="https://doc.rust-lang.org/nightly/std/path/struct.PathBuf.html">PathBuf</a>)&gt; {
+</span><span class="kw">pub fn </span>mkstemp&lt;P: <span class="question-mark">?</span>Sized + NixPath&gt;(template: <span class="kw-2">&amp;</span>P) -&gt; <span class="prelude-ty">Result</span>&lt;(RawFd, PathBuf)&gt; {
     <span class="kw">let </span><span class="kw-2">mut </span>path = template.with_nix_path(|path| {path.to_bytes_with_nul().to_owned()})<span class="question-mark">?</span>;
-    <span class="kw">let </span>p = <a href="#1897">path</a>.as_mut_ptr() <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>;
-    <span class="kw">let </span>fd = <span class="kw">unsafe </span>{ libc::mkstemp(<a href="#1898">p</a>) };
-    <span class="kw">let </span>last = <a href="#1897">path</a>.pop(); <span class="comment">// drop the trailing nul
-    </span><a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(last == <span class="prelude-val">Some</span>(<span class="string">b&#39;\0&#39;</span>));
-    <span class="kw">let </span>pathname = OsString::from_vec(<a href="#1897">path</a>);
+    <span class="kw">let </span>p = path.as_mut_ptr() <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>;
+    <span class="kw">let </span>fd = <span class="kw">unsafe </span>{ libc::mkstemp(p) };
+    <span class="kw">let </span>last = path.pop(); <span class="comment">// drop the trailing nul
+    </span><span class="macro">debug_assert!</span>(last == <span class="prelude-val">Some</span>(<span class="string">b&#39;\0&#39;</span>));
+    <span class="kw">let </span>pathname = OsString::from_vec(path);
     Errno::result(fd)<span class="question-mark">?</span>;
-    <span class="prelude-val">Ok</span>((<a href="#1899">fd</a>, PathBuf::from(<a href="#1902">pathname</a>)))
+    <span class="prelude-val">Ok</span>((fd, PathBuf::from(pathname)))
 }
 }
 
@@ -5391,10 +5439,10 @@
 /// - `Ok(None)`: the variable has no limit (for limit variables) or is
 ///     unsupported (for option variables)
 /// - `Err(x)`: an error occurred
-</span><span class="kw">pub fn </span>fpathconf(fd: <a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a>, var: <a href="#1930">PathconfVar</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<a href="../../libc/unix/linux_like/linux/gnu/b64/x86_64/not_x32/type.c_long.html">c_long</a>&gt;&gt; {
+</span><span class="kw">pub fn </span>fpathconf(fd: RawFd, var: PathconfVar) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;c_long&gt;&gt; {
     <span class="kw">let </span>raw = <span class="kw">unsafe </span>{
         Errno::clear();
-        libc::fpathconf(<a href="#2048">fd</a>, <a href="#2048">var</a> <span class="kw">as </span><a href="../../libc/unix/type.c_int.html">c_int</a>)
+        libc::fpathconf(fd, var <span class="kw">as </span>c_int)
     };
     <span class="kw">if </span>raw == -<span class="number">1 </span>{
         <span class="kw">if </span>errno::errno() == <span class="number">0 </span>{
@@ -5403,7 +5451,7 @@
             <span class="prelude-val">Err</span>(Errno::last())
         }
     } <span class="kw">else </span>{
-        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<a href="#2049">raw</a>))
+        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(raw))
     }
 }
 
@@ -5428,7 +5476,7 @@
 /// - `Ok(None)`: the variable has no limit (for limit variables) or is
 ///     unsupported (for option variables)
 /// - `Err(x)`: an error occurred
-</span><span class="kw">pub fn </span>pathconf&lt;P: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> + <a href="lib.rs.html#182">NixPath</a>&gt;(path: <span class="kw-2">&amp;</span>P, var: <a href="#1930">PathconfVar</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<a href="../../libc/unix/linux_like/linux/gnu/b64/x86_64/not_x32/type.c_long.html">c_long</a>&gt;&gt; {
+</span><span class="kw">pub fn </span>pathconf&lt;P: <span class="question-mark">?</span>Sized + NixPath&gt;(path: <span class="kw-2">&amp;</span>P, var: PathconfVar) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;c_long&gt;&gt; {
     <span class="kw">let </span>raw = path.with_nix_path(|cstr| {
         <span class="kw">unsafe </span>{
             Errno::clear();
@@ -5442,7 +5490,7 @@
             <span class="prelude-val">Err</span>(Errno::last())
         }
     } <span class="kw">else </span>{
-        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<a href="#2086">raw</a>))
+        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(raw))
     }
 }
 }
@@ -5542,7 +5590,7 @@
     <span class="doccomment">/// Unless otherwise noted, the maximum length, in bytes, of a utility&#39;s
     /// input line (either standard input or another file), when the utility is
     /// described as processing text files. The length includes room for the
-    /// trailing &lt;newline&gt;.
+    /// trailing newline.
     </span><span class="attr">#[cfg(not(any(target_os = <span class="string">&quot;redox&quot;</span>, target_os = <span class="string">&quot;haiku&quot;</span>)))]
     #[cfg_attr(docsrs, doc(cfg(all())))]
     </span>LINE_MAX = libc::_SC_LINE_MAX,
@@ -6057,10 +6105,10 @@
 /// - `Ok(None)`: the variable has no limit (for limit variables) or is
 ///     unsupported (for option variables)
 /// - `Err(x)`: an error occurred
-</span><span class="kw">pub fn </span>sysconf(var: <a href="#2126">SysconfVar</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<a href="../../libc/unix/linux_like/linux/gnu/b64/x86_64/not_x32/type.c_long.html">c_long</a>&gt;&gt; {
+</span><span class="kw">pub fn </span>sysconf(var: SysconfVar) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;c_long&gt;&gt; {
     <span class="kw">let </span>raw = <span class="kw">unsafe </span>{
         Errno::clear();
-        libc::sysconf(<a href="#2714">var</a> <span class="kw">as </span><a href="../../libc/unix/type.c_int.html">c_int</a>)
+        libc::sysconf(var <span class="kw">as </span>c_int)
     };
     <span class="kw">if </span>raw == -<span class="number">1 </span>{
         <span class="kw">if </span>errno::errno() == <span class="number">0 </span>{
@@ -6069,7 +6117,7 @@
             <span class="prelude-val">Err</span>(Errno::last())
         }
     } <span class="kw">else </span>{
-        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<a href="#2715">raw</a>))
+        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(raw))
     }
 }
 }
@@ -6079,10 +6127,10 @@
 
 #[cfg(any(target_os = <span class="string">&quot;android&quot;</span>, target_os = <span class="string">&quot;linux&quot;</span>))]
 </span><span class="kw">mod </span>pivot_root {
-    <span class="kw">use crate</span>::{<span class="prelude-ty">Result</span>, <a href="lib.rs.html#182">NixPath</a>};
-    <span class="kw">use </span><a href="errno.rs.html#1163"><span class="kw">crate</span>::errno::Errno</a>;
+    <span class="kw">use crate</span>::{<span class="prelude-ty">Result</span>, NixPath};
+    <span class="kw">use </span><span class="kw">crate</span>::errno::Errno;
 
-    <span class="kw">pub fn </span>pivot_root&lt;P1: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> + <a href="lib.rs.html#182">NixPath</a>, P2: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> + <a href="lib.rs.html#182">NixPath</a>&gt;(
+    <span class="kw">pub fn </span>pivot_root&lt;P1: <span class="question-mark">?</span>Sized + NixPath, P2: <span class="question-mark">?</span>Sized + NixPath&gt;(
             new_root: <span class="kw-2">&amp;</span>P1, put_old: <span class="kw-2">&amp;</span>P2) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
         <span class="kw">let </span>res = new_root.with_nix_path(|new_root| {
             put_old.with_nix_path(|put_old| {
@@ -6092,7 +6140,7 @@
             })
         })<span class="question-mark">??</span>;
 
-        Errno::result(<a href="#2741">res</a>).map(<a href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>)
+        Errno::result(res).map(drop)
     }
 }
 }
@@ -6108,9 +6156,9 @@
     <span class="macro">feature! </span>{
     <span class="attr">#![feature = <span class="string">&quot;user&quot;</span>]
 
-    </span><span class="kw">use </span><a href="lib.rs.html#167"><span class="kw">crate</span>::Result</a>;
-    <span class="kw">use </span><a href="errno.rs.html#1163"><span class="kw">crate</span>::errno::Errno</a>;
-    <span class="kw">use super</span>::{<a href="#73">Uid</a>, <a href="#130">Gid</a>};
+    </span><span class="kw">use </span><span class="kw">crate</span>::Result;
+    <span class="kw">use </span><span class="kw">crate</span>::errno::Errno;
+    <span class="kw">use super</span>::{Uid, Gid};
 
     <span class="doccomment">/// Sets the real, effective, and saved uid.
     /// ([see setresuid(2)](https://man7.org/linux/man-pages/man2/setresuid.2.html))
@@ -6122,10 +6170,10 @@
     ///
     /// Err is returned if the user doesn&#39;t have permission to set this UID.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>setresuid(ruid: <a href="#73">Uid</a>, euid: <a href="#73">Uid</a>, suid: <a href="#73">Uid</a>) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
-        <span class="kw">let </span>res = <span class="kw">unsafe </span>{ libc::setresuid(<a href="#2779">ruid</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(), <a href="#2779">euid</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(), <a href="#2779">suid</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()) };
+    </span><span class="kw">pub fn </span>setresuid(ruid: Uid, euid: Uid, suid: Uid) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+        <span class="kw">let </span>res = <span class="kw">unsafe </span>{ libc::setresuid(ruid.into(), euid.into(), suid.into()) };
 
-        Errno::result(<a href="#2780">res</a>).map(<a href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>)
+        Errno::result(res).map(drop)
     }
 
     <span class="doccomment">/// Sets the real, effective, and saved gid.
@@ -6138,10 +6186,10 @@
     ///
     /// Err is returned if the user doesn&#39;t have permission to set this GID.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>setresgid(rgid: <a href="#130">Gid</a>, egid: <a href="#130">Gid</a>, sgid: <a href="#130">Gid</a>) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
-        <span class="kw">let </span>res = <span class="kw">unsafe </span>{ libc::setresgid(<a href="#2795">rgid</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(), <a href="#2795">egid</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(), <a href="#2795">sgid</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()) };
+    </span><span class="kw">pub fn </span>setresgid(rgid: Gid, egid: Gid, sgid: Gid) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+        <span class="kw">let </span>res = <span class="kw">unsafe </span>{ libc::setresgid(rgid.into(), egid.into(), sgid.into()) };
 
-        Errno::result(<a href="#2796">res</a>).map(<a href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>)
+        Errno::result(res).map(drop)
     }
     }
 }
@@ -6157,24 +6205,24 @@
     <span class="macro">feature! </span>{
     <span class="attr">#![feature = <span class="string">&quot;user&quot;</span>]
 
-    </span><span class="kw">use </span><a href="lib.rs.html#167"><span class="kw">crate</span>::Result</a>;
-    <span class="kw">use </span><a href="errno.rs.html#1163"><span class="kw">crate</span>::errno::Errno</a>;
-    <span class="kw">use super</span>::{<a href="#73">Uid</a>, <a href="#130">Gid</a>};
+    </span><span class="kw">use </span><span class="kw">crate</span>::Result;
+    <span class="kw">use </span><span class="kw">crate</span>::errno::Errno;
+    <span class="kw">use super</span>::{Uid, Gid};
 
     <span class="doccomment">/// Real, effective and saved user IDs.
     </span><span class="attr">#[derive(Debug, Copy, Clone, Eq, PartialEq)]
     </span><span class="kw">pub struct </span>ResUid {
-        <span class="kw">pub </span>real: <a href="#73">Uid</a>,
-        <span class="kw">pub </span>effective: <a href="#73">Uid</a>,
-        <span class="kw">pub </span>saved: <a href="#73">Uid</a>
+        <span class="kw">pub </span>real: Uid,
+        <span class="kw">pub </span>effective: Uid,
+        <span class="kw">pub </span>saved: Uid
     }
 
     <span class="doccomment">/// Real, effective and saved group IDs.
     </span><span class="attr">#[derive(Debug, Copy, Clone, Eq, PartialEq)]
     </span><span class="kw">pub struct </span>ResGid {
-        <span class="kw">pub </span>real: <a href="#130">Gid</a>,
-        <span class="kw">pub </span>effective: <a href="#130">Gid</a>,
-        <span class="kw">pub </span>saved: <a href="#130">Gid</a>
+        <span class="kw">pub </span>real: Gid,
+        <span class="kw">pub </span>effective: Gid,
+        <span class="kw">pub </span>saved: Gid
     }
 
     <span class="doccomment">/// Gets the real, effective, and saved user IDs.
@@ -6187,13 +6235,13 @@
     /// - `Err(x)`: libc error code on failure.
     ///
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>getresuid() -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#2820">ResUid</a>&gt; {
+    </span><span class="kw">pub fn </span>getresuid() -&gt; <span class="prelude-ty">Result</span>&lt;ResUid&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>ruid = libc::uid_t::max_value();
         <span class="kw">let </span><span class="kw-2">mut </span>euid = libc::uid_t::max_value();
         <span class="kw">let </span><span class="kw-2">mut </span>suid = libc::uid_t::max_value();
-        <span class="kw">let </span>res = <span class="kw">unsafe </span>{ libc::getresuid(<span class="kw-2">&amp;mut </span><a href="#2845">ruid</a>, <span class="kw-2">&amp;mut </span><a href="#2846">euid</a>, <span class="kw-2">&amp;mut </span><a href="#2847">suid</a>) };
+        <span class="kw">let </span>res = <span class="kw">unsafe </span>{ libc::getresuid(<span class="kw-2">&amp;mut </span>ruid, <span class="kw-2">&amp;mut </span>euid, <span class="kw-2">&amp;mut </span>suid) };
 
-        Errno::result(<a href="#2848">res</a>).map(|<span class="kw">_</span>| <a href="#2820">ResUid</a>{ real: <a href="#73">Uid</a>(<a href="#2845">ruid</a>), effective: <a href="#73">Uid</a>(<a href="#2846">euid</a>), saved: <a href="#73">Uid</a>(<a href="#2847">suid</a>) })
+        Errno::result(res).map(|<span class="kw">_</span>| ResUid{ real: Uid(ruid), effective: Uid(euid), saved: Uid(suid) })
     }
 
     <span class="doccomment">/// Gets the real, effective, and saved group IDs.
@@ -6206,22 +6254,22 @@
     /// - `Err(x)`: libc error code on failure.
     ///
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>getresgid() -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#2828">ResGid</a>&gt; {
+    </span><span class="kw">pub fn </span>getresgid() -&gt; <span class="prelude-ty">Result</span>&lt;ResGid&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>rgid = libc::gid_t::max_value();
         <span class="kw">let </span><span class="kw-2">mut </span>egid = libc::gid_t::max_value();
         <span class="kw">let </span><span class="kw-2">mut </span>sgid = libc::gid_t::max_value();
-        <span class="kw">let </span>res = <span class="kw">unsafe </span>{ libc::getresgid(<span class="kw-2">&amp;mut </span><a href="#2864">rgid</a>, <span class="kw-2">&amp;mut </span><a href="#2865">egid</a>, <span class="kw-2">&amp;mut </span><a href="#2866">sgid</a>) };
+        <span class="kw">let </span>res = <span class="kw">unsafe </span>{ libc::getresgid(<span class="kw-2">&amp;mut </span>rgid, <span class="kw-2">&amp;mut </span>egid, <span class="kw-2">&amp;mut </span>sgid) };
 
-        Errno::result(<a href="#2867">res</a>).map(|<span class="kw">_</span>| <a href="#2828">ResGid</a> { real: <a href="#130">Gid</a>(<a href="#2864">rgid</a>), effective: <a href="#130">Gid</a>(<a href="#2865">egid</a>), saved: <a href="#130">Gid</a>(<a href="#2866">sgid</a>) } )
+        Errno::result(res).map(|<span class="kw">_</span>| ResGid { real: Gid(rgid), effective: Gid(egid), saved: Gid(sgid) } )
     }
     }
 }
 
 <span class="attr">#[cfg(feature = <span class="string">&quot;fs&quot;</span>)]
-</span><a class="macro" href="macros.rs.html#55-75">libc_bitflags! </a>{
+</span><span class="macro">libc_bitflags! </span>{
     <span class="doccomment">/// Options for access()
     </span><span class="attr">#[cfg_attr(docsrs, doc(cfg(feature = <span class="string">&quot;fs&quot;</span>)))]
-    </span><span class="kw">pub struct </span>AccessFlags : <a href="../../libc/unix/type.c_int.html">c_int</a> {
+    </span><span class="kw">pub struct </span>AccessFlags : c_int {
         <span class="doccomment">/// Test for existence of file.
         </span>F_OK;
         <span class="doccomment">/// Test for read permission.
@@ -6238,13 +6286,13 @@
 
 </span><span class="doccomment">/// Checks the file named by `path` for accessibility according to the flags given by `amode`
 /// See [access(2)](https://pubs.opengroup.org/onlinepubs/9699919799/functions/access.html)
-</span><span class="kw">pub fn </span>access&lt;P: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> + <a href="lib.rs.html#182">NixPath</a>&gt;(path: <span class="kw-2">&amp;</span>P, amode: <a href="#2875-2888">AccessFlags</a>) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+</span><span class="kw">pub fn </span>access&lt;P: <span class="question-mark">?</span>Sized + NixPath&gt;(path: <span class="kw-2">&amp;</span>P, amode: AccessFlags) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
     <span class="kw">let </span>res = path.with_nix_path(|cstr| {
         <span class="kw">unsafe </span>{
             libc::access(cstr.as_ptr(), amode.bits)
         }
     })<span class="question-mark">?</span>;
-    Errno::result(<a href="#2896">res</a>).map(<a href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>)
+    Errno::result(res).map(drop)
 }
 
 <span class="doccomment">/// Checks the file named by `path` for accessibility according to the flags given by `mode`
@@ -6256,16 +6304,36 @@
 /// # References
 ///
 /// [faccessat(2)](http://pubs.opengroup.org/onlinepubs/9699919799/functions/faccessat.html)
-</span><span class="comment">// illumos: faccessat(2) appears to be supported, but the libc crate does not provide a binding.
-// redox: does not appear to support the *at family of syscalls.
-</span><span class="attr">#[cfg(not(any(target_os = <span class="string">&quot;illumos&quot;</span>, target_os = <span class="string">&quot;redox&quot;</span>)))]
-</span><span class="kw">pub fn </span>faccessat&lt;P: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> + <a href="lib.rs.html#182">NixPath</a>&gt;(dirfd: <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a>&gt;, path: <span class="kw-2">&amp;</span>P, mode: <a href="#2875-2888">AccessFlags</a>, flags: <a href="fcntl.rs.html#28-41">AtFlags</a>) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+</span><span class="comment">// redox: does not appear to support the *at family of syscalls.
+</span><span class="attr">#[cfg(not(target_os = <span class="string">&quot;redox&quot;</span>))]
+</span><span class="kw">pub fn </span>faccessat&lt;P: <span class="question-mark">?</span>Sized + NixPath&gt;(dirfd: <span class="prelude-ty">Option</span>&lt;RawFd&gt;, path: <span class="kw-2">&amp;</span>P, mode: AccessFlags, flags: AtFlags) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
     <span class="kw">let </span>res = path.with_nix_path(|cstr| {
         <span class="kw">unsafe </span>{
             libc::faccessat(at_rawfd(dirfd), cstr.as_ptr(), mode.bits(), flags.bits())
         }
     })<span class="question-mark">?</span>;
-    Errno::result(<a href="#2917">res</a>).map(<a href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>)
+    Errno::result(res).map(drop)
+}
+
+<span class="doccomment">/// Checks the file named by `path` for accessibility according to the flags given
+/// by `mode` using effective UID, effective GID and supplementary group lists.
+///
+/// # References
+///
+/// * [FreeBSD man page](https://www.freebsd.org/cgi/man.cgi?query=eaccess&amp;sektion=2&amp;n=1)
+/// * [Linux man page](https://man7.org/linux/man-pages/man3/euidaccess.3.html)
+</span><span class="attr">#[cfg(any(
+    all(target_os = <span class="string">&quot;linux&quot;</span>, not(target_env = <span class="string">&quot;uclibc&quot;</span>)),
+    target_os = <span class="string">&quot;freebsd&quot;</span>,
+    target_os = <span class="string">&quot;dragonfly&quot;
+</span>))]
+</span><span class="kw">pub fn </span>eaccess&lt;P: <span class="question-mark">?</span>Sized + NixPath&gt;(path: <span class="kw-2">&amp;</span>P, mode: AccessFlags) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+    <span class="kw">let </span>res = path.with_nix_path(|cstr| {
+        <span class="kw">unsafe </span>{
+            libc::eaccess(cstr.as_ptr(), mode.bits)
+        }
+    })<span class="question-mark">?</span>;
+    Errno::result(res).map(drop)
 }
 }
 
@@ -6282,20 +6350,20 @@
 </span><span class="attr">#[derive(Debug, Clone, Eq, PartialEq)]
 </span><span class="kw">pub struct </span>User {
     <span class="doccomment">/// Username
-    </span><span class="kw">pub </span>name: <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>,
+    </span><span class="kw">pub </span>name: String,
     <span class="doccomment">/// User password (probably hashed)
-    </span><span class="kw">pub </span>passwd: <a href="https://doc.rust-lang.org/nightly/alloc/ffi/c_str/struct.CString.html">CString</a>,
+    </span><span class="kw">pub </span>passwd: CString,
     <span class="doccomment">/// User ID
-    </span><span class="kw">pub </span>uid: <a href="#73">Uid</a>,
+    </span><span class="kw">pub </span>uid: Uid,
     <span class="doccomment">/// Group ID
-    </span><span class="kw">pub </span>gid: <a href="#130">Gid</a>,
+    </span><span class="kw">pub </span>gid: Gid,
     <span class="doccomment">/// User information
     </span><span class="attr">#[cfg(not(all(target_os = <span class="string">&quot;android&quot;</span>, target_pointer_width = <span class="string">&quot;32&quot;</span>)))]
-    </span><span class="kw">pub </span>gecos: <a href="https://doc.rust-lang.org/nightly/alloc/ffi/c_str/struct.CString.html">CString</a>,
+    </span><span class="kw">pub </span>gecos: CString,
     <span class="doccomment">/// Home directory
-    </span><span class="kw">pub </span>dir: <a href="https://doc.rust-lang.org/nightly/std/path/struct.PathBuf.html">PathBuf</a>,
+    </span><span class="kw">pub </span>dir: PathBuf,
     <span class="doccomment">/// Path to shell
-    </span><span class="kw">pub </span>shell: <a href="https://doc.rust-lang.org/nightly/std/path/struct.PathBuf.html">PathBuf</a>,
+    </span><span class="kw">pub </span>shell: PathBuf,
     <span class="doccomment">/// Login class
     </span><span class="attr">#[cfg(not(any(target_os = <span class="string">&quot;android&quot;</span>,
                   target_os = <span class="string">&quot;fuchsia&quot;</span>,
@@ -6326,18 +6394,18 @@
 }
 
 <span class="attr">#[cfg(not(target_os = <span class="string">&quot;redox&quot;</span>))] </span><span class="comment">//RedoxFS does not support passwd
-</span><span class="kw">impl </span>From&lt;<span class="kw-2">&amp;</span><a href="../../libc/unix/linux_like/linux/struct.passwd.html">libc::passwd</a>&gt; <span class="kw">for </span><a href="#2937">User</a> {
-    <span class="kw">fn </span>from(pw: <span class="kw-2">&amp;</span><a href="../../libc/unix/linux_like/linux/struct.passwd.html">libc::passwd</a>) -&gt; <a href="#2937">User</a> {
+</span><span class="kw">impl </span>From&lt;<span class="kw-2">&amp;</span>libc::passwd&gt; <span class="kw">for </span>User {
+    <span class="kw">fn </span>from(pw: <span class="kw-2">&amp;</span>libc::passwd) -&gt; User {
         <span class="kw">unsafe </span>{
-            <a href="#2937">User</a> {
-                name: CStr::from_ptr(<a href="#2984">pw</a>.pw_name).to_string_lossy().into_owned(),
-                passwd: CString::new(CStr::from_ptr(<a href="#2984">pw</a>.pw_passwd).to_bytes()).unwrap(),
+            User {
+                name: <span class="kw">if </span>pw.pw_name.is_null() { Default::default() } <span class="kw">else </span>{ CStr::from_ptr(pw.pw_name).to_string_lossy().into_owned() },
+                passwd: <span class="kw">if </span>pw.pw_passwd.is_null() { Default::default() } <span class="kw">else </span>{ CString::new(CStr::from_ptr(pw.pw_passwd).to_bytes()).unwrap() },
                 <span class="attr">#[cfg(not(all(target_os = <span class="string">&quot;android&quot;</span>, target_pointer_width = <span class="string">&quot;32&quot;</span>)))]
-                </span>gecos: CString::new(CStr::from_ptr(<a href="#2984">pw</a>.pw_gecos).to_bytes()).unwrap(),
-                dir: PathBuf::from(OsStr::from_bytes(CStr::from_ptr(<a href="#2984">pw</a>.pw_dir).to_bytes())),
-                shell: PathBuf::from(OsStr::from_bytes(CStr::from_ptr(<a href="#2984">pw</a>.pw_shell).to_bytes())),
-                uid: Uid::from_raw(<a href="#2984">pw</a>.pw_uid),
-                gid: Gid::from_raw(<a href="#2984">pw</a>.pw_gid),
+                </span>gecos: <span class="kw">if </span>pw.pw_gecos.is_null() { Default::default() } <span class="kw">else </span>{ CString::new(CStr::from_ptr(pw.pw_gecos).to_bytes()).unwrap() },
+                dir: <span class="kw">if </span>pw.pw_dir.is_null() { Default::default() } <span class="kw">else </span>{ PathBuf::from(OsStr::from_bytes(CStr::from_ptr(pw.pw_dir).to_bytes())) },
+                shell: <span class="kw">if </span>pw.pw_shell.is_null() { Default::default() } <span class="kw">else </span>{ PathBuf::from(OsStr::from_bytes(CStr::from_ptr(pw.pw_shell).to_bytes())) },
+                uid: Uid::from_raw(pw.pw_uid),
+                gid: Gid::from_raw(pw.pw_gid),
                 <span class="attr">#[cfg(not(any(target_os = <span class="string">&quot;android&quot;</span>,
                               target_os = <span class="string">&quot;fuchsia&quot;</span>,
                               target_os = <span class="string">&quot;haiku&quot;</span>,
@@ -6365,29 +6433,29 @@
 }
 
 <span class="attr">#[cfg(not(target_os = <span class="string">&quot;redox&quot;</span>))] </span><span class="comment">// RedoxFS does not support passwd
-</span><span class="kw">impl </span>From&lt;<a href="#2937">User</a>&gt; <span class="kw">for </span><a href="../../libc/unix/linux_like/linux/struct.passwd.html">libc::passwd</a> {
-    <span class="kw">fn </span>from(u: <a href="#2937">User</a>) -&gt; <span class="self">Self </span>{
-        <span class="kw">let </span>name = <span class="kw">match </span>CString::new(<a href="#3023">u</a>.name) {
-            <span class="prelude-val">Ok</span>(n) =&gt; <a href="#3025">n</a>.into_raw(),
+</span><span class="kw">impl </span>From&lt;User&gt; <span class="kw">for </span>libc::passwd {
+    <span class="kw">fn </span>from(u: User) -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span>name = <span class="kw">match </span>CString::new(u.name) {
+            <span class="prelude-val">Ok</span>(n) =&gt; n.into_raw(),
             <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; CString::new(<span class="string">&quot;&quot;</span>).unwrap().into_raw(),
         };
-        <span class="kw">let </span>dir = <span class="kw">match </span><a href="#3023">u</a>.dir.into_os_string().into_string() {
-            <span class="prelude-val">Ok</span>(s) =&gt; CString::new(<a href="#3029">s</a>.as_str()).unwrap().into_raw(),
+        <span class="kw">let </span>dir = <span class="kw">match </span>u.dir.into_os_string().into_string() {
+            <span class="prelude-val">Ok</span>(s) =&gt; CString::new(s.as_str()).unwrap().into_raw(),
             <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; CString::new(<span class="string">&quot;&quot;</span>).unwrap().into_raw(),
         };
-        <span class="kw">let </span>shell = <span class="kw">match </span><a href="#3023">u</a>.shell.into_os_string().into_string() {
-            <span class="prelude-val">Ok</span>(s) =&gt; CString::new(<a href="#3033">s</a>.as_str()).unwrap().into_raw(),
+        <span class="kw">let </span>shell = <span class="kw">match </span>u.shell.into_os_string().into_string() {
+            <span class="prelude-val">Ok</span>(s) =&gt; CString::new(s.as_str()).unwrap().into_raw(),
             <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; CString::new(<span class="string">&quot;&quot;</span>).unwrap().into_raw(),
         };
         <span class="self">Self </span>{
-            pw_name: <a href="#3024">name</a>,
-            pw_passwd: <a href="#3023">u</a>.passwd.into_raw(),
+            pw_name: name,
+            pw_passwd: u.passwd.into_raw(),
             <span class="attr">#[cfg(not(all(target_os = <span class="string">&quot;android&quot;</span>, target_pointer_width = <span class="string">&quot;32&quot;</span>)))]
-            </span>pw_gecos: <a href="#3023">u</a>.gecos.into_raw(),
-            pw_dir: <a href="#3028">dir</a>,
-            pw_shell: <a href="#3032">shell</a>,
-            pw_uid: <a href="#3023">u</a>.uid.<span class="number">0</span>,
-            pw_gid: <a href="#3023">u</a>.gid.<span class="number">0</span>,
+            </span>pw_gecos: u.gecos.into_raw(),
+            pw_dir: dir,
+            pw_shell: shell,
+            pw_uid: u.uid.<span class="number">0</span>,
+            pw_gid: u.gid.<span class="number">0</span>,
             <span class="attr">#[cfg(not(any(target_os = <span class="string">&quot;android&quot;</span>,
                           target_os = <span class="string">&quot;fuchsia&quot;</span>,
                           target_os = <span class="string">&quot;haiku&quot;</span>,
@@ -6420,32 +6488,32 @@
 }
 
 <span class="attr">#[cfg(not(target_os = <span class="string">&quot;redox&quot;</span>))] </span><span class="comment">// RedoxFS does not support passwd
-</span><span class="kw">impl </span><a href="#2937">User</a> {
+</span><span class="kw">impl </span>User {
     <span class="kw">fn </span>from_anything&lt;F&gt;(f: F) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt;&gt;
     <span class="kw">where
-        </span>F: Fn(<span class="kw-2">*mut </span><a href="../../libc/unix/linux_like/linux/struct.passwd.html">libc::passwd</a>,
-              <span class="kw-2">*mut </span><a href="../../libc/unix/linux_like/linux/gnu/b64/x86_64/type.c_char.html">c_char</a>,
-              <a href="../../libc/unix/type.size_t.html">libc::size_t</a>,
-              <span class="kw-2">*mut *mut </span><a href="../../libc/unix/linux_like/linux/struct.passwd.html">libc::passwd</a>) -&gt; <a href="../../libc/unix/type.c_int.html">libc::c_int</a>
+        </span>F: Fn(<span class="kw-2">*mut </span>libc::passwd,
+              <span class="kw-2">*mut </span>c_char,
+              libc::size_t,
+              <span class="kw-2">*mut *mut </span>libc::passwd) -&gt; libc::c_int
     {
         <span class="kw">let </span>buflimit = <span class="number">1048576</span>;
-        <span class="kw">let </span>bufsize = <span class="kw">match </span><a href="#2714">sysconf</a>(<a href="#2215">SysconfVar::GETPW_R_SIZE_MAX</a>) {
-            <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(n)) =&gt; <a href="#3087">n</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+        <span class="kw">let </span>bufsize = <span class="kw">match </span>sysconf(SysconfVar::GETPW_R_SIZE_MAX) {
+            <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(n)) =&gt; n <span class="kw">as </span>usize,
             <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>) | <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; <span class="number">16384</span>,
         };
 
-        <span class="kw">let </span><span class="kw-2">mut </span>cbuf = Vec::with_capacity(<a href="#3086">bufsize</a>);
-        <span class="kw">let </span><span class="kw-2">mut </span>pwd = mem::MaybeUninit::&lt;<a href="../../libc/unix/linux_like/linux/struct.passwd.html">libc::passwd</a>&gt;::uninit();
-        <span class="kw">let </span><span class="kw-2">mut </span>res = <a href="https://doc.rust-lang.org/nightly/core/ptr/fn.null_mut.html">ptr::null_mut</a>();
+        <span class="kw">let </span><span class="kw-2">mut </span>cbuf = Vec::with_capacity(bufsize);
+        <span class="kw">let </span><span class="kw-2">mut </span>pwd = mem::MaybeUninit::&lt;libc::passwd&gt;::uninit();
+        <span class="kw">let </span><span class="kw-2">mut </span>res = ptr::null_mut();
 
         <span class="kw">loop </span>{
-            <span class="kw">let </span>error = <a href="#3078">f</a>(<a href="#3092">pwd</a>.as_mut_ptr(), <a href="#3091">cbuf</a>.as_mut_ptr(), <a href="#3091">cbuf</a>.capacity(), <span class="kw-2">&amp;mut </span><a href="#3093">res</a>);
+            <span class="kw">let </span>error = f(pwd.as_mut_ptr(), cbuf.as_mut_ptr(), cbuf.capacity(), <span class="kw-2">&amp;mut </span>res);
             <span class="kw">if </span>error == <span class="number">0 </span>{
                 <span class="kw">if </span>res.is_null() {
                     <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>);
                 } <span class="kw">else </span>{
-                    <span class="kw">let </span>pwd = <span class="kw">unsafe </span>{ <a href="#3092">pwd</a>.assume_init() };
-                    <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(User::from(<span class="kw-2">&amp;</span><a href="#3101">pwd</a>)));
+                    <span class="kw">let </span>pwd = <span class="kw">unsafe </span>{ pwd.assume_init() };
+                    <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(User::from(<span class="kw-2">&amp;</span>pwd)));
                 }
             } <span class="kw">else if </span>Errno::last() == Errno::ERANGE {
                 <span class="comment">// Trigger the internal buffer resizing logic.
@@ -6469,9 +6537,9 @@
     /// let res = User::from_uid(Uid::from_raw(0)).unwrap().unwrap();
     /// assert_eq!(res.name, &quot;root&quot;);
     /// ```
-    </span><span class="kw">pub fn </span>from_uid(uid: <a href="#73">Uid</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt;&gt; {
+    </span><span class="kw">pub fn </span>from_uid(uid: Uid) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt;&gt; {
         User::from_anything(|pwd, cbuf, cap, res| {
-            <span class="kw">unsafe </span>{ libc::getpwuid_r(<a href="#3126">uid</a>.<span class="number">0</span>, <a href="#3127">pwd</a>, <a href="#3127">cbuf</a>, <a href="#3127">cap</a>, <a href="#3127">res</a>) }
+            <span class="kw">unsafe </span>{ libc::getpwuid_r(uid.<span class="number">0</span>, pwd, cbuf, cap, res) }
         })
     }
 
@@ -6488,10 +6556,13 @@
     /// let res = User::from_name(&quot;root&quot;).unwrap().unwrap();
     /// assert_eq!(res.name, &quot;root&quot;);
     /// ```
-    </span><span class="kw">pub fn </span>from_name(name: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt;&gt; {
-        <span class="kw">let </span>name = CString::new(<a href="#3145">name</a>).unwrap();
+    </span><span class="kw">pub fn </span>from_name(name: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt;&gt; {
+        <span class="kw">let </span>name = <span class="kw">match </span>CString::new(name) {
+            <span class="prelude-val">Ok</span>(c_str) =&gt; c_str,
+            <span class="prelude-val">Err</span>(_nul_error) =&gt; <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>),
+        };
         User::from_anything(|pwd, cbuf, cap, res| {
-            <span class="kw">unsafe </span>{ libc::getpwnam_r(<a href="#3146">name</a>.as_ptr(), <a href="#3147">pwd</a>, <a href="#3147">cbuf</a>, <a href="#3147">cap</a>, <a href="#3147">res</a>) }
+            <span class="kw">unsafe </span>{ libc::getpwnam_r(name.as_ptr(), pwd, cbuf, cap, res) }
         })
     }
 }
@@ -6501,32 +6572,32 @@
 </span><span class="attr">#[derive(Debug, Clone, Eq, PartialEq)]
 </span><span class="kw">pub struct </span>Group {
     <span class="doccomment">/// Group name
-    </span><span class="kw">pub </span>name: <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>,
+    </span><span class="kw">pub </span>name: String,
     <span class="doccomment">/// Group password
-    </span><span class="kw">pub </span>passwd: <a href="https://doc.rust-lang.org/nightly/alloc/ffi/c_str/struct.CString.html">CString</a>,
+    </span><span class="kw">pub </span>passwd: CString,
     <span class="doccomment">/// Group ID
-    </span><span class="kw">pub </span>gid: <a href="#130">Gid</a>,
+    </span><span class="kw">pub </span>gid: Gid,
     <span class="doccomment">/// List of Group members
-    </span><span class="kw">pub </span>mem: Vec&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt;
+    </span><span class="kw">pub </span>mem: Vec&lt;String&gt;
 }
 
 <span class="attr">#[cfg(not(target_os = <span class="string">&quot;redox&quot;</span>))] </span><span class="comment">// RedoxFS does not support passwd
-</span><span class="kw">impl </span>From&lt;<span class="kw-2">&amp;</span><a href="../../libc/unix/struct.group.html">libc::group</a>&gt; <span class="kw">for </span><a href="#3156">Group</a> {
-    <span class="kw">fn </span>from(gr: <span class="kw-2">&amp;</span><a href="../../libc/unix/struct.group.html">libc::group</a>) -&gt; <a href="#3156">Group</a> {
+</span><span class="kw">impl </span>From&lt;<span class="kw-2">&amp;</span>libc::group&gt; <span class="kw">for </span>Group {
+    <span class="kw">fn </span>from(gr: <span class="kw-2">&amp;</span>libc::group) -&gt; Group {
         <span class="kw">unsafe </span>{
-            <a href="#3156">Group</a> {
-                name: CStr::from_ptr(<a href="#3169">gr</a>.gr_name).to_string_lossy().into_owned(),
-                passwd: CString::new(CStr::from_ptr(<a href="#3169">gr</a>.gr_passwd).to_bytes()).unwrap(),
-                gid: Gid::from_raw(<a href="#3169">gr</a>.gr_gid),
-                mem: Group::members(<a href="#3169">gr</a>.gr_mem)
+            Group {
+                name: CStr::from_ptr(gr.gr_name).to_string_lossy().into_owned(),
+                passwd: CString::new(CStr::from_ptr(gr.gr_passwd).to_bytes()).unwrap(),
+                gid: Gid::from_raw(gr.gr_gid),
+                mem: Group::members(gr.gr_mem)
             }
         }
     }
 }
 
 <span class="attr">#[cfg(not(target_os = <span class="string">&quot;redox&quot;</span>))] </span><span class="comment">// RedoxFS does not support passwd
-</span><span class="kw">impl </span><a href="#3156">Group</a> {
-    <span class="kw">unsafe fn </span>members(mem: <span class="kw-2">*mut *mut </span><a href="../../libc/unix/linux_like/linux/gnu/b64/x86_64/type.c_char.html">c_char</a>) -&gt; Vec&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt; {
+</span><span class="kw">impl </span>Group {
+    <span class="kw">unsafe fn </span>members(mem: <span class="kw-2">*mut *mut </span>c_char) -&gt; Vec&lt;String&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>ret = Vec::new();
 
         <span class="kw">for </span>i <span class="kw">in </span><span class="number">0</span>.. {
@@ -6539,34 +6610,34 @@
             }
         }
 
-        <a href="#3184">ret</a>
+        ret
     }
 
     <span class="kw">fn </span>from_anything&lt;F&gt;(f: F) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt;&gt;
     <span class="kw">where
-        </span>F: Fn(<span class="kw-2">*mut </span><a href="../../libc/unix/struct.group.html">libc::group</a>,
-              <span class="kw-2">*mut </span><a href="../../libc/unix/linux_like/linux/gnu/b64/x86_64/type.c_char.html">c_char</a>,
-              <a href="../../libc/unix/type.size_t.html">libc::size_t</a>,
-              <span class="kw-2">*mut *mut </span><a href="../../libc/unix/struct.group.html">libc::group</a>) -&gt; <a href="../../libc/unix/type.c_int.html">libc::c_int</a>
+        </span>F: Fn(<span class="kw-2">*mut </span>libc::group,
+              <span class="kw-2">*mut </span>c_char,
+              libc::size_t,
+              <span class="kw-2">*mut *mut </span>libc::group) -&gt; libc::c_int
     {
         <span class="kw">let </span>buflimit = <span class="number">1048576</span>;
-        <span class="kw">let </span>bufsize = <span class="kw">match </span><a href="#2714">sysconf</a>(<a href="#2211">SysconfVar::GETGR_R_SIZE_MAX</a>) {
-            <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(n)) =&gt; <a href="#3208">n</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+        <span class="kw">let </span>bufsize = <span class="kw">match </span>sysconf(SysconfVar::GETGR_R_SIZE_MAX) {
+            <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(n)) =&gt; n <span class="kw">as </span>usize,
             <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>) | <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; <span class="number">16384</span>,
         };
 
-        <span class="kw">let </span><span class="kw-2">mut </span>cbuf = Vec::with_capacity(<a href="#3207">bufsize</a>);
-        <span class="kw">let </span><span class="kw-2">mut </span>grp = mem::MaybeUninit::&lt;<a href="../../libc/unix/struct.group.html">libc::group</a>&gt;::uninit();
-        <span class="kw">let </span><span class="kw-2">mut </span>res = <a href="https://doc.rust-lang.org/nightly/core/ptr/fn.null_mut.html">ptr::null_mut</a>();
+        <span class="kw">let </span><span class="kw-2">mut </span>cbuf = Vec::with_capacity(bufsize);
+        <span class="kw">let </span><span class="kw-2">mut </span>grp = mem::MaybeUninit::&lt;libc::group&gt;::uninit();
+        <span class="kw">let </span><span class="kw-2">mut </span>res = ptr::null_mut();
 
         <span class="kw">loop </span>{
-            <span class="kw">let </span>error = <a href="#3199">f</a>(<a href="#3213">grp</a>.as_mut_ptr(), <a href="#3212">cbuf</a>.as_mut_ptr(), <a href="#3212">cbuf</a>.capacity(), <span class="kw-2">&amp;mut </span><a href="#3214">res</a>);
+            <span class="kw">let </span>error = f(grp.as_mut_ptr(), cbuf.as_mut_ptr(), cbuf.capacity(), <span class="kw-2">&amp;mut </span>res);
             <span class="kw">if </span>error == <span class="number">0 </span>{
                 <span class="kw">if </span>res.is_null() {
                     <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>);
                 } <span class="kw">else </span>{
-                    <span class="kw">let </span>grp = <span class="kw">unsafe </span>{ <a href="#3213">grp</a>.assume_init() };
-                    <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(Group::from(<span class="kw-2">&amp;</span><a href="#3222">grp</a>)));
+                    <span class="kw">let </span>grp = <span class="kw">unsafe </span>{ grp.assume_init() };
+                    <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(Group::from(<span class="kw-2">&amp;</span>grp)));
                 }
             } <span class="kw">else if </span>Errno::last() == Errno::ERANGE {
                 <span class="comment">// Trigger the internal buffer resizing logic.
@@ -6592,9 +6663,9 @@
     /// let res = Group::from_gid(Gid::from_raw(0)).unwrap().unwrap();
     /// assert!(res.name == &quot;root&quot;);
     /// ```
-    </span><span class="kw">pub fn </span>from_gid(gid: <a href="#130">Gid</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt;&gt; {
+    </span><span class="kw">pub fn </span>from_gid(gid: Gid) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt;&gt; {
         Group::from_anything(|grp, cbuf, cap, res| {
-            <span class="kw">unsafe </span>{ libc::getgrgid_r(<a href="#3249">gid</a>.<span class="number">0</span>, <a href="#3250">grp</a>, <a href="#3250">cbuf</a>, <a href="#3250">cap</a>, <a href="#3250">res</a>) }
+            <span class="kw">unsafe </span>{ libc::getgrgid_r(gid.<span class="number">0</span>, grp, cbuf, cap, res) }
         })
     }
 
@@ -6613,10 +6684,13 @@
     /// let res = Group::from_name(&quot;root&quot;).unwrap().unwrap();
     /// assert!(res.name == &quot;root&quot;);
     /// ```
-    </span><span class="kw">pub fn </span>from_name(name: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt;&gt; {
-        <span class="kw">let </span>name = CString::new(<a href="#3270">name</a>).unwrap();
+    </span><span class="kw">pub fn </span>from_name(name: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt;&gt; {
+        <span class="kw">let </span>name = <span class="kw">match </span>CString::new(name) {
+            <span class="prelude-val">Ok</span>(c_str) =&gt; c_str,
+            <span class="prelude-val">Err</span>(_nul_error) =&gt; <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>),
+        };
         Group::from_anything(|grp, cbuf, cap, res| {
-            <span class="kw">unsafe </span>{ libc::getgrnam_r(<a href="#3271">name</a>.as_ptr(), <a href="#3272">grp</a>, <a href="#3272">cbuf</a>, <a href="#3272">cap</a>, <a href="#3272">res</a>) }
+            <span class="kw">unsafe </span>{ libc::getgrnam_r(name.as_ptr(), grp, cbuf, cap, res) }
         })
     }
 }
@@ -6628,19 +6702,19 @@
 </span><span class="doccomment">/// Get the name of the terminal device that is open on file descriptor fd
 /// (see [`ttyname(3)`](https://man7.org/linux/man-pages/man3/ttyname.3.html)).
 </span><span class="attr">#[cfg(not(target_os = <span class="string">&quot;fuchsia&quot;</span>))]
-</span><span class="kw">pub fn </span>ttyname(fd: <a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/path/struct.PathBuf.html">PathBuf</a>&gt; {
-    <span class="kw">const </span>PATH_MAX: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> = <a href="../../libc/unix/linux_like/constant.PATH_MAX.html">libc::PATH_MAX</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>;
-    <span class="kw">let </span><span class="kw-2">mut </span>buf = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[<span class="number">0_u8</span>; PATH_MAX];
-    <span class="kw">let </span>c_buf = <a href="#3287">buf</a>.as_mut_ptr() <span class="kw">as </span><span class="kw-2">*mut </span><a href="../../libc/unix/linux_like/linux/gnu/b64/x86_64/type.c_char.html">libc::c_char</a>;
+</span><span class="kw">pub fn </span>ttyname(fd: RawFd) -&gt; <span class="prelude-ty">Result</span>&lt;PathBuf&gt; {
+    <span class="kw">const </span>PATH_MAX: usize = libc::PATH_MAX <span class="kw">as </span>usize;
+    <span class="kw">let </span><span class="kw-2">mut </span>buf = <span class="macro">vec!</span>[<span class="number">0_u8</span>; PATH_MAX];
+    <span class="kw">let </span>c_buf = buf.as_mut_ptr() <span class="kw">as </span><span class="kw-2">*mut </span>libc::c_char;
 
-    <span class="kw">let </span>ret = <span class="kw">unsafe </span>{ libc::ttyname_r(<a href="#3285">fd</a>, <a href="#3288">c_buf</a>, <a href="#3287">buf</a>.len()) };
+    <span class="kw">let </span>ret = <span class="kw">unsafe </span>{ libc::ttyname_r(fd, c_buf, buf.len()) };
     <span class="kw">if </span>ret != <span class="number">0 </span>{
-        <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::from_i32(<a href="#3290">ret</a>));
+        <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::from_i32(ret));
     }
 
-    <span class="kw">let </span>nul = <a href="#3287">buf</a>.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">position</a>(|c| <span class="kw-2">*</span><a href="#3295">c</a> == <span class="string">b&#39;\0&#39;</span>).unwrap();
-    <a href="#3287">buf</a>.truncate(<a href="#3295">nul</a>);
-    <span class="prelude-val">Ok</span>(OsString::from_vec(<a href="#3287">buf</a>).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
+    <span class="kw">let </span>nul = buf.iter().position(|c| <span class="kw-2">*</span>c == <span class="string">b&#39;\0&#39;</span>).unwrap();
+    buf.truncate(nul);
+    <span class="prelude-val">Ok</span>(OsString::from_vec(buf).into())
 }
 }
 
@@ -6691,4 +6765,4 @@
 }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="nix" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="nix" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

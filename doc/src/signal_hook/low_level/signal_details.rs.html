@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/signal-hook-0.3.14/src/low_level/signal_details.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>signal_details.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../signal_hook/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/signal-hook-0.3.14/src/low_level/signal_details.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>signal_details.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../signal_hook/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -247,16 +247,16 @@
 <a href="#247" id="247">247</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Providing auxiliary information for signals.
 
-</span><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">std::io::Error</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/mem/index.html">std::mem</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/ptr/index.html">std::ptr</a>;
+</span><span class="kw">use </span>std::io::Error;
+<span class="kw">use </span>std::mem;
+<span class="kw">use </span>std::ptr;
 
-<span class="kw">use </span>libc::{<a href="../../../libc/unix/type.c_int.html">c_int</a>, <a href="../../../libc/unix/linux_like/linux/constant.EINVAL.html">EINVAL</a>};
+<span class="kw">use </span>libc::{c_int, EINVAL};
 <span class="attr">#[cfg(not(windows))]
-</span><span class="kw">use </span>libc::{<a href="../../../libc/unix/linux_like/linux/gnu/b64/struct.sigset_t.html">sigset_t</a>, <a href="../../../libc/unix/linux_like/linux/gnu/b64/x86_64/constant.SIG_UNBLOCK.html">SIG_UNBLOCK</a>};
+</span><span class="kw">use </span>libc::{sigset_t, SIG_UNBLOCK};
 
-<span class="kw">use </span><a href="../lib.rs.html#369"><span class="kw">crate</span>::consts::signal</a>::<span class="kw-2">*</span>;
-<span class="kw">use </span><a href="../lib.rs.html#355"><span class="kw">crate</span>::low_level</a>;
+<span class="kw">use </span><span class="kw">crate</span>::consts::signal::<span class="kw-2">*</span>;
+<span class="kw">use </span><span class="kw">crate</span>::low_level;
 
 <span class="attr">#[derive(Clone, Copy, Debug)]
 </span><span class="kw">enum </span>DefaultKind {
@@ -267,9 +267,9 @@
 }
 
 <span class="kw">struct </span>Details {
-    signal: <a href="../../../libc/unix/type.c_int.html">c_int</a>,
-    name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>,
-    default_kind: <a href="#15">DefaultKind</a>,
+    signal: c_int,
+    name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
+    default_kind: DefaultKind,
 }
 
 <span class="macro">macro_rules! </span>s {
@@ -283,17 +283,17 @@
 }
 
 <span class="attr">#[cfg(not(windows))]
-</span><span class="kw">const </span>DETAILS: <span class="kw-2">&amp;</span>[<a href="#22">Details</a>] = <span class="kw-2">&amp;</span>[
-    <a class="macro" href="#28-36">s!</a>(SIGABRT, Term),
-    <a class="macro" href="#28-36">s!</a>(SIGALRM, Term),
-    <a class="macro" href="#28-36">s!</a>(SIGBUS, Term),
-    <a class="macro" href="#28-36">s!</a>(SIGCHLD, Ignore),
+</span><span class="kw">const </span>DETAILS: <span class="kw-2">&amp;</span>[Details] = <span class="kw-2">&amp;</span>[
+    <span class="macro">s!</span>(SIGABRT, Term),
+    <span class="macro">s!</span>(SIGALRM, Term),
+    <span class="macro">s!</span>(SIGBUS, Term),
+    <span class="macro">s!</span>(SIGCHLD, Ignore),
     <span class="comment">// Technically, continue the process... but this is not done *by* the process.
-    </span><a class="macro" href="#28-36">s!</a>(SIGCONT, Ignore),
-    <a class="macro" href="#28-36">s!</a>(SIGFPE, Term),
-    <a class="macro" href="#28-36">s!</a>(SIGHUP, Term),
-    <a class="macro" href="#28-36">s!</a>(SIGILL, Term),
-    <a class="macro" href="#28-36">s!</a>(SIGINT, Term),
+    </span><span class="macro">s!</span>(SIGCONT, Ignore),
+    <span class="macro">s!</span>(SIGFPE, Term),
+    <span class="macro">s!</span>(SIGHUP, Term),
+    <span class="macro">s!</span>(SIGILL, Term),
+    <span class="macro">s!</span>(SIGINT, Term),
     <span class="attr">#[cfg(any(
         target_os = <span class="string">&quot;freebsd&quot;</span>,
         target_os = <span class="string">&quot;dragonfly&quot;</span>,
@@ -303,28 +303,28 @@
     </span>))]
     </span><span class="macro">s!</span>(SIGINFO, Ignore),
     <span class="attr">#[cfg(not(target_os = <span class="string">&quot;haiku&quot;</span>))]
-    </span><a class="macro" href="#28-36">s!</a>(SIGIO, Ignore),
+    </span><span class="macro">s!</span>(SIGIO, Ignore),
     <span class="comment">// Can&#39;t override anyway, but...
-    </span><a class="macro" href="#28-36">s!</a>(SIGKILL, Term),
-    <a class="macro" href="#28-36">s!</a>(SIGPIPE, Term),
-    <a class="macro" href="#28-36">s!</a>(SIGPROF, Term),
-    <a class="macro" href="#28-36">s!</a>(SIGQUIT, Term),
-    <a class="macro" href="#28-36">s!</a>(SIGSEGV, Term),
+    </span><span class="macro">s!</span>(SIGKILL, Term),
+    <span class="macro">s!</span>(SIGPIPE, Term),
+    <span class="macro">s!</span>(SIGPROF, Term),
+    <span class="macro">s!</span>(SIGQUIT, Term),
+    <span class="macro">s!</span>(SIGSEGV, Term),
     <span class="comment">// Can&#39;t override anyway, but...
-    </span><a class="macro" href="#28-36">s!</a>(SIGSTOP, Stop),
-    <a class="macro" href="#28-36">s!</a>(SIGSYS, Term),
-    <a class="macro" href="#28-36">s!</a>(SIGTERM, Term),
-    <a class="macro" href="#28-36">s!</a>(SIGTRAP, Term),
-    <a class="macro" href="#28-36">s!</a>(SIGTSTP, Stop),
-    <a class="macro" href="#28-36">s!</a>(SIGTTIN, Stop),
-    <a class="macro" href="#28-36">s!</a>(SIGTTOU, Stop),
-    <a class="macro" href="#28-36">s!</a>(SIGURG, Ignore),
-    <a class="macro" href="#28-36">s!</a>(SIGUSR1, Term),
-    <a class="macro" href="#28-36">s!</a>(SIGUSR2, Term),
-    <a class="macro" href="#28-36">s!</a>(SIGVTALRM, Term),
-    <a class="macro" href="#28-36">s!</a>(SIGWINCH, Ignore),
-    <a class="macro" href="#28-36">s!</a>(SIGXCPU, Term),
-    <a class="macro" href="#28-36">s!</a>(SIGXFSZ, Term),
+    </span><span class="macro">s!</span>(SIGSTOP, Stop),
+    <span class="macro">s!</span>(SIGSYS, Term),
+    <span class="macro">s!</span>(SIGTERM, Term),
+    <span class="macro">s!</span>(SIGTRAP, Term),
+    <span class="macro">s!</span>(SIGTSTP, Stop),
+    <span class="macro">s!</span>(SIGTTIN, Stop),
+    <span class="macro">s!</span>(SIGTTOU, Stop),
+    <span class="macro">s!</span>(SIGURG, Ignore),
+    <span class="macro">s!</span>(SIGUSR1, Term),
+    <span class="macro">s!</span>(SIGUSR2, Term),
+    <span class="macro">s!</span>(SIGVTALRM, Term),
+    <span class="macro">s!</span>(SIGWINCH, Ignore),
+    <span class="macro">s!</span>(SIGXCPU, Term),
+    <span class="macro">s!</span>(SIGXFSZ, Term),
 ];
 
 <span class="attr">#[cfg(windows)]
@@ -349,16 +349,16 @@
 /// assert_eq!(&quot;SIGKILL&quot;, signal_name(9).unwrap());
 /// assert!(signal_name(142).is_none());
 /// ```
-</span><span class="kw">pub fn </span>signal_name(signal: <a href="../../../libc/unix/type.c_int.html">c_int</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt; {
-    <a href="#39">DETAILS</a>.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">find</a>(|d| <a href="#106">d</a>.signal == <a href="#105">signal</a>).map(|d| <a href="#106">d</a>.name)
+</span><span class="kw">pub fn </span>signal_name(signal: c_int) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str&gt; {
+    DETAILS.iter().find(|d| d.signal == signal).map(|d| d.name)
 }
 
 <span class="attr">#[cfg(not(windows))]
-</span><span class="kw">fn </span>restore_default(signal: <a href="../../../libc/unix/type.c_int.html">c_int</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">Error</a>&gt; {
+</span><span class="kw">fn </span>restore_default(signal: c_int) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
     <span class="kw">unsafe </span>{
         <span class="comment">// A C structure, supposed to be memset to 0 before use.
-        </span><span class="kw">let </span><span class="kw-2">mut </span>action: <a href="../../../libc/unix/linux_like/linux/gnu/b64/x86_64/struct.sigaction.html">libc::sigaction</a> = mem::zeroed();
-        <a href="#113">action</a>.sa_sigaction = libc::SIG_DFL <span class="kw">as _</span>;
+        </span><span class="kw">let </span><span class="kw-2">mut </span>action: libc::sigaction = mem::zeroed();
+        action.sa_sigaction = libc::SIG_DFL <span class="kw">as _</span>;
         <span class="kw">if </span>libc::sigaction(signal, <span class="kw-2">&amp;</span>action, ptr::null_mut()) == <span class="number">0 </span>{
             <span class="prelude-val">Ok</span>(())
         } <span class="kw">else </span>{
@@ -410,11 +410,11 @@
 /// exit code will specify that the application exited, not that it terminated with a signal in the
 /// first case, and `abort` terminates on `SIGABRT`, so the detected termination signal may be
 /// different).
-</span><span class="kw">pub fn </span>emulate_default_handler(signal: <a href="../../../libc/unix/type.c_int.html">c_int</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">Error</a>&gt; {
+</span><span class="kw">pub fn </span>emulate_default_handler(signal: c_int) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
     <span class="attr">#[cfg(not(windows))]
     </span>{
         <span class="kw">if </span>signal == SIGSTOP || signal == SIGKILL {
-            <span class="kw">return </span><a href="mod.rs.html#27">low_level::raise</a>(<a href="#166">signal</a>);
+            <span class="kw">return </span>low_level::raise(signal);
         }
     }
     <span class="kw">let </span>kind = DETAILS
@@ -422,16 +422,16 @@
         .find(|d| d.signal == signal)
         .map(|d| d.default_kind)
         .ok_or_else(|| Error::from_raw_os_error(EINVAL))<span class="question-mark">?</span>;
-    <span class="kw">match </span><a href="#173">kind</a> {
-        <a href="#16">DefaultKind::Ignore</a> =&gt; <span class="prelude-val">Ok</span>(()),
+    <span class="kw">match </span>kind {
+        DefaultKind::Ignore =&gt; <span class="prelude-val">Ok</span>(()),
         <span class="attr">#[cfg(not(windows))]
-        </span><a href="#18">DefaultKind::Stop</a> =&gt; <a href="mod.rs.html#27">low_level::raise</a>(<a href="../../../signal_hook/consts/signal/constant.SIGSTOP.html">SIGSTOP</a>),
-        <a href="#19">DefaultKind::Term</a> =&gt; {
-            <span class="kw">if let </span><span class="prelude-val">Ok</span>(()) = <a href="#110">restore_default</a>(<a href="#166">signal</a>) {
+        </span>DefaultKind::Stop =&gt; low_level::raise(SIGSTOP),
+        DefaultKind::Term =&gt; {
+            <span class="kw">if let </span><span class="prelude-val">Ok</span>(()) = restore_default(signal) {
                 <span class="attr">#[cfg(not(windows))]
                 </span><span class="kw">unsafe </span>{
                     <span class="attr">#[allow(deprecated)]
-                    </span><span class="kw">let </span><span class="kw-2">mut </span>newsigs: <a href="../../../libc/unix/linux_like/linux/gnu/b64/struct.sigset_t.html">sigset_t</a> = mem::zeroed();
+                    </span><span class="kw">let </span><span class="kw-2">mut </span>newsigs: sigset_t = mem::zeroed();
 
                     <span class="comment">// Some android versions don&#39;t have the sigemptyset and sigaddset.
                     // Unfortunately, we don&#39;t have an access to the android _version_. We just
@@ -457,19 +457,19 @@
                     }
 
                     <span class="attr">#[cfg(not(all(target_os = <span class="string">&quot;android&quot;</span>, target_pointer_width = <span class="string">&quot;32&quot;</span>)))]
-                    </span><span class="kw">unsafe fn </span>prepare_sigset(set: <span class="kw-2">*mut </span><a href="../../../libc/unix/linux_like/linux/gnu/b64/struct.sigset_t.html">sigset_t</a>, signal: <a href="../../../libc/unix/type.c_int.html">c_int</a>) {
-                        libc::sigemptyset(<a href="#213">set</a>);
-                        libc::sigaddset(<a href="#213">set</a>, <a href="#213">signal</a>);
+                    </span><span class="kw">unsafe fn </span>prepare_sigset(set: <span class="kw-2">*mut </span>sigset_t, signal: c_int) {
+                        libc::sigemptyset(set);
+                        libc::sigaddset(set, signal);
                     }
 
-                    <a href="#213">prepare_sigset</a>(<span class="kw-2">&amp;mut </span><a href="#187">newsigs</a>, <a href="#166">signal</a>);
+                    prepare_sigset(<span class="kw-2">&amp;mut </span>newsigs, signal);
                     <span class="comment">// Ignore the result, if it doesn&#39;t work, we try anyway
                     // Also, sigprocmask is unspecified, but available on more systems. And we want
                     // to just enable _something_. And if it doesn&#39;t work, we&#39;ll terminate
                     // anyway... It&#39;s not UB, so we are good.
-                    </span>libc::sigprocmask(<a href="../../../libc/unix/linux_like/linux/gnu/b64/x86_64/constant.SIG_UNBLOCK.html">SIG_UNBLOCK</a>, <span class="kw-2">&amp;</span><a href="#187">newsigs</a>, ptr::null_mut());
+                    </span>libc::sigprocmask(SIG_UNBLOCK, <span class="kw-2">&amp;</span>newsigs, ptr::null_mut());
                 }
-                <span class="kw">let _ </span>= <a href="mod.rs.html#27">low_level::raise</a>(<a href="#166">signal</a>);
+                <span class="kw">let _ </span>= low_level::raise(signal);
             }
             <span class="comment">// Fallback if anything failed or someone managed to put some other action in in
             // between.
@@ -493,4 +493,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="signal_hook" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="signal_hook" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

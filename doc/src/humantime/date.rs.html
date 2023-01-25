@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/humantime-2.1.0/src/date.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>date.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../humantime/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/humantime-2.1.0/src/date.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>date.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../humantime/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -621,10 +621,10 @@
 <a href="#621" id="621">621</a>
 <a href="#622" id="622">622</a>
 <a href="#623" id="623">623</a>
-</pre><pre class="rust"><code><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">std::error::Error</a> <span class="kw">as </span>StdError;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">std::fmt</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/str/index.html">std::str</a>;
-<span class="kw">use </span>std::time::{<a href="https://doc.rust-lang.org/nightly/std/time/struct.SystemTime.html">SystemTime</a>, <a href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a>, <a href="https://doc.rust-lang.org/nightly/std/time/constant.UNIX_EPOCH.html">UNIX_EPOCH</a>};
+</pre><pre class="rust"><code><span class="kw">use </span>std::error::Error <span class="kw">as </span>StdError;
+<span class="kw">use </span>std::fmt;
+<span class="kw">use </span>std::str;
+<span class="kw">use </span>std::time::{SystemTime, Duration, UNIX_EPOCH};
 
 <span class="attr">#[cfg(target_os=<span class="string">&quot;cloudabi&quot;</span>)]
 </span><span class="kw">mod </span>max {
@@ -650,9 +650,9 @@
     all(target_arch=<span class="string">&quot;wasm32&quot;</span>, not(target_os=<span class="string">&quot;emscripten&quot;</span>)),
 ))]
 </span><span class="kw">mod </span>max {
-    <span class="kw">pub const </span>SECONDS: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> = <span class="number">253_402_300_800</span>-<span class="number">1</span>;  <span class="comment">// last second of year 9999
+    <span class="kw">pub const </span>SECONDS: u64 = <span class="number">253_402_300_800</span>-<span class="number">1</span>;  <span class="comment">// last second of year 9999
     </span><span class="attr">#[allow(unused)]
-    </span><span class="kw">pub const </span>TIMESTAMP: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> = <span class="string">&quot;9999-12-31T23:59:59Z&quot;</span>;
+    </span><span class="kw">pub const </span>TIMESTAMP: <span class="kw-2">&amp;</span>str = <span class="string">&quot;9999-12-31T23:59:59Z&quot;</span>;
 }
 
 <span class="doccomment">/// Error parsing datetime (timestamp)
@@ -666,14 +666,14 @@
     </span>InvalidFormat,
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">StdError</a> <span class="kw">for </span><a href="#37">Error</a> {}
+<span class="kw">impl </span>StdError <span class="kw">for </span>Error {}
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for </span><a href="#37">Error</a> {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <span class="kw">match </span><span class="self"><a href="#49">self</a> </span>{
-            <a href="#39">Error::OutOfRange</a> =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#49">f</a>, <span class="string">&quot;numeric component is out of range&quot;</span>),
-            <a href="#41">Error::InvalidDigit</a> =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#49">f</a>, <span class="string">&quot;bad character where digit is expected&quot;</span>),
-            <a href="#43">Error::InvalidFormat</a> =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#49">f</a>, <span class="string">&quot;timestamp format is invalid&quot;</span>),
+<span class="kw">impl </span>fmt::Display <span class="kw">for </span>Error {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        <span class="kw">match </span><span class="self">self </span>{
+            Error::OutOfRange =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;numeric component is out of range&quot;</span>),
+            Error::InvalidDigit =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;bad character where digit is expected&quot;</span>),
+            Error::InvalidFormat =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;timestamp format is invalid&quot;</span>),
         }
     }
 }
@@ -689,14 +689,14 @@
 
 <span class="doccomment">/// A wrapper type that allows you to Display a SystemTime
 </span><span class="attr">#[derive(Debug, Clone)]
-</span><span class="kw">pub struct </span>Rfc3339Timestamp(<a href="https://doc.rust-lang.org/nightly/std/time/struct.SystemTime.html">SystemTime</a>, <a href="#59">Precision</a>);
+</span><span class="kw">pub struct </span>Rfc3339Timestamp(SystemTime, Precision);
 
 <span class="attr">#[inline]
-</span><span class="kw">fn </span>two_digits(b1: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>, b2: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>, <a href="#37">Error</a>&gt; {
+</span><span class="kw">fn </span>two_digits(b1: u8, b2: u8) -&gt; <span class="prelude-ty">Result</span>&lt;u64, Error&gt; {
     <span class="kw">if </span>b1 &lt; <span class="string">b&#39;0&#39; </span>|| b2 &lt; <span class="string">b&#39;0&#39; </span>|| b1 &gt; <span class="string">b&#39;9&#39; </span>|| b2 &gt; <span class="string">b&#39;9&#39; </span>{
-        <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="#41">Error::InvalidDigit</a>);
+        <span class="kw">return </span><span class="prelude-val">Err</span>(Error::InvalidDigit);
     }
-    <span class="prelude-val">Ok</span>(((<a href="#72">b1</a> - <span class="string">b&#39;0&#39;</span>)<span class="kw-2">*</span><span class="number">10 </span>+ (<a href="#72">b2</a> - <span class="string">b&#39;0&#39;</span>)) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>)
+    <span class="prelude-val">Ok</span>(((b1 - <span class="string">b&#39;0&#39;</span>)<span class="kw-2">*</span><span class="number">10 </span>+ (b2 - <span class="string">b&#39;0&#39;</span>)) <span class="kw">as </span>u64)
 }
 
 <span class="doccomment">/// Parse RFC3339 timestamp `2018-02-14T00:28:07Z`
@@ -705,15 +705,15 @@
 /// digits `2018-02-14T00:28:07.133Z`.
 ///
 /// Unsupported feature: localized timestamps. Only UTC is supported.
-</span><span class="kw">pub fn </span>parse_rfc3339(s: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/time/struct.SystemTime.html">SystemTime</a>, <a href="#37">Error</a>&gt; {
+</span><span class="kw">pub fn </span>parse_rfc3339(s: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;SystemTime, Error&gt; {
     <span class="kw">if </span>s.len() &lt; <span class="string">&quot;2018-02-14T00:28:07Z&quot;</span>.len() {
-        <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="#43">Error::InvalidFormat</a>);
+        <span class="kw">return </span><span class="prelude-val">Err</span>(Error::InvalidFormat);
     }
-    <span class="kw">let </span>b = <a href="#85">s</a>.as_bytes();
+    <span class="kw">let </span>b = s.as_bytes();
     <span class="kw">if </span>b[<span class="number">10</span>] != <span class="string">b&#39;T&#39; </span>|| b[b.len()-<span class="number">1</span>] != <span class="string">b&#39;Z&#39; </span>{
-        <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="#43">Error::InvalidFormat</a>);
+        <span class="kw">return </span><span class="prelude-val">Err</span>(Error::InvalidFormat);
     }
-    <a href="#109">parse_rfc3339_weak</a>(<a href="#85">s</a>)
+    parse_rfc3339_weak(s)
 }
 
 <span class="doccomment">/// Parse RFC3339-like timestamp `2018-02-14 00:28:07`
@@ -729,15 +729,15 @@
 ///
 /// This function is intended to use for parsing human input. Whereas
 /// `parse_rfc3339` is for strings generated programmatically.
-</span><span class="kw">pub fn </span>parse_rfc3339_weak(s: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/time/struct.SystemTime.html">SystemTime</a>, <a href="#37">Error</a>&gt; {
+</span><span class="kw">pub fn </span>parse_rfc3339_weak(s: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;SystemTime, Error&gt; {
     <span class="kw">if </span>s.len() &lt; <span class="string">&quot;2018-02-14T00:28:07&quot;</span>.len() {
-        <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="#43">Error::InvalidFormat</a>);
+        <span class="kw">return </span><span class="prelude-val">Err</span>(Error::InvalidFormat);
     }
-    <span class="kw">let </span>b = <a href="#109">s</a>.as_bytes();  <span class="comment">// for careless slicing
+    <span class="kw">let </span>b = s.as_bytes();  <span class="comment">// for careless slicing
     </span><span class="kw">if </span>b[<span class="number">4</span>] != <span class="string">b&#39;-&#39; </span>|| b[<span class="number">7</span>] != <span class="string">b&#39;-&#39; </span>|| (b[<span class="number">10</span>] != <span class="string">b&#39;T&#39; </span>&amp;&amp; b[<span class="number">10</span>] != <span class="string">b&#39; &#39;</span>) ||
        b[<span class="number">13</span>] != <span class="string">b&#39;:&#39; </span>|| b[<span class="number">16</span>] != <span class="string">b&#39;:&#39;
     </span>{
-        <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="#43">Error::InvalidFormat</a>);
+        <span class="kw">return </span><span class="prelude-val">Err</span>(Error::InvalidFormat);
     }
     <span class="kw">let </span>year = two_digits(b[<span class="number">0</span>], b[<span class="number">1</span>])<span class="question-mark">? </span>* <span class="number">100 </span>+ two_digits(b[<span class="number">2</span>], b[<span class="number">3</span>])<span class="question-mark">?</span>;
     <span class="kw">let </span>month = two_digits(b[<span class="number">5</span>], b[<span class="number">6</span>])<span class="question-mark">?</span>;
@@ -747,18 +747,18 @@
     <span class="kw">let </span><span class="kw-2">mut </span>second = two_digits(b[<span class="number">17</span>], b[<span class="number">18</span>])<span class="question-mark">?</span>;
 
     <span class="kw">if </span>year &lt; <span class="number">1970 </span>|| hour &gt; <span class="number">23 </span>|| minute &gt; <span class="number">59 </span>|| second &gt; <span class="number">60 </span>{
-        <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="#39">Error::OutOfRange</a>);
+        <span class="kw">return </span><span class="prelude-val">Err</span>(Error::OutOfRange);
     }
     <span class="comment">// TODO(tailhook) should we check that leaps second is only on midnight ?
     </span><span class="kw">if </span>second == <span class="number">60 </span>{
-        <a href="#124">second</a> = <span class="number">59
+        second = <span class="number">59
     </span>};
-    <span class="kw">let </span>leap_years = ((<a href="#119">year</a> - <span class="number">1</span>) - <span class="number">1968</span>) / <span class="number">4 </span>- ((<a href="#119">year</a> - <span class="number">1</span>) - <span class="number">1900</span>) / <span class="number">100 </span>+
-                     ((<a href="#119">year</a> - <span class="number">1</span>) - <span class="number">1600</span>) / <span class="number">400</span>;
-    <span class="kw">let </span>leap = <a href="#192">is_leap_year</a>(<a href="#119">year</a>);
-    <span class="kw">let </span>(<span class="kw-2">mut </span>ydays, mdays) = <span class="kw">match </span><a href="#120">month</a> {
+    <span class="kw">let </span>leap_years = ((year - <span class="number">1</span>) - <span class="number">1968</span>) / <span class="number">4 </span>- ((year - <span class="number">1</span>) - <span class="number">1900</span>) / <span class="number">100 </span>+
+                     ((year - <span class="number">1</span>) - <span class="number">1600</span>) / <span class="number">400</span>;
+    <span class="kw">let </span>leap = is_leap_year(year);
+    <span class="kw">let </span>(<span class="kw-2">mut </span>ydays, mdays) = <span class="kw">match </span>month {
         <span class="number">1 </span>=&gt; (<span class="number">0</span>, <span class="number">31</span>),
-        <span class="number">2 </span><span class="kw">if </span><a href="#135">leap</a> =&gt; (<span class="number">31</span>, <span class="number">29</span>),
+        <span class="number">2 </span><span class="kw">if </span>leap =&gt; (<span class="number">31</span>, <span class="number">29</span>),
         <span class="number">2 </span>=&gt; (<span class="number">31</span>, <span class="number">28</span>),
         <span class="number">3 </span>=&gt; (<span class="number">59</span>, <span class="number">31</span>),
         <span class="number">4 </span>=&gt; (<span class="number">90</span>, <span class="number">30</span>),
@@ -770,18 +770,18 @@
         <span class="number">10 </span>=&gt; (<span class="number">273</span>, <span class="number">31</span>),
         <span class="number">11 </span>=&gt; (<span class="number">304</span>, <span class="number">30</span>),
         <span class="number">12 </span>=&gt; (<span class="number">334</span>, <span class="number">31</span>),
-        <span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="#39">Error::OutOfRange</a>),
+        <span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(Error::OutOfRange),
     };
     <span class="kw">if </span>day &gt; mdays || day == <span class="number">0 </span>{
-        <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="#39">Error::OutOfRange</a>);
+        <span class="kw">return </span><span class="prelude-val">Err</span>(Error::OutOfRange);
     }
-    <a href="#136">ydays</a> += <a href="#121">day</a> - <span class="number">1</span>;
+    ydays += day - <span class="number">1</span>;
     <span class="kw">if </span>leap &amp;&amp; month &gt; <span class="number">2 </span>{
-        <a href="#136">ydays</a> += <span class="number">1</span>;
+        ydays += <span class="number">1</span>;
     }
-    <span class="kw">let </span>days = (<a href="#119">year</a> - <span class="number">1970</span>) * <span class="number">365 </span>+ <a href="#133">leap_years</a> + <a href="#136">ydays</a>;
+    <span class="kw">let </span>days = (year - <span class="number">1970</span>) * <span class="number">365 </span>+ leap_years + ydays;
 
-    <span class="kw">let </span>time = <a href="#124">second</a> + <a href="#123">minute</a> * <span class="number">60 </span>+ <a href="#122">hour</a> * <span class="number">3600</span>;
+    <span class="kw">let </span>time = second + minute * <span class="number">60 </span>+ hour * <span class="number">3600</span>;
 
     <span class="kw">let </span><span class="kw-2">mut </span>nanos = <span class="number">0</span>;
     <span class="kw">let </span><span class="kw-2">mut </span>mult = <span class="number">100_000_000</span>;
@@ -801,19 +801,19 @@
             mult /= <span class="number">10</span>;
         }
     } <span class="kw">else if </span>b.len() != <span class="number">19 </span>&amp;&amp; (b.len() &gt; <span class="number">20 </span>|| b[<span class="number">19</span>] != <span class="string">b&#39;Z&#39;</span>) {
-        <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="#43">Error::InvalidFormat</a>);
+        <span class="kw">return </span><span class="prelude-val">Err</span>(Error::InvalidFormat);
     }
 
-    <span class="kw">let </span>total_seconds = <a href="#161">time</a> + <a href="#159">days</a> * <span class="number">86400</span>;
+    <span class="kw">let </span>total_seconds = time + days * <span class="number">86400</span>;
     <span class="kw">if </span>total_seconds &gt; max::SECONDS {
-        <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="#39">Error::OutOfRange</a>);
+        <span class="kw">return </span><span class="prelude-val">Err</span>(Error::OutOfRange);
     }
 
-    <span class="prelude-val">Ok</span>(<a href="https://doc.rust-lang.org/nightly/std/time/constant.UNIX_EPOCH.html">UNIX_EPOCH</a> + Duration::new(<a href="#184">total_seconds</a>, <a href="#163">nanos</a>))
+    <span class="prelude-val">Ok</span>(UNIX_EPOCH + Duration::new(total_seconds, nanos))
 }
 
-<span class="kw">fn </span>is_leap_year(y: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-    <a href="#192">y</a> % <span class="number">4 </span>== <span class="number">0 </span>&amp;&amp; (<a href="#192">y</a> % <span class="number">100 </span>!= <span class="number">0 </span>|| <a href="#192">y</a> % <span class="number">400 </span>== <span class="number">0</span>)
+<span class="kw">fn </span>is_leap_year(y: u64) -&gt; bool {
+    y % <span class="number">4 </span>== <span class="number">0 </span>&amp;&amp; (y % <span class="number">100 </span>!= <span class="number">0 </span>|| y % <span class="number">400 </span>== <span class="number">0</span>)
 }
 
 <span class="doccomment">/// Format an RFC3339 timestamp `2018-02-14T00:28:07Z`
@@ -823,8 +823,8 @@
 /// they are.
 ///
 /// The value is always UTC and ignores system timezone.
-</span><span class="kw">pub fn </span>format_rfc3339(system_time: <a href="https://doc.rust-lang.org/nightly/std/time/struct.SystemTime.html">SystemTime</a>) -&gt; <a href="#69">Rfc3339Timestamp</a> {
-    <a href="#69">Rfc3339Timestamp</a>(<a href="#203">system_time</a>, <a href="#60">Precision::Smart</a>)
+</span><span class="kw">pub fn </span>format_rfc3339(system_time: SystemTime) -&gt; Rfc3339Timestamp {
+    Rfc3339Timestamp(system_time, Precision::Smart)
 }
 
 <span class="doccomment">/// Format an RFC3339 timestamp `2018-02-14T00:28:07Z`
@@ -832,8 +832,8 @@
 /// This format always shows timestamp without fractional seconds.
 ///
 /// The value is always UTC and ignores system timezone.
-</span><span class="kw">pub fn </span>format_rfc3339_seconds(system_time: <a href="https://doc.rust-lang.org/nightly/std/time/struct.SystemTime.html">SystemTime</a>) -&gt; <a href="#69">Rfc3339Timestamp</a> {
-    <a href="#69">Rfc3339Timestamp</a>(<a href="#212">system_time</a>, <a href="#61">Precision::Seconds</a>)
+</span><span class="kw">pub fn </span>format_rfc3339_seconds(system_time: SystemTime) -&gt; Rfc3339Timestamp {
+    Rfc3339Timestamp(system_time, Precision::Seconds)
 }
 
 <span class="doccomment">/// Format an RFC3339 timestamp `2018-02-14T00:28:07.000Z`
@@ -841,8 +841,8 @@
 /// This format always shows milliseconds even if millisecond value is zero.
 ///
 /// The value is always UTC and ignores system timezone.
-</span><span class="kw">pub fn </span>format_rfc3339_millis(system_time: <a href="https://doc.rust-lang.org/nightly/std/time/struct.SystemTime.html">SystemTime</a>) -&gt; <a href="#69">Rfc3339Timestamp</a> {
-    <a href="#69">Rfc3339Timestamp</a>(<a href="#221">system_time</a>, <a href="#62">Precision::Millis</a>)
+</span><span class="kw">pub fn </span>format_rfc3339_millis(system_time: SystemTime) -&gt; Rfc3339Timestamp {
+    Rfc3339Timestamp(system_time, Precision::Millis)
 }
 
 <span class="doccomment">/// Format an RFC3339 timestamp `2018-02-14T00:28:07.000000Z`
@@ -850,8 +850,8 @@
 /// This format always shows microseconds even if microsecond value is zero.
 ///
 /// The value is always UTC and ignores system timezone.
-</span><span class="kw">pub fn </span>format_rfc3339_micros(system_time: <a href="https://doc.rust-lang.org/nightly/std/time/struct.SystemTime.html">SystemTime</a>) -&gt; <a href="#69">Rfc3339Timestamp</a> {
-    <a href="#69">Rfc3339Timestamp</a>(<a href="#230">system_time</a>, <a href="#63">Precision::Micros</a>)
+</span><span class="kw">pub fn </span>format_rfc3339_micros(system_time: SystemTime) -&gt; Rfc3339Timestamp {
+    Rfc3339Timestamp(system_time, Precision::Micros)
 }
 
 <span class="doccomment">/// Format an RFC3339 timestamp `2018-02-14T00:28:07.000000000Z`
@@ -859,61 +859,61 @@
 /// This format always shows nanoseconds even if nanosecond value is zero.
 ///
 /// The value is always UTC and ignores system timezone.
-</span><span class="kw">pub fn </span>format_rfc3339_nanos(system_time: <a href="https://doc.rust-lang.org/nightly/std/time/struct.SystemTime.html">SystemTime</a>) -&gt; <a href="#69">Rfc3339Timestamp</a> {
-    <a href="#69">Rfc3339Timestamp</a>(<a href="#239">system_time</a>, <a href="#64">Precision::Nanos</a>)
+</span><span class="kw">pub fn </span>format_rfc3339_nanos(system_time: SystemTime) -&gt; Rfc3339Timestamp {
+    Rfc3339Timestamp(system_time, Precision::Nanos)
 }
 
-<span class="kw">impl </span><a href="#69">Rfc3339Timestamp</a> {
+<span class="kw">impl </span>Rfc3339Timestamp {
     <span class="doccomment">/// Returns a reference to the [`SystemTime`][] that is being formatted.
-    </span><span class="kw">pub fn </span>get_ref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/time/struct.SystemTime.html">SystemTime</a> {
-        <span class="kw-2">&amp;</span><a class="self" href="#245">self</a>.<span class="number">0
+    </span><span class="kw">pub fn </span>get_ref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>SystemTime {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="number">0
     </span>}
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for </span><a href="#69">Rfc3339Timestamp</a> {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <span class="kw">use </span><a href="#59"><span class="self">self</span>::Precision</a>::<span class="kw-2">*</span>;
+<span class="kw">impl </span>fmt::Display <span class="kw">for </span>Rfc3339Timestamp {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter) -&gt; fmt::Result {
+        <span class="kw">use </span><span class="self">self</span>::Precision::<span class="kw-2">*</span>;
 
-        <span class="kw">let </span>dur = <a class="self" href="#251">self</a>.<span class="number">0</span>.duration_since(<a href="https://doc.rust-lang.org/nightly/std/time/constant.UNIX_EPOCH.html">UNIX_EPOCH</a>)
+        <span class="kw">let </span>dur = <span class="self">self</span>.<span class="number">0</span>.duration_since(UNIX_EPOCH)
             .expect(<span class="string">&quot;all times should be after the epoch&quot;</span>);
-        <span class="kw">let </span>secs_since_epoch = <a href="#254">dur</a>.as_secs();
-        <span class="kw">let </span>nanos = <a href="#254">dur</a>.subsec_nanos();
+        <span class="kw">let </span>secs_since_epoch = dur.as_secs();
+        <span class="kw">let </span>nanos = dur.subsec_nanos();
 
         <span class="kw">if </span>secs_since_epoch &gt;= <span class="number">253_402_300_800 </span>{ <span class="comment">// year 9999
             </span><span class="kw">return </span><span class="prelude-val">Err</span>(fmt::Error);
         }
 
         <span class="comment">/* 2000-03-01 (mod 400 year, immediately after feb29 */
-        </span><span class="kw">const </span>LEAPOCH: <a href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a> = <span class="number">11017</span>;
-        <span class="kw">const </span>DAYS_PER_400Y: <a href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a> = <span class="number">365</span><span class="kw-2">*</span><span class="number">400 </span>+ <span class="number">97</span>;
-        <span class="kw">const </span>DAYS_PER_100Y: <a href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a> = <span class="number">365</span><span class="kw-2">*</span><span class="number">100 </span>+ <span class="number">24</span>;
-        <span class="kw">const </span>DAYS_PER_4Y: <a href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a> = <span class="number">365</span><span class="kw-2">*</span><span class="number">4 </span>+ <span class="number">1</span>;
+        </span><span class="kw">const </span>LEAPOCH: i64 = <span class="number">11017</span>;
+        <span class="kw">const </span>DAYS_PER_400Y: i64 = <span class="number">365</span><span class="kw-2">*</span><span class="number">400 </span>+ <span class="number">97</span>;
+        <span class="kw">const </span>DAYS_PER_100Y: i64 = <span class="number">365</span><span class="kw-2">*</span><span class="number">100 </span>+ <span class="number">24</span>;
+        <span class="kw">const </span>DAYS_PER_4Y: i64 = <span class="number">365</span><span class="kw-2">*</span><span class="number">4 </span>+ <span class="number">1</span>;
 
-        <span class="kw">let </span>days = (<a href="#256">secs_since_epoch</a> / <span class="number">86400</span>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a> - <a href="#264">LEAPOCH</a>;
-        <span class="kw">let </span>secs_of_day = <a href="#256">secs_since_epoch</a> % <span class="number">86400</span>;
+        <span class="kw">let </span>days = (secs_since_epoch / <span class="number">86400</span>) <span class="kw">as </span>i64 - LEAPOCH;
+        <span class="kw">let </span>secs_of_day = secs_since_epoch % <span class="number">86400</span>;
 
-        <span class="kw">let </span><span class="kw-2">mut </span>qc_cycles = <a href="#269">days</a> / <a href="#265">DAYS_PER_400Y</a>;
-        <span class="kw">let </span><span class="kw-2">mut </span>remdays = <a href="#269">days</a> % <a href="#265">DAYS_PER_400Y</a>;
+        <span class="kw">let </span><span class="kw-2">mut </span>qc_cycles = days / DAYS_PER_400Y;
+        <span class="kw">let </span><span class="kw-2">mut </span>remdays = days % DAYS_PER_400Y;
 
         <span class="kw">if </span>remdays &lt; <span class="number">0 </span>{
-            <a href="#273">remdays</a> += <a href="#265">DAYS_PER_400Y</a>;
-            <a href="#272">qc_cycles</a> -= <span class="number">1</span>;
+            remdays += DAYS_PER_400Y;
+            qc_cycles -= <span class="number">1</span>;
         }
 
-        <span class="kw">let </span><span class="kw-2">mut </span>c_cycles = <a href="#273">remdays</a> / <a href="#266">DAYS_PER_100Y</a>;
-        <span class="kw">if </span>c_cycles == <span class="number">4 </span>{ <a href="#280">c_cycles</a> -= <span class="number">1</span>; }
-        <a href="#273">remdays</a> -= <a href="#280">c_cycles</a> * <a href="#266">DAYS_PER_100Y</a>;
+        <span class="kw">let </span><span class="kw-2">mut </span>c_cycles = remdays / DAYS_PER_100Y;
+        <span class="kw">if </span>c_cycles == <span class="number">4 </span>{ c_cycles -= <span class="number">1</span>; }
+        remdays -= c_cycles * DAYS_PER_100Y;
 
-        <span class="kw">let </span><span class="kw-2">mut </span>q_cycles = <a href="#273">remdays</a> / <a href="#267">DAYS_PER_4Y</a>;
-        <span class="kw">if </span>q_cycles == <span class="number">25 </span>{ <a href="#284">q_cycles</a> -= <span class="number">1</span>; }
-        <a href="#273">remdays</a> -= <a href="#284">q_cycles</a> * <a href="#267">DAYS_PER_4Y</a>;
+        <span class="kw">let </span><span class="kw-2">mut </span>q_cycles = remdays / DAYS_PER_4Y;
+        <span class="kw">if </span>q_cycles == <span class="number">25 </span>{ q_cycles -= <span class="number">1</span>; }
+        remdays -= q_cycles * DAYS_PER_4Y;
 
-        <span class="kw">let </span><span class="kw-2">mut </span>remyears = <a href="#273">remdays</a> / <span class="number">365</span>;
-        <span class="kw">if </span>remyears == <span class="number">4 </span>{ <a href="#288">remyears</a> -= <span class="number">1</span>; }
-        <a href="#273">remdays</a> -= <a href="#288">remyears</a> * <span class="number">365</span>;
+        <span class="kw">let </span><span class="kw-2">mut </span>remyears = remdays / <span class="number">365</span>;
+        <span class="kw">if </span>remyears == <span class="number">4 </span>{ remyears -= <span class="number">1</span>; }
+        remdays -= remyears * <span class="number">365</span>;
 
         <span class="kw">let </span><span class="kw-2">mut </span>year = <span class="number">2000 </span>+
-            <a href="#288">remyears</a> + <span class="number">4</span><span class="kw-2">*</span><a href="#284">q_cycles</a> + <span class="number">100</span><span class="kw-2">*</span><a href="#280">c_cycles</a> + <span class="number">400</span><span class="kw-2">*</span><a href="#272">qc_cycles</a>;
+            remyears + <span class="number">4</span><span class="kw-2">*</span>q_cycles + <span class="number">100</span><span class="kw-2">*</span>c_cycles + <span class="number">400</span><span class="kw-2">*</span>qc_cycles;
 
         <span class="kw">let </span>months = [<span class="number">31</span>,<span class="number">30</span>,<span class="number">31</span>,<span class="number">30</span>,<span class="number">31</span>,<span class="number">31</span>,<span class="number">30</span>,<span class="number">31</span>,<span class="number">30</span>,<span class="number">31</span>,<span class="number">31</span>,<span class="number">29</span>];
         <span class="kw">let </span><span class="kw-2">mut </span>mon = <span class="number">0</span>;
@@ -924,69 +924,69 @@
             }
             remdays -= <span class="kw-2">*</span>mon_len;
         }
-        <span class="kw">let </span>mday = <a href="#273">remdays</a>+<span class="number">1</span>;
+        <span class="kw">let </span>mday = remdays+<span class="number">1</span>;
         <span class="kw">let </span>mon = <span class="kw">if </span>mon + <span class="number">2 </span>&gt; <span class="number">12 </span>{
-            <a href="#292">year</a> += <span class="number">1</span>;
-            <a href="#296">mon</a> - <span class="number">10
+            year += <span class="number">1</span>;
+            mon - <span class="number">10
         </span>} <span class="kw">else </span>{
-            <a href="#296">mon</a> + <span class="number">2
+            mon + <span class="number">2
         </span>};
 
-        <span class="kw">let </span><span class="kw-2">mut </span>buf: [<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="number">30</span>] = [
+        <span class="kw">let </span><span class="kw-2">mut </span>buf: [u8; <span class="number">30</span>] = [
             <span class="comment">// Too long to write as: b&quot;0000-00-00T00:00:00.000000000Z&quot;
             </span><span class="string">b&#39;0&#39;</span>, <span class="string">b&#39;0&#39;</span>, <span class="string">b&#39;0&#39;</span>, <span class="string">b&#39;0&#39;</span>, <span class="string">b&#39;-&#39;</span>, <span class="string">b&#39;0&#39;</span>, <span class="string">b&#39;0&#39;</span>, <span class="string">b&#39;-&#39;</span>, <span class="string">b&#39;0&#39;</span>, <span class="string">b&#39;0&#39;</span>, <span class="string">b&#39;T&#39;</span>,
             <span class="string">b&#39;0&#39;</span>, <span class="string">b&#39;0&#39;</span>, <span class="string">b&#39;:&#39;</span>, <span class="string">b&#39;0&#39;</span>, <span class="string">b&#39;0&#39;</span>, <span class="string">b&#39;:&#39;</span>, <span class="string">b&#39;0&#39;</span>, <span class="string">b&#39;0&#39;</span>,
             <span class="string">b&#39;.&#39;</span>, <span class="string">b&#39;0&#39;</span>, <span class="string">b&#39;0&#39;</span>, <span class="string">b&#39;0&#39;</span>, <span class="string">b&#39;0&#39;</span>, <span class="string">b&#39;0&#39;</span>, <span class="string">b&#39;0&#39;</span>, <span class="string">b&#39;0&#39;</span>, <span class="string">b&#39;0&#39;</span>, <span class="string">b&#39;0&#39;</span>, <span class="string">b&#39;Z&#39;</span>,
         ];
-        <a href="#312">buf</a>[<span class="number">0</span>] = <span class="string">b&#39;0&#39; </span>+ (<a href="#292">year</a> / <span class="number">1000</span>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>;
-        <a href="#312">buf</a>[<span class="number">1</span>] = <span class="string">b&#39;0&#39; </span>+ (<a href="#292">year</a> / <span class="number">100 </span>% <span class="number">10</span>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>;
-        <a href="#312">buf</a>[<span class="number">2</span>] = <span class="string">b&#39;0&#39; </span>+ (<a href="#292">year</a> / <span class="number">10 </span>% <span class="number">10</span>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>;
-        <a href="#312">buf</a>[<span class="number">3</span>] = <span class="string">b&#39;0&#39; </span>+ (<a href="#292">year</a> % <span class="number">10</span>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>;
-        <a href="#312">buf</a>[<span class="number">5</span>] = <span class="string">b&#39;0&#39; </span>+ (<a href="#305">mon</a> / <span class="number">10</span>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>;
-        <a href="#312">buf</a>[<span class="number">6</span>] = <span class="string">b&#39;0&#39; </span>+ (<a href="#305">mon</a> % <span class="number">10</span>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>;
-        <a href="#312">buf</a>[<span class="number">8</span>] = <span class="string">b&#39;0&#39; </span>+ (<a href="#304">mday</a> / <span class="number">10</span>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>;
-        <a href="#312">buf</a>[<span class="number">9</span>] = <span class="string">b&#39;0&#39; </span>+ (<a href="#304">mday</a> % <span class="number">10</span>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>;
-        <a href="#312">buf</a>[<span class="number">11</span>] = <span class="string">b&#39;0&#39; </span>+ (<a href="#270">secs_of_day</a> / <span class="number">3600 </span>/ <span class="number">10</span>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>;
-        <a href="#312">buf</a>[<span class="number">12</span>] = <span class="string">b&#39;0&#39; </span>+ (<a href="#270">secs_of_day</a> / <span class="number">3600 </span>% <span class="number">10</span>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>;
-        <a href="#312">buf</a>[<span class="number">14</span>] = <span class="string">b&#39;0&#39; </span>+ (<a href="#270">secs_of_day</a> / <span class="number">60 </span>/ <span class="number">10 </span>% <span class="number">6</span>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>;
-        <a href="#312">buf</a>[<span class="number">15</span>] = <span class="string">b&#39;0&#39; </span>+ (<a href="#270">secs_of_day</a> / <span class="number">60 </span>% <span class="number">10</span>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>;
-        <a href="#312">buf</a>[<span class="number">17</span>] = <span class="string">b&#39;0&#39; </span>+ (<a href="#270">secs_of_day</a> / <span class="number">10 </span>% <span class="number">6</span>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>;
-        <a href="#312">buf</a>[<span class="number">18</span>] = <span class="string">b&#39;0&#39; </span>+ (<a href="#270">secs_of_day</a> % <span class="number">10</span>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>;
+        buf[<span class="number">0</span>] = <span class="string">b&#39;0&#39; </span>+ (year / <span class="number">1000</span>) <span class="kw">as </span>u8;
+        buf[<span class="number">1</span>] = <span class="string">b&#39;0&#39; </span>+ (year / <span class="number">100 </span>% <span class="number">10</span>) <span class="kw">as </span>u8;
+        buf[<span class="number">2</span>] = <span class="string">b&#39;0&#39; </span>+ (year / <span class="number">10 </span>% <span class="number">10</span>) <span class="kw">as </span>u8;
+        buf[<span class="number">3</span>] = <span class="string">b&#39;0&#39; </span>+ (year % <span class="number">10</span>) <span class="kw">as </span>u8;
+        buf[<span class="number">5</span>] = <span class="string">b&#39;0&#39; </span>+ (mon / <span class="number">10</span>) <span class="kw">as </span>u8;
+        buf[<span class="number">6</span>] = <span class="string">b&#39;0&#39; </span>+ (mon % <span class="number">10</span>) <span class="kw">as </span>u8;
+        buf[<span class="number">8</span>] = <span class="string">b&#39;0&#39; </span>+ (mday / <span class="number">10</span>) <span class="kw">as </span>u8;
+        buf[<span class="number">9</span>] = <span class="string">b&#39;0&#39; </span>+ (mday % <span class="number">10</span>) <span class="kw">as </span>u8;
+        buf[<span class="number">11</span>] = <span class="string">b&#39;0&#39; </span>+ (secs_of_day / <span class="number">3600 </span>/ <span class="number">10</span>) <span class="kw">as </span>u8;
+        buf[<span class="number">12</span>] = <span class="string">b&#39;0&#39; </span>+ (secs_of_day / <span class="number">3600 </span>% <span class="number">10</span>) <span class="kw">as </span>u8;
+        buf[<span class="number">14</span>] = <span class="string">b&#39;0&#39; </span>+ (secs_of_day / <span class="number">60 </span>/ <span class="number">10 </span>% <span class="number">6</span>) <span class="kw">as </span>u8;
+        buf[<span class="number">15</span>] = <span class="string">b&#39;0&#39; </span>+ (secs_of_day / <span class="number">60 </span>% <span class="number">10</span>) <span class="kw">as </span>u8;
+        buf[<span class="number">17</span>] = <span class="string">b&#39;0&#39; </span>+ (secs_of_day / <span class="number">10 </span>% <span class="number">6</span>) <span class="kw">as </span>u8;
+        buf[<span class="number">18</span>] = <span class="string">b&#39;0&#39; </span>+ (secs_of_day % <span class="number">10</span>) <span class="kw">as </span>u8;
 
         <span class="kw">let </span>offset = <span class="kw">if </span><span class="self">self</span>.<span class="number">1 </span>== Seconds || nanos == <span class="number">0 </span>&amp;&amp; <span class="self">self</span>.<span class="number">1 </span>== Smart {
-            <a href="#312">buf</a>[<span class="number">19</span>] = <span class="string">b&#39;Z&#39;</span>;
+            buf[<span class="number">19</span>] = <span class="string">b&#39;Z&#39;</span>;
             <span class="number">19
         </span>} <span class="kw">else if </span><span class="self">self</span>.<span class="number">1 </span>== Millis {
-            <a href="#312">buf</a>[<span class="number">20</span>] = <span class="string">b&#39;0&#39; </span>+ (<a href="#257">nanos</a> / <span class="number">100_000_000</span>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>;
-            <a href="#312">buf</a>[<span class="number">21</span>] = <span class="string">b&#39;0&#39; </span>+ (<a href="#257">nanos</a> / <span class="number">10_000_000 </span>% <span class="number">10</span>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>;
-            <a href="#312">buf</a>[<span class="number">22</span>] = <span class="string">b&#39;0&#39; </span>+ (<a href="#257">nanos</a> / <span class="number">1_000_000 </span>% <span class="number">10</span>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>;
-            <a href="#312">buf</a>[<span class="number">23</span>] = <span class="string">b&#39;Z&#39;</span>;
+            buf[<span class="number">20</span>] = <span class="string">b&#39;0&#39; </span>+ (nanos / <span class="number">100_000_000</span>) <span class="kw">as </span>u8;
+            buf[<span class="number">21</span>] = <span class="string">b&#39;0&#39; </span>+ (nanos / <span class="number">10_000_000 </span>% <span class="number">10</span>) <span class="kw">as </span>u8;
+            buf[<span class="number">22</span>] = <span class="string">b&#39;0&#39; </span>+ (nanos / <span class="number">1_000_000 </span>% <span class="number">10</span>) <span class="kw">as </span>u8;
+            buf[<span class="number">23</span>] = <span class="string">b&#39;Z&#39;</span>;
             <span class="number">23
         </span>} <span class="kw">else if </span><span class="self">self</span>.<span class="number">1 </span>== Micros {
-            <a href="#312">buf</a>[<span class="number">20</span>] = <span class="string">b&#39;0&#39; </span>+ (<a href="#257">nanos</a> / <span class="number">100_000_000</span>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>;
-            <a href="#312">buf</a>[<span class="number">21</span>] = <span class="string">b&#39;0&#39; </span>+ (<a href="#257">nanos</a> / <span class="number">10_000_000 </span>% <span class="number">10</span>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>;
-            <a href="#312">buf</a>[<span class="number">22</span>] = <span class="string">b&#39;0&#39; </span>+ (<a href="#257">nanos</a> / <span class="number">1_000_000 </span>% <span class="number">10</span>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>;
-            <a href="#312">buf</a>[<span class="number">23</span>] = <span class="string">b&#39;0&#39; </span>+ (<a href="#257">nanos</a> / <span class="number">100_000 </span>% <span class="number">10</span>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>;
-            <a href="#312">buf</a>[<span class="number">24</span>] = <span class="string">b&#39;0&#39; </span>+ (<a href="#257">nanos</a> / <span class="number">10_000 </span>% <span class="number">10</span>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>;
-            <a href="#312">buf</a>[<span class="number">25</span>] = <span class="string">b&#39;0&#39; </span>+ (<a href="#257">nanos</a> / <span class="number">1_000 </span>% <span class="number">10</span>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>;
-            <a href="#312">buf</a>[<span class="number">26</span>] = <span class="string">b&#39;Z&#39;</span>;
+            buf[<span class="number">20</span>] = <span class="string">b&#39;0&#39; </span>+ (nanos / <span class="number">100_000_000</span>) <span class="kw">as </span>u8;
+            buf[<span class="number">21</span>] = <span class="string">b&#39;0&#39; </span>+ (nanos / <span class="number">10_000_000 </span>% <span class="number">10</span>) <span class="kw">as </span>u8;
+            buf[<span class="number">22</span>] = <span class="string">b&#39;0&#39; </span>+ (nanos / <span class="number">1_000_000 </span>% <span class="number">10</span>) <span class="kw">as </span>u8;
+            buf[<span class="number">23</span>] = <span class="string">b&#39;0&#39; </span>+ (nanos / <span class="number">100_000 </span>% <span class="number">10</span>) <span class="kw">as </span>u8;
+            buf[<span class="number">24</span>] = <span class="string">b&#39;0&#39; </span>+ (nanos / <span class="number">10_000 </span>% <span class="number">10</span>) <span class="kw">as </span>u8;
+            buf[<span class="number">25</span>] = <span class="string">b&#39;0&#39; </span>+ (nanos / <span class="number">1_000 </span>% <span class="number">10</span>) <span class="kw">as </span>u8;
+            buf[<span class="number">26</span>] = <span class="string">b&#39;Z&#39;</span>;
             <span class="number">26
         </span>} <span class="kw">else </span>{
-            <a href="#312">buf</a>[<span class="number">20</span>] = <span class="string">b&#39;0&#39; </span>+ (<a href="#257">nanos</a> / <span class="number">100_000_000</span>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>;
-            <a href="#312">buf</a>[<span class="number">21</span>] = <span class="string">b&#39;0&#39; </span>+ (<a href="#257">nanos</a> / <span class="number">10_000_000 </span>% <span class="number">10</span>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>;
-            <a href="#312">buf</a>[<span class="number">22</span>] = <span class="string">b&#39;0&#39; </span>+ (<a href="#257">nanos</a> / <span class="number">1_000_000 </span>% <span class="number">10</span>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>;
-            <a href="#312">buf</a>[<span class="number">23</span>] = <span class="string">b&#39;0&#39; </span>+ (<a href="#257">nanos</a> / <span class="number">100_000 </span>% <span class="number">10</span>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>;
-            <a href="#312">buf</a>[<span class="number">24</span>] = <span class="string">b&#39;0&#39; </span>+ (<a href="#257">nanos</a> / <span class="number">10_000 </span>% <span class="number">10</span>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>;
-            <a href="#312">buf</a>[<span class="number">25</span>] = <span class="string">b&#39;0&#39; </span>+ (<a href="#257">nanos</a> / <span class="number">1_000 </span>% <span class="number">10</span>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>;
-            <a href="#312">buf</a>[<span class="number">26</span>] = <span class="string">b&#39;0&#39; </span>+ (<a href="#257">nanos</a> / <span class="number">100 </span>% <span class="number">10</span>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>;
-            <a href="#312">buf</a>[<span class="number">27</span>] = <span class="string">b&#39;0&#39; </span>+ (<a href="#257">nanos</a> / <span class="number">10 </span>% <span class="number">10</span>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>;
-            <a href="#312">buf</a>[<span class="number">28</span>] = <span class="string">b&#39;0&#39; </span>+ (<a href="#257">nanos</a> / <span class="number">1 </span>% <span class="number">10</span>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>;
+            buf[<span class="number">20</span>] = <span class="string">b&#39;0&#39; </span>+ (nanos / <span class="number">100_000_000</span>) <span class="kw">as </span>u8;
+            buf[<span class="number">21</span>] = <span class="string">b&#39;0&#39; </span>+ (nanos / <span class="number">10_000_000 </span>% <span class="number">10</span>) <span class="kw">as </span>u8;
+            buf[<span class="number">22</span>] = <span class="string">b&#39;0&#39; </span>+ (nanos / <span class="number">1_000_000 </span>% <span class="number">10</span>) <span class="kw">as </span>u8;
+            buf[<span class="number">23</span>] = <span class="string">b&#39;0&#39; </span>+ (nanos / <span class="number">100_000 </span>% <span class="number">10</span>) <span class="kw">as </span>u8;
+            buf[<span class="number">24</span>] = <span class="string">b&#39;0&#39; </span>+ (nanos / <span class="number">10_000 </span>% <span class="number">10</span>) <span class="kw">as </span>u8;
+            buf[<span class="number">25</span>] = <span class="string">b&#39;0&#39; </span>+ (nanos / <span class="number">1_000 </span>% <span class="number">10</span>) <span class="kw">as </span>u8;
+            buf[<span class="number">26</span>] = <span class="string">b&#39;0&#39; </span>+ (nanos / <span class="number">100 </span>% <span class="number">10</span>) <span class="kw">as </span>u8;
+            buf[<span class="number">27</span>] = <span class="string">b&#39;0&#39; </span>+ (nanos / <span class="number">10 </span>% <span class="number">10</span>) <span class="kw">as </span>u8;
+            buf[<span class="number">28</span>] = <span class="string">b&#39;0&#39; </span>+ (nanos / <span class="number">1 </span>% <span class="number">10</span>) <span class="kw">as </span>u8;
             <span class="comment">// 29th is &#39;Z&#39;
             </span><span class="number">29
         </span>};
 
         <span class="comment">// we know our chars are all ascii
-        </span><a href="#251">f</a>.write_str(<a href="https://doc.rust-lang.org/nightly/core/str/converts/fn.from_utf8.html">str::from_utf8</a>(<span class="kw-2">&amp;</span><a href="#312">buf</a>[..=<a href="#333">offset</a>]).expect(<span class="string">&quot;Conversion to utf8 failed&quot;</span>))
+        </span>f.write_str(str::from_utf8(<span class="kw-2">&amp;</span>buf[..=offset]).expect(<span class="string">&quot;Conversion to utf8 failed&quot;</span>))
     }
 }
 
@@ -1245,4 +1245,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="humantime" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="humantime" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

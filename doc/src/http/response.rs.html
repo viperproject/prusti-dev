@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/http-0.2.8/src/response.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>response.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../http/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/http-0.2.8/src/response.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>response.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../http/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -860,14 +860,14 @@
 //! // ...
 //! ```
 
-</span><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/any/trait.Any.html">std::any::Any</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/convert/trait.TryFrom.html">std::convert::TryFrom</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">std::fmt</a>;
+</span><span class="kw">use </span>std::any::Any;
+<span class="kw">use </span>std::convert::TryFrom;
+<span class="kw">use </span>std::fmt;
 
-<span class="kw">use </span><span class="kw">crate</span>::header::{<a href="header/map.rs.html#45">HeaderMap</a>, <a href="header/name.rs.html#33">HeaderName</a>, <a href="header/value.rs.html#21">HeaderValue</a>};
-<span class="kw">use </span><a href="status.rs.html#45"><span class="kw">crate</span>::status::StatusCode</a>;
-<span class="kw">use </span><a href="version.rs.html#26"><span class="kw">crate</span>::version::Version</a>;
-<span class="kw">use crate</span>::{<a href="extensions.rs.html#35">Extensions</a>, <span class="prelude-ty">Result</span>};
+<span class="kw">use </span><span class="kw">crate</span>::header::{HeaderMap, HeaderName, HeaderValue};
+<span class="kw">use </span><span class="kw">crate</span>::status::StatusCode;
+<span class="kw">use </span><span class="kw">crate</span>::version::Version;
+<span class="kw">use crate</span>::{Extensions, <span class="prelude-ty">Result</span>};
 
 <span class="doccomment">/// Represents an HTTP response
 ///
@@ -976,7 +976,7 @@
 /// # fn main() {}
 /// ```
 </span><span class="kw">pub struct </span>Response&lt;T&gt; {
-    head: <a href="#188">Parts</a>,
+    head: Parts,
     body: T,
 }
 
@@ -986,16 +986,16 @@
 /// header fields.
 </span><span class="kw">pub struct </span>Parts {
     <span class="doccomment">/// The response&#39;s status
-    </span><span class="kw">pub </span>status: <a href="status.rs.html#45">StatusCode</a>,
+    </span><span class="kw">pub </span>status: StatusCode,
 
     <span class="doccomment">/// The response&#39;s version
-    </span><span class="kw">pub </span>version: <a href="version.rs.html#26">Version</a>,
+    </span><span class="kw">pub </span>version: Version,
 
     <span class="doccomment">/// The response&#39;s headers
-    </span><span class="kw">pub </span>headers: HeaderMap&lt;<a href="header/value.rs.html#21">HeaderValue</a>&gt;,
+    </span><span class="kw">pub </span>headers: HeaderMap&lt;HeaderValue&gt;,
 
     <span class="doccomment">/// The response&#39;s extensions
-    </span><span class="kw">pub </span>extensions: <a href="extensions.rs.html#35">Extensions</a>,
+    </span><span class="kw">pub </span>extensions: Extensions,
 
     _priv: (),
 }
@@ -1006,7 +1006,7 @@
 /// builder-like pattern.
 </span><span class="attr">#[derive(Debug)]
 </span><span class="kw">pub struct </span>Builder {
-    inner: <span class="prelude-ty">Result</span>&lt;<a href="#188">Parts</a>&gt;,
+    inner: <span class="prelude-ty">Result</span>&lt;Parts&gt;,
 }
 
 <span class="kw">impl </span>Response&lt;()&gt; {
@@ -1026,7 +1026,7 @@
     ///     .unwrap();
     /// ```
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>builder() -&gt; <a href="#209">Builder</a> {
+    </span><span class="kw">pub fn </span>builder() -&gt; Builder {
         Builder::new()
     }
 }
@@ -1048,9 +1048,9 @@
     /// ```
     </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>new(body: T) -&gt; Response&lt;T&gt; {
-        <a href="#179">Response</a> {
+        Response {
             head: Parts::new(),
-            body: <a href="#251">body</a>,
+            body: body,
         }
     }
 
@@ -1070,10 +1070,10 @@
     /// assert_eq!(*response.body(), &quot;hello world&quot;);
     /// ```
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>from_parts(parts: <a href="#188">Parts</a>, body: T) -&gt; Response&lt;T&gt; {
-        <a href="#179">Response</a> {
-            head: <a href="#274">parts</a>,
-            body: <a href="#274">body</a>,
+    </span><span class="kw">pub fn </span>from_parts(parts: Parts, body: T) -&gt; Response&lt;T&gt; {
+        Response {
+            head: parts,
+            body: body,
         }
     }
 
@@ -1087,8 +1087,8 @@
     /// assert_eq!(response.status(), StatusCode::OK);
     /// ```
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>status(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="status.rs.html#45">StatusCode</a> {
-        <a class="self" href="#291">self</a>.head.status
+    </span><span class="kw">pub fn </span>status(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; StatusCode {
+        <span class="self">self</span>.head.status
     }
 
     <span class="doccomment">/// Returns a mutable reference to the associated `StatusCode`.
@@ -1102,8 +1102,8 @@
     /// assert_eq!(response.status(), StatusCode::CREATED);
     /// ```
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>status_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span><a href="status.rs.html#45">StatusCode</a> {
-        <span class="kw-2">&amp;mut </span><a class="self" href="#306">self</a>.head.status
+    </span><span class="kw">pub fn </span>status_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>StatusCode {
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>.head.status
     }
 
     <span class="doccomment">/// Returns a reference to the associated version.
@@ -1116,8 +1116,8 @@
     /// assert_eq!(response.version(), Version::HTTP_11);
     /// ```
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>version(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="version.rs.html#26">Version</a> {
-        <a class="self" href="#320">self</a>.head.version
+    </span><span class="kw">pub fn </span>version(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Version {
+        <span class="self">self</span>.head.version
     }
 
     <span class="doccomment">/// Returns a mutable reference to the associated version.
@@ -1131,8 +1131,8 @@
     /// assert_eq!(response.version(), Version::HTTP_2);
     /// ```
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>version_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span><a href="version.rs.html#26">Version</a> {
-        <span class="kw-2">&amp;mut </span><a class="self" href="#335">self</a>.head.version
+    </span><span class="kw">pub fn </span>version_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>Version {
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>.head.version
     }
 
     <span class="doccomment">/// Returns a reference to the associated header field map.
@@ -1145,8 +1145,8 @@
     /// assert!(response.headers().is_empty());
     /// ```
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>headers(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>HeaderMap&lt;<a href="header/value.rs.html#21">HeaderValue</a>&gt; {
-        <span class="kw-2">&amp;</span><a class="self" href="#349">self</a>.head.headers
+    </span><span class="kw">pub fn </span>headers(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>HeaderMap&lt;HeaderValue&gt; {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.head.headers
     }
 
     <span class="doccomment">/// Returns a mutable reference to the associated header field map.
@@ -1161,8 +1161,8 @@
     /// assert!(!response.headers().is_empty());
     /// ```
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>headers_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>HeaderMap&lt;<a href="header/value.rs.html#21">HeaderValue</a>&gt; {
-        <span class="kw-2">&amp;mut </span><a class="self" href="#365">self</a>.head.headers
+    </span><span class="kw">pub fn </span>headers_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>HeaderMap&lt;HeaderValue&gt; {
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>.head.headers
     }
 
     <span class="doccomment">/// Returns a reference to the associated extensions.
@@ -1175,8 +1175,8 @@
     /// assert!(response.extensions().get::&lt;i32&gt;().is_none());
     /// ```
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>extensions(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="extensions.rs.html#35">Extensions</a> {
-        <span class="kw-2">&amp;</span><a class="self" href="#379">self</a>.head.extensions
+    </span><span class="kw">pub fn </span>extensions(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Extensions {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.head.extensions
     }
 
     <span class="doccomment">/// Returns a mutable reference to the associated extensions.
@@ -1191,8 +1191,8 @@
     /// assert_eq!(response.extensions().get(), Some(&amp;&quot;hello&quot;));
     /// ```
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>extensions_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span><a href="extensions.rs.html#35">Extensions</a> {
-        <span class="kw-2">&amp;mut </span><a class="self" href="#395">self</a>.head.extensions
+    </span><span class="kw">pub fn </span>extensions_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>Extensions {
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>.head.extensions
     }
 
     <span class="doccomment">/// Returns a reference to the associated HTTP body.
@@ -1206,7 +1206,7 @@
     /// ```
     </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>body(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>T {
-        <span class="kw-2">&amp;</span><a class="self" href="#409">self</a>.body
+        <span class="kw-2">&amp;</span><span class="self">self</span>.body
     }
 
     <span class="doccomment">/// Returns a mutable reference to the associated HTTP body.
@@ -1221,7 +1221,7 @@
     /// ```
     </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>body_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>T {
-        <span class="kw-2">&amp;mut </span><a class="self" href="#424">self</a>.body
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>.body
     }
 
     <span class="doccomment">/// Consumes the response, returning just the body.
@@ -1236,7 +1236,7 @@
     /// ```
     </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>into_body(<span class="self">self</span>) -&gt; T {
-        <a class="self" href="#439">self</a>.body
+        <span class="self">self</span>.body
     }
 
     <span class="doccomment">/// Consumes the response returning the head and body parts.
@@ -1250,8 +1250,8 @@
     /// assert_eq!(parts.status, StatusCode::OK);
     /// ```
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>into_parts(<span class="self">self</span>) -&gt; (<a href="#188">Parts</a>, T) {
-        (<a class="self" href="#454">self</a>.head, <a class="self" href="#454">self</a>.body)
+    </span><span class="kw">pub fn </span>into_parts(<span class="self">self</span>) -&gt; (Parts, T) {
+        (<span class="self">self</span>.head, <span class="self">self</span>.body)
     }
 
     <span class="doccomment">/// Consumes the response returning a new response with body mapped to the
@@ -1273,36 +1273,36 @@
     <span class="kw">where
         </span>F: FnOnce(T) -&gt; U,
     {
-        <a href="#179">Response</a> {
-            body: <a href="#473">f</a>(<a class="self" href="#473">self</a>.body),
-            head: <a class="self" href="#473">self</a>.head,
+        Response {
+            body: f(<span class="self">self</span>.body),
+            head: <span class="self">self</span>.head,
         }
     }
 }
 
-<span class="kw">impl</span>&lt;T: <a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for </span>Response&lt;T&gt; {
+<span class="kw">impl</span>&lt;T: Default&gt; Default <span class="kw">for </span>Response&lt;T&gt; {
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>default() -&gt; Response&lt;T&gt; {
         Response::new(T::default())
     }
 }
 
-<span class="kw">impl</span>&lt;T: <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span>Response&lt;T&gt; {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a href="#492">f</a>.debug_struct(<span class="string">&quot;Response&quot;</span>)
-            .field(<span class="string">&quot;status&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="#492">self</a>.<a href="#291">status</a>())
-            .field(<span class="string">&quot;version&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="#492">self</a>.<a href="#320">version</a>())
-            .field(<span class="string">&quot;headers&quot;</span>, <a class="self" href="#492">self</a>.<a href="#349">headers</a>())
+<span class="kw">impl</span>&lt;T: fmt::Debug&gt; fmt::Debug <span class="kw">for </span>Response&lt;T&gt; {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        f.debug_struct(<span class="string">&quot;Response&quot;</span>)
+            .field(<span class="string">&quot;status&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.status())
+            .field(<span class="string">&quot;version&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.version())
+            .field(<span class="string">&quot;headers&quot;</span>, <span class="self">self</span>.headers())
             <span class="comment">// omits Extensions because not useful
-            </span>.field(<span class="string">&quot;body&quot;</span>, <a class="self" href="#492">self</a>.<a href="#409">body</a>())
+            </span>.field(<span class="string">&quot;body&quot;</span>, <span class="self">self</span>.body())
             .finish()
     }
 }
 
-<span class="kw">impl </span><a href="#188">Parts</a> {
+<span class="kw">impl </span>Parts {
     <span class="doccomment">/// Creates a new default instance of `Parts`
-    </span><span class="kw">fn </span>new() -&gt; <a href="#188">Parts</a> {
-        <a href="#188">Parts</a> {
+    </span><span class="kw">fn </span>new() -&gt; Parts {
+        Parts {
             status: StatusCode::default(),
             version: Version::default(),
             headers: HeaderMap::default(),
@@ -1312,19 +1312,19 @@
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="#188">Parts</a> {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a href="#517">f</a>.debug_struct(<span class="string">&quot;Parts&quot;</span>)
-            .field(<span class="string">&quot;status&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="#517">self</a>.status)
-            .field(<span class="string">&quot;version&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="#517">self</a>.version)
-            .field(<span class="string">&quot;headers&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="#517">self</a>.headers)
+<span class="kw">impl </span>fmt::Debug <span class="kw">for </span>Parts {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        f.debug_struct(<span class="string">&quot;Parts&quot;</span>)
+            .field(<span class="string">&quot;status&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.status)
+            .field(<span class="string">&quot;version&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.version)
+            .field(<span class="string">&quot;headers&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.headers)
             <span class="comment">// omits Extensions because not useful
             // omits _priv because not useful
             </span>.finish()
     }
 }
 
-<span class="kw">impl </span><a href="#209">Builder</a> {
+<span class="kw">impl </span>Builder {
     <span class="doccomment">/// Creates a new default instance of `Builder` to construct either a
     /// `Head` or a `Response`.
     ///
@@ -1339,7 +1339,7 @@
     ///     .unwrap();
     /// ```
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>new() -&gt; <a href="#209">Builder</a> {
+    </span><span class="kw">pub fn </span>new() -&gt; Builder {
         Builder::default()
     }
 
@@ -1360,14 +1360,14 @@
     ///     .body(())
     ///     .unwrap();
     /// ```
-    </span><span class="kw">pub fn </span>status&lt;T&gt;(<span class="self">self</span>, status: T) -&gt; <a href="#209">Builder</a>
+    </span><span class="kw">pub fn </span>status&lt;T&gt;(<span class="self">self</span>, status: T) -&gt; Builder
     <span class="kw">where
-        </span><a href="status.rs.html#45">StatusCode</a>: TryFrom&lt;T&gt;,
-        &lt;<a href="status.rs.html#45">StatusCode</a> <span class="kw">as </span>TryFrom&lt;T&gt;&gt;::Error: Into&lt;<a href="error.rs.html#16"><span class="kw">crate</span>::Error</a>&gt;,
+        </span>StatusCode: TryFrom&lt;T&gt;,
+        &lt;StatusCode <span class="kw">as </span>TryFrom&lt;T&gt;&gt;::Error: Into&lt;<span class="kw">crate</span>::Error&gt;,
     {
-        <a class="self" href="#564">self</a>.<a href="#767-769">and_then</a>(<span class="kw">move </span>|<span class="kw-2">mut </span>head| {
-            <a href="#569">head</a>.status = TryFrom::try_from(status).map_err(Into::into)<span class="question-mark">?</span>;
-            <span class="prelude-val">Ok</span>(<a href="#569">head</a>)
+        <span class="self">self</span>.and_then(<span class="kw">move </span>|<span class="kw-2">mut </span>head| {
+            head.status = TryFrom::try_from(status).map_err(Into::into)<span class="question-mark">?</span>;
+            <span class="prelude-val">Ok</span>(head)
         })
     }
 
@@ -1388,10 +1388,10 @@
     ///     .body(())
     ///     .unwrap();
     /// ```
-    </span><span class="kw">pub fn </span>version(<span class="self">self</span>, version: <a href="version.rs.html#26">Version</a>) -&gt; <a href="#209">Builder</a> {
-        <a class="self" href="#592">self</a>.<a href="#767-769">and_then</a>(<span class="kw">move </span>|<span class="kw-2">mut </span>head| {
-            <a href="#593">head</a>.version = <a href="#592">version</a>;
-            <span class="prelude-val">Ok</span>(<a href="#593">head</a>)
+    </span><span class="kw">pub fn </span>version(<span class="self">self</span>, version: Version) -&gt; Builder {
+        <span class="self">self</span>.and_then(<span class="kw">move </span>|<span class="kw-2">mut </span>head| {
+            head.version = version;
+            <span class="prelude-val">Ok</span>(head)
         })
     }
 
@@ -1414,18 +1414,18 @@
     ///     .body(())
     ///     .unwrap();
     /// ```
-    </span><span class="kw">pub fn </span>header&lt;K, V&gt;(<span class="self">self</span>, key: K, value: V) -&gt; <a href="#209">Builder</a>
+    </span><span class="kw">pub fn </span>header&lt;K, V&gt;(<span class="self">self</span>, key: K, value: V) -&gt; Builder
     <span class="kw">where
-        </span><a href="header/name.rs.html#33">HeaderName</a>: TryFrom&lt;K&gt;,
-        &lt;<a href="header/name.rs.html#33">HeaderName</a> <span class="kw">as </span>TryFrom&lt;K&gt;&gt;::Error: Into&lt;<a href="error.rs.html#16"><span class="kw">crate</span>::Error</a>&gt;,
-        <a href="header/value.rs.html#21">HeaderValue</a>: TryFrom&lt;V&gt;,
-        &lt;<a href="header/value.rs.html#21">HeaderValue</a> <span class="kw">as </span>TryFrom&lt;V&gt;&gt;::Error: Into&lt;<a href="error.rs.html#16"><span class="kw">crate</span>::Error</a>&gt;,
+        </span>HeaderName: TryFrom&lt;K&gt;,
+        &lt;HeaderName <span class="kw">as </span>TryFrom&lt;K&gt;&gt;::Error: Into&lt;<span class="kw">crate</span>::Error&gt;,
+        HeaderValue: TryFrom&lt;V&gt;,
+        &lt;HeaderValue <span class="kw">as </span>TryFrom&lt;V&gt;&gt;::Error: Into&lt;<span class="kw">crate</span>::Error&gt;,
     {
-        <a class="self" href="#618">self</a>.<a href="#767-769">and_then</a>(<span class="kw">move </span>|<span class="kw-2">mut </span>head| {
+        <span class="self">self</span>.and_then(<span class="kw">move </span>|<span class="kw-2">mut </span>head| {
             <span class="kw">let </span>name = &lt;HeaderName <span class="kw">as </span>TryFrom&lt;K&gt;&gt;::try_from(key).map_err(Into::into)<span class="question-mark">?</span>;
             <span class="kw">let </span>value = &lt;HeaderValue <span class="kw">as </span>TryFrom&lt;V&gt;&gt;::try_from(value).map_err(Into::into)<span class="question-mark">?</span>;
-            <a href="#625">head</a>.headers.<a href="header/map.rs.html#1234-1236">append</a>(<a href="#626">name</a>, <a href="#627">value</a>);
-            <span class="prelude-val">Ok</span>(<a href="#625">head</a>)
+            head.headers.append(name, value);
+            <span class="prelude-val">Ok</span>(head)
         })
     }
 
@@ -1445,8 +1445,8 @@
     /// assert_eq!( headers[&quot;Accept&quot;], &quot;text/html&quot; );
     /// assert_eq!( headers[&quot;X-Custom-Foo&quot;], &quot;bar&quot; );
     /// ```
-    </span><span class="kw">pub fn </span>headers_ref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>HeaderMap&lt;<a href="header/value.rs.html#21">HeaderValue</a>&gt;&gt; {
-        <a class="self" href="#649">self</a>.inner.as_ref().ok().map(|h| <span class="kw-2">&amp;</span><a href="#650">h</a>.headers)
+    </span><span class="kw">pub fn </span>headers_ref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>HeaderMap&lt;HeaderValue&gt;&gt; {
+        <span class="self">self</span>.inner.as_ref().ok().map(|h| <span class="kw-2">&amp;</span>h.headers)
     }
 
     <span class="doccomment">/// Get header on this response builder.
@@ -1468,8 +1468,8 @@
     /// assert_eq!( headers[&quot;Accept&quot;], &quot;text/html&quot; );
     /// assert_eq!( headers[&quot;X-Custom-Foo&quot;], &quot;bar&quot; );
     /// ```
-    </span><span class="kw">pub fn </span>headers_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;mut </span>HeaderMap&lt;<a href="header/value.rs.html#21">HeaderValue</a>&gt;&gt; {
-        <a class="self" href="#672">self</a>.inner.as_mut().ok().map(|h| <span class="kw-2">&amp;mut </span><a href="#673">h</a>.headers)
+    </span><span class="kw">pub fn </span>headers_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;mut </span>HeaderMap&lt;HeaderValue&gt;&gt; {
+        <span class="self">self</span>.inner.as_mut().ok().map(|h| <span class="kw-2">&amp;mut </span>h.headers)
     }
 
     <span class="doccomment">/// Adds an extension to this builder
@@ -1487,13 +1487,13 @@
     /// assert_eq!(response.extensions().get::&lt;&amp;&#39;static str&gt;(),
     ///            Some(&amp;&quot;My Extension&quot;));
     /// ```
-    </span><span class="kw">pub fn </span>extension&lt;T&gt;(<span class="self">self</span>, extension: T) -&gt; <a href="#209">Builder</a>
+    </span><span class="kw">pub fn </span>extension&lt;T&gt;(<span class="self">self</span>, extension: T) -&gt; Builder
     <span class="kw">where
-        </span>T: <a href="https://doc.rust-lang.org/nightly/core/any/trait.Any.html">Any</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> + <span class="lifetime">&#39;static</span>,
+        </span>T: Any + Send + Sync + <span class="lifetime">&#39;static</span>,
     {
-        <a class="self" href="#691">self</a>.<a href="#767-769">and_then</a>(<span class="kw">move </span>|<span class="kw-2">mut </span>head| {
-            <a href="#695">head</a>.extensions.<a href="extensions.rs.html#62">insert</a>(<a href="#691">extension</a>);
-            <span class="prelude-val">Ok</span>(<a href="#695">head</a>)
+        <span class="self">self</span>.and_then(<span class="kw">move </span>|<span class="kw-2">mut </span>head| {
+            head.extensions.insert(extension);
+            <span class="prelude-val">Ok</span>(head)
         })
     }
 
@@ -1510,8 +1510,8 @@
     /// assert_eq!(extensions.get::&lt;&amp;&#39;static str&gt;(), Some(&amp;&quot;My Extension&quot;));
     /// assert_eq!(extensions.get::&lt;u32&gt;(), Some(&amp;5u32));
     /// ```
-    </span><span class="kw">pub fn </span>extensions_ref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="extensions.rs.html#35">Extensions</a>&gt; {
-        <a class="self" href="#714">self</a>.inner.as_ref().ok().map(|h| <span class="kw-2">&amp;</span><a href="#715">h</a>.extensions)
+    </span><span class="kw">pub fn </span>extensions_ref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Extensions&gt; {
+        <span class="self">self</span>.inner.as_ref().ok().map(|h| <span class="kw-2">&amp;</span>h.extensions)
     }
 
     <span class="doccomment">/// Get a mutable reference to the extensions for this response builder.
@@ -1528,8 +1528,8 @@
     /// extensions.insert(5u32);
     /// assert_eq!(extensions.get::&lt;u32&gt;(), Some(&amp;5u32));
     /// ```
-    </span><span class="kw">pub fn </span>extensions_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;mut </span><a href="extensions.rs.html#35">Extensions</a>&gt; {
-        <a class="self" href="#732">self</a>.inner.as_mut().ok().map(|h| <span class="kw-2">&amp;mut </span><a href="#733">h</a>.extensions)
+    </span><span class="kw">pub fn </span>extensions_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;mut </span>Extensions&gt; {
+        <span class="self">self</span>.inner.as_mut().ok().map(|h| <span class="kw-2">&amp;mut </span>h.extensions)
     }
 
     <span class="doccomment">/// &quot;Consumes&quot; this builder, using the provided `body` to return a
@@ -1553,10 +1553,10 @@
     ///     .unwrap();
     /// ```
     </span><span class="kw">pub fn </span>body&lt;T&gt;(<span class="self">self</span>, body: T) -&gt; <span class="prelude-ty">Result</span>&lt;Response&lt;T&gt;&gt; {
-        <a class="self" href="#756">self</a>.inner.map(<span class="kw">move </span>|head| {
-            <a href="#179">Response</a> {
-                <a href="#757">head</a>,
-                <a href="#756">body</a>,
+        <span class="self">self</span>.inner.map(<span class="kw">move </span>|head| {
+            Response {
+                head,
+                body,
             }
         })
     }
@@ -1565,18 +1565,18 @@
 
     </span><span class="kw">fn </span>and_then&lt;F&gt;(<span class="self">self</span>, func: F) -&gt; <span class="self">Self
     </span><span class="kw">where
-        </span>F: FnOnce(<a href="#188">Parts</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#188">Parts</a>&gt;
+        </span>F: FnOnce(Parts) -&gt; <span class="prelude-ty">Result</span>&lt;Parts&gt;
     {
-        <a href="#209">Builder</a> {
-            inner: <a class="self" href="#767">self</a>.inner.and_then(<a href="#767">func</a>),
+        Builder {
+            inner: <span class="self">self</span>.inner.and_then(func),
         }
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for </span><a href="#209">Builder</a> {
+<span class="kw">impl </span>Default <span class="kw">for </span>Builder {
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>default() -&gt; <a href="#209">Builder</a> {
-        <a href="#209">Builder</a> {
+    </span><span class="kw">fn </span>default() -&gt; Builder {
+        Builder {
             inner: <span class="prelude-val">Ok</span>(Parts::new()),
         }
     }
@@ -1597,4 +1597,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="http" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="http" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

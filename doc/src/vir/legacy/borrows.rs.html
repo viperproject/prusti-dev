@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `vir/src/legacy/borrows.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>borrows.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../vir/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `vir/src/legacy/borrows.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>borrows.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../vir/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -214,39 +214,39 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-</span><span class="kw">use </span><span class="kw">super</span>::ast::{<a href="ast/expr.rs.html#19">Expr</a>, <a href="ast/expr.rs.html#1881">ExprIterator</a>, <a href="ast/stmt.rs.html#20">Stmt</a>};
-<span class="kw">use </span>log::{<a href="../../../log/macro.debug.html">debug</a>, <a href="../../../log/macro.trace.html">trace</a>};
+</span><span class="kw">use </span><span class="kw">super</span>::ast::{Expr, ExprIterator, Stmt};
+<span class="kw">use </span>log::{debug, trace};
 <span class="kw">use </span>std::{
-    collections::{<a href="https://doc.rust-lang.org/nightly/std/collections/hash/map/struct.HashMap.html">HashMap</a>, <a href="https://doc.rust-lang.org/nightly/alloc/collections/vec_deque/struct.VecDeque.html">VecDeque</a>},
-    <a href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">fmt</a>,
+    collections::{HashMap, VecDeque},
+    fmt,
 };
 
 <span class="doccomment">/// The method-unique borrow identifier.
 </span><span class="attr">#[derive(
     Ord, PartialOrd, Eq, PartialEq, Clone, Copy, Hash, serde::Serialize, serde::Deserialize,
 )]
-</span><span class="kw">pub struct </span>Borrow(<span class="kw">pub</span>(<span class="kw">crate</span>) <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>);
+</span><span class="kw">pub struct </span>Borrow(<span class="kw">pub</span>(<span class="kw">crate</span>) usize);
 
-<span class="kw">impl </span>From&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; <span class="kw">for </span><a href="#18">Borrow</a> {
-    <span class="kw">fn </span>from(index: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a href="#18">Borrow</a> {
-        <a href="#18">Borrow</a>(<a href="#21">index</a>)
+<span class="kw">impl </span>From&lt;usize&gt; <span class="kw">for </span>Borrow {
+    <span class="kw">fn </span>from(index: usize) -&gt; Borrow {
+        Borrow(index)
     }
 }
 
-<span class="kw">impl </span>From&lt;<a href="#18">Borrow</a>&gt; <span class="kw">for </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-    <span class="kw">fn </span>from(borrow: <a href="#18">Borrow</a>) -&gt; <span class="self">Self </span>{
-        <a href="#27">borrow</a>.<span class="number">0
+<span class="kw">impl </span>From&lt;Borrow&gt; <span class="kw">for </span>usize {
+    <span class="kw">fn </span>from(borrow: Borrow) -&gt; <span class="self">Self </span>{
+        borrow.<span class="number">0
     </span>}
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="#18">Borrow</a> {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#33">f</a>, <span class="string">&quot;L{}&quot;</span>, <span class="self">self</span>.<span class="number">0</span>)
+<span class="kw">impl </span>fmt::Debug <span class="kw">for </span>Borrow {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter) -&gt; fmt::Result {
+        <span class="macro">write!</span>(f, <span class="string">&quot;L{}&quot;</span>, <span class="self">self</span>.<span class="number">0</span>)
     }
 }
 
-<span class="kw">pub fn </span>borrow_id(borrow: <a href="#18">Borrow</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-    <a href="#38">borrow</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()
+<span class="kw">pub fn </span>borrow_id(borrow: Borrow) -&gt; usize {
+    borrow.into()
 }
 
 <span class="doccomment">/// Node of the reborrowing DAG.
@@ -254,51 +254,51 @@
 </span><span class="kw">pub struct </span>Node {
     <span class="doccomment">/// The basic block at which the borrow occured was executed only
     /// iff the `guard` is true.
-    </span><span class="kw">pub </span>guard: <a href="ast/expr.rs.html#19">Expr</a>,
-    <span class="kw">pub </span>borrow: <a href="#18">Borrow</a>,
-    <span class="kw">pub </span>reborrowing_nodes: Vec&lt;<a href="#18">Borrow</a>&gt;,
-    <span class="kw">pub </span>reborrowed_nodes: Vec&lt;<a href="#18">Borrow</a>&gt;,
-    <span class="kw">pub </span>stmts: Vec&lt;<a href="ast/stmt.rs.html#20">Stmt</a>&gt;,
+    </span><span class="kw">pub </span>guard: Expr,
+    <span class="kw">pub </span>borrow: Borrow,
+    <span class="kw">pub </span>reborrowing_nodes: Vec&lt;Borrow&gt;,
+    <span class="kw">pub </span>reborrowed_nodes: Vec&lt;Borrow&gt;,
+    <span class="kw">pub </span>stmts: Vec&lt;Stmt&gt;,
     <span class="doccomment">/// Places that were borrowed and should be kept in fold/unfold.
-    </span><span class="kw">pub </span>borrowed_places: Vec&lt;<a href="ast/expr.rs.html#19">Expr</a>&gt;,
+    </span><span class="kw">pub </span>borrowed_places: Vec&lt;Expr&gt;,
     <span class="doccomment">/// Borrows that are borrowing the same place.
-    </span><span class="kw">pub </span>conflicting_borrows: Vec&lt;<a href="#18">Borrow</a>&gt;,
-    <span class="kw">pub </span>alive_conflicting_borrows: Vec&lt;<a href="#18">Borrow</a>&gt;,
+    </span><span class="kw">pub </span>conflicting_borrows: Vec&lt;Borrow&gt;,
+    <span class="kw">pub </span>alive_conflicting_borrows: Vec&lt;Borrow&gt;,
     <span class="doccomment">/// The place (potentially old) through which the permissions can
     /// still be accessed even if the loan was killed.
-    </span><span class="kw">pub </span>place: <span class="prelude-ty">Option</span>&lt;<a href="ast/expr.rs.html#19">Expr</a>&gt;,
+    </span><span class="kw">pub </span>place: <span class="prelude-ty">Option</span>&lt;Expr&gt;,
 }
 
-<span class="kw">impl </span><a href="#44">Node</a> {
+<span class="kw">impl </span>Node {
     <span class="attr">#[allow(clippy::too_many_arguments)]
     </span><span class="kw">pub fn </span>new(
-        guard: <a href="ast/expr.rs.html#19">Expr</a>,
-        borrow: <a href="#18">Borrow</a>,
-        reborrowing_nodes: Vec&lt;<a href="#18">Borrow</a>&gt;,
-        reborrowed_nodes: Vec&lt;<a href="#18">Borrow</a>&gt;,
-        stmts: Vec&lt;<a href="ast/stmt.rs.html#20">Stmt</a>&gt;,
-        borrowed_places: Vec&lt;<a href="ast/expr.rs.html#19">Expr</a>&gt;,
-        conflicting_borrows: Vec&lt;<a href="#18">Borrow</a>&gt;,
-        alive_conflicting_borrows: Vec&lt;<a href="#18">Borrow</a>&gt;,
-        place: <span class="prelude-ty">Option</span>&lt;<a href="ast/expr.rs.html#19">Expr</a>&gt;,
+        guard: Expr,
+        borrow: Borrow,
+        reborrowing_nodes: Vec&lt;Borrow&gt;,
+        reborrowed_nodes: Vec&lt;Borrow&gt;,
+        stmts: Vec&lt;Stmt&gt;,
+        borrowed_places: Vec&lt;Expr&gt;,
+        conflicting_borrows: Vec&lt;Borrow&gt;,
+        alive_conflicting_borrows: Vec&lt;Borrow&gt;,
+        place: <span class="prelude-ty">Option</span>&lt;Expr&gt;,
     ) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
-            <a href="#65">guard</a>,
-            <a href="#66">borrow</a>,
-            <a href="#67">reborrowing_nodes</a>,
-            <a href="#68">reborrowed_nodes</a>,
-            <a href="#69">stmts</a>,
-            <a href="#70">borrowed_places</a>,
-            <a href="#71">conflicting_borrows</a>,
-            <a href="#72">alive_conflicting_borrows</a>,
-            <a href="#73">place</a>,
+            guard,
+            borrow,
+            reborrowing_nodes,
+            reborrowed_nodes,
+            stmts,
+            borrowed_places,
+            conflicting_borrows,
+            alive_conflicting_borrows,
+            place,
         }
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="#44">Node</a> {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#90">f</a>, <span class="string">&quot;{:?}&quot;</span>, <span class="self">self</span>.borrow)
+<span class="kw">impl </span>fmt::Debug <span class="kw">for </span>Node {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter) -&gt; fmt::Result {
+        <span class="macro">write!</span>(f, <span class="string">&quot;{:?}&quot;</span>, <span class="self">self</span>.borrow)
     }
 }
 
@@ -308,57 +308,57 @@
 </span><span class="kw">pub struct </span>DAG {
     <span class="doccomment">/// Mapping from borrows to their node indices.
     </span><span class="attr">#[serde(skip)]
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) borrow_indices: HashMap&lt;<a href="#18">Borrow</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;,
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) borrow_indices: HashMap&lt;Borrow, usize&gt;,
     <span class="attr">#[serde(skip)]
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) nodes: Vec&lt;<a href="#44">Node</a>&gt;,
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) nodes: Vec&lt;Node&gt;,
     <span class="attr">#[serde(skip)]
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) borrowed_places: Vec&lt;<a href="ast/expr.rs.html#19">Expr</a>&gt;,
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) borrowed_places: Vec&lt;Expr&gt;,
 }
 
-<span class="kw">impl </span><a href="#98">DAG</a> {
-    <span class="kw">pub fn </span>iter(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl </span>Iterator&lt;Item = <span class="kw-2">&amp;</span><a href="#44">Node</a>&gt; {
-        <a class="self" href="#109">self</a>.nodes.iter()
+<span class="kw">impl </span>DAG {
+    <span class="kw">pub fn </span>iter(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl </span>Iterator&lt;Item = <span class="kw-2">&amp;</span>Node&gt; {
+        <span class="self">self</span>.nodes.iter()
     }
-    <span class="kw">pub fn </span>get_borrow_index(<span class="kw-2">&amp;</span><span class="self">self</span>, borrow: <a href="#18">Borrow</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="macro" href="../../../log/macro.trace.html">trace!</a>(<span class="string">&quot;get_borrow_index(borrow={:?})&quot;</span>, borrow);
-        <a class="self" href="#112">self</a>.borrow_indices[<span class="kw-2">&amp;</span><a href="#112">borrow</a>]
+    <span class="kw">pub fn </span>get_borrow_index(<span class="kw-2">&amp;</span><span class="self">self</span>, borrow: Borrow) -&gt; usize {
+        <span class="macro">trace!</span>(<span class="string">&quot;get_borrow_index(borrow={:?})&quot;</span>, borrow);
+        <span class="self">self</span>.borrow_indices[<span class="kw-2">&amp;</span>borrow]
     }
-    <span class="kw">pub fn </span>in_borrowed_places(<span class="kw-2">&amp;</span><span class="self">self</span>, place: <span class="kw-2">&amp;</span><a href="ast/expr.rs.html#19">Expr</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#116">self</a>.borrowed_places
+    <span class="kw">pub fn </span>in_borrowed_places(<span class="kw-2">&amp;</span><span class="self">self</span>, place: <span class="kw-2">&amp;</span>Expr) -&gt; bool {
+        <span class="self">self</span>.borrowed_places
             .iter()
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">any</a>(|borrowed_place| <a href="#116">place</a>.<a href="ast/expr.rs.html#1114">has_prefix</a>(<a href="#119">borrowed_place</a>))
+            .any(|borrowed_place| place.has_prefix(borrowed_place))
     }
     <span class="kw">pub fn </span>check_integrity(<span class="kw-2">&amp;</span><span class="self">self</span>) {
-        <a class="macro" href="../../../log/macro.trace.html">trace!</a>(<span class="string">&quot;[enter] check_integrity dag=[{:?}]&quot;</span>, <span class="self">self</span>);
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(first) = <a class="self" href="#121">self</a>.nodes.first() {
-            <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(first.reborrowing_nodes.is_empty());
+        <span class="macro">trace!</span>(<span class="string">&quot;[enter] check_integrity dag=[{:?}]&quot;</span>, <span class="self">self</span>);
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(first) = <span class="self">self</span>.nodes.first() {
+            <span class="macro">assert!</span>(first.reborrowing_nodes.is_empty());
         }
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(last) = <a class="self" href="#121">self</a>.nodes.last() {
-            <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(last.reborrowed_nodes.is_empty());
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(last) = <span class="self">self</span>.nodes.last() {
+            <span class="macro">assert!</span>(last.reborrowed_nodes.is_empty());
         }
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(<span class="self">self</span>.nodes.len() == <span class="self">self</span>.borrow_indices.len());
+        <span class="macro">assert!</span>(<span class="self">self</span>.nodes.len() == <span class="self">self</span>.borrow_indices.len());
         <span class="kw">for </span>(i, node) <span class="kw">in </span><span class="self">self</span>.nodes.iter().enumerate() {
             <span class="macro">assert!</span>(<span class="self">self</span>.borrow_indices[<span class="kw-2">&amp;</span>node.borrow] == i);
             <span class="kw">for </span>borrow <span class="kw">in </span><span class="kw-2">&amp;</span>node.reborrowing_nodes {
-                <span class="macro">assert!</span>(<span class="self">self</span>.borrow_indices.contains_key(borrow), <span class="string">&quot;{:?}&quot;</span>, borrow);
+                <span class="macro">assert!</span>(<span class="self">self</span>.borrow_indices.contains_key(borrow), <span class="string">&quot;{borrow:?}&quot;</span>);
             }
             <span class="kw">for </span>borrow <span class="kw">in </span><span class="kw-2">&amp;</span>node.reborrowed_nodes {
-                <span class="macro">assert!</span>(<span class="self">self</span>.borrow_indices.contains_key(borrow), <span class="string">&quot;{:?}&quot;</span>, borrow);
+                <span class="macro">assert!</span>(<span class="self">self</span>.borrow_indices.contains_key(borrow), <span class="string">&quot;{borrow:?}&quot;</span>);
             }
             <span class="kw">for </span>place <span class="kw">in </span><span class="kw-2">&amp;</span>node.borrowed_places {
                 <span class="macro">debug!</span>(<span class="string">&quot;{:?}: {}&quot;</span>, node.borrow, place);
             }
         }
-        <a class="macro" href="../../../log/macro.trace.html">trace!</a>(<span class="string">&quot;[exit] check_integrity dag=[{:?}]&quot;</span>, <span class="self">self</span>);
+        <span class="macro">trace!</span>(<span class="string">&quot;[exit] check_integrity dag=[{:?}]&quot;</span>, <span class="self">self</span>);
     }
     <span class="doccomment">/// Get the complete guard for the given node.
-    </span><span class="kw">pub fn </span>guard(<span class="kw-2">&amp;</span><span class="self">self</span>, expiring_borrow: <a href="#18">Borrow</a>) -&gt; <a href="ast/expr.rs.html#19">Expr</a> {
-        <span class="kw">let </span>index = <a class="self" href="#145">self</a>.<a href="#112">get_borrow_index</a>(<a href="#145">expiring_borrow</a>);
-        <span class="kw">let </span><span class="kw-2">mut </span>guard_indices = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[index];
+    </span><span class="kw">pub fn </span>guard(<span class="kw-2">&amp;</span><span class="self">self</span>, expiring_borrow: Borrow) -&gt; Expr {
+        <span class="kw">let </span>index = <span class="self">self</span>.get_borrow_index(expiring_borrow);
+        <span class="kw">let </span><span class="kw-2">mut </span>guard_indices = <span class="macro">vec!</span>[index];
         <span class="kw">let </span><span class="kw-2">mut </span>to_visit = VecDeque::new();
-        <span class="kw">let </span><span class="kw-2">mut </span>visited = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[<span class="bool-val">false</span>; <span class="self">self</span>.nodes.len()];
-        <a href="#148">to_visit</a>.push_back(<a href="#146">index</a>);
-        <a href="#149">visited</a>[<a href="#146">index</a>] = <span class="bool-val">true</span>;
+        <span class="kw">let </span><span class="kw-2">mut </span>visited = <span class="macro">vec!</span>[<span class="bool-val">false</span>; <span class="self">self</span>.nodes.len()];
+        to_visit.push_back(index);
+        visited[index] = <span class="bool-val">true</span>;
         <span class="kw">while let </span><span class="prelude-val">Some</span>(curr_index) = to_visit.pop_front() {
             <span class="kw">let </span>curr_node = <span class="kw-2">&amp;</span><span class="self">self</span>.nodes[curr_index];
             <span class="kw">for </span>borrow <span class="kw">in </span><span class="kw-2">&amp;</span>curr_node.reborrowing_nodes {
@@ -370,53 +370,53 @@
                 }
             }
         }
-        <a href="#147">guard_indices</a>
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|index| <a class="self" href="#145">self</a>.nodes[<a href="#165">index</a>].guard.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>())
-            .<a href="ast/expr.rs.html#1884">conjoin</a>()
+        guard_indices
+            .into_iter()
+            .map(|index| <span class="self">self</span>.nodes[index].guard.clone())
+            .conjoin()
     }
 }
 
 <span class="doccomment">/// A struct for constructing the reborrowing DAG.
 </span><span class="attr">#[derive(Default)]
 </span><span class="kw">pub struct </span>DAGBuilder {
-    dag: <a href="#98">DAG</a>,
+    dag: DAG,
 }
 
-<span class="kw">impl </span><a href="#172">DAGBuilder</a> {
+<span class="kw">impl </span>DAGBuilder {
     <span class="kw">pub fn </span>new() -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>::default()
     }
-    <span class="kw">pub fn </span>add_node(<span class="kw-2">&amp;mut </span><span class="self">self</span>, node: <a href="#44">Node</a>) {
-        <span class="kw">let </span>borrow = <a href="#180">node</a>.borrow;
-        <span class="kw">let </span>new_index = <a class="self" href="#180">self</a>.dag.nodes.len();
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(!<span class="self">self</span>.dag.borrow_indices.contains_key(<span class="kw-2">&amp;</span>borrow));
-        <a class="self" href="#180">self</a>.dag.borrow_indices.insert(<a href="#181">borrow</a>, <a href="#182">new_index</a>);
+    <span class="kw">pub fn </span>add_node(<span class="kw-2">&amp;mut </span><span class="self">self</span>, node: Node) {
+        <span class="kw">let </span>borrow = node.borrow;
+        <span class="kw">let </span>new_index = <span class="self">self</span>.dag.nodes.len();
+        <span class="macro">assert!</span>(!<span class="self">self</span>.dag.borrow_indices.contains_key(<span class="kw-2">&amp;</span>borrow));
+        <span class="self">self</span>.dag.borrow_indices.insert(borrow, new_index);
         <span class="kw">for </span>place <span class="kw">in </span><span class="kw-2">&amp;</span>node.borrowed_places {
             <span class="self">self</span>.dag.borrowed_places.push(place.clone());
         }
-        <a class="self" href="#180">self</a>.dag.nodes.push(<a href="#180">node</a>);
+        <span class="self">self</span>.dag.nodes.push(node);
     }
-    <span class="kw">pub fn </span>finish(<span class="self">self</span>) -&gt; <a href="#98">DAG</a> {
-        <a class="self" href="#190">self</a>.dag.<a href="#121">check_integrity</a>();
-        <a class="self" href="#190">self</a>.dag
+    <span class="kw">pub fn </span>finish(<span class="self">self</span>) -&gt; DAG {
+        <span class="self">self</span>.dag.check_integrity();
+        <span class="self">self</span>.dag
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="#98">DAG</a> {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+<span class="kw">impl </span>fmt::Debug <span class="kw">for </span>DAG {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter) -&gt; fmt::Result {
         <span class="macro">write!</span>(f, <span class="string">&quot;ReborrowingDAG(&quot;</span>)<span class="question-mark">?</span>;
         <span class="kw">for </span>node <span class="kw">in </span><span class="kw-2">&amp;</span><span class="self">self</span>.nodes {
             <span class="macro">write!</span>(f, <span class="string">&quot;{:?},&quot;</span>, node.borrow)<span class="question-mark">?</span>;
         }
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#197">f</a>, <span class="string">&quot;)&quot;</span>)
+        <span class="macro">write!</span>(f, <span class="string">&quot;)&quot;</span>)
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for </span><a href="#98">DAG</a> {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#207">f</a>, <span class="string">&quot;ReborrowingDAG&quot;</span>)
+<span class="kw">impl </span>fmt::Display <span class="kw">for </span>DAG {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter) -&gt; fmt::Result {
+        <span class="macro">write!</span>(f, <span class="string">&quot;ReborrowingDAG&quot;</span>)
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="vir" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="vir" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

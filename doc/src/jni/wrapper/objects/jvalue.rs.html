@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/jni-0.20.0/src/wrapper/objects/jvalue.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>jvalue.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../../jni/index.html"><img class="rust-logo" src="../../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/jni-0.20.0/src/wrapper/objects/jvalue.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>jvalue.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../../jni/index.html"><img class="rust-logo" src="../../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -351,12 +351,12 @@
 <a href="#351" id="351">351</a>
 <a href="#352" id="352">352</a>
 <a href="#353" id="353">353</a>
-</pre><pre class="rust"><code><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/convert/trait.TryFrom.html">std::convert::TryFrom</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/intrinsics/fn.transmute.html">std::mem::transmute</a>;
+</pre><pre class="rust"><code><span class="kw">use </span>std::convert::TryFrom;
+<span class="kw">use </span>std::mem::transmute;
 
-<span class="kw">use </span><a href="../../../../log/macro.trace.html">log::trace</a>;
+<span class="kw">use </span>log::trace;
 
-<span class="kw">use crate</span>::{<a href="../../lib.rs.html#204">errors</a>::<span class="kw-2">*</span>, <a href="jobject.rs.html#15">objects::JObject</a>, <a href="../signature.rs.html#13">signature::Primitive</a>, <a href="../../lib.rs.html#194">sys</a>::<span class="kw-2">*</span>};
+<span class="kw">use crate</span>::{errors::<span class="kw-2">*</span>, objects::JObject, signature::Primitive, sys::<span class="kw-2">*</span>};
 
 <span class="doccomment">/// Rusty version of the JNI C `jvalue` enum. Used in Java method call arguments
 /// and returns.
@@ -364,325 +364,325 @@
 #[derive(Clone, Copy, Debug)]
 </span><span class="kw">pub enum </span>JValue&lt;<span class="lifetime">&#39;a</span>&gt; {
     Object(JObject&lt;<span class="lifetime">&#39;a</span>&gt;),
-    Byte(<a href="../../../../jni/sys/type.jbyte.html">jbyte</a>),
-    Char(<a href="../../../../jni/sys/type.jchar.html">jchar</a>),
-    Short(<a href="../../../../jni/sys/type.jshort.html">jshort</a>),
-    Int(<a href="../../../../jni/sys/type.jint.html">jint</a>),
-    Long(<a href="../../../../jni/sys/type.jlong.html">jlong</a>),
-    Bool(<a href="../../../../jni/sys/type.jboolean.html">jboolean</a>),
-    Float(<a href="../../../../jni/sys/type.jfloat.html">jfloat</a>),
-    Double(<a href="../../../../jni/sys/type.jdouble.html">jdouble</a>),
+    Byte(jbyte),
+    Char(jchar),
+    Short(jshort),
+    Int(jint),
+    Long(jlong),
+    Bool(jboolean),
+    Float(jfloat),
+    Double(jdouble),
     Void,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; From&lt;JValue&lt;<span class="lifetime">&#39;a</span>&gt;&gt; <span class="kw">for </span><a href="../../../../jni/sys/union.jvalue.html">jvalue</a> {
-    <span class="kw">fn </span>from(other: <a href="#12">JValue</a>) -&gt; <a href="../../../../jni/sys/union.jvalue.html">jvalue</a> {
-        <a href="#26">other</a>.<a href="#33">to_jni</a>()
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; From&lt;JValue&lt;<span class="lifetime">&#39;a</span>&gt;&gt; <span class="kw">for </span>jvalue {
+    <span class="kw">fn </span>from(other: JValue) -&gt; jvalue {
+        other.to_jni()
     }
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; JValue&lt;<span class="lifetime">&#39;a</span>&gt; {
     <span class="doccomment">/// Convert the enum to its jni-compatible equivalent.
-    </span><span class="kw">pub fn </span>to_jni(<span class="self">self</span>) -&gt; <a href="../../../../jni/sys/union.jvalue.html">jvalue</a> {
-        <span class="kw">let </span>val: <a href="../../../../jni/sys/union.jvalue.html">jvalue</a> = <span class="kw">match </span><span class="self"><a href="#33">self</a> </span>{
-            <a href="#13">JValue::Object</a>(obj) =&gt; <a href="../../../../jni/sys/union.jvalue.html">jvalue</a> {
-                l: <span class="kw">unsafe </span>{ <a href="https://doc.rust-lang.org/nightly/core/intrinsics/fn.transmute.html">transmute</a>(<a href="#35">obj</a>) },
+    </span><span class="kw">pub fn </span>to_jni(<span class="self">self</span>) -&gt; jvalue {
+        <span class="kw">let </span>val: jvalue = <span class="kw">match </span><span class="self">self </span>{
+            JValue::Object(obj) =&gt; jvalue {
+                l: <span class="kw">unsafe </span>{ transmute(obj) },
             },
-            <a href="#14">JValue::Byte</a>(byte) =&gt; <a href="../../../../jni/sys/union.jvalue.html">jvalue</a> { b: <a href="#38">byte</a> },
-            <a href="#15">JValue::Char</a>(char) =&gt; <a href="../../../../jni/sys/union.jvalue.html">jvalue</a> { c: <a href="#39">char</a> },
-            <a href="#16">JValue::Short</a>(short) =&gt; <a href="../../../../jni/sys/union.jvalue.html">jvalue</a> { s: <a href="#40">short</a> },
-            <a href="#17">JValue::Int</a>(int) =&gt; <a href="../../../../jni/sys/union.jvalue.html">jvalue</a> { i: <a href="#41">int</a> },
-            <a href="#18">JValue::Long</a>(long) =&gt; <a href="../../../../jni/sys/union.jvalue.html">jvalue</a> { j: <a href="#42">long</a> },
-            <a href="#19">JValue::Bool</a>(boolean) =&gt; <a href="../../../../jni/sys/union.jvalue.html">jvalue</a> { b: <a href="#43">boolean</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.i8.html">i8</a> },
-            <a href="#20">JValue::Float</a>(float) =&gt; <a href="../../../../jni/sys/union.jvalue.html">jvalue</a> { f: <a href="#44">float</a> },
-            <a href="#21">JValue::Double</a>(double) =&gt; <a href="../../../../jni/sys/union.jvalue.html">jvalue</a> { d: <a href="#45">double</a> },
-            <a href="#22">JValue::Void</a> =&gt; <a href="../../../../jni/sys/union.jvalue.html">jvalue</a> {
+            JValue::Byte(byte) =&gt; jvalue { b: byte },
+            JValue::Char(char) =&gt; jvalue { c: char },
+            JValue::Short(short) =&gt; jvalue { s: short },
+            JValue::Int(int) =&gt; jvalue { i: int },
+            JValue::Long(long) =&gt; jvalue { j: long },
+            JValue::Bool(boolean) =&gt; jvalue { b: boolean <span class="kw">as </span>i8 },
+            JValue::Float(float) =&gt; jvalue { f: float },
+            JValue::Double(double) =&gt; jvalue { d: double },
+            JValue::Void =&gt; jvalue {
                 l: ::std::ptr::null_mut(),
             },
         };
-        <a class="macro" href="../../../../log/macro.trace.html">trace!</a>(<span class="string">&quot;converted {:?} to jvalue {:?}&quot;</span>, <span class="self">self</span>, <span class="kw">unsafe </span>{
+        <span class="macro">trace!</span>(<span class="string">&quot;converted {:?} to jvalue {:?}&quot;</span>, <span class="self">self</span>, <span class="kw">unsafe </span>{
             ::std::mem::transmute::&lt;<span class="kw">_</span>, u64&gt;(val)
         });
-        <a href="#34">val</a>
+        val
     }
 
     <span class="doccomment">/// Get the type name for the enum variant.
-    </span><span class="kw">pub fn </span>type_name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> {
-        <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="#57">self</a> </span>{
-            <a href="#22">JValue::Void</a> =&gt; <span class="string">&quot;void&quot;</span>,
-            <a href="#13">JValue::Object</a>(<span class="kw">_</span>) =&gt; <span class="string">&quot;object&quot;</span>,
-            <a href="#14">JValue::Byte</a>(<span class="kw">_</span>) =&gt; <span class="string">&quot;byte&quot;</span>,
-            <a href="#15">JValue::Char</a>(<span class="kw">_</span>) =&gt; <span class="string">&quot;char&quot;</span>,
-            <a href="#16">JValue::Short</a>(<span class="kw">_</span>) =&gt; <span class="string">&quot;short&quot;</span>,
-            <a href="#17">JValue::Int</a>(<span class="kw">_</span>) =&gt; <span class="string">&quot;int&quot;</span>,
-            <a href="#18">JValue::Long</a>(<span class="kw">_</span>) =&gt; <span class="string">&quot;long&quot;</span>,
-            <a href="#19">JValue::Bool</a>(<span class="kw">_</span>) =&gt; <span class="string">&quot;bool&quot;</span>,
-            <a href="#20">JValue::Float</a>(<span class="kw">_</span>) =&gt; <span class="string">&quot;float&quot;</span>,
-            <a href="#21">JValue::Double</a>(<span class="kw">_</span>) =&gt; <span class="string">&quot;double&quot;</span>,
+    </span><span class="kw">pub fn </span>type_name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str {
+        <span class="kw">match </span><span class="kw-2">*</span><span class="self">self </span>{
+            JValue::Void =&gt; <span class="string">&quot;void&quot;</span>,
+            JValue::Object(<span class="kw">_</span>) =&gt; <span class="string">&quot;object&quot;</span>,
+            JValue::Byte(<span class="kw">_</span>) =&gt; <span class="string">&quot;byte&quot;</span>,
+            JValue::Char(<span class="kw">_</span>) =&gt; <span class="string">&quot;char&quot;</span>,
+            JValue::Short(<span class="kw">_</span>) =&gt; <span class="string">&quot;short&quot;</span>,
+            JValue::Int(<span class="kw">_</span>) =&gt; <span class="string">&quot;int&quot;</span>,
+            JValue::Long(<span class="kw">_</span>) =&gt; <span class="string">&quot;long&quot;</span>,
+            JValue::Bool(<span class="kw">_</span>) =&gt; <span class="string">&quot;bool&quot;</span>,
+            JValue::Float(<span class="kw">_</span>) =&gt; <span class="string">&quot;float&quot;</span>,
+            JValue::Double(<span class="kw">_</span>) =&gt; <span class="string">&quot;double&quot;</span>,
         }
     }
 
     <span class="doccomment">/// Get the primitive type for the enum variant. If it&#39;s not a primitive
     /// (i.e. an Object), returns None.
-    </span><span class="kw">pub fn </span>primitive_type(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="../signature.rs.html#13">Primitive</a>&gt; {
-        <span class="prelude-val">Some</span>(<span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="#74">self</a> </span>{
-            <a href="#13">JValue::Object</a>(<span class="kw">_</span>) =&gt; <span class="kw">return </span><span class="prelude-val">None</span>,
-            <a href="#22">JValue::Void</a> =&gt; <a href="../signature.rs.html#22">Primitive::Void</a>,
-            <a href="#14">JValue::Byte</a>(<span class="kw">_</span>) =&gt; <a href="../signature.rs.html#15">Primitive::Byte</a>,
-            <a href="#15">JValue::Char</a>(<span class="kw">_</span>) =&gt; <a href="../signature.rs.html#16">Primitive::Char</a>,
-            <a href="#16">JValue::Short</a>(<span class="kw">_</span>) =&gt; <a href="../signature.rs.html#21">Primitive::Short</a>,
-            <a href="#17">JValue::Int</a>(<span class="kw">_</span>) =&gt; <a href="../signature.rs.html#19">Primitive::Int</a>,
-            <a href="#18">JValue::Long</a>(<span class="kw">_</span>) =&gt; <a href="../signature.rs.html#20">Primitive::Long</a>,
-            <a href="#19">JValue::Bool</a>(<span class="kw">_</span>) =&gt; <a href="../signature.rs.html#14">Primitive::Boolean</a>,
-            <a href="#20">JValue::Float</a>(<span class="kw">_</span>) =&gt; <a href="../signature.rs.html#18">Primitive::Float</a>,
-            <a href="#21">JValue::Double</a>(<span class="kw">_</span>) =&gt; <a href="../signature.rs.html#17">Primitive::Double</a>,
+    </span><span class="kw">pub fn </span>primitive_type(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Primitive&gt; {
+        <span class="prelude-val">Some</span>(<span class="kw">match </span><span class="kw-2">*</span><span class="self">self </span>{
+            JValue::Object(<span class="kw">_</span>) =&gt; <span class="kw">return </span><span class="prelude-val">None</span>,
+            JValue::Void =&gt; Primitive::Void,
+            JValue::Byte(<span class="kw">_</span>) =&gt; Primitive::Byte,
+            JValue::Char(<span class="kw">_</span>) =&gt; Primitive::Char,
+            JValue::Short(<span class="kw">_</span>) =&gt; Primitive::Short,
+            JValue::Int(<span class="kw">_</span>) =&gt; Primitive::Int,
+            JValue::Long(<span class="kw">_</span>) =&gt; Primitive::Long,
+            JValue::Bool(<span class="kw">_</span>) =&gt; Primitive::Boolean,
+            JValue::Float(<span class="kw">_</span>) =&gt; Primitive::Float,
+            JValue::Double(<span class="kw">_</span>) =&gt; Primitive::Double,
         })
     }
 
     <span class="doccomment">/// Try to unwrap to an Object.
     </span><span class="kw">pub fn </span>l(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;JObject&lt;<span class="lifetime">&#39;a</span>&gt;&gt; {
-        <span class="kw">match </span><span class="self"><a href="#90">self</a> </span>{
-            <a href="#13">JValue::Object</a>(obj) =&gt; <span class="prelude-val">Ok</span>(<a href="#92">obj</a>),
-            <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(<a href="../errors.rs.html#13">Error::WrongJValueType</a>(<span class="string">&quot;object&quot;</span>, <a class="self" href="#90">self</a>.<a href="#57">type_name</a>())),
+        <span class="kw">match </span><span class="self">self </span>{
+            JValue::Object(obj) =&gt; <span class="prelude-val">Ok</span>(obj),
+            <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(Error::WrongJValueType(<span class="string">&quot;object&quot;</span>, <span class="self">self</span>.type_name())),
         }
     }
 
     <span class="doccomment">/// Try to unwrap to a boolean.
-    </span><span class="kw">pub fn </span>z(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>&gt; {
-        <span class="kw">match </span><span class="self"><a href="#98">self</a> </span>{
-            <a href="#19">JValue::Bool</a>(b) =&gt; <span class="prelude-val">Ok</span>(<a href="#100">b</a> == <a href="../../../../jni/sys/constant.JNI_TRUE.html">JNI_TRUE</a>),
-            <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(<a href="../errors.rs.html#13">Error::WrongJValueType</a>(<span class="string">&quot;bool&quot;</span>, <a class="self" href="#98">self</a>.<a href="#57">type_name</a>())),
+    </span><span class="kw">pub fn </span>z(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;bool&gt; {
+        <span class="kw">match </span><span class="self">self </span>{
+            JValue::Bool(b) =&gt; <span class="prelude-val">Ok</span>(b == JNI_TRUE),
+            <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(Error::WrongJValueType(<span class="string">&quot;bool&quot;</span>, <span class="self">self</span>.type_name())),
         }
     }
 
     <span class="doccomment">/// Try to unwrap to a byte.
-    </span><span class="kw">pub fn </span>b(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../../../jni/sys/type.jbyte.html">jbyte</a>&gt; {
-        <span class="kw">match </span><span class="self"><a href="#106">self</a> </span>{
-            <a href="#14">JValue::Byte</a>(b) =&gt; <span class="prelude-val">Ok</span>(<a href="#108">b</a>),
-            <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(<a href="../errors.rs.html#13">Error::WrongJValueType</a>(<span class="string">&quot;jbyte&quot;</span>, <a class="self" href="#106">self</a>.<a href="#57">type_name</a>())),
+    </span><span class="kw">pub fn </span>b(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;jbyte&gt; {
+        <span class="kw">match </span><span class="self">self </span>{
+            JValue::Byte(b) =&gt; <span class="prelude-val">Ok</span>(b),
+            <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(Error::WrongJValueType(<span class="string">&quot;jbyte&quot;</span>, <span class="self">self</span>.type_name())),
         }
     }
 
     <span class="doccomment">/// Try to unwrap to a char.
-    </span><span class="kw">pub fn </span>c(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../../../jni/sys/type.jchar.html">jchar</a>&gt; {
-        <span class="kw">match </span><span class="self"><a href="#114">self</a> </span>{
-            <a href="#15">JValue::Char</a>(b) =&gt; <span class="prelude-val">Ok</span>(<a href="#116">b</a>),
-            <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(<a href="../errors.rs.html#13">Error::WrongJValueType</a>(<span class="string">&quot;jchar&quot;</span>, <a class="self" href="#114">self</a>.<a href="#57">type_name</a>())),
+    </span><span class="kw">pub fn </span>c(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;jchar&gt; {
+        <span class="kw">match </span><span class="self">self </span>{
+            JValue::Char(b) =&gt; <span class="prelude-val">Ok</span>(b),
+            <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(Error::WrongJValueType(<span class="string">&quot;jchar&quot;</span>, <span class="self">self</span>.type_name())),
         }
     }
 
     <span class="doccomment">/// Try to unwrap to a double.
-    </span><span class="kw">pub fn </span>d(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../../../jni/sys/type.jdouble.html">jdouble</a>&gt; {
-        <span class="kw">match </span><span class="self"><a href="#122">self</a> </span>{
-            <a href="#21">JValue::Double</a>(b) =&gt; <span class="prelude-val">Ok</span>(<a href="#124">b</a>),
-            <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(<a href="../errors.rs.html#13">Error::WrongJValueType</a>(<span class="string">&quot;jdouble&quot;</span>, <a class="self" href="#122">self</a>.<a href="#57">type_name</a>())),
+    </span><span class="kw">pub fn </span>d(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;jdouble&gt; {
+        <span class="kw">match </span><span class="self">self </span>{
+            JValue::Double(b) =&gt; <span class="prelude-val">Ok</span>(b),
+            <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(Error::WrongJValueType(<span class="string">&quot;jdouble&quot;</span>, <span class="self">self</span>.type_name())),
         }
     }
 
     <span class="doccomment">/// Try to unwrap to a float.
-    </span><span class="kw">pub fn </span>f(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../../../jni/sys/type.jfloat.html">jfloat</a>&gt; {
-        <span class="kw">match </span><span class="self"><a href="#130">self</a> </span>{
-            <a href="#20">JValue::Float</a>(b) =&gt; <span class="prelude-val">Ok</span>(<a href="#132">b</a>),
-            <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(<a href="../errors.rs.html#13">Error::WrongJValueType</a>(<span class="string">&quot;jfloat&quot;</span>, <a class="self" href="#130">self</a>.<a href="#57">type_name</a>())),
+    </span><span class="kw">pub fn </span>f(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;jfloat&gt; {
+        <span class="kw">match </span><span class="self">self </span>{
+            JValue::Float(b) =&gt; <span class="prelude-val">Ok</span>(b),
+            <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(Error::WrongJValueType(<span class="string">&quot;jfloat&quot;</span>, <span class="self">self</span>.type_name())),
         }
     }
 
     <span class="doccomment">/// Try to unwrap to an int.
-    </span><span class="kw">pub fn </span>i(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../../../jni/sys/type.jint.html">jint</a>&gt; {
-        <span class="kw">match </span><span class="self"><a href="#138">self</a> </span>{
-            <a href="#17">JValue::Int</a>(b) =&gt; <span class="prelude-val">Ok</span>(<a href="#140">b</a>),
-            <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(<a href="../errors.rs.html#13">Error::WrongJValueType</a>(<span class="string">&quot;jint&quot;</span>, <a class="self" href="#138">self</a>.<a href="#57">type_name</a>())),
+    </span><span class="kw">pub fn </span>i(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;jint&gt; {
+        <span class="kw">match </span><span class="self">self </span>{
+            JValue::Int(b) =&gt; <span class="prelude-val">Ok</span>(b),
+            <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(Error::WrongJValueType(<span class="string">&quot;jint&quot;</span>, <span class="self">self</span>.type_name())),
         }
     }
 
     <span class="doccomment">/// Try to unwrap to a long.
-    </span><span class="kw">pub fn </span>j(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../../../jni/sys/type.jlong.html">jlong</a>&gt; {
-        <span class="kw">match </span><span class="self"><a href="#146">self</a> </span>{
-            <a href="#18">JValue::Long</a>(b) =&gt; <span class="prelude-val">Ok</span>(<a href="#148">b</a>),
-            <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(<a href="../errors.rs.html#13">Error::WrongJValueType</a>(<span class="string">&quot;jlong&quot;</span>, <a class="self" href="#146">self</a>.<a href="#57">type_name</a>())),
+    </span><span class="kw">pub fn </span>j(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;jlong&gt; {
+        <span class="kw">match </span><span class="self">self </span>{
+            JValue::Long(b) =&gt; <span class="prelude-val">Ok</span>(b),
+            <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(Error::WrongJValueType(<span class="string">&quot;jlong&quot;</span>, <span class="self">self</span>.type_name())),
         }
     }
 
     <span class="doccomment">/// Try to unwrap to a short.
-    </span><span class="kw">pub fn </span>s(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../../../jni/sys/type.jshort.html">jshort</a>&gt; {
-        <span class="kw">match </span><span class="self"><a href="#154">self</a> </span>{
-            <a href="#16">JValue::Short</a>(b) =&gt; <span class="prelude-val">Ok</span>(<a href="#156">b</a>),
-            <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(<a href="../errors.rs.html#13">Error::WrongJValueType</a>(<span class="string">&quot;jshort&quot;</span>, <a class="self" href="#154">self</a>.<a href="#57">type_name</a>())),
+    </span><span class="kw">pub fn </span>s(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;jshort&gt; {
+        <span class="kw">match </span><span class="self">self </span>{
+            JValue::Short(b) =&gt; <span class="prelude-val">Ok</span>(b),
+            <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(Error::WrongJValueType(<span class="string">&quot;jshort&quot;</span>, <span class="self">self</span>.type_name())),
         }
     }
 
     <span class="doccomment">/// Try to unwrap to a void.
     </span><span class="kw">pub fn </span>v(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
-        <span class="kw">match </span><span class="self"><a href="#162">self</a> </span>{
-            <a href="#22">JValue::Void</a> =&gt; <span class="prelude-val">Ok</span>(()),
-            <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(<a href="../errors.rs.html#13">Error::WrongJValueType</a>(<span class="string">&quot;void&quot;</span>, <a class="self" href="#162">self</a>.<a href="#57">type_name</a>())),
+        <span class="kw">match </span><span class="self">self </span>{
+            JValue::Void =&gt; <span class="prelude-val">Ok</span>(()),
+            <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(Error::WrongJValueType(<span class="string">&quot;void&quot;</span>, <span class="self">self</span>.type_name())),
         }
     }
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T: Into&lt;JObject&lt;<span class="lifetime">&#39;a</span>&gt;&gt;&gt; From&lt;T&gt; <span class="kw">for </span>JValue&lt;<span class="lifetime">&#39;a</span>&gt; {
     <span class="kw">fn </span>from(other: T) -&gt; <span class="self">Self </span>{
-        <a href="#13">JValue::Object</a>(<a href="#171">other</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
+        JValue::Object(other.into())
     }
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; TryFrom&lt;JValue&lt;<span class="lifetime">&#39;a</span>&gt;&gt; <span class="kw">for </span>JObject&lt;<span class="lifetime">&#39;a</span>&gt; {
-    <span class="kw">type </span>Error = <a href="../errors.rs.html#11">Error</a>;
+    <span class="kw">type </span>Error = Error;
 
     <span class="kw">fn </span>try_from(value: JValue&lt;<span class="lifetime">&#39;a</span>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
-        <span class="kw">match </span><a href="#179">value</a> {
-            <a href="#13">JValue::Object</a>(o) =&gt; <span class="prelude-val">Ok</span>(<a href="#181">o</a>),
-            <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(<a href="../errors.rs.html#13">Error::WrongJValueType</a>(<span class="string">&quot;object&quot;</span>, <a href="#179">value</a>.<a href="#57">type_name</a>())),
+        <span class="kw">match </span>value {
+            JValue::Object(o) =&gt; <span class="prelude-val">Ok</span>(o),
+            <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(Error::WrongJValueType(<span class="string">&quot;object&quot;</span>, value.type_name())),
         }
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; From&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>&gt; <span class="kw">for </span>JValue&lt;<span class="lifetime">&#39;a</span>&gt; {
-    <span class="kw">fn </span>from(other: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="self">Self </span>{
-        <a href="#19">JValue::Bool</a>(<span class="kw">if </span>other { <a href="../../../../jni/sys/constant.JNI_TRUE.html">JNI_TRUE</a> } <span class="kw">else </span>{ <a href="../../../../jni/sys/constant.JNI_FALSE.html">JNI_FALSE</a> })
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; From&lt;bool&gt; <span class="kw">for </span>JValue&lt;<span class="lifetime">&#39;a</span>&gt; {
+    <span class="kw">fn </span>from(other: bool) -&gt; <span class="self">Self </span>{
+        JValue::Bool(<span class="kw">if </span>other { JNI_TRUE } <span class="kw">else </span>{ JNI_FALSE })
     }
 }
 
 <span class="comment">// jbool
-</span><span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; From&lt;<a href="../../../../jni/sys/type.jboolean.html">jboolean</a>&gt; <span class="kw">for </span>JValue&lt;<span class="lifetime">&#39;a</span>&gt; {
-    <span class="kw">fn </span>from(other: <a href="../../../../jni/sys/type.jboolean.html">jboolean</a>) -&gt; <span class="self">Self </span>{
-        <a href="#19">JValue::Bool</a>(<a href="#195">other</a>)
+</span><span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; From&lt;jboolean&gt; <span class="kw">for </span>JValue&lt;<span class="lifetime">&#39;a</span>&gt; {
+    <span class="kw">fn </span>from(other: jboolean) -&gt; <span class="self">Self </span>{
+        JValue::Bool(other)
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; TryFrom&lt;JValue&lt;<span class="lifetime">&#39;a</span>&gt;&gt; <span class="kw">for </span><a href="../../../../jni/sys/type.jboolean.html">jboolean</a> {
-    <span class="kw">type </span>Error = <a href="../errors.rs.html#11">Error</a>;
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; TryFrom&lt;JValue&lt;<span class="lifetime">&#39;a</span>&gt;&gt; <span class="kw">for </span>jboolean {
+    <span class="kw">type </span>Error = Error;
 
     <span class="kw">fn </span>try_from(value: JValue&lt;<span class="lifetime">&#39;a</span>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
-        <span class="kw">match </span><a href="#203">value</a> {
-            <a href="#19">JValue::Bool</a>(b) =&gt; <span class="prelude-val">Ok</span>(<a href="#205">b</a>),
-            <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(<a href="../errors.rs.html#13">Error::WrongJValueType</a>(<span class="string">&quot;bool&quot;</span>, <a href="#203">value</a>.<a href="#57">type_name</a>())),
+        <span class="kw">match </span>value {
+            JValue::Bool(b) =&gt; <span class="prelude-val">Ok</span>(b),
+            <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(Error::WrongJValueType(<span class="string">&quot;bool&quot;</span>, value.type_name())),
         }
     }
 }
 
 <span class="comment">// jchar
-</span><span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; From&lt;<a href="../../../../jni/sys/type.jchar.html">jchar</a>&gt; <span class="kw">for </span>JValue&lt;<span class="lifetime">&#39;a</span>&gt; {
-    <span class="kw">fn </span>from(other: <a href="../../../../jni/sys/type.jchar.html">jchar</a>) -&gt; <span class="self">Self </span>{
-        <a href="#15">JValue::Char</a>(<a href="#213">other</a>)
+</span><span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; From&lt;jchar&gt; <span class="kw">for </span>JValue&lt;<span class="lifetime">&#39;a</span>&gt; {
+    <span class="kw">fn </span>from(other: jchar) -&gt; <span class="self">Self </span>{
+        JValue::Char(other)
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; TryFrom&lt;JValue&lt;<span class="lifetime">&#39;a</span>&gt;&gt; <span class="kw">for </span><a href="../../../../jni/sys/type.jchar.html">jchar</a> {
-    <span class="kw">type </span>Error = <a href="../errors.rs.html#11">Error</a>;
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; TryFrom&lt;JValue&lt;<span class="lifetime">&#39;a</span>&gt;&gt; <span class="kw">for </span>jchar {
+    <span class="kw">type </span>Error = Error;
 
     <span class="kw">fn </span>try_from(value: JValue&lt;<span class="lifetime">&#39;a</span>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
-        <span class="kw">match </span><a href="#221">value</a> {
-            <a href="#15">JValue::Char</a>(c) =&gt; <span class="prelude-val">Ok</span>(<a href="#223">c</a>),
-            <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(<a href="../errors.rs.html#13">Error::WrongJValueType</a>(<span class="string">&quot;char&quot;</span>, <a href="#221">value</a>.<a href="#57">type_name</a>())),
+        <span class="kw">match </span>value {
+            JValue::Char(c) =&gt; <span class="prelude-val">Ok</span>(c),
+            <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(Error::WrongJValueType(<span class="string">&quot;char&quot;</span>, value.type_name())),
         }
     }
 }
 
 <span class="comment">// jshort
-</span><span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; From&lt;<a href="../../../../jni/sys/type.jshort.html">jshort</a>&gt; <span class="kw">for </span>JValue&lt;<span class="lifetime">&#39;a</span>&gt; {
-    <span class="kw">fn </span>from(other: <a href="../../../../jni/sys/type.jshort.html">jshort</a>) -&gt; <span class="self">Self </span>{
-        <a href="#16">JValue::Short</a>(<a href="#231">other</a>)
+</span><span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; From&lt;jshort&gt; <span class="kw">for </span>JValue&lt;<span class="lifetime">&#39;a</span>&gt; {
+    <span class="kw">fn </span>from(other: jshort) -&gt; <span class="self">Self </span>{
+        JValue::Short(other)
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; TryFrom&lt;JValue&lt;<span class="lifetime">&#39;a</span>&gt;&gt; <span class="kw">for </span><a href="../../../../jni/sys/type.jshort.html">jshort</a> {
-    <span class="kw">type </span>Error = <a href="../errors.rs.html#11">Error</a>;
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; TryFrom&lt;JValue&lt;<span class="lifetime">&#39;a</span>&gt;&gt; <span class="kw">for </span>jshort {
+    <span class="kw">type </span>Error = Error;
 
     <span class="kw">fn </span>try_from(value: JValue&lt;<span class="lifetime">&#39;a</span>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
-        <span class="kw">match </span><a href="#239">value</a> {
-            <a href="#16">JValue::Short</a>(s) =&gt; <span class="prelude-val">Ok</span>(<a href="#241">s</a>),
-            <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(<a href="../errors.rs.html#13">Error::WrongJValueType</a>(<span class="string">&quot;short&quot;</span>, <a href="#239">value</a>.<a href="#57">type_name</a>())),
+        <span class="kw">match </span>value {
+            JValue::Short(s) =&gt; <span class="prelude-val">Ok</span>(s),
+            <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(Error::WrongJValueType(<span class="string">&quot;short&quot;</span>, value.type_name())),
         }
     }
 }
 
 <span class="comment">// jfloat
-</span><span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; From&lt;<a href="../../../../jni/sys/type.jfloat.html">jfloat</a>&gt; <span class="kw">for </span>JValue&lt;<span class="lifetime">&#39;a</span>&gt; {
-    <span class="kw">fn </span>from(other: <a href="../../../../jni/sys/type.jfloat.html">jfloat</a>) -&gt; <span class="self">Self </span>{
-        <a href="#20">JValue::Float</a>(<a href="#249">other</a>)
+</span><span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; From&lt;jfloat&gt; <span class="kw">for </span>JValue&lt;<span class="lifetime">&#39;a</span>&gt; {
+    <span class="kw">fn </span>from(other: jfloat) -&gt; <span class="self">Self </span>{
+        JValue::Float(other)
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; TryFrom&lt;JValue&lt;<span class="lifetime">&#39;a</span>&gt;&gt; <span class="kw">for </span><a href="../../../../jni/sys/type.jfloat.html">jfloat</a> {
-    <span class="kw">type </span>Error = <a href="../errors.rs.html#11">Error</a>;
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; TryFrom&lt;JValue&lt;<span class="lifetime">&#39;a</span>&gt;&gt; <span class="kw">for </span>jfloat {
+    <span class="kw">type </span>Error = Error;
 
     <span class="kw">fn </span>try_from(value: JValue&lt;<span class="lifetime">&#39;a</span>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
-        <span class="kw">match </span><a href="#257">value</a> {
-            <a href="#20">JValue::Float</a>(f) =&gt; <span class="prelude-val">Ok</span>(<a href="#259">f</a>),
-            <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(<a href="../errors.rs.html#13">Error::WrongJValueType</a>(<span class="string">&quot;float&quot;</span>, <a href="#257">value</a>.<a href="#57">type_name</a>())),
+        <span class="kw">match </span>value {
+            JValue::Float(f) =&gt; <span class="prelude-val">Ok</span>(f),
+            <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(Error::WrongJValueType(<span class="string">&quot;float&quot;</span>, value.type_name())),
         }
     }
 }
 
 <span class="comment">// jdouble
-</span><span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; From&lt;<a href="../../../../jni/sys/type.jdouble.html">jdouble</a>&gt; <span class="kw">for </span>JValue&lt;<span class="lifetime">&#39;a</span>&gt; {
-    <span class="kw">fn </span>from(other: <a href="../../../../jni/sys/type.jdouble.html">jdouble</a>) -&gt; <span class="self">Self </span>{
-        <a href="#21">JValue::Double</a>(<a href="#267">other</a>)
+</span><span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; From&lt;jdouble&gt; <span class="kw">for </span>JValue&lt;<span class="lifetime">&#39;a</span>&gt; {
+    <span class="kw">fn </span>from(other: jdouble) -&gt; <span class="self">Self </span>{
+        JValue::Double(other)
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; TryFrom&lt;JValue&lt;<span class="lifetime">&#39;a</span>&gt;&gt; <span class="kw">for </span><a href="../../../../jni/sys/type.jdouble.html">jdouble</a> {
-    <span class="kw">type </span>Error = <a href="../errors.rs.html#11">Error</a>;
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; TryFrom&lt;JValue&lt;<span class="lifetime">&#39;a</span>&gt;&gt; <span class="kw">for </span>jdouble {
+    <span class="kw">type </span>Error = Error;
 
     <span class="kw">fn </span>try_from(value: JValue&lt;<span class="lifetime">&#39;a</span>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
-        <span class="kw">match </span><a href="#275">value</a> {
-            <a href="#21">JValue::Double</a>(d) =&gt; <span class="prelude-val">Ok</span>(<a href="#277">d</a>),
-            <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(<a href="../errors.rs.html#13">Error::WrongJValueType</a>(<span class="string">&quot;double&quot;</span>, <a href="#275">value</a>.<a href="#57">type_name</a>())),
+        <span class="kw">match </span>value {
+            JValue::Double(d) =&gt; <span class="prelude-val">Ok</span>(d),
+            <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(Error::WrongJValueType(<span class="string">&quot;double&quot;</span>, value.type_name())),
         }
     }
 }
 
 <span class="comment">// jint
-</span><span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; From&lt;<a href="../../../../jni/sys/type.jint.html">jint</a>&gt; <span class="kw">for </span>JValue&lt;<span class="lifetime">&#39;a</span>&gt; {
-    <span class="kw">fn </span>from(other: <a href="../../../../jni/sys/type.jint.html">jint</a>) -&gt; <span class="self">Self </span>{
-        <a href="#17">JValue::Int</a>(<a href="#285">other</a>)
+</span><span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; From&lt;jint&gt; <span class="kw">for </span>JValue&lt;<span class="lifetime">&#39;a</span>&gt; {
+    <span class="kw">fn </span>from(other: jint) -&gt; <span class="self">Self </span>{
+        JValue::Int(other)
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; TryFrom&lt;JValue&lt;<span class="lifetime">&#39;a</span>&gt;&gt; <span class="kw">for </span><a href="../../../../jni/sys/type.jint.html">jint</a> {
-    <span class="kw">type </span>Error = <a href="../errors.rs.html#11">Error</a>;
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; TryFrom&lt;JValue&lt;<span class="lifetime">&#39;a</span>&gt;&gt; <span class="kw">for </span>jint {
+    <span class="kw">type </span>Error = Error;
 
     <span class="kw">fn </span>try_from(value: JValue&lt;<span class="lifetime">&#39;a</span>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
-        <span class="kw">match </span><a href="#293">value</a> {
-            <a href="#17">JValue::Int</a>(i) =&gt; <span class="prelude-val">Ok</span>(<a href="#295">i</a>),
-            <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(<a href="../errors.rs.html#13">Error::WrongJValueType</a>(<span class="string">&quot;int&quot;</span>, <a href="#293">value</a>.<a href="#57">type_name</a>())),
+        <span class="kw">match </span>value {
+            JValue::Int(i) =&gt; <span class="prelude-val">Ok</span>(i),
+            <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(Error::WrongJValueType(<span class="string">&quot;int&quot;</span>, value.type_name())),
         }
     }
 }
 
 <span class="comment">// jlong
-</span><span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; From&lt;<a href="../../../../jni/sys/type.jlong.html">jlong</a>&gt; <span class="kw">for </span>JValue&lt;<span class="lifetime">&#39;a</span>&gt; {
-    <span class="kw">fn </span>from(other: <a href="../../../../jni/sys/type.jlong.html">jlong</a>) -&gt; <span class="self">Self </span>{
-        <a href="#18">JValue::Long</a>(<a href="#303">other</a>)
+</span><span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; From&lt;jlong&gt; <span class="kw">for </span>JValue&lt;<span class="lifetime">&#39;a</span>&gt; {
+    <span class="kw">fn </span>from(other: jlong) -&gt; <span class="self">Self </span>{
+        JValue::Long(other)
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; TryFrom&lt;JValue&lt;<span class="lifetime">&#39;a</span>&gt;&gt; <span class="kw">for </span><a href="../../../../jni/sys/type.jlong.html">jlong</a> {
-    <span class="kw">type </span>Error = <a href="../errors.rs.html#11">Error</a>;
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; TryFrom&lt;JValue&lt;<span class="lifetime">&#39;a</span>&gt;&gt; <span class="kw">for </span>jlong {
+    <span class="kw">type </span>Error = Error;
 
     <span class="kw">fn </span>try_from(value: JValue&lt;<span class="lifetime">&#39;a</span>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
-        <span class="kw">match </span><a href="#311">value</a> {
-            <a href="#18">JValue::Long</a>(l) =&gt; <span class="prelude-val">Ok</span>(<a href="#313">l</a>),
-            <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(<a href="../errors.rs.html#13">Error::WrongJValueType</a>(<span class="string">&quot;long&quot;</span>, <a href="#311">value</a>.<a href="#57">type_name</a>())),
+        <span class="kw">match </span>value {
+            JValue::Long(l) =&gt; <span class="prelude-val">Ok</span>(l),
+            <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(Error::WrongJValueType(<span class="string">&quot;long&quot;</span>, value.type_name())),
         }
     }
 }
 
 <span class="comment">// jbyte
-</span><span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; From&lt;<a href="../../../../jni/sys/type.jbyte.html">jbyte</a>&gt; <span class="kw">for </span>JValue&lt;<span class="lifetime">&#39;a</span>&gt; {
-    <span class="kw">fn </span>from(other: <a href="../../../../jni/sys/type.jbyte.html">jbyte</a>) -&gt; <span class="self">Self </span>{
-        <a href="#14">JValue::Byte</a>(<a href="#321">other</a>)
+</span><span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; From&lt;jbyte&gt; <span class="kw">for </span>JValue&lt;<span class="lifetime">&#39;a</span>&gt; {
+    <span class="kw">fn </span>from(other: jbyte) -&gt; <span class="self">Self </span>{
+        JValue::Byte(other)
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; TryFrom&lt;JValue&lt;<span class="lifetime">&#39;a</span>&gt;&gt; <span class="kw">for </span><a href="../../../../jni/sys/type.jbyte.html">jbyte</a> {
-    <span class="kw">type </span>Error = <a href="../errors.rs.html#11">Error</a>;
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; TryFrom&lt;JValue&lt;<span class="lifetime">&#39;a</span>&gt;&gt; <span class="kw">for </span>jbyte {
+    <span class="kw">type </span>Error = Error;
 
     <span class="kw">fn </span>try_from(value: JValue&lt;<span class="lifetime">&#39;a</span>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
-        <span class="kw">match </span><a href="#329">value</a> {
-            <a href="#14">JValue::Byte</a>(b) =&gt; <span class="prelude-val">Ok</span>(<a href="#331">b</a>),
-            <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(<a href="../errors.rs.html#13">Error::WrongJValueType</a>(<span class="string">&quot;byte&quot;</span>, <a href="#329">value</a>.<a href="#57">type_name</a>())),
+        <span class="kw">match </span>value {
+            JValue::Byte(b) =&gt; <span class="prelude-val">Ok</span>(b),
+            <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(Error::WrongJValueType(<span class="string">&quot;byte&quot;</span>, value.type_name())),
         }
     }
 }
@@ -690,19 +690,19 @@
 <span class="comment">// jvoid
 </span><span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; From&lt;()&gt; <span class="kw">for </span>JValue&lt;<span class="lifetime">&#39;a</span>&gt; {
     <span class="kw">fn </span>from(<span class="kw">_</span>: ()) -&gt; <span class="self">Self </span>{
-        <a href="#22">JValue::Void</a>
+        JValue::Void
     }
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; TryFrom&lt;JValue&lt;<span class="lifetime">&#39;a</span>&gt;&gt; <span class="kw">for </span>() {
-    <span class="kw">type </span>Error = <a href="../errors.rs.html#11">Error</a>;
+    <span class="kw">type </span>Error = Error;
 
     <span class="kw">fn </span>try_from(value: JValue&lt;<span class="lifetime">&#39;a</span>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
-        <span class="kw">match </span><a href="#347">value</a> {
-            <a href="#22">JValue::Void</a> =&gt; <span class="prelude-val">Ok</span>(()),
-            <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(<a href="../errors.rs.html#13">Error::WrongJValueType</a>(<span class="string">&quot;void&quot;</span>, <a href="#347">value</a>.<a href="#57">type_name</a>())),
+        <span class="kw">match </span>value {
+            JValue::Void =&gt; <span class="prelude-val">Ok</span>(()),
+            <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(Error::WrongJValueType(<span class="string">&quot;void&quot;</span>, value.type_name())),
         }
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="jni" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="jni" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

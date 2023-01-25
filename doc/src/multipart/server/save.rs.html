@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/multipart-0.18.0/src/server/save.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>save.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../multipart/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/multipart-0.18.0/src/server/save.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>save.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../multipart/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -1051,28 +1051,28 @@
 // copied, modified, or distributed except according to those terms.
 </span><span class="doccomment">//! Utilities for saving request entries to the filesystem.
 
-</span><span class="kw">pub use </span><a href="../../../multipart/server/save/struct.BufReader.html">server::buf_redux::BufReader</a>;
+</span><span class="kw">pub use </span>server::buf_redux::BufReader;
 
-<span class="kw">pub use </span><a href="../../../multipart/server/save/struct.TempDir.html">tempfile::TempDir</a>;
+<span class="kw">pub use </span>tempfile::TempDir;
 
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/collections/hash/map/struct.HashMap.html">std::collections::HashMap</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/io/prelude/index.html">std::io::prelude</a>::<span class="kw-2">*</span>;
-<span class="kw">use </span>std::fs::{<a class="self" href="https://doc.rust-lang.org/nightly/std/fs/index.html">self</a>, <a href="https://doc.rust-lang.org/nightly/std/fs/struct.File.html">File</a>, <a href="https://doc.rust-lang.org/nightly/std/fs/struct.OpenOptions.html">OpenOptions</a>};
-<span class="kw">use </span>std::path::{<a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>, <a href="https://doc.rust-lang.org/nightly/std/path/struct.PathBuf.html">PathBuf</a>};
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/sync/struct.Arc.html">std::sync::Arc</a>;
-<span class="kw">use </span>std::{<a href="https://doc.rust-lang.org/nightly/core/cmp/index.html">cmp</a>, <a href="https://doc.rust-lang.org/nightly/core/macro.env.html">env</a>, <a href="https://doc.rust-lang.org/nightly/std/io/index.html">io</a>, <a href="https://doc.rust-lang.org/nightly/core/mem/index.html">mem</a>, <a href="https://doc.rust-lang.org/nightly/alloc/str/index.html">str</a>, <a href="https://doc.rust-lang.org/nightly/core/u32/index.html">u32</a>, <a href="https://doc.rust-lang.org/nightly/core/u64/index.html">u64</a>};
-<span class="kw">use </span><a href="../../../tempfile/index.html">tempfile</a>;
+<span class="kw">use </span>std::collections::HashMap;
+<span class="kw">use </span>std::io::prelude::<span class="kw-2">*</span>;
+<span class="kw">use </span>std::fs::{<span class="self">self</span>, File, OpenOptions};
+<span class="kw">use </span>std::path::{Path, PathBuf};
+<span class="kw">use </span>std::sync::Arc;
+<span class="kw">use </span>std::{cmp, env, io, mem, str, u32, u64};
+<span class="kw">use </span>tempfile;
 
-<span class="kw">use </span>server::field::{<a href="field.rs.html#112">FieldHeaders</a>, <a href="field.rs.html#216">MultipartField</a>, <a href="field.rs.html#281">MultipartData</a>, <a href="field.rs.html#384">ReadEntry</a>, <a href="field.rs.html#470">ReadEntryResult</a>};
+<span class="kw">use </span>server::field::{FieldHeaders, MultipartField, MultipartData, ReadEntry, ReadEntryResult};
 
-<span class="kw">use </span><a href="#879"><span class="self">self</span>::SaveResult</a>::<span class="kw-2">*</span>;
-<span class="kw">use </span><a href="#62"><span class="self">self</span>::TextPolicy</a>::<span class="kw-2">*</span>;
-<span class="kw">use </span><a href="#784"><span class="self">self</span>::PartialReason</a>::<span class="kw-2">*</span>;
+<span class="kw">use </span><span class="self">self</span>::SaveResult::<span class="kw-2">*</span>;
+<span class="kw">use </span><span class="self">self</span>::TextPolicy::<span class="kw-2">*</span>;
+<span class="kw">use </span><span class="self">self</span>::PartialReason::<span class="kw-2">*</span>;
 
-<span class="kw">const </span>RANDOM_FILENAME_LEN: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> = <span class="number">12</span>;
+<span class="kw">const </span>RANDOM_FILENAME_LEN: usize = <span class="number">12</span>;
 
-<span class="kw">fn </span>rand_filename() -&gt; <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a> {
-    <a href="../lib.rs.html#120">::random_alphanumeric</a>(<a href="#27">RANDOM_FILENAME_LEN</a>)
+<span class="kw">fn </span>rand_filename() -&gt; String {
+    ::random_alphanumeric(RANDOM_FILENAME_LEN)
 }
 
 <span class="macro">macro_rules! </span>try_start (
@@ -1177,11 +1177,11 @@
 </span><span class="attr">#[must_use = <span class="string">&quot;nothing saved to the filesystem yet&quot;</span>]
 </span><span class="kw">pub struct </span>SaveBuilder&lt;S&gt; {
     savable: S,
-    open_opts: <a href="https://doc.rust-lang.org/nightly/std/fs/struct.OpenOptions.html">OpenOptions</a>,
-    size_limit: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>,
-    count_limit: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>,
-    memory_threshold: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>,
-    text_policy: <a href="#62">TextPolicy</a>,
+    open_opts: OpenOptions,
+    size_limit: u64,
+    count_limit: u32,
+    memory_threshold: u64,
+    text_policy: TextPolicy,
 }
 
 <span class="doccomment">/// Common methods for whole requests as well as individual fields.
@@ -1190,11 +1190,11 @@
     </span><span class="attr">#[doc(hidden)]
     </span><span class="kw">pub fn </span>new(savable: S) -&gt; SaveBuilder&lt;S&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>open_opts = OpenOptions::new();
-        <a href="#147">open_opts</a>.write(<span class="bool-val">true</span>).create_new(<span class="bool-val">true</span>);
+        open_opts.write(<span class="bool-val">true</span>).create_new(<span class="bool-val">true</span>);
 
-        <a href="#133">SaveBuilder</a> {
-            <a href="#146">savable</a>,
-            <a href="#147">open_opts</a>,
+        SaveBuilder {
+            savable,
+            open_opts,
             <span class="comment">// 8 MiB, on the conservative end compared to most frameworks
             </span>size_limit: <span class="number">8 </span>* <span class="number">1024 </span>* <span class="number">1024</span>,
             <span class="comment">// Arbitrary, I have no empirical data for this
@@ -1202,26 +1202,26 @@
             <span class="comment">// 10KiB, used by Apache Commons
             // https://commons.apache.org/proper/commons-fileupload/apidocs/org/apache/commons/fileupload/disk/DiskFileItemFactory.html
             </span>memory_threshold: <span class="number">10 </span>* <span class="number">1024</span>,
-            text_policy: <a href="#64">TextPolicy::Try</a>,
+            text_policy: TextPolicy::Try,
         }
     }
 
     <span class="doccomment">/// Set the maximum number of bytes to write out *per file*.
     ///
     /// Can be `u64` or `Option&lt;u64&gt;`. If `None` or `u64::MAX`, clears the limit.
-    </span><span class="kw">pub fn </span>size_limit&lt;L: Into&lt;<span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>&gt;&gt;&gt;(<span class="kw-2">mut </span><span class="self">self</span>, limit: L) -&gt; <span class="self">Self </span>{
-        <a class="self" href="#167">self</a>.size_limit = <a href="#167">limit</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>().unwrap_or(u64::MAX);
-        <span class="self"><a href="#167">self</a>
+    </span><span class="kw">pub fn </span>size_limit&lt;L: Into&lt;<span class="prelude-ty">Option</span>&lt;u64&gt;&gt;&gt;(<span class="kw-2">mut </span><span class="self">self</span>, limit: L) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.size_limit = limit.into().unwrap_or(u64::MAX);
+        <span class="self">self
     </span>}
 
     <span class="doccomment">/// Modify the `OpenOptions` used to open any files for writing.
     ///
     /// The `write` flag will be reset to `true` after the closure returns. (It&#39;d be pretty
     /// pointless otherwise, right?)
-    </span><span class="kw">pub fn </span>mod_open_opts&lt;F: FnOnce(<span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/std/fs/struct.OpenOptions.html">OpenOptions</a>)&gt;(<span class="kw-2">mut </span><span class="self">self</span>, opts_fn: F) -&gt; <span class="self">Self </span>{
-        <a href="#176">opts_fn</a>(<span class="kw-2">&amp;mut </span><a class="self" href="#176">self</a>.open_opts);
-        <a class="self" href="#176">self</a>.open_opts.write(<span class="bool-val">true</span>);
-        <span class="self"><a href="#176">self</a>
+    </span><span class="kw">pub fn </span>mod_open_opts&lt;F: FnOnce(<span class="kw-2">&amp;mut </span>OpenOptions)&gt;(<span class="kw-2">mut </span><span class="self">self</span>, opts_fn: F) -&gt; <span class="self">Self </span>{
+        opts_fn(<span class="kw-2">&amp;mut </span><span class="self">self</span>.open_opts);
+        <span class="self">self</span>.open_opts.write(<span class="bool-val">true</span>);
+        <span class="self">self
     </span>}
 
     <span class="doccomment">/// Set the threshold at which to switch from copying a field into memory to copying
@@ -1229,8 +1229,8 @@
     ///
     /// If `0`, forces fields to save directly to the filesystem.
     /// If `u64::MAX`, effectively forces fields to always save to memory.
-    </span><span class="kw">pub fn </span>memory_threshold(<span class="self">self</span>, memory_threshold: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) -&gt; <span class="self">Self </span>{
-        <span class="self">Self </span>{ <a href="#187">memory_threshold</a>, ..<span class="self"><a href="#187">self</a> </span>}
+    </span><span class="kw">pub fn </span>memory_threshold(<span class="self">self</span>, memory_threshold: u64) -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{ memory_threshold, ..<span class="self">self </span>}
     }
 
     <span class="doccomment">/// When encountering a field that is apparently text, try to read it to a string or fall
@@ -1241,7 +1241,7 @@
     ///
     /// Has no effect once `memory_threshold` has been reached.
     </span><span class="kw">pub fn </span>try_text(<span class="self">self</span>) -&gt; <span class="self">Self </span>{
-        <span class="self">Self </span>{ text_policy: <a href="#64">TextPolicy::Try</a>, ..<span class="self"><a href="#198">self</a> </span>}
+        <span class="self">Self </span>{ text_policy: TextPolicy::Try, ..<span class="self">self </span>}
     }
 
     <span class="doccomment">/// When encountering a field that is apparently text, read it to a string or return an error.
@@ -1251,23 +1251,23 @@
     ///
     /// (RFC: should this continue to validate UTF-8 when writing to the filesystem?)
     </span><span class="kw">pub fn </span>force_text(<span class="self">self</span>) -&gt; <span class="self">Self </span>{
-        <span class="self">Self </span>{ text_policy: <a href="#66">TextPolicy::Force</a>, ..<a class="self" href="#208">self</a>}
+        <span class="self">Self </span>{ text_policy: TextPolicy::Force, ..<span class="self">self</span>}
     }
 
     <span class="doccomment">/// Don&#39;t try to read or validate any field data as UTF-8.
     </span><span class="kw">pub fn </span>ignore_text(<span class="self">self</span>) -&gt; <span class="self">Self </span>{
-        <span class="self">Self </span>{ text_policy: <a href="#68">TextPolicy::Ignore</a>, ..<span class="self"><a href="#213">self</a> </span>}
+        <span class="self">Self </span>{ text_policy: TextPolicy::Ignore, ..<span class="self">self </span>}
     }
 }
 
 <span class="doccomment">/// Save API for whole multipart requests.
-</span><span class="kw">impl</span>&lt;M&gt; SaveBuilder&lt;M&gt; <span class="kw">where </span>M: <a href="field.rs.html#384">ReadEntry</a> {
+</span><span class="kw">impl</span>&lt;M&gt; SaveBuilder&lt;M&gt; <span class="kw">where </span>M: ReadEntry {
     <span class="doccomment">/// Set the maximum number of fields to process.
     ///
     /// Can be `u32` or `Option&lt;u32&gt;`. If `None` or `u32::MAX`, clears the limit.
-    </span><span class="kw">pub fn </span>count_limit&lt;L: Into&lt;<span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>&gt;&gt;&gt;(<span class="kw-2">mut </span><span class="self">self</span>, count_limit: L) -&gt; <span class="self">Self </span>{
-        <a class="self" href="#223">self</a>.count_limit = <a href="#223">count_limit</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>().unwrap_or(u32::MAX);
-        <span class="self"><a href="#223">self</a>
+    </span><span class="kw">pub fn </span>count_limit&lt;L: Into&lt;<span class="prelude-ty">Option</span>&lt;u32&gt;&gt;&gt;(<span class="kw-2">mut </span><span class="self">self</span>, count_limit: L) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.count_limit = count_limit.into().unwrap_or(u32::MAX);
+        <span class="self">self
     </span>}
 
     <span class="doccomment">/// Save all fields in the request using a new temporary directory prefixed with
@@ -1280,7 +1280,7 @@
     /// ### Note: Temporary
     /// See `SaveDir` for more info (the type of `Entries::save_dir`).
     </span><span class="kw">pub fn </span>temp(<span class="self">self</span>) -&gt; EntriesSaveResult&lt;M&gt; {
-        <a class="self" href="#237">self</a>.<a href="#250">temp_with_prefix</a>(<span class="string">&quot;multipart-rs&quot;</span>)
+        <span class="self">self</span>.temp_with_prefix(<span class="string">&quot;multipart-rs&quot;</span>)
     }
 
     <span class="doccomment">/// Save all fields in the request using a new temporary directory with the given string
@@ -1292,10 +1292,10 @@
     ///
     /// ### Note: Temporary
     /// See `SaveDir` for more info (the type of `Entries::save_dir`).
-    </span><span class="kw">pub fn </span>temp_with_prefix(<span class="self">self</span>, prefix: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; EntriesSaveResult&lt;M&gt; {
-        <span class="kw">match </span>tempfile::Builder::new().prefix(<a href="#250">prefix</a>).tempdir() {
-            <span class="prelude-val">Ok</span>(tempdir) =&gt; <a class="self" href="#250">self</a>.<a href="#262">with_temp_dir</a>(<a href="#252">tempdir</a>),
-            <span class="prelude-val">Err</span>(e) =&gt; <a href="#886">SaveResult::Error</a>(<a href="#253">e</a>),
+    </span><span class="kw">pub fn </span>temp_with_prefix(<span class="self">self</span>, prefix: <span class="kw-2">&amp;</span>str) -&gt; EntriesSaveResult&lt;M&gt; {
+        <span class="kw">match </span>tempfile::Builder::new().prefix(prefix).tempdir() {
+            <span class="prelude-val">Ok</span>(tempdir) =&gt; <span class="self">self</span>.with_temp_dir(tempdir),
+            <span class="prelude-val">Err</span>(e) =&gt; SaveResult::Error(e),
         }
     }
 
@@ -1304,8 +1304,8 @@
     /// See `with_entries()` for more info.
     ///
     /// The `TempDir` is returned in the result under `Entries::save_dir`.
-    </span><span class="kw">pub fn </span>with_temp_dir(<span class="self">self</span>, tempdir: <a href="../../../multipart/server/save/struct.TempDir.html">TempDir</a>) -&gt; EntriesSaveResult&lt;M&gt; {
-        <a class="self" href="#262">self</a>.<a href="#288">with_entries</a>(Entries::new(<a href="#703">SaveDir::Temp</a>(<a href="#262">tempdir</a>)))
+    </span><span class="kw">pub fn </span>with_temp_dir(<span class="self">self</span>, tempdir: TempDir) -&gt; EntriesSaveResult&lt;M&gt; {
+        <span class="self">self</span>.with_entries(Entries::new(SaveDir::Temp(tempdir)))
     }
 
     <span class="doccomment">/// Save the file fields in the request to a new permanent directory with the given path.
@@ -1313,12 +1313,12 @@
     /// Any nonexistent directories in the path will be created.
     ///
     /// See `with_entries()` for more info.
-    </span><span class="kw">pub fn </span>with_dir&lt;P: Into&lt;<a href="https://doc.rust-lang.org/nightly/std/path/struct.PathBuf.html">PathBuf</a>&gt;&gt;(<span class="self">self</span>, dir: P) -&gt; EntriesSaveResult&lt;M&gt; {
-        <span class="kw">let </span>dir = <a href="#271">dir</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>();
+    </span><span class="kw">pub fn </span>with_dir&lt;P: Into&lt;PathBuf&gt;&gt;(<span class="self">self</span>, dir: P) -&gt; EntriesSaveResult&lt;M&gt; {
+        <span class="kw">let </span>dir = dir.into();
 
-        <a class="macro" href="#33-40">try_start!</a>(create_dir_all(<span class="kw-2">&amp;</span>dir));
+        <span class="macro">try_start!</span>(create_dir_all(<span class="kw-2">&amp;</span>dir));
 
-        <a class="self" href="#271">self</a>.<a href="#288">with_entries</a>(Entries::new(<a href="#708">SaveDir::Perm</a>(<a href="#272">dir</a>)))
+        <span class="self">self</span>.with_entries(Entries::new(SaveDir::Perm(dir)))
     }
 
     <span class="doccomment">/// Commence the save operation using the existing `Entries` instance.
@@ -1330,25 +1330,25 @@
     ///
     /// Note that `PartialReason::CountLimit` will still be returned if the number of fields
     /// reaches `u32::MAX`, but this would be an extremely degenerate case.
-    </span><span class="kw">pub fn </span>with_entries(<span class="self">self</span>, <span class="kw-2">mut </span>entries: <a href="#610">Entries</a>) -&gt; EntriesSaveResult&lt;M&gt; {
-        <span class="kw">let </span><a href="#133">SaveBuilder</a> {
+    </span><span class="kw">pub fn </span>with_entries(<span class="self">self</span>, <span class="kw-2">mut </span>entries: Entries) -&gt; EntriesSaveResult&lt;M&gt; {
+        <span class="kw">let </span>SaveBuilder {
             savable, open_opts, count_limit, size_limit,
             memory_threshold, text_policy
-        } = <a class="self" href="#288">self</a>;
+        } = <span class="self">self</span>;
 
-        <span class="kw">let </span><span class="kw-2">mut </span>res = <a href="field.rs.html#386">ReadEntry::read_entry</a>(<a href="#290">savable</a>);
+        <span class="kw">let </span><span class="kw-2">mut </span>res = ReadEntry::read_entry(savable);
 
-        <span class="kw">let _ </span>= <a href="#288">entries</a>.<a href="#652">recount_fields</a>();
+        <span class="kw">let _ </span>= entries.recount_fields();
 
-        <span class="kw">let </span>save_field = |field: <span class="kw-2">&amp;mut </span>MultipartField&lt;M&gt;, entries: <span class="kw-2">&amp;</span><a href="#610">Entries</a>| {
-            <span class="kw">let </span>text_policy = <span class="kw">if </span>field.is_text() { <a href="#291">text_policy</a> } <span class="kw">else </span>{ <a href="#68">Ignore</a> };
+        <span class="kw">let </span>save_field = |field: <span class="kw-2">&amp;mut </span>MultipartField&lt;M&gt;, entries: <span class="kw-2">&amp;</span>Entries| {
+            <span class="kw">let </span>text_policy = <span class="kw">if </span>field.is_text() { text_policy } <span class="kw">else </span>{ Ignore };
 
-            <span class="kw">let </span><span class="kw-2">mut </span>saver = <a href="#133">SaveBuilder</a> {
-                savable: <span class="kw-2">&amp;mut </span><a href="#298">field</a>.data, open_opts: <a href="#290">open_opts</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
-                <a href="#290">count_limit</a>, <a href="#290">size_limit</a>, <a href="#291">memory_threshold</a>, <a href="#299">text_policy</a>
+            <span class="kw">let </span><span class="kw-2">mut </span>saver = SaveBuilder {
+                savable: <span class="kw-2">&amp;mut </span>field.data, open_opts: open_opts.clone(),
+                count_limit, size_limit, memory_threshold, text_policy
             };
 
-            <a href="#301">saver</a>.<a href="#380">with_dir</a>(<a href="#298">entries</a>.save_dir.<a href="#713">as_path</a>())
+            saver.with_dir(entries.save_dir.as_path())
         };
 
         <span class="kw">while </span>entries.fields_count &lt; count_limit {
@@ -1386,45 +1386,45 @@
             );
         }
 
-        <a href="#884">Partial</a>(
-            <a href="#846">PartialEntries</a> {
-                <a href="#288">entries</a>,
+        Partial(
+            PartialEntries {
+                entries,
                 partial: <span class="prelude-val">None</span>,
             },
-            <a href="#788">PartialReason::CountLimit</a>
+            PartialReason::CountLimit
         )
     }
 }
 
 <span class="doccomment">/// Save API for individual fields.
-</span><span class="kw">impl</span>&lt;<span class="lifetime">&#39;m</span>, M: <span class="lifetime">&#39;m</span>&gt; SaveBuilder&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;m </span><span class="kw-2">mut </span>MultipartData&lt;M&gt;&gt; <span class="kw">where </span>MultipartData&lt;M&gt;: <a href="https://doc.rust-lang.org/nightly/std/io/trait.BufRead.html">BufRead</a> {
+</span><span class="kw">impl</span>&lt;<span class="lifetime">&#39;m</span>, M: <span class="lifetime">&#39;m</span>&gt; SaveBuilder&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;m </span><span class="kw-2">mut </span>MultipartData&lt;M&gt;&gt; <span class="kw">where </span>MultipartData&lt;M&gt;: BufRead {
     <span class="doccomment">/// Save the field data, potentially using a file with a random name in the
     /// OS temporary directory.
     ///
     /// See `with_path()` for more details.
-    </span><span class="kw">pub fn </span>temp(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <a href="#897">FieldSaveResult</a> {
-        <span class="kw">let </span>path = env::temp_dir().join(<a href="#29">rand_filename</a>());
-        <a class="self" href="#360">self</a>.<a href="#394">with_path</a>(<a href="#361">path</a>)
+    </span><span class="kw">pub fn </span>temp(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; FieldSaveResult {
+        <span class="kw">let </span>path = env::temp_dir().join(rand_filename());
+        <span class="self">self</span>.with_path(path)
     }
 
     <span class="doccomment">/// Save the field data, potentially using a file with the given name in
     /// the OS temporary directory.
     ///
     /// See `with_path()` for more details.
-    </span><span class="kw">pub fn </span>with_filename(<span class="kw-2">&amp;mut </span><span class="self">self</span>, filename: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <a href="#897">FieldSaveResult</a> {
+    </span><span class="kw">pub fn </span>with_filename(<span class="kw-2">&amp;mut </span><span class="self">self</span>, filename: <span class="kw-2">&amp;</span>str) -&gt; FieldSaveResult {
         <span class="kw">let </span><span class="kw-2">mut </span>tempdir = env::temp_dir();
-        <a href="#370">tempdir</a>.set_file_name(<a href="#369">filename</a>);
+        tempdir.set_file_name(filename);
 
-        <a class="self" href="#369">self</a>.<a href="#394">with_path</a>(<a href="#370">tempdir</a>)
+        <span class="self">self</span>.with_path(tempdir)
     }
 
     <span class="doccomment">/// Save the field data, potentially using a file with a random alphanumeric name
     /// in the given directory.
     ///
     /// See `with_path()` for more details.
-    </span><span class="kw">pub fn </span>with_dir&lt;P: AsRef&lt;<a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>&gt;&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, dir: P) -&gt; <a href="#897">FieldSaveResult</a> {
-        <span class="kw">let </span>path = <a href="#380">dir</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>().join(<a href="#29">rand_filename</a>());
-        <a class="self" href="#380">self</a>.<a href="#394">with_path</a>(<a href="#381">path</a>)
+    </span><span class="kw">pub fn </span>with_dir&lt;P: AsRef&lt;Path&gt;&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, dir: P) -&gt; FieldSaveResult {
+        <span class="kw">let </span>path = dir.as_ref().join(rand_filename());
+        <span class="self">self</span>.with_path(path)
     }
 
     <span class="doccomment">/// Save the field data, potentially using a file with the given path.
@@ -1436,38 +1436,38 @@
     /// The no directories or files will be created until the set `memory_threshold` is reached.
     /// If `size_limit` is set and less than or equal to `memory_threshold`,
     /// then the disk will never be touched.
-    </span><span class="kw">pub fn </span>with_path&lt;P: Into&lt;<a href="https://doc.rust-lang.org/nightly/std/path/struct.PathBuf.html">PathBuf</a>&gt;&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, path: P) -&gt; <a href="#897">FieldSaveResult</a> {
+    </span><span class="kw">pub fn </span>with_path&lt;P: Into&lt;PathBuf&gt;&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, path: P) -&gt; FieldSaveResult {
         <span class="kw">let </span>bytes = <span class="kw">if </span><span class="self">self</span>.text_policy != Ignore {
-            <span class="kw">let </span>(text, reason) = <a class="macro" href="#51-59">try_partial!</a>(<span class="self">self</span>.save_text());
-            <span class="kw">match </span><a href="#396">reason</a> {
-                <a href="#792">SizeLimit</a> <span class="kw">if </span>!<a class="self" href="#394">self</a>.<a href="#484">cmp_size_limit</a>(<a href="#396">text</a>.len()) =&gt; <a href="#396">text</a>.into_bytes(),
-                <a href="#796">Utf8Error</a>(<span class="kw">_</span>) <span class="kw">if </span><a class="self" href="#394">self</a>.text_policy != <a href="#66">Force</a> =&gt; <a href="#396">text</a>.into_bytes(),
-                other =&gt; <span class="kw">return </span><a href="#884">Partial</a>(<a href="#396">text</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(), <a href="#400">other</a>),
+            <span class="kw">let </span>(text, reason) = <span class="macro">try_partial!</span>(<span class="self">self</span>.save_text());
+            <span class="kw">match </span>reason {
+                SizeLimit <span class="kw">if </span>!<span class="self">self</span>.cmp_size_limit(text.len()) =&gt; text.into_bytes(),
+                Utf8Error(<span class="kw">_</span>) <span class="kw">if </span><span class="self">self</span>.text_policy != Force =&gt; text.into_bytes(),
+                other =&gt; <span class="kw">return </span>Partial(text.into(), other),
             }
         } <span class="kw">else </span>{
             Vec::new()
         };
 
-        <span class="kw">let </span>(bytes, reason) = <a class="macro" href="#51-59">try_partial!</a>(<span class="self">self</span>.save_mem(bytes));
+        <span class="kw">let </span>(bytes, reason) = <span class="macro">try_partial!</span>(<span class="self">self</span>.save_mem(bytes));
 
-        <span class="kw">match </span><a href="#406">reason</a> {
-            <a href="#792">SizeLimit</a> <span class="kw">if </span>!<a class="self" href="#394">self</a>.<a href="#484">cmp_size_limit</a>(<a href="#406">bytes</a>.len()) =&gt; (),
-            other =&gt; <span class="kw">return </span><a href="#884">Partial</a>(<a href="#406">bytes</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(), <a href="#410">other</a>)
+        <span class="kw">match </span>reason {
+            SizeLimit <span class="kw">if </span>!<span class="self">self</span>.cmp_size_limit(bytes.len()) =&gt; (),
+            other =&gt; <span class="kw">return </span>Partial(bytes.into(), other)
         }
 
-        <span class="kw">let </span>path = <a href="#394">path</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>();
+        <span class="kw">let </span>path = path.into();
 
-        <span class="kw">let </span><span class="kw-2">mut </span>file = <span class="kw">match </span><a href="#962">create_dir_all</a>(<span class="kw-2">&amp;</span><a href="#413">path</a>).and_then(|<span class="kw">_</span>| <a class="self" href="#394">self</a>.open_opts.open(<span class="kw-2">&amp;</span><a href="#413">path</a>)) {
-            <span class="prelude-val">Ok</span>(file) =&gt; <a href="#416">file</a>,
-            <span class="prelude-val">Err</span>(e) =&gt; <span class="kw">return </span><a href="#886">Error</a>(<a href="#417">e</a>),
+        <span class="kw">let </span><span class="kw-2">mut </span>file = <span class="kw">match </span>create_dir_all(<span class="kw-2">&amp;</span>path).and_then(|<span class="kw">_</span>| <span class="self">self</span>.open_opts.open(<span class="kw-2">&amp;</span>path)) {
+            <span class="prelude-val">Ok</span>(file) =&gt; file,
+            <span class="prelude-val">Err</span>(e) =&gt; <span class="kw">return </span>Error(e),
         };
 
-        <span class="kw">let </span>data = <a class="macro" href="#42-49">try_full!</a>(
+        <span class="kw">let </span>data = <span class="macro">try_full!</span>(
             try_write_all(<span class="kw-2">&amp;</span>bytes, <span class="kw-2">&amp;mut </span>file)
                 .map(<span class="kw">move </span>|size| SavedData::File(path, size <span class="kw">as </span>u64))
         );
 
-        <a class="self" href="#394">self</a>.<a href="#435">write_to</a>(<a href="#415">file</a>).<a href="#918">map</a>(<span class="kw">move </span>|written| <a href="#420">data</a>.<a href="#547">add_size</a>(<a href="#425">written</a>))
+        <span class="self">self</span>.write_to(file).map(<span class="kw">move </span>|written| data.add_size(written))
     }
 
 
@@ -1477,57 +1477,57 @@
     /// (tested by `MultipartFile::fill_buf().is_empty()` so no bytes are consumed).
     ///
     /// Retries on interrupts.
-    </span><span class="kw">pub fn </span>write_to&lt;W: <a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a>&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, <span class="kw-2">mut </span>dest: W) -&gt; SaveResult&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>&gt; {
+    </span><span class="kw">pub fn </span>write_to&lt;W: Write&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, <span class="kw-2">mut </span>dest: W) -&gt; SaveResult&lt;u64, u64&gt; {
         <span class="kw">if </span><span class="self">self</span>.size_limit &lt; u64::MAX {
-            <a href="#972">try_copy_limited</a>(<span class="kw-2">&amp;mut </span><a class="self" href="#435">self</a>.savable, |buf| <a href="#1019">try_write_all</a>(<a href="#437">buf</a>, <span class="kw-2">&amp;mut </span><a href="#435">dest</a>), <a class="self" href="#435">self</a>.size_limit)
+            try_copy_limited(<span class="kw-2">&amp;mut </span><span class="self">self</span>.savable, |buf| try_write_all(buf, <span class="kw-2">&amp;mut </span>dest), <span class="self">self</span>.size_limit)
         } <span class="kw">else </span>{
-            <a href="#983">try_read_buf</a>(<span class="kw-2">&amp;mut </span><a class="self" href="#435">self</a>.savable, |buf| <a href="#1019">try_write_all</a>(<a href="#439">buf</a>, <span class="kw-2">&amp;mut </span><a href="#435">dest</a>))
+            try_read_buf(<span class="kw-2">&amp;mut </span><span class="self">self</span>.savable, |buf| try_write_all(buf, <span class="kw-2">&amp;mut </span>dest))
         }
     }
 
-    <span class="kw">fn </span>save_mem(<span class="kw-2">&amp;mut </span><span class="self">self</span>, <span class="kw-2">mut </span>bytes: Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;) -&gt; SaveResult&lt;Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;, Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;&gt; {
-        <span class="kw">let </span>pre_read = <a href="#443">bytes</a>.len() <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>;
-        <span class="kw">match </span><a class="self" href="#443">self</a>.<a href="#478">read_mem</a>(|buf| { <a href="#443">bytes</a>.extend_from_slice(<a href="#445">buf</a>); <a href="#881">Full</a>(<a href="#445">buf</a>.len()) }, <a href="#444">pre_read</a>) {
-            <a href="#881">Full</a>(<span class="kw">_</span>) =&gt; <a href="#881">Full</a>(<a href="#443">bytes</a>),
-            <a href="#884">Partial</a>(<span class="kw">_</span>, reason) =&gt; <a href="#884">Partial</a>(<a href="#443">bytes</a>, <a href="#447">reason</a>),
-            <a href="#886">Error</a>(e) =&gt; <span class="kw">if </span>!bytes.is_empty() { <a href="#884">Partial</a>(<a href="#443">bytes</a>, <a href="#448">e</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()) }
-            <span class="kw">else </span>{ <a href="#886">Error</a>(<a href="#448">e</a>) }
+    <span class="kw">fn </span>save_mem(<span class="kw-2">&amp;mut </span><span class="self">self</span>, <span class="kw-2">mut </span>bytes: Vec&lt;u8&gt;) -&gt; SaveResult&lt;Vec&lt;u8&gt;, Vec&lt;u8&gt;&gt; {
+        <span class="kw">let </span>pre_read = bytes.len() <span class="kw">as </span>u64;
+        <span class="kw">match </span><span class="self">self</span>.read_mem(|buf| { bytes.extend_from_slice(buf); Full(buf.len()) }, pre_read) {
+            Full(<span class="kw">_</span>) =&gt; Full(bytes),
+            Partial(<span class="kw">_</span>, reason) =&gt; Partial(bytes, reason),
+            Error(e) =&gt; <span class="kw">if </span>!bytes.is_empty() { Partial(bytes, e.into()) }
+            <span class="kw">else </span>{ Error(e) }
         }
 
     }
 
-    <span class="kw">fn </span>save_text(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; SaveResult&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt; {
+    <span class="kw">fn </span>save_text(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; SaveResult&lt;String, String&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>string = String::new();
 
         <span class="comment">// incrementally validate UTF-8 to do as much work as possible during network activity
-        </span><span class="kw">let </span>res = <a class="self" href="#454">self</a>.<a href="#478">read_mem</a>(|buf| {
-            <span class="kw">match </span><a href="https://doc.rust-lang.org/nightly/core/str/converts/fn.from_utf8.html">str::from_utf8</a>(<a href="#458">buf</a>) {
-                <span class="prelude-val">Ok</span>(s) =&gt; { <a href="#455">string</a>.push_str(<a href="#460">s</a>); <a href="#881">Full</a>(<a href="#458">buf</a>.len()) },
+        </span><span class="kw">let </span>res = <span class="self">self</span>.read_mem(|buf| {
+            <span class="kw">match </span>str::from_utf8(buf) {
+                <span class="prelude-val">Ok</span>(s) =&gt; { string.push_str(s); Full(buf.len()) },
                 <span class="comment">// buffer should always be bigger
                 </span><span class="prelude-val">Err</span>(e) =&gt; <span class="kw">if </span>buf.len() &lt; <span class="number">4 </span>{
-                        <a href="#884">Partial</a>(<span class="number">0</span>, <a href="#462">e</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
+                        Partial(<span class="number">0</span>, e.into())
                     } <span class="kw">else </span>{
-                        <a href="#455">string</a>.push_str(<a href="https://doc.rust-lang.org/nightly/core/str/converts/fn.from_utf8.html">str::from_utf8</a>(<span class="kw-2">&amp;</span><a href="#458">buf</a>[..<a href="#462">e</a>.valid_up_to()]).unwrap());
-                        <a href="#881">Full</a>(<a href="#462">e</a>.valid_up_to())
+                        string.push_str(str::from_utf8(<span class="kw-2">&amp;</span>buf[..e.valid_up_to()]).unwrap());
+                        Full(e.valid_up_to())
                     }
             }
         }, <span class="number">0</span>);
 
-        <span class="kw">match </span><a href="#458">res</a> {
-            <a href="#881">Full</a>(<span class="kw">_</span>) =&gt; <a href="#881">Full</a>(<a href="#455">string</a>),
-            <a href="#884">Partial</a>(<span class="kw">_</span>, reason) =&gt; <a href="#884">Partial</a>(<a href="#455">string</a>, <a href="#473">reason</a>),
-            <a href="#886">Error</a>(e) =&gt; <a href="#886">Error</a>(<a href="#474">e</a>),
+        <span class="kw">match </span>res {
+            Full(<span class="kw">_</span>) =&gt; Full(string),
+            Partial(<span class="kw">_</span>, reason) =&gt; Partial(string, reason),
+            Error(e) =&gt; Error(e),
         }
     }
 
-    <span class="kw">fn </span>read_mem&lt;Wb: FnMut(<span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; SaveResult&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, with_buf: Wb, pre_read: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) -&gt; SaveResult&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>&gt; {
-        <span class="kw">let </span>limit = cmp::min(<a class="self" href="#478">self</a>.size_limit, <a class="self" href="#478">self</a>.memory_threshold)
-            .saturating_sub(<a href="#478">pre_read</a>);
-        <a href="#972">try_copy_limited</a>(<span class="kw-2">&amp;mut </span><a class="self" href="#478">self</a>.savable, <a href="#478">with_buf</a>, <a href="#479">limit</a>)
+    <span class="kw">fn </span>read_mem&lt;Wb: FnMut(<span class="kw-2">&amp;</span>[u8]) -&gt; SaveResult&lt;usize, usize&gt;&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, with_buf: Wb, pre_read: u64) -&gt; SaveResult&lt;u64, u64&gt; {
+        <span class="kw">let </span>limit = cmp::min(<span class="self">self</span>.size_limit, <span class="self">self</span>.memory_threshold)
+            .saturating_sub(pre_read);
+        try_copy_limited(<span class="kw-2">&amp;mut </span><span class="self">self</span>.savable, with_buf, limit)
     }
 
-    <span class="kw">fn </span>cmp_size_limit(<span class="kw-2">&amp;</span><span class="self">self</span>, size: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a href="#484">size</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> &gt;= <a class="self" href="#484">self</a>.size_limit
+    <span class="kw">fn </span>cmp_size_limit(<span class="kw-2">&amp;</span><span class="self">self</span>, size: usize) -&gt; bool {
+        size <span class="kw">as </span>u64 &gt;= <span class="self">self</span>.size_limit
     }
 }
 
@@ -1535,33 +1535,33 @@
 </span><span class="attr">#[derive(Debug)]
 </span><span class="kw">pub struct </span>SavedField {
     <span class="doccomment">/// The headers of the field that was saved.
-    </span><span class="kw">pub </span>headers: <a href="field.rs.html#112">FieldHeaders</a>,
+    </span><span class="kw">pub </span>headers: FieldHeaders,
     <span class="doccomment">/// The data of the field which may reside in memory or on disk.
-    </span><span class="kw">pub </span>data: <a href="#500">SavedData</a>,
+    </span><span class="kw">pub </span>data: SavedData,
 }
 
 <span class="doccomment">/// A saved field&#39;s data container (in memory or on disk)
 </span><span class="attr">#[derive(Debug)]
 </span><span class="kw">pub enum </span>SavedData {
     <span class="doccomment">/// Validated UTF-8 text data.
-    </span>Text(<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>),
+    </span>Text(String),
     <span class="doccomment">/// Binary data.
-    </span>Bytes(Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;),
+    </span>Bytes(Vec&lt;u8&gt;),
     <span class="doccomment">/// A path to a file on the filesystem and its size as written by `multipart`.
-    </span>File(<a href="https://doc.rust-lang.org/nightly/std/path/struct.PathBuf.html">PathBuf</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>),
+    </span>File(PathBuf, u64),
 }
 
-<span class="kw">impl </span><a href="#500">SavedData</a> {
+<span class="kw">impl </span>SavedData {
     <span class="doccomment">/// Get an adapter for this data which implements `Read`.
     ///
     /// If the data is in a file, the file is opened in read-only mode.
-    </span><span class="kw">pub fn </span>readable(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;<a href="#570">DataReader</a>&gt; {
-        <span class="kw">use </span><a href="#500"><span class="self">self</span>::SavedData</a>::<span class="kw-2">*</span>;
+    </span><span class="kw">pub fn </span>readable(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;DataReader&gt; {
+        <span class="kw">use </span><span class="self">self</span>::SavedData::<span class="kw-2">*</span>;
 
-        <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="#513">self</a> </span>{
-            <a href="#502">Text</a>(<span class="kw-2">ref </span>text) =&gt; <span class="prelude-val">Ok</span>(<a href="#572">DataReader::Bytes</a>(<a href="#517">text</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>())),
-            <a href="#504">Bytes</a>(<span class="kw-2">ref </span>bytes) =&gt; <span class="prelude-val">Ok</span>(<a href="#572">DataReader::Bytes</a>(<a href="#518">bytes</a>)),
-            <a href="#506">File</a>(<span class="kw-2">ref </span>path, <span class="kw">_</span>) =&gt; <span class="prelude-val">Ok</span>(<a href="#574">DataReader::File</a>(BufReader::new(fs::File::open(path)<span class="question-mark">?</span>))),
+        <span class="kw">match </span><span class="kw-2">*</span><span class="self">self </span>{
+            Text(<span class="kw-2">ref </span>text) =&gt; <span class="prelude-val">Ok</span>(DataReader::Bytes(text.as_ref())),
+            Bytes(<span class="kw-2">ref </span>bytes) =&gt; <span class="prelude-val">Ok</span>(DataReader::Bytes(bytes)),
+            File(<span class="kw-2">ref </span>path, <span class="kw">_</span>) =&gt; <span class="prelude-val">Ok</span>(DataReader::File(BufReader::new(fs::File::open(path)<span class="question-mark">?</span>))),
         }
     }
 
@@ -1569,83 +1569,83 @@
     ///
     /// #### Note
     /// The size on disk may not match the size of the file if it is externally modified.
-    </span><span class="kw">pub fn </span>size(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> {
-        <span class="kw">use </span><a href="#500"><span class="self">self</span>::SavedData</a>::<span class="kw-2">*</span>;
+    </span><span class="kw">pub fn </span>size(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u64 {
+        <span class="kw">use </span><span class="self">self</span>::SavedData::<span class="kw-2">*</span>;
 
-        <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="#527">self</a> </span>{
-            <a href="#502">Text</a>(<span class="kw-2">ref </span>text) =&gt; <a href="#531">text</a>.len() <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>,
-            <a href="#504">Bytes</a>(<span class="kw-2">ref </span>bytes) =&gt; <a href="#532">bytes</a>.len() <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>,
-            <a href="#506">File</a>(<span class="kw">_</span>, size) =&gt; <a href="#533">size</a>,
+        <span class="kw">match </span><span class="kw-2">*</span><span class="self">self </span>{
+            Text(<span class="kw-2">ref </span>text) =&gt; text.len() <span class="kw">as </span>u64,
+            Bytes(<span class="kw-2">ref </span>bytes) =&gt; bytes.len() <span class="kw">as </span>u64,
+            File(<span class="kw">_</span>, size) =&gt; size,
         }
     }
 
     <span class="doccomment">/// Returns `true` if the data is known to be in memory (`Text | Bytes`)
-    </span><span class="kw">pub fn </span>is_memory(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">use </span><a href="#500"><span class="self">self</span>::SavedData</a>::<span class="kw-2">*</span>;
+    </span><span class="kw">pub fn </span>is_memory(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="kw">use </span><span class="self">self</span>::SavedData::<span class="kw-2">*</span>;
 
-        <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="#538">self</a> </span>{
-            <a href="#502">Text</a>(<span class="kw">_</span>) | <a href="#504">Bytes</a>(<span class="kw">_</span>) =&gt; <span class="bool-val">true</span>,
-            <a href="#506">File</a>(<span class="kw">_</span>, <span class="kw">_</span>) =&gt; <span class="bool-val">false</span>,
+        <span class="kw">match </span><span class="kw-2">*</span><span class="self">self </span>{
+            Text(<span class="kw">_</span>) | Bytes(<span class="kw">_</span>) =&gt; <span class="bool-val">true</span>,
+            File(<span class="kw">_</span>, <span class="kw">_</span>) =&gt; <span class="bool-val">false</span>,
         }
     }
 
-    <span class="kw">fn </span>add_size(<span class="self">self</span>, add: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) -&gt; <span class="self">Self </span>{
-        <span class="kw">use </span><a href="#506"><span class="self">self</span>::SavedData::File</a>;
+    <span class="kw">fn </span>add_size(<span class="self">self</span>, add: u64) -&gt; <span class="self">Self </span>{
+        <span class="kw">use </span><span class="self">self</span>::SavedData::File;
 
-        <span class="kw">match </span><span class="self"><a href="#547">self</a> </span>{
-            <a href="#506">File</a>(path, size) =&gt; <a href="#506">File</a>(<a href="#551">path</a>, <a href="#551">size</a>.saturating_add(<a href="#547">add</a>)),
-            other =&gt; <a href="#552">other</a>
+        <span class="kw">match </span><span class="self">self </span>{
+            File(path, size) =&gt; File(path, size.saturating_add(add)),
+            other =&gt; other
         }
     }
 }
 
-<span class="kw">impl </span>From&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt; <span class="kw">for </span><a href="#500">SavedData</a> {
-    <span class="kw">fn </span>from(s: <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>) -&gt; <span class="self">Self </span>{
-        <a href="#502">SavedData::Text</a>(<a href="#558">s</a>)
+<span class="kw">impl </span>From&lt;String&gt; <span class="kw">for </span>SavedData {
+    <span class="kw">fn </span>from(s: String) -&gt; <span class="self">Self </span>{
+        SavedData::Text(s)
     }
 }
 
-<span class="kw">impl </span>From&lt;Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;&gt; <span class="kw">for </span><a href="#500">SavedData</a> {
-    <span class="kw">fn </span>from(b: Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;) -&gt; <span class="self">Self </span>{
-        <a href="#504">SavedData::Bytes</a>(<a href="#564">b</a>)
+<span class="kw">impl </span>From&lt;Vec&lt;u8&gt;&gt; <span class="kw">for </span>SavedData {
+    <span class="kw">fn </span>from(b: Vec&lt;u8&gt;) -&gt; <span class="self">Self </span>{
+        SavedData::Bytes(b)
     }
 }
 
 <span class="doccomment">/// A `Read` (and `BufRead`) adapter for `SavedData`
 </span><span class="kw">pub enum </span>DataReader&lt;<span class="lifetime">&#39;a</span>&gt; {
     <span class="doccomment">/// In-memory data source (`SavedData::Bytes | Text`)
-    </span>Bytes(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]),
+    </span>Bytes(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[u8]),
     <span class="doccomment">/// On-disk data source (`SavedData::File`)
-    </span>File(BufReader&lt;<a href="https://doc.rust-lang.org/nightly/std/fs/struct.File.html">File</a>&gt;),
+    </span>File(BufReader&lt;File&gt;),
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; <a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a> <span class="kw">for </span>DataReader&lt;<span class="lifetime">&#39;a</span>&gt; {
-    <span class="kw">fn </span>read(<span class="kw-2">&amp;mut </span><span class="self">self</span>, buf: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
-        <span class="kw">use </span><a href="#570"><span class="self">self</span>::DataReader</a>::<span class="kw-2">*</span>;
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; Read <span class="kw">for </span>DataReader&lt;<span class="lifetime">&#39;a</span>&gt; {
+    <span class="kw">fn </span>read(<span class="kw-2">&amp;mut </span><span class="self">self</span>, buf: <span class="kw-2">&amp;mut </span>[u8]) -&gt; io::Result&lt;usize&gt; {
+        <span class="kw">use </span><span class="self">self</span>::DataReader::<span class="kw-2">*</span>;
 
-        <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="#578">self</a> </span>{
-            <a href="#572">Bytes</a>(<span class="kw-2">ref mut </span>bytes) =&gt; <a href="#582">bytes</a>.<a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">read</a>(<a href="#578">buf</a>),
-            <a href="#574">File</a>(<span class="kw-2">ref mut </span>file) =&gt; <a href="#583">file</a>.<a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">read</a>(<a href="#578">buf</a>),
+        <span class="kw">match </span><span class="kw-2">*</span><span class="self">self </span>{
+            Bytes(<span class="kw-2">ref mut </span>bytes) =&gt; bytes.read(buf),
+            File(<span class="kw-2">ref mut </span>file) =&gt; file.read(buf),
         }
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; <a href="https://doc.rust-lang.org/nightly/std/io/trait.BufRead.html">BufRead</a> <span class="kw">for </span>DataReader&lt;<span class="lifetime">&#39;a</span>&gt; {
-    <span class="kw">fn </span>fill_buf(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; io::Result&lt;<span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt; {
-        <span class="kw">use </span><a href="#570"><span class="self">self</span>::DataReader</a>::<span class="kw-2">*</span>;
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; BufRead <span class="kw">for </span>DataReader&lt;<span class="lifetime">&#39;a</span>&gt; {
+    <span class="kw">fn </span>fill_buf(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; io::Result&lt;<span class="kw-2">&amp;</span>[u8]&gt; {
+        <span class="kw">use </span><span class="self">self</span>::DataReader::<span class="kw-2">*</span>;
 
-        <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="#589">self</a> </span>{
-            <a href="#572">Bytes</a>(<span class="kw-2">ref mut </span>bytes) =&gt; <a href="#593">bytes</a>.<a href="https://doc.rust-lang.org/nightly/std/io/trait.BufRead.html">fill_buf</a>(),
-            <a href="#574">File</a>(<span class="kw-2">ref mut </span>file) =&gt; <a href="#594">file</a>.<a href="https://doc.rust-lang.org/nightly/std/io/trait.BufRead.html">fill_buf</a>(),
+        <span class="kw">match </span><span class="kw-2">*</span><span class="self">self </span>{
+            Bytes(<span class="kw-2">ref mut </span>bytes) =&gt; bytes.fill_buf(),
+            File(<span class="kw-2">ref mut </span>file) =&gt; file.fill_buf(),
         }
     }
 
-    <span class="kw">fn </span>consume(<span class="kw-2">&amp;mut </span><span class="self">self</span>, amt: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
-        <span class="kw">use </span><a href="#570"><span class="self">self</span>::DataReader</a>::<span class="kw-2">*</span>;
+    <span class="kw">fn </span>consume(<span class="kw-2">&amp;mut </span><span class="self">self</span>, amt: usize) {
+        <span class="kw">use </span><span class="self">self</span>::DataReader::<span class="kw-2">*</span>;
 
-        <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="#598">self</a> </span>{
-            <a href="#572">Bytes</a>(<span class="kw-2">ref mut </span>bytes) =&gt; <a href="#602">bytes</a>.<a href="https://doc.rust-lang.org/nightly/std/io/trait.BufRead.html">consume</a>(<a href="#598">amt</a>),
-            <a href="#574">File</a>(<span class="kw-2">ref mut </span>file) =&gt; <a href="#603">file</a>.<a href="https://doc.rust-lang.org/nightly/std/io/trait.BufRead.html">consume</a>(<a href="#598">amt</a>),
+        <span class="kw">match </span><span class="kw-2">*</span><span class="self">self </span>{
+            Bytes(<span class="kw-2">ref mut </span>bytes) =&gt; bytes.consume(amt),
+            File(<span class="kw-2">ref mut </span>file) =&gt; file.consume(amt),
         }
     }
 }
@@ -1661,25 +1661,25 @@
     /// Each vector is guaranteed not to be empty unless externally modified.
     </span><span class="comment">// Even though individual fields might only have one entry, it&#39;s better to limit the
     // size of a value type in `HashMap` to improve cache efficiency in lookups.
-        </span><span class="kw">pub </span>fields: HashMap&lt;Arc&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt;, Vec&lt;<a href="#491">SavedField</a>&gt;&gt;,
+        </span><span class="kw">pub </span>fields: HashMap&lt;Arc&lt;str&gt;, Vec&lt;SavedField&gt;&gt;,
     <span class="doccomment">/// The directory that the entries in `fields` were saved into.
-    </span><span class="kw">pub </span>save_dir: <a href="#700">SaveDir</a>,
-    fields_count: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>,
+    </span><span class="kw">pub </span>save_dir: SaveDir,
+    fields_count: u32,
 }
 
-<span class="kw">impl </span><a href="#610">Entries</a> {
+<span class="kw">impl </span>Entries {
     <span class="doccomment">/// Create a new `Entries` with the given `SaveDir`
-    </span><span class="kw">pub fn </span>new(save_dir: <a href="#700">SaveDir</a>) -&gt; <span class="self">Self </span>{
-        <a href="#610">Entries</a> {
+    </span><span class="kw">pub fn </span>new(save_dir: SaveDir) -&gt; <span class="self">Self </span>{
+        Entries {
             fields: HashMap::new(),
-            <a href="#627">save_dir</a>,
+            save_dir,
             fields_count: <span class="number">0</span>,
         }
     }
 
     <span class="doccomment">/// Returns `true` if `fields` is empty, `false` otherwise.
-    </span><span class="kw">pub fn </span>is_empty(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#636">self</a>.fields.is_empty()
+    </span><span class="kw">pub fn </span>is_empty(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.fields.is_empty()
     }
 
     <span class="doccomment">/// The number of actual fields contained within this `Entries`.
@@ -1689,42 +1689,42 @@
     /// ## Note
     /// This will be incorrect if `fields` is modified externally. Call `recount_fields()`
     /// to get the correct count.
-    </span><span class="kw">pub fn </span>fields_count(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
-        <a class="self" href="#647">self</a>.fields_count
+    </span><span class="kw">pub fn </span>fields_count(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u32 {
+        <span class="self">self</span>.fields_count
     }
 
     <span class="doccomment">/// Sum the number of fields in this `Entries` and then return the updated value.
-    </span><span class="kw">pub fn </span>recount_fields(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
-        <span class="kw">let </span>fields_count = <a class="self" href="#652">self</a>.fields.values().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(Vec::len).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">sum</a>();
+    </span><span class="kw">pub fn </span>recount_fields(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; u32 {
+        <span class="kw">let </span>fields_count = <span class="self">self</span>.fields.values().map(Vec::len).sum();
         <span class="comment">// saturating cast
-        </span><a class="self" href="#652">self</a>.fields_count = cmp::min(u32::MAX <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="#653">fields_count</a>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>;
-        <a class="self" href="#652">self</a>.fields_count
+        </span><span class="self">self</span>.fields_count = cmp::min(u32::MAX <span class="kw">as </span>usize, fields_count) <span class="kw">as </span>u32;
+        <span class="self">self</span>.fields_count
     }
 
-    <span class="kw">fn </span>push_field(<span class="kw-2">&amp;mut </span><span class="self">self</span>, <span class="kw-2">mut </span>headers: <a href="field.rs.html#112">FieldHeaders</a>, data: <a href="#500">SavedData</a>) {
-        <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/collections/hash/map/enum.Entry.html">std::collections::hash_map::Entry</a>::<span class="kw-2">*</span>;
+    <span class="kw">fn </span>push_field(<span class="kw-2">&amp;mut </span><span class="self">self</span>, <span class="kw-2">mut </span>headers: FieldHeaders, data: SavedData) {
+        <span class="kw">use </span>std::collections::hash_map::Entry::<span class="kw-2">*</span>;
 
-        <span class="kw">match </span><a class="self" href="#659">self</a>.fields.entry(<a href="#659">headers</a>.name.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()) {
-            Vacant(vacant) =&gt; { <a href="#663">vacant</a>.insert(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[SavedField { headers, data }]); },
+        <span class="kw">match </span><span class="self">self</span>.fields.entry(headers.name.clone()) {
+            Vacant(vacant) =&gt; { vacant.insert(<span class="macro">vec!</span>[SavedField { headers, data }]); },
             Occupied(occupied) =&gt; {
                 <span class="comment">// dedup the field name by reusing the key&#39;s `Arc`
-                </span><a href="#659">headers</a>.name = <a href="#664">occupied</a>.key().<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
-                <a href="#664">occupied</a>.into_mut().push({ <a href="#491">SavedField</a> { <a href="#659">headers</a>, <a href="#659">data</a> }});
+                </span>headers.name = occupied.key().clone();
+                occupied.into_mut().push({ SavedField { headers, data }});
             },
         }
 
-        <a class="self" href="#659">self</a>.fields_count = <a class="self" href="#659">self</a>.fields_count.saturating_add(<span class="number">1</span>);
+        <span class="self">self</span>.fields_count = <span class="self">self</span>.fields_count.saturating_add(<span class="number">1</span>);
     }
 
     <span class="doccomment">/// Print all fields and their contents to stdout. Mostly for testing purposes.
     </span><span class="kw">pub fn </span>print_debug(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;()&gt; {
         <span class="kw">let </span>stdout = io::stdout();
-        <span class="kw">let </span>stdout_lock = <a href="#676">stdout</a>.lock();
-        <a class="self" href="#675">self</a>.<a href="#682">write_debug</a>(<a href="#677">stdout_lock</a>)
+        <span class="kw">let </span>stdout_lock = stdout.lock();
+        <span class="self">self</span>.write_debug(stdout_lock)
     }
 
     <span class="doccomment">/// Write all fields and their contents to the given output. Mostly for testing purposes.
-    </span><span class="kw">pub fn </span>write_debug&lt;W: <a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw-2">mut </span>writer: W) -&gt; io::Result&lt;()&gt; {
+    </span><span class="kw">pub fn </span>write_debug&lt;W: Write&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw-2">mut </span>writer: W) -&gt; io::Result&lt;()&gt; {
         <span class="kw">for </span>(name, entries) <span class="kw">in </span><span class="kw-2">&amp;</span><span class="self">self</span>.fields {
             <span class="macro">writeln!</span>(writer, <span class="string">&quot;Field {:?} has {} entries:&quot;</span>, name, entries.len())<span class="question-mark">?</span>;
 
@@ -1745,41 +1745,41 @@
 </span><span class="kw">pub enum </span>SaveDir {
     <span class="doccomment">/// This directory is temporary and will be deleted, along with its contents, when this wrapper
     /// is dropped.
-    </span>Temp(<a href="../../../multipart/server/save/struct.TempDir.html">TempDir</a>),
+    </span>Temp(TempDir),
     <span class="doccomment">/// This directory is permanent and will be left on the filesystem when this wrapper is dropped.
     ///
     /// **N.B.** If this directory is in the OS temporary directory then it may still be
     /// deleted at any time.
-    </span>Perm(<a href="https://doc.rust-lang.org/nightly/std/path/struct.PathBuf.html">PathBuf</a>),
+    </span>Perm(PathBuf),
 }
 
-<span class="kw">impl </span><a href="#700">SaveDir</a> {
+<span class="kw">impl </span>SaveDir {
     <span class="doccomment">/// Get the path of this directory, either temporary or permanent.
-    </span><span class="kw">pub fn </span>as_path(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a> {
-        <span class="kw">use </span><a href="#700"><span class="self">self</span>::SaveDir</a>::<span class="kw-2">*</span>;
-        <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="#713">self</a> </span>{
-            <a href="#703">Temp</a>(<span class="kw-2">ref </span>tempdir) =&gt; <a href="#716">tempdir</a>.path(),
-            <a href="#708">Perm</a>(<span class="kw-2">ref </span>pathbuf) =&gt; <span class="kw-2">&amp;*</span><a href="#717">pathbuf</a>,
+    </span><span class="kw">pub fn </span>as_path(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Path {
+        <span class="kw">use </span><span class="self">self</span>::SaveDir::<span class="kw-2">*</span>;
+        <span class="kw">match </span><span class="kw-2">*</span><span class="self">self </span>{
+            Temp(<span class="kw-2">ref </span>tempdir) =&gt; tempdir.path(),
+            Perm(<span class="kw-2">ref </span>pathbuf) =&gt; <span class="kw-2">&amp;*</span>pathbuf,
         }
     }
 
     <span class="doccomment">/// Returns `true` if this is a temporary directory which will be deleted on-drop.
-    </span><span class="kw">pub fn </span>is_temporary(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">use </span><a href="#700"><span class="self">self</span>::SaveDir</a>::<span class="kw-2">*</span>;
-        <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="#722">self</a> </span>{
-            <a href="#703">Temp</a>(<span class="kw">_</span>) =&gt; <span class="bool-val">true</span>,
-            <a href="#708">Perm</a>(<span class="kw">_</span>) =&gt; <span class="bool-val">false</span>,
+    </span><span class="kw">pub fn </span>is_temporary(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="kw">use </span><span class="self">self</span>::SaveDir::<span class="kw-2">*</span>;
+        <span class="kw">match </span><span class="kw-2">*</span><span class="self">self </span>{
+            Temp(<span class="kw">_</span>) =&gt; <span class="bool-val">true</span>,
+            Perm(<span class="kw">_</span>) =&gt; <span class="bool-val">false</span>,
         }
     }
 
     <span class="doccomment">/// Unwrap the `PathBuf` from `self`; if this is a temporary directory,
     /// it will be converted to a permanent one.
-    </span><span class="kw">pub fn </span>into_path(<span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/path/struct.PathBuf.html">PathBuf</a> {
-        <span class="kw">use </span><a href="#700"><span class="self">self</span>::SaveDir</a>::<span class="kw-2">*</span>;
+    </span><span class="kw">pub fn </span>into_path(<span class="self">self</span>) -&gt; PathBuf {
+        <span class="kw">use </span><span class="self">self</span>::SaveDir::<span class="kw-2">*</span>;
 
-        <span class="kw">match </span><span class="self"><a href="#732">self</a> </span>{
-            <a href="#703">Temp</a>(tempdir) =&gt; <a href="#736">tempdir</a>.into_path(),
-            <a href="#708">Perm</a>(pathbuf) =&gt; <a href="#737">pathbuf</a>,
+        <span class="kw">match </span><span class="self">self </span>{
+            Temp(tempdir) =&gt; tempdir.into_path(),
+            Perm(pathbuf) =&gt; pathbuf,
         }
     }
 
@@ -1794,10 +1794,10 @@
     /// It is recommended that you relocate the files from a request which you want to keep to a
     /// permanent folder on the filesystem.
     </span><span class="kw">pub fn </span>keep(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <span class="kw">use </span><a href="#700"><span class="self">self</span>::SaveDir</a>::<span class="kw-2">*</span>;
-        <span class="kw-2">*</span><span class="self"><a href="#751">self</a> </span>= <span class="kw">match </span>mem::replace(<a class="self" href="#751">self</a>, <a href="#708">Perm</a>(PathBuf::new())) {
-            <a href="#703">Temp</a>(tempdir) =&gt; <a href="#708">Perm</a>(<a href="#754">tempdir</a>.into_path()),
-            old_self =&gt; <a href="#755">old_self</a>,
+        <span class="kw">use </span><span class="self">self</span>::SaveDir::<span class="kw-2">*</span>;
+        <span class="kw-2">*</span><span class="self">self </span>= <span class="kw">match </span>mem::replace(<span class="self">self</span>, Perm(PathBuf::new())) {
+            Temp(tempdir) =&gt; Perm(tempdir.into_path()),
+            old_self =&gt; old_self,
         };
     }
 
@@ -1810,17 +1810,17 @@
     /// manager applications which use a staging area from which deleted files can be safely
     /// recovered (i.e. Windows&#39; Recycle Bin, OS X&#39;s Trash Can, etc.).
     </span><span class="kw">pub fn </span>delete(<span class="self">self</span>) -&gt; io::Result&lt;()&gt; {
-        <span class="kw">use </span><a href="#700"><span class="self">self</span>::SaveDir</a>::<span class="kw-2">*</span>;
-        <span class="kw">match </span><span class="self"><a href="#767">self</a> </span>{
-            <a href="#703">Temp</a>(tempdir) =&gt; <a href="#770">tempdir</a>.close(),
-            <a href="#708">Perm</a>(pathbuf) =&gt; fs::remove_dir_all(<span class="kw-2">&amp;</span><a href="#771">pathbuf</a>),
+        <span class="kw">use </span><span class="self">self</span>::SaveDir::<span class="kw-2">*</span>;
+        <span class="kw">match </span><span class="self">self </span>{
+            Temp(tempdir) =&gt; tempdir.close(),
+            Perm(pathbuf) =&gt; fs::remove_dir_all(<span class="kw-2">&amp;</span>pathbuf),
         }
     }
 }
 
-<span class="kw">impl </span>AsRef&lt;<a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>&gt; <span class="kw">for </span><a href="#700">SaveDir</a> {
-    <span class="kw">fn </span>as_ref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a> {
-        <a class="self" href="#777">self</a>.<a href="#713">as_path</a>()
+<span class="kw">impl </span>AsRef&lt;Path&gt; <span class="kw">for </span>SaveDir {
+    <span class="kw">fn </span>as_ref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Path {
+        <span class="self">self</span>.as_path()
     }
 }
 
@@ -1836,35 +1836,35 @@
     /// The file was partially written to the filesystem.
     </span>SizeLimit,
     <span class="doccomment">/// An error occurred during the operation.
-    </span>IoError(<a href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a>),
+    </span>IoError(io::Error),
     <span class="doccomment">/// An error returned from validating a field as UTF-8 due to `SaveBuilder::force_text()`
-    </span>Utf8Error(<a href="https://doc.rust-lang.org/nightly/core/str/error/struct.Utf8Error.html">str::Utf8Error</a>),
+    </span>Utf8Error(str::Utf8Error),
 }
 
-<span class="kw">impl </span>From&lt;<a href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a>&gt; <span class="kw">for </span><a href="#784">PartialReason</a> {
-    <span class="kw">fn </span>from(e: <a href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a>) -&gt; <span class="self">Self </span>{
-        <a href="#794">IoError</a>(<a href="#800">e</a>)
+<span class="kw">impl </span>From&lt;io::Error&gt; <span class="kw">for </span>PartialReason {
+    <span class="kw">fn </span>from(e: io::Error) -&gt; <span class="self">Self </span>{
+        IoError(e)
     }
 }
 
-<span class="kw">impl </span>From&lt;<a href="https://doc.rust-lang.org/nightly/core/str/error/struct.Utf8Error.html">str::Utf8Error</a>&gt; <span class="kw">for </span><a href="#784">PartialReason</a> {
-    <span class="kw">fn </span>from(e: <a href="https://doc.rust-lang.org/nightly/core/str/error/struct.Utf8Error.html">str::Utf8Error</a>) -&gt; <span class="self">Self </span>{
-        <a href="#796">Utf8Error</a>(<a href="#806">e</a>)
+<span class="kw">impl </span>From&lt;str::Utf8Error&gt; <span class="kw">for </span>PartialReason {
+    <span class="kw">fn </span>from(e: str::Utf8Error) -&gt; <span class="self">Self </span>{
+        Utf8Error(e)
     }
 }
 
-<span class="kw">impl </span><a href="#784">PartialReason</a> {
+<span class="kw">impl </span>PartialReason {
     <span class="doccomment">/// Return `io::Error` in the `IoError` case or panic otherwise.
-    </span><span class="kw">pub fn </span>unwrap_err(<span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a> {
-        <a class="self" href="#813">self</a>.<a href="#819">expect_err</a>(<span class="string">&quot;`PartialReason` was not `IoError`&quot;</span>)
+    </span><span class="kw">pub fn </span>unwrap_err(<span class="self">self</span>) -&gt; io::Error {
+        <span class="self">self</span>.expect_err(<span class="string">&quot;`PartialReason` was not `IoError`&quot;</span>)
     }
 
     <span class="doccomment">/// Return `io::Error` in the `IoError` case or panic with the given
     /// message otherwise.
-    </span><span class="kw">pub fn </span>expect_err(<span class="self">self</span>, msg: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a> {
-        <span class="kw">match </span><span class="self"><a href="#819">self</a> </span>{
-            <a href="#794">PartialReason::IoError</a>(e) =&gt; <a href="#821">e</a>,
-            <span class="kw">_ </span>=&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(<span class="string">&quot;{}: {:?}&quot;</span>, msg, <span class="self">self</span>),
+    </span><span class="kw">pub fn </span>expect_err(<span class="self">self</span>, msg: <span class="kw-2">&amp;</span>str) -&gt; io::Error {
+        <span class="kw">match </span><span class="self">self </span>{
+            PartialReason::IoError(e) =&gt; e,
+            <span class="kw">_ </span>=&gt; <span class="macro">panic!</span>(<span class="string">&quot;{}: {:?}&quot;</span>, msg, <span class="self">self</span>),
         }
     }
 }
@@ -1873,13 +1873,13 @@
 ///
 /// May be partially saved to the filesystem if `dest` is `Some`.
 </span><span class="attr">#[derive(Debug)]
-</span><span class="kw">pub struct </span>PartialSavedField&lt;M: <a href="field.rs.html#384">ReadEntry</a>&gt; {
+</span><span class="kw">pub struct </span>PartialSavedField&lt;M: ReadEntry&gt; {
     <span class="doccomment">/// The field that was being read.
     ///
     /// May be partially read if `dest` is `Some`.
     </span><span class="kw">pub </span>source: MultipartField&lt;M&gt;,
     <span class="doccomment">/// The data from the saving operation, if it got that far.
-    </span><span class="kw">pub </span>dest: <span class="prelude-ty">Option</span>&lt;<a href="#500">SavedData</a>&gt;,
+    </span><span class="kw">pub </span>dest: <span class="prelude-ty">Option</span>&lt;SavedData&gt;,
 }
 
 <span class="doccomment">/// The partial result type for `Multipart::save*()`.
@@ -1888,34 +1888,34 @@
 /// saved file that was in the process of being read when the error occurred,
 /// if applicable.
 </span><span class="attr">#[derive(Debug)]
-</span><span class="kw">pub struct </span>PartialEntries&lt;M: <a href="field.rs.html#384">ReadEntry</a>&gt; {
+</span><span class="kw">pub struct </span>PartialEntries&lt;M: ReadEntry&gt; {
     <span class="doccomment">/// The entries that were saved successfully.
-    </span><span class="kw">pub </span>entries: <a href="#610">Entries</a>,
+    </span><span class="kw">pub </span>entries: Entries,
     <span class="doccomment">/// The field that was in the process of being read. `None` if the error
     /// occurred between entries.
     </span><span class="kw">pub </span>partial: <span class="prelude-ty">Option</span>&lt;PartialSavedField&lt;M&gt;&gt;,
 }
 
 <span class="doccomment">/// Discards `partial`
-</span><span class="kw">impl</span>&lt;M: <a href="field.rs.html#384">ReadEntry</a>&gt; Into&lt;<a href="#610">Entries</a>&gt; <span class="kw">for </span>PartialEntries&lt;M&gt; {
-    <span class="kw">fn </span>into(<span class="self">self</span>) -&gt; <a href="#610">Entries</a> {
-        <a class="self" href="#856">self</a>.entries
+</span><span class="kw">impl</span>&lt;M: ReadEntry&gt; Into&lt;Entries&gt; <span class="kw">for </span>PartialEntries&lt;M&gt; {
+    <span class="kw">fn </span>into(<span class="self">self</span>) -&gt; Entries {
+        <span class="self">self</span>.entries
     }
 }
 
-<span class="kw">impl</span>&lt;M: <a href="field.rs.html#384">ReadEntry</a>&gt; PartialEntries&lt;M&gt; {
+<span class="kw">impl</span>&lt;M: ReadEntry&gt; PartialEntries&lt;M&gt; {
     <span class="doccomment">/// If `partial` is present and contains a `SavedFile` then just
     /// add it to the `Entries` instance and return it.
     ///
     /// Otherwise, returns `self.entries`
-    </span><span class="kw">pub fn </span>keep_partial(<span class="kw-2">mut </span><span class="self">self</span>) -&gt; <a href="#610">Entries</a> {
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(partial) = <a class="self" href="#866">self</a>.partial {
-            <span class="kw">if let </span><span class="prelude-val">Some</span>(saved) = <a href="#867">partial</a>.dest {
-                <a class="self" href="#866">self</a>.entries.<a href="#659">push_field</a>(<a href="#867">partial</a>.source.headers, <a href="#868">saved</a>);
+    </span><span class="kw">pub fn </span>keep_partial(<span class="kw-2">mut </span><span class="self">self</span>) -&gt; Entries {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(partial) = <span class="self">self</span>.partial {
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(saved) = partial.dest {
+                <span class="self">self</span>.entries.push_field(partial.source.headers, saved);
             }
         }
 
-        <a class="self" href="#866">self</a>.entries
+        <span class="self">self</span>.entries
     }
 }
 
@@ -1926,28 +1926,28 @@
     </span>Full(Success),
     <span class="doccomment">/// The operation quit partway through. Included is the partial
     /// result along with the reason.
-    </span>Partial(Partial, <a href="#784">PartialReason</a>),
+    </span>Partial(Partial, PartialReason),
     <span class="doccomment">/// An error occurred at the start of the operation, before anything was done.
-    </span>Error(<a href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a>),
+    </span>Error(io::Error),
 }
 
 <span class="doccomment">/// Shorthand result for methods that return `Entries`
-</span><span class="kw">pub type </span>EntriesSaveResult&lt;M&gt; = SaveResult&lt;<a href="#610">Entries</a>, PartialEntries&lt;M&gt;&gt;;
+</span><span class="kw">pub type </span>EntriesSaveResult&lt;M&gt; = SaveResult&lt;Entries, PartialEntries&lt;M&gt;&gt;;
 
 <span class="doccomment">/// Shorthand result for methods that return `FieldData`s.
 ///
 /// The `MultipartData` is not provided here because it is not necessary to return
 /// a borrow when the owned version is probably in the same scope. This hopefully
 /// saves some headache with the borrow-checker.
-</span><span class="kw">pub type </span>FieldSaveResult = SaveResult&lt;<a href="#500">SavedData</a>, <a href="#500">SavedData</a>&gt;;
+</span><span class="kw">pub type </span>FieldSaveResult = SaveResult&lt;SavedData, SavedData&gt;;
 
-<span class="kw">impl</span>&lt;M: <a href="field.rs.html#384">ReadEntry</a>&gt; EntriesSaveResult&lt;M&gt; {
+<span class="kw">impl</span>&lt;M: ReadEntry&gt; EntriesSaveResult&lt;M&gt; {
     <span class="doccomment">/// Take the `Entries` from `self`, if applicable, and discarding
     /// the error, if any.
-    </span><span class="kw">pub fn </span>into_entries(<span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="#610">Entries</a>&gt; {
-        <span class="kw">match </span><span class="self"><a href="#902">self</a> </span>{
-            <a href="#881">Full</a>(entries) | <a href="#884">Partial</a>(<a href="#846">PartialEntries</a> { entries, .. }, <span class="kw">_</span>) =&gt; <span class="prelude-val">Some</span>(<a href="#904">entries</a>),
-            <a href="#886">Error</a>(<span class="kw">_</span>) =&gt; <span class="prelude-val">None</span>,
+    </span><span class="kw">pub fn </span>into_entries(<span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Entries&gt; {
+        <span class="kw">match </span><span class="self">self </span>{
+            Full(entries) | Partial(PartialEntries { entries, .. }, <span class="kw">_</span>) =&gt; <span class="prelude-val">Some</span>(entries),
+            Error(<span class="kw">_</span>) =&gt; <span class="prelude-val">None</span>,
         }
     }
 }
@@ -1955,35 +1955,35 @@
 <span class="kw">impl</span>&lt;S, P&gt; SaveResult&lt;S, P&gt; <span class="kw">where </span>P: Into&lt;S&gt; {
     <span class="doccomment">/// Convert `self` to `Option&lt;S&gt;`; there may still have been an error.
     </span><span class="kw">pub fn </span>okish(<span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;S&gt; {
-        <a class="self" href="#912">self</a>.<a href="#927">into_opt_both</a>().<span class="number">0
+        <span class="self">self</span>.into_opt_both().<span class="number">0
     </span>}
 
     <span class="doccomment">/// Map the `Full` or `Partial` values to a new type, retaining the reason
     /// in the `Partial` case.
     </span><span class="kw">pub fn </span>map&lt;T, Map&gt;(<span class="self">self</span>, map: Map) -&gt; SaveResult&lt;T, T&gt; <span class="kw">where </span>Map: FnOnce(S) -&gt; T {
-        <span class="kw">match </span><span class="self"><a href="#918">self</a> </span>{
-            <a href="#881">Full</a>(full) =&gt; <a href="#881">Full</a>(<a href="#918">map</a>(<a href="#920">full</a>)),
-            <a href="#884">Partial</a>(partial, reason) =&gt; <a href="#884">Partial</a>(<a href="#918">map</a>(<a href="#921">partial</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()), <a href="#921">reason</a>),
-            <a href="#886">Error</a>(e) =&gt; <a href="#886">Error</a>(<a href="#922">e</a>),
+        <span class="kw">match </span><span class="self">self </span>{
+            Full(full) =&gt; Full(map(full)),
+            Partial(partial, reason) =&gt; Partial(map(partial.into()), reason),
+            Error(e) =&gt; Error(e),
         }
     }
 
     <span class="doccomment">/// Decompose `self` to `(Option&lt;S&gt;, Option&lt;io::Error&gt;)`
-    </span><span class="kw">pub fn </span>into_opt_both(<span class="self">self</span>) -&gt; (<span class="prelude-ty">Option</span>&lt;S&gt;, <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a>&gt;) {
-        <span class="kw">match </span><span class="self"><a href="#927">self</a> </span>{
-            <a href="#881">Full</a>(full)  =&gt; (<span class="prelude-val">Some</span>(<a href="#929">full</a>), <span class="prelude-val">None</span>),
-            <a href="#884">Partial</a>(partial, <a href="#794">IoError</a>(e)) =&gt; (<span class="prelude-val">Some</span>(<a href="#930">partial</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()), <span class="prelude-val">Some</span>(<a href="#930">e</a>)),
-            <a href="#884">Partial</a>(partial, <span class="kw">_</span>) =&gt; (<span class="prelude-val">Some</span>(<a href="#931">partial</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()), <span class="prelude-val">None</span>),
-            <a href="#886">Error</a>(error) =&gt; (<span class="prelude-val">None</span>, <span class="prelude-val">Some</span>(<a href="#932">error</a>)),
+    </span><span class="kw">pub fn </span>into_opt_both(<span class="self">self</span>) -&gt; (<span class="prelude-ty">Option</span>&lt;S&gt;, <span class="prelude-ty">Option</span>&lt;io::Error&gt;) {
+        <span class="kw">match </span><span class="self">self </span>{
+            Full(full)  =&gt; (<span class="prelude-val">Some</span>(full), <span class="prelude-val">None</span>),
+            Partial(partial, IoError(e)) =&gt; (<span class="prelude-val">Some</span>(partial.into()), <span class="prelude-val">Some</span>(e)),
+            Partial(partial, <span class="kw">_</span>) =&gt; (<span class="prelude-val">Some</span>(partial.into()), <span class="prelude-val">None</span>),
+            Error(error) =&gt; (<span class="prelude-val">None</span>, <span class="prelude-val">Some</span>(error)),
         }
     }
 
     <span class="doccomment">/// Map `self` to an `io::Result`, discarding the error in the `Partial` case.
     </span><span class="kw">pub fn </span>into_result(<span class="self">self</span>) -&gt; io::Result&lt;S&gt; {
-        <span class="kw">match </span><span class="self"><a href="#937">self</a> </span>{
-            <a href="#881">Full</a>(entries) =&gt; <span class="prelude-val">Ok</span>(<a href="#939">entries</a>),
-            <a href="#884">Partial</a>(partial, <span class="kw">_</span>) =&gt; <span class="prelude-val">Ok</span>(<a href="#940">partial</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
-            <a href="#886">Error</a>(error) =&gt; <span class="prelude-val">Err</span>(<a href="#941">error</a>),
+        <span class="kw">match </span><span class="self">self </span>{
+            Full(entries) =&gt; <span class="prelude-val">Ok</span>(entries),
+            Partial(partial, <span class="kw">_</span>) =&gt; <span class="prelude-val">Ok</span>(partial.into()),
+            Error(error) =&gt; <span class="prelude-val">Err</span>(error),
         }
     }
 
@@ -1996,36 +1996,36 @@
     /// (OS-managed or via `TempDir`) then partially written files will remain on-disk until
     /// explicitly removed which could result in excessive disk usage if not monitored closely.
     </span><span class="kw">pub fn </span>into_result_strict(<span class="self">self</span>) -&gt; io::Result&lt;S&gt; {
-        <span class="kw">match </span><span class="self"><a href="#953">self</a> </span>{
-            <a href="#881">Full</a>(entries) =&gt; <span class="prelude-val">Ok</span>(<a href="#955">entries</a>),
-            <a href="#884">Partial</a>(<span class="kw">_</span>, <a href="#794">PartialReason::IoError</a>(e)) | <a href="#886">Error</a>(e) =&gt; <span class="prelude-val">Err</span>(<a href="#956">e</a>),
-            <a href="#884">Partial</a>(partial, <span class="kw">_</span>) =&gt; <span class="prelude-val">Ok</span>(<a href="#957">partial</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
+        <span class="kw">match </span><span class="self">self </span>{
+            Full(entries) =&gt; <span class="prelude-val">Ok</span>(entries),
+            Partial(<span class="kw">_</span>, PartialReason::IoError(e)) | Error(e) =&gt; <span class="prelude-val">Err</span>(e),
+            Partial(partial, <span class="kw">_</span>) =&gt; <span class="prelude-val">Ok</span>(partial.into()),
         }
     }
 }
 
-<span class="kw">fn </span>create_dir_all(path: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>) -&gt; io::Result&lt;()&gt; {
-    <span class="kw">if let </span><span class="prelude-val">Some</span>(parent) = <a href="#962">path</a>.parent() {
-        fs::create_dir_all(<a href="#963">parent</a>)
+<span class="kw">fn </span>create_dir_all(path: <span class="kw-2">&amp;</span>Path) -&gt; io::Result&lt;()&gt; {
+    <span class="kw">if let </span><span class="prelude-val">Some</span>(parent) = path.parent() {
+        fs::create_dir_all(parent)
     } <span class="kw">else </span>{
         <span class="comment">// RFC: return an error instead?
-        </span><a class="macro" href="../../../log/log/macro.warn.html">warn!</a>(<span class="string">&quot;Attempting to save file in what looks like a root directory. File path: {:?}&quot;</span>, path);
+        </span><span class="macro">warn!</span>(<span class="string">&quot;Attempting to save file in what looks like a root directory. File path: {:?}&quot;</span>, path);
         <span class="prelude-val">Ok</span>(())
     }
 }
 
-<span class="kw">fn </span>try_copy_limited&lt;R: <a href="https://doc.rust-lang.org/nightly/std/io/trait.BufRead.html">BufRead</a>, Wb: FnMut(<span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; SaveResult&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;&gt;(src: R, <span class="kw-2">mut </span>with_buf: Wb, limit: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) -&gt; SaveResult&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>&gt; {
+<span class="kw">fn </span>try_copy_limited&lt;R: BufRead, Wb: FnMut(<span class="kw-2">&amp;</span>[u8]) -&gt; SaveResult&lt;usize, usize&gt;&gt;(src: R, <span class="kw-2">mut </span>with_buf: Wb, limit: u64) -&gt; SaveResult&lt;u64, u64&gt; {
     <span class="kw">let </span><span class="kw-2">mut </span>copied = <span class="number">0u64</span>;
-    <a href="#983">try_read_buf</a>(<a href="#972">src</a>, |buf| {
-        <span class="kw">let </span>new_copied = <a href="#973">copied</a>.saturating_add(<a href="#974">buf</a>.len() <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>);
-        <span class="kw">if </span>new_copied &gt; limit { <span class="kw">return </span><a href="#884">Partial</a>(<span class="number">0</span>, <a href="#792">PartialReason::SizeLimit</a>) }
-        <a href="#973">copied</a> = <a href="#975">new_copied</a>;
+    try_read_buf(src, |buf| {
+        <span class="kw">let </span>new_copied = copied.saturating_add(buf.len() <span class="kw">as </span>u64);
+        <span class="kw">if </span>new_copied &gt; limit { <span class="kw">return </span>Partial(<span class="number">0</span>, PartialReason::SizeLimit) }
+        copied = new_copied;
 
-        <a href="#972">with_buf</a>(<a href="#974">buf</a>)
+        with_buf(buf)
     })
 }
 
-<span class="kw">fn </span>try_read_buf&lt;R: <a href="https://doc.rust-lang.org/nightly/std/io/trait.BufRead.html">BufRead</a>, Wb: FnMut(<span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; SaveResult&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;&gt;(<span class="kw-2">mut </span>src: R, <span class="kw-2">mut </span>with_buf: Wb) -&gt; SaveResult&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>&gt; {
+<span class="kw">fn </span>try_read_buf&lt;R: BufRead, Wb: FnMut(<span class="kw-2">&amp;</span>[u8]) -&gt; SaveResult&lt;usize, usize&gt;&gt;(<span class="kw-2">mut </span>src: R, <span class="kw-2">mut </span>with_buf: Wb) -&gt; SaveResult&lt;u64, u64&gt; {
     <span class="kw">let </span><span class="kw-2">mut </span>total_copied = <span class="number">0u64</span>;
 
     <span class="macro">macro_rules! </span>try_here (
@@ -2041,27 +2041,27 @@
 
     <span class="kw">loop </span>{
         <span class="kw">let </span>res = {
-            <span class="kw">let </span>buf = <a class="macro" href="#986-995">try_here!</a>(src.fill_buf());
+            <span class="kw">let </span>buf = <span class="macro">try_here!</span>(src.fill_buf());
             <span class="kw">if </span>buf.is_empty() { <span class="kw">break</span>; }
-            <a href="#983">with_buf</a>(<a href="#999">buf</a>)
+            with_buf(buf)
         };
 
-        <span class="kw">match </span><a href="#998">res</a> {
-            <a href="#881">Full</a>(copied) =&gt; { <a href="#983">src</a>.<a href="https://doc.rust-lang.org/nightly/std/io/trait.BufRead.html">consume</a>(<a href="#1005">copied</a>); <a href="#984">total_copied</a> += <a href="#1005">copied</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>; }
-            <a href="#884">Partial</a>(copied, reason) =&gt; {
-                <a href="#983">src</a>.<a href="https://doc.rust-lang.org/nightly/std/io/trait.BufRead.html">consume</a>(<a href="#1006">copied</a>); <a href="#984">total_copied</a> += <a href="#1006">copied</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>;
-                <span class="kw">return </span><a href="#884">Partial</a>(<a href="#984">total_copied</a>, <a href="#1006">reason</a>);
+        <span class="kw">match </span>res {
+            Full(copied) =&gt; { src.consume(copied); total_copied += copied <span class="kw">as </span>u64; }
+            Partial(copied, reason) =&gt; {
+                src.consume(copied); total_copied += copied <span class="kw">as </span>u64;
+                <span class="kw">return </span>Partial(total_copied, reason);
             },
-            <a href="#886">Error</a>(err) =&gt; {
-                <span class="kw">return </span><a href="#884">Partial</a>(<a href="#984">total_copied</a>, <a href="#1010">err</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>());
+            Error(err) =&gt; {
+                <span class="kw">return </span>Partial(total_copied, err.into());
             }
         }
     }
 
-    <a href="#881">Full</a>(<a href="#984">total_copied</a>)
+    Full(total_copied)
 }
 
-<span class="kw">fn </span>try_write_all&lt;W: <a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a>&gt;(<span class="kw-2">mut </span>buf: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], <span class="kw-2">mut </span>dest: W) -&gt; SaveResult&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
+<span class="kw">fn </span>try_write_all&lt;W: Write&gt;(<span class="kw-2">mut </span>buf: <span class="kw-2">&amp;</span>[u8], <span class="kw-2">mut </span>dest: W) -&gt; SaveResult&lt;usize, usize&gt; {
     <span class="kw">let </span><span class="kw-2">mut </span>total_copied = <span class="number">0</span>;
 
     <span class="macro">macro_rules! </span>try_here (
@@ -2086,7 +2086,7 @@
         }
     }
 
-    <a href="#881">Full</a>(<a href="#1020">total_copied</a>)
+    Full(total_copied)
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="multipart" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="multipart" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

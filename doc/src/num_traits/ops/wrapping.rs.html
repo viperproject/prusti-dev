@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/num-traits-0.2.15/src/ops/wrapping.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>wrapping.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../num_traits/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/num-traits-0.2.15/src/ops/wrapping.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>wrapping.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../num_traits/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -336,7 +336,7 @@
 <a href="#336" id="336">336</a>
 <a href="#337" id="337">337</a>
 </pre><pre class="rust"><code><span class="kw">use </span>core::num::Wrapping;
-<span class="kw">use </span>core::ops::{<a href="https://doc.rust-lang.org/nightly/core/ops/arith/trait.Add.html">Add</a>, <a href="https://doc.rust-lang.org/nightly/core/ops/arith/trait.Mul.html">Mul</a>, <a href="https://doc.rust-lang.org/nightly/core/ops/arith/trait.Neg.html">Neg</a>, <a href="https://doc.rust-lang.org/nightly/core/ops/bit/trait.Shl.html">Shl</a>, <a href="https://doc.rust-lang.org/nightly/core/ops/bit/trait.Shr.html">Shr</a>, <a href="https://doc.rust-lang.org/nightly/core/ops/arith/trait.Sub.html">Sub</a>};
+<span class="kw">use </span>core::ops::{Add, Mul, Neg, Shl, Shr, Sub};
 
 <span class="macro">macro_rules! </span>wrapping_impl {
     (<span class="macro-nonterminal">$trait_name</span>:ident, <span class="macro-nonterminal">$method</span>:ident, <span class="macro-nonterminal">$t</span>:ty) =&gt; {
@@ -358,73 +358,73 @@
 }
 
 <span class="doccomment">/// Performs addition that wraps around on overflow.
-</span><span class="kw">pub trait </span>WrappingAdd: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> + Add&lt;<span class="self">Self</span>, Output = <span class="self">Self</span>&gt; {
+</span><span class="kw">pub trait </span>WrappingAdd: Sized + Add&lt;<span class="self">Self</span>, Output = <span class="self">Self</span>&gt; {
     <span class="doccomment">/// Wrapping (modular) addition. Computes `self + other`, wrapping around at the boundary of
     /// the type.
     </span><span class="kw">fn </span>wrapping_add(<span class="kw-2">&amp;</span><span class="self">self</span>, v: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="self">Self</span>;
 }
 
-<a class="macro" href="#4-21">wrapping_impl!</a>(WrappingAdd, wrapping_add, <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>);
-<a class="macro" href="#4-21">wrapping_impl!</a>(WrappingAdd, wrapping_add, <a href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>);
-<a class="macro" href="#4-21">wrapping_impl!</a>(WrappingAdd, wrapping_add, <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>);
-<a class="macro" href="#4-21">wrapping_impl!</a>(WrappingAdd, wrapping_add, <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>);
-<a class="macro" href="#4-21">wrapping_impl!</a>(WrappingAdd, wrapping_add, <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>);
+<span class="macro">wrapping_impl!</span>(WrappingAdd, wrapping_add, u8);
+<span class="macro">wrapping_impl!</span>(WrappingAdd, wrapping_add, u16);
+<span class="macro">wrapping_impl!</span>(WrappingAdd, wrapping_add, u32);
+<span class="macro">wrapping_impl!</span>(WrappingAdd, wrapping_add, u64);
+<span class="macro">wrapping_impl!</span>(WrappingAdd, wrapping_add, usize);
 <span class="attr">#[cfg(has_i128)]
-</span><a class="macro" href="#4-21">wrapping_impl!</a>(WrappingAdd, wrapping_add, <a href="https://doc.rust-lang.org/nightly/std/primitive.u128.html">u128</a>);
+</span><span class="macro">wrapping_impl!</span>(WrappingAdd, wrapping_add, u128);
 
-<a class="macro" href="#4-21">wrapping_impl!</a>(WrappingAdd, wrapping_add, <a href="https://doc.rust-lang.org/nightly/std/primitive.i8.html">i8</a>);
-<a class="macro" href="#4-21">wrapping_impl!</a>(WrappingAdd, wrapping_add, <a href="https://doc.rust-lang.org/nightly/std/primitive.i16.html">i16</a>);
-<a class="macro" href="#4-21">wrapping_impl!</a>(WrappingAdd, wrapping_add, <a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>);
-<a class="macro" href="#4-21">wrapping_impl!</a>(WrappingAdd, wrapping_add, <a href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>);
-<a class="macro" href="#4-21">wrapping_impl!</a>(WrappingAdd, wrapping_add, <a href="https://doc.rust-lang.org/nightly/std/primitive.isize.html">isize</a>);
+<span class="macro">wrapping_impl!</span>(WrappingAdd, wrapping_add, i8);
+<span class="macro">wrapping_impl!</span>(WrappingAdd, wrapping_add, i16);
+<span class="macro">wrapping_impl!</span>(WrappingAdd, wrapping_add, i32);
+<span class="macro">wrapping_impl!</span>(WrappingAdd, wrapping_add, i64);
+<span class="macro">wrapping_impl!</span>(WrappingAdd, wrapping_add, isize);
 <span class="attr">#[cfg(has_i128)]
-</span><a class="macro" href="#4-21">wrapping_impl!</a>(WrappingAdd, wrapping_add, <a href="https://doc.rust-lang.org/nightly/std/primitive.i128.html">i128</a>);
+</span><span class="macro">wrapping_impl!</span>(WrappingAdd, wrapping_add, i128);
 
 <span class="doccomment">/// Performs subtraction that wraps around on overflow.
-</span><span class="kw">pub trait </span>WrappingSub: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> + Sub&lt;<span class="self">Self</span>, Output = <span class="self">Self</span>&gt; {
+</span><span class="kw">pub trait </span>WrappingSub: Sized + Sub&lt;<span class="self">Self</span>, Output = <span class="self">Self</span>&gt; {
     <span class="doccomment">/// Wrapping (modular) subtraction. Computes `self - other`, wrapping around at the boundary
     /// of the type.
     </span><span class="kw">fn </span>wrapping_sub(<span class="kw-2">&amp;</span><span class="self">self</span>, v: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="self">Self</span>;
 }
 
-<a class="macro" href="#4-21">wrapping_impl!</a>(WrappingSub, wrapping_sub, <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>);
-<a class="macro" href="#4-21">wrapping_impl!</a>(WrappingSub, wrapping_sub, <a href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>);
-<a class="macro" href="#4-21">wrapping_impl!</a>(WrappingSub, wrapping_sub, <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>);
-<a class="macro" href="#4-21">wrapping_impl!</a>(WrappingSub, wrapping_sub, <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>);
-<a class="macro" href="#4-21">wrapping_impl!</a>(WrappingSub, wrapping_sub, <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>);
+<span class="macro">wrapping_impl!</span>(WrappingSub, wrapping_sub, u8);
+<span class="macro">wrapping_impl!</span>(WrappingSub, wrapping_sub, u16);
+<span class="macro">wrapping_impl!</span>(WrappingSub, wrapping_sub, u32);
+<span class="macro">wrapping_impl!</span>(WrappingSub, wrapping_sub, u64);
+<span class="macro">wrapping_impl!</span>(WrappingSub, wrapping_sub, usize);
 <span class="attr">#[cfg(has_i128)]
-</span><a class="macro" href="#4-21">wrapping_impl!</a>(WrappingSub, wrapping_sub, <a href="https://doc.rust-lang.org/nightly/std/primitive.u128.html">u128</a>);
+</span><span class="macro">wrapping_impl!</span>(WrappingSub, wrapping_sub, u128);
 
-<a class="macro" href="#4-21">wrapping_impl!</a>(WrappingSub, wrapping_sub, <a href="https://doc.rust-lang.org/nightly/std/primitive.i8.html">i8</a>);
-<a class="macro" href="#4-21">wrapping_impl!</a>(WrappingSub, wrapping_sub, <a href="https://doc.rust-lang.org/nightly/std/primitive.i16.html">i16</a>);
-<a class="macro" href="#4-21">wrapping_impl!</a>(WrappingSub, wrapping_sub, <a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>);
-<a class="macro" href="#4-21">wrapping_impl!</a>(WrappingSub, wrapping_sub, <a href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>);
-<a class="macro" href="#4-21">wrapping_impl!</a>(WrappingSub, wrapping_sub, <a href="https://doc.rust-lang.org/nightly/std/primitive.isize.html">isize</a>);
+<span class="macro">wrapping_impl!</span>(WrappingSub, wrapping_sub, i8);
+<span class="macro">wrapping_impl!</span>(WrappingSub, wrapping_sub, i16);
+<span class="macro">wrapping_impl!</span>(WrappingSub, wrapping_sub, i32);
+<span class="macro">wrapping_impl!</span>(WrappingSub, wrapping_sub, i64);
+<span class="macro">wrapping_impl!</span>(WrappingSub, wrapping_sub, isize);
 <span class="attr">#[cfg(has_i128)]
-</span><a class="macro" href="#4-21">wrapping_impl!</a>(WrappingSub, wrapping_sub, <a href="https://doc.rust-lang.org/nightly/std/primitive.i128.html">i128</a>);
+</span><span class="macro">wrapping_impl!</span>(WrappingSub, wrapping_sub, i128);
 
 <span class="doccomment">/// Performs multiplication that wraps around on overflow.
-</span><span class="kw">pub trait </span>WrappingMul: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> + Mul&lt;<span class="self">Self</span>, Output = <span class="self">Self</span>&gt; {
+</span><span class="kw">pub trait </span>WrappingMul: Sized + Mul&lt;<span class="self">Self</span>, Output = <span class="self">Self</span>&gt; {
     <span class="doccomment">/// Wrapping (modular) multiplication. Computes `self * other`, wrapping around at the boundary
     /// of the type.
     </span><span class="kw">fn </span>wrapping_mul(<span class="kw-2">&amp;</span><span class="self">self</span>, v: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="self">Self</span>;
 }
 
-<a class="macro" href="#4-21">wrapping_impl!</a>(WrappingMul, wrapping_mul, <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>);
-<a class="macro" href="#4-21">wrapping_impl!</a>(WrappingMul, wrapping_mul, <a href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>);
-<a class="macro" href="#4-21">wrapping_impl!</a>(WrappingMul, wrapping_mul, <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>);
-<a class="macro" href="#4-21">wrapping_impl!</a>(WrappingMul, wrapping_mul, <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>);
-<a class="macro" href="#4-21">wrapping_impl!</a>(WrappingMul, wrapping_mul, <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>);
+<span class="macro">wrapping_impl!</span>(WrappingMul, wrapping_mul, u8);
+<span class="macro">wrapping_impl!</span>(WrappingMul, wrapping_mul, u16);
+<span class="macro">wrapping_impl!</span>(WrappingMul, wrapping_mul, u32);
+<span class="macro">wrapping_impl!</span>(WrappingMul, wrapping_mul, u64);
+<span class="macro">wrapping_impl!</span>(WrappingMul, wrapping_mul, usize);
 <span class="attr">#[cfg(has_i128)]
-</span><a class="macro" href="#4-21">wrapping_impl!</a>(WrappingMul, wrapping_mul, <a href="https://doc.rust-lang.org/nightly/std/primitive.u128.html">u128</a>);
+</span><span class="macro">wrapping_impl!</span>(WrappingMul, wrapping_mul, u128);
 
-<a class="macro" href="#4-21">wrapping_impl!</a>(WrappingMul, wrapping_mul, <a href="https://doc.rust-lang.org/nightly/std/primitive.i8.html">i8</a>);
-<a class="macro" href="#4-21">wrapping_impl!</a>(WrappingMul, wrapping_mul, <a href="https://doc.rust-lang.org/nightly/std/primitive.i16.html">i16</a>);
-<a class="macro" href="#4-21">wrapping_impl!</a>(WrappingMul, wrapping_mul, <a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>);
-<a class="macro" href="#4-21">wrapping_impl!</a>(WrappingMul, wrapping_mul, <a href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>);
-<a class="macro" href="#4-21">wrapping_impl!</a>(WrappingMul, wrapping_mul, <a href="https://doc.rust-lang.org/nightly/std/primitive.isize.html">isize</a>);
+<span class="macro">wrapping_impl!</span>(WrappingMul, wrapping_mul, i8);
+<span class="macro">wrapping_impl!</span>(WrappingMul, wrapping_mul, i16);
+<span class="macro">wrapping_impl!</span>(WrappingMul, wrapping_mul, i32);
+<span class="macro">wrapping_impl!</span>(WrappingMul, wrapping_mul, i64);
+<span class="macro">wrapping_impl!</span>(WrappingMul, wrapping_mul, isize);
 <span class="attr">#[cfg(has_i128)]
-</span><a class="macro" href="#4-21">wrapping_impl!</a>(WrappingMul, wrapping_mul, <a href="https://doc.rust-lang.org/nightly/std/primitive.i128.html">i128</a>);
+</span><span class="macro">wrapping_impl!</span>(WrappingMul, wrapping_mul, i128);
 
 <span class="macro">macro_rules! </span>wrapping_unary_impl {
     (<span class="macro-nonterminal">$trait_name</span>:ident, <span class="macro-nonterminal">$method</span>:ident, <span class="macro-nonterminal">$t</span>:ty) =&gt; {
@@ -438,7 +438,7 @@
 }
 
 <span class="doccomment">/// Performs a negation that does not panic.
-</span><span class="kw">pub trait </span>WrappingNeg: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> {
+</span><span class="kw">pub trait </span>WrappingNeg: Sized {
     <span class="doccomment">/// Wrapping (modular) negation. Computes `-self`,
     /// wrapping around at the boundary of the type.
     ///
@@ -459,20 +459,20 @@
     </span><span class="kw">fn </span>wrapping_neg(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self</span>;
 }
 
-<a class="macro" href="#92-101">wrapping_unary_impl!</a>(WrappingNeg, wrapping_neg, <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>);
-<a class="macro" href="#92-101">wrapping_unary_impl!</a>(WrappingNeg, wrapping_neg, <a href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>);
-<a class="macro" href="#92-101">wrapping_unary_impl!</a>(WrappingNeg, wrapping_neg, <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>);
-<a class="macro" href="#92-101">wrapping_unary_impl!</a>(WrappingNeg, wrapping_neg, <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>);
-<a class="macro" href="#92-101">wrapping_unary_impl!</a>(WrappingNeg, wrapping_neg, <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>);
+<span class="macro">wrapping_unary_impl!</span>(WrappingNeg, wrapping_neg, u8);
+<span class="macro">wrapping_unary_impl!</span>(WrappingNeg, wrapping_neg, u16);
+<span class="macro">wrapping_unary_impl!</span>(WrappingNeg, wrapping_neg, u32);
+<span class="macro">wrapping_unary_impl!</span>(WrappingNeg, wrapping_neg, u64);
+<span class="macro">wrapping_unary_impl!</span>(WrappingNeg, wrapping_neg, usize);
 <span class="attr">#[cfg(has_i128)]
-</span><a class="macro" href="#92-101">wrapping_unary_impl!</a>(WrappingNeg, wrapping_neg, <a href="https://doc.rust-lang.org/nightly/std/primitive.u128.html">u128</a>);
-<a class="macro" href="#92-101">wrapping_unary_impl!</a>(WrappingNeg, wrapping_neg, <a href="https://doc.rust-lang.org/nightly/std/primitive.i8.html">i8</a>);
-<a class="macro" href="#92-101">wrapping_unary_impl!</a>(WrappingNeg, wrapping_neg, <a href="https://doc.rust-lang.org/nightly/std/primitive.i16.html">i16</a>);
-<a class="macro" href="#92-101">wrapping_unary_impl!</a>(WrappingNeg, wrapping_neg, <a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>);
-<a class="macro" href="#92-101">wrapping_unary_impl!</a>(WrappingNeg, wrapping_neg, <a href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>);
-<a class="macro" href="#92-101">wrapping_unary_impl!</a>(WrappingNeg, wrapping_neg, <a href="https://doc.rust-lang.org/nightly/std/primitive.isize.html">isize</a>);
+</span><span class="macro">wrapping_unary_impl!</span>(WrappingNeg, wrapping_neg, u128);
+<span class="macro">wrapping_unary_impl!</span>(WrappingNeg, wrapping_neg, i8);
+<span class="macro">wrapping_unary_impl!</span>(WrappingNeg, wrapping_neg, i16);
+<span class="macro">wrapping_unary_impl!</span>(WrappingNeg, wrapping_neg, i32);
+<span class="macro">wrapping_unary_impl!</span>(WrappingNeg, wrapping_neg, i64);
+<span class="macro">wrapping_unary_impl!</span>(WrappingNeg, wrapping_neg, isize);
 <span class="attr">#[cfg(has_i128)]
-</span><a class="macro" href="#92-101">wrapping_unary_impl!</a>(WrappingNeg, wrapping_neg, <a href="https://doc.rust-lang.org/nightly/std/primitive.i128.html">i128</a>);
+</span><span class="macro">wrapping_unary_impl!</span>(WrappingNeg, wrapping_neg, i128);
 
 <span class="macro">macro_rules! </span>wrapping_shift_impl {
     (<span class="macro-nonterminal">$trait_name</span>:ident, <span class="macro-nonterminal">$method</span>:ident, <span class="macro-nonterminal">$t</span>:ty) =&gt; {
@@ -486,7 +486,7 @@
 }
 
 <span class="doccomment">/// Performs a left shift that does not panic.
-</span><span class="kw">pub trait </span>WrappingShl: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> + Shl&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, Output = <span class="self">Self</span>&gt; {
+</span><span class="kw">pub trait </span>WrappingShl: Sized + Shl&lt;usize, Output = <span class="self">Self</span>&gt; {
     <span class="doccomment">/// Panic-free bitwise shift-left; yields `self &lt;&lt; mask(rhs)`,
     /// where `mask` removes any high order bits of `rhs` that would
     /// cause the shift to exceed the bitwidth of the type.
@@ -501,27 +501,27 @@
     /// assert_eq!(WrappingShl::wrapping_shl(&amp;x, 15), 0x8000);
     /// assert_eq!(WrappingShl::wrapping_shl(&amp;x, 16), 0x0001);
     /// ```
-    </span><span class="kw">fn </span>wrapping_shl(<span class="kw-2">&amp;</span><span class="self">self</span>, rhs: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; <span class="self">Self</span>;
+    </span><span class="kw">fn </span>wrapping_shl(<span class="kw-2">&amp;</span><span class="self">self</span>, rhs: u32) -&gt; <span class="self">Self</span>;
 }
 
-<a class="macro" href="#140-149">wrapping_shift_impl!</a>(WrappingShl, wrapping_shl, <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>);
-<a class="macro" href="#140-149">wrapping_shift_impl!</a>(WrappingShl, wrapping_shl, <a href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>);
-<a class="macro" href="#140-149">wrapping_shift_impl!</a>(WrappingShl, wrapping_shl, <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>);
-<a class="macro" href="#140-149">wrapping_shift_impl!</a>(WrappingShl, wrapping_shl, <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>);
-<a class="macro" href="#140-149">wrapping_shift_impl!</a>(WrappingShl, wrapping_shl, <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>);
+<span class="macro">wrapping_shift_impl!</span>(WrappingShl, wrapping_shl, u8);
+<span class="macro">wrapping_shift_impl!</span>(WrappingShl, wrapping_shl, u16);
+<span class="macro">wrapping_shift_impl!</span>(WrappingShl, wrapping_shl, u32);
+<span class="macro">wrapping_shift_impl!</span>(WrappingShl, wrapping_shl, u64);
+<span class="macro">wrapping_shift_impl!</span>(WrappingShl, wrapping_shl, usize);
 <span class="attr">#[cfg(has_i128)]
-</span><a class="macro" href="#140-149">wrapping_shift_impl!</a>(WrappingShl, wrapping_shl, <a href="https://doc.rust-lang.org/nightly/std/primitive.u128.html">u128</a>);
+</span><span class="macro">wrapping_shift_impl!</span>(WrappingShl, wrapping_shl, u128);
 
-<a class="macro" href="#140-149">wrapping_shift_impl!</a>(WrappingShl, wrapping_shl, <a href="https://doc.rust-lang.org/nightly/std/primitive.i8.html">i8</a>);
-<a class="macro" href="#140-149">wrapping_shift_impl!</a>(WrappingShl, wrapping_shl, <a href="https://doc.rust-lang.org/nightly/std/primitive.i16.html">i16</a>);
-<a class="macro" href="#140-149">wrapping_shift_impl!</a>(WrappingShl, wrapping_shl, <a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>);
-<a class="macro" href="#140-149">wrapping_shift_impl!</a>(WrappingShl, wrapping_shl, <a href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>);
-<a class="macro" href="#140-149">wrapping_shift_impl!</a>(WrappingShl, wrapping_shl, <a href="https://doc.rust-lang.org/nightly/std/primitive.isize.html">isize</a>);
+<span class="macro">wrapping_shift_impl!</span>(WrappingShl, wrapping_shl, i8);
+<span class="macro">wrapping_shift_impl!</span>(WrappingShl, wrapping_shl, i16);
+<span class="macro">wrapping_shift_impl!</span>(WrappingShl, wrapping_shl, i32);
+<span class="macro">wrapping_shift_impl!</span>(WrappingShl, wrapping_shl, i64);
+<span class="macro">wrapping_shift_impl!</span>(WrappingShl, wrapping_shl, isize);
 <span class="attr">#[cfg(has_i128)]
-</span><a class="macro" href="#140-149">wrapping_shift_impl!</a>(WrappingShl, wrapping_shl, <a href="https://doc.rust-lang.org/nightly/std/primitive.i128.html">i128</a>);
+</span><span class="macro">wrapping_shift_impl!</span>(WrappingShl, wrapping_shl, i128);
 
 <span class="doccomment">/// Performs a right shift that does not panic.
-</span><span class="kw">pub trait </span>WrappingShr: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> + Shr&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, Output = <span class="self">Self</span>&gt; {
+</span><span class="kw">pub trait </span>WrappingShr: Sized + Shr&lt;usize, Output = <span class="self">Self</span>&gt; {
     <span class="doccomment">/// Panic-free bitwise shift-right; yields `self &gt;&gt; mask(rhs)`,
     /// where `mask` removes any high order bits of `rhs` that would
     /// cause the shift to exceed the bitwidth of the type.
@@ -536,72 +536,72 @@
     /// assert_eq!(WrappingShr::wrapping_shr(&amp;x, 15), 0x0001);
     /// assert_eq!(WrappingShr::wrapping_shr(&amp;x, 16), 0x8000);
     /// ```
-    </span><span class="kw">fn </span>wrapping_shr(<span class="kw-2">&amp;</span><span class="self">self</span>, rhs: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; <span class="self">Self</span>;
+    </span><span class="kw">fn </span>wrapping_shr(<span class="kw-2">&amp;</span><span class="self">self</span>, rhs: u32) -&gt; <span class="self">Self</span>;
 }
 
-<a class="macro" href="#140-149">wrapping_shift_impl!</a>(WrappingShr, wrapping_shr, <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>);
-<a class="macro" href="#140-149">wrapping_shift_impl!</a>(WrappingShr, wrapping_shr, <a href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>);
-<a class="macro" href="#140-149">wrapping_shift_impl!</a>(WrappingShr, wrapping_shr, <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>);
-<a class="macro" href="#140-149">wrapping_shift_impl!</a>(WrappingShr, wrapping_shr, <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>);
-<a class="macro" href="#140-149">wrapping_shift_impl!</a>(WrappingShr, wrapping_shr, <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>);
+<span class="macro">wrapping_shift_impl!</span>(WrappingShr, wrapping_shr, u8);
+<span class="macro">wrapping_shift_impl!</span>(WrappingShr, wrapping_shr, u16);
+<span class="macro">wrapping_shift_impl!</span>(WrappingShr, wrapping_shr, u32);
+<span class="macro">wrapping_shift_impl!</span>(WrappingShr, wrapping_shr, u64);
+<span class="macro">wrapping_shift_impl!</span>(WrappingShr, wrapping_shr, usize);
 <span class="attr">#[cfg(has_i128)]
-</span><a class="macro" href="#140-149">wrapping_shift_impl!</a>(WrappingShr, wrapping_shr, <a href="https://doc.rust-lang.org/nightly/std/primitive.u128.html">u128</a>);
+</span><span class="macro">wrapping_shift_impl!</span>(WrappingShr, wrapping_shr, u128);
 
-<a class="macro" href="#140-149">wrapping_shift_impl!</a>(WrappingShr, wrapping_shr, <a href="https://doc.rust-lang.org/nightly/std/primitive.i8.html">i8</a>);
-<a class="macro" href="#140-149">wrapping_shift_impl!</a>(WrappingShr, wrapping_shr, <a href="https://doc.rust-lang.org/nightly/std/primitive.i16.html">i16</a>);
-<a class="macro" href="#140-149">wrapping_shift_impl!</a>(WrappingShr, wrapping_shr, <a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>);
-<a class="macro" href="#140-149">wrapping_shift_impl!</a>(WrappingShr, wrapping_shr, <a href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>);
-<a class="macro" href="#140-149">wrapping_shift_impl!</a>(WrappingShr, wrapping_shr, <a href="https://doc.rust-lang.org/nightly/std/primitive.isize.html">isize</a>);
+<span class="macro">wrapping_shift_impl!</span>(WrappingShr, wrapping_shr, i8);
+<span class="macro">wrapping_shift_impl!</span>(WrappingShr, wrapping_shr, i16);
+<span class="macro">wrapping_shift_impl!</span>(WrappingShr, wrapping_shr, i32);
+<span class="macro">wrapping_shift_impl!</span>(WrappingShr, wrapping_shr, i64);
+<span class="macro">wrapping_shift_impl!</span>(WrappingShr, wrapping_shr, isize);
 <span class="attr">#[cfg(has_i128)]
-</span><a class="macro" href="#140-149">wrapping_shift_impl!</a>(WrappingShr, wrapping_shr, <a href="https://doc.rust-lang.org/nightly/std/primitive.i128.html">i128</a>);
+</span><span class="macro">wrapping_shift_impl!</span>(WrappingShr, wrapping_shr, i128);
 
 <span class="comment">// Well this is a bit funny, but all the more appropriate.
-</span><span class="kw">impl</span>&lt;T: <a href="#24">WrappingAdd</a>&gt; <a href="#24">WrappingAdd</a> <span class="kw">for </span>Wrapping&lt;T&gt;
+</span><span class="kw">impl</span>&lt;T: WrappingAdd&gt; WrappingAdd <span class="kw">for </span>Wrapping&lt;T&gt;
 <span class="kw">where
     </span>Wrapping&lt;T&gt;: Add&lt;Output = Wrapping&lt;T&gt;&gt;,
 {
     <span class="kw">fn </span>wrapping_add(<span class="kw-2">&amp;</span><span class="self">self</span>, v: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="self">Self </span>{
-        Wrapping(<a class="self" href="#226">self</a>.<span class="number">0</span>.<a href="#27">wrapping_add</a>(<span class="kw-2">&amp;</span><a href="#226">v</a>.<span class="number">0</span>))
+        Wrapping(<span class="self">self</span>.<span class="number">0</span>.wrapping_add(<span class="kw-2">&amp;</span>v.<span class="number">0</span>))
     }
 }
-<span class="kw">impl</span>&lt;T: <a href="#47">WrappingSub</a>&gt; <a href="#47">WrappingSub</a> <span class="kw">for </span>Wrapping&lt;T&gt;
+<span class="kw">impl</span>&lt;T: WrappingSub&gt; WrappingSub <span class="kw">for </span>Wrapping&lt;T&gt;
 <span class="kw">where
     </span>Wrapping&lt;T&gt;: Sub&lt;Output = Wrapping&lt;T&gt;&gt;,
 {
     <span class="kw">fn </span>wrapping_sub(<span class="kw-2">&amp;</span><span class="self">self</span>, v: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="self">Self </span>{
-        Wrapping(<a class="self" href="#234">self</a>.<span class="number">0</span>.<a href="#50">wrapping_sub</a>(<span class="kw-2">&amp;</span><a href="#234">v</a>.<span class="number">0</span>))
+        Wrapping(<span class="self">self</span>.<span class="number">0</span>.wrapping_sub(<span class="kw-2">&amp;</span>v.<span class="number">0</span>))
     }
 }
-<span class="kw">impl</span>&lt;T: <a href="#70">WrappingMul</a>&gt; <a href="#70">WrappingMul</a> <span class="kw">for </span>Wrapping&lt;T&gt;
+<span class="kw">impl</span>&lt;T: WrappingMul&gt; WrappingMul <span class="kw">for </span>Wrapping&lt;T&gt;
 <span class="kw">where
     </span>Wrapping&lt;T&gt;: Mul&lt;Output = Wrapping&lt;T&gt;&gt;,
 {
     <span class="kw">fn </span>wrapping_mul(<span class="kw-2">&amp;</span><span class="self">self</span>, v: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="self">Self </span>{
-        Wrapping(<a class="self" href="#242">self</a>.<span class="number">0</span>.<a href="#73">wrapping_mul</a>(<span class="kw-2">&amp;</span><a href="#242">v</a>.<span class="number">0</span>))
+        Wrapping(<span class="self">self</span>.<span class="number">0</span>.wrapping_mul(<span class="kw-2">&amp;</span>v.<span class="number">0</span>))
     }
 }
-<span class="kw">impl</span>&lt;T: <a href="#104">WrappingNeg</a>&gt; <a href="#104">WrappingNeg</a> <span class="kw">for </span>Wrapping&lt;T&gt;
+<span class="kw">impl</span>&lt;T: WrappingNeg&gt; WrappingNeg <span class="kw">for </span>Wrapping&lt;T&gt;
 <span class="kw">where
     </span>Wrapping&lt;T&gt;: Neg&lt;Output = Wrapping&lt;T&gt;&gt;,
 {
     <span class="kw">fn </span>wrapping_neg(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self </span>{
-        Wrapping(<a class="self" href="#250">self</a>.<span class="number">0</span>.<a href="#122">wrapping_neg</a>())
+        Wrapping(<span class="self">self</span>.<span class="number">0</span>.wrapping_neg())
     }
 }
-<span class="kw">impl</span>&lt;T: <a href="#152">WrappingShl</a>&gt; <a href="#152">WrappingShl</a> <span class="kw">for </span>Wrapping&lt;T&gt;
+<span class="kw">impl</span>&lt;T: WrappingShl&gt; WrappingShl <span class="kw">for </span>Wrapping&lt;T&gt;
 <span class="kw">where
-    </span>Wrapping&lt;T&gt;: Shl&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, Output = Wrapping&lt;T&gt;&gt;,
+    </span>Wrapping&lt;T&gt;: Shl&lt;usize, Output = Wrapping&lt;T&gt;&gt;,
 {
-    <span class="kw">fn </span>wrapping_shl(<span class="kw-2">&amp;</span><span class="self">self</span>, rhs: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; <span class="self">Self </span>{
-        Wrapping(<a class="self" href="#258">self</a>.<span class="number">0</span>.<a href="#167">wrapping_shl</a>(<a href="#258">rhs</a>))
+    <span class="kw">fn </span>wrapping_shl(<span class="kw-2">&amp;</span><span class="self">self</span>, rhs: u32) -&gt; <span class="self">Self </span>{
+        Wrapping(<span class="self">self</span>.<span class="number">0</span>.wrapping_shl(rhs))
     }
 }
-<span class="kw">impl</span>&lt;T: <a href="#187">WrappingShr</a>&gt; <a href="#187">WrappingShr</a> <span class="kw">for </span>Wrapping&lt;T&gt;
+<span class="kw">impl</span>&lt;T: WrappingShr&gt; WrappingShr <span class="kw">for </span>Wrapping&lt;T&gt;
 <span class="kw">where
-    </span>Wrapping&lt;T&gt;: Shr&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, Output = Wrapping&lt;T&gt;&gt;,
+    </span>Wrapping&lt;T&gt;: Shr&lt;usize, Output = Wrapping&lt;T&gt;&gt;,
 {
-    <span class="kw">fn </span>wrapping_shr(<span class="kw-2">&amp;</span><span class="self">self</span>, rhs: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; <span class="self">Self </span>{
-        Wrapping(<a class="self" href="#266">self</a>.<span class="number">0</span>.<a href="#202">wrapping_shr</a>(<a href="#266">rhs</a>))
+    <span class="kw">fn </span>wrapping_shr(<span class="kw-2">&amp;</span><span class="self">self</span>, rhs: u32) -&gt; <span class="self">Self </span>{
+        Wrapping(<span class="self">self</span>.<span class="number">0</span>.wrapping_shr(rhs))
     }
 }
 
@@ -673,4 +673,4 @@
     require_wrappingshr(<span class="kw-2">&amp;</span>Wrapping(<span class="number">42</span>));
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="num_traits" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="num_traits" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

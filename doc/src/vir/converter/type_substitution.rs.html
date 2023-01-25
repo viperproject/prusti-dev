@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `vir/src/converter/type_substitution.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>type_substitution.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../vir/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `vir/src/converter/type_substitution.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>type_substitution.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../vir/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -4352,910 +4352,910 @@
 <a href="#4352" id="4352">4352</a>
 <a href="#4353" id="4353">4353</a>
 <a href="#4354" id="4354">4354</a>
-</pre><pre class="rust"><code><span class="kw">use </span><a href="../../../rustc_hash/type.FxHashMap.html">rustc_hash::FxHashMap</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">std::fmt</a>;
+</pre><pre class="rust"><code><span class="kw">use </span>rustc_hash::FxHashMap;
+<span class="kw">use </span>std::fmt;
 
-<span class="kw">use </span><a href="../lib.rs.html#29"><span class="kw">super</span>::<span class="kw">super</span>::polymorphic</a>::<span class="kw-2">*</span>;
-<span class="kw">use </span><a href="../../../uuid/struct.Uuid.html">uuid::Uuid</a>;
+<span class="kw">use </span><span class="kw">super</span>::<span class="kw">super</span>::polymorphic::<span class="kw-2">*</span>;
+<span class="kw">use </span>uuid::Uuid;
 
 <span class="kw">pub trait </span>Generic {
     <span class="attr">#[must_use]
-    </span><span class="kw">fn </span>substitute(<span class="self">self</span>, map: <span class="kw-2">&amp;</span>FxHashMap&lt;<a href="../up/gen/polymorphic/ast/common.rs.html#590">TypeVar</a>, <a href="../up/gen/polymorphic/ast/common.rs.html#174">Type</a>&gt;) -&gt; <span class="self">Self</span>;
+    </span><span class="kw">fn </span>substitute(<span class="self">self</span>, map: <span class="kw-2">&amp;</span>FxHashMap&lt;TypeVar, Type&gt;) -&gt; <span class="self">Self</span>;
 }
 
 <span class="comment">// bodyless_method
-</span><span class="kw">impl </span><a href="#7">Generic</a> <span class="kw">for </span><a href="../up/gen/polymorphic/ast/bodyless_method.rs.html#5">BodylessMethod</a> {
-    <span class="kw">fn </span>substitute(<span class="self">self</span>, map: <span class="kw-2">&amp;</span>FxHashMap&lt;<a href="../up/gen/polymorphic/ast/common.rs.html#590">TypeVar</a>, <a href="../up/gen/polymorphic/ast/common.rs.html#174">Type</a>&gt;) -&gt; <span class="self">Self </span>{
-        <span class="kw">let </span><span class="kw-2">mut </span>bodyless_method = <a class="self" href="#14">self</a>;
-        <a href="#15">bodyless_method</a>.formal_args = <a href="#15">bodyless_method</a>
+</span><span class="kw">impl </span>Generic <span class="kw">for </span>BodylessMethod {
+    <span class="kw">fn </span>substitute(<span class="self">self</span>, map: <span class="kw-2">&amp;</span>FxHashMap&lt;TypeVar, Type&gt;) -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span><span class="kw-2">mut </span>bodyless_method = <span class="self">self</span>;
+        bodyless_method.formal_args = bodyless_method
             .formal_args
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|formal_arg| <a href="#19">formal_arg</a>.<a href="#9">substitute</a>(<a href="#14">map</a>))
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
-        <a href="#15">bodyless_method</a>.formal_returns = <a href="#15">bodyless_method</a>
+            .into_iter()
+            .map(|formal_arg| formal_arg.substitute(map))
+            .collect();
+        bodyless_method.formal_returns = bodyless_method
             .formal_returns
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|formal_return| <a href="#24">formal_return</a>.<a href="#9">substitute</a>(<a href="#14">map</a>))
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
-        <a href="#15">bodyless_method</a>
+            .into_iter()
+            .map(|formal_return| formal_return.substitute(map))
+            .collect();
+        bodyless_method
     }
 }
 
 <span class="comment">// common
-</span><span class="kw">impl </span><a href="#7">Generic</a> <span class="kw">for </span><a href="../up/gen/polymorphic/ast/common.rs.html#174">Type</a> {
-    <span class="kw">fn </span>substitute(<span class="self">self</span>, map: <span class="kw-2">&amp;</span>FxHashMap&lt;<a href="../up/gen/polymorphic/ast/common.rs.html#590">TypeVar</a>, <a href="../up/gen/polymorphic/ast/common.rs.html#174">Type</a>&gt;) -&gt; <span class="self">Self </span>{
-        <span class="kw">match </span><span class="self"><a href="#32">self</a> </span>{
-            <a href="../up/gen/polymorphic/ast/common.rs.html#176">Type::Bool</a> | <a href="../up/gen/polymorphic/ast/common.rs.html#175">Type::Int</a> | <a href="../up/gen/polymorphic/ast/common.rs.html#182">Type::Ref</a> | <a href="../up/gen/polymorphic/ast/common.rs.html#177">Type::Float</a>(..) | <a href="../up/gen/polymorphic/ast/common.rs.html#178">Type::BitVector</a>(..) =&gt; <a class="self" href="#32">self</a>,
-            <a href="../up/gen/polymorphic/ast/common.rs.html#179">Type::Seq</a>(<span class="kw-2">mut </span>seq) =&gt; {
-                <span class="kw">let </span>typ = <span class="kw-2">*</span><a href="#35">seq</a>.typ;
-                <span class="kw-2">*</span><a href="#35">seq</a>.typ = <a href="#36">typ</a>.<a href="#9">substitute</a>(<a href="#32">map</a>);
-                <a href="../up/gen/polymorphic/ast/common.rs.html#179">Type::Seq</a>(<a href="#35">seq</a>)
+</span><span class="kw">impl </span>Generic <span class="kw">for </span>Type {
+    <span class="kw">fn </span>substitute(<span class="self">self</span>, map: <span class="kw-2">&amp;</span>FxHashMap&lt;TypeVar, Type&gt;) -&gt; <span class="self">Self </span>{
+        <span class="kw">match </span><span class="self">self </span>{
+            Type::Bool | Type::Int | Type::Ref | Type::Float(..) | Type::BitVector(..) =&gt; <span class="self">self</span>,
+            Type::Seq(<span class="kw-2">mut </span>seq) =&gt; {
+                <span class="kw">let </span>typ = <span class="kw-2">*</span>seq.typ;
+                <span class="kw-2">*</span>seq.typ = typ.substitute(map);
+                Type::Seq(seq)
             }
-            <a href="../up/gen/polymorphic/ast/common.rs.html#180">Type::Map</a>(<span class="kw-2">mut </span>m) =&gt; {
-                <span class="kw-2">*</span><a href="#40">m</a>.key_type = <a href="#40">m</a>.key_type.<a href="#9">substitute</a>(<a href="#32">map</a>);
-                <span class="kw-2">*</span><a href="#40">m</a>.val_type = <a href="#40">m</a>.val_type.<a href="#9">substitute</a>(<a href="#32">map</a>);
-                <a href="../up/gen/polymorphic/ast/common.rs.html#180">Type::Map</a>(<a href="#40">m</a>)
+            Type::Map(<span class="kw-2">mut </span>m) =&gt; {
+                <span class="kw-2">*</span>m.key_type = m.key_type.substitute(map);
+                <span class="kw-2">*</span>m.val_type = m.val_type.substitute(map);
+                Type::Map(m)
             }
-            <a href="../up/gen/polymorphic/ast/common.rs.html#184">Type::TypedRef</a>(<span class="kw-2">mut </span>typed_ref) =&gt; {
-                <a href="#45">typed_ref</a>.arguments = <a href="#45">typed_ref</a>
+            Type::TypedRef(<span class="kw-2">mut </span>typed_ref) =&gt; {
+                typed_ref.arguments = typed_ref
                     .arguments
-                    .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
-                    .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|arg| <a href="#49">arg</a>.<a href="#9">substitute</a>(<a href="#32">map</a>))
-                    .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
-                <a href="../up/gen/polymorphic/ast/common.rs.html#184">Type::TypedRef</a>(<a href="#45">typed_ref</a>)
+                    .into_iter()
+                    .map(|arg| arg.substitute(map))
+                    .collect();
+                Type::TypedRef(typed_ref)
             }
-            <a href="../up/gen/polymorphic/ast/common.rs.html#185">Type::Domain</a>(<span class="kw-2">mut </span>domain_type) =&gt; {
-                <a href="#53">domain_type</a>.arguments = <a href="#53">domain_type</a>
+            Type::Domain(<span class="kw-2">mut </span>domain_type) =&gt; {
+                domain_type.arguments = domain_type
                     .arguments
-                    .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
-                    .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|arg| <a href="#57">arg</a>.<a href="#9">substitute</a>(<a href="#32">map</a>))
-                    .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
-                <a href="../up/gen/polymorphic/ast/common.rs.html#185">Type::Domain</a>(<a href="#53">domain_type</a>)
+                    .into_iter()
+                    .map(|arg| arg.substitute(map))
+                    .collect();
+                Type::Domain(domain_type)
             }
-            <a href="../up/gen/polymorphic/ast/common.rs.html#186">Type::Snapshot</a>(<span class="kw-2">mut </span>snapshot_type) =&gt; {
-                <a href="#61">snapshot_type</a>.arguments = <a href="#61">snapshot_type</a>
+            Type::Snapshot(<span class="kw-2">mut </span>snapshot_type) =&gt; {
+                snapshot_type.arguments = snapshot_type
                     .arguments
-                    .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
-                    .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|arg| <a href="#65">arg</a>.<a href="#9">substitute</a>(<a href="#32">map</a>))
-                    .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
-                <a href="../up/gen/polymorphic/ast/common.rs.html#186">Type::Snapshot</a>(<a href="#61">snapshot_type</a>)
+                    .into_iter()
+                    .map(|arg| arg.substitute(map))
+                    .collect();
+                Type::Snapshot(snapshot_type)
             }
-            <a href="../up/gen/polymorphic/ast/common.rs.html#187">Type::TypeVar</a>(type_var) =&gt; <span class="kw">match </span><a href="#32">map</a>.get(<span class="kw-2">&amp;</span><a href="#69">type_var</a>) {
-                <span class="prelude-val">Some</span>(substituted_typ) =&gt; <a href="#70">substituted_typ</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
-                <span class="kw">_ </span>=&gt; <a href="../up/gen/polymorphic/ast/common.rs.html#187">Type::TypeVar</a>(<a href="#69">type_var</a>),
+            Type::TypeVar(type_var) =&gt; <span class="kw">match </span>map.get(<span class="kw-2">&amp;</span>type_var) {
+                <span class="prelude-val">Some</span>(substituted_typ) =&gt; substituted_typ.clone(),
+                <span class="kw">_ </span>=&gt; Type::TypeVar(type_var),
             },
         }
     }
 }
 
-<span class="kw">impl </span><a href="#7">Generic</a> <span class="kw">for </span><a href="../up/gen/polymorphic/ast/common.rs.html#616">LocalVar</a> {
-    <span class="kw">fn </span>substitute(<span class="self">self</span>, map: <span class="kw-2">&amp;</span>FxHashMap&lt;<a href="../up/gen/polymorphic/ast/common.rs.html#590">TypeVar</a>, <a href="../up/gen/polymorphic/ast/common.rs.html#174">Type</a>&gt;) -&gt; <span class="self">Self </span>{
-        <span class="kw">let </span><span class="kw-2">mut </span>local_var = <a class="self" href="#78">self</a>;
-        <a href="#79">local_var</a>.typ = <a href="#79">local_var</a>.typ.<a href="#9">substitute</a>(<a href="#78">map</a>);
-        <a href="#79">local_var</a>
+<span class="kw">impl </span>Generic <span class="kw">for </span>LocalVar {
+    <span class="kw">fn </span>substitute(<span class="self">self</span>, map: <span class="kw-2">&amp;</span>FxHashMap&lt;TypeVar, Type&gt;) -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span><span class="kw-2">mut </span>local_var = <span class="self">self</span>;
+        local_var.typ = local_var.typ.substitute(map);
+        local_var
     }
 }
 
-<span class="kw">impl </span><a href="#7">Generic</a> <span class="kw">for </span><a href="../up/gen/polymorphic/ast/common.rs.html#639">Field</a> {
-    <span class="kw">fn </span>substitute(<span class="self">self</span>, map: <span class="kw-2">&amp;</span>FxHashMap&lt;<a href="../up/gen/polymorphic/ast/common.rs.html#590">TypeVar</a>, <a href="../up/gen/polymorphic/ast/common.rs.html#174">Type</a>&gt;) -&gt; <span class="self">Self </span>{
-        <span class="kw">let </span><span class="kw-2">mut </span>field = <a class="self" href="#86">self</a>;
-        <a href="#87">field</a>.typ = <a href="#87">field</a>.typ.<a href="#9">substitute</a>(<a href="#86">map</a>);
-        <a href="#87">field</a>
+<span class="kw">impl </span>Generic <span class="kw">for </span>Field {
+    <span class="kw">fn </span>substitute(<span class="self">self</span>, map: <span class="kw-2">&amp;</span>FxHashMap&lt;TypeVar, Type&gt;) -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span><span class="kw-2">mut </span>field = <span class="self">self</span>;
+        field.typ = field.typ.substitute(map);
+        field
     }
 }
 
 <span class="comment">// domain
-</span><span class="kw">impl </span><a href="#7">Generic</a> <span class="kw">for </span><a href="../up/gen/polymorphic/ast/domain.rs.html#8">Domain</a> {
-    <span class="kw">fn </span>substitute(<span class="self">self</span>, map: <span class="kw-2">&amp;</span>FxHashMap&lt;<a href="../up/gen/polymorphic/ast/common.rs.html#590">TypeVar</a>, <a href="../up/gen/polymorphic/ast/common.rs.html#174">Type</a>&gt;) -&gt; <span class="self">Self </span>{
-        <span class="kw">let </span><span class="kw-2">mut </span>domain = <a class="self" href="#95">self</a>;
-        <a href="#96">domain</a>.functions = <a href="#96">domain</a>
+</span><span class="kw">impl </span>Generic <span class="kw">for </span>Domain {
+    <span class="kw">fn </span>substitute(<span class="self">self</span>, map: <span class="kw-2">&amp;</span>FxHashMap&lt;TypeVar, Type&gt;) -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span><span class="kw-2">mut </span>domain = <span class="self">self</span>;
+        domain.functions = domain
             .functions
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|function| <a href="#100">function</a>.<a href="#9">substitute</a>(<a href="#95">map</a>))
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
-        <a href="#96">domain</a>.axioms = <a href="#96">domain</a>
+            .into_iter()
+            .map(|function| function.substitute(map))
+            .collect();
+        domain.axioms = domain
             .axioms
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|axiom| <a href="#105">axiom</a>.<a href="#9">substitute</a>(<a href="#95">map</a>))
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
-        <a href="#96">domain</a>.type_vars = <a href="#96">domain</a>
+            .into_iter()
+            .map(|axiom| axiom.substitute(map))
+            .collect();
+        domain.type_vars = domain
             .type_vars
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|type_var| <a href="#110">type_var</a>.<a href="#9">substitute</a>(<a href="#95">map</a>))
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
-        <a href="#96">domain</a>
+            .into_iter()
+            .map(|type_var| type_var.substitute(map))
+            .collect();
+        domain
     }
 }
 
-<span class="kw">impl </span><a href="#7">Generic</a> <span class="kw">for </span><a href="../up/gen/polymorphic/ast/domain.rs.html#49">DomainFunc</a> {
-    <span class="kw">fn </span>substitute(<span class="self">self</span>, map: <span class="kw-2">&amp;</span>FxHashMap&lt;<a href="../up/gen/polymorphic/ast/common.rs.html#590">TypeVar</a>, <a href="../up/gen/polymorphic/ast/common.rs.html#174">Type</a>&gt;) -&gt; <span class="self">Self </span>{
-        <span class="kw">let </span><span class="kw-2">mut </span>domain_func = <a class="self" href="#117">self</a>;
-        <a href="#118">domain_func</a>.formal_args = <a href="#118">domain_func</a>
+<span class="kw">impl </span>Generic <span class="kw">for </span>DomainFunc {
+    <span class="kw">fn </span>substitute(<span class="self">self</span>, map: <span class="kw-2">&amp;</span>FxHashMap&lt;TypeVar, Type&gt;) -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span><span class="kw-2">mut </span>domain_func = <span class="self">self</span>;
+        domain_func.formal_args = domain_func
             .formal_args
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|formal_arg| <a href="#122">formal_arg</a>.<a href="#9">substitute</a>(<a href="#117">map</a>))
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
-        <a href="#118">domain_func</a>.return_type = <a href="#118">domain_func</a>.return_type.<a href="#9">substitute</a>(<a href="#117">map</a>);
-        <a href="#118">domain_func</a>
+            .into_iter()
+            .map(|formal_arg| formal_arg.substitute(map))
+            .collect();
+        domain_func.return_type = domain_func.return_type.substitute(map);
+        domain_func
     }
 }
 
-<span class="kw">impl </span><a href="#7">Generic</a> <span class="kw">for </span><a href="../up/gen/polymorphic/ast/domain.rs.html#127">DomainAxiom</a> {
-    <span class="kw">fn </span>substitute(<span class="self">self</span>, map: <span class="kw-2">&amp;</span>FxHashMap&lt;<a href="../up/gen/polymorphic/ast/common.rs.html#590">TypeVar</a>, <a href="../up/gen/polymorphic/ast/common.rs.html#174">Type</a>&gt;) -&gt; <span class="self">Self </span>{
-        <span class="kw">let </span><span class="kw-2">mut </span>domain_axiom = <a class="self" href="#130">self</a>;
-        <a href="#131">domain_axiom</a>.expr = <a href="#131">domain_axiom</a>.expr.<a href="#9">substitute</a>(<a href="#130">map</a>);
-        <a href="#131">domain_axiom</a>
+<span class="kw">impl </span>Generic <span class="kw">for </span>DomainAxiom {
+    <span class="kw">fn </span>substitute(<span class="self">self</span>, map: <span class="kw-2">&amp;</span>FxHashMap&lt;TypeVar, Type&gt;) -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span><span class="kw-2">mut </span>domain_axiom = <span class="self">self</span>;
+        domain_axiom.expr = domain_axiom.expr.substitute(map);
+        domain_axiom
     }
 }
 
 <span class="comment">// expr
-</span><span class="kw">impl </span><a href="#7">Generic</a> <span class="kw">for </span><a href="../up/gen/polymorphic/ast/expr.rs.html#13">Expr</a> {
-    <span class="kw">fn </span>substitute(<span class="self">self</span>, map: <span class="kw-2">&amp;</span>FxHashMap&lt;<a href="../up/gen/polymorphic/ast/common.rs.html#590">TypeVar</a>, <a href="../up/gen/polymorphic/ast/common.rs.html#174">Type</a>&gt;) -&gt; <span class="self">Self </span>{
-        <span class="kw">match </span><span class="self"><a href="#139">self</a> </span>{
-            <a href="../up/gen/polymorphic/ast/expr.rs.html#15">Expr::Local</a>(local) =&gt; <a href="../up/gen/polymorphic/ast/expr.rs.html#15">Expr::Local</a>(<a href="#141">local</a>.<a href="#9">substitute</a>(<a href="#139">map</a>)),
-            <a href="../up/gen/polymorphic/ast/expr.rs.html#17">Expr::Variant</a>(variant) =&gt; <a href="../up/gen/polymorphic/ast/expr.rs.html#17">Expr::Variant</a>(<a href="#142">variant</a>.<a href="#9">substitute</a>(<a href="#139">map</a>)),
-            <a href="../up/gen/polymorphic/ast/expr.rs.html#19">Expr::Field</a>(field) =&gt; <a href="../up/gen/polymorphic/ast/expr.rs.html#19">Expr::Field</a>(<a href="#143">field</a>.<a href="#9">substitute</a>(<a href="#139">map</a>)),
-            <a href="../up/gen/polymorphic/ast/expr.rs.html#21">Expr::AddrOf</a>(addr_of) =&gt; <a href="../up/gen/polymorphic/ast/expr.rs.html#21">Expr::AddrOf</a>(<a href="#144">addr_of</a>.<a href="#9">substitute</a>(<a href="#139">map</a>)),
-            <a href="../up/gen/polymorphic/ast/expr.rs.html#22">Expr::LabelledOld</a>(labelled_old) =&gt; <a href="../up/gen/polymorphic/ast/expr.rs.html#22">Expr::LabelledOld</a>(<a href="#145">labelled_old</a>.<a href="#9">substitute</a>(<a href="#139">map</a>)),
-            <a href="../up/gen/polymorphic/ast/expr.rs.html#23">Expr::Const</a>(const_expr) =&gt; <a href="../up/gen/polymorphic/ast/expr.rs.html#23">Expr::Const</a>(<a href="#146">const_expr</a>.<a href="#9">substitute</a>(<a href="#139">map</a>)),
-            <a href="../up/gen/polymorphic/ast/expr.rs.html#25">Expr::MagicWand</a>(magic_wand) =&gt; <a href="../up/gen/polymorphic/ast/expr.rs.html#25">Expr::MagicWand</a>(<a href="#147">magic_wand</a>.<a href="#9">substitute</a>(<a href="#139">map</a>)),
-            <a href="../up/gen/polymorphic/ast/expr.rs.html#27">Expr::PredicateAccessPredicate</a>(predicate_access_predicate) =&gt; {
-                <a href="../up/gen/polymorphic/ast/expr.rs.html#27">Expr::PredicateAccessPredicate</a>(<a href="#148">predicate_access_predicate</a>.<a href="#9">substitute</a>(<a href="#139">map</a>))
+</span><span class="kw">impl </span>Generic <span class="kw">for </span>Expr {
+    <span class="kw">fn </span>substitute(<span class="self">self</span>, map: <span class="kw-2">&amp;</span>FxHashMap&lt;TypeVar, Type&gt;) -&gt; <span class="self">Self </span>{
+        <span class="kw">match </span><span class="self">self </span>{
+            Expr::Local(local) =&gt; Expr::Local(local.substitute(map)),
+            Expr::Variant(variant) =&gt; Expr::Variant(variant.substitute(map)),
+            Expr::Field(field) =&gt; Expr::Field(field.substitute(map)),
+            Expr::AddrOf(addr_of) =&gt; Expr::AddrOf(addr_of.substitute(map)),
+            Expr::LabelledOld(labelled_old) =&gt; Expr::LabelledOld(labelled_old.substitute(map)),
+            Expr::Const(const_expr) =&gt; Expr::Const(const_expr.substitute(map)),
+            Expr::MagicWand(magic_wand) =&gt; Expr::MagicWand(magic_wand.substitute(map)),
+            Expr::PredicateAccessPredicate(predicate_access_predicate) =&gt; {
+                Expr::PredicateAccessPredicate(predicate_access_predicate.substitute(map))
             }
-            <a href="../up/gen/polymorphic/ast/expr.rs.html#28">Expr::FieldAccessPredicate</a>(field_access_predicate) =&gt; {
-                <a href="../up/gen/polymorphic/ast/expr.rs.html#28">Expr::FieldAccessPredicate</a>(<a href="#151">field_access_predicate</a>.<a href="#9">substitute</a>(<a href="#139">map</a>))
+            Expr::FieldAccessPredicate(field_access_predicate) =&gt; {
+                Expr::FieldAccessPredicate(field_access_predicate.substitute(map))
             }
-            <a href="../up/gen/polymorphic/ast/expr.rs.html#29">Expr::UnaryOp</a>(unary_op) =&gt; <a href="../up/gen/polymorphic/ast/expr.rs.html#29">Expr::UnaryOp</a>(<a href="#154">unary_op</a>.<a href="#9">substitute</a>(<a href="#139">map</a>)),
-            <a href="../up/gen/polymorphic/ast/expr.rs.html#30">Expr::BinOp</a>(bin_op) =&gt; <a href="../up/gen/polymorphic/ast/expr.rs.html#30">Expr::BinOp</a>(<a href="#155">bin_op</a>.<a href="#9">substitute</a>(<a href="#139">map</a>)),
-            <a href="../up/gen/polymorphic/ast/expr.rs.html#32">Expr::ContainerOp</a>(container_op) =&gt; <a href="../up/gen/polymorphic/ast/expr.rs.html#32">Expr::ContainerOp</a>(<a href="#156">container_op</a>.<a href="#9">substitute</a>(<a href="#139">map</a>)),
-            <a href="../up/gen/polymorphic/ast/expr.rs.html#34">Expr::Seq</a>(seq) =&gt; <a href="../up/gen/polymorphic/ast/expr.rs.html#34">Expr::Seq</a>(<a href="#157">seq</a>.<a href="#9">substitute</a>(<a href="#139">map</a>)),
-            <a href="../up/gen/polymorphic/ast/expr.rs.html#36">Expr::Map</a>(emap) =&gt; <a href="../up/gen/polymorphic/ast/expr.rs.html#36">Expr::Map</a>(<a href="#158">emap</a>.<a href="#9">substitute</a>(<a href="#139">map</a>)),
-            <a href="../up/gen/polymorphic/ast/expr.rs.html#38">Expr::Unfolding</a>(unfolding) =&gt; <a href="../up/gen/polymorphic/ast/expr.rs.html#38">Expr::Unfolding</a>(<a href="#159">unfolding</a>.<a href="#9">substitute</a>(<a href="#139">map</a>)),
-            <a href="../up/gen/polymorphic/ast/expr.rs.html#40">Expr::Cond</a>(cond) =&gt; <a href="../up/gen/polymorphic/ast/expr.rs.html#40">Expr::Cond</a>(<a href="#160">cond</a>.<a href="#9">substitute</a>(<a href="#139">map</a>)),
-            <a href="../up/gen/polymorphic/ast/expr.rs.html#42">Expr::ForAll</a>(for_all) =&gt; <a href="../up/gen/polymorphic/ast/expr.rs.html#42">Expr::ForAll</a>(<a href="#161">for_all</a>.<a href="#9">substitute</a>(<a href="#139">map</a>)),
-            <a href="../up/gen/polymorphic/ast/expr.rs.html#44">Expr::Exists</a>(exists) =&gt; <a href="../up/gen/polymorphic/ast/expr.rs.html#44">Expr::Exists</a>(<a href="#162">exists</a>.<a href="#9">substitute</a>(<a href="#139">map</a>)),
-            <a href="../up/gen/polymorphic/ast/expr.rs.html#46">Expr::LetExpr</a>(let_expr) =&gt; <a href="../up/gen/polymorphic/ast/expr.rs.html#46">Expr::LetExpr</a>(<a href="#163">let_expr</a>.<a href="#9">substitute</a>(<a href="#139">map</a>)),
-            <a href="../up/gen/polymorphic/ast/expr.rs.html#48">Expr::FuncApp</a>(func_app) =&gt; <a href="../up/gen/polymorphic/ast/expr.rs.html#48">Expr::FuncApp</a>(<a href="#164">func_app</a>.<a href="#9">substitute</a>(<a href="#139">map</a>)),
-            <a href="../up/gen/polymorphic/ast/expr.rs.html#50">Expr::DomainFuncApp</a>(domain_func_app) =&gt; {
-                <a href="../up/gen/polymorphic/ast/expr.rs.html#50">Expr::DomainFuncApp</a>(<a href="#165">domain_func_app</a>.<a href="#9">substitute</a>(<a href="#139">map</a>))
+            Expr::UnaryOp(unary_op) =&gt; Expr::UnaryOp(unary_op.substitute(map)),
+            Expr::BinOp(bin_op) =&gt; Expr::BinOp(bin_op.substitute(map)),
+            Expr::ContainerOp(container_op) =&gt; Expr::ContainerOp(container_op.substitute(map)),
+            Expr::Seq(seq) =&gt; Expr::Seq(seq.substitute(map)),
+            Expr::Map(emap) =&gt; Expr::Map(emap.substitute(map)),
+            Expr::Unfolding(unfolding) =&gt; Expr::Unfolding(unfolding.substitute(map)),
+            Expr::Cond(cond) =&gt; Expr::Cond(cond.substitute(map)),
+            Expr::ForAll(for_all) =&gt; Expr::ForAll(for_all.substitute(map)),
+            Expr::Exists(exists) =&gt; Expr::Exists(exists.substitute(map)),
+            Expr::LetExpr(let_expr) =&gt; Expr::LetExpr(let_expr.substitute(map)),
+            Expr::FuncApp(func_app) =&gt; Expr::FuncApp(func_app.substitute(map)),
+            Expr::DomainFuncApp(domain_func_app) =&gt; {
+                Expr::DomainFuncApp(domain_func_app.substitute(map))
             }
-            <a href="../up/gen/polymorphic/ast/expr.rs.html#52">Expr::InhaleExhale</a>(inhale_exhale) =&gt; <a href="../up/gen/polymorphic/ast/expr.rs.html#52">Expr::InhaleExhale</a>(<a href="#168">inhale_exhale</a>.<a href="#9">substitute</a>(<a href="#139">map</a>)),
-            <a href="../up/gen/polymorphic/ast/expr.rs.html#59">Expr::Downcast</a>(down_cast) =&gt; <a href="../up/gen/polymorphic/ast/expr.rs.html#59">Expr::Downcast</a>(<a href="#169">down_cast</a>.<a href="#9">substitute</a>(<a href="#139">map</a>)),
-            <a href="../up/gen/polymorphic/ast/expr.rs.html#61">Expr::SnapApp</a>(snap_app) =&gt; <a href="../up/gen/polymorphic/ast/expr.rs.html#61">Expr::SnapApp</a>(<a href="#170">snap_app</a>.<a href="#9">substitute</a>(<a href="#139">map</a>)),
-            <a href="../up/gen/polymorphic/ast/expr.rs.html#63">Expr::Cast</a>(cast) =&gt; <a href="../up/gen/polymorphic/ast/expr.rs.html#63">Expr::Cast</a>(<a href="#171">cast</a>.<a href="#9">substitute</a>(<a href="#139">map</a>)),
+            Expr::InhaleExhale(inhale_exhale) =&gt; Expr::InhaleExhale(inhale_exhale.substitute(map)),
+            Expr::Downcast(down_cast) =&gt; Expr::Downcast(down_cast.substitute(map)),
+            Expr::SnapApp(snap_app) =&gt; Expr::SnapApp(snap_app.substitute(map)),
+            Expr::Cast(cast) =&gt; Expr::Cast(cast.substitute(map)),
         }
     }
 }
 
-<span class="kw">impl </span><a href="#7">Generic</a> <span class="kw">for </span><a href="../up/gen/polymorphic/ast/expr.rs.html#1621">Local</a> {
-    <span class="kw">fn </span>substitute(<span class="self">self</span>, map: <span class="kw-2">&amp;</span>FxHashMap&lt;<a href="../up/gen/polymorphic/ast/common.rs.html#590">TypeVar</a>, <a href="../up/gen/polymorphic/ast/common.rs.html#174">Type</a>&gt;) -&gt; <span class="self">Self </span>{
-        <span class="kw">let </span><span class="kw-2">mut </span>local = <a class="self" href="#177">self</a>;
-        <a href="#178">local</a>.variable = <a href="#178">local</a>.variable.<a href="#9">substitute</a>(<a href="#177">map</a>);
-        <a href="#178">local</a>
+<span class="kw">impl </span>Generic <span class="kw">for </span>Local {
+    <span class="kw">fn </span>substitute(<span class="self">self</span>, map: <span class="kw-2">&amp;</span>FxHashMap&lt;TypeVar, Type&gt;) -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span><span class="kw-2">mut </span>local = <span class="self">self</span>;
+        local.variable = local.variable.substitute(map);
+        local
     }
 }
 
-<span class="kw">impl </span><a href="#7">Generic</a> <span class="kw">for </span><a href="../up/gen/polymorphic/ast/expr.rs.html#1641">Variant</a> {
-    <span class="kw">fn </span>substitute(<span class="self">self</span>, map: <span class="kw-2">&amp;</span>FxHashMap&lt;<a href="../up/gen/polymorphic/ast/common.rs.html#590">TypeVar</a>, <a href="../up/gen/polymorphic/ast/common.rs.html#174">Type</a>&gt;) -&gt; <span class="self">Self </span>{
-        <span class="kw">let </span><span class="kw-2">mut </span>variant = <a class="self" href="#185">self</a>;
-        <span class="kw-2">*</span><a href="#186">variant</a>.base = <a href="#186">variant</a>.base.<a href="#9">substitute</a>(<a href="#185">map</a>);
-        <a href="#186">variant</a>.variant_index = <a href="#186">variant</a>.variant_index.<a href="#9">substitute</a>(<a href="#185">map</a>);
-        <a href="#186">variant</a>
+<span class="kw">impl </span>Generic <span class="kw">for </span>Variant {
+    <span class="kw">fn </span>substitute(<span class="self">self</span>, map: <span class="kw-2">&amp;</span>FxHashMap&lt;TypeVar, Type&gt;) -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span><span class="kw-2">mut </span>variant = <span class="self">self</span>;
+        <span class="kw-2">*</span>variant.base = variant.base.substitute(map);
+        variant.variant_index = variant.variant_index.substitute(map);
+        variant
     }
 }
 
-<span class="kw">impl </span><a href="#7">Generic</a> <span class="kw">for </span><a href="../up/gen/polymorphic/ast/expr.rs.html#1662">FieldExpr</a> {
-    <span class="kw">fn </span>substitute(<span class="self">self</span>, map: <span class="kw-2">&amp;</span>FxHashMap&lt;<a href="../up/gen/polymorphic/ast/common.rs.html#590">TypeVar</a>, <a href="../up/gen/polymorphic/ast/common.rs.html#174">Type</a>&gt;) -&gt; <span class="self">Self </span>{
-        <span class="kw">let </span><span class="kw-2">mut </span>field_expr = <a class="self" href="#194">self</a>;
-        <span class="kw-2">*</span><a href="#195">field_expr</a>.base = <a href="#195">field_expr</a>.base.<a href="#9">substitute</a>(<a href="#194">map</a>);
-        <a href="#195">field_expr</a>.field = <a href="#195">field_expr</a>.field.<a href="#9">substitute</a>(<a href="#194">map</a>);
-        <a href="#195">field_expr</a>
+<span class="kw">impl </span>Generic <span class="kw">for </span>FieldExpr {
+    <span class="kw">fn </span>substitute(<span class="self">self</span>, map: <span class="kw-2">&amp;</span>FxHashMap&lt;TypeVar, Type&gt;) -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span><span class="kw-2">mut </span>field_expr = <span class="self">self</span>;
+        <span class="kw-2">*</span>field_expr.base = field_expr.base.substitute(map);
+        field_expr.field = field_expr.field.substitute(map);
+        field_expr
     }
 }
 
-<span class="kw">impl </span><a href="#7">Generic</a> <span class="kw">for </span><a href="../up/gen/polymorphic/ast/expr.rs.html#1683">AddrOf</a> {
-    <span class="kw">fn </span>substitute(<span class="self">self</span>, map: <span class="kw-2">&amp;</span>FxHashMap&lt;<a href="../up/gen/polymorphic/ast/common.rs.html#590">TypeVar</a>, <a href="../up/gen/polymorphic/ast/common.rs.html#174">Type</a>&gt;) -&gt; <span class="self">Self </span>{
-        <span class="kw">let </span><span class="kw-2">mut </span>addr_of = <a class="self" href="#203">self</a>;
-        <span class="kw-2">*</span><a href="#204">addr_of</a>.base = <a href="#204">addr_of</a>.base.<a href="#9">substitute</a>(<a href="#203">map</a>);
-        <a href="#204">addr_of</a>.addr_type = <a href="#204">addr_of</a>.addr_type.<a href="#9">substitute</a>(<a href="#203">map</a>);
-        <a href="#204">addr_of</a>
+<span class="kw">impl </span>Generic <span class="kw">for </span>AddrOf {
+    <span class="kw">fn </span>substitute(<span class="self">self</span>, map: <span class="kw-2">&amp;</span>FxHashMap&lt;TypeVar, Type&gt;) -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span><span class="kw-2">mut </span>addr_of = <span class="self">self</span>;
+        <span class="kw-2">*</span>addr_of.base = addr_of.base.substitute(map);
+        addr_of.addr_type = addr_of.addr_type.substitute(map);
+        addr_of
     }
 }
 
-<span class="kw">impl </span><a href="#7">Generic</a> <span class="kw">for </span><a href="../up/gen/polymorphic/ast/expr.rs.html#1704">LabelledOld</a> {
-    <span class="kw">fn </span>substitute(<span class="self">self</span>, map: <span class="kw-2">&amp;</span>FxHashMap&lt;<a href="../up/gen/polymorphic/ast/common.rs.html#590">TypeVar</a>, <a href="../up/gen/polymorphic/ast/common.rs.html#174">Type</a>&gt;) -&gt; <span class="self">Self </span>{
-        <span class="kw">let </span><span class="kw-2">mut </span>labelled_old = <a class="self" href="#212">self</a>;
-        <span class="kw-2">*</span><a href="#213">labelled_old</a>.base = <a href="#213">labelled_old</a>.base.<a href="#9">substitute</a>(<a href="#212">map</a>);
-        <a href="#213">labelled_old</a>
+<span class="kw">impl </span>Generic <span class="kw">for </span>LabelledOld {
+    <span class="kw">fn </span>substitute(<span class="self">self</span>, map: <span class="kw-2">&amp;</span>FxHashMap&lt;TypeVar, Type&gt;) -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span><span class="kw-2">mut </span>labelled_old = <span class="self">self</span>;
+        <span class="kw-2">*</span>labelled_old.base = labelled_old.base.substitute(map);
+        labelled_old
     }
 }
 
-<span class="kw">impl </span><a href="#7">Generic</a> <span class="kw">for </span><a href="../up/gen/polymorphic/ast/expr.rs.html#1725">ConstExpr</a> {
-    <span class="kw">fn </span>substitute(<span class="self">self</span>, _map: <span class="kw-2">&amp;</span>FxHashMap&lt;<a href="../up/gen/polymorphic/ast/common.rs.html#590">TypeVar</a>, <a href="../up/gen/polymorphic/ast/common.rs.html#174">Type</a>&gt;) -&gt; <span class="self">Self </span>{
-        <span class="self"><a href="#220">self</a>
+<span class="kw">impl </span>Generic <span class="kw">for </span>ConstExpr {
+    <span class="kw">fn </span>substitute(<span class="self">self</span>, _map: <span class="kw-2">&amp;</span>FxHashMap&lt;TypeVar, Type&gt;) -&gt; <span class="self">Self </span>{
+        <span class="self">self
     </span>}
 }
 
-<span class="kw">impl </span><a href="#7">Generic</a> <span class="kw">for </span><a href="../up/gen/polymorphic/ast/expr.rs.html#1745">MagicWand</a> {
-    <span class="kw">fn </span>substitute(<span class="self">self</span>, map: <span class="kw-2">&amp;</span>FxHashMap&lt;<a href="../up/gen/polymorphic/ast/common.rs.html#590">TypeVar</a>, <a href="../up/gen/polymorphic/ast/common.rs.html#174">Type</a>&gt;) -&gt; <span class="self">Self </span>{
-        <span class="kw">let </span><span class="kw-2">mut </span>magic_wand = <a class="self" href="#226">self</a>;
-        <span class="kw-2">*</span><a href="#227">magic_wand</a>.left = <a href="#227">magic_wand</a>.left.<a href="#9">substitute</a>(<a href="#226">map</a>);
-        <span class="kw-2">*</span><a href="#227">magic_wand</a>.right = <a href="#227">magic_wand</a>.right.<a href="#9">substitute</a>(<a href="#226">map</a>);
-        <a href="#227">magic_wand</a>.borrow = <a href="#227">magic_wand</a>.borrow.map(|borrow| <a href="#230">borrow</a>.<a href="#9">substitute</a>(<a href="#226">map</a>));
-        <a href="#227">magic_wand</a>
+<span class="kw">impl </span>Generic <span class="kw">for </span>MagicWand {
+    <span class="kw">fn </span>substitute(<span class="self">self</span>, map: <span class="kw-2">&amp;</span>FxHashMap&lt;TypeVar, Type&gt;) -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span><span class="kw-2">mut </span>magic_wand = <span class="self">self</span>;
+        <span class="kw-2">*</span>magic_wand.left = magic_wand.left.substitute(map);
+        <span class="kw-2">*</span>magic_wand.right = magic_wand.right.substitute(map);
+        magic_wand.borrow = magic_wand.borrow.map(|borrow| borrow.substitute(map));
+        magic_wand
     }
 }
 
-<span class="kw">impl </span><a href="#7">Generic</a> <span class="kw">for </span><a href="../up/gen/polymorphic/ast/expr.rs.html#1771">PredicateAccessPredicate</a> {
-    <span class="kw">fn </span>substitute(<span class="self">self</span>, map: <span class="kw-2">&amp;</span>FxHashMap&lt;<a href="../up/gen/polymorphic/ast/common.rs.html#590">TypeVar</a>, <a href="../up/gen/polymorphic/ast/common.rs.html#174">Type</a>&gt;) -&gt; <span class="self">Self </span>{
-        <span class="kw">let </span><span class="kw-2">mut </span>predicate_access_predicate = <a class="self" href="#236">self</a>;
-        <span class="kw-2">*</span><a href="#237">predicate_access_predicate</a>.argument = <a href="#237">predicate_access_predicate</a>.argument.<a href="#9">substitute</a>(<a href="#236">map</a>);
-        <a href="#237">predicate_access_predicate</a>
+<span class="kw">impl </span>Generic <span class="kw">for </span>PredicateAccessPredicate {
+    <span class="kw">fn </span>substitute(<span class="self">self</span>, map: <span class="kw-2">&amp;</span>FxHashMap&lt;TypeVar, Type&gt;) -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span><span class="kw-2">mut </span>predicate_access_predicate = <span class="self">self</span>;
+        <span class="kw-2">*</span>predicate_access_predicate.argument = predicate_access_predicate.argument.substitute(map);
+        predicate_access_predicate
     }
 }
 
-<span class="kw">impl </span><a href="#7">Generic</a> <span class="kw">for </span><a href="../up/gen/polymorphic/ast/expr.rs.html#1800">FieldAccessPredicate</a> {
-    <span class="kw">fn </span>substitute(<span class="self">self</span>, map: <span class="kw-2">&amp;</span>FxHashMap&lt;<a href="../up/gen/polymorphic/ast/common.rs.html#590">TypeVar</a>, <a href="../up/gen/polymorphic/ast/common.rs.html#174">Type</a>&gt;) -&gt; <span class="self">Self </span>{
-        <span class="kw">let </span><span class="kw-2">mut </span>field_access_predicate = <a class="self" href="#244">self</a>;
-        <span class="kw-2">*</span><a href="#245">field_access_predicate</a>.base = <a href="#245">field_access_predicate</a>.base.<a href="#9">substitute</a>(<a href="#244">map</a>);
-        <a href="#245">field_access_predicate</a>
+<span class="kw">impl </span>Generic <span class="kw">for </span>FieldAccessPredicate {
+    <span class="kw">fn </span>substitute(<span class="self">self</span>, map: <span class="kw-2">&amp;</span>FxHashMap&lt;TypeVar, Type&gt;) -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span><span class="kw-2">mut </span>field_access_predicate = <span class="self">self</span>;
+        <span class="kw-2">*</span>field_access_predicate.base = field_access_predicate.base.substitute(map);
+        field_access_predicate
     }
 }
 
-<span class="kw">impl </span><a href="#7">Generic</a> <span class="kw">for </span><a href="../up/gen/polymorphic/ast/expr.rs.html#1821">UnaryOp</a> {
-    <span class="kw">fn </span>substitute(<span class="self">self</span>, map: <span class="kw-2">&amp;</span>FxHashMap&lt;<a href="../up/gen/polymorphic/ast/common.rs.html#590">TypeVar</a>, <a href="../up/gen/polymorphic/ast/common.rs.html#174">Type</a>&gt;) -&gt; <span class="self">Self </span>{
-        <span class="kw">let </span><span class="kw-2">mut </span>unary_op = <a class="self" href="#252">self</a>;
-        <span class="kw-2">*</span><a href="#253">unary_op</a>.argument = <a href="#253">unary_op</a>.argument.<a href="#9">substitute</a>(<a href="#252">map</a>);
-        <a href="#253">unary_op</a>
+<span class="kw">impl </span>Generic <span class="kw">for </span>UnaryOp {
+    <span class="kw">fn </span>substitute(<span class="self">self</span>, map: <span class="kw-2">&amp;</span>FxHashMap&lt;TypeVar, Type&gt;) -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span><span class="kw-2">mut </span>unary_op = <span class="self">self</span>;
+        <span class="kw-2">*</span>unary_op.argument = unary_op.argument.substitute(map);
+        unary_op
     }
 }
 
-<span class="kw">impl </span><a href="#7">Generic</a> <span class="kw">for </span><a href="../up/gen/polymorphic/ast/expr.rs.html#1842">BinOp</a> {
-    <span class="kw">fn </span>substitute(<span class="self">self</span>, map: <span class="kw-2">&amp;</span>FxHashMap&lt;<a href="../up/gen/polymorphic/ast/common.rs.html#590">TypeVar</a>, <a href="../up/gen/polymorphic/ast/common.rs.html#174">Type</a>&gt;) -&gt; <span class="self">Self </span>{
-        <span class="kw">let </span><span class="kw-2">mut </span>bin_op = <a class="self" href="#260">self</a>;
-        <span class="kw-2">*</span><a href="#261">bin_op</a>.left = <a href="#261">bin_op</a>.left.<a href="#9">substitute</a>(<a href="#260">map</a>);
-        <span class="kw-2">*</span><a href="#261">bin_op</a>.right = <a href="#261">bin_op</a>.right.<a href="#9">substitute</a>(<a href="#260">map</a>);
-        <a href="#261">bin_op</a>
+<span class="kw">impl </span>Generic <span class="kw">for </span>BinOp {
+    <span class="kw">fn </span>substitute(<span class="self">self</span>, map: <span class="kw-2">&amp;</span>FxHashMap&lt;TypeVar, Type&gt;) -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span><span class="kw-2">mut </span>bin_op = <span class="self">self</span>;
+        <span class="kw-2">*</span>bin_op.left = bin_op.left.substitute(map);
+        <span class="kw-2">*</span>bin_op.right = bin_op.right.substitute(map);
+        bin_op
     }
 }
 
-<span class="kw">impl </span><a href="#7">Generic</a> <span class="kw">for </span><a href="../up/gen/polymorphic/ast/expr.rs.html#1864">ContainerOp</a> {
-    <span class="kw">fn </span>substitute(<span class="self">self</span>, map: <span class="kw-2">&amp;</span>FxHashMap&lt;<a href="../up/gen/polymorphic/ast/common.rs.html#590">TypeVar</a>, <a href="../up/gen/polymorphic/ast/common.rs.html#174">Type</a>&gt;) -&gt; <span class="self">Self </span>{
-        <span class="kw">let </span><span class="kw-2">mut </span>container_op = <a class="self" href="#269">self</a>;
-        <span class="kw-2">*</span><a href="#270">container_op</a>.left = <a href="#270">container_op</a>.left.<a href="#9">substitute</a>(<a href="#269">map</a>);
-        <span class="kw-2">*</span><a href="#270">container_op</a>.right = <a href="#270">container_op</a>.right.<a href="#9">substitute</a>(<a href="#269">map</a>);
-        <a href="#270">container_op</a>
+<span class="kw">impl </span>Generic <span class="kw">for </span>ContainerOp {
+    <span class="kw">fn </span>substitute(<span class="self">self</span>, map: <span class="kw-2">&amp;</span>FxHashMap&lt;TypeVar, Type&gt;) -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span><span class="kw-2">mut </span>container_op = <span class="self">self</span>;
+        <span class="kw-2">*</span>container_op.left = container_op.left.substitute(map);
+        <span class="kw-2">*</span>container_op.right = container_op.right.substitute(map);
+        container_op
     }
 }
 
-<span class="kw">impl </span><a href="#7">Generic</a> <span class="kw">for </span><a href="../up/gen/polymorphic/ast/expr.rs.html#1890">Seq</a> {
-    <span class="kw">fn </span>substitute(<span class="self">self</span>, map: <span class="kw-2">&amp;</span>FxHashMap&lt;<a href="../up/gen/polymorphic/ast/common.rs.html#590">TypeVar</a>, <a href="../up/gen/polymorphic/ast/common.rs.html#174">Type</a>&gt;) -&gt; <span class="self">Self </span>{
-        <span class="kw">let </span><span class="kw-2">mut </span>seq = <a class="self" href="#278">self</a>;
-        <a href="#279">seq</a>.typ = <a href="#279">seq</a>.typ.<a href="#9">substitute</a>(<a href="#278">map</a>);
-        <a href="#279">seq</a>.elements = <a href="#279">seq</a>
+<span class="kw">impl </span>Generic <span class="kw">for </span>Seq {
+    <span class="kw">fn </span>substitute(<span class="self">self</span>, map: <span class="kw-2">&amp;</span>FxHashMap&lt;TypeVar, Type&gt;) -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span><span class="kw-2">mut </span>seq = <span class="self">self</span>;
+        seq.typ = seq.typ.substitute(map);
+        seq.elements = seq
             .elements
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|element| <a href="#284">element</a>.<a href="#9">substitute</a>(<a href="#278">map</a>))
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
-        <a href="#279">seq</a>
+            .into_iter()
+            .map(|element| element.substitute(map))
+            .collect();
+        seq
     }
 }
 
-<span class="kw">impl </span><a href="#7">Generic</a> <span class="kw">for </span><a href="../up/gen/polymorphic/ast/expr.rs.html#1924">Map</a> {
-    <span class="kw">fn </span>substitute(<span class="self">self</span>, sub: <span class="kw-2">&amp;</span>FxHashMap&lt;<a href="../up/gen/polymorphic/ast/common.rs.html#590">TypeVar</a>, <a href="../up/gen/polymorphic/ast/common.rs.html#174">Type</a>&gt;) -&gt; <span class="self">Self </span>{
-        <span class="kw">let </span><span class="kw-2">mut </span>map = <a class="self" href="#291">self</a>;
-        <a href="#292">map</a>.typ = <a href="#292">map</a>.typ.<a href="#9">substitute</a>(<a href="#291">sub</a>);
-        <a href="#292">map</a>.elements = <a href="#292">map</a>
+<span class="kw">impl </span>Generic <span class="kw">for </span>Map {
+    <span class="kw">fn </span>substitute(<span class="self">self</span>, sub: <span class="kw-2">&amp;</span>FxHashMap&lt;TypeVar, Type&gt;) -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span><span class="kw-2">mut </span>map = <span class="self">self</span>;
+        map.typ = map.typ.substitute(sub);
+        map.elements = map
             .elements
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|element| <a href="#297">element</a>.<a href="#9">substitute</a>(<a href="#291">sub</a>))
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
-        <a href="#292">map</a>
+            .into_iter()
+            .map(|element| element.substitute(sub))
+            .collect();
+        map
     }
 }
 
-<span class="kw">impl </span><a href="#7">Generic</a> <span class="kw">for </span><a href="../up/gen/polymorphic/ast/expr.rs.html#1962">Unfolding</a> {
-    <span class="kw">fn </span>substitute(<span class="self">self</span>, map: <span class="kw-2">&amp;</span>FxHashMap&lt;<a href="../up/gen/polymorphic/ast/common.rs.html#590">TypeVar</a>, <a href="../up/gen/polymorphic/ast/common.rs.html#174">Type</a>&gt;) -&gt; <span class="self">Self </span>{
-        <span class="kw">let </span><span class="kw-2">mut </span>unfolding = <a class="self" href="#304">self</a>;
-        <a href="#305">unfolding</a>.arguments = <a href="#305">unfolding</a>
+<span class="kw">impl </span>Generic <span class="kw">for </span>Unfolding {
+    <span class="kw">fn </span>substitute(<span class="self">self</span>, map: <span class="kw-2">&amp;</span>FxHashMap&lt;TypeVar, Type&gt;) -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span><span class="kw-2">mut </span>unfolding = <span class="self">self</span>;
+        unfolding.arguments = unfolding
             .arguments
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|argument| <a href="#309">argument</a>.<a href="#9">substitute</a>(<a href="#304">map</a>))
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
-        <span class="kw-2">*</span><a href="#305">unfolding</a>.base = <a href="#305">unfolding</a>.base.<a href="#9">substitute</a>(<a href="#304">map</a>);
-        <a href="#305">unfolding</a>.variant = <a href="#305">unfolding</a>
+            .into_iter()
+            .map(|argument| argument.substitute(map))
+            .collect();
+        <span class="kw-2">*</span>unfolding.base = unfolding.base.substitute(map);
+        unfolding.variant = unfolding
             .variant
-            .map(|enum_variant_index| <a href="#314">enum_variant_index</a>.<a href="#9">substitute</a>(<a href="#304">map</a>));
-        <a href="#305">unfolding</a>
+            .map(|enum_variant_index| enum_variant_index.substitute(map));
+        unfolding
     }
 }
 
-<span class="kw">impl </span><a href="#7">Generic</a> <span class="kw">for </span><a href="../up/gen/polymorphic/ast/expr.rs.html#2020">Cond</a> {
-    <span class="kw">fn </span>substitute(<span class="self">self</span>, map: <span class="kw-2">&amp;</span>FxHashMap&lt;<a href="../up/gen/polymorphic/ast/common.rs.html#590">TypeVar</a>, <a href="../up/gen/polymorphic/ast/common.rs.html#174">Type</a>&gt;) -&gt; <span class="self">Self </span>{
-        <span class="kw">let </span><span class="kw-2">mut </span>cond = <a class="self" href="#320">self</a>;
-        <span class="kw-2">*</span><a href="#321">cond</a>.guard = <a href="#321">cond</a>.guard.<a href="#9">substitute</a>(<a href="#320">map</a>);
-        <span class="kw-2">*</span><a href="#321">cond</a>.then_expr = <a href="#321">cond</a>.then_expr.<a href="#9">substitute</a>(<a href="#320">map</a>);
-        <span class="kw-2">*</span><a href="#321">cond</a>.else_expr = <a href="#321">cond</a>.else_expr.<a href="#9">substitute</a>(<a href="#320">map</a>);
-        <a href="#321">cond</a>
+<span class="kw">impl </span>Generic <span class="kw">for </span>Cond {
+    <span class="kw">fn </span>substitute(<span class="self">self</span>, map: <span class="kw-2">&amp;</span>FxHashMap&lt;TypeVar, Type&gt;) -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span><span class="kw-2">mut </span>cond = <span class="self">self</span>;
+        <span class="kw-2">*</span>cond.guard = cond.guard.substitute(map);
+        <span class="kw-2">*</span>cond.then_expr = cond.then_expr.substitute(map);
+        <span class="kw-2">*</span>cond.else_expr = cond.else_expr.substitute(map);
+        cond
     }
 }
 
-<span class="kw">impl </span><a href="#7">Generic</a> <span class="kw">for </span><a href="../up/gen/polymorphic/ast/expr.rs.html#2047">ForAll</a> {
-    <span class="kw">fn </span>substitute(<span class="self">self</span>, map: <span class="kw-2">&amp;</span>FxHashMap&lt;<a href="../up/gen/polymorphic/ast/common.rs.html#590">TypeVar</a>, <a href="../up/gen/polymorphic/ast/common.rs.html#174">Type</a>&gt;) -&gt; <span class="self">Self </span>{
-        <span class="kw">let </span><span class="kw-2">mut </span>for_all = <a class="self" href="#330">self</a>;
-        <a href="#331">for_all</a>.variables = <a href="#331">for_all</a>
+<span class="kw">impl </span>Generic <span class="kw">for </span>ForAll {
+    <span class="kw">fn </span>substitute(<span class="self">self</span>, map: <span class="kw-2">&amp;</span>FxHashMap&lt;TypeVar, Type&gt;) -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span><span class="kw-2">mut </span>for_all = <span class="self">self</span>;
+        for_all.variables = for_all
             .variables
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|variable| <a href="#335">variable</a>.<a href="#9">substitute</a>(<a href="#330">map</a>))
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
-        <a href="#331">for_all</a>.triggers = <a href="#331">for_all</a>
+            .into_iter()
+            .map(|variable| variable.substitute(map))
+            .collect();
+        for_all.triggers = for_all
             .triggers
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|trigger| <a href="#340">trigger</a>.<a href="#9">substitute</a>(<a href="#330">map</a>))
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
-        <span class="kw-2">*</span><a href="#331">for_all</a>.body = <a href="#331">for_all</a>.body.<a href="#9">substitute</a>(<a href="#330">map</a>);
-        <a href="#331">for_all</a>
+            .into_iter()
+            .map(|trigger| trigger.substitute(map))
+            .collect();
+        <span class="kw-2">*</span>for_all.body = for_all.body.substitute(map);
+        for_all
     }
 }
 
-<span class="kw">impl </span><a href="#7">Generic</a> <span class="kw">for </span><a href="../up/gen/polymorphic/ast/expr.rs.html#2084">Exists</a> {
-    <span class="kw">fn </span>substitute(<span class="self">self</span>, map: <span class="kw-2">&amp;</span>FxHashMap&lt;<a href="../up/gen/polymorphic/ast/common.rs.html#590">TypeVar</a>, <a href="../up/gen/polymorphic/ast/common.rs.html#174">Type</a>&gt;) -&gt; <span class="self">Self </span>{
-        <span class="kw">let </span><span class="kw-2">mut </span>exists = <a class="self" href="#348">self</a>;
-        <a href="#349">exists</a>.variables = <a href="#349">exists</a>
+<span class="kw">impl </span>Generic <span class="kw">for </span>Exists {
+    <span class="kw">fn </span>substitute(<span class="self">self</span>, map: <span class="kw-2">&amp;</span>FxHashMap&lt;TypeVar, Type&gt;) -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span><span class="kw-2">mut </span>exists = <span class="self">self</span>;
+        exists.variables = exists
             .variables
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|variable| <a href="#353">variable</a>.<a href="#9">substitute</a>(<a href="#348">map</a>))
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
-        <a href="#349">exists</a>.triggers = <a href="#349">exists</a>
+            .into_iter()
+            .map(|variable| variable.substitute(map))
+            .collect();
+        exists.triggers = exists
             .triggers
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|trigger| <a href="#358">trigger</a>.<a href="#9">substitute</a>(<a href="#348">map</a>))
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
-        <span class="kw-2">*</span><a href="#349">exists</a>.body = <a href="#349">exists</a>.body.<a href="#9">substitute</a>(<a href="#348">map</a>);
-        <a href="#349">exists</a>
+            .into_iter()
+            .map(|trigger| trigger.substitute(map))
+            .collect();
+        <span class="kw-2">*</span>exists.body = exists.body.substitute(map);
+        exists
     }
 }
 
-<span class="kw">impl </span><a href="#7">Generic</a> <span class="kw">for </span><a href="../up/gen/polymorphic/ast/expr.rs.html#2121">LetExpr</a> {
-    <span class="kw">fn </span>substitute(<span class="self">self</span>, map: <span class="kw-2">&amp;</span>FxHashMap&lt;<a href="../up/gen/polymorphic/ast/common.rs.html#590">TypeVar</a>, <a href="../up/gen/polymorphic/ast/common.rs.html#174">Type</a>&gt;) -&gt; <span class="self">Self </span>{
-        <span class="kw">let </span><span class="kw-2">mut </span>let_expr = <a class="self" href="#366">self</a>;
-        <a href="#367">let_expr</a>.variable = <a href="#367">let_expr</a>.variable.<a href="#9">substitute</a>(<a href="#366">map</a>);
-        <span class="kw-2">*</span><a href="#367">let_expr</a>.def = <a href="#367">let_expr</a>.def.<a href="#9">substitute</a>(<a href="#366">map</a>);
-        <span class="kw-2">*</span><a href="#367">let_expr</a>.body = <a href="#367">let_expr</a>.body.<a href="#9">substitute</a>(<a href="#366">map</a>);
-        <a href="#367">let_expr</a>
+<span class="kw">impl </span>Generic <span class="kw">for </span>LetExpr {
+    <span class="kw">fn </span>substitute(<span class="self">self</span>, map: <span class="kw-2">&amp;</span>FxHashMap&lt;TypeVar, Type&gt;) -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span><span class="kw-2">mut </span>let_expr = <span class="self">self</span>;
+        let_expr.variable = let_expr.variable.substitute(map);
+        <span class="kw-2">*</span>let_expr.def = let_expr.def.substitute(map);
+        <span class="kw-2">*</span>let_expr.body = let_expr.body.substitute(map);
+        let_expr
     }
 }
 
-<span class="kw">impl </span><a href="#7">Generic</a> <span class="kw">for </span><a href="../up/gen/polymorphic/ast/expr.rs.html#2147">FuncApp</a> {
-    <span class="kw">fn </span>substitute(<span class="self">self</span>, map: <span class="kw-2">&amp;</span>FxHashMap&lt;<a href="../up/gen/polymorphic/ast/common.rs.html#590">TypeVar</a>, <a href="../up/gen/polymorphic/ast/common.rs.html#174">Type</a>&gt;) -&gt; <span class="self">Self </span>{
-        <span class="kw">let </span><span class="kw-2">mut </span>func_app = <a class="self" href="#376">self</a>;
-        <a href="#377">func_app</a>.arguments = <a href="#377">func_app</a>
+<span class="kw">impl </span>Generic <span class="kw">for </span>FuncApp {
+    <span class="kw">fn </span>substitute(<span class="self">self</span>, map: <span class="kw-2">&amp;</span>FxHashMap&lt;TypeVar, Type&gt;) -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span><span class="kw-2">mut </span>func_app = <span class="self">self</span>;
+        func_app.arguments = func_app
             .arguments
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|argument| <a href="#381">argument</a>.<a href="#9">substitute</a>(<a href="#376">map</a>))
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
-        <a href="#377">func_app</a>.formal_arguments = <a href="#377">func_app</a>
+            .into_iter()
+            .map(|argument| argument.substitute(map))
+            .collect();
+        func_app.formal_arguments = func_app
             .formal_arguments
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|formal_argument| <a href="#386">formal_argument</a>.<a href="#9">substitute</a>(<a href="#376">map</a>))
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
-        <a href="#377">func_app</a>.return_type = <a href="#377">func_app</a>.return_type.<a href="#9">substitute</a>(<a href="#376">map</a>);
-        <a href="#377">func_app</a>
+            .into_iter()
+            .map(|formal_argument| formal_argument.substitute(map))
+            .collect();
+        func_app.return_type = func_app.return_type.substitute(map);
+        func_app
     }
 }
 
-<span class="kw">impl </span><a href="#7">Generic</a> <span class="kw">for </span><a href="../up/gen/polymorphic/ast/expr.rs.html#2182">DomainFuncApp</a> {
-    <span class="kw">fn </span>substitute(<span class="self">self</span>, map: <span class="kw-2">&amp;</span>FxHashMap&lt;<a href="../up/gen/polymorphic/ast/common.rs.html#590">TypeVar</a>, <a href="../up/gen/polymorphic/ast/common.rs.html#174">Type</a>&gt;) -&gt; <span class="self">Self </span>{
-        <span class="kw">let </span><span class="kw-2">mut </span>domain_func_app = <a class="self" href="#394">self</a>;
-        <a href="#395">domain_func_app</a>.domain_function = <a href="#395">domain_func_app</a>.domain_function.<a href="#9">substitute</a>(<a href="#394">map</a>);
-        <a href="#395">domain_func_app</a>.arguments = <a href="#395">domain_func_app</a>
+<span class="kw">impl </span>Generic <span class="kw">for </span>DomainFuncApp {
+    <span class="kw">fn </span>substitute(<span class="self">self</span>, map: <span class="kw-2">&amp;</span>FxHashMap&lt;TypeVar, Type&gt;) -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span><span class="kw-2">mut </span>domain_func_app = <span class="self">self</span>;
+        domain_func_app.domain_function = domain_func_app.domain_function.substitute(map);
+        domain_func_app.arguments = domain_func_app
             .arguments
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|argument| <a href="#400">argument</a>.<a href="#9">substitute</a>(<a href="#394">map</a>))
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
-        <a href="#395">domain_func_app</a>
+            .into_iter()
+            .map(|argument| argument.substitute(map))
+            .collect();
+        domain_func_app
     }
 }
 
-<span class="kw">impl </span><a href="#7">Generic</a> <span class="kw">for </span><a href="../up/gen/polymorphic/ast/expr.rs.html#2209">InhaleExhale</a> {
-    <span class="kw">fn </span>substitute(<span class="self">self</span>, map: <span class="kw-2">&amp;</span>FxHashMap&lt;<a href="../up/gen/polymorphic/ast/common.rs.html#590">TypeVar</a>, <a href="../up/gen/polymorphic/ast/common.rs.html#174">Type</a>&gt;) -&gt; <span class="self">Self </span>{
-        <span class="kw">let </span><span class="kw-2">mut </span>inhale_exhale = <a class="self" href="#407">self</a>;
-        <span class="kw-2">*</span><a href="#408">inhale_exhale</a>.inhale_expr = <a href="#408">inhale_exhale</a>.inhale_expr.<a href="#9">substitute</a>(<a href="#407">map</a>);
-        <span class="kw-2">*</span><a href="#408">inhale_exhale</a>.exhale_expr = <a href="#408">inhale_exhale</a>.exhale_expr.<a href="#9">substitute</a>(<a href="#407">map</a>);
-        <a href="#408">inhale_exhale</a>
+<span class="kw">impl </span>Generic <span class="kw">for </span>InhaleExhale {
+    <span class="kw">fn </span>substitute(<span class="self">self</span>, map: <span class="kw-2">&amp;</span>FxHashMap&lt;TypeVar, Type&gt;) -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span><span class="kw-2">mut </span>inhale_exhale = <span class="self">self</span>;
+        <span class="kw-2">*</span>inhale_exhale.inhale_expr = inhale_exhale.inhale_expr.substitute(map);
+        <span class="kw-2">*</span>inhale_exhale.exhale_expr = inhale_exhale.exhale_expr.substitute(map);
+        inhale_exhale
     }
 }
 
-<span class="kw">impl </span><a href="#7">Generic</a> <span class="kw">for </span><a href="../up/gen/polymorphic/ast/expr.rs.html#2230">DowncastExpr</a> {
-    <span class="kw">fn </span>substitute(<span class="self">self</span>, map: <span class="kw-2">&amp;</span>FxHashMap&lt;<a href="../up/gen/polymorphic/ast/common.rs.html#590">TypeVar</a>, <a href="../up/gen/polymorphic/ast/common.rs.html#174">Type</a>&gt;) -&gt; <span class="self">Self </span>{
-        <span class="kw">let </span><span class="kw-2">mut </span>downcast = <a class="self" href="#416">self</a>;
-        <span class="kw-2">*</span><a href="#417">downcast</a>.base = <a href="#417">downcast</a>.base.<a href="#9">substitute</a>(<a href="#416">map</a>);
-        <span class="kw-2">*</span><a href="#417">downcast</a>.enum_place = <a href="#417">downcast</a>.enum_place.<a href="#9">substitute</a>(<a href="#416">map</a>);
-        <a href="#417">downcast</a>.field = <a href="#417">downcast</a>.field.<a href="#9">substitute</a>(<a href="#416">map</a>);
-        <a href="#417">downcast</a>
+<span class="kw">impl </span>Generic <span class="kw">for </span>DowncastExpr {
+    <span class="kw">fn </span>substitute(<span class="self">self</span>, map: <span class="kw-2">&amp;</span>FxHashMap&lt;TypeVar, Type&gt;) -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span><span class="kw-2">mut </span>downcast = <span class="self">self</span>;
+        <span class="kw-2">*</span>downcast.base = downcast.base.substitute(map);
+        <span class="kw-2">*</span>downcast.enum_place = downcast.enum_place.substitute(map);
+        downcast.field = downcast.field.substitute(map);
+        downcast
     }
 }
 
-<span class="kw">impl </span><a href="#7">Generic</a> <span class="kw">for </span><a href="../up/gen/polymorphic/ast/expr.rs.html#2293">SnapApp</a> {
-    <span class="kw">fn </span>substitute(<span class="self">self</span>, map: <span class="kw-2">&amp;</span>FxHashMap&lt;<a href="../up/gen/polymorphic/ast/common.rs.html#590">TypeVar</a>, <a href="../up/gen/polymorphic/ast/common.rs.html#174">Type</a>&gt;) -&gt; <span class="self">Self </span>{
-        <span class="kw">let </span><span class="kw-2">mut </span>snap_app = <a class="self" href="#426">self</a>;
-        <span class="kw-2">*</span><a href="#427">snap_app</a>.base = <a href="#427">snap_app</a>.base.<a href="#9">substitute</a>(<a href="#426">map</a>);
-        <a href="#427">snap_app</a>
+<span class="kw">impl </span>Generic <span class="kw">for </span>SnapApp {
+    <span class="kw">fn </span>substitute(<span class="self">self</span>, map: <span class="kw-2">&amp;</span>FxHashMap&lt;TypeVar, Type&gt;) -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span><span class="kw-2">mut </span>snap_app = <span class="self">self</span>;
+        <span class="kw-2">*</span>snap_app.base = snap_app.base.substitute(map);
+        snap_app
     }
 }
 
-<span class="kw">impl </span><a href="#7">Generic</a> <span class="kw">for </span><a href="../up/gen/polymorphic/ast/expr.rs.html#2272">Cast</a> {
-    <span class="kw">fn </span>substitute(<span class="kw-2">mut </span><span class="self">self</span>, map: <span class="kw-2">&amp;</span>FxHashMap&lt;<a href="../up/gen/polymorphic/ast/common.rs.html#590">TypeVar</a>, <a href="../up/gen/polymorphic/ast/common.rs.html#174">Type</a>&gt;) -&gt; <span class="self">Self </span>{
-        <span class="kw-2">*</span><a class="self" href="#434">self</a>.base = <a class="self" href="#434">self</a>.base.<a href="#9">substitute</a>(<a href="#434">map</a>);
-        <span class="self"><a href="#434">self</a>
+<span class="kw">impl </span>Generic <span class="kw">for </span>Cast {
+    <span class="kw">fn </span>substitute(<span class="kw-2">mut </span><span class="self">self</span>, map: <span class="kw-2">&amp;</span>FxHashMap&lt;TypeVar, Type&gt;) -&gt; <span class="self">Self </span>{
+        <span class="kw-2">*</span><span class="self">self</span>.base = <span class="self">self</span>.base.substitute(map);
+        <span class="self">self
     </span>}
 }
 
 <span class="comment">// function
-</span><span class="kw">impl </span><a href="#7">Generic</a> <span class="kw">for </span><a href="../up/gen/polymorphic/ast/function.rs.html#8">Function</a> {
-    <span class="kw">fn </span>substitute(<span class="self">self</span>, map: <span class="kw-2">&amp;</span>FxHashMap&lt;<a href="../up/gen/polymorphic/ast/common.rs.html#590">TypeVar</a>, <a href="../up/gen/polymorphic/ast/common.rs.html#174">Type</a>&gt;) -&gt; <span class="self">Self </span>{
-        <span class="kw">let </span><span class="kw-2">mut </span>function = <a class="self" href="#442">self</a>;
-        <a href="#443">function</a>.formal_args = <a href="#443">function</a>
+</span><span class="kw">impl </span>Generic <span class="kw">for </span>Function {
+    <span class="kw">fn </span>substitute(<span class="self">self</span>, map: <span class="kw-2">&amp;</span>FxHashMap&lt;TypeVar, Type&gt;) -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span><span class="kw-2">mut </span>function = <span class="self">self</span>;
+        function.formal_args = function
             .formal_args
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|formal_arg| <a href="#447">formal_arg</a>.<a href="#9">substitute</a>(<a href="#442">map</a>))
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
-        <a href="#443">function</a>.return_type = <a href="#443">function</a>.return_type.<a href="#9">substitute</a>(<a href="#442">map</a>);
-        <a href="#443">function</a>.pres = <a href="#443">function</a>
+            .into_iter()
+            .map(|formal_arg| formal_arg.substitute(map))
+            .collect();
+        function.return_type = function.return_type.substitute(map);
+        function.pres = function
             .pres
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|pre| <a href="#453">pre</a>.<a href="#9">substitute</a>(<a href="#442">map</a>))
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
-        <a href="#443">function</a>.posts = <a href="#443">function</a>
+            .into_iter()
+            .map(|pre| pre.substitute(map))
+            .collect();
+        function.posts = function
             .posts
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|post| <a href="#458">post</a>.<a href="#9">substitute</a>(<a href="#442">map</a>))
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
-        <a href="#443">function</a>.body = <a href="#443">function</a>.body.map(|body_expr| <a href="#460">body_expr</a>.<a href="#9">substitute</a>(<a href="#442">map</a>));
-        <a href="#443">function</a>
+            .into_iter()
+            .map(|post| post.substitute(map))
+            .collect();
+        function.body = function.body.map(|body_expr| body_expr.substitute(map));
+        function
     }
 }
 
 <span class="comment">// predicate
-</span><span class="kw">impl </span><a href="#7">Generic</a> <span class="kw">for </span><a href="../up/gen/polymorphic/ast/predicate.rs.html#5">Predicate</a> {
-    <span class="kw">fn </span>substitute(<span class="self">self</span>, map: <span class="kw-2">&amp;</span>FxHashMap&lt;<a href="../up/gen/polymorphic/ast/common.rs.html#590">TypeVar</a>, <a href="../up/gen/polymorphic/ast/common.rs.html#174">Type</a>&gt;) -&gt; <span class="self">Self </span>{
-        <span class="kw">match </span><span class="self"><a href="#467">self</a> </span>{
-            <a href="../up/gen/polymorphic/ast/predicate.rs.html#6">Predicate::Struct</a>(struct_predicate) =&gt; {
-                <a href="../up/gen/polymorphic/ast/predicate.rs.html#6">Predicate::Struct</a>(<a href="#469">struct_predicate</a>.<a href="#9">substitute</a>(<a href="#467">map</a>))
+</span><span class="kw">impl </span>Generic <span class="kw">for </span>Predicate {
+    <span class="kw">fn </span>substitute(<span class="self">self</span>, map: <span class="kw-2">&amp;</span>FxHashMap&lt;TypeVar, Type&gt;) -&gt; <span class="self">Self </span>{
+        <span class="kw">match </span><span class="self">self </span>{
+            Predicate::Struct(struct_predicate) =&gt; {
+                Predicate::Struct(struct_predicate.substitute(map))
             }
-            <a href="../up/gen/polymorphic/ast/predicate.rs.html#7">Predicate::Enum</a>(enum_predicate) =&gt; <a href="../up/gen/polymorphic/ast/predicate.rs.html#7">Predicate::Enum</a>(<a href="#472">enum_predicate</a>.<a href="#9">substitute</a>(<a href="#467">map</a>)),
-            <a href="../up/gen/polymorphic/ast/predicate.rs.html#8">Predicate::Bodyless</a>(label, local_var) =&gt; {
-                <a href="../up/gen/polymorphic/ast/predicate.rs.html#8">Predicate::Bodyless</a>(<a href="#473">label</a>, <a href="#473">local_var</a>.<a href="#9">substitute</a>(<a href="#467">map</a>))
+            Predicate::Enum(enum_predicate) =&gt; Predicate::Enum(enum_predicate.substitute(map)),
+            Predicate::Bodyless(label, local_var) =&gt; {
+                Predicate::Bodyless(label, local_var.substitute(map))
             }
         }
     }
 }
 
-<span class="kw">impl </span><a href="#7">Generic</a> <span class="kw">for </span><a href="../up/gen/polymorphic/ast/predicate.rs.html#139">StructPredicate</a> {
-    <span class="kw">fn </span>substitute(<span class="self">self</span>, map: <span class="kw-2">&amp;</span>FxHashMap&lt;<a href="../up/gen/polymorphic/ast/common.rs.html#590">TypeVar</a>, <a href="../up/gen/polymorphic/ast/common.rs.html#174">Type</a>&gt;) -&gt; <span class="self">Self </span>{
-        <span class="kw">let </span><span class="kw-2">mut </span>struct_predicate = <a class="self" href="#481">self</a>;
-        <a href="#482">struct_predicate</a>.this = <a href="#482">struct_predicate</a>.this.<a href="#9">substitute</a>(<a href="#481">map</a>);
-        <a href="#482">struct_predicate</a>.body = <a href="#482">struct_predicate</a>.body.map(|expr| <a href="#484">expr</a>.<a href="#9">substitute</a>(<a href="#481">map</a>));
-        <a href="#482">struct_predicate</a>
+<span class="kw">impl </span>Generic <span class="kw">for </span>StructPredicate {
+    <span class="kw">fn </span>substitute(<span class="self">self</span>, map: <span class="kw-2">&amp;</span>FxHashMap&lt;TypeVar, Type&gt;) -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span><span class="kw-2">mut </span>struct_predicate = <span class="self">self</span>;
+        struct_predicate.this = struct_predicate.this.substitute(map);
+        struct_predicate.body = struct_predicate.body.map(|expr| expr.substitute(map));
+        struct_predicate
     }
 }
 
-<span class="kw">impl </span><a href="#7">Generic</a> <span class="kw">for </span><a href="../up/gen/polymorphic/ast/predicate.rs.html#211">EnumPredicate</a> {
-    <span class="kw">fn </span>substitute(<span class="self">self</span>, map: <span class="kw-2">&amp;</span>FxHashMap&lt;<a href="../up/gen/polymorphic/ast/common.rs.html#590">TypeVar</a>, <a href="../up/gen/polymorphic/ast/common.rs.html#174">Type</a>&gt;) -&gt; <span class="self">Self </span>{
-        <span class="kw">let </span><span class="kw-2">mut </span>enum_predicate = <a class="self" href="#490">self</a>;
-        <a href="#491">enum_predicate</a>.this = <a href="#491">enum_predicate</a>.this.<a href="#9">substitute</a>(<a href="#490">map</a>);
-        <a href="#491">enum_predicate</a>.discriminant_field = <a href="#491">enum_predicate</a>.discriminant_field.<a href="#9">substitute</a>(<a href="#490">map</a>);
-        <a href="#491">enum_predicate</a>.discriminant_bounds = <a href="#491">enum_predicate</a>.discriminant_bounds.<a href="#9">substitute</a>(<a href="#490">map</a>);
-        <a href="#491">enum_predicate</a>.variants = <a href="#491">enum_predicate</a>
+<span class="kw">impl </span>Generic <span class="kw">for </span>EnumPredicate {
+    <span class="kw">fn </span>substitute(<span class="self">self</span>, map: <span class="kw-2">&amp;</span>FxHashMap&lt;TypeVar, Type&gt;) -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span><span class="kw-2">mut </span>enum_predicate = <span class="self">self</span>;
+        enum_predicate.this = enum_predicate.this.substitute(map);
+        enum_predicate.discriminant_field = enum_predicate.discriminant_field.substitute(map);
+        enum_predicate.discriminant_bounds = enum_predicate.discriminant_bounds.substitute(map);
+        enum_predicate.variants = enum_predicate
             .variants
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|(expr, label, struct_predicate)| {
+            .into_iter()
+            .map(|(expr, label, struct_predicate)| {
                 (
-                    <a href="#498">expr</a>.<a href="#9">substitute</a>(<a href="#490">map</a>),
-                    <a href="#498">label</a>,
-                    <a href="#498">struct_predicate</a>.<a href="#9">substitute</a>(<a href="#490">map</a>),
+                    expr.substitute(map),
+                    label,
+                    struct_predicate.substitute(map),
                 )
             })
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
-        <a href="#491">enum_predicate</a>
+            .collect();
+        enum_predicate
     }
 }
 
-<span class="kw">impl </span><a href="#7">Generic</a> <span class="kw">for </span><a href="../up/gen/polymorphic/ast/predicate.rs.html#227">EnumVariantIndex</a> {
-    <span class="kw">fn </span>substitute(<span class="self">self</span>, _map: <span class="kw-2">&amp;</span>FxHashMap&lt;<a href="../up/gen/polymorphic/ast/common.rs.html#590">TypeVar</a>, <a href="../up/gen/polymorphic/ast/common.rs.html#174">Type</a>&gt;) -&gt; <span class="self">Self </span>{
-        <span class="self"><a href="#511">self</a>
+<span class="kw">impl </span>Generic <span class="kw">for </span>EnumVariantIndex {
+    <span class="kw">fn </span>substitute(<span class="self">self</span>, _map: <span class="kw-2">&amp;</span>FxHashMap&lt;TypeVar, Type&gt;) -&gt; <span class="self">Self </span>{
+        <span class="self">self
     </span>}
 }
 
 <span class="comment">// stmt
-</span><span class="kw">impl </span><a href="#7">Generic</a> <span class="kw">for </span><a href="../up/gen/polymorphic/ast/stmt.rs.html#10">Stmt</a> {
-    <span class="kw">fn </span>substitute(<span class="self">self</span>, map: <span class="kw-2">&amp;</span>FxHashMap&lt;<a href="../up/gen/polymorphic/ast/common.rs.html#590">TypeVar</a>, <a href="../up/gen/polymorphic/ast/common.rs.html#174">Type</a>&gt;) -&gt; <span class="self">Self </span>{
-        <span class="kw">match </span><span class="self"><a href="#518">self</a> </span>{
-            <a href="../up/gen/polymorphic/ast/stmt.rs.html#11">Stmt::Comment</a>(comment) =&gt; <a href="../up/gen/polymorphic/ast/stmt.rs.html#11">Stmt::Comment</a>(<a href="#520">comment</a>.<a href="#9">substitute</a>(<a href="#518">map</a>)),
-            <a href="../up/gen/polymorphic/ast/stmt.rs.html#12">Stmt::Label</a>(label) =&gt; <a href="../up/gen/polymorphic/ast/stmt.rs.html#12">Stmt::Label</a>(<a href="#521">label</a>.<a href="#9">substitute</a>(<a href="#518">map</a>)),
-            <a href="../up/gen/polymorphic/ast/stmt.rs.html#13">Stmt::Inhale</a>(inhale) =&gt; <a href="../up/gen/polymorphic/ast/stmt.rs.html#13">Stmt::Inhale</a>(<a href="#522">inhale</a>.<a href="#9">substitute</a>(<a href="#518">map</a>)),
-            <a href="../up/gen/polymorphic/ast/stmt.rs.html#14">Stmt::Exhale</a>(exhale) =&gt; <a href="../up/gen/polymorphic/ast/stmt.rs.html#14">Stmt::Exhale</a>(<a href="#523">exhale</a>.<a href="#9">substitute</a>(<a href="#518">map</a>)),
-            <a href="../up/gen/polymorphic/ast/stmt.rs.html#15">Stmt::Assert</a>(assert) =&gt; <a href="../up/gen/polymorphic/ast/stmt.rs.html#15">Stmt::Assert</a>(<a href="#524">assert</a>.<a href="#9">substitute</a>(<a href="#518">map</a>)),
-            <a href="../up/gen/polymorphic/ast/stmt.rs.html#17">Stmt::MethodCall</a>(method_call) =&gt; <a href="../up/gen/polymorphic/ast/stmt.rs.html#17">Stmt::MethodCall</a>(<a href="#525">method_call</a>.<a href="#9">substitute</a>(<a href="#518">map</a>)),
-            <a href="../up/gen/polymorphic/ast/stmt.rs.html#19">Stmt::Assign</a>(assign) =&gt; <a href="../up/gen/polymorphic/ast/stmt.rs.html#19">Stmt::Assign</a>(<a href="#526">assign</a>.<a href="#9">substitute</a>(<a href="#518">map</a>)),
-            <a href="../up/gen/polymorphic/ast/stmt.rs.html#21">Stmt::Fold</a>(fold) =&gt; <a href="../up/gen/polymorphic/ast/stmt.rs.html#21">Stmt::Fold</a>(<a href="#527">fold</a>.<a href="#9">substitute</a>(<a href="#518">map</a>)),
-            <a href="../up/gen/polymorphic/ast/stmt.rs.html#23">Stmt::Unfold</a>(unfold) =&gt; <a href="../up/gen/polymorphic/ast/stmt.rs.html#23">Stmt::Unfold</a>(<a href="#528">unfold</a>.<a href="#9">substitute</a>(<a href="#518">map</a>)),
-            <a href="../up/gen/polymorphic/ast/stmt.rs.html#26">Stmt::Obtain</a>(obtain) =&gt; <a href="../up/gen/polymorphic/ast/stmt.rs.html#26">Stmt::Obtain</a>(<a href="#529">obtain</a>.<a href="#9">substitute</a>(<a href="#518">map</a>)),
-            <a href="../up/gen/polymorphic/ast/stmt.rs.html#29">Stmt::BeginFrame</a>(begin_frame) =&gt; <a href="../up/gen/polymorphic/ast/stmt.rs.html#29">Stmt::BeginFrame</a>(<a href="#530">begin_frame</a>.<a href="#9">substitute</a>(<a href="#518">map</a>)),
-            <a href="../up/gen/polymorphic/ast/stmt.rs.html#32">Stmt::EndFrame</a>(end_frame) =&gt; <a href="../up/gen/polymorphic/ast/stmt.rs.html#32">Stmt::EndFrame</a>(<a href="#531">end_frame</a>.<a href="#9">substitute</a>(<a href="#518">map</a>)),
-            <a href="../up/gen/polymorphic/ast/stmt.rs.html#39">Stmt::TransferPerm</a>(transfer_perm) =&gt; <a href="../up/gen/polymorphic/ast/stmt.rs.html#39">Stmt::TransferPerm</a>(<a href="#532">transfer_perm</a>.<a href="#9">substitute</a>(<a href="#518">map</a>)),
-            <a href="../up/gen/polymorphic/ast/stmt.rs.html#44">Stmt::PackageMagicWand</a>(package_magic_wand) =&gt; {
-                <a href="../up/gen/polymorphic/ast/stmt.rs.html#44">Stmt::PackageMagicWand</a>(<a href="#533">package_magic_wand</a>.<a href="#9">substitute</a>(<a href="#518">map</a>))
+</span><span class="kw">impl </span>Generic <span class="kw">for </span>Stmt {
+    <span class="kw">fn </span>substitute(<span class="self">self</span>, map: <span class="kw-2">&amp;</span>FxHashMap&lt;TypeVar, Type&gt;) -&gt; <span class="self">Self </span>{
+        <span class="kw">match </span><span class="self">self </span>{
+            Stmt::Comment(comment) =&gt; Stmt::Comment(comment.substitute(map)),
+            Stmt::Label(label) =&gt; Stmt::Label(label.substitute(map)),
+            Stmt::Inhale(inhale) =&gt; Stmt::Inhale(inhale.substitute(map)),
+            Stmt::Exhale(exhale) =&gt; Stmt::Exhale(exhale.substitute(map)),
+            Stmt::Assert(assert) =&gt; Stmt::Assert(assert.substitute(map)),
+            Stmt::MethodCall(method_call) =&gt; Stmt::MethodCall(method_call.substitute(map)),
+            Stmt::Assign(assign) =&gt; Stmt::Assign(assign.substitute(map)),
+            Stmt::Fold(fold) =&gt; Stmt::Fold(fold.substitute(map)),
+            Stmt::Unfold(unfold) =&gt; Stmt::Unfold(unfold.substitute(map)),
+            Stmt::Obtain(obtain) =&gt; Stmt::Obtain(obtain.substitute(map)),
+            Stmt::BeginFrame(begin_frame) =&gt; Stmt::BeginFrame(begin_frame.substitute(map)),
+            Stmt::EndFrame(end_frame) =&gt; Stmt::EndFrame(end_frame.substitute(map)),
+            Stmt::TransferPerm(transfer_perm) =&gt; Stmt::TransferPerm(transfer_perm.substitute(map)),
+            Stmt::PackageMagicWand(package_magic_wand) =&gt; {
+                Stmt::PackageMagicWand(package_magic_wand.substitute(map))
             }
-            <a href="../up/gen/polymorphic/ast/stmt.rs.html#47">Stmt::ApplyMagicWand</a>(apply_magic_wand) =&gt; {
-                <a href="../up/gen/polymorphic/ast/stmt.rs.html#47">Stmt::ApplyMagicWand</a>(<a href="#536">apply_magic_wand</a>.<a href="#9">substitute</a>(<a href="#518">map</a>))
+            Stmt::ApplyMagicWand(apply_magic_wand) =&gt; {
+                Stmt::ApplyMagicWand(apply_magic_wand.substitute(map))
             }
-            <a href="../up/gen/polymorphic/ast/stmt.rs.html#49">Stmt::ExpireBorrows</a>(expire_borrows) =&gt; {
-                <a href="../up/gen/polymorphic/ast/stmt.rs.html#49">Stmt::ExpireBorrows</a>(<a href="#539">expire_borrows</a>.<a href="#9">substitute</a>(<a href="#518">map</a>))
+            Stmt::ExpireBorrows(expire_borrows) =&gt; {
+                Stmt::ExpireBorrows(expire_borrows.substitute(map))
             }
-            <a href="../up/gen/polymorphic/ast/stmt.rs.html#51">Stmt::If</a>(if_stmt) =&gt; <a href="../up/gen/polymorphic/ast/stmt.rs.html#51">Stmt::If</a>(<a href="#542">if_stmt</a>.<a href="#9">substitute</a>(<a href="#518">map</a>)),
-            <a href="../up/gen/polymorphic/ast/stmt.rs.html#57">Stmt::Downcast</a>(downcast) =&gt; <a href="../up/gen/polymorphic/ast/stmt.rs.html#57">Stmt::Downcast</a>(<a href="#543">downcast</a>.<a href="#9">substitute</a>(<a href="#518">map</a>)),
+            Stmt::If(if_stmt) =&gt; Stmt::If(if_stmt.substitute(map)),
+            Stmt::Downcast(downcast) =&gt; Stmt::Downcast(downcast.substitute(map)),
         }
     }
 }
 
 <span class="comment">// trigger
-</span><span class="kw">impl </span><a href="#7">Generic</a> <span class="kw">for </span><a href="../up/gen/polymorphic/ast/trigger.rs.html#7">Trigger</a> {
-    <span class="kw">fn </span>substitute(<span class="self">self</span>, map: <span class="kw-2">&amp;</span>FxHashMap&lt;<a href="../up/gen/polymorphic/ast/common.rs.html#590">TypeVar</a>, <a href="../up/gen/polymorphic/ast/common.rs.html#174">Type</a>&gt;) -&gt; <span class="self">Self </span>{
-        <span class="kw">let </span><span class="kw-2">mut </span>trigger = <a class="self" href="#550">self</a>;
-        <a href="#551">trigger</a>.<span class="number">0 </span>= <a href="#551">trigger</a>
+</span><span class="kw">impl </span>Generic <span class="kw">for </span>Trigger {
+    <span class="kw">fn </span>substitute(<span class="self">self</span>, map: <span class="kw-2">&amp;</span>FxHashMap&lt;TypeVar, Type&gt;) -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span><span class="kw-2">mut </span>trigger = <span class="self">self</span>;
+        trigger.<span class="number">0 </span>= trigger
             .<span class="number">0
-            </span>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|expr| <a href="#555">expr</a>.<a href="#9">substitute</a>(<a href="#550">map</a>))
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
-        <a href="#551">trigger</a>
+            </span>.into_iter()
+            .map(|expr| expr.substitute(map))
+            .collect();
+        trigger
     }
 }
 
-<span class="kw">impl </span><a href="#7">Generic</a> <span class="kw">for </span><a href="../up/gen/polymorphic/ast/stmt.rs.html#103">Comment</a> {
-    <span class="kw">fn </span>substitute(<span class="self">self</span>, _map: <span class="kw-2">&amp;</span>FxHashMap&lt;<a href="../up/gen/polymorphic/ast/common.rs.html#590">TypeVar</a>, <a href="../up/gen/polymorphic/ast/common.rs.html#174">Type</a>&gt;) -&gt; <span class="self">Self </span>{
-        <span class="self"><a href="#562">self</a>
+<span class="kw">impl </span>Generic <span class="kw">for </span>Comment {
+    <span class="kw">fn </span>substitute(<span class="self">self</span>, _map: <span class="kw-2">&amp;</span>FxHashMap&lt;TypeVar, Type&gt;) -&gt; <span class="self">Self </span>{
+        <span class="self">self
     </span>}
 }
 
-<span class="kw">impl </span><a href="#7">Generic</a> <span class="kw">for </span><a href="../up/gen/polymorphic/ast/stmt.rs.html#112">Label</a> {
-    <span class="kw">fn </span>substitute(<span class="self">self</span>, _map: <span class="kw-2">&amp;</span>FxHashMap&lt;<a href="../up/gen/polymorphic/ast/common.rs.html#590">TypeVar</a>, <a href="../up/gen/polymorphic/ast/common.rs.html#174">Type</a>&gt;) -&gt; <span class="self">Self </span>{
-        <span class="self"><a href="#568">self</a>
+<span class="kw">impl </span>Generic <span class="kw">for </span>Label {
+    <span class="kw">fn </span>substitute(<span class="self">self</span>, _map: <span class="kw-2">&amp;</span>FxHashMap&lt;TypeVar, Type&gt;) -&gt; <span class="self">Self </span>{
+        <span class="self">self
     </span>}
 }
 
-<span class="kw">impl </span><a href="#7">Generic</a> <span class="kw">for </span><a href="../up/gen/polymorphic/ast/stmt.rs.html#121">Inhale</a> {
-    <span class="kw">fn </span>substitute(<span class="self">self</span>, map: <span class="kw-2">&amp;</span>FxHashMap&lt;<a href="../up/gen/polymorphic/ast/common.rs.html#590">TypeVar</a>, <a href="../up/gen/polymorphic/ast/common.rs.html#174">Type</a>&gt;) -&gt; <span class="self">Self </span>{
-        <span class="kw">let </span><span class="kw-2">mut </span>inhale = <a class="self" href="#574">self</a>;
-        <a href="#575">inhale</a>.expr = <a href="#575">inhale</a>.expr.<a href="#9">substitute</a>(<a href="#574">map</a>);
-        <a href="#575">inhale</a>
+<span class="kw">impl </span>Generic <span class="kw">for </span>Inhale {
+    <span class="kw">fn </span>substitute(<span class="self">self</span>, map: <span class="kw-2">&amp;</span>FxHashMap&lt;TypeVar, Type&gt;) -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span><span class="kw-2">mut </span>inhale = <span class="self">self</span>;
+        inhale.expr = inhale.expr.substitute(map);
+        inhale
     }
 }
 
-<span class="kw">impl </span><a href="#7">Generic</a> <span class="kw">for </span><a href="../up/gen/polymorphic/ast/stmt.rs.html#130">Exhale</a> {
-    <span class="kw">fn </span>substitute(<span class="self">self</span>, map: <span class="kw-2">&amp;</span>FxHashMap&lt;<a href="../up/gen/polymorphic/ast/common.rs.html#590">TypeVar</a>, <a href="../up/gen/polymorphic/ast/common.rs.html#174">Type</a>&gt;) -&gt; <span class="self">Self </span>{
-        <span class="kw">let </span><span class="kw-2">mut </span>exhale = <a class="self" href="#582">self</a>;
-        <a href="#583">exhale</a>.expr = <a href="#583">exhale</a>.expr.<a href="#9">substitute</a>(<a href="#582">map</a>);
-        <a href="#583">exhale</a>
+<span class="kw">impl </span>Generic <span class="kw">for </span>Exhale {
+    <span class="kw">fn </span>substitute(<span class="self">self</span>, map: <span class="kw-2">&amp;</span>FxHashMap&lt;TypeVar, Type&gt;) -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span><span class="kw-2">mut </span>exhale = <span class="self">self</span>;
+        exhale.expr = exhale.expr.substitute(map);
+        exhale
     }
 }
 
-<span class="kw">impl </span><a href="#7">Generic</a> <span class="kw">for </span><a href="../up/gen/polymorphic/ast/stmt.rs.html#140">Assert</a> {
-    <span class="kw">fn </span>substitute(<span class="self">self</span>, map: <span class="kw-2">&amp;</span>FxHashMap&lt;<a href="../up/gen/polymorphic/ast/common.rs.html#590">TypeVar</a>, <a href="../up/gen/polymorphic/ast/common.rs.html#174">Type</a>&gt;) -&gt; <span class="self">Self </span>{
-        <span class="kw">let </span><span class="kw-2">mut </span>assert = <a class="self" href="#590">self</a>;
-        <a href="#591">assert</a>.expr = <a href="#591">assert</a>.expr.<a href="#9">substitute</a>(<a href="#590">map</a>);
-        <a href="#591">assert</a>
+<span class="kw">impl </span>Generic <span class="kw">for </span>Assert {
+    <span class="kw">fn </span>substitute(<span class="self">self</span>, map: <span class="kw-2">&amp;</span>FxHashMap&lt;TypeVar, Type&gt;) -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span><span class="kw-2">mut </span>assert = <span class="self">self</span>;
+        assert.expr = assert.expr.substitute(map);
+        assert
     }
 }
 
-<span class="kw">impl </span><a href="#7">Generic</a> <span class="kw">for </span><a href="../up/gen/polymorphic/ast/stmt.rs.html#150">MethodCall</a> {
-    <span class="kw">fn </span>substitute(<span class="self">self</span>, map: <span class="kw-2">&amp;</span>FxHashMap&lt;<a href="../up/gen/polymorphic/ast/common.rs.html#590">TypeVar</a>, <a href="../up/gen/polymorphic/ast/common.rs.html#174">Type</a>&gt;) -&gt; <span class="self">Self </span>{
-        <span class="kw">let </span><span class="kw-2">mut </span>method_call = <a class="self" href="#598">self</a>;
-        <a href="#599">method_call</a>.arguments = <a href="#599">method_call</a>
+<span class="kw">impl </span>Generic <span class="kw">for </span>MethodCall {
+    <span class="kw">fn </span>substitute(<span class="self">self</span>, map: <span class="kw-2">&amp;</span>FxHashMap&lt;TypeVar, Type&gt;) -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span><span class="kw-2">mut </span>method_call = <span class="self">self</span>;
+        method_call.arguments = method_call
             .arguments
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|argument| <a href="#603">argument</a>.<a href="#9">substitute</a>(<a href="#598">map</a>))
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
-        <a href="#599">method_call</a>.targets = <a href="#599">method_call</a>
+            .into_iter()
+            .map(|argument| argument.substitute(map))
+            .collect();
+        method_call.targets = method_call
             .targets
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|target| <a href="#608">target</a>.<a href="#9">substitute</a>(<a href="#598">map</a>))
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
-        <a href="#599">method_call</a>
+            .into_iter()
+            .map(|target| target.substitute(map))
+            .collect();
+        method_call
     }
 }
 
-<span class="kw">impl </span><a href="#7">Generic</a> <span class="kw">for </span><a href="../up/gen/polymorphic/ast/stmt.rs.html#175">Assign</a> {
-    <span class="kw">fn </span>substitute(<span class="self">self</span>, map: <span class="kw-2">&amp;</span>FxHashMap&lt;<a href="../up/gen/polymorphic/ast/common.rs.html#590">TypeVar</a>, <a href="../up/gen/polymorphic/ast/common.rs.html#174">Type</a>&gt;) -&gt; <span class="self">Self </span>{
-        <span class="kw">let </span><span class="kw-2">mut </span>assign = <a class="self" href="#615">self</a>;
-        <a href="#616">assign</a>.target = <a href="#616">assign</a>.target.<a href="#9">substitute</a>(<a href="#615">map</a>);
-        <a href="#616">assign</a>.source = <a href="#616">assign</a>.source.<a href="#9">substitute</a>(<a href="#615">map</a>);
-        <a href="#616">assign</a>
+<span class="kw">impl </span>Generic <span class="kw">for </span>Assign {
+    <span class="kw">fn </span>substitute(<span class="self">self</span>, map: <span class="kw-2">&amp;</span>FxHashMap&lt;TypeVar, Type&gt;) -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span><span class="kw-2">mut </span>assign = <span class="self">self</span>;
+        assign.target = assign.target.substitute(map);
+        assign.source = assign.source.substitute(map);
+        assign
     }
 }
 
-<span class="kw">impl </span><a href="#7">Generic</a> <span class="kw">for </span><a href="../up/gen/polymorphic/ast/stmt.rs.html#204">Fold</a> {
-    <span class="kw">fn </span>substitute(<span class="self">self</span>, map: <span class="kw-2">&amp;</span>FxHashMap&lt;<a href="../up/gen/polymorphic/ast/common.rs.html#590">TypeVar</a>, <a href="../up/gen/polymorphic/ast/common.rs.html#174">Type</a>&gt;) -&gt; <span class="self">Self </span>{
-        <span class="kw">let </span><span class="kw-2">mut </span>fold = <a class="self" href="#624">self</a>;
-        <a href="#625">fold</a>.arguments = <a href="#625">fold</a>
+<span class="kw">impl </span>Generic <span class="kw">for </span>Fold {
+    <span class="kw">fn </span>substitute(<span class="self">self</span>, map: <span class="kw-2">&amp;</span>FxHashMap&lt;TypeVar, Type&gt;) -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span><span class="kw-2">mut </span>fold = <span class="self">self</span>;
+        fold.arguments = fold
             .arguments
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|argument| <a href="#629">argument</a>.<a href="#9">substitute</a>(<a href="#624">map</a>))
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
-        <a href="#625">fold</a>.enum_variant = <a href="#625">fold</a>
+            .into_iter()
+            .map(|argument| argument.substitute(map))
+            .collect();
+        fold.enum_variant = fold
             .enum_variant
-            .map(|enum_variant_index| <a href="#633">enum_variant_index</a>.<a href="#9">substitute</a>(<a href="#624">map</a>));
-        <a href="#625">fold</a>
+            .map(|enum_variant_index| enum_variant_index.substitute(map));
+        fold
     }
 }
 
-<span class="kw">impl </span><a href="#7">Generic</a> <span class="kw">for </span><a href="../up/gen/polymorphic/ast/stmt.rs.html#231">Unfold</a> {
-    <span class="kw">fn </span>substitute(<span class="self">self</span>, map: <span class="kw-2">&amp;</span>FxHashMap&lt;<a href="../up/gen/polymorphic/ast/common.rs.html#590">TypeVar</a>, <a href="../up/gen/polymorphic/ast/common.rs.html#174">Type</a>&gt;) -&gt; <span class="self">Self </span>{
-        <span class="kw">let </span><span class="kw-2">mut </span>unfold = <a class="self" href="#639">self</a>;
-        <a href="#640">unfold</a>.arguments = <a href="#640">unfold</a>
+<span class="kw">impl </span>Generic <span class="kw">for </span>Unfold {
+    <span class="kw">fn </span>substitute(<span class="self">self</span>, map: <span class="kw-2">&amp;</span>FxHashMap&lt;TypeVar, Type&gt;) -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span><span class="kw-2">mut </span>unfold = <span class="self">self</span>;
+        unfold.arguments = unfold
             .arguments
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|argument| <a href="#644">argument</a>.<a href="#9">substitute</a>(<a href="#639">map</a>))
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
-        <a href="#640">unfold</a>.enum_variant = <a href="#640">unfold</a>
+            .into_iter()
+            .map(|argument| argument.substitute(map))
+            .collect();
+        unfold.enum_variant = unfold
             .enum_variant
-            .map(|enum_variant_index| <a href="#648">enum_variant_index</a>.<a href="#9">substitute</a>(<a href="#639">map</a>));
-        <a href="#640">unfold</a>
+            .map(|enum_variant_index| enum_variant_index.substitute(map));
+        unfold
     }
 }
 
-<span class="kw">impl </span><a href="#7">Generic</a> <span class="kw">for </span><a href="../up/gen/polymorphic/ast/stmt.rs.html#257">Obtain</a> {
-    <span class="kw">fn </span>substitute(<span class="self">self</span>, map: <span class="kw-2">&amp;</span>FxHashMap&lt;<a href="../up/gen/polymorphic/ast/common.rs.html#590">TypeVar</a>, <a href="../up/gen/polymorphic/ast/common.rs.html#174">Type</a>&gt;) -&gt; <span class="self">Self </span>{
-        <span class="kw">let </span><span class="kw-2">mut </span>obtain = <a class="self" href="#654">self</a>;
-        <a href="#655">obtain</a>.expr = <a href="#655">obtain</a>.expr.<a href="#9">substitute</a>(<a href="#654">map</a>);
-        <a href="#655">obtain</a>
+<span class="kw">impl </span>Generic <span class="kw">for </span>Obtain {
+    <span class="kw">fn </span>substitute(<span class="self">self</span>, map: <span class="kw-2">&amp;</span>FxHashMap&lt;TypeVar, Type&gt;) -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span><span class="kw-2">mut </span>obtain = <span class="self">self</span>;
+        obtain.expr = obtain.expr.substitute(map);
+        obtain
     }
 }
 
-<span class="kw">impl </span><a href="#7">Generic</a> <span class="kw">for </span><a href="../up/gen/polymorphic/ast/stmt.rs.html#267">BeginFrame</a> {
-    <span class="kw">fn </span>substitute(<span class="self">self</span>, _map: <span class="kw-2">&amp;</span>FxHashMap&lt;<a href="../up/gen/polymorphic/ast/common.rs.html#590">TypeVar</a>, <a href="../up/gen/polymorphic/ast/common.rs.html#174">Type</a>&gt;) -&gt; <span class="self">Self </span>{
-        <span class="self"><a href="#662">self</a>
+<span class="kw">impl </span>Generic <span class="kw">for </span>BeginFrame {
+    <span class="kw">fn </span>substitute(<span class="self">self</span>, _map: <span class="kw-2">&amp;</span>FxHashMap&lt;TypeVar, Type&gt;) -&gt; <span class="self">Self </span>{
+        <span class="self">self
     </span>}
 }
 
-<span class="kw">impl </span><a href="#7">Generic</a> <span class="kw">for </span><a href="../up/gen/polymorphic/ast/stmt.rs.html#274">EndFrame</a> {
-    <span class="kw">fn </span>substitute(<span class="self">self</span>, _map: <span class="kw-2">&amp;</span>FxHashMap&lt;<a href="../up/gen/polymorphic/ast/common.rs.html#590">TypeVar</a>, <a href="../up/gen/polymorphic/ast/common.rs.html#174">Type</a>&gt;) -&gt; <span class="self">Self </span>{
-        <span class="self"><a href="#668">self</a>
+<span class="kw">impl </span>Generic <span class="kw">for </span>EndFrame {
+    <span class="kw">fn </span>substitute(<span class="self">self</span>, _map: <span class="kw-2">&amp;</span>FxHashMap&lt;TypeVar, Type&gt;) -&gt; <span class="self">Self </span>{
+        <span class="self">self
     </span>}
 }
 
-<span class="kw">impl </span><a href="#7">Generic</a> <span class="kw">for </span><a href="../up/gen/polymorphic/ast/stmt.rs.html#281">TransferPerm</a> {
-    <span class="kw">fn </span>substitute(<span class="self">self</span>, map: <span class="kw-2">&amp;</span>FxHashMap&lt;<a href="../up/gen/polymorphic/ast/common.rs.html#590">TypeVar</a>, <a href="../up/gen/polymorphic/ast/common.rs.html#174">Type</a>&gt;) -&gt; <span class="self">Self </span>{
-        <span class="kw">let </span><span class="kw-2">mut </span>transfer_perm = <a class="self" href="#674">self</a>;
-        <a href="#675">transfer_perm</a>.left = <a href="#675">transfer_perm</a>.left.<a href="#9">substitute</a>(<a href="#674">map</a>);
-        <a href="#675">transfer_perm</a>.right = <a href="#675">transfer_perm</a>.right.<a href="#9">substitute</a>(<a href="#674">map</a>);
-        <a href="#675">transfer_perm</a>
+<span class="kw">impl </span>Generic <span class="kw">for </span>TransferPerm {
+    <span class="kw">fn </span>substitute(<span class="self">self</span>, map: <span class="kw-2">&amp;</span>FxHashMap&lt;TypeVar, Type&gt;) -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span><span class="kw-2">mut </span>transfer_perm = <span class="self">self</span>;
+        transfer_perm.left = transfer_perm.left.substitute(map);
+        transfer_perm.right = transfer_perm.right.substitute(map);
+        transfer_perm
     }
 }
 
-<span class="kw">impl </span><a href="#7">Generic</a> <span class="kw">for </span><a href="../up/gen/polymorphic/ast/stmt.rs.html#296">PackageMagicWand</a> {
-    <span class="kw">fn </span>substitute(<span class="self">self</span>, map: <span class="kw-2">&amp;</span>FxHashMap&lt;<a href="../up/gen/polymorphic/ast/common.rs.html#590">TypeVar</a>, <a href="../up/gen/polymorphic/ast/common.rs.html#174">Type</a>&gt;) -&gt; <span class="self">Self </span>{
-        <span class="kw">let </span><span class="kw-2">mut </span>package_magic_wand = <a class="self" href="#683">self</a>;
-        <a href="#684">package_magic_wand</a>.magic_wand = <a href="#684">package_magic_wand</a>.magic_wand.<a href="#9">substitute</a>(<a href="#683">map</a>);
-        <a href="#684">package_magic_wand</a>.package_stmts = <a href="#684">package_magic_wand</a>
+<span class="kw">impl </span>Generic <span class="kw">for </span>PackageMagicWand {
+    <span class="kw">fn </span>substitute(<span class="self">self</span>, map: <span class="kw-2">&amp;</span>FxHashMap&lt;TypeVar, Type&gt;) -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span><span class="kw-2">mut </span>package_magic_wand = <span class="self">self</span>;
+        package_magic_wand.magic_wand = package_magic_wand.magic_wand.substitute(map);
+        package_magic_wand.package_stmts = package_magic_wand
             .package_stmts
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|package_stmt| <a href="#689">package_stmt</a>.<a href="#9">substitute</a>(<a href="#683">map</a>))
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
-        <a href="#684">package_magic_wand</a>.variables = <a href="#684">package_magic_wand</a>
+            .into_iter()
+            .map(|package_stmt| package_stmt.substitute(map))
+            .collect();
+        package_magic_wand.variables = package_magic_wand
             .variables
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|variable| <a href="#694">variable</a>.<a href="#9">substitute</a>(<a href="#683">map</a>))
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
-        <a href="#684">package_magic_wand</a>
+            .into_iter()
+            .map(|variable| variable.substitute(map))
+            .collect();
+        package_magic_wand
     }
 }
 
-<span class="kw">impl </span><a href="#7">Generic</a> <span class="kw">for </span><a href="../up/gen/polymorphic/ast/stmt.rs.html#326">ApplyMagicWand</a> {
-    <span class="kw">fn </span>substitute(<span class="self">self</span>, map: <span class="kw-2">&amp;</span>FxHashMap&lt;<a href="../up/gen/polymorphic/ast/common.rs.html#590">TypeVar</a>, <a href="../up/gen/polymorphic/ast/common.rs.html#174">Type</a>&gt;) -&gt; <span class="self">Self </span>{
-        <span class="kw">let </span><span class="kw-2">mut </span>apply_magic_wand = <a class="self" href="#701">self</a>;
-        <a href="#702">apply_magic_wand</a>.magic_wand = <a href="#702">apply_magic_wand</a>.magic_wand.<a href="#9">substitute</a>(<a href="#701">map</a>);
-        <a href="#702">apply_magic_wand</a>
+<span class="kw">impl </span>Generic <span class="kw">for </span>ApplyMagicWand {
+    <span class="kw">fn </span>substitute(<span class="self">self</span>, map: <span class="kw-2">&amp;</span>FxHashMap&lt;TypeVar, Type&gt;) -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span><span class="kw-2">mut </span>apply_magic_wand = <span class="self">self</span>;
+        apply_magic_wand.magic_wand = apply_magic_wand.magic_wand.substitute(map);
+        apply_magic_wand
     }
 }
 
-<span class="kw">impl </span><a href="#7">Generic</a> <span class="kw">for </span><a href="../up/gen/polymorphic/ast/stmt.rs.html#347">ExpireBorrows</a> {
-    <span class="kw">fn </span>substitute(<span class="self">self</span>, map: <span class="kw-2">&amp;</span>FxHashMap&lt;<a href="../up/gen/polymorphic/ast/common.rs.html#590">TypeVar</a>, <a href="../up/gen/polymorphic/ast/common.rs.html#174">Type</a>&gt;) -&gt; <span class="self">Self </span>{
-        <span class="kw">let </span><span class="kw-2">mut </span>expire_borrows = <a class="self" href="#709">self</a>;
-        <a href="#710">expire_borrows</a>.dag = <a href="#710">expire_borrows</a>.dag.<a href="#9">substitute</a>(<a href="#709">map</a>);
-        <a href="#710">expire_borrows</a>
+<span class="kw">impl </span>Generic <span class="kw">for </span>ExpireBorrows {
+    <span class="kw">fn </span>substitute(<span class="self">self</span>, map: <span class="kw-2">&amp;</span>FxHashMap&lt;TypeVar, Type&gt;) -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span><span class="kw-2">mut </span>expire_borrows = <span class="self">self</span>;
+        expire_borrows.dag = expire_borrows.dag.substitute(map);
+        expire_borrows
     }
 }
 
-<span class="kw">impl </span><a href="#7">Generic</a> <span class="kw">for </span><a href="../up/gen/polymorphic/ast/stmt.rs.html#356">If</a> {
-    <span class="kw">fn </span>substitute(<span class="self">self</span>, map: <span class="kw-2">&amp;</span>FxHashMap&lt;<a href="../up/gen/polymorphic/ast/common.rs.html#590">TypeVar</a>, <a href="../up/gen/polymorphic/ast/common.rs.html#174">Type</a>&gt;) -&gt; <span class="self">Self </span>{
-        <span class="kw">let </span><span class="kw-2">mut </span>if_stmt = <a class="self" href="#717">self</a>;
-        <a href="#718">if_stmt</a>.guard = <a href="#718">if_stmt</a>.guard.<a href="#9">substitute</a>(<a href="#717">map</a>);
-        <a href="#718">if_stmt</a>.then_stmts = <a href="#718">if_stmt</a>
+<span class="kw">impl </span>Generic <span class="kw">for </span>If {
+    <span class="kw">fn </span>substitute(<span class="self">self</span>, map: <span class="kw-2">&amp;</span>FxHashMap&lt;TypeVar, Type&gt;) -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span><span class="kw-2">mut </span>if_stmt = <span class="self">self</span>;
+        if_stmt.guard = if_stmt.guard.substitute(map);
+        if_stmt.then_stmts = if_stmt
             .then_stmts
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|then_stmt| <a href="#723">then_stmt</a>.<a href="#9">substitute</a>(<a href="#717">map</a>))
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
-        <a href="#718">if_stmt</a>.else_stmts = <a href="#718">if_stmt</a>
+            .into_iter()
+            .map(|then_stmt| then_stmt.substitute(map))
+            .collect();
+        if_stmt.else_stmts = if_stmt
             .else_stmts
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|else_stmt| <a href="#728">else_stmt</a>.<a href="#9">substitute</a>(<a href="#717">map</a>))
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
-        <a href="#718">if_stmt</a>
+            .into_iter()
+            .map(|else_stmt| else_stmt.substitute(map))
+            .collect();
+        if_stmt
     }
 }
 
-<span class="kw">impl </span><a href="#7">Generic</a> <span class="kw">for </span><a href="../up/gen/polymorphic/ast/stmt.rs.html#383">Downcast</a> {
-    <span class="kw">fn </span>substitute(<span class="self">self</span>, map: <span class="kw-2">&amp;</span>FxHashMap&lt;<a href="../up/gen/polymorphic/ast/common.rs.html#590">TypeVar</a>, <a href="../up/gen/polymorphic/ast/common.rs.html#174">Type</a>&gt;) -&gt; <span class="self">Self </span>{
-        <span class="kw">let </span><span class="kw-2">mut </span>downcast = <a class="self" href="#735">self</a>;
-        <a href="#736">downcast</a>.base = <a href="#736">downcast</a>.base.<a href="#9">substitute</a>(<a href="#735">map</a>);
-        <a href="#736">downcast</a>.field = <a href="#736">downcast</a>.field.<a href="#9">substitute</a>(<a href="#735">map</a>);
-        <a href="#736">downcast</a>
+<span class="kw">impl </span>Generic <span class="kw">for </span>Downcast {
+    <span class="kw">fn </span>substitute(<span class="self">self</span>, map: <span class="kw-2">&amp;</span>FxHashMap&lt;TypeVar, Type&gt;) -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span><span class="kw-2">mut </span>downcast = <span class="self">self</span>;
+        downcast.base = downcast.base.substitute(map);
+        downcast.field = downcast.field.substitute(map);
+        downcast
     }
 }
 
 <span class="comment">// method
-</span><span class="kw">impl </span><a href="#7">Generic</a> <span class="kw">for </span><a href="../up/gen/polymorphic/cfg/method.rs.html#11">CfgMethod</a> {
-    <span class="kw">fn </span>substitute(<span class="self">self</span>, map: <span class="kw-2">&amp;</span>FxHashMap&lt;<a href="../up/gen/polymorphic/ast/common.rs.html#590">TypeVar</a>, <a href="../up/gen/polymorphic/ast/common.rs.html#174">Type</a>&gt;) -&gt; <span class="self">Self </span>{
-        <span class="kw">let </span><span class="kw-2">mut </span>cfg_method = <a class="self" href="#745">self</a>;
-        <a href="#746">cfg_method</a>.formal_returns = <a href="#746">cfg_method</a>
+</span><span class="kw">impl </span>Generic <span class="kw">for </span>CfgMethod {
+    <span class="kw">fn </span>substitute(<span class="self">self</span>, map: <span class="kw-2">&amp;</span>FxHashMap&lt;TypeVar, Type&gt;) -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span><span class="kw-2">mut </span>cfg_method = <span class="self">self</span>;
+        cfg_method.formal_returns = cfg_method
             .formal_returns
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|formal_return| <a href="#750">formal_return</a>.<a href="#9">substitute</a>(<a href="#745">map</a>))
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
-        <a href="#746">cfg_method</a>.local_vars = <a href="#746">cfg_method</a>
+            .into_iter()
+            .map(|formal_return| formal_return.substitute(map))
+            .collect();
+        cfg_method.local_vars = cfg_method
             .local_vars
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|local_var| <a href="#755">local_var</a>.<a href="#9">substitute</a>(<a href="#745">map</a>))
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
-        <a href="#746">cfg_method</a>.basic_blocks = <a href="#746">cfg_method</a>
+            .into_iter()
+            .map(|local_var| local_var.substitute(map))
+            .collect();
+        cfg_method.basic_blocks = cfg_method
             .basic_blocks
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|basic_block| <a href="#760">basic_block</a>.<a href="#9">substitute</a>(<a href="#745">map</a>))
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
-        <a href="#746">cfg_method</a>
+            .into_iter()
+            .map(|basic_block| basic_block.substitute(map))
+            .collect();
+        cfg_method
     }
 }
 
-<span class="kw">impl </span><a href="#7">Generic</a> <span class="kw">for </span><a href="../up/gen/polymorphic/cfg/method.rs.html#28">CfgBlock</a> {
-    <span class="kw">fn </span>substitute(<span class="self">self</span>, map: <span class="kw-2">&amp;</span>FxHashMap&lt;<a href="../up/gen/polymorphic/ast/common.rs.html#590">TypeVar</a>, <a href="../up/gen/polymorphic/ast/common.rs.html#174">Type</a>&gt;) -&gt; <span class="self">Self </span>{
-        <span class="kw">let </span><span class="kw-2">mut </span>cfg_block = <a class="self" href="#767">self</a>;
-        <a href="#768">cfg_block</a>.stmts = <a href="#768">cfg_block</a>
+<span class="kw">impl </span>Generic <span class="kw">for </span>CfgBlock {
+    <span class="kw">fn </span>substitute(<span class="self">self</span>, map: <span class="kw-2">&amp;</span>FxHashMap&lt;TypeVar, Type&gt;) -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span><span class="kw-2">mut </span>cfg_block = <span class="self">self</span>;
+        cfg_block.stmts = cfg_block
             .stmts
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|stmt| <a href="#772">stmt</a>.<a href="#9">substitute</a>(<a href="#767">map</a>))
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
-        <a href="#768">cfg_block</a>.successor = <a href="#768">cfg_block</a>.successor.<a href="#9">substitute</a>(<a href="#767">map</a>);
-        <a href="#768">cfg_block</a>
+            .into_iter()
+            .map(|stmt| stmt.substitute(map))
+            .collect();
+        cfg_block.successor = cfg_block.successor.substitute(map);
+        cfg_block
     }
 }
 
-<span class="kw">impl </span><a href="#7">Generic</a> <span class="kw">for </span><a href="../up/gen/polymorphic/cfg/method.rs.html#33">Successor</a> {
-    <span class="kw">fn </span>substitute(<span class="self">self</span>, map: <span class="kw-2">&amp;</span>FxHashMap&lt;<a href="../up/gen/polymorphic/ast/common.rs.html#590">TypeVar</a>, <a href="../up/gen/polymorphic/ast/common.rs.html#174">Type</a>&gt;) -&gt; <span class="self">Self </span>{
-        <span class="kw">match </span><span class="self"><a href="#780">self</a> </span>{
-            <a href="../up/gen/polymorphic/cfg/method.rs.html#34">Successor::Undefined</a> | <a href="../up/gen/polymorphic/cfg/method.rs.html#35">Successor::Return</a> =&gt; <a class="self" href="#780">self</a>,
-            <a href="../up/gen/polymorphic/cfg/method.rs.html#36">Successor::Goto</a>(cfg_block_index) =&gt; <a href="../up/gen/polymorphic/cfg/method.rs.html#36">Successor::Goto</a>(<a href="#783">cfg_block_index</a>.<a href="#9">substitute</a>(<a href="#780">map</a>)),
-            <a href="../up/gen/polymorphic/cfg/method.rs.html#37">Successor::GotoSwitch</a>(expr_indices, cfg_block_index) =&gt; <a href="../up/gen/polymorphic/cfg/method.rs.html#37">Successor::GotoSwitch</a>(
-                <a href="#784">expr_indices</a>
-                    .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
-                    .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|(expr, index)| (<a href="#787">expr</a>.<a href="#9">substitute</a>(<a href="#780">map</a>), <a href="#787">index</a>.<a href="#9">substitute</a>(<a href="#780">map</a>)))
-                    .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>(),
-                <a href="#784">cfg_block_index</a>.<a href="#9">substitute</a>(<a href="#780">map</a>),
+<span class="kw">impl </span>Generic <span class="kw">for </span>Successor {
+    <span class="kw">fn </span>substitute(<span class="self">self</span>, map: <span class="kw-2">&amp;</span>FxHashMap&lt;TypeVar, Type&gt;) -&gt; <span class="self">Self </span>{
+        <span class="kw">match </span><span class="self">self </span>{
+            Successor::Undefined | Successor::Return =&gt; <span class="self">self</span>,
+            Successor::Goto(cfg_block_index) =&gt; Successor::Goto(cfg_block_index.substitute(map)),
+            Successor::GotoSwitch(expr_indices, cfg_block_index) =&gt; Successor::GotoSwitch(
+                expr_indices
+                    .into_iter()
+                    .map(|(expr, index)| (expr.substitute(map), index.substitute(map)))
+                    .collect(),
+                cfg_block_index.substitute(map),
             ),
         }
     }
 }
 
-<span class="kw">impl </span><a href="#7">Generic</a> <span class="kw">for </span><a href="../up/gen/polymorphic/cfg/method.rs.html#40">CfgBlockIndex</a> {
-    <span class="kw">fn </span>substitute(<span class="self">self</span>, _map: <span class="kw-2">&amp;</span>FxHashMap&lt;<a href="../up/gen/polymorphic/ast/common.rs.html#590">TypeVar</a>, <a href="../up/gen/polymorphic/ast/common.rs.html#174">Type</a>&gt;) -&gt; <span class="self">Self </span>{
-        <span class="self"><a href="#796">self</a>
+<span class="kw">impl </span>Generic <span class="kw">for </span>CfgBlockIndex {
+    <span class="kw">fn </span>substitute(<span class="self">self</span>, _map: <span class="kw-2">&amp;</span>FxHashMap&lt;TypeVar, Type&gt;) -&gt; <span class="self">Self </span>{
+        <span class="self">self
     </span>}
 }
 
 <span class="comment">// borrows
-</span><span class="kw">impl </span><a href="#7">Generic</a> <span class="kw">for </span><a href="../up/gen/polymorphic/borrows.rs.html#9">Borrow</a> {
-    <span class="kw">fn </span>substitute(<span class="self">self</span>, _map: <span class="kw-2">&amp;</span>FxHashMap&lt;<a href="../up/gen/polymorphic/ast/common.rs.html#590">TypeVar</a>, <a href="../up/gen/polymorphic/ast/common.rs.html#174">Type</a>&gt;) -&gt; <span class="self">Self </span>{
-        <span class="self"><a href="#803">self</a>
+</span><span class="kw">impl </span>Generic <span class="kw">for </span>Borrow {
+    <span class="kw">fn </span>substitute(<span class="self">self</span>, _map: <span class="kw-2">&amp;</span>FxHashMap&lt;TypeVar, Type&gt;) -&gt; <span class="self">Self </span>{
+        <span class="self">self
     </span>}
 }
 
-<span class="kw">impl </span><a href="#7">Generic</a> <span class="kw">for </span><a href="../up/gen/polymorphic/borrows.rs.html#27">Node</a> {
-    <span class="kw">fn </span>substitute(<span class="self">self</span>, map: <span class="kw-2">&amp;</span>FxHashMap&lt;<a href="../up/gen/polymorphic/ast/common.rs.html#590">TypeVar</a>, <a href="../up/gen/polymorphic/ast/common.rs.html#174">Type</a>&gt;) -&gt; <span class="self">Self </span>{
-        <span class="kw">let </span><span class="kw-2">mut </span>node = <a class="self" href="#809">self</a>;
-        <a href="#810">node</a>.guard = <a href="#810">node</a>.guard.<a href="#9">substitute</a>(<a href="#809">map</a>);
-        <a href="#810">node</a>.borrow = <a href="#810">node</a>.borrow.<a href="#9">substitute</a>(<a href="#809">map</a>);
-        <a href="#810">node</a>.reborrowing_nodes = <a href="#810">node</a>
+<span class="kw">impl </span>Generic <span class="kw">for </span>Node {
+    <span class="kw">fn </span>substitute(<span class="self">self</span>, map: <span class="kw-2">&amp;</span>FxHashMap&lt;TypeVar, Type&gt;) -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span><span class="kw-2">mut </span>node = <span class="self">self</span>;
+        node.guard = node.guard.substitute(map);
+        node.borrow = node.borrow.substitute(map);
+        node.reborrowing_nodes = node
             .reborrowing_nodes
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|reborrowing_node| <a href="#816">reborrowing_node</a>.<a href="#9">substitute</a>(<a href="#809">map</a>))
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
-        <a href="#810">node</a>.reborrowed_nodes = <a href="#810">node</a>
+            .into_iter()
+            .map(|reborrowing_node| reborrowing_node.substitute(map))
+            .collect();
+        node.reborrowed_nodes = node
             .reborrowed_nodes
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|reborrowed_nodes| <a href="#821">reborrowed_nodes</a>.<a href="#9">substitute</a>(<a href="#809">map</a>))
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
-        <a href="#810">node</a>.stmts = <a href="#810">node</a>
+            .into_iter()
+            .map(|reborrowed_nodes| reborrowed_nodes.substitute(map))
+            .collect();
+        node.stmts = node
             .stmts
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|stmt| <a href="#826">stmt</a>.<a href="#9">substitute</a>(<a href="#809">map</a>))
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
-        <a href="#810">node</a>.borrowed_places = <a href="#810">node</a>
+            .into_iter()
+            .map(|stmt| stmt.substitute(map))
+            .collect();
+        node.borrowed_places = node
             .borrowed_places
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|borrowed_place| <a href="#831">borrowed_place</a>.<a href="#9">substitute</a>(<a href="#809">map</a>))
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
-        <a href="#810">node</a>.conflicting_borrows = <a href="#810">node</a>
+            .into_iter()
+            .map(|borrowed_place| borrowed_place.substitute(map))
+            .collect();
+        node.conflicting_borrows = node
             .conflicting_borrows
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|conflicting_borrow| <a href="#836">conflicting_borrow</a>.<a href="#9">substitute</a>(<a href="#809">map</a>))
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
-        <a href="#810">node</a>.alive_conflicting_borrows = <a href="#810">node</a>
+            .into_iter()
+            .map(|conflicting_borrow| conflicting_borrow.substitute(map))
+            .collect();
+        node.alive_conflicting_borrows = node
             .alive_conflicting_borrows
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|alive_conflicting_borrow| <a href="#841">alive_conflicting_borrow</a>.<a href="#9">substitute</a>(<a href="#809">map</a>))
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
-        <a href="#810">node</a>.place = <a href="#810">node</a>.place.map(|expr| <a href="#843">expr</a>.<a href="#9">substitute</a>(<a href="#809">map</a>));
-        <a href="#810">node</a>
+            .into_iter()
+            .map(|alive_conflicting_borrow| alive_conflicting_borrow.substitute(map))
+            .collect();
+        node.place = node.place.map(|expr| expr.substitute(map));
+        node
     }
 }
 
-<span class="kw">impl </span><a href="#7">Generic</a> <span class="kw">for </span><a href="../up/gen/polymorphic/borrows.rs.html#78">DAG</a> {
-    <span class="kw">fn </span>substitute(<span class="self">self</span>, map: <span class="kw-2">&amp;</span>FxHashMap&lt;<a href="../up/gen/polymorphic/ast/common.rs.html#590">TypeVar</a>, <a href="../up/gen/polymorphic/ast/common.rs.html#174">Type</a>&gt;) -&gt; <span class="self">Self </span>{
-        <span class="kw">let </span><span class="kw-2">mut </span>dag = <a class="self" href="#849">self</a>;
-        <a href="#850">dag</a>.borrow_indices = <a href="#850">dag</a>
+<span class="kw">impl </span>Generic <span class="kw">for </span>DAG {
+    <span class="kw">fn </span>substitute(<span class="self">self</span>, map: <span class="kw-2">&amp;</span>FxHashMap&lt;TypeVar, Type&gt;) -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span><span class="kw-2">mut </span>dag = <span class="self">self</span>;
+        dag.borrow_indices = dag
             .borrow_indices
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|(borrow, index)| (<a href="#854">borrow</a>.<a href="#9">substitute</a>(<a href="#849">map</a>), <a href="#854">index</a>))
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
-        <a href="#850">dag</a>.nodes = <a href="#850">dag</a>
+            .into_iter()
+            .map(|(borrow, index)| (borrow.substitute(map), index))
+            .collect();
+        dag.nodes = dag
             .nodes
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|node| <a href="#859">node</a>.<a href="#9">substitute</a>(<a href="#849">map</a>))
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
-        <a href="#850">dag</a>.borrowed_places = <a href="#850">dag</a>
+            .into_iter()
+            .map(|node| node.substitute(map))
+            .collect();
+        dag.borrowed_places = dag
             .borrowed_places
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|borrowed_place| <a href="#864">borrowed_place</a>.<a href="#9">substitute</a>(<a href="#849">map</a>))
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
-        <a href="#850">dag</a>
+            .into_iter()
+            .map(|borrowed_place| borrowed_place.substitute(map))
+            .collect();
+        dag
     }
 }
 
 <span class="comment">// program
-</span><span class="kw">impl </span><a href="#7">Generic</a> <span class="kw">for </span><a href="../up/gen/polymorphic/program.rs.html#3">Program</a> {
-    <span class="kw">fn </span>substitute(<span class="self">self</span>, map: <span class="kw-2">&amp;</span>FxHashMap&lt;<a href="../up/gen/polymorphic/ast/common.rs.html#590">TypeVar</a>, <a href="../up/gen/polymorphic/ast/common.rs.html#174">Type</a>&gt;) -&gt; <span class="self">Self </span>{
-        <span class="kw">let </span><span class="kw-2">mut </span>program = <a class="self" href="#872">self</a>;
-        <a href="#873">program</a>.domains = <a href="#873">program</a>
+</span><span class="kw">impl </span>Generic <span class="kw">for </span>Program {
+    <span class="kw">fn </span>substitute(<span class="self">self</span>, map: <span class="kw-2">&amp;</span>FxHashMap&lt;TypeVar, Type&gt;) -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span><span class="kw-2">mut </span>program = <span class="self">self</span>;
+        program.domains = program
             .domains
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|domain| <a href="#877">domain</a>.<a href="#9">substitute</a>(<a href="#872">map</a>))
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
-        <a href="#873">program</a>.fields = <a href="#873">program</a>
+            .into_iter()
+            .map(|domain| domain.substitute(map))
+            .collect();
+        program.fields = program
             .fields
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|field| <a href="#882">field</a>.<a href="#9">substitute</a>(<a href="#872">map</a>))
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
-        <a href="#873">program</a>.builtin_methods = <a href="#873">program</a>
+            .into_iter()
+            .map(|field| field.substitute(map))
+            .collect();
+        program.builtin_methods = program
             .builtin_methods
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|builtin_method| <a href="#887">builtin_method</a>.<a href="#9">substitute</a>(<a href="#872">map</a>))
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
-        <a href="#873">program</a>.methods = <a href="#873">program</a>
+            .into_iter()
+            .map(|builtin_method| builtin_method.substitute(map))
+            .collect();
+        program.methods = program
             .methods
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|method| <a href="#892">method</a>.<a href="#9">substitute</a>(<a href="#872">map</a>))
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
-        <a href="#873">program</a>.functions = <a href="#873">program</a>
+            .into_iter()
+            .map(|method| method.substitute(map))
+            .collect();
+        program.functions = program
             .functions
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|function| <a href="#897">function</a>.<a href="#9">substitute</a>(<a href="#872">map</a>))
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
-        <a href="#873">program</a>.viper_predicates = <a href="#873">program</a>
+            .into_iter()
+            .map(|function| function.substitute(map))
+            .collect();
+        program.viper_predicates = program
             .viper_predicates
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|viper_predicate| <a href="#902">viper_predicate</a>.<a href="#9">substitute</a>(<a href="#872">map</a>))
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
-        <a href="#873">program</a>
+            .into_iter()
+            .map(|viper_predicate| viper_predicate.substitute(map))
+            .collect();
+        program
     }
 }
 
@@ -8707,4 +8707,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="vir" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="vir" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

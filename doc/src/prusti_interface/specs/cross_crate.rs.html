@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `prusti-interface/src/specs/cross_crate.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>cross_crate.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../prusti_interface/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `prusti-interface/src/specs/cross_crate.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>cross_crate.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../prusti_interface/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -112,53 +112,53 @@
 <a href="#112" id="112">112</a>
 <a href="#113" id="113">113</a>
 </pre><pre class="rust"><code><span class="kw">use </span>prusti_rustc_interface::{
-    <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_metadata/creader/struct.CStore.html">metadata::creader::CStore</a>,
-    serialize::{<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_serialize/serialize/trait.Decodable.html">Decodable</a>, <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_serialize/serialize/trait.Encodable.html">Encodable</a>},
-    <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/span_encoding/constant.DUMMY_SP.html">span::DUMMY_SP</a>,
+    metadata::creader::CStore,
+    serialize::{Decodable, Encodable},
+    span::DUMMY_SP,
 };
-<span class="kw">use </span><a href="../../../rustc_hash/type.FxHashMap.html">rustc_hash::FxHashMap</a>;
-<span class="kw">use </span>std::{<a href="https://doc.rust-lang.org/nightly/std/fs/index.html">fs</a>, <a href="https://doc.rust-lang.org/nightly/std/io/index.html">io</a>, <a href="https://doc.rust-lang.org/nightly/std/path/index.html">path</a>};
+<span class="kw">use </span>rustc_hash::FxHashMap;
+<span class="kw">use </span>std::{fs, io, path};
 
 <span class="kw">use crate</span>::{
-    environment::{<a href="../environment/body.rs.html#332">body::CrossCrateBodies</a>, <a href="../environment/mod.rs.html#51">Environment</a>},
-    <a href="typed.rs.html#15">specs::typed::DefSpecificationMap</a>,
-    <a href="../prusti_error.rs.html#22">PrustiError</a>,
+    environment::{body::CrossCrateBodies, Environment},
+    specs::typed::DefSpecificationMap,
+    PrustiError,
 };
 
-<span class="kw">use super</span>::{<a href="decoder.rs.html#13">decoder::DefSpecsDecoder</a>, <a href="encoder.rs.html#12">encoder::DefSpecsEncoder</a>};
+<span class="kw">use super</span>::{decoder::DefSpecsDecoder, encoder::DefSpecsEncoder};
 
 <span class="kw">pub struct </span>CrossCrateSpecs;
 
-<span class="kw">impl </span><a href="#17">CrossCrateSpecs</a> {
-    <span class="kw">pub fn </span>import_export_cross_crate(env: <span class="kw-2">&amp;mut </span><a href="../environment/mod.rs.html#51">Environment</a>, def_spec: <span class="kw-2">&amp;mut </span><a href="typed.rs.html#15">DefSpecificationMap</a>) {
-        <span class="self">Self</span>::export_specs(<a href="#20">env</a>, <a href="#20">def_spec</a>);
-        <span class="self">Self</span>::import_specs(<a href="#20">env</a>, <a href="#20">def_spec</a>);
+<span class="kw">impl </span>CrossCrateSpecs {
+    <span class="kw">pub fn </span>import_export_cross_crate(env: <span class="kw-2">&amp;mut </span>Environment, def_spec: <span class="kw-2">&amp;mut </span>DefSpecificationMap) {
+        <span class="self">Self</span>::export_specs(env, def_spec);
+        <span class="self">Self</span>::import_specs(env, def_spec);
     }
 
-    <span class="kw">fn </span>export_specs(env: <span class="kw-2">&amp;</span><a href="../environment/mod.rs.html#51">Environment</a>, def_spec: <span class="kw-2">&amp;</span><a href="typed.rs.html#15">DefSpecificationMap</a>) {
-        <span class="kw">let </span>outputs = <a href="#25">env</a>.<a href="../environment/mod.rs.html#72">tcx</a>().output_filenames(());
+    <span class="kw">fn </span>export_specs(env: <span class="kw-2">&amp;</span>Environment, def_spec: <span class="kw-2">&amp;</span>DefSpecificationMap) {
+        <span class="kw">let </span>outputs = env.tcx().output_filenames(());
         <span class="comment">// If we run `rustc` without the `--out-dir` flag set, then don&#39;t export specs
         </span><span class="kw">if </span>outputs.out_directory.to_string_lossy() == <span class="string">&quot;&quot; </span>{
             <span class="kw">return</span>;
         }
-        <span class="kw">let </span>target_filename = <a href="#26">outputs</a>
+        <span class="kw">let </span>target_filename = outputs
             .out_directory
-            .join(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;lib{}.specs&quot;</span>, env.name.local_crate_filename()));
-        <span class="kw">if let </span><span class="prelude-val">Err</span>(e) = <span class="self">Self</span>::write_into_file(<a href="#25">env</a>, <a href="#25">def_spec</a>, <span class="kw-2">&amp;</span><a href="#31">target_filename</a>) {
+            .join(<span class="macro">format!</span>(<span class="string">&quot;lib{}.specs&quot;</span>, env.name.local_crate_filename()));
+        <span class="kw">if let </span><span class="prelude-val">Err</span>(e) = <span class="self">Self</span>::write_into_file(env, def_spec, <span class="kw-2">&amp;</span>target_filename) {
             PrustiError::internal(
-                <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(
+                <span class="macro">format!</span>(
                     <span class="string">&quot;error exporting specs to file \&quot;{}\&quot;: {}&quot;</span>,
                     target_filename.to_string_lossy(),
                     e
                 ),
-                <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/span_encoding/constant.DUMMY_SP.html">DUMMY_SP</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
+                DUMMY_SP.into(),
             )
-            .<a href="../prusti_error.rs.html#185">emit</a>(<span class="kw-2">&amp;</span><a href="#25">env</a>.diagnostic);
+            .emit(<span class="kw-2">&amp;</span>env.diagnostic);
         }
     }
 
-    <span class="kw">fn </span>import_specs(env: <span class="kw-2">&amp;mut </span><a href="../environment/mod.rs.html#51">Environment</a>, def_spec: <span class="kw-2">&amp;mut </span><a href="typed.rs.html#15">DefSpecificationMap</a>) {
-        <span class="kw">let </span>cstore = CStore::from_tcx(<a href="#47">env</a>.<a href="../environment/mod.rs.html#72">tcx</a>());
+    <span class="kw">fn </span>import_specs(env: <span class="kw-2">&amp;mut </span>Environment, def_spec: <span class="kw-2">&amp;mut </span>DefSpecificationMap) {
+        <span class="kw">let </span>cstore = CStore::from_tcx(env.tcx());
         <span class="comment">// TODO: atm one needs to write `extern crate extern_spec_lib` to import the specs
         // from a crate which is not used in the current crate (e.g. an `#[extern_spec]` only crate)
         // Otherwise the crate doesn&#39;t show up in `tcx.crates()`.  Is there some better way
@@ -189,40 +189,40 @@
     }
 
     <span class="kw">fn </span>write_into_file(
-        env: <span class="kw-2">&amp;</span><a href="../environment/mod.rs.html#51">Environment</a>,
-        def_spec: <span class="kw-2">&amp;</span><a href="typed.rs.html#15">DefSpecificationMap</a>,
-        path: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/path/struct.PathBuf.html">path::PathBuf</a>,
-    ) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
-        <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">std::io::Write</a>;
-        <span class="kw">let </span><span class="kw-2">mut </span>encoder = DefSpecsEncoder::new(<a href="#79">env</a>.<a href="../environment/mod.rs.html#72">tcx</a>());
-        <a href="#80">def_spec</a>.proc_specs.<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_serialize/serialize/trait.Encodable.html">encode</a>(<span class="kw-2">&amp;mut </span><a href="#84">encoder</a>);
-        <a href="#80">def_spec</a>.type_specs.<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_serialize/serialize/trait.Encodable.html">encode</a>(<span class="kw-2">&amp;mut </span><a href="#84">encoder</a>);
-        CrossCrateBodies::from(<span class="kw-2">&amp;</span><a href="#79">env</a>.body).<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_serialize/serialize/trait.Encodable.html">encode</a>(<span class="kw-2">&amp;mut </span><a href="#84">encoder</a>);
+        env: <span class="kw-2">&amp;</span>Environment,
+        def_spec: <span class="kw-2">&amp;</span>DefSpecificationMap,
+        path: <span class="kw-2">&amp;</span>path::PathBuf,
+    ) -&gt; io::Result&lt;usize&gt; {
+        <span class="kw">use </span>std::io::Write;
+        <span class="kw">let </span><span class="kw-2">mut </span>encoder = DefSpecsEncoder::new(env.tcx());
+        def_spec.proc_specs.encode(<span class="kw-2">&amp;mut </span>encoder);
+        def_spec.type_specs.encode(<span class="kw-2">&amp;mut </span>encoder);
+        CrossCrateBodies::from(<span class="kw-2">&amp;</span>env.body).encode(<span class="kw-2">&amp;mut </span>encoder);
 
         <span class="comment">// Probably not needed; dir should already exist?
         </span>fs::create_dir_all(path.parent().unwrap())<span class="question-mark">?</span>;
         <span class="kw">let </span><span class="kw-2">mut </span>file = fs::File::create(path)<span class="question-mark">?</span>;
-        <a href="#91">file</a>.<a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">write</a>(<span class="kw-2">&amp;</span><a href="#84">encoder</a>.<a href="encoder.rs.html#31">into_inner</a>())
+        file.write(<span class="kw-2">&amp;</span>encoder.into_inner())
     }
 
     <span class="kw">fn </span>import_from_file(
-        env: <span class="kw-2">&amp;mut </span><a href="../environment/mod.rs.html#51">Environment</a>,
-        def_spec: <span class="kw-2">&amp;mut </span><a href="typed.rs.html#15">DefSpecificationMap</a>,
-        path: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/path/struct.PathBuf.html">path::PathBuf</a>,
+        env: <span class="kw-2">&amp;mut </span>Environment,
+        def_spec: <span class="kw-2">&amp;mut </span>DefSpecificationMap,
+        path: <span class="kw-2">&amp;</span>path::PathBuf,
     ) -&gt; io::Result&lt;()&gt; {
-        <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">std::io::Read</a>;
+        <span class="kw">use </span>std::io::Read;
         <span class="kw">let </span><span class="kw-2">mut </span>data = Vec::new();
         <span class="kw">let </span><span class="kw-2">mut </span>file = fs::File::open(path)<span class="question-mark">?</span>;
         file.read_to_end(<span class="kw-2">&amp;mut </span>data)<span class="question-mark">?</span>;
-        <span class="kw">let </span><span class="kw-2">mut </span>decoder = DefSpecsDecoder::new(<a href="#96">env</a>.<a href="../environment/mod.rs.html#72">tcx</a>(), <span class="kw-2">&amp;</span><a href="#101">data</a>);
+        <span class="kw">let </span><span class="kw-2">mut </span>decoder = DefSpecsDecoder::new(env.tcx(), <span class="kw-2">&amp;</span>data);
 
-        <span class="kw">let </span>proc_specs = FxHashMap::decode(<span class="kw-2">&amp;mut </span><a href="#104">decoder</a>);
-        <span class="kw">let </span>type_specs = FxHashMap::decode(<span class="kw-2">&amp;mut </span><a href="#104">decoder</a>);
-        <span class="kw">let </span>mirs_of_specs = CrossCrateBodies::decode(<span class="kw-2">&amp;mut </span><a href="#104">decoder</a>);
-        <a href="#97">def_spec</a>.<a href="typed.rs.html#109-114">import_external</a>(<a href="#106">proc_specs</a>, <a href="#107">type_specs</a>, <a href="#96">env</a>);
-        <a href="#96">env</a>.body.<a href="../environment/body.rs.html#324">import_external_bodies</a>(<a href="#108">mirs_of_specs</a>);
+        <span class="kw">let </span>proc_specs = FxHashMap::decode(<span class="kw-2">&amp;mut </span>decoder);
+        <span class="kw">let </span>type_specs = FxHashMap::decode(<span class="kw-2">&amp;mut </span>decoder);
+        <span class="kw">let </span>mirs_of_specs = CrossCrateBodies::decode(<span class="kw-2">&amp;mut </span>decoder);
+        def_spec.import_external(proc_specs, type_specs, env);
+        env.body.import_external_bodies(mirs_of_specs);
         <span class="prelude-val">Ok</span>(())
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="prusti_interface" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="prusti_interface" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

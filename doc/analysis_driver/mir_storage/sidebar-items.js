@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"constant":[["MIR_BODIES",""]],"fn":[["retrieve_mir_body",""],["store_mir_body",""]]};
+window.SIDEBAR_ITEMS = {"constant":[["MIR_BODIES",""]],"fn":[["__getit",""],["__init",""],["retrieve_mir_body",""],["store_mir_body",""]],"static":[["__KEY",""]]};

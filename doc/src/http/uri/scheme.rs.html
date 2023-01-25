@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/http-0.2.8/src/uri/scheme.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>scheme.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../http/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/http-0.2.8/src/uri/scheme.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>scheme.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../http/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -361,26 +361,26 @@
 <a href="#361" id="361">361</a>
 <a href="#362" id="362">362</a>
 <a href="#363" id="363">363</a>
-</pre><pre class="rust"><code><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/convert/trait.TryFrom.html">std::convert::TryFrom</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">std::fmt</a>;
-<span class="kw">use </span>std::hash::{<a href="https://doc.rust-lang.org/nightly/core/hash/macros/derive.Hash.html">Hash</a>, <a href="https://doc.rust-lang.org/nightly/core/hash/trait.Hasher.html">Hasher</a>};
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/str/traits/trait.FromStr.html">std::str::FromStr</a>;
+</pre><pre class="rust"><code><span class="kw">use </span>std::convert::TryFrom;
+<span class="kw">use </span>std::fmt;
+<span class="kw">use </span>std::hash::{Hash, Hasher};
+<span class="kw">use </span>std::str::FromStr;
 
-<span class="kw">use </span><a href="../../../bytes/bytes/struct.Bytes.html">bytes::Bytes</a>;
+<span class="kw">use </span>bytes::Bytes;
 
-<span class="kw">use super</span>::{<a href="mod.rs.html#129">ErrorKind</a>, <a href="mod.rs.html#122">InvalidUri</a>};
-<span class="kw">use </span><a href="../byte_str.rs.html#6"><span class="kw">crate</span>::byte_str::ByteStr</a>;
+<span class="kw">use super</span>::{ErrorKind, InvalidUri};
+<span class="kw">use </span><span class="kw">crate</span>::byte_str::ByteStr;
 
 <span class="doccomment">/// Represents the scheme component of a URI
 </span><span class="attr">#[derive(Clone)]
 </span><span class="kw">pub struct </span>Scheme {
-    <span class="kw">pub</span>(<span class="kw">super</span>) inner: <a href="#18">Scheme2</a>,
+    <span class="kw">pub</span>(<span class="kw">super</span>) inner: Scheme2,
 }
 
 <span class="attr">#[derive(Clone, Debug)]
-</span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">enum </span>Scheme2&lt;T = Box&lt;<a href="../byte_str.rs.html#6">ByteStr</a>&gt;&gt; {
+</span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">enum </span>Scheme2&lt;T = Box&lt;ByteStr&gt;&gt; {
     <span class="prelude-val">None</span>,
-    Standard(<a href="#25">Protocol</a>),
+    Standard(Protocol),
     Other(T),
 }
 
@@ -390,20 +390,20 @@
     Https,
 }
 
-<span class="kw">impl </span><a href="#13">Scheme</a> {
+<span class="kw">impl </span>Scheme {
     <span class="doccomment">/// HTTP protocol scheme
-    </span><span class="kw">pub const </span>HTTP: <a href="#13">Scheme</a> = <a href="#13">Scheme</a> {
-        inner: <a href="#20">Scheme2::Standard</a>(<a href="#26">Protocol::Http</a>),
+    </span><span class="kw">pub const </span>HTTP: Scheme = Scheme {
+        inner: Scheme2::Standard(Protocol::Http),
     };
 
     <span class="doccomment">/// HTTP protocol over TLS.
-    </span><span class="kw">pub const </span>HTTPS: <a href="#13">Scheme</a> = <a href="#13">Scheme</a> {
-        inner: <a href="#20">Scheme2::Standard</a>(<a href="#27">Protocol::Https</a>),
+    </span><span class="kw">pub const </span>HTTPS: Scheme = Scheme {
+        inner: Scheme2::Standard(Protocol::Https),
     };
 
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>empty() -&gt; <span class="self">Self </span>{
-        <a href="#13">Scheme</a> {
-            inner: <a href="#19">Scheme2::None</a>,
+        Scheme {
+            inner: Scheme2::None,
         }
     }
 
@@ -417,92 +417,92 @@
     /// assert_eq!(scheme.as_str(), &quot;http&quot;);
     /// ```
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>as_str(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> {
-        <span class="kw">use </span><a href="#25"><span class="self">self</span>::Protocol</a>::<span class="kw-2">*</span>;
-        <span class="kw">use </span><a href="#18"><span class="self">self</span>::Scheme2</a>::<span class="kw-2">*</span>;
+    </span><span class="kw">pub fn </span>as_str(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>str {
+        <span class="kw">use </span><span class="self">self</span>::Protocol::<span class="kw-2">*</span>;
+        <span class="kw">use </span><span class="self">self</span>::Scheme2::<span class="kw-2">*</span>;
 
-        <span class="kw">match </span><a class="self" href="#57">self</a>.inner {
-            <a href="#20">Standard</a>(<a href="#26">Http</a>) =&gt; <span class="string">&quot;http&quot;</span>,
-            <a href="#20">Standard</a>(<a href="#27">Https</a>) =&gt; <span class="string">&quot;https&quot;</span>,
-            <a href="#21">Other</a>(<span class="kw-2">ref </span>v) =&gt; <span class="kw-2">&amp;</span><a href="#64">v</a>[..],
-            <span class="prelude-val">None </span>=&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(),
+        <span class="kw">match </span><span class="self">self</span>.inner {
+            Standard(Http) =&gt; <span class="string">&quot;http&quot;</span>,
+            Standard(Https) =&gt; <span class="string">&quot;https&quot;</span>,
+            Other(<span class="kw-2">ref </span>v) =&gt; <span class="kw-2">&amp;</span>v[..],
+            <span class="prelude-val">None </span>=&gt; <span class="macro">unreachable!</span>(),
         }
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; TryFrom&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt; <span class="kw">for </span><a href="#13">Scheme</a> {
-    <span class="kw">type </span>Error = <a href="mod.rs.html#122">InvalidUri</a>;
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; TryFrom&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[u8]&gt; <span class="kw">for </span>Scheme {
+    <span class="kw">type </span>Error = InvalidUri;
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>try_from(s: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, <span class="self">Self</span>::Error&gt; {
-        <span class="kw">use </span><a href="#18"><span class="self">self</span>::Scheme2</a>::<span class="kw-2">*</span>;
+    </span><span class="kw">fn </span>try_from(s: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, <span class="self">Self</span>::Error&gt; {
+        <span class="kw">use </span><span class="self">self</span>::Scheme2::<span class="kw-2">*</span>;
 
         <span class="kw">match </span>Scheme2::parse_exact(s)<span class="question-mark">? </span>{
-            <span class="prelude-val">None </span>=&gt; <span class="prelude-val">Err</span>(<a href="mod.rs.html#131">ErrorKind::InvalidScheme</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
-            <a href="#20">Standard</a>(p) =&gt; <span class="prelude-val">Ok</span>(<a href="#20">Standard</a>(<a href="#78">p</a>).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
-            <a href="#21">Other</a>(<span class="kw">_</span>) =&gt; {
-                <span class="kw">let </span>bytes = Bytes::copy_from_slice(<a href="#73">s</a>);
+            <span class="prelude-val">None </span>=&gt; <span class="prelude-val">Err</span>(ErrorKind::InvalidScheme.into()),
+            Standard(p) =&gt; <span class="prelude-val">Ok</span>(Standard(p).into()),
+            Other(<span class="kw">_</span>) =&gt; {
+                <span class="kw">let </span>bytes = Bytes::copy_from_slice(s);
 
                 <span class="comment">// Safety: postcondition on parse_exact() means that s and
                 // hence bytes are valid UTF-8.
-                </span><span class="kw">let </span>string = <span class="kw">unsafe </span>{ ByteStr::from_utf8_unchecked(<a href="#80">bytes</a>) };
+                </span><span class="kw">let </span>string = <span class="kw">unsafe </span>{ ByteStr::from_utf8_unchecked(bytes) };
 
-                <span class="prelude-val">Ok</span>(<a href="#21">Other</a>(Box::new(<a href="#84">string</a>)).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
+                <span class="prelude-val">Ok</span>(Other(Box::new(string)).into())
             }
         }
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; TryFrom&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt; <span class="kw">for </span><a href="#13">Scheme</a> {
-    <span class="kw">type </span>Error = <a href="mod.rs.html#122">InvalidUri</a>;
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; TryFrom&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>str&gt; <span class="kw">for </span>Scheme {
+    <span class="kw">type </span>Error = InvalidUri;
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>try_from(s: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, <span class="self">Self</span>::Error&gt; {
-        <a href="https://doc.rust-lang.org/nightly/core/convert/trait.TryFrom.html">TryFrom::try_from</a>(<a href="#95">s</a>.as_bytes())
+    </span><span class="kw">fn </span>try_from(s: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>str) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, <span class="self">Self</span>::Error&gt; {
+        TryFrom::try_from(s.as_bytes())
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/str/traits/trait.FromStr.html">FromStr</a> <span class="kw">for </span><a href="#13">Scheme</a> {
-    <span class="kw">type </span><span class="prelude-val">Err </span>= <a href="mod.rs.html#122">InvalidUri</a>;
+<span class="kw">impl </span>FromStr <span class="kw">for </span>Scheme {
+    <span class="kw">type </span><span class="prelude-val">Err </span>= InvalidUri;
 
-    <span class="kw">fn </span>from_str(s: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, <span class="self">Self</span>::Err&gt; {
-        <a href="https://doc.rust-lang.org/nightly/core/convert/trait.TryFrom.html">TryFrom::try_from</a>(<a href="#103">s</a>)
+    <span class="kw">fn </span>from_str(s: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, <span class="self">Self</span>::Err&gt; {
+        TryFrom::try_from(s)
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="#13">Scheme</a> {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug::fmt</a>(<a class="self" href="#109">self</a>.<a href="#57">as_str</a>(), <a href="#109">f</a>)
+<span class="kw">impl </span>fmt::Debug <span class="kw">for </span>Scheme {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        fmt::Debug::fmt(<span class="self">self</span>.as_str(), f)
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for </span><a href="#13">Scheme</a> {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a href="#115">f</a>.write_str(<a class="self" href="#115">self</a>.<a href="#57">as_str</a>())
+<span class="kw">impl </span>fmt::Display <span class="kw">for </span>Scheme {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        f.write_str(<span class="self">self</span>.as_str())
     }
 }
 
-<span class="kw">impl </span>AsRef&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt; <span class="kw">for </span><a href="#13">Scheme</a> {
+<span class="kw">impl </span>AsRef&lt;str&gt; <span class="kw">for </span>Scheme {
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>as_ref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> {
-        <a class="self" href="#122">self</a>.<a href="#57">as_str</a>()
+    </span><span class="kw">fn </span>as_ref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>str {
+        <span class="self">self</span>.as_str()
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/cmp/trait.PartialEq.html">PartialEq</a> <span class="kw">for </span><a href="#13">Scheme</a> {
-    <span class="kw">fn </span>eq(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><a href="#13">Scheme</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">use </span><a href="#25"><span class="self">self</span>::Protocol</a>::<span class="kw-2">*</span>;
-        <span class="kw">use </span><a href="#18"><span class="self">self</span>::Scheme2</a>::<span class="kw-2">*</span>;
+<span class="kw">impl </span>PartialEq <span class="kw">for </span>Scheme {
+    <span class="kw">fn </span>eq(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span>Scheme) -&gt; bool {
+        <span class="kw">use </span><span class="self">self</span>::Protocol::<span class="kw-2">*</span>;
+        <span class="kw">use </span><span class="self">self</span>::Scheme2::<span class="kw-2">*</span>;
 
-        <span class="kw">match </span>(<span class="kw-2">&amp;</span><a class="self" href="#128">self</a>.inner, <span class="kw-2">&amp;</span><a href="#128">other</a>.inner) {
-            (<span class="kw-2">&amp;</span><a href="#20">Standard</a>(<a href="#26">Http</a>), <span class="kw-2">&amp;</span><a href="#20">Standard</a>(<a href="#26">Http</a>)) =&gt; <span class="bool-val">true</span>,
-            (<span class="kw-2">&amp;</span><a href="#20">Standard</a>(<a href="#27">Https</a>), <span class="kw-2">&amp;</span><a href="#20">Standard</a>(<a href="#27">Https</a>)) =&gt; <span class="bool-val">true</span>,
-            (<span class="kw-2">&amp;</span><a href="#21">Other</a>(<span class="kw-2">ref </span>a), <span class="kw-2">&amp;</span><a href="#21">Other</a>(<span class="kw-2">ref </span>b)) =&gt; <a href="#135">a</a>.eq_ignore_ascii_case(<a href="#135">b</a>),
-            (<span class="kw-2">&amp;</span><span class="prelude-val">None</span>, <span class="kw">_</span>) | (<span class="kw">_</span>, <span class="kw-2">&amp;</span><span class="prelude-val">None</span>) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(),
+        <span class="kw">match </span>(<span class="kw-2">&amp;</span><span class="self">self</span>.inner, <span class="kw-2">&amp;</span>other.inner) {
+            (<span class="kw-2">&amp;</span>Standard(Http), <span class="kw-2">&amp;</span>Standard(Http)) =&gt; <span class="bool-val">true</span>,
+            (<span class="kw-2">&amp;</span>Standard(Https), <span class="kw-2">&amp;</span>Standard(Https)) =&gt; <span class="bool-val">true</span>,
+            (<span class="kw-2">&amp;</span>Other(<span class="kw-2">ref </span>a), <span class="kw-2">&amp;</span>Other(<span class="kw-2">ref </span>b)) =&gt; a.eq_ignore_ascii_case(b),
+            (<span class="kw-2">&amp;</span><span class="prelude-val">None</span>, <span class="kw">_</span>) | (<span class="kw">_</span>, <span class="kw-2">&amp;</span><span class="prelude-val">None</span>) =&gt; <span class="macro">unreachable!</span>(),
             <span class="kw">_ </span>=&gt; <span class="bool-val">false</span>,
         }
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Eq.html">Eq</a> <span class="kw">for </span><a href="#13">Scheme</a> {}
+<span class="kw">impl </span>Eq <span class="kw">for </span>Scheme {}
 
 <span class="doccomment">/// Case-insensitive equality
 ///
@@ -513,31 +513,31 @@
 /// let scheme: Scheme = &quot;HTTP&quot;.parse().unwrap();
 /// assert_eq!(scheme, *&quot;http&quot;);
 /// ```
-</span><span class="kw">impl </span>PartialEq&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt; <span class="kw">for </span><a href="#13">Scheme</a> {
-    <span class="kw">fn </span>eq(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#154">self</a>.<a href="#57">as_str</a>().eq_ignore_ascii_case(<a href="#154">other</a>)
+</span><span class="kw">impl </span>PartialEq&lt;str&gt; <span class="kw">for </span>Scheme {
+    <span class="kw">fn </span>eq(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span>str) -&gt; bool {
+        <span class="self">self</span>.as_str().eq_ignore_ascii_case(other)
     }
 }
 
 <span class="doccomment">/// Case-insensitive equality
-</span><span class="kw">impl </span>PartialEq&lt;<a href="#13">Scheme</a>&gt; <span class="kw">for </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> {
-    <span class="kw">fn </span>eq(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><a href="#13">Scheme</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a href="#161">other</a> == <span class="self"><a href="#161">self</a>
+</span><span class="kw">impl </span>PartialEq&lt;Scheme&gt; <span class="kw">for </span>str {
+    <span class="kw">fn </span>eq(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span>Scheme) -&gt; bool {
+        other == <span class="self">self
     </span>}
 }
 
 <span class="doccomment">/// Case-insensitive hashing
-</span><span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/hash/trait.Hash.html">Hash</a> <span class="kw">for </span><a href="#13">Scheme</a> {
+</span><span class="kw">impl </span>Hash <span class="kw">for </span>Scheme {
     <span class="kw">fn </span>hash&lt;H&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, state: <span class="kw-2">&amp;mut </span>H)
     <span class="kw">where
-        </span>H: <a href="https://doc.rust-lang.org/nightly/core/hash/trait.Hasher.html">Hasher</a>,
+        </span>H: Hasher,
     {
-        <span class="kw">match </span><a class="self" href="#168">self</a>.inner {
-            <a href="#19">Scheme2::None</a> =&gt; (),
-            <a href="#20">Scheme2::Standard</a>(<a href="#26">Protocol::Http</a>) =&gt; <a href="#168">state</a>.<a href="https://doc.rust-lang.org/nightly/core/hash/trait.Hasher.html">write_u8</a>(<span class="number">1</span>),
-            <a href="#20">Scheme2::Standard</a>(<a href="#27">Protocol::Https</a>) =&gt; <a href="#168">state</a>.<a href="https://doc.rust-lang.org/nightly/core/hash/trait.Hasher.html">write_u8</a>(<span class="number">2</span>),
-            <a href="#21">Scheme2::Other</a>(<span class="kw-2">ref </span>other) =&gt; {
-                <a href="#176">other</a>.len().<a href="https://doc.rust-lang.org/nightly/core/hash/trait.Hash.html">hash</a>(<a href="#168">state</a>);
+        <span class="kw">match </span><span class="self">self</span>.inner {
+            Scheme2::None =&gt; (),
+            Scheme2::Standard(Protocol::Http) =&gt; state.write_u8(<span class="number">1</span>),
+            Scheme2::Standard(Protocol::Https) =&gt; state.write_u8(<span class="number">2</span>),
+            Scheme2::Other(<span class="kw-2">ref </span>other) =&gt; {
+                other.len().hash(state);
                 <span class="kw">for </span><span class="kw-2">&amp;</span>b <span class="kw">in </span>other.as_bytes() {
                     state.write_u8(b.to_ascii_lowercase());
                 }
@@ -547,9 +547,9 @@
 }
 
 <span class="kw">impl</span>&lt;T&gt; Scheme2&lt;T&gt; {
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>is_none(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="#187">self</a> </span>{
-            <a href="#19">Scheme2::None</a> =&gt; <span class="bool-val">true</span>,
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>is_none(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="kw">match </span><span class="kw-2">*</span><span class="self">self </span>{
+            Scheme2::None =&gt; <span class="bool-val">true</span>,
             <span class="kw">_ </span>=&gt; <span class="bool-val">false</span>,
         }
     }
@@ -557,7 +557,7 @@
 
 <span class="comment">// Require the scheme to not be too long in order to enable further
 // optimizations later.
-</span><span class="kw">const </span>MAX_SCHEME_LEN: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> = <span class="number">64</span>;
+</span><span class="kw">const </span>MAX_SCHEME_LEN: usize = <span class="number">64</span>;
 
 <span class="comment">// scheme = ALPHA *( ALPHA / DIGIT / &quot;+&quot; / &quot;-&quot; / &quot;.&quot; )
 //
@@ -567,7 +567,7 @@
 // important characteristic of this table is that all entries above 127 are
 // invalid. This makes all of the valid entries a valid single-byte UTF-8 code
 // point. This means that a slice of such valid entries is valid UTF-8.
-</span><span class="kw">const </span>SCHEME_CHARS: [<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="number">256</span>] = [
+</span><span class="kw">const </span>SCHEME_CHARS: [u8; <span class="number">256</span>] = [
     <span class="comment">//  0      1      2      3      4      5      6      7      8      9
         </span><span class="number">0</span>,     <span class="number">0</span>,     <span class="number">0</span>,     <span class="number">0</span>,     <span class="number">0</span>,     <span class="number">0</span>,     <span class="number">0</span>,     <span class="number">0</span>,     <span class="number">0</span>,     <span class="number">0</span>, <span class="comment">//   x
         </span><span class="number">0</span>,     <span class="number">0</span>,     <span class="number">0</span>,     <span class="number">0</span>,     <span class="number">0</span>,     <span class="number">0</span>,     <span class="number">0</span>,     <span class="number">0</span>,     <span class="number">0</span>,     <span class="number">0</span>, <span class="comment">//  1x
@@ -597,15 +597,15 @@
         </span><span class="number">0</span>,     <span class="number">0</span>,     <span class="number">0</span>,     <span class="number">0</span>,     <span class="number">0</span>,     <span class="number">0                              </span><span class="comment">// 25x
 </span>];
 
-<span class="kw">impl </span>Scheme2&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
+<span class="kw">impl </span>Scheme2&lt;usize&gt; {
     <span class="comment">// Postcondition: On all Ok() returns, s is valid UTF-8
-    </span><span class="kw">fn </span>parse_exact(s: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Result</span>&lt;Scheme2&lt;()&gt;, <a href="mod.rs.html#122">InvalidUri</a>&gt; {
-        <span class="kw">match </span><a href="#239">s</a> {
-            <span class="string">b&quot;http&quot; </span>=&gt; <span class="prelude-val">Ok</span>(<a href="#26">Protocol::Http</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
-            <span class="string">b&quot;https&quot; </span>=&gt; <span class="prelude-val">Ok</span>(<a href="#27">Protocol::Https</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
+    </span><span class="kw">fn </span>parse_exact(s: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;Scheme2&lt;()&gt;, InvalidUri&gt; {
+        <span class="kw">match </span>s {
+            <span class="string">b&quot;http&quot; </span>=&gt; <span class="prelude-val">Ok</span>(Protocol::Http.into()),
+            <span class="string">b&quot;https&quot; </span>=&gt; <span class="prelude-val">Ok</span>(Protocol::Https.into()),
             <span class="kw">_ </span>=&gt; {
                 <span class="kw">if </span>s.len() &gt; MAX_SCHEME_LEN {
-                    <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="mod.rs.html#140">ErrorKind::SchemeTooLong</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>());
+                    <span class="kw">return </span><span class="prelude-val">Err</span>(ErrorKind::SchemeTooLong.into());
                 }
 
                 <span class="comment">// check that each byte in s is a SCHEME_CHARS which implies
@@ -623,24 +623,24 @@
                     }
                 }
 
-                <span class="prelude-val">Ok</span>(<a href="#21">Scheme2::Other</a>(()))
+                <span class="prelude-val">Ok</span>(Scheme2::Other(()))
             }
         }
     }
 
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>parse(s: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Result</span>&lt;Scheme2&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;, <a href="mod.rs.html#122">InvalidUri</a>&gt; {
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>parse(s: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;Scheme2&lt;usize&gt;, InvalidUri&gt; {
         <span class="kw">if </span>s.len() &gt;= <span class="number">7 </span>{
             <span class="comment">// Check for HTTP
             </span><span class="kw">if </span>s[..<span class="number">7</span>].eq_ignore_ascii_case(<span class="string">b&quot;http://&quot;</span>) {
                 <span class="comment">// Prefix will be striped
-                </span><span class="kw">return </span><span class="prelude-val">Ok</span>(<a href="#26">Protocol::Http</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>());
+                </span><span class="kw">return </span><span class="prelude-val">Ok</span>(Protocol::Http.into());
             }
         }
 
         <span class="kw">if </span>s.len() &gt;= <span class="number">8 </span>{
             <span class="comment">// Check for HTTPs
             </span><span class="kw">if </span>s[..<span class="number">8</span>].eq_ignore_ascii_case(<span class="string">b&quot;https://&quot;</span>) {
-                <span class="kw">return </span><span class="prelude-val">Ok</span>(<a href="#27">Protocol::Https</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>());
+                <span class="kw">return </span><span class="prelude-val">Ok</span>(Protocol::Https.into());
             }
         }
 
@@ -674,29 +674,29 @@
             }
         }
 
-        <span class="prelude-val">Ok</span>(<a href="#19">Scheme2::None</a>)
+        <span class="prelude-val">Ok</span>(Scheme2::None)
     }
 }
 
-<span class="kw">impl </span><a href="#25">Protocol</a> {
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="#319">self</a> </span>{
-            <a href="#26">Protocol::Http</a> =&gt; <span class="number">4</span>,
-            <a href="#27">Protocol::Https</a> =&gt; <span class="number">5</span>,
+<span class="kw">impl </span>Protocol {
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+        <span class="kw">match </span><span class="kw-2">*</span><span class="self">self </span>{
+            Protocol::Http =&gt; <span class="number">4</span>,
+            Protocol::Https =&gt; <span class="number">5</span>,
         }
     }
 }
 
-<span class="kw">impl</span>&lt;T&gt; From&lt;<a href="#25">Protocol</a>&gt; <span class="kw">for </span>Scheme2&lt;T&gt; {
-    <span class="kw">fn </span>from(src: <a href="#25">Protocol</a>) -&gt; <span class="self">Self </span>{
-        <a href="#20">Scheme2::Standard</a>(<a href="#328">src</a>)
+<span class="kw">impl</span>&lt;T&gt; From&lt;Protocol&gt; <span class="kw">for </span>Scheme2&lt;T&gt; {
+    <span class="kw">fn </span>from(src: Protocol) -&gt; <span class="self">Self </span>{
+        Scheme2::Standard(src)
     }
 }
 
 <span class="attr">#[doc(hidden)]
-</span><span class="kw">impl </span>From&lt;<a href="#18">Scheme2</a>&gt; <span class="kw">for </span><a href="#13">Scheme</a> {
-    <span class="kw">fn </span>from(src: <a href="#18">Scheme2</a>) -&gt; <span class="self">Self </span>{
-        <a href="#13">Scheme</a> { inner: <a href="#335">src</a> }
+</span><span class="kw">impl </span>From&lt;Scheme2&gt; <span class="kw">for </span>Scheme {
+    <span class="kw">fn </span>from(src: Scheme2) -&gt; <span class="self">Self </span>{
+        Scheme { inner: src }
     }
 }
 
@@ -725,4 +725,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="http" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="http" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

@@ -1,5 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/clap_derive-4.0.21/src/derives/parser.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>parser.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../clap_derive/index.html">
-                        <img src="https://raw.githubusercontent.com/clap-rs/clap/master/assets/clap.png" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/clap_derive-4.0.21/src/derives/parser.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>parser.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../clap_derive/index.html">
+                        <img src="https://raw.githubusercontent.com/clap-rs/clap/master/assets/clap.png" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -140,94 +140,94 @@
 // commit#ea76fa1b1b273e65e3b0b1046643715b49bec51f which is licensed under the
 // MIT/Apache 2.0 license.
 
-</span><span class="kw">use </span><a href="../../../proc_macro2/struct.TokenStream.html">proc_macro2::TokenStream</a>;
-<span class="kw">use </span><a href="../../../proc_macro_error/macro.abort_call_site.html">proc_macro_error::abort_call_site</a>;
-<span class="kw">use </span><a href="../../../quote/macro.quote.html">quote::quote</a>;
+</span><span class="kw">use </span>proc_macro2::TokenStream;
+<span class="kw">use </span>proc_macro_error::abort_call_site;
+<span class="kw">use </span>quote::quote;
 <span class="kw">use </span>syn::Ident;
-<span class="kw">use </span><a href="../../../syn/data/struct.Variant.html">syn::Variant</a>;
+<span class="kw">use </span>syn::Variant;
 <span class="kw">use </span>syn::{
-    <a class="self" href="../../../syn/index.html">self</a>, <a href="../../../syn/punctuated/struct.Punctuated.html">punctuated::Punctuated</a>, token::Comma, <a href="../../../syn/derive/enum.Data.html">Data</a>, <a href="../../../syn/derive/struct.DataStruct.html">DataStruct</a>, <a href="../../../syn/derive/struct.DeriveInput.html">DeriveInput</a>, <a href="../../../syn/data/struct.Field.html">Field</a>, <a href="../../../syn/data/enum.Fields.html">Fields</a>,
-    <a href="../../../syn/generics/struct.Generics.html">Generics</a>,
+    <span class="self">self</span>, punctuated::Punctuated, token::Comma, Data, DataStruct, DeriveInput, Field, Fields,
+    Generics,
 };
 
-<span class="kw">use </span><span class="kw">crate</span>::derives::{<a href="mod.rs.html#14">args</a>, <a href="mod.rs.html#15">into_app</a>, <a href="mod.rs.html#17">subcommand</a>};
-<span class="kw">use </span><a href="../lib.rs.html#27"><span class="kw">crate</span>::dummies</a>;
-<span class="kw">use </span><a href="../item.rs.html#34"><span class="kw">crate</span>::item::Item</a>;
-<span class="kw">use </span><a href="../item.rs.html#1388"><span class="kw">crate</span>::item::Name</a>;
+<span class="kw">use </span><span class="kw">crate</span>::derives::{args, into_app, subcommand};
+<span class="kw">use </span><span class="kw">crate</span>::dummies;
+<span class="kw">use </span><span class="kw">crate</span>::item::Item;
+<span class="kw">use </span><span class="kw">crate</span>::item::Name;
 
-<span class="kw">pub fn </span>derive_parser(input: <span class="kw-2">&amp;</span><a href="../../../syn/derive/struct.DeriveInput.html">DeriveInput</a>) -&gt; <a href="../../../proc_macro2/struct.TokenStream.html">TokenStream</a> {
-    <span class="kw">let </span>ident = <span class="kw-2">&amp;</span><a href="#30">input</a>.ident;
+<span class="kw">pub fn </span>derive_parser(input: <span class="kw-2">&amp;</span>DeriveInput) -&gt; TokenStream {
+    <span class="kw">let </span>ident = <span class="kw-2">&amp;</span>input.ident;
     <span class="kw">let </span>pkg_name = std::env::var(<span class="string">&quot;CARGO_PKG_NAME&quot;</span>).ok().unwrap_or_default();
 
-    <span class="kw">match </span><a href="#30">input</a>.data {
-        Data::Struct(<a href="../../../syn/derive/struct.DataStruct.html">DataStruct</a> {
+    <span class="kw">match </span>input.data {
+        Data::Struct(DataStruct {
             fields: Fields::Named(<span class="kw-2">ref </span>fields),
             ..
         }) =&gt; {
-            <a href="../dummies.rs.html#7">dummies::parser_struct</a>(<a href="#31">ident</a>);
+            dummies::parser_struct(ident);
 
-            <span class="kw">let </span>name = <a href="../item.rs.html#1390">Name::Assigned</a>(<a class="macro" href="../../../quote/macro.quote.html">quote!</a>(#pkg_name));
-            <span class="kw">let </span>item = Item::from_args_struct(<a href="#30">input</a>, <a href="#41">name</a>);
-            <span class="kw">let </span>fields = <a href="#36">fields</a>
+            <span class="kw">let </span>name = Name::Assigned(<span class="macro">quote!</span>(#pkg_name));
+            <span class="kw">let </span>item = Item::from_args_struct(input, name);
+            <span class="kw">let </span>fields = fields
                 .named
                 .iter()
-                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|field| {
-                    <span class="kw">let </span>item = Item::from_args_field(<a href="#46">field</a>, <a href="#42">item</a>.<a href="../item.rs.html#1048">casing</a>(), <a href="#42">item</a>.<a href="../item.rs.html#1052">env_casing</a>());
-                    (<a href="#46">field</a>, <a href="#47">item</a>)
+                .map(|field| {
+                    <span class="kw">let </span>item = Item::from_args_field(field, item.casing(), item.env_casing());
+                    (field, item)
                 })
-                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;();
-            <a href="#91-96">gen_for_struct</a>(<span class="kw-2">&amp;</span><a href="#42">item</a>, <a href="#31">ident</a>, <span class="kw-2">&amp;</span><a href="#30">input</a>.generics, <span class="kw-2">&amp;</span><a href="#43">fields</a>)
+                .collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;();
+            gen_for_struct(<span class="kw-2">&amp;</span>item, ident, <span class="kw-2">&amp;</span>input.generics, <span class="kw-2">&amp;</span>fields)
         }
-        Data::Struct(<a href="../../../syn/derive/struct.DataStruct.html">DataStruct</a> {
+        Data::Struct(DataStruct {
             fields: Fields::Unit,
             ..
         }) =&gt; {
-            <a href="../dummies.rs.html#7">dummies::parser_struct</a>(<a href="#31">ident</a>);
+            dummies::parser_struct(ident);
 
-            <span class="kw">let </span>name = <a href="../item.rs.html#1390">Name::Assigned</a>(<a class="macro" href="../../../quote/macro.quote.html">quote!</a>(#pkg_name));
-            <span class="kw">let </span>item = Item::from_args_struct(<a href="#30">input</a>, <a href="#59">name</a>);
-            <span class="kw">let </span>fields = Punctuated::&lt;<a href="../../../syn/data/struct.Field.html">Field</a>, <a href="../../../syn/token/struct.Comma.html">Comma</a>&gt;::new();
-            <span class="kw">let </span>fields = <a href="#61">fields</a>
+            <span class="kw">let </span>name = Name::Assigned(<span class="macro">quote!</span>(#pkg_name));
+            <span class="kw">let </span>item = Item::from_args_struct(input, name);
+            <span class="kw">let </span>fields = Punctuated::&lt;Field, Comma&gt;::new();
+            <span class="kw">let </span>fields = fields
                 .iter()
-                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|field| {
-                    <span class="kw">let </span>item = Item::from_args_field(<a href="#64">field</a>, <a href="#60">item</a>.<a href="../item.rs.html#1048">casing</a>(), <a href="#60">item</a>.<a href="../item.rs.html#1052">env_casing</a>());
-                    (<a href="#64">field</a>, <a href="#65">item</a>)
+                .map(|field| {
+                    <span class="kw">let </span>item = Item::from_args_field(field, item.casing(), item.env_casing());
+                    (field, item)
                 })
-                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;();
-            <a href="#91-96">gen_for_struct</a>(<span class="kw-2">&amp;</span><a href="#60">item</a>, <a href="#31">ident</a>, <span class="kw-2">&amp;</span><a href="#30">input</a>.generics, <span class="kw-2">&amp;</span><a href="#62">fields</a>)
+                .collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;();
+            gen_for_struct(<span class="kw-2">&amp;</span>item, ident, <span class="kw-2">&amp;</span>input.generics, <span class="kw-2">&amp;</span>fields)
         }
         Data::Enum(<span class="kw-2">ref </span>e) =&gt; {
-            <a href="../dummies.rs.html#13">dummies::parser_enum</a>(<a href="#31">ident</a>);
+            dummies::parser_enum(ident);
 
-            <span class="kw">let </span>name = <a href="../item.rs.html#1390">Name::Assigned</a>(<a class="macro" href="../../../quote/macro.quote.html">quote!</a>(#pkg_name));
-            <span class="kw">let </span>item = Item::from_subcommand_enum(<a href="#30">input</a>, <a href="#74">name</a>);
-            <span class="kw">let </span>variants = <a href="#71">e</a>
+            <span class="kw">let </span>name = Name::Assigned(<span class="macro">quote!</span>(#pkg_name));
+            <span class="kw">let </span>item = Item::from_subcommand_enum(input, name);
+            <span class="kw">let </span>variants = e
                 .variants
                 .iter()
-                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|variant| {
+                .map(|variant| {
                     <span class="kw">let </span>item =
-                        Item::from_subcommand_variant(<a href="#79">variant</a>, <a href="#75">item</a>.<a href="../item.rs.html#1048">casing</a>(), <a href="#75">item</a>.<a href="../item.rs.html#1052">env_casing</a>());
-                    (<a href="#79">variant</a>, <a href="#80">item</a>)
+                        Item::from_subcommand_variant(variant, item.casing(), item.env_casing());
+                    (variant, item)
                 })
-                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;();
-            <a href="#110-115">gen_for_enum</a>(<span class="kw-2">&amp;</span><a href="#75">item</a>, <a href="#31">ident</a>, <span class="kw-2">&amp;</span><a href="#30">input</a>.generics, <span class="kw-2">&amp;</span><a href="#76">variants</a>)
+                .collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;();
+            gen_for_enum(<span class="kw-2">&amp;</span>item, ident, <span class="kw-2">&amp;</span>input.generics, <span class="kw-2">&amp;</span>variants)
         }
-        <span class="kw">_ </span>=&gt; <a class="macro" href="../../../proc_macro_error/macro.abort_call_site.html">abort_call_site!</a>(<span class="string">&quot;`#[derive(Parser)]` only supports non-tuple structs and enums&quot;</span>),
+        <span class="kw">_ </span>=&gt; <span class="macro">abort_call_site!</span>(<span class="string">&quot;`#[derive(Parser)]` only supports non-tuple structs and enums&quot;</span>),
     }
 }
 
 <span class="kw">fn </span>gen_for_struct(
-    item: <span class="kw-2">&amp;</span><a href="../item.rs.html#34">Item</a>,
-    item_name: <span class="kw-2">&amp;</span><a href="../../../proc_macro2/struct.Ident.html">Ident</a>,
-    generics: <span class="kw-2">&amp;</span><a href="../../../syn/generics/struct.Generics.html">Generics</a>,
-    fields: <span class="kw-2">&amp;</span>[(<span class="kw-2">&amp;</span><a href="../../../syn/data/struct.Field.html">Field</a>, <a href="../item.rs.html#34">Item</a>)],
-) -&gt; <a href="../../../proc_macro2/struct.TokenStream.html">TokenStream</a> {
-    <span class="kw">let </span>(impl_generics, ty_generics, where_clause) = <a href="#94">generics</a>.split_for_impl();
+    item: <span class="kw-2">&amp;</span>Item,
+    item_name: <span class="kw-2">&amp;</span>Ident,
+    generics: <span class="kw-2">&amp;</span>Generics,
+    fields: <span class="kw-2">&amp;</span>[(<span class="kw-2">&amp;</span>Field, Item)],
+) -&gt; TokenStream {
+    <span class="kw">let </span>(impl_generics, ty_generics, where_clause) = generics.split_for_impl();
 
-    <span class="kw">let </span>into_app = <a href="into_app.rs.html#21">into_app::gen_for_struct</a>(<a href="#92">item</a>, <a href="#93">item_name</a>, <a href="#94">generics</a>);
-    <span class="kw">let </span>args = <a href="args.rs.html#70-75">args::gen_for_struct</a>(<a href="#92">item</a>, <a href="#93">item_name</a>, <a href="#94">generics</a>, <a href="#95">fields</a>);
+    <span class="kw">let </span>into_app = into_app::gen_for_struct(item, item_name, generics);
+    <span class="kw">let </span>args = args::gen_for_struct(item, item_name, generics, fields);
 
-    <a class="macro" href="../../../quote/macro.quote.html">quote! </a>{
+    <span class="macro">quote! </span>{
         <span class="kw">impl </span>#impl_generics clap::Parser <span class="kw">for </span>#item_name #ty_generics #where_clause {}
 
         #into_app
@@ -236,17 +236,17 @@
 }
 
 <span class="kw">fn </span>gen_for_enum(
-    item: <span class="kw-2">&amp;</span><a href="../item.rs.html#34">Item</a>,
-    item_name: <span class="kw-2">&amp;</span><a href="../../../proc_macro2/struct.Ident.html">Ident</a>,
-    generics: <span class="kw-2">&amp;</span><a href="../../../syn/generics/struct.Generics.html">Generics</a>,
-    variants: <span class="kw-2">&amp;</span>[(<span class="kw-2">&amp;</span><a href="../../../syn/data/struct.Variant.html">Variant</a>, <a href="../item.rs.html#34">Item</a>)],
-) -&gt; <a href="../../../proc_macro2/struct.TokenStream.html">TokenStream</a> {
-    <span class="kw">let </span>(impl_generics, ty_generics, where_clause) = <a href="#113">generics</a>.split_for_impl();
+    item: <span class="kw-2">&amp;</span>Item,
+    item_name: <span class="kw-2">&amp;</span>Ident,
+    generics: <span class="kw-2">&amp;</span>Generics,
+    variants: <span class="kw-2">&amp;</span>[(<span class="kw-2">&amp;</span>Variant, Item)],
+) -&gt; TokenStream {
+    <span class="kw">let </span>(impl_generics, ty_generics, where_clause) = generics.split_for_impl();
 
-    <span class="kw">let </span>into_app = <a href="into_app.rs.html#57">into_app::gen_for_enum</a>(<a href="#111">item</a>, <a href="#112">item_name</a>, <a href="#113">generics</a>);
-    <span class="kw">let </span>subcommand = <a href="subcommand.rs.html#49-54">subcommand::gen_for_enum</a>(<a href="#111">item</a>, <a href="#112">item_name</a>, <a href="#113">generics</a>, <a href="#114">variants</a>);
+    <span class="kw">let </span>into_app = into_app::gen_for_enum(item, item_name, generics);
+    <span class="kw">let </span>subcommand = subcommand::gen_for_enum(item, item_name, generics, variants);
 
-    <a class="macro" href="../../../quote/macro.quote.html">quote! </a>{
+    <span class="macro">quote! </span>{
         <span class="kw">impl </span>#impl_generics clap::Parser <span class="kw">for </span>#item_name #ty_generics #where_clause {}
 
         #into_app
@@ -254,4 +254,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="clap_derive" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="clap_derive" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

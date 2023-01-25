@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/openssl-sys-0.9.77/src/./ssl.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>ssl.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../openssl_sys/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/openssl-sys-0.9.80/src/./ssl.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>ssl.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../openssl_sys/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -617,8 +617,15 @@
 <a href="#617" id="617">617</a>
 <a href="#618" id="618">618</a>
 <a href="#619" id="619">619</a>
-</pre><pre class="rust"><code><span class="kw">use </span><a href="../../libc/index.html">libc</a>::<span class="kw-2">*</span>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/ptr/index.html">std::ptr</a>;
+<a href="#620" id="620">620</a>
+<a href="#621" id="621">621</a>
+<a href="#622" id="622">622</a>
+<a href="#623" id="623">623</a>
+<a href="#624" id="624">624</a>
+<a href="#625" id="625">625</a>
+<a href="#626" id="626">626</a>
+</pre><pre class="rust"><code><span class="kw">use </span>libc::<span class="kw-2">*</span>;
+<span class="kw">use </span>std::ptr;
 
 <span class="kw">use </span><span class="kw-2">*</span>;
 
@@ -635,49 +642,49 @@
 <span class="attr">#[cfg(not(ossl110))]
 </span><span class="kw">pub const </span>SSL_MAX_MASTER_KEY_LENGTH: c_int = <span class="number">48</span>;
 
-<span class="kw">pub const </span>SSL_SENT_SHUTDOWN: <a href="../../openssl_sys/type.c_int.html">c_int</a> = <span class="number">1</span>;
-<span class="kw">pub const </span>SSL_RECEIVED_SHUTDOWN: <a href="../../openssl_sys/type.c_int.html">c_int</a> = <span class="number">2</span>;
+<span class="kw">pub const </span>SSL_SENT_SHUTDOWN: c_int = <span class="number">1</span>;
+<span class="kw">pub const </span>SSL_RECEIVED_SHUTDOWN: c_int = <span class="number">2</span>;
 
-<span class="kw">pub const </span>SSL_FILETYPE_PEM: <a href="../../openssl_sys/type.c_int.html">c_int</a> = <a href="x509.rs.html#5">X509_FILETYPE_PEM</a>;
-<span class="kw">pub const </span>SSL_FILETYPE_ASN1: <a href="../../openssl_sys/type.c_int.html">c_int</a> = <a href="x509.rs.html#6">X509_FILETYPE_ASN1</a>;
+<span class="kw">pub const </span>SSL_FILETYPE_PEM: c_int = X509_FILETYPE_PEM;
+<span class="kw">pub const </span>SSL_FILETYPE_ASN1: c_int = X509_FILETYPE_ASN1;
 
 <span class="attr">#[cfg(ossl111)]
-</span><span class="kw">pub const </span>SSL_EXT_TLS_ONLY: <a href="../../openssl_sys/type.c_uint.html">c_uint</a> = <span class="number">0x0001</span>;
+</span><span class="kw">pub const </span>SSL_EXT_TLS_ONLY: c_uint = <span class="number">0x0001</span>;
 <span class="comment">/* This extension is only allowed in DTLS */
 </span><span class="attr">#[cfg(ossl111)]
-</span><span class="kw">pub const </span>SSL_EXT_DTLS_ONLY: <a href="../../openssl_sys/type.c_uint.html">c_uint</a> = <span class="number">0x0002</span>;
+</span><span class="kw">pub const </span>SSL_EXT_DTLS_ONLY: c_uint = <span class="number">0x0002</span>;
 <span class="comment">/* Some extensions may be allowed in DTLS but we don&#39;t implement them for it */
 </span><span class="attr">#[cfg(ossl111)]
-</span><span class="kw">pub const </span>SSL_EXT_TLS_IMPLEMENTATION_ONLY: <a href="../../openssl_sys/type.c_uint.html">c_uint</a> = <span class="number">0x0004</span>;
+</span><span class="kw">pub const </span>SSL_EXT_TLS_IMPLEMENTATION_ONLY: c_uint = <span class="number">0x0004</span>;
 <span class="comment">/* Most extensions are not defined for SSLv3 but EXT_TYPE_renegotiate is */
 </span><span class="attr">#[cfg(ossl111)]
-</span><span class="kw">pub const </span>SSL_EXT_SSL3_ALLOWED: <a href="../../openssl_sys/type.c_uint.html">c_uint</a> = <span class="number">0x0008</span>;
+</span><span class="kw">pub const </span>SSL_EXT_SSL3_ALLOWED: c_uint = <span class="number">0x0008</span>;
 <span class="comment">/* Extension is only defined for TLS1.2 and below */
 </span><span class="attr">#[cfg(ossl111)]
-</span><span class="kw">pub const </span>SSL_EXT_TLS1_2_AND_BELOW_ONLY: <a href="../../openssl_sys/type.c_uint.html">c_uint</a> = <span class="number">0x0010</span>;
+</span><span class="kw">pub const </span>SSL_EXT_TLS1_2_AND_BELOW_ONLY: c_uint = <span class="number">0x0010</span>;
 <span class="comment">/* Extension is only defined for TLS1.3 and above */
 </span><span class="attr">#[cfg(ossl111)]
-</span><span class="kw">pub const </span>SSL_EXT_TLS1_3_ONLY: <a href="../../openssl_sys/type.c_uint.html">c_uint</a> = <span class="number">0x0020</span>;
+</span><span class="kw">pub const </span>SSL_EXT_TLS1_3_ONLY: c_uint = <span class="number">0x0020</span>;
 <span class="comment">/* Ignore this extension during parsing if we are resuming */
 </span><span class="attr">#[cfg(ossl111)]
-</span><span class="kw">pub const </span>SSL_EXT_IGNORE_ON_RESUMPTION: <a href="../../openssl_sys/type.c_uint.html">c_uint</a> = <span class="number">0x0040</span>;
+</span><span class="kw">pub const </span>SSL_EXT_IGNORE_ON_RESUMPTION: c_uint = <span class="number">0x0040</span>;
 <span class="attr">#[cfg(ossl111)]
-</span><span class="kw">pub const </span>SSL_EXT_CLIENT_HELLO: <a href="../../openssl_sys/type.c_uint.html">c_uint</a> = <span class="number">0x0080</span>;
+</span><span class="kw">pub const </span>SSL_EXT_CLIENT_HELLO: c_uint = <span class="number">0x0080</span>;
 <span class="comment">/* Really means TLS1.2 or below */
 </span><span class="attr">#[cfg(ossl111)]
-</span><span class="kw">pub const </span>SSL_EXT_TLS1_2_SERVER_HELLO: <a href="../../openssl_sys/type.c_uint.html">c_uint</a> = <span class="number">0x0100</span>;
+</span><span class="kw">pub const </span>SSL_EXT_TLS1_2_SERVER_HELLO: c_uint = <span class="number">0x0100</span>;
 <span class="attr">#[cfg(ossl111)]
-</span><span class="kw">pub const </span>SSL_EXT_TLS1_3_SERVER_HELLO: <a href="../../openssl_sys/type.c_uint.html">c_uint</a> = <span class="number">0x0200</span>;
+</span><span class="kw">pub const </span>SSL_EXT_TLS1_3_SERVER_HELLO: c_uint = <span class="number">0x0200</span>;
 <span class="attr">#[cfg(ossl111)]
-</span><span class="kw">pub const </span>SSL_EXT_TLS1_3_ENCRYPTED_EXTENSIONS: <a href="../../openssl_sys/type.c_uint.html">c_uint</a> = <span class="number">0x0400</span>;
+</span><span class="kw">pub const </span>SSL_EXT_TLS1_3_ENCRYPTED_EXTENSIONS: c_uint = <span class="number">0x0400</span>;
 <span class="attr">#[cfg(ossl111)]
-</span><span class="kw">pub const </span>SSL_EXT_TLS1_3_HELLO_RETRY_REQUEST: <a href="../../openssl_sys/type.c_uint.html">c_uint</a> = <span class="number">0x0800</span>;
+</span><span class="kw">pub const </span>SSL_EXT_TLS1_3_HELLO_RETRY_REQUEST: c_uint = <span class="number">0x0800</span>;
 <span class="attr">#[cfg(ossl111)]
-</span><span class="kw">pub const </span>SSL_EXT_TLS1_3_CERTIFICATE: <a href="../../openssl_sys/type.c_uint.html">c_uint</a> = <span class="number">0x1000</span>;
+</span><span class="kw">pub const </span>SSL_EXT_TLS1_3_CERTIFICATE: c_uint = <span class="number">0x1000</span>;
 <span class="attr">#[cfg(ossl111)]
-</span><span class="kw">pub const </span>SSL_EXT_TLS1_3_NEW_SESSION_TICKET: <a href="../../openssl_sys/type.c_uint.html">c_uint</a> = <span class="number">0x2000</span>;
+</span><span class="kw">pub const </span>SSL_EXT_TLS1_3_NEW_SESSION_TICKET: c_uint = <span class="number">0x2000</span>;
 <span class="attr">#[cfg(ossl111)]
-</span><span class="kw">pub const </span>SSL_EXT_TLS1_3_CERTIFICATE_REQUEST: <a href="../../openssl_sys/type.c_uint.html">c_uint</a> = <span class="number">0x4000</span>;
+</span><span class="kw">pub const </span>SSL_EXT_TLS1_3_CERTIFICATE_REQUEST: c_uint = <span class="number">0x4000</span>;
 
 <span class="macro">cfg_if! </span>{
     <span class="kw">if </span><span class="attr">#[cfg(ossl300)] </span>{
@@ -691,35 +698,35 @@
     }
 }
 
-<span class="kw">pub const </span>SSL_OP_LEGACY_SERVER_CONNECT: <a class="macro" href="#65-67">ssl_op_type!</a>() = <span class="number">0x00000004</span>;
+<span class="kw">pub const </span>SSL_OP_LEGACY_SERVER_CONNECT: <span class="macro">ssl_op_type!</span>() = <span class="number">0x00000004</span>;
 <span class="macro">cfg_if! </span>{
     <span class="kw">if </span><span class="attr">#[cfg(libressl261)] </span>{
         <span class="kw">pub const </span>SSL_OP_TLSEXT_PADDING: <span class="macro">ssl_op_type!</span>() = <span class="number">0x0</span>;
     } <span class="kw">else if </span><span class="attr">#[cfg(any(ossl102, libressl))] </span>{
-        <span class="kw">pub const </span>SSL_OP_TLSEXT_PADDING: <a class="macro" href="#65-67">ssl_op_type!</a>() = <span class="number">0x10</span>;
+        <span class="kw">pub const </span>SSL_OP_TLSEXT_PADDING: <span class="macro">ssl_op_type!</span>() = <span class="number">0x10</span>;
     }
 }
 <span class="attr">#[cfg(ossl101)]
-</span><span class="kw">pub const </span>SSL_OP_SAFARI_ECDHE_ECDSA_BUG: <a class="macro" href="#65-67">ssl_op_type!</a>() = <span class="number">0x00000040</span>;
+</span><span class="kw">pub const </span>SSL_OP_SAFARI_ECDHE_ECDSA_BUG: <span class="macro">ssl_op_type!</span>() = <span class="number">0x00000040</span>;
 
-<span class="kw">pub const </span>SSL_OP_DONT_INSERT_EMPTY_FRAGMENTS: <a class="macro" href="#65-67">ssl_op_type!</a>() = <span class="number">0x00000800</span>;
+<span class="kw">pub const </span>SSL_OP_DONT_INSERT_EMPTY_FRAGMENTS: <span class="macro">ssl_op_type!</span>() = <span class="number">0x00000800</span>;
 
-<span class="kw">pub const </span>SSL_OP_NO_QUERY_MTU: <a class="macro" href="#65-67">ssl_op_type!</a>() = <span class="number">0x00001000</span>;
-<span class="kw">pub const </span>SSL_OP_COOKIE_EXCHANGE: <a class="macro" href="#65-67">ssl_op_type!</a>() = <span class="number">0x00002000</span>;
-<span class="kw">pub const </span>SSL_OP_NO_TICKET: <a class="macro" href="#65-67">ssl_op_type!</a>() = <span class="number">0x00004000</span>;
+<span class="kw">pub const </span>SSL_OP_NO_QUERY_MTU: <span class="macro">ssl_op_type!</span>() = <span class="number">0x00001000</span>;
+<span class="kw">pub const </span>SSL_OP_COOKIE_EXCHANGE: <span class="macro">ssl_op_type!</span>() = <span class="number">0x00002000</span>;
+<span class="kw">pub const </span>SSL_OP_NO_TICKET: <span class="macro">ssl_op_type!</span>() = <span class="number">0x00004000</span>;
 <span class="macro">cfg_if! </span>{
     <span class="kw">if </span><span class="attr">#[cfg(ossl101)] </span>{
-        <span class="kw">pub const </span>SSL_OP_CISCO_ANYCONNECT: <a class="macro" href="#65-67">ssl_op_type!</a>() = <span class="number">0x00008000</span>;
+        <span class="kw">pub const </span>SSL_OP_CISCO_ANYCONNECT: <span class="macro">ssl_op_type!</span>() = <span class="number">0x00008000</span>;
     } <span class="kw">else </span>{
         <span class="kw">pub const </span>SSL_OP_CISCO_ANYCONNECT: <span class="macro">ssl_op_type!</span>() = <span class="number">0x0</span>;
     }
 }
 
-<span class="kw">pub const </span>SSL_OP_NO_SESSION_RESUMPTION_ON_RENEGOTIATION: <a class="macro" href="#65-67">ssl_op_type!</a>() = <span class="number">0x00010000</span>;
+<span class="kw">pub const </span>SSL_OP_NO_SESSION_RESUMPTION_ON_RENEGOTIATION: <span class="macro">ssl_op_type!</span>() = <span class="number">0x00010000</span>;
 <span class="macro">cfg_if! </span>{
     <span class="kw">if </span><span class="attr">#[cfg(ossl101)] </span>{
-        <span class="kw">pub const </span>SSL_OP_NO_COMPRESSION: <a class="macro" href="#65-67">ssl_op_type!</a>() = <span class="number">0x00020000</span>;
-        <span class="kw">pub const </span>SSL_OP_ALLOW_UNSAFE_LEGACY_RENEGOTIATION: <a class="macro" href="#65-67">ssl_op_type!</a>() = <span class="number">0x00040000</span>;
+        <span class="kw">pub const </span>SSL_OP_NO_COMPRESSION: <span class="macro">ssl_op_type!</span>() = <span class="number">0x00020000</span>;
+        <span class="kw">pub const </span>SSL_OP_ALLOW_UNSAFE_LEGACY_RENEGOTIATION: <span class="macro">ssl_op_type!</span>() = <span class="number">0x00040000</span>;
     } <span class="kw">else </span>{
         <span class="kw">pub const </span>SSL_OP_NO_COMPRESSION: <span class="macro">ssl_op_type!</span>() = <span class="number">0x0</span>;
         <span class="kw">pub const </span>SSL_OP_ALLOW_UNSAFE_LEGACY_RENEGOTIATION: <span class="macro">ssl_op_type!</span>() = <span class="number">0x0</span>;
@@ -727,53 +734,53 @@
 }
 
 <span class="attr">#[cfg(ossl111)]
-</span><span class="kw">pub const </span>SSL_OP_ENABLE_MIDDLEBOX_COMPAT: <a class="macro" href="#65-67">ssl_op_type!</a>() = <span class="number">0x00100000</span>;
+</span><span class="kw">pub const </span>SSL_OP_ENABLE_MIDDLEBOX_COMPAT: <span class="macro">ssl_op_type!</span>() = <span class="number">0x00100000</span>;
 <span class="attr">#[cfg(ossl111)]
-</span><span class="kw">pub const </span>SSL_OP_PRIORITIZE_CHACHA: <a class="macro" href="#65-67">ssl_op_type!</a>() = <span class="number">0x00200000</span>;
+</span><span class="kw">pub const </span>SSL_OP_PRIORITIZE_CHACHA: <span class="macro">ssl_op_type!</span>() = <span class="number">0x00200000</span>;
 
-<span class="kw">pub const </span>SSL_OP_CIPHER_SERVER_PREFERENCE: <a class="macro" href="#65-67">ssl_op_type!</a>() = <span class="number">0x00400000</span>;
+<span class="kw">pub const </span>SSL_OP_CIPHER_SERVER_PREFERENCE: <span class="macro">ssl_op_type!</span>() = <span class="number">0x00400000</span>;
 <span class="macro">cfg_if! </span>{
     <span class="kw">if </span><span class="attr">#[cfg(libressl280)] </span>{
         <span class="kw">pub const </span>SSL_OP_TLS_ROLLBACK_BUG: <span class="macro">ssl_op_type!</span>() = <span class="number">0</span>;
     } <span class="kw">else </span>{
-        <span class="kw">pub const </span>SSL_OP_TLS_ROLLBACK_BUG: <a class="macro" href="#65-67">ssl_op_type!</a>() = <span class="number">0x00800000</span>;
+        <span class="kw">pub const </span>SSL_OP_TLS_ROLLBACK_BUG: <span class="macro">ssl_op_type!</span>() = <span class="number">0x00800000</span>;
     }
 }
 
 <span class="macro">cfg_if! </span>{
     <span class="kw">if </span><span class="attr">#[cfg(ossl101)] </span>{
-        <span class="kw">pub const </span>SSL_OP_NO_SSLv3: <a class="macro" href="#65-67">ssl_op_type!</a>() = <span class="number">0x02000000</span>;
+        <span class="kw">pub const </span>SSL_OP_NO_SSLv3: <span class="macro">ssl_op_type!</span>() = <span class="number">0x02000000</span>;
     } <span class="kw">else </span>{
         <span class="kw">pub const </span>SSL_OP_NO_SSLv3: <span class="macro">ssl_op_type!</span>() = <span class="number">0x0</span>;
     }
 }
-<span class="kw">pub const </span>SSL_OP_NO_TLSv1_1: <a class="macro" href="#65-67">ssl_op_type!</a>() = <span class="number">0x10000000</span>;
-<span class="kw">pub const </span>SSL_OP_NO_TLSv1_2: <a class="macro" href="#65-67">ssl_op_type!</a>() = <span class="number">0x08000000</span>;
+<span class="kw">pub const </span>SSL_OP_NO_TLSv1_1: <span class="macro">ssl_op_type!</span>() = <span class="number">0x10000000</span>;
+<span class="kw">pub const </span>SSL_OP_NO_TLSv1_2: <span class="macro">ssl_op_type!</span>() = <span class="number">0x08000000</span>;
 
-<span class="kw">pub const </span>SSL_OP_NO_TLSv1: <a class="macro" href="#65-67">ssl_op_type!</a>() = <span class="number">0x04000000</span>;
+<span class="kw">pub const </span>SSL_OP_NO_TLSv1: <span class="macro">ssl_op_type!</span>() = <span class="number">0x04000000</span>;
 <span class="macro">cfg_if! </span>{
     <span class="kw">if </span><span class="attr">#[cfg(ossl102)] </span>{
-        <span class="kw">pub const </span>SSL_OP_NO_DTLSv1: <a class="macro" href="#65-67">ssl_op_type!</a>() = <span class="number">0x04000000</span>;
-        <span class="kw">pub const </span>SSL_OP_NO_DTLSv1_2: <a class="macro" href="#65-67">ssl_op_type!</a>() = <span class="number">0x08000000</span>;
+        <span class="kw">pub const </span>SSL_OP_NO_DTLSv1: <span class="macro">ssl_op_type!</span>() = <span class="number">0x04000000</span>;
+        <span class="kw">pub const </span>SSL_OP_NO_DTLSv1_2: <span class="macro">ssl_op_type!</span>() = <span class="number">0x08000000</span>;
     } <span class="kw">else if </span><span class="attr">#[cfg(libressl332)] </span>{
         <span class="kw">pub const </span>SSL_OP_NO_DTLSv1: <span class="macro">ssl_op_type!</span>() = <span class="number">0x40000000</span>;
         <span class="kw">pub const </span>SSL_OP_NO_DTLSv1_2: <span class="macro">ssl_op_type!</span>() = <span class="number">0x80000000</span>;
     }
 }
 <span class="attr">#[cfg(any(ossl111, libressl340))]
-</span><span class="kw">pub const </span>SSL_OP_NO_TLSv1_3: <a class="macro" href="#65-67">ssl_op_type!</a>() = <span class="number">0x20000000</span>;
+</span><span class="kw">pub const </span>SSL_OP_NO_TLSv1_3: <span class="macro">ssl_op_type!</span>() = <span class="number">0x20000000</span>;
 
 <span class="attr">#[cfg(ossl110h)]
-</span><span class="kw">pub const </span>SSL_OP_NO_RENEGOTIATION: <a class="macro" href="#65-67">ssl_op_type!</a>() = <span class="number">0x40000000</span>;
+</span><span class="kw">pub const </span>SSL_OP_NO_RENEGOTIATION: <span class="macro">ssl_op_type!</span>() = <span class="number">0x40000000</span>;
 
 <span class="macro">cfg_if! </span>{
     <span class="kw">if </span><span class="attr">#[cfg(ossl111)] </span>{
-        <span class="kw">pub const </span>SSL_OP_NO_SSL_MASK: <a class="macro" href="#65-67">ssl_op_type!</a>() = <a href="#204">SSL_OP_NO_SSLv2</a>
-            | <a href="#126">SSL_OP_NO_SSLv3</a>
-            | <a href="#134">SSL_OP_NO_TLSv1</a>
-            | <a href="#131">SSL_OP_NO_TLSv1_1</a>
-            | <a href="#132">SSL_OP_NO_TLSv1_2</a>
-            | <a href="#145">SSL_OP_NO_TLSv1_3</a>;
+        <span class="kw">pub const </span>SSL_OP_NO_SSL_MASK: <span class="macro">ssl_op_type!</span>() = SSL_OP_NO_SSLv2
+            | SSL_OP_NO_SSLv3
+            | SSL_OP_NO_TLSv1
+            | SSL_OP_NO_TLSv1_1
+            | SSL_OP_NO_TLSv1_2
+            | SSL_OP_NO_TLSv1_3;
     } <span class="kw">else if </span><span class="attr">#[cfg(ossl102)] </span>{
         <span class="kw">pub const </span>SSL_OP_NO_SSL_MASK: <span class="macro">ssl_op_type!</span>() =
             SSL_OP_NO_SSLv2 | SSL_OP_NO_SSLv3 | SSL_OP_NO_TLSv1 | SSL_OP_NO_TLSv1_1 | SSL_OP_NO_TLSv1_2;
@@ -784,16 +791,16 @@
     <span class="kw">if </span><span class="attr">#[cfg(libressl261)] </span>{
         <span class="kw">pub const </span>SSL_OP_CRYPTOPRO_TLSEXT_BUG: <span class="macro">ssl_op_type!</span>() = <span class="number">0x0</span>;
     } <span class="kw">else </span>{
-        <span class="kw">pub const </span>SSL_OP_CRYPTOPRO_TLSEXT_BUG: <a class="macro" href="#65-67">ssl_op_type!</a>() = <span class="number">0x80000000</span>;
+        <span class="kw">pub const </span>SSL_OP_CRYPTOPRO_TLSEXT_BUG: <span class="macro">ssl_op_type!</span>() = <span class="number">0x80000000</span>;
     }
 }
 
 <span class="macro">cfg_if! </span>{
     <span class="kw">if </span><span class="attr">#[cfg(ossl300)] </span>{
-        <span class="kw">pub const </span>SSL_OP_ALL: <a class="macro" href="#65-67">ssl_op_type!</a>() = <a href="#168">SSL_OP_CRYPTOPRO_TLSEXT_BUG</a>
-            | <a href="#86">SSL_OP_DONT_INSERT_EMPTY_FRAGMENTS</a>
-            | <a href="#80">SSL_OP_TLSEXT_PADDING</a>
-            | <a href="#84">SSL_OP_SAFARI_ECDHE_ECDSA_BUG</a>;
+        <span class="kw">pub const </span>SSL_OP_ALL: <span class="macro">ssl_op_type!</span>() = SSL_OP_CRYPTOPRO_TLSEXT_BUG
+            | SSL_OP_DONT_INSERT_EMPTY_FRAGMENTS
+            | SSL_OP_TLSEXT_PADDING
+            | SSL_OP_SAFARI_ECDHE_ECDSA_BUG;
     } <span class="kw">else if </span><span class="attr">#[cfg(ossl110f)] </span>{
         <span class="kw">pub const </span>SSL_OP_ALL: <span class="macro">ssl_op_type!</span>() = SSL_OP_CRYPTOPRO_TLSEXT_BUG
             | SSL_OP_DONT_INSERT_EMPTY_FRAGMENTS
@@ -811,16 +818,16 @@
 
 <span class="macro">cfg_if! </span>{
     <span class="kw">if </span><span class="attr">#[cfg(ossl110)] </span>{
-        <span class="kw">pub const </span>SSL_OP_MICROSOFT_SESS_ID_BUG: <a class="macro" href="#65-67">ssl_op_type!</a>() = <span class="number">0x00000000</span>;
-        <span class="kw">pub const </span>SSL_OP_NETSCAPE_CHALLENGE_BUG: <a class="macro" href="#65-67">ssl_op_type!</a>() = <span class="number">0x00000000</span>;
-        <span class="kw">pub const </span>SSL_OP_NETSCAPE_REUSE_CIPHER_CHANGE_BUG: <a class="macro" href="#65-67">ssl_op_type!</a>() = <span class="number">0x00000000</span>;
-        <span class="kw">pub const </span>SSL_OP_MICROSOFT_BIG_SSLV3_BUFFER: <a class="macro" href="#65-67">ssl_op_type!</a>() = <span class="number">0x00000000</span>;
-        <span class="kw">pub const </span>SSL_OP_SSLEAY_080_CLIENT_DH_BUG: <a class="macro" href="#65-67">ssl_op_type!</a>() = <span class="number">0x00000000</span>;
-        <span class="kw">pub const </span>SSL_OP_TLS_D5_BUG: <a class="macro" href="#65-67">ssl_op_type!</a>() = <span class="number">0x00000000</span>;
-        <span class="kw">pub const </span>SSL_OP_TLS_BLOCK_PADDING_BUG: <a class="macro" href="#65-67">ssl_op_type!</a>() = <span class="number">0x00000000</span>;
-        <span class="kw">pub const </span>SSL_OP_SINGLE_ECDH_USE: <a class="macro" href="#65-67">ssl_op_type!</a>() = <span class="number">0x00000000</span>;
-        <span class="kw">pub const </span>SSL_OP_SINGLE_DH_USE: <a class="macro" href="#65-67">ssl_op_type!</a>() = <span class="number">0x00000000</span>;
-        <span class="kw">pub const </span>SSL_OP_NO_SSLv2: <a class="macro" href="#65-67">ssl_op_type!</a>() = <span class="number">0x00000000</span>;
+        <span class="kw">pub const </span>SSL_OP_MICROSOFT_SESS_ID_BUG: <span class="macro">ssl_op_type!</span>() = <span class="number">0x00000000</span>;
+        <span class="kw">pub const </span>SSL_OP_NETSCAPE_CHALLENGE_BUG: <span class="macro">ssl_op_type!</span>() = <span class="number">0x00000000</span>;
+        <span class="kw">pub const </span>SSL_OP_NETSCAPE_REUSE_CIPHER_CHANGE_BUG: <span class="macro">ssl_op_type!</span>() = <span class="number">0x00000000</span>;
+        <span class="kw">pub const </span>SSL_OP_MICROSOFT_BIG_SSLV3_BUFFER: <span class="macro">ssl_op_type!</span>() = <span class="number">0x00000000</span>;
+        <span class="kw">pub const </span>SSL_OP_SSLEAY_080_CLIENT_DH_BUG: <span class="macro">ssl_op_type!</span>() = <span class="number">0x00000000</span>;
+        <span class="kw">pub const </span>SSL_OP_TLS_D5_BUG: <span class="macro">ssl_op_type!</span>() = <span class="number">0x00000000</span>;
+        <span class="kw">pub const </span>SSL_OP_TLS_BLOCK_PADDING_BUG: <span class="macro">ssl_op_type!</span>() = <span class="number">0x00000000</span>;
+        <span class="kw">pub const </span>SSL_OP_SINGLE_ECDH_USE: <span class="macro">ssl_op_type!</span>() = <span class="number">0x00000000</span>;
+        <span class="kw">pub const </span>SSL_OP_SINGLE_DH_USE: <span class="macro">ssl_op_type!</span>() = <span class="number">0x00000000</span>;
+        <span class="kw">pub const </span>SSL_OP_NO_SSLv2: <span class="macro">ssl_op_type!</span>() = <span class="number">0x00000000</span>;
     } <span class="kw">else if </span><span class="attr">#[cfg(ossl101)] </span>{
         <span class="kw">pub const </span>SSL_OP_MICROSOFT_SESS_ID_BUG: <span class="macro">ssl_op_type!</span>() = <span class="number">0x00000001</span>;
         <span class="kw">pub const </span>SSL_OP_NETSCAPE_CHALLENGE_BUG: <span class="macro">ssl_op_type!</span>() = <span class="number">0x00000002</span>;
@@ -849,24 +856,24 @@
     }
 }
 
-<span class="kw">pub const </span>SSL_MODE_ENABLE_PARTIAL_WRITE: <a href="../../openssl_sys/type.c_long.html">c_long</a> = <span class="number">0x1</span>;
-<span class="kw">pub const </span>SSL_MODE_ACCEPT_MOVING_WRITE_BUFFER: <a href="../../openssl_sys/type.c_long.html">c_long</a> = <span class="number">0x2</span>;
-<span class="kw">pub const </span>SSL_MODE_AUTO_RETRY: <a href="../../openssl_sys/type.c_long.html">c_long</a> = <span class="number">0x4</span>;
-<span class="kw">pub const </span>SSL_MODE_NO_AUTO_CHAIN: <a href="../../openssl_sys/type.c_long.html">c_long</a> = <span class="number">0x8</span>;
-<span class="kw">pub const </span>SSL_MODE_RELEASE_BUFFERS: <a href="../../openssl_sys/type.c_long.html">c_long</a> = <span class="number">0x10</span>;
+<span class="kw">pub const </span>SSL_MODE_ENABLE_PARTIAL_WRITE: c_long = <span class="number">0x1</span>;
+<span class="kw">pub const </span>SSL_MODE_ACCEPT_MOVING_WRITE_BUFFER: c_long = <span class="number">0x2</span>;
+<span class="kw">pub const </span>SSL_MODE_AUTO_RETRY: c_long = <span class="number">0x4</span>;
+<span class="kw">pub const </span>SSL_MODE_NO_AUTO_CHAIN: c_long = <span class="number">0x8</span>;
+<span class="kw">pub const </span>SSL_MODE_RELEASE_BUFFERS: c_long = <span class="number">0x10</span>;
 <span class="attr">#[cfg(ossl101)]
-</span><span class="kw">pub const </span>SSL_MODE_SEND_CLIENTHELLO_TIME: <a href="../../openssl_sys/type.c_long.html">c_long</a> = <span class="number">0x20</span>;
+</span><span class="kw">pub const </span>SSL_MODE_SEND_CLIENTHELLO_TIME: c_long = <span class="number">0x20</span>;
 <span class="attr">#[cfg(ossl101)]
-</span><span class="kw">pub const </span>SSL_MODE_SEND_SERVERHELLO_TIME: <a href="../../openssl_sys/type.c_long.html">c_long</a> = <span class="number">0x40</span>;
+</span><span class="kw">pub const </span>SSL_MODE_SEND_SERVERHELLO_TIME: c_long = <span class="number">0x40</span>;
 <span class="attr">#[cfg(ossl101)]
-</span><span class="kw">pub const </span>SSL_MODE_SEND_FALLBACK_SCSV: <a href="../../openssl_sys/type.c_long.html">c_long</a> = <span class="number">0x80</span>;
+</span><span class="kw">pub const </span>SSL_MODE_SEND_FALLBACK_SCSV: c_long = <span class="number">0x80</span>;
 
-<span class="kw">pub unsafe fn </span>SSL_CTX_set_mode(ctx: <span class="kw-2">*mut </span><a href="handwritten/types.rs.html#760">SSL_CTX</a>, op: <a href="../../openssl_sys/type.c_long.html">c_long</a>) -&gt; <a href="../../openssl_sys/type.c_long.html">c_long</a> {
-    <a href="handwritten/ssl.rs.html#654">SSL_CTX_ctrl</a>(<a href="#245">ctx</a>, <a href="#326">SSL_CTRL_MODE</a>, <a href="#245">op</a>, ptr::null_mut())
+<span class="kw">pub unsafe fn </span>SSL_CTX_set_mode(ctx: <span class="kw-2">*mut </span>SSL_CTX, op: c_long) -&gt; c_long {
+    SSL_CTX_ctrl(ctx, SSL_CTRL_MODE, op, ptr::null_mut())
 }
 
 <span class="attr">#[cfg(ossl111)]
-</span><span class="kw">pub const </span>SSL_COOKIE_LENGTH: <a href="../../openssl_sys/type.c_int.html">c_int</a> = <span class="number">4096</span>;
+</span><span class="kw">pub const </span>SSL_COOKIE_LENGTH: c_int = <span class="number">4096</span>;
 
 <span class="macro">cfg_if! </span>{
     <span class="kw">if </span><span class="attr">#[cfg(not(ossl110))] </span>{
@@ -894,129 +901,131 @@
     }
 }
 
-<span class="kw">pub unsafe fn </span>SSL_set_mtu(ssl: <span class="kw-2">*mut </span><a href="handwritten/types.rs.html#458">SSL</a>, mtu: <a href="../../openssl_sys/type.c_long.html">c_long</a>) -&gt; <a href="../../openssl_sys/type.c_long.html">c_long</a> {
-    <a href="handwritten/ssl.rs.html#653">SSL_ctrl</a>(<a href="#278">ssl</a>, <a href="#323">SSL_CTRL_SET_MTU</a>, <a href="#278">mtu</a>, ptr::null_mut())
+<span class="kw">pub unsafe fn </span>SSL_set_mtu(ssl: <span class="kw-2">*mut </span>SSL, mtu: c_long) -&gt; c_long {
+    SSL_ctrl(ssl, SSL_CTRL_SET_MTU, mtu, ptr::null_mut())
 }
 
 <span class="attr">#[cfg(ossl110)]
-</span><span class="kw">pub unsafe fn </span>SSL_get_extms_support(ssl: <span class="kw-2">*mut </span><a href="handwritten/types.rs.html#458">SSL</a>) -&gt; <a href="../../openssl_sys/type.c_long.html">c_long</a> {
-    <a href="handwritten/ssl.rs.html#653">SSL_ctrl</a>(<a href="#283">ssl</a>, <a href="#351">SSL_CTRL_GET_EXTMS_SUPPORT</a>, <span class="number">0</span>, ptr::null_mut())
+</span><span class="kw">pub unsafe fn </span>SSL_get_extms_support(ssl: <span class="kw-2">*mut </span>SSL) -&gt; c_long {
+    SSL_ctrl(ssl, SSL_CTRL_GET_EXTMS_SUPPORT, <span class="number">0</span>, ptr::null_mut())
 }
 
-<span class="kw">pub const </span>SSL_SESS_CACHE_OFF: <a href="../../openssl_sys/type.c_long.html">c_long</a> = <span class="number">0x0</span>;
-<span class="kw">pub const </span>SSL_SESS_CACHE_CLIENT: <a href="../../openssl_sys/type.c_long.html">c_long</a> = <span class="number">0x1</span>;
-<span class="kw">pub const </span>SSL_SESS_CACHE_SERVER: <a href="../../openssl_sys/type.c_long.html">c_long</a> = <span class="number">0x2</span>;
-<span class="kw">pub const </span>SSL_SESS_CACHE_BOTH: <a href="../../openssl_sys/type.c_long.html">c_long</a> = <a href="#288">SSL_SESS_CACHE_CLIENT</a> | <a href="#289">SSL_SESS_CACHE_SERVER</a>;
-<span class="kw">pub const </span>SSL_SESS_CACHE_NO_AUTO_CLEAR: <a href="../../openssl_sys/type.c_long.html">c_long</a> = <span class="number">0x80</span>;
-<span class="kw">pub const </span>SSL_SESS_CACHE_NO_INTERNAL_LOOKUP: <a href="../../openssl_sys/type.c_long.html">c_long</a> = <span class="number">0x100</span>;
-<span class="kw">pub const </span>SSL_SESS_CACHE_NO_INTERNAL_STORE: <a href="../../openssl_sys/type.c_long.html">c_long</a> = <span class="number">0x200</span>;
-<span class="kw">pub const </span>SSL_SESS_CACHE_NO_INTERNAL: <a href="../../openssl_sys/type.c_long.html">c_long</a> =
-    <a href="#292">SSL_SESS_CACHE_NO_INTERNAL_LOOKUP</a> | <a href="#293">SSL_SESS_CACHE_NO_INTERNAL_STORE</a>;
+<span class="kw">pub const </span>SSL_SESS_CACHE_OFF: c_long = <span class="number">0x0</span>;
+<span class="kw">pub const </span>SSL_SESS_CACHE_CLIENT: c_long = <span class="number">0x1</span>;
+<span class="kw">pub const </span>SSL_SESS_CACHE_SERVER: c_long = <span class="number">0x2</span>;
+<span class="kw">pub const </span>SSL_SESS_CACHE_BOTH: c_long = SSL_SESS_CACHE_CLIENT | SSL_SESS_CACHE_SERVER;
+<span class="kw">pub const </span>SSL_SESS_CACHE_NO_AUTO_CLEAR: c_long = <span class="number">0x80</span>;
+<span class="kw">pub const </span>SSL_SESS_CACHE_NO_INTERNAL_LOOKUP: c_long = <span class="number">0x100</span>;
+<span class="kw">pub const </span>SSL_SESS_CACHE_NO_INTERNAL_STORE: c_long = <span class="number">0x200</span>;
+<span class="kw">pub const </span>SSL_SESS_CACHE_NO_INTERNAL: c_long =
+    SSL_SESS_CACHE_NO_INTERNAL_LOOKUP | SSL_SESS_CACHE_NO_INTERNAL_STORE;
 
-<span class="kw">pub const </span>OPENSSL_NPN_UNSUPPORTED: <a href="../../openssl_sys/type.c_int.html">c_int</a> = <span class="number">0</span>;
-<span class="kw">pub const </span>OPENSSL_NPN_NEGOTIATED: <a href="../../openssl_sys/type.c_int.html">c_int</a> = <span class="number">1</span>;
-<span class="kw">pub const </span>OPENSSL_NPN_NO_OVERLAP: <a href="../../openssl_sys/type.c_int.html">c_int</a> = <span class="number">2</span>;
+<span class="kw">pub const </span>OPENSSL_NPN_UNSUPPORTED: c_int = <span class="number">0</span>;
+<span class="kw">pub const </span>OPENSSL_NPN_NEGOTIATED: c_int = <span class="number">1</span>;
+<span class="kw">pub const </span>OPENSSL_NPN_NO_OVERLAP: c_int = <span class="number">2</span>;
 
-<span class="kw">pub const </span>SSL_AD_ILLEGAL_PARAMETER: <a href="../../openssl_sys/type.c_int.html">c_int</a> = <a href="ssl3.rs.html#5">SSL3_AD_ILLEGAL_PARAMETER</a>;
-<span class="kw">pub const </span>SSL_AD_DECODE_ERROR: <a href="../../openssl_sys/type.c_int.html">c_int</a> = <a href="tls1.rs.html#13">TLS1_AD_DECODE_ERROR</a>;
-<span class="kw">pub const </span>SSL_AD_UNRECOGNIZED_NAME: <a href="../../openssl_sys/type.c_int.html">c_int</a> = <a href="tls1.rs.html#14">TLS1_AD_UNRECOGNIZED_NAME</a>;
-<span class="kw">pub const </span>SSL_ERROR_NONE: <a href="../../openssl_sys/type.c_int.html">c_int</a> = <span class="number">0</span>;
-<span class="kw">pub const </span>SSL_ERROR_SSL: <a href="../../openssl_sys/type.c_int.html">c_int</a> = <span class="number">1</span>;
-<span class="kw">pub const </span>SSL_ERROR_SYSCALL: <a href="../../openssl_sys/type.c_int.html">c_int</a> = <span class="number">5</span>;
-<span class="kw">pub const </span>SSL_ERROR_WANT_ACCEPT: <a href="../../openssl_sys/type.c_int.html">c_int</a> = <span class="number">8</span>;
-<span class="kw">pub const </span>SSL_ERROR_WANT_CONNECT: <a href="../../openssl_sys/type.c_int.html">c_int</a> = <span class="number">7</span>;
-<span class="kw">pub const </span>SSL_ERROR_WANT_READ: <a href="../../openssl_sys/type.c_int.html">c_int</a> = <span class="number">2</span>;
-<span class="kw">pub const </span>SSL_ERROR_WANT_WRITE: <a href="../../openssl_sys/type.c_int.html">c_int</a> = <span class="number">3</span>;
-<span class="kw">pub const </span>SSL_ERROR_WANT_X509_LOOKUP: <a href="../../openssl_sys/type.c_int.html">c_int</a> = <span class="number">4</span>;
-<span class="kw">pub const </span>SSL_ERROR_ZERO_RETURN: <a href="../../openssl_sys/type.c_int.html">c_int</a> = <span class="number">6</span>;
+<span class="kw">pub const </span>SSL_AD_ILLEGAL_PARAMETER: c_int = SSL3_AD_ILLEGAL_PARAMETER;
+<span class="kw">pub const </span>SSL_AD_DECODE_ERROR: c_int = TLS1_AD_DECODE_ERROR;
+<span class="kw">pub const </span>SSL_AD_UNRECOGNIZED_NAME: c_int = TLS1_AD_UNRECOGNIZED_NAME;
+<span class="kw">pub const </span>SSL_ERROR_NONE: c_int = <span class="number">0</span>;
+<span class="kw">pub const </span>SSL_ERROR_SSL: c_int = <span class="number">1</span>;
+<span class="kw">pub const </span>SSL_ERROR_SYSCALL: c_int = <span class="number">5</span>;
+<span class="kw">pub const </span>SSL_ERROR_WANT_ACCEPT: c_int = <span class="number">8</span>;
+<span class="kw">pub const </span>SSL_ERROR_WANT_CONNECT: c_int = <span class="number">7</span>;
+<span class="kw">pub const </span>SSL_ERROR_WANT_READ: c_int = <span class="number">2</span>;
+<span class="kw">pub const </span>SSL_ERROR_WANT_WRITE: c_int = <span class="number">3</span>;
+<span class="kw">pub const </span>SSL_ERROR_WANT_X509_LOOKUP: c_int = <span class="number">4</span>;
+<span class="kw">pub const </span>SSL_ERROR_ZERO_RETURN: c_int = <span class="number">6</span>;
 <span class="attr">#[cfg(ossl111)]
-</span><span class="kw">pub const </span>SSL_ERROR_WANT_CLIENT_HELLO_CB: <a href="../../openssl_sys/type.c_int.html">c_int</a> = <span class="number">11</span>;
-<span class="kw">pub const </span>SSL_VERIFY_NONE: <a href="../../openssl_sys/type.c_int.html">c_int</a> = <span class="number">0</span>;
-<span class="kw">pub const </span>SSL_VERIFY_PEER: <a href="../../openssl_sys/type.c_int.html">c_int</a> = <span class="number">1</span>;
-<span class="kw">pub const </span>SSL_VERIFY_FAIL_IF_NO_PEER_CERT: <a href="../../openssl_sys/type.c_int.html">c_int</a> = <span class="number">2</span>;
-<span class="kw">pub const </span>SSL_CTRL_SET_TMP_DH: <a href="../../openssl_sys/type.c_int.html">c_int</a> = <span class="number">3</span>;
-<span class="kw">pub const </span>SSL_CTRL_SET_TMP_ECDH: <a href="../../openssl_sys/type.c_int.html">c_int</a> = <span class="number">4</span>;
+</span><span class="kw">pub const </span>SSL_ERROR_WANT_CLIENT_HELLO_CB: c_int = <span class="number">11</span>;
+<span class="kw">pub const </span>SSL_VERIFY_NONE: c_int = <span class="number">0</span>;
+<span class="kw">pub const </span>SSL_VERIFY_PEER: c_int = <span class="number">1</span>;
+<span class="kw">pub const </span>SSL_VERIFY_FAIL_IF_NO_PEER_CERT: c_int = <span class="number">2</span>;
+<span class="kw">pub const </span>SSL_CTRL_SET_TMP_DH: c_int = <span class="number">3</span>;
+<span class="kw">pub const </span>SSL_CTRL_SET_TMP_ECDH: c_int = <span class="number">4</span>;
 <span class="attr">#[cfg(any(libressl, all(ossl101, not(ossl110))))]
 </span><span class="kw">pub const </span>SSL_CTRL_GET_SESSION_REUSED: c_int = <span class="number">8</span>;
-<span class="kw">pub const </span>SSL_CTRL_EXTRA_CHAIN_CERT: <a href="../../openssl_sys/type.c_int.html">c_int</a> = <span class="number">14</span>;
-<span class="kw">pub const </span>SSL_CTRL_SET_MTU: <a href="../../openssl_sys/type.c_int.html">c_int</a> = <span class="number">17</span>;
+<span class="kw">pub const </span>SSL_CTRL_EXTRA_CHAIN_CERT: c_int = <span class="number">14</span>;
+<span class="kw">pub const </span>SSL_CTRL_SET_MTU: c_int = <span class="number">17</span>;
 <span class="attr">#[cfg(any(libressl, all(ossl101, not(ossl110))))]
 </span><span class="kw">pub const </span>SSL_CTRL_OPTIONS: c_int = <span class="number">32</span>;
-<span class="kw">pub const </span>SSL_CTRL_MODE: <a href="../../openssl_sys/type.c_int.html">c_int</a> = <span class="number">33</span>;
-<span class="kw">pub const </span>SSL_CTRL_SET_READ_AHEAD: <a href="../../openssl_sys/type.c_int.html">c_int</a> = <span class="number">41</span>;
-<span class="kw">pub const </span>SSL_CTRL_SET_SESS_CACHE_SIZE: <a href="../../openssl_sys/type.c_int.html">c_int</a> = <span class="number">42</span>;
-<span class="kw">pub const </span>SSL_CTRL_GET_SESS_CACHE_SIZE: <a href="../../openssl_sys/type.c_int.html">c_int</a> = <span class="number">43</span>;
-<span class="kw">pub const </span>SSL_CTRL_SET_SESS_CACHE_MODE: <a href="../../openssl_sys/type.c_int.html">c_int</a> = <span class="number">44</span>;
-<span class="kw">pub const </span>SSL_CTRL_SET_TLSEXT_SERVERNAME_CB: <a href="../../openssl_sys/type.c_int.html">c_int</a> = <span class="number">53</span>;
-<span class="kw">pub const </span>SSL_CTRL_SET_TLSEXT_SERVERNAME_ARG: <a href="../../openssl_sys/type.c_int.html">c_int</a> = <span class="number">54</span>;
-<span class="kw">pub const </span>SSL_CTRL_SET_TLSEXT_HOSTNAME: <a href="../../openssl_sys/type.c_int.html">c_int</a> = <span class="number">55</span>;
-<span class="kw">pub const </span>SSL_CTRL_SET_TLSEXT_STATUS_REQ_CB: <a href="../../openssl_sys/type.c_int.html">c_int</a> = <span class="number">63</span>;
-<span class="kw">pub const </span>SSL_CTRL_SET_TLSEXT_STATUS_REQ_CB_ARG: <a href="../../openssl_sys/type.c_int.html">c_int</a> = <span class="number">64</span>;
-<span class="kw">pub const </span>SSL_CTRL_SET_TLSEXT_STATUS_REQ_TYPE: <a href="../../openssl_sys/type.c_int.html">c_int</a> = <span class="number">65</span>;
-<span class="kw">pub const </span>SSL_CTRL_GET_TLSEXT_STATUS_REQ_OCSP_RESP: <a href="../../openssl_sys/type.c_int.html">c_int</a> = <span class="number">70</span>;
-<span class="kw">pub const </span>SSL_CTRL_SET_TLSEXT_STATUS_REQ_OCSP_RESP: <a href="../../openssl_sys/type.c_int.html">c_int</a> = <span class="number">71</span>;
+<span class="kw">pub const </span>SSL_CTRL_MODE: c_int = <span class="number">33</span>;
+<span class="kw">pub const </span>SSL_CTRL_SET_READ_AHEAD: c_int = <span class="number">41</span>;
+<span class="kw">pub const </span>SSL_CTRL_SET_SESS_CACHE_SIZE: c_int = <span class="number">42</span>;
+<span class="kw">pub const </span>SSL_CTRL_GET_SESS_CACHE_SIZE: c_int = <span class="number">43</span>;
+<span class="kw">pub const </span>SSL_CTRL_SET_SESS_CACHE_MODE: c_int = <span class="number">44</span>;
+<span class="kw">pub const </span>SSL_CTRL_SET_TLSEXT_SERVERNAME_CB: c_int = <span class="number">53</span>;
+<span class="kw">pub const </span>SSL_CTRL_SET_TLSEXT_SERVERNAME_ARG: c_int = <span class="number">54</span>;
+<span class="kw">pub const </span>SSL_CTRL_SET_TLSEXT_HOSTNAME: c_int = <span class="number">55</span>;
+<span class="kw">pub const </span>SSL_CTRL_SET_TLSEXT_STATUS_REQ_CB: c_int = <span class="number">63</span>;
+<span class="kw">pub const </span>SSL_CTRL_SET_TLSEXT_STATUS_REQ_CB_ARG: c_int = <span class="number">64</span>;
+<span class="kw">pub const </span>SSL_CTRL_SET_TLSEXT_STATUS_REQ_TYPE: c_int = <span class="number">65</span>;
+<span class="kw">pub const </span>SSL_CTRL_GET_TLSEXT_STATUS_REQ_OCSP_RESP: c_int = <span class="number">70</span>;
+<span class="kw">pub const </span>SSL_CTRL_SET_TLSEXT_STATUS_REQ_OCSP_RESP: c_int = <span class="number">71</span>;
 <span class="attr">#[cfg(any(libressl, all(ossl101, not(ossl110))))]
 </span><span class="kw">pub const </span>SSL_CTRL_CLEAR_OPTIONS: c_int = <span class="number">77</span>;
-<span class="kw">pub const </span>SSL_CTRL_GET_EXTRA_CHAIN_CERTS: <a href="../../openssl_sys/type.c_int.html">c_int</a> = <span class="number">82</span>;
+<span class="kw">pub const </span>SSL_CTRL_GET_EXTRA_CHAIN_CERTS: c_int = <span class="number">82</span>;
+<span class="attr">#[cfg(ossl102)]
+</span><span class="kw">pub const </span>SSL_CTRL_CHAIN_CERT: c_int = <span class="number">89</span>;
 <span class="attr">#[cfg(any(ossl111, libressl252))]
-</span><span class="kw">pub const </span>SSL_CTRL_SET_GROUPS_LIST: <a href="../../openssl_sys/type.c_int.html">c_int</a> = <span class="number">92</span>;
+</span><span class="kw">pub const </span>SSL_CTRL_SET_GROUPS_LIST: c_int = <span class="number">92</span>;
 <span class="attr">#[cfg(any(libressl, all(ossl102, not(ossl110))))]
 </span><span class="kw">pub const </span>SSL_CTRL_SET_ECDH_AUTO: c_int = <span class="number">94</span>;
 <span class="attr">#[cfg(ossl102)]
-</span><span class="kw">pub const </span>SSL_CTRL_SET_SIGALGS_LIST: <a href="../../openssl_sys/type.c_int.html">c_int</a> = <span class="number">98</span>;
+</span><span class="kw">pub const </span>SSL_CTRL_SET_SIGALGS_LIST: c_int = <span class="number">98</span>;
 <span class="attr">#[cfg(ossl102)]
-</span><span class="kw">pub const </span>SSL_CTRL_SET_VERIFY_CERT_STORE: <a href="../../openssl_sys/type.c_int.html">c_int</a> = <span class="number">106</span>;
+</span><span class="kw">pub const </span>SSL_CTRL_SET_VERIFY_CERT_STORE: c_int = <span class="number">106</span>;
 <span class="attr">#[cfg(ossl110)]
-</span><span class="kw">pub const </span>SSL_CTRL_GET_EXTMS_SUPPORT: <a href="../../openssl_sys/type.c_int.html">c_int</a> = <span class="number">122</span>;
+</span><span class="kw">pub const </span>SSL_CTRL_GET_EXTMS_SUPPORT: c_int = <span class="number">122</span>;
 <span class="attr">#[cfg(any(ossl110, libressl261))]
-</span><span class="kw">pub const </span>SSL_CTRL_SET_MIN_PROTO_VERSION: <a href="../../openssl_sys/type.c_int.html">c_int</a> = <span class="number">123</span>;
+</span><span class="kw">pub const </span>SSL_CTRL_SET_MIN_PROTO_VERSION: c_int = <span class="number">123</span>;
 <span class="attr">#[cfg(any(ossl110, libressl261))]
-</span><span class="kw">pub const </span>SSL_CTRL_SET_MAX_PROTO_VERSION: <a href="../../openssl_sys/type.c_int.html">c_int</a> = <span class="number">124</span>;
+</span><span class="kw">pub const </span>SSL_CTRL_SET_MAX_PROTO_VERSION: c_int = <span class="number">124</span>;
 <span class="attr">#[cfg(any(ossl110g, libressl270))]
-</span><span class="kw">pub const </span>SSL_CTRL_GET_MIN_PROTO_VERSION: <a href="../../openssl_sys/type.c_int.html">c_int</a> = <span class="number">130</span>;
+</span><span class="kw">pub const </span>SSL_CTRL_GET_MIN_PROTO_VERSION: c_int = <span class="number">130</span>;
 <span class="attr">#[cfg(any(ossl110g, libressl270))]
-</span><span class="kw">pub const </span>SSL_CTRL_GET_MAX_PROTO_VERSION: <a href="../../openssl_sys/type.c_int.html">c_int</a> = <span class="number">131</span>;
+</span><span class="kw">pub const </span>SSL_CTRL_GET_MAX_PROTO_VERSION: c_int = <span class="number">131</span>;
 
-<span class="kw">pub unsafe fn </span>SSL_CTX_set_tmp_dh(ctx: <span class="kw-2">*mut </span><a href="handwritten/types.rs.html#760">SSL_CTX</a>, dh: <span class="kw-2">*mut </span><a href="handwritten/types.rs.html#133">DH</a>) -&gt; <a href="../../openssl_sys/type.c_long.html">c_long</a> {
-    <a href="handwritten/ssl.rs.html#654">SSL_CTX_ctrl</a>(<a href="#361">ctx</a>, <a href="#318">SSL_CTRL_SET_TMP_DH</a>, <span class="number">0</span>, <a href="#361">dh</a> <span class="kw">as </span><span class="kw-2">*mut </span><a href="../../openssl_sys/enum.c_void.html">c_void</a>)
+<span class="kw">pub unsafe fn </span>SSL_CTX_set_tmp_dh(ctx: <span class="kw-2">*mut </span>SSL_CTX, dh: <span class="kw-2">*mut </span>DH) -&gt; c_long {
+    SSL_CTX_ctrl(ctx, SSL_CTRL_SET_TMP_DH, <span class="number">0</span>, dh <span class="kw">as </span><span class="kw-2">*mut </span>c_void)
 }
 
-<span class="kw">pub unsafe fn </span>SSL_CTX_set_tmp_ecdh(ctx: <span class="kw-2">*mut </span><a href="handwritten/types.rs.html#760">SSL_CTX</a>, key: <span class="kw-2">*mut </span><a href="handwritten/types.rs.html#253">EC_KEY</a>) -&gt; <a href="../../openssl_sys/type.c_long.html">c_long</a> {
-    <a href="handwritten/ssl.rs.html#654">SSL_CTX_ctrl</a>(<a href="#365">ctx</a>, <a href="#319">SSL_CTRL_SET_TMP_ECDH</a>, <span class="number">0</span>, <a href="#365">key</a> <span class="kw">as </span><span class="kw-2">*mut </span><a href="../../openssl_sys/enum.c_void.html">c_void</a>)
+<span class="kw">pub unsafe fn </span>SSL_CTX_set_tmp_ecdh(ctx: <span class="kw-2">*mut </span>SSL_CTX, key: <span class="kw-2">*mut </span>EC_KEY) -&gt; c_long {
+    SSL_CTX_ctrl(ctx, SSL_CTRL_SET_TMP_ECDH, <span class="number">0</span>, key <span class="kw">as </span><span class="kw-2">*mut </span>c_void)
 }
 
-<span class="kw">pub unsafe fn </span>SSL_set_tmp_dh(ssl: <span class="kw-2">*mut </span><a href="handwritten/types.rs.html#458">SSL</a>, dh: <span class="kw-2">*mut </span><a href="handwritten/types.rs.html#133">DH</a>) -&gt; <a href="../../openssl_sys/type.c_long.html">c_long</a> {
-    <a href="handwritten/ssl.rs.html#653">SSL_ctrl</a>(<a href="#369">ssl</a>, <a href="#318">SSL_CTRL_SET_TMP_DH</a>, <span class="number">0</span>, <a href="#369">dh</a> <span class="kw">as </span><span class="kw-2">*mut </span><a href="../../openssl_sys/enum.c_void.html">c_void</a>)
+<span class="kw">pub unsafe fn </span>SSL_set_tmp_dh(ssl: <span class="kw-2">*mut </span>SSL, dh: <span class="kw-2">*mut </span>DH) -&gt; c_long {
+    SSL_ctrl(ssl, SSL_CTRL_SET_TMP_DH, <span class="number">0</span>, dh <span class="kw">as </span><span class="kw-2">*mut </span>c_void)
 }
 
-<span class="kw">pub unsafe fn </span>SSL_set_tmp_ecdh(ssl: <span class="kw-2">*mut </span><a href="handwritten/types.rs.html#458">SSL</a>, key: <span class="kw-2">*mut </span><a href="handwritten/types.rs.html#253">EC_KEY</a>) -&gt; <a href="../../openssl_sys/type.c_long.html">c_long</a> {
-    <a href="handwritten/ssl.rs.html#653">SSL_ctrl</a>(<a href="#373">ssl</a>, <a href="#319">SSL_CTRL_SET_TMP_ECDH</a>, <span class="number">0</span>, <a href="#373">key</a> <span class="kw">as </span><span class="kw-2">*mut </span><a href="../../openssl_sys/enum.c_void.html">c_void</a>)
+<span class="kw">pub unsafe fn </span>SSL_set_tmp_ecdh(ssl: <span class="kw-2">*mut </span>SSL, key: <span class="kw-2">*mut </span>EC_KEY) -&gt; c_long {
+    SSL_ctrl(ssl, SSL_CTRL_SET_TMP_ECDH, <span class="number">0</span>, key <span class="kw">as </span><span class="kw-2">*mut </span>c_void)
 }
 
-<span class="kw">pub unsafe fn </span>SSL_CTX_add_extra_chain_cert(ctx: <span class="kw-2">*mut </span><a href="handwritten/types.rs.html#760">SSL_CTX</a>, x509: <span class="kw-2">*mut </span><a href="handwritten/types.rs.html#257">X509</a>) -&gt; <a href="../../openssl_sys/type.c_long.html">c_long</a> {
-    <a href="handwritten/ssl.rs.html#654">SSL_CTX_ctrl</a>(<a href="#377">ctx</a>, <a href="#322">SSL_CTRL_EXTRA_CHAIN_CERT</a>, <span class="number">0</span>, <a href="#377">x509</a> <span class="kw">as </span><span class="kw-2">*mut </span><a href="../../openssl_sys/enum.c_void.html">c_void</a>)
+<span class="kw">pub unsafe fn </span>SSL_CTX_add_extra_chain_cert(ctx: <span class="kw-2">*mut </span>SSL_CTX, x509: <span class="kw-2">*mut </span>X509) -&gt; c_long {
+    SSL_CTX_ctrl(ctx, SSL_CTRL_EXTRA_CHAIN_CERT, <span class="number">0</span>, x509 <span class="kw">as </span><span class="kw-2">*mut </span>c_void)
 }
 
 <span class="kw">pub unsafe fn </span>SSL_CTX_get_extra_chain_certs(
-    ctx: <span class="kw-2">*mut </span><a href="handwritten/types.rs.html#760">SSL_CTX</a>,
-    chain: <span class="kw-2">*mut *mut </span><a href="handwritten/x509.rs.html#133">stack_st_X509</a>,
-) -&gt; <a href="../../openssl_sys/type.c_long.html">c_long</a> {
-    <a href="handwritten/ssl.rs.html#654">SSL_CTX_ctrl</a>(<a href="#382">ctx</a>, <a href="#341">SSL_CTRL_GET_EXTRA_CHAIN_CERTS</a>, <span class="number">0</span>, <a href="#383">chain</a> <span class="kw">as </span><span class="kw-2">*mut </span><a href="../../openssl_sys/enum.c_void.html">c_void</a>)
+    ctx: <span class="kw-2">*mut </span>SSL_CTX,
+    chain: <span class="kw-2">*mut *mut </span>stack_st_X509,
+) -&gt; c_long {
+    SSL_CTX_ctrl(ctx, SSL_CTRL_GET_EXTRA_CHAIN_CERTS, <span class="number">0</span>, chain <span class="kw">as </span><span class="kw-2">*mut </span>c_void)
 }
 
 <span class="attr">#[cfg(ossl102)]
-</span><span class="kw">pub unsafe fn </span>SSL_CTX_set0_verify_cert_store(ctx: <span class="kw-2">*mut </span><a href="handwritten/types.rs.html#760">SSL_CTX</a>, st: <span class="kw-2">*mut </span><a href="handwritten/types.rs.html#334">X509_STORE</a>) -&gt; <a href="../../openssl_sys/type.c_long.html">c_long</a> {
-    <a href="handwritten/ssl.rs.html#654">SSL_CTX_ctrl</a>(<a href="#389">ctx</a>, <a href="#349">SSL_CTRL_SET_VERIFY_CERT_STORE</a>, <span class="number">0</span>, <a href="#389">st</a> <span class="kw">as </span><span class="kw-2">*mut </span><a href="../../openssl_sys/enum.c_void.html">c_void</a>)
+</span><span class="kw">pub unsafe fn </span>SSL_CTX_set0_verify_cert_store(ctx: <span class="kw-2">*mut </span>SSL_CTX, st: <span class="kw-2">*mut </span>X509_STORE) -&gt; c_long {
+    SSL_CTX_ctrl(ctx, SSL_CTRL_SET_VERIFY_CERT_STORE, <span class="number">0</span>, st <span class="kw">as </span><span class="kw-2">*mut </span>c_void)
 }
 
 <span class="macro">cfg_if! </span>{
     <span class="kw">if </span><span class="attr">#[cfg(ossl111)] </span>{
-        <span class="kw">pub unsafe fn </span>SSL_CTX_set1_groups_list(ctx: <span class="kw-2">*mut </span><a href="handwritten/types.rs.html#760">SSL_CTX</a>, s: <span class="kw-2">*const </span><a href="../../openssl_sys/type.c_char.html">c_char</a>) -&gt; <a href="../../openssl_sys/type.c_long.html">c_long</a> {
-            <a href="handwritten/ssl.rs.html#654">SSL_CTX_ctrl</a>(
-                <a href="#395">ctx</a>,
-                <a href="#343">SSL_CTRL_SET_GROUPS_LIST</a>,
+        <span class="kw">pub unsafe fn </span>SSL_CTX_set1_groups_list(ctx: <span class="kw-2">*mut </span>SSL_CTX, s: <span class="kw-2">*const </span>c_char) -&gt; c_long {
+            SSL_CTX_ctrl(
+                ctx,
+                SSL_CTRL_SET_GROUPS_LIST,
                 <span class="number">0</span>,
-                <a href="#395">s</a> <span class="kw">as </span><span class="kw-2">*const </span><a href="../../openssl_sys/enum.c_void.html">c_void</a> <span class="kw">as </span><span class="kw-2">*mut </span><a href="../../openssl_sys/enum.c_void.html">c_void</a>,
+                s <span class="kw">as </span><span class="kw-2">*const </span>c_void <span class="kw">as </span><span class="kw-2">*mut </span>c_void,
             )
         }
     } <span class="kw">else if </span><span class="attr">#[cfg(libressl251)] </span>{
@@ -1027,12 +1036,17 @@
 }
 
 <span class="attr">#[cfg(ossl102)]
-</span><span class="kw">pub unsafe fn </span>SSL_CTX_set1_sigalgs_list(ctx: <span class="kw-2">*mut </span><a href="handwritten/types.rs.html#760">SSL_CTX</a>, s: <span class="kw-2">*const </span><a href="../../openssl_sys/type.c_char.html">c_char</a>) -&gt; <a href="../../openssl_sys/type.c_long.html">c_long</a> {
-    <a href="handwritten/ssl.rs.html#654">SSL_CTX_ctrl</a>(
-        <a href="#411">ctx</a>,
-        <a href="#347">SSL_CTRL_SET_SIGALGS_LIST</a>,
+</span><span class="kw">pub unsafe fn </span>SSL_add0_chain_cert(ssl: <span class="kw-2">*mut </span>::SSL, ptr: <span class="kw-2">*mut </span>X509) -&gt; c_long {
+    SSL_ctrl(ssl, SSL_CTRL_CHAIN_CERT, <span class="number">0</span>, ptr <span class="kw">as </span><span class="kw-2">*mut </span>c_void)
+}
+
+<span class="attr">#[cfg(ossl102)]
+</span><span class="kw">pub unsafe fn </span>SSL_CTX_set1_sigalgs_list(ctx: <span class="kw-2">*mut </span>SSL_CTX, s: <span class="kw-2">*const </span>c_char) -&gt; c_long {
+    SSL_CTX_ctrl(
+        ctx,
+        SSL_CTRL_SET_SIGALGS_LIST,
         <span class="number">0</span>,
-        <a href="#411">s</a> <span class="kw">as </span><span class="kw-2">*const </span><a href="../../openssl_sys/enum.c_void.html">c_void</a> <span class="kw">as </span><span class="kw-2">*mut </span><a href="../../openssl_sys/enum.c_void.html">c_void</a>,
+        s <span class="kw">as </span><span class="kw-2">*const </span>c_void <span class="kw">as </span><span class="kw-2">*mut </span>c_void,
     )
 }
 
@@ -1058,130 +1072,130 @@
 
 <span class="macro">cfg_if! </span>{
     <span class="kw">if </span><span class="attr">#[cfg(ossl110)] </span>{
-        <span class="kw">pub unsafe fn </span>SSL_CTX_set_min_proto_version(ctx: <span class="kw-2">*mut </span><a href="handwritten/types.rs.html#760">SSL_CTX</a>, version: <a href="../../openssl_sys/type.c_int.html">c_int</a>) -&gt; <a href="../../openssl_sys/type.c_int.html">c_int</a> {
-            <a href="handwritten/ssl.rs.html#654">SSL_CTX_ctrl</a>(
-                <a href="#442">ctx</a>,
-                <a href="#353">SSL_CTRL_SET_MIN_PROTO_VERSION</a>,
-                <a href="#442">version</a> <span class="kw">as </span><a href="../../openssl_sys/type.c_long.html">c_long</a>,
+        <span class="kw">pub unsafe fn </span>SSL_CTX_set_min_proto_version(ctx: <span class="kw-2">*mut </span>SSL_CTX, version: c_int) -&gt; c_int {
+            SSL_CTX_ctrl(
+                ctx,
+                SSL_CTRL_SET_MIN_PROTO_VERSION,
+                version <span class="kw">as </span>c_long,
                 ptr::null_mut(),
-            ) <span class="kw">as </span><a href="../../openssl_sys/type.c_int.html">c_int</a>
+            ) <span class="kw">as </span>c_int
         }
 
-        <span class="kw">pub unsafe fn </span>SSL_CTX_set_max_proto_version(ctx: <span class="kw-2">*mut </span><a href="handwritten/types.rs.html#760">SSL_CTX</a>, version: <a href="../../openssl_sys/type.c_int.html">c_int</a>) -&gt; <a href="../../openssl_sys/type.c_int.html">c_int</a> {
-            <a href="handwritten/ssl.rs.html#654">SSL_CTX_ctrl</a>(
-                <a href="#451">ctx</a>,
-                <a href="#355">SSL_CTRL_SET_MAX_PROTO_VERSION</a>,
-                <a href="#451">version</a> <span class="kw">as </span><a href="../../openssl_sys/type.c_long.html">c_long</a>,
+        <span class="kw">pub unsafe fn </span>SSL_CTX_set_max_proto_version(ctx: <span class="kw-2">*mut </span>SSL_CTX, version: c_int) -&gt; c_int {
+            SSL_CTX_ctrl(
+                ctx,
+                SSL_CTRL_SET_MAX_PROTO_VERSION,
+                version <span class="kw">as </span>c_long,
                 ptr::null_mut(),
-            ) <span class="kw">as </span><a href="../../openssl_sys/type.c_int.html">c_int</a>
+            ) <span class="kw">as </span>c_int
         }
 
-        <span class="kw">pub unsafe fn </span>SSL_set_min_proto_version(s: <span class="kw-2">*mut </span><a href="handwritten/types.rs.html#458">SSL</a>, version: <a href="../../openssl_sys/type.c_int.html">c_int</a>) -&gt; <a href="../../openssl_sys/type.c_int.html">c_int</a> {
-            <a href="handwritten/ssl.rs.html#653">SSL_ctrl</a>(
-                <a href="#460">s</a>,
-                <a href="#353">SSL_CTRL_SET_MIN_PROTO_VERSION</a>,
-                <a href="#460">version</a> <span class="kw">as </span><a href="../../openssl_sys/type.c_long.html">c_long</a>,
+        <span class="kw">pub unsafe fn </span>SSL_set_min_proto_version(s: <span class="kw-2">*mut </span>SSL, version: c_int) -&gt; c_int {
+            SSL_ctrl(
+                s,
+                SSL_CTRL_SET_MIN_PROTO_VERSION,
+                version <span class="kw">as </span>c_long,
                 ptr::null_mut(),
-            ) <span class="kw">as </span><a href="../../openssl_sys/type.c_int.html">c_int</a>
+            ) <span class="kw">as </span>c_int
         }
 
-        <span class="kw">pub unsafe fn </span>SSL_set_max_proto_version(s: <span class="kw-2">*mut </span><a href="handwritten/types.rs.html#458">SSL</a>, version: <a href="../../openssl_sys/type.c_int.html">c_int</a>) -&gt; <a href="../../openssl_sys/type.c_int.html">c_int</a> {
-            <a href="handwritten/ssl.rs.html#653">SSL_ctrl</a>(
-                <a href="#469">s</a>,
-                <a href="#355">SSL_CTRL_SET_MAX_PROTO_VERSION</a>,
-                <a href="#469">version</a> <span class="kw">as </span><a href="../../openssl_sys/type.c_long.html">c_long</a>,
+        <span class="kw">pub unsafe fn </span>SSL_set_max_proto_version(s: <span class="kw-2">*mut </span>SSL, version: c_int) -&gt; c_int {
+            SSL_ctrl(
+                s,
+                SSL_CTRL_SET_MAX_PROTO_VERSION,
+                version <span class="kw">as </span>c_long,
                 ptr::null_mut(),
-            ) <span class="kw">as </span><a href="../../openssl_sys/type.c_int.html">c_int</a>
+            ) <span class="kw">as </span>c_int
         }
     }
 }
 
 <span class="macro">cfg_if! </span>{
     <span class="kw">if </span><span class="attr">#[cfg(ossl110g)] </span>{
-        <span class="kw">pub unsafe fn </span>SSL_CTX_get_min_proto_version(ctx: <span class="kw-2">*mut </span><a href="handwritten/types.rs.html#760">SSL_CTX</a>) -&gt; <a href="../../openssl_sys/type.c_int.html">c_int</a> {
-            <a href="handwritten/ssl.rs.html#654">SSL_CTX_ctrl</a>(<a href="#482">ctx</a>, <a href="#357">SSL_CTRL_GET_MIN_PROTO_VERSION</a>, <span class="number">0</span>, ptr::null_mut()) <span class="kw">as </span><a href="../../openssl_sys/type.c_int.html">c_int</a>
+        <span class="kw">pub unsafe fn </span>SSL_CTX_get_min_proto_version(ctx: <span class="kw-2">*mut </span>SSL_CTX) -&gt; c_int {
+            SSL_CTX_ctrl(ctx, SSL_CTRL_GET_MIN_PROTO_VERSION, <span class="number">0</span>, ptr::null_mut()) <span class="kw">as </span>c_int
         }
 
-        <span class="kw">pub unsafe fn </span>SSL_CTX_get_max_proto_version(ctx: <span class="kw-2">*mut </span><a href="handwritten/types.rs.html#760">SSL_CTX</a>) -&gt; <a href="../../openssl_sys/type.c_int.html">c_int</a> {
-            <a href="handwritten/ssl.rs.html#654">SSL_CTX_ctrl</a>(<a href="#486">ctx</a>, <a href="#359">SSL_CTRL_GET_MAX_PROTO_VERSION</a>, <span class="number">0</span>, ptr::null_mut()) <span class="kw">as </span><a href="../../openssl_sys/type.c_int.html">c_int</a>
+        <span class="kw">pub unsafe fn </span>SSL_CTX_get_max_proto_version(ctx: <span class="kw-2">*mut </span>SSL_CTX) -&gt; c_int {
+            SSL_CTX_ctrl(ctx, SSL_CTRL_GET_MAX_PROTO_VERSION, <span class="number">0</span>, ptr::null_mut()) <span class="kw">as </span>c_int
         }
-        <span class="kw">pub unsafe fn </span>SSL_get_min_proto_version(s: <span class="kw-2">*mut </span><a href="handwritten/types.rs.html#458">SSL</a>) -&gt; <a href="../../openssl_sys/type.c_int.html">c_int</a> {
-            <a href="handwritten/ssl.rs.html#653">SSL_ctrl</a>(<a href="#489">s</a>, <a href="#357">SSL_CTRL_GET_MIN_PROTO_VERSION</a>, <span class="number">0</span>, ptr::null_mut()) <span class="kw">as </span><a href="../../openssl_sys/type.c_int.html">c_int</a>
+        <span class="kw">pub unsafe fn </span>SSL_get_min_proto_version(s: <span class="kw-2">*mut </span>SSL) -&gt; c_int {
+            SSL_ctrl(s, SSL_CTRL_GET_MIN_PROTO_VERSION, <span class="number">0</span>, ptr::null_mut()) <span class="kw">as </span>c_int
         }
-        <span class="kw">pub unsafe fn </span>SSL_get_max_proto_version(s: <span class="kw-2">*mut </span><a href="handwritten/types.rs.html#458">SSL</a>) -&gt; <a href="../../openssl_sys/type.c_int.html">c_int</a> {
-            <a href="handwritten/ssl.rs.html#653">SSL_ctrl</a>(<a href="#492">s</a>, <a href="#359">SSL_CTRL_GET_MAX_PROTO_VERSION</a>, <span class="number">0</span>, ptr::null_mut()) <span class="kw">as </span><a href="../../openssl_sys/type.c_int.html">c_int</a>
+        <span class="kw">pub unsafe fn </span>SSL_get_max_proto_version(s: <span class="kw-2">*mut </span>SSL) -&gt; c_int {
+            SSL_ctrl(s, SSL_CTRL_GET_MAX_PROTO_VERSION, <span class="number">0</span>, ptr::null_mut()) <span class="kw">as </span>c_int
         }
     }
 }
 
 <span class="attr">#[cfg(ossl111)]
-</span><span class="kw">pub const </span>SSL_CLIENT_HELLO_SUCCESS: <a href="../../openssl_sys/type.c_int.html">c_int</a> = <span class="number">1</span>;
+</span><span class="kw">pub const </span>SSL_CLIENT_HELLO_SUCCESS: c_int = <span class="number">1</span>;
 <span class="attr">#[cfg(ossl111)]
-</span><span class="kw">pub const </span>SSL_CLIENT_HELLO_ERROR: <a href="../../openssl_sys/type.c_int.html">c_int</a> = <span class="number">0</span>;
+</span><span class="kw">pub const </span>SSL_CLIENT_HELLO_ERROR: c_int = <span class="number">0</span>;
 <span class="attr">#[cfg(ossl111)]
-</span><span class="kw">pub const </span>SSL_CLIENT_HELLO_RETRY: <a href="../../openssl_sys/type.c_int.html">c_int</a> = -<span class="number">1</span>;
+</span><span class="kw">pub const </span>SSL_CLIENT_HELLO_RETRY: c_int = -<span class="number">1</span>;
 
 <span class="attr">#[cfg(any(ossl111, libressl340))]
-</span><span class="kw">pub const </span>SSL_READ_EARLY_DATA_ERROR: <a href="../../openssl_sys/type.c_int.html">c_int</a> = <span class="number">0</span>;
+</span><span class="kw">pub const </span>SSL_READ_EARLY_DATA_ERROR: c_int = <span class="number">0</span>;
 <span class="attr">#[cfg(any(ossl111, libressl340))]
-</span><span class="kw">pub const </span>SSL_READ_EARLY_DATA_SUCCESS: <a href="../../openssl_sys/type.c_int.html">c_int</a> = <span class="number">1</span>;
+</span><span class="kw">pub const </span>SSL_READ_EARLY_DATA_SUCCESS: c_int = <span class="number">1</span>;
 <span class="attr">#[cfg(any(ossl111, libressl340))]
-</span><span class="kw">pub const </span>SSL_READ_EARLY_DATA_FINISH: <a href="../../openssl_sys/type.c_int.html">c_int</a> = <span class="number">2</span>;
+</span><span class="kw">pub const </span>SSL_READ_EARLY_DATA_FINISH: c_int = <span class="number">2</span>;
 
 <span class="macro">cfg_if! </span>{
     <span class="kw">if </span><span class="attr">#[cfg(ossl110)] </span>{
         <span class="kw">pub unsafe fn </span>SSL_get_ex_new_index(
-            l: <a href="../../openssl_sys/type.c_long.html">c_long</a>,
-            p: <span class="kw-2">*mut </span><a href="../../openssl_sys/enum.c_void.html">c_void</a>,
-            newf: <span class="prelude-ty">Option</span>&lt;<a href="crypto.rs.html#35">CRYPTO_EX_new</a>&gt;,
-            dupf: <span class="prelude-ty">Option</span>&lt;<a href="crypto.rs.html#43">CRYPTO_EX_dup</a>&gt;,
-            freef: <span class="prelude-ty">Option</span>&lt;<a href="crypto.rs.html#51">CRYPTO_EX_free</a>&gt;,
-        ) -&gt; <a href="../../openssl_sys/type.c_int.html">c_int</a> {
-            <a href="handwritten/crypto.rs.html#22-29">CRYPTO_get_ex_new_index</a>(<a href="crypto.rs.html#110">CRYPTO_EX_INDEX_SSL</a>, <a href="#515">l</a>, <a href="#516">p</a>, <a href="#517">newf</a>, <a href="#518">dupf</a>, <a href="#519">freef</a>)
+            l: c_long,
+            p: <span class="kw-2">*mut </span>c_void,
+            newf: <span class="prelude-ty">Option</span>&lt;CRYPTO_EX_new&gt;,
+            dupf: <span class="prelude-ty">Option</span>&lt;CRYPTO_EX_dup&gt;,
+            freef: <span class="prelude-ty">Option</span>&lt;CRYPTO_EX_free&gt;,
+        ) -&gt; c_int {
+            CRYPTO_get_ex_new_index(CRYPTO_EX_INDEX_SSL, l, p, newf, dupf, freef)
         }
     }
 }
 <span class="macro">cfg_if! </span>{
     <span class="kw">if </span><span class="attr">#[cfg(ossl110)] </span>{
         <span class="kw">pub unsafe fn </span>SSL_CTX_get_ex_new_index(
-            l: <a href="../../openssl_sys/type.c_long.html">c_long</a>,
-            p: <span class="kw-2">*mut </span><a href="../../openssl_sys/enum.c_void.html">c_void</a>,
-            newf: <span class="prelude-ty">Option</span>&lt;<a href="crypto.rs.html#35">CRYPTO_EX_new</a>&gt;,
-            dupf: <span class="prelude-ty">Option</span>&lt;<a href="crypto.rs.html#43">CRYPTO_EX_dup</a>&gt;,
-            freef: <span class="prelude-ty">Option</span>&lt;<a href="crypto.rs.html#51">CRYPTO_EX_free</a>&gt;,
-        ) -&gt; <a href="../../openssl_sys/type.c_int.html">c_int</a> {
-            <a href="handwritten/crypto.rs.html#22-29">CRYPTO_get_ex_new_index</a>(<a href="crypto.rs.html#111">CRYPTO_EX_INDEX_SSL_CTX</a>, <a href="#528">l</a>, <a href="#529">p</a>, <a href="#530">newf</a>, <a href="#531">dupf</a>, <a href="#532">freef</a>)
+            l: c_long,
+            p: <span class="kw-2">*mut </span>c_void,
+            newf: <span class="prelude-ty">Option</span>&lt;CRYPTO_EX_new&gt;,
+            dupf: <span class="prelude-ty">Option</span>&lt;CRYPTO_EX_dup&gt;,
+            freef: <span class="prelude-ty">Option</span>&lt;CRYPTO_EX_free&gt;,
+        ) -&gt; c_int {
+            CRYPTO_get_ex_new_index(CRYPTO_EX_INDEX_SSL_CTX, l, p, newf, dupf, freef)
         }
     }
 }
 
-<span class="kw">pub unsafe fn </span>SSL_CTX_sess_set_cache_size(ctx: <span class="kw-2">*mut </span><a href="handwritten/types.rs.html#760">SSL_CTX</a>, t: <a href="../../openssl_sys/type.c_long.html">c_long</a>) -&gt; <a href="../../openssl_sys/type.c_long.html">c_long</a> {
-    <a href="handwritten/ssl.rs.html#654">SSL_CTX_ctrl</a>(<a href="#539">ctx</a>, <a href="#328">SSL_CTRL_SET_SESS_CACHE_SIZE</a>, <a href="#539">t</a>, ptr::null_mut())
+<span class="kw">pub unsafe fn </span>SSL_CTX_sess_set_cache_size(ctx: <span class="kw-2">*mut </span>SSL_CTX, t: c_long) -&gt; c_long {
+    SSL_CTX_ctrl(ctx, SSL_CTRL_SET_SESS_CACHE_SIZE, t, ptr::null_mut())
 }
 
-<span class="kw">pub unsafe fn </span>SSL_CTX_sess_get_cache_size(ctx: <span class="kw-2">*mut </span><a href="handwritten/types.rs.html#760">SSL_CTX</a>) -&gt; <a href="../../openssl_sys/type.c_long.html">c_long</a> {
-    <a href="handwritten/ssl.rs.html#654">SSL_CTX_ctrl</a>(<a href="#543">ctx</a>, <a href="#329">SSL_CTRL_GET_SESS_CACHE_SIZE</a>, <span class="number">0</span>, ptr::null_mut())
+<span class="kw">pub unsafe fn </span>SSL_CTX_sess_get_cache_size(ctx: <span class="kw-2">*mut </span>SSL_CTX) -&gt; c_long {
+    SSL_CTX_ctrl(ctx, SSL_CTRL_GET_SESS_CACHE_SIZE, <span class="number">0</span>, ptr::null_mut())
 }
 
-<span class="kw">pub unsafe fn </span>SSL_CTX_set_session_cache_mode(ctx: <span class="kw-2">*mut </span><a href="handwritten/types.rs.html#760">SSL_CTX</a>, m: <a href="../../openssl_sys/type.c_long.html">c_long</a>) -&gt; <a href="../../openssl_sys/type.c_long.html">c_long</a> {
-    <a href="handwritten/ssl.rs.html#654">SSL_CTX_ctrl</a>(<a href="#547">ctx</a>, <a href="#330">SSL_CTRL_SET_SESS_CACHE_MODE</a>, <a href="#547">m</a>, ptr::null_mut())
+<span class="kw">pub unsafe fn </span>SSL_CTX_set_session_cache_mode(ctx: <span class="kw-2">*mut </span>SSL_CTX, m: c_long) -&gt; c_long {
+    SSL_CTX_ctrl(ctx, SSL_CTRL_SET_SESS_CACHE_MODE, m, ptr::null_mut())
 }
 
-<span class="kw">pub unsafe fn </span>SSL_CTX_set_read_ahead(ctx: <span class="kw-2">*mut </span><a href="handwritten/types.rs.html#760">SSL_CTX</a>, m: <a href="../../openssl_sys/type.c_long.html">c_long</a>) -&gt; <a href="../../openssl_sys/type.c_long.html">c_long</a> {
-    <a href="handwritten/ssl.rs.html#654">SSL_CTX_ctrl</a>(<a href="#551">ctx</a>, <a href="#327">SSL_CTRL_SET_READ_AHEAD</a>, <a href="#551">m</a>, ptr::null_mut())
+<span class="kw">pub unsafe fn </span>SSL_CTX_set_read_ahead(ctx: <span class="kw-2">*mut </span>SSL_CTX, m: c_long) -&gt; c_long {
+    SSL_CTX_ctrl(ctx, SSL_CTRL_SET_READ_AHEAD, m, ptr::null_mut())
 }
 
 <span class="attr">#[allow(clashing_extern_declarations)]
 </span><span class="kw">extern </span><span class="string">&quot;C&quot; </span>{
     <span class="attr">#[deprecated(note = <span class="string">&quot;use SSL_CTX_set_tmp_dh_callback__fixed_rust instead&quot;</span>)]
     </span><span class="kw">pub fn </span>SSL_CTX_set_tmp_dh_callback(
-        ctx: <span class="kw-2">*mut </span><a href="handwritten/types.rs.html#760">SSL_CTX</a>,
-        dh: <span class="kw">unsafe extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn</span>(ssl: <span class="kw-2">*mut </span><a href="handwritten/types.rs.html#458">SSL</a>, is_export: <a href="../../openssl_sys/type.c_int.html">c_int</a>, keylength: <a href="../../openssl_sys/type.c_int.html">c_int</a>) -&gt; <span class="kw-2">*mut </span><a href="handwritten/types.rs.html#133">DH</a>,
+        ctx: <span class="kw-2">*mut </span>SSL_CTX,
+        dh: <span class="kw">unsafe extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn</span>(ssl: <span class="kw-2">*mut </span>SSL, is_export: c_int, keylength: c_int) -&gt; <span class="kw-2">*mut </span>DH,
     );
     <span class="attr">#[deprecated(note = <span class="string">&quot;use SSL_set_tmp_dh_callback__fixed_rust instead&quot;</span>)]
     </span><span class="kw">pub fn </span>SSL_set_tmp_dh_callback(
-        ctx: <span class="kw-2">*mut </span><a href="handwritten/types.rs.html#458">SSL</a>,
-        dh: <span class="kw">unsafe extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn</span>(ssl: <span class="kw-2">*mut </span><a href="handwritten/types.rs.html#458">SSL</a>, is_export: <a href="../../openssl_sys/type.c_int.html">c_int</a>, keylength: <a href="../../openssl_sys/type.c_int.html">c_int</a>) -&gt; <span class="kw-2">*mut </span><a href="handwritten/types.rs.html#133">DH</a>,
+        ctx: <span class="kw-2">*mut </span>SSL,
+        dh: <span class="kw">unsafe extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn</span>(ssl: <span class="kw-2">*mut </span>SSL, is_export: c_int, keylength: c_int) -&gt; <span class="kw-2">*mut </span>DH,
     );
     <span class="attr">#[deprecated(note = <span class="string">&quot;use SSL_CTX_set_tmp_ecdh_callback__fixed_rust instead&quot;</span>)]
     #[cfg(not(ossl110))]
@@ -1206,24 +1220,24 @@
 
     <span class="attr">#[deprecated(note = <span class="string">&quot;use SSL_CTX_callback_ctrl__fixed_rust instead&quot;</span>)]
     </span><span class="kw">pub fn </span>SSL_CTX_callback_ctrl(
-        ctx: <span class="kw-2">*mut </span><a href="handwritten/types.rs.html#760">SSL_CTX</a>,
-        cmd: <a href="../../openssl_sys/type.c_int.html">c_int</a>,
+        ctx: <span class="kw-2">*mut </span>SSL_CTX,
+        cmd: c_int,
         fp: <span class="prelude-ty">Option</span>&lt;<span class="kw">extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn</span>()&gt;,
-    ) -&gt; <a href="../../openssl_sys/type.c_long.html">c_long</a>;
+    ) -&gt; c_long;
 
     <span class="attr">#[deprecated(note = <span class="string">&quot;use SSL_CTX_set_alpn_select_cb__fixed_rust instead&quot;</span>)]
     #[cfg(any(ossl102, libressl261))]
     </span><span class="kw">pub fn </span>SSL_CTX_set_alpn_select_cb(
-        ssl: <span class="kw-2">*mut </span><a href="handwritten/types.rs.html#760">SSL_CTX</a>,
+        ssl: <span class="kw-2">*mut </span>SSL_CTX,
         cb: <span class="kw">extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn</span>(
-            ssl: <span class="kw-2">*mut </span><a href="handwritten/types.rs.html#458">SSL</a>,
-            out: <span class="kw-2">*mut *const </span><a href="../../openssl_sys/type.c_uchar.html">c_uchar</a>,
-            outlen: <span class="kw-2">*mut </span><a href="../../openssl_sys/type.c_uchar.html">c_uchar</a>,
-            inbuf: <span class="kw-2">*const </span><a href="../../openssl_sys/type.c_uchar.html">c_uchar</a>,
-            inlen: <a href="../../openssl_sys/type.c_uint.html">c_uint</a>,
-            arg: <span class="kw-2">*mut </span><a href="../../openssl_sys/enum.c_void.html">c_void</a>,
-        ) -&gt; <a href="../../openssl_sys/type.c_int.html">c_int</a>,
-        arg: <span class="kw-2">*mut </span><a href="../../openssl_sys/enum.c_void.html">c_void</a>,
+            ssl: <span class="kw-2">*mut </span>SSL,
+            out: <span class="kw-2">*mut *const </span>c_uchar,
+            outlen: <span class="kw-2">*mut </span>c_uchar,
+            inbuf: <span class="kw-2">*const </span>c_uchar,
+            inlen: c_uint,
+            arg: <span class="kw-2">*mut </span>c_void,
+        ) -&gt; c_int,
+        arg: <span class="kw-2">*mut </span>c_void,
     );
 }
 
@@ -1233,8 +1247,8 @@
 }
 
 <span class="attr">#[cfg(ossl110)]
-</span><span class="kw">pub const </span>OPENSSL_INIT_LOAD_SSL_STRINGS: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> = <span class="number">0x00200000</span>;
+</span><span class="kw">pub const </span>OPENSSL_INIT_LOAD_SSL_STRINGS: u64 = <span class="number">0x00200000</span>;
 <span class="attr">#[cfg(ossl111b)]
-</span><span class="kw">pub const </span>OPENSSL_INIT_NO_ATEXIT: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> = <span class="number">0x00080000</span>;
+</span><span class="kw">pub const </span>OPENSSL_INIT_NO_ATEXIT: u64 = <span class="number">0x00080000</span>;
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="openssl_sys" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="openssl_sys" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/gimli-0.26.2/src/read/dwarf.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>dwarf.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../gimli/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/gimli-0.27.0/src/read/dwarf.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>dwarf.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../gimli/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -1141,24 +1141,30 @@
 <a href="#1141" id="1141">1141</a>
 <a href="#1142" id="1142">1142</a>
 <a href="#1143" id="1143">1143</a>
-</pre><pre class="rust"><code><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">alloc::string::String</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/sync/struct.Arc.html">alloc::sync::Arc</a>;
+<a href="#1144" id="1144">1144</a>
+<a href="#1145" id="1145">1145</a>
+<a href="#1146" id="1146">1146</a>
+<a href="#1147" id="1147">1147</a>
+<a href="#1148" id="1148">1148</a>
+<a href="#1149" id="1149">1149</a>
+</pre><pre class="rust"><code><span class="kw">use </span>alloc::string::String;
+<span class="kw">use </span>alloc::sync::Arc;
 
 <span class="kw">use </span><span class="kw">crate</span>::common::{
-    <a href="../common.rs.html#96">DebugAddrBase</a>, <a href="../common.rs.html#100">DebugAddrIndex</a>, <a href="../common.rs.html#108">DebugInfoOffset</a>, <a href="../common.rs.html#116">DebugLineStrOffset</a>, <a href="../common.rs.html#125">DebugLocListsBase</a>,
-    <a href="../common.rs.html#129">DebugLocListsIndex</a>, <a href="../common.rs.html#154">DebugRngListsBase</a>, <a href="../common.rs.html#158">DebugRngListsIndex</a>, <a href="../common.rs.html#162">DebugStrOffset</a>, <a href="../common.rs.html#166">DebugStrOffsetsBase</a>,
-    <a href="../common.rs.html#170">DebugStrOffsetsIndex</a>, <a href="../common.rs.html#178">DebugTypeSignature</a>, <a href="../common.rs.html#174">DebugTypesOffset</a>, <a href="../common.rs.html#351">DwarfFileType</a>, <a href="../common.rs.html#346">DwoId</a>, <a href="../common.rs.html#37">Encoding</a>,
-    <a href="../common.rs.html#121">LocationListsOffset</a>, <a href="../common.rs.html#150">RangeListsOffset</a>, <a href="../common.rs.html#145">RawRangeListsOffset</a>, <a href="../common.rs.html#245">SectionId</a>, <a href="../common.rs.html#204">UnitSectionOffset</a>,
+    DebugAddrBase, DebugAddrIndex, DebugInfoOffset, DebugLineStrOffset, DebugLocListsBase,
+    DebugLocListsIndex, DebugRngListsBase, DebugRngListsIndex, DebugStrOffset, DebugStrOffsetsBase,
+    DebugStrOffsetsIndex, DebugTypeSignature, DebugTypesOffset, DwarfFileType, DwoId, Encoding,
+    LocationListsOffset, RangeListsOffset, RawRangeListsOffset, SectionId, UnitSectionOffset,
 };
-<span class="kw">use </span><a href="../lib.rs.html#57"><span class="kw">crate</span>::constants</a>;
+<span class="kw">use </span><span class="kw">crate</span>::constants;
 <span class="kw">use </span><span class="kw">crate</span>::read::{
-    <a href="abbrev.rs.html#109">Abbreviations</a>, <a href="unit.rs.html#944">AttributeValue</a>, <a href="abbrev.rs.html#19">DebugAbbrev</a>, <a href="addr.rs.html#6">DebugAddr</a>, <a href="aranges.rs.html#8">DebugAranges</a>, <a href="index.rs.html#12">DebugCuIndex</a>, <a href="unit.rs.html#83">DebugInfo</a>,
-    <a href="unit.rs.html#190">DebugInfoUnitHeadersIter</a>, <a href="line.rs.html#17">DebugLine</a>, <a href="str.rs.html#204">DebugLineStr</a>, <a href="loclists.rs.html#14">DebugLoc</a>, <a href="loclists.rs.html#60">DebugLocLists</a>, <a href="rnglists.rs.html#60">DebugRngLists</a>,
-    <a href="str.rs.html#12">DebugStr</a>, <a href="str.rs.html#101">DebugStrOffsets</a>, <a href="index.rs.html#54">DebugTuIndex</a>, <a href="unit.rs.html#3076">DebugTypes</a>, <a href="unit.rs.html#3177">DebugTypesUnitHeadersIter</a>,
-    <a href="unit.rs.html#658">DebuggingInformationEntry</a>, <a href="unit.rs.html#2477">EntriesCursor</a>, <a href="unit.rs.html#2396">EntriesRaw</a>, <a href="unit.rs.html#2862">EntriesTree</a>, <a href="mod.rs.html#271">Error</a>,
-    <a href="line.rs.html#1431">IncompleteLineProgram</a>, <a href="loclists.rs.html#518">LocListIter</a>, <a href="loclists.rs.html#128">LocationLists</a>, <a href="rnglists.rs.html#585">Range</a>, <a href="rnglists.rs.html#130">RangeLists</a>, <a href="loclists.rs.html#311">RawLocListIter</a>,
-    <a href="rnglists.rs.html#288">RawRngListIter</a>, <a href="reader.rs.html#215">Reader</a>, <a href="reader.rs.html#24-25">ReaderOffset</a>, <a href="reader.rs.html#19">ReaderOffsetId</a>, <span class="prelude-ty">Result</span>, <a href="rnglists.rs.html#455">RngListIter</a>, <a href="mod.rs.html#612">Section</a>, <a href="unit.rs.html#314">UnitHeader</a>,
-    <a href="index.rs.html#96">UnitIndex</a>, <a href="index.rs.html#277">UnitIndexSectionIterator</a>, <a href="mod.rs.html#250">UnitOffset</a>, <a href="unit.rs.html#252">UnitType</a>,
+    Abbreviations, AbbreviationsCache, AttributeValue, DebugAbbrev, DebugAddr, DebugAranges,
+    DebugCuIndex, DebugInfo, DebugInfoUnitHeadersIter, DebugLine, DebugLineStr, DebugLoc,
+    DebugLocLists, DebugRngLists, DebugStr, DebugStrOffsets, DebugTuIndex, DebugTypes,
+    DebugTypesUnitHeadersIter, DebuggingInformationEntry, EntriesCursor, EntriesRaw, EntriesTree,
+    Error, IncompleteLineProgram, LocListIter, LocationLists, Range, RangeLists, RawLocListIter,
+    RawRngListIter, Reader, ReaderOffset, ReaderOffsetId, <span class="prelude-ty">Result</span>, RngListIter, Section, UnitHeader,
+    UnitIndex, UnitIndexSectionIterator, UnitOffset, UnitType,
 };
 
 <span class="doccomment">/// All of the commonly used DWARF sections, and other common information.
@@ -1198,10 +1204,13 @@
     </span><span class="kw">pub </span>ranges: RangeLists&lt;R&gt;,
 
     <span class="doccomment">/// The type of this file.
-    </span><span class="kw">pub </span>file_type: <a href="../common.rs.html#351">DwarfFileType</a>,
+    </span><span class="kw">pub </span>file_type: DwarfFileType,
 
     <span class="doccomment">/// The DWARF sections for a supplementary object file.
     </span><span class="kw">pub </span>sup: <span class="prelude-ty">Option</span>&lt;Arc&lt;Dwarf&lt;R&gt;&gt;&gt;,
+
+    <span class="doccomment">/// A cache of previously parsed abbreviations for units in this file.
+    </span><span class="kw">pub </span>abbreviations_cache: AbbreviationsCache,
 }
 
 <span class="kw">impl</span>&lt;T&gt; Dwarf&lt;T&gt; {
@@ -1218,14 +1227,14 @@
     /// call `load_sup` if required.
     </span><span class="kw">pub fn </span>load&lt;F, E&gt;(<span class="kw-2">mut </span>section: F) -&gt; core::result::Result&lt;<span class="self">Self</span>, E&gt;
     <span class="kw">where
-        </span>F: FnMut(<a href="../common.rs.html#245">SectionId</a>) -&gt; core::result::Result&lt;T, E&gt;,
+        </span>F: FnMut(SectionId) -&gt; core::result::Result&lt;T, E&gt;,
     {
         <span class="comment">// Section types are inferred.
         </span><span class="kw">let </span>debug_loc = Section::load(<span class="kw-2">&amp;mut </span>section)<span class="question-mark">?</span>;
         <span class="kw">let </span>debug_loclists = Section::load(<span class="kw-2">&amp;mut </span>section)<span class="question-mark">?</span>;
         <span class="kw">let </span>debug_ranges = Section::load(<span class="kw-2">&amp;mut </span>section)<span class="question-mark">?</span>;
         <span class="kw">let </span>debug_rnglists = Section::load(<span class="kw-2">&amp;mut </span>section)<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(<a href="#23">Dwarf</a> {
+        <span class="prelude-val">Ok</span>(Dwarf {
             debug_abbrev: Section::load(<span class="kw-2">&amp;mut </span>section)<span class="question-mark">?</span>,
             debug_addr: Section::load(<span class="kw-2">&amp;mut </span>section)<span class="question-mark">?</span>,
             debug_aranges: Section::load(<span class="kw-2">&amp;mut </span>section)<span class="question-mark">?</span>,
@@ -1235,10 +1244,11 @@
             debug_str: Section::load(<span class="kw-2">&amp;mut </span>section)<span class="question-mark">?</span>,
             debug_str_offsets: Section::load(<span class="kw-2">&amp;mut </span>section)<span class="question-mark">?</span>,
             debug_types: Section::load(<span class="kw-2">&amp;mut </span>section)<span class="question-mark">?</span>,
-            locations: LocationLists::new(<a href="#81">debug_loc</a>, <a href="#82">debug_loclists</a>),
-            ranges: RangeLists::new(<a href="#83">debug_ranges</a>, <a href="#84">debug_rnglists</a>),
-            file_type: <a href="../common.rs.html#353">DwarfFileType::Main</a>,
+            locations: LocationLists::new(debug_loc, debug_loclists),
+            ranges: RangeLists::new(debug_ranges, debug_rnglists),
+            file_type: DwarfFileType::Main,
             sup: <span class="prelude-val">None</span>,
+            abbreviations_cache: AbbreviationsCache::new(),
         })
     }
 
@@ -1249,9 +1259,9 @@
     /// Sets `self.sup`, replacing any previous value.
     </span><span class="kw">pub fn </span>load_sup&lt;F, E&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, section: F) -&gt; core::result::Result&lt;(), E&gt;
     <span class="kw">where
-        </span>F: FnMut(<a href="../common.rs.html#245">SectionId</a>) -&gt; core::result::Result&lt;T, E&gt;,
+        </span>F: FnMut(SectionId) -&gt; core::result::Result&lt;T, E&gt;,
     {
-        <a class="self" href="#107">self</a>.sup = <span class="prelude-val">Some</span>(Arc::new(<span class="self">Self</span>::load(section)<span class="question-mark">?</span>));
+        <span class="self">self</span>.sup = <span class="prelude-val">Some</span>(Arc::new(<span class="self">Self</span>::load(section)<span class="question-mark">?</span>));
         <span class="prelude-val">Ok</span>(())
     }
 
@@ -1286,43 +1296,44 @@
     <span class="kw">where
         </span>F: FnMut(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>T) -&gt; R,
     {
-        <a href="#23">Dwarf</a> {
-            debug_abbrev: <a class="self" href="#142">self</a>.debug_abbrev.<a href="abbrev.rs.html#77-79">borrow</a>(<span class="kw-2">&amp;mut </span><a href="#142">borrow</a>),
-            debug_addr: <a class="self" href="#142">self</a>.debug_addr.<a href="addr.rs.html#59-61">borrow</a>(<span class="kw-2">&amp;mut </span><a href="#142">borrow</a>),
-            debug_aranges: <a class="self" href="#142">self</a>.debug_aranges.<a href="aranges.rs.html#73-75">borrow</a>(<span class="kw-2">&amp;mut </span><a href="#142">borrow</a>),
-            debug_info: <a class="self" href="#142">self</a>.debug_info.<a href="unit.rs.html#161-163">borrow</a>(<span class="kw-2">&amp;mut </span><a href="#142">borrow</a>),
-            debug_line: <a class="self" href="#142">self</a>.debug_line.<a href="line.rs.html#100-102">borrow</a>(<span class="kw-2">&amp;mut </span><a href="#142">borrow</a>),
-            debug_line_str: <a class="self" href="#142">self</a>.debug_line_str.<a href="str.rs.html#256-258">borrow</a>(<span class="kw-2">&amp;mut </span><a href="#142">borrow</a>),
-            debug_str: <a class="self" href="#142">self</a>.debug_str.<a href="str.rs.html#75-77">borrow</a>(<span class="kw-2">&amp;mut </span><a href="#142">borrow</a>),
-            debug_str_offsets: <a class="self" href="#142">self</a>.debug_str_offsets.<a href="str.rs.html#153-155">borrow</a>(<span class="kw-2">&amp;mut </span><a href="#142">borrow</a>),
-            debug_types: <a class="self" href="#142">self</a>.debug_types.<a href="unit.rs.html#3119-3121">borrow</a>(<span class="kw-2">&amp;mut </span><a href="#142">borrow</a>),
-            locations: <a class="self" href="#142">self</a>.locations.<a href="loclists.rs.html#160-162">borrow</a>(<span class="kw-2">&amp;mut </span><a href="#142">borrow</a>),
-            ranges: <a class="self" href="#142">self</a>.ranges.<a href="rnglists.rs.html#179-181">borrow</a>(<span class="kw-2">&amp;mut </span><a href="#142">borrow</a>),
-            file_type: <a class="self" href="#142">self</a>.file_type,
-            sup: <a class="self" href="#142">self</a>.<a href="#164">sup</a>().map(|sup| Arc::new(<a href="#159">sup</a>.<a href="#142-144">borrow</a>(<a href="#142">borrow</a>))),
+        Dwarf {
+            debug_abbrev: <span class="self">self</span>.debug_abbrev.borrow(<span class="kw-2">&amp;mut </span>borrow),
+            debug_addr: <span class="self">self</span>.debug_addr.borrow(<span class="kw-2">&amp;mut </span>borrow),
+            debug_aranges: <span class="self">self</span>.debug_aranges.borrow(<span class="kw-2">&amp;mut </span>borrow),
+            debug_info: <span class="self">self</span>.debug_info.borrow(<span class="kw-2">&amp;mut </span>borrow),
+            debug_line: <span class="self">self</span>.debug_line.borrow(<span class="kw-2">&amp;mut </span>borrow),
+            debug_line_str: <span class="self">self</span>.debug_line_str.borrow(<span class="kw-2">&amp;mut </span>borrow),
+            debug_str: <span class="self">self</span>.debug_str.borrow(<span class="kw-2">&amp;mut </span>borrow),
+            debug_str_offsets: <span class="self">self</span>.debug_str_offsets.borrow(<span class="kw-2">&amp;mut </span>borrow),
+            debug_types: <span class="self">self</span>.debug_types.borrow(<span class="kw-2">&amp;mut </span>borrow),
+            locations: <span class="self">self</span>.locations.borrow(<span class="kw-2">&amp;mut </span>borrow),
+            ranges: <span class="self">self</span>.ranges.borrow(<span class="kw-2">&amp;mut </span>borrow),
+            file_type: <span class="self">self</span>.file_type,
+            sup: <span class="self">self</span>.sup().map(|sup| Arc::new(sup.borrow(borrow))),
+            abbreviations_cache: AbbreviationsCache::new(),
         }
     }
 
     <span class="doccomment">/// Return a reference to the DWARF sections for supplementary object file.
     </span><span class="kw">pub fn </span>sup(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Dwarf&lt;T&gt;&gt; {
-        <a class="self" href="#164">self</a>.sup.as_ref().map(Arc::as_ref)
+        <span class="self">self</span>.sup.as_ref().map(Arc::as_ref)
     }
 }
 
-<span class="kw">impl</span>&lt;R: <a href="reader.rs.html#215">Reader</a>&gt; Dwarf&lt;R&gt; {
+<span class="kw">impl</span>&lt;R: Reader&gt; Dwarf&lt;R&gt; {
     <span class="doccomment">/// Iterate the unit headers in the `.debug_info` section.
     ///
     /// Can be [used with
     /// `FallibleIterator`](./index.html#using-with-fallibleiterator).
     </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>units(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; DebugInfoUnitHeadersIter&lt;R&gt; {
-        <a class="self" href="#175">self</a>.debug_info.<a href="unit.rs.html#128">units</a>()
+        <span class="self">self</span>.debug_info.units()
     }
 
     <span class="doccomment">/// Construct a new `Unit` from the given unit header.
     </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>unit(<span class="kw-2">&amp;</span><span class="self">self</span>, header: UnitHeader&lt;R&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;Unit&lt;R&gt;&gt; {
-        Unit::new(<a class="self" href="#181">self</a>, <a href="#181">header</a>)
+        Unit::new(<span class="self">self</span>, header)
     }
 
     <span class="doccomment">/// Iterate the type-unit headers in the `.debug_types` section.
@@ -1331,14 +1342,14 @@
     /// `FallibleIterator`](./index.html#using-with-fallibleiterator).
     </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>type_units(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; DebugTypesUnitHeadersIter&lt;R&gt; {
-        <a class="self" href="#190">self</a>.debug_types.<a href="unit.rs.html#3163">units</a>()
+        <span class="self">self</span>.debug_types.units()
     }
 
     <span class="doccomment">/// Parse the abbreviations for a compilation unit.
-    </span><span class="comment">// TODO: provide caching of abbreviations
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>abbreviations(<span class="kw-2">&amp;</span><span class="self">self</span>, unit: <span class="kw-2">&amp;</span>UnitHeader&lt;R&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="abbrev.rs.html#109">Abbreviations</a>&gt; {
-        <a href="#197">unit</a>.<a href="unit.rs.html#563">abbreviations</a>(<span class="kw-2">&amp;</span><a class="self" href="#197">self</a>.debug_abbrev)
+    </span><span class="kw">pub fn </span>abbreviations(<span class="kw-2">&amp;</span><span class="self">self</span>, unit: <span class="kw-2">&amp;</span>UnitHeader&lt;R&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;Arc&lt;Abbreviations&gt;&gt; {
+        <span class="self">self</span>.abbreviations_cache
+            .get(<span class="kw-2">&amp;</span><span class="self">self</span>.debug_abbrev, unit.debug_abbrev_offset())
     }
 
     <span class="doccomment">/// Return the string offset at the given index.
@@ -1348,20 +1359,20 @@
         unit: <span class="kw-2">&amp;</span>Unit&lt;R&gt;,
         index: DebugStrOffsetsIndex&lt;R::Offset&gt;,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;DebugStrOffset&lt;R::Offset&gt;&gt; {
-        <a class="self" href="#204">self</a>.debug_str_offsets
-            .<a href="str.rs.html#122-127">get_str_offset</a>(<a href="#205">unit</a>.header.<a href="unit.rs.html#429">format</a>(), <a href="#205">unit</a>.str_offsets_base, <a href="#206">index</a>)
+        <span class="self">self</span>.debug_str_offsets
+            .get_str_offset(unit.header.format(), unit.str_offsets_base, index)
     }
 
     <span class="doccomment">/// Return the string at the given offset in `.debug_str`.
     </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>string(<span class="kw-2">&amp;</span><span class="self">self</span>, offset: DebugStrOffset&lt;R::Offset&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;R&gt; {
-        <a class="self" href="#214">self</a>.debug_str.<a href="str.rs.html#52">get_str</a>(<a href="#214">offset</a>)
+        <span class="self">self</span>.debug_str.get_str(offset)
     }
 
     <span class="doccomment">/// Return the string at the given offset in `.debug_line_str`.
     </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>line_string(<span class="kw-2">&amp;</span><span class="self">self</span>, offset: DebugLineStrOffset&lt;R::Offset&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;R&gt; {
-        <a class="self" href="#220">self</a>.debug_line_str.<a href="str.rs.html#233">get_str</a>(<a href="#220">offset</a>)
+        <span class="self">self</span>.debug_line_str.get_str(offset)
     }
 
     <span class="doccomment">/// Return an attribute value as a string slice.
@@ -1379,33 +1390,33 @@
     /// then return the attribute&#39;s string value. Returns an error if the attribute
     /// value does not have a string form, or if a string form has an invalid value.
     </span><span class="kw">pub fn </span>attr_string(<span class="kw-2">&amp;</span><span class="self">self</span>, unit: <span class="kw-2">&amp;</span>Unit&lt;R&gt;, attr: AttributeValue&lt;R&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;R&gt; {
-        <span class="kw">match </span><a href="#238">attr</a> {
-            <a href="unit.rs.html#1072">AttributeValue::String</a>(string) =&gt; <span class="prelude-val">Ok</span>(<a href="#240">string</a>),
-            <a href="unit.rs.html#1056">AttributeValue::DebugStrRef</a>(offset) =&gt; <a class="self" href="#238">self</a>.debug_str.<a href="str.rs.html#52">get_str</a>(<a href="#241">offset</a>),
-            <a href="unit.rs.html#1059">AttributeValue::DebugStrRefSup</a>(offset) =&gt; {
-                <span class="kw">if let </span><span class="prelude-val">Some</span>(sup) = <a class="self" href="#238">self</a>.<a href="#164">sup</a>() {
-                    <a href="#243">sup</a>.debug_str.<a href="str.rs.html#52">get_str</a>(<a href="#242">offset</a>)
+        <span class="kw">match </span>attr {
+            AttributeValue::String(string) =&gt; <span class="prelude-val">Ok</span>(string),
+            AttributeValue::DebugStrRef(offset) =&gt; <span class="self">self</span>.debug_str.get_str(offset),
+            AttributeValue::DebugStrRefSup(offset) =&gt; {
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(sup) = <span class="self">self</span>.sup() {
+                    sup.debug_str.get_str(offset)
                 } <span class="kw">else </span>{
-                    <span class="prelude-val">Err</span>(<a href="mod.rs.html#423">Error::ExpectedStringAttributeValue</a>)
+                    <span class="prelude-val">Err</span>(Error::ExpectedStringAttributeValue)
                 }
             }
-            <a href="unit.rs.html#1068">AttributeValue::DebugLineStrRef</a>(offset) =&gt; <a class="self" href="#238">self</a>.debug_line_str.<a href="str.rs.html#233">get_str</a>(<a href="#249">offset</a>),
-            <a href="unit.rs.html#1065">AttributeValue::DebugStrOffsetsIndex</a>(index) =&gt; {
+            AttributeValue::DebugLineStrRef(offset) =&gt; <span class="self">self</span>.debug_line_str.get_str(offset),
+            AttributeValue::DebugStrOffsetsIndex(index) =&gt; {
                 <span class="kw">let </span>offset = <span class="self">self</span>.debug_str_offsets.get_str_offset(
                     unit.header.format(),
                     unit.str_offsets_base,
                     index,
                 )<span class="question-mark">?</span>;
-                <a class="self" href="#238">self</a>.debug_str.<a href="str.rs.html#52">get_str</a>(<a href="#251">offset</a>)
+                <span class="self">self</span>.debug_str.get_str(offset)
             }
-            <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(<a href="mod.rs.html#423">Error::ExpectedStringAttributeValue</a>),
+            <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(Error::ExpectedStringAttributeValue),
         }
     }
 
     <span class="doccomment">/// Return the address at the given index.
-    </span><span class="kw">pub fn </span>address(<span class="kw-2">&amp;</span><span class="self">self</span>, unit: <span class="kw-2">&amp;</span>Unit&lt;R&gt;, index: DebugAddrIndex&lt;R::Offset&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>&gt; {
-        <a class="self" href="#263">self</a>.debug_addr
-            .<a href="addr.rs.html#28-33">get_address</a>(<a href="#263">unit</a>.<a href="#948">encoding</a>().address_size, <a href="#263">unit</a>.addr_base, <a href="#263">index</a>)
+    </span><span class="kw">pub fn </span>address(<span class="kw-2">&amp;</span><span class="self">self</span>, unit: <span class="kw-2">&amp;</span>Unit&lt;R&gt;, index: DebugAddrIndex&lt;R::Offset&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;u64&gt; {
+        <span class="self">self</span>.debug_addr
+            .get_address(unit.encoding().address_size, unit.addr_base, index)
     }
 
     <span class="doccomment">/// Try to return an attribute value as an address.
@@ -1417,10 +1428,10 @@
     ///
     /// then return the address.
     /// Returns `None` for other forms.
-    </span><span class="kw">pub fn </span>attr_address(<span class="kw-2">&amp;</span><span class="self">self</span>, unit: <span class="kw-2">&amp;</span>Unit&lt;R&gt;, attr: AttributeValue&lt;R&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>&gt;&gt; {
-        <span class="kw">match </span><a href="#277">attr</a> {
-            <a href="unit.rs.html#950">AttributeValue::Addr</a>(addr) =&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<a href="#279">addr</a>)),
-            <a href="unit.rs.html#1013">AttributeValue::DebugAddrIndex</a>(index) =&gt; <a class="self" href="#277">self</a>.<a href="#263">address</a>(<a href="#277">unit</a>, <a href="#280">index</a>).map(<span class="prelude-val">Some</span>),
+    </span><span class="kw">pub fn </span>attr_address(<span class="kw-2">&amp;</span><span class="self">self</span>, unit: <span class="kw-2">&amp;</span>Unit&lt;R&gt;, attr: AttributeValue&lt;R&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;u64&gt;&gt; {
+        <span class="kw">match </span>attr {
+            AttributeValue::Addr(addr) =&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(addr)),
+            AttributeValue::DebugAddrIndex(index) =&gt; <span class="self">self</span>.address(unit, index).map(<span class="prelude-val">Some</span>),
             <span class="kw">_ </span>=&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>),
         }
     }
@@ -1434,9 +1445,9 @@
         offset: RawRangeListsOffset&lt;R::Offset&gt;,
     ) -&gt; RangeListsOffset&lt;R::Offset&gt; {
         <span class="kw">if </span><span class="self">self</span>.file_type == DwarfFileType::Dwo &amp;&amp; unit.header.version() &lt; <span class="number">5 </span>{
-            <a href="../common.rs.html#150">RangeListsOffset</a>(<a href="#291">offset</a>.<span class="number">0</span>.<a href="reader.rs.html#48">wrapping_add</a>(<a href="#290">unit</a>.rnglists_base.<span class="number">0</span>))
+            RangeListsOffset(offset.<span class="number">0</span>.wrapping_add(unit.rnglists_base.<span class="number">0</span>))
         } <span class="kw">else </span>{
-            <a href="../common.rs.html#150">RangeListsOffset</a>(<a href="#291">offset</a>.<span class="number">0</span>)
+            RangeListsOffset(offset.<span class="number">0</span>)
         }
     }
 
@@ -1446,8 +1457,8 @@
         unit: <span class="kw-2">&amp;</span>Unit&lt;R&gt;,
         index: DebugRngListsIndex&lt;R::Offset&gt;,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;RangeListsOffset&lt;R::Offset&gt;&gt; {
-        <a class="self" href="#302">self</a>.ranges
-            .<a href="rnglists.rs.html#250-255">get_offset</a>(<a href="#303">unit</a>.<a href="#948">encoding</a>(), <a href="#303">unit</a>.rnglists_base, <a href="#304">index</a>)
+        <span class="self">self</span>.ranges
+            .get_offset(unit.encoding(), unit.rnglists_base, index)
     }
 
     <span class="doccomment">/// Iterate over the `RangeListEntry`s starting at the given offset.
@@ -1456,12 +1467,12 @@
         unit: <span class="kw-2">&amp;</span>Unit&lt;R&gt;,
         offset: RangeListsOffset&lt;R::Offset&gt;,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;RngListIter&lt;R&gt;&gt; {
-        <a class="self" href="#312">self</a>.ranges.<a href="rnglists.rs.html#201-208">ranges</a>(
-            <a href="#314">offset</a>,
-            <a href="#313">unit</a>.<a href="#948">encoding</a>(),
-            <a href="#313">unit</a>.low_pc,
-            <span class="kw-2">&amp;</span><a class="self" href="#312">self</a>.debug_addr,
-            <a href="#313">unit</a>.addr_base,
+        <span class="self">self</span>.ranges.ranges(
+            offset,
+            unit.encoding(),
+            unit.low_pc,
+            <span class="kw-2">&amp;</span><span class="self">self</span>.debug_addr,
+            unit.addr_base,
         )
     }
 
@@ -1471,7 +1482,7 @@
         unit: <span class="kw-2">&amp;</span>Unit&lt;R&gt;,
         offset: RangeListsOffset&lt;R::Offset&gt;,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;RawRngListIter&lt;R&gt;&gt; {
-        <a class="self" href="#327">self</a>.ranges.<a href="rnglists.rs.html#227-231">raw_ranges</a>(<a href="#329">offset</a>, <a href="#328">unit</a>.<a href="#948">encoding</a>())
+        <span class="self">self</span>.ranges.raw_ranges(offset, unit.encoding())
     }
 
     <span class="doccomment">/// Try to return an attribute value as a range list offset.
@@ -1488,11 +1499,11 @@
         unit: <span class="kw-2">&amp;</span>Unit&lt;R&gt;,
         attr: AttributeValue&lt;R&gt;,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;RangeListsOffset&lt;R::Offset&gt;&gt;&gt; {
-        <span class="kw">match </span><a href="#346">attr</a> {
-            <a href="unit.rs.html#1044">AttributeValue::RangeListsRef</a>(offset) =&gt; {
-                <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<a class="self" href="#344">self</a>.<a href="#288-292">ranges_offset_from_raw</a>(<a href="#345">unit</a>, <a href="#349">offset</a>)))
+        <span class="kw">match </span>attr {
+            AttributeValue::RangeListsRef(offset) =&gt; {
+                <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="self">self</span>.ranges_offset_from_raw(unit, offset)))
             }
-            <a href="unit.rs.html#1050">AttributeValue::DebugRngListsIndex</a>(index) =&gt; <a class="self" href="#344">self</a>.<a href="#301-305">ranges_offset</a>(<a href="#345">unit</a>, <a href="#352">index</a>).map(<span class="prelude-val">Some</span>),
+            AttributeValue::DebugRngListsIndex(index) =&gt; <span class="self">self</span>.ranges_offset(unit, index).map(<span class="prelude-val">Some</span>),
             <span class="kw">_ </span>=&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>),
         }
     }
@@ -1528,7 +1539,7 @@
         <span class="kw">let </span><span class="kw-2">mut </span>low_pc = <span class="prelude-val">None</span>;
         <span class="kw">let </span><span class="kw-2">mut </span>high_pc = <span class="prelude-val">None</span>;
         <span class="kw">let </span><span class="kw-2">mut </span>size = <span class="prelude-val">None</span>;
-        <span class="kw">let </span><span class="kw-2">mut </span>attrs = <a href="#383">entry</a>.<a href="unit.rs.html#851">attrs</a>();
+        <span class="kw">let </span><span class="kw-2">mut </span>attrs = entry.attrs();
         <span class="kw">while let </span><span class="prelude-val">Some</span>(attr) = attrs.next()<span class="question-mark">? </span>{
             <span class="kw">match </span>attr.name() {
                 constants::DW_AT_low_pc =&gt; {
@@ -1554,12 +1565,12 @@
                 <span class="kw">_ </span>=&gt; {}
             }
         }
-        <span class="kw">let </span>range = <a href="#385">low_pc</a>.and_then(|begin| {
-            <span class="kw">let </span>end = <a href="#387">size</a>.map(|size| <a href="#414">begin</a> + <a href="#415">size</a>).or(<a href="#386">high_pc</a>);
+        <span class="kw">let </span>range = low_pc.and_then(|begin| {
+            <span class="kw">let </span>end = size.map(|size| begin + size).or(high_pc);
             <span class="comment">// TODO: perhaps return an error if `end` is `None`
-            </span><a href="#415">end</a>.map(|end| <a href="rnglists.rs.html#585">Range</a> { <a href="#414">begin</a>, <a href="#417">end</a> })
+            </span>end.map(|end| Range { begin, end })
         });
-        <span class="prelude-val">Ok</span>(<a href="#1049">RangeIter</a>(<a href="#1053">RangeIterInner::Single</a>(<a href="#414">range</a>)))
+        <span class="prelude-val">Ok</span>(RangeIter(RangeIterInner::Single(range)))
     }
 
     <span class="doccomment">/// Return an iterator for the address ranges of a `Unit`.
@@ -1567,10 +1578,10 @@
     /// This uses `DW_AT_low_pc`, `DW_AT_high_pc` and `DW_AT_ranges` of the
     /// root `DebuggingInformationEntry`.
     </span><span class="kw">pub fn </span>unit_ranges(<span class="kw-2">&amp;</span><span class="self">self</span>, unit: <span class="kw-2">&amp;</span>Unit&lt;R&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;RangeIter&lt;R&gt;&gt; {
-        <span class="kw">let </span><span class="kw-2">mut </span>cursor = <a href="#426">unit</a>.header.<a href="unit.rs.html#500-503">entries</a>(<span class="kw-2">&amp;</span><a href="#426">unit</a>.abbreviations);
+        <span class="kw">let </span><span class="kw-2">mut </span>cursor = unit.header.entries(<span class="kw-2">&amp;</span>unit.abbreviations);
         cursor.next_dfs()<span class="question-mark">?</span>;
         <span class="kw">let </span>root = cursor.current().ok_or(Error::MissingUnitDie)<span class="question-mark">?</span>;
-        <a class="self" href="#426">self</a>.<a href="#380-384">die_ranges</a>(<a href="#426">unit</a>, <a href="#429">root</a>)
+        <span class="self">self</span>.die_ranges(unit, root)
     }
 
     <span class="doccomment">/// Return the location list offset at the given index.
@@ -1579,8 +1590,8 @@
         unit: <span class="kw-2">&amp;</span>Unit&lt;R&gt;,
         index: DebugLocListsIndex&lt;R::Offset&gt;,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;LocationListsOffset&lt;R::Offset&gt;&gt; {
-        <a class="self" href="#435">self</a>.locations
-            .<a href="loclists.rs.html#272-277">get_offset</a>(<a href="#436">unit</a>.<a href="#948">encoding</a>(), <a href="#436">unit</a>.loclists_base, <a href="#437">index</a>)
+        <span class="self">self</span>.locations
+            .get_offset(unit.encoding(), unit.loclists_base, index)
     }
 
     <span class="doccomment">/// Iterate over the `LocationListEntry`s starting at the given offset.
@@ -1589,20 +1600,20 @@
         unit: <span class="kw-2">&amp;</span>Unit&lt;R&gt;,
         offset: LocationListsOffset&lt;R::Offset&gt;,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;LocListIter&lt;R&gt;&gt; {
-        <span class="kw">match </span><a class="self" href="#445">self</a>.file_type {
-            <a href="../common.rs.html#353">DwarfFileType::Main</a> =&gt; <a class="self" href="#445">self</a>.locations.<a href="loclists.rs.html#183-190">locations</a>(
-                <a href="#447">offset</a>,
-                <a href="#446">unit</a>.<a href="#948">encoding</a>(),
-                <a href="#446">unit</a>.low_pc,
-                <span class="kw-2">&amp;</span><a class="self" href="#445">self</a>.debug_addr,
-                <a href="#446">unit</a>.addr_base,
+        <span class="kw">match </span><span class="self">self</span>.file_type {
+            DwarfFileType::Main =&gt; <span class="self">self</span>.locations.locations(
+                offset,
+                unit.encoding(),
+                unit.low_pc,
+                <span class="kw-2">&amp;</span><span class="self">self</span>.debug_addr,
+                unit.addr_base,
             ),
-            <a href="../common.rs.html#355">DwarfFileType::Dwo</a> =&gt; <a class="self" href="#445">self</a>.locations.<a href="loclists.rs.html#202-209">locations_dwo</a>(
-                <a href="#447">offset</a>,
-                <a href="#446">unit</a>.<a href="#948">encoding</a>(),
-                <a href="#446">unit</a>.low_pc,
-                <span class="kw-2">&amp;</span><a class="self" href="#445">self</a>.debug_addr,
-                <a href="#446">unit</a>.addr_base,
+            DwarfFileType::Dwo =&gt; <span class="self">self</span>.locations.locations_dwo(
+                offset,
+                unit.encoding(),
+                unit.low_pc,
+                <span class="kw-2">&amp;</span><span class="self">self</span>.debug_addr,
+                unit.addr_base,
             ),
         }
     }
@@ -1613,9 +1624,9 @@
         unit: <span class="kw-2">&amp;</span>Unit&lt;R&gt;,
         offset: LocationListsOffset&lt;R::Offset&gt;,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;RawLocListIter&lt;R&gt;&gt; {
-        <span class="kw">match </span><a class="self" href="#469">self</a>.file_type {
-            <a href="../common.rs.html#353">DwarfFileType::Main</a> =&gt; <a class="self" href="#469">self</a>.locations.<a href="loclists.rs.html#228-232">raw_locations</a>(<a href="#471">offset</a>, <a href="#470">unit</a>.<a href="#948">encoding</a>()),
-            <a href="../common.rs.html#355">DwarfFileType::Dwo</a> =&gt; <a class="self" href="#469">self</a>.locations.<a href="loclists.rs.html#245-249">raw_locations_dwo</a>(<a href="#471">offset</a>, <a href="#470">unit</a>.<a href="#948">encoding</a>()),
+        <span class="kw">match </span><span class="self">self</span>.file_type {
+            DwarfFileType::Main =&gt; <span class="self">self</span>.locations.raw_locations(offset, unit.encoding()),
+            DwarfFileType::Dwo =&gt; <span class="self">self</span>.locations.raw_locations_dwo(offset, unit.encoding()),
         }
     }
 
@@ -1633,10 +1644,10 @@
         unit: <span class="kw-2">&amp;</span>Unit&lt;R&gt;,
         attr: AttributeValue&lt;R&gt;,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;LocationListsOffset&lt;R::Offset&gt;&gt;&gt; {
-        <span class="kw">match </span><a href="#491">attr</a> {
-            <a href="unit.rs.html#1029">AttributeValue::LocationListsRef</a>(offset) =&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<a href="#494">offset</a>)),
-            <a href="unit.rs.html#1035">AttributeValue::DebugLocListsIndex</a>(index) =&gt; {
-                <a class="self" href="#489">self</a>.<a href="#434-438">locations_offset</a>(<a href="#490">unit</a>, <a href="#495">index</a>).map(<span class="prelude-val">Some</span>)
+        <span class="kw">match </span>attr {
+            AttributeValue::LocationListsRef(offset) =&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(offset)),
+            AttributeValue::DebugLocListsIndex(index) =&gt; {
+                <span class="self">self</span>.locations_offset(unit, index).map(<span class="prelude-val">Some</span>)
             }
             <span class="kw">_ </span>=&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>),
         }
@@ -1665,35 +1676,35 @@
     <span class="doccomment">/// Call `Reader::lookup_offset_id` for each section, and return the first match.
     ///
     /// The first element of the tuple is `true` for supplementary sections.
-    </span><span class="kw">pub fn </span>lookup_offset_id(<span class="kw-2">&amp;</span><span class="self">self</span>, id: <a href="reader.rs.html#19">ReaderOffsetId</a>) -&gt; <span class="prelude-ty">Option</span>&lt;(<a href="https://doc.rust-lang.org/nightly/core/primitive.bool.html">bool</a>, <a href="../common.rs.html#245">SectionId</a>, R::Offset)&gt; {
-        <span class="prelude-val">None</span>.or_else(|| <a class="self" href="#525">self</a>.debug_abbrev.<a href="mod.rs.html#653-655">lookup_offset_id</a>(<a href="#525">id</a>))
-            .or_else(|| <a class="self" href="#525">self</a>.debug_addr.<a href="mod.rs.html#653-655">lookup_offset_id</a>(<a href="#525">id</a>))
-            .or_else(|| <a class="self" href="#525">self</a>.debug_aranges.<a href="mod.rs.html#653-655">lookup_offset_id</a>(<a href="#525">id</a>))
-            .or_else(|| <a class="self" href="#525">self</a>.debug_info.<a href="mod.rs.html#653-655">lookup_offset_id</a>(<a href="#525">id</a>))
-            .or_else(|| <a class="self" href="#525">self</a>.debug_line.<a href="mod.rs.html#653-655">lookup_offset_id</a>(<a href="#525">id</a>))
-            .or_else(|| <a class="self" href="#525">self</a>.debug_line_str.<a href="mod.rs.html#653-655">lookup_offset_id</a>(<a href="#525">id</a>))
-            .or_else(|| <a class="self" href="#525">self</a>.debug_str.<a href="mod.rs.html#653-655">lookup_offset_id</a>(<a href="#525">id</a>))
-            .or_else(|| <a class="self" href="#525">self</a>.debug_str_offsets.<a href="mod.rs.html#653-655">lookup_offset_id</a>(<a href="#525">id</a>))
-            .or_else(|| <a class="self" href="#525">self</a>.debug_types.<a href="mod.rs.html#653-655">lookup_offset_id</a>(<a href="#525">id</a>))
-            .or_else(|| <a class="self" href="#525">self</a>.locations.<a href="loclists.rs.html#290">lookup_offset_id</a>(<a href="#525">id</a>))
-            .or_else(|| <a class="self" href="#525">self</a>.ranges.<a href="rnglists.rs.html#268">lookup_offset_id</a>(<a href="#525">id</a>))
-            .map(|(id, offset)| (<span class="bool-val">false</span>, <a href="#537">id</a>, <a href="#537">offset</a>))
+    </span><span class="kw">pub fn </span>lookup_offset_id(<span class="kw-2">&amp;</span><span class="self">self</span>, id: ReaderOffsetId) -&gt; <span class="prelude-ty">Option</span>&lt;(bool, SectionId, R::Offset)&gt; {
+        <span class="prelude-val">None</span>.or_else(|| <span class="self">self</span>.debug_abbrev.lookup_offset_id(id))
+            .or_else(|| <span class="self">self</span>.debug_addr.lookup_offset_id(id))
+            .or_else(|| <span class="self">self</span>.debug_aranges.lookup_offset_id(id))
+            .or_else(|| <span class="self">self</span>.debug_info.lookup_offset_id(id))
+            .or_else(|| <span class="self">self</span>.debug_line.lookup_offset_id(id))
+            .or_else(|| <span class="self">self</span>.debug_line_str.lookup_offset_id(id))
+            .or_else(|| <span class="self">self</span>.debug_str.lookup_offset_id(id))
+            .or_else(|| <span class="self">self</span>.debug_str_offsets.lookup_offset_id(id))
+            .or_else(|| <span class="self">self</span>.debug_types.lookup_offset_id(id))
+            .or_else(|| <span class="self">self</span>.locations.lookup_offset_id(id))
+            .or_else(|| <span class="self">self</span>.ranges.lookup_offset_id(id))
+            .map(|(id, offset)| (<span class="bool-val">false</span>, id, offset))
             .or_else(|| {
-                <a class="self" href="#525">self</a>.<a href="#164">sup</a>()
-                    .and_then(|sup| <a href="#540">sup</a>.<a href="#525">lookup_offset_id</a>(<a href="#525">id</a>))
-                    .map(|(<span class="kw">_</span>, id, offset)| (<span class="bool-val">true</span>, <a href="#541">id</a>, <a href="#541">offset</a>))
+                <span class="self">self</span>.sup()
+                    .and_then(|sup| sup.lookup_offset_id(id))
+                    .map(|(<span class="kw">_</span>, id, offset)| (<span class="bool-val">true</span>, id, offset))
             })
     }
 
     <span class="doccomment">/// Returns a string representation of the given error.
     ///
     /// This uses information from the DWARF sections to provide more information in some cases.
-    </span><span class="kw">pub fn </span>format_error(<span class="kw-2">&amp;</span><span class="self">self</span>, err: <a href="mod.rs.html#271">Error</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a> {
+    </span><span class="kw">pub fn </span>format_error(<span class="kw-2">&amp;</span><span class="self">self</span>, err: Error) -&gt; String {
         <span class="attr">#[allow(clippy::single_match)]
-        </span><span class="kw">match </span><a href="#548">err</a> {
-            <a href="mod.rs.html#315">Error::UnexpectedEof</a>(id) =&gt; <span class="kw">match </span><a class="self" href="#548">self</a>.<a href="#525">lookup_offset_id</a>(<a href="#551">id</a>) {
+        </span><span class="kw">match </span>err {
+            Error::UnexpectedEof(id) =&gt; <span class="kw">match </span><span class="self">self</span>.lookup_offset_id(id) {
                 <span class="prelude-val">Some</span>((sup, section, offset)) =&gt; {
-                    <span class="kw">return </span><a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(
+                    <span class="kw">return </span><span class="macro">format!</span>(
                         <span class="string">&quot;{} at {}{}+0x{:x}&quot;</span>,
                         err,
                         section.name(),
@@ -1705,13 +1716,13 @@
             },
             <span class="kw">_ </span>=&gt; {}
         }
-        <a href="#548">err</a>.<a href="mod.rs.html#445">description</a>().<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()
+        err.description().into()
     }
 }
 
 <span class="doccomment">/// The sections from a `.dwp` file.
 </span><span class="attr">#[derive(Debug)]
-</span><span class="kw">pub struct </span>DwarfPackage&lt;R: <a href="reader.rs.html#215">Reader</a>&gt; {
+</span><span class="kw">pub struct </span>DwarfPackage&lt;R: Reader&gt; {
     <span class="doccomment">/// The compilation unit index in the `.debug_cu_index` section.
     </span><span class="kw">pub </span>cu_index: UnitIndex&lt;R&gt;,
 
@@ -1755,17 +1766,17 @@
     </span><span class="kw">pub </span>empty: R,
 }
 
-<span class="kw">impl</span>&lt;R: <a href="reader.rs.html#215">Reader</a>&gt; DwarfPackage&lt;R&gt; {
+<span class="kw">impl</span>&lt;R: Reader&gt; DwarfPackage&lt;R&gt; {
     <span class="doccomment">/// Try to load the `.dwp` sections using the given loader function.
     ///
     /// `section` loads a DWARF section from the object file.
     /// It should return an empty section if the section does not exist.
     </span><span class="kw">pub fn </span>load&lt;F, E&gt;(<span class="kw-2">mut </span>section: F, empty: R) -&gt; core::result::Result&lt;<span class="self">Self</span>, E&gt;
     <span class="kw">where
-        </span>F: FnMut(<a href="../common.rs.html#245">SectionId</a>) -&gt; core::result::Result&lt;R, E&gt;,
-        E: From&lt;<a href="mod.rs.html#271">Error</a>&gt;,
+        </span>F: FnMut(SectionId) -&gt; core::result::Result&lt;R, E&gt;,
+        E: From&lt;Error&gt;,
     {
-        <span class="prelude-val">Ok</span>(<a href="#571">DwarfPackage</a> {
+        <span class="prelude-val">Ok</span>(DwarfPackage {
             cu_index: DebugCuIndex::load(<span class="kw-2">&amp;mut </span>section)<span class="question-mark">?</span>.index()<span class="question-mark">?</span>,
             tu_index: DebugTuIndex::load(<span class="kw-2">&amp;mut </span>section)<span class="question-mark">?</span>.index()<span class="question-mark">?</span>,
             <span class="comment">// Section types are inferred.
@@ -1778,32 +1789,32 @@
             debug_loclists: Section::load(<span class="kw-2">&amp;mut </span>section)<span class="question-mark">?</span>,
             debug_rnglists: Section::load(<span class="kw-2">&amp;mut </span>section)<span class="question-mark">?</span>,
             debug_types: Section::load(<span class="kw-2">&amp;mut </span>section)<span class="question-mark">?</span>,
-            <a href="#620">empty</a>,
+            empty,
         })
     }
 
     <span class="doccomment">/// Find the compilation unit with the given DWO identifier and return its section
     /// contributions.
-    </span><span class="kw">pub fn </span>find_cu(<span class="kw-2">&amp;</span><span class="self">self</span>, id: <a href="../common.rs.html#346">DwoId</a>, parent: <span class="kw-2">&amp;</span>Dwarf&lt;R&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;Dwarf&lt;R&gt;&gt;&gt; {
-        <span class="kw">let </span>row = <span class="kw">match </span><a class="self" href="#644">self</a>.cu_index.<a href="index.rs.html#204">find</a>(<a href="#644">id</a>.<span class="number">0</span>) {
-            <span class="prelude-val">Some</span>(row) =&gt; <a href="#646">row</a>,
+    </span><span class="kw">pub fn </span>find_cu(<span class="kw-2">&amp;</span><span class="self">self</span>, id: DwoId, parent: <span class="kw-2">&amp;</span>Dwarf&lt;R&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;Dwarf&lt;R&gt;&gt;&gt; {
+        <span class="kw">let </span>row = <span class="kw">match </span><span class="self">self</span>.cu_index.find(id.<span class="number">0</span>) {
+            <span class="prelude-val">Some</span>(row) =&gt; row,
             <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>),
         };
-        <a class="self" href="#644">self</a>.<a href="#671">cu_sections</a>(<a href="#645">row</a>, <a href="#644">parent</a>).map(<span class="prelude-val">Some</span>)
+        <span class="self">self</span>.cu_sections(row, parent).map(<span class="prelude-val">Some</span>)
     }
 
     <span class="doccomment">/// Find the type unit with the given type signature and return its section
     /// contributions.
     </span><span class="kw">pub fn </span>find_tu(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        signature: <a href="../common.rs.html#178">DebugTypeSignature</a>,
+        signature: DebugTypeSignature,
         parent: <span class="kw-2">&amp;</span>Dwarf&lt;R&gt;,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;Dwarf&lt;R&gt;&gt;&gt; {
-        <span class="kw">let </span>row = <span class="kw">match </span><a class="self" href="#655">self</a>.tu_index.<a href="index.rs.html#204">find</a>(<a href="#656">signature</a>.<span class="number">0</span>) {
-            <span class="prelude-val">Some</span>(row) =&gt; <a href="#660">row</a>,
+        <span class="kw">let </span>row = <span class="kw">match </span><span class="self">self</span>.tu_index.find(signature.<span class="number">0</span>) {
+            <span class="prelude-val">Some</span>(row) =&gt; row,
             <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>),
         };
-        <a class="self" href="#655">self</a>.<a href="#680">tu_sections</a>(<a href="#659">row</a>, <a href="#657">parent</a>).map(<span class="prelude-val">Some</span>)
+        <span class="self">self</span>.tu_sections(row, parent).map(<span class="prelude-val">Some</span>)
     }
 
     <span class="doccomment">/// Return the section contributions of the compilation unit at the given index.
@@ -1811,8 +1822,8 @@
     /// The index must be in the range `1..cu_index.unit_count`.
     ///
     /// This function should only be needed by low level parsers.
-    </span><span class="kw">pub fn </span>cu_sections(<span class="kw-2">&amp;</span><span class="self">self</span>, index: <a href="https://doc.rust-lang.org/nightly/core/primitive.u32.html">u32</a>, parent: <span class="kw-2">&amp;</span>Dwarf&lt;R&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;Dwarf&lt;R&gt;&gt; {
-        <a class="self" href="#671">self</a>.<a href="#687-691">sections</a>(<span class="self">self</span>.cu_index.sections(index)<span class="question-mark">?</span>, <a href="#671">parent</a>)
+    </span><span class="kw">pub fn </span>cu_sections(<span class="kw-2">&amp;</span><span class="self">self</span>, index: u32, parent: <span class="kw-2">&amp;</span>Dwarf&lt;R&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;Dwarf&lt;R&gt;&gt; {
+        <span class="self">self</span>.sections(<span class="self">self</span>.cu_index.sections(index)<span class="question-mark">?</span>, parent)
     }
 
     <span class="doccomment">/// Return the section contributions of the compilation unit at the given index.
@@ -1820,8 +1831,8 @@
     /// The index must be in the range `1..tu_index.unit_count`.
     ///
     /// This function should only be needed by low level parsers.
-    </span><span class="kw">pub fn </span>tu_sections(<span class="kw-2">&amp;</span><span class="self">self</span>, index: <a href="https://doc.rust-lang.org/nightly/core/primitive.u32.html">u32</a>, parent: <span class="kw-2">&amp;</span>Dwarf&lt;R&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;Dwarf&lt;R&gt;&gt; {
-        <a class="self" href="#680">self</a>.<a href="#687-691">sections</a>(<span class="self">self</span>.tu_index.sections(index)<span class="question-mark">?</span>, <a href="#680">parent</a>)
+    </span><span class="kw">pub fn </span>tu_sections(<span class="kw-2">&amp;</span><span class="self">self</span>, index: u32, parent: <span class="kw-2">&amp;</span>Dwarf&lt;R&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;Dwarf&lt;R&gt;&gt; {
+        <span class="self">self</span>.sections(<span class="self">self</span>.tu_index.sections(index)<span class="question-mark">?</span>, parent)
     }
 
     <span class="doccomment">/// Return the section contributions of a unit.
@@ -1904,28 +1915,29 @@
             .dwp_range(rnglists_offset, rnglists_size)<span class="question-mark">?</span>;
         <span class="kw">let </span>debug_types = <span class="self">self</span>.debug_types.dwp_range(types_offset, types_size)<span class="question-mark">?</span>;
 
-        <span class="kw">let </span>debug_str = <a class="self" href="#688">self</a>.debug_str.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
+        <span class="kw">let </span>debug_str = <span class="self">self</span>.debug_str.clone();
 
-        <span class="kw">let </span>debug_addr = <a href="#690">parent</a>.debug_addr.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
-        <span class="kw">let </span>debug_ranges = <a href="#690">parent</a>.ranges.<a href="rnglists.rs.html#146">debug_ranges</a>().<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
+        <span class="kw">let </span>debug_addr = parent.debug_addr.clone();
+        <span class="kw">let </span>debug_ranges = parent.ranges.debug_ranges().clone();
 
-        <span class="kw">let </span>debug_aranges = <a class="self" href="#688">self</a>.empty.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>().<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>();
-        <span class="kw">let </span>debug_line_str = <a class="self" href="#688">self</a>.empty.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>().<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>();
+        <span class="kw">let </span>debug_aranges = <span class="self">self</span>.empty.clone().into();
+        <span class="kw">let </span>debug_line_str = <span class="self">self</span>.empty.clone().into();
 
-        <span class="prelude-val">Ok</span>(<a href="#23">Dwarf</a> {
-            <a href="#749">debug_abbrev</a>,
-            <a href="#766">debug_addr</a>,
-            <a href="#769">debug_aranges</a>,
-            <a href="#750">debug_info</a>,
-            <a href="#751">debug_line</a>,
-            <a href="#770">debug_line_str</a>,
-            <a href="#764">debug_str</a>,
-            <a href="#756">debug_str_offsets</a>,
-            <a href="#762">debug_types</a>,
-            locations: LocationLists::new(<a href="#752">debug_loc</a>, <a href="#753">debug_loclists</a>),
-            ranges: RangeLists::new(<a href="#767">debug_ranges</a>, <a href="#759">debug_rnglists</a>),
-            file_type: <a href="../common.rs.html#355">DwarfFileType::Dwo</a>,
+        <span class="prelude-val">Ok</span>(Dwarf {
+            debug_abbrev,
+            debug_addr,
+            debug_aranges,
+            debug_info,
+            debug_line,
+            debug_line_str,
+            debug_str,
+            debug_str_offsets,
+            debug_types,
+            locations: LocationLists::new(debug_loc, debug_loclists),
+            ranges: RangeLists::new(debug_ranges, debug_rnglists),
+            file_type: DwarfFileType::Dwo,
             sup: <span class="prelude-val">None</span>,
+            abbreviations_cache: AbbreviationsCache::new(),
         })
     }
 }
@@ -1936,13 +1948,13 @@
 </span><span class="kw">pub struct </span>Unit&lt;R, Offset = &lt;R <span class="kw">as </span>Reader&gt;::Offset&gt;
 <span class="kw">where
     </span>R: Reader&lt;Offset = Offset&gt;,
-    Offset: <a href="reader.rs.html#24-25">ReaderOffset</a>,
+    Offset: ReaderOffset,
 {
     <span class="doccomment">/// The header of the unit.
     </span><span class="kw">pub </span>header: UnitHeader&lt;R, Offset&gt;,
 
     <span class="doccomment">/// The parsed abbreviations for the unit.
-    </span><span class="kw">pub </span>abbreviations: <a href="abbrev.rs.html#109">Abbreviations</a>,
+    </span><span class="kw">pub </span>abbreviations: Arc&lt;Abbreviations&gt;,
 
     <span class="doccomment">/// The `DW_AT_name` attribute of the unit.
     </span><span class="kw">pub </span>name: <span class="prelude-ty">Option</span>&lt;R&gt;,
@@ -1951,7 +1963,7 @@
     </span><span class="kw">pub </span>comp_dir: <span class="prelude-ty">Option</span>&lt;R&gt;,
 
     <span class="doccomment">/// The `DW_AT_low_pc` attribute of the unit. Defaults to 0.
-    </span><span class="kw">pub </span>low_pc: <a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>,
+    </span><span class="kw">pub </span>low_pc: u64,
 
     <span class="doccomment">/// The `DW_AT_str_offsets_base` attribute of the unit. Defaults to 0.
     </span><span class="kw">pub </span>str_offsets_base: DebugStrOffsetsBase&lt;Offset&gt;,
@@ -1969,39 +1981,39 @@
     </span><span class="kw">pub </span>line_program: <span class="prelude-ty">Option</span>&lt;IncompleteLineProgram&lt;R, Offset&gt;&gt;,
 
     <span class="doccomment">/// The DWO ID of a skeleton unit or split compilation unit.
-    </span><span class="kw">pub </span>dwo_id: <span class="prelude-ty">Option</span>&lt;<a href="../common.rs.html#346">DwoId</a>&gt;,
+    </span><span class="kw">pub </span>dwo_id: <span class="prelude-ty">Option</span>&lt;DwoId&gt;,
 }
 
-<span class="kw">impl</span>&lt;R: <a href="reader.rs.html#215">Reader</a>&gt; Unit&lt;R&gt; {
+<span class="kw">impl</span>&lt;R: Reader&gt; Unit&lt;R&gt; {
     <span class="doccomment">/// Construct a new `Unit` from the given unit header.
     </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>new(dwarf: <span class="kw-2">&amp;</span>Dwarf&lt;R&gt;, header: UnitHeader&lt;R&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
-        <span class="kw">let </span>abbreviations = header.abbreviations(<span class="kw-2">&amp;</span>dwarf.debug_abbrev)<span class="question-mark">?</span>;
-        <span class="kw">let </span><span class="kw-2">mut </span>unit = <a href="#793">Unit</a> {
-            <a href="#836">abbreviations</a>,
+        <span class="kw">let </span>abbreviations = dwarf.abbreviations(<span class="kw-2">&amp;</span>header)<span class="question-mark">?</span>;
+        <span class="kw">let </span><span class="kw-2">mut </span>unit = Unit {
+            abbreviations,
             name: <span class="prelude-val">None</span>,
             comp_dir: <span class="prelude-val">None</span>,
             low_pc: <span class="number">0</span>,
             str_offsets_base: DebugStrOffsetsBase::default_for_encoding_and_file(
-                <a href="#835">header</a>.<a href="unit.rs.html#403">encoding</a>(),
-                <a href="#835">dwarf</a>.file_type,
+                header.encoding(),
+                dwarf.file_type,
             ),
             <span class="comment">// NB: Because the .debug_addr section never lives in a .dwo, we can assume its base is always 0 or provided.
-            </span>addr_base: <a href="../common.rs.html#96">DebugAddrBase</a>(R::Offset::from_u8(<span class="number">0</span>)),
+            </span>addr_base: DebugAddrBase(R::Offset::from_u8(<span class="number">0</span>)),
             loclists_base: DebugLocListsBase::default_for_encoding_and_file(
-                <a href="#835">header</a>.<a href="unit.rs.html#403">encoding</a>(),
-                <a href="#835">dwarf</a>.file_type,
+                header.encoding(),
+                dwarf.file_type,
             ),
             rnglists_base: DebugRngListsBase::default_for_encoding_and_file(
-                <a href="#835">header</a>.<a href="unit.rs.html#403">encoding</a>(),
-                <a href="#835">dwarf</a>.file_type,
+                header.encoding(),
+                dwarf.file_type,
             ),
             line_program: <span class="prelude-val">None</span>,
-            dwo_id: <span class="kw">match </span><a href="#835">header</a>.<a href="unit.rs.html#413">type_</a>() {
-                <a href="unit.rs.html#275">UnitType::Skeleton</a>(dwo_id) | <a href="unit.rs.html#281">UnitType::SplitCompilation</a>(dwo_id) =&gt; <span class="prelude-val">Some</span>(<a href="#858">dwo_id</a>),
+            dwo_id: <span class="kw">match </span>header.type_() {
+                UnitType::Skeleton(dwo_id) | UnitType::SplitCompilation(dwo_id) =&gt; <span class="prelude-val">Some</span>(dwo_id),
                 <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
             },
-            <a href="#835">header</a>,
+            header,
         };
         <span class="kw">let </span><span class="kw-2">mut </span>name = <span class="prelude-val">None</span>;
         <span class="kw">let </span><span class="kw-2">mut </span>comp_dir = <span class="prelude-val">None</span>;
@@ -2009,10 +2021,10 @@
         <span class="kw">let </span><span class="kw-2">mut </span>low_pc_attr = <span class="prelude-val">None</span>;
 
         {
-            <span class="kw">let </span><span class="kw-2">mut </span>cursor = <a href="#837">unit</a>.header.<a href="unit.rs.html#500-503">entries</a>(<span class="kw-2">&amp;</span><a href="#837">unit</a>.abbreviations);
+            <span class="kw">let </span><span class="kw-2">mut </span>cursor = unit.header.entries(<span class="kw-2">&amp;</span>unit.abbreviations);
             cursor.next_dfs()<span class="question-mark">?</span>;
             <span class="kw">let </span>root = cursor.current().ok_or(Error::MissingUnitDie)<span class="question-mark">?</span>;
-            <span class="kw">let </span><span class="kw-2">mut </span>attrs = <a href="#871">root</a>.<a href="unit.rs.html#851">attrs</a>();
+            <span class="kw">let </span><span class="kw-2">mut </span>attrs = root.attrs();
             <span class="kw">while let </span><span class="prelude-val">Some</span>(attr) = attrs.next()<span class="question-mark">? </span>{
                 <span class="kw">match </span>attr.name() {
                     constants::DW_AT_name =&gt; {
@@ -2061,15 +2073,15 @@
             }
         }
 
-        <a href="#837">unit</a>.name = <span class="kw">match </span><a href="#863">name</a> {
-            <span class="prelude-val">Some</span>(val) =&gt; <a href="#835">dwarf</a>.<a href="#238">attr_string</a>(<span class="kw-2">&amp;</span><a href="#837">unit</a>, <a href="#922">val</a>).ok(),
+        unit.name = <span class="kw">match </span>name {
+            <span class="prelude-val">Some</span>(val) =&gt; dwarf.attr_string(<span class="kw-2">&amp;</span>unit, val).ok(),
             <span class="prelude-val">None </span>=&gt; <span class="prelude-val">None</span>,
         };
-        <a href="#837">unit</a>.comp_dir = <span class="kw">match </span><a href="#864">comp_dir</a> {
-            <span class="prelude-val">Some</span>(val) =&gt; <a href="#835">dwarf</a>.<a href="#238">attr_string</a>(<span class="kw-2">&amp;</span><a href="#837">unit</a>, <a href="#926">val</a>).ok(),
+        unit.comp_dir = <span class="kw">match </span>comp_dir {
+            <span class="prelude-val">Some</span>(val) =&gt; dwarf.attr_string(<span class="kw-2">&amp;</span>unit, val).ok(),
             <span class="prelude-val">None </span>=&gt; <span class="prelude-val">None</span>,
         };
-        <a href="#837">unit</a>.line_program = <span class="kw">match </span><a href="#865">line_program_offset</a> {
+        unit.line_program = <span class="kw">match </span>line_program_offset {
             <span class="prelude-val">Some</span>(offset) =&gt; <span class="prelude-val">Some</span>(dwarf.debug_line.program(
                 offset,
                 unit.header.address_size(),
@@ -2078,64 +2090,64 @@
             )<span class="question-mark">?</span>),
             <span class="prelude-val">None </span>=&gt; <span class="prelude-val">None</span>,
         };
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(low_pc_attr) = <a href="#866">low_pc_attr</a> {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(low_pc_attr) = low_pc_attr {
             <span class="kw">if let </span><span class="prelude-val">Some</span>(addr) = dwarf.attr_address(<span class="kw-2">&amp;</span>unit, low_pc_attr)<span class="question-mark">? </span>{
-                <a href="#837">unit</a>.low_pc = <a href="#939">addr</a>;
+                unit.low_pc = addr;
             }
         }
-        <span class="prelude-val">Ok</span>(<a href="#837">unit</a>)
+        <span class="prelude-val">Ok</span>(unit)
     }
 
     <span class="doccomment">/// Return the encoding parameters for this unit.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>encoding(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../common.rs.html#37">Encoding</a> {
-        <a class="self" href="#948">self</a>.header.<a href="unit.rs.html#403">encoding</a>()
+    </span><span class="kw">pub fn </span>encoding(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Encoding {
+        <span class="self">self</span>.header.encoding()
     }
 
     <span class="doccomment">/// Read the `DebuggingInformationEntry` at the given offset.
     </span><span class="kw">pub fn </span>entry(<span class="kw-2">&amp;</span><span class="self">self</span>, offset: UnitOffset&lt;R::Offset&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;DebuggingInformationEntry&lt;R&gt;&gt; {
-        <a class="self" href="#953">self</a>.header.<a href="unit.rs.html#489-493">entry</a>(<span class="kw-2">&amp;</span><a class="self" href="#953">self</a>.abbreviations, <a href="#953">offset</a>)
+        <span class="self">self</span>.header.entry(<span class="kw-2">&amp;</span><span class="self">self</span>.abbreviations, offset)
     }
 
     <span class="doccomment">/// Navigate this unit&#39;s `DebuggingInformationEntry`s.
     </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>entries(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; EntriesCursor&lt;R&gt; {
-        <a class="self" href="#959">self</a>.header.<a href="unit.rs.html#500-503">entries</a>(<span class="kw-2">&amp;</span><a class="self" href="#959">self</a>.abbreviations)
+        <span class="self">self</span>.header.entries(<span class="kw-2">&amp;</span><span class="self">self</span>.abbreviations)
     }
 
     <span class="doccomment">/// Navigate this unit&#39;s `DebuggingInformationEntry`s
     /// starting at the given offset.
     </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>entries_at_offset(<span class="kw-2">&amp;</span><span class="self">self</span>, offset: UnitOffset&lt;R::Offset&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;EntriesCursor&lt;R&gt;&gt; {
-        <a class="self" href="#966">self</a>.header.<a href="unit.rs.html#515-519">entries_at_offset</a>(<span class="kw-2">&amp;</span><a class="self" href="#966">self</a>.abbreviations, <a href="#966">offset</a>)
+        <span class="self">self</span>.header.entries_at_offset(<span class="kw-2">&amp;</span><span class="self">self</span>.abbreviations, offset)
     }
 
     <span class="doccomment">/// Navigate this unit&#39;s `DebuggingInformationEntry`s as a tree
     /// starting at the given offset.
     </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>entries_tree(<span class="kw-2">&amp;</span><span class="self">self</span>, offset: <span class="prelude-ty">Option</span>&lt;UnitOffset&lt;R::Offset&gt;&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;EntriesTree&lt;R&gt;&gt; {
-        <a class="self" href="#973">self</a>.header.<a href="unit.rs.html#532-536">entries_tree</a>(<span class="kw-2">&amp;</span><a class="self" href="#973">self</a>.abbreviations, <a href="#973">offset</a>)
+        <span class="self">self</span>.header.entries_tree(<span class="kw-2">&amp;</span><span class="self">self</span>.abbreviations, offset)
     }
 
     <span class="doccomment">/// Read the raw data that defines the Debugging Information Entries.
     </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>entries_raw(<span class="kw-2">&amp;</span><span class="self">self</span>, offset: <span class="prelude-ty">Option</span>&lt;UnitOffset&lt;R::Offset&gt;&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;EntriesRaw&lt;R&gt;&gt; {
-        <a class="self" href="#979">self</a>.header.<a href="unit.rs.html#545-549">entries_raw</a>(<span class="kw-2">&amp;</span><a class="self" href="#979">self</a>.abbreviations, <a href="#979">offset</a>)
+        <span class="self">self</span>.header.entries_raw(<span class="kw-2">&amp;</span><span class="self">self</span>.abbreviations, offset)
     }
 
     <span class="doccomment">/// Copy attributes that are subject to relocation from another unit. This is intended
     /// to be used to copy attributes from a skeleton compilation unit to the corresponding
     /// split compilation unit.
     </span><span class="kw">pub fn </span>copy_relocated_attributes(<span class="kw-2">&amp;mut </span><span class="self">self</span>, other: <span class="kw-2">&amp;</span>Unit&lt;R&gt;) {
-        <a class="self" href="#986">self</a>.low_pc = <a href="#986">other</a>.low_pc;
-        <a class="self" href="#986">self</a>.addr_base = <a href="#986">other</a>.addr_base;
+        <span class="self">self</span>.low_pc = other.low_pc;
+        <span class="self">self</span>.addr_base = other.addr_base;
         <span class="kw">if </span><span class="self">self</span>.header.version() &lt; <span class="number">5 </span>{
-            <a class="self" href="#986">self</a>.rnglists_base = <a href="#986">other</a>.rnglists_base;
+            <span class="self">self</span>.rnglists_base = other.rnglists_base;
         }
     }
 }
 
-<span class="kw">impl</span>&lt;T: <a href="reader.rs.html#24-25">ReaderOffset</a>&gt; UnitSectionOffset&lt;T&gt; {
+<span class="kw">impl</span>&lt;T: ReaderOffset&gt; UnitSectionOffset&lt;T&gt; {
     <span class="doccomment">/// Convert an offset to be relative to the start of the given unit,
     /// instead of relative to the start of the section.
     /// Returns `None` if the offset is not within the unit entries.
@@ -2143,29 +2155,29 @@
     <span class="kw">where
         </span>R: Reader&lt;Offset = T&gt;,
     {
-        <span class="kw">let </span>(offset, unit_offset) = <span class="kw">match </span>(<a class="self" href="#999">self</a>, <a href="#999">unit</a>.header.<a href="unit.rs.html#360">offset</a>()) {
+        <span class="kw">let </span>(offset, unit_offset) = <span class="kw">match </span>(<span class="self">self</span>, unit.header.offset()) {
             (
-                <a href="../common.rs.html#206">UnitSectionOffset::DebugInfoOffset</a>(offset),
-                <a href="../common.rs.html#206">UnitSectionOffset::DebugInfoOffset</a>(unit_offset),
-            ) =&gt; (<a href="#1005">offset</a>.<span class="number">0</span>, <a href="#1006">unit_offset</a>.<span class="number">0</span>),
+                UnitSectionOffset::DebugInfoOffset(offset),
+                UnitSectionOffset::DebugInfoOffset(unit_offset),
+            ) =&gt; (offset.<span class="number">0</span>, unit_offset.<span class="number">0</span>),
             (
-                <a href="../common.rs.html#208">UnitSectionOffset::DebugTypesOffset</a>(offset),
-                <a href="../common.rs.html#208">UnitSectionOffset::DebugTypesOffset</a>(unit_offset),
-            ) =&gt; (<a href="#1009">offset</a>.<span class="number">0</span>, <a href="#1010">unit_offset</a>.<span class="number">0</span>),
+                UnitSectionOffset::DebugTypesOffset(offset),
+                UnitSectionOffset::DebugTypesOffset(unit_offset),
+            ) =&gt; (offset.<span class="number">0</span>, unit_offset.<span class="number">0</span>),
             <span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="prelude-val">None</span>,
         };
-        <span class="kw">let </span>offset = <span class="kw">match </span><a href="#1003">offset</a>.<a href="reader.rs.html#51">checked_sub</a>(<a href="#1003">unit_offset</a>) {
-            <span class="prelude-val">Some</span>(offset) =&gt; <a href="mod.rs.html#250">UnitOffset</a>(<a href="#1015">offset</a>),
+        <span class="kw">let </span>offset = <span class="kw">match </span>offset.checked_sub(unit_offset) {
+            <span class="prelude-val">Some</span>(offset) =&gt; UnitOffset(offset),
             <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="prelude-val">None</span>,
         };
         <span class="kw">if </span>!unit.header.is_valid_offset(offset) {
             <span class="kw">return </span><span class="prelude-val">None</span>;
         }
-        <span class="prelude-val">Some</span>(<a href="#1014">offset</a>)
+        <span class="prelude-val">Some</span>(offset)
     }
 }
 
-<span class="kw">impl</span>&lt;T: <a href="reader.rs.html#24-25">ReaderOffset</a>&gt; UnitOffset&lt;T&gt; {
+<span class="kw">impl</span>&lt;T: ReaderOffset&gt; UnitOffset&lt;T&gt; {
     <span class="doccomment">/// Convert an offset to be relative to the start of the .debug_info section,
     /// instead of relative to the start of the given compilation unit.
     ///
@@ -2174,12 +2186,12 @@
     <span class="kw">where
         </span>R: Reader&lt;Offset = T&gt;,
     {
-        <span class="kw">match </span><a href="#1030">unit</a>.header.<a href="unit.rs.html#360">offset</a>() {
-            <a href="../common.rs.html#206">UnitSectionOffset::DebugInfoOffset</a>(unit_offset) =&gt; {
-                <a href="../common.rs.html#108">DebugInfoOffset</a>(<a href="#1035">unit_offset</a>.<span class="number">0 </span>+ <a class="self" href="#1030">self</a>.<span class="number">0</span>).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()
+        <span class="kw">match </span>unit.header.offset() {
+            UnitSectionOffset::DebugInfoOffset(unit_offset) =&gt; {
+                DebugInfoOffset(unit_offset.<span class="number">0 </span>+ <span class="self">self</span>.<span class="number">0</span>).into()
             }
-            <a href="../common.rs.html#208">UnitSectionOffset::DebugTypesOffset</a>(unit_offset) =&gt; {
-                <a href="../common.rs.html#174">DebugTypesOffset</a>(<a href="#1038">unit_offset</a>.<span class="number">0 </span>+ <a class="self" href="#1030">self</a>.<span class="number">0</span>).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()
+            UnitSectionOffset::DebugTypesOffset(unit_offset) =&gt; {
+                DebugTypesOffset(unit_offset.<span class="number">0 </span>+ <span class="self">self</span>.<span class="number">0</span>).into()
             }
         }
     }
@@ -2189,26 +2201,26 @@
 ///
 /// Returned by `Dwarf::die_ranges` and `Dwarf::unit_ranges`.
 </span><span class="attr">#[derive(Debug)]
-</span><span class="kw">pub struct </span>RangeIter&lt;R: <a href="reader.rs.html#215">Reader</a>&gt;(RangeIterInner&lt;R&gt;);
+</span><span class="kw">pub struct </span>RangeIter&lt;R: Reader&gt;(RangeIterInner&lt;R&gt;);
 
 <span class="attr">#[derive(Debug)]
-</span><span class="kw">enum </span>RangeIterInner&lt;R: <a href="reader.rs.html#215">Reader</a>&gt; {
-    Single(<span class="prelude-ty">Option</span>&lt;<a href="rnglists.rs.html#585">Range</a>&gt;),
+</span><span class="kw">enum </span>RangeIterInner&lt;R: Reader&gt; {
+    Single(<span class="prelude-ty">Option</span>&lt;Range&gt;),
     List(RngListIter&lt;R&gt;),
 }
 
-<span class="kw">impl</span>&lt;R: <a href="reader.rs.html#215">Reader</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for </span>RangeIter&lt;R&gt; {
+<span class="kw">impl</span>&lt;R: Reader&gt; Default <span class="kw">for </span>RangeIter&lt;R&gt; {
     <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
-        <a href="#1049">RangeIter</a>(<a href="#1053">RangeIterInner::Single</a>(<span class="prelude-val">None</span>))
+        RangeIter(RangeIterInner::Single(<span class="prelude-val">None</span>))
     }
 }
 
-<span class="kw">impl</span>&lt;R: <a href="reader.rs.html#215">Reader</a>&gt; RangeIter&lt;R&gt; {
+<span class="kw">impl</span>&lt;R: Reader&gt; RangeIter&lt;R&gt; {
     <span class="doccomment">/// Advance the iterator to the next range.
-    </span><span class="kw">pub fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<a href="rnglists.rs.html#585">Range</a>&gt;&gt; {
-        <span class="kw">match </span><a class="self" href="#1065">self</a>.<span class="number">0 </span>{
-            <a href="#1053">RangeIterInner::Single</a>(<span class="kw-2">ref mut </span>range) =&gt; <span class="prelude-val">Ok</span>(<a href="#1067">range</a>.take()),
-            <a href="#1054">RangeIterInner::List</a>(<span class="kw-2">ref mut </span>list) =&gt; <a href="#1068">list</a>.<a href="rnglists.rs.html#485">next</a>(),
+    </span><span class="kw">pub fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;Range&gt;&gt; {
+        <span class="kw">match </span><span class="self">self</span>.<span class="number">0 </span>{
+            RangeIterInner::Single(<span class="kw-2">ref mut </span>range) =&gt; <span class="prelude-val">Ok</span>(range.take()),
+            RangeIterInner::List(<span class="kw-2">ref mut </span>list) =&gt; list.next(),
         }
     }
 }
@@ -2285,4 +2297,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="gimli" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="gimli" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

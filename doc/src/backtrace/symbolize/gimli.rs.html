@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/backtrace-0.3.66/src/symbolize/gimli.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>gimli.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../backtrace/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/backtrace-0.3.67/src/symbolize/gimli.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>gimli.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../backtrace/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -460,26 +460,28 @@
 <a href="#460" id="460">460</a>
 <a href="#461" id="461">461</a>
 <a href="#462" id="462">462</a>
+<a href="#463" id="463">463</a>
+<a href="#464" id="464">464</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Support for symbolication using the `gimli` crate on crates.io
 //!
 //! This is the default symbolication implementation for Rust.
 
-</span><span class="kw">use </span><a href="../../../gimli/read/endian_slice/struct.EndianSlice.html"><span class="self">self</span>::gimli::read::EndianSlice</a>;
+</span><span class="kw">use </span><span class="self">self</span>::gimli::read::EndianSlice;
 <span class="kw">use </span><span class="self">self</span>::gimli::NativeEndian <span class="kw">as </span>Endian;
-<span class="kw">use </span><a href="gimli/mmap_unix.rs.html#7"><span class="self">self</span>::mmap::Mmap</a>;
-<span class="kw">use </span><a href="gimli/stash.rs.html#10"><span class="self">self</span>::stash::Stash</a>;
-<span class="kw">use </span><a href="../types.rs.html#17"><span class="kw">super</span>::BytesOrWideString</a>;
-<span class="kw">use </span><a href="mod.rs.html#108"><span class="kw">super</span>::ResolveWhat</a>;
-<span class="kw">use </span><a href="mod.rs.html#318"><span class="kw">super</span>::SymbolName</a>;
-<span class="kw">use </span><a href="../../../gimli/index.html">addr2line::gimli</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/convert/trait.TryInto.html">core::convert::TryInto</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/mem/index.html">core::mem</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/u32/index.html">core::u32</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">libc::c_void</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsString.html">mystd::ffi::OsString</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/fs/struct.File.html">mystd::fs::File</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">mystd::path::Path</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/prelude/v1/index.html">mystd::prelude::v1</a>::<span class="kw-2">*</span>;
+<span class="kw">use </span><span class="self">self</span>::mmap::Mmap;
+<span class="kw">use </span><span class="self">self</span>::stash::Stash;
+<span class="kw">use </span><span class="kw">super</span>::BytesOrWideString;
+<span class="kw">use </span><span class="kw">super</span>::ResolveWhat;
+<span class="kw">use </span><span class="kw">super</span>::SymbolName;
+<span class="kw">use </span>addr2line::gimli;
+<span class="kw">use </span>core::convert::TryInto;
+<span class="kw">use </span>core::mem;
+<span class="kw">use </span>core::u32;
+<span class="kw">use </span>libc::c_void;
+<span class="kw">use </span>mystd::ffi::OsString;
+<span class="kw">use </span>mystd::fs::File;
+<span class="kw">use </span>mystd::path::Path;
+<span class="kw">use </span>mystd::prelude::v1::<span class="kw-2">*</span>;
 
 <span class="attr">#[cfg(backtrace_in_libstd)]
 </span><span class="kw">mod </span>mystd {
@@ -505,22 +507,22 @@
         target_os = <span class="string">&quot;illumos&quot;</span>,
     ))] </span>{
         <span class="attr">#[path = <span class="string">&quot;gimli/mmap_unix.rs&quot;</span>]
-        </span><span class="kw">mod </span><a href="gimli/mmap_unix.rs.html#1-44">mmap</a>;
+        </span><span class="kw">mod </span>mmap;
     } <span class="kw">else </span>{
         <span class="attr">#[path = <span class="string">&quot;gimli/mmap_fake.rs&quot;</span>]
         </span><span class="kw">mod </span>mmap;
     }
 }
 
-<span class="kw">mod </span><a href="gimli/stash.rs.html#2-52">stash</a>;
+<span class="kw">mod </span>stash;
 
-<span class="kw">const </span>MAPPINGS_CACHE_SIZE: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> = <span class="number">4</span>;
+<span class="kw">const </span>MAPPINGS_CACHE_SIZE: usize = <span class="number">4</span>;
 
 <span class="kw">struct </span>Mapping {
     <span class="comment">// &#39;static lifetime is a lie to hack around lack of support for self-referential structs.
     </span>cx: Context&lt;<span class="lifetime">&#39;static</span>&gt;,
-    _map: <a href="gimli/mmap_unix.rs.html#7">Mmap</a>,
-    _stash: <a href="gimli/stash.rs.html#10">Stash</a>,
+    _map: Mmap,
+    _stash: Stash,
 }
 
 <span class="kw">enum </span>Either&lt;A, B&gt; {
@@ -529,49 +531,49 @@
     B(B),
 }
 
-<span class="kw">impl </span><a href="#57">Mapping</a> {
+<span class="kw">impl </span>Mapping {
     <span class="doccomment">/// Creates a `Mapping` by ensuring that the `data` specified is used to
     /// create a `Context` and it can only borrow from that or the `Stash` of
     /// decompressed sections or auxiliary data.
-    </span><span class="kw">fn </span>mk&lt;F&gt;(data: <a href="gimli/mmap_unix.rs.html#7">Mmap</a>, mk: F) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="#57">Mapping</a>&gt;
+    </span><span class="kw">fn </span>mk&lt;F&gt;(data: Mmap, mk: F) -&gt; <span class="prelude-ty">Option</span>&lt;Mapping&gt;
     <span class="kw">where
-        </span>F: <span class="kw">for</span>&lt;<span class="lifetime">&#39;a</span>&gt; FnOnce(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="gimli/stash.rs.html#10">Stash</a>) -&gt; <span class="prelude-ty">Option</span>&lt;Context&lt;<span class="lifetime">&#39;a</span>&gt;&gt;,
+        </span>F: <span class="kw">for</span>&lt;<span class="lifetime">&#39;a</span>&gt; FnOnce(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[u8], <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Stash) -&gt; <span class="prelude-ty">Option</span>&lt;Context&lt;<span class="lifetime">&#39;a</span>&gt;&gt;,
     {
-        Mapping::mk_or_other(<a href="#74">data</a>, <span class="kw">move </span>|data, stash| {
+        Mapping::mk_or_other(data, <span class="kw">move </span>|data, stash| {
             <span class="kw">let </span>cx = mk(data, stash)<span class="question-mark">?</span>;
-            <span class="prelude-val">Some</span>(<a href="#67">Either::B</a>(<a href="#79">cx</a>))
+            <span class="prelude-val">Some</span>(Either::B(cx))
         })
     }
 
     <span class="doccomment">/// Creates a `Mapping` from `data`, or if the closure decides to, returns a
     /// different mapping.
-    </span><span class="kw">fn </span>mk_or_other&lt;F&gt;(data: <a href="gimli/mmap_unix.rs.html#7">Mmap</a>, mk: F) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="#57">Mapping</a>&gt;
+    </span><span class="kw">fn </span>mk_or_other&lt;F&gt;(data: Mmap, mk: F) -&gt; <span class="prelude-ty">Option</span>&lt;Mapping&gt;
     <span class="kw">where
-        </span>F: <span class="kw">for</span>&lt;<span class="lifetime">&#39;a</span>&gt; FnOnce(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="gimli/stash.rs.html#10">Stash</a>) -&gt; <span class="prelude-ty">Option</span>&lt;Either&lt;<a href="#57">Mapping</a>, Context&lt;<span class="lifetime">&#39;a</span>&gt;&gt;&gt;,
+        </span>F: <span class="kw">for</span>&lt;<span class="lifetime">&#39;a</span>&gt; FnOnce(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[u8], <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Stash) -&gt; <span class="prelude-ty">Option</span>&lt;Either&lt;Mapping, Context&lt;<span class="lifetime">&#39;a</span>&gt;&gt;&gt;,
     {
         <span class="kw">let </span>stash = Stash::new();
         <span class="kw">let </span>cx = <span class="kw">match </span>mk(<span class="kw-2">&amp;</span>data, <span class="kw-2">&amp;</span>stash)<span class="question-mark">? </span>{
-            <a href="#66">Either::A</a>(mapping) =&gt; <span class="kw">return </span><span class="prelude-val">Some</span>(<a href="#92">mapping</a>),
-            <a href="#67">Either::B</a>(cx) =&gt; <a href="#93">cx</a>,
+            Either::A(mapping) =&gt; <span class="kw">return </span><span class="prelude-val">Some</span>(mapping),
+            Either::B(cx) =&gt; cx,
         };
-        <span class="prelude-val">Some</span>(<a href="#57">Mapping</a> {
+        <span class="prelude-val">Some</span>(Mapping {
             <span class="comment">// Convert to &#39;static lifetimes since the symbols should
             // only borrow `map` and `stash` and we&#39;re preserving them below.
-            </span>cx: <span class="kw">unsafe </span>{ core::mem::transmute::&lt;Context&lt;<span class="lifetime">&#39;_</span>&gt;, Context&lt;<span class="lifetime">&#39;static</span>&gt;&gt;(<a href="#91">cx</a>) },
-            _map: <a href="#86">data</a>,
-            _stash: <a href="#90">stash</a>,
+            </span>cx: <span class="kw">unsafe </span>{ core::mem::transmute::&lt;Context&lt;<span class="lifetime">&#39;_</span>&gt;, Context&lt;<span class="lifetime">&#39;static</span>&gt;&gt;(cx) },
+            _map: data,
+            _stash: stash,
         })
     }
 }
 
 <span class="kw">struct </span>Context&lt;<span class="lifetime">&#39;a</span>&gt; {
-    dwarf: addr2line::Context&lt;EndianSlice&lt;<span class="lifetime">&#39;a</span>, <a href="../../../gimli/endianity/type.NativeEndian.html">Endian</a>&gt;&gt;,
+    dwarf: addr2line::Context&lt;EndianSlice&lt;<span class="lifetime">&#39;a</span>, Endian&gt;&gt;,
     object: Object&lt;<span class="lifetime">&#39;a</span>&gt;,
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>&gt; Context&lt;<span class="lifetime">&#39;data</span>&gt; {
     <span class="kw">fn </span>new(
-        stash: <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span><a href="gimli/stash.rs.html#10">Stash</a>,
+        stash: <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>Stash,
         object: Object&lt;<span class="lifetime">&#39;data</span>&gt;,
         sup: <span class="prelude-ty">Option</span>&lt;Object&lt;<span class="lifetime">&#39;data</span>&gt;&gt;,
     ) -&gt; <span class="prelude-ty">Option</span>&lt;Context&lt;<span class="lifetime">&#39;data</span>&gt;&gt; {
@@ -581,7 +583,7 @@
         })
         .ok()<span class="question-mark">?</span>;
 
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(sup) = <a href="#114">sup</a> {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(sup) = sup {
             sections
                 .load_sup(|id| -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw">_</span>, ()&gt; {
                     <span class="kw">let </span>data = sup.section(stash, id.name()).unwrap_or(<span class="kw-2">&amp;</span>[]);
@@ -591,14 +593,14 @@
         }
         <span class="kw">let </span>dwarf = addr2line::Context::from_dwarf(sections).ok()<span class="question-mark">?</span>;
 
-        <span class="prelude-val">Some</span>(<a href="#105">Context</a> { <a href="#130">dwarf</a>, <a href="#113">object</a> })
+        <span class="prelude-val">Some</span>(Context { dwarf, object })
     }
 }
 
-<span class="kw">fn </span>mmap(path: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="gimli/mmap_unix.rs.html#7">Mmap</a>&gt; {
+<span class="kw">fn </span>mmap(path: <span class="kw-2">&amp;</span>Path) -&gt; <span class="prelude-ty">Option</span>&lt;Mmap&gt; {
     <span class="kw">let </span>file = File::open(path).ok()<span class="question-mark">?</span>;
     <span class="kw">let </span>len = file.metadata().ok()<span class="question-mark">?</span>.len().try_into().ok()<span class="question-mark">?</span>;
-    <span class="kw">unsafe </span>{ Mmap::map(<span class="kw-2">&amp;</span><a href="#137">file</a>, <a href="#138">len</a>) }
+    <span class="kw">unsafe </span>{ Mmap::map(<span class="kw-2">&amp;</span>file, len) }
 }
 
 <span class="macro">cfg_if::cfg_if! </span>{
@@ -614,8 +616,8 @@
         <span class="kw">mod </span>macho;
         <span class="kw">use </span><span class="self">self</span>::macho::Object;
     } <span class="kw">else </span>{
-        <span class="kw">mod </span><a href="gimli/elf.rs.html#1-423">elf</a>;
-        <span class="kw">use </span><a href="gimli/elf.rs.html#76"><span class="self">self</span>::elf::Object</a>;
+        <span class="kw">mod </span>elf;
+        <span class="kw">use </span><span class="self">self</span>::elf::Object;
     }
 }
 
@@ -644,8 +646,10 @@
         ),
         not(target_env = <span class="string">&quot;uclibc&quot;</span>),
     ))] </span>{
-        <span class="kw">mod </span><a href="gimli/libs_dl_iterate_phdr.rs.html#5-53">libs_dl_iterate_phdr</a>;
-        <span class="kw">use </span><a href="gimli/libs_dl_iterate_phdr.rs.html#12">libs_dl_iterate_phdr::native_libraries</a>;
+        <span class="kw">mod </span>libs_dl_iterate_phdr;
+        <span class="kw">use </span>libs_dl_iterate_phdr::native_libraries;
+        <span class="attr">#[path = <span class="string">&quot;gimli/parse_running_mmaps_unix.rs&quot;</span>]
+        </span><span class="kw">mod </span>parse_running_mmaps;
     } <span class="kw">else if </span><span class="attr">#[cfg(target_env = <span class="string">&quot;libnx&quot;</span>)] </span>{
         <span class="kw">mod </span>libs_libnx;
         <span class="kw">use </span>libs_libnx::native_libraries;
@@ -663,7 +667,7 @@
 <span class="attr">#[derive(Default)]
 </span><span class="kw">struct </span>Cache {
     <span class="doccomment">/// All known shared libraries that have been loaded.
-    </span>libraries: Vec&lt;<a href="#218">Library</a>&gt;,
+    </span>libraries: Vec&lt;Library&gt;,
 
     <span class="doccomment">/// Mappings cache where we retain parsed dwarf information.
     ///
@@ -674,40 +678,40 @@
     ///
     /// Note that this is basically an LRU cache and we&#39;ll be shifting things
     /// around in here as we symbolize addresses.
-    </span>mappings: Vec&lt;(<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="#57">Mapping</a>)&gt;,
+    </span>mappings: Vec&lt;(usize, Mapping)&gt;,
 }
 
 <span class="kw">struct </span>Library {
-    name: <a href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsString.html">OsString</a>,
+    name: OsString,
     <span class="doccomment">/// Segments of this library loaded into memory, and where they&#39;re loaded.
-    </span>segments: Vec&lt;<a href="#230">LibrarySegment</a>&gt;,
+    </span>segments: Vec&lt;LibrarySegment&gt;,
     <span class="doccomment">/// The &quot;bias&quot; of this library, typically where it&#39;s loaded into memory.
     /// This value is added to each segment&#39;s stated address to get the actual
     /// virtual memory address that the segment is loaded into. Additionally
     /// this bias is subtracted from real virtual memory addresses to index into
     /// debuginfo and the symbol table.
-    </span>bias: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+    </span>bias: usize,
 }
 
 <span class="kw">struct </span>LibrarySegment {
     <span class="doccomment">/// The stated address of this segment in the object file. This is not
     /// actually where the segment is loaded, but rather this address plus the
     /// containing library&#39;s `bias` is where to find it.
-    </span>stated_virtual_memory_address: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+    </span>stated_virtual_memory_address: usize,
     <span class="doccomment">/// The size of this segment in memory.
-    </span>len: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+    </span>len: usize,
 }
 
 <span class="comment">// unsafe because this is required to be externally synchronized
 </span><span class="kw">pub unsafe fn </span>clear_symbol_cache() {
-    Cache::with_global(|cache| <a href="#241">cache</a>.mappings.clear());
+    Cache::with_global(|cache| cache.mappings.clear());
 }
 
-<span class="kw">impl </span><a href="#202">Cache</a> {
-    <span class="kw">fn </span>new() -&gt; <a href="#202">Cache</a> {
-        <a href="#202">Cache</a> {
-            mappings: Vec::with_capacity(<a href="#55">MAPPINGS_CACHE_SIZE</a>),
-            libraries: <a href="gimli/libs_dl_iterate_phdr.rs.html#12">native_libraries</a>(),
+<span class="kw">impl </span>Cache {
+    <span class="kw">fn </span>new() -&gt; Cache {
+        Cache {
+            mappings: Vec::with_capacity(MAPPINGS_CACHE_SIZE),
+            libraries: native_libraries(),
         }
     }
 
@@ -723,16 +727,16 @@
         // leverage the structures built when constructing `addr2line::Context`s to
         // get nice speedups. If we didn&#39;t have this cache, that amortization would
         // never happen, and symbolicating backtraces would be ssssllllooooowwww.
-        </span><span class="kw">static </span><span class="kw-2">mut </span>MAPPINGS_CACHE: <span class="prelude-ty">Option</span>&lt;<a href="#202">Cache</a>&gt; = <span class="prelude-val">None</span>;
+        </span><span class="kw">static </span><span class="kw-2">mut </span>MAPPINGS_CACHE: <span class="prelude-ty">Option</span>&lt;Cache&gt; = <span class="prelude-val">None</span>;
 
-        <a href="#253">f</a>(<a href="#264">MAPPINGS_CACHE</a>.get_or_insert_with(|| Cache::new()))
+        f(MAPPINGS_CACHE.get_or_insert_with(|| Cache::new()))
     }
 
-    <span class="kw">fn </span>avma_to_svma(<span class="kw-2">&amp;</span><span class="self">self</span>, addr: <span class="kw-2">*const </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) -&gt; <span class="prelude-ty">Option</span>&lt;(<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="kw-2">*const </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>)&gt; {
-        <a class="self" href="#269">self</a>.libraries
+    <span class="kw">fn </span>avma_to_svma(<span class="kw-2">&amp;</span><span class="self">self</span>, addr: <span class="kw-2">*const </span>u8) -&gt; <span class="prelude-ty">Option</span>&lt;(usize, <span class="kw-2">*const </span>u8)&gt; {
+        <span class="self">self</span>.libraries
             .iter()
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">enumerate</a>()
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter_map</a>(|(i, lib)| {
+            .enumerate()
+            .filter_map(|(i, lib)| {
                 <span class="comment">// First up, test if this `lib` has any segment containing the
                 // `addr` (handling relocation). If this check passes then we
                 // can continue below and actually translate the address.
@@ -756,69 +760,69 @@
 
                 <span class="comment">// Now that we know `lib` contains `addr`, we can offset with
                 // the bias to find the stated virtual memory address.
-                </span><span class="kw">let </span>svma = (<a href="#269">addr</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>).wrapping_sub(<a href="#273">lib</a>.bias);
-                <span class="prelude-val">Some</span>((<a href="#273">i</a>, <a href="#297">svma</a> <span class="kw">as </span><span class="kw-2">*const </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>))
+                </span><span class="kw">let </span>svma = (addr <span class="kw">as </span>usize).wrapping_sub(lib.bias);
+                <span class="prelude-val">Some</span>((i, svma <span class="kw">as </span><span class="kw-2">*const </span>u8))
             })
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>()
+            .next()
     }
 
-    <span class="kw">fn </span>mapping_for_lib&lt;<span class="lifetime">&#39;a</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span><span class="self">self</span>, lib: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>Context&lt;<span class="lifetime">&#39;a</span>&gt;&gt; {
-        <span class="kw">let </span>idx = <a class="self" href="#303">self</a>.mappings.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">position</a>(|(idx, <span class="kw">_</span>)| <span class="kw-2">*</span><a href="#304">idx</a> == <a href="#303">lib</a>);
+    <span class="kw">fn </span>mapping_for_lib&lt;<span class="lifetime">&#39;a</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span><span class="self">self</span>, lib: usize) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>Context&lt;<span class="lifetime">&#39;a</span>&gt;&gt; {
+        <span class="kw">let </span>idx = <span class="self">self</span>.mappings.iter().position(|(idx, <span class="kw">_</span>)| <span class="kw-2">*</span>idx == lib);
 
         <span class="comment">// Invariant: after this conditional completes without early returning
         // from an error, the cache entry for this path is at index 0.
 
-        </span><span class="kw">if let </span><span class="prelude-val">Some</span>(idx) = <a href="#304">idx</a> {
+        </span><span class="kw">if let </span><span class="prelude-val">Some</span>(idx) = idx {
             <span class="comment">// When the mapping is already in the cache, move it to the front.
             </span><span class="kw">if </span>idx != <span class="number">0 </span>{
-                <span class="kw">let </span>entry = <a class="self" href="#303">self</a>.mappings.remove(<a href="#309">idx</a>);
-                <a class="self" href="#303">self</a>.mappings.insert(<span class="number">0</span>, <a href="#312">entry</a>);
+                <span class="kw">let </span>entry = <span class="self">self</span>.mappings.remove(idx);
+                <span class="self">self</span>.mappings.insert(<span class="number">0</span>, entry);
             }
         } <span class="kw">else </span>{
             <span class="comment">// When the mapping is not in the cache, create a new mapping,
             // insert it into the front of the cache, and evict the oldest cache
             // entry if necessary.
-            </span><span class="kw">let </span>name = <span class="kw-2">&amp;</span><a class="self" href="#303">self</a>.libraries[<a href="#303">lib</a>].name;
+            </span><span class="kw">let </span>name = <span class="kw-2">&amp;</span><span class="self">self</span>.libraries[lib].name;
             <span class="kw">let </span>mapping = Mapping::new(name.as_ref())<span class="question-mark">?</span>;
 
             <span class="kw">if </span><span class="self">self</span>.mappings.len() == MAPPINGS_CACHE_SIZE {
-                <a class="self" href="#303">self</a>.mappings.pop();
+                <span class="self">self</span>.mappings.pop();
             }
 
-            <a class="self" href="#303">self</a>.mappings.insert(<span class="number">0</span>, (<a href="#303">lib</a>, <a href="#320">mapping</a>));
+            <span class="self">self</span>.mappings.insert(<span class="number">0</span>, (lib, mapping));
         }
 
-        <span class="kw">let </span>cx: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>Context&lt;<span class="lifetime">&#39;static</span>&gt; = <span class="kw-2">&amp;mut </span><a class="self" href="#303">self</a>.mappings[<span class="number">0</span>].<span class="number">1</span>.cx;
+        <span class="kw">let </span>cx: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>Context&lt;<span class="lifetime">&#39;static</span>&gt; = <span class="kw-2">&amp;mut </span><span class="self">self</span>.mappings[<span class="number">0</span>].<span class="number">1</span>.cx;
         <span class="comment">// don&#39;t leak the `&#39;static` lifetime, make sure it&#39;s scoped to just
         // ourselves
-        </span><span class="prelude-val">Some</span>(<span class="kw">unsafe </span>{ mem::transmute::&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>Context&lt;<span class="lifetime">&#39;static</span>&gt;, <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>Context&lt;<span class="lifetime">&#39;a</span>&gt;&gt;(<a href="#329">cx</a>) })
+        </span><span class="prelude-val">Some</span>(<span class="kw">unsafe </span>{ mem::transmute::&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>Context&lt;<span class="lifetime">&#39;static</span>&gt;, <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>Context&lt;<span class="lifetime">&#39;a</span>&gt;&gt;(cx) })
     }
 }
 
-<span class="kw">pub unsafe fn </span>resolve(what: ResolveWhat&lt;<span class="lifetime">&#39;_</span>&gt;, cb: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>FnMut(<span class="kw-2">&amp;</span><a href="mod.rs.html#190"><span class="kw">super</span>::Symbol</a>)) {
-    <span class="kw">let </span>addr = <a href="#336">what</a>.<a href="mod.rs.html#115">address_or_ip</a>();
+<span class="kw">pub unsafe fn </span>resolve(what: ResolveWhat&lt;<span class="lifetime">&#39;_</span>&gt;, cb: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>FnMut(<span class="kw-2">&amp;</span><span class="kw">super</span>::Symbol)) {
+    <span class="kw">let </span>addr = what.address_or_ip();
     <span class="kw">let </span><span class="kw-2">mut </span>call = |sym: Symbol&lt;<span class="lifetime">&#39;_</span>&gt;| {
         <span class="comment">// Extend the lifetime of `sym` to `&#39;static` since we are unfortunately
         // required to here, but it&#39;s only ever going out as a reference so no
         // reference to it should be persisted beyond this frame anyway.
-        </span><span class="kw">let </span>sym = mem::transmute::&lt;Symbol&lt;<span class="lifetime">&#39;_</span>&gt;, Symbol&lt;<span class="lifetime">&#39;static</span>&gt;&gt;(<a href="#338">sym</a>);
-        (<a href="#336">cb</a>)(<span class="kw-2">&amp;</span><a href="mod.rs.html#190"><span class="kw">super</span>::Symbol</a> { inner: <a href="#342">sym</a> });
+        </span><span class="kw">let </span>sym = mem::transmute::&lt;Symbol&lt;<span class="lifetime">&#39;_</span>&gt;, Symbol&lt;<span class="lifetime">&#39;static</span>&gt;&gt;(sym);
+        (cb)(<span class="kw-2">&amp;</span><span class="kw">super</span>::Symbol { inner: sym });
     };
 
     Cache::with_global(|cache| {
-        <span class="kw">let </span>(lib, addr) = <span class="kw">match </span><a href="#346">cache</a>.<a href="#269">avma_to_svma</a>(<a href="#337">addr</a> <span class="kw">as </span><span class="kw-2">*const </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) {
-            <span class="prelude-val">Some</span>(pair) =&gt; <a href="#348">pair</a>,
+        <span class="kw">let </span>(lib, addr) = <span class="kw">match </span>cache.avma_to_svma(addr <span class="kw">as </span><span class="kw-2">*const </span>u8) {
+            <span class="prelude-val">Some</span>(pair) =&gt; pair,
             <span class="prelude-val">None </span>=&gt; <span class="kw">return</span>,
         };
 
         <span class="comment">// Finally, get a cached mapping or create a new mapping for this file, and
         // evaluate the DWARF info to find the file/line/name for this address.
-        </span><span class="kw">let </span>cx = <span class="kw">match </span><a href="#346">cache</a>.<a href="#303">mapping_for_lib</a>(<a href="#347">lib</a>) {
-            <span class="prelude-val">Some</span>(cx) =&gt; <a href="#355">cx</a>,
+        </span><span class="kw">let </span>cx = <span class="kw">match </span>cache.mapping_for_lib(lib) {
+            <span class="prelude-val">Some</span>(cx) =&gt; cx,
             <span class="prelude-val">None </span>=&gt; <span class="kw">return</span>,
         };
         <span class="kw">let </span><span class="kw-2">mut </span>any_frames = <span class="bool-val">false</span>;
-        <span class="kw">if let </span><span class="prelude-val">Ok</span>(<span class="kw-2">mut </span>frames) = <a href="#354">cx</a>.dwarf.find_frames(<a href="#347">addr</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) {
+        <span class="kw">if let </span><span class="prelude-val">Ok</span>(<span class="kw-2">mut </span>frames) = cx.dwarf.find_frames(addr <span class="kw">as </span>u64) {
             <span class="kw">while let </span><span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(frame)) = frames.next() {
                 any_frames = <span class="bool-val">true</span>;
                 <span class="kw">let </span>name = <span class="kw">match </span>frame.function {
@@ -833,8 +837,8 @@
             }
         }
         <span class="kw">if </span>!any_frames {
-            <span class="kw">if let </span><span class="prelude-val">Some</span>((object_cx, object_addr)) = <a href="#354">cx</a>.object.<a href="gimli/elf.rs.html#213">search_object_map</a>(<a href="#347">addr</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) {
-                <span class="kw">if let </span><span class="prelude-val">Ok</span>(<span class="kw-2">mut </span>frames) = <a href="#374">object_cx</a>.dwarf.find_frames(<a href="#374">object_addr</a>) {
+            <span class="kw">if let </span><span class="prelude-val">Some</span>((object_cx, object_addr)) = cx.object.search_object_map(addr <span class="kw">as </span>u64) {
+                <span class="kw">if let </span><span class="prelude-val">Ok</span>(<span class="kw-2">mut </span>frames) = object_cx.dwarf.find_frames(object_addr) {
                     <span class="kw">while let </span><span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(frame)) = frames.next() {
                         any_frames = <span class="bool-val">true</span>;
                         call(Symbol::Frame {
@@ -847,10 +851,10 @@
             }
         }
         <span class="kw">if </span>!any_frames {
-            <span class="kw">if let </span><span class="prelude-val">Some</span>(name) = <a href="#354">cx</a>.object.<a href="gimli/elf.rs.html#199">search_symtab</a>(<a href="#347">addr</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) {
-                <a href="#338">call</a>(<a href="#408">Symbol::Symtab</a> {
-                    addr: <a href="#347">addr</a> <span class="kw">as </span><span class="kw-2">*mut </span><a href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>,
-                    <a href="#388">name</a>,
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(name) = cx.object.search_symtab(addr <span class="kw">as </span>u64) {
+                call(Symbol::Symtab {
+                    addr: addr <span class="kw">as </span><span class="kw-2">*mut </span>c_void,
+                    name,
                 });
             }
         }
@@ -861,66 +865,66 @@
     <span class="doccomment">/// We were able to locate frame information for this symbol, and
     /// `addr2line`&#39;s frame internally has all the nitty gritty details.
     </span>Frame {
-        addr: <span class="kw-2">*mut </span><a href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>,
+        addr: <span class="kw-2">*mut </span>c_void,
         location: <span class="prelude-ty">Option</span>&lt;addr2line::Location&lt;<span class="lifetime">&#39;a</span>&gt;&gt;,
-        name: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;,
+        name: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[u8]&gt;,
     },
     <span class="doccomment">/// Couldn&#39;t find debug information, but we found it in the symbol table of
     /// the elf executable.
-    </span>Symtab { addr: <span class="kw-2">*mut </span><a href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>, name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>] },
+    </span>Symtab { addr: <span class="kw-2">*mut </span>c_void, name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[u8] },
 }
 
 <span class="kw">impl </span>Symbol&lt;<span class="lifetime">&#39;_</span>&gt; {
     <span class="kw">pub fn </span>name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;SymbolName&lt;<span class="lifetime">&#39;_</span>&gt;&gt; {
-        <span class="kw">match </span><span class="self"><a href="#412">self</a> </span>{
-            <a href="#401">Symbol::Frame</a> { name, .. } =&gt; {
+        <span class="kw">match </span><span class="self">self </span>{
+            Symbol::Frame { name, .. } =&gt; {
                 <span class="kw">let </span>name = name.as_ref()<span class="question-mark">?</span>;
-                <span class="prelude-val">Some</span>(SymbolName::new(<a href="#415">name</a>))
+                <span class="prelude-val">Some</span>(SymbolName::new(name))
             }
-            <a href="#408">Symbol::Symtab</a> { name, .. } =&gt; <span class="prelude-val">Some</span>(SymbolName::new(<a href="#418">name</a>)),
+            Symbol::Symtab { name, .. } =&gt; <span class="prelude-val">Some</span>(SymbolName::new(name)),
         }
     }
 
-    <span class="kw">pub fn </span>addr(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">*mut </span><a href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>&gt; {
-        <span class="kw">match </span><span class="self"><a href="#422">self</a> </span>{
-            <a href="#401">Symbol::Frame</a> { addr, .. } =&gt; <span class="prelude-val">Some</span>(<span class="kw-2">*</span><a href="#424">addr</a>),
-            <a href="#408">Symbol::Symtab</a> { .. } =&gt; <span class="prelude-val">None</span>,
+    <span class="kw">pub fn </span>addr(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">*mut </span>c_void&gt; {
+        <span class="kw">match </span><span class="self">self </span>{
+            Symbol::Frame { addr, .. } =&gt; <span class="prelude-val">Some</span>(<span class="kw-2">*</span>addr),
+            Symbol::Symtab { .. } =&gt; <span class="prelude-val">None</span>,
         }
     }
 
     <span class="kw">pub fn </span>filename_raw(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;BytesOrWideString&lt;<span class="lifetime">&#39;_</span>&gt;&gt; {
-        <span class="kw">match </span><span class="self"><a href="#429">self</a> </span>{
-            <a href="#401">Symbol::Frame</a> { location, .. } =&gt; {
+        <span class="kw">match </span><span class="self">self </span>{
+            Symbol::Frame { location, .. } =&gt; {
                 <span class="kw">let </span>file = location.as_ref()<span class="question-mark">?</span>.file<span class="question-mark">?</span>;
-                <span class="prelude-val">Some</span>(<a href="../types.rs.html#19">BytesOrWideString::Bytes</a>(<a href="#432">file</a>.as_bytes()))
+                <span class="prelude-val">Some</span>(BytesOrWideString::Bytes(file.as_bytes()))
             }
-            <a href="#408">Symbol::Symtab</a> { .. } =&gt; <span class="prelude-val">None</span>,
+            Symbol::Symtab { .. } =&gt; <span class="prelude-val">None</span>,
         }
     }
 
-    <span class="kw">pub fn </span>filename(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>&gt; {
-        <span class="kw">match </span><span class="self"><a href="#439">self</a> </span>{
-            <a href="#401">Symbol::Frame</a> { location, .. } =&gt; {
+    <span class="kw">pub fn </span>filename(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Path&gt; {
+        <span class="kw">match </span><span class="self">self </span>{
+            Symbol::Frame { location, .. } =&gt; {
                 <span class="kw">let </span>file = location.as_ref()<span class="question-mark">?</span>.file<span class="question-mark">?</span>;
-                <span class="prelude-val">Some</span>(Path::new(<a href="#442">file</a>))
+                <span class="prelude-val">Some</span>(Path::new(file))
             }
-            <a href="#408">Symbol::Symtab</a> { .. } =&gt; <span class="prelude-val">None</span>,
+            Symbol::Symtab { .. } =&gt; <span class="prelude-val">None</span>,
         }
     }
 
-    <span class="kw">pub fn </span>lineno(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>&gt; {
-        <span class="kw">match </span><span class="self"><a href="#449">self</a> </span>{
-            <a href="#401">Symbol::Frame</a> { location, .. } =&gt; location.as_ref()<span class="question-mark">?</span>.line,
-            <a href="#408">Symbol::Symtab</a> { .. } =&gt; <span class="prelude-val">None</span>,
+    <span class="kw">pub fn </span>lineno(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;u32&gt; {
+        <span class="kw">match </span><span class="self">self </span>{
+            Symbol::Frame { location, .. } =&gt; location.as_ref()<span class="question-mark">?</span>.line,
+            Symbol::Symtab { .. } =&gt; <span class="prelude-val">None</span>,
         }
     }
 
-    <span class="kw">pub fn </span>colno(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>&gt; {
-        <span class="kw">match </span><span class="self"><a href="#456">self</a> </span>{
-            <a href="#401">Symbol::Frame</a> { location, .. } =&gt; location.as_ref()<span class="question-mark">?</span>.column,
-            <a href="#408">Symbol::Symtab</a> { .. } =&gt; <span class="prelude-val">None</span>,
+    <span class="kw">pub fn </span>colno(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;u32&gt; {
+        <span class="kw">match </span><span class="self">self </span>{
+            Symbol::Frame { location, .. } =&gt; location.as_ref()<span class="question-mark">?</span>.column,
+            Symbol::Symtab { .. } =&gt; <span class="prelude-val">None</span>,
         }
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="backtrace" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="backtrace" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

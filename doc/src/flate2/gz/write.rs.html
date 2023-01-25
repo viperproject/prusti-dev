@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/flate2-1.0.24/src/gz/write.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>write.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../flate2/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/flate2-1.0.25/src/gz/write.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>write.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../flate2/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -448,15 +448,15 @@
 <a href="#448" id="448">448</a>
 <a href="#449" id="449">449</a>
 <a href="#450" id="450">450</a>
-</pre><pre class="rust"><code><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/cmp/index.html">std::cmp</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/io/index.html">std::io</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/io/prelude/index.html">std::io::prelude</a>::<span class="kw-2">*</span>;
+</pre><pre class="rust"><code><span class="kw">use </span>std::cmp;
+<span class="kw">use </span>std::io;
+<span class="kw">use </span>std::io::prelude::<span class="kw-2">*</span>;
 
-<span class="kw">use </span><span class="kw">super</span>::bufread::{<a href="bufread.rs.html#21">corrupt</a>, <a href="bufread.rs.html#117">read_gz_header</a>};
-<span class="kw">use super</span>::{<a href="mod.rs.html#112">GzBuilder</a>, <a href="mod.rs.html#22">GzHeader</a>};
-<span class="kw">use </span><span class="kw">crate</span>::crc::{<a href="../crc.rs.html#12">Crc</a>, <a href="../crc.rs.html#132">CrcWriter</a>};
-<span class="kw">use </span><a href="../lib.rs.html#92"><span class="kw">crate</span>::zio</a>;
-<span class="kw">use crate</span>::{<a href="../mem.rs.html#22">Compress</a>, <a href="../lib.rs.html#157">Compression</a>, <a href="../mem.rs.html#39">Decompress</a>, <a href="../mem.rs.html#168">Status</a>};
+<span class="kw">use </span><span class="kw">super</span>::bufread::{corrupt, read_gz_header};
+<span class="kw">use super</span>::{GzBuilder, GzHeader};
+<span class="kw">use </span><span class="kw">crate</span>::crc::{Crc, CrcWriter};
+<span class="kw">use </span><span class="kw">crate</span>::zio;
+<span class="kw">use crate</span>::{Compress, Compression, Decompress, Status};
 
 <span class="doccomment">/// A gzip streaming encoder
 ///
@@ -481,23 +481,23 @@
 /// # }
 /// ```
 </span><span class="attr">#[derive(Debug)]
-</span><span class="kw">pub struct </span>GzEncoder&lt;W: <a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a>&gt; {
-    inner: zio::Writer&lt;W, <a href="../mem.rs.html#22">Compress</a>&gt;,
-    crc: <a href="../crc.rs.html#12">Crc</a>,
-    crc_bytes_written: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-    header: Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;,
+</span><span class="kw">pub struct </span>GzEncoder&lt;W: Write&gt; {
+    inner: zio::Writer&lt;W, Compress&gt;,
+    crc: Crc,
+    crc_bytes_written: usize,
+    header: Vec&lt;u8&gt;,
 }
 
-<span class="kw">pub fn </span>gz_encoder&lt;W: <a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a>&gt;(header: Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;, w: W, lvl: <a href="../lib.rs.html#157">Compression</a>) -&gt; GzEncoder&lt;W&gt; {
-    <a href="#34">GzEncoder</a> {
-        inner: zio::Writer::new(<a href="#41">w</a>, Compress::new(<a href="#41">lvl</a>, <span class="bool-val">false</span>)),
+<span class="kw">pub fn </span>gz_encoder&lt;W: Write&gt;(header: Vec&lt;u8&gt;, w: W, lvl: Compression) -&gt; GzEncoder&lt;W&gt; {
+    GzEncoder {
+        inner: zio::Writer::new(w, Compress::new(lvl, <span class="bool-val">false</span>)),
         crc: Crc::new(),
-        <a href="#41">header</a>,
+        header,
         crc_bytes_written: <span class="number">0</span>,
     }
 }
 
-<span class="kw">impl</span>&lt;W: <a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a>&gt; GzEncoder&lt;W&gt; {
+<span class="kw">impl</span>&lt;W: Write&gt; GzEncoder&lt;W&gt; {
     <span class="doccomment">/// Creates a new encoder which will use the given compression level.
     ///
     /// The encoder is not configured specially for the emitted header. For
@@ -505,13 +505,13 @@
     ///
     /// The data written to the returned encoder will be compressed and then
     /// written to the stream `w`.
-    </span><span class="kw">pub fn </span>new(w: W, level: <a href="../lib.rs.html#157">Compression</a>) -&gt; GzEncoder&lt;W&gt; {
-        GzBuilder::new().<a href="mod.rs.html#180">write</a>(<a href="#58">w</a>, <a href="#58">level</a>)
+    </span><span class="kw">pub fn </span>new(w: W, level: Compression) -&gt; GzEncoder&lt;W&gt; {
+        GzBuilder::new().write(w, level)
     }
 
     <span class="doccomment">/// Acquires a reference to the underlying writer.
     </span><span class="kw">pub fn </span>get_ref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>W {
-        <a class="self" href="#63">self</a>.inner.<a href="../zio.rs.html#187">get_ref</a>()
+        <span class="self">self</span>.inner.get_ref()
     }
 
     <span class="doccomment">/// Acquires a mutable reference to the underlying writer.
@@ -519,7 +519,7 @@
     /// Note that mutation of the writer may result in surprising results if
     /// this encoder is continued to be used.
     </span><span class="kw">pub fn </span>get_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>W {
-        <a class="self" href="#71">self</a>.inner.<a href="../zio.rs.html#191">get_mut</a>()
+        <span class="self">self</span>.inner.get_mut()
     }
 
     <span class="doccomment">/// Attempt to finish this output stream, writing out final chunks of data.
@@ -575,7 +575,7 @@
     /// errors which occur will be returned from this function.
     </span><span class="kw">pub fn </span>finish(<span class="kw-2">mut </span><span class="self">self</span>) -&gt; io::Result&lt;W&gt; {
         <span class="self">self</span>.try_finish()<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(<a class="self" href="#126">self</a>.inner.<a href="../zio.rs.html#199">take_inner</a>())
+        <span class="prelude-val">Ok</span>(<span class="self">self</span>.inner.take_inner())
     }
 
     <span class="kw">fn </span>write_header(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; io::Result&lt;()&gt; {
@@ -587,32 +587,32 @@
     }
 }
 
-<span class="kw">impl</span>&lt;W: <a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a>&gt; <a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a> <span class="kw">for </span>GzEncoder&lt;W&gt; {
-    <span class="kw">fn </span>write(<span class="kw-2">&amp;mut </span><span class="self">self</span>, buf: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert_eq.html">assert_eq!</a>(<span class="self">self</span>.crc_bytes_written, <span class="number">0</span>);
+<span class="kw">impl</span>&lt;W: Write&gt; Write <span class="kw">for </span>GzEncoder&lt;W&gt; {
+    <span class="kw">fn </span>write(<span class="kw-2">&amp;mut </span><span class="self">self</span>, buf: <span class="kw-2">&amp;</span>[u8]) -&gt; io::Result&lt;usize&gt; {
+        <span class="macro">assert_eq!</span>(<span class="self">self</span>.crc_bytes_written, <span class="number">0</span>);
         <span class="self">self</span>.write_header()<span class="question-mark">?</span>;
         <span class="kw">let </span>n = <span class="self">self</span>.inner.write(buf)<span class="question-mark">?</span>;
-        <a class="self" href="#141">self</a>.crc.<a href="../crc.rs.html#53">update</a>(<span class="kw-2">&amp;</span><a href="#141">buf</a>[..<a href="#144">n</a>]);
-        <span class="prelude-val">Ok</span>(<a href="#144">n</a>)
+        <span class="self">self</span>.crc.update(<span class="kw-2">&amp;</span>buf[..n]);
+        <span class="prelude-val">Ok</span>(n)
     }
 
     <span class="kw">fn </span>flush(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; io::Result&lt;()&gt; {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert_eq.html">assert_eq!</a>(<span class="self">self</span>.crc_bytes_written, <span class="number">0</span>);
+        <span class="macro">assert_eq!</span>(<span class="self">self</span>.crc_bytes_written, <span class="number">0</span>);
         <span class="self">self</span>.write_header()<span class="question-mark">?</span>;
-        <a class="self" href="#149">self</a>.inner.<a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">flush</a>()
+        <span class="self">self</span>.inner.flush()
     }
 }
 
-<span class="kw">impl</span>&lt;R: <a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a> + <a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a>&gt; <a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a> <span class="kw">for </span>GzEncoder&lt;R&gt; {
-    <span class="kw">fn </span>read(<span class="kw-2">&amp;mut </span><span class="self">self</span>, buf: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
-        <a class="self" href="#157">self</a>.<a href="#71">get_mut</a>().<a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">read</a>(<a href="#157">buf</a>)
+<span class="kw">impl</span>&lt;R: Read + Write&gt; Read <span class="kw">for </span>GzEncoder&lt;R&gt; {
+    <span class="kw">fn </span>read(<span class="kw-2">&amp;mut </span><span class="self">self</span>, buf: <span class="kw-2">&amp;mut </span>[u8]) -&gt; io::Result&lt;usize&gt; {
+        <span class="self">self</span>.get_mut().read(buf)
     }
 }
 
-<span class="kw">impl</span>&lt;W: <a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span>GzEncoder&lt;W&gt; {
+<span class="kw">impl</span>&lt;W: Write&gt; Drop <span class="kw">for </span>GzEncoder&lt;W&gt; {
     <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="kw">if </span><span class="self">self</span>.inner.is_present() {
-            <span class="kw">let _ </span>= <a class="self" href="#163">self</a>.<a href="#90">try_finish</a>();
+            <span class="kw">let _ </span>= <span class="self">self</span>.try_finish();
         }
     }
 }
@@ -650,37 +650,37 @@
 /// }
 /// ```
 </span><span class="attr">#[derive(Debug)]
-</span><span class="kw">pub struct </span>GzDecoder&lt;W: <a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a>&gt; {
-    inner: zio::Writer&lt;CrcWriter&lt;W&gt;, <a href="../mem.rs.html#39">Decompress</a>&gt;,
-    crc_bytes: Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;,
-    header: <span class="prelude-ty">Option</span>&lt;<a href="mod.rs.html#22">GzHeader</a>&gt;,
-    header_buf: Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;,
+</span><span class="kw">pub struct </span>GzDecoder&lt;W: Write&gt; {
+    inner: zio::Writer&lt;CrcWriter&lt;W&gt;, Decompress&gt;,
+    crc_bytes: Vec&lt;u8&gt;,
+    header: <span class="prelude-ty">Option</span>&lt;GzHeader&gt;,
+    header_buf: Vec&lt;u8&gt;,
 }
 
-<span class="kw">const </span>CRC_BYTES_LEN: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> = <span class="number">8</span>;
+<span class="kw">const </span>CRC_BYTES_LEN: usize = <span class="number">8</span>;
 
-<span class="kw">impl</span>&lt;W: <a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a>&gt; GzDecoder&lt;W&gt; {
+<span class="kw">impl</span>&lt;W: Write&gt; GzDecoder&lt;W&gt; {
     <span class="doccomment">/// Creates a new decoder which will write uncompressed data to the stream.
     ///
     /// When this encoder is dropped or unwrapped the final pieces of data will
     /// be flushed.
     </span><span class="kw">pub fn </span>new(w: W) -&gt; GzDecoder&lt;W&gt; {
-        <a href="#203">GzDecoder</a> {
-            inner: zio::Writer::new(CrcWriter::new(<a href="#217">w</a>), Decompress::new(<span class="bool-val">false</span>)),
-            crc_bytes: Vec::with_capacity(<a href="#210">CRC_BYTES_LEN</a>),
+        GzDecoder {
+            inner: zio::Writer::new(CrcWriter::new(w), Decompress::new(<span class="bool-val">false</span>)),
+            crc_bytes: Vec::with_capacity(CRC_BYTES_LEN),
             header: <span class="prelude-val">None</span>,
             header_buf: Vec::new(),
         }
     }
 
     <span class="doccomment">/// Returns the header associated with this stream.
-    </span><span class="kw">pub fn </span>header(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="mod.rs.html#22">GzHeader</a>&gt; {
-        <a class="self" href="#227">self</a>.header.as_ref()
+    </span><span class="kw">pub fn </span>header(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>GzHeader&gt; {
+        <span class="self">self</span>.header.as_ref()
     }
 
     <span class="doccomment">/// Acquires a reference to the underlying writer.
     </span><span class="kw">pub fn </span>get_ref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>W {
-        <a class="self" href="#232">self</a>.inner.<a href="../zio.rs.html#187">get_ref</a>().<a href="../crc.rs.html#149">get_ref</a>()
+        <span class="self">self</span>.inner.get_ref().get_ref()
     }
 
     <span class="doccomment">/// Acquires a mutable reference to the underlying writer.
@@ -688,7 +688,7 @@
     /// Note that mutating the output/input state of the stream may corrupt this
     /// object, so care must be taken when using this method.
     </span><span class="kw">pub fn </span>get_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>W {
-        <a class="self" href="#240">self</a>.inner.<a href="../zio.rs.html#191">get_mut</a>().<a href="../crc.rs.html#154">get_mut</a>()
+        <span class="self">self</span>.inner.get_mut().get_mut()
     }
 
     <span class="doccomment">/// Attempt to finish this output stream, writing out final chunks of data.
@@ -728,98 +728,98 @@
     /// errors which occur will be returned from this function.
     </span><span class="kw">pub fn </span>finish(<span class="kw-2">mut </span><span class="self">self</span>) -&gt; io::Result&lt;W&gt; {
         <span class="self">self</span>.finish_and_check_crc()<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(<a class="self" href="#279">self</a>.inner.<a href="../zio.rs.html#199">take_inner</a>().<a href="../crc.rs.html#144">into_inner</a>())
+        <span class="prelude-val">Ok</span>(<span class="self">self</span>.inner.take_inner().into_inner())
     }
 
     <span class="kw">fn </span>finish_and_check_crc(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; io::Result&lt;()&gt; {
         <span class="self">self</span>.inner.finish()<span class="question-mark">?</span>;
 
         <span class="kw">if </span><span class="self">self</span>.crc_bytes.len() != <span class="number">8 </span>{
-            <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="bufread.rs.html#21">corrupt</a>());
+            <span class="kw">return </span><span class="prelude-val">Err</span>(corrupt());
         }
 
-        <span class="kw">let </span>crc = ((<a class="self" href="#284">self</a>.crc_bytes[<span class="number">0</span>] <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) &lt;&lt; <span class="number">0</span>)
-            | ((<a class="self" href="#284">self</a>.crc_bytes[<span class="number">1</span>] <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) &lt;&lt; <span class="number">8</span>)
-            | ((<a class="self" href="#284">self</a>.crc_bytes[<span class="number">2</span>] <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) &lt;&lt; <span class="number">16</span>)
-            | ((<a class="self" href="#284">self</a>.crc_bytes[<span class="number">3</span>] <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) &lt;&lt; <span class="number">24</span>);
-        <span class="kw">let </span>amt = ((<a class="self" href="#284">self</a>.crc_bytes[<span class="number">4</span>] <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) &lt;&lt; <span class="number">0</span>)
-            | ((<a class="self" href="#284">self</a>.crc_bytes[<span class="number">5</span>] <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) &lt;&lt; <span class="number">8</span>)
-            | ((<a class="self" href="#284">self</a>.crc_bytes[<span class="number">6</span>] <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) &lt;&lt; <span class="number">16</span>)
-            | ((<a class="self" href="#284">self</a>.crc_bytes[<span class="number">7</span>] <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) &lt;&lt; <span class="number">24</span>);
+        <span class="kw">let </span>crc = ((<span class="self">self</span>.crc_bytes[<span class="number">0</span>] <span class="kw">as </span>u32) &lt;&lt; <span class="number">0</span>)
+            | ((<span class="self">self</span>.crc_bytes[<span class="number">1</span>] <span class="kw">as </span>u32) &lt;&lt; <span class="number">8</span>)
+            | ((<span class="self">self</span>.crc_bytes[<span class="number">2</span>] <span class="kw">as </span>u32) &lt;&lt; <span class="number">16</span>)
+            | ((<span class="self">self</span>.crc_bytes[<span class="number">3</span>] <span class="kw">as </span>u32) &lt;&lt; <span class="number">24</span>);
+        <span class="kw">let </span>amt = ((<span class="self">self</span>.crc_bytes[<span class="number">4</span>] <span class="kw">as </span>u32) &lt;&lt; <span class="number">0</span>)
+            | ((<span class="self">self</span>.crc_bytes[<span class="number">5</span>] <span class="kw">as </span>u32) &lt;&lt; <span class="number">8</span>)
+            | ((<span class="self">self</span>.crc_bytes[<span class="number">6</span>] <span class="kw">as </span>u32) &lt;&lt; <span class="number">16</span>)
+            | ((<span class="self">self</span>.crc_bytes[<span class="number">7</span>] <span class="kw">as </span>u32) &lt;&lt; <span class="number">24</span>);
         <span class="kw">if </span>crc != <span class="self">self</span>.inner.get_ref().crc().sum() <span class="kw">as </span>u32 {
-            <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="bufread.rs.html#21">corrupt</a>());
+            <span class="kw">return </span><span class="prelude-val">Err</span>(corrupt());
         }
         <span class="kw">if </span>amt != <span class="self">self</span>.inner.get_ref().crc().amount() {
-            <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="bufread.rs.html#21">corrupt</a>());
+            <span class="kw">return </span><span class="prelude-val">Err</span>(corrupt());
         }
         <span class="prelude-val">Ok</span>(())
     }
 }
 
-<span class="kw">struct </span>Counter&lt;T: <a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a>&gt; {
+<span class="kw">struct </span>Counter&lt;T: Read&gt; {
     inner: T,
-    pos: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+    pos: usize,
 }
 
-<span class="kw">impl</span>&lt;T: <a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a>&gt; <a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a> <span class="kw">for </span>Counter&lt;T&gt; {
-    <span class="kw">fn </span>read(<span class="kw-2">&amp;mut </span><span class="self">self</span>, buf: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
+<span class="kw">impl</span>&lt;T: Read&gt; Read <span class="kw">for </span>Counter&lt;T&gt; {
+    <span class="kw">fn </span>read(<span class="kw-2">&amp;mut </span><span class="self">self</span>, buf: <span class="kw-2">&amp;mut </span>[u8]) -&gt; io::Result&lt;usize&gt; {
         <span class="kw">let </span>pos = <span class="self">self</span>.inner.read(buf)<span class="question-mark">?</span>;
-        <a class="self" href="#315">self</a>.pos += <a href="#316">pos</a>;
-        <span class="prelude-val">Ok</span>(<a href="#316">pos</a>)
+        <span class="self">self</span>.pos += pos;
+        <span class="prelude-val">Ok</span>(pos)
     }
 }
 
-<span class="kw">impl</span>&lt;W: <a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a>&gt; <a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a> <span class="kw">for </span>GzDecoder&lt;W&gt; {
-    <span class="kw">fn </span>write(<span class="kw-2">&amp;mut </span><span class="self">self</span>, buf: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
+<span class="kw">impl</span>&lt;W: Write&gt; Write <span class="kw">for </span>GzDecoder&lt;W&gt; {
+    <span class="kw">fn </span>write(<span class="kw-2">&amp;mut </span><span class="self">self</span>, buf: <span class="kw-2">&amp;</span>[u8]) -&gt; io::Result&lt;usize&gt; {
         <span class="kw">if </span><span class="self">self</span>.header.is_none() {
             <span class="comment">// trying to avoid buffer usage
             </span><span class="kw">let </span>(res, pos) = {
-                <span class="kw">let </span><span class="kw-2">mut </span>counter = <a href="#309">Counter</a> {
-                    inner: <a class="self" href="#323">self</a>.header_buf.<a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">chain</a>(<a href="#323">buf</a>),
+                <span class="kw">let </span><span class="kw-2">mut </span>counter = Counter {
+                    inner: <span class="self">self</span>.header_buf.chain(buf),
                     pos: <span class="number">0</span>,
                 };
-                <span class="kw">let </span>res = <a href="bufread.rs.html#117">read_gz_header</a>(<span class="kw-2">&amp;mut </span><a href="#327">counter</a>);
-                (<a href="#331">res</a>, <a href="#327">counter</a>.pos)
+                <span class="kw">let </span>res = read_gz_header(<span class="kw-2">&amp;mut </span>counter);
+                (res, counter.pos)
             };
 
-            <span class="kw">match </span><a href="#326">res</a> {
+            <span class="kw">match </span>res {
                 <span class="prelude-val">Err</span>(err) =&gt; {
                     <span class="kw">if </span>err.kind() == io::ErrorKind::UnexpectedEof {
                         <span class="comment">// not enough data for header, save to the buffer
-                        </span><a class="self" href="#323">self</a>.header_buf.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a href="#323">buf</a>);
-                        <span class="prelude-val">Ok</span>(<a href="#323">buf</a>.len())
+                        </span><span class="self">self</span>.header_buf.extend(buf);
+                        <span class="prelude-val">Ok</span>(buf.len())
                     } <span class="kw">else </span>{
-                        <span class="prelude-val">Err</span>(<a href="#336">err</a>)
+                        <span class="prelude-val">Err</span>(err)
                     }
                 }
                 <span class="prelude-val">Ok</span>(header) =&gt; {
-                    <a class="self" href="#323">self</a>.header = <span class="prelude-val">Some</span>(<a href="#345">header</a>);
-                    <span class="kw">let </span>pos = <a href="#326">pos</a> - <a class="self" href="#323">self</a>.header_buf.len();
-                    <a class="self" href="#323">self</a>.header_buf.truncate(<span class="number">0</span>);
-                    <span class="prelude-val">Ok</span>(<a href="#347">pos</a>)
+                    <span class="self">self</span>.header = <span class="prelude-val">Some</span>(header);
+                    <span class="kw">let </span>pos = pos - <span class="self">self</span>.header_buf.len();
+                    <span class="self">self</span>.header_buf.truncate(<span class="number">0</span>);
+                    <span class="prelude-val">Ok</span>(pos)
                 }
             }
         } <span class="kw">else </span>{
             <span class="kw">let </span>(n, status) = <span class="self">self</span>.inner.write_with_status(buf)<span class="question-mark">?</span>;
 
             <span class="kw">if </span>status == Status::StreamEnd &amp;&amp; n &lt; buf.len() &amp;&amp; <span class="self">self</span>.crc_bytes.len() &lt; <span class="number">8 </span>{
-                <span class="kw">let </span>remaining = <a href="#323">buf</a>.len() - <a href="#353">n</a>;
-                <span class="kw">let </span>crc_bytes = cmp::min(<a href="#356">remaining</a>, <a href="#210">CRC_BYTES_LEN</a> - <a class="self" href="#323">self</a>.crc_bytes.len());
-                <a class="self" href="#323">self</a>.crc_bytes.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<span class="kw-2">&amp;</span><a href="#323">buf</a>[<a href="#353">n</a>..<a href="#353">n</a> + <a href="#357">crc_bytes</a>]);
-                <span class="kw">return </span><span class="prelude-val">Ok</span>(<a href="#353">n</a> + <a href="#357">crc_bytes</a>);
+                <span class="kw">let </span>remaining = buf.len() - n;
+                <span class="kw">let </span>crc_bytes = cmp::min(remaining, CRC_BYTES_LEN - <span class="self">self</span>.crc_bytes.len());
+                <span class="self">self</span>.crc_bytes.extend(<span class="kw-2">&amp;</span>buf[n..n + crc_bytes]);
+                <span class="kw">return </span><span class="prelude-val">Ok</span>(n + crc_bytes);
             }
-            <span class="prelude-val">Ok</span>(<a href="#353">n</a>)
+            <span class="prelude-val">Ok</span>(n)
         }
     }
 
     <span class="kw">fn </span>flush(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; io::Result&lt;()&gt; {
-        <a class="self" href="#365">self</a>.inner.<a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">flush</a>()
+        <span class="self">self</span>.inner.flush()
     }
 }
 
-<span class="kw">impl</span>&lt;W: <a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a> + <a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a>&gt; <a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a> <span class="kw">for </span>GzDecoder&lt;W&gt; {
-    <span class="kw">fn </span>read(<span class="kw-2">&amp;mut </span><span class="self">self</span>, buf: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
-        <a class="self" href="#371">self</a>.inner.<a href="../zio.rs.html#191">get_mut</a>().<a href="../crc.rs.html#154">get_mut</a>().<a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">read</a>(<a href="#371">buf</a>)
+<span class="kw">impl</span>&lt;W: Read + Write&gt; Read <span class="kw">for </span>GzDecoder&lt;W&gt; {
+    <span class="kw">fn </span>read(<span class="kw-2">&amp;mut </span><span class="self">self</span>, buf: <span class="kw-2">&amp;mut </span>[u8]) -&gt; io::Result&lt;usize&gt; {
+        <span class="self">self</span>.inner.get_mut().get_mut().read(buf)
     }
 }
 
@@ -899,4 +899,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="flate2" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="flate2" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

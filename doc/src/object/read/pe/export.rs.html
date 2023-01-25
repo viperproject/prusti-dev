@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/object-0.29.0/src/read/pe/export.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>export.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../../object/index.html"><img class="rust-logo" src="../../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/object-0.30.1/src/read/pe/export.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>export.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../../object/index.html"><img class="rust-logo" src="../../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -329,39 +329,39 @@
 <a href="#329" id="329">329</a>
 <a href="#330" id="330">330</a>
 <a href="#331" id="331">331</a>
-</pre><pre class="rust"><code><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/vec/struct.Vec.html">alloc::vec::Vec</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/fmt/macros/derive.Debug.html">core::fmt::Debug</a>;
+</pre><pre class="rust"><code><span class="kw">use </span>alloc::vec::Vec;
+<span class="kw">use </span>core::fmt::Debug;
 
-<span class="kw">use </span><span class="kw">crate</span>::read::{<a href="../util.rs.html#202">ByteString</a>, <a href="../util.rs.html#16">Bytes</a>, <a href="../mod.rs.html#64">Error</a>, <a href="../mod.rs.html#79">ReadError</a>, <a href="../read_ref.rs.html#37">ReadRef</a>, <span class="prelude-ty">Result</span>};
-<span class="kw">use crate</span>::{<a href="../../lib.rs.html#112">pe</a>, <a href="../../endian.rs.html#317">LittleEndian</a> <span class="kw">as </span>LE, <a href="../../endian.rs.html#590">U16Bytes</a>, <a href="../../endian.rs.html#612">U32Bytes</a>};
+<span class="kw">use </span><span class="kw">crate</span>::read::{ByteString, Bytes, Error, ReadError, ReadRef, <span class="prelude-ty">Result</span>};
+<span class="kw">use crate</span>::{pe, LittleEndian <span class="kw">as </span>LE, U16Bytes, U32Bytes};
 
 <span class="doccomment">/// Where an export is pointing to.
 </span><span class="attr">#[derive(Clone, Copy)]
 </span><span class="kw">pub enum </span>ExportTarget&lt;<span class="lifetime">&#39;data</span>&gt; {
     <span class="doccomment">/// The address of the export, relative to the image base.
-    </span>Address(<a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>),
+    </span>Address(u32),
     <span class="doccomment">/// Forwarded to an export ordinal in another DLL.
     ///
     /// This gives the name of the DLL, and the ordinal.
-    </span>ForwardByOrdinal(<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>),
+    </span>ForwardByOrdinal(<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[u8], u32),
     <span class="doccomment">/// Forwarded to an export name in another DLL.
     ///
     /// This gives the name of the DLL, and the export name.
-    </span>ForwardByName(<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]),
+    </span>ForwardByName(<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[u8], <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[u8]),
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>&gt; ExportTarget&lt;<span class="lifetime">&#39;data</span>&gt; {
     <span class="doccomment">/// Returns true if the target is an address.
-    </span><span class="kw">pub fn </span>is_address(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">match </span><span class="self"><a href="#24">self</a> </span>{
-            <a href="#11">ExportTarget::Address</a>(<span class="kw">_</span>) =&gt; <span class="bool-val">true</span>,
+    </span><span class="kw">pub fn </span>is_address(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="kw">match </span><span class="self">self </span>{
+            ExportTarget::Address(<span class="kw">_</span>) =&gt; <span class="bool-val">true</span>,
             <span class="kw">_ </span>=&gt; <span class="bool-val">false</span>,
         }
     }
 
     <span class="doccomment">/// Returns true if the export is forwarded to another DLL.
-    </span><span class="kw">pub fn </span>is_forward(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        !<a class="self" href="#32">self</a>.<a href="#24">is_address</a>()
+    </span><span class="kw">pub fn </span>is_forward(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        !<span class="self">self</span>.is_address()
     }
 }
 
@@ -373,35 +373,35 @@
     <span class="doccomment">/// The ordinal of the export.
     ///
     /// These are sequential, starting at a base specified in the DLL.
-    </span><span class="kw">pub </span>ordinal: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>,
+    </span><span class="kw">pub </span>ordinal: u32,
     <span class="doccomment">/// The name of the export, if known.
-    </span><span class="kw">pub </span>name: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;,
+    </span><span class="kw">pub </span>name: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[u8]&gt;,
     <span class="doccomment">/// The target of this export.
     </span><span class="kw">pub </span>target: ExportTarget&lt;<span class="lifetime">&#39;data</span>&gt;,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">Debug</a> <span class="kw">for </span>Export&lt;<span class="lifetime">&#39;a</span>&gt; {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>core::fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; core::result::Result&lt;(), <a href="https://doc.rust-lang.org/nightly/core/fmt/struct.Error.html">core::fmt::Error</a>&gt; {
-        <a href="#53">f</a>.debug_struct(<span class="string">&quot;Export&quot;</span>)
-            .field(<span class="string">&quot;ordinal&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="#53">self</a>.ordinal)
-            .field(<span class="string">&quot;name&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="#53">self</a>.name.map(<a href="../util.rs.html#202">ByteString</a>))
-            .field(<span class="string">&quot;target&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="#53">self</a>.target)
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; Debug <span class="kw">for </span>Export&lt;<span class="lifetime">&#39;a</span>&gt; {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>core::fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; core::result::Result&lt;(), core::fmt::Error&gt; {
+        f.debug_struct(<span class="string">&quot;Export&quot;</span>)
+            .field(<span class="string">&quot;ordinal&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.ordinal)
+            .field(<span class="string">&quot;name&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.name.map(ByteString))
+            .field(<span class="string">&quot;target&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.target)
             .finish()
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">Debug</a> <span class="kw">for </span>ExportTarget&lt;<span class="lifetime">&#39;a</span>&gt; {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>core::fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; core::result::Result&lt;(), <a href="https://doc.rust-lang.org/nightly/core/fmt/struct.Error.html">core::fmt::Error</a>&gt; {
-        <span class="kw">match </span><span class="self"><a href="#63">self</a> </span>{
-            <a href="#11">ExportTarget::Address</a>(address) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#63">f</a>, <span class="string">&quot;Address({:#x})&quot;</span>, address),
-            <a href="#15">ExportTarget::ForwardByOrdinal</a>(library, ordinal) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(
-                <a href="#63">f</a>,
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; Debug <span class="kw">for </span>ExportTarget&lt;<span class="lifetime">&#39;a</span>&gt; {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>core::fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; core::result::Result&lt;(), core::fmt::Error&gt; {
+        <span class="kw">match </span><span class="self">self </span>{
+            ExportTarget::Address(address) =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;Address({:#x})&quot;</span>, address),
+            ExportTarget::ForwardByOrdinal(library, ordinal) =&gt; <span class="macro">write!</span>(
+                f,
                 <span class="string">&quot;ForwardByOrdinal({:?}.#{})&quot;</span>,
                 ByteString(library),
                 ordinal
             ),
-            <a href="#19">ExportTarget::ForwardByName</a>(library, name) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(
-                <a href="#63">f</a>,
+            ExportTarget::ForwardByName(library, name) =&gt; <span class="macro">write!</span>(
+                f,
                 <span class="string">&quot;ForwardByName({:?}.{:?})&quot;</span>,
                 ByteString(library),
                 ByteString(name)
@@ -414,23 +414,23 @@
 </span><span class="attr">#[derive(Debug, Clone)]
 </span><span class="kw">pub struct </span>ExportTable&lt;<span class="lifetime">&#39;data</span>&gt; {
     data: Bytes&lt;<span class="lifetime">&#39;data</span>&gt;,
-    virtual_address: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>,
-    directory: <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span><a href="../../pe.rs.html#1808">pe::ImageExportDirectory</a>,
-    addresses: <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[U32Bytes&lt;<a href="../../endian.rs.html#317">LE</a>&gt;],
-    names: <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[U32Bytes&lt;<a href="../../endian.rs.html#317">LE</a>&gt;],
-    name_ordinals: <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[U16Bytes&lt;<a href="../../endian.rs.html#317">LE</a>&gt;],
+    virtual_address: u32,
+    directory: <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>pe::ImageExportDirectory,
+    addresses: <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[U32Bytes&lt;LE&gt;],
+    names: <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[U32Bytes&lt;LE&gt;],
+    name_ordinals: <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[U16Bytes&lt;LE&gt;],
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>&gt; ExportTable&lt;<span class="lifetime">&#39;data</span>&gt; {
     <span class="doccomment">/// Parse the export table given its section data and address.
-    </span><span class="kw">pub fn </span>parse(data: <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], virtual_address: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
+    </span><span class="kw">pub fn </span>parse(data: <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[u8], virtual_address: u32) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
         <span class="kw">let </span>directory = <span class="self">Self</span>::parse_directory(data)<span class="question-mark">?</span>;
-        <span class="kw">let </span>data = <a href="../util.rs.html#16">Bytes</a>(<a href="#95">data</a>);
+        <span class="kw">let </span>data = Bytes(data);
 
         <span class="kw">let </span><span class="kw-2">mut </span>addresses = <span class="kw-2">&amp;</span>[][..];
-        <span class="kw">let </span>address_of_functions = <a href="#96">directory</a>.address_of_functions.<a href="../../endian.rs.html#621">get</a>(<a href="../../endian.rs.html#317">LE</a>);
+        <span class="kw">let </span>address_of_functions = directory.address_of_functions.get(LE);
         <span class="kw">if </span>address_of_functions != <span class="number">0 </span>{
-            <a href="#99">addresses</a> = data
+            addresses = data
                 .read_slice_at::&lt;U32Bytes&lt;<span class="kw">_</span>&gt;&gt;(
                     address_of_functions.wrapping_sub(virtual_address) <span class="kw">as </span>usize,
                     directory.number_of_functions.get(LE) <span class="kw">as </span>usize,
@@ -440,21 +440,21 @@
 
         <span class="kw">let </span><span class="kw-2">mut </span>names = <span class="kw-2">&amp;</span>[][..];
         <span class="kw">let </span><span class="kw-2">mut </span>name_ordinals = <span class="kw-2">&amp;</span>[][..];
-        <span class="kw">let </span>address_of_names = <a href="#96">directory</a>.address_of_names.<a href="../../endian.rs.html#621">get</a>(<a href="../../endian.rs.html#317">LE</a>);
-        <span class="kw">let </span>address_of_name_ordinals = <a href="#96">directory</a>.address_of_name_ordinals.<a href="../../endian.rs.html#621">get</a>(<a href="../../endian.rs.html#317">LE</a>);
+        <span class="kw">let </span>address_of_names = directory.address_of_names.get(LE);
+        <span class="kw">let </span>address_of_name_ordinals = directory.address_of_name_ordinals.get(LE);
         <span class="kw">if </span>address_of_names != <span class="number">0 </span>{
             <span class="kw">if </span>address_of_name_ordinals == <span class="number">0 </span>{
-                <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../mod.rs.html#64">Error</a>(<span class="string">&quot;Missing PE export ordinal table&quot;</span>));
+                <span class="kw">return </span><span class="prelude-val">Err</span>(Error(<span class="string">&quot;Missing PE export ordinal table&quot;</span>));
             }
 
-            <span class="kw">let </span>number = <a href="#96">directory</a>.number_of_names.<a href="../../endian.rs.html#621">get</a>(<a href="../../endian.rs.html#317">LE</a>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>;
-            <a href="#110">names</a> = data
+            <span class="kw">let </span>number = directory.number_of_names.get(LE) <span class="kw">as </span>usize;
+            names = data
                 .read_slice_at::&lt;U32Bytes&lt;<span class="kw">_</span>&gt;&gt;(
                     address_of_names.wrapping_sub(virtual_address) <span class="kw">as </span>usize,
                     number,
                 )
                 .read_error(<span class="string">&quot;Invalid PE export name pointer table&quot;</span>)<span class="question-mark">?</span>;
-            <a href="#111">name_ordinals</a> = data
+            name_ordinals = data
                 .read_slice_at::&lt;U16Bytes&lt;<span class="kw">_</span>&gt;&gt;(
                     address_of_name_ordinals.wrapping_sub(virtual_address) <span class="kw">as </span>usize,
                     number,
@@ -462,55 +462,55 @@
                 .read_error(<span class="string">&quot;Invalid PE export ordinal table&quot;</span>)<span class="question-mark">?</span>;
         }
 
-        <span class="prelude-val">Ok</span>(<a href="#84">ExportTable</a> {
-            <a href="#97">data</a>,
-            <a href="#95">virtual_address</a>,
-            <a href="#96">directory</a>,
-            <a href="#99">addresses</a>,
-            <a href="#110">names</a>,
-            <a href="#111">name_ordinals</a>,
+        <span class="prelude-val">Ok</span>(ExportTable {
+            data,
+            virtual_address,
+            directory,
+            addresses,
+            names,
+            name_ordinals,
         })
     }
 
     <span class="doccomment">/// Parse the export directory given its section data.
-    </span><span class="kw">pub fn </span>parse_directory(data: <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span><a href="../../pe.rs.html#1808">pe::ImageExportDirectory</a>&gt; {
-        <a href="#145">data</a>.<a href="../read_ref.rs.html#84">read_at</a>::&lt;<a href="../../pe.rs.html#1808">pe::ImageExportDirectory</a>&gt;(<span class="number">0</span>)
-            .<a href="../mod.rs.html#80">read_error</a>(<span class="string">&quot;Invalid PE export dir size&quot;</span>)
+    </span><span class="kw">pub fn </span>parse_directory(data: <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>pe::ImageExportDirectory&gt; {
+        data.read_at::&lt;pe::ImageExportDirectory&gt;(<span class="number">0</span>)
+            .read_error(<span class="string">&quot;Invalid PE export dir size&quot;</span>)
     }
 
     <span class="doccomment">/// Returns the header of the export table.
-    </span><span class="kw">pub fn </span>directory(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span><a href="../../pe.rs.html#1808">pe::ImageExportDirectory</a> {
-        <a class="self" href="#151">self</a>.directory
+    </span><span class="kw">pub fn </span>directory(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>pe::ImageExportDirectory {
+        <span class="self">self</span>.directory
     }
 
     <span class="doccomment">/// Returns the base value of ordinals.
     ///
     /// Adding this to an address index will give an ordinal.
-    </span><span class="kw">pub fn </span>ordinal_base(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
-        <a class="self" href="#158">self</a>.directory.base.<a href="../../endian.rs.html#621">get</a>(<a href="../../endian.rs.html#317">LE</a>)
+    </span><span class="kw">pub fn </span>ordinal_base(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u32 {
+        <span class="self">self</span>.directory.base.get(LE)
     }
 
     <span class="doccomment">/// Returns the unparsed address table.
     ///
     /// An address table entry may be a local address, or the address of a forwarded export entry.
     /// See [`Self::is_forward`] and [`Self::target_from_address`].
-    </span><span class="kw">pub fn </span>addresses(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[U32Bytes&lt;<a href="../../endian.rs.html#317">LE</a>&gt;] {
-        <a class="self" href="#166">self</a>.addresses
+    </span><span class="kw">pub fn </span>addresses(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[U32Bytes&lt;LE&gt;] {
+        <span class="self">self</span>.addresses
     }
 
     <span class="doccomment">/// Returns the unparsed name pointer table.
     ///
     /// A name pointer table entry can be used with [`Self::name_from_pointer`].
-    </span><span class="kw">pub fn </span>name_pointers(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[U32Bytes&lt;<a href="../../endian.rs.html#317">LE</a>&gt;] {
-        <a class="self" href="#173">self</a>.names
+    </span><span class="kw">pub fn </span>name_pointers(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[U32Bytes&lt;LE&gt;] {
+        <span class="self">self</span>.names
     }
 
     <span class="doccomment">/// Returns the unparsed ordinal table.
     ///
     /// An ordinal table entry is a 0-based index into the address table.
     /// See [`Self::address_by_index`] and [`Self::target_by_index`].
-    </span><span class="kw">pub fn </span>name_ordinals(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[U16Bytes&lt;<a href="../../endian.rs.html#317">LE</a>&gt;] {
-        <a class="self" href="#181">self</a>.name_ordinals
+    </span><span class="kw">pub fn </span>name_ordinals(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[U16Bytes&lt;LE&gt;] {
+        <span class="self">self</span>.name_ordinals
     }
 
     <span class="doccomment">/// Returns an iterator for the entries in the name pointer table and ordinal table.
@@ -519,11 +519,11 @@
     ///
     /// An ordinal table entry is a 0-based index into the address table.
     /// See [`Self::address_by_index`] and [`Self::target_by_index`].
-    </span><span class="kw">pub fn </span>name_iter(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl </span>Iterator&lt;Item = (<a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>)&gt; + <span class="lifetime">&#39;data </span>{
-        <a class="self" href="#191">self</a>.names
+    </span><span class="kw">pub fn </span>name_iter(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl </span>Iterator&lt;Item = (u32, u16)&gt; + <span class="lifetime">&#39;data </span>{
+        <span class="self">self</span>.names
             .iter()
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|x| <a href="#194">x</a>.<a href="../../endian.rs.html#621">get</a>(<a href="../../endian.rs.html#317">LE</a>))
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">zip</a>(<a class="self" href="#191">self</a>.name_ordinals.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|x| <a href="#195">x</a>.<a href="../../endian.rs.html#599">get</a>(<a href="../../endian.rs.html#317">LE</a>)))
+            .map(|x| x.get(LE))
+            .zip(<span class="self">self</span>.name_ordinals.iter().map(|x| x.get(LE)))
     }
 
     <span class="doccomment">/// Returns the export address table entry at the given address index.
@@ -532,78 +532,78 @@
     /// See [`Self::is_forward`] and [`Self::target_from_address`].
     ///
     /// `index` is a 0-based index into the export address table.
-    </span><span class="kw">pub fn </span>address_by_index(<span class="kw-2">&amp;</span><span class="self">self</span>, index: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>&gt; {
+    </span><span class="kw">pub fn </span>address_by_index(<span class="kw-2">&amp;</span><span class="self">self</span>, index: u32) -&gt; <span class="prelude-ty">Result</span>&lt;u32&gt; {
         <span class="prelude-val">Ok</span>(<span class="self">self
             </span>.addresses
             .get(index <span class="kw">as </span>usize)
             .read_error(<span class="string">&quot;Invalid PE export address index&quot;</span>)<span class="question-mark">?
-            </span>.<a href="../../endian.rs.html#621">get</a>(<a href="../../endian.rs.html#317">LE</a>))
+            </span>.get(LE))
     }
 
     <span class="doccomment">/// Returns the export address table entry at the given ordinal.
     ///
     /// This may be a local address, or the address of a forwarded export entry.
     /// See [`Self::is_forward`] and [`Self::target_from_address`].
-    </span><span class="kw">pub fn </span>address_by_ordinal(<span class="kw-2">&amp;</span><span class="self">self</span>, ordinal: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>&gt; {
-        <a class="self" href="#216">self</a>.<a href="#204">address_by_index</a>(<a href="#216">ordinal</a>.wrapping_sub(<a class="self" href="#216">self</a>.<a href="#158">ordinal_base</a>()))
+    </span><span class="kw">pub fn </span>address_by_ordinal(<span class="kw-2">&amp;</span><span class="self">self</span>, ordinal: u32) -&gt; <span class="prelude-ty">Result</span>&lt;u32&gt; {
+        <span class="self">self</span>.address_by_index(ordinal.wrapping_sub(<span class="self">self</span>.ordinal_base()))
     }
 
     <span class="doccomment">/// Returns the target of the export at the given address index.
     ///
     /// `index` is a 0-based index into the export address table.
-    </span><span class="kw">pub fn </span>target_by_index(<span class="kw-2">&amp;</span><span class="self">self</span>, index: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; <span class="prelude-ty">Result</span>&lt;ExportTarget&lt;<span class="lifetime">&#39;data</span>&gt;&gt; {
-        <a class="self" href="#223">self</a>.<a href="#233">target_from_address</a>(<span class="self">self</span>.address_by_index(index)<span class="question-mark">?</span>)
+    </span><span class="kw">pub fn </span>target_by_index(<span class="kw-2">&amp;</span><span class="self">self</span>, index: u32) -&gt; <span class="prelude-ty">Result</span>&lt;ExportTarget&lt;<span class="lifetime">&#39;data</span>&gt;&gt; {
+        <span class="self">self</span>.target_from_address(<span class="self">self</span>.address_by_index(index)<span class="question-mark">?</span>)
     }
 
     <span class="doccomment">/// Returns the target of the export at the given ordinal.
-    </span><span class="kw">pub fn </span>target_by_ordinal(<span class="kw-2">&amp;</span><span class="self">self</span>, ordinal: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; <span class="prelude-ty">Result</span>&lt;ExportTarget&lt;<span class="lifetime">&#39;data</span>&gt;&gt; {
-        <a class="self" href="#228">self</a>.<a href="#233">target_from_address</a>(<span class="self">self</span>.address_by_ordinal(ordinal)<span class="question-mark">?</span>)
+    </span><span class="kw">pub fn </span>target_by_ordinal(<span class="kw-2">&amp;</span><span class="self">self</span>, ordinal: u32) -&gt; <span class="prelude-ty">Result</span>&lt;ExportTarget&lt;<span class="lifetime">&#39;data</span>&gt;&gt; {
+        <span class="self">self</span>.target_from_address(<span class="self">self</span>.address_by_ordinal(ordinal)<span class="question-mark">?</span>)
     }
 
     <span class="doccomment">/// Convert an export address table entry into a target.
-    </span><span class="kw">pub fn </span>target_from_address(<span class="kw-2">&amp;</span><span class="self">self</span>, address: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; <span class="prelude-ty">Result</span>&lt;ExportTarget&lt;<span class="lifetime">&#39;data</span>&gt;&gt; {
+    </span><span class="kw">pub fn </span>target_from_address(<span class="kw-2">&amp;</span><span class="self">self</span>, address: u32) -&gt; <span class="prelude-ty">Result</span>&lt;ExportTarget&lt;<span class="lifetime">&#39;data</span>&gt;&gt; {
         <span class="prelude-val">Ok</span>(<span class="kw">if let </span><span class="prelude-val">Some</span>(forward) = <span class="self">self</span>.forward_string(address)<span class="question-mark">? </span>{
             <span class="kw">let </span>i = forward
                 .iter()
                 .position(|x| <span class="kw-2">*</span>x == <span class="string">b&#39;.&#39;</span>)
                 .read_error(<span class="string">&quot;Missing PE forwarded export separator&quot;</span>)<span class="question-mark">?</span>;
-            <span class="kw">let </span>library = <span class="kw-2">&amp;</span><a href="#234">forward</a>[..<a href="#235">i</a>];
-            <span class="kw">match </span><span class="kw-2">&amp;</span><a href="#234">forward</a>[<a href="#235">i</a> + <span class="number">1</span>..] {
+            <span class="kw">let </span>library = <span class="kw-2">&amp;</span>forward[..i];
+            <span class="kw">match </span><span class="kw-2">&amp;</span>forward[i + <span class="number">1</span>..] {
                 [<span class="string">b&#39;#&#39;</span>, digits @ ..] =&gt; {
                     <span class="kw">let </span>ordinal =
                         parse_ordinal(digits).read_error(<span class="string">&quot;Invalid PE forwarded export ordinal&quot;</span>)<span class="question-mark">?</span>;
-                    <a href="#15">ExportTarget::ForwardByOrdinal</a>(<a href="#239">library</a>, <a href="#242">ordinal</a>)
+                    ExportTarget::ForwardByOrdinal(library, ordinal)
                 }
                 [] =&gt; {
-                    <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../mod.rs.html#64">Error</a>(<span class="string">&quot;Missing PE forwarded export name&quot;</span>));
+                    <span class="kw">return </span><span class="prelude-val">Err</span>(Error(<span class="string">&quot;Missing PE forwarded export name&quot;</span>));
                 }
-                name =&gt; <a href="#19">ExportTarget::ForwardByName</a>(<a href="#239">library</a>, <a href="#249">name</a>),
+                name =&gt; ExportTarget::ForwardByName(library, name),
             }
         } <span class="kw">else </span>{
-            <a href="#11">ExportTarget::Address</a>(<a href="#233">address</a>)
+            ExportTarget::Address(address)
         })
     }
 
-    <span class="kw">fn </span>forward_offset(<span class="kw-2">&amp;</span><span class="self">self</span>, address: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
-        <span class="kw">let </span>offset = <a href="#256">address</a>.wrapping_sub(<a class="self" href="#256">self</a>.virtual_address) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>;
+    <span class="kw">fn </span>forward_offset(<span class="kw-2">&amp;</span><span class="self">self</span>, address: u32) -&gt; <span class="prelude-ty">Option</span>&lt;usize&gt; {
+        <span class="kw">let </span>offset = address.wrapping_sub(<span class="self">self</span>.virtual_address) <span class="kw">as </span>usize;
         <span class="kw">if </span>offset &lt; <span class="self">self</span>.data.len() {
-            <span class="prelude-val">Some</span>(<a href="#257">offset</a>)
+            <span class="prelude-val">Some</span>(offset)
         } <span class="kw">else </span>{
             <span class="prelude-val">None
         </span>}
     }
 
     <span class="doccomment">/// Return true if the export address table entry is a forward.
-    </span><span class="kw">pub fn </span>is_forward(<span class="kw-2">&amp;</span><span class="self">self</span>, address: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#266">self</a>.<a href="#256">forward_offset</a>(<a href="#266">address</a>).is_some()
+    </span><span class="kw">pub fn </span>is_forward(<span class="kw-2">&amp;</span><span class="self">self</span>, address: u32) -&gt; bool {
+        <span class="self">self</span>.forward_offset(address).is_some()
     }
 
     <span class="doccomment">/// Return the forward string if the export address table entry is a forward.
-    </span><span class="kw">pub fn </span>forward_string(<span class="kw-2">&amp;</span><span class="self">self</span>, address: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;&gt; {
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(offset) = <a class="self" href="#271">self</a>.<a href="#256">forward_offset</a>(<a href="#271">address</a>) {
-            <a class="self" href="#271">self</a>.data
-                .<a href="../util.rs.html#164">read_string_at</a>(<a href="#272">offset</a>)
-                .<a href="../mod.rs.html#80">read_error</a>(<span class="string">&quot;Invalid PE forwarded export address&quot;</span>)
+    </span><span class="kw">pub fn </span>forward_string(<span class="kw-2">&amp;</span><span class="self">self</span>, address: u32) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[u8]&gt;&gt; {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(offset) = <span class="self">self</span>.forward_offset(address) {
+            <span class="self">self</span>.data
+                .read_string_at(offset)
+                .read_error(<span class="string">&quot;Invalid PE forwarded export address&quot;</span>)
                 .map(<span class="prelude-val">Some</span>)
         } <span class="kw">else </span>{
             <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>)
@@ -611,18 +611,18 @@
     }
 
     <span class="doccomment">/// Convert an export name pointer table entry into a name.
-    </span><span class="kw">pub fn </span>name_from_pointer(<span class="kw-2">&amp;</span><span class="self">self</span>, name_pointer: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt; {
-        <span class="kw">let </span>offset = <a href="#283">name_pointer</a>.wrapping_sub(<a class="self" href="#283">self</a>.virtual_address);
-        <a class="self" href="#283">self</a>.data
-            .<a href="../util.rs.html#164">read_string_at</a>(<a href="#284">offset</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>)
-            .<a href="../mod.rs.html#80">read_error</a>(<span class="string">&quot;Invalid PE export name pointer&quot;</span>)
+    </span><span class="kw">pub fn </span>name_from_pointer(<span class="kw-2">&amp;</span><span class="self">self</span>, name_pointer: u32) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[u8]&gt; {
+        <span class="kw">let </span>offset = name_pointer.wrapping_sub(<span class="self">self</span>.virtual_address);
+        <span class="self">self</span>.data
+            .read_string_at(offset <span class="kw">as </span>usize)
+            .read_error(<span class="string">&quot;Invalid PE export name pointer&quot;</span>)
     }
 
     <span class="doccomment">/// Returns the parsed exports in this table.
     </span><span class="kw">pub fn </span>exports(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;Export&lt;<span class="lifetime">&#39;data</span>&gt;&gt;&gt; {
         <span class="comment">// First, let&#39;s list all exports.
         </span><span class="kw">let </span><span class="kw-2">mut </span>exports = Vec::new();
-        <span class="kw">let </span>ordinal_base = <a class="self" href="#291">self</a>.<a href="#158">ordinal_base</a>();
+        <span class="kw">let </span>ordinal_base = <span class="self">self</span>.ordinal_base();
         <span class="kw">for </span>(i, address) <span class="kw">in </span><span class="self">self</span>.addresses.iter().enumerate() {
             <span class="comment">// Convert from an array index to an ordinal.
             </span><span class="kw">let </span>ordinal = ordinal_base.wrapping_add(i <span class="kw">as </span>u32);
@@ -645,20 +645,20 @@
                 </span>.name = <span class="prelude-val">Some</span>(name);
         }
 
-        <span class="prelude-val">Ok</span>(<a href="#293">exports</a>)
+        <span class="prelude-val">Ok</span>(exports)
     }
 }
 
-<span class="kw">fn </span>parse_ordinal(digits: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>&gt; {
+<span class="kw">fn </span>parse_ordinal(digits: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Option</span>&lt;u32&gt; {
     <span class="kw">if </span>digits.is_empty() {
         <span class="kw">return </span><span class="prelude-val">None</span>;
     }
-    <span class="kw">let </span><span class="kw-2">mut </span>result: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> = <span class="number">0</span>;
+    <span class="kw">let </span><span class="kw-2">mut </span>result: u32 = <span class="number">0</span>;
     <span class="kw">for </span><span class="kw-2">&amp;</span>c <span class="kw">in </span>digits {
         <span class="kw">let </span>x = (c <span class="kw">as </span>char).to_digit(<span class="number">10</span>)<span class="question-mark">?</span>;
         result = result.checked_mul(<span class="number">10</span>)<span class="question-mark">?</span>.checked_add(x)<span class="question-mark">?</span>;
     }
-    <span class="prelude-val">Some</span>(<a href="#325">result</a>)
+    <span class="prelude-val">Some</span>(result)
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="object" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="object" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

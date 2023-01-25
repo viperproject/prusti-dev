@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/hyper-0.14.23/src/proto/h1/dispatch.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>dispatch.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../../hyper/index.html"><img class="rust-logo" src="../../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/hyper-0.14.23/src/proto/h1/dispatch.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>dispatch.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../../hyper/index.html"><img class="rust-logo" src="../../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -748,27 +748,27 @@
 <a href="#748" id="748">748</a>
 <a href="#749" id="749">749</a>
 <a href="#750" id="750">750</a>
-</pre><pre class="rust"><code><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">std::error::Error</a> <span class="kw">as </span>StdError;
+</pre><pre class="rust"><code><span class="kw">use </span>std::error::Error <span class="kw">as </span>StdError;
 
-<span class="kw">use </span>bytes::{<a href="../../../../hyper/body/trait.Buf.html">Buf</a>, <a href="../../../../hyper/body/struct.Bytes.html">Bytes</a>};
-<span class="kw">use </span><a href="../../../../hyper/struct.Request.html">http::Request</a>;
-<span class="kw">use </span>tokio::io::{<a href="../../../../tokio/io/async_read/trait.AsyncRead.html">AsyncRead</a>, <a href="../../../../tokio/io/async_write/trait.AsyncWrite.html">AsyncWrite</a>};
-<span class="kw">use </span>tracing::{<a href="../../../../tracing/macro.debug.html">debug</a>, <a href="../../../../tracing/macro.trace.html">trace</a>};
+<span class="kw">use </span>bytes::{Buf, Bytes};
+<span class="kw">use </span>http::Request;
+<span class="kw">use </span>tokio::io::{AsyncRead, AsyncWrite};
+<span class="kw">use </span>tracing::{debug, trace};
 
-<span class="kw">use super</span>::{<a href="mod.rs.html#35">Http1Transaction</a>, <a href="mod.rs.html#107">Wants</a>};
-<span class="kw">use </span><span class="kw">crate</span>::body::{<a href="../../body/body.rs.html#36">Body</a>, <a href="../../body/length.rs.html#4">DecodedLength</a>, <a href="../../../../hyper/body/trait.HttpBody.html">HttpBody</a>};
-<span class="kw">use </span><span class="kw">crate</span>::common::{<a href="../../common/mod.rs.html#26">task</a>, <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a>, <a href="https://doc.rust-lang.org/nightly/core/pin/struct.Pin.html">Pin</a>, <a href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">Poll</a>, <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>};
+<span class="kw">use super</span>::{Http1Transaction, Wants};
+<span class="kw">use </span><span class="kw">crate</span>::body::{Body, DecodedLength, HttpBody};
+<span class="kw">use </span><span class="kw">crate</span>::common::{task, Future, Pin, Poll, Unpin};
 <span class="kw">use </span><span class="kw">crate</span>::proto::{
-    <a href="../mod.rs.html#46">BodyLength</a>, <a href="conn.rs.html#32">Conn</a>, <a href="../mod.rs.html#54">Dispatched</a>, <a href="../mod.rs.html#21">MessageHead</a>, <a href="../mod.rs.html#34">RequestHead</a>,
+    BodyLength, Conn, Dispatched, MessageHead, RequestHead,
 };
-<span class="kw">use </span><a href="../../upgrade.rs.html#72"><span class="kw">crate</span>::upgrade::OnUpgrade</a>;
+<span class="kw">use </span><span class="kw">crate</span>::upgrade::OnUpgrade;
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>Dispatcher&lt;D, Bs: <a href="../../../../hyper/body/trait.HttpBody.html">HttpBody</a>, I, T&gt; {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>Dispatcher&lt;D, Bs: HttpBody, I, T&gt; {
     conn: Conn&lt;I, Bs::Data, T&gt;,
     dispatch: D,
-    body_tx: <span class="prelude-ty">Option</span>&lt;<a href="../../body/body.rs.html#109"><span class="kw">crate</span>::body::Sender</a>&gt;,
+    body_tx: <span class="prelude-ty">Option</span>&lt;<span class="kw">crate</span>::body::Sender&gt;,
     body_rx: Pin&lt;Box&lt;<span class="prelude-ty">Option</span>&lt;Bs&gt;&gt;&gt;,
-    is_closing: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
+    is_closing: bool,
 }
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">trait </span>Dispatch {
@@ -780,13 +780,13 @@
         <span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;,
         cx: <span class="kw-2">&amp;mut </span>task::Context&lt;<span class="lifetime">&#39;_</span>&gt;,
     ) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;<span class="prelude-ty">Result</span>&lt;(<span class="self">Self</span>::PollItem, <span class="self">Self</span>::PollBody), <span class="self">Self</span>::PollError&gt;&gt;&gt;;
-    <span class="kw">fn </span>recv_msg(<span class="kw-2">&amp;mut </span><span class="self">self</span>, msg: <span class="kw">crate</span>::Result&lt;(<span class="self">Self</span>::RecvItem, <a href="../../body/body.rs.html#36">Body</a>)&gt;) -&gt; <span class="kw">crate</span>::Result&lt;()&gt;;
+    <span class="kw">fn </span>recv_msg(<span class="kw-2">&amp;mut </span><span class="self">self</span>, msg: <span class="kw">crate</span>::Result&lt;(<span class="self">Self</span>::RecvItem, Body)&gt;) -&gt; <span class="kw">crate</span>::Result&lt;()&gt;;
     <span class="kw">fn </span>poll_ready(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cx: <span class="kw-2">&amp;mut </span>task::Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;(), ()&gt;&gt;;
-    <span class="kw">fn </span>should_poll(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>;
+    <span class="kw">fn </span>should_poll(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool;
 }
 
 <span class="macro">cfg_server! </span>{
-    <span class="kw">use </span><a href="../../service/http.rs.html#8"><span class="kw">crate</span>::service::HttpService</a>;
+    <span class="kw">use </span><span class="kw">crate</span>::service::HttpService;
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>Server&lt;S: HttpService&lt;B&gt;, B&gt; {
         in_flight: Pin&lt;Box&lt;<span class="prelude-ty">Option</span>&lt;S::Future&gt;&gt;&gt;,
@@ -795,16 +795,16 @@
 }
 
 <span class="macro">cfg_client! </span>{
-    <a class="macro" href="../../../../pin_project_lite/macro.pin_project.html">pin_project_lite::pin_project! </a>{
+    <span class="macro">pin_project_lite::pin_project! </span>{
         <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>Client&lt;B&gt; {
-            callback: <span class="prelude-ty">Option</span>&lt;<span class="kw">crate</span>::client::dispatch::Callback&lt;Request&lt;B&gt;, http::Response&lt;<a href="../../body/body.rs.html#36">Body</a>&gt;&gt;&gt;,
+            callback: <span class="prelude-ty">Option</span>&lt;<span class="kw">crate</span>::client::dispatch::Callback&lt;Request&lt;B&gt;, http::Response&lt;Body&gt;&gt;&gt;,
             <span class="attr">#[pin]
             </span>rx: ClientRx&lt;B&gt;,
-            rx_closed: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
+            rx_closed: bool,
         }
     }
 
-    <span class="kw">type </span>ClientRx&lt;B&gt; = <span class="kw">crate</span>::client::dispatch::Receiver&lt;Request&lt;B&gt;, http::Response&lt;<a href="../../body/body.rs.html#36">Body</a>&gt;&gt;;
+    <span class="kw">type </span>ClientRx&lt;B&gt; = <span class="kw">crate</span>::client::dispatch::Receiver&lt;Request&lt;B&gt;, http::Response&lt;Body&gt;&gt;;
 }
 
 <span class="kw">impl</span>&lt;D, Bs, I, T&gt; Dispatcher&lt;D, Bs, I, T&gt;
@@ -813,17 +813,17 @@
         PollItem = MessageHead&lt;T::Outgoing&gt;,
         PollBody = Bs,
         RecvItem = MessageHead&lt;T::Incoming&gt;,
-    &gt; + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
-    D::PollError: Into&lt;Box&lt;<span class="kw">dyn </span><a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">StdError</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a>&gt;&gt;,
-    I: <a href="../../../../tokio/io/async_read/trait.AsyncRead.html">AsyncRead</a> + <a href="../../../../tokio/io/async_write/trait.AsyncWrite.html">AsyncWrite</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
-    T: <a href="mod.rs.html#35">Http1Transaction</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
-    Bs: <a href="../../../../hyper/body/trait.HttpBody.html">HttpBody</a> + <span class="lifetime">&#39;static</span>,
-    Bs::Error: Into&lt;Box&lt;<span class="kw">dyn </span><a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">StdError</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a>&gt;&gt;,
+    &gt; + Unpin,
+    D::PollError: Into&lt;Box&lt;<span class="kw">dyn </span>StdError + Send + Sync&gt;&gt;,
+    I: AsyncRead + AsyncWrite + Unpin,
+    T: Http1Transaction + Unpin,
+    Bs: HttpBody + <span class="lifetime">&#39;static</span>,
+    Bs::Error: Into&lt;Box&lt;<span class="kw">dyn </span>StdError + Send + Sync&gt;&gt;,
 {
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(dispatch: D, conn: Conn&lt;I, Bs::Data, T&gt;) -&gt; <span class="self">Self </span>{
-        <a href="#16">Dispatcher</a> {
-            <a href="#73">conn</a>,
-            <a href="#73">dispatch</a>,
+        Dispatcher {
+            conn,
+            dispatch,
             body_tx: <span class="prelude-val">None</span>,
             body_rx: Box::pin(<span class="prelude-val">None</span>),
             is_closing: <span class="bool-val">false</span>,
@@ -832,15 +832,15 @@
 
     <span class="attr">#[cfg(feature = <span class="string">&quot;server&quot;</span>)]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>disable_keep_alive(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <a class="self" href="#84">self</a>.conn.<a href="conn.rs.html#769">disable_keep_alive</a>();
+        <span class="self">self</span>.conn.disable_keep_alive();
         <span class="kw">if </span><span class="self">self</span>.conn.is_write_closed() {
-            <a class="self" href="#84">self</a>.<a href="#383">close</a>();
+            <span class="self">self</span>.close();
         }
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>into_inner(<span class="self">self</span>) -&gt; (I, <a href="../../../../hyper/body/struct.Bytes.html">Bytes</a>, D) {
-        <span class="kw">let </span>(io, buf) = <a class="self" href="#91">self</a>.conn.<a href="conn.rs.html#141">into_inner</a>();
-        (<a href="#92">io</a>, <a href="#92">buf</a>, <a class="self" href="#91">self</a>.dispatch)
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>into_inner(<span class="self">self</span>) -&gt; (I, Bytes, D) {
+        <span class="kw">let </span>(io, buf) = <span class="self">self</span>.conn.into_inner();
+        (io, buf, <span class="self">self</span>.dispatch)
     }
 
     <span class="doccomment">/// Run this dispatcher until HTTP says this connection is done,
@@ -853,11 +853,11 @@
         cx: <span class="kw-2">&amp;mut </span>task::Context&lt;<span class="lifetime">&#39;_</span>&gt;,
     ) -&gt; Poll&lt;<span class="kw">crate</span>::Result&lt;()&gt;&gt;
     <span class="kw">where
-        </span><span class="self">Self</span>: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
+        </span><span class="self">Self</span>: Unpin,
     {
-        Pin::new(<a class="self" href="#102">self</a>).<a href="#115-119">poll_catch</a>(<a href="#103">cx</a>, <span class="bool-val">false</span>).map_ok(|ds| {
-            <span class="kw">if let </span><a href="../mod.rs.html#59">Dispatched::Upgrade</a>(pending) = <a href="#108">ds</a> {
-                <a href="#109">pending</a>.<a href="../../upgrade.rs.html#243">manual</a>();
+        Pin::new(<span class="self">self</span>).poll_catch(cx, <span class="bool-val">false</span>).map_ok(|ds| {
+            <span class="kw">if let </span>Dispatched::Upgrade(pending) = ds {
+                pending.manual();
             }
         })
     }
@@ -865,36 +865,36 @@
     <span class="kw">fn </span>poll_catch(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         cx: <span class="kw-2">&amp;mut </span>task::Context&lt;<span class="lifetime">&#39;_</span>&gt;,
-        should_shutdown: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-    ) -&gt; Poll&lt;<span class="kw">crate</span>::Result&lt;<a href="../mod.rs.html#54">Dispatched</a>&gt;&gt; {
-        Poll::Ready(<a class="macro" href="../../common/mod.rs.html#1-8">ready!</a>(<span class="self">self</span>.poll_inner(cx, should_shutdown)).or_else(|e| {
+        should_shutdown: bool,
+    ) -&gt; Poll&lt;<span class="kw">crate</span>::Result&lt;Dispatched&gt;&gt; {
+        Poll::Ready(<span class="macro">ready!</span>(<span class="self">self</span>.poll_inner(cx, should_shutdown)).or_else(|e| {
             <span class="comment">// An error means we&#39;re shutting down either way.
             // We just try to give the error to the user,
             // and close the connection with an Ok. If we
             // cannot give it to the user, then return the Err.
             </span><span class="self">self</span>.dispatch.recv_msg(<span class="prelude-val">Err</span>(e))<span class="question-mark">?</span>;
-            <span class="prelude-val">Ok</span>(<a href="../mod.rs.html#56">Dispatched::Shutdown</a>)
+            <span class="prelude-val">Ok</span>(Dispatched::Shutdown)
         }))
     }
 
     <span class="kw">fn </span>poll_inner(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         cx: <span class="kw-2">&amp;mut </span>task::Context&lt;<span class="lifetime">&#39;_</span>&gt;,
-        should_shutdown: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-    ) -&gt; Poll&lt;<span class="kw">crate</span>::Result&lt;<a href="../mod.rs.html#54">Dispatched</a>&gt;&gt; {
+        should_shutdown: bool,
+    ) -&gt; Poll&lt;<span class="kw">crate</span>::Result&lt;Dispatched&gt;&gt; {
         T::update_date();
 
         <span class="macro">ready!</span>(<span class="self">self</span>.poll_loop(cx))<span class="question-mark">?</span>;
 
         <span class="kw">if </span><span class="self">self</span>.is_done() {
-            <span class="kw">if let </span><span class="prelude-val">Some</span>(pending) = <a class="self" href="#131">self</a>.conn.<a href="conn.rs.html#145">pending_upgrade</a>() {
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(pending) = <span class="self">self</span>.conn.pending_upgrade() {
                 <span class="self">self</span>.conn.take_error()<span class="question-mark">?</span>;
-                <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Ok</span>(<a href="../mod.rs.html#59">Dispatched::Upgrade</a>(<a href="#140">pending</a>)));
+                <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Ok</span>(Dispatched::Upgrade(pending)));
             } <span class="kw">else if </span>should_shutdown {
                 <span class="macro">ready!</span>(<span class="self">self</span>.conn.poll_shutdown(cx)).map_err(<span class="kw">crate</span>::Error::new_shutdown)<span class="question-mark">?</span>;
             }
             <span class="self">self</span>.conn.take_error()<span class="question-mark">?</span>;
-            Poll::Ready(<span class="prelude-val">Ok</span>(<a href="../mod.rs.html#56">Dispatched::Shutdown</a>))
+            Poll::Ready(<span class="prelude-val">Ok</span>(Dispatched::Shutdown))
         } <span class="kw">else </span>{
             Poll::Pending
         }
@@ -925,9 +925,9 @@
             }
         }
 
-        <a class="macro" href="../../../../tracing/macro.trace.html">trace!</a>(<span class="string">&quot;poll_loop yielding (self = {:p})&quot;</span>, <span class="self">self</span>);
+        <span class="macro">trace!</span>(<span class="string">&quot;poll_loop yielding (self = {:p})&quot;</span>, <span class="self">self</span>);
 
-        <a href="../../common/task.rs.html#9">task::yield_now</a>(<a href="#153">cx</a>).map(|never| <span class="kw">match </span><a href="#180">never</a> {})
+        task::yield_now(cx).map(|never| <span class="kw">match </span>never {})
     }
 
     <span class="kw">fn </span>poll_read(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cx: <span class="kw-2">&amp;mut </span>task::Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="kw">crate</span>::Result&lt;()&gt;&gt; {
@@ -936,31 +936,31 @@
                 <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Ok</span>(()));
             } <span class="kw">else if </span><span class="self">self</span>.conn.can_read_head() {
                 <span class="macro">ready!</span>(<span class="self">self</span>.poll_read_head(cx))<span class="question-mark">?</span>;
-            } <span class="kw">else if let </span><span class="prelude-val">Some</span>(<span class="kw-2">mut </span>body) = <a class="self" href="#183">self</a>.body_tx.take() {
+            } <span class="kw">else if let </span><span class="prelude-val">Some</span>(<span class="kw-2">mut </span>body) = <span class="self">self</span>.body_tx.take() {
                 <span class="kw">if </span><span class="self">self</span>.conn.can_read_body() {
-                    <span class="kw">match </span><a href="#189">body</a>.<a href="../../body/body.rs.html#548">poll_ready</a>(<a href="#183">cx</a>) {
+                    <span class="kw">match </span>body.poll_ready(cx) {
                         Poll::Ready(<span class="prelude-val">Ok</span>(())) =&gt; (),
                         Poll::Pending =&gt; {
-                            <a class="self" href="#183">self</a>.body_tx = <span class="prelude-val">Some</span>(<a href="#189">body</a>);
+                            <span class="self">self</span>.body_tx = <span class="prelude-val">Some</span>(body);
                             <span class="kw">return </span>Poll::Pending;
                         }
                         Poll::Ready(<span class="prelude-val">Err</span>(_canceled)) =&gt; {
                             <span class="comment">// user doesn&#39;t care about the body
                             // so we should stop reading
-                            </span><a class="macro" href="../../../../tracing/macro.trace.html">trace!</a>(<span class="string">&quot;body receiver dropped before eof, draining or closing&quot;</span>);
-                            <a class="self" href="#183">self</a>.conn.<a href="conn.rs.html#750">poll_drain_or_close_read</a>(<a href="#183">cx</a>);
+                            </span><span class="macro">trace!</span>(<span class="string">&quot;body receiver dropped before eof, draining or closing&quot;</span>);
+                            <span class="self">self</span>.conn.poll_drain_or_close_read(cx);
                             <span class="kw">continue</span>;
                         }
                     }
-                    <span class="kw">match </span><a class="self" href="#183">self</a>.conn.<a href="conn.rs.html#287-290">poll_read_body</a>(<a href="#183">cx</a>) {
-                        Poll::Ready(<span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(chunk))) =&gt; <span class="kw">match </span><a href="#189">body</a>.<a href="../../body/body.rs.html#598">try_send_data</a>(<a href="#206">chunk</a>) {
+                    <span class="kw">match </span><span class="self">self</span>.conn.poll_read_body(cx) {
+                        Poll::Ready(<span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(chunk))) =&gt; <span class="kw">match </span>body.try_send_data(chunk) {
                             <span class="prelude-val">Ok</span>(()) =&gt; {
-                                <a class="self" href="#183">self</a>.body_tx = <span class="prelude-val">Some</span>(<a href="#189">body</a>);
+                                <span class="self">self</span>.body_tx = <span class="prelude-val">Some</span>(body);
                             }
                             <span class="prelude-val">Err</span>(_canceled) =&gt; {
                                 <span class="kw">if </span><span class="self">self</span>.conn.can_read_body() {
-                                    <a class="macro" href="../../../../tracing/macro.trace.html">trace!</a>(<span class="string">&quot;body receiver dropped before eof, closing&quot;</span>);
-                                    <a class="self" href="#183">self</a>.conn.<a href="conn.rs.html#760">close_read</a>();
+                                    <span class="macro">trace!</span>(<span class="string">&quot;body receiver dropped before eof, closing&quot;</span>);
+                                    <span class="self">self</span>.conn.close_read();
                                 }
                             }
                         },
@@ -968,68 +968,68 @@
                             <span class="comment">// just drop, the body will close automatically
                         </span>}
                         Poll::Pending =&gt; {
-                            <a class="self" href="#183">self</a>.body_tx = <span class="prelude-val">Some</span>(<a href="#189">body</a>);
+                            <span class="self">self</span>.body_tx = <span class="prelude-val">Some</span>(body);
                             <span class="kw">return </span>Poll::Pending;
                         }
                         Poll::Ready(<span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(e))) =&gt; {
-                            <a href="#189">body</a>.<a href="../../body/body.rs.html#614">send_error</a>(<span class="kw">crate</span>::Error::new_body(<a href="#224">e</a>));
+                            body.send_error(<span class="kw">crate</span>::Error::new_body(e));
                         }
                     }
                 } <span class="kw">else </span>{
                     <span class="comment">// just drop, the body will close automatically
                 </span>}
             } <span class="kw">else </span>{
-                <span class="kw">return </span><a class="self" href="#183">self</a>.conn.<a href="conn.rs.html#350-353">poll_read_keep_alive</a>(<a href="#183">cx</a>);
+                <span class="kw">return </span><span class="self">self</span>.conn.poll_read_keep_alive(cx);
             }
         }
     }
 
     <span class="kw">fn </span>poll_read_head(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cx: <span class="kw-2">&amp;mut </span>task::Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="kw">crate</span>::Result&lt;()&gt;&gt; {
         <span class="comment">// can dispatch receive, or does it still care about, an incoming message?
-        </span><span class="kw">match </span><a class="macro" href="../../common/mod.rs.html#1-8">ready!</a>(<span class="self">self</span>.dispatch.poll_ready(cx)) {
+        </span><span class="kw">match </span><span class="macro">ready!</span>(<span class="self">self</span>.dispatch.poll_ready(cx)) {
             <span class="prelude-val">Ok</span>(()) =&gt; (),
             <span class="prelude-val">Err</span>(()) =&gt; {
-                <a class="macro" href="../../../../tracing/macro.trace.html">trace!</a>(<span class="string">&quot;dispatch no longer receiving messages&quot;</span>);
-                <a class="self" href="#237">self</a>.<a href="#383">close</a>();
+                <span class="macro">trace!</span>(<span class="string">&quot;dispatch no longer receiving messages&quot;</span>);
+                <span class="self">self</span>.close();
                 <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Ok</span>(()));
             }
         }
         <span class="comment">// dispatch is ready for a message, try to read one
-        </span><span class="kw">match </span><a class="macro" href="../../common/mod.rs.html#1-8">ready!</a>(<span class="self">self</span>.conn.poll_read_head(cx)) {
+        </span><span class="kw">match </span><span class="macro">ready!</span>(<span class="self">self</span>.conn.poll_read_head(cx)) {
             <span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>((<span class="kw-2">mut </span>head, body_len, wants))) =&gt; {
-                <span class="kw">let </span>body = <span class="kw">match </span><a href="#249">body_len</a> {
+                <span class="kw">let </span>body = <span class="kw">match </span>body_len {
                     DecodedLength::ZERO =&gt; Body::empty(),
                     other =&gt; {
-                        <span class="kw">let </span>(tx, rx) = Body::new_channel(<a href="#252">other</a>, <a href="#249">wants</a>.<a href="mod.rs.html#119">contains</a>(Wants::EXPECT));
-                        <a class="self" href="#237">self</a>.body_tx = <span class="prelude-val">Some</span>(<a href="#253">tx</a>);
-                        <a href="#253">rx</a>
+                        <span class="kw">let </span>(tx, rx) = Body::new_channel(other, wants.contains(Wants::EXPECT));
+                        <span class="self">self</span>.body_tx = <span class="prelude-val">Some</span>(tx);
+                        rx
                     }
                 };
                 <span class="kw">if </span>wants.contains(Wants::UPGRADE) {
-                    <span class="kw">let </span>upgrade = <a class="self" href="#237">self</a>.conn.<a href="conn.rs.html#787">on_upgrade</a>();
-                    <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(!upgrade.is_none(), <span class="string">&quot;empty upgrade&quot;</span>);
-                    <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(head.extensions.get::&lt;OnUpgrade&gt;().is_none(), <span class="string">&quot;OnUpgrade already set&quot;</span>);
-                    <a href="#249">head</a>.extensions.insert(<a href="#259">upgrade</a>);
+                    <span class="kw">let </span>upgrade = <span class="self">self</span>.conn.on_upgrade();
+                    <span class="macro">debug_assert!</span>(!upgrade.is_none(), <span class="string">&quot;empty upgrade&quot;</span>);
+                    <span class="macro">debug_assert!</span>(head.extensions.get::&lt;OnUpgrade&gt;().is_none(), <span class="string">&quot;OnUpgrade already set&quot;</span>);
+                    head.extensions.insert(upgrade);
                 }
                 <span class="self">self</span>.dispatch.recv_msg(<span class="prelude-val">Ok</span>((head, body)))<span class="question-mark">?</span>;
                 Poll::Ready(<span class="prelude-val">Ok</span>(()))
             }
             <span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(err)) =&gt; {
-                <a class="macro" href="../../../../tracing/macro.debug.html">debug!</a>(<span class="string">&quot;read_head error: {}&quot;</span>, err);
+                <span class="macro">debug!</span>(<span class="string">&quot;read_head error: {}&quot;</span>, err);
                 <span class="self">self</span>.dispatch.recv_msg(<span class="prelude-val">Err</span>(err))<span class="question-mark">?</span>;
                 <span class="comment">// if here, the dispatcher gave the user the error
                 // somewhere else. we still need to shutdown, but
                 // not as a second error.
-                </span><a class="self" href="#237">self</a>.<a href="#383">close</a>();
+                </span><span class="self">self</span>.close();
                 Poll::Ready(<span class="prelude-val">Ok</span>(()))
             }
             <span class="prelude-val">None </span>=&gt; {
                 <span class="comment">// read eof, the write side will have been closed too unless
                 // allow_read_close was set to true, in which case just do
                 // nothing...
-                </span><a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(<span class="self">self</span>.conn.is_read_closed());
+                </span><span class="macro">debug_assert!</span>(<span class="self">self</span>.conn.is_read_closed());
                 <span class="kw">if </span><span class="self">self</span>.conn.is_write_closed() {
-                    <a class="self" href="#237">self</a>.<a href="#383">close</a>();
+                    <span class="self">self</span>.close();
                 }
                 Poll::Ready(<span class="prelude-val">Ok</span>(()))
             }
@@ -1044,33 +1044,33 @@
                 &amp;&amp; <span class="self">self</span>.conn.can_write_head()
                 &amp;&amp; <span class="self">self</span>.dispatch.should_poll()
             {
-                <span class="kw">if let </span><span class="prelude-val">Some</span>(msg) = <a class="macro" href="../../common/mod.rs.html#1-8">ready!</a>(Pin::new(<span class="kw-2">&amp;mut </span><span class="self">self</span>.dispatch).poll_msg(cx)) {
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(msg) = <span class="macro">ready!</span>(Pin::new(<span class="kw-2">&amp;mut </span><span class="self">self</span>.dispatch).poll_msg(cx)) {
                     <span class="kw">let </span>(head, <span class="kw-2">mut </span>body) = msg.map_err(<span class="kw">crate</span>::Error::new_user_service)<span class="question-mark">?</span>;
 
                     <span class="comment">// Check if the body knows its full data immediately.
                     //
                     // If so, we can skip a bit of bookkeeping that streaming
                     // bodies need to do.
-                    </span><span class="kw">if let </span><span class="prelude-val">Some</span>(full) = <a href="../../body/mod.rs.html#36"><span class="kw">crate</span>::body::take_full_data</a>(<span class="kw-2">&amp;mut </span><a href="#298">body</a>) {
-                        <a class="self" href="#289">self</a>.conn.<a href="conn.rs.html#525">write_full_msg</a>(<a href="#298">head</a>, <a href="#304">full</a>);
+                    </span><span class="kw">if let </span><span class="prelude-val">Some</span>(full) = <span class="kw">crate</span>::body::take_full_data(<span class="kw-2">&amp;mut </span>body) {
+                        <span class="self">self</span>.conn.write_full_msg(head, full);
                         <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Ok</span>(()));
                     }
 
                     <span class="kw">let </span>body_type = <span class="kw">if </span>body.is_end_stream() {
-                        <a class="self" href="#289">self</a>.body_rx.set(<span class="prelude-val">None</span>);
+                        <span class="self">self</span>.body_rx.set(<span class="prelude-val">None</span>);
                         <span class="prelude-val">None
                     </span>} <span class="kw">else </span>{
-                        <span class="kw">let </span>btype = <a href="#298">body</a>
-                            .<a href="../../../../hyper/body/trait.HttpBody.html">size_hint</a>()
+                        <span class="kw">let </span>btype = body
+                            .size_hint()
                             .exact()
-                            .map(<a href="../mod.rs.html#48">BodyLength::Known</a>)
-                            .or_else(|| <span class="prelude-val">Some</span>(<a href="../mod.rs.html#50">BodyLength::Unknown</a>));
-                        <a class="self" href="#289">self</a>.body_rx.set(<span class="prelude-val">Some</span>(<a href="#298">body</a>));
-                        <a href="#313">btype</a>
+                            .map(BodyLength::Known)
+                            .or_else(|| <span class="prelude-val">Some</span>(BodyLength::Unknown));
+                        <span class="self">self</span>.body_rx.set(<span class="prelude-val">Some</span>(body));
+                        btype
                     };
-                    <a class="self" href="#289">self</a>.conn.<a href="conn.rs.html#513">write_head</a>(<a href="#298">head</a>, <a href="#309">body_type</a>);
+                    <span class="self">self</span>.conn.write_head(head, body_type);
                 } <span class="kw">else </span>{
-                    <a class="self" href="#289">self</a>.<a href="#383">close</a>();
+                    <span class="self">self</span>.close();
                     <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Ok</span>(()));
                 }
             } <span class="kw">else if </span>!<span class="self">self</span>.conn.can_buffer_body() {
@@ -1078,42 +1078,42 @@
             } <span class="kw">else </span>{
                 <span class="comment">// A new scope is needed :(
                 </span><span class="kw">if let </span>(<span class="prelude-val">Some</span>(<span class="kw-2">mut </span>body), clear_body) =
-                    OptGuard::new(<a class="self" href="#289">self</a>.body_rx.as_mut()).<a href="#439">guard_mut</a>()
+                    OptGuard::new(<span class="self">self</span>.body_rx.as_mut()).guard_mut()
                 {
-                    <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(!<span class="kw-2">*</span>clear_body, <span class="string">&quot;opt guard defaults to keeping body&quot;</span>);
+                    <span class="macro">debug_assert!</span>(!<span class="kw-2">*</span>clear_body, <span class="string">&quot;opt guard defaults to keeping body&quot;</span>);
                     <span class="kw">if </span>!<span class="self">self</span>.conn.can_write_body() {
-                        <a class="macro" href="../../../../tracing/macro.trace.html">trace!</a>(
+                        <span class="macro">trace!</span>(
                             <span class="string">&quot;no more write body allowed, user body is_end_stream = {}&quot;</span>,
                             body.is_end_stream(),
                         );
-                        <span class="kw-2">*</span><a href="#330">clear_body</a> = <span class="bool-val">true</span>;
+                        <span class="kw-2">*</span>clear_body = <span class="bool-val">true</span>;
                         <span class="kw">continue</span>;
                     }
 
-                    <span class="kw">let </span>item = <a class="macro" href="../../common/mod.rs.html#1-8">ready!</a>(body.as_mut().poll_data(cx));
-                    <span class="kw">if let </span><span class="prelude-val">Some</span>(item) = <a href="#343">item</a> {
+                    <span class="kw">let </span>item = <span class="macro">ready!</span>(body.as_mut().poll_data(cx));
+                    <span class="kw">if let </span><span class="prelude-val">Some</span>(item) = item {
                         <span class="kw">let </span>chunk = item.map_err(|e| {
                             <span class="kw-2">*</span>clear_body = <span class="bool-val">true</span>;
                             <span class="kw">crate</span>::Error::new_user_body(e)
                         })<span class="question-mark">?</span>;
-                        <span class="kw">let </span>eos = <a href="#330">body</a>.<a href="../../../../hyper/body/trait.HttpBody.html">is_end_stream</a>();
+                        <span class="kw">let </span>eos = body.is_end_stream();
                         <span class="kw">if </span>eos {
-                            <span class="kw-2">*</span><a href="#330">clear_body</a> = <span class="bool-val">true</span>;
+                            <span class="kw-2">*</span>clear_body = <span class="bool-val">true</span>;
                             <span class="kw">if </span>chunk.remaining() == <span class="number">0 </span>{
-                                <a class="macro" href="../../../../tracing/macro.trace.html">trace!</a>(<span class="string">&quot;discarding empty chunk&quot;</span>);
+                                <span class="macro">trace!</span>(<span class="string">&quot;discarding empty chunk&quot;</span>);
                                 <span class="self">self</span>.conn.end_body()<span class="question-mark">?</span>;
                             } <span class="kw">else </span>{
-                                <a class="self" href="#289">self</a>.conn.<a href="conn.rs.html#655">write_body_and_end</a>(<a href="#345">chunk</a>);
+                                <span class="self">self</span>.conn.write_body_and_end(chunk);
                             }
                         } <span class="kw">else </span>{
                             <span class="kw">if </span>chunk.remaining() == <span class="number">0 </span>{
-                                <a class="macro" href="../../../../tracing/macro.trace.html">trace!</a>(<span class="string">&quot;discarding empty chunk&quot;</span>);
+                                <span class="macro">trace!</span>(<span class="string">&quot;discarding empty chunk&quot;</span>);
                                 <span class="kw">continue</span>;
                             }
-                            <a class="self" href="#289">self</a>.conn.<a href="conn.rs.html#630">write_body</a>(<a href="#345">chunk</a>);
+                            <span class="self">self</span>.conn.write_body(chunk);
                         }
                     } <span class="kw">else </span>{
-                        <span class="kw-2">*</span><a href="#330">clear_body</a> = <span class="bool-val">true</span>;
+                        <span class="kw-2">*</span>clear_body = <span class="bool-val">true</span>;
                         <span class="self">self</span>.conn.end_body()<span class="question-mark">?</span>;
                     }
                 } <span class="kw">else </span>{
@@ -1124,54 +1124,54 @@
     }
 
     <span class="kw">fn </span>poll_flush(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cx: <span class="kw-2">&amp;mut </span>task::Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="kw">crate</span>::Result&lt;()&gt;&gt; {
-        <a class="self" href="#376">self</a>.conn.<a href="conn.rs.html#729">poll_flush</a>(<a href="#376">cx</a>).map_err(|err| {
-            <a class="macro" href="../../../../tracing/macro.debug.html">debug!</a>(<span class="string">&quot;error writing: {}&quot;</span>, err);
-            <span class="kw">crate</span>::Error::new_body_write(<a href="#377">err</a>)
+        <span class="self">self</span>.conn.poll_flush(cx).map_err(|err| {
+            <span class="macro">debug!</span>(<span class="string">&quot;error writing: {}&quot;</span>, err);
+            <span class="kw">crate</span>::Error::new_body_write(err)
         })
     }
 
     <span class="kw">fn </span>close(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <a class="self" href="#383">self</a>.is_closing = <span class="bool-val">true</span>;
-        <a class="self" href="#383">self</a>.conn.<a href="conn.rs.html#760">close_read</a>();
-        <a class="self" href="#383">self</a>.conn.<a href="conn.rs.html#764">close_write</a>();
+        <span class="self">self</span>.is_closing = <span class="bool-val">true</span>;
+        <span class="self">self</span>.conn.close_read();
+        <span class="self">self</span>.conn.close_write();
     }
 
-    <span class="kw">fn </span>is_done(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+    <span class="kw">fn </span>is_done(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="kw">if </span><span class="self">self</span>.is_closing {
             <span class="kw">return </span><span class="bool-val">true</span>;
         }
 
-        <span class="kw">let </span>read_done = <a class="self" href="#389">self</a>.conn.<a href="conn.rs.html#149">is_read_closed</a>();
+        <span class="kw">let </span>read_done = <span class="self">self</span>.conn.is_read_closed();
 
         <span class="kw">if </span>!T::should_read_first() &amp;&amp; read_done {
             <span class="comment">// a client that cannot read may was well be done.
             </span><span class="bool-val">true
         </span>} <span class="kw">else </span>{
-            <span class="kw">let </span>write_done = <a class="self" href="#389">self</a>.conn.<a href="conn.rs.html#153">is_write_closed</a>()
-                || (!<a class="self" href="#389">self</a>.dispatch.<a href="#35">should_poll</a>() &amp;&amp; <a class="self" href="#389">self</a>.body_rx.is_none());
-            <a href="#394">read_done</a> &amp;&amp; <a href="#400">write_done</a>
+            <span class="kw">let </span>write_done = <span class="self">self</span>.conn.is_write_closed()
+                || (!<span class="self">self</span>.dispatch.should_poll() &amp;&amp; <span class="self">self</span>.body_rx.is_none());
+            read_done &amp;&amp; write_done
         }
     }
 }
 
-<span class="kw">impl</span>&lt;D, Bs, I, T&gt; <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a> <span class="kw">for </span>Dispatcher&lt;D, Bs, I, T&gt;
+<span class="kw">impl</span>&lt;D, Bs, I, T&gt; Future <span class="kw">for </span>Dispatcher&lt;D, Bs, I, T&gt;
 <span class="kw">where
     </span>D: Dispatch&lt;
         PollItem = MessageHead&lt;T::Outgoing&gt;,
         PollBody = Bs,
         RecvItem = MessageHead&lt;T::Incoming&gt;,
-    &gt; + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
-    D::PollError: Into&lt;Box&lt;<span class="kw">dyn </span><a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">StdError</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a>&gt;&gt;,
-    I: <a href="../../../../tokio/io/async_read/trait.AsyncRead.html">AsyncRead</a> + <a href="../../../../tokio/io/async_write/trait.AsyncWrite.html">AsyncWrite</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
-    T: <a href="mod.rs.html#35">Http1Transaction</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
-    Bs: <a href="../../../../hyper/body/trait.HttpBody.html">HttpBody</a> + <span class="lifetime">&#39;static</span>,
-    Bs::Error: Into&lt;Box&lt;<span class="kw">dyn </span><a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">StdError</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a>&gt;&gt;,
+    &gt; + Unpin,
+    D::PollError: Into&lt;Box&lt;<span class="kw">dyn </span>StdError + Send + Sync&gt;&gt;,
+    I: AsyncRead + AsyncWrite + Unpin,
+    T: Http1Transaction + Unpin,
+    Bs: HttpBody + <span class="lifetime">&#39;static</span>,
+    Bs::Error: Into&lt;Box&lt;<span class="kw">dyn </span>StdError + Send + Sync&gt;&gt;,
 {
-    <span class="kw">type </span>Output = <span class="kw">crate</span>::Result&lt;<a href="../mod.rs.html#54">Dispatched</a>&gt;;
+    <span class="kw">type </span>Output = <span class="kw">crate</span>::Result&lt;Dispatched&gt;;
 
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>poll(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>task::Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
-        <a class="self" href="#423">self</a>.<a href="#115-119">poll_catch</a>(<a href="#423">cx</a>, <span class="bool-val">true</span>)
+        <span class="self">self</span>.poll_catch(cx, <span class="bool-val">true</span>)
     }
 }
 
@@ -1179,22 +1179,22 @@
 
 </span><span class="doccomment">/// A drop guard to allow a mutable borrow of an Option while being able to
 /// set whether the `Option` should be cleared on drop.
-</span><span class="kw">struct </span>OptGuard&lt;<span class="lifetime">&#39;a</span>, T&gt;(Pin&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span><span class="prelude-ty">Option</span>&lt;T&gt;&gt;, <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>);
+</span><span class="kw">struct </span>OptGuard&lt;<span class="lifetime">&#39;a</span>, T&gt;(Pin&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span><span class="prelude-ty">Option</span>&lt;T&gt;&gt;, bool);
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T&gt; OptGuard&lt;<span class="lifetime">&#39;a</span>, T&gt; {
     <span class="kw">fn </span>new(pin: Pin&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span><span class="prelude-ty">Option</span>&lt;T&gt;&gt;) -&gt; <span class="self">Self </span>{
-        <a href="#432">OptGuard</a>(<a href="#435">pin</a>, <span class="bool-val">false</span>)
+        OptGuard(pin, <span class="bool-val">false</span>)
     }
 
-    <span class="kw">fn </span>guard_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; (<span class="prelude-ty">Option</span>&lt;Pin&lt;<span class="kw-2">&amp;mut </span>T&gt;&gt;, <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) {
-        (<a class="self" href="#439">self</a>.<span class="number">0</span>.as_mut().as_pin_mut(), <span class="kw-2">&amp;mut </span><a class="self" href="#439">self</a>.<span class="number">1</span>)
+    <span class="kw">fn </span>guard_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; (<span class="prelude-ty">Option</span>&lt;Pin&lt;<span class="kw-2">&amp;mut </span>T&gt;&gt;, <span class="kw-2">&amp;mut </span>bool) {
+        (<span class="self">self</span>.<span class="number">0</span>.as_mut().as_pin_mut(), <span class="kw-2">&amp;mut </span><span class="self">self</span>.<span class="number">1</span>)
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T&gt; <a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span>OptGuard&lt;<span class="lifetime">&#39;a</span>, T&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T&gt; Drop <span class="kw">for </span>OptGuard&lt;<span class="lifetime">&#39;a</span>, T&gt; {
     <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="kw">if </span><span class="self">self</span>.<span class="number">1 </span>{
-            <a class="self" href="#445">self</a>.<span class="number">0</span>.set(<span class="prelude-val">None</span>);
+            <span class="self">self</span>.<span class="number">0</span>.set(<span class="prelude-val">None</span>);
         }
     }
 }
@@ -1207,65 +1207,65 @@
         </span>S: HttpService&lt;B&gt;,
     {
         <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(service: S) -&gt; Server&lt;S, B&gt; {
-            <a href="#41">Server</a> {
+            Server {
                 in_flight: Box::pin(<span class="prelude-val">None</span>),
-                <a href="#459">service</a>,
+                service,
             }
         }
 
         <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>into_service(<span class="self">self</span>) -&gt; S {
-            <a class="self" href="#466">self</a>.service
+            <span class="self">self</span>.service
         }
     }
 
     <span class="comment">// Service is never pinned
-    </span><span class="kw">impl</span>&lt;S: HttpService&lt;B&gt;, B&gt; <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a> <span class="kw">for </span>Server&lt;S, B&gt; {}
+    </span><span class="kw">impl</span>&lt;S: HttpService&lt;B&gt;, B&gt; Unpin <span class="kw">for </span>Server&lt;S, B&gt; {}
 
-    <span class="kw">impl</span>&lt;S, Bs&gt; <a href="#24">Dispatch</a> <span class="kw">for </span>Server&lt;S, <a href="../../body/body.rs.html#36">Body</a>&gt;
+    <span class="kw">impl</span>&lt;S, Bs&gt; Dispatch <span class="kw">for </span>Server&lt;S, Body&gt;
     <span class="kw">where
-        </span>S: HttpService&lt;<a href="../../body/body.rs.html#36">Body</a>, ResBody = Bs&gt;,
-        S::Error: Into&lt;Box&lt;<span class="kw">dyn </span><a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">StdError</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a>&gt;&gt;,
-        Bs: <a href="../../../../hyper/body/trait.HttpBody.html">HttpBody</a>,
+        </span>S: HttpService&lt;Body, ResBody = Bs&gt;,
+        S::Error: Into&lt;Box&lt;<span class="kw">dyn </span>StdError + Send + Sync&gt;&gt;,
+        Bs: HttpBody,
     {
-        <span class="kw">type </span>PollItem = MessageHead&lt;<a href="../../../../hyper/struct.StatusCode.html">http::StatusCode</a>&gt;;
+        <span class="kw">type </span>PollItem = MessageHead&lt;http::StatusCode&gt;;
         <span class="kw">type </span>PollBody = Bs;
         <span class="kw">type </span>PollError = S::Error;
-        <span class="kw">type </span>RecvItem = <a href="../mod.rs.html#34">RequestHead</a>;
+        <span class="kw">type </span>RecvItem = RequestHead;
 
         <span class="kw">fn </span>poll_msg(
             <span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;,
             cx: <span class="kw-2">&amp;mut </span>task::Context&lt;<span class="lifetime">&#39;_</span>&gt;,
         ) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;<span class="prelude-ty">Result</span>&lt;(<span class="self">Self</span>::PollItem, <span class="self">Self</span>::PollBody), <span class="self">Self</span>::PollError&gt;&gt;&gt; {
-            <span class="kw">let </span><span class="kw-2">mut </span>this = <a class="self" href="#486">self</a>.as_mut();
-            <span class="kw">let </span>ret = <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">ref mut </span>fut) = <a href="#489">this</a>.in_flight.as_mut().as_pin_mut() {
-                <span class="kw">let </span>resp = <a class="macro" href="../../common/mod.rs.html#1-8">ready!</a>(fut.as_mut().poll(cx)<span class="question-mark">?</span>);
-                <span class="kw">let </span>(parts, body) = <a href="#491">resp</a>.into_parts();
-                <span class="kw">let </span>head = <a href="../mod.rs.html#21">MessageHead</a> {
-                    version: <a href="#492">parts</a>.version,
-                    subject: <a href="#492">parts</a>.status,
-                    headers: <a href="#492">parts</a>.headers,
-                    extensions: <a href="#492">parts</a>.extensions,
+            <span class="kw">let </span><span class="kw-2">mut </span>this = <span class="self">self</span>.as_mut();
+            <span class="kw">let </span>ret = <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">ref mut </span>fut) = this.in_flight.as_mut().as_pin_mut() {
+                <span class="kw">let </span>resp = <span class="macro">ready!</span>(fut.as_mut().poll(cx)<span class="question-mark">?</span>);
+                <span class="kw">let </span>(parts, body) = resp.into_parts();
+                <span class="kw">let </span>head = MessageHead {
+                    version: parts.version,
+                    subject: parts.status,
+                    headers: parts.headers,
+                    extensions: parts.extensions,
                 };
-                Poll::Ready(<span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>((<a href="#493">head</a>, <a href="#492">body</a>))))
+                Poll::Ready(<span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>((head, body))))
             } <span class="kw">else </span>{
-                <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(<span class="string">&quot;poll_msg shouldn&#39;t be called if no inflight&quot;</span>);
+                <span class="macro">unreachable!</span>(<span class="string">&quot;poll_msg shouldn&#39;t be called if no inflight&quot;</span>);
             };
 
             <span class="comment">// Since in_flight finished, remove it
-            </span><a href="#489">this</a>.in_flight.set(<span class="prelude-val">None</span>);
-            <a href="#490">ret</a>
+            </span>this.in_flight.set(<span class="prelude-val">None</span>);
+            ret
         }
 
-        <span class="kw">fn </span>recv_msg(<span class="kw-2">&amp;mut </span><span class="self">self</span>, msg: <span class="kw">crate</span>::Result&lt;(<span class="self">Self</span>::RecvItem, <a href="../../body/body.rs.html#36">Body</a>)&gt;) -&gt; <span class="kw">crate</span>::Result&lt;()&gt; {
+        <span class="kw">fn </span>recv_msg(<span class="kw-2">&amp;mut </span><span class="self">self</span>, msg: <span class="kw">crate</span>::Result&lt;(<span class="self">Self</span>::RecvItem, Body)&gt;) -&gt; <span class="kw">crate</span>::Result&lt;()&gt; {
             <span class="kw">let </span>(msg, body) = msg<span class="question-mark">?</span>;
-            <span class="kw">let </span><span class="kw-2">mut </span>req = Request::new(<a href="#510">body</a>);
-            <span class="kw-2">*</span><a href="#511">req</a>.method_mut() = <a href="#510">msg</a>.subject.<span class="number">0</span>;
-            <span class="kw-2">*</span><a href="#511">req</a>.uri_mut() = <a href="#510">msg</a>.subject.<span class="number">1</span>;
-            <span class="kw-2">*</span><a href="#511">req</a>.headers_mut() = <a href="#510">msg</a>.headers;
-            <span class="kw-2">*</span><a href="#511">req</a>.version_mut() = <a href="#510">msg</a>.version;
-            <span class="kw-2">*</span><a href="#511">req</a>.extensions_mut() = <a href="#510">msg</a>.extensions;
-            <span class="kw">let </span>fut = <a class="self" href="#509">self</a>.service.<a href="../../service/http.rs.html#26">call</a>(<a href="#511">req</a>);
-            <a class="self" href="#509">self</a>.in_flight.set(<span class="prelude-val">Some</span>(<a href="#517">fut</a>));
+            <span class="kw">let </span><span class="kw-2">mut </span>req = Request::new(body);
+            <span class="kw-2">*</span>req.method_mut() = msg.subject.<span class="number">0</span>;
+            <span class="kw-2">*</span>req.uri_mut() = msg.subject.<span class="number">1</span>;
+            <span class="kw-2">*</span>req.headers_mut() = msg.headers;
+            <span class="kw-2">*</span>req.version_mut() = msg.version;
+            <span class="kw-2">*</span>req.extensions_mut() = msg.extensions;
+            <span class="kw">let </span>fut = <span class="self">self</span>.service.call(req);
+            <span class="self">self</span>.in_flight.set(<span class="prelude-val">Some</span>(fut));
             <span class="prelude-val">Ok</span>(())
         }
 
@@ -1273,15 +1273,15 @@
             <span class="kw">if </span><span class="self">self</span>.in_flight.is_some() {
                 Poll::Pending
             } <span class="kw">else </span>{
-                <a class="self" href="#522">self</a>.service.<a href="../../service/http.rs.html#23">poll_ready</a>(<a href="#522">cx</a>).map_err(|_e| {
+                <span class="self">self</span>.service.poll_ready(cx).map_err(|_e| {
                     <span class="comment">// FIXME: return error value.
-                    </span><a class="macro" href="../../../../tracing/macro.trace.html">trace!</a>(<span class="string">&quot;service closed&quot;</span>);
+                    </span><span class="macro">trace!</span>(<span class="string">&quot;service closed&quot;</span>);
                 })
             }
         }
 
-        <span class="kw">fn </span>should_poll(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-            <a class="self" href="#533">self</a>.in_flight.is_some()
+        <span class="kw">fn </span>should_poll(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+            <span class="self">self</span>.in_flight.is_some()
         }
     }
 }
@@ -1291,66 +1291,66 @@
 </span><span class="macro">cfg_client! </span>{
     <span class="kw">impl</span>&lt;B&gt; Client&lt;B&gt; {
         <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(rx: ClientRx&lt;B&gt;) -&gt; Client&lt;B&gt; {
-            <a href="#48-55">Client</a> {
+            Client {
                 callback: <span class="prelude-val">None</span>,
-                <a href="#543">rx</a>,
+                rx,
                 rx_closed: <span class="bool-val">false</span>,
             }
         }
     }
 
-    <span class="kw">impl</span>&lt;B&gt; <a href="#24">Dispatch</a> <span class="kw">for </span>Client&lt;B&gt;
+    <span class="kw">impl</span>&lt;B&gt; Dispatch <span class="kw">for </span>Client&lt;B&gt;
     <span class="kw">where
-        </span>B: <a href="../../../../hyper/body/trait.HttpBody.html">HttpBody</a>,
+        </span>B: HttpBody,
     {
-        <span class="kw">type </span>PollItem = <a href="../mod.rs.html#34">RequestHead</a>;
+        <span class="kw">type </span>PollItem = RequestHead;
         <span class="kw">type </span>PollBody = B;
-        <span class="kw">type </span>PollError = <a href="../../common/never.rs.html#9"><span class="kw">crate</span>::common::Never</a>;
-        <span class="kw">type </span>RecvItem = <a href="../mod.rs.html#42"><span class="kw">crate</span>::proto::ResponseHead</a>;
+        <span class="kw">type </span>PollError = <span class="kw">crate</span>::common::Never;
+        <span class="kw">type </span>RecvItem = <span class="kw">crate</span>::proto::ResponseHead;
 
         <span class="kw">fn </span>poll_msg(
             <span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;,
             cx: <span class="kw-2">&amp;mut </span>task::Context&lt;<span class="lifetime">&#39;_</span>&gt;,
-        ) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;<span class="prelude-ty">Result</span>&lt;(<span class="self">Self</span>::PollItem, <span class="self">Self</span>::PollBody), <a href="../../common/never.rs.html#9"><span class="kw">crate</span>::common::Never</a>&gt;&gt;&gt; {
-            <span class="kw">let </span><span class="kw-2">mut </span>this = <a class="self" href="#562">self</a>.as_mut();
-            <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(!this.rx_closed);
-            <span class="kw">match </span><a href="#565">this</a>.rx.<a href="../../client/dispatch.rs.html#149-152">poll_recv</a>(<a href="#563">cx</a>) {
+        ) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;<span class="prelude-ty">Result</span>&lt;(<span class="self">Self</span>::PollItem, <span class="self">Self</span>::PollBody), <span class="kw">crate</span>::common::Never&gt;&gt;&gt; {
+            <span class="kw">let </span><span class="kw-2">mut </span>this = <span class="self">self</span>.as_mut();
+            <span class="macro">debug_assert!</span>(!this.rx_closed);
+            <span class="kw">match </span>this.rx.poll_recv(cx) {
                 Poll::Ready(<span class="prelude-val">Some</span>((req, <span class="kw-2">mut </span>cb))) =&gt; {
                     <span class="comment">// check that future hasn&#39;t been canceled already
-                    </span><span class="kw">match </span><a href="#568">cb</a>.<a href="../../client/dispatch.rs.html#239">poll_canceled</a>(<a href="#563">cx</a>) {
+                    </span><span class="kw">match </span>cb.poll_canceled(cx) {
                         Poll::Ready(()) =&gt; {
-                            <a class="macro" href="../../../../tracing/macro.trace.html">trace!</a>(<span class="string">&quot;request canceled&quot;</span>);
+                            <span class="macro">trace!</span>(<span class="string">&quot;request canceled&quot;</span>);
                             Poll::Ready(<span class="prelude-val">None</span>)
                         }
                         Poll::Pending =&gt; {
-                            <span class="kw">let </span>(parts, body) = <a href="#568">req</a>.into_parts();
-                            <span class="kw">let </span>head = <a href="../mod.rs.html#34">RequestHead</a> {
-                                version: <a href="#576">parts</a>.version,
-                                subject: <a href="../mod.rs.html#38"><span class="kw">crate</span>::proto::RequestLine</a>(<a href="#576">parts</a>.method, <a href="#576">parts</a>.uri),
-                                headers: <a href="#576">parts</a>.headers,
-                                extensions: <a href="#576">parts</a>.extensions,
+                            <span class="kw">let </span>(parts, body) = req.into_parts();
+                            <span class="kw">let </span>head = RequestHead {
+                                version: parts.version,
+                                subject: <span class="kw">crate</span>::proto::RequestLine(parts.method, parts.uri),
+                                headers: parts.headers,
+                                extensions: parts.extensions,
                             };
-                            <a href="#565">this</a>.callback = <span class="prelude-val">Some</span>(<a href="#568">cb</a>);
-                            Poll::Ready(<span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>((<a href="#577">head</a>, <a href="#576">body</a>))))
+                            this.callback = <span class="prelude-val">Some</span>(cb);
+                            Poll::Ready(<span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>((head, body))))
                         }
                     }
                 }
                 Poll::Ready(<span class="prelude-val">None</span>) =&gt; {
                     <span class="comment">// user has dropped sender handle
-                    </span><a class="macro" href="../../../../tracing/macro.trace.html">trace!</a>(<span class="string">&quot;client tx closed&quot;</span>);
-                    <a href="#565">this</a>.rx_closed = <span class="bool-val">true</span>;
+                    </span><span class="macro">trace!</span>(<span class="string">&quot;client tx closed&quot;</span>);
+                    this.rx_closed = <span class="bool-val">true</span>;
                     Poll::Ready(<span class="prelude-val">None</span>)
                 }
                 Poll::Pending =&gt; Poll::Pending,
             }
         }
 
-        <span class="kw">fn </span>recv_msg(<span class="kw-2">&amp;mut </span><span class="self">self</span>, msg: <span class="kw">crate</span>::Result&lt;(<span class="self">Self</span>::RecvItem, <a href="../../body/body.rs.html#36">Body</a>)&gt;) -&gt; <span class="kw">crate</span>::Result&lt;()&gt; {
-            <span class="kw">match </span><a href="#598">msg</a> {
+        <span class="kw">fn </span>recv_msg(<span class="kw-2">&amp;mut </span><span class="self">self</span>, msg: <span class="kw">crate</span>::Result&lt;(<span class="self">Self</span>::RecvItem, Body)&gt;) -&gt; <span class="kw">crate</span>::Result&lt;()&gt; {
+            <span class="kw">match </span>msg {
                 <span class="prelude-val">Ok</span>((msg, body)) =&gt; {
-                    <span class="kw">if let </span><span class="prelude-val">Some</span>(cb) = <a class="self" href="#598">self</a>.callback.take() {
-                        <span class="kw">let </span>res = <a href="#600">msg</a>.<a href="../mod.rs.html#63">into_response</a>(<a href="#600">body</a>);
-                        <a href="#601">cb</a>.<a href="../../client/dispatch.rs.html#247">send</a>(<span class="prelude-val">Ok</span>(<a href="#602">res</a>));
+                    <span class="kw">if let </span><span class="prelude-val">Some</span>(cb) = <span class="self">self</span>.callback.take() {
+                        <span class="kw">let </span>res = msg.into_response(body);
+                        cb.send(<span class="prelude-val">Ok</span>(res));
                         <span class="prelude-val">Ok</span>(())
                     } <span class="kw">else </span>{
                         <span class="comment">// Getting here is likely a bug! An error should have happened
@@ -1360,32 +1360,32 @@
                     }
                 }
                 <span class="prelude-val">Err</span>(err) =&gt; {
-                    <span class="kw">if let </span><span class="prelude-val">Some</span>(cb) = <a class="self" href="#598">self</a>.callback.take() {
-                        <a href="#613">cb</a>.<a href="../../client/dispatch.rs.html#247">send</a>(<span class="prelude-val">Err</span>((<a href="#612">err</a>, <span class="prelude-val">None</span>)));
+                    <span class="kw">if let </span><span class="prelude-val">Some</span>(cb) = <span class="self">self</span>.callback.take() {
+                        cb.send(<span class="prelude-val">Err</span>((err, <span class="prelude-val">None</span>)));
                         <span class="prelude-val">Ok</span>(())
                     } <span class="kw">else if </span>!<span class="self">self</span>.rx_closed {
-                        <a class="self" href="#598">self</a>.rx.<a href="../../client/dispatch.rs.html#165">close</a>();
-                        <span class="kw">if let </span><span class="prelude-val">Some</span>((req, cb)) = <a class="self" href="#598">self</a>.rx.<a href="../../client/dispatch.rs.html#171">try_recv</a>() {
-                            <a class="macro" href="../../../../tracing/macro.trace.html">trace!</a>(<span class="string">&quot;canceling queued request with connection error: {}&quot;</span>, err);
+                        <span class="self">self</span>.rx.close();
+                        <span class="kw">if let </span><span class="prelude-val">Some</span>((req, cb)) = <span class="self">self</span>.rx.try_recv() {
+                            <span class="macro">trace!</span>(<span class="string">&quot;canceling queued request with connection error: {}&quot;</span>, err);
                             <span class="comment">// in this case, the message was never even started, so it&#39;s safe to tell
                             // the user that the request was completely canceled
-                            </span><a href="#618">cb</a>.<a href="../../client/dispatch.rs.html#247">send</a>(<span class="prelude-val">Err</span>((<span class="kw">crate</span>::Error::new_canceled().<a href="../../error.rs.html#219">with</a>(<a href="#612">err</a>), <span class="prelude-val">Some</span>(<a href="#618">req</a>))));
+                            </span>cb.send(<span class="prelude-val">Err</span>((<span class="kw">crate</span>::Error::new_canceled().with(err), <span class="prelude-val">Some</span>(req))));
                             <span class="prelude-val">Ok</span>(())
                         } <span class="kw">else </span>{
-                            <span class="prelude-val">Err</span>(<a href="#612">err</a>)
+                            <span class="prelude-val">Err</span>(err)
                         }
                     } <span class="kw">else </span>{
-                        <span class="prelude-val">Err</span>(<a href="#612">err</a>)
+                        <span class="prelude-val">Err</span>(err)
                     }
                 }
             }
         }
 
         <span class="kw">fn </span>poll_ready(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cx: <span class="kw-2">&amp;mut </span>task::Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;(), ()&gt;&gt; {
-            <span class="kw">match </span><a class="self" href="#634">self</a>.callback {
-                <span class="prelude-val">Some</span>(<span class="kw-2">ref mut </span>cb) =&gt; <span class="kw">match </span><a href="#636">cb</a>.<a href="../../client/dispatch.rs.html#239">poll_canceled</a>(<a href="#634">cx</a>) {
+            <span class="kw">match </span><span class="self">self</span>.callback {
+                <span class="prelude-val">Some</span>(<span class="kw-2">ref mut </span>cb) =&gt; <span class="kw">match </span>cb.poll_canceled(cx) {
                     Poll::Ready(()) =&gt; {
-                        <a class="macro" href="../../../../tracing/macro.trace.html">trace!</a>(<span class="string">&quot;callback receiver has dropped&quot;</span>);
+                        <span class="macro">trace!</span>(<span class="string">&quot;callback receiver has dropped&quot;</span>);
                         Poll::Ready(<span class="prelude-val">Err</span>(()))
                     }
                     Poll::Pending =&gt; Poll::Ready(<span class="prelude-val">Ok</span>(())),
@@ -1394,8 +1394,8 @@
             }
         }
 
-        <span class="kw">fn </span>should_poll(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-            <a class="self" href="#647">self</a>.callback.is_none()
+        <span class="kw">fn </span>should_poll(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+            <span class="self">self</span>.callback.is_none()
         }
     }
 }
@@ -1499,4 +1499,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="hyper" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="hyper" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

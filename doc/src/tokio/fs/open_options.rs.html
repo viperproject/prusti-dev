@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.21.2/src/fs/open_options.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>open_options.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../tokio/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.23.0/src/fs/open_options.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>open_options.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../tokio/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -663,17 +663,17 @@
 <a href="#663" id="663">663</a>
 <a href="#664" id="664">664</a>
 <a href="#665" id="665">665</a>
-</pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::fs::{<a href="mod.rs.html#132-135">asyncify</a>, <a href="file.rs.html#93">File</a>};
+</pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::fs::{asyncify, File};
 
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/io/index.html">std::io</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">std::path::Path</a>;
+<span class="kw">use </span>std::io;
+<span class="kw">use </span>std::path::Path;
 
 <span class="attr">#[cfg(test)]
 </span><span class="kw">mod </span>mock_open_options;
 <span class="attr">#[cfg(test)]
 </span><span class="kw">use </span>mock_open_options::MockOpenOptions <span class="kw">as </span>StdOpenOptions;
 <span class="attr">#[cfg(not(test))]
-</span><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/fs/struct.OpenOptions.html">std::fs::OpenOptions</a> <span class="kw">as </span>StdOpenOptions;
+</span><span class="kw">use </span>std::fs::OpenOptions <span class="kw">as </span>StdOpenOptions;
 
 <span class="doccomment">/// Options and flags which can be used to configure how a file is opened.
 ///
@@ -741,9 +741,9 @@
 /// }
 /// ```
 </span><span class="attr">#[derive(Clone, Debug)]
-</span><span class="kw">pub struct </span>OpenOptions(<a href="https://doc.rust-lang.org/nightly/std/fs/struct.OpenOptions.html">StdOpenOptions</a>);
+</span><span class="kw">pub struct </span>OpenOptions(StdOpenOptions);
 
-<span class="kw">impl </span><a href="#79">OpenOptions</a> {
+<span class="kw">impl </span>OpenOptions {
     <span class="doccomment">/// Creates a blank new set of options ready for configuration.
     ///
     /// All options are initially set to `false`.
@@ -760,8 +760,8 @@
     /// let mut options = OpenOptions::new();
     /// let future = options.read(true).open(&quot;foo.txt&quot;);
     /// ```
-    </span><span class="kw">pub fn </span>new() -&gt; <a href="#79">OpenOptions</a> {
-        <a href="#79">OpenOptions</a>(StdOpenOptions::new())
+    </span><span class="kw">pub fn </span>new() -&gt; OpenOptions {
+        OpenOptions(StdOpenOptions::new())
     }
 
     <span class="doccomment">/// Sets the option for read access.
@@ -789,9 +789,9 @@
     ///     Ok(())
     /// }
     /// ```
-    </span><span class="kw">pub fn </span>read(<span class="kw-2">&amp;mut </span><span class="self">self</span>, read: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="kw-2">&amp;mut </span><a href="#79">OpenOptions</a> {
-        <a class="self" href="#127">self</a>.<span class="number">0</span>.read(<a href="#127">read</a>);
-        <span class="self"><a href="#127">self</a>
+    </span><span class="kw">pub fn </span>read(<span class="kw-2">&amp;mut </span><span class="self">self</span>, read: bool) -&gt; <span class="kw-2">&amp;mut </span>OpenOptions {
+        <span class="self">self</span>.<span class="number">0</span>.read(read);
+        <span class="self">self
     </span>}
 
     <span class="doccomment">/// Sets the option for write access.
@@ -819,9 +819,9 @@
     ///     Ok(())
     /// }
     /// ```
-    </span><span class="kw">pub fn </span>write(<span class="kw-2">&amp;mut </span><span class="self">self</span>, write: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="kw-2">&amp;mut </span><a href="#79">OpenOptions</a> {
-        <a class="self" href="#157">self</a>.<span class="number">0</span>.write(<a href="#157">write</a>);
-        <span class="self"><a href="#157">self</a>
+    </span><span class="kw">pub fn </span>write(<span class="kw-2">&amp;mut </span><span class="self">self</span>, write: bool) -&gt; <span class="kw-2">&amp;mut </span>OpenOptions {
+        <span class="self">self</span>.<span class="number">0</span>.write(write);
+        <span class="self">self
     </span>}
 
     <span class="doccomment">/// Sets the option for the append mode.
@@ -878,9 +878,9 @@
     ///     Ok(())
     /// }
     /// ```
-    </span><span class="kw">pub fn </span>append(<span class="kw-2">&amp;mut </span><span class="self">self</span>, append: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="kw-2">&amp;mut </span><a href="#79">OpenOptions</a> {
-        <a class="self" href="#216">self</a>.<span class="number">0</span>.append(<a href="#216">append</a>);
-        <span class="self"><a href="#216">self</a>
+    </span><span class="kw">pub fn </span>append(<span class="kw-2">&amp;mut </span><span class="self">self</span>, append: bool) -&gt; <span class="kw-2">&amp;mut </span>OpenOptions {
+        <span class="self">self</span>.<span class="number">0</span>.append(append);
+        <span class="self">self
     </span>}
 
     <span class="doccomment">/// Sets the option for truncating a previous file.
@@ -911,9 +911,9 @@
     ///     Ok(())
     /// }
     /// ```
-    </span><span class="kw">pub fn </span>truncate(<span class="kw-2">&amp;mut </span><span class="self">self</span>, truncate: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="kw-2">&amp;mut </span><a href="#79">OpenOptions</a> {
-        <a class="self" href="#249">self</a>.<span class="number">0</span>.truncate(<a href="#249">truncate</a>);
-        <span class="self"><a href="#249">self</a>
+    </span><span class="kw">pub fn </span>truncate(<span class="kw-2">&amp;mut </span><span class="self">self</span>, truncate: bool) -&gt; <span class="kw-2">&amp;mut </span>OpenOptions {
+        <span class="self">self</span>.<span class="number">0</span>.truncate(truncate);
+        <span class="self">self
     </span>}
 
     <span class="doccomment">/// Sets the option for creating a new file.
@@ -947,9 +947,9 @@
     ///     Ok(())
     /// }
     /// ```
-    </span><span class="kw">pub fn </span>create(<span class="kw-2">&amp;mut </span><span class="self">self</span>, create: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="kw-2">&amp;mut </span><a href="#79">OpenOptions</a> {
-        <a class="self" href="#285">self</a>.<span class="number">0</span>.create(<a href="#285">create</a>);
-        <span class="self"><a href="#285">self</a>
+    </span><span class="kw">pub fn </span>create(<span class="kw-2">&amp;mut </span><span class="self">self</span>, create: bool) -&gt; <span class="kw-2">&amp;mut </span>OpenOptions {
+        <span class="self">self</span>.<span class="number">0</span>.create(create);
+        <span class="self">self
     </span>}
 
     <span class="doccomment">/// Sets the option to always create a new file.
@@ -990,9 +990,9 @@
     ///     Ok(())
     /// }
     /// ```
-    </span><span class="kw">pub fn </span>create_new(<span class="kw-2">&amp;mut </span><span class="self">self</span>, create_new: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="kw-2">&amp;mut </span><a href="#79">OpenOptions</a> {
-        <a class="self" href="#328">self</a>.<span class="number">0</span>.create_new(<a href="#328">create_new</a>);
-        <span class="self"><a href="#328">self</a>
+    </span><span class="kw">pub fn </span>create_new(<span class="kw-2">&amp;mut </span><span class="self">self</span>, create_new: bool) -&gt; <span class="kw-2">&amp;mut </span>OpenOptions {
+        <span class="self">self</span>.<span class="number">0</span>.create_new(create_new);
+        <span class="self">self
     </span>}
 
     <span class="doccomment">/// Opens a file at `path` with the options specified by `self`.
@@ -1047,7 +1047,7 @@
     /// [`NotFound`]: std::io::ErrorKind::NotFound
     /// [`Other`]: std::io::ErrorKind::Other
     /// [`PermissionDenied`]: std::io::ErrorKind::PermissionDenied
-    </span><span class="kw">pub async fn </span>open(<span class="kw-2">&amp;</span><span class="self">self</span>, path: <span class="kw">impl </span>AsRef&lt;<a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>&gt;) -&gt; io::Result&lt;<a href="file.rs.html#93">File</a>&gt; {
+    </span><span class="kw">pub async fn </span>open(<span class="kw-2">&amp;</span><span class="self">self</span>, path: <span class="kw">impl </span>AsRef&lt;Path&gt;) -&gt; io::Result&lt;File&gt; {
         <span class="kw">let </span>path = path.as_ref().to_owned();
         <span class="kw">let </span>opts = <span class="self">self</span>.<span class="number">0</span>.clone();
 
@@ -1056,17 +1056,17 @@
     }
 
     <span class="doccomment">/// Returns a mutable reference to the underlying `std::fs::OpenOptions`
-    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>as_inner_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/std/fs/struct.OpenOptions.html">StdOpenOptions</a> {
-        <span class="kw-2">&amp;mut </span><a class="self" href="#394">self</a>.<span class="number">0
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>as_inner_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>StdOpenOptions {
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>.<span class="number">0
     </span>}
 }
 
 <span class="macro">feature! </span>{
     <span class="attr">#![unix]
 
-    </span><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/os/unix/fs/trait.OpenOptionsExt.html">std::os::unix::fs::OpenOptionsExt</a>;
+    </span><span class="kw">use </span>std::os::unix::fs::OpenOptionsExt;
 
-    <span class="kw">impl </span><a href="#79">OpenOptions</a> {
+    <span class="kw">impl </span>OpenOptions {
         <span class="doccomment">/// Sets the mode bits that a new file will be created with.
         ///
         /// If a new file is created as part of an `OpenOptions::open` call then this
@@ -1090,9 +1090,9 @@
         ///     Ok(())
         /// }
         /// ```
-        </span><span class="kw">pub fn </span>mode(<span class="kw-2">&amp;mut </span><span class="self">self</span>, mode: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; <span class="kw-2">&amp;mut </span><a href="#79">OpenOptions</a> {
-            <a class="self" href="#428">self</a>.<a href="#394">as_inner_mut</a>().<a href="https://doc.rust-lang.org/nightly/std/os/unix/fs/trait.OpenOptionsExt.html">mode</a>(<a href="#428">mode</a>);
-            <span class="self"><a href="#428">self</a>
+        </span><span class="kw">pub fn </span>mode(<span class="kw-2">&amp;mut </span><span class="self">self</span>, mode: u32) -&gt; <span class="kw-2">&amp;mut </span>OpenOptions {
+            <span class="self">self</span>.as_inner_mut().mode(mode);
+            <span class="self">self
         </span>}
 
         <span class="doccomment">/// Passes custom flags to the `flags` argument of `open`.
@@ -1122,9 +1122,9 @@
         ///     Ok(())
         /// }
         /// ```
-        </span><span class="kw">pub fn </span>custom_flags(<span class="kw-2">&amp;mut </span><span class="self">self</span>, flags: <a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>) -&gt; <span class="kw-2">&amp;mut </span><a href="#79">OpenOptions</a> {
-            <a class="self" href="#460">self</a>.<a href="#394">as_inner_mut</a>().<a href="https://doc.rust-lang.org/nightly/std/os/unix/fs/trait.OpenOptionsExt.html">custom_flags</a>(<a href="#460">flags</a>);
-            <span class="self"><a href="#460">self</a>
+        </span><span class="kw">pub fn </span>custom_flags(<span class="kw-2">&amp;mut </span><span class="self">self</span>, flags: i32) -&gt; <span class="kw-2">&amp;mut </span>OpenOptions {
+            <span class="self">self</span>.as_inner_mut().custom_flags(flags);
+            <span class="self">self
         </span>}
     }
 }
@@ -1207,7 +1207,7 @@
         /// # Examples
         ///
         /// ```no_run
-        /// use winapi::um::winbase::FILE_FLAG_DELETE_ON_CLOSE;
+        /// use windows_sys::Win32::Storage::FileSystem::FILE_FLAG_DELETE_ON_CLOSE;
         /// use tokio::fs::OpenOptions;
         ///
         /// # #[tokio::main]
@@ -1246,7 +1246,7 @@
         /// # Examples
         ///
         /// ```no_run
-        /// use winapi::um::winnt::FILE_ATTRIBUTE_HIDDEN;
+        /// use windows_sys::Win32::Storage::FileSystem::FILE_ATTRIBUTE_HIDDEN;
         /// use tokio::fs::OpenOptions;
         ///
         /// # #[tokio::main]
@@ -1289,7 +1289,7 @@
         /// # Examples
         ///
         /// ```no_run
-        /// use winapi::um::winbase::SECURITY_IDENTIFICATION;
+        /// use windows_sys::Win32::Storage::FileSystem::SECURITY_IDENTIFICATION;
         /// use tokio::fs::OpenOptions;
         ///
         /// # #[tokio::main]
@@ -1317,16 +1317,16 @@
     }
 }
 
-<span class="kw">impl </span>From&lt;<a href="https://doc.rust-lang.org/nightly/std/fs/struct.OpenOptions.html">StdOpenOptions</a>&gt; <span class="kw">for </span><a href="#79">OpenOptions</a> {
-    <span class="kw">fn </span>from(options: <a href="https://doc.rust-lang.org/nightly/std/fs/struct.OpenOptions.html">StdOpenOptions</a>) -&gt; <a href="#79">OpenOptions</a> {
-        <a href="#79">OpenOptions</a>(<a href="#656">options</a>)
+<span class="kw">impl </span>From&lt;StdOpenOptions&gt; <span class="kw">for </span>OpenOptions {
+    <span class="kw">fn </span>from(options: StdOpenOptions) -&gt; OpenOptions {
+        OpenOptions(options)
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for </span><a href="#79">OpenOptions</a> {
+<span class="kw">impl </span>Default <span class="kw">for </span>OpenOptions {
     <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>::new()
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="tokio" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="tokio" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

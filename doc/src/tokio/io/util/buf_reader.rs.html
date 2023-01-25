@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.21.2/src/io/util/buf_reader.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>buf_reader.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../../tokio/index.html"><img class="rust-logo" src="../../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.23.0/src/io/util/buf_reader.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>buf_reader.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../../tokio/index.html"><img class="rust-logo" src="../../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -309,16 +309,16 @@
 <a href="#309" id="309">309</a>
 <a href="#310" id="310">310</a>
 <a href="#311" id="311">311</a>
-</pre><pre class="rust"><code><span class="kw">use </span><a href="mod.rs.html#87"><span class="kw">crate</span>::io::util::DEFAULT_BUF_SIZE</a>;
-<span class="kw">use </span><span class="kw">crate</span>::io::{<a href="../async_buf_read.rs.html#23">AsyncBufRead</a>, <a href="../async_read.rs.html#43">AsyncRead</a>, <a href="../async_seek.rs.html#18">AsyncSeek</a>, <a href="../async_write.rs.html#45">AsyncWrite</a>, <a href="../read_buf.rs.html#23">ReadBuf</a>};
+</pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::io::util::DEFAULT_BUF_SIZE;
+<span class="kw">use </span><span class="kw">crate</span>::io::{AsyncBufRead, AsyncRead, AsyncSeek, AsyncWrite, ReadBuf};
 
-<span class="kw">use </span><a href="../../../../pin_project_lite/macro.pin_project.html">pin_project_lite::pin_project</a>;
-<span class="kw">use </span>std::io::{<a class="self" href="https://doc.rust-lang.org/nightly/std/io/index.html">self</a>, <a href="https://doc.rust-lang.org/nightly/std/io/struct.IoSlice.html">IoSlice</a>, <a href="https://doc.rust-lang.org/nightly/std/io/enum.SeekFrom.html">SeekFrom</a>};
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/pin/struct.Pin.html">std::pin::Pin</a>;
-<span class="kw">use </span>std::task::{<a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>, <a href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">Poll</a>};
-<span class="kw">use </span>std::{<a href="https://doc.rust-lang.org/nightly/core/cmp/index.html">cmp</a>, <a href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">fmt</a>, <a href="https://doc.rust-lang.org/nightly/core/mem/index.html">mem</a>};
+<span class="kw">use </span>pin_project_lite::pin_project;
+<span class="kw">use </span>std::io::{<span class="self">self</span>, IoSlice, SeekFrom};
+<span class="kw">use </span>std::pin::Pin;
+<span class="kw">use </span>std::task::{Context, Poll};
+<span class="kw">use </span>std::{cmp, fmt, mem};
 
-<a class="macro" href="../../../../pin_project_lite/macro.pin_project.html">pin_project! </a>{
+<span class="macro">pin_project! </span>{
     <span class="doccomment">/// The `BufReader` struct adds buffering to any reader.
     ///
     /// It can be excessively inefficient to work directly with a [`AsyncRead`]
@@ -338,29 +338,29 @@
     </span><span class="kw">pub struct </span>BufReader&lt;R&gt; {
         <span class="attr">#[pin]
         </span><span class="kw">pub</span>(<span class="kw">super</span>) inner: R,
-        <span class="kw">pub</span>(<span class="kw">super</span>) buf: Box&lt;[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;,
-        <span class="kw">pub</span>(<span class="kw">super</span>) pos: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-        <span class="kw">pub</span>(<span class="kw">super</span>) cap: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-        <span class="kw">pub</span>(<span class="kw">super</span>) seek_state: <a href="#147">SeekState</a>,
+        <span class="kw">pub</span>(<span class="kw">super</span>) buf: Box&lt;[u8]&gt;,
+        <span class="kw">pub</span>(<span class="kw">super</span>) pos: usize,
+        <span class="kw">pub</span>(<span class="kw">super</span>) cap: usize,
+        <span class="kw">pub</span>(<span class="kw">super</span>) seek_state: SeekState,
     }
 }
 
-<span class="kw">impl</span>&lt;R: <a href="../async_read.rs.html#43">AsyncRead</a>&gt; BufReader&lt;R&gt; {
+<span class="kw">impl</span>&lt;R: AsyncRead&gt; BufReader&lt;R&gt; {
     <span class="doccomment">/// Creates a new `BufReader` with a default buffer capacity. The default is currently 8 KB,
     /// but may change in the future.
     </span><span class="kw">pub fn </span>new(inner: R) -&gt; <span class="self">Self </span>{
-        <span class="self">Self</span>::with_capacity(<a href="mod.rs.html#87">DEFAULT_BUF_SIZE</a>, <a href="#40">inner</a>)
+        <span class="self">Self</span>::with_capacity(DEFAULT_BUF_SIZE, inner)
     }
 
     <span class="doccomment">/// Creates a new `BufReader` with the specified buffer capacity.
-    </span><span class="kw">pub fn </span>with_capacity(capacity: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, inner: R) -&gt; <span class="self">Self </span>{
-        <span class="kw">let </span>buffer = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[<span class="number">0</span>; capacity];
+    </span><span class="kw">pub fn </span>with_capacity(capacity: usize, inner: R) -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span>buffer = <span class="macro">vec!</span>[<span class="number">0</span>; capacity];
         <span class="self">Self </span>{
-            <a href="#45">inner</a>,
-            buf: <a href="#46">buffer</a>.into_boxed_slice(),
+            inner,
+            buf: buffer.into_boxed_slice(),
             pos: <span class="number">0</span>,
             cap: <span class="number">0</span>,
-            seek_state: <a href="#149">SeekState::Init</a>,
+            seek_state: SeekState::Init,
         }
     }
 
@@ -368,47 +368,47 @@
     ///
     /// It is inadvisable to directly read from the underlying reader.
     </span><span class="kw">pub fn </span>get_ref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>R {
-        <span class="kw-2">&amp;</span><a class="self" href="#59">self</a>.inner
+        <span class="kw-2">&amp;</span><span class="self">self</span>.inner
     }
 
     <span class="doccomment">/// Gets a mutable reference to the underlying reader.
     ///
     /// It is inadvisable to directly read from the underlying reader.
     </span><span class="kw">pub fn </span>get_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>R {
-        <span class="kw-2">&amp;mut </span><a class="self" href="#66">self</a>.inner
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>.inner
     }
 
     <span class="doccomment">/// Gets a pinned mutable reference to the underlying reader.
     ///
     /// It is inadvisable to directly read from the underlying reader.
     </span><span class="kw">pub fn </span>get_pin_mut(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;) -&gt; Pin&lt;<span class="kw-2">&amp;mut </span>R&gt; {
-        <a class="self" href="#73">self</a>.<a href="#10-35">project</a>().inner
+        <span class="self">self</span>.project().inner
     }
 
     <span class="doccomment">/// Consumes this `BufReader`, returning the underlying reader.
     ///
     /// Note that any leftover data in the internal buffer is lost.
     </span><span class="kw">pub fn </span>into_inner(<span class="self">self</span>) -&gt; R {
-        <a class="self" href="#80">self</a>.inner
+        <span class="self">self</span>.inner
     }
 
     <span class="doccomment">/// Returns a reference to the internally buffered data.
     ///
     /// Unlike `fill_buf`, this will not attempt to fill the buffer if it is empty.
-    </span><span class="kw">pub fn </span>buffer(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>] {
-        <span class="kw-2">&amp;</span><a class="self" href="#87">self</a>.buf[<a class="self" href="#87">self</a>.pos..<a class="self" href="#87">self</a>.cap]
+    </span><span class="kw">pub fn </span>buffer(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[u8] {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.buf[<span class="self">self</span>.pos..<span class="self">self</span>.cap]
     }
 
     <span class="doccomment">/// Invalidates all data in the internal buffer.
     </span><span class="attr">#[inline]
     </span><span class="kw">fn </span>discard_buffer(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;) {
-        <span class="kw">let </span>me = <a class="self" href="#93">self</a>.<a href="#10-35">project</a>();
-        <span class="kw-2">*</span><a href="#94">me</a>.pos = <span class="number">0</span>;
-        <span class="kw-2">*</span><a href="#94">me</a>.cap = <span class="number">0</span>;
+        <span class="kw">let </span>me = <span class="self">self</span>.project();
+        <span class="kw-2">*</span>me.pos = <span class="number">0</span>;
+        <span class="kw-2">*</span>me.cap = <span class="number">0</span>;
     }
 }
 
-<span class="kw">impl</span>&lt;R: <a href="../async_read.rs.html#43">AsyncRead</a>&gt; <a href="../async_read.rs.html#43">AsyncRead</a> <span class="kw">for </span>BufReader&lt;R&gt; {
+<span class="kw">impl</span>&lt;R: AsyncRead&gt; AsyncRead <span class="kw">for </span>BufReader&lt;R&gt; {
     <span class="kw">fn </span>poll_read(
         <span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;,
         cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
@@ -418,39 +418,39 @@
         // (larger than our internal buffer), bypass our internal buffer
         // entirely.
         </span><span class="kw">if </span><span class="self">self</span>.pos == <span class="self">self</span>.cap &amp;&amp; buf.remaining() &gt;= <span class="self">self</span>.buf.len() {
-            <span class="kw">let </span>res = <a class="macro" href="../../macros/ready.rs.html#1-8">ready!</a>(<span class="self">self</span>.as_mut().get_pin_mut().poll_read(cx, buf));
-            <a class="self" href="#102">self</a>.<a href="#93">discard_buffer</a>();
-            <span class="kw">return </span>Poll::Ready(<a href="#110">res</a>);
+            <span class="kw">let </span>res = <span class="macro">ready!</span>(<span class="self">self</span>.as_mut().get_pin_mut().poll_read(cx, buf));
+            <span class="self">self</span>.discard_buffer();
+            <span class="kw">return </span>Poll::Ready(res);
         }
         <span class="kw">let </span>rem = <span class="macro">ready!</span>(<span class="self">self</span>.as_mut().poll_fill_buf(cx))<span class="question-mark">?</span>;
-        <span class="kw">let </span>amt = std::cmp::min(<a href="#114">rem</a>.len(), <a href="#104">buf</a>.<a href="../read_buf.rs.html#179">remaining</a>());
-        <a href="#104">buf</a>.<a href="../read_buf.rs.html#248">put_slice</a>(<span class="kw-2">&amp;</span><a href="#114">rem</a>[..<a href="#115">amt</a>]);
-        <a class="self" href="#102">self</a>.<a href="../async_buf_read.rs.html#62">consume</a>(<a href="#115">amt</a>);
+        <span class="kw">let </span>amt = std::cmp::min(rem.len(), buf.remaining());
+        buf.put_slice(<span class="kw-2">&amp;</span>rem[..amt]);
+        <span class="self">self</span>.consume(amt);
         Poll::Ready(<span class="prelude-val">Ok</span>(()))
     }
 }
 
-<span class="kw">impl</span>&lt;R: <a href="../async_read.rs.html#43">AsyncRead</a>&gt; <a href="../async_buf_read.rs.html#23">AsyncBufRead</a> <span class="kw">for </span>BufReader&lt;R&gt; {
-    <span class="kw">fn </span>poll_fill_buf(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;io::Result&lt;<span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;&gt; {
-        <span class="kw">let </span>me = <a class="self" href="#123">self</a>.<a href="#10-35">project</a>();
+<span class="kw">impl</span>&lt;R: AsyncRead&gt; AsyncBufRead <span class="kw">for </span>BufReader&lt;R&gt; {
+    <span class="kw">fn </span>poll_fill_buf(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;io::Result&lt;<span class="kw-2">&amp;</span>[u8]&gt;&gt; {
+        <span class="kw">let </span>me = <span class="self">self</span>.project();
 
         <span class="comment">// If we&#39;ve reached the end of our internal buffer then we need to fetch
         // some more data from the underlying reader.
         // Branch using `&gt;=` instead of the more correct `==`
         // to tell the compiler that the pos..cap slice is always valid.
         </span><span class="kw">if </span><span class="kw-2">*</span>me.pos &gt;= <span class="kw-2">*</span>me.cap {
-            <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(<span class="kw-2">*</span>me.pos == <span class="kw-2">*</span>me.cap);
-            <span class="kw">let </span><span class="kw-2">mut </span>buf = ReadBuf::new(<a href="#124">me</a>.buf);
+            <span class="macro">debug_assert!</span>(<span class="kw-2">*</span>me.pos == <span class="kw-2">*</span>me.cap);
+            <span class="kw">let </span><span class="kw-2">mut </span>buf = ReadBuf::new(me.buf);
             <span class="macro">ready!</span>(me.inner.poll_read(cx, <span class="kw-2">&amp;mut </span>buf))<span class="question-mark">?</span>;
-            <span class="kw-2">*</span><a href="#124">me</a>.cap = <a href="#132">buf</a>.<a href="../read_buf.rs.html#62">filled</a>().len();
-            <span class="kw-2">*</span><a href="#124">me</a>.pos = <span class="number">0</span>;
+            <span class="kw-2">*</span>me.cap = buf.filled().len();
+            <span class="kw-2">*</span>me.pos = <span class="number">0</span>;
         }
-        Poll::Ready(<span class="prelude-val">Ok</span>(<span class="kw-2">&amp;</span><a href="#124">me</a>.buf[<span class="kw-2">*</span><a href="#124">me</a>.pos..<span class="kw-2">*</span><a href="#124">me</a>.cap]))
+        Poll::Ready(<span class="prelude-val">Ok</span>(<span class="kw-2">&amp;</span>me.buf[<span class="kw-2">*</span>me.pos..<span class="kw-2">*</span>me.cap]))
     }
 
-    <span class="kw">fn </span>consume(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, amt: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
-        <span class="kw">let </span>me = <a class="self" href="#140">self</a>.<a href="#10-35">project</a>();
-        <span class="kw-2">*</span><a href="#141">me</a>.pos = cmp::min(<span class="kw-2">*</span><a href="#141">me</a>.pos + <a href="#140">amt</a>, <span class="kw-2">*</span><a href="#141">me</a>.cap);
+    <span class="kw">fn </span>consume(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, amt: usize) {
+        <span class="kw">let </span>me = <span class="self">self</span>.project();
+        <span class="kw-2">*</span>me.pos = cmp::min(<span class="kw-2">*</span>me.pos + amt, <span class="kw-2">*</span>me.cap);
     }
 }
 
@@ -459,9 +459,9 @@
     <span class="doccomment">/// start_seek has not been called.
     </span>Init,
     <span class="doccomment">/// start_seek has been called, but poll_complete has not yet been called.
-    </span>Start(<a href="https://doc.rust-lang.org/nightly/std/io/enum.SeekFrom.html">SeekFrom</a>),
+    </span>Start(SeekFrom),
     <span class="doccomment">/// Waiting for completion of the first poll_complete in the `n.checked_sub(remainder).is_none()` branch.
-    </span>PendingOverflowed(<a href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>),
+    </span>PendingOverflowed(i64),
     <span class="doccomment">/// Waiting for completion of poll_complete.
     </span>Pending,
 }
@@ -484,34 +484,34 @@
 /// seeks will be performed instead of one. If the second seek returns
 /// `Err`, the underlying reader will be left at the same position it would
 /// have if you called `seek` with `SeekFrom::Current(0)`.
-</span><span class="kw">impl</span>&lt;R: <a href="../async_read.rs.html#43">AsyncRead</a> + <a href="../async_seek.rs.html#18">AsyncSeek</a>&gt; <a href="../async_seek.rs.html#18">AsyncSeek</a> <span class="kw">for </span>BufReader&lt;R&gt; {
-    <span class="kw">fn </span>start_seek(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, pos: <a href="https://doc.rust-lang.org/nightly/std/io/enum.SeekFrom.html">SeekFrom</a>) -&gt; io::Result&lt;()&gt; {
+</span><span class="kw">impl</span>&lt;R: AsyncRead + AsyncSeek&gt; AsyncSeek <span class="kw">for </span>BufReader&lt;R&gt; {
+    <span class="kw">fn </span>start_seek(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, pos: SeekFrom) -&gt; io::Result&lt;()&gt; {
         <span class="comment">// We needs to call seek operation multiple times.
         // And we should always call both start_seek and poll_complete,
         // as start_seek alone cannot guarantee that the operation will be completed.
         // poll_complete receives a Context and returns a Poll, so it cannot be called
         // inside start_seek.
-        </span><span class="kw-2">*</span><a class="self" href="#177">self</a>.<a href="#10-35">project</a>().seek_state = <a href="#151">SeekState::Start</a>(<a href="#177">pos</a>);
+        </span><span class="kw-2">*</span><span class="self">self</span>.project().seek_state = SeekState::Start(pos);
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="kw">fn </span>poll_complete(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>&gt;&gt; {
-        <span class="kw">let </span>res = <span class="kw">match </span>mem::replace(<a class="self" href="#187">self</a>.as_mut().<a href="#10-35">project</a>().seek_state, <a href="#149">SeekState::Init</a>) {
-            <a href="#149">SeekState::Init</a> =&gt; {
+    <span class="kw">fn </span>poll_complete(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;io::Result&lt;u64&gt;&gt; {
+        <span class="kw">let </span>res = <span class="kw">match </span>mem::replace(<span class="self">self</span>.as_mut().project().seek_state, SeekState::Init) {
+            SeekState::Init =&gt; {
                 <span class="comment">// 1.x AsyncSeek recommends calling poll_complete before start_seek.
                 // We don&#39;t have to guarantee that the value returned by
                 // poll_complete called without start_seek is correct,
                 // so we&#39;ll return 0.
                 </span><span class="kw">return </span>Poll::Ready(<span class="prelude-val">Ok</span>(<span class="number">0</span>));
             }
-            <a href="#151">SeekState::Start</a>(SeekFrom::Current(n)) =&gt; {
-                <span class="kw">let </span>remainder = (<a class="self" href="#187">self</a>.cap - <a class="self" href="#187">self</a>.pos) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>;
+            SeekState::Start(SeekFrom::Current(n)) =&gt; {
+                <span class="kw">let </span>remainder = (<span class="self">self</span>.cap - <span class="self">self</span>.pos) <span class="kw">as </span>i64;
                 <span class="comment">// it should be safe to assume that remainder fits within an i64 as the alternative
                 // means we managed to allocate 8 exbibytes and that&#39;s absurd.
                 // But it&#39;s not out of the realm of possibility for some weird underlying reader to
                 // support seeking by i64::MIN so we need to handle underflow when subtracting
                 // remainder.
-                </span><span class="kw">if let </span><span class="prelude-val">Some</span>(offset) = <a href="#196">n</a>.checked_sub(<a href="#197">remainder</a>) {
+                </span><span class="kw">if let </span><span class="prelude-val">Some</span>(offset) = n.checked_sub(remainder) {
                     <span class="self">self</span>.as_mut()
                         .get_pin_mut()
                         .start_seek(SeekFrom::Current(offset))<span class="question-mark">?</span>;
@@ -521,12 +521,12 @@
                         .get_pin_mut()
                         .start_seek(SeekFrom::Current(-remainder))<span class="question-mark">?</span>;
                     <span class="kw">if </span><span class="self">self</span>.as_mut().get_pin_mut().poll_complete(cx)<span class="question-mark">?</span>.is_pending() {
-                        <span class="kw-2">*</span><a class="self" href="#187">self</a>.as_mut().<a href="#10-35">project</a>().seek_state = <a href="#153">SeekState::PendingOverflowed</a>(<a href="#196">n</a>);
+                        <span class="kw-2">*</span><span class="self">self</span>.as_mut().project().seek_state = SeekState::PendingOverflowed(n);
                         <span class="kw">return </span>Poll::Pending;
                     }
 
                     <span class="comment">// https://github.com/rust-lang/rust/pull/61157#issuecomment-495932676
-                    </span><a class="self" href="#187">self</a>.as_mut().<a href="#93">discard_buffer</a>();
+                    </span><span class="self">self</span>.as_mut().discard_buffer();
 
                     <span class="self">self</span>.as_mut()
                         .get_pin_mut()
@@ -534,78 +534,78 @@
                 }
                 <span class="self">self</span>.as_mut().get_pin_mut().poll_complete(cx)<span class="question-mark">?
             </span>}
-            <a href="#153">SeekState::PendingOverflowed</a>(n) =&gt; {
+            SeekState::PendingOverflowed(n) =&gt; {
                 <span class="kw">if </span><span class="self">self</span>.as_mut().get_pin_mut().poll_complete(cx)<span class="question-mark">?</span>.is_pending() {
-                    <span class="kw-2">*</span><a class="self" href="#187">self</a>.as_mut().<a href="#10-35">project</a>().seek_state = <a href="#153">SeekState::PendingOverflowed</a>(<a href="#226">n</a>);
+                    <span class="kw-2">*</span><span class="self">self</span>.as_mut().project().seek_state = SeekState::PendingOverflowed(n);
                     <span class="kw">return </span>Poll::Pending;
                 }
 
                 <span class="comment">// https://github.com/rust-lang/rust/pull/61157#issuecomment-495932676
-                </span><a class="self" href="#187">self</a>.as_mut().<a href="#93">discard_buffer</a>();
+                </span><span class="self">self</span>.as_mut().discard_buffer();
 
                 <span class="self">self</span>.as_mut()
                     .get_pin_mut()
                     .start_seek(SeekFrom::Current(n))<span class="question-mark">?</span>;
                 <span class="self">self</span>.as_mut().get_pin_mut().poll_complete(cx)<span class="question-mark">?
             </span>}
-            <a href="#151">SeekState::Start</a>(pos) =&gt; {
+            SeekState::Start(pos) =&gt; {
                 <span class="comment">// Seeking with Start/End doesn&#39;t care about our buffer length.
                 </span><span class="self">self</span>.as_mut().get_pin_mut().start_seek(pos)<span class="question-mark">?</span>;
                 <span class="self">self</span>.as_mut().get_pin_mut().poll_complete(cx)<span class="question-mark">?
             </span>}
-            <a href="#155">SeekState::Pending</a> =&gt; <span class="self">self</span>.as_mut().get_pin_mut().poll_complete(cx)<span class="question-mark">?</span>,
+            SeekState::Pending =&gt; <span class="self">self</span>.as_mut().get_pin_mut().poll_complete(cx)<span class="question-mark">?</span>,
         };
 
-        <span class="kw">match </span><a href="#188">res</a> {
+        <span class="kw">match </span>res {
             Poll::Ready(res) =&gt; {
-                <a class="self" href="#187">self</a>.<a href="#93">discard_buffer</a>();
-                Poll::Ready(<span class="prelude-val">Ok</span>(<a href="#249">res</a>))
+                <span class="self">self</span>.discard_buffer();
+                Poll::Ready(<span class="prelude-val">Ok</span>(res))
             }
             Poll::Pending =&gt; {
-                <span class="kw-2">*</span><a class="self" href="#187">self</a>.as_mut().<a href="#10-35">project</a>().seek_state = <a href="#155">SeekState::Pending</a>;
+                <span class="kw-2">*</span><span class="self">self</span>.as_mut().project().seek_state = SeekState::Pending;
                 Poll::Pending
             }
         }
     }
 }
 
-<span class="kw">impl</span>&lt;R: <a href="../async_read.rs.html#43">AsyncRead</a> + <a href="../async_write.rs.html#45">AsyncWrite</a>&gt; <a href="../async_write.rs.html#45">AsyncWrite</a> <span class="kw">for </span>BufReader&lt;R&gt; {
+<span class="kw">impl</span>&lt;R: AsyncRead + AsyncWrite&gt; AsyncWrite <span class="kw">for </span>BufReader&lt;R&gt; {
     <span class="kw">fn </span>poll_write(
         <span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;,
         cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
-        buf: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
-    ) -&gt; Poll&lt;io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;&gt; {
-        <a class="self" href="#263">self</a>.<a href="#73">get_pin_mut</a>().<a href="../async_write.rs.html#58-62">poll_write</a>(<a href="#264">cx</a>, <a href="#265">buf</a>)
+        buf: <span class="kw-2">&amp;</span>[u8],
+    ) -&gt; Poll&lt;io::Result&lt;usize&gt;&gt; {
+        <span class="self">self</span>.get_pin_mut().poll_write(cx, buf)
     }
 
     <span class="kw">fn </span>poll_write_vectored(
         <span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;,
         cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
         bufs: <span class="kw-2">&amp;</span>[IoSlice&lt;<span class="lifetime">&#39;_</span>&gt;],
-    ) -&gt; Poll&lt;io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;&gt; {
-        <a class="self" href="#271">self</a>.<a href="#73">get_pin_mut</a>().<a href="../async_write.rs.html#158-162">poll_write_vectored</a>(<a href="#272">cx</a>, <a href="#273">bufs</a>)
+    ) -&gt; Poll&lt;io::Result&lt;usize&gt;&gt; {
+        <span class="self">self</span>.get_pin_mut().poll_write_vectored(cx, bufs)
     }
 
-    <span class="kw">fn </span>is_write_vectored(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#278">self</a>.<a href="#59">get_ref</a>().<a href="../async_write.rs.html#180">is_write_vectored</a>()
+    <span class="kw">fn </span>is_write_vectored(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.get_ref().is_write_vectored()
     }
 
     <span class="kw">fn </span>poll_flush(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;io::Result&lt;()&gt;&gt; {
-        <a class="self" href="#282">self</a>.<a href="#73">get_pin_mut</a>().<a href="../async_write.rs.html#73">poll_flush</a>(<a href="#282">cx</a>)
+        <span class="self">self</span>.get_pin_mut().poll_flush(cx)
     }
 
     <span class="kw">fn </span>poll_shutdown(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;io::Result&lt;()&gt;&gt; {
-        <a class="self" href="#286">self</a>.<a href="#73">get_pin_mut</a>().<a href="../async_write.rs.html#133">poll_shutdown</a>(<a href="#286">cx</a>)
+        <span class="self">self</span>.get_pin_mut().poll_shutdown(cx)
     }
 }
 
-<span class="kw">impl</span>&lt;R: <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span>BufReader&lt;R&gt; {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a href="#292">f</a>.debug_struct(<span class="string">&quot;BufReader&quot;</span>)
-            .field(<span class="string">&quot;reader&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="#292">self</a>.inner)
+<span class="kw">impl</span>&lt;R: fmt::Debug&gt; fmt::Debug <span class="kw">for </span>BufReader&lt;R&gt; {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        f.debug_struct(<span class="string">&quot;BufReader&quot;</span>)
+            .field(<span class="string">&quot;reader&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.inner)
             .field(
                 <span class="string">&quot;buffer&quot;</span>,
-                <span class="kw-2">&amp;</span><a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.format_args.html">format_args!</a>(<span class="string">&quot;{}/{}&quot;</span>, <span class="self">self</span>.cap - <span class="self">self</span>.pos, <span class="self">self</span>.buf.len()),
+                <span class="kw-2">&amp;</span><span class="macro">format_args!</span>(<span class="string">&quot;{}/{}&quot;</span>, <span class="self">self</span>.cap - <span class="self">self</span>.pos, <span class="self">self</span>.buf.len()),
             )
             .finish()
     }
@@ -621,4 +621,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="tokio" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="tokio" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

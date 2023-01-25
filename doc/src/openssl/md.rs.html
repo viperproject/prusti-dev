@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/openssl-0.10.42/src/md.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>md.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../openssl/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/openssl-0.10.45/src/md.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>md.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../openssl/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -231,68 +231,72 @@
 <a href="#231" id="231">231</a>
 <a href="#232" id="232">232</a>
 <a href="#233" id="233">233</a>
-</pre><pre class="rust"><code><span class="attr">#[cfg(ossl300)]
-</span><span class="kw">use </span><a href="lib.rs.html#193"><span class="kw">crate</span>::cvt_p</a>;
+<a href="#234" id="234">234</a>
+<a href="#235" id="235">235</a>
+</pre><pre class="rust"><code><span class="doccomment">//! Message digest algorithms.
+
+</span><span class="attr">#[cfg(ossl300)]
+</span><span class="kw">use </span><span class="kw">crate</span>::cvt_p;
 <span class="attr">#[cfg(ossl300)]
-</span><span class="kw">use </span><a href="error.rs.html#39"><span class="kw">crate</span>::error::ErrorStack</a>;
+</span><span class="kw">use </span><span class="kw">crate</span>::error::ErrorStack;
 <span class="attr">#[cfg(ossl300)]
-</span><span class="kw">use </span><a href="lib_ctx.rs.html#6-12"><span class="kw">crate</span>::lib_ctx::LibCtxRef</a>;
-<span class="kw">use </span><a href="nid.rs.html#49"><span class="kw">crate</span>::nid::Nid</a>;
-<span class="kw">use </span><a href="../../cfg_if/macro.cfg_if.html">cfg_if::cfg_if</a>;
-<span class="kw">use </span>foreign_types::{<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">ForeignTypeRef</a>, <a href="../../foreign_types_shared/struct.Opaque.html">Opaque</a>};
-<span class="kw">use </span><a href="../../openssl_macros/attr.corresponds.html">openssl_macros::corresponds</a>;
+</span><span class="kw">use </span><span class="kw">crate</span>::lib_ctx::LibCtxRef;
+<span class="kw">use </span><span class="kw">crate</span>::nid::Nid;
+<span class="kw">use </span>cfg_if::cfg_if;
+<span class="kw">use </span>foreign_types::{ForeignTypeRef, Opaque};
+<span class="kw">use </span>openssl_macros::corresponds;
 <span class="attr">#[cfg(ossl300)]
-</span><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/ffi/c_str/struct.CString.html">std::ffi::CString</a>;
+</span><span class="kw">use </span>std::ffi::CString;
 <span class="attr">#[cfg(ossl300)]
-</span><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/ptr/index.html">std::ptr</a>;
+</span><span class="kw">use </span>std::ptr;
 
 <span class="macro">cfg_if! </span>{
     <span class="kw">if </span><span class="attr">#[cfg(ossl300)] </span>{
-        <span class="kw">use </span><a href="../../foreign_types_shared/trait.ForeignType.html">foreign_types::ForeignType</a>;
-        <span class="kw">use </span>std::ops::{<a href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.Deref.html">Deref</a>, <a href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.DerefMut.html">DerefMut</a>};
+        <span class="kw">use </span>foreign_types::ForeignType;
+        <span class="kw">use </span>std::ops::{Deref, DerefMut};
 
-        <span class="kw">type </span>Inner = <span class="kw-2">*mut </span><a href="../../openssl_sys/openssl/handwritten/types/enum.EVP_MD.html">ffi::EVP_MD</a>;
+        <span class="kw">type </span>Inner = <span class="kw-2">*mut </span>ffi::EVP_MD;
 
-        <span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span><a href="#72">Md</a> {
+        <span class="kw">impl </span>Drop <span class="kw">for </span>Md {
             <span class="attr">#[inline]
             </span><span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
                 <span class="kw">unsafe </span>{
-                    ffi::EVP_MD_free(<a class="self" href="#25">self</a>.<a href="../../foreign_types_shared/trait.ForeignType.html">as_ptr</a>());
+                    ffi::EVP_MD_free(<span class="self">self</span>.as_ptr());
                 }
             }
         }
 
-        <span class="kw">impl </span><a href="../../foreign_types_shared/trait.ForeignType.html">ForeignType</a> <span class="kw">for </span><a href="#72">Md</a> {
-            <span class="kw">type </span>CType = <a href="../../openssl_sys/openssl/handwritten/types/enum.EVP_MD.html">ffi::EVP_MD</a>;
-            <span class="kw">type </span>Ref = <a href="#203">MdRef</a>;
+        <span class="kw">impl </span>ForeignType <span class="kw">for </span>Md {
+            <span class="kw">type </span>CType = ffi::EVP_MD;
+            <span class="kw">type </span>Ref = MdRef;
 
             <span class="attr">#[inline]
             </span><span class="kw">unsafe fn </span>from_ptr(ptr: <span class="kw-2">*mut </span><span class="self">Self</span>::CType) -&gt; <span class="self">Self </span>{
-                <a href="#72">Md</a>(<a href="#37">ptr</a>)
+                Md(ptr)
             }
 
             <span class="attr">#[inline]
             </span><span class="kw">fn </span>as_ptr(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">*mut </span><span class="self">Self</span>::CType {
-                <a class="self" href="#42">self</a>.<span class="number">0
+                <span class="self">self</span>.<span class="number">0
             </span>}
         }
 
-        <span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.Deref.html">Deref</a> <span class="kw">for </span><a href="#72">Md</a> {
-            <span class="kw">type </span>Target = <a href="#203">MdRef</a>;
+        <span class="kw">impl </span>Deref <span class="kw">for </span>Md {
+            <span class="kw">type </span>Target = MdRef;
 
             <span class="attr">#[inline]
             </span><span class="kw">fn </span>deref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="self">Self</span>::Target {
                 <span class="kw">unsafe </span>{
-                    MdRef::from_ptr(<a class="self" href="#51">self</a>.<a href="../../foreign_types_shared/trait.ForeignType.html">as_ptr</a>())
+                    MdRef::from_ptr(<span class="self">self</span>.as_ptr())
                 }
             }
         }
 
-        <span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.DerefMut.html">DerefMut</a> <span class="kw">for </span><a href="#72">Md</a> {
+        <span class="kw">impl </span>DerefMut <span class="kw">for </span>Md {
             <span class="attr">#[inline]
             </span><span class="kw">fn </span>deref_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self</span>::Target {
                 <span class="kw">unsafe </span>{
-                    MdRef::from_ptr_mut(<a class="self" href="#60">self</a>.<a href="../../foreign_types_shared/trait.ForeignType.html">as_ptr</a>())
+                    MdRef::from_ptr_mut(<span class="self">self</span>.as_ptr())
                 }
             }
         }
@@ -302,21 +306,21 @@
 }
 
 <span class="doccomment">/// A message digest algorithm.
-</span><span class="kw">pub struct </span>Md(<a href="#21">Inner</a>);
+</span><span class="kw">pub struct </span>Md(Inner);
 
-<span class="kw">unsafe impl </span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> <span class="kw">for </span><a href="#72">Md</a> {}
-<span class="kw">unsafe impl </span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="kw">for </span><a href="#72">Md</a> {}
+<span class="kw">unsafe impl </span>Sync <span class="kw">for </span>Md {}
+<span class="kw">unsafe impl </span>Send <span class="kw">for </span>Md {}
 
-<span class="kw">impl </span><a href="#72">Md</a> {
+<span class="kw">impl </span>Md {
     <span class="doccomment">/// Returns the `Md` corresponding to an [`Nid`].
     </span><span class="attr">#[corresponds(EVP_get_digestbynid)]
-    </span><span class="kw">pub fn </span>from_nid(type_: <a href="nid.rs.html#49">Nid</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><a href="#203">MdRef</a>&gt; {
+    </span><span class="kw">pub fn </span>from_nid(type_: Nid) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>MdRef&gt; {
         <span class="kw">unsafe </span>{
-            <span class="kw">let </span>ptr = ffi::EVP_get_digestbynid(<a href="#80">type_</a>.<a href="nid.rs.html#60">as_raw</a>());
+            <span class="kw">let </span>ptr = ffi::EVP_get_digestbynid(type_.as_raw());
             <span class="kw">if </span>ptr.is_null() {
                 <span class="prelude-val">None
             </span>} <span class="kw">else </span>{
-                <span class="prelude-val">Some</span>(MdRef::from_ptr(<a href="#82">ptr</a> <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>))
+                <span class="prelude-val">Some</span>(MdRef::from_ptr(ptr <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>))
             }
         }
     }
@@ -327,12 +331,12 @@
     </span><span class="attr">#[corresponds(EVP_MD_fetch)]
     #[cfg(ossl300)]
     </span><span class="kw">pub fn </span>fetch(
-        ctx: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="lib_ctx.rs.html#6-12">LibCtxRef</a>&gt;,
-        algorithm: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>,
-        properties: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt;,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, <a href="error.rs.html#39">ErrorStack</a>&gt; {
-        <span class="kw">let </span>algorithm = CString::new(<a href="#98">algorithm</a>).unwrap();
-        <span class="kw">let </span>properties = <a href="#99">properties</a>.map(|s| CString::new(<a href="#102">s</a>).unwrap());
+        ctx: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>LibCtxRef&gt;,
+        algorithm: <span class="kw-2">&amp;</span>str,
+        properties: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>str&gt;,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, ErrorStack&gt; {
+        <span class="kw">let </span>algorithm = CString::new(algorithm).unwrap();
+        <span class="kw">let </span>properties = properties.map(|s| CString::new(s).unwrap());
 
         <span class="kw">unsafe </span>{
             <span class="kw">let </span>ptr = cvt_p(ffi::EVP_MD_fetch(
@@ -341,128 +345,128 @@
                 properties.map_or(ptr::null_mut(), |s| s.as_ptr()),
             ))<span class="question-mark">?</span>;
 
-            <span class="prelude-val">Ok</span>(Md::from_ptr(<a href="#105">ptr</a>))
+            <span class="prelude-val">Ok</span>(Md::from_ptr(ptr))
         }
     }
 
     <span class="attr">#[inline]
     #[cfg(not(boringssl))]
-    </span><span class="kw">pub fn </span>null() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><a href="#203">MdRef</a> {
+    </span><span class="kw">pub fn </span>null() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>MdRef {
         <span class="kw">unsafe </span>{ MdRef::from_ptr(ffi::EVP_md_null() <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>) }
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>md5() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><a href="#203">MdRef</a> {
+    </span><span class="kw">pub fn </span>md5() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>MdRef {
         <span class="kw">unsafe </span>{ MdRef::from_ptr(ffi::EVP_md5() <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>) }
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>sha1() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><a href="#203">MdRef</a> {
+    </span><span class="kw">pub fn </span>sha1() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>MdRef {
         <span class="kw">unsafe </span>{ MdRef::from_ptr(ffi::EVP_sha1() <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>) }
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>sha224() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><a href="#203">MdRef</a> {
+    </span><span class="kw">pub fn </span>sha224() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>MdRef {
         <span class="kw">unsafe </span>{ MdRef::from_ptr(ffi::EVP_sha224() <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>) }
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>sha256() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><a href="#203">MdRef</a> {
+    </span><span class="kw">pub fn </span>sha256() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>MdRef {
         <span class="kw">unsafe </span>{ MdRef::from_ptr(ffi::EVP_sha256() <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>) }
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>sha384() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><a href="#203">MdRef</a> {
+    </span><span class="kw">pub fn </span>sha384() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>MdRef {
         <span class="kw">unsafe </span>{ MdRef::from_ptr(ffi::EVP_sha384() <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>) }
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>sha512() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><a href="#203">MdRef</a> {
+    </span><span class="kw">pub fn </span>sha512() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>MdRef {
         <span class="kw">unsafe </span>{ MdRef::from_ptr(ffi::EVP_sha512() <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>) }
     }
 
     <span class="attr">#[cfg(ossl111)]
     #[inline]
-    </span><span class="kw">pub fn </span>sha3_224() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><a href="#203">MdRef</a> {
+    </span><span class="kw">pub fn </span>sha3_224() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>MdRef {
         <span class="kw">unsafe </span>{ MdRef::from_ptr(ffi::EVP_sha3_224() <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>) }
     }
 
     <span class="attr">#[cfg(ossl111)]
     #[inline]
-    </span><span class="kw">pub fn </span>sha3_256() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><a href="#203">MdRef</a> {
+    </span><span class="kw">pub fn </span>sha3_256() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>MdRef {
         <span class="kw">unsafe </span>{ MdRef::from_ptr(ffi::EVP_sha3_256() <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>) }
     }
 
     <span class="attr">#[cfg(ossl111)]
     #[inline]
-    </span><span class="kw">pub fn </span>sha3_384() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><a href="#203">MdRef</a> {
+    </span><span class="kw">pub fn </span>sha3_384() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>MdRef {
         <span class="kw">unsafe </span>{ MdRef::from_ptr(ffi::EVP_sha3_384() <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>) }
     }
 
     <span class="attr">#[cfg(ossl111)]
     #[inline]
-    </span><span class="kw">pub fn </span>sha3_512() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><a href="#203">MdRef</a> {
+    </span><span class="kw">pub fn </span>sha3_512() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>MdRef {
         <span class="kw">unsafe </span>{ MdRef::from_ptr(ffi::EVP_sha3_512() <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>) }
     }
 
     <span class="attr">#[cfg(ossl111)]
     #[inline]
-    </span><span class="kw">pub fn </span>shake128() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><a href="#203">MdRef</a> {
+    </span><span class="kw">pub fn </span>shake128() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>MdRef {
         <span class="kw">unsafe </span>{ MdRef::from_ptr(ffi::EVP_shake128() <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>) }
     }
 
     <span class="attr">#[cfg(ossl111)]
     #[inline]
-    </span><span class="kw">pub fn </span>shake256() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><a href="#203">MdRef</a> {
+    </span><span class="kw">pub fn </span>shake256() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>MdRef {
         <span class="kw">unsafe </span>{ MdRef::from_ptr(ffi::EVP_shake256() <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>) }
     }
 
     <span class="attr">#[cfg(not(osslconf = <span class="string">&quot;OPENSSL_NO_RMD160&quot;</span>))]
     #[inline]
     #[cfg(not(boringssl))]
-    </span><span class="kw">pub fn </span>ripemd160() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><a href="#203">MdRef</a> {
+    </span><span class="kw">pub fn </span>ripemd160() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>MdRef {
         <span class="kw">unsafe </span>{ MdRef::from_ptr(ffi::EVP_ripemd160() <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>) }
     }
 
     <span class="attr">#[cfg(all(any(ossl111, libressl291), not(osslconf = <span class="string">&quot;OPENSSL_NO_SM3&quot;</span>)))]
     #[inline]
     #[cfg(not(boringssl))]
-    </span><span class="kw">pub fn </span>sm3() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><a href="#203">MdRef</a> {
+    </span><span class="kw">pub fn </span>sm3() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>MdRef {
         <span class="kw">unsafe </span>{ MdRef::from_ptr(ffi::EVP_sm3() <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>) }
     }
 }
 
 <span class="doccomment">/// A reference to an [`Md`].
-</span><span class="kw">pub struct </span>MdRef(<a href="../../foreign_types_shared/struct.Opaque.html">Opaque</a>);
+</span><span class="kw">pub struct </span>MdRef(Opaque);
 
-<span class="kw">impl </span><a href="../../foreign_types_shared/trait.ForeignTypeRef.html">ForeignTypeRef</a> <span class="kw">for </span><a href="#203">MdRef</a> {
-    <span class="kw">type </span>CType = <a href="../../openssl_sys/openssl/handwritten/types/enum.EVP_MD.html">ffi::EVP_MD</a>;
+<span class="kw">impl </span>ForeignTypeRef <span class="kw">for </span>MdRef {
+    <span class="kw">type </span>CType = ffi::EVP_MD;
 }
 
-<span class="kw">unsafe impl </span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> <span class="kw">for </span><a href="#203">MdRef</a> {}
-<span class="kw">unsafe impl </span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="kw">for </span><a href="#203">MdRef</a> {}
+<span class="kw">unsafe impl </span>Sync <span class="kw">for </span>MdRef {}
+<span class="kw">unsafe impl </span>Send <span class="kw">for </span>MdRef {}
 
-<span class="kw">impl </span><a href="#203">MdRef</a> {
+<span class="kw">impl </span>MdRef {
     <span class="doccomment">/// Returns the block size of the digest in bytes.
     </span><span class="attr">#[corresponds(EVP_MD_block_size)]
     #[inline]
-    </span><span class="kw">pub fn </span>block_size(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <span class="kw">unsafe </span>{ ffi::EVP_MD_block_size(<a class="self" href="#216">self</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>()) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> }
+    </span><span class="kw">pub fn </span>block_size(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+        <span class="kw">unsafe </span>{ ffi::EVP_MD_block_size(<span class="self">self</span>.as_ptr()) <span class="kw">as </span>usize }
     }
 
     <span class="doccomment">/// Returns the size of the digest in bytes.
     </span><span class="attr">#[corresponds(EVP_MD_size)]
     #[inline]
-    </span><span class="kw">pub fn </span>size(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <span class="kw">unsafe </span>{ ffi::EVP_MD_size(<a class="self" href="#223">self</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>()) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> }
+    </span><span class="kw">pub fn </span>size(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+        <span class="kw">unsafe </span>{ ffi::EVP_MD_size(<span class="self">self</span>.as_ptr()) <span class="kw">as </span>usize }
     }
 
     <span class="doccomment">/// Returns the [`Nid`] of the digest.
     </span><span class="attr">#[corresponds(EVP_MD_type)]
     #[inline]
-    </span><span class="kw">pub fn </span>type_(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="nid.rs.html#49">Nid</a> {
-        <span class="kw">unsafe </span>{ Nid::from_raw(ffi::EVP_MD_type(<a class="self" href="#230">self</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>())) }
+    </span><span class="kw">pub fn </span>type_(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Nid {
+        <span class="kw">unsafe </span>{ Nid::from_raw(ffi::EVP_MD_type(<span class="self">self</span>.as_ptr())) }
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="openssl" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="openssl" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

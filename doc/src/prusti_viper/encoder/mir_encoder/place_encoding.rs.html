@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `prusti-viper/src/encoder/mir_encoder/place_encoding.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>place_encoding.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../../prusti_viper/index.html"><img class="rust-logo" src="../../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `prusti-viper/src/encoder/mir_encoder/place_encoding.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>place_encoding.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../../prusti_viper/index.html"><img class="rust-logo" src="../../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -152,13 +152,13 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 
-</span><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">std::fmt::Display</a>;
+</span><span class="kw">use </span>std::fmt::Display;
 
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/index.html">prusti_rustc_interface::middle::ty</a>;
-<span class="kw">use </span><a href="../../../../vir/polymorphic/index.html">vir_crate::polymorphic</a> <span class="kw">as </span>vir;
+<span class="kw">use </span>prusti_rustc_interface::middle::ty;
+<span class="kw">use </span>vir_crate::polymorphic <span class="kw">as </span>vir;
 
 <span class="kw">use </span><span class="kw">crate</span>::encoder::{
-    errors::{<a href="../errors/encoding_error.rs.html#15">EncodingError</a>, <a href="../errors/encoding_error.rs.html#20">EncodingResult</a>},
+    errors::{EncodingError, EncodingResult},
 };
 
 
@@ -166,131 +166,131 @@
 </span><span class="attr">#[derive(Debug, PartialEq, Eq, Hash, Clone)]
 </span><span class="kw">pub enum </span>PlaceEncoding&lt;<span class="lifetime">&#39;tcx</span>&gt; {
     <span class="doccomment">/// Just an expression, the most common case.
-    </span>Expr(<a href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a>),
+    </span>Expr(vir::Expr),
     <span class="doccomment">/// Field access expression
     </span>FieldAccess {
         base: Box&lt;PlaceEncoding&lt;<span class="lifetime">&#39;tcx</span>&gt;&gt;,
-        field: <a href="../../../../vir/gen/polymorphic/ast/common/struct.Field.html">vir::Field</a>,
+        field: vir::Field,
     },
     <span class="doccomment">/// Array access expression
     </span>ArrayAccess {
         base: Box&lt;PlaceEncoding&lt;<span class="lifetime">&#39;tcx</span>&gt;&gt;,
-        index: <a href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a>,
-        encoded_elem_ty: <a href="../../../../vir/gen/polymorphic/ast/common/enum.Type.html">vir::Type</a>,
+        index: vir::Expr,
+        encoded_elem_ty: vir::Type,
         rust_array_ty: ty::Ty&lt;<span class="lifetime">&#39;tcx</span>&gt;,
     },
     <span class="doccomment">/// Variant (i.e. enum access)
     </span>Variant {
         base: Box&lt;PlaceEncoding&lt;<span class="lifetime">&#39;tcx</span>&gt;&gt;,
-        field: <a href="../../../../vir/gen/polymorphic/ast/common/struct.Field.html">vir::Field</a>,
+        field: vir::Field,
     },
     <span class="doccomment">/// Slice indexing projection
     </span>SliceAccess {
         base: Box&lt;PlaceEncoding&lt;<span class="lifetime">&#39;tcx</span>&gt;&gt;,
-        index: <a href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a>,
-        encoded_elem_ty: <a href="../../../../vir/gen/polymorphic/ast/common/enum.Type.html">vir::Type</a>,
+        index: vir::Expr,
+        encoded_elem_ty: vir::Type,
         rust_slice_ty: ty::Ty&lt;<span class="lifetime">&#39;tcx</span>&gt;,
     },
 }
 
 <span class="doccomment">/// Return type of PlaceEncoding::into_array_base
 </span><span class="kw">pub enum </span>ExprOrArrayBase {
-    Expr(<a href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a>),
-    ArrayBase(<a href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a>),
+    Expr(vir::Expr),
+    ArrayBase(vir::Expr),
     <span class="attr">#[allow(dead_code)]
-    </span>SliceBase(<a href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a>),
+    </span>SliceBase(vir::Expr),
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;tcx</span>&gt; PlaceEncoding&lt;<span class="lifetime">&#39;tcx</span>&gt; {
-    <span class="kw">pub fn </span>try_into_expr(<span class="self">self</span>) -&gt; EncodingResult&lt;<a href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a>&gt; {
-        <span class="kw">match </span><a class="self" href="#58">self</a>.<a href="#70">into_array_base</a>() {
-           <a href="#51">ExprOrArrayBase::Expr</a>(e) =&gt; <span class="prelude-val">Ok</span>(<a href="#60">e</a>),
-           <a href="#52">ExprOrArrayBase::ArrayBase</a>(b)
-           | <a href="#54">ExprOrArrayBase::SliceBase</a>(b) =&gt; <span class="prelude-val">Err</span>(EncodingError::internal(
-               <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;PlaceEncoding::try_into_expr called on sequence expr &#39;{:?}&#39;&quot;</span>, b)
+    <span class="kw">pub fn </span>try_into_expr(<span class="self">self</span>) -&gt; EncodingResult&lt;vir::Expr&gt; {
+        <span class="kw">match </span><span class="self">self</span>.into_array_base() {
+           ExprOrArrayBase::Expr(e) =&gt; <span class="prelude-val">Ok</span>(e),
+           ExprOrArrayBase::ArrayBase(b)
+           | ExprOrArrayBase::SliceBase(b) =&gt; <span class="prelude-val">Err</span>(EncodingError::internal(
+               <span class="macro">format!</span>(<span class="string">&quot;PlaceEncoding::try_into_expr called on sequence expr &#39;{b:?}&#39;&quot;</span>)
            )),
         }
     }
 
     <span class="doccomment">/// Returns the base variable of an array access, if any of the nested places are an array
     /// access, else just the same expr that `try_into_expr` would
-    </span><span class="kw">pub fn </span>into_array_base(<span class="self">self</span>) -&gt; <a href="#50">ExprOrArrayBase</a> {
-        <span class="kw">match </span><span class="self"><a href="#70">self</a> </span>{
-            <a href="#22">PlaceEncoding::Expr</a>(e) =&gt; <a href="#51">ExprOrArrayBase::Expr</a>(<a href="#72">e</a>),
-            <a href="#24">PlaceEncoding::FieldAccess</a> { base, field } =&gt; {
-                <span class="kw">match </span><a href="#73">base</a>.<a href="#70">into_array_base</a>() {
-                    <a href="#51">ExprOrArrayBase::Expr</a>(e) =&gt; <a href="#51">ExprOrArrayBase::Expr</a>(<a href="#75">e</a>.field(<a href="#73">field</a>)),
-                    base@<a href="#52">ExprOrArrayBase::ArrayBase</a>(<span class="kw">_</span>) =&gt; <a href="#76">base</a>,
-                    base@<a href="#54">ExprOrArrayBase::SliceBase</a>(<span class="kw">_</span>) =&gt; <a href="#77">base</a>,
+    </span><span class="kw">pub fn </span>into_array_base(<span class="self">self</span>) -&gt; ExprOrArrayBase {
+        <span class="kw">match </span><span class="self">self </span>{
+            PlaceEncoding::Expr(e) =&gt; ExprOrArrayBase::Expr(e),
+            PlaceEncoding::FieldAccess { base, field } =&gt; {
+                <span class="kw">match </span>base.into_array_base() {
+                    ExprOrArrayBase::Expr(e) =&gt; ExprOrArrayBase::Expr(e.field(field)),
+                    base@ExprOrArrayBase::ArrayBase(<span class="kw">_</span>) =&gt; base,
+                    base@ExprOrArrayBase::SliceBase(<span class="kw">_</span>) =&gt; base,
                 }
             }
-            <a href="#36">PlaceEncoding::Variant</a> { base, field } =&gt; {
-                <span class="kw">match </span><a href="#80">base</a>.<a href="#70">into_array_base</a>() {
-                    <a href="#51">ExprOrArrayBase::Expr</a>(e) =&gt; <a href="#51">ExprOrArrayBase::Expr</a>(
-                        vir::Expr::Variant( <a href="../../../../vir/gen/polymorphic/ast/expr/struct.Variant.html">vir::Variant</a> {base: <span class="kw">box </span><a href="#82">e</a>, variant_index: <a href="#80">field</a>, position: vir::Position::default()} )
+            PlaceEncoding::Variant { base, field } =&gt; {
+                <span class="kw">match </span>base.into_array_base() {
+                    ExprOrArrayBase::Expr(e) =&gt; ExprOrArrayBase::Expr(
+                        vir::Expr::Variant( vir::Variant {base: <span class="kw">box </span>e, variant_index: field, position: vir::Position::default()} )
                     ),
-                    base@<a href="#52">ExprOrArrayBase::ArrayBase</a>(<span class="kw">_</span>) =&gt; <a href="#85">base</a>,
-                    base@<a href="#54">ExprOrArrayBase::SliceBase</a>(<span class="kw">_</span>) =&gt; <a href="#86">base</a>,
+                    base@ExprOrArrayBase::ArrayBase(<span class="kw">_</span>) =&gt; base,
+                    base@ExprOrArrayBase::SliceBase(<span class="kw">_</span>) =&gt; base,
                 }
             }
-            <a href="#29">PlaceEncoding::ArrayAccess</a> { base, .. } =&gt; {
+            PlaceEncoding::ArrayAccess { base, .. } =&gt; {
                 <span class="comment">// need to check base&#39;s into_expr_or_array_base, maybe we&#39;re not the outermost
                 // array
-                </span><span class="kw">match </span><a href="#89">base</a>.<a href="#70">into_array_base</a>() {
-                    <a href="#51">ExprOrArrayBase::Expr</a>(e) =&gt; <a href="#52">ExprOrArrayBase::ArrayBase</a>(<a href="#93">e</a>),
-                    base@<a href="#52">ExprOrArrayBase::ArrayBase</a>(<span class="kw">_</span>) =&gt; <a href="#94">base</a>,
-                    base@<a href="#54">ExprOrArrayBase::SliceBase</a>(<span class="kw">_</span>) =&gt; <a href="#95">base</a>,
+                </span><span class="kw">match </span>base.into_array_base() {
+                    ExprOrArrayBase::Expr(e) =&gt; ExprOrArrayBase::ArrayBase(e),
+                    base@ExprOrArrayBase::ArrayBase(<span class="kw">_</span>) =&gt; base,
+                    base@ExprOrArrayBase::SliceBase(<span class="kw">_</span>) =&gt; base,
                 }
             }
-            <a href="#41">PlaceEncoding::SliceAccess</a> { base, .. } =&gt; {
-                <span class="kw">match </span><a href="#98">base</a>.<a href="#70">into_array_base</a>() {
-                    <a href="#51">ExprOrArrayBase::Expr</a>(e) =&gt; <a href="#54">ExprOrArrayBase::SliceBase</a>(<a href="#100">e</a>),
-                    base@<a href="#52">ExprOrArrayBase::ArrayBase</a>(<span class="kw">_</span>) =&gt; <a href="#101">base</a>,
-                    base@<a href="#54">ExprOrArrayBase::SliceBase</a>(<span class="kw">_</span>) =&gt; <a href="#102">base</a>,
+            PlaceEncoding::SliceAccess { base, .. } =&gt; {
+                <span class="kw">match </span>base.into_array_base() {
+                    ExprOrArrayBase::Expr(e) =&gt; ExprOrArrayBase::SliceBase(e),
+                    base@ExprOrArrayBase::ArrayBase(<span class="kw">_</span>) =&gt; base,
+                    base@ExprOrArrayBase::SliceBase(<span class="kw">_</span>) =&gt; base,
                 }
             }
         }
     }
 
-    <span class="kw">pub fn </span>field(<span class="self">self</span>, field: <a href="../../../../vir/gen/polymorphic/ast/common/struct.Field.html">vir::Field</a>) -&gt; <span class="self">Self </span>{
-        <a href="#24">PlaceEncoding::FieldAccess</a> { base: <span class="kw">box </span><a class="self" href="#108">self</a>, <a href="#108">field</a> }
+    <span class="kw">pub fn </span>field(<span class="self">self</span>, field: vir::Field) -&gt; <span class="self">Self </span>{
+        PlaceEncoding::FieldAccess { base: <span class="kw">box </span><span class="self">self</span>, field }
     }
 
-    <span class="kw">pub fn </span>get_type(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="../../../../vir/gen/polymorphic/ast/common/enum.Type.html">vir::Type</a> {
-        <span class="kw">match </span><span class="self"><a href="#112">self</a> </span>{
-            <a href="#22">PlaceEncoding::Expr</a>(<span class="kw-2">ref </span>e) =&gt; <a href="#114">e</a>.get_type(),
-            <a href="#24">PlaceEncoding::FieldAccess</a> { <span class="kw-2">ref </span>field, .. } =&gt; <span class="kw-2">&amp;</span><a href="#115">field</a>.typ,
-            <a href="#29">PlaceEncoding::ArrayAccess</a> { <span class="kw-2">ref </span>encoded_elem_ty, .. } =&gt; <a href="#116">encoded_elem_ty</a>,
-            <a href="#36">PlaceEncoding::Variant</a> { <span class="kw-2">ref </span>field, .. } =&gt; <span class="kw-2">&amp;</span><a href="#117">field</a>.typ,
-            <a href="#41">PlaceEncoding::SliceAccess</a> { <span class="kw-2">ref </span>encoded_elem_ty, .. } =&gt; <a href="#118">encoded_elem_ty</a>,
+    <span class="kw">pub fn </span>get_type(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>vir::Type {
+        <span class="kw">match </span><span class="self">self </span>{
+            PlaceEncoding::Expr(<span class="kw-2">ref </span>e) =&gt; e.get_type(),
+            PlaceEncoding::FieldAccess { <span class="kw-2">ref </span>field, .. } =&gt; <span class="kw-2">&amp;</span>field.typ,
+            PlaceEncoding::ArrayAccess { <span class="kw-2">ref </span>encoded_elem_ty, .. } =&gt; encoded_elem_ty,
+            PlaceEncoding::Variant { <span class="kw-2">ref </span>field, .. } =&gt; <span class="kw-2">&amp;</span>field.typ,
+            PlaceEncoding::SliceAccess { <span class="kw-2">ref </span>encoded_elem_ty, .. } =&gt; encoded_elem_ty,
         }
     }
 
-    <span class="kw">pub fn </span>variant(<span class="self">self</span>, index: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="self">Self </span>{
+    <span class="kw">pub fn </span>variant(<span class="self">self</span>, index: <span class="kw-2">&amp;</span>str) -&gt; <span class="self">Self </span>{
         <span class="comment">// TODO: somewhat duplicate from vir::Expr::variant()
-        </span><span class="kw">let </span>field_name = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;enum_{}&quot;</span>, index);
-        <span class="kw">let </span>field = vir::Field::new(<a href="#124">field_name</a>, <a class="self" href="#122">self</a>.<a href="#112">get_type</a>().<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>().variant(<a href="#122">index</a>));
+        </span><span class="kw">let </span>field_name = <span class="macro">format!</span>(<span class="string">&quot;enum_{index}&quot;</span>);
+        <span class="kw">let </span>field = vir::Field::new(field_name, <span class="self">self</span>.get_type().clone().variant(index));
 
-        <a href="#36">PlaceEncoding::Variant</a> { base: <span class="kw">box </span><a class="self" href="#122">self</a>, <a href="#125">field</a> }
+        PlaceEncoding::Variant { base: <span class="kw">box </span><span class="self">self</span>, field }
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;tcx</span>&gt; From&lt;<a href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a>&gt; <span class="kw">for </span>PlaceEncoding&lt;<span class="lifetime">&#39;tcx</span>&gt; {
-    <span class="kw">fn </span>from(e: <a href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a>) -&gt; <span class="self">Self </span>{
-        <a href="#22">PlaceEncoding::Expr</a>(<a href="#132">e</a>)
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;tcx</span>&gt; From&lt;vir::Expr&gt; <span class="kw">for </span>PlaceEncoding&lt;<span class="lifetime">&#39;tcx</span>&gt; {
+    <span class="kw">fn </span>from(e: vir::Expr) -&gt; <span class="self">Self </span>{
+        PlaceEncoding::Expr(e)
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;tcx</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">Display</a> <span class="kw">for </span>PlaceEncoding&lt;<span class="lifetime">&#39;tcx</span>&gt; {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">std::fmt::Result</a> {
-        <span class="kw">match </span><span class="self"><a href="#138">self</a> </span>{
-            <a href="#22">PlaceEncoding::Expr</a>(e) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#138">f</a>, <span class="string">&quot;{}&quot;</span>, e),
-            <a href="#24">PlaceEncoding::FieldAccess</a> { base, field } =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#138">f</a>, <span class="string">&quot;{}.{}&quot;</span>, base, field),
-            <a href="#29">PlaceEncoding::ArrayAccess</a> { base, index, .. } =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#138">f</a>, <span class="string">&quot;{}[{}]&quot;</span>, base, index),
-            <a href="#36">PlaceEncoding::Variant</a> { base, field } =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#138">f</a>, <span class="string">&quot;{}[{}]&quot;</span>, base, field),
-            <a href="#41">PlaceEncoding::SliceAccess</a> { base, index, .. } =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#138">f</a>, <span class="string">&quot;{}[{}]&quot;</span>, base, index),
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;tcx</span>&gt; Display <span class="kw">for </span>PlaceEncoding&lt;<span class="lifetime">&#39;tcx</span>&gt; {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; std::fmt::Result {
+        <span class="kw">match </span><span class="self">self </span>{
+            PlaceEncoding::Expr(e) =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;{e}&quot;</span>),
+            PlaceEncoding::FieldAccess { base, field } =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;{base}.{field}&quot;</span>),
+            PlaceEncoding::ArrayAccess { base, index, .. } =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;{base}[{index}]&quot;</span>),
+            PlaceEncoding::Variant { base, field } =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;{base}[{field}]&quot;</span>),
+            PlaceEncoding::SliceAccess { base, index, .. } =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;{base}[{index}]&quot;</span>),
         }
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="prusti_viper" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="prusti_viper" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

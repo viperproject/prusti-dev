@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-util-0.7.4/src/codec/lines_codec.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lines_codec.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../tokio_util/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-util-0.7.4/src/codec/lines_codec.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lines_codec.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../tokio_util/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -228,11 +228,11 @@
 <a href="#228" id="228">228</a>
 <a href="#229" id="229">229</a>
 <a href="#230" id="230">230</a>
-</pre><pre class="rust"><code><span class="kw">use </span><a href="decoder.rs.html#35"><span class="kw">crate</span>::codec::decoder::Decoder</a>;
-<span class="kw">use </span><a href="encoder.rs.html#8"><span class="kw">crate</span>::codec::encoder::Encoder</a>;
+</pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::codec::decoder::Decoder;
+<span class="kw">use </span><span class="kw">crate</span>::codec::encoder::Encoder;
 
-<span class="kw">use </span>bytes::{<a href="../../../bytes/buf/buf_impl/trait.Buf.html">Buf</a>, <a href="../../../bytes/buf/buf_mut/trait.BufMut.html">BufMut</a>, <a href="../../../bytes/bytes_mut/struct.BytesMut.html">BytesMut</a>};
-<span class="kw">use </span>std::{<a href="https://doc.rust-lang.org/nightly/core/cmp/index.html">cmp</a>, <a href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">fmt</a>, <a href="https://doc.rust-lang.org/nightly/std/io/index.html">io</a>, <a href="https://doc.rust-lang.org/nightly/alloc/str/index.html">str</a>, <a href="https://doc.rust-lang.org/nightly/core/usize/index.html">usize</a>};
+<span class="kw">use </span>bytes::{Buf, BufMut, BytesMut};
+<span class="kw">use </span>std::{cmp, fmt, io, str, usize};
 
 <span class="doccomment">/// A simple [`Decoder`] and [`Encoder`] implementation that splits up data into lines.
 ///
@@ -246,18 +246,18 @@
     // because that is the next index to examine.
     // The next time `decode` is called with `abcde\n`, the method will
     // only look at `de\n` before returning.
-    </span>next_index: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+    </span>next_index: usize,
 
     <span class="doccomment">/// The maximum length for a given line. If `usize::MAX`, lines will be
     /// read until a `\n` character is reached.
-    </span>max_length: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+    </span>max_length: usize,
 
     <span class="doccomment">/// Are we currently discarding the remainder of a line which was over
     /// the length limit?
-    </span>is_discarding: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
+    </span>is_discarding: bool,
 }
 
-<span class="kw">impl </span><a href="#12">LinesCodec</a> {
+<span class="kw">impl </span>LinesCodec {
     <span class="doccomment">/// Returns a `LinesCodec` for splitting up data into lines.
     ///
     /// # Note
@@ -267,8 +267,8 @@
     /// for information on why this could be a potential security risk.
     ///
     /// [`new_with_max_length`]: crate::codec::LinesCodec::new_with_max_length()
-    </span><span class="kw">pub fn </span>new() -&gt; <a href="#12">LinesCodec</a> {
-        <a href="#12">LinesCodec</a> {
+    </span><span class="kw">pub fn </span>new() -&gt; LinesCodec {
+        LinesCodec {
             next_index: <span class="number">0</span>,
             max_length: usize::MAX,
             is_discarding: <span class="bool-val">false</span>,
@@ -293,9 +293,9 @@
     /// without any `\n` characters, causing unbounded memory consumption.
     ///
     /// [`LinesCodecError`]: crate::codec::LinesCodecError
-    </span><span class="kw">pub fn </span>new_with_max_length(max_length: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="self">Self </span>{
-        <a href="#12">LinesCodec</a> {
-            <a href="#66">max_length</a>,
+    </span><span class="kw">pub fn </span>new_with_max_length(max_length: usize) -&gt; <span class="self">Self </span>{
+        LinesCodec {
+            max_length,
             ..LinesCodec::new()
         }
     }
@@ -315,119 +315,119 @@
     /// let codec = LinesCodec::new_with_max_length(256);
     /// assert_eq!(codec.max_length(), 256);
     /// ```
-    </span><span class="kw">pub fn </span>max_length(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="self" href="#88">self</a>.max_length
+    </span><span class="kw">pub fn </span>max_length(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+        <span class="self">self</span>.max_length
     }
 }
 
-<span class="kw">fn </span>utf8(buf: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, <a href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a>&gt; {
-    <a href="https://doc.rust-lang.org/nightly/core/str/converts/fn.from_utf8.html">str::from_utf8</a>(<a href="#93">buf</a>)
+<span class="kw">fn </span>utf8(buf: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span>str, io::Error&gt; {
+    str::from_utf8(buf)
         .map_err(|<span class="kw">_</span>| io::Error::new(io::ErrorKind::InvalidData, <span class="string">&quot;Unable to decode input as UTF8&quot;</span>))
 }
 
-<span class="kw">fn </span>without_carriage_return(s: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>] {
-    <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="string">b&#39;\r&#39;</span>) = <a href="#98">s</a>.last() {
-        <span class="kw-2">&amp;</span><a href="#98">s</a>[..<a href="#98">s</a>.len() - <span class="number">1</span>]
+<span class="kw">fn </span>without_carriage_return(s: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="kw-2">&amp;</span>[u8] {
+    <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="string">b&#39;\r&#39;</span>) = s.last() {
+        <span class="kw-2">&amp;</span>s[..s.len() - <span class="number">1</span>]
     } <span class="kw">else </span>{
-        <a href="#98">s</a>
+        s
     }
 }
 
-<span class="kw">impl </span><a href="decoder.rs.html#35">Decoder</a> <span class="kw">for </span><a href="#12">LinesCodec</a> {
-    <span class="kw">type </span>Item = <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>;
-    <span class="kw">type </span>Error = <a href="#208">LinesCodecError</a>;
+<span class="kw">impl </span>Decoder <span class="kw">for </span>LinesCodec {
+    <span class="kw">type </span>Item = String;
+    <span class="kw">type </span>Error = LinesCodecError;
 
-    <span class="kw">fn </span>decode(<span class="kw-2">&amp;mut </span><span class="self">self</span>, buf: <span class="kw-2">&amp;mut </span><a href="../../../bytes/bytes_mut/struct.BytesMut.html">BytesMut</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt;, <a href="#208">LinesCodecError</a>&gt; {
+    <span class="kw">fn </span>decode(<span class="kw-2">&amp;mut </span><span class="self">self</span>, buf: <span class="kw-2">&amp;mut </span>BytesMut) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;String&gt;, LinesCodecError&gt; {
         <span class="kw">loop </span>{
             <span class="comment">// Determine how far into the buffer we&#39;ll search for a newline. If
             // there&#39;s no max_length set, we&#39;ll read to the end of the buffer.
-            </span><span class="kw">let </span>read_to = cmp::min(<a class="self" href="#110">self</a>.max_length.saturating_add(<span class="number">1</span>), <a href="#110">buf</a>.len());
+            </span><span class="kw">let </span>read_to = cmp::min(<span class="self">self</span>.max_length.saturating_add(<span class="number">1</span>), buf.len());
 
-            <span class="kw">let </span>newline_offset = <a href="#110">buf</a>[<a class="self" href="#110">self</a>.next_index..<a href="#114">read_to</a>]
+            <span class="kw">let </span>newline_offset = buf[<span class="self">self</span>.next_index..read_to]
                 .iter()
-                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">position</a>(|b| <span class="kw-2">*</span><a href="#118">b</a> == <span class="string">b&#39;\n&#39;</span>);
+                .position(|b| <span class="kw-2">*</span>b == <span class="string">b&#39;\n&#39;</span>);
 
-            <span class="kw">match </span>(<a class="self" href="#110">self</a>.is_discarding, <a href="#116">newline_offset</a>) {
+            <span class="kw">match </span>(<span class="self">self</span>.is_discarding, newline_offset) {
                 (<span class="bool-val">true</span>, <span class="prelude-val">Some</span>(offset)) =&gt; {
                     <span class="comment">// If we found a newline, discard up to that offset and
                     // then stop discarding. On the next iteration, we&#39;ll try
                     // to read a line normally.
-                    </span><a href="#110">buf</a>.<a href="../../../bytes/buf/buf_impl/trait.Buf.html">advance</a>(<a href="#121">offset</a> + <a class="self" href="#110">self</a>.next_index + <span class="number">1</span>);
-                    <a class="self" href="#110">self</a>.is_discarding = <span class="bool-val">false</span>;
-                    <a class="self" href="#110">self</a>.next_index = <span class="number">0</span>;
+                    </span>buf.advance(offset + <span class="self">self</span>.next_index + <span class="number">1</span>);
+                    <span class="self">self</span>.is_discarding = <span class="bool-val">false</span>;
+                    <span class="self">self</span>.next_index = <span class="number">0</span>;
                 }
                 (<span class="bool-val">true</span>, <span class="prelude-val">None</span>) =&gt; {
                     <span class="comment">// Otherwise, we didn&#39;t find a newline, so we&#39;ll discard
                     // everything we read. On the next iteration, we&#39;ll continue
                     // discarding up to max_len bytes unless we find a newline.
-                    </span><a href="#110">buf</a>.<a href="../../../bytes/buf/buf_impl/trait.Buf.html">advance</a>(<a href="#114">read_to</a>);
-                    <a class="self" href="#110">self</a>.next_index = <span class="number">0</span>;
+                    </span>buf.advance(read_to);
+                    <span class="self">self</span>.next_index = <span class="number">0</span>;
                     <span class="kw">if </span>buf.is_empty() {
                         <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>);
                     }
                 }
                 (<span class="bool-val">false</span>, <span class="prelude-val">Some</span>(offset)) =&gt; {
                     <span class="comment">// Found a line!
-                    </span><span class="kw">let </span>newline_index = <a href="#139">offset</a> + <a class="self" href="#110">self</a>.next_index;
-                    <a class="self" href="#110">self</a>.next_index = <span class="number">0</span>;
-                    <span class="kw">let </span>line = <a href="#110">buf</a>.split_to(<a href="#141">newline_index</a> + <span class="number">1</span>);
-                    <span class="kw">let </span>line = <span class="kw-2">&amp;</span><a href="#143">line</a>[..<a href="#143">line</a>.len() - <span class="number">1</span>];
-                    <span class="kw">let </span>line = <a href="#98">without_carriage_return</a>(<a href="#144">line</a>);
+                    </span><span class="kw">let </span>newline_index = offset + <span class="self">self</span>.next_index;
+                    <span class="self">self</span>.next_index = <span class="number">0</span>;
+                    <span class="kw">let </span>line = buf.split_to(newline_index + <span class="number">1</span>);
+                    <span class="kw">let </span>line = <span class="kw-2">&amp;</span>line[..line.len() - <span class="number">1</span>];
+                    <span class="kw">let </span>line = without_carriage_return(line);
                     <span class="kw">let </span>line = utf8(line)<span class="question-mark">?</span>;
-                    <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<a href="#146">line</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>()));
+                    <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(line.to_string()));
                 }
-                (<span class="bool-val">false</span>, <span class="prelude-val">None</span>) <span class="kw">if </span><a href="#110">buf</a>.len() &gt; <a class="self" href="#110">self</a>.max_length =&gt; {
+                (<span class="bool-val">false</span>, <span class="prelude-val">None</span>) <span class="kw">if </span>buf.len() &gt; <span class="self">self</span>.max_length =&gt; {
                     <span class="comment">// Reached the maximum length without finding a
                     // newline, return an error and start discarding on the
                     // next call.
-                    </span><a class="self" href="#110">self</a>.is_discarding = <span class="bool-val">true</span>;
-                    <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="#210">LinesCodecError::MaxLineLengthExceeded</a>);
+                    </span><span class="self">self</span>.is_discarding = <span class="bool-val">true</span>;
+                    <span class="kw">return </span><span class="prelude-val">Err</span>(LinesCodecError::MaxLineLengthExceeded);
                 }
                 (<span class="bool-val">false</span>, <span class="prelude-val">None</span>) =&gt; {
                     <span class="comment">// We didn&#39;t find a line or reach the length limit, so the next
                     // call will resume searching at the current offset.
-                    </span><a class="self" href="#110">self</a>.next_index = <a href="#114">read_to</a>;
+                    </span><span class="self">self</span>.next_index = read_to;
                     <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>);
                 }
             }
         }
     }
 
-    <span class="kw">fn </span>decode_eof(<span class="kw-2">&amp;mut </span><span class="self">self</span>, buf: <span class="kw-2">&amp;mut </span><a href="../../../bytes/bytes_mut/struct.BytesMut.html">BytesMut</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt;, <a href="#208">LinesCodecError</a>&gt; {
+    <span class="kw">fn </span>decode_eof(<span class="kw-2">&amp;mut </span><span class="self">self</span>, buf: <span class="kw-2">&amp;mut </span>BytesMut) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;String&gt;, LinesCodecError&gt; {
         <span class="prelude-val">Ok</span>(<span class="kw">match </span><span class="self">self</span>.decode(buf)<span class="question-mark">? </span>{
-            <span class="prelude-val">Some</span>(frame) =&gt; <span class="prelude-val">Some</span>(<a href="#168">frame</a>),
+            <span class="prelude-val">Some</span>(frame) =&gt; <span class="prelude-val">Some</span>(frame),
             <span class="prelude-val">None </span>=&gt; {
                 <span class="comment">// No terminating newline - return remaining data, if any
                 </span><span class="kw">if </span>buf.is_empty() || buf == <span class="kw-2">&amp;</span><span class="string">b&quot;\r&quot;</span>[..] {
                     <span class="prelude-val">None
                 </span>} <span class="kw">else </span>{
-                    <span class="kw">let </span>line = <a href="#166">buf</a>.split_to(<a href="#166">buf</a>.len());
-                    <span class="kw">let </span>line = <a href="#98">without_carriage_return</a>(<span class="kw-2">&amp;</span><a href="#174">line</a>);
+                    <span class="kw">let </span>line = buf.split_to(buf.len());
+                    <span class="kw">let </span>line = without_carriage_return(<span class="kw-2">&amp;</span>line);
                     <span class="kw">let </span>line = utf8(line)<span class="question-mark">?</span>;
-                    <a class="self" href="#166">self</a>.next_index = <span class="number">0</span>;
-                    <span class="prelude-val">Some</span>(<a href="#176">line</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>())
+                    <span class="self">self</span>.next_index = <span class="number">0</span>;
+                    <span class="prelude-val">Some</span>(line.to_string())
                 }
             }
         })
     }
 }
 
-<span class="kw">impl</span>&lt;T&gt; Encoder&lt;T&gt; <span class="kw">for </span><a href="#12">LinesCodec</a>
+<span class="kw">impl</span>&lt;T&gt; Encoder&lt;T&gt; <span class="kw">for </span>LinesCodec
 <span class="kw">where
-    </span>T: AsRef&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt;,
+    </span>T: AsRef&lt;str&gt;,
 {
-    <span class="kw">type </span>Error = <a href="#208">LinesCodecError</a>;
+    <span class="kw">type </span>Error = LinesCodecError;
 
-    <span class="kw">fn </span>encode(<span class="kw-2">&amp;mut </span><span class="self">self</span>, line: T, buf: <span class="kw-2">&amp;mut </span><a href="../../../bytes/bytes_mut/struct.BytesMut.html">BytesMut</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="#208">LinesCodecError</a>&gt; {
-        <span class="kw">let </span>line = <a href="#191">line</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>();
-        <a href="#191">buf</a>.reserve(<a href="#192">line</a>.len() + <span class="number">1</span>);
-        <a href="#191">buf</a>.<a href="../../../bytes/buf/buf_mut/trait.BufMut.html">put</a>(<a href="#192">line</a>.as_bytes());
-        <a href="#191">buf</a>.<a href="../../../bytes/buf/buf_mut/trait.BufMut.html">put_u8</a>(<span class="string">b&#39;\n&#39;</span>);
+    <span class="kw">fn </span>encode(<span class="kw-2">&amp;mut </span><span class="self">self</span>, line: T, buf: <span class="kw-2">&amp;mut </span>BytesMut) -&gt; <span class="prelude-ty">Result</span>&lt;(), LinesCodecError&gt; {
+        <span class="kw">let </span>line = line.as_ref();
+        buf.reserve(line.len() + <span class="number">1</span>);
+        buf.put(line.as_bytes());
+        buf.put_u8(<span class="string">b&#39;\n&#39;</span>);
         <span class="prelude-val">Ok</span>(())
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for </span><a href="#12">LinesCodec</a> {
+<span class="kw">impl </span>Default <span class="kw">for </span>LinesCodec {
     <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>::new()
     }
@@ -439,24 +439,24 @@
     <span class="doccomment">/// The maximum line length was exceeded.
     </span>MaxLineLengthExceeded,
     <span class="doccomment">/// An IO error occurred.
-    </span>Io(<a href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a>),
+    </span>Io(io::Error),
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for </span><a href="#208">LinesCodecError</a> {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <span class="kw">match </span><span class="self"><a href="#216">self</a> </span>{
-            <a href="#210">LinesCodecError::MaxLineLengthExceeded</a> =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#216">f</a>, <span class="string">&quot;max line length exceeded&quot;</span>),
-            <a href="#212">LinesCodecError::Io</a>(e) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#216">f</a>, <span class="string">&quot;{}&quot;</span>, e),
+<span class="kw">impl </span>fmt::Display <span class="kw">for </span>LinesCodecError {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        <span class="kw">match </span><span class="self">self </span>{
+            LinesCodecError::MaxLineLengthExceeded =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;max line length exceeded&quot;</span>),
+            LinesCodecError::Io(e) =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;{}&quot;</span>, e),
         }
     }
 }
 
-<span class="kw">impl </span>From&lt;<a href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a>&gt; <span class="kw">for </span><a href="#208">LinesCodecError</a> {
-    <span class="kw">fn </span>from(e: <a href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a>) -&gt; <a href="#208">LinesCodecError</a> {
-        <a href="#212">LinesCodecError::Io</a>(<a href="#225">e</a>)
+<span class="kw">impl </span>From&lt;io::Error&gt; <span class="kw">for </span>LinesCodecError {
+    <span class="kw">fn </span>from(e: io::Error) -&gt; LinesCodecError {
+        LinesCodecError::Io(e)
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">std::error::Error</a> <span class="kw">for </span><a href="#208">LinesCodecError</a> {}
+<span class="kw">impl </span>std::error::Error <span class="kw">for </span>LinesCodecError {}
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="tokio_util" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="tokio_util" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

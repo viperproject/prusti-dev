@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/futures-util-0.3.25/src/stream/stream/peek.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>peek.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../../futures_util/index.html"><img class="rust-logo" src="../../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/futures-util-0.3.25/src/stream/stream/peek.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>peek.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../../futures_util/index.html"><img class="rust-logo" src="../../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -431,20 +431,20 @@
 <a href="#431" id="431">431</a>
 <a href="#432" id="432">432</a>
 <a href="#433" id="433">433</a>
-</pre><pre class="rust"><code><span class="kw">use </span><a href="../../fns.rs.html#4"><span class="kw">crate</span>::fns::FnOnce1</a>;
-<span class="kw">use </span><span class="kw">crate</span>::stream::{<a href="fuse.rs.html#9-18">Fuse</a>, <a href="mod.rs.html#249">StreamExt</a>};
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/fmt/index.html">core::fmt</a>;
+</pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::fns::FnOnce1;
+<span class="kw">use </span><span class="kw">crate</span>::stream::{Fuse, StreamExt};
+<span class="kw">use </span>core::fmt;
 <span class="kw">use </span>core::marker::PhantomData;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/pin/struct.Pin.html">core::pin::Pin</a>;
-<span class="kw">use </span>futures_core::future::{<a href="../../../../futures_util/future/trait.FusedFuture.html">FusedFuture</a>, <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a>};
-<span class="kw">use </span><a href="../../../../futures_util/macro.ready.html">futures_core::ready</a>;
-<span class="kw">use </span>futures_core::stream::{<a href="../../../../futures_util/stream/trait.FusedStream.html">FusedStream</a>, <a href="../../../../futures_util/stream/trait.Stream.html">Stream</a>};
-<span class="kw">use </span>futures_core::task::{<a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>, <a href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">Poll</a>};
+<span class="kw">use </span>core::pin::Pin;
+<span class="kw">use </span>futures_core::future::{FusedFuture, Future};
+<span class="kw">use </span>futures_core::ready;
+<span class="kw">use </span>futures_core::stream::{FusedStream, Stream};
+<span class="kw">use </span>futures_core::task::{Context, Poll};
 <span class="attr">#[cfg(feature = <span class="string">&quot;sink&quot;</span>)]
-</span><span class="kw">use </span><a href="../../../../futures_util/sink/trait.Sink.html">futures_sink::Sink</a>;
-<span class="kw">use </span><a href="../../../../pin_project_lite/macro.pin_project.html">pin_project_lite::pin_project</a>;
+</span><span class="kw">use </span>futures_sink::Sink;
+<span class="kw">use </span>pin_project_lite::pin_project;
 
-<a class="macro" href="../../../../pin_project_lite/macro.pin_project.html">pin_project! </a>{
+<span class="macro">pin_project! </span>{
     <span class="doccomment">/// A `Stream` that implements a `peek` method.
     ///
     /// The `peek` method can be used to retrieve a reference
@@ -452,24 +452,24 @@
     /// call to `poll` will return the owned item.
     </span><span class="attr">#[derive(Debug)]
     #[must_use = <span class="string">&quot;streams do nothing unless polled&quot;</span>]
-    </span><span class="kw">pub struct </span>Peekable&lt;St: <a href="../../../../futures_util/stream/trait.Stream.html">Stream</a>&gt; {
+    </span><span class="kw">pub struct </span>Peekable&lt;St: Stream&gt; {
         <span class="attr">#[pin]
         </span>stream: Fuse&lt;St&gt;,
         peeked: <span class="prelude-ty">Option</span>&lt;St::Item&gt;,
     }
 }
 
-<span class="kw">impl</span>&lt;St: <a href="../../../../futures_util/stream/trait.Stream.html">Stream</a>&gt; Peekable&lt;St&gt; {
+<span class="kw">impl</span>&lt;St: Stream&gt; Peekable&lt;St&gt; {
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>new(stream: St) -&gt; <span class="self">Self </span>{
-        <span class="self">Self </span>{ stream: <a href="#30">stream</a>.<a href="mod.rs.html#1232-1234">fuse</a>(), peeked: <span class="prelude-val">None </span>}
+        <span class="self">Self </span>{ stream: stream.fuse(), peeked: <span class="prelude-val">None </span>}
     }
 
-    <a class="macro" href="../../lib.rs.html#182-216">delegate_access_inner!</a>(stream, St, (.));
+    <span class="macro">delegate_access_inner!</span>(stream, St, (.));
 
     <span class="doccomment">/// Produces a future which retrieves a reference to the next item
     /// in the stream, or `None` if the underlying stream terminates.
     </span><span class="kw">pub fn </span>peek(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;) -&gt; Peek&lt;<span class="lifetime">&#39;_</span>, St&gt; {
-        <a href="#229-235">Peek</a> { inner: <span class="prelude-val">Some</span>(<a class="self" href="#38">self</a>) }
+        Peek { inner: <span class="prelude-val">Some</span>(<span class="self">self</span>) }
     }
 
     <span class="doccomment">/// Peek retrieves a reference to the next item in the stream.
@@ -477,13 +477,13 @@
     /// This method polls the underlying stream and return either a reference
     /// to the next item if the stream is ready or passes through any errors.
     </span><span class="kw">pub fn </span>poll_peek(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>St::Item&gt;&gt; {
-        <span class="kw">let </span><span class="kw-2">mut </span>this = <a class="self" href="#46">self</a>.<a href="#14-27">project</a>();
+        <span class="kw">let </span><span class="kw-2">mut </span>this = <span class="self">self</span>.project();
 
         Poll::Ready(<span class="kw">loop </span>{
             <span class="kw">if </span>this.peeked.is_some() {
-                <span class="kw">break </span><a href="#47">this</a>.peeked.as_ref();
-            } <span class="kw">else if let </span><span class="prelude-val">Some</span>(item) = <a class="macro" href="../../../../futures_util/macro.ready.html">ready!</a>(this.stream.as_mut().poll_next(cx)) {
-                <span class="kw-2">*</span><a href="#47">this</a>.peeked = <span class="prelude-val">Some</span>(<a href="#52">item</a>);
+                <span class="kw">break </span>this.peeked.as_ref();
+            } <span class="kw">else if let </span><span class="prelude-val">Some</span>(item) = <span class="macro">ready!</span>(this.stream.as_mut().poll_next(cx)) {
+                <span class="kw-2">*</span>this.peeked = <span class="prelude-val">Some</span>(item);
             } <span class="kw">else </span>{
                 <span class="kw">break </span><span class="prelude-val">None</span>;
             }
@@ -517,7 +517,7 @@
     /// # });
     /// ```
     </span><span class="kw">pub fn </span>peek_mut(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;) -&gt; PeekMut&lt;<span class="lifetime">&#39;_</span>, St&gt; {
-        <a href="#271-277">PeekMut</a> { inner: <span class="prelude-val">Some</span>(<a class="self" href="#86">self</a>) }
+        PeekMut { inner: <span class="prelude-val">Some</span>(<span class="self">self</span>) }
     }
 
     <span class="doccomment">/// Peek retrieves a mutable reference to the next item in the stream.
@@ -525,13 +525,13 @@
         <span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;,
         cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
     ) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;mut </span>St::Item&gt;&gt; {
-        <span class="kw">let </span><span class="kw-2">mut </span>this = <a class="self" href="#92">self</a>.<a href="#14-27">project</a>();
+        <span class="kw">let </span><span class="kw-2">mut </span>this = <span class="self">self</span>.project();
 
         Poll::Ready(<span class="kw">loop </span>{
             <span class="kw">if </span>this.peeked.is_some() {
-                <span class="kw">break </span><a href="#95">this</a>.peeked.as_mut();
-            } <span class="kw">else if let </span><span class="prelude-val">Some</span>(item) = <a class="macro" href="../../../../futures_util/macro.ready.html">ready!</a>(this.stream.as_mut().poll_next(cx)) {
-                <span class="kw-2">*</span><a href="#95">this</a>.peeked = <span class="prelude-val">Some</span>(<a href="#100">item</a>);
+                <span class="kw">break </span>this.peeked.as_mut();
+            } <span class="kw">else if let </span><span class="prelude-val">Some</span>(item) = <span class="macro">ready!</span>(this.stream.as_mut().poll_next(cx)) {
+                <span class="kw-2">*</span>this.peeked = <span class="prelude-val">Some</span>(item);
             } <span class="kw">else </span>{
                 <span class="kw">break </span><span class="prelude-val">None</span>;
             }
@@ -581,9 +581,9 @@
     /// ```
     </span><span class="kw">pub fn </span>next_if&lt;F&gt;(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, func: F) -&gt; NextIf&lt;<span class="lifetime">&#39;_</span>, St, F&gt;
     <span class="kw">where
-        </span>F: FnOnce(<span class="kw-2">&amp;</span>St::Item) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
+        </span>F: FnOnce(<span class="kw-2">&amp;</span>St::Item) -&gt; bool,
     {
-        <a href="#313-319">NextIf</a> { inner: <span class="prelude-val">Some</span>((<a class="self" href="#149">self</a>, <a href="#149">func</a>)) }
+        NextIf { inner: <span class="prelude-val">Some</span>((<span class="self">self</span>, func)) }
     }
 
     <span class="doccomment">/// Creates a future which will consume and return the next item if it is
@@ -610,41 +610,41 @@
     /// ```
     </span><span class="kw">pub fn </span>next_if_eq&lt;<span class="lifetime">&#39;a</span>, T&gt;(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span><span class="self">Self</span>&gt;, expected: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>T) -&gt; NextIfEq&lt;<span class="lifetime">&#39;a</span>, St, T&gt;
     <span class="kw">where
-        </span>T: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>,
+        </span>T: <span class="question-mark">?</span>Sized,
         St::Item: PartialEq&lt;T&gt;,
     {
-        <a href="#372-379">NextIfEq</a> {
-            inner: <a href="#313-319">NextIf</a> { inner: <span class="prelude-val">Some</span>((<a class="self" href="#178">self</a>, <a href="#418">NextIfEqFn</a> { <a href="#178">expected</a>, _next: PhantomData })) },
+        NextIfEq {
+            inner: NextIf { inner: <span class="prelude-val">Some</span>((<span class="self">self</span>, NextIfEqFn { expected, _next: PhantomData })) },
         }
     }
 }
 
-<span class="kw">impl</span>&lt;St: <a href="../../../../futures_util/stream/trait.Stream.html">Stream</a>&gt; <a href="../../../../futures_util/stream/trait.FusedStream.html">FusedStream</a> <span class="kw">for </span>Peekable&lt;St&gt; {
-    <span class="kw">fn </span>is_terminated(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#190">self</a>.peeked.is_none() &amp;&amp; <a class="self" href="#190">self</a>.stream.<a href="../../../../futures_util/stream/trait.FusedStream.html">is_terminated</a>()
+<span class="kw">impl</span>&lt;St: Stream&gt; FusedStream <span class="kw">for </span>Peekable&lt;St&gt; {
+    <span class="kw">fn </span>is_terminated(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.peeked.is_none() &amp;&amp; <span class="self">self</span>.stream.is_terminated()
     }
 }
 
-<span class="kw">impl</span>&lt;S: <a href="../../../../futures_util/stream/trait.Stream.html">Stream</a>&gt; <a href="../../../../futures_util/stream/trait.Stream.html">Stream</a> <span class="kw">for </span>Peekable&lt;S&gt; {
+<span class="kw">impl</span>&lt;S: Stream&gt; Stream <span class="kw">for </span>Peekable&lt;S&gt; {
     <span class="kw">type </span>Item = S::Item;
 
     <span class="kw">fn </span>poll_next(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt;&gt; {
-        <span class="kw">let </span>this = <a class="self" href="#198">self</a>.<a href="#14-27">project</a>();
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(item) = <a href="#199">this</a>.peeked.take() {
-            <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Some</span>(<a href="#200">item</a>));
+        <span class="kw">let </span>this = <span class="self">self</span>.project();
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(item) = this.peeked.take() {
+            <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Some</span>(item));
         }
-        <a href="#199">this</a>.stream.<a href="../../../../futures_util/stream/trait.Stream.html">poll_next</a>(<a href="#198">cx</a>)
+        this.stream.poll_next(cx)
     }
 
-    <span class="kw">fn </span>size_hint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;) {
-        <span class="kw">let </span>peek_len = usize::from(<a class="self" href="#206">self</a>.peeked.is_some());
-        <span class="kw">let </span>(lower, upper) = <a class="self" href="#206">self</a>.stream.<a href="../../../../futures_util/stream/trait.Stream.html">size_hint</a>();
-        <span class="kw">let </span>lower = <a href="#208">lower</a>.saturating_add(<a href="#207">peek_len</a>);
-        <span class="kw">let </span>upper = <span class="kw">match </span><a href="#208">upper</a> {
-            <span class="prelude-val">Some</span>(x) =&gt; <a href="#211">x</a>.checked_add(<a href="#207">peek_len</a>),
+    <span class="kw">fn </span>size_hint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (usize, <span class="prelude-ty">Option</span>&lt;usize&gt;) {
+        <span class="kw">let </span>peek_len = usize::from(<span class="self">self</span>.peeked.is_some());
+        <span class="kw">let </span>(lower, upper) = <span class="self">self</span>.stream.size_hint();
+        <span class="kw">let </span>lower = lower.saturating_add(peek_len);
+        <span class="kw">let </span>upper = <span class="kw">match </span>upper {
+            <span class="prelude-val">Some</span>(x) =&gt; x.checked_add(peek_len),
             <span class="prelude-val">None </span>=&gt; <span class="prelude-val">None</span>,
         };
-        (<a href="#209">lower</a>, <a href="#210">upper</a>)
+        (lower, upper)
     }
 }
 
@@ -652,217 +652,217 @@
 </span><span class="attr">#[cfg(feature = <span class="string">&quot;sink&quot;</span>)]
 </span><span class="kw">impl</span>&lt;S, Item&gt; Sink&lt;Item&gt; <span class="kw">for </span>Peekable&lt;S&gt;
 <span class="kw">where
-    </span>S: Sink&lt;Item&gt; + <a href="../../../../futures_util/stream/trait.Stream.html">Stream</a>,
+    </span>S: Sink&lt;Item&gt; + Stream,
 {
     <span class="kw">type </span>Error = S::Error;
 
-    <a class="macro" href="../../lib.rs.html#56-83">delegate_sink!</a>(stream, Item);
+    <span class="macro">delegate_sink!</span>(stream, Item);
 }
 
-<a class="macro" href="../../../../pin_project_lite/macro.pin_project.html">pin_project! </a>{
+<span class="macro">pin_project! </span>{
     <span class="doccomment">/// Future for the [`Peekable::peek`](self::Peekable::peek) method.
     </span><span class="attr">#[must_use = <span class="string">&quot;futures do nothing unless polled&quot;</span>]
-    </span><span class="kw">pub struct </span>Peek&lt;<span class="lifetime">&#39;a</span>, St: <a href="../../../../futures_util/stream/trait.Stream.html">Stream</a>&gt; {
+    </span><span class="kw">pub struct </span>Peek&lt;<span class="lifetime">&#39;a</span>, St: Stream&gt; {
         inner: <span class="prelude-ty">Option</span>&lt;Pin&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>Peekable&lt;St&gt;&gt;&gt;,
     }
 }
 
-<span class="kw">impl</span>&lt;St&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span>Peek&lt;<span class="lifetime">&#39;_</span>, St&gt;
+<span class="kw">impl</span>&lt;St&gt; fmt::Debug <span class="kw">for </span>Peek&lt;<span class="lifetime">&#39;_</span>, St&gt;
 <span class="kw">where
-    </span>St: <a href="../../../../futures_util/stream/trait.Stream.html">Stream</a> + <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a>,
-    St::Item: <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a>,
+    </span>St: Stream + fmt::Debug,
+    St::Item: fmt::Debug,
 {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a href="#242">f</a>.debug_struct(<span class="string">&quot;Peek&quot;</span>).field(<span class="string">&quot;inner&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="#242">self</a>.inner).finish()
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        f.debug_struct(<span class="string">&quot;Peek&quot;</span>).field(<span class="string">&quot;inner&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.inner).finish()
     }
 }
 
-<span class="kw">impl</span>&lt;St: <a href="../../../../futures_util/stream/trait.Stream.html">Stream</a>&gt; <a href="../../../../futures_util/future/trait.FusedFuture.html">FusedFuture</a> <span class="kw">for </span>Peek&lt;<span class="lifetime">&#39;_</span>, St&gt; {
-    <span class="kw">fn </span>is_terminated(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#248">self</a>.inner.is_none()
+<span class="kw">impl</span>&lt;St: Stream&gt; FusedFuture <span class="kw">for </span>Peek&lt;<span class="lifetime">&#39;_</span>, St&gt; {
+    <span class="kw">fn </span>is_terminated(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.inner.is_none()
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, St&gt; <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a> <span class="kw">for </span>Peek&lt;<span class="lifetime">&#39;a</span>, St&gt;
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, St&gt; Future <span class="kw">for </span>Peek&lt;<span class="lifetime">&#39;a</span>, St&gt;
 <span class="kw">where
-    </span>St: <a href="../../../../futures_util/stream/trait.Stream.html">Stream</a>,
+    </span>St: Stream,
 {
     <span class="kw">type </span>Output = <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>St::Item&gt;;
 
     <span class="kw">fn </span>poll(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
-        <span class="kw">let </span>inner = <a class="self" href="#259">self</a>.<a href="#229-235">project</a>().inner;
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(peekable) = <a href="#260">inner</a> {
-            <a class="macro" href="../../../../futures_util/macro.ready.html">ready!</a>(peekable.as_mut().poll_peek(cx));
+        <span class="kw">let </span>inner = <span class="self">self</span>.project().inner;
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(peekable) = inner {
+            <span class="macro">ready!</span>(peekable.as_mut().poll_peek(cx));
 
-            <a href="#260">inner</a>.take().unwrap().<a href="#46">poll_peek</a>(<a href="#259">cx</a>)
+            inner.take().unwrap().poll_peek(cx)
         } <span class="kw">else </span>{
-            <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(<span class="string">&quot;Peek polled after completion&quot;</span>)
+            <span class="macro">panic!</span>(<span class="string">&quot;Peek polled after completion&quot;</span>)
         }
     }
 }
 
-<a class="macro" href="../../../../pin_project_lite/macro.pin_project.html">pin_project! </a>{
+<span class="macro">pin_project! </span>{
     <span class="doccomment">/// Future for the [`Peekable::peek_mut`](self::Peekable::peek_mut) method.
     </span><span class="attr">#[must_use = <span class="string">&quot;futures do nothing unless polled&quot;</span>]
-    </span><span class="kw">pub struct </span>PeekMut&lt;<span class="lifetime">&#39;a</span>, St: <a href="../../../../futures_util/stream/trait.Stream.html">Stream</a>&gt; {
+    </span><span class="kw">pub struct </span>PeekMut&lt;<span class="lifetime">&#39;a</span>, St: Stream&gt; {
         inner: <span class="prelude-ty">Option</span>&lt;Pin&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>Peekable&lt;St&gt;&gt;&gt;,
     }
 }
 
-<span class="kw">impl</span>&lt;St&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span>PeekMut&lt;<span class="lifetime">&#39;_</span>, St&gt;
+<span class="kw">impl</span>&lt;St&gt; fmt::Debug <span class="kw">for </span>PeekMut&lt;<span class="lifetime">&#39;_</span>, St&gt;
 <span class="kw">where
-    </span>St: <a href="../../../../futures_util/stream/trait.Stream.html">Stream</a> + <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a>,
-    St::Item: <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a>,
+    </span>St: Stream + fmt::Debug,
+    St::Item: fmt::Debug,
 {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a href="#284">f</a>.debug_struct(<span class="string">&quot;PeekMut&quot;</span>).field(<span class="string">&quot;inner&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="#284">self</a>.inner).finish()
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        f.debug_struct(<span class="string">&quot;PeekMut&quot;</span>).field(<span class="string">&quot;inner&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.inner).finish()
     }
 }
 
-<span class="kw">impl</span>&lt;St: <a href="../../../../futures_util/stream/trait.Stream.html">Stream</a>&gt; <a href="../../../../futures_util/future/trait.FusedFuture.html">FusedFuture</a> <span class="kw">for </span>PeekMut&lt;<span class="lifetime">&#39;_</span>, St&gt; {
-    <span class="kw">fn </span>is_terminated(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#290">self</a>.inner.is_none()
+<span class="kw">impl</span>&lt;St: Stream&gt; FusedFuture <span class="kw">for </span>PeekMut&lt;<span class="lifetime">&#39;_</span>, St&gt; {
+    <span class="kw">fn </span>is_terminated(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.inner.is_none()
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, St&gt; <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a> <span class="kw">for </span>PeekMut&lt;<span class="lifetime">&#39;a</span>, St&gt;
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, St&gt; Future <span class="kw">for </span>PeekMut&lt;<span class="lifetime">&#39;a</span>, St&gt;
 <span class="kw">where
-    </span>St: <a href="../../../../futures_util/stream/trait.Stream.html">Stream</a>,
+    </span>St: Stream,
 {
     <span class="kw">type </span>Output = <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>St::Item&gt;;
 
     <span class="kw">fn </span>poll(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
-        <span class="kw">let </span>inner = <a class="self" href="#301">self</a>.<a href="#271-277">project</a>().inner;
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(peekable) = <a href="#302">inner</a> {
-            <a class="macro" href="../../../../futures_util/macro.ready.html">ready!</a>(peekable.as_mut().poll_peek_mut(cx));
+        <span class="kw">let </span>inner = <span class="self">self</span>.project().inner;
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(peekable) = inner {
+            <span class="macro">ready!</span>(peekable.as_mut().poll_peek_mut(cx));
 
-            <a href="#302">inner</a>.take().unwrap().<a href="#91-94">poll_peek_mut</a>(<a href="#301">cx</a>)
+            inner.take().unwrap().poll_peek_mut(cx)
         } <span class="kw">else </span>{
-            <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(<span class="string">&quot;PeekMut polled after completion&quot;</span>)
+            <span class="macro">panic!</span>(<span class="string">&quot;PeekMut polled after completion&quot;</span>)
         }
     }
 }
 
-<a class="macro" href="../../../../pin_project_lite/macro.pin_project.html">pin_project! </a>{
+<span class="macro">pin_project! </span>{
     <span class="doccomment">/// Future for the [`Peekable::next_if`](self::Peekable::next_if) method.
     </span><span class="attr">#[must_use = <span class="string">&quot;futures do nothing unless polled&quot;</span>]
-    </span><span class="kw">pub struct </span>NextIf&lt;<span class="lifetime">&#39;a</span>, St: <a href="../../../../futures_util/stream/trait.Stream.html">Stream</a>, F&gt; {
+    </span><span class="kw">pub struct </span>NextIf&lt;<span class="lifetime">&#39;a</span>, St: Stream, F&gt; {
         inner: <span class="prelude-ty">Option</span>&lt;(Pin&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>Peekable&lt;St&gt;&gt;, F)&gt;,
     }
 }
 
-<span class="kw">impl</span>&lt;St, F&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span>NextIf&lt;<span class="lifetime">&#39;_</span>, St, F&gt;
+<span class="kw">impl</span>&lt;St, F&gt; fmt::Debug <span class="kw">for </span>NextIf&lt;<span class="lifetime">&#39;_</span>, St, F&gt;
 <span class="kw">where
-    </span>St: <a href="../../../../futures_util/stream/trait.Stream.html">Stream</a> + <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a>,
-    St::Item: <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a>,
+    </span>St: Stream + fmt::Debug,
+    St::Item: fmt::Debug,
 {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a href="#326">f</a>.debug_struct(<span class="string">&quot;NextIf&quot;</span>).field(<span class="string">&quot;inner&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="#326">self</a>.inner.as_ref().map(|(s, _f)| <a href="#327">s</a>)).finish()
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        f.debug_struct(<span class="string">&quot;NextIf&quot;</span>).field(<span class="string">&quot;inner&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.inner.as_ref().map(|(s, _f)| s)).finish()
     }
 }
 
 <span class="attr">#[allow(single_use_lifetimes)] </span><span class="comment">// https://github.com/rust-lang/rust/issues/55058
-</span><span class="kw">impl</span>&lt;St, F&gt; <a href="../../../../futures_util/future/trait.FusedFuture.html">FusedFuture</a> <span class="kw">for </span>NextIf&lt;<span class="lifetime">&#39;_</span>, St, F&gt;
+</span><span class="kw">impl</span>&lt;St, F&gt; FusedFuture <span class="kw">for </span>NextIf&lt;<span class="lifetime">&#39;_</span>, St, F&gt;
 <span class="kw">where
-    </span>St: <a href="../../../../futures_util/stream/trait.Stream.html">Stream</a>,
-    F: <span class="kw">for</span>&lt;<span class="lifetime">&#39;a</span>&gt; FnOnce1&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>St::Item, Output = <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>&gt;,
+    </span>St: Stream,
+    F: <span class="kw">for</span>&lt;<span class="lifetime">&#39;a</span>&gt; FnOnce1&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>St::Item, Output = bool&gt;,
 {
-    <span class="kw">fn </span>is_terminated(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#337">self</a>.inner.is_none()
+    <span class="kw">fn </span>is_terminated(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.inner.is_none()
     }
 }
 
 <span class="attr">#[allow(single_use_lifetimes)] </span><span class="comment">// https://github.com/rust-lang/rust/issues/55058
-</span><span class="kw">impl</span>&lt;St, F&gt; <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a> <span class="kw">for </span>NextIf&lt;<span class="lifetime">&#39;_</span>, St, F&gt;
+</span><span class="kw">impl</span>&lt;St, F&gt; Future <span class="kw">for </span>NextIf&lt;<span class="lifetime">&#39;_</span>, St, F&gt;
 <span class="kw">where
-    </span>St: <a href="../../../../futures_util/stream/trait.Stream.html">Stream</a>,
-    F: <span class="kw">for</span>&lt;<span class="lifetime">&#39;a</span>&gt; FnOnce1&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>St::Item, Output = <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>&gt;,
+    </span>St: Stream,
+    F: <span class="kw">for</span>&lt;<span class="lifetime">&#39;a</span>&gt; FnOnce1&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>St::Item, Output = bool&gt;,
 {
     <span class="kw">type </span>Output = <span class="prelude-ty">Option</span>&lt;St::Item&gt;;
 
     <span class="kw">fn </span>poll(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
-        <span class="kw">let </span>inner = <a class="self" href="#350">self</a>.<a href="#313-319">project</a>().inner;
-        <span class="kw">if let </span><span class="prelude-val">Some</span>((peekable, <span class="kw">_</span>)) = <a href="#351">inner</a> {
-            <span class="kw">let </span>res = <a class="macro" href="../../../../futures_util/macro.ready.html">ready!</a>(peekable.as_mut().poll_next(cx));
+        <span class="kw">let </span>inner = <span class="self">self</span>.project().inner;
+        <span class="kw">if let </span><span class="prelude-val">Some</span>((peekable, <span class="kw">_</span>)) = inner {
+            <span class="kw">let </span>res = <span class="macro">ready!</span>(peekable.as_mut().poll_next(cx));
 
-            <span class="kw">let </span>(peekable, func) = <a href="#351">inner</a>.take().unwrap();
-            <span class="kw">match </span><a href="#353">res</a> {
-                <span class="prelude-val">Some</span>(<span class="kw-2">ref </span>matched) <span class="kw">if </span><a href="#355">func</a>.<a href="../../fns.rs.html#6">call_once</a>(<a href="#357">matched</a>) =&gt; Poll::Ready(<a href="#353">res</a>),
+            <span class="kw">let </span>(peekable, func) = inner.take().unwrap();
+            <span class="kw">match </span>res {
+                <span class="prelude-val">Some</span>(<span class="kw-2">ref </span>matched) <span class="kw">if </span>func.call_once(matched) =&gt; Poll::Ready(res),
                 other =&gt; {
-                    <span class="kw">let </span>peekable = <a href="#355">peekable</a>.<a href="#14-27">project</a>();
+                    <span class="kw">let </span>peekable = peekable.project();
                     <span class="comment">// Since we called `self.next()`, we consumed `self.peeked`.
-                    </span><a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(peekable.peeked.is_none());
-                    <span class="kw-2">*</span><a href="#359">peekable</a>.peeked = <a href="#358">other</a>;
+                    </span><span class="macro">assert!</span>(peekable.peeked.is_none());
+                    <span class="kw-2">*</span>peekable.peeked = other;
                     Poll::Ready(<span class="prelude-val">None</span>)
                 }
             }
         } <span class="kw">else </span>{
-            <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(<span class="string">&quot;NextIf polled after completion&quot;</span>)
+            <span class="macro">panic!</span>(<span class="string">&quot;NextIf polled after completion&quot;</span>)
         }
     }
 }
 
-<a class="macro" href="../../../../pin_project_lite/macro.pin_project.html">pin_project! </a>{
+<span class="macro">pin_project! </span>{
     <span class="doccomment">/// Future for the [`Peekable::next_if_eq`](self::Peekable::next_if_eq) method.
     </span><span class="attr">#[must_use = <span class="string">&quot;futures do nothing unless polled&quot;</span>]
-    </span><span class="kw">pub struct </span>NextIfEq&lt;<span class="lifetime">&#39;a</span>, St: <a href="../../../../futures_util/stream/trait.Stream.html">Stream</a>, T: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>&gt; {
+    </span><span class="kw">pub struct </span>NextIfEq&lt;<span class="lifetime">&#39;a</span>, St: Stream, T: <span class="question-mark">?</span>Sized&gt; {
         <span class="attr">#[pin]
         </span>inner: NextIf&lt;<span class="lifetime">&#39;a</span>, St, NextIfEqFn&lt;<span class="lifetime">&#39;a</span>, T, St::Item&gt;&gt;,
     }
 }
 
-<span class="kw">impl</span>&lt;St, T&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span>NextIfEq&lt;<span class="lifetime">&#39;_</span>, St, T&gt;
+<span class="kw">impl</span>&lt;St, T&gt; fmt::Debug <span class="kw">for </span>NextIfEq&lt;<span class="lifetime">&#39;_</span>, St, T&gt;
 <span class="kw">where
-    </span>St: <a href="../../../../futures_util/stream/trait.Stream.html">Stream</a> + <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a>,
-    St::Item: <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a>,
-    T: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>,
+    </span>St: Stream + fmt::Debug,
+    St::Item: fmt::Debug,
+    T: <span class="question-mark">?</span>Sized,
 {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a href="#387">f</a>.debug_struct(<span class="string">&quot;NextIfEq&quot;</span>)
-            .field(<span class="string">&quot;inner&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="#387">self</a>.inner.inner.as_ref().map(|(s, _f)| <a href="#389">s</a>))
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        f.debug_struct(<span class="string">&quot;NextIfEq&quot;</span>)
+            .field(<span class="string">&quot;inner&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.inner.inner.as_ref().map(|(s, _f)| s))
             .finish()
     }
 }
 
-<span class="kw">impl</span>&lt;St, T&gt; <a href="../../../../futures_util/future/trait.FusedFuture.html">FusedFuture</a> <span class="kw">for </span>NextIfEq&lt;<span class="lifetime">&#39;_</span>, St, T&gt;
+<span class="kw">impl</span>&lt;St, T&gt; FusedFuture <span class="kw">for </span>NextIfEq&lt;<span class="lifetime">&#39;_</span>, St, T&gt;
 <span class="kw">where
-    </span>St: <a href="../../../../futures_util/stream/trait.Stream.html">Stream</a>,
-    T: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>,
+    </span>St: Stream,
+    T: <span class="question-mark">?</span>Sized,
     St::Item: PartialEq&lt;T&gt;,
 {
-    <span class="kw">fn </span>is_terminated(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#400">self</a>.inner.<a href="../../../../futures_util/future/trait.FusedFuture.html">is_terminated</a>()
+    <span class="kw">fn </span>is_terminated(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.inner.is_terminated()
     }
 }
 
-<span class="kw">impl</span>&lt;St, T&gt; <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a> <span class="kw">for </span>NextIfEq&lt;<span class="lifetime">&#39;_</span>, St, T&gt;
+<span class="kw">impl</span>&lt;St, T&gt; Future <span class="kw">for </span>NextIfEq&lt;<span class="lifetime">&#39;_</span>, St, T&gt;
 <span class="kw">where
-    </span>St: <a href="../../../../futures_util/stream/trait.Stream.html">Stream</a>,
-    T: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>,
+    </span>St: Stream,
+    T: <span class="question-mark">?</span>Sized,
     St::Item: PartialEq&lt;T&gt;,
 {
     <span class="kw">type </span>Output = <span class="prelude-ty">Option</span>&lt;St::Item&gt;;
 
     <span class="kw">fn </span>poll(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
-        <a class="self" href="#413">self</a>.<a href="#372-379">project</a>().inner.<a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">poll</a>(<a href="#413">cx</a>)
+        <span class="self">self</span>.project().inner.poll(cx)
     }
 }
 
-<span class="kw">struct </span>NextIfEqFn&lt;<span class="lifetime">&#39;a</span>, T: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>, Item&gt; {
+<span class="kw">struct </span>NextIfEqFn&lt;<span class="lifetime">&#39;a</span>, T: <span class="question-mark">?</span>Sized, Item&gt; {
     expected: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>T,
     _next: PhantomData&lt;Item&gt;,
 }
 
 <span class="kw">impl</span>&lt;T, Item&gt; FnOnce1&lt;<span class="kw-2">&amp;</span>Item&gt; <span class="kw">for </span>NextIfEqFn&lt;<span class="lifetime">&#39;_</span>, T, Item&gt;
 <span class="kw">where
-    </span>T: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>,
+    </span>T: <span class="question-mark">?</span>Sized,
     Item: PartialEq&lt;T&gt;,
 {
-    <span class="kw">type </span>Output = <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>;
+    <span class="kw">type </span>Output = bool;
 
     <span class="kw">fn </span>call_once(<span class="self">self</span>, next: <span class="kw-2">&amp;</span>Item) -&gt; <span class="self">Self</span>::Output {
-        <a href="#430">next</a> == <a class="self" href="#430">self</a>.expected
+        next == <span class="self">self</span>.expected
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="futures_util" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="futures_util" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

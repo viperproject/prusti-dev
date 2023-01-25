@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.21.2/src/sync/mpsc/list.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>list.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../../tokio/index.html"><img class="rust-logo" src="../../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.23.0/src/sync/mpsc/list.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>list.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../../tokio/index.html"><img class="rust-logo" src="../../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -371,12 +371,12 @@
 <a href="#371" id="371">371</a>
 </pre><pre class="rust"><code><span class="doccomment">//! A concurrent, lock-free, FIFO list.
 
-</span><span class="kw">use </span><span class="kw">crate</span>::loom::sync::atomic::{<a href="../../loom/std/atomic_ptr.rs.html#5">AtomicPtr</a>, <a href="../../loom/std/atomic_usize.rs.html#6">AtomicUsize</a>};
-<span class="kw">use </span><a href="../../loom/std/mod.rs.html#97"><span class="kw">crate</span>::loom::thread</a>;
-<span class="kw">use </span><span class="kw">crate</span>::sync::mpsc::block::{<a class="self" href="mod.rs.html#90">self</a>, <a href="block.rs.html#12">Block</a>};
+</span><span class="kw">use </span><span class="kw">crate</span>::loom::sync::atomic::{AtomicPtr, AtomicUsize};
+<span class="kw">use </span><span class="kw">crate</span>::loom::thread;
+<span class="kw">use </span><span class="kw">crate</span>::sync::mpsc::block::{<span class="self">self</span>, Block};
 
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">std::fmt</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/ptr/non_null/struct.NonNull.html">std::ptr::NonNull</a>;
+<span class="kw">use </span>std::fmt;
+<span class="kw">use </span>std::ptr::NonNull;
 <span class="kw">use </span>std::sync::atomic::Ordering::{AcqRel, Acquire, Relaxed, Release};
 
 <span class="doccomment">/// List queue transmit handle.
@@ -386,7 +386,7 @@
 
     <span class="doccomment">/// Position to push the next message. This references a block and offset
     /// into the block.
-    </span>tail_position: <a href="../../loom/std/atomic_usize.rs.html#6">AtomicUsize</a>,
+    </span>tail_position: AtomicUsize,
 }
 
 <span class="doccomment">/// List queue receive handle
@@ -395,7 +395,7 @@
     </span>head: NonNull&lt;Block&lt;T&gt;&gt;,
 
     <span class="doccomment">/// Next slot index to process.
-    </span>index: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+    </span>index: usize,
 
     <span class="doccomment">/// Pointer to the next block pending release.
     </span>free_head: NonNull&lt;Block&lt;T&gt;&gt;,
@@ -416,22 +416,22 @@
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>channel&lt;T&gt;() -&gt; (Tx&lt;T&gt;, Rx&lt;T&gt;) {
     <span class="comment">// Create the initial block shared between the tx and rx halves.
     </span><span class="kw">let </span>initial_block = Box::new(Block::new(<span class="number">0</span>));
-    <span class="kw">let </span>initial_block_ptr = Box::into_raw(<a href="#47">initial_block</a>);
+    <span class="kw">let </span>initial_block_ptr = Box::into_raw(initial_block);
 
-    <span class="kw">let </span>tx = <a href="#12">Tx</a> {
-        block_tail: AtomicPtr::new(<a href="#48">initial_block_ptr</a>),
+    <span class="kw">let </span>tx = Tx {
+        block_tail: AtomicPtr::new(initial_block_ptr),
         tail_position: AtomicUsize::new(<span class="number">0</span>),
     };
 
-    <span class="kw">let </span>head = NonNull::new(<a href="#48">initial_block_ptr</a>).unwrap();
+    <span class="kw">let </span>head = NonNull::new(initial_block_ptr).unwrap();
 
-    <span class="kw">let </span>rx = <a href="#22">Rx</a> {
-        <a href="#55">head</a>,
+    <span class="kw">let </span>rx = Rx {
+        head,
         index: <span class="number">0</span>,
-        free_head: <a href="#55">head</a>,
+        free_head: head,
     };
 
-    (<a href="#50">tx</a>, <a href="#57">rx</a>)
+    (tx, rx)
 }
 
 <span class="kw">impl</span>&lt;T&gt; Tx&lt;T&gt; {
@@ -439,14 +439,14 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>push(<span class="kw-2">&amp;</span><span class="self">self</span>, value: T) {
         <span class="comment">// First, claim a slot for the value. `Acquire` is used here to
         // synchronize with the `fetch_add` in `reclaim_blocks`.
-        </span><span class="kw">let </span>slot_index = <a class="self" href="#68">self</a>.tail_position.fetch_add(<span class="number">1</span>, Acquire);
+        </span><span class="kw">let </span>slot_index = <span class="self">self</span>.tail_position.fetch_add(<span class="number">1</span>, Acquire);
 
         <span class="comment">// Load the current block and write the value
-        </span><span class="kw">let </span>block = <a class="self" href="#68">self</a>.<a href="#96">find_block</a>(<a href="#71">slot_index</a>);
+        </span><span class="kw">let </span>block = <span class="self">self</span>.find_block(slot_index);
 
         <span class="kw">unsafe </span>{
             <span class="comment">// Write the value to the block
-            </span><a href="#74">block</a>.as_ref().<a href="block.rs.html#143">write</a>(<a href="#71">slot_index</a>, <a href="#68">value</a>);
+            </span>block.as_ref().write(slot_index, value);
         }
     }
 
@@ -457,27 +457,27 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>close(<span class="kw-2">&amp;</span><span class="self">self</span>) {
         <span class="comment">// First, claim a slot for the value. This is the last slot that will be
         // claimed.
-        </span><span class="kw">let </span>slot_index = <a class="self" href="#86">self</a>.tail_position.fetch_add(<span class="number">1</span>, Acquire);
+        </span><span class="kw">let </span>slot_index = <span class="self">self</span>.tail_position.fetch_add(<span class="number">1</span>, Acquire);
 
-        <span class="kw">let </span>block = <a class="self" href="#86">self</a>.<a href="#96">find_block</a>(<a href="#89">slot_index</a>);
+        <span class="kw">let </span>block = <span class="self">self</span>.find_block(slot_index);
 
-        <span class="kw">unsafe </span>{ <a href="#91">block</a>.as_ref().<a href="block.rs.html#158">tx_close</a>() }
+        <span class="kw">unsafe </span>{ block.as_ref().tx_close() }
     }
 
-    <span class="kw">fn </span>find_block(<span class="kw-2">&amp;</span><span class="self">self</span>, slot_index: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; NonNull&lt;Block&lt;T&gt;&gt; {
+    <span class="kw">fn </span>find_block(<span class="kw-2">&amp;</span><span class="self">self</span>, slot_index: usize) -&gt; NonNull&lt;Block&lt;T&gt;&gt; {
         <span class="comment">// The start index of the block that contains `index`.
-        </span><span class="kw">let </span>start_index = <a href="block.rs.html#64">block::start_index</a>(<a href="#96">slot_index</a>);
+        </span><span class="kw">let </span>start_index = block::start_index(slot_index);
 
         <span class="comment">// The index offset into the block
-        </span><span class="kw">let </span>offset = <a href="block.rs.html#70">block::offset</a>(<a href="#96">slot_index</a>);
+        </span><span class="kw">let </span>offset = block::offset(slot_index);
 
         <span class="comment">// Load the current head of the block
-        </span><span class="kw">let </span><span class="kw-2">mut </span>block_ptr = <a class="self" href="#96">self</a>.block_tail.load(Acquire);
+        </span><span class="kw">let </span><span class="kw-2">mut </span>block_ptr = <span class="self">self</span>.block_tail.load(Acquire);
 
-        <span class="kw">let </span>block = <span class="kw">unsafe </span>{ <span class="kw-2">&amp;*</span><a href="#104">block_ptr</a> };
+        <span class="kw">let </span>block = <span class="kw">unsafe </span>{ <span class="kw-2">&amp;*</span>block_ptr };
 
         <span class="comment">// Calculate the distance between the tail ptr and the target block
-        </span><span class="kw">let </span>distance = <a href="#106">block</a>.<a href="block.rs.html#102">distance</a>(<a href="#98">start_index</a>);
+        </span><span class="kw">let </span>distance = block.distance(start_index);
 
         <span class="comment">// Decide if this call to `find_block` should attempt to update the
         // `block_tail` pointer.
@@ -488,25 +488,25 @@
         // When set, as the routine walks the linked list, it attempts to update
         // `block_tail`. If the update cannot be performed, `try_updating_tail`
         // is unset.
-        </span><span class="kw">let </span><span class="kw-2">mut </span>try_updating_tail = <a href="#109">distance</a> &gt; <a href="#101">offset</a>;
+        </span><span class="kw">let </span><span class="kw-2">mut </span>try_updating_tail = distance &gt; offset;
 
         <span class="comment">// Walk the linked list of blocks until the block with `start_index` is
         // found.
         </span><span class="kw">loop </span>{
-            <span class="kw">let </span>block = <span class="kw">unsafe </span>{ <span class="kw-2">&amp;</span>(<span class="kw-2">*</span><a href="#104">block_ptr</a>) };
+            <span class="kw">let </span>block = <span class="kw">unsafe </span>{ <span class="kw-2">&amp;</span>(<span class="kw-2">*</span>block_ptr) };
 
             <span class="kw">if </span>block.is_at_index(start_index) {
-                <span class="kw">return unsafe </span>{ NonNull::new_unchecked(<a href="#104">block_ptr</a>) };
+                <span class="kw">return unsafe </span>{ NonNull::new_unchecked(block_ptr) };
             }
 
-            <span class="kw">let </span>next_block = <a href="#125">block</a>
-                .<a href="block.rs.html#230">load_next</a>(Acquire)
+            <span class="kw">let </span>next_block = block
+                .load_next(Acquire)
                 <span class="comment">// There is no allocated next block, grow the linked list.
-                </span>.unwrap_or_else(|| <a href="#125">block</a>.<a href="block.rs.html#290">grow</a>());
+                </span>.unwrap_or_else(|| block.grow());
 
             <span class="comment">// If the block is **not** final, then the tail pointer cannot be
             // advanced any more.
-            </span><a href="#120">try_updating_tail</a> &amp;= <a href="#125">block</a>.<a href="block.rs.html#216">is_final</a>();
+            </span>try_updating_tail &amp;= block.is_final();
 
             <span class="kw">if </span>try_updating_tail {
                 <span class="comment">// Advancing `block_tail` must happen when walking the linked
@@ -529,23 +529,23 @@
                     .is_ok()
                 {
                     <span class="comment">// Synchronize with any senders
-                    </span><span class="kw">let </span>tail_position = <a class="self" href="#96">self</a>.tail_position.fetch_add(<span class="number">0</span>, Release);
+                    </span><span class="kw">let </span>tail_position = <span class="self">self</span>.tail_position.fetch_add(<span class="number">0</span>, Release);
 
                     <span class="kw">unsafe </span>{
-                        <a href="#125">block</a>.<a href="block.rs.html#187">tx_release</a>(<a href="#161">tail_position</a>);
+                        block.tx_release(tail_position);
                     }
                 } <span class="kw">else </span>{
                     <span class="comment">// A concurrent sender is also working on advancing
                     // `block_tail` and this thread is falling behind.
                     //
                     // Stop trying to advance the tail pointer
-                    </span><a href="#120">try_updating_tail</a> = <span class="bool-val">false</span>;
+                    </span>try_updating_tail = <span class="bool-val">false</span>;
                 }
             }
 
-            <a href="#104">block_ptr</a> = <a href="#131">next_block</a>.as_ptr();
+            block_ptr = next_block.as_ptr();
 
-            <a href="../../loom/std/mod.rs.html#99">thread::yield_now</a>();
+            thread::yield_now();
         }
     }
 
@@ -557,7 +557,7 @@
         // inserting it back at the end of the linked list.
         //
         // First, reset the data
-        </span><a href="#181">block</a>.as_mut().<a href="block.rs.html#171">reclaim</a>();
+        </span>block.as_mut().reclaim();
 
         <span class="kw">let </span><span class="kw-2">mut </span>reused = <span class="bool-val">false</span>;
 
@@ -565,12 +565,12 @@
         //
         // Walk at most three times
         //
-        </span><span class="kw">let </span>curr_ptr = <a class="self" href="#181">self</a>.block_tail.load(Acquire);
+        </span><span class="kw">let </span>curr_ptr = <span class="self">self</span>.block_tail.load(Acquire);
 
         <span class="comment">// The pointer can never be null
-        </span><a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(!curr_ptr.is_null());
+        </span><span class="macro">debug_assert!</span>(!curr_ptr.is_null());
 
-        <span class="kw">let </span><span class="kw-2">mut </span>curr = NonNull::new_unchecked(<a href="#197">curr_ptr</a>);
+        <span class="kw">let </span><span class="kw-2">mut </span>curr = NonNull::new_unchecked(curr_ptr);
 
         <span class="comment">// TODO: Unify this logic with Block::grow
         </span><span class="kw">for _ in </span><span class="number">0</span>..<span class="number">3 </span>{
@@ -586,16 +586,16 @@
         }
 
         <span class="kw">if </span>!reused {
-            <span class="kw">let _ </span>= Box::from_raw(<a href="#181">block</a>.as_ptr());
+            <span class="kw">let _ </span>= Box::from_raw(block.as_ptr());
         }
     }
 }
 
-<span class="kw">impl</span>&lt;T&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span>Tx&lt;T&gt; {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, fmt: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a href="#224">fmt</a>.debug_struct(<span class="string">&quot;Tx&quot;</span>)
-            .field(<span class="string">&quot;block_tail&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="#224">self</a>.block_tail.load(Relaxed))
-            .field(<span class="string">&quot;tail_position&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="#224">self</a>.tail_position.load(Relaxed))
+<span class="kw">impl</span>&lt;T&gt; fmt::Debug <span class="kw">for </span>Tx&lt;T&gt; {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, fmt: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        fmt.debug_struct(<span class="string">&quot;Tx&quot;</span>)
+            .field(<span class="string">&quot;block_tail&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.block_tail.load(Relaxed))
+            .field(<span class="string">&quot;tail_position&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.tail_position.load(Relaxed))
             .finish()
     }
 }
@@ -608,18 +608,18 @@
             <span class="kw">return </span><span class="prelude-val">None</span>;
         }
 
-        <a class="self" href="#234">self</a>.<a href="#305">reclaim_blocks</a>(<a href="#234">tx</a>);
+        <span class="self">self</span>.reclaim_blocks(tx);
 
         <span class="kw">unsafe </span>{
-            <span class="kw">let </span>block = <a class="self" href="#234">self</a>.head.as_ref();
+            <span class="kw">let </span>block = <span class="self">self</span>.head.as_ref();
 
-            <span class="kw">let </span>ret = <a href="#243">block</a>.<a href="block.rs.html#116">read</a>(<a class="self" href="#234">self</a>.index);
+            <span class="kw">let </span>ret = block.read(<span class="self">self</span>.index);
 
-            <span class="kw">if let </span><span class="prelude-val">Some</span>(<a href="block.rs.html#35">block::Read::Value</a>(..)) = <a href="#245">ret</a> {
-                <a class="self" href="#234">self</a>.index = <a class="self" href="#234">self</a>.index.wrapping_add(<span class="number">1</span>);
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(block::Read::Value(..)) = ret {
+                <span class="self">self</span>.index = <span class="self">self</span>.index.wrapping_add(<span class="number">1</span>);
             }
 
-            <a href="#245">ret</a>
+            ret
         }
     }
 
@@ -632,44 +632,44 @@
     /// that is in the middle of being written to the block, since the channel
     /// can&#39;t return the messages out of order.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>try_pop(<span class="kw-2">&amp;mut </span><span class="self">self</span>, tx: <span class="kw-2">&amp;</span>Tx&lt;T&gt;) -&gt; TryPopResult&lt;T&gt; {
-        <span class="kw">let </span>tail_position = <a href="#263">tx</a>.tail_position.load(Acquire);
-        <span class="kw">let </span>result = <a class="self" href="#263">self</a>.<a href="#234">pop</a>(<a href="#263">tx</a>);
+        <span class="kw">let </span>tail_position = tx.tail_position.load(Acquire);
+        <span class="kw">let </span>result = <span class="self">self</span>.pop(tx);
 
-        <span class="kw">match </span><a href="#265">result</a> {
-            <span class="prelude-val">Some</span>(<a href="block.rs.html#35">block::Read::Value</a>(t)) =&gt; <a href="#36">TryPopResult::Ok</a>(<a href="#268">t</a>),
-            <span class="prelude-val">Some</span>(<a href="block.rs.html#36">block::Read::Closed</a>) =&gt; <a href="#40">TryPopResult::Closed</a>,
-            <span class="prelude-val">None </span><span class="kw">if </span><a href="#264">tail_position</a> == <a class="self" href="#263">self</a>.index =&gt; <a href="#38">TryPopResult::Empty</a>,
-            <span class="prelude-val">None </span>=&gt; <a href="#42">TryPopResult::Busy</a>,
+        <span class="kw">match </span>result {
+            <span class="prelude-val">Some</span>(block::Read::Value(t)) =&gt; TryPopResult::Ok(t),
+            <span class="prelude-val">Some</span>(block::Read::Closed) =&gt; TryPopResult::Closed,
+            <span class="prelude-val">None </span><span class="kw">if </span>tail_position == <span class="self">self</span>.index =&gt; TryPopResult::Empty,
+            <span class="prelude-val">None </span>=&gt; TryPopResult::Busy,
         }
     }
 
     <span class="doccomment">/// Tries advancing the block pointer to the block referenced by `self.index`.
     ///
     /// Returns `true` if successful, `false` if there is no next block to load.
-    </span><span class="kw">fn </span>try_advancing_head(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">let </span>block_index = <a href="block.rs.html#64">block::start_index</a>(<a class="self" href="#278">self</a>.index);
+    </span><span class="kw">fn </span>try_advancing_head(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; bool {
+        <span class="kw">let </span>block_index = block::start_index(<span class="self">self</span>.index);
 
         <span class="kw">loop </span>{
             <span class="kw">let </span>next_block = {
-                <span class="kw">let </span>block = <span class="kw">unsafe </span>{ <a class="self" href="#278">self</a>.head.as_ref() };
+                <span class="kw">let </span>block = <span class="kw">unsafe </span>{ <span class="self">self</span>.head.as_ref() };
 
                 <span class="kw">if </span>block.is_at_index(block_index) {
                     <span class="kw">return </span><span class="bool-val">true</span>;
                 }
 
-                <a href="#283">block</a>.<a href="block.rs.html#230">load_next</a>(Acquire)
+                block.load_next(Acquire)
             };
 
-            <span class="kw">let </span>next_block = <span class="kw">match </span><a href="#282">next_block</a> {
-                <span class="prelude-val">Some</span>(next_block) =&gt; <a href="#293">next_block</a>,
+            <span class="kw">let </span>next_block = <span class="kw">match </span>next_block {
+                <span class="prelude-val">Some</span>(next_block) =&gt; next_block,
                 <span class="prelude-val">None </span>=&gt; {
                     <span class="kw">return </span><span class="bool-val">false</span>;
                 }
             };
 
-            <a class="self" href="#278">self</a>.head = <a href="#292">next_block</a>;
+            <span class="self">self</span>.head = next_block;
 
-            <a href="../../loom/std/mod.rs.html#99">thread::yield_now</a>();
+            thread::yield_now();
         }
     }
 
@@ -712,16 +712,16 @@
     <span class="doccomment">/// Effectively `Drop` all the blocks. Should only be called once, when
     /// the list is dropping.
     </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">unsafe fn </span>free_blocks(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert_ne.html">debug_assert_ne!</a>(<span class="self">self</span>.free_head, NonNull::dangling());
+        <span class="macro">debug_assert_ne!</span>(<span class="self">self</span>.free_head, NonNull::dangling());
 
-        <span class="kw">let </span><span class="kw-2">mut </span>cur = <span class="prelude-val">Some</span>(<a class="self" href="#343">self</a>.free_head);
+        <span class="kw">let </span><span class="kw-2">mut </span>cur = <span class="prelude-val">Some</span>(<span class="self">self</span>.free_head);
 
         <span class="attr">#[cfg(debug_assertions)]
         </span>{
             <span class="comment">// to trigger the debug assert above so as to catch that we
             // don&#39;t call `free_blocks` more than once.
-            </span><a class="self" href="#343">self</a>.free_head = NonNull::dangling();
-            <a class="self" href="#343">self</a>.head = NonNull::dangling();
+            </span><span class="self">self</span>.free_head = NonNull::dangling();
+            <span class="self">self</span>.head = NonNull::dangling();
         }
 
         <span class="kw">while let </span><span class="prelude-val">Some</span>(block) = cur {
@@ -731,14 +731,14 @@
     }
 }
 
-<span class="kw">impl</span>&lt;T&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span>Rx&lt;T&gt; {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, fmt: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a href="#364">fmt</a>.debug_struct(<span class="string">&quot;Rx&quot;</span>)
-            .field(<span class="string">&quot;head&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="#364">self</a>.head)
-            .field(<span class="string">&quot;index&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="#364">self</a>.index)
-            .field(<span class="string">&quot;free_head&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="#364">self</a>.free_head)
+<span class="kw">impl</span>&lt;T&gt; fmt::Debug <span class="kw">for </span>Rx&lt;T&gt; {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, fmt: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        fmt.debug_struct(<span class="string">&quot;Rx&quot;</span>)
+            .field(<span class="string">&quot;head&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.head)
+            .field(<span class="string">&quot;index&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.index)
+            .field(<span class="string">&quot;free_head&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.free_head)
             .finish()
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="tokio" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="tokio" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

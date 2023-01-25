@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `prusti-viper/src/utils/type_visitor.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>type_visitor.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../prusti_viper/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `prusti-viper/src/utils/type_visitor.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>type_visitor.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../prusti_viper/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -327,77 +327,77 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-</span><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_ast/ast/enum.Mutability.html">prusti_rustc_interface::hir::Mutability</a>;
+</span><span class="kw">use </span>prusti_rustc_interface::hir::Mutability;
 <span class="kw">use </span>prusti_rustc_interface::middle::ty::{
-    AdtDef, <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/struct.FieldDef.html">FieldDef</a>, <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/list/struct.List.html">List</a>, <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/sty/struct.ParamTy.html">ParamTy</a>, <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/sty/struct.ProjectionTy.html">ProjectionTy</a>, Region, <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/struct.Ty.html">Ty</a>, <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/context/struct.TyCtxt.html">TyCtxt</a>,
-    TypeFlags, <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/sty/type.TyKind.html">TyKind</a>, IntTy, UintTy, FloatTy, <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/struct.VariantDef.html">VariantDef</a>, <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/subst/type.SubstsRef.html">subst::SubstsRef</a>, Const
+    AdtDef, FieldDef, List, ParamTy, Region, AliasKind, AliasTy, Ty, TyCtxt,
+    TypeFlags, TyKind, IntTy, UintTy, FloatTy, VariantDef, subst::SubstsRef, Const
 };
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.DefId.html">prusti_rustc_interface::hir::def_id::DefId</a>;
-<span class="kw">use </span><a href="../../../log/macro.trace.html">log::trace</a>;
+<span class="kw">use </span>prusti_rustc_interface::hir::def_id::DefId;
+<span class="kw">use </span>log::trace;
 
-<span class="kw">pub trait </span>TypeVisitor&lt;<span class="lifetime">&#39;tcx</span>&gt;: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> {
+<span class="kw">pub trait </span>TypeVisitor&lt;<span class="lifetime">&#39;tcx</span>&gt;: Sized {
     <span class="kw">type </span>Error;
 
     <span class="kw">fn </span>tcx(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; TyCtxt&lt;<span class="lifetime">&#39;tcx</span>&gt;;
 
-    <span class="kw">fn </span>unsupported&lt;S: <a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">ToString</a>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, _msg: S) -&gt; <span class="self">Self</span>::Error;
+    <span class="kw">fn </span>unsupported&lt;S: ToString&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, _msg: S) -&gt; <span class="self">Self</span>::Error;
 
     <span class="kw">fn </span>visit_ty(<span class="kw-2">&amp;mut </span><span class="self">self</span>, ty: Ty&lt;<span class="lifetime">&#39;tcx</span>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt; {
-        <a class="macro" href="../../../log/macro.trace.html">trace!</a>(<span class="string">&quot;visit_ty({:?})&quot;</span>, ty);
+        <span class="macro">trace!</span>(<span class="string">&quot;visit_ty({:?})&quot;</span>, ty);
         <span class="self">self</span>.visit_sty(ty.kind())<span class="question-mark">?</span>;
-        <a class="self" href="#22">self</a>.<a href="#87">visit_flags</a>(<a href="#22">ty</a>.flags())
+        <span class="self">self</span>.visit_flags(ty.flags())
     }
 
     <span class="kw">fn </span>visit_sty(<span class="kw-2">&amp;mut </span><span class="self">self</span>, sty: <span class="kw-2">&amp;</span>TyKind&lt;<span class="lifetime">&#39;tcx</span>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt; {
-        <a class="macro" href="../../../log/macro.trace.html">trace!</a>(<span class="string">&quot;visit_sty({:?})&quot;</span>, sty);
-        <span class="kw">match </span><span class="kw-2">*</span><a href="#28">sty</a> {
+        <span class="macro">trace!</span>(<span class="string">&quot;visit_sty({:?})&quot;</span>, sty);
+        <span class="kw">match </span><span class="kw-2">*</span>sty {
             TyKind::Bool =&gt; {
-                <a class="self" href="#28">self</a>.<a href="#91">visit_bool</a>()
+                <span class="self">self</span>.visit_bool()
             }
             TyKind::Int(ty) =&gt; {
-                <a class="self" href="#28">self</a>.<a href="#95">visit_int</a>(<a href="#34">ty</a>)
+                <span class="self">self</span>.visit_int(ty)
             }
             TyKind::Uint(ty) =&gt; {
-                <a class="self" href="#28">self</a>.<a href="#99">visit_uint</a>(<a href="#37">ty</a>)
+                <span class="self">self</span>.visit_uint(ty)
             }
             TyKind::Float(ty) =&gt; {
-                <a class="self" href="#28">self</a>.<a href="#103">visit_float</a>(<a href="#40">ty</a>)
+                <span class="self">self</span>.visit_float(ty)
             }
             TyKind::Char =&gt; {
-                <a class="self" href="#28">self</a>.<a href="#107">visit_char</a>()
+                <span class="self">self</span>.visit_char()
             }
             TyKind::Adt(adt_def, substs) =&gt; {
-                <a class="self" href="#28">self</a>.<a href="#126-130">visit_adt</a>(<a href="#46">adt_def</a>, <a href="#46">substs</a>)
+                <span class="self">self</span>.visit_adt(adt_def, substs)
             }
             TyKind::Ref(region, ty, mutability) =&gt; {
-                <a class="self" href="#28">self</a>.<a href="#156-161">visit_ref</a>(<a href="#49">region</a>, <a href="#49">ty</a>, <a href="#49">mutability</a>)
+                <span class="self">self</span>.visit_ref(region, ty, mutability)
             }
             TyKind::Tuple(types) =&gt; {
-                <a class="self" href="#28">self</a>.<a href="#176-179">visit_tuple</a>(<a href="#52">types</a>)
+                <span class="self">self</span>.visit_tuple(types)
             }
             TyKind::RawPtr(ty_and_mutbl) =&gt; {
-                <a class="self" href="#28">self</a>.<a href="#184-188">visit_raw_ptr</a>(<a href="#55">ty_and_mutbl</a>.ty, <a href="#55">ty_and_mutbl</a>.mutbl)
+                <span class="self">self</span>.visit_raw_ptr(ty_and_mutbl.ty, ty_and_mutbl.mutbl)
             }
             TyKind::Never =&gt; {
-                <a class="self" href="#28">self</a>.<a href="#111">visit_never</a>()
+                <span class="self">self</span>.visit_never()
             }
             TyKind::Param(param) =&gt; {
-                <a class="self" href="#28">self</a>.<a href="#115">visit_param</a>(<a href="#61">param</a>)
+                <span class="self">self</span>.visit_param(param)
             }
-            TyKind::Projection(data) =&gt; {
-                <a class="self" href="#28">self</a>.<a href="#119-122">visit_projection</a>(<a href="#64">data</a>)
+            TyKind::Alias(AliasKind::Projection, alias_ty) =&gt; {
+                <span class="self">self</span>.visit_projection(alias_ty)
             }
             TyKind::Closure(def_id, substs) =&gt; {
-                <a class="self" href="#28">self</a>.<a href="#193-197">visit_closure</a>(<a href="#67">def_id</a>, <a href="#67">substs</a>)
+                <span class="self">self</span>.visit_closure(def_id, substs)
             }
             TyKind::FnDef(def_id, substs) =&gt; {
-                <a class="self" href="#28">self</a>.<a href="#202-206">visit_fndef</a>(<a href="#70">def_id</a>, <a href="#70">substs</a>)
+                <span class="self">self</span>.visit_fndef(def_id, substs)
             }
             TyKind::Array(ty, len) =&gt; {
-                <a class="self" href="#28">self</a>.<a href="#211-215">visit_array</a>(<a href="#73">ty</a>, <a href="#73">len</a>)
+                <span class="self">self</span>.visit_array(ty, len)
             }
             <span class="kw-2">ref </span>x =&gt; {
-                <a class="self" href="#28">self</a>.<a href="#82-85">visit_unsupported_sty</a>(<a href="#76">x</a>)
+                <span class="self">self</span>.visit_unsupported_sty(x)
             }
         }
     }
@@ -435,13 +435,13 @@
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="kw">fn </span>visit_param(<span class="kw-2">&amp;mut </span><span class="self">self</span>, _param: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/sty/struct.ParamTy.html">ParamTy</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt; {
+    <span class="kw">fn </span>visit_param(<span class="kw-2">&amp;mut </span><span class="self">self</span>, _param: ParamTy) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt; {
         <span class="prelude-val">Ok</span>(())
     }
 
     <span class="kw">fn </span>visit_projection(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        _data: ProjectionTy&lt;<span class="lifetime">&#39;tcx</span>&gt;
+        _data: AliasTy&lt;<span class="lifetime">&#39;tcx</span>&gt;
     ) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt; {
         <span class="prelude-val">Ok</span>(())
     }
@@ -451,84 +451,84 @@
         adt_def: AdtDef&lt;<span class="lifetime">&#39;tcx</span>&gt;,
         substs: SubstsRef&lt;<span class="lifetime">&#39;tcx</span>&gt;
     ) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt; {
-        <a class="macro" href="../../../log/macro.trace.html">trace!</a>(<span class="string">&quot;visit_adt({:?})&quot;</span>, adt_def);
-        <a href="#221-225">walk_adt</a>(<a class="self" href="#127">self</a>, <a href="#128">adt_def</a>, <a href="#129">substs</a>)
+        <span class="macro">trace!</span>(<span class="string">&quot;visit_adt({:?})&quot;</span>, adt_def);
+        walk_adt(<span class="self">self</span>, adt_def, substs)
     }
 
     <span class="kw">fn </span>visit_adt_variant(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         adt: AdtDef&lt;<span class="lifetime">&#39;tcx</span>&gt;,
-        idx: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_target/abi/struct.VariantIdx.html">prusti_rustc_interface::target::abi::VariantIdx</a>,
-        variant: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/struct.VariantDef.html">VariantDef</a>,
+        idx: prusti_rustc_interface::target::abi::VariantIdx,
+        variant: <span class="kw-2">&amp;</span>VariantDef,
         substs: SubstsRef&lt;<span class="lifetime">&#39;tcx</span>&gt;,
     )  -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt; {
-        <a class="macro" href="../../../log/macro.trace.html">trace!</a>(<span class="string">&quot;visit_adt_variant({:?}, {:?}, {:?})&quot;</span>, adt, idx, variant);
-        <a href="#232-236">walk_adt_variant</a>(<a class="self" href="#136">self</a>, <a href="#139">variant</a>, <a href="#140">substs</a>)
+        <span class="macro">trace!</span>(<span class="string">&quot;visit_adt_variant({:?}, {:?}, {:?})&quot;</span>, adt, idx, variant);
+        walk_adt_variant(<span class="self">self</span>, variant, substs)
     }
 
     <span class="kw">fn </span>visit_field(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        index: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-        field: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/struct.FieldDef.html">FieldDef</a>,
+        index: usize,
+        field: <span class="kw-2">&amp;</span>FieldDef,
         substs: SubstsRef&lt;<span class="lifetime">&#39;tcx</span>&gt;,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt; {
-        <a class="macro" href="../../../log/macro.trace.html">trace!</a>(<span class="string">&quot;visit_field({}, {:?})&quot;</span>, index, field);
-        <a href="#243-247">walk_field</a>(<a class="self" href="#147">self</a>, <a href="#149">field</a>, <a href="#150">substs</a>)
+        <span class="macro">trace!</span>(<span class="string">&quot;visit_field({}, {:?})&quot;</span>, index, field);
+        walk_field(<span class="self">self</span>, field, substs)
     }
 
     <span class="kw">fn </span>visit_ref(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         region: Region&lt;<span class="lifetime">&#39;tcx</span>&gt;,
         ty: Ty&lt;<span class="lifetime">&#39;tcx</span>&gt;,
-        mutability: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_ast/ast/enum.Mutability.html">Mutability</a>
+        mutability: Mutability
     ) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt; {
-        <a class="macro" href="../../../log/macro.trace.html">trace!</a>(<span class="string">&quot;visit_ref({:?}, {:?}, {:?})&quot;</span>, region, ty, mutability);
-        <a href="#252-257">walk_ref</a>(<a class="self" href="#157">self</a>, <a href="#158">region</a>, <a href="#159">ty</a>, <a href="#160">mutability</a>)
+        <span class="macro">trace!</span>(<span class="string">&quot;visit_ref({:?}, {:?}, {:?})&quot;</span>, region, ty, mutability);
+        walk_ref(<span class="self">self</span>, region, ty, mutability)
     }
 
     <span class="attr">#[allow(dead_code)]
     </span><span class="kw">fn </span>visit_ref_type(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         ty: Ty&lt;<span class="lifetime">&#39;tcx</span>&gt;,
-        mutability: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_ast/ast/enum.Mutability.html">Mutability</a>
+        mutability: Mutability
     ) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt; {
-        <a class="macro" href="../../../log/macro.trace.html">trace!</a>(<span class="string">&quot;visit_ref_type({:?}, {:?})&quot;</span>, ty, mutability);
-        <a href="#261-265">walk_ref_type</a>(<a class="self" href="#168">self</a>, <a href="#169">ty</a>, <a href="#170">mutability</a>)
+        <span class="macro">trace!</span>(<span class="string">&quot;visit_ref_type({:?}, {:?})&quot;</span>, ty, mutability);
+        walk_ref_type(<span class="self">self</span>, ty, mutability)
     }
 
     <span class="kw">fn </span>visit_tuple(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         types: <span class="kw-2">&amp;</span><span class="lifetime">&#39;tcx </span>List&lt;Ty&lt;<span class="lifetime">&#39;tcx</span>&gt;&gt;
     ) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt; {
-        <a class="macro" href="../../../log/macro.trace.html">trace!</a>(<span class="string">&quot;visit_tuple({:?})&quot;</span>, types);
-        <a href="#269-272">walk_tuple</a>(<a class="self" href="#177">self</a>, <a href="#178">types</a>)
+        <span class="macro">trace!</span>(<span class="string">&quot;visit_tuple({:?})&quot;</span>, types);
+        walk_tuple(<span class="self">self</span>, types)
     }
 
     <span class="kw">fn </span>visit_raw_ptr(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         ty: Ty&lt;<span class="lifetime">&#39;tcx</span>&gt;,
-        mutability: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_ast/ast/enum.Mutability.html">Mutability</a>
+        mutability: Mutability
     ) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt; {
-        <a class="macro" href="../../../log/macro.trace.html">trace!</a>(<span class="string">&quot;visit_raw_ptr({:?}, {:?})&quot;</span>, ty, mutability);
-        <a href="#279-283">walk_raw_ptr</a>(<a class="self" href="#185">self</a>, <a href="#186">ty</a>, <a href="#187">mutability</a>)
+        <span class="macro">trace!</span>(<span class="string">&quot;visit_raw_ptr({:?}, {:?})&quot;</span>, ty, mutability);
+        walk_raw_ptr(<span class="self">self</span>, ty, mutability)
     }
 
     <span class="kw">fn </span>visit_closure(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        def_id: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.DefId.html">DefId</a>,
+        def_id: DefId,
         substs: SubstsRef&lt;<span class="lifetime">&#39;tcx</span>&gt;
     ) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt; {
-        <a class="macro" href="../../../log/macro.trace.html">trace!</a>(<span class="string">&quot;visit_closure({:?})&quot;</span>, def_id);
-        <a href="#287-291">walk_closure</a>(<a class="self" href="#194">self</a>, <a href="#195">def_id</a>, <a href="#196">substs</a>)
+        <span class="macro">trace!</span>(<span class="string">&quot;visit_closure({:?})&quot;</span>, def_id);
+        walk_closure(<span class="self">self</span>, def_id, substs)
     }
 
     <span class="kw">fn </span>visit_fndef(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        def_id: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.DefId.html">DefId</a>,
+        def_id: DefId,
         substs: SubstsRef&lt;<span class="lifetime">&#39;tcx</span>&gt;
     ) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt; {
-        <a class="macro" href="../../../log/macro.trace.html">trace!</a>(<span class="string">&quot;visit_fndef({:?})&quot;</span>, def_id);
-        <a href="#304-308">walk_fndef</a>(<a class="self" href="#203">self</a>, <a href="#204">def_id</a>, <a href="#205">substs</a>)
+        <span class="macro">trace!</span>(<span class="string">&quot;visit_fndef({:?})&quot;</span>, def_id);
+        walk_fndef(<span class="self">self</span>, def_id, substs)
     }
 
     <span class="kw">fn </span>visit_array(
@@ -536,8 +536,8 @@
         ty: Ty&lt;<span class="lifetime">&#39;tcx</span>&gt;,
         len: Const&lt;<span class="lifetime">&#39;tcx</span>&gt;,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt; {
-        <a class="macro" href="../../../log/macro.trace.html">trace!</a>(<span class="string">&quot;visit_array({:?}, {:?})&quot;</span>, ty, len);
-        <a href="#315-319">walk_array</a>(<a class="self" href="#212">self</a>, <a href="#213">ty</a>, <a href="#214">len</a>)
+        <span class="macro">trace!</span>(<span class="string">&quot;visit_array({:?}, {:?})&quot;</span>, ty, len);
+        walk_array(<span class="self">self</span>, ty, len)
     }
 }
 
@@ -554,7 +554,7 @@
 
 <span class="kw">pub fn </span>walk_adt_variant&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;tcx</span>, E, V: TypeVisitor&lt;<span class="lifetime">&#39;tcx</span>, Error = E&gt;&gt;(
     visitor: <span class="kw-2">&amp;mut </span>V,
-    variant: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/struct.VariantDef.html">VariantDef</a>,
+    variant: <span class="kw-2">&amp;</span>VariantDef,
     substs: SubstsRef&lt;<span class="lifetime">&#39;tcx</span>&gt;,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;(), E&gt; {
     <span class="kw">for </span>(index, field) <span class="kw">in </span>variant.fields.iter().enumerate() {
@@ -565,28 +565,28 @@
 
 <span class="kw">pub fn </span>walk_field&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;tcx</span>, E, V: TypeVisitor&lt;<span class="lifetime">&#39;tcx</span>, Error = E&gt;&gt;(
     visitor: <span class="kw-2">&amp;mut </span>V,
-    field: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/struct.FieldDef.html">FieldDef</a>,
+    field: <span class="kw-2">&amp;</span>FieldDef,
     substs: SubstsRef&lt;<span class="lifetime">&#39;tcx</span>&gt;,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;(), E&gt; {
-    <span class="kw">let </span>ty = <a href="#245">field</a>.ty(<a href="#244">visitor</a>.<a href="#18">tcx</a>(), <a href="#246">substs</a>);
-    <a href="#244">visitor</a>.<a href="#22">visit_ty</a>(<a href="#248">ty</a>)
+    <span class="kw">let </span>ty = field.ty(visitor.tcx(), substs);
+    visitor.visit_ty(ty)
 }
 
 <span class="kw">pub fn </span>walk_ref&lt;<span class="lifetime">&#39;tcx</span>, E, V: TypeVisitor&lt;<span class="lifetime">&#39;tcx</span>, Error = E&gt;&gt;(
     visitor: <span class="kw-2">&amp;mut </span>V,
     <span class="kw">_</span>: Region&lt;<span class="lifetime">&#39;tcx</span>&gt;,
     ty: Ty&lt;<span class="lifetime">&#39;tcx</span>&gt;,
-    <span class="kw">_</span>: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_ast/ast/enum.Mutability.html">Mutability</a>,
+    <span class="kw">_</span>: Mutability,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;(), E&gt; {
-    <a href="#253">visitor</a>.<a href="#22">visit_ty</a>(<a href="#255">ty</a>)
+    visitor.visit_ty(ty)
 }
 
 <span class="kw">pub fn </span>walk_ref_type&lt;<span class="lifetime">&#39;tcx</span>, E, V: TypeVisitor&lt;<span class="lifetime">&#39;tcx</span>, Error = E&gt;&gt;(
     visitor: <span class="kw-2">&amp;mut </span>V,
     ty: Ty&lt;<span class="lifetime">&#39;tcx</span>&gt;,
-    <span class="kw">_</span>: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_ast/ast/enum.Mutability.html">Mutability</a>,
+    <span class="kw">_</span>: Mutability,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;(), E&gt; {
-    <a href="#262">visitor</a>.<a href="#22">visit_ty</a>(<a href="#263">ty</a>)
+    visitor.visit_ty(ty)
 }
 
 <span class="kw">pub fn </span>walk_tuple&lt;<span class="lifetime">&#39;tcx</span>, E, V: TypeVisitor&lt;<span class="lifetime">&#39;tcx</span>, Error = E&gt;&gt;(
@@ -602,17 +602,17 @@
 <span class="kw">pub fn </span>walk_raw_ptr&lt;<span class="lifetime">&#39;tcx</span>, E, V: TypeVisitor&lt;<span class="lifetime">&#39;tcx</span>, Error = E&gt;&gt;(
     visitor: <span class="kw-2">&amp;mut </span>V,
     ty: Ty&lt;<span class="lifetime">&#39;tcx</span>&gt;,
-    <span class="kw">_</span>: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_ast/ast/enum.Mutability.html">Mutability</a>,
+    <span class="kw">_</span>: Mutability,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;(), E&gt; {
-    <a href="#280">visitor</a>.<a href="#22">visit_ty</a>(<a href="#281">ty</a>)
+    visitor.visit_ty(ty)
 }
 
 <span class="kw">pub fn </span>walk_closure&lt;<span class="lifetime">&#39;tcx</span>, E, V: TypeVisitor&lt;<span class="lifetime">&#39;tcx</span>, Error = E&gt;&gt;(
     visitor: <span class="kw-2">&amp;mut </span>V,
-    _def_id: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.DefId.html">DefId</a>,
+    _def_id: DefId,
     substs: SubstsRef&lt;<span class="lifetime">&#39;tcx</span>&gt;
 ) -&gt; <span class="prelude-ty">Result</span>&lt;(), E&gt; {
-    <span class="kw">let </span>cl_substs = <a href="#290">substs</a>.as_closure();
+    <span class="kw">let </span>cl_substs = substs.as_closure();
     <span class="comment">// TODO: when are there bound typevars? can type visitor deal with generics?
     </span><span class="kw">let </span>fn_sig =
         cl_substs.sig()
@@ -621,12 +621,12 @@
     <span class="kw">for </span>ty <span class="kw">in </span>fn_sig.inputs() {
         visitor.visit_ty(<span class="kw-2">*</span>ty)<span class="question-mark">?</span>;
     }
-    <a href="#288">visitor</a>.<a href="#22">visit_ty</a>(<a href="#294">fn_sig</a>.output())
+    visitor.visit_ty(fn_sig.output())
 }
 
 <span class="kw">pub fn </span>walk_fndef&lt;<span class="lifetime">&#39;tcx</span>, E, V: TypeVisitor&lt;<span class="lifetime">&#39;tcx</span>, Error = E&gt;&gt;(
     visitor: <span class="kw-2">&amp;mut </span>V,
-    _def_id: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.DefId.html">DefId</a>,
+    _def_id: DefId,
     substs: SubstsRef&lt;<span class="lifetime">&#39;tcx</span>&gt;
 ) -&gt; <span class="prelude-ty">Result</span>&lt;(), E&gt; {
     <span class="kw">for </span>ty <span class="kw">in </span>substs.types() {
@@ -645,4 +645,4 @@
     <span class="prelude-val">Ok</span>(())
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="prusti_viper" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="prusti_viper" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

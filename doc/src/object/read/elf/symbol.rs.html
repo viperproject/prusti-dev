@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/object-0.29.0/src/read/elf/symbol.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>symbol.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../../object/index.html"><img class="rust-logo" src="../../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/object-0.30.1/src/read/elf/symbol.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>symbol.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../../object/index.html"><img class="rust-logo" src="../../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -577,62 +577,63 @@
 <a href="#577" id="577">577</a>
 <a href="#578" id="578">578</a>
 <a href="#579" id="579">579</a>
-</pre><pre class="rust"><code><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">alloc::fmt</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/vec/struct.Vec.html">alloc::vec::Vec</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/fmt/macros/derive.Debug.html">core::fmt::Debug</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/slice/index.html">core::slice</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/str/index.html">core::str</a>;
+<a href="#580" id="580">580</a>
+</pre><pre class="rust"><code><span class="kw">use </span>alloc::fmt;
+<span class="kw">use </span>alloc::vec::Vec;
+<span class="kw">use </span>core::fmt::Debug;
+<span class="kw">use </span>core::slice;
+<span class="kw">use </span>core::str;
 
-<span class="kw">use </span><a href="../../lib.rs.html#108"><span class="kw">crate</span>::elf</a>;
-<span class="kw">use </span><span class="kw">crate</span>::endian::{<a class="self" href="../../lib.rs.html#90">self</a>, <a href="../../endian.rs.html#278">Endianness</a>};
-<span class="kw">use </span><a href="../../pod.rs.html#21"><span class="kw">crate</span>::pod::Pod</a>;
-<span class="kw">use </span><a href="../util.rs.html#232"><span class="kw">crate</span>::read::util::StringTable</a>;
+<span class="kw">use </span><span class="kw">crate</span>::endian::{<span class="self">self</span>, Endianness};
+<span class="kw">use </span><span class="kw">crate</span>::pod::Pod;
+<span class="kw">use </span><span class="kw">crate</span>::read::util::StringTable;
 <span class="kw">use </span><span class="kw">crate</span>::read::{
-    <a class="self" href="../../lib.rs.html#98">self</a>, <a href="../traits.rs.html#397">ObjectSymbol</a>, <a href="../traits.rs.html#376">ObjectSymbolTable</a>, <a href="../mod.rs.html#79">ReadError</a>, <a href="../read_ref.rs.html#37">ReadRef</a>, <a href="../mod.rs.html#263">SectionIndex</a>, <a href="../../common.rs.html#428">SymbolFlags</a>,
-    <a href="../mod.rs.html#267">SymbolIndex</a>, <a href="../../common.rs.html#227">SymbolKind</a>, <a href="../mod.rs.html#309">SymbolMap</a>, <a href="../mod.rs.html#302">SymbolMapEntry</a>, <a href="../../common.rs.html#248">SymbolScope</a>, <a href="../mod.rs.html#272">SymbolSection</a>,
+    <span class="self">self</span>, ObjectSymbol, ObjectSymbolTable, ReadError, ReadRef, SectionIndex, SymbolFlags,
+    SymbolIndex, SymbolKind, SymbolMap, SymbolMapEntry, SymbolScope, SymbolSection,
 };
+<span class="kw">use crate</span>::{elf, U32};
 
-<span class="kw">use super</span>::{<a href="file.rs.html#437">FileHeader</a>, <a href="section.rs.html#605">SectionHeader</a>, <a href="section.rs.html#21">SectionTable</a>};
+<span class="kw">use super</span>::{FileHeader, SectionHeader, SectionTable};
 
 <span class="doccomment">/// A table of symbol entries in an ELF file.
 ///
 /// Also includes the string table used for the symbol names.
 </span><span class="attr">#[derive(Debug, Clone, Copy)]
-</span><span class="kw">pub struct </span>SymbolTable&lt;<span class="lifetime">&#39;data</span>, Elf: <a href="file.rs.html#437">FileHeader</a>, R = <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;
+</span><span class="kw">pub struct </span>SymbolTable&lt;<span class="lifetime">&#39;data</span>, Elf: FileHeader, R = <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[u8]&gt;
 <span class="kw">where
     </span>R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt;,
 {
-    section: <a href="../mod.rs.html#263">SectionIndex</a>,
-    string_section: <a href="../mod.rs.html#263">SectionIndex</a>,
-    shndx_section: <a href="../mod.rs.html#263">SectionIndex</a>,
+    section: SectionIndex,
+    string_section: SectionIndex,
+    shndx_section: SectionIndex,
     symbols: <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[Elf::Sym],
     strings: StringTable&lt;<span class="lifetime">&#39;data</span>, R&gt;,
-    shndx: <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>],
+    shndx: <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[U32&lt;Elf::Endian&gt;],
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>, Elf: <a href="file.rs.html#437">FileHeader</a>, R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt;&gt; <a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for </span>SymbolTable&lt;<span class="lifetime">&#39;data</span>, Elf, R&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>, Elf: FileHeader, R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt;&gt; Default <span class="kw">for </span>SymbolTable&lt;<span class="lifetime">&#39;data</span>, Elf, R&gt; {
     <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
-        <a href="#22">SymbolTable</a> {
-            section: <a href="../mod.rs.html#263">SectionIndex</a>(<span class="number">0</span>),
-            string_section: <a href="../mod.rs.html#263">SectionIndex</a>(<span class="number">0</span>),
-            shndx_section: <a href="../mod.rs.html#263">SectionIndex</a>(<span class="number">0</span>),
+        SymbolTable {
+            section: SectionIndex(<span class="number">0</span>),
+            string_section: SectionIndex(<span class="number">0</span>),
+            shndx_section: SectionIndex(<span class="number">0</span>),
             symbols: <span class="kw-2">&amp;</span>[],
-            strings: <a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default::default</a>(),
+            strings: Default::default(),
             shndx: <span class="kw-2">&amp;</span>[],
         }
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>, Elf: <a href="file.rs.html#437">FileHeader</a>, R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt;&gt; SymbolTable&lt;<span class="lifetime">&#39;data</span>, Elf, R&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>, Elf: FileHeader, R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt;&gt; SymbolTable&lt;<span class="lifetime">&#39;data</span>, Elf, R&gt; {
     <span class="doccomment">/// Parse the given symbol table section.
     </span><span class="kw">pub fn </span>parse(
         endian: Elf::Endian,
         data: R,
         sections: <span class="kw-2">&amp;</span>SectionTable&lt;<span class="lifetime">&#39;data</span>, Elf, R&gt;,
-        section_index: <a href="../mod.rs.html#263">SectionIndex</a>,
+        section_index: SectionIndex,
         section: <span class="kw-2">&amp;</span>Elf::SectionHeader,
     ) -&gt; read::Result&lt;SymbolTable&lt;<span class="lifetime">&#39;data</span>, Elf, R&gt;&gt; {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(
+        <span class="macro">debug_assert!</span>(
             section.sh_type(endian) == elf::SHT_DYNSYM
                 || section.sh_type(endian) == elf::SHT_SYMTAB
         );
@@ -641,10 +642,10 @@
             .data_as_array(endian, data)
             .read_error(<span class="string">&quot;Invalid ELF symbol table data&quot;</span>)<span class="question-mark">?</span>;
 
-        <span class="kw">let </span>link = <a href="../mod.rs.html#263">SectionIndex</a>(<a href="#54">section</a>.<a href="section.rs.html#616">sh_link</a>(<a href="#50">endian</a>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>);
+        <span class="kw">let </span>link = SectionIndex(section.sh_link(endian) <span class="kw">as </span>usize);
         <span class="kw">let </span>strings = sections.strings(endian, data, link)<span class="question-mark">?</span>;
 
-        <span class="kw">let </span><span class="kw-2">mut </span>shndx_section = <a href="../mod.rs.html#263">SectionIndex</a>(<span class="number">0</span>);
+        <span class="kw">let </span><span class="kw-2">mut </span>shndx_section = SectionIndex(<span class="number">0</span>);
         <span class="kw">let </span><span class="kw-2">mut </span>shndx = <span class="kw-2">&amp;</span>[][..];
         <span class="kw">for </span>(i, s) <span class="kw">in </span>sections.iter().enumerate() {
             <span class="kw">if </span>s.sh_type(endian) == elf::SHT_SYMTAB_SHNDX
@@ -657,75 +658,75 @@
             }
         }
 
-        <span class="prelude-val">Ok</span>(<a href="#22">SymbolTable</a> {
-            section: <a href="#53">section_index</a>,
-            string_section: <a href="#65">link</a>,
-            <a href="#61">symbols</a>,
-            <a href="#66">strings</a>,
-            <a href="#69">shndx</a>,
-            <a href="#68">shndx_section</a>,
+        <span class="prelude-val">Ok</span>(SymbolTable {
+            section: section_index,
+            string_section: link,
+            symbols,
+            strings,
+            shndx,
+            shndx_section,
         })
     }
 
     <span class="doccomment">/// Return the section index of this symbol table.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>section(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../mod.rs.html#263">SectionIndex</a> {
-        <a class="self" href="#93">self</a>.section
+    </span><span class="kw">pub fn </span>section(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; SectionIndex {
+        <span class="self">self</span>.section
     }
 
     <span class="doccomment">/// Return the section index of the shndx table.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>shndx_section(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../mod.rs.html#263">SectionIndex</a> {
-        <a class="self" href="#99">self</a>.shndx_section
+    </span><span class="kw">pub fn </span>shndx_section(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; SectionIndex {
+        <span class="self">self</span>.shndx_section
     }
 
     <span class="doccomment">/// Return the section index of the linked string table.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>string_section(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../mod.rs.html#263">SectionIndex</a> {
-        <a class="self" href="#105">self</a>.string_section
+    </span><span class="kw">pub fn </span>string_section(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; SectionIndex {
+        <span class="self">self</span>.string_section
     }
 
     <span class="doccomment">/// Return the string table used for the symbol names.
     </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>strings(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; StringTable&lt;<span class="lifetime">&#39;data</span>, R&gt; {
-        <a class="self" href="#111">self</a>.strings
+        <span class="self">self</span>.strings
     }
 
     <span class="doccomment">/// Return the symbol table.
     </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>symbols(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[Elf::Sym] {
-        <a class="self" href="#117">self</a>.symbols
+        <span class="self">self</span>.symbols
     }
 
     <span class="doccomment">/// Iterate over the symbols.
     </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>iter(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; slice::Iter&lt;<span class="lifetime">&#39;data</span>, Elf::Sym&gt; {
-        <a class="self" href="#123">self</a>.symbols.iter()
+        <span class="self">self</span>.symbols.iter()
     }
 
     <span class="doccomment">/// Return true if the symbol table is empty.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>is_empty(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#129">self</a>.symbols.is_empty()
+    </span><span class="kw">pub fn </span>is_empty(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.symbols.is_empty()
     }
 
     <span class="doccomment">/// The number of symbols.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="self" href="#135">self</a>.symbols.len()
+    </span><span class="kw">pub fn </span>len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+        <span class="self">self</span>.symbols.len()
     }
 
     <span class="doccomment">/// Return the symbol at the given index.
-    </span><span class="kw">pub fn </span>symbol(<span class="kw-2">&amp;</span><span class="self">self</span>, index: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; read::Result&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>Elf::Sym&gt; {
-        <a class="self" href="#140">self</a>.symbols
-            .get(<a href="#140">index</a>)
-            .<a href="../mod.rs.html#80">read_error</a>(<span class="string">&quot;Invalid ELF symbol index&quot;</span>)
+    </span><span class="kw">pub fn </span>symbol(<span class="kw-2">&amp;</span><span class="self">self</span>, index: usize) -&gt; read::Result&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>Elf::Sym&gt; {
+        <span class="self">self</span>.symbols
+            .get(index)
+            .read_error(<span class="string">&quot;Invalid ELF symbol index&quot;</span>)
     }
 
     <span class="doccomment">/// Return the extended section index for the given symbol if present.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>shndx(<span class="kw-2">&amp;</span><span class="self">self</span>, index: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>&gt; {
-        <a class="self" href="#148">self</a>.shndx.get(<a href="#148">index</a>).copied()
+    </span><span class="kw">pub fn </span>shndx(<span class="kw-2">&amp;</span><span class="self">self</span>, endian: Elf::Endian, index: usize) -&gt; <span class="prelude-ty">Option</span>&lt;u32&gt; {
+        <span class="self">self</span>.shndx.get(index).map(|x| x.get(endian))
     }
 
     <span class="doccomment">/// Return the section index for the given symbol.
@@ -735,15 +736,15 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         endian: Elf::Endian,
         symbol: <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>Elf::Sym,
-        index: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-    ) -&gt; read::Result&lt;<span class="prelude-ty">Option</span>&lt;<a href="../mod.rs.html#263">SectionIndex</a>&gt;&gt; {
-        <span class="kw">match </span><a href="#158">symbol</a>.<a href="#452">st_shndx</a>(<a href="#157">endian</a>) {
-            <a href="../../elf.rs.html#654">elf::SHN_UNDEF</a> =&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>),
-            <a href="../../elf.rs.html#671">elf::SHN_XINDEX</a> =&gt; <span class="self"><a href="#156">self</a>
-                </span>.<a href="#148">shndx</a>(<a href="#159">index</a>)
-                .<a href="../mod.rs.html#80">read_error</a>(<span class="string">&quot;Missing ELF symbol extended index&quot;</span>)
-                .map(|index| <span class="prelude-val">Some</span>(<a href="../mod.rs.html#263">SectionIndex</a>(<a href="#166">index</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>))),
-            shndx <span class="kw">if </span><a href="#167">shndx</a> &lt; <a href="../../elf.rs.html#657">elf::SHN_LORESERVE</a> =&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<a href="../mod.rs.html#263">SectionIndex</a>(<a href="#167">shndx</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()))),
+        index: usize,
+    ) -&gt; read::Result&lt;<span class="prelude-ty">Option</span>&lt;SectionIndex&gt;&gt; {
+        <span class="kw">match </span>symbol.st_shndx(endian) {
+            elf::SHN_UNDEF =&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>),
+            elf::SHN_XINDEX =&gt; <span class="self">self
+                </span>.shndx(endian, index)
+                .read_error(<span class="string">&quot;Missing ELF symbol extended index&quot;</span>)
+                .map(|index| <span class="prelude-val">Some</span>(SectionIndex(index <span class="kw">as </span>usize))),
+            shndx <span class="kw">if </span>shndx &lt; elf::SHN_LORESERVE =&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(SectionIndex(shndx.into()))),
             <span class="kw">_ </span>=&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>),
         }
     }
@@ -753,17 +754,17 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         endian: Elf::Endian,
         symbol: <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>Elf::Sym,
-    ) -&gt; read::Result&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt; {
-        <a href="#176">symbol</a>.<a href="#457-461">name</a>(<a href="#175">endian</a>, <a class="self" href="#174">self</a>.strings)
+    ) -&gt; read::Result&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[u8]&gt; {
+        symbol.name(endian, <span class="self">self</span>.strings)
     }
 
     <span class="doccomment">/// Construct a map from addresses to a user-defined map entry.
-    </span><span class="kw">pub fn </span>map&lt;Entry: <a href="../mod.rs.html#302">SymbolMapEntry</a>, F: Fn(<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>Elf::Sym) -&gt; <span class="prelude-ty">Option</span>&lt;Entry&gt;&gt;(
+    </span><span class="kw">pub fn </span>map&lt;Entry: SymbolMapEntry, F: Fn(<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>Elf::Sym) -&gt; <span class="prelude-ty">Option</span>&lt;Entry&gt;&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         endian: Elf::Endian,
         f: F,
     ) -&gt; SymbolMap&lt;Entry&gt; {
-        <span class="kw">let </span><span class="kw-2">mut </span>symbols = Vec::with_capacity(<a class="self" href="#183">self</a>.symbols.len());
+        <span class="kw">let </span><span class="kw-2">mut </span>symbols = Vec::with_capacity(<span class="self">self</span>.symbols.len());
         <span class="kw">for </span>symbol <span class="kw">in </span><span class="self">self</span>.symbols {
             <span class="kw">if </span>!symbol.is_definition(endian) {
                 <span class="kw">continue</span>;
@@ -772,263 +773,264 @@
                 symbols.push(entry);
             }
         }
-        SymbolMap::new(<a href="#187">symbols</a>)
+        SymbolMap::new(symbols)
     }
 }
 
 <span class="doccomment">/// A symbol table of an `ElfFile32`.
-</span><span class="kw">pub type </span>ElfSymbolTable32&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Endian = <a href="../../endian.rs.html#278">Endianness</a>, R = <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt; =
+</span><span class="kw">pub type </span>ElfSymbolTable32&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Endian = Endianness, R = <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[u8]&gt; =
     ElfSymbolTable&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, elf::FileHeader32&lt;Endian&gt;, R&gt;;
 <span class="doccomment">/// A symbol table of an `ElfFile32`.
-</span><span class="kw">pub type </span>ElfSymbolTable64&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Endian = <a href="../../endian.rs.html#278">Endianness</a>, R = <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt; =
+</span><span class="kw">pub type </span>ElfSymbolTable64&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Endian = Endianness, R = <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[u8]&gt; =
     ElfSymbolTable&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, elf::FileHeader64&lt;Endian&gt;, R&gt;;
 
 <span class="doccomment">/// A symbol table of an `ElfFile`.
 </span><span class="attr">#[derive(Debug, Clone, Copy)]
-</span><span class="kw">pub struct </span>ElfSymbolTable&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Elf, R = <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;
+</span><span class="kw">pub struct </span>ElfSymbolTable&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Elf, R = <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[u8]&gt;
 <span class="kw">where
     </span><span class="lifetime">&#39;data</span>: <span class="lifetime">&#39;file</span>,
-    Elf: <a href="file.rs.html#437">FileHeader</a>,
+    Elf: FileHeader,
     R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt;,
 {
     <span class="kw">pub</span>(<span class="kw">super</span>) endian: Elf::Endian,
     <span class="kw">pub</span>(<span class="kw">super</span>) symbols: <span class="kw-2">&amp;</span><span class="lifetime">&#39;file </span>SymbolTable&lt;<span class="lifetime">&#39;data</span>, Elf, R&gt;,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Elf: <a href="file.rs.html#437">FileHeader</a>, R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt;&gt; <a href="../mod.rs.html#59">read::private::Sealed</a>
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Elf: FileHeader, R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt;&gt; read::private::Sealed
     <span class="kw">for </span>ElfSymbolTable&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Elf, R&gt;
 {
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Elf: <a href="file.rs.html#437">FileHeader</a>, R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt;&gt; ObjectSymbolTable&lt;<span class="lifetime">&#39;data</span>&gt;
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Elf: FileHeader, R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt;&gt; ObjectSymbolTable&lt;<span class="lifetime">&#39;data</span>&gt;
     <span class="kw">for </span>ElfSymbolTable&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Elf, R&gt;
 {
     <span class="kw">type </span>Symbol = ElfSymbol&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Elf, R&gt;;
     <span class="kw">type </span>SymbolIterator = ElfSymbolIterator&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Elf, R&gt;;
 
     <span class="kw">fn </span>symbols(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self</span>::SymbolIterator {
-        <a href="#257">ElfSymbolIterator</a> {
-            endian: <a class="self" href="#230">self</a>.endian,
-            symbols: <a class="self" href="#230">self</a>.symbols,
+        ElfSymbolIterator {
+            endian: <span class="self">self</span>.endian,
+            symbols: <span class="self">self</span>.symbols,
             index: <span class="number">0</span>,
         }
     }
 
-    <span class="kw">fn </span>symbol_by_index(<span class="kw-2">&amp;</span><span class="self">self</span>, index: <a href="../mod.rs.html#267">SymbolIndex</a>) -&gt; read::Result&lt;<span class="self">Self</span>::Symbol&gt; {
+    <span class="kw">fn </span>symbol_by_index(<span class="kw-2">&amp;</span><span class="self">self</span>, index: SymbolIndex) -&gt; read::Result&lt;<span class="self">Self</span>::Symbol&gt; {
         <span class="kw">let </span>symbol = <span class="self">self</span>.symbols.symbol(index.<span class="number">0</span>)<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(<a href="#303">ElfSymbol</a> {
-            endian: <a class="self" href="#238">self</a>.endian,
-            symbols: <a class="self" href="#238">self</a>.symbols,
-            <a href="#238">index</a>,
-            <a href="#239">symbol</a>,
+        <span class="prelude-val">Ok</span>(ElfSymbol {
+            endian: <span class="self">self</span>.endian,
+            symbols: <span class="self">self</span>.symbols,
+            index,
+            symbol,
         })
     }
 }
 
 <span class="doccomment">/// An iterator over the symbols of an `ElfFile32`.
-</span><span class="kw">pub type </span>ElfSymbolIterator32&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Endian = <a href="../../endian.rs.html#278">Endianness</a>, R = <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt; =
+</span><span class="kw">pub type </span>ElfSymbolIterator32&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Endian = Endianness, R = <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[u8]&gt; =
     ElfSymbolIterator&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, elf::FileHeader32&lt;Endian&gt;, R&gt;;
 <span class="doccomment">/// An iterator over the symbols of an `ElfFile64`.
-</span><span class="kw">pub type </span>ElfSymbolIterator64&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Endian = <a href="../../endian.rs.html#278">Endianness</a>, R = <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt; =
+</span><span class="kw">pub type </span>ElfSymbolIterator64&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Endian = Endianness, R = <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[u8]&gt; =
     ElfSymbolIterator&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, elf::FileHeader64&lt;Endian&gt;, R&gt;;
 
 <span class="doccomment">/// An iterator over the symbols of an `ElfFile`.
-</span><span class="kw">pub struct </span>ElfSymbolIterator&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Elf, R = <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;
+</span><span class="kw">pub struct </span>ElfSymbolIterator&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Elf, R = <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[u8]&gt;
 <span class="kw">where
     </span><span class="lifetime">&#39;data</span>: <span class="lifetime">&#39;file</span>,
-    Elf: <a href="file.rs.html#437">FileHeader</a>,
+    Elf: FileHeader,
     R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt;,
 {
     <span class="kw">pub</span>(<span class="kw">super</span>) endian: Elf::Endian,
     <span class="kw">pub</span>(<span class="kw">super</span>) symbols: <span class="kw-2">&amp;</span><span class="lifetime">&#39;file </span>SymbolTable&lt;<span class="lifetime">&#39;data</span>, Elf, R&gt;,
-    <span class="kw">pub</span>(<span class="kw">super</span>) index: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+    <span class="kw">pub</span>(<span class="kw">super</span>) index: usize,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Elf: <a href="file.rs.html#437">FileHeader</a>, R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt;&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a>
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Elf: FileHeader, R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt;&gt; fmt::Debug
     <span class="kw">for </span>ElfSymbolIterator&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Elf, R&gt;
 {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a href="#271">f</a>.debug_struct(<span class="string">&quot;ElfSymbolIterator&quot;</span>).finish()
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        f.debug_struct(<span class="string">&quot;ElfSymbolIterator&quot;</span>).finish()
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Elf: <a href="file.rs.html#437">FileHeader</a>, R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt;&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a>
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Elf: FileHeader, R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt;&gt; Iterator
     <span class="kw">for </span>ElfSymbolIterator&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Elf, R&gt;
 {
     <span class="kw">type </span>Item = ElfSymbol&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Elf, R&gt;;
 
     <span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt; {
-        <span class="kw">let </span>index = <a class="self" href="#281">self</a>.index;
+        <span class="kw">let </span>index = <span class="self">self</span>.index;
         <span class="kw">let </span>symbol = <span class="self">self</span>.symbols.symbols.get(index)<span class="question-mark">?</span>;
-        <a class="self" href="#281">self</a>.index += <span class="number">1</span>;
-        <span class="prelude-val">Some</span>(<a href="#303">ElfSymbol</a> {
-            endian: <a class="self" href="#281">self</a>.endian,
-            symbols: <a class="self" href="#281">self</a>.symbols,
-            index: <a href="../mod.rs.html#267">SymbolIndex</a>(<a href="#282">index</a>),
-            <a href="#283">symbol</a>,
+        <span class="self">self</span>.index += <span class="number">1</span>;
+        <span class="prelude-val">Some</span>(ElfSymbol {
+            endian: <span class="self">self</span>.endian,
+            symbols: <span class="self">self</span>.symbols,
+            index: SymbolIndex(index),
+            symbol,
         })
     }
 }
 
 <span class="doccomment">/// A symbol of an `ElfFile32`.
-</span><span class="kw">pub type </span>ElfSymbol32&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Endian = <a href="../../endian.rs.html#278">Endianness</a>, R = <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt; =
+</span><span class="kw">pub type </span>ElfSymbol32&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Endian = Endianness, R = <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[u8]&gt; =
     ElfSymbol&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, elf::FileHeader32&lt;Endian&gt;, R&gt;;
 <span class="doccomment">/// A symbol of an `ElfFile64`.
-</span><span class="kw">pub type </span>ElfSymbol64&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Endian = <a href="../../endian.rs.html#278">Endianness</a>, R = <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt; =
+</span><span class="kw">pub type </span>ElfSymbol64&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Endian = Endianness, R = <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[u8]&gt; =
     ElfSymbol&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, elf::FileHeader64&lt;Endian&gt;, R&gt;;
 
 <span class="doccomment">/// A symbol of an `ElfFile`.
 </span><span class="attr">#[derive(Debug, Clone, Copy)]
-</span><span class="kw">pub struct </span>ElfSymbol&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Elf, R = <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;
+</span><span class="kw">pub struct </span>ElfSymbol&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Elf, R = <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[u8]&gt;
 <span class="kw">where
     </span><span class="lifetime">&#39;data</span>: <span class="lifetime">&#39;file</span>,
-    Elf: <a href="file.rs.html#437">FileHeader</a>,
+    Elf: FileHeader,
     R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt;,
 {
     <span class="kw">pub</span>(<span class="kw">super</span>) endian: Elf::Endian,
     <span class="kw">pub</span>(<span class="kw">super</span>) symbols: <span class="kw-2">&amp;</span><span class="lifetime">&#39;file </span>SymbolTable&lt;<span class="lifetime">&#39;data</span>, Elf, R&gt;,
-    <span class="kw">pub</span>(<span class="kw">super</span>) index: <a href="../mod.rs.html#267">SymbolIndex</a>,
+    <span class="kw">pub</span>(<span class="kw">super</span>) index: SymbolIndex,
     <span class="kw">pub</span>(<span class="kw">super</span>) symbol: <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>Elf::Sym,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Elf: <a href="file.rs.html#437">FileHeader</a>, R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt;&gt; <a href="../mod.rs.html#59">read::private::Sealed</a>
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Elf: FileHeader, R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt;&gt; read::private::Sealed
     <span class="kw">for </span>ElfSymbol&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Elf, R&gt;
 {
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Elf: <a href="file.rs.html#437">FileHeader</a>, R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt;&gt; ObjectSymbol&lt;<span class="lifetime">&#39;data</span>&gt;
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Elf: FileHeader, R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt;&gt; ObjectSymbol&lt;<span class="lifetime">&#39;data</span>&gt;
     <span class="kw">for </span>ElfSymbol&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Elf, R&gt;
 {
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>index(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../mod.rs.html#267">SymbolIndex</a> {
-        <a class="self" href="#324">self</a>.index
+    </span><span class="kw">fn </span>index(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; SymbolIndex {
+        <span class="self">self</span>.index
     }
 
-    <span class="kw">fn </span>name_bytes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; read::Result&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt; {
-        <a class="self" href="#328">self</a>.symbol.<a href="#457-461">name</a>(<a class="self" href="#328">self</a>.endian, <a class="self" href="#328">self</a>.symbols.<a href="#111">strings</a>())
+    <span class="kw">fn </span>name_bytes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; read::Result&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[u8]&gt; {
+        <span class="self">self</span>.symbol.name(<span class="self">self</span>.endian, <span class="self">self</span>.symbols.strings())
     }
 
-    <span class="kw">fn </span>name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; read::Result&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt; {
+    <span class="kw">fn </span>name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; read::Result&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>str&gt; {
         <span class="kw">let </span>name = <span class="self">self</span>.name_bytes()<span class="question-mark">?</span>;
-        <a href="https://doc.rust-lang.org/nightly/core/str/converts/fn.from_utf8.html">str::from_utf8</a>(<a href="#333">name</a>)
+        str::from_utf8(name)
             .ok()
-            .<a href="../mod.rs.html#80">read_error</a>(<span class="string">&quot;Non UTF-8 ELF symbol name&quot;</span>)
+            .read_error(<span class="string">&quot;Non UTF-8 ELF symbol name&quot;</span>)
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>address(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> {
-        <a class="self" href="#340">self</a>.symbol.<a href="#453">st_value</a>(<a class="self" href="#340">self</a>.endian).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()
+    </span><span class="kw">fn </span>address(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u64 {
+        <span class="self">self</span>.symbol.st_value(<span class="self">self</span>.endian).into()
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>size(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> {
-        <a class="self" href="#345">self</a>.symbol.<a href="#454">st_size</a>(<a class="self" href="#345">self</a>.endian).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()
+    </span><span class="kw">fn </span>size(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u64 {
+        <span class="self">self</span>.symbol.st_size(<span class="self">self</span>.endian).into()
     }
 
-    <span class="kw">fn </span>kind(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../../common.rs.html#227">SymbolKind</a> {
-        <span class="kw">match </span><a class="self" href="#349">self</a>.symbol.<a href="#449">st_type</a>() {
-            <a href="../../elf.rs.html#999">elf::STT_NOTYPE</a> <span class="kw">if </span><a class="self" href="#349">self</a>.index.<span class="number">0 </span>== <span class="number">0 </span>=&gt; <a href="../../common.rs.html#231">SymbolKind::Null</a>,
-            <a href="../../elf.rs.html#1001">elf::STT_OBJECT</a> | <a href="../../elf.rs.html#1009">elf::STT_COMMON</a> =&gt; <a href="../../common.rs.html#235">SymbolKind::Data</a>,
-            <a href="../../elf.rs.html#1003">elf::STT_FUNC</a> =&gt; <a href="../../common.rs.html#233">SymbolKind::Text</a>,
-            <a href="../../elf.rs.html#1005">elf::STT_SECTION</a> =&gt; <a href="../../common.rs.html#237">SymbolKind::Section</a>,
-            <a href="../../elf.rs.html#1007">elf::STT_FILE</a> =&gt; <a href="../../common.rs.html#239">SymbolKind::File</a>,
-            <a href="../../elf.rs.html#1011">elf::STT_TLS</a> =&gt; <a href="../../common.rs.html#243">SymbolKind::Tls</a>,
-            <span class="kw">_ </span>=&gt; <a href="../../common.rs.html#229">SymbolKind::Unknown</a>,
+    <span class="kw">fn </span>kind(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; SymbolKind {
+        <span class="kw">match </span><span class="self">self</span>.symbol.st_type() {
+            elf::STT_NOTYPE <span class="kw">if </span><span class="self">self</span>.index.<span class="number">0 </span>== <span class="number">0 </span>=&gt; SymbolKind::Null,
+            elf::STT_NOTYPE =&gt; SymbolKind::Label,
+            elf::STT_OBJECT | elf::STT_COMMON =&gt; SymbolKind::Data,
+            elf::STT_FUNC | elf::STT_GNU_IFUNC =&gt; SymbolKind::Text,
+            elf::STT_SECTION =&gt; SymbolKind::Section,
+            elf::STT_FILE =&gt; SymbolKind::File,
+            elf::STT_TLS =&gt; SymbolKind::Tls,
+            <span class="kw">_ </span>=&gt; SymbolKind::Unknown,
         }
     }
 
-    <span class="kw">fn </span>section(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../mod.rs.html#272">SymbolSection</a> {
-        <span class="kw">match </span><a class="self" href="#361">self</a>.symbol.<a href="#452">st_shndx</a>(<a class="self" href="#361">self</a>.endian) {
-            <a href="../../elf.rs.html#654">elf::SHN_UNDEF</a> =&gt; <a href="../mod.rs.html#278">SymbolSection::Undefined</a>,
-            <a href="../../elf.rs.html#667">elf::SHN_ABS</a> =&gt; {
+    <span class="kw">fn </span>section(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; SymbolSection {
+        <span class="kw">match </span><span class="self">self</span>.symbol.st_shndx(<span class="self">self</span>.endian) {
+            elf::SHN_UNDEF =&gt; SymbolSection::Undefined,
+            elf::SHN_ABS =&gt; {
                 <span class="kw">if </span><span class="self">self</span>.symbol.st_type() == elf::STT_FILE {
-                    <a href="../mod.rs.html#276">SymbolSection::None</a>
+                    SymbolSection::None
                 } <span class="kw">else </span>{
-                    <a href="../mod.rs.html#280">SymbolSection::Absolute</a>
+                    SymbolSection::Absolute
                 }
             }
-            <a href="../../elf.rs.html#669">elf::SHN_COMMON</a> =&gt; <a href="../mod.rs.html#282">SymbolSection::Common</a>,
-            <a href="../../elf.rs.html#671">elf::SHN_XINDEX</a> =&gt; <span class="kw">match </span><a class="self" href="#361">self</a>.symbols.<a href="#148">shndx</a>(<a class="self" href="#361">self</a>.index.<span class="number">0</span>) {
-                <span class="prelude-val">Some</span>(index) =&gt; <a href="../mod.rs.html#284">SymbolSection::Section</a>(<a href="../mod.rs.html#263">SectionIndex</a>(<a href="#373">index</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>)),
-                <span class="prelude-val">None </span>=&gt; <a href="../mod.rs.html#274">SymbolSection::Unknown</a>,
+            elf::SHN_COMMON =&gt; SymbolSection::Common,
+            elf::SHN_XINDEX =&gt; <span class="kw">match </span><span class="self">self</span>.symbols.shndx(<span class="self">self</span>.endian, <span class="self">self</span>.index.<span class="number">0</span>) {
+                <span class="prelude-val">Some</span>(index) =&gt; SymbolSection::Section(SectionIndex(index <span class="kw">as </span>usize)),
+                <span class="prelude-val">None </span>=&gt; SymbolSection::Unknown,
             },
-            index <span class="kw">if </span><a href="#376">index</a> &lt; <a href="../../elf.rs.html#657">elf::SHN_LORESERVE</a> =&gt; {
-                <a href="../mod.rs.html#284">SymbolSection::Section</a>(<a href="../mod.rs.html#263">SectionIndex</a>(<a href="#376">index</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>))
+            index <span class="kw">if </span>index &lt; elf::SHN_LORESERVE =&gt; {
+                SymbolSection::Section(SectionIndex(index <span class="kw">as </span>usize))
             }
-            <span class="kw">_ </span>=&gt; <a href="../mod.rs.html#274">SymbolSection::Unknown</a>,
+            <span class="kw">_ </span>=&gt; SymbolSection::Unknown,
         }
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>is_undefined(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#384">self</a>.symbol.<a href="#452">st_shndx</a>(<a class="self" href="#384">self</a>.endian) == <a href="../../elf.rs.html#654">elf::SHN_UNDEF</a>
+    </span><span class="kw">fn </span>is_undefined(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.symbol.st_shndx(<span class="self">self</span>.endian) == elf::SHN_UNDEF
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>is_definition(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#389">self</a>.symbol.<a href="#474">is_definition</a>(<a class="self" href="#389">self</a>.endian)
+    </span><span class="kw">fn </span>is_definition(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.symbol.is_definition(<span class="self">self</span>.endian)
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>is_common(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#394">self</a>.symbol.<a href="#452">st_shndx</a>(<a class="self" href="#394">self</a>.endian) == <a href="../../elf.rs.html#669">elf::SHN_COMMON</a>
+    </span><span class="kw">fn </span>is_common(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.symbol.st_shndx(<span class="self">self</span>.endian) == elf::SHN_COMMON
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>is_weak(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#399">self</a>.symbol.<a href="#448">st_bind</a>() == <a href="../../elf.rs.html#985">elf::STB_WEAK</a>
+    </span><span class="kw">fn </span>is_weak(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.symbol.st_bind() == elf::STB_WEAK
     }
 
-    <span class="kw">fn </span>scope(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../../common.rs.html#248">SymbolScope</a> {
+    <span class="kw">fn </span>scope(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; SymbolScope {
         <span class="kw">if </span><span class="self">self</span>.symbol.st_shndx(<span class="self">self</span>.endian) == elf::SHN_UNDEF {
-            <a href="../../common.rs.html#250">SymbolScope::Unknown</a>
+            SymbolScope::Unknown
         } <span class="kw">else </span>{
-            <span class="kw">match </span><a class="self" href="#403">self</a>.symbol.<a href="#448">st_bind</a>() {
-                <a href="../../elf.rs.html#981">elf::STB_LOCAL</a> =&gt; <a href="../../common.rs.html#252">SymbolScope::Compilation</a>,
-                <a href="../../elf.rs.html#983">elf::STB_GLOBAL</a> | <a href="../../elf.rs.html#985">elf::STB_WEAK</a> =&gt; {
+            <span class="kw">match </span><span class="self">self</span>.symbol.st_bind() {
+                elf::STB_LOCAL =&gt; SymbolScope::Compilation,
+                elf::STB_GLOBAL | elf::STB_WEAK =&gt; {
                     <span class="kw">if </span><span class="self">self</span>.symbol.st_visibility() == elf::STV_HIDDEN {
-                        <a href="../../common.rs.html#254">SymbolScope::Linkage</a>
+                        SymbolScope::Linkage
                     } <span class="kw">else </span>{
-                        <a href="../../common.rs.html#256">SymbolScope::Dynamic</a>
+                        SymbolScope::Dynamic
                     }
                 }
-                <span class="kw">_ </span>=&gt; <a href="../../common.rs.html#250">SymbolScope::Unknown</a>,
+                <span class="kw">_ </span>=&gt; SymbolScope::Unknown,
             }
         }
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>is_global(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#422">self</a>.symbol.<a href="#448">st_bind</a>() != <a href="../../elf.rs.html#981">elf::STB_LOCAL</a>
+    </span><span class="kw">fn </span>is_global(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.symbol.st_bind() != elf::STB_LOCAL
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>is_local(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#427">self</a>.symbol.<a href="#448">st_bind</a>() == <a href="../../elf.rs.html#981">elf::STB_LOCAL</a>
+    </span><span class="kw">fn </span>is_local(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.symbol.st_bind() == elf::STB_LOCAL
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>flags(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; SymbolFlags&lt;<a href="../mod.rs.html#263">SectionIndex</a>&gt; {
-        <a href="../../common.rs.html#432">SymbolFlags::Elf</a> {
-            st_info: <a class="self" href="#432">self</a>.symbol.<a href="#447">st_info</a>(),
-            st_other: <a class="self" href="#432">self</a>.symbol.<a href="#450">st_other</a>(),
+    </span><span class="kw">fn </span>flags(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; SymbolFlags&lt;SectionIndex&gt; {
+        SymbolFlags::Elf {
+            st_info: <span class="self">self</span>.symbol.st_info(),
+            st_other: <span class="self">self</span>.symbol.st_other(),
         }
     }
 }
 
 <span class="doccomment">/// A trait for generic access to `Sym32` and `Sym64`.
 </span><span class="attr">#[allow(missing_docs)]
-</span><span class="kw">pub trait </span>Sym: <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">Debug</a> + <a href="../../pod.rs.html#21">Pod</a> {
-    <span class="kw">type </span>Word: Into&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>&gt;;
-    <span class="kw">type </span>Endian: <a href="../../endian.rs.html#13">endian::Endian</a>;
+</span><span class="kw">pub trait </span>Sym: Debug + Pod {
+    <span class="kw">type </span>Word: Into&lt;u64&gt;;
+    <span class="kw">type </span>Endian: endian::Endian;
 
-    <span class="kw">fn </span>st_name(<span class="kw-2">&amp;</span><span class="self">self</span>, endian: <span class="self">Self</span>::Endian) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>;
-    <span class="kw">fn </span>st_info(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>;
-    <span class="kw">fn </span>st_bind(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>;
-    <span class="kw">fn </span>st_type(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>;
-    <span class="kw">fn </span>st_other(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>;
-    <span class="kw">fn </span>st_visibility(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>;
-    <span class="kw">fn </span>st_shndx(<span class="kw-2">&amp;</span><span class="self">self</span>, endian: <span class="self">Self</span>::Endian) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>;
+    <span class="kw">fn </span>st_name(<span class="kw-2">&amp;</span><span class="self">self</span>, endian: <span class="self">Self</span>::Endian) -&gt; u32;
+    <span class="kw">fn </span>st_info(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u8;
+    <span class="kw">fn </span>st_bind(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u8;
+    <span class="kw">fn </span>st_type(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u8;
+    <span class="kw">fn </span>st_other(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u8;
+    <span class="kw">fn </span>st_visibility(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u8;
+    <span class="kw">fn </span>st_shndx(<span class="kw-2">&amp;</span><span class="self">self</span>, endian: <span class="self">Self</span>::Endian) -&gt; u16;
     <span class="kw">fn </span>st_value(<span class="kw-2">&amp;</span><span class="self">self</span>, endian: <span class="self">Self</span>::Endian) -&gt; <span class="self">Self</span>::Word;
     <span class="kw">fn </span>st_size(<span class="kw-2">&amp;</span><span class="self">self</span>, endian: <span class="self">Self</span>::Endian) -&gt; <span class="self">Self</span>::Word;
 
@@ -1037,124 +1039,124 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         endian: <span class="self">Self</span>::Endian,
         strings: StringTable&lt;<span class="lifetime">&#39;data</span>, R&gt;,
-    ) -&gt; read::Result&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt; {
-        <a href="#460">strings</a>
-            .<a href="../util.rs.html#254">get</a>(<a class="self" href="#458">self</a>.<a href="#446">st_name</a>(<a href="#459">endian</a>))
-            .<a href="../mod.rs.html#80">read_error</a>(<span class="string">&quot;Invalid ELF symbol name offset&quot;</span>)
+    ) -&gt; read::Result&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[u8]&gt; {
+        strings
+            .get(<span class="self">self</span>.st_name(endian))
+            .read_error(<span class="string">&quot;Invalid ELF symbol name offset&quot;</span>)
     }
 
     <span class="doccomment">/// Return true if the symbol is undefined.
     </span><span class="attr">#[inline]
-    </span><span class="kw">fn </span>is_undefined(<span class="kw-2">&amp;</span><span class="self">self</span>, endian: <span class="self">Self</span>::Endian) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#469">self</a>.<a href="#452">st_shndx</a>(<a href="#469">endian</a>) == <a href="../../elf.rs.html#654">elf::SHN_UNDEF</a>
+    </span><span class="kw">fn </span>is_undefined(<span class="kw-2">&amp;</span><span class="self">self</span>, endian: <span class="self">Self</span>::Endian) -&gt; bool {
+        <span class="self">self</span>.st_shndx(endian) == elf::SHN_UNDEF
     }
 
     <span class="doccomment">/// Return true if the symbol is a definition of a function or data object.
-    </span><span class="kw">fn </span>is_definition(<span class="kw-2">&amp;</span><span class="self">self</span>, endian: <span class="self">Self</span>::Endian) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">let </span>st_type = <a class="self" href="#474">self</a>.<a href="#449">st_type</a>();
-        (<a href="#475">st_type</a> == <a href="../../elf.rs.html#999">elf::STT_NOTYPE</a> || <a href="#475">st_type</a> == <a href="../../elf.rs.html#1003">elf::STT_FUNC</a> || <a href="#475">st_type</a> == <a href="../../elf.rs.html#1001">elf::STT_OBJECT</a>)
-            &amp;&amp; <a class="self" href="#474">self</a>.<a href="#452">st_shndx</a>(<a href="#474">endian</a>) != <a href="../../elf.rs.html#654">elf::SHN_UNDEF</a>
+    </span><span class="kw">fn </span>is_definition(<span class="kw-2">&amp;</span><span class="self">self</span>, endian: <span class="self">Self</span>::Endian) -&gt; bool {
+        <span class="kw">let </span>st_type = <span class="self">self</span>.st_type();
+        (st_type == elf::STT_NOTYPE || st_type == elf::STT_FUNC || st_type == elf::STT_OBJECT)
+            &amp;&amp; <span class="self">self</span>.st_shndx(endian) != elf::SHN_UNDEF
     }
 }
 
-<span class="kw">impl</span>&lt;Endian: <a href="../../endian.rs.html#13">endian::Endian</a>&gt; <a href="#442">Sym</a> <span class="kw">for </span>elf::Sym32&lt;Endian&gt; {
-    <span class="kw">type </span>Word = <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>;
+<span class="kw">impl</span>&lt;Endian: endian::Endian&gt; Sym <span class="kw">for </span>elf::Sym32&lt;Endian&gt; {
+    <span class="kw">type </span>Word = u32;
     <span class="kw">type </span>Endian = Endian;
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>st_name(<span class="kw-2">&amp;</span><span class="self">self</span>, endian: <span class="self">Self</span>::Endian) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
-        <a class="self" href="#486">self</a>.st_name.<a href="../../endian.rs.html#621">get</a>(<a href="#486">endian</a>)
+    </span><span class="kw">fn </span>st_name(<span class="kw-2">&amp;</span><span class="self">self</span>, endian: <span class="self">Self</span>::Endian) -&gt; u32 {
+        <span class="self">self</span>.st_name.get(endian)
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>st_info(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a> {
-        <a class="self" href="#491">self</a>.st_info
+    </span><span class="kw">fn </span>st_info(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u8 {
+        <span class="self">self</span>.st_info
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>st_bind(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a> {
-        <a class="self" href="#496">self</a>.<a href="../../elf.rs.html#860">st_bind</a>()
+    </span><span class="kw">fn </span>st_bind(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u8 {
+        <span class="self">self</span>.st_bind()
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>st_type(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a> {
-        <a class="self" href="#501">self</a>.<a href="../../elf.rs.html#866">st_type</a>()
+    </span><span class="kw">fn </span>st_type(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u8 {
+        <span class="self">self</span>.st_type()
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>st_other(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a> {
-        <a class="self" href="#506">self</a>.st_other
+    </span><span class="kw">fn </span>st_other(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u8 {
+        <span class="self">self</span>.st_other
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>st_visibility(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a> {
-        <a class="self" href="#511">self</a>.<a href="../../elf.rs.html#878">st_visibility</a>()
+    </span><span class="kw">fn </span>st_visibility(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u8 {
+        <span class="self">self</span>.st_visibility()
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>st_shndx(<span class="kw-2">&amp;</span><span class="self">self</span>, endian: <span class="self">Self</span>::Endian) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a> {
-        <a class="self" href="#516">self</a>.st_shndx.<a href="../../endian.rs.html#599">get</a>(<a href="#516">endian</a>)
+    </span><span class="kw">fn </span>st_shndx(<span class="kw-2">&amp;</span><span class="self">self</span>, endian: <span class="self">Self</span>::Endian) -&gt; u16 {
+        <span class="self">self</span>.st_shndx.get(endian)
     }
 
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>st_value(<span class="kw-2">&amp;</span><span class="self">self</span>, endian: <span class="self">Self</span>::Endian) -&gt; <span class="self">Self</span>::Word {
-        <a class="self" href="#521">self</a>.st_value.<a href="../../endian.rs.html#621">get</a>(<a href="#521">endian</a>)
+        <span class="self">self</span>.st_value.get(endian)
     }
 
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>st_size(<span class="kw-2">&amp;</span><span class="self">self</span>, endian: <span class="self">Self</span>::Endian) -&gt; <span class="self">Self</span>::Word {
-        <a class="self" href="#526">self</a>.st_size.<a href="../../endian.rs.html#621">get</a>(<a href="#526">endian</a>)
+        <span class="self">self</span>.st_size.get(endian)
     }
 }
 
-<span class="kw">impl</span>&lt;Endian: <a href="../../endian.rs.html#13">endian::Endian</a>&gt; <a href="#442">Sym</a> <span class="kw">for </span>elf::Sym64&lt;Endian&gt; {
-    <span class="kw">type </span>Word = <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>;
+<span class="kw">impl</span>&lt;Endian: endian::Endian&gt; Sym <span class="kw">for </span>elf::Sym64&lt;Endian&gt; {
+    <span class="kw">type </span>Word = u64;
     <span class="kw">type </span>Endian = Endian;
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>st_name(<span class="kw-2">&amp;</span><span class="self">self</span>, endian: <span class="self">Self</span>::Endian) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
-        <a class="self" href="#536">self</a>.st_name.<a href="../../endian.rs.html#621">get</a>(<a href="#536">endian</a>)
+    </span><span class="kw">fn </span>st_name(<span class="kw-2">&amp;</span><span class="self">self</span>, endian: <span class="self">Self</span>::Endian) -&gt; u32 {
+        <span class="self">self</span>.st_name.get(endian)
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>st_info(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a> {
-        <a class="self" href="#541">self</a>.st_info
+    </span><span class="kw">fn </span>st_info(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u8 {
+        <span class="self">self</span>.st_info
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>st_bind(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a> {
-        <a class="self" href="#546">self</a>.<a href="../../elf.rs.html#910">st_bind</a>()
+    </span><span class="kw">fn </span>st_bind(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u8 {
+        <span class="self">self</span>.st_bind()
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>st_type(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a> {
-        <a class="self" href="#551">self</a>.<a href="../../elf.rs.html#916">st_type</a>()
+    </span><span class="kw">fn </span>st_type(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u8 {
+        <span class="self">self</span>.st_type()
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>st_other(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a> {
-        <a class="self" href="#556">self</a>.st_other
+    </span><span class="kw">fn </span>st_other(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u8 {
+        <span class="self">self</span>.st_other
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>st_visibility(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a> {
-        <a class="self" href="#561">self</a>.<a href="../../elf.rs.html#928">st_visibility</a>()
+    </span><span class="kw">fn </span>st_visibility(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u8 {
+        <span class="self">self</span>.st_visibility()
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>st_shndx(<span class="kw-2">&amp;</span><span class="self">self</span>, endian: <span class="self">Self</span>::Endian) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a> {
-        <a class="self" href="#566">self</a>.st_shndx.<a href="../../endian.rs.html#599">get</a>(<a href="#566">endian</a>)
+    </span><span class="kw">fn </span>st_shndx(<span class="kw-2">&amp;</span><span class="self">self</span>, endian: <span class="self">Self</span>::Endian) -&gt; u16 {
+        <span class="self">self</span>.st_shndx.get(endian)
     }
 
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>st_value(<span class="kw-2">&amp;</span><span class="self">self</span>, endian: <span class="self">Self</span>::Endian) -&gt; <span class="self">Self</span>::Word {
-        <a class="self" href="#571">self</a>.st_value.<a href="../../endian.rs.html#643">get</a>(<a href="#571">endian</a>)
+        <span class="self">self</span>.st_value.get(endian)
     }
 
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>st_size(<span class="kw-2">&amp;</span><span class="self">self</span>, endian: <span class="self">Self</span>::Endian) -&gt; <span class="self">Self</span>::Word {
-        <a class="self" href="#576">self</a>.st_size.<a href="../../endian.rs.html#643">get</a>(<a href="#576">endian</a>)
+        <span class="self">self</span>.st_size.get(endian)
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="object" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="object" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

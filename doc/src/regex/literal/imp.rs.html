@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-1.7.0/src/literal/imp.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>imp.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../regex/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-1.7.0/src/literal/imp.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>imp.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../regex/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -400,11 +400,11 @@
 <a href="#400" id="400">400</a>
 <a href="#401" id="401">401</a>
 <a href="#402" id="402">402</a>
-</pre><pre class="rust"><code><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/mem/index.html">std::mem</a>;
+</pre><pre class="rust"><code><span class="kw">use </span>std::mem;
 
-<span class="kw">use </span>aho_corasick::{<a class="self" href="../../../aho_corasick/index.html">self</a>, <a href="../../../aho_corasick/packed/index.html">packed</a>, <a href="../../../aho_corasick/ahocorasick/struct.AhoCorasick.html">AhoCorasick</a>, <a href="../../../aho_corasick/ahocorasick/struct.AhoCorasickBuilder.html">AhoCorasickBuilder</a>};
-<span class="kw">use </span>memchr::{<a href="../../../memchr/memchr/fn.memchr.html">memchr</a>, <a href="../../../memchr/memchr/fn.memchr2.html">memchr2</a>, <a href="../../../memchr/memchr/fn.memchr3.html">memchr3</a>, <a href="../../../memchr/memmem/index.html">memmem</a>};
-<span class="kw">use </span>regex_syntax::hir::literal::{<a href="../../../regex_syntax/hir/literal/struct.Literal.html">Literal</a>, <a href="../../../regex_syntax/hir/literal/struct.Literals.html">Literals</a>};
+<span class="kw">use </span>aho_corasick::{<span class="self">self</span>, packed, AhoCorasick, AhoCorasickBuilder};
+<span class="kw">use </span>memchr::{memchr, memchr2, memchr3, memmem};
+<span class="kw">use </span>regex_syntax::hir::literal::{Literal, Literals};
 
 <span class="doccomment">/// A prefix extracted from a compiled regular expression.
 ///
@@ -413,10 +413,10 @@
 /// for a regex suffix.
 </span><span class="attr">#[derive(Clone, Debug)]
 </span><span class="kw">pub struct </span>LiteralSearcher {
-    complete: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-    lcp: <a href="#361">Memmem</a>,
-    lcs: <a href="#361">Memmem</a>,
-    matcher: <a href="#21">Matcher</a>,
+    complete: bool,
+    lcp: Memmem,
+    lcs: Memmem,
+    matcher: Matcher,
 }
 
 <span class="attr">#[derive(Clone, Debug)]
@@ -424,45 +424,45 @@
     <span class="doccomment">/// No literals. (Never advances through the input.)
     </span>Empty,
     <span class="doccomment">/// A set of four or more single byte literals.
-    </span>Bytes(<a href="#277">SingleByteSet</a>),
+    </span>Bytes(SingleByteSet),
     <span class="doccomment">/// A single substring, using vector accelerated routines when available.
-    </span>Memmem(<a href="#361">Memmem</a>),
+    </span>Memmem(Memmem),
     <span class="doccomment">/// An Aho-Corasick automaton.
-    </span>AC { ac: AhoCorasick&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>&gt;, lits: Vec&lt;<a href="../../../regex_syntax/hir/literal/struct.Literal.html">Literal</a>&gt; },
+    </span>AC { ac: AhoCorasick&lt;u32&gt;, lits: Vec&lt;Literal&gt; },
     <span class="doccomment">/// A packed multiple substring searcher, using SIMD.
     ///
     /// Note that Aho-Corasick will actually use this packed searcher
     /// internally automatically, however, there is some overhead associated
     /// with going through the Aho-Corasick machinery. So using the packed
     /// searcher directly results in some gains.
-    </span>Packed { s: <a href="../../../aho_corasick/packed/api/struct.Searcher.html">packed::Searcher</a>, lits: Vec&lt;<a href="../../../regex_syntax/hir/literal/struct.Literal.html">Literal</a>&gt; },
+    </span>Packed { s: packed::Searcher, lits: Vec&lt;Literal&gt; },
 }
 
-<span class="kw">impl </span><a href="#13">LiteralSearcher</a> {
+<span class="kw">impl </span>LiteralSearcher {
     <span class="doccomment">/// Returns a matcher that never matches and never advances the input.
     </span><span class="kw">pub fn </span>empty() -&gt; <span class="self">Self </span>{
-        <span class="self">Self</span>::new(Literals::empty(), <a href="#23">Matcher::Empty</a>)
+        <span class="self">Self</span>::new(Literals::empty(), Matcher::Empty)
     }
 
     <span class="doccomment">/// Returns a matcher for literal prefixes from the given set.
-    </span><span class="kw">pub fn </span>prefixes(lits: <a href="../../../regex_syntax/hir/literal/struct.Literals.html">Literals</a>) -&gt; <span class="self">Self </span>{
-        <span class="kw">let </span>matcher = Matcher::prefixes(<span class="kw-2">&amp;</span><a href="#46">lits</a>);
-        <span class="self">Self</span>::new(<a href="#46">lits</a>, <a href="#47">matcher</a>)
+    </span><span class="kw">pub fn </span>prefixes(lits: Literals) -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span>matcher = Matcher::prefixes(<span class="kw-2">&amp;</span>lits);
+        <span class="self">Self</span>::new(lits, matcher)
     }
 
     <span class="doccomment">/// Returns a matcher for literal suffixes from the given set.
-    </span><span class="kw">pub fn </span>suffixes(lits: <a href="../../../regex_syntax/hir/literal/struct.Literals.html">Literals</a>) -&gt; <span class="self">Self </span>{
-        <span class="kw">let </span>matcher = Matcher::suffixes(<span class="kw-2">&amp;</span><a href="#52">lits</a>);
-        <span class="self">Self</span>::new(<a href="#52">lits</a>, <a href="#53">matcher</a>)
+    </span><span class="kw">pub fn </span>suffixes(lits: Literals) -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span>matcher = Matcher::suffixes(<span class="kw-2">&amp;</span>lits);
+        <span class="self">Self</span>::new(lits, matcher)
     }
 
-    <span class="kw">fn </span>new(lits: <a href="../../../regex_syntax/hir/literal/struct.Literals.html">Literals</a>, matcher: <a href="#21">Matcher</a>) -&gt; <span class="self">Self </span>{
-        <span class="kw">let </span>complete = <a href="#57">lits</a>.all_complete();
-        <a href="#13">LiteralSearcher</a> {
-            <a href="#58">complete</a>,
-            lcp: Memmem::new(<a href="#57">lits</a>.longest_common_prefix()),
-            lcs: Memmem::new(<a href="#57">lits</a>.longest_common_suffix()),
-            <a href="#57">matcher</a>,
+    <span class="kw">fn </span>new(lits: Literals, matcher: Matcher) -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span>complete = lits.all_complete();
+        LiteralSearcher {
+            complete,
+            lcp: Memmem::new(lits.longest_common_prefix()),
+            lcs: Memmem::new(lits.longest_common_suffix()),
+            matcher,
         }
     }
 
@@ -472,29 +472,29 @@
     /// of the regular expression. For example, the regular expression `^a`
     /// is comprised of a single complete literal `a`, but the regular
     /// expression demands that it only match at the beginning of a string.
-    </span><span class="kw">pub fn </span>complete(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#73">self</a>.complete &amp;&amp; !<a class="self" href="#73">self</a>.<a href="#142">is_empty</a>()
+    </span><span class="kw">pub fn </span>complete(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.complete &amp;&amp; !<span class="self">self</span>.is_empty()
     }
 
     <span class="doccomment">/// Find the position of a literal in `haystack` if it exists.
     </span><span class="attr">#[cfg_attr(feature = <span class="string">&quot;perf-inline&quot;</span>, inline(always))]
-    </span><span class="kw">pub fn </span>find(<span class="kw-2">&amp;</span><span class="self">self</span>, haystack: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Option</span>&lt;(<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>)&gt; {
-        <span class="kw">use </span><a href="#21"><span class="self">self</span>::Matcher</a>::<span class="kw-2">*</span>;
-        <span class="kw">match </span><a class="self" href="#79">self</a>.matcher {
-            <a href="#23">Empty</a> =&gt; <span class="prelude-val">Some</span>((<span class="number">0</span>, <span class="number">0</span>)),
-            <a href="#25">Bytes</a>(<span class="kw-2">ref </span>sset) =&gt; <a href="#83">sset</a>.<a href="#330">find</a>(<a href="#79">haystack</a>).map(|i| (<a href="#83">i</a>, <a href="#83">i</a> + <span class="number">1</span>)),
-            <a href="#27">Memmem</a>(<span class="kw-2">ref </span>s) =&gt; <a href="#84">s</a>.<a href="#375">find</a>(<a href="#79">haystack</a>).map(|i| (<a href="#84">i</a>, <a href="#84">i</a> + <a href="#84">s</a>.<a href="#387">len</a>())),
-            <a href="#29">AC</a> { <span class="kw-2">ref </span>ac, .. } =&gt; {
-                <a href="#85">ac</a>.find(<a href="#79">haystack</a>).map(|m| (<a href="#86">m</a>.start(), <a href="#86">m</a>.end()))
+    </span><span class="kw">pub fn </span>find(<span class="kw-2">&amp;</span><span class="self">self</span>, haystack: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Option</span>&lt;(usize, usize)&gt; {
+        <span class="kw">use </span><span class="self">self</span>::Matcher::<span class="kw-2">*</span>;
+        <span class="kw">match </span><span class="self">self</span>.matcher {
+            Empty =&gt; <span class="prelude-val">Some</span>((<span class="number">0</span>, <span class="number">0</span>)),
+            Bytes(<span class="kw-2">ref </span>sset) =&gt; sset.find(haystack).map(|i| (i, i + <span class="number">1</span>)),
+            Memmem(<span class="kw-2">ref </span>s) =&gt; s.find(haystack).map(|i| (i, i + s.len())),
+            AC { <span class="kw-2">ref </span>ac, .. } =&gt; {
+                ac.find(haystack).map(|m| (m.start(), m.end()))
             }
-            <a href="#36">Packed</a> { <span class="kw-2">ref </span>s, .. } =&gt; {
-                <a href="#88">s</a>.find(<a href="#79">haystack</a>).map(|m| (<a href="#89">m</a>.start(), <a href="#89">m</a>.end()))
+            Packed { <span class="kw-2">ref </span>s, .. } =&gt; {
+                s.find(haystack).map(|m| (m.start(), m.end()))
             }
         }
     }
 
     <span class="doccomment">/// Like find, except matches must start at index `0`.
-    </span><span class="kw">pub fn </span>find_start(<span class="kw-2">&amp;</span><span class="self">self</span>, haystack: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Option</span>&lt;(<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>)&gt; {
+    </span><span class="kw">pub fn </span>find_start(<span class="kw-2">&amp;</span><span class="self">self</span>, haystack: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Option</span>&lt;(usize, usize)&gt; {
         <span class="kw">for </span>lit <span class="kw">in </span><span class="self">self</span>.iter() {
             <span class="kw">if </span>lit.len() &gt; haystack.len() {
                 <span class="kw">continue</span>;
@@ -507,7 +507,7 @@
     </span>}
 
     <span class="doccomment">/// Like find, except matches must end at index `haystack.len()`.
-    </span><span class="kw">pub fn </span>find_end(<span class="kw-2">&amp;</span><span class="self">self</span>, haystack: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Option</span>&lt;(<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>)&gt; {
+    </span><span class="kw">pub fn </span>find_end(<span class="kw-2">&amp;</span><span class="self">self</span>, haystack: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Option</span>&lt;(usize, usize)&gt; {
         <span class="kw">for </span>lit <span class="kw">in </span><span class="self">self</span>.iter() {
             <span class="kw">if </span>lit.len() &gt; haystack.len() {
                 <span class="kw">continue</span>;
@@ -521,69 +521,69 @@
 
     <span class="doccomment">/// Returns an iterator over all literals to be matched.
     </span><span class="kw">pub fn </span>iter(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; LiteralIter&lt;<span class="lifetime">&#39;_</span>&gt; {
-        <span class="kw">match </span><a class="self" href="#121">self</a>.matcher {
-            <a href="#23">Matcher::Empty</a> =&gt; <a href="#223">LiteralIter::Empty</a>,
-            <a href="#25">Matcher::Bytes</a>(<span class="kw-2">ref </span>sset) =&gt; <a href="#224">LiteralIter::Bytes</a>(<span class="kw-2">&amp;</span><a href="#124">sset</a>.dense),
-            <a href="#27">Matcher::Memmem</a>(<span class="kw-2">ref </span>s) =&gt; <a href="#225">LiteralIter::Single</a>(<span class="kw-2">&amp;</span><a href="#125">s</a>.finder.needle()),
-            <a href="#29">Matcher::AC</a> { <span class="kw-2">ref </span>lits, .. } =&gt; <a href="#226">LiteralIter::AC</a>(<a href="#126">lits</a>),
-            <a href="#36">Matcher::Packed</a> { <span class="kw-2">ref </span>lits, .. } =&gt; <a href="#227">LiteralIter::Packed</a>(<a href="#127">lits</a>),
+        <span class="kw">match </span><span class="self">self</span>.matcher {
+            Matcher::Empty =&gt; LiteralIter::Empty,
+            Matcher::Bytes(<span class="kw-2">ref </span>sset) =&gt; LiteralIter::Bytes(<span class="kw-2">&amp;</span>sset.dense),
+            Matcher::Memmem(<span class="kw-2">ref </span>s) =&gt; LiteralIter::Single(<span class="kw-2">&amp;</span>s.finder.needle()),
+            Matcher::AC { <span class="kw-2">ref </span>lits, .. } =&gt; LiteralIter::AC(lits),
+            Matcher::Packed { <span class="kw-2">ref </span>lits, .. } =&gt; LiteralIter::Packed(lits),
         }
     }
 
     <span class="doccomment">/// Returns a matcher for the longest common prefix of this matcher.
-    </span><span class="kw">pub fn </span>lcp(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="#361">Memmem</a> {
-        <span class="kw-2">&amp;</span><a class="self" href="#132">self</a>.lcp
+    </span><span class="kw">pub fn </span>lcp(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Memmem {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.lcp
     }
 
     <span class="doccomment">/// Returns a matcher for the longest common suffix of this matcher.
-    </span><span class="kw">pub fn </span>lcs(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="#361">Memmem</a> {
-        <span class="kw-2">&amp;</span><a class="self" href="#137">self</a>.lcs
+    </span><span class="kw">pub fn </span>lcs(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Memmem {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.lcs
     }
 
     <span class="doccomment">/// Returns true iff this prefix is empty.
-    </span><span class="kw">pub fn </span>is_empty(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#142">self</a>.<a href="#147">len</a>() == <span class="number">0
+    </span><span class="kw">pub fn </span>is_empty(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.len() == <span class="number">0
     </span>}
 
     <span class="doccomment">/// Returns the number of prefixes in this machine.
-    </span><span class="kw">pub fn </span>len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <span class="kw">use </span><a href="#21"><span class="self">self</span>::Matcher</a>::<span class="kw-2">*</span>;
-        <span class="kw">match </span><a class="self" href="#147">self</a>.matcher {
-            <a href="#23">Empty</a> =&gt; <span class="number">0</span>,
-            <a href="#25">Bytes</a>(<span class="kw-2">ref </span>sset) =&gt; <a href="#151">sset</a>.dense.len(),
-            <a href="#27">Memmem</a>(<span class="kw">_</span>) =&gt; <span class="number">1</span>,
-            <a href="#29">AC</a> { <span class="kw-2">ref </span>ac, .. } =&gt; <a href="#153">ac</a>.pattern_count(),
-            <a href="#36">Packed</a> { <span class="kw-2">ref </span>lits, .. } =&gt; <a href="#154">lits</a>.len(),
+    </span><span class="kw">pub fn </span>len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+        <span class="kw">use </span><span class="self">self</span>::Matcher::<span class="kw-2">*</span>;
+        <span class="kw">match </span><span class="self">self</span>.matcher {
+            Empty =&gt; <span class="number">0</span>,
+            Bytes(<span class="kw-2">ref </span>sset) =&gt; sset.dense.len(),
+            Memmem(<span class="kw">_</span>) =&gt; <span class="number">1</span>,
+            AC { <span class="kw-2">ref </span>ac, .. } =&gt; ac.pattern_count(),
+            Packed { <span class="kw-2">ref </span>lits, .. } =&gt; lits.len(),
         }
     }
 
     <span class="doccomment">/// Return the approximate heap usage of literals in bytes.
-    </span><span class="kw">pub fn </span>approximate_size(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <span class="kw">use </span><a href="#21"><span class="self">self</span>::Matcher</a>::<span class="kw-2">*</span>;
-        <span class="kw">match </span><a class="self" href="#159">self</a>.matcher {
-            <a href="#23">Empty</a> =&gt; <span class="number">0</span>,
-            <a href="#25">Bytes</a>(<span class="kw-2">ref </span>sset) =&gt; <a href="#163">sset</a>.<a href="#350">approximate_size</a>(),
-            <a href="#27">Memmem</a>(<span class="kw-2">ref </span>single) =&gt; <a href="#164">single</a>.<a href="#395">approximate_size</a>(),
-            <a href="#29">AC</a> { <span class="kw-2">ref </span>ac, .. } =&gt; <a href="#165">ac</a>.heap_bytes(),
-            <a href="#36">Packed</a> { <span class="kw-2">ref </span>s, .. } =&gt; <a href="#166">s</a>.heap_bytes(),
+    </span><span class="kw">pub fn </span>approximate_size(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+        <span class="kw">use </span><span class="self">self</span>::Matcher::<span class="kw-2">*</span>;
+        <span class="kw">match </span><span class="self">self</span>.matcher {
+            Empty =&gt; <span class="number">0</span>,
+            Bytes(<span class="kw-2">ref </span>sset) =&gt; sset.approximate_size(),
+            Memmem(<span class="kw-2">ref </span>single) =&gt; single.approximate_size(),
+            AC { <span class="kw-2">ref </span>ac, .. } =&gt; ac.heap_bytes(),
+            Packed { <span class="kw-2">ref </span>s, .. } =&gt; s.heap_bytes(),
         }
     }
 }
 
-<span class="kw">impl </span><a href="#21">Matcher</a> {
-    <span class="kw">fn </span>prefixes(lits: <span class="kw-2">&amp;</span><a href="../../../regex_syntax/hir/literal/struct.Literals.html">Literals</a>) -&gt; <span class="self">Self </span>{
-        <span class="kw">let </span>sset = SingleByteSet::prefixes(<a href="#172">lits</a>);
-        Matcher::new(<a href="#172">lits</a>, <a href="#173">sset</a>)
+<span class="kw">impl </span>Matcher {
+    <span class="kw">fn </span>prefixes(lits: <span class="kw-2">&amp;</span>Literals) -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span>sset = SingleByteSet::prefixes(lits);
+        Matcher::new(lits, sset)
     }
 
-    <span class="kw">fn </span>suffixes(lits: <span class="kw-2">&amp;</span><a href="../../../regex_syntax/hir/literal/struct.Literals.html">Literals</a>) -&gt; <span class="self">Self </span>{
-        <span class="kw">let </span>sset = SingleByteSet::suffixes(<a href="#177">lits</a>);
-        Matcher::new(<a href="#177">lits</a>, <a href="#178">sset</a>)
+    <span class="kw">fn </span>suffixes(lits: <span class="kw-2">&amp;</span>Literals) -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span>sset = SingleByteSet::suffixes(lits);
+        Matcher::new(lits, sset)
     }
 
-    <span class="kw">fn </span>new(lits: <span class="kw-2">&amp;</span><a href="../../../regex_syntax/hir/literal/struct.Literals.html">Literals</a>, sset: <a href="#277">SingleByteSet</a>) -&gt; <span class="self">Self </span>{
+    <span class="kw">fn </span>new(lits: <span class="kw-2">&amp;</span>Literals, sset: SingleByteSet) -&gt; <span class="self">Self </span>{
         <span class="kw">if </span>lits.literals().is_empty() {
-            <span class="kw">return </span><a href="#23">Matcher::Empty</a>;
+            <span class="kw">return </span>Matcher::Empty;
         }
         <span class="kw">if </span>sset.dense.len() &gt;= <span class="number">26 </span>{
             <span class="comment">// Avoid trying to match a large number of single bytes.
@@ -592,83 +592,83 @@
             // No matter the size of sset, if its members all are rare in the
             // haystack, then it&#39;d be worth using it. How to tune this... IDK.
             // ---AG
-            </span><span class="kw">return </span><a href="#23">Matcher::Empty</a>;
+            </span><span class="kw">return </span>Matcher::Empty;
         }
         <span class="kw">if </span>sset.complete {
-            <span class="kw">return </span><a href="#25">Matcher::Bytes</a>(<a href="#182">sset</a>);
+            <span class="kw">return </span>Matcher::Bytes(sset);
         }
         <span class="kw">if </span>lits.literals().len() == <span class="number">1 </span>{
-            <span class="kw">return </span><a href="#27">Matcher::Memmem</a>(Memmem::new(<span class="kw-2">&amp;</span><a href="#182">lits</a>.literals()[<span class="number">0</span>]));
+            <span class="kw">return </span>Matcher::Memmem(Memmem::new(<span class="kw-2">&amp;</span>lits.literals()[<span class="number">0</span>]));
         }
 
-        <span class="kw">let </span>pats = <a href="#182">lits</a>.literals().<a href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">to_owned</a>();
-        <span class="kw">let </span>is_aho_corasick_fast = <a href="#182">sset</a>.dense.len() &lt;= <span class="number">1 </span>&amp;&amp; <a href="#182">sset</a>.all_ascii;
+        <span class="kw">let </span>pats = lits.literals().to_owned();
+        <span class="kw">let </span>is_aho_corasick_fast = sset.dense.len() &lt;= <span class="number">1 </span>&amp;&amp; sset.all_ascii;
         <span class="kw">if </span>lits.literals().len() &lt;= <span class="number">100 </span>&amp;&amp; !is_aho_corasick_fast {
             <span class="kw">let </span><span class="kw-2">mut </span>builder = packed::Config::new()
                 .match_kind(packed::MatchKind::LeftmostFirst)
                 .builder();
-            <span class="kw">if let </span><span class="prelude-val">Some</span>(s) = <a href="#205">builder</a>.extend(<span class="kw-2">&amp;</span><a href="#202">pats</a>).build() {
-                <span class="kw">return </span><a href="#36">Matcher::Packed</a> { <a href="#208">s</a>, lits: <a href="#202">pats</a> };
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(s) = builder.extend(<span class="kw-2">&amp;</span>pats).build() {
+                <span class="kw">return </span>Matcher::Packed { s, lits: pats };
             }
         }
         <span class="kw">let </span>ac = AhoCorasickBuilder::new()
             .match_kind(aho_corasick::MatchKind::LeftmostFirst)
             .dfa(<span class="bool-val">true</span>)
-            .build_with_size::&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>, <span class="kw">_</span>, <span class="kw">_</span>&gt;(<span class="kw-2">&amp;</span><a href="#202">pats</a>)
+            .build_with_size::&lt;u32, <span class="kw">_</span>, <span class="kw">_</span>&gt;(<span class="kw-2">&amp;</span>pats)
             .unwrap();
-        <a href="#29">Matcher::AC</a> { <a href="#212">ac</a>, lits: <a href="#202">pats</a> }
+        Matcher::AC { ac, lits: pats }
     }
 }
 
 <span class="attr">#[derive(Debug)]
 </span><span class="kw">pub enum </span>LiteralIter&lt;<span class="lifetime">&#39;a</span>&gt; {
     Empty,
-    Bytes(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]),
-    Single(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]),
-    AC(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[<a href="../../../regex_syntax/hir/literal/struct.Literal.html">Literal</a>]),
-    Packed(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[<a href="../../../regex_syntax/hir/literal/struct.Literal.html">Literal</a>]),
+    Bytes(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[u8]),
+    Single(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[u8]),
+    AC(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[Literal]),
+    Packed(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[Literal]),
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a> <span class="kw">for </span>LiteralIter&lt;<span class="lifetime">&#39;a</span>&gt; {
-    <span class="kw">type </span>Item = <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>];
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; Iterator <span class="kw">for </span>LiteralIter&lt;<span class="lifetime">&#39;a</span>&gt; {
+    <span class="kw">type </span>Item = <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[u8];
 
     <span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt; {
-        <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="#233">self</a> </span>{
-            <a href="#223">LiteralIter::Empty</a> =&gt; <span class="prelude-val">None</span>,
-            <a href="#224">LiteralIter::Bytes</a>(<span class="kw-2">ref mut </span>many) =&gt; {
+        <span class="kw">match </span><span class="kw-2">*</span><span class="self">self </span>{
+            LiteralIter::Empty =&gt; <span class="prelude-val">None</span>,
+            LiteralIter::Bytes(<span class="kw-2">ref mut </span>many) =&gt; {
                 <span class="kw">if </span>many.is_empty() {
                     <span class="prelude-val">None
                 </span>} <span class="kw">else </span>{
-                    <span class="kw">let </span>next = <span class="kw-2">&amp;</span><a href="#236">many</a>[<span class="number">0</span>..<span class="number">1</span>];
-                    <span class="kw-2">*</span><a href="#236">many</a> = <span class="kw-2">&amp;</span><a href="#236">many</a>[<span class="number">1</span>..];
-                    <span class="prelude-val">Some</span>(<a href="#240">next</a>)
+                    <span class="kw">let </span>next = <span class="kw-2">&amp;</span>many[<span class="number">0</span>..<span class="number">1</span>];
+                    <span class="kw-2">*</span>many = <span class="kw-2">&amp;</span>many[<span class="number">1</span>..];
+                    <span class="prelude-val">Some</span>(next)
                 }
             }
-            <a href="#225">LiteralIter::Single</a>(<span class="kw-2">ref mut </span>one) =&gt; {
+            LiteralIter::Single(<span class="kw-2">ref mut </span>one) =&gt; {
                 <span class="kw">if </span>one.is_empty() {
                     <span class="prelude-val">None
                 </span>} <span class="kw">else </span>{
-                    <span class="kw">let </span>next = <span class="kw-2">&amp;</span><a href="#245">one</a>[..];
-                    <span class="kw-2">*</span><a href="#245">one</a> = <span class="kw-2">&amp;</span>[];
-                    <span class="prelude-val">Some</span>(<a href="#249">next</a>)
+                    <span class="kw">let </span>next = <span class="kw-2">&amp;</span>one[..];
+                    <span class="kw-2">*</span>one = <span class="kw-2">&amp;</span>[];
+                    <span class="prelude-val">Some</span>(next)
                 }
             }
-            <a href="#226">LiteralIter::AC</a>(<span class="kw-2">ref mut </span>lits) =&gt; {
+            LiteralIter::AC(<span class="kw-2">ref mut </span>lits) =&gt; {
                 <span class="kw">if </span>lits.is_empty() {
                     <span class="prelude-val">None
                 </span>} <span class="kw">else </span>{
-                    <span class="kw">let </span>next = <span class="kw-2">&amp;</span><a href="#254">lits</a>[<span class="number">0</span>];
-                    <span class="kw-2">*</span><a href="#254">lits</a> = <span class="kw-2">&amp;</span><a href="#254">lits</a>[<span class="number">1</span>..];
-                    <span class="prelude-val">Some</span>(<span class="kw-2">&amp;**</span><a href="#258">next</a>)
+                    <span class="kw">let </span>next = <span class="kw-2">&amp;</span>lits[<span class="number">0</span>];
+                    <span class="kw-2">*</span>lits = <span class="kw-2">&amp;</span>lits[<span class="number">1</span>..];
+                    <span class="prelude-val">Some</span>(<span class="kw-2">&amp;**</span>next)
                 }
             }
-            <a href="#227">LiteralIter::Packed</a>(<span class="kw-2">ref mut </span>lits) =&gt; {
+            LiteralIter::Packed(<span class="kw-2">ref mut </span>lits) =&gt; {
                 <span class="kw">if </span>lits.is_empty() {
                     <span class="prelude-val">None
                 </span>} <span class="kw">else </span>{
-                    <span class="kw">let </span>next = <span class="kw-2">&amp;</span><a href="#263">lits</a>[<span class="number">0</span>];
-                    <span class="kw-2">*</span><a href="#263">lits</a> = <span class="kw-2">&amp;</span><a href="#263">lits</a>[<span class="number">1</span>..];
-                    <span class="prelude-val">Some</span>(<span class="kw-2">&amp;**</span><a href="#267">next</a>)
+                    <span class="kw">let </span>next = <span class="kw-2">&amp;</span>lits[<span class="number">0</span>];
+                    <span class="kw-2">*</span>lits = <span class="kw-2">&amp;</span>lits[<span class="number">1</span>..];
+                    <span class="prelude-val">Some</span>(<span class="kw-2">&amp;**</span>next)
                 }
             }
         }
@@ -677,23 +677,23 @@
 
 <span class="attr">#[derive(Clone, Debug)]
 </span><span class="kw">struct </span>SingleByteSet {
-    sparse: Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>&gt;,
-    dense: Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;,
-    complete: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-    all_ascii: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
+    sparse: Vec&lt;bool&gt;,
+    dense: Vec&lt;u8&gt;,
+    complete: bool,
+    all_ascii: bool,
 }
 
-<span class="kw">impl </span><a href="#277">SingleByteSet</a> {
-    <span class="kw">fn </span>new() -&gt; <a href="#277">SingleByteSet</a> {
-        <a href="#277">SingleByteSet</a> {
-            sparse: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[<span class="bool-val">false</span>; <span class="number">256</span>],
-            dense: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[],
+<span class="kw">impl </span>SingleByteSet {
+    <span class="kw">fn </span>new() -&gt; SingleByteSet {
+        SingleByteSet {
+            sparse: <span class="macro">vec!</span>[<span class="bool-val">false</span>; <span class="number">256</span>],
+            dense: <span class="macro">vec!</span>[],
             complete: <span class="bool-val">true</span>,
             all_ascii: <span class="bool-val">true</span>,
         }
     }
 
-    <span class="kw">fn </span>prefixes(lits: <span class="kw-2">&amp;</span><a href="../../../regex_syntax/hir/literal/struct.Literals.html">Literals</a>) -&gt; <a href="#277">SingleByteSet</a> {
+    <span class="kw">fn </span>prefixes(lits: <span class="kw-2">&amp;</span>Literals) -&gt; SingleByteSet {
         <span class="kw">let </span><span class="kw-2">mut </span>sset = SingleByteSet::new();
         <span class="kw">for </span>lit <span class="kw">in </span>lits.literals() {
             sset.complete = sset.complete &amp;&amp; lit.len() == <span class="number">1</span>;
@@ -707,10 +707,10 @@
                 }
             }
         }
-        <a href="#295">sset</a>
+        sset
     }
 
-    <span class="kw">fn </span>suffixes(lits: <span class="kw-2">&amp;</span><a href="../../../regex_syntax/hir/literal/struct.Literals.html">Literals</a>) -&gt; <a href="#277">SingleByteSet</a> {
+    <span class="kw">fn </span>suffixes(lits: <span class="kw-2">&amp;</span>Literals) -&gt; SingleByteSet {
         <span class="kw">let </span><span class="kw-2">mut </span>sset = SingleByteSet::new();
         <span class="kw">for </span>lit <span class="kw">in </span>lits.literals() {
             sset.complete = sset.complete &amp;&amp; lit.len() == <span class="number">1</span>;
@@ -724,23 +724,23 @@
                 }
             }
         }
-        <a href="#312">sset</a>
+        sset
     }
 
     <span class="doccomment">/// Faster find that special cases certain sizes to use memchr.
     </span><span class="attr">#[cfg_attr(feature = <span class="string">&quot;perf-inline&quot;</span>, inline(always))]
-    </span><span class="kw">fn </span>find(<span class="kw-2">&amp;</span><span class="self">self</span>, text: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
-        <span class="kw">match </span><a class="self" href="#330">self</a>.dense.len() {
+    </span><span class="kw">fn </span>find(<span class="kw-2">&amp;</span><span class="self">self</span>, text: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Option</span>&lt;usize&gt; {
+        <span class="kw">match </span><span class="self">self</span>.dense.len() {
             <span class="number">0 </span>=&gt; <span class="prelude-val">None</span>,
-            <span class="number">1 </span>=&gt; <a href="../../../memchr/memchr/fn.memchr.html">memchr</a>(<a class="self" href="#330">self</a>.dense[<span class="number">0</span>], <a href="#330">text</a>),
-            <span class="number">2 </span>=&gt; <a href="../../../memchr/memchr/fn.memchr2.html">memchr2</a>(<a class="self" href="#330">self</a>.dense[<span class="number">0</span>], <a class="self" href="#330">self</a>.dense[<span class="number">1</span>], <a href="#330">text</a>),
-            <span class="number">3 </span>=&gt; <a href="../../../memchr/memchr/fn.memchr3.html">memchr3</a>(<a class="self" href="#330">self</a>.dense[<span class="number">0</span>], <a class="self" href="#330">self</a>.dense[<span class="number">1</span>], <a class="self" href="#330">self</a>.dense[<span class="number">2</span>], <a href="#330">text</a>),
-            <span class="kw">_ </span>=&gt; <a class="self" href="#330">self</a>.<a href="#341">_find</a>(<a href="#330">text</a>),
+            <span class="number">1 </span>=&gt; memchr(<span class="self">self</span>.dense[<span class="number">0</span>], text),
+            <span class="number">2 </span>=&gt; memchr2(<span class="self">self</span>.dense[<span class="number">0</span>], <span class="self">self</span>.dense[<span class="number">1</span>], text),
+            <span class="number">3 </span>=&gt; memchr3(<span class="self">self</span>.dense[<span class="number">0</span>], <span class="self">self</span>.dense[<span class="number">1</span>], <span class="self">self</span>.dense[<span class="number">2</span>], text),
+            <span class="kw">_ </span>=&gt; <span class="self">self</span>._find(text),
         }
     }
 
     <span class="doccomment">/// Generic find that works on any sized set.
-    </span><span class="kw">fn </span>_find(<span class="kw-2">&amp;</span><span class="self">self</span>, haystack: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
+    </span><span class="kw">fn </span>_find(<span class="kw-2">&amp;</span><span class="self">self</span>, haystack: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Option</span>&lt;usize&gt; {
         <span class="kw">for </span>(i, <span class="kw-2">&amp;</span>b) <span class="kw">in </span>haystack.iter().enumerate() {
             <span class="kw">if </span><span class="self">self</span>.sparse[b <span class="kw">as </span>usize] {
                 <span class="kw">return </span><span class="prelude-val">Some</span>(i);
@@ -749,9 +749,9 @@
         <span class="prelude-val">None
     </span>}
 
-    <span class="kw">fn </span>approximate_size(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        (<a class="self" href="#350">self</a>.dense.len() * mem::size_of::&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;())
-            + (<a class="self" href="#350">self</a>.sparse.len() * mem::size_of::&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>&gt;())
+    <span class="kw">fn </span>approximate_size(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+        (<span class="self">self</span>.dense.len() * mem::size_of::&lt;u8&gt;())
+            + (<span class="self">self</span>.sparse.len() * mem::size_of::&lt;bool&gt;())
     }
 }
 
@@ -762,45 +762,45 @@
 </span><span class="attr">#[derive(Clone, Debug)]
 </span><span class="kw">pub struct </span>Memmem {
     finder: memmem::Finder&lt;<span class="lifetime">&#39;static</span>&gt;,
-    char_len: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+    char_len: usize,
 }
 
-<span class="kw">impl </span><a href="#361">Memmem</a> {
-    <span class="kw">fn </span>new(pat: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <a href="#361">Memmem</a> {
-        <a href="#361">Memmem</a> {
-            finder: memmem::Finder::new(<a href="#367">pat</a>).into_owned(),
-            char_len: <a href="#400">char_len_lossy</a>(<a href="#367">pat</a>),
+<span class="kw">impl </span>Memmem {
+    <span class="kw">fn </span>new(pat: <span class="kw-2">&amp;</span>[u8]) -&gt; Memmem {
+        Memmem {
+            finder: memmem::Finder::new(pat).into_owned(),
+            char_len: char_len_lossy(pat),
         }
     }
 
     <span class="attr">#[cfg_attr(feature = <span class="string">&quot;perf-inline&quot;</span>, inline(always))]
-    </span><span class="kw">pub fn </span>find(<span class="kw-2">&amp;</span><span class="self">self</span>, haystack: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
-        <a class="self" href="#375">self</a>.finder.find(<a href="#375">haystack</a>)
+    </span><span class="kw">pub fn </span>find(<span class="kw-2">&amp;</span><span class="self">self</span>, haystack: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Option</span>&lt;usize&gt; {
+        <span class="self">self</span>.finder.find(haystack)
     }
 
     <span class="attr">#[cfg_attr(feature = <span class="string">&quot;perf-inline&quot;</span>, inline(always))]
-    </span><span class="kw">pub fn </span>is_suffix(<span class="kw-2">&amp;</span><span class="self">self</span>, text: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+    </span><span class="kw">pub fn </span>is_suffix(<span class="kw-2">&amp;</span><span class="self">self</span>, text: <span class="kw-2">&amp;</span>[u8]) -&gt; bool {
         <span class="kw">if </span>text.len() &lt; <span class="self">self</span>.len() {
             <span class="kw">return </span><span class="bool-val">false</span>;
         }
-        <span class="kw-2">&amp;</span><a href="#380">text</a>[<a href="#380">text</a>.len() - <a class="self" href="#380">self</a>.<a href="#387">len</a>()..] == <a class="self" href="#380">self</a>.finder.needle()
+        <span class="kw-2">&amp;</span>text[text.len() - <span class="self">self</span>.len()..] == <span class="self">self</span>.finder.needle()
     }
 
-    <span class="kw">pub fn </span>len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="self" href="#387">self</a>.finder.needle().len()
+    <span class="kw">pub fn </span>len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+        <span class="self">self</span>.finder.needle().len()
     }
 
-    <span class="kw">pub fn </span>char_len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="self" href="#391">self</a>.char_len
+    <span class="kw">pub fn </span>char_len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+        <span class="self">self</span>.char_len
     }
 
-    <span class="kw">fn </span>approximate_size(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="self" href="#395">self</a>.finder.needle().len() * mem::size_of::&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;()
+    <span class="kw">fn </span>approximate_size(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+        <span class="self">self</span>.finder.needle().len() * mem::size_of::&lt;u8&gt;()
     }
 }
 
-<span class="kw">fn </span>char_len_lossy(bytes: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-    String::from_utf8_lossy(<a href="#400">bytes</a>).chars().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">count</a>()
+<span class="kw">fn </span>char_len_lossy(bytes: <span class="kw-2">&amp;</span>[u8]) -&gt; usize {
+    String::from_utf8_lossy(bytes).chars().count()
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="regex" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="regex" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/futures-util-0.3.25/src/sink/unfold.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>unfold.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../futures_util/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/futures-util-0.3.25/src/sink/unfold.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>unfold.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../futures_util/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -84,15 +84,15 @@
 <a href="#84" id="84">84</a>
 <a href="#85" id="85">85</a>
 <a href="#86" id="86">86</a>
-</pre><pre class="rust"><code><span class="kw">use </span><a href="mod.rs.html#339-341"><span class="kw">super</span>::assert_sink</a>;
-<span class="kw">use </span><a href="../unfold_state.rs.html#5-20"><span class="kw">crate</span>::unfold_state::UnfoldState</a>;
-<span class="kw">use </span>core::{<a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">future::Future</a>, <a href="https://doc.rust-lang.org/nightly/core/pin/struct.Pin.html">pin::Pin</a>};
-<span class="kw">use </span><a href="../../../futures_util/macro.ready.html">futures_core::ready</a>;
-<span class="kw">use </span>futures_core::task::{<a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>, <a href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">Poll</a>};
-<span class="kw">use </span><a href="../../../futures_util/sink/trait.Sink.html">futures_sink::Sink</a>;
-<span class="kw">use </span><a href="../../../pin_project_lite/macro.pin_project.html">pin_project_lite::pin_project</a>;
+</pre><pre class="rust"><code><span class="kw">use </span><span class="kw">super</span>::assert_sink;
+<span class="kw">use </span><span class="kw">crate</span>::unfold_state::UnfoldState;
+<span class="kw">use </span>core::{future::Future, pin::Pin};
+<span class="kw">use </span>futures_core::ready;
+<span class="kw">use </span>futures_core::task::{Context, Poll};
+<span class="kw">use </span>futures_sink::Sink;
+<span class="kw">use </span>pin_project_lite::pin_project;
 
-<a class="macro" href="../../../pin_project_lite/macro.pin_project.html">pin_project! </a>{
+<span class="macro">pin_project! </span>{
     <span class="doccomment">/// Sink for the [`unfold`] function.
     </span><span class="attr">#[derive(Debug)]
     #[must_use = <span class="string">&quot;sinks do nothing unless polled&quot;</span>]
@@ -127,7 +127,7 @@
     </span>F: FnMut(T, Item) -&gt; R,
     R: Future&lt;Output = <span class="prelude-ty">Result</span>&lt;T, E&gt;&gt;,
 {
-    assert_sink::&lt;Item, E, <span class="kw">_</span>&gt;(<a href="#9-18">Unfold</a> { <a href="#39">function</a>, state: <a href="../unfold_state.rs.html#5-20">UnfoldState::Value</a> { value: <a href="#39">init</a> } })
+    assert_sink::&lt;Item, E, <span class="kw">_</span>&gt;(Unfold { function, state: UnfoldState::Value { value: init } })
 }
 
 <span class="kw">impl</span>&lt;T, F, R, Item, E&gt; Sink&lt;Item&gt; <span class="kw">for </span>Unfold&lt;T, F, R&gt;
@@ -138,28 +138,28 @@
     <span class="kw">type </span>Error = E;
 
     <span class="kw">fn </span>poll_ready(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt;&gt; {
-        <a class="self" href="#54">self</a>.<a href="../../../futures_util/sink/trait.Sink.html">poll_flush</a>(<a href="#54">cx</a>)
+        <span class="self">self</span>.poll_flush(cx)
     }
 
     <span class="kw">fn </span>start_send(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, item: Item) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt; {
-        <span class="kw">let </span><span class="kw-2">mut </span>this = <a class="self" href="#58">self</a>.<a href="#9-18">project</a>();
-        <span class="kw">let </span>future = <span class="kw">match </span><a href="#59">this</a>.state.as_mut().<a href="../unfold_state.rs.html#30">take_value</a>() {
-            <span class="prelude-val">Some</span>(value) =&gt; (<a href="#59">this</a>.function)(<a href="#61">value</a>, <a href="#58">item</a>),
-            <span class="prelude-val">None </span>=&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(<span class="string">&quot;start_send called without poll_ready being called first&quot;</span>),
+        <span class="kw">let </span><span class="kw-2">mut </span>this = <span class="self">self</span>.project();
+        <span class="kw">let </span>future = <span class="kw">match </span>this.state.as_mut().take_value() {
+            <span class="prelude-val">Some</span>(value) =&gt; (this.function)(value, item),
+            <span class="prelude-val">None </span>=&gt; <span class="macro">panic!</span>(<span class="string">&quot;start_send called without poll_ready being called first&quot;</span>),
         };
-        <a href="#59">this</a>.state.set(<a href="../unfold_state.rs.html#5-20">UnfoldState::Future</a> { <a href="#60">future</a> });
+        this.state.set(UnfoldState::Future { future });
         <span class="prelude-val">Ok</span>(())
     }
 
     <span class="kw">fn </span>poll_flush(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt;&gt; {
-        <span class="kw">let </span><span class="kw-2">mut </span>this = <a class="self" href="#68">self</a>.<a href="#9-18">project</a>();
-        Poll::Ready(<span class="kw">if let </span><span class="prelude-val">Some</span>(future) = <a href="#69">this</a>.state.as_mut().<a href="../unfold_state.rs.html#23">project_future</a>() {
-            <span class="kw">match </span><a class="macro" href="../../../futures_util/macro.ready.html">ready!</a>(future.poll(cx)) {
+        <span class="kw">let </span><span class="kw-2">mut </span>this = <span class="self">self</span>.project();
+        Poll::Ready(<span class="kw">if let </span><span class="prelude-val">Some</span>(future) = this.state.as_mut().project_future() {
+            <span class="kw">match </span><span class="macro">ready!</span>(future.poll(cx)) {
                 <span class="prelude-val">Ok</span>(state) =&gt; {
-                    <a href="#69">this</a>.state.set(<a href="../unfold_state.rs.html#5-20">UnfoldState::Value</a> { value: <a href="#72">state</a> });
+                    this.state.set(UnfoldState::Value { value: state });
                     <span class="prelude-val">Ok</span>(())
                 }
-                <span class="prelude-val">Err</span>(err) =&gt; <span class="prelude-val">Err</span>(<a href="#76">err</a>),
+                <span class="prelude-val">Err</span>(err) =&gt; <span class="prelude-val">Err</span>(err),
             }
         } <span class="kw">else </span>{
             <span class="prelude-val">Ok</span>(())
@@ -167,8 +167,8 @@
     }
 
     <span class="kw">fn </span>poll_close(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt;&gt; {
-        <a class="self" href="#83">self</a>.<a href="../../../futures_util/sink/trait.Sink.html">poll_flush</a>(<a href="#83">cx</a>)
+        <span class="self">self</span>.poll_flush(cx)
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="futures_util" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="futures_util" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

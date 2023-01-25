@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `vir/src/legacy/cfg/visitor.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>visitor.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../../vir/index.html"><img class="rust-logo" src="../../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `vir/src/legacy/cfg/visitor.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>visitor.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../../vir/index.html"><img class="rust-logo" src="../../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -160,63 +160,63 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-</span><span class="kw">use </span><span class="kw">crate</span>::legacy::{<a href="../mod.rs.html#12">ast</a>::<span class="kw-2">*</span>, <a href="mod.rs.html#11">cfg::method</a>::<span class="kw-2">*</span>, <a href="../to_string.rs.html#9">to_string::ToString</a>};
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/fmt/macros/derive.Debug.html">std::fmt::Debug</a>;
+</span><span class="kw">use </span><span class="kw">crate</span>::legacy::{ast::<span class="kw-2">*</span>, cfg::method::<span class="kw-2">*</span>, to_string::ToString};
+<span class="kw">use </span>std::fmt::Debug;
 
 <span class="kw">pub trait </span>CheckNoOpAction {
     <span class="doccomment">/// Is the action a no operation?
-    </span><span class="kw">fn </span>is_noop(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>;
+    </span><span class="kw">fn </span>is_noop(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool;
 }
 
 <span class="kw">pub trait </span>SuccessorFolder {
-    <span class="kw">fn </span>fold(<span class="kw-2">&amp;mut </span><span class="self">self</span>, s: <a href="method.rs.html#43">Successor</a>) -&gt; <a href="method.rs.html#43">Successor</a> {
-        <span class="kw">match </span><a href="#16">s</a> {
-            <a href="method.rs.html#44">Successor::Undefined</a> =&gt; <a class="self" href="#16">self</a>.<a href="#35">fold_undefined</a>(),
-            <a href="method.rs.html#45">Successor::Return</a> =&gt; <a class="self" href="#16">self</a>.<a href="#39">fold_return</a>(),
-            <a href="method.rs.html#46">Successor::Goto</a>(target) =&gt; <a class="self" href="#16">self</a>.<a href="#43">fold_goto</a>(<a href="#20">target</a>),
-            <a href="method.rs.html#47">Successor::GotoSwitch</a>(guarded_targets, default_target) =&gt; {
-                <a class="self" href="#16">self</a>.<a href="#47-51">fold_goto_switch</a>(<a href="#21">guarded_targets</a>, <a href="#21">default_target</a>)
+    <span class="kw">fn </span>fold(<span class="kw-2">&amp;mut </span><span class="self">self</span>, s: Successor) -&gt; Successor {
+        <span class="kw">match </span>s {
+            Successor::Undefined =&gt; <span class="self">self</span>.fold_undefined(),
+            Successor::Return =&gt; <span class="self">self</span>.fold_return(),
+            Successor::Goto(target) =&gt; <span class="self">self</span>.fold_goto(target),
+            Successor::GotoSwitch(guarded_targets, default_target) =&gt; {
+                <span class="self">self</span>.fold_goto_switch(guarded_targets, default_target)
             }
         }
     }
 
-    <span class="kw">fn </span>fold_expr(<span class="kw-2">&amp;mut </span><span class="self">self</span>, expr: <a href="../ast/expr.rs.html#19">Expr</a>) -&gt; <a href="../ast/expr.rs.html#19">Expr</a> {
-        <a href="#27">expr</a>
+    <span class="kw">fn </span>fold_expr(<span class="kw-2">&amp;mut </span><span class="self">self</span>, expr: Expr) -&gt; Expr {
+        expr
     }
 
-    <span class="kw">fn </span>fold_target(<span class="kw-2">&amp;mut </span><span class="self">self</span>, target: <a href="method.rs.html#53">CfgBlockIndex</a>) -&gt; <a href="method.rs.html#53">CfgBlockIndex</a> {
-        <a href="#31">target</a>
+    <span class="kw">fn </span>fold_target(<span class="kw-2">&amp;mut </span><span class="self">self</span>, target: CfgBlockIndex) -&gt; CfgBlockIndex {
+        target
     }
 
-    <span class="kw">fn </span>fold_undefined(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <a href="method.rs.html#43">Successor</a> {
-        <a href="method.rs.html#44">Successor::Undefined</a>
+    <span class="kw">fn </span>fold_undefined(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; Successor {
+        Successor::Undefined
     }
 
-    <span class="kw">fn </span>fold_return(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <a href="method.rs.html#43">Successor</a> {
-        <a href="method.rs.html#44">Successor::Undefined</a>
+    <span class="kw">fn </span>fold_return(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; Successor {
+        Successor::Undefined
     }
 
-    <span class="kw">fn </span>fold_goto(<span class="kw-2">&amp;mut </span><span class="self">self</span>, target: <a href="method.rs.html#53">CfgBlockIndex</a>) -&gt; <a href="method.rs.html#43">Successor</a> {
-        <a href="method.rs.html#46">Successor::Goto</a>(<a class="self" href="#43">self</a>.<a href="#31">fold_target</a>(<a href="#43">target</a>))
+    <span class="kw">fn </span>fold_goto(<span class="kw-2">&amp;mut </span><span class="self">self</span>, target: CfgBlockIndex) -&gt; Successor {
+        Successor::Goto(<span class="self">self</span>.fold_target(target))
     }
 
     <span class="kw">fn </span>fold_goto_switch(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        guarded_targets: Vec&lt;(<a href="../ast/expr.rs.html#19">Expr</a>, <a href="method.rs.html#53">CfgBlockIndex</a>)&gt;,
-        default_target: <a href="method.rs.html#53">CfgBlockIndex</a>,
-    ) -&gt; <a href="method.rs.html#43">Successor</a> {
-        <a href="method.rs.html#47">Successor::GotoSwitch</a>(
-            <a href="#49">guarded_targets</a>
-                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
-                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|(cond, targ)| (<a class="self" href="#48">self</a>.<a href="#27">fold_expr</a>(<a href="#55">cond</a>), <a href="#55">targ</a>))
-                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>(),
-            <a class="self" href="#48">self</a>.<a href="#31">fold_target</a>(<a href="#50">default_target</a>),
+        guarded_targets: Vec&lt;(Expr, CfgBlockIndex)&gt;,
+        default_target: CfgBlockIndex,
+    ) -&gt; Successor {
+        Successor::GotoSwitch(
+            guarded_targets
+                .into_iter()
+                .map(|(cond, targ)| (<span class="self">self</span>.fold_expr(cond), targ))
+                .collect(),
+            <span class="self">self</span>.fold_target(default_target),
         )
     }
 }
 
-<span class="kw">impl </span><a href="method.rs.html#25">CfgMethod</a> {
-    <span class="kw">pub fn </span>walk_statements&lt;F: FnMut(<span class="kw-2">&amp;</span><a href="../ast/stmt.rs.html#20">Stmt</a>)&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw-2">mut </span>walker: F) {
+<span class="kw">impl </span>CfgMethod {
+    <span class="kw">pub fn </span>walk_statements&lt;F: FnMut(<span class="kw-2">&amp;</span>Stmt)&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw-2">mut </span>walker: F) {
         <span class="kw">for </span>block <span class="kw">in </span><span class="self">self</span>.basic_blocks.iter() {
             <span class="kw">for </span>stmt <span class="kw">in </span>block.stmts.iter() {
                 walker(stmt);
@@ -224,7 +224,7 @@
         }
     }
 
-    <span class="kw">pub fn </span>walk_statements_mut&lt;F: FnMut(<span class="kw-2">&amp;mut </span><a href="../ast/stmt.rs.html#20">Stmt</a>)&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, <span class="kw-2">mut </span>walker: F) {
+    <span class="kw">pub fn </span>walk_statements_mut&lt;F: FnMut(<span class="kw-2">&amp;mut </span>Stmt)&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, <span class="kw-2">mut </span>walker: F) {
         <span class="kw">for </span>block <span class="kw">in </span><span class="self">self</span>.basic_blocks.iter_mut() {
             <span class="kw">for </span>stmt <span class="kw">in </span>block.stmts.iter_mut() {
                 walker(stmt);
@@ -233,7 +233,7 @@
     }
 
     <span class="comment">// TODO: maybe just let basic_blocks be public and modify those directly?
-    </span><span class="kw">pub fn </span>patch_statements&lt;E, F: FnMut(<a href="../ast/stmt.rs.html#20">Stmt</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../ast/stmt.rs.html#20">Stmt</a>, E&gt;&gt;(
+    </span><span class="kw">pub fn </span>patch_statements&lt;E, F: FnMut(Stmt) -&gt; <span class="prelude-ty">Result</span>&lt;Stmt, E&gt;&gt;(
         <span class="kw-2">mut </span><span class="self">self</span>,
         <span class="kw-2">mut </span>walker: F,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, E&gt; {
@@ -244,16 +244,16 @@
                 .map(<span class="kw-2">&amp;mut </span>walker)
                 .collect::&lt;<span class="prelude-ty">Result</span>&lt;Vec&lt;<span class="kw">_</span>&gt;, <span class="kw">_</span>&gt;&gt;()<span class="question-mark">?</span>;
         }
-        <span class="prelude-val">Ok</span>(<a class="self" href="#81">self</a>)
+        <span class="prelude-val">Ok</span>(<span class="self">self</span>)
     }
 
-    <span class="kw">pub fn </span>walk_successors&lt;F: FnMut(<span class="kw-2">&amp;</span><a href="method.rs.html#43">Successor</a>)&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw-2">mut </span>walker: F) {
+    <span class="kw">pub fn </span>walk_successors&lt;F: FnMut(<span class="kw-2">&amp;</span>Successor)&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw-2">mut </span>walker: F) {
         <span class="kw">for </span>block <span class="kw">in </span><span class="self">self</span>.basic_blocks.iter() {
             walker(<span class="kw-2">&amp;</span>block.successor);
         }
     }
 
-    <span class="kw">pub fn </span>walk_successors_mut&lt;F: FnMut(<span class="kw-2">&amp;mut </span><a href="method.rs.html#43">Successor</a>)&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, <span class="kw-2">mut </span>walker: F) {
+    <span class="kw">pub fn </span>walk_successors_mut&lt;F: FnMut(<span class="kw-2">&amp;mut </span>Successor)&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, <span class="kw-2">mut </span>walker: F) {
         <span class="kw">for </span>block <span class="kw">in </span><span class="self">self</span>.basic_blocks.iter_mut() {
             walker(<span class="kw-2">&amp;mut </span>block.successor);
         }
@@ -261,21 +261,21 @@
 
     <span class="doccomment">/// Visit each expression used in a statement or successor.
     /// Note: sub-expressions of expressions will not be visited.
-    </span><span class="kw">pub fn </span>walk_expressions&lt;F: FnMut(<span class="kw-2">&amp;</span><a href="../ast/expr.rs.html#19">Expr</a>)&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw-2">mut </span>walker: F) {
-        <span class="kw">struct </span>ExprStmtWalker&lt;<span class="lifetime">&#39;a</span>, T: FnMut(<span class="kw-2">&amp;</span><a href="../ast/expr.rs.html#19">Expr</a>)&gt; {
+    </span><span class="kw">pub fn </span>walk_expressions&lt;F: FnMut(<span class="kw-2">&amp;</span>Expr)&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw-2">mut </span>walker: F) {
+        <span class="kw">struct </span>ExprStmtWalker&lt;<span class="lifetime">&#39;a</span>, T: FnMut(<span class="kw-2">&amp;</span>Expr)&gt; {
             walker: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>T,
         }
-        <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T: FnMut(<span class="kw-2">&amp;</span><a href="../ast/expr.rs.html#19">Expr</a>)&gt; <a href="../ast/stmt.rs.html#716">StmtWalker</a> <span class="kw">for </span>ExprStmtWalker&lt;<span class="lifetime">&#39;a</span>, T&gt; {
-            <span class="kw">fn </span>walk_expr(<span class="kw-2">&amp;mut </span><span class="self">self</span>, expr: <span class="kw-2">&amp;</span><a href="../ast/expr.rs.html#19">Expr</a>) {
-                (<a class="self" href="#113">self</a>.walker)(<a href="#113">expr</a>);
+        <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T: FnMut(<span class="kw-2">&amp;</span>Expr)&gt; StmtWalker <span class="kw">for </span>ExprStmtWalker&lt;<span class="lifetime">&#39;a</span>, T&gt; {
+            <span class="kw">fn </span>walk_expr(<span class="kw-2">&amp;mut </span><span class="self">self</span>, expr: <span class="kw-2">&amp;</span>Expr) {
+                (<span class="self">self</span>.walker)(expr);
             }
         }
-        <span class="kw">let </span><span class="kw-2">mut </span>stmt_walker = <a href="#109">ExprStmtWalker</a> {
-            walker: <span class="kw-2">&amp;mut </span><a href="#108">walker</a>,
+        <span class="kw">let </span><span class="kw-2">mut </span>stmt_walker = ExprStmtWalker {
+            walker: <span class="kw-2">&amp;mut </span>walker,
         };
-        <a class="self" href="#108">self</a>.<a href="#63">walk_statements</a>(|stmt| <a href="#117">stmt_walker</a>.<a href="../ast/stmt.rs.html#717">walk</a>(<a href="#120">stmt</a>));
-        <a class="self" href="#108">self</a>.<a href="#94">walk_successors</a>(|succ| {
-            <span class="kw">if let </span><a href="method.rs.html#47">Successor::GotoSwitch</a>(targets, <span class="kw">_</span>) = <a href="#121">succ</a> {
+        <span class="self">self</span>.walk_statements(|stmt| stmt_walker.walk(stmt));
+        <span class="self">self</span>.walk_successors(|succ| {
+            <span class="kw">if let </span>Successor::GotoSwitch(targets, <span class="kw">_</span>) = succ {
                 <span class="kw">for </span>(guard, <span class="kw">_</span>) <span class="kw">in </span>targets {
                     walker(guard);
                 }
@@ -285,17 +285,17 @@
 
     <span class="doccomment">/// Mutably visit each expression used in a statement or successor.
     /// Note: sub-expressions of expressions will not be visited.
-    </span><span class="kw">pub fn </span>walk_expressions_mut&lt;F: FnMut(<span class="kw-2">&amp;mut </span><a href="../ast/expr.rs.html#19">Expr</a>)&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, <span class="kw-2">mut </span>walker: F) {
-        <a class="self" href="#132">self</a>.<a href="#71">walk_statements_mut</a>(|s| {
+    </span><span class="kw">pub fn </span>walk_expressions_mut&lt;F: FnMut(<span class="kw-2">&amp;mut </span>Expr)&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, <span class="kw-2">mut </span>walker: F) {
+        <span class="self">self</span>.walk_statements_mut(|s| {
             <span class="comment">// Replace *s with a dummy statement
-            </span><span class="kw">let </span>stmt = std::mem::replace(<a href="#133">s</a>, <a href="../ast/stmt.rs.html#23">Stmt::Inhale</a>(<span class="bool-val">true</span>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()));
-            <span class="kw-2">*</span><a href="#133">s</a> = <a href="#135">stmt</a>.<a href="../utils.rs.html#18-20">map_expr</a>(|<span class="kw-2">mut </span>e| {
-                <a href="#132">walker</a>(<span class="kw-2">&amp;mut </span><a href="#136">e</a>);
-                <a href="#136">e</a>
+            </span><span class="kw">let </span>stmt = std::mem::replace(s, Stmt::Inhale(<span class="bool-val">true</span>.into()));
+            <span class="kw-2">*</span>s = stmt.map_expr(|<span class="kw-2">mut </span>e| {
+                walker(<span class="kw-2">&amp;mut </span>e);
+                e
             });
         });
-        <a class="self" href="#132">self</a>.<a href="#100">walk_successors_mut</a>(|succ| {
-            <span class="kw">if let </span><a href="method.rs.html#47">Successor::GotoSwitch</a>(targets, <span class="kw">_</span>) = <a href="#141">succ</a> {
+        <span class="self">self</span>.walk_successors_mut(|succ| {
+            <span class="kw">if let </span>Successor::GotoSwitch(targets, <span class="kw">_</span>) = succ {
                 <span class="kw">for </span>(guard, <span class="kw">_</span>) <span class="kw">in </span>targets.iter_mut() {
                     walker(guard);
                 }
@@ -304,11 +304,11 @@
     }
 
     <span class="doccomment">/// Remove all statements `s` such that `f(&amp;s)` returns `false`
-    </span><span class="kw">pub fn </span>retain_stmts&lt;F: Fn(<span class="kw-2">&amp;</span><a href="../ast/stmt.rs.html#20">Stmt</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, f: F) {
+    </span><span class="kw">pub fn </span>retain_stmts&lt;F: Fn(<span class="kw-2">&amp;</span>Stmt) -&gt; bool&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, f: F) {
         <span class="kw">for </span>block <span class="kw">in </span><span class="kw-2">&amp;mut </span><span class="self">self</span>.basic_blocks {
             block.stmts.retain(|stmt| f(stmt))
         }
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="vir" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="vir" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

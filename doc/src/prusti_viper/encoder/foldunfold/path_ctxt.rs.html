@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `prusti-viper/src/encoder/foldunfold/path_ctxt.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>path_ctxt.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../../prusti_viper/index.html"><img class="rust-logo" src="../../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `prusti-viper/src/encoder/foldunfold/path_ctxt.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>path_ctxt.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../../prusti_viper/index.html"><img class="rust-logo" src="../../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -934,121 +934,120 @@
 <a href="#934" id="934">934</a>
 <a href="#935" id="935">935</a>
 <a href="#936" id="936">936</a>
-<a href="#937" id="937">937</a>
 </pre><pre class="rust"><code><span class="comment">// © 2019, ETH Zurich
 //
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-</span><span class="kw">use </span><a href="mod.rs.html#40"><span class="kw">super</span>::Predicates</a>;
+</span><span class="kw">use </span><span class="kw">super</span>::Predicates;
 <span class="kw">use </span><span class="kw">crate</span>::encoder::foldunfold::{
-    <a href="mod.rs.html#28">action</a>::<span class="kw-2">*</span>, <a href="mod.rs.html#30">footprint</a>::<span class="kw-2">*</span>, <a href="log.rs.html#22">log::EventLog</a>, <a href="mod.rs.html#33">perm</a>::<span class="kw-2">*</span>, <a href="mod.rs.html#34">places_utils</a>::<span class="kw-2">*</span>, <a href="semantics.rs.html#42">semantics::ApplyOnState</a>,
-    <a href="mod.rs.html#38">state</a>::<span class="kw-2">*</span>, <a href="mod.rs.html#43">FoldUnfoldError</a>, <a href="mod.rs.html#45">FoldUnfoldError::FailedToObtain</a>,
+    action::<span class="kw-2">*</span>, footprint::<span class="kw-2">*</span>, log::EventLog, perm::<span class="kw-2">*</span>, places_utils::<span class="kw-2">*</span>, semantics::ApplyOnState,
+    state::<span class="kw-2">*</span>, FoldUnfoldError, FoldUnfoldError::FailedToObtain,
 };
-<span class="kw">use </span>log::{<a href="../../../../log/macro.debug.html">debug</a>, <a href="../../../../log/macro.trace.html">trace</a>};
-<span class="kw">use </span><a href="../../../../prusti_utils/utils/to_string/trait.ToString.html">prusti_common::utils::to_string::ToString</a>;
-<span class="kw">use </span>rustc_hash::{<a href="../../../../rustc_hash/type.FxHashMap.html">FxHashMap</a>, <a href="../../../../rustc_hash/type.FxHashSet.html">FxHashSet</a>};
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.FromIterator.html">std::iter::FromIterator</a>;
-<span class="kw">use </span>vir_crate::polymorphic::{<span class="self"><a href="../../../../vir/polymorphic/index.html">self</a> </span><span class="kw">as </span>vir, <a href="../../../../vir/gen/polymorphic/ast/common/enum.PermAmount.html">PermAmount</a>};
+<span class="kw">use </span>log::{debug, trace};
+<span class="kw">use </span>prusti_common::utils::to_string::ToString;
+<span class="kw">use </span>rustc_hash::{FxHashMap, FxHashSet};
+<span class="kw">use </span>std::iter::FromIterator;
+<span class="kw">use </span>vir_crate::polymorphic::{<span class="self">self </span><span class="kw">as </span>vir, PermAmount};
 
 <span class="doccomment">/// The fold-unfold context of a CFG path
 </span><span class="attr">#[derive(Debug, Clone)]
 </span><span class="kw">pub struct </span>PathCtxt&lt;<span class="lifetime">&#39;a</span>&gt; {
-    state: <a href="state.rs.html#18">State</a>,
+    state: State,
     <span class="doccomment">/// The definition of the predicates
-    </span>predicates: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="mod.rs.html#40">Predicates</a>,
+    </span>predicates: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Predicates,
     <span class="doccomment">/// All usages of old expressions to consider
-    </span>old_exprs: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>FxHashMap&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, Vec&lt;<a href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a>&gt;&gt;,
+    </span>old_exprs: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>FxHashMap&lt;String, Vec&lt;vir::Expr&gt;&gt;,
     <span class="doccomment">/// A log of some of the relevant actions that lead to this fold-unfold context
-    </span>log: <a href="log.rs.html#22">EventLog</a>,
+    </span>log: EventLog,
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; PathCtxt&lt;<span class="lifetime">&#39;a</span>&gt; {
     <span class="kw">pub fn </span>new(
-        local_vars: Vec&lt;<a href="../../../../vir/gen/polymorphic/ast/common/struct.LocalVar.html">vir::LocalVar</a>&gt;,
-        predicates: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="mod.rs.html#40">Predicates</a>,
-        old_exprs: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>FxHashMap&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, Vec&lt;<a href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a>&gt;&gt;,
+        local_vars: Vec&lt;vir::LocalVar&gt;,
+        predicates: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Predicates,
+        old_exprs: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>FxHashMap&lt;String, Vec&lt;vir::Expr&gt;&gt;,
     ) -&gt; <span class="self">Self </span>{
-        <a href="#20">PathCtxt</a> {
+        PathCtxt {
             state: State::new(
                 FxHashMap::from_iter(
-                    <a href="#32">local_vars</a>
-                        .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
-                        .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|v| (vir::Expr::local(<a href="#41">v</a>), PermAmount::Write)),
+                    local_vars
+                        .into_iter()
+                        .map(|v| (vir::Expr::local(v), PermAmount::Write)),
                 ),
                 FxHashMap::default(),
                 FxHashSet::default(),
             ),
-            <a href="#33">predicates</a>,
-            <a href="#34">old_exprs</a>,
+            predicates,
+            old_exprs,
             log: EventLog::new(),
         }
     }
 
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>log_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span><a href="log.rs.html#22">EventLog</a> {
-        <span class="kw-2">&amp;mut </span><a class="self" href="#52">self</a>.log
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>log_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>EventLog {
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>.log
     }
 
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>log(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="log.rs.html#22">EventLog</a> {
-        <span class="kw-2">&amp;</span><a class="self" href="#56">self</a>.log
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>log(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>EventLog {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.log
     }
 
-    <span class="kw">fn </span>drain_log(<span class="self">self</span>) -&gt; <a href="log.rs.html#22">EventLog</a> {
-        <a class="self" href="#60">self</a>.log
+    <span class="kw">fn </span>drain_log(<span class="self">self</span>) -&gt; EventLog {
+        <span class="self">self</span>.log
     }
 
-    <span class="kw">pub fn </span>state(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="state.rs.html#18">State</a> {
-        <span class="kw-2">&amp;</span><a class="self" href="#64">self</a>.state
+    <span class="kw">pub fn </span>state(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>State {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.state
     }
 
-    <span class="kw">pub fn </span>mut_state(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span><a href="state.rs.html#18">State</a> {
-        <span class="kw-2">&amp;mut </span><a class="self" href="#68">self</a>.state
+    <span class="kw">pub fn </span>mut_state(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>State {
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>.state
     }
 
-    <span class="kw">pub fn </span>predicates(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="mod.rs.html#40">Predicates</a> {
-        <a class="self" href="#72">self</a>.predicates
+    <span class="kw">pub fn </span>predicates(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Predicates {
+        <span class="self">self</span>.predicates
     }
 
-    <span class="kw">pub fn </span>old_exprs(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>FxHashMap&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, Vec&lt;<a href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a>&gt;&gt; {
-        <a class="self" href="#76">self</a>.old_exprs
+    <span class="kw">pub fn </span>old_exprs(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>FxHashMap&lt;String, Vec&lt;vir::Expr&gt;&gt; {
+        <span class="self">self</span>.old_exprs
     }
 
     <span class="doccomment">/// Simulate an unfold
     </span><span class="kw">fn </span>unfold(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        pred_place: <span class="kw-2">&amp;</span><a href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a>,
-        perm_amount: <a href="../../../../vir/gen/polymorphic/ast/common/enum.PermAmount.html">PermAmount</a>,
-        variant: <a href="../../../../vir/gen/polymorphic/ast/predicate/type.MaybeEnumVariantIndex.html">vir::MaybeEnumVariantIndex</a>,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="action.rs.html#13">Action</a>, <a href="mod.rs.html#43">FoldUnfoldError</a>&gt; {
-        <a class="macro" href="../../../../log/macro.trace.html">trace!</a>(
+        pred_place: <span class="kw-2">&amp;</span>vir::Expr,
+        perm_amount: PermAmount,
+        variant: vir::MaybeEnumVariantIndex,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;Action, FoldUnfoldError&gt; {
+        <span class="macro">trace!</span>(
             <span class="string">&quot;We want to unfold {} (variant {:?}) with {}&quot;</span>,
             pred_place,
             variant,
             perm_amount
         );
         <span class="comment">//assert!(self.state.contains_acc(pred_place), &quot;missing acc({}) in {}&quot;, pred_place, self.state);
-        </span><a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(
+        </span><span class="macro">assert!</span>(
             <span class="self">self</span>.state.contains_pred(pred_place),
             <span class="string">&quot;missing pred({}) in {}&quot;</span>,
             pred_place,
             <span class="self">self</span>.state
         );
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(
+        <span class="macro">assert!</span>(
             perm_amount.is_valid_for_specs(),
             <span class="string">&quot;Invalid permission amount.&quot;
         </span>);
 
-        <span class="kw">let </span>predicate_type = <a href="#83">pred_place</a>.get_type();
+        <span class="kw">let </span>predicate_type = pred_place.get_type();
         <span class="kw">let </span>predicate = <span class="self">self
             </span>.predicates
             .get(predicate_type)
             .map(<span class="prelude-val">Ok</span>)
             .unwrap_or_else(|| <span class="prelude-val">Err</span>(FoldUnfoldError::MissingPredicate(predicate_type.clone())))<span class="question-mark">?</span>;
 
-        <span class="kw">let </span>pred_self_place: <a href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a> = <a href="#106">predicate</a>.self_place();
+        <span class="kw">let </span>pred_self_place: vir::Expr = predicate.self_place();
 
-        <a class="macro" href="../../../../log/macro.trace.html">trace!</a>(
+        <span class="macro">trace!</span>(
             <span class="string">&quot;Pred state before unfold: {{\n{}\n}}&quot;</span>,
             <span class="self">self</span>.state.display_pred()
         );
@@ -1067,22 +1066,22 @@
                     }),
             )<span class="question-mark">?</span>;
 
-        <a class="macro" href="../../../../log/macro.trace.html">trace!</a>(<span class="string">&quot;We unfolded {}&quot;</span>, pred_place);
+        <span class="macro">trace!</span>(<span class="string">&quot;We unfolded {}&quot;</span>, pred_place);
 
-        <a class="macro" href="../../../../log/macro.trace.html">trace!</a>(
+        <span class="macro">trace!</span>(
             <span class="string">&quot;Acc state after unfold: {{\n{}\n}}&quot;</span>,
             <span class="self">self</span>.state.display_acc()
         );
-        <a class="macro" href="../../../../log/macro.trace.html">trace!</a>(
+        <span class="macro">trace!</span>(
             <span class="string">&quot;Pred state after unfold: {{\n{}\n}}&quot;</span>,
             <span class="self">self</span>.state.display_pred()
         );
 
-        <span class="prelude-val">Ok</span>(<a href="action.rs.html#15">Action::Unfold</a>(<a href="../../../../vir/gen/polymorphic/ast/stmt/struct.Unfold.html">vir::Unfold</a> {
-            predicate: <a href="#105">predicate_type</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
-            arguments: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[pred_place.clone()],
-            permission: <a href="#84">perm_amount</a>,
-            enum_variant: <a href="#85">variant</a>,
+        <span class="prelude-val">Ok</span>(Action::Unfold(vir::Unfold {
+            predicate: predicate_type.clone(),
+            arguments: <span class="macro">vec!</span>[pred_place.clone()],
+            permission: perm_amount,
+            enum_variant: variant,
         }))
     }
 
@@ -1090,15 +1089,15 @@
     /// Note: this merges the event logs as well
     </span><span class="kw">pub fn </span>join(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        <span class="kw-2">mut </span>other: <a href="#20">PathCtxt</a>,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;(Vec&lt;<a href="action.rs.html#13">Action</a>&gt;, Vec&lt;<a href="action.rs.html#13">Action</a>&gt;), <a href="mod.rs.html#43">FoldUnfoldError</a>&gt; {
-        <span class="kw">let </span><span class="kw-2">mut </span>left_actions: Vec&lt;<a href="action.rs.html#13">Action</a>&gt; = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[];
-        <span class="kw">let </span><span class="kw-2">mut </span>right_actions: Vec&lt;<a href="action.rs.html#13">Action</a>&gt; = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[];
+        <span class="kw-2">mut </span>other: PathCtxt,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(Vec&lt;Action&gt;, Vec&lt;Action&gt;), FoldUnfoldError&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>left_actions: Vec&lt;Action&gt; = <span class="macro">vec!</span>[];
+        <span class="kw">let </span><span class="kw-2">mut </span>right_actions: Vec&lt;Action&gt; = <span class="macro">vec!</span>[];
 
-        <a class="macro" href="../../../../log/macro.trace.html">trace!</a>(<span class="string">&quot;Join branches&quot;</span>);
-        <a class="macro" href="../../../../log/macro.trace.html">trace!</a>(<span class="string">&quot;Left branch: {}&quot;</span>, <span class="self">self</span>.state);
-        <a class="macro" href="../../../../log/macro.trace.html">trace!</a>(<span class="string">&quot;Right branch: {}&quot;</span>, other.state);
-        <a class="self" href="#155">self</a>.state.<a href="state.rs.html#47">check_consistency</a>();
+        <span class="macro">trace!</span>(<span class="string">&quot;Join branches&quot;</span>);
+        <span class="macro">trace!</span>(<span class="string">&quot;Left branch: {}&quot;</span>, <span class="self">self</span>.state);
+        <span class="macro">trace!</span>(<span class="string">&quot;Right branch: {}&quot;</span>, other.state);
+        <span class="self">self</span>.state.check_consistency();
 
         <span class="comment">// If they are already the same, avoid unnecessary operations
         </span><span class="kw">if </span><span class="self">self</span>.state != other.state {
@@ -1116,56 +1115,56 @@
             };
             */
             // TODO: Remove all paths that are not definitely initialised.
-            </span><span class="kw">let </span>moved_paths: FxHashSet&lt;<span class="kw">_</span>&gt; = <a href="places_utils.rs.html#67">ancestors</a>(
-                <span class="kw-2">&amp;</span><span class="self"><a href="#155">self</a>
+            </span><span class="kw">let </span>moved_paths: FxHashSet&lt;<span class="kw">_</span>&gt; = ancestors(
+                <span class="kw-2">&amp;</span><span class="self">self
                     </span>.state
-                    .<a href="state.rs.html#219">moved</a>()
-                    .<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()
-                    .union(<a href="#156">other</a>.state.<a href="state.rs.html#219">moved</a>())
-                    .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">cloned</a>()
-                    .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>(),
+                    .moved()
+                    .clone()
+                    .union(other.state.moved())
+                    .cloned()
+                    .collect(),
             );
-            <a class="self" href="#155">self</a>.state.<a href="state.rs.html#223">set_moved</a>(<a href="#182">moved_paths</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
-            <a href="#156">other</a>.state.<a href="state.rs.html#223">set_moved</a>(<a href="#182">moved_paths</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
-            <a class="macro" href="../../../../log/macro.trace.html">trace!</a>(<span class="string">&quot;moved_paths: {}&quot;</span>, moved_paths.iter().to_string());
+            <span class="self">self</span>.state.set_moved(moved_paths.clone());
+            other.state.set_moved(moved_paths.clone());
+            <span class="macro">trace!</span>(<span class="string">&quot;moved_paths: {}&quot;</span>, moved_paths.iter().to_string());
 
-            <a class="macro" href="../../../../log/macro.trace.html">trace!</a>(<span class="string">&quot;left acc: {{\n{}\n}}&quot;</span>, <span class="self">self</span>.state.display_acc());
-            <a class="macro" href="../../../../log/macro.trace.html">trace!</a>(<span class="string">&quot;right acc: {{\n{}\n}}&quot;</span>, other.state.display_acc());
+            <span class="macro">trace!</span>(<span class="string">&quot;left acc: {{\n{}\n}}&quot;</span>, <span class="self">self</span>.state.display_acc());
+            <span class="macro">trace!</span>(<span class="string">&quot;right acc: {{\n{}\n}}&quot;</span>, other.state.display_acc());
 
-            <a class="macro" href="../../../../log/macro.trace.html">trace!</a>(<span class="string">&quot;left pred: {{\n{}\n}}&quot;</span>, <span class="self">self</span>.state.display_pred());
-            <a class="macro" href="../../../../log/macro.trace.html">trace!</a>(<span class="string">&quot;right pred: {{\n{}\n}}&quot;</span>, other.state.display_pred());
+            <span class="macro">trace!</span>(<span class="string">&quot;left pred: {{\n{}\n}}&quot;</span>, <span class="self">self</span>.state.display_pred());
+            <span class="macro">trace!</span>(<span class="string">&quot;right pred: {{\n{}\n}}&quot;</span>, other.state.display_pred());
 
-            <a class="macro" href="../../../../log/macro.trace.html">trace!</a>(
+            <span class="macro">trace!</span>(
                 <span class="string">&quot;left acc_leaves: {}&quot;</span>,
                 <span class="self">self</span>.state.acc_leaves().iter().to_sorted_multiline_string()
             );
-            <a class="macro" href="../../../../log/macro.trace.html">trace!</a>(
+            <span class="macro">trace!</span>(
                 <span class="string">&quot;right acc_leaves: {}&quot;</span>,
                 other.state.acc_leaves().iter().to_sorted_multiline_string()
             );
 
             <span class="comment">// Compute which access permissions may be preserved
             </span><span class="kw">let </span>(unfold_potential_acc, fold_potential_pred) =
-                <a href="#846-849">compute_fold_target</a>(<span class="kw-2">&amp;</span><a class="self" href="#155">self</a>.state.<a href="state.rs.html#197">acc_places</a>(), <span class="kw-2">&amp;</span><a href="#156">other</a>.state.<a href="state.rs.html#197">acc_places</a>());
-            <a class="macro" href="../../../../log/macro.trace.html">trace!</a>(
+                compute_fold_target(<span class="kw-2">&amp;</span><span class="self">self</span>.state.acc_places(), <span class="kw-2">&amp;</span>other.state.acc_places());
+            <span class="macro">trace!</span>(
                 <span class="string">&quot;unfold_potential_acc: {}&quot;</span>,
                 unfold_potential_acc.iter().to_sorted_multiline_string()
             );
-            <a class="macro" href="../../../../log/macro.trace.html">trace!</a>(
+            <span class="macro">trace!</span>(
                 <span class="string">&quot;fold_potential_pred: {}&quot;</span>,
                 fold_potential_pred.iter().to_sorted_multiline_string()
             );
 
             <span class="comment">// Remove access permissions that can not be obtained due to a moved path
             </span><span class="kw">let </span>unfold_actual_acc =
-                <a href="places_utils.rs.html#41-44">filter_not_proper_extensions_of</a>(<span class="kw-2">&amp;</span><a href="#211">unfold_potential_acc</a>, <span class="kw-2">&amp;</span><a href="#182">moved_paths</a>);
-            <a class="macro" href="../../../../log/macro.trace.html">trace!</a>(
+                filter_not_proper_extensions_of(<span class="kw-2">&amp;</span>unfold_potential_acc, <span class="kw-2">&amp;</span>moved_paths);
+            <span class="macro">trace!</span>(
                 <span class="string">&quot;unfold_actual_acc: {}&quot;</span>,
                 unfold_actual_acc.iter().to_sorted_multiline_string()
             );
             <span class="kw">let </span>fold_actual_pred =
-                <a href="places_utils.rs.html#41-44">filter_not_proper_extensions_of</a>(<span class="kw-2">&amp;</span><a href="#211">fold_potential_pred</a>, <span class="kw-2">&amp;</span><a href="#182">moved_paths</a>);
-            <a class="macro" href="../../../../log/macro.trace.html">trace!</a>(
+                filter_not_proper_extensions_of(<span class="kw-2">&amp;</span>fold_potential_pred, <span class="kw-2">&amp;</span>moved_paths);
+            <span class="macro">trace!</span>(
                 <span class="string">&quot;fold_actual_pred: {}&quot;</span>,
                 fold_actual_pred.iter().to_sorted_multiline_string()
             );
@@ -1298,8 +1297,8 @@
 
             <span class="comment">// Compute preserved predicate permissions
             </span><span class="kw">let </span>preserved_preds: FxHashSet&lt;<span class="kw">_</span>&gt; =
-                <a href="places_utils.rs.html#107-110">intersection</a>(<span class="kw-2">&amp;</span><a class="self" href="#155">self</a>.state.<a href="state.rs.html#215">pred_places</a>(), <span class="kw-2">&amp;</span><a href="#156">other</a>.state.<a href="state.rs.html#215">pred_places</a>());
-            <a class="macro" href="../../../../log/macro.trace.html">trace!</a>(<span class="string">&quot;preserved_preds: {}&quot;</span>, preserved_preds.iter().to_string());
+                intersection(<span class="kw-2">&amp;</span><span class="self">self</span>.state.pred_places(), <span class="kw-2">&amp;</span>other.state.pred_places());
+            <span class="macro">trace!</span>(<span class="string">&quot;preserved_preds: {}&quot;</span>, preserved_preds.iter().to_string());
 
             <span class="comment">// Drop predicate permissions that are not in the other branch
             </span><span class="kw">for </span>pred_place <span class="kw">in </span><span class="self">self</span>.state.pred_places().difference(<span class="kw-2">&amp;</span>preserved_preds) {
@@ -1384,9 +1383,8 @@
             </span><span class="kw">for </span>acc_place <span class="kw">in </span><span class="self">self</span>.state.acc_places() {
                 <span class="macro">assert!</span>(
                     other.state.acc().contains_key(<span class="kw-2">&amp;</span>acc_place),
-                    <span class="string">&quot;acc_place = {}&quot;</span>,
-                    acc_place
-                );
+                    <span class="string">&quot;acc_place = {acc_place}&quot;
+                </span>);
                 <span class="kw">let </span>left_perm = <span class="self">self</span>.state.acc()[<span class="kw-2">&amp;</span>acc_place];
                 <span class="kw">let </span>right_perm = other.state.acc()[<span class="kw-2">&amp;</span>acc_place];
                 <span class="kw">if </span>left_perm == PermAmount::Write &amp;&amp; right_perm == PermAmount::Read {
@@ -1418,7 +1416,7 @@
                 }
             }
 
-            <a class="macro" href="../../../../log/macro.trace.html">trace!</a>(
+            <span class="macro">trace!</span>(
                 <span class="string">&quot;Actions in left branch: \n{}&quot;</span>,
                 left_actions
                     .iter()
@@ -1426,7 +1424,7 @@
                     .collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;()
                     .join(<span class="string">&quot;,\n&quot;</span>)
             );
-            <a class="macro" href="../../../../log/macro.trace.html">trace!</a>(
+            <span class="macro">trace!</span>(
                 <span class="string">&quot;Actions in right branch: \n{}&quot;</span>,
                 right_actions
                     .iter()
@@ -1435,140 +1433,140 @@
                     .join(<span class="string">&quot;,\n&quot;</span>)
             );
 
-            <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert_eq.html">assert_eq!</a>(<span class="self">self</span>.state.acc(), other.state.acc());
-            <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert_eq.html">assert_eq!</a>(<span class="self">self</span>.state.pred(), other.state.pred());
-            <a class="self" href="#155">self</a>.state.<a href="state.rs.html#47">check_consistency</a>();
+            <span class="macro">assert_eq!</span>(<span class="self">self</span>.state.acc(), other.state.acc());
+            <span class="macro">assert_eq!</span>(<span class="self">self</span>.state.pred(), other.state.pred());
+            <span class="self">self</span>.state.check_consistency();
         }
 
         <span class="comment">// Merge the event logs
         </span><span class="self">self</span>.log_mut().join(other.drain_log())<span class="question-mark">?</span>;
 
-        <span class="prelude-val">Ok</span>((<a href="#158">left_actions</a>, <a href="#159">right_actions</a>))
+        <span class="prelude-val">Ok</span>((left_actions, right_actions))
     }
 
     <span class="doccomment">/// Obtain the required permissions, changing the state inplace and returning the statements.
-    </span><span class="kw">fn </span>obtain_all(<span class="kw-2">&amp;mut </span><span class="self">self</span>, <span class="kw-2">mut </span>reqs: Vec&lt;<a href="perm.rs.html#14">Perm</a>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;<a href="action.rs.html#13">Action</a>&gt;, <a href="mod.rs.html#43">FoldUnfoldError</a>&gt; {
-        <a href="#513">reqs</a>.sort_unstable();
-        <a class="macro" href="../../../../log/macro.trace.html">trace!</a>(<span class="string">&quot;[enter] obtain_all: {{{}}}&quot;</span>, reqs.iter().to_string());
-        <a href="#513">reqs</a>.iter()
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|perm| <a class="self" href="#513">self</a>.<a href="#525">obtain</a>(<a href="#517">perm</a>, <span class="bool-val">false</span>).and_then(|x| <a href="#517">x</a>.<a href="#931">get_actions</a>()))
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>::&lt;<span class="prelude-ty">Result</span>&lt;Vec&lt;Vec&lt;<a href="action.rs.html#13">Action</a>&gt;&gt;, <span class="kw">_</span>&gt;&gt;()
-            .map(|res: Vec&lt;Vec&lt;<a href="action.rs.html#13">Action</a>&gt;&gt;| <a href="#519">res</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">flatten</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>())
+    </span><span class="kw">fn </span>obtain_all(<span class="kw-2">&amp;mut </span><span class="self">self</span>, <span class="kw-2">mut </span>reqs: Vec&lt;Perm&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;Action&gt;, FoldUnfoldError&gt; {
+        reqs.sort_unstable();
+        <span class="macro">trace!</span>(<span class="string">&quot;[enter] obtain_all: {{{}}}&quot;</span>, reqs.iter().to_string());
+        reqs.iter()
+            .map(|perm| <span class="self">self</span>.obtain(perm, <span class="bool-val">false</span>).and_then(|x| x.get_actions()))
+            .collect::&lt;<span class="prelude-ty">Result</span>&lt;Vec&lt;Vec&lt;Action&gt;&gt;, <span class="kw">_</span>&gt;&gt;()
+            .map(|res: Vec&lt;Vec&lt;Action&gt;&gt;| res.into_iter().flatten().collect())
     }
 
     <span class="doccomment">/// Obtain the required permission, changing the state inplace and returning the statements.
     ///
     /// ``in_join`` – are we currently trying to join branches?
-    </span><span class="kw">fn </span>obtain(<span class="kw-2">&amp;mut </span><span class="self">self</span>, req: <span class="kw-2">&amp;</span><a href="perm.rs.html#14">Perm</a>, in_join: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#925">ObtainResult</a>, <a href="mod.rs.html#43">FoldUnfoldError</a>&gt; {
-        <a class="macro" href="../../../../log/macro.trace.html">trace!</a>(<span class="string">&quot;[enter] obtain(req={})&quot;</span>, req);
+    </span><span class="kw">fn </span>obtain(<span class="kw-2">&amp;mut </span><span class="self">self</span>, req: <span class="kw-2">&amp;</span>Perm, in_join: bool) -&gt; <span class="prelude-ty">Result</span>&lt;ObtainResult, FoldUnfoldError&gt; {
+        <span class="macro">trace!</span>(<span class="string">&quot;[enter] obtain(req={})&quot;</span>, req);
 
-        <span class="kw">let </span><span class="kw-2">mut </span>actions: Vec&lt;<a href="action.rs.html#13">Action</a>&gt; = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[];
+        <span class="kw">let </span><span class="kw-2">mut </span>actions: Vec&lt;Action&gt; = <span class="macro">vec!</span>[];
 
-        <a class="macro" href="../../../../log/macro.trace.html">trace!</a>(<span class="string">&quot;Acc state before: {{\n{}\n}}&quot;</span>, <span class="self">self</span>.state.display_acc());
-        <a class="macro" href="../../../../log/macro.trace.html">trace!</a>(<span class="string">&quot;Pred state before: {{\n{}\n}}&quot;</span>, <span class="self">self</span>.state.display_pred());
+        <span class="macro">trace!</span>(<span class="string">&quot;Acc state before: {{\n{}\n}}&quot;</span>, <span class="self">self</span>.state.display_acc());
+        <span class="macro">trace!</span>(<span class="string">&quot;Pred state before: {{\n{}\n}}&quot;</span>, <span class="self">self</span>.state.display_pred());
 
         <span class="comment">// 1. Check if the requirement is satisfied
         </span><span class="kw">if </span><span class="self">self</span>.state.contains_perm(req) {
-            <a class="macro" href="../../../../log/macro.trace.html">trace!</a>(<span class="string">&quot;[exit] obtain: Requirement {} is satisfied&quot;</span>, req);
-            <span class="kw">return </span><span class="prelude-val">Ok</span>(<a href="#926">ObtainResult::Success</a>(<a href="#528">actions</a>));
+            <span class="macro">trace!</span>(<span class="string">&quot;[exit] obtain: Requirement {} is satisfied&quot;</span>, req);
+            <span class="kw">return </span><span class="prelude-val">Ok</span>(ObtainResult::Success(actions));
         }
         <span class="kw">if </span>req.is_acc() &amp;&amp; req.is_local() {
             <span class="comment">// access permissions on local variables are always satisfied
-            </span><a class="macro" href="../../../../log/macro.trace.html">trace!</a>(<span class="string">&quot;[exit] obtain: Requirement {} is satisfied&quot;</span>, req);
-            <span class="kw">return </span><span class="prelude-val">Ok</span>(<a href="#926">ObtainResult::Success</a>(<a href="#528">actions</a>));
+            </span><span class="macro">trace!</span>(<span class="string">&quot;[exit] obtain: Requirement {} is satisfied&quot;</span>, req);
+            <span class="kw">return </span><span class="prelude-val">Ok</span>(ObtainResult::Success(actions));
         }
 
-        <a class="macro" href="../../../../log/macro.trace.html">trace!</a>(<span class="string">&quot;Try to satisfy requirement {}&quot;</span>, req);
+        <span class="macro">trace!</span>(<span class="string">&quot;Try to satisfy requirement {}&quot;</span>, req);
 
         <span class="comment">// 3. Obtain with an unfold
         // Find a predicate on a proper prefix of req
-        </span><span class="kw">let </span>existing_prefix_pred_opt: <span class="prelude-ty">Option</span>&lt;<a href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a>&gt; = <span class="self"><a href="#525">self</a>
+        </span><span class="kw">let </span>existing_prefix_pred_opt: <span class="prelude-ty">Option</span>&lt;vir::Expr&gt; = <span class="self">self
             </span>.state
-            .<a href="state.rs.html#215">pred_places</a>()
+            .pred_places()
             .iter()
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">find</a>(|p| <a href="#525">req</a>.<a href="perm.rs.html#75">has_proper_prefix</a>(<a href="#552">p</a>))
+            .find(|p| req.has_proper_prefix(p))
             .cloned();
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(existing_pred_to_unfold) = <a href="#548">existing_prefix_pred_opt</a> {
-            <span class="kw">let </span>perm_amount = <a class="self" href="#525">self</a>.state.<a href="state.rs.html#211">pred</a>()[<span class="kw-2">&amp;</span><a href="#554">existing_pred_to_unfold</a>];
-            <a class="macro" href="../../../../log/macro.trace.html">trace!</a>(
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(existing_pred_to_unfold) = existing_prefix_pred_opt {
+            <span class="kw">let </span>perm_amount = <span class="self">self</span>.state.pred()[<span class="kw-2">&amp;</span>existing_pred_to_unfold];
+            <span class="macro">trace!</span>(
                 <span class="string">&quot;We want to unfold {} with permission {} (we need at least {})&quot;</span>,
                 existing_pred_to_unfold,
                 perm_amount,
                 req.get_perm_amount()
             );
-            <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(
+            <span class="macro">assert!</span>(
                 perm_amount &gt;= req.get_perm_amount(),
                 <span class="string">&quot;perm_amount is {}, but it should be &gt;= {}&quot;</span>,
                 perm_amount,
                 req.get_perm_amount(),
             );
-            <span class="kw">let </span>variant = <a href="#784">find_variant</a>(<span class="kw-2">&amp;</span><a href="#554">existing_pred_to_unfold</a>, <a href="#525">req</a>.<a href="perm.rs.html#59">get_place</a>());
+            <span class="kw">let </span>variant = find_variant(<span class="kw-2">&amp;</span>existing_pred_to_unfold, req.get_place());
             <span class="kw">let </span>action = <span class="self">self</span>.unfold(<span class="kw-2">&amp;</span>existing_pred_to_unfold, perm_amount, variant)<span class="question-mark">?</span>;
-            <a href="#528">actions</a>.push(<a href="#569">action</a>);
-            <a class="macro" href="../../../../log/macro.trace.html">trace!</a>(<span class="string">&quot;We unfolded {}&quot;</span>, existing_pred_to_unfold);
+            actions.push(action);
+            <span class="macro">trace!</span>(<span class="string">&quot;We unfolded {}&quot;</span>, existing_pred_to_unfold);
 
             <span class="comment">// Check if we are done
             </span><span class="kw">let </span>new_actions = <span class="self">self</span>.obtain(req, <span class="bool-val">false</span>)<span class="question-mark">?</span>.get_actions()<span class="question-mark">?</span>;
-            <a href="#528">actions</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a href="#574">new_actions</a>);
-            <a class="macro" href="../../../../log/macro.trace.html">trace!</a>(<span class="string">&quot;[exit] obtain&quot;</span>);
-            <span class="kw">return </span><span class="prelude-val">Ok</span>(<a href="#926">ObtainResult::Success</a>(<a href="#528">actions</a>));
+            actions.extend(new_actions);
+            <span class="macro">trace!</span>(<span class="string">&quot;[exit] obtain&quot;</span>);
+            <span class="kw">return </span><span class="prelude-val">Ok</span>(ObtainResult::Success(actions));
         }
 
         <span class="comment">// 4. Obtain with a fold
         </span><span class="kw">if </span>req.is_pred() {
             <span class="comment">// We want to fold `req`
-            </span><a class="macro" href="../../../../log/macro.trace.html">trace!</a>(<span class="string">&quot;We want to fold {}&quot;</span>, req);
-            <span class="kw">let </span>predicate_type = <a href="#525">req</a>.<a href="perm.rs.html#44">get_type</a>();
-            <span class="kw">let </span>predicate = <span class="self"><a href="#525">self</a>
+            </span><span class="macro">trace!</span>(<span class="string">&quot;We want to fold {}&quot;</span>, req);
+            <span class="kw">let </span>predicate_type = req.get_type();
+            <span class="kw">let </span>predicate = <span class="self">self
                 </span>.predicates
-                .get(<a href="#584">predicate_type</a>)
-                .unwrap_or_else(|| <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(<span class="string">&quot;not found: {}&quot;</span>, predicate_type));
+                .get(predicate_type)
+                .unwrap_or_else(|| <span class="macro">panic!</span>(<span class="string">&quot;not found: {predicate_type}&quot;</span>));
 
-            <span class="kw">let </span>variant = <a href="#810">find_unfolded_variant</a>(<span class="kw-2">&amp;</span><a class="self" href="#525">self</a>.state, <a href="#525">req</a>.<a href="perm.rs.html#59">get_place</a>());
+            <span class="kw">let </span>variant = find_unfolded_variant(<span class="kw-2">&amp;</span><span class="self">self</span>.state, req.get_place());
 
             <span class="comment">// Find an access permission for which req is a proper suffix
-            </span><span class="kw">let </span>existing_proper_perm_extension_opt: <span class="prelude-ty">Option</span>&lt;<span class="kw">_</span>&gt; = <span class="self"><a href="#525">self</a>
+            </span><span class="kw">let </span>existing_proper_perm_extension_opt: <span class="prelude-ty">Option</span>&lt;<span class="kw">_</span>&gt; = <span class="self">self
                 </span>.state
-                .<a href="state.rs.html#197">acc_places</a>()
-                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
-                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">find</a>(|p| <a href="#597">p</a>.has_proper_prefix(<a href="#525">req</a>.<a href="perm.rs.html#59">get_place</a>()));
+                .acc_places()
+                .into_iter()
+                .find(|p| p.has_proper_prefix(req.get_place()));
 
-            <span class="kw">let </span>pred_self_place: <a href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a> = <a href="#585">predicate</a>.self_place();
+            <span class="kw">let </span>pred_self_place: vir::Expr = predicate.self_place();
 
             <span class="comment">// TODO polymorphic
-            </span><span class="kw">let </span>places_in_pred: Vec&lt;<a href="perm.rs.html#14">Perm</a>&gt; = <a href="#585">predicate</a>
-                .<a href="footprint.rs.html#191">get_body_footprint</a>(<span class="kw-2">&amp;</span><a href="#590">variant</a>)
-                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
-                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|perm| <a href="#605">perm</a>.<a href="perm.rs.html#65-67">map_place</a>(|p| <a href="#605">p</a>.replace_place(<span class="kw-2">&amp;</span><a href="#599">pred_self_place</a>, <a href="#525">req</a>.<a href="perm.rs.html#59">get_place</a>())))
-                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
+            </span><span class="kw">let </span>places_in_pred: Vec&lt;Perm&gt; = predicate
+                .get_body_footprint(<span class="kw-2">&amp;</span>variant)
+                .into_iter()
+                .map(|perm| perm.map_place(|p| p.replace_place(<span class="kw-2">&amp;</span>pred_self_place, req.get_place())))
+                .collect();
 
             <span class="comment">// Check that there exists something that would make the fold possible.
             // We don&#39;t want to end up in an infinite recursion, trying to obtain the
             // predicates in the body.
-            </span><span class="kw">let </span>can_fold = <span class="kw">match </span><a href="#593">existing_proper_perm_extension_opt</a> {
+            </span><span class="kw">let </span>can_fold = <span class="kw">match </span>existing_proper_perm_extension_opt {
                 <span class="prelude-val">Some</span>(<span class="kw">_</span>) =&gt; <span class="bool-val">true</span>,
-                <span class="prelude-val">None </span>=&gt; <a href="#602">places_in_pred</a>.is_empty() &amp;&amp; !<a href="#585">predicate</a>.is_abstract(),
+                <span class="prelude-val">None </span>=&gt; places_in_pred.is_empty() &amp;&amp; !predicate.is_abstract(),
             };
 
             <span class="kw">if </span>can_fold {
-                <span class="kw">let </span>perm_amount = <a href="#602">places_in_pred</a>
+                <span class="kw">let </span>perm_amount = places_in_pred
                     .iter()
-                    .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|p| {
-                        <a class="self" href="#525">self</a>.state
-                            .<a href="state.rs.html#193">acc</a>()
+                    .map(|p| {
+                        <span class="self">self</span>.state
+                            .acc()
                             .iter()
-                            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">chain</a>(<a class="self" href="#525">self</a>.state.<a href="state.rs.html#211">pred</a>().iter())
-                            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter</a>(|(place, <span class="kw">_</span>)| <a href="#624">place</a>.has_prefix(<a href="#619">p</a>.<a href="perm.rs.html#59">get_place</a>()))
-                            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|(place, perm_amount)| {
-                                <a class="macro" href="../../../../log/macro.trace.html">trace!</a>(<span class="string">&quot;Place {} can offer {}&quot;</span>, place, perm_amount);
-                                <span class="kw-2">*</span><a href="#625">perm_amount</a>
+                            .chain(<span class="self">self</span>.state.pred().iter())
+                            .filter(|(place, <span class="kw">_</span>)| place.has_prefix(p.get_place()))
+                            .map(|(place, perm_amount)| {
+                                <span class="macro">trace!</span>(<span class="string">&quot;Place {} can offer {}&quot;</span>, place, perm_amount);
+                                <span class="kw-2">*</span>perm_amount
                             })
-                            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">min</a>()
+                            .min()
                             .unwrap_or(PermAmount::Write)
                     })
-                    .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">min</a>()
+                    .min()
                     .unwrap_or(PermAmount::Write);
-                <a class="macro" href="../../../../log/macro.trace.html">trace!</a>(
+                <span class="macro">trace!</span>(
                     <span class="string">&quot;We want to fold {} with permission {} (we need at least {})&quot;</span>,
                     req,
                     perm_amount,
@@ -1589,40 +1587,40 @@
                     }
                 }
 
-                <span class="kw">let </span>scaled_places_in_pred: Vec&lt;<span class="kw">_</span>&gt; = <a href="#602">places_in_pred</a>
-                    .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
-                    .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|perm| <a href="#657">perm</a>.<a href="perm.rs.html#92">update_perm_amount</a>(<a href="#617">perm_amount</a>))
-                    .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
+                <span class="kw">let </span>scaled_places_in_pred: Vec&lt;<span class="kw">_</span>&gt; = places_in_pred
+                    .into_iter()
+                    .map(|perm| perm.update_perm_amount(perm_amount))
+                    .collect();
 
-                <span class="kw">let </span>pos = <a href="#525">req</a>.<a href="perm.rs.html#59">get_place</a>().pos();
-                <span class="kw">let </span>fold_action = <a href="action.rs.html#14">Action::Fold</a>(<a href="../../../../vir/gen/polymorphic/ast/stmt/struct.Fold.html">vir::Fold</a> {
-                    predicate: <a href="#584">predicate_type</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
-                    arguments: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[req.get_place().clone()],
-                    permission: <a href="#617">perm_amount</a>,
-                    enum_variant: <a href="#590">variant</a>,
-                    position: <a href="#660">pos</a>,
+                <span class="kw">let </span>pos = req.get_place().pos();
+                <span class="kw">let </span>fold_action = Action::Fold(vir::Fold {
+                    predicate: predicate_type.clone(),
+                    arguments: <span class="macro">vec!</span>[req.get_place().clone()],
+                    permission: perm_amount,
+                    enum_variant: variant,
+                    position: pos,
                 });
-                <a href="#528">actions</a>.push(<a href="#661">fold_action</a>);
+                actions.push(fold_action);
 
                 <span class="comment">// Simulate folding of `req`
-                </span><a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(<span class="self">self</span>.state.contains_all_perms(scaled_places_in_pred.iter()));
-                <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(
+                </span><span class="macro">debug_assert!</span>(<span class="self">self</span>.state.contains_all_perms(scaled_places_in_pred.iter()));
+                <span class="macro">debug_assert!</span>(
                     !req.get_place().is_simple_place() || <span class="self">self</span>.state.contains_acc(req.get_place()),
                     <span class="string">&quot;req={} state={}&quot;</span>,
                     req.get_place(),
                     <span class="self">self</span>.state
                 );
-                <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(!<span class="self">self</span>.state.contains_pred(req.get_place()));
+                <span class="macro">debug_assert!</span>(!<span class="self">self</span>.state.contains_pred(req.get_place()));
                 <span class="self">self</span>.state.remove_all_perms(scaled_places_in_pred.iter())<span class="question-mark">?</span>;
                 <span class="self">self</span>.state
                     .insert_pred(req.get_place().clone(), perm_amount)<span class="question-mark">?</span>;
 
                 <span class="comment">// Done. Continue checking the remaining requirements
-                </span><a class="macro" href="../../../../log/macro.trace.html">trace!</a>(<span class="string">&quot;We folded {}&quot;</span>, req);
-                <a class="macro" href="../../../../log/macro.trace.html">trace!</a>(<span class="string">&quot;[exit] obtain&quot;</span>);
-                <span class="prelude-val">Ok</span>(<a href="#926">ObtainResult::Success</a>(<a href="#528">actions</a>))
+                </span><span class="macro">trace!</span>(<span class="string">&quot;We folded {}&quot;</span>, req);
+                <span class="macro">trace!</span>(<span class="string">&quot;[exit] obtain&quot;</span>);
+                <span class="prelude-val">Ok</span>(ObtainResult::Success(actions))
             } <span class="kw">else </span>{
-                <a class="macro" href="../../../../log/macro.debug.html">debug!</a>(
+                <span class="macro">debug!</span>(
                     <span class="string">r&quot;It is not possible to obtain {} ({:?}).
 Access permissions: {{
 {}
@@ -1637,15 +1635,15 @@ Predicates: {{
                     <span class="self">self</span>.state.display_acc(),
                     <span class="self">self</span>.state.display_pred()
                 );
-                <span class="prelude-val">Ok</span>(<a href="#927">ObtainResult::Failure</a>(Box::new(<a href="#525">req</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>())))
+                <span class="prelude-val">Ok</span>(ObtainResult::Failure(Box::new(req.clone())))
             }
         } <span class="kw">else if </span>in_join &amp;&amp; req.get_perm_amount() == PermAmount::Read {
             <span class="comment">// Permissions held by shared references can be dropped
             // without being explicitly moved because &amp;T implements Copy.
-            </span><span class="prelude-val">Ok</span>(<a href="#927">ObtainResult::Failure</a>(Box::new(<a href="#525">req</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>())))
+            </span><span class="prelude-val">Ok</span>(ObtainResult::Failure(Box::new(req.clone())))
         } <span class="kw">else </span>{
             <span class="comment">// We have no predicate to obtain the access permission `req`
-            </span><a class="macro" href="../../../../log/macro.debug.html">debug!</a>(
+            </span><span class="macro">debug!</span>(
                 <span class="string">r&quot;There is no access permission to obtain {} ({:?}).
 Access permissions: {{
 {}
@@ -1660,101 +1658,101 @@ Predicates: {{
                 <span class="self">self</span>.state.display_acc(),
                 <span class="self">self</span>.state.display_pred()
             );
-            <span class="prelude-val">Ok</span>(<a href="#927">ObtainResult::Failure</a>(Box::new(<a href="#525">req</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>())))
+            <span class="prelude-val">Ok</span>(ObtainResult::Failure(Box::new(req.clone())))
         }
     }
 
     <span class="doccomment">/// Returns some of the dropped permissions
-    </span><span class="kw">pub fn </span>apply_stmt(<span class="kw-2">&amp;mut </span><span class="self">self</span>, stmt: <span class="kw-2">&amp;</span><a href="../../../../vir/gen/polymorphic/ast/stmt/enum.Stmt.html">vir::Stmt</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="mod.rs.html#43">FoldUnfoldError</a>&gt; {
-        <a class="macro" href="../../../../log/macro.trace.html">trace!</a>(<span class="string">&quot;apply_stmt: {}&quot;</span>, stmt);
+    </span><span class="kw">pub fn </span>apply_stmt(<span class="kw-2">&amp;mut </span><span class="self">self</span>, stmt: <span class="kw-2">&amp;</span>vir::Stmt) -&gt; <span class="prelude-ty">Result</span>&lt;(), FoldUnfoldError&gt; {
+        <span class="macro">trace!</span>(<span class="string">&quot;apply_stmt: {}&quot;</span>, stmt);
 
-        <a class="macro" href="../../../../log/macro.trace.html">trace!</a>(<span class="string">&quot;Acc state before: {{\n{}\n}}&quot;</span>, <span class="self">self</span>.state.display_acc());
-        <a class="macro" href="../../../../log/macro.trace.html">trace!</a>(<span class="string">&quot;Pred state before: {{\n{}\n}}&quot;</span>, <span class="self">self</span>.state.display_pred());
+        <span class="macro">trace!</span>(<span class="string">&quot;Acc state before: {{\n{}\n}}&quot;</span>, <span class="self">self</span>.state.display_acc());
+        <span class="macro">trace!</span>(<span class="string">&quot;Pred state before: {{\n{}\n}}&quot;</span>, <span class="self">self</span>.state.display_pred());
 
-        <a class="self" href="#731">self</a>.state.<a href="state.rs.html#47">check_consistency</a>();
+        <span class="self">self</span>.state.check_consistency();
 
         stmt.apply_on_state(<span class="kw-2">&amp;mut </span><span class="self">self</span>.state, <span class="self">self</span>.predicates)<span class="question-mark">?</span>;
 
-        <a class="macro" href="../../../../log/macro.trace.html">trace!</a>(<span class="string">&quot;Acc state after: {{\n{}\n}}&quot;</span>, <span class="self">self</span>.state.display_acc());
-        <a class="macro" href="../../../../log/macro.trace.html">trace!</a>(<span class="string">&quot;Pred state after: {{\n{}\n}}&quot;</span>, <span class="self">self</span>.state.display_pred());
+        <span class="macro">trace!</span>(<span class="string">&quot;Acc state after: {{\n{}\n}}&quot;</span>, <span class="self">self</span>.state.display_acc());
+        <span class="macro">trace!</span>(<span class="string">&quot;Pred state after: {{\n{}\n}}&quot;</span>, <span class="self">self</span>.state.display_pred());
 
-        <a class="self" href="#731">self</a>.state.<a href="state.rs.html#47">check_consistency</a>();
+        <span class="self">self</span>.state.check_consistency();
 
         <span class="prelude-val">Ok</span>(())
     }
 
     <span class="kw">pub fn </span>obtain_permissions(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        permissions: Vec&lt;<a href="perm.rs.html#14">Perm</a>&gt;,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;<a href="action.rs.html#13">Action</a>&gt;, <a href="mod.rs.html#43">FoldUnfoldError</a>&gt; {
-        <a class="macro" href="../../../../log/macro.trace.html">trace!</a>(
+        permissions: Vec&lt;Perm&gt;,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;Action&gt;, FoldUnfoldError&gt; {
+        <span class="macro">trace!</span>(
             <span class="string">&quot;[enter] obtain_permissions: {}&quot;</span>,
             permissions.iter().to_string()
         );
 
         <span class="comment">// Solve conflicting requirements
         // See issue https://github.com/viperproject/prusti-dev/issues/362
-        </span><span class="kw">let </span>permissions = <a href="#908">solve_conficts</a>(<a href="#751">permissions</a>);
-        <a class="macro" href="../../../../log/macro.trace.html">trace!</a>(
+        </span><span class="kw">let </span>permissions = solve_conficts(permissions);
+        <span class="macro">trace!</span>(
             <span class="string">&quot;After solving conflicts: {}&quot;</span>,
             permissions.iter().to_string()
         );
 
-        <a class="macro" href="../../../../log/macro.trace.html">trace!</a>(<span class="string">&quot;Acc state before: {{\n{}\n}}&quot;</span>, <span class="self">self</span>.state.display_acc());
-        <a class="macro" href="../../../../log/macro.trace.html">trace!</a>(<span class="string">&quot;Pred state before: {{\n{}\n}}&quot;</span>, <span class="self">self</span>.state.display_pred());
+        <span class="macro">trace!</span>(<span class="string">&quot;Acc state before: {{\n{}\n}}&quot;</span>, <span class="self">self</span>.state.display_acc());
+        <span class="macro">trace!</span>(<span class="string">&quot;Pred state before: {{\n{}\n}}&quot;</span>, <span class="self">self</span>.state.display_pred());
 
-        <a class="self" href="#750">self</a>.state.<a href="state.rs.html#47">check_consistency</a>();
+        <span class="self">self</span>.state.check_consistency();
 
         <span class="kw">let </span>actions = <span class="self">self</span>.obtain_all(permissions)<span class="question-mark">?</span>;
 
-        <a class="macro" href="../../../../log/macro.trace.html">trace!</a>(<span class="string">&quot;Acc state after: {{\n{}\n}}&quot;</span>, <span class="self">self</span>.state.display_acc());
-        <a class="macro" href="../../../../log/macro.trace.html">trace!</a>(<span class="string">&quot;Pred state after: {{\n{}\n}}&quot;</span>, <span class="self">self</span>.state.display_pred());
+        <span class="macro">trace!</span>(<span class="string">&quot;Acc state after: {{\n{}\n}}&quot;</span>, <span class="self">self</span>.state.display_acc());
+        <span class="macro">trace!</span>(<span class="string">&quot;Pred state after: {{\n{}\n}}&quot;</span>, <span class="self">self</span>.state.display_pred());
 
-        <a class="self" href="#750">self</a>.state.<a href="state.rs.html#47">check_consistency</a>();
+        <span class="self">self</span>.state.check_consistency();
 
-        <a class="macro" href="../../../../log/macro.trace.html">trace!</a>(<span class="string">&quot;[exit] obtain_permissions: {}&quot;</span>, actions.iter().to_string());
-        <span class="prelude-val">Ok</span>(<a href="#771">actions</a>)
+        <span class="macro">trace!</span>(<span class="string">&quot;[exit] obtain_permissions: {}&quot;</span>, actions.iter().to_string());
+        <span class="prelude-val">Ok</span>(actions)
     }
 }
 
 <span class="doccomment">/// Find in `variant_place` the variant index of the enum encoded by `enum_place`.
-</span><span class="kw">fn </span>find_variant(enum_place: <span class="kw-2">&amp;</span><a href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a>, variant_place: <span class="kw-2">&amp;</span><a href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a>) -&gt; <a href="../../../../vir/gen/polymorphic/ast/predicate/type.MaybeEnumVariantIndex.html">vir::MaybeEnumVariantIndex</a> {
-    <a class="macro" href="../../../../log/macro.trace.html">trace!</a>(
+</span><span class="kw">fn </span>find_variant(enum_place: <span class="kw-2">&amp;</span>vir::Expr, variant_place: <span class="kw-2">&amp;</span>vir::Expr) -&gt; vir::MaybeEnumVariantIndex {
+    <span class="macro">trace!</span>(
         <span class="string">&quot;[enter] find_variant(enum_place={}, variant_place={})&quot;</span>,
         enum_place,
         variant_place
     );
-    <span class="kw">let </span>parent = <a href="#784">variant_place</a>.get_parent_ref().unwrap();
+    <span class="kw">let </span>parent = variant_place.get_parent_ref().unwrap();
     <span class="kw">let </span>result = <span class="kw">if </span>enum_place == parent {
-        <span class="kw">match </span><a href="#784">variant_place</a> {
-            vir::Expr::Variant(<a href="../../../../vir/gen/polymorphic/ast/expr/struct.Variant.html">vir::Variant</a> { variant_index, .. }) =&gt; <span class="prelude-val">Some</span>(<a href="#793">variant_index</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
+        <span class="kw">match </span>variant_place {
+            vir::Expr::Variant(vir::Variant { variant_index, .. }) =&gt; <span class="prelude-val">Some</span>(variant_index.into()),
             <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
         }
     } <span class="kw">else </span>{
-        <a href="#784">find_variant</a>(<a href="#784">enum_place</a>, <a href="#790">parent</a>)
+        find_variant(enum_place, parent)
     };
-    <a class="macro" href="../../../../log/macro.trace.html">trace!</a>(
+    <span class="macro">trace!</span>(
         <span class="string">&quot;[exit] find_variant(place={}, variant_place={}) = {:?}&quot;</span>,
         enum_place,
         variant_place,
         result
     );
-    <a href="#791">result</a>
+    result
 }
 
 <span class="doccomment">/// Find the variant of the place encoding an expression.
 /// Note: the place needs to be unfolded and downcasted for this to work.
-</span><span class="kw">pub fn </span>find_unfolded_variant(state: <span class="kw-2">&amp;</span><a href="state.rs.html#18">State</a>, enum_place: <span class="kw-2">&amp;</span><a href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a>) -&gt; <a href="../../../../vir/gen/polymorphic/ast/predicate/type.MaybeEnumVariantIndex.html">vir::MaybeEnumVariantIndex</a> {
-    <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(enum_place.is_place());
+</span><span class="kw">pub fn </span>find_unfolded_variant(state: <span class="kw-2">&amp;</span>State, enum_place: <span class="kw-2">&amp;</span>vir::Expr) -&gt; vir::MaybeEnumVariantIndex {
+    <span class="macro">debug_assert!</span>(enum_place.is_place());
     <span class="comment">// Find an access permission for which req is a proper suffix and extract variant from it.
-    </span><span class="kw">let </span>variants: FxHashSet&lt;<span class="kw">_</span>&gt; = <a href="#810">state</a>
-        .<a href="state.rs.html#197">acc_places</a>()
-        .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
-        .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter</a>(|place| <a href="#816">place</a>.has_proper_prefix(<a href="#810">enum_place</a>) &amp;&amp; <a href="#816">place</a>.is_variant())
-        .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">flat_map</a>(|variant_place| <a href="#784">find_variant</a>(<a href="#810">enum_place</a>, <span class="kw-2">&amp;</span><a href="#817">variant_place</a>))
-        .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
-    <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(variants.len() &lt;= <span class="number">1</span>);
-    <a href="#813">variants</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>()
+    </span><span class="kw">let </span>variants: FxHashSet&lt;<span class="kw">_</span>&gt; = state
+        .acc_places()
+        .into_iter()
+        .filter(|place| place.has_proper_prefix(enum_place) &amp;&amp; place.is_variant())
+        .flat_map(|variant_place| find_variant(enum_place, <span class="kw-2">&amp;</span>variant_place))
+        .collect();
+    <span class="macro">debug_assert!</span>(variants.len() &lt;= <span class="number">1</span>);
+    variants.into_iter().next()
 }
 
 <span class="doccomment">/// Computes a pair of sets of places that should be obtained. The first
@@ -1781,18 +1779,18 @@ Predicates: {{
 /// The elements from the first set that have any element in the second
 /// set as a prefix are dropped.
 </span><span class="kw">pub fn </span>compute_fold_target(
-    left: <span class="kw-2">&amp;</span>FxHashSet&lt;<a href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a>&gt;,
-    right: <span class="kw-2">&amp;</span>FxHashSet&lt;<a href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a>&gt;,
-) -&gt; (FxHashSet&lt;<a href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a>&gt;, FxHashSet&lt;<a href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a>&gt;) {
+    left: <span class="kw-2">&amp;</span>FxHashSet&lt;vir::Expr&gt;,
+    right: <span class="kw-2">&amp;</span>FxHashSet&lt;vir::Expr&gt;,
+) -&gt; (FxHashSet&lt;vir::Expr&gt;, FxHashSet&lt;vir::Expr&gt;) {
     <span class="kw">let </span><span class="kw-2">mut </span>conflicting_base = FxHashSet::default();
     <span class="comment">// If we have an enum unfolded only in one, then we add that enum to
     // conflicting places.
-    </span><span class="kw">let </span><span class="kw-2">mut </span>conflicting_base_check = |item: <span class="kw-2">&amp;</span><a href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a>, second_set: <span class="kw-2">&amp;</span>FxHashSet&lt;<a href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a>&gt;| {
-        <span class="kw">if let </span>vir::Expr::Variant(<a href="../../../../vir/gen/polymorphic/ast/expr/struct.Variant.html">vir::Variant</a> { <span class="kw">box </span><span class="kw-2">ref </span>base, .. }) = <a href="#853">item</a> {
+    </span><span class="kw">let </span><span class="kw-2">mut </span>conflicting_base_check = |item: <span class="kw-2">&amp;</span>vir::Expr, second_set: <span class="kw-2">&amp;</span>FxHashSet&lt;vir::Expr&gt;| {
+        <span class="kw">if let </span>vir::Expr::Variant(vir::Variant { <span class="kw">box </span><span class="kw-2">ref </span>base, .. }) = item {
             <span class="kw">if </span>!second_set.iter().any(|p| p.has_prefix(item)) {
                 <span class="comment">// The enum corresponding to base is completely folded in second_set or unfolded
                 // with a different variant.
-                </span><a href="#850">conflicting_base</a>.insert(<a href="#854">base</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
+                </span>conflicting_base.insert(base.clone());
             }
         }
     };
@@ -1805,12 +1803,12 @@ Predicates: {{
 
     <span class="kw">let </span><span class="kw-2">mut </span>places = FxHashSet::default();
     <span class="kw">let </span><span class="kw-2">mut </span>place_check =
-        |item: <span class="kw-2">&amp;</span><a href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a>, item_set: <span class="kw-2">&amp;</span>FxHashSet&lt;<a href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a>&gt;, other_set: <span class="kw-2">&amp;</span>FxHashSet&lt;<a href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a>&gt;| {
-            <span class="kw">let </span>is_leaf = !<a href="#871">item_set</a>.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">any</a>(|p| <a href="#872">p</a>.has_proper_prefix(<a href="#871">item</a>));
-            <span class="kw">let </span>below_all_others = !<a href="#871">other_set</a>.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">any</a>(|p| <a href="#873">p</a>.has_prefix(<a href="#871">item</a>));
-            <span class="kw">let </span>no_conflict_base = !<a href="#850">conflicting_base</a>.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">any</a>(|base| <a href="#871">item</a>.has_prefix(<a href="#874">base</a>));
+        |item: <span class="kw-2">&amp;</span>vir::Expr, item_set: <span class="kw-2">&amp;</span>FxHashSet&lt;vir::Expr&gt;, other_set: <span class="kw-2">&amp;</span>FxHashSet&lt;vir::Expr&gt;| {
+            <span class="kw">let </span>is_leaf = !item_set.iter().any(|p| p.has_proper_prefix(item));
+            <span class="kw">let </span>below_all_others = !other_set.iter().any(|p| p.has_prefix(item));
+            <span class="kw">let </span>no_conflict_base = !conflicting_base.iter().any(|base| item.has_prefix(base));
             <span class="kw">if </span>is_leaf &amp;&amp; below_all_others &amp;&amp; no_conflict_base {
-                <a href="#869">places</a>.insert(<a href="#871">item</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
+                places.insert(item.clone());
             }
         };
     <span class="kw">for </span>left_item <span class="kw">in </span>left.iter() {
@@ -1820,17 +1818,17 @@ Predicates: {{
         place_check(right_item, right, left);
     }
 
-    <span class="kw">let </span>acc_places = <a href="#869">places</a>;
-    <span class="kw">let </span>pred_places: FxHashSet&lt;<span class="kw">_</span>&gt; = <a href="#850">conflicting_base</a>
+    <span class="kw">let </span>acc_places = places;
+    <span class="kw">let </span>pred_places: FxHashSet&lt;<span class="kw">_</span>&gt; = conflicting_base
         .iter()
-        .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter</a>(|place| {
-            !<a href="#850">conflicting_base</a>
+        .filter(|place| {
+            !conflicting_base
                 .iter()
-                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">any</a>(|base| <a href="#889">place</a>.has_proper_prefix(<a href="#892">base</a>))
+                .any(|base| place.has_proper_prefix(base))
         })
-        .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">cloned</a>()
-        .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
-    (<a href="#886">acc_places</a>, <a href="#887">pred_places</a>)
+        .cloned()
+        .collect();
+    (acc_places, pred_places)
 }
 
 <span class="doccomment">/// Solve conflicting requirements.
@@ -1842,35 +1840,35 @@ Predicates: {{
 ///   which is always allowed.
 ///
 /// See also: issue https://github.com/viperproject/prusti-dev/issues/362
-</span><span class="kw">fn </span>solve_conficts(perms: Vec&lt;<a href="perm.rs.html#14">Perm</a>&gt;) -&gt; Vec&lt;<a href="perm.rs.html#14">Perm</a>&gt; {
+</span><span class="kw">fn </span>solve_conficts(perms: Vec&lt;Perm&gt;) -&gt; Vec&lt;Perm&gt; {
     <span class="comment">// TODO: the time complexity is quadratic, but it can be improved (as many other functions
     //   used in fold-unfold) by building and using the prefix tree of a set of `Perm`.
-    </span><a href="#908">perms</a>
+    </span>perms
         .iter()
-        .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter</a>(|p| {
-            <span class="kw">let </span>p_place = <a href="#913">p</a>.<a href="perm.rs.html#59">get_place</a>();
-            !<a href="#908">perms</a>
+        .filter(|p| {
+            <span class="kw">let </span>p_place = p.get_place();
+            !perms
                 .iter()
-                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">any</a>(|q| <a href="#917">q</a>.<a href="perm.rs.html#32">is_pred</a>() &amp;&amp; <a href="#914">p_place</a>.has_proper_prefix(<a href="#917">q</a>.<a href="perm.rs.html#59">get_place</a>()))
+                .any(|q| q.is_pred() &amp;&amp; p_place.has_proper_prefix(q.get_place()))
         })
-        .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">cloned</a>()
-        .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>()
+        .cloned()
+        .collect()
 }
 
 <span class="doccomment">/// Result of the obtain operation. Either success and a list of actions, or failure and the
 /// permission that was missing.
 </span><span class="kw">enum </span>ObtainResult {
-    Success(Vec&lt;<a href="action.rs.html#13">Action</a>&gt;),
-    Failure(Box&lt;<a href="perm.rs.html#14">Perm</a>&gt;),
+    Success(Vec&lt;Action&gt;),
+    Failure(Box&lt;Perm&gt;),
 }
 
-<span class="kw">impl </span><a href="#925">ObtainResult</a> {
-    <span class="kw">pub fn </span>get_actions(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;<a href="action.rs.html#13">Action</a>&gt;, <a href="mod.rs.html#43">FoldUnfoldError</a>&gt; {
-        <span class="kw">match </span><span class="self"><a href="#931">self</a> </span>{
-            <a href="#926">ObtainResult::Success</a>(actions) =&gt; <span class="prelude-val">Ok</span>(<a href="#933">actions</a>),
-            <a href="#927">ObtainResult::Failure</a>(p) =&gt; <span class="prelude-val">Err</span>(<a href="mod.rs.html#45">FailedToObtain</a>(<span class="kw-2">*</span><a href="#934">p</a>)),
+<span class="kw">impl </span>ObtainResult {
+    <span class="kw">pub fn </span>get_actions(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;Action&gt;, FoldUnfoldError&gt; {
+        <span class="kw">match </span><span class="self">self </span>{
+            ObtainResult::Success(actions) =&gt; <span class="prelude-val">Ok</span>(actions),
+            ObtainResult::Failure(p) =&gt; <span class="prelude-val">Err</span>(FailedToObtain(<span class="kw-2">*</span>p)),
         }
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="prusti_viper" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="prusti_viper" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

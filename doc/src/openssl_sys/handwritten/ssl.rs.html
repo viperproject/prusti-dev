@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/openssl-sys-0.9.77/src/./handwritten/ssl.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>ssl.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../openssl_sys/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/openssl-sys-0.9.80/src/./handwritten/ssl.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>ssl.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../openssl_sys/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -892,7 +892,7 @@
 <a href="#892" id="892">892</a>
 <a href="#893" id="893">893</a>
 <a href="#894" id="894">894</a>
-</pre><pre class="rust"><code><span class="kw">use </span><a href="../../../libc/index.html">libc</a>::<span class="kw-2">*</span>;
+</pre><pre class="rust"><code><span class="kw">use </span>libc::<span class="kw-2">*</span>;
 <span class="kw">use </span><span class="kw-2">*</span>;
 
 <span class="kw">pub enum </span>SSL_METHOD {}
@@ -1028,72 +1028,72 @@
 
 <span class="attr">#[repr(C)]
 </span><span class="kw">pub struct </span>SRTP_PROTECTION_PROFILE {
-    <span class="kw">pub </span>name: <span class="kw-2">*const </span><a href="../../../openssl_sys/type.c_char.html">c_char</a>,
-    <span class="kw">pub </span>id: <a href="../../../openssl_sys/type.c_ulong.html">c_ulong</a>,
+    <span class="kw">pub </span>name: <span class="kw-2">*const </span>c_char,
+    <span class="kw">pub </span>id: c_ulong,
 }
 
 <span class="macro">stack!</span>(stack_st_SRTP_PROTECTION_PROFILE);
 
 <span class="kw">pub type </span>tls_session_ticket_ext_cb_fn =
-    <span class="prelude-ty">Option</span>&lt;<span class="kw">unsafe extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn</span>(<span class="kw-2">*mut </span><a href="types.rs.html#458">SSL</a>, <span class="kw-2">*const </span><a href="../../../openssl_sys/type.c_uchar.html">c_uchar</a>, <a href="../../../openssl_sys/type.c_int.html">c_int</a>, <span class="kw-2">*mut </span><a href="../../../openssl_sys/enum.c_void.html">c_void</a>) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>&gt;;
+    <span class="prelude-ty">Option</span>&lt;<span class="kw">unsafe extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn</span>(<span class="kw-2">*mut </span>SSL, <span class="kw-2">*const </span>c_uchar, c_int, <span class="kw-2">*mut </span>c_void) -&gt; c_int&gt;;
 <span class="kw">pub type </span>tls_session_secret_cb_fn = <span class="prelude-ty">Option</span>&lt;
     <span class="kw">unsafe extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn</span>(
-        <span class="kw-2">*mut </span><a href="types.rs.html#458">SSL</a>,
-        <span class="kw-2">*mut </span><a href="../../../openssl_sys/enum.c_void.html">c_void</a>,
-        <span class="kw-2">*mut </span><a href="../../../openssl_sys/type.c_int.html">c_int</a>,
-        <span class="kw-2">*mut </span><a href="#133">stack_st_SSL_CIPHER</a>,
-        <span class="kw-2">*mut *mut </span><a href="#5">SSL_CIPHER</a>,
-        <span class="kw-2">*mut </span><a href="../../../openssl_sys/enum.c_void.html">c_void</a>,
-    ) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>,
+        <span class="kw-2">*mut </span>SSL,
+        <span class="kw-2">*mut </span>c_void,
+        <span class="kw-2">*mut </span>c_int,
+        <span class="kw-2">*mut </span>stack_st_SSL_CIPHER,
+        <span class="kw-2">*mut *mut </span>SSL_CIPHER,
+        <span class="kw-2">*mut </span>c_void,
+    ) -&gt; c_int,
 &gt;;
 
 <span class="attr">#[cfg(ossl111)]
 </span><span class="kw">pub type </span>SSL_custom_ext_add_cb_ex = <span class="prelude-ty">Option</span>&lt;
     <span class="kw">unsafe extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn</span>(
-        ssl: <span class="kw-2">*mut </span><a href="types.rs.html#458">::SSL</a>,
-        ext_type: <a href="../../../openssl_sys/type.c_uint.html">c_uint</a>,
-        context: <a href="../../../openssl_sys/type.c_uint.html">c_uint</a>,
-        out: <span class="kw-2">*mut *const </span><a href="../../../openssl_sys/type.c_uchar.html">c_uchar</a>,
-        outlen: <span class="kw-2">*mut </span><a href="../../../openssl_sys/type.size_t.html">size_t</a>,
-        x: <span class="kw-2">*mut </span><a href="types.rs.html#257">::X509</a>,
-        chainidx: <a href="../../../openssl_sys/type.size_t.html">size_t</a>,
-        al: <span class="kw-2">*mut </span><a href="../../../openssl_sys/type.c_int.html">c_int</a>,
-        add_arg: <span class="kw-2">*mut </span><a href="../../../openssl_sys/enum.c_void.html">c_void</a>,
-    ) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>,
+        ssl: <span class="kw-2">*mut </span>::SSL,
+        ext_type: c_uint,
+        context: c_uint,
+        out: <span class="kw-2">*mut *const </span>c_uchar,
+        outlen: <span class="kw-2">*mut </span>size_t,
+        x: <span class="kw-2">*mut </span>::X509,
+        chainidx: size_t,
+        al: <span class="kw-2">*mut </span>c_int,
+        add_arg: <span class="kw-2">*mut </span>c_void,
+    ) -&gt; c_int,
 &gt;;
 
 <span class="attr">#[cfg(ossl111)]
 </span><span class="kw">pub type </span>SSL_custom_ext_free_cb_ex = <span class="prelude-ty">Option</span>&lt;
     <span class="kw">unsafe extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn</span>(
-        ssl: <span class="kw-2">*mut </span><a href="types.rs.html#458">::SSL</a>,
-        ext_type: <a href="../../../openssl_sys/type.c_uint.html">c_uint</a>,
-        context: <a href="../../../openssl_sys/type.c_uint.html">c_uint</a>,
-        out: <span class="kw-2">*const </span><a href="../../../openssl_sys/type.c_uchar.html">c_uchar</a>,
-        add_arg: <span class="kw-2">*mut </span><a href="../../../openssl_sys/enum.c_void.html">c_void</a>,
+        ssl: <span class="kw-2">*mut </span>::SSL,
+        ext_type: c_uint,
+        context: c_uint,
+        out: <span class="kw-2">*const </span>c_uchar,
+        add_arg: <span class="kw-2">*mut </span>c_void,
     ),
 &gt;;
 
 <span class="attr">#[cfg(ossl111)]
 </span><span class="kw">pub type </span>SSL_custom_ext_parse_cb_ex = <span class="prelude-ty">Option</span>&lt;
     <span class="kw">unsafe extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn</span>(
-        ssl: <span class="kw-2">*mut </span><a href="types.rs.html#458">::SSL</a>,
-        ext_type: <a href="../../../openssl_sys/type.c_uint.html">c_uint</a>,
-        context: <a href="../../../openssl_sys/type.c_uint.html">c_uint</a>,
-        input: <span class="kw-2">*const </span><a href="../../../openssl_sys/type.c_uchar.html">c_uchar</a>,
-        inlen: <a href="../../../openssl_sys/type.size_t.html">size_t</a>,
-        x: <span class="kw-2">*mut </span><a href="types.rs.html#257">::X509</a>,
-        chainidx: <a href="../../../openssl_sys/type.size_t.html">size_t</a>,
-        al: <span class="kw-2">*mut </span><a href="../../../openssl_sys/type.c_int.html">c_int</a>,
-        parse_arg: <span class="kw-2">*mut </span><a href="../../../openssl_sys/enum.c_void.html">c_void</a>,
-    ) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>,
+        ssl: <span class="kw-2">*mut </span>::SSL,
+        ext_type: c_uint,
+        context: c_uint,
+        input: <span class="kw-2">*const </span>c_uchar,
+        inlen: size_t,
+        x: <span class="kw-2">*mut </span>::X509,
+        chainidx: size_t,
+        al: <span class="kw-2">*mut </span>c_int,
+        parse_arg: <span class="kw-2">*mut </span>c_void,
+    ) -&gt; c_int,
 &gt;;
 
 <span class="macro">cfg_if! </span>{
     <span class="kw">if </span><span class="attr">#[cfg(ossl300)] </span>{
         <span class="kw">extern </span><span class="string">&quot;C&quot; </span>{
-            <span class="kw">pub fn </span>SSL_CTX_get_options(ctx: <span class="kw-2">*const </span><a href="types.rs.html#760">SSL_CTX</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>;
-            <span class="kw">pub fn </span>SSL_CTX_set_options(ctx: <span class="kw-2">*mut </span><a href="types.rs.html#760">SSL_CTX</a>, op: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>;
-            <span class="kw">pub fn </span>SSL_CTX_clear_options(ctx: <span class="kw-2">*mut </span><a href="types.rs.html#760">SSL_CTX</a>, op: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>;
+            <span class="kw">pub fn </span>SSL_CTX_get_options(ctx: <span class="kw-2">*const </span>SSL_CTX) -&gt; u64;
+            <span class="kw">pub fn </span>SSL_CTX_set_options(ctx: <span class="kw-2">*mut </span>SSL_CTX, op: u64) -&gt; u64;
+            <span class="kw">pub fn </span>SSL_CTX_clear_options(ctx: <span class="kw-2">*mut </span>SSL_CTX, op: u64) -&gt; u64;
         }
     } <span class="kw">else if </span><span class="attr">#[cfg(ossl110)] </span>{
         <span class="kw">extern </span><span class="string">&quot;C&quot; </span>{
@@ -1105,16 +1105,16 @@
 }
 
 <span class="kw">pub type </span>GEN_SESSION_CB =
-    <span class="prelude-ty">Option</span>&lt;<span class="kw">unsafe extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn</span>(<span class="kw-2">*const </span><a href="types.rs.html#458">SSL</a>, <span class="kw-2">*mut </span><a href="../../../openssl_sys/type.c_uchar.html">c_uchar</a>, <span class="kw-2">*mut </span><a href="../../../openssl_sys/type.c_uint.html">c_uint</a>) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>&gt;;
+    <span class="prelude-ty">Option</span>&lt;<span class="kw">unsafe extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn</span>(<span class="kw-2">*const </span>SSL, <span class="kw-2">*mut </span>c_uchar, <span class="kw-2">*mut </span>c_uint) -&gt; c_int&gt;;
 
 <span class="kw">extern </span><span class="string">&quot;C&quot; </span>{
     <span class="kw">pub fn </span>SSL_CTX_sess_set_new_cb(
-        ctx: <span class="kw-2">*mut </span><a href="types.rs.html#760">SSL_CTX</a>,
-        new_session_cb: <span class="prelude-ty">Option</span>&lt;<span class="kw">unsafe extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn</span>(<span class="kw-2">*mut </span><a href="types.rs.html#458">SSL</a>, <span class="kw-2">*mut </span><a href="#8">SSL_SESSION</a>) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>&gt;,
+        ctx: <span class="kw-2">*mut </span>SSL_CTX,
+        new_session_cb: <span class="prelude-ty">Option</span>&lt;<span class="kw">unsafe extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn</span>(<span class="kw-2">*mut </span>SSL, <span class="kw-2">*mut </span>SSL_SESSION) -&gt; c_int&gt;,
     );
     <span class="kw">pub fn </span>SSL_CTX_sess_set_remove_cb(
-        ctx: <span class="kw-2">*mut </span><a href="types.rs.html#760">SSL_CTX</a>,
-        remove_session_cb: <span class="prelude-ty">Option</span>&lt;<span class="kw">unsafe extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn</span>(<span class="kw-2">*mut </span><a href="types.rs.html#760">SSL_CTX</a>, <span class="kw-2">*mut </span><a href="#8">SSL_SESSION</a>)&gt;,
+        ctx: <span class="kw-2">*mut </span>SSL_CTX,
+        remove_session_cb: <span class="prelude-ty">Option</span>&lt;<span class="kw">unsafe extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn</span>(<span class="kw-2">*mut </span>SSL_CTX, <span class="kw-2">*mut </span>SSL_SESSION)&gt;,
     );
 }
 <span class="macro">cfg_if! </span>{
@@ -1122,9 +1122,9 @@
     </span><span class="kw">if </span><span class="attr">#[cfg(any(ossl110, libressl280))] </span>{
         <span class="kw">extern </span><span class="string">&quot;C&quot; </span>{
             <span class="kw">pub fn </span>SSL_CTX_sess_set_get_cb(
-                ctx: <span class="kw-2">*mut </span><a href="types.rs.html#760">::SSL_CTX</a>,
+                ctx: <span class="kw-2">*mut </span>::SSL_CTX,
                 get_session_cb: <span class="prelude-ty">Option</span>&lt;
-                    <span class="kw">unsafe extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn</span>(<span class="kw-2">*mut </span><a href="types.rs.html#458">::SSL</a>, <span class="kw-2">*const </span><a href="../../../openssl_sys/type.c_uchar.html">c_uchar</a>, <a href="../../../openssl_sys/type.c_int.html">c_int</a>, <span class="kw-2">*mut </span><a href="../../../openssl_sys/type.c_int.html">c_int</a>) -&gt; <span class="kw-2">*mut </span><a href="#8">SSL_SESSION</a>,
+                    <span class="kw">unsafe extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn</span>(<span class="kw-2">*mut </span>::SSL, <span class="kw-2">*const </span>c_uchar, c_int, <span class="kw-2">*mut </span>c_int) -&gt; <span class="kw-2">*mut </span>SSL_SESSION,
                 &gt;,
             );
         }
@@ -1142,9 +1142,9 @@
 <span class="kw">extern </span><span class="string">&quot;C&quot; </span>{
     <span class="comment">// FIXME change to unsafe extern &quot;C&quot; fn
     </span><span class="kw">pub fn </span>SSL_CTX_set_cookie_generate_cb(
-        s: <span class="kw-2">*mut </span><a href="types.rs.html#760">SSL_CTX</a>,
+        s: <span class="kw-2">*mut </span>SSL_CTX,
         cb: <span class="prelude-ty">Option</span>&lt;
-            <span class="kw">extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn</span>(ssl: <span class="kw-2">*mut </span><a href="types.rs.html#458">SSL</a>, cookie: <span class="kw-2">*mut </span><a href="../../../openssl_sys/type.c_uchar.html">c_uchar</a>, cookie_len: <span class="kw-2">*mut </span><a href="../../../openssl_sys/type.c_uint.html">c_uint</a>) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>,
+            <span class="kw">extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn</span>(ssl: <span class="kw-2">*mut </span>SSL, cookie: <span class="kw-2">*mut </span>c_uchar, cookie_len: <span class="kw-2">*mut </span>c_uint) -&gt; c_int,
         &gt;,
     );
 }
@@ -1154,9 +1154,9 @@
     </span><span class="kw">if </span><span class="attr">#[cfg(any(ossl110, libressl280))] </span>{
         <span class="kw">extern </span><span class="string">&quot;C&quot; </span>{
             <span class="kw">pub fn </span>SSL_CTX_set_cookie_verify_cb(
-                s: <span class="kw-2">*mut </span><a href="types.rs.html#760">SSL_CTX</a>,
+                s: <span class="kw-2">*mut </span>SSL_CTX,
                 cb: <span class="prelude-ty">Option</span>&lt;
-                    <span class="kw">extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn</span>(ssl: <span class="kw-2">*mut </span><a href="types.rs.html#458">SSL</a>, cookie: <span class="kw-2">*const </span><a href="../../../openssl_sys/type.c_uchar.html">c_uchar</a>, cookie_len: <a href="../../../openssl_sys/type.c_uint.html">c_uint</a>) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>,
+                    <span class="kw">extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn</span>(ssl: <span class="kw-2">*mut </span>SSL, cookie: <span class="kw-2">*const </span>c_uchar, cookie_len: c_uint) -&gt; c_int,
                 &gt;,
             );
         }
@@ -1173,160 +1173,160 @@
 <span class="kw">extern </span><span class="string">&quot;C&quot; </span>{
     <span class="attr">#[cfg(ossl111)]
     </span><span class="kw">pub fn </span>SSL_CTX_set_stateless_cookie_generate_cb(
-        s: <span class="kw-2">*mut </span><a href="types.rs.html#760">SSL_CTX</a>,
+        s: <span class="kw-2">*mut </span>SSL_CTX,
         cb: <span class="prelude-ty">Option</span>&lt;
             <span class="kw">unsafe extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn</span>(
-                ssl: <span class="kw-2">*mut </span><a href="types.rs.html#458">SSL</a>,
-                cookie: <span class="kw-2">*mut </span><a href="../../../openssl_sys/type.c_uchar.html">c_uchar</a>,
-                cookie_len: <span class="kw-2">*mut </span><a href="../../../openssl_sys/type.size_t.html">size_t</a>,
-            ) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>,
+                ssl: <span class="kw-2">*mut </span>SSL,
+                cookie: <span class="kw-2">*mut </span>c_uchar,
+                cookie_len: <span class="kw-2">*mut </span>size_t,
+            ) -&gt; c_int,
         &gt;,
     );
     <span class="attr">#[cfg(ossl111)]
     </span><span class="kw">pub fn </span>SSL_CTX_set_stateless_cookie_verify_cb(
-        s: <span class="kw-2">*mut </span><a href="types.rs.html#760">SSL_CTX</a>,
+        s: <span class="kw-2">*mut </span>SSL_CTX,
         cb: <span class="prelude-ty">Option</span>&lt;
             <span class="kw">unsafe extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn</span>(
-                ssl: <span class="kw-2">*mut </span><a href="types.rs.html#458">SSL</a>,
-                cookie: <span class="kw-2">*const </span><a href="../../../openssl_sys/type.c_uchar.html">c_uchar</a>,
-                cookie_len: <a href="../../../openssl_sys/type.size_t.html">size_t</a>,
-            ) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>,
+                ssl: <span class="kw-2">*mut </span>SSL,
+                cookie: <span class="kw-2">*const </span>c_uchar,
+                cookie_len: size_t,
+            ) -&gt; c_int,
         &gt;,
     );
 
     <span class="kw">pub fn </span>SSL_CTX_set_next_protos_advertised_cb(
-        ssl: <span class="kw-2">*mut </span><a href="types.rs.html#760">SSL_CTX</a>,
+        ssl: <span class="kw-2">*mut </span>SSL_CTX,
         cb: <span class="kw">extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn</span>(
-            ssl: <span class="kw-2">*mut </span><a href="types.rs.html#458">SSL</a>,
-            out: <span class="kw-2">*mut *const </span><a href="../../../openssl_sys/type.c_uchar.html">c_uchar</a>,
-            outlen: <span class="kw-2">*mut </span><a href="../../../openssl_sys/type.c_uint.html">c_uint</a>,
-            arg: <span class="kw-2">*mut </span><a href="../../../openssl_sys/enum.c_void.html">c_void</a>,
-        ) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>,
-        arg: <span class="kw-2">*mut </span><a href="../../../openssl_sys/enum.c_void.html">c_void</a>,
+            ssl: <span class="kw-2">*mut </span>SSL,
+            out: <span class="kw-2">*mut *const </span>c_uchar,
+            outlen: <span class="kw-2">*mut </span>c_uint,
+            arg: <span class="kw-2">*mut </span>c_void,
+        ) -&gt; c_int,
+        arg: <span class="kw-2">*mut </span>c_void,
     );
     <span class="kw">pub fn </span>SSL_CTX_set_next_proto_select_cb(
-        ssl: <span class="kw-2">*mut </span><a href="types.rs.html#760">SSL_CTX</a>,
+        ssl: <span class="kw-2">*mut </span>SSL_CTX,
         cb: <span class="kw">extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn</span>(
-            ssl: <span class="kw-2">*mut </span><a href="types.rs.html#458">SSL</a>,
-            out: <span class="kw-2">*mut *mut </span><a href="../../../openssl_sys/type.c_uchar.html">c_uchar</a>,
-            outlen: <span class="kw-2">*mut </span><a href="../../../openssl_sys/type.c_uchar.html">c_uchar</a>,
-            inbuf: <span class="kw-2">*const </span><a href="../../../openssl_sys/type.c_uchar.html">c_uchar</a>,
-            inlen: <a href="../../../openssl_sys/type.c_uint.html">c_uint</a>,
-            arg: <span class="kw-2">*mut </span><a href="../../../openssl_sys/enum.c_void.html">c_void</a>,
-        ) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>,
-        arg: <span class="kw-2">*mut </span><a href="../../../openssl_sys/enum.c_void.html">c_void</a>,
+            ssl: <span class="kw-2">*mut </span>SSL,
+            out: <span class="kw-2">*mut *mut </span>c_uchar,
+            outlen: <span class="kw-2">*mut </span>c_uchar,
+            inbuf: <span class="kw-2">*const </span>c_uchar,
+            inlen: c_uint,
+            arg: <span class="kw-2">*mut </span>c_void,
+        ) -&gt; c_int,
+        arg: <span class="kw-2">*mut </span>c_void,
     );
     <span class="kw">pub fn </span>SSL_get0_next_proto_negotiated(
-        s: <span class="kw-2">*const </span><a href="types.rs.html#458">SSL</a>,
-        data: <span class="kw-2">*mut *const </span><a href="../../../openssl_sys/type.c_uchar.html">c_uchar</a>,
-        len: <span class="kw-2">*mut </span><a href="../../../openssl_sys/type.c_uint.html">c_uint</a>,
+        s: <span class="kw-2">*const </span>SSL,
+        data: <span class="kw-2">*mut *const </span>c_uchar,
+        len: <span class="kw-2">*mut </span>c_uint,
     );
 
     <span class="kw">pub fn </span>SSL_select_next_proto(
-        out: <span class="kw-2">*mut *mut </span><a href="../../../openssl_sys/type.c_uchar.html">c_uchar</a>,
-        outlen: <span class="kw-2">*mut </span><a href="../../../openssl_sys/type.c_uchar.html">c_uchar</a>,
-        inbuf: <span class="kw-2">*const </span><a href="../../../openssl_sys/type.c_uchar.html">c_uchar</a>,
-        inlen: <a href="../../../openssl_sys/type.c_uint.html">c_uint</a>,
-        client: <span class="kw-2">*const </span><a href="../../../openssl_sys/type.c_uchar.html">c_uchar</a>,
-        client_len: <a href="../../../openssl_sys/type.c_uint.html">c_uint</a>,
-    ) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
+        out: <span class="kw-2">*mut *mut </span>c_uchar,
+        outlen: <span class="kw-2">*mut </span>c_uchar,
+        inbuf: <span class="kw-2">*const </span>c_uchar,
+        inlen: c_uint,
+        client: <span class="kw-2">*const </span>c_uchar,
+        client_len: c_uint,
+    ) -&gt; c_int;
 }
 
 <span class="kw">extern </span><span class="string">&quot;C&quot; </span>{
     <span class="attr">#[cfg(any(ossl102, libressl261))]
-    </span><span class="kw">pub fn </span>SSL_CTX_set_alpn_protos(s: <span class="kw-2">*mut </span><a href="types.rs.html#760">SSL_CTX</a>, data: <span class="kw-2">*const </span><a href="../../../openssl_sys/type.c_uchar.html">c_uchar</a>, len: <a href="../../../openssl_sys/type.c_uint.html">c_uint</a>) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
+    </span><span class="kw">pub fn </span>SSL_CTX_set_alpn_protos(s: <span class="kw-2">*mut </span>SSL_CTX, data: <span class="kw-2">*const </span>c_uchar, len: c_uint) -&gt; c_int;
     <span class="attr">#[cfg(any(ossl102, libressl261))]
-    </span><span class="kw">pub fn </span>SSL_set_alpn_protos(s: <span class="kw-2">*mut </span><a href="types.rs.html#458">SSL</a>, data: <span class="kw-2">*const </span><a href="../../../openssl_sys/type.c_uchar.html">c_uchar</a>, len: <a href="../../../openssl_sys/type.c_uint.html">c_uint</a>) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
+    </span><span class="kw">pub fn </span>SSL_set_alpn_protos(s: <span class="kw-2">*mut </span>SSL, data: <span class="kw-2">*const </span>c_uchar, len: c_uint) -&gt; c_int;
     <span class="attr">#[cfg(any(ossl102, libressl261))]
     #[link_name = <span class="string">&quot;SSL_CTX_set_alpn_select_cb&quot;</span>]
     </span><span class="kw">pub fn </span>SSL_CTX_set_alpn_select_cb__fixed_rust(
-        ssl: <span class="kw-2">*mut </span><a href="types.rs.html#760">SSL_CTX</a>,
+        ssl: <span class="kw-2">*mut </span>SSL_CTX,
         cb: <span class="prelude-ty">Option</span>&lt;
             <span class="kw">unsafe extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn</span>(
-                ssl: <span class="kw-2">*mut </span><a href="types.rs.html#458">SSL</a>,
-                out: <span class="kw-2">*mut *const </span><a href="../../../openssl_sys/type.c_uchar.html">c_uchar</a>,
-                outlen: <span class="kw-2">*mut </span><a href="../../../openssl_sys/type.c_uchar.html">c_uchar</a>,
-                inbuf: <span class="kw-2">*const </span><a href="../../../openssl_sys/type.c_uchar.html">c_uchar</a>,
-                inlen: <a href="../../../openssl_sys/type.c_uint.html">c_uint</a>,
-                arg: <span class="kw-2">*mut </span><a href="../../../openssl_sys/enum.c_void.html">c_void</a>,
-            ) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>,
+                ssl: <span class="kw-2">*mut </span>SSL,
+                out: <span class="kw-2">*mut *const </span>c_uchar,
+                outlen: <span class="kw-2">*mut </span>c_uchar,
+                inbuf: <span class="kw-2">*const </span>c_uchar,
+                inlen: c_uint,
+                arg: <span class="kw-2">*mut </span>c_void,
+            ) -&gt; c_int,
         &gt;,
-        arg: <span class="kw-2">*mut </span><a href="../../../openssl_sys/enum.c_void.html">c_void</a>,
+        arg: <span class="kw-2">*mut </span>c_void,
     );
     <span class="attr">#[cfg(any(ossl102, libressl261))]
-    </span><span class="kw">pub fn </span>SSL_get0_alpn_selected(s: <span class="kw-2">*const </span><a href="types.rs.html#458">SSL</a>, data: <span class="kw-2">*mut *const </span><a href="../../../openssl_sys/type.c_uchar.html">c_uchar</a>, len: <span class="kw-2">*mut </span><a href="../../../openssl_sys/type.c_uint.html">c_uint</a>);
+    </span><span class="kw">pub fn </span>SSL_get0_alpn_selected(s: <span class="kw-2">*const </span>SSL, data: <span class="kw-2">*mut *const </span>c_uchar, len: <span class="kw-2">*mut </span>c_uint);
 }
 
 <span class="attr">#[cfg(not(osslconf = <span class="string">&quot;OPENSSL_NO_PSK&quot;</span>))]
 </span><span class="kw">extern </span><span class="string">&quot;C&quot; </span>{
     <span class="kw">pub fn </span>SSL_CTX_set_psk_client_callback(
-        ssl: <span class="kw-2">*mut </span><a href="types.rs.html#760">SSL_CTX</a>,
+        ssl: <span class="kw-2">*mut </span>SSL_CTX,
         psk_client_cb: <span class="prelude-ty">Option</span>&lt;
             <span class="kw">extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn</span>(
-                <span class="kw-2">*mut </span><a href="types.rs.html#458">SSL</a>,
-                <span class="kw-2">*const </span><a href="../../../openssl_sys/type.c_char.html">c_char</a>,
-                <span class="kw-2">*mut </span><a href="../../../openssl_sys/type.c_char.html">c_char</a>,
-                <a href="../../../openssl_sys/type.c_uint.html">c_uint</a>,
-                <span class="kw-2">*mut </span><a href="../../../openssl_sys/type.c_uchar.html">c_uchar</a>,
-                <a href="../../../openssl_sys/type.c_uint.html">c_uint</a>,
-            ) -&gt; <a href="../../../openssl_sys/type.c_uint.html">c_uint</a>,
+                <span class="kw-2">*mut </span>SSL,
+                <span class="kw-2">*const </span>c_char,
+                <span class="kw-2">*mut </span>c_char,
+                c_uint,
+                <span class="kw-2">*mut </span>c_uchar,
+                c_uint,
+            ) -&gt; c_uint,
         &gt;,
     );
     <span class="kw">pub fn </span>SSL_CTX_set_psk_server_callback(
-        ssl: <span class="kw-2">*mut </span><a href="types.rs.html#760">SSL_CTX</a>,
+        ssl: <span class="kw-2">*mut </span>SSL_CTX,
         psk_server_cb: <span class="prelude-ty">Option</span>&lt;
-            <span class="kw">extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn</span>(<span class="kw-2">*mut </span><a href="types.rs.html#458">SSL</a>, <span class="kw-2">*const </span><a href="../../../openssl_sys/type.c_char.html">c_char</a>, <span class="kw-2">*mut </span><a href="../../../openssl_sys/type.c_uchar.html">c_uchar</a>, <a href="../../../openssl_sys/type.c_uint.html">c_uint</a>) -&gt; <a href="../../../openssl_sys/type.c_uint.html">c_uint</a>,
+            <span class="kw">extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn</span>(<span class="kw-2">*mut </span>SSL, <span class="kw-2">*const </span>c_char, <span class="kw-2">*mut </span>c_uchar, c_uint) -&gt; c_uint,
         &gt;,
     );
-    <span class="kw">pub fn </span>SSL_get_psk_identity_hint(ssl: <span class="kw-2">*const </span><a href="types.rs.html#458">SSL</a>) -&gt; <span class="kw-2">*const </span><a href="../../../openssl_sys/type.c_char.html">c_char</a>;
-    <span class="kw">pub fn </span>SSL_get_psk_identity(ssl: <span class="kw-2">*const </span><a href="types.rs.html#458">SSL</a>) -&gt; <span class="kw-2">*const </span><a href="../../../openssl_sys/type.c_char.html">c_char</a>;
+    <span class="kw">pub fn </span>SSL_get_psk_identity_hint(ssl: <span class="kw-2">*const </span>SSL) -&gt; <span class="kw-2">*const </span>c_char;
+    <span class="kw">pub fn </span>SSL_get_psk_identity(ssl: <span class="kw-2">*const </span>SSL) -&gt; <span class="kw-2">*const </span>c_char;
 }
 
 <span class="kw">extern </span><span class="string">&quot;C&quot; </span>{
     <span class="attr">#[cfg(ossl111)]
     </span><span class="kw">pub fn </span>SSL_CTX_add_custom_ext(
-        ctx: <span class="kw-2">*mut </span><a href="types.rs.html#760">::SSL_CTX</a>,
-        ext_type: <a href="../../../openssl_sys/type.c_uint.html">c_uint</a>,
-        context: <a href="../../../openssl_sys/type.c_uint.html">c_uint</a>,
-        add_cb: <a href="#157">SSL_custom_ext_add_cb_ex</a>,
-        free_cb: <a href="#172">SSL_custom_ext_free_cb_ex</a>,
-        add_arg: <span class="kw-2">*mut </span><a href="../../../openssl_sys/enum.c_void.html">c_void</a>,
-        parse_cb: <a href="#183">SSL_custom_ext_parse_cb_ex</a>,
-        parse_arg: <span class="kw-2">*mut </span><a href="../../../openssl_sys/enum.c_void.html">c_void</a>,
-    ) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
+        ctx: <span class="kw-2">*mut </span>::SSL_CTX,
+        ext_type: c_uint,
+        context: c_uint,
+        add_cb: SSL_custom_ext_add_cb_ex,
+        free_cb: SSL_custom_ext_free_cb_ex,
+        add_arg: <span class="kw-2">*mut </span>c_void,
+        parse_cb: SSL_custom_ext_parse_cb_ex,
+        parse_arg: <span class="kw-2">*mut </span>c_void,
+    ) -&gt; c_int;
 
     <span class="attr">#[cfg(ossl102)]
-    </span><span class="kw">pub fn </span>SSL_extension_supported(ext_type: <a href="../../../openssl_sys/type.c_uint.html">c_uint</a>) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
+    </span><span class="kw">pub fn </span>SSL_extension_supported(ext_type: c_uint) -&gt; c_int;
 }
 
 <span class="attr">#[cfg(ossl111)]
 </span><span class="kw">pub type </span>SSL_CTX_keylog_cb_func =
-    <span class="prelude-ty">Option</span>&lt;<span class="kw">unsafe extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn</span>(ssl: <span class="kw-2">*const </span><a href="types.rs.html#458">SSL</a>, line: <span class="kw-2">*const </span><a href="../../../openssl_sys/type.c_char.html">c_char</a>)&gt;;
+    <span class="prelude-ty">Option</span>&lt;<span class="kw">unsafe extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn</span>(ssl: <span class="kw-2">*const </span>SSL, line: <span class="kw-2">*const </span>c_char)&gt;;
 
 <span class="kw">extern </span><span class="string">&quot;C&quot; </span>{
     <span class="attr">#[cfg(ossl111)]
-    </span><span class="kw">pub fn </span>SSL_CTX_set_keylog_callback(ctx: <span class="kw-2">*mut </span><a href="types.rs.html#760">SSL_CTX</a>, cb: <a href="#409">SSL_CTX_keylog_cb_func</a>);
+    </span><span class="kw">pub fn </span>SSL_CTX_set_keylog_callback(ctx: <span class="kw-2">*mut </span>SSL_CTX, cb: SSL_CTX_keylog_cb_func);
 
     <span class="attr">#[cfg(any(ossl111, libressl340))]
-    </span><span class="kw">pub fn </span>SSL_CTX_set_max_early_data(ctx: <span class="kw-2">*mut </span><a href="types.rs.html#760">SSL_CTX</a>, max_early_data: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
+    </span><span class="kw">pub fn </span>SSL_CTX_set_max_early_data(ctx: <span class="kw-2">*mut </span>SSL_CTX, max_early_data: u32) -&gt; c_int;
     <span class="attr">#[cfg(any(ossl111, libressl340))]
-    </span><span class="kw">pub fn </span>SSL_CTX_get_max_early_data(ctx: <span class="kw-2">*const </span><a href="types.rs.html#760">SSL_CTX</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>;
+    </span><span class="kw">pub fn </span>SSL_CTX_get_max_early_data(ctx: <span class="kw-2">*const </span>SSL_CTX) -&gt; u32;
     <span class="attr">#[cfg(any(ossl111, libressl340))]
-    </span><span class="kw">pub fn </span>SSL_set_max_early_data(ctx: <span class="kw-2">*mut </span><a href="types.rs.html#458">SSL</a>, max_early_data: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
+    </span><span class="kw">pub fn </span>SSL_set_max_early_data(ctx: <span class="kw-2">*mut </span>SSL, max_early_data: u32) -&gt; c_int;
     <span class="attr">#[cfg(any(ossl111, libressl340))]
-    </span><span class="kw">pub fn </span>SSL_get_max_early_data(ctx: <span class="kw-2">*const </span><a href="types.rs.html#458">SSL</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>;
+    </span><span class="kw">pub fn </span>SSL_get_max_early_data(ctx: <span class="kw-2">*const </span>SSL) -&gt; u32;
 
-    <span class="kw">pub fn </span>SSL_get_finished(s: <span class="kw-2">*const </span><a href="types.rs.html#458">SSL</a>, buf: <span class="kw-2">*mut </span><a href="../../../openssl_sys/enum.c_void.html">c_void</a>, count: <a href="../../../openssl_sys/type.size_t.html">size_t</a>) -&gt; <a href="../../../openssl_sys/type.size_t.html">size_t</a>;
-    <span class="kw">pub fn </span>SSL_get_peer_finished(s: <span class="kw-2">*const </span><a href="types.rs.html#458">SSL</a>, buf: <span class="kw-2">*mut </span><a href="../../../openssl_sys/enum.c_void.html">c_void</a>, count: <a href="../../../openssl_sys/type.size_t.html">size_t</a>) -&gt; <a href="../../../openssl_sys/type.size_t.html">size_t</a>;
+    <span class="kw">pub fn </span>SSL_get_finished(s: <span class="kw-2">*const </span>SSL, buf: <span class="kw-2">*mut </span>c_void, count: size_t) -&gt; size_t;
+    <span class="kw">pub fn </span>SSL_get_peer_finished(s: <span class="kw-2">*const </span>SSL, buf: <span class="kw-2">*mut </span>c_void, count: size_t) -&gt; size_t;
 
-    <span class="kw">pub fn </span>SSL_CTX_get_verify_mode(ctx: <span class="kw-2">*const </span><a href="types.rs.html#760">SSL_CTX</a>) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
-    <span class="kw">pub fn </span>SSL_get_verify_mode(s: <span class="kw-2">*const </span><a href="types.rs.html#458">SSL</a>) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
+    <span class="kw">pub fn </span>SSL_CTX_get_verify_mode(ctx: <span class="kw-2">*const </span>SSL_CTX) -&gt; c_int;
+    <span class="kw">pub fn </span>SSL_get_verify_mode(s: <span class="kw-2">*const </span>SSL) -&gt; c_int;
 }
 
 <span class="macro">const_ptr_api! </span>{
     <span class="kw">extern </span><span class="string">&quot;C&quot; </span>{
         <span class="attr">#[cfg(ossl110)]
-        </span><span class="kw">pub fn </span>SSL_is_init_finished(s: <span class="attr">#[const_ptr_if(ossl111)] </span><a href="types.rs.html#458">SSL</a>) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
+        </span><span class="kw">pub fn </span>SSL_is_init_finished(s: <span class="attr">#[const_ptr_if(ossl111)] </span>SSL) -&gt; c_int;
     }
 }
 
@@ -1353,217 +1353,217 @@
 }
 
 <span class="kw">extern </span><span class="string">&quot;C&quot; </span>{
-    <span class="kw">pub fn </span>SSL_CTX_set_cipher_list(ssl: <span class="kw-2">*mut </span><a href="types.rs.html#760">SSL_CTX</a>, s: <span class="kw-2">*const </span><a href="../../../openssl_sys/type.c_char.html">c_char</a>) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
-    <span class="kw">pub fn </span>SSL_CTX_new(method: <span class="kw-2">*const </span><a href="#4">SSL_METHOD</a>) -&gt; <span class="kw-2">*mut </span><a href="types.rs.html#760">SSL_CTX</a>;
-    <span class="kw">pub fn </span>SSL_CTX_free(ctx: <span class="kw-2">*mut </span><a href="types.rs.html#760">SSL_CTX</a>);
+    <span class="kw">pub fn </span>SSL_CTX_set_cipher_list(ssl: <span class="kw-2">*mut </span>SSL_CTX, s: <span class="kw-2">*const </span>c_char) -&gt; c_int;
+    <span class="kw">pub fn </span>SSL_CTX_new(method: <span class="kw-2">*const </span>SSL_METHOD) -&gt; <span class="kw-2">*mut </span>SSL_CTX;
+    <span class="kw">pub fn </span>SSL_CTX_free(ctx: <span class="kw-2">*mut </span>SSL_CTX);
     <span class="attr">#[cfg(any(ossl110, libressl273))]
-    </span><span class="kw">pub fn </span>SSL_CTX_up_ref(x: <span class="kw-2">*mut </span><a href="types.rs.html#760">SSL_CTX</a>) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
-    <span class="kw">pub fn </span>SSL_CTX_get_cert_store(ctx: <span class="kw-2">*const </span><a href="types.rs.html#760">SSL_CTX</a>) -&gt; <span class="kw-2">*mut </span><a href="types.rs.html#334">X509_STORE</a>;
-    <span class="kw">pub fn </span>SSL_CTX_set_cert_store(ctx: <span class="kw-2">*mut </span><a href="types.rs.html#760">SSL_CTX</a>, store: <span class="kw-2">*mut </span><a href="types.rs.html#334">X509_STORE</a>);
+    </span><span class="kw">pub fn </span>SSL_CTX_up_ref(x: <span class="kw-2">*mut </span>SSL_CTX) -&gt; c_int;
+    <span class="kw">pub fn </span>SSL_CTX_get_cert_store(ctx: <span class="kw-2">*const </span>SSL_CTX) -&gt; <span class="kw-2">*mut </span>X509_STORE;
+    <span class="kw">pub fn </span>SSL_CTX_set_cert_store(ctx: <span class="kw-2">*mut </span>SSL_CTX, store: <span class="kw-2">*mut </span>X509_STORE);
 
-    <span class="kw">pub fn </span>SSL_get_current_cipher(ssl: <span class="kw-2">*const </span><a href="types.rs.html#458">SSL</a>) -&gt; <span class="kw-2">*const </span><a href="#5">SSL_CIPHER</a>;
-    <span class="kw">pub fn </span>SSL_CIPHER_get_bits(cipher: <span class="kw-2">*const </span><a href="#5">SSL_CIPHER</a>, alg_bits: <span class="kw-2">*mut </span><a href="../../../openssl_sys/type.c_int.html">c_int</a>) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
+    <span class="kw">pub fn </span>SSL_get_current_cipher(ssl: <span class="kw-2">*const </span>SSL) -&gt; <span class="kw-2">*const </span>SSL_CIPHER;
+    <span class="kw">pub fn </span>SSL_CIPHER_get_bits(cipher: <span class="kw-2">*const </span>SSL_CIPHER, alg_bits: <span class="kw-2">*mut </span>c_int) -&gt; c_int;
 }
 <span class="macro">const_ptr_api! </span>{
     <span class="kw">extern </span><span class="string">&quot;C&quot; </span>{
-        <span class="kw">pub fn </span>SSL_CIPHER_get_version(cipher: <span class="kw-2">*const </span><a href="#5">SSL_CIPHER</a>) -&gt; <span class="attr">#[const_ptr_if(any(ossl110, libressl280))] </span><a href="../../../openssl_sys/type.c_char.html">c_char</a>;
+        <span class="kw">pub fn </span>SSL_CIPHER_get_version(cipher: <span class="kw-2">*const </span>SSL_CIPHER) -&gt; <span class="attr">#[const_ptr_if(any(ossl110, libressl280))] </span>c_char;
     }
 }
 <span class="kw">extern </span><span class="string">&quot;C&quot; </span>{
     <span class="attr">#[cfg(ossl111)]
-    </span><span class="kw">pub fn </span>SSL_CIPHER_get_handshake_digest(cipher: <span class="kw-2">*const </span><a href="#5">::SSL_CIPHER</a>) -&gt; <span class="kw-2">*const </span><a href="types.rs.html#92">::EVP_MD</a>;
-    <span class="kw">pub fn </span>SSL_CIPHER_get_name(cipher: <span class="kw-2">*const </span><a href="#5">SSL_CIPHER</a>) -&gt; <span class="kw-2">*const </span><a href="../../../openssl_sys/type.c_char.html">c_char</a>;
+    </span><span class="kw">pub fn </span>SSL_CIPHER_get_handshake_digest(cipher: <span class="kw-2">*const </span>::SSL_CIPHER) -&gt; <span class="kw-2">*const </span>::EVP_MD;
+    <span class="kw">pub fn </span>SSL_CIPHER_get_name(cipher: <span class="kw-2">*const </span>SSL_CIPHER) -&gt; <span class="kw-2">*const </span>c_char;
     <span class="attr">#[cfg(ossl111)]
-    </span><span class="kw">pub fn </span>SSL_CIPHER_standard_name(cipher: <span class="kw-2">*const </span><a href="#5">SSL_CIPHER</a>) -&gt; <span class="kw-2">*const </span><a href="../../../openssl_sys/type.c_char.html">c_char</a>;
+    </span><span class="kw">pub fn </span>SSL_CIPHER_standard_name(cipher: <span class="kw-2">*const </span>SSL_CIPHER) -&gt; <span class="kw-2">*const </span>c_char;
     <span class="attr">#[cfg(ossl111)]
-    </span><span class="kw">pub fn </span>OPENSSL_cipher_name(rfc_name: <span class="kw-2">*const </span><a href="../../../openssl_sys/type.c_char.html">c_char</a>) -&gt; <span class="kw-2">*const </span><a href="../../../openssl_sys/type.c_char.html">c_char</a>;
+    </span><span class="kw">pub fn </span>OPENSSL_cipher_name(rfc_name: <span class="kw-2">*const </span>c_char) -&gt; <span class="kw-2">*const </span>c_char;
 
-    <span class="kw">pub fn </span>SSL_pending(ssl: <span class="kw-2">*const </span><a href="types.rs.html#458">SSL</a>) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
-    <span class="kw">pub fn </span>SSL_set_bio(ssl: <span class="kw-2">*mut </span><a href="types.rs.html#458">SSL</a>, rbio: <span class="kw-2">*mut </span><a href="types.rs.html#18">BIO</a>, wbio: <span class="kw-2">*mut </span><a href="types.rs.html#18">BIO</a>);
-    <span class="kw">pub fn </span>SSL_get_rbio(ssl: <span class="kw-2">*const </span><a href="types.rs.html#458">SSL</a>) -&gt; <span class="kw-2">*mut </span><a href="types.rs.html#18">BIO</a>;
-    <span class="kw">pub fn </span>SSL_get_wbio(ssl: <span class="kw-2">*const </span><a href="types.rs.html#458">SSL</a>) -&gt; <span class="kw-2">*mut </span><a href="types.rs.html#18">BIO</a>;
+    <span class="kw">pub fn </span>SSL_pending(ssl: <span class="kw-2">*const </span>SSL) -&gt; c_int;
+    <span class="kw">pub fn </span>SSL_set_bio(ssl: <span class="kw-2">*mut </span>SSL, rbio: <span class="kw-2">*mut </span>BIO, wbio: <span class="kw-2">*mut </span>BIO);
+    <span class="kw">pub fn </span>SSL_get_rbio(ssl: <span class="kw-2">*const </span>SSL) -&gt; <span class="kw-2">*mut </span>BIO;
+    <span class="kw">pub fn </span>SSL_get_wbio(ssl: <span class="kw-2">*const </span>SSL) -&gt; <span class="kw-2">*mut </span>BIO;
     <span class="attr">#[cfg(any(ossl111, libressl340))]
-    </span><span class="kw">pub fn </span>SSL_CTX_set_ciphersuites(ctx: <span class="kw-2">*mut </span><a href="types.rs.html#760">SSL_CTX</a>, str: <span class="kw-2">*const </span><a href="../../../openssl_sys/type.c_char.html">c_char</a>) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
+    </span><span class="kw">pub fn </span>SSL_CTX_set_ciphersuites(ctx: <span class="kw-2">*mut </span>SSL_CTX, str: <span class="kw-2">*const </span>c_char) -&gt; c_int;
     <span class="attr">#[cfg(any(ossl111, libressl340))]
-    </span><span class="kw">pub fn </span>SSL_set_ciphersuites(ssl: <span class="kw-2">*mut </span><a href="types.rs.html#458">::SSL</a>, str: <span class="kw-2">*const </span><a href="../../../openssl_sys/type.c_char.html">c_char</a>) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
+    </span><span class="kw">pub fn </span>SSL_set_ciphersuites(ssl: <span class="kw-2">*mut </span>::SSL, str: <span class="kw-2">*const </span>c_char) -&gt; c_int;
     <span class="kw">pub fn </span>SSL_set_verify(
-        ssl: <span class="kw-2">*mut </span><a href="types.rs.html#458">SSL</a>,
-        mode: <a href="../../../openssl_sys/type.c_int.html">c_int</a>,
+        ssl: <span class="kw-2">*mut </span>SSL,
+        mode: c_int,
         <span class="comment">// FIXME should be unsafe
-        </span>verify_callback: <span class="prelude-ty">Option</span>&lt;<span class="kw">extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn</span>(<a href="../../../openssl_sys/type.c_int.html">c_int</a>, <span class="kw-2">*mut </span><a href="types.rs.html#368">X509_STORE_CTX</a>) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>&gt;,
+        </span>verify_callback: <span class="prelude-ty">Option</span>&lt;<span class="kw">extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn</span>(c_int, <span class="kw-2">*mut </span>X509_STORE_CTX) -&gt; c_int&gt;,
     );
-    <span class="kw">pub fn </span>SSL_CTX_use_PrivateKey(ctx: <span class="kw-2">*mut </span><a href="types.rs.html#760">SSL_CTX</a>, key: <span class="kw-2">*mut </span><a href="../types.rs.html#6">EVP_PKEY</a>) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
-    <span class="kw">pub fn </span>SSL_CTX_use_certificate(ctx: <span class="kw-2">*mut </span><a href="types.rs.html#760">SSL_CTX</a>, cert: <span class="kw-2">*mut </span><a href="types.rs.html#257">X509</a>) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
+    <span class="kw">pub fn </span>SSL_CTX_use_PrivateKey(ctx: <span class="kw-2">*mut </span>SSL_CTX, key: <span class="kw-2">*mut </span>EVP_PKEY) -&gt; c_int;
+    <span class="kw">pub fn </span>SSL_CTX_use_certificate(ctx: <span class="kw-2">*mut </span>SSL_CTX, cert: <span class="kw-2">*mut </span>X509) -&gt; c_int;
 
     <span class="kw">pub fn </span>SSL_CTX_use_PrivateKey_file(
-        ctx: <span class="kw-2">*mut </span><a href="types.rs.html#760">SSL_CTX</a>,
-        key_file: <span class="kw-2">*const </span><a href="../../../openssl_sys/type.c_char.html">c_char</a>,
-        file_type: <a href="../../../openssl_sys/type.c_int.html">c_int</a>,
-    ) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
+        ctx: <span class="kw-2">*mut </span>SSL_CTX,
+        key_file: <span class="kw-2">*const </span>c_char,
+        file_type: c_int,
+    ) -&gt; c_int;
     <span class="kw">pub fn </span>SSL_CTX_use_certificate_file(
-        ctx: <span class="kw-2">*mut </span><a href="types.rs.html#760">SSL_CTX</a>,
-        cert_file: <span class="kw-2">*const </span><a href="../../../openssl_sys/type.c_char.html">c_char</a>,
-        file_type: <a href="../../../openssl_sys/type.c_int.html">c_int</a>,
-    ) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
+        ctx: <span class="kw-2">*mut </span>SSL_CTX,
+        cert_file: <span class="kw-2">*const </span>c_char,
+        file_type: c_int,
+    ) -&gt; c_int;
     <span class="kw">pub fn </span>SSL_CTX_use_certificate_chain_file(
-        ctx: <span class="kw-2">*mut </span><a href="types.rs.html#760">SSL_CTX</a>,
-        cert_chain_file: <span class="kw-2">*const </span><a href="../../../openssl_sys/type.c_char.html">c_char</a>,
-    ) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
-    <span class="kw">pub fn </span>SSL_load_client_CA_file(file: <span class="kw-2">*const </span><a href="../../../openssl_sys/type.c_char.html">c_char</a>) -&gt; <span class="kw-2">*mut </span><a href="x509.rs.html#12">stack_st_X509_NAME</a>;
+        ctx: <span class="kw-2">*mut </span>SSL_CTX,
+        cert_chain_file: <span class="kw-2">*const </span>c_char,
+    ) -&gt; c_int;
+    <span class="kw">pub fn </span>SSL_load_client_CA_file(file: <span class="kw-2">*const </span>c_char) -&gt; <span class="kw-2">*mut </span>stack_st_X509_NAME;
 
     <span class="attr">#[cfg(not(ossl110))]
     </span><span class="kw">pub fn </span>SSL_load_error_strings();
-    <span class="kw">pub fn </span>SSL_state_string(ssl: <span class="kw-2">*const </span><a href="types.rs.html#458">SSL</a>) -&gt; <span class="kw-2">*const </span><a href="../../../openssl_sys/type.c_char.html">c_char</a>;
-    <span class="kw">pub fn </span>SSL_state_string_long(ssl: <span class="kw-2">*const </span><a href="types.rs.html#458">SSL</a>) -&gt; <span class="kw-2">*const </span><a href="../../../openssl_sys/type.c_char.html">c_char</a>;
+    <span class="kw">pub fn </span>SSL_state_string(ssl: <span class="kw-2">*const </span>SSL) -&gt; <span class="kw-2">*const </span>c_char;
+    <span class="kw">pub fn </span>SSL_state_string_long(ssl: <span class="kw-2">*const </span>SSL) -&gt; <span class="kw-2">*const </span>c_char;
 
-    <span class="kw">pub fn </span>SSL_SESSION_get_time(s: <span class="kw-2">*const </span><a href="#8">SSL_SESSION</a>) -&gt; <a href="../../../openssl_sys/type.c_long.html">c_long</a>;
-    <span class="kw">pub fn </span>SSL_SESSION_get_timeout(s: <span class="kw-2">*const </span><a href="#8">SSL_SESSION</a>) -&gt; <a href="../../../openssl_sys/type.c_long.html">c_long</a>;
+    <span class="kw">pub fn </span>SSL_SESSION_get_time(s: <span class="kw-2">*const </span>SSL_SESSION) -&gt; c_long;
+    <span class="kw">pub fn </span>SSL_SESSION_get_timeout(s: <span class="kw-2">*const </span>SSL_SESSION) -&gt; c_long;
     <span class="attr">#[cfg(any(ossl110, libressl270))]
-    </span><span class="kw">pub fn </span>SSL_SESSION_get_protocol_version(s: <span class="kw-2">*const </span><a href="#8">SSL_SESSION</a>) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
+    </span><span class="kw">pub fn </span>SSL_SESSION_get_protocol_version(s: <span class="kw-2">*const </span>SSL_SESSION) -&gt; c_int;
 
     <span class="attr">#[cfg(any(ossl111, libressl340))]
-    </span><span class="kw">pub fn </span>SSL_SESSION_set_max_early_data(ctx: <span class="kw-2">*mut </span><a href="#8">SSL_SESSION</a>, max_early_data: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
+    </span><span class="kw">pub fn </span>SSL_SESSION_set_max_early_data(ctx: <span class="kw-2">*mut </span>SSL_SESSION, max_early_data: u32) -&gt; c_int;
     <span class="attr">#[cfg(any(ossl111, libressl340))]
-    </span><span class="kw">pub fn </span>SSL_SESSION_get_max_early_data(ctx: <span class="kw-2">*const </span><a href="#8">SSL_SESSION</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>;
+    </span><span class="kw">pub fn </span>SSL_SESSION_get_max_early_data(ctx: <span class="kw-2">*const </span>SSL_SESSION) -&gt; u32;
 
-    <span class="kw">pub fn </span>SSL_SESSION_get_id(s: <span class="kw-2">*const </span><a href="#8">SSL_SESSION</a>, len: <span class="kw-2">*mut </span><a href="../../../openssl_sys/type.c_uint.html">c_uint</a>) -&gt; <span class="kw-2">*const </span><a href="../../../openssl_sys/type.c_uchar.html">c_uchar</a>;
+    <span class="kw">pub fn </span>SSL_SESSION_get_id(s: <span class="kw-2">*const </span>SSL_SESSION, len: <span class="kw-2">*mut </span>c_uint) -&gt; <span class="kw-2">*const </span>c_uchar;
     <span class="attr">#[cfg(any(ossl110, libressl273))]
-    </span><span class="kw">pub fn </span>SSL_SESSION_up_ref(ses: <span class="kw-2">*mut </span><a href="#8">SSL_SESSION</a>) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
-    <span class="kw">pub fn </span>SSL_SESSION_free(s: <span class="kw-2">*mut </span><a href="#8">SSL_SESSION</a>);
+    </span><span class="kw">pub fn </span>SSL_SESSION_up_ref(ses: <span class="kw-2">*mut </span>SSL_SESSION) -&gt; c_int;
+    <span class="kw">pub fn </span>SSL_SESSION_free(s: <span class="kw-2">*mut </span>SSL_SESSION);
 }
 <span class="macro">const_ptr_api! </span>{
     <span class="kw">extern </span><span class="string">&quot;C&quot; </span>{
-        <span class="kw">pub fn </span>i2d_SSL_SESSION(s: <span class="attr">#[const_ptr_if(ossl300)] </span><a href="#8">SSL_SESSION</a>, pp: <span class="kw-2">*mut *mut </span><a href="../../../openssl_sys/type.c_uchar.html">c_uchar</a>) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
+        <span class="kw">pub fn </span>i2d_SSL_SESSION(s: <span class="attr">#[const_ptr_if(ossl300)] </span>SSL_SESSION, pp: <span class="kw-2">*mut *mut </span>c_uchar) -&gt; c_int;
     }
 }
 <span class="kw">extern </span><span class="string">&quot;C&quot; </span>{
-    <span class="kw">pub fn </span>SSL_set_session(ssl: <span class="kw-2">*mut </span><a href="types.rs.html#458">SSL</a>, session: <span class="kw-2">*mut </span><a href="#8">SSL_SESSION</a>) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
-    <span class="kw">pub fn </span>SSL_CTX_add_session(ctx: <span class="kw-2">*mut </span><a href="types.rs.html#760">SSL_CTX</a>, session: <span class="kw-2">*mut </span><a href="#8">SSL_SESSION</a>) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
-    <span class="kw">pub fn </span>SSL_CTX_remove_session(ctx: <span class="kw-2">*mut </span><a href="types.rs.html#760">SSL_CTX</a>, session: <span class="kw-2">*mut </span><a href="#8">SSL_SESSION</a>) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
+    <span class="kw">pub fn </span>SSL_set_session(ssl: <span class="kw-2">*mut </span>SSL, session: <span class="kw-2">*mut </span>SSL_SESSION) -&gt; c_int;
+    <span class="kw">pub fn </span>SSL_CTX_add_session(ctx: <span class="kw-2">*mut </span>SSL_CTX, session: <span class="kw-2">*mut </span>SSL_SESSION) -&gt; c_int;
+    <span class="kw">pub fn </span>SSL_CTX_remove_session(ctx: <span class="kw-2">*mut </span>SSL_CTX, session: <span class="kw-2">*mut </span>SSL_SESSION) -&gt; c_int;
     <span class="kw">pub fn </span>d2i_SSL_SESSION(
-        a: <span class="kw-2">*mut *mut </span><a href="#8">SSL_SESSION</a>,
-        pp: <span class="kw-2">*mut *const </span><a href="../../../openssl_sys/type.c_uchar.html">c_uchar</a>,
-        len: <a href="../../../openssl_sys/type.c_long.html">c_long</a>,
-    ) -&gt; <span class="kw-2">*mut </span><a href="#8">SSL_SESSION</a>;
+        a: <span class="kw-2">*mut *mut </span>SSL_SESSION,
+        pp: <span class="kw-2">*mut *const </span>c_uchar,
+        len: c_long,
+    ) -&gt; <span class="kw-2">*mut </span>SSL_SESSION;
 
     <span class="attr">#[cfg(not(ossl300))]
     </span><span class="kw">pub fn </span>SSL_get_peer_certificate(ssl: <span class="kw-2">*const </span>SSL) -&gt; <span class="kw-2">*mut </span>X509;
     <span class="attr">#[cfg(ossl300)]
-    </span><span class="kw">pub fn </span>SSL_get1_peer_certificate(ssl: <span class="kw-2">*const </span><a href="types.rs.html#458">SSL</a>) -&gt; <span class="kw-2">*mut </span><a href="types.rs.html#257">X509</a>;
+    </span><span class="kw">pub fn </span>SSL_get1_peer_certificate(ssl: <span class="kw-2">*const </span>SSL) -&gt; <span class="kw-2">*mut </span>X509;
 
-    <span class="kw">pub fn </span>SSL_get_peer_cert_chain(ssl: <span class="kw-2">*const </span><a href="types.rs.html#458">SSL</a>) -&gt; <span class="kw-2">*mut </span><a href="x509.rs.html#133">stack_st_X509</a>;
+    <span class="kw">pub fn </span>SSL_get_peer_cert_chain(ssl: <span class="kw-2">*const </span>SSL) -&gt; <span class="kw-2">*mut </span>stack_st_X509;
 
     <span class="kw">pub fn </span>SSL_CTX_set_verify(
-        ctx: <span class="kw-2">*mut </span><a href="types.rs.html#760">SSL_CTX</a>,
-        mode: <a href="../../../openssl_sys/type.c_int.html">c_int</a>,
-        verify_callback: <span class="prelude-ty">Option</span>&lt;<span class="kw">extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn</span>(<a href="../../../openssl_sys/type.c_int.html">c_int</a>, <span class="kw-2">*mut </span><a href="types.rs.html#368">X509_STORE_CTX</a>) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>&gt;,
+        ctx: <span class="kw-2">*mut </span>SSL_CTX,
+        mode: c_int,
+        verify_callback: <span class="prelude-ty">Option</span>&lt;<span class="kw">extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn</span>(c_int, <span class="kw-2">*mut </span>X509_STORE_CTX) -&gt; c_int&gt;,
     );
-    <span class="kw">pub fn </span>SSL_CTX_set_verify_depth(ctx: <span class="kw-2">*mut </span><a href="types.rs.html#760">SSL_CTX</a>, depth: <a href="../../../openssl_sys/type.c_int.html">c_int</a>);
+    <span class="kw">pub fn </span>SSL_CTX_set_verify_depth(ctx: <span class="kw-2">*mut </span>SSL_CTX, depth: c_int);
 
     <span class="attr">#[cfg(any(ossl111, libressl340))]
-    </span><span class="kw">pub fn </span>SSL_CTX_set_post_handshake_auth(ctx: <span class="kw-2">*mut </span><a href="types.rs.html#760">SSL_CTX</a>, val: <a href="../../../openssl_sys/type.c_int.html">c_int</a>);
+    </span><span class="kw">pub fn </span>SSL_CTX_set_post_handshake_auth(ctx: <span class="kw-2">*mut </span>SSL_CTX, val: c_int);
 
-    <span class="kw">pub fn </span>SSL_CTX_check_private_key(ctx: <span class="kw-2">*const </span><a href="types.rs.html#760">SSL_CTX</a>) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
+    <span class="kw">pub fn </span>SSL_CTX_check_private_key(ctx: <span class="kw-2">*const </span>SSL_CTX) -&gt; c_int;
 
     <span class="kw">pub fn </span>SSL_CTX_set_session_id_context(
-        ssl: <span class="kw-2">*mut </span><a href="types.rs.html#760">SSL_CTX</a>,
-        sid_ctx: <span class="kw-2">*const </span><a href="../../../openssl_sys/type.c_uchar.html">c_uchar</a>,
-        sid_ctx_len: <a href="../../../openssl_sys/type.c_uint.html">c_uint</a>,
-    ) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
+        ssl: <span class="kw-2">*mut </span>SSL_CTX,
+        sid_ctx: <span class="kw-2">*const </span>c_uchar,
+        sid_ctx_len: c_uint,
+    ) -&gt; c_int;
 
-    <span class="kw">pub fn </span>SSL_new(ctx: <span class="kw-2">*mut </span><a href="types.rs.html#760">SSL_CTX</a>) -&gt; <span class="kw-2">*mut </span><a href="types.rs.html#458">SSL</a>;
-
-    <span class="attr">#[cfg(any(ossl102, libressl261))]
-    </span><span class="kw">pub fn </span>SSL_CTX_get0_param(ctx: <span class="kw-2">*mut </span><a href="types.rs.html#760">SSL_CTX</a>) -&gt; <span class="kw-2">*mut </span><a href="types.rs.html#372">X509_VERIFY_PARAM</a>;
+    <span class="kw">pub fn </span>SSL_new(ctx: <span class="kw-2">*mut </span>SSL_CTX) -&gt; <span class="kw-2">*mut </span>SSL;
 
     <span class="attr">#[cfg(any(ossl102, libressl261))]
-    </span><span class="kw">pub fn </span>SSL_get0_param(ssl: <span class="kw-2">*mut </span><a href="types.rs.html#458">SSL</a>) -&gt; <span class="kw-2">*mut </span><a href="types.rs.html#372">X509_VERIFY_PARAM</a>;
+    </span><span class="kw">pub fn </span>SSL_CTX_get0_param(ctx: <span class="kw-2">*mut </span>SSL_CTX) -&gt; <span class="kw-2">*mut </span>X509_VERIFY_PARAM;
+
+    <span class="attr">#[cfg(any(ossl102, libressl261))]
+    </span><span class="kw">pub fn </span>SSL_get0_param(ssl: <span class="kw-2">*mut </span>SSL) -&gt; <span class="kw-2">*mut </span>X509_VERIFY_PARAM;
 }
 
 <span class="attr">#[cfg(ossl111)]
 </span><span class="kw">pub type </span>SSL_client_hello_cb_fn =
-    <span class="prelude-ty">Option</span>&lt;<span class="kw">unsafe extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn</span>(s: <span class="kw-2">*mut </span><a href="types.rs.html#458">SSL</a>, al: <span class="kw-2">*mut </span><a href="../../../openssl_sys/type.c_int.html">c_int</a>, arg: <span class="kw-2">*mut </span><a href="../../../openssl_sys/enum.c_void.html">c_void</a>) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>&gt;;
+    <span class="prelude-ty">Option</span>&lt;<span class="kw">unsafe extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn</span>(s: <span class="kw-2">*mut </span>SSL, al: <span class="kw-2">*mut </span>c_int, arg: <span class="kw-2">*mut </span>c_void) -&gt; c_int&gt;;
 <span class="kw">extern </span><span class="string">&quot;C&quot; </span>{
     <span class="attr">#[cfg(ossl111)]
     </span><span class="kw">pub fn </span>SSL_CTX_set_client_hello_cb(
-        c: <span class="kw-2">*mut </span><a href="types.rs.html#760">SSL_CTX</a>,
-        cb: <a href="#590">SSL_client_hello_cb_fn</a>,
-        arg: <span class="kw-2">*mut </span><a href="../../../openssl_sys/enum.c_void.html">c_void</a>,
+        c: <span class="kw-2">*mut </span>SSL_CTX,
+        cb: SSL_client_hello_cb_fn,
+        arg: <span class="kw-2">*mut </span>c_void,
     );
     <span class="attr">#[cfg(ossl111)]
-    </span><span class="kw">pub fn </span>SSL_client_hello_isv2(s: <span class="kw-2">*mut </span><a href="types.rs.html#458">SSL</a>) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
+    </span><span class="kw">pub fn </span>SSL_client_hello_isv2(s: <span class="kw-2">*mut </span>SSL) -&gt; c_int;
     <span class="attr">#[cfg(ossl111)]
-    </span><span class="kw">pub fn </span>SSL_client_hello_get0_legacy_version(s: <span class="kw-2">*mut </span><a href="types.rs.html#458">SSL</a>) -&gt; <a href="../../../openssl_sys/type.c_uint.html">c_uint</a>;
+    </span><span class="kw">pub fn </span>SSL_client_hello_get0_legacy_version(s: <span class="kw-2">*mut </span>SSL) -&gt; c_uint;
     <span class="attr">#[cfg(ossl111)]
-    </span><span class="kw">pub fn </span>SSL_client_hello_get0_random(s: <span class="kw-2">*mut </span><a href="types.rs.html#458">SSL</a>, out: <span class="kw-2">*mut *const </span><a href="../../../openssl_sys/type.c_uchar.html">c_uchar</a>) -&gt; <a href="../../../openssl_sys/type.size_t.html">size_t</a>;
+    </span><span class="kw">pub fn </span>SSL_client_hello_get0_random(s: <span class="kw-2">*mut </span>SSL, out: <span class="kw-2">*mut *const </span>c_uchar) -&gt; size_t;
     <span class="attr">#[cfg(ossl111)]
-    </span><span class="kw">pub fn </span>SSL_client_hello_get0_session_id(s: <span class="kw-2">*mut </span><a href="types.rs.html#458">SSL</a>, out: <span class="kw-2">*mut *const </span><a href="../../../openssl_sys/type.c_uchar.html">c_uchar</a>) -&gt; <a href="../../../openssl_sys/type.size_t.html">size_t</a>;
+    </span><span class="kw">pub fn </span>SSL_client_hello_get0_session_id(s: <span class="kw-2">*mut </span>SSL, out: <span class="kw-2">*mut *const </span>c_uchar) -&gt; size_t;
     <span class="attr">#[cfg(ossl111)]
-    </span><span class="kw">pub fn </span>SSL_client_hello_get0_ciphers(s: <span class="kw-2">*mut </span><a href="types.rs.html#458">SSL</a>, out: <span class="kw-2">*mut *const </span><a href="../../../openssl_sys/type.c_uchar.html">c_uchar</a>) -&gt; <a href="../../../openssl_sys/type.size_t.html">size_t</a>;
+    </span><span class="kw">pub fn </span>SSL_client_hello_get0_ciphers(s: <span class="kw-2">*mut </span>SSL, out: <span class="kw-2">*mut *const </span>c_uchar) -&gt; size_t;
     <span class="attr">#[cfg(ossl111)]
     </span><span class="kw">pub fn </span>SSL_client_hello_get0_compression_methods(
-        s: <span class="kw-2">*mut </span><a href="types.rs.html#458">SSL</a>,
-        out: <span class="kw-2">*mut *const </span><a href="../../../openssl_sys/type.c_uchar.html">c_uchar</a>,
-    ) -&gt; <a href="../../../openssl_sys/type.size_t.html">size_t</a>;
+        s: <span class="kw-2">*mut </span>SSL,
+        out: <span class="kw-2">*mut *const </span>c_uchar,
+    ) -&gt; size_t;
     <span class="attr">#[cfg(ossl111)]
     </span><span class="kw">pub fn </span>SSL_client_hello_get1_extensions_present(
-        s: <span class="kw-2">*mut </span><a href="types.rs.html#458">SSL</a>,
-        out: <span class="kw-2">*mut *mut </span><a href="../../../openssl_sys/type.c_int.html">c_int</a>,
-        outlen: <span class="kw-2">*mut </span><a href="../../../openssl_sys/type.size_t.html">size_t</a>,
-    ) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
+        s: <span class="kw-2">*mut </span>SSL,
+        out: <span class="kw-2">*mut *mut </span>c_int,
+        outlen: <span class="kw-2">*mut </span>size_t,
+    ) -&gt; c_int;
     <span class="attr">#[cfg(ossl111)]
     </span><span class="kw">pub fn </span>SSL_client_hello_get0_ext(
-        s: <span class="kw-2">*mut </span><a href="types.rs.html#458">SSL</a>,
-        type_: <a href="../../../openssl_sys/type.c_uint.html">c_uint</a>,
-        out: <span class="kw-2">*mut *const </span><a href="../../../openssl_sys/type.c_uchar.html">c_uchar</a>,
-        outlen: <span class="kw-2">*mut </span><a href="../../../openssl_sys/type.size_t.html">size_t</a>,
-    ) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
+        s: <span class="kw-2">*mut </span>SSL,
+        type_: c_uint,
+        out: <span class="kw-2">*mut *const </span>c_uchar,
+        outlen: <span class="kw-2">*mut </span>size_t,
+    ) -&gt; c_int;
 
-    <span class="kw">pub fn </span>SSL_free(ssl: <span class="kw-2">*mut </span><a href="types.rs.html#458">SSL</a>);
-    <span class="kw">pub fn </span>SSL_accept(ssl: <span class="kw-2">*mut </span><a href="types.rs.html#458">SSL</a>) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
+    <span class="kw">pub fn </span>SSL_free(ssl: <span class="kw-2">*mut </span>SSL);
+    <span class="kw">pub fn </span>SSL_accept(ssl: <span class="kw-2">*mut </span>SSL) -&gt; c_int;
     <span class="attr">#[cfg(ossl111)]
-    </span><span class="kw">pub fn </span>SSL_stateless(s: <span class="kw-2">*mut </span><a href="types.rs.html#458">SSL</a>) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
-    <span class="kw">pub fn </span>SSL_connect(ssl: <span class="kw-2">*mut </span><a href="types.rs.html#458">SSL</a>) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
-    <span class="kw">pub fn </span>SSL_read(ssl: <span class="kw-2">*mut </span><a href="types.rs.html#458">SSL</a>, buf: <span class="kw-2">*mut </span><a href="../../../openssl_sys/enum.c_void.html">c_void</a>, num: <a href="../../../openssl_sys/type.c_int.html">c_int</a>) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
-    <span class="kw">pub fn </span>SSL_peek(ssl: <span class="kw-2">*mut </span><a href="types.rs.html#458">SSL</a>, buf: <span class="kw-2">*mut </span><a href="../../../openssl_sys/enum.c_void.html">c_void</a>, num: <a href="../../../openssl_sys/type.c_int.html">c_int</a>) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
+    </span><span class="kw">pub fn </span>SSL_stateless(s: <span class="kw-2">*mut </span>SSL) -&gt; c_int;
+    <span class="kw">pub fn </span>SSL_connect(ssl: <span class="kw-2">*mut </span>SSL) -&gt; c_int;
+    <span class="kw">pub fn </span>SSL_read(ssl: <span class="kw-2">*mut </span>SSL, buf: <span class="kw-2">*mut </span>c_void, num: c_int) -&gt; c_int;
+    <span class="kw">pub fn </span>SSL_peek(ssl: <span class="kw-2">*mut </span>SSL, buf: <span class="kw-2">*mut </span>c_void, num: c_int) -&gt; c_int;
     <span class="attr">#[cfg(any(ossl111, libressl340))]
     </span><span class="kw">pub fn </span>SSL_read_early_data(
-        s: <span class="kw-2">*mut </span><a href="types.rs.html#458">::SSL</a>,
-        buf: <span class="kw-2">*mut </span><a href="../../../openssl_sys/enum.c_void.html">c_void</a>,
-        num: <a href="../../../openssl_sys/type.size_t.html">size_t</a>,
-        readbytes: <span class="kw-2">*mut </span><a href="../../../openssl_sys/type.size_t.html">size_t</a>,
-    ) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
+        s: <span class="kw-2">*mut </span>::SSL,
+        buf: <span class="kw-2">*mut </span>c_void,
+        num: size_t,
+        readbytes: <span class="kw-2">*mut </span>size_t,
+    ) -&gt; c_int;
 }
 
 <span class="kw">extern </span><span class="string">&quot;C&quot; </span>{
-    <span class="kw">pub fn </span>SSL_write(ssl: <span class="kw-2">*mut </span><a href="types.rs.html#458">SSL</a>, buf: <span class="kw-2">*const </span><a href="../../../openssl_sys/enum.c_void.html">c_void</a>, num: <a href="../../../openssl_sys/type.c_int.html">c_int</a>) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
+    <span class="kw">pub fn </span>SSL_write(ssl: <span class="kw-2">*mut </span>SSL, buf: <span class="kw-2">*const </span>c_void, num: c_int) -&gt; c_int;
     <span class="attr">#[cfg(any(ossl111, libressl340))]
     </span><span class="kw">pub fn </span>SSL_write_early_data(
-        s: <span class="kw-2">*mut </span><a href="types.rs.html#458">SSL</a>,
-        buf: <span class="kw-2">*const </span><a href="../../../openssl_sys/enum.c_void.html">c_void</a>,
-        num: <a href="../../../openssl_sys/type.size_t.html">size_t</a>,
-        written: <span class="kw-2">*mut </span><a href="../../../openssl_sys/type.size_t.html">size_t</a>,
-    ) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
-    <span class="kw">pub fn </span>SSL_ctrl(ssl: <span class="kw-2">*mut </span><a href="types.rs.html#458">SSL</a>, cmd: <a href="../../../openssl_sys/type.c_int.html">c_int</a>, larg: <a href="../../../openssl_sys/type.c_long.html">c_long</a>, parg: <span class="kw-2">*mut </span><a href="../../../openssl_sys/enum.c_void.html">c_void</a>) -&gt; <a href="../../../openssl_sys/type.c_long.html">c_long</a>;
-    <span class="kw">pub fn </span>SSL_CTX_ctrl(ctx: <span class="kw-2">*mut </span><a href="types.rs.html#760">SSL_CTX</a>, cmd: <a href="../../../openssl_sys/type.c_int.html">c_int</a>, larg: <a href="../../../openssl_sys/type.c_long.html">c_long</a>, parg: <span class="kw-2">*mut </span><a href="../../../openssl_sys/enum.c_void.html">c_void</a>) -&gt; <a href="../../../openssl_sys/type.c_long.html">c_long</a>;
+        s: <span class="kw-2">*mut </span>SSL,
+        buf: <span class="kw-2">*const </span>c_void,
+        num: size_t,
+        written: <span class="kw-2">*mut </span>size_t,
+    ) -&gt; c_int;
+    <span class="kw">pub fn </span>SSL_ctrl(ssl: <span class="kw-2">*mut </span>SSL, cmd: c_int, larg: c_long, parg: <span class="kw-2">*mut </span>c_void) -&gt; c_long;
+    <span class="kw">pub fn </span>SSL_CTX_ctrl(ctx: <span class="kw-2">*mut </span>SSL_CTX, cmd: c_int, larg: c_long, parg: <span class="kw-2">*mut </span>c_void) -&gt; c_long;
     <span class="attr">#[link_name = <span class="string">&quot;SSL_CTX_callback_ctrl&quot;</span>]
     </span><span class="kw">pub fn </span>SSL_CTX_callback_ctrl__fixed_rust(
-        ctx: <span class="kw-2">*mut </span><a href="types.rs.html#760">SSL_CTX</a>,
-        cmd: <a href="../../../openssl_sys/type.c_int.html">c_int</a>,
+        ctx: <span class="kw-2">*mut </span>SSL_CTX,
+        cmd: c_int,
         fp: <span class="prelude-ty">Option</span>&lt;<span class="kw">unsafe extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn</span>()&gt;,
-    ) -&gt; <a href="../../../openssl_sys/type.c_long.html">c_long</a>;
+    ) -&gt; c_long;
 }
 
 <span class="macro">cfg_if! </span>{
     <span class="kw">if </span><span class="attr">#[cfg(any(ossl110, libressl291))] </span>{
         <span class="kw">extern </span><span class="string">&quot;C&quot; </span>{
-            <span class="kw">pub fn </span>TLS_method() -&gt; <span class="kw-2">*const </span><a href="#4">SSL_METHOD</a>;
+            <span class="kw">pub fn </span>TLS_method() -&gt; <span class="kw-2">*const </span>SSL_METHOD;
 
-            <span class="kw">pub fn </span>DTLS_method() -&gt; <span class="kw-2">*const </span><a href="#4">SSL_METHOD</a>;
+            <span class="kw">pub fn </span>DTLS_method() -&gt; <span class="kw-2">*const </span>SSL_METHOD;
 
-            <span class="kw">pub fn </span>TLS_server_method() -&gt; <span class="kw-2">*const </span><a href="#4">SSL_METHOD</a>;
+            <span class="kw">pub fn </span>TLS_server_method() -&gt; <span class="kw-2">*const </span>SSL_METHOD;
 
-            <span class="kw">pub fn </span>TLS_client_method() -&gt; <span class="kw-2">*const </span><a href="#4">SSL_METHOD</a>;
+            <span class="kw">pub fn </span>TLS_client_method() -&gt; <span class="kw-2">*const </span>SSL_METHOD;
         }
     } <span class="kw">else </span>{
         <span class="kw">extern </span><span class="string">&quot;C&quot; </span>{
@@ -1591,78 +1591,78 @@
 }
 
 <span class="kw">extern </span><span class="string">&quot;C&quot; </span>{
-    <span class="kw">pub fn </span>SSL_get_error(ssl: <span class="kw-2">*const </span><a href="types.rs.html#458">SSL</a>, ret: <a href="../../../openssl_sys/type.c_int.html">c_int</a>) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
-    <span class="kw">pub fn </span>SSL_get_version(ssl: <span class="kw-2">*const </span><a href="types.rs.html#458">SSL</a>) -&gt; <span class="kw-2">*const </span><a href="../../../openssl_sys/type.c_char.html">c_char</a>;
+    <span class="kw">pub fn </span>SSL_get_error(ssl: <span class="kw-2">*const </span>SSL, ret: c_int) -&gt; c_int;
+    <span class="kw">pub fn </span>SSL_get_version(ssl: <span class="kw-2">*const </span>SSL) -&gt; <span class="kw-2">*const </span>c_char;
 
-    <span class="kw">pub fn </span>SSL_do_handshake(ssl: <span class="kw-2">*mut </span><a href="types.rs.html#458">SSL</a>) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
-    <span class="kw">pub fn </span>SSL_shutdown(ssl: <span class="kw-2">*mut </span><a href="types.rs.html#458">SSL</a>) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
+    <span class="kw">pub fn </span>SSL_do_handshake(ssl: <span class="kw-2">*mut </span>SSL) -&gt; c_int;
+    <span class="kw">pub fn </span>SSL_shutdown(ssl: <span class="kw-2">*mut </span>SSL) -&gt; c_int;
 
-    <span class="kw">pub fn </span>SSL_CTX_set_client_CA_list(ctx: <span class="kw-2">*mut </span><a href="types.rs.html#760">SSL_CTX</a>, list: <span class="kw-2">*mut </span><a href="x509.rs.html#12">stack_st_X509_NAME</a>);
+    <span class="kw">pub fn </span>SSL_CTX_set_client_CA_list(ctx: <span class="kw-2">*mut </span>SSL_CTX, list: <span class="kw-2">*mut </span>stack_st_X509_NAME);
 
-    <span class="kw">pub fn </span>SSL_CTX_add_client_CA(ctx: <span class="kw-2">*mut </span><a href="types.rs.html#760">SSL_CTX</a>, cacert: <span class="kw-2">*mut </span><a href="types.rs.html#257">X509</a>) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
+    <span class="kw">pub fn </span>SSL_CTX_add_client_CA(ctx: <span class="kw-2">*mut </span>SSL_CTX, cacert: <span class="kw-2">*mut </span>X509) -&gt; c_int;
 
-    <span class="kw">pub fn </span>SSL_CTX_set_default_verify_paths(ctx: <span class="kw-2">*mut </span><a href="types.rs.html#760">SSL_CTX</a>) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
+    <span class="kw">pub fn </span>SSL_CTX_set_default_verify_paths(ctx: <span class="kw-2">*mut </span>SSL_CTX) -&gt; c_int;
     <span class="kw">pub fn </span>SSL_CTX_load_verify_locations(
-        ctx: <span class="kw-2">*mut </span><a href="types.rs.html#760">SSL_CTX</a>,
-        CAfile: <span class="kw-2">*const </span><a href="../../../openssl_sys/type.c_char.html">c_char</a>,
-        CApath: <span class="kw-2">*const </span><a href="../../../openssl_sys/type.c_char.html">c_char</a>,
-    ) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
+        ctx: <span class="kw-2">*mut </span>SSL_CTX,
+        CAfile: <span class="kw-2">*const </span>c_char,
+        CApath: <span class="kw-2">*const </span>c_char,
+    ) -&gt; c_int;
 }
 
 <span class="macro">const_ptr_api! </span>{
     <span class="kw">extern </span><span class="string">&quot;C&quot; </span>{
-        <span class="kw">pub fn </span>SSL_get_ssl_method(ssl: <span class="attr">#[const_ptr_if(ossl111b)] </span><a href="types.rs.html#458">SSL</a>) -&gt; <span class="kw-2">*const </span><a href="#4">SSL_METHOD</a>;
+        <span class="kw">pub fn </span>SSL_get_ssl_method(ssl: <span class="attr">#[const_ptr_if(ossl111b)] </span>SSL) -&gt; <span class="kw-2">*const </span>SSL_METHOD;
     }
 }
 
 <span class="kw">extern </span><span class="string">&quot;C&quot; </span>{
-    <span class="kw">pub fn </span>SSL_set_connect_state(s: <span class="kw-2">*mut </span><a href="types.rs.html#458">SSL</a>);
-    <span class="kw">pub fn </span>SSL_set_accept_state(s: <span class="kw-2">*mut </span><a href="types.rs.html#458">SSL</a>);
+    <span class="kw">pub fn </span>SSL_set_connect_state(s: <span class="kw-2">*mut </span>SSL);
+    <span class="kw">pub fn </span>SSL_set_accept_state(s: <span class="kw-2">*mut </span>SSL);
 
     <span class="attr">#[cfg(not(ossl110))]
     </span><span class="kw">pub fn </span>SSL_library_init() -&gt; c_int;
 
     <span class="kw">pub fn </span>SSL_CIPHER_description(
-        cipher: <span class="kw-2">*const </span><a href="#5">SSL_CIPHER</a>,
-        buf: <span class="kw-2">*mut </span><a href="../../../openssl_sys/type.c_char.html">c_char</a>,
-        size: <a href="../../../openssl_sys/type.c_int.html">c_int</a>,
-    ) -&gt; <span class="kw-2">*mut </span><a href="../../../openssl_sys/type.c_char.html">c_char</a>;
+        cipher: <span class="kw-2">*const </span>SSL_CIPHER,
+        buf: <span class="kw-2">*mut </span>c_char,
+        size: c_int,
+    ) -&gt; <span class="kw-2">*mut </span>c_char;
 
-    <span class="kw">pub fn </span>SSL_get_certificate(ssl: <span class="kw-2">*const </span><a href="types.rs.html#458">SSL</a>) -&gt; <span class="kw-2">*mut </span><a href="types.rs.html#257">X509</a>;
+    <span class="kw">pub fn </span>SSL_get_certificate(ssl: <span class="kw-2">*const </span>SSL) -&gt; <span class="kw-2">*mut </span>X509;
 }
 <span class="macro">const_ptr_api! </span>{
     <span class="kw">extern </span><span class="string">&quot;C&quot; </span>{
-        <span class="kw">pub fn </span>SSL_get_privatekey(ssl: <span class="attr">#[const_ptr_if(any(ossl102, libressl280))] </span><a href="types.rs.html#458">SSL</a>) -&gt; <span class="kw-2">*mut </span><a href="../types.rs.html#6">EVP_PKEY</a>;
+        <span class="kw">pub fn </span>SSL_get_privatekey(ssl: <span class="attr">#[const_ptr_if(any(ossl102, libressl280))] </span>SSL) -&gt; <span class="kw-2">*mut </span>EVP_PKEY;
     }
 }
 
 <span class="kw">extern </span><span class="string">&quot;C&quot; </span>{
     <span class="attr">#[cfg(any(ossl102, libressl270))]
-    </span><span class="kw">pub fn </span>SSL_CTX_get0_certificate(ctx: <span class="kw-2">*const </span><a href="types.rs.html#760">SSL_CTX</a>) -&gt; <span class="kw-2">*mut </span><a href="types.rs.html#257">X509</a>;
+    </span><span class="kw">pub fn </span>SSL_CTX_get0_certificate(ctx: <span class="kw-2">*const </span>SSL_CTX) -&gt; <span class="kw-2">*mut </span>X509;
     <span class="attr">#[cfg(any(ossl102, libressl340))]
-    </span><span class="kw">pub fn </span>SSL_CTX_get0_privatekey(ctx: <span class="kw-2">*const </span><a href="types.rs.html#760">SSL_CTX</a>) -&gt; <span class="kw-2">*mut </span><a href="../types.rs.html#6">EVP_PKEY</a>;
+    </span><span class="kw">pub fn </span>SSL_CTX_get0_privatekey(ctx: <span class="kw-2">*const </span>SSL_CTX) -&gt; <span class="kw-2">*mut </span>EVP_PKEY;
 
-    <span class="kw">pub fn </span>SSL_set_shutdown(ss: <span class="kw-2">*mut </span><a href="types.rs.html#458">SSL</a>, mode: <a href="../../../openssl_sys/type.c_int.html">c_int</a>);
-    <span class="kw">pub fn </span>SSL_get_shutdown(ssl: <span class="kw-2">*const </span><a href="types.rs.html#458">SSL</a>) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
-    <span class="kw">pub fn </span>SSL_version(ssl: <span class="kw-2">*const </span><a href="types.rs.html#458">SSL</a>) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
-    <span class="kw">pub fn </span>SSL_get_session(s: <span class="kw-2">*const </span><a href="types.rs.html#458">SSL</a>) -&gt; <span class="kw-2">*mut </span><a href="#8">SSL_SESSION</a>;
-    <span class="kw">pub fn </span>SSL_get_SSL_CTX(ssl: <span class="kw-2">*const </span><a href="types.rs.html#458">SSL</a>) -&gt; <span class="kw-2">*mut </span><a href="types.rs.html#760">SSL_CTX</a>;
-    <span class="kw">pub fn </span>SSL_set_SSL_CTX(ssl: <span class="kw-2">*mut </span><a href="types.rs.html#458">SSL</a>, ctx: <span class="kw-2">*mut </span><a href="types.rs.html#760">SSL_CTX</a>) -&gt; <span class="kw-2">*mut </span><a href="types.rs.html#760">SSL_CTX</a>;
+    <span class="kw">pub fn </span>SSL_set_shutdown(ss: <span class="kw-2">*mut </span>SSL, mode: c_int);
+    <span class="kw">pub fn </span>SSL_get_shutdown(ssl: <span class="kw-2">*const </span>SSL) -&gt; c_int;
+    <span class="kw">pub fn </span>SSL_version(ssl: <span class="kw-2">*const </span>SSL) -&gt; c_int;
+    <span class="kw">pub fn </span>SSL_get_session(s: <span class="kw-2">*const </span>SSL) -&gt; <span class="kw-2">*mut </span>SSL_SESSION;
+    <span class="kw">pub fn </span>SSL_get_SSL_CTX(ssl: <span class="kw-2">*const </span>SSL) -&gt; <span class="kw-2">*mut </span>SSL_CTX;
+    <span class="kw">pub fn </span>SSL_set_SSL_CTX(ssl: <span class="kw-2">*mut </span>SSL, ctx: <span class="kw-2">*mut </span>SSL_CTX) -&gt; <span class="kw-2">*mut </span>SSL_CTX;
 
-    <span class="kw">pub fn </span>SSL_get_verify_result(ssl: <span class="kw-2">*const </span><a href="types.rs.html#458">SSL</a>) -&gt; <a href="../../../openssl_sys/type.c_long.html">c_long</a>;
+    <span class="kw">pub fn </span>SSL_get_verify_result(ssl: <span class="kw-2">*const </span>SSL) -&gt; c_long;
     <span class="attr">#[cfg(ossl110)]
-    </span><span class="kw">pub fn </span>SSL_get0_verified_chain(ssl: <span class="kw-2">*const </span><a href="types.rs.html#458">SSL</a>) -&gt; <span class="kw-2">*mut </span><a href="x509.rs.html#133">stack_st_X509</a>;
+    </span><span class="kw">pub fn </span>SSL_get0_verified_chain(ssl: <span class="kw-2">*const </span>SSL) -&gt; <span class="kw-2">*mut </span>stack_st_X509;
 
     <span class="attr">#[cfg(any(ossl110, libressl270))]
-    </span><span class="kw">pub fn </span>SSL_get_client_random(ssl: <span class="kw-2">*const </span><a href="types.rs.html#458">SSL</a>, out: <span class="kw-2">*mut </span><a href="../../../openssl_sys/type.c_uchar.html">c_uchar</a>, len: <a href="../../../openssl_sys/type.size_t.html">size_t</a>) -&gt; <a href="../../../openssl_sys/type.size_t.html">size_t</a>;
+    </span><span class="kw">pub fn </span>SSL_get_client_random(ssl: <span class="kw-2">*const </span>SSL, out: <span class="kw-2">*mut </span>c_uchar, len: size_t) -&gt; size_t;
     <span class="attr">#[cfg(any(ossl110, libressl270))]
-    </span><span class="kw">pub fn </span>SSL_get_server_random(ssl: <span class="kw-2">*const </span><a href="types.rs.html#458">SSL</a>, out: <span class="kw-2">*mut </span><a href="../../../openssl_sys/type.c_uchar.html">c_uchar</a>, len: <a href="../../../openssl_sys/type.size_t.html">size_t</a>) -&gt; <a href="../../../openssl_sys/type.size_t.html">size_t</a>;
+    </span><span class="kw">pub fn </span>SSL_get_server_random(ssl: <span class="kw-2">*const </span>SSL, out: <span class="kw-2">*mut </span>c_uchar, len: size_t) -&gt; size_t;
     <span class="attr">#[cfg(any(ossl110, libressl273))]
     </span><span class="kw">pub fn </span>SSL_SESSION_get_master_key(
-        session: <span class="kw-2">*const </span><a href="#8">SSL_SESSION</a>,
-        out: <span class="kw-2">*mut </span><a href="../../../openssl_sys/type.c_uchar.html">c_uchar</a>,
-        outlen: <a href="../../../openssl_sys/type.size_t.html">size_t</a>,
-    ) -&gt; <a href="../../../openssl_sys/type.size_t.html">size_t</a>;
+        session: <span class="kw-2">*const </span>SSL_SESSION,
+        out: <span class="kw-2">*mut </span>c_uchar,
+        outlen: size_t,
+    ) -&gt; size_t;
 }
 
 <span class="kw">extern </span><span class="string">&quot;C&quot; </span>{
@@ -1675,8 +1675,8 @@
         free_func: <span class="prelude-ty">Option</span>&lt;CRYPTO_EX_free&gt;,
     ) -&gt; c_int;
 
-    <span class="kw">pub fn </span>SSL_set_ex_data(ssl: <span class="kw-2">*mut </span><a href="types.rs.html#458">SSL</a>, idx: <a href="../../../openssl_sys/type.c_int.html">c_int</a>, data: <span class="kw-2">*mut </span><a href="../../../openssl_sys/enum.c_void.html">c_void</a>) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
-    <span class="kw">pub fn </span>SSL_get_ex_data(ssl: <span class="kw-2">*const </span><a href="types.rs.html#458">SSL</a>, idx: <a href="../../../openssl_sys/type.c_int.html">c_int</a>) -&gt; <span class="kw-2">*mut </span><a href="../../../openssl_sys/enum.c_void.html">c_void</a>;
+    <span class="kw">pub fn </span>SSL_set_ex_data(ssl: <span class="kw-2">*mut </span>SSL, idx: c_int, data: <span class="kw-2">*mut </span>c_void) -&gt; c_int;
+    <span class="kw">pub fn </span>SSL_get_ex_data(ssl: <span class="kw-2">*const </span>SSL, idx: c_int) -&gt; <span class="kw-2">*mut </span>c_void;
 
     <span class="attr">#[cfg(not(ossl110))]
     </span><span class="kw">pub fn </span>SSL_CTX_get_ex_new_index(
@@ -1687,25 +1687,25 @@
         free_func: <span class="prelude-ty">Option</span>&lt;::CRYPTO_EX_free&gt;,
     ) -&gt; c_int;
 
-    <span class="kw">pub fn </span>SSL_CTX_set_ex_data(ctx: <span class="kw-2">*mut </span><a href="types.rs.html#760">SSL_CTX</a>, idx: <a href="../../../openssl_sys/type.c_int.html">c_int</a>, data: <span class="kw-2">*mut </span><a href="../../../openssl_sys/enum.c_void.html">c_void</a>) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
-    <span class="kw">pub fn </span>SSL_CTX_get_ex_data(ctx: <span class="kw-2">*const </span><a href="types.rs.html#760">SSL_CTX</a>, idx: <a href="../../../openssl_sys/type.c_int.html">c_int</a>) -&gt; <span class="kw-2">*mut </span><a href="../../../openssl_sys/enum.c_void.html">c_void</a>;
+    <span class="kw">pub fn </span>SSL_CTX_set_ex_data(ctx: <span class="kw-2">*mut </span>SSL_CTX, idx: c_int, data: <span class="kw-2">*mut </span>c_void) -&gt; c_int;
+    <span class="kw">pub fn </span>SSL_CTX_get_ex_data(ctx: <span class="kw-2">*const </span>SSL_CTX, idx: c_int) -&gt; <span class="kw-2">*mut </span>c_void;
 
-    <span class="kw">pub fn </span>SSL_get_ex_data_X509_STORE_CTX_idx() -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
+    <span class="kw">pub fn </span>SSL_get_ex_data_X509_STORE_CTX_idx() -&gt; c_int;
 }
 
 <span class="kw">extern </span><span class="string">&quot;C&quot; </span>{
     <span class="attr">#[link_name = <span class="string">&quot;SSL_CTX_set_tmp_dh_callback&quot;</span>]
     </span><span class="kw">pub fn </span>SSL_CTX_set_tmp_dh_callback__fixed_rust(
-        ctx: <span class="kw-2">*mut </span><a href="types.rs.html#760">SSL_CTX</a>,
+        ctx: <span class="kw-2">*mut </span>SSL_CTX,
         dh: <span class="prelude-ty">Option</span>&lt;
-            <span class="kw">unsafe extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn</span>(ssl: <span class="kw-2">*mut </span><a href="types.rs.html#458">SSL</a>, is_export: <a href="../../../openssl_sys/type.c_int.html">c_int</a>, keylength: <a href="../../../openssl_sys/type.c_int.html">c_int</a>) -&gt; <span class="kw-2">*mut </span><a href="types.rs.html#133">DH</a>,
+            <span class="kw">unsafe extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn</span>(ssl: <span class="kw-2">*mut </span>SSL, is_export: c_int, keylength: c_int) -&gt; <span class="kw-2">*mut </span>DH,
         &gt;,
     );
     <span class="attr">#[link_name = <span class="string">&quot;SSL_set_tmp_dh_callback&quot;</span>]
     </span><span class="kw">pub fn </span>SSL_set_tmp_dh_callback__fixed_rust(
-        ctx: <span class="kw-2">*mut </span><a href="types.rs.html#458">SSL</a>,
+        ctx: <span class="kw-2">*mut </span>SSL,
         dh: <span class="prelude-ty">Option</span>&lt;
-            <span class="kw">unsafe extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn</span>(ssl: <span class="kw-2">*mut </span><a href="types.rs.html#458">SSL</a>, is_export: <a href="../../../openssl_sys/type.c_int.html">c_int</a>, keylength: <a href="../../../openssl_sys/type.c_int.html">c_int</a>) -&gt; <span class="kw-2">*mut </span><a href="types.rs.html#133">DH</a>,
+            <span class="kw">unsafe extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn</span>(ssl: <span class="kw-2">*mut </span>SSL, is_export: c_int, keylength: c_int) -&gt; <span class="kw-2">*mut </span>DH,
         &gt;,
     );
     <span class="attr">#[cfg(not(ossl110))]
@@ -1738,7 +1738,7 @@
     } <span class="kw">else if </span><span class="attr">#[cfg(not(osslconf = <span class="string">&quot;OPENSSL_NO_COMP&quot;</span>))] </span>{
         <span class="macro">const_ptr_api! </span>{
             <span class="kw">extern </span><span class="string">&quot;C&quot; </span>{
-                <span class="kw">pub fn </span>SSL_get_current_compression(ssl: <span class="attr">#[const_ptr_if(ossl111b)] </span><a href="types.rs.html#458">SSL</a>) -&gt; <span class="kw-2">*const </span><a href="types.rs.html#1023">COMP_METHOD</a>;
+                <span class="kw">pub fn </span>SSL_get_current_compression(ssl: <span class="attr">#[const_ptr_if(ossl111b)] </span>SSL) -&gt; <span class="kw-2">*const </span>COMP_METHOD;
             }
         }
     }
@@ -1750,7 +1750,7 @@
         }
     } <span class="kw">else if </span><span class="attr">#[cfg(not(osslconf = <span class="string">&quot;OPENSSL_NO_COMP&quot;</span>))] </span>{
         <span class="kw">extern </span><span class="string">&quot;C&quot; </span>{
-            <span class="kw">pub fn </span>SSL_COMP_get_name(comp: <span class="kw-2">*const </span><a href="types.rs.html#1023">COMP_METHOD</a>) -&gt; <span class="kw-2">*const </span><a href="../../../openssl_sys/type.c_char.html">c_char</a>;
+            <span class="kw">pub fn </span>SSL_COMP_get_name(comp: <span class="kw-2">*const </span>COMP_METHOD) -&gt; <span class="kw-2">*const </span>c_char;
         }
     }
 }
@@ -1758,33 +1758,33 @@
 <span class="attr">#[cfg(not(osslconf = <span class="string">&quot;OPENSSL_NO_COMP&quot;</span>))]
 </span><span class="kw">extern </span><span class="string">&quot;C&quot; </span>{
     <span class="attr">#[cfg(ossl110)]
-    </span><span class="kw">pub fn </span>COMP_get_type(meth: <span class="kw-2">*const </span><a href="types.rs.html#1023">COMP_METHOD</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>;
+    </span><span class="kw">pub fn </span>COMP_get_type(meth: <span class="kw-2">*const </span>COMP_METHOD) -&gt; i32;
 }
 
 <span class="kw">extern </span><span class="string">&quot;C&quot; </span>{
     <span class="attr">#[cfg(any(ossl110, libressl270))]
-    </span><span class="kw">pub fn </span>SSL_CIPHER_get_cipher_nid(c: <span class="kw-2">*const </span><a href="#5">SSL_CIPHER</a>) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
+    </span><span class="kw">pub fn </span>SSL_CIPHER_get_cipher_nid(c: <span class="kw-2">*const </span>SSL_CIPHER) -&gt; c_int;
     <span class="attr">#[cfg(any(ossl110, libressl270))]
-    </span><span class="kw">pub fn </span>SSL_CIPHER_get_digest_nid(c: <span class="kw-2">*const </span><a href="#5">SSL_CIPHER</a>) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
+    </span><span class="kw">pub fn </span>SSL_CIPHER_get_digest_nid(c: <span class="kw-2">*const </span>SSL_CIPHER) -&gt; c_int;
 }
 
 <span class="macro">const_ptr_api! </span>{
     <span class="kw">extern </span><span class="string">&quot;C&quot; </span>{
         <span class="attr">#[cfg(ossl110)]
-        </span><span class="kw">pub fn </span>SSL_session_reused(ssl: <span class="attr">#[const_ptr_if(ossl111c)] </span><a href="types.rs.html#458">SSL</a>) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
+        </span><span class="kw">pub fn </span>SSL_session_reused(ssl: <span class="attr">#[const_ptr_if(ossl111c)] </span>SSL) -&gt; c_int;
     }
 }
 
 <span class="macro">const_ptr_api! </span>{
     <span class="kw">extern </span><span class="string">&quot;C&quot; </span>{
         <span class="attr">#[cfg(any(ossl102, libressl273))]
-        </span><span class="kw">pub fn </span>SSL_is_server(s: <span class="attr">#[const_ptr_if(any(ossl110f, libressl273))] </span><a href="types.rs.html#458">SSL</a>) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
+        </span><span class="kw">pub fn </span>SSL_is_server(s: <span class="attr">#[const_ptr_if(any(ossl110f, libressl273))] </span>SSL) -&gt; c_int;
     }
 }
 
 <span class="kw">extern </span><span class="string">&quot;C&quot; </span>{
     <span class="attr">#[cfg(ossl110)]
-    </span><span class="kw">pub fn </span>OPENSSL_init_ssl(opts: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>, settings: <span class="kw-2">*const </span><a href="types.rs.html#453">OPENSSL_INIT_SETTINGS</a>) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
+    </span><span class="kw">pub fn </span>OPENSSL_init_ssl(opts: u64, settings: <span class="kw-2">*const </span>OPENSSL_INIT_SETTINGS) -&gt; c_int;
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="openssl_sys" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="openssl_sys" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

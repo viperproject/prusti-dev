@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `analysis/src/domains/definitely_accessible/state.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>state.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../../analysis/index.html"><img class="rust-logo" src="../../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `analysis/src/domains/definitely_accessible/state.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>state.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../../analysis/index.html"><img class="rust-logo" src="../../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -271,9 +271,6 @@
 <a href="#271" id="271">271</a>
 <a href="#272" id="272">272</a>
 <a href="#273" id="273">273</a>
-<a href="#274" id="274">274</a>
-<a href="#275" id="275">275</a>
-<a href="#276" id="276">276</a>
 </pre><pre class="rust"><code><span class="comment">// © 2021, ETH Zurich
 //
 // This Source Code Form is subject to the terms of the Mozilla Public
@@ -281,18 +278,18 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 </span><span class="kw">use crate</span>::{
-    mir_utils::{<a href="../../mir_utils.rs.html#103">is_prefix</a>, <a href="../../mir_utils.rs.html#25">Place</a>},
-    <a href="../../pointwise_state.rs.html#12">PointwiseState</a>,
+    mir_utils::{is_prefix, Place},
+    PointwiseState,
 };
-<span class="kw">use </span><a href="../../../../log/macro.info.html">log::info</a>;
+<span class="kw">use </span>log::info;
 <span class="kw">use </span>prusti_rustc_interface::{
-    data_structures::fx::{<a href="../../../../rustc_hash/type.FxHashMap.html">FxHashMap</a>, <a href="../../../../rustc_hash/type.FxHashSet.html">FxHashSet</a>},
-    middle::{<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/index.html">mir</a>, <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/index.html">ty</a>, <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/context/struct.TyCtxt.html">ty::TyCtxt</a>},
-    <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/source_map/struct.SourceMap.html">span::source_map::SourceMap</a>,
-    <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_target/abi/struct.VariantIdx.html">target::abi::VariantIdx</a>,
+    data_structures::fx::{FxHashMap, FxHashSet},
+    middle::{mir, ty, ty::TyCtxt},
+    span::source_map::SourceMap,
+    target::abi::VariantIdx,
 };
-<span class="kw">use </span>serde::{<a href="../../../../serde/ser/trait.SerializeMap.html">ser::SerializeMap</a>, <a href="../../../../serde_derive/derive.Serialize.html">Serialize</a>, <a href="../../../../serde/ser/trait.Serializer.html">Serializer</a>};
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">std::fmt</a>;
+<span class="kw">use </span>serde::{ser::SerializeMap, Serialize, Serializer};
+<span class="kw">use </span>std::fmt;
 
 <span class="attr">#[derive(Clone, Default, Eq, PartialEq)]
 </span><span class="kw">pub struct </span>DefinitelyAccessibleState&lt;<span class="lifetime">&#39;tcx</span>&gt; {
@@ -305,64 +302,62 @@
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;tcx</span>&gt; DefinitelyAccessibleState&lt;<span class="lifetime">&#39;tcx</span>&gt; {
     <span class="kw">pub fn </span>get_definitely_accessible(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>FxHashSet&lt;Place&lt;<span class="lifetime">&#39;tcx</span>&gt;&gt; {
-        <span class="kw-2">&amp;</span><a class="self" href="#31">self</a>.definitely_accessible
+        <span class="kw-2">&amp;</span><span class="self">self</span>.definitely_accessible
     }
 
     <span class="kw">pub fn </span>get_definitely_owned(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>FxHashSet&lt;Place&lt;<span class="lifetime">&#39;tcx</span>&gt;&gt; {
-        <span class="kw-2">&amp;</span><a class="self" href="#35">self</a>.definitely_owned
+        <span class="kw-2">&amp;</span><span class="self">self</span>.definitely_owned
     }
 
-    <span class="kw">pub fn </span>check_invariant(<span class="kw-2">&amp;</span><span class="self">self</span>, location: <span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a>) {
+    <span class="kw">pub fn </span>check_invariant(<span class="kw-2">&amp;</span><span class="self">self</span>, location: <span class="kw">impl </span>fmt::Debug) {
         <span class="kw">for </span><span class="kw-2">&amp;</span>owned_place <span class="kw">in </span><span class="self">self</span>.definitely_owned.iter() {
             <span class="macro">debug_assert!</span>(
                 <span class="self">self</span>.definitely_accessible
                     .iter()
                     .any(|<span class="kw-2">&amp;</span>place| place == owned_place || is_prefix(owned_place, place)),
-                <span class="string">&quot;In the state before {:?} the place {:?} is owned but not accessible&quot;</span>,
-                location,
-                owned_place
-            );
+                <span class="string">&quot;In the state before {location:?} the place {owned_place:?} is owned but not accessible&quot;
+            </span>);
         }
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;tcx</span>&gt; <a href="../../../../serde/ser/trait.Serialize.html">Serialize</a> <span class="kw">for </span>DefinitelyAccessibleState&lt;<span class="lifetime">&#39;tcx</span>&gt; {
-    <span class="kw">fn </span>serialize&lt;Se: <a href="../../../../serde/ser/trait.Serializer.html">Serializer</a>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, serializer: Se) -&gt; <span class="prelude-ty">Result</span>&lt;Se::Ok, Se::Error&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;tcx</span>&gt; Serialize <span class="kw">for </span>DefinitelyAccessibleState&lt;<span class="lifetime">&#39;tcx</span>&gt; {
+    <span class="kw">fn </span>serialize&lt;Se: Serializer&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, serializer: Se) -&gt; <span class="prelude-ty">Result</span>&lt;Se::Ok, Se::Error&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>seq = serializer.serialize_map(<span class="prelude-val">Some</span>(<span class="number">2</span>))<span class="question-mark">?</span>;
-        <span class="kw">let </span><span class="kw-2">mut </span>definitely_accessible_set: Vec&lt;<span class="kw">_</span>&gt; = <a class="self" href="#54">self</a>.definitely_accessible.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
-        <a href="#56">definitely_accessible_set</a>.sort();
-        <span class="kw">let </span><span class="kw-2">mut </span>definitely_accessible_strings = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[];
+        <span class="kw">let </span><span class="kw-2">mut </span>definitely_accessible_set: Vec&lt;<span class="kw">_</span>&gt; = <span class="self">self</span>.definitely_accessible.iter().collect();
+        definitely_accessible_set.sort();
+        <span class="kw">let </span><span class="kw-2">mut </span>definitely_accessible_strings = <span class="macro">vec!</span>[];
         <span class="kw">for </span><span class="kw-2">&amp;</span>place <span class="kw">in </span>definitely_accessible_set {
-            definitely_accessible_strings.push(<span class="macro">format!</span>(<span class="string">&quot;{:?}&quot;</span>, place));
+            definitely_accessible_strings.push(<span class="macro">format!</span>(<span class="string">&quot;{place:?}&quot;</span>));
         }
         seq.serialize_entry(<span class="string">&quot;accessible&quot;</span>, <span class="kw-2">&amp;</span>definitely_accessible_strings)<span class="question-mark">?</span>;
-        <span class="kw">let </span><span class="kw-2">mut </span>definitely_owned_set: Vec&lt;<span class="kw">_</span>&gt; = <a class="self" href="#54">self</a>.definitely_owned.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
-        <a href="#63">definitely_owned_set</a>.sort();
-        <span class="kw">let </span><span class="kw-2">mut </span>definitely_owned_strings = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[];
+        <span class="kw">let </span><span class="kw-2">mut </span>definitely_owned_set: Vec&lt;<span class="kw">_</span>&gt; = <span class="self">self</span>.definitely_owned.iter().collect();
+        definitely_owned_set.sort();
+        <span class="kw">let </span><span class="kw-2">mut </span>definitely_owned_strings = <span class="macro">vec!</span>[];
         <span class="kw">for </span><span class="kw-2">&amp;</span>place <span class="kw">in </span>definitely_owned_set {
-            definitely_owned_strings.push(<span class="macro">format!</span>(<span class="string">&quot;{:?}&quot;</span>, place));
+            definitely_owned_strings.push(<span class="macro">format!</span>(<span class="string">&quot;{place:?}&quot;</span>));
         }
         seq.serialize_entry(<span class="string">&quot;owned&quot;</span>, <span class="kw-2">&amp;</span>definitely_owned_strings)<span class="question-mark">?</span>;
-        <a href="#55">seq</a>.<a href="../../../../serde/ser/trait.SerializeMap.html">end</a>()
+        seq.end()
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span>DefinitelyAccessibleState&lt;<span class="lifetime">&#39;_</span>&gt; {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#75">f</a>, <span class="string">&quot;{}&quot;</span>, serde_json::to_string_pretty(<span class="kw-2">&amp;</span><span class="self">self</span>).unwrap())
+<span class="kw">impl </span>fmt::Debug <span class="kw">for </span>DefinitelyAccessibleState&lt;<span class="lifetime">&#39;_</span>&gt; {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        <span class="macro">write!</span>(f, <span class="string">&quot;{}&quot;</span>, serde_json::to_string_pretty(<span class="kw-2">&amp;</span><span class="self">self</span>).unwrap())
     }
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;mir</span>, <span class="lifetime">&#39;tcx</span>: <span class="lifetime">&#39;mir</span>&gt; PointwiseState&lt;<span class="lifetime">&#39;mir</span>, <span class="lifetime">&#39;tcx</span>, DefinitelyAccessibleState&lt;<span class="lifetime">&#39;tcx</span>&gt;&gt; {
     <span class="doccomment">/// Make a best-effort at injecting statements to check the analysis state.
-    </span><span class="kw">pub fn </span>generate_test_program(<span class="kw-2">&amp;</span><span class="self">self</span>, tcx: TyCtxt&lt;<span class="lifetime">&#39;tcx</span>&gt;, source_map: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/source_map/struct.SourceMap.html">SourceMap</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a> {
-        <span class="kw">let </span>mir_span = <a class="self" href="#82">self</a>.mir.span;
-        <span class="kw">let </span>source_file = <a href="#82">source_map</a>.lookup_source_file(<a href="#83">mir_span</a>.data().lo);
-        <span class="kw">let </span>source_lines_num = <a href="#84">source_file</a>.count_lines();
-        <span class="kw">let </span><span class="kw-2">mut </span>result: Vec&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt; = (<span class="number">0</span>..<a href="#85">source_lines_num</a>)
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|line_index| <a href="#84">source_file</a>.get_line(<a href="#87">line_index</a>).unwrap().<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>())
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
-        <span class="kw">let </span><span class="kw-2">mut </span>first_location_on_line: FxHashMap&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Location.html">mir::Location</a>&gt; = FxHashMap::default();
+    </span><span class="kw">pub fn </span>generate_test_program(<span class="kw-2">&amp;</span><span class="self">self</span>, tcx: TyCtxt&lt;<span class="lifetime">&#39;tcx</span>&gt;, source_map: <span class="kw-2">&amp;</span>SourceMap) -&gt; String {
+        <span class="kw">let </span>mir_span = <span class="self">self</span>.mir.span;
+        <span class="kw">let </span>source_file = source_map.lookup_source_file(mir_span.data().lo);
+        <span class="kw">let </span>source_lines_num = source_file.count_lines();
+        <span class="kw">let </span><span class="kw-2">mut </span>result: Vec&lt;String&gt; = (<span class="number">0</span>..source_lines_num)
+            .map(|line_index| source_file.get_line(line_index).unwrap().to_string())
+            .collect();
+        <span class="kw">let </span><span class="kw-2">mut </span>first_location_on_line: FxHashMap&lt;usize, mir::Location&gt; = FxHashMap::default();
         <span class="kw">for </span>(block, block_data) <span class="kw">in </span><span class="self">self</span>.mir.basic_blocks.iter_enumerated() {
             <span class="kw">for </span>statement_index <span class="kw">in </span><span class="number">0</span>..=block_data.statements.len() {
                 <span class="kw">let </span>location = mir::Location {
@@ -410,8 +405,8 @@
                 }
             }
         }
-        <span class="kw">let </span><span class="kw-2">mut </span>line_locations: Vec&lt;<span class="kw">_</span>&gt; = <a href="#89">first_location_on_line</a>.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
-        <a href="#137">line_locations</a>.sort_by(|left, right| <a href="#138">right</a>.<span class="number">0</span>.<a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Ord.html">cmp</a>(<a href="#138">left</a>.<span class="number">0</span>)); <span class="comment">// From last to first
+        <span class="kw">let </span><span class="kw-2">mut </span>line_locations: Vec&lt;<span class="kw">_</span>&gt; = first_location_on_line.iter().collect();
+        line_locations.sort_by(|left, right| right.<span class="number">0</span>.cmp(left.<span class="number">0</span>)); <span class="comment">// From last to first
         </span><span class="kw">for </span>(<span class="kw-2">&amp;</span>line_num, <span class="kw-2">&amp;</span>location) <span class="kw">in </span>line_locations {
             <span class="macro">info!</span>(
                 <span class="string">&quot;The first single-line statement on line {} is {:?}&quot;</span>,
@@ -423,7 +418,7 @@
             <span class="kw">let </span><span class="kw-2">mut </span>check_stmts = <span class="macro">vec!</span>[];
             <span class="kw">for </span><span class="kw-2">&amp;</span>place <span class="kw">in </span>state.definitely_accessible.iter() {
                 <span class="kw">if let </span><span class="prelude-val">Some</span>(place_expr) = pretty_print_place(tcx, <span class="self">self</span>.mir, place) {
-                    check_stmts.push(<span class="macro">format!</span>(<span class="string">&quot;{}let _ = &amp; {};{}&quot;</span>, before, place_expr, after));
+                    check_stmts.push(<span class="macro">format!</span>(<span class="string">&quot;{before}let _ = &amp; {place_expr};{after}&quot;</span>));
                 }
             }
             <span class="kw">for </span><span class="kw-2">&amp;</span>place <span class="kw">in </span>state.definitely_owned.iter() {
@@ -431,15 +426,14 @@
                     <span class="kw">let </span>local_decl = <span class="kw-2">&amp;</span><span class="self">self</span>.mir.local_decls[place.local];
                     <span class="comment">// &amp;mut cannot be used on locals that are not marked as mut
                     </span><span class="kw">if </span>local_decl.mutability != mir::Mutability::Not {
-                        check_stmts
-                            .push(<span class="macro">format!</span>(<span class="string">&quot;{}let _ = &amp;mut {};{}&quot;</span>, before, place_expr, after));
+                        check_stmts.push(<span class="macro">format!</span>(<span class="string">&quot;{before}let _ = &amp;mut {place_expr};{after}&quot;</span>));
                     }
                 }
             }
             <span class="comment">// Inject the checks
             </span>result.insert(line_num - <span class="number">1</span>, check_stmts.join(<span class="string">&quot;\n&quot;</span>));
         }
-        <a href="#86">result</a>.join(<span class="string">&quot;\n&quot;</span>)
+        result.join(<span class="string">&quot;\n&quot;</span>)
     }
 }
 
@@ -447,8 +441,8 @@
     tcx: TyCtxt&lt;<span class="lifetime">&#39;tcx</span>&gt;,
     body: <span class="kw-2">&amp;</span>mir::Body&lt;<span class="lifetime">&#39;tcx</span>&gt;,
     place: Place&lt;<span class="lifetime">&#39;tcx</span>&gt;,
-) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt; {
-    <span class="kw">let </span><span class="kw-2">mut </span>pieces = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[];
+) -&gt; <span class="prelude-ty">Option</span>&lt;String&gt; {
+    <span class="kw">let </span><span class="kw-2">mut </span>pieces = <span class="macro">vec!</span>[];
 
     <span class="comment">// Open parenthesis
     </span><span class="kw">for </span>elem <span class="kw">in </span>place.projection.iter().rev() {
@@ -465,26 +459,26 @@
     }
 
     <span class="comment">// Find name of the local
-    </span><span class="kw">let </span>local_name = <a href="#172">body</a>
+    </span><span class="kw">let </span>local_name = body
         .var_debug_info
         .iter()
-        .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">find</a>(|var_debug_info| {
-            <span class="kw">if let </span>mir::VarDebugInfoContents::Place(debug_place) = <a href="#195">var_debug_info</a>.value {
-                <span class="kw">if let </span><span class="prelude-val">Some</span>(debug_local) = <a href="#196">debug_place</a>.as_local() {
-                    <span class="kw">return </span><a href="#197">debug_local</a> == <a href="#173">place</a>.local;
+        .find(|var_debug_info| {
+            <span class="kw">if let </span>mir::VarDebugInfoContents::Place(debug_place) = var_debug_info.value {
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(debug_local) = debug_place.as_local() {
+                    <span class="kw">return </span>debug_local == place.local;
                 }
             };
             <span class="bool-val">false
         </span>})
-        .map(|var_debug_info| <a href="#203">var_debug_info</a>.name);
-    <span class="kw">if let </span><span class="prelude-val">Some</span>(name) = <a href="#192">local_name</a> {
-        <a href="#175">pieces</a>.push(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;{}&quot;</span>, name));
+        .map(|var_debug_info| var_debug_info.name);
+    <span class="kw">if let </span><span class="prelude-val">Some</span>(name) = local_name {
+        pieces.push(<span class="macro">format!</span>(<span class="string">&quot;{name}&quot;</span>));
     } <span class="kw">else </span>{
         <span class="kw">return </span><span class="prelude-val">None</span>;
     }
 
     <span class="comment">// Close parenthesis
-    </span><span class="kw">let </span><span class="kw-2">mut </span>prev_ty = <a href="#172">body</a>.local_decls[<a href="#173">place</a>.local].ty;
+    </span><span class="kw">let </span><span class="kw-2">mut </span>prev_ty = body.local_decls[place.local].ty;
     <span class="kw">let </span><span class="kw-2">mut </span>variant = <span class="prelude-val">None</span>;
     <span class="kw">for </span>(proj_base, elem) <span class="kw">in </span>place.iter_projections() {
         <span class="kw">match </span>elem {
@@ -497,7 +491,7 @@
             }
             mir::ProjectionElem::Field(field, field_ty) =&gt; {
                 <span class="kw">let </span>field_name = describe_field_from_ty(tcx, prev_ty, field, variant)<span class="question-mark">?</span>;
-                pieces.push(<span class="macro">format!</span>(<span class="string">&quot;.{})&quot;</span>, field_name));
+                pieces.push(<span class="macro">format!</span>(<span class="string">&quot;.{field_name})&quot;</span>));
                 prev_ty = field_ty;
                 variant = <span class="prelude-val">None</span>;
             }
@@ -511,44 +505,44 @@
         }
     }
 
-    <span class="prelude-val">Some</span>(<a href="#175">pieces</a>.join(<span class="string">&quot;&quot;</span>))
+    <span class="prelude-val">Some</span>(pieces.join(<span class="string">&quot;&quot;</span>))
 }
 
 <span class="doccomment">/// End-user visible description of the `field_index`nth field of `ty`
 </span><span class="kw">fn </span>describe_field_from_ty(
     tcx: TyCtxt&lt;<span class="lifetime">&#39;_</span>&gt;,
     ty: ty::Ty&lt;<span class="lifetime">&#39;_</span>&gt;,
-    field: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Field.html">mir::Field</a>,
-    variant_index: <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_target/abi/struct.VariantIdx.html">VariantIdx</a>&gt;,
-) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt; {
+    field: mir::Field,
+    variant_index: <span class="prelude-ty">Option</span>&lt;VariantIdx&gt;,
+) -&gt; <span class="prelude-ty">Option</span>&lt;String&gt; {
     <span class="kw">if </span>ty.is_box() {
         <span class="comment">// If the type is a box, the field is described from the boxed type
-        </span><a href="#242-247">describe_field_from_ty</a>(<a href="#243">tcx</a>, <a href="#244">ty</a>.boxed_ty(), <a href="#245">field</a>, <a href="#246">variant_index</a>)
+        </span>describe_field_from_ty(tcx, ty.boxed_ty(), field, variant_index)
     } <span class="kw">else </span>{
-        <span class="kw">match </span><span class="kw-2">*</span><a href="#244">ty</a>.kind() {
+        <span class="kw">match </span><span class="kw-2">*</span>ty.kind() {
             ty::TyKind::Adt(def, <span class="kw">_</span>) =&gt; {
-                <span class="kw">let </span>variant = <span class="kw">if let </span><span class="prelude-val">Some</span>(idx) = <a href="#246">variant_index</a> {
-                    <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(def.is_enum());
-                    <span class="kw-2">&amp;</span><a href="#253">def</a>.variants()[<a href="#254">idx</a>]
+                <span class="kw">let </span>variant = <span class="kw">if let </span><span class="prelude-val">Some</span>(idx) = variant_index {
+                    <span class="macro">assert!</span>(def.is_enum());
+                    <span class="kw-2">&amp;</span>def.variants()[idx]
                 } <span class="kw">else </span>{
-                    <a href="#253">def</a>.non_enum_variant()
+                    def.non_enum_variant()
                 };
-                <span class="prelude-val">Some</span>(<a href="#254">variant</a>.fields[<a href="#245">field</a>.index()].ident(<a href="#243">tcx</a>).<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>())
+                <span class="prelude-val">Some</span>(variant.fields[field.index()].ident(tcx).to_string())
             }
-            ty::TyKind::Tuple(<span class="kw">_</span>) =&gt; <span class="prelude-val">Some</span>(<a href="#245">field</a>.index().<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>()),
-            ty::TyKind::Ref(<span class="kw">_</span>, ty, <span class="kw">_</span>) | ty::TyKind::RawPtr(<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/sty/struct.TypeAndMut.html">ty::TypeAndMut</a> { ty, .. }) =&gt; {
-                <a href="#242-247">describe_field_from_ty</a>(<a href="#243">tcx</a>, <a href="#263">ty</a>, <a href="#245">field</a>, <a href="#246">variant_index</a>)
+            ty::TyKind::Tuple(<span class="kw">_</span>) =&gt; <span class="prelude-val">Some</span>(field.index().to_string()),
+            ty::TyKind::Ref(<span class="kw">_</span>, ty, <span class="kw">_</span>) | ty::TyKind::RawPtr(ty::TypeAndMut { ty, .. }) =&gt; {
+                describe_field_from_ty(tcx, ty, field, variant_index)
             }
             ty::TyKind::Array(ty, <span class="kw">_</span>) | ty::TyKind::Slice(ty) =&gt; {
-                <a href="#242-247">describe_field_from_ty</a>(<a href="#243">tcx</a>, <a href="#266">ty</a>, <a href="#245">field</a>, <a href="#246">variant_index</a>)
+                describe_field_from_ty(tcx, ty, field, variant_index)
             }
             ty::TyKind::Closure(..) | ty::TyKind::Generator(..) =&gt; {
                 <span class="comment">// Supporting these cases is complex
                 </span><span class="prelude-val">None
             </span>}
-            <span class="kw">_ </span>=&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(<span class="string">&quot;Unexpected type `{:?}`&quot;</span>, ty),
+            <span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>(<span class="string">&quot;Unexpected type `{:?}`&quot;</span>, ty),
         }
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="analysis" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="analysis" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/slab-0.4.7/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../slab/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/slab-0.4.7/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../slab/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -1718,9 +1718,9 @@
 <span class="attr">#[cfg(feature = <span class="string">&quot;serde&quot;</span>)]
 </span><span class="kw">mod </span>serde;
 
-<span class="kw">use </span>alloc::vec::{<a class="self" href="https://doc.rust-lang.org/nightly/alloc/vec/index.html">self</a>, <a href="https://doc.rust-lang.org/nightly/alloc/vec/struct.Vec.html">Vec</a>};
-<span class="kw">use </span>core::iter::{<a class="self" href="https://doc.rust-lang.org/nightly/core/iter/index.html">self</a>, <a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.FromIterator.html">FromIterator</a>, <a href="https://doc.rust-lang.org/nightly/core/iter/traits/marker/trait.FusedIterator.html">FusedIterator</a>};
-<span class="kw">use </span>core::{<a href="https://doc.rust-lang.org/nightly/core/fmt/index.html">fmt</a>, <a href="https://doc.rust-lang.org/nightly/core/mem/index.html">mem</a>, <a href="https://doc.rust-lang.org/nightly/core/ops/index.html">ops</a>, <a href="https://doc.rust-lang.org/nightly/core/slice/index.html">slice</a>};
+<span class="kw">use </span>alloc::vec::{<span class="self">self</span>, Vec};
+<span class="kw">use </span>core::iter::{<span class="self">self</span>, FromIterator, FusedIterator};
+<span class="kw">use </span>core::{fmt, mem, ops, slice};
 
 <span class="doccomment">/// Pre-allocated storage for a uniform data type
 ///
@@ -1733,14 +1733,14 @@
     </span>entries: Vec&lt;Entry&lt;T&gt;&gt;,
 
     <span class="comment">// Number of Filled elements currently in the slab
-    </span>len: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+    </span>len: usize,
 
     <span class="comment">// Offset of the next available slot in the slab. Set to the slab&#39;s
     // capacity when the slab is full.
-    </span>next: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+    </span>next: usize,
 }
 
-<span class="kw">impl</span>&lt;T&gt; <a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for </span>Slab&lt;T&gt; {
+<span class="kw">impl</span>&lt;T&gt; Default <span class="kw">for </span>Slab&lt;T&gt; {
     <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
         Slab::new()
     }
@@ -1771,26 +1771,26 @@
 </span><span class="attr">#[derive(Debug)]
 </span><span class="kw">pub struct </span>VacantEntry&lt;<span class="lifetime">&#39;a</span>, T&gt; {
     slab: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>Slab&lt;T&gt;,
-    key: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+    key: usize,
 }
 
 <span class="doccomment">/// A consuming iterator over the values stored in a `Slab`
 </span><span class="kw">pub struct </span>IntoIter&lt;T&gt; {
     entries: iter::Enumerate&lt;vec::IntoIter&lt;Entry&lt;T&gt;&gt;&gt;,
-    len: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+    len: usize,
 }
 
 <span class="doccomment">/// An iterator over the values stored in the `Slab`
 </span><span class="kw">pub struct </span>Iter&lt;<span class="lifetime">&#39;a</span>, T&gt; {
     entries: iter::Enumerate&lt;slice::Iter&lt;<span class="lifetime">&#39;a</span>, Entry&lt;T&gt;&gt;&gt;,
-    len: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+    len: usize,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T&gt; <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> <span class="kw">for </span>Iter&lt;<span class="lifetime">&#39;a</span>, T&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T&gt; Clone <span class="kw">for </span>Iter&lt;<span class="lifetime">&#39;a</span>, T&gt; {
     <span class="kw">fn </span>clone(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
-            entries: <a class="self" href="#190">self</a>.entries.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
-            len: <a class="self" href="#190">self</a>.len,
+            entries: <span class="self">self</span>.entries.clone(),
+            len: <span class="self">self</span>.len,
         }
     }
 }
@@ -1798,18 +1798,18 @@
 <span class="doccomment">/// A mutable iterator over the values stored in the `Slab`
 </span><span class="kw">pub struct </span>IterMut&lt;<span class="lifetime">&#39;a</span>, T&gt; {
     entries: iter::Enumerate&lt;slice::IterMut&lt;<span class="lifetime">&#39;a</span>, Entry&lt;T&gt;&gt;&gt;,
-    len: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+    len: usize,
 }
 
 <span class="doccomment">/// A draining iterator for `Slab`
 </span><span class="kw">pub struct </span>Drain&lt;<span class="lifetime">&#39;a</span>, T&gt; {
     inner: vec::Drain&lt;<span class="lifetime">&#39;a</span>, Entry&lt;T&gt;&gt;,
-    len: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+    len: usize,
 }
 
 <span class="attr">#[derive(Clone)]
 </span><span class="kw">enum </span>Entry&lt;T&gt; {
-    Vacant(<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>),
+    Vacant(usize),
     Occupied(T),
 }
 
@@ -1877,9 +1877,9 @@
     /// // ...but this may make the slab reallocate
     /// slab.insert(11);
     /// ```
-    </span><span class="kw">pub fn </span>with_capacity(capacity: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; Slab&lt;T&gt; {
-        <a href="#131">Slab</a> {
-            entries: Vec::with_capacity(<a href="#280">capacity</a>),
+    </span><span class="kw">pub fn </span>with_capacity(capacity: usize) -&gt; Slab&lt;T&gt; {
+        Slab {
+            entries: Vec::with_capacity(capacity),
             next: <span class="number">0</span>,
             len: <span class="number">0</span>,
         }
@@ -1894,8 +1894,8 @@
     /// let slab: Slab&lt;i32&gt; = Slab::with_capacity(10);
     /// assert_eq!(slab.capacity(), 10);
     /// ```
-    </span><span class="kw">pub fn </span>capacity(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="self" href="#297">self</a>.entries.capacity()
+    </span><span class="kw">pub fn </span>capacity(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+        <span class="self">self</span>.entries.capacity()
     }
 
     <span class="doccomment">/// Reserve capacity for at least `additional` more values to be stored
@@ -1924,12 +1924,12 @@
     /// slab.reserve(10);
     /// assert!(slab.capacity() &gt;= 11);
     /// ```
-    </span><span class="kw">pub fn </span>reserve(<span class="kw-2">&amp;mut </span><span class="self">self</span>, additional: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
+    </span><span class="kw">pub fn </span>reserve(<span class="kw-2">&amp;mut </span><span class="self">self</span>, additional: usize) {
         <span class="kw">if </span><span class="self">self</span>.capacity() - <span class="self">self</span>.len &gt;= additional {
             <span class="kw">return</span>;
         }
-        <span class="kw">let </span>need_add = <a href="#327">additional</a> - (<a class="self" href="#327">self</a>.entries.len() - <a class="self" href="#327">self</a>.len);
-        <a class="self" href="#327">self</a>.entries.reserve(<a href="#331">need_add</a>);
+        <span class="kw">let </span>need_add = additional - (<span class="self">self</span>.entries.len() - <span class="self">self</span>.len);
+        <span class="self">self</span>.entries.reserve(need_add);
     }
 
     <span class="doccomment">/// Reserve the minimum capacity required to store exactly `additional`
@@ -1958,12 +1958,12 @@
     /// slab.reserve_exact(10);
     /// assert!(slab.capacity() &gt;= 11);
     /// ```
-    </span><span class="kw">pub fn </span>reserve_exact(<span class="kw-2">&amp;mut </span><span class="self">self</span>, additional: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
+    </span><span class="kw">pub fn </span>reserve_exact(<span class="kw-2">&amp;mut </span><span class="self">self</span>, additional: usize) {
         <span class="kw">if </span><span class="self">self</span>.capacity() - <span class="self">self</span>.len &gt;= additional {
             <span class="kw">return</span>;
         }
-        <span class="kw">let </span>need_add = <a href="#361">additional</a> - (<a class="self" href="#361">self</a>.entries.len() - <a class="self" href="#361">self</a>.len);
-        <a class="self" href="#361">self</a>.entries.reserve_exact(<a href="#365">need_add</a>);
+        <span class="kw">let </span>need_add = additional - (<span class="self">self</span>.entries.len() - <span class="self">self</span>.len);
+        <span class="self">self</span>.entries.reserve_exact(need_add);
     }
 
     <span class="doccomment">/// Shrink the capacity of the slab as much as possible without invalidating keys.
@@ -2012,7 +2012,7 @@
         // the capacity can be reduced to what is actually needed.
         // If the slab is empty the vector can simply be cleared, but that
         // optimization would not affect time complexity when T: Drop.
-        </span><span class="kw">let </span>len_before = <a class="self" href="#410">self</a>.entries.len();
+        </span><span class="kw">let </span>len_before = <span class="self">self</span>.entries.len();
         <span class="kw">while let </span><span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>Entry::Vacant(<span class="kw">_</span>)) = <span class="self">self</span>.entries.last() {
             <span class="self">self</span>.entries.pop();
         }
@@ -2023,7 +2023,7 @@
             <span class="comment">// Some vacant entries were removed, so the list now likely¹
             // either contains references to the removed entries, or has an
             // invalid end marker. Fix this by recreating the list.
-            </span><a class="self" href="#410">self</a>.<a href="#439">recreate_vacant_list</a>();
+            </span><span class="self">self</span>.recreate_vacant_list();
             <span class="comment">// ¹: If the removed entries formed the tail of the list, with the
             // most recently popped entry being the head of them, (so that its
             // index is now the end marker) the list is still valid.
@@ -2031,15 +2031,15 @@
             // is not worth the code complexity.
         </span>}
 
-        <a class="self" href="#410">self</a>.entries.shrink_to_fit();
+        <span class="self">self</span>.entries.shrink_to_fit();
     }
 
     <span class="doccomment">/// Iterate through all entries to recreate and repair the vacant list.
     /// self.len must be correct and is not modified.
     </span><span class="kw">fn </span>recreate_vacant_list(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <a class="self" href="#439">self</a>.next = <a class="self" href="#439">self</a>.entries.len();
+        <span class="self">self</span>.next = <span class="self">self</span>.entries.len();
         <span class="comment">// We can stop once we&#39;ve found all vacant entries
-        </span><span class="kw">let </span><span class="kw-2">mut </span>remaining_vacant = <a class="self" href="#439">self</a>.entries.len() - <a class="self" href="#439">self</a>.len;
+        </span><span class="kw">let </span><span class="kw-2">mut </span>remaining_vacant = <span class="self">self</span>.entries.len() - <span class="self">self</span>.len;
         <span class="comment">// Iterate in reverse order so that lower keys are at the start of
         // the vacant list. This way future shrinks are more likely to be
         // able to remove vacant entries.
@@ -2098,24 +2098,24 @@
     /// ```
     </span><span class="kw">pub fn </span>compact&lt;F&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, <span class="kw-2">mut </span>rekey: F)
     <span class="kw">where
-        </span>F: FnMut(<span class="kw-2">&amp;mut </span>T, <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
+        </span>F: FnMut(<span class="kw-2">&amp;mut </span>T, usize, usize) -&gt; bool,
     {
         <span class="comment">// If the closure unwinds, we need to restore a valid list of vacant entries
         </span><span class="kw">struct </span>CleanupGuard&lt;<span class="lifetime">&#39;a</span>, T&gt; {
             slab: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>Slab&lt;T&gt;,
-            decrement: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
+            decrement: bool,
         }
-        <span class="kw">impl</span>&lt;T&gt; <a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span>CleanupGuard&lt;<span class="lifetime">&#39;_</span>, T&gt; {
+        <span class="kw">impl</span>&lt;T&gt; Drop <span class="kw">for </span>CleanupGuard&lt;<span class="lifetime">&#39;_</span>, T&gt; {
             <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
                 <span class="kw">if </span><span class="self">self</span>.decrement {
                     <span class="comment">// Value was popped and not pushed back on
-                    </span><a class="self" href="#509">self</a>.slab.len -= <span class="number">1</span>;
+                    </span><span class="self">self</span>.slab.len -= <span class="number">1</span>;
                 }
-                <a class="self" href="#509">self</a>.slab.<a href="#439">recreate_vacant_list</a>();
+                <span class="self">self</span>.slab.recreate_vacant_list();
             }
         }
-        <span class="kw">let </span><span class="kw-2">mut </span>guard = <a href="#504">CleanupGuard</a> {
-            slab: <a class="self" href="#499">self</a>,
+        <span class="kw">let </span><span class="kw-2">mut </span>guard = CleanupGuard {
+            slab: <span class="self">self</span>,
             decrement: <span class="bool-val">true</span>,
         };
 
@@ -2145,10 +2145,10 @@
                 </span>occupied_until += <span class="number">1</span>;
             }
         }
-        <a href="#517">guard</a>.slab.next = <a href="#517">guard</a>.slab.len;
-        <a href="#517">guard</a>.slab.entries.shrink_to_fit();
+        guard.slab.next = guard.slab.len;
+        guard.slab.entries.shrink_to_fit();
         <span class="comment">// Normal cleanup is not necessary
-        </span>mem::forget(<a href="#517">guard</a>);
+        </span>mem::forget(guard);
     }
 
     <span class="doccomment">/// Clear the slab of all values.
@@ -2167,9 +2167,9 @@
     /// assert!(slab.is_empty());
     /// ```
     </span><span class="kw">pub fn </span>clear(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <a class="self" href="#569">self</a>.entries.clear();
-        <a class="self" href="#569">self</a>.len = <span class="number">0</span>;
-        <a class="self" href="#569">self</a>.next = <span class="number">0</span>;
+        <span class="self">self</span>.entries.clear();
+        <span class="self">self</span>.len = <span class="number">0</span>;
+        <span class="self">self</span>.next = <span class="number">0</span>;
     }
 
     <span class="doccomment">/// Return the number of stored values.
@@ -2186,8 +2186,8 @@
     ///
     /// assert_eq!(3, slab.len());
     /// ```
-    </span><span class="kw">pub fn </span>len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="self" href="#589">self</a>.len
+    </span><span class="kw">pub fn </span>len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+        <span class="self">self</span>.len
     }
 
     <span class="doccomment">/// Return `true` if there are no values stored in the slab.
@@ -2202,8 +2202,8 @@
     /// slab.insert(1);
     /// assert!(!slab.is_empty());
     /// ```
-    </span><span class="kw">pub fn </span>is_empty(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#605">self</a>.len == <span class="number">0
+    </span><span class="kw">pub fn </span>is_empty(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.len == <span class="number">0
     </span>}
 
     <span class="doccomment">/// Return an iterator over the slab.
@@ -2231,9 +2231,9 @@
     /// assert_eq!(iterator.next(), None);
     /// ```
     </span><span class="kw">pub fn </span>iter(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Iter&lt;<span class="lifetime">&#39;_</span>, T&gt; {
-        <a href="#184">Iter</a> {
-            entries: <a class="self" href="#633">self</a>.entries.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">enumerate</a>(),
-            len: <a class="self" href="#633">self</a>.len,
+        Iter {
+            entries: <span class="self">self</span>.entries.iter().enumerate(),
+            len: <span class="self">self</span>.len,
         }
     }
 
@@ -2263,9 +2263,9 @@
     /// assert_eq!(slab[key2], 1);
     /// ```
     </span><span class="kw">pub fn </span>iter_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; IterMut&lt;<span class="lifetime">&#39;_</span>, T&gt; {
-        <a href="#199">IterMut</a> {
-            entries: <a class="self" href="#665">self</a>.entries.iter_mut().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">enumerate</a>(),
-            len: <a class="self" href="#665">self</a>.len,
+        IterMut {
+            entries: <span class="self">self</span>.entries.iter_mut().enumerate(),
+            len: <span class="self">self</span>.len,
         }
     }
 
@@ -2284,9 +2284,9 @@
     /// assert_eq!(slab.get(key), Some(&amp;&quot;hello&quot;));
     /// assert_eq!(slab.get(123), None);
     /// ```
-    </span><span class="kw">pub fn </span>get(<span class="kw-2">&amp;</span><span class="self">self</span>, key: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>T&gt; {
-        <span class="kw">match </span><a class="self" href="#687">self</a>.entries.get(<a href="#687">key</a>) {
-            <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><a href="#213">Entry::Occupied</a>(<span class="kw-2">ref </span>val)) =&gt; <span class="prelude-val">Some</span>(<a href="#689">val</a>),
+    </span><span class="kw">pub fn </span>get(<span class="kw-2">&amp;</span><span class="self">self</span>, key: usize) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>T&gt; {
+        <span class="kw">match </span><span class="self">self</span>.entries.get(key) {
+            <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>Entry::Occupied(<span class="kw-2">ref </span>val)) =&gt; <span class="prelude-val">Some</span>(val),
             <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
         }
     }
@@ -2308,9 +2308,9 @@
     /// assert_eq!(slab[key], &quot;world&quot;);
     /// assert_eq!(slab.get_mut(123), None);
     /// ```
-    </span><span class="kw">pub fn </span>get_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>, key: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;mut </span>T&gt; {
-        <span class="kw">match </span><a class="self" href="#711">self</a>.entries.get_mut(<a href="#711">key</a>) {
-            <span class="prelude-val">Some</span>(<span class="kw-2">&amp;mut </span><a href="#213">Entry::Occupied</a>(<span class="kw-2">ref mut </span>val)) =&gt; <span class="prelude-val">Some</span>(<a href="#713">val</a>),
+    </span><span class="kw">pub fn </span>get_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>, key: usize) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;mut </span>T&gt; {
+        <span class="kw">match </span><span class="self">self</span>.entries.get_mut(key) {
+            <span class="prelude-val">Some</span>(<span class="kw-2">&amp;mut </span>Entry::Occupied(<span class="kw-2">ref mut </span>val)) =&gt; <span class="prelude-val">Some</span>(val),
             <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
         }
     }
@@ -2338,26 +2338,26 @@
     /// assert_eq!(slab[key1], 2);
     /// assert_eq!(slab[key2], 1);
     /// ```
-    </span><span class="kw">pub fn </span>get2_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>, key1: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, key2: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="prelude-ty">Option</span>&lt;(<span class="kw-2">&amp;mut </span>T, <span class="kw-2">&amp;mut </span>T)&gt; {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(key1 != key2);
+    </span><span class="kw">pub fn </span>get2_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>, key1: usize, key2: usize) -&gt; <span class="prelude-ty">Option</span>&lt;(<span class="kw-2">&amp;mut </span>T, <span class="kw-2">&amp;mut </span>T)&gt; {
+        <span class="macro">assert!</span>(key1 != key2);
 
         <span class="kw">let </span>(entry1, entry2);
 
         <span class="kw">if </span>key1 &gt; key2 {
-            <span class="kw">let </span>(slice1, slice2) = <a class="self" href="#741">self</a>.entries.split_at_mut(<a href="#741">key1</a>);
-            <a href="#744">entry1</a> = <a href="#747">slice2</a>.get_mut(<span class="number">0</span>);
-            <a href="#744">entry2</a> = <a href="#747">slice1</a>.get_mut(<a href="#741">key2</a>);
+            <span class="kw">let </span>(slice1, slice2) = <span class="self">self</span>.entries.split_at_mut(key1);
+            entry1 = slice2.get_mut(<span class="number">0</span>);
+            entry2 = slice1.get_mut(key2);
         } <span class="kw">else </span>{
-            <span class="kw">let </span>(slice1, slice2) = <a class="self" href="#741">self</a>.entries.split_at_mut(<a href="#741">key2</a>);
-            <a href="#744">entry1</a> = <a href="#751">slice1</a>.get_mut(<a href="#741">key1</a>);
-            <a href="#744">entry2</a> = <a href="#751">slice2</a>.get_mut(<span class="number">0</span>);
+            <span class="kw">let </span>(slice1, slice2) = <span class="self">self</span>.entries.split_at_mut(key2);
+            entry1 = slice1.get_mut(key1);
+            entry2 = slice2.get_mut(<span class="number">0</span>);
         }
 
-        <span class="kw">match </span>(<a href="#744">entry1</a>, <a href="#744">entry2</a>) {
+        <span class="kw">match </span>(entry1, entry2) {
             (
-                <span class="prelude-val">Some</span>(<span class="kw-2">&amp;mut </span><a href="#213">Entry::Occupied</a>(<span class="kw-2">ref mut </span>val1)),
-                <span class="prelude-val">Some</span>(<span class="kw-2">&amp;mut </span><a href="#213">Entry::Occupied</a>(<span class="kw-2">ref mut </span>val2)),
-            ) =&gt; <span class="prelude-val">Some</span>((<a href="#758">val1</a>, <a href="#759">val2</a>)),
+                <span class="prelude-val">Some</span>(<span class="kw-2">&amp;mut </span>Entry::Occupied(<span class="kw-2">ref mut </span>val1)),
+                <span class="prelude-val">Some</span>(<span class="kw-2">&amp;mut </span>Entry::Occupied(<span class="kw-2">ref mut </span>val2)),
+            ) =&gt; <span class="prelude-val">Some</span>((val1, val2)),
             <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
         }
     }
@@ -2384,10 +2384,10 @@
     ///     assert_eq!(slab.get_unchecked(key), &amp;2);
     /// }
     /// ```
-    </span><span class="kw">pub unsafe fn </span>get_unchecked(<span class="kw-2">&amp;</span><span class="self">self</span>, key: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="kw-2">&amp;</span>T {
-        <span class="kw">match </span><span class="kw-2">*</span><a class="self" href="#787">self</a>.entries.get_unchecked(<a href="#787">key</a>) {
-            <a href="#213">Entry::Occupied</a>(<span class="kw-2">ref </span>val) =&gt; <a href="#789">val</a>,
-            <span class="kw">_ </span>=&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(),
+    </span><span class="kw">pub unsafe fn </span>get_unchecked(<span class="kw-2">&amp;</span><span class="self">self</span>, key: usize) -&gt; <span class="kw-2">&amp;</span>T {
+        <span class="kw">match </span><span class="kw-2">*</span><span class="self">self</span>.entries.get_unchecked(key) {
+            Entry::Occupied(<span class="kw-2">ref </span>val) =&gt; val,
+            <span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>(),
         }
     }
 
@@ -2416,10 +2416,10 @@
     ///
     /// assert_eq!(slab[key], 13);
     /// ```
-    </span><span class="kw">pub unsafe fn </span>get_unchecked_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>, key: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="kw-2">&amp;mut </span>T {
-        <span class="kw">match </span><span class="kw-2">*</span><a class="self" href="#819">self</a>.entries.get_unchecked_mut(<a href="#819">key</a>) {
-            <a href="#213">Entry::Occupied</a>(<span class="kw-2">ref mut </span>val) =&gt; <a href="#821">val</a>,
-            <span class="kw">_ </span>=&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(),
+    </span><span class="kw">pub unsafe fn </span>get_unchecked_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>, key: usize) -&gt; <span class="kw-2">&amp;mut </span>T {
+        <span class="kw">match </span><span class="kw-2">*</span><span class="self">self</span>.entries.get_unchecked_mut(key) {
+            Entry::Occupied(<span class="kw-2">ref mut </span>val) =&gt; val,
+            <span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>(),
         }
     }
 
@@ -2450,16 +2450,16 @@
     /// assert_eq!(slab[key1], 2);
     /// assert_eq!(slab[key2], 1);
     /// ```
-    </span><span class="kw">pub unsafe fn </span>get2_unchecked_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>, key1: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, key2: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; (<span class="kw-2">&amp;mut </span>T, <span class="kw-2">&amp;mut </span>T) {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert_ne.html">debug_assert_ne!</a>(key1, key2);
-        <span class="kw">let </span>ptr = <a class="self" href="#853">self</a>.entries.as_mut_ptr();
-        <span class="kw">let </span>ptr1 = <a href="#855">ptr</a>.add(<a href="#853">key1</a>);
-        <span class="kw">let </span>ptr2 = <a href="#855">ptr</a>.add(<a href="#853">key2</a>);
-        <span class="kw">match </span>(<span class="kw-2">&amp;mut *</span><a href="#856">ptr1</a>, <span class="kw-2">&amp;mut *</span><a href="#857">ptr2</a>) {
-            (<span class="kw-2">&amp;mut </span><a href="#213">Entry::Occupied</a>(<span class="kw-2">ref mut </span>val1), <span class="kw-2">&amp;mut </span><a href="#213">Entry::Occupied</a>(<span class="kw-2">ref mut </span>val2)) =&gt; {
-                (<a href="#859">val1</a>, <a href="#859">val2</a>)
+    </span><span class="kw">pub unsafe fn </span>get2_unchecked_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>, key1: usize, key2: usize) -&gt; (<span class="kw-2">&amp;mut </span>T, <span class="kw-2">&amp;mut </span>T) {
+        <span class="macro">debug_assert_ne!</span>(key1, key2);
+        <span class="kw">let </span>ptr = <span class="self">self</span>.entries.as_mut_ptr();
+        <span class="kw">let </span>ptr1 = ptr.add(key1);
+        <span class="kw">let </span>ptr2 = ptr.add(key2);
+        <span class="kw">match </span>(<span class="kw-2">&amp;mut *</span>ptr1, <span class="kw-2">&amp;mut *</span>ptr2) {
+            (<span class="kw-2">&amp;mut </span>Entry::Occupied(<span class="kw-2">ref mut </span>val1), <span class="kw-2">&amp;mut </span>Entry::Occupied(<span class="kw-2">ref mut </span>val2)) =&gt; {
+                (val1, val2)
             }
-            <span class="kw">_ </span>=&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(),
+            <span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>(),
         }
     }
 
@@ -2499,20 +2499,20 @@
     /// unreachable!();
     /// ```
     </span><span class="attr">#[cfg_attr(not(slab_no_track_caller), track_caller)]
-    </span><span class="kw">pub fn </span>key_of(<span class="kw-2">&amp;</span><span class="self">self</span>, present_element: <span class="kw-2">&amp;</span>T) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <span class="kw">let </span>element_ptr = <a href="#902">present_element</a> <span class="kw">as </span><span class="kw-2">*const </span>T <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>;
-        <span class="kw">let </span>base_ptr = <a class="self" href="#902">self</a>.entries.as_ptr() <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>;
+    </span><span class="kw">pub fn </span>key_of(<span class="kw-2">&amp;</span><span class="self">self</span>, present_element: <span class="kw-2">&amp;</span>T) -&gt; usize {
+        <span class="kw">let </span>element_ptr = present_element <span class="kw">as </span><span class="kw-2">*const </span>T <span class="kw">as </span>usize;
+        <span class="kw">let </span>base_ptr = <span class="self">self</span>.entries.as_ptr() <span class="kw">as </span>usize;
         <span class="comment">// Use wrapping subtraction in case the reference is bad
-        </span><span class="kw">let </span>byte_offset = <a href="#903">element_ptr</a>.wrapping_sub(<a href="#904">base_ptr</a>);
+        </span><span class="kw">let </span>byte_offset = element_ptr.wrapping_sub(base_ptr);
         <span class="comment">// The division rounds away any offset of T inside Entry
         // The size of Entry&lt;T&gt; is never zero even if T is due to Vacant(usize)
-        </span><span class="kw">let </span>key = <a href="#906">byte_offset</a> / mem::size_of::&lt;Entry&lt;T&gt;&gt;();
+        </span><span class="kw">let </span>key = byte_offset / mem::size_of::&lt;Entry&lt;T&gt;&gt;();
         <span class="comment">// Prevent returning unspecified (but out of bounds) values
         </span><span class="kw">if </span>key &gt;= <span class="self">self</span>.entries.len() {
-            <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(<span class="string">&quot;The reference points to a value outside this slab&quot;</span>);
+            <span class="macro">panic!</span>(<span class="string">&quot;The reference points to a value outside this slab&quot;</span>);
         }
         <span class="comment">// The reference cannot point to a vacant entry, because then it would not be valid
-        </span><a href="#909">key</a>
+        </span>key
     }
 
     <span class="doccomment">/// Insert a value in the slab, returning key assigned to the value.
@@ -2533,12 +2533,12 @@
     /// let key = slab.insert(&quot;hello&quot;);
     /// assert_eq!(slab[key], &quot;hello&quot;);
     /// ```
-    </span><span class="kw">pub fn </span>insert(<span class="kw-2">&amp;mut </span><span class="self">self</span>, val: T) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <span class="kw">let </span>key = <a class="self" href="#936">self</a>.next;
+    </span><span class="kw">pub fn </span>insert(<span class="kw-2">&amp;mut </span><span class="self">self</span>, val: T) -&gt; usize {
+        <span class="kw">let </span>key = <span class="self">self</span>.next;
 
-        <a class="self" href="#936">self</a>.<a href="#998">insert_at</a>(<a href="#937">key</a>, <a href="#936">val</a>);
+        <span class="self">self</span>.insert_at(key, val);
 
-        <a href="#937">key</a>
+        key
     }
 
     <span class="doccomment">/// Returns the key of the next vacant entry.
@@ -2561,8 +2561,8 @@
     /// slab.remove(0);
     /// assert_eq!(slab.vacant_key(), 0);
     /// ```
-    </span><span class="kw">pub fn </span>vacant_key(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="self" href="#964">self</a>.next
+    </span><span class="kw">pub fn </span>vacant_key(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+        <span class="self">self</span>.next
     }
 
     <span class="doccomment">/// Return a handle to a vacant entry allowing for further manipulation.
@@ -2589,24 +2589,24 @@
     /// assert_eq!(&quot;hello&quot;, slab[hello].1);
     /// ```
     </span><span class="kw">pub fn </span>vacant_entry(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; VacantEntry&lt;<span class="lifetime">&#39;_</span>, T&gt; {
-        <a href="#172">VacantEntry</a> {
-            key: <a class="self" href="#991">self</a>.next,
-            slab: <a class="self" href="#991">self</a>,
+        VacantEntry {
+            key: <span class="self">self</span>.next,
+            slab: <span class="self">self</span>,
         }
     }
 
-    <span class="kw">fn </span>insert_at(<span class="kw-2">&amp;mut </span><span class="self">self</span>, key: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, val: T) {
-        <a class="self" href="#998">self</a>.len += <span class="number">1</span>;
+    <span class="kw">fn </span>insert_at(<span class="kw-2">&amp;mut </span><span class="self">self</span>, key: usize, val: T) {
+        <span class="self">self</span>.len += <span class="number">1</span>;
 
         <span class="kw">if </span>key == <span class="self">self</span>.entries.len() {
-            <a class="self" href="#998">self</a>.entries.push(<a href="#213">Entry::Occupied</a>(<a href="#998">val</a>));
-            <a class="self" href="#998">self</a>.next = <a href="#998">key</a> + <span class="number">1</span>;
+            <span class="self">self</span>.entries.push(Entry::Occupied(val));
+            <span class="self">self</span>.next = key + <span class="number">1</span>;
         } <span class="kw">else </span>{
-            <a class="self" href="#998">self</a>.next = <span class="kw">match </span><a class="self" href="#998">self</a>.entries.get(<a href="#998">key</a>) {
-                <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><a href="#212">Entry::Vacant</a>(next)) =&gt; <a href="#1006">next</a>,
-                <span class="kw">_ </span>=&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(),
+            <span class="self">self</span>.next = <span class="kw">match </span><span class="self">self</span>.entries.get(key) {
+                <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>Entry::Vacant(next)) =&gt; next,
+                <span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>(),
             };
-            <a class="self" href="#998">self</a>.entries[<a href="#998">key</a>] = <a href="#213">Entry::Occupied</a>(<a href="#998">val</a>);
+            <span class="self">self</span>.entries[key] = Entry::Occupied(val);
         }
     }
 
@@ -2627,20 +2627,20 @@
     /// assert_eq!(slab.try_remove(hello), Some(&quot;hello&quot;));
     /// assert!(!slab.contains(hello));
     /// ```
-    </span><span class="kw">pub fn </span>try_remove(<span class="kw-2">&amp;mut </span><span class="self">self</span>, key: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="prelude-ty">Option</span>&lt;T&gt; {
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(entry) = <a class="self" href="#1030">self</a>.entries.get_mut(<a href="#1030">key</a>) {
+    </span><span class="kw">pub fn </span>try_remove(<span class="kw-2">&amp;mut </span><span class="self">self</span>, key: usize) -&gt; <span class="prelude-ty">Option</span>&lt;T&gt; {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(entry) = <span class="self">self</span>.entries.get_mut(key) {
             <span class="comment">// Swap the entry at the provided value
-            </span><span class="kw">let </span>prev = mem::replace(<a href="#1031">entry</a>, <a href="#212">Entry::Vacant</a>(<a class="self" href="#1030">self</a>.next));
+            </span><span class="kw">let </span>prev = mem::replace(entry, Entry::Vacant(<span class="self">self</span>.next));
 
-            <span class="kw">match </span><a href="#1033">prev</a> {
-                <a href="#213">Entry::Occupied</a>(val) =&gt; {
-                    <a class="self" href="#1030">self</a>.len -= <span class="number">1</span>;
-                    <a class="self" href="#1030">self</a>.next = <a href="#1030">key</a>;
-                    <span class="kw">return </span><a href="#1036">val</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>();
+            <span class="kw">match </span>prev {
+                Entry::Occupied(val) =&gt; {
+                    <span class="self">self</span>.len -= <span class="number">1</span>;
+                    <span class="self">self</span>.next = key;
+                    <span class="kw">return </span>val.into();
                 }
                 <span class="kw">_ </span>=&gt; {
                     <span class="comment">// Woops, the entry is actually vacant, restore the state
-                    </span><span class="kw-2">*</span><a href="#1031">entry</a> = <a href="#1033">prev</a>;
+                    </span><span class="kw-2">*</span>entry = prev;
                 }
             }
         }
@@ -2668,8 +2668,8 @@
     /// assert!(!slab.contains(hello));
     /// ```
     </span><span class="attr">#[cfg_attr(not(slab_no_track_caller), track_caller)]
-    </span><span class="kw">pub fn </span>remove(<span class="kw-2">&amp;mut </span><span class="self">self</span>, key: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; T {
-        <a class="self" href="#1071">self</a>.<a href="#1030">try_remove</a>(<a href="#1071">key</a>).expect(<span class="string">&quot;invalid key&quot;</span>)
+    </span><span class="kw">pub fn </span>remove(<span class="kw-2">&amp;mut </span><span class="self">self</span>, key: usize) -&gt; T {
+        <span class="self">self</span>.try_remove(key).expect(<span class="string">&quot;invalid key&quot;</span>)
     }
 
     <span class="doccomment">/// Return `true` if a value is associated with the given key.
@@ -2687,9 +2687,9 @@
     ///
     /// assert!(!slab.contains(hello));
     /// ```
-    </span><span class="kw">pub fn </span>contains(<span class="kw-2">&amp;</span><span class="self">self</span>, key: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">match </span><a class="self" href="#1090">self</a>.entries.get(<a href="#1090">key</a>) {
-            <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><a href="#213">Entry::Occupied</a>(<span class="kw">_</span>)) =&gt; <span class="bool-val">true</span>,
+    </span><span class="kw">pub fn </span>contains(<span class="kw-2">&amp;</span><span class="self">self</span>, key: usize) -&gt; bool {
+        <span class="kw">match </span><span class="self">self</span>.entries.get(key) {
+            <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>Entry::Occupied(<span class="kw">_</span>)) =&gt; <span class="bool-val">true</span>,
             <span class="kw">_ </span>=&gt; <span class="bool-val">false</span>,
         }
     }
@@ -2720,7 +2720,7 @@
     /// ```
     </span><span class="kw">pub fn </span>retain&lt;F&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, <span class="kw-2">mut </span>f: F)
     <span class="kw">where
-        </span>F: FnMut(<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="kw-2">&amp;mut </span>T) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
+        </span>F: FnMut(usize, <span class="kw-2">&amp;mut </span>T) -&gt; bool,
     {
         <span class="kw">for </span>i <span class="kw">in </span><span class="number">0</span>..<span class="self">self</span>.entries.len() {
             <span class="kw">let </span>keep = <span class="kw">match </span><span class="self">self</span>.entries[i] {
@@ -2762,65 +2762,65 @@
     /// assert!(slab.is_empty());
     /// ```
     </span><span class="kw">pub fn </span>drain(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; Drain&lt;<span class="lifetime">&#39;_</span>, T&gt; {
-        <span class="kw">let </span>old_len = <a class="self" href="#1164">self</a>.len;
-        <a class="self" href="#1164">self</a>.len = <span class="number">0</span>;
-        <a class="self" href="#1164">self</a>.next = <span class="number">0</span>;
-        <a href="#205">Drain</a> {
-            inner: <a class="self" href="#1164">self</a>.entries.drain(..),
-            len: <a href="#1165">old_len</a>,
+        <span class="kw">let </span>old_len = <span class="self">self</span>.len;
+        <span class="self">self</span>.len = <span class="number">0</span>;
+        <span class="self">self</span>.next = <span class="number">0</span>;
+        Drain {
+            inner: <span class="self">self</span>.entries.drain(..),
+            len: old_len,
         }
     }
 }
 
-<span class="kw">impl</span>&lt;T&gt; ops::Index&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; <span class="kw">for </span>Slab&lt;T&gt; {
+<span class="kw">impl</span>&lt;T&gt; ops::Index&lt;usize&gt; <span class="kw">for </span>Slab&lt;T&gt; {
     <span class="kw">type </span>Output = T;
 
     <span class="attr">#[cfg_attr(not(slab_no_track_caller), track_caller)]
-    </span><span class="kw">fn </span>index(<span class="kw-2">&amp;</span><span class="self">self</span>, key: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="kw-2">&amp;</span>T {
-        <span class="kw">match </span><a class="self" href="#1179">self</a>.entries.get(<a href="#1179">key</a>) {
-            <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><a href="#213">Entry::Occupied</a>(<span class="kw-2">ref </span>v)) =&gt; <a href="#1181">v</a>,
-            <span class="kw">_ </span>=&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(<span class="string">&quot;invalid key&quot;</span>),
+    </span><span class="kw">fn </span>index(<span class="kw-2">&amp;</span><span class="self">self</span>, key: usize) -&gt; <span class="kw-2">&amp;</span>T {
+        <span class="kw">match </span><span class="self">self</span>.entries.get(key) {
+            <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>Entry::Occupied(<span class="kw-2">ref </span>v)) =&gt; v,
+            <span class="kw">_ </span>=&gt; <span class="macro">panic!</span>(<span class="string">&quot;invalid key&quot;</span>),
         }
     }
 }
 
-<span class="kw">impl</span>&lt;T&gt; ops::IndexMut&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; <span class="kw">for </span>Slab&lt;T&gt; {
+<span class="kw">impl</span>&lt;T&gt; ops::IndexMut&lt;usize&gt; <span class="kw">for </span>Slab&lt;T&gt; {
     <span class="attr">#[cfg_attr(not(slab_no_track_caller), track_caller)]
-    </span><span class="kw">fn </span>index_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>, key: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="kw-2">&amp;mut </span>T {
-        <span class="kw">match </span><a class="self" href="#1189">self</a>.entries.get_mut(<a href="#1189">key</a>) {
-            <span class="prelude-val">Some</span>(<span class="kw-2">&amp;mut </span><a href="#213">Entry::Occupied</a>(<span class="kw-2">ref mut </span>v)) =&gt; <a href="#1191">v</a>,
-            <span class="kw">_ </span>=&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(<span class="string">&quot;invalid key&quot;</span>),
+    </span><span class="kw">fn </span>index_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>, key: usize) -&gt; <span class="kw-2">&amp;mut </span>T {
+        <span class="kw">match </span><span class="self">self</span>.entries.get_mut(key) {
+            <span class="prelude-val">Some</span>(<span class="kw-2">&amp;mut </span>Entry::Occupied(<span class="kw-2">ref mut </span>v)) =&gt; v,
+            <span class="kw">_ </span>=&gt; <span class="macro">panic!</span>(<span class="string">&quot;invalid key&quot;</span>),
         }
     }
 }
 
-<span class="kw">impl</span>&lt;T&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">IntoIterator</a> <span class="kw">for </span>Slab&lt;T&gt; {
-    <span class="kw">type </span>Item = (<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, T);
+<span class="kw">impl</span>&lt;T&gt; IntoIterator <span class="kw">for </span>Slab&lt;T&gt; {
+    <span class="kw">type </span>Item = (usize, T);
     <span class="kw">type </span>IntoIter = IntoIter&lt;T&gt;;
 
     <span class="kw">fn </span>into_iter(<span class="self">self</span>) -&gt; IntoIter&lt;T&gt; {
-        <a href="#178">IntoIter</a> {
-            entries: <a class="self" href="#1201">self</a>.entries.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">enumerate</a>(),
-            len: <a class="self" href="#1201">self</a>.len,
+        IntoIter {
+            entries: <span class="self">self</span>.entries.into_iter().enumerate(),
+            len: <span class="self">self</span>.len,
         }
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">IntoIterator</a> <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Slab&lt;T&gt; {
-    <span class="kw">type </span>Item = (<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>T);
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T&gt; IntoIterator <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Slab&lt;T&gt; {
+    <span class="kw">type </span>Item = (usize, <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>T);
     <span class="kw">type </span>IntoIter = Iter&lt;<span class="lifetime">&#39;a</span>, T&gt;;
 
     <span class="kw">fn </span>into_iter(<span class="self">self</span>) -&gt; Iter&lt;<span class="lifetime">&#39;a</span>, T&gt; {
-        <a class="self" href="#1213">self</a>.<a href="#633">iter</a>()
+        <span class="self">self</span>.iter()
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">IntoIterator</a> <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>Slab&lt;T&gt; {
-    <span class="kw">type </span>Item = (<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>T);
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T&gt; IntoIterator <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>Slab&lt;T&gt; {
+    <span class="kw">type </span>Item = (usize, <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>T);
     <span class="kw">type </span>IntoIter = IterMut&lt;<span class="lifetime">&#39;a</span>, T&gt;;
 
     <span class="kw">fn </span>into_iter(<span class="self">self</span>) -&gt; IterMut&lt;<span class="lifetime">&#39;a</span>, T&gt; {
-        <a class="self" href="#1222">self</a>.<a href="#665">iter_mut</a>()
+        <span class="self">self</span>.iter_mut()
     }
 }
 
@@ -2854,13 +2854,13 @@
 /// assert_eq!(slab.len(), 3);
 /// assert_eq!(slab[10], &#39;d&#39;);
 /// ```
-</span><span class="kw">impl</span>&lt;T&gt; FromIterator&lt;(<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, T)&gt; <span class="kw">for </span>Slab&lt;T&gt; {
+</span><span class="kw">impl</span>&lt;T&gt; FromIterator&lt;(usize, T)&gt; <span class="kw">for </span>Slab&lt;T&gt; {
     <span class="kw">fn </span>from_iter&lt;I&gt;(iterable: I) -&gt; <span class="self">Self
     </span><span class="kw">where
-        </span>I: IntoIterator&lt;Item = (<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, T)&gt;,
+        </span>I: IntoIterator&lt;Item = (usize, T)&gt;,
     {
-        <span class="kw">let </span>iterator = <a href="#1258">iterable</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>();
-        <span class="kw">let </span><span class="kw-2">mut </span>slab = <span class="self">Self</span>::with_capacity(<a href="#1262">iterator</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">size_hint</a>().<span class="number">0</span>);
+        <span class="kw">let </span>iterator = iterable.into_iter();
+        <span class="kw">let </span><span class="kw-2">mut </span>slab = <span class="self">Self</span>::with_capacity(iterator.size_hint().<span class="number">0</span>);
 
         <span class="kw">let </span><span class="kw-2">mut </span>vacant_list_broken = <span class="bool-val">false</span>;
         <span class="kw">let </span><span class="kw-2">mut </span>first_vacant_index = <span class="prelude-val">None</span>;
@@ -2891,75 +2891,75 @@
         }
         <span class="kw">if </span>slab.len == slab.entries.len() {
             <span class="comment">// no vacant entries, so next might not have been updated
-            </span><a href="#1263">slab</a>.next = <a href="#1263">slab</a>.entries.len();
+            </span>slab.next = slab.entries.len();
         } <span class="kw">else if </span>vacant_list_broken {
-            <a href="#1263">slab</a>.<a href="#439">recreate_vacant_list</a>();
-        } <span class="kw">else if let </span><span class="prelude-val">Some</span>(first_vacant_index) = <a href="#1266">first_vacant_index</a> {
-            <span class="kw">let </span>next = <a href="#1263">slab</a>.entries.len();
-            <span class="kw">match </span><span class="kw-2">&amp;mut </span><a href="#1263">slab</a>.entries[<a href="#1297">first_vacant_index</a>] {
-                <a href="#212">Entry::Vacant</a>(n) =&gt; <span class="kw-2">*</span><a href="#1300">n</a> = <a href="#1298">next</a>,
-                <span class="kw">_ </span>=&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(),
+            slab.recreate_vacant_list();
+        } <span class="kw">else if let </span><span class="prelude-val">Some</span>(first_vacant_index) = first_vacant_index {
+            <span class="kw">let </span>next = slab.entries.len();
+            <span class="kw">match </span><span class="kw-2">&amp;mut </span>slab.entries[first_vacant_index] {
+                Entry::Vacant(n) =&gt; <span class="kw-2">*</span>n = next,
+                <span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>(),
             }
         } <span class="kw">else </span>{
-            <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>()
+            <span class="macro">unreachable!</span>()
         }
 
-        <a href="#1263">slab</a>
+        slab
     }
 }
 
-<span class="kw">impl</span>&lt;T&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span>Slab&lt;T&gt;
+<span class="kw">impl</span>&lt;T&gt; fmt::Debug <span class="kw">for </span>Slab&lt;T&gt;
 <span class="kw">where
-    </span>T: <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a>,
+    </span>T: fmt::Debug,
 {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, fmt: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, fmt: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
         <span class="kw">if </span>fmt.alternate() {
-            <a href="#1315">fmt</a>.debug_map().entries(<a class="self" href="#1315">self</a>.<a href="#633">iter</a>()).finish()
+            fmt.debug_map().entries(<span class="self">self</span>.iter()).finish()
         } <span class="kw">else </span>{
-            <a href="#1315">fmt</a>.debug_struct(<span class="string">&quot;Slab&quot;</span>)
-                .field(<span class="string">&quot;len&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="#1315">self</a>.len)
-                .field(<span class="string">&quot;cap&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="#1315">self</a>.<a href="#297">capacity</a>())
+            fmt.debug_struct(<span class="string">&quot;Slab&quot;</span>)
+                .field(<span class="string">&quot;len&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.len)
+                .field(<span class="string">&quot;cap&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.capacity())
                 .finish()
         }
     }
 }
 
-<span class="kw">impl</span>&lt;T&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span>IntoIter&lt;T&gt;
+<span class="kw">impl</span>&lt;T&gt; fmt::Debug <span class="kw">for </span>IntoIter&lt;T&gt;
 <span class="kw">where
-    </span>T: <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a>,
+    </span>T: fmt::Debug,
 {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, fmt: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a href="#1331">fmt</a>.debug_struct(<span class="string">&quot;IntoIter&quot;</span>)
-            .field(<span class="string">&quot;remaining&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="#1331">self</a>.len)
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, fmt: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        fmt.debug_struct(<span class="string">&quot;IntoIter&quot;</span>)
+            .field(<span class="string">&quot;remaining&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.len)
             .finish()
     }
 }
 
-<span class="kw">impl</span>&lt;T&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span>Iter&lt;<span class="lifetime">&#39;_</span>, T&gt;
+<span class="kw">impl</span>&lt;T&gt; fmt::Debug <span class="kw">for </span>Iter&lt;<span class="lifetime">&#39;_</span>, T&gt;
 <span class="kw">where
-    </span>T: <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a>,
+    </span>T: fmt::Debug,
 {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, fmt: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a href="#1342">fmt</a>.debug_struct(<span class="string">&quot;Iter&quot;</span>)
-            .field(<span class="string">&quot;remaining&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="#1342">self</a>.len)
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, fmt: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        fmt.debug_struct(<span class="string">&quot;Iter&quot;</span>)
+            .field(<span class="string">&quot;remaining&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.len)
             .finish()
     }
 }
 
-<span class="kw">impl</span>&lt;T&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span>IterMut&lt;<span class="lifetime">&#39;_</span>, T&gt;
+<span class="kw">impl</span>&lt;T&gt; fmt::Debug <span class="kw">for </span>IterMut&lt;<span class="lifetime">&#39;_</span>, T&gt;
 <span class="kw">where
-    </span>T: <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a>,
+    </span>T: fmt::Debug,
 {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, fmt: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a href="#1353">fmt</a>.debug_struct(<span class="string">&quot;IterMut&quot;</span>)
-            .field(<span class="string">&quot;remaining&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="#1353">self</a>.len)
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, fmt: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        fmt.debug_struct(<span class="string">&quot;IterMut&quot;</span>)
+            .field(<span class="string">&quot;remaining&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.len)
             .finish()
     }
 }
 
-<span class="kw">impl</span>&lt;T&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span>Drain&lt;<span class="lifetime">&#39;_</span>, T&gt; {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, fmt: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a href="#1361">fmt</a>.debug_struct(<span class="string">&quot;Drain&quot;</span>).finish()
+<span class="kw">impl</span>&lt;T&gt; fmt::Debug <span class="kw">for </span>Drain&lt;<span class="lifetime">&#39;_</span>, T&gt; {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, fmt: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        fmt.debug_struct(<span class="string">&quot;Drain&quot;</span>).finish()
     }
 }
 
@@ -2989,11 +2989,11 @@
     /// assert_eq!(&quot;hello&quot;, slab[hello].1);
     /// ```
     </span><span class="kw">pub fn </span>insert(<span class="self">self</span>, val: T) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>T {
-        <a class="self" href="#1391">self</a>.slab.<a href="#998">insert_at</a>(<a class="self" href="#1391">self</a>.key, <a href="#1391">val</a>);
+        <span class="self">self</span>.slab.insert_at(<span class="self">self</span>.key, val);
 
-        <span class="kw">match </span><a class="self" href="#1391">self</a>.slab.entries.get_mut(<a class="self" href="#1391">self</a>.key) {
-            <span class="prelude-val">Some</span>(<span class="kw-2">&amp;mut </span><a href="#213">Entry::Occupied</a>(<span class="kw-2">ref mut </span>v)) =&gt; <a href="#1395">v</a>,
-            <span class="kw">_ </span>=&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(),
+        <span class="kw">match </span><span class="self">self</span>.slab.entries.get_mut(<span class="self">self</span>.key) {
+            <span class="prelude-val">Some</span>(<span class="kw-2">&amp;mut </span>Entry::Occupied(<span class="kw-2">ref mut </span>v)) =&gt; v,
+            <span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>(),
         }
     }
 
@@ -3018,15 +3018,15 @@
     /// assert_eq!(hello, slab[hello].0);
     /// assert_eq!(&quot;hello&quot;, slab[hello].1);
     /// ```
-    </span><span class="kw">pub fn </span>key(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="self" href="#1421">self</a>.key
+    </span><span class="kw">pub fn </span>key(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+        <span class="self">self</span>.key
     }
 }
 
 <span class="comment">// ===== IntoIter =====
 
-</span><span class="kw">impl</span>&lt;T&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a> <span class="kw">for </span>IntoIter&lt;T&gt; {
-    <span class="kw">type </span>Item = (<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, T);
+</span><span class="kw">impl</span>&lt;T&gt; Iterator <span class="kw">for </span>IntoIter&lt;T&gt; {
+    <span class="kw">type </span>Item = (usize, T);
 
     <span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt; {
         <span class="kw">for </span>(key, entry) <span class="kw">in </span><span class="kw-2">&amp;mut </span><span class="self">self</span>.entries {
@@ -3036,16 +3036,16 @@
             }
         }
 
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert_eq.html">debug_assert_eq!</a>(<span class="self">self</span>.len, <span class="number">0</span>);
+        <span class="macro">debug_assert_eq!</span>(<span class="self">self</span>.len, <span class="number">0</span>);
         <span class="prelude-val">None
     </span>}
 
-    <span class="kw">fn </span>size_hint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;) {
-        (<a class="self" href="#1443">self</a>.len, <span class="prelude-val">Some</span>(<a class="self" href="#1443">self</a>.len))
+    <span class="kw">fn </span>size_hint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (usize, <span class="prelude-ty">Option</span>&lt;usize&gt;) {
+        (<span class="self">self</span>.len, <span class="prelude-val">Some</span>(<span class="self">self</span>.len))
     }
 }
 
-<span class="kw">impl</span>&lt;T&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/double_ended/trait.DoubleEndedIterator.html">DoubleEndedIterator</a> <span class="kw">for </span>IntoIter&lt;T&gt; {
+<span class="kw">impl</span>&lt;T&gt; DoubleEndedIterator <span class="kw">for </span>IntoIter&lt;T&gt; {
     <span class="kw">fn </span>next_back(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt; {
         <span class="kw">while let </span><span class="prelude-val">Some</span>((key, entry)) = <span class="self">self</span>.entries.next_back() {
             <span class="kw">if let </span>Entry::Occupied(v) = entry {
@@ -3054,23 +3054,23 @@
             }
         }
 
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert_eq.html">debug_assert_eq!</a>(<span class="self">self</span>.len, <span class="number">0</span>);
+        <span class="macro">debug_assert_eq!</span>(<span class="self">self</span>.len, <span class="number">0</span>);
         <span class="prelude-val">None
     </span>}
 }
 
-<span class="kw">impl</span>&lt;T&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/exact_size/trait.ExactSizeIterator.html">ExactSizeIterator</a> <span class="kw">for </span>IntoIter&lt;T&gt; {
-    <span class="kw">fn </span>len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="self" href="#1463">self</a>.len
+<span class="kw">impl</span>&lt;T&gt; ExactSizeIterator <span class="kw">for </span>IntoIter&lt;T&gt; {
+    <span class="kw">fn </span>len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+        <span class="self">self</span>.len
     }
 }
 
-<span class="kw">impl</span>&lt;T&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/marker/trait.FusedIterator.html">FusedIterator</a> <span class="kw">for </span>IntoIter&lt;T&gt; {}
+<span class="kw">impl</span>&lt;T&gt; FusedIterator <span class="kw">for </span>IntoIter&lt;T&gt; {}
 
 <span class="comment">// ===== Iter =====
 
-</span><span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a> <span class="kw">for </span>Iter&lt;<span class="lifetime">&#39;a</span>, T&gt; {
-    <span class="kw">type </span>Item = (<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>T);
+</span><span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T&gt; Iterator <span class="kw">for </span>Iter&lt;<span class="lifetime">&#39;a</span>, T&gt; {
+    <span class="kw">type </span>Item = (usize, <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>T);
 
     <span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt; {
         <span class="kw">for </span>(key, entry) <span class="kw">in </span><span class="kw-2">&amp;mut </span><span class="self">self</span>.entries {
@@ -3080,16 +3080,16 @@
             }
         }
 
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert_eq.html">debug_assert_eq!</a>(<span class="self">self</span>.len, <span class="number">0</span>);
+        <span class="macro">debug_assert_eq!</span>(<span class="self">self</span>.len, <span class="number">0</span>);
         <span class="prelude-val">None
     </span>}
 
-    <span class="kw">fn </span>size_hint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;) {
-        (<a class="self" href="#1487">self</a>.len, <span class="prelude-val">Some</span>(<a class="self" href="#1487">self</a>.len))
+    <span class="kw">fn </span>size_hint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (usize, <span class="prelude-ty">Option</span>&lt;usize&gt;) {
+        (<span class="self">self</span>.len, <span class="prelude-val">Some</span>(<span class="self">self</span>.len))
     }
 }
 
-<span class="kw">impl</span>&lt;T&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/double_ended/trait.DoubleEndedIterator.html">DoubleEndedIterator</a> <span class="kw">for </span>Iter&lt;<span class="lifetime">&#39;_</span>, T&gt; {
+<span class="kw">impl</span>&lt;T&gt; DoubleEndedIterator <span class="kw">for </span>Iter&lt;<span class="lifetime">&#39;_</span>, T&gt; {
     <span class="kw">fn </span>next_back(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt; {
         <span class="kw">while let </span><span class="prelude-val">Some</span>((key, entry)) = <span class="self">self</span>.entries.next_back() {
             <span class="kw">if let </span>Entry::Occupied(<span class="kw-2">ref </span>v) = <span class="kw-2">*</span>entry {
@@ -3098,23 +3098,23 @@
             }
         }
 
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert_eq.html">debug_assert_eq!</a>(<span class="self">self</span>.len, <span class="number">0</span>);
+        <span class="macro">debug_assert_eq!</span>(<span class="self">self</span>.len, <span class="number">0</span>);
         <span class="prelude-val">None
     </span>}
 }
 
-<span class="kw">impl</span>&lt;T&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/exact_size/trait.ExactSizeIterator.html">ExactSizeIterator</a> <span class="kw">for </span>Iter&lt;<span class="lifetime">&#39;_</span>, T&gt; {
-    <span class="kw">fn </span>len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="self" href="#1507">self</a>.len
+<span class="kw">impl</span>&lt;T&gt; ExactSizeIterator <span class="kw">for </span>Iter&lt;<span class="lifetime">&#39;_</span>, T&gt; {
+    <span class="kw">fn </span>len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+        <span class="self">self</span>.len
     }
 }
 
-<span class="kw">impl</span>&lt;T&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/marker/trait.FusedIterator.html">FusedIterator</a> <span class="kw">for </span>Iter&lt;<span class="lifetime">&#39;_</span>, T&gt; {}
+<span class="kw">impl</span>&lt;T&gt; FusedIterator <span class="kw">for </span>Iter&lt;<span class="lifetime">&#39;_</span>, T&gt; {}
 
 <span class="comment">// ===== IterMut =====
 
-</span><span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a> <span class="kw">for </span>IterMut&lt;<span class="lifetime">&#39;a</span>, T&gt; {
-    <span class="kw">type </span>Item = (<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>T);
+</span><span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T&gt; Iterator <span class="kw">for </span>IterMut&lt;<span class="lifetime">&#39;a</span>, T&gt; {
+    <span class="kw">type </span>Item = (usize, <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>T);
 
     <span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt; {
         <span class="kw">for </span>(key, entry) <span class="kw">in </span><span class="kw-2">&amp;mut </span><span class="self">self</span>.entries {
@@ -3124,16 +3124,16 @@
             }
         }
 
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert_eq.html">debug_assert_eq!</a>(<span class="self">self</span>.len, <span class="number">0</span>);
+        <span class="macro">debug_assert_eq!</span>(<span class="self">self</span>.len, <span class="number">0</span>);
         <span class="prelude-val">None
     </span>}
 
-    <span class="kw">fn </span>size_hint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;) {
-        (<a class="self" href="#1531">self</a>.len, <span class="prelude-val">Some</span>(<a class="self" href="#1531">self</a>.len))
+    <span class="kw">fn </span>size_hint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (usize, <span class="prelude-ty">Option</span>&lt;usize&gt;) {
+        (<span class="self">self</span>.len, <span class="prelude-val">Some</span>(<span class="self">self</span>.len))
     }
 }
 
-<span class="kw">impl</span>&lt;T&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/double_ended/trait.DoubleEndedIterator.html">DoubleEndedIterator</a> <span class="kw">for </span>IterMut&lt;<span class="lifetime">&#39;_</span>, T&gt; {
+<span class="kw">impl</span>&lt;T&gt; DoubleEndedIterator <span class="kw">for </span>IterMut&lt;<span class="lifetime">&#39;_</span>, T&gt; {
     <span class="kw">fn </span>next_back(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt; {
         <span class="kw">while let </span><span class="prelude-val">Some</span>((key, entry)) = <span class="self">self</span>.entries.next_back() {
             <span class="kw">if let </span>Entry::Occupied(<span class="kw-2">ref mut </span>v) = <span class="kw-2">*</span>entry {
@@ -3142,22 +3142,22 @@
             }
         }
 
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert_eq.html">debug_assert_eq!</a>(<span class="self">self</span>.len, <span class="number">0</span>);
+        <span class="macro">debug_assert_eq!</span>(<span class="self">self</span>.len, <span class="number">0</span>);
         <span class="prelude-val">None
     </span>}
 }
 
-<span class="kw">impl</span>&lt;T&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/exact_size/trait.ExactSizeIterator.html">ExactSizeIterator</a> <span class="kw">for </span>IterMut&lt;<span class="lifetime">&#39;_</span>, T&gt; {
-    <span class="kw">fn </span>len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="self" href="#1551">self</a>.len
+<span class="kw">impl</span>&lt;T&gt; ExactSizeIterator <span class="kw">for </span>IterMut&lt;<span class="lifetime">&#39;_</span>, T&gt; {
+    <span class="kw">fn </span>len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+        <span class="self">self</span>.len
     }
 }
 
-<span class="kw">impl</span>&lt;T&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/marker/trait.FusedIterator.html">FusedIterator</a> <span class="kw">for </span>IterMut&lt;<span class="lifetime">&#39;_</span>, T&gt; {}
+<span class="kw">impl</span>&lt;T&gt; FusedIterator <span class="kw">for </span>IterMut&lt;<span class="lifetime">&#39;_</span>, T&gt; {}
 
 <span class="comment">// ===== Drain =====
 
-</span><span class="kw">impl</span>&lt;T&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a> <span class="kw">for </span>Drain&lt;<span class="lifetime">&#39;_</span>, T&gt; {
+</span><span class="kw">impl</span>&lt;T&gt; Iterator <span class="kw">for </span>Drain&lt;<span class="lifetime">&#39;_</span>, T&gt; {
     <span class="kw">type </span>Item = T;
 
     <span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt; {
@@ -3168,16 +3168,16 @@
             }
         }
 
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert_eq.html">debug_assert_eq!</a>(<span class="self">self</span>.len, <span class="number">0</span>);
+        <span class="macro">debug_assert_eq!</span>(<span class="self">self</span>.len, <span class="number">0</span>);
         <span class="prelude-val">None
     </span>}
 
-    <span class="kw">fn </span>size_hint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;) {
-        (<a class="self" href="#1575">self</a>.len, <span class="prelude-val">Some</span>(<a class="self" href="#1575">self</a>.len))
+    <span class="kw">fn </span>size_hint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (usize, <span class="prelude-ty">Option</span>&lt;usize&gt;) {
+        (<span class="self">self</span>.len, <span class="prelude-val">Some</span>(<span class="self">self</span>.len))
     }
 }
 
-<span class="kw">impl</span>&lt;T&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/double_ended/trait.DoubleEndedIterator.html">DoubleEndedIterator</a> <span class="kw">for </span>Drain&lt;<span class="lifetime">&#39;_</span>, T&gt; {
+<span class="kw">impl</span>&lt;T&gt; DoubleEndedIterator <span class="kw">for </span>Drain&lt;<span class="lifetime">&#39;_</span>, T&gt; {
     <span class="kw">fn </span>next_back(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt; {
         <span class="kw">while let </span><span class="prelude-val">Some</span>(entry) = <span class="self">self</span>.inner.next_back() {
             <span class="kw">if let </span>Entry::Occupied(v) = entry {
@@ -3186,17 +3186,17 @@
             }
         }
 
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert_eq.html">debug_assert_eq!</a>(<span class="self">self</span>.len, <span class="number">0</span>);
+        <span class="macro">debug_assert_eq!</span>(<span class="self">self</span>.len, <span class="number">0</span>);
         <span class="prelude-val">None
     </span>}
 }
 
-<span class="kw">impl</span>&lt;T&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/exact_size/trait.ExactSizeIterator.html">ExactSizeIterator</a> <span class="kw">for </span>Drain&lt;<span class="lifetime">&#39;_</span>, T&gt; {
-    <span class="kw">fn </span>len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="self" href="#1595">self</a>.len
+<span class="kw">impl</span>&lt;T&gt; ExactSizeIterator <span class="kw">for </span>Drain&lt;<span class="lifetime">&#39;_</span>, T&gt; {
+    <span class="kw">fn </span>len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+        <span class="self">self</span>.len
     }
 }
 
-<span class="kw">impl</span>&lt;T&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/marker/trait.FusedIterator.html">FusedIterator</a> <span class="kw">for </span>Drain&lt;<span class="lifetime">&#39;_</span>, T&gt; {}
+<span class="kw">impl</span>&lt;T&gt; FusedIterator <span class="kw">for </span>Drain&lt;<span class="lifetime">&#39;_</span>, T&gt; {}
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="slab" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="slab" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/futures-util-0.3.25/src/future/try_select.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>try_select.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../futures_util/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/futures-util-0.3.25/src/future/try_select.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>try_select.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../futures_util/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -82,10 +82,10 @@
 <a href="#82" id="82">82</a>
 <a href="#83" id="83">83</a>
 <a href="#84" id="84">84</a>
-</pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::future::{<a href="either.rs.html#28">Either</a>, <a href="try_future/mod.rs.html#137">TryFutureExt</a>};
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/pin/struct.Pin.html">core::pin::Pin</a>;
-<span class="kw">use </span>futures_core::future::{<a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a>, <a href="../../../futures_util/future/trait.TryFuture.html">TryFuture</a>};
-<span class="kw">use </span>futures_core::task::{<a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>, <a href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">Poll</a>};
+</pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::future::{Either, TryFutureExt};
+<span class="kw">use </span>core::pin::Pin;
+<span class="kw">use </span>futures_core::future::{Future, TryFuture};
+<span class="kw">use </span>futures_core::task::{Context, Poll};
 
 <span class="doccomment">/// Future for the [`try_select()`] function.
 </span><span class="attr">#[must_use = <span class="string">&quot;futures do nothing unless you `.await` or poll them&quot;</span>]
@@ -94,7 +94,7 @@
     inner: <span class="prelude-ty">Option</span>&lt;(A, B)&gt;,
 }
 
-<span class="kw">impl</span>&lt;A: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>, B: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a> <span class="kw">for </span>TrySelect&lt;A, B&gt; {}
+<span class="kw">impl</span>&lt;A: Unpin, B: Unpin&gt; Unpin <span class="kw">for </span>TrySelect&lt;A, B&gt; {}
 
 <span class="doccomment">/// Waits for either one of two differently-typed futures to complete.
 ///
@@ -133,33 +133,33 @@
 /// ```
 </span><span class="kw">pub fn </span>try_select&lt;A, B&gt;(future1: A, future2: B) -&gt; TrySelect&lt;A, B&gt;
 <span class="kw">where
-    </span>A: <a href="../../../futures_util/future/trait.TryFuture.html">TryFuture</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
-    B: <a href="../../../futures_util/future/trait.TryFuture.html">TryFuture</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
+    </span>A: TryFuture + Unpin,
+    B: TryFuture + Unpin,
 {
     <span class="kw">super</span>::assert_future::&lt;
         <span class="prelude-ty">Result</span>&lt;Either&lt;(A::Ok, B), (B::Ok, A)&gt;, Either&lt;(A::Error, B), (B::Error, A)&gt;&gt;,
         <span class="kw">_</span>,
-    &gt;(<a href="#9">TrySelect</a> { inner: <span class="prelude-val">Some</span>((<a href="#50">future1</a>, <a href="#50">future2</a>)) })
+    &gt;(TrySelect { inner: <span class="prelude-val">Some</span>((future1, future2)) })
 }
 
-<span class="kw">impl</span>&lt;A: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>, B: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a> <span class="kw">for </span>TrySelect&lt;A, B&gt;
+<span class="kw">impl</span>&lt;A: Unpin, B: Unpin&gt; Future <span class="kw">for </span>TrySelect&lt;A, B&gt;
 <span class="kw">where
-    </span>A: <a href="../../../futures_util/future/trait.TryFuture.html">TryFuture</a>,
-    B: <a href="../../../futures_util/future/trait.TryFuture.html">TryFuture</a>,
+    </span>A: TryFuture,
+    B: TryFuture,
 {
     <span class="attr">#[allow(clippy::type_complexity)]
     </span><span class="kw">type </span>Output = <span class="prelude-ty">Result</span>&lt;Either&lt;(A::Ok, B), (B::Ok, A)&gt;, Either&lt;(A::Error, B), (B::Error, A)&gt;&gt;;
 
     <span class="kw">fn </span>poll(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
-        <span class="kw">let </span>(<span class="kw-2">mut </span>a, <span class="kw-2">mut </span>b) = <a class="self" href="#69">self</a>.inner.take().expect(<span class="string">&quot;cannot poll Select twice&quot;</span>);
-        <span class="kw">match </span><a href="#70">a</a>.<a href="try_future/mod.rs.html#619-621">try_poll_unpin</a>(<a href="#69">cx</a>) {
-            Poll::Ready(<span class="prelude-val">Err</span>(x)) =&gt; Poll::Ready(<span class="prelude-val">Err</span>(<a href="either.rs.html#30">Either::Left</a>((<a href="#72">x</a>, <a href="#70">b</a>)))),
-            Poll::Ready(<span class="prelude-val">Ok</span>(x)) =&gt; Poll::Ready(<span class="prelude-val">Ok</span>(<a href="either.rs.html#30">Either::Left</a>((<a href="#73">x</a>, <a href="#70">b</a>)))),
-            Poll::Pending =&gt; <span class="kw">match </span><a href="#70">b</a>.<a href="try_future/mod.rs.html#619-621">try_poll_unpin</a>(<a href="#69">cx</a>) {
-                Poll::Ready(<span class="prelude-val">Err</span>(x)) =&gt; Poll::Ready(<span class="prelude-val">Err</span>(<a href="either.rs.html#32">Either::Right</a>((<a href="#75">x</a>, <a href="#70">a</a>)))),
-                Poll::Ready(<span class="prelude-val">Ok</span>(x)) =&gt; Poll::Ready(<span class="prelude-val">Ok</span>(<a href="either.rs.html#32">Either::Right</a>((<a href="#76">x</a>, <a href="#70">a</a>)))),
+        <span class="kw">let </span>(<span class="kw-2">mut </span>a, <span class="kw-2">mut </span>b) = <span class="self">self</span>.inner.take().expect(<span class="string">&quot;cannot poll Select twice&quot;</span>);
+        <span class="kw">match </span>a.try_poll_unpin(cx) {
+            Poll::Ready(<span class="prelude-val">Err</span>(x)) =&gt; Poll::Ready(<span class="prelude-val">Err</span>(Either::Left((x, b)))),
+            Poll::Ready(<span class="prelude-val">Ok</span>(x)) =&gt; Poll::Ready(<span class="prelude-val">Ok</span>(Either::Left((x, b)))),
+            Poll::Pending =&gt; <span class="kw">match </span>b.try_poll_unpin(cx) {
+                Poll::Ready(<span class="prelude-val">Err</span>(x)) =&gt; Poll::Ready(<span class="prelude-val">Err</span>(Either::Right((x, a)))),
+                Poll::Ready(<span class="prelude-val">Ok</span>(x)) =&gt; Poll::Ready(<span class="prelude-val">Ok</span>(Either::Right((x, a)))),
                 Poll::Pending =&gt; {
-                    <a class="self" href="#69">self</a>.inner = <span class="prelude-val">Some</span>((<a href="#70">a</a>, <a href="#70">b</a>));
+                    <span class="self">self</span>.inner = <span class="prelude-val">Some</span>((a, b));
                     Poll::Pending
                 }
             },
@@ -167,4 +167,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="futures_util" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="futures_util" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

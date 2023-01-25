@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/warp-0.3.3/src/filters/log.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>log.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../warp/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/warp-0.3.3/src/filters/log.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>log.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../warp/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -280,18 +280,18 @@
 <a href="#280" id="280">280</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Logger Filters
 
-</span><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">std::fmt</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/net/socket_addr/enum.SocketAddr.html">std::net::SocketAddr</a>;
-<span class="kw">use </span>std::time::{<a href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a>, <a href="https://doc.rust-lang.org/nightly/std/time/struct.Instant.html">Instant</a>};
+</span><span class="kw">use </span>std::fmt;
+<span class="kw">use </span>std::net::SocketAddr;
+<span class="kw">use </span>std::time::{Duration, Instant};
 
-<span class="kw">use </span>http::{<a class="self" href="../../../http/index.html">self</a>, <a href="../../../http/header/index.html">header</a>, <a href="../../../http/status/struct.StatusCode.html">StatusCode</a>};
+<span class="kw">use </span>http::{<span class="self">self</span>, header, StatusCode};
 
-<span class="kw">use </span><span class="kw">crate</span>::filter::{<a href="../filter/mod.rs.html#93">Filter</a>, <a href="../filter/wrap.rs.html#3">WrapSealed</a>};
-<span class="kw">use </span><a href="../reject.rs.html#608"><span class="kw">crate</span>::reject::IsReject</a>;
-<span class="kw">use </span><a href="../reply.rs.html#228"><span class="kw">crate</span>::reply::Reply</a>;
-<span class="kw">use </span><a href="../route.rs.html#31"><span class="kw">crate</span>::route::Route</a>;
+<span class="kw">use </span><span class="kw">crate</span>::filter::{Filter, WrapSealed};
+<span class="kw">use </span><span class="kw">crate</span>::reject::IsReject;
+<span class="kw">use </span><span class="kw">crate</span>::reply::Reply;
+<span class="kw">use </span><span class="kw">crate</span>::route::Route;
 
-<span class="kw">use </span><a href="#211"><span class="self">self</span>::internal::WithLog</a>;
+<span class="kw">use </span><span class="self">self</span>::internal::WithLog;
 
 <span class="doccomment">/// Create a wrapping filter with the specified `name` as the `target`.
 ///
@@ -310,11 +310,11 @@
 ///     .map(warp::reply)
 ///     .with(log);
 /// ```
-</span><span class="kw">pub fn </span>log(name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; Log&lt;<span class="kw">impl </span>Fn(Info&lt;<span class="lifetime">&#39;_</span>&gt;) + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html">Copy</a>&gt; {
+</span><span class="kw">pub fn </span>log(name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str) -&gt; Log&lt;<span class="kw">impl </span>Fn(Info&lt;<span class="lifetime">&#39;_</span>&gt;) + Copy&gt; {
     <span class="kw">let </span>func = <span class="kw">move </span>|info: Info&lt;<span class="lifetime">&#39;_</span>&gt;| {
         <span class="comment">// TODO?
         // - response content length?
-        </span><a class="macro" href="../../../log/log/macro.info.html">log::info!</a>(
+        </span><span class="macro">log::info!</span>(
             target: name,
             <span class="string">&quot;{} \&quot;{} {} {:?}\&quot; {} \&quot;{}\&quot; \&quot;{}\&quot; {:?}&quot;</span>,
             OptFmt(info.route.remote_addr()),
@@ -327,7 +327,7 @@
             info.elapsed(),
         );
     };
-    <a href="#82">Log</a> { <a href="#34">func</a> }
+    Log { func }
 }
 
 <span class="doccomment">/// Create a wrapping filter that receives `warp::log::Info`.
@@ -354,7 +354,7 @@
 <span class="kw">where
     </span>F: Fn(Info&lt;<span class="lifetime">&#39;_</span>&gt;),
 {
-    <a href="#82">Log</a> { <a href="#73">func</a> }
+    Log { func }
 }
 
 <span class="doccomment">/// Decorates a [`Filter`](crate::Filter) to log requests and responses.
@@ -366,123 +366,123 @@
 <span class="doccomment">/// Information about the request/response that can be used to prepare log lines.
 </span><span class="attr">#[allow(missing_debug_implementations)]
 </span><span class="kw">pub struct </span>Info&lt;<span class="lifetime">&#39;a</span>&gt; {
-    route: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="../route.rs.html#31">Route</a>,
-    start: <a href="https://doc.rust-lang.org/nightly/std/time/struct.Instant.html">Instant</a>,
-    status: <a href="../../../http/status/struct.StatusCode.html">StatusCode</a>,
+    route: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Route,
+    start: Instant,
+    status: StatusCode,
 }
 
 <span class="kw">impl</span>&lt;FN, F&gt; WrapSealed&lt;F&gt; <span class="kw">for </span>Log&lt;FN&gt;
 <span class="kw">where
-    </span>FN: Fn(Info&lt;<span class="lifetime">&#39;_</span>&gt;) + <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a>,
-    F: <a href="../filter/mod.rs.html#93">Filter</a> + <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a>,
-    F::Extract: <a href="../reply.rs.html#228">Reply</a>,
-    F::Error: <a href="../reject.rs.html#608">IsReject</a>,
+    </span>FN: Fn(Info&lt;<span class="lifetime">&#39;_</span>&gt;) + Clone + Send,
+    F: Filter + Clone + Send,
+    F::Extract: Reply,
+    F::Error: IsReject,
 {
     <span class="kw">type </span>Wrapped = WithLog&lt;FN, F&gt;;
 
     <span class="kw">fn </span>wrap(<span class="kw-2">&amp;</span><span class="self">self</span>, filter: F) -&gt; <span class="self">Self</span>::Wrapped {
-        <a href="#211">WithLog</a> {
-            <a href="#103">filter</a>,
-            log: <a class="self" href="#103">self</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+        WithLog {
+            filter,
+            log: <span class="self">self</span>.clone(),
         }
     }
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; Info&lt;<span class="lifetime">&#39;a</span>&gt; {
     <span class="doccomment">/// View the remote `SocketAddr` of the request.
-    </span><span class="kw">pub fn </span>remote_addr(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/net/socket_addr/enum.SocketAddr.html">SocketAddr</a>&gt; {
-        <a class="self" href="#113">self</a>.route.<a href="../route.rs.html#126">remote_addr</a>()
+    </span><span class="kw">pub fn </span>remote_addr(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;SocketAddr&gt; {
+        <span class="self">self</span>.route.remote_addr()
     }
 
     <span class="doccomment">/// View the `http::Method` of the request.
-    </span><span class="kw">pub fn </span>method(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="../../../http/method/struct.Method.html">http::Method</a> {
-        <a class="self" href="#118">self</a>.route.<a href="../route.rs.html#61">method</a>()
+    </span><span class="kw">pub fn </span>method(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>http::Method {
+        <span class="self">self</span>.route.method()
     }
 
     <span class="doccomment">/// View the URI path of the request.
-    </span><span class="kw">pub fn </span>path(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> {
-        <a class="self" href="#123">self</a>.route.<a href="../route.rs.html#90">full_path</a>()
+    </span><span class="kw">pub fn </span>path(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>str {
+        <span class="self">self</span>.route.full_path()
     }
 
     <span class="doccomment">/// View the `http::Version` of the request.
-    </span><span class="kw">pub fn </span>version(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../../../http/version/struct.Version.html">http::Version</a> {
-        <a class="self" href="#128">self</a>.route.<a href="../route.rs.html#69">version</a>()
+    </span><span class="kw">pub fn </span>version(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; http::Version {
+        <span class="self">self</span>.route.version()
     }
 
     <span class="doccomment">/// View the `http::StatusCode` of the response.
-    </span><span class="kw">pub fn </span>status(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../../../http/status/struct.StatusCode.html">http::StatusCode</a> {
-        <a class="self" href="#133">self</a>.status
+    </span><span class="kw">pub fn </span>status(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; http::StatusCode {
+        <span class="self">self</span>.status
     }
 
     <span class="doccomment">/// View the referer of the request.
-    </span><span class="kw">pub fn </span>referer(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt; {
-        <a class="self" href="#138">self</a>.route
-            .<a href="../route.rs.html#65">headers</a>()
+    </span><span class="kw">pub fn </span>referer(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>str&gt; {
+        <span class="self">self</span>.route
+            .headers()
             .get(header::REFERER)
-            .and_then(|v| <a href="#142">v</a>.to_str().ok())
+            .and_then(|v| v.to_str().ok())
     }
 
     <span class="doccomment">/// View the user agent of the request.
-    </span><span class="kw">pub fn </span>user_agent(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt; {
-        <a class="self" href="#146">self</a>.route
-            .<a href="../route.rs.html#65">headers</a>()
+    </span><span class="kw">pub fn </span>user_agent(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>str&gt; {
+        <span class="self">self</span>.route
+            .headers()
             .get(header::USER_AGENT)
-            .and_then(|v| <a href="#150">v</a>.to_str().ok())
+            .and_then(|v| v.to_str().ok())
     }
 
     <span class="doccomment">/// View the `Duration` that elapsed for the request.
-    </span><span class="kw">pub fn </span>elapsed(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a> {
-        tokio::time::Instant::now().into_std() - <a class="self" href="#154">self</a>.start
+    </span><span class="kw">pub fn </span>elapsed(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Duration {
+        tokio::time::Instant::now().into_std() - <span class="self">self</span>.start
     }
 
     <span class="doccomment">/// View the host of the request
-    </span><span class="kw">pub fn </span>host(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt; {
-        <a class="self" href="#159">self</a>.route
-            .<a href="../route.rs.html#65">headers</a>()
+    </span><span class="kw">pub fn </span>host(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>str&gt; {
+        <span class="self">self</span>.route
+            .headers()
             .get(header::HOST)
-            .and_then(|v| <a href="#163">v</a>.to_str().ok())
+            .and_then(|v| v.to_str().ok())
     }
 
     <span class="doccomment">/// Access the full headers of the request
-    </span><span class="kw">pub fn </span>request_headers(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="../../../http/header/map/struct.HeaderMap.html">http::HeaderMap</a> {
-        <a class="self" href="#167">self</a>.route.<a href="../route.rs.html#65">headers</a>()
+    </span><span class="kw">pub fn </span>request_headers(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>http::HeaderMap {
+        <span class="self">self</span>.route.headers()
     }
 }
 
 <span class="kw">struct </span>OptFmt&lt;T&gt;(<span class="prelude-ty">Option</span>&lt;T&gt;);
 
-<span class="kw">impl</span>&lt;T: <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for </span>OptFmt&lt;T&gt; {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">ref </span>t) = <a class="self" href="#175">self</a>.<span class="number">0 </span>{
-            <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display::fmt</a>(<a href="#176">t</a>, <a href="#175">f</a>)
+<span class="kw">impl</span>&lt;T: fmt::Display&gt; fmt::Display <span class="kw">for </span>OptFmt&lt;T&gt; {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">ref </span>t) = <span class="self">self</span>.<span class="number">0 </span>{
+            fmt::Display::fmt(t, f)
         } <span class="kw">else </span>{
-            <a href="#175">f</a>.write_str(<span class="string">&quot;-&quot;</span>)
+            f.write_str(<span class="string">&quot;-&quot;</span>)
         }
     }
 }
 
 <span class="kw">mod </span>internal {
-    <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">std::future::Future</a>;
-    <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/pin/struct.Pin.html">std::pin::Pin</a>;
-    <span class="kw">use </span>std::task::{<a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>, <a href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">Poll</a>};
-    <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/time/struct.Instant.html">std::time::Instant</a>;
+    <span class="kw">use </span>std::future::Future;
+    <span class="kw">use </span>std::pin::Pin;
+    <span class="kw">use </span>std::task::{Context, Poll};
+    <span class="kw">use </span>std::time::Instant;
 
-    <span class="kw">use </span>futures_util::{<a href="../../../futures_core/macro.ready.html">ready</a>, <a href="../../../futures_core/future/trait.TryFuture.html">TryFuture</a>};
-    <span class="kw">use </span><a href="../../../pin_project_internal/attr.pin_project.html">pin_project::pin_project</a>;
+    <span class="kw">use </span>futures_util::{ready, TryFuture};
+    <span class="kw">use </span>pin_project::pin_project;
 
-    <span class="kw">use super</span>::{<a href="#88">Info</a>, <a href="#82">Log</a>};
-    <span class="kw">use </span><span class="kw">crate</span>::filter::{<a href="../filter/mod.rs.html#93">Filter</a>, <a href="../filter/mod.rs.html#39">FilterBase</a>, <a href="../filter/mod.rs.html#70">Internal</a>};
-    <span class="kw">use </span><a href="../reject.rs.html#608"><span class="kw">crate</span>::reject::IsReject</a>;
-    <span class="kw">use </span><span class="kw">crate</span>::reply::{<a href="../reply.rs.html#228">Reply</a>, <a href="../reply.rs.html#55">Response</a>};
-    <span class="kw">use </span><a href="../lib.rs.html#97"><span class="kw">crate</span>::route</a>;
+    <span class="kw">use super</span>::{Info, Log};
+    <span class="kw">use </span><span class="kw">crate</span>::filter::{Filter, FilterBase, Internal};
+    <span class="kw">use </span><span class="kw">crate</span>::reject::IsReject;
+    <span class="kw">use </span><span class="kw">crate</span>::reply::{Reply, Response};
+    <span class="kw">use </span><span class="kw">crate</span>::route;
 
     <span class="attr">#[allow(missing_debug_implementations)]
-    </span><span class="kw">pub struct </span>Logged(<span class="kw">pub</span>(<span class="kw">super</span>) <a href="../reply.rs.html#55">Response</a>);
+    </span><span class="kw">pub struct </span>Logged(<span class="kw">pub</span>(<span class="kw">super</span>) Response);
 
-    <span class="kw">impl </span><a href="../reply.rs.html#228">Reply</a> <span class="kw">for </span><a href="#200">Logged</a> {
+    <span class="kw">impl </span>Reply <span class="kw">for </span>Logged {
         <span class="attr">#[inline]
-        </span><span class="kw">fn </span>into_response(<span class="self">self</span>) -&gt; <a href="../reply.rs.html#55">Response</a> {
-            <a class="self" href="#204">self</a>.<span class="number">0
+        </span><span class="kw">fn </span>into_response(<span class="self">self</span>) -&gt; Response {
+            <span class="self">self</span>.<span class="number">0
         </span>}
     }
 
@@ -493,23 +493,23 @@
         <span class="kw">pub</span>(<span class="kw">super</span>) log: Log&lt;FN&gt;,
     }
 
-    <span class="kw">impl</span>&lt;FN, F&gt; <a href="../filter/mod.rs.html#39">FilterBase</a> <span class="kw">for </span>WithLog&lt;FN, F&gt;
+    <span class="kw">impl</span>&lt;FN, F&gt; FilterBase <span class="kw">for </span>WithLog&lt;FN, F&gt;
     <span class="kw">where
-        </span>FN: Fn(Info&lt;<span class="lifetime">&#39;_</span>&gt;) + <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a>,
-        F: <a href="../filter/mod.rs.html#93">Filter</a> + <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a>,
-        F::Extract: <a href="../reply.rs.html#228">Reply</a>,
-        F::Error: <a href="../reject.rs.html#608">IsReject</a>,
+        </span>FN: Fn(Info&lt;<span class="lifetime">&#39;_</span>&gt;) + Clone + Send,
+        F: Filter + Clone + Send,
+        F::Extract: Reply,
+        F::Error: IsReject,
     {
-        <span class="kw">type </span>Extract = (<a href="#200">Logged</a>,);
+        <span class="kw">type </span>Extract = (Logged,);
         <span class="kw">type </span>Error = F::Error;
         <span class="kw">type </span>Future = WithLogFuture&lt;FN, F::Future&gt;;
 
-        <span class="kw">fn </span>filter(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw">_</span>: <a href="../filter/mod.rs.html#70">Internal</a>) -&gt; <span class="self">Self</span>::Future {
+        <span class="kw">fn </span>filter(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw">_</span>: Internal) -&gt; <span class="self">Self</span>::Future {
             <span class="kw">let </span>started = tokio::time::Instant::now().into_std();
-            <a href="#239">WithLogFuture</a> {
-                log: <a class="self" href="#227">self</a>.log.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
-                future: <a class="self" href="#227">self</a>.filter.<a href="../filter/mod.rs.html#44">filter</a>(<a href="../filter/mod.rs.html#70">Internal</a>),
-                <a href="#228">started</a>,
+            WithLogFuture {
+                log: <span class="self">self</span>.log.clone(),
+                future: <span class="self">self</span>.filter.filter(Internal),
+                started,
             }
         }
     }
@@ -520,43 +520,43 @@
         log: Log&lt;FN&gt;,
         <span class="attr">#[pin]
         </span>future: F,
-        started: <a href="https://doc.rust-lang.org/nightly/std/time/struct.Instant.html">Instant</a>,
+        started: Instant,
     }
 
-    <span class="kw">impl</span>&lt;FN, F&gt; <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a> <span class="kw">for </span>WithLogFuture&lt;FN, F&gt;
+    <span class="kw">impl</span>&lt;FN, F&gt; Future <span class="kw">for </span>WithLogFuture&lt;FN, F&gt;
     <span class="kw">where
         </span>FN: Fn(Info&lt;<span class="lifetime">&#39;_</span>&gt;),
-        F: <a href="../../../futures_core/future/trait.TryFuture.html">TryFuture</a>,
-        F::Ok: <a href="../reply.rs.html#228">Reply</a>,
-        F::Error: <a href="../reject.rs.html#608">IsReject</a>,
+        F: TryFuture,
+        F::Ok: Reply,
+        F::Error: IsReject,
     {
-        <span class="kw">type </span>Output = <span class="prelude-ty">Result</span>&lt;(<a href="#200">Logged</a>,), F::Error&gt;;
+        <span class="kw">type </span>Output = <span class="prelude-ty">Result</span>&lt;(Logged,), F::Error&gt;;
 
         <span class="kw">fn </span>poll(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
-            <span class="kw">let </span>pin = <a class="self" href="#255">self</a>.as_mut().<a href="#238">project</a>();
-            <span class="kw">let </span>(result, status) = <span class="kw">match </span><a class="macro" href="../../../futures_core/macro.ready.html">ready!</a>(pin.future.try_poll(cx)) {
+            <span class="kw">let </span>pin = <span class="self">self</span>.as_mut().project();
+            <span class="kw">let </span>(result, status) = <span class="kw">match </span><span class="macro">ready!</span>(pin.future.try_poll(cx)) {
                 <span class="prelude-val">Ok</span>(reply) =&gt; {
-                    <span class="kw">let </span>resp = <a href="#258">reply</a>.<a href="../reply.rs.html#232">into_response</a>();
-                    <span class="kw">let </span>status = <a href="#259">resp</a>.status();
-                    (Poll::Ready(<span class="prelude-val">Ok</span>((<a href="#200">Logged</a>(<a href="#259">resp</a>),))), <a href="#260">status</a>)
+                    <span class="kw">let </span>resp = reply.into_response();
+                    <span class="kw">let </span>status = resp.status();
+                    (Poll::Ready(<span class="prelude-val">Ok</span>((Logged(resp),))), status)
                 }
                 <span class="prelude-val">Err</span>(reject) =&gt; {
-                    <span class="kw">let </span>status = <a href="#263">reject</a>.<a href="../reject.rs.html#609">status</a>();
-                    (Poll::Ready(<span class="prelude-val">Err</span>(<a href="#263">reject</a>)), <a href="#264">status</a>)
+                    <span class="kw">let </span>status = reject.status();
+                    (Poll::Ready(<span class="prelude-val">Err</span>(reject)), status)
                 }
             };
 
-            <a href="../route.rs.html#23-25">route::with</a>(|route| {
-                (<a class="self" href="#255">self</a>.log.func)(<a href="#88">Info</a> {
-                    <a href="#269">route</a>,
-                    start: <a class="self" href="#255">self</a>.started,
-                    <a href="#257">status</a>,
+            route::with(|route| {
+                (<span class="self">self</span>.log.func)(Info {
+                    route,
+                    start: <span class="self">self</span>.started,
+                    status,
                 });
             });
 
-            <a href="#257">result</a>
+            result
         }
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="warp" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="warp" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

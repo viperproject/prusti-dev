@@ -1,5 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/clap_derive-4.0.21/src/utils/ty.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>ty.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../clap_derive/index.html">
-                        <img src="https://raw.githubusercontent.com/clap-rs/clap/master/assets/clap.png" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/clap_derive-4.0.21/src/utils/ty.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>ty.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../clap_derive/index.html">
+                        <img src="https://raw.githubusercontent.com/clap-rs/clap/master/assets/clap.png" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -142,11 +142,11 @@
 <a href="#141" id="141">141</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Special types handling
 
-</span><span class="kw">use </span><a href="spanned.rs.html#9"><span class="kw">super</span>::spanned::Sp</a>;
+</span><span class="kw">use </span><span class="kw">super</span>::spanned::Sp;
 
 <span class="kw">use </span>syn::{
-    <a href="../../../syn/spanned/trait.Spanned.html">spanned::Spanned</a>, <a href="../../../syn/path/enum.GenericArgument.html">GenericArgument</a>, <a href="../../../syn/path/struct.Path.html">Path</a>, <a href="../../../syn/path/enum.PathArguments.html">PathArguments</a>, PathArguments::AngleBracketed,
-    <a href="../../../syn/path/struct.PathSegment.html">PathSegment</a>, <a href="../../../syn/ty/enum.Type.html">Type</a>, <a href="../../../syn/ty/struct.TypePath.html">TypePath</a>,
+    spanned::Spanned, GenericArgument, Path, PathArguments, PathArguments::AngleBracketed,
+    PathSegment, Type, TypePath,
 };
 
 <span class="attr">#[derive(Copy, Clone, PartialEq, Eq, Debug)]
@@ -159,30 +159,30 @@
     Other,
 }
 
-<span class="kw">impl </span><a href="#11">Ty</a> {
-    <span class="kw">pub fn </span>from_syn_ty(ty: <span class="kw-2">&amp;</span><a href="../../../syn/ty/enum.Type.html">syn::Type</a>) -&gt; Sp&lt;<span class="self">Self</span>&gt; {
-        <span class="kw">use </span><a href="#11"><span class="self">self</span>::Ty</a>::<span class="kw-2">*</span>;
-        <span class="kw">let </span>t = |kind| Sp::new(<a href="#23">kind</a>, <a href="#21">ty</a>.<a href="../../../syn/spanned/trait.Spanned.html">span</a>());
+<span class="kw">impl </span>Ty {
+    <span class="kw">pub fn </span>from_syn_ty(ty: <span class="kw-2">&amp;</span>syn::Type) -&gt; Sp&lt;<span class="self">Self</span>&gt; {
+        <span class="kw">use </span><span class="self">self</span>::Ty::<span class="kw-2">*</span>;
+        <span class="kw">let </span>t = |kind| Sp::new(kind, ty.span());
 
         <span class="kw">if </span>is_unit_ty(ty) {
-            <a href="#23">t</a>(<a href="#12">Unit</a>)
+            t(Unit)
         } <span class="kw">else if </span>is_generic_ty(ty, <span class="string">&quot;Vec&quot;</span>) {
-            <a href="#23">t</a>(<a href="#13">Vec</a>)
-        } <span class="kw">else if let </span><span class="prelude-val">Some</span>(subty) = <a href="#108">subty_if_name</a>(<a href="#21">ty</a>, <span class="string">&quot;Option&quot;</span>) {
+            t(Vec)
+        } <span class="kw">else if let </span><span class="prelude-val">Some</span>(subty) = subty_if_name(ty, <span class="string">&quot;Option&quot;</span>) {
             <span class="kw">if </span>is_generic_ty(subty, <span class="string">&quot;Option&quot;</span>) {
-                <a href="#23">t</a>(<a href="#15">OptionOption</a>)
+                t(OptionOption)
             } <span class="kw">else if </span>is_generic_ty(subty, <span class="string">&quot;Vec&quot;</span>) {
-                <a href="#23">t</a>(<a href="#16">OptionVec</a>)
+                t(OptionVec)
             } <span class="kw">else </span>{
-                <a href="#23">t</a>(<span class="prelude-ty">Option</span>)
+                t(<span class="prelude-ty">Option</span>)
             }
         } <span class="kw">else </span>{
-            <a href="#23">t</a>(<a href="#17">Other</a>)
+            t(Other)
         }
     }
 
-    <span class="kw">pub fn </span>as_str(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> {
-        <span class="kw">match </span><span class="self"><a href="#42">self</a> </span>{
+    <span class="kw">pub fn </span>as_str(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str {
+        <span class="kw">match </span><span class="self">self </span>{
             <span class="self">Self</span>::Unit =&gt; <span class="string">&quot;()&quot;</span>,
             <span class="self">Self</span>::Vec =&gt; <span class="string">&quot;Vec&lt;T&gt;&quot;</span>,
             <span class="self">Self</span>::Option =&gt; <span class="string">&quot;Option&lt;T&gt;&quot;</span>,
@@ -193,50 +193,50 @@
     }
 }
 
-<span class="kw">pub fn </span>inner_type(field_ty: <span class="kw-2">&amp;</span><a href="../../../syn/ty/enum.Type.html">syn::Type</a>) -&gt; <span class="kw-2">&amp;</span><a href="../../../syn/ty/enum.Type.html">syn::Type</a> {
-    <span class="kw">let </span>ty = Ty::from_syn_ty(<a href="#54">field_ty</a>);
-    <span class="kw">match </span><span class="kw-2">*</span><a href="#55">ty</a> {
-        <a href="#13">Ty::Vec</a> | <a href="#14">Ty::Option</a> =&gt; <a href="#65">sub_type</a>(<a href="#54">field_ty</a>).unwrap_or(<a href="#54">field_ty</a>),
-        <a href="#15">Ty::OptionOption</a> | <a href="#16">Ty::OptionVec</a> =&gt; {
-            <a href="#65">sub_type</a>(<a href="#54">field_ty</a>).and_then(<a href="#65">sub_type</a>).unwrap_or(<a href="#54">field_ty</a>)
+<span class="kw">pub fn </span>inner_type(field_ty: <span class="kw-2">&amp;</span>syn::Type) -&gt; <span class="kw-2">&amp;</span>syn::Type {
+    <span class="kw">let </span>ty = Ty::from_syn_ty(field_ty);
+    <span class="kw">match </span><span class="kw-2">*</span>ty {
+        Ty::Vec | Ty::Option =&gt; sub_type(field_ty).unwrap_or(field_ty),
+        Ty::OptionOption | Ty::OptionVec =&gt; {
+            sub_type(field_ty).and_then(sub_type).unwrap_or(field_ty)
         }
-        <span class="kw">_ </span>=&gt; <a href="#54">field_ty</a>,
+        <span class="kw">_ </span>=&gt; field_ty,
     }
 }
 
-<span class="kw">pub fn </span>sub_type(ty: <span class="kw-2">&amp;</span><a href="../../../syn/ty/enum.Type.html">syn::Type</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="../../../syn/ty/enum.Type.html">syn::Type</a>&gt; {
-    <a href="#87-89">subty_if</a>(<a href="#65">ty</a>, |<span class="kw">_</span>| <span class="bool-val">true</span>)
+<span class="kw">pub fn </span>sub_type(ty: <span class="kw-2">&amp;</span>syn::Type) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>syn::Type&gt; {
+    subty_if(ty, |<span class="kw">_</span>| <span class="bool-val">true</span>)
 }
 
-<span class="kw">fn </span>only_last_segment(<span class="kw-2">mut </span>ty: <span class="kw-2">&amp;</span><a href="../../../syn/ty/enum.Type.html">syn::Type</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="../../../syn/path/struct.PathSegment.html">PathSegment</a>&gt; {
+<span class="kw">fn </span>only_last_segment(<span class="kw-2">mut </span>ty: <span class="kw-2">&amp;</span>syn::Type) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>PathSegment&gt; {
     <span class="kw">while let </span>syn::Type::Group(syn::TypeGroup { elem, .. }) = ty {
         ty = elem;
     }
-    <span class="kw">match </span><a href="#69">ty</a> {
-        Type::Path(<a href="../../../syn/ty/struct.TypePath.html">TypePath</a> {
+    <span class="kw">match </span>ty {
+        Type::Path(TypePath {
             qself: <span class="prelude-val">None</span>,
             path:
-                <a href="../../../syn/path/struct.Path.html">Path</a> {
+                Path {
                     leading_colon: <span class="prelude-val">None</span>,
                     segments,
                 },
-        }) =&gt; <a href="#136-138">only_one</a>(<a href="#79">segments</a>.iter()),
+        }) =&gt; only_one(segments.iter()),
 
         <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
     }
 }
 
-<span class="kw">fn </span>subty_if&lt;F&gt;(ty: <span class="kw-2">&amp;</span><a href="../../../syn/ty/enum.Type.html">syn::Type</a>, f: F) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="../../../syn/ty/enum.Type.html">syn::Type</a>&gt;
+<span class="kw">fn </span>subty_if&lt;F&gt;(ty: <span class="kw-2">&amp;</span>syn::Type, f: F) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>syn::Type&gt;
 <span class="kw">where
-    </span>F: FnOnce(<span class="kw-2">&amp;</span><a href="../../../syn/path/struct.PathSegment.html">PathSegment</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
+    </span>F: FnOnce(<span class="kw-2">&amp;</span>PathSegment) -&gt; bool,
 {
-    <a href="#69">only_last_segment</a>(<a href="#87">ty</a>)
-        .filter(|segment| <a href="#87">f</a>(<a href="#92">segment</a>))
+    only_last_segment(ty)
+        .filter(|segment| f(segment))
         .and_then(|segment| {
-            <span class="kw">if let </span>AngleBracketed(args) = <span class="kw-2">&amp;</span><a href="#93">segment</a>.arguments {
-                <a href="#136-138">only_one</a>(<a href="#94">args</a>.args.iter()).and_then(|genneric| {
-                    <span class="kw">if let </span>GenericArgument::Type(ty) = <a href="#95">genneric</a> {
-                        <span class="prelude-val">Some</span>(<a href="#96">ty</a>)
+            <span class="kw">if let </span>AngleBracketed(args) = <span class="kw-2">&amp;</span>segment.arguments {
+                only_one(args.args.iter()).and_then(|genneric| {
+                    <span class="kw">if let </span>GenericArgument::Type(ty) = genneric {
+                        <span class="prelude-val">Some</span>(ty)
                     } <span class="kw">else </span>{
                         <span class="prelude-val">None
                     </span>}
@@ -247,15 +247,15 @@
         })
 }
 
-<span class="kw">pub fn </span>subty_if_name&lt;<span class="lifetime">&#39;a</span>&gt;(ty: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="../../../syn/ty/enum.Type.html">syn::Type</a>, name: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="../../../syn/ty/enum.Type.html">syn::Type</a>&gt; {
-    <a href="#87-89">subty_if</a>(<a href="#108">ty</a>, |seg| <a href="#109">seg</a>.ident == <a href="#108">name</a>)
+<span class="kw">pub fn </span>subty_if_name&lt;<span class="lifetime">&#39;a</span>&gt;(ty: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>syn::Type, name: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>syn::Type&gt; {
+    subty_if(ty, |seg| seg.ident == name)
 }
 
-<span class="kw">pub fn </span>is_simple_ty(ty: <span class="kw-2">&amp;</span><a href="../../../syn/ty/enum.Type.html">syn::Type</a>, name: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-    <a href="#69">only_last_segment</a>(<a href="#112">ty</a>)
+<span class="kw">pub fn </span>is_simple_ty(ty: <span class="kw-2">&amp;</span>syn::Type, name: <span class="kw-2">&amp;</span>str) -&gt; bool {
+    only_last_segment(ty)
         .map(|segment| {
-            <span class="kw">if let </span>PathArguments::None = <a href="#114">segment</a>.arguments {
-                <a href="#114">segment</a>.ident == <a href="#112">name</a>
+            <span class="kw">if let </span>PathArguments::None = segment.arguments {
+                segment.ident == name
             } <span class="kw">else </span>{
                 <span class="bool-val">false
             </span>}
@@ -263,13 +263,13 @@
         .unwrap_or(<span class="bool-val">false</span>)
 }
 
-<span class="kw">fn </span>is_generic_ty(ty: <span class="kw-2">&amp;</span><a href="../../../syn/ty/enum.Type.html">syn::Type</a>, name: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-    <a href="#108">subty_if_name</a>(<a href="#124">ty</a>, <a href="#124">name</a>).is_some()
+<span class="kw">fn </span>is_generic_ty(ty: <span class="kw-2">&amp;</span>syn::Type, name: <span class="kw-2">&amp;</span>str) -&gt; bool {
+    subty_if_name(ty, name).is_some()
 }
 
-<span class="kw">fn </span>is_unit_ty(ty: <span class="kw-2">&amp;</span><a href="../../../syn/ty/enum.Type.html">syn::Type</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-    <span class="kw">if let </span>syn::Type::Tuple(tuple) = <a href="#128">ty</a> {
-        <a href="#129">tuple</a>.elems.is_empty()
+<span class="kw">fn </span>is_unit_ty(ty: <span class="kw-2">&amp;</span>syn::Type) -&gt; bool {
+    <span class="kw">if let </span>syn::Type::Tuple(tuple) = ty {
+        tuple.elems.is_empty()
     } <span class="kw">else </span>{
         <span class="bool-val">false
     </span>}
@@ -279,7 +279,7 @@
 <span class="kw">where
     </span>I: Iterator&lt;Item = T&gt;,
 {
-    <a href="#136">iter</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>().filter(|<span class="kw">_</span>| <a href="#136">iter</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>().is_none())
+    iter.next().filter(|<span class="kw">_</span>| iter.next().is_none())
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="clap_derive" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="clap_derive" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

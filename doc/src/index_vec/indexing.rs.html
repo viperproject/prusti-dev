@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/index_vec-0.1.3/src/indexing.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>indexing.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../index_vec/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/index_vec-0.1.3/src/indexing.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>indexing.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../index_vec/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -229,7 +229,7 @@
 <a href="#229" id="229">229</a>
 <a href="#230" id="230">230</a>
 <a href="#231" id="231">231</a>
-</pre><pre class="rust"><code><span class="kw">use crate</span>::{<a href="lib.rs.html#177">Idx</a>, <a href="idxslice.rs.html#39">IndexSlice</a>};
+</pre><pre class="rust"><code><span class="kw">use crate</span>::{Idx, IndexSlice};
 
 <span class="kw">mod </span>private_slice_index {
     <span class="kw">pub trait </span>Sealed {}
@@ -238,8 +238,8 @@
 <span class="doccomment">/// This is the equivalent of the sealed `core::slice::SliceIndex` trait. It
 /// cannot be overridden from user, code nor should it normally need use
 /// directly (Outside of trait bounds, I guess).
-</span><span class="kw">pub trait </span>IdxSliceIndex&lt;I: <a href="lib.rs.html#177">Idx</a>, T&gt;: <a href="#4">private_slice_index::Sealed</a> {
-    <span class="kw">type </span>Output: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>;
+</span><span class="kw">pub trait </span>IdxSliceIndex&lt;I: Idx, T&gt;: private_slice_index::Sealed {
+    <span class="kw">type </span>Output: <span class="question-mark">?</span>Sized;
 
     <span class="kw">fn </span>get(<span class="self">self</span>, slice: <span class="kw-2">&amp;</span>IndexSlice&lt;I, [T]&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="self">Self</span>::Output&gt;;
     <span class="kw">fn </span>get_mut(<span class="self">self</span>, slice: <span class="kw-2">&amp;mut </span>IndexSlice&lt;I, [T]&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>::Output&gt;;
@@ -249,28 +249,28 @@
 }
 
 <span class="comment">// Does this defeat the point of sealing?
-</span><span class="kw">impl</span>&lt;I: <a href="lib.rs.html#177">Idx</a>&gt; <a href="#4">private_slice_index::Sealed</a> <span class="kw">for </span>I {}
+</span><span class="kw">impl</span>&lt;I: Idx&gt; private_slice_index::Sealed <span class="kw">for </span>I {}
 
-<span class="kw">impl</span>&lt;I: <a href="lib.rs.html#177">Idx</a>, T&gt; IdxSliceIndex&lt;I, T&gt; <span class="kw">for </span>I {
+<span class="kw">impl</span>&lt;I: Idx, T&gt; IdxSliceIndex&lt;I, T&gt; <span class="kw">for </span>I {
     <span class="kw">type </span>Output = T;
 
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>get(<span class="self">self</span>, slice: <span class="kw-2">&amp;</span>IndexSlice&lt;I, [T]&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="self">Self</span>::Output&gt; {
-        <a href="#27">slice</a>.raw.get(<a class="self" href="#27">self</a>.<a href="lib.rs.html#186">index</a>())
+        slice.raw.get(<span class="self">self</span>.index())
     }
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>get_mut(<span class="self">self</span>, slice: <span class="kw-2">&amp;mut </span>IndexSlice&lt;I, [T]&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>::Output&gt; {
-        <a href="#31">slice</a>.raw.get_mut(<a class="self" href="#31">self</a>.<a href="lib.rs.html#186">index</a>())
+        slice.raw.get_mut(<span class="self">self</span>.index())
     }
 
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>index(<span class="self">self</span>, slice: <span class="kw-2">&amp;</span>IndexSlice&lt;I, [T]&gt;) -&gt; <span class="kw-2">&amp;</span><span class="self">Self</span>::Output {
-        <span class="kw-2">&amp;</span><a href="#36">slice</a>.raw[<a class="self" href="#36">self</a>.<a href="lib.rs.html#186">index</a>()]
+        <span class="kw-2">&amp;</span>slice.raw[<span class="self">self</span>.index()]
     }
 
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>index_mut(<span class="self">self</span>, slice: <span class="kw-2">&amp;mut </span>IndexSlice&lt;I, [T]&gt;) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self</span>::Output {
-        <span class="kw-2">&amp;mut </span><a href="#41">slice</a>.raw[<a class="self" href="#41">self</a>.<a href="lib.rs.html#186">index</a>()]
+        <span class="kw-2">&amp;mut </span>slice.raw[<span class="self">self</span>.index()]
     }
 }
 
@@ -303,64 +303,64 @@
     };
 }
 
-<span class="kw">impl</span>&lt;I: <a href="lib.rs.html#177">Idx</a>&gt; <a href="#4">private_slice_index::Sealed</a> <span class="kw">for </span>core::ops::Range&lt;I&gt; {}
-<span class="kw">impl</span>&lt;I: <a href="lib.rs.html#177">Idx</a>&gt; <a href="#4">private_slice_index::Sealed</a> <span class="kw">for </span>core::ops::RangeFrom&lt;I&gt; {}
-<span class="kw">impl</span>&lt;I: <a href="lib.rs.html#177">Idx</a>&gt; <a href="#4">private_slice_index::Sealed</a> <span class="kw">for </span>core::ops::RangeTo&lt;I&gt; {}
-<span class="kw">impl</span>&lt;I: <a href="lib.rs.html#177">Idx</a>&gt; <a href="#4">private_slice_index::Sealed</a> <span class="kw">for </span>core::ops::RangeInclusive&lt;I&gt; {}
-<span class="kw">impl</span>&lt;I: <a href="lib.rs.html#177">Idx</a>&gt; <a href="#4">private_slice_index::Sealed</a> <span class="kw">for </span>core::ops::RangeToInclusive&lt;I&gt; {}
+<span class="kw">impl</span>&lt;I: Idx&gt; private_slice_index::Sealed <span class="kw">for </span>core::ops::Range&lt;I&gt; {}
+<span class="kw">impl</span>&lt;I: Idx&gt; private_slice_index::Sealed <span class="kw">for </span>core::ops::RangeFrom&lt;I&gt; {}
+<span class="kw">impl</span>&lt;I: Idx&gt; private_slice_index::Sealed <span class="kw">for </span>core::ops::RangeTo&lt;I&gt; {}
+<span class="kw">impl</span>&lt;I: Idx&gt; private_slice_index::Sealed <span class="kw">for </span>core::ops::RangeInclusive&lt;I&gt; {}
+<span class="kw">impl</span>&lt;I: Idx&gt; private_slice_index::Sealed <span class="kw">for </span>core::ops::RangeToInclusive&lt;I&gt; {}
 
-<a class="macro" href="#46-73">range_slice!</a>(core::ops::Range&lt;I&gt;);
-<a class="macro" href="#46-73">range_slice!</a>(core::ops::RangeFrom&lt;I&gt;);
-<a class="macro" href="#46-73">range_slice!</a>(core::ops::RangeTo&lt;I&gt;);
-<a class="macro" href="#46-73">range_slice!</a>(core::ops::RangeInclusive&lt;I&gt;);
-<a class="macro" href="#46-73">range_slice!</a>(core::ops::RangeToInclusive&lt;I&gt;);
+<span class="macro">range_slice!</span>(core::ops::Range&lt;I&gt;);
+<span class="macro">range_slice!</span>(core::ops::RangeFrom&lt;I&gt;);
+<span class="macro">range_slice!</span>(core::ops::RangeTo&lt;I&gt;);
+<span class="macro">range_slice!</span>(core::ops::RangeInclusive&lt;I&gt;);
+<span class="macro">range_slice!</span>(core::ops::RangeToInclusive&lt;I&gt;);
 <span class="comment">// range_slice!(core::ops::RangeFull);
-</span><span class="kw">impl </span><a href="#4">private_slice_index::Sealed</a> <span class="kw">for </span><a href="https://doc.rust-lang.org/nightly/core/ops/range/struct.RangeFull.html">core::ops::RangeFull</a> {}
-<span class="kw">impl</span>&lt;I: <a href="lib.rs.html#177">Idx</a>, T&gt; IdxSliceIndex&lt;I, T&gt; <span class="kw">for </span><a href="https://doc.rust-lang.org/nightly/core/ops/range/struct.RangeFull.html">core::ops::RangeFull</a> {
+</span><span class="kw">impl </span>private_slice_index::Sealed <span class="kw">for </span>core::ops::RangeFull {}
+<span class="kw">impl</span>&lt;I: Idx, T&gt; IdxSliceIndex&lt;I, T&gt; <span class="kw">for </span>core::ops::RangeFull {
     <span class="kw">type </span>Output = IndexSlice&lt;I, [T]&gt;;
 
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>get(<span class="self">self</span>, slice: <span class="kw-2">&amp;</span>IndexSlice&lt;I, [T]&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="self">Self</span>::Output&gt; {
-        <span class="prelude-val">Some</span>(<a href="#92">slice</a>)
+        <span class="prelude-val">Some</span>(slice)
     }
 
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>get_mut(<span class="self">self</span>, slice: <span class="kw-2">&amp;mut </span>IndexSlice&lt;I, [T]&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>::Output&gt; {
-        <span class="prelude-val">Some</span>(<a href="#97">slice</a>)
+        <span class="prelude-val">Some</span>(slice)
     }
 
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>index(<span class="self">self</span>, slice: <span class="kw-2">&amp;</span>IndexSlice&lt;I, [T]&gt;) -&gt; <span class="kw-2">&amp;</span><span class="self">Self</span>::Output {
-        <a href="#102">slice</a>
+        slice
     }
 
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>index_mut(<span class="self">self</span>, slice: <span class="kw-2">&amp;mut </span>IndexSlice&lt;I, [T]&gt;) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self</span>::Output {
-        <a href="#107">slice</a>
+        slice
     }
 }
 
-<span class="kw">impl </span><a href="#4">private_slice_index::Sealed</a> <span class="kw">for </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {}
+<span class="kw">impl </span>private_slice_index::Sealed <span class="kw">for </span>usize {}
 <span class="comment">// As an ergonomic concession, implement this for `usize` as well, it&#39;s too painful without
-</span><span class="kw">impl</span>&lt;I: <a href="lib.rs.html#177">Idx</a>, T&gt; IdxSliceIndex&lt;I, T&gt; <span class="kw">for </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
+</span><span class="kw">impl</span>&lt;I: Idx, T&gt; IdxSliceIndex&lt;I, T&gt; <span class="kw">for </span>usize {
     <span class="kw">type </span>Output = T;
 
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>get(<span class="self">self</span>, slice: <span class="kw-2">&amp;</span>IndexSlice&lt;I, [T]&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="self">Self</span>::Output&gt; {
-        <a href="#118">slice</a>.raw.get(<a class="self" href="#118">self</a>)
+        slice.raw.get(<span class="self">self</span>)
     }
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>get_mut(<span class="self">self</span>, slice: <span class="kw-2">&amp;mut </span>IndexSlice&lt;I, [T]&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>::Output&gt; {
-        <a href="#122">slice</a>.raw.get_mut(<a class="self" href="#122">self</a>)
+        slice.raw.get_mut(<span class="self">self</span>)
     }
 
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>index(<span class="self">self</span>, slice: <span class="kw-2">&amp;</span>IndexSlice&lt;I, [T]&gt;) -&gt; <span class="kw-2">&amp;</span><span class="self">Self</span>::Output {
-        <span class="kw-2">&amp;</span><a href="#127">slice</a>.raw[<a class="self" href="#127">self</a>]
+        <span class="kw-2">&amp;</span>slice.raw[<span class="self">self</span>]
     }
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>index_mut(<span class="self">self</span>, slice: <span class="kw-2">&amp;mut </span>IndexSlice&lt;I, [T]&gt;) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self</span>::Output {
-        <span class="kw-2">&amp;mut </span><a href="#131">slice</a>.raw[<a class="self" href="#131">self</a>]
+        <span class="kw-2">&amp;mut </span>slice.raw[<span class="self">self</span>]
     }
 }
 
@@ -371,11 +371,11 @@
 ///
 /// IMO it&#39;s unfortunate that this needs to be present in the API, but it
 /// doesn&#39;t hurt that much.
-</span><span class="kw">pub trait </span>IdxRangeBounds&lt;I&gt;: <a href="#152">private_range_bounds::Sealed</a>
+</span><span class="kw">pub trait </span>IdxRangeBounds&lt;I&gt;: private_range_bounds::Sealed
 <span class="kw">where
-    </span>I: <a href="lib.rs.html#177">Idx</a>,
+    </span>I: Idx,
 {
-    <span class="kw">type </span>Range: core::ops::RangeBounds&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;;
+    <span class="kw">type </span>Range: core::ops::RangeBounds&lt;usize&gt;;
     <span class="kw">fn </span>into_range(<span class="self">self</span>) -&gt; <span class="self">Self</span>::Range;
 }
 
@@ -383,82 +383,82 @@
     <span class="kw">pub trait </span>Sealed {}
 }
 
-<span class="kw">impl</span>&lt;I: <a href="lib.rs.html#177">Idx</a>&gt; <a href="#152">private_range_bounds::Sealed</a> <span class="kw">for </span>core::ops::Range&lt;I&gt; {}
-<span class="kw">impl</span>&lt;I: <a href="lib.rs.html#177">Idx</a>&gt; <a href="#152">private_range_bounds::Sealed</a> <span class="kw">for </span>core::ops::RangeFrom&lt;I&gt; {}
-<span class="kw">impl</span>&lt;I: <a href="lib.rs.html#177">Idx</a>&gt; <a href="#152">private_range_bounds::Sealed</a> <span class="kw">for </span>core::ops::RangeTo&lt;I&gt; {}
-<span class="kw">impl</span>&lt;I: <a href="lib.rs.html#177">Idx</a>&gt; <a href="#152">private_range_bounds::Sealed</a> <span class="kw">for </span>core::ops::RangeInclusive&lt;I&gt; {}
-<span class="kw">impl</span>&lt;I: <a href="lib.rs.html#177">Idx</a>&gt; <a href="#152">private_range_bounds::Sealed</a> <span class="kw">for </span>core::ops::RangeToInclusive&lt;I&gt; {}
-<span class="kw">impl </span><a href="#152">private_range_bounds::Sealed</a> <span class="kw">for </span><a href="https://doc.rust-lang.org/nightly/core/ops/range/struct.RangeFull.html">core::ops::RangeFull</a> {}
+<span class="kw">impl</span>&lt;I: Idx&gt; private_range_bounds::Sealed <span class="kw">for </span>core::ops::Range&lt;I&gt; {}
+<span class="kw">impl</span>&lt;I: Idx&gt; private_range_bounds::Sealed <span class="kw">for </span>core::ops::RangeFrom&lt;I&gt; {}
+<span class="kw">impl</span>&lt;I: Idx&gt; private_range_bounds::Sealed <span class="kw">for </span>core::ops::RangeTo&lt;I&gt; {}
+<span class="kw">impl</span>&lt;I: Idx&gt; private_range_bounds::Sealed <span class="kw">for </span>core::ops::RangeInclusive&lt;I&gt; {}
+<span class="kw">impl</span>&lt;I: Idx&gt; private_range_bounds::Sealed <span class="kw">for </span>core::ops::RangeToInclusive&lt;I&gt; {}
+<span class="kw">impl </span>private_range_bounds::Sealed <span class="kw">for </span>core::ops::RangeFull {}
 
-<span class="kw">impl</span>&lt;I: <a href="lib.rs.html#177">Idx</a>&gt; IdxRangeBounds&lt;I&gt; <span class="kw">for </span>core::ops::Range&lt;I&gt; {
-    <span class="kw">type </span>Range = core::ops::Range&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;;
+<span class="kw">impl</span>&lt;I: Idx&gt; IdxRangeBounds&lt;I&gt; <span class="kw">for </span>core::ops::Range&lt;I&gt; {
+    <span class="kw">type </span>Range = core::ops::Range&lt;usize&gt;;
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>into_range(<span class="self">self</span>) -&gt; <span class="self">Self</span>::Range {
-        <a class="self" href="#165">self</a>.start.<a href="lib.rs.html#186">index</a>()..<a class="self" href="#165">self</a>.end.<a href="lib.rs.html#186">index</a>()
+        <span class="self">self</span>.start.index()..<span class="self">self</span>.end.index()
     }
 }
 
-<span class="kw">impl</span>&lt;I: <a href="lib.rs.html#177">Idx</a>&gt; IdxRangeBounds&lt;I&gt; <span class="kw">for </span>core::ops::RangeFrom&lt;I&gt; {
-    <span class="kw">type </span>Range = core::ops::RangeFrom&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;;
+<span class="kw">impl</span>&lt;I: Idx&gt; IdxRangeBounds&lt;I&gt; <span class="kw">for </span>core::ops::RangeFrom&lt;I&gt; {
+    <span class="kw">type </span>Range = core::ops::RangeFrom&lt;usize&gt;;
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>into_range(<span class="self">self</span>) -&gt; <span class="self">Self</span>::Range {
-        <a class="self" href="#173">self</a>.start.<a href="lib.rs.html#186">index</a>()..
+        <span class="self">self</span>.start.index()..
     }
 }
 
-<span class="kw">impl</span>&lt;I: <a href="lib.rs.html#177">Idx</a>&gt; IdxRangeBounds&lt;I&gt; <span class="kw">for </span><a href="https://doc.rust-lang.org/nightly/core/ops/range/struct.RangeFull.html">core::ops::RangeFull</a> {
-    <span class="kw">type </span>Range = <a href="https://doc.rust-lang.org/nightly/core/ops/range/struct.RangeFull.html">core::ops::RangeFull</a>;
+<span class="kw">impl</span>&lt;I: Idx&gt; IdxRangeBounds&lt;I&gt; <span class="kw">for </span>core::ops::RangeFull {
+    <span class="kw">type </span>Range = core::ops::RangeFull;
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>into_range(<span class="self">self</span>) -&gt; <span class="self">Self</span>::Range {
-        <span class="self"><a href="#181">self</a>
+        <span class="self">self
     </span>}
 }
 
-<span class="kw">impl</span>&lt;I: <a href="lib.rs.html#177">Idx</a>&gt; IdxRangeBounds&lt;I&gt; <span class="kw">for </span>core::ops::RangeTo&lt;I&gt; {
-    <span class="kw">type </span>Range = core::ops::RangeTo&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;;
+<span class="kw">impl</span>&lt;I: Idx&gt; IdxRangeBounds&lt;I&gt; <span class="kw">for </span>core::ops::RangeTo&lt;I&gt; {
+    <span class="kw">type </span>Range = core::ops::RangeTo&lt;usize&gt;;
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>into_range(<span class="self">self</span>) -&gt; <span class="self">Self</span>::Range {
-        ..<a class="self" href="#189">self</a>.end.<a href="lib.rs.html#186">index</a>()
+        ..<span class="self">self</span>.end.index()
     }
 }
 
-<span class="kw">impl</span>&lt;I: <a href="lib.rs.html#177">Idx</a>&gt; IdxRangeBounds&lt;I&gt; <span class="kw">for </span>core::ops::RangeInclusive&lt;I&gt; {
-    <span class="kw">type </span>Range = core::ops::RangeInclusive&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;;
+<span class="kw">impl</span>&lt;I: Idx&gt; IdxRangeBounds&lt;I&gt; <span class="kw">for </span>core::ops::RangeInclusive&lt;I&gt; {
+    <span class="kw">type </span>Range = core::ops::RangeInclusive&lt;usize&gt;;
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>into_range(<span class="self">self</span>) -&gt; <span class="self">Self</span>::Range {
-        <a class="self" href="#197">self</a>.start().<a href="lib.rs.html#186">index</a>()..=<a class="self" href="#197">self</a>.end().<a href="lib.rs.html#186">index</a>()
+        <span class="self">self</span>.start().index()..=<span class="self">self</span>.end().index()
     }
 }
 
-<span class="kw">impl</span>&lt;I: <a href="lib.rs.html#177">Idx</a>&gt; IdxRangeBounds&lt;I&gt; <span class="kw">for </span>core::ops::RangeToInclusive&lt;I&gt; {
-    <span class="kw">type </span>Range = core::ops::RangeToInclusive&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;;
+<span class="kw">impl</span>&lt;I: Idx&gt; IdxRangeBounds&lt;I&gt; <span class="kw">for </span>core::ops::RangeToInclusive&lt;I&gt; {
+    <span class="kw">type </span>Range = core::ops::RangeToInclusive&lt;usize&gt;;
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>into_range(<span class="self">self</span>) -&gt; <span class="self">Self</span>::Range {
-        ..=<a class="self" href="#205">self</a>.end.<a href="lib.rs.html#186">index</a>()
+        ..=<span class="self">self</span>.end.index()
     }
 }
 
 <span class="kw">impl</span>&lt;I, R, T&gt; core::ops::Index&lt;R&gt; <span class="kw">for </span>IndexSlice&lt;I, [T]&gt;
 <span class="kw">where
-    </span>I: <a href="lib.rs.html#177">Idx</a>,
+    </span>I: Idx,
     R: IdxSliceIndex&lt;I, T&gt;,
 {
     <span class="kw">type </span>Output = R::Output;
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>index(<span class="kw-2">&amp;</span><span class="self">self</span>, index: R) -&gt; <span class="kw-2">&amp;</span>R::Output {
-        <a href="#217">index</a>.<a href="#16">index</a>(<a class="self" href="#217">self</a>)
+        index.index(<span class="self">self</span>)
     }
 }
 
 <span class="kw">impl</span>&lt;I, R, T&gt; core::ops::IndexMut&lt;R&gt; <span class="kw">for </span>IndexSlice&lt;I, [T]&gt;
 <span class="kw">where
-    </span>I: <a href="lib.rs.html#177">Idx</a>,
+    </span>I: Idx,
     R: IdxSliceIndex&lt;I, T&gt;,
 {
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>index_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>, index: R) -&gt; <span class="kw-2">&amp;mut </span>R::Output {
-        <a href="#228">index</a>.<a href="#17">index_mut</a>(<a class="self" href="#228">self</a>)
+        index.index_mut(<span class="self">self</span>)
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="index_vec" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="index_vec" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

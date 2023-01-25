@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `prusti-viper/src/encoder/mir/procedures/encoder/ghost.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>ghost.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../../../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../../../../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../../../../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../../../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../../../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../../../../../source-files.js"></script><script defer src="../../../../../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../../../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../../../../prusti_viper/index.html"><img class="rust-logo" src="../../../../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `prusti-viper/src/encoder/mir/procedures/encoder/ghost.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>ghost.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../../../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../../../../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../../../../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../../../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../../../../source-files.js"></script><script defer src="../../../../../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../../../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../../../../prusti_viper/index.html"><img class="rust-logo" src="../../../../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -122,23 +122,23 @@
 <a href="#122" id="122">122</a>
 <a href="#123" id="123">123</a>
 <a href="#124" id="124">124</a>
-</pre><pre class="rust"><code><span class="kw">use </span><a href="mod.rs.html#125"><span class="kw">super</span>::ProcedureEncoder</a>;
+</pre><pre class="rust"><code><span class="kw">use </span><span class="kw">super</span>::ProcedureEncoder;
 <span class="kw">use </span><span class="kw">crate</span>::encoder::{
-    errors::{<a href="../../../errors/spanned_encoding_error.rs.html#16">SpannedEncodingError</a>, <a href="../../../errors/spanned_encoding_error.rs.html#23">SpannedEncodingResult</a>},
-    <a href="../../specifications/interface.rs.html#72">mir::specifications::SpecificationsInterface</a>,
+    errors::{SpannedEncodingError, SpannedEncodingResult},
+    mir::specifications::SpecificationsInterface,
 };
 <span class="kw">use </span>prusti_rustc_interface::middle::{
     mir::{
-        <a class="self" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/index.html">self</a>,
-        visit::{<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/visit/enum.PlaceContext.html">PlaceContext</a>, <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/visit/trait.Visitor.html">Visitor</a>},
+        <span class="self">self</span>,
+        visit::{PlaceContext, Visitor},
     },
-    <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/index.html">ty</a>,
+    ty,
 };
-<span class="kw">use </span><a href="../../../../../../rustc_hash/type.FxHashSet.html">rustc_hash::FxHashSet</a>;
+<span class="kw">use </span>rustc_hash::FxHashSet;
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;p</span>, <span class="lifetime">&#39;v</span>: <span class="lifetime">&#39;p</span>, <span class="lifetime">&#39;tcx</span>: <span class="lifetime">&#39;v</span>&gt; <span class="kw">super</span>::ProcedureEncoder&lt;<span class="lifetime">&#39;p</span>, <span class="lifetime">&#39;v</span>, <span class="lifetime">&#39;tcx</span>&gt; {
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>encode_ghost_blocks(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; SpannedEncodingResult&lt;()&gt; {
-        <span class="kw">let </span>ghost_blocks = <a class="self" href="#16">self</a>.specification_blocks.<a href="specification_blocks.rs.html#191">ghost_blocks</a>();
+        <span class="kw">let </span>ghost_blocks = <span class="self">self</span>.specification_blocks.ghost_blocks();
 
         <span class="kw">if </span>ghost_blocks.is_empty() {
             <span class="kw">return </span><span class="prelude-val">Ok</span>(());
@@ -152,7 +152,7 @@
             }
         }
 
-        <span class="kw">let </span>violations = GhostChecker::find_violations(<a class="self" href="#16">self</a>);
+        <span class="kw">let </span>violations = GhostChecker::find_violations(<span class="self">self</span>);
         <span class="kw">for </span>violation <span class="kw">in </span>violations {
             <span class="prelude-val">Err</span>(violation)<span class="question-mark">?</span>;
         }
@@ -163,17 +163,17 @@
 
 <span class="kw">struct </span>GhostChecker&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;p</span>: <span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;v</span>: <span class="lifetime">&#39;p</span>, <span class="lifetime">&#39;tcx</span>: <span class="lifetime">&#39;v</span>&gt; {
     p: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>ProcedureEncoder&lt;<span class="lifetime">&#39;p</span>, <span class="lifetime">&#39;v</span>, <span class="lifetime">&#39;tcx</span>&gt;,
-    normal_vars: FxHashSet&lt;<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Local.html">mir::Local</a>&gt;,
-    violations: Vec&lt;<a href="../../../errors/spanned_encoding_error.rs.html#16">SpannedEncodingError</a>&gt;,
+    normal_vars: FxHashSet&lt;mir::Local&gt;,
+    violations: Vec&lt;SpannedEncodingError&gt;,
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;p</span>, <span class="lifetime">&#39;v</span>, <span class="lifetime">&#39;tcx</span>&gt; GhostChecker&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;p</span>, <span class="lifetime">&#39;v</span>, <span class="lifetime">&#39;tcx</span>&gt; {
-    <span class="kw">fn </span>is_ghost_place(<span class="kw-2">&amp;</span><span class="self">self</span>, location: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Location.html">mir::Location</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#47">self</a>.p.specification_blocks.<a href="specification_blocks.rs.html#183">is_ghost_block</a>(<a href="#47">location</a>.block)
+    <span class="kw">fn </span>is_ghost_place(<span class="kw-2">&amp;</span><span class="self">self</span>, location: mir::Location) -&gt; bool {
+        <span class="self">self</span>.p.specification_blocks.is_ghost_block(location.block)
     }
-    <span class="kw">fn </span>is_ghost_local(<span class="kw-2">&amp;</span><span class="self">self</span>, local: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Local.html">mir::Local</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">let </span>ty = <span class="kw-2">&amp;</span><a class="self" href="#50">self</a>.p.mir.local_decls[<span class="kw-2">*</span><a href="#50">local</a>].ty;
-        <span class="kw">let </span>ty_str = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;{:?}&quot;</span>, ty);
+    <span class="kw">fn </span>is_ghost_local(<span class="kw-2">&amp;</span><span class="self">self</span>, local: <span class="kw-2">&amp;</span>mir::Local) -&gt; bool {
+        <span class="kw">let </span>ty = <span class="kw-2">&amp;</span><span class="self">self</span>.p.mir.local_decls[<span class="kw-2">*</span>local].ty;
+        <span class="kw">let </span>ty_str = <span class="macro">format!</span>(<span class="string">&quot;{ty:?}&quot;</span>);
 
         <span class="kw">let </span>ghost_tys = [<span class="string">&quot;Ghost&quot;</span>, <span class="string">&quot;Int&quot;</span>, <span class="string">&quot;Seq&quot;</span>, <span class="string">&quot;Map&quot;</span>];
 
@@ -184,67 +184,67 @@
         }
 
         <span class="comment">// unit types get generated all over, and carry no information, thus okay to leak outside the ghost block
-        </span><a href="#51">ty</a>.is_unit()
+        </span>ty.is_unit()
     }
-    <span class="kw">fn </span>find_violations(p: <span class="kw-2">&amp;</span>ProcedureEncoder&lt;<span class="lifetime">&#39;p</span>, <span class="lifetime">&#39;v</span>, <span class="lifetime">&#39;tcx</span>&gt;) -&gt; Vec&lt;<a href="../../../errors/spanned_encoding_error.rs.html#16">SpannedEncodingError</a>&gt; {
-        <span class="kw">let </span><span class="kw-2">mut </span>checker = <a href="#40">GhostChecker</a> {
-            <a href="#65">p</a>,
-            normal_vars: <a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default::default</a>(),
-            violations: <a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default::default</a>(),
+    <span class="kw">fn </span>find_violations(p: <span class="kw-2">&amp;</span>ProcedureEncoder&lt;<span class="lifetime">&#39;p</span>, <span class="lifetime">&#39;v</span>, <span class="lifetime">&#39;tcx</span>&gt;) -&gt; Vec&lt;SpannedEncodingError&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>checker = GhostChecker {
+            p,
+            normal_vars: Default::default(),
+            violations: Default::default(),
         };
 
         <span class="comment">// first visit is to find all the normal variables
-        </span><a href="#66">checker</a>.<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/visit/trait.Visitor.html">visit_body</a>(<a href="#65">p</a>.mir);
+        </span>checker.visit_body(p.mir);
         <span class="comment">// second visit is to find all the mutations to the normal variables within ghost code
-        </span><a href="#66">checker</a>.<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/visit/trait.Visitor.html">visit_body</a>(<a href="#65">p</a>.mir);
+        </span>checker.visit_body(p.mir);
 
-        <a href="#66">checker</a>.violations
+        checker.violations
     }
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;p</span>, <span class="lifetime">&#39;v</span>, <span class="lifetime">&#39;tcx</span>&gt; Visitor&lt;<span class="lifetime">&#39;tcx</span>&gt; <span class="kw">for </span>GhostChecker&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;p</span>, <span class="lifetime">&#39;v</span>, <span class="lifetime">&#39;tcx</span>&gt; {
-    <span class="kw">fn </span>visit_local(<span class="kw-2">&amp;mut </span><span class="self">self</span>, local: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Local.html">mir::Local</a>, context: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/visit/enum.PlaceContext.html">PlaceContext</a>, location: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Location.html">mir::Location</a>) {
-        <span class="kw">let </span>is_ghost = <a class="self" href="#82">self</a>.<a href="#47">is_ghost_place</a>(<a href="#82">location</a>) || <a class="self" href="#82">self</a>.<a href="#50">is_ghost_local</a>(<span class="kw-2">&amp;</span><a href="#82">local</a>);
+    <span class="kw">fn </span>visit_local(<span class="kw-2">&amp;mut </span><span class="self">self</span>, local: mir::Local, context: PlaceContext, location: mir::Location) {
+        <span class="kw">let </span>is_ghost = <span class="self">self</span>.is_ghost_place(location) || <span class="self">self</span>.is_ghost_local(<span class="kw-2">&amp;</span>local);
         <span class="kw">if </span>!is_ghost &amp;&amp; context.is_use() {
-            <a class="self" href="#82">self</a>.normal_vars.insert(<a href="#82">local</a>);
+            <span class="self">self</span>.normal_vars.insert(local);
         }
         <span class="kw">if </span>is_ghost &amp;&amp; context.is_mutating_use() &amp;&amp; <span class="self">self</span>.normal_vars.contains(<span class="kw-2">&amp;</span>local) {
             <span class="kw">let </span>stmt =
-                <span class="kw-2">&amp;</span><a class="self" href="#82">self</a>.p.mir.basic_blocks[<a href="#82">location</a>.block].statements[<a href="#82">location</a>.statement_index];
-            <span class="kw">let </span>span = <a href="#88">stmt</a>.source_info.span;
-            <a class="macro" href="../../../../../../log/macro.debug.html">log::debug!</a>(<span class="string">&quot;violating statement: {:?}&quot;</span>, stmt);
-            <a class="self" href="#82">self</a>.violations.push(SpannedEncodingError::incorrect(
+                <span class="kw-2">&amp;</span><span class="self">self</span>.p.mir.basic_blocks[location.block].statements[location.statement_index];
+            <span class="kw">let </span>span = stmt.source_info.span;
+            <span class="macro">log::debug!</span>(<span class="string">&quot;violating statement: {:?}&quot;</span>, stmt);
+            <span class="self">self</span>.violations.push(SpannedEncodingError::incorrect(
                 <span class="string">&quot;mutating non-ghost variable within ghost block&quot;</span>,
-                <a href="#90">span</a>,
+                span,
             ));
         }
     }
-    <span class="kw">fn </span>visit_terminator(<span class="kw-2">&amp;mut </span><span class="self">self</span>, term: <span class="kw-2">&amp;</span>mir::Terminator&lt;<span class="lifetime">&#39;tcx</span>&gt;, location: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Location.html">mir::Location</a>) {
+    <span class="kw">fn </span>visit_terminator(<span class="kw-2">&amp;mut </span><span class="self">self</span>, term: <span class="kw-2">&amp;</span>mir::Terminator&lt;<span class="lifetime">&#39;tcx</span>&gt;, location: mir::Location) {
         <span class="kw">if </span><span class="self">self</span>.is_ghost_place(location) {
-            <span class="kw">match </span><span class="kw-2">&amp;</span><a href="#98">term</a>.kind {
-                <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/syntax/enum.TerminatorKind.html">mir::TerminatorKind::Call</a> {
-                    func: mir::Operand::Constant(<span class="kw">box </span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Constant.html">mir::Constant</a> { literal, .. }),
+            <span class="kw">match </span><span class="kw-2">&amp;</span>term.kind {
+                mir::TerminatorKind::Call {
+                    func: mir::Operand::Constant(<span class="kw">box </span>mir::Constant { literal, .. }),
                     ..
                 } =&gt; {
-                    <span class="kw">if let </span>ty::TyKind::FnDef(def_id, _call_substs) = <a href="#102">literal</a>.ty().kind() {
+                    <span class="kw">if let </span>ty::TyKind::FnDef(def_id, _call_substs) = literal.ty().kind() {
                         <span class="kw">if </span>!<span class="self">self</span>.p.encoder.is_pure(<span class="kw-2">*</span>def_id, <span class="prelude-val">None</span>) {
-                            <a class="self" href="#98">self</a>.violations.push(SpannedEncodingError::incorrect(
+                            <span class="self">self</span>.violations.push(SpannedEncodingError::incorrect(
                                 <span class="string">&quot;Only pure function calls are allowed in ghost blocks.&quot;</span>,
-                                <a href="#98">term</a>.source_info.span,
+                                term.source_info.span,
                             ));
                         }
                     } <span class="kw">else </span>{
-                        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unimplemented.html">unimplemented!</a>();
+                        <span class="macro">unimplemented!</span>();
                     }
                 }
-                <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/syntax/enum.TerminatorKind.html">mir::TerminatorKind::Call</a> { .. } =&gt; {
-                    <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unimplemented.html">unimplemented!</a>();
+                mir::TerminatorKind::Call { .. } =&gt; {
+                    <span class="macro">unimplemented!</span>();
                 }
                 <span class="kw">_ </span>=&gt; (),
             }
         }
-        <a class="self" href="#98">self</a>.<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/visit/trait.Visitor.html">super_terminator</a>(<a href="#98">term</a>, <a href="#98">location</a>);
+        <span class="self">self</span>.super_terminator(term, location);
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../../../" data-static-root-path="../../../../../../static.files/" data-current-crate="prusti_viper" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../../../../" data-static-root-path="../../../../../../static.files/" data-current-crate="prusti_viper" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

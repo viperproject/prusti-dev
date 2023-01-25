@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/warp-0.3.3/src/filter/or.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>or.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../warp/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/warp-0.3.3/src/filter/or.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>or.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../warp/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -108,17 +108,17 @@
 <a href="#108" id="108">108</a>
 <a href="#109" id="109">109</a>
 <a href="#110" id="110">110</a>
-</pre><pre class="rust"><code><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">std::future::Future</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/pin/struct.Pin.html">std::pin::Pin</a>;
-<span class="kw">use </span>std::task::{<a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>, <a href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">Poll</a>};
+</pre><pre class="rust"><code><span class="kw">use </span>std::future::Future;
+<span class="kw">use </span>std::pin::Pin;
+<span class="kw">use </span>std::task::{Context, Poll};
 
-<span class="kw">use </span>futures_util::{<a href="../../../futures_core/macro.ready.html">ready</a>, <a href="../../../futures_core/future/trait.TryFuture.html">TryFuture</a>};
-<span class="kw">use </span><a href="../../../pin_project_internal/attr.pin_project.html">pin_project::pin_project</a>;
+<span class="kw">use </span>futures_util::{ready, TryFuture};
+<span class="kw">use </span>pin_project::pin_project;
 
-<span class="kw">use super</span>::{<a href="mod.rs.html#93">Filter</a>, <a href="mod.rs.html#39">FilterBase</a>, <a href="mod.rs.html#70">Internal</a>};
-<span class="kw">use </span><a href="../generic.rs.html#12"><span class="kw">crate</span>::generic::Either</a>;
-<span class="kw">use </span><a href="../reject.rs.html#626"><span class="kw">crate</span>::reject::CombineRejection</a>;
-<span class="kw">use </span><a href="../lib.rs.html#97"><span class="kw">crate</span>::route</a>;
+<span class="kw">use super</span>::{Filter, FilterBase, Internal};
+<span class="kw">use </span><span class="kw">crate</span>::generic::Either;
+<span class="kw">use </span><span class="kw">crate</span>::reject::CombineRejection;
+<span class="kw">use </span><span class="kw">crate</span>::route;
 
 <span class="kw">type </span>Combined&lt;E1, E2&gt; = &lt;E1 <span class="kw">as </span>CombineRejection&lt;E2&gt;&gt;::Combined;
 
@@ -128,10 +128,10 @@
     <span class="kw">pub</span>(<span class="kw">super</span>) second: U,
 }
 
-<span class="kw">impl</span>&lt;T, U&gt; <a href="mod.rs.html#39">FilterBase</a> <span class="kw">for </span>Or&lt;T, U&gt;
+<span class="kw">impl</span>&lt;T, U&gt; FilterBase <span class="kw">for </span>Or&lt;T, U&gt;
 <span class="kw">where
-    </span>T: <a href="mod.rs.html#93">Filter</a>,
-    U: <a href="mod.rs.html#93">Filter</a> + <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a>,
+    </span>T: Filter,
+    U: Filter + Clone + Send,
     U::Error: CombineRejection&lt;T::Error&gt;,
 {
     <span class="kw">type </span>Extract = (Either&lt;T::Extract, U::Extract&gt;,);
@@ -139,84 +139,84 @@
     </span><span class="kw">type </span>Error = Combined&lt;U::Error, T::Error&gt;;
     <span class="kw">type </span>Future = EitherFuture&lt;T, U&gt;;
 
-    <span class="kw">fn </span>filter(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw">_</span>: <a href="mod.rs.html#70">Internal</a>) -&gt; <span class="self">Self</span>::Future {
-        <span class="kw">let </span>idx = <a href="../route.rs.html#23-25">route::with</a>(|route| <a href="#33">route</a>.<a href="../route.rs.html#112">matched_path_index</a>());
-        <a href="#43">EitherFuture</a> {
-            state: <a href="#51">State::First</a>(<a class="self" href="#32">self</a>.first.<a href="mod.rs.html#44">filter</a>(<a href="mod.rs.html#70">Internal</a>), <a class="self" href="#32">self</a>.second.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()),
-            original_path_index: <a href="#57">PathIndex</a>(<a href="#33">idx</a>),
+    <span class="kw">fn </span>filter(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw">_</span>: Internal) -&gt; <span class="self">Self</span>::Future {
+        <span class="kw">let </span>idx = route::with(|route| route.matched_path_index());
+        EitherFuture {
+            state: State::First(<span class="self">self</span>.first.filter(Internal), <span class="self">self</span>.second.clone()),
+            original_path_index: PathIndex(idx),
         }
     }
 }
 
 <span class="attr">#[allow(missing_debug_implementations)]
 #[pin_project]
-</span><span class="kw">pub struct </span>EitherFuture&lt;T: <a href="mod.rs.html#93">Filter</a>, U: <a href="mod.rs.html#93">Filter</a>&gt; {
+</span><span class="kw">pub struct </span>EitherFuture&lt;T: Filter, U: Filter&gt; {
     <span class="attr">#[pin]
     </span>state: State&lt;T, U&gt;,
-    original_path_index: <a href="#57">PathIndex</a>,
+    original_path_index: PathIndex,
 }
 
 <span class="attr">#[pin_project(project = StateProj)]
-</span><span class="kw">enum </span>State&lt;T: <a href="mod.rs.html#93">Filter</a>, U: <a href="mod.rs.html#93">Filter</a>&gt; {
+</span><span class="kw">enum </span>State&lt;T: Filter, U: Filter&gt; {
     First(<span class="attr">#[pin] </span>T::Future, U),
     Second(<span class="prelude-ty">Option</span>&lt;T::Error&gt;, <span class="attr">#[pin] </span>U::Future),
     Done,
 }
 
 <span class="attr">#[derive(Copy, Clone)]
-</span><span class="kw">struct </span>PathIndex(<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>);
+</span><span class="kw">struct </span>PathIndex(usize);
 
-<span class="kw">impl </span><a href="#57">PathIndex</a> {
+<span class="kw">impl </span>PathIndex {
     <span class="kw">fn </span>reset_path(<span class="kw-2">&amp;</span><span class="self">self</span>) {
-        <a href="../route.rs.html#23-25">route::with</a>(|route| <a href="#61">route</a>.<a href="../route.rs.html#116">reset_matched_path_index</a>(<a class="self" href="#60">self</a>.<span class="number">0</span>));
+        route::with(|route| route.reset_matched_path_index(<span class="self">self</span>.<span class="number">0</span>));
     }
 }
 
-<span class="kw">impl</span>&lt;T, U&gt; <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a> <span class="kw">for </span>EitherFuture&lt;T, U&gt;
+<span class="kw">impl</span>&lt;T, U&gt; Future <span class="kw">for </span>EitherFuture&lt;T, U&gt;
 <span class="kw">where
-    </span>T: <a href="mod.rs.html#93">Filter</a>,
-    U: <a href="mod.rs.html#93">Filter</a>,
+    </span>T: Filter,
+    U: Filter,
     U::Error: CombineRejection&lt;T::Error&gt;,
 {
     <span class="kw">type </span>Output = <span class="prelude-ty">Result</span>&lt;(Either&lt;T::Extract, U::Extract&gt;,), Combined&lt;U::Error, T::Error&gt;&gt;;
 
     <span class="kw">fn </span>poll(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
         <span class="kw">loop </span>{
-            <span class="kw">let </span>pin = <a class="self" href="#73">self</a>.as_mut().<a href="#42">project</a>();
-            <span class="kw">let </span>(err1, fut2) = <span class="kw">match </span><a href="#75">pin</a>.state.<a href="#49">project</a>() {
-                <a href="#49">StateProj::First</a>(first, second) =&gt; <span class="kw">match </span><a class="macro" href="../../../futures_core/macro.ready.html">ready!</a>(first.try_poll(cx)) {
+            <span class="kw">let </span>pin = <span class="self">self</span>.as_mut().project();
+            <span class="kw">let </span>(err1, fut2) = <span class="kw">match </span>pin.state.project() {
+                StateProj::First(first, second) =&gt; <span class="kw">match </span><span class="macro">ready!</span>(first.try_poll(cx)) {
                     <span class="prelude-val">Ok</span>(ex1) =&gt; {
-                        <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Ok</span>((<a href="../generic.rs.html#13">Either::A</a>(<a href="#78">ex1</a>),)));
+                        <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Ok</span>((Either::A(ex1),)));
                     }
                     <span class="prelude-val">Err</span>(e) =&gt; {
-                        <a href="#75">pin</a>.original_path_index.<a href="#60">reset_path</a>();
-                        (<a href="#81">e</a>, <a href="#77">second</a>.<a href="mod.rs.html#44">filter</a>(<a href="mod.rs.html#70">Internal</a>))
+                        pin.original_path_index.reset_path();
+                        (e, second.filter(Internal))
                     }
                 },
-                <a href="#49">StateProj::Second</a>(err1, second) =&gt; {
-                    <span class="kw">let </span>ex2 = <span class="kw">match </span><a class="macro" href="../../../futures_core/macro.ready.html">ready!</a>(second.try_poll(cx)) {
-                        <span class="prelude-val">Ok</span>(ex2) =&gt; <span class="prelude-val">Ok</span>((<a href="../generic.rs.html#14">Either::B</a>(<a href="#88">ex2</a>),)),
+                StateProj::Second(err1, second) =&gt; {
+                    <span class="kw">let </span>ex2 = <span class="kw">match </span><span class="macro">ready!</span>(second.try_poll(cx)) {
+                        <span class="prelude-val">Ok</span>(ex2) =&gt; <span class="prelude-val">Ok</span>((Either::B(ex2),)),
                         <span class="prelude-val">Err</span>(e) =&gt; {
-                            <a href="#75">pin</a>.original_path_index.<a href="#60">reset_path</a>();
-                            <span class="kw">let </span>err1 = <a href="#86">err1</a>.take().expect(<span class="string">&quot;polled after complete&quot;</span>);
-                            <span class="prelude-val">Err</span>(<a href="#89">e</a>.<a href="../reject.rs.html#646">combine</a>(<a href="#91">err1</a>))
+                            pin.original_path_index.reset_path();
+                            <span class="kw">let </span>err1 = err1.take().expect(<span class="string">&quot;polled after complete&quot;</span>);
+                            <span class="prelude-val">Err</span>(e.combine(err1))
                         }
                     };
-                    <a class="self" href="#73">self</a>.set(<a href="#43">EitherFuture</a> {
-                        state: <a href="#53">State::Done</a>,
-                        ..<span class="kw-2">*</span><span class="self"><a href="#73">self</a>
+                    <span class="self">self</span>.set(EitherFuture {
+                        state: State::Done,
+                        ..<span class="kw-2">*</span><span class="self">self
                     </span>});
-                    <span class="kw">return </span>Poll::Ready(<a href="#87">ex2</a>);
+                    <span class="kw">return </span>Poll::Ready(ex2);
                 }
-                <a href="#53">StateProj::Done</a> =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(<span class="string">&quot;polled after complete&quot;</span>),
+                StateProj::Done =&gt; <span class="macro">panic!</span>(<span class="string">&quot;polled after complete&quot;</span>),
             };
 
-            <a class="self" href="#73">self</a>.set(<a href="#43">EitherFuture</a> {
-                state: <a href="#52">State::Second</a>(<span class="prelude-val">Some</span>(<a href="#76">err1</a>), <a href="#76">fut2</a>),
-                ..<span class="kw-2">*</span><span class="self"><a href="#73">self</a>
+            <span class="self">self</span>.set(EitherFuture {
+                state: State::Second(<span class="prelude-val">Some</span>(err1), fut2),
+                ..<span class="kw-2">*</span><span class="self">self
             </span>});
         }
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="warp" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="warp" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

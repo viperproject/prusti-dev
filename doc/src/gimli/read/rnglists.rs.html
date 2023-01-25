@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/gimli-0.26.2/src/read/rnglists.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>rnglists.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../gimli/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/gimli-0.27.0/src/read/rnglists.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>rnglists.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../gimli/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -1352,15 +1352,119 @@
 <a href="#1352" id="1352">1352</a>
 <a href="#1353" id="1353">1353</a>
 <a href="#1354" id="1354">1354</a>
+<a href="#1355" id="1355">1355</a>
+<a href="#1356" id="1356">1356</a>
+<a href="#1357" id="1357">1357</a>
+<a href="#1358" id="1358">1358</a>
+<a href="#1359" id="1359">1359</a>
+<a href="#1360" id="1360">1360</a>
+<a href="#1361" id="1361">1361</a>
+<a href="#1362" id="1362">1362</a>
+<a href="#1363" id="1363">1363</a>
+<a href="#1364" id="1364">1364</a>
+<a href="#1365" id="1365">1365</a>
+<a href="#1366" id="1366">1366</a>
+<a href="#1367" id="1367">1367</a>
+<a href="#1368" id="1368">1368</a>
+<a href="#1369" id="1369">1369</a>
+<a href="#1370" id="1370">1370</a>
+<a href="#1371" id="1371">1371</a>
+<a href="#1372" id="1372">1372</a>
+<a href="#1373" id="1373">1373</a>
+<a href="#1374" id="1374">1374</a>
+<a href="#1375" id="1375">1375</a>
+<a href="#1376" id="1376">1376</a>
+<a href="#1377" id="1377">1377</a>
+<a href="#1378" id="1378">1378</a>
+<a href="#1379" id="1379">1379</a>
+<a href="#1380" id="1380">1380</a>
+<a href="#1381" id="1381">1381</a>
+<a href="#1382" id="1382">1382</a>
+<a href="#1383" id="1383">1383</a>
+<a href="#1384" id="1384">1384</a>
+<a href="#1385" id="1385">1385</a>
+<a href="#1386" id="1386">1386</a>
+<a href="#1387" id="1387">1387</a>
+<a href="#1388" id="1388">1388</a>
+<a href="#1389" id="1389">1389</a>
+<a href="#1390" id="1390">1390</a>
+<a href="#1391" id="1391">1391</a>
+<a href="#1392" id="1392">1392</a>
+<a href="#1393" id="1393">1393</a>
+<a href="#1394" id="1394">1394</a>
+<a href="#1395" id="1395">1395</a>
+<a href="#1396" id="1396">1396</a>
+<a href="#1397" id="1397">1397</a>
+<a href="#1398" id="1398">1398</a>
+<a href="#1399" id="1399">1399</a>
+<a href="#1400" id="1400">1400</a>
+<a href="#1401" id="1401">1401</a>
+<a href="#1402" id="1402">1402</a>
+<a href="#1403" id="1403">1403</a>
+<a href="#1404" id="1404">1404</a>
+<a href="#1405" id="1405">1405</a>
+<a href="#1406" id="1406">1406</a>
+<a href="#1407" id="1407">1407</a>
+<a href="#1408" id="1408">1408</a>
+<a href="#1409" id="1409">1409</a>
+<a href="#1410" id="1410">1410</a>
+<a href="#1411" id="1411">1411</a>
+<a href="#1412" id="1412">1412</a>
+<a href="#1413" id="1413">1413</a>
+<a href="#1414" id="1414">1414</a>
+<a href="#1415" id="1415">1415</a>
+<a href="#1416" id="1416">1416</a>
+<a href="#1417" id="1417">1417</a>
+<a href="#1418" id="1418">1418</a>
+<a href="#1419" id="1419">1419</a>
+<a href="#1420" id="1420">1420</a>
+<a href="#1421" id="1421">1421</a>
+<a href="#1422" id="1422">1422</a>
+<a href="#1423" id="1423">1423</a>
+<a href="#1424" id="1424">1424</a>
+<a href="#1425" id="1425">1425</a>
+<a href="#1426" id="1426">1426</a>
+<a href="#1427" id="1427">1427</a>
+<a href="#1428" id="1428">1428</a>
+<a href="#1429" id="1429">1429</a>
+<a href="#1430" id="1430">1430</a>
+<a href="#1431" id="1431">1431</a>
+<a href="#1432" id="1432">1432</a>
+<a href="#1433" id="1433">1433</a>
+<a href="#1434" id="1434">1434</a>
+<a href="#1435" id="1435">1435</a>
+<a href="#1436" id="1436">1436</a>
+<a href="#1437" id="1437">1437</a>
+<a href="#1438" id="1438">1438</a>
+<a href="#1439" id="1439">1439</a>
+<a href="#1440" id="1440">1440</a>
+<a href="#1441" id="1441">1441</a>
+<a href="#1442" id="1442">1442</a>
+<a href="#1443" id="1443">1443</a>
+<a href="#1444" id="1444">1444</a>
+<a href="#1445" id="1445">1445</a>
+<a href="#1446" id="1446">1446</a>
+<a href="#1447" id="1447">1447</a>
+<a href="#1448" id="1448">1448</a>
+<a href="#1449" id="1449">1449</a>
+<a href="#1450" id="1450">1450</a>
+<a href="#1451" id="1451">1451</a>
+<a href="#1452" id="1452">1452</a>
+<a href="#1453" id="1453">1453</a>
+<a href="#1454" id="1454">1454</a>
+<a href="#1455" id="1455">1455</a>
+<a href="#1456" id="1456">1456</a>
+<a href="#1457" id="1457">1457</a>
+<a href="#1458" id="1458">1458</a>
 </pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::common::{
-    <a href="../common.rs.html#96">DebugAddrBase</a>, <a href="../common.rs.html#100">DebugAddrIndex</a>, <a href="../common.rs.html#154">DebugRngListsBase</a>, <a href="../common.rs.html#158">DebugRngListsIndex</a>, <a href="../common.rs.html#351">DwarfFileType</a>, <a href="../common.rs.html#37">Encoding</a>,
-    <a href="../common.rs.html#150">RangeListsOffset</a>, <a href="../common.rs.html#245">SectionId</a>,
+    DebugAddrBase, DebugAddrIndex, DebugRngListsBase, DebugRngListsIndex, DwarfFileType, Encoding,
+    RangeListsOffset, SectionId,
 };
-<span class="kw">use </span><a href="../lib.rs.html#57"><span class="kw">crate</span>::constants</a>;
-<span class="kw">use </span><a href="../endianity.rs.html#7"><span class="kw">crate</span>::endianity::Endianity</a>;
+<span class="kw">use </span><span class="kw">crate</span>::constants;
+<span class="kw">use </span><span class="kw">crate</span>::endianity::Endianity;
 <span class="kw">use </span><span class="kw">crate</span>::read::{
-    <a href="lists.rs.html#5">lists::ListsHeader</a>, <a href="addr.rs.html#6">DebugAddr</a>, <a href="endian_slice.rs.html#17">EndianSlice</a>, <a href="mod.rs.html#271">Error</a>, <a href="reader.rs.html#215">Reader</a>, <a href="reader.rs.html#24-25">ReaderOffset</a>, <a href="reader.rs.html#19">ReaderOffsetId</a>,
-    <span class="prelude-ty">Result</span>, <a href="mod.rs.html#612">Section</a>,
+    lists::ListsHeader, DebugAddr, EndianSlice, Error, Reader, ReaderOffset, ReaderOffsetId,
+    <span class="prelude-ty">Result</span>, Section,
 };
 
 <span class="doccomment">/// The raw contents of the `.debug_ranges` section.
@@ -1371,7 +1475,7 @@
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;input</span>, Endian&gt; DebugRanges&lt;EndianSlice&lt;<span class="lifetime">&#39;input</span>, Endian&gt;&gt;
 <span class="kw">where
-    </span>Endian: <a href="../endianity.rs.html#7">Endianity</a>,
+    </span>Endian: Endianity,
 {
     <span class="doccomment">/// Construct a new `DebugRanges` instance from the data in the `.debug_ranges`
     /// section.
@@ -1387,24 +1491,24 @@
     /// # let read_debug_ranges_section_somehow = || &amp;buf;
     /// let debug_ranges = DebugRanges::new(read_debug_ranges_section_somehow(), LittleEndian);
     /// ```
-    </span><span class="kw">pub fn </span>new(section: <span class="kw-2">&amp;</span><span class="lifetime">&#39;input </span>[<a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>], endian: Endian) -&gt; <span class="self">Self </span>{
-        <span class="self">Self</span>::from(EndianSlice::new(<a href="#36">section</a>, <a href="#36">endian</a>))
+    </span><span class="kw">pub fn </span>new(section: <span class="kw-2">&amp;</span><span class="lifetime">&#39;input </span>[u8], endian: Endian) -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::from(EndianSlice::new(section, endian))
     }
 }
 
 <span class="kw">impl</span>&lt;R&gt; Section&lt;R&gt; <span class="kw">for </span>DebugRanges&lt;R&gt; {
-    <span class="kw">fn </span>id() -&gt; <a href="../common.rs.html#245">SectionId</a> {
-        <a href="../common.rs.html#279">SectionId::DebugRanges</a>
+    <span class="kw">fn </span>id() -&gt; SectionId {
+        SectionId::DebugRanges
     }
 
     <span class="kw">fn </span>reader(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>R {
-        <span class="kw-2">&amp;</span><a class="self" href="#46">self</a>.section
+        <span class="kw-2">&amp;</span><span class="self">self</span>.section
     }
 }
 
 <span class="kw">impl</span>&lt;R&gt; From&lt;R&gt; <span class="kw">for </span>DebugRanges&lt;R&gt; {
     <span class="kw">fn </span>from(section: R) -&gt; <span class="self">Self </span>{
-        <a href="#14">DebugRanges</a> { <a href="#52">section</a> }
+        DebugRanges { section }
     }
 }
 
@@ -1417,7 +1521,7 @@
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;input</span>, Endian&gt; DebugRngLists&lt;EndianSlice&lt;<span class="lifetime">&#39;input</span>, Endian&gt;&gt;
 <span class="kw">where
-    </span>Endian: <a href="../endianity.rs.html#7">Endianity</a>,
+    </span>Endian: Endianity,
 {
     <span class="doccomment">/// Construct a new `DebugRngLists` instance from the data in the
     /// `.debug_rnglists` section.
@@ -1434,47 +1538,47 @@
     /// let debug_rnglists =
     ///     DebugRngLists::new(read_debug_rnglists_section_somehow(), LittleEndian);
     /// ```
-    </span><span class="kw">pub fn </span>new(section: <span class="kw-2">&amp;</span><span class="lifetime">&#39;input </span>[<a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>], endian: Endian) -&gt; <span class="self">Self </span>{
-        <span class="self">Self</span>::from(EndianSlice::new(<a href="#83">section</a>, <a href="#83">endian</a>))
+    </span><span class="kw">pub fn </span>new(section: <span class="kw-2">&amp;</span><span class="lifetime">&#39;input </span>[u8], endian: Endian) -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::from(EndianSlice::new(section, endian))
     }
 }
 
 <span class="kw">impl</span>&lt;R&gt; Section&lt;R&gt; <span class="kw">for </span>DebugRngLists&lt;R&gt; {
-    <span class="kw">fn </span>id() -&gt; <a href="../common.rs.html#245">SectionId</a> {
-        <a href="../common.rs.html#281">SectionId::DebugRngLists</a>
+    <span class="kw">fn </span>id() -&gt; SectionId {
+        SectionId::DebugRngLists
     }
 
     <span class="kw">fn </span>reader(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>R {
-        <span class="kw-2">&amp;</span><a class="self" href="#93">self</a>.section
+        <span class="kw-2">&amp;</span><span class="self">self</span>.section
     }
 }
 
 <span class="kw">impl</span>&lt;R&gt; From&lt;R&gt; <span class="kw">for </span>DebugRngLists&lt;R&gt; {
     <span class="kw">fn </span>from(section: R) -&gt; <span class="self">Self </span>{
-        <a href="#60">DebugRngLists</a> { <a href="#99">section</a> }
+        DebugRngLists { section }
     }
 }
 
 <span class="attr">#[allow(unused)]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type </span>RngListsHeader = <a href="lists.rs.html#5">ListsHeader</a>;
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type </span>RngListsHeader = ListsHeader;
 
 <span class="kw">impl</span>&lt;Offset&gt; DebugRngListsBase&lt;Offset&gt;
 <span class="kw">where
-    </span>Offset: <a href="reader.rs.html#24-25">ReaderOffset</a>,
+    </span>Offset: ReaderOffset,
 {
     <span class="doccomment">/// Returns a `DebugRngListsBase` with the default value of DW_AT_rnglists_base
     /// for the given `Encoding` and `DwarfFileType`.
     </span><span class="kw">pub fn </span>default_for_encoding_and_file(
-        encoding: <a href="../common.rs.html#37">Encoding</a>,
-        file_type: <a href="../common.rs.html#351">DwarfFileType</a>,
+        encoding: Encoding,
+        file_type: DwarfFileType,
     ) -&gt; DebugRngListsBase&lt;Offset&gt; {
         <span class="kw">if </span>encoding.version &gt;= <span class="number">5 </span>&amp;&amp; file_type == DwarfFileType::Dwo {
             <span class="comment">// In .dwo files, the compiler omits the DW_AT_rnglists_base attribute (because there is
             // only a single unit in the file) but we must skip past the header, which the attribute
             // would normally do for us.
-            </span><a href="../common.rs.html#154">DebugRngListsBase</a>(Offset::from_u8(RngListsHeader::size_for_encoding(<a href="#114">encoding</a>)))
+            </span>DebugRngListsBase(Offset::from_u8(RngListsHeader::size_for_encoding(encoding)))
         } <span class="kw">else </span>{
-            <a href="../common.rs.html#154">DebugRngListsBase</a>(Offset::from_u8(<span class="number">0</span>))
+            DebugRngListsBase(Offset::from_u8(<span class="number">0</span>))
         }
     }
 }
@@ -1490,27 +1594,27 @@
     <span class="doccomment">/// Construct a new `RangeLists` instance from the data in the `.debug_ranges` and
     /// `.debug_rnglists` sections.
     </span><span class="kw">pub fn </span>new(debug_ranges: DebugRanges&lt;R&gt;, debug_rnglists: DebugRngLists&lt;R&gt;) -&gt; RangeLists&lt;R&gt; {
-        <a href="#130">RangeLists</a> {
-            <a href="#138">debug_ranges</a>,
-            <a href="#138">debug_rnglists</a>,
+        RangeLists {
+            debug_ranges,
+            debug_rnglists,
         }
     }
 
     <span class="doccomment">/// Return the `.debug_ranges` section.
     </span><span class="kw">pub fn </span>debug_ranges(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>DebugRanges&lt;R&gt; {
-        <span class="kw-2">&amp;</span><a class="self" href="#146">self</a>.debug_ranges
+        <span class="kw-2">&amp;</span><span class="self">self</span>.debug_ranges
     }
 
     <span class="doccomment">/// Replace the `.debug_ranges` section.
     ///
     /// This is useful for `.dwo` files when using the GNU split-dwarf extension to DWARF 4.
     </span><span class="kw">pub fn </span>set_debug_ranges(<span class="kw-2">&amp;mut </span><span class="self">self</span>, debug_ranges: DebugRanges&lt;R&gt;) {
-        <a class="self" href="#153">self</a>.debug_ranges = <a href="#153">debug_ranges</a>;
+        <span class="self">self</span>.debug_ranges = debug_ranges;
     }
 
     <span class="doccomment">/// Return the `.debug_rnglists` section.
     </span><span class="kw">pub fn </span>debug_rnglists(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>DebugRngLists&lt;R&gt; {
-        <span class="kw-2">&amp;</span><a class="self" href="#158">self</a>.debug_rnglists
+        <span class="kw-2">&amp;</span><span class="self">self</span>.debug_rnglists
     }
 }
 
@@ -1534,14 +1638,14 @@
     <span class="kw">where
         </span>F: FnMut(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>T) -&gt; R,
     {
-        <a href="#130">RangeLists</a> {
-            debug_ranges: <a href="#179">borrow</a>(<span class="kw-2">&amp;</span><a class="self" href="#179">self</a>.debug_ranges.section).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
-            debug_rnglists: <a href="#179">borrow</a>(<span class="kw-2">&amp;</span><a class="self" href="#179">self</a>.debug_rnglists.section).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
+        RangeLists {
+            debug_ranges: borrow(<span class="kw-2">&amp;</span><span class="self">self</span>.debug_ranges.section).into(),
+            debug_rnglists: borrow(<span class="kw-2">&amp;</span><span class="self">self</span>.debug_rnglists.section).into(),
         }
     }
 }
 
-<span class="kw">impl</span>&lt;R: <a href="reader.rs.html#215">Reader</a>&gt; RangeLists&lt;R&gt; {
+<span class="kw">impl</span>&lt;R: Reader&gt; RangeLists&lt;R&gt; {
     <span class="doccomment">/// Iterate over the `Range` list entries starting at the given offset.
     ///
     /// The `unit_version` and `address_size` must match the compilation unit that the
@@ -1555,16 +1659,16 @@
     </span><span class="kw">pub fn </span>ranges(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         offset: RangeListsOffset&lt;R::Offset&gt;,
-        unit_encoding: <a href="../common.rs.html#37">Encoding</a>,
-        base_address: <a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>,
+        unit_encoding: Encoding,
+        base_address: u64,
         debug_addr: <span class="kw-2">&amp;</span>DebugAddr&lt;R&gt;,
         debug_addr_base: DebugAddrBase&lt;R::Offset&gt;,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;RngListIter&lt;R&gt;&gt; {
         <span class="prelude-val">Ok</span>(RngListIter::new(
             <span class="self">self</span>.raw_ranges(offset, unit_encoding)<span class="question-mark">?</span>,
-            <a href="#205">base_address</a>,
-            <a href="#206">debug_addr</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
-            <a href="#207">debug_addr_base</a>,
+            base_address,
+            debug_addr.clone(),
+            debug_addr_base,
         ))
     }
 
@@ -1581,15 +1685,15 @@
     </span><span class="kw">pub fn </span>raw_ranges(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         offset: RangeListsOffset&lt;R::Offset&gt;,
-        unit_encoding: <a href="../common.rs.html#37">Encoding</a>,
+        unit_encoding: Encoding,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;RawRngListIter&lt;R&gt;&gt; {
         <span class="kw">let </span>(<span class="kw-2">mut </span>input, format) = <span class="kw">if </span>unit_encoding.version &lt;= <span class="number">4 </span>{
-            (<a class="self" href="#228">self</a>.debug_ranges.section.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), <a href="#278">RangeListsFormat::Bare</a>)
+            (<span class="self">self</span>.debug_ranges.section.clone(), RangeListsFormat::Bare)
         } <span class="kw">else </span>{
-            (<a class="self" href="#228">self</a>.debug_rnglists.section.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), <a href="#280">RangeListsFormat::RLE</a>)
+            (<span class="self">self</span>.debug_rnglists.section.clone(), RangeListsFormat::Rle)
         };
         input.skip(offset.<span class="number">0</span>)<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(RawRngListIter::new(<a href="#232">input</a>, <a href="#230">unit_encoding</a>, <a href="#232">format</a>))
+        <span class="prelude-val">Ok</span>(RawRngListIter::new(input, unit_encoding, format))
     }
 
     <span class="doccomment">/// Returns the `.debug_rnglists` offset at the given `base` and `index`.
@@ -1603,26 +1707,26 @@
     /// index was contained in.
     </span><span class="kw">pub fn </span>get_offset(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        unit_encoding: <a href="../common.rs.html#37">Encoding</a>,
+        unit_encoding: Encoding,
         base: DebugRngListsBase&lt;R::Offset&gt;,
         index: DebugRngListsIndex&lt;R::Offset&gt;,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;RangeListsOffset&lt;R::Offset&gt;&gt; {
-        <span class="kw">let </span>format = <a href="#252">unit_encoding</a>.format;
-        <span class="kw">let </span>input = <span class="kw-2">&amp;mut </span><a class="self" href="#251">self</a>.debug_rnglists.section.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
+        <span class="kw">let </span>format = unit_encoding.format;
+        <span class="kw">let </span>input = <span class="kw-2">&amp;mut </span><span class="self">self</span>.debug_rnglists.section.clone();
         input.skip(base.<span class="number">0</span>)<span class="question-mark">?</span>;
         input.skip(R::Offset::from_u64(
             index.<span class="number">0</span>.into_u64() * u64::from(format.word_size()),
         )<span class="question-mark">?</span>)<span class="question-mark">?</span>;
-        <a href="#257">input</a>
-            .<a href="reader.rs.html#485">read_offset</a>(<a href="#256">format</a>)
-            .map(|x| <a href="../common.rs.html#150">RangeListsOffset</a>(<a href="#253">base</a>.<span class="number">0 </span>+ <a href="#264">x</a>))
+        input
+            .read_offset(format)
+            .map(|x| RangeListsOffset(base.<span class="number">0 </span>+ x))
     }
 
     <span class="doccomment">/// Call `Reader::lookup_offset_id` for each section, and return the first match.
-    </span><span class="kw">pub fn </span>lookup_offset_id(<span class="kw-2">&amp;</span><span class="self">self</span>, id: <a href="reader.rs.html#19">ReaderOffsetId</a>) -&gt; <span class="prelude-ty">Option</span>&lt;(<a href="../common.rs.html#245">SectionId</a>, R::Offset)&gt; {
-        <a class="self" href="#268">self</a>.debug_ranges
-            .<a href="mod.rs.html#653-655">lookup_offset_id</a>(<a href="#268">id</a>)
-            .or_else(|| <a class="self" href="#268">self</a>.debug_rnglists.<a href="mod.rs.html#653-655">lookup_offset_id</a>(<a href="#268">id</a>))
+    </span><span class="kw">pub fn </span>lookup_offset_id(<span class="kw-2">&amp;</span><span class="self">self</span>, id: ReaderOffsetId) -&gt; <span class="prelude-ty">Option</span>&lt;(SectionId, R::Offset)&gt; {
+        <span class="self">self</span>.debug_ranges
+            .lookup_offset_id(id)
+            .or_else(|| <span class="self">self</span>.debug_rnglists.lookup_offset_id(id))
     }
 }
 
@@ -1631,7 +1735,7 @@
     <span class="doccomment">/// The bare range list format used before DWARF 5.
     </span>Bare,
     <span class="doccomment">/// The DW_RLE encoded range list format used in DWARF 5.
-    </span>RLE,
+    </span>Rle,
 }
 
 <span class="doccomment">/// A raw iterator over an address range list.
@@ -1639,10 +1743,10 @@
 /// This iterator does not perform any processing of the range entries,
 /// such as handling base addresses.
 </span><span class="attr">#[derive(Debug)]
-</span><span class="kw">pub struct </span>RawRngListIter&lt;R: <a href="reader.rs.html#215">Reader</a>&gt; {
+</span><span class="kw">pub struct </span>RawRngListIter&lt;R: Reader&gt; {
     input: R,
-    encoding: <a href="../common.rs.html#37">Encoding</a>,
-    format: <a href="#276">RangeListsFormat</a>,
+    encoding: Encoding,
+    format: RangeListsFormat,
 }
 
 <span class="doccomment">/// A raw entry in .debug_rnglists
@@ -1651,14 +1755,14 @@
     <span class="doccomment">/// A range from DWARF version &lt;= 4.
     </span>AddressOrOffsetPair {
         <span class="doccomment">/// Start of range. May be an address or an offset.
-        </span>begin: <a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>,
+        </span>begin: u64,
         <span class="doccomment">/// End of range. May be an address or an offset.
-        </span>end: <a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>,
+        </span>end: u64,
     },
     <span class="doccomment">/// DW_RLE_base_address
     </span>BaseAddress {
         <span class="doccomment">/// base address
-        </span>addr: <a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>,
+        </span>addr: u64,
     },
     <span class="doccomment">/// DW_RLE_base_addressx
     </span>BaseAddressx {
@@ -1677,95 +1781,95 @@
         <span class="doccomment">/// start of range
         </span>begin: DebugAddrIndex&lt;T&gt;,
         <span class="doccomment">/// length of range
-        </span>length: <a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>,
+        </span>length: u64,
     },
     <span class="doccomment">/// DW_RLE_offset_pair
     </span>OffsetPair {
         <span class="doccomment">/// start of range
-        </span>begin: <a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>,
+        </span>begin: u64,
         <span class="doccomment">/// end of range
-        </span>end: <a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>,
+        </span>end: u64,
     },
     <span class="doccomment">/// DW_RLE_start_end
     </span>StartEnd {
         <span class="doccomment">/// start of range
-        </span>begin: <a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>,
+        </span>begin: u64,
         <span class="doccomment">/// end of range
-        </span>end: <a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>,
+        </span>end: u64,
     },
     <span class="doccomment">/// DW_RLE_start_length
     </span>StartLength {
         <span class="doccomment">/// start of range
-        </span>begin: <a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>,
+        </span>begin: u64,
         <span class="doccomment">/// length of range
-        </span>length: <a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>,
+        </span>length: u64,
     },
 }
 
-<span class="kw">impl</span>&lt;T: <a href="reader.rs.html#24-25">ReaderOffset</a>&gt; RawRngListEntry&lt;T&gt; {
+<span class="kw">impl</span>&lt;T: ReaderOffset&gt; RawRngListEntry&lt;T&gt; {
     <span class="doccomment">/// Parse a range entry from `.debug_rnglists`
     </span><span class="kw">fn </span>parse&lt;R: Reader&lt;Offset = T&gt;&gt;(
         input: <span class="kw-2">&amp;mut </span>R,
-        encoding: <a href="../common.rs.html#37">Encoding</a>,
-        format: <a href="#276">RangeListsFormat</a>,
+        encoding: Encoding,
+        format: RangeListsFormat,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt;&gt; {
-        <span class="kw">match </span><a href="#356">format</a> {
-            <a href="#278">RangeListsFormat::Bare</a> =&gt; {
+        <span class="prelude-val">Ok</span>(<span class="kw">match </span>format {
+            RangeListsFormat::Bare =&gt; {
                 <span class="kw">let </span>range = RawRange::parse(input, encoding.address_size)<span class="question-mark">?</span>;
-                <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="kw">if </span>range.is_end() {
+                <span class="kw">if </span>range.is_end() {
                     <span class="prelude-val">None
                 </span>} <span class="kw">else if </span>range.is_base_address(encoding.address_size) {
-                    <span class="prelude-val">Some</span>(<a href="#305">RawRngListEntry::BaseAddress</a> { addr: <a href="#360">range</a>.end })
+                    <span class="prelude-val">Some</span>(RawRngListEntry::BaseAddress { addr: range.end })
                 } <span class="kw">else </span>{
-                    <span class="prelude-val">Some</span>(<a href="#298">RawRngListEntry::AddressOrOffsetPair</a> {
-                        begin: <a href="#360">range</a>.begin,
-                        end: <a href="#360">range</a>.end,
+                    <span class="prelude-val">Some</span>(RawRngListEntry::AddressOrOffsetPair {
+                        begin: range.begin,
+                        end: range.end,
                     })
-                });
+                }
             }
-            <a href="#280">RangeListsFormat::RLE</a> =&gt; <span class="prelude-val">Ok</span>(<span class="kw">match </span><a href="../constants.rs.html#1070-1083">constants::DwRle</a>(input.read_u8()<span class="question-mark">?</span>) {
-                <a href="../constants.rs.html#1070-1083">constants::DW_RLE_end_of_list</a> =&gt; <span class="prelude-val">None</span>,
-                <a href="../constants.rs.html#1070-1083">constants::DW_RLE_base_addressx</a> =&gt; <span class="prelude-val">Some</span>(<a href="#310">RawRngListEntry::BaseAddressx</a> {
-                    addr: <a href="../common.rs.html#100">DebugAddrIndex</a>(input.read_uleb128().and_then(R::Offset::from_u64)<span class="question-mark">?</span>),
+            RangeListsFormat::Rle =&gt; <span class="kw">match </span>constants::DwRle(input.read_u8()<span class="question-mark">?</span>) {
+                constants::DW_RLE_end_of_list =&gt; <span class="prelude-val">None</span>,
+                constants::DW_RLE_base_addressx =&gt; <span class="prelude-val">Some</span>(RawRngListEntry::BaseAddressx {
+                    addr: DebugAddrIndex(input.read_uleb128().and_then(R::Offset::from_u64)<span class="question-mark">?</span>),
                 }),
-                <a href="../constants.rs.html#1070-1083">constants::DW_RLE_startx_endx</a> =&gt; <span class="prelude-val">Some</span>(<a href="#315">RawRngListEntry::StartxEndx</a> {
-                    begin: <a href="../common.rs.html#100">DebugAddrIndex</a>(input.read_uleb128().and_then(R::Offset::from_u64)<span class="question-mark">?</span>),
-                    end: <a href="../common.rs.html#100">DebugAddrIndex</a>(input.read_uleb128().and_then(R::Offset::from_u64)<span class="question-mark">?</span>),
+                constants::DW_RLE_startx_endx =&gt; <span class="prelude-val">Some</span>(RawRngListEntry::StartxEndx {
+                    begin: DebugAddrIndex(input.read_uleb128().and_then(R::Offset::from_u64)<span class="question-mark">?</span>),
+                    end: DebugAddrIndex(input.read_uleb128().and_then(R::Offset::from_u64)<span class="question-mark">?</span>),
                 }),
-                <a href="../constants.rs.html#1070-1083">constants::DW_RLE_startx_length</a> =&gt; <span class="prelude-val">Some</span>(<a href="#322">RawRngListEntry::StartxLength</a> {
-                    begin: <a href="../common.rs.html#100">DebugAddrIndex</a>(input.read_uleb128().and_then(R::Offset::from_u64)<span class="question-mark">?</span>),
+                constants::DW_RLE_startx_length =&gt; <span class="prelude-val">Some</span>(RawRngListEntry::StartxLength {
+                    begin: DebugAddrIndex(input.read_uleb128().and_then(R::Offset::from_u64)<span class="question-mark">?</span>),
                     length: input.read_uleb128()<span class="question-mark">?</span>,
                 }),
-                <a href="../constants.rs.html#1070-1083">constants::DW_RLE_offset_pair</a> =&gt; <span class="prelude-val">Some</span>(<a href="#329">RawRngListEntry::OffsetPair</a> {
+                constants::DW_RLE_offset_pair =&gt; <span class="prelude-val">Some</span>(RawRngListEntry::OffsetPair {
                     begin: input.read_uleb128()<span class="question-mark">?</span>,
                     end: input.read_uleb128()<span class="question-mark">?</span>,
                 }),
-                <a href="../constants.rs.html#1070-1083">constants::DW_RLE_base_address</a> =&gt; <span class="prelude-val">Some</span>(<a href="#305">RawRngListEntry::BaseAddress</a> {
+                constants::DW_RLE_base_address =&gt; <span class="prelude-val">Some</span>(RawRngListEntry::BaseAddress {
                     addr: input.read_address(encoding.address_size)<span class="question-mark">?</span>,
                 }),
-                <a href="../constants.rs.html#1070-1083">constants::DW_RLE_start_end</a> =&gt; <span class="prelude-val">Some</span>(<a href="#336">RawRngListEntry::StartEnd</a> {
+                constants::DW_RLE_start_end =&gt; <span class="prelude-val">Some</span>(RawRngListEntry::StartEnd {
                     begin: input.read_address(encoding.address_size)<span class="question-mark">?</span>,
                     end: input.read_address(encoding.address_size)<span class="question-mark">?</span>,
                 }),
-                <a href="../constants.rs.html#1070-1083">constants::DW_RLE_start_length</a> =&gt; <span class="prelude-val">Some</span>(<a href="#343">RawRngListEntry::StartLength</a> {
+                constants::DW_RLE_start_length =&gt; <span class="prelude-val">Some</span>(RawRngListEntry::StartLength {
                     begin: input.read_address(encoding.address_size)<span class="question-mark">?</span>,
                     length: input.read_uleb128()<span class="question-mark">?</span>,
                 }),
                 <span class="kw">_ </span>=&gt; {
-                    <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="mod.rs.html#377">Error::InvalidAddressRange</a>);
+                    <span class="kw">return </span><span class="prelude-val">Err</span>(Error::InvalidAddressRange);
                 }
-            }),
-        }
+            },
+        })
     }
 }
 
-<span class="kw">impl</span>&lt;R: <a href="reader.rs.html#215">Reader</a>&gt; RawRngListIter&lt;R&gt; {
+<span class="kw">impl</span>&lt;R: Reader&gt; RawRngListIter&lt;R&gt; {
     <span class="doccomment">/// Construct a `RawRngListIter`.
-    </span><span class="kw">fn </span>new(input: R, encoding: <a href="../common.rs.html#37">Encoding</a>, format: <a href="#276">RangeListsFormat</a>) -&gt; RawRngListIter&lt;R&gt; {
-        <a href="#288">RawRngListIter</a> {
-            <a href="#410">input</a>,
-            <a href="#410">encoding</a>,
-            <a href="#410">format</a>,
+    </span><span class="kw">fn </span>new(input: R, encoding: Encoding, format: RangeListsFormat) -&gt; RawRngListIter&lt;R&gt; {
+        RawRngListIter {
+            input,
+            encoding,
+            format,
         }
     }
 
@@ -1775,16 +1879,16 @@
             <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>);
         }
 
-        <span class="kw">match </span>RawRngListEntry::parse(<span class="kw-2">&amp;mut </span><a class="self" href="#419">self</a>.input, <a class="self" href="#419">self</a>.encoding, <a class="self" href="#419">self</a>.format) {
+        <span class="kw">match </span>RawRngListEntry::parse(<span class="kw-2">&amp;mut </span><span class="self">self</span>.input, <span class="self">self</span>.encoding, <span class="self">self</span>.format) {
             <span class="prelude-val">Ok</span>(range) =&gt; {
                 <span class="kw">if </span>range.is_none() {
-                    <a class="self" href="#419">self</a>.input.<a href="reader.rs.html#229">empty</a>();
+                    <span class="self">self</span>.input.empty();
                 }
-                <span class="prelude-val">Ok</span>(<a href="#425">range</a>)
+                <span class="prelude-val">Ok</span>(range)
             }
             <span class="prelude-val">Err</span>(e) =&gt; {
-                <a class="self" href="#419">self</a>.input.<a href="reader.rs.html#229">empty</a>();
-                <span class="prelude-val">Err</span>(<a href="#431">e</a>)
+                <span class="self">self</span>.input.empty();
+                <span class="prelude-val">Err</span>(e)
             }
         }
     }
@@ -1806,82 +1910,115 @@
 /// entry types.  Thus, it only returns range entries that are valid
 /// and already adjusted for the base address.
 </span><span class="attr">#[derive(Debug)]
-</span><span class="kw">pub struct </span>RngListIter&lt;R: <a href="reader.rs.html#215">Reader</a>&gt; {
+</span><span class="kw">pub struct </span>RngListIter&lt;R: Reader&gt; {
     raw: RawRngListIter&lt;R&gt;,
-    base_address: <a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>,
+    base_address: u64,
     debug_addr: DebugAddr&lt;R&gt;,
     debug_addr_base: DebugAddrBase&lt;R::Offset&gt;,
 }
 
-<span class="kw">impl</span>&lt;R: <a href="reader.rs.html#215">Reader</a>&gt; RngListIter&lt;R&gt; {
+<span class="kw">impl</span>&lt;R: Reader&gt; RngListIter&lt;R&gt; {
     <span class="doccomment">/// Construct a `RngListIter`.
     </span><span class="kw">fn </span>new(
         raw: RawRngListIter&lt;R&gt;,
-        base_address: <a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>,
+        base_address: u64,
         debug_addr: DebugAddr&lt;R&gt;,
         debug_addr_base: DebugAddrBase&lt;R::Offset&gt;,
     ) -&gt; RngListIter&lt;R&gt; {
-        <a href="#455">RngListIter</a> {
-            <a href="#465">raw</a>,
-            <a href="#466">base_address</a>,
-            <a href="#467">debug_addr</a>,
-            <a href="#468">debug_addr_base</a>,
+        RngListIter {
+            raw,
+            base_address,
+            debug_addr,
+            debug_addr_base,
         }
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>get_address(<span class="kw-2">&amp;</span><span class="self">self</span>, index: DebugAddrIndex&lt;R::Offset&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>&gt; {
-        <a class="self" href="#479">self</a>.debug_addr
-            .<a href="addr.rs.html#28-33">get_address</a>(<a class="self" href="#479">self</a>.raw.encoding.address_size, <a class="self" href="#479">self</a>.debug_addr_base, <a href="#479">index</a>)
+    </span><span class="kw">fn </span>get_address(<span class="kw-2">&amp;</span><span class="self">self</span>, index: DebugAddrIndex&lt;R::Offset&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;u64&gt; {
+        <span class="self">self</span>.debug_addr
+            .get_address(<span class="self">self</span>.raw.encoding.address_size, <span class="self">self</span>.debug_addr_base, index)
     }
 
     <span class="doccomment">/// Advance the iterator to the next range.
-    </span><span class="kw">pub fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<a href="#585">Range</a>&gt;&gt; {
+    </span><span class="kw">pub fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;Range&gt;&gt; {
         <span class="kw">loop </span>{
             <span class="kw">let </span>raw_range = <span class="kw">match </span><span class="self">self</span>.raw.next()<span class="question-mark">? </span>{
-                <span class="prelude-val">Some</span>(range) =&gt; <a href="#488">range</a>,
+                <span class="prelude-val">Some</span>(range) =&gt; range,
                 <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>),
             };
 
-            <span class="kw">let </span>range = <span class="kw">match </span><a href="#487">raw_range</a> {
-                <a href="#305">RawRngListEntry::BaseAddress</a> { addr } =&gt; {
-                    <a class="self" href="#485">self</a>.base_address = <a href="#493">addr</a>;
-                    <span class="kw">continue</span>;
-                }
-                <a href="#310">RawRngListEntry::BaseAddressx</a> { addr } =&gt; {
-                    <a class="self" href="#485">self</a>.base_address = <span class="self">self</span>.get_address(addr)<span class="question-mark">?</span>;
-                    <span class="kw">continue</span>;
-                }
-                <a href="#315">RawRngListEntry::StartxEndx</a> { begin, end } =&gt; {
-                    <span class="kw">let </span>begin = <span class="self">self</span>.get_address(begin)<span class="question-mark">?</span>;
-                    <span class="kw">let </span>end = <span class="self">self</span>.get_address(end)<span class="question-mark">?</span>;
-                    <a href="#585">Range</a> { <a href="#502">begin</a>, <a href="#503">end</a> }
-                }
-                <a href="#322">RawRngListEntry::StartxLength</a> { begin, length } =&gt; {
-                    <span class="kw">let </span>begin = <span class="self">self</span>.get_address(begin)<span class="question-mark">?</span>;
-                    <span class="kw">let </span>end = <a href="#507">begin</a> + <a href="#506">length</a>;
-                    <a href="#585">Range</a> { <a href="#507">begin</a>, <a href="#508">end</a> }
-                }
-                <a href="#298">RawRngListEntry::AddressOrOffsetPair</a> { begin, end }
-                | <a href="#329">RawRngListEntry::OffsetPair</a> { begin, end } =&gt; {
-                    <span class="kw">let </span><span class="kw-2">mut </span>range = <a href="#585">Range</a> { <a href="#511">begin</a>, <a href="#511">end</a> };
-                    <a href="#513">range</a>.<a href="#596">add_base_address</a>(<a class="self" href="#485">self</a>.base_address, <a class="self" href="#485">self</a>.raw.encoding.address_size);
-                    <a href="#513">range</a>
-                }
-                <a href="#336">RawRngListEntry::StartEnd</a> { begin, end } =&gt; <a href="#585">Range</a> { <a href="#517">begin</a>, <a href="#517">end</a> },
-                <a href="#343">RawRngListEntry::StartLength</a> { begin, length } =&gt; <a href="#585">Range</a> {
-                    <a href="#518">begin</a>,
-                    end: <a href="#518">begin</a> + <a href="#518">length</a>,
-                },
-            };
-
-            <span class="kw">if </span>range.begin &gt; range.end {
-                <a class="self" href="#485">self</a>.raw.input.<a href="reader.rs.html#229">empty</a>();
-                <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="mod.rs.html#377">Error::InvalidAddressRange</a>);
+            <span class="kw">let </span>range = <span class="self">self</span>.convert_raw(raw_range)<span class="question-mark">?</span>;
+            <span class="kw">if </span>range.is_some() {
+                <span class="kw">return </span><span class="prelude-val">Ok</span>(range);
             }
-
-            <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<a href="#492">range</a>));
         }
+    }
+
+    <span class="doccomment">/// Return the next raw range.
+    ///
+    /// The raw range should be passed to `convert_range`.
+    </span><span class="attr">#[doc(hidden)]
+    </span><span class="kw">pub fn </span>next_raw(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;RawRngListEntry&lt;R::Offset&gt;&gt;&gt; {
+        <span class="self">self</span>.raw.next()
+    }
+
+    <span class="doccomment">/// Convert a raw range into a range, and update the state of the iterator.
+    ///
+    /// The raw range should have been obtained from `next_raw`.
+    </span><span class="attr">#[doc(hidden)]
+    </span><span class="kw">pub fn </span>convert_raw(<span class="kw-2">&amp;mut </span><span class="self">self</span>, raw_range: RawRngListEntry&lt;R::Offset&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;Range&gt;&gt; {
+        <span class="kw">let </span>mask = !<span class="number">0 </span>&gt;&gt; (<span class="number">64 </span>- <span class="self">self</span>.raw.encoding.address_size * <span class="number">8</span>);
+        <span class="kw">let </span>tombstone = <span class="kw">if </span><span class="self">self</span>.raw.encoding.version &lt;= <span class="number">4 </span>{
+            mask - <span class="number">1
+        </span>} <span class="kw">else </span>{
+            mask
+        };
+
+        <span class="kw">let </span>range = <span class="kw">match </span>raw_range {
+            RawRngListEntry::BaseAddress { addr } =&gt; {
+                <span class="self">self</span>.base_address = addr;
+                <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>);
+            }
+            RawRngListEntry::BaseAddressx { addr } =&gt; {
+                <span class="self">self</span>.base_address = <span class="self">self</span>.get_address(addr)<span class="question-mark">?</span>;
+                <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>);
+            }
+            RawRngListEntry::StartxEndx { begin, end } =&gt; {
+                <span class="kw">let </span>begin = <span class="self">self</span>.get_address(begin)<span class="question-mark">?</span>;
+                <span class="kw">let </span>end = <span class="self">self</span>.get_address(end)<span class="question-mark">?</span>;
+                Range { begin, end }
+            }
+            RawRngListEntry::StartxLength { begin, length } =&gt; {
+                <span class="kw">let </span>begin = <span class="self">self</span>.get_address(begin)<span class="question-mark">?</span>;
+                <span class="kw">let </span>end = begin.wrapping_add(length) &amp; mask;
+                Range { begin, end }
+            }
+            RawRngListEntry::AddressOrOffsetPair { begin, end }
+            | RawRngListEntry::OffsetPair { begin, end } =&gt; {
+                <span class="kw">if </span><span class="self">self</span>.base_address == tombstone {
+                    <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>);
+                }
+                <span class="kw">let </span><span class="kw-2">mut </span>range = Range { begin, end };
+                range.add_base_address(<span class="self">self</span>.base_address, <span class="self">self</span>.raw.encoding.address_size);
+                range
+            }
+            RawRngListEntry::StartEnd { begin, end } =&gt; Range { begin, end },
+            RawRngListEntry::StartLength { begin, length } =&gt; {
+                <span class="kw">let </span>end = begin.wrapping_add(length) &amp; mask;
+                Range { begin, end }
+            }
+        };
+
+        <span class="kw">if </span>range.begin == tombstone {
+            <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>);
+        }
+
+        <span class="kw">if </span>range.begin &gt; range.end {
+            <span class="self">self</span>.raw.input.empty();
+            <span class="kw">return </span><span class="prelude-val">Err</span>(Error::InvalidAddressRange);
+        }
+
+        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(range))
     }
 }
 
@@ -1899,38 +2036,35 @@
 </span><span class="attr">#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>RawRange {
     <span class="doccomment">/// The beginning address of the range.
-    </span><span class="kw">pub </span>begin: <a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>,
+    </span><span class="kw">pub </span>begin: u64,
 
     <span class="doccomment">/// The first address past the end of the range.
-    </span><span class="kw">pub </span>end: <a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>,
+    </span><span class="kw">pub </span>end: u64,
 }
 
-<span class="kw">impl </span><a href="#546">RawRange</a> {
+<span class="kw">impl </span>RawRange {
     <span class="doccomment">/// Check if this is a range end entry.
-    ///
-    /// This will only occur for raw ranges.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>is_end(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/primitive.bool.html">bool</a> {
-        <a class="self" href="#559">self</a>.begin == <span class="number">0 </span>&amp;&amp; <a class="self" href="#559">self</a>.end == <span class="number">0
+    </span><span class="kw">pub fn </span>is_end(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.begin == <span class="number">0 </span>&amp;&amp; <span class="self">self</span>.end == <span class="number">0
     </span>}
 
     <span class="doccomment">/// Check if this is a base address selection entry.
     ///
     /// A base address selection entry changes the base address that subsequent
-    /// range entries are relative to.  This will only occur for raw ranges.
+    /// range entries are relative to.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>is_base_address(<span class="kw-2">&amp;</span><span class="self">self</span>, address_size: <a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/primitive.bool.html">bool</a> {
-        <a class="self" href="#568">self</a>.begin == !<span class="number">0 </span>&gt;&gt; (<span class="number">64 </span>- <a href="#568">address_size</a> * <span class="number">8</span>)
+    </span><span class="kw">pub fn </span>is_base_address(<span class="kw-2">&amp;</span><span class="self">self</span>, address_size: u8) -&gt; bool {
+        <span class="self">self</span>.begin == !<span class="number">0 </span>&gt;&gt; (<span class="number">64 </span>- address_size * <span class="number">8</span>)
     }
 
     <span class="doccomment">/// Parse an address range entry from `.debug_ranges` or `.debug_loc`.
-    </span><span class="attr">#[doc(hidden)]
-    #[inline]
-    </span><span class="kw">pub fn </span>parse&lt;R: <a href="reader.rs.html#215">Reader</a>&gt;(input: <span class="kw-2">&amp;mut </span>R, address_size: <a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#546">RawRange</a>&gt; {
+    </span><span class="attr">#[inline]
+    </span><span class="kw">pub fn </span>parse&lt;R: Reader&gt;(input: <span class="kw-2">&amp;mut </span>R, address_size: u8) -&gt; <span class="prelude-ty">Result</span>&lt;RawRange&gt; {
         <span class="kw">let </span>begin = input.read_address(address_size)<span class="question-mark">?</span>;
         <span class="kw">let </span>end = input.read_address(address_size)<span class="question-mark">?</span>;
-        <span class="kw">let </span>range = <a href="#546">RawRange</a> { <a href="#576">begin</a>, <a href="#577">end</a> };
-        <span class="prelude-val">Ok</span>(<a href="#578">range</a>)
+        <span class="kw">let </span>range = RawRange { begin, end };
+        <span class="prelude-val">Ok</span>(range)
     }
 }
 
@@ -1938,19 +2072,19 @@
 </span><span class="attr">#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 </span><span class="kw">pub struct </span>Range {
     <span class="doccomment">/// The beginning address of the range.
-    </span><span class="kw">pub </span>begin: <a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>,
+    </span><span class="kw">pub </span>begin: u64,
 
     <span class="doccomment">/// The first address past the end of the range.
-    </span><span class="kw">pub </span>end: <a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>,
+    </span><span class="kw">pub </span>end: u64,
 }
 
-<span class="kw">impl </span><a href="#585">Range</a> {
+<span class="kw">impl </span>Range {
     <span class="doccomment">/// Add a base address to this range.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>add_base_address(<span class="kw-2">&amp;mut </span><span class="self">self</span>, base_address: <a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>, address_size: <a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>) {
-        <span class="kw">let </span>mask = !<span class="number">0 </span>&gt;&gt; (<span class="number">64 </span>- <a href="#596">address_size</a> * <span class="number">8</span>);
-        <a class="self" href="#596">self</a>.begin = <a href="#596">base_address</a>.wrapping_add(<a class="self" href="#596">self</a>.begin) &amp; <a href="#597">mask</a>;
-        <a class="self" href="#596">self</a>.end = <a href="#596">base_address</a>.wrapping_add(<a class="self" href="#596">self</a>.end) &amp; <a href="#597">mask</a>;
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>add_base_address(<span class="kw-2">&amp;mut </span><span class="self">self</span>, base_address: u64, address_size: u8) {
+        <span class="kw">let </span>mask = !<span class="number">0 </span>&gt;&gt; (<span class="number">64 </span>- address_size * <span class="number">8</span>);
+        <span class="self">self</span>.begin = base_address.wrapping_add(<span class="self">self</span>.begin) &amp; mask;
+        <span class="self">self</span>.end = base_address.wrapping_add(<span class="self">self</span>.end) &amp; mask;
     }
 }
 
@@ -1964,6 +2098,7 @@
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>test_rnglists_32() {
+        <span class="kw">let </span>tombstone = !<span class="number">0u32</span>;
         <span class="kw">let </span>encoding = Encoding {
             format: Format::Dwarf32,
             version: <span class="number">5</span>,
@@ -1973,7 +2108,9 @@
             .L32(<span class="number">0x0300_0000</span>)
             .L32(<span class="number">0x0301_0300</span>)
             .L32(<span class="number">0x0301_0400</span>)
-            .L32(<span class="number">0x0301_0500</span>);
+            .L32(<span class="number">0x0301_0500</span>)
+            .L32(tombstone)
+            .L32(<span class="number">0x0301_0600</span>);
         <span class="kw">let </span>buf = section.get_contents().unwrap();
         <span class="kw">let </span>debug_addr = <span class="kw-2">&amp;</span>DebugAddr::from(EndianSlice::new(<span class="kw-2">&amp;</span>buf, LittleEndian));
         <span class="kw">let </span>debug_addr_base = DebugAddrBase(<span class="number">0</span>);
@@ -1991,7 +2128,7 @@
             .L8(<span class="number">0</span>)
             .L32(<span class="number">0</span>)
             .mark(<span class="kw-2">&amp;</span>first)
-            <span class="comment">// OffsetPair
+            <span class="comment">// An OffsetPair using the unit base address.
             </span>.L8(<span class="number">4</span>).uleb(<span class="number">0x10200</span>).uleb(<span class="number">0x10300</span>)
             <span class="comment">// A base address selection followed by an OffsetPair.
             </span>.L8(<span class="number">5</span>).L32(<span class="number">0x0200_0000</span>)
@@ -2017,6 +2154,25 @@
             </span>.L8(<span class="number">2</span>).uleb(<span class="number">1</span>).uleb(<span class="number">2</span>)
             <span class="comment">// A StartxLength
             </span>.L8(<span class="number">3</span>).uleb(<span class="number">3</span>).uleb(<span class="number">0x100</span>)
+
+            <span class="comment">// Tombstone entries, all of which should be ignored.
+            // A BaseAddressx that is a tombstone.
+            </span>.L8(<span class="number">1</span>).uleb(<span class="number">4</span>)
+            .L8(<span class="number">4</span>).uleb(<span class="number">0x11100</span>).uleb(<span class="number">0x11200</span>)
+            <span class="comment">// A BaseAddress that is a tombstone.
+            </span>.L8(<span class="number">5</span>).L32(tombstone)
+            .L8(<span class="number">4</span>).uleb(<span class="number">0x11300</span>).uleb(<span class="number">0x11400</span>)
+            <span class="comment">// A StartxEndx that is a tombstone.
+            </span>.L8(<span class="number">2</span>).uleb(<span class="number">4</span>).uleb(<span class="number">5</span>)
+            <span class="comment">// A StartxLength that is a tombstone.
+            </span>.L8(<span class="number">3</span>).uleb(<span class="number">4</span>).uleb(<span class="number">0x100</span>)
+            <span class="comment">// A StartEnd that is a tombstone.
+            </span>.L8(<span class="number">6</span>).L32(tombstone).L32(<span class="number">0x201_1500</span>)
+            <span class="comment">// A StartLength that is a tombstone.
+            </span>.L8(<span class="number">7</span>).L32(tombstone).uleb(<span class="number">0x100</span>)
+            <span class="comment">// A StartEnd (not ignored)
+            </span>.L8(<span class="number">6</span>).L32(<span class="number">0x201_1600</span>).L32(<span class="number">0x201_1700</span>)
+
             <span class="comment">// A range end.
             </span>.L8(<span class="number">0</span>)
             <span class="comment">// Some extra data.
@@ -2138,6 +2294,15 @@
             }))
         );
 
+        <span class="comment">// A StartEnd range following the tombstones
+        </span><span class="macro">assert_eq!</span>(
+            ranges.next(),
+            <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(Range {
+                begin: <span class="number">0x0201_1600</span>,
+                end: <span class="number">0x0201_1700</span>,
+            }))
+        );
+
         <span class="comment">// A range end.
         </span><span class="macro">assert_eq!</span>(ranges.next(), <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>));
 
@@ -2156,6 +2321,7 @@
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>test_rnglists_64() {
+        <span class="kw">let </span>tombstone = !<span class="number">0u64</span>;
         <span class="kw">let </span>encoding = Encoding {
             format: Format::Dwarf64,
             version: <span class="number">5</span>,
@@ -2165,7 +2331,9 @@
             .L64(<span class="number">0x0300_0000</span>)
             .L64(<span class="number">0x0301_0300</span>)
             .L64(<span class="number">0x0301_0400</span>)
-            .L64(<span class="number">0x0301_0500</span>);
+            .L64(<span class="number">0x0301_0500</span>)
+            .L64(tombstone)
+            .L64(<span class="number">0x0301_0600</span>);
         <span class="kw">let </span>buf = section.get_contents().unwrap();
         <span class="kw">let </span>debug_addr = <span class="kw-2">&amp;</span>DebugAddr::from(EndianSlice::new(<span class="kw-2">&amp;</span>buf, LittleEndian));
         <span class="kw">let </span>debug_addr_base = DebugAddrBase(<span class="number">0</span>);
@@ -2184,7 +2352,7 @@
             .L8(<span class="number">0</span>)
             .L32(<span class="number">0</span>)
             .mark(<span class="kw-2">&amp;</span>first)
-            <span class="comment">// OffsetPair
+            <span class="comment">// An OffsetPair using the unit base address.
             </span>.L8(<span class="number">4</span>).uleb(<span class="number">0x10200</span>).uleb(<span class="number">0x10300</span>)
             <span class="comment">// A base address selection followed by an OffsetPair.
             </span>.L8(<span class="number">5</span>).L64(<span class="number">0x0200_0000</span>)
@@ -2210,6 +2378,25 @@
             </span>.L8(<span class="number">2</span>).uleb(<span class="number">1</span>).uleb(<span class="number">2</span>)
             <span class="comment">// A StartxLength
             </span>.L8(<span class="number">3</span>).uleb(<span class="number">3</span>).uleb(<span class="number">0x100</span>)
+
+            <span class="comment">// Tombstone entries, all of which should be ignored.
+            // A BaseAddressx that is a tombstone.
+            </span>.L8(<span class="number">1</span>).uleb(<span class="number">4</span>)
+            .L8(<span class="number">4</span>).uleb(<span class="number">0x11100</span>).uleb(<span class="number">0x11200</span>)
+            <span class="comment">// A BaseAddress that is a tombstone.
+            </span>.L8(<span class="number">5</span>).L64(tombstone)
+            .L8(<span class="number">4</span>).uleb(<span class="number">0x11300</span>).uleb(<span class="number">0x11400</span>)
+            <span class="comment">// A StartxEndx that is a tombstone.
+            </span>.L8(<span class="number">2</span>).uleb(<span class="number">4</span>).uleb(<span class="number">5</span>)
+            <span class="comment">// A StartxLength that is a tombstone.
+            </span>.L8(<span class="number">3</span>).uleb(<span class="number">4</span>).uleb(<span class="number">0x100</span>)
+            <span class="comment">// A StartEnd that is a tombstone.
+            </span>.L8(<span class="number">6</span>).L64(tombstone).L64(<span class="number">0x201_1500</span>)
+            <span class="comment">// A StartLength that is a tombstone.
+            </span>.L8(<span class="number">7</span>).L64(tombstone).uleb(<span class="number">0x100</span>)
+            <span class="comment">// A StartEnd (not ignored)
+            </span>.L8(<span class="number">6</span>).L64(<span class="number">0x201_1600</span>).L64(<span class="number">0x201_1700</span>)
+
             <span class="comment">// A range end.
             </span>.L8(<span class="number">0</span>)
             <span class="comment">// Some extra data.
@@ -2331,6 +2518,15 @@
             }))
         );
 
+        <span class="comment">// A StartEnd range following the tombstones
+        </span><span class="macro">assert_eq!</span>(
+            ranges.next(),
+            <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(Range {
+                begin: <span class="number">0x0201_1600</span>,
+                end: <span class="number">0x0201_1700</span>,
+            }))
+        );
+
         <span class="comment">// A range end.
         </span><span class="macro">assert_eq!</span>(ranges.next(), <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>));
 
@@ -2381,6 +2577,7 @@
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>test_ranges_32() {
+        <span class="kw">let </span>tombstone = !<span class="number">0u32 </span>- <span class="number">1</span>;
         <span class="kw">let </span>start = Label::new();
         <span class="kw">let </span>first = Label::new();
         <span class="attr">#[rustfmt::skip]
@@ -2402,6 +2599,11 @@
             <span class="comment">// A range that ends at -1.
             </span>.L32(<span class="number">0xffff_ffff</span>).L32(<span class="number">0x0000_0000</span>)
             .L32(<span class="number">0</span>).L32(<span class="number">0xffff_ffff</span>)
+            <span class="comment">// A normal range with tombstone.
+            </span>.L32(tombstone).L32(tombstone)
+            <span class="comment">// A base address selection with tombstone followed by a normal range.
+            </span>.L32(<span class="number">0xffff_ffff</span>).L32(tombstone)
+            .L32(<span class="number">0x10a00</span>).L32(<span class="number">0x10b00</span>)
             <span class="comment">// A range end.
             </span>.L32(<span class="number">0</span>).L32(<span class="number">0</span>)
             <span class="comment">// Some extra data.
@@ -2493,6 +2695,7 @@
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>test_ranges_64() {
+        <span class="kw">let </span>tombstone = !<span class="number">0u64 </span>- <span class="number">1</span>;
         <span class="kw">let </span>start = Label::new();
         <span class="kw">let </span>first = Label::new();
         <span class="attr">#[rustfmt::skip]
@@ -2514,6 +2717,11 @@
             <span class="comment">// A range that ends at -1.
             </span>.L64(<span class="number">0xffff_ffff_ffff_ffff</span>).L64(<span class="number">0x0000_0000</span>)
             .L64(<span class="number">0</span>).L64(<span class="number">0xffff_ffff_ffff_ffff</span>)
+            <span class="comment">// A normal range with tombstone.
+            </span>.L64(tombstone).L64(tombstone)
+            <span class="comment">// A base address selection with tombstone followed by a normal range.
+            </span>.L64(<span class="number">0xffff_ffff_ffff_ffff</span>).L64(tombstone)
+            .L64(<span class="number">0x10a00</span>).L64(<span class="number">0x10b00</span>)
             <span class="comment">// A range end.
             </span>.L64(<span class="number">0</span>).L64(<span class="number">0</span>)
             <span class="comment">// Some extra data.
@@ -2707,4 +2915,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="gimli" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="gimli" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

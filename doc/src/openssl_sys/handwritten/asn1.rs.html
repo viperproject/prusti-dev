@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/openssl-sys-0.9.77/src/./handwritten/asn1.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>asn1.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../openssl_sys/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/openssl-sys-0.9.80/src/./handwritten/asn1.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>asn1.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../openssl_sys/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -58,65 +58,65 @@
 <a href="#58" id="58">58</a>
 <a href="#59" id="59">59</a>
 <a href="#60" id="60">60</a>
-</pre><pre class="rust"><code><span class="kw">use </span><a href="../../../libc/index.html">libc</a>::<span class="kw-2">*</span>;
+</pre><pre class="rust"><code><span class="kw">use </span>libc::<span class="kw-2">*</span>;
 <span class="kw">use </span><span class="kw-2">*</span>;
 
 <span class="attr">#[repr(C)]
 </span><span class="kw">pub struct </span>ASN1_ENCODING {
-    <span class="kw">pub </span>enc: <span class="kw-2">*mut </span><a href="../../../openssl_sys/type.c_uchar.html">c_uchar</a>,
-    <span class="kw">pub </span>len: <a href="../../../openssl_sys/type.c_long.html">c_long</a>,
-    <span class="kw">pub </span>modified: <a href="../../../openssl_sys/type.c_int.html">c_int</a>,
+    <span class="kw">pub </span>enc: <span class="kw-2">*mut </span>c_uchar,
+    <span class="kw">pub </span>len: c_long,
+    <span class="kw">pub </span>modified: c_int,
 }
 
 <span class="kw">extern </span><span class="string">&quot;C&quot; </span>{
-    <span class="kw">pub fn </span>ASN1_OBJECT_free(x: <span class="kw-2">*mut </span><a href="types.rs.html#12">ASN1_OBJECT</a>);
+    <span class="kw">pub fn </span>ASN1_OBJECT_free(x: <span class="kw-2">*mut </span>ASN1_OBJECT);
 }
 
 <span class="macro">stack!</span>(stack_st_ASN1_OBJECT);
 
 <span class="kw">extern </span><span class="string">&quot;C&quot; </span>{
-    <span class="kw">pub fn </span>ASN1_STRING_type_new(ty: <a href="../../../openssl_sys/type.c_int.html">c_int</a>) -&gt; <span class="kw-2">*mut </span><a href="types.rs.html#8">ASN1_STRING</a>;
+    <span class="kw">pub fn </span>ASN1_STRING_type_new(ty: c_int) -&gt; <span class="kw-2">*mut </span>ASN1_STRING;
     <span class="attr">#[cfg(any(ossl110, libressl273))]
-    </span><span class="kw">pub fn </span>ASN1_STRING_get0_data(x: <span class="kw-2">*const </span><a href="types.rs.html#8">ASN1_STRING</a>) -&gt; <span class="kw-2">*const </span><a href="../../../openssl_sys/type.c_uchar.html">c_uchar</a>;
+    </span><span class="kw">pub fn </span>ASN1_STRING_get0_data(x: <span class="kw-2">*const </span>ASN1_STRING) -&gt; <span class="kw-2">*const </span>c_uchar;
     <span class="attr">#[cfg(any(all(ossl101, not(ossl110)), libressl))]
     </span><span class="kw">pub fn </span>ASN1_STRING_data(x: <span class="kw-2">*mut </span>ASN1_STRING) -&gt; <span class="kw-2">*mut </span>c_uchar;
 
-    <span class="kw">pub fn </span>ASN1_BIT_STRING_free(x: <span class="kw-2">*mut </span><a href="types.rs.html#9">ASN1_BIT_STRING</a>);
+    <span class="kw">pub fn </span>ASN1_BIT_STRING_free(x: <span class="kw-2">*mut </span>ASN1_BIT_STRING);
 
-    <span class="kw">pub fn </span>ASN1_STRING_free(x: <span class="kw-2">*mut </span><a href="types.rs.html#8">ASN1_STRING</a>);
-    <span class="kw">pub fn </span>ASN1_STRING_length(x: <span class="kw-2">*const </span><a href="types.rs.html#8">ASN1_STRING</a>) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
+    <span class="kw">pub fn </span>ASN1_STRING_free(x: <span class="kw-2">*mut </span>ASN1_STRING);
+    <span class="kw">pub fn </span>ASN1_STRING_length(x: <span class="kw-2">*const </span>ASN1_STRING) -&gt; c_int;
 
-    <span class="kw">pub fn </span>ASN1_STRING_set(x: <span class="kw-2">*mut </span><a href="types.rs.html#8">ASN1_STRING</a>, data: <span class="kw-2">*const </span><a href="../../../openssl_sys/enum.c_void.html">c_void</a>, len: <a href="../../../openssl_sys/type.c_int.html">c_int</a>) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
+    <span class="kw">pub fn </span>ASN1_STRING_set(x: <span class="kw-2">*mut </span>ASN1_STRING, data: <span class="kw-2">*const </span>c_void, len: c_int) -&gt; c_int;
 
-    <span class="kw">pub fn </span>ASN1_GENERALIZEDTIME_free(tm: <span class="kw-2">*mut </span><a href="types.rs.html#7">ASN1_GENERALIZEDTIME</a>);
-    <span class="kw">pub fn </span>ASN1_GENERALIZEDTIME_print(b: <span class="kw-2">*mut </span><a href="types.rs.html#18">BIO</a>, tm: <span class="kw-2">*const </span><a href="types.rs.html#7">ASN1_GENERALIZEDTIME</a>) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
-    <span class="kw">pub fn </span>ASN1_TIME_new() -&gt; <span class="kw-2">*mut </span><a href="types.rs.html#10">ASN1_TIME</a>;
+    <span class="kw">pub fn </span>ASN1_GENERALIZEDTIME_free(tm: <span class="kw-2">*mut </span>ASN1_GENERALIZEDTIME);
+    <span class="kw">pub fn </span>ASN1_GENERALIZEDTIME_print(b: <span class="kw-2">*mut </span>BIO, tm: <span class="kw-2">*const </span>ASN1_GENERALIZEDTIME) -&gt; c_int;
+    <span class="kw">pub fn </span>ASN1_TIME_new() -&gt; <span class="kw-2">*mut </span>ASN1_TIME;
     <span class="attr">#[cfg(ossl102)]
     </span><span class="kw">pub fn </span>ASN1_TIME_diff(
-        pday: <span class="kw-2">*mut </span><a href="../../../openssl_sys/type.c_int.html">c_int</a>,
-        psec: <span class="kw-2">*mut </span><a href="../../../openssl_sys/type.c_int.html">c_int</a>,
-        from: <span class="kw-2">*const </span><a href="types.rs.html#10">ASN1_TIME</a>,
-        to: <span class="kw-2">*const </span><a href="types.rs.html#10">ASN1_TIME</a>,
-    ) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
-    <span class="kw">pub fn </span>ASN1_TIME_free(tm: <span class="kw-2">*mut </span><a href="types.rs.html#10">ASN1_TIME</a>);
-    <span class="kw">pub fn </span>ASN1_TIME_print(b: <span class="kw-2">*mut </span><a href="types.rs.html#18">BIO</a>, tm: <span class="kw-2">*const </span><a href="types.rs.html#10">ASN1_TIME</a>) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
-    <span class="kw">pub fn </span>ASN1_TIME_set(from: <span class="kw-2">*mut </span><a href="types.rs.html#10">ASN1_TIME</a>, to: <a href="../../../openssl_sys/type.time_t.html">time_t</a>) -&gt; <span class="kw-2">*mut </span><a href="types.rs.html#10">ASN1_TIME</a>;
+        pday: <span class="kw-2">*mut </span>c_int,
+        psec: <span class="kw-2">*mut </span>c_int,
+        from: <span class="kw-2">*const </span>ASN1_TIME,
+        to: <span class="kw-2">*const </span>ASN1_TIME,
+    ) -&gt; c_int;
+    <span class="kw">pub fn </span>ASN1_TIME_free(tm: <span class="kw-2">*mut </span>ASN1_TIME);
+    <span class="kw">pub fn </span>ASN1_TIME_print(b: <span class="kw-2">*mut </span>BIO, tm: <span class="kw-2">*const </span>ASN1_TIME) -&gt; c_int;
+    <span class="kw">pub fn </span>ASN1_TIME_set(from: <span class="kw-2">*mut </span>ASN1_TIME, to: time_t) -&gt; <span class="kw-2">*mut </span>ASN1_TIME;
 
-    <span class="kw">pub fn </span>ASN1_INTEGER_free(x: <span class="kw-2">*mut </span><a href="types.rs.html#6">ASN1_INTEGER</a>);
-    <span class="kw">pub fn </span>ASN1_INTEGER_get(dest: <span class="kw-2">*const </span><a href="types.rs.html#6">ASN1_INTEGER</a>) -&gt; <a href="../../../openssl_sys/type.c_long.html">c_long</a>;
-    <span class="kw">pub fn </span>ASN1_INTEGER_set(dest: <span class="kw-2">*mut </span><a href="types.rs.html#6">ASN1_INTEGER</a>, value: <a href="../../../openssl_sys/type.c_long.html">c_long</a>) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
-    <span class="kw">pub fn </span>BN_to_ASN1_INTEGER(bn: <span class="kw-2">*const </span><a href="types.rs.html#44">BIGNUM</a>, ai: <span class="kw-2">*mut </span><a href="types.rs.html#6">ASN1_INTEGER</a>) -&gt; <span class="kw-2">*mut </span><a href="types.rs.html#6">ASN1_INTEGER</a>;
-    <span class="kw">pub fn </span>ASN1_INTEGER_to_BN(ai: <span class="kw-2">*const </span><a href="types.rs.html#6">ASN1_INTEGER</a>, bn: <span class="kw-2">*mut </span><a href="types.rs.html#44">BIGNUM</a>) -&gt; <span class="kw-2">*mut </span><a href="types.rs.html#44">BIGNUM</a>;
+    <span class="kw">pub fn </span>ASN1_INTEGER_free(x: <span class="kw-2">*mut </span>ASN1_INTEGER);
+    <span class="kw">pub fn </span>ASN1_INTEGER_get(dest: <span class="kw-2">*const </span>ASN1_INTEGER) -&gt; c_long;
+    <span class="kw">pub fn </span>ASN1_INTEGER_set(dest: <span class="kw-2">*mut </span>ASN1_INTEGER, value: c_long) -&gt; c_int;
+    <span class="kw">pub fn </span>BN_to_ASN1_INTEGER(bn: <span class="kw-2">*const </span>BIGNUM, ai: <span class="kw-2">*mut </span>ASN1_INTEGER) -&gt; <span class="kw-2">*mut </span>ASN1_INTEGER;
+    <span class="kw">pub fn </span>ASN1_INTEGER_to_BN(ai: <span class="kw-2">*const </span>ASN1_INTEGER, bn: <span class="kw-2">*mut </span>BIGNUM) -&gt; <span class="kw-2">*mut </span>BIGNUM;
 
-    <span class="kw">pub fn </span>ASN1_TIME_set_string(s: <span class="kw-2">*mut </span><a href="types.rs.html#10">ASN1_TIME</a>, str: <span class="kw-2">*const </span><a href="../../../openssl_sys/type.c_char.html">c_char</a>) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
+    <span class="kw">pub fn </span>ASN1_TIME_set_string(s: <span class="kw-2">*mut </span>ASN1_TIME, str: <span class="kw-2">*const </span>c_char) -&gt; c_int;
     <span class="attr">#[cfg(ossl111)]
-    </span><span class="kw">pub fn </span>ASN1_TIME_set_string_X509(s: <span class="kw-2">*mut </span><a href="types.rs.html#10">ASN1_TIME</a>, str: <span class="kw-2">*const </span><a href="../../../openssl_sys/type.c_char.html">c_char</a>) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
+    </span><span class="kw">pub fn </span>ASN1_TIME_set_string_X509(s: <span class="kw-2">*mut </span>ASN1_TIME, str: <span class="kw-2">*const </span>c_char) -&gt; c_int;
 }
 
 <span class="macro">const_ptr_api! </span>{
     <span class="kw">extern </span><span class="string">&quot;C&quot; </span>{
-        <span class="kw">pub fn </span>ASN1_STRING_to_UTF8(out: <span class="kw-2">*mut *mut </span><a href="../../../openssl_sys/type.c_uchar.html">c_uchar</a>, s: <span class="attr">#[const_ptr_if(any(ossl110, libressl280))] </span><a href="types.rs.html#8">ASN1_STRING</a>) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
+        <span class="kw">pub fn </span>ASN1_STRING_to_UTF8(out: <span class="kw-2">*mut *mut </span>c_uchar, s: <span class="attr">#[const_ptr_if(any(ossl110, libressl280))] </span>ASN1_STRING) -&gt; c_int;
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="openssl_sys" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="openssl_sys" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

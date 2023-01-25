@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.21.2/src/sync/batch_semaphore.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>batch_semaphore.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../tokio/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.23.0/src/sync/batch_semaphore.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>batch_semaphore.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../tokio/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -744,41 +744,41 @@
 //! tasks are acquiring smaller numbers of permits. This means that in a
 //! use-case like tokio&#39;s read-write lock, writers will not be starved by
 //! readers.
-</span><span class="kw">use </span><a href="../loom/std/unsafe_cell.rs.html#2"><span class="kw">crate</span>::loom::cell::UnsafeCell</a>;
-<span class="kw">use </span><a href="../loom/std/atomic_usize.rs.html#6"><span class="kw">crate</span>::loom::sync::atomic::AtomicUsize</a>;
-<span class="kw">use </span><span class="kw">crate</span>::loom::sync::{<a href="../loom/std/mutex.rs.html#6">Mutex</a>, <a href="https://doc.rust-lang.org/nightly/std/sync/mutex/struct.MutexGuard.html">MutexGuard</a>};
-<span class="kw">use </span><span class="kw">crate</span>::util::linked_list::{<a class="self" href="../util/mod.rs.html#50">self</a>, <a href="../util/linked_list.rs.html#19">LinkedList</a>};
+</span><span class="kw">use </span><span class="kw">crate</span>::loom::cell::UnsafeCell;
+<span class="kw">use </span><span class="kw">crate</span>::loom::sync::atomic::AtomicUsize;
+<span class="kw">use </span><span class="kw">crate</span>::loom::sync::{Mutex, MutexGuard};
+<span class="kw">use </span><span class="kw">crate</span>::util::linked_list::{<span class="self">self</span>, LinkedList};
 <span class="attr">#[cfg(all(tokio_unstable, feature = <span class="string">&quot;tracing&quot;</span>))]
 </span><span class="kw">use </span><span class="kw">crate</span>::util::trace;
-<span class="kw">use </span><a href="../util/wake_list.rs.html#7"><span class="kw">crate</span>::util::WakeList</a>;
+<span class="kw">use </span><span class="kw">crate</span>::util::WakeList;
 
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">std::future::Future</a>;
+<span class="kw">use </span>std::future::Future;
 <span class="kw">use </span>std::marker::PhantomPinned;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/pin/struct.Pin.html">std::pin::Pin</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/ptr/non_null/struct.NonNull.html">std::ptr::NonNull</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/sync/atomic/enum.Ordering.html">std::sync::atomic::Ordering</a>::<span class="kw-2">*</span>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">std::task::Poll</a>::<span class="kw-2">*</span>;
-<span class="kw">use </span>std::task::{<a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>, <a href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">Poll</a>, <a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Waker.html">Waker</a>};
-<span class="kw">use </span>std::{<a href="https://doc.rust-lang.org/nightly/core/cmp/index.html">cmp</a>, <a href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">fmt</a>};
+<span class="kw">use </span>std::pin::Pin;
+<span class="kw">use </span>std::ptr::NonNull;
+<span class="kw">use </span>std::sync::atomic::Ordering::<span class="kw-2">*</span>;
+<span class="kw">use </span>std::task::Poll::<span class="kw-2">*</span>;
+<span class="kw">use </span>std::task::{Context, Poll, Waker};
+<span class="kw">use </span>std::{cmp, fmt};
 
 <span class="doccomment">/// An asynchronous counting semaphore which permits waiting on multiple permits at once.
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>Semaphore {
-    waiters: Mutex&lt;<a href="#44">Waitlist</a>&gt;,
+    waiters: Mutex&lt;Waitlist&gt;,
     <span class="doccomment">/// The current number of available permits in the semaphore.
-    </span>permits: <a href="../loom/std/atomic_usize.rs.html#6">AtomicUsize</a>,
+    </span>permits: AtomicUsize,
     <span class="attr">#[cfg(all(tokio_unstable, feature = <span class="string">&quot;tracing&quot;</span>))]
     </span>resource_span: tracing::Span,
 }
 
 <span class="kw">struct </span>Waitlist {
-    queue: LinkedList&lt;<a href="#80">Waiter</a>, &lt;<a href="#80">Waiter</a> <span class="kw">as </span>linked_list::Link&gt;::Target&gt;,
-    closed: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
+    queue: LinkedList&lt;Waiter, &lt;Waiter <span class="kw">as </span>linked_list::Link&gt;::Target&gt;,
+    closed: bool,
 }
 
 <span class="doccomment">/// Error returned from the [`Semaphore::try_acquire`] function.
 ///
 /// [`Semaphore::try_acquire`]: crate::sync::Semaphore::try_acquire
-</span><span class="attr">#[derive(Debug, PartialEq)]
+</span><span class="attr">#[derive(Debug, PartialEq, Eq)]
 </span><span class="kw">pub enum </span>TryAcquireError {
     <span class="doccomment">/// The semaphore has been [closed] and cannot issue new permits.
     ///
@@ -799,10 +799,10 @@
 </span><span class="kw">pub struct </span>AcquireError(());
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>Acquire&lt;<span class="lifetime">&#39;a</span>&gt; {
-    node: <a href="#80">Waiter</a>,
-    semaphore: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="#36">Semaphore</a>,
-    num_permits: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>,
-    queued: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
+    node: Waiter,
+    semaphore: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Semaphore,
+    num_permits: u32,
+    queued: bool,
 }
 
 <span class="doccomment">/// An entry in the wait queue.
@@ -811,14 +811,14 @@
     ///
     /// This is either the number of remaining permits required by
     /// the waiter, or a flag indicating that the waiter is not yet queued.
-    </span>state: <a href="../loom/std/atomic_usize.rs.html#6">AtomicUsize</a>,
+    </span>state: AtomicUsize,
 
     <span class="doccomment">/// The waker to notify the task awaiting permits.
     ///
     /// # Safety
     ///
     /// This may only be accessed while the wait queue is locked.
-    </span>waker: UnsafeCell&lt;<span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Waker.html">Waker</a>&gt;&gt;,
+    </span>waker: UnsafeCell&lt;<span class="prelude-ty">Option</span>&lt;Waker&gt;&gt;,
 
     <span class="doccomment">/// Intrusive linked-list pointers.
     ///
@@ -832,24 +832,24 @@
     /// references to `Pointers`, and `UnsafeCell` requires that checked access
     /// take place inside a closure. We should consider changing `Pointers` to
     /// use `UnsafeCell` internally.
-    </span>pointers: linked_list::Pointers&lt;<a href="#80">Waiter</a>&gt;,
+    </span>pointers: linked_list::Pointers&lt;Waiter&gt;,
 
     <span class="attr">#[cfg(all(tokio_unstable, feature = <span class="string">&quot;tracing&quot;</span>))]
     </span>ctx: trace::AsyncOpTracingCtx,
 
     <span class="doccomment">/// Should not be `Unpin`.
-    </span>_p: <a href="https://doc.rust-lang.org/nightly/core/marker/struct.PhantomPinned.html">PhantomPinned</a>,
+    </span>_p: PhantomPinned,
 }
 
-<a class="macro" href="../macros/addr_of.rs.html#5-23">generate_addr_of_methods! </a>{
-    <span class="kw">impl</span>&lt;&gt; <a href="#80">Waiter</a> {
+<span class="macro">generate_addr_of_methods! </span>{
+    <span class="kw">impl</span>&lt;&gt; Waiter {
         <span class="kw">unsafe fn </span>addr_of_pointers(<span class="self">self</span>: NonNull&lt;<span class="self">Self</span>&gt;) -&gt; NonNull&lt;linked_list::Pointers&lt;Waiter&gt;&gt; {
             <span class="kw-2">&amp;</span><span class="self">self</span>.pointers
         }
     }
 }
 
-<span class="kw">impl </span><a href="#36">Semaphore</a> {
+<span class="kw">impl </span>Semaphore {
     <span class="doccomment">/// The maximum number of permits which a semaphore can hold.
     ///
     /// Note that this reserves three bits of flags in the permit counter, but
@@ -857,18 +857,18 @@
     /// implementation used three bits, so we will continue to reserve them to
     /// avoid a breaking change if additional flags need to be added in the
     /// future.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>MAX_PERMITS: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> = std::usize::MAX &gt;&gt; <span class="number">3</span>;
-    <span class="kw">const </span>CLOSED: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> = <span class="number">1</span>;
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>MAX_PERMITS: usize = std::usize::MAX &gt;&gt; <span class="number">3</span>;
+    <span class="kw">const </span>CLOSED: usize = <span class="number">1</span>;
     <span class="comment">// The least-significant bit in the number of permits is reserved to use
     // as a flag indicating that the semaphore has been closed. Consequently
     // PERMIT_SHIFT is used to leave that bit for that purpose.
-    </span><span class="kw">const </span>PERMIT_SHIFT: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> = <span class="number">1</span>;
+    </span><span class="kw">const </span>PERMIT_SHIFT: usize = <span class="number">1</span>;
 
     <span class="doccomment">/// Creates a new semaphore with the initial number of permits
     ///
     /// Maximum number of permits on 32-bit platforms is `1&lt;&lt;29`.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(permits: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="self">Self </span>{
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(permits: usize) -&gt; <span class="self">Self </span>{
+        <span class="macro">assert!</span>(
             permits &lt;= <span class="self">Self</span>::MAX_PERMITS,
             <span class="string">&quot;a semaphore may not have more than MAX_PERMITS permits ({})&quot;</span>,
             <span class="self">Self</span>::MAX_PERMITS
@@ -894,8 +894,8 @@
         };
 
         <span class="self">Self </span>{
-            permits: AtomicUsize::new(<a href="#141">permits</a> &lt;&lt; <span class="self">Self</span>::PERMIT_SHIFT),
-            waiters: Mutex::new(<a href="#44">Waitlist</a> {
+            permits: AtomicUsize::new(permits &lt;&lt; <span class="self">Self</span>::PERMIT_SHIFT),
+            waiters: Mutex::new(Waitlist {
                 queue: LinkedList::new(),
                 closed: <span class="bool-val">false</span>,
             }),
@@ -928,26 +928,26 @@
     }
 
     <span class="doccomment">/// Returns the current number of available permits.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>available_permits(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="self" href="#202">self</a>.permits.load(Acquire) &gt;&gt; <span class="self">Self</span>::PERMIT_SHIFT
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>available_permits(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+        <span class="self">self</span>.permits.load(Acquire) &gt;&gt; <span class="self">Self</span>::PERMIT_SHIFT
     }
 
     <span class="doccomment">/// Adds `added` new permits to the semaphore.
     ///
     /// The maximum number of permits is `usize::MAX &gt;&gt; 3`, and this function will panic if the limit is exceeded.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>release(<span class="kw-2">&amp;</span><span class="self">self</span>, added: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>release(<span class="kw-2">&amp;</span><span class="self">self</span>, added: usize) {
         <span class="kw">if </span>added == <span class="number">0 </span>{
             <span class="kw">return</span>;
         }
 
         <span class="comment">// Assign permits to the wait queue
-        </span><a class="self" href="#209">self</a>.<a href="#284">add_permits_locked</a>(<a href="#209">added</a>, <a class="self" href="#209">self</a>.waiters.<a href="../loom/std/mutex.rs.html#16">lock</a>());
+        </span><span class="self">self</span>.add_permits_locked(added, <span class="self">self</span>.waiters.lock());
     }
 
     <span class="doccomment">/// Closes the semaphore. This prevents the semaphore from issuing new
     /// permits and notifies all pending waiters.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>close(<span class="kw-2">&amp;</span><span class="self">self</span>) {
-        <span class="kw">let </span><span class="kw-2">mut </span>waiters = <a class="self" href="#220">self</a>.waiters.<a href="../loom/std/mutex.rs.html#16">lock</a>();
+        <span class="kw">let </span><span class="kw-2">mut </span>waiters = <span class="self">self</span>.waiters.lock();
         <span class="comment">// If the semaphore&#39;s permits counter has enough permits for an
         // unqueued waiter to acquire all the permits it needs immediately,
         // it won&#39;t touch the wait list. Therefore, we have to set a bit on
@@ -955,8 +955,8 @@
         // holding the lock --- otherwise, if we set the bit and then wait
         // to acquire the lock we&#39;ll enter an inconsistent state where the
         // permit counter is closed, but the wait list is not.
-        </span><a class="self" href="#220">self</a>.permits.fetch_or(<span class="self">Self</span>::CLOSED, Release);
-        <a href="#221">waiters</a>.closed = <span class="bool-val">true</span>;
+        </span><span class="self">self</span>.permits.fetch_or(<span class="self">Self</span>::CLOSED, Release);
+        waiters.closed = <span class="bool-val">true</span>;
         <span class="kw">while let </span><span class="prelude-val">Some</span>(<span class="kw-2">mut </span>waiter) = waiters.queue.pop_back() {
             <span class="kw">let </span>waker = <span class="kw">unsafe </span>{ waiter.as_mut().waker.with_mut(|waker| (<span class="kw-2">*</span>waker).take()) };
             <span class="kw">if let </span><span class="prelude-val">Some</span>(waker) = waker {
@@ -966,43 +966,43 @@
     }
 
     <span class="doccomment">/// Returns true if the semaphore is closed.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>is_closed(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#240">self</a>.permits.load(Acquire) &amp; <span class="self">Self</span>::CLOSED == <span class="self">Self</span>::CLOSED
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>is_closed(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.permits.load(Acquire) &amp; <span class="self">Self</span>::CLOSED == <span class="self">Self</span>::CLOSED
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>try_acquire(<span class="kw-2">&amp;</span><span class="self">self</span>, num_permits: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="#53">TryAcquireError</a>&gt; {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>try_acquire(<span class="kw-2">&amp;</span><span class="self">self</span>, num_permits: u32) -&gt; <span class="prelude-ty">Result</span>&lt;(), TryAcquireError&gt; {
+        <span class="macro">assert!</span>(
             num_permits <span class="kw">as </span>usize &lt;= <span class="self">Self</span>::MAX_PERMITS,
             <span class="string">&quot;a semaphore may not have more than MAX_PERMITS permits ({})&quot;</span>,
             <span class="self">Self</span>::MAX_PERMITS
         );
-        <span class="kw">let </span>num_permits = (<a href="#244">num_permits</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) &lt;&lt; <span class="self">Self</span>::PERMIT_SHIFT;
-        <span class="kw">let </span><span class="kw-2">mut </span>curr = <a class="self" href="#244">self</a>.permits.load(Acquire);
+        <span class="kw">let </span>num_permits = (num_permits <span class="kw">as </span>usize) &lt;&lt; <span class="self">Self</span>::PERMIT_SHIFT;
+        <span class="kw">let </span><span class="kw-2">mut </span>curr = <span class="self">self</span>.permits.load(Acquire);
         <span class="kw">loop </span>{
             <span class="comment">// Has the semaphore closed?
             </span><span class="kw">if </span>curr &amp; <span class="self">Self</span>::CLOSED == <span class="self">Self</span>::CLOSED {
-                <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="#57">TryAcquireError::Closed</a>);
+                <span class="kw">return </span><span class="prelude-val">Err</span>(TryAcquireError::Closed);
             }
 
             <span class="comment">// Are there enough permits remaining?
             </span><span class="kw">if </span>curr &lt; num_permits {
-                <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="#60">TryAcquireError::NoPermits</a>);
+                <span class="kw">return </span><span class="prelude-val">Err</span>(TryAcquireError::NoPermits);
             }
 
-            <span class="kw">let </span>next = <a href="#251">curr</a> - <a href="#250">num_permits</a>;
+            <span class="kw">let </span>next = curr - num_permits;
 
-            <span class="kw">match </span><a class="self" href="#244">self</a>.permits.compare_exchange(<a href="#251">curr</a>, <a href="#263">next</a>, AcqRel, Acquire) {
+            <span class="kw">match </span><span class="self">self</span>.permits.compare_exchange(curr, next, AcqRel, Acquire) {
                 <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; {
                     <span class="comment">// TODO: Instrument once issue has been solved}
                     </span><span class="kw">return </span><span class="prelude-val">Ok</span>(());
                 }
-                <span class="prelude-val">Err</span>(actual) =&gt; <a href="#251">curr</a> = <a href="#270">actual</a>,
+                <span class="prelude-val">Err</span>(actual) =&gt; curr = actual,
             }
         }
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>acquire(<span class="kw-2">&amp;</span><span class="self">self</span>, num_permits: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; Acquire&lt;<span class="lifetime">&#39;_</span>&gt; {
-        Acquire::new(<a class="self" href="#275">self</a>, <a href="#275">num_permits</a>)
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>acquire(<span class="kw-2">&amp;</span><span class="self">self</span>, num_permits: u32) -&gt; Acquire&lt;<span class="lifetime">&#39;_</span>&gt; {
+        Acquire::new(<span class="self">self</span>, num_permits)
     }
 
     <span class="doccomment">/// Release `rem` permits to the semaphore&#39;s wait list, starting from the
@@ -1010,9 +1010,9 @@
     ///
     /// If `rem` exceeds the number of permits needed by the wait list, the
     /// remainder are assigned back to the semaphore.
-    </span><span class="kw">fn </span>add_permits_locked(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw-2">mut </span>rem: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, waiters: MutexGuard&lt;<span class="lifetime">&#39;_</span>, <a href="#44">Waitlist</a>&gt;) {
+    </span><span class="kw">fn </span>add_permits_locked(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw-2">mut </span>rem: usize, waiters: MutexGuard&lt;<span class="lifetime">&#39;_</span>, Waitlist&gt;) {
         <span class="kw">let </span><span class="kw-2">mut </span>wakers = WakeList::new();
-        <span class="kw">let </span><span class="kw-2">mut </span>lock = <span class="prelude-val">Some</span>(<a href="#284">waiters</a>);
+        <span class="kw">let </span><span class="kw-2">mut </span>lock = <span class="prelude-val">Some</span>(waiters);
         <span class="kw">let </span><span class="kw-2">mut </span>is_empty = <span class="bool-val">false</span>;
         <span class="kw">while </span>rem &gt; <span class="number">0 </span>{
             <span class="kw">let </span><span class="kw-2">mut </span>waiters = lock.take().unwrap_or_else(|| <span class="self">self</span>.waiters.lock());
@@ -1073,28 +1073,28 @@
             </span>wakers.wake_all();
         }
 
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert_eq.html">assert_eq!</a>(rem, <span class="number">0</span>);
+        <span class="macro">assert_eq!</span>(rem, <span class="number">0</span>);
     }
 
     <span class="kw">fn </span>poll_acquire(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
-        num_permits: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>,
-        node: Pin&lt;<span class="kw-2">&amp;mut </span><a href="#80">Waiter</a>&gt;,
-        queued: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-    ) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;(), <a href="#70">AcquireError</a>&gt;&gt; {
+        num_permits: u32,
+        node: Pin&lt;<span class="kw-2">&amp;mut </span>Waiter&gt;,
+        queued: bool,
+    ) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;(), AcquireError&gt;&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>acquired = <span class="number">0</span>;
 
         <span class="kw">let </span>needed = <span class="kw">if </span>queued {
-            <a href="#354">node</a>.state.load(Acquire) &lt;&lt; <span class="self">Self</span>::PERMIT_SHIFT
+            node.state.load(Acquire) &lt;&lt; <span class="self">Self</span>::PERMIT_SHIFT
         } <span class="kw">else </span>{
-            (<a href="#353">num_permits</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) &lt;&lt; <span class="self">Self</span>::PERMIT_SHIFT
+            (num_permits <span class="kw">as </span>usize) &lt;&lt; <span class="self">Self</span>::PERMIT_SHIFT
         };
 
         <span class="kw">let </span><span class="kw-2">mut </span>lock = <span class="prelude-val">None</span>;
         <span class="comment">// First, try to take the requested number of permits from the
         // semaphore.
-        </span><span class="kw">let </span><span class="kw-2">mut </span>curr = <a class="self" href="#351">self</a>.permits.load(Acquire);
+        </span><span class="kw">let </span><span class="kw-2">mut </span>curr = <span class="self">self</span>.permits.load(Acquire);
         <span class="kw">let </span><span class="kw-2">mut </span>waiters = <span class="kw">loop </span>{
             <span class="comment">// Has the semaphore closed?
             </span><span class="kw">if </span>curr &amp; <span class="self">Self</span>::CLOSED &gt; <span class="number">0 </span>{
@@ -1102,15 +1102,15 @@
             }
 
             <span class="kw">let </span><span class="kw-2">mut </span>remaining = <span class="number">0</span>;
-            <span class="kw">let </span>total = <a href="#368">curr</a>
-                .checked_add(<a href="#357">acquired</a>)
+            <span class="kw">let </span>total = curr
+                .checked_add(acquired)
                 .expect(<span class="string">&quot;number of permits must not overflow&quot;</span>);
             <span class="kw">let </span>(next, acq) = <span class="kw">if </span>total &gt;= needed {
-                <span class="kw">let </span>next = <a href="#368">curr</a> - (<a href="#359">needed</a> - <a href="#357">acquired</a>);
-                (<a href="#380">next</a>, <a href="#359">needed</a> &gt;&gt; <span class="self">Self</span>::PERMIT_SHIFT)
+                <span class="kw">let </span>next = curr - (needed - acquired);
+                (next, needed &gt;&gt; <span class="self">Self</span>::PERMIT_SHIFT)
             } <span class="kw">else </span>{
-                <a href="#375">remaining</a> = (<a href="#359">needed</a> - <a href="#357">acquired</a>) - <a href="#368">curr</a>;
-                (<span class="number">0</span>, <a href="#368">curr</a> &gt;&gt; <span class="self">Self</span>::PERMIT_SHIFT)
+                remaining = (needed - acquired) - curr;
+                (<span class="number">0</span>, curr &gt;&gt; <span class="self">Self</span>::PERMIT_SHIFT)
             };
 
             <span class="kw">if </span>remaining &gt; <span class="number">0 </span>&amp;&amp; lock.is_none() {
@@ -1121,12 +1121,12 @@
                 // counter. Otherwise, if we subtract the permits and then
                 // acquire the lock, we might miss additional permits being
                 // added while waiting for the lock.
-                </span><a href="#365">lock</a> = <span class="prelude-val">Some</span>(<a class="self" href="#351">self</a>.waiters.<a href="../loom/std/mutex.rs.html#16">lock</a>());
+                </span>lock = <span class="prelude-val">Some</span>(<span class="self">self</span>.waiters.lock());
             }
 
-            <span class="kw">match </span><a class="self" href="#351">self</a>.permits.compare_exchange(<a href="#368">curr</a>, <a href="#379">next</a>, AcqRel, Acquire) {
+            <span class="kw">match </span><span class="self">self</span>.permits.compare_exchange(curr, next, AcqRel, Acquire) {
                 <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; {
-                    <a href="#357">acquired</a> += <a href="#379">acq</a>;
+                    acquired += acq;
                     <span class="kw">if </span>remaining == <span class="number">0 </span>{
                         <span class="kw">if </span>!queued {
                             <span class="attr">#[cfg(all(tokio_unstable, feature = <span class="string">&quot;tracing&quot;</span>))]
@@ -1145,12 +1145,12 @@
 
                             <span class="kw">return </span>Ready(<span class="prelude-val">Ok</span>(()));
                         } <span class="kw">else if </span>lock.is_none() {
-                            <span class="kw">break </span><a class="self" href="#351">self</a>.waiters.<a href="../loom/std/mutex.rs.html#16">lock</a>();
+                            <span class="kw">break </span><span class="self">self</span>.waiters.lock();
                         }
                     }
-                    <span class="kw">break </span><a href="#365">lock</a>.expect(<span class="string">&quot;lock must be acquired before waiting&quot;</span>);
+                    <span class="kw">break </span>lock.expect(<span class="string">&quot;lock must be acquired before waiting&quot;</span>);
                 }
-                <span class="prelude-val">Err</span>(actual) =&gt; <a href="#368">curr</a> = <a href="#424">actual</a>,
+                <span class="prelude-val">Err</span>(actual) =&gt; curr = actual,
             }
         };
 
@@ -1168,56 +1168,56 @@
         });
 
         <span class="kw">if </span>node.assign_permits(<span class="kw-2">&amp;mut </span>acquired) {
-            <a class="self" href="#351">self</a>.<a href="#284">add_permits_locked</a>(<a href="#357">acquired</a>, <a href="#369">waiters</a>);
+            <span class="self">self</span>.add_permits_locked(acquired, waiters);
             <span class="kw">return </span>Ready(<span class="prelude-val">Ok</span>(()));
         }
 
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert_eq.html">assert_eq!</a>(acquired, <span class="number">0</span>);
+        <span class="macro">assert_eq!</span>(acquired, <span class="number">0</span>);
 
         <span class="comment">// Otherwise, register the waker &amp; enqueue the node.
-        </span><a href="#354">node</a>.waker.<a href="../loom/std/unsafe_cell.rs.html#13">with_mut</a>(|waker| {
+        </span>node.waker.with_mut(|waker| {
             <span class="comment">// Safety: the wait list is locked, so we may modify the waker.
-            </span><span class="kw">let </span>waker = <span class="kw">unsafe </span>{ <span class="kw-2">&amp;mut *</span><a href="#449">waker</a> };
+            </span><span class="kw">let </span>waker = <span class="kw">unsafe </span>{ <span class="kw-2">&amp;mut *</span>waker };
             <span class="comment">// Do we need to register the new waker?
             </span><span class="kw">if </span>waker
                 .as_ref()
                 .map(|waker| !waker.will_wake(cx.waker()))
                 .unwrap_or(<span class="bool-val">true</span>)
             {
-                <span class="kw-2">*</span><a href="#451">waker</a> = <span class="prelude-val">Some</span>(<a href="#352">cx</a>.waker().<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
+                <span class="kw-2">*</span>waker = <span class="prelude-val">Some</span>(cx.waker().clone());
             }
         });
 
         <span class="comment">// If the waiter is not already in the wait queue, enqueue it.
         </span><span class="kw">if </span>!queued {
             <span class="kw">let </span>node = <span class="kw">unsafe </span>{
-                <span class="kw">let </span>node = Pin::into_inner_unchecked(<a href="#354">node</a>) <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>;
-                NonNull::new_unchecked(<a href="#465">node</a>)
+                <span class="kw">let </span>node = Pin::into_inner_unchecked(node) <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>;
+                NonNull::new_unchecked(node)
             };
 
-            <a href="#369">waiters</a>.queue.<a href="../util/linked_list.rs.html#126">push_front</a>(<a href="#464">node</a>);
+            waiters.queue.push_front(node);
         }
 
         Pending
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="#36">Semaphore</a> {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, fmt: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a href="#477">fmt</a>.debug_struct(<span class="string">&quot;Semaphore&quot;</span>)
-            .field(<span class="string">&quot;permits&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="#477">self</a>.<a href="#202">available_permits</a>())
+<span class="kw">impl </span>fmt::Debug <span class="kw">for </span>Semaphore {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, fmt: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        fmt.debug_struct(<span class="string">&quot;Semaphore&quot;</span>)
+            .field(<span class="string">&quot;permits&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.available_permits())
             .finish()
     }
 }
 
-<span class="kw">impl </span><a href="#80">Waiter</a> {
+<span class="kw">impl </span>Waiter {
     <span class="kw">fn </span>new(
-        num_permits: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>,
+        num_permits: u32,
         <span class="attr">#[cfg(all(tokio_unstable, feature = <span class="string">&quot;tracing&quot;</span>))] </span>ctx: trace::AsyncOpTracingCtx,
     ) -&gt; <span class="self">Self </span>{
-        <a href="#80">Waiter</a> {
+        Waiter {
             waker: UnsafeCell::new(<span class="prelude-val">None</span>),
-            state: AtomicUsize::new(<a href="#486">num_permits</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>),
+            state: AtomicUsize::new(num_permits <span class="kw">as </span>usize),
             pointers: linked_list::Pointers::new(),
             <span class="attr">#[cfg(all(tokio_unstable, feature = <span class="string">&quot;tracing&quot;</span>))]
             </span>ctx,
@@ -1228,14 +1228,14 @@
     <span class="doccomment">/// Assign permits to the waiter.
     ///
     /// Returns `true` if the waiter should be removed from the queue
-    </span><span class="kw">fn </span>assign_permits(<span class="kw-2">&amp;</span><span class="self">self</span>, n: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">let </span><span class="kw-2">mut </span>curr = <a class="self" href="#502">self</a>.state.load(Acquire);
+    </span><span class="kw">fn </span>assign_permits(<span class="kw-2">&amp;</span><span class="self">self</span>, n: <span class="kw-2">&amp;mut </span>usize) -&gt; bool {
+        <span class="kw">let </span><span class="kw-2">mut </span>curr = <span class="self">self</span>.state.load(Acquire);
         <span class="kw">loop </span>{
-            <span class="kw">let </span>assign = cmp::min(<a href="#503">curr</a>, <span class="kw-2">*</span><a href="#502">n</a>);
-            <span class="kw">let </span>next = <a href="#503">curr</a> - <a href="#505">assign</a>;
-            <span class="kw">match </span><a class="self" href="#502">self</a>.state.compare_exchange(<a href="#503">curr</a>, <a href="#506">next</a>, AcqRel, Acquire) {
+            <span class="kw">let </span>assign = cmp::min(curr, <span class="kw-2">*</span>n);
+            <span class="kw">let </span>next = curr - assign;
+            <span class="kw">match </span><span class="self">self</span>.state.compare_exchange(curr, next, AcqRel, Acquire) {
                 <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; {
-                    <span class="kw-2">*</span><a href="#502">n</a> -= <a href="#505">assign</a>;
+                    <span class="kw-2">*</span>n -= assign;
                     <span class="attr">#[cfg(all(tokio_unstable, feature = <span class="string">&quot;tracing&quot;</span>))]
                     </span><span class="self">self</span>.ctx.async_op_span.in_scope(|| {
                         <span class="macro">tracing::trace!</span>(
@@ -1244,16 +1244,16 @@
                             permits.op = <span class="string">&quot;add&quot;</span>,
                         );
                     });
-                    <span class="kw">return </span><a href="#506">next</a> == <span class="number">0</span>;
+                    <span class="kw">return </span>next == <span class="number">0</span>;
                 }
-                <span class="prelude-val">Err</span>(actual) =&gt; <a href="#503">curr</a> = <a href="#520">actual</a>,
+                <span class="prelude-val">Err</span>(actual) =&gt; curr = actual,
             }
         }
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a> <span class="kw">for </span>Acquire&lt;<span class="lifetime">&#39;_</span>&gt; {
-    <span class="kw">type </span>Output = <span class="prelude-ty">Result</span>&lt;(), <a href="#70">AcquireError</a>&gt;;
+<span class="kw">impl </span>Future <span class="kw">for </span>Acquire&lt;<span class="lifetime">&#39;_</span>&gt; {
+    <span class="kw">type </span>Output = <span class="prelude-ty">Result</span>&lt;(), AcquireError&gt;;
 
     <span class="kw">fn </span>poll(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
         <span class="attr">#[cfg(all(tokio_unstable, feature = <span class="string">&quot;tracing&quot;</span>))]
@@ -1263,27 +1263,27 @@
         <span class="attr">#[cfg(all(tokio_unstable, feature = <span class="string">&quot;tracing&quot;</span>))]
         </span><span class="kw">let </span>_async_op_poll_span = <span class="self">self</span>.node.ctx.async_op_poll_span.clone().entered();
 
-        <span class="kw">let </span>(node, semaphore, needed, queued) = <a class="self" href="#529">self</a>.<a href="#615">project</a>();
+        <span class="kw">let </span>(node, semaphore, needed, queued) = <span class="self">self</span>.project();
 
         <span class="comment">// First, ensure the current task has enough budget to proceed.
         </span><span class="attr">#[cfg(all(tokio_unstable, feature = <span class="string">&quot;tracing&quot;</span>))]
         </span><span class="kw">let </span>coop = <span class="macro">ready!</span>(<span class="macro">trace_poll_op!</span>(
             <span class="string">&quot;poll_acquire&quot;</span>,
-            <span class="kw">crate</span>::coop::poll_proceed(cx),
+            <span class="kw">crate</span>::runtime::coop::poll_proceed(cx),
         ));
 
         <span class="attr">#[cfg(not(all(tokio_unstable, feature = <span class="string">&quot;tracing&quot;</span>)))]
-        </span><span class="kw">let </span>coop = <a class="macro" href="../macros/ready.rs.html#1-8">ready!</a>(<span class="kw">crate</span>::coop::poll_proceed(cx));
+        </span><span class="kw">let </span>coop = <span class="macro">ready!</span>(<span class="kw">crate</span>::runtime::coop::poll_proceed(cx));
 
-        <span class="kw">let </span>result = <span class="kw">match </span><a href="#537">semaphore</a>.<a href="#350-356">poll_acquire</a>(<a href="#529">cx</a>, <a href="#537">needed</a>, <a href="#537">node</a>, <span class="kw-2">*</span><a href="#537">queued</a>) {
+        <span class="kw">let </span>result = <span class="kw">match </span>semaphore.poll_acquire(cx, needed, node, <span class="kw-2">*</span>queued) {
             Pending =&gt; {
-                <span class="kw-2">*</span><a href="#537">queued</a> = <span class="bool-val">true</span>;
+                <span class="kw-2">*</span>queued = <span class="bool-val">true</span>;
                 Pending
             }
             Ready(r) =&gt; {
-                <a href="#547">coop</a>.<a href="../coop.rs.html#138">made_progress</a>();
+                coop.made_progress();
                 r<span class="question-mark">?</span>;
-                <span class="kw-2">*</span><a href="#537">queued</a> = <span class="bool-val">false</span>;
+                <span class="kw-2">*</span>queued = <span class="bool-val">false</span>;
                 Ready(<span class="prelude-val">Ok</span>(()))
             }
         };
@@ -1292,17 +1292,17 @@
         </span><span class="kw">return </span><span class="macro">trace_poll_op!</span>(<span class="string">&quot;poll_acquire&quot;</span>, result);
 
         <span class="attr">#[cfg(not(all(tokio_unstable, feature = <span class="string">&quot;tracing&quot;</span>)))]
-        </span><span class="kw">return </span><a href="#549">result</a>;
+        </span><span class="kw">return </span>result;
     }
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; Acquire&lt;<span class="lifetime">&#39;a</span>&gt; {
-    <span class="kw">fn </span>new(semaphore: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="#36">Semaphore</a>, num_permits: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; <span class="self">Self </span>{
+    <span class="kw">fn </span>new(semaphore: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Semaphore, num_permits: u32) -&gt; <span class="self">Self </span>{
         <span class="attr">#[cfg(any(not(tokio_unstable), not(feature = <span class="string">&quot;tracing&quot;</span>)))]
         </span><span class="kw">return </span><span class="self">Self </span>{
-            node: Waiter::new(<a href="#571">num_permits</a>),
-            <a href="#571">semaphore</a>,
-            <a href="#571">num_permits</a>,
+            node: Waiter::new(num_permits),
+            semaphore,
+            num_permits,
             queued: <span class="bool-val">false</span>,
         };
 
@@ -1341,27 +1341,27 @@
         });
     }
 
-    <span class="kw">fn </span>project(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;) -&gt; (Pin&lt;<span class="kw-2">&amp;mut </span><a href="#80">Waiter</a>&gt;, <span class="kw-2">&amp;</span><a href="#36">Semaphore</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>, <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) {
-        <span class="kw">fn </span>is_unpin&lt;T: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>&gt;() {}
+    <span class="kw">fn </span>project(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;) -&gt; (Pin&lt;<span class="kw-2">&amp;mut </span>Waiter&gt;, <span class="kw-2">&amp;</span>Semaphore, u32, <span class="kw-2">&amp;mut </span>bool) {
+        <span class="kw">fn </span>is_unpin&lt;T: Unpin&gt;() {}
         <span class="kw">unsafe </span>{
             <span class="comment">// Safety: all fields other than `node` are `Unpin`
 
-            </span>is_unpin::&lt;<span class="kw-2">&amp;</span><a href="#36">Semaphore</a>&gt;();
-            is_unpin::&lt;<span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>&gt;();
-            is_unpin::&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>&gt;();
+            </span>is_unpin::&lt;<span class="kw-2">&amp;</span>Semaphore&gt;();
+            is_unpin::&lt;<span class="kw-2">&amp;mut </span>bool&gt;();
+            is_unpin::&lt;u32&gt;();
 
-            <span class="kw">let </span>this = <a class="self" href="#615">self</a>.get_unchecked_mut();
+            <span class="kw">let </span>this = <span class="self">self</span>.get_unchecked_mut();
             (
-                Pin::new_unchecked(<span class="kw-2">&amp;mut </span><a href="#624">this</a>.node),
-                <a href="#624">this</a>.semaphore,
-                <a href="#624">this</a>.num_permits,
-                <span class="kw-2">&amp;mut </span><a href="#624">this</a>.queued,
+                Pin::new_unchecked(<span class="kw-2">&amp;mut </span>this.node),
+                this.semaphore,
+                this.num_permits,
+                <span class="kw-2">&amp;mut </span>this.queued,
             )
         }
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span>Acquire&lt;<span class="lifetime">&#39;_</span>&gt; {
+<span class="kw">impl </span>Drop <span class="kw">for </span>Acquire&lt;<span class="lifetime">&#39;_</span>&gt; {
     <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="comment">// If the future is completed, there is no node in the wait list, so we
         // can skip acquiring the lock.
@@ -1372,16 +1372,16 @@
         <span class="comment">// This is where we ensure safety. The future is being dropped,
         // which means we must ensure that the waiter entry is no longer stored
         // in the linked list.
-        </span><span class="kw">let </span><span class="kw-2">mut </span>waiters = <a class="self" href="#636">self</a>.semaphore.waiters.<a href="../loom/std/mutex.rs.html#16">lock</a>();
+        </span><span class="kw">let </span><span class="kw-2">mut </span>waiters = <span class="self">self</span>.semaphore.waiters.lock();
 
         <span class="comment">// remove the entry from the list
-        </span><span class="kw">let </span>node = NonNull::from(<span class="kw-2">&amp;mut </span><a class="self" href="#636">self</a>.node);
+        </span><span class="kw">let </span>node = NonNull::from(<span class="kw-2">&amp;mut </span><span class="self">self</span>.node);
         <span class="comment">// Safety: we have locked the wait list.
-        </span><span class="kw">unsafe </span>{ <a href="#646">waiters</a>.queue.<a href="../util/linked_list.rs.html#183">remove</a>(<a href="#649">node</a>) };
+        </span><span class="kw">unsafe </span>{ waiters.queue.remove(node) };
 
-        <span class="kw">let </span>acquired_permits = <a class="self" href="#636">self</a>.num_permits <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> - <a class="self" href="#636">self</a>.node.state.load(Acquire);
+        <span class="kw">let </span>acquired_permits = <span class="self">self</span>.num_permits <span class="kw">as </span>usize - <span class="self">self</span>.node.state.load(Acquire);
         <span class="kw">if </span>acquired_permits &gt; <span class="number">0 </span>{
-            <a class="self" href="#636">self</a>.semaphore.<a href="#284">add_permits_locked</a>(<a href="#653">acquired_permits</a>, <a href="#646">waiters</a>);
+            <span class="self">self</span>.semaphore.add_permits_locked(acquired_permits, waiters);
         }
     }
 }
@@ -1391,70 +1391,70 @@
 // `UnsafeCell` is only accessed when the future is borrowed mutably (either in
 // `poll` or in `drop`). Therefore, it is safe (although not particularly
 // _useful_) for the future to be borrowed immutably across threads.
-</span><span class="kw">unsafe impl </span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> <span class="kw">for </span>Acquire&lt;<span class="lifetime">&#39;_</span>&gt; {}
+</span><span class="kw">unsafe impl </span>Sync <span class="kw">for </span>Acquire&lt;<span class="lifetime">&#39;_</span>&gt; {}
 
 <span class="comment">// ===== impl AcquireError ====
 
-</span><span class="kw">impl </span><a href="#70">AcquireError</a> {
-    <span class="kw">fn </span>closed() -&gt; <a href="#70">AcquireError</a> {
-        <a href="#70">AcquireError</a>(())
+</span><span class="kw">impl </span>AcquireError {
+    <span class="kw">fn </span>closed() -&gt; AcquireError {
+        AcquireError(())
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for </span><a href="#70">AcquireError</a> {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, fmt: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#676">fmt</a>, <span class="string">&quot;semaphore closed&quot;</span>)
+<span class="kw">impl </span>fmt::Display <span class="kw">for </span>AcquireError {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, fmt: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        <span class="macro">write!</span>(fmt, <span class="string">&quot;semaphore closed&quot;</span>)
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">std::error::Error</a> <span class="kw">for </span><a href="#70">AcquireError</a> {}
+<span class="kw">impl </span>std::error::Error <span class="kw">for </span>AcquireError {}
 
 <span class="comment">// ===== impl TryAcquireError =====
 
-</span><span class="kw">impl </span><a href="#53">TryAcquireError</a> {
+</span><span class="kw">impl </span>TryAcquireError {
     <span class="doccomment">/// Returns `true` if the error was caused by a closed semaphore.
     </span><span class="attr">#[allow(dead_code)] </span><span class="comment">// may be used later!
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>is_closed(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.matches.html">matches!</a>(<span class="self">self</span>, TryAcquireError::Closed)
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>is_closed(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="macro">matches!</span>(<span class="self">self</span>, TryAcquireError::Closed)
     }
 
     <span class="doccomment">/// Returns `true` if the error was caused by calling `try_acquire` on a
     /// semaphore with no available permits.
     </span><span class="attr">#[allow(dead_code)] </span><span class="comment">// may be used later!
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>is_no_permits(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.matches.html">matches!</a>(<span class="self">self</span>, TryAcquireError::NoPermits)
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>is_no_permits(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="macro">matches!</span>(<span class="self">self</span>, TryAcquireError::NoPermits)
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for </span><a href="#53">TryAcquireError</a> {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, fmt: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <span class="kw">match </span><span class="self"><a href="#701">self</a> </span>{
-            <a href="#57">TryAcquireError::Closed</a> =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#701">fmt</a>, <span class="string">&quot;semaphore closed&quot;</span>),
-            <a href="#60">TryAcquireError::NoPermits</a> =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#701">fmt</a>, <span class="string">&quot;no permits available&quot;</span>),
+<span class="kw">impl </span>fmt::Display <span class="kw">for </span>TryAcquireError {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, fmt: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        <span class="kw">match </span><span class="self">self </span>{
+            TryAcquireError::Closed =&gt; <span class="macro">write!</span>(fmt, <span class="string">&quot;semaphore closed&quot;</span>),
+            TryAcquireError::NoPermits =&gt; <span class="macro">write!</span>(fmt, <span class="string">&quot;no permits available&quot;</span>),
         }
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">std::error::Error</a> <span class="kw">for </span><a href="#53">TryAcquireError</a> {}
+<span class="kw">impl </span>std::error::Error <span class="kw">for </span>TryAcquireError {}
 
 <span class="doccomment">/// # Safety
 ///
 /// `Waiter` is forced to be !Unpin.
-</span><span class="kw">unsafe impl </span><a href="../util/linked_list.rs.html#43">linked_list::Link</a> <span class="kw">for </span><a href="#80">Waiter</a> {
-    <span class="kw">type </span>Handle = NonNull&lt;<a href="#80">Waiter</a>&gt;;
-    <span class="kw">type </span>Target = <a href="#80">Waiter</a>;
+</span><span class="kw">unsafe impl </span>linked_list::Link <span class="kw">for </span>Waiter {
+    <span class="kw">type </span>Handle = NonNull&lt;Waiter&gt;;
+    <span class="kw">type </span>Target = Waiter;
 
-    <span class="kw">fn </span>as_raw(handle: <span class="kw-2">&amp;</span><span class="self">Self</span>::Handle) -&gt; NonNull&lt;<a href="#80">Waiter</a>&gt; {
-        <span class="kw-2">*</span><a href="#718">handle</a>
+    <span class="kw">fn </span>as_raw(handle: <span class="kw-2">&amp;</span><span class="self">Self</span>::Handle) -&gt; NonNull&lt;Waiter&gt; {
+        <span class="kw-2">*</span>handle
     }
 
-    <span class="kw">unsafe fn </span>from_raw(ptr: NonNull&lt;<a href="#80">Waiter</a>&gt;) -&gt; NonNull&lt;<a href="#80">Waiter</a>&gt; {
-        <a href="#722">ptr</a>
+    <span class="kw">unsafe fn </span>from_raw(ptr: NonNull&lt;Waiter&gt;) -&gt; NonNull&lt;Waiter&gt; {
+        ptr
     }
 
-    <span class="kw">unsafe fn </span>pointers(target: NonNull&lt;<a href="#80">Waiter</a>&gt;) -&gt; NonNull&lt;linked_list::Pointers&lt;<a href="#80">Waiter</a>&gt;&gt; {
-        Waiter::addr_of_pointers(<a href="#726">target</a>)
+    <span class="kw">unsafe fn </span>pointers(target: NonNull&lt;Waiter&gt;) -&gt; NonNull&lt;linked_list::Pointers&lt;Waiter&gt;&gt; {
+        Waiter::addr_of_pointers(target)
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="tokio" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="tokio" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

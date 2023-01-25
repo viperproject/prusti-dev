@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/nix-0.25.0/src/mount/linux.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>linux.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../nix/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/nix-0.26.1/src/mount/linux.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>linux.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../nix/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -110,13 +110,16 @@
 <a href="#110" id="110">110</a>
 <a href="#111" id="111">111</a>
 <a href="#112" id="112">112</a>
+<a href="#113" id="113">113</a>
+<a href="#114" id="114">114</a>
+<a href="#115" id="115">115</a>
 </pre><pre class="rust"><code><span class="attr">#![allow(missing_docs)]
-</span><span class="kw">use </span>libc::{<a class="self" href="../../../libc/index.html">self</a>, <a href="../../../libc/unix/linux_like/linux/gnu/b64/x86_64/not_x32/type.c_ulong.html">c_ulong</a>, <a href="../../../libc/unix/type.c_int.html">c_int</a>};
-<span class="kw">use crate</span>::{<span class="prelude-ty">Result</span>, <a href="../lib.rs.html#182">NixPath</a>};
-<span class="kw">use </span><a href="../errno.rs.html#1163"><span class="kw">crate</span>::errno::Errno</a>;
+</span><span class="kw">use </span><span class="kw">crate</span>::errno::Errno;
+<span class="kw">use crate</span>::{NixPath, <span class="prelude-ty">Result</span>};
+<span class="kw">use </span>libc::{<span class="self">self</span>, c_int, c_ulong};
 
-<a class="macro" href="../macros.rs.html#55-75">libc_bitflags!</a>(
-    <span class="kw">pub struct </span>MsFlags: <a href="../../../libc/unix/linux_like/linux/gnu/b64/x86_64/not_x32/type.c_ulong.html">c_ulong</a> {
+<span class="macro">libc_bitflags!</span>(
+    <span class="kw">pub struct </span>MsFlags: c_ulong {
         <span class="doccomment">/// Mount read-only
         </span>MS_RDONLY;
         <span class="doccomment">/// Ignore suid and sgid bits
@@ -160,8 +163,8 @@
     }
 );
 
-<a class="macro" href="../macros.rs.html#55-75">libc_bitflags!</a>(
-    <span class="kw">pub struct </span>MntFlags: <a href="../../../libc/unix/type.c_int.html">c_int</a> {
+<span class="macro">libc_bitflags!</span>(
+    <span class="kw">pub struct </span>MntFlags: c_int {
         MNT_FORCE;
         MNT_DETACH;
         MNT_EXPIRE;
@@ -169,58 +172,61 @@
     }
 );
 
-<span class="kw">pub fn </span>mount&lt;P1: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> + <a href="../lib.rs.html#182">NixPath</a>, P2: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> + <a href="../lib.rs.html#182">NixPath</a>, P3: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> + <a href="../lib.rs.html#182">NixPath</a>, P4: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> + <a href="../lib.rs.html#182">NixPath</a>&gt;(
-        source: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>P1&gt;,
-        target: <span class="kw-2">&amp;</span>P2,
-        fstype: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>P3&gt;,
-        flags: <a href="#6-49">MsFlags</a>,
-        data: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>P4&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
-
+<span class="kw">pub fn </span>mount&lt;
+    P1: <span class="question-mark">?</span>Sized + NixPath,
+    P2: <span class="question-mark">?</span>Sized + NixPath,
+    P3: <span class="question-mark">?</span>Sized + NixPath,
+    P4: <span class="question-mark">?</span>Sized + NixPath,
+&gt;(
+    source: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>P1&gt;,
+    target: <span class="kw-2">&amp;</span>P2,
+    fstype: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>P3&gt;,
+    flags: MsFlags,
+    data: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>P4&gt;,
+) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
     <span class="kw">fn </span>with_opt_nix_path&lt;P, T, F&gt;(p: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>P&gt;, f: F) -&gt; <span class="prelude-ty">Result</span>&lt;T&gt;
-        <span class="kw">where </span>P: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> + <a href="../lib.rs.html#182">NixPath</a>,
-              F: FnOnce(<span class="kw-2">*const </span><a href="../../../libc/unix/linux_like/linux/gnu/b64/x86_64/type.c_char.html">libc::c_char</a>) -&gt; T
+    <span class="kw">where
+        </span>P: <span class="question-mark">?</span>Sized + NixPath,
+        F: FnOnce(<span class="kw-2">*const </span>libc::c_char) -&gt; T,
     {
-        <span class="kw">match </span><a href="#67">p</a> {
-            <span class="prelude-val">Some</span>(path) =&gt; <a href="#72">path</a>.<a href="../lib.rs.html#192-194">with_nix_path</a>(|p_str| <a href="#67">f</a>(<a href="#72">p_str</a>.as_ptr())),
-            <span class="prelude-val">None </span>=&gt; <span class="prelude-val">Ok</span>(<a href="#67">f</a>(<a href="https://doc.rust-lang.org/nightly/core/ptr/fn.null.html">std::ptr::null</a>()))
+        <span class="kw">match </span>p {
+            <span class="prelude-val">Some</span>(path) =&gt; path.with_nix_path(|p_str| f(p_str.as_ptr())),
+            <span class="prelude-val">None </span>=&gt; <span class="prelude-val">Ok</span>(f(std::ptr::null())),
         }
     }
 
     <span class="kw">let </span>res = with_opt_nix_path(source, |s| {
         target.with_nix_path(|t| {
             with_opt_nix_path(fstype, |ty| {
-                with_opt_nix_path(data, |d| {
-                    <span class="kw">unsafe </span>{
-                        libc::mount(
-                            s,
-                            t.as_ptr(),
-                            ty,
-                            flags.bits,
-                            d <span class="kw">as </span><span class="kw-2">*const </span>libc::c_void
-                        )
-                    }
+                with_opt_nix_path(data, |d| <span class="kw">unsafe </span>{
+                    libc::mount(
+                        s,
+                        t.as_ptr(),
+                        ty,
+                        flags.bits,
+                        d <span class="kw">as </span><span class="kw-2">*const </span>libc::c_void,
+                    )
                 })
             })
         })
     })<span class="question-mark">????</span>;
 
-    Errno::result(<a href="#77">res</a>).map(<a href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>)
+    Errno::result(res).map(drop)
 }
 
-<span class="kw">pub fn </span>umount&lt;P: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> + <a href="../lib.rs.html#182">NixPath</a>&gt;(target: <span class="kw-2">&amp;</span>P) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
-    <span class="kw">let </span>res = target.with_nix_path(|cstr| {
-        <span class="kw">unsafe </span>{ libc::umount(cstr.as_ptr()) }
-    })<span class="question-mark">?</span>;
+<span class="kw">pub fn </span>umount&lt;P: <span class="question-mark">?</span>Sized + NixPath&gt;(target: <span class="kw-2">&amp;</span>P) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+    <span class="kw">let </span>res =
+        target.with_nix_path(|cstr| <span class="kw">unsafe </span>{ libc::umount(cstr.as_ptr()) })<span class="question-mark">?</span>;
 
-    Errno::result(<a href="#99">res</a>).map(<a href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>)
+    Errno::result(res).map(drop)
 }
 
-<span class="kw">pub fn </span>umount2&lt;P: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> + <a href="../lib.rs.html#182">NixPath</a>&gt;(target: <span class="kw-2">&amp;</span>P, flags: <a href="#51-58">MntFlags</a>) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
-    <span class="kw">let </span>res = target.with_nix_path(|cstr| {
-        <span class="kw">unsafe </span>{ libc::umount2(cstr.as_ptr(), flags.bits) }
+<span class="kw">pub fn </span>umount2&lt;P: <span class="question-mark">?</span>Sized + NixPath&gt;(target: <span class="kw-2">&amp;</span>P, flags: MntFlags) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+    <span class="kw">let </span>res = target.with_nix_path(|cstr| <span class="kw">unsafe </span>{
+        libc::umount2(cstr.as_ptr(), flags.bits)
     })<span class="question-mark">?</span>;
 
-    Errno::result(<a href="#107">res</a>).map(<a href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>)
+    Errno::result(res).map(drop)
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="nix" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="nix" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

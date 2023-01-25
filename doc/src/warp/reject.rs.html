@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/warp-0.3.3/src/reject.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>reject.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../warp/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/warp-0.3.3/src/reject.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>reject.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../warp/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -900,74 +900,74 @@
 //!     .recover(handle_rejection);
 //! ```
 
-</span><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/any/trait.Any.html">std::any::Any</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/convert/enum.Infallible.html">std::convert::Infallible</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">std::error::Error</a> <span class="kw">as </span>StdError;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">std::fmt</a>;
+</span><span class="kw">use </span>std::any::Any;
+<span class="kw">use </span>std::convert::Infallible;
+<span class="kw">use </span>std::error::Error <span class="kw">as </span>StdError;
+<span class="kw">use </span>std::fmt;
 
 <span class="kw">use </span>http::{
-    <a class="self" href="../../http/index.html">self</a>,
-    header::{<a href="../../http/header/value/struct.HeaderValue.html">HeaderValue</a>, <a href="../../http/header/name/constant.CONTENT_TYPE.html">CONTENT_TYPE</a>},
-    <a href="../../http/status/struct.StatusCode.html">StatusCode</a>,
+    <span class="self">self</span>,
+    header::{HeaderValue, CONTENT_TYPE},
+    StatusCode,
 };
-<span class="kw">use </span><a href="../../hyper/body/body/struct.Body.html">hyper::Body</a>;
+<span class="kw">use </span>hyper::Body;
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span><span class="self">self</span>::sealed::{<a href="#626">CombineRejection</a>, <a href="#608">IsReject</a>};
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span><span class="self">self</span>::sealed::{CombineRejection, IsReject};
 
 <span class="doccomment">/// Rejects a request with `404 Not Found`.
 </span><span class="attr">#[inline]
-</span><span class="kw">pub fn </span>reject() -&gt; <a href="#205">Rejection</a> {
-    <a href="#81">not_found</a>()
+</span><span class="kw">pub fn </span>reject() -&gt; Rejection {
+    not_found()
 }
 
 <span class="doccomment">/// Rejects a request with `404 Not Found`.
 </span><span class="attr">#[inline]
-</span><span class="kw">pub fn </span>not_found() -&gt; <a href="#205">Rejection</a> {
-    <a href="#205">Rejection</a> {
-        reason: <a href="#210">Reason::NotFound</a>,
+</span><span class="kw">pub fn </span>not_found() -&gt; Rejection {
+    Rejection {
+        reason: Reason::NotFound,
     }
 }
 
 <span class="comment">// 400 Bad Request
 </span><span class="attr">#[inline]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>invalid_query() -&gt; <a href="#205">Rejection</a> {
-    <a href="#198">known</a>(<a href="#512-515">InvalidQuery</a> { _p: () })
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>invalid_query() -&gt; Rejection {
+    known(InvalidQuery { _p: () })
 }
 
 <span class="comment">// 400 Bad Request
 </span><span class="attr">#[inline]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>missing_header(name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <a href="#205">Rejection</a> {
-    <a href="#198">known</a>(<a href="#539">MissingHeader</a> { <a href="#95">name</a> })
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>missing_header(name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str) -&gt; Rejection {
+    known(MissingHeader { name })
 }
 
 <span class="comment">// 400 Bad Request
 </span><span class="attr">#[inline]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>invalid_header(name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <a href="#205">Rejection</a> {
-    <a href="#198">known</a>(<a href="#560">InvalidHeader</a> { <a href="#101">name</a> })
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>invalid_header(name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str) -&gt; Rejection {
+    known(InvalidHeader { name })
 }
 
 <span class="comment">// 400 Bad Request
 </span><span class="attr">#[inline]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>missing_cookie(name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <a href="#205">Rejection</a> {
-    <a href="#198">known</a>(<a href="#581">MissingCookie</a> { <a href="#107">name</a> })
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>missing_cookie(name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str) -&gt; Rejection {
+    known(MissingCookie { name })
 }
 
 <span class="comment">// 405 Method Not Allowed
 </span><span class="attr">#[inline]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>method_not_allowed() -&gt; <a href="#205">Rejection</a> {
-    <a href="#198">known</a>(<a href="#517-520">MethodNotAllowed</a> { _p: () })
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>method_not_allowed() -&gt; Rejection {
+    known(MethodNotAllowed { _p: () })
 }
 
 <span class="comment">// 411 Length Required
 </span><span class="attr">#[inline]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>length_required() -&gt; <a href="#205">Rejection</a> {
-    <a href="#198">known</a>(<a href="#522-525">LengthRequired</a> { _p: () })
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>length_required() -&gt; Rejection {
+    known(LengthRequired { _p: () })
 }
 
 <span class="comment">// 413 Payload Too Large
 </span><span class="attr">#[inline]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>payload_too_large() -&gt; <a href="#205">Rejection</a> {
-    <a href="#198">known</a>(<a href="#527-530">PayloadTooLarge</a> { _p: () })
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>payload_too_large() -&gt; Rejection {
+    known(PayloadTooLarge { _p: () })
 }
 
 <span class="comment">// 415 Unsupported Media Type
@@ -975,8 +975,8 @@
 // Used by the body filters if the request payload content-type doesn&#39;t match
 // what can be deserialized.
 </span><span class="attr">#[inline]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>unsupported_media_type() -&gt; <a href="#205">Rejection</a> {
-    <a href="#198">known</a>(<a href="#532-535">UnsupportedMediaType</a> { _p: () })
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>unsupported_media_type() -&gt; Rejection {
+    known(UnsupportedMediaType { _p: () })
 }
 
 <span class="doccomment">/// Rejects a request with a custom cause.
@@ -985,8 +985,8 @@
 /// or else this will be returned as a `500 Internal Server Error`.
 ///
 /// [`recover`]: ../trait.Filter.html#method.recover
-</span><span class="kw">pub fn </span>custom&lt;T: <a href="#177">Reject</a>&gt;(err: T) -&gt; <a href="#205">Rejection</a> {
-    Rejection::custom(Box::new(<a href="#144">err</a>))
+</span><span class="kw">pub fn </span>custom&lt;T: Reject&gt;(err: T) -&gt; Rejection {
+    Rejection::custom(Box::new(err))
 }
 
 <span class="doccomment">/// Protect against re-rejecting a rejection.
@@ -1018,47 +1018,47 @@
 /// ```
 </span><span class="comment">// Require `Sized` for now to prevent passing a `Box&lt;dyn Reject&gt;`, since we
 // would be double-boxing it, and the downcasting wouldn&#39;t work as expected.
-</span><span class="kw">pub trait </span>Reject: <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> + <span class="lifetime">&#39;static </span>{}
+</span><span class="kw">pub trait </span>Reject: fmt::Debug + Sized + Send + Sync + <span class="lifetime">&#39;static </span>{}
 
-<span class="kw">trait </span>Cause: <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> + <span class="lifetime">&#39;static </span>{
-    <span class="kw">fn </span>as_any(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="kw">dyn </span><a href="https://doc.rust-lang.org/nightly/core/any/trait.Any.html">Any</a>;
+<span class="kw">trait </span>Cause: fmt::Debug + Send + Sync + <span class="lifetime">&#39;static </span>{
+    <span class="kw">fn </span>as_any(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="kw">dyn </span>Any;
 }
 
-<span class="kw">impl</span>&lt;T&gt; <a href="#179">Cause</a> <span class="kw">for </span>T
+<span class="kw">impl</span>&lt;T&gt; Cause <span class="kw">for </span>T
 <span class="kw">where
-    </span>T: <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> + <span class="lifetime">&#39;static</span>,
+    </span>T: fmt::Debug + Send + Sync + <span class="lifetime">&#39;static</span>,
 {
-    <span class="kw">fn </span>as_any(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="kw">dyn </span><a href="https://doc.rust-lang.org/nightly/core/any/trait.Any.html">Any</a> {
-        <span class="self"><a href="#187">self</a>
+    <span class="kw">fn </span>as_any(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="kw">dyn </span>Any {
+        <span class="self">self
     </span>}
 }
 
-<span class="kw">impl dyn </span><a href="#179">Cause</a> {
-    <span class="kw">fn </span>downcast_ref&lt;T: <a href="https://doc.rust-lang.org/nightly/core/any/trait.Any.html">Any</a>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>T&gt; {
-        <a class="self" href="#193">self</a>.<a href="#180">as_any</a>().downcast_ref::&lt;T&gt;()
+<span class="kw">impl dyn </span>Cause {
+    <span class="kw">fn </span>downcast_ref&lt;T: Any&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>T&gt; {
+        <span class="self">self</span>.as_any().downcast_ref::&lt;T&gt;()
     }
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>known&lt;T: Into&lt;<a href="#274-292">Known</a>&gt;&gt;(err: T) -&gt; <a href="#205">Rejection</a> {
-    Rejection::known(<a href="#198">err</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>known&lt;T: Into&lt;Known&gt;&gt;(err: T) -&gt; Rejection {
+    Rejection::known(err.into())
 }
 
 <span class="doccomment">/// Rejection of a request by a [`Filter`](crate::Filter).
 ///
 /// See the [`reject`](module@crate::reject) documentation for more.
 </span><span class="kw">pub struct </span>Rejection {
-    reason: <a href="#209">Reason</a>,
+    reason: Reason,
 }
 
 <span class="kw">enum </span>Reason {
     NotFound,
-    Other(Box&lt;<a href="#214">Rejections</a>&gt;),
+    Other(Box&lt;Rejections&gt;),
 }
 
 <span class="kw">enum </span>Rejections {
-    Known(<a href="#274-292">Known</a>),
-    Custom(Box&lt;<span class="kw">dyn </span><a href="#179">Cause</a>&gt;),
-    Combined(Box&lt;<a href="#214">Rejections</a>&gt;, Box&lt;<a href="#214">Rejections</a>&gt;),
+    Known(Known),
+    Custom(Box&lt;<span class="kw">dyn </span>Cause&gt;),
+    Combined(Box&lt;Rejections&gt;, Box&lt;Rejections&gt;),
 }
 
 <span class="macro">macro_rules! </span>enum_known {
@@ -1115,36 +1115,36 @@
     );
 }
 
-<a class="macro" href="#220-272">enum_known! </a>{
-    MethodNotAllowed(<a href="#517-520">MethodNotAllowed</a>),
-    InvalidHeader(<a href="#560">InvalidHeader</a>),
-    MissingHeader(<a href="#539">MissingHeader</a>),
-    MissingCookie(<a href="#581">MissingCookie</a>),
-    InvalidQuery(<a href="#512-515">InvalidQuery</a>),
-    LengthRequired(<a href="#522-525">LengthRequired</a>),
-    PayloadTooLarge(<a href="#527-530">PayloadTooLarge</a>),
-    UnsupportedMediaType(<a href="#532-535">UnsupportedMediaType</a>),
-    FileOpenError(<a href="filters/fs.rs.html#495-497"><span class="kw">crate</span>::fs::FileOpenError</a>),
-    FilePermissionError(<a href="filters/fs.rs.html#499-501"><span class="kw">crate</span>::fs::FilePermissionError</a>),
-    BodyReadError(<a href="filters/body.rs.html#333"><span class="kw">crate</span>::body::BodyReadError</a>),
-    BodyDeserializeError(<a href="filters/body.rs.html#316"><span class="kw">crate</span>::body::BodyDeserializeError</a>),
-    CorsForbidden(<a href="filters/cors.rs.html#313"><span class="kw">crate</span>::cors::CorsForbidden</a>),
+<span class="macro">enum_known! </span>{
+    MethodNotAllowed(MethodNotAllowed),
+    InvalidHeader(InvalidHeader),
+    MissingHeader(MissingHeader),
+    MissingCookie(MissingCookie),
+    InvalidQuery(InvalidQuery),
+    LengthRequired(LengthRequired),
+    PayloadTooLarge(PayloadTooLarge),
+    UnsupportedMediaType(UnsupportedMediaType),
+    FileOpenError(<span class="kw">crate</span>::fs::FileOpenError),
+    FilePermissionError(<span class="kw">crate</span>::fs::FilePermissionError),
+    BodyReadError(<span class="kw">crate</span>::body::BodyReadError),
+    BodyDeserializeError(<span class="kw">crate</span>::body::BodyDeserializeError),
+    CorsForbidden(<span class="kw">crate</span>::cors::CorsForbidden),
     <span class="attr">#[cfg(feature = <span class="string">&quot;websocket&quot;</span>)]
-    </span>MissingConnectionUpgrade(<a href="filters/ws.rs.html#402"><span class="kw">crate</span>::ws::MissingConnectionUpgrade</a>),
-    MissingExtension(<a href="filters/ext.rs.html#33-36"><span class="kw">crate</span>::ext::MissingExtension</a>),
-    BodyConsumedMultipleTimes(<a href="filters/body.rs.html#343-345"><span class="kw">crate</span>::body::BodyConsumedMultipleTimes</a>),
+    </span>MissingConnectionUpgrade(<span class="kw">crate</span>::ws::MissingConnectionUpgrade),
+    MissingExtension(<span class="kw">crate</span>::ext::MissingExtension),
+    BodyConsumedMultipleTimes(<span class="kw">crate</span>::body::BodyConsumedMultipleTimes),
 }
 
-<span class="kw">impl </span><a href="#205">Rejection</a> {
-    <span class="kw">fn </span>known(known: <a href="#274-292">Known</a>) -&gt; <span class="self">Self </span>{
-        <a href="#205">Rejection</a> {
-            reason: <a href="#211">Reason::Other</a>(Box::new(<a href="#215">Rejections::Known</a>(<a href="#295">known</a>))),
+<span class="kw">impl </span>Rejection {
+    <span class="kw">fn </span>known(known: Known) -&gt; <span class="self">Self </span>{
+        Rejection {
+            reason: Reason::Other(Box::new(Rejections::Known(known))),
         }
     }
 
-    <span class="kw">fn </span>custom(other: Box&lt;<span class="kw">dyn </span><a href="#179">Cause</a>&gt;) -&gt; <span class="self">Self </span>{
-        <a href="#205">Rejection</a> {
-            reason: <a href="#211">Reason::Other</a>(Box::new(<a href="#216">Rejections::Custom</a>(<a href="#301">other</a>))),
+    <span class="kw">fn </span>custom(other: Box&lt;<span class="kw">dyn </span>Cause&gt;) -&gt; <span class="self">Self </span>{
+        Rejection {
+            reason: Reason::Other(Box::new(Rejections::Custom(other))),
         }
     }
 
@@ -1168,8 +1168,8 @@
     /// }
     /// ```
     </span><span class="kw">pub fn </span>find&lt;T: <span class="lifetime">&#39;static</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>T&gt; {
-        <span class="kw">if let </span><a href="#211">Reason::Other</a>(<span class="kw-2">ref </span>rejections) = <a class="self" href="#326">self</a>.reason {
-            <span class="kw">return </span><a href="#327">rejections</a>.<a href="#472">find</a>();
+        <span class="kw">if let </span>Reason::Other(<span class="kw-2">ref </span>rejections) = <span class="self">self</span>.reason {
+            <span class="kw">return </span>rejections.find();
         }
         <span class="prelude-val">None
     </span>}
@@ -1183,73 +1183,73 @@
     ///
     /// assert!(rejection.is_not_found());
     /// ```
-    </span><span class="kw">pub fn </span>is_not_found(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.matches.html">matches!</a>(<span class="self">self</span>.reason, Reason::NotFound)
+    </span><span class="kw">pub fn </span>is_not_found(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="macro">matches!</span>(<span class="self">self</span>.reason, Reason::NotFound)
     }
 }
 
-<span class="kw">impl</span>&lt;T: <a href="#177">Reject</a>&gt; From&lt;T&gt; <span class="kw">for </span><a href="#205">Rejection</a> {
+<span class="kw">impl</span>&lt;T: Reject&gt; From&lt;T&gt; <span class="kw">for </span>Rejection {
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>from(err: T) -&gt; <a href="#205">Rejection</a> {
-        <a href="#144">custom</a>(<a href="#349">err</a>)
+    </span><span class="kw">fn </span>from(err: T) -&gt; Rejection {
+        custom(err)
     }
 }
 
-<span class="kw">impl </span>From&lt;<a href="https://doc.rust-lang.org/nightly/core/convert/enum.Infallible.html">Infallible</a>&gt; <span class="kw">for </span><a href="#205">Rejection</a> {
+<span class="kw">impl </span>From&lt;Infallible&gt; <span class="kw">for </span>Rejection {
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>from(infallible: <a href="https://doc.rust-lang.org/nightly/core/convert/enum.Infallible.html">Infallible</a>) -&gt; <a href="#205">Rejection</a> {
-        <span class="kw">match </span><a href="#356">infallible</a> {}
+    </span><span class="kw">fn </span>from(infallible: Infallible) -&gt; Rejection {
+        <span class="kw">match </span>infallible {}
     }
 }
 
-<span class="kw">impl </span><a href="#608">IsReject</a> <span class="kw">for </span><a href="https://doc.rust-lang.org/nightly/core/convert/enum.Infallible.html">Infallible</a> {
-    <span class="kw">fn </span>status(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../../http/status/struct.StatusCode.html">StatusCode</a> {
-        <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="#362">self</a> </span>{}
+<span class="kw">impl </span>IsReject <span class="kw">for </span>Infallible {
+    <span class="kw">fn </span>status(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; StatusCode {
+        <span class="kw">match </span><span class="kw-2">*</span><span class="self">self </span>{}
     }
 
-    <span class="kw">fn </span>into_response(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="reply.rs.html#55"><span class="kw">crate</span>::reply::Response</a> {
-        <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="#366">self</a> </span>{}
+    <span class="kw">fn </span>into_response(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">crate</span>::reply::Response {
+        <span class="kw">match </span><span class="kw-2">*</span><span class="self">self </span>{}
     }
 }
 
-<span class="kw">impl </span><a href="#608">IsReject</a> <span class="kw">for </span><a href="#205">Rejection</a> {
-    <span class="kw">fn </span>status(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../../http/status/struct.StatusCode.html">StatusCode</a> {
-        <span class="kw">match </span><a class="self" href="#372">self</a>.reason {
-            <a href="#210">Reason::NotFound</a> =&gt; StatusCode::NOT_FOUND,
-            <a href="#211">Reason::Other</a>(<span class="kw-2">ref </span>other) =&gt; <a href="#375">other</a>.<a href="#418">status</a>(),
+<span class="kw">impl </span>IsReject <span class="kw">for </span>Rejection {
+    <span class="kw">fn </span>status(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; StatusCode {
+        <span class="kw">match </span><span class="self">self</span>.reason {
+            Reason::NotFound =&gt; StatusCode::NOT_FOUND,
+            Reason::Other(<span class="kw-2">ref </span>other) =&gt; other.status(),
         }
     }
 
-    <span class="kw">fn </span>into_response(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="reply.rs.html#55"><span class="kw">crate</span>::reply::Response</a> {
-        <span class="kw">match </span><a class="self" href="#379">self</a>.reason {
-            <a href="#210">Reason::NotFound</a> =&gt; {
+    <span class="kw">fn </span>into_response(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">crate</span>::reply::Response {
+        <span class="kw">match </span><span class="self">self</span>.reason {
+            Reason::NotFound =&gt; {
                 <span class="kw">let </span><span class="kw-2">mut </span>res = http::Response::default();
-                <span class="kw-2">*</span><a href="#382">res</a>.status_mut() = StatusCode::NOT_FOUND;
-                <a href="#382">res</a>
+                <span class="kw-2">*</span>res.status_mut() = StatusCode::NOT_FOUND;
+                res
             }
-            <a href="#211">Reason::Other</a>(<span class="kw-2">ref </span>other) =&gt; <a href="#386">other</a>.<a href="#443">into_response</a>(),
+            Reason::Other(<span class="kw-2">ref </span>other) =&gt; other.into_response(),
         }
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="#205">Rejection</a> {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a href="#392">f</a>.debug_tuple(<span class="string">&quot;Rejection&quot;</span>).field(<span class="kw-2">&amp;</span><a class="self" href="#392">self</a>.reason).finish()
+<span class="kw">impl </span>fmt::Debug <span class="kw">for </span>Rejection {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        f.debug_tuple(<span class="string">&quot;Rejection&quot;</span>).field(<span class="kw-2">&amp;</span><span class="self">self</span>.reason).finish()
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="#209">Reason</a> {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="#398">self</a> </span>{
-            <a href="#210">Reason::NotFound</a> =&gt; <a href="#398">f</a>.write_str(<span class="string">&quot;NotFound&quot;</span>),
-            <a href="#211">Reason::Other</a>(<span class="kw-2">ref </span>other) =&gt; <span class="kw">match </span><span class="kw-2">**</span><a href="#401">other</a> {
-                <a href="#215">Rejections::Known</a>(<span class="kw-2">ref </span>e) =&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug::fmt</a>(<a href="#402">e</a>, <a href="#398">f</a>),
-                <a href="#216">Rejections::Custom</a>(<span class="kw-2">ref </span>e) =&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug::fmt</a>(<a href="#403">e</a>, <a href="#398">f</a>),
-                <a href="#217">Rejections::Combined</a>(<span class="kw-2">ref </span>a, <span class="kw-2">ref </span>b) =&gt; {
-                    <span class="kw">let </span><span class="kw-2">mut </span>list = <a href="#398">f</a>.debug_list();
-                    <a href="#404">a</a>.<a href="#480">debug_list</a>(<span class="kw-2">&amp;mut </span><a href="#405">list</a>);
-                    <a href="#404">b</a>.<a href="#480">debug_list</a>(<span class="kw-2">&amp;mut </span><a href="#405">list</a>);
-                    <a href="#405">list</a>.finish()
+<span class="kw">impl </span>fmt::Debug <span class="kw">for </span>Reason {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        <span class="kw">match </span><span class="kw-2">*</span><span class="self">self </span>{
+            Reason::NotFound =&gt; f.write_str(<span class="string">&quot;NotFound&quot;</span>),
+            Reason::Other(<span class="kw-2">ref </span>other) =&gt; <span class="kw">match </span><span class="kw-2">**</span>other {
+                Rejections::Known(<span class="kw-2">ref </span>e) =&gt; fmt::Debug::fmt(e, f),
+                Rejections::Custom(<span class="kw-2">ref </span>e) =&gt; fmt::Debug::fmt(e, f),
+                Rejections::Combined(<span class="kw-2">ref </span>a, <span class="kw-2">ref </span>b) =&gt; {
+                    <span class="kw">let </span><span class="kw-2">mut </span>list = f.debug_list();
+                    a.debug_list(<span class="kw-2">&amp;mut </span>list);
+                    b.debug_list(<span class="kw-2">&amp;mut </span>list);
+                    list.finish()
                 }
             },
         }
@@ -1258,122 +1258,122 @@
 
 <span class="comment">// ===== Rejections =====
 
-</span><span class="kw">impl </span><a href="#214">Rejections</a> {
-    <span class="kw">fn </span>status(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../../http/status/struct.StatusCode.html">StatusCode</a> {
-        <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="#418">self</a> </span>{
-            <a href="#215">Rejections::Known</a>(<span class="kw-2">ref </span>k) =&gt; <span class="kw">match </span><span class="kw-2">*</span><a href="#420">k</a> {
-                <a href="#274-292">Known::MethodNotAllowed</a>(<span class="kw">_</span>) =&gt; StatusCode::METHOD_NOT_ALLOWED,
-                <a href="#274-292">Known::InvalidHeader</a>(<span class="kw">_</span>)
-                | <a href="#274-292">Known::MissingHeader</a>(<span class="kw">_</span>)
-                | <a href="#274-292">Known::MissingCookie</a>(<span class="kw">_</span>)
-                | <a href="#274-292">Known::InvalidQuery</a>(<span class="kw">_</span>)
-                | <a href="#274-292">Known::BodyReadError</a>(<span class="kw">_</span>)
-                | <a href="#274-292">Known::BodyDeserializeError</a>(<span class="kw">_</span>) =&gt; StatusCode::BAD_REQUEST,
+</span><span class="kw">impl </span>Rejections {
+    <span class="kw">fn </span>status(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; StatusCode {
+        <span class="kw">match </span><span class="kw-2">*</span><span class="self">self </span>{
+            Rejections::Known(<span class="kw-2">ref </span>k) =&gt; <span class="kw">match </span><span class="kw-2">*</span>k {
+                Known::MethodNotAllowed(<span class="kw">_</span>) =&gt; StatusCode::METHOD_NOT_ALLOWED,
+                Known::InvalidHeader(<span class="kw">_</span>)
+                | Known::MissingHeader(<span class="kw">_</span>)
+                | Known::MissingCookie(<span class="kw">_</span>)
+                | Known::InvalidQuery(<span class="kw">_</span>)
+                | Known::BodyReadError(<span class="kw">_</span>)
+                | Known::BodyDeserializeError(<span class="kw">_</span>) =&gt; StatusCode::BAD_REQUEST,
                 <span class="attr">#[cfg(feature = <span class="string">&quot;websocket&quot;</span>)]
-                </span><a href="#274-292">Known::MissingConnectionUpgrade</a>(<span class="kw">_</span>) =&gt; StatusCode::BAD_REQUEST,
-                <a href="#274-292">Known::LengthRequired</a>(<span class="kw">_</span>) =&gt; StatusCode::LENGTH_REQUIRED,
-                <a href="#274-292">Known::PayloadTooLarge</a>(<span class="kw">_</span>) =&gt; StatusCode::PAYLOAD_TOO_LARGE,
-                <a href="#274-292">Known::UnsupportedMediaType</a>(<span class="kw">_</span>) =&gt; StatusCode::UNSUPPORTED_MEDIA_TYPE,
-                <a href="#274-292">Known::FilePermissionError</a>(<span class="kw">_</span>) | <a href="#274-292">Known::CorsForbidden</a>(<span class="kw">_</span>) =&gt; StatusCode::FORBIDDEN,
-                <a href="#274-292">Known::FileOpenError</a>(<span class="kw">_</span>)
-                | <a href="#274-292">Known::MissingExtension</a>(<span class="kw">_</span>)
-                | <a href="#274-292">Known::BodyConsumedMultipleTimes</a>(<span class="kw">_</span>) =&gt; StatusCode::INTERNAL_SERVER_ERROR,
+                </span>Known::MissingConnectionUpgrade(<span class="kw">_</span>) =&gt; StatusCode::BAD_REQUEST,
+                Known::LengthRequired(<span class="kw">_</span>) =&gt; StatusCode::LENGTH_REQUIRED,
+                Known::PayloadTooLarge(<span class="kw">_</span>) =&gt; StatusCode::PAYLOAD_TOO_LARGE,
+                Known::UnsupportedMediaType(<span class="kw">_</span>) =&gt; StatusCode::UNSUPPORTED_MEDIA_TYPE,
+                Known::FilePermissionError(<span class="kw">_</span>) | Known::CorsForbidden(<span class="kw">_</span>) =&gt; StatusCode::FORBIDDEN,
+                Known::FileOpenError(<span class="kw">_</span>)
+                | Known::MissingExtension(<span class="kw">_</span>)
+                | Known::BodyConsumedMultipleTimes(<span class="kw">_</span>) =&gt; StatusCode::INTERNAL_SERVER_ERROR,
             },
-            <a href="#216">Rejections::Custom</a>(..) =&gt; StatusCode::INTERNAL_SERVER_ERROR,
-            <a href="#217">Rejections::Combined</a>(<span class="kw-2">ref </span>a, <span class="kw-2">ref </span>b) =&gt; <a href="#496">preferred</a>(<a href="#439">a</a>, <a href="#439">b</a>).<a href="#418">status</a>(),
+            Rejections::Custom(..) =&gt; StatusCode::INTERNAL_SERVER_ERROR,
+            Rejections::Combined(<span class="kw-2">ref </span>a, <span class="kw-2">ref </span>b) =&gt; preferred(a, b).status(),
         }
     }
 
-    <span class="kw">fn </span>into_response(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="reply.rs.html#55"><span class="kw">crate</span>::reply::Response</a> {
-        <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="#443">self</a> </span>{
-            <a href="#215">Rejections::Known</a>(<span class="kw-2">ref </span>e) =&gt; {
-                <span class="kw">let </span><span class="kw-2">mut </span>res = http::Response::new(Body::from(<a href="#445">e</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>()));
-                <span class="kw-2">*</span><a href="#446">res</a>.status_mut() = <a class="self" href="#443">self</a>.<a href="#418">status</a>();
-                <a href="#446">res</a>.headers_mut().insert(
-                    <a href="../../http/header/name/constant.CONTENT_TYPE.html">CONTENT_TYPE</a>,
+    <span class="kw">fn </span>into_response(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">crate</span>::reply::Response {
+        <span class="kw">match </span><span class="kw-2">*</span><span class="self">self </span>{
+            Rejections::Known(<span class="kw-2">ref </span>e) =&gt; {
+                <span class="kw">let </span><span class="kw-2">mut </span>res = http::Response::new(Body::from(e.to_string()));
+                <span class="kw-2">*</span>res.status_mut() = <span class="self">self</span>.status();
+                res.headers_mut().insert(
+                    CONTENT_TYPE,
                     HeaderValue::from_static(<span class="string">&quot;text/plain; charset=utf-8&quot;</span>),
                 );
-                <a href="#446">res</a>
+                res
             }
-            <a href="#216">Rejections::Custom</a>(<span class="kw-2">ref </span>e) =&gt; {
-                <a class="macro" href="../../tracing/tracing/macro.error.html">tracing::error!</a>(
+            Rejections::Custom(<span class="kw-2">ref </span>e) =&gt; {
+                <span class="macro">tracing::error!</span>(
                     <span class="string">&quot;unhandled custom rejection, returning 500 response: {:?}&quot;</span>,
                     e
                 );
-                <span class="kw">let </span>body = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;Unhandled rejection: {:?}&quot;</span>, e);
-                <span class="kw">let </span><span class="kw-2">mut </span>res = http::Response::new(Body::from(<a href="#459">body</a>));
-                <span class="kw-2">*</span><a href="#460">res</a>.status_mut() = <a class="self" href="#443">self</a>.<a href="#418">status</a>();
-                <a href="#460">res</a>.headers_mut().insert(
-                    <a href="../../http/header/name/constant.CONTENT_TYPE.html">CONTENT_TYPE</a>,
+                <span class="kw">let </span>body = <span class="macro">format!</span>(<span class="string">&quot;Unhandled rejection: {:?}&quot;</span>, e);
+                <span class="kw">let </span><span class="kw-2">mut </span>res = http::Response::new(Body::from(body));
+                <span class="kw-2">*</span>res.status_mut() = <span class="self">self</span>.status();
+                res.headers_mut().insert(
+                    CONTENT_TYPE,
                     HeaderValue::from_static(<span class="string">&quot;text/plain; charset=utf-8&quot;</span>),
                 );
-                <a href="#460">res</a>
+                res
             }
-            <a href="#217">Rejections::Combined</a>(<span class="kw-2">ref </span>a, <span class="kw-2">ref </span>b) =&gt; <a href="#496">preferred</a>(<a href="#468">a</a>, <a href="#468">b</a>).<a href="#443">into_response</a>(),
+            Rejections::Combined(<span class="kw-2">ref </span>a, <span class="kw-2">ref </span>b) =&gt; preferred(a, b).into_response(),
         }
     }
 
     <span class="kw">fn </span>find&lt;T: <span class="lifetime">&#39;static</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>T&gt; {
-        <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="#472">self</a> </span>{
-            <a href="#215">Rejections::Known</a>(<span class="kw-2">ref </span>e) =&gt; <a href="#474">e</a>.<a href="#274-292">inner_as_any</a>().downcast_ref(),
-            <a href="#216">Rejections::Custom</a>(<span class="kw-2">ref </span>e) =&gt; <a href="#475">e</a>.<a href="#193">downcast_ref</a>(),
-            <a href="#217">Rejections::Combined</a>(<span class="kw-2">ref </span>a, <span class="kw-2">ref </span>b) =&gt; <a href="#476">a</a>.<a href="#472">find</a>().or_else(|| <a href="#476">b</a>.<a href="#472">find</a>()),
+        <span class="kw">match </span><span class="kw-2">*</span><span class="self">self </span>{
+            Rejections::Known(<span class="kw-2">ref </span>e) =&gt; e.inner_as_any().downcast_ref(),
+            Rejections::Custom(<span class="kw-2">ref </span>e) =&gt; e.downcast_ref(),
+            Rejections::Combined(<span class="kw-2">ref </span>a, <span class="kw-2">ref </span>b) =&gt; a.find().or_else(|| b.find()),
         }
     }
 
     <span class="kw">fn </span>debug_list(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::DebugList&lt;<span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;_</span>&gt;) {
-        <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="#480">self</a> </span>{
-            <a href="#215">Rejections::Known</a>(<span class="kw-2">ref </span>e) =&gt; {
-                <a href="#480">f</a>.entry(<a href="#482">e</a>);
+        <span class="kw">match </span><span class="kw-2">*</span><span class="self">self </span>{
+            Rejections::Known(<span class="kw-2">ref </span>e) =&gt; {
+                f.entry(e);
             }
-            <a href="#216">Rejections::Custom</a>(<span class="kw-2">ref </span>e) =&gt; {
-                <a href="#480">f</a>.entry(<a href="#485">e</a>);
+            Rejections::Custom(<span class="kw-2">ref </span>e) =&gt; {
+                f.entry(e);
             }
-            <a href="#217">Rejections::Combined</a>(<span class="kw-2">ref </span>a, <span class="kw-2">ref </span>b) =&gt; {
-                <a href="#488">a</a>.<a href="#480">debug_list</a>(<a href="#480">f</a>);
-                <a href="#488">b</a>.<a href="#480">debug_list</a>(<a href="#480">f</a>);
+            Rejections::Combined(<span class="kw-2">ref </span>a, <span class="kw-2">ref </span>b) =&gt; {
+                a.debug_list(f);
+                b.debug_list(f);
             }
         }
     }
 }
 
-<span class="kw">fn </span>preferred&lt;<span class="lifetime">&#39;a</span>&gt;(a: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="#214">Rejections</a>, b: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="#214">Rejections</a>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="#214">Rejections</a> {
+<span class="kw">fn </span>preferred&lt;<span class="lifetime">&#39;a</span>&gt;(a: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Rejections, b: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Rejections) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Rejections {
     <span class="comment">// Compare status codes, with this priority:
     // - NOT_FOUND is lowest
     // - METHOD_NOT_ALLOWED is second
     // - if one status code is greater than the other
     // - otherwise, prefer A...
-    </span><span class="kw">match </span>(<a href="#496">a</a>.<a href="#418">status</a>(), <a href="#496">b</a>.<a href="#418">status</a>()) {
-        (<span class="kw">_</span>, StatusCode::NOT_FOUND) =&gt; <a href="#496">a</a>,
-        (StatusCode::NOT_FOUND, <span class="kw">_</span>) =&gt; <a href="#496">b</a>,
-        (<span class="kw">_</span>, StatusCode::METHOD_NOT_ALLOWED) =&gt; <a href="#496">a</a>,
-        (StatusCode::METHOD_NOT_ALLOWED, <span class="kw">_</span>) =&gt; <a href="#496">b</a>,
-        (sa, sb) <span class="kw">if </span><a href="#507">sa</a> &lt; <a href="#507">sb</a> =&gt; <a href="#496">b</a>,
-        <span class="kw">_ </span>=&gt; <a href="#496">a</a>,
+    </span><span class="kw">match </span>(a.status(), b.status()) {
+        (<span class="kw">_</span>, StatusCode::NOT_FOUND) =&gt; a,
+        (StatusCode::NOT_FOUND, <span class="kw">_</span>) =&gt; b,
+        (<span class="kw">_</span>, StatusCode::METHOD_NOT_ALLOWED) =&gt; a,
+        (StatusCode::METHOD_NOT_ALLOWED, <span class="kw">_</span>) =&gt; b,
+        (sa, sb) <span class="kw">if </span>sa &lt; sb =&gt; b,
+        <span class="kw">_ </span>=&gt; a,
     }
 }
 
-<a class="macro" href="error.rs.html#57-79">unit_error! </a>{
+<span class="macro">unit_error! </span>{
     <span class="doccomment">/// Invalid query
     </span><span class="kw">pub </span>InvalidQuery: <span class="string">&quot;Invalid query string&quot;
 </span>}
 
-<a class="macro" href="error.rs.html#57-79">unit_error! </a>{
+<span class="macro">unit_error! </span>{
     <span class="doccomment">/// HTTP method not allowed
     </span><span class="kw">pub </span>MethodNotAllowed: <span class="string">&quot;HTTP method not allowed&quot;
 </span>}
 
-<a class="macro" href="error.rs.html#57-79">unit_error! </a>{
+<span class="macro">unit_error! </span>{
     <span class="doccomment">/// A content-length header is required
     </span><span class="kw">pub </span>LengthRequired: <span class="string">&quot;A content-length header is required&quot;
 </span>}
 
-<a class="macro" href="error.rs.html#57-79">unit_error! </a>{
+<span class="macro">unit_error! </span>{
     <span class="doccomment">/// The request payload is too large
     </span><span class="kw">pub </span>PayloadTooLarge: <span class="string">&quot;The request payload is too large&quot;
 </span>}
 
-<a class="macro" href="error.rs.html#57-79">unit_error! </a>{
+<span class="macro">unit_error! </span>{
     <span class="doccomment">/// The request&#39;s content-type is not supported
     </span><span class="kw">pub </span>UnsupportedMediaType: <span class="string">&quot;The request&#39;s content-type is not supported&quot;
 </span>}
@@ -1381,81 +1381,81 @@
 <span class="doccomment">/// Missing request header
 </span><span class="attr">#[derive(Debug)]
 </span><span class="kw">pub struct </span>MissingHeader {
-    name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>,
+    name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
 }
 
-<span class="kw">impl </span><a href="#539">MissingHeader</a> {
+<span class="kw">impl </span>MissingHeader {
     <span class="doccomment">/// Retrieve the name of the header that was missing
-    </span><span class="kw">pub fn </span>name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> {
-        <a class="self" href="#545">self</a>.name
+    </span><span class="kw">pub fn </span>name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>str {
+        <span class="self">self</span>.name
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for </span><a href="#539">MissingHeader</a> {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#551">f</a>, <span class="string">&quot;Missing request header {:?}&quot;</span>, <span class="self">self</span>.name)
+<span class="kw">impl </span>fmt::Display <span class="kw">for </span>MissingHeader {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        <span class="macro">write!</span>(f, <span class="string">&quot;Missing request header {:?}&quot;</span>, <span class="self">self</span>.name)
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">StdError</a> <span class="kw">for </span><a href="#539">MissingHeader</a> {}
+<span class="kw">impl </span>StdError <span class="kw">for </span>MissingHeader {}
 
 <span class="doccomment">/// Invalid request header
 </span><span class="attr">#[derive(Debug)]
 </span><span class="kw">pub struct </span>InvalidHeader {
-    name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>,
+    name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
 }
 
-<span class="kw">impl </span><a href="#560">InvalidHeader</a> {
+<span class="kw">impl </span>InvalidHeader {
     <span class="doccomment">/// Retrieve the name of the header that was invalid
-    </span><span class="kw">pub fn </span>name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> {
-        <a class="self" href="#566">self</a>.name
+    </span><span class="kw">pub fn </span>name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>str {
+        <span class="self">self</span>.name
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for </span><a href="#560">InvalidHeader</a> {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#572">f</a>, <span class="string">&quot;Invalid request header {:?}&quot;</span>, <span class="self">self</span>.name)
+<span class="kw">impl </span>fmt::Display <span class="kw">for </span>InvalidHeader {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        <span class="macro">write!</span>(f, <span class="string">&quot;Invalid request header {:?}&quot;</span>, <span class="self">self</span>.name)
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">StdError</a> <span class="kw">for </span><a href="#560">InvalidHeader</a> {}
+<span class="kw">impl </span>StdError <span class="kw">for </span>InvalidHeader {}
 
 <span class="doccomment">/// Missing cookie
 </span><span class="attr">#[derive(Debug)]
 </span><span class="kw">pub struct </span>MissingCookie {
-    name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>,
+    name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
 }
 
-<span class="kw">impl </span><a href="#581">MissingCookie</a> {
+<span class="kw">impl </span>MissingCookie {
     <span class="doccomment">/// Retrieve the name of the cookie that was missing
-    </span><span class="kw">pub fn </span>name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> {
-        <a class="self" href="#587">self</a>.name
+    </span><span class="kw">pub fn </span>name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>str {
+        <span class="self">self</span>.name
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for </span><a href="#581">MissingCookie</a> {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#593">f</a>, <span class="string">&quot;Missing request cookie {:?}&quot;</span>, <span class="self">self</span>.name)
+<span class="kw">impl </span>fmt::Display <span class="kw">for </span>MissingCookie {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        <span class="macro">write!</span>(f, <span class="string">&quot;Missing request cookie {:?}&quot;</span>, <span class="self">self</span>.name)
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">StdError</a> <span class="kw">for </span><a href="#581">MissingCookie</a> {}
+<span class="kw">impl </span>StdError <span class="kw">for </span>MissingCookie {}
 
 <span class="kw">mod </span>sealed {
-    <span class="kw">use super</span>::{<a href="#209">Reason</a>, <a href="#205">Rejection</a>, <a href="#214">Rejections</a>};
-    <span class="kw">use </span><a href="../../http/status/struct.StatusCode.html">http::StatusCode</a>;
-    <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/convert/enum.Infallible.html">std::convert::Infallible</a>;
-    <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">std::fmt</a>;
+    <span class="kw">use super</span>::{Reason, Rejection, Rejections};
+    <span class="kw">use </span>http::StatusCode;
+    <span class="kw">use </span>std::convert::Infallible;
+    <span class="kw">use </span>std::fmt;
 
     <span class="comment">// This sealed trait exists to allow Filters to return either `Rejection`
     // or `!`. There are no other types that make sense, and so it is sealed.
-    </span><span class="kw">pub trait </span>IsReject: <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> {
-        <span class="kw">fn </span>status(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../../http/status/struct.StatusCode.html">StatusCode</a>;
-        <span class="kw">fn </span>into_response(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="reply.rs.html#55"><span class="kw">crate</span>::reply::Response</a>;
+    </span><span class="kw">pub trait </span>IsReject: fmt::Debug + Send + Sync {
+        <span class="kw">fn </span>status(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; StatusCode;
+        <span class="kw">fn </span>into_response(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">crate</span>::reply::Response;
     }
 
     <span class="kw">fn </span>_assert_object_safe() {
-        <span class="kw">fn </span>_assert(<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="kw">dyn </span><a href="#608">IsReject</a>) {}
+        <span class="kw">fn </span>_assert(<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="kw">dyn </span>IsReject) {}
     }
 
     <span class="comment">// This weird trait is to allow optimizations of propagating when a
@@ -1467,7 +1467,7 @@
     // requiring that `Rejection::from(Never)` were used in those filters,
     // would mean that links later in the chain may assume a rejection *could*
     // happen, and no longer eliminate those branches.
-    </span><span class="kw">pub trait </span>CombineRejection&lt;E&gt;: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> {
+    </span><span class="kw">pub trait </span>CombineRejection&lt;E&gt;: Send + Sized {
         <span class="doccomment">/// The type that should be returned when only 1 of the two
         /// &quot;rejections&quot; occurs.
         ///
@@ -1481,60 +1481,60 @@
         /// 3. `warp::path()` rejects with `Rejection`. It may return `Rejection`.
         ///
         /// Thus, if the above filter rejects, it will definitely be `Rejection`.
-        </span><span class="kw">type </span>One: <a href="#608">IsReject</a> + From&lt;<span class="self">Self</span>&gt; + From&lt;E&gt; + Into&lt;<a href="#205">Rejection</a>&gt;;
+        </span><span class="kw">type </span>One: IsReject + From&lt;<span class="self">Self</span>&gt; + From&lt;E&gt; + Into&lt;Rejection&gt;;
 
         <span class="doccomment">/// The type that should be returned when both rejections occur,
         /// and need to be combined.
-        </span><span class="kw">type </span>Combined: <a href="#608">IsReject</a>;
+        </span><span class="kw">type </span>Combined: IsReject;
 
         <span class="kw">fn </span>combine(<span class="self">self</span>, other: E) -&gt; <span class="self">Self</span>::Combined;
     }
 
-    <span class="kw">impl </span>CombineRejection&lt;<a href="#205">Rejection</a>&gt; <span class="kw">for </span><a href="#205">Rejection</a> {
-        <span class="kw">type </span>One = <a href="#205">Rejection</a>;
-        <span class="kw">type </span>Combined = <a href="#205">Rejection</a>;
+    <span class="kw">impl </span>CombineRejection&lt;Rejection&gt; <span class="kw">for </span>Rejection {
+        <span class="kw">type </span>One = Rejection;
+        <span class="kw">type </span>Combined = Rejection;
 
-        <span class="kw">fn </span>combine(<span class="self">self</span>, other: <a href="#205">Rejection</a>) -&gt; <span class="self">Self</span>::Combined {
-            <span class="kw">let </span>reason = <span class="kw">match </span>(<a class="self" href="#653">self</a>.reason, <a href="#653">other</a>.reason) {
-                (<a href="#211">Reason::Other</a>(left), <a href="#211">Reason::Other</a>(right)) =&gt; {
-                    <a href="#211">Reason::Other</a>(Box::new(<a href="#217">Rejections::Combined</a>(<a href="#655">left</a>, <a href="#655">right</a>)))
+        <span class="kw">fn </span>combine(<span class="self">self</span>, other: Rejection) -&gt; <span class="self">Self</span>::Combined {
+            <span class="kw">let </span>reason = <span class="kw">match </span>(<span class="self">self</span>.reason, other.reason) {
+                (Reason::Other(left), Reason::Other(right)) =&gt; {
+                    Reason::Other(Box::new(Rejections::Combined(left, right)))
                 }
-                (<a href="#211">Reason::Other</a>(other), <a href="#210">Reason::NotFound</a>)
-                | (<a href="#210">Reason::NotFound</a>, <a href="#211">Reason::Other</a>(other)) =&gt; {
+                (Reason::Other(other), Reason::NotFound)
+                | (Reason::NotFound, Reason::Other(other)) =&gt; {
                     <span class="comment">// ignore the NotFound
-                    </span><a href="#211">Reason::Other</a>(<a href="#658">other</a>)
+                    </span>Reason::Other(other)
                 }
-                (<a href="#210">Reason::NotFound</a>, <a href="#210">Reason::NotFound</a>) =&gt; <a href="#210">Reason::NotFound</a>,
+                (Reason::NotFound, Reason::NotFound) =&gt; Reason::NotFound,
             };
 
-            <a href="#205">Rejection</a> { <a href="#654">reason</a> }
+            Rejection { reason }
         }
     }
 
-    <span class="kw">impl </span>CombineRejection&lt;<a href="https://doc.rust-lang.org/nightly/core/convert/enum.Infallible.html">Infallible</a>&gt; <span class="kw">for </span><a href="#205">Rejection</a> {
-        <span class="kw">type </span>One = <a href="#205">Rejection</a>;
-        <span class="kw">type </span>Combined = <a href="https://doc.rust-lang.org/nightly/core/convert/enum.Infallible.html">Infallible</a>;
+    <span class="kw">impl </span>CombineRejection&lt;Infallible&gt; <span class="kw">for </span>Rejection {
+        <span class="kw">type </span>One = Rejection;
+        <span class="kw">type </span>Combined = Infallible;
 
-        <span class="kw">fn </span>combine(<span class="self">self</span>, other: <a href="https://doc.rust-lang.org/nightly/core/convert/enum.Infallible.html">Infallible</a>) -&gt; <span class="self">Self</span>::Combined {
-            <span class="kw">match </span><a href="#674">other</a> {}
+        <span class="kw">fn </span>combine(<span class="self">self</span>, other: Infallible) -&gt; <span class="self">Self</span>::Combined {
+            <span class="kw">match </span>other {}
         }
     }
 
-    <span class="kw">impl </span>CombineRejection&lt;<a href="#205">Rejection</a>&gt; <span class="kw">for </span><a href="https://doc.rust-lang.org/nightly/core/convert/enum.Infallible.html">Infallible</a> {
-        <span class="kw">type </span>One = <a href="#205">Rejection</a>;
-        <span class="kw">type </span>Combined = <a href="https://doc.rust-lang.org/nightly/core/convert/enum.Infallible.html">Infallible</a>;
+    <span class="kw">impl </span>CombineRejection&lt;Rejection&gt; <span class="kw">for </span>Infallible {
+        <span class="kw">type </span>One = Rejection;
+        <span class="kw">type </span>Combined = Infallible;
 
-        <span class="kw">fn </span>combine(<span class="self">self</span>, <span class="kw">_</span>: <a href="#205">Rejection</a>) -&gt; <span class="self">Self</span>::Combined {
-            <span class="kw">match </span><span class="self"><a href="#683">self</a> </span>{}
+        <span class="kw">fn </span>combine(<span class="self">self</span>, <span class="kw">_</span>: Rejection) -&gt; <span class="self">Self</span>::Combined {
+            <span class="kw">match </span><span class="self">self </span>{}
         }
     }
 
-    <span class="kw">impl </span>CombineRejection&lt;<a href="https://doc.rust-lang.org/nightly/core/convert/enum.Infallible.html">Infallible</a>&gt; <span class="kw">for </span><a href="https://doc.rust-lang.org/nightly/core/convert/enum.Infallible.html">Infallible</a> {
-        <span class="kw">type </span>One = <a href="https://doc.rust-lang.org/nightly/core/convert/enum.Infallible.html">Infallible</a>;
-        <span class="kw">type </span>Combined = <a href="https://doc.rust-lang.org/nightly/core/convert/enum.Infallible.html">Infallible</a>;
+    <span class="kw">impl </span>CombineRejection&lt;Infallible&gt; <span class="kw">for </span>Infallible {
+        <span class="kw">type </span>One = Infallible;
+        <span class="kw">type </span>Combined = Infallible;
 
-        <span class="kw">fn </span>combine(<span class="self">self</span>, <span class="kw">_</span>: <a href="https://doc.rust-lang.org/nightly/core/convert/enum.Infallible.html">Infallible</a>) -&gt; <span class="self">Self</span>::Combined {
-            <span class="kw">match </span><span class="self"><a href="#692">self</a> </span>{}
+        <span class="kw">fn </span>combine(<span class="self">self</span>, <span class="kw">_</span>: Infallible) -&gt; <span class="self">Self</span>::Combined {
+            <span class="kw">match </span><span class="self">self </span>{}
         }
     }
 }
@@ -1687,4 +1687,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="warp" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="warp" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

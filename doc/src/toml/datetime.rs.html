@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/toml-0.5.9/src/datetime.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>datetime.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../toml/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/toml-0.5.10/src/datetime.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>datetime.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../toml/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -542,11 +542,11 @@
 <a href="#542" id="542">542</a>
 <a href="#543" id="543">543</a>
 <a href="#544" id="544">544</a>
-</pre><pre class="rust"><code><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/error/index.html">std::error</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">std::fmt</a>;
-<span class="kw">use </span>std::str::{<a class="self" href="https://doc.rust-lang.org/nightly/alloc/str/index.html">self</a>, <a href="https://doc.rust-lang.org/nightly/core/str/traits/trait.FromStr.html">FromStr</a>};
+</pre><pre class="rust"><code><span class="kw">use </span>std::error;
+<span class="kw">use </span>std::fmt;
+<span class="kw">use </span>std::str::{<span class="self">self</span>, FromStr};
 
-<span class="kw">use </span>serde::{<a href="../../serde/de/index.html">de</a>, <a href="../../serde/ser/index.html">ser</a>};
+<span class="kw">use </span>serde::{de, ser};
 
 <span class="doccomment">/// A parsed TOML datetime value
 ///
@@ -620,19 +620,19 @@
 /// [Local Date-Time]: https://toml.io/en/v1.0.0#local-date-time
 /// [Local Date]: https://toml.io/en/v1.0.0#local-date
 /// [Local Time]: https://toml.io/en/v1.0.0#local-time
-</span><span class="attr">#[derive(PartialEq, Clone)]
+</span><span class="attr">#[derive(PartialEq, Eq, Clone)]
 </span><span class="kw">pub struct </span>Datetime {
     <span class="doccomment">/// Optional date.
     /// Required for: *Offset Date-Time*, *Local Date-Time*, *Local Date*.
-    </span><span class="kw">pub </span>date: <span class="prelude-ty">Option</span>&lt;<a href="#124">Date</a>&gt;,
+    </span><span class="kw">pub </span>date: <span class="prelude-ty">Option</span>&lt;Date&gt;,
 
     <span class="doccomment">/// Optional time.
     /// Required for: *Offset Date-Time*, *Local Date-Time*, *Local Time*.
-    </span><span class="kw">pub </span>time: <span class="prelude-ty">Option</span>&lt;<a href="#154">Time</a>&gt;,
+    </span><span class="kw">pub </span>time: <span class="prelude-ty">Option</span>&lt;Time&gt;,
 
     <span class="doccomment">/// Optional offset.
     /// Required for: *Offset Date-Time*.
-    </span><span class="kw">pub </span>offset: <span class="prelude-ty">Option</span>&lt;<a href="#168">Offset</a>&gt;,
+    </span><span class="kw">pub </span>offset: <span class="prelude-ty">Option</span>&lt;Offset&gt;,
 }
 
 <span class="doccomment">/// Error returned from parsing a `Datetime` in the `FromStr` implementation.
@@ -647,8 +647,8 @@
 //
 // In general the TOML encoder/decoder will catch this and not literally emit
 // these strings but rather emit datetimes as they&#39;re intended.
-</span><span class="kw">pub const </span>FIELD: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> = <span class="string">&quot;$__toml_private_datetime&quot;</span>;
-<span class="kw">pub const </span>NAME: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> = <span class="string">&quot;$__toml_private_Datetime&quot;</span>;
+</span><span class="kw">pub const </span>FIELD: <span class="kw-2">&amp;</span>str = <span class="string">&quot;$__toml_private_datetime&quot;</span>;
+<span class="kw">pub const </span>NAME: <span class="kw-2">&amp;</span>str = <span class="string">&quot;$__toml_private_Datetime&quot;</span>;
 
 <span class="doccomment">/// A parsed TOML date value
 ///
@@ -664,14 +664,14 @@
 /// &gt; ```
 ///
 /// [Local Date]: https://toml.io/en/v1.0.0#local-date
-</span><span class="attr">#[derive(PartialEq, Clone)]
+</span><span class="attr">#[derive(PartialEq, Eq, Clone)]
 </span><span class="kw">pub struct </span>Date {
     <span class="doccomment">/// Year: four digits
-    </span><span class="kw">pub </span>year: <a href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>,
+    </span><span class="kw">pub </span>year: u16,
     <span class="doccomment">/// Month: 1 to 12
-    </span><span class="kw">pub </span>month: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>,
+    </span><span class="kw">pub </span>month: u8,
     <span class="doccomment">/// Day: 1 to {28, 29, 30, 31} (based on month/year)
-    </span><span class="kw">pub </span>day: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>,
+    </span><span class="kw">pub </span>day: u8,
 }
 
 <span class="doccomment">/// A parsed TOML time value
@@ -694,21 +694,21 @@
 /// &gt; must be truncated, not rounded.
 ///
 /// [Local Time]: https://toml.io/en/v1.0.0#local-time
-</span><span class="attr">#[derive(PartialEq, Clone)]
+</span><span class="attr">#[derive(PartialEq, Eq, Clone)]
 </span><span class="kw">pub struct </span>Time {
     <span class="doccomment">/// Hour: 0 to 23
-    </span><span class="kw">pub </span>hour: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>,
+    </span><span class="kw">pub </span>hour: u8,
     <span class="doccomment">/// Minute: 0 to 59
-    </span><span class="kw">pub </span>minute: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>,
+    </span><span class="kw">pub </span>minute: u8,
     <span class="doccomment">/// Second: 0 to {58, 59, 60} (based on leap second rules)
-    </span><span class="kw">pub </span>second: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>,
+    </span><span class="kw">pub </span>second: u8,
     <span class="doccomment">/// Nanosecond: 0 to 999_999_999
-    </span><span class="kw">pub </span>nanosecond: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>,
+    </span><span class="kw">pub </span>nanosecond: u32,
 }
 
 <span class="doccomment">/// A parsed TOML time offset
 ///
-</span><span class="attr">#[derive(PartialEq, Clone)]
+</span><span class="attr">#[derive(PartialEq, Eq, Clone)]
 </span><span class="kw">pub enum </span>Offset {
     <span class="doccomment">/// &gt; A suffix which, when applied to a time, denotes a UTC offset of 00:00;
     /// &gt; often spoken &quot;Zulu&quot; from the ICAO phonetic alphabet representation of
@@ -720,67 +720,67 @@
     <span class="doccomment">/// Offset between local time and UTC
     </span>Custom {
         <span class="doccomment">/// Hours: -12 to +12
-        </span>hours: <a href="https://doc.rust-lang.org/nightly/std/primitive.i8.html">i8</a>,
+        </span>hours: i8,
 
         <span class="doccomment">/// Minutes: 0 to 59
-        </span>minutes: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>,
+        </span>minutes: u8,
     },
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="#80">Datetime</a> {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display::fmt</a>(<a class="self" href="#187">self</a>, <a href="#187">f</a>)
+<span class="kw">impl </span>fmt::Debug <span class="kw">for </span>Datetime {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        fmt::Display::fmt(<span class="self">self</span>, f)
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for </span><a href="#80">Datetime</a> {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">ref </span>date) = <a class="self" href="#193">self</a>.date {
+<span class="kw">impl </span>fmt::Display <span class="kw">for </span>Datetime {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">ref </span>date) = <span class="self">self</span>.date {
             <span class="macro">write!</span>(f, <span class="string">&quot;{}&quot;</span>, date)<span class="question-mark">?</span>;
         }
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">ref </span>time) = <a class="self" href="#193">self</a>.time {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">ref </span>time) = <span class="self">self</span>.time {
             <span class="kw">if </span><span class="self">self</span>.date.is_some() {
                 <span class="macro">write!</span>(f, <span class="string">&quot;T&quot;</span>)<span class="question-mark">?</span>;
             }
             <span class="macro">write!</span>(f, <span class="string">&quot;{}&quot;</span>, time)<span class="question-mark">?</span>;
         }
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">ref </span>offset) = <a class="self" href="#193">self</a>.offset {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">ref </span>offset) = <span class="self">self</span>.offset {
             <span class="macro">write!</span>(f, <span class="string">&quot;{}&quot;</span>, offset)<span class="question-mark">?</span>;
         }
         <span class="prelude-val">Ok</span>(())
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for </span><a href="#124">Date</a> {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#211">f</a>, <span class="string">&quot;{:04}-{:02}-{:02}&quot;</span>, <span class="self">self</span>.year, <span class="self">self</span>.month, <span class="self">self</span>.day)
+<span class="kw">impl </span>fmt::Display <span class="kw">for </span>Date {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        <span class="macro">write!</span>(f, <span class="string">&quot;{:04}-{:02}-{:02}&quot;</span>, <span class="self">self</span>.year, <span class="self">self</span>.month, <span class="self">self</span>.day)
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for </span><a href="#154">Time</a> {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+<span class="kw">impl </span>fmt::Display <span class="kw">for </span>Time {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
         <span class="macro">write!</span>(f, <span class="string">&quot;{:02}:{:02}:{:02}&quot;</span>, <span class="self">self</span>.hour, <span class="self">self</span>.minute, <span class="self">self</span>.second)<span class="question-mark">?</span>;
         <span class="kw">if </span><span class="self">self</span>.nanosecond != <span class="number">0 </span>{
-            <span class="kw">let </span>s = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;{:09}&quot;</span>, <span class="self">self</span>.nanosecond);
+            <span class="kw">let </span>s = <span class="macro">format!</span>(<span class="string">&quot;{:09}&quot;</span>, <span class="self">self</span>.nanosecond);
             <span class="macro">write!</span>(f, <span class="string">&quot;.{}&quot;</span>, s.trim_end_matches(<span class="string">&#39;0&#39;</span>))<span class="question-mark">?</span>;
         }
         <span class="prelude-val">Ok</span>(())
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for </span><a href="#168">Offset</a> {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="#228">self</a> </span>{
-            <a href="#174">Offset::Z</a> =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#228">f</a>, <span class="string">&quot;Z&quot;</span>),
-            <a href="#177">Offset::Custom</a> { hours, minutes } =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#228">f</a>, <span class="string">&quot;{:+03}:{:02}&quot;</span>, hours, minutes),
+<span class="kw">impl </span>fmt::Display <span class="kw">for </span>Offset {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        <span class="kw">match </span><span class="kw-2">*</span><span class="self">self </span>{
+            Offset::Z =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;Z&quot;</span>),
+            Offset::Custom { hours, minutes } =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;{:+03}:{:02}&quot;</span>, hours, minutes),
         }
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/str/traits/trait.FromStr.html">FromStr</a> <span class="kw">for </span><a href="#80">Datetime</a> {
-    <span class="kw">type </span><span class="prelude-val">Err </span>= <a href="#96">DatetimeParseError</a>;
+<span class="kw">impl </span>FromStr <span class="kw">for </span>Datetime {
+    <span class="kw">type </span><span class="prelude-val">Err </span>= DatetimeParseError;
 
-    <span class="kw">fn </span>from_str(date: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#80">Datetime</a>, <a href="#96">DatetimeParseError</a>&gt; {
+    <span class="kw">fn </span>from_str(date: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;Datetime, DatetimeParseError&gt; {
         <span class="comment">// Accepted formats:
         //
         // 0000-00-00T00:00:00.00Z
@@ -788,14 +788,14 @@
         // 0000-00-00
         // 00:00:00.00
         </span><span class="kw">if </span>date.len() &lt; <span class="number">3 </span>{
-            <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="#96">DatetimeParseError</a> { _private: () });
+            <span class="kw">return </span><span class="prelude-val">Err</span>(DatetimeParseError { _private: () });
         }
         <span class="kw">let </span><span class="kw-2">mut </span>offset_allowed = <span class="bool-val">true</span>;
-        <span class="kw">let </span><span class="kw-2">mut </span>chars = <a href="#239">date</a>.chars();
+        <span class="kw">let </span><span class="kw-2">mut </span>chars = date.chars();
 
         <span class="comment">// First up, parse the full date if we can
         </span><span class="kw">let </span>full_date = <span class="kw">if </span>chars.clone().nth(<span class="number">2</span>) == <span class="prelude-val">Some</span>(<span class="string">&#39;:&#39;</span>) {
-            <a href="#249">offset_allowed</a> = <span class="bool-val">false</span>;
+            offset_allowed = <span class="bool-val">false</span>;
             <span class="prelude-val">None
         </span>} <span class="kw">else </span>{
             <span class="kw">let </span>y1 = u16::from(digit(<span class="kw-2">&amp;mut </span>chars)<span class="question-mark">?</span>);
@@ -803,71 +803,71 @@
             <span class="kw">let </span>y3 = u16::from(digit(<span class="kw-2">&amp;mut </span>chars)<span class="question-mark">?</span>);
             <span class="kw">let </span>y4 = u16::from(digit(<span class="kw-2">&amp;mut </span>chars)<span class="question-mark">?</span>);
 
-            <span class="kw">match </span><a href="#250">chars</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>() {
+            <span class="kw">match </span>chars.next() {
                 <span class="prelude-val">Some</span>(<span class="string">&#39;-&#39;</span>) =&gt; {}
-                <span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="#96">DatetimeParseError</a> { _private: () }),
+                <span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(DatetimeParseError { _private: () }),
             }
 
             <span class="kw">let </span>m1 = digit(<span class="kw-2">&amp;mut </span>chars)<span class="question-mark">?</span>;
             <span class="kw">let </span>m2 = digit(<span class="kw-2">&amp;mut </span>chars)<span class="question-mark">?</span>;
 
-            <span class="kw">match </span><a href="#250">chars</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>() {
+            <span class="kw">match </span>chars.next() {
                 <span class="prelude-val">Some</span>(<span class="string">&#39;-&#39;</span>) =&gt; {}
-                <span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="#96">DatetimeParseError</a> { _private: () }),
+                <span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(DatetimeParseError { _private: () }),
             }
 
             <span class="kw">let </span>d1 = digit(<span class="kw-2">&amp;mut </span>chars)<span class="question-mark">?</span>;
             <span class="kw">let </span>d2 = digit(<span class="kw-2">&amp;mut </span>chars)<span class="question-mark">?</span>;
 
-            <span class="kw">let </span>date = <a href="#124">Date</a> {
-                year: <a href="#257">y1</a> * <span class="number">1000 </span>+ <a href="#258">y2</a> * <span class="number">100 </span>+ <a href="#259">y3</a> * <span class="number">10 </span>+ <a href="#260">y4</a>,
-                month: <a href="#267">m1</a> * <span class="number">10 </span>+ <a href="#268">m2</a>,
-                day: <a href="#275">d1</a> * <span class="number">10 </span>+ <a href="#276">d2</a>,
+            <span class="kw">let </span>date = Date {
+                year: y1 * <span class="number">1000 </span>+ y2 * <span class="number">100 </span>+ y3 * <span class="number">10 </span>+ y4,
+                month: m1 * <span class="number">10 </span>+ m2,
+                day: d1 * <span class="number">10 </span>+ d2,
             };
 
             <span class="kw">if </span>date.month &lt; <span class="number">1 </span>|| date.month &gt; <span class="number">12 </span>{
-                <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="#96">DatetimeParseError</a> { _private: () });
+                <span class="kw">return </span><span class="prelude-val">Err</span>(DatetimeParseError { _private: () });
             }
             <span class="kw">if </span>date.day &lt; <span class="number">1 </span>|| date.day &gt; <span class="number">31 </span>{
-                <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="#96">DatetimeParseError</a> { _private: () });
+                <span class="kw">return </span><span class="prelude-val">Err</span>(DatetimeParseError { _private: () });
             }
 
-            <span class="prelude-val">Some</span>(<a href="#278">date</a>)
+            <span class="prelude-val">Some</span>(date)
         };
 
         <span class="comment">// Next parse the &quot;partial-time&quot; if available
-        </span><span class="kw">let </span>next = <a href="#250">chars</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>();
+        </span><span class="kw">let </span>next = chars.clone().next();
         <span class="kw">let </span>partial_time = <span class="kw">if </span>full_date.is_some()
             &amp;&amp; (next == <span class="prelude-val">Some</span>(<span class="string">&#39;T&#39;</span>) || next == <span class="prelude-val">Some</span>(<span class="string">&#39;t&#39;</span>) || next == <span class="prelude-val">Some</span>(<span class="string">&#39; &#39;</span>))
         {
-            <a href="#250">chars</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>();
+            chars.next();
             <span class="bool-val">true
         </span>} <span class="kw">else </span>{
-            <a href="#253">full_date</a>.is_none()
+            full_date.is_none()
         };
 
         <span class="kw">let </span>time = <span class="kw">if </span>partial_time {
             <span class="kw">let </span>h1 = digit(<span class="kw-2">&amp;mut </span>chars)<span class="question-mark">?</span>;
             <span class="kw">let </span>h2 = digit(<span class="kw-2">&amp;mut </span>chars)<span class="question-mark">?</span>;
-            <span class="kw">match </span><a href="#250">chars</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>() {
+            <span class="kw">match </span>chars.next() {
                 <span class="prelude-val">Some</span>(<span class="string">&#39;:&#39;</span>) =&gt; {}
-                <span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="#96">DatetimeParseError</a> { _private: () }),
+                <span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(DatetimeParseError { _private: () }),
             }
             <span class="kw">let </span>m1 = digit(<span class="kw-2">&amp;mut </span>chars)<span class="question-mark">?</span>;
             <span class="kw">let </span>m2 = digit(<span class="kw-2">&amp;mut </span>chars)<span class="question-mark">?</span>;
-            <span class="kw">match </span><a href="#250">chars</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>() {
+            <span class="kw">match </span>chars.next() {
                 <span class="prelude-val">Some</span>(<span class="string">&#39;:&#39;</span>) =&gt; {}
-                <span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="#96">DatetimeParseError</a> { _private: () }),
+                <span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(DatetimeParseError { _private: () }),
             }
             <span class="kw">let </span>s1 = digit(<span class="kw-2">&amp;mut </span>chars)<span class="question-mark">?</span>;
             <span class="kw">let </span>s2 = digit(<span class="kw-2">&amp;mut </span>chars)<span class="question-mark">?</span>;
 
             <span class="kw">let </span><span class="kw-2">mut </span>nanosecond = <span class="number">0</span>;
             <span class="kw">if </span>chars.clone().next() == <span class="prelude-val">Some</span>(<span class="string">&#39;.&#39;</span>) {
-                <a href="#250">chars</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>();
-                <span class="kw">let </span>whole = <a href="#250">chars</a>.as_str();
+                chars.next();
+                <span class="kw">let </span>whole = chars.as_str();
 
-                <span class="kw">let </span><span class="kw-2">mut </span>end = <a href="#324">whole</a>.len();
+                <span class="kw">let </span><span class="kw-2">mut </span>end = whole.len();
                 <span class="kw">for </span>(i, byte) <span class="kw">in </span>whole.bytes().enumerate() {
                     <span class="kw">match </span>byte {
                         <span class="string">b&#39;0&#39;</span>..=<span class="string">b&#39;9&#39; </span>=&gt; {
@@ -883,64 +883,64 @@
                     }
                 }
                 <span class="kw">if </span>end == <span class="number">0 </span>{
-                    <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="#96">DatetimeParseError</a> { _private: () });
+                    <span class="kw">return </span><span class="prelude-val">Err</span>(DatetimeParseError { _private: () });
                 }
-                <a href="#250">chars</a> = <a href="#324">whole</a>[<a href="#326">end</a>..].chars();
+                chars = whole[end..].chars();
             }
 
-            <span class="kw">let </span>time = <a href="#154">Time</a> {
-                hour: <a href="#306">h1</a> * <span class="number">10 </span>+ <a href="#307">h2</a>,
-                minute: <a href="#312">m1</a> * <span class="number">10 </span>+ <a href="#313">m2</a>,
-                second: <a href="#318">s1</a> * <span class="number">10 </span>+ <a href="#319">s2</a>,
-                <a href="#321">nanosecond</a>,
+            <span class="kw">let </span>time = Time {
+                hour: h1 * <span class="number">10 </span>+ h2,
+                minute: m1 * <span class="number">10 </span>+ m2,
+                second: s1 * <span class="number">10 </span>+ s2,
+                nanosecond,
             };
 
             <span class="kw">if </span>time.hour &gt; <span class="number">24 </span>{
-                <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="#96">DatetimeParseError</a> { _private: () });
+                <span class="kw">return </span><span class="prelude-val">Err</span>(DatetimeParseError { _private: () });
             }
             <span class="kw">if </span>time.minute &gt; <span class="number">59 </span>{
-                <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="#96">DatetimeParseError</a> { _private: () });
+                <span class="kw">return </span><span class="prelude-val">Err</span>(DatetimeParseError { _private: () });
             }
             <span class="kw">if </span>time.second &gt; <span class="number">59 </span>{
-                <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="#96">DatetimeParseError</a> { _private: () });
+                <span class="kw">return </span><span class="prelude-val">Err</span>(DatetimeParseError { _private: () });
             }
             <span class="kw">if </span>time.nanosecond &gt; <span class="number">999_999_999 </span>{
-                <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="#96">DatetimeParseError</a> { _private: () });
+                <span class="kw">return </span><span class="prelude-val">Err</span>(DatetimeParseError { _private: () });
             }
 
-            <span class="prelude-val">Some</span>(<a href="#347">time</a>)
+            <span class="prelude-val">Some</span>(time)
         } <span class="kw">else </span>{
-            <a href="#249">offset_allowed</a> = <span class="bool-val">false</span>;
+            offset_allowed = <span class="bool-val">false</span>;
             <span class="prelude-val">None
         </span>};
 
         <span class="comment">// And finally, parse the offset
         </span><span class="kw">let </span>offset = <span class="kw">if </span>offset_allowed {
-            <span class="kw">let </span>next = <a href="#250">chars</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>();
+            <span class="kw">let </span>next = chars.clone().next();
             <span class="kw">if </span>next == <span class="prelude-val">Some</span>(<span class="string">&#39;Z&#39;</span>) || next == <span class="prelude-val">Some</span>(<span class="string">&#39;z&#39;</span>) {
-                <a href="#250">chars</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>();
-                <span class="prelude-val">Some</span>(<a href="#174">Offset::Z</a>)
+                chars.next();
+                <span class="prelude-val">Some</span>(Offset::Z)
             } <span class="kw">else if </span>next.is_none() {
                 <span class="prelude-val">None
             </span>} <span class="kw">else </span>{
-                <span class="kw">let </span>sign = <span class="kw">match </span><a href="#375">next</a> {
+                <span class="kw">let </span>sign = <span class="kw">match </span>next {
                     <span class="prelude-val">Some</span>(<span class="string">&#39;+&#39;</span>) =&gt; <span class="number">1</span>,
                     <span class="prelude-val">Some</span>(<span class="string">&#39;-&#39;</span>) =&gt; -<span class="number">1</span>,
-                    <span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="#96">DatetimeParseError</a> { _private: () }),
+                    <span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(DatetimeParseError { _private: () }),
                 };
-                <a href="#250">chars</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>();
-                <span class="kw">let </span>h1 = digit(<span class="kw-2">&amp;mut </span>chars)<span class="question-mark">? </span><span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.i8.html">i8</a>;
-                <span class="kw">let </span>h2 = digit(<span class="kw-2">&amp;mut </span>chars)<span class="question-mark">? </span><span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.i8.html">i8</a>;
-                <span class="kw">match </span><a href="#250">chars</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>() {
+                chars.next();
+                <span class="kw">let </span>h1 = digit(<span class="kw-2">&amp;mut </span>chars)<span class="question-mark">? </span><span class="kw">as </span>i8;
+                <span class="kw">let </span>h2 = digit(<span class="kw-2">&amp;mut </span>chars)<span class="question-mark">? </span><span class="kw">as </span>i8;
+                <span class="kw">match </span>chars.next() {
                     <span class="prelude-val">Some</span>(<span class="string">&#39;:&#39;</span>) =&gt; {}
-                    <span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="#96">DatetimeParseError</a> { _private: () }),
+                    <span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(DatetimeParseError { _private: () }),
                 }
                 <span class="kw">let </span>m1 = digit(<span class="kw-2">&amp;mut </span>chars)<span class="question-mark">?</span>;
                 <span class="kw">let </span>m2 = digit(<span class="kw-2">&amp;mut </span>chars)<span class="question-mark">?</span>;
 
-                <span class="prelude-val">Some</span>(<a href="#177">Offset::Custom</a> {
-                    hours: <a href="#382">sign</a> * (<a href="#388">h1</a> * <span class="number">10 </span>+ <a href="#389">h2</a>),
-                    minutes: <a href="#394">m1</a> * <span class="number">10 </span>+ <a href="#395">m2</a>,
+                <span class="prelude-val">Some</span>(Offset::Custom {
+                    hours: sign * (h1 * <span class="number">10 </span>+ h2),
+                    minutes: m1 * <span class="number">10 </span>+ m2,
                 })
             }
         } <span class="kw">else </span>{
@@ -950,141 +950,141 @@
         <span class="comment">// Return an error if we didn&#39;t hit eof, otherwise return our parsed
         // date
         </span><span class="kw">if </span>chars.next().is_some() {
-            <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="#96">DatetimeParseError</a> { _private: () });
+            <span class="kw">return </span><span class="prelude-val">Err</span>(DatetimeParseError { _private: () });
         }
 
-        <span class="prelude-val">Ok</span>(<a href="#80">Datetime</a> {
-            date: <a href="#253">full_date</a>,
-            <a href="#305">time</a>,
-            <a href="#374">offset</a>,
+        <span class="prelude-val">Ok</span>(Datetime {
+            date: full_date,
+            time,
+            offset,
         })
     }
 }
 
-<span class="kw">fn </span>digit(chars: <span class="kw-2">&amp;mut </span>str::Chars&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>, <a href="#96">DatetimeParseError</a>&gt; {
-    <span class="kw">match </span><a href="#420">chars</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>() {
-        <span class="prelude-val">Some</span>(c) <span class="kw">if </span><span class="string">&#39;0&#39; </span>&lt;= <a href="#422">c</a> &amp;&amp; <a href="#422">c</a> &lt;= <span class="string">&#39;9&#39; </span>=&gt; <span class="prelude-val">Ok</span>(<a href="#422">c</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a> - <span class="string">b&#39;0&#39;</span>),
-        <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(<a href="#96">DatetimeParseError</a> { _private: () }),
+<span class="kw">fn </span>digit(chars: <span class="kw-2">&amp;mut </span>str::Chars&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;u8, DatetimeParseError&gt; {
+    <span class="kw">match </span>chars.next() {
+        <span class="prelude-val">Some</span>(c) <span class="kw">if </span>(<span class="string">&#39;0&#39;</span>..=<span class="string">&#39;9&#39;</span>).contains(<span class="kw-2">&amp;</span>c) =&gt; <span class="prelude-val">Ok</span>(c <span class="kw">as </span>u8 - <span class="string">b&#39;0&#39;</span>),
+        <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(DatetimeParseError { _private: () }),
     }
 }
 
-<span class="kw">impl </span><a href="../../serde/ser/trait.Serialize.html">ser::Serialize</a> <span class="kw">for </span><a href="#80">Datetime</a> {
+<span class="kw">impl </span>ser::Serialize <span class="kw">for </span>Datetime {
     <span class="kw">fn </span>serialize&lt;S&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, serializer: S) -&gt; <span class="prelude-ty">Result</span>&lt;S::Ok, S::Error&gt;
     <span class="kw">where
-        </span>S: <a href="../../serde/ser/trait.Serializer.html">ser::Serializer</a>,
+        </span>S: ser::Serializer,
     {
-        <span class="kw">use </span><a href="../../serde/ser/trait.SerializeStruct.html">serde::ser::SerializeStruct</a>;
+        <span class="kw">use </span>serde::ser::SerializeStruct;
 
         <span class="kw">let </span><span class="kw-2">mut </span>s = serializer.serialize_struct(NAME, <span class="number">1</span>)<span class="question-mark">?</span>;
         s.serialize_field(FIELD, <span class="kw-2">&amp;</span><span class="self">self</span>.to_string())<span class="question-mark">?</span>;
-        <a href="#434">s</a>.<a href="../../serde/ser/trait.SerializeStruct.html">end</a>()
+        s.end()
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;de</span>&gt; de::Deserialize&lt;<span class="lifetime">&#39;de</span>&gt; <span class="kw">for </span><a href="#80">Datetime</a> {
-    <span class="kw">fn </span>deserialize&lt;D&gt;(deserializer: D) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#80">Datetime</a>, D::Error&gt;
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;de</span>&gt; de::Deserialize&lt;<span class="lifetime">&#39;de</span>&gt; <span class="kw">for </span>Datetime {
+    <span class="kw">fn </span>deserialize&lt;D&gt;(deserializer: D) -&gt; <span class="prelude-ty">Result</span>&lt;Datetime, D::Error&gt;
     <span class="kw">where
         </span>D: de::Deserializer&lt;<span class="lifetime">&#39;de</span>&gt;,
     {
         <span class="kw">struct </span>DatetimeVisitor;
 
-        <span class="kw">impl</span>&lt;<span class="lifetime">&#39;de</span>&gt; de::Visitor&lt;<span class="lifetime">&#39;de</span>&gt; <span class="kw">for </span><a href="#445">DatetimeVisitor</a> {
-            <span class="kw">type </span>Value = <a href="#80">Datetime</a>;
+        <span class="kw">impl</span>&lt;<span class="lifetime">&#39;de</span>&gt; de::Visitor&lt;<span class="lifetime">&#39;de</span>&gt; <span class="kw">for </span>DatetimeVisitor {
+            <span class="kw">type </span>Value = Datetime;
 
-            <span class="kw">fn </span>expecting(<span class="kw-2">&amp;</span><span class="self">self</span>, formatter: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-                <a href="#450">formatter</a>.write_str(<span class="string">&quot;a TOML datetime&quot;</span>)
+            <span class="kw">fn </span>expecting(<span class="kw-2">&amp;</span><span class="self">self</span>, formatter: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+                formatter.write_str(<span class="string">&quot;a TOML datetime&quot;</span>)
             }
 
-            <span class="kw">fn </span>visit_map&lt;V&gt;(<span class="self">self</span>, <span class="kw-2">mut </span>visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#80">Datetime</a>, V::Error&gt;
+            <span class="kw">fn </span>visit_map&lt;V&gt;(<span class="self">self</span>, <span class="kw-2">mut </span>visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;Datetime, V::Error&gt;
             <span class="kw">where
                 </span>V: de::MapAccess&lt;<span class="lifetime">&#39;de</span>&gt;,
             {
                 <span class="kw">let </span>value = visitor.next_key::&lt;DatetimeKey&gt;()<span class="question-mark">?</span>;
                 <span class="kw">if </span>value.is_none() {
-                    <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../serde/de/trait.Error.html">de::Error::custom</a>(<span class="string">&quot;datetime key not found&quot;</span>));
+                    <span class="kw">return </span><span class="prelude-val">Err</span>(de::Error::custom(<span class="string">&quot;datetime key not found&quot;</span>));
                 }
-                <span class="kw">let </span>v: <a href="#505">DatetimeFromString</a> = visitor.next_value()<span class="question-mark">?</span>;
-                <span class="prelude-val">Ok</span>(<a href="#462">v</a>.value)
+                <span class="kw">let </span>v: DatetimeFromString = visitor.next_value()<span class="question-mark">?</span>;
+                <span class="prelude-val">Ok</span>(v.value)
             }
         }
 
-        <span class="kw">static </span>FIELDS: [<span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>; <span class="number">1</span>] = [<a href="#106">FIELD</a>];
-        <a href="#441">deserializer</a>.<a href="../../serde/de/trait.Deserializer.html">deserialize_struct</a>(<a href="#107">NAME</a>, <span class="kw-2">&amp;</span><a href="#467">FIELDS</a>, <a href="#445">DatetimeVisitor</a>)
+        <span class="kw">static </span>FIELDS: [<span class="kw-2">&amp;</span>str; <span class="number">1</span>] = [FIELD];
+        deserializer.deserialize_struct(NAME, <span class="kw-2">&amp;</span>FIELDS, DatetimeVisitor)
     }
 }
 
 <span class="kw">struct </span>DatetimeKey;
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;de</span>&gt; de::Deserialize&lt;<span class="lifetime">&#39;de</span>&gt; <span class="kw">for </span><a href="#472">DatetimeKey</a> {
-    <span class="kw">fn </span>deserialize&lt;D&gt;(deserializer: D) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#472">DatetimeKey</a>, D::Error&gt;
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;de</span>&gt; de::Deserialize&lt;<span class="lifetime">&#39;de</span>&gt; <span class="kw">for </span>DatetimeKey {
+    <span class="kw">fn </span>deserialize&lt;D&gt;(deserializer: D) -&gt; <span class="prelude-ty">Result</span>&lt;DatetimeKey, D::Error&gt;
     <span class="kw">where
         </span>D: de::Deserializer&lt;<span class="lifetime">&#39;de</span>&gt;,
     {
         <span class="kw">struct </span>FieldVisitor;
 
-        <span class="kw">impl</span>&lt;<span class="lifetime">&#39;de</span>&gt; de::Visitor&lt;<span class="lifetime">&#39;de</span>&gt; <span class="kw">for </span><a href="#479">FieldVisitor</a> {
+        <span class="kw">impl</span>&lt;<span class="lifetime">&#39;de</span>&gt; de::Visitor&lt;<span class="lifetime">&#39;de</span>&gt; <span class="kw">for </span>FieldVisitor {
             <span class="kw">type </span>Value = ();
 
-            <span class="kw">fn </span>expecting(<span class="kw-2">&amp;</span><span class="self">self</span>, formatter: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-                <a href="#484">formatter</a>.write_str(<span class="string">&quot;a valid datetime field&quot;</span>)
+            <span class="kw">fn </span>expecting(<span class="kw-2">&amp;</span><span class="self">self</span>, formatter: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+                formatter.write_str(<span class="string">&quot;a valid datetime field&quot;</span>)
             }
 
-            <span class="kw">fn </span>visit_str&lt;E&gt;(<span class="self">self</span>, s: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), E&gt;
+            <span class="kw">fn </span>visit_str&lt;E&gt;(<span class="self">self</span>, s: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;(), E&gt;
             <span class="kw">where
-                </span>E: <a href="../../serde/de/trait.Error.html">de::Error</a>,
+                </span>E: de::Error,
             {
                 <span class="kw">if </span>s == FIELD {
                     <span class="prelude-val">Ok</span>(())
                 } <span class="kw">else </span>{
-                    <span class="prelude-val">Err</span>(<a href="../../serde/de/trait.Error.html">de::Error::custom</a>(<span class="string">&quot;expected field with custom name&quot;</span>))
+                    <span class="prelude-val">Err</span>(de::Error::custom(<span class="string">&quot;expected field with custom name&quot;</span>))
                 }
             }
         }
 
         deserializer.deserialize_identifier(FieldVisitor)<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(<a href="#472">DatetimeKey</a>)
+        <span class="prelude-val">Ok</span>(DatetimeKey)
     }
 }
 
 <span class="kw">pub struct </span>DatetimeFromString {
-    <span class="kw">pub </span>value: <a href="#80">Datetime</a>,
+    <span class="kw">pub </span>value: Datetime,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;de</span>&gt; de::Deserialize&lt;<span class="lifetime">&#39;de</span>&gt; <span class="kw">for </span><a href="#505">DatetimeFromString</a> {
-    <span class="kw">fn </span>deserialize&lt;D&gt;(deserializer: D) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#505">DatetimeFromString</a>, D::Error&gt;
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;de</span>&gt; de::Deserialize&lt;<span class="lifetime">&#39;de</span>&gt; <span class="kw">for </span>DatetimeFromString {
+    <span class="kw">fn </span>deserialize&lt;D&gt;(deserializer: D) -&gt; <span class="prelude-ty">Result</span>&lt;DatetimeFromString, D::Error&gt;
     <span class="kw">where
         </span>D: de::Deserializer&lt;<span class="lifetime">&#39;de</span>&gt;,
     {
         <span class="kw">struct </span>Visitor;
 
-        <span class="kw">impl</span>&lt;<span class="lifetime">&#39;de</span>&gt; de::Visitor&lt;<span class="lifetime">&#39;de</span>&gt; <span class="kw">for </span><a href="#514">Visitor</a> {
-            <span class="kw">type </span>Value = <a href="#505">DatetimeFromString</a>;
+        <span class="kw">impl</span>&lt;<span class="lifetime">&#39;de</span>&gt; de::Visitor&lt;<span class="lifetime">&#39;de</span>&gt; <span class="kw">for </span>Visitor {
+            <span class="kw">type </span>Value = DatetimeFromString;
 
-            <span class="kw">fn </span>expecting(<span class="kw-2">&amp;</span><span class="self">self</span>, formatter: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-                <a href="#519">formatter</a>.write_str(<span class="string">&quot;string containing a datetime&quot;</span>)
+            <span class="kw">fn </span>expecting(<span class="kw-2">&amp;</span><span class="self">self</span>, formatter: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+                formatter.write_str(<span class="string">&quot;string containing a datetime&quot;</span>)
             }
 
-            <span class="kw">fn </span>visit_str&lt;E&gt;(<span class="self">self</span>, s: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#505">DatetimeFromString</a>, E&gt;
+            <span class="kw">fn </span>visit_str&lt;E&gt;(<span class="self">self</span>, s: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;DatetimeFromString, E&gt;
             <span class="kw">where
-                </span>E: <a href="../../serde/de/trait.Error.html">de::Error</a>,
+                </span>E: de::Error,
             {
-                <span class="kw">match </span><a href="#523">s</a>.parse() {
-                    <span class="prelude-val">Ok</span>(date) =&gt; <span class="prelude-val">Ok</span>(<a href="#505">DatetimeFromString</a> { value: <a href="#528">date</a> }),
-                    <span class="prelude-val">Err</span>(e) =&gt; <span class="prelude-val">Err</span>(<a href="../../serde/de/trait.Error.html">de::Error::custom</a>(<a href="#529">e</a>)),
+                <span class="kw">match </span>s.parse() {
+                    <span class="prelude-val">Ok</span>(date) =&gt; <span class="prelude-val">Ok</span>(DatetimeFromString { value: date }),
+                    <span class="prelude-val">Err</span>(e) =&gt; <span class="prelude-val">Err</span>(de::Error::custom(e)),
                 }
             }
         }
 
-        <a href="#510">deserializer</a>.<a href="../../serde/de/trait.Deserializer.html">deserialize_str</a>(<a href="#514">Visitor</a>)
+        deserializer.deserialize_str(Visitor)
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for </span><a href="#96">DatetimeParseError</a> {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <span class="string">&quot;failed to parse datetime&quot;</span>.<a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt</a>(<a href="#539">f</a>)
+<span class="kw">impl </span>fmt::Display <span class="kw">for </span>DatetimeParseError {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        <span class="string">&quot;failed to parse datetime&quot;</span>.fmt(f)
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">error::Error</a> <span class="kw">for </span><a href="#96">DatetimeParseError</a> {}
+<span class="kw">impl </span>error::Error <span class="kw">for </span>DatetimeParseError {}
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="toml" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="toml" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

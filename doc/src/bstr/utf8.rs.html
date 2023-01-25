@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/bstr-0.2.17/src/utf8.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>utf8.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../bstr/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/bstr-0.2.17/src/utf8.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>utf8.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../bstr/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -1368,16 +1368,16 @@
 <a href="#1368" id="1368">1368</a>
 <a href="#1369" id="1369">1369</a>
 <a href="#1370" id="1370">1370</a>
-</pre><pre class="rust"><code><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/char/index.html">core::char</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/cmp/index.html">core::cmp</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/fmt/index.html">core::fmt</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/str/index.html">core::str</a>;
+</pre><pre class="rust"><code><span class="kw">use </span>core::char;
+<span class="kw">use </span>core::cmp;
+<span class="kw">use </span>core::fmt;
+<span class="kw">use </span>core::str;
 <span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
-</span><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/error/index.html">std::error</a>;
+</span><span class="kw">use </span>std::error;
 
-<span class="kw">use </span><a href="lib.rs.html#392"><span class="kw">crate</span>::ascii</a>;
-<span class="kw">use </span><a href="bstr.rs.html#31"><span class="kw">crate</span>::bstr::BStr</a>;
-<span class="kw">use </span><a href="ext_slice.rs.html#92"><span class="kw">crate</span>::ext_slice::ByteSlice</a>;
+<span class="kw">use </span><span class="kw">crate</span>::ascii;
+<span class="kw">use </span><span class="kw">crate</span>::bstr::BStr;
+<span class="kw">use </span><span class="kw">crate</span>::ext_slice::ByteSlice;
 
 <span class="comment">// The UTF-8 decoder provided here is based on the one presented here:
 // https://bjoern.hoehrmann.de/utf-8/decoder/dfa/
@@ -1409,13 +1409,13 @@
 // It is unlikely that this is the fastest way to do UTF-8 decoding, however,
 // it is fairly simple.
 
-</span><span class="kw">const </span>ACCEPT: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> = <span class="number">12</span>;
-<span class="kw">const </span>REJECT: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> = <span class="number">0</span>;
+</span><span class="kw">const </span>ACCEPT: usize = <span class="number">12</span>;
+<span class="kw">const </span>REJECT: usize = <span class="number">0</span>;
 
 <span class="doccomment">/// SAFETY: The decode below function relies on the correctness of these
 /// equivalence classes.
 </span><span class="attr">#[cfg_attr(rustfmt, rustfmt::skip)]
-</span><span class="kw">const </span>CLASSES: [<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="number">256</span>] = [
+</span><span class="kw">const </span>CLASSES: [u8; <span class="number">256</span>] = [
    <span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>,  <span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>,
    <span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>,  <span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>,
    <span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>,  <span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>,
@@ -1429,7 +1429,7 @@
 <span class="doccomment">/// SAFETY: The decode below function relies on the correctness of this state
 /// machine.
 </span><span class="attr">#[cfg_attr(rustfmt, rustfmt::skip)]
-</span><span class="kw">const </span>STATES_FORWARD: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>] = <span class="kw-2">&amp;</span>[
+</span><span class="kw">const </span>STATES_FORWARD: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>[u8] = <span class="kw-2">&amp;</span>[
   <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>,
   <span class="number">12</span>, <span class="number">0</span>, <span class="number">24</span>, <span class="number">36</span>, <span class="number">60</span>, <span class="number">96</span>, <span class="number">84</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">48</span>, <span class="number">72</span>,
   <span class="number">0</span>, <span class="number">12</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">12</span>, <span class="number">0</span>, <span class="number">12</span>, <span class="number">0</span>, <span class="number">0</span>,
@@ -1452,12 +1452,12 @@
 /// [`ByteSlice`](trait.ByteSlice.html) extension trait for `&amp;[u8]`.
 </span><span class="attr">#[derive(Clone, Debug)]
 </span><span class="kw">pub struct </span>Chars&lt;<span class="lifetime">&#39;a</span>&gt; {
-    bs: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
+    bs: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[u8],
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; Chars&lt;<span class="lifetime">&#39;a</span>&gt; {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(bs: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; Chars&lt;<span class="lifetime">&#39;a</span>&gt; {
-        <a href="#84">Chars</a> { <a href="#89">bs</a> }
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(bs: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[u8]) -&gt; Chars&lt;<span class="lifetime">&#39;a</span>&gt; {
+        Chars { bs }
     }
 
     <span class="doccomment">/// View the underlying data as a subslice of the original data.
@@ -1480,34 +1480,34 @@
     /// assert_eq!(b&quot;&quot;, chars.as_bytes());
     /// ```
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>as_bytes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>] {
-        <a class="self" href="#113">self</a>.bs
+    </span><span class="kw">pub fn </span>as_bytes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[u8] {
+        <span class="self">self</span>.bs
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a> <span class="kw">for </span>Chars&lt;<span class="lifetime">&#39;a</span>&gt; {
-    <span class="kw">type </span>Item = <a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>;
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; Iterator <span class="kw">for </span>Chars&lt;<span class="lifetime">&#39;a</span>&gt; {
+    <span class="kw">type </span>Item = char;
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>&gt; {
-        <span class="kw">let </span>(ch, size) = <a href="#687">decode_lossy</a>(<a class="self" href="#122">self</a>.bs);
+    </span><span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;char&gt; {
+        <span class="kw">let </span>(ch, size) = decode_lossy(<span class="self">self</span>.bs);
         <span class="kw">if </span>size == <span class="number">0 </span>{
             <span class="kw">return </span><span class="prelude-val">None</span>;
         }
-        <a class="self" href="#122">self</a>.bs = <span class="kw-2">&amp;</span><a class="self" href="#122">self</a>.bs[<a href="#123">size</a>..];
-        <span class="prelude-val">Some</span>(<a href="#123">ch</a>)
+        <span class="self">self</span>.bs = <span class="kw-2">&amp;</span><span class="self">self</span>.bs[size..];
+        <span class="prelude-val">Some</span>(ch)
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/double_ended/trait.DoubleEndedIterator.html">DoubleEndedIterator</a> <span class="kw">for </span>Chars&lt;<span class="lifetime">&#39;a</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; DoubleEndedIterator <span class="kw">for </span>Chars&lt;<span class="lifetime">&#39;a</span>&gt; {
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>next_back(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>&gt; {
-        <span class="kw">let </span>(ch, size) = <a href="#811">decode_last_lossy</a>(<a class="self" href="#134">self</a>.bs);
+    </span><span class="kw">fn </span>next_back(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;char&gt; {
+        <span class="kw">let </span>(ch, size) = decode_last_lossy(<span class="self">self</span>.bs);
         <span class="kw">if </span>size == <span class="number">0 </span>{
             <span class="kw">return </span><span class="prelude-val">None</span>;
         }
-        <a class="self" href="#134">self</a>.bs = <span class="kw-2">&amp;</span><a class="self" href="#134">self</a>.bs[..<a class="self" href="#134">self</a>.bs.len() - <a href="#135">size</a>];
-        <span class="prelude-val">Some</span>(<a href="#135">ch</a>)
+        <span class="self">self</span>.bs = <span class="kw-2">&amp;</span><span class="self">self</span>.bs[..<span class="self">self</span>.bs.len() - size];
+        <span class="prelude-val">Some</span>(ch)
     }
 }
 
@@ -1531,14 +1531,14 @@
 /// by the [`ByteSlice`](trait.ByteSlice.html) extension trait for `&amp;[u8]`.
 </span><span class="attr">#[derive(Clone, Debug)]
 </span><span class="kw">pub struct </span>CharIndices&lt;<span class="lifetime">&#39;a</span>&gt; {
-    bs: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
-    forward_index: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-    reverse_index: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+    bs: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[u8],
+    forward_index: usize,
+    reverse_index: usize,
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; CharIndices&lt;<span class="lifetime">&#39;a</span>&gt; {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(bs: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; CharIndices&lt;<span class="lifetime">&#39;a</span>&gt; {
-        <a href="#163">CharIndices</a> { bs: <a href="#170">bs</a>, forward_index: <span class="number">0</span>, reverse_index: <a href="#170">bs</a>.len() }
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(bs: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[u8]) -&gt; CharIndices&lt;<span class="lifetime">&#39;a</span>&gt; {
+        CharIndices { bs: bs, forward_index: <span class="number">0</span>, reverse_index: bs.len() }
     }
 
     <span class="doccomment">/// View the underlying data as a subslice of the original data.
@@ -1561,48 +1561,48 @@
     /// assert_eq!(b&quot;&quot;, it.as_bytes());
     /// ```
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>as_bytes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>] {
-        <a class="self" href="#194">self</a>.bs
+    </span><span class="kw">pub fn </span>as_bytes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[u8] {
+        <span class="self">self</span>.bs
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a> <span class="kw">for </span>CharIndices&lt;<span class="lifetime">&#39;a</span>&gt; {
-    <span class="kw">type </span>Item = (<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>);
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; Iterator <span class="kw">for </span>CharIndices&lt;<span class="lifetime">&#39;a</span>&gt; {
+    <span class="kw">type </span>Item = (usize, usize, char);
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;(<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>)&gt; {
-        <span class="kw">let </span>index = <a class="self" href="#203">self</a>.forward_index;
-        <span class="kw">let </span>(ch, size) = <a href="#687">decode_lossy</a>(<a class="self" href="#203">self</a>.bs);
+    </span><span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;(usize, usize, char)&gt; {
+        <span class="kw">let </span>index = <span class="self">self</span>.forward_index;
+        <span class="kw">let </span>(ch, size) = decode_lossy(<span class="self">self</span>.bs);
         <span class="kw">if </span>size == <span class="number">0 </span>{
             <span class="kw">return </span><span class="prelude-val">None</span>;
         }
-        <a class="self" href="#203">self</a>.bs = <span class="kw-2">&amp;</span><a class="self" href="#203">self</a>.bs[<a href="#205">size</a>..];
-        <a class="self" href="#203">self</a>.forward_index += <a href="#205">size</a>;
-        <span class="prelude-val">Some</span>((<a href="#204">index</a>, <a href="#204">index</a> + <a href="#205">size</a>, <a href="#205">ch</a>))
+        <span class="self">self</span>.bs = <span class="kw-2">&amp;</span><span class="self">self</span>.bs[size..];
+        <span class="self">self</span>.forward_index += size;
+        <span class="prelude-val">Some</span>((index, index + size, ch))
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/double_ended/trait.DoubleEndedIterator.html">DoubleEndedIterator</a> <span class="kw">for </span>CharIndices&lt;<span class="lifetime">&#39;a</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; DoubleEndedIterator <span class="kw">for </span>CharIndices&lt;<span class="lifetime">&#39;a</span>&gt; {
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>next_back(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;(<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>)&gt; {
-        <span class="kw">let </span>(ch, size) = <a href="#811">decode_last_lossy</a>(<a class="self" href="#217">self</a>.bs);
+    </span><span class="kw">fn </span>next_back(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;(usize, usize, char)&gt; {
+        <span class="kw">let </span>(ch, size) = decode_last_lossy(<span class="self">self</span>.bs);
         <span class="kw">if </span>size == <span class="number">0 </span>{
             <span class="kw">return </span><span class="prelude-val">None</span>;
         }
-        <a class="self" href="#217">self</a>.bs = <span class="kw-2">&amp;</span><a class="self" href="#217">self</a>.bs[..<a class="self" href="#217">self</a>.bs.len() - <a href="#218">size</a>];
-        <a class="self" href="#217">self</a>.reverse_index -= <a href="#218">size</a>;
-        <span class="prelude-val">Some</span>((<a class="self" href="#217">self</a>.reverse_index, <a class="self" href="#217">self</a>.reverse_index + <a href="#218">size</a>, <a href="#218">ch</a>))
+        <span class="self">self</span>.bs = <span class="kw-2">&amp;</span><span class="self">self</span>.bs[..<span class="self">self</span>.bs.len() - size];
+        <span class="self">self</span>.reverse_index -= size;
+        <span class="prelude-val">Some</span>((<span class="self">self</span>.reverse_index, <span class="self">self</span>.reverse_index + size, ch))
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/marker/trait.FusedIterator.html">::core::iter::FusedIterator</a> <span class="kw">for </span>CharIndices&lt;<span class="lifetime">&#39;a</span>&gt; {}
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; ::core::iter::FusedIterator <span class="kw">for </span>CharIndices&lt;<span class="lifetime">&#39;a</span>&gt; {}
 
 <span class="doccomment">/// An iterator over chunks of valid UTF-8 in a byte slice.
 ///
 /// See [`utf8_chunks`](trait.ByteSlice.html#method.utf8_chunks).
 </span><span class="attr">#[derive(Clone, Debug)]
 </span><span class="kw">pub struct </span>Utf8Chunks&lt;<span class="lifetime">&#39;a</span>&gt; {
-    <span class="kw">pub</span>(<span class="kw">super</span>) bytes: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
+    <span class="kw">pub</span>(<span class="kw">super</span>) bytes: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[u8],
 }
 
 <span class="doccomment">/// A chunk of valid UTF-8, possibly followed by invalid UTF-8 bytes.
@@ -1620,19 +1620,19 @@
     <span class="doccomment">/// A valid UTF-8 piece, at the start, end, or between invalid UTF-8 bytes.
     ///
     /// This is empty between adjacent invalid UTF-8 byte sequences.
-    </span>valid: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>,
+    </span>valid: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>str,
     <span class="doccomment">/// A sequence of invalid UTF-8 bytes.
     ///
     /// Can only be empty in the last chunk.
     ///
     /// Should be replaced by a single unicode replacement character, if not
     /// empty.
-    </span>invalid: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="bstr.rs.html#31">BStr</a>,
+    </span>invalid: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>BStr,
     <span class="doccomment">/// Indicates whether the invalid sequence could&#39;ve been valid if there
     /// were more bytes.
     ///
     /// Can only be true in the last chunk.
-    </span>incomplete: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
+    </span>incomplete: bool,
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; Utf8Chunk&lt;<span class="lifetime">&#39;a</span>&gt; {
@@ -1641,8 +1641,8 @@
     /// This may be empty if there are consecutive sequences of invalid UTF-8
     /// bytes.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>valid(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> {
-        <a class="self" href="#274">self</a>.valid
+    </span><span class="kw">pub fn </span>valid(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>str {
+        <span class="self">self</span>.valid
     }
 
     <span class="doccomment">/// Returns the (possibly empty) invalid UTF-8 bytes in this chunk that
@@ -1659,8 +1659,8 @@
     /// [`ByteSlice::to_str_lossy`](trait.ByteSlice.html#method.to_str_lossy)
     /// method.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>invalid(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>] {
-        <a class="self" href="#292">self</a>.invalid.<a href="bstr.rs.html#71">as_bytes</a>()
+    </span><span class="kw">pub fn </span>invalid(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[u8] {
+        <span class="self">self</span>.invalid.as_bytes()
     }
 
     <span class="doccomment">/// Returns whether the invalid sequence might still become valid if more
@@ -1671,12 +1671,12 @@
     ///
     /// This can only be the case for the last chunk.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>incomplete(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#304">self</a>.incomplete
+    </span><span class="kw">pub fn </span>incomplete(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.incomplete
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a> <span class="kw">for </span>Utf8Chunks&lt;<span class="lifetime">&#39;a</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; Iterator <span class="kw">for </span>Utf8Chunks&lt;<span class="lifetime">&#39;a</span>&gt; {
     <span class="kw">type </span>Item = Utf8Chunk&lt;<span class="lifetime">&#39;a</span>&gt;;
 
     <span class="attr">#[inline]
@@ -1684,49 +1684,49 @@
         <span class="kw">if </span><span class="self">self</span>.bytes.is_empty() {
             <span class="kw">return </span><span class="prelude-val">None</span>;
         }
-        <span class="kw">match </span><a href="#471">validate</a>(<a class="self" href="#313">self</a>.bytes) {
+        <span class="kw">match </span>validate(<span class="self">self</span>.bytes) {
             <span class="prelude-val">Ok</span>(()) =&gt; {
-                <span class="kw">let </span>valid = <a class="self" href="#313">self</a>.bytes;
-                <a class="self" href="#313">self</a>.bytes = <span class="kw-2">&amp;</span>[];
-                <span class="prelude-val">Some</span>(<a href="#249">Utf8Chunk</a> {
+                <span class="kw">let </span>valid = <span class="self">self</span>.bytes;
+                <span class="self">self</span>.bytes = <span class="kw-2">&amp;</span>[];
+                <span class="prelude-val">Some</span>(Utf8Chunk {
                     <span class="comment">// SAFETY: This is safe because of the guarantees provided
                     // by utf8::validate.
-                    </span>valid: <span class="kw">unsafe </span>{ str::from_utf8_unchecked(<a href="#319">valid</a>) },
-                    invalid: [].<a href="ext_slice.rs.html#123">as_bstr</a>(),
+                    </span>valid: <span class="kw">unsafe </span>{ str::from_utf8_unchecked(valid) },
+                    invalid: [].as_bstr(),
                     incomplete: <span class="bool-val">false</span>,
                 })
             }
             <span class="prelude-val">Err</span>(e) =&gt; {
-                <span class="kw">let </span>(valid, rest) = <a class="self" href="#313">self</a>.bytes.split_at(<a href="#329">e</a>.<a href="#435">valid_up_to</a>());
+                <span class="kw">let </span>(valid, rest) = <span class="self">self</span>.bytes.split_at(e.valid_up_to());
                 <span class="comment">// SAFETY: This is safe because of the guarantees provided by
                 // utf8::validate.
-                </span><span class="kw">let </span>valid = <span class="kw">unsafe </span>{ str::from_utf8_unchecked(<a href="#330">valid</a>) };
-                <span class="kw">let </span>(invalid_len, incomplete) = <span class="kw">match </span><a href="#329">e</a>.<a href="#449">error_len</a>() {
-                    <span class="prelude-val">Some</span>(n) =&gt; (<a href="#335">n</a>, <span class="bool-val">false</span>),
-                    <span class="prelude-val">None </span>=&gt; (<a href="#330">rest</a>.len(), <span class="bool-val">true</span>),
+                </span><span class="kw">let </span>valid = <span class="kw">unsafe </span>{ str::from_utf8_unchecked(valid) };
+                <span class="kw">let </span>(invalid_len, incomplete) = <span class="kw">match </span>e.error_len() {
+                    <span class="prelude-val">Some</span>(n) =&gt; (n, <span class="bool-val">false</span>),
+                    <span class="prelude-val">None </span>=&gt; (rest.len(), <span class="bool-val">true</span>),
                 };
-                <span class="kw">let </span>(invalid, rest) = <a href="#330">rest</a>.split_at(<a href="#334">invalid_len</a>);
-                <a class="self" href="#313">self</a>.bytes = <a href="#338">rest</a>;
-                <span class="prelude-val">Some</span>(<a href="#249">Utf8Chunk</a> {
-                    <a href="#333">valid</a>,
-                    invalid: <a href="#338">invalid</a>.<a href="ext_slice.rs.html#123">as_bstr</a>(),
-                    <a href="#334">incomplete</a>,
+                <span class="kw">let </span>(invalid, rest) = rest.split_at(invalid_len);
+                <span class="self">self</span>.bytes = rest;
+                <span class="prelude-val">Some</span>(Utf8Chunk {
+                    valid,
+                    invalid: invalid.as_bstr(),
+                    incomplete,
                 })
             }
         }
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>size_hint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;) {
+    </span><span class="kw">fn </span>size_hint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (usize, <span class="prelude-ty">Option</span>&lt;usize&gt;) {
         <span class="kw">if </span><span class="self">self</span>.bytes.is_empty() {
             (<span class="number">0</span>, <span class="prelude-val">Some</span>(<span class="number">0</span>))
         } <span class="kw">else </span>{
-            (<span class="number">1</span>, <span class="prelude-val">Some</span>(<a class="self" href="#350">self</a>.bytes.len()))
+            (<span class="number">1</span>, <span class="prelude-val">Some</span>(<span class="self">self</span>.bytes.len()))
         }
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/marker/trait.FusedIterator.html">::core::iter::FusedIterator</a> <span class="kw">for </span>Utf8Chunks&lt;<span class="lifetime">&#39;a</span>&gt; {}
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; ::core::iter::FusedIterator <span class="kw">for </span>Utf8Chunks&lt;<span class="lifetime">&#39;a</span>&gt; {}
 
 <span class="doccomment">/// An error that occurs when UTF-8 decoding fails.
 ///
@@ -1778,11 +1778,11 @@
 /// ```
 </span><span class="attr">#[derive(Debug, Eq, PartialEq)]
 </span><span class="kw">pub struct </span>Utf8Error {
-    valid_up_to: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-    error_len: <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;,
+    valid_up_to: usize,
+    error_len: <span class="prelude-ty">Option</span>&lt;usize&gt;,
 }
 
-<span class="kw">impl </span><a href="#410">Utf8Error</a> {
+<span class="kw">impl </span>Utf8Error {
     <span class="doccomment">/// Returns the byte index of the position immediately following the last
     /// valid UTF-8 byte.
     ///
@@ -1802,8 +1802,8 @@
     /// assert_eq!(string, &quot;foobar&quot;);
     /// ```
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>valid_up_to(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="self" href="#435">self</a>.valid_up_to
+    </span><span class="kw">pub fn </span>valid_up_to(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+        <span class="self">self</span>.valid_up_to
     }
 
     <span class="doccomment">/// Returns the total number of invalid UTF-8 bytes immediately following
@@ -1816,21 +1816,21 @@
     /// when processing streams, where a `None` value signals that more input
     /// might be needed.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>error_len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
-        <a class="self" href="#449">self</a>.error_len
+    </span><span class="kw">pub fn </span>error_len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;usize&gt; {
+        <span class="self">self</span>.error_len
     }
 }
 
 <span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
-</span><span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">error::Error</a> <span class="kw">for </span><a href="#410">Utf8Error</a> {
-    <span class="kw">fn </span>description(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> {
+</span><span class="kw">impl </span>error::Error <span class="kw">for </span>Utf8Error {
+    <span class="kw">fn </span>description(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>str {
         <span class="string">&quot;invalid UTF-8&quot;
     </span>}
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for </span><a href="#410">Utf8Error</a> {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#462">f</a>, <span class="string">&quot;invalid UTF-8 found at byte offset {}&quot;</span>, <span class="self">self</span>.valid_up_to)
+<span class="kw">impl </span>fmt::Display <span class="kw">for </span>Utf8Error {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        <span class="macro">write!</span>(f, <span class="string">&quot;invalid UTF-8 found at byte offset {}&quot;</span>, <span class="self">self</span>.valid_up_to)
     }
 }
 
@@ -1838,13 +1838,13 @@
 ///
 /// If the slice isn&#39;t valid UTF-8, then an error is returned that explains
 /// the first location at which invalid UTF-8 was detected.
-</span><span class="kw">pub fn </span>validate(slice: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="#410">Utf8Error</a>&gt; {
+</span><span class="kw">pub fn </span>validate(slice: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;(), Utf8Error&gt; {
     <span class="comment">// The fast path for validating UTF-8. It steps through a UTF-8 automaton
     // and uses a SIMD accelerated ASCII fast path on x86_64. If an error is
     // detected, it backs up and runs the slower version of the UTF-8 automaton
     // to determine correct error information.
-    </span><span class="kw">fn </span>fast(slice: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="#410">Utf8Error</a>&gt; {
-        <span class="kw">let </span><span class="kw-2">mut </span>state = <a href="#42">ACCEPT</a>;
+    </span><span class="kw">fn </span>fast(slice: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;(), Utf8Error&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>state = ACCEPT;
         <span class="kw">let </span><span class="kw-2">mut </span>i = <span class="number">0</span>;
 
         <span class="kw">while </span>i &lt; slice.len() {
@@ -1867,7 +1867,7 @@
             i += <span class="number">1</span>;
         }
         <span class="kw">if </span>state != ACCEPT {
-            <span class="prelude-val">Err</span>(<a href="#510">find_valid_up_to</a>(<a href="#476">slice</a>, <a href="#476">slice</a>.len()))
+            <span class="prelude-val">Err</span>(find_valid_up_to(slice, slice.len()))
         } <span class="kw">else </span>{
             <span class="prelude-val">Ok</span>(())
         }
@@ -1877,19 +1877,19 @@
     // invalid, return an error that correctly reports the position at which
     // the last complete UTF-8 sequence ends.
     </span><span class="attr">#[inline(never)]
-    </span><span class="kw">fn </span>find_valid_up_to(slice: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], rejected_at: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a href="#410">Utf8Error</a> {
+    </span><span class="kw">fn </span>find_valid_up_to(slice: <span class="kw-2">&amp;</span>[u8], rejected_at: usize) -&gt; Utf8Error {
         <span class="comment">// In order to find the last valid byte, we need to back up an amount
         // that guarantees every preceding byte is part of a valid UTF-8
         // code unit sequence. To do this, we simply locate the last leading
         // byte that occurs before rejected_at.
-        </span><span class="kw">let </span><span class="kw-2">mut </span>backup = <a href="#510">rejected_at</a>.saturating_sub(<span class="number">1</span>);
+        </span><span class="kw">let </span><span class="kw-2">mut </span>backup = rejected_at.saturating_sub(<span class="number">1</span>);
         <span class="kw">while </span>backup &gt; <span class="number">0 </span>&amp;&amp; !is_leading_or_invalid_utf8_byte(slice[backup]) {
             backup -= <span class="number">1</span>;
         }
-        <span class="kw">let </span>upto = cmp::min(<a href="#510">slice</a>.len(), <a href="#510">rejected_at</a>.saturating_add(<span class="number">1</span>));
-        <span class="kw">let </span><span class="kw-2">mut </span>err = <a href="#531">slow</a>(<span class="kw-2">&amp;</span><a href="#510">slice</a>[<a href="#515">backup</a>..<a href="#519">upto</a>]).unwrap_err();
-        <a href="#520">err</a>.valid_up_to += <a href="#515">backup</a>;
-        <a href="#520">err</a>
+        <span class="kw">let </span>upto = cmp::min(slice.len(), rejected_at.saturating_add(<span class="number">1</span>));
+        <span class="kw">let </span><span class="kw-2">mut </span>err = slow(<span class="kw-2">&amp;</span>slice[backup..upto]).unwrap_err();
+        err.valid_up_to += backup;
+        err
     }
 
     <span class="comment">// Like top-level UTF-8 decoding, except it correctly reports a UTF-8 error
@@ -1898,8 +1898,8 @@
     // last valid UTF-8 byte. In particular, tracking this requires checking
     // for an ACCEPT state on each byte, which degrades throughput pretty
     // badly.
-    </span><span class="kw">fn </span>slow(slice: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="#410">Utf8Error</a>&gt; {
-        <span class="kw">let </span><span class="kw-2">mut </span>state = <a href="#42">ACCEPT</a>;
+    </span><span class="kw">fn </span>slow(slice: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;(), Utf8Error&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>state = ACCEPT;
         <span class="kw">let </span><span class="kw-2">mut </span>valid_up_to = <span class="number">0</span>;
         <span class="kw">for </span>(i, <span class="kw-2">&amp;</span>b) <span class="kw">in </span>slice.iter().enumerate() {
             state = step(state, b);
@@ -1912,26 +1912,26 @@
             }
         }
         <span class="kw">if </span>state != ACCEPT {
-            <span class="prelude-val">Err</span>(<a href="#410">Utf8Error</a> { <a href="#533">valid_up_to</a>, error_len: <span class="prelude-val">None </span>})
+            <span class="prelude-val">Err</span>(Utf8Error { valid_up_to, error_len: <span class="prelude-val">None </span>})
         } <span class="kw">else </span>{
             <span class="prelude-val">Ok</span>(())
         }
     }
 
     <span class="comment">// Advance to the next state given the current state and current byte.
-    </span><span class="kw">fn </span>step(state: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, b: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <span class="kw">let </span>class = <a href="#48">CLASSES</a>[<a href="#552">b</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>];
+    </span><span class="kw">fn </span>step(state: usize, b: u8) -&gt; usize {
+        <span class="kw">let </span>class = CLASSES[b <span class="kw">as </span>usize];
         <span class="comment">// SAFETY: This is safe because &#39;class&#39; is always &lt;=11 and &#39;state&#39; is
         // always &lt;=96. Therefore, the maximal index is 96+11 = 107, where
         // STATES_FORWARD.len() = 108 such that every index is guaranteed to be
         // valid by construction of the state machine and the byte equivalence
         // classes.
         </span><span class="kw">unsafe </span>{
-            <span class="kw-2">*</span><a href="#62">STATES_FORWARD</a>.get_unchecked(<a href="#552">state</a> + <a href="#553">class</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>
+            <span class="kw-2">*</span>STATES_FORWARD.get_unchecked(state + class <span class="kw">as </span>usize) <span class="kw">as </span>usize
         }
     }
 
-    <a href="#476">fast</a>(<a href="#471">slice</a>)
+    fast(slice)
 }
 
 <span class="doccomment">/// UTF-8 decode a single Unicode scalar value from the beginning of a slice.
@@ -1980,15 +1980,15 @@
 /// assert_eq!(vec![&#39;☃&#39;, &#39;\u{FFFD}&#39;, &#39;𝞃&#39;, &#39;\u{FFFD}&#39;, &#39;a&#39;], chars);
 /// ```
 </span><span class="attr">#[inline]
-</span><span class="kw">pub fn </span>decode&lt;B: AsRef&lt;[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;&gt;(slice: B) -&gt; (<span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>&gt;, <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
-    <span class="kw">let </span>slice = <a href="#613">slice</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>();
-    <span class="kw">match </span><a href="#614">slice</a>.get(<span class="number">0</span>) {
+</span><span class="kw">pub fn </span>decode&lt;B: AsRef&lt;[u8]&gt;&gt;(slice: B) -&gt; (<span class="prelude-ty">Option</span>&lt;char&gt;, usize) {
+    <span class="kw">let </span>slice = slice.as_ref();
+    <span class="kw">match </span>slice.get(<span class="number">0</span>) {
         <span class="prelude-val">None </span>=&gt; <span class="kw">return </span>(<span class="prelude-val">None</span>, <span class="number">0</span>),
-        <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>b) <span class="kw">if </span><a href="#617">b</a> &lt;= <span class="number">0x7F </span>=&gt; <span class="kw">return </span>(<span class="prelude-val">Some</span>(<a href="#617">b</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>), <span class="number">1</span>),
+        <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>b) <span class="kw">if </span>b &lt;= <span class="number">0x7F </span>=&gt; <span class="kw">return </span>(<span class="prelude-val">Some</span>(b <span class="kw">as </span>char), <span class="number">1</span>),
         <span class="kw">_ </span>=&gt; {}
     }
 
-    <span class="kw">let </span>(<span class="kw-2">mut </span>state, <span class="kw-2">mut </span>cp, <span class="kw-2">mut </span>i) = (<a href="#42">ACCEPT</a>, <span class="number">0</span>, <span class="number">0</span>);
+    <span class="kw">let </span>(<span class="kw-2">mut </span>state, <span class="kw-2">mut </span>cp, <span class="kw-2">mut </span>i) = (ACCEPT, <span class="number">0</span>, <span class="number">0</span>);
     <span class="kw">while </span>i &lt; slice.len() {
         decode_step(<span class="kw-2">&amp;mut </span>state, <span class="kw-2">&amp;mut </span>cp, slice[i]);
         i += <span class="number">1</span>;
@@ -2003,7 +2003,7 @@
             </span><span class="kw">return </span>(<span class="prelude-val">None</span>, cmp::max(<span class="number">1</span>, i.saturating_sub(<span class="number">1</span>)));
         }
     }
-    (<span class="prelude-val">None</span>, <a href="#621">i</a>)
+    (<span class="prelude-val">None</span>, i)
 }
 
 <span class="doccomment">/// Lossily UTF-8 decode a single Unicode scalar value from the beginning of a
@@ -2054,10 +2054,10 @@
 /// assert_eq!(vec![&#39;☃&#39;, &#39;\u{FFFD}&#39;, &#39;𝞃&#39;, &#39;\u{FFFD}&#39;, &#39;a&#39;], chars);
 /// ```
 </span><span class="attr">#[inline]
-</span><span class="kw">pub fn </span>decode_lossy&lt;B: AsRef&lt;[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;&gt;(slice: B) -&gt; (<a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
-    <span class="kw">match </span><a href="#613">decode</a>(<a href="#687">slice</a>) {
-        (<span class="prelude-val">Some</span>(ch), size) =&gt; (<a href="#689">ch</a>, <a href="#689">size</a>),
-        (<span class="prelude-val">None</span>, size) =&gt; (<span class="string">&#39;\u{FFFD}&#39;</span>, <a href="#690">size</a>),
+</span><span class="kw">pub fn </span>decode_lossy&lt;B: AsRef&lt;[u8]&gt;&gt;(slice: B) -&gt; (char, usize) {
+    <span class="kw">match </span>decode(slice) {
+        (<span class="prelude-val">Some</span>(ch), size) =&gt; (ch, size),
+        (<span class="prelude-val">None</span>, size) =&gt; (<span class="string">&#39;\u{FFFD}&#39;</span>, size),
     }
 }
 
@@ -2107,27 +2107,27 @@
 /// assert_eq!(vec![&#39;a&#39;, &#39;\u{FFFD}&#39;, &#39;𝞃&#39;, &#39;\u{FFFD}&#39;, &#39;☃&#39;], chars);
 /// ```
 </span><span class="attr">#[inline]
-</span><span class="kw">pub fn </span>decode_last&lt;B: AsRef&lt;[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;&gt;(slice: B) -&gt; (<span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>&gt;, <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
+</span><span class="kw">pub fn </span>decode_last&lt;B: AsRef&lt;[u8]&gt;&gt;(slice: B) -&gt; (<span class="prelude-ty">Option</span>&lt;char&gt;, usize) {
     <span class="comment">// TODO: We could implement this by reversing the UTF-8 automaton, but for
     // now, we do it the slow way by using the forward automaton.
 
-    </span><span class="kw">let </span>slice = <a href="#740">slice</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>();
+    </span><span class="kw">let </span>slice = slice.as_ref();
     <span class="kw">if </span>slice.is_empty() {
         <span class="kw">return </span>(<span class="prelude-val">None</span>, <span class="number">0</span>);
     }
-    <span class="kw">let </span><span class="kw-2">mut </span>start = <a href="#744">slice</a>.len() - <span class="number">1</span>;
-    <span class="kw">let </span>limit = <a href="#744">slice</a>.len().saturating_sub(<span class="number">4</span>);
+    <span class="kw">let </span><span class="kw-2">mut </span>start = slice.len() - <span class="number">1</span>;
+    <span class="kw">let </span>limit = slice.len().saturating_sub(<span class="number">4</span>);
     <span class="kw">while </span>start &gt; limit &amp;&amp; !is_leading_or_invalid_utf8_byte(slice[start]) {
         start -= <span class="number">1</span>;
     }
-    <span class="kw">let </span>(ch, size) = <a href="#613">decode</a>(<span class="kw-2">&amp;</span><a href="#744">slice</a>[<a href="#748">start</a>..]);
+    <span class="kw">let </span>(ch, size) = decode(<span class="kw-2">&amp;</span>slice[start..]);
     <span class="comment">// If we didn&#39;t consume all of the bytes, then that means there&#39;s at least
     // one stray byte that never occurs in a valid code unit prefix, so we can
     // advance by one byte.
     </span><span class="kw">if </span>start + size != slice.len() {
         (<span class="prelude-val">None</span>, <span class="number">1</span>)
     } <span class="kw">else </span>{
-        (<a href="#753">ch</a>, <a href="#753">size</a>)
+        (ch, size)
     }
 }
 
@@ -2178,30 +2178,30 @@
 /// assert_eq!(vec![&#39;a&#39;, &#39;\u{FFFD}&#39;, &#39;𝞃&#39;, &#39;\u{FFFD}&#39;, &#39;☃&#39;], chars);
 /// ```
 </span><span class="attr">#[inline]
-</span><span class="kw">pub fn </span>decode_last_lossy&lt;B: AsRef&lt;[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;&gt;(slice: B) -&gt; (<a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
-    <span class="kw">match </span><a href="#740">decode_last</a>(<a href="#811">slice</a>) {
-        (<span class="prelude-val">Some</span>(ch), size) =&gt; (<a href="#813">ch</a>, <a href="#813">size</a>),
-        (<span class="prelude-val">None</span>, size) =&gt; (<span class="string">&#39;\u{FFFD}&#39;</span>, <a href="#814">size</a>),
+</span><span class="kw">pub fn </span>decode_last_lossy&lt;B: AsRef&lt;[u8]&gt;&gt;(slice: B) -&gt; (char, usize) {
+    <span class="kw">match </span>decode_last(slice) {
+        (<span class="prelude-val">Some</span>(ch), size) =&gt; (ch, size),
+        (<span class="prelude-val">None</span>, size) =&gt; (<span class="string">&#39;\u{FFFD}&#39;</span>, size),
     }
 }
 
 <span class="doccomment">/// SAFETY: The decode function relies on state being equal to ACCEPT only if
 /// cp is a valid Unicode scalar value.
 </span><span class="attr">#[inline]
-</span><span class="kw">pub fn </span>decode_step(state: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, cp: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>, b: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) {
-    <span class="kw">let </span>class = <a href="#48">CLASSES</a>[<a href="#821">b</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>];
+</span><span class="kw">pub fn </span>decode_step(state: <span class="kw-2">&amp;mut </span>usize, cp: <span class="kw-2">&amp;mut </span>u32, b: u8) {
+    <span class="kw">let </span>class = CLASSES[b <span class="kw">as </span>usize];
     <span class="kw">if </span><span class="kw-2">*</span>state == ACCEPT {
-        <span class="kw-2">*</span><a href="#821">cp</a> = (<span class="number">0xFF </span>&gt;&gt; <a href="#822">class</a>) &amp; (<a href="#821">b</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>);
+        <span class="kw-2">*</span>cp = (<span class="number">0xFF </span>&gt;&gt; class) &amp; (b <span class="kw">as </span>u32);
     } <span class="kw">else </span>{
-        <span class="kw-2">*</span><a href="#821">cp</a> = (<a href="#821">b</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> &amp; <span class="number">0b111111</span>) | (<span class="kw-2">*</span><a href="#821">cp</a> &lt;&lt; <span class="number">6</span>);
+        <span class="kw-2">*</span>cp = (b <span class="kw">as </span>u32 &amp; <span class="number">0b111111</span>) | (<span class="kw-2">*</span>cp &lt;&lt; <span class="number">6</span>);
     }
-    <span class="kw-2">*</span><a href="#821">state</a> = <a href="#62">STATES_FORWARD</a>[<span class="kw-2">*</span><a href="#821">state</a> + <a href="#822">class</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>] <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>;
+    <span class="kw-2">*</span>state = STATES_FORWARD[<span class="kw-2">*</span>state + class <span class="kw">as </span>usize] <span class="kw">as </span>usize;
 }
 
 <span class="doccomment">/// Returns true if and only if the given byte is either a valid leading UTF-8
 /// byte, or is otherwise an invalid byte that can never appear anywhere in a
 /// valid UTF-8 sequence.
-</span><span class="kw">fn </span>is_leading_or_invalid_utf8_byte(b: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+</span><span class="kw">fn </span>is_leading_or_invalid_utf8_byte(b: u8) -&gt; bool {
     <span class="comment">// In the ASCII case, the most significant bit is never set. The leading
     // byte of a 2/3/4-byte sequence always has the top two most significant
     // bits set. For bytes that can never appear anywhere in valid UTF-8, this
@@ -2221,7 +2221,7 @@
     //     \xFD :: 11111101
     //     \xFE :: 11111110
     //     \xFF :: 11111111
-    </span>(<a href="#834">b</a> &amp; <span class="number">0b1100_0000</span>) != <span class="number">0b1000_0000
+    </span>(b &amp; <span class="number">0b1100_0000</span>) != <span class="number">0b1000_0000
 </span>}
 
 <span class="attr">#[cfg(test)]
@@ -2739,4 +2739,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="bstr" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="bstr" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

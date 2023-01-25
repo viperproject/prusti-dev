@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/nix-0.25.0/src/mqueue.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mqueue.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../nix/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/nix-0.26.1/src/mqueue.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mqueue.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../nix/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -246,6 +246,34 @@
 <a href="#246" id="246">246</a>
 <a href="#247" id="247">247</a>
 <a href="#248" id="248">248</a>
+<a href="#249" id="249">249</a>
+<a href="#250" id="250">250</a>
+<a href="#251" id="251">251</a>
+<a href="#252" id="252">252</a>
+<a href="#253" id="253">253</a>
+<a href="#254" id="254">254</a>
+<a href="#255" id="255">255</a>
+<a href="#256" id="256">256</a>
+<a href="#257" id="257">257</a>
+<a href="#258" id="258">258</a>
+<a href="#259" id="259">259</a>
+<a href="#260" id="260">260</a>
+<a href="#261" id="261">261</a>
+<a href="#262" id="262">262</a>
+<a href="#263" id="263">263</a>
+<a href="#264" id="264">264</a>
+<a href="#265" id="265">265</a>
+<a href="#266" id="266">266</a>
+<a href="#267" id="267">267</a>
+<a href="#268" id="268">268</a>
+<a href="#269" id="269">269</a>
+<a href="#270" id="270">270</a>
+<a href="#271" id="271">271</a>
+<a href="#272" id="272">272</a>
+<a href="#273" id="273">273</a>
+<a href="#274" id="274">274</a>
+<a href="#275" id="275">275</a>
+<a href="#276" id="276">276</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Posix Message Queue functions
 //!
 //! # Example
@@ -278,17 +306,17 @@
 //! ```
 //! [Further reading and details on the C API](https://man7.org/linux/man-pages/man7/mq_overview.7.html)
 
-</span><span class="kw">use </span><a href="lib.rs.html#167"><span class="kw">crate</span>::Result</a>;
-<span class="kw">use </span><a href="errno.rs.html#1163"><span class="kw">crate</span>::errno::Errno</a>;
+</span><span class="kw">use </span><span class="kw">crate</span>::errno::Errno;
+<span class="kw">use </span><span class="kw">crate</span>::Result;
 
-<span class="kw">use </span>libc::{<a class="self" href="../../libc/index.html">self</a>, <a href="../../libc/unix/linux_like/linux/gnu/b64/x86_64/type.c_char.html">c_char</a>, <a href="../../libc/unix/linux_like/linux/type.mqd_t.html">mqd_t</a>, <a href="../../libc/unix/type.size_t.html">size_t</a>};
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/ffi/c_str/struct.CStr.html">std::ffi::CStr</a>;
-<span class="kw">use </span><a href="sys/stat.rs.html#33-52"><span class="kw">crate</span>::sys::stat::Mode</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/mem/index.html">std::mem</a>;
+<span class="kw">use </span><span class="kw">crate</span>::sys::stat::Mode;
+<span class="kw">use </span>libc::{<span class="self">self</span>, c_char, mqd_t, size_t};
+<span class="kw">use </span>std::ffi::CStr;
+<span class="kw">use </span>std::mem;
 
-<a class="macro" href="macros.rs.html#55-75">libc_bitflags!</a>{
+<span class="macro">libc_bitflags! </span>{
     <span class="doccomment">/// Used with [`mq_open`].
-    </span><span class="kw">pub struct </span>MQ_OFlag: <a href="../../libc/unix/type.c_int.html">libc::c_int</a> {
+    </span><span class="kw">pub struct </span>MQ_OFlag: libc::c_int {
         <span class="doccomment">/// Open the message queue for receiving messages.
         </span>O_RDONLY;
         <span class="doccomment">/// Open the queue for sending messages.
@@ -313,7 +341,7 @@
 </span><span class="attr">#[repr(C)]
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 </span><span class="kw">pub struct </span>MqAttr {
-    mq_attr: <a href="../../libc/unix/linux_like/linux/struct.mq_attr.html">libc::mq_attr</a>,
+    mq_attr: libc::mq_attr,
 }
 
 <span class="doccomment">/// Identifies an open POSIX Message Queue
@@ -322,7 +350,7 @@
 </span><span class="attr">#[repr(transparent)]
 #[derive(Debug)]
 #[allow(missing_copy_implementations)]
-</span><span class="kw">pub struct </span>MqdT(<a href="../../libc/unix/linux_like/linux/type.mqd_t.html">mqd_t</a>);
+</span><span class="kw">pub struct </span>MqdT(mqd_t);
 
 <span class="comment">// x32 compatibility
 // See https://sourceware.org/bugzilla/show_bug.cgi?id=21279
@@ -333,9 +361,9 @@
 <span class="doccomment">/// Size of a message queue attribute member
 </span><span class="attr">#[cfg(not(all(target_arch = <span class="string">&quot;x86_64&quot;</span>, target_pointer_width = <span class="string">&quot;32&quot;</span>)))]
 #[cfg_attr(docsrs, doc(cfg(all())))]
-</span><span class="kw">pub type </span>mq_attr_member_t = <a href="../../libc/unix/linux_like/linux/gnu/b64/x86_64/not_x32/type.c_long.html">libc::c_long</a>;
+</span><span class="kw">pub type </span>mq_attr_member_t = libc::c_long;
 
-<span class="kw">impl </span><a href="#67">MqAttr</a> {
+<span class="kw">impl </span>MqAttr {
     <span class="doccomment">/// Create a new message queue attribute
     ///
     /// # Arguments
@@ -344,117 +372,133 @@
     /// - `mq_maxmsg`:  Maximum number of messages on the queue.
     /// - `mq_msgsize`: Maximum message size in bytes.
     /// - `mq_curmsgs`: Number of messages currently in the queue.
-    </span><span class="kw">pub fn </span>new(mq_flags: <a href="#88">mq_attr_member_t</a>,
-               mq_maxmsg: <a href="#88">mq_attr_member_t</a>,
-               mq_msgsize: <a href="#88">mq_attr_member_t</a>,
-               mq_curmsgs: <a href="#88">mq_attr_member_t</a>)
-               -&gt; <a href="#67">MqAttr</a>
-    {
-        <span class="kw">let </span><span class="kw-2">mut </span>attr = mem::MaybeUninit::&lt;<a href="../../libc/unix/linux_like/linux/struct.mq_attr.html">libc::mq_attr</a>&gt;::uninit();
+    </span><span class="kw">pub fn </span>new(
+        mq_flags: mq_attr_member_t,
+        mq_maxmsg: mq_attr_member_t,
+        mq_msgsize: mq_attr_member_t,
+        mq_curmsgs: mq_attr_member_t,
+    ) -&gt; MqAttr {
+        <span class="kw">let </span><span class="kw-2">mut </span>attr = mem::MaybeUninit::&lt;libc::mq_attr&gt;::uninit();
         <span class="kw">unsafe </span>{
-            <span class="kw">let </span>p = <a href="#105">attr</a>.as_mut_ptr();
-            (<span class="kw-2">*</span><a href="#107">p</a>).mq_flags = <a href="#99">mq_flags</a>;
-            (<span class="kw-2">*</span><a href="#107">p</a>).mq_maxmsg = <a href="#100">mq_maxmsg</a>;
-            (<span class="kw-2">*</span><a href="#107">p</a>).mq_msgsize = <a href="#101">mq_msgsize</a>;
-            (<span class="kw-2">*</span><a href="#107">p</a>).mq_curmsgs = <a href="#102">mq_curmsgs</a>;
-            <a href="#67">MqAttr</a> { mq_attr: <a href="#105">attr</a>.assume_init() }
+            <span class="kw">let </span>p = attr.as_mut_ptr();
+            (<span class="kw-2">*</span>p).mq_flags = mq_flags;
+            (<span class="kw-2">*</span>p).mq_maxmsg = mq_maxmsg;
+            (<span class="kw-2">*</span>p).mq_msgsize = mq_msgsize;
+            (<span class="kw-2">*</span>p).mq_curmsgs = mq_curmsgs;
+            MqAttr {
+                mq_attr: attr.assume_init(),
+            }
         }
     }
 
     <span class="doccomment">/// The current flags, either `0` or `O_NONBLOCK`.
-    </span><span class="kw">pub const fn </span>flags(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="#88">mq_attr_member_t</a> {
-        <a class="self" href="#117">self</a>.mq_attr.mq_flags
+    </span><span class="kw">pub const fn </span>flags(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; mq_attr_member_t {
+        <span class="self">self</span>.mq_attr.mq_flags
     }
 
     <span class="doccomment">/// The max number of messages that can be held by the queue
-    </span><span class="kw">pub const fn </span>maxmsg(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="#88">mq_attr_member_t</a> {
-        <a class="self" href="#122">self</a>.mq_attr.mq_maxmsg
+    </span><span class="kw">pub const fn </span>maxmsg(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; mq_attr_member_t {
+        <span class="self">self</span>.mq_attr.mq_maxmsg
     }
 
     <span class="doccomment">/// The maximum size of each message (in bytes)
-    </span><span class="kw">pub const fn </span>msgsize(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="#88">mq_attr_member_t</a> {
-        <a class="self" href="#127">self</a>.mq_attr.mq_msgsize
+    </span><span class="kw">pub const fn </span>msgsize(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; mq_attr_member_t {
+        <span class="self">self</span>.mq_attr.mq_msgsize
     }
 
     <span class="doccomment">/// The number of messages currently held in the queue
-    </span><span class="kw">pub const fn </span>curmsgs(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="#88">mq_attr_member_t</a> {
-        <a class="self" href="#132">self</a>.mq_attr.mq_curmsgs
+    </span><span class="kw">pub const fn </span>curmsgs(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; mq_attr_member_t {
+        <span class="self">self</span>.mq_attr.mq_curmsgs
     }
 }
-
 
 <span class="doccomment">/// Open a message queue
 ///
 /// See also [`mq_open(2)`](https://pubs.opengroup.org/onlinepubs/9699919799/functions/mq_open.html)
 </span><span class="comment">// The mode.bits cast is only lossless on some OSes
 </span><span class="attr">#[allow(clippy::cast_lossless)]
-</span><span class="kw">pub fn </span>mq_open(name: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/core/ffi/c_str/struct.CStr.html">CStr</a>,
-               oflag: <a href="#41-61">MQ_OFlag</a>,
-               mode: <a href="sys/stat.rs.html#33-52">Mode</a>,
-               attr: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="#67">MqAttr</a>&gt;)
-               -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#77">MqdT</a>&gt; {
-    <span class="kw">let </span>res = <span class="kw">match </span><a href="#146">attr</a> {
+</span><span class="kw">pub fn </span>mq_open(
+    name: <span class="kw-2">&amp;</span>CStr,
+    oflag: MQ_OFlag,
+    mode: Mode,
+    attr: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>MqAttr&gt;,
+) -&gt; <span class="prelude-ty">Result</span>&lt;MqdT&gt; {
+    <span class="kw">let </span>res = <span class="kw">match </span>attr {
         <span class="prelude-val">Some</span>(mq_attr) =&gt; <span class="kw">unsafe </span>{
-            libc::mq_open(<a href="#143">name</a>.as_ptr(),
-                          <a href="#144">oflag</a>.<a href="#41-61">bits</a>(),
-                          <a href="#145">mode</a>.<a href="sys/stat.rs.html#33-52">bits</a>() <span class="kw">as </span><a href="../../libc/unix/type.c_int.html">libc::c_int</a>,
-                          <span class="kw-2">&amp;</span><a href="#149">mq_attr</a>.mq_attr <span class="kw">as </span><span class="kw-2">*const </span><a href="../../libc/unix/linux_like/linux/struct.mq_attr.html">libc::mq_attr</a>)
+            libc::mq_open(
+                name.as_ptr(),
+                oflag.bits(),
+                mode.bits() <span class="kw">as </span>libc::c_int,
+                <span class="kw-2">&amp;</span>mq_attr.mq_attr <span class="kw">as </span><span class="kw-2">*const </span>libc::mq_attr,
+            )
         },
-        <span class="prelude-val">None </span>=&gt; <span class="kw">unsafe </span>{ libc::mq_open(<a href="#143">name</a>.as_ptr(), <a href="#144">oflag</a>.<a href="#41-61">bits</a>()) },
+        <span class="prelude-val">None </span>=&gt; <span class="kw">unsafe </span>{ libc::mq_open(name.as_ptr(), oflag.bits()) },
     };
-    Errno::result(<a href="#148">res</a>).map(<a href="#77">MqdT</a>)
+    Errno::result(res).map(MqdT)
 }
 
 <span class="doccomment">/// Remove a message queue
 ///
 /// See also [`mq_unlink(2)`](https://pubs.opengroup.org/onlinepubs/9699919799/functions/mq_unlink.html)
-</span><span class="kw">pub fn </span>mq_unlink(name: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/core/ffi/c_str/struct.CStr.html">CStr</a>) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
-    <span class="kw">let </span>res = <span class="kw">unsafe </span>{ libc::mq_unlink(<a href="#163">name</a>.as_ptr()) };
-    Errno::result(<a href="#164">res</a>).map(<a href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>)
+</span><span class="kw">pub fn </span>mq_unlink(name: <span class="kw-2">&amp;</span>CStr) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+    <span class="kw">let </span>res = <span class="kw">unsafe </span>{ libc::mq_unlink(name.as_ptr()) };
+    Errno::result(res).map(drop)
 }
 
 <span class="doccomment">/// Close a message queue
 ///
 /// See also [`mq_close(2)`](https://pubs.opengroup.org/onlinepubs/9699919799/functions/mq_close.html)
-</span><span class="kw">pub fn </span>mq_close(mqdes: <a href="#77">MqdT</a>) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
-    <span class="kw">let </span>res = <span class="kw">unsafe </span>{ libc::mq_close(<a href="#171">mqdes</a>.<span class="number">0</span>) };
-    Errno::result(<a href="#172">res</a>).map(<a href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>)
+</span><span class="kw">pub fn </span>mq_close(mqdes: MqdT) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+    <span class="kw">let </span>res = <span class="kw">unsafe </span>{ libc::mq_close(mqdes.<span class="number">0</span>) };
+    Errno::result(res).map(drop)
 }
 
 <span class="doccomment">/// Receive a message from a message queue
 ///
 /// See also [`mq_receive(2)`](https://pubs.opengroup.org/onlinepubs/9699919799/functions/mq_receive.html)
-</span><span class="kw">pub fn </span>mq_receive(mqdes: <span class="kw-2">&amp;</span><a href="#77">MqdT</a>, message: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], msg_prio: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
-    <span class="kw">let </span>len = <a href="#179">message</a>.len() <span class="kw">as </span><a href="../../libc/unix/type.size_t.html">size_t</a>;
+</span><span class="kw">pub fn </span>mq_receive(
+    mqdes: <span class="kw-2">&amp;</span>MqdT,
+    message: <span class="kw-2">&amp;mut </span>[u8],
+    msg_prio: <span class="kw-2">&amp;mut </span>u32,
+) -&gt; <span class="prelude-ty">Result</span>&lt;usize&gt; {
+    <span class="kw">let </span>len = message.len() <span class="kw">as </span>size_t;
     <span class="kw">let </span>res = <span class="kw">unsafe </span>{
-        libc::mq_receive(<a href="#179">mqdes</a>.<span class="number">0</span>,
-                         <a href="#179">message</a>.as_mut_ptr() <span class="kw">as </span><span class="kw-2">*mut </span><a href="../../libc/unix/linux_like/linux/gnu/b64/x86_64/type.c_char.html">c_char</a>,
-                         <a href="#180">len</a>,
-                         <a href="#179">msg_prio</a> <span class="kw">as </span><span class="kw-2">*mut </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>)
+        libc::mq_receive(
+            mqdes.<span class="number">0</span>,
+            message.as_mut_ptr() <span class="kw">as </span><span class="kw-2">*mut </span>c_char,
+            len,
+            msg_prio <span class="kw">as </span><span class="kw-2">*mut </span>u32,
+        )
     };
-    Errno::result(<a href="#181">res</a>).map(|r| <a href="#187">r</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>)
+    Errno::result(res).map(|r| r <span class="kw">as </span>usize)
 }
 
 <span class="doccomment">/// Send a message to a message queue
 ///
 /// See also [`mq_send(2)`](https://pubs.opengroup.org/onlinepubs/9699919799/functions/mq_send.html)
-</span><span class="kw">pub fn </span>mq_send(mqdes: <span class="kw-2">&amp;</span><a href="#77">MqdT</a>, message: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], msq_prio: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+</span><span class="kw">pub fn </span>mq_send(mqdes: <span class="kw-2">&amp;</span>MqdT, message: <span class="kw-2">&amp;</span>[u8], msq_prio: u32) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
     <span class="kw">let </span>res = <span class="kw">unsafe </span>{
-        libc::mq_send(<a href="#193">mqdes</a>.<span class="number">0</span>,
-                      <a href="#193">message</a>.as_ptr() <span class="kw">as </span><span class="kw-2">*const </span><a href="../../libc/unix/linux_like/linux/gnu/b64/x86_64/type.c_char.html">c_char</a>,
-                      <a href="#193">message</a>.len(),
-                      <a href="#193">msq_prio</a>)
+        libc::mq_send(
+            mqdes.<span class="number">0</span>,
+            message.as_ptr() <span class="kw">as </span><span class="kw-2">*const </span>c_char,
+            message.len(),
+            msq_prio,
+        )
     };
-    Errno::result(<a href="#194">res</a>).map(<a href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>)
+    Errno::result(res).map(drop)
 }
 
 <span class="doccomment">/// Get message queue attributes
 ///
 /// See also [`mq_getattr(2)`](https://pubs.opengroup.org/onlinepubs/9699919799/functions/mq_getattr.html)
-</span><span class="kw">pub fn </span>mq_getattr(mqd: <span class="kw-2">&amp;</span><a href="#77">MqdT</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#67">MqAttr</a>&gt; {
-    <span class="kw">let </span><span class="kw-2">mut </span>attr = mem::MaybeUninit::&lt;<a href="../../libc/unix/linux_like/linux/struct.mq_attr.html">libc::mq_attr</a>&gt;::uninit();
-    <span class="kw">let </span>res = <span class="kw">unsafe </span>{ libc::mq_getattr(<a href="#206">mqd</a>.<span class="number">0</span>, <a href="#207">attr</a>.as_mut_ptr()) };
-    Errno::result(<a href="#208">res</a>).map(|<span class="kw">_</span>| <span class="kw">unsafe</span>{<a href="#67">MqAttr</a> { mq_attr: <a href="#207">attr</a>.assume_init() }})
+</span><span class="kw">pub fn </span>mq_getattr(mqd: <span class="kw-2">&amp;</span>MqdT) -&gt; <span class="prelude-ty">Result</span>&lt;MqAttr&gt; {
+    <span class="kw">let </span><span class="kw-2">mut </span>attr = mem::MaybeUninit::&lt;libc::mq_attr&gt;::uninit();
+    <span class="kw">let </span>res = <span class="kw">unsafe </span>{ libc::mq_getattr(mqd.<span class="number">0</span>, attr.as_mut_ptr()) };
+    Errno::result(res).map(|<span class="kw">_</span>| <span class="kw">unsafe </span>{
+        MqAttr {
+            mq_attr: attr.assume_init(),
+        }
+    })
 }
 
 <span class="doccomment">/// Set the attributes of the message queue. Only `O_NONBLOCK` can be set, everything else will be ignored
@@ -462,37 +506,49 @@
 /// It is recommend to use the `mq_set_nonblock()` and `mq_remove_nonblock()` convenience functions as they are easier to use
 ///
 /// [Further reading](https://pubs.opengroup.org/onlinepubs/9699919799/functions/mq_setattr.html)
-</span><span class="kw">pub fn </span>mq_setattr(mqd: <span class="kw-2">&amp;</span><a href="#77">MqdT</a>, newattr: <span class="kw-2">&amp;</span><a href="#67">MqAttr</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#67">MqAttr</a>&gt; {
-    <span class="kw">let </span><span class="kw-2">mut </span>attr = mem::MaybeUninit::&lt;<a href="../../libc/unix/linux_like/linux/struct.mq_attr.html">libc::mq_attr</a>&gt;::uninit();
+</span><span class="kw">pub fn </span>mq_setattr(mqd: <span class="kw-2">&amp;</span>MqdT, newattr: <span class="kw-2">&amp;</span>MqAttr) -&gt; <span class="prelude-ty">Result</span>&lt;MqAttr&gt; {
+    <span class="kw">let </span><span class="kw-2">mut </span>attr = mem::MaybeUninit::&lt;libc::mq_attr&gt;::uninit();
     <span class="kw">let </span>res = <span class="kw">unsafe </span>{
-        libc::mq_setattr(<a href="#217">mqd</a>.<span class="number">0</span>, <span class="kw-2">&amp;</span><a href="#217">newattr</a>.mq_attr <span class="kw">as </span><span class="kw-2">*const </span><a href="../../libc/unix/linux_like/linux/struct.mq_attr.html">libc::mq_attr</a>, <a href="#218">attr</a>.as_mut_ptr())
+        libc::mq_setattr(
+            mqd.<span class="number">0</span>,
+            <span class="kw-2">&amp;</span>newattr.mq_attr <span class="kw">as </span><span class="kw-2">*const </span>libc::mq_attr,
+            attr.as_mut_ptr(),
+        )
     };
-    Errno::result(<a href="#219">res</a>).map(|<span class="kw">_</span>| <span class="kw">unsafe</span>{ <a href="#67">MqAttr</a> { mq_attr: <a href="#218">attr</a>.assume_init() }})
+    Errno::result(res).map(|<span class="kw">_</span>| <span class="kw">unsafe </span>{
+        MqAttr {
+            mq_attr: attr.assume_init(),
+        }
+    })
 }
 
 <span class="doccomment">/// Convenience function.
 /// Sets the `O_NONBLOCK` attribute for a given message queue descriptor
 /// Returns the old attributes
-</span><span class="attr">#[allow(clippy::useless_conversion)]    </span><span class="comment">// Not useless on all OSes
-</span><span class="kw">pub fn </span>mq_set_nonblock(mqd: <span class="kw-2">&amp;</span><a href="#77">MqdT</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#67">MqAttr</a>&gt; {
+</span><span class="attr">#[allow(clippy::useless_conversion)] </span><span class="comment">// Not useless on all OSes
+</span><span class="kw">pub fn </span>mq_set_nonblock(mqd: <span class="kw-2">&amp;</span>MqdT) -&gt; <span class="prelude-ty">Result</span>&lt;MqAttr&gt; {
     <span class="kw">let </span>oldattr = mq_getattr(mqd)<span class="question-mark">?</span>;
-    <span class="kw">let </span>newattr = MqAttr::new(mq_attr_member_t::from(MQ_OFlag::O_NONBLOCK.<a href="#41-61">bits</a>()),
-                              <a href="#230">oldattr</a>.mq_attr.mq_maxmsg,
-                              <a href="#230">oldattr</a>.mq_attr.mq_msgsize,
-                              <a href="#230">oldattr</a>.mq_attr.mq_curmsgs);
-    <a href="#217">mq_setattr</a>(<a href="#229">mqd</a>, <span class="kw-2">&amp;</span><a href="#231">newattr</a>)
+    <span class="kw">let </span>newattr = MqAttr::new(
+        mq_attr_member_t::from(MQ_OFlag::O_NONBLOCK.bits()),
+        oldattr.mq_attr.mq_maxmsg,
+        oldattr.mq_attr.mq_msgsize,
+        oldattr.mq_attr.mq_curmsgs,
+    );
+    mq_setattr(mqd, <span class="kw-2">&amp;</span>newattr)
 }
 
 <span class="doccomment">/// Convenience function.
 /// Removes `O_NONBLOCK` attribute for a given message queue descriptor
 /// Returns the old attributes
-</span><span class="kw">pub fn </span>mq_remove_nonblock(mqd: <span class="kw-2">&amp;</span><a href="#77">MqdT</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#67">MqAttr</a>&gt; {
+</span><span class="kw">pub fn </span>mq_remove_nonblock(mqd: <span class="kw-2">&amp;</span>MqdT) -&gt; <span class="prelude-ty">Result</span>&lt;MqAttr&gt; {
     <span class="kw">let </span>oldattr = mq_getattr(mqd)<span class="question-mark">?</span>;
-    <span class="kw">let </span>newattr = MqAttr::new(<span class="number">0</span>,
-                              <a href="#242">oldattr</a>.mq_attr.mq_maxmsg,
-                              <a href="#242">oldattr</a>.mq_attr.mq_msgsize,
-                              <a href="#242">oldattr</a>.mq_attr.mq_curmsgs);
-    <a href="#217">mq_setattr</a>(<a href="#241">mqd</a>, <span class="kw-2">&amp;</span><a href="#243">newattr</a>)
+    <span class="kw">let </span>newattr = MqAttr::new(
+        <span class="number">0</span>,
+        oldattr.mq_attr.mq_maxmsg,
+        oldattr.mq_attr.mq_msgsize,
+        oldattr.mq_attr.mq_curmsgs,
+    );
+    mq_setattr(mqd, <span class="kw-2">&amp;</span>newattr)
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="nix" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="nix" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

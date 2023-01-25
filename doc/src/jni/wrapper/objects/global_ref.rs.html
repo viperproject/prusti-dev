@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/jni-0.20.0/src/wrapper/objects/global_ref.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>global_ref.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../../jni/index.html"><img class="rust-logo" src="../../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/jni-0.20.0/src/wrapper/objects/global_ref.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>global_ref.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../../jni/index.html"><img class="rust-logo" src="../../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -105,11 +105,11 @@
 <a href="#105" id="105">105</a>
 <a href="#106" id="106">106</a>
 <a href="#107" id="107">107</a>
-</pre><pre class="rust"><code><span class="kw">use </span>std::{<a href="https://doc.rust-lang.org/nightly/core/convert/trait.From.html">convert::From</a>, <a href="https://doc.rust-lang.org/nightly/alloc/sync/struct.Arc.html">sync::Arc</a>};
+</pre><pre class="rust"><code><span class="kw">use </span>std::{convert::From, sync::Arc};
 
-<span class="kw">use </span>log::{<a href="../../../../log/macro.debug.html">debug</a>, <a href="../../../../log/macro.warn.html">warn</a>};
+<span class="kw">use </span>log::{debug, warn};
 
-<span class="kw">use crate</span>::{<a href="../errors.rs.html#8">errors::Result</a>, <a href="jobject.rs.html#15">objects::JObject</a>, <a href="../../lib.rs.html#194">sys</a>, <a href="../jnienv.rs.html#80">JNIEnv</a>, <a href="../java_vm/vm.rs.html#136">JavaVM</a>};
+<span class="kw">use crate</span>::{errors::Result, objects::JObject, sys, JNIEnv, JavaVM};
 
 <span class="doccomment">/// A global JVM reference. These are &quot;pinned&quot; by the garbage collector and are
 /// guaranteed to not get collected until released. Thus, this is allowed to
@@ -130,33 +130,33 @@
 
 </span><span class="attr">#[derive(Clone, Debug)]
 </span><span class="kw">pub struct </span>GlobalRef {
-    inner: Arc&lt;<a href="#30">GlobalRefGuard</a>&gt;,
+    inner: Arc&lt;GlobalRefGuard&gt;,
 }
 
 <span class="attr">#[derive(Debug)]
 </span><span class="kw">struct </span>GlobalRefGuard {
     obj: JObject&lt;<span class="lifetime">&#39;static</span>&gt;,
-    vm: <a href="../java_vm/vm.rs.html#136">JavaVM</a>,
+    vm: JavaVM,
 }
 
-<span class="kw">unsafe impl </span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="kw">for </span><a href="#25">GlobalRef</a> {}
-<span class="kw">unsafe impl </span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> <span class="kw">for </span><a href="#25">GlobalRef</a> {}
+<span class="kw">unsafe impl </span>Send <span class="kw">for </span>GlobalRef {}
+<span class="kw">unsafe impl </span>Sync <span class="kw">for </span>GlobalRef {}
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; From&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="#25">GlobalRef</a>&gt; <span class="kw">for </span>JObject&lt;<span class="lifetime">&#39;a</span>&gt; {
-    <span class="kw">fn </span>from(other: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="#25">GlobalRef</a>) -&gt; JObject&lt;<span class="lifetime">&#39;a</span>&gt; {
-        <a href="#39">other</a>.<a href="#60">as_obj</a>()
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; From&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>GlobalRef&gt; <span class="kw">for </span>JObject&lt;<span class="lifetime">&#39;a</span>&gt; {
+    <span class="kw">fn </span>from(other: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>GlobalRef) -&gt; JObject&lt;<span class="lifetime">&#39;a</span>&gt; {
+        other.as_obj()
     }
 }
 
-<span class="kw">impl </span><a href="#25">GlobalRef</a> {
+<span class="kw">impl </span>GlobalRef {
     <span class="doccomment">/// Creates a new wrapper for a global reference.
     ///
     /// # Safety
     ///
     /// Expects a valid raw global reference that should be created with `NewGlobalRef` JNI function.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">unsafe fn </span>from_raw(vm: <a href="../java_vm/vm.rs.html#136">JavaVM</a>, raw_global_ref: <a href="../../../../jni/sys/type.jobject.html">sys::jobject</a>) -&gt; <span class="self">Self </span>{
-        <a href="#25">GlobalRef</a> {
-            inner: Arc::new(GlobalRefGuard::from_raw(<a href="#50">vm</a>, <a href="#50">raw_global_ref</a>)),
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">unsafe fn </span>from_raw(vm: JavaVM, raw_global_ref: sys::jobject) -&gt; <span class="self">Self </span>{
+        GlobalRef {
+            inner: Arc::new(GlobalRefGuard::from_raw(vm, raw_global_ref)),
         }
     }
 
@@ -164,18 +164,18 @@
     ///
     /// This borrows the ref and prevents it from being dropped as long as the
     /// JObject sticks around.
-    </span><span class="kw">pub fn </span>as_obj(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="jobject.rs.html#15">JObject</a> {
-        <a class="self" href="#60">self</a>.inner.<a href="#79">as_obj</a>()
+    </span><span class="kw">pub fn </span>as_obj(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; JObject {
+        <span class="self">self</span>.inner.as_obj()
     }
 }
 
-<span class="kw">impl </span><a href="#30">GlobalRefGuard</a> {
+<span class="kw">impl </span>GlobalRefGuard {
     <span class="doccomment">/// Creates a new global reference guard. This assumes that `NewGlobalRef`
     /// has already been called.
-    </span><span class="kw">unsafe fn </span>from_raw(vm: <a href="../java_vm/vm.rs.html#136">JavaVM</a>, obj: <a href="../../../../jni/sys/type.jobject.html">sys::jobject</a>) -&gt; <span class="self">Self </span>{
-        <a href="#30">GlobalRefGuard</a> {
-            obj: JObject::from_raw(<a href="#68">obj</a>),
-            <a href="#68">vm</a>,
+    </span><span class="kw">unsafe fn </span>from_raw(vm: JavaVM, obj: sys::jobject) -&gt; <span class="self">Self </span>{
+        GlobalRefGuard {
+            obj: JObject::from_raw(obj),
+            vm,
         }
     }
 
@@ -183,34 +183,34 @@
     ///
     /// This borrows the ref and prevents it from being dropped as long as the
     /// JObject sticks around.
-    </span><span class="kw">pub fn </span>as_obj(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="jobject.rs.html#15">JObject</a> {
-        <a class="self" href="#79">self</a>.obj
+    </span><span class="kw">pub fn </span>as_obj(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; JObject {
+        <span class="self">self</span>.obj
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span><a href="#30">GlobalRefGuard</a> {
+<span class="kw">impl </span>Drop <span class="kw">for </span>GlobalRefGuard {
     <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <span class="kw">fn </span>drop_impl(env: <span class="kw-2">&amp;</span><a href="../jnienv.rs.html#80">JNIEnv</a>, global_ref: <a href="jobject.rs.html#15">JObject</a>) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
-            <span class="kw">let </span>internal = <a href="#86">env</a>.<a href="../jnienv.rs.html#2096">get_native_interface</a>();
+        <span class="kw">fn </span>drop_impl(env: <span class="kw-2">&amp;</span>JNIEnv, global_ref: JObject) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+            <span class="kw">let </span>internal = env.get_native_interface();
             <span class="comment">// This method is safe to call in case of pending exceptions (see chapter 2 of the spec)
-            </span><a class="macro" href="../macros.rs.html#54-63">jni_unchecked!</a>(internal, DeleteGlobalRef, global_ref.into_raw());
+            </span><span class="macro">jni_unchecked!</span>(internal, DeleteGlobalRef, global_ref.into_raw());
             <span class="prelude-val">Ok</span>(())
         }
 
-        <span class="kw">let </span>res = <span class="kw">match </span><a class="self" href="#85">self</a>.vm.<a href="../java_vm/vm.rs.html#268">get_env</a>() {
-            <span class="prelude-val">Ok</span>(env) =&gt; <a href="#86">drop_impl</a>(<span class="kw-2">&amp;</span><a href="#94">env</a>, <a class="self" href="#85">self</a>.<a href="#79">as_obj</a>()),
+        <span class="kw">let </span>res = <span class="kw">match </span><span class="self">self</span>.vm.get_env() {
+            <span class="prelude-val">Ok</span>(env) =&gt; drop_impl(<span class="kw-2">&amp;</span>env, <span class="self">self</span>.as_obj()),
             <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; {
-                <a class="macro" href="../../../../log/macro.warn.html">warn!</a>(<span class="string">&quot;Dropping a GlobalRef in a detached thread. Fix your code if this message appears frequently (see the GlobalRef docs).&quot;</span>);
-                <a class="self" href="#85">self</a>.vm
-                    .<a href="../java_vm/vm.rs.html#216">attach_current_thread</a>()
-                    .and_then(|env| <a href="#86">drop_impl</a>(<span class="kw-2">&amp;</span><a href="#99">env</a>, <a class="self" href="#85">self</a>.<a href="#79">as_obj</a>()))
+                <span class="macro">warn!</span>(<span class="string">&quot;Dropping a GlobalRef in a detached thread. Fix your code if this message appears frequently (see the GlobalRef docs).&quot;</span>);
+                <span class="self">self</span>.vm
+                    .attach_current_thread()
+                    .and_then(|env| drop_impl(<span class="kw-2">&amp;</span>env, <span class="self">self</span>.as_obj()))
             }
         };
 
-        <span class="kw">if let </span><span class="prelude-val">Err</span>(err) = <a href="#93">res</a> {
-            <a class="macro" href="../../../../log/macro.debug.html">debug!</a>(<span class="string">&quot;error dropping global ref: {:#?}&quot;</span>, err);
+        <span class="kw">if let </span><span class="prelude-val">Err</span>(err) = res {
+            <span class="macro">debug!</span>(<span class="string">&quot;error dropping global ref: {:#?}&quot;</span>, err);
         }
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="jni" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="jni" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

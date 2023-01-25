@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/memchr-2.5.0/src/memmem/rarebytes.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>rarebytes.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../memchr/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/memchr-2.5.0/src/memmem/rarebytes.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>rarebytes.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../memchr/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -152,7 +152,7 @@
     <span class="doccomment">/// The leftmost offset of the rarest byte in the needle, according to
     /// pre-computed frequency analysis. The &quot;leftmost offset&quot; means that
     /// rare1i &lt;= i for all i where needle[i] == needle[rare1i].
-    </span>rare1i: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>,
+    </span>rare1i: u8,
     <span class="doccomment">/// The leftmost offset of the second rarest byte in the needle, according
     /// to pre-computed frequency analysis. The &quot;leftmost offset&quot; means that
     /// rare2i &lt;= i for all i where needle[i] == needle[rare2i].
@@ -167,10 +167,10 @@
     /// byte needle is handled specially by memchr itself, rare2i generally
     /// always should be different from rare1i since it would otherwise be
     /// ineffective as a guard.
-    </span>rare2i: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>,
+    </span>rare2i: u8,
 }
 
-<span class="kw">impl </span><a href="#15">RareNeedleBytes</a> {
+<span class="kw">impl </span>RareNeedleBytes {
     <span class="doccomment">/// Create a new pair of rare needle bytes with the given offsets. This is
     /// only used in tests for generating input data.
     </span><span class="attr">#[cfg(all(test, feature = <span class="string">&quot;std&quot;</span>))]
@@ -180,7 +180,7 @@
 
     <span class="doccomment">/// Detect the leftmost offsets of the two rarest bytes in the given
     /// needle.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>forward(needle: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <a href="#15">RareNeedleBytes</a> {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>forward(needle: <span class="kw-2">&amp;</span>[u8]) -&gt; RareNeedleBytes {
         <span class="kw">if </span>needle.len() &lt;= <span class="number">1 </span>|| needle.len() &gt; core::u8::MAX <span class="kw">as </span>usize {
             <span class="comment">// For needles bigger than u8::MAX, our offsets aren&#39;t big enough.
             // (We make our offsets small to reduce stack copying.)
@@ -192,15 +192,15 @@
             // cased in Two-Way.
             //
             // TODO: Benchmar this.
-            </span><span class="kw">return </span><a href="#15">RareNeedleBytes</a> { rare1i: <span class="number">0</span>, rare2i: <span class="number">0 </span>};
+            </span><span class="kw">return </span>RareNeedleBytes { rare1i: <span class="number">0</span>, rare2i: <span class="number">0 </span>};
         }
 
         <span class="comment">// Find the rarest two bytes. We make them distinct by construction.
-        </span><span class="kw">let </span>(<span class="kw-2">mut </span>rare1, <span class="kw-2">mut </span>rare1i) = (<a href="#47">needle</a>[<span class="number">0</span>], <span class="number">0</span>);
-        <span class="kw">let </span>(<span class="kw-2">mut </span>rare2, <span class="kw-2">mut </span>rare2i) = (<a href="#47">needle</a>[<span class="number">1</span>], <span class="number">1</span>);
+        </span><span class="kw">let </span>(<span class="kw-2">mut </span>rare1, <span class="kw-2">mut </span>rare1i) = (needle[<span class="number">0</span>], <span class="number">0</span>);
+        <span class="kw">let </span>(<span class="kw-2">mut </span>rare2, <span class="kw-2">mut </span>rare2i) = (needle[<span class="number">1</span>], <span class="number">1</span>);
         <span class="kw">if </span>rank(rare2) &lt; rank(rare1) {
-            core::mem::swap(<span class="kw-2">&amp;mut </span><a href="#63">rare1</a>, <span class="kw-2">&amp;mut </span><a href="#64">rare2</a>);
-            core::mem::swap(<span class="kw-2">&amp;mut </span><a href="#63">rare1i</a>, <span class="kw-2">&amp;mut </span><a href="#64">rare2i</a>);
+            core::mem::swap(<span class="kw-2">&amp;mut </span>rare1, <span class="kw-2">&amp;mut </span>rare2);
+            core::mem::swap(<span class="kw-2">&amp;mut </span>rare1i, <span class="kw-2">&amp;mut </span>rare2i);
         }
         <span class="kw">for </span>(i, <span class="kw-2">&amp;</span>b) <span class="kw">in </span>needle.iter().enumerate().skip(<span class="number">2</span>) {
             <span class="kw">if </span>rank(b) &lt; rank(rare1) {
@@ -217,15 +217,15 @@
         // equivalent. If they were, it would reduce the effectiveness of
         // candidate searching using these rare bytes by increasing the rate of
         // false positives.
-        </span><a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert_ne.html">assert_ne!</a>(rare1i, rare2i);
-        <a href="#15">RareNeedleBytes</a> { <a href="#63">rare1i</a>, <a href="#64">rare2i</a> }
+        </span><span class="macro">assert_ne!</span>(rare1i, rare2i);
+        RareNeedleBytes { rare1i, rare2i }
     }
 
     <span class="doccomment">/// Return the rare bytes in the given needle in the forward direction.
     /// The needle given must be the same one given to the RareNeedleBytes
     /// constructor.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>as_rare_bytes(<span class="kw-2">&amp;</span><span class="self">self</span>, needle: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; (<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) {
-        (<a href="#91">needle</a>[<a class="self" href="#91">self</a>.rare1i <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>], <a href="#91">needle</a>[<a class="self" href="#91">self</a>.rare2i <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>])
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>as_rare_bytes(<span class="kw-2">&amp;</span><span class="self">self</span>, needle: <span class="kw-2">&amp;</span>[u8]) -&gt; (u8, u8) {
+        (needle[<span class="self">self</span>.rare1i <span class="kw">as </span>usize], needle[<span class="self">self</span>.rare2i <span class="kw">as </span>usize])
     }
 
     <span class="doccomment">/// Return the rare offsets such that the first offset is always &lt;= to the
@@ -233,42 +233,42 @@
     /// rare1 is rarer than rare2, but just wants to ensure that they are
     /// ordered with respect to one another.
     </span><span class="attr">#[cfg(memchr_runtime_simd)]
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>as_rare_ordered_usize(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
-        <span class="kw">let </span>(rare1i, rare2i) = <a class="self" href="#100">self</a>.<a href="#108">as_rare_ordered_u8</a>();
-        (<a href="#101">rare1i</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="#101">rare2i</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>)
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>as_rare_ordered_usize(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (usize, usize) {
+        <span class="kw">let </span>(rare1i, rare2i) = <span class="self">self</span>.as_rare_ordered_u8();
+        (rare1i <span class="kw">as </span>usize, rare2i <span class="kw">as </span>usize)
     }
 
     <span class="doccomment">/// Like as_rare_ordered_usize, but returns the offsets as their native
     /// u8 values.
     </span><span class="attr">#[cfg(memchr_runtime_simd)]
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>as_rare_ordered_u8(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>as_rare_ordered_u8(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (u8, u8) {
         <span class="kw">if </span><span class="self">self</span>.rare1i &lt;= <span class="self">self</span>.rare2i {
-            (<a class="self" href="#108">self</a>.rare1i, <a class="self" href="#108">self</a>.rare2i)
+            (<span class="self">self</span>.rare1i, <span class="self">self</span>.rare2i)
         } <span class="kw">else </span>{
-            (<a class="self" href="#108">self</a>.rare2i, <a class="self" href="#108">self</a>.rare1i)
+            (<span class="self">self</span>.rare2i, <span class="self">self</span>.rare1i)
         }
     }
 
     <span class="doccomment">/// Return the rare offsets as usize values in the order in which they were
     /// constructed. rare1, for example, is constructed as the &quot;rarer&quot; byte,
     /// and thus, callers may want to treat it differently from rare2.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>as_rare_usize(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
-        (<a class="self" href="#119">self</a>.rare1i <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a class="self" href="#119">self</a>.rare2i <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>)
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>as_rare_usize(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (usize, usize) {
+        (<span class="self">self</span>.rare1i <span class="kw">as </span>usize, <span class="self">self</span>.rare2i <span class="kw">as </span>usize)
     }
 
     <span class="doccomment">/// Return the byte frequency rank of each byte. The higher the rank, the
     /// more frequency the byte is predicted to be. The needle given must be
     /// the same one given to the RareNeedleBytes constructor.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>as_ranks(<span class="kw-2">&amp;</span><span class="self">self</span>, needle: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; (<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
-        <span class="kw">let </span>(b1, b2) = <a class="self" href="#126">self</a>.<a href="#91">as_rare_bytes</a>(<a href="#126">needle</a>);
-        (<a href="#134">rank</a>(<a href="#127">b1</a>), <a href="#134">rank</a>(<a href="#127">b2</a>))
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>as_ranks(<span class="kw-2">&amp;</span><span class="self">self</span>, needle: <span class="kw-2">&amp;</span>[u8]) -&gt; (usize, usize) {
+        <span class="kw">let </span>(b1, b2) = <span class="self">self</span>.as_rare_bytes(needle);
+        (rank(b1), rank(b2))
     }
 }
 
 <span class="doccomment">/// Return the heuristical frequency rank of the given byte. A lower rank
 /// means the byte is believed to occur less frequently.
-</span><span class="kw">fn </span>rank(b: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-    <a href="byte_frequencies.rs.html#1"><span class="kw">crate</span>::memmem::byte_frequencies::BYTE_FREQUENCIES</a>[<a href="#134">b</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>] <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>
+</span><span class="kw">fn </span>rank(b: u8) -&gt; usize {
+    <span class="kw">crate</span>::memmem::byte_frequencies::BYTE_FREQUENCIES[b <span class="kw">as </span>usize] <span class="kw">as </span>usize
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="memchr" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="memchr" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

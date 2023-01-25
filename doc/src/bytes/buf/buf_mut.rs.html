@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/bytes-1.2.1/src/buf/buf_mut.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>buf_mut.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../bytes/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/bytes-1.3.0/src/buf/buf_mut.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>buf_mut.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../bytes/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -1144,13 +1144,359 @@
 <a href="#1144" id="1144">1144</a>
 <a href="#1145" id="1145">1145</a>
 <a href="#1146" id="1146">1146</a>
-</pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::buf::{<a href="mod.rs.html#23">limit</a>, <a href="chain.rs.html#32">Chain</a>, <a href="limit.rs.html#9">Limit</a>, <a href="uninit_slice.rs.html#22">UninitSlice</a>};
+<a href="#1147" id="1147">1147</a>
+<a href="#1148" id="1148">1148</a>
+<a href="#1149" id="1149">1149</a>
+<a href="#1150" id="1150">1150</a>
+<a href="#1151" id="1151">1151</a>
+<a href="#1152" id="1152">1152</a>
+<a href="#1153" id="1153">1153</a>
+<a href="#1154" id="1154">1154</a>
+<a href="#1155" id="1155">1155</a>
+<a href="#1156" id="1156">1156</a>
+<a href="#1157" id="1157">1157</a>
+<a href="#1158" id="1158">1158</a>
+<a href="#1159" id="1159">1159</a>
+<a href="#1160" id="1160">1160</a>
+<a href="#1161" id="1161">1161</a>
+<a href="#1162" id="1162">1162</a>
+<a href="#1163" id="1163">1163</a>
+<a href="#1164" id="1164">1164</a>
+<a href="#1165" id="1165">1165</a>
+<a href="#1166" id="1166">1166</a>
+<a href="#1167" id="1167">1167</a>
+<a href="#1168" id="1168">1168</a>
+<a href="#1169" id="1169">1169</a>
+<a href="#1170" id="1170">1170</a>
+<a href="#1171" id="1171">1171</a>
+<a href="#1172" id="1172">1172</a>
+<a href="#1173" id="1173">1173</a>
+<a href="#1174" id="1174">1174</a>
+<a href="#1175" id="1175">1175</a>
+<a href="#1176" id="1176">1176</a>
+<a href="#1177" id="1177">1177</a>
+<a href="#1178" id="1178">1178</a>
+<a href="#1179" id="1179">1179</a>
+<a href="#1180" id="1180">1180</a>
+<a href="#1181" id="1181">1181</a>
+<a href="#1182" id="1182">1182</a>
+<a href="#1183" id="1183">1183</a>
+<a href="#1184" id="1184">1184</a>
+<a href="#1185" id="1185">1185</a>
+<a href="#1186" id="1186">1186</a>
+<a href="#1187" id="1187">1187</a>
+<a href="#1188" id="1188">1188</a>
+<a href="#1189" id="1189">1189</a>
+<a href="#1190" id="1190">1190</a>
+<a href="#1191" id="1191">1191</a>
+<a href="#1192" id="1192">1192</a>
+<a href="#1193" id="1193">1193</a>
+<a href="#1194" id="1194">1194</a>
+<a href="#1195" id="1195">1195</a>
+<a href="#1196" id="1196">1196</a>
+<a href="#1197" id="1197">1197</a>
+<a href="#1198" id="1198">1198</a>
+<a href="#1199" id="1199">1199</a>
+<a href="#1200" id="1200">1200</a>
+<a href="#1201" id="1201">1201</a>
+<a href="#1202" id="1202">1202</a>
+<a href="#1203" id="1203">1203</a>
+<a href="#1204" id="1204">1204</a>
+<a href="#1205" id="1205">1205</a>
+<a href="#1206" id="1206">1206</a>
+<a href="#1207" id="1207">1207</a>
+<a href="#1208" id="1208">1208</a>
+<a href="#1209" id="1209">1209</a>
+<a href="#1210" id="1210">1210</a>
+<a href="#1211" id="1211">1211</a>
+<a href="#1212" id="1212">1212</a>
+<a href="#1213" id="1213">1213</a>
+<a href="#1214" id="1214">1214</a>
+<a href="#1215" id="1215">1215</a>
+<a href="#1216" id="1216">1216</a>
+<a href="#1217" id="1217">1217</a>
+<a href="#1218" id="1218">1218</a>
+<a href="#1219" id="1219">1219</a>
+<a href="#1220" id="1220">1220</a>
+<a href="#1221" id="1221">1221</a>
+<a href="#1222" id="1222">1222</a>
+<a href="#1223" id="1223">1223</a>
+<a href="#1224" id="1224">1224</a>
+<a href="#1225" id="1225">1225</a>
+<a href="#1226" id="1226">1226</a>
+<a href="#1227" id="1227">1227</a>
+<a href="#1228" id="1228">1228</a>
+<a href="#1229" id="1229">1229</a>
+<a href="#1230" id="1230">1230</a>
+<a href="#1231" id="1231">1231</a>
+<a href="#1232" id="1232">1232</a>
+<a href="#1233" id="1233">1233</a>
+<a href="#1234" id="1234">1234</a>
+<a href="#1235" id="1235">1235</a>
+<a href="#1236" id="1236">1236</a>
+<a href="#1237" id="1237">1237</a>
+<a href="#1238" id="1238">1238</a>
+<a href="#1239" id="1239">1239</a>
+<a href="#1240" id="1240">1240</a>
+<a href="#1241" id="1241">1241</a>
+<a href="#1242" id="1242">1242</a>
+<a href="#1243" id="1243">1243</a>
+<a href="#1244" id="1244">1244</a>
+<a href="#1245" id="1245">1245</a>
+<a href="#1246" id="1246">1246</a>
+<a href="#1247" id="1247">1247</a>
+<a href="#1248" id="1248">1248</a>
+<a href="#1249" id="1249">1249</a>
+<a href="#1250" id="1250">1250</a>
+<a href="#1251" id="1251">1251</a>
+<a href="#1252" id="1252">1252</a>
+<a href="#1253" id="1253">1253</a>
+<a href="#1254" id="1254">1254</a>
+<a href="#1255" id="1255">1255</a>
+<a href="#1256" id="1256">1256</a>
+<a href="#1257" id="1257">1257</a>
+<a href="#1258" id="1258">1258</a>
+<a href="#1259" id="1259">1259</a>
+<a href="#1260" id="1260">1260</a>
+<a href="#1261" id="1261">1261</a>
+<a href="#1262" id="1262">1262</a>
+<a href="#1263" id="1263">1263</a>
+<a href="#1264" id="1264">1264</a>
+<a href="#1265" id="1265">1265</a>
+<a href="#1266" id="1266">1266</a>
+<a href="#1267" id="1267">1267</a>
+<a href="#1268" id="1268">1268</a>
+<a href="#1269" id="1269">1269</a>
+<a href="#1270" id="1270">1270</a>
+<a href="#1271" id="1271">1271</a>
+<a href="#1272" id="1272">1272</a>
+<a href="#1273" id="1273">1273</a>
+<a href="#1274" id="1274">1274</a>
+<a href="#1275" id="1275">1275</a>
+<a href="#1276" id="1276">1276</a>
+<a href="#1277" id="1277">1277</a>
+<a href="#1278" id="1278">1278</a>
+<a href="#1279" id="1279">1279</a>
+<a href="#1280" id="1280">1280</a>
+<a href="#1281" id="1281">1281</a>
+<a href="#1282" id="1282">1282</a>
+<a href="#1283" id="1283">1283</a>
+<a href="#1284" id="1284">1284</a>
+<a href="#1285" id="1285">1285</a>
+<a href="#1286" id="1286">1286</a>
+<a href="#1287" id="1287">1287</a>
+<a href="#1288" id="1288">1288</a>
+<a href="#1289" id="1289">1289</a>
+<a href="#1290" id="1290">1290</a>
+<a href="#1291" id="1291">1291</a>
+<a href="#1292" id="1292">1292</a>
+<a href="#1293" id="1293">1293</a>
+<a href="#1294" id="1294">1294</a>
+<a href="#1295" id="1295">1295</a>
+<a href="#1296" id="1296">1296</a>
+<a href="#1297" id="1297">1297</a>
+<a href="#1298" id="1298">1298</a>
+<a href="#1299" id="1299">1299</a>
+<a href="#1300" id="1300">1300</a>
+<a href="#1301" id="1301">1301</a>
+<a href="#1302" id="1302">1302</a>
+<a href="#1303" id="1303">1303</a>
+<a href="#1304" id="1304">1304</a>
+<a href="#1305" id="1305">1305</a>
+<a href="#1306" id="1306">1306</a>
+<a href="#1307" id="1307">1307</a>
+<a href="#1308" id="1308">1308</a>
+<a href="#1309" id="1309">1309</a>
+<a href="#1310" id="1310">1310</a>
+<a href="#1311" id="1311">1311</a>
+<a href="#1312" id="1312">1312</a>
+<a href="#1313" id="1313">1313</a>
+<a href="#1314" id="1314">1314</a>
+<a href="#1315" id="1315">1315</a>
+<a href="#1316" id="1316">1316</a>
+<a href="#1317" id="1317">1317</a>
+<a href="#1318" id="1318">1318</a>
+<a href="#1319" id="1319">1319</a>
+<a href="#1320" id="1320">1320</a>
+<a href="#1321" id="1321">1321</a>
+<a href="#1322" id="1322">1322</a>
+<a href="#1323" id="1323">1323</a>
+<a href="#1324" id="1324">1324</a>
+<a href="#1325" id="1325">1325</a>
+<a href="#1326" id="1326">1326</a>
+<a href="#1327" id="1327">1327</a>
+<a href="#1328" id="1328">1328</a>
+<a href="#1329" id="1329">1329</a>
+<a href="#1330" id="1330">1330</a>
+<a href="#1331" id="1331">1331</a>
+<a href="#1332" id="1332">1332</a>
+<a href="#1333" id="1333">1333</a>
+<a href="#1334" id="1334">1334</a>
+<a href="#1335" id="1335">1335</a>
+<a href="#1336" id="1336">1336</a>
+<a href="#1337" id="1337">1337</a>
+<a href="#1338" id="1338">1338</a>
+<a href="#1339" id="1339">1339</a>
+<a href="#1340" id="1340">1340</a>
+<a href="#1341" id="1341">1341</a>
+<a href="#1342" id="1342">1342</a>
+<a href="#1343" id="1343">1343</a>
+<a href="#1344" id="1344">1344</a>
+<a href="#1345" id="1345">1345</a>
+<a href="#1346" id="1346">1346</a>
+<a href="#1347" id="1347">1347</a>
+<a href="#1348" id="1348">1348</a>
+<a href="#1349" id="1349">1349</a>
+<a href="#1350" id="1350">1350</a>
+<a href="#1351" id="1351">1351</a>
+<a href="#1352" id="1352">1352</a>
+<a href="#1353" id="1353">1353</a>
+<a href="#1354" id="1354">1354</a>
+<a href="#1355" id="1355">1355</a>
+<a href="#1356" id="1356">1356</a>
+<a href="#1357" id="1357">1357</a>
+<a href="#1358" id="1358">1358</a>
+<a href="#1359" id="1359">1359</a>
+<a href="#1360" id="1360">1360</a>
+<a href="#1361" id="1361">1361</a>
+<a href="#1362" id="1362">1362</a>
+<a href="#1363" id="1363">1363</a>
+<a href="#1364" id="1364">1364</a>
+<a href="#1365" id="1365">1365</a>
+<a href="#1366" id="1366">1366</a>
+<a href="#1367" id="1367">1367</a>
+<a href="#1368" id="1368">1368</a>
+<a href="#1369" id="1369">1369</a>
+<a href="#1370" id="1370">1370</a>
+<a href="#1371" id="1371">1371</a>
+<a href="#1372" id="1372">1372</a>
+<a href="#1373" id="1373">1373</a>
+<a href="#1374" id="1374">1374</a>
+<a href="#1375" id="1375">1375</a>
+<a href="#1376" id="1376">1376</a>
+<a href="#1377" id="1377">1377</a>
+<a href="#1378" id="1378">1378</a>
+<a href="#1379" id="1379">1379</a>
+<a href="#1380" id="1380">1380</a>
+<a href="#1381" id="1381">1381</a>
+<a href="#1382" id="1382">1382</a>
+<a href="#1383" id="1383">1383</a>
+<a href="#1384" id="1384">1384</a>
+<a href="#1385" id="1385">1385</a>
+<a href="#1386" id="1386">1386</a>
+<a href="#1387" id="1387">1387</a>
+<a href="#1388" id="1388">1388</a>
+<a href="#1389" id="1389">1389</a>
+<a href="#1390" id="1390">1390</a>
+<a href="#1391" id="1391">1391</a>
+<a href="#1392" id="1392">1392</a>
+<a href="#1393" id="1393">1393</a>
+<a href="#1394" id="1394">1394</a>
+<a href="#1395" id="1395">1395</a>
+<a href="#1396" id="1396">1396</a>
+<a href="#1397" id="1397">1397</a>
+<a href="#1398" id="1398">1398</a>
+<a href="#1399" id="1399">1399</a>
+<a href="#1400" id="1400">1400</a>
+<a href="#1401" id="1401">1401</a>
+<a href="#1402" id="1402">1402</a>
+<a href="#1403" id="1403">1403</a>
+<a href="#1404" id="1404">1404</a>
+<a href="#1405" id="1405">1405</a>
+<a href="#1406" id="1406">1406</a>
+<a href="#1407" id="1407">1407</a>
+<a href="#1408" id="1408">1408</a>
+<a href="#1409" id="1409">1409</a>
+<a href="#1410" id="1410">1410</a>
+<a href="#1411" id="1411">1411</a>
+<a href="#1412" id="1412">1412</a>
+<a href="#1413" id="1413">1413</a>
+<a href="#1414" id="1414">1414</a>
+<a href="#1415" id="1415">1415</a>
+<a href="#1416" id="1416">1416</a>
+<a href="#1417" id="1417">1417</a>
+<a href="#1418" id="1418">1418</a>
+<a href="#1419" id="1419">1419</a>
+<a href="#1420" id="1420">1420</a>
+<a href="#1421" id="1421">1421</a>
+<a href="#1422" id="1422">1422</a>
+<a href="#1423" id="1423">1423</a>
+<a href="#1424" id="1424">1424</a>
+<a href="#1425" id="1425">1425</a>
+<a href="#1426" id="1426">1426</a>
+<a href="#1427" id="1427">1427</a>
+<a href="#1428" id="1428">1428</a>
+<a href="#1429" id="1429">1429</a>
+<a href="#1430" id="1430">1430</a>
+<a href="#1431" id="1431">1431</a>
+<a href="#1432" id="1432">1432</a>
+<a href="#1433" id="1433">1433</a>
+<a href="#1434" id="1434">1434</a>
+<a href="#1435" id="1435">1435</a>
+<a href="#1436" id="1436">1436</a>
+<a href="#1437" id="1437">1437</a>
+<a href="#1438" id="1438">1438</a>
+<a href="#1439" id="1439">1439</a>
+<a href="#1440" id="1440">1440</a>
+<a href="#1441" id="1441">1441</a>
+<a href="#1442" id="1442">1442</a>
+<a href="#1443" id="1443">1443</a>
+<a href="#1444" id="1444">1444</a>
+<a href="#1445" id="1445">1445</a>
+<a href="#1446" id="1446">1446</a>
+<a href="#1447" id="1447">1447</a>
+<a href="#1448" id="1448">1448</a>
+<a href="#1449" id="1449">1449</a>
+<a href="#1450" id="1450">1450</a>
+<a href="#1451" id="1451">1451</a>
+<a href="#1452" id="1452">1452</a>
+<a href="#1453" id="1453">1453</a>
+<a href="#1454" id="1454">1454</a>
+<a href="#1455" id="1455">1455</a>
+<a href="#1456" id="1456">1456</a>
+<a href="#1457" id="1457">1457</a>
+<a href="#1458" id="1458">1458</a>
+<a href="#1459" id="1459">1459</a>
+<a href="#1460" id="1460">1460</a>
+<a href="#1461" id="1461">1461</a>
+<a href="#1462" id="1462">1462</a>
+<a href="#1463" id="1463">1463</a>
+<a href="#1464" id="1464">1464</a>
+<a href="#1465" id="1465">1465</a>
+<a href="#1466" id="1466">1466</a>
+<a href="#1467" id="1467">1467</a>
+<a href="#1468" id="1468">1468</a>
+<a href="#1469" id="1469">1469</a>
+<a href="#1470" id="1470">1470</a>
+<a href="#1471" id="1471">1471</a>
+<a href="#1472" id="1472">1472</a>
+<a href="#1473" id="1473">1473</a>
+<a href="#1474" id="1474">1474</a>
+<a href="#1475" id="1475">1475</a>
+<a href="#1476" id="1476">1476</a>
+<a href="#1477" id="1477">1477</a>
+<a href="#1478" id="1478">1478</a>
+<a href="#1479" id="1479">1479</a>
+<a href="#1480" id="1480">1480</a>
+<a href="#1481" id="1481">1481</a>
+<a href="#1482" id="1482">1482</a>
+<a href="#1483" id="1483">1483</a>
+<a href="#1484" id="1484">1484</a>
+<a href="#1485" id="1485">1485</a>
+<a href="#1486" id="1486">1486</a>
+<a href="#1487" id="1487">1487</a>
+<a href="#1488" id="1488">1488</a>
+<a href="#1489" id="1489">1489</a>
+<a href="#1490" id="1490">1490</a>
+<a href="#1491" id="1491">1491</a>
+<a href="#1492" id="1492">1492</a>
+</pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::buf::{limit, Chain, Limit, UninitSlice};
 <span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
-</span><span class="kw">use </span><span class="kw">crate</span>::buf::{<a href="mod.rs.html#30">writer</a>, <a href="writer.rs.html#11">Writer</a>};
+</span><span class="kw">use </span><span class="kw">crate</span>::buf::{writer, Writer};
 
-<span class="kw">use </span>core::{<a href="https://doc.rust-lang.org/nightly/core/cmp/index.html">cmp</a>, <a href="https://doc.rust-lang.org/nightly/core/mem/index.html">mem</a>, <a href="https://doc.rust-lang.org/nightly/core/ptr/index.html">ptr</a>, <a href="https://doc.rust-lang.org/nightly/core/usize/index.html">usize</a>};
+<span class="kw">use </span>core::{cmp, mem, ptr, usize};
 
-<span class="kw">use </span>alloc::{<a href="https://doc.rust-lang.org/nightly/alloc/boxed/struct.Box.html">boxed::Box</a>, <a href="https://doc.rust-lang.org/nightly/alloc/vec/struct.Vec.html">vec::Vec</a>};
+<span class="kw">use </span>alloc::{boxed::Box, vec::Vec};
 
 <span class="doccomment">/// A trait for values that provide sequential write access to bytes.
 ///
@@ -1206,7 +1552,7 @@
     /// # Note
     ///
     /// `remaining_mut` may return value smaller than actual available space.
-    </span><span class="kw">fn </span>remaining_mut(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>;
+    </span><span class="kw">fn </span>remaining_mut(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize;
 
     <span class="doccomment">/// Advance the internal cursor of the BufMut
     ///
@@ -1247,7 +1593,7 @@
     /// the call must behave as if `cnt == self.remaining_mut()`.
     ///
     /// A call with `cnt == 0` should never panic and be a no-op.
-    </span><span class="kw">unsafe fn </span>advance_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cnt: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>);
+    </span><span class="kw">unsafe fn </span>advance_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cnt: usize);
 
     <span class="doccomment">/// Returns true if there is space in `self` for more bytes.
     ///
@@ -1267,8 +1613,8 @@
     ///
     /// assert!(!buf.has_remaining_mut());
     /// ```
-    </span><span class="kw">fn </span>has_remaining_mut(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#124">self</a>.<a href="#63">remaining_mut</a>() &gt; <span class="number">0
+    </span><span class="kw">fn </span>has_remaining_mut(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.remaining_mut() &gt; <span class="number">0
     </span>}
 
     <span class="doccomment">/// Returns a mutable slice starting at the current BufMut position and of
@@ -1318,7 +1664,7 @@
     </span><span class="comment">// The `chunk_mut` method was previously called `bytes_mut`. This alias makes the
     // rename more easily discoverable.
     </span><span class="attr">#[cfg_attr(docsrs, doc(alias = <span class="string">&quot;bytes_mut&quot;</span>))]
-    </span><span class="kw">fn </span>chunk_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span><a href="uninit_slice.rs.html#22">UninitSlice</a>;
+    </span><span class="kw">fn </span>chunk_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>UninitSlice;
 
     <span class="doccomment">/// Transfer bytes into `self` from `src` and advance the cursor by the
     /// number of bytes written.
@@ -1340,11 +1686,11 @@
     /// # Panics
     ///
     /// Panics if `self` does not have enough capacity to contain `src`.
-    </span><span class="kw">fn </span>put&lt;T: <a href="buf_impl.rs.html#76"><span class="kw">super</span>::Buf</a>&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, <span class="kw-2">mut </span>src: T)
+    </span><span class="kw">fn </span>put&lt;T: <span class="kw">super</span>::Buf&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, <span class="kw-2">mut </span>src: T)
     <span class="kw">where
-        </span><span class="self">Self</span>: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>,
+        </span><span class="self">Self</span>: Sized,
     {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(<span class="self">self</span>.remaining_mut() &gt;= src.remaining());
+        <span class="macro">assert!</span>(<span class="self">self</span>.remaining_mut() &gt;= src.remaining());
 
         <span class="kw">while </span>src.has_remaining() {
             <span class="kw">let </span>l;
@@ -1383,10 +1729,10 @@
     ///
     /// assert_eq!(b&quot;hello\0&quot;, &amp;dst);
     /// ```
-    </span><span class="kw">fn </span>put_slice(<span class="kw-2">&amp;mut </span><span class="self">self</span>, src: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) {
+    </span><span class="kw">fn </span>put_slice(<span class="kw-2">&amp;mut </span><span class="self">self</span>, src: <span class="kw-2">&amp;</span>[u8]) {
         <span class="kw">let </span><span class="kw-2">mut </span>off = <span class="number">0</span>;
 
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(
+        <span class="macro">assert!</span>(
             <span class="self">self</span>.remaining_mut() &gt;= src.len(),
             <span class="string">&quot;buffer overflow; remaining = {}; src = {}&quot;</span>,
             <span class="self">self</span>.remaining_mut(),
@@ -1436,7 +1782,7 @@
     ///
     /// This function panics if there is not enough remaining capacity in
     /// `self`.
-    </span><span class="kw">fn </span>put_bytes(<span class="kw-2">&amp;mut </span><span class="self">self</span>, val: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>, cnt: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
+    </span><span class="kw">fn </span>put_bytes(<span class="kw-2">&amp;mut </span><span class="self">self</span>, val: u8, cnt: usize) {
         <span class="kw">for _ in </span><span class="number">0</span>..cnt {
             <span class="self">self</span>.put_u8(val);
         }
@@ -1460,9 +1806,9 @@
     ///
     /// This function panics if there is not enough remaining capacity in
     /// `self`.
-    </span><span class="kw">fn </span>put_u8(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) {
-        <span class="kw">let </span>src = [<a href="#317">n</a>];
-        <a class="self" href="#317">self</a>.<a href="#240">put_slice</a>(<span class="kw-2">&amp;</span><a href="#318">src</a>);
+    </span><span class="kw">fn </span>put_u8(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: u8) {
+        <span class="kw">let </span>src = [n];
+        <span class="self">self</span>.put_slice(<span class="kw-2">&amp;</span>src);
     }
 
     <span class="doccomment">/// Writes a signed 8 bit integer to `self`.
@@ -1483,9 +1829,9 @@
     ///
     /// This function panics if there is not enough remaining capacity in
     /// `self`.
-    </span><span class="kw">fn </span>put_i8(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: <a href="https://doc.rust-lang.org/nightly/std/primitive.i8.html">i8</a>) {
-        <span class="kw">let </span>src = [<a href="#340">n</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>];
-        <a class="self" href="#340">self</a>.<a href="#240">put_slice</a>(<span class="kw-2">&amp;</span><a href="#341">src</a>)
+    </span><span class="kw">fn </span>put_i8(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: i8) {
+        <span class="kw">let </span>src = [n <span class="kw">as </span>u8];
+        <span class="self">self</span>.put_slice(<span class="kw-2">&amp;</span>src)
     }
 
     <span class="doccomment">/// Writes an unsigned 16 bit integer to `self` in big-endian byte order.
@@ -1506,8 +1852,8 @@
     ///
     /// This function panics if there is not enough remaining capacity in
     /// `self`.
-    </span><span class="kw">fn </span>put_u16(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: <a href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>) {
-        <a class="self" href="#363">self</a>.<a href="#240">put_slice</a>(<span class="kw-2">&amp;</span><a href="#363">n</a>.to_be_bytes())
+    </span><span class="kw">fn </span>put_u16(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: u16) {
+        <span class="self">self</span>.put_slice(<span class="kw-2">&amp;</span>n.to_be_bytes())
     }
 
     <span class="doccomment">/// Writes an unsigned 16 bit integer to `self` in little-endian byte order.
@@ -1528,8 +1874,34 @@
     ///
     /// This function panics if there is not enough remaining capacity in
     /// `self`.
-    </span><span class="kw">fn </span>put_u16_le(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: <a href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>) {
-        <a class="self" href="#385">self</a>.<a href="#240">put_slice</a>(<span class="kw-2">&amp;</span><a href="#385">n</a>.to_le_bytes())
+    </span><span class="kw">fn </span>put_u16_le(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: u16) {
+        <span class="self">self</span>.put_slice(<span class="kw-2">&amp;</span>n.to_le_bytes())
+    }
+
+    <span class="doccomment">/// Writes an unsigned 16 bit integer to `self` in native-endian byte order.
+    ///
+    /// The current position is advanced by 2.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use bytes::BufMut;
+    ///
+    /// let mut buf = vec![];
+    /// buf.put_u16_ne(0x0809);
+    /// if cfg!(target_endian = &quot;big&quot;) {
+    ///     assert_eq!(buf, b&quot;\x08\x09&quot;);
+    /// } else {
+    ///     assert_eq!(buf, b&quot;\x09\x08&quot;);
+    /// }
+    /// ```
+    ///
+    /// # Panics
+    ///
+    /// This function panics if there is not enough remaining capacity in
+    /// `self`.
+    </span><span class="kw">fn </span>put_u16_ne(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: u16) {
+        <span class="self">self</span>.put_slice(<span class="kw-2">&amp;</span>n.to_ne_bytes())
     }
 
     <span class="doccomment">/// Writes a signed 16 bit integer to `self` in big-endian byte order.
@@ -1550,8 +1922,8 @@
     ///
     /// This function panics if there is not enough remaining capacity in
     /// `self`.
-    </span><span class="kw">fn </span>put_i16(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: <a href="https://doc.rust-lang.org/nightly/std/primitive.i16.html">i16</a>) {
-        <a class="self" href="#407">self</a>.<a href="#240">put_slice</a>(<span class="kw-2">&amp;</span><a href="#407">n</a>.to_be_bytes())
+    </span><span class="kw">fn </span>put_i16(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: i16) {
+        <span class="self">self</span>.put_slice(<span class="kw-2">&amp;</span>n.to_be_bytes())
     }
 
     <span class="doccomment">/// Writes a signed 16 bit integer to `self` in little-endian byte order.
@@ -1572,8 +1944,34 @@
     ///
     /// This function panics if there is not enough remaining capacity in
     /// `self`.
-    </span><span class="kw">fn </span>put_i16_le(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: <a href="https://doc.rust-lang.org/nightly/std/primitive.i16.html">i16</a>) {
-        <a class="self" href="#429">self</a>.<a href="#240">put_slice</a>(<span class="kw-2">&amp;</span><a href="#429">n</a>.to_le_bytes())
+    </span><span class="kw">fn </span>put_i16_le(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: i16) {
+        <span class="self">self</span>.put_slice(<span class="kw-2">&amp;</span>n.to_le_bytes())
+    }
+
+    <span class="doccomment">/// Writes a signed 16 bit integer to `self` in native-endian byte order.
+    ///
+    /// The current position is advanced by 2.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use bytes::BufMut;
+    ///
+    /// let mut buf = vec![];
+    /// buf.put_i16_ne(0x0809);
+    /// if cfg!(target_endian = &quot;big&quot;) {
+    ///     assert_eq!(buf, b&quot;\x08\x09&quot;);
+    /// } else {
+    ///     assert_eq!(buf, b&quot;\x09\x08&quot;);
+    /// }
+    /// ```
+    ///
+    /// # Panics
+    ///
+    /// This function panics if there is not enough remaining capacity in
+    /// `self`.
+    </span><span class="kw">fn </span>put_i16_ne(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: i16) {
+        <span class="self">self</span>.put_slice(<span class="kw-2">&amp;</span>n.to_ne_bytes())
     }
 
     <span class="doccomment">/// Writes an unsigned 32 bit integer to `self` in big-endian byte order.
@@ -1594,8 +1992,8 @@
     ///
     /// This function panics if there is not enough remaining capacity in
     /// `self`.
-    </span><span class="kw">fn </span>put_u32(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) {
-        <a class="self" href="#451">self</a>.<a href="#240">put_slice</a>(<span class="kw-2">&amp;</span><a href="#451">n</a>.to_be_bytes())
+    </span><span class="kw">fn </span>put_u32(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: u32) {
+        <span class="self">self</span>.put_slice(<span class="kw-2">&amp;</span>n.to_be_bytes())
     }
 
     <span class="doccomment">/// Writes an unsigned 32 bit integer to `self` in little-endian byte order.
@@ -1616,8 +2014,34 @@
     ///
     /// This function panics if there is not enough remaining capacity in
     /// `self`.
-    </span><span class="kw">fn </span>put_u32_le(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) {
-        <a class="self" href="#473">self</a>.<a href="#240">put_slice</a>(<span class="kw-2">&amp;</span><a href="#473">n</a>.to_le_bytes())
+    </span><span class="kw">fn </span>put_u32_le(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: u32) {
+        <span class="self">self</span>.put_slice(<span class="kw-2">&amp;</span>n.to_le_bytes())
+    }
+
+    <span class="doccomment">/// Writes an unsigned 32 bit integer to `self` in native-endian byte order.
+    ///
+    /// The current position is advanced by 4.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use bytes::BufMut;
+    ///
+    /// let mut buf = vec![];
+    /// buf.put_u32_ne(0x0809A0A1);
+    /// if cfg!(target_endian = &quot;big&quot;) {
+    ///     assert_eq!(buf, b&quot;\x08\x09\xA0\xA1&quot;);
+    /// } else {
+    ///     assert_eq!(buf, b&quot;\xA1\xA0\x09\x08&quot;);
+    /// }
+    /// ```
+    ///
+    /// # Panics
+    ///
+    /// This function panics if there is not enough remaining capacity in
+    /// `self`.
+    </span><span class="kw">fn </span>put_u32_ne(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: u32) {
+        <span class="self">self</span>.put_slice(<span class="kw-2">&amp;</span>n.to_ne_bytes())
     }
 
     <span class="doccomment">/// Writes a signed 32 bit integer to `self` in big-endian byte order.
@@ -1638,8 +2062,8 @@
     ///
     /// This function panics if there is not enough remaining capacity in
     /// `self`.
-    </span><span class="kw">fn </span>put_i32(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: <a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>) {
-        <a class="self" href="#495">self</a>.<a href="#240">put_slice</a>(<span class="kw-2">&amp;</span><a href="#495">n</a>.to_be_bytes())
+    </span><span class="kw">fn </span>put_i32(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: i32) {
+        <span class="self">self</span>.put_slice(<span class="kw-2">&amp;</span>n.to_be_bytes())
     }
 
     <span class="doccomment">/// Writes a signed 32 bit integer to `self` in little-endian byte order.
@@ -1660,8 +2084,34 @@
     ///
     /// This function panics if there is not enough remaining capacity in
     /// `self`.
-    </span><span class="kw">fn </span>put_i32_le(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: <a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>) {
-        <a class="self" href="#517">self</a>.<a href="#240">put_slice</a>(<span class="kw-2">&amp;</span><a href="#517">n</a>.to_le_bytes())
+    </span><span class="kw">fn </span>put_i32_le(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: i32) {
+        <span class="self">self</span>.put_slice(<span class="kw-2">&amp;</span>n.to_le_bytes())
+    }
+
+    <span class="doccomment">/// Writes a signed 32 bit integer to `self` in native-endian byte order.
+    ///
+    /// The current position is advanced by 4.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use bytes::BufMut;
+    ///
+    /// let mut buf = vec![];
+    /// buf.put_i32_ne(0x0809A0A1);
+    /// if cfg!(target_endian = &quot;big&quot;) {
+    ///     assert_eq!(buf, b&quot;\x08\x09\xA0\xA1&quot;);
+    /// } else {
+    ///     assert_eq!(buf, b&quot;\xA1\xA0\x09\x08&quot;);
+    /// }
+    /// ```
+    ///
+    /// # Panics
+    ///
+    /// This function panics if there is not enough remaining capacity in
+    /// `self`.
+    </span><span class="kw">fn </span>put_i32_ne(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: i32) {
+        <span class="self">self</span>.put_slice(<span class="kw-2">&amp;</span>n.to_ne_bytes())
     }
 
     <span class="doccomment">/// Writes an unsigned 64 bit integer to `self` in the big-endian byte order.
@@ -1682,8 +2132,8 @@
     ///
     /// This function panics if there is not enough remaining capacity in
     /// `self`.
-    </span><span class="kw">fn </span>put_u64(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) {
-        <a class="self" href="#539">self</a>.<a href="#240">put_slice</a>(<span class="kw-2">&amp;</span><a href="#539">n</a>.to_be_bytes())
+    </span><span class="kw">fn </span>put_u64(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: u64) {
+        <span class="self">self</span>.put_slice(<span class="kw-2">&amp;</span>n.to_be_bytes())
     }
 
     <span class="doccomment">/// Writes an unsigned 64 bit integer to `self` in little-endian byte order.
@@ -1704,8 +2154,34 @@
     ///
     /// This function panics if there is not enough remaining capacity in
     /// `self`.
-    </span><span class="kw">fn </span>put_u64_le(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) {
-        <a class="self" href="#561">self</a>.<a href="#240">put_slice</a>(<span class="kw-2">&amp;</span><a href="#561">n</a>.to_le_bytes())
+    </span><span class="kw">fn </span>put_u64_le(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: u64) {
+        <span class="self">self</span>.put_slice(<span class="kw-2">&amp;</span>n.to_le_bytes())
+    }
+
+    <span class="doccomment">/// Writes an unsigned 64 bit integer to `self` in native-endian byte order.
+    ///
+    /// The current position is advanced by 8.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use bytes::BufMut;
+    ///
+    /// let mut buf = vec![];
+    /// buf.put_u64_ne(0x0102030405060708);
+    /// if cfg!(target_endian = &quot;big&quot;) {
+    ///     assert_eq!(buf, b&quot;\x01\x02\x03\x04\x05\x06\x07\x08&quot;);
+    /// } else {
+    ///     assert_eq!(buf, b&quot;\x08\x07\x06\x05\x04\x03\x02\x01&quot;);
+    /// }
+    /// ```
+    ///
+    /// # Panics
+    ///
+    /// This function panics if there is not enough remaining capacity in
+    /// `self`.
+    </span><span class="kw">fn </span>put_u64_ne(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: u64) {
+        <span class="self">self</span>.put_slice(<span class="kw-2">&amp;</span>n.to_ne_bytes())
     }
 
     <span class="doccomment">/// Writes a signed 64 bit integer to `self` in the big-endian byte order.
@@ -1726,8 +2202,8 @@
     ///
     /// This function panics if there is not enough remaining capacity in
     /// `self`.
-    </span><span class="kw">fn </span>put_i64(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: <a href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>) {
-        <a class="self" href="#583">self</a>.<a href="#240">put_slice</a>(<span class="kw-2">&amp;</span><a href="#583">n</a>.to_be_bytes())
+    </span><span class="kw">fn </span>put_i64(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: i64) {
+        <span class="self">self</span>.put_slice(<span class="kw-2">&amp;</span>n.to_be_bytes())
     }
 
     <span class="doccomment">/// Writes a signed 64 bit integer to `self` in little-endian byte order.
@@ -1748,8 +2224,34 @@
     ///
     /// This function panics if there is not enough remaining capacity in
     /// `self`.
-    </span><span class="kw">fn </span>put_i64_le(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: <a href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>) {
-        <a class="self" href="#605">self</a>.<a href="#240">put_slice</a>(<span class="kw-2">&amp;</span><a href="#605">n</a>.to_le_bytes())
+    </span><span class="kw">fn </span>put_i64_le(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: i64) {
+        <span class="self">self</span>.put_slice(<span class="kw-2">&amp;</span>n.to_le_bytes())
+    }
+
+    <span class="doccomment">/// Writes a signed 64 bit integer to `self` in native-endian byte order.
+    ///
+    /// The current position is advanced by 8.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use bytes::BufMut;
+    ///
+    /// let mut buf = vec![];
+    /// buf.put_i64_ne(0x0102030405060708);
+    /// if cfg!(target_endian = &quot;big&quot;) {
+    ///     assert_eq!(buf, b&quot;\x01\x02\x03\x04\x05\x06\x07\x08&quot;);
+    /// } else {
+    ///     assert_eq!(buf, b&quot;\x08\x07\x06\x05\x04\x03\x02\x01&quot;);
+    /// }
+    /// ```
+    ///
+    /// # Panics
+    ///
+    /// This function panics if there is not enough remaining capacity in
+    /// `self`.
+    </span><span class="kw">fn </span>put_i64_ne(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: i64) {
+        <span class="self">self</span>.put_slice(<span class="kw-2">&amp;</span>n.to_ne_bytes())
     }
 
     <span class="doccomment">/// Writes an unsigned 128 bit integer to `self` in the big-endian byte order.
@@ -1770,8 +2272,8 @@
     ///
     /// This function panics if there is not enough remaining capacity in
     /// `self`.
-    </span><span class="kw">fn </span>put_u128(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: <a href="https://doc.rust-lang.org/nightly/std/primitive.u128.html">u128</a>) {
-        <a class="self" href="#627">self</a>.<a href="#240">put_slice</a>(<span class="kw-2">&amp;</span><a href="#627">n</a>.to_be_bytes())
+    </span><span class="kw">fn </span>put_u128(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: u128) {
+        <span class="self">self</span>.put_slice(<span class="kw-2">&amp;</span>n.to_be_bytes())
     }
 
     <span class="doccomment">/// Writes an unsigned 128 bit integer to `self` in little-endian byte order.
@@ -1792,8 +2294,34 @@
     ///
     /// This function panics if there is not enough remaining capacity in
     /// `self`.
-    </span><span class="kw">fn </span>put_u128_le(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: <a href="https://doc.rust-lang.org/nightly/std/primitive.u128.html">u128</a>) {
-        <a class="self" href="#649">self</a>.<a href="#240">put_slice</a>(<span class="kw-2">&amp;</span><a href="#649">n</a>.to_le_bytes())
+    </span><span class="kw">fn </span>put_u128_le(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: u128) {
+        <span class="self">self</span>.put_slice(<span class="kw-2">&amp;</span>n.to_le_bytes())
+    }
+
+    <span class="doccomment">/// Writes an unsigned 128 bit integer to `self` in native-endian byte order.
+    ///
+    /// The current position is advanced by 16.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use bytes::BufMut;
+    ///
+    /// let mut buf = vec![];
+    /// buf.put_u128_ne(0x01020304050607080910111213141516);
+    /// if cfg!(target_endian = &quot;big&quot;) {
+    ///     assert_eq!(buf, b&quot;\x01\x02\x03\x04\x05\x06\x07\x08\x09\x10\x11\x12\x13\x14\x15\x16&quot;);
+    /// } else {
+    ///     assert_eq!(buf, b&quot;\x16\x15\x14\x13\x12\x11\x10\x09\x08\x07\x06\x05\x04\x03\x02\x01&quot;);
+    /// }
+    /// ```
+    ///
+    /// # Panics
+    ///
+    /// This function panics if there is not enough remaining capacity in
+    /// `self`.
+    </span><span class="kw">fn </span>put_u128_ne(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: u128) {
+        <span class="self">self</span>.put_slice(<span class="kw-2">&amp;</span>n.to_ne_bytes())
     }
 
     <span class="doccomment">/// Writes a signed 128 bit integer to `self` in the big-endian byte order.
@@ -1814,8 +2342,8 @@
     ///
     /// This function panics if there is not enough remaining capacity in
     /// `self`.
-    </span><span class="kw">fn </span>put_i128(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: <a href="https://doc.rust-lang.org/nightly/std/primitive.i128.html">i128</a>) {
-        <a class="self" href="#671">self</a>.<a href="#240">put_slice</a>(<span class="kw-2">&amp;</span><a href="#671">n</a>.to_be_bytes())
+    </span><span class="kw">fn </span>put_i128(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: i128) {
+        <span class="self">self</span>.put_slice(<span class="kw-2">&amp;</span>n.to_be_bytes())
     }
 
     <span class="doccomment">/// Writes a signed 128 bit integer to `self` in little-endian byte order.
@@ -1836,8 +2364,34 @@
     ///
     /// This function panics if there is not enough remaining capacity in
     /// `self`.
-    </span><span class="kw">fn </span>put_i128_le(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: <a href="https://doc.rust-lang.org/nightly/std/primitive.i128.html">i128</a>) {
-        <a class="self" href="#693">self</a>.<a href="#240">put_slice</a>(<span class="kw-2">&amp;</span><a href="#693">n</a>.to_le_bytes())
+    </span><span class="kw">fn </span>put_i128_le(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: i128) {
+        <span class="self">self</span>.put_slice(<span class="kw-2">&amp;</span>n.to_le_bytes())
+    }
+
+    <span class="doccomment">/// Writes a signed 128 bit integer to `self` in native-endian byte order.
+    ///
+    /// The current position is advanced by 16.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use bytes::BufMut;
+    ///
+    /// let mut buf = vec![];
+    /// buf.put_i128_ne(0x01020304050607080910111213141516);
+    /// if cfg!(target_endian = &quot;big&quot;) {
+    ///     assert_eq!(buf, b&quot;\x01\x02\x03\x04\x05\x06\x07\x08\x09\x10\x11\x12\x13\x14\x15\x16&quot;);
+    /// } else {
+    ///     assert_eq!(buf, b&quot;\x16\x15\x14\x13\x12\x11\x10\x09\x08\x07\x06\x05\x04\x03\x02\x01&quot;);
+    /// }
+    /// ```
+    ///
+    /// # Panics
+    ///
+    /// This function panics if there is not enough remaining capacity in
+    /// `self`.
+    </span><span class="kw">fn </span>put_i128_ne(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: i128) {
+        <span class="self">self</span>.put_slice(<span class="kw-2">&amp;</span>n.to_ne_bytes())
     }
 
     <span class="doccomment">/// Writes an unsigned n-byte integer to `self` in big-endian byte order.
@@ -1858,8 +2412,8 @@
     ///
     /// This function panics if there is not enough remaining capacity in
     /// `self`.
-    </span><span class="kw">fn </span>put_uint(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>, nbytes: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
-        <a class="self" href="#715">self</a>.<a href="#240">put_slice</a>(<span class="kw-2">&amp;</span><a href="#715">n</a>.to_be_bytes()[mem::size_of_val(<span class="kw-2">&amp;</span><a href="#715">n</a>) - <a href="#715">nbytes</a>..]);
+    </span><span class="kw">fn </span>put_uint(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: u64, nbytes: usize) {
+        <span class="self">self</span>.put_slice(<span class="kw-2">&amp;</span>n.to_be_bytes()[mem::size_of_val(<span class="kw-2">&amp;</span>n) - nbytes..]);
     }
 
     <span class="doccomment">/// Writes an unsigned n-byte integer to `self` in the little-endian byte order.
@@ -1880,8 +2434,38 @@
     ///
     /// This function panics if there is not enough remaining capacity in
     /// `self`.
-    </span><span class="kw">fn </span>put_uint_le(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>, nbytes: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
-        <a class="self" href="#737">self</a>.<a href="#240">put_slice</a>(<span class="kw-2">&amp;</span><a href="#737">n</a>.to_le_bytes()[<span class="number">0</span>..<a href="#737">nbytes</a>]);
+    </span><span class="kw">fn </span>put_uint_le(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: u64, nbytes: usize) {
+        <span class="self">self</span>.put_slice(<span class="kw-2">&amp;</span>n.to_le_bytes()[<span class="number">0</span>..nbytes]);
+    }
+
+    <span class="doccomment">/// Writes an unsigned n-byte integer to `self` in the native-endian byte order.
+    ///
+    /// The current position is advanced by `nbytes`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use bytes::BufMut;
+    ///
+    /// let mut buf = vec![];
+    /// buf.put_uint_ne(0x010203, 3);
+    /// if cfg!(target_endian = &quot;big&quot;) {
+    ///     assert_eq!(buf, b&quot;\x01\x02\x03&quot;);
+    /// } else {
+    ///     assert_eq!(buf, b&quot;\x03\x02\x01&quot;);
+    /// }
+    /// ```
+    ///
+    /// # Panics
+    ///
+    /// This function panics if there is not enough remaining capacity in
+    /// `self`.
+    </span><span class="kw">fn </span>put_uint_ne(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: u64, nbytes: usize) {
+        <span class="kw">if </span><span class="macro">cfg!</span>(target_endian = <span class="string">&quot;big&quot;</span>) {
+            <span class="self">self</span>.put_uint(n, nbytes)
+        } <span class="kw">else </span>{
+            <span class="self">self</span>.put_uint_le(n, nbytes)
+        }
     }
 
     <span class="doccomment">/// Writes low `nbytes` of a signed integer to `self` in big-endian byte order.
@@ -1902,8 +2486,8 @@
     ///
     /// This function panics if there is not enough remaining capacity in
     /// `self` or if `nbytes` is greater than 8.
-    </span><span class="kw">fn </span>put_int(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: <a href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>, nbytes: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
-        <a class="self" href="#759">self</a>.<a href="#240">put_slice</a>(<span class="kw-2">&amp;</span><a href="#759">n</a>.to_be_bytes()[mem::size_of_val(<span class="kw-2">&amp;</span><a href="#759">n</a>) - <a href="#759">nbytes</a>..]);
+    </span><span class="kw">fn </span>put_int(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: i64, nbytes: usize) {
+        <span class="self">self</span>.put_slice(<span class="kw-2">&amp;</span>n.to_be_bytes()[mem::size_of_val(<span class="kw-2">&amp;</span>n) - nbytes..]);
     }
 
     <span class="doccomment">/// Writes low `nbytes` of a signed integer to `self` in little-endian byte order.
@@ -1924,8 +2508,38 @@
     ///
     /// This function panics if there is not enough remaining capacity in
     /// `self` or if `nbytes` is greater than 8.
-    </span><span class="kw">fn </span>put_int_le(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: <a href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>, nbytes: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
-        <a class="self" href="#781">self</a>.<a href="#240">put_slice</a>(<span class="kw-2">&amp;</span><a href="#781">n</a>.to_le_bytes()[<span class="number">0</span>..<a href="#781">nbytes</a>]);
+    </span><span class="kw">fn </span>put_int_le(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: i64, nbytes: usize) {
+        <span class="self">self</span>.put_slice(<span class="kw-2">&amp;</span>n.to_le_bytes()[<span class="number">0</span>..nbytes]);
+    }
+
+    <span class="doccomment">/// Writes low `nbytes` of a signed integer to `self` in native-endian byte order.
+    ///
+    /// The current position is advanced by `nbytes`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use bytes::BufMut;
+    ///
+    /// let mut buf = vec![];
+    /// buf.put_int_ne(0x010203, 3);
+    /// if cfg!(target_endian = &quot;big&quot;) {
+    ///     assert_eq!(buf, b&quot;\x01\x02\x03&quot;);
+    /// } else {
+    ///     assert_eq!(buf, b&quot;\x03\x02\x01&quot;);
+    /// }
+    /// ```
+    ///
+    /// # Panics
+    ///
+    /// This function panics if there is not enough remaining capacity in
+    /// `self` or if `nbytes` is greater than 8.
+    </span><span class="kw">fn </span>put_int_ne(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: i64, nbytes: usize) {
+        <span class="kw">if </span><span class="macro">cfg!</span>(target_endian = <span class="string">&quot;big&quot;</span>) {
+            <span class="self">self</span>.put_int(n, nbytes)
+        } <span class="kw">else </span>{
+            <span class="self">self</span>.put_int_le(n, nbytes)
+        }
     }
 
     <span class="doccomment">/// Writes  an IEEE754 single-precision (4 bytes) floating point number to
@@ -1947,8 +2561,8 @@
     ///
     /// This function panics if there is not enough remaining capacity in
     /// `self`.
-    </span><span class="kw">fn </span>put_f32(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: <a href="https://doc.rust-lang.org/nightly/std/primitive.f32.html">f32</a>) {
-        <a class="self" href="#804">self</a>.<a href="#451">put_u32</a>(<a href="#804">n</a>.to_bits());
+    </span><span class="kw">fn </span>put_f32(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: f32) {
+        <span class="self">self</span>.put_u32(n.to_bits());
     }
 
     <span class="doccomment">/// Writes  an IEEE754 single-precision (4 bytes) floating point number to
@@ -1970,8 +2584,35 @@
     ///
     /// This function panics if there is not enough remaining capacity in
     /// `self`.
-    </span><span class="kw">fn </span>put_f32_le(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: <a href="https://doc.rust-lang.org/nightly/std/primitive.f32.html">f32</a>) {
-        <a class="self" href="#827">self</a>.<a href="#473">put_u32_le</a>(<a href="#827">n</a>.to_bits());
+    </span><span class="kw">fn </span>put_f32_le(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: f32) {
+        <span class="self">self</span>.put_u32_le(n.to_bits());
+    }
+
+    <span class="doccomment">/// Writes an IEEE754 single-precision (4 bytes) floating point number to
+    /// `self` in native-endian byte order.
+    ///
+    /// The current position is advanced by 4.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use bytes::BufMut;
+    ///
+    /// let mut buf = vec![];
+    /// buf.put_f32_ne(1.2f32);
+    /// if cfg!(target_endian = &quot;big&quot;) {
+    ///     assert_eq!(buf, b&quot;\x3F\x99\x99\x9A&quot;);
+    /// } else {
+    ///     assert_eq!(buf, b&quot;\x9A\x99\x99\x3F&quot;);
+    /// }
+    /// ```
+    ///
+    /// # Panics
+    ///
+    /// This function panics if there is not enough remaining capacity in
+    /// `self`.
+    </span><span class="kw">fn </span>put_f32_ne(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: f32) {
+        <span class="self">self</span>.put_u32_ne(n.to_bits());
     }
 
     <span class="doccomment">/// Writes  an IEEE754 double-precision (8 bytes) floating point number to
@@ -1993,8 +2634,8 @@
     ///
     /// This function panics if there is not enough remaining capacity in
     /// `self`.
-    </span><span class="kw">fn </span>put_f64(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: <a href="https://doc.rust-lang.org/nightly/std/primitive.f64.html">f64</a>) {
-        <a class="self" href="#850">self</a>.<a href="#539">put_u64</a>(<a href="#850">n</a>.to_bits());
+    </span><span class="kw">fn </span>put_f64(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: f64) {
+        <span class="self">self</span>.put_u64(n.to_bits());
     }
 
     <span class="doccomment">/// Writes  an IEEE754 double-precision (8 bytes) floating point number to
@@ -2016,8 +2657,35 @@
     ///
     /// This function panics if there is not enough remaining capacity in
     /// `self`.
-    </span><span class="kw">fn </span>put_f64_le(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: <a href="https://doc.rust-lang.org/nightly/std/primitive.f64.html">f64</a>) {
-        <a class="self" href="#873">self</a>.<a href="#561">put_u64_le</a>(<a href="#873">n</a>.to_bits());
+    </span><span class="kw">fn </span>put_f64_le(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: f64) {
+        <span class="self">self</span>.put_u64_le(n.to_bits());
+    }
+
+    <span class="doccomment">/// Writes  an IEEE754 double-precision (8 bytes) floating point number to
+    /// `self` in native-endian byte order.
+    ///
+    /// The current position is advanced by 8.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use bytes::BufMut;
+    ///
+    /// let mut buf = vec![];
+    /// buf.put_f64_ne(1.2f64);
+    /// if cfg!(target_endian = &quot;big&quot;) {
+    ///     assert_eq!(buf, b&quot;\x3F\xF3\x33\x33\x33\x33\x33\x33&quot;);
+    /// } else {
+    ///     assert_eq!(buf, b&quot;\x33\x33\x33\x33\x33\x33\xF3\x3F&quot;);
+    /// }
+    /// ```
+    ///
+    /// # Panics
+    ///
+    /// This function panics if there is not enough remaining capacity in
+    /// `self`.
+    </span><span class="kw">fn </span>put_f64_ne(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: f64) {
+        <span class="self">self</span>.put_u64_ne(n.to_bits());
     }
 
     <span class="doccomment">/// Creates an adaptor which can write at most `limit` bytes to `self`.
@@ -2033,11 +2701,11 @@
     /// let dst = arr.limit(10);
     /// assert_eq!(dst.remaining_mut(), 10);
     /// ```
-    </span><span class="kw">fn </span>limit(<span class="self">self</span>, limit: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; Limit&lt;<span class="self">Self</span>&gt;
+    </span><span class="kw">fn </span>limit(<span class="self">self</span>, limit: usize) -&gt; Limit&lt;<span class="self">Self</span>&gt;
     <span class="kw">where
-        </span><span class="self">Self</span>: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>,
+        </span><span class="self">Self</span>: Sized,
     {
-        <a href="limit.rs.html#14">limit::new</a>(<a class="self" href="#890">self</a>, <a href="#890">limit</a>)
+        limit::new(<span class="self">self</span>, limit)
     }
 
     <span class="doccomment">/// Creates an adaptor which implements the `Write` trait for `self`.
@@ -2065,9 +2733,9 @@
     </span><span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
     </span><span class="kw">fn </span>writer(<span class="self">self</span>) -&gt; Writer&lt;<span class="self">Self</span>&gt;
     <span class="kw">where
-        </span><span class="self">Self</span>: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>,
+        </span><span class="self">Self</span>: Sized,
     {
-        <a href="writer.rs.html#15">writer::new</a>(<a class="self" href="#920">self</a>)
+        writer::new(<span class="self">self</span>)
     }
 
     <span class="doccomment">/// Creates an adapter which will chain this buffer with another.
@@ -2090,11 +2758,11 @@
     /// assert_eq!(&amp;a[..], b&quot;hello&quot;);
     /// assert_eq!(&amp;b[..], b&quot; world&quot;);
     /// ```
-    </span><span class="kw">fn </span>chain_mut&lt;U: <a href="#29">BufMut</a>&gt;(<span class="self">self</span>, next: U) -&gt; Chain&lt;<span class="self">Self</span>, U&gt;
+    </span><span class="kw">fn </span>chain_mut&lt;U: BufMut&gt;(<span class="self">self</span>, next: U) -&gt; Chain&lt;<span class="self">Self</span>, U&gt;
     <span class="kw">where
-        </span><span class="self">Self</span>: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>,
+        </span><span class="self">Self</span>: Sized,
     {
-        Chain::new(<a class="self" href="#947">self</a>, <a href="#947">next</a>)
+        Chain::new(<span class="self">self</span>, next)
     }
 }
 
@@ -2132,12 +2800,20 @@
             (<span class="kw-2">**</span><span class="self">self</span>).put_u16_le(n)
         }
 
+        <span class="kw">fn </span>put_u16_ne(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: u16) {
+            (<span class="kw-2">**</span><span class="self">self</span>).put_u16_ne(n)
+        }
+
         <span class="kw">fn </span>put_i16(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: i16) {
             (<span class="kw-2">**</span><span class="self">self</span>).put_i16(n)
         }
 
         <span class="kw">fn </span>put_i16_le(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: i16) {
             (<span class="kw-2">**</span><span class="self">self</span>).put_i16_le(n)
+        }
+
+        <span class="kw">fn </span>put_i16_ne(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: i16) {
+            (<span class="kw-2">**</span><span class="self">self</span>).put_i16_ne(n)
         }
 
         <span class="kw">fn </span>put_u32(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: u32) {
@@ -2148,12 +2824,20 @@
             (<span class="kw-2">**</span><span class="self">self</span>).put_u32_le(n)
         }
 
+        <span class="kw">fn </span>put_u32_ne(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: u32) {
+            (<span class="kw-2">**</span><span class="self">self</span>).put_u32_ne(n)
+        }
+
         <span class="kw">fn </span>put_i32(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: i32) {
             (<span class="kw-2">**</span><span class="self">self</span>).put_i32(n)
         }
 
         <span class="kw">fn </span>put_i32_le(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: i32) {
             (<span class="kw-2">**</span><span class="self">self</span>).put_i32_le(n)
+        }
+
+        <span class="kw">fn </span>put_i32_ne(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: i32) {
+            (<span class="kw-2">**</span><span class="self">self</span>).put_i32_ne(n)
         }
 
         <span class="kw">fn </span>put_u64(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: u64) {
@@ -2164,6 +2848,10 @@
             (<span class="kw-2">**</span><span class="self">self</span>).put_u64_le(n)
         }
 
+        <span class="kw">fn </span>put_u64_ne(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: u64) {
+            (<span class="kw-2">**</span><span class="self">self</span>).put_u64_ne(n)
+        }
+
         <span class="kw">fn </span>put_i64(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: i64) {
             (<span class="kw-2">**</span><span class="self">self</span>).put_i64(n)
         }
@@ -2171,96 +2859,100 @@
         <span class="kw">fn </span>put_i64_le(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: i64) {
             (<span class="kw-2">**</span><span class="self">self</span>).put_i64_le(n)
         }
+
+        <span class="kw">fn </span>put_i64_ne(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: i64) {
+            (<span class="kw-2">**</span><span class="self">self</span>).put_i64_ne(n)
+        }
     };
 }
 
-<span class="kw">unsafe impl</span>&lt;T: <a href="#29">BufMut</a> + <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>&gt; <a href="#29">BufMut</a> <span class="kw">for </span><span class="kw-2">&amp;mut </span>T {
-    <a class="macro" href="#955-1029">deref_forward_bufmut!</a>();
+<span class="kw">unsafe impl</span>&lt;T: BufMut + <span class="question-mark">?</span>Sized&gt; BufMut <span class="kw">for </span><span class="kw-2">&amp;mut </span>T {
+    <span class="macro">deref_forward_bufmut!</span>();
 }
 
-<span class="kw">unsafe impl</span>&lt;T: <a href="#29">BufMut</a> + <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>&gt; <a href="#29">BufMut</a> <span class="kw">for </span>Box&lt;T&gt; {
-    <a class="macro" href="#955-1029">deref_forward_bufmut!</a>();
+<span class="kw">unsafe impl</span>&lt;T: BufMut + <span class="question-mark">?</span>Sized&gt; BufMut <span class="kw">for </span>Box&lt;T&gt; {
+    <span class="macro">deref_forward_bufmut!</span>();
 }
 
-<span class="kw">unsafe impl </span><a href="#29">BufMut</a> <span class="kw">for </span><span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>] {
+<span class="kw">unsafe impl </span>BufMut <span class="kw">for </span><span class="kw-2">&amp;mut </span>[u8] {
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>remaining_mut(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="self" href="#1041">self</a>.len()
+    </span><span class="kw">fn </span>remaining_mut(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+        <span class="self">self</span>.len()
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>chunk_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span><a href="uninit_slice.rs.html#22">UninitSlice</a> {
+    </span><span class="kw">fn </span>chunk_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>UninitSlice {
         <span class="comment">// UninitSlice is repr(transparent), so safe to transmute
-        </span><span class="kw">unsafe </span>{ <span class="kw-2">&amp;mut *</span>(<span class="kw-2">*</span><span class="self"><a href="#1046">self</a> </span><span class="kw">as </span><span class="kw-2">*mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>] <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>) }
+        </span><span class="kw">unsafe </span>{ <span class="kw-2">&amp;mut *</span>(<span class="kw-2">*</span><span class="self">self </span><span class="kw">as </span><span class="kw-2">*mut </span>[u8] <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>) }
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">unsafe fn </span>advance_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cnt: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
+    </span><span class="kw">unsafe fn </span>advance_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cnt: usize) {
         <span class="comment">// Lifetime dance taken from `impl Write for &amp;mut [u8]`.
-        </span><span class="kw">let </span>(<span class="kw">_</span>, b) = core::mem::replace(<a class="self" href="#1052">self</a>, <span class="kw-2">&amp;mut </span>[]).split_at_mut(<a href="#1052">cnt</a>);
-        <span class="kw-2">*</span><span class="self"><a href="#1052">self</a> </span>= <a href="#1054">b</a>;
+        </span><span class="kw">let </span>(<span class="kw">_</span>, b) = core::mem::replace(<span class="self">self</span>, <span class="kw-2">&amp;mut </span>[]).split_at_mut(cnt);
+        <span class="kw-2">*</span><span class="self">self </span>= b;
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>put_slice(<span class="kw-2">&amp;mut </span><span class="self">self</span>, src: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) {
-        <a class="self" href="#1059">self</a>[..<a href="#1059">src</a>.len()].copy_from_slice(<a href="#1059">src</a>);
+    </span><span class="kw">fn </span>put_slice(<span class="kw-2">&amp;mut </span><span class="self">self</span>, src: <span class="kw-2">&amp;</span>[u8]) {
+        <span class="self">self</span>[..src.len()].copy_from_slice(src);
         <span class="kw">unsafe </span>{
-            <a class="self" href="#1059">self</a>.<a href="#104">advance_mut</a>(<a href="#1059">src</a>.len());
+            <span class="self">self</span>.advance_mut(src.len());
         }
     }
 
-    <span class="kw">fn </span>put_bytes(<span class="kw-2">&amp;mut </span><span class="self">self</span>, val: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>, cnt: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(<span class="self">self</span>.remaining_mut() &gt;= cnt);
+    <span class="kw">fn </span>put_bytes(<span class="kw-2">&amp;mut </span><span class="self">self</span>, val: u8, cnt: usize) {
+        <span class="macro">assert!</span>(<span class="self">self</span>.remaining_mut() &gt;= cnt);
         <span class="kw">unsafe </span>{
-            ptr::write_bytes(<a class="self" href="#1066">self</a>.as_mut_ptr(), <a href="#1066">val</a>, <a href="#1066">cnt</a>);
-            <a class="self" href="#1066">self</a>.<a href="#104">advance_mut</a>(<a href="#1066">cnt</a>);
+            ptr::write_bytes(<span class="self">self</span>.as_mut_ptr(), val, cnt);
+            <span class="self">self</span>.advance_mut(cnt);
         }
     }
 }
 
-<span class="kw">unsafe impl </span><a href="#29">BufMut</a> <span class="kw">for </span>Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt; {
+<span class="kw">unsafe impl </span>BufMut <span class="kw">for </span>Vec&lt;u8&gt; {
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>remaining_mut(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
+    </span><span class="kw">fn </span>remaining_mut(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
         <span class="comment">// A vector can never have more than isize::MAX bytes
-        </span>core::isize::MAX <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> - <a class="self" href="#1077">self</a>.len()
+        </span>core::isize::MAX <span class="kw">as </span>usize - <span class="self">self</span>.len()
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">unsafe fn </span>advance_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cnt: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
-        <span class="kw">let </span>len = <a class="self" href="#1083">self</a>.len();
-        <span class="kw">let </span>remaining = <a class="self" href="#1083">self</a>.capacity() - <a href="#1084">len</a>;
+    </span><span class="kw">unsafe fn </span>advance_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cnt: usize) {
+        <span class="kw">let </span>len = <span class="self">self</span>.len();
+        <span class="kw">let </span>remaining = <span class="self">self</span>.capacity() - len;
 
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(
+        <span class="macro">assert!</span>(
             cnt &lt;= remaining,
             <span class="string">&quot;cannot advance past `remaining_mut`: {:?} &lt;= {:?}&quot;</span>,
             cnt,
             remaining
         );
 
-        <a class="self" href="#1083">self</a>.set_len(<a href="#1084">len</a> + <a href="#1083">cnt</a>);
+        <span class="self">self</span>.set_len(len + cnt);
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>chunk_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span><a href="uninit_slice.rs.html#22">UninitSlice</a> {
+    </span><span class="kw">fn </span>chunk_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>UninitSlice {
         <span class="kw">if </span><span class="self">self</span>.capacity() == <span class="self">self</span>.len() {
-            <a class="self" href="#1098">self</a>.reserve(<span class="number">64</span>); <span class="comment">// Grow the vec
+            <span class="self">self</span>.reserve(<span class="number">64</span>); <span class="comment">// Grow the vec
         </span>}
 
-        <span class="kw">let </span>cap = <a class="self" href="#1098">self</a>.capacity();
-        <span class="kw">let </span>len = <a class="self" href="#1098">self</a>.len();
+        <span class="kw">let </span>cap = <span class="self">self</span>.capacity();
+        <span class="kw">let </span>len = <span class="self">self</span>.len();
 
-        <span class="kw">let </span>ptr = <a class="self" href="#1098">self</a>.as_mut_ptr();
-        <span class="kw">unsafe </span>{ <span class="kw-2">&amp;mut </span>UninitSlice::from_raw_parts_mut(<a href="#1106">ptr</a>, <a href="#1103">cap</a>)[<a href="#1104">len</a>..] }
+        <span class="kw">let </span>ptr = <span class="self">self</span>.as_mut_ptr();
+        <span class="kw">unsafe </span>{ <span class="kw-2">&amp;mut </span>UninitSlice::from_raw_parts_mut(ptr, cap)[len..] }
     }
 
     <span class="comment">// Specialize these methods so they can skip checking `remaining_mut`
     // and `advance_mut`.
-    </span><span class="kw">fn </span>put&lt;T: <a href="buf_impl.rs.html#76"><span class="kw">super</span>::Buf</a>&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, <span class="kw-2">mut </span>src: T)
+    </span><span class="kw">fn </span>put&lt;T: <span class="kw">super</span>::Buf&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, <span class="kw-2">mut </span>src: T)
     <span class="kw">where
-        </span><span class="self">Self</span>: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>,
+        </span><span class="self">Self</span>: Sized,
     {
         <span class="comment">// In case the src isn&#39;t contiguous, reserve upfront
-        </span><a class="self" href="#1112">self</a>.reserve(<a href="#1112">src</a>.<a href="buf_impl.rs.html#102">remaining</a>());
+        </span><span class="self">self</span>.reserve(src.remaining());
 
         <span class="kw">while </span>src.has_remaining() {
             <span class="kw">let </span>l;
@@ -2277,18 +2969,18 @@
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>put_slice(<span class="kw-2">&amp;mut </span><span class="self">self</span>, src: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) {
-        <a class="self" href="#1134">self</a>.extend_from_slice(<a href="#1134">src</a>);
+    </span><span class="kw">fn </span>put_slice(<span class="kw-2">&amp;mut </span><span class="self">self</span>, src: <span class="kw-2">&amp;</span>[u8]) {
+        <span class="self">self</span>.extend_from_slice(src);
     }
 
-    <span class="kw">fn </span>put_bytes(<span class="kw-2">&amp;mut </span><span class="self">self</span>, val: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>, cnt: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
-        <span class="kw">let </span>new_len = <a class="self" href="#1138">self</a>.len().checked_add(<a href="#1138">cnt</a>).unwrap();
-        <a class="self" href="#1138">self</a>.resize(<a href="#1139">new_len</a>, <a href="#1138">val</a>);
+    <span class="kw">fn </span>put_bytes(<span class="kw-2">&amp;mut </span><span class="self">self</span>, val: u8, cnt: usize) {
+        <span class="kw">let </span>new_len = <span class="self">self</span>.len().checked_add(cnt).unwrap();
+        <span class="self">self</span>.resize(new_len, val);
     }
 }
 
 <span class="comment">// The existence of this function makes the compiler catch if the BufMut
 // trait is &quot;object-safe&quot; or not.
-</span><span class="kw">fn </span>_assert_trait_object(_b: <span class="kw-2">&amp;</span><span class="kw">dyn </span><a href="#29">BufMut</a>) {}
+</span><span class="kw">fn </span>_assert_trait_object(_b: <span class="kw-2">&amp;</span><span class="kw">dyn </span>BufMut) {}
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="bytes" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="bytes" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

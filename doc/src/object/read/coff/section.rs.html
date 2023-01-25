@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/object-0.29.0/src/read/coff/section.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>section.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../../object/index.html"><img class="rust-logo" src="../../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/object-0.30.1/src/read/coff/section.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>section.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../../object/index.html"><img class="rust-logo" src="../../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -522,23 +522,23 @@
 <a href="#522" id="522">522</a>
 <a href="#523" id="523">523</a>
 <a href="#524" id="524">524</a>
-</pre><pre class="rust"><code><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/convert/trait.TryFrom.html">core::convert::TryFrom</a>;
-<span class="kw">use </span>core::{<a href="https://doc.rust-lang.org/nightly/core/iter/index.html">iter</a>, <a href="https://doc.rust-lang.org/nightly/core/result/index.html">result</a>, <a href="https://doc.rust-lang.org/nightly/core/slice/index.html">slice</a>, <a href="https://doc.rust-lang.org/nightly/core/str/index.html">str</a>};
+</pre><pre class="rust"><code><span class="kw">use </span>core::convert::TryFrom;
+<span class="kw">use </span>core::{iter, result, slice, str};
 
-<span class="kw">use </span><a href="../../endian.rs.html#317"><span class="kw">crate</span>::endian::LittleEndian</a> <span class="kw">as </span>LE;
-<span class="kw">use </span><a href="../../lib.rs.html#112"><span class="kw">crate</span>::pe</a>;
-<span class="kw">use </span><a href="../util.rs.html#232"><span class="kw">crate</span>::read::util::StringTable</a>;
+<span class="kw">use </span><span class="kw">crate</span>::endian::LittleEndian <span class="kw">as </span>LE;
+<span class="kw">use </span><span class="kw">crate</span>::pe;
+<span class="kw">use </span><span class="kw">crate</span>::read::util::StringTable;
 <span class="kw">use </span><span class="kw">crate</span>::read::{
-    <a class="self" href="../../lib.rs.html#98">self</a>, <a href="../mod.rs.html#659">CompressedData</a>, <a href="../mod.rs.html#612">CompressedFileRange</a>, <a href="../mod.rs.html#64">Error</a>, <a href="../traits.rs.html#270">ObjectSection</a>, <a href="../traits.rs.html#233">ObjectSegment</a>, <a href="../mod.rs.html#79">ReadError</a>,
-    <a href="../read_ref.rs.html#37">ReadRef</a>, <span class="prelude-ty">Result</span>, <a href="../../common.rs.html#405">SectionFlags</a>, <a href="../mod.rs.html#263">SectionIndex</a>, <a href="../../common.rs.html#96">SectionKind</a>, <a href="../../common.rs.html#378">SegmentFlags</a>,
+    <span class="self">self</span>, CompressedData, CompressedFileRange, Error, ObjectSection, ObjectSegment, ReadError,
+    ReadRef, <span class="prelude-ty">Result</span>, SectionFlags, SectionIndex, SectionKind, SegmentFlags,
 };
 
-<span class="kw">use super</span>::{<a href="file.rs.html#26">CoffFile</a>, <a href="relocation.rs.html#13">CoffRelocationIterator</a>};
+<span class="kw">use super</span>::{CoffFile, CoffRelocationIterator};
 
 <span class="doccomment">/// The table of section headers in a COFF or PE file.
 </span><span class="attr">#[derive(Debug, Default, Clone, Copy)]
 </span><span class="kw">pub struct </span>SectionTable&lt;<span class="lifetime">&#39;data</span>&gt; {
-    sections: <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[<a href="../../pe.rs.html#683">pe::ImageSectionHeader</a>],
+    sections: <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[pe::ImageSectionHeader],
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>&gt; SectionTable&lt;<span class="lifetime">&#39;data</span>&gt; {
@@ -547,43 +547,43 @@
     /// `data` must be the entire file data.
     /// `offset` must be after the optional file header.
     </span><span class="kw">pub fn </span>parse&lt;R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt;&gt;(
-        header: <span class="kw-2">&amp;</span><a href="../../pe.rs.html#261">pe::ImageFileHeader</a>,
+        header: <span class="kw-2">&amp;</span>pe::ImageFileHeader,
         data: R,
-        offset: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>,
+        offset: u64,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
         <span class="kw">let </span>sections = data
             .read_slice_at(offset, header.number_of_sections.get(LE).into())
             .read_error(<span class="string">&quot;Invalid COFF/PE section headers&quot;</span>)<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(<a href="#16">SectionTable</a> { <a href="#30">sections</a> })
+        <span class="prelude-val">Ok</span>(SectionTable { sections })
     }
 
     <span class="doccomment">/// Iterate over the section headers.
     ///
     /// Warning: sections indices start at 1.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>iter(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; slice::Iter&lt;<span class="lifetime">&#39;data</span>, <a href="../../pe.rs.html#683">pe::ImageSectionHeader</a>&gt; {
-        <a class="self" href="#40">self</a>.sections.iter()
+    </span><span class="kw">pub fn </span>iter(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; slice::Iter&lt;<span class="lifetime">&#39;data</span>, pe::ImageSectionHeader&gt; {
+        <span class="self">self</span>.sections.iter()
     }
 
     <span class="doccomment">/// Return true if the section table is empty.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>is_empty(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#46">self</a>.sections.is_empty()
+    </span><span class="kw">pub fn </span>is_empty(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.sections.is_empty()
     }
 
     <span class="doccomment">/// The number of section headers.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="self" href="#52">self</a>.sections.len()
+    </span><span class="kw">pub fn </span>len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+        <span class="self">self</span>.sections.len()
     }
 
     <span class="doccomment">/// Return the section header at the given index.
     ///
     /// The index is 1-based.
-    </span><span class="kw">pub fn </span>section(<span class="kw-2">&amp;</span><span class="self">self</span>, index: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; read::Result&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span><a href="../../pe.rs.html#683">pe::ImageSectionHeader</a>&gt; {
-        <a class="self" href="#59">self</a>.sections
-            .get(<a href="#59">index</a>.wrapping_sub(<span class="number">1</span>))
-            .<a href="../mod.rs.html#80">read_error</a>(<span class="string">&quot;Invalid COFF/PE section index&quot;</span>)
+    </span><span class="kw">pub fn </span>section(<span class="kw-2">&amp;</span><span class="self">self</span>, index: usize) -&gt; read::Result&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>pe::ImageSectionHeader&gt; {
+        <span class="self">self</span>.sections
+            .get(index.wrapping_sub(<span class="number">1</span>))
+            .read_error(<span class="string">&quot;Invalid COFF/PE section index&quot;</span>)
     }
 
     <span class="doccomment">/// Return the section header with the given name.
@@ -594,20 +594,20 @@
     </span><span class="kw">pub fn </span>section_by_name&lt;R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt;&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         strings: StringTable&lt;<span class="lifetime">&#39;data</span>, R&gt;,
-        name: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
-    ) -&gt; <span class="prelude-ty">Option</span>&lt;(<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span><a href="../../pe.rs.html#683">pe::ImageSectionHeader</a>)&gt; {
-        <a class="self" href="#71">self</a>.sections
+        name: <span class="kw-2">&amp;</span>[u8],
+    ) -&gt; <span class="prelude-ty">Option</span>&lt;(usize, <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>pe::ImageSectionHeader)&gt; {
+        <span class="self">self</span>.sections
             .iter()
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">enumerate</a>()
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">find</a>(|(<span class="kw">_</span>, section)| <a href="#78">section</a>.<a href="#401-404">name</a>(<a href="#72">strings</a>) == <span class="prelude-val">Ok</span>(<a href="#73">name</a>))
-            .map(|(index, section)| (<a href="#79">index</a> + <span class="number">1</span>, <a href="#79">section</a>))
+            .enumerate()
+            .find(|(<span class="kw">_</span>, section)| section.name(strings) == <span class="prelude-val">Ok</span>(name))
+            .map(|(index, section)| (index + <span class="number">1</span>, section))
     }
 
     <span class="doccomment">/// Compute the maximum file offset used by sections.
     ///
     /// This will usually match the end of file, unless the PE file has a
     /// [data overlay](https://security.stackexchange.com/questions/77336/how-is-the-file-overlay-read-by-an-exe-virus)
-    </span><span class="kw">pub fn </span>max_section_file_offset(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> {
+    </span><span class="kw">pub fn </span>max_section_file_offset(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u64 {
         <span class="kw">let </span><span class="kw-2">mut </span>max = <span class="number">0</span>;
         <span class="kw">for </span>section <span class="kw">in </span><span class="self">self</span>.iter() {
             <span class="kw">match </span>(section.pointer_to_raw_data.get(LE) <span class="kw">as </span>u64)
@@ -624,266 +624,266 @@
                 }
             }
         }
-        <a href="#87">max</a>
+        max
     }
 }
 
 <span class="doccomment">/// An iterator over the loadable sections of a `CoffFile`.
 </span><span class="attr">#[derive(Debug)]
-</span><span class="kw">pub struct </span>CoffSegmentIterator&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt; = <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt; {
+</span><span class="kw">pub struct </span>CoffSegmentIterator&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt; = <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[u8]&gt; {
     <span class="kw">pub</span>(<span class="kw">super</span>) file: <span class="kw-2">&amp;</span><span class="lifetime">&#39;file </span>CoffFile&lt;<span class="lifetime">&#39;data</span>, R&gt;,
-    <span class="kw">pub</span>(<span class="kw">super</span>) iter: slice::Iter&lt;<span class="lifetime">&#39;data</span>, <a href="../../pe.rs.html#683">pe::ImageSectionHeader</a>&gt;,
+    <span class="kw">pub</span>(<span class="kw">super</span>) iter: slice::Iter&lt;<span class="lifetime">&#39;data</span>, pe::ImageSectionHeader&gt;,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt;&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a> <span class="kw">for </span>CoffSegmentIterator&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt;&gt; Iterator <span class="kw">for </span>CoffSegmentIterator&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R&gt; {
     <span class="kw">type </span>Item = CoffSegment&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R&gt;;
 
     <span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt; {
-        <a class="self" href="#117">self</a>.iter.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>().map(|section| <a href="#127">CoffSegment</a> {
-            file: <a class="self" href="#117">self</a>.file,
-            <a href="#118">section</a>,
+        <span class="self">self</span>.iter.next().map(|section| CoffSegment {
+            file: <span class="self">self</span>.file,
+            section,
         })
     }
 }
 
 <span class="doccomment">/// A loadable section of a `CoffFile`.
 </span><span class="attr">#[derive(Debug)]
-</span><span class="kw">pub struct </span>CoffSegment&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt; = <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt; {
+</span><span class="kw">pub struct </span>CoffSegment&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt; = <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[u8]&gt; {
     <span class="kw">pub</span>(<span class="kw">super</span>) file: <span class="kw-2">&amp;</span><span class="lifetime">&#39;file </span>CoffFile&lt;<span class="lifetime">&#39;data</span>, R&gt;,
-    <span class="kw">pub</span>(<span class="kw">super</span>) section: <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span><a href="../../pe.rs.html#683">pe::ImageSectionHeader</a>,
+    <span class="kw">pub</span>(<span class="kw">super</span>) section: <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>pe::ImageSectionHeader,
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt;&gt; CoffSegment&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R&gt; {
-    <span class="kw">fn </span>bytes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt; {
-        <a class="self" href="#133">self</a>.section
-            .<a href="#441">coff_data</a>(<a class="self" href="#133">self</a>.file.data)
-            .<a href="../mod.rs.html#80">read_error</a>(<span class="string">&quot;Invalid COFF section offset or size&quot;</span>)
+    <span class="kw">fn </span>bytes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[u8]&gt; {
+        <span class="self">self</span>.section
+            .coff_data(<span class="self">self</span>.file.data)
+            .read_error(<span class="string">&quot;Invalid COFF section offset or size&quot;</span>)
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt;&gt; <a href="../mod.rs.html#59">read::private::Sealed</a> <span class="kw">for </span>CoffSegment&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R&gt; {}
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt;&gt; read::private::Sealed <span class="kw">for </span>CoffSegment&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R&gt; {}
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt;&gt; ObjectSegment&lt;<span class="lifetime">&#39;data</span>&gt; <span class="kw">for </span>CoffSegment&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R&gt; {
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>address(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> {
-        u64::from(<a class="self" href="#144">self</a>.section.virtual_address.<a href="../../endian.rs.html#621">get</a>(<a href="../../endian.rs.html#317">LE</a>))
+    </span><span class="kw">fn </span>address(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u64 {
+        u64::from(<span class="self">self</span>.section.virtual_address.get(LE))
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>size(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> {
-        u64::from(<a class="self" href="#149">self</a>.section.virtual_size.<a href="../../endian.rs.html#621">get</a>(<a href="../../endian.rs.html#317">LE</a>))
+    </span><span class="kw">fn </span>size(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u64 {
+        u64::from(<span class="self">self</span>.section.virtual_size.get(LE))
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>align(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> {
-        <a class="self" href="#154">self</a>.section.<a href="#452">coff_alignment</a>()
+    </span><span class="kw">fn </span>align(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u64 {
+        <span class="self">self</span>.section.coff_alignment()
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>file_range(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (<a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) {
-        <span class="kw">let </span>(offset, size) = <a class="self" href="#159">self</a>.section.<a href="#426">coff_file_range</a>().unwrap_or((<span class="number">0</span>, <span class="number">0</span>));
-        (u64::from(<a href="#160">offset</a>), u64::from(<a href="#160">size</a>))
+    </span><span class="kw">fn </span>file_range(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (u64, u64) {
+        <span class="kw">let </span>(offset, size) = <span class="self">self</span>.section.coff_file_range().unwrap_or((<span class="number">0</span>, <span class="number">0</span>));
+        (u64::from(offset), u64::from(size))
     }
 
-    <span class="kw">fn </span>data(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt; {
-        <a class="self" href="#164">self</a>.<a href="#133">bytes</a>()
+    <span class="kw">fn </span>data(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[u8]&gt; {
+        <span class="self">self</span>.bytes()
     }
 
-    <span class="kw">fn </span>data_range(<span class="kw-2">&amp;</span><span class="self">self</span>, address: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>, size: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;&gt; {
-        <span class="prelude-val">Ok</span>(<a href="../util.rs.html#217-222">read::util::data_range</a>(
+    <span class="kw">fn </span>data_range(<span class="kw-2">&amp;</span><span class="self">self</span>, address: u64, size: u64) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[u8]&gt;&gt; {
+        <span class="prelude-val">Ok</span>(read::util::data_range(
             <span class="self">self</span>.bytes()<span class="question-mark">?</span>,
-            <a class="self" href="#168">self</a>.<a href="../traits.rs.html#235">address</a>(),
-            <a href="#168">address</a>,
-            <a href="#168">size</a>,
+            <span class="self">self</span>.address(),
+            address,
+            size,
         ))
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>name_bytes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;&gt; {
-        <a class="self" href="#178">self</a>.section
-            .<a href="#401-404">name</a>(<a class="self" href="#178">self</a>.file.common.symbols.<a href="symbol.rs.html#67">strings</a>())
+    </span><span class="kw">fn </span>name_bytes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>[u8]&gt;&gt; {
+        <span class="self">self</span>.section
+            .name(<span class="self">self</span>.file.common.symbols.strings())
             .map(<span class="prelude-val">Some</span>)
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt;&gt; {
+    </span><span class="kw">fn </span>name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>str&gt;&gt; {
         <span class="kw">let </span>name = <span class="self">self</span>.section.name(<span class="self">self</span>.file.common.symbols.strings())<span class="question-mark">?</span>;
-        <a href="https://doc.rust-lang.org/nightly/core/str/converts/fn.from_utf8.html">str::from_utf8</a>(<a href="#186">name</a>)
+        str::from_utf8(name)
             .ok()
-            .<a href="../mod.rs.html#80">read_error</a>(<span class="string">&quot;Non UTF-8 COFF section name&quot;</span>)
+            .read_error(<span class="string">&quot;Non UTF-8 COFF section name&quot;</span>)
             .map(<span class="prelude-val">Some</span>)
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>flags(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../../common.rs.html#378">SegmentFlags</a> {
-        <span class="kw">let </span>characteristics = <a class="self" href="#194">self</a>.section.characteristics.<a href="../../endian.rs.html#621">get</a>(<a href="../../endian.rs.html#317">LE</a>);
-        <a href="../../common.rs.html#396">SegmentFlags::Coff</a> { <a href="#195">characteristics</a> }
+    </span><span class="kw">fn </span>flags(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; SegmentFlags {
+        <span class="kw">let </span>characteristics = <span class="self">self</span>.section.characteristics.get(LE);
+        SegmentFlags::Coff { characteristics }
     }
 }
 
 <span class="doccomment">/// An iterator over the sections of a `CoffFile`.
 </span><span class="attr">#[derive(Debug)]
-</span><span class="kw">pub struct </span>CoffSectionIterator&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt; = <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt; {
+</span><span class="kw">pub struct </span>CoffSectionIterator&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt; = <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[u8]&gt; {
     <span class="kw">pub</span>(<span class="kw">super</span>) file: <span class="kw-2">&amp;</span><span class="lifetime">&#39;file </span>CoffFile&lt;<span class="lifetime">&#39;data</span>, R&gt;,
-    <span class="kw">pub</span>(<span class="kw">super</span>) iter: iter::Enumerate&lt;slice::Iter&lt;<span class="lifetime">&#39;data</span>, <a href="../../pe.rs.html#683">pe::ImageSectionHeader</a>&gt;&gt;,
+    <span class="kw">pub</span>(<span class="kw">super</span>) iter: iter::Enumerate&lt;slice::Iter&lt;<span class="lifetime">&#39;data</span>, pe::ImageSectionHeader&gt;&gt;,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt;&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a> <span class="kw">for </span>CoffSectionIterator&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt;&gt; Iterator <span class="kw">for </span>CoffSectionIterator&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R&gt; {
     <span class="kw">type </span>Item = CoffSection&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R&gt;;
 
     <span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt; {
-        <a class="self" href="#210">self</a>.iter.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>().map(|(index, section)| <a href="#221">CoffSection</a> {
-            file: <a class="self" href="#210">self</a>.file,
-            index: <a href="../mod.rs.html#263">SectionIndex</a>(<a href="#211">index</a> + <span class="number">1</span>),
-            <a href="#211">section</a>,
+        <span class="self">self</span>.iter.next().map(|(index, section)| CoffSection {
+            file: <span class="self">self</span>.file,
+            index: SectionIndex(index + <span class="number">1</span>),
+            section,
         })
     }
 }
 
 <span class="doccomment">/// A section of a `CoffFile`.
 </span><span class="attr">#[derive(Debug)]
-</span><span class="kw">pub struct </span>CoffSection&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt; = <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt; {
+</span><span class="kw">pub struct </span>CoffSection&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt; = <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[u8]&gt; {
     <span class="kw">pub</span>(<span class="kw">super</span>) file: <span class="kw-2">&amp;</span><span class="lifetime">&#39;file </span>CoffFile&lt;<span class="lifetime">&#39;data</span>, R&gt;,
-    <span class="kw">pub</span>(<span class="kw">super</span>) index: <a href="../mod.rs.html#263">SectionIndex</a>,
-    <span class="kw">pub</span>(<span class="kw">super</span>) section: <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span><a href="../../pe.rs.html#683">pe::ImageSectionHeader</a>,
+    <span class="kw">pub</span>(<span class="kw">super</span>) index: SectionIndex,
+    <span class="kw">pub</span>(<span class="kw">super</span>) section: <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>pe::ImageSectionHeader,
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt;&gt; CoffSection&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R&gt; {
-    <span class="kw">fn </span>bytes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt; {
-        <a class="self" href="#228">self</a>.section
-            .<a href="#441">coff_data</a>(<a class="self" href="#228">self</a>.file.data)
-            .<a href="../mod.rs.html#80">read_error</a>(<span class="string">&quot;Invalid COFF section offset or size&quot;</span>)
+    <span class="kw">fn </span>bytes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[u8]&gt; {
+        <span class="self">self</span>.section
+            .coff_data(<span class="self">self</span>.file.data)
+            .read_error(<span class="string">&quot;Invalid COFF section offset or size&quot;</span>)
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt;&gt; <a href="../mod.rs.html#59">read::private::Sealed</a> <span class="kw">for </span>CoffSection&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R&gt; {}
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt;&gt; read::private::Sealed <span class="kw">for </span>CoffSection&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R&gt; {}
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt;&gt; ObjectSection&lt;<span class="lifetime">&#39;data</span>&gt; <span class="kw">for </span>CoffSection&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R&gt; {
     <span class="kw">type </span>RelocationIterator = CoffRelocationIterator&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R&gt;;
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>index(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../mod.rs.html#263">SectionIndex</a> {
-        <a class="self" href="#241">self</a>.index
+    </span><span class="kw">fn </span>index(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; SectionIndex {
+        <span class="self">self</span>.index
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>address(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> {
-        u64::from(<a class="self" href="#246">self</a>.section.virtual_address.<a href="../../endian.rs.html#621">get</a>(<a href="../../endian.rs.html#317">LE</a>))
+    </span><span class="kw">fn </span>address(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u64 {
+        u64::from(<span class="self">self</span>.section.virtual_address.get(LE))
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>size(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> {
+    </span><span class="kw">fn </span>size(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u64 {
         <span class="comment">// TODO: This may need to be the length from the auxiliary symbol for this section.
-        </span>u64::from(<a class="self" href="#251">self</a>.section.size_of_raw_data.<a href="../../endian.rs.html#621">get</a>(<a href="../../endian.rs.html#317">LE</a>))
+        </span>u64::from(<span class="self">self</span>.section.size_of_raw_data.get(LE))
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>align(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> {
-        <a class="self" href="#257">self</a>.section.<a href="#452">coff_alignment</a>()
+    </span><span class="kw">fn </span>align(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u64 {
+        <span class="self">self</span>.section.coff_alignment()
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>file_range(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;(<a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>)&gt; {
+    </span><span class="kw">fn </span>file_range(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;(u64, u64)&gt; {
         <span class="kw">let </span>(offset, size) = <span class="self">self</span>.section.coff_file_range()<span class="question-mark">?</span>;
-        <span class="prelude-val">Some</span>((u64::from(<a href="#263">offset</a>), u64::from(<a href="#263">size</a>)))
+        <span class="prelude-val">Some</span>((u64::from(offset), u64::from(size)))
     }
 
-    <span class="kw">fn </span>data(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt; {
-        <a class="self" href="#267">self</a>.<a href="#228">bytes</a>()
+    <span class="kw">fn </span>data(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[u8]&gt; {
+        <span class="self">self</span>.bytes()
     }
 
-    <span class="kw">fn </span>data_range(<span class="kw-2">&amp;</span><span class="self">self</span>, address: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>, size: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;&gt; {
-        <span class="prelude-val">Ok</span>(<a href="../util.rs.html#217-222">read::util::data_range</a>(
+    <span class="kw">fn </span>data_range(<span class="kw-2">&amp;</span><span class="self">self</span>, address: u64, size: u64) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[u8]&gt;&gt; {
+        <span class="prelude-val">Ok</span>(read::util::data_range(
             <span class="self">self</span>.bytes()<span class="question-mark">?</span>,
-            <a class="self" href="#271">self</a>.<a href="../traits.rs.html#281">address</a>(),
-            <a href="#271">address</a>,
-            <a href="#271">size</a>,
+            <span class="self">self</span>.address(),
+            address,
+            size,
         ))
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>compressed_file_range(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../mod.rs.html#612">CompressedFileRange</a>&gt; {
-        <span class="prelude-val">Ok</span>(CompressedFileRange::none(<a class="self" href="#281">self</a>.<a href="../traits.rs.html#290">file_range</a>()))
+    </span><span class="kw">fn </span>compressed_file_range(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;CompressedFileRange&gt; {
+        <span class="prelude-val">Ok</span>(CompressedFileRange::none(<span class="self">self</span>.file_range()))
     }
 
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>compressed_data(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;CompressedData&lt;<span class="lifetime">&#39;data</span>&gt;&gt; {
-        <a class="self" href="#286">self</a>.<a href="../traits.rs.html#298">data</a>().map(CompressedData::none)
+        <span class="self">self</span>.data().map(CompressedData::none)
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>name_bytes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt; {
-        <a class="self" href="#291">self</a>.section.<a href="#401-404">name</a>(<a class="self" href="#291">self</a>.file.common.symbols.<a href="symbol.rs.html#67">strings</a>())
+    </span><span class="kw">fn </span>name_bytes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span>[u8]&gt; {
+        <span class="self">self</span>.section.name(<span class="self">self</span>.file.common.symbols.strings())
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt; {
+    </span><span class="kw">fn </span>name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span>str&gt; {
         <span class="kw">let </span>name = <span class="self">self</span>.name_bytes()<span class="question-mark">?</span>;
-        <a href="https://doc.rust-lang.org/nightly/core/str/converts/fn.from_utf8.html">str::from_utf8</a>(<a href="#297">name</a>)
+        str::from_utf8(name)
             .ok()
-            .<a href="../mod.rs.html#80">read_error</a>(<span class="string">&quot;Non UTF-8 COFF section name&quot;</span>)
+            .read_error(<span class="string">&quot;Non UTF-8 COFF section name&quot;</span>)
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>segment_name_bytes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;&gt; {
+    </span><span class="kw">fn </span>segment_name_bytes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>[u8]&gt;&gt; {
         <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>)
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>segment_name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt;&gt; {
+    </span><span class="kw">fn </span>segment_name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>str&gt;&gt; {
         <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>)
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>kind(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../../common.rs.html#96">SectionKind</a> {
-        <a class="self" href="#314">self</a>.section.<a href="#334">kind</a>()
+    </span><span class="kw">fn </span>kind(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; SectionKind {
+        <span class="self">self</span>.section.kind()
     }
 
     <span class="kw">fn </span>relocations(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; CoffRelocationIterator&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R&gt; {
-        <span class="kw">let </span>relocations = <a class="self" href="#318">self</a>.section.<a href="#475-478">coff_relocations</a>(<a class="self" href="#318">self</a>.file.data).unwrap_or(<span class="kw-2">&amp;</span>[]);
-        <a href="relocation.rs.html#13">CoffRelocationIterator</a> {
-            file: <a class="self" href="#318">self</a>.file,
-            iter: <a href="#319">relocations</a>.iter(),
+        <span class="kw">let </span>relocations = <span class="self">self</span>.section.coff_relocations(<span class="self">self</span>.file.data).unwrap_or(<span class="kw-2">&amp;</span>[]);
+        CoffRelocationIterator {
+            file: <span class="self">self</span>.file,
+            iter: relocations.iter(),
         }
     }
 
-    <span class="kw">fn </span>flags(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../../common.rs.html#405">SectionFlags</a> {
-        <a href="../../common.rs.html#419">SectionFlags::Coff</a> {
-            characteristics: <a class="self" href="#326">self</a>.section.characteristics.<a href="../../endian.rs.html#621">get</a>(<a href="../../endian.rs.html#317">LE</a>),
+    <span class="kw">fn </span>flags(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; SectionFlags {
+        SectionFlags::Coff {
+            characteristics: <span class="self">self</span>.section.characteristics.get(LE),
         }
     }
 }
 
-<span class="kw">impl </span><a href="../../pe.rs.html#683">pe::ImageSectionHeader</a> {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>kind(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../../common.rs.html#96">SectionKind</a> {
-        <span class="kw">let </span>characteristics = <a class="self" href="#334">self</a>.characteristics.<a href="../../endian.rs.html#621">get</a>(<a href="../../endian.rs.html#317">LE</a>);
+<span class="kw">impl </span>pe::ImageSectionHeader {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>kind(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; SectionKind {
+        <span class="kw">let </span>characteristics = <span class="self">self</span>.characteristics.get(LE);
         <span class="kw">if </span>characteristics &amp; (pe::IMAGE_SCN_CNT_CODE | pe::IMAGE_SCN_MEM_EXECUTE) != <span class="number">0 </span>{
-            <a href="../../common.rs.html#104">SectionKind::Text</a>
+            SectionKind::Text
         } <span class="kw">else if </span>characteristics &amp; pe::IMAGE_SCN_CNT_INITIALIZED_DATA != <span class="number">0 </span>{
             <span class="kw">if </span>characteristics &amp; pe::IMAGE_SCN_MEM_DISCARDABLE != <span class="number">0 </span>{
-                <a href="../../common.rs.html#158">SectionKind::Other</a>
+                SectionKind::Other
             } <span class="kw">else if </span>characteristics &amp; pe::IMAGE_SCN_MEM_WRITE != <span class="number">0 </span>{
-                <a href="../../common.rs.html#110">SectionKind::Data</a>
+                SectionKind::Data
             } <span class="kw">else </span>{
-                <a href="../../common.rs.html#116">SectionKind::ReadOnlyData</a>
+                SectionKind::ReadOnlyData
             }
         } <span class="kw">else if </span>characteristics &amp; pe::IMAGE_SCN_CNT_UNINITIALIZED_DATA != <span class="number">0 </span>{
-            <a href="../../common.rs.html#128">SectionKind::UninitializedData</a>
+            SectionKind::UninitializedData
         } <span class="kw">else if </span>characteristics &amp; pe::IMAGE_SCN_LNK_INFO != <span class="number">0 </span>{
-            <a href="../../common.rs.html#166">SectionKind::Linker</a>
+            SectionKind::Linker
         } <span class="kw">else </span>{
-            <a href="../../common.rs.html#98">SectionKind::Unknown</a>
+            SectionKind::Unknown
         }
     }
 }
 
-<span class="kw">impl </span><a href="../../pe.rs.html#683">pe::ImageSectionHeader</a> {
+<span class="kw">impl </span>pe::ImageSectionHeader {
     <span class="doccomment">/// Return the string table offset of the section name.
     ///
     /// Returns `Ok(None)` if the name doesn&#39;t use the string table
     /// and can be obtained with `raw_name` instead.
-    </span><span class="kw">pub fn </span>name_offset(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>&gt;&gt; {
-        <span class="kw">let </span>bytes = <span class="kw-2">&amp;</span><a class="self" href="#361">self</a>.name;
+    </span><span class="kw">pub fn </span>name_offset(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;u32&gt;&gt; {
+        <span class="kw">let </span>bytes = <span class="kw-2">&amp;</span><span class="self">self</span>.name;
         <span class="kw">if </span>bytes[<span class="number">0</span>] != <span class="string">b&#39;/&#39; </span>{
             <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>);
         }
@@ -901,9 +901,9 @@
                 };
                 offset = offset * <span class="number">64 </span>+ digit <span class="kw">as </span>u64;
             }
-            u32::try_from(<a href="#368">offset</a>)
+            u32::try_from(offset)
                 .ok()
-                .<a href="../mod.rs.html#80">read_error</a>(<span class="string">&quot;Invalid COFF section name base-64 offset&quot;</span>)
+                .read_error(<span class="string">&quot;Invalid COFF section name base-64 offset&quot;</span>)
                 .map(<span class="prelude-val">Some</span>)
         } <span class="kw">else </span>{
             <span class="kw">let </span><span class="kw-2">mut </span>offset = <span class="number">0</span>;
@@ -915,7 +915,7 @@
                 };
                 offset = offset * <span class="number">10 </span>+ digit <span class="kw">as </span>u32;
             }
-            <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<a href="#385">offset</a>))
+            <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(offset))
         }
     }
 
@@ -925,36 +925,36 @@
     </span><span class="kw">pub fn </span>name&lt;<span class="lifetime">&#39;data</span>, R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt;&gt;(
         <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span><span class="self">self</span>,
         strings: StringTable&lt;<span class="lifetime">&#39;data</span>, R&gt;,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt; {
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[u8]&gt; {
         <span class="kw">if let </span><span class="prelude-val">Some</span>(offset) = <span class="self">self</span>.name_offset()<span class="question-mark">? </span>{
-            <a href="#403">strings</a>
-                .<a href="../util.rs.html#254">get</a>(<a href="#405">offset</a>)
-                .<a href="../mod.rs.html#80">read_error</a>(<span class="string">&quot;Invalid COFF section name offset&quot;</span>)
+            strings
+                .get(offset)
+                .read_error(<span class="string">&quot;Invalid COFF section name offset&quot;</span>)
         } <span class="kw">else </span>{
-            <span class="prelude-val">Ok</span>(<a class="self" href="#402">self</a>.<a href="#415">raw_name</a>())
+            <span class="prelude-val">Ok</span>(<span class="self">self</span>.raw_name())
         }
     }
 
     <span class="doccomment">/// Return the raw section name.
-    </span><span class="kw">pub fn </span>raw_name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>] {
-        <span class="kw">let </span>bytes = <span class="kw-2">&amp;</span><a class="self" href="#415">self</a>.name;
-        <span class="kw">match </span>memchr::memchr(<span class="string">b&#39;\0&#39;</span>, <a href="#416">bytes</a>) {
-            <span class="prelude-val">Some</span>(end) =&gt; <span class="kw-2">&amp;</span><a href="#416">bytes</a>[..<a href="#418">end</a>],
-            <span class="prelude-val">None </span>=&gt; <span class="kw-2">&amp;</span><a href="#416">bytes</a>[..],
+    </span><span class="kw">pub fn </span>raw_name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[u8] {
+        <span class="kw">let </span>bytes = <span class="kw-2">&amp;</span><span class="self">self</span>.name;
+        <span class="kw">match </span>memchr::memchr(<span class="string">b&#39;\0&#39;</span>, bytes) {
+            <span class="prelude-val">Some</span>(end) =&gt; <span class="kw-2">&amp;</span>bytes[..end],
+            <span class="prelude-val">None </span>=&gt; <span class="kw-2">&amp;</span>bytes[..],
         }
     }
 
     <span class="doccomment">/// Return the offset and size of the section in a COFF file.
     ///
     /// Returns `None` for sections that have no data in the file.
-    </span><span class="kw">pub fn </span>coff_file_range(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;(<a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>)&gt; {
+    </span><span class="kw">pub fn </span>coff_file_range(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;(u32, u32)&gt; {
         <span class="kw">if </span><span class="self">self</span>.characteristics.get(LE) &amp; pe::IMAGE_SCN_CNT_UNINITIALIZED_DATA != <span class="number">0 </span>{
             <span class="prelude-val">None
         </span>} <span class="kw">else </span>{
-            <span class="kw">let </span>offset = <a class="self" href="#426">self</a>.pointer_to_raw_data.<a href="../../endian.rs.html#621">get</a>(<a href="../../endian.rs.html#317">LE</a>);
+            <span class="kw">let </span>offset = <span class="self">self</span>.pointer_to_raw_data.get(LE);
             <span class="comment">// Note: virtual size is not used for COFF.
-            </span><span class="kw">let </span>size = <a class="self" href="#426">self</a>.size_of_raw_data.<a href="../../endian.rs.html#621">get</a>(<a href="../../endian.rs.html#317">LE</a>);
-            <span class="prelude-val">Some</span>((<a href="#430">offset</a>, <a href="#432">size</a>))
+            </span><span class="kw">let </span>size = <span class="self">self</span>.size_of_raw_data.get(LE);
+            <span class="prelude-val">Some</span>((offset, size))
         }
     }
 
@@ -962,9 +962,9 @@
     ///
     /// Returns `Ok(&amp;[])` if the section has no data.
     /// Returns `Err` for invalid values.
-    </span><span class="kw">pub fn </span>coff_data&lt;<span class="lifetime">&#39;data</span>, R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt;&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, data: R) -&gt; result::Result&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], ()&gt; {
-        <span class="kw">if let </span><span class="prelude-val">Some</span>((offset, size)) = <a class="self" href="#441">self</a>.<a href="#426">coff_file_range</a>() {
-            <a href="#441">data</a>.<a href="../read_ref.rs.html#44">read_bytes_at</a>(<a href="#442">offset</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(), <a href="#442">size</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
+    </span><span class="kw">pub fn </span>coff_data&lt;<span class="lifetime">&#39;data</span>, R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt;&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, data: R) -&gt; result::Result&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[u8], ()&gt; {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>((offset, size)) = <span class="self">self</span>.coff_file_range() {
+            data.read_bytes_at(offset.into(), size.into())
         } <span class="kw">else </span>{
             <span class="prelude-val">Ok</span>(<span class="kw-2">&amp;</span>[])
         }
@@ -973,22 +973,22 @@
     <span class="doccomment">/// Return the section alignment in bytes.
     ///
     /// This is only valid for sections in a COFF file.
-    </span><span class="kw">pub fn </span>coff_alignment(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> {
-        <span class="kw">match </span><a class="self" href="#452">self</a>.characteristics.<a href="../../endian.rs.html#621">get</a>(<a href="../../endian.rs.html#317">LE</a>) &amp; <a href="../../pe.rs.html#753">pe::IMAGE_SCN_ALIGN_MASK</a> {
-            <a href="../../pe.rs.html#737">pe::IMAGE_SCN_ALIGN_1BYTES</a> =&gt; <span class="number">1</span>,
-            <a href="../../pe.rs.html#738">pe::IMAGE_SCN_ALIGN_2BYTES</a> =&gt; <span class="number">2</span>,
-            <a href="../../pe.rs.html#739">pe::IMAGE_SCN_ALIGN_4BYTES</a> =&gt; <span class="number">4</span>,
-            <a href="../../pe.rs.html#740">pe::IMAGE_SCN_ALIGN_8BYTES</a> =&gt; <span class="number">8</span>,
-            <a href="../../pe.rs.html#742">pe::IMAGE_SCN_ALIGN_16BYTES</a> =&gt; <span class="number">16</span>,
-            <a href="../../pe.rs.html#743">pe::IMAGE_SCN_ALIGN_32BYTES</a> =&gt; <span class="number">32</span>,
-            <a href="../../pe.rs.html#744">pe::IMAGE_SCN_ALIGN_64BYTES</a> =&gt; <span class="number">64</span>,
-            <a href="../../pe.rs.html#745">pe::IMAGE_SCN_ALIGN_128BYTES</a> =&gt; <span class="number">128</span>,
-            <a href="../../pe.rs.html#746">pe::IMAGE_SCN_ALIGN_256BYTES</a> =&gt; <span class="number">256</span>,
-            <a href="../../pe.rs.html#747">pe::IMAGE_SCN_ALIGN_512BYTES</a> =&gt; <span class="number">512</span>,
-            <a href="../../pe.rs.html#748">pe::IMAGE_SCN_ALIGN_1024BYTES</a> =&gt; <span class="number">1024</span>,
-            <a href="../../pe.rs.html#749">pe::IMAGE_SCN_ALIGN_2048BYTES</a> =&gt; <span class="number">2048</span>,
-            <a href="../../pe.rs.html#750">pe::IMAGE_SCN_ALIGN_4096BYTES</a> =&gt; <span class="number">4096</span>,
-            <a href="../../pe.rs.html#751">pe::IMAGE_SCN_ALIGN_8192BYTES</a> =&gt; <span class="number">8192</span>,
+    </span><span class="kw">pub fn </span>coff_alignment(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u64 {
+        <span class="kw">match </span><span class="self">self</span>.characteristics.get(LE) &amp; pe::IMAGE_SCN_ALIGN_MASK {
+            pe::IMAGE_SCN_ALIGN_1BYTES =&gt; <span class="number">1</span>,
+            pe::IMAGE_SCN_ALIGN_2BYTES =&gt; <span class="number">2</span>,
+            pe::IMAGE_SCN_ALIGN_4BYTES =&gt; <span class="number">4</span>,
+            pe::IMAGE_SCN_ALIGN_8BYTES =&gt; <span class="number">8</span>,
+            pe::IMAGE_SCN_ALIGN_16BYTES =&gt; <span class="number">16</span>,
+            pe::IMAGE_SCN_ALIGN_32BYTES =&gt; <span class="number">32</span>,
+            pe::IMAGE_SCN_ALIGN_64BYTES =&gt; <span class="number">64</span>,
+            pe::IMAGE_SCN_ALIGN_128BYTES =&gt; <span class="number">128</span>,
+            pe::IMAGE_SCN_ALIGN_256BYTES =&gt; <span class="number">256</span>,
+            pe::IMAGE_SCN_ALIGN_512BYTES =&gt; <span class="number">512</span>,
+            pe::IMAGE_SCN_ALIGN_1024BYTES =&gt; <span class="number">1024</span>,
+            pe::IMAGE_SCN_ALIGN_2048BYTES =&gt; <span class="number">2048</span>,
+            pe::IMAGE_SCN_ALIGN_4096BYTES =&gt; <span class="number">4096</span>,
+            pe::IMAGE_SCN_ALIGN_8192BYTES =&gt; <span class="number">8192</span>,
             <span class="kw">_ </span>=&gt; <span class="number">16</span>,
         }
     }
@@ -999,9 +999,9 @@
     </span><span class="kw">pub fn </span>coff_relocations&lt;<span class="lifetime">&#39;data</span>, R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt;&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         data: R,
-    ) -&gt; read::Result&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[<a href="../../pe.rs.html#1053">pe::ImageRelocation</a>]&gt; {
-        <span class="kw">let </span><span class="kw-2">mut </span>pointer = <a class="self" href="#476">self</a>.pointer_to_relocations.<a href="../../endian.rs.html#621">get</a>(<a href="../../endian.rs.html#317">LE</a>).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>();
-        <span class="kw">let </span><span class="kw-2">mut </span>number: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> = <a class="self" href="#476">self</a>.number_of_relocations.<a href="../../endian.rs.html#599">get</a>(<a href="../../endian.rs.html#317">LE</a>).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>();
+    ) -&gt; read::Result&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[pe::ImageRelocation]&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>pointer = <span class="self">self</span>.pointer_to_relocations.get(LE).into();
+        <span class="kw">let </span><span class="kw-2">mut </span>number: usize = <span class="self">self</span>.number_of_relocations.get(LE).into();
         <span class="kw">if </span>number == core::u16::MAX.into()
             &amp;&amp; <span class="self">self</span>.characteristics.get(LE) &amp; pe::IMAGE_SCN_LNK_NRELOC_OVFL != <span class="number">0
         </span>{
@@ -1010,16 +1010,16 @@
             </span><span class="kw">let </span>extended_relocation_info = data
                 .read_at::&lt;pe::ImageRelocation&gt;(pointer)
                 .read_error(<span class="string">&quot;Invalid COFF relocation offset or number&quot;</span>)<span class="question-mark">?</span>;
-            <a href="#480">number</a> = <a href="#486">extended_relocation_info</a>.virtual_address.<a href="../../endian.rs.html#621">get</a>(<a href="../../endian.rs.html#317">LE</a>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>;
+            number = extended_relocation_info.virtual_address.get(LE) <span class="kw">as </span>usize;
             <span class="kw">if </span>number == <span class="number">0 </span>{
-                <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../mod.rs.html#64">Error</a>(<span class="string">&quot;Invalid COFF relocation number&quot;</span>));
+                <span class="kw">return </span><span class="prelude-val">Err</span>(Error(<span class="string">&quot;Invalid COFF relocation number&quot;</span>));
             }
-            <a href="#479">pointer</a> += core::mem::size_of::&lt;<a href="../../pe.rs.html#1053">pe::ImageRelocation</a>&gt;() <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>;
+            pointer += core::mem::size_of::&lt;pe::ImageRelocation&gt;() <span class="kw">as </span>u64;
             <span class="comment">// Extended relocation info does not contribute to the count of sections.
-            </span><a href="#480">number</a> -= <span class="number">1</span>;
+            </span>number -= <span class="number">1</span>;
         }
-        <a href="#477">data</a>.<a href="../read_ref.rs.html#109">read_slice_at</a>(<a href="#479">pointer</a>, <a href="#480">number</a>)
-            .<a href="../mod.rs.html#80">read_error</a>(<span class="string">&quot;Invalid COFF relocation offset or number&quot;</span>)
+        data.read_slice_at(pointer, number)
+            .read_error(<span class="string">&quot;Invalid COFF relocation offset or number&quot;</span>)
     }
 }
 
@@ -1047,4 +1047,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="object" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="object" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

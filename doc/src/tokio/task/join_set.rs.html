@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.21.2/src/task/join_set.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>join_set.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../tokio/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.23.0/src/task/join_set.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>join_set.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../tokio/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -503,22 +503,41 @@
 <a href="#503" id="503">503</a>
 <a href="#504" id="504">504</a>
 <a href="#505" id="505">505</a>
+<a href="#506" id="506">506</a>
+<a href="#507" id="507">507</a>
+<a href="#508" id="508">508</a>
+<a href="#509" id="509">509</a>
+<a href="#510" id="510">510</a>
+<a href="#511" id="511">511</a>
+<a href="#512" id="512">512</a>
+<a href="#513" id="513">513</a>
+<a href="#514" id="514">514</a>
+<a href="#515" id="515">515</a>
+<a href="#516" id="516">516</a>
+<a href="#517" id="517">517</a>
+<a href="#518" id="518">518</a>
+<a href="#519" id="519">519</a>
+<a href="#520" id="520">520</a>
+<a href="#521" id="521">521</a>
+<a href="#522" id="522">522</a>
+<a href="#523" id="523">523</a>
+<a href="#524" id="524">524</a>
 </pre><pre class="rust"><code><span class="doccomment">//! A collection of tasks spawned on a Tokio runtime.
 //!
 //! This module provides the [`JoinSet`] type, a collection which stores a set
 //! of spawned tasks and allows asynchronously awaiting the output of those
 //! tasks as they complete. See the documentation for the [`JoinSet`] type for
 //! details.
-</span><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">std::fmt</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">std::future::Future</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/pin/struct.Pin.html">std::pin::Pin</a>;
-<span class="kw">use </span>std::task::{<a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>, <a href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">Poll</a>};
+</span><span class="kw">use </span>std::fmt;
+<span class="kw">use </span>std::future::Future;
+<span class="kw">use </span>std::pin::Pin;
+<span class="kw">use </span>std::task::{Context, Poll};
 
-<span class="kw">use </span><a href="../runtime/handle.rs.html#17"><span class="kw">crate</span>::runtime::Handle</a>;
+<span class="kw">use </span><span class="kw">crate</span>::runtime::Handle;
 <span class="attr">#[cfg(tokio_unstable)]
 </span><span class="kw">use </span><span class="kw">crate</span>::task::Id;
-<span class="kw">use </span><span class="kw">crate</span>::task::{<a href="../runtime/task/abort.rs.html#16">AbortHandle</a>, <a href="../runtime/task/error.rs.html#9">JoinError</a>, <a href="../runtime/task/join.rs.html#154">JoinHandle</a>, <a href="local.rs.html#214">LocalSet</a>};
-<span class="kw">use </span><a href="../util/idle_notified_set.rs.html#23"><span class="kw">crate</span>::util::IdleNotifiedSet</a>;
+<span class="kw">use </span><span class="kw">crate</span>::task::{AbortHandle, JoinError, JoinHandle, LocalSet};
+<span class="kw">use </span><span class="kw">crate</span>::util::IdleNotifiedSet;
 
 <span class="doccomment">/// A collection of tasks spawned on a Tokio runtime.
 ///
@@ -582,13 +601,13 @@
     }
 
     <span class="doccomment">/// Returns the number of tasks currently in the `JoinSet`.
-    </span><span class="kw">pub fn </span>len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="self" href="#80">self</a>.inner.<a href="../util/idle_notified_set.rs.html#141">len</a>()
+    </span><span class="kw">pub fn </span>len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+        <span class="self">self</span>.inner.len()
     }
 
     <span class="doccomment">/// Returns whether the `JoinSet` is empty.
-    </span><span class="kw">pub fn </span>is_empty(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#85">self</a>.inner.<a href="../util/idle_notified_set.rs.html#145">is_empty</a>()
+    </span><span class="kw">pub fn </span>is_empty(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.inner.is_empty()
     }
 }
 
@@ -625,39 +644,51 @@
     <span class="doccomment">/// Spawn the provided task on the `JoinSet`, returning an [`AbortHandle`]
     /// that can be used to remotely cancel the task.
     ///
+    /// You do not have to `.await` the returned `JoinHandle` to make the
+    /// provided future start execution. It will start running in the background
+    /// immediately when `spawn` is called.
+    ///
     /// # Panics
     ///
     /// This method panics if called outside of a Tokio runtime.
     ///
     /// [`AbortHandle`]: crate::task::AbortHandle
     </span><span class="attr">#[track_caller]
-    </span><span class="kw">pub fn </span>spawn&lt;F&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, task: F) -&gt; <a href="../runtime/task/abort.rs.html#16">AbortHandle</a>
+    </span><span class="kw">pub fn </span>spawn&lt;F&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, task: F) -&gt; AbortHandle
     <span class="kw">where
         </span>F: Future&lt;Output = T&gt;,
-        F: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <span class="lifetime">&#39;static</span>,
-        T: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a>,
+        F: Send + <span class="lifetime">&#39;static</span>,
+        T: Send,
     {
-        <a class="self" href="#129">self</a>.<a href="#187">insert</a>(<a href="spawn.rs.html#125-128"><span class="kw">crate</span>::spawn</a>(<a href="#129">task</a>))
+        <span class="self">self</span>.insert(<span class="kw">crate</span>::spawn(task))
     }
 
     <span class="doccomment">/// Spawn the provided task on the provided runtime and store it in this
     /// `JoinSet` returning an [`AbortHandle`] that can be used to remotely
     /// cancel the task.
     ///
+    /// You do not have to `.await` the returned `JoinHandle` to make the
+    /// provided future start execution. It will start running in the background
+    /// immediately when `spawn_on` is called.
+    ///
     /// [`AbortHandle`]: crate::task::AbortHandle
     </span><span class="attr">#[track_caller]
-    </span><span class="kw">pub fn </span>spawn_on&lt;F&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, task: F, handle: <span class="kw-2">&amp;</span><a href="../runtime/handle.rs.html#17">Handle</a>) -&gt; <a href="../runtime/task/abort.rs.html#16">AbortHandle</a>
+    </span><span class="kw">pub fn </span>spawn_on&lt;F&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, task: F, handle: <span class="kw-2">&amp;</span>Handle) -&gt; AbortHandle
     <span class="kw">where
         </span>F: Future&lt;Output = T&gt;,
-        F: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <span class="lifetime">&#39;static</span>,
-        T: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a>,
+        F: Send + <span class="lifetime">&#39;static</span>,
+        T: Send,
     {
-        <a class="self" href="#144">self</a>.<a href="#187">insert</a>(<a href="#144">handle</a>.<a href="../runtime/handle.rs.html#178-181">spawn</a>(<a href="#144">task</a>))
+        <span class="self">self</span>.insert(handle.spawn(task))
     }
 
     <span class="doccomment">/// Spawn the provided task on the current [`LocalSet`] and store it in this
     /// `JoinSet`, returning an [`AbortHandle`] that can be used to remotely
     /// cancel the task.
+    ///
+    /// You do not have to `.await` the returned `JoinHandle` to make the
+    /// provided future start execution. It will start running in the background
+    /// immediately when `spawn_local` is called.
     ///
     /// # Panics
     ///
@@ -666,36 +697,43 @@
     /// [`LocalSet`]: crate::task::LocalSet
     /// [`AbortHandle`]: crate::task::AbortHandle
     </span><span class="attr">#[track_caller]
-    </span><span class="kw">pub fn </span>spawn_local&lt;F&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, task: F) -&gt; <a href="../runtime/task/abort.rs.html#16">AbortHandle</a>
+    </span><span class="kw">pub fn </span>spawn_local&lt;F&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, task: F) -&gt; AbortHandle
     <span class="kw">where
         </span>F: Future&lt;Output = T&gt;,
         F: <span class="lifetime">&#39;static</span>,
     {
-        <a class="self" href="#164">self</a>.<a href="#187">insert</a>(<a href="local.rs.html#299-302"><span class="kw">crate</span>::task::spawn_local</a>(<a href="#164">task</a>))
+        <span class="self">self</span>.insert(<span class="kw">crate</span>::task::spawn_local(task))
     }
 
     <span class="doccomment">/// Spawn the provided task on the provided [`LocalSet`] and store it in
     /// this `JoinSet`, returning an [`AbortHandle`] that can be used to
     /// remotely cancel the task.
     ///
+    /// Unlike the [`spawn_local`] method, this method may be used to spawn local
+    /// tasks when the `LocalSet` is _not_ running. You do not have to `.await`
+    /// the returned `JoinHandle` to make the provided future start execution.
+    /// It will start running immediately whenever the `LocalSet` is next
+    /// started.
+    ///
     /// [`LocalSet`]: crate::task::LocalSet
     /// [`AbortHandle`]: crate::task::AbortHandle
+    /// [`spawn_local`]: Self::spawn_local
     </span><span class="attr">#[track_caller]
-    </span><span class="kw">pub fn </span>spawn_local_on&lt;F&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, task: F, local_set: <span class="kw-2">&amp;</span><a href="local.rs.html#214">LocalSet</a>) -&gt; <a href="../runtime/task/abort.rs.html#16">AbortHandle</a>
+    </span><span class="kw">pub fn </span>spawn_local_on&lt;F&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, task: F, local_set: <span class="kw-2">&amp;</span>LocalSet) -&gt; AbortHandle
     <span class="kw">where
         </span>F: Future&lt;Output = T&gt;,
         F: <span class="lifetime">&#39;static</span>,
     {
-        <a class="self" href="#179">self</a>.<a href="#187">insert</a>(<a href="#179">local_set</a>.<a href="local.rs.html#420-423">spawn_local</a>(<a href="#179">task</a>))
+        <span class="self">self</span>.insert(local_set.spawn_local(task))
     }
 
-    <span class="kw">fn </span>insert(<span class="kw-2">&amp;mut </span><span class="self">self</span>, jh: JoinHandle&lt;T&gt;) -&gt; <a href="../runtime/task/abort.rs.html#16">AbortHandle</a> {
-        <span class="kw">let </span>abort = <a href="#187">jh</a>.<a href="../runtime/task/join.rs.html#263">abort_handle</a>();
-        <span class="kw">let </span><span class="kw-2">mut </span>entry = <a class="self" href="#187">self</a>.inner.<a href="../util/idle_notified_set.rs.html#150">insert_idle</a>(<a href="#187">jh</a>);
+    <span class="kw">fn </span>insert(<span class="kw-2">&amp;mut </span><span class="self">self</span>, jh: JoinHandle&lt;T&gt;) -&gt; AbortHandle {
+        <span class="kw">let </span>abort = jh.abort_handle();
+        <span class="kw">let </span><span class="kw-2">mut </span>entry = <span class="self">self</span>.inner.insert_idle(jh);
 
         <span class="comment">// Set the waker that is notified when the task completes.
-        </span><a href="#189">entry</a>.<a href="../util/idle_notified_set.rs.html#375-378">with_value_and_context</a>(|jh, ctx| <a href="#192">jh</a>.<a href="../runtime/task/join.rs.html#253">set_join_waker</a>(<a href="#192">ctx</a>.waker()));
-        <a href="#188">abort</a>
+        </span>entry.with_value_and_context(|jh, ctx| jh.set_join_waker(ctx.waker()));
+        abort
     }
 
     <span class="doccomment">/// Waits until one of the tasks in the set completes and returns its output.
@@ -707,7 +745,7 @@
     /// This method is cancel safe. If `join_next` is used as the event in a `tokio::select!`
     /// statement and some other branch completes first, it is guaranteed that no tasks were
     /// removed from this `JoinSet`.
-    </span><span class="kw">pub async fn </span>join_next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="prelude-ty">Result</span>&lt;T, <a href="../runtime/task/error.rs.html#9">JoinError</a>&gt;&gt; {
+    </span><span class="kw">pub async fn </span>join_next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="prelude-ty">Result</span>&lt;T, JoinError&gt;&gt; {
         <span class="kw">crate</span>::future::poll_fn(|cx| <span class="self">self</span>.poll_join_next(cx)).<span class="kw">await
     </span>}
 
@@ -753,7 +791,7 @@
     /// This does not remove the tasks from the `JoinSet`. To wait for the tasks to complete
     /// cancellation, you should call `join_next` in a loop until the `JoinSet` is empty.
     </span><span class="kw">pub fn </span>abort_all(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <a class="self" href="#250">self</a>.inner.<a href="../util/idle_notified_set.rs.html#207">for_each</a>(|jh| <a href="#251">jh</a>.<a href="../runtime/task/join.rs.html#209">abort</a>());
+        <span class="self">self</span>.inner.for_each(|jh| jh.abort());
     }
 
     <span class="doccomment">/// Removes all tasks from this `JoinSet` without aborting them.
@@ -761,7 +799,7 @@
     /// The tasks removed by this call will continue to run in the background even if the `JoinSet`
     /// is dropped.
     </span><span class="kw">pub fn </span>detach_all(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <a class="self" href="#258">self</a>.inner.<a href="../util/idle_notified_set.rs.html#253">drain</a>(<a href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>);
+        <span class="self">self</span>.inner.drain(drop);
     }
 
     <span class="doccomment">/// Polls for one of the tasks in the set to complete.
@@ -789,11 +827,11 @@
     /// This can happen if the [coop budget] is reached.
     ///
     /// [coop budget]: crate::task#cooperative-scheduling
-    </span><span class="kw">fn </span>poll_join_next(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;<span class="prelude-ty">Result</span>&lt;T, <a href="../runtime/task/error.rs.html#9">JoinError</a>&gt;&gt;&gt; {
+    </span><span class="kw">fn </span>poll_join_next(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;<span class="prelude-ty">Result</span>&lt;T, JoinError&gt;&gt;&gt; {
         <span class="comment">// The call to `pop_notified` moves the entry to the `idle` list. It is moved back to
         // the `notified` list if the waker is notified in the `poll` call below.
-        </span><span class="kw">let </span><span class="kw-2">mut </span>entry = <span class="kw">match </span><a class="self" href="#287">self</a>.inner.<a href="../util/idle_notified_set.rs.html#172">pop_notified</a>(<a href="#287">cx</a>.waker()) {
-            <span class="prelude-val">Some</span>(entry) =&gt; <a href="#291">entry</a>,
+        </span><span class="kw">let </span><span class="kw-2">mut </span>entry = <span class="kw">match </span><span class="self">self</span>.inner.pop_notified(cx.waker()) {
+            <span class="prelude-val">Some</span>(entry) =&gt; entry,
             <span class="prelude-val">None </span>=&gt; {
                 <span class="kw">if </span><span class="self">self</span>.is_empty() {
                     <span class="kw">return </span>Poll::Ready(<span class="prelude-val">None</span>);
@@ -804,16 +842,16 @@
             }
         };
 
-        <span class="kw">let </span>res = <a href="#290">entry</a>.<a href="../util/idle_notified_set.rs.html#375-378">with_value_and_context</a>(|jh, ctx| Pin::new(<a href="#302">jh</a>).<a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">poll</a>(<a href="#302">ctx</a>));
+        <span class="kw">let </span>res = entry.with_value_and_context(|jh, ctx| Pin::new(jh).poll(ctx));
 
-        <span class="kw">if let </span>Poll::Ready(res) = <a href="#302">res</a> {
-            <span class="kw">let </span>_entry = <a href="#290">entry</a>.<a href="../util/idle_notified_set.rs.html#336">remove</a>();
-            Poll::Ready(<span class="prelude-val">Some</span>(<a href="#304">res</a>))
+        <span class="kw">if let </span>Poll::Ready(res) = res {
+            <span class="kw">let </span>_entry = entry.remove();
+            Poll::Ready(<span class="prelude-val">Some</span>(res))
         } <span class="kw">else </span>{
             <span class="comment">// A JoinHandle generally won&#39;t emit a wakeup without being ready unless
             // the coop limit has been reached. We yield to the executor in this
             // case.
-            </span><a href="#287">cx</a>.waker().wake_by_ref();
+            </span>cx.waker().wake_by_ref();
             Poll::Pending
         }
     }
@@ -881,19 +919,19 @@
     }
 }
 
-<span class="kw">impl</span>&lt;T&gt; <a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span>JoinSet&lt;T&gt; {
+<span class="kw">impl</span>&lt;T&gt; Drop <span class="kw">for </span>JoinSet&lt;T&gt; {
     <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <a class="self" href="#380">self</a>.inner.<a href="../util/idle_notified_set.rs.html#253">drain</a>(|join_handle| <a href="#381">join_handle</a>.<a href="../runtime/task/join.rs.html#209">abort</a>());
+        <span class="self">self</span>.inner.drain(|join_handle| join_handle.abort());
     }
 }
 
-<span class="kw">impl</span>&lt;T&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span>JoinSet&lt;T&gt; {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a href="#386">f</a>.debug_struct(<span class="string">&quot;JoinSet&quot;</span>).field(<span class="string">&quot;len&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="#386">self</a>.<a href="#80">len</a>()).finish()
+<span class="kw">impl</span>&lt;T&gt; fmt::Debug <span class="kw">for </span>JoinSet&lt;T&gt; {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        f.debug_struct(<span class="string">&quot;JoinSet&quot;</span>).field(<span class="string">&quot;len&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.len()).finish()
     }
 }
 
-<span class="kw">impl</span>&lt;T&gt; <a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for </span>JoinSet&lt;T&gt; {
+<span class="kw">impl</span>&lt;T&gt; Default <span class="kw">for </span>JoinSet&lt;T&gt; {
     <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>::new()
     }
@@ -1009,4 +1047,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="tokio" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="tokio" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

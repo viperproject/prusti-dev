@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/rustwide-0.15.2/src/toolchain.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>toolchain.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../rustwide/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/rustwide-0.15.2/src/toolchain.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>toolchain.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../rustwide/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -645,17 +645,17 @@
 <a href="#645" id="645">645</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Tools to manage and use Rust toolchains.
 
-</span><span class="kw">use </span><span class="kw">crate</span>::cmd::{<a href="cmd/mod.rs.html#137">Binary</a>, <a href="cmd/mod.rs.html#193">Command</a>, <a href="cmd/mod.rs.html#148">Runnable</a>};
-<span class="kw">use </span><a href="tools/mod.rs.html#12"><span class="kw">crate</span>::tools::RUSTUP</a>;
+</span><span class="kw">use </span><span class="kw">crate</span>::cmd::{Binary, Command, Runnable};
+<span class="kw">use </span><span class="kw">crate</span>::tools::RUSTUP;
 <span class="attr">#[cfg(feature = <span class="string">&quot;unstable-toolchain-ci&quot;</span>)]
 </span><span class="kw">use </span><span class="kw">crate</span>::tools::RUSTUP_TOOLCHAIN_INSTALL_MASTER;
-<span class="kw">use </span><a href="workspace.rs.html#193"><span class="kw">crate</span>::Workspace</a>;
-<span class="kw">use </span>failure::{<a href="../../failure/error/struct.Error.html">Error</a>, <a href="../../failure/result_ext/trait.ResultExt.html">ResultExt</a>};
-<span class="kw">use </span><a href="../../log/macro.info.html">log::info</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/borrow/enum.Cow.html">std::borrow::Cow</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">std::path::Path</a>;
+<span class="kw">use </span><span class="kw">crate</span>::Workspace;
+<span class="kw">use </span>failure::{Error, ResultExt};
+<span class="kw">use </span>log::info;
+<span class="kw">use </span>std::borrow::Cow;
+<span class="kw">use </span>std::path::Path;
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>MAIN_TOOLCHAIN_NAME: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> = <span class="string">&quot;stable&quot;</span>;
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>MAIN_TOOLCHAIN_NAME: <span class="kw-2">&amp;</span>str = <span class="string">&quot;stable&quot;</span>;
 
 <span class="doccomment">/// Error caused by methods in the `toolchain` moodule.
 </span><span class="attr">#[derive(Debug, failure::Fail)]
@@ -676,17 +676,17 @@
 <span class="doccomment">/// Metadata of a dist toolchain. See [`Toolchain`](struct.Toolchain.html) to create and get it.
 </span><span class="attr">#[derive(serde::Serialize, serde::Deserialize, PartialEq, Eq, Hash, Debug, Clone)]
 </span><span class="kw">pub struct </span>DistToolchain {
-    name: Cow&lt;<span class="lifetime">&#39;static</span>, <a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt;,
+    name: Cow&lt;<span class="lifetime">&#39;static</span>, str&gt;,
 }
 
-<span class="kw">impl </span><a href="#33">DistToolchain</a> {
+<span class="kw">impl </span>DistToolchain {
     <span class="doccomment">/// Get the name of this toolchain.
-    </span><span class="kw">pub fn </span>name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> {
-        <a class="self" href="#39">self</a>.name.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>()
+    </span><span class="kw">pub fn </span>name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>str {
+        <span class="self">self</span>.name.as_ref()
     }
 
-    <span class="kw">fn </span>init(<span class="kw-2">&amp;</span><span class="self">self</span>, workspace: <span class="kw-2">&amp;</span><a href="workspace.rs.html#193">Workspace</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../failure/error/struct.Error.html">Error</a>&gt; {
-        <a class="macro" href="../../log/macro.info.html">info!</a>(<span class="string">&quot;installing toolchain {}&quot;</span>, <span class="self">self</span>.name());
+    <span class="kw">fn </span>init(<span class="kw-2">&amp;</span><span class="self">self</span>, workspace: <span class="kw-2">&amp;</span>Workspace) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
+        <span class="macro">info!</span>(<span class="string">&quot;installing toolchain {}&quot;</span>, <span class="self">self</span>.name());
         Command::new(workspace, <span class="kw-2">&amp;</span>RUSTUP)
             .args(<span class="kw-2">&amp;</span>[
                 <span class="string">&quot;toolchain&quot;</span>,
@@ -708,10 +708,10 @@
     Remove,
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">std::fmt::Display</a> <span class="kw">for </span><a href="#61">RustupAction</a> {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">std::fmt::Formatter</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">std::fmt::Result</a> {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(
-            <a href="#67">f</a>,
+<span class="kw">impl </span>std::fmt::Display <span class="kw">for </span>RustupAction {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter) -&gt; std::fmt::Result {
+        <span class="macro">write!</span>(
+            f,
             <span class="string">&quot;{}&quot;</span>,
             <span class="kw">match </span><span class="self">self </span>{
                 <span class="self">Self</span>::Add =&gt; <span class="string">&quot;add&quot;</span>,
@@ -727,10 +727,10 @@
     Component,
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">std::fmt::Display</a> <span class="kw">for </span><a href="#80">RustupThing</a> {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">std::fmt::Formatter</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">std::fmt::Result</a> {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(
-            <a href="#86">f</a>,
+<span class="kw">impl </span>std::fmt::Display <span class="kw">for </span>RustupThing {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter) -&gt; std::fmt::Result {
+        <span class="macro">write!</span>(
+            f,
             <span class="string">&quot;{}&quot;</span>,
             <span class="kw">match </span><span class="self">self </span>{
                 <span class="self">Self</span>::Target =&gt; <span class="string">&quot;target&quot;</span>,
@@ -746,17 +746,17 @@
 #[cfg_attr(docs_rs, doc(cfg(feature = <span class="string">&quot;unstable-toolchain-ci&quot;</span>)))]
 </span><span class="kw">pub struct </span>CiToolchain {
     <span class="doccomment">/// Hash of the merge commit of the PR you want to download.
-    </span>sha: <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>,
+    </span>sha: String,
     <span class="doccomment">/// Whether you want to download a standard or &quot;alt&quot; build. &quot;alt&quot; builds have extra
     /// compiler assertions enabled.
-    </span>alt: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
+    </span>alt: bool,
 }
 
 <span class="attr">#[cfg(any(feature = <span class="string">&quot;unstable-toolchain-ci&quot;</span>, doc))]
-</span><span class="kw">impl </span><a href="#102">CiToolchain</a> {
+</span><span class="kw">impl </span>CiToolchain {
     <span class="doccomment">/// Get the SHA of the git commit that produced this toolchain.
-    </span><span class="kw">pub fn </span>sha(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> {
-        <span class="kw-2">&amp;</span><a class="self" href="#113">self</a>.sha
+    </span><span class="kw">pub fn </span>sha(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>str {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.sha
     }
 
     <span class="doccomment">/// Check whether this is a normal CI artifact or an alternate CI artifact.
@@ -764,20 +764,20 @@
     /// Alternate CI artifacts are artifacts with extra assertions or features, produced by the Rust
     /// team mostly for internal usage. The difference between them and normal CI artifacts can
     /// change over time.
-    </span><span class="kw">pub fn </span>is_alt(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#122">self</a>.alt
+    </span><span class="kw">pub fn </span>is_alt(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.alt
     }
 
-    <span class="kw">fn </span>init(<span class="kw-2">&amp;</span><span class="self">self</span>, workspace: <span class="kw-2">&amp;</span><a href="workspace.rs.html#193">Workspace</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../failure/error/struct.Error.html">Error</a>&gt; {
+    <span class="kw">fn </span>init(<span class="kw-2">&amp;</span><span class="self">self</span>, workspace: <span class="kw-2">&amp;</span>Workspace) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
         <span class="kw">if </span><span class="self">self</span>.alt {
-            <a class="macro" href="../../log/macro.info.html">info!</a>(<span class="string">&quot;installing toolchain {}-alt&quot;</span>, <span class="self">self</span>.sha);
+            <span class="macro">info!</span>(<span class="string">&quot;installing toolchain {}-alt&quot;</span>, <span class="self">self</span>.sha);
         } <span class="kw">else </span>{
-            <a class="macro" href="../../log/macro.info.html">info!</a>(<span class="string">&quot;installing toolchain {}&quot;</span>, <span class="self">self</span>.sha);
+            <span class="macro">info!</span>(<span class="string">&quot;installing toolchain {}&quot;</span>, <span class="self">self</span>.sha);
         }
 
-        <span class="kw">let </span><span class="kw-2">mut </span>args = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[<span class="self">self</span>.sha(), <span class="string">&quot;-c&quot;</span>, <span class="string">&quot;cargo&quot;</span>];
+        <span class="kw">let </span><span class="kw-2">mut </span>args = <span class="macro">vec!</span>[<span class="self">self</span>.sha(), <span class="string">&quot;-c&quot;</span>, <span class="string">&quot;cargo&quot;</span>];
         <span class="kw">if </span><span class="self">self</span>.alt {
-            <a href="#133">args</a>.push(<span class="string">&quot;--alt&quot;</span>);
+            args.push(<span class="string">&quot;--alt&quot;</span>);
         }
 
         Command::new(workspace, <span class="kw-2">&amp;</span>RUSTUP_TOOLCHAIN_INSTALL_MASTER)
@@ -797,7 +797,7 @@
 <span class="attr">#[derive(serde::Serialize, serde::Deserialize, PartialEq, Eq, Hash, Debug, Clone)]
 #[serde(rename_all = <span class="string">&quot;kebab-case&quot;</span>, tag = <span class="string">&quot;type&quot;</span>)]
 </span><span class="kw">enum </span>ToolchainInner {
-    Dist(<a href="#33">DistToolchain</a>),
+    Dist(DistToolchain),
     <span class="attr">#[serde(rename = <span class="string">&quot;ci&quot;</span>)]
     #[cfg(feature = <span class="string">&quot;unstable-toolchain-ci&quot;</span>)]
     </span>CI(CiToolchain),
@@ -813,13 +813,13 @@
 </span><span class="attr">#[derive(serde::Serialize, serde::Deserialize, PartialEq, Eq, Hash, Debug, Clone)]
 </span><span class="kw">pub struct </span>Toolchain {
     <span class="attr">#[serde(flatten)]
-    </span>inner: <a href="#154">ToolchainInner</a>,
+    </span>inner: ToolchainInner,
 }
 
-<span class="kw">impl </span><a href="#169">Toolchain</a> {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>MAIN: <a href="#169">Toolchain</a> = <a href="#169">Toolchain</a> {
-        inner: <a href="#155">ToolchainInner::Dist</a>(<a href="#33">DistToolchain</a> {
-            name: Cow::Borrowed(<a href="#13">MAIN_TOOLCHAIN_NAME</a>),
+<span class="kw">impl </span>Toolchain {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>MAIN: Toolchain = Toolchain {
+        inner: ToolchainInner::Dist(DistToolchain {
+            name: Cow::Borrowed(MAIN_TOOLCHAIN_NAME),
         }),
     };
 
@@ -834,9 +834,9 @@
     /// let tc = Toolchain::dist(&quot;nightly-x86_64-unknown-linux-gnu&quot;);
     /// assert!(!tc.is_needed_by_rustwide());
     /// ```
-    </span><span class="kw">pub fn </span>is_needed_by_rustwide(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">match </span><span class="kw-2">&amp;</span><a class="self" href="#192">self</a>.inner {
-            <a href="#155">ToolchainInner::Dist</a>(dist) =&gt; <a href="#194">dist</a>.name.starts_with(<a href="#13">MAIN_TOOLCHAIN_NAME</a>),
+    </span><span class="kw">pub fn </span>is_needed_by_rustwide(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="kw">match </span><span class="kw-2">&amp;</span><span class="self">self</span>.inner {
+            ToolchainInner::Dist(dist) =&gt; dist.name.starts_with(MAIN_TOOLCHAIN_NAME),
             <span class="attr">#[cfg(feature = <span class="string">&quot;unstable-toolchain-ci&quot;</span>)]
             </span><span class="kw">_ </span>=&gt; <span class="bool-val">false</span>,
         }
@@ -849,10 +849,10 @@
     /// use to install that toolchain with rustup).
     ///
     /// [static-rlo]: https://static.rust-lang.org
-    </span><span class="kw">pub fn </span>dist(name: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="self">Self </span>{
-        <a href="#169">Toolchain</a> {
-            inner: <a href="#155">ToolchainInner::Dist</a>(<a href="#33">DistToolchain</a> {
-                name: Cow::Owned(<a href="#207">name</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
+    </span><span class="kw">pub fn </span>dist(name: <span class="kw-2">&amp;</span>str) -&gt; <span class="self">Self </span>{
+        Toolchain {
+            inner: ToolchainInner::Dist(DistToolchain {
+                name: Cow::Owned(name.into()),
             }),
         }
     }
@@ -869,20 +869,20 @@
     /// [repo]: https://github.com/rust-lang/rust
     </span><span class="attr">#[cfg(any(feature = <span class="string">&quot;unstable-toolchain-ci&quot;</span>, doc))]
     #[cfg_attr(docs_rs, doc(cfg(feature = <span class="string">&quot;unstable-toolchain-ci&quot;</span>)))]
-    </span><span class="kw">pub fn </span>ci(sha: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, alt: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="self">Self </span>{
-        <a href="#169">Toolchain</a> {
-            inner: ToolchainInner::CI(<a href="#102">CiToolchain</a> {
-                sha: <a href="#227">sha</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(),
-                <a href="#227">alt</a>,
+    </span><span class="kw">pub fn </span>ci(sha: <span class="kw-2">&amp;</span>str, alt: bool) -&gt; <span class="self">Self </span>{
+        Toolchain {
+            inner: ToolchainInner::CI(CiToolchain {
+                sha: sha.to_string(),
+                alt,
             }),
         }
     }
 
     <span class="doccomment">/// If this toolchain is a dist toolchain, return its metadata.
     </span><span class="attr">#[allow(irrefutable_let_patterns)]
-    </span><span class="kw">pub fn </span>as_dist(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="#33">DistToolchain</a>&gt; {
-        <span class="kw">if let </span><a href="#155">ToolchainInner::Dist</a>(dist) = <span class="kw-2">&amp;</span><a class="self" href="#238">self</a>.inner {
-            <span class="prelude-val">Some</span>(<a href="#239">dist</a>)
+    </span><span class="kw">pub fn </span>as_dist(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>DistToolchain&gt; {
+        <span class="kw">if let </span>ToolchainInner::Dist(dist) = <span class="kw-2">&amp;</span><span class="self">self</span>.inner {
+            <span class="prelude-val">Some</span>(dist)
         } <span class="kw">else </span>{
             <span class="prelude-val">None
         </span>}
@@ -891,18 +891,18 @@
     <span class="doccomment">/// If this toolchain is a CI toolchain, return its metadata.
     </span><span class="attr">#[cfg(any(feature = <span class="string">&quot;unstable-toolchain-ci&quot;</span>, doc))]
     #[cfg_attr(docs_rs, doc(cfg(feature = <span class="string">&quot;unstable-toolchain-ci&quot;</span>)))]
-    </span><span class="kw">pub fn </span>as_ci(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="#102">CiToolchain</a>&gt; {
-        <span class="kw">if let </span>ToolchainInner::CI(ci) = <span class="kw-2">&amp;</span><a class="self" href="#249">self</a>.inner {
-            <span class="prelude-val">Some</span>(<a href="#250">ci</a>)
+    </span><span class="kw">pub fn </span>as_ci(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>CiToolchain&gt; {
+        <span class="kw">if let </span>ToolchainInner::CI(ci) = <span class="kw-2">&amp;</span><span class="self">self</span>.inner {
+            <span class="prelude-val">Some</span>(ci)
         } <span class="kw">else </span>{
             <span class="prelude-val">None
         </span>}
     }
 
     <span class="doccomment">/// Download and install the toolchain.
-    </span><span class="kw">pub fn </span>install(<span class="kw-2">&amp;</span><span class="self">self</span>, workspace: <span class="kw-2">&amp;</span><a href="workspace.rs.html#193">Workspace</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../failure/error/struct.Error.html">Error</a>&gt; {
-        <span class="kw">match </span><span class="kw-2">&amp;</span><a class="self" href="#258">self</a>.inner {
-            <a href="#155">ToolchainInner::Dist</a>(dist) =&gt; dist.init(workspace)<span class="question-mark">?</span>,
+    </span><span class="kw">pub fn </span>install(<span class="kw-2">&amp;</span><span class="self">self</span>, workspace: <span class="kw-2">&amp;</span>Workspace) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
+        <span class="kw">match </span><span class="kw-2">&amp;</span><span class="self">self</span>.inner {
+            ToolchainInner::Dist(dist) =&gt; dist.init(workspace)<span class="question-mark">?</span>,
             <span class="attr">#[cfg(feature = <span class="string">&quot;unstable-toolchain-ci&quot;</span>)]
             </span>ToolchainInner::CI(ci) =&gt; ci.init(workspace)<span class="question-mark">?</span>,
         }
@@ -911,17 +911,17 @@
     }
 
     <span class="doccomment">/// Download and install a component for the toolchain.
-    </span><span class="kw">pub fn </span>add_component(<span class="kw-2">&amp;</span><span class="self">self</span>, workspace: <span class="kw-2">&amp;</span><a href="workspace.rs.html#193">Workspace</a>, name: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../failure/error/struct.Error.html">Error</a>&gt; {
-        <a class="self" href="#269">self</a>.<a href="#306-312">change_rustup_thing</a>(<a href="#269">workspace</a>, <a href="#62">RustupAction::Add</a>, <a href="#82">RustupThing::Component</a>, <a href="#269">name</a>)
+    </span><span class="kw">pub fn </span>add_component(<span class="kw-2">&amp;</span><span class="self">self</span>, workspace: <span class="kw-2">&amp;</span>Workspace, name: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
+        <span class="self">self</span>.change_rustup_thing(workspace, RustupAction::Add, RustupThing::Component, name)
     }
 
     <span class="doccomment">/// Remove a component already installed for the toolchain.
-    </span><span class="kw">pub fn </span>remove_component(<span class="kw-2">&amp;</span><span class="self">self</span>, workspace: <span class="kw-2">&amp;</span><a href="workspace.rs.html#193">Workspace</a>, name: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../failure/error/struct.Error.html">Error</a>&gt; {
-        <a class="self" href="#274">self</a>.<a href="#306-312">change_rustup_thing</a>(
-            <a href="#274">workspace</a>,
-            <a href="#63">RustupAction::Remove</a>,
-            <a href="#82">RustupThing::Component</a>,
-            <a href="#274">name</a>,
+    </span><span class="kw">pub fn </span>remove_component(<span class="kw-2">&amp;</span><span class="self">self</span>, workspace: <span class="kw-2">&amp;</span>Workspace, name: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
+        <span class="self">self</span>.change_rustup_thing(
+            workspace,
+            RustupAction::Remove,
+            RustupThing::Component,
+            name,
         )
     }
 
@@ -929,39 +929,39 @@
     ///
     /// If the toolchain is not installed in the workspace an error will be returned. This is only
     /// supported for dist toolchains.
-    </span><span class="kw">pub fn </span>add_target(<span class="kw-2">&amp;</span><span class="self">self</span>, workspace: <span class="kw-2">&amp;</span><a href="workspace.rs.html#193">Workspace</a>, name: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../failure/error/struct.Error.html">Error</a>&gt; {
-        <a class="self" href="#287">self</a>.<a href="#306-312">change_rustup_thing</a>(<a href="#287">workspace</a>, <a href="#62">RustupAction::Add</a>, <a href="#81">RustupThing::Target</a>, <a href="#287">name</a>)
+    </span><span class="kw">pub fn </span>add_target(<span class="kw-2">&amp;</span><span class="self">self</span>, workspace: <span class="kw-2">&amp;</span>Workspace, name: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
+        <span class="self">self</span>.change_rustup_thing(workspace, RustupAction::Add, RustupThing::Target, name)
     }
 
     <span class="doccomment">/// Remove a target already installed for the toolchain.
     ///
     /// If the toolchain is not installed in the workspace or the target is missing an error will
     /// be returned. This is only supported for dist toolchains.
-    </span><span class="kw">pub fn </span>remove_target(<span class="kw-2">&amp;</span><span class="self">self</span>, workspace: <span class="kw-2">&amp;</span><a href="workspace.rs.html#193">Workspace</a>, name: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../failure/error/struct.Error.html">Error</a>&gt; {
-        <a class="self" href="#295">self</a>.<a href="#306-312">change_rustup_thing</a>(<a href="#295">workspace</a>, <a href="#63">RustupAction::Remove</a>, <a href="#81">RustupThing::Target</a>, <a href="#295">name</a>)
+    </span><span class="kw">pub fn </span>remove_target(<span class="kw-2">&amp;</span><span class="self">self</span>, workspace: <span class="kw-2">&amp;</span>Workspace, name: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
+        <span class="self">self</span>.change_rustup_thing(workspace, RustupAction::Remove, RustupThing::Target, name)
     }
 
     <span class="doccomment">/// Return a list of installed targets for this toolchain.
     ///
     /// If the toolchain is not installed an empty list is returned.
-    </span><span class="kw">pub fn </span>installed_targets(<span class="kw-2">&amp;</span><span class="self">self</span>, workspace: <span class="kw-2">&amp;</span><a href="workspace.rs.html#193">Workspace</a>) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt;, <a href="../../failure/error/struct.Error.html">Error</a>&gt; {
-        <a class="self" href="#302">self</a>.<a href="#378-382">list_rustup_things</a>(<a href="#302">workspace</a>, <a href="#81">RustupThing::Target</a>)
+    </span><span class="kw">pub fn </span>installed_targets(<span class="kw-2">&amp;</span><span class="self">self</span>, workspace: <span class="kw-2">&amp;</span>Workspace) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;String&gt;, Error&gt; {
+        <span class="self">self</span>.list_rustup_things(workspace, RustupThing::Target)
     }
 
     <span class="kw">fn </span>change_rustup_thing(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        workspace: <span class="kw-2">&amp;</span><a href="workspace.rs.html#193">Workspace</a>,
-        action: <a href="#61">RustupAction</a>,
-        thing: <a href="#80">RustupThing</a>,
-        name: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../failure/error/struct.Error.html">Error</a>&gt; {
-        <span class="kw">let </span>(log_action, log_action_ing) = <span class="kw">match </span><a href="#309">action</a> {
-            <a href="#62">RustupAction::Add</a> =&gt; (<span class="string">&quot;add&quot;</span>, <span class="string">&quot;adding&quot;</span>),
-            <a href="#63">RustupAction::Remove</a> =&gt; (<span class="string">&quot;remove&quot;</span>, <span class="string">&quot;removing&quot;</span>),
+        workspace: <span class="kw-2">&amp;</span>Workspace,
+        action: RustupAction,
+        thing: RustupThing,
+        name: <span class="kw-2">&amp;</span>str,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
+        <span class="kw">let </span>(log_action, log_action_ing) = <span class="kw">match </span>action {
+            RustupAction::Add =&gt; (<span class="string">&quot;add&quot;</span>, <span class="string">&quot;adding&quot;</span>),
+            RustupAction::Remove =&gt; (<span class="string">&quot;remove&quot;</span>, <span class="string">&quot;removing&quot;</span>),
         };
 
-        <span class="kw">let </span>toolchain_name = <a class="self" href="#307">self</a>.<a href="#493">rustup_name</a>();
-        <a class="macro" href="../../log/macro.info.html">info!</a>(<span class="string">&quot;{log_action_ing} {thing} {name} for toolchain {toolchain_name}&quot;</span>);
+        <span class="kw">let </span>toolchain_name = <span class="self">self</span>.rustup_name();
+        <span class="macro">info!</span>(<span class="string">&quot;{log_action_ing} {thing} {name} for toolchain {toolchain_name}&quot;</span>);
 
         <span class="attr">#[cfg(feature = <span class="string">&quot;unstable-toolchain-ci&quot;</span>)]
         </span><span class="kw">if let </span>ToolchainInner::CI(ci) = <span class="kw-2">&amp;</span><span class="self">self</span>.inner {
@@ -1000,8 +1000,8 @@
             <span class="kw">return </span><span class="prelude-val">Ok</span>(());
         }
 
-        <span class="kw">let </span>thing = <a href="#310">thing</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>();
-        <span class="kw">let </span>action = <a href="#309">action</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>();
+        <span class="kw">let </span>thing = thing.to_string();
+        <span class="kw">let </span>action = action.to_string();
 
         Command::new(workspace, <span class="kw-2">&amp;</span>RUSTUP)
             .args(<span class="kw-2">&amp;</span>[
@@ -1022,47 +1022,47 @@
 
     <span class="kw">fn </span>list_rustup_things(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        workspace: <span class="kw-2">&amp;</span><a href="workspace.rs.html#193">Workspace</a>,
-        thing: <a href="#80">RustupThing</a>,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt;, <a href="../../failure/error/struct.Error.html">Error</a>&gt; {
-        <span class="kw">let </span>thing = <a href="#381">thing</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>();
-        <span class="kw">let </span>name = <span class="kw">if let </span><span class="prelude-val">Some</span>(dist) = <a class="self" href="#379">self</a>.<a href="#238">as_dist</a>() {
-            <a href="#384">dist</a>.<a href="#39">name</a>()
+        workspace: <span class="kw-2">&amp;</span>Workspace,
+        thing: RustupThing,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;String&gt;, Error&gt; {
+        <span class="kw">let </span>thing = thing.to_string();
+        <span class="kw">let </span>name = <span class="kw">if let </span><span class="prelude-val">Some</span>(dist) = <span class="self">self</span>.as_dist() {
+            dist.name()
         } <span class="kw">else </span>{
-            <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="#28">ToolchainError::UnsupportedOperation</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>());
+            <span class="kw">return </span><span class="prelude-val">Err</span>(ToolchainError::UnsupportedOperation.into());
         };
 
         <span class="kw">let </span><span class="kw-2">mut </span>not_installed = <span class="bool-val">false</span>;
-        <span class="kw">let </span>result = Command::new(<a href="#380">workspace</a>, <span class="kw-2">&amp;</span><a href="tools/mod.rs.html#12">RUSTUP</a>)
-            .<a href="cmd/mod.rs.html#260">args</a>(<span class="kw-2">&amp;</span>[<a href="#383">thing</a>.as_str(), <span class="string">&quot;list&quot;</span>, <span class="string">&quot;--installed&quot;</span>, <span class="string">&quot;--toolchain&quot;</span>, <a href="#384">name</a>])
-            .<a href="cmd/mod.rs.html#332">log_output</a>(<span class="bool-val">false</span>)
-            .<a href="cmd/mod.rs.html#323">process_lines</a>(<span class="kw-2">&amp;mut </span>|line, <span class="kw">_</span>| {
+        <span class="kw">let </span>result = Command::new(workspace, <span class="kw-2">&amp;</span>RUSTUP)
+            .args(<span class="kw-2">&amp;</span>[thing.as_str(), <span class="string">&quot;list&quot;</span>, <span class="string">&quot;--installed&quot;</span>, <span class="string">&quot;--toolchain&quot;</span>, name])
+            .log_output(<span class="bool-val">false</span>)
+            .process_lines(<span class="kw-2">&amp;mut </span>|line, <span class="kw">_</span>| {
                 <span class="kw">if </span>line.starts_with(<span class="string">&quot;error: toolchain &quot;</span>) &amp;&amp; line.ends_with(<span class="string">&quot; is not installed&quot;</span>) {
-                    <a href="#390">not_installed</a> = <span class="bool-val">true</span>;
+                    not_installed = <span class="bool-val">true</span>;
                 }
             })
-            .<a href="cmd/mod.rs.html#359">run_capture</a>();
+            .run_capture();
 
-        <span class="kw">match </span><a href="#391">result</a> {
-            <span class="prelude-val">Ok</span>(out) =&gt; <span class="prelude-val">Ok</span>(<a href="#402">out</a>
-                .<a href="cmd/mod.rs.html#529">stdout_lines</a>()
+        <span class="kw">match </span>result {
+            <span class="prelude-val">Ok</span>(out) =&gt; <span class="prelude-val">Ok</span>(out
+                .stdout_lines()
                 .iter()
-                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter</a>(|line| !<a href="#405">line</a>.is_empty())
-                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">cloned</a>()
-                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>()),
-            <span class="prelude-val">Err</span>(<span class="kw">_</span>) <span class="kw">if </span><a href="#390">not_installed</a> =&gt; <span class="prelude-val">Err</span>(<a href="#23">ToolchainError::NotInstalled</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
-            <span class="prelude-val">Err</span>(err) =&gt; <span class="prelude-val">Err</span>(Error::from(<a href="#409">err</a>)
-                .context(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(
+                .filter(|line| !line.is_empty())
+                .cloned()
+                .collect()),
+            <span class="prelude-val">Err</span>(<span class="kw">_</span>) <span class="kw">if </span>not_installed =&gt; <span class="prelude-val">Err</span>(ToolchainError::NotInstalled.into()),
+            <span class="prelude-val">Err</span>(err) =&gt; <span class="prelude-val">Err</span>(Error::from(err)
+                .context(<span class="macro">format!</span>(
                     <span class="string">&quot;failed to read the list of installed {}s for {} with rustup&quot;</span>,
                     thing, name
                 ))
-                .<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
+                .into()),
         }
     }
 
     <span class="doccomment">/// Remove the toolchain from the rustwide workspace, freeing up disk space.
-    </span><span class="kw">pub fn </span>uninstall(<span class="kw-2">&amp;</span><span class="self">self</span>, workspace: <span class="kw-2">&amp;</span><a href="workspace.rs.html#193">Workspace</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../failure/error/struct.Error.html">Error</a>&gt; {
-        <span class="kw">let </span>name = <a class="self" href="#419">self</a>.<a href="#493">rustup_name</a>();
+    </span><span class="kw">pub fn </span>uninstall(<span class="kw-2">&amp;</span><span class="self">self</span>, workspace: <span class="kw-2">&amp;</span>Workspace) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
+        <span class="kw">let </span>name = <span class="self">self</span>.rustup_name();
         Command::new(workspace, <span class="kw-2">&amp;</span>RUSTUP)
             .args(<span class="kw-2">&amp;</span>[<span class="string">&quot;toolchain&quot;</span>, <span class="string">&quot;uninstall&quot;</span>, <span class="kw-2">&amp;</span>name])
             .run()
@@ -1087,8 +1087,8 @@
     /// # Ok(())
     /// # }
     /// ```
-    </span><span class="kw">pub fn </span>cargo(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl </span><a href="cmd/mod.rs.html#148">Runnable</a> + <span class="lifetime">&#39;_ </span>{
-        <a class="self" href="#445">self</a>.<a href="#486">rustup_binary</a>(<span class="string">&quot;cargo&quot;</span>)
+    </span><span class="kw">pub fn </span>cargo(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl </span>Runnable + <span class="lifetime">&#39;_ </span>{
+        <span class="self">self</span>.rustup_binary(<span class="string">&quot;cargo&quot;</span>)
     }
 
     <span class="doccomment">/// Return a runnable object configured to run `rustc` with this toolchain. This method is
@@ -1108,8 +1108,8 @@
     /// # Ok(())
     /// # }
     /// ```
-    </span><span class="kw">pub fn </span>rustc(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl </span><a href="cmd/mod.rs.html#148">Runnable</a> + <span class="lifetime">&#39;_ </span>{
-        <a class="self" href="#466">self</a>.<a href="#486">rustup_binary</a>(<span class="string">&quot;rustc&quot;</span>)
+    </span><span class="kw">pub fn </span>rustc(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl </span>Runnable + <span class="lifetime">&#39;_ </span>{
+        <span class="self">self</span>.rustup_binary(<span class="string">&quot;rustc&quot;</span>)
     }
 
     <span class="doccomment">/// Return a runnable object configured to run `name` with this toolchain. This method is
@@ -1128,16 +1128,16 @@
     ///     .run()?;
     /// # Ok(())
     /// # }
-    </span><span class="kw">pub fn </span>rustup_binary(<span class="kw-2">&amp;</span><span class="self">self</span>, name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="kw">impl </span><a href="cmd/mod.rs.html#148">Runnable</a> + <span class="lifetime">&#39;_ </span>{
-        <a href="#510">RustupProxy</a> {
-            toolchain: <a class="self" href="#486">self</a>,
-            <a href="#486">name</a>,
+    </span><span class="kw">pub fn </span>rustup_binary(<span class="kw-2">&amp;</span><span class="self">self</span>, name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str) -&gt; <span class="kw">impl </span>Runnable + <span class="lifetime">&#39;_ </span>{
+        RustupProxy {
+            toolchain: <span class="self">self</span>,
+            name,
         }
     }
 
-    <span class="kw">fn </span>rustup_name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a> {
-        <span class="kw">match </span><span class="kw-2">&amp;</span><a class="self" href="#493">self</a>.inner {
-            <a href="#155">ToolchainInner::Dist</a>(dist) =&gt; <a href="#495">dist</a>.name.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(),
+    <span class="kw">fn </span>rustup_name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; String {
+        <span class="kw">match </span><span class="kw-2">&amp;</span><span class="self">self</span>.inner {
+            ToolchainInner::Dist(dist) =&gt; dist.name.to_string(),
             <span class="attr">#[cfg(feature = <span class="string">&quot;unstable-toolchain-ci&quot;</span>)]
             </span>ToolchainInner::CI(ci) <span class="kw">if </span>ci.alt =&gt; <span class="macro">format!</span>(<span class="string">&quot;{}-alt&quot;</span>, ci.sha),
             <span class="attr">#[cfg(feature = <span class="string">&quot;unstable-toolchain-ci&quot;</span>)]
@@ -1146,29 +1146,29 @@
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">std::fmt::Display</a> <span class="kw">for </span><a href="#169">Toolchain</a> {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">std::fmt::Formatter</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">std::fmt::Result</a> {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#505">f</a>, <span class="string">&quot;{}&quot;</span>, <span class="self">self</span>.rustup_name())
+<span class="kw">impl </span>std::fmt::Display <span class="kw">for </span>Toolchain {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter) -&gt; std::fmt::Result {
+        <span class="macro">write!</span>(f, <span class="string">&quot;{}&quot;</span>, <span class="self">self</span>.rustup_name())
     }
 }
 
 <span class="kw">struct </span>RustupProxy&lt;<span class="lifetime">&#39;a</span>&gt; {
-    toolchain: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="#169">Toolchain</a>,
-    name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>,
+    toolchain: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Toolchain,
+    name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
 }
 
-<span class="kw">impl </span><a href="cmd/mod.rs.html#148">Runnable</a> <span class="kw">for </span>RustupProxy&lt;<span class="lifetime">&#39;_</span>&gt; {
-    <span class="kw">fn </span>name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="cmd/mod.rs.html#137">Binary</a> {
-        <a href="cmd/mod.rs.html#144">Binary::ManagedByRustwide</a>(<a class="self" href="#516">self</a>.name.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
+<span class="kw">impl </span>Runnable <span class="kw">for </span>RustupProxy&lt;<span class="lifetime">&#39;_</span>&gt; {
+    <span class="kw">fn </span>name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Binary {
+        Binary::ManagedByRustwide(<span class="self">self</span>.name.into())
     }
 
     <span class="kw">fn </span>prepare_command&lt;<span class="lifetime">&#39;w</span>, <span class="lifetime">&#39;pl</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, cmd: Command&lt;<span class="lifetime">&#39;w</span>, <span class="lifetime">&#39;pl</span>&gt;) -&gt; Command&lt;<span class="lifetime">&#39;w</span>, <span class="lifetime">&#39;pl</span>&gt; {
-        <a href="#520">cmd</a>.<a href="cmd/mod.rs.html#260">args</a>(<span class="kw-2">&amp;</span>[<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;+{}&quot;</span>, <span class="self">self</span>.toolchain.rustup_name())])
+        cmd.args(<span class="kw-2">&amp;</span>[<span class="macro">format!</span>(<span class="string">&quot;+{}&quot;</span>, <span class="self">self</span>.toolchain.rustup_name())])
     }
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>list_installed_toolchains(rustup_home: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;<a href="#169">Toolchain</a>&gt;, <a href="../../failure/error/struct.Error.html">Error</a>&gt; {
-    <span class="kw">let </span>update_hashes = <a href="#525">rustup_home</a>.join(<span class="string">&quot;update-hashes&quot;</span>);
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>list_installed_toolchains(rustup_home: <span class="kw-2">&amp;</span>Path) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;Toolchain&gt;, Error&gt; {
+    <span class="kw">let </span>update_hashes = rustup_home.join(<span class="string">&quot;update-hashes&quot;</span>);
 
     <span class="kw">let </span><span class="kw-2">mut </span>result = Vec::new();
     <span class="kw">for </span>entry <span class="kw">in </span>std::fs::read_dir(<span class="kw-2">&amp;</span>rustup_home.join(<span class="string">&quot;toolchains&quot;</span>))<span class="question-mark">? </span>{
@@ -1194,7 +1194,7 @@
             }
         }
     }
-    <span class="prelude-val">Ok</span>(<a href="#528">result</a>)
+    <span class="prelude-val">Ok</span>(result)
 }
 
 <span class="attr">#[cfg(test)]
@@ -1289,4 +1289,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="rustwide" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="rustwide" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

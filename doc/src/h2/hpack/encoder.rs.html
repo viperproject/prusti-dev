@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/h2-0.3.15/src/hpack/encoder.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>encoder.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../h2/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/h2-0.3.15/src/hpack/encoder.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>encoder.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../h2/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -719,28 +719,28 @@
 <a href="#719" id="719">719</a>
 <a href="#720" id="720">720</a>
 <a href="#721" id="721">721</a>
-</pre><pre class="rust"><code><span class="kw">use </span><span class="kw">super</span>::table::{<a href="table.rs.html#24">Index</a>, <a href="table.rs.html#13">Table</a>};
-<span class="kw">use super</span>::{<a href="mod.rs.html#4">huffman</a>, <a href="header.rs.html#11">Header</a>};
+</pre><pre class="rust"><code><span class="kw">use </span><span class="kw">super</span>::table::{Index, Table};
+<span class="kw">use super</span>::{huffman, Header};
 
-<span class="kw">use </span>bytes::{<a href="../../../bytes/buf/buf_mut/trait.BufMut.html">BufMut</a>, <a href="../../../bytes/bytes_mut/struct.BytesMut.html">BytesMut</a>};
-<span class="kw">use </span>http::header::{<a href="../../../http/header/name/struct.HeaderName.html">HeaderName</a>, <a href="../../../http/header/value/struct.HeaderValue.html">HeaderValue</a>};
+<span class="kw">use </span>bytes::{BufMut, BytesMut};
+<span class="kw">use </span>http::header::{HeaderName, HeaderValue};
 
 <span class="attr">#[derive(Debug)]
 </span><span class="kw">pub struct </span>Encoder {
-    table: <a href="table.rs.html#13">Table</a>,
-    size_update: <span class="prelude-ty">Option</span>&lt;<a href="#14">SizeUpdate</a>&gt;,
+    table: Table,
+    size_update: <span class="prelude-ty">Option</span>&lt;SizeUpdate&gt;,
 }
 
 <span class="attr">#[derive(Debug, Copy, Clone, Eq, PartialEq)]
 </span><span class="kw">enum </span>SizeUpdate {
-    One(<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>),
-    Two(<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>), <span class="comment">// min, max
+    One(usize),
+    Two(usize, usize), <span class="comment">// min, max
 </span>}
 
-<span class="kw">impl </span><a href="#8">Encoder</a> {
-    <span class="kw">pub fn </span>new(max_size: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, capacity: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a href="#8">Encoder</a> {
-        <a href="#8">Encoder</a> {
-            table: Table::new(<a href="#20">max_size</a>, <a href="#20">capacity</a>),
+<span class="kw">impl </span>Encoder {
+    <span class="kw">pub fn </span>new(max_size: usize, capacity: usize) -&gt; Encoder {
+        Encoder {
+            table: Table::new(max_size, capacity),
             size_update: <span class="prelude-val">None</span>,
         }
     }
@@ -748,45 +748,45 @@
     <span class="doccomment">/// Queues a max size update.
     ///
     /// The next call to `encode` will include a dynamic size update frame.
-    </span><span class="kw">pub fn </span>update_max_size(<span class="kw-2">&amp;mut </span><span class="self">self</span>, val: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
-        <span class="kw">match </span><a class="self" href="#30">self</a>.size_update {
-            <span class="prelude-val">Some</span>(<a href="#15">SizeUpdate::One</a>(old)) =&gt; {
+    </span><span class="kw">pub fn </span>update_max_size(<span class="kw-2">&amp;mut </span><span class="self">self</span>, val: usize) {
+        <span class="kw">match </span><span class="self">self</span>.size_update {
+            <span class="prelude-val">Some</span>(SizeUpdate::One(old)) =&gt; {
                 <span class="kw">if </span>val &gt; old {
                     <span class="kw">if </span>old &gt; <span class="self">self</span>.table.max_size() {
-                        <a class="self" href="#30">self</a>.size_update = <span class="prelude-val">Some</span>(<a href="#15">SizeUpdate::One</a>(<a href="#30">val</a>));
+                        <span class="self">self</span>.size_update = <span class="prelude-val">Some</span>(SizeUpdate::One(val));
                     } <span class="kw">else </span>{
-                        <a class="self" href="#30">self</a>.size_update = <span class="prelude-val">Some</span>(<a href="#16">SizeUpdate::Two</a>(<a href="#32">old</a>, <a href="#30">val</a>));
+                        <span class="self">self</span>.size_update = <span class="prelude-val">Some</span>(SizeUpdate::Two(old, val));
                     }
                 } <span class="kw">else </span>{
-                    <a class="self" href="#30">self</a>.size_update = <span class="prelude-val">Some</span>(<a href="#15">SizeUpdate::One</a>(<a href="#30">val</a>));
+                    <span class="self">self</span>.size_update = <span class="prelude-val">Some</span>(SizeUpdate::One(val));
                 }
             }
-            <span class="prelude-val">Some</span>(<a href="#16">SizeUpdate::Two</a>(min, <span class="kw">_</span>)) =&gt; {
+            <span class="prelude-val">Some</span>(SizeUpdate::Two(min, <span class="kw">_</span>)) =&gt; {
                 <span class="kw">if </span>val &lt; min {
-                    <a class="self" href="#30">self</a>.size_update = <span class="prelude-val">Some</span>(<a href="#15">SizeUpdate::One</a>(<a href="#30">val</a>));
+                    <span class="self">self</span>.size_update = <span class="prelude-val">Some</span>(SizeUpdate::One(val));
                 } <span class="kw">else </span>{
-                    <a class="self" href="#30">self</a>.size_update = <span class="prelude-val">Some</span>(<a href="#16">SizeUpdate::Two</a>(<a href="#43">min</a>, <a href="#30">val</a>));
+                    <span class="self">self</span>.size_update = <span class="prelude-val">Some</span>(SizeUpdate::Two(min, val));
                 }
             }
             <span class="prelude-val">None </span>=&gt; {
                 <span class="kw">if </span>val != <span class="self">self</span>.table.max_size() {
                     <span class="comment">// Don&#39;t bother writing a frame if the value already matches
                     // the table&#39;s max size.
-                    </span><a class="self" href="#30">self</a>.size_update = <span class="prelude-val">Some</span>(<a href="#15">SizeUpdate::One</a>(<a href="#30">val</a>));
+                    </span><span class="self">self</span>.size_update = <span class="prelude-val">Some</span>(SizeUpdate::One(val));
                 }
             }
         }
     }
 
     <span class="doccomment">/// Encode a set of headers into the provide buffer
-    </span><span class="kw">pub fn </span>encode&lt;I&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, headers: I, dst: <span class="kw-2">&amp;mut </span><a href="../../../bytes/bytes_mut/struct.BytesMut.html">BytesMut</a>)
+    </span><span class="kw">pub fn </span>encode&lt;I&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, headers: I, dst: <span class="kw-2">&amp;mut </span>BytesMut)
     <span class="kw">where
-        </span>I: IntoIterator&lt;Item = Header&lt;<span class="prelude-ty">Option</span>&lt;<a href="../../../http/header/name/struct.HeaderName.html">HeaderName</a>&gt;&gt;&gt;,
+        </span>I: IntoIterator&lt;Item = Header&lt;<span class="prelude-ty">Option</span>&lt;HeaderName&gt;&gt;&gt;,
     {
-        <span class="kw">let </span>span = <a class="macro" href="../../../tracing/tracing/macro.trace_span.html">tracing::trace_span!</a>(<span class="string">&quot;hpack::encode&quot;</span>);
-        <span class="kw">let </span>_e = <a href="#65">span</a>.enter();
+        <span class="kw">let </span>span = <span class="macro">tracing::trace_span!</span>(<span class="string">&quot;hpack::encode&quot;</span>);
+        <span class="kw">let </span>_e = span.enter();
 
-        <a class="self" href="#61">self</a>.<a href="#99">encode_size_updates</a>(<a href="#61">dst</a>);
+        <span class="self">self</span>.encode_size_updates(dst);
 
         <span class="kw">let </span><span class="kw-2">mut </span>last_index = <span class="prelude-val">None</span>;
 
@@ -817,58 +817,58 @@
         }
     }
 
-    <span class="kw">fn </span>encode_size_updates(<span class="kw-2">&amp;mut </span><span class="self">self</span>, dst: <span class="kw-2">&amp;mut </span><a href="../../../bytes/bytes_mut/struct.BytesMut.html">BytesMut</a>) {
-        <span class="kw">match </span><a class="self" href="#99">self</a>.size_update.take() {
-            <span class="prelude-val">Some</span>(<a href="#15">SizeUpdate::One</a>(val)) =&gt; {
-                <a class="self" href="#99">self</a>.table.<a href="table.rs.html#350">resize</a>(<a href="#101">val</a>);
-                <a href="#191">encode_size_update</a>(<a href="#101">val</a>, <a href="#99">dst</a>);
+    <span class="kw">fn </span>encode_size_updates(<span class="kw-2">&amp;mut </span><span class="self">self</span>, dst: <span class="kw-2">&amp;mut </span>BytesMut) {
+        <span class="kw">match </span><span class="self">self</span>.size_update.take() {
+            <span class="prelude-val">Some</span>(SizeUpdate::One(val)) =&gt; {
+                <span class="self">self</span>.table.resize(val);
+                encode_size_update(val, dst);
             }
-            <span class="prelude-val">Some</span>(<a href="#16">SizeUpdate::Two</a>(min, max)) =&gt; {
-                <a class="self" href="#99">self</a>.table.<a href="table.rs.html#350">resize</a>(<a href="#105">min</a>);
-                <a class="self" href="#99">self</a>.table.<a href="table.rs.html#350">resize</a>(<a href="#105">max</a>);
-                <a href="#191">encode_size_update</a>(<a href="#105">min</a>, <a href="#99">dst</a>);
-                <a href="#191">encode_size_update</a>(<a href="#105">max</a>, <a href="#99">dst</a>);
+            <span class="prelude-val">Some</span>(SizeUpdate::Two(min, max)) =&gt; {
+                <span class="self">self</span>.table.resize(min);
+                <span class="self">self</span>.table.resize(max);
+                encode_size_update(min, dst);
+                encode_size_update(max, dst);
             }
             <span class="prelude-val">None </span>=&gt; {}
         }
     }
 
-    <span class="kw">fn </span>encode_header(<span class="kw-2">&amp;mut </span><span class="self">self</span>, index: <span class="kw-2">&amp;</span><a href="table.rs.html#24">Index</a>, dst: <span class="kw-2">&amp;mut </span><a href="../../../bytes/bytes_mut/struct.BytesMut.html">BytesMut</a>) {
-        <span class="kw">match </span><span class="kw-2">*</span><a href="#115">index</a> {
-            <a href="table.rs.html#26">Index::Indexed</a>(idx, <span class="kw">_</span>) =&gt; {
-                <a href="#264-269">encode_int</a>(<a href="#117">idx</a>, <span class="number">7</span>, <span class="number">0x80</span>, <a href="#115">dst</a>);
+    <span class="kw">fn </span>encode_header(<span class="kw-2">&amp;mut </span><span class="self">self</span>, index: <span class="kw-2">&amp;</span>Index, dst: <span class="kw-2">&amp;mut </span>BytesMut) {
+        <span class="kw">match </span><span class="kw-2">*</span>index {
+            Index::Indexed(idx, <span class="kw">_</span>) =&gt; {
+                encode_int(idx, <span class="number">7</span>, <span class="number">0x80</span>, dst);
             }
-            <a href="table.rs.html#29">Index::Name</a>(idx, <span class="kw">_</span>) =&gt; {
-                <span class="kw">let </span>header = <a class="self" href="#115">self</a>.table.<a href="table.rs.html#109">resolve</a>(<span class="kw-2">&amp;</span><a href="#115">index</a>);
+            Index::Name(idx, <span class="kw">_</span>) =&gt; {
+                <span class="kw">let </span>header = <span class="self">self</span>.table.resolve(<span class="kw-2">&amp;</span>index);
 
-                <a href="#195">encode_not_indexed</a>(<a href="#120">idx</a>, <a href="#121">header</a>.<a href="header.rs.html#133">value_slice</a>(), <a href="#121">header</a>.<a href="header.rs.html#181">is_sensitive</a>(), <a href="#115">dst</a>);
+                encode_not_indexed(idx, header.value_slice(), header.is_sensitive(), dst);
             }
-            <a href="table.rs.html#32">Index::Inserted</a>(<span class="kw">_</span>) =&gt; {
-                <span class="kw">let </span>header = <a class="self" href="#115">self</a>.table.<a href="table.rs.html#109">resolve</a>(<span class="kw-2">&amp;</span><a href="#115">index</a>);
+            Index::Inserted(<span class="kw">_</span>) =&gt; {
+                <span class="kw">let </span>header = <span class="self">self</span>.table.resolve(<span class="kw-2">&amp;</span>index);
 
-                <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(!header.is_sensitive());
+                <span class="macro">assert!</span>(!header.is_sensitive());
 
-                <a href="#115">dst</a>.<a href="../../../bytes/buf/buf_mut/trait.BufMut.html">put_u8</a>(<span class="number">0b0100_0000</span>);
+                dst.put_u8(<span class="number">0b0100_0000</span>);
 
-                <a href="#216">encode_str</a>(<a href="#126">header</a>.<a href="header.rs.html#121">name</a>().<a href="header.rs.html#251">as_slice</a>(), <a href="#115">dst</a>);
-                <a href="#216">encode_str</a>(<a href="#126">header</a>.<a href="header.rs.html#133">value_slice</a>(), <a href="#115">dst</a>);
+                encode_str(header.name().as_slice(), dst);
+                encode_str(header.value_slice(), dst);
             }
-            <a href="table.rs.html#35">Index::InsertedValue</a>(idx, <span class="kw">_</span>) =&gt; {
-                <span class="kw">let </span>header = <a class="self" href="#115">self</a>.table.<a href="table.rs.html#109">resolve</a>(<span class="kw-2">&amp;</span><a href="#115">index</a>);
+            Index::InsertedValue(idx, <span class="kw">_</span>) =&gt; {
+                <span class="kw">let </span>header = <span class="self">self</span>.table.resolve(<span class="kw-2">&amp;</span>index);
 
-                <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(!header.is_sensitive());
+                <span class="macro">assert!</span>(!header.is_sensitive());
 
-                <a href="#264-269">encode_int</a>(<a href="#135">idx</a>, <span class="number">6</span>, <span class="number">0b0100_0000</span>, <a href="#115">dst</a>);
-                <a href="#216">encode_str</a>(<a href="#136">header</a>.<a href="header.rs.html#133">value_slice</a>(), <a href="#115">dst</a>);
+                encode_int(idx, <span class="number">6</span>, <span class="number">0b0100_0000</span>, dst);
+                encode_str(header.value_slice(), dst);
             }
-            <a href="table.rs.html#38">Index::NotIndexed</a>(<span class="kw">_</span>) =&gt; {
-                <span class="kw">let </span>header = <a class="self" href="#115">self</a>.table.<a href="table.rs.html#109">resolve</a>(<span class="kw-2">&amp;</span><a href="#115">index</a>);
+            Index::NotIndexed(<span class="kw">_</span>) =&gt; {
+                <span class="kw">let </span>header = <span class="self">self</span>.table.resolve(<span class="kw-2">&amp;</span>index);
 
-                <a href="#205">encode_not_indexed2</a>(
-                    <a href="#144">header</a>.<a href="header.rs.html#121">name</a>().<a href="header.rs.html#251">as_slice</a>(),
-                    <a href="#144">header</a>.<a href="header.rs.html#133">value_slice</a>(),
-                    <a href="#144">header</a>.<a href="header.rs.html#181">is_sensitive</a>(),
-                    <a href="#115">dst</a>,
+                encode_not_indexed2(
+                    header.name().as_slice(),
+                    header.value_slice(),
+                    header.is_sensitive(),
+                    dst,
                 );
             }
         }
@@ -876,92 +876,92 @@
 
     <span class="kw">fn </span>encode_header_without_name(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        last: <span class="kw-2">&amp;</span><a href="table.rs.html#24">Index</a>,
-        value: <span class="kw-2">&amp;</span><a href="../../../http/header/value/struct.HeaderValue.html">HeaderValue</a>,
-        dst: <span class="kw-2">&amp;mut </span><a href="../../../bytes/bytes_mut/struct.BytesMut.html">BytesMut</a>,
+        last: <span class="kw-2">&amp;</span>Index,
+        value: <span class="kw-2">&amp;</span>HeaderValue,
+        dst: <span class="kw-2">&amp;mut </span>BytesMut,
     ) {
-        <span class="kw">match </span><span class="kw-2">*</span><a href="#158">last</a> {
-            <a href="table.rs.html#26">Index::Indexed</a>(..)
-            | <a href="table.rs.html#29">Index::Name</a>(..)
-            | <a href="table.rs.html#32">Index::Inserted</a>(..)
-            | <a href="table.rs.html#35">Index::InsertedValue</a>(..) =&gt; {
-                <span class="kw">let </span>idx = <a class="self" href="#157">self</a>.table.<a href="table.rs.html#121">resolve_idx</a>(<a href="#158">last</a>);
+        <span class="kw">match </span><span class="kw-2">*</span>last {
+            Index::Indexed(..)
+            | Index::Name(..)
+            | Index::Inserted(..)
+            | Index::InsertedValue(..) =&gt; {
+                <span class="kw">let </span>idx = <span class="self">self</span>.table.resolve_idx(last);
 
-                <a href="#195">encode_not_indexed</a>(<a href="#167">idx</a>, <a href="#159">value</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>(), <a href="#159">value</a>.is_sensitive(), <a href="#160">dst</a>);
+                encode_not_indexed(idx, value.as_ref(), value.is_sensitive(), dst);
             }
-            <a href="table.rs.html#38">Index::NotIndexed</a>(<span class="kw">_</span>) =&gt; {
-                <span class="kw">let </span>last = <a class="self" href="#157">self</a>.table.<a href="table.rs.html#109">resolve</a>(<a href="#158">last</a>);
+            Index::NotIndexed(<span class="kw">_</span>) =&gt; {
+                <span class="kw">let </span>last = <span class="self">self</span>.table.resolve(last);
 
-                <a href="#205">encode_not_indexed2</a>(
-                    <a href="#172">last</a>.<a href="header.rs.html#121">name</a>().<a href="header.rs.html#251">as_slice</a>(),
-                    <a href="#159">value</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>(),
-                    <a href="#159">value</a>.is_sensitive(),
-                    <a href="#160">dst</a>,
+                encode_not_indexed2(
+                    last.name().as_slice(),
+                    value.as_ref(),
+                    value.is_sensitive(),
+                    dst,
                 );
             }
         }
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for </span><a href="#8">Encoder</a> {
-    <span class="kw">fn </span>default() -&gt; <a href="#8">Encoder</a> {
+<span class="kw">impl </span>Default <span class="kw">for </span>Encoder {
+    <span class="kw">fn </span>default() -&gt; Encoder {
         Encoder::new(<span class="number">4096</span>, <span class="number">0</span>)
     }
 }
 
-<span class="kw">fn </span>encode_size_update(val: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, dst: <span class="kw-2">&amp;mut </span><a href="../../../bytes/bytes_mut/struct.BytesMut.html">BytesMut</a>) {
-    <a href="#264-269">encode_int</a>(<a href="#191">val</a>, <span class="number">5</span>, <span class="number">0b0010_0000</span>, <a href="#191">dst</a>)
+<span class="kw">fn </span>encode_size_update(val: usize, dst: <span class="kw-2">&amp;mut </span>BytesMut) {
+    encode_int(val, <span class="number">5</span>, <span class="number">0b0010_0000</span>, dst)
 }
 
-<span class="kw">fn </span>encode_not_indexed(name: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, value: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], sensitive: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>, dst: <span class="kw-2">&amp;mut </span><a href="../../../bytes/bytes_mut/struct.BytesMut.html">BytesMut</a>) {
+<span class="kw">fn </span>encode_not_indexed(name: usize, value: <span class="kw-2">&amp;</span>[u8], sensitive: bool, dst: <span class="kw-2">&amp;mut </span>BytesMut) {
     <span class="kw">if </span>sensitive {
-        <a href="#264-269">encode_int</a>(<a href="#195">name</a>, <span class="number">4</span>, <span class="number">0b10000</span>, <a href="#195">dst</a>);
+        encode_int(name, <span class="number">4</span>, <span class="number">0b10000</span>, dst);
     } <span class="kw">else </span>{
-        <a href="#264-269">encode_int</a>(<a href="#195">name</a>, <span class="number">4</span>, <span class="number">0</span>, <a href="#195">dst</a>);
+        encode_int(name, <span class="number">4</span>, <span class="number">0</span>, dst);
     }
 
-    <a href="#216">encode_str</a>(<a href="#195">value</a>, <a href="#195">dst</a>);
+    encode_str(value, dst);
 }
 
-<span class="kw">fn </span>encode_not_indexed2(name: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], value: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], sensitive: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>, dst: <span class="kw-2">&amp;mut </span><a href="../../../bytes/bytes_mut/struct.BytesMut.html">BytesMut</a>) {
+<span class="kw">fn </span>encode_not_indexed2(name: <span class="kw-2">&amp;</span>[u8], value: <span class="kw-2">&amp;</span>[u8], sensitive: bool, dst: <span class="kw-2">&amp;mut </span>BytesMut) {
     <span class="kw">if </span>sensitive {
-        <a href="#205">dst</a>.<a href="../../../bytes/buf/buf_mut/trait.BufMut.html">put_u8</a>(<span class="number">0b10000</span>);
+        dst.put_u8(<span class="number">0b10000</span>);
     } <span class="kw">else </span>{
-        <a href="#205">dst</a>.<a href="../../../bytes/buf/buf_mut/trait.BufMut.html">put_u8</a>(<span class="number">0</span>);
+        dst.put_u8(<span class="number">0</span>);
     }
 
-    <a href="#216">encode_str</a>(<a href="#205">name</a>, <a href="#205">dst</a>);
-    <a href="#216">encode_str</a>(<a href="#205">value</a>, <a href="#205">dst</a>);
+    encode_str(name, dst);
+    encode_str(value, dst);
 }
 
-<span class="kw">fn </span>encode_str(val: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], dst: <span class="kw-2">&amp;mut </span><a href="../../../bytes/bytes_mut/struct.BytesMut.html">BytesMut</a>) {
+<span class="kw">fn </span>encode_str(val: <span class="kw-2">&amp;</span>[u8], dst: <span class="kw-2">&amp;mut </span>BytesMut) {
     <span class="kw">if </span>!val.is_empty() {
-        <span class="kw">let </span>idx = <a href="#295">position</a>(<a href="#216">dst</a>);
+        <span class="kw">let </span>idx = position(dst);
 
         <span class="comment">// Push a placeholder byte for the length header
-        </span><a href="#216">dst</a>.<a href="../../../bytes/buf/buf_mut/trait.BufMut.html">put_u8</a>(<span class="number">0</span>);
+        </span>dst.put_u8(<span class="number">0</span>);
 
         <span class="comment">// Encode with huffman
-        </span><a href="huffman/mod.rs.html#43">huffman::encode</a>(<a href="#216">val</a>, <a href="#216">dst</a>);
+        </span>huffman::encode(val, dst);
 
-        <span class="kw">let </span>huff_len = <a href="#295">position</a>(<a href="#216">dst</a>) - (<a href="#218">idx</a> + <span class="number">1</span>);
+        <span class="kw">let </span>huff_len = position(dst) - (idx + <span class="number">1</span>);
 
         <span class="kw">if </span>encode_int_one_byte(huff_len, <span class="number">7</span>) {
             <span class="comment">// Write the string head
-            </span><a href="#216">dst</a>[<a href="#218">idx</a>] = <span class="number">0x80 </span>| <a href="#226">huff_len</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>;
+            </span>dst[idx] = <span class="number">0x80 </span>| huff_len <span class="kw">as </span>u8;
         } <span class="kw">else </span>{
             <span class="comment">// Write the head to a placeholder
-            </span><span class="kw">const </span>PLACEHOLDER_LEN: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> = <span class="number">8</span>;
-            <span class="kw">let </span><span class="kw-2">mut </span>buf = [<span class="number">0u8</span>; <a href="#233">PLACEHOLDER_LEN</a>];
+            </span><span class="kw">const </span>PLACEHOLDER_LEN: usize = <span class="number">8</span>;
+            <span class="kw">let </span><span class="kw-2">mut </span>buf = [<span class="number">0u8</span>; PLACEHOLDER_LEN];
 
             <span class="kw">let </span>head_len = {
-                <span class="kw">let </span><span class="kw-2">mut </span>head_dst = <span class="kw-2">&amp;mut </span><a href="#234">buf</a>[..];
-                <a href="#264-269">encode_int</a>(<a href="#226">huff_len</a>, <span class="number">7</span>, <span class="number">0x80</span>, <span class="kw-2">&amp;mut </span><a href="#237">head_dst</a>);
-                <a href="#233">PLACEHOLDER_LEN</a> - <a href="#237">head_dst</a>.<a href="../../../bytes/buf/buf_mut/trait.BufMut.html">remaining_mut</a>()
+                <span class="kw">let </span><span class="kw-2">mut </span>head_dst = <span class="kw-2">&amp;mut </span>buf[..];
+                encode_int(huff_len, <span class="number">7</span>, <span class="number">0x80</span>, <span class="kw-2">&amp;mut </span>head_dst);
+                PLACEHOLDER_LEN - head_dst.remaining_mut()
             };
 
             <span class="comment">// This is just done to reserve space in the destination
-            </span><a href="#216">dst</a>.<a href="../../../bytes/buf/buf_mut/trait.BufMut.html">put_slice</a>(<span class="kw-2">&amp;</span><a href="#234">buf</a>[<span class="number">1</span>..<a href="#236">head_len</a>]);
+            </span>dst.put_slice(<span class="kw-2">&amp;</span>buf[<span class="number">1</span>..head_len]);
 
             <span class="comment">// Shift the header forward
             </span><span class="kw">for </span>i <span class="kw">in </span><span class="number">0</span>..huff_len {
@@ -977,27 +977,27 @@
         }
     } <span class="kw">else </span>{
         <span class="comment">// Write an empty string
-        </span><a href="#216">dst</a>.<a href="../../../bytes/buf/buf_mut/trait.BufMut.html">put_u8</a>(<span class="number">0</span>);
+        </span>dst.put_u8(<span class="number">0</span>);
     }
 }
 
 <span class="doccomment">/// Encode an integer into the given destination buffer
-</span><span class="kw">fn </span>encode_int&lt;B: <a href="../../../bytes/buf/buf_mut/trait.BufMut.html">BufMut</a>&gt;(
-    <span class="kw-2">mut </span>value: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,   <span class="comment">// The integer to encode
-    </span>prefix_bits: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="comment">// The number of bits in the prefix
-    </span>first_byte: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>,     <span class="comment">// The base upon which to start encoding the int
+</span><span class="kw">fn </span>encode_int&lt;B: BufMut&gt;(
+    <span class="kw-2">mut </span>value: usize,   <span class="comment">// The integer to encode
+    </span>prefix_bits: usize, <span class="comment">// The number of bits in the prefix
+    </span>first_byte: u8,     <span class="comment">// The base upon which to start encoding the int
     </span>dst: <span class="kw-2">&amp;mut </span>B,
 ) {
     <span class="kw">if </span>encode_int_one_byte(value, prefix_bits) {
-        <a href="#268">dst</a>.<a href="../../../bytes/buf/buf_mut/trait.BufMut.html">put_u8</a>(<a href="#267">first_byte</a> | <a href="#265">value</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>);
+        dst.put_u8(first_byte | value <span class="kw">as </span>u8);
         <span class="kw">return</span>;
     }
 
-    <span class="kw">let </span>low = (<span class="number">1 </span>&lt;&lt; <a href="#266">prefix_bits</a>) - <span class="number">1</span>;
+    <span class="kw">let </span>low = (<span class="number">1 </span>&lt;&lt; prefix_bits) - <span class="number">1</span>;
 
-    <a href="#265">value</a> -= <a href="#275">low</a>;
+    value -= low;
 
-    <a href="#268">dst</a>.<a href="../../../bytes/buf/buf_mut/trait.BufMut.html">put_u8</a>(<a href="#267">first_byte</a> | <a href="#275">low</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>);
+    dst.put_u8(first_byte | low <span class="kw">as </span>u8);
 
     <span class="kw">while </span>value &gt;= <span class="number">128 </span>{
         dst.put_u8(<span class="number">0b1000_0000 </span>| value <span class="kw">as </span>u8);
@@ -1005,16 +1005,16 @@
         value &gt;&gt;= <span class="number">7</span>;
     }
 
-    <a href="#268">dst</a>.<a href="../../../bytes/buf/buf_mut/trait.BufMut.html">put_u8</a>(<a href="#265">value</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>);
+    dst.put_u8(value <span class="kw">as </span>u8);
 }
 
 <span class="doccomment">/// Returns true if the in the int can be fully encoded in the first byte.
-</span><span class="kw">fn </span>encode_int_one_byte(value: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, prefix_bits: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-    <a href="#291">value</a> &lt; (<span class="number">1 </span>&lt;&lt; <a href="#291">prefix_bits</a>) - <span class="number">1
+</span><span class="kw">fn </span>encode_int_one_byte(value: usize, prefix_bits: usize) -&gt; bool {
+    value &lt; (<span class="number">1 </span>&lt;&lt; prefix_bits) - <span class="number">1
 </span>}
 
-<span class="kw">fn </span>position(buf: <span class="kw-2">&amp;</span><a href="../../../bytes/bytes_mut/struct.BytesMut.html">BytesMut</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-    <a href="#295">buf</a>.len()
+<span class="kw">fn </span>position(buf: <span class="kw-2">&amp;</span>BytesMut) -&gt; usize {
+    buf.len()
 }
 
 <span class="attr">#[cfg(test)]
@@ -1441,4 +1441,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="h2" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="h2" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

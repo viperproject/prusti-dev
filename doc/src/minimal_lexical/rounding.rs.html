@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/minimal-lexical-0.2.1/src/rounding.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>rounding.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../minimal_lexical/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/minimal-lexical-0.2.1/src/rounding.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>rounding.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../minimal_lexical/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -133,9 +133,9 @@
 
 </span><span class="attr">#![doc(hidden)]
 
-</span><span class="kw">use </span><a href="extended_float.rs.html#11"><span class="kw">crate</span>::extended_float::ExtendedFloat</a>;
-<span class="kw">use </span><span class="kw">crate</span>::mask::{<a href="mask.rs.html#37">lower_n_halfway</a>, <a href="mask.rs.html#16">lower_n_mask</a>};
-<span class="kw">use </span><a href="num.rs.html#18-35"><span class="kw">crate</span>::num::Float</a>;
+</span><span class="kw">use </span><span class="kw">crate</span>::extended_float::ExtendedFloat;
+<span class="kw">use </span><span class="kw">crate</span>::mask::{lower_n_halfway, lower_n_mask};
+<span class="kw">use </span><span class="kw">crate</span>::num::Float;
 
 <span class="comment">// ROUNDING
 // --------
@@ -145,12 +145,12 @@
 /// Shifts the significant digits into place, adjusts the exponent,
 /// so it can be easily converted to a native float.
 </span><span class="attr">#[cfg_attr(not(feature = <span class="string">&quot;compact&quot;</span>), inline)]
-</span><span class="kw">pub fn </span>round&lt;F, Cb&gt;(fp: <span class="kw-2">&amp;mut </span><a href="extended_float.rs.html#11">ExtendedFloat</a>, cb: Cb)
+</span><span class="kw">pub fn </span>round&lt;F, Cb&gt;(fp: <span class="kw-2">&amp;mut </span>ExtendedFloat, cb: Cb)
 <span class="kw">where
-    </span>F: <a href="num.rs.html#18-35">Float</a>,
-    Cb: Fn(<span class="kw-2">&amp;mut </span><a href="extended_float.rs.html#11">ExtendedFloat</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>),
+    </span>F: Float,
+    Cb: Fn(<span class="kw-2">&amp;mut </span>ExtendedFloat, i32),
 {
-    <span class="kw">let </span>fp_inf = <a href="extended_float.rs.html#11">ExtendedFloat</a> {
+    <span class="kw">let </span>fp_inf = ExtendedFloat {
         mant: <span class="number">0</span>,
         exp: F::INFINITE_POWER,
     };
@@ -169,33 +169,33 @@
         //
         // This might round-down to 0, but shift will be at **max** 65,
         // for halfway cases rounding towards 0.
-        </span><span class="kw">let </span>shift = -<a href="#17">fp</a>.exp + <span class="number">1</span>;
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(shift &lt;= <span class="number">65</span>);
-        <a href="#17">cb</a>(<a href="#17">fp</a>, <a href="#41">shift</a>.<a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Ord.html">min</a>(<span class="number">64</span>));
+        </span><span class="kw">let </span>shift = -fp.exp + <span class="number">1</span>;
+        <span class="macro">debug_assert!</span>(shift &lt;= <span class="number">65</span>);
+        cb(fp, shift.min(<span class="number">64</span>));
         <span class="comment">// Check for round-up: if rounding-nearest carried us to the hidden bit.
-        </span><a href="#17">fp</a>.exp = (<a href="#17">fp</a>.mant &gt;= F::HIDDEN_BIT_MASK) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>;
+        </span>fp.exp = (fp.mant &gt;= F::HIDDEN_BIT_MASK) <span class="kw">as </span>i32;
         <span class="kw">return</span>;
     }
 
     <span class="comment">// The float is normal, round to the hidden bit.
-    </span><a href="#17">cb</a>(<a href="#17">fp</a>, <a href="#28">mantissa_shift</a>);
+    </span>cb(fp, mantissa_shift);
 
     <span class="comment">// Check if we carried, and if so, shift the bit to the hidden bit.
     </span><span class="kw">let </span>carry_mask = F::CARRY_MASK;
     <span class="kw">if </span>fp.mant &amp; carry_mask == carry_mask {
-        <a href="#17">fp</a>.mant &gt;&gt;= <span class="number">1</span>;
-        <a href="#17">fp</a>.exp += <span class="number">1</span>;
+        fp.mant &gt;&gt;= <span class="number">1</span>;
+        fp.exp += <span class="number">1</span>;
     }
 
     <span class="comment">// Handle if we carried and check for overflow again.
     </span><span class="kw">if </span>fp.exp &gt;= F::INFINITE_POWER {
         <span class="comment">// Exponent is above largest normal value, must be infinite.
-        </span><span class="kw-2">*</span><a href="#17">fp</a> = <a href="#22">fp_inf</a>;
+        </span><span class="kw-2">*</span>fp = fp_inf;
         <span class="kw">return</span>;
     }
 
     <span class="comment">// Remove the hidden bit.
-    </span><a href="#17">fp</a>.mant &amp;= F::MANTISSA_MASK;
+    </span>fp.mant &amp;= F::MANTISSA_MASK;
 }
 
 <span class="doccomment">/// Shift right N-bytes and round towards a direction.
@@ -205,13 +205,13 @@
 ///     1. is_halfway
 ///     1. is_above
 </span><span class="attr">#[cfg_attr(not(feature = <span class="string">&quot;compact&quot;</span>), inline)]
-</span><span class="kw">pub fn </span>round_nearest_tie_even&lt;Cb&gt;(fp: <span class="kw-2">&amp;mut </span><a href="extended_float.rs.html#11">ExtendedFloat</a>, shift: <a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>, cb: Cb)
+</span><span class="kw">pub fn </span>round_nearest_tie_even&lt;Cb&gt;(fp: <span class="kw-2">&amp;mut </span>ExtendedFloat, shift: i32, cb: Cb)
 <span class="kw">where
     </span><span class="comment">// is_odd, is_halfway, is_above
-    </span>Cb: Fn(<a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
+    </span>Cb: Fn(bool, bool, bool) -&gt; bool,
 {
     <span class="comment">// Ensure we&#39;ve already handled denormal values that underflow.
-    </span><a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(shift &lt;= <span class="number">64</span>);
+    </span><span class="macro">debug_assert!</span>(shift &lt;= <span class="number">64</span>);
 
     <span class="comment">// Extract the truncated bits using mask.
     // Calculate if the value of the truncated bits are either above
@@ -219,11 +219,11 @@
     //
     // For example, for 4 truncated bytes, the mask would be 0b1111
     // and the midway point would be 0b1000.
-    </span><span class="kw">let </span>mask = <a href="mask.rs.html#16">lower_n_mask</a>(<a href="#77">shift</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>);
-    <span class="kw">let </span>halfway = <a href="mask.rs.html#37">lower_n_halfway</a>(<a href="#77">shift</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>);
-    <span class="kw">let </span>truncated_bits = <a href="#77">fp</a>.mant &amp; <a href="#91">mask</a>;
-    <span class="kw">let </span>is_above = <a href="#93">truncated_bits</a> &gt; <a href="#92">halfway</a>;
-    <span class="kw">let </span>is_halfway = <a href="#93">truncated_bits</a> == <a href="#92">halfway</a>;
+    </span><span class="kw">let </span>mask = lower_n_mask(shift <span class="kw">as </span>u64);
+    <span class="kw">let </span>halfway = lower_n_halfway(shift <span class="kw">as </span>u64);
+    <span class="kw">let </span>truncated_bits = fp.mant &amp; mask;
+    <span class="kw">let </span>is_above = truncated_bits &gt; halfway;
+    <span class="kw">let </span>is_halfway = truncated_bits == halfway;
 
     <span class="comment">// Bit shift so the leading bit is in the hidden bit.
     // This optimixes pretty well:
@@ -235,30 +235,30 @@
     //   cmovne  rax, rdi
     //   ret
     //  ```
-    </span><a href="#77">fp</a>.mant = <span class="kw">match </span><a href="#77">shift</a> == <span class="number">64 </span>{
+    </span>fp.mant = <span class="kw">match </span>shift == <span class="number">64 </span>{
         <span class="bool-val">true </span>=&gt; <span class="number">0</span>,
-        <span class="bool-val">false </span>=&gt; <a href="#77">fp</a>.mant &gt;&gt; <a href="#77">shift</a>,
+        <span class="bool-val">false </span>=&gt; fp.mant &gt;&gt; shift,
     };
-    <a href="#77">fp</a>.exp += <a href="#77">shift</a>;
+    fp.exp += shift;
 
     <span class="comment">// Extract the last bit after shifting (and determine if it is odd).
-    </span><span class="kw">let </span>is_odd = <a href="#77">fp</a>.mant &amp; <span class="number">1 </span>== <span class="number">1</span>;
+    </span><span class="kw">let </span>is_odd = fp.mant &amp; <span class="number">1 </span>== <span class="number">1</span>;
 
     <span class="comment">// Calculate if we need to roundup.
     // We need to roundup if we are above halfway, or if we are odd
     // and at half-way (need to tie-to-even). Avoid the branch here.
-    </span><a href="#77">fp</a>.mant += <a href="#77">cb</a>(<a href="#114">is_odd</a>, <a href="#95">is_halfway</a>, <a href="#94">is_above</a>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>;
+    </span>fp.mant += cb(is_odd, is_halfway, is_above) <span class="kw">as </span>u64;
 }
 
 <span class="doccomment">/// Round our significant digits into place, truncating them.
 </span><span class="attr">#[cfg_attr(not(feature = <span class="string">&quot;compact&quot;</span>), inline)]
-</span><span class="kw">pub fn </span>round_down(fp: <span class="kw-2">&amp;mut </span><a href="extended_float.rs.html#11">ExtendedFloat</a>, shift: <a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>) {
+</span><span class="kw">pub fn </span>round_down(fp: <span class="kw-2">&amp;mut </span>ExtendedFloat, shift: i32) {
     <span class="comment">// Might have a shift greater than 64 if we have an error.
-    </span><a href="#124">fp</a>.mant = <span class="kw">match </span><a href="#124">shift</a> == <span class="number">64 </span>{
+    </span>fp.mant = <span class="kw">match </span>shift == <span class="number">64 </span>{
         <span class="bool-val">true </span>=&gt; <span class="number">0</span>,
-        <span class="bool-val">false </span>=&gt; <a href="#124">fp</a>.mant &gt;&gt; <a href="#124">shift</a>,
+        <span class="bool-val">false </span>=&gt; fp.mant &gt;&gt; shift,
     };
-    <a href="#124">fp</a>.exp += <a href="#124">shift</a>;
+    fp.exp += shift;
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="minimal_lexical" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="minimal_lexical" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

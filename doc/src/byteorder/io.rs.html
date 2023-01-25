@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/byteorder-1.4.3/src/io.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>io.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../byteorder/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/byteorder-1.4.3/src/io.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>io.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../byteorder/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -1591,11 +1591,11 @@
 <a href="#1591" id="1591">1591</a>
 <a href="#1592" id="1592">1592</a>
 </pre><pre class="rust"><code><span class="kw">use </span>std::{
-    io::{<a class="self" href="https://doc.rust-lang.org/nightly/std/io/index.html">self</a>, <span class="prelude-ty">Result</span>},
-    <a href="https://doc.rust-lang.org/nightly/alloc/slice/index.html">slice</a>,
+    io::{<span class="self">self</span>, <span class="prelude-ty">Result</span>},
+    slice,
 };
 
-<span class="kw">use </span><a href="lib.rs.html#208-218"><span class="kw">crate</span>::ByteOrder</a>;
+<span class="kw">use </span><span class="kw">crate</span>::ByteOrder;
 
 <span class="doccomment">/// Extends [`Read`] with methods for reading numbers. (For `std::io`.)
 ///
@@ -1619,7 +1619,7 @@
 /// [`BigEndian`]: enum.BigEndian.html
 /// [`LittleEndian`]: enum.LittleEndian.html
 /// [`Read`]: https://doc.rust-lang.org/std/io/trait.Read.html
-</span><span class="kw">pub trait </span>ReadBytesExt: <a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">io::Read</a> {
+</span><span class="kw">pub trait </span>ReadBytesExt: io::Read {
     <span class="doccomment">/// Reads an unsigned 8 bit integer from the underlying reader.
     ///
     /// Note that since this reads a single byte, no byte order conversions
@@ -1644,10 +1644,10 @@
     /// assert_eq!(5, rdr.read_u8().unwrap());
     /// ```
     </span><span class="attr">#[inline]
-    </span><span class="kw">fn </span>read_u8(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt; {
+    </span><span class="kw">fn </span>read_u8(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;u8&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>buf = [<span class="number">0</span>; <span class="number">1</span>];
         <span class="self">self</span>.read_exact(<span class="kw-2">&amp;mut </span>buf)<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(<a href="#56">buf</a>[<span class="number">0</span>])
+        <span class="prelude-val">Ok</span>(buf[<span class="number">0</span>])
     }
 
     <span class="doccomment">/// Reads a signed 8 bit integer from the underlying reader.
@@ -1674,10 +1674,10 @@
     /// assert_eq!(-5, rdr.read_i8().unwrap());
     /// ```
     </span><span class="attr">#[inline]
-    </span><span class="kw">fn </span>read_i8(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.i8.html">i8</a>&gt; {
+    </span><span class="kw">fn </span>read_i8(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;i8&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>buf = [<span class="number">0</span>; <span class="number">1</span>];
         <span class="self">self</span>.read_exact(<span class="kw-2">&amp;mut </span>buf)<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(<a href="#86">buf</a>[<span class="number">0</span>] <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.i8.html">i8</a>)
+        <span class="prelude-val">Ok</span>(buf[<span class="number">0</span>] <span class="kw">as </span>i8)
     }
 
     <span class="doccomment">/// Reads an unsigned 16 bit integer from the underlying reader.
@@ -1701,10 +1701,10 @@
     /// assert_eq!(768, rdr.read_u16::&lt;BigEndian&gt;().unwrap());
     /// ```
     </span><span class="attr">#[inline]
-    </span><span class="kw">fn </span>read_u16&lt;T: <a href="lib.rs.html#208-218">ByteOrder</a>&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>&gt; {
+    </span><span class="kw">fn </span>read_u16&lt;T: ByteOrder&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;u16&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>buf = [<span class="number">0</span>; <span class="number">2</span>];
         <span class="self">self</span>.read_exact(<span class="kw-2">&amp;mut </span>buf)<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(T::read_u16(<span class="kw-2">&amp;</span><a href="#113">buf</a>))
+        <span class="prelude-val">Ok</span>(T::read_u16(<span class="kw-2">&amp;</span>buf))
     }
 
     <span class="doccomment">/// Reads a signed 16 bit integer from the underlying reader.
@@ -1728,10 +1728,10 @@
     /// assert_eq!(-132, rdr.read_i16::&lt;BigEndian&gt;().unwrap());
     /// ```
     </span><span class="attr">#[inline]
-    </span><span class="kw">fn </span>read_i16&lt;T: <a href="lib.rs.html#208-218">ByteOrder</a>&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.i16.html">i16</a>&gt; {
+    </span><span class="kw">fn </span>read_i16&lt;T: ByteOrder&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;i16&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>buf = [<span class="number">0</span>; <span class="number">2</span>];
         <span class="self">self</span>.read_exact(<span class="kw-2">&amp;mut </span>buf)<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(T::read_i16(<span class="kw-2">&amp;</span><a href="#140">buf</a>))
+        <span class="prelude-val">Ok</span>(T::read_i16(<span class="kw-2">&amp;</span>buf))
     }
 
     <span class="doccomment">/// Reads an unsigned 24 bit integer from the underlying reader.
@@ -1754,10 +1754,10 @@
     /// assert_eq!(267, rdr.read_u24::&lt;BigEndian&gt;().unwrap());
     /// ```
     </span><span class="attr">#[inline]
-    </span><span class="kw">fn </span>read_u24&lt;T: <a href="lib.rs.html#208-218">ByteOrder</a>&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>&gt; {
+    </span><span class="kw">fn </span>read_u24&lt;T: ByteOrder&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;u32&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>buf = [<span class="number">0</span>; <span class="number">3</span>];
         <span class="self">self</span>.read_exact(<span class="kw-2">&amp;mut </span>buf)<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(T::read_u24(<span class="kw-2">&amp;</span><a href="#166">buf</a>))
+        <span class="prelude-val">Ok</span>(T::read_u24(<span class="kw-2">&amp;</span>buf))
     }
 
     <span class="doccomment">/// Reads a signed 24 bit integer from the underlying reader.
@@ -1780,10 +1780,10 @@
     /// assert_eq!(-34253, rdr.read_i24::&lt;BigEndian&gt;().unwrap());
     /// ```
     </span><span class="attr">#[inline]
-    </span><span class="kw">fn </span>read_i24&lt;T: <a href="lib.rs.html#208-218">ByteOrder</a>&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>&gt; {
+    </span><span class="kw">fn </span>read_i24&lt;T: ByteOrder&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;i32&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>buf = [<span class="number">0</span>; <span class="number">3</span>];
         <span class="self">self</span>.read_exact(<span class="kw-2">&amp;mut </span>buf)<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(T::read_i24(<span class="kw-2">&amp;</span><a href="#192">buf</a>))
+        <span class="prelude-val">Ok</span>(T::read_i24(<span class="kw-2">&amp;</span>buf))
     }
 
     <span class="doccomment">/// Reads an unsigned 32 bit integer from the underlying reader.
@@ -1806,10 +1806,10 @@
     /// assert_eq!(267, rdr.read_u32::&lt;BigEndian&gt;().unwrap());
     /// ```
     </span><span class="attr">#[inline]
-    </span><span class="kw">fn </span>read_u32&lt;T: <a href="lib.rs.html#208-218">ByteOrder</a>&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>&gt; {
+    </span><span class="kw">fn </span>read_u32&lt;T: ByteOrder&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;u32&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>buf = [<span class="number">0</span>; <span class="number">4</span>];
         <span class="self">self</span>.read_exact(<span class="kw-2">&amp;mut </span>buf)<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(T::read_u32(<span class="kw-2">&amp;</span><a href="#218">buf</a>))
+        <span class="prelude-val">Ok</span>(T::read_u32(<span class="kw-2">&amp;</span>buf))
     }
 
     <span class="doccomment">/// Reads a signed 32 bit integer from the underlying reader.
@@ -1832,10 +1832,10 @@
     /// assert_eq!(-34253, rdr.read_i32::&lt;BigEndian&gt;().unwrap());
     /// ```
     </span><span class="attr">#[inline]
-    </span><span class="kw">fn </span>read_i32&lt;T: <a href="lib.rs.html#208-218">ByteOrder</a>&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>&gt; {
+    </span><span class="kw">fn </span>read_i32&lt;T: ByteOrder&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;i32&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>buf = [<span class="number">0</span>; <span class="number">4</span>];
         <span class="self">self</span>.read_exact(<span class="kw-2">&amp;mut </span>buf)<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(T::read_i32(<span class="kw-2">&amp;</span><a href="#244">buf</a>))
+        <span class="prelude-val">Ok</span>(T::read_i32(<span class="kw-2">&amp;</span>buf))
     }
 
     <span class="doccomment">/// Reads an unsigned 48 bit integer from the underlying reader.
@@ -1858,10 +1858,10 @@
     /// assert_eq!(200598257150769, rdr.read_u48::&lt;BigEndian&gt;().unwrap());
     /// ```
     </span><span class="attr">#[inline]
-    </span><span class="kw">fn </span>read_u48&lt;T: <a href="lib.rs.html#208-218">ByteOrder</a>&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>&gt; {
+    </span><span class="kw">fn </span>read_u48&lt;T: ByteOrder&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;u64&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>buf = [<span class="number">0</span>; <span class="number">6</span>];
         <span class="self">self</span>.read_exact(<span class="kw-2">&amp;mut </span>buf)<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(T::read_u48(<span class="kw-2">&amp;</span><a href="#270">buf</a>))
+        <span class="prelude-val">Ok</span>(T::read_u48(<span class="kw-2">&amp;</span>buf))
     }
 
     <span class="doccomment">/// Reads a signed 48 bit integer from the underlying reader.
@@ -1884,10 +1884,10 @@
     /// assert_eq!(-108363435763825, rdr.read_i48::&lt;BigEndian&gt;().unwrap());
     /// ```
     </span><span class="attr">#[inline]
-    </span><span class="kw">fn </span>read_i48&lt;T: <a href="lib.rs.html#208-218">ByteOrder</a>&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>&gt; {
+    </span><span class="kw">fn </span>read_i48&lt;T: ByteOrder&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;i64&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>buf = [<span class="number">0</span>; <span class="number">6</span>];
         <span class="self">self</span>.read_exact(<span class="kw-2">&amp;mut </span>buf)<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(T::read_i48(<span class="kw-2">&amp;</span><a href="#296">buf</a>))
+        <span class="prelude-val">Ok</span>(T::read_i48(<span class="kw-2">&amp;</span>buf))
     }
 
     <span class="doccomment">/// Reads an unsigned 64 bit integer from the underlying reader.
@@ -1910,10 +1910,10 @@
     /// assert_eq!(918733457491587, rdr.read_u64::&lt;BigEndian&gt;().unwrap());
     /// ```
     </span><span class="attr">#[inline]
-    </span><span class="kw">fn </span>read_u64&lt;T: <a href="lib.rs.html#208-218">ByteOrder</a>&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>&gt; {
+    </span><span class="kw">fn </span>read_u64&lt;T: ByteOrder&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;u64&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>buf = [<span class="number">0</span>; <span class="number">8</span>];
         <span class="self">self</span>.read_exact(<span class="kw-2">&amp;mut </span>buf)<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(T::read_u64(<span class="kw-2">&amp;</span><a href="#322">buf</a>))
+        <span class="prelude-val">Ok</span>(T::read_u64(<span class="kw-2">&amp;</span>buf))
     }
 
     <span class="doccomment">/// Reads a signed 64 bit integer from the underlying reader.
@@ -1936,10 +1936,10 @@
     /// assert_eq!(i64::min_value(), rdr.read_i64::&lt;BigEndian&gt;().unwrap());
     /// ```
     </span><span class="attr">#[inline]
-    </span><span class="kw">fn </span>read_i64&lt;T: <a href="lib.rs.html#208-218">ByteOrder</a>&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>&gt; {
+    </span><span class="kw">fn </span>read_i64&lt;T: ByteOrder&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;i64&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>buf = [<span class="number">0</span>; <span class="number">8</span>];
         <span class="self">self</span>.read_exact(<span class="kw-2">&amp;mut </span>buf)<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(T::read_i64(<span class="kw-2">&amp;</span><a href="#348">buf</a>))
+        <span class="prelude-val">Ok</span>(T::read_i64(<span class="kw-2">&amp;</span>buf))
     }
 
     <span class="doccomment">/// Reads an unsigned 128 bit integer from the underlying reader.
@@ -1965,10 +1965,10 @@
     /// assert_eq!(16947640962301618749969007319746179, rdr.read_u128::&lt;BigEndian&gt;().unwrap());
     /// ```
     </span><span class="attr">#[inline]
-    </span><span class="kw">fn </span>read_u128&lt;T: <a href="lib.rs.html#208-218">ByteOrder</a>&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u128.html">u128</a>&gt; {
+    </span><span class="kw">fn </span>read_u128&lt;T: ByteOrder&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;u128&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>buf = [<span class="number">0</span>; <span class="number">16</span>];
         <span class="self">self</span>.read_exact(<span class="kw-2">&amp;mut </span>buf)<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(T::read_u128(<span class="kw-2">&amp;</span><a href="#377">buf</a>))
+        <span class="prelude-val">Ok</span>(T::read_u128(<span class="kw-2">&amp;</span>buf))
     }
 
     <span class="doccomment">/// Reads a signed 128 bit integer from the underlying reader.
@@ -1991,10 +1991,10 @@
     /// assert_eq!(i128::min_value(), rdr.read_i128::&lt;BigEndian&gt;().unwrap());
     /// ```
     </span><span class="attr">#[inline]
-    </span><span class="kw">fn </span>read_i128&lt;T: <a href="lib.rs.html#208-218">ByteOrder</a>&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.i128.html">i128</a>&gt; {
+    </span><span class="kw">fn </span>read_i128&lt;T: ByteOrder&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;i128&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>buf = [<span class="number">0</span>; <span class="number">16</span>];
         <span class="self">self</span>.read_exact(<span class="kw-2">&amp;mut </span>buf)<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(T::read_i128(<span class="kw-2">&amp;</span><a href="#403">buf</a>))
+        <span class="prelude-val">Ok</span>(T::read_i128(<span class="kw-2">&amp;</span>buf))
     }
 
     <span class="doccomment">/// Reads an unsigned n-bytes integer from the underlying reader.
@@ -2016,10 +2016,10 @@
     /// let mut rdr = Cursor::new(vec![0x80, 0x74, 0xfa]);
     /// assert_eq!(8418554, rdr.read_uint::&lt;BigEndian&gt;(3).unwrap());
     </span><span class="attr">#[inline]
-    </span><span class="kw">fn </span>read_uint&lt;T: <a href="lib.rs.html#208-218">ByteOrder</a>&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, nbytes: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>&gt; {
+    </span><span class="kw">fn </span>read_uint&lt;T: ByteOrder&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, nbytes: usize) -&gt; <span class="prelude-ty">Result</span>&lt;u64&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>buf = [<span class="number">0</span>; <span class="number">8</span>];
         <span class="self">self</span>.read_exact(<span class="kw-2">&amp;mut </span>buf[..nbytes])<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(T::read_uint(<span class="kw-2">&amp;</span><a href="#428">buf</a>[..<a href="#427">nbytes</a>], <a href="#427">nbytes</a>))
+        <span class="prelude-val">Ok</span>(T::read_uint(<span class="kw-2">&amp;</span>buf[..nbytes], nbytes))
     }
 
     <span class="doccomment">/// Reads a signed n-bytes integer from the underlying reader.
@@ -2041,26 +2041,26 @@
     /// let mut rdr = Cursor::new(vec![0xc1, 0xff, 0x7c]);
     /// assert_eq!(-4063364, rdr.read_int::&lt;BigEndian&gt;(3).unwrap());
     </span><span class="attr">#[inline]
-    </span><span class="kw">fn </span>read_int&lt;T: <a href="lib.rs.html#208-218">ByteOrder</a>&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, nbytes: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>&gt; {
+    </span><span class="kw">fn </span>read_int&lt;T: ByteOrder&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, nbytes: usize) -&gt; <span class="prelude-ty">Result</span>&lt;i64&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>buf = [<span class="number">0</span>; <span class="number">8</span>];
         <span class="self">self</span>.read_exact(<span class="kw-2">&amp;mut </span>buf[..nbytes])<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(T::read_int(<span class="kw-2">&amp;</span><a href="#453">buf</a>[..<a href="#452">nbytes</a>], <a href="#452">nbytes</a>))
+        <span class="prelude-val">Ok</span>(T::read_int(<span class="kw-2">&amp;</span>buf[..nbytes], nbytes))
     }
 
     <span class="doccomment">/// Reads an unsigned n-bytes integer from the underlying reader.
     </span><span class="attr">#[inline]
-    </span><span class="kw">fn </span>read_uint128&lt;T: <a href="lib.rs.html#208-218">ByteOrder</a>&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, nbytes: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u128.html">u128</a>&gt; {
+    </span><span class="kw">fn </span>read_uint128&lt;T: ByteOrder&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, nbytes: usize) -&gt; <span class="prelude-ty">Result</span>&lt;u128&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>buf = [<span class="number">0</span>; <span class="number">16</span>];
         <span class="self">self</span>.read_exact(<span class="kw-2">&amp;mut </span>buf[..nbytes])<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(T::read_uint128(<span class="kw-2">&amp;</span><a href="#461">buf</a>[..<a href="#460">nbytes</a>], <a href="#460">nbytes</a>))
+        <span class="prelude-val">Ok</span>(T::read_uint128(<span class="kw-2">&amp;</span>buf[..nbytes], nbytes))
     }
 
     <span class="doccomment">/// Reads a signed n-bytes integer from the underlying reader.
     </span><span class="attr">#[inline]
-    </span><span class="kw">fn </span>read_int128&lt;T: <a href="lib.rs.html#208-218">ByteOrder</a>&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, nbytes: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.i128.html">i128</a>&gt; {
+    </span><span class="kw">fn </span>read_int128&lt;T: ByteOrder&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, nbytes: usize) -&gt; <span class="prelude-ty">Result</span>&lt;i128&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>buf = [<span class="number">0</span>; <span class="number">16</span>];
         <span class="self">self</span>.read_exact(<span class="kw-2">&amp;mut </span>buf[..nbytes])<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(T::read_int128(<span class="kw-2">&amp;</span><a href="#469">buf</a>[..<a href="#468">nbytes</a>], <a href="#468">nbytes</a>))
+        <span class="prelude-val">Ok</span>(T::read_int128(<span class="kw-2">&amp;</span>buf[..nbytes], nbytes))
     }
 
     <span class="doccomment">/// Reads a IEEE754 single-precision (4 bytes) floating point number from
@@ -2088,10 +2088,10 @@
     /// assert_eq!(f32::consts::PI, rdr.read_f32::&lt;BigEndian&gt;().unwrap());
     /// ```
     </span><span class="attr">#[inline]
-    </span><span class="kw">fn </span>read_f32&lt;T: <a href="lib.rs.html#208-218">ByteOrder</a>&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.f32.html">f32</a>&gt; {
+    </span><span class="kw">fn </span>read_f32&lt;T: ByteOrder&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;f32&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>buf = [<span class="number">0</span>; <span class="number">4</span>];
         <span class="self">self</span>.read_exact(<span class="kw-2">&amp;mut </span>buf)<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(T::read_f32(<span class="kw-2">&amp;</span><a href="#500">buf</a>))
+        <span class="prelude-val">Ok</span>(T::read_f32(<span class="kw-2">&amp;</span>buf))
     }
 
     <span class="doccomment">/// Reads a IEEE754 double-precision (8 bytes) floating point number from
@@ -2119,10 +2119,10 @@
     /// assert_eq!(f64::consts::PI, rdr.read_f64::&lt;BigEndian&gt;().unwrap());
     /// ```
     </span><span class="attr">#[inline]
-    </span><span class="kw">fn </span>read_f64&lt;T: <a href="lib.rs.html#208-218">ByteOrder</a>&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.f64.html">f64</a>&gt; {
+    </span><span class="kw">fn </span>read_f64&lt;T: ByteOrder&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;f64&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>buf = [<span class="number">0</span>; <span class="number">8</span>];
         <span class="self">self</span>.read_exact(<span class="kw-2">&amp;mut </span>buf)<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(T::read_f64(<span class="kw-2">&amp;</span><a href="#531">buf</a>))
+        <span class="prelude-val">Ok</span>(T::read_f64(<span class="kw-2">&amp;</span>buf))
     }
 
     <span class="doccomment">/// Reads a sequence of unsigned 16 bit integers from the underlying
@@ -2151,12 +2151,12 @@
     /// assert_eq!([517, 768], dst);
     /// ```
     </span><span class="attr">#[inline]
-    </span><span class="kw">fn </span>read_u16_into&lt;T: <a href="lib.rs.html#208-218">ByteOrder</a>&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, dst: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>]) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+    </span><span class="kw">fn </span>read_u16_into&lt;T: ByteOrder&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, dst: <span class="kw-2">&amp;mut </span>[u16]) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
         {
-            <span class="kw">let </span>buf = <span class="kw">unsafe </span>{ <a href="#1587">slice_to_u8_mut</a>(<a href="#562">dst</a>) };
+            <span class="kw">let </span>buf = <span class="kw">unsafe </span>{ slice_to_u8_mut(dst) };
             <span class="self">self</span>.read_exact(buf)<span class="question-mark">?</span>;
         }
-        T::from_slice_u16(<a href="#562">dst</a>);
+        T::from_slice_u16(dst);
         <span class="prelude-val">Ok</span>(())
     }
 
@@ -2186,12 +2186,12 @@
     /// assert_eq!([517, 768], dst);
     /// ```
     </span><span class="attr">#[inline]
-    </span><span class="kw">fn </span>read_u32_into&lt;T: <a href="lib.rs.html#208-218">ByteOrder</a>&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, dst: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>]) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+    </span><span class="kw">fn </span>read_u32_into&lt;T: ByteOrder&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, dst: <span class="kw-2">&amp;mut </span>[u32]) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
         {
-            <span class="kw">let </span>buf = <span class="kw">unsafe </span>{ <a href="#1587">slice_to_u8_mut</a>(<a href="#597">dst</a>) };
+            <span class="kw">let </span>buf = <span class="kw">unsafe </span>{ slice_to_u8_mut(dst) };
             <span class="self">self</span>.read_exact(buf)<span class="question-mark">?</span>;
         }
-        T::from_slice_u32(<a href="#597">dst</a>);
+        T::from_slice_u32(dst);
         <span class="prelude-val">Ok</span>(())
     }
 
@@ -2224,12 +2224,12 @@
     /// assert_eq!([517, 768], dst);
     /// ```
     </span><span class="attr">#[inline]
-    </span><span class="kw">fn </span>read_u64_into&lt;T: <a href="lib.rs.html#208-218">ByteOrder</a>&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, dst: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>]) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+    </span><span class="kw">fn </span>read_u64_into&lt;T: ByteOrder&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, dst: <span class="kw-2">&amp;mut </span>[u64]) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
         {
-            <span class="kw">let </span>buf = <span class="kw">unsafe </span>{ <a href="#1587">slice_to_u8_mut</a>(<a href="#635">dst</a>) };
+            <span class="kw">let </span>buf = <span class="kw">unsafe </span>{ slice_to_u8_mut(dst) };
             <span class="self">self</span>.read_exact(buf)<span class="question-mark">?</span>;
         }
-        T::from_slice_u64(<a href="#635">dst</a>);
+        T::from_slice_u64(dst);
         <span class="prelude-val">Ok</span>(())
     }
 
@@ -2262,15 +2262,15 @@
     /// assert_eq!([517, 768], dst);
     /// ```
     </span><span class="attr">#[inline]
-    </span><span class="kw">fn </span>read_u128_into&lt;T: <a href="lib.rs.html#208-218">ByteOrder</a>&gt;(
+    </span><span class="kw">fn </span>read_u128_into&lt;T: ByteOrder&gt;(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        dst: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u128.html">u128</a>],
+        dst: <span class="kw-2">&amp;mut </span>[u128],
     ) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
         {
-            <span class="kw">let </span>buf = <span class="kw">unsafe </span>{ <a href="#1587">slice_to_u8_mut</a>(<a href="#675">dst</a>) };
+            <span class="kw">let </span>buf = <span class="kw">unsafe </span>{ slice_to_u8_mut(dst) };
             <span class="self">self</span>.read_exact(buf)<span class="question-mark">?</span>;
         }
-        T::from_slice_u128(<a href="#675">dst</a>);
+        T::from_slice_u128(dst);
         <span class="prelude-val">Ok</span>(())
     }
 
@@ -2305,9 +2305,9 @@
     /// assert_eq!([2, -5, 3], dst);
     /// ```
     </span><span class="attr">#[inline]
-    </span><span class="kw">fn </span>read_i8_into(<span class="kw-2">&amp;mut </span><span class="self">self</span>, dst: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.i8.html">i8</a>]) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
-        <span class="kw">let </span>buf = <span class="kw">unsafe </span>{ <a href="#1587">slice_to_u8_mut</a>(<a href="#716">dst</a>) };
-        <a class="self" href="#716">self</a>.<a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">read_exact</a>(<a href="#717">buf</a>)
+    </span><span class="kw">fn </span>read_i8_into(<span class="kw-2">&amp;mut </span><span class="self">self</span>, dst: <span class="kw-2">&amp;mut </span>[i8]) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+        <span class="kw">let </span>buf = <span class="kw">unsafe </span>{ slice_to_u8_mut(dst) };
+        <span class="self">self</span>.read_exact(buf)
     }
 
     <span class="doccomment">/// Reads a sequence of signed 16 bit integers from the underlying
@@ -2336,12 +2336,12 @@
     /// assert_eq!([517, 768], dst);
     /// ```
     </span><span class="attr">#[inline]
-    </span><span class="kw">fn </span>read_i16_into&lt;T: <a href="lib.rs.html#208-218">ByteOrder</a>&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, dst: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.i16.html">i16</a>]) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+    </span><span class="kw">fn </span>read_i16_into&lt;T: ByteOrder&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, dst: <span class="kw-2">&amp;mut </span>[i16]) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
         {
-            <span class="kw">let </span>buf = <span class="kw">unsafe </span>{ <a href="#1587">slice_to_u8_mut</a>(<a href="#747">dst</a>) };
+            <span class="kw">let </span>buf = <span class="kw">unsafe </span>{ slice_to_u8_mut(dst) };
             <span class="self">self</span>.read_exact(buf)<span class="question-mark">?</span>;
         }
-        T::from_slice_i16(<a href="#747">dst</a>);
+        T::from_slice_i16(dst);
         <span class="prelude-val">Ok</span>(())
     }
 
@@ -2371,12 +2371,12 @@
     /// assert_eq!([517, 768], dst);
     /// ```
     </span><span class="attr">#[inline]
-    </span><span class="kw">fn </span>read_i32_into&lt;T: <a href="lib.rs.html#208-218">ByteOrder</a>&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, dst: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>]) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+    </span><span class="kw">fn </span>read_i32_into&lt;T: ByteOrder&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, dst: <span class="kw-2">&amp;mut </span>[i32]) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
         {
-            <span class="kw">let </span>buf = <span class="kw">unsafe </span>{ <a href="#1587">slice_to_u8_mut</a>(<a href="#782">dst</a>) };
+            <span class="kw">let </span>buf = <span class="kw">unsafe </span>{ slice_to_u8_mut(dst) };
             <span class="self">self</span>.read_exact(buf)<span class="question-mark">?</span>;
         }
-        T::from_slice_i32(<a href="#782">dst</a>);
+        T::from_slice_i32(dst);
         <span class="prelude-val">Ok</span>(())
     }
 
@@ -2409,12 +2409,12 @@
     /// assert_eq!([517, 768], dst);
     /// ```
     </span><span class="attr">#[inline]
-    </span><span class="kw">fn </span>read_i64_into&lt;T: <a href="lib.rs.html#208-218">ByteOrder</a>&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, dst: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>]) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+    </span><span class="kw">fn </span>read_i64_into&lt;T: ByteOrder&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, dst: <span class="kw-2">&amp;mut </span>[i64]) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
         {
-            <span class="kw">let </span>buf = <span class="kw">unsafe </span>{ <a href="#1587">slice_to_u8_mut</a>(<a href="#820">dst</a>) };
+            <span class="kw">let </span>buf = <span class="kw">unsafe </span>{ slice_to_u8_mut(dst) };
             <span class="self">self</span>.read_exact(buf)<span class="question-mark">?</span>;
         }
-        T::from_slice_i64(<a href="#820">dst</a>);
+        T::from_slice_i64(dst);
         <span class="prelude-val">Ok</span>(())
     }
 
@@ -2447,15 +2447,15 @@
     /// assert_eq!([517, 768], dst);
     /// ```
     </span><span class="attr">#[inline]
-    </span><span class="kw">fn </span>read_i128_into&lt;T: <a href="lib.rs.html#208-218">ByteOrder</a>&gt;(
+    </span><span class="kw">fn </span>read_i128_into&lt;T: ByteOrder&gt;(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        dst: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.i128.html">i128</a>],
+        dst: <span class="kw-2">&amp;mut </span>[i128],
     ) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
         {
-            <span class="kw">let </span>buf = <span class="kw">unsafe </span>{ <a href="#1587">slice_to_u8_mut</a>(<a href="#860">dst</a>) };
+            <span class="kw">let </span>buf = <span class="kw">unsafe </span>{ slice_to_u8_mut(dst) };
             <span class="self">self</span>.read_exact(buf)<span class="question-mark">?</span>;
         }
-        T::from_slice_i128(<a href="#860">dst</a>);
+        T::from_slice_i128(dst);
         <span class="prelude-val">Ok</span>(())
     }
 
@@ -2491,12 +2491,12 @@
     /// assert_eq!([f32::consts::PI, 1.0], dst);
     /// ```
     </span><span class="attr">#[inline]
-    </span><span class="kw">fn </span>read_f32_into&lt;T: <a href="lib.rs.html#208-218">ByteOrder</a>&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, dst: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.f32.html">f32</a>]) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+    </span><span class="kw">fn </span>read_f32_into&lt;T: ByteOrder&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, dst: <span class="kw-2">&amp;mut </span>[f32]) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
         {
-            <span class="kw">let </span>buf = <span class="kw">unsafe </span>{ <a href="#1587">slice_to_u8_mut</a>(<a href="#902">dst</a>) };
+            <span class="kw">let </span>buf = <span class="kw">unsafe </span>{ slice_to_u8_mut(dst) };
             <span class="self">self</span>.read_exact(buf)<span class="question-mark">?</span>;
         }
-        T::from_slice_f32(<a href="#902">dst</a>);
+        T::from_slice_f32(dst);
         <span class="prelude-val">Ok</span>(())
     }
 
@@ -2537,11 +2537,11 @@
     /// ```
     </span><span class="attr">#[inline]
     #[deprecated(since = <span class="string">&quot;1.2.0&quot;</span>, note = <span class="string">&quot;please use `read_f32_into` instead&quot;</span>)]
-    </span><span class="kw">fn </span>read_f32_into_unchecked&lt;T: <a href="lib.rs.html#208-218">ByteOrder</a>&gt;(
+    </span><span class="kw">fn </span>read_f32_into_unchecked&lt;T: ByteOrder&gt;(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        dst: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.f32.html">f32</a>],
+        dst: <span class="kw-2">&amp;mut </span>[f32],
     ) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
-        <a class="self" href="#949">self</a>.<a href="#902">read_f32_into</a>::&lt;T&gt;(<a href="#950">dst</a>)
+        <span class="self">self</span>.read_f32_into::&lt;T&gt;(dst)
     }
 
     <span class="doccomment">/// Reads a sequence of IEEE754 double-precision (8 bytes) floating
@@ -2576,12 +2576,12 @@
     /// assert_eq!([f64::consts::PI, 1.0], dst);
     /// ```
     </span><span class="attr">#[inline]
-    </span><span class="kw">fn </span>read_f64_into&lt;T: <a href="lib.rs.html#208-218">ByteOrder</a>&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, dst: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.f64.html">f64</a>]) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+    </span><span class="kw">fn </span>read_f64_into&lt;T: ByteOrder&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, dst: <span class="kw-2">&amp;mut </span>[f64]) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
         {
-            <span class="kw">let </span>buf = <span class="kw">unsafe </span>{ <a href="#1587">slice_to_u8_mut</a>(<a href="#987">dst</a>) };
+            <span class="kw">let </span>buf = <span class="kw">unsafe </span>{ slice_to_u8_mut(dst) };
             <span class="self">self</span>.read_exact(buf)<span class="question-mark">?</span>;
         }
-        T::from_slice_f64(<a href="#987">dst</a>);
+        T::from_slice_f64(dst);
         <span class="prelude-val">Ok</span>(())
     }
 
@@ -2628,17 +2628,17 @@
     /// ```
     </span><span class="attr">#[inline]
     #[deprecated(since = <span class="string">&quot;1.2.0&quot;</span>, note = <span class="string">&quot;please use `read_f64_into` instead&quot;</span>)]
-    </span><span class="kw">fn </span>read_f64_into_unchecked&lt;T: <a href="lib.rs.html#208-218">ByteOrder</a>&gt;(
+    </span><span class="kw">fn </span>read_f64_into_unchecked&lt;T: ByteOrder&gt;(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        dst: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.f64.html">f64</a>],
+        dst: <span class="kw-2">&amp;mut </span>[f64],
     ) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
-        <a class="self" href="#1040">self</a>.<a href="#987">read_f64_into</a>::&lt;T&gt;(<a href="#1041">dst</a>)
+        <span class="self">self</span>.read_f64_into::&lt;T&gt;(dst)
     }
 }
 
 <span class="doccomment">/// All types that implement `Read` get methods defined in `ReadBytesExt`
 /// for free.
-</span><span class="kw">impl</span>&lt;R: <a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">io::Read</a> + <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>&gt; <a href="#30">ReadBytesExt</a> <span class="kw">for </span>R {}
+</span><span class="kw">impl</span>&lt;R: io::Read + <span class="question-mark">?</span>Sized&gt; ReadBytesExt <span class="kw">for </span>R {}
 
 <span class="doccomment">/// Extends [`Write`] with methods for writing numbers. (For `std::io`.)
 ///
@@ -2662,7 +2662,7 @@
 /// [`BigEndian`]: enum.BigEndian.html
 /// [`LittleEndian`]: enum.LittleEndian.html
 /// [`Write`]: https://doc.rust-lang.org/std/io/trait.Write.html
-</span><span class="kw">pub trait </span>WriteBytesExt: <a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">io::Write</a> {
+</span><span class="kw">pub trait </span>WriteBytesExt: io::Write {
     <span class="doccomment">/// Writes an unsigned 8 bit integer to the underlying writer.
     ///
     /// Note that since this writes a single byte, no byte order conversions
@@ -2687,8 +2687,8 @@
     /// assert_eq!(wtr, b&quot;\x02\x05&quot;);
     /// ```
     </span><span class="attr">#[inline]
-    </span><span class="kw">fn </span>write_u8(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
-        <a class="self" href="#1098">self</a>.<a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">write_all</a>(<span class="kw-2">&amp;</span>[<a href="#1098">n</a>])
+    </span><span class="kw">fn </span>write_u8(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: u8) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+        <span class="self">self</span>.write_all(<span class="kw-2">&amp;</span>[n])
     }
 
     <span class="doccomment">/// Writes a signed 8 bit integer to the underlying writer.
@@ -2715,8 +2715,8 @@
     /// assert_eq!(wtr, b&quot;\x02\xfb&quot;);
     /// ```
     </span><span class="attr">#[inline]
-    </span><span class="kw">fn </span>write_i8(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: <a href="https://doc.rust-lang.org/nightly/std/primitive.i8.html">i8</a>) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
-        <a class="self" href="#1126">self</a>.<a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">write_all</a>(<span class="kw-2">&amp;</span>[<a href="#1126">n</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>])
+    </span><span class="kw">fn </span>write_i8(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: i8) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+        <span class="self">self</span>.write_all(<span class="kw-2">&amp;</span>[n <span class="kw">as </span>u8])
     }
 
     <span class="doccomment">/// Writes an unsigned 16 bit integer to the underlying writer.
@@ -2740,10 +2740,10 @@
     /// assert_eq!(wtr, b&quot;\x02\x05\x03\x00&quot;);
     /// ```
     </span><span class="attr">#[inline]
-    </span><span class="kw">fn </span>write_u16&lt;T: <a href="lib.rs.html#208-218">ByteOrder</a>&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: <a href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+    </span><span class="kw">fn </span>write_u16&lt;T: ByteOrder&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: u16) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>buf = [<span class="number">0</span>; <span class="number">2</span>];
-        T::write_u16(<span class="kw-2">&amp;mut </span><a href="#1152">buf</a>, <a href="#1151">n</a>);
-        <a class="self" href="#1151">self</a>.<a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">write_all</a>(<span class="kw-2">&amp;</span><a href="#1152">buf</a>)
+        T::write_u16(<span class="kw-2">&amp;mut </span>buf, n);
+        <span class="self">self</span>.write_all(<span class="kw-2">&amp;</span>buf)
     }
 
     <span class="doccomment">/// Writes a signed 16 bit integer to the underlying writer.
@@ -2767,10 +2767,10 @@
     /// assert_eq!(wtr, b&quot;\x00\xc1\xff\x7c&quot;);
     /// ```
     </span><span class="attr">#[inline]
-    </span><span class="kw">fn </span>write_i16&lt;T: <a href="lib.rs.html#208-218">ByteOrder</a>&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: <a href="https://doc.rust-lang.org/nightly/std/primitive.i16.html">i16</a>) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+    </span><span class="kw">fn </span>write_i16&lt;T: ByteOrder&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: i16) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>buf = [<span class="number">0</span>; <span class="number">2</span>];
-        T::write_i16(<span class="kw-2">&amp;mut </span><a href="#1179">buf</a>, <a href="#1178">n</a>);
-        <a class="self" href="#1178">self</a>.<a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">write_all</a>(<span class="kw-2">&amp;</span><a href="#1179">buf</a>)
+        T::write_i16(<span class="kw-2">&amp;mut </span>buf, n);
+        <span class="self">self</span>.write_all(<span class="kw-2">&amp;</span>buf)
     }
 
     <span class="doccomment">/// Writes an unsigned 24 bit integer to the underlying writer.
@@ -2794,10 +2794,10 @@
     /// assert_eq!(wtr, b&quot;\x00\x01\x0b\x01\xd5\x2f&quot;);
     /// ```
     </span><span class="attr">#[inline]
-    </span><span class="kw">fn </span>write_u24&lt;T: <a href="lib.rs.html#208-218">ByteOrder</a>&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+    </span><span class="kw">fn </span>write_u24&lt;T: ByteOrder&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: u32) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>buf = [<span class="number">0</span>; <span class="number">3</span>];
-        T::write_u24(<span class="kw-2">&amp;mut </span><a href="#1206">buf</a>, <a href="#1205">n</a>);
-        <a class="self" href="#1205">self</a>.<a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">write_all</a>(<span class="kw-2">&amp;</span><a href="#1206">buf</a>)
+        T::write_u24(<span class="kw-2">&amp;mut </span>buf, n);
+        <span class="self">self</span>.write_all(<span class="kw-2">&amp;</span>buf)
     }
 
     <span class="doccomment">/// Writes a signed 24 bit integer to the underlying writer.
@@ -2821,10 +2821,10 @@
     /// assert_eq!(wtr, b&quot;\xff\x7a\x33\x01\xd5\x2f&quot;);
     /// ```
     </span><span class="attr">#[inline]
-    </span><span class="kw">fn </span>write_i24&lt;T: <a href="lib.rs.html#208-218">ByteOrder</a>&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: <a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+    </span><span class="kw">fn </span>write_i24&lt;T: ByteOrder&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: i32) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>buf = [<span class="number">0</span>; <span class="number">3</span>];
-        T::write_i24(<span class="kw-2">&amp;mut </span><a href="#1233">buf</a>, <a href="#1232">n</a>);
-        <a class="self" href="#1232">self</a>.<a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">write_all</a>(<span class="kw-2">&amp;</span><a href="#1233">buf</a>)
+        T::write_i24(<span class="kw-2">&amp;mut </span>buf, n);
+        <span class="self">self</span>.write_all(<span class="kw-2">&amp;</span>buf)
     }
 
     <span class="doccomment">/// Writes an unsigned 32 bit integer to the underlying writer.
@@ -2848,10 +2848,10 @@
     /// assert_eq!(wtr, b&quot;\x00\x00\x01\x0b\x47\xd9\x3d\x66&quot;);
     /// ```
     </span><span class="attr">#[inline]
-    </span><span class="kw">fn </span>write_u32&lt;T: <a href="lib.rs.html#208-218">ByteOrder</a>&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+    </span><span class="kw">fn </span>write_u32&lt;T: ByteOrder&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: u32) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>buf = [<span class="number">0</span>; <span class="number">4</span>];
-        T::write_u32(<span class="kw-2">&amp;mut </span><a href="#1260">buf</a>, <a href="#1259">n</a>);
-        <a class="self" href="#1259">self</a>.<a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">write_all</a>(<span class="kw-2">&amp;</span><a href="#1260">buf</a>)
+        T::write_u32(<span class="kw-2">&amp;mut </span>buf, n);
+        <span class="self">self</span>.write_all(<span class="kw-2">&amp;</span>buf)
     }
 
     <span class="doccomment">/// Writes a signed 32 bit integer to the underlying writer.
@@ -2875,10 +2875,10 @@
     /// assert_eq!(wtr, b&quot;\xff\xff\x7a\x33\x47\xd9\x3d\x66&quot;);
     /// ```
     </span><span class="attr">#[inline]
-    </span><span class="kw">fn </span>write_i32&lt;T: <a href="lib.rs.html#208-218">ByteOrder</a>&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: <a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+    </span><span class="kw">fn </span>write_i32&lt;T: ByteOrder&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: i32) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>buf = [<span class="number">0</span>; <span class="number">4</span>];
-        T::write_i32(<span class="kw-2">&amp;mut </span><a href="#1287">buf</a>, <a href="#1286">n</a>);
-        <a class="self" href="#1286">self</a>.<a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">write_all</a>(<span class="kw-2">&amp;</span><a href="#1287">buf</a>)
+        T::write_i32(<span class="kw-2">&amp;mut </span>buf, n);
+        <span class="self">self</span>.write_all(<span class="kw-2">&amp;</span>buf)
     }
 
     <span class="doccomment">/// Writes an unsigned 48 bit integer to the underlying writer.
@@ -2902,10 +2902,10 @@
     /// assert_eq!(wtr, b&quot;\x2f\x9f\x17\x40\x3a\xac\x00\x00\x00\x00\x02\x1d&quot;);
     /// ```
     </span><span class="attr">#[inline]
-    </span><span class="kw">fn </span>write_u48&lt;T: <a href="lib.rs.html#208-218">ByteOrder</a>&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+    </span><span class="kw">fn </span>write_u48&lt;T: ByteOrder&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: u64) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>buf = [<span class="number">0</span>; <span class="number">6</span>];
-        T::write_u48(<span class="kw-2">&amp;mut </span><a href="#1314">buf</a>, <a href="#1313">n</a>);
-        <a class="self" href="#1313">self</a>.<a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">write_all</a>(<span class="kw-2">&amp;</span><a href="#1314">buf</a>)
+        T::write_u48(<span class="kw-2">&amp;mut </span>buf, n);
+        <span class="self">self</span>.write_all(<span class="kw-2">&amp;</span>buf)
     }
 
     <span class="doccomment">/// Writes a signed 48 bit integer to the underlying writer.
@@ -2929,10 +2929,10 @@
     /// assert_eq!(wtr, b&quot;\x9d\x71\xab\xe7\x97\x8f\x00\x00\x00\x00\x00\x4d&quot;);
     /// ```
     </span><span class="attr">#[inline]
-    </span><span class="kw">fn </span>write_i48&lt;T: <a href="lib.rs.html#208-218">ByteOrder</a>&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: <a href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+    </span><span class="kw">fn </span>write_i48&lt;T: ByteOrder&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: i64) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>buf = [<span class="number">0</span>; <span class="number">6</span>];
-        T::write_i48(<span class="kw-2">&amp;mut </span><a href="#1341">buf</a>, <a href="#1340">n</a>);
-        <a class="self" href="#1340">self</a>.<a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">write_all</a>(<span class="kw-2">&amp;</span><a href="#1341">buf</a>)
+        T::write_i48(<span class="kw-2">&amp;mut </span>buf, n);
+        <span class="self">self</span>.write_all(<span class="kw-2">&amp;</span>buf)
     }
 
     <span class="doccomment">/// Writes an unsigned 64 bit integer to the underlying writer.
@@ -2956,10 +2956,10 @@
     /// assert_eq!(wtr, b&quot;\x00\x03\x43\x95\x4d\x60\x86\x83\x00\x00\x00\x00\x00\x00\x00\x8f&quot;);
     /// ```
     </span><span class="attr">#[inline]
-    </span><span class="kw">fn </span>write_u64&lt;T: <a href="lib.rs.html#208-218">ByteOrder</a>&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+    </span><span class="kw">fn </span>write_u64&lt;T: ByteOrder&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: u64) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>buf = [<span class="number">0</span>; <span class="number">8</span>];
-        T::write_u64(<span class="kw-2">&amp;mut </span><a href="#1368">buf</a>, <a href="#1367">n</a>);
-        <a class="self" href="#1367">self</a>.<a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">write_all</a>(<span class="kw-2">&amp;</span><a href="#1368">buf</a>)
+        T::write_u64(<span class="kw-2">&amp;mut </span>buf, n);
+        <span class="self">self</span>.write_all(<span class="kw-2">&amp;</span>buf)
     }
 
     <span class="doccomment">/// Writes a signed 64 bit integer to the underlying writer.
@@ -2983,26 +2983,26 @@
     /// assert_eq!(wtr, b&quot;\x80\x00\x00\x00\x00\x00\x00\x00\x7f\xff\xff\xff\xff\xff\xff\xff&quot;);
     /// ```
     </span><span class="attr">#[inline]
-    </span><span class="kw">fn </span>write_i64&lt;T: <a href="lib.rs.html#208-218">ByteOrder</a>&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: <a href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+    </span><span class="kw">fn </span>write_i64&lt;T: ByteOrder&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: i64) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>buf = [<span class="number">0</span>; <span class="number">8</span>];
-        T::write_i64(<span class="kw-2">&amp;mut </span><a href="#1395">buf</a>, <a href="#1394">n</a>);
-        <a class="self" href="#1394">self</a>.<a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">write_all</a>(<span class="kw-2">&amp;</span><a href="#1395">buf</a>)
+        T::write_i64(<span class="kw-2">&amp;mut </span>buf, n);
+        <span class="self">self</span>.write_all(<span class="kw-2">&amp;</span>buf)
     }
 
     <span class="doccomment">/// Writes an unsigned 128 bit integer to the underlying writer.
     </span><span class="attr">#[inline]
-    </span><span class="kw">fn </span>write_u128&lt;T: <a href="lib.rs.html#208-218">ByteOrder</a>&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: <a href="https://doc.rust-lang.org/nightly/std/primitive.u128.html">u128</a>) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+    </span><span class="kw">fn </span>write_u128&lt;T: ByteOrder&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: u128) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>buf = [<span class="number">0</span>; <span class="number">16</span>];
-        T::write_u128(<span class="kw-2">&amp;mut </span><a href="#1403">buf</a>, <a href="#1402">n</a>);
-        <a class="self" href="#1402">self</a>.<a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">write_all</a>(<span class="kw-2">&amp;</span><a href="#1403">buf</a>)
+        T::write_u128(<span class="kw-2">&amp;mut </span>buf, n);
+        <span class="self">self</span>.write_all(<span class="kw-2">&amp;</span>buf)
     }
 
     <span class="doccomment">/// Writes a signed 128 bit integer to the underlying writer.
     </span><span class="attr">#[inline]
-    </span><span class="kw">fn </span>write_i128&lt;T: <a href="lib.rs.html#208-218">ByteOrder</a>&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: <a href="https://doc.rust-lang.org/nightly/std/primitive.i128.html">i128</a>) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+    </span><span class="kw">fn </span>write_i128&lt;T: ByteOrder&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: i128) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>buf = [<span class="number">0</span>; <span class="number">16</span>];
-        T::write_i128(<span class="kw-2">&amp;mut </span><a href="#1411">buf</a>, <a href="#1410">n</a>);
-        <a class="self" href="#1410">self</a>.<a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">write_all</a>(<span class="kw-2">&amp;</span><a href="#1411">buf</a>)
+        T::write_i128(<span class="kw-2">&amp;mut </span>buf, n);
+        <span class="self">self</span>.write_all(<span class="kw-2">&amp;</span>buf)
     }
 
     <span class="doccomment">/// Writes an unsigned n-bytes integer to the underlying writer.
@@ -3031,14 +3031,14 @@
     /// assert_eq!(wtr, b&quot;\x48\xc5\x74\x62\xe9\x00\x00\x00\x00\x2b&quot;);
     /// ```
     </span><span class="attr">#[inline]
-    </span><span class="kw">fn </span>write_uint&lt;T: <a href="lib.rs.html#208-218">ByteOrder</a>&gt;(
+    </span><span class="kw">fn </span>write_uint&lt;T: ByteOrder&gt;(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        n: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>,
-        nbytes: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+        n: u64,
+        nbytes: usize,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>buf = [<span class="number">0</span>; <span class="number">8</span>];
-        T::write_uint(<span class="kw-2">&amp;mut </span><a href="#1447">buf</a>, <a href="#1444">n</a>, <a href="#1445">nbytes</a>);
-        <a class="self" href="#1443">self</a>.<a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">write_all</a>(<span class="kw-2">&amp;</span><a href="#1447">buf</a>[<span class="number">0</span>..<a href="#1445">nbytes</a>])
+        T::write_uint(<span class="kw-2">&amp;mut </span>buf, n, nbytes);
+        <span class="self">self</span>.write_all(<span class="kw-2">&amp;</span>buf[<span class="number">0</span>..nbytes])
     }
 
     <span class="doccomment">/// Writes a signed n-bytes integer to the underlying writer.
@@ -3067,14 +3067,14 @@
     /// assert_eq!(wtr, b&quot;\xf3\x64\xf4\xd1\xfd\xb0\x81\x00\x00\x00\x00\x00\x00\x2b&quot;);
     /// ```
     </span><span class="attr">#[inline]
-    </span><span class="kw">fn </span>write_int&lt;T: <a href="lib.rs.html#208-218">ByteOrder</a>&gt;(
+    </span><span class="kw">fn </span>write_int&lt;T: ByteOrder&gt;(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        n: <a href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>,
-        nbytes: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+        n: i64,
+        nbytes: usize,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>buf = [<span class="number">0</span>; <span class="number">8</span>];
-        T::write_int(<span class="kw-2">&amp;mut </span><a href="#1483">buf</a>, <a href="#1480">n</a>, <a href="#1481">nbytes</a>);
-        <a class="self" href="#1479">self</a>.<a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">write_all</a>(<span class="kw-2">&amp;</span><a href="#1483">buf</a>[<span class="number">0</span>..<a href="#1481">nbytes</a>])
+        T::write_int(<span class="kw-2">&amp;mut </span>buf, n, nbytes);
+        <span class="self">self</span>.write_all(<span class="kw-2">&amp;</span>buf[<span class="number">0</span>..nbytes])
     }
 
     <span class="doccomment">/// Writes an unsigned n-bytes integer to the underlying writer.
@@ -3082,14 +3082,14 @@
     /// If the given integer is not representable in the given number of bytes,
     /// this method panics. If `nbytes &gt; 16`, this method panics.
     </span><span class="attr">#[inline]
-    </span><span class="kw">fn </span>write_uint128&lt;T: <a href="lib.rs.html#208-218">ByteOrder</a>&gt;(
+    </span><span class="kw">fn </span>write_uint128&lt;T: ByteOrder&gt;(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        n: <a href="https://doc.rust-lang.org/nightly/std/primitive.u128.html">u128</a>,
-        nbytes: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+        n: u128,
+        nbytes: usize,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>buf = [<span class="number">0</span>; <span class="number">16</span>];
-        T::write_uint128(<span class="kw-2">&amp;mut </span><a href="#1498">buf</a>, <a href="#1495">n</a>, <a href="#1496">nbytes</a>);
-        <a class="self" href="#1494">self</a>.<a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">write_all</a>(<span class="kw-2">&amp;</span><a href="#1498">buf</a>[<span class="number">0</span>..<a href="#1496">nbytes</a>])
+        T::write_uint128(<span class="kw-2">&amp;mut </span>buf, n, nbytes);
+        <span class="self">self</span>.write_all(<span class="kw-2">&amp;</span>buf[<span class="number">0</span>..nbytes])
     }
 
     <span class="doccomment">/// Writes a signed n-bytes integer to the underlying writer.
@@ -3097,14 +3097,14 @@
     /// If the given integer is not representable in the given number of bytes,
     /// this method panics. If `nbytes &gt; 16`, this method panics.
     </span><span class="attr">#[inline]
-    </span><span class="kw">fn </span>write_int128&lt;T: <a href="lib.rs.html#208-218">ByteOrder</a>&gt;(
+    </span><span class="kw">fn </span>write_int128&lt;T: ByteOrder&gt;(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        n: <a href="https://doc.rust-lang.org/nightly/std/primitive.i128.html">i128</a>,
-        nbytes: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+        n: i128,
+        nbytes: usize,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>buf = [<span class="number">0</span>; <span class="number">16</span>];
-        T::write_int128(<span class="kw-2">&amp;mut </span><a href="#1513">buf</a>, <a href="#1510">n</a>, <a href="#1511">nbytes</a>);
-        <a class="self" href="#1509">self</a>.<a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">write_all</a>(<span class="kw-2">&amp;</span><a href="#1513">buf</a>[<span class="number">0</span>..<a href="#1511">nbytes</a>])
+        T::write_int128(<span class="kw-2">&amp;mut </span>buf, n, nbytes);
+        <span class="self">self</span>.write_all(<span class="kw-2">&amp;</span>buf[<span class="number">0</span>..nbytes])
     }
 
     <span class="doccomment">/// Writes a IEEE754 single-precision (4 bytes) floating point number to
@@ -3130,10 +3130,10 @@
     /// assert_eq!(wtr, b&quot;\x40\x49\x0f\xdb&quot;);
     /// ```
     </span><span class="attr">#[inline]
-    </span><span class="kw">fn </span>write_f32&lt;T: <a href="lib.rs.html#208-218">ByteOrder</a>&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: <a href="https://doc.rust-lang.org/nightly/std/primitive.f32.html">f32</a>) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+    </span><span class="kw">fn </span>write_f32&lt;T: ByteOrder&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: f32) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>buf = [<span class="number">0</span>; <span class="number">4</span>];
-        T::write_f32(<span class="kw-2">&amp;mut </span><a href="#1542">buf</a>, <a href="#1541">n</a>);
-        <a class="self" href="#1541">self</a>.<a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">write_all</a>(<span class="kw-2">&amp;</span><a href="#1542">buf</a>)
+        T::write_f32(<span class="kw-2">&amp;mut </span>buf, n);
+        <span class="self">self</span>.write_all(<span class="kw-2">&amp;</span>buf)
     }
 
     <span class="doccomment">/// Writes a IEEE754 double-precision (8 bytes) floating point number to
@@ -3159,16 +3159,16 @@
     /// assert_eq!(wtr, b&quot;\x40\x09\x21\xfb\x54\x44\x2d\x18&quot;);
     /// ```
     </span><span class="attr">#[inline]
-    </span><span class="kw">fn </span>write_f64&lt;T: <a href="lib.rs.html#208-218">ByteOrder</a>&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: <a href="https://doc.rust-lang.org/nightly/std/primitive.f64.html">f64</a>) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+    </span><span class="kw">fn </span>write_f64&lt;T: ByteOrder&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: f64) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>buf = [<span class="number">0</span>; <span class="number">8</span>];
-        T::write_f64(<span class="kw-2">&amp;mut </span><a href="#1571">buf</a>, <a href="#1570">n</a>);
-        <a class="self" href="#1570">self</a>.<a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">write_all</a>(<span class="kw-2">&amp;</span><a href="#1571">buf</a>)
+        T::write_f64(<span class="kw-2">&amp;mut </span>buf, n);
+        <span class="self">self</span>.write_all(<span class="kw-2">&amp;</span>buf)
     }
 }
 
 <span class="doccomment">/// All types that implement `Write` get methods defined in `WriteBytesExt`
 /// for free.
-</span><span class="kw">impl</span>&lt;W: <a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">io::Write</a> + <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>&gt; <a href="#1073">WriteBytesExt</a> <span class="kw">for </span>W {}
+</span><span class="kw">impl</span>&lt;W: io::Write + <span class="question-mark">?</span>Sized&gt; WriteBytesExt <span class="kw">for </span>W {}
 
 <span class="doccomment">/// Convert a slice of T (where T is plain old data) to its mutable binary
 /// representation.
@@ -3176,11 +3176,11 @@
 /// This function is wildly unsafe because it permits arbitrary modification of
 /// the binary representation of any `Copy` type. Use with care. It&#39;s intended
 /// to be called only where `T` is a numeric type.
-</span><span class="kw">unsafe fn </span>slice_to_u8_mut&lt;T: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html">Copy</a>&gt;(slice: <span class="kw-2">&amp;mut </span>[T]) -&gt; <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>] {
+</span><span class="kw">unsafe fn </span>slice_to_u8_mut&lt;T: Copy&gt;(slice: <span class="kw-2">&amp;mut </span>[T]) -&gt; <span class="kw-2">&amp;mut </span>[u8] {
     <span class="kw">use </span>std::mem::size_of;
 
-    <span class="kw">let </span>len = size_of::&lt;T&gt;() * <a href="#1587">slice</a>.len();
-    slice::from_raw_parts_mut(<a href="#1587">slice</a>.as_mut_ptr() <span class="kw">as </span><span class="kw-2">*mut </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>, <a href="#1590">len</a>)
+    <span class="kw">let </span>len = size_of::&lt;T&gt;() * slice.len();
+    slice::from_raw_parts_mut(slice.as_mut_ptr() <span class="kw">as </span><span class="kw-2">*mut </span>u8, len)
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="byteorder" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="byteorder" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/syn-1.0.103/src/attr.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>attr.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../syn/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/syn-1.0.107/src/attr.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>attr.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../syn/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -661,15 +661,15 @@
 <a href="#661" id="661">661</a>
 <a href="#662" id="662">662</a>
 </pre><pre class="rust"><code><span class="kw">use super</span>::<span class="kw-2">*</span>;
-<span class="kw">use </span><a href="punctuated.rs.html#46"><span class="kw">crate</span>::punctuated::Punctuated</a>;
-<span class="kw">use </span><a href="../../proc_macro2/struct.TokenStream.html">proc_macro2::TokenStream</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/iter/index.html">std::iter</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/slice/index.html">std::slice</a>;
+<span class="kw">use </span><span class="kw">crate</span>::punctuated::Punctuated;
+<span class="kw">use </span>proc_macro2::TokenStream;
+<span class="kw">use </span>std::iter;
+<span class="kw">use </span>std::slice;
 
 <span class="attr">#[cfg(feature = <span class="string">&quot;parsing&quot;</span>)]
-</span><span class="kw">use </span><span class="kw">crate</span>::parse::{<a href="parse.rs.html#220">Parse</a>, <a href="parse.rs.html#252">ParseBuffer</a>, <a href="parse.rs.html#230">ParseStream</a>, <a href="parse.rs.html#1143">Parser</a>, <span class="prelude-ty">Result</span>};
+</span><span class="kw">use </span><span class="kw">crate</span>::parse::{Parse, ParseBuffer, ParseStream, Parser, <span class="prelude-ty">Result</span>};
 <span class="attr">#[cfg(feature = <span class="string">&quot;parsing&quot;</span>)]
-</span><span class="kw">use </span><a href="punctuated.rs.html#911"><span class="kw">crate</span>::punctuated::Pair</a>;
+</span><span class="kw">use </span><span class="kw">crate</span>::punctuated::Pair;
 
 <span class="macro">ast_struct! </span>{
     <span class="doccomment">/// An attribute like `#[repr(transparent)]`.
@@ -809,15 +809,15 @@
     /// ```
     </span><span class="attr">#[cfg_attr(doc_cfg, doc(cfg(any(feature = <span class="string">&quot;full&quot;</span>, feature = <span class="string">&quot;derive&quot;</span>))))]
     </span><span class="kw">pub struct </span>Attribute {
-        <span class="kw">pub </span>pound_token: <a class="macro" href="await.rs.html#2">Token!</a>[#],
-        <span class="kw">pub </span>style: <a href="#311-334">AttrStyle</a>,
-        <span class="kw">pub </span>bracket_token: <a href="token.rs.html#756-761">token::Bracket</a>,
-        <span class="kw">pub </span>path: <a href="path.rs.html#4-14">Path</a>,
-        <span class="kw">pub </span>tokens: <a href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>,
+        <span class="kw">pub </span>pound_token: <span class="macro">Token!</span>[#],
+        <span class="kw">pub </span>style: AttrStyle,
+        <span class="kw">pub </span>bracket_token: token::Bracket,
+        <span class="kw">pub </span>path: Path,
+        <span class="kw">pub </span>tokens: TokenStream,
     }
 }
 
-<span class="kw">impl </span><a href="#12-156">Attribute</a> {
+<span class="kw">impl </span>Attribute {
     <span class="doccomment">/// Parses the content of the attribute, consisting of the path and tokens,
     /// as a [`Meta`] if possible.
     ///
@@ -825,35 +825,35 @@
     /// feature.*
     </span><span class="attr">#[cfg(feature = <span class="string">&quot;parsing&quot;</span>)]
     #[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">&quot;parsing&quot;</span>)))]
-    </span><span class="kw">pub fn </span>parse_meta(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#336-370">Meta</a>&gt; {
-        <span class="kw">fn </span>clone_ident_segment(segment: <span class="kw-2">&amp;</span><a href="path.rs.html#30-40">PathSegment</a>) -&gt; <a href="path.rs.html#30-40">PathSegment</a> {
-            <a href="path.rs.html#30-40">PathSegment</a> {
-                ident: <a href="#167">segment</a>.ident.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
-                arguments: <a href="path.rs.html#69">PathArguments::None</a>,
+    </span><span class="kw">pub fn </span>parse_meta(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;Meta&gt; {
+        <span class="kw">fn </span>clone_ident_segment(segment: <span class="kw-2">&amp;</span>PathSegment) -&gt; PathSegment {
+            PathSegment {
+                ident: segment.ident.clone(),
+                arguments: PathArguments::None,
             }
         }
 
-        <span class="kw">let </span>path = <a href="path.rs.html#4-14">Path</a> {
-            leading_colon: <span class="self"><a href="#166">self</a>
+        <span class="kw">let </span>path = Path {
+            leading_colon: <span class="self">self
                 </span>.path
                 .leading_colon
                 .as_ref()
-                .map(|colon| <a class="macro" href="await.rs.html#2">Token!</a>[::](<a href="#179">colon</a>.spans)),
-            segments: <span class="self"><a href="#166">self</a>
+                .map(|colon| <span class="macro">Token!</span>[::](colon.spans)),
+            segments: <span class="self">self
                 </span>.path
                 .segments
-                .<a href="punctuated.rs.html#127">pairs</a>()
-                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|pair| <span class="kw">match </span><a href="#184">pair</a> {
-                    <a href="punctuated.rs.html#912">Pair::Punctuated</a>(seg, punct) =&gt; {
-                        <a href="punctuated.rs.html#912">Pair::Punctuated</a>(<a href="#167">clone_ident_segment</a>(<a href="#185">seg</a>), <a class="macro" href="await.rs.html#2">Token!</a>[::](<a href="#185">punct</a>.spans))
+                .pairs()
+                .map(|pair| <span class="kw">match </span>pair {
+                    Pair::Punctuated(seg, punct) =&gt; {
+                        Pair::Punctuated(clone_ident_segment(seg), <span class="macro">Token!</span>[::](punct.spans))
                     }
-                    <a href="punctuated.rs.html#913">Pair::End</a>(seg) =&gt; <a href="punctuated.rs.html#913">Pair::End</a>(<a href="#167">clone_ident_segment</a>(<a href="#188">seg</a>)),
+                    Pair::End(seg) =&gt; Pair::End(clone_ident_segment(seg)),
                 })
-                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>(),
+                .collect(),
         };
 
-        <span class="kw">let </span>parser = |input: <a href="parse.rs.html#230">ParseStream</a>| <a href="#596">parsing::parse_meta_after_path</a>(<a href="#174">path</a>, <a href="#193">input</a>);
-        <a href="parse.rs.html#1150">parse::Parser::parse2</a>(<a href="#193">parser</a>, <a class="self" href="#166">self</a>.tokens.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>())
+        <span class="kw">let </span>parser = |input: ParseStream| parsing::parse_meta_after_path(path, input);
+        parse::Parser::parse2(parser, <span class="self">self</span>.tokens.clone())
     }
 
     <span class="doccomment">/// Parse the arguments to the attribute as a syntax tree.
@@ -873,8 +873,8 @@
     /// feature.*
     </span><span class="attr">#[cfg(feature = <span class="string">&quot;parsing&quot;</span>)]
     #[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">&quot;parsing&quot;</span>)))]
-    </span><span class="kw">pub fn </span>parse_args&lt;T: <a href="parse.rs.html#220">Parse</a>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;T&gt; {
-        <a class="self" href="#214">self</a>.<a href="#224">parse_args_with</a>(T::parse)
+    </span><span class="kw">pub fn </span>parse_args&lt;T: Parse&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;T&gt; {
+        <span class="self">self</span>.parse_args_with(T::parse)
     }
 
     <span class="doccomment">/// Parse the arguments to the attribute using the given parser.
@@ -883,12 +883,12 @@
     /// feature.*
     </span><span class="attr">#[cfg(feature = <span class="string">&quot;parsing&quot;</span>)]
     #[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">&quot;parsing&quot;</span>)))]
-    </span><span class="kw">pub fn </span>parse_args_with&lt;F: <a href="parse.rs.html#1143">Parser</a>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, parser: F) -&gt; <span class="prelude-ty">Result</span>&lt;F::Output&gt; {
-        <span class="kw">let </span>parser = |input: <a href="parse.rs.html#230">ParseStream</a>| {
+    </span><span class="kw">pub fn </span>parse_args_with&lt;F: Parser&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, parser: F) -&gt; <span class="prelude-ty">Result</span>&lt;F::Output&gt; {
+        <span class="kw">let </span>parser = |input: ParseStream| {
             <span class="kw">let </span>args = enter_args(<span class="self">self</span>, input)<span class="question-mark">?</span>;
-            <a href="parse.rs.html#1248">parse::parse_stream</a>(<a href="#224">parser</a>, <span class="kw-2">&amp;</span><a href="#226">args</a>)
+            parse::parse_stream(parser, <span class="kw-2">&amp;</span>args)
         };
-        <a href="#225">parser</a>.<a href="parse.rs.html#1150">parse2</a>(<a class="self" href="#224">self</a>.tokens.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>())
+        parser.parse2(<span class="self">self</span>.tokens.clone())
     }
 
     <span class="doccomment">/// Parses zero or more outer attributes from the stream.
@@ -897,12 +897,12 @@
     /// feature.*
     </span><span class="attr">#[cfg(feature = <span class="string">&quot;parsing&quot;</span>)]
     #[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">&quot;parsing&quot;</span>)))]
-    </span><span class="kw">pub fn </span>parse_outer(input: <a href="parse.rs.html#230">ParseStream</a>) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;<span class="self">Self</span>&gt;&gt; {
+    </span><span class="kw">pub fn </span>parse_outer(input: ParseStream) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;<span class="self">Self</span>&gt;&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>attrs = Vec::new();
         <span class="kw">while </span>input.peek(<span class="macro">Token!</span>[#]) {
             attrs.push(input.call(parsing::single_parse_outer)<span class="question-mark">?</span>);
         }
-        <span class="prelude-val">Ok</span>(<a href="#239">attrs</a>)
+        <span class="prelude-val">Ok</span>(attrs)
     }
 
     <span class="doccomment">/// Parses zero or more inner attributes from the stream.
@@ -911,18 +911,18 @@
     /// feature.*
     </span><span class="attr">#[cfg(feature = <span class="string">&quot;parsing&quot;</span>)]
     #[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">&quot;parsing&quot;</span>)))]
-    </span><span class="kw">pub fn </span>parse_inner(input: <a href="parse.rs.html#230">ParseStream</a>) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;<span class="self">Self</span>&gt;&gt; {
+    </span><span class="kw">pub fn </span>parse_inner(input: ParseStream) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;<span class="self">Self</span>&gt;&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>attrs = Vec::new();
         parsing::parse_inner(input, <span class="kw-2">&amp;mut </span>attrs)<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(<a href="#253">attrs</a>)
+        <span class="prelude-val">Ok</span>(attrs)
     }
 }
 
 <span class="attr">#[cfg(feature = <span class="string">&quot;parsing&quot;</span>)]
-</span><span class="kw">fn </span>expected_parentheses(attr: <span class="kw-2">&amp;</span><a href="#12-156">Attribute</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a> {
-    <span class="kw">let </span>style = <span class="kw">match </span><a href="#260">attr</a>.style {
-        <a href="#331">AttrStyle::Outer</a> =&gt; <span class="string">&quot;#&quot;</span>,
-        <a href="#332">AttrStyle::Inner</a>(<span class="kw">_</span>) =&gt; <span class="string">&quot;#!&quot;</span>,
+</span><span class="kw">fn </span>expected_parentheses(attr: <span class="kw-2">&amp;</span>Attribute) -&gt; String {
+    <span class="kw">let </span>style = <span class="kw">match </span>attr.style {
+        AttrStyle::Outer =&gt; <span class="string">&quot;#&quot;</span>,
+        AttrStyle::Inner(<span class="kw">_</span>) =&gt; <span class="string">&quot;#!&quot;</span>,
     };
 
     <span class="kw">let </span><span class="kw-2">mut </span>path = String::new();
@@ -933,40 +933,40 @@
         path += <span class="kw-2">&amp;</span>segment.ident.to_string();
     }
 
-    <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;{}[{}(...)]&quot;</span>, style, path)
+    <span class="macro">format!</span>(<span class="string">&quot;{}[{}(...)]&quot;</span>, style, path)
 }
 
 <span class="attr">#[cfg(feature = <span class="string">&quot;parsing&quot;</span>)]
-</span><span class="kw">fn </span>enter_args&lt;<span class="lifetime">&#39;a</span>&gt;(attr: <span class="kw-2">&amp;</span><a href="#12-156">Attribute</a>, input: ParseStream&lt;<span class="lifetime">&#39;a</span>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;ParseBuffer&lt;<span class="lifetime">&#39;a</span>&gt;&gt; {
+</span><span class="kw">fn </span>enter_args&lt;<span class="lifetime">&#39;a</span>&gt;(attr: <span class="kw-2">&amp;</span>Attribute, input: ParseStream&lt;<span class="lifetime">&#39;a</span>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;ParseBuffer&lt;<span class="lifetime">&#39;a</span>&gt;&gt; {
     <span class="kw">if </span>input.is_empty() {
-        <span class="kw">let </span>expected = <a href="#260">expected_parentheses</a>(<a href="#278">attr</a>);
-        <span class="kw">let </span>msg = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;expected attribute arguments in parentheses: {}&quot;</span>, expected);
-        <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="error.rs.html#290"><span class="kw">crate</span>::error::new2</a>(
-            <a href="#278">attr</a>.pound_token.span,
-            <a href="#278">attr</a>.bracket_token.span,
-            <a href="#281">msg</a>,
+        <span class="kw">let </span>expected = expected_parentheses(attr);
+        <span class="kw">let </span>msg = <span class="macro">format!</span>(<span class="string">&quot;expected attribute arguments in parentheses: {}&quot;</span>, expected);
+        <span class="kw">return </span><span class="prelude-val">Err</span>(<span class="kw">crate</span>::error::new2(
+            attr.pound_token.span,
+            attr.bracket_token.span,
+            msg,
         ));
     } <span class="kw">else if </span>input.peek(<span class="macro">Token!</span>[=]) {
-        <span class="kw">let </span>expected = <a href="#260">expected_parentheses</a>(<a href="#278">attr</a>);
-        <span class="kw">let </span>msg = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;expected parentheses: {}&quot;</span>, expected);
-        <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="#278">input</a>.<a href="parse.rs.html#957">error</a>(<a href="#289">msg</a>));
+        <span class="kw">let </span>expected = expected_parentheses(attr);
+        <span class="kw">let </span>msg = <span class="macro">format!</span>(<span class="string">&quot;expected parentheses: {}&quot;</span>, expected);
+        <span class="kw">return </span><span class="prelude-val">Err</span>(input.error(msg));
     };
 
     <span class="kw">let </span>content;
     <span class="kw">if </span>input.peek(token::Paren) {
-        <a class="macro" href="group.rs.html#137-149">parenthesized!</a>(content <span class="kw">in </span>input);
+        <span class="macro">parenthesized!</span>(content <span class="kw">in </span>input);
     } <span class="kw">else if </span>input.peek(token::Bracket) {
-        <a class="macro" href="group.rs.html#270-282">bracketed!</a>(content <span class="kw">in </span>input);
+        <span class="macro">bracketed!</span>(content <span class="kw">in </span>input);
     } <span class="kw">else if </span>input.peek(token::Brace) {
-        <a class="macro" href="group.rs.html#215-227">braced!</a>(content <span class="kw">in </span>input);
+        <span class="macro">braced!</span>(content <span class="kw">in </span>input);
     } <span class="kw">else </span>{
-        <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="#278">input</a>.<a href="parse.rs.html#957">error</a>(<span class="string">&quot;unexpected token in attribute arguments&quot;</span>));
+        <span class="kw">return </span><span class="prelude-val">Err</span>(input.error(<span class="string">&quot;unexpected token in attribute arguments&quot;</span>));
     }
 
     <span class="kw">if </span>input.is_empty() {
-        <span class="prelude-val">Ok</span>(<a href="#293">content</a>)
+        <span class="prelude-val">Ok</span>(content)
     } <span class="kw">else </span>{
-        <span class="prelude-val">Err</span>(<a href="#278">input</a>.<a href="parse.rs.html#957">error</a>(<span class="string">&quot;unexpected token in attribute arguments&quot;</span>))
+        <span class="prelude-val">Err</span>(input.error(<span class="string">&quot;unexpected token in attribute arguments&quot;</span>))
     }
 }
 
@@ -991,11 +991,11 @@
     </span><span class="attr">#[cfg_attr(doc_cfg, doc(cfg(any(feature = <span class="string">&quot;full&quot;</span>, feature = <span class="string">&quot;derive&quot;</span>))))]
     </span><span class="kw">pub enum </span>AttrStyle {
         Outer,
-        Inner(<a class="macro" href="await.rs.html#2">Token!</a>[!]),
+        Inner(<span class="macro">Token!</span>[!]),
     }
 }
 
-<a class="macro" href="macros.rs.html#59-68">ast_enum_of_structs! </a>{
+<span class="macro">ast_enum_of_structs! </span>{
     <span class="doccomment">/// Content of a compile-time structured attribute.
     ///
     /// *This type is available only if Syn is built with the `&quot;derive&quot;` or `&quot;full&quot;`
@@ -1021,13 +1021,13 @@
     /// [syntax tree enum]: Expr#syntax-tree-enums
     </span><span class="attr">#[cfg_attr(doc_cfg, doc(cfg(any(feature = <span class="string">&quot;full&quot;</span>, feature = <span class="string">&quot;derive&quot;</span>))))]
     </span><span class="kw">pub enum </span>Meta {
-        Path(<a href="path.rs.html#4-14">Path</a>),
+        Path(Path),
 
         <span class="doccomment">/// A structured list within an attribute, like `derive(Copy, Clone)`.
-        </span>List(<a href="#372-383">MetaList</a>),
+        </span>List(MetaList),
 
         <span class="doccomment">/// A name-value pair within an attribute, like `feature = &quot;nightly&quot;`.
-        </span>NameValue(<a href="#385-396">MetaNameValue</a>),
+        </span>NameValue(MetaNameValue),
     }
 }
 
@@ -1038,9 +1038,9 @@
     /// `&quot;full&quot;` feature.*
     </span><span class="attr">#[cfg_attr(doc_cfg, doc(cfg(any(feature = <span class="string">&quot;full&quot;</span>, feature = <span class="string">&quot;derive&quot;</span>))))]
     </span><span class="kw">pub struct </span>MetaList {
-        <span class="kw">pub </span>path: <a href="path.rs.html#4-14">Path</a>,
-        <span class="kw">pub </span>paren_token: <a href="token.rs.html#756-761">token::Paren</a>,
-        <span class="kw">pub </span>nested: Punctuated&lt;<a href="#412-426">NestedMeta</a>, <a class="macro" href="await.rs.html#2">Token!</a>[,]&gt;,
+        <span class="kw">pub </span>path: Path,
+        <span class="kw">pub </span>paren_token: token::Paren,
+        <span class="kw">pub </span>nested: Punctuated&lt;NestedMeta, <span class="macro">Token!</span>[,]&gt;,
     }
 }
 
@@ -1051,27 +1051,27 @@
     /// `&quot;full&quot;` feature.*
     </span><span class="attr">#[cfg_attr(doc_cfg, doc(cfg(any(feature = <span class="string">&quot;full&quot;</span>, feature = <span class="string">&quot;derive&quot;</span>))))]
     </span><span class="kw">pub struct </span>MetaNameValue {
-        <span class="kw">pub </span>path: <a href="path.rs.html#4-14">Path</a>,
-        <span class="kw">pub </span>eq_token: <a class="macro" href="await.rs.html#2">Token!</a>[=],
-        <span class="kw">pub </span>lit: <a href="lit.rs.html#14-49">Lit</a>,
+        <span class="kw">pub </span>path: Path,
+        <span class="kw">pub </span>eq_token: <span class="macro">Token!</span>[=],
+        <span class="kw">pub </span>lit: Lit,
     }
 }
 
-<span class="kw">impl </span><a href="#336-370">Meta</a> {
+<span class="kw">impl </span>Meta {
     <span class="doccomment">/// Returns the identifier that begins this structured meta item.
     ///
     /// For example this would return the `test` in `#[test]`, the `derive` in
     /// `#[derive(Copy)]`, and the `path` in `#[path = &quot;sys/windows.rs&quot;]`.
-    </span><span class="kw">pub fn </span>path(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="path.rs.html#4-14">Path</a> {
-        <span class="kw">match </span><span class="self"><a href="#403">self</a> </span>{
-            <a href="#362">Meta::Path</a>(path) =&gt; <a href="#405">path</a>,
-            <a href="#365">Meta::List</a>(meta) =&gt; <span class="kw-2">&amp;</span><a href="#406">meta</a>.path,
-            <a href="#368">Meta::NameValue</a>(meta) =&gt; <span class="kw-2">&amp;</span><a href="#407">meta</a>.path,
+    </span><span class="kw">pub fn </span>path(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Path {
+        <span class="kw">match </span><span class="self">self </span>{
+            Meta::Path(path) =&gt; path,
+            Meta::List(meta) =&gt; <span class="kw-2">&amp;</span>meta.path,
+            Meta::NameValue(meta) =&gt; <span class="kw-2">&amp;</span>meta.path,
         }
     }
 }
 
-<a class="macro" href="macros.rs.html#59-68">ast_enum_of_structs! </a>{
+<span class="macro">ast_enum_of_structs! </span>{
     <span class="doccomment">/// Element of a compile-time attribute list.
     ///
     /// *This type is available only if Syn is built with the `&quot;derive&quot;` or `&quot;full&quot;`
@@ -1080,10 +1080,10 @@
     </span><span class="kw">pub enum </span>NestedMeta {
         <span class="doccomment">/// A structured meta item, like the `Copy` in `#[derive(Copy)]` which
         /// would be a nested `Meta::Path`.
-        </span>Meta(<a href="#336-370">Meta</a>),
+        </span>Meta(Meta),
 
         <span class="doccomment">/// A Rust literal, like the `&quot;new_name&quot;` in `#[rename(&quot;new_name&quot;)]`.
-        </span>Lit(<a href="lit.rs.html#14-49">Lit</a>),
+        </span>Lit(Lit),
     }
 }
 
@@ -1123,77 +1123,77 @@
 /// }
 /// ```
 </span><span class="attr">#[cfg_attr(doc_cfg, doc(cfg(any(feature = <span class="string">&quot;full&quot;</span>, feature = <span class="string">&quot;derive&quot;</span>))))]
-</span><span class="kw">pub type </span>AttributeArgs = Vec&lt;<a href="#412-426">NestedMeta</a>&gt;;
+</span><span class="kw">pub type </span>AttributeArgs = Vec&lt;NestedMeta&gt;;
 
 <span class="kw">pub trait </span>FilterAttrs&lt;<span class="lifetime">&#39;a</span>&gt; {
-    <span class="kw">type </span>Ret: Iterator&lt;Item = <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="#12-156">Attribute</a>&gt;;
+    <span class="kw">type </span>Ret: Iterator&lt;Item = <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Attribute&gt;;
 
     <span class="kw">fn </span>outer(<span class="self">self</span>) -&gt; <span class="self">Self</span>::Ret;
     <span class="kw">fn </span>inner(<span class="self">self</span>) -&gt; <span class="self">Self</span>::Ret;
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; FilterAttrs&lt;<span class="lifetime">&#39;a</span>&gt; <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[<a href="#12-156">Attribute</a>] {
-    <span class="kw">type </span>Ret = iter::Filter&lt;slice::Iter&lt;<span class="lifetime">&#39;a</span>, <a href="#12-156">Attribute</a>&gt;, <span class="kw">fn</span>(&amp;&amp;<a href="#12-156">Attribute</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>&gt;;
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; FilterAttrs&lt;<span class="lifetime">&#39;a</span>&gt; <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[Attribute] {
+    <span class="kw">type </span>Ret = iter::Filter&lt;slice::Iter&lt;<span class="lifetime">&#39;a</span>, Attribute&gt;, <span class="kw">fn</span>(&amp;&amp;Attribute) -&gt; bool&gt;;
 
     <span class="kw">fn </span>outer(<span class="self">self</span>) -&gt; <span class="self">Self</span>::Ret {
-        <span class="kw">fn </span>is_outer(attr: &amp;&amp;<a href="#12-156">Attribute</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-            <span class="kw">match </span><a href="#477">attr</a>.style {
-                <a href="#331">AttrStyle::Outer</a> =&gt; <span class="bool-val">true</span>,
-                <a href="#332">AttrStyle::Inner</a>(<span class="kw">_</span>) =&gt; <span class="bool-val">false</span>,
+        <span class="kw">fn </span>is_outer(attr: &amp;&amp;Attribute) -&gt; bool {
+            <span class="kw">match </span>attr.style {
+                AttrStyle::Outer =&gt; <span class="bool-val">true</span>,
+                AttrStyle::Inner(<span class="kw">_</span>) =&gt; <span class="bool-val">false</span>,
             }
         }
-        <a class="self" href="#476">self</a>.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter</a>(<a href="#477">is_outer</a>)
+        <span class="self">self</span>.iter().filter(is_outer)
     }
 
     <span class="kw">fn </span>inner(<span class="self">self</span>) -&gt; <span class="self">Self</span>::Ret {
-        <span class="kw">fn </span>is_inner(attr: &amp;&amp;<a href="#12-156">Attribute</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-            <span class="kw">match </span><a href="#487">attr</a>.style {
-                <a href="#332">AttrStyle::Inner</a>(<span class="kw">_</span>) =&gt; <span class="bool-val">true</span>,
-                <a href="#331">AttrStyle::Outer</a> =&gt; <span class="bool-val">false</span>,
+        <span class="kw">fn </span>is_inner(attr: &amp;&amp;Attribute) -&gt; bool {
+            <span class="kw">match </span>attr.style {
+                AttrStyle::Inner(<span class="kw">_</span>) =&gt; <span class="bool-val">true</span>,
+                AttrStyle::Outer =&gt; <span class="bool-val">false</span>,
             }
         }
-        <a class="self" href="#486">self</a>.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter</a>(<a href="#487">is_inner</a>)
+        <span class="self">self</span>.iter().filter(is_inner)
     }
 }
 
 <span class="attr">#[cfg(feature = <span class="string">&quot;parsing&quot;</span>)]
 </span><span class="kw">pub mod </span>parsing {
     <span class="kw">use super</span>::<span class="kw-2">*</span>;
-    <span class="kw">use </span><a href="ext.rs.html#18"><span class="kw">crate</span>::ext::IdentExt</a>;
-    <span class="kw">use </span><span class="kw">crate</span>::parse::{<a href="parse.rs.html#220">Parse</a>, <a href="parse.rs.html#230">ParseStream</a>, <span class="prelude-ty">Result</span>};
+    <span class="kw">use </span><span class="kw">crate</span>::ext::IdentExt;
+    <span class="kw">use </span><span class="kw">crate</span>::parse::{Parse, ParseStream, <span class="prelude-ty">Result</span>};
 
-    <span class="kw">pub fn </span>parse_inner(input: <a href="parse.rs.html#230">ParseStream</a>, attrs: <span class="kw-2">&amp;mut </span>Vec&lt;<a href="#12-156">Attribute</a>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+    <span class="kw">pub fn </span>parse_inner(input: ParseStream, attrs: <span class="kw-2">&amp;mut </span>Vec&lt;Attribute&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
         <span class="kw">while </span>input.peek(<span class="macro">Token!</span>[#]) &amp;&amp; input.peek2(<span class="macro">Token!</span>[!]) {
             attrs.push(input.call(parsing::single_parse_inner)<span class="question-mark">?</span>);
         }
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="kw">pub fn </span>single_parse_inner(input: <a href="parse.rs.html#230">ParseStream</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#12-156">Attribute</a>&gt; {
+    <span class="kw">pub fn </span>single_parse_inner(input: ParseStream) -&gt; <span class="prelude-ty">Result</span>&lt;Attribute&gt; {
         <span class="kw">let </span>content;
-        <span class="prelude-val">Ok</span>(<a href="#12-156">Attribute</a> {
+        <span class="prelude-val">Ok</span>(Attribute {
             pound_token: input.parse()<span class="question-mark">?</span>,
-            style: <a href="#332">AttrStyle::Inner</a>(input.parse()<span class="question-mark">?</span>),
-            bracket_token: <a class="macro" href="group.rs.html#270-282">bracketed!</a>(content <span class="kw">in </span>input),
+            style: AttrStyle::Inner(input.parse()<span class="question-mark">?</span>),
+            bracket_token: <span class="macro">bracketed!</span>(content <span class="kw">in </span>input),
             path: content.call(Path::parse_mod_style)<span class="question-mark">?</span>,
             tokens: content.parse()<span class="question-mark">?</span>,
         })
     }
 
-    <span class="kw">pub fn </span>single_parse_outer(input: <a href="parse.rs.html#230">ParseStream</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#12-156">Attribute</a>&gt; {
+    <span class="kw">pub fn </span>single_parse_outer(input: ParseStream) -&gt; <span class="prelude-ty">Result</span>&lt;Attribute&gt; {
         <span class="kw">let </span>content;
-        <span class="prelude-val">Ok</span>(<a href="#12-156">Attribute</a> {
+        <span class="prelude-val">Ok</span>(Attribute {
             pound_token: input.parse()<span class="question-mark">?</span>,
-            style: <a href="#331">AttrStyle::Outer</a>,
-            bracket_token: <a class="macro" href="group.rs.html#270-282">bracketed!</a>(content <span class="kw">in </span>input),
+            style: AttrStyle::Outer,
+            bracket_token: <span class="macro">bracketed!</span>(content <span class="kw">in </span>input),
             path: content.call(Path::parse_mod_style)<span class="question-mark">?</span>,
             tokens: content.parse()<span class="question-mark">?</span>,
         })
     }
 
     <span class="comment">// Like Path::parse_mod_style but accepts keywords in the path.
-    </span><span class="kw">fn </span>parse_meta_path(input: <a href="parse.rs.html#230">ParseStream</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="path.rs.html#4-14">Path</a>&gt; {
-        <span class="prelude-val">Ok</span>(<a href="path.rs.html#4-14">Path</a> {
+    </span><span class="kw">fn </span>parse_meta_path(input: ParseStream) -&gt; <span class="prelude-ty">Result</span>&lt;Path&gt; {
+        <span class="prelude-val">Ok</span>(Path {
             leading_colon: input.parse()<span class="question-mark">?</span>,
             segments: {
                 <span class="kw">let </span><span class="kw-2">mut </span>segments = Punctuated::new();
@@ -1207,76 +1207,76 @@
                     segments.push_punct(punct);
                 }
                 <span class="kw">if </span>segments.is_empty() {
-                    <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="#533">input</a>.<a href="parse.rs.html#957">error</a>(<span class="string">&quot;expected path&quot;</span>));
+                    <span class="kw">return </span><span class="prelude-val">Err</span>(input.error(<span class="string">&quot;expected path&quot;</span>));
                 } <span class="kw">else if </span>segments.trailing_punct() {
-                    <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="#533">input</a>.<a href="parse.rs.html#957">error</a>(<span class="string">&quot;expected path segment&quot;</span>));
+                    <span class="kw">return </span><span class="prelude-val">Err</span>(input.error(<span class="string">&quot;expected path segment&quot;</span>));
                 }
-                <a href="#537">segments</a>
+                segments
             },
         })
     }
 
     <span class="attr">#[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">&quot;parsing&quot;</span>)))]
-    </span><span class="kw">impl </span><a href="parse.rs.html#220">Parse</a> <span class="kw">for </span><a href="#336-370">Meta</a> {
-        <span class="kw">fn </span>parse(input: <a href="parse.rs.html#230">ParseStream</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
+    </span><span class="kw">impl </span>Parse <span class="kw">for </span>Meta {
+        <span class="kw">fn </span>parse(input: ParseStream) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
             <span class="kw">let </span>path = input.call(parse_meta_path)<span class="question-mark">?</span>;
-            <a href="#596">parse_meta_after_path</a>(<a href="#560">path</a>, <a href="#559">input</a>)
+            parse_meta_after_path(path, input)
         }
     }
 
     <span class="attr">#[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">&quot;parsing&quot;</span>)))]
-    </span><span class="kw">impl </span><a href="parse.rs.html#220">Parse</a> <span class="kw">for </span><a href="#372-383">MetaList</a> {
-        <span class="kw">fn </span>parse(input: <a href="parse.rs.html#230">ParseStream</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
+    </span><span class="kw">impl </span>Parse <span class="kw">for </span>MetaList {
+        <span class="kw">fn </span>parse(input: ParseStream) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
             <span class="kw">let </span>path = input.call(parse_meta_path)<span class="question-mark">?</span>;
-            <a href="#606">parse_meta_list_after_path</a>(<a href="#568">path</a>, <a href="#567">input</a>)
+            parse_meta_list_after_path(path, input)
         }
     }
 
     <span class="attr">#[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">&quot;parsing&quot;</span>)))]
-    </span><span class="kw">impl </span><a href="parse.rs.html#220">Parse</a> <span class="kw">for </span><a href="#385-396">MetaNameValue</a> {
-        <span class="kw">fn </span>parse(input: <a href="parse.rs.html#230">ParseStream</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
+    </span><span class="kw">impl </span>Parse <span class="kw">for </span>MetaNameValue {
+        <span class="kw">fn </span>parse(input: ParseStream) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
             <span class="kw">let </span>path = input.call(parse_meta_path)<span class="question-mark">?</span>;
-            <a href="#615">parse_meta_name_value_after_path</a>(<a href="#576">path</a>, <a href="#575">input</a>)
+            parse_meta_name_value_after_path(path, input)
         }
     }
 
     <span class="attr">#[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">&quot;parsing&quot;</span>)))]
-    </span><span class="kw">impl </span><a href="parse.rs.html#220">Parse</a> <span class="kw">for </span><a href="#412-426">NestedMeta</a> {
-        <span class="kw">fn </span>parse(input: <a href="parse.rs.html#230">ParseStream</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
+    </span><span class="kw">impl </span>Parse <span class="kw">for </span>NestedMeta {
+        <span class="kw">fn </span>parse(input: ParseStream) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
             <span class="kw">if </span>input.peek(Lit) &amp;&amp; !(input.peek(LitBool) &amp;&amp; input.peek2(<span class="macro">Token!</span>[=])) {
-                <a href="#583">input</a>.<a href="parse.rs.html#467">parse</a>().map(<a href="#424">NestedMeta::Lit</a>)
+                input.parse().map(NestedMeta::Lit)
             } <span class="kw">else if </span>input.peek(Ident::peek_any)
                 || input.peek(<span class="macro">Token!</span>[::]) &amp;&amp; input.peek3(Ident::peek_any)
             {
-                <a href="#583">input</a>.<a href="parse.rs.html#467">parse</a>().map(<a href="#421">NestedMeta::Meta</a>)
+                input.parse().map(NestedMeta::Meta)
             } <span class="kw">else </span>{
-                <span class="prelude-val">Err</span>(<a href="#583">input</a>.<a href="parse.rs.html#957">error</a>(<span class="string">&quot;expected identifier or literal&quot;</span>))
+                <span class="prelude-val">Err</span>(input.error(<span class="string">&quot;expected identifier or literal&quot;</span>))
             }
         }
     }
 
-    <span class="kw">pub fn </span>parse_meta_after_path(path: <a href="path.rs.html#4-14">Path</a>, input: <a href="parse.rs.html#230">ParseStream</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#336-370">Meta</a>&gt; {
+    <span class="kw">pub fn </span>parse_meta_after_path(path: Path, input: ParseStream) -&gt; <span class="prelude-ty">Result</span>&lt;Meta&gt; {
         <span class="kw">if </span>input.peek(token::Paren) {
-            <a href="#606">parse_meta_list_after_path</a>(<a href="#596">path</a>, <a href="#596">input</a>).map(<a href="#365">Meta::List</a>)
+            parse_meta_list_after_path(path, input).map(Meta::List)
         } <span class="kw">else if </span>input.peek(<span class="macro">Token!</span>[=]) {
-            <a href="#615">parse_meta_name_value_after_path</a>(<a href="#596">path</a>, <a href="#596">input</a>).map(<a href="#368">Meta::NameValue</a>)
+            parse_meta_name_value_after_path(path, input).map(Meta::NameValue)
         } <span class="kw">else </span>{
-            <span class="prelude-val">Ok</span>(<a href="#362">Meta::Path</a>(<a href="#596">path</a>))
+            <span class="prelude-val">Ok</span>(Meta::Path(path))
         }
     }
 
-    <span class="kw">fn </span>parse_meta_list_after_path(path: <a href="path.rs.html#4-14">Path</a>, input: <a href="parse.rs.html#230">ParseStream</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#372-383">MetaList</a>&gt; {
+    <span class="kw">fn </span>parse_meta_list_after_path(path: Path, input: ParseStream) -&gt; <span class="prelude-ty">Result</span>&lt;MetaList&gt; {
         <span class="kw">let </span>content;
-        <span class="prelude-val">Ok</span>(<a href="#372-383">MetaList</a> {
-            <a href="#606">path</a>,
-            paren_token: <a class="macro" href="group.rs.html#137-149">parenthesized!</a>(content <span class="kw">in </span>input),
+        <span class="prelude-val">Ok</span>(MetaList {
+            path,
+            paren_token: <span class="macro">parenthesized!</span>(content <span class="kw">in </span>input),
             nested: content.parse_terminated(NestedMeta::parse)<span class="question-mark">?</span>,
         })
     }
 
-    <span class="kw">fn </span>parse_meta_name_value_after_path(path: <a href="path.rs.html#4-14">Path</a>, input: <a href="parse.rs.html#230">ParseStream</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#385-396">MetaNameValue</a>&gt; {
-        <span class="prelude-val">Ok</span>(<a href="#385-396">MetaNameValue</a> {
-            <a href="#615">path</a>,
+    <span class="kw">fn </span>parse_meta_name_value_after_path(path: Path, input: ParseStream) -&gt; <span class="prelude-ty">Result</span>&lt;MetaNameValue&gt; {
+        <span class="prelude-val">Ok</span>(MetaNameValue {
+            path,
             eq_token: input.parse()<span class="question-mark">?</span>,
             lit: input.parse()<span class="question-mark">?</span>,
         })
@@ -1286,41 +1286,41 @@
 <span class="attr">#[cfg(feature = <span class="string">&quot;printing&quot;</span>)]
 </span><span class="kw">mod </span>printing {
     <span class="kw">use super</span>::<span class="kw-2">*</span>;
-    <span class="kw">use </span><a href="../../proc_macro2/struct.TokenStream.html">proc_macro2::TokenStream</a>;
-    <span class="kw">use </span><a href="../../quote/to_tokens/trait.ToTokens.html">quote::ToTokens</a>;
+    <span class="kw">use </span>proc_macro2::TokenStream;
+    <span class="kw">use </span>quote::ToTokens;
 
     <span class="attr">#[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">&quot;printing&quot;</span>)))]
-    </span><span class="kw">impl </span><a href="../../quote/to_tokens/trait.ToTokens.html">ToTokens</a> <span class="kw">for </span><a href="#12-156">Attribute</a> {
-        <span class="kw">fn </span>to_tokens(<span class="kw-2">&amp;</span><span class="self">self</span>, tokens: <span class="kw-2">&amp;mut </span><a href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>) {
-            <a class="self" href="#632">self</a>.pound_token.<a href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a href="#632">tokens</a>);
-            <span class="kw">if let </span><a href="#332">AttrStyle::Inner</a>(b) = <span class="kw-2">&amp;</span><a class="self" href="#632">self</a>.style {
-                <a href="#634">b</a>.<a href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a href="#632">tokens</a>);
+    </span><span class="kw">impl </span>ToTokens <span class="kw">for </span>Attribute {
+        <span class="kw">fn </span>to_tokens(<span class="kw-2">&amp;</span><span class="self">self</span>, tokens: <span class="kw-2">&amp;mut </span>TokenStream) {
+            <span class="self">self</span>.pound_token.to_tokens(tokens);
+            <span class="kw">if let </span>AttrStyle::Inner(b) = <span class="kw-2">&amp;</span><span class="self">self</span>.style {
+                b.to_tokens(tokens);
             }
-            <a class="self" href="#632">self</a>.bracket_token.<a href="token.rs.html#756-761">surround</a>(<a href="#632">tokens</a>, |tokens| {
-                <a class="self" href="#632">self</a>.path.<a href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a href="#637">tokens</a>);
-                <a class="self" href="#632">self</a>.tokens.<a href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a href="#637">tokens</a>);
+            <span class="self">self</span>.bracket_token.surround(tokens, |tokens| {
+                <span class="self">self</span>.path.to_tokens(tokens);
+                <span class="self">self</span>.tokens.to_tokens(tokens);
             });
         }
     }
 
     <span class="attr">#[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">&quot;printing&quot;</span>)))]
-    </span><span class="kw">impl </span><a href="../../quote/to_tokens/trait.ToTokens.html">ToTokens</a> <span class="kw">for </span><a href="#372-383">MetaList</a> {
-        <span class="kw">fn </span>to_tokens(<span class="kw-2">&amp;</span><span class="self">self</span>, tokens: <span class="kw-2">&amp;mut </span><a href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>) {
-            <a class="self" href="#646">self</a>.path.<a href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a href="#646">tokens</a>);
-            <a class="self" href="#646">self</a>.paren_token.<a href="token.rs.html#756-761">surround</a>(<a href="#646">tokens</a>, |tokens| {
-                <a class="self" href="#646">self</a>.nested.<a href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a href="#648">tokens</a>);
+    </span><span class="kw">impl </span>ToTokens <span class="kw">for </span>MetaList {
+        <span class="kw">fn </span>to_tokens(<span class="kw-2">&amp;</span><span class="self">self</span>, tokens: <span class="kw-2">&amp;mut </span>TokenStream) {
+            <span class="self">self</span>.path.to_tokens(tokens);
+            <span class="self">self</span>.paren_token.surround(tokens, |tokens| {
+                <span class="self">self</span>.nested.to_tokens(tokens);
             });
         }
     }
 
     <span class="attr">#[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">&quot;printing&quot;</span>)))]
-    </span><span class="kw">impl </span><a href="../../quote/to_tokens/trait.ToTokens.html">ToTokens</a> <span class="kw">for </span><a href="#385-396">MetaNameValue</a> {
-        <span class="kw">fn </span>to_tokens(<span class="kw-2">&amp;</span><span class="self">self</span>, tokens: <span class="kw-2">&amp;mut </span><a href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>) {
-            <a class="self" href="#656">self</a>.path.<a href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a href="#656">tokens</a>);
-            <a class="self" href="#656">self</a>.eq_token.<a href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a href="#656">tokens</a>);
-            <a class="self" href="#656">self</a>.lit.<a href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a href="#656">tokens</a>);
+    </span><span class="kw">impl </span>ToTokens <span class="kw">for </span>MetaNameValue {
+        <span class="kw">fn </span>to_tokens(<span class="kw-2">&amp;</span><span class="self">self</span>, tokens: <span class="kw-2">&amp;mut </span>TokenStream) {
+            <span class="self">self</span>.path.to_tokens(tokens);
+            <span class="self">self</span>.eq_token.to_tokens(tokens);
+            <span class="self">self</span>.lit.to_tokens(tokens);
         }
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="syn" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="syn" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/encoding_rs-0.8.31/src/mem.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mem.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../encoding_rs/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/encoding_rs-0.8.31/src/mem.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mem.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../encoding_rs/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -3381,20 +3381,20 @@
 //! [encoding_c_mem crate](https://github.com/hsivonen/encoding_c_mem).
 
 </span><span class="attr">#[cfg(feature = <span class="string">&quot;alloc&quot;</span>)]
-</span><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/borrow/enum.Cow.html">alloc::borrow::Cow</a>;
+</span><span class="kw">use </span>alloc::borrow::Cow;
 <span class="attr">#[cfg(feature = <span class="string">&quot;alloc&quot;</span>)]
-</span><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">alloc::string::String</a>;
+</span><span class="kw">use </span>alloc::string::String;
 <span class="attr">#[cfg(feature = <span class="string">&quot;alloc&quot;</span>)]
-</span><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/vec/struct.Vec.html">alloc::vec::Vec</a>;
+</span><span class="kw">use </span>alloc::vec::Vec;
 
-<span class="kw">use </span><a href="lib.rs.html#4872"><span class="kw">super</span>::in_inclusive_range16</a>;
-<span class="kw">use </span><a href="lib.rs.html#4877"><span class="kw">super</span>::in_inclusive_range32</a>;
-<span class="kw">use </span><a href="lib.rs.html#4867"><span class="kw">super</span>::in_inclusive_range8</a>;
-<span class="kw">use </span><a href="lib.rs.html#4857"><span class="kw">super</span>::in_range16</a>;
-<span class="kw">use </span><a href="lib.rs.html#4862"><span class="kw">super</span>::in_range32</a>;
-<span class="kw">use </span><a href="lib.rs.html#3554"><span class="kw">super</span>::DecoderResult</a>;
-<span class="kw">use </span><a href="lib.rs.html#745"><span class="kw">crate</span>::ascii</a>::<span class="kw-2">*</span>;
-<span class="kw">use </span><a href="lib.rs.html#742"><span class="kw">crate</span>::utf_8</a>::<span class="kw-2">*</span>;
+<span class="kw">use </span><span class="kw">super</span>::in_inclusive_range16;
+<span class="kw">use </span><span class="kw">super</span>::in_inclusive_range32;
+<span class="kw">use </span><span class="kw">super</span>::in_inclusive_range8;
+<span class="kw">use </span><span class="kw">super</span>::in_range16;
+<span class="kw">use </span><span class="kw">super</span>::in_range32;
+<span class="kw">use </span><span class="kw">super</span>::DecoderResult;
+<span class="kw">use </span><span class="kw">crate</span>::ascii::<span class="kw-2">*</span>;
+<span class="kw">use </span><span class="kw">crate</span>::utf_8::<span class="kw-2">*</span>;
 
 <span class="macro">macro_rules! </span>non_fuzz_debug_assert {
     ($(<span class="macro-nonterminal">$arg</span>:tt)<span class="kw-2">*</span>) =&gt; (<span class="kw">if </span>!<span class="macro">cfg!</span>(fuzzing) { <span class="macro">debug_assert!</span>($(<span class="macro-nonterminal">$arg</span>)<span class="kw-2">*</span>); })
@@ -3407,13 +3407,13 @@
     } <span class="kw">else </span>{
         <span class="attr">#[inline(always)]
         </span><span class="comment">// Unsafe to match the intrinsic, which is needlessly unsafe.
-        </span><span class="kw">unsafe fn </span>likely(b: <a href="https://doc.rust-lang.org/nightly/core/primitive.bool.html">bool</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/primitive.bool.html">bool</a> {
-            <a href="#54">b</a>
+        </span><span class="kw">unsafe fn </span>likely(b: bool) -&gt; bool {
+            b
         }
         <span class="attr">#[inline(always)]
         </span><span class="comment">// Unsafe to match the intrinsic, which is needlessly unsafe.
-        </span><span class="kw">unsafe fn </span>unlikely(b: <a href="https://doc.rust-lang.org/nightly/core/primitive.bool.html">bool</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/primitive.bool.html">bool</a> {
-            <a href="#59">b</a>
+        </span><span class="kw">unsafe fn </span>unlikely(b: bool) -&gt; bool {
+            b
         }
     }
 }
@@ -3436,7 +3436,7 @@
 
 <span class="comment">// `as` truncates, so works on 32-bit, too.
 </span><span class="attr">#[allow(dead_code)]
-</span><span class="kw">const </span>LATIN1_MASK: <a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a> = <span class="number">0xFF00_FF00_FF00_FF00u64 </span><span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>;
+</span><span class="kw">const </span>LATIN1_MASK: usize = <span class="number">0xFF00_FF00_FF00_FF00u64 </span><span class="kw">as </span>usize;
 
 <span class="attr">#[allow(unused_macros)]
 </span><span class="macro">macro_rules! </span>by_unit_check_alu {
@@ -3663,14 +3663,14 @@
             offset + up_to
         }
     } <span class="kw">else </span>{
-        <a class="macro" href="#86-156">by_unit_check_alu!</a>(is_ascii_impl, <a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>, <span class="number">0x80</span>, ASCII_MASK);
-        <a class="macro" href="#86-156">by_unit_check_alu!</a>(is_basic_latin_impl, <a href="https://doc.rust-lang.org/nightly/core/primitive.u16.html">u16</a>, <span class="number">0x80</span>, BASIC_LATIN_MASK);
-        <a class="macro" href="#86-156">by_unit_check_alu!</a>(is_utf16_latin1_impl, <a href="https://doc.rust-lang.org/nightly/core/primitive.u16.html">u16</a>, <span class="number">0x100</span>, LATIN1_MASK);
+        <span class="macro">by_unit_check_alu!</span>(is_ascii_impl, u8, <span class="number">0x80</span>, ASCII_MASK);
+        <span class="macro">by_unit_check_alu!</span>(is_basic_latin_impl, u16, <span class="number">0x80</span>, BASIC_LATIN_MASK);
+        <span class="macro">by_unit_check_alu!</span>(is_utf16_latin1_impl, u16, <span class="number">0x100</span>, LATIN1_MASK);
 
         <span class="attr">#[inline(always)]
-        </span><span class="kw">fn </span>utf16_valid_up_to_impl(buffer: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/core/primitive.u16.html">u16</a>]) -&gt; <a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a> {
-            <span class="kw">let </span>(up_to, <span class="kw">_</span>) = <a href="#326">utf16_valid_up_to_alu</a>(<a href="#315">buffer</a>);
-            <a href="#316">up_to</a>
+        </span><span class="kw">fn </span>utf16_valid_up_to_impl(buffer: <span class="kw-2">&amp;</span>[u16]) -&gt; usize {
+            <span class="kw">let </span>(up_to, <span class="kw">_</span>) = utf16_valid_up_to_alu(buffer);
+            up_to
         }
     }
 }
@@ -3679,34 +3679,34 @@
 /// reached and turned out to be a low surrogate that is part of a valid pair.
 </span><span class="attr">#[cfg_attr(feature = <span class="string">&quot;cargo-clippy&quot;</span>, allow(collapsible_if))]
 #[inline(always)]
-</span><span class="kw">fn </span>utf16_valid_up_to_alu(buffer: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/core/primitive.u16.html">u16</a>]) -&gt; (<a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>, <a href="https://doc.rust-lang.org/nightly/core/primitive.bool.html">bool</a>) {
-    <span class="kw">let </span>len = <a href="#326">buffer</a>.len();
+</span><span class="kw">fn </span>utf16_valid_up_to_alu(buffer: <span class="kw-2">&amp;</span>[u16]) -&gt; (usize, bool) {
+    <span class="kw">let </span>len = buffer.len();
     <span class="kw">if </span>len == <span class="number">0 </span>{
         <span class="kw">return </span>(<span class="number">0</span>, <span class="bool-val">false</span>);
     }
     <span class="kw">let </span><span class="kw-2">mut </span>offset = <span class="number">0usize</span>;
     <span class="kw">loop </span>{
-        <span class="kw">let </span>unit = <a href="#326">buffer</a>[<a href="#331">offset</a>];
-        <span class="kw">let </span>next = <a href="#331">offset</a> + <span class="number">1</span>;
-        <span class="kw">let </span>unit_minus_surrogate_start = <a href="#333">unit</a>.wrapping_sub(<span class="number">0xD800</span>);
+        <span class="kw">let </span>unit = buffer[offset];
+        <span class="kw">let </span>next = offset + <span class="number">1</span>;
+        <span class="kw">let </span>unit_minus_surrogate_start = unit.wrapping_sub(<span class="number">0xD800</span>);
         <span class="kw">if </span>unit_minus_surrogate_start &gt; (<span class="number">0xDFFF </span>- <span class="number">0xD800</span>) {
             <span class="comment">// Not a surrogate
-            </span><a href="#331">offset</a> = <a href="#334">next</a>;
+            </span>offset = next;
             <span class="kw">if </span>offset == len {
-                <span class="kw">return </span>(<a href="#331">offset</a>, <span class="bool-val">false</span>);
+                <span class="kw">return </span>(offset, <span class="bool-val">false</span>);
             }
             <span class="kw">continue</span>;
         }
         <span class="kw">if </span>unit_minus_surrogate_start &lt;= (<span class="number">0xDBFF </span>- <span class="number">0xD800</span>) {
             <span class="comment">// high surrogate
             </span><span class="kw">if </span>next &lt; len {
-                <span class="kw">let </span>second = <a href="#326">buffer</a>[<a href="#334">next</a>];
-                <span class="kw">let </span>second_minus_low_surrogate_start = <a href="#347">second</a>.wrapping_sub(<span class="number">0xDC00</span>);
+                <span class="kw">let </span>second = buffer[next];
+                <span class="kw">let </span>second_minus_low_surrogate_start = second.wrapping_sub(<span class="number">0xDC00</span>);
                 <span class="kw">if </span>second_minus_low_surrogate_start &lt;= (<span class="number">0xDFFF </span>- <span class="number">0xDC00</span>) {
                     <span class="comment">// The next code unit is a low surrogate. Advance position.
-                    </span><a href="#331">offset</a> = <a href="#334">next</a> + <span class="number">1</span>;
+                    </span>offset = next + <span class="number">1</span>;
                     <span class="kw">if </span>offset == len {
-                        <span class="kw">return </span>(<a href="#331">offset</a>, <span class="bool-val">true</span>);
+                        <span class="kw">return </span>(offset, <span class="bool-val">true</span>);
                     }
                     <span class="kw">continue</span>;
                 }
@@ -3717,7 +3717,7 @@
             <span class="comment">// Unpaired, fall through
         </span>}
         <span class="comment">// Unpaired surrogate
-        </span><span class="kw">return </span>(<a href="#331">offset</a>, <span class="bool-val">false</span>);
+        </span><span class="kw">return </span>(offset, <span class="bool-val">false</span>);
     }
 }
 
@@ -3765,17 +3765,17 @@
         </span>}
     } <span class="kw">else </span>{
         <span class="attr">#[inline(always)]
-        </span><span class="kw">fn </span>is_str_latin1_impl(buffer: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/core/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>&gt; {
-            <span class="kw">let </span><span class="kw-2">mut </span>bytes = <a href="#412">buffer</a>.as_bytes();
+        </span><span class="kw">fn </span>is_str_latin1_impl(buffer: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Option</span>&lt;usize&gt; {
+            <span class="kw">let </span><span class="kw-2">mut </span>bytes = buffer.as_bytes();
             <span class="kw">let </span><span class="kw-2">mut </span>total = <span class="number">0</span>;
             <span class="kw">loop </span>{
-                <span class="kw">if let </span><span class="prelude-val">Some</span>((byte, offset)) = <a href="ascii.rs.html#1379">validate_ascii</a>(<a href="#413">bytes</a>) {
-                    <a href="#414">total</a> += <a href="#416">offset</a>;
+                <span class="kw">if let </span><span class="prelude-val">Some</span>((byte, offset)) = validate_ascii(bytes) {
+                    total += offset;
                     <span class="kw">if </span>byte &gt; <span class="number">0xC3 </span>{
-                        <span class="kw">return </span><span class="prelude-val">Some</span>(<a href="#414">total</a>);
+                        <span class="kw">return </span><span class="prelude-val">Some</span>(total);
                     }
-                    <a href="#413">bytes</a> = <span class="kw-2">&amp;</span><a href="#413">bytes</a>[<a href="#416">offset</a> + <span class="number">2</span>..];
-                    <a href="#414">total</a> += <span class="number">2</span>;
+                    bytes = <span class="kw-2">&amp;</span>bytes[offset + <span class="number">2</span>..];
+                    total += <span class="number">2</span>;
                 } <span class="kw">else </span>{
                     <span class="kw">return </span><span class="prelude-val">None</span>;
                 }
@@ -3785,24 +3785,24 @@
 }
 
 <span class="attr">#[inline(always)]
-</span><span class="kw">fn </span>is_utf8_latin1_impl(buffer: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>&gt; {
-    <span class="kw">let </span><span class="kw-2">mut </span>bytes = <a href="#432">buffer</a>;
+</span><span class="kw">fn </span>is_utf8_latin1_impl(buffer: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Option</span>&lt;usize&gt; {
+    <span class="kw">let </span><span class="kw-2">mut </span>bytes = buffer;
     <span class="kw">let </span><span class="kw-2">mut </span>total = <span class="number">0</span>;
     <span class="kw">loop </span>{
-        <span class="kw">if let </span><span class="prelude-val">Some</span>((byte, offset)) = <a href="ascii.rs.html#1379">validate_ascii</a>(<a href="#433">bytes</a>) {
-            <a href="#434">total</a> += <a href="#436">offset</a>;
+        <span class="kw">if let </span><span class="prelude-val">Some</span>((byte, offset)) = validate_ascii(bytes) {
+            total += offset;
             <span class="kw">if </span>in_inclusive_range8(byte, <span class="number">0xC2</span>, <span class="number">0xC3</span>) {
-                <span class="kw">let </span>next = <a href="#436">offset</a> + <span class="number">1</span>;
+                <span class="kw">let </span>next = offset + <span class="number">1</span>;
                 <span class="kw">if </span>next == bytes.len() {
-                    <span class="kw">return </span><span class="prelude-val">Some</span>(<a href="#434">total</a>);
+                    <span class="kw">return </span><span class="prelude-val">Some</span>(total);
                 }
                 <span class="kw">if </span>bytes[next] &amp; <span class="number">0xC0 </span>!= <span class="number">0x80 </span>{
-                    <span class="kw">return </span><span class="prelude-val">Some</span>(<a href="#434">total</a>);
+                    <span class="kw">return </span><span class="prelude-val">Some</span>(total);
                 }
-                <a href="#433">bytes</a> = <span class="kw-2">&amp;</span><a href="#433">bytes</a>[<a href="#436">offset</a> + <span class="number">2</span>..];
-                <a href="#434">total</a> += <span class="number">2</span>;
+                bytes = <span class="kw-2">&amp;</span>bytes[offset + <span class="number">2</span>..];
+                total += <span class="number">2</span>;
             } <span class="kw">else </span>{
-                <span class="kw">return </span><span class="prelude-val">Some</span>(<a href="#434">total</a>);
+                <span class="kw">return </span><span class="prelude-val">Some</span>(total);
             }
         } <span class="kw">else </span>{
             <span class="kw">return </span><span class="prelude-val">None</span>;
@@ -3849,7 +3849,7 @@
         </span>}
     } <span class="kw">else </span>{
         <span class="attr">#[inline(always)]
-        </span><span class="kw">fn </span>is_utf16_bidi_impl(buffer: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/core/primitive.u16.html">u16</a>]) -&gt; <a href="https://doc.rust-lang.org/nightly/core/primitive.bool.html">bool</a> {
+        </span><span class="kw">fn </span>is_utf16_bidi_impl(buffer: <span class="kw-2">&amp;</span>[u16]) -&gt; bool {
             <span class="kw">for </span><span class="kw-2">&amp;</span>u <span class="kw">in </span>buffer {
                 <span class="kw">if </span>is_utf16_code_unit_bidi(u) {
                     <span class="kw">return </span><span class="bool-val">true</span>;
@@ -3934,13 +3934,13 @@
     } <span class="kw">else </span>{
         <span class="attr">#[cfg_attr(feature = <span class="string">&quot;cargo-clippy&quot;</span>, allow(cast_ptr_alignment))]
         #[inline(always)]
-        </span><span class="kw">fn </span>check_utf16_for_latin1_and_bidi_impl(buffer: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/core/primitive.u16.html">u16</a>]) -&gt; <a href="#71">Latin1Bidi</a> {
+        </span><span class="kw">fn </span>check_utf16_for_latin1_and_bidi_impl(buffer: <span class="kw-2">&amp;</span>[u16]) -&gt; Latin1Bidi {
             <span class="kw">let </span><span class="kw-2">mut </span>offset = <span class="number">0usize</span>;
-            <span class="kw">let </span>len = <a href="#581">buffer</a>.len();
+            <span class="kw">let </span>len = buffer.len();
             <span class="kw">if </span>len &gt;= ALU_ALIGNMENT / <span class="number">2 </span>{
-                <span class="kw">let </span>src = <a href="#581">buffer</a>.as_ptr();
-                <span class="kw">let </span><span class="kw-2">mut </span>until_alignment = ((<a href="ascii.rs.html#1007">ALU_ALIGNMENT</a> - ((<a href="#585">src</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>) &amp; <a href="ascii.rs.html#1009">ALU_ALIGNMENT_MASK</a>)) &amp;
-                                           <a href="ascii.rs.html#1009">ALU_ALIGNMENT_MASK</a>) / <span class="number">2</span>;
+                <span class="kw">let </span>src = buffer.as_ptr();
+                <span class="kw">let </span><span class="kw-2">mut </span>until_alignment = ((ALU_ALIGNMENT - ((src <span class="kw">as </span>usize) &amp; ALU_ALIGNMENT_MASK)) &amp;
+                                           ALU_ALIGNMENT_MASK) / <span class="number">2</span>;
                 <span class="kw">if </span>until_alignment + ALU_ALIGNMENT / <span class="number">2 </span>&lt;= len {
                     <span class="kw">while </span>until_alignment != <span class="number">0 </span>{
                         <span class="kw">if </span>buffer[offset] &gt; <span class="number">0xFF </span>{
@@ -3952,39 +3952,39 @@
                         offset += <span class="number">1</span>;
                         until_alignment -= <span class="number">1</span>;
                     }
-                    <span class="kw">let </span>len_minus_stride = <a href="#583">len</a> - <a href="ascii.rs.html#1007">ALU_ALIGNMENT</a> / <span class="number">2</span>;
+                    <span class="kw">let </span>len_minus_stride = len - ALU_ALIGNMENT / <span class="number">2</span>;
                     <span class="kw">loop </span>{
                         <span class="kw">if unsafe </span>{ <span class="kw-2">*</span>(src.add(offset) <span class="kw">as </span><span class="kw-2">*const </span>usize) } &amp; LATIN1_MASK != <span class="number">0 </span>{
                             <span class="kw">if </span>is_utf16_bidi_impl(<span class="kw-2">&amp;</span>buffer[offset..]) {
-                                <span class="kw">return </span><a href="#78">Latin1Bidi::Bidi</a>;
+                                <span class="kw">return </span>Latin1Bidi::Bidi;
                             }
-                            <span class="kw">return </span><a href="#76">Latin1Bidi::LeftToRight</a>;
+                            <span class="kw">return </span>Latin1Bidi::LeftToRight;
                         }
-                        <a href="#582">offset</a> += <a href="ascii.rs.html#1007">ALU_ALIGNMENT</a> / <span class="number">2</span>;
+                        offset += ALU_ALIGNMENT / <span class="number">2</span>;
                         <span class="kw">if </span>offset &gt; len_minus_stride {
                             <span class="kw">break</span>;
                         }
                     }
                 }
             }
-            <span class="kw">let </span><span class="kw-2">mut </span>iter = (<span class="kw-2">&amp;</span><a href="#581">buffer</a>[<a href="#582">offset</a>..]).iter();
+            <span class="kw">let </span><span class="kw-2">mut </span>iter = (<span class="kw-2">&amp;</span>buffer[offset..]).iter();
             <span class="kw">loop </span>{
-                <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>u) = <a href="#614">iter</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>() {
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>u) = iter.next() {
                     <span class="kw">if </span>u &gt; <span class="number">0xFF </span>{
-                        <span class="kw">let </span><span class="kw-2">mut </span>inner_u = <a href="#616">u</a>;
+                        <span class="kw">let </span><span class="kw-2">mut </span>inner_u = u;
                         <span class="kw">loop </span>{
                             <span class="kw">if </span>is_utf16_code_unit_bidi(inner_u) {
-                                <span class="kw">return </span><a href="#78">Latin1Bidi::Bidi</a>;
+                                <span class="kw">return </span>Latin1Bidi::Bidi;
                             }
-                            <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>code_unit) = <a href="#614">iter</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>() {
-                                <a href="#618">inner_u</a> = <a href="#623">code_unit</a>;
+                            <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>code_unit) = iter.next() {
+                                inner_u = code_unit;
                             } <span class="kw">else </span>{
-                                <span class="kw">return </span><a href="#76">Latin1Bidi::LeftToRight</a>;
+                                <span class="kw">return </span>Latin1Bidi::LeftToRight;
                             }
                         }
                     }
                 } <span class="kw">else </span>{
-                    <span class="kw">return </span><a href="#73">Latin1Bidi::Latin1</a>;
+                    <span class="kw">return </span>Latin1Bidi::Latin1;
                 }
             }
         }
@@ -3995,8 +3995,8 @@
 ///
 /// May read the entire buffer even if it isn&#39;t all-ASCII. (I.e. the function
 /// is not guaranteed to fail fast.)
-</span><span class="kw">pub fn </span>is_ascii(buffer: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>]) -&gt; <a href="https://doc.rust-lang.org/nightly/core/primitive.bool.html">bool</a> {
-    <a href="#310">is_ascii_impl</a>(<a href="#642">buffer</a>)
+</span><span class="kw">pub fn </span>is_ascii(buffer: <span class="kw-2">&amp;</span>[u8]) -&gt; bool {
+    is_ascii_impl(buffer)
 }
 
 <span class="doccomment">/// Checks whether the buffer is all-Basic Latin (i.e. UTF-16 representing
@@ -4004,8 +4004,8 @@
 ///
 /// May read the entire buffer even if it isn&#39;t all-ASCII. (I.e. the function
 /// is not guaranteed to fail fast.)
-</span><span class="kw">pub fn </span>is_basic_latin(buffer: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/core/primitive.u16.html">u16</a>]) -&gt; <a href="https://doc.rust-lang.org/nightly/core/primitive.bool.html">bool</a> {
-    <a href="#311">is_basic_latin_impl</a>(<a href="#651">buffer</a>)
+</span><span class="kw">pub fn </span>is_basic_latin(buffer: <span class="kw-2">&amp;</span>[u16]) -&gt; bool {
+    is_basic_latin_impl(buffer)
 }
 
 <span class="doccomment">/// Checks whether the buffer is valid UTF-8 representing only code points
@@ -4013,8 +4013,8 @@
 ///
 /// Fails fast. (I.e. returns before having read the whole buffer if UTF-8
 /// invalidity or code points above U+00FF are discovered.
-</span><span class="kw">pub fn </span>is_utf8_latin1(buffer: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>]) -&gt; <a href="https://doc.rust-lang.org/nightly/core/primitive.bool.html">bool</a> {
-    <a href="#432">is_utf8_latin1_impl</a>(<a href="#660">buffer</a>).is_none()
+</span><span class="kw">pub fn </span>is_utf8_latin1(buffer: <span class="kw-2">&amp;</span>[u8]) -&gt; bool {
+    is_utf8_latin1_impl(buffer).is_none()
 }
 
 <span class="doccomment">/// Checks whether the buffer represents only code points less than or equal
@@ -4022,8 +4022,8 @@
 ///
 /// Fails fast. (I.e. returns before having read the whole buffer if code
 /// points above U+00FF are discovered.
-</span><span class="kw">pub fn </span>is_str_latin1(buffer: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/core/primitive.str.html">str</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/primitive.bool.html">bool</a> {
-    <a href="#412">is_str_latin1_impl</a>(<a href="#669">buffer</a>).is_none()
+</span><span class="kw">pub fn </span>is_str_latin1(buffer: <span class="kw-2">&amp;</span>str) -&gt; bool {
+    is_str_latin1_impl(buffer).is_none()
 }
 
 <span class="doccomment">/// Checks whether the buffer represents only code point less than or equal
@@ -4031,8 +4031,8 @@
 ///
 /// May read the entire buffer even if it isn&#39;t all-Latin1. (I.e. the function
 /// is not guaranteed to fail fast.)
-</span><span class="kw">pub fn </span>is_utf16_latin1(buffer: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/core/primitive.u16.html">u16</a>]) -&gt; <a href="https://doc.rust-lang.org/nightly/core/primitive.bool.html">bool</a> {
-    <a href="#312">is_utf16_latin1_impl</a>(<a href="#678">buffer</a>)
+</span><span class="kw">pub fn </span>is_utf16_latin1(buffer: <span class="kw-2">&amp;</span>[u16]) -&gt; bool {
+    is_utf16_latin1_impl(buffer)
 }
 
 <span class="doccomment">/// Checks whether a potentially-invalid UTF-8 buffer contains code points
@@ -4053,7 +4053,7 @@
 /// no RTL characters.
 </span><span class="attr">#[cfg_attr(feature = <span class="string">&quot;cargo-clippy&quot;</span>, allow(collapsible_if, cyclomatic_complexity))]
 #[inline]
-</span><span class="kw">pub fn </span>is_utf8_bidi(buffer: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>]) -&gt; <a href="https://doc.rust-lang.org/nightly/core/primitive.bool.html">bool</a> {
+</span><span class="kw">pub fn </span>is_utf8_bidi(buffer: <span class="kw-2">&amp;</span>[u8]) -&gt; bool {
     <span class="comment">// As of rustc 1.25.0-nightly (73ac5d6a8 2018-01-11), this is faster
     // than UTF-8 validation followed by `is_str_bidi()` for German,
     // Russian and Japanese. However, this is considerably slower for Thai.
@@ -4092,32 +4092,32 @@
     // U+1E800: F0 9E A0 80
     // U+1EFFF: F0 9E BF BF
     // U+1F000: F0 9F 80 80
-    </span><span class="kw">let </span><span class="kw-2">mut </span>src = <a href="#700">buffer</a>;
+    </span><span class="kw">let </span><span class="kw-2">mut </span>src = buffer;
     <span class="lifetime">&#39;outer</span>: <span class="kw">loop </span>{
-        <span class="kw">if let </span><span class="prelude-val">Some</span>((<span class="kw-2">mut </span>byte, <span class="kw-2">mut </span>read)) = <a href="ascii.rs.html#1379">validate_ascii</a>(<a href="#739">src</a>) {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>((<span class="kw-2">mut </span>byte, <span class="kw-2">mut </span>read)) = validate_ascii(src) {
             <span class="comment">// Check for the longest sequence to avoid checking twice for the
             // multi-byte sequences.
             </span><span class="kw">if </span>read + <span class="number">4 </span>&lt;= src.len() {
                 <span class="lifetime">&#39;inner</span>: <span class="kw">loop </span>{
                     <span class="comment">// At this point, `byte` is not included in `read`.
-                    </span><span class="kw">match </span><a href="#741">byte</a> {
+                    </span><span class="kw">match </span>byte {
                         <span class="number">0</span>..=<span class="number">0x7F </span>=&gt; {
                             <span class="comment">// ASCII: go back to SIMD.
-                            </span><a href="#741">read</a> += <span class="number">1</span>;
-                            <a href="#739">src</a> = <span class="kw-2">&amp;</span><a href="#739">src</a>[<a href="#741">read</a>..];
+                            </span>read += <span class="number">1</span>;
+                            src = <span class="kw-2">&amp;</span>src[read..];
                             <span class="kw">continue </span><span class="lifetime">&#39;outer</span>;
                         }
                         <span class="number">0xC2</span>..=<span class="number">0xD5 </span>=&gt; {
                             <span class="comment">// Two-byte
-                            </span><span class="kw">let </span>second = <span class="kw">unsafe </span>{ <span class="kw-2">*</span>(<a href="#739">src</a>.get_unchecked(<a href="#741">read</a> + <span class="number">1</span>)) };
+                            </span><span class="kw">let </span>second = <span class="kw">unsafe </span>{ <span class="kw-2">*</span>(src.get_unchecked(read + <span class="number">1</span>)) };
                             <span class="kw">if </span>!in_inclusive_range8(second, <span class="number">0x80</span>, <span class="number">0xBF</span>) {
                                 <span class="kw">return </span><span class="bool-val">true</span>;
                             }
-                            <a href="#741">read</a> += <span class="number">2</span>;
+                            read += <span class="number">2</span>;
                         }
                         <span class="number">0xD6 </span>=&gt; {
                             <span class="comment">// Two-byte
-                            </span><span class="kw">let </span>second = <span class="kw">unsafe </span>{ <span class="kw-2">*</span>(<a href="#739">src</a>.get_unchecked(<a href="#741">read</a> + <span class="number">1</span>)) };
+                            </span><span class="kw">let </span>second = <span class="kw">unsafe </span>{ <span class="kw-2">*</span>(src.get_unchecked(read + <span class="number">1</span>)) };
                             <span class="kw">if </span>!in_inclusive_range8(second, <span class="number">0x80</span>, <span class="number">0xBF</span>) {
                                 <span class="kw">return </span><span class="bool-val">true</span>;
                             }
@@ -4125,13 +4125,13 @@
                             </span><span class="kw">if </span>second &gt; <span class="number">0x8F </span>{
                                 <span class="kw">return </span><span class="bool-val">true</span>;
                             }
-                            <a href="#741">read</a> += <span class="number">2</span>;
+                            read += <span class="number">2</span>;
                         }
                         <span class="comment">// two-byte starting with 0xD7 and above is bidi
                         </span><span class="number">0xE1 </span>| <span class="number">0xE3</span>..=<span class="number">0xEC </span>| <span class="number">0xEE </span>=&gt; {
                             <span class="comment">// Three-byte normal
-                            </span><span class="kw">let </span>second = <span class="kw">unsafe </span>{ <span class="kw-2">*</span>(<a href="#739">src</a>.get_unchecked(<a href="#741">read</a> + <span class="number">1</span>)) };
-                            <span class="kw">let </span>third = <span class="kw">unsafe </span>{ <span class="kw-2">*</span>(<a href="#739">src</a>.get_unchecked(<a href="#741">read</a> + <span class="number">2</span>)) };
+                            </span><span class="kw">let </span>second = <span class="kw">unsafe </span>{ <span class="kw-2">*</span>(src.get_unchecked(read + <span class="number">1</span>)) };
+                            <span class="kw">let </span>third = <span class="kw">unsafe </span>{ <span class="kw-2">*</span>(src.get_unchecked(read + <span class="number">2</span>)) };
                             <span class="kw">if </span>((UTF8_DATA.table[usize::from(second)]
                                 &amp; <span class="kw">unsafe </span>{
                                     <span class="kw-2">*</span>(UTF8_DATA.table.get_unchecked(byte <span class="kw">as </span>usize + <span class="number">0x80</span>))
@@ -4141,12 +4141,12 @@
                             </span>{
                                 <span class="kw">return </span><span class="bool-val">true</span>;
                             }
-                            <a href="#741">read</a> += <span class="number">3</span>;
+                            read += <span class="number">3</span>;
                         }
                         <span class="number">0xE2 </span>=&gt; {
                             <span class="comment">// Three-byte normal, potentially bidi
-                            </span><span class="kw">let </span>second = <span class="kw">unsafe </span>{ <span class="kw-2">*</span>(<a href="#739">src</a>.get_unchecked(<a href="#741">read</a> + <span class="number">1</span>)) };
-                            <span class="kw">let </span>third = <span class="kw">unsafe </span>{ <span class="kw-2">*</span>(<a href="#739">src</a>.get_unchecked(<a href="#741">read</a> + <span class="number">2</span>)) };
+                            </span><span class="kw">let </span>second = <span class="kw">unsafe </span>{ <span class="kw-2">*</span>(src.get_unchecked(read + <span class="number">1</span>)) };
+                            <span class="kw">let </span>third = <span class="kw">unsafe </span>{ <span class="kw-2">*</span>(src.get_unchecked(read + <span class="number">2</span>)) };
                             <span class="kw">if </span>((UTF8_DATA.table[usize::from(second)]
                                 &amp; <span class="kw">unsafe </span>{
                                     <span class="kw-2">*</span>(UTF8_DATA.table.get_unchecked(byte <span class="kw">as </span>usize + <span class="number">0x80</span>))
@@ -4165,12 +4165,12 @@
                                     <span class="kw">return </span><span class="bool-val">true</span>;
                                 }
                             }
-                            <a href="#741">read</a> += <span class="number">3</span>;
+                            read += <span class="number">3</span>;
                         }
                         <span class="number">0xEF </span>=&gt; {
                             <span class="comment">// Three-byte normal, potentially bidi
-                            </span><span class="kw">let </span>second = <span class="kw">unsafe </span>{ <span class="kw-2">*</span>(<a href="#739">src</a>.get_unchecked(<a href="#741">read</a> + <span class="number">1</span>)) };
-                            <span class="kw">let </span>third = <span class="kw">unsafe </span>{ <span class="kw-2">*</span>(<a href="#739">src</a>.get_unchecked(<a href="#741">read</a> + <span class="number">2</span>)) };
+                            </span><span class="kw">let </span>second = <span class="kw">unsafe </span>{ <span class="kw-2">*</span>(src.get_unchecked(read + <span class="number">1</span>)) };
+                            <span class="kw">let </span>third = <span class="kw">unsafe </span>{ <span class="kw-2">*</span>(src.get_unchecked(read + <span class="number">2</span>)) };
                             <span class="kw">if </span>((UTF8_DATA.table[usize::from(second)]
                                 &amp; <span class="kw">unsafe </span>{
                                     <span class="kw-2">*</span>(UTF8_DATA.table.get_unchecked(byte <span class="kw">as </span>usize + <span class="number">0x80</span>))
@@ -4201,12 +4201,12 @@
                                     <span class="kw">return </span><span class="bool-val">true</span>;
                                 }
                             }
-                            <a href="#741">read</a> += <span class="number">3</span>;
+                            read += <span class="number">3</span>;
                         }
                         <span class="number">0xE0 </span>=&gt; {
                             <span class="comment">// Three-byte special lower bound, potentially bidi
-                            </span><span class="kw">let </span>second = <span class="kw">unsafe </span>{ <span class="kw-2">*</span>(<a href="#739">src</a>.get_unchecked(<a href="#741">read</a> + <span class="number">1</span>)) };
-                            <span class="kw">let </span>third = <span class="kw">unsafe </span>{ <span class="kw-2">*</span>(<a href="#739">src</a>.get_unchecked(<a href="#741">read</a> + <span class="number">2</span>)) };
+                            </span><span class="kw">let </span>second = <span class="kw">unsafe </span>{ <span class="kw-2">*</span>(src.get_unchecked(read + <span class="number">1</span>)) };
+                            <span class="kw">let </span>third = <span class="kw">unsafe </span>{ <span class="kw-2">*</span>(src.get_unchecked(read + <span class="number">2</span>)) };
                             <span class="kw">if </span>((UTF8_DATA.table[usize::from(second)]
                                 &amp; <span class="kw">unsafe </span>{
                                     <span class="kw-2">*</span>(UTF8_DATA.table.get_unchecked(byte <span class="kw">as </span>usize + <span class="number">0x80</span>))
@@ -4220,12 +4220,12 @@
                             </span><span class="kw">if </span>second &lt; <span class="number">0xA4 </span>{
                                 <span class="kw">return </span><span class="bool-val">true</span>;
                             }
-                            <a href="#741">read</a> += <span class="number">3</span>;
+                            read += <span class="number">3</span>;
                         }
                         <span class="number">0xED </span>=&gt; {
                             <span class="comment">// Three-byte special upper bound
-                            </span><span class="kw">let </span>second = <span class="kw">unsafe </span>{ <span class="kw-2">*</span>(<a href="#739">src</a>.get_unchecked(<a href="#741">read</a> + <span class="number">1</span>)) };
-                            <span class="kw">let </span>third = <span class="kw">unsafe </span>{ <span class="kw-2">*</span>(<a href="#739">src</a>.get_unchecked(<a href="#741">read</a> + <span class="number">2</span>)) };
+                            </span><span class="kw">let </span>second = <span class="kw">unsafe </span>{ <span class="kw-2">*</span>(src.get_unchecked(read + <span class="number">1</span>)) };
+                            <span class="kw">let </span>third = <span class="kw">unsafe </span>{ <span class="kw-2">*</span>(src.get_unchecked(read + <span class="number">2</span>)) };
                             <span class="kw">if </span>((UTF8_DATA.table[usize::from(second)]
                                 &amp; <span class="kw">unsafe </span>{
                                     <span class="kw-2">*</span>(UTF8_DATA.table.get_unchecked(byte <span class="kw">as </span>usize + <span class="number">0x80</span>))
@@ -4235,13 +4235,13 @@
                             </span>{
                                 <span class="kw">return </span><span class="bool-val">true</span>;
                             }
-                            <a href="#741">read</a> += <span class="number">3</span>;
+                            read += <span class="number">3</span>;
                         }
                         <span class="number">0xF1</span>..=<span class="number">0xF4 </span>=&gt; {
                             <span class="comment">// Four-byte normal
-                            </span><span class="kw">let </span>second = <span class="kw">unsafe </span>{ <span class="kw-2">*</span>(<a href="#739">src</a>.get_unchecked(<a href="#741">read</a> + <span class="number">1</span>)) };
-                            <span class="kw">let </span>third = <span class="kw">unsafe </span>{ <span class="kw-2">*</span>(<a href="#739">src</a>.get_unchecked(<a href="#741">read</a> + <span class="number">2</span>)) };
-                            <span class="kw">let </span>fourth = <span class="kw">unsafe </span>{ <span class="kw-2">*</span>(<a href="#739">src</a>.get_unchecked(<a href="#741">read</a> + <span class="number">3</span>)) };
+                            </span><span class="kw">let </span>second = <span class="kw">unsafe </span>{ <span class="kw-2">*</span>(src.get_unchecked(read + <span class="number">1</span>)) };
+                            <span class="kw">let </span>third = <span class="kw">unsafe </span>{ <span class="kw-2">*</span>(src.get_unchecked(read + <span class="number">2</span>)) };
+                            <span class="kw">let </span>fourth = <span class="kw">unsafe </span>{ <span class="kw-2">*</span>(src.get_unchecked(read + <span class="number">3</span>)) };
                             <span class="kw">if </span>(u16::from(
                                 UTF8_DATA.table[usize::from(second)]
                                     &amp; <span class="kw">unsafe </span>{
@@ -4253,13 +4253,13 @@
                             </span>{
                                 <span class="kw">return </span><span class="bool-val">true</span>;
                             }
-                            <a href="#741">read</a> += <span class="number">4</span>;
+                            read += <span class="number">4</span>;
                         }
                         <span class="number">0xF0 </span>=&gt; {
                             <span class="comment">// Four-byte special lower bound, potentially bidi
-                            </span><span class="kw">let </span>second = <span class="kw">unsafe </span>{ <span class="kw-2">*</span>(<a href="#739">src</a>.get_unchecked(<a href="#741">read</a> + <span class="number">1</span>)) };
-                            <span class="kw">let </span>third = <span class="kw">unsafe </span>{ <span class="kw-2">*</span>(<a href="#739">src</a>.get_unchecked(<a href="#741">read</a> + <span class="number">2</span>)) };
-                            <span class="kw">let </span>fourth = <span class="kw">unsafe </span>{ <span class="kw-2">*</span>(<a href="#739">src</a>.get_unchecked(<a href="#741">read</a> + <span class="number">3</span>)) };
+                            </span><span class="kw">let </span>second = <span class="kw">unsafe </span>{ <span class="kw-2">*</span>(src.get_unchecked(read + <span class="number">1</span>)) };
+                            <span class="kw">let </span>third = <span class="kw">unsafe </span>{ <span class="kw-2">*</span>(src.get_unchecked(read + <span class="number">2</span>)) };
+                            <span class="kw">let </span>fourth = <span class="kw">unsafe </span>{ <span class="kw-2">*</span>(src.get_unchecked(read + <span class="number">3</span>)) };
                             <span class="kw">if </span>(u16::from(
                                 UTF8_DATA.table[usize::from(second)]
                                     &amp; <span class="kw">unsafe </span>{
@@ -4272,12 +4272,12 @@
                                 <span class="kw">return </span><span class="bool-val">true</span>;
                             }
                             <span class="kw">if unsafe </span>{ unlikely(second == <span class="number">0x90 </span>|| second == <span class="number">0x9E</span>) } {
-                                <span class="kw">let </span>third = <a href="#739">src</a>[<a href="#741">read</a> + <span class="number">2</span>];
+                                <span class="kw">let </span>third = src[read + <span class="number">2</span>];
                                 <span class="kw">if </span>third &gt;= <span class="number">0xA0 </span>{
                                     <span class="kw">return </span><span class="bool-val">true</span>;
                                 }
                             }
-                            <a href="#741">read</a> += <span class="number">4</span>;
+                            read += <span class="number">4</span>;
                         }
                         <span class="kw">_ </span>=&gt; {
                             <span class="comment">// Invalid lead or bidi-only lead
@@ -4288,10 +4288,10 @@
                         <span class="kw">if </span>read == src.len() {
                             <span class="kw">return </span><span class="bool-val">false</span>;
                         }
-                        <a href="#741">byte</a> = <a href="#739">src</a>[<a href="#741">read</a>];
+                        byte = src[read];
                         <span class="kw">break </span><span class="lifetime">&#39;inner</span>;
                     }
-                    <a href="#741">byte</a> = <a href="#739">src</a>[<a href="#741">read</a>];
+                    byte = src[read];
                     <span class="kw">continue </span><span class="lifetime">&#39;inner</span>;
                 }
             }
@@ -4299,36 +4299,36 @@
             // a complete shorter sequence.
 
             // At this point, `byte` is not included in `read`.
-            </span><span class="kw">match </span><a href="#741">byte</a> {
+            </span><span class="kw">match </span>byte {
                 <span class="number">0</span>..=<span class="number">0x7F </span>=&gt; {
                     <span class="comment">// ASCII: go back to SIMD.
-                    </span><a href="#741">read</a> += <span class="number">1</span>;
-                    <a href="#739">src</a> = <span class="kw-2">&amp;</span><a href="#739">src</a>[<a href="#741">read</a>..];
+                    </span>read += <span class="number">1</span>;
+                    src = <span class="kw-2">&amp;</span>src[read..];
                     <span class="kw">continue </span><span class="lifetime">&#39;outer</span>;
                 }
                 <span class="number">0xC2</span>..=<span class="number">0xD5 </span>=&gt; {
                     <span class="comment">// Two-byte
-                    </span><span class="kw">let </span>new_read = <a href="#741">read</a> + <span class="number">2</span>;
+                    </span><span class="kw">let </span>new_read = read + <span class="number">2</span>;
                     <span class="kw">if </span>new_read &gt; src.len() {
                         <span class="kw">return </span><span class="bool-val">true</span>;
                     }
-                    <span class="kw">let </span>second = <span class="kw">unsafe </span>{ <span class="kw-2">*</span>(<a href="#739">src</a>.get_unchecked(<a href="#741">read</a> + <span class="number">1</span>)) };
+                    <span class="kw">let </span>second = <span class="kw">unsafe </span>{ <span class="kw-2">*</span>(src.get_unchecked(read + <span class="number">1</span>)) };
                     <span class="kw">if </span>!in_inclusive_range8(second, <span class="number">0x80</span>, <span class="number">0xBF</span>) {
                         <span class="kw">return </span><span class="bool-val">true</span>;
                     }
-                    <a href="#741">read</a> = <a href="#955">new_read</a>;
+                    read = new_read;
                     <span class="comment">// We need to deal with the case where we came here with 3 bytes
                     // left, so we need to take a look at the last one.
-                    </span><a href="#739">src</a> = <span class="kw-2">&amp;</span><a href="#739">src</a>[<a href="#741">read</a>..];
+                    </span>src = <span class="kw-2">&amp;</span>src[read..];
                     <span class="kw">continue </span><span class="lifetime">&#39;outer</span>;
                 }
                 <span class="number">0xD6 </span>=&gt; {
                     <span class="comment">// Two-byte, potentially bidi
-                    </span><span class="kw">let </span>new_read = <a href="#741">read</a> + <span class="number">2</span>;
+                    </span><span class="kw">let </span>new_read = read + <span class="number">2</span>;
                     <span class="kw">if </span>new_read &gt; src.len() {
                         <span class="kw">return </span><span class="bool-val">true</span>;
                     }
-                    <span class="kw">let </span>second = <span class="kw">unsafe </span>{ <span class="kw-2">*</span>(<a href="#739">src</a>.get_unchecked(<a href="#741">read</a> + <span class="number">1</span>)) };
+                    <span class="kw">let </span>second = <span class="kw">unsafe </span>{ <span class="kw-2">*</span>(src.get_unchecked(read + <span class="number">1</span>)) };
                     <span class="kw">if </span>!in_inclusive_range8(second, <span class="number">0x80</span>, <span class="number">0xBF</span>) {
                         <span class="kw">return </span><span class="bool-val">true</span>;
                     }
@@ -4336,21 +4336,21 @@
                     </span><span class="kw">if </span>second &gt; <span class="number">0x8F </span>{
                         <span class="kw">return </span><span class="bool-val">true</span>;
                     }
-                    <a href="#741">read</a> = <a href="#971">new_read</a>;
+                    read = new_read;
                     <span class="comment">// We need to deal with the case where we came here with 3 bytes
                     // left, so we need to take a look at the last one.
-                    </span><a href="#739">src</a> = <span class="kw-2">&amp;</span><a href="#739">src</a>[<a href="#741">read</a>..];
+                    </span>src = <span class="kw-2">&amp;</span>src[read..];
                     <span class="kw">continue </span><span class="lifetime">&#39;outer</span>;
                 }
                 <span class="comment">// two-byte starting with 0xD7 and above is bidi
                 </span><span class="number">0xE1 </span>| <span class="number">0xE3</span>..=<span class="number">0xEC </span>| <span class="number">0xEE </span>=&gt; {
                     <span class="comment">// Three-byte normal
-                    </span><span class="kw">let </span>new_read = <a href="#741">read</a> + <span class="number">3</span>;
+                    </span><span class="kw">let </span>new_read = read + <span class="number">3</span>;
                     <span class="kw">if </span>new_read &gt; src.len() {
                         <span class="kw">return </span><span class="bool-val">true</span>;
                     }
-                    <span class="kw">let </span>second = <span class="kw">unsafe </span>{ <span class="kw-2">*</span>(<a href="#739">src</a>.get_unchecked(<a href="#741">read</a> + <span class="number">1</span>)) };
-                    <span class="kw">let </span>third = <span class="kw">unsafe </span>{ <span class="kw-2">*</span>(<a href="#739">src</a>.get_unchecked(<a href="#741">read</a> + <span class="number">2</span>)) };
+                    <span class="kw">let </span>second = <span class="kw">unsafe </span>{ <span class="kw-2">*</span>(src.get_unchecked(read + <span class="number">1</span>)) };
+                    <span class="kw">let </span>third = <span class="kw">unsafe </span>{ <span class="kw-2">*</span>(src.get_unchecked(read + <span class="number">2</span>)) };
                     <span class="kw">if </span>((UTF8_DATA.table[usize::from(second)]
                         &amp; <span class="kw">unsafe </span>{ <span class="kw-2">*</span>(UTF8_DATA.table.get_unchecked(byte <span class="kw">as </span>usize + <span class="number">0x80</span>)) })
                         | (third &gt;&gt; <span class="number">6</span>))
@@ -4361,12 +4361,12 @@
                 }
                 <span class="number">0xE2 </span>=&gt; {
                     <span class="comment">// Three-byte normal, potentially bidi
-                    </span><span class="kw">let </span>new_read = <a href="#741">read</a> + <span class="number">3</span>;
+                    </span><span class="kw">let </span>new_read = read + <span class="number">3</span>;
                     <span class="kw">if </span>new_read &gt; src.len() {
                         <span class="kw">return </span><span class="bool-val">true</span>;
                     }
-                    <span class="kw">let </span>second = <span class="kw">unsafe </span>{ <span class="kw-2">*</span>(<a href="#739">src</a>.get_unchecked(<a href="#741">read</a> + <span class="number">1</span>)) };
-                    <span class="kw">let </span>third = <span class="kw">unsafe </span>{ <span class="kw-2">*</span>(<a href="#739">src</a>.get_unchecked(<a href="#741">read</a> + <span class="number">2</span>)) };
+                    <span class="kw">let </span>second = <span class="kw">unsafe </span>{ <span class="kw-2">*</span>(src.get_unchecked(read + <span class="number">1</span>)) };
+                    <span class="kw">let </span>third = <span class="kw">unsafe </span>{ <span class="kw-2">*</span>(src.get_unchecked(read + <span class="number">2</span>)) };
                     <span class="kw">if </span>((UTF8_DATA.table[usize::from(second)]
                         &amp; <span class="kw">unsafe </span>{ <span class="kw-2">*</span>(UTF8_DATA.table.get_unchecked(byte <span class="kw">as </span>usize + <span class="number">0x80</span>)) })
                         | (third &gt;&gt; <span class="number">6</span>))
@@ -4386,12 +4386,12 @@
                 }
                 <span class="number">0xEF </span>=&gt; {
                     <span class="comment">// Three-byte normal, potentially bidi
-                    </span><span class="kw">let </span>new_read = <a href="#741">read</a> + <span class="number">3</span>;
+                    </span><span class="kw">let </span>new_read = read + <span class="number">3</span>;
                     <span class="kw">if </span>new_read &gt; src.len() {
                         <span class="kw">return </span><span class="bool-val">true</span>;
                     }
-                    <span class="kw">let </span>second = <span class="kw">unsafe </span>{ <span class="kw-2">*</span>(<a href="#739">src</a>.get_unchecked(<a href="#741">read</a> + <span class="number">1</span>)) };
-                    <span class="kw">let </span>third = <span class="kw">unsafe </span>{ <span class="kw-2">*</span>(<a href="#739">src</a>.get_unchecked(<a href="#741">read</a> + <span class="number">2</span>)) };
+                    <span class="kw">let </span>second = <span class="kw">unsafe </span>{ <span class="kw-2">*</span>(src.get_unchecked(read + <span class="number">1</span>)) };
+                    <span class="kw">let </span>third = <span class="kw">unsafe </span>{ <span class="kw-2">*</span>(src.get_unchecked(read + <span class="number">2</span>)) };
                     <span class="kw">if </span>((UTF8_DATA.table[usize::from(second)]
                         &amp; <span class="kw">unsafe </span>{ <span class="kw-2">*</span>(UTF8_DATA.table.get_unchecked(byte <span class="kw">as </span>usize + <span class="number">0x80</span>)) })
                         | (third &gt;&gt; <span class="number">6</span>))
@@ -4423,12 +4423,12 @@
                 }
                 <span class="number">0xE0 </span>=&gt; {
                     <span class="comment">// Three-byte special lower bound, potentially bidi
-                    </span><span class="kw">let </span>new_read = <a href="#741">read</a> + <span class="number">3</span>;
+                    </span><span class="kw">let </span>new_read = read + <span class="number">3</span>;
                     <span class="kw">if </span>new_read &gt; src.len() {
                         <span class="kw">return </span><span class="bool-val">true</span>;
                     }
-                    <span class="kw">let </span>second = <span class="kw">unsafe </span>{ <span class="kw-2">*</span>(<a href="#739">src</a>.get_unchecked(<a href="#741">read</a> + <span class="number">1</span>)) };
-                    <span class="kw">let </span>third = <span class="kw">unsafe </span>{ <span class="kw-2">*</span>(<a href="#739">src</a>.get_unchecked(<a href="#741">read</a> + <span class="number">2</span>)) };
+                    <span class="kw">let </span>second = <span class="kw">unsafe </span>{ <span class="kw-2">*</span>(src.get_unchecked(read + <span class="number">1</span>)) };
+                    <span class="kw">let </span>third = <span class="kw">unsafe </span>{ <span class="kw-2">*</span>(src.get_unchecked(read + <span class="number">2</span>)) };
                     <span class="kw">if </span>((UTF8_DATA.table[usize::from(second)]
                         &amp; <span class="kw">unsafe </span>{ <span class="kw-2">*</span>(UTF8_DATA.table.get_unchecked(byte <span class="kw">as </span>usize + <span class="number">0x80</span>)) })
                         | (third &gt;&gt; <span class="number">6</span>))
@@ -4443,12 +4443,12 @@
                 }
                 <span class="number">0xED </span>=&gt; {
                     <span class="comment">// Three-byte special upper bound
-                    </span><span class="kw">let </span>new_read = <a href="#741">read</a> + <span class="number">3</span>;
+                    </span><span class="kw">let </span>new_read = read + <span class="number">3</span>;
                     <span class="kw">if </span>new_read &gt; src.len() {
                         <span class="kw">return </span><span class="bool-val">true</span>;
                     }
-                    <span class="kw">let </span>second = <span class="kw">unsafe </span>{ <span class="kw-2">*</span>(<a href="#739">src</a>.get_unchecked(<a href="#741">read</a> + <span class="number">1</span>)) };
-                    <span class="kw">let </span>third = <span class="kw">unsafe </span>{ <span class="kw-2">*</span>(<a href="#739">src</a>.get_unchecked(<a href="#741">read</a> + <span class="number">2</span>)) };
+                    <span class="kw">let </span>second = <span class="kw">unsafe </span>{ <span class="kw-2">*</span>(src.get_unchecked(read + <span class="number">1</span>)) };
+                    <span class="kw">let </span>third = <span class="kw">unsafe </span>{ <span class="kw-2">*</span>(src.get_unchecked(read + <span class="number">2</span>)) };
                     <span class="kw">if </span>((UTF8_DATA.table[usize::from(second)]
                         &amp; <span class="kw">unsafe </span>{ <span class="kw-2">*</span>(UTF8_DATA.table.get_unchecked(byte <span class="kw">as </span>usize + <span class="number">0x80</span>)) })
                         | (third &gt;&gt; <span class="number">6</span>))
@@ -4483,7 +4483,7 @@
 /// case, U+FEFF is excluded from Arabic Presentation Forms-B.
 </span><span class="attr">#[cfg_attr(feature = <span class="string">&quot;cargo-clippy&quot;</span>, allow(collapsible_if))]
 #[inline]
-</span><span class="kw">pub fn </span>is_str_bidi(buffer: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/core/primitive.str.html">str</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/primitive.bool.html">bool</a> {
+</span><span class="kw">pub fn </span>is_str_bidi(buffer: <span class="kw-2">&amp;</span>str) -&gt; bool {
     <span class="comment">// U+058F: D6 8F
     // U+0590: D6 90
     // U+08FF: E0 A3 BF
@@ -4513,7 +4513,7 @@
     // U+1E800: F0 9E A0 80
     // U+1EFFF: F0 9E BF BF
     // U+1F000: F0 9F 80 80
-    </span><span class="kw">let </span><span class="kw-2">mut </span>bytes = <a href="#1130">buffer</a>.as_bytes();
+    </span><span class="kw">let </span><span class="kw-2">mut </span>bytes = buffer.as_bytes();
     <span class="lifetime">&#39;outer</span>: <span class="kw">loop </span>{
         <span class="comment">// TODO: Instead of just validating ASCII using SIMD, use SIMD
         // to check for non-ASCII lead bytes, too, to quickly conclude
@@ -4521,7 +4521,7 @@
         // code points.
         // Unfortunately, scripts above Arabic but below CJK share
         // lead bytes with RTL.
-        </span><span class="kw">if let </span><span class="prelude-val">Some</span>((<span class="kw-2">mut </span>byte, <span class="kw-2">mut </span>read)) = <a href="ascii.rs.html#1379">validate_ascii</a>(<a href="#1160">bytes</a>) {
+        </span><span class="kw">if let </span><span class="prelude-val">Some</span>((<span class="kw-2">mut </span>byte, <span class="kw-2">mut </span>read)) = validate_ascii(bytes) {
             <span class="lifetime">&#39;inner</span>: <span class="kw">loop </span>{
                 <span class="comment">// At this point, `byte` is not included in `read`.
                 </span><span class="kw">if </span>byte &lt; <span class="number">0xE0 </span>{
@@ -4531,7 +4531,7 @@
                         // Russian plain text by 33%!
                         </span><span class="kw">if unsafe </span>{ unlikely(byte &gt;= <span class="number">0xD6</span>) } {
                             <span class="kw">if </span>byte == <span class="number">0xD6 </span>{
-                                <span class="kw">let </span>second = <a href="#1160">bytes</a>[<a href="#1168">read</a> + <span class="number">1</span>];
+                                <span class="kw">let </span>second = bytes[read + <span class="number">1</span>];
                                 <span class="kw">if </span>second &gt; <span class="number">0x8F </span>{
                                     <span class="kw">return </span><span class="bool-val">true</span>;
                                 }
@@ -4539,28 +4539,28 @@
                                 <span class="kw">return </span><span class="bool-val">true</span>;
                             }
                         }
-                        <a href="#1168">read</a> += <span class="number">2</span>;
+                        read += <span class="number">2</span>;
                     } <span class="kw">else </span>{
                         <span class="comment">// ASCII: write and go back to SIMD.
-                        </span><a href="#1168">read</a> += <span class="number">1</span>;
+                        </span>read += <span class="number">1</span>;
                         <span class="comment">// Intuitively, we should go back to the outer loop only
                         // if byte is 0x30 or above, so as to avoid trashing on
                         // ASCII space, comma and period in non-Latin context.
                         // However, the extra branch seems to cost more than it&#39;s
                         // worth.
-                        </span><a href="#1160">bytes</a> = <span class="kw-2">&amp;</span><a href="#1160">bytes</a>[<a href="#1168">read</a>..];
+                        </span>bytes = <span class="kw-2">&amp;</span>bytes[read..];
                         <span class="kw">continue </span><span class="lifetime">&#39;outer</span>;
                     }
                 } <span class="kw">else if </span>byte &lt; <span class="number">0xF0 </span>{
                     <span class="comment">// Three-byte
                     </span><span class="kw">if unsafe </span>{ unlikely(!in_inclusive_range8(byte, <span class="number">0xE3</span>, <span class="number">0xEE</span>) &amp;&amp; byte != <span class="number">0xE1</span>) } {
-                        <span class="kw">let </span>second = <a href="#1160">bytes</a>[<a href="#1168">read</a> + <span class="number">1</span>];
+                        <span class="kw">let </span>second = bytes[read + <span class="number">1</span>];
                         <span class="kw">if </span>byte == <span class="number">0xE0 </span>{
                             <span class="kw">if </span>second &lt; <span class="number">0xA4 </span>{
                                 <span class="kw">return </span><span class="bool-val">true</span>;
                             }
                         } <span class="kw">else if </span>byte == <span class="number">0xE2 </span>{
-                            <span class="kw">let </span>third = <a href="#1160">bytes</a>[<a href="#1168">read</a> + <span class="number">2</span>];
+                            <span class="kw">let </span>third = bytes[read + <span class="number">2</span>];
                             <span class="kw">if </span>second == <span class="number">0x80 </span>{
                                 <span class="kw">if </span>third == <span class="number">0x8F </span>|| third == <span class="number">0xAB </span>|| third == <span class="number">0xAE </span>{
                                     <span class="kw">return </span><span class="bool-val">true</span>;
@@ -4571,10 +4571,10 @@
                                 }
                             }
                         } <span class="kw">else </span>{
-                            <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert_eq.html">debug_assert_eq!</a>(byte, <span class="number">0xEF</span>);
+                            <span class="macro">debug_assert_eq!</span>(byte, <span class="number">0xEF</span>);
                             <span class="kw">if </span>in_inclusive_range8(second, <span class="number">0xAC</span>, <span class="number">0xB7</span>) {
                                 <span class="kw">if </span>second == <span class="number">0xAC </span>{
-                                    <span class="kw">let </span>third = <a href="#1160">bytes</a>[<a href="#1168">read</a> + <span class="number">2</span>];
+                                    <span class="kw">let </span>third = bytes[read + <span class="number">2</span>];
                                     <span class="kw">if </span>third &gt; <span class="number">0x9C </span>{
                                         <span class="kw">return </span><span class="bool-val">true</span>;
                                     }
@@ -4583,12 +4583,12 @@
                                 }
                             } <span class="kw">else if </span>in_inclusive_range8(second, <span class="number">0xB9</span>, <span class="number">0xBB</span>) {
                                 <span class="kw">if </span>second == <span class="number">0xB9 </span>{
-                                    <span class="kw">let </span>third = <a href="#1160">bytes</a>[<a href="#1168">read</a> + <span class="number">2</span>];
+                                    <span class="kw">let </span>third = bytes[read + <span class="number">2</span>];
                                     <span class="kw">if </span>third &gt; <span class="number">0xAF </span>{
                                         <span class="kw">return </span><span class="bool-val">true</span>;
                                     }
                                 } <span class="kw">else if </span>second == <span class="number">0xBB </span>{
-                                    <span class="kw">let </span>third = <a href="#1160">bytes</a>[<a href="#1168">read</a> + <span class="number">2</span>];
+                                    <span class="kw">let </span>third = bytes[read + <span class="number">2</span>];
                                     <span class="kw">if </span>third != <span class="number">0xBF </span>{
                                         <span class="kw">return </span><span class="bool-val">true</span>;
                                     }
@@ -4598,17 +4598,17 @@
                             }
                         }
                     }
-                    <a href="#1168">read</a> += <span class="number">3</span>;
+                    read += <span class="number">3</span>;
                 } <span class="kw">else </span>{
                     <span class="comment">// Four-byte
-                    </span><span class="kw">let </span>second = <a href="#1160">bytes</a>[<a href="#1168">read</a> + <span class="number">1</span>];
+                    </span><span class="kw">let </span>second = bytes[read + <span class="number">1</span>];
                     <span class="kw">if unsafe </span>{ unlikely(byte == <span class="number">0xF0 </span>&amp;&amp; (second == <span class="number">0x90 </span>|| second == <span class="number">0x9E</span>)) } {
-                        <span class="kw">let </span>third = <a href="#1160">bytes</a>[<a href="#1168">read</a> + <span class="number">2</span>];
+                        <span class="kw">let </span>third = bytes[read + <span class="number">2</span>];
                         <span class="kw">if </span>third &gt;= <span class="number">0xA0 </span>{
                             <span class="kw">return </span><span class="bool-val">true</span>;
                         }
                     }
-                    <a href="#1168">read</a> += <span class="number">4</span>;
+                    read += <span class="number">4</span>;
                 }
                 <span class="comment">// The comparison is always &lt; or == and never &gt;, but including
                 // &gt; here to let the compiler assume that &lt; is true if this
@@ -4616,7 +4616,7 @@
                 </span><span class="kw">if </span>read &gt;= bytes.len() {
                     <span class="kw">return </span><span class="bool-val">false</span>;
                 }
-                <a href="#1168">byte</a> = <a href="#1160">bytes</a>[<a href="#1168">read</a>];
+                byte = bytes[read];
                 <span class="kw">continue </span><span class="lifetime">&#39;inner</span>;
             }
         } <span class="kw">else </span>{
@@ -4642,8 +4642,8 @@
 /// high surrogate that could be the high half of an RTL character.
 /// Returns `false` if the input contains neither RTL characters nor
 /// unpaired high surrogates that could be higher halves of RTL characters.
-</span><span class="kw">pub fn </span>is_utf16_bidi(buffer: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/core/primitive.u16.html">u16</a>]) -&gt; <a href="https://doc.rust-lang.org/nightly/core/primitive.bool.html">bool</a> {
-    <a href="#496">is_utf16_bidi_impl</a>(<a href="#1289">buffer</a>)
+</span><span class="kw">pub fn </span>is_utf16_bidi(buffer: <span class="kw-2">&amp;</span>[u16]) -&gt; bool {
+    is_utf16_bidi_impl(buffer)
 }
 
 <span class="doccomment">/// Checks whether a scalar value triggers right-to-left processing.
@@ -4658,7 +4658,7 @@
 /// characters or right-to-left controls are not checked for. As a special
 /// case, U+FEFF is excluded from Arabic Presentation Forms-B.
 </span><span class="attr">#[inline(always)]
-</span><span class="kw">pub fn </span>is_char_bidi(c: <a href="https://doc.rust-lang.org/nightly/core/primitive.char.html">char</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/primitive.bool.html">bool</a> {
+</span><span class="kw">pub fn </span>is_char_bidi(c: char) -&gt; bool {
     <span class="comment">// Controls:
     // Every control with RIGHT-TO-LEFT in its name in
     // https://www.unicode.org/charts/PDF/U2000.pdf
@@ -4678,7 +4678,7 @@
     // https://www.unicode.org/roadmaps/smp/
     // U+10800...U+10FFF (Lead surrogate U+D802 or U+D803)
     // U+1E800...U+1EFFF (Lead surrogate U+D83A or U+D83B)
-    </span><span class="kw">let </span>code_point = u32::from(<a href="#1305">c</a>);
+    </span><span class="kw">let </span>code_point = u32::from(c);
     <span class="kw">if </span>code_point &lt; <span class="number">0x0590 </span>{
         <span class="comment">// Below Hebrew
         </span><span class="kw">return </span><span class="bool-val">false</span>;
@@ -4687,10 +4687,10 @@
         <span class="comment">// Above Arabic Extended-A and below Hebrew presentation forms
         </span><span class="kw">if </span>in_inclusive_range32(code_point, <span class="number">0x200F</span>, <span class="number">0x2067</span>) {
             <span class="comment">// In the range that contains the RTL controls
-            </span><span class="kw">return </span><a href="#1325">code_point</a> == <span class="number">0x200F
-                </span>|| <a href="#1325">code_point</a> == <span class="number">0x202B
-                </span>|| <a href="#1325">code_point</a> == <span class="number">0x202E
-                </span>|| <a href="#1325">code_point</a> == <span class="number">0x2067</span>;
+            </span><span class="kw">return </span>code_point == <span class="number">0x200F
+                </span>|| code_point == <span class="number">0x202B
+                </span>|| code_point == <span class="number">0x202E
+                </span>|| code_point == <span class="number">0x2067</span>;
         }
         <span class="kw">return </span><span class="bool-val">false</span>;
     }
@@ -4733,7 +4733,7 @@
 /// values. Obviously, such high surrogates are then reported as right-to-left
 /// even if actually unpaired.
 </span><span class="attr">#[inline(always)]
-</span><span class="kw">pub fn </span>is_utf16_code_unit_bidi(u: <a href="https://doc.rust-lang.org/nightly/core/primitive.u16.html">u16</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/primitive.bool.html">bool</a> {
+</span><span class="kw">pub fn </span>is_utf16_code_unit_bidi(u: u16) -&gt; bool {
     <span class="kw">if </span>u &lt; <span class="number">0x0590 </span>{
         <span class="comment">// Below Hebrew
         </span><span class="kw">return </span><span class="bool-val">false</span>;
@@ -4742,7 +4742,7 @@
         <span class="comment">// Above Arabic Extended-A and below first RTL surrogate
         </span><span class="kw">if </span>in_inclusive_range16(u, <span class="number">0x200F</span>, <span class="number">0x2067</span>) {
             <span class="comment">// In the range that contains the RTL controls
-            </span><span class="kw">return </span><a href="#1380">u</a> == <span class="number">0x200F </span>|| <a href="#1380">u</a> == <span class="number">0x202B </span>|| <a href="#1380">u</a> == <span class="number">0x202E </span>|| <a href="#1380">u</a> == <span class="number">0x2067</span>;
+            </span><span class="kw">return </span>u == <span class="number">0x200F </span>|| u == <span class="number">0x202B </span>|| u == <span class="number">0x202E </span>|| u == <span class="number">0x2067</span>;
         }
         <span class="kw">return </span><span class="bool-val">false</span>;
     }
@@ -4774,15 +4774,15 @@
 /// Returns `Latin1Bidi::Latin1` if `is_utf8_latin1()` would return `true`.
 /// Otherwise, returns `Latin1Bidi::Bidi` if `is_utf8_bidi()` would return
 /// `true`. Otherwise, returns `Latin1Bidi::LeftToRight`.
-</span><span class="kw">pub fn </span>check_utf8_for_latin1_and_bidi(buffer: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>]) -&gt; <a href="#71">Latin1Bidi</a> {
-    <span class="kw">if let </span><span class="prelude-val">Some</span>(offset) = <a href="#432">is_utf8_latin1_impl</a>(<a href="#1421">buffer</a>) {
+</span><span class="kw">pub fn </span>check_utf8_for_latin1_and_bidi(buffer: <span class="kw-2">&amp;</span>[u8]) -&gt; Latin1Bidi {
+    <span class="kw">if let </span><span class="prelude-val">Some</span>(offset) = is_utf8_latin1_impl(buffer) {
         <span class="kw">if </span>is_utf8_bidi(<span class="kw-2">&amp;</span>buffer[offset..]) {
-            <a href="#78">Latin1Bidi::Bidi</a>
+            Latin1Bidi::Bidi
         } <span class="kw">else </span>{
-            <a href="#76">Latin1Bidi::LeftToRight</a>
+            Latin1Bidi::LeftToRight
         }
     } <span class="kw">else </span>{
-        <a href="#73">Latin1Bidi::Latin1</a>
+        Latin1Bidi::Latin1
     }
 }
 
@@ -4794,17 +4794,17 @@
 /// Returns `Latin1Bidi::Latin1` if `is_str_latin1()` would return `true`.
 /// Otherwise, returns `Latin1Bidi::Bidi` if `is_str_bidi()` would return
 /// `true`. Otherwise, returns `Latin1Bidi::LeftToRight`.
-</span><span class="kw">pub fn </span>check_str_for_latin1_and_bidi(buffer: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/core/primitive.str.html">str</a>) -&gt; <a href="#71">Latin1Bidi</a> {
+</span><span class="kw">pub fn </span>check_str_for_latin1_and_bidi(buffer: <span class="kw-2">&amp;</span>str) -&gt; Latin1Bidi {
     <span class="comment">// The transition from the latin1 check to the bidi check isn&#39;t
     // optimal but not tweaking it to perfection today.
-    </span><span class="kw">if let </span><span class="prelude-val">Some</span>(offset) = <a href="#412">is_str_latin1_impl</a>(<a href="#1441">buffer</a>) {
+    </span><span class="kw">if let </span><span class="prelude-val">Some</span>(offset) = is_str_latin1_impl(buffer) {
         <span class="kw">if </span>is_str_bidi(<span class="kw-2">&amp;</span>buffer[offset..]) {
-            <a href="#78">Latin1Bidi::Bidi</a>
+            Latin1Bidi::Bidi
         } <span class="kw">else </span>{
-            <a href="#76">Latin1Bidi::LeftToRight</a>
+            Latin1Bidi::LeftToRight
         }
     } <span class="kw">else </span>{
-        <a href="#73">Latin1Bidi::Latin1</a>
+        Latin1Bidi::Latin1
     }
 }
 
@@ -4816,8 +4816,8 @@
 /// Returns `Latin1Bidi::Latin1` if `is_utf16_latin1()` would return `true`.
 /// Otherwise, returns `Latin1Bidi::Bidi` if `is_utf16_bidi()` would return
 /// `true`. Otherwise, returns `Latin1Bidi::LeftToRight`.
-</span><span class="kw">pub fn </span>check_utf16_for_latin1_and_bidi(buffer: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/core/primitive.u16.html">u16</a>]) -&gt; <a href="#71">Latin1Bidi</a> {
-    <a href="#581">check_utf16_for_latin1_and_bidi_impl</a>(<a href="#1463">buffer</a>)
+</span><span class="kw">pub fn </span>check_utf16_for_latin1_and_bidi(buffer: <span class="kw-2">&amp;</span>[u16]) -&gt; Latin1Bidi {
+    check_utf16_for_latin1_and_bidi_impl(buffer)
 }
 
 <span class="doccomment">/// Converts potentially-invalid UTF-8 to valid UTF-16 with errors replaced
@@ -4831,30 +4831,30 @@
 /// # Panics
 ///
 /// Panics if the destination buffer is shorter than stated above.
-</span><span class="kw">pub fn </span>convert_utf8_to_utf16(src: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>], dst: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/core/primitive.u16.html">u16</a>]) -&gt; <a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a> {
+</span><span class="kw">pub fn </span>convert_utf8_to_utf16(src: <span class="kw-2">&amp;</span>[u8], dst: <span class="kw-2">&amp;mut </span>[u16]) -&gt; usize {
     <span class="comment">// TODO: Can the requirement for dst to be at least one unit longer
     // be eliminated?
-    </span><a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(dst.len() &gt; src.len());
+    </span><span class="macro">assert!</span>(dst.len() &gt; src.len());
     <span class="kw">let </span><span class="kw-2">mut </span>decoder = Utf8Decoder::new_inner();
     <span class="kw">let </span><span class="kw-2">mut </span>total_read = <span class="number">0usize</span>;
     <span class="kw">let </span><span class="kw-2">mut </span>total_written = <span class="number">0usize</span>;
     <span class="kw">loop </span>{
         <span class="kw">let </span>(result, read, written) =
-            <a href="#1482">decoder</a>.<a href="utf_8.rs.html#500-605">decode_to_utf16_raw</a>(<span class="kw-2">&amp;</span><a href="#1478">src</a>[<a href="#1483">total_read</a>..], <span class="kw-2">&amp;mut </span><a href="#1478">dst</a>[<a href="#1484">total_written</a>..], <span class="bool-val">true</span>);
-        <a href="#1483">total_read</a> += <a href="#1486">read</a>;
-        <a href="#1484">total_written</a> += <a href="#1486">written</a>;
-        <span class="kw">match </span><a href="#1486">result</a> {
-            <a href="lib.rs.html#3560">DecoderResult::InputEmpty</a> =&gt; {
-                <span class="kw">return </span><a href="#1484">total_written</a>;
+            decoder.decode_to_utf16_raw(<span class="kw-2">&amp;</span>src[total_read..], <span class="kw-2">&amp;mut </span>dst[total_written..], <span class="bool-val">true</span>);
+        total_read += read;
+        total_written += written;
+        <span class="kw">match </span>result {
+            DecoderResult::InputEmpty =&gt; {
+                <span class="kw">return </span>total_written;
             }
-            <a href="lib.rs.html#3567">DecoderResult::OutputFull</a> =&gt; {
-                <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(<span class="string">&quot;The assert at the top of the function should have caught this.&quot;</span>);
+            DecoderResult::OutputFull =&gt; {
+                <span class="macro">unreachable!</span>(<span class="string">&quot;The assert at the top of the function should have caught this.&quot;</span>);
             }
-            <a href="lib.rs.html#3585">DecoderResult::Malformed</a>(<span class="kw">_</span>, <span class="kw">_</span>) =&gt; {
+            DecoderResult::Malformed(<span class="kw">_</span>, <span class="kw">_</span>) =&gt; {
                 <span class="comment">// There should always be space for the U+FFFD, because
                 // otherwise we&#39;d have gotten OutputFull already.
-                </span><a href="#1478">dst</a>[<a href="#1484">total_written</a>] = <span class="number">0xFFFD</span>;
-                <a href="#1484">total_written</a> += <span class="number">1</span>;
+                </span>dst[total_written] = <span class="number">0xFFFD</span>;
+                total_written += <span class="number">1</span>;
             }
         }
     }
@@ -4870,30 +4870,30 @@
 /// # Panics
 ///
 /// Panics if the destination buffer is shorter than stated above.
-</span><span class="kw">pub fn </span>convert_str_to_utf16(src: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/core/primitive.str.html">str</a>, dst: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/core/primitive.u16.html">u16</a>]) -&gt; <a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a> {
-    <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(
+</span><span class="kw">pub fn </span>convert_str_to_utf16(src: <span class="kw-2">&amp;</span>str, dst: <span class="kw-2">&amp;mut </span>[u16]) -&gt; usize {
+    <span class="macro">assert!</span>(
         dst.len() &gt;= src.len(),
         <span class="string">&quot;Destination must not be shorter than the source.&quot;
     </span>);
-    <span class="kw">let </span>bytes = <a href="#1517">src</a>.as_bytes();
+    <span class="kw">let </span>bytes = src.as_bytes();
     <span class="kw">let </span><span class="kw-2">mut </span>read = <span class="number">0</span>;
     <span class="kw">let </span><span class="kw-2">mut </span>written = <span class="number">0</span>;
     <span class="lifetime">&#39;outer</span>: <span class="kw">loop </span>{
         <span class="kw">let </span><span class="kw-2">mut </span>byte = {
-            <span class="kw">let </span>src_remaining = <span class="kw-2">&amp;</span><a href="#1522">bytes</a>[<a href="#1523">read</a>..];
-            <span class="kw">let </span>dst_remaining = <span class="kw-2">&amp;mut </span><a href="#1517">dst</a>[<a href="#1524">written</a>..];
-            <span class="kw">let </span>length = <a href="#1527">src_remaining</a>.len();
+            <span class="kw">let </span>src_remaining = <span class="kw-2">&amp;</span>bytes[read..];
+            <span class="kw">let </span>dst_remaining = <span class="kw-2">&amp;mut </span>dst[written..];
+            <span class="kw">let </span>length = src_remaining.len();
             <span class="kw">match unsafe </span>{
-                <a href="ascii.rs.html#1483">ascii_to_basic_latin</a>(<a href="#1527">src_remaining</a>.as_ptr(), <a href="#1528">dst_remaining</a>.as_mut_ptr(), <a href="#1529">length</a>)
+                ascii_to_basic_latin(src_remaining.as_ptr(), dst_remaining.as_mut_ptr(), length)
             } {
                 <span class="prelude-val">None </span>=&gt; {
-                    <a href="#1524">written</a> += <a href="#1529">length</a>;
-                    <span class="kw">return </span><a href="#1524">written</a>;
+                    written += length;
+                    <span class="kw">return </span>written;
                 }
                 <span class="prelude-val">Some</span>((non_ascii, consumed)) =&gt; {
-                    <a href="#1523">read</a> += <a href="#1537">consumed</a>;
-                    <a href="#1524">written</a> += <a href="#1537">consumed</a>;
-                    <a href="#1537">non_ascii</a>
+                    read += consumed;
+                    written += consumed;
+                    non_ascii
                 }
             }
         };
@@ -4902,16 +4902,16 @@
             </span><span class="kw">if </span>byte &lt; <span class="number">0xE0 </span>{
                 <span class="kw">if </span>byte &gt;= <span class="number">0x80 </span>{
                     <span class="comment">// Two-byte
-                    </span><span class="kw">let </span>second = <span class="kw">unsafe </span>{ <span class="kw-2">*</span>(<a href="#1522">bytes</a>.get_unchecked(<a href="#1523">read</a> + <span class="number">1</span>)) };
-                    <span class="kw">let </span>point = ((u16::from(<a href="#1526">byte</a>) &amp; <span class="number">0x1F</span>) &lt;&lt; <span class="number">6</span>) | (u16::from(<a href="#1549">second</a>) &amp; <span class="number">0x3F</span>);
-                    <span class="kw">unsafe </span>{ <span class="kw-2">*</span>(<a href="#1517">dst</a>.get_unchecked_mut(<a href="#1524">written</a>)) = <a href="#1550">point</a> };
-                    <a href="#1523">read</a> += <span class="number">2</span>;
-                    <a href="#1524">written</a> += <span class="number">1</span>;
+                    </span><span class="kw">let </span>second = <span class="kw">unsafe </span>{ <span class="kw-2">*</span>(bytes.get_unchecked(read + <span class="number">1</span>)) };
+                    <span class="kw">let </span>point = ((u16::from(byte) &amp; <span class="number">0x1F</span>) &lt;&lt; <span class="number">6</span>) | (u16::from(second) &amp; <span class="number">0x3F</span>);
+                    <span class="kw">unsafe </span>{ <span class="kw-2">*</span>(dst.get_unchecked_mut(written)) = point };
+                    read += <span class="number">2</span>;
+                    written += <span class="number">1</span>;
                 } <span class="kw">else </span>{
                     <span class="comment">// ASCII: write and go back to SIMD.
-                    </span><span class="kw">unsafe </span>{ <span class="kw-2">*</span>(<a href="#1517">dst</a>.get_unchecked_mut(<a href="#1524">written</a>)) = u16::from(<a href="#1526">byte</a>) };
-                    <a href="#1523">read</a> += <span class="number">1</span>;
-                    <a href="#1524">written</a> += <span class="number">1</span>;
+                    </span><span class="kw">unsafe </span>{ <span class="kw-2">*</span>(dst.get_unchecked_mut(written)) = u16::from(byte) };
+                    read += <span class="number">1</span>;
+                    written += <span class="number">1</span>;
                     <span class="comment">// Intuitively, we should go back to the outer loop only
                     // if byte is 0x30 or above, so as to avoid trashing on
                     // ASCII space, comma and period in non-Latin context.
@@ -4921,37 +4921,37 @@
                 }
             } <span class="kw">else if </span>byte &lt; <span class="number">0xF0 </span>{
                 <span class="comment">// Three-byte
-                </span><span class="kw">let </span>second = <span class="kw">unsafe </span>{ <span class="kw-2">*</span>(<a href="#1522">bytes</a>.get_unchecked(<a href="#1523">read</a> + <span class="number">1</span>)) };
-                <span class="kw">let </span>third = <span class="kw">unsafe </span>{ <span class="kw-2">*</span>(<a href="#1522">bytes</a>.get_unchecked(<a href="#1523">read</a> + <span class="number">2</span>)) };
-                <span class="kw">let </span>point = ((u16::from(<a href="#1526">byte</a>) &amp; <span class="number">0xF</span>) &lt;&lt; <span class="number">12</span>)
-                    | ((u16::from(<a href="#1568">second</a>) &amp; <span class="number">0x3F</span>) &lt;&lt; <span class="number">6</span>)
-                    | (u16::from(<a href="#1569">third</a>) &amp; <span class="number">0x3F</span>);
-                <span class="kw">unsafe </span>{ <span class="kw-2">*</span>(<a href="#1517">dst</a>.get_unchecked_mut(<a href="#1524">written</a>)) = <a href="#1570">point</a> };
-                <a href="#1523">read</a> += <span class="number">3</span>;
-                <a href="#1524">written</a> += <span class="number">1</span>;
+                </span><span class="kw">let </span>second = <span class="kw">unsafe </span>{ <span class="kw-2">*</span>(bytes.get_unchecked(read + <span class="number">1</span>)) };
+                <span class="kw">let </span>third = <span class="kw">unsafe </span>{ <span class="kw-2">*</span>(bytes.get_unchecked(read + <span class="number">2</span>)) };
+                <span class="kw">let </span>point = ((u16::from(byte) &amp; <span class="number">0xF</span>) &lt;&lt; <span class="number">12</span>)
+                    | ((u16::from(second) &amp; <span class="number">0x3F</span>) &lt;&lt; <span class="number">6</span>)
+                    | (u16::from(third) &amp; <span class="number">0x3F</span>);
+                <span class="kw">unsafe </span>{ <span class="kw-2">*</span>(dst.get_unchecked_mut(written)) = point };
+                read += <span class="number">3</span>;
+                written += <span class="number">1</span>;
             } <span class="kw">else </span>{
                 <span class="comment">// Four-byte
-                </span><span class="kw">let </span>second = <span class="kw">unsafe </span>{ <span class="kw-2">*</span>(<a href="#1522">bytes</a>.get_unchecked(<a href="#1523">read</a> + <span class="number">1</span>)) };
-                <span class="kw">let </span>third = <span class="kw">unsafe </span>{ <span class="kw-2">*</span>(<a href="#1522">bytes</a>.get_unchecked(<a href="#1523">read</a> + <span class="number">2</span>)) };
-                <span class="kw">let </span>fourth = <span class="kw">unsafe </span>{ <span class="kw-2">*</span>(<a href="#1522">bytes</a>.get_unchecked(<a href="#1523">read</a> + <span class="number">3</span>)) };
-                <span class="kw">let </span>point = ((u32::from(<a href="#1526">byte</a>) &amp; <span class="number">0x7</span>) &lt;&lt; <span class="number">18</span>)
-                    | ((u32::from(<a href="#1578">second</a>) &amp; <span class="number">0x3F</span>) &lt;&lt; <span class="number">12</span>)
-                    | ((u32::from(<a href="#1579">third</a>) &amp; <span class="number">0x3F</span>) &lt;&lt; <span class="number">6</span>)
-                    | (u32::from(<a href="#1580">fourth</a>) &amp; <span class="number">0x3F</span>);
-                <span class="kw">unsafe </span>{ <span class="kw-2">*</span>(<a href="#1517">dst</a>.get_unchecked_mut(<a href="#1524">written</a>)) = (<span class="number">0xD7C0 </span>+ (<a href="#1581">point</a> &gt;&gt; <span class="number">10</span>)) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.u16.html">u16</a> };
+                </span><span class="kw">let </span>second = <span class="kw">unsafe </span>{ <span class="kw-2">*</span>(bytes.get_unchecked(read + <span class="number">1</span>)) };
+                <span class="kw">let </span>third = <span class="kw">unsafe </span>{ <span class="kw-2">*</span>(bytes.get_unchecked(read + <span class="number">2</span>)) };
+                <span class="kw">let </span>fourth = <span class="kw">unsafe </span>{ <span class="kw-2">*</span>(bytes.get_unchecked(read + <span class="number">3</span>)) };
+                <span class="kw">let </span>point = ((u32::from(byte) &amp; <span class="number">0x7</span>) &lt;&lt; <span class="number">18</span>)
+                    | ((u32::from(second) &amp; <span class="number">0x3F</span>) &lt;&lt; <span class="number">12</span>)
+                    | ((u32::from(third) &amp; <span class="number">0x3F</span>) &lt;&lt; <span class="number">6</span>)
+                    | (u32::from(fourth) &amp; <span class="number">0x3F</span>);
+                <span class="kw">unsafe </span>{ <span class="kw-2">*</span>(dst.get_unchecked_mut(written)) = (<span class="number">0xD7C0 </span>+ (point &gt;&gt; <span class="number">10</span>)) <span class="kw">as </span>u16 };
                 <span class="kw">unsafe </span>{
-                    <span class="kw-2">*</span>(<a href="#1517">dst</a>.get_unchecked_mut(<a href="#1524">written</a> + <span class="number">1</span>)) = (<span class="number">0xDC00 </span>+ (<a href="#1581">point</a> &amp; <span class="number">0x3FF</span>)) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.u16.html">u16</a>
+                    <span class="kw-2">*</span>(dst.get_unchecked_mut(written + <span class="number">1</span>)) = (<span class="number">0xDC00 </span>+ (point &amp; <span class="number">0x3FF</span>)) <span class="kw">as </span>u16
                 };
-                <a href="#1523">read</a> += <span class="number">4</span>;
-                <a href="#1524">written</a> += <span class="number">2</span>;
+                read += <span class="number">4</span>;
+                written += <span class="number">2</span>;
             }
             <span class="comment">// The comparison is always &lt; or == and never &gt;, but including
             // &gt; here to let the compiler assume that &lt; is true if this
             // comparison is false.
             </span><span class="kw">if </span>read &gt;= src.len() {
-                <span class="kw">return </span><a href="#1524">written</a>;
+                <span class="kw">return </span>written;
             }
-            <a href="#1526">byte</a> = <a href="#1522">bytes</a>[<a href="#1523">read</a>];
+            byte = bytes[read];
             <span class="kw">continue </span><span class="lifetime">&#39;inner</span>;
         }
     }
@@ -4969,14 +4969,14 @@
 /// # Panics
 ///
 /// Panics if the destination buffer is shorter than stated above.
-</span><span class="kw">pub fn </span>convert_utf8_to_utf16_without_replacement(src: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>], dst: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/core/primitive.u16.html">u16</a>]) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>&gt; {
-    <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(
+</span><span class="kw">pub fn </span>convert_utf8_to_utf16_without_replacement(src: <span class="kw-2">&amp;</span>[u8], dst: <span class="kw-2">&amp;mut </span>[u16]) -&gt; <span class="prelude-ty">Option</span>&lt;usize&gt; {
+    <span class="macro">assert!</span>(
         dst.len() &gt;= src.len(),
         <span class="string">&quot;Destination must not be shorter than the source.&quot;
     </span>);
-    <span class="kw">let </span>(read, written) = <a href="utf_8.rs.html#232">convert_utf8_to_utf16_up_to_invalid</a>(<a href="#1616">src</a>, <a href="#1616">dst</a>);
+    <span class="kw">let </span>(read, written) = convert_utf8_to_utf16_up_to_invalid(src, dst);
     <span class="kw">if </span>read == src.len() {
-        <span class="kw">return </span><span class="prelude-val">Some</span>(<a href="#1621">written</a>);
+        <span class="kw">return </span><span class="prelude-val">Some</span>(written);
     }
     <span class="prelude-val">None
 </span>}
@@ -5007,7 +5007,7 @@
 /// `convert_utf16_to_str_partial()` instead of using this function
 /// together with the `unsafe` method `as_bytes_mut()` on `&amp;mut str`.
 </span><span class="attr">#[inline(always)]
-</span><span class="kw">pub fn </span>convert_utf16_to_utf8_partial(src: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/core/primitive.u16.html">u16</a>], dst: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>]) -&gt; (<a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>, <a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>) {
+</span><span class="kw">pub fn </span>convert_utf16_to_utf8_partial(src: <span class="kw-2">&amp;</span>[u16], dst: <span class="kw-2">&amp;mut </span>[u8]) -&gt; (usize, usize) {
     <span class="comment">// The two functions called below are marked `inline(never)` to make
     // transitions from the hot part (first function) into the cold part
     // (second function) go through a return and another call to discouge
@@ -5015,13 +5015,13 @@
     // Letting the transitions be mere intra-function jumps, even to
     // basic blocks out-of-lined to the end of the function would wipe
     // away a quarter of Arabic encode performance on Haswell!
-    </span><span class="kw">let </span>(read, written) = <a href="utf_8.rs.html#610">convert_utf16_to_utf8_partial_inner</a>(<a href="#1654">src</a>, <a href="#1654">dst</a>);
+    </span><span class="kw">let </span>(read, written) = convert_utf16_to_utf8_partial_inner(src, dst);
     <span class="kw">if unsafe </span>{ likely(read == src.len()) } {
-        <span class="kw">return </span>(<a href="#1662">read</a>, <a href="#1662">written</a>);
+        <span class="kw">return </span>(read, written);
     }
     <span class="kw">let </span>(tail_read, tail_written) =
-        <a href="utf_8.rs.html#749">convert_utf16_to_utf8_partial_tail</a>(<span class="kw-2">&amp;</span><a href="#1654">src</a>[<a href="#1662">read</a>..], <span class="kw-2">&amp;mut </span><a href="#1654">dst</a>[<a href="#1662">written</a>..]);
-    (<a href="#1662">read</a> + <a href="#1666">tail_read</a>, <a href="#1662">written</a> + <a href="#1666">tail_written</a>)
+        convert_utf16_to_utf8_partial_tail(<span class="kw-2">&amp;</span>src[read..], <span class="kw-2">&amp;mut </span>dst[written..]);
+    (read + tail_read, written + tail_written)
 }
 
 <span class="doccomment">/// Converts potentially-invalid UTF-16 to valid UTF-8 with errors replaced
@@ -5042,11 +5042,11 @@
 /// instead of using this function together with the `unsafe` method
 /// `as_bytes_mut()` on `&amp;mut str`.
 </span><span class="attr">#[inline(always)]
-</span><span class="kw">pub fn </span>convert_utf16_to_utf8(src: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/core/primitive.u16.html">u16</a>], dst: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>]) -&gt; <a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a> {
-    <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(dst.len() &gt;= src.len() * <span class="number">3</span>);
-    <span class="kw">let </span>(read, written) = <a href="#1654">convert_utf16_to_utf8_partial</a>(<a href="#1689">src</a>, <a href="#1689">dst</a>);
-    <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert_eq.html">debug_assert_eq!</a>(read, src.len());
-    <a href="#1691">written</a>
+</span><span class="kw">pub fn </span>convert_utf16_to_utf8(src: <span class="kw-2">&amp;</span>[u16], dst: <span class="kw-2">&amp;mut </span>[u8]) -&gt; usize {
+    <span class="macro">assert!</span>(dst.len() &gt;= src.len() * <span class="number">3</span>);
+    <span class="kw">let </span>(read, written) = convert_utf16_to_utf8_partial(src, dst);
+    <span class="macro">debug_assert_eq!</span>(read, src.len());
+    written
 }
 
 <span class="doccomment">/// Converts potentially-invalid UTF-16 to valid UTF-8 with errors replaced
@@ -5062,16 +5062,16 @@
 /// not allocating memory for the worst case up front. Specifically,
 /// if the input starts with or ends with an unpaired surrogate, those are
 /// replaced with the REPLACEMENT CHARACTER.
-</span><span class="kw">pub fn </span>convert_utf16_to_str_partial(src: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/core/primitive.u16.html">u16</a>], dst: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/primitive.str.html">str</a>) -&gt; (<a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>, <a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>) {
-    <span class="kw">let </span>bytes: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>] = <span class="kw">unsafe </span>{ <a href="#1709">dst</a>.as_bytes_mut() };
-    <span class="kw">let </span>(read, written) = <a href="#1654">convert_utf16_to_utf8_partial</a>(<a href="#1709">src</a>, <a href="#1710">bytes</a>);
-    <span class="kw">let </span>len = <a href="#1710">bytes</a>.len();
-    <span class="kw">let </span><span class="kw-2">mut </span>trail = <a href="#1711">written</a>;
+</span><span class="kw">pub fn </span>convert_utf16_to_str_partial(src: <span class="kw-2">&amp;</span>[u16], dst: <span class="kw-2">&amp;mut </span>str) -&gt; (usize, usize) {
+    <span class="kw">let </span>bytes: <span class="kw-2">&amp;mut </span>[u8] = <span class="kw">unsafe </span>{ dst.as_bytes_mut() };
+    <span class="kw">let </span>(read, written) = convert_utf16_to_utf8_partial(src, bytes);
+    <span class="kw">let </span>len = bytes.len();
+    <span class="kw">let </span><span class="kw-2">mut </span>trail = written;
     <span class="kw">while </span>trail &lt; len &amp;&amp; ((bytes[trail] &amp; <span class="number">0xC0</span>) == <span class="number">0x80</span>) {
         bytes[trail] = <span class="number">0</span>;
         trail += <span class="number">1</span>;
     }
-    (<a href="#1711">read</a>, <a href="#1711">written</a>)
+    (read, written)
 }
 
 <span class="doccomment">/// Converts potentially-invalid UTF-16 to valid UTF-8 with errors replaced
@@ -5087,11 +5087,11 @@
 ///
 /// Panics if the destination buffer is shorter than stated above.
 </span><span class="attr">#[inline(always)]
-</span><span class="kw">pub fn </span>convert_utf16_to_str(src: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/core/primitive.u16.html">u16</a>], dst: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/primitive.str.html">str</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a> {
-    <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(dst.len() &gt;= src.len() * <span class="number">3</span>);
-    <span class="kw">let </span>(read, written) = <a href="#1709">convert_utf16_to_str_partial</a>(<a href="#1734">src</a>, <a href="#1734">dst</a>);
-    <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert_eq.html">debug_assert_eq!</a>(read, src.len());
-    <a href="#1736">written</a>
+</span><span class="kw">pub fn </span>convert_utf16_to_str(src: <span class="kw-2">&amp;</span>[u16], dst: <span class="kw-2">&amp;mut </span>str) -&gt; usize {
+    <span class="macro">assert!</span>(dst.len() &gt;= src.len() * <span class="number">3</span>);
+    <span class="kw">let </span>(read, written) = convert_utf16_to_str_partial(src, dst);
+    <span class="macro">debug_assert_eq!</span>(read, src.len());
+    written
 }
 
 <span class="doccomment">/// Converts bytes whose unsigned value is interpreted as Unicode code point
@@ -5105,8 +5105,8 @@
 /// # Panics
 ///
 /// Panics if the destination buffer is shorter than stated above.
-</span><span class="kw">pub fn </span>convert_latin1_to_utf16(src: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>], dst: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/core/primitive.u16.html">u16</a>]) {
-    <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(
+</span><span class="kw">pub fn </span>convert_latin1_to_utf16(src: <span class="kw-2">&amp;</span>[u8], dst: <span class="kw-2">&amp;mut </span>[u16]) {
+    <span class="macro">assert!</span>(
         dst.len() &gt;= src.len(),
         <span class="string">&quot;Destination must not be shorter than the source.&quot;
     </span>);
@@ -5114,7 +5114,7 @@
     // instructions and this code, but, yet, the autovectorized version is
     // faster.
     </span><span class="kw">unsafe </span>{
-        <a href="ascii.rs.html#1485">unpack_latin1</a>(<a href="#1752">src</a>.as_ptr(), <a href="#1752">dst</a>.as_mut_ptr(), <a href="#1752">src</a>.len());
+        unpack_latin1(src.as_ptr(), dst.as_mut_ptr(), src.len());
     }
 }
 
@@ -5131,40 +5131,40 @@
 /// If you want to convert into a `&amp;mut str`, use
 /// `convert_utf16_to_str_partial()` instead of using this function
 /// together with the `unsafe` method `as_bytes_mut()` on `&amp;mut str`.
-</span><span class="kw">pub fn </span>convert_latin1_to_utf8_partial(src: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>], dst: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>]) -&gt; (<a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>, <a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>) {
-    <span class="kw">let </span>src_len = <a href="#1778">src</a>.len();
-    <span class="kw">let </span>src_ptr = <a href="#1778">src</a>.as_ptr();
-    <span class="kw">let </span>dst_ptr = <a href="#1778">dst</a>.as_mut_ptr();
-    <span class="kw">let </span>dst_len = <a href="#1778">dst</a>.len();
+</span><span class="kw">pub fn </span>convert_latin1_to_utf8_partial(src: <span class="kw-2">&amp;</span>[u8], dst: <span class="kw-2">&amp;mut </span>[u8]) -&gt; (usize, usize) {
+    <span class="kw">let </span>src_len = src.len();
+    <span class="kw">let </span>src_ptr = src.as_ptr();
+    <span class="kw">let </span>dst_ptr = dst.as_mut_ptr();
+    <span class="kw">let </span>dst_len = dst.len();
     <span class="kw">let </span><span class="kw-2">mut </span>total_read = <span class="number">0usize</span>;
     <span class="kw">let </span><span class="kw-2">mut </span>total_written = <span class="number">0usize</span>;
     <span class="kw">loop </span>{
         <span class="comment">// src can&#39;t advance more than dst
-        </span><span class="kw">let </span>src_left = <a href="#1779">src_len</a> - <a href="#1783">total_read</a>;
-        <span class="kw">let </span>dst_left = <a href="#1782">dst_len</a> - <a href="#1784">total_written</a>;
-        <span class="kw">let </span>min_left = ::core::cmp::min(<a href="#1787">src_left</a>, <a href="#1788">dst_left</a>);
+        </span><span class="kw">let </span>src_left = src_len - total_read;
+        <span class="kw">let </span>dst_left = dst_len - total_written;
+        <span class="kw">let </span>min_left = ::core::cmp::min(src_left, dst_left);
         <span class="kw">if let </span><span class="prelude-val">Some</span>((non_ascii, consumed)) = <span class="kw">unsafe </span>{
-            <a href="ascii.rs.html#1487">ascii_to_ascii</a>(
-                <a href="#1780">src_ptr</a>.add(<a href="#1783">total_read</a>),
-                <a href="#1781">dst_ptr</a>.add(<a href="#1784">total_written</a>),
-                <a href="#1789">min_left</a>,
+            ascii_to_ascii(
+                src_ptr.add(total_read),
+                dst_ptr.add(total_written),
+                min_left,
             )
         } {
-            <a href="#1783">total_read</a> += <a href="#1790">consumed</a>;
-            <a href="#1784">total_written</a> += <a href="#1790">consumed</a>;
+            total_read += consumed;
+            total_written += consumed;
             <span class="kw">if </span>total_written.checked_add(<span class="number">2</span>).unwrap() &gt; dst_len {
-                <span class="kw">return </span>(<a href="#1783">total_read</a>, <a href="#1784">total_written</a>);
+                <span class="kw">return </span>(total_read, total_written);
             }
 
-            <a href="#1783">total_read</a> += <span class="number">1</span>; <span class="comment">// consume `non_ascii`
+            total_read += <span class="number">1</span>; <span class="comment">// consume `non_ascii`
 
-            </span><a href="#1778">dst</a>[<a href="#1784">total_written</a>] = (<a href="#1790">non_ascii</a> &gt;&gt; <span class="number">6</span>) | <span class="number">0xC0</span>;
-            <a href="#1784">total_written</a> += <span class="number">1</span>;
-            <a href="#1778">dst</a>[<a href="#1784">total_written</a>] = (<a href="#1790">non_ascii</a> &amp; <span class="number">0x3F</span>) | <span class="number">0x80</span>;
-            <a href="#1784">total_written</a> += <span class="number">1</span>;
+            </span>dst[total_written] = (non_ascii &gt;&gt; <span class="number">6</span>) | <span class="number">0xC0</span>;
+            total_written += <span class="number">1</span>;
+            dst[total_written] = (non_ascii &amp; <span class="number">0x3F</span>) | <span class="number">0x80</span>;
+            total_written += <span class="number">1</span>;
             <span class="kw">continue</span>;
         }
-        <span class="kw">return </span>(<a href="#1783">total_read</a> + <a href="#1789">min_left</a>, <a href="#1784">total_written</a> + <a href="#1789">min_left</a>);
+        <span class="kw">return </span>(total_read + min_left, total_written + min_left);
     }
 }
 
@@ -5187,14 +5187,14 @@
 /// `&amp;mut [u8]` as the destination is not safe. If you want to convert into
 /// a `&amp;mut str`, use `convert_utf16_to_str()` instead of this function.
 </span><span class="attr">#[inline]
-</span><span class="kw">pub fn </span>convert_latin1_to_utf8(src: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>], dst: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>]) -&gt; <a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a> {
-    <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(
+</span><span class="kw">pub fn </span>convert_latin1_to_utf8(src: <span class="kw-2">&amp;</span>[u8], dst: <span class="kw-2">&amp;mut </span>[u8]) -&gt; usize {
+    <span class="macro">assert!</span>(
         dst.len() &gt;= src.len() * <span class="number">2</span>,
         <span class="string">&quot;Destination must not be shorter than the source times two.&quot;
     </span>);
-    <span class="kw">let </span>(read, written) = <a href="#1778">convert_latin1_to_utf8_partial</a>(<a href="#1834">src</a>, <a href="#1834">dst</a>);
-    <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert_eq.html">debug_assert_eq!</a>(read, src.len());
-    <a href="#1839">written</a>
+    <span class="kw">let </span>(read, written) = convert_latin1_to_utf8_partial(src, dst);
+    <span class="macro">debug_assert_eq!</span>(read, src.len());
+    written
 }
 
 <span class="doccomment">/// Converts bytes whose unsigned value is interpreted as Unicode code point
@@ -5206,12 +5206,12 @@
 ///
 /// If the output isn&#39;t large enough, not all input is consumed.
 </span><span class="attr">#[inline]
-</span><span class="kw">pub fn </span>convert_latin1_to_str_partial(src: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>], dst: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/primitive.str.html">str</a>) -&gt; (<a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>, <a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>) {
-    <span class="kw">let </span>bytes: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>] = <span class="kw">unsafe </span>{ <a href="#1853">dst</a>.as_bytes_mut() };
-    <span class="kw">let </span>(read, written) = <a href="#1778">convert_latin1_to_utf8_partial</a>(<a href="#1853">src</a>, <a href="#1854">bytes</a>);
-    <span class="kw">let </span>len = <a href="#1854">bytes</a>.len();
-    <span class="kw">let </span><span class="kw-2">mut </span>trail = <a href="#1855">written</a>;
-    <span class="kw">let </span>max = ::core::cmp::min(<a href="#1856">len</a>, <a href="#1857">trail</a> + <a href="ascii.rs.html#1005">MAX_STRIDE_SIZE</a>);
+</span><span class="kw">pub fn </span>convert_latin1_to_str_partial(src: <span class="kw-2">&amp;</span>[u8], dst: <span class="kw-2">&amp;mut </span>str) -&gt; (usize, usize) {
+    <span class="kw">let </span>bytes: <span class="kw-2">&amp;mut </span>[u8] = <span class="kw">unsafe </span>{ dst.as_bytes_mut() };
+    <span class="kw">let </span>(read, written) = convert_latin1_to_utf8_partial(src, bytes);
+    <span class="kw">let </span>len = bytes.len();
+    <span class="kw">let </span><span class="kw-2">mut </span>trail = written;
+    <span class="kw">let </span>max = ::core::cmp::min(len, trail + MAX_STRIDE_SIZE);
     <span class="kw">while </span>trail &lt; max {
         bytes[trail] = <span class="number">0</span>;
         trail += <span class="number">1</span>;
@@ -5220,7 +5220,7 @@
         bytes[trail] = <span class="number">0</span>;
         trail += <span class="number">1</span>;
     }
-    (<a href="#1855">read</a>, <a href="#1855">written</a>)
+    (read, written)
 }
 
 <span class="doccomment">/// Converts bytes whose unsigned value is interpreted as Unicode code point
@@ -5236,14 +5236,14 @@
 ///
 /// Panics if the destination buffer is shorter than stated above.
 </span><span class="attr">#[inline]
-</span><span class="kw">pub fn </span>convert_latin1_to_str(src: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>], dst: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/primitive.str.html">str</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a> {
-    <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(
+</span><span class="kw">pub fn </span>convert_latin1_to_str(src: <span class="kw-2">&amp;</span>[u8], dst: <span class="kw-2">&amp;mut </span>str) -&gt; usize {
+    <span class="macro">assert!</span>(
         dst.len() &gt;= src.len() * <span class="number">2</span>,
         <span class="string">&quot;Destination must not be shorter than the source times two.&quot;
     </span>);
-    <span class="kw">let </span>(read, written) = <a href="#1853">convert_latin1_to_str_partial</a>(<a href="#1883">src</a>, <a href="#1883">dst</a>);
-    <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert_eq.html">debug_assert_eq!</a>(read, src.len());
-    <a href="#1888">written</a>
+    <span class="kw">let </span>(read, written) = convert_latin1_to_str_partial(src, dst);
+    <span class="macro">debug_assert_eq!</span>(read, src.len());
+    written
 }
 
 <span class="doccomment">/// If the input is valid UTF-8 representing only Unicode code points from
@@ -5269,42 +5269,42 @@
 ///
 /// If debug assertions are enabled (and not fuzzing) and the input is
 /// not in the range U+0000 to U+00FF, inclusive.
-</span><span class="kw">pub fn </span>convert_utf8_to_latin1_lossy(src: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>], dst: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>]) -&gt; <a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a> {
-    <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(
+</span><span class="kw">pub fn </span>convert_utf8_to_latin1_lossy(src: <span class="kw-2">&amp;</span>[u8], dst: <span class="kw-2">&amp;mut </span>[u8]) -&gt; usize {
+    <span class="macro">assert!</span>(
         dst.len() &gt;= src.len(),
         <span class="string">&quot;Destination must not be shorter than the source.&quot;
     </span>);
-    <a class="macro" href="#43-45">non_fuzz_debug_assert!</a>(is_utf8_latin1(src));
-    <span class="kw">let </span>src_len = <a href="#1916">src</a>.len();
-    <span class="kw">let </span>src_ptr = <a href="#1916">src</a>.as_ptr();
-    <span class="kw">let </span>dst_ptr = <a href="#1916">dst</a>.as_mut_ptr();
+    <span class="macro">non_fuzz_debug_assert!</span>(is_utf8_latin1(src));
+    <span class="kw">let </span>src_len = src.len();
+    <span class="kw">let </span>src_ptr = src.as_ptr();
+    <span class="kw">let </span>dst_ptr = dst.as_mut_ptr();
     <span class="kw">let </span><span class="kw-2">mut </span>total_read = <span class="number">0usize</span>;
     <span class="kw">let </span><span class="kw-2">mut </span>total_written = <span class="number">0usize</span>;
     <span class="kw">loop </span>{
         <span class="comment">// dst can&#39;t advance more than src
-        </span><span class="kw">let </span>src_left = <a href="#1922">src_len</a> - <a href="#1925">total_read</a>;
+        </span><span class="kw">let </span>src_left = src_len - total_read;
         <span class="kw">if let </span><span class="prelude-val">Some</span>((non_ascii, consumed)) = <span class="kw">unsafe </span>{
-            <a href="ascii.rs.html#1487">ascii_to_ascii</a>(
-                <a href="#1923">src_ptr</a>.add(<a href="#1925">total_read</a>),
-                <a href="#1924">dst_ptr</a>.add(<a href="#1926">total_written</a>),
-                <a href="#1929">src_left</a>,
+            ascii_to_ascii(
+                src_ptr.add(total_read),
+                dst_ptr.add(total_written),
+                src_left,
             )
         } {
-            <a href="#1925">total_read</a> += <a href="#1930">consumed</a> + <span class="number">1</span>;
-            <a href="#1926">total_written</a> += <a href="#1930">consumed</a>;
+            total_read += consumed + <span class="number">1</span>;
+            total_written += consumed;
 
             <span class="kw">if </span>total_read == src_len {
-                <span class="kw">return </span><a href="#1926">total_written</a>;
+                <span class="kw">return </span>total_written;
             }
 
-            <span class="kw">let </span>trail = <a href="#1916">src</a>[<a href="#1925">total_read</a>];
-            <a href="#1925">total_read</a> += <span class="number">1</span>;
+            <span class="kw">let </span>trail = src[total_read];
+            total_read += <span class="number">1</span>;
 
-            <a href="#1916">dst</a>[<a href="#1926">total_written</a>] = ((<a href="#1930">non_ascii</a> &amp; <span class="number">0x1F</span>) &lt;&lt; <span class="number">6</span>) | (<a href="#1944">trail</a> &amp; <span class="number">0x3F</span>);
-            <a href="#1926">total_written</a> += <span class="number">1</span>;
+            dst[total_written] = ((non_ascii &amp; <span class="number">0x1F</span>) &lt;&lt; <span class="number">6</span>) | (trail &amp; <span class="number">0x3F</span>);
+            total_written += <span class="number">1</span>;
             <span class="kw">continue</span>;
         }
-        <span class="kw">return </span><a href="#1926">total_written</a> + <a href="#1929">src_left</a>;
+        <span class="kw">return </span>total_written + src_left;
     }
 }
 
@@ -5331,14 +5331,14 @@
 ///
 /// (Probably in future versions if debug assertions are enabled (and not
 /// fuzzing) and the input is not in the range U+0000 to U+00FF, inclusive.)
-</span><span class="kw">pub fn </span>convert_utf16_to_latin1_lossy(src: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/core/primitive.u16.html">u16</a>], dst: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>]) {
-    <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(
+</span><span class="kw">pub fn </span>convert_utf16_to_latin1_lossy(src: <span class="kw-2">&amp;</span>[u16], dst: <span class="kw-2">&amp;mut </span>[u8]) {
+    <span class="macro">assert!</span>(
         dst.len() &gt;= src.len(),
         <span class="string">&quot;Destination must not be shorter than the source.&quot;
     </span>);
     <span class="comment">// non_fuzz_debug_assert!(is_utf16_latin1(src));
     </span><span class="kw">unsafe </span>{
-        <a href="ascii.rs.html#1486">pack_latin1</a>(<a href="#1978">src</a>.as_ptr(), <a href="#1978">dst</a>.as_mut_ptr(), <a href="#1978">src</a>.len());
+        pack_latin1(src.as_ptr(), dst.as_mut_ptr(), src.len());
     }
 }
 
@@ -5350,24 +5350,24 @@
 ///
 /// Only available if the `alloc` feature is enabled (enabled by default).
 </span><span class="attr">#[cfg(feature = <span class="string">&quot;alloc&quot;</span>)]
-</span><span class="kw">pub fn </span>decode_latin1&lt;<span class="lifetime">&#39;a</span>&gt;(bytes: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[<a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>]) -&gt; Cow&lt;<span class="lifetime">&#39;a</span>, <a href="https://doc.rust-lang.org/nightly/core/primitive.str.html">str</a>&gt; {
-    <span class="kw">let </span>up_to = <a href="ascii.rs.html#1491">ascii_valid_up_to</a>(<a href="#1997">bytes</a>);
+</span><span class="kw">pub fn </span>decode_latin1&lt;<span class="lifetime">&#39;a</span>&gt;(bytes: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[u8]) -&gt; Cow&lt;<span class="lifetime">&#39;a</span>, str&gt; {
+    <span class="kw">let </span>up_to = ascii_valid_up_to(bytes);
     <span class="comment">// &gt;= makes later things optimize better than ==
     </span><span class="kw">if </span>up_to &gt;= bytes.len() {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert_eq.html">debug_assert_eq!</a>(up_to, bytes.len());
-        <span class="kw">let </span>s: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/core/primitive.str.html">str</a> = <span class="kw">unsafe </span>{ ::core::str::from_utf8_unchecked(<a href="#1997">bytes</a>) };
-        <span class="kw">return </span>Cow::Borrowed(<a href="#2002">s</a>);
+        <span class="macro">debug_assert_eq!</span>(up_to, bytes.len());
+        <span class="kw">let </span>s: <span class="kw-2">&amp;</span>str = <span class="kw">unsafe </span>{ ::core::str::from_utf8_unchecked(bytes) };
+        <span class="kw">return </span>Cow::Borrowed(s);
     }
-    <span class="kw">let </span>(head, tail) = <a href="#1997">bytes</a>.split_at(<a href="#1998">up_to</a>);
-    <span class="kw">let </span>capacity = <a href="#2005">head</a>.len() + <a href="#2005">tail</a>.len() * <span class="number">2</span>;
-    <span class="kw">let </span><span class="kw-2">mut </span>vec = Vec::with_capacity(<a href="#2006">capacity</a>);
+    <span class="kw">let </span>(head, tail) = bytes.split_at(up_to);
+    <span class="kw">let </span>capacity = head.len() + tail.len() * <span class="number">2</span>;
+    <span class="kw">let </span><span class="kw-2">mut </span>vec = Vec::with_capacity(capacity);
     <span class="kw">unsafe </span>{
-        <a href="#2007">vec</a>.set_len(<a href="#2006">capacity</a>);
+        vec.set_len(capacity);
     }
-    (<span class="kw-2">&amp;mut </span><a href="#2007">vec</a>[..<a href="#1998">up_to</a>]).copy_from_slice(<a href="#2005">head</a>);
-    <span class="kw">let </span>written = <a href="#1834">convert_latin1_to_utf8</a>(<a href="#2005">tail</a>, <span class="kw-2">&amp;mut </span><a href="#2007">vec</a>[<a href="#1998">up_to</a>..]);
-    <a href="#2007">vec</a>.truncate(<a href="#1998">up_to</a> + <a href="#2012">written</a>);
-    Cow::Owned(<span class="kw">unsafe </span>{ String::from_utf8_unchecked(<a href="#2007">vec</a>) })
+    (<span class="kw-2">&amp;mut </span>vec[..up_to]).copy_from_slice(head);
+    <span class="kw">let </span>written = convert_latin1_to_utf8(tail, <span class="kw-2">&amp;mut </span>vec[up_to..]);
+    vec.truncate(up_to + written);
+    Cow::Owned(<span class="kw">unsafe </span>{ String::from_utf8_unchecked(vec) })
 }
 
 <span class="doccomment">/// If the input is valid UTF-8 representing only Unicode code points from
@@ -5387,56 +5387,56 @@
 ///
 /// Only available if the `alloc` feature is enabled (enabled by default).
 </span><span class="attr">#[cfg(feature = <span class="string">&quot;alloc&quot;</span>)]
-</span><span class="kw">pub fn </span>encode_latin1_lossy&lt;<span class="lifetime">&#39;a</span>&gt;(string: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="https://doc.rust-lang.org/nightly/core/primitive.str.html">str</a>) -&gt; Cow&lt;<span class="lifetime">&#39;a</span>, [<a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>]&gt; {
-    <span class="kw">let </span>bytes = <a href="#2034">string</a>.as_bytes();
-    <span class="kw">let </span>up_to = <a href="ascii.rs.html#1491">ascii_valid_up_to</a>(<a href="#2035">bytes</a>);
+</span><span class="kw">pub fn </span>encode_latin1_lossy&lt;<span class="lifetime">&#39;a</span>&gt;(string: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>str) -&gt; Cow&lt;<span class="lifetime">&#39;a</span>, [u8]&gt; {
+    <span class="kw">let </span>bytes = string.as_bytes();
+    <span class="kw">let </span>up_to = ascii_valid_up_to(bytes);
     <span class="comment">// &gt;= makes later things optimize better than ==
     </span><span class="kw">if </span>up_to &gt;= bytes.len() {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert_eq.html">debug_assert_eq!</a>(up_to, bytes.len());
-        <span class="kw">return </span>Cow::Borrowed(<a href="#2035">bytes</a>);
+        <span class="macro">debug_assert_eq!</span>(up_to, bytes.len());
+        <span class="kw">return </span>Cow::Borrowed(bytes);
     }
-    <span class="kw">let </span>(head, tail) = <a href="#2035">bytes</a>.split_at(<a href="#2036">up_to</a>);
-    <span class="kw">let </span>capacity = <a href="#2035">bytes</a>.len();
-    <span class="kw">let </span><span class="kw-2">mut </span>vec = Vec::with_capacity(<a href="#2043">capacity</a>);
+    <span class="kw">let </span>(head, tail) = bytes.split_at(up_to);
+    <span class="kw">let </span>capacity = bytes.len();
+    <span class="kw">let </span><span class="kw-2">mut </span>vec = Vec::with_capacity(capacity);
     <span class="kw">unsafe </span>{
-        <a href="#2044">vec</a>.set_len(<a href="#2043">capacity</a>);
+        vec.set_len(capacity);
     }
-    (<span class="kw-2">&amp;mut </span><a href="#2044">vec</a>[..<a href="#2036">up_to</a>]).copy_from_slice(<a href="#2042">head</a>);
-    <span class="kw">let </span>written = <a href="#1916">convert_utf8_to_latin1_lossy</a>(<a href="#2042">tail</a>, <span class="kw-2">&amp;mut </span><a href="#2044">vec</a>[<a href="#2036">up_to</a>..]);
-    <a href="#2044">vec</a>.truncate(<a href="#2036">up_to</a> + <a href="#2049">written</a>);
-    Cow::Owned(<a href="#2044">vec</a>)
+    (<span class="kw-2">&amp;mut </span>vec[..up_to]).copy_from_slice(head);
+    <span class="kw">let </span>written = convert_utf8_to_latin1_lossy(tail, <span class="kw-2">&amp;mut </span>vec[up_to..]);
+    vec.truncate(up_to + written);
+    Cow::Owned(vec)
 }
 
 <span class="doccomment">/// Returns the index of the first unpaired surrogate or, if the input is
 /// valid UTF-16 in its entirety, the length of the input.
-</span><span class="kw">pub fn </span>utf16_valid_up_to(buffer: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/core/primitive.u16.html">u16</a>]) -&gt; <a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a> {
-    <a href="#315">utf16_valid_up_to_impl</a>(<a href="#2056">buffer</a>)
+</span><span class="kw">pub fn </span>utf16_valid_up_to(buffer: <span class="kw-2">&amp;</span>[u16]) -&gt; usize {
+    utf16_valid_up_to_impl(buffer)
 }
 
 <span class="doccomment">/// Returns the index of first byte that starts an invalid byte
 /// sequence or a non-Latin1 byte sequence, or the length of the
 /// string if there are neither.
-</span><span class="kw">pub fn </span>utf8_latin1_up_to(buffer: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>]) -&gt; <a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a> {
-    <a href="#432">is_utf8_latin1_impl</a>(<a href="#2063">buffer</a>).unwrap_or(<a href="#2063">buffer</a>.len())
+</span><span class="kw">pub fn </span>utf8_latin1_up_to(buffer: <span class="kw-2">&amp;</span>[u8]) -&gt; usize {
+    is_utf8_latin1_impl(buffer).unwrap_or(buffer.len())
 }
 
 <span class="doccomment">/// Returns the index of first byte that starts a non-Latin1 byte
 /// sequence, or the length of the string if there are none.
-</span><span class="kw">pub fn </span>str_latin1_up_to(buffer: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/core/primitive.str.html">str</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a> {
-    <a href="#412">is_str_latin1_impl</a>(<a href="#2069">buffer</a>).unwrap_or_else(|| <a href="#2069">buffer</a>.len())
+</span><span class="kw">pub fn </span>str_latin1_up_to(buffer: <span class="kw-2">&amp;</span>str) -&gt; usize {
+    is_str_latin1_impl(buffer).unwrap_or_else(|| buffer.len())
 }
 
 <span class="doccomment">/// Replaces unpaired surrogates in the input with the REPLACEMENT CHARACTER.
 </span><span class="attr">#[inline]
-</span><span class="kw">pub fn </span>ensure_utf16_validity(buffer: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/core/primitive.u16.html">u16</a>]) {
+</span><span class="kw">pub fn </span>ensure_utf16_validity(buffer: <span class="kw-2">&amp;mut </span>[u16]) {
     <span class="kw">let </span><span class="kw-2">mut </span>offset = <span class="number">0</span>;
     <span class="kw">loop </span>{
-        <a href="#2076">offset</a> += <a href="#2056">utf16_valid_up_to</a>(<span class="kw-2">&amp;</span><a href="#2075">buffer</a>[<a href="#2076">offset</a>..]);
+        offset += utf16_valid_up_to(<span class="kw-2">&amp;</span>buffer[offset..]);
         <span class="kw">if </span>offset == buffer.len() {
             <span class="kw">return</span>;
         }
-        <a href="#2075">buffer</a>[<a href="#2076">offset</a>] = <span class="number">0xFFFD</span>;
-        <a href="#2076">offset</a> += <span class="number">1</span>;
+        buffer[offset] = <span class="number">0xFFFD</span>;
+        offset += <span class="number">1</span>;
     }
 }
 
@@ -5451,17 +5451,17 @@
 /// # Panics
 ///
 /// Panics if the destination buffer is shorter than stated above.
-</span><span class="kw">pub fn </span>copy_ascii_to_ascii(src: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>], dst: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>]) -&gt; <a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a> {
-    <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(
+</span><span class="kw">pub fn </span>copy_ascii_to_ascii(src: <span class="kw-2">&amp;</span>[u8], dst: <span class="kw-2">&amp;mut </span>[u8]) -&gt; usize {
+    <span class="macro">assert!</span>(
         dst.len() &gt;= src.len(),
         <span class="string">&quot;Destination must not be shorter than the source.&quot;
     </span>);
     <span class="kw">if let </span><span class="prelude-val">Some</span>((<span class="kw">_</span>, consumed)) =
-        <span class="kw">unsafe </span>{ <a href="ascii.rs.html#1487">ascii_to_ascii</a>(<a href="#2098">src</a>.as_ptr(), <a href="#2098">dst</a>.as_mut_ptr(), <a href="#2098">src</a>.len()) }
+        <span class="kw">unsafe </span>{ ascii_to_ascii(src.as_ptr(), dst.as_mut_ptr(), src.len()) }
     {
-        <a href="#2103">consumed</a>
+        consumed
     } <span class="kw">else </span>{
-        <a href="#2098">src</a>.len()
+        src.len()
     }
 }
 
@@ -5477,17 +5477,17 @@
 /// # Panics
 ///
 /// Panics if the destination buffer is shorter than stated above.
-</span><span class="kw">pub fn </span>copy_ascii_to_basic_latin(src: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>], dst: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/core/primitive.u16.html">u16</a>]) -&gt; <a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a> {
-    <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(
+</span><span class="kw">pub fn </span>copy_ascii_to_basic_latin(src: <span class="kw-2">&amp;</span>[u8], dst: <span class="kw-2">&amp;mut </span>[u16]) -&gt; usize {
+    <span class="macro">assert!</span>(
         dst.len() &gt;= src.len(),
         <span class="string">&quot;Destination must not be shorter than the source.&quot;
     </span>);
     <span class="kw">if let </span><span class="prelude-val">Some</span>((<span class="kw">_</span>, consumed)) =
-        <span class="kw">unsafe </span>{ <a href="ascii.rs.html#1483">ascii_to_basic_latin</a>(<a href="#2124">src</a>.as_ptr(), <a href="#2124">dst</a>.as_mut_ptr(), <a href="#2124">src</a>.len()) }
+        <span class="kw">unsafe </span>{ ascii_to_basic_latin(src.as_ptr(), dst.as_mut_ptr(), src.len()) }
     {
-        <a href="#2129">consumed</a>
+        consumed
     } <span class="kw">else </span>{
-        <a href="#2124">src</a>.len()
+        src.len()
     }
 }
 
@@ -5503,17 +5503,17 @@
 /// # Panics
 ///
 /// Panics if the destination buffer is shorter than stated above.
-</span><span class="kw">pub fn </span>copy_basic_latin_to_ascii(src: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/core/primitive.u16.html">u16</a>], dst: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>]) -&gt; <a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a> {
-    <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(
+</span><span class="kw">pub fn </span>copy_basic_latin_to_ascii(src: <span class="kw-2">&amp;</span>[u16], dst: <span class="kw-2">&amp;mut </span>[u8]) -&gt; usize {
+    <span class="macro">assert!</span>(
         dst.len() &gt;= src.len(),
         <span class="string">&quot;Destination must not be shorter than the source.&quot;
     </span>);
     <span class="kw">if let </span><span class="prelude-val">Some</span>((<span class="kw">_</span>, consumed)) =
-        <span class="kw">unsafe </span>{ <a href="ascii.rs.html#1484">basic_latin_to_ascii</a>(<a href="#2150">src</a>.as_ptr(), <a href="#2150">dst</a>.as_mut_ptr(), <a href="#2150">src</a>.len()) }
+        <span class="kw">unsafe </span>{ basic_latin_to_ascii(src.as_ptr(), dst.as_mut_ptr(), src.len()) }
     {
-        <a href="#2155">consumed</a>
+        consumed
     } <span class="kw">else </span>{
-        <a href="#2150">src</a>.len()
+        src.len()
     }
 }
 
@@ -6711,4 +6711,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="encoding_rs" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="encoding_rs" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

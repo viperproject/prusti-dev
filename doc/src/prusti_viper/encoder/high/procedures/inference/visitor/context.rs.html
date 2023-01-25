@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `prusti-viper/src/encoder/high/procedures/inference/visitor/context.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>context.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../../../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../../../../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../../../../../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../../../../../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../../../../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../../../../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../../../../../../source-files.js"></script><script defer src="../../../../../../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../../../../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../../../../../prusti_viper/index.html"><img class="rust-logo" src="../../../../../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `prusti-viper/src/encoder/high/procedures/inference/visitor/context.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>context.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../../../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../../../../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../../../../../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../../../../../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../../../../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../../../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../../../../../source-files.js"></script><script defer src="../../../../../../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../../../../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../../../../../prusti_viper/index.html"><img class="rust-logo" src="../../../../../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -132,139 +132,139 @@
 <a href="#132" id="132">132</a>
 <a href="#133" id="133">133</a>
 <a href="#134" id="134">134</a>
-</pre><pre class="rust"><code><span class="kw">use super</span>::{<a href="../ensurer.rs.html#20"><span class="kw">super</span>::ensurer::ExpandedPermissionKind</a>, <a href="mod.rs.html#34">Visitor</a>};
+</pre><pre class="rust"><code><span class="kw">use super</span>::{<span class="kw">super</span>::ensurer::ExpandedPermissionKind, Visitor};
 <span class="kw">use </span><span class="kw">crate</span>::encoder::{
-    errors::{<a href="../../../../errors/error_manager.rs.html#52">ErrorCtxt</a>, <a href="../../../../errors/spanned_encoding_error.rs.html#23">SpannedEncodingResult</a>},
-    <a href="../../../to_typed/types/interface.rs.html#14">high::to_typed::types::HighToTypedTypeEncoderInterface</a>,
-    <a href="../../../../mir/errors/interface.rs.html#13">mir::errors::ErrorInterface</a>,
+    errors::{ErrorCtxt, SpannedEncodingResult},
+    high::to_typed::types::HighToTypedTypeEncoderInterface,
+    mir::errors::ErrorInterface,
 };
 <span class="kw">use </span>prusti_rustc_interface::errors::MultiSpan;
 <span class="kw">use </span>vir_crate::{
-    <a href="../../../../../../../vir/common/position/trait.Positioned.html">common::position::Positioned</a>,
-    typed::{<span class="self"><a href="../../../../../../../vir/typed/index.html">self</a> </span><span class="kw">as </span>vir_typed, <a href="../../../../../../../vir/gen/typed/operations_internal/ty/trait.Typed.html">operations::ty::Typed</a>},
+    common::position::Positioned,
+    typed::{<span class="self">self </span><span class="kw">as </span>vir_typed, operations::ty::Typed},
 };
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;p</span>, <span class="lifetime">&#39;v</span>, <span class="lifetime">&#39;tcx</span>&gt; <a href="../ensurer.rs.html#27"><span class="kw">super</span>::<span class="kw">super</span>::ensurer::Context</a> <span class="kw">for </span>Visitor&lt;<span class="lifetime">&#39;p</span>, <span class="lifetime">&#39;v</span>, <span class="lifetime">&#39;tcx</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;p</span>, <span class="lifetime">&#39;v</span>, <span class="lifetime">&#39;tcx</span>&gt; <span class="kw">super</span>::<span class="kw">super</span>::ensurer::Context <span class="kw">for </span>Visitor&lt;<span class="lifetime">&#39;p</span>, <span class="lifetime">&#39;v</span>, <span class="lifetime">&#39;tcx</span>&gt; {
     <span class="kw">fn </span>expand_place(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        place: <span class="kw-2">&amp;</span><a href="../../../../../../../vir/gen/typed/ast/expression/enum.Expression.html">vir_typed::Expression</a>,
-        guiding_place: <span class="kw-2">&amp;</span><a href="../../../../../../../vir/gen/typed/ast/expression/enum.Expression.html">vir_typed::Expression</a>,
-    ) -&gt; SpannedEncodingResult&lt;Vec&lt;(<a href="../ensurer.rs.html#20">ExpandedPermissionKind</a>, <a href="../../../../../../../vir/gen/typed/ast/expression/enum.Expression.html">vir_typed::Expression</a>)&gt;&gt; {
-        <span class="kw">let </span>ty = <a href="#16">place</a>.<a href="../../../../../../../vir/gen/typed/operations_internal/ty/trait.Typed.html">get_type</a>();
+        place: <span class="kw-2">&amp;</span>vir_typed::Expression,
+        guiding_place: <span class="kw-2">&amp;</span>vir_typed::Expression,
+    ) -&gt; SpannedEncodingResult&lt;Vec&lt;(ExpandedPermissionKind, vir_typed::Expression)&gt;&gt; {
+        <span class="kw">let </span>ty = place.get_type();
         <span class="comment">// FIXME: For expansion we should use not the TypeDef const generic and
         // lifetime variables, but concrete values from `ty`. However, for this
         // it seams we need to use Rust compiler&#39;s `SubstsRef` design, which
         // means one more refactoring…
-        </span><span class="kw">let </span>normalized_type = <a href="#19">ty</a>.normalize_type();
+        </span><span class="kw">let </span>normalized_type = ty.normalize_type();
         <span class="kw">let </span>type_decl = <span class="self">self</span>.encoder.encode_type_def_typed(<span class="kw-2">&amp;</span>normalized_type)<span class="question-mark">?</span>;
         <span class="kw">fn </span>expand_fields&lt;<span class="lifetime">&#39;a</span>&gt;(
-            place: <span class="kw-2">&amp;</span><a href="../../../../../../../vir/gen/typed/ast/expression/enum.Expression.html">vir_typed::Expression</a>,
-            fields: <span class="kw">impl </span>Iterator&lt;Item = <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="../../../../../../../vir/gen/typed/ast/field/struct.FieldDecl.html">vir_typed::FieldDecl</a>&gt;,
-        ) -&gt; Vec&lt;(<a href="../ensurer.rs.html#20">ExpandedPermissionKind</a>, <a href="../../../../../../../vir/gen/typed/ast/expression/enum.Expression.html">vir_typed::Expression</a>)&gt; {
-            <span class="kw">let </span>places = <a href="#28">fields</a>
-                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|field| {
-                    <span class="kw">let </span>position = <a href="#27">place</a>.<a href="../../../../../../../vir/common/position/trait.Positioned.html">position</a>();
+            place: <span class="kw-2">&amp;</span>vir_typed::Expression,
+            fields: <span class="kw">impl </span>Iterator&lt;Item = <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>vir_typed::FieldDecl&gt;,
+        ) -&gt; Vec&lt;(ExpandedPermissionKind, vir_typed::Expression)&gt; {
+            <span class="kw">let </span>places = fields
+                .map(|field| {
+                    <span class="kw">let </span>position = place.position();
                     (
-                        <a href="../ensurer.rs.html#22">ExpandedPermissionKind::Same</a>,
-                        vir_typed::Expression::field(<a href="#27">place</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), <a href="#31">field</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), <a href="#32">position</a>),
+                        ExpandedPermissionKind::Same,
+                        vir_typed::Expression::field(place.clone(), field.clone(), position),
                     )
                 })
-                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;();
+                .collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;();
             <span class="kw">if </span>places.is_empty() {
                 <span class="comment">// We have a ZST; unfolding it just gives a zero sized memory
                 // block at the same place.
-                </span><a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[(ExpandedPermissionKind::MemoryBlock, place.clone())]
+                </span><span class="macro">vec!</span>[(ExpandedPermissionKind::MemoryBlock, place.clone())]
             } <span class="kw">else </span>{
-                <a href="#30">places</a>
+                places
             }
         }
-        <span class="kw">let </span>expansion = <span class="kw">match </span><a href="#25">type_decl</a> {
+        <span class="kw">let </span>expansion = <span class="kw">match </span>type_decl {
             vir_typed::TypeDecl::Bool
             | vir_typed::TypeDecl::Int(<span class="kw">_</span>)
             | vir_typed::TypeDecl::Float(<span class="kw">_</span>)
             | vir_typed::TypeDecl::Pointer(<span class="kw">_</span>) =&gt; {
                 <span class="comment">// Primitive type. Convert.
-                </span><a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[(ExpandedPermissionKind::MemoryBlock, place.clone())]
+                </span><span class="macro">vec!</span>[(ExpandedPermissionKind::MemoryBlock, place.clone())]
             }
-            vir_typed::TypeDecl::Trusted(<span class="kw">_</span>) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unimplemented.html">unimplemented!</a>(<span class="string">&quot;ty: {}&quot;</span>, ty),
-            vir_typed::TypeDecl::TypeVar(<span class="kw">_</span>) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unimplemented.html">unimplemented!</a>(<span class="string">&quot;ty: {}&quot;</span>, ty),
-            vir_typed::TypeDecl::Struct(decl) =&gt; <a href="#26-29">expand_fields</a>(<a href="#16">place</a>, <a href="#57">decl</a>.fields.iter()),
+            vir_typed::TypeDecl::Trusted(<span class="kw">_</span>) =&gt; <span class="macro">unimplemented!</span>(<span class="string">&quot;ty: {}&quot;</span>, ty),
+            vir_typed::TypeDecl::TypeVar(<span class="kw">_</span>) =&gt; <span class="macro">unimplemented!</span>(<span class="string">&quot;ty: {}&quot;</span>, ty),
+            vir_typed::TypeDecl::Struct(decl) =&gt; expand_fields(place, decl.fields.iter()),
             vir_typed::TypeDecl::Enum(decl) =&gt; {
-                <span class="kw">let </span>position = <a href="#16">place</a>.<a href="../../../../../../../vir/common/position/trait.Positioned.html">position</a>();
-                <span class="kw">let </span>variant_name = <a href="#16">place</a>.get_variant_name(<a href="#17">guiding_place</a>);
-                <span class="kw">let </span>variant_place = <a href="#16">place</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>().into_variant(<a href="#60">variant_name</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
-                <span class="kw">let </span><span class="kw-2">mut </span>expansion = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[(ExpandedPermissionKind::Same, variant_place)];
+                <span class="kw">let </span>position = place.position();
+                <span class="kw">let </span>variant_name = place.get_variant_name(guiding_place);
+                <span class="kw">let </span>variant_place = place.clone().into_variant(variant_name.clone());
+                <span class="kw">let </span><span class="kw-2">mut </span>expansion = <span class="macro">vec!</span>[(ExpandedPermissionKind::Same, variant_place)];
                 <span class="kw">if </span>decl.safety.is_enum() {
-                    <span class="kw">let </span>discriminant_field = <a href="#58">decl</a>.discriminant_field();
+                    <span class="kw">let </span>discriminant_field = decl.discriminant_field();
                     <span class="kw">let </span>discriminant_place =
-                        vir_typed::Expression::field(<a href="#16">place</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), <a href="#64">discriminant_field</a>, <a href="#59">position</a>);
-                    <a href="#62">expansion</a>.push((<a href="../ensurer.rs.html#22">ExpandedPermissionKind::Same</a>, <a href="#65">discriminant_place</a>));
+                        vir_typed::Expression::field(place.clone(), discriminant_field, position);
+                    expansion.push((ExpandedPermissionKind::Same, discriminant_place));
                 }
-                <a href="#62">expansion</a>
+                expansion
             }
             vir_typed::TypeDecl::Array(_decl) =&gt; {
                 <span class="comment">// TODO: Instead of a concrete index use a wildcard that would match any index.
-                </span><span class="kw">let </span>index = <a href="#16">place</a>.get_index(<a href="#17">guiding_place</a>);
-                <span class="kw">let </span>element_type = <span class="kw">match </span><a href="#19">ty</a> {
-                    vir_typed::Type::Array(<a href="../../../../../../../vir/gen/typed/ast/ty/struct.Array.html">vir_typed::ty::Array</a> {
+                </span><span class="kw">let </span>index = place.get_index(guiding_place);
+                <span class="kw">let </span>element_type = <span class="kw">match </span>ty {
+                    vir_typed::Type::Array(vir_typed::ty::Array {
                         <span class="kw">box </span>element_type, ..
-                    }) =&gt; <a href="#76">element_type</a>,
-                    vir_typed::Type::Slice(<a href="../../../../../../../vir/gen/typed/ast/ty/struct.Slice.html">vir_typed::ty::Slice</a> {
+                    }) =&gt; element_type,
+                    vir_typed::Type::Slice(vir_typed::ty::Slice {
                         <span class="kw">box </span>element_type, ..
-                    }) =&gt; <a href="#79">element_type</a>,
+                    }) =&gt; element_type,
                     <span class="kw">_ </span>=&gt; {
-                        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>()
+                        <span class="macro">unreachable!</span>()
                     }
                 };
                 <span class="kw">let </span>index_place = vir_typed::Expression::builtin_func_app(
                     vir_typed::BuiltinFunc::Index,
-                    <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[element_type.clone()],
-                    <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[place.clone(), index.clone()],
-                    <a href="#74">element_type</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
-                    <a href="#16">place</a>.<a href="../../../../../../../vir/common/position/trait.Positioned.html">position</a>(),
+                    <span class="macro">vec!</span>[element_type.clone()],
+                    <span class="macro">vec!</span>[place.clone(), index.clone()],
+                    element_type.clone(),
+                    place.position(),
                 );
-                <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[(ExpandedPermissionKind::Same, index_place)]
+                <span class="macro">vec!</span>[(ExpandedPermissionKind::Same, index_place)]
             }
             vir_typed::TypeDecl::Reference(_decl) =&gt; {
-                <span class="kw">let </span>target_type = <a href="#19">ty</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>().unwrap_reference().target_type;
+                <span class="kw">let </span>target_type = ty.clone().unwrap_reference().target_type;
                 <span class="kw">let </span>deref_place =
-                    vir_typed::Expression::deref(<a href="#16">place</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), <span class="kw-2">*</span><a href="#95">target_type</a>, <a href="#16">place</a>.<a href="../../../../../../../vir/common/position/trait.Positioned.html">position</a>());
+                    vir_typed::Expression::deref(place.clone(), <span class="kw-2">*</span>target_type, place.position());
                 <span class="kw">let </span>address_place = vir_typed::Expression::field(
-                    <a href="#16">place</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+                    place.clone(),
                     vir_typed::FieldDecl::new(
                         <span class="string">&quot;address$&quot;</span>,
                         <span class="number">0usize</span>,
                         vir_typed::Type::Int(vir_typed::ty::Int::Usize),
                     ),
-                    <a href="#16">place</a>.<a href="../../../../../../../vir/common/position/trait.Positioned.html">position</a>(),
+                    place.position(),
                 );
-                <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[
+                <span class="macro">vec!</span>[
                     (ExpandedPermissionKind::Same, deref_place),
                     (ExpandedPermissionKind::Same, address_place),
                 ]
             }
-            vir_typed::TypeDecl::Sequence(<span class="kw">_</span>) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unimplemented.html">unimplemented!</a>(<span class="string">&quot;ty: {}&quot;</span>, ty),
-            vir_typed::TypeDecl::Map(<span class="kw">_</span>) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unimplemented.html">unimplemented!</a>(<span class="string">&quot;ty: {}&quot;</span>, ty),
-            vir_typed::TypeDecl::Never =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unimplemented.html">unimplemented!</a>(<span class="string">&quot;ty: {}&quot;</span>, ty),
-            vir_typed::TypeDecl::Closure(<span class="kw">_</span>) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unimplemented.html">unimplemented!</a>(<span class="string">&quot;ty: {}&quot;</span>, ty),
-            vir_typed::TypeDecl::Unsupported(<span class="kw">_</span>) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unimplemented.html">unimplemented!</a>(<span class="string">&quot;ty: {}&quot;</span>, ty),
+            vir_typed::TypeDecl::Sequence(<span class="kw">_</span>) =&gt; <span class="macro">unimplemented!</span>(<span class="string">&quot;ty: {}&quot;</span>, ty),
+            vir_typed::TypeDecl::Map(<span class="kw">_</span>) =&gt; <span class="macro">unimplemented!</span>(<span class="string">&quot;ty: {}&quot;</span>, ty),
+            vir_typed::TypeDecl::Never =&gt; <span class="macro">unimplemented!</span>(<span class="string">&quot;ty: {}&quot;</span>, ty),
+            vir_typed::TypeDecl::Closure(<span class="kw">_</span>) =&gt; <span class="macro">unimplemented!</span>(<span class="string">&quot;ty: {}&quot;</span>, ty),
+            vir_typed::TypeDecl::Unsupported(<span class="kw">_</span>) =&gt; <span class="macro">unimplemented!</span>(<span class="string">&quot;ty: {}&quot;</span>, ty),
         };
-        <span class="prelude-val">Ok</span>(<a href="#47">expansion</a>)
+        <span class="prelude-val">Ok</span>(expansion)
     }
-    <span class="kw">fn </span>get_span(<span class="kw-2">&amp;mut </span><span class="self">self</span>, position: <a href="../../../../../../../vir/common/position/struct.Position.html">vir_typed::Position</a>) -&gt; <span class="prelude-ty">Option</span>&lt;MultiSpan&gt; {
-        <a class="self" href="#120">self</a>.encoder
-            .<a href="../../../../encoder.rs.html#229">error_manager</a>()
-            .<a href="../../../../errors/error_manager.rs.html#202">position_manager</a>()
-            .<a href="../../../../errors/position_manager.rs.html#86">get_span</a>(<a href="#120">position</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
+    <span class="kw">fn </span>get_span(<span class="kw-2">&amp;mut </span><span class="self">self</span>, position: vir_typed::Position) -&gt; <span class="prelude-ty">Option</span>&lt;MultiSpan&gt; {
+        <span class="self">self</span>.encoder
+            .error_manager()
+            .position_manager()
+            .get_span(position.into())
             .cloned()
     }
     <span class="kw">fn </span>change_error_context(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        position: <a href="../../../../../../../vir/common/position/struct.Position.html">vir_typed::Position</a>,
-        error_ctxt: <a href="../../../../errors/error_manager.rs.html#52">ErrorCtxt</a>,
-    ) -&gt; <a href="../../../../../../../vir/common/position/struct.Position.html">vir_typed::Position</a> {
-        <a class="self" href="#128">self</a>.encoder.<a href="../../../../mir/errors/interface.rs.html#22-26">change_error_context</a>(<a href="#129">position</a>, <a href="#130">error_ctxt</a>)
+        position: vir_typed::Position,
+        error_ctxt: ErrorCtxt,
+    ) -&gt; vir_typed::Position {
+        <span class="self">self</span>.encoder.change_error_context(position, error_ctxt)
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../../../../" data-static-root-path="../../../../../../../static.files/" data-current-crate="prusti_viper" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../../../../../" data-static-root-path="../../../../../../../static.files/" data-current-crate="prusti_viper" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

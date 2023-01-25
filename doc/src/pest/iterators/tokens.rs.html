@@ -1,5 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/pest-2.4.1/src/iterators/tokens.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>tokens.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/pest-parser/pest/master/pest-logo.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../pest/index.html">
-                        <img src="https://raw.githubusercontent.com/pest-parser/pest/master/pest-logo.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/pest-2.5.2/src/iterators/tokens.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>tokens.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/pest-parser/pest/master/pest-logo.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../pest/index.html">
+                        <img src="https://raw.githubusercontent.com/pest-parser/pest/master/pest-logo.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -154,15 +154,15 @@
 // option. All files in the project carrying such notice may not be copied,
 // modified, or distributed except according to those terms.
 
-</span><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/rc/struct.Rc.html">alloc::rc::Rc</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/vec/struct.Vec.html">alloc::vec::Vec</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/fmt/index.html">core::fmt</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/str/index.html">core::str</a>;
+</span><span class="kw">use </span>alloc::rc::Rc;
+<span class="kw">use </span>alloc::vec::Vec;
+<span class="kw">use </span>core::fmt;
+<span class="kw">use </span>core::str;
 
-<span class="kw">use </span><a href="queueable_token.rs.html#17"><span class="kw">super</span>::queueable_token::QueueableToken</a>;
-<span class="kw">use </span><a href="../lib.rs.html#339"><span class="kw">crate</span>::position</a>;
-<span class="kw">use </span><a href="../token.rs.html#14"><span class="kw">crate</span>::token::Token</a>;
-<span class="kw">use </span><a href="../lib.rs.html#360"><span class="kw">crate</span>::RuleType</a>;
+<span class="kw">use </span><span class="kw">super</span>::queueable_token::QueueableToken;
+<span class="kw">use </span><span class="kw">crate</span>::position;
+<span class="kw">use </span><span class="kw">crate</span>::token::Token;
+<span class="kw">use </span><span class="kw">crate</span>::RuleType;
 
 <span class="doccomment">/// An iterator over [`Token`]s. It is created by [`Pair::tokens`] and [`Pairs::tokens`].
 ///
@@ -175,19 +175,19 @@
     ///
     /// All `QueueableToken`s&#39; `input_pos` must be valid character boundary indices into `input`.
     </span>queue: Rc&lt;Vec&lt;QueueableToken&lt;R&gt;&gt;&gt;,
-    input: <span class="kw-2">&amp;</span><span class="lifetime">&#39;i </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>,
-    start: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-    end: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+    input: <span class="kw-2">&amp;</span><span class="lifetime">&#39;i </span>str,
+    start: usize,
+    end: usize,
 }
 
 <span class="comment">// TODO(safety): QueueableTokens must be valid indices into input.
-</span><span class="kw">pub fn </span>new&lt;R: <a href="../lib.rs.html#360">RuleType</a>&gt;(
+</span><span class="kw">pub fn </span>new&lt;R: RuleType&gt;(
     queue: Rc&lt;Vec&lt;QueueableToken&lt;R&gt;&gt;&gt;,
-    input: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>,
-    start: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-    end: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+    input: <span class="kw-2">&amp;</span>str,
+    start: usize,
+    end: usize,
 ) -&gt; Tokens&lt;<span class="lifetime">&#39;_</span>, R&gt; {
-    <span class="kw">if </span><a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.cfg.html">cfg!</a>(debug_assertions) {
+    <span class="kw">if </span><span class="macro">cfg!</span>(debug_assertions) {
         <span class="kw">for </span>tok <span class="kw">in </span>queue.iter() {
             <span class="kw">match </span><span class="kw-2">*</span>tok {
                 QueueableToken::Start { input_pos, .. } | QueueableToken::End { input_pos, .. } =&gt; {
@@ -200,46 +200,46 @@
         }
     }
 
-    <a href="#26">Tokens</a> {
-        <a href="#38">queue</a>,
-        <a href="#39">input</a>,
-        <a href="#40">start</a>,
-        <a href="#41">end</a>,
+    Tokens {
+        queue,
+        input,
+        start,
+        end,
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;i</span>, R: <a href="../lib.rs.html#360">RuleType</a>&gt; Tokens&lt;<span class="lifetime">&#39;i</span>, R&gt; {
-    <span class="kw">fn </span>create_token(<span class="kw-2">&amp;</span><span class="self">self</span>, index: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; Token&lt;<span class="lifetime">&#39;i</span>, R&gt; {
-        <span class="kw">match </span><a class="self" href="#65">self</a>.queue[<a href="#65">index</a>] {
-            <a href="queueable_token.rs.html#18">QueueableToken::Start</a> {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;i</span>, R: RuleType&gt; Tokens&lt;<span class="lifetime">&#39;i</span>, R&gt; {
+    <span class="kw">fn </span>create_token(<span class="kw-2">&amp;</span><span class="self">self</span>, index: usize) -&gt; Token&lt;<span class="lifetime">&#39;i</span>, R&gt; {
+        <span class="kw">match </span><span class="self">self</span>.queue[index] {
+            QueueableToken::Start {
                 end_token_index,
                 input_pos,
             } =&gt; {
-                <span class="kw">let </span>rule = <span class="kw">match </span><a class="self" href="#65">self</a>.queue[<a href="#68">end_token_index</a>] {
-                    <a href="queueable_token.rs.html#22">QueueableToken::End</a> { rule, .. } =&gt; <a href="#72">rule</a>,
-                    <span class="kw">_ </span>=&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(),
+                <span class="kw">let </span>rule = <span class="kw">match </span><span class="self">self</span>.queue[end_token_index] {
+                    QueueableToken::End { rule, .. } =&gt; rule,
+                    <span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>(),
                 };
 
-                <a href="../token.rs.html#16">Token::Start</a> {
-                    <a href="#71">rule</a>,
+                Token::Start {
+                    rule,
                     <span class="comment">// QueueableTokens are safely created.
-                    </span>pos: <span class="kw">unsafe </span>{ position::Position::new_unchecked(<a class="self" href="#65">self</a>.input, <a href="#69">input_pos</a>) },
+                    </span>pos: <span class="kw">unsafe </span>{ position::Position::new_unchecked(<span class="self">self</span>.input, input_pos) },
                 }
             }
-            <a href="queueable_token.rs.html#22">QueueableToken::End</a> {
+            QueueableToken::End {
                 rule, input_pos, ..
             } =&gt; {
-                <a href="../token.rs.html#23">Token::End</a> {
-                    <a href="#83">rule</a>,
+                Token::End {
+                    rule,
                     <span class="comment">// QueueableTokens are safely created.
-                    </span>pos: <span class="kw">unsafe </span>{ position::Position::new_unchecked(<a class="self" href="#65">self</a>.input, <a href="#83">input_pos</a>) },
+                    </span>pos: <span class="kw">unsafe </span>{ position::Position::new_unchecked(<span class="self">self</span>.input, input_pos) },
                 }
             }
         }
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;i</span>, R: <a href="../lib.rs.html#360">RuleType</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a> <span class="kw">for </span>Tokens&lt;<span class="lifetime">&#39;i</span>, R&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;i</span>, R: RuleType&gt; Iterator <span class="kw">for </span>Tokens&lt;<span class="lifetime">&#39;i</span>, R&gt; {
     <span class="kw">type </span>Item = Token&lt;<span class="lifetime">&#39;i</span>, R&gt;;
 
     <span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt; {
@@ -247,31 +247,31 @@
             <span class="kw">return </span><span class="prelude-val">None</span>;
         }
 
-        <span class="kw">let </span>token = <a class="self" href="#98">self</a>.<a href="#65">create_token</a>(<a class="self" href="#98">self</a>.start);
+        <span class="kw">let </span>token = <span class="self">self</span>.create_token(<span class="self">self</span>.start);
 
-        <a class="self" href="#98">self</a>.start += <span class="number">1</span>;
+        <span class="self">self</span>.start += <span class="number">1</span>;
 
-        <span class="prelude-val">Some</span>(<a href="#103">token</a>)
+        <span class="prelude-val">Some</span>(token)
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;i</span>, R: <a href="../lib.rs.html#360">RuleType</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/double_ended/trait.DoubleEndedIterator.html">DoubleEndedIterator</a> <span class="kw">for </span>Tokens&lt;<span class="lifetime">&#39;i</span>, R&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;i</span>, R: RuleType&gt; DoubleEndedIterator <span class="kw">for </span>Tokens&lt;<span class="lifetime">&#39;i</span>, R&gt; {
     <span class="kw">fn </span>next_back(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt; {
         <span class="kw">if </span><span class="self">self</span>.end &lt;= <span class="self">self</span>.start {
             <span class="kw">return </span><span class="prelude-val">None</span>;
         }
 
-        <span class="kw">let </span>token = <a class="self" href="#112">self</a>.<a href="#65">create_token</a>(<a class="self" href="#112">self</a>.end - <span class="number">1</span>);
+        <span class="kw">let </span>token = <span class="self">self</span>.create_token(<span class="self">self</span>.end - <span class="number">1</span>);
 
-        <a class="self" href="#112">self</a>.end -= <span class="number">1</span>;
+        <span class="self">self</span>.end -= <span class="number">1</span>;
 
-        <span class="prelude-val">Some</span>(<a href="#117">token</a>)
+        <span class="prelude-val">Some</span>(token)
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;i</span>, R: <a href="../lib.rs.html#360">RuleType</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span>Tokens&lt;<span class="lifetime">&#39;i</span>, R&gt; {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a href="#126">f</a>.debug_list().entries(<a class="self" href="#126">self</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()).finish()
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;i</span>, R: RuleType&gt; fmt::Debug <span class="kw">for </span>Tokens&lt;<span class="lifetime">&#39;i</span>, R&gt; {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        f.debug_list().entries(<span class="self">self</span>.clone()).finish()
     }
 }
 
@@ -292,4 +292,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="pest" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="pest" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

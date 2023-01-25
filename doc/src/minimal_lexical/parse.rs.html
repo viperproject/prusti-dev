@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/minimal-lexical-0.2.1/src/parse.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>parse.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../minimal_lexical/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/minimal-lexical-0.2.1/src/parse.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>parse.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../minimal_lexical/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -205,12 +205,12 @@
 
 #[cfg(feature = <span class="string">&quot;compact&quot;</span>)]
 </span><span class="kw">use </span><span class="kw">crate</span>::bellerophon::bellerophon;
-<span class="kw">use </span><span class="kw">crate</span>::extended_float::{<a href="extended_float.rs.html#20">extended_to_float</a>, <a href="extended_float.rs.html#11">ExtendedFloat</a>};
+<span class="kw">use </span><span class="kw">crate</span>::extended_float::{extended_to_float, ExtendedFloat};
 <span class="attr">#[cfg(not(feature = <span class="string">&quot;compact&quot;</span>))]
-</span><span class="kw">use </span><a href="lemire.rs.html#16"><span class="kw">crate</span>::lemire::lemire</a>;
-<span class="kw">use </span><a href="num.rs.html#18-35"><span class="kw">crate</span>::num::Float</a>;
-<span class="kw">use </span><a href="number.rs.html#18"><span class="kw">crate</span>::number::Number</a>;
-<span class="kw">use </span><a href="slow.rs.html#36-45"><span class="kw">crate</span>::slow::slow</a>;
+</span><span class="kw">use </span><span class="kw">crate</span>::lemire::lemire;
+<span class="kw">use </span><span class="kw">crate</span>::num::Float;
+<span class="kw">use </span><span class="kw">crate</span>::number::Number;
+<span class="kw">use </span><span class="kw">crate</span>::slow::slow;
 
 <span class="doccomment">/// Try to parse the significant digits quickly.
 ///
@@ -222,15 +222,15 @@
 </span><span class="kw">fn </span>parse_number_fast&lt;<span class="lifetime">&#39;a</span>, Iter1, Iter2&gt;(
     integer: Iter1,
     fraction: Iter2,
-    exponent: <a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>,
-) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="number.rs.html#18">Number</a>&gt;
+    exponent: i32,
+) -&gt; <span class="prelude-ty">Option</span>&lt;Number&gt;
 <span class="kw">where
-    </span>Iter1: Iterator&lt;Item = <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;,
-    Iter2: Iterator&lt;Item = <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;,
+    </span>Iter1: Iterator&lt;Item = <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>u8&gt;,
+    Iter2: Iterator&lt;Item = <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>u8&gt;,
 {
     <span class="kw">let </span><span class="kw-2">mut </span>num = Number::default();
-    <span class="kw">let </span><span class="kw-2">mut </span>integer_count: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> = <span class="number">0</span>;
-    <span class="kw">let </span><span class="kw-2">mut </span>fraction_count: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> = <span class="number">0</span>;
+    <span class="kw">let </span><span class="kw-2">mut </span>integer_count: usize = <span class="number">0</span>;
+    <span class="kw">let </span><span class="kw-2">mut </span>fraction_count: usize = <span class="number">0</span>;
     <span class="kw">for </span><span class="kw-2">&amp;</span>c <span class="kw">in </span>integer {
         integer_count += <span class="number">1</span>;
         <span class="kw">let </span>digit = c - <span class="string">b&#39;0&#39;</span>;
@@ -244,8 +244,8 @@
 
     <span class="kw">if </span>integer_count + fraction_count &lt;= <span class="number">19 </span>{
         <span class="comment">// Can&#39;t overflow, since must be &lt;= 19.
-        </span><a href="#30">num</a>.exponent = <a href="#24">exponent</a>.saturating_sub(<a href="#32">fraction_count</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>);
-        <span class="prelude-val">Some</span>(<a href="#30">num</a>)
+        </span>num.exponent = exponent.saturating_sub(fraction_count <span class="kw">as </span>i32);
+        <span class="prelude-val">Some</span>(num)
     } <span class="kw">else </span>{
         <span class="prelude-val">None
     </span>}
@@ -256,14 +256,14 @@
 /// * `integer`     - Slice containing the integer digits.
 /// * `fraction`    - Slice containing the fraction digits.
 </span><span class="attr">#[inline]
-</span><span class="kw">fn </span>parse_number&lt;<span class="lifetime">&#39;a</span>, Iter1, Iter2&gt;(<span class="kw-2">mut </span>integer: Iter1, <span class="kw-2">mut </span>fraction: Iter2, exponent: <a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>) -&gt; <a href="number.rs.html#18">Number</a>
+</span><span class="kw">fn </span>parse_number&lt;<span class="lifetime">&#39;a</span>, Iter1, Iter2&gt;(<span class="kw-2">mut </span>integer: Iter1, <span class="kw-2">mut </span>fraction: Iter2, exponent: i32) -&gt; Number
 <span class="kw">where
-    </span>Iter1: Iterator&lt;Item = <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt; + <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a>,
-    Iter2: Iterator&lt;Item = <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt; + <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a>,
+    </span>Iter1: Iterator&lt;Item = <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>u8&gt; + Clone,
+    Iter2: Iterator&lt;Item = <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>u8&gt; + Clone,
 {
     <span class="comment">// NOTE: for performance, we do this in 2 passes:
-    </span><span class="kw">if let </span><span class="prelude-val">Some</span>(num) = <a href="#21-28">parse_number_fast</a>(<a href="#58">integer</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), <a href="#58">fraction</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), <a href="#58">exponent</a>) {
-        <span class="kw">return </span><a href="#64">num</a>;
+    </span><span class="kw">if let </span><span class="prelude-val">Some</span>(num) = parse_number_fast(integer.clone(), fraction.clone(), exponent) {
+        <span class="kw">return </span>num;
     }
 
     <span class="comment">// Can only add 19 digits.
@@ -284,7 +284,7 @@
 
     <span class="comment">// Skip leading fraction zeros.
     // This is required otherwise we might have a 0 mantissa and many digits.
-    </span><span class="kw">let </span><span class="kw-2">mut </span>fraction_count: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> = <span class="number">0</span>;
+    </span><span class="kw">let </span><span class="kw-2">mut </span>fraction_count: usize = <span class="number">0</span>;
     <span class="kw">if </span>count == <span class="number">0 </span>{
         <span class="kw">for </span><span class="kw-2">&amp;</span>c <span class="kw">in </span><span class="kw-2">&amp;mut </span>fraction {
             fraction_count += <span class="number">1</span>;
@@ -315,8 +315,8 @@
 
     <span class="comment">// No truncated digits: easy.
     // Cannot overflow: &lt;= 20 digits.
-    </span><a href="#69">num</a>.exponent = <a href="#58">exponent</a>.saturating_sub(<a href="#86">fraction_count</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>);
-    <a href="#69">num</a>
+    </span>num.exponent = exponent.saturating_sub(fraction_count <span class="kw">as </span>i32);
+    num
 }
 
 <span class="doccomment">/// Parse float from extracted float components.
@@ -344,39 +344,39 @@
 ///
 /// We cannot efficiently remove trailing zeros while only accepting a
 /// forward iterator.
-</span><span class="kw">pub fn </span>parse_float&lt;<span class="lifetime">&#39;a</span>, F, Iter1, Iter2&gt;(integer: Iter1, fraction: Iter2, exponent: <a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>) -&gt; F
+</span><span class="kw">pub fn </span>parse_float&lt;<span class="lifetime">&#39;a</span>, F, Iter1, Iter2&gt;(integer: Iter1, fraction: Iter2, exponent: i32) -&gt; F
 <span class="kw">where
-    </span>F: <a href="num.rs.html#18-35">Float</a>,
-    Iter1: Iterator&lt;Item = <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt; + <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a>,
-    Iter2: Iterator&lt;Item = <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt; + <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a>,
+    </span>F: Float,
+    Iter1: Iterator&lt;Item = <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>u8&gt; + Clone,
+    Iter2: Iterator&lt;Item = <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>u8&gt; + Clone,
 {
     <span class="comment">// Parse the mantissa and attempt the fast and moderate-path algorithms.
-    </span><span class="kw">let </span>num = <a href="#58-61">parse_number</a>(<a href="#146">integer</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), <a href="#146">fraction</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), <a href="#146">exponent</a>);
+    </span><span class="kw">let </span>num = parse_number(integer.clone(), fraction.clone(), exponent);
     <span class="comment">// Try the fast-path algorithm.
-    </span><span class="kw">if let </span><span class="prelude-val">Some</span>(value) = <a href="#153">num</a>.<a href="number.rs.html#46">try_fast_path</a>() {
-        <span class="kw">return </span><a href="#155">value</a>;
+    </span><span class="kw">if let </span><span class="prelude-val">Some</span>(value) = num.try_fast_path() {
+        <span class="kw">return </span>value;
     }
 
     <span class="comment">// Now try the moderate path algorithm.
-    </span><span class="kw">let </span><span class="kw-2">mut </span>fp = moderate_path::&lt;F&gt;(<span class="kw-2">&amp;</span><a href="#153">num</a>);
+    </span><span class="kw">let </span><span class="kw-2">mut </span>fp = moderate_path::&lt;F&gt;(<span class="kw-2">&amp;</span>num);
     <span class="kw">if </span>fp.exp &lt; <span class="number">0 </span>{
         <span class="comment">// Undo the invalid extended float biasing.
-        </span><a href="#160">fp</a>.exp -= F::INVALID_FP;
-        <a href="#160">fp</a> = slow::&lt;F, <span class="kw">_</span>, <span class="kw">_</span>&gt;(<a href="#153">num</a>, <a href="#160">fp</a>, <a href="#146">integer</a>, <a href="#146">fraction</a>);
+        </span>fp.exp -= F::INVALID_FP;
+        fp = slow::&lt;F, <span class="kw">_</span>, <span class="kw">_</span>&gt;(num, fp, integer, fraction);
     }
 
     <span class="comment">// Unable to correctly round the float using the fast or moderate algorithms.
     // Fallback to a slower, but always correct algorithm. If we have
     // lossy, we can&#39;t be here.
-    </span>extended_to_float::&lt;F&gt;(<a href="#160">fp</a>)
+    </span>extended_to_float::&lt;F&gt;(fp)
 }
 
 <span class="doccomment">/// Wrapper for different moderate-path algorithms.
 /// A return exponent of `-1` indicates an invalid value.
 </span><span class="attr">#[inline]
-</span><span class="kw">pub fn </span>moderate_path&lt;F: <a href="num.rs.html#18-35">Float</a>&gt;(num: <span class="kw-2">&amp;</span><a href="number.rs.html#18">Number</a>) -&gt; <a href="extended_float.rs.html#11">ExtendedFloat</a> {
+</span><span class="kw">pub fn </span>moderate_path&lt;F: Float&gt;(num: <span class="kw-2">&amp;</span>Number) -&gt; ExtendedFloat {
     <span class="attr">#[cfg(not(feature = <span class="string">&quot;compact&quot;</span>))]
-    </span><span class="kw">return </span>lemire::&lt;F&gt;(<a href="#176">num</a>);
+    </span><span class="kw">return </span>lemire::&lt;F&gt;(num);
 
     <span class="attr">#[cfg(feature = <span class="string">&quot;compact&quot;</span>)]
     </span><span class="kw">return </span>bellerophon::&lt;F&gt;(num);
@@ -387,18 +387,18 @@
 /// This is needed to ensure when adjusting the exponent relative to
 /// the mantissa we do not overflow for comically-long exponents.
 </span><span class="attr">#[inline]
-</span><span class="kw">fn </span>into_i32(value: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a> {
+</span><span class="kw">fn </span>into_i32(value: usize) -&gt; i32 {
     <span class="kw">if </span>value &gt; i32::max_value() <span class="kw">as </span>usize {
         i32::max_value()
     } <span class="kw">else </span>{
-        <a href="#189">value</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>
+        value <span class="kw">as </span>i32
     }
 }
 
 <span class="comment">// Add digit to mantissa.
 </span><span class="attr">#[inline]
-</span><span class="kw">pub fn </span>add_digit(value: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>, digit: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>&gt; {
-    value.checked_mul(<span class="number">10</span>)<span class="question-mark">?</span>.checked_add(<a href="#199">digit</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>)
+</span><span class="kw">pub fn </span>add_digit(value: u64, digit: u8) -&gt; <span class="prelude-ty">Option</span>&lt;u64&gt; {
+    value.checked_mul(<span class="number">10</span>)<span class="question-mark">?</span>.checked_add(digit <span class="kw">as </span>u64)
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="minimal_lexical" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="minimal_lexical" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

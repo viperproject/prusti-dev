@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `prusti-interface/src/environment/borrowck/regions.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>regions.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../../prusti_interface/index.html"><img class="rust-logo" src="../../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `prusti-interface/src/environment/borrowck/regions.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>regions.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../../prusti_interface/index.html"><img class="rust-logo" src="../../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -144,44 +144,44 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-</span><span class="kw">use </span><a href="mod.rs.html#7"><span class="kw">crate</span>::environment::borrowck::facts</a>;
-<span class="kw">use </span>log::{<a href="../../../../log/macro.debug.html">debug</a>, <a href="../../../../log/macro.trace.html">trace</a>};
-<span class="kw">use </span>prusti_rustc_interface::middle::{<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/index.html">mir</a>, <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/index.html">ty</a>};
-<span class="kw">use </span>std::{<a href="https://doc.rust-lang.org/nightly/std/collections/hash/map/struct.HashMap.html">collections::HashMap</a>, <a href="https://doc.rust-lang.org/nightly/std/io/index.html">io</a>};
+</span><span class="kw">use </span><span class="kw">crate</span>::environment::borrowck::facts;
+<span class="kw">use </span>log::{debug, trace};
+<span class="kw">use </span>prusti_rustc_interface::middle::{mir, ty};
+<span class="kw">use </span>std::{collections::HashMap, io};
 
 <span class="attr">#[derive(Debug)]
-</span><span class="kw">pub struct </span>PlaceRegions(HashMap&lt;(<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Local.html">mir::Local</a>, Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;), <a href="facts.rs.html#14">facts::Region</a>&gt;);
+</span><span class="kw">pub struct </span>PlaceRegions(HashMap&lt;(mir::Local, Vec&lt;usize&gt;), facts::Region&gt;);
 
 <span class="attr">#[derive(Clone, Debug)]
 </span><span class="kw">pub enum </span>PlaceRegionsError {
-    Unsupported(<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>),
+    Unsupported(String),
 }
 
-<span class="kw">impl </span><a href="#13">PlaceRegions</a> {
+<span class="kw">impl </span>PlaceRegions {
     <span class="kw">fn </span>new() -&gt; <span class="self">Self </span>{
-        <a href="#13">PlaceRegions</a>(HashMap::new())
+        PlaceRegions(HashMap::new())
     }
 
-    <span class="kw">fn </span>add_local(<span class="kw-2">&amp;mut </span><span class="self">self</span>, local: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Local.html">mir::Local</a>, rvid: <a href="facts.rs.html#14">facts::Region</a>) {
-        <a class="self" href="#25">self</a>.<a href="#29">add</a>(<a href="#25">local</a>, <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[], <a href="#25">rvid</a>);
+    <span class="kw">fn </span>add_local(<span class="kw-2">&amp;mut </span><span class="self">self</span>, local: mir::Local, rvid: facts::Region) {
+        <span class="self">self</span>.add(local, <span class="macro">vec!</span>[], rvid);
     }
 
-    <span class="kw">fn </span>add(<span class="kw-2">&amp;mut </span><span class="self">self</span>, local: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Local.html">mir::Local</a>, projections: Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;, rvid: <a href="facts.rs.html#14">facts::Region</a>) {
-        <a class="self" href="#29">self</a>.<span class="number">0</span>.insert((<a href="#29">local</a>, <a href="#29">projections</a>), <a href="#29">rvid</a>);
+    <span class="kw">fn </span>add(<span class="kw-2">&amp;mut </span><span class="self">self</span>, local: mir::Local, projections: Vec&lt;usize&gt;, rvid: facts::Region) {
+        <span class="self">self</span>.<span class="number">0</span>.insert((local, projections), rvid);
     }
 
-    <span class="kw">pub fn </span>for_local(<span class="kw-2">&amp;</span><span class="self">self</span>, local: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Local.html">mir::Local</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="facts.rs.html#14">facts::Region</a>&gt; {
-        <a class="self" href="#33">self</a>.<a href="#38">for_place</a>(<a href="#33">local</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()).unwrap()
+    <span class="kw">pub fn </span>for_local(<span class="kw-2">&amp;</span><span class="self">self</span>, local: mir::Local) -&gt; <span class="prelude-ty">Option</span>&lt;facts::Region&gt; {
+        <span class="self">self</span>.for_place(local.into()).unwrap()
     }
 
     <span class="doccomment">/// Determines the region of a MIR place. Right now, the only supported places are locals and tuples. Tuples cannot be nested inside other tuples.
-    </span><span class="kw">pub fn </span>for_place(<span class="kw-2">&amp;</span><span class="self">self</span>, place: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/syntax/struct.Place.html">mir::Place</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<a href="facts.rs.html#14">facts::Region</a>&gt;, <a href="#16">PlaceRegionsError</a>&gt; {
+    </span><span class="kw">pub fn </span>for_place(<span class="kw-2">&amp;</span><span class="self">self</span>, place: mir::Place) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;facts::Region&gt;, PlaceRegionsError&gt; {
         <span class="kw">let </span>(local, fields) = <span class="self">Self</span>::translate_place(place)<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(<a class="self" href="#38">self</a>.<span class="number">0</span>.get(<span class="kw-2">&amp;</span>(<a href="#39">local</a>, <a href="#39">fields</a>)).cloned())
+        <span class="prelude-val">Ok</span>(<span class="self">self</span>.<span class="number">0</span>.get(<span class="kw-2">&amp;</span>(local, fields)).cloned())
     }
 
     <span class="doccomment">/// Translates a place like _3.0.3.1 into a local (here _3) and a list of field projections like (here [0, 3, 1]).
-    </span><span class="kw">fn </span>translate_place(place: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/syntax/struct.Place.html">mir::Place</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Local.html">mir::Local</a>, Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;), <a href="#16">PlaceRegionsError</a>&gt; {
+    </span><span class="kw">fn </span>translate_place(place: mir::Place) -&gt; <span class="prelude-ty">Result</span>&lt;(mir::Local, Vec&lt;usize&gt;), PlaceRegionsError&gt; {
         <span class="kw">let </span>indices = place
             .projection
             .iter()
@@ -219,22 +219,22 @@
                 )),
             })
             .collect::&lt;<span class="prelude-ty">Result</span>&lt;<span class="kw">_</span>, <span class="kw">_</span>&gt;&gt;()<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>((<a href="#44">place</a>.local, <a href="#45">indices</a>))
+        <span class="prelude-val">Ok</span>((place.local, indices))
     }
 }
 
-<span class="kw">fn </span>extract_region_id(region: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/sty/type.RegionKind.html">ty::RegionKind</a>) -&gt; <a href="facts.rs.html#14">facts::Region</a> {
-    <span class="kw">match </span><a href="#86">region</a> {
-        ty::RegionKind::ReVar(rvid) =&gt; <span class="kw-2">*</span><a href="#88">rvid</a>,
-        <span class="kw">_ </span>=&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unimplemented.html">unimplemented!</a>(<span class="string">&quot;region: {:?}&quot;</span>, region),
+<span class="kw">fn </span>extract_region_id(region: <span class="kw-2">&amp;</span>ty::RegionKind) -&gt; facts::Region {
+    <span class="kw">match </span>region {
+        ty::RegionKind::ReVar(rvid) =&gt; <span class="kw-2">*</span>rvid,
+        <span class="kw">_ </span>=&gt; <span class="macro">unimplemented!</span>(<span class="string">&quot;region: {:?}&quot;</span>, region),
     }
 }
 
-<span class="kw">fn </span>extract_region(place_regions: <span class="kw-2">&amp;mut </span><a href="#13">PlaceRegions</a>, local: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Local.html">mir::Local</a>, ty: ty::Ty&lt;<span class="lifetime">&#39;_</span>&gt;) {
-    <span class="kw">match </span><a href="#93">ty</a>.kind() {
+<span class="kw">fn </span>extract_region(place_regions: <span class="kw-2">&amp;mut </span>PlaceRegions, local: mir::Local, ty: ty::Ty&lt;<span class="lifetime">&#39;_</span>&gt;) {
+    <span class="kw">match </span>ty.kind() {
         ty::TyKind::Ref(region, <span class="kw">_</span>, <span class="kw">_</span>) =&gt; {
-            <a href="#93">place_regions</a>.<a href="#25">add_local</a>(<a href="#93">local</a>, <a href="#86">extract_region_id</a>(<a href="#95">region</a>));
-            <a class="macro" href="../../../../log/macro.debug.html">debug!</a>(<span class="string">&quot;region: {:?}&quot;</span>, region);
+            place_regions.add_local(local, extract_region_id(region));
+            <span class="macro">debug!</span>(<span class="string">&quot;region: {:?}&quot;</span>, region);
         }
         ty::TyKind::Tuple(substs) =&gt; {
             <span class="kw">for </span>(i, ty) <span class="kw">in </span>substs.iter().enumerate() {
@@ -255,7 +255,7 @@
             }
         }
         <span class="kw">_ </span>=&gt; {
-            <a class="macro" href="../../../../log/macro.debug.html">debug!</a>(
+            <span class="macro">debug!</span>(
                 <span class="string">&quot;does not contain regions: {:?}: {:?} {:?}&quot;</span>,
                 local,
                 ty,
@@ -265,8 +265,8 @@
     }
 }
 
-<span class="kw">pub fn </span>load_place_regions(body: <span class="kw-2">&amp;</span>mir::Body&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; io::Result&lt;<a href="#13">PlaceRegions</a>&gt; {
-    <a class="macro" href="../../../../log/macro.trace.html">trace!</a>(<span class="string">&quot;[enter] load_place_regions()&quot;</span>);
+<span class="kw">pub fn </span>load_place_regions(body: <span class="kw-2">&amp;</span>mir::Body&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; io::Result&lt;PlaceRegions&gt; {
+    <span class="macro">trace!</span>(<span class="string">&quot;[enter] load_place_regions()&quot;</span>);
     <span class="kw">let </span><span class="kw-2">mut </span>place_regions = PlaceRegions::new();
 
     <span class="kw">for </span>(local, local_decl) <span class="kw">in </span>body.local_decls.iter_enumerated() {
@@ -275,8 +275,8 @@
         extract_region(<span class="kw-2">&amp;mut </span>place_regions, local, ty);
     }
 
-    <a class="macro" href="../../../../log/macro.trace.html">trace!</a>(<span class="string">&quot;[exit] load_place_regions&quot;</span>);
-    <span class="prelude-val">Ok</span>(<a href="#130">place_regions</a>)
+    <span class="macro">trace!</span>(<span class="string">&quot;[exit] load_place_regions&quot;</span>);
+    <span class="prelude-val">Ok</span>(place_regions)
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="prusti_interface" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="prusti_interface" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

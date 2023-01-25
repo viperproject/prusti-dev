@@ -1,5 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/async-std-1.12.0/src/sync/waker_set.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>waker_set.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../async_std/index.html">
-                        <img src="https://async.rs/images/logo--hero.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/async-std-1.12.0/src/sync/waker_set.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>waker_set.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../async_std/index.html">
+                        <img src="https://async.rs/images/logo--hero.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -240,23 +240,23 @@
 //! notified later on. The `WakerSet` type helps with keeping track of such async operations and
 //! notifying them when they may make progress.
 
-</span><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/cell/struct.UnsafeCell.html">std::cell::UnsafeCell</a>;
-<span class="kw">use </span>std::ops::{<a href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.Deref.html">Deref</a>, <a href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.DerefMut.html">DerefMut</a>};
-<span class="kw">use </span>std::sync::atomic::{<a href="https://doc.rust-lang.org/nightly/core/sync/atomic/struct.AtomicUsize.html">AtomicUsize</a>, <a href="https://doc.rust-lang.org/nightly/core/sync/atomic/enum.Ordering.html">Ordering</a>};
-<span class="kw">use </span>std::task::{<a href="../../../async_std/task/struct.Context.html">Context</a>, <a href="../../../async_std/task/struct.Waker.html">Waker</a>};
+</span><span class="kw">use </span>std::cell::UnsafeCell;
+<span class="kw">use </span>std::ops::{Deref, DerefMut};
+<span class="kw">use </span>std::sync::atomic::{AtomicUsize, Ordering};
+<span class="kw">use </span>std::task::{Context, Waker};
 
-<span class="kw">use </span><a href="../../../crossbeam_utils/backoff/struct.Backoff.html">crossbeam_utils::Backoff</a>;
-<span class="kw">use </span><a href="../../../slab/struct.Slab.html">slab::Slab</a>;
+<span class="kw">use </span>crossbeam_utils::Backoff;
+<span class="kw">use </span>slab::Slab;
 
 <span class="doccomment">/// Set when the entry list is locked.
 </span><span class="attr">#[allow(clippy::identity_op)]
-</span><span class="kw">const </span>LOCKED: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> = <span class="number">1 </span>&lt;&lt; <span class="number">0</span>;
+</span><span class="kw">const </span>LOCKED: usize = <span class="number">1 </span>&lt;&lt; <span class="number">0</span>;
 
 <span class="doccomment">/// Set when there is at least one entry that has already been notified.
-</span><span class="kw">const </span>NOTIFIED: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> = <span class="number">1 </span>&lt;&lt; <span class="number">1</span>;
+</span><span class="kw">const </span>NOTIFIED: usize = <span class="number">1 </span>&lt;&lt; <span class="number">1</span>;
 
 <span class="doccomment">/// Set when there is at least one notifiable entry.
-</span><span class="kw">const </span>NOTIFIABLE: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> = <span class="number">1 </span>&lt;&lt; <span class="number">2</span>;
+</span><span class="kw">const </span>NOTIFIABLE: usize = <span class="number">1 </span>&lt;&lt; <span class="number">2</span>;
 
 <span class="doccomment">/// Inner representation of `WakerSet`.
 </span><span class="kw">struct </span>Inner {
@@ -267,28 +267,28 @@
     /// itself from the `WakerSet` yet.
     ///
     /// The key of each entry is its index in the `Slab`.
-    </span>entries: Slab&lt;<span class="prelude-ty">Option</span>&lt;<a href="../../../async_std/task/struct.Waker.html">Waker</a>&gt;&gt;,
+    </span>entries: Slab&lt;<span class="prelude-ty">Option</span>&lt;Waker&gt;&gt;,
 
     <span class="doccomment">/// The number of notifiable entries.
-    </span>notifiable: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+    </span>notifiable: usize,
 }
 
 <span class="doccomment">/// A set holding wakers.
 </span><span class="kw">pub struct </span>WakerSet {
     <span class="doccomment">/// Holds three bits: `LOCKED`, `NOTIFY_ONE`, and `NOTIFY_ALL`.
-    </span>flag: <a href="https://doc.rust-lang.org/nightly/core/sync/atomic/struct.AtomicUsize.html">AtomicUsize</a>,
+    </span>flag: AtomicUsize,
 
     <span class="doccomment">/// A set holding wakers.
-    </span>inner: UnsafeCell&lt;<a href="#26">Inner</a>&gt;,
+    </span>inner: UnsafeCell&lt;Inner&gt;,
 }
 
-<span class="kw">impl </span><a href="#41">WakerSet</a> {
+<span class="kw">impl </span>WakerSet {
     <span class="doccomment">/// Creates a new `WakerSet`.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>new() -&gt; <a href="#41">WakerSet</a> {
-        <a href="#41">WakerSet</a> {
+    </span><span class="kw">pub fn </span>new() -&gt; WakerSet {
+        WakerSet {
             flag: AtomicUsize::new(<span class="number">0</span>),
-            inner: UnsafeCell::new(<a href="#26">Inner</a> {
+            inner: UnsafeCell::new(Inner {
                 entries: Slab::new(),
                 notifiable: <span class="number">0</span>,
             }),
@@ -297,31 +297,31 @@
 
     <span class="doccomment">/// Inserts a waker for a blocked operation and returns a key associated with it.
     </span><span class="attr">#[cold]
-    </span><span class="kw">pub fn </span>insert(<span class="kw-2">&amp;</span><span class="self">self</span>, cx: <span class="kw-2">&amp;</span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <span class="kw">let </span>w = <a href="#64">cx</a>.waker().<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
-        <span class="kw">let </span><span class="kw-2">mut </span>inner = <a class="self" href="#64">self</a>.<a href="#176">lock</a>();
+    </span><span class="kw">pub fn </span>insert(<span class="kw-2">&amp;</span><span class="self">self</span>, cx: <span class="kw-2">&amp;</span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; usize {
+        <span class="kw">let </span>w = cx.waker().clone();
+        <span class="kw">let </span><span class="kw-2">mut </span>inner = <span class="self">self</span>.lock();
 
-        <span class="kw">let </span>key = <a href="#66">inner</a>.entries.insert(<span class="prelude-val">Some</span>(<a href="#65">w</a>));
-        <a href="#66">inner</a>.notifiable += <span class="number">1</span>;
-        <a href="#68">key</a>
+        <span class="kw">let </span>key = inner.entries.insert(<span class="prelude-val">Some</span>(w));
+        inner.notifiable += <span class="number">1</span>;
+        key
     }
 
     <span class="doccomment">/// If the waker for this key is still waiting for a notification, then update
     /// the waker for the entry, and return false. If the waker has been notified,
     /// treat the entry as completed and return true.
     </span><span class="attr">#[cfg(feature = <span class="string">&quot;unstable&quot;</span>)]
-    </span><span class="kw">pub fn </span>remove_if_notified(<span class="kw-2">&amp;</span><span class="self">self</span>, key: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, cx: <span class="kw-2">&amp;</span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">let </span><span class="kw-2">mut </span>inner = <a class="self" href="#77">self</a>.<a href="#176">lock</a>();
+    </span><span class="kw">pub fn </span>remove_if_notified(<span class="kw-2">&amp;</span><span class="self">self</span>, key: usize, cx: <span class="kw-2">&amp;</span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; bool {
+        <span class="kw">let </span><span class="kw-2">mut </span>inner = <span class="self">self</span>.lock();
 
-        <span class="kw">match </span><span class="kw-2">&amp;mut </span><a href="#78">inner</a>.entries[<a href="#77">key</a>] {
+        <span class="kw">match </span><span class="kw-2">&amp;mut </span>inner.entries[key] {
             <span class="prelude-val">None </span>=&gt; {
-                <a href="#78">inner</a>.entries.remove(<a href="#77">key</a>);
+                inner.entries.remove(key);
                 <span class="bool-val">true
             </span>}
             <span class="prelude-val">Some</span>(w) =&gt; {
                 <span class="comment">// We were never woken, so update instead
                 </span><span class="kw">if </span>!w.will_wake(cx.waker()) {
-                    <span class="kw-2">*</span><a href="#85">w</a> = <a href="#77">cx</a>.waker().<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
+                    <span class="kw-2">*</span>w = cx.waker().clone();
                 }
                 <span class="bool-val">false
             </span>}
@@ -332,11 +332,11 @@
     ///
     /// Returns `true` if another blocked operation from the set was notified.
     </span><span class="attr">#[cold]
-    </span><span class="kw">pub fn </span>cancel(<span class="kw-2">&amp;</span><span class="self">self</span>, key: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">let </span><span class="kw-2">mut </span>inner = <a class="self" href="#99">self</a>.<a href="#176">lock</a>();
+    </span><span class="kw">pub fn </span>cancel(<span class="kw-2">&amp;</span><span class="self">self</span>, key: usize) -&gt; bool {
+        <span class="kw">let </span><span class="kw-2">mut </span>inner = <span class="self">self</span>.lock();
 
-        <span class="kw">match </span><a href="#100">inner</a>.entries.remove(<a href="#99">key</a>) {
-            <span class="prelude-val">Some</span>(<span class="kw">_</span>) =&gt; <a href="#100">inner</a>.notifiable -= <span class="number">1</span>,
+        <span class="kw">match </span>inner.entries.remove(key) {
+            <span class="prelude-val">Some</span>(<span class="kw">_</span>) =&gt; inner.notifiable -= <span class="number">1</span>,
             <span class="prelude-val">None </span>=&gt; {
                 <span class="comment">// The operation was cancelled and notified so notify another operation instead.
                 </span><span class="kw">for </span>(<span class="kw">_</span>, opt_waker) <span class="kw">in </span>inner.entries.iter_mut() {
@@ -358,10 +358,10 @@
     /// Returns `true` if an operation was notified.
     </span><span class="attr">#[inline]
     #[cfg(feature = <span class="string">&quot;unstable&quot;</span>)]
-    </span><span class="kw">pub fn </span>notify_one(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+    </span><span class="kw">pub fn </span>notify_one(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="comment">// Use `SeqCst` ordering to synchronize with `Lock::drop()`.
         </span><span class="kw">if </span><span class="self">self</span>.flag.load(Ordering::SeqCst) &amp; NOTIFIABLE != <span class="number">0 </span>{
-            <a class="self" href="#125">self</a>.<a href="#151">notify</a>(<a href="#232">Notify::One</a>)
+            <span class="self">self</span>.notify(Notify::One)
         } <span class="kw">else </span>{
             <span class="bool-val">false
         </span>}
@@ -371,10 +371,10 @@
     ///
     /// Returns `true` if at least one operation was notified.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>notify_all(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+    </span><span class="kw">pub fn </span>notify_all(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="comment">// Use `SeqCst` ordering to synchronize with `Lock::drop()`.
         </span><span class="kw">if </span><span class="self">self</span>.flag.load(Ordering::SeqCst) &amp; NOTIFIABLE != <span class="number">0 </span>{
-            <a class="self" href="#138">self</a>.<a href="#151">notify</a>(<a href="#234">Notify::All</a>)
+            <span class="self">self</span>.notify(Notify::All)
         } <span class="kw">else </span>{
             <span class="bool-val">false
         </span>}
@@ -384,8 +384,8 @@
     ///
     /// Returns `true` if at least one operation was notified.
     </span><span class="attr">#[cold]
-    </span><span class="kw">fn </span>notify(<span class="kw-2">&amp;</span><span class="self">self</span>, n: <a href="#228">Notify</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">let </span><span class="kw-2">mut </span>inner = <span class="kw-2">&amp;mut *</span><a class="self" href="#151">self</a>.<a href="#176">lock</a>();
+    </span><span class="kw">fn </span>notify(<span class="kw-2">&amp;</span><span class="self">self</span>, n: Notify) -&gt; bool {
+        <span class="kw">let </span><span class="kw-2">mut </span>inner = <span class="kw-2">&amp;mut *</span><span class="self">self</span>.lock();
         <span class="kw">let </span><span class="kw-2">mut </span>notified = <span class="bool-val">false</span>;
 
         <span class="kw">for </span>(<span class="kw">_</span>, opt_waker) <span class="kw">in </span>inner.entries.iter_mut() {
@@ -405,7 +405,7 @@
             }
         }
 
-        <a href="#153">notified</a>
+        notified
     }
 
     <span class="doccomment">/// Locks the list of entries.
@@ -414,48 +414,48 @@
         <span class="kw">while </span><span class="self">self</span>.flag.fetch_or(LOCKED, Ordering::Acquire) &amp; LOCKED != <span class="number">0 </span>{
             backoff.snooze();
         }
-        <a href="#186">Lock</a> { waker_set: <span class="self"><a href="#176">self</a> </span>}
+        Lock { waker_set: <span class="self">self </span>}
     }
 }
 
 <span class="doccomment">/// A guard holding a `WakerSet` locked.
 </span><span class="kw">struct </span>Lock&lt;<span class="lifetime">&#39;a</span>&gt; {
-    waker_set: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="#41">WakerSet</a>,
+    waker_set: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>WakerSet,
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span>Lock&lt;<span class="lifetime">&#39;_</span>&gt; {
+<span class="kw">impl </span>Drop <span class="kw">for </span>Lock&lt;<span class="lifetime">&#39;_</span>&gt; {
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="kw">let </span><span class="kw-2">mut </span>flag = <span class="number">0</span>;
 
         <span class="comment">// Set the `NOTIFIED` flag if there is at least one notified entry.
         </span><span class="kw">if </span><span class="self">self</span>.entries.len() - <span class="self">self</span>.notifiable &gt; <span class="number">0 </span>{
-            <a href="#193">flag</a> |= <a href="#20">NOTIFIED</a>;
+            flag |= NOTIFIED;
         }
 
         <span class="comment">// Set the `NOTIFIABLE` flag if there is at least one notifiable entry.
         </span><span class="kw">if </span><span class="self">self</span>.notifiable &gt; <span class="number">0 </span>{
-            <a href="#193">flag</a> |= <a href="#23">NOTIFIABLE</a>;
+            flag |= NOTIFIABLE;
         }
 
         <span class="comment">// Use `SeqCst` ordering to synchronize with `WakerSet::lock_to_notify()`.
-        </span><a class="self" href="#192">self</a>.waker_set.flag.store(<a href="#193">flag</a>, Ordering::SeqCst);
+        </span><span class="self">self</span>.waker_set.flag.store(flag, Ordering::SeqCst);
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.Deref.html">Deref</a> <span class="kw">for </span>Lock&lt;<span class="lifetime">&#39;_</span>&gt; {
-    <span class="kw">type </span>Target = <a href="#26">Inner</a>;
+<span class="kw">impl </span>Deref <span class="kw">for </span>Lock&lt;<span class="lifetime">&#39;_</span>&gt; {
+    <span class="kw">type </span>Target = Inner;
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>deref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="#26">Inner</a> {
-        <span class="kw">unsafe </span>{ <span class="kw-2">&amp;*</span><a class="self" href="#214">self</a>.waker_set.inner.get() }
+    </span><span class="kw">fn </span>deref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Inner {
+        <span class="kw">unsafe </span>{ <span class="kw-2">&amp;*</span><span class="self">self</span>.waker_set.inner.get() }
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.DerefMut.html">DerefMut</a> <span class="kw">for </span>Lock&lt;<span class="lifetime">&#39;_</span>&gt; {
+<span class="kw">impl </span>DerefMut <span class="kw">for </span>Lock&lt;<span class="lifetime">&#39;_</span>&gt; {
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>deref_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span><a href="#26">Inner</a> {
-        <span class="kw">unsafe </span>{ <span class="kw-2">&amp;mut *</span><a class="self" href="#221">self</a>.waker_set.inner.get() }
+    </span><span class="kw">fn </span>deref_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>Inner {
+        <span class="kw">unsafe </span>{ <span class="kw-2">&amp;mut *</span><span class="self">self</span>.waker_set.inner.get() }
     }
 }
 
@@ -470,4 +470,4 @@
     </span>All,
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="async_std" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="async_std" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

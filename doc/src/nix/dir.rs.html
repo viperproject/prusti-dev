@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/nix-0.25.0/src/dir.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>dir.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../nix/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/nix-0.26.1/src/dir.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>dir.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../nix/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -255,19 +255,38 @@
 <a href="#255" id="255">255</a>
 <a href="#256" id="256">256</a>
 <a href="#257" id="257">257</a>
+<a href="#258" id="258">258</a>
+<a href="#259" id="259">259</a>
+<a href="#260" id="260">260</a>
+<a href="#261" id="261">261</a>
+<a href="#262" id="262">262</a>
+<a href="#263" id="263">263</a>
+<a href="#264" id="264">264</a>
+<a href="#265" id="265">265</a>
+<a href="#266" id="266">266</a>
+<a href="#267" id="267">267</a>
+<a href="#268" id="268">268</a>
+<a href="#269" id="269">269</a>
+<a href="#270" id="270">270</a>
+<a href="#271" id="271">271</a>
+<a href="#272" id="272">272</a>
+<a href="#273" id="273">273</a>
+<a href="#274" id="274">274</a>
+<a href="#275" id="275">275</a>
+<a href="#276" id="276">276</a>
 </pre><pre class="rust"><code><span class="doccomment">//! List directory contents
 
-</span><span class="kw">use crate</span>::{<a href="lib.rs.html#179">Error</a>, <a href="lib.rs.html#182">NixPath</a>, <span class="prelude-ty">Result</span>};
-<span class="kw">use </span><a href="errno.rs.html#1163"><span class="kw">crate</span>::errno::Errno</a>;
-<span class="kw">use </span><span class="kw">crate</span>::fcntl::{<a class="self" href="lib.rs.html#84">self</a>, <a href="fcntl.rs.html#44-189">OFlag</a>};
-<span class="kw">use </span>std::os::unix::io::{<a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">AsRawFd</a>, <a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.IntoRawFd.html">IntoRawFd</a>, <a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a>};
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/ptr/index.html">std::ptr</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/ffi/index.html">std::ffi</a>;
-<span class="kw">use </span><a href="lib.rs.html#138"><span class="kw">crate</span>::sys</a>;
-<span class="kw">use </span><a href="../../cfg_if/macro.cfg_if.html">cfg_if::cfg_if</a>;
+</span><span class="kw">use </span><span class="kw">crate</span>::errno::Errno;
+<span class="kw">use </span><span class="kw">crate</span>::fcntl::{<span class="self">self</span>, OFlag};
+<span class="kw">use </span><span class="kw">crate</span>::sys;
+<span class="kw">use crate</span>::{Error, NixPath, <span class="prelude-ty">Result</span>};
+<span class="kw">use </span>cfg_if::cfg_if;
+<span class="kw">use </span>std::ffi;
+<span class="kw">use </span>std::os::unix::io::{AsRawFd, IntoRawFd, RawFd};
+<span class="kw">use </span>std::ptr;
 
 <span class="attr">#[cfg(target_os = <span class="string">&quot;linux&quot;</span>)]
-</span><span class="kw">use </span>libc::{<a href="../../libc/unix/linux_like/linux/struct.dirent64.html">dirent64</a> <span class="kw">as </span>dirent, <a href="../../libc/unix/linux_like/fn.readdir64_r.html">readdir64_r</a> <span class="kw">as </span>readdir_r};
+</span><span class="kw">use </span>libc::{dirent64 <span class="kw">as </span>dirent, readdir64_r <span class="kw">as </span>readdir_r};
 
 <span class="attr">#[cfg(not(target_os = <span class="string">&quot;linux&quot;</span>))]
 </span><span class="kw">use </span>libc::{dirent, readdir_r};
@@ -286,45 +305,52 @@
 ///    * returns entries&#39; names as a `CStr` (no allocation or conversion beyond whatever libc
 ///      does).
 </span><span class="attr">#[derive(Debug, Eq, Hash, PartialEq)]
-</span><span class="kw">pub struct </span>Dir(
-    ptr::NonNull&lt;<a href="../../libc/unix/enum.DIR.html">libc::DIR</a>&gt;
-);
+</span><span class="kw">pub struct </span>Dir(ptr::NonNull&lt;libc::DIR&gt;);
 
-<span class="kw">impl </span><a href="#32">Dir</a> {
+<span class="kw">impl </span>Dir {
     <span class="doccomment">/// Opens the given path as with `fcntl::open`.
-    </span><span class="kw">pub fn </span>open&lt;P: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> + <a href="lib.rs.html#182">NixPath</a>&gt;(path: <span class="kw-2">&amp;</span>P, oflag: <a href="fcntl.rs.html#44-189">OFlag</a>,
-                                     mode: <a href="sys/stat.rs.html#33-52">sys::stat::Mode</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
+    </span><span class="kw">pub fn </span>open&lt;P: <span class="question-mark">?</span>Sized + NixPath&gt;(
+        path: <span class="kw-2">&amp;</span>P,
+        oflag: OFlag,
+        mode: sys::stat::Mode,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
         <span class="kw">let </span>fd = fcntl::open(path, oflag, mode)<span class="question-mark">?</span>;
-        Dir::from_fd(<a href="#40">fd</a>)
+        Dir::from_fd(fd)
     }
 
     <span class="doccomment">/// Opens the given path as with `fcntl::openat`.
-    </span><span class="kw">pub fn </span>openat&lt;P: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> + <a href="lib.rs.html#182">NixPath</a>&gt;(dirfd: <a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a>, path: <span class="kw-2">&amp;</span>P, oflag: <a href="fcntl.rs.html#44-189">OFlag</a>,
-                                       mode: <a href="sys/stat.rs.html#33-52">sys::stat::Mode</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
+    </span><span class="kw">pub fn </span>openat&lt;P: <span class="question-mark">?</span>Sized + NixPath&gt;(
+        dirfd: RawFd,
+        path: <span class="kw-2">&amp;</span>P,
+        oflag: OFlag,
+        mode: sys::stat::Mode,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
         <span class="kw">let </span>fd = fcntl::openat(dirfd, path, oflag, mode)<span class="question-mark">?</span>;
-        Dir::from_fd(<a href="#47">fd</a>)
+        Dir::from_fd(fd)
     }
 
     <span class="doccomment">/// Converts from a descriptor-based object, closing the descriptor on success or failure.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>from&lt;F: <a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.IntoRawFd.html">IntoRawFd</a>&gt;(fd: F) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
-        Dir::from_fd(<a href="#53">fd</a>.<a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.IntoRawFd.html">into_raw_fd</a>())
+    </span><span class="kw">pub fn </span>from&lt;F: IntoRawFd&gt;(fd: F) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
+        Dir::from_fd(fd.into_raw_fd())
     }
 
     <span class="doccomment">/// Converts from a file descriptor, closing it on success or failure.
-    </span><span class="attr">#[cfg_attr(has_doc_alias, doc(alias(<span class="string">&quot;fdopendir&quot;</span>)))]
-    </span><span class="kw">pub fn </span>from_fd(fd: <a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
-        <span class="kw">let </span>d = ptr::NonNull::new(<span class="kw">unsafe </span>{ libc::fdopendir(fd) }).ok_or_else(|| {
-            <span class="kw">let </span>e = Error::last();
-            <span class="kw">unsafe </span>{ libc::close(fd) };
-            e
-        })<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(<a href="#32">Dir</a>(<a href="#60">d</a>))
+    </span><span class="attr">#[doc(alias(<span class="string">&quot;fdopendir&quot;</span>))]
+    </span><span class="kw">pub fn </span>from_fd(fd: RawFd) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
+        <span class="kw">let </span>d = ptr::NonNull::new(<span class="kw">unsafe </span>{ libc::fdopendir(fd) }).ok_or_else(
+            || {
+                <span class="kw">let </span>e = Error::last();
+                <span class="kw">unsafe </span>{ libc::close(fd) };
+                e
+            },
+        )<span class="question-mark">?</span>;
+        <span class="prelude-val">Ok</span>(Dir(d))
     }
 
     <span class="doccomment">/// Returns an iterator of `Result&lt;Entry&gt;` which rewinds when finished.
-    </span><span class="kw">pub fn </span>iter(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <a href="#121">Iter</a> {
-        <a href="#121">Iter</a>(<a class="self" href="#69">self</a>)
+    </span><span class="kw">pub fn </span>iter(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; Iter {
+        Iter(<span class="self">self</span>)
     }
 }
 
@@ -334,86 +360,88 @@
 // call `readdir` simultaneously from multiple threads.
 //
 // `Dir` is safe to pass from one thread to another, as it&#39;s not reference-counted.
-</span><span class="kw">unsafe impl </span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="kw">for </span><a href="#32">Dir</a> {}
+</span><span class="kw">unsafe impl </span>Send <span class="kw">for </span>Dir {}
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">AsRawFd</a> <span class="kw">for </span><a href="#32">Dir</a> {
-    <span class="kw">fn </span>as_raw_fd(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a> {
-        <span class="kw">unsafe </span>{ libc::dirfd(<a class="self" href="#83">self</a>.<span class="number">0</span>.as_ptr()) }
+<span class="kw">impl </span>AsRawFd <span class="kw">for </span>Dir {
+    <span class="kw">fn </span>as_raw_fd(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; RawFd {
+        <span class="kw">unsafe </span>{ libc::dirfd(<span class="self">self</span>.<span class="number">0</span>.as_ptr()) }
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span><a href="#32">Dir</a> {
+<span class="kw">impl </span>Drop <span class="kw">for </span>Dir {
     <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <span class="kw">let </span>e = Errno::result(<span class="kw">unsafe </span>{ libc::closedir(<a class="self" href="#89">self</a>.<span class="number">0</span>.as_ptr()) });
+        <span class="kw">let </span>e = Errno::result(<span class="kw">unsafe </span>{ libc::closedir(<span class="self">self</span>.<span class="number">0</span>.as_ptr()) });
         <span class="kw">if </span>!std::thread::panicking() &amp;&amp; e == <span class="prelude-val">Err</span>(Errno::EBADF) {
-            <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(<span class="string">&quot;Closing an invalid file descriptor!&quot;</span>);
+            <span class="macro">panic!</span>(<span class="string">&quot;Closing an invalid file descriptor!&quot;</span>);
         };
     }
 }
 
-<span class="kw">fn </span>next(dir: <span class="kw-2">&amp;mut </span><a href="#32">Dir</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="prelude-ty">Result</span>&lt;<a href="#187">Entry</a>&gt;&gt; {
+<span class="kw">fn </span>next(dir: <span class="kw-2">&amp;mut </span>Dir) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="prelude-ty">Result</span>&lt;Entry&gt;&gt; {
     <span class="kw">unsafe </span>{
         <span class="comment">// Note: POSIX specifies that portable applications should dynamically allocate a
         // buffer with room for a `d_name` field of size `pathconf(..., _PC_NAME_MAX)` plus 1
         // for the NUL byte. It doesn&#39;t look like the std library does this; it just uses
         // fixed-sized buffers (and libc&#39;s dirent seems to be sized so this is appropriate).
         // Probably fine here too then.
-        </span><span class="kw">let </span><span class="kw-2">mut </span>ent = std::mem::MaybeUninit::&lt;<a href="../../libc/unix/linux_like/linux/struct.dirent64.html">dirent</a>&gt;::uninit();
-        <span class="kw">let </span><span class="kw-2">mut </span>result = <a href="https://doc.rust-lang.org/nightly/core/ptr/fn.null_mut.html">ptr::null_mut</a>();
-        <span class="kw">if let </span><span class="prelude-val">Err</span>(e) = Errno::result(
-            <a href="../../libc/unix/linux_like/fn.readdir64_r.html">readdir_r</a>(<a href="#97">dir</a>.<span class="number">0</span>.as_ptr(), <a href="#104">ent</a>.as_mut_ptr(), <span class="kw-2">&amp;mut </span><a href="#105">result</a>))
-        {
-            <span class="kw">return </span><span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(<a href="#106">e</a>));
+        </span><span class="kw">let </span><span class="kw-2">mut </span>ent = std::mem::MaybeUninit::&lt;dirent&gt;::uninit();
+        <span class="kw">let </span><span class="kw-2">mut </span>result = ptr::null_mut();
+        <span class="kw">if let </span><span class="prelude-val">Err</span>(e) = Errno::result(readdir_r(
+            dir.<span class="number">0</span>.as_ptr(),
+            ent.as_mut_ptr(),
+            <span class="kw-2">&amp;mut </span>result,
+        )) {
+            <span class="kw">return </span><span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(e));
         }
         <span class="kw">if </span>result.is_null() {
             <span class="kw">return </span><span class="prelude-val">None</span>;
         }
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert_eq.html">assert_eq!</a>(result, ent.as_mut_ptr());
-        <span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(<a href="#187">Entry</a>(<a href="#104">ent</a>.assume_init())))
+        <span class="macro">assert_eq!</span>(result, ent.as_mut_ptr());
+        <span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(Entry(ent.assume_init())))
     }
 }
 
 <span class="doccomment">/// Return type of [`Dir::iter`].
 </span><span class="attr">#[derive(Debug, Eq, Hash, PartialEq)]
-</span><span class="kw">pub struct </span>Iter&lt;<span class="lifetime">&#39;d</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;d </span><span class="kw-2">mut </span><a href="#32">Dir</a>);
+</span><span class="kw">pub struct </span>Iter&lt;<span class="lifetime">&#39;d</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;d </span><span class="kw-2">mut </span>Dir);
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;d</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a> <span class="kw">for </span>Iter&lt;<span class="lifetime">&#39;d</span>&gt; {
-    <span class="kw">type </span>Item = <span class="prelude-ty">Result</span>&lt;<a href="#187">Entry</a>&gt;;
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;d</span>&gt; Iterator <span class="kw">for </span>Iter&lt;<span class="lifetime">&#39;d</span>&gt; {
+    <span class="kw">type </span>Item = <span class="prelude-ty">Result</span>&lt;Entry&gt;;
 
     <span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt; {
-        <a href="#97">next</a>(<a class="self" href="#126">self</a>.<span class="number">0</span>)
+        next(<span class="self">self</span>.<span class="number">0</span>)
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;d</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span>Iter&lt;<span class="lifetime">&#39;d</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;d</span>&gt; Drop <span class="kw">for </span>Iter&lt;<span class="lifetime">&#39;d</span>&gt; {
     <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <span class="kw">unsafe </span>{ libc::rewinddir((<a class="self" href="#132">self</a>.<span class="number">0</span>).<span class="number">0</span>.as_ptr()) }
+        <span class="kw">unsafe </span>{ libc::rewinddir((<span class="self">self</span>.<span class="number">0</span>).<span class="number">0</span>.as_ptr()) }
     }
 }
 
 <span class="doccomment">/// The return type of [Dir::into_iter]
 </span><span class="attr">#[derive(Debug, Eq, Hash, PartialEq)]
-</span><span class="kw">pub struct </span>OwningIter(<a href="#32">Dir</a>);
+</span><span class="kw">pub struct </span>OwningIter(Dir);
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a> <span class="kw">for </span><a href="#139">OwningIter</a> {
-    <span class="kw">type </span>Item = <span class="prelude-ty">Result</span>&lt;<a href="#187">Entry</a>&gt;;
+<span class="kw">impl </span>Iterator <span class="kw">for </span>OwningIter {
+    <span class="kw">type </span>Item = <span class="prelude-ty">Result</span>&lt;Entry&gt;;
 
     <span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt; {
-        <a href="#97">next</a>(<span class="kw-2">&amp;mut </span><a class="self" href="#144">self</a>.<span class="number">0</span>)
+        next(<span class="kw-2">&amp;mut </span><span class="self">self</span>.<span class="number">0</span>)
     }
 }
 
 <span class="doccomment">/// The file descriptor continues to be owned by the `OwningIter`,
 /// so callers must not keep a `RawFd` after the `OwningIter` is dropped.
-</span><span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">AsRawFd</a> <span class="kw">for </span><a href="#139">OwningIter</a> {
-    <span class="kw">fn </span>as_raw_fd(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a> {
-        <a class="self" href="#152">self</a>.<span class="number">0</span>.<a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">as_raw_fd</a>()
+</span><span class="kw">impl </span>AsRawFd <span class="kw">for </span>OwningIter {
+    <span class="kw">fn </span>as_raw_fd(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; RawFd {
+        <span class="self">self</span>.<span class="number">0</span>.as_raw_fd()
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">IntoIterator</a> <span class="kw">for </span><a href="#32">Dir</a> {
-    <span class="kw">type </span>Item = <span class="prelude-ty">Result</span>&lt;<a href="#187">Entry</a>&gt;;
-    <span class="kw">type </span>IntoIter = <a href="#139">OwningIter</a>;
+<span class="kw">impl </span>IntoIterator <span class="kw">for </span>Dir {
+    <span class="kw">type </span>Item = <span class="prelude-ty">Result</span>&lt;Entry&gt;;
+    <span class="kw">type </span>IntoIter = OwningIter;
 
     <span class="doccomment">/// Creates a owning iterator, that is, one that takes ownership of the
     /// `Dir`. The `Dir` cannot be used after calling this.  This can be useful
@@ -432,7 +460,7 @@
     /// }
     /// ```
     </span><span class="kw">fn </span>into_iter(<span class="self">self</span>) -&gt; <span class="self">Self</span>::IntoIter {
-        <a href="#139">OwningIter</a>(<a class="self" href="#177">self</a>)
+        OwningIter(<span class="self">self</span>)
     }
 }
 
@@ -441,7 +469,7 @@
 /// Note that unlike the std version, this may represent the `.` or `..` entries.
 </span><span class="attr">#[derive(Copy, Clone, Debug, Eq, Hash, PartialEq)]
 #[repr(transparent)]
-</span><span class="kw">pub struct </span>Entry(<a href="../../libc/unix/linux_like/linux/struct.dirent64.html">dirent</a>);
+</span><span class="kw">pub struct </span>Entry(dirent);
 
 <span class="doccomment">/// Type of file referenced by a directory entry
 </span><span class="attr">#[derive(Copy, Clone, Debug, Eq, Hash, PartialEq)]
@@ -462,10 +490,12 @@
     </span>Socket,
 }
 
-<span class="kw">impl </span><a href="#187">Entry</a> {
+<span class="kw">impl </span>Entry {
     <span class="doccomment">/// Returns the inode number (`d_ino`) of the underlying `dirent`.
-    </span><span class="attr">#[allow(clippy::useless_conversion)]    </span><span class="comment">// Not useless on all OSes
-    </span><span class="kw">pub fn </span>ino(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> {
+    </span><span class="attr">#[allow(clippy::useless_conversion)] </span><span class="comment">// Not useless on all OSes
+    // The cast is not unnecessary on all platforms.
+    </span><span class="attr">#[allow(clippy::unnecessary_cast)]
+    </span><span class="kw">pub fn </span>ino(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u64 {
         <span class="macro">cfg_if! </span>{
             <span class="kw">if </span><span class="attr">#[cfg(any(target_os = <span class="string">&quot;android&quot;</span>,
                          target_os = <span class="string">&quot;emscripten&quot;</span>,
@@ -477,7 +507,7 @@
                          target_os = <span class="string">&quot;linux&quot;</span>,
                          target_os = <span class="string">&quot;macos&quot;</span>,
                          target_os = <span class="string">&quot;solaris&quot;</span>))] </span>{
-                <a class="self" href="#211">self</a>.<span class="number">0</span>.d_ino <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>
+                <span class="self">self</span>.<span class="number">0</span>.d_ino <span class="kw">as </span>u64
             } <span class="kw">else </span>{
                 u64::from(<span class="self">self</span>.<span class="number">0</span>.d_fileno)
             }
@@ -485,8 +515,8 @@
     }
 
     <span class="doccomment">/// Returns the bare file name of this directory entry without any other leading path component.
-    </span><span class="kw">pub fn </span>file_name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/core/ffi/c_str/struct.CStr.html">ffi::CStr</a> {
-        <span class="kw">unsafe </span>{ ::std::ffi::CStr::from_ptr(<a class="self" href="#231">self</a>.<span class="number">0</span>.d_name.as_ptr()) }
+    </span><span class="kw">pub fn </span>file_name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>ffi::CStr {
+        <span class="kw">unsafe </span>{ ::std::ffi::CStr::from_ptr(<span class="self">self</span>.<span class="number">0</span>.d_name.as_ptr()) }
     }
 
     <span class="doccomment">/// Returns the type of this directory entry, if known.
@@ -494,23 +524,31 @@
     /// See platform `readdir(3)` or `dirent(5)` manpage for when the file type is known;
     /// notably, some Linux filesystems don&#39;t implement this. The caller should use `stat` or
     /// `fstat` if this returns `None`.
-    </span><span class="kw">pub fn </span>file_type(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="#191">Type</a>&gt; {
-        <span class="attr">#[cfg(not(any(target_os = <span class="string">&quot;illumos&quot;</span>, target_os = <span class="string">&quot;solaris&quot;</span>, target_os = <span class="string">&quot;haiku&quot;</span>)))]
-        </span><span class="kw">match </span><a class="self" href="#240">self</a>.<span class="number">0</span>.d_type {
-            libc::DT_FIFO =&gt; <span class="prelude-val">Some</span>(<a href="#193">Type::Fifo</a>),
-            libc::DT_CHR =&gt; <span class="prelude-val">Some</span>(<a href="#195">Type::CharacterDevice</a>),
-            libc::DT_DIR =&gt; <span class="prelude-val">Some</span>(<a href="#197">Type::Directory</a>),
-            libc::DT_BLK =&gt; <span class="prelude-val">Some</span>(<a href="#199">Type::BlockDevice</a>),
-            libc::DT_REG =&gt; <span class="prelude-val">Some</span>(<a href="#201">Type::File</a>),
-            libc::DT_LNK =&gt; <span class="prelude-val">Some</span>(<a href="#203">Type::Symlink</a>),
-            libc::DT_SOCK =&gt; <span class="prelude-val">Some</span>(<a href="#205">Type::Socket</a>),
+    </span><span class="kw">pub fn </span>file_type(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Type&gt; {
+        <span class="attr">#[cfg(not(any(
+            target_os = <span class="string">&quot;illumos&quot;</span>,
+            target_os = <span class="string">&quot;solaris&quot;</span>,
+            target_os = <span class="string">&quot;haiku&quot;
+        </span>)))]
+        </span><span class="kw">match </span><span class="self">self</span>.<span class="number">0</span>.d_type {
+            libc::DT_FIFO =&gt; <span class="prelude-val">Some</span>(Type::Fifo),
+            libc::DT_CHR =&gt; <span class="prelude-val">Some</span>(Type::CharacterDevice),
+            libc::DT_DIR =&gt; <span class="prelude-val">Some</span>(Type::Directory),
+            libc::DT_BLK =&gt; <span class="prelude-val">Some</span>(Type::BlockDevice),
+            libc::DT_REG =&gt; <span class="prelude-val">Some</span>(Type::File),
+            libc::DT_LNK =&gt; <span class="prelude-val">Some</span>(Type::Symlink),
+            libc::DT_SOCK =&gt; <span class="prelude-val">Some</span>(Type::Socket),
             <span class="comment">/* libc::DT_UNKNOWN | */ </span><span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
         }
 
         <span class="comment">// illumos, Solaris, and Haiku systems do not have the d_type member at all:
-        </span><span class="attr">#[cfg(any(target_os = <span class="string">&quot;illumos&quot;</span>, target_os = <span class="string">&quot;solaris&quot;</span>, target_os = <span class="string">&quot;haiku&quot;</span>))]
+        </span><span class="attr">#[cfg(any(
+            target_os = <span class="string">&quot;illumos&quot;</span>,
+            target_os = <span class="string">&quot;solaris&quot;</span>,
+            target_os = <span class="string">&quot;haiku&quot;
+        </span>))]
         </span><span class="prelude-val">None
     </span>}
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="nix" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="nix" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

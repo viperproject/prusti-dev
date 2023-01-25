@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/itertools-0.10.5/src/kmerge_impl.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>kmerge_impl.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../itertools/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/itertools-0.10.5/src/kmerge_impl.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>kmerge_impl.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../itertools/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -225,13 +225,13 @@
 <a href="#225" id="225">225</a>
 <a href="#226" id="226">226</a>
 <a href="#227" id="227">227</a>
-</pre><pre class="rust"><code><span class="kw">use </span><a href="lib.rs.html#234"><span class="kw">crate</span>::size_hint</a>;
-<span class="kw">use </span><a href="lib.rs.html#431"><span class="kw">crate</span>::Itertools</a>;
+</pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::size_hint;
+<span class="kw">use </span><span class="kw">crate</span>::Itertools;
 
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/vec/struct.Vec.html">alloc::vec::Vec</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/iter/traits/marker/trait.FusedIterator.html">std::iter::FusedIterator</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/mem/fn.replace.html">std::mem::replace</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">std::fmt</a>;
+<span class="kw">use </span>alloc::vec::Vec;
+<span class="kw">use </span>std::iter::FusedIterator;
+<span class="kw">use </span>std::mem::replace;
+<span class="kw">use </span>std::fmt;
 
 <span class="doccomment">/// Head element and Tail iterator pair
 ///
@@ -242,22 +242,22 @@
 /// `KMerge` into a min-heap.
 </span><span class="attr">#[derive(Debug)]
 </span><span class="kw">struct </span>HeadTail&lt;I&gt;
-    <span class="kw">where </span>I: <a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a>
+    <span class="kw">where </span>I: Iterator
 {
     head: I::Item,
     tail: I,
 }
 
 <span class="kw">impl</span>&lt;I&gt; HeadTail&lt;I&gt;
-    <span class="kw">where </span>I: <a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a>
+    <span class="kw">where </span>I: Iterator
 {
     <span class="doccomment">/// Constructs a `HeadTail` from an `Iterator`. Returns `None` if the `Iterator` is empty.
     </span><span class="kw">fn </span>new(<span class="kw-2">mut </span>it: I) -&gt; <span class="prelude-ty">Option</span>&lt;HeadTail&lt;I&gt;&gt; {
-        <span class="kw">let </span>head = <a href="#28">it</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>();
-        <a href="#29">head</a>.map(|h| {
-            <a href="#17">HeadTail</a> {
-                head: <a href="#30">h</a>,
-                tail: <a href="#28">it</a>,
+        <span class="kw">let </span>head = it.next();
+        head.map(|h| {
+            HeadTail {
+                head: h,
+                tail: it,
             }
         })
     }
@@ -266,29 +266,29 @@
     ///
     /// Returns `None` when the tail is exhausted (only `head` then remains).
     </span><span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;I::Item&gt; {
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(next) = <a class="self" href="#41">self</a>.tail.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>() {
-            <span class="prelude-val">Some</span>(<a href="https://doc.rust-lang.org/nightly/core/mem/fn.replace.html">replace</a>(<span class="kw-2">&amp;mut </span><a class="self" href="#41">self</a>.head, <a href="#42">next</a>))
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(next) = <span class="self">self</span>.tail.next() {
+            <span class="prelude-val">Some</span>(replace(<span class="kw-2">&amp;mut </span><span class="self">self</span>.head, next))
         } <span class="kw">else </span>{
             <span class="prelude-val">None
         </span>}
     }
 
     <span class="doccomment">/// Hints at the size of the sequence, same as the `Iterator` method.
-    </span><span class="kw">fn </span>size_hint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;) {
-        <a href="size_hint.rs.html#25">size_hint::add_scalar</a>(<a class="self" href="#50">self</a>.tail.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">size_hint</a>(), <span class="number">1</span>)
+    </span><span class="kw">fn </span>size_hint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (usize, <span class="prelude-ty">Option</span>&lt;usize&gt;) {
+        size_hint::add_scalar(<span class="self">self</span>.tail.size_hint(), <span class="number">1</span>)
     }
 }
 
-<span class="kw">impl</span>&lt;I&gt; <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> <span class="kw">for </span>HeadTail&lt;I&gt;
-    <span class="kw">where </span>I: <a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a> + <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a>,
-          I::Item: <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a>
+<span class="kw">impl</span>&lt;I&gt; Clone <span class="kw">for </span>HeadTail&lt;I&gt;
+    <span class="kw">where </span>I: Iterator + Clone,
+          I::Item: Clone
 {
-    <a class="macro" href="impl_macros.rs.html#16-25">clone_fields!</a>(head, tail);
+    <span class="macro">clone_fields!</span>(head, tail);
 }
 
 <span class="doccomment">/// Make `data` a heap (min-heap w.r.t the sorting).
 </span><span class="kw">fn </span>heapify&lt;T, S&gt;(data: <span class="kw-2">&amp;mut </span>[T], <span class="kw-2">mut </span>less_than: S)
-    <span class="kw">where </span>S: FnMut(<span class="kw-2">&amp;</span>T, <span class="kw-2">&amp;</span>T) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>
+    <span class="kw">where </span>S: FnMut(<span class="kw-2">&amp;</span>T, <span class="kw-2">&amp;</span>T) -&gt; bool
 {
     <span class="kw">for </span>i <span class="kw">in </span>(<span class="number">0</span>..data.len() / <span class="number">2</span>).rev() {
         sift_down(data, i, <span class="kw-2">&amp;mut </span>less_than);
@@ -296,12 +296,12 @@
 }
 
 <span class="doccomment">/// Sift down element at `index` (`heap` is a min-heap wrt the ordering)
-</span><span class="kw">fn </span>sift_down&lt;T, S&gt;(heap: <span class="kw-2">&amp;mut </span>[T], index: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="kw-2">mut </span>less_than: S)
-    <span class="kw">where </span>S: FnMut(<span class="kw-2">&amp;</span>T, <span class="kw-2">&amp;</span>T) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>
+</span><span class="kw">fn </span>sift_down&lt;T, S&gt;(heap: <span class="kw-2">&amp;mut </span>[T], index: usize, <span class="kw-2">mut </span>less_than: S)
+    <span class="kw">where </span>S: FnMut(<span class="kw-2">&amp;</span>T, <span class="kw-2">&amp;</span>T) -&gt; bool
 {
-    <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(index &lt;= heap.len());
-    <span class="kw">let </span><span class="kw-2">mut </span>pos = <a href="#72">index</a>;
-    <span class="kw">let </span><span class="kw-2">mut </span>child = <span class="number">2 </span>* <a href="#76">pos</a> + <span class="number">1</span>;
+    <span class="macro">debug_assert!</span>(index &lt;= heap.len());
+    <span class="kw">let </span><span class="kw-2">mut </span>pos = index;
+    <span class="kw">let </span><span class="kw-2">mut </span>child = <span class="number">2 </span>* pos + <span class="number">1</span>;
     <span class="comment">// Require the right child to be present
     // This allows to find the index of the smallest child without a branch
     // that wouldn&#39;t be predicted if present
@@ -321,7 +321,7 @@
     <span class="comment">// Check if the last (left) child was an only child
     // if it is then it has to be compared with the parent
     </span><span class="kw">if </span>child + <span class="number">1 </span>== heap.len() &amp;&amp; less_than(<span class="kw-2">&amp;</span>heap[child], <span class="kw-2">&amp;</span>heap[pos]) {
-        <a href="#72">heap</a>.swap(<a href="#76">pos</a>, <a href="#77">child</a>);
+        heap.swap(pos, child);
     }
 }
 
@@ -331,24 +331,24 @@
 /// Iterator element type is `I::Item`.
 ///
 /// See [`.kmerge()`](crate::Itertools::kmerge) for more information.
-</span><span class="kw">pub type </span>KMerge&lt;I&gt; = KMergeBy&lt;I, <a href="#114">KMergeByLt</a>&gt;;
+</span><span class="kw">pub type </span>KMerge&lt;I&gt; = KMergeBy&lt;I, KMergeByLt&gt;;
 
 <span class="kw">pub trait </span>KMergePredicate&lt;T&gt; {
-    <span class="kw">fn </span>kmerge_pred(<span class="kw-2">&amp;mut </span><span class="self">self</span>, a: <span class="kw-2">&amp;</span>T, b: <span class="kw-2">&amp;</span>T) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>;
+    <span class="kw">fn </span>kmerge_pred(<span class="kw-2">&amp;mut </span><span class="self">self</span>, a: <span class="kw-2">&amp;</span>T, b: <span class="kw-2">&amp;</span>T) -&gt; bool;
 }
 
 <span class="attr">#[derive(Clone, Debug)]
 </span><span class="kw">pub struct </span>KMergeByLt;
 
-<span class="kw">impl</span>&lt;T: <a href="https://doc.rust-lang.org/nightly/core/cmp/trait.PartialOrd.html">PartialOrd</a>&gt; KMergePredicate&lt;T&gt; <span class="kw">for </span><a href="#114">KMergeByLt</a> {
-    <span class="kw">fn </span>kmerge_pred(<span class="kw-2">&amp;mut </span><span class="self">self</span>, a: <span class="kw-2">&amp;</span>T, b: <span class="kw-2">&amp;</span>T) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a href="#117">a</a> &lt; <a href="#117">b</a>
+<span class="kw">impl</span>&lt;T: PartialOrd&gt; KMergePredicate&lt;T&gt; <span class="kw">for </span>KMergeByLt {
+    <span class="kw">fn </span>kmerge_pred(<span class="kw-2">&amp;mut </span><span class="self">self</span>, a: <span class="kw-2">&amp;</span>T, b: <span class="kw-2">&amp;</span>T) -&gt; bool {
+        a &lt; b
     }
 }
 
-<span class="kw">impl</span>&lt;T, F: FnMut(<span class="kw-2">&amp;</span>T, <span class="kw-2">&amp;</span>T)-&gt;<a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>&gt; KMergePredicate&lt;T&gt; <span class="kw">for </span>F {
-    <span class="kw">fn </span>kmerge_pred(<span class="kw-2">&amp;mut </span><span class="self">self</span>, a: <span class="kw-2">&amp;</span>T, b: <span class="kw-2">&amp;</span>T) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#123">self</a>(<a href="#123">a</a>, <a href="#123">b</a>)
+<span class="kw">impl</span>&lt;T, F: FnMut(<span class="kw-2">&amp;</span>T, <span class="kw-2">&amp;</span>T)-&gt;bool&gt; KMergePredicate&lt;T&gt; <span class="kw">for </span>F {
+    <span class="kw">fn </span>kmerge_pred(<span class="kw-2">&amp;mut </span><span class="self">self</span>, a: <span class="kw-2">&amp;</span>T, b: <span class="kw-2">&amp;</span>T) -&gt; bool {
+        <span class="self">self</span>(a, b)
     }
 }
 
@@ -365,11 +365,11 @@
 /// }
 /// ```
 </span><span class="kw">pub fn </span>kmerge&lt;I&gt;(iterable: I) -&gt; KMerge&lt;&lt;I::Item <span class="kw">as </span>IntoIterator&gt;::IntoIter&gt;
-    <span class="kw">where </span>I: <a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">IntoIterator</a>,
-          I::Item: <a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">IntoIterator</a>,
-          &lt;&lt;I <span class="kw">as </span>IntoIterator&gt;::Item <span class="kw">as </span>IntoIterator&gt;::Item: <a href="https://doc.rust-lang.org/nightly/core/cmp/trait.PartialOrd.html">PartialOrd</a>
+    <span class="kw">where </span>I: IntoIterator,
+          I::Item: IntoIterator,
+          &lt;&lt;I <span class="kw">as </span>IntoIterator&gt;::Item <span class="kw">as </span>IntoIterator&gt;::Item: PartialOrd
 {
-    <a href="#173-177">kmerge_by</a>(<a href="#140">iterable</a>, <a href="#114">KMergeByLt</a>)
+    kmerge_by(iterable, KMergeByLt)
 }
 
 <span class="doccomment">/// An iterator adaptor that merges an abitrary number of base iterators
@@ -381,17 +381,17 @@
 /// information.
 </span><span class="attr">#[must_use = <span class="string">&quot;iterator adaptors are lazy and do nothing unless consumed&quot;</span>]
 </span><span class="kw">pub struct </span>KMergeBy&lt;I, F&gt;
-    <span class="kw">where </span>I: <a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a>,
+    <span class="kw">where </span>I: Iterator,
 {
     heap: Vec&lt;HeadTail&lt;I&gt;&gt;,
     less_than: F,
 }
 
-<span class="kw">impl</span>&lt;I, F&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span>KMergeBy&lt;I, F&gt;
-    <span class="kw">where </span>I: <a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a> + <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a>,
-          I::Item: <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a>,
+<span class="kw">impl</span>&lt;I, F&gt; fmt::Debug <span class="kw">for </span>KMergeBy&lt;I, F&gt;
+    <span class="kw">where </span>I: Iterator + fmt::Debug,
+          I::Item: fmt::Debug,
 {
-    <a class="macro" href="impl_macros.rs.html#4-14">debug_fmt_fields!</a>(KMergeBy, heap);
+    <span class="macro">debug_fmt_fields!</span>(KMergeBy, heap);
 }
 
 <span class="doccomment">/// Create an iterator that merges elements of the contained iterators.
@@ -399,28 +399,28 @@
 /// [`IntoIterator`] enabled version of [`Itertools::kmerge_by`].
 </span><span class="kw">pub fn </span>kmerge_by&lt;I, F&gt;(iterable: I, <span class="kw-2">mut </span>less_than: F)
     -&gt; KMergeBy&lt;&lt;I::Item <span class="kw">as </span>IntoIterator&gt;::IntoIter, F&gt;
-    <span class="kw">where </span>I: <a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">IntoIterator</a>,
-          I::Item: <a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">IntoIterator</a>,
+    <span class="kw">where </span>I: IntoIterator,
+          I::Item: IntoIterator,
           F: KMergePredicate&lt;&lt;&lt;I <span class="kw">as </span>IntoIterator&gt;::Item <span class="kw">as </span>IntoIterator&gt;::Item&gt;,
 {
-    <span class="kw">let </span>iter = <a href="#173">iterable</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>();
-    <span class="kw">let </span>(lower, <span class="kw">_</span>) = <a href="#179">iter</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">size_hint</a>();
-    <span class="kw">let </span><span class="kw-2">mut </span>heap: Vec&lt;<span class="kw">_</span>&gt; = Vec::with_capacity(<a href="#180">lower</a>);
-    <a href="#181">heap</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a href="#179">iter</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter_map</a>(|it| HeadTail::new(<a href="#182">it</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>())));
-    <a href="#63-64">heapify</a>(<span class="kw-2">&amp;mut </span><a href="#181">heap</a>, |a, b| <a href="#173">less_than</a>.<a href="#110">kmerge_pred</a>(<span class="kw-2">&amp;</span><a href="#183">a</a>.head, <span class="kw-2">&amp;</span><a href="#183">b</a>.head));
-    <a href="#156">KMergeBy</a> { <a href="#181">heap</a>, <a href="#173">less_than</a> }
+    <span class="kw">let </span>iter = iterable.into_iter();
+    <span class="kw">let </span>(lower, <span class="kw">_</span>) = iter.size_hint();
+    <span class="kw">let </span><span class="kw-2">mut </span>heap: Vec&lt;<span class="kw">_</span>&gt; = Vec::with_capacity(lower);
+    heap.extend(iter.filter_map(|it| HeadTail::new(it.into_iter())));
+    heapify(<span class="kw-2">&amp;mut </span>heap, |a, b| less_than.kmerge_pred(<span class="kw-2">&amp;</span>a.head, <span class="kw-2">&amp;</span>b.head));
+    KMergeBy { heap, less_than }
 }
 
-<span class="kw">impl</span>&lt;I, F&gt; <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> <span class="kw">for </span>KMergeBy&lt;I, F&gt;
-    <span class="kw">where </span>I: <a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a> + <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a>,
-          I::Item: <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a>,
-          F: <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a>,
+<span class="kw">impl</span>&lt;I, F&gt; Clone <span class="kw">for </span>KMergeBy&lt;I, F&gt;
+    <span class="kw">where </span>I: Iterator + Clone,
+          I::Item: Clone,
+          F: Clone,
 {
-    <a class="macro" href="impl_macros.rs.html#16-25">clone_fields!</a>(heap, less_than);
+    <span class="macro">clone_fields!</span>(heap, less_than);
 }
 
-<span class="kw">impl</span>&lt;I, F&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a> <span class="kw">for </span>KMergeBy&lt;I, F&gt;
-    <span class="kw">where </span>I: <a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a>,
+<span class="kw">impl</span>&lt;I, F&gt; Iterator <span class="kw">for </span>KMergeBy&lt;I, F&gt;
+    <span class="kw">where </span>I: Iterator,
           F: KMergePredicate&lt;I::Item&gt;
 {
     <span class="kw">type </span>Item = I::Item;
@@ -429,28 +429,28 @@
         <span class="kw">if </span><span class="self">self</span>.heap.is_empty() {
             <span class="kw">return </span><span class="prelude-val">None</span>;
         }
-        <span class="kw">let </span>result = <span class="kw">if let </span><span class="prelude-val">Some</span>(next) = <a class="self" href="#201">self</a>.heap[<span class="number">0</span>].<a href="#41">next</a>() {
-            <a href="#205">next</a>
+        <span class="kw">let </span>result = <span class="kw">if let </span><span class="prelude-val">Some</span>(next) = <span class="self">self</span>.heap[<span class="number">0</span>].next() {
+            next
         } <span class="kw">else </span>{
-            <a class="self" href="#201">self</a>.heap.swap_remove(<span class="number">0</span>).head
+            <span class="self">self</span>.heap.swap_remove(<span class="number">0</span>).head
         };
-        <span class="kw">let </span>less_than = <span class="kw-2">&amp;mut </span><a class="self" href="#201">self</a>.less_than;
-        <a href="#72-73">sift_down</a>(<span class="kw-2">&amp;mut </span><a class="self" href="#201">self</a>.heap, <span class="number">0</span>, |a, b| <a href="#210">less_than</a>.<a href="#110">kmerge_pred</a>(<span class="kw-2">&amp;</span><a href="#211">a</a>.head, <span class="kw-2">&amp;</span><a href="#211">b</a>.head));
-        <span class="prelude-val">Some</span>(<a href="#205">result</a>)
+        <span class="kw">let </span>less_than = <span class="kw-2">&amp;mut </span><span class="self">self</span>.less_than;
+        sift_down(<span class="kw-2">&amp;mut </span><span class="self">self</span>.heap, <span class="number">0</span>, |a, b| less_than.kmerge_pred(<span class="kw-2">&amp;</span>a.head, <span class="kw-2">&amp;</span>b.head));
+        <span class="prelude-val">Some</span>(result)
     }
 
-    <span class="kw">fn </span>size_hint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;) {
+    <span class="kw">fn </span>size_hint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (usize, <span class="prelude-ty">Option</span>&lt;usize&gt;) {
         <span class="attr">#[allow(deprecated)] </span><span class="comment">//TODO: once msrv hits 1.51. replace `fold1` with `reduce`
-        </span><a class="self" href="#215">self</a>.heap.iter()
-                 .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|i| <a href="#218">i</a>.<a href="#50">size_hint</a>())
-                 .<a href="lib.rs.html#2247-2249">fold1</a>(<a href="size_hint.rs.html#13">size_hint::add</a>)
+        </span><span class="self">self</span>.heap.iter()
+                 .map(|i| i.size_hint())
+                 .fold1(size_hint::add)
                  .unwrap_or((<span class="number">0</span>, <span class="prelude-val">Some</span>(<span class="number">0</span>)))
     }
 }
 
-<span class="kw">impl</span>&lt;I, F&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/marker/trait.FusedIterator.html">FusedIterator</a> <span class="kw">for </span>KMergeBy&lt;I, F&gt;
-    <span class="kw">where </span>I: <a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a>,
+<span class="kw">impl</span>&lt;I, F&gt; FusedIterator <span class="kw">for </span>KMergeBy&lt;I, F&gt;
+    <span class="kw">where </span>I: Iterator,
           F: KMergePredicate&lt;I::Item&gt;
 {}
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="itertools" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="itertools" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

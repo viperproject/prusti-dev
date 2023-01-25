@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/gimli-0.26.2/src/read/endian_slice.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>endian_slice.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../gimli/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/gimli-0.27.0/src/read/endian_slice.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>endian_slice.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../gimli/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -351,14 +351,14 @@
 </pre><pre class="rust"><code><span class="doccomment">//! Working with byte slices that have an associated endianity.
 
 </span><span class="attr">#[cfg(feature = <span class="string">&quot;read&quot;</span>)]
-</span><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/borrow/enum.Cow.html">alloc::borrow::Cow</a>;
+</span><span class="kw">use </span>alloc::borrow::Cow;
 <span class="attr">#[cfg(feature = <span class="string">&quot;read&quot;</span>)]
-</span><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">alloc::string::String</a>;
-<span class="kw">use </span>core::ops::{<a href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.Deref.html">Deref</a>, <a href="https://doc.rust-lang.org/nightly/core/ops/index/trait.Index.html">Index</a>, <a href="https://doc.rust-lang.org/nightly/core/ops/range/struct.Range.html">Range</a>, <a href="https://doc.rust-lang.org/nightly/core/ops/range/struct.RangeFrom.html">RangeFrom</a>, <a href="https://doc.rust-lang.org/nightly/core/ops/range/struct.RangeTo.html">RangeTo</a>};
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/str/index.html">core::str</a>;
+</span><span class="kw">use </span>alloc::string::String;
+<span class="kw">use </span>core::ops::{Deref, Index, Range, RangeFrom, RangeTo};
+<span class="kw">use </span>core::str;
 
-<span class="kw">use </span><a href="../endianity.rs.html#7"><span class="kw">crate</span>::endianity::Endianity</a>;
-<span class="kw">use </span><span class="kw">crate</span>::read::{<a href="mod.rs.html#271">Error</a>, <a href="reader.rs.html#215">Reader</a>, <a href="reader.rs.html#19">ReaderOffsetId</a>, <span class="prelude-ty">Result</span>};
+<span class="kw">use </span><span class="kw">crate</span>::endianity::Endianity;
+<span class="kw">use </span><span class="kw">crate</span>::read::{Error, Reader, ReaderOffsetId, <span class="prelude-ty">Result</span>};
 
 <span class="doccomment">/// A `&amp;[u8]` slice with endianity metadata.
 ///
@@ -366,34 +366,34 @@
 </span><span class="attr">#[derive(Debug, Default, Clone, Copy, PartialEq, Eq, Hash)]
 </span><span class="kw">pub struct </span>EndianSlice&lt;<span class="lifetime">&#39;input</span>, Endian&gt;
 <span class="kw">where
-    </span>Endian: <a href="../endianity.rs.html#7">Endianity</a>,
+    </span>Endian: Endianity,
 {
-    slice: <span class="kw-2">&amp;</span><span class="lifetime">&#39;input </span>[<a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>],
+    slice: <span class="kw-2">&amp;</span><span class="lifetime">&#39;input </span>[u8],
     endian: Endian,
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;input</span>, Endian&gt; EndianSlice&lt;<span class="lifetime">&#39;input</span>, Endian&gt;
 <span class="kw">where
-    </span>Endian: <a href="../endianity.rs.html#7">Endianity</a>,
+    </span>Endian: Endianity,
 {
     <span class="doccomment">/// Construct a new `EndianSlice` with the given slice and endianity.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>new(slice: <span class="kw-2">&amp;</span><span class="lifetime">&#39;input </span>[<a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>], endian: Endian) -&gt; EndianSlice&lt;<span class="lifetime">&#39;input</span>, Endian&gt; {
-        <a href="#17">EndianSlice</a> { <a href="#31">slice</a>, <a href="#31">endian</a> }
+    </span><span class="kw">pub fn </span>new(slice: <span class="kw-2">&amp;</span><span class="lifetime">&#39;input </span>[u8], endian: Endian) -&gt; EndianSlice&lt;<span class="lifetime">&#39;input</span>, Endian&gt; {
+        EndianSlice { slice, endian }
     }
 
     <span class="doccomment">/// Return a reference to the raw slice.
     </span><span class="attr">#[inline]
     #[doc(hidden)]
     #[deprecated(note = <span class="string">&quot;Method renamed to EndianSlice::slice; use that instead.&quot;</span>)]
-    </span><span class="kw">pub fn </span>buf(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;input </span>[<a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>] {
-        <a class="self" href="#39">self</a>.slice
+    </span><span class="kw">pub fn </span>buf(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;input </span>[u8] {
+        <span class="self">self</span>.slice
     }
 
     <span class="doccomment">/// Return a reference to the raw slice.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>slice(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;input </span>[<a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>] {
-        <a class="self" href="#45">self</a>.slice
+    </span><span class="kw">pub fn </span>slice(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;input </span>[u8] {
+        <span class="self">self</span>.slice
     }
 
     <span class="doccomment">/// Split the slice in two at the given index, resulting in the tuple where
@@ -402,52 +402,52 @@
     </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>split_at(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        idx: <a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>,
+        idx: usize,
     ) -&gt; (EndianSlice&lt;<span class="lifetime">&#39;input</span>, Endian&gt;, EndianSlice&lt;<span class="lifetime">&#39;input</span>, Endian&gt;) {
-        (<a class="self" href="#54">self</a>.<a href="#162">range_to</a>(..<a href="#55">idx</a>), <a class="self" href="#54">self</a>.<a href="#144">range_from</a>(<a href="#55">idx</a>..))
+        (<span class="self">self</span>.range_to(..idx), <span class="self">self</span>.range_from(idx..))
     }
 
     <span class="doccomment">/// Find the first occurence of a byte in the slice, and return its index.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>find(<span class="kw-2">&amp;</span><span class="self">self</span>, byte: <a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>&gt; {
-        <a class="self" href="#62">self</a>.slice.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">position</a>(|ch| <span class="kw-2">*</span><a href="#63">ch</a> == <a href="#62">byte</a>)
+    </span><span class="kw">pub fn </span>find(<span class="kw-2">&amp;</span><span class="self">self</span>, byte: u8) -&gt; <span class="prelude-ty">Option</span>&lt;usize&gt; {
+        <span class="self">self</span>.slice.iter().position(|ch| <span class="kw-2">*</span>ch == byte)
     }
 
     <span class="doccomment">/// Return the offset of the start of the slice relative to the start
     /// of the given slice.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>offset_from(<span class="kw-2">&amp;</span><span class="self">self</span>, base: EndianSlice&lt;<span class="lifetime">&#39;input</span>, Endian&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a> {
-        <span class="kw">let </span>base_ptr = <a href="#69">base</a>.slice.as_ptr() <span class="kw">as </span><span class="kw-2">*const </span><a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>;
-        <span class="kw">let </span>ptr = <a class="self" href="#69">self</a>.slice.as_ptr() <span class="kw">as </span><span class="kw-2">*const </span><a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>;
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(base_ptr &lt;= ptr);
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(ptr + <span class="self">self</span>.slice.len() &lt;= base_ptr + base.slice.len());
-        <a href="#71">ptr</a> - <a href="#70">base_ptr</a>
+    </span><span class="kw">pub fn </span>offset_from(<span class="kw-2">&amp;</span><span class="self">self</span>, base: EndianSlice&lt;<span class="lifetime">&#39;input</span>, Endian&gt;) -&gt; usize {
+        <span class="kw">let </span>base_ptr = base.slice.as_ptr() <span class="kw">as </span><span class="kw-2">*const </span>u8 <span class="kw">as </span>usize;
+        <span class="kw">let </span>ptr = <span class="self">self</span>.slice.as_ptr() <span class="kw">as </span><span class="kw-2">*const </span>u8 <span class="kw">as </span>usize;
+        <span class="macro">debug_assert!</span>(base_ptr &lt;= ptr);
+        <span class="macro">debug_assert!</span>(ptr + <span class="self">self</span>.slice.len() &lt;= base_ptr + base.slice.len());
+        ptr - base_ptr
     }
 
     <span class="doccomment">/// Converts the slice to a string using `str::from_utf8`.
     ///
     /// Returns an error if the slice contains invalid characters.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>to_string(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;input </span><a href="https://doc.rust-lang.org/nightly/core/primitive.str.html">str</a>&gt; {
-        <a href="https://doc.rust-lang.org/nightly/core/str/converts/fn.from_utf8.html">str::from_utf8</a>(<a class="self" href="#81">self</a>.slice).map_err(|<span class="kw">_</span>| <a href="mod.rs.html#337">Error::BadUtf8</a>)
+    </span><span class="kw">pub fn </span>to_string(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;input </span>str&gt; {
+        str::from_utf8(<span class="self">self</span>.slice).map_err(|<span class="kw">_</span>| Error::BadUtf8)
     }
 
     <span class="doccomment">/// Converts the slice to a string, including invalid characters,
     /// using `String::from_utf8_lossy`.
     </span><span class="attr">#[cfg(feature = <span class="string">&quot;read&quot;</span>)]
     #[inline]
-    </span><span class="kw">pub fn </span>to_string_lossy(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Cow&lt;<span class="lifetime">&#39;input</span>, <a href="https://doc.rust-lang.org/nightly/core/primitive.str.html">str</a>&gt; {
-        String::from_utf8_lossy(<a class="self" href="#89">self</a>.slice)
+    </span><span class="kw">pub fn </span>to_string_lossy(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Cow&lt;<span class="lifetime">&#39;input</span>, str&gt; {
+        String::from_utf8_lossy(<span class="self">self</span>.slice)
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>read_slice(<span class="kw-2">&amp;mut </span><span class="self">self</span>, len: <a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;input </span>[<a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>]&gt; {
+    </span><span class="kw">fn </span>read_slice(<span class="kw-2">&amp;mut </span><span class="self">self</span>, len: usize) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;input </span>[u8]&gt; {
         <span class="kw">if </span><span class="self">self</span>.slice.len() &lt; len {
-            <span class="prelude-val">Err</span>(<a href="mod.rs.html#315">Error::UnexpectedEof</a>(<a class="self" href="#94">self</a>.<a href="reader.rs.html#242">offset_id</a>()))
+            <span class="prelude-val">Err</span>(Error::UnexpectedEof(<span class="self">self</span>.offset_id()))
         } <span class="kw">else </span>{
-            <span class="kw">let </span>val = <span class="kw-2">&amp;</span><a class="self" href="#94">self</a>.slice[..<a href="#94">len</a>];
-            <a class="self" href="#94">self</a>.slice = <span class="kw-2">&amp;</span><a class="self" href="#94">self</a>.slice[<a href="#94">len</a>..];
-            <span class="prelude-val">Ok</span>(<a href="#98">val</a>)
+            <span class="kw">let </span>val = <span class="kw-2">&amp;</span><span class="self">self</span>.slice[..len];
+            <span class="self">self</span>.slice = <span class="kw-2">&amp;</span><span class="self">self</span>.slice[len..];
+            <span class="prelude-val">Ok</span>(val)
         }
     }
 }
@@ -460,7 +460,7 @@
 /// old methods.
 </span><span class="kw">impl</span>&lt;<span class="lifetime">&#39;input</span>, Endian&gt; EndianSlice&lt;<span class="lifetime">&#39;input</span>, Endian&gt;
 <span class="kw">where
-    </span>Endian: <a href="../endianity.rs.html#7">Endianity</a>,
+    </span>Endian: Endianity,
 {
     <span class="doccomment">/// Take the given `start..end` range of the underlying slice and return a
     /// new `EndianSlice`.
@@ -473,10 +473,10 @@
     /// assert_eq!(endian_slice.range(1..3),
     ///            EndianSlice::new(&amp;slice[1..3], LittleEndian));
     /// ```
-    </span><span class="kw">pub fn </span>range(<span class="kw-2">&amp;</span><span class="self">self</span>, idx: Range&lt;<a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>&gt;) -&gt; EndianSlice&lt;<span class="lifetime">&#39;input</span>, Endian&gt; {
-        <a href="#17">EndianSlice</a> {
-            slice: <span class="kw-2">&amp;</span><a class="self" href="#126">self</a>.slice[<a href="#126">idx</a>],
-            endian: <a class="self" href="#126">self</a>.endian,
+    </span><span class="kw">pub fn </span>range(<span class="kw-2">&amp;</span><span class="self">self</span>, idx: Range&lt;usize&gt;) -&gt; EndianSlice&lt;<span class="lifetime">&#39;input</span>, Endian&gt; {
+        EndianSlice {
+            slice: <span class="kw-2">&amp;</span><span class="self">self</span>.slice[idx],
+            endian: <span class="self">self</span>.endian,
         }
     }
 
@@ -491,10 +491,10 @@
     /// assert_eq!(endian_slice.range_from(2..),
     ///            EndianSlice::new(&amp;slice[2..], LittleEndian));
     /// ```
-    </span><span class="kw">pub fn </span>range_from(<span class="kw-2">&amp;</span><span class="self">self</span>, idx: RangeFrom&lt;<a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>&gt;) -&gt; EndianSlice&lt;<span class="lifetime">&#39;input</span>, Endian&gt; {
-        <a href="#17">EndianSlice</a> {
-            slice: <span class="kw-2">&amp;</span><a class="self" href="#144">self</a>.slice[<a href="#144">idx</a>],
-            endian: <a class="self" href="#144">self</a>.endian,
+    </span><span class="kw">pub fn </span>range_from(<span class="kw-2">&amp;</span><span class="self">self</span>, idx: RangeFrom&lt;usize&gt;) -&gt; EndianSlice&lt;<span class="lifetime">&#39;input</span>, Endian&gt; {
+        EndianSlice {
+            slice: <span class="kw-2">&amp;</span><span class="self">self</span>.slice[idx],
+            endian: <span class="self">self</span>.endian,
         }
     }
 
@@ -509,132 +509,132 @@
     /// assert_eq!(endian_slice.range_to(..3),
     ///            EndianSlice::new(&amp;slice[..3], LittleEndian));
     /// ```
-    </span><span class="kw">pub fn </span>range_to(<span class="kw-2">&amp;</span><span class="self">self</span>, idx: RangeTo&lt;<a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>&gt;) -&gt; EndianSlice&lt;<span class="lifetime">&#39;input</span>, Endian&gt; {
-        <a href="#17">EndianSlice</a> {
-            slice: <span class="kw-2">&amp;</span><a class="self" href="#162">self</a>.slice[<a href="#162">idx</a>],
-            endian: <a class="self" href="#162">self</a>.endian,
+    </span><span class="kw">pub fn </span>range_to(<span class="kw-2">&amp;</span><span class="self">self</span>, idx: RangeTo&lt;usize&gt;) -&gt; EndianSlice&lt;<span class="lifetime">&#39;input</span>, Endian&gt; {
+        EndianSlice {
+            slice: <span class="kw-2">&amp;</span><span class="self">self</span>.slice[idx],
+            endian: <span class="self">self</span>.endian,
         }
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;input</span>, Endian&gt; Index&lt;<a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>&gt; <span class="kw">for </span>EndianSlice&lt;<span class="lifetime">&#39;input</span>, Endian&gt;
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;input</span>, Endian&gt; Index&lt;usize&gt; <span class="kw">for </span>EndianSlice&lt;<span class="lifetime">&#39;input</span>, Endian&gt;
 <span class="kw">where
-    </span>Endian: <a href="../endianity.rs.html#7">Endianity</a>,
+    </span>Endian: Endianity,
 {
-    <span class="kw">type </span>Output = <a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>;
-    <span class="kw">fn </span>index(<span class="kw-2">&amp;</span><span class="self">self</span>, idx: <a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>) -&gt; <span class="kw-2">&amp;</span><span class="self">Self</span>::Output {
-        <span class="kw-2">&amp;</span><a class="self" href="#175">self</a>.slice[<a href="#175">idx</a>]
+    <span class="kw">type </span>Output = u8;
+    <span class="kw">fn </span>index(<span class="kw-2">&amp;</span><span class="self">self</span>, idx: usize) -&gt; <span class="kw-2">&amp;</span><span class="self">Self</span>::Output {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.slice[idx]
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;input</span>, Endian&gt; Index&lt;RangeFrom&lt;<a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>&gt;&gt; <span class="kw">for </span>EndianSlice&lt;<span class="lifetime">&#39;input</span>, Endian&gt;
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;input</span>, Endian&gt; Index&lt;RangeFrom&lt;usize&gt;&gt; <span class="kw">for </span>EndianSlice&lt;<span class="lifetime">&#39;input</span>, Endian&gt;
 <span class="kw">where
-    </span>Endian: <a href="../endianity.rs.html#7">Endianity</a>,
+    </span>Endian: Endianity,
 {
-    <span class="kw">type </span>Output = [<a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>];
-    <span class="kw">fn </span>index(<span class="kw-2">&amp;</span><span class="self">self</span>, idx: RangeFrom&lt;<a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>&gt;) -&gt; <span class="kw-2">&amp;</span><span class="self">Self</span>::Output {
-        <span class="kw-2">&amp;</span><a class="self" href="#185">self</a>.slice[<a href="#185">idx</a>]
+    <span class="kw">type </span>Output = [u8];
+    <span class="kw">fn </span>index(<span class="kw-2">&amp;</span><span class="self">self</span>, idx: RangeFrom&lt;usize&gt;) -&gt; <span class="kw-2">&amp;</span><span class="self">Self</span>::Output {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.slice[idx]
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;input</span>, Endian&gt; <a href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.Deref.html">Deref</a> <span class="kw">for </span>EndianSlice&lt;<span class="lifetime">&#39;input</span>, Endian&gt;
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;input</span>, Endian&gt; Deref <span class="kw">for </span>EndianSlice&lt;<span class="lifetime">&#39;input</span>, Endian&gt;
 <span class="kw">where
-    </span>Endian: <a href="../endianity.rs.html#7">Endianity</a>,
+    </span>Endian: Endianity,
 {
-    <span class="kw">type </span>Target = [<a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>];
+    <span class="kw">type </span>Target = [u8];
     <span class="kw">fn </span>deref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="self">Self</span>::Target {
-        <a class="self" href="#195">self</a>.slice
+        <span class="self">self</span>.slice
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;input</span>, Endian&gt; Into&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;input </span>[<a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>]&gt; <span class="kw">for </span>EndianSlice&lt;<span class="lifetime">&#39;input</span>, Endian&gt;
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;input</span>, Endian&gt; From&lt;EndianSlice&lt;<span class="lifetime">&#39;input</span>, Endian&gt;&gt; <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;input </span>[u8]
 <span class="kw">where
-    </span>Endian: <a href="../endianity.rs.html#7">Endianity</a>,
+    </span>Endian: Endianity,
 {
-    <span class="kw">fn </span>into(<span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;input </span>[<a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>] {
-        <a class="self" href="#204">self</a>.slice
+    <span class="kw">fn </span>from(endian_slice: EndianSlice&lt;<span class="lifetime">&#39;input</span>, Endian&gt;) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;input </span>[u8] {
+        endian_slice.slice
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;input</span>, Endian&gt; <a href="reader.rs.html#215">Reader</a> <span class="kw">for </span>EndianSlice&lt;<span class="lifetime">&#39;input</span>, Endian&gt;
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;input</span>, Endian&gt; Reader <span class="kw">for </span>EndianSlice&lt;<span class="lifetime">&#39;input</span>, Endian&gt;
 <span class="kw">where
-    </span>Endian: <a href="../endianity.rs.html#7">Endianity</a>,
+    </span>Endian: Endianity,
 {
     <span class="kw">type </span>Endian = Endian;
-    <span class="kw">type </span>Offset = <a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>;
+    <span class="kw">type </span>Offset = usize;
 
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>endian(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Endian {
-        <a class="self" href="#217">self</a>.endian
+        <span class="self">self</span>.endian
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a> {
-        <a class="self" href="#222">self</a>.slice.len()
+    </span><span class="kw">fn </span>len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+        <span class="self">self</span>.slice.len()
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>is_empty(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/primitive.bool.html">bool</a> {
-        <a class="self" href="#227">self</a>.slice.is_empty()
+    </span><span class="kw">fn </span>is_empty(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.slice.is_empty()
     }
 
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>empty(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <a class="self" href="#232">self</a>.slice = <span class="kw-2">&amp;</span>[];
+        <span class="self">self</span>.slice = <span class="kw-2">&amp;</span>[];
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>truncate(<span class="kw-2">&amp;mut </span><span class="self">self</span>, len: <a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+    </span><span class="kw">fn </span>truncate(<span class="kw-2">&amp;mut </span><span class="self">self</span>, len: usize) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
         <span class="kw">if </span><span class="self">self</span>.slice.len() &lt; len {
-            <span class="prelude-val">Err</span>(<a href="mod.rs.html#315">Error::UnexpectedEof</a>(<a class="self" href="#237">self</a>.<a href="reader.rs.html#242">offset_id</a>()))
+            <span class="prelude-val">Err</span>(Error::UnexpectedEof(<span class="self">self</span>.offset_id()))
         } <span class="kw">else </span>{
-            <a class="self" href="#237">self</a>.slice = <span class="kw-2">&amp;</span><a class="self" href="#237">self</a>.slice[..<a href="#237">len</a>];
+            <span class="self">self</span>.slice = <span class="kw-2">&amp;</span><span class="self">self</span>.slice[..len];
             <span class="prelude-val">Ok</span>(())
         }
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>offset_from(<span class="kw-2">&amp;</span><span class="self">self</span>, base: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a> {
-        <a class="self" href="#247">self</a>.<a href="#69">offset_from</a>(<span class="kw-2">*</span><a href="#247">base</a>)
+    </span><span class="kw">fn </span>offset_from(<span class="kw-2">&amp;</span><span class="self">self</span>, base: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; usize {
+        <span class="self">self</span>.offset_from(<span class="kw-2">*</span>base)
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>offset_id(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="reader.rs.html#19">ReaderOffsetId</a> {
-        <a href="reader.rs.html#19">ReaderOffsetId</a>(<a class="self" href="#252">self</a>.slice.as_ptr() <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>)
+    </span><span class="kw">fn </span>offset_id(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; ReaderOffsetId {
+        ReaderOffsetId(<span class="self">self</span>.slice.as_ptr() <span class="kw">as </span>u64)
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>lookup_offset_id(<span class="kw-2">&amp;</span><span class="self">self</span>, id: <a href="reader.rs.html#19">ReaderOffsetId</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Offset&gt; {
-        <span class="kw">let </span>id = <a href="#257">id</a>.<span class="number">0</span>;
-        <span class="kw">let </span>self_id = <a class="self" href="#257">self</a>.slice.as_ptr() <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>;
-        <span class="kw">let </span>self_len = <a class="self" href="#257">self</a>.slice.len() <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>;
+    </span><span class="kw">fn </span>lookup_offset_id(<span class="kw-2">&amp;</span><span class="self">self</span>, id: ReaderOffsetId) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Offset&gt; {
+        <span class="kw">let </span>id = id.<span class="number">0</span>;
+        <span class="kw">let </span>self_id = <span class="self">self</span>.slice.as_ptr() <span class="kw">as </span>u64;
+        <span class="kw">let </span>self_len = <span class="self">self</span>.slice.len() <span class="kw">as </span>u64;
         <span class="kw">if </span>id &gt;= self_id &amp;&amp; id &lt;= self_id + self_len {
-            <span class="prelude-val">Some</span>((<a href="#258">id</a> - <a href="#259">self_id</a>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>)
+            <span class="prelude-val">Some</span>((id - self_id) <span class="kw">as </span>usize)
         } <span class="kw">else </span>{
             <span class="prelude-val">None
         </span>}
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>find(<span class="kw-2">&amp;</span><span class="self">self</span>, byte: <a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>&gt; {
-        <a class="self" href="#269">self</a>.<a href="#62">find</a>(<a href="#269">byte</a>)
-            .ok_or_else(|| <a href="mod.rs.html#315">Error::UnexpectedEof</a>(<a class="self" href="#269">self</a>.<a href="reader.rs.html#242">offset_id</a>()))
+    </span><span class="kw">fn </span>find(<span class="kw-2">&amp;</span><span class="self">self</span>, byte: u8) -&gt; <span class="prelude-ty">Result</span>&lt;usize&gt; {
+        <span class="self">self</span>.find(byte)
+            .ok_or_else(|| Error::UnexpectedEof(<span class="self">self</span>.offset_id()))
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>skip(<span class="kw-2">&amp;mut </span><span class="self">self</span>, len: <a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+    </span><span class="kw">fn </span>skip(<span class="kw-2">&amp;mut </span><span class="self">self</span>, len: usize) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
         <span class="kw">if </span><span class="self">self</span>.slice.len() &lt; len {
-            <span class="prelude-val">Err</span>(<a href="mod.rs.html#315">Error::UnexpectedEof</a>(<a class="self" href="#275">self</a>.<a href="reader.rs.html#242">offset_id</a>()))
+            <span class="prelude-val">Err</span>(Error::UnexpectedEof(<span class="self">self</span>.offset_id()))
         } <span class="kw">else </span>{
-            <a class="self" href="#275">self</a>.slice = <span class="kw-2">&amp;</span><a class="self" href="#275">self</a>.slice[<a href="#275">len</a>..];
+            <span class="self">self</span>.slice = <span class="kw-2">&amp;</span><span class="self">self</span>.slice[len..];
             <span class="prelude-val">Ok</span>(())
         }
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>split(<span class="kw-2">&amp;mut </span><span class="self">self</span>, len: <a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
+    </span><span class="kw">fn </span>split(<span class="kw-2">&amp;mut </span><span class="self">self</span>, len: usize) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
         <span class="kw">let </span>slice = <span class="self">self</span>.read_slice(len)<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(EndianSlice::new(<a href="#286">slice</a>, <a class="self" href="#285">self</a>.endian))
+        <span class="prelude-val">Ok</span>(EndianSlice::new(slice, <span class="self">self</span>.endian))
     }
 
     <span class="attr">#[cfg(not(feature = <span class="string">&quot;read&quot;</span>))]
@@ -644,29 +644,29 @@
 
     <span class="attr">#[cfg(feature = <span class="string">&quot;read&quot;</span>)]
     #[inline]
-    </span><span class="kw">fn </span>to_slice(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;Cow&lt;[<a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>]&gt;&gt; {
-        <span class="prelude-val">Ok</span>(<a class="self" href="#297">self</a>.slice.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
+    </span><span class="kw">fn </span>to_slice(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;Cow&lt;[u8]&gt;&gt; {
+        <span class="prelude-val">Ok</span>(<span class="self">self</span>.slice.into())
     }
 
     <span class="attr">#[cfg(feature = <span class="string">&quot;read&quot;</span>)]
     #[inline]
-    </span><span class="kw">fn </span>to_string(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;Cow&lt;<a href="https://doc.rust-lang.org/nightly/core/primitive.str.html">str</a>&gt;&gt; {
-        <span class="kw">match </span><a href="https://doc.rust-lang.org/nightly/core/str/converts/fn.from_utf8.html">str::from_utf8</a>(<a class="self" href="#303">self</a>.slice) {
-            <span class="prelude-val">Ok</span>(s) =&gt; <span class="prelude-val">Ok</span>(<a href="#305">s</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
-            <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(<a href="mod.rs.html#337">Error::BadUtf8</a>),
+    </span><span class="kw">fn </span>to_string(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;Cow&lt;str&gt;&gt; {
+        <span class="kw">match </span>str::from_utf8(<span class="self">self</span>.slice) {
+            <span class="prelude-val">Ok</span>(s) =&gt; <span class="prelude-val">Ok</span>(s.into()),
+            <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(Error::BadUtf8),
         }
     }
 
     <span class="attr">#[cfg(feature = <span class="string">&quot;read&quot;</span>)]
     #[inline]
-    </span><span class="kw">fn </span>to_string_lossy(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;Cow&lt;<a href="https://doc.rust-lang.org/nightly/core/primitive.str.html">str</a>&gt;&gt; {
-        <span class="prelude-val">Ok</span>(String::from_utf8_lossy(<a class="self" href="#312">self</a>.slice))
+    </span><span class="kw">fn </span>to_string_lossy(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;Cow&lt;str&gt;&gt; {
+        <span class="prelude-val">Ok</span>(String::from_utf8_lossy(<span class="self">self</span>.slice))
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>read_slice(<span class="kw-2">&amp;mut </span><span class="self">self</span>, buf: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+    </span><span class="kw">fn </span>read_slice(<span class="kw-2">&amp;mut </span><span class="self">self</span>, buf: <span class="kw-2">&amp;mut </span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
         <span class="kw">let </span>slice = <span class="self">self</span>.read_slice(buf.len())<span class="question-mark">?</span>;
-        <a href="#317">buf</a>.copy_from_slice(<a href="#318">slice</a>);
+        buf.copy_from_slice(slice);
         <span class="prelude-val">Ok</span>(())
     }
 }
@@ -699,4 +699,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="gimli" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="gimli" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

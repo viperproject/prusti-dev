@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/toml-0.5.9/src/tokens.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>tokens.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../toml/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/toml-0.5.10/src/tokens.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>tokens.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../toml/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -738,34 +738,36 @@
 <a href="#738" id="738">738</a>
 <a href="#739" id="739">739</a>
 <a href="#740" id="740">740</a>
-</pre><pre class="rust"><code><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/borrow/enum.Cow.html">std::borrow::Cow</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/char/index.html">std::char</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/str/index.html">std::str</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/string/index.html">std::string</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">std::string::String</a> <span class="kw">as </span>StdString;
+<a href="#741" id="741">741</a>
+<a href="#742" id="742">742</a>
+</pre><pre class="rust"><code><span class="kw">use </span>std::borrow::Cow;
+<span class="kw">use </span>std::char;
+<span class="kw">use </span>std::str;
+<span class="kw">use </span>std::string;
+<span class="kw">use </span>std::string::String <span class="kw">as </span>StdString;
 
-<span class="kw">use </span><a href="#25"><span class="self">self</span>::Token</a>::<span class="kw-2">*</span>;
+<span class="kw">use </span><span class="self">self</span>::Token::<span class="kw-2">*</span>;
 
 <span class="doccomment">/// A span, designating a range of bytes where a token is located.
 </span><span class="attr">#[derive(Eq, PartialEq, Debug, Clone, Copy)]
 </span><span class="kw">pub struct </span>Span {
     <span class="doccomment">/// The start of the range.
-    </span><span class="kw">pub </span>start: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+    </span><span class="kw">pub </span>start: usize,
     <span class="doccomment">/// The end of the range (exclusive).
-    </span><span class="kw">pub </span>end: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+    </span><span class="kw">pub </span>end: usize,
 }
 
-<span class="kw">impl </span>From&lt;<a href="#11">Span</a>&gt; <span class="kw">for </span>(<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
-    <span class="kw">fn </span>from(<a href="#11">Span</a> { start, end }: <a href="#11">Span</a>) -&gt; (<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
-        (<a href="#19">start</a>, <a href="#19">end</a>)
+<span class="kw">impl </span>From&lt;Span&gt; <span class="kw">for </span>(usize, usize) {
+    <span class="kw">fn </span>from(Span { start, end }: Span) -&gt; (usize, usize) {
+        (start, end)
     }
 }
 
 <span class="attr">#[derive(Eq, PartialEq, Debug)]
 </span><span class="kw">pub enum </span>Token&lt;<span class="lifetime">&#39;a</span>&gt; {
-    Whitespace(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>),
+    Whitespace(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>str),
     Newline,
-    Comment(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>),
+    Comment(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>str),
 
     Equals,
     Period,
@@ -777,35 +779,35 @@
     LeftBracket,
     RightBracket,
 
-    Keylike(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>),
+    Keylike(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>str),
     String {
-        src: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>,
-        val: Cow&lt;<span class="lifetime">&#39;a</span>, <a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt;,
-        multiline: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
+        src: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>str,
+        val: Cow&lt;<span class="lifetime">&#39;a</span>, str&gt;,
+        multiline: bool,
     },
 }
 
 <span class="attr">#[derive(Eq, PartialEq, Debug)]
 </span><span class="kw">pub enum </span>Error {
-    InvalidCharInString(<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>),
-    InvalidEscape(<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>),
-    InvalidHexEscape(<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>),
-    InvalidEscapeValue(<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>),
-    NewlineInString(<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>),
-    Unexpected(<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>),
-    UnterminatedString(<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>),
-    NewlineInTableKey(<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>),
-    MultilineStringKey(<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>),
+    InvalidCharInString(usize, char),
+    InvalidEscape(usize, char),
+    InvalidHexEscape(usize, char),
+    InvalidEscapeValue(usize, u32),
+    NewlineInString(usize),
+    Unexpected(usize, char),
+    UnterminatedString(usize),
+    NewlineInTableKey(usize),
+    MultilineStringKey(usize),
     Wanted {
-        at: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-        expected: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>,
-        found: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>,
+        at: usize,
+        expected: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
+        found: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
     },
 }
 
 <span class="attr">#[derive(Clone)]
 </span><span class="kw">pub struct </span>Tokenizer&lt;<span class="lifetime">&#39;a</span>&gt; {
-    input: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>,
+    input: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>str,
     chars: CrlfFold&lt;<span class="lifetime">&#39;a</span>&gt;,
 }
 
@@ -816,320 +818,321 @@
 
 <span class="attr">#[derive(Debug)]
 </span><span class="kw">enum </span>MaybeString {
-    NotEscaped(<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>),
-    Owned(<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">string::String</a>),
+    NotEscaped(usize),
+    Owned(string::String),
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; Tokenizer&lt;<span class="lifetime">&#39;a</span>&gt; {
-    <span class="kw">pub fn </span>new(input: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; Tokenizer&lt;<span class="lifetime">&#39;a</span>&gt; {
-        <span class="kw">let </span><span class="kw-2">mut </span>t = <a href="#67">Tokenizer</a> {
-            <a href="#84">input</a>,
-            chars: <a href="#73">CrlfFold</a> {
-                chars: <a href="#84">input</a>.char_indices(),
+    <span class="kw">pub fn </span>new(input: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>str) -&gt; Tokenizer&lt;<span class="lifetime">&#39;a</span>&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>t = Tokenizer {
+            input,
+            chars: CrlfFold {
+                chars: input.char_indices(),
             },
         };
         <span class="comment">// Eat utf-8 BOM
-        </span><a href="#85">t</a>.<a href="#250">eatc</a>(<span class="string">&#39;\u{feff}&#39;</span>);
-        <a href="#85">t</a>
+        </span>t.eatc(<span class="string">&#39;\u{feff}&#39;</span>);
+        t
     }
 
-    <span class="kw">pub fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;(<a href="#11">Span</a>, Token&lt;<span class="lifetime">&#39;a</span>&gt;)&gt;, <a href="#49">Error</a>&gt; {
-        <span class="kw">let </span>(start, token) = <span class="kw">match </span><a class="self" href="#96">self</a>.<a href="#479">one</a>() {
-            <span class="prelude-val">Some</span>((start, <span class="string">&#39;\n&#39;</span>)) =&gt; (<a href="#98">start</a>, <a href="#27">Newline</a>),
-            <span class="prelude-val">Some</span>((start, <span class="string">&#39; &#39;</span>)) =&gt; (<a href="#99">start</a>, <a class="self" href="#96">self</a>.<a href="#272">whitespace_token</a>(<a href="#99">start</a>)),
-            <span class="prelude-val">Some</span>((start, <span class="string">&#39;\t&#39;</span>)) =&gt; (<a href="#100">start</a>, <a class="self" href="#96">self</a>.<a href="#272">whitespace_token</a>(<a href="#100">start</a>)),
-            <span class="prelude-val">Some</span>((start, <span class="string">&#39;#&#39;</span>)) =&gt; (<a href="#101">start</a>, <a class="self" href="#96">self</a>.<a href="#279">comment_token</a>(<a href="#101">start</a>)),
-            <span class="prelude-val">Some</span>((start, <span class="string">&#39;=&#39;</span>)) =&gt; (<a href="#102">start</a>, <a href="#30">Equals</a>),
-            <span class="prelude-val">Some</span>((start, <span class="string">&#39;.&#39;</span>)) =&gt; (<a href="#103">start</a>, <a href="#31">Period</a>),
-            <span class="prelude-val">Some</span>((start, <span class="string">&#39;,&#39;</span>)) =&gt; (<a href="#104">start</a>, <a href="#32">Comma</a>),
-            <span class="prelude-val">Some</span>((start, <span class="string">&#39;:&#39;</span>)) =&gt; (<a href="#105">start</a>, <a href="#33">Colon</a>),
-            <span class="prelude-val">Some</span>((start, <span class="string">&#39;+&#39;</span>)) =&gt; (<a href="#106">start</a>, <a href="#34">Plus</a>),
-            <span class="prelude-val">Some</span>((start, <span class="string">&#39;{&#39;</span>)) =&gt; (<a href="#107">start</a>, <a href="#35">LeftBrace</a>),
-            <span class="prelude-val">Some</span>((start, <span class="string">&#39;}&#39;</span>)) =&gt; (<a href="#108">start</a>, <a href="#36">RightBrace</a>),
-            <span class="prelude-val">Some</span>((start, <span class="string">&#39;[&#39;</span>)) =&gt; (<a href="#109">start</a>, <a href="#37">LeftBracket</a>),
-            <span class="prelude-val">Some</span>((start, <span class="string">&#39;]&#39;</span>)) =&gt; (<a href="#110">start</a>, <a href="#38">RightBracket</a>),
+    <span class="kw">pub fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;(Span, Token&lt;<span class="lifetime">&#39;a</span>&gt;)&gt;, Error&gt; {
+        <span class="kw">let </span>(start, token) = <span class="kw">match </span><span class="self">self</span>.one() {
+            <span class="prelude-val">Some</span>((start, <span class="string">&#39;\n&#39;</span>)) =&gt; (start, Newline),
+            <span class="prelude-val">Some</span>((start, <span class="string">&#39; &#39;</span>)) =&gt; (start, <span class="self">self</span>.whitespace_token(start)),
+            <span class="prelude-val">Some</span>((start, <span class="string">&#39;\t&#39;</span>)) =&gt; (start, <span class="self">self</span>.whitespace_token(start)),
+            <span class="prelude-val">Some</span>((start, <span class="string">&#39;#&#39;</span>)) =&gt; (start, <span class="self">self</span>.comment_token(start)),
+            <span class="prelude-val">Some</span>((start, <span class="string">&#39;=&#39;</span>)) =&gt; (start, Equals),
+            <span class="prelude-val">Some</span>((start, <span class="string">&#39;.&#39;</span>)) =&gt; (start, Period),
+            <span class="prelude-val">Some</span>((start, <span class="string">&#39;,&#39;</span>)) =&gt; (start, Comma),
+            <span class="prelude-val">Some</span>((start, <span class="string">&#39;:&#39;</span>)) =&gt; (start, Colon),
+            <span class="prelude-val">Some</span>((start, <span class="string">&#39;+&#39;</span>)) =&gt; (start, Plus),
+            <span class="prelude-val">Some</span>((start, <span class="string">&#39;{&#39;</span>)) =&gt; (start, LeftBrace),
+            <span class="prelude-val">Some</span>((start, <span class="string">&#39;}&#39;</span>)) =&gt; (start, RightBrace),
+            <span class="prelude-val">Some</span>((start, <span class="string">&#39;[&#39;</span>)) =&gt; (start, LeftBracket),
+            <span class="prelude-val">Some</span>((start, <span class="string">&#39;]&#39;</span>)) =&gt; (start, RightBracket),
             <span class="prelude-val">Some</span>((start, <span class="string">&#39;\&#39;&#39;</span>)) =&gt; {
-                <span class="kw">return </span><span class="self"><a href="#96">self</a>
-                    </span>.<a href="#365">literal_string</a>(<a href="#111">start</a>)
-                    .map(|t| <span class="prelude-val">Some</span>((<a class="self" href="#96">self</a>.<a href="#465">step_span</a>(<a href="#111">start</a>), <a href="#114">t</a>)))
+                <span class="kw">return </span><span class="self">self
+                    </span>.literal_string(start)
+                    .map(|t| <span class="prelude-val">Some</span>((<span class="self">self</span>.step_span(start), t)))
             }
             <span class="prelude-val">Some</span>((start, <span class="string">&#39;&quot;&#39;</span>)) =&gt; {
-                <span class="kw">return </span><span class="self"><a href="#96">self</a>
-                    </span>.<a href="#376">basic_string</a>(<a href="#116">start</a>)
-                    .map(|t| <span class="prelude-val">Some</span>((<a class="self" href="#96">self</a>.<a href="#465">step_span</a>(<a href="#116">start</a>), <a href="#119">t</a>)))
+                <span class="kw">return </span><span class="self">self
+                    </span>.basic_string(start)
+                    .map(|t| <span class="prelude-val">Some</span>((<span class="self">self</span>.step_span(start), t)))
             }
-            <span class="prelude-val">Some</span>((start, ch)) <span class="kw">if </span><a href="#526">is_keylike</a>(<a href="#121">ch</a>) =&gt; (<a href="#121">start</a>, <a class="self" href="#96">self</a>.<a href="#446">keylike</a>(<a href="#121">start</a>)),
+            <span class="prelude-val">Some</span>((start, ch)) <span class="kw">if </span>is_keylike(ch) =&gt; (start, <span class="self">self</span>.keylike(start)),
 
-            <span class="prelude-val">Some</span>((start, ch)) =&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="#55">Error::Unexpected</a>(<a href="#123">start</a>, <a href="#123">ch</a>)),
+            <span class="prelude-val">Some</span>((start, ch)) =&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(Error::Unexpected(start, ch)),
             <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>),
         };
 
-        <span class="kw">let </span>span = <a class="self" href="#96">self</a>.<a href="#465">step_span</a>(<a href="#97">start</a>);
-        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>((<a href="#127">span</a>, <a href="#97">token</a>)))
+        <span class="kw">let </span>span = <span class="self">self</span>.step_span(start);
+        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>((span, token)))
     }
 
-    <span class="kw">pub fn </span>peek(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;(<a href="#11">Span</a>, Token&lt;<span class="lifetime">&#39;a</span>&gt;)&gt;, <a href="#49">Error</a>&gt; {
-        <a class="self" href="#131">self</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>().<a href="#96">next</a>()
+    <span class="kw">pub fn </span>peek(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;(Span, Token&lt;<span class="lifetime">&#39;a</span>&gt;)&gt;, Error&gt; {
+        <span class="self">self</span>.clone().next()
     }
 
-    <span class="kw">pub fn </span>eat(<span class="kw-2">&amp;mut </span><span class="self">self</span>, expected: Token&lt;<span class="lifetime">&#39;a</span>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>, <a href="#49">Error</a>&gt; {
-        <a class="self" href="#135">self</a>.<a href="#140">eat_spanned</a>(<a href="#135">expected</a>).map(|s| <a href="#136">s</a>.is_some())
+    <span class="kw">pub fn </span>eat(<span class="kw-2">&amp;mut </span><span class="self">self</span>, expected: Token&lt;<span class="lifetime">&#39;a</span>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;bool, Error&gt; {
+        <span class="self">self</span>.eat_spanned(expected).map(|s| s.is_some())
     }
 
     <span class="doccomment">/// Eat a value, returning it&#39;s span if it was consumed.
-    </span><span class="kw">pub fn </span>eat_spanned(<span class="kw-2">&amp;mut </span><span class="self">self</span>, expected: Token&lt;<span class="lifetime">&#39;a</span>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<a href="#11">Span</a>&gt;, <a href="#49">Error</a>&gt; {
+    </span><span class="kw">pub fn </span>eat_spanned(<span class="kw-2">&amp;mut </span><span class="self">self</span>, expected: Token&lt;<span class="lifetime">&#39;a</span>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;Span&gt;, Error&gt; {
         <span class="kw">let </span>span = <span class="kw">match </span><span class="self">self</span>.peek()<span class="question-mark">? </span>{
-            <span class="prelude-val">Some</span>((span, <span class="kw-2">ref </span>found)) <span class="kw">if </span><a href="#140">expected</a> == <span class="kw-2">*</span><a href="#142">found</a> =&gt; <a href="#142">span</a>,
+            <span class="prelude-val">Some</span>((span, <span class="kw-2">ref </span>found)) <span class="kw">if </span>expected == <span class="kw-2">*</span>found =&gt; span,
             <span class="prelude-val">Some</span>(<span class="kw">_</span>) =&gt; <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>),
             <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>),
         };
 
-        <a href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>(<a class="self" href="#140">self</a>.<a href="#96">next</a>());
-        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<a href="#141">span</a>))
+        drop(<span class="self">self</span>.next());
+        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(span))
     }
 
-    <span class="kw">pub fn </span>expect(<span class="kw-2">&amp;mut </span><span class="self">self</span>, expected: Token&lt;<span class="lifetime">&#39;a</span>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="#49">Error</a>&gt; {
+    <span class="kw">pub fn </span>expect(<span class="kw-2">&amp;mut </span><span class="self">self</span>, expected: Token&lt;<span class="lifetime">&#39;a</span>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
         <span class="comment">// ignore span
         </span><span class="kw">let _ </span>= <span class="self">self</span>.expect_spanned(expected)<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(())
     }
 
     <span class="doccomment">/// Expect the given token returning its span.
-    </span><span class="kw">pub fn </span>expect_spanned(<span class="kw-2">&amp;mut </span><span class="self">self</span>, expected: Token&lt;<span class="lifetime">&#39;a</span>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#11">Span</a>, <a href="#49">Error</a>&gt; {
-        <span class="kw">let </span>current = <a class="self" href="#158">self</a>.<a href="#260">current</a>();
+    </span><span class="kw">pub fn </span>expect_spanned(<span class="kw-2">&amp;mut </span><span class="self">self</span>, expected: Token&lt;<span class="lifetime">&#39;a</span>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;Span, Error&gt; {
+        <span class="kw">let </span>current = <span class="self">self</span>.current();
         <span class="kw">match </span><span class="self">self</span>.next()<span class="question-mark">? </span>{
             <span class="prelude-val">Some</span>((span, found)) =&gt; {
                 <span class="kw">if </span>expected == found {
-                    <span class="prelude-val">Ok</span>(<a href="#161">span</a>)
+                    <span class="prelude-val">Ok</span>(span)
                 } <span class="kw">else </span>{
-                    <span class="prelude-val">Err</span>(<a href="#59">Error::Wanted</a> {
-                        at: <a href="#159">current</a>,
-                        expected: <a href="#158">expected</a>.<a href="#535">describe</a>(),
-                        found: <a href="#161">found</a>.<a href="#535">describe</a>(),
+                    <span class="prelude-val">Err</span>(Error::Wanted {
+                        at: current,
+                        expected: expected.describe(),
+                        found: found.describe(),
                     })
                 }
             }
-            <span class="prelude-val">None </span>=&gt; <span class="prelude-val">Err</span>(<a href="#59">Error::Wanted</a> {
-                at: <a class="self" href="#158">self</a>.input.len(),
-                expected: <a href="#158">expected</a>.<a href="#535">describe</a>(),
+            <span class="prelude-val">None </span>=&gt; <span class="prelude-val">Err</span>(Error::Wanted {
+                at: <span class="self">self</span>.input.len(),
+                expected: expected.describe(),
                 found: <span class="string">&quot;eof&quot;</span>,
             }),
         }
     }
 
-    <span class="kw">pub fn </span>table_key(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(<a href="#11">Span</a>, Cow&lt;<span class="lifetime">&#39;a</span>, <a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt;), <a href="#49">Error</a>&gt; {
-        <span class="kw">let </span>current = <a class="self" href="#180">self</a>.<a href="#260">current</a>();
+    <span class="kw">pub fn </span>table_key(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(Span, Cow&lt;<span class="lifetime">&#39;a</span>, str&gt;), Error&gt; {
+        <span class="kw">let </span>current = <span class="self">self</span>.current();
         <span class="kw">match </span><span class="self">self</span>.next()<span class="question-mark">? </span>{
-            <span class="prelude-val">Some</span>((span, <a href="#40">Token::Keylike</a>(k))) =&gt; <span class="prelude-val">Ok</span>((<a href="#183">span</a>, <a href="#183">k</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())),
+            <span class="prelude-val">Some</span>((span, Token::Keylike(k))) =&gt; <span class="prelude-val">Ok</span>((span, k.into())),
             <span class="prelude-val">Some</span>((
                 span,
-                <a href="#41">Token::String</a> {
+                Token::String {
                     src,
                     val,
                     multiline,
                 },
             )) =&gt; {
-                <span class="kw">let </span>offset = <a class="self" href="#180">self</a>.<a href="#456">substr_offset</a>(<a href="#187">src</a>);
+                <span class="kw">let </span>offset = <span class="self">self</span>.substr_offset(src);
                 <span class="kw">if </span>multiline {
-                    <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="#58">Error::MultilineStringKey</a>(<a href="#192">offset</a>));
+                    <span class="kw">return </span><span class="prelude-val">Err</span>(Error::MultilineStringKey(offset));
                 }
-                <span class="kw">match </span><a href="#187">src</a>.find(<span class="string">&#39;\n&#39;</span>) {
-                    <span class="prelude-val">None </span>=&gt; <span class="prelude-val">Ok</span>((<a href="#185">span</a>, <a href="#188">val</a>)),
-                    <span class="prelude-val">Some</span>(i) =&gt; <span class="prelude-val">Err</span>(<a href="#57">Error::NewlineInTableKey</a>(<a href="#192">offset</a> + <a href="#198">i</a>)),
+                <span class="kw">match </span>src.find(<span class="string">&#39;\n&#39;</span>) {
+                    <span class="prelude-val">None </span>=&gt; <span class="prelude-val">Ok</span>((span, val)),
+                    <span class="prelude-val">Some</span>(i) =&gt; <span class="prelude-val">Err</span>(Error::NewlineInTableKey(offset + i)),
                 }
             }
-            <span class="prelude-val">Some</span>((<span class="kw">_</span>, other)) =&gt; <span class="prelude-val">Err</span>(<a href="#59">Error::Wanted</a> {
-                at: <a href="#181">current</a>,
+            <span class="prelude-val">Some</span>((<span class="kw">_</span>, other)) =&gt; <span class="prelude-val">Err</span>(Error::Wanted {
+                at: current,
                 expected: <span class="string">&quot;a table key&quot;</span>,
-                found: <a href="#201">other</a>.<a href="#535">describe</a>(),
+                found: other.describe(),
             }),
-            <span class="prelude-val">None </span>=&gt; <span class="prelude-val">Err</span>(<a href="#59">Error::Wanted</a> {
-                at: <a class="self" href="#180">self</a>.input.len(),
+            <span class="prelude-val">None </span>=&gt; <span class="prelude-val">Err</span>(Error::Wanted {
+                at: <span class="self">self</span>.input.len(),
                 expected: <span class="string">&quot;a table key&quot;</span>,
                 found: <span class="string">&quot;eof&quot;</span>,
             }),
         }
     }
 
-    <span class="kw">pub fn </span>eat_whitespace(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="#49">Error</a>&gt; {
+    <span class="kw">pub fn </span>eat_whitespace(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
         <span class="kw">while </span><span class="self">self</span>.eatc(<span class="string">&#39; &#39;</span>) || <span class="self">self</span>.eatc(<span class="string">&#39;\t&#39;</span>) {
             <span class="comment">// ...
         </span>}
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="kw">pub fn </span>eat_comment(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>, <a href="#49">Error</a>&gt; {
+    <span class="kw">pub fn </span>eat_comment(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;bool, Error&gt; {
         <span class="kw">if </span>!<span class="self">self</span>.eatc(<span class="string">&#39;#&#39;</span>) {
             <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="bool-val">false</span>);
         }
-        <a href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>(<a class="self" href="#221">self</a>.<a href="#279">comment_token</a>(<span class="number">0</span>));
-        <a class="self" href="#221">self</a>.<a href="#229">eat_newline_or_eof</a>().map(|()| <span class="bool-val">true</span>)
+        drop(<span class="self">self</span>.comment_token(<span class="number">0</span>));
+        <span class="self">self</span>.eat_newline_or_eof().map(|()| <span class="bool-val">true</span>)
     }
 
-    <span class="kw">pub fn </span>eat_newline_or_eof(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="#49">Error</a>&gt; {
-        <span class="kw">let </span>current = <a class="self" href="#229">self</a>.<a href="#260">current</a>();
+    <span class="kw">pub fn </span>eat_newline_or_eof(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
+        <span class="kw">let </span>current = <span class="self">self</span>.current();
         <span class="kw">match </span><span class="self">self</span>.next()<span class="question-mark">? </span>{
-            <span class="prelude-val">None </span>| <span class="prelude-val">Some</span>((<span class="kw">_</span>, <a href="#27">Token::Newline</a>)) =&gt; <span class="prelude-val">Ok</span>(()),
-            <span class="prelude-val">Some</span>((<span class="kw">_</span>, other)) =&gt; <span class="prelude-val">Err</span>(<a href="#59">Error::Wanted</a> {
-                at: <a href="#230">current</a>,
+            <span class="prelude-val">None </span>| <span class="prelude-val">Some</span>((<span class="kw">_</span>, Token::Newline)) =&gt; <span class="prelude-val">Ok</span>(()),
+            <span class="prelude-val">Some</span>((<span class="kw">_</span>, other)) =&gt; <span class="prelude-val">Err</span>(Error::Wanted {
+                at: current,
                 expected: <span class="string">&quot;newline&quot;</span>,
-                found: <a href="#233">other</a>.<a href="#535">describe</a>(),
+                found: other.describe(),
             }),
         }
     }
 
     <span class="kw">pub fn </span>skip_to_newline(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="kw">loop </span>{
-            <span class="kw">match </span><a class="self" href="#241">self</a>.<a href="#479">one</a>() {
+            <span class="kw">match </span><span class="self">self</span>.one() {
                 <span class="prelude-val">Some</span>((<span class="kw">_</span>, <span class="string">&#39;\n&#39;</span>)) | <span class="prelude-val">None </span>=&gt; <span class="kw">break</span>,
                 <span class="kw">_ </span>=&gt; {}
             }
         }
     }
 
-    <span class="kw">fn </span>eatc(<span class="kw-2">&amp;mut </span><span class="self">self</span>, ch: <a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">match </span><a class="self" href="#250">self</a>.chars.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>() {
-            <span class="prelude-val">Some</span>((<span class="kw">_</span>, ch2)) <span class="kw">if </span><a href="#250">ch</a> == <a href="#252">ch2</a> =&gt; {
-                <a class="self" href="#250">self</a>.<a href="#479">one</a>();
+    <span class="kw">fn </span>eatc(<span class="kw-2">&amp;mut </span><span class="self">self</span>, ch: char) -&gt; bool {
+        <span class="kw">match </span><span class="self">self</span>.chars.clone().next() {
+            <span class="prelude-val">Some</span>((<span class="kw">_</span>, ch2)) <span class="kw">if </span>ch == ch2 =&gt; {
+                <span class="self">self</span>.one();
                 <span class="bool-val">true
             </span>}
             <span class="kw">_ </span>=&gt; <span class="bool-val">false</span>,
         }
     }
 
-    <span class="kw">pub fn </span>current(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="self" href="#260">self</a>.chars
-            .<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>()
-            .map(|i| <a href="#264">i</a>.<span class="number">0</span>)
-            .unwrap_or_else(|| <a class="self" href="#260">self</a>.input.len())
+    <span class="kw">pub fn </span>current(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; usize {
+        <span class="self">self</span>.chars
+            .clone()
+            .next()
+            .map(|i| i.<span class="number">0</span>)
+            .unwrap_or_else(|| <span class="self">self</span>.input.len())
     }
 
-    <span class="kw">pub fn </span>input(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> {
-        <a class="self" href="#268">self</a>.input
+    <span class="kw">pub fn </span>input(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>str {
+        <span class="self">self</span>.input
     }
 
-    <span class="kw">fn </span>whitespace_token(<span class="kw-2">&amp;mut </span><span class="self">self</span>, start: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; Token&lt;<span class="lifetime">&#39;a</span>&gt; {
+    <span class="kw">fn </span>whitespace_token(<span class="kw-2">&amp;mut </span><span class="self">self</span>, start: usize) -&gt; Token&lt;<span class="lifetime">&#39;a</span>&gt; {
         <span class="kw">while </span><span class="self">self</span>.eatc(<span class="string">&#39; &#39;</span>) || <span class="self">self</span>.eatc(<span class="string">&#39;\t&#39;</span>) {
             <span class="comment">// ...
         </span>}
-        <a href="#26">Whitespace</a>(<span class="kw-2">&amp;</span><a class="self" href="#272">self</a>.input[<a href="#272">start</a>..<a class="self" href="#272">self</a>.<a href="#260">current</a>()])
+        Whitespace(<span class="kw-2">&amp;</span><span class="self">self</span>.input[start..<span class="self">self</span>.current()])
     }
 
-    <span class="kw">fn </span>comment_token(<span class="kw-2">&amp;mut </span><span class="self">self</span>, start: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; Token&lt;<span class="lifetime">&#39;a</span>&gt; {
+    <span class="kw">fn </span>comment_token(<span class="kw-2">&amp;mut </span><span class="self">self</span>, start: usize) -&gt; Token&lt;<span class="lifetime">&#39;a</span>&gt; {
         <span class="kw">while let </span><span class="prelude-val">Some</span>((<span class="kw">_</span>, ch)) = <span class="self">self</span>.chars.clone().next() {
-            <span class="kw">if </span>ch != <span class="string">&#39;\t&#39; </span>&amp;&amp; (ch &lt; <span class="string">&#39;\u{20}&#39; </span>|| ch &gt; <span class="string">&#39;\u{10ffff}&#39;</span>) {
+            <span class="kw">if </span>ch != <span class="string">&#39;\t&#39; </span>&amp;&amp; !(<span class="string">&#39;\u{20}&#39;</span>..=<span class="string">&#39;\u{10ffff}&#39;</span>).contains(<span class="kw-2">&amp;</span>ch) {
                 <span class="kw">break</span>;
             }
             <span class="self">self</span>.one();
         }
-        <a href="#28">Comment</a>(<span class="kw-2">&amp;</span><a class="self" href="#279">self</a>.input[<a href="#279">start</a>..<a class="self" href="#279">self</a>.<a href="#260">current</a>()])
+        Comment(<span class="kw-2">&amp;</span><span class="self">self</span>.input[start..<span class="self">self</span>.current()])
     }
 
-    <span class="kw">fn </span>read_string(
+    <span class="attr">#[allow(clippy::type_complexity)]
+    </span><span class="kw">fn </span>read_string(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        delim: <a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>,
-        start: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+        delim: char,
+        start: usize,
         new_ch: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>FnMut(
             <span class="kw-2">&amp;mut </span>Tokenizer&lt;<span class="lifetime">&#39;_</span>&gt;,
-            <span class="kw-2">&amp;mut </span><a href="#78">MaybeString</a>,
-            <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-            <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-            <a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>,
-        ) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="#49">Error</a>&gt;,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;Token&lt;<span class="lifetime">&#39;a</span>&gt;, <a href="#49">Error</a>&gt; {
+            <span class="kw-2">&amp;mut </span>MaybeString,
+            bool,
+            usize,
+            char,
+        ) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt;,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;Token&lt;<span class="lifetime">&#39;a</span>&gt;, Error&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>multiline = <span class="bool-val">false</span>;
         <span class="kw">if </span><span class="self">self</span>.eatc(delim) {
             <span class="kw">if </span><span class="self">self</span>.eatc(delim) {
-                <a href="#301">multiline</a> = <span class="bool-val">true</span>;
+                multiline = <span class="bool-val">true</span>;
             } <span class="kw">else </span>{
-                <span class="kw">return </span><span class="prelude-val">Ok</span>(<a href="#41">String</a> {
-                    src: <span class="kw-2">&amp;</span><a class="self" href="#290">self</a>.input[<a href="#292">start</a>..<a href="#292">start</a> + <span class="number">2</span>],
+                <span class="kw">return </span><span class="prelude-val">Ok</span>(String {
+                    src: <span class="kw-2">&amp;</span><span class="self">self</span>.input[start..start + <span class="number">2</span>],
                     val: Cow::Borrowed(<span class="string">&quot;&quot;</span>),
                     multiline: <span class="bool-val">false</span>,
                 });
             }
         }
-        <span class="kw">let </span><span class="kw-2">mut </span>val = <a href="#79">MaybeString::NotEscaped</a>(<a class="self" href="#290">self</a>.<a href="#260">current</a>());
+        <span class="kw">let </span><span class="kw-2">mut </span>val = MaybeString::NotEscaped(<span class="self">self</span>.current());
         <span class="kw">let </span><span class="kw-2">mut </span>n = <span class="number">0</span>;
         <span class="lifetime">&#39;outer</span>: <span class="kw">loop </span>{
-            <a href="#314">n</a> += <span class="number">1</span>;
-            <span class="kw">match </span><a class="self" href="#290">self</a>.<a href="#479">one</a>() {
+            n += <span class="number">1</span>;
+            <span class="kw">match </span><span class="self">self</span>.one() {
                 <span class="prelude-val">Some</span>((i, <span class="string">&#39;\n&#39;</span>)) =&gt; {
                     <span class="kw">if </span>multiline {
                         <span class="kw">if </span><span class="self">self</span>.input.as_bytes()[i] == <span class="string">b&#39;\r&#39; </span>{
-                            <a href="#313">val</a>.<a href="#509">to_owned</a>(<span class="kw-2">&amp;</span><a class="self" href="#290">self</a>.input[..<a href="#318">i</a>]);
+                            val.to_owned(<span class="kw-2">&amp;</span><span class="self">self</span>.input[..i]);
                         }
                         <span class="kw">if </span>n == <span class="number">1 </span>{
-                            <a href="#313">val</a> = <a href="#79">MaybeString::NotEscaped</a>(<a class="self" href="#290">self</a>.<a href="#260">current</a>());
+                            val = MaybeString::NotEscaped(<span class="self">self</span>.current());
                         } <span class="kw">else </span>{
-                            <a href="#313">val</a>.<a href="#502">push</a>(<span class="string">&#39;\n&#39;</span>);
+                            val.push(<span class="string">&#39;\n&#39;</span>);
                         }
                         <span class="kw">continue</span>;
                     } <span class="kw">else </span>{
-                        <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="#54">Error::NewlineInString</a>(<a href="#318">i</a>));
+                        <span class="kw">return </span><span class="prelude-val">Err</span>(Error::NewlineInString(i));
                     }
                 }
-                <span class="prelude-val">Some</span>((<span class="kw-2">mut </span>i, ch)) <span class="kw">if </span><a href="#333">ch</a> == <a href="#291">delim</a> =&gt; {
+                <span class="prelude-val">Some</span>((<span class="kw-2">mut </span>i, ch)) <span class="kw">if </span>ch == delim =&gt; {
                     <span class="kw">if </span>multiline {
                         <span class="kw">if </span>!<span class="self">self</span>.eatc(delim) {
-                            <a href="#313">val</a>.<a href="#502">push</a>(<a href="#291">delim</a>);
+                            val.push(delim);
                             <span class="kw">continue </span><span class="lifetime">&#39;outer</span>;
                         }
                         <span class="kw">if </span>!<span class="self">self</span>.eatc(delim) {
-                            <a href="#313">val</a>.<a href="#502">push</a>(<a href="#291">delim</a>);
-                            <a href="#313">val</a>.<a href="#502">push</a>(<a href="#291">delim</a>);
+                            val.push(delim);
+                            val.push(delim);
                             <span class="kw">continue </span><span class="lifetime">&#39;outer</span>;
                         }
                         <span class="kw">if </span><span class="self">self</span>.eatc(delim) {
-                            <a href="#313">val</a>.<a href="#502">push</a>(<a href="#291">delim</a>);
-                            <a href="#333">i</a> += <span class="number">1</span>;
+                            val.push(delim);
+                            i += <span class="number">1</span>;
                         }
                         <span class="kw">if </span><span class="self">self</span>.eatc(delim) {
-                            <a href="#313">val</a>.<a href="#502">push</a>(<a href="#291">delim</a>);
-                            <a href="#333">i</a> += <span class="number">1</span>;
+                            val.push(delim);
+                            i += <span class="number">1</span>;
                         }
                     }
-                    <span class="kw">return </span><span class="prelude-val">Ok</span>(<a href="#41">String</a> {
-                        src: <span class="kw-2">&amp;</span><a class="self" href="#290">self</a>.input[<a href="#292">start</a>..<a class="self" href="#290">self</a>.<a href="#260">current</a>()],
-                        val: <a href="#313">val</a>.<a href="#518">into_cow</a>(<span class="kw-2">&amp;</span><a class="self" href="#290">self</a>.input[..<a href="#333">i</a>]),
-                        <a href="#301">multiline</a>,
+                    <span class="kw">return </span><span class="prelude-val">Ok</span>(String {
+                        src: <span class="kw-2">&amp;</span><span class="self">self</span>.input[start..<span class="self">self</span>.current()],
+                        val: val.into_cow(<span class="kw-2">&amp;</span><span class="self">self</span>.input[..i]),
+                        multiline,
                     });
                 }
                 <span class="prelude-val">Some</span>((i, c)) =&gt; new_ch(<span class="self">self</span>, <span class="kw-2">&amp;mut </span>val, multiline, i, c)<span class="question-mark">?</span>,
-                <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="#56">Error::UnterminatedString</a>(<a href="#292">start</a>)),
+                <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(Error::UnterminatedString(start)),
             }
         }
     }
 
-    <span class="kw">fn </span>literal_string(<span class="kw-2">&amp;mut </span><span class="self">self</span>, start: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="prelude-ty">Result</span>&lt;Token&lt;<span class="lifetime">&#39;a</span>&gt;, <a href="#49">Error</a>&gt; {
-        <a class="self" href="#365">self</a>.<a href="#289-300">read_string</a>(<span class="string">&#39;\&#39;&#39;</span>, <a href="#365">start</a>, <span class="kw-2">&amp;mut </span>|_me, val, _multi, i, ch| {
-            <span class="kw">if </span>ch == <span class="string">&#39;\u{09}&#39; </span>|| (<span class="string">&#39;\u{20}&#39; </span>&lt;= ch &amp;&amp; ch &lt;= <span class="string">&#39;\u{10ffff}&#39; </span>&amp;&amp; ch != <span class="string">&#39;\u{7f}&#39;</span>) {
-                <a href="#366">val</a>.<a href="#502">push</a>(<a href="#366">ch</a>);
+    <span class="kw">fn </span>literal_string(<span class="kw-2">&amp;mut </span><span class="self">self</span>, start: usize) -&gt; <span class="prelude-ty">Result</span>&lt;Token&lt;<span class="lifetime">&#39;a</span>&gt;, Error&gt; {
+        <span class="self">self</span>.read_string(<span class="string">&#39;\&#39;&#39;</span>, start, <span class="kw-2">&amp;mut </span>|_me, val, _multi, i, ch| {
+            <span class="kw">if </span>ch == <span class="string">&#39;\u{09}&#39; </span>|| ((<span class="string">&#39;\u{20}&#39;</span>..=<span class="string">&#39;\u{10ffff}&#39;</span>).contains(<span class="kw-2">&amp;</span>ch) &amp;&amp; ch != <span class="string">&#39;\u{7f}&#39;</span>) {
+                val.push(ch);
                 <span class="prelude-val">Ok</span>(())
             } <span class="kw">else </span>{
-                <span class="prelude-val">Err</span>(<a href="#50">Error::InvalidCharInString</a>(<a href="#366">i</a>, <a href="#366">ch</a>))
+                <span class="prelude-val">Err</span>(Error::InvalidCharInString(i, ch))
             }
         })
     }
 
-    <span class="kw">fn </span>basic_string(<span class="kw-2">&amp;mut </span><span class="self">self</span>, start: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="prelude-ty">Result</span>&lt;Token&lt;<span class="lifetime">&#39;a</span>&gt;, <a href="#49">Error</a>&gt; {
-        <a class="self" href="#376">self</a>.<a href="#289-300">read_string</a>(<span class="string">&#39;&quot;&#39;</span>, <a href="#376">start</a>, <span class="kw-2">&amp;mut </span>|me, val, multi, i, ch| <span class="kw">match </span><a href="#377">ch</a> {
+    <span class="kw">fn </span>basic_string(<span class="kw-2">&amp;mut </span><span class="self">self</span>, start: usize) -&gt; <span class="prelude-ty">Result</span>&lt;Token&lt;<span class="lifetime">&#39;a</span>&gt;, Error&gt; {
+        <span class="self">self</span>.read_string(<span class="string">&#39;&quot;&#39;</span>, start, <span class="kw-2">&amp;mut </span>|me, val, multi, i, ch| <span class="kw">match </span>ch {
             <span class="string">&#39;\\&#39; </span>=&gt; {
-                <a href="#377">val</a>.<a href="#509">to_owned</a>(<span class="kw-2">&amp;</span><a href="#377">me</a>.input[..<a href="#377">i</a>]);
-                <span class="kw">match </span><a href="#377">me</a>.chars.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>() {
-                    <span class="prelude-val">Some</span>((<span class="kw">_</span>, <span class="string">&#39;&quot;&#39;</span>)) =&gt; <a href="#377">val</a>.<a href="#502">push</a>(<span class="string">&#39;&quot;&#39;</span>),
-                    <span class="prelude-val">Some</span>((<span class="kw">_</span>, <span class="string">&#39;\\&#39;</span>)) =&gt; <a href="#377">val</a>.<a href="#502">push</a>(<span class="string">&#39;\\&#39;</span>),
-                    <span class="prelude-val">Some</span>((<span class="kw">_</span>, <span class="string">&#39;b&#39;</span>)) =&gt; <a href="#377">val</a>.<a href="#502">push</a>(<span class="string">&#39;\u{8}&#39;</span>),
-                    <span class="prelude-val">Some</span>((<span class="kw">_</span>, <span class="string">&#39;f&#39;</span>)) =&gt; <a href="#377">val</a>.<a href="#502">push</a>(<span class="string">&#39;\u{c}&#39;</span>),
-                    <span class="prelude-val">Some</span>((<span class="kw">_</span>, <span class="string">&#39;n&#39;</span>)) =&gt; <a href="#377">val</a>.<a href="#502">push</a>(<span class="string">&#39;\n&#39;</span>),
-                    <span class="prelude-val">Some</span>((<span class="kw">_</span>, <span class="string">&#39;r&#39;</span>)) =&gt; <a href="#377">val</a>.<a href="#502">push</a>(<span class="string">&#39;\r&#39;</span>),
-                    <span class="prelude-val">Some</span>((<span class="kw">_</span>, <span class="string">&#39;t&#39;</span>)) =&gt; <a href="#377">val</a>.<a href="#502">push</a>(<span class="string">&#39;\t&#39;</span>),
+                val.to_owned(<span class="kw-2">&amp;</span>me.input[..i]);
+                <span class="kw">match </span>me.chars.next() {
+                    <span class="prelude-val">Some</span>((<span class="kw">_</span>, <span class="string">&#39;&quot;&#39;</span>)) =&gt; val.push(<span class="string">&#39;&quot;&#39;</span>),
+                    <span class="prelude-val">Some</span>((<span class="kw">_</span>, <span class="string">&#39;\\&#39;</span>)) =&gt; val.push(<span class="string">&#39;\\&#39;</span>),
+                    <span class="prelude-val">Some</span>((<span class="kw">_</span>, <span class="string">&#39;b&#39;</span>)) =&gt; val.push(<span class="string">&#39;\u{8}&#39;</span>),
+                    <span class="prelude-val">Some</span>((<span class="kw">_</span>, <span class="string">&#39;f&#39;</span>)) =&gt; val.push(<span class="string">&#39;\u{c}&#39;</span>),
+                    <span class="prelude-val">Some</span>((<span class="kw">_</span>, <span class="string">&#39;n&#39;</span>)) =&gt; val.push(<span class="string">&#39;\n&#39;</span>),
+                    <span class="prelude-val">Some</span>((<span class="kw">_</span>, <span class="string">&#39;r&#39;</span>)) =&gt; val.push(<span class="string">&#39;\r&#39;</span>),
+                    <span class="prelude-val">Some</span>((<span class="kw">_</span>, <span class="string">&#39;t&#39;</span>)) =&gt; val.push(<span class="string">&#39;\t&#39;</span>),
                     <span class="prelude-val">Some</span>((i, c @ <span class="string">&#39;u&#39;</span>)) | <span class="prelude-val">Some</span>((i, c @ <span class="string">&#39;U&#39;</span>)) =&gt; {
                         <span class="kw">let </span>len = <span class="kw">if </span>c == <span class="string">&#39;u&#39; </span>{ <span class="number">4 </span>} <span class="kw">else </span>{ <span class="number">8 </span>};
-                        <a href="#377">val</a>.<a href="#502">push</a>(me.hex(start, i, len)<span class="question-mark">?</span>);
+                        val.push(me.hex(start, i, len)<span class="question-mark">?</span>);
                     }
-                    <span class="prelude-val">Some</span>((i, c @ <span class="string">&#39; &#39;</span>)) | <span class="prelude-val">Some</span>((i, c @ <span class="string">&#39;\t&#39;</span>)) | <span class="prelude-val">Some</span>((i, c @ <span class="string">&#39;\n&#39;</span>)) <span class="kw">if </span><a href="#377">multi</a> =&gt; {
+                    <span class="prelude-val">Some</span>((i, c @ <span class="string">&#39; &#39;</span>)) | <span class="prelude-val">Some</span>((i, c @ <span class="string">&#39;\t&#39;</span>)) | <span class="prelude-val">Some</span>((i, c @ <span class="string">&#39;\n&#39;</span>)) <span class="kw">if </span>multi =&gt; {
                         <span class="kw">if </span>c != <span class="string">&#39;\n&#39; </span>{
                             <span class="kw">while let </span><span class="prelude-val">Some</span>((<span class="kw">_</span>, ch)) = me.chars.clone().next() {
                                 <span class="kw">match </span>ch {
@@ -1154,146 +1157,147 @@
                             }
                         }
                     }
-                    <span class="prelude-val">Some</span>((i, c)) =&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="#51">Error::InvalidEscape</a>(<a href="#417">i</a>, <a href="#417">c</a>)),
-                    <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="#56">Error::UnterminatedString</a>(<a href="#376">start</a>)),
+                    <span class="prelude-val">Some</span>((i, c)) =&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(Error::InvalidEscape(i, c)),
+                    <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(Error::UnterminatedString(start)),
                 }
                 <span class="prelude-val">Ok</span>(())
             }
-            ch <span class="kw">if </span><a href="#422">ch</a> == <span class="string">&#39;\u{09}&#39; </span>|| (<span class="string">&#39;\u{20}&#39; </span>&lt;= <a href="#422">ch</a> &amp;&amp; <a href="#422">ch</a> &lt;= <span class="string">&#39;\u{10ffff}&#39; </span>&amp;&amp; <a href="#422">ch</a> != <span class="string">&#39;\u{7f}&#39;</span>) =&gt; {
-                <a href="#377">val</a>.<a href="#502">push</a>(<a href="#422">ch</a>);
+            ch <span class="kw">if </span>ch == <span class="string">&#39;\u{09}&#39; </span>|| ((<span class="string">&#39;\u{20}&#39;</span>..=<span class="string">&#39;\u{10ffff}&#39;</span>).contains(<span class="kw-2">&amp;</span>ch) &amp;&amp; ch != <span class="string">&#39;\u{7f}&#39;</span>) =&gt; {
+                val.push(ch);
                 <span class="prelude-val">Ok</span>(())
             }
-            <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(<a href="#50">Error::InvalidCharInString</a>(<a href="#377">i</a>, <a href="#377">ch</a>)),
+            <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(Error::InvalidCharInString(i, ch)),
         })
     }
 
-    <span class="kw">fn </span>hex(<span class="kw-2">&amp;mut </span><span class="self">self</span>, start: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, i: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, len: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>, <a href="#49">Error</a>&gt; {
-        <span class="kw">let </span><span class="kw-2">mut </span>buf = StdString::with_capacity(<a href="#430">len</a>);
+    <span class="kw">fn </span>hex(<span class="kw-2">&amp;mut </span><span class="self">self</span>, start: usize, i: usize, len: usize) -&gt; <span class="prelude-ty">Result</span>&lt;char, Error&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>buf = StdString::with_capacity(len);
         <span class="kw">for _ in </span><span class="number">0</span>..len {
             <span class="kw">match </span><span class="self">self</span>.one() {
-                <span class="prelude-val">Some</span>((<span class="kw">_</span>, ch)) <span class="kw">if </span>ch <span class="kw">as </span>u32 &lt;= <span class="number">0x7F </span>&amp;&amp; ch.is_digit(<span class="number">16</span>) =&gt; buf.push(ch),
+                <span class="prelude-val">Some</span>((<span class="kw">_</span>, ch)) <span class="kw">if </span>ch <span class="kw">as </span>u32 &lt;= <span class="number">0x7F </span>&amp;&amp; ch.is_ascii_hexdigit() =&gt; buf.push(ch),
                 <span class="prelude-val">Some</span>((i, ch)) =&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(Error::InvalidHexEscape(i, ch)),
                 <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(Error::UnterminatedString(start)),
             }
         }
-        <span class="kw">let </span>val = u32::from_str_radix(<span class="kw-2">&amp;</span><a href="#431">buf</a>, <span class="number">16</span>).unwrap();
-        <span class="kw">match </span>char::from_u32(<a href="#439">val</a>) {
-            <span class="prelude-val">Some</span>(ch) =&gt; <span class="prelude-val">Ok</span>(<a href="#441">ch</a>),
-            <span class="prelude-val">None </span>=&gt; <span class="prelude-val">Err</span>(<a href="#53">Error::InvalidEscapeValue</a>(<a href="#430">i</a>, <a href="#439">val</a>)),
+        <span class="kw">let </span>val = u32::from_str_radix(<span class="kw-2">&amp;</span>buf, <span class="number">16</span>).unwrap();
+        <span class="kw">match </span>char::from_u32(val) {
+            <span class="prelude-val">Some</span>(ch) =&gt; <span class="prelude-val">Ok</span>(ch),
+            <span class="prelude-val">None </span>=&gt; <span class="prelude-val">Err</span>(Error::InvalidEscapeValue(i, val)),
         }
     }
 
-    <span class="kw">fn </span>keylike(<span class="kw-2">&amp;mut </span><span class="self">self</span>, start: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; Token&lt;<span class="lifetime">&#39;a</span>&gt; {
+    <span class="kw">fn </span>keylike(<span class="kw-2">&amp;mut </span><span class="self">self</span>, start: usize) -&gt; Token&lt;<span class="lifetime">&#39;a</span>&gt; {
         <span class="kw">while let </span><span class="prelude-val">Some</span>((<span class="kw">_</span>, ch)) = <span class="self">self</span>.peek_one() {
             <span class="kw">if </span>!is_keylike(ch) {
                 <span class="kw">break</span>;
             }
             <span class="self">self</span>.one();
         }
-        <a href="#40">Keylike</a>(<span class="kw-2">&amp;</span><a class="self" href="#446">self</a>.input[<a href="#446">start</a>..<a class="self" href="#446">self</a>.<a href="#260">current</a>()])
+        Keylike(<span class="kw-2">&amp;</span><span class="self">self</span>.input[start..<span class="self">self</span>.current()])
     }
 
-    <span class="kw">pub fn </span>substr_offset(<span class="kw-2">&amp;</span><span class="self">self</span>, s: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(s.len() &lt;= <span class="self">self</span>.input.len());
-        <span class="kw">let </span>a = <a class="self" href="#456">self</a>.input.as_ptr() <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>;
-        <span class="kw">let </span>b = <a href="#456">s</a>.as_ptr() <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>;
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(a &lt;= b);
-        <a href="#459">b</a> - <a href="#458">a</a>
+    <span class="kw">pub fn </span>substr_offset(<span class="kw-2">&amp;</span><span class="self">self</span>, s: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>str) -&gt; usize {
+        <span class="macro">assert!</span>(s.len() &lt;= <span class="self">self</span>.input.len());
+        <span class="kw">let </span>a = <span class="self">self</span>.input.as_ptr() <span class="kw">as </span>usize;
+        <span class="kw">let </span>b = s.as_ptr() <span class="kw">as </span>usize;
+        <span class="macro">assert!</span>(a &lt;= b);
+        b - a
     }
 
     <span class="doccomment">/// Calculate the span of a single character.
-    </span><span class="kw">fn </span>step_span(<span class="kw-2">&amp;mut </span><span class="self">self</span>, start: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a href="#11">Span</a> {
-        <span class="kw">let </span>end = <span class="self"><a href="#465">self</a>
-            </span>.<a href="#474">peek_one</a>()
-            .map(|t| <a href="#468">t</a>.<span class="number">0</span>)
-            .unwrap_or_else(|| <a class="self" href="#465">self</a>.input.len());
-        <a href="#11">Span</a> { <a href="#465">start</a>, <a href="#466">end</a> }
+    </span><span class="kw">fn </span>step_span(<span class="kw-2">&amp;mut </span><span class="self">self</span>, start: usize) -&gt; Span {
+        <span class="kw">let </span>end = <span class="self">self
+            </span>.peek_one()
+            .map(|t| t.<span class="number">0</span>)
+            .unwrap_or_else(|| <span class="self">self</span>.input.len());
+        Span { start, end }
     }
 
     <span class="doccomment">/// Peek one char without consuming it.
-    </span><span class="kw">fn </span>peek_one(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;(<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>)&gt; {
-        <a class="self" href="#474">self</a>.chars.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>()
+    </span><span class="kw">fn </span>peek_one(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;(usize, char)&gt; {
+        <span class="self">self</span>.chars.clone().next()
     }
 
     <span class="doccomment">/// Take one char.
-    </span><span class="kw">pub fn </span>one(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;(<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>)&gt; {
-        <a class="self" href="#479">self</a>.chars.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>()
+    </span><span class="kw">pub fn </span>one(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;(usize, char)&gt; {
+        <span class="self">self</span>.chars.next()
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a> <span class="kw">for </span>CrlfFold&lt;<span class="lifetime">&#39;a</span>&gt; {
-    <span class="kw">type </span>Item = (<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>);
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; Iterator <span class="kw">for </span>CrlfFold&lt;<span class="lifetime">&#39;a</span>&gt; {
+    <span class="kw">type </span>Item = (usize, char);
 
-    <span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;(<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>)&gt; {
-        <a class="self" href="#487">self</a>.chars.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>().map(|(i, c)| {
+    <span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;(usize, char)&gt; {
+        <span class="self">self</span>.chars.next().map(|(i, c)| {
             <span class="kw">if </span>c == <span class="string">&#39;\r&#39; </span>{
-                <span class="kw">let </span><span class="kw-2">mut </span>attempt = <a class="self" href="#487">self</a>.chars.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
-                <span class="kw">if let </span><span class="prelude-val">Some</span>((<span class="kw">_</span>, <span class="string">&#39;\n&#39;</span>)) = <a href="#490">attempt</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>() {
-                    <a class="self" href="#487">self</a>.chars = <a href="#490">attempt</a>;
-                    <span class="kw">return </span>(<a href="#488">i</a>, <span class="string">&#39;\n&#39;</span>);
+                <span class="kw">let </span><span class="kw-2">mut </span>attempt = <span class="self">self</span>.chars.clone();
+                <span class="kw">if let </span><span class="prelude-val">Some</span>((<span class="kw">_</span>, <span class="string">&#39;\n&#39;</span>)) = attempt.next() {
+                    <span class="self">self</span>.chars = attempt;
+                    <span class="kw">return </span>(i, <span class="string">&#39;\n&#39;</span>);
                 }
             }
-            (<a href="#488">i</a>, <a href="#488">c</a>)
+            (i, c)
         })
     }
 }
 
-<span class="kw">impl </span><a href="#78">MaybeString</a> {
-    <span class="kw">fn </span>push(<span class="kw-2">&amp;mut </span><span class="self">self</span>, ch: <a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>) {
-        <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="#502">self</a> </span>{
-            <a href="#79">MaybeString::NotEscaped</a>(..) =&gt; {}
-            <a href="#80">MaybeString::Owned</a>(<span class="kw-2">ref mut </span>s) =&gt; <a href="#505">s</a>.push(<a href="#502">ch</a>),
+<span class="kw">impl </span>MaybeString {
+    <span class="kw">fn </span>push(<span class="kw-2">&amp;mut </span><span class="self">self</span>, ch: char) {
+        <span class="kw">match </span><span class="kw-2">*</span><span class="self">self </span>{
+            MaybeString::NotEscaped(..) =&gt; {}
+            MaybeString::Owned(<span class="kw-2">ref mut </span>s) =&gt; s.push(ch),
         }
     }
 
-    <span class="kw">fn </span>to_owned(<span class="kw-2">&amp;mut </span><span class="self">self</span>, input: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) {
-        <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="#509">self</a> </span>{
-            <a href="#79">MaybeString::NotEscaped</a>(start) =&gt; {
-                <span class="kw-2">*</span><span class="self"><a href="#509">self</a> </span>= <a href="#80">MaybeString::Owned</a>(<a href="#509">input</a>[<a href="#511">start</a>..].<a href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">to_owned</a>());
+    <span class="attr">#[allow(clippy::wrong_self_convention)]
+    </span><span class="kw">fn </span>to_owned(<span class="kw-2">&amp;mut </span><span class="self">self</span>, input: <span class="kw-2">&amp;</span>str) {
+        <span class="kw">match </span><span class="kw-2">*</span><span class="self">self </span>{
+            MaybeString::NotEscaped(start) =&gt; {
+                <span class="kw-2">*</span><span class="self">self </span>= MaybeString::Owned(input[start..].to_owned());
             }
-            <a href="#80">MaybeString::Owned</a>(..) =&gt; {}
+            MaybeString::Owned(..) =&gt; {}
         }
     }
 
-    <span class="kw">fn </span>into_cow(<span class="self">self</span>, input: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; Cow&lt;<span class="lifetime">&#39;_</span>, <a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt; {
-        <span class="kw">match </span><span class="self"><a href="#518">self</a> </span>{
-            <a href="#79">MaybeString::NotEscaped</a>(start) =&gt; Cow::Borrowed(<span class="kw-2">&amp;</span><a href="#518">input</a>[<a href="#520">start</a>..]),
-            <a href="#80">MaybeString::Owned</a>(s) =&gt; Cow::Owned(<a href="#521">s</a>),
+    <span class="kw">fn </span>into_cow(<span class="self">self</span>, input: <span class="kw-2">&amp;</span>str) -&gt; Cow&lt;<span class="lifetime">&#39;_</span>, str&gt; {
+        <span class="kw">match </span><span class="self">self </span>{
+            MaybeString::NotEscaped(start) =&gt; Cow::Borrowed(<span class="kw-2">&amp;</span>input[start..]),
+            MaybeString::Owned(s) =&gt; Cow::Owned(s),
         }
     }
 }
 
-<span class="kw">fn </span>is_keylike(ch: <a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-    (<span class="string">&#39;A&#39; </span>&lt;= <a href="#526">ch</a> &amp;&amp; <a href="#526">ch</a> &lt;= <span class="string">&#39;Z&#39;</span>)
-        || (<span class="string">&#39;a&#39; </span>&lt;= <a href="#526">ch</a> &amp;&amp; <a href="#526">ch</a> &lt;= <span class="string">&#39;z&#39;</span>)
-        || (<span class="string">&#39;0&#39; </span>&lt;= <a href="#526">ch</a> &amp;&amp; <a href="#526">ch</a> &lt;= <span class="string">&#39;9&#39;</span>)
-        || <a href="#526">ch</a> == <span class="string">&#39;-&#39;
-        </span>|| <a href="#526">ch</a> == <span class="string">&#39;_&#39;
+<span class="kw">fn </span>is_keylike(ch: char) -&gt; bool {
+    (<span class="string">&#39;A&#39;</span>..=<span class="string">&#39;Z&#39;</span>).contains(<span class="kw-2">&amp;</span>ch)
+        || (<span class="string">&#39;a&#39;</span>..=<span class="string">&#39;z&#39;</span>).contains(<span class="kw-2">&amp;</span>ch)
+        || (<span class="string">&#39;0&#39;</span>..=<span class="string">&#39;9&#39;</span>).contains(<span class="kw-2">&amp;</span>ch)
+        || ch == <span class="string">&#39;-&#39;
+        </span>|| ch == <span class="string">&#39;_&#39;
 </span>}
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; Token&lt;<span class="lifetime">&#39;a</span>&gt; {
-    <span class="kw">pub fn </span>describe(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> {
-        <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="#535">self</a> </span>{
-            <a href="#40">Token::Keylike</a>(<span class="kw">_</span>) =&gt; <span class="string">&quot;an identifier&quot;</span>,
-            <a href="#30">Token::Equals</a> =&gt; <span class="string">&quot;an equals&quot;</span>,
-            <a href="#31">Token::Period</a> =&gt; <span class="string">&quot;a period&quot;</span>,
-            <a href="#28">Token::Comment</a>(<span class="kw">_</span>) =&gt; <span class="string">&quot;a comment&quot;</span>,
-            <a href="#27">Token::Newline</a> =&gt; <span class="string">&quot;a newline&quot;</span>,
-            <a href="#26">Token::Whitespace</a>(<span class="kw">_</span>) =&gt; <span class="string">&quot;whitespace&quot;</span>,
-            <a href="#32">Token::Comma</a> =&gt; <span class="string">&quot;a comma&quot;</span>,
-            <a href="#36">Token::RightBrace</a> =&gt; <span class="string">&quot;a right brace&quot;</span>,
-            <a href="#35">Token::LeftBrace</a> =&gt; <span class="string">&quot;a left brace&quot;</span>,
-            <a href="#38">Token::RightBracket</a> =&gt; <span class="string">&quot;a right bracket&quot;</span>,
-            <a href="#37">Token::LeftBracket</a> =&gt; <span class="string">&quot;a left bracket&quot;</span>,
-            <a href="#41">Token::String</a> { multiline, .. } =&gt; {
+    <span class="kw">pub fn </span>describe(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str {
+        <span class="kw">match </span><span class="kw-2">*</span><span class="self">self </span>{
+            Token::Keylike(<span class="kw">_</span>) =&gt; <span class="string">&quot;an identifier&quot;</span>,
+            Token::Equals =&gt; <span class="string">&quot;an equals&quot;</span>,
+            Token::Period =&gt; <span class="string">&quot;a period&quot;</span>,
+            Token::Comment(<span class="kw">_</span>) =&gt; <span class="string">&quot;a comment&quot;</span>,
+            Token::Newline =&gt; <span class="string">&quot;a newline&quot;</span>,
+            Token::Whitespace(<span class="kw">_</span>) =&gt; <span class="string">&quot;whitespace&quot;</span>,
+            Token::Comma =&gt; <span class="string">&quot;a comma&quot;</span>,
+            Token::RightBrace =&gt; <span class="string">&quot;a right brace&quot;</span>,
+            Token::LeftBrace =&gt; <span class="string">&quot;a left brace&quot;</span>,
+            Token::RightBracket =&gt; <span class="string">&quot;a right bracket&quot;</span>,
+            Token::LeftBracket =&gt; <span class="string">&quot;a left bracket&quot;</span>,
+            Token::String { multiline, .. } =&gt; {
                 <span class="kw">if </span>multiline {
                     <span class="string">&quot;a multiline string&quot;
                 </span>} <span class="kw">else </span>{
                     <span class="string">&quot;a string&quot;
                 </span>}
             }
-            <a href="#33">Token::Colon</a> =&gt; <span class="string">&quot;a colon&quot;</span>,
-            <a href="#34">Token::Plus</a> =&gt; <span class="string">&quot;a plus&quot;</span>,
+            Token::Colon =&gt; <span class="string">&quot;a colon&quot;</span>,
+            Token::Plus =&gt; <span class="string">&quot;a plus&quot;</span>,
         }
     }
 }
@@ -1320,7 +1324,7 @@
                 Token::String {
                     src: input,
                     val: Cow::Borrowed(val),
-                    multiline: multiline,
+                    multiline,
                 }
             );
             <span class="macro">assert!</span>(t.next().unwrap().is_none());
@@ -1346,7 +1350,7 @@
                 Token::String {
                     src: input,
                     val: Cow::Borrowed(val),
-                    multiline: multiline,
+                    multiline,
                 }
             );
             <span class="macro">assert!</span>(t.next().unwrap().is_none());
@@ -1479,4 +1483,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="toml" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="toml" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

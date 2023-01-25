@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/hyper-0.14.23/src/body/body.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>body.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../hyper/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/hyper-0.14.23/src/body/body.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>body.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../hyper/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -783,32 +783,32 @@
 <a href="#783" id="783">783</a>
 <a href="#784" id="784">784</a>
 <a href="#785" id="785">785</a>
-</pre><pre class="rust"><code><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/borrow/enum.Cow.html">std::borrow::Cow</a>;
+</pre><pre class="rust"><code><span class="kw">use </span>std::borrow::Cow;
 <span class="attr">#[cfg(feature = <span class="string">&quot;stream&quot;</span>)]
-</span><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">std::error::Error</a> <span class="kw">as </span>StdError;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">std::fmt</a>;
+</span><span class="kw">use </span>std::error::Error <span class="kw">as </span>StdError;
+<span class="kw">use </span>std::fmt;
 
-<span class="kw">use </span><a href="../../../hyper/body/struct.Bytes.html">bytes::Bytes</a>;
-<span class="kw">use </span><a href="../../../futures_channel/mpsc/index.html">futures_channel::mpsc</a>;
-<span class="kw">use </span><a href="../../../futures_channel/oneshot/index.html">futures_channel::oneshot</a>;
-<span class="kw">use </span><a href="../../../futures_core/stream/trait.Stream.html">futures_core::Stream</a>; <span class="comment">// for mpsc::Receiver
+<span class="kw">use </span>bytes::Bytes;
+<span class="kw">use </span>futures_channel::mpsc;
+<span class="kw">use </span>futures_channel::oneshot;
+<span class="kw">use </span>futures_core::Stream; <span class="comment">// for mpsc::Receiver
 </span><span class="attr">#[cfg(feature = <span class="string">&quot;stream&quot;</span>)]
-</span><span class="kw">use </span><a href="../../../futures_util/stream/try_stream/trait.TryStreamExt.html">futures_util::TryStreamExt</a>;
-<span class="kw">use </span><a href="../../../hyper/header/struct.HeaderMap.html">http::HeaderMap</a>;
-<span class="kw">use </span>http_body::{<a href="../../../hyper/body/trait.HttpBody.html">Body</a> <span class="kw">as </span>HttpBody, <a href="../../../hyper/body/struct.SizeHint.html">SizeHint</a>};
+</span><span class="kw">use </span>futures_util::TryStreamExt;
+<span class="kw">use </span>http::HeaderMap;
+<span class="kw">use </span>http_body::{Body <span class="kw">as </span>HttpBody, SizeHint};
 
-<span class="kw">use </span><a href="length.rs.html#4"><span class="kw">super</span>::DecodedLength</a>;
+<span class="kw">use </span><span class="kw">super</span>::DecodedLength;
 <span class="attr">#[cfg(feature = <span class="string">&quot;stream&quot;</span>)]
-</span><span class="kw">use </span><a href="../common/sync_wrapper.rs.html#44"><span class="kw">crate</span>::common::sync_wrapper::SyncWrapper</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html"><span class="kw">crate</span>::common::Future</a>;
+</span><span class="kw">use </span><span class="kw">crate</span>::common::sync_wrapper::SyncWrapper;
+<span class="kw">use </span><span class="kw">crate</span>::common::Future;
 <span class="attr">#[cfg(all(feature = <span class="string">&quot;client&quot;</span>, any(feature = <span class="string">&quot;http1&quot;</span>, feature = <span class="string">&quot;http2&quot;</span>)))]
-</span><span class="kw">use </span><a href="../common/never.rs.html#9"><span class="kw">crate</span>::common::Never</a>;
-<span class="kw">use </span><span class="kw">crate</span>::common::{<a href="../common/mod.rs.html#26">task</a>, <a href="../common/mod.rs.html#27">watch</a>, <a href="https://doc.rust-lang.org/nightly/core/pin/struct.Pin.html">Pin</a>, <a href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">Poll</a>};
+</span><span class="kw">use </span><span class="kw">crate</span>::common::Never;
+<span class="kw">use </span><span class="kw">crate</span>::common::{task, watch, Pin, Poll};
 <span class="attr">#[cfg(all(feature = <span class="string">&quot;http2&quot;</span>, any(feature = <span class="string">&quot;client&quot;</span>, feature = <span class="string">&quot;server&quot;</span>)))]
-</span><span class="kw">use </span><a href="../proto/h2/mod.rs.html#17"><span class="kw">crate</span>::proto::h2::ping</a>;
+</span><span class="kw">use </span><span class="kw">crate</span>::proto::h2::ping;
 
-<span class="kw">type </span>BodySender = mpsc::Sender&lt;<span class="prelude-ty">Result</span>&lt;<a href="../../../hyper/body/struct.Bytes.html">Bytes</a>, <a href="../error.rs.html#11"><span class="kw">crate</span>::Error</a>&gt;&gt;;
-<span class="kw">type </span>TrailersSender = oneshot::Sender&lt;<a href="../../../hyper/header/struct.HeaderMap.html">HeaderMap</a>&gt;;
+<span class="kw">type </span>BodySender = mpsc::Sender&lt;<span class="prelude-ty">Result</span>&lt;Bytes, <span class="kw">crate</span>::Error&gt;&gt;;
+<span class="kw">type </span>TrailersSender = oneshot::Sender&lt;HeaderMap&gt;;
 
 <span class="doccomment">/// A stream of `Bytes`, used when receiving bodies.
 ///
@@ -819,32 +819,32 @@
 /// or [`body::aggregate`](crate::body::aggregate).
 </span><span class="attr">#[must_use = <span class="string">&quot;streams do nothing unless polled&quot;</span>]
 </span><span class="kw">pub struct </span>Body {
-    kind: <a href="#43">Kind</a>,
+    kind: Kind,
     <span class="doccomment">/// Keep the extra bits in an `Option&lt;Box&lt;Extra&gt;&gt;`, so that
     /// Body stays small in the common case (no extras needed).
-    </span>extra: <span class="prelude-ty">Option</span>&lt;Box&lt;<a href="#67">Extra</a>&gt;&gt;,
+    </span>extra: <span class="prelude-ty">Option</span>&lt;Box&lt;Extra&gt;&gt;,
 }
 
 <span class="kw">enum </span>Kind {
-    Once(<span class="prelude-ty">Option</span>&lt;<a href="../../../hyper/body/struct.Bytes.html">Bytes</a>&gt;),
+    Once(<span class="prelude-ty">Option</span>&lt;Bytes&gt;),
     Chan {
-        content_length: <a href="length.rs.html#4">DecodedLength</a>,
-        want_tx: <a href="../common/watch.rs.html#37">watch::Sender</a>,
-        data_rx: mpsc::Receiver&lt;<span class="prelude-ty">Result</span>&lt;<a href="../../../hyper/body/struct.Bytes.html">Bytes</a>, <a href="../error.rs.html#11"><span class="kw">crate</span>::Error</a>&gt;&gt;,
-        trailers_rx: oneshot::Receiver&lt;<a href="../../../hyper/header/struct.HeaderMap.html">HeaderMap</a>&gt;,
+        content_length: DecodedLength,
+        want_tx: watch::Sender,
+        data_rx: mpsc::Receiver&lt;<span class="prelude-ty">Result</span>&lt;Bytes, <span class="kw">crate</span>::Error&gt;&gt;,
+        trailers_rx: oneshot::Receiver&lt;HeaderMap&gt;,
     },
     <span class="attr">#[cfg(all(feature = <span class="string">&quot;http2&quot;</span>, any(feature = <span class="string">&quot;client&quot;</span>, feature = <span class="string">&quot;server&quot;</span>)))]
     </span>H2 {
-        ping: <a href="../proto/h2/ping.rs.html#117">ping::Recorder</a>,
-        content_length: <a href="length.rs.html#4">DecodedLength</a>,
-        recv: <a href="../../../h2/share/struct.RecvStream.html">h2::RecvStream</a>,
+        ping: ping::Recorder,
+        content_length: DecodedLength,
+        recv: h2::RecvStream,
     },
     <span class="attr">#[cfg(feature = <span class="string">&quot;ffi&quot;</span>)]
     </span>Ffi(<span class="kw">crate</span>::ffi::UserBody),
     <span class="attr">#[cfg(feature = <span class="string">&quot;stream&quot;</span>)]
     </span>Wrapped(
         SyncWrapper&lt;
-            Pin&lt;Box&lt;<span class="kw">dyn </span>Stream&lt;Item = <span class="prelude-ty">Result</span>&lt;<a href="../../../hyper/body/struct.Bytes.html">Bytes</a>, Box&lt;<span class="kw">dyn </span><a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">StdError</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a>&gt;&gt;&gt; + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a>&gt;&gt;,
+            Pin&lt;Box&lt;<span class="kw">dyn </span>Stream&lt;Item = <span class="prelude-ty">Result</span>&lt;Bytes, Box&lt;<span class="kw">dyn </span>StdError + Send + Sync&gt;&gt;&gt; + Send&gt;&gt;,
         &gt;,
     ),
 }
@@ -858,23 +858,23 @@
     /// streaming the body of a response could sometimes result in creating
     /// a brand new connection, since the pool didn&#39;t know about the idle
     /// connection yet.
-    </span>delayed_eof: <span class="prelude-ty">Option</span>&lt;<a href="#82">DelayEof</a>&gt;,
+    </span>delayed_eof: <span class="prelude-ty">Option</span>&lt;DelayEof&gt;,
 }
 
 <span class="attr">#[cfg(all(feature = <span class="string">&quot;client&quot;</span>, any(feature = <span class="string">&quot;http1&quot;</span>, feature = <span class="string">&quot;http2&quot;</span>)))]
-</span><span class="kw">type </span>DelayEofUntil = oneshot::Receiver&lt;<a href="../common/never.rs.html#9">Never</a>&gt;;
+</span><span class="kw">type </span>DelayEofUntil = oneshot::Receiver&lt;Never&gt;;
 
 <span class="kw">enum </span>DelayEof {
     <span class="doccomment">/// Initial state, stream hasn&#39;t seen EOF yet.
     </span><span class="attr">#[cfg(any(feature = <span class="string">&quot;http1&quot;</span>, feature = <span class="string">&quot;http2&quot;</span>))]
     #[cfg(feature = <span class="string">&quot;client&quot;</span>)]
-    </span>NotEof(<a href="#80">DelayEofUntil</a>),
+    </span>NotEof(DelayEofUntil),
     <span class="doccomment">/// Transitions to this state once we&#39;ve seen `poll` try to
     /// return EOF (`None`). This future is then polled, and
     /// when it completes, the Body finally returns EOF (`None`).
     </span><span class="attr">#[cfg(any(feature = <span class="string">&quot;http1&quot;</span>, feature = <span class="string">&quot;http2&quot;</span>))]
     #[cfg(feature = <span class="string">&quot;client&quot;</span>)]
-    </span>Eof(<a href="#80">DelayEofUntil</a>),
+    </span>Eof(DelayEofUntil),
 }
 
 <span class="doccomment">/// A sender half created through [`Body::channel()`].
@@ -892,15 +892,15 @@
 /// [`Sender::abort()`]: struct.Sender.html#method.abort
 </span><span class="attr">#[must_use = <span class="string">&quot;Sender does nothing unless sent on&quot;</span>]
 </span><span class="kw">pub struct </span>Sender {
-    want_rx: <a href="../common/watch.rs.html#41">watch::Receiver</a>,
-    data_tx: <a href="#25">BodySender</a>,
-    trailers_tx: <span class="prelude-ty">Option</span>&lt;<a href="#26">TrailersSender</a>&gt;,
+    want_rx: watch::Receiver,
+    data_tx: BodySender,
+    trailers_tx: <span class="prelude-ty">Option</span>&lt;TrailersSender&gt;,
 }
 
-<span class="kw">const </span>WANT_PENDING: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> = <span class="number">1</span>;
-<span class="kw">const </span>WANT_READY: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> = <span class="number">2</span>;
+<span class="kw">const </span>WANT_PENDING: usize = <span class="number">1</span>;
+<span class="kw">const </span>WANT_READY: usize = <span class="number">2</span>;
 
-<span class="kw">impl </span><a href="#36">Body</a> {
+<span class="kw">impl </span>Body {
     <span class="doccomment">/// Create an empty `Body` stream.
     ///
     /// # Example
@@ -912,41 +912,41 @@
     /// let get = Request::new(Body::empty());
     /// ```
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>empty() -&gt; <a href="#36">Body</a> {
-        Body::new(<a href="#44">Kind::Once</a>(<span class="prelude-val">None</span>))
+    </span><span class="kw">pub fn </span>empty() -&gt; Body {
+        Body::new(Kind::Once(<span class="prelude-val">None</span>))
     }
 
     <span class="doccomment">/// Create a `Body` stream with an associated sender half.
     ///
     /// Useful when wanting to stream chunks from another thread.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>channel() -&gt; (<a href="#109">Sender</a>, <a href="#36">Body</a>) {
+    </span><span class="kw">pub fn </span>channel() -&gt; (Sender, Body) {
         <span class="self">Self</span>::new_channel(DecodedLength::CHUNKED, <span class="comment">/*wanter =*/ </span><span class="bool-val">false</span>)
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new_channel(content_length: <a href="length.rs.html#4">DecodedLength</a>, wanter: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; (<a href="#109">Sender</a>, <a href="#36">Body</a>) {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new_channel(content_length: DecodedLength, wanter: bool) -&gt; (Sender, Body) {
         <span class="kw">let </span>(data_tx, data_rx) = mpsc::channel(<span class="number">0</span>);
         <span class="kw">let </span>(trailers_tx, trailers_rx) = oneshot::channel();
 
         <span class="comment">// If wanter is true, `Sender::poll_ready()` won&#39;t becoming ready
         // until the `Body` has been polled for data once.
-        </span><span class="kw">let </span>want = <span class="kw">if </span>wanter { <a href="#115">WANT_PENDING</a> } <span class="kw">else </span>{ <a href="#116">WANT_READY</a> };
+        </span><span class="kw">let </span>want = <span class="kw">if </span>wanter { WANT_PENDING } <span class="kw">else </span>{ WANT_READY };
 
-        <span class="kw">let </span>(want_tx, want_rx) = <a href="../common/watch.rs.html#18">watch::channel</a>(<a href="#148">want</a>);
+        <span class="kw">let </span>(want_tx, want_rx) = watch::channel(want);
 
-        <span class="kw">let </span>tx = <a href="#109">Sender</a> {
-            <a href="#150">want_rx</a>,
-            <a href="#143">data_tx</a>,
-            trailers_tx: <span class="prelude-val">Some</span>(<a href="#144">trailers_tx</a>),
+        <span class="kw">let </span>tx = Sender {
+            want_rx,
+            data_tx,
+            trailers_tx: <span class="prelude-val">Some</span>(trailers_tx),
         };
-        <span class="kw">let </span>rx = Body::new(<a href="#45">Kind::Chan</a> {
-            <a href="#142">content_length</a>,
-            <a href="#150">want_tx</a>,
-            <a href="#143">data_rx</a>,
-            <a href="#144">trailers_rx</a>,
+        <span class="kw">let </span>rx = Body::new(Kind::Chan {
+            content_length,
+            want_tx,
+            data_rx,
+            trailers_rx,
         });
 
-        (<a href="#152">tx</a>, <a href="#157">rx</a>)
+        (tx, rx)
     }
 
     <span class="doccomment">/// Wrap a futures `Stream` in a box inside `Body`.
@@ -972,83 +972,83 @@
     /// `Cargo.toml`.
     </span><span class="attr">#[cfg(feature = <span class="string">&quot;stream&quot;</span>)]
     #[cfg_attr(docsrs, doc(cfg(feature = <span class="string">&quot;stream&quot;</span>)))]
-    </span><span class="kw">pub fn </span>wrap_stream&lt;S, O, E&gt;(stream: S) -&gt; <a href="#36">Body</a>
+    </span><span class="kw">pub fn </span>wrap_stream&lt;S, O, E&gt;(stream: S) -&gt; Body
     <span class="kw">where
-        </span>S: Stream&lt;Item = <span class="prelude-ty">Result</span>&lt;O, E&gt;&gt; + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <span class="lifetime">&#39;static</span>,
-        O: Into&lt;<a href="../../../hyper/body/struct.Bytes.html">Bytes</a>&gt; + <span class="lifetime">&#39;static</span>,
-        E: Into&lt;Box&lt;<span class="kw">dyn </span><a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">StdError</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a>&gt;&gt; + <span class="lifetime">&#39;static</span>,
+        </span>S: Stream&lt;Item = <span class="prelude-ty">Result</span>&lt;O, E&gt;&gt; + Send + <span class="lifetime">&#39;static</span>,
+        O: Into&lt;Bytes&gt; + <span class="lifetime">&#39;static</span>,
+        E: Into&lt;Box&lt;<span class="kw">dyn </span>StdError + Send + Sync&gt;&gt; + <span class="lifetime">&#39;static</span>,
     {
-        <span class="kw">let </span>mapped = <a href="#190">stream</a>.<a href="../../../futures_util/stream/try_stream/trait.TryStreamExt.html">map_ok</a>(<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">Into::into</a>).<a href="../../../futures_util/stream/try_stream/trait.TryStreamExt.html">map_err</a>(<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">Into::into</a>);
-        Body::new(<a href="#60">Kind::Wrapped</a>(SyncWrapper::new(Box::pin(<a href="#196">mapped</a>))))
+        <span class="kw">let </span>mapped = stream.map_ok(Into::into).map_err(Into::into);
+        Body::new(Kind::Wrapped(SyncWrapper::new(Box::pin(mapped))))
     }
 
-    <span class="kw">fn </span>new(kind: <a href="#43">Kind</a>) -&gt; <a href="#36">Body</a> {
-        <a href="#36">Body</a> { <a href="#200">kind</a>, extra: <span class="prelude-val">None </span>}
+    <span class="kw">fn </span>new(kind: Kind) -&gt; Body {
+        Body { kind, extra: <span class="prelude-val">None </span>}
     }
 
     <span class="attr">#[cfg(all(feature = <span class="string">&quot;http2&quot;</span>, any(feature = <span class="string">&quot;client&quot;</span>, feature = <span class="string">&quot;server&quot;</span>)))]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>h2(
-        recv: <a href="../../../h2/share/struct.RecvStream.html">h2::RecvStream</a>,
-        <span class="kw-2">mut </span>content_length: <a href="length.rs.html#4">DecodedLength</a>,
-        ping: <a href="../proto/h2/ping.rs.html#117">ping::Recorder</a>,
+        recv: h2::RecvStream,
+        <span class="kw-2">mut </span>content_length: DecodedLength,
+        ping: ping::Recorder,
     ) -&gt; <span class="self">Self </span>{
         <span class="comment">// If the stream is already EOS, then the &quot;unknown length&quot; is clearly
         // actually ZERO.
         </span><span class="kw">if </span>!content_length.is_exact() &amp;&amp; recv.is_end_stream() {
-            <a href="#207">content_length</a> = DecodedLength::ZERO;
+            content_length = DecodedLength::ZERO;
         }
-        <span class="kw">let </span>body = Body::new(<a href="#52">Kind::H2</a> {
-            <a href="#208">ping</a>,
-            <a href="#207">content_length</a>,
-            <a href="#206">recv</a>,
+        <span class="kw">let </span>body = Body::new(Kind::H2 {
+            ping,
+            content_length,
+            recv,
         });
 
-        <a href="#215">body</a>
+        body
     }
 
     <span class="attr">#[cfg(any(feature = <span class="string">&quot;http1&quot;</span>, feature = <span class="string">&quot;http2&quot;</span>))]
     #[cfg(feature = <span class="string">&quot;client&quot;</span>)]
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>delayed_eof(<span class="kw-2">&amp;mut </span><span class="self">self</span>, fut: <a href="#80">DelayEofUntil</a>) {
-        <a class="self" href="#226">self</a>.<a href="#237">extra_mut</a>().delayed_eof = <span class="prelude-val">Some</span>(<a href="#86">DelayEof::NotEof</a>(<a href="#226">fut</a>));
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>delayed_eof(<span class="kw-2">&amp;mut </span><span class="self">self</span>, fut: DelayEofUntil) {
+        <span class="self">self</span>.extra_mut().delayed_eof = <span class="prelude-val">Some</span>(DelayEof::NotEof(fut));
     }
 
-    <span class="kw">fn </span>take_delayed_eof(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="#82">DelayEof</a>&gt; {
-        <a class="self" href="#230">self</a>.extra
+    <span class="kw">fn </span>take_delayed_eof(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;DelayEof&gt; {
+        <span class="self">self</span>.extra
             .as_mut()
-            .and_then(|extra| <a href="#233">extra</a>.delayed_eof.take())
+            .and_then(|extra| extra.delayed_eof.take())
     }
 
     <span class="attr">#[cfg(any(feature = <span class="string">&quot;http1&quot;</span>, feature = <span class="string">&quot;http2&quot;</span>))]
-    </span><span class="kw">fn </span>extra_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span><a href="#67">Extra</a> {
-        <a class="self" href="#237">self</a>.extra
-            .get_or_insert_with(|| Box::new(<a href="#67">Extra</a> { delayed_eof: <span class="prelude-val">None </span>}))
+    </span><span class="kw">fn </span>extra_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>Extra {
+        <span class="self">self</span>.extra
+            .get_or_insert_with(|| Box::new(Extra { delayed_eof: <span class="prelude-val">None </span>}))
     }
 
-    <span class="kw">fn </span>poll_eof(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cx: <span class="kw-2">&amp;mut </span>task::Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;<span class="kw">crate</span>::Result&lt;<a href="../../../hyper/body/struct.Bytes.html">Bytes</a>&gt;&gt;&gt; {
-        <span class="kw">match </span><a class="self" href="#242">self</a>.<a href="#230">take_delayed_eof</a>() {
+    <span class="kw">fn </span>poll_eof(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cx: <span class="kw-2">&amp;mut </span>task::Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;<span class="kw">crate</span>::Result&lt;Bytes&gt;&gt;&gt; {
+        <span class="kw">match </span><span class="self">self</span>.take_delayed_eof() {
             <span class="attr">#[cfg(any(feature = <span class="string">&quot;http1&quot;</span>, feature = <span class="string">&quot;http2&quot;</span>))]
             #[cfg(feature = <span class="string">&quot;client&quot;</span>)]
-            </span><span class="prelude-val">Some</span>(<a href="#86">DelayEof::NotEof</a>(<span class="kw-2">mut </span>delay)) =&gt; <span class="kw">match </span><a class="self" href="#242">self</a>.<a href="#295">poll_inner</a>(<a href="#242">cx</a>) {
+            </span><span class="prelude-val">Some</span>(DelayEof::NotEof(<span class="kw-2">mut </span>delay)) =&gt; <span class="kw">match </span><span class="self">self</span>.poll_inner(cx) {
                 ok @ Poll::Ready(<span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(..))) | ok @ Poll::Pending =&gt; {
-                    <a class="self" href="#242">self</a>.<a href="#237">extra_mut</a>().delayed_eof = <span class="prelude-val">Some</span>(<a href="#86">DelayEof::NotEof</a>(<a href="#246">delay</a>));
-                    <a href="#247">ok</a>
+                    <span class="self">self</span>.extra_mut().delayed_eof = <span class="prelude-val">Some</span>(DelayEof::NotEof(delay));
+                    ok
                 }
-                Poll::Ready(<span class="prelude-val">None</span>) =&gt; <span class="kw">match </span>Pin::new(<span class="kw-2">&amp;mut </span><a href="#246">delay</a>).<a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">poll</a>(<a href="#242">cx</a>) {
-                    Poll::Ready(<span class="prelude-val">Ok</span>(never)) =&gt; <span class="kw">match </span><a href="#252">never</a> {},
+                Poll::Ready(<span class="prelude-val">None</span>) =&gt; <span class="kw">match </span>Pin::new(<span class="kw-2">&amp;mut </span>delay).poll(cx) {
+                    Poll::Ready(<span class="prelude-val">Ok</span>(never)) =&gt; <span class="kw">match </span>never {},
                     Poll::Pending =&gt; {
-                        <a class="self" href="#242">self</a>.<a href="#237">extra_mut</a>().delayed_eof = <span class="prelude-val">Some</span>(<a href="#92">DelayEof::Eof</a>(<a href="#246">delay</a>));
+                        <span class="self">self</span>.extra_mut().delayed_eof = <span class="prelude-val">Some</span>(DelayEof::Eof(delay));
                         Poll::Pending
                     }
                     Poll::Ready(<span class="prelude-val">Err</span>(_done)) =&gt; Poll::Ready(<span class="prelude-val">None</span>),
                 },
-                Poll::Ready(<span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(e))) =&gt; Poll::Ready(<span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(<a href="#259">e</a>))),
+                Poll::Ready(<span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(e))) =&gt; Poll::Ready(<span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(e))),
             },
             <span class="attr">#[cfg(any(feature = <span class="string">&quot;http1&quot;</span>, feature = <span class="string">&quot;http2&quot;</span>))]
             #[cfg(feature = <span class="string">&quot;client&quot;</span>)]
-            </span><span class="prelude-val">Some</span>(<a href="#92">DelayEof::Eof</a>(<span class="kw-2">mut </span>delay)) =&gt; <span class="kw">match </span>Pin::new(<span class="kw-2">&amp;mut </span><a href="#263">delay</a>).<a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">poll</a>(<a href="#242">cx</a>) {
-                Poll::Ready(<span class="prelude-val">Ok</span>(never)) =&gt; <span class="kw">match </span><a href="#264">never</a> {},
+            </span><span class="prelude-val">Some</span>(DelayEof::Eof(<span class="kw-2">mut </span>delay)) =&gt; <span class="kw">match </span>Pin::new(<span class="kw-2">&amp;mut </span>delay).poll(cx) {
+                Poll::Ready(<span class="prelude-val">Ok</span>(never)) =&gt; <span class="kw">match </span>never {},
                 Poll::Pending =&gt; {
-                    <a class="self" href="#242">self</a>.<a href="#237">extra_mut</a>().delayed_eof = <span class="prelude-val">Some</span>(<a href="#92">DelayEof::Eof</a>(<a href="#263">delay</a>));
+                    <span class="self">self</span>.extra_mut().delayed_eof = <span class="prelude-val">Some</span>(DelayEof::Eof(delay));
                     Poll::Pending
                 }
                 Poll::Ready(<span class="prelude-val">Err</span>(_done)) =&gt; Poll::Ready(<span class="prelude-val">None</span>),
@@ -1058,7 +1058,7 @@
                 not(feature = <span class="string">&quot;client&quot;</span>)
             ))]
             </span><span class="prelude-val">Some</span>(delay_eof) =&gt; <span class="kw">match </span>delay_eof {},
-            <span class="prelude-val">None </span>=&gt; <a class="self" href="#242">self</a>.<a href="#295">poll_inner</a>(<a href="#242">cx</a>),
+            <span class="prelude-val">None </span>=&gt; <span class="self">self</span>.poll_inner(cx),
         }
     }
 
@@ -1077,38 +1077,38 @@
         }
     }
 
-    <span class="kw">fn </span>poll_inner(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cx: <span class="kw-2">&amp;mut </span>task::Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;<span class="kw">crate</span>::Result&lt;<a href="../../../hyper/body/struct.Bytes.html">Bytes</a>&gt;&gt;&gt; {
-        <span class="kw">match </span><a class="self" href="#295">self</a>.kind {
-            <a href="#44">Kind::Once</a>(<span class="kw-2">ref mut </span>val) =&gt; Poll::Ready(<a href="#297">val</a>.take().map(<span class="prelude-val">Ok</span>)),
-            <a href="#45">Kind::Chan</a> {
+    <span class="kw">fn </span>poll_inner(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cx: <span class="kw-2">&amp;mut </span>task::Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;<span class="kw">crate</span>::Result&lt;Bytes&gt;&gt;&gt; {
+        <span class="kw">match </span><span class="self">self</span>.kind {
+            Kind::Once(<span class="kw-2">ref mut </span>val) =&gt; Poll::Ready(val.take().map(<span class="prelude-val">Ok</span>)),
+            Kind::Chan {
                 content_length: <span class="kw-2">ref mut </span>len,
                 <span class="kw-2">ref mut </span>data_rx,
                 <span class="kw-2">ref mut </span>want_tx,
                 ..
             } =&gt; {
-                <a href="#301">want_tx</a>.<a href="../common/watch.rs.html#51">send</a>(<a href="#116">WANT_READY</a>);
+                want_tx.send(WANT_READY);
 
-                <span class="kw">match </span><a class="macro" href="../common/mod.rs.html#1-8">ready!</a>(Pin::new(data_rx).poll_next(cx)<span class="question-mark">?</span>) {
+                <span class="kw">match </span><span class="macro">ready!</span>(Pin::new(data_rx).poll_next(cx)<span class="question-mark">?</span>) {
                     <span class="prelude-val">Some</span>(chunk) =&gt; {
-                        <a href="#299">len</a>.<a href="length.rs.html#63">sub_if</a>(<a href="#307">chunk</a>.len() <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>);
-                        Poll::Ready(<span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(<a href="#307">chunk</a>)))
+                        len.sub_if(chunk.len() <span class="kw">as </span>u64);
+                        Poll::Ready(<span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(chunk)))
                     }
                     <span class="prelude-val">None </span>=&gt; Poll::Ready(<span class="prelude-val">None</span>),
                 }
             }
             <span class="attr">#[cfg(all(feature = <span class="string">&quot;http2&quot;</span>, any(feature = <span class="string">&quot;client&quot;</span>, feature = <span class="string">&quot;server&quot;</span>)))]
-            </span><a href="#52">Kind::H2</a> {
+            </span>Kind::H2 {
                 <span class="kw-2">ref </span>ping,
                 recv: <span class="kw-2">ref mut </span>h2,
                 content_length: <span class="kw-2">ref mut </span>len,
-            } =&gt; <span class="kw">match </span><a class="macro" href="../common/mod.rs.html#1-8">ready!</a>(h2.poll_data(cx)) {
+            } =&gt; <span class="kw">match </span><span class="macro">ready!</span>(h2.poll_data(cx)) {
                 <span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(bytes)) =&gt; {
-                    <span class="kw">let _ </span>= <a href="#317">h2</a>.flow_control().release_capacity(<a href="#320">bytes</a>.len());
-                    <a href="#318">len</a>.<a href="length.rs.html#63">sub_if</a>(<a href="#320">bytes</a>.len() <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>);
-                    <a href="#316">ping</a>.<a href="../proto/h2/ping.rs.html#215">record_data</a>(<a href="#320">bytes</a>.len());
-                    Poll::Ready(<span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(<a href="#320">bytes</a>)))
+                    <span class="kw">let _ </span>= h2.flow_control().release_capacity(bytes.len());
+                    len.sub_if(bytes.len() <span class="kw">as </span>u64);
+                    ping.record_data(bytes.len());
+                    Poll::Ready(<span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(bytes)))
                 }
-                <span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(e)) =&gt; Poll::Ready(<span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(<span class="kw">crate</span>::Error::new_body(<a href="#326">e</a>)))),
+                <span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(e)) =&gt; Poll::Ready(<span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(<span class="kw">crate</span>::Error::new_body(e)))),
                 <span class="prelude-val">None </span>=&gt; Poll::Ready(<span class="prelude-val">None</span>),
             },
 
@@ -1116,64 +1116,64 @@
             </span>Kind::Ffi(<span class="kw-2">ref mut </span>body) =&gt; body.poll_data(cx),
 
             <span class="attr">#[cfg(feature = <span class="string">&quot;stream&quot;</span>)]
-            </span><a href="#60">Kind::Wrapped</a>(<span class="kw-2">ref mut </span>s) =&gt; <span class="kw">match </span><a class="macro" href="../common/mod.rs.html#1-8">ready!</a>(s.get_mut().as_mut().poll_next(cx)) {
-                <span class="prelude-val">Some</span>(res) =&gt; Poll::Ready(<span class="prelude-val">Some</span>(<a href="#335">res</a>.map_err(<span class="kw">crate</span>::Error::new_body))),
+            </span>Kind::Wrapped(<span class="kw-2">ref mut </span>s) =&gt; <span class="kw">match </span><span class="macro">ready!</span>(s.get_mut().as_mut().poll_next(cx)) {
+                <span class="prelude-val">Some</span>(res) =&gt; Poll::Ready(<span class="prelude-val">Some</span>(res.map_err(<span class="kw">crate</span>::Error::new_body))),
                 <span class="prelude-val">None </span>=&gt; Poll::Ready(<span class="prelude-val">None</span>),
             },
         }
     }
 
     <span class="attr">#[cfg(feature = <span class="string">&quot;http1&quot;</span>)]
-    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>take_full_data(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="../../../hyper/body/struct.Bytes.html">Bytes</a>&gt; {
-        <span class="kw">if let </span><a href="#44">Kind::Once</a>(<span class="kw-2">ref mut </span>chunk) = <a class="self" href="#342">self</a>.kind {
-            <a href="#343">chunk</a>.take()
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>take_full_data(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Bytes&gt; {
+        <span class="kw">if let </span>Kind::Once(<span class="kw-2">ref mut </span>chunk) = <span class="self">self</span>.kind {
+            chunk.take()
         } <span class="kw">else </span>{
             <span class="prelude-val">None
         </span>}
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for </span><a href="#36">Body</a> {
+<span class="kw">impl </span>Default <span class="kw">for </span>Body {
     <span class="doccomment">/// Returns `Body::empty()`.
     </span><span class="attr">#[inline]
-    </span><span class="kw">fn </span>default() -&gt; <a href="#36">Body</a> {
+    </span><span class="kw">fn </span>default() -&gt; Body {
         Body::empty()
     }
 }
 
-<span class="kw">impl </span><a href="../../../hyper/body/trait.HttpBody.html">HttpBody</a> <span class="kw">for </span><a href="#36">Body</a> {
-    <span class="kw">type </span>Data = <a href="../../../hyper/body/struct.Bytes.html">Bytes</a>;
-    <span class="kw">type </span>Error = <a href="../error.rs.html#11"><span class="kw">crate</span>::Error</a>;
+<span class="kw">impl </span>HttpBody <span class="kw">for </span>Body {
+    <span class="kw">type </span>Data = Bytes;
+    <span class="kw">type </span>Error = <span class="kw">crate</span>::Error;
 
     <span class="kw">fn </span>poll_data(
         <span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;,
         cx: <span class="kw-2">&amp;mut </span>task::Context&lt;<span class="lifetime">&#39;_</span>&gt;,
     ) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;<span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Data, <span class="self">Self</span>::Error&gt;&gt;&gt; {
-        <a class="self" href="#364">self</a>.<a href="#242">poll_eof</a>(<a href="#365">cx</a>)
+        <span class="self">self</span>.poll_eof(cx)
     }
 
     <span class="kw">fn </span>poll_trailers(
         <span class="attr">#[cfg_attr(not(feature = <span class="string">&quot;http2&quot;</span>), allow(unused_mut))] </span><span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;,
         <span class="attr">#[cfg_attr(not(feature = <span class="string">&quot;http2&quot;</span>), allow(unused))] </span>cx: <span class="kw-2">&amp;mut </span>task::Context&lt;<span class="lifetime">&#39;_</span>&gt;,
-    ) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<a href="../../../hyper/header/struct.HeaderMap.html">HeaderMap</a>&gt;, <span class="self">Self</span>::Error&gt;&gt; {
-        <span class="kw">match </span><a class="self" href="#371">self</a>.kind {
+    ) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;HeaderMap&gt;, <span class="self">Self</span>::Error&gt;&gt; {
+        <span class="kw">match </span><span class="self">self</span>.kind {
             <span class="attr">#[cfg(all(feature = <span class="string">&quot;http2&quot;</span>, any(feature = <span class="string">&quot;client&quot;</span>, feature = <span class="string">&quot;server&quot;</span>)))]
-            </span><a href="#52">Kind::H2</a> {
+            </span>Kind::H2 {
                 recv: <span class="kw-2">ref mut </span>h2,
                 <span class="kw-2">ref </span>ping,
                 ..
-            } =&gt; <span class="kw">match </span><a class="macro" href="../common/mod.rs.html#1-8">ready!</a>(h2.poll_trailers(cx)) {
+            } =&gt; <span class="kw">match </span><span class="macro">ready!</span>(h2.poll_trailers(cx)) {
                 <span class="prelude-val">Ok</span>(t) =&gt; {
-                    <a href="#378">ping</a>.<a href="../proto/h2/ping.rs.html#250">record_non_data</a>();
-                    Poll::Ready(<span class="prelude-val">Ok</span>(<a href="#381">t</a>))
+                    ping.record_non_data();
+                    Poll::Ready(<span class="prelude-val">Ok</span>(t))
                 }
-                <span class="prelude-val">Err</span>(e) =&gt; Poll::Ready(<span class="prelude-val">Err</span>(<span class="kw">crate</span>::Error::new_h2(<a href="#385">e</a>))),
+                <span class="prelude-val">Err</span>(e) =&gt; Poll::Ready(<span class="prelude-val">Err</span>(<span class="kw">crate</span>::Error::new_h2(e))),
             },
-            <a href="#45">Kind::Chan</a> {
+            Kind::Chan {
                 <span class="kw-2">ref mut </span>trailers_rx,
                 ..
-            } =&gt; <span class="kw">match </span><a class="macro" href="../common/mod.rs.html#1-8">ready!</a>(Pin::new(trailers_rx).poll(cx)) {
-                <span class="prelude-val">Ok</span>(t) =&gt; Poll::Ready(<span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<a href="#391">t</a>))),
+            } =&gt; <span class="kw">match </span><span class="macro">ready!</span>(Pin::new(trailers_rx).poll(cx)) {
+                <span class="prelude-val">Ok</span>(t) =&gt; Poll::Ready(<span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(t))),
                 <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; Poll::Ready(<span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>)),
             },
             <span class="attr">#[cfg(feature = <span class="string">&quot;ffi&quot;</span>)]
@@ -1182,20 +1182,20 @@
         }
     }
 
-    <span class="kw">fn </span>is_end_stream(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">match </span><a class="self" href="#400">self</a>.kind {
-            <a href="#44">Kind::Once</a>(<span class="kw-2">ref </span>val) =&gt; <a href="#402">val</a>.is_none(),
-            <a href="#45">Kind::Chan</a> { content_length, .. } =&gt; <a href="#403">content_length</a> == DecodedLength::ZERO,
+    <span class="kw">fn </span>is_end_stream(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="kw">match </span><span class="self">self</span>.kind {
+            Kind::Once(<span class="kw-2">ref </span>val) =&gt; val.is_none(),
+            Kind::Chan { content_length, .. } =&gt; content_length == DecodedLength::ZERO,
             <span class="attr">#[cfg(all(feature = <span class="string">&quot;http2&quot;</span>, any(feature = <span class="string">&quot;client&quot;</span>, feature = <span class="string">&quot;server&quot;</span>)))]
-            </span><a href="#52">Kind::H2</a> { recv: <span class="kw-2">ref </span>h2, .. } =&gt; <a href="#405">h2</a>.is_end_stream(),
+            </span>Kind::H2 { recv: <span class="kw-2">ref </span>h2, .. } =&gt; h2.is_end_stream(),
             <span class="attr">#[cfg(feature = <span class="string">&quot;ffi&quot;</span>)]
             </span>Kind::Ffi(..) =&gt; <span class="bool-val">false</span>,
             <span class="attr">#[cfg(feature = <span class="string">&quot;stream&quot;</span>)]
-            </span><a href="#60">Kind::Wrapped</a>(..) =&gt; <span class="bool-val">false</span>,
+            </span>Kind::Wrapped(..) =&gt; <span class="bool-val">false</span>,
         }
     }
 
-    <span class="kw">fn </span>size_hint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../../../hyper/body/struct.SizeHint.html">SizeHint</a> {
+    <span class="kw">fn </span>size_hint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; SizeHint {
         <span class="macro">macro_rules! </span>opt_len {
             (<span class="macro-nonterminal">$content_length</span>:expr) =&gt; {{
                 <span class="kw">let </span><span class="kw-2">mut </span>hint = SizeHint::default();
@@ -1208,37 +1208,37 @@
             }};
         }
 
-        <span class="kw">match </span><a class="self" href="#413">self</a>.kind {
-            <a href="#44">Kind::Once</a>(<span class="prelude-val">Some</span>(<span class="kw-2">ref </span>val)) =&gt; SizeHint::with_exact(<a href="#427">val</a>.len() <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>),
-            <a href="#44">Kind::Once</a>(<span class="prelude-val">None</span>) =&gt; SizeHint::with_exact(<span class="number">0</span>),
+        <span class="kw">match </span><span class="self">self</span>.kind {
+            Kind::Once(<span class="prelude-val">Some</span>(<span class="kw-2">ref </span>val)) =&gt; SizeHint::with_exact(val.len() <span class="kw">as </span>u64),
+            Kind::Once(<span class="prelude-val">None</span>) =&gt; SizeHint::with_exact(<span class="number">0</span>),
             <span class="attr">#[cfg(feature = <span class="string">&quot;stream&quot;</span>)]
-            </span><a href="#60">Kind::Wrapped</a>(..) =&gt; SizeHint::default(),
-            <a href="#45">Kind::Chan</a> { content_length, .. } =&gt; <a class="macro" href="#414-424">opt_len!</a>(content_length),
+            </span>Kind::Wrapped(..) =&gt; SizeHint::default(),
+            Kind::Chan { content_length, .. } =&gt; <span class="macro">opt_len!</span>(content_length),
             <span class="attr">#[cfg(all(feature = <span class="string">&quot;http2&quot;</span>, any(feature = <span class="string">&quot;client&quot;</span>, feature = <span class="string">&quot;server&quot;</span>)))]
-            </span><a href="#52">Kind::H2</a> { content_length, .. } =&gt; <a class="macro" href="#414-424">opt_len!</a>(content_length),
+            </span>Kind::H2 { content_length, .. } =&gt; <span class="macro">opt_len!</span>(content_length),
             <span class="attr">#[cfg(feature = <span class="string">&quot;ffi&quot;</span>)]
             </span>Kind::Ffi(..) =&gt; SizeHint::default(),
         }
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="#36">Body</a> {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+<span class="kw">impl </span>fmt::Debug <span class="kw">for </span>Body {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
         <span class="attr">#[derive(Debug)]
         </span><span class="kw">struct </span>Streaming;
         <span class="attr">#[derive(Debug)]
         </span><span class="kw">struct </span>Empty;
         <span class="attr">#[derive(Debug)]
-        </span><span class="kw">struct </span>Full&lt;<span class="lifetime">&#39;a</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="../../../hyper/body/struct.Bytes.html">Bytes</a>);
+        </span><span class="kw">struct </span>Full&lt;<span class="lifetime">&#39;a</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Bytes);
 
-        <span class="kw">let </span><span class="kw-2">mut </span>builder = <a href="#441">f</a>.debug_tuple(<span class="string">&quot;Body&quot;</span>);
-        <span class="kw">match </span><a class="self" href="#441">self</a>.kind {
-            <a href="#44">Kind::Once</a>(<span class="prelude-val">None</span>) =&gt; <a href="#449">builder</a>.field(<span class="kw-2">&amp;</span><a href="#445">Empty</a>),
-            <a href="#44">Kind::Once</a>(<span class="prelude-val">Some</span>(<span class="kw-2">ref </span>chunk)) =&gt; <a href="#449">builder</a>.field(<span class="kw-2">&amp;</span><a href="#447">Full</a>(<a href="#452">chunk</a>)),
-            <span class="kw">_ </span>=&gt; <a href="#449">builder</a>.field(<span class="kw-2">&amp;</span><a href="#443">Streaming</a>),
+        <span class="kw">let </span><span class="kw-2">mut </span>builder = f.debug_tuple(<span class="string">&quot;Body&quot;</span>);
+        <span class="kw">match </span><span class="self">self</span>.kind {
+            Kind::Once(<span class="prelude-val">None</span>) =&gt; builder.field(<span class="kw-2">&amp;</span>Empty),
+            Kind::Once(<span class="prelude-val">Some</span>(<span class="kw-2">ref </span>chunk)) =&gt; builder.field(<span class="kw-2">&amp;</span>Full(chunk)),
+            <span class="kw">_ </span>=&gt; builder.field(<span class="kw-2">&amp;</span>Streaming),
         };
 
-        <a href="#449">builder</a>.finish()
+        builder.finish()
     }
 }
 
@@ -1247,11 +1247,11 @@
 /// This function requires enabling the `stream` feature in your
 /// `Cargo.toml`.
 </span><span class="attr">#[cfg(feature = <span class="string">&quot;stream&quot;</span>)]
-</span><span class="kw">impl </span><a href="../../../futures_core/stream/trait.Stream.html">Stream</a> <span class="kw">for </span><a href="#36">Body</a> {
-    <span class="kw">type </span>Item = <span class="kw">crate</span>::Result&lt;<a href="../../../hyper/body/struct.Bytes.html">Bytes</a>&gt;;
+</span><span class="kw">impl </span>Stream <span class="kw">for </span>Body {
+    <span class="kw">type </span>Item = <span class="kw">crate</span>::Result&lt;Bytes&gt;;
 
     <span class="kw">fn </span>poll_next(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>task::Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt;&gt; {
-        <a href="../../../hyper/body/trait.HttpBody.html">HttpBody::poll_data</a>(<a class="self" href="#468">self</a>, <a href="#468">cx</a>)
+        HttpBody::poll_data(<span class="self">self</span>, cx)
     }
 }
 
@@ -1260,90 +1260,90 @@
 /// This function requires enabling the `stream` feature in your
 /// `Cargo.toml`.
 </span><span class="attr">#[cfg(feature = <span class="string">&quot;stream&quot;</span>)]
-</span><span class="kw">impl </span>From&lt;Box&lt;<span class="kw">dyn </span>Stream&lt;Item = <span class="prelude-ty">Result</span>&lt;<a href="../../../hyper/body/struct.Bytes.html">Bytes</a>, Box&lt;<span class="kw">dyn </span><a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">StdError</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a>&gt;&gt;&gt; + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a>&gt;&gt; <span class="kw">for </span><a href="#36">Body</a> {
+</span><span class="kw">impl </span>From&lt;Box&lt;<span class="kw">dyn </span>Stream&lt;Item = <span class="prelude-ty">Result</span>&lt;Bytes, Box&lt;<span class="kw">dyn </span>StdError + Send + Sync&gt;&gt;&gt; + Send&gt;&gt; <span class="kw">for </span>Body {
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>from(
-        stream: Box&lt;<span class="kw">dyn </span>Stream&lt;Item = <span class="prelude-ty">Result</span>&lt;<a href="../../../hyper/body/struct.Bytes.html">Bytes</a>, Box&lt;<span class="kw">dyn </span><a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">StdError</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a>&gt;&gt;&gt; + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a>&gt;,
-    ) -&gt; <a href="#36">Body</a> {
-        Body::new(<a href="#60">Kind::Wrapped</a>(SyncWrapper::new(<a href="#481">stream</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())))
+        stream: Box&lt;<span class="kw">dyn </span>Stream&lt;Item = <span class="prelude-ty">Result</span>&lt;Bytes, Box&lt;<span class="kw">dyn </span>StdError + Send + Sync&gt;&gt;&gt; + Send&gt;,
+    ) -&gt; Body {
+        Body::new(Kind::Wrapped(SyncWrapper::new(stream.into())))
     }
 }
 
-<span class="kw">impl </span>From&lt;<a href="../../../hyper/body/struct.Bytes.html">Bytes</a>&gt; <span class="kw">for </span><a href="#36">Body</a> {
+<span class="kw">impl </span>From&lt;Bytes&gt; <span class="kw">for </span>Body {
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>from(chunk: <a href="../../../hyper/body/struct.Bytes.html">Bytes</a>) -&gt; <a href="#36">Body</a> {
+    </span><span class="kw">fn </span>from(chunk: Bytes) -&gt; Body {
         <span class="kw">if </span>chunk.is_empty() {
             Body::empty()
         } <span class="kw">else </span>{
-            Body::new(<a href="#44">Kind::Once</a>(<span class="prelude-val">Some</span>(<a href="#489">chunk</a>)))
+            Body::new(Kind::Once(<span class="prelude-val">Some</span>(chunk)))
         }
     }
 }
 
-<span class="kw">impl </span>From&lt;Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;&gt; <span class="kw">for </span><a href="#36">Body</a> {
+<span class="kw">impl </span>From&lt;Vec&lt;u8&gt;&gt; <span class="kw">for </span>Body {
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>from(vec: Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;) -&gt; <a href="#36">Body</a> {
-        Body::from(Bytes::from(<a href="#500">vec</a>))
+    </span><span class="kw">fn </span>from(vec: Vec&lt;u8&gt;) -&gt; Body {
+        Body::from(Bytes::from(vec))
     }
 }
 
-<span class="kw">impl </span>From&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt; <span class="kw">for </span><a href="#36">Body</a> {
+<span class="kw">impl </span>From&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>[u8]&gt; <span class="kw">for </span>Body {
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>from(slice: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <a href="#36">Body</a> {
-        Body::from(Bytes::from(<a href="#507">slice</a>))
+    </span><span class="kw">fn </span>from(slice: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>[u8]) -&gt; Body {
+        Body::from(Bytes::from(slice))
     }
 }
 
-<span class="kw">impl </span>From&lt;Cow&lt;<span class="lifetime">&#39;static</span>, [<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;&gt; <span class="kw">for </span><a href="#36">Body</a> {
+<span class="kw">impl </span>From&lt;Cow&lt;<span class="lifetime">&#39;static</span>, [u8]&gt;&gt; <span class="kw">for </span>Body {
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>from(cow: Cow&lt;<span class="lifetime">&#39;static</span>, [<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;) -&gt; <a href="#36">Body</a> {
-        <span class="kw">match </span><a href="#514">cow</a> {
-            Cow::Borrowed(b) =&gt; Body::from(<a href="#516">b</a>),
-            Cow::Owned(o) =&gt; Body::from(<a href="#517">o</a>),
+    </span><span class="kw">fn </span>from(cow: Cow&lt;<span class="lifetime">&#39;static</span>, [u8]&gt;) -&gt; Body {
+        <span class="kw">match </span>cow {
+            Cow::Borrowed(b) =&gt; Body::from(b),
+            Cow::Owned(o) =&gt; Body::from(o),
         }
     }
 }
 
-<span class="kw">impl </span>From&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt; <span class="kw">for </span><a href="#36">Body</a> {
+<span class="kw">impl </span>From&lt;String&gt; <span class="kw">for </span>Body {
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>from(s: <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>) -&gt; <a href="#36">Body</a> {
-        Body::from(Bytes::from(<a href="#524">s</a>.into_bytes()))
+    </span><span class="kw">fn </span>from(s: String) -&gt; Body {
+        Body::from(Bytes::from(s.into_bytes()))
     }
 }
 
-<span class="kw">impl </span>From&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt; <span class="kw">for </span><a href="#36">Body</a> {
+<span class="kw">impl </span>From&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str&gt; <span class="kw">for </span>Body {
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>from(slice: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <a href="#36">Body</a> {
-        Body::from(Bytes::from(<a href="#531">slice</a>.as_bytes()))
+    </span><span class="kw">fn </span>from(slice: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str) -&gt; Body {
+        Body::from(Bytes::from(slice.as_bytes()))
     }
 }
 
-<span class="kw">impl </span>From&lt;Cow&lt;<span class="lifetime">&#39;static</span>, <a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt;&gt; <span class="kw">for </span><a href="#36">Body</a> {
+<span class="kw">impl </span>From&lt;Cow&lt;<span class="lifetime">&#39;static</span>, str&gt;&gt; <span class="kw">for </span>Body {
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>from(cow: Cow&lt;<span class="lifetime">&#39;static</span>, <a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt;) -&gt; <a href="#36">Body</a> {
-        <span class="kw">match </span><a href="#538">cow</a> {
-            Cow::Borrowed(b) =&gt; Body::from(<a href="#540">b</a>),
-            Cow::Owned(o) =&gt; Body::from(<a href="#541">o</a>),
+    </span><span class="kw">fn </span>from(cow: Cow&lt;<span class="lifetime">&#39;static</span>, str&gt;) -&gt; Body {
+        <span class="kw">match </span>cow {
+            Cow::Borrowed(b) =&gt; Body::from(b),
+            Cow::Owned(o) =&gt; Body::from(o),
         }
     }
 }
 
-<span class="kw">impl </span><a href="#109">Sender</a> {
+<span class="kw">impl </span>Sender {
     <span class="doccomment">/// Check to see if this `Sender` can send more data.
     </span><span class="kw">pub fn </span>poll_ready(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cx: <span class="kw-2">&amp;mut </span>task::Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="kw">crate</span>::Result&lt;()&gt;&gt; {
         <span class="comment">// Check if the receiver end has tried polling for the body yet
-        </span><a class="macro" href="../common/mod.rs.html#1-8">ready!</a>(<span class="self">self</span>.poll_want(cx)<span class="question-mark">?</span>);
-        <a class="self" href="#548">self</a>.data_tx
-            .poll_ready(<a href="#548">cx</a>)
+        </span><span class="macro">ready!</span>(<span class="self">self</span>.poll_want(cx)<span class="question-mark">?</span>);
+        <span class="self">self</span>.data_tx
+            .poll_ready(cx)
             .map_err(|<span class="kw">_</span>| <span class="kw">crate</span>::Error::new_closed())
     }
 
     <span class="kw">fn </span>poll_want(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cx: <span class="kw-2">&amp;mut </span>task::Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="kw">crate</span>::Result&lt;()&gt;&gt; {
-        <span class="kw">match </span><a class="self" href="#556">self</a>.want_rx.<a href="../common/watch.rs.html#65">load</a>(<a href="#556">cx</a>) {
-            <a href="#116">WANT_READY</a> =&gt; Poll::Ready(<span class="prelude-val">Ok</span>(())),
-            <a href="#115">WANT_PENDING</a> =&gt; Poll::Pending,
-            <a href="../common/watch.rs.html#16">watch::CLOSED</a> =&gt; Poll::Ready(<span class="prelude-val">Err</span>(<span class="kw">crate</span>::Error::new_closed())),
-            unexpected =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(<span class="string">&quot;want_rx value: {}&quot;</span>, unexpected),
+        <span class="kw">match </span><span class="self">self</span>.want_rx.load(cx) {
+            WANT_READY =&gt; Poll::Ready(<span class="prelude-val">Ok</span>(())),
+            WANT_PENDING =&gt; Poll::Pending,
+            watch::CLOSED =&gt; Poll::Ready(<span class="prelude-val">Err</span>(<span class="kw">crate</span>::Error::new_closed())),
+            unexpected =&gt; <span class="macro">unreachable!</span>(<span class="string">&quot;want_rx value: {}&quot;</span>, unexpected),
         }
     }
 
@@ -1352,7 +1352,7 @@
     </span>}
 
     <span class="doccomment">/// Send data on data channel when it is ready.
-    </span><span class="kw">pub async fn </span>send_data(<span class="kw-2">&amp;mut </span><span class="self">self</span>, chunk: <a href="../../../hyper/body/struct.Bytes.html">Bytes</a>) -&gt; <span class="kw">crate</span>::Result&lt;()&gt; {
+    </span><span class="kw">pub async fn </span>send_data(<span class="kw-2">&amp;mut </span><span class="self">self</span>, chunk: Bytes) -&gt; <span class="kw">crate</span>::Result&lt;()&gt; {
         <span class="self">self</span>.ready().<span class="kw">await</span><span class="question-mark">?</span>;
         <span class="self">self</span>.data_tx
             .try_send(<span class="prelude-val">Ok</span>(chunk))
@@ -1360,7 +1360,7 @@
     }
 
     <span class="doccomment">/// Send trailers on trailers channel.
-    </span><span class="kw">pub async fn </span>send_trailers(<span class="kw-2">&amp;mut </span><span class="self">self</span>, trailers: <a href="../../../hyper/header/struct.HeaderMap.html">HeaderMap</a>) -&gt; <span class="kw">crate</span>::Result&lt;()&gt; {
+    </span><span class="kw">pub async fn </span>send_trailers(<span class="kw-2">&amp;mut </span><span class="self">self</span>, trailers: HeaderMap) -&gt; <span class="kw">crate</span>::Result&lt;()&gt; {
         <span class="kw">let </span>tx = <span class="kw">match </span><span class="self">self</span>.trailers_tx.take() {
             <span class="prelude-val">Some</span>(tx) =&gt; tx,
             <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(<span class="kw">crate</span>::Error::new_closed()),
@@ -1380,41 +1380,41 @@
     /// This is mostly useful for when trying to send from some other thread
     /// that doesn&#39;t have an async context. If in an async context, prefer
     /// `send_data()` instead.
-    </span><span class="kw">pub fn </span>try_send_data(<span class="kw-2">&amp;mut </span><span class="self">self</span>, chunk: <a href="../../../hyper/body/struct.Bytes.html">Bytes</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../../hyper/body/struct.Bytes.html">Bytes</a>&gt; {
-        <a class="self" href="#598">self</a>.data_tx
-            .try_send(<span class="prelude-val">Ok</span>(<a href="#598">chunk</a>))
-            .map_err(|err| <a href="#601">err</a>.into_inner().expect(<span class="string">&quot;just sent Ok&quot;</span>))
+    </span><span class="kw">pub fn </span>try_send_data(<span class="kw-2">&amp;mut </span><span class="self">self</span>, chunk: Bytes) -&gt; <span class="prelude-ty">Result</span>&lt;(), Bytes&gt; {
+        <span class="self">self</span>.data_tx
+            .try_send(<span class="prelude-val">Ok</span>(chunk))
+            .map_err(|err| err.into_inner().expect(<span class="string">&quot;just sent Ok&quot;</span>))
     }
 
     <span class="doccomment">/// Aborts the body in an abnormal fashion.
     </span><span class="kw">pub fn </span>abort(<span class="self">self</span>) {
-        <span class="kw">let _ </span>= <span class="self"><a href="#605">self</a>
+        <span class="kw">let _ </span>= <span class="self">self
             </span>.data_tx
             <span class="comment">// clone so the send works even if buffer is full
-            </span>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()
+            </span>.clone()
             .try_send(<span class="prelude-val">Err</span>(<span class="kw">crate</span>::Error::new_body_write_aborted()));
     }
 
     <span class="attr">#[cfg(feature = <span class="string">&quot;http1&quot;</span>)]
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>send_error(<span class="kw-2">&amp;mut </span><span class="self">self</span>, err: <a href="../error.rs.html#11"><span class="kw">crate</span>::Error</a>) {
-        <span class="kw">let _ </span>= <a class="self" href="#614">self</a>.data_tx.try_send(<span class="prelude-val">Err</span>(<a href="#614">err</a>));
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>send_error(<span class="kw-2">&amp;mut </span><span class="self">self</span>, err: <span class="kw">crate</span>::Error) {
+        <span class="kw">let _ </span>= <span class="self">self</span>.data_tx.try_send(<span class="prelude-val">Err</span>(err));
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="#109">Sender</a> {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+<span class="kw">impl </span>fmt::Debug <span class="kw">for </span>Sender {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
         <span class="attr">#[derive(Debug)]
         </span><span class="kw">struct </span>Open;
         <span class="attr">#[derive(Debug)]
         </span><span class="kw">struct </span>Closed;
 
-        <span class="kw">let </span><span class="kw-2">mut </span>builder = <a href="#620">f</a>.debug_tuple(<span class="string">&quot;Sender&quot;</span>);
-        <span class="kw">match </span><a class="self" href="#620">self</a>.want_rx.<a href="../common/watch.rs.html#70">peek</a>() {
-            <a href="../common/watch.rs.html#16">watch::CLOSED</a> =&gt; <a href="#626">builder</a>.field(<span class="kw-2">&amp;</span><a href="#624">Closed</a>),
-            <span class="kw">_ </span>=&gt; <a href="#626">builder</a>.field(<span class="kw-2">&amp;</span><a href="#622">Open</a>),
+        <span class="kw">let </span><span class="kw-2">mut </span>builder = f.debug_tuple(<span class="string">&quot;Sender&quot;</span>);
+        <span class="kw">match </span><span class="self">self</span>.want_rx.peek() {
+            watch::CLOSED =&gt; builder.field(<span class="kw-2">&amp;</span>Closed),
+            <span class="kw">_ </span>=&gt; builder.field(<span class="kw-2">&amp;</span>Open),
         };
 
-        <a href="#626">builder</a>.finish()
+        builder.finish()
     }
 }
 
@@ -1569,4 +1569,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="hyper" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="hyper" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

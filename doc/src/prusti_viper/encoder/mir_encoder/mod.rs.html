@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `prusti-viper/src/encoder/mir_encoder/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../../prusti_viper/index.html"><img class="rust-logo" src="../../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `prusti-viper/src/encoder/mir_encoder/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../../prusti_viper/index.html"><img class="rust-logo" src="../../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -846,8 +846,6 @@
 <a href="#846" id="846">846</a>
 <a href="#847" id="847">847</a>
 <a href="#848" id="848">848</a>
-<a href="#849" id="849">849</a>
-<a href="#850" id="850">850</a>
 </pre><pre class="rust"><code><span class="comment">// © 2019-2020, ETH Zurich
 //
 // This Source Code Form is subject to the terms of the Mozilla Public
@@ -855,65 +853,65 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 </span><span class="kw">use </span><span class="kw">crate</span>::encoder::errors::{
-    <a href="../errors/error_manager.rs.html#52">ErrorCtxt</a>, <a href="../errors/error_manager.rs.html#20">PanicCause</a>, <a href="../errors/spanned_encoding_error.rs.html#16">SpannedEncodingError</a>, <a href="../errors/encoding_error.rs.html#15">EncodingError</a>, <a href="../errors/with_span.rs.html#13">WithSpan</a>,
-    <a href="../errors/spanned_encoding_error.rs.html#23">SpannedEncodingResult</a>, <a href="../errors/encoding_error.rs.html#20">EncodingResult</a>
+    ErrorCtxt, PanicCause, SpannedEncodingError, EncodingError, WithSpan,
+    SpannedEncodingResult, EncodingResult
 };
-<span class="kw">use </span><a href="../encoder.rs.html#67"><span class="kw">crate</span>::encoder::Encoder</a>;
-<span class="kw">use </span><a href="../snapshot/interface.rs.html#12"><span class="kw">crate</span>::encoder::snapshot::interface::SnapshotEncoderInterface</a>;
-<span class="kw">use crate</span>::{<a href="../../lib.rs.html#24">utils</a>, <a href="../errors/encoding_error.rs.html#76">error_internal</a>, <a href="../errors/encoding_error.rs.html#96">error_unsupported</a>};
-<span class="kw">use </span><a href="../../../../prusti_common/macro.vir_expr.html">prusti_common::vir_expr</a>;
-<span class="kw">use </span>vir_crate::{<a href="../../../../vir/polymorphic/index.html">polymorphic</a> <span class="kw">as </span>vir};
-<span class="kw">use </span><a href="../../../../prusti_utils/config/index.html">prusti_common::config</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_target/abi/index.html">prusti_rustc_interface::target::abi</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.DefId.html">prusti_rustc_interface::hir::def_id::DefId</a>;
-<span class="kw">use </span>prusti_rustc_interface::middle::{<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/index.html">mir</a>, <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/index.html">ty</a>};
+<span class="kw">use </span><span class="kw">crate</span>::encoder::Encoder;
+<span class="kw">use </span><span class="kw">crate</span>::encoder::snapshot::interface::SnapshotEncoderInterface;
+<span class="kw">use crate</span>::{utils, error_internal, error_unsupported};
+<span class="kw">use </span>prusti_common::vir_expr;
+<span class="kw">use </span>vir_crate::{polymorphic <span class="kw">as </span>vir};
+<span class="kw">use </span>prusti_common::config;
+<span class="kw">use </span>prusti_rustc_interface::target::abi;
+<span class="kw">use </span>prusti_rustc_interface::hir::def_id::DefId;
+<span class="kw">use </span>prusti_rustc_interface::middle::{mir, ty};
 <span class="kw">use </span>prusti_rustc_interface::index::vec::IndexVec;
-<span class="kw">use </span>prusti_rustc_interface::span::{<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/span_encoding/struct.Span.html">Span</a>, <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/span_encoding/constant.DUMMY_SP.html">DUMMY_SP</a>};
-<span class="kw">use </span>log::{<a href="../../../../log/macro.trace.html">trace</a>, <a href="../../../../log/macro.debug.html">debug</a>};
-<span class="kw">use </span><a href="../../../../prusti_interface/environment/mir_utils/mir_place/struct.MirPlace.html">prusti_interface::environment::mir_utils::MirPlace</a>;
+<span class="kw">use </span>prusti_rustc_interface::span::{Span, DUMMY_SP};
+<span class="kw">use </span>log::{trace, debug};
+<span class="kw">use </span>prusti_interface::environment::mir_utils::MirPlace;
 <span class="kw">use </span><span class="kw">crate</span>::encoder::mir::{
-    <a href="../mir/sequences/interface.rs.html#87">sequences::MirSequencesEncoderInterface</a>,
-    <a href="../mir/types/interface.rs.html#23">types::MirTypeEncoderInterface</a>,
+    sequences::MirSequencesEncoderInterface,
+    types::MirTypeEncoderInterface,
 };
-<span class="kw">use </span><a href="../high/types/interface.rs.html#127"><span class="kw">super</span>::high::types::HighTypeEncoderInterface</a>;
+<span class="kw">use </span><span class="kw">super</span>::high::types::HighTypeEncoderInterface;
 <span class="kw">use </span>prusti_rustc_interface::errors::MultiSpan;
 
-<span class="kw">mod </span><a href="downcast_detector.rs.html#1-47">downcast_detector</a>;
-<span class="kw">mod </span><a href="place_encoding.rs.html#8-147">place_encoding</a>;
+<span class="kw">mod </span>downcast_detector;
+<span class="kw">mod </span>place_encoding;
 
-<span class="kw">pub use </span>place_encoding::{<a href="place_encoding.rs.html#20">PlaceEncoding</a>, <a href="place_encoding.rs.html#50">ExprOrArrayBase</a>};
+<span class="kw">pub use </span>place_encoding::{PlaceEncoding, ExprOrArrayBase};
 
-<span class="kw">pub static </span>PRECONDITION_LABEL: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> = <span class="string">&quot;pre&quot;</span>;
-<span class="kw">pub static </span>WAND_LHS_LABEL: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> = <span class="string">&quot;lhs&quot;</span>;
+<span class="kw">pub static </span>PRECONDITION_LABEL: <span class="kw-2">&amp;</span>str = <span class="string">&quot;pre&quot;</span>;
+<span class="kw">pub static </span>WAND_LHS_LABEL: <span class="kw-2">&amp;</span>str = <span class="string">&quot;lhs&quot;</span>;
 
 <span class="kw">pub trait </span>PlaceEncoder&lt;<span class="lifetime">&#39;v</span>, <span class="lifetime">&#39;tcx</span>: <span class="lifetime">&#39;v</span>&gt; {
 
     <span class="kw">fn </span>encoder(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Encoder&lt;<span class="lifetime">&#39;v</span>, <span class="lifetime">&#39;tcx</span>&gt;;
 
-    <span class="kw">fn </span>get_local_ty(<span class="kw-2">&amp;</span><span class="self">self</span>, local: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Local.html">mir::Local</a>) -&gt; ty::Ty&lt;<span class="lifetime">&#39;tcx</span>&gt;;
+    <span class="kw">fn </span>get_local_ty(<span class="kw-2">&amp;</span><span class="self">self</span>, local: mir::Local) -&gt; ty::Ty&lt;<span class="lifetime">&#39;tcx</span>&gt;;
 
-    <span class="kw">fn </span>get_local_span(<span class="kw-2">&amp;</span><span class="self">self</span>, local: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Local.html">mir::Local</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/span_encoding/struct.Span.html">Span</a>;
+    <span class="kw">fn </span>get_local_span(<span class="kw-2">&amp;</span><span class="self">self</span>, local: mir::Local) -&gt; Span;
 
-    <span class="kw">fn </span>encode_local_var_name(<span class="kw-2">&amp;</span><span class="self">self</span>, local: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Local.html">mir::Local</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a> {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;{:?}&quot;</span>, local)
+    <span class="kw">fn </span>encode_local_var_name(<span class="kw-2">&amp;</span><span class="self">self</span>, local: mir::Local) -&gt; String {
+        <span class="macro">format!</span>(<span class="string">&quot;{local:?}&quot;</span>)
     }
 
-    <span class="kw">fn </span>encode_local_high(<span class="kw-2">&amp;</span><span class="self">self</span>, local: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Local.html">mir::Local</a>) -&gt; SpannedEncodingResult&lt;<a href="../../../../vir/gen/high/ast/variable/struct.VariableDecl.html">vir_crate::high::VariableDecl</a>&gt; {
-        <span class="kw">let </span>var_name = <a class="self" href="#51">self</a>.<a href="#47">encode_local_var_name</a>(<a href="#51">local</a>);
+    <span class="kw">fn </span>encode_local_high(<span class="kw-2">&amp;</span><span class="self">self</span>, local: mir::Local) -&gt; SpannedEncodingResult&lt;vir_crate::high::VariableDecl&gt; {
+        <span class="kw">let </span>var_name = <span class="self">self</span>.encode_local_var_name(local);
         <span class="kw">let </span>typ = <span class="self">self
             </span>.encoder()
             .encode_type_high(<span class="self">self</span>.get_local_ty(local))
             .with_span(<span class="self">self</span>.get_local_span(local))<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(vir_crate::high::VariableDecl::new(<a href="#52">var_name</a>, <a href="#53">typ</a>))
+        <span class="prelude-val">Ok</span>(vir_crate::high::VariableDecl::new(var_name, typ))
     }
 
-    <span class="kw">fn </span>encode_local(<span class="kw-2">&amp;</span><span class="self">self</span>, local: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Local.html">mir::Local</a>) -&gt; SpannedEncodingResult&lt;<a href="../../../../vir/gen/polymorphic/ast/common/struct.LocalVar.html">vir::LocalVar</a>&gt; {
-        <span class="kw">let </span>var_name = <a class="self" href="#60">self</a>.<a href="#47">encode_local_var_name</a>(<a href="#60">local</a>);
+    <span class="kw">fn </span>encode_local(<span class="kw-2">&amp;</span><span class="self">self</span>, local: mir::Local) -&gt; SpannedEncodingResult&lt;vir::LocalVar&gt; {
+        <span class="kw">let </span>var_name = <span class="self">self</span>.encode_local_var_name(local);
         <span class="kw">let </span>typ = <span class="self">self
             </span>.encoder()
             .encode_type(<span class="self">self</span>.get_local_ty(local))
             .with_span(<span class="self">self</span>.get_local_span(local))<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(vir::LocalVar::new(<a href="#61">var_name</a>, <a href="#62">typ</a>))
+        <span class="prelude-val">Ok</span>(vir::LocalVar::new(var_name, typ))
     }
 
     <span class="doccomment">/// Returns
@@ -923,9 +921,9 @@
     </span><span class="kw">fn </span>encode_place(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         place: mir::Place&lt;<span class="lifetime">&#39;tcx</span>&gt;,
-    ) -&gt; EncodingResult&lt;(PlaceEncoding&lt;<span class="lifetime">&#39;tcx</span>&gt;, ty::Ty&lt;<span class="lifetime">&#39;tcx</span>&gt;, <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;)&gt; {
-        <a class="macro" href="../../../../log/macro.trace.html">trace!</a>(<span class="string">&quot;Encode place {:?}&quot;</span>, place);
-        <a class="self" href="#74">self</a>.<a href="#85-89">encode_projection</a>(<a href="#75">place</a>.local, <a href="#75">place</a>.projection)
+    ) -&gt; EncodingResult&lt;(PlaceEncoding&lt;<span class="lifetime">&#39;tcx</span>&gt;, ty::Ty&lt;<span class="lifetime">&#39;tcx</span>&gt;, <span class="prelude-ty">Option</span>&lt;usize&gt;)&gt; {
+        <span class="macro">trace!</span>(<span class="string">&quot;Encode place {:?}&quot;</span>, place);
+        <span class="self">self</span>.encode_projection(place.local, place.projection)
     }
 
     <span class="doccomment">/// Returns
@@ -934,15 +932,15 @@
     /// - `Option&lt;usize&gt;`: optionally, the variant of the enum.
     </span><span class="kw">fn </span>encode_projection(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        local: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Local.html">mir::Local</a>,
+        local: mir::Local,
         projection: <span class="kw-2">&amp;</span>[mir::PlaceElem&lt;<span class="lifetime">&#39;tcx</span>&gt;],
-    ) -&gt; EncodingResult&lt;(PlaceEncoding&lt;<span class="lifetime">&#39;tcx</span>&gt;, ty::Ty&lt;<span class="lifetime">&#39;tcx</span>&gt;, <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;)&gt; {
-        <a class="macro" href="../../../../log/macro.trace.html">trace!</a>(<span class="string">&quot;Encode projection {:?}, {:?}&quot;</span>, local, projection);
+    ) -&gt; EncodingResult&lt;(PlaceEncoding&lt;<span class="lifetime">&#39;tcx</span>&gt;, ty::Ty&lt;<span class="lifetime">&#39;tcx</span>&gt;, <span class="prelude-ty">Option</span>&lt;usize&gt;)&gt; {
+        <span class="macro">trace!</span>(<span class="string">&quot;Encode projection {:?}, {:?}&quot;</span>, local, projection);
 
         <span class="kw">if </span>projection.is_empty() {
             <span class="kw">return </span><span class="prelude-val">Ok</span>((
-                <a href="place_encoding.rs.html#22">PlaceEncoding::Expr</a>(<span class="self">self</span>.encode_local(local)<span class="question-mark">?</span>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
-                <a class="self" href="#86">self</a>.<a href="#43">get_local_ty</a>(<a href="#87">local</a>),
+                PlaceEncoding::Expr(<span class="self">self</span>.encode_local(local)<span class="question-mark">?</span>.into()),
+                <span class="self">self</span>.get_local_ty(local),
                 <span class="prelude-val">None</span>,
             ));
         }
@@ -951,30 +949,30 @@
             local,
             <span class="kw-2">&amp;</span>projection[..projection.len() - <span class="number">1</span>]
         )<span class="question-mark">?</span>;
-        <a class="macro" href="../../../../log/macro.trace.html">trace!</a>(<span class="string">&quot;base_ty: {:?}&quot;</span>, base_ty);
+        <span class="macro">trace!</span>(<span class="string">&quot;base_ty: {:?}&quot;</span>, base_ty);
 
-        <span class="kw">let </span>elem = <a href="#88">projection</a>.last().unwrap();
-        <span class="prelude-val">Ok</span>(<span class="kw">match </span><a href="#106">elem</a> {
+        <span class="kw">let </span>elem = projection.last().unwrap();
+        <span class="prelude-val">Ok</span>(<span class="kw">match </span>elem {
             mir::ProjectionElem::Field(<span class="kw-2">ref </span>field, proj_field_ty) =&gt; {
-                <span class="kw">match </span><a href="#100">base_ty</a>.kind() {
+                <span class="kw">match </span>base_ty.kind() {
                     ty::TyKind::Tuple(elems) =&gt; {
-                        <span class="kw">let </span>field_name = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;tuple_{}&quot;</span>, field.index());
-                        <span class="kw">let </span>field_ty = <a href="#110">elems</a>[<a href="#108">field</a>.index()];
+                        <span class="kw">let </span>field_name = <span class="macro">format!</span>(<span class="string">&quot;tuple_{}&quot;</span>, field.index());
+                        <span class="kw">let </span>field_ty = elems[field.index()];
                         <span class="kw">let </span>encoded_field = <span class="self">self</span>.encoder()
                             .encode_raw_ref_field(field_name, field_ty)<span class="question-mark">?</span>;
-                        <span class="kw">let </span>encoded_projection = <a href="#100">encoded_base</a>.<a href="place_encoding.rs.html#108">field</a>(<a href="#113">encoded_field</a>);
-                        (<a href="#115">encoded_projection</a>, <a href="#112">field_ty</a>, <span class="prelude-val">None</span>)
+                        <span class="kw">let </span>encoded_projection = encoded_base.field(encoded_field);
+                        (encoded_projection, field_ty, <span class="prelude-val">None</span>)
                     }
 
-                    ty::TyKind::Adt(adt_def, <span class="kw-2">ref </span>subst) <span class="kw">if </span>!<a href="#119">adt_def</a>.is_box() =&gt; {
-                        <a class="macro" href="../../../../log/macro.debug.html">debug!</a>(<span class="string">&quot;subst {:?}&quot;</span>, subst);
-                        <span class="kw">let </span>num_variants = <a href="#119">adt_def</a>.variants().len();
+                    ty::TyKind::Adt(adt_def, <span class="kw-2">ref </span>subst) <span class="kw">if </span>!adt_def.is_box() =&gt; {
+                        <span class="macro">debug!</span>(<span class="string">&quot;subst {:?}&quot;</span>, subst);
+                        <span class="kw">let </span>num_variants = adt_def.variants().len();
                         <span class="comment">// FIXME: why this can be None?
-                        </span><span class="kw">let </span>variant_index = <span class="kw">if let </span><span class="prelude-val">Some</span>(num) = <a href="#100">opt_variant_index</a> {
-                            <a href="#123">num</a>
+                        </span><span class="kw">let </span>variant_index = <span class="kw">if let </span><span class="prelude-val">Some</span>(num) = opt_variant_index {
+                            num
                         } <span class="kw">else </span>{
                             <span class="kw">if </span>num_variants != <span class="number">1 </span>{
-                                <a class="macro" href="../errors/encoding_error.rs.html#76-83">error_internal!</a>(
+                                <span class="macro">error_internal!</span>(
                                     <span class="string">&quot;tried to encode a projection that accesses the field {} \
                                     of a variant without first downcasting its enumeration \
                                     {:?}&quot;</span>,
@@ -984,17 +982,17 @@
                             }
                             <span class="number">0
                         </span>};
-                        <span class="kw">let </span>tcx = <a class="self" href="#86">self</a>.<a href="#41">encoder</a>().<a href="../encoder.rs.html#225">env</a>().tcx();
-                        <span class="kw">let </span>variant_def = <span class="kw-2">&amp;</span><a href="#119">adt_def</a>.variants()[<a href="#123">variant_index</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()];
+                        <span class="kw">let </span>tcx = <span class="self">self</span>.encoder().env().tcx();
+                        <span class="kw">let </span>variant_def = <span class="kw-2">&amp;</span>adt_def.variants()[variant_index.into()];
                         <span class="kw">let </span>encoded_variant = <span class="kw">if </span>num_variants != <span class="number">1 </span>{
-                            <a href="#100">encoded_base</a>.<a href="place_encoding.rs.html#122">variant</a>(<a href="#138">variant_def</a>.ident(<a href="#137">tcx</a>).as_str())
+                            encoded_base.variant(variant_def.ident(tcx).as_str())
                         } <span class="kw">else </span>{
-                            <a href="#100">encoded_base</a>
+                            encoded_base
                         };
-                        <span class="kw">let </span>field = <span class="kw-2">&amp;</span><a href="#138">variant_def</a>.fields[<a href="#108">field</a>.index()];
-                        <span class="kw">let </span>field_ty = <span class="kw-2">*</span><a href="#108">proj_field_ty</a>;
+                        <span class="kw">let </span>field = <span class="kw-2">&amp;</span>variant_def.fields[field.index()];
+                        <span class="kw">let </span>field_ty = <span class="kw-2">*</span>proj_field_ty;
                         <span class="kw">if </span>utils::is_reference(field_ty) {
-                            <a class="macro" href="../errors/encoding_error.rs.html#96-103">error_unsupported!</a>(<span class="string">&quot;access to reference-typed fields is not supported&quot;</span>);
+                            <span class="macro">error_unsupported!</span>(<span class="string">&quot;access to reference-typed fields is not supported&quot;</span>);
                         }
                         <span class="kw">let </span>encoded_field = <span class="self">self
                             </span>.encoder()
@@ -1002,124 +1000,124 @@
                                 field.ident(tcx).as_str(),
                                 field_ty
                             )<span class="question-mark">?</span>;
-                        <span class="kw">let </span>encoded_projection = <a href="#139">encoded_variant</a>.<a href="place_encoding.rs.html#108">field</a>(<a href="#149">encoded_field</a>);
-                        (<a href="#155">encoded_projection</a>, <a href="#145">field_ty</a>, <span class="prelude-val">None</span>)
+                        <span class="kw">let </span>encoded_projection = encoded_variant.field(encoded_field);
+                        (encoded_projection, field_ty, <span class="prelude-val">None</span>)
                     }
 
                     ty::TyKind::Closure(def_id, closure_subst) =&gt; {
-                        <span class="kw">let </span>closure_subst = <a href="#159">closure_subst</a>.as_closure();
-                        <a class="macro" href="../../../../log/macro.debug.html">debug!</a>(<span class="string">&quot;def_id={:?} closure_subst {:?}&quot;</span>, def_id, closure_subst);
+                        <span class="kw">let </span>closure_subst = closure_subst.as_closure();
+                        <span class="macro">debug!</span>(<span class="string">&quot;def_id={:?} closure_subst {:?}&quot;</span>, def_id, closure_subst);
 
-                        <span class="kw">let </span>field_ty = <span class="kw-2">*</span><a href="#108">proj_field_ty</a>;
-                        <span class="kw">let </span>field_name = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;closure_{}&quot;</span>, field.index());
+                        <span class="kw">let </span>field_ty = <span class="kw-2">*</span>proj_field_ty;
+                        <span class="kw">let </span>field_name = <span class="macro">format!</span>(<span class="string">&quot;closure_{}&quot;</span>, field.index());
                         <span class="kw">let </span>encoded_field = <span class="self">self</span>.encoder()
                             .encode_raw_ref_field(field_name, field_ty)<span class="question-mark">?</span>;
-                        <span class="kw">let </span>encoded_projection = <a href="#100">encoded_base</a>.<a href="place_encoding.rs.html#108">field</a>(<a href="#165">encoded_field</a>);
-                        <a class="macro" href="../../../../log/macro.debug.html">debug!</a>(<span class="string">&quot;encoded_projection: {:?}&quot;</span>, encoded_projection);
+                        <span class="kw">let </span>encoded_projection = encoded_base.field(encoded_field);
+                        <span class="macro">debug!</span>(<span class="string">&quot;encoded_projection: {:?}&quot;</span>, encoded_projection);
 
                         <span class="kw">let </span>encoded_field_type = <span class="self">self</span>.encoder().encode_type(field_ty)<span class="question-mark">?</span>;
-                        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert_eq.html">assert_eq!</a>(encoded_projection.get_type(), <span class="kw-2">&amp;</span>encoded_field_type);
-                        (<a href="#167">encoded_projection</a>, <a href="#163">field_ty</a>, <span class="prelude-val">None</span>)
+                        <span class="macro">assert_eq!</span>(encoded_projection.get_type(), <span class="kw-2">&amp;</span>encoded_field_type);
+                        (encoded_projection, field_ty, <span class="prelude-val">None</span>)
                     }
 
                     ty::TyKind::Generator(..) =&gt; {
-                        <a class="macro" href="../errors/encoding_error.rs.html#96-103">error_unsupported!</a>(<span class="string">&quot;generator fields are not supported&quot;</span>);
+                        <span class="macro">error_unsupported!</span>(<span class="string">&quot;generator fields are not supported&quot;</span>);
                     }
 
                     x =&gt; {
-                        <a class="macro" href="../errors/encoding_error.rs.html#76-83">error_internal!</a>(<span class="string">&quot;{} has no fields&quot;</span>, utils::ty_to_string(x));
+                        <span class="macro">error_internal!</span>(<span class="string">&quot;{} has no fields&quot;</span>, utils::ty_to_string(x));
                     }
                 }
             }
 
             mir::ProjectionElem::Deref =&gt; {
-                <span class="kw">match </span><a href="#100">encoded_base</a>.<a href="place_encoding.rs.html#58">try_into_expr</a>() {
+                <span class="kw">match </span>encoded_base.try_into_expr() {
                     <span class="prelude-val">Ok</span>(e) =&gt; {
                         <span class="kw">let </span>(e, ty, v) = <span class="self">self</span>.encode_deref(e, base_ty)<span class="question-mark">?</span>;
-                        (<a href="place_encoding.rs.html#22">PlaceEncoding::Expr</a>(<a href="#188">e</a>), <a href="#188">ty</a>, <a href="#188">v</a>)
+                        (PlaceEncoding::Expr(e), ty, v)
                     }
-                    <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; <a class="macro" href="../errors/encoding_error.rs.html#96-103">error_unsupported!</a>(
+                    <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; <span class="macro">error_unsupported!</span>(
                         <span class="string">&quot;mixed dereferencing and array indexing projections are not supported&quot;
                     </span>),
                 }
             }
 
             mir::ProjectionElem::Downcast(<span class="kw-2">ref </span>adt_def, variant_index) =&gt; {
-                <a class="macro" href="../../../../log/macro.debug.html">debug!</a>(<span class="string">&quot;Downcast projection {:?}, {:?}&quot;</span>, adt_def, variant_index);
-                (<a href="#100">encoded_base</a>, <a href="#100">base_ty</a>, <span class="prelude-val">Some</span>((<span class="kw-2">*</span><a href="#197">variant_index</a>).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()))
+                <span class="macro">debug!</span>(<span class="string">&quot;Downcast projection {:?}, {:?}&quot;</span>, adt_def, variant_index);
+                (encoded_base, base_ty, <span class="prelude-val">Some</span>((<span class="kw-2">*</span>variant_index).into()))
             }
 
             mir::ProjectionElem::OpaqueCast(cast_ty) =&gt; {
-                <a class="macro" href="../../../../log/macro.debug.html">debug!</a>(<span class="string">&quot;Opaque cast projection {:?}&quot;</span>, cast_ty);
-                (<a href="#100">encoded_base</a>, <span class="kw-2">*</span><a href="#202">cast_ty</a>, <span class="prelude-val">None</span>)
+                <span class="macro">debug!</span>(<span class="string">&quot;Opaque cast projection {:?}&quot;</span>, cast_ty);
+                (encoded_base, <span class="kw-2">*</span>cast_ty, <span class="prelude-val">None</span>)
             }
 
             mir::ProjectionElem::Index(<span class="kw">_</span>)
-            | <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/syntax/enum.ProjectionElem.html">mir::ProjectionElem::ConstantIndex</a> { .. } =&gt; {
+            | mir::ProjectionElem::ConstantIndex { .. } =&gt; {
                 <span class="comment">// FIXME: this avoids some code duplication but the nested
                 // matches could probably be cleaner
-                </span><span class="kw">let </span>index: <a href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a> = <span class="kw">match </span><a href="#106">elem</a> {
+                </span><span class="kw">let </span>index: vir::Expr = <span class="kw">match </span>elem {
                     mir::ProjectionElem::Index(idx) =&gt; {
-                        <a class="macro" href="../../../../log/macro.debug.html">debug!</a>(<span class="string">&quot;index: {:?}[{:?}]&quot;</span>, encoded_base, idx);
-                        <span class="self">self</span>.encode_local(<span class="kw-2">*</span>idx)<span class="question-mark">?</span>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()
+                        <span class="macro">debug!</span>(<span class="string">&quot;index: {:?}[{:?}]&quot;</span>, encoded_base, idx);
+                        <span class="self">self</span>.encode_local(<span class="kw-2">*</span>idx)<span class="question-mark">?</span>.into()
                     }
-                    <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/syntax/enum.ProjectionElem.html">mir::ProjectionElem::ConstantIndex</a> { offset, from_end: <span class="bool-val">false</span>, .. } =&gt; {
-                        <a class="macro" href="../../../../log/macro.debug.html">debug!</a>(<span class="string">&quot;constantindex: {:?}[{}]&quot;</span>, encoded_base, offset);
-                        (<span class="kw-2">*</span><a href="#216">offset</a>).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()
+                    mir::ProjectionElem::ConstantIndex { offset, from_end: <span class="bool-val">false</span>, .. } =&gt; {
+                        <span class="macro">debug!</span>(<span class="string">&quot;constantindex: {:?}[{}]&quot;</span>, encoded_base, offset);
+                        (<span class="kw-2">*</span>offset).into()
                     }
-                    <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/syntax/enum.ProjectionElem.html">mir::ProjectionElem::ConstantIndex</a> { offset, from_end: <span class="bool-val">true</span>, .. } =&gt; {
-                        <a class="macro" href="../../../../log/macro.debug.html">debug!</a>(<span class="string">&quot;constantindex: {:?}[len - {}]&quot;</span>, encoded_base, offset);
-                        <span class="kw">let </span>offset = <span class="kw-2">*</span><a href="#220">offset</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>;
-                        <span class="kw">match </span><a href="#100">base_ty</a>.kind() {
+                    mir::ProjectionElem::ConstantIndex { offset, from_end: <span class="bool-val">true</span>, .. } =&gt; {
+                        <span class="macro">debug!</span>(<span class="string">&quot;constantindex: {:?}[len - {}]&quot;</span>, encoded_base, offset);
+                        <span class="kw">let </span>offset = <span class="kw-2">*</span>offset <span class="kw">as </span>usize;
+                        <span class="kw">match </span>base_ty.kind() {
                             ty::TyKind::Array(..) =&gt; {
                                 <span class="kw">let </span>array_type = <span class="self">self</span>.encoder().encode_sequence_types(base_ty)<span class="question-mark">?</span>;
-                                (<a href="#225">array_type</a>.sequence_len.unwrap() - <a href="#222">offset</a>).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()
+                                (array_type.sequence_len.unwrap() - offset).into()
                             }
                             ty::TyKind::Slice(<span class="kw">_</span>) =&gt; {
                                 <span class="kw">let </span>slice_type = <span class="self">self</span>.encoder().encode_sequence_types(base_ty)<span class="question-mark">?</span>;
-                                <span class="kw">let </span>slice_len = <a href="#229">slice_type</a>.<a href="../mir/sequences/interface.rs.html#66">len</a>(
-                                    <a class="self" href="#86">self</a>.<a href="#41">encoder</a>(),
+                                <span class="kw">let </span>slice_len = slice_type.len(
+                                    <span class="self">self</span>.encoder(),
                                     encoded_base.clone().try_into_expr()<span class="question-mark">?</span>,
                                 );
-                                <a class="macro" href="../../../../prusti_common/macro.vir_expr.html">vir_expr! </a>{ [ slice_len ] - [ vir::Expr::from(offset) ] }
+                                <span class="macro">vir_expr! </span>{ [ slice_len ] - [ vir::Expr::from(offset) ] }
                             }
-                            <span class="kw">_ </span>=&gt; <a class="macro" href="../errors/encoding_error.rs.html#96-103">error_unsupported!</a>(
+                            <span class="kw">_ </span>=&gt; <span class="macro">error_unsupported!</span>(
                                 <span class="string">&quot;pattern matching on the end of &#39;{:?} is not supported&quot;</span>, base_ty,
                             )
                         }
                     }
-                    <span class="kw">_ </span>=&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(),
+                    <span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>(),
                 };
-                <span class="kw">match </span><a href="#100">base_ty</a>.kind() {
+                <span class="kw">match </span>base_ty.kind() {
                     ty::TyKind::Array(elem_ty, <span class="kw">_</span>) =&gt; {
                         (
-                            <a href="place_encoding.rs.html#29">PlaceEncoding::ArrayAccess</a> {
-                                base: <span class="kw">box </span><a href="#100">encoded_base</a>,
-                                <a href="#211">index</a>,
+                            PlaceEncoding::ArrayAccess {
+                                base: <span class="kw">box </span>encoded_base,
+                                index,
                                 encoded_elem_ty: <span class="self">self</span>.encoder().encode_type(<span class="kw-2">*</span>elem_ty)<span class="question-mark">?</span>,
-                                rust_array_ty: <a href="#100">base_ty</a>,
+                                rust_array_ty: base_ty,
                             },
-                            <span class="kw-2">*</span><a href="#244">elem_ty</a>,
+                            <span class="kw-2">*</span>elem_ty,
                             <span class="prelude-val">None</span>,
                         )
                     },
                     ty::TyKind::Slice(elem_ty) =&gt; {
                         (
-                            <a href="place_encoding.rs.html#41">PlaceEncoding::SliceAccess</a> {
-                                base: <span class="kw">box </span><a href="#100">encoded_base</a>,
-                                <a href="#211">index</a>,
+                            PlaceEncoding::SliceAccess {
+                                base: <span class="kw">box </span>encoded_base,
+                                index,
                                 encoded_elem_ty: <span class="self">self</span>.encoder().encode_type(<span class="kw-2">*</span>elem_ty)<span class="question-mark">?</span>,
-                                rust_slice_ty: <a href="#100">base_ty</a>,
+                                rust_slice_ty: base_ty,
                             },
-                            <span class="kw-2">*</span><a href="#256">elem_ty</a>,
+                            <span class="kw-2">*</span>elem_ty,
                             <span class="prelude-val">None</span>,
                         )
                     },
-                    <span class="kw">_ </span>=&gt; <a class="macro" href="../errors/encoding_error.rs.html#96-103">error_unsupported!</a>(<span class="string">&quot;index on unsupported type &#39;{:?}&#39;&quot;</span>, base_ty),
+                    <span class="kw">_ </span>=&gt; <span class="macro">error_unsupported!</span>(<span class="string">&quot;index on unsupported type &#39;{:?}&#39;&quot;</span>, base_ty),
                 }
             }
 
-            <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/syntax/enum.ProjectionElem.html">mir::ProjectionElem::Subslice</a> { .. } =&gt; <a class="macro" href="../errors/encoding_error.rs.html#96-103">error_unsupported!</a>(
+            mir::ProjectionElem::Subslice { .. } =&gt; <span class="macro">error_unsupported!</span>(
                 <span class="string">&quot;slice patterns are not supported&quot;</span>,
             ),
         })
@@ -1127,47 +1125,47 @@
 
     <span class="kw">fn </span>encode_deref(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        encoded_base: <a href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a>,
+        encoded_base: vir::Expr,
         base_ty: ty::Ty&lt;<span class="lifetime">&#39;tcx</span>&gt;,
-    ) -&gt; EncodingResult&lt;(<a href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a>, ty::Ty&lt;<span class="lifetime">&#39;tcx</span>&gt;, <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;)&gt; {
-        <a class="macro" href="../../../../log/macro.trace.html">trace!</a>(<span class="string">&quot;encode_deref {} {}&quot;</span>, encoded_base, base_ty);
+    ) -&gt; EncodingResult&lt;(vir::Expr, ty::Ty&lt;<span class="lifetime">&#39;tcx</span>&gt;, <span class="prelude-ty">Option</span>&lt;usize&gt;)&gt; {
+        <span class="macro">trace!</span>(<span class="string">&quot;encode_deref {} {}&quot;</span>, encoded_base, base_ty);
 
-        <span class="prelude-val">Ok</span>(<span class="kw">match </span><a href="#281">base_ty</a>.kind() {
-            ty::TyKind::RawPtr(<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/sty/struct.TypeAndMut.html">ty::TypeAndMut</a> { ty, .. })
+        <span class="prelude-val">Ok</span>(<span class="kw">match </span>base_ty.kind() {
+            ty::TyKind::RawPtr(ty::TypeAndMut { ty, .. })
             | ty::TyKind::Ref(<span class="kw">_</span>, ty, <span class="kw">_</span>) =&gt; {
                 <span class="kw">let </span>access = <span class="kw">if </span>encoded_base.is_addr_of() {
                     <span class="comment">// Simplify `*&amp;&lt;expr&gt;` ==&gt; `&lt;expr&gt;`
-                    </span><a href="#280">encoded_base</a>.get_parent().unwrap()
+                    </span>encoded_base.get_parent().unwrap()
                 } <span class="kw">else </span>{
                     <span class="kw">let </span>ref_field = <span class="self">self</span>.encoder()
                         .encode_dereference_field(<span class="kw-2">*</span>ty)<span class="question-mark">?</span>;
-                    <a href="#280">encoded_base</a>.field(<a href="#292">ref_field</a>)
+                    encoded_base.field(ref_field)
                 };
-                (<a href="#288">access</a>, <span class="kw-2">*</span><a href="#286">ty</a>, <span class="prelude-val">None</span>)
+                (access, <span class="kw-2">*</span>ty, <span class="prelude-val">None</span>)
             }
-            ty::TyKind::Adt(adt_def, _subst) <span class="kw">if </span><a href="#298">adt_def</a>.is_box() =&gt; {
+            ty::TyKind::Adt(adt_def, _subst) <span class="kw">if </span>adt_def.is_box() =&gt; {
                 <span class="kw">let </span>access = <span class="kw">if </span>encoded_base.is_addr_of() {
-                    <a href="#280">encoded_base</a>.get_parent().unwrap()
+                    encoded_base.get_parent().unwrap()
                 } <span class="kw">else </span>{
-                    <span class="kw">let </span>field_ty = <a href="#281">base_ty</a>.boxed_ty();
+                    <span class="kw">let </span>field_ty = base_ty.boxed_ty();
                     <span class="kw">let </span>ref_field = <span class="self">self</span>.encoder()
                         .encode_dereference_field(field_ty)<span class="question-mark">?</span>;
-                    <a href="#280">encoded_base</a>.field(<a href="#303">ref_field</a>)
+                    encoded_base.field(ref_field)
                 };
-                (<a href="#299">access</a>, <a href="#281">base_ty</a>.boxed_ty(), <span class="prelude-val">None</span>)
+                (access, base_ty.boxed_ty(), <span class="prelude-val">None</span>)
             }
             <span class="kw-2">ref </span>x =&gt; {
-                <a class="macro" href="../errors/encoding_error.rs.html#76-83">error_internal!</a>(<span class="string">&quot;Type {:?} can not be dereferenced&quot;</span>, x);
+                <span class="macro">error_internal!</span>(<span class="string">&quot;Type {:?} can not be dereferenced&quot;</span>, x);
             }
         })
     }
 
-    <span class="kw">fn </span>can_be_dereferenced(<span class="kw-2">&amp;</span><span class="self">self</span>, base_ty: ty::Ty&lt;<span class="lifetime">&#39;tcx</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="macro" href="../../../../log/macro.trace.html">trace!</a>(<span class="string">&quot;can_be_dereferenced {}&quot;</span>, base_ty);
-        <span class="kw">match </span><a href="#315">base_ty</a>.kind() {
+    <span class="kw">fn </span>can_be_dereferenced(<span class="kw-2">&amp;</span><span class="self">self</span>, base_ty: ty::Ty&lt;<span class="lifetime">&#39;tcx</span>&gt;) -&gt; bool {
+        <span class="macro">trace!</span>(<span class="string">&quot;can_be_dereferenced {}&quot;</span>, base_ty);
+        <span class="kw">match </span>base_ty.kind() {
             ty::TyKind::RawPtr(..) | ty::TyKind::Ref(..) =&gt; <span class="bool-val">true</span>,
 
-            ty::TyKind::Adt(adt_def, ..) <span class="kw">if </span><a href="#320">adt_def</a>.is_box() =&gt; <span class="bool-val">true</span>,
+            ty::TyKind::Adt(adt_def, ..) <span class="kw">if </span>adt_def.is_box() =&gt; <span class="bool-val">true</span>,
 
             <span class="kw">_ </span>=&gt; <span class="bool-val">false</span>,
         }
@@ -1180,7 +1178,7 @@
 </span><span class="attr">#[derive(Clone)]
 </span><span class="kw">pub struct </span>FakeMirEncoder&lt;<span class="lifetime">&#39;p</span>, <span class="lifetime">&#39;v</span>: <span class="lifetime">&#39;p</span>, <span class="lifetime">&#39;tcx</span>: <span class="lifetime">&#39;v</span>&gt; {
     encoder: <span class="kw-2">&amp;</span><span class="lifetime">&#39;p </span>Encoder&lt;<span class="lifetime">&#39;v</span>, <span class="lifetime">&#39;tcx</span>&gt;,
-    tys: IndexVec&lt;<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Local.html">mir::Local</a>, ty::Ty&lt;<span class="lifetime">&#39;tcx</span>&gt;&gt;,
+    tys: IndexVec&lt;mir::Local, ty::Ty&lt;<span class="lifetime">&#39;tcx</span>&gt;&gt;,
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;p</span>, <span class="lifetime">&#39;v</span>: <span class="lifetime">&#39;p</span>, <span class="lifetime">&#39;tcx</span>: <span class="lifetime">&#39;v</span>&gt; FakeMirEncoder&lt;<span class="lifetime">&#39;p</span>, <span class="lifetime">&#39;v</span>, <span class="lifetime">&#39;tcx</span>&gt; {
@@ -1189,15 +1187,15 @@
         arg_tys: Vec&lt;ty::Ty&lt;<span class="lifetime">&#39;tcx</span>&gt;&gt;,
         return_ty: ty::Ty&lt;<span class="lifetime">&#39;tcx</span>&gt;,
     ) -&gt; <span class="self">Self </span>{
-        <a class="macro" href="../../../../log/macro.trace.html">trace!</a>(<span class="string">&quot;FakeMirEncoder constructor&quot;</span>);
-        <span class="kw">let </span><span class="kw-2">mut </span>tys: IndexVec&lt;<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Local.html">mir::Local</a>, ty::Ty&lt;<span class="lifetime">&#39;tcx</span>&gt;&gt; = IndexVec::new();
-        <a href="#343">tys</a>.push(<a href="#340">return_ty</a>);
+        <span class="macro">trace!</span>(<span class="string">&quot;FakeMirEncoder constructor&quot;</span>);
+        <span class="kw">let </span><span class="kw-2">mut </span>tys: IndexVec&lt;mir::Local, ty::Ty&lt;<span class="lifetime">&#39;tcx</span>&gt;&gt; = IndexVec::new();
+        tys.push(return_ty);
         <span class="kw">for </span>arg_ty <span class="kw">in </span>arg_tys {
             tys.push(arg_ty);
         }
         <span class="self">Self </span>{
-            <a href="#338">encoder</a>,
-            <a href="#343">tys</a>,
+            encoder,
+            tys,
         }
     }
 }
@@ -1205,15 +1203,15 @@
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;p</span>, <span class="lifetime">&#39;v</span>: <span class="lifetime">&#39;p</span>, <span class="lifetime">&#39;tcx</span>: <span class="lifetime">&#39;v</span>&gt; PlaceEncoder&lt;<span class="lifetime">&#39;v</span>, <span class="lifetime">&#39;tcx</span>&gt; <span class="kw">for </span>FakeMirEncoder&lt;<span class="lifetime">&#39;p</span>, <span class="lifetime">&#39;v</span>, <span class="lifetime">&#39;tcx</span>&gt; {
 
     <span class="kw">fn </span>encoder(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Encoder&lt;<span class="lifetime">&#39;v</span>, <span class="lifetime">&#39;tcx</span>&gt; {
-        <a class="self" href="#357">self</a>.encoder
+        <span class="self">self</span>.encoder
     }
 
-    <span class="kw">fn </span>get_local_ty(<span class="kw-2">&amp;</span><span class="self">self</span>, local: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Local.html">mir::Local</a>) -&gt; ty::Ty&lt;<span class="lifetime">&#39;tcx</span>&gt; {
-        <a class="self" href="#361">self</a>.tys[<a href="#361">local</a>]
+    <span class="kw">fn </span>get_local_ty(<span class="kw-2">&amp;</span><span class="self">self</span>, local: mir::Local) -&gt; ty::Ty&lt;<span class="lifetime">&#39;tcx</span>&gt; {
+        <span class="self">self</span>.tys[local]
     }
 
-    <span class="kw">fn </span>get_local_span(<span class="kw-2">&amp;</span><span class="self">self</span>, _local: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Local.html">mir::Local</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/span_encoding/struct.Span.html">Span</a> {
-        <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/span_encoding/constant.DUMMY_SP.html">DUMMY_SP</a>
+    <span class="kw">fn </span>get_local_span(<span class="kw-2">&amp;</span><span class="self">self</span>, _local: mir::Local) -&gt; Span {
+        DUMMY_SP
     }
 }
 
@@ -1222,21 +1220,21 @@
 </span><span class="kw">pub struct </span>MirEncoder&lt;<span class="lifetime">&#39;p</span>, <span class="lifetime">&#39;v</span>: <span class="lifetime">&#39;p</span>, <span class="lifetime">&#39;tcx</span>: <span class="lifetime">&#39;v</span>&gt; {
     encoder: <span class="kw-2">&amp;</span><span class="lifetime">&#39;p </span>Encoder&lt;<span class="lifetime">&#39;v</span>, <span class="lifetime">&#39;tcx</span>&gt;,
     mir: <span class="kw-2">&amp;</span><span class="lifetime">&#39;p </span>mir::Body&lt;<span class="lifetime">&#39;tcx</span>&gt;,
-    def_id: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.DefId.html">DefId</a>,
+    def_id: DefId,
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;p</span>, <span class="lifetime">&#39;v</span>: <span class="lifetime">&#39;p</span>, <span class="lifetime">&#39;tcx</span>: <span class="lifetime">&#39;v</span>&gt; PlaceEncoder&lt;<span class="lifetime">&#39;v</span>, <span class="lifetime">&#39;tcx</span>&gt; <span class="kw">for </span>MirEncoder&lt;<span class="lifetime">&#39;p</span>, <span class="lifetime">&#39;v</span>, <span class="lifetime">&#39;tcx</span>&gt; {
 
     <span class="kw">fn </span>encoder(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Encoder&lt;<span class="lifetime">&#39;v</span>, <span class="lifetime">&#39;tcx</span>&gt; {
-        <a class="self" href="#380">self</a>.encoder
+        <span class="self">self</span>.encoder
     }
 
-    <span class="kw">fn </span>get_local_ty(<span class="kw-2">&amp;</span><span class="self">self</span>, local: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Local.html">mir::Local</a>) -&gt; ty::Ty&lt;<span class="lifetime">&#39;tcx</span>&gt; {
-        <a class="self" href="#384">self</a>.mir.local_decls[<a href="#384">local</a>].ty
+    <span class="kw">fn </span>get_local_ty(<span class="kw-2">&amp;</span><span class="self">self</span>, local: mir::Local) -&gt; ty::Ty&lt;<span class="lifetime">&#39;tcx</span>&gt; {
+        <span class="self">self</span>.mir.local_decls[local].ty
     }
 
-    <span class="kw">fn </span>get_local_span(<span class="kw-2">&amp;</span><span class="self">self</span>, local: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Local.html">mir::Local</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/span_encoding/struct.Span.html">Span</a> {
-        <a class="self" href="#388">self</a>.mir.local_decls[<a href="#388">local</a>].source_info.span
+    <span class="kw">fn </span>get_local_span(<span class="kw-2">&amp;</span><span class="self">self</span>, local: mir::Local) -&gt; Span {
+        <span class="self">self</span>.mir.local_decls[local].source_info.span
     }
 }
 
@@ -1244,13 +1242,13 @@
     <span class="kw">pub fn </span>new(
         encoder: <span class="kw-2">&amp;</span><span class="lifetime">&#39;p </span>Encoder&lt;<span class="lifetime">&#39;v</span>, <span class="lifetime">&#39;tcx</span>&gt;,
         mir: <span class="kw-2">&amp;</span><span class="lifetime">&#39;p </span>mir::Body&lt;<span class="lifetime">&#39;tcx</span>&gt;,
-        def_id: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.DefId.html">DefId</a>,
+        def_id: DefId,
     ) -&gt; <span class="self">Self </span>{
-        <a class="macro" href="../../../../log/macro.trace.html">trace!</a>(<span class="string">&quot;MirEncoder constructor&quot;</span>);
-        <a href="#372">MirEncoder</a> {
-            <a href="#395">encoder</a>,
-            <a href="#396">mir</a>,
-            <a href="#397">def_id</a>,
+        <span class="macro">trace!</span>(<span class="string">&quot;MirEncoder constructor&quot;</span>);
+        MirEncoder {
+            encoder,
+            mir,
+            def_id,
         }
     }
 
@@ -1258,9 +1256,9 @@
     </span><span class="kw">pub fn </span>encode_operand_expr(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         operand: <span class="kw-2">&amp;</span>mir::Operand&lt;<span class="lifetime">&#39;tcx</span>&gt;,
-    ) -&gt; EncodingResult&lt;<a href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a>&gt; {
-        <a class="macro" href="../../../../log/macro.trace.html">trace!</a>(<span class="string">&quot;Encode operand expr {:?}&quot;</span>, operand);
-        <span class="prelude-val">Ok</span>(<span class="kw">match </span><a href="#410">operand</a> {
+    ) -&gt; EncodingResult&lt;vir::Expr&gt; {
+        <span class="macro">trace!</span>(<span class="string">&quot;Encode operand expr {:?}&quot;</span>, operand);
+        <span class="prelude-val">Ok</span>(<span class="kw">match </span>operand {
             mir::Operand::Constant(expr) =&gt; <span class="self">self</span>.encoder.encode_const_expr(expr.ty(), expr.literal)<span class="question-mark">?</span>,
             <span class="kw-2">&amp;</span>mir::Operand::Copy(place) | <span class="kw-2">&amp;</span>mir::Operand::Move(place) =&gt; {
                 <span class="comment">// let val_place = self.eval_place(&amp;place)?;
@@ -1301,7 +1299,7 @@
     }
 
     <span class="kw">pub fn </span>get_operand_ty(<span class="kw-2">&amp;</span><span class="self">self</span>, operand: <span class="kw-2">&amp;</span>mir::Operand&lt;<span class="lifetime">&#39;tcx</span>&gt;) -&gt; ty::Ty&lt;<span class="lifetime">&#39;tcx</span>&gt; {
-        <a class="macro" href="../../../../log/macro.debug.html">debug!</a>(<span class="string">&quot;Get operand ty {:?}&quot;</span>, operand);
+        <span class="macro">debug!</span>(<span class="string">&quot;Get operand ty {:?}&quot;</span>, operand);
         <span class="comment">// match operand {
         //     &amp;mir::Operand::Move(ref place) | &amp;mir::Operand::Copy(ref place) =&gt; {
         //         let (_, ty, _) = self.encode_place(place);
@@ -1309,14 +1307,14 @@
         //     }
         //     &amp;mir::Operand::Constant(box mir::Constant { ty, .. }) =&gt; ty,
         // }
-        </span><a href="#453">operand</a>.ty(<a class="self" href="#453">self</a>.mir, <a class="self" href="#453">self</a>.encoder.<a href="../encoder.rs.html#225">env</a>().tcx())
+        </span>operand.ty(<span class="self">self</span>.mir, <span class="self">self</span>.encoder.env().tcx())
     }
 
     <span class="doccomment">/// Returns an `vir::Type` that corresponds to the type of the value of the operand
     </span><span class="kw">pub fn </span>encode_operand_expr_type(<span class="kw-2">&amp;</span><span class="self">self</span>, operand: <span class="kw-2">&amp;</span>mir::Operand&lt;<span class="lifetime">&#39;tcx</span>&gt;)
-        -&gt; EncodingResult&lt;<a href="../../../../vir/gen/polymorphic/ast/common/enum.Type.html">vir::Type</a>&gt;
+        -&gt; EncodingResult&lt;vir::Type&gt;
     {
-        <a class="macro" href="../../../../log/macro.trace.html">trace!</a>(<span class="string">&quot;Encode operand expr {:?}&quot;</span>, operand);
+        <span class="macro">trace!</span>(<span class="string">&quot;Encode operand expr {:?}&quot;</span>, operand);
         <span class="comment">// match operand {
         //     &amp;mir::Operand::Constant(box mir::Constant { ty, .. }) =&gt; {
         //         let ty = self.encoder.resolve_typaram(ty);
@@ -1330,146 +1328,146 @@
         //         val_place.get_type().clone()
         //     }
         // }
-        </span><span class="kw">let </span>ty = <a href="#466">operand</a>.ty(<a class="self" href="#466">self</a>.mir, <a class="self" href="#466">self</a>.encoder.<a href="../encoder.rs.html#225">env</a>().tcx());
-        <a class="self" href="#466">self</a>.encoder.<a href="../snapshot/interface.rs.html#33">encode_snapshot_type</a>(<a href="#483">ty</a>)
+        </span><span class="kw">let </span>ty = operand.ty(<span class="self">self</span>.mir, <span class="self">self</span>.encoder.env().tcx());
+        <span class="self">self</span>.encoder.encode_snapshot_type(ty)
     }
 
     <span class="kw">pub fn </span>encode_bin_op_expr(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        op: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/syntax/enum.BinOp.html">mir::BinOp</a>,
-        left: <a href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a>,
-        right: <a href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a>,
+        op: mir::BinOp,
+        left: vir::Expr,
+        right: vir::Expr,
         ty: ty::Ty&lt;<span class="lifetime">&#39;tcx</span>&gt;,
-    ) -&gt; EncodingResult&lt;<a href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a>&gt; {
-        <span class="kw">let </span>is_bool = <a href="#492">ty</a>.kind() == <span class="kw-2">&amp;</span>ty::TyKind::Bool;
-        <span class="kw">let </span>is_signed = <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.matches.html">matches!</a>(ty.kind(), ty::TyKind::Int(<span class="kw">_</span>));
-        <span class="prelude-val">Ok</span>(<span class="kw">match </span><a href="#489">op</a> {
-            mir::BinOp::Eq =&gt; vir::Expr::eq_cmp(<a href="#490">left</a>, <a href="#491">right</a>),
-            mir::BinOp::Ne =&gt; vir::Expr::ne_cmp(<a href="#490">left</a>, <a href="#491">right</a>),
-            mir::BinOp::Gt =&gt; vir::Expr::gt_cmp(<a href="#490">left</a>, <a href="#491">right</a>),
-            mir::BinOp::Ge =&gt; vir::Expr::ge_cmp(<a href="#490">left</a>, <a href="#491">right</a>),
-            mir::BinOp::Lt =&gt; vir::Expr::lt_cmp(<a href="#490">left</a>, <a href="#491">right</a>),
-            mir::BinOp::Le =&gt; vir::Expr::le_cmp(<a href="#490">left</a>, <a href="#491">right</a>),
-            mir::BinOp::Add =&gt; vir::Expr::add(<a href="#490">left</a>, <a href="#491">right</a>),
-            mir::BinOp::Sub =&gt; vir::Expr::sub(<a href="#490">left</a>, <a href="#491">right</a>),
-            mir::BinOp::Rem =&gt; vir::Expr::rem(<a href="#490">left</a>, <a href="#491">right</a>),
-            mir::BinOp::Div =&gt; vir::Expr::div(<a href="#490">left</a>, <a href="#491">right</a>),
-            mir::BinOp::Mul =&gt; vir::Expr::mul(<a href="#490">left</a>, <a href="#491">right</a>),
-            mir::BinOp::BitAnd <span class="kw">if </span><a href="#494">is_bool</a> =&gt; vir::Expr::and(<a href="#490">left</a>, <a href="#491">right</a>),
-            mir::BinOp::BitOr <span class="kw">if </span><a href="#494">is_bool</a> =&gt; vir::Expr::or(<a href="#490">left</a>, <a href="#491">right</a>),
-            mir::BinOp::BitXor <span class="kw">if </span><a href="#494">is_bool</a> =&gt; vir::Expr::xor(<a href="#490">left</a>, <a href="#491">right</a>),
+    ) -&gt; EncodingResult&lt;vir::Expr&gt; {
+        <span class="kw">let </span>is_bool = ty.kind() == <span class="kw-2">&amp;</span>ty::TyKind::Bool;
+        <span class="kw">let </span>is_signed = <span class="macro">matches!</span>(ty.kind(), ty::TyKind::Int(<span class="kw">_</span>));
+        <span class="prelude-val">Ok</span>(<span class="kw">match </span>op {
+            mir::BinOp::Eq =&gt; vir::Expr::eq_cmp(left, right),
+            mir::BinOp::Ne =&gt; vir::Expr::ne_cmp(left, right),
+            mir::BinOp::Gt =&gt; vir::Expr::gt_cmp(left, right),
+            mir::BinOp::Ge =&gt; vir::Expr::ge_cmp(left, right),
+            mir::BinOp::Lt =&gt; vir::Expr::lt_cmp(left, right),
+            mir::BinOp::Le =&gt; vir::Expr::le_cmp(left, right),
+            mir::BinOp::Add =&gt; vir::Expr::add(left, right),
+            mir::BinOp::Sub =&gt; vir::Expr::sub(left, right),
+            mir::BinOp::Rem =&gt; vir::Expr::rem(left, right),
+            mir::BinOp::Div =&gt; vir::Expr::div(left, right),
+            mir::BinOp::Mul =&gt; vir::Expr::mul(left, right),
+            mir::BinOp::BitAnd <span class="kw">if </span>is_bool =&gt; vir::Expr::and(left, right),
+            mir::BinOp::BitOr <span class="kw">if </span>is_bool =&gt; vir::Expr::or(left, right),
+            mir::BinOp::BitXor <span class="kw">if </span>is_bool =&gt; vir::Expr::xor(left, right),
             mir::BinOp::BitAnd |
             mir::BinOp::BitOr |
             mir::BinOp::BitXor <span class="kw">if </span>!config::encode_bitvectors() =&gt; {
-                <a class="macro" href="../errors/encoding_error.rs.html#96-103">error_unsupported!</a>(
+                <span class="macro">error_unsupported!</span>(
                     <span class="string">&quot;bitwise operations on non-boolean types are experimental and disabled by \
                     default; use `encode_bitvectors` to enable&quot;
                 </span>);
             }
             unsupported_op <span class="kw">if </span>!config::encode_bitvectors() =&gt; {
-                <a class="macro" href="../errors/encoding_error.rs.html#96-103">error_unsupported!</a>(
+                <span class="macro">error_unsupported!</span>(
                     <span class="string">&quot;support for operation &#39;{:?}&#39; is experimental and disabled by default; use \
                     `encode_bitvectors` to enable it&quot;</span>,
                     unsupported_op
                 );
             }
-            mir::BinOp::BitAnd =&gt; vir::Expr::bin_op(vir::BinaryOpKind::BitAnd, <a href="#490">left</a>, <a href="#491">right</a>),
-            mir::BinOp::BitOr =&gt; vir::Expr::bin_op(vir::BinaryOpKind::BitOr, <a href="#490">left</a>, <a href="#491">right</a>),
-            mir::BinOp::BitXor =&gt; vir::Expr::bin_op(vir::BinaryOpKind::BitXor, <a href="#490">left</a>, <a href="#491">right</a>),
-            mir::BinOp::Shl =&gt; vir::Expr::bin_op(vir::BinaryOpKind::Shl, <a href="#490">left</a>, <a href="#491">right</a>),
+            mir::BinOp::BitAnd =&gt; vir::Expr::bin_op(vir::BinaryOpKind::BitAnd, left, right),
+            mir::BinOp::BitOr =&gt; vir::Expr::bin_op(vir::BinaryOpKind::BitOr, left, right),
+            mir::BinOp::BitXor =&gt; vir::Expr::bin_op(vir::BinaryOpKind::BitXor, left, right),
+            mir::BinOp::Shl =&gt; vir::Expr::bin_op(vir::BinaryOpKind::Shl, left, right),
             <span class="comment">// https://doc.rust-lang.org/reference/expressions/operator-expr.html#arithmetic-and-logical-binary-operators
             // Arithmetic right shift on signed integer types, logical right shift on unsigned integer types.
-            </span>mir::BinOp::Shr <span class="kw">if </span><a href="#495">is_signed</a> =&gt; vir::Expr::bin_op(vir::BinaryOpKind::AShr, <a href="#490">left</a>, <a href="#491">right</a>),
-            mir::BinOp::Shr =&gt; vir::Expr::bin_op(vir::BinaryOpKind::LShr, <a href="#490">left</a>, <a href="#491">right</a>),
+            </span>mir::BinOp::Shr <span class="kw">if </span>is_signed =&gt; vir::Expr::bin_op(vir::BinaryOpKind::AShr, left, right),
+            mir::BinOp::Shr =&gt; vir::Expr::bin_op(vir::BinaryOpKind::LShr, left, right),
             mir::BinOp::Offset =&gt; {
-                <a class="macro" href="../errors/encoding_error.rs.html#96-103">error_unsupported!</a>(<span class="string">&quot;operation &#39;{:?}&#39; is not supported&quot;</span>, op);
+                <span class="macro">error_unsupported!</span>(<span class="string">&quot;operation &#39;{:?}&#39; is not supported&quot;</span>, op);
             }
         })
     }
 
-    <span class="kw">pub fn </span>encode_unary_op_expr(<span class="kw-2">&amp;</span><span class="self">self</span>, op: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/syntax/enum.UnOp.html">mir::UnOp</a>, expr: <a href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a>) -&gt; <a href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a> {
-        <span class="kw">match </span><a href="#540">op</a> {
-            mir::UnOp::Not =&gt; vir::Expr::not(<a href="#540">expr</a>),
-            mir::UnOp::Neg =&gt; vir::Expr::minus(<a href="#540">expr</a>),
+    <span class="kw">pub fn </span>encode_unary_op_expr(<span class="kw-2">&amp;</span><span class="self">self</span>, op: mir::UnOp, expr: vir::Expr) -&gt; vir::Expr {
+        <span class="kw">match </span>op {
+            mir::UnOp::Not =&gt; vir::Expr::not(expr),
+            mir::UnOp::Neg =&gt; vir::Expr::minus(expr),
         }
     }
 
     <span class="doccomment">/// Returns `true` is an overflow happened
     </span><span class="kw">pub fn </span>encode_bin_op_check(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        op: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/syntax/enum.BinOp.html">mir::BinOp</a>,
-        left: <a href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a>,
-        right: <a href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a>,
+        op: mir::BinOp,
+        left: vir::Expr,
+        right: vir::Expr,
         ty: ty::Ty&lt;<span class="lifetime">&#39;tcx</span>&gt;,
-    ) -&gt; EncodingResult&lt;<a href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a>&gt; {
+    ) -&gt; EncodingResult&lt;vir::Expr&gt; {
         <span class="kw">if </span>!op.is_checkable() || !config::check_overflows() {
-            <span class="prelude-val">Ok</span>(<span class="bool-val">false</span>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
+            <span class="prelude-val">Ok</span>(<span class="bool-val">false</span>.into())
         } <span class="kw">else </span>{
             <span class="kw">let </span>result = <span class="self">self</span>.encode_bin_op_expr(op, left, right.clone(), ty)<span class="question-mark">?</span>;
 
-            <span class="prelude-val">Ok</span>(<span class="kw">match </span><a href="#550">op</a> {
-                mir::BinOp::Add | mir::BinOp::Mul | mir::BinOp::Sub =&gt; <span class="kw">match </span><a href="#553">ty</a>.kind() {
+            <span class="prelude-val">Ok</span>(<span class="kw">match </span>op {
+                mir::BinOp::Add | mir::BinOp::Mul | mir::BinOp::Sub =&gt; <span class="kw">match </span>ty.kind() {
                     <span class="comment">// Unsigned
                     </span>ty::TyKind::Uint(ty::UintTy::U8) =&gt; vir::Expr::or(
-                        vir::Expr::lt_cmp(<a href="#558">result</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), std::u8::MIN.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
-                        vir::Expr::gt_cmp(<a href="#558">result</a>, std::u8::MAX.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
+                        vir::Expr::lt_cmp(result.clone(), std::u8::MIN.into()),
+                        vir::Expr::gt_cmp(result, std::u8::MAX.into()),
                     ),
                     ty::TyKind::Uint(ty::UintTy::U16) =&gt; vir::Expr::or(
-                        vir::Expr::lt_cmp(<a href="#558">result</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), std::u16::MIN.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
-                        vir::Expr::gt_cmp(<a href="#558">result</a>, std::u16::MAX.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
+                        vir::Expr::lt_cmp(result.clone(), std::u16::MIN.into()),
+                        vir::Expr::gt_cmp(result, std::u16::MAX.into()),
                     ),
                     ty::TyKind::Uint(ty::UintTy::U32) =&gt; vir::Expr::or(
-                        vir::Expr::lt_cmp(<a href="#558">result</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), std::u32::MIN.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
-                        vir::Expr::gt_cmp(<a href="#558">result</a>, std::u32::MAX.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
+                        vir::Expr::lt_cmp(result.clone(), std::u32::MIN.into()),
+                        vir::Expr::gt_cmp(result, std::u32::MAX.into()),
                     ),
                     ty::TyKind::Uint(ty::UintTy::U64) =&gt; vir::Expr::or(
-                        vir::Expr::lt_cmp(<a href="#558">result</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), std::u64::MIN.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
-                        vir::Expr::gt_cmp(<a href="#558">result</a>, std::u64::MAX.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
+                        vir::Expr::lt_cmp(result.clone(), std::u64::MIN.into()),
+                        vir::Expr::gt_cmp(result, std::u64::MAX.into()),
                     ),
                     ty::TyKind::Uint(ty::UintTy::U128) =&gt; vir::Expr::or(
-                        vir::Expr::lt_cmp(<a href="#558">result</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), std::u128::MIN.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
-                        vir::Expr::gt_cmp(<a href="#558">result</a>, std::u128::MAX.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
+                        vir::Expr::lt_cmp(result.clone(), std::u128::MIN.into()),
+                        vir::Expr::gt_cmp(result, std::u128::MAX.into()),
                     ),
                     ty::TyKind::Uint(ty::UintTy::Usize) =&gt; vir::Expr::or(
-                        vir::Expr::lt_cmp(<a href="#558">result</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), std::usize::MIN.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
-                        vir::Expr::gt_cmp(<a href="#558">result</a>, std::usize::MAX.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
+                        vir::Expr::lt_cmp(result.clone(), std::usize::MIN.into()),
+                        vir::Expr::gt_cmp(result, std::usize::MAX.into()),
                     ),
                     <span class="comment">// Signed
                     </span>ty::TyKind::Int(ty::IntTy::I8) =&gt; vir::Expr::or(
-                        vir::Expr::lt_cmp(<a href="#558">result</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), std::i8::MIN.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
-                        vir::Expr::gt_cmp(<a href="#558">result</a>, std::i8::MAX.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
+                        vir::Expr::lt_cmp(result.clone(), std::i8::MIN.into()),
+                        vir::Expr::gt_cmp(result, std::i8::MAX.into()),
                     ),
                     ty::TyKind::Int(ty::IntTy::I16) =&gt; vir::Expr::or(
-                        vir::Expr::lt_cmp(<a href="#558">result</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), std::i16::MIN.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
-                        vir::Expr::gt_cmp(<a href="#558">result</a>, std::i16::MAX.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
+                        vir::Expr::lt_cmp(result.clone(), std::i16::MIN.into()),
+                        vir::Expr::gt_cmp(result, std::i16::MAX.into()),
                     ),
                     ty::TyKind::Int(ty::IntTy::I32) =&gt; vir::Expr::or(
-                        vir::Expr::lt_cmp(<a href="#558">result</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), std::i32::MIN.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
-                        vir::Expr::gt_cmp(<a href="#558">result</a>, std::i32::MAX.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
+                        vir::Expr::lt_cmp(result.clone(), std::i32::MIN.into()),
+                        vir::Expr::gt_cmp(result, std::i32::MAX.into()),
                     ),
                     ty::TyKind::Int(ty::IntTy::I64) =&gt; vir::Expr::or(
-                        vir::Expr::lt_cmp(<a href="#558">result</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), std::i64::MIN.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
-                        vir::Expr::gt_cmp(<a href="#558">result</a>, std::i64::MAX.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
+                        vir::Expr::lt_cmp(result.clone(), std::i64::MIN.into()),
+                        vir::Expr::gt_cmp(result, std::i64::MAX.into()),
                     ),
                     ty::TyKind::Int(ty::IntTy::I128) =&gt; vir::Expr::or(
-                        vir::Expr::lt_cmp(<a href="#558">result</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), std::i128::MIN.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
-                        vir::Expr::gt_cmp(<a href="#558">result</a>, std::i128::MAX.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
+                        vir::Expr::lt_cmp(result.clone(), std::i128::MIN.into()),
+                        vir::Expr::gt_cmp(result, std::i128::MAX.into()),
                     ),
                     ty::TyKind::Int(ty::IntTy::Isize) =&gt; vir::Expr::or(
-                        vir::Expr::lt_cmp(<a href="#558">result</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), std::isize::MIN.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
-                        vir::Expr::gt_cmp(<a href="#558">result</a>, std::isize::MAX.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
+                        vir::Expr::lt_cmp(result.clone(), std::isize::MIN.into()),
+                        vir::Expr::gt_cmp(result, std::isize::MAX.into()),
                     ),
                     <span class="comment">//Floats
                     </span>ty::TyKind::Float(ty::FloatTy::F32) =&gt; vir::Expr::or(
-                        vir::Expr::lt_cmp(<a href="#558">result</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), std::f32::MIN.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
-                        vir::Expr::gt_cmp(<a href="#558">result</a>, std::f32::MAX.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
+                        vir::Expr::lt_cmp(result.clone(), std::f32::MIN.into()),
+                        vir::Expr::gt_cmp(result, std::f32::MAX.into()),
                     ),
                     ty::TyKind::Float(ty::FloatTy::F64) =&gt; vir::Expr::or(
-                        vir::Expr::lt_cmp(<a href="#558">result</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), std::f64::MIN.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
-                        vir::Expr::gt_cmp(<a href="#558">result</a>, std::f64::MAX.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
+                        vir::Expr::lt_cmp(result.clone(), std::f64::MIN.into()),
+                        vir::Expr::gt_cmp(result, std::f64::MAX.into()),
                     ),
                     <span class="kw">_ </span>=&gt; {
-                        <a class="macro" href="../errors/encoding_error.rs.html#96-103">error_unsupported!</a>(
+                        <span class="macro">error_unsupported!</span>(
                             <span class="string">&quot;overflow checks are unsupported for operation &#39;{:?}&#39; on type &#39;{:?}&#39;&quot;</span>,
                             op,
                             ty,
@@ -1478,14 +1476,14 @@
                 },
 
                 mir::BinOp::Shl | mir::BinOp::Shr =&gt; {
-                    <span class="kw">let </span>size: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> = <span class="kw">match </span><a href="#553">ty</a>.kind() {
+                    <span class="kw">let </span>size: u32 = <span class="kw">match </span>ty.kind() {
                         ty::TyKind::Uint(ty::UintTy::U8) =&gt; <span class="number">8</span>,
                         ty::TyKind::Uint(ty::UintTy::U16) =&gt; <span class="number">16</span>,
                         ty::TyKind::Uint(ty::UintTy::U32) =&gt; <span class="number">32</span>,
                         ty::TyKind::Uint(ty::UintTy::U64) =&gt; <span class="number">64</span>,
                         ty::TyKind::Uint(ty::UintTy::U128) =&gt; <span class="number">128</span>,
                         ty::TyKind::Uint(ty::UintTy::Usize) =&gt; {
-                            <a class="macro" href="../errors/encoding_error.rs.html#96-103">error_unsupported!</a>(<span class="string">&quot;unknown size of usize for the overflow check&quot;</span>);
+                            <span class="macro">error_unsupported!</span>(<span class="string">&quot;unknown size of usize for the overflow check&quot;</span>);
                         }
                         ty::TyKind::Int(ty::IntTy::I8) =&gt; <span class="number">8</span>,
                         ty::TyKind::Int(ty::IntTy::I16) =&gt; <span class="number">16</span>,
@@ -1493,22 +1491,22 @@
                         ty::TyKind::Int(ty::IntTy::I64) =&gt; <span class="number">64</span>,
                         ty::TyKind::Int(ty::IntTy::I128) =&gt; <span class="number">128</span>,
                         ty::TyKind::Int(ty::IntTy::Isize) =&gt; {
-                            <a class="macro" href="../errors/encoding_error.rs.html#96-103">error_unsupported!</a>(<span class="string">&quot;unknown size of isize for the overflow check&quot;</span>);
+                            <span class="macro">error_unsupported!</span>(<span class="string">&quot;unknown size of isize for the overflow check&quot;</span>);
                         },
                         <span class="kw">_ </span>=&gt; {
-                            <a class="macro" href="../errors/encoding_error.rs.html#96-103">error_unsupported!</a>(
+                            <span class="macro">error_unsupported!</span>(
                                 <span class="string">&quot;overflow checks are unsupported for operation &#39;{:?}&#39; on type &#39;{:?}&#39;&quot;</span>,
                                 op, ty,
                             );
                         }
                     };
                     vir::Expr::or(
-                        vir::Expr::lt_cmp(<a href="#552">right</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), <span class="number">0</span>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
-                        vir::Expr::ge_cmp(<a href="#552">right</a>, <a href="#631">size</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
+                        vir::Expr::lt_cmp(right.clone(), <span class="number">0</span>.into()),
+                        vir::Expr::ge_cmp(right, size.into()),
                     )
                 }
 
-                <span class="kw">_ </span>=&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(<span class="string">&quot;{:?}&quot;</span>, op),
+                <span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>(<span class="string">&quot;{:?}&quot;</span>, op),
             })
         }
     }
@@ -1517,11 +1515,11 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         operand: <span class="kw-2">&amp;</span>mir::Operand&lt;<span class="lifetime">&#39;tcx</span>&gt;,
         dst_ty: ty::Ty&lt;<span class="lifetime">&#39;tcx</span>&gt;,
-        span: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/span_encoding/struct.Span.html">Span</a>,
-    ) -&gt; SpannedEncodingResult&lt;<a href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a>&gt; {
-        <span class="kw">let </span>src_ty = <a class="self" href="#667">self</a>.<a href="#453">get_operand_ty</a>(<a href="#668">operand</a>);
+        span: Span,
+    ) -&gt; SpannedEncodingResult&lt;vir::Expr&gt; {
+        <span class="kw">let </span>src_ty = <span class="self">self</span>.get_operand_ty(operand);
 
-        <span class="kw">let </span>encoded_val = <span class="kw">match </span>(<a href="#672">src_ty</a>.kind(), <a href="#669">dst_ty</a>.kind()) {
+        <span class="kw">let </span>encoded_val = <span class="kw">match </span>(src_ty.kind(), dst_ty.kind()) {
             <span class="comment">// Numeric casts that cannot fail
             </span>| (ty::TyKind::Char, ty::TyKind::Char)
             | (ty::TyKind::Char, ty::TyKind::Uint(ty::UintTy::U8))
@@ -1579,48 +1577,46 @@
                     <span class="comment">// Check the cast
                     </span><span class="kw">let </span>function_name = <span class="self">self</span>.encoder.encode_cast_function_use(src_ty, dst_ty)
                         .with_span(span)<span class="question-mark">?</span>;
-                    <span class="kw">let </span>encoded_args = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[encoded_operand];
-                    <span class="kw">let </span>formal_args = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[vir::LocalVar::new(
+                    <span class="kw">let </span>encoded_args = <span class="macro">vec!</span>[encoded_operand];
+                    <span class="kw">let </span>formal_args = <span class="macro">vec!</span>[vir::LocalVar::new(
                         String::from(<span class="string">&quot;number&quot;</span>),
                         <span class="self">self</span>.encode_operand_expr_type(operand).with_span(span)<span class="question-mark">?</span>,
                     )];
-                    <span class="kw">let </span>pos = <a class="self" href="#667">self</a>.<a href="#813">register_error</a>(<a href="#670">span</a>, <a href="../errors/error_manager.rs.html#147">ErrorCtxt::TypeCast</a>);
+                    <span class="kw">let </span>pos = <span class="self">self</span>.register_error(span, ErrorCtxt::TypeCast);
                     <span class="kw">let </span>return_type = <span class="self">self</span>.encoder.encode_snapshot_type(dst_ty).with_span(span)<span class="question-mark">?</span>;
                     <span class="kw">return </span><span class="prelude-val">Ok</span>(vir::Expr::func_app(
-                        <a href="#730">function_name</a>,
-                        <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[], <span class="comment">// FIXME: This is probably wrong.
-                        </span><a href="#732">encoded_args</a>,
-                        <a href="#733">formal_args</a>,
-                        <a href="#738">return_type</a>,
-                        <a href="#737">pos</a>,
+                        function_name,
+                        <span class="macro">vec!</span>[], <span class="comment">// FIXME: This is probably wrong.
+                        </span>encoded_args,
+                        formal_args,
+                        return_type,
+                        pos,
                     ));
                 } <span class="kw">else </span>{
                     <span class="comment">// Don&#39;t check the cast
-                    </span><a href="#727">encoded_operand</a>
+                    </span>encoded_operand
                 }
             }
 
             <span class="kw">_ </span>=&gt; {
                 <span class="kw">return </span><span class="prelude-val">Err</span>(SpannedEncodingError::unsupported(
-                    <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(
-                        <span class="string">&quot;unsupported cast from type &#39;{:?}&#39; to type &#39;{:?}&#39;&quot;</span>,
-                        src_ty,
-                        dst_ty
-                    ),
-                    <a href="#670">span</a>
+                    <span class="macro">format!</span>(
+                        <span class="string">&quot;unsupported cast from type &#39;{src_ty:?}&#39; to type &#39;{dst_ty:?}&#39;&quot;
+                    </span>),
+                    span
                 ));
             }
         };
 
-        <span class="prelude-val">Ok</span>(<a href="#674">encoded_val</a>)
+        <span class="prelude-val">Ok</span>(encoded_val)
     }
 
     <span class="kw">pub fn </span>encode_operand_place(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         operand: <span class="kw-2">&amp;</span>mir::Operand&lt;<span class="lifetime">&#39;tcx</span>&gt;,
-    ) -&gt; EncodingResult&lt;<span class="prelude-ty">Option</span>&lt;<a href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a>&gt;&gt; {
-        <a class="macro" href="../../../../log/macro.debug.html">debug!</a>(<span class="string">&quot;Encode operand place {:?}&quot;</span>, operand);
-        <span class="prelude-val">Ok</span>(<span class="kw">match </span><a href="#770">operand</a> {
+    ) -&gt; EncodingResult&lt;<span class="prelude-ty">Option</span>&lt;vir::Expr&gt;&gt; {
+        <span class="macro">debug!</span>(<span class="string">&quot;Encode operand place {:?}&quot;</span>, operand);
+        <span class="prelude-val">Ok</span>(<span class="kw">match </span>operand {
             <span class="kw-2">&amp;</span>mir::Operand::Move(place) | <span class="kw-2">&amp;</span>mir::Operand::Copy(place) =&gt; {
                 <span class="kw">let </span>(src, <span class="kw">_</span>, <span class="kw">_</span>) = <span class="self">self</span>.encode_place(place)<span class="question-mark">?</span>;
                 <span class="prelude-val">Some</span>(src.try_into_expr()<span class="question-mark">?</span>)
@@ -1632,71 +1628,71 @@
 
     <span class="kw">pub fn </span>encode_place_predicate_permission(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        place: <a href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a>,
-        perm: <a href="../../../../vir/gen/polymorphic/ast/common/enum.PermAmount.html">vir::PermAmount</a>,
-    ) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a>&gt; {
-        vir::Expr::pred_permission(<a href="#785">place</a>, <a href="#786">perm</a>)
+        place: vir::Expr,
+        perm: vir::PermAmount,
+    ) -&gt; <span class="prelude-ty">Option</span>&lt;vir::Expr&gt; {
+        vir::Expr::pred_permission(place, perm)
     }
 
-    <span class="kw">pub fn </span>encode_old_expr(<span class="kw-2">&amp;</span><span class="self">self</span>, expr: <a href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a>, label: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <a href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a> {
-        <a class="macro" href="../../../../log/macro.debug.html">debug!</a>(<span class="string">&quot;encode_old_expr {}, {}&quot;</span>, expr, label);
-        vir::Expr::labelled_old(<a href="#791">label</a>, <a href="#791">expr</a>)
+    <span class="kw">pub fn </span>encode_old_expr(<span class="kw-2">&amp;</span><span class="self">self</span>, expr: vir::Expr, label: <span class="kw-2">&amp;</span>str) -&gt; vir::Expr {
+        <span class="macro">debug!</span>(<span class="string">&quot;encode_old_expr {}, {}&quot;</span>, expr, label);
+        vir::Expr::labelled_old(label, expr)
     }
 
-    <span class="kw">pub fn </span>get_span_of_location(<span class="kw-2">&amp;</span><span class="self">self</span>, location: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Location.html">mir::Location</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/span_encoding/struct.Span.html">Span</a> {
-        <a class="self" href="#796">self</a>.mir.source_info(<a href="#796">location</a>).span
+    <span class="kw">pub fn </span>get_span_of_location(<span class="kw-2">&amp;</span><span class="self">self</span>, location: mir::Location) -&gt; Span {
+        <span class="self">self</span>.mir.source_info(location).span
     }
 
-    <span class="kw">pub fn </span>get_downcasts_at_location(<span class="kw-2">&amp;</span><span class="self">self</span>, location: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Location.html">mir::Location</a>) -&gt; Vec&lt;(MirPlace&lt;<span class="lifetime">&#39;tcx</span>&gt;, <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_target/abi/struct.VariantIdx.html">abi::VariantIdx</a>)&gt; {
-        <a href="downcast_detector.rs.html#7-8">downcast_detector::detect_downcasts</a>(<a class="self" href="#800">self</a>.mir, <a href="#800">location</a>)
+    <span class="kw">pub fn </span>get_downcasts_at_location(<span class="kw-2">&amp;</span><span class="self">self</span>, location: mir::Location) -&gt; Vec&lt;(MirPlace&lt;<span class="lifetime">&#39;tcx</span>&gt;, abi::VariantIdx)&gt; {
+        downcast_detector::detect_downcasts(<span class="self">self</span>.mir, location)
     }
 
-    <span class="kw">pub fn </span>get_span_of_basic_block(<span class="kw-2">&amp;</span><span class="self">self</span>, bbi: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.BasicBlock.html">mir::BasicBlock</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/span_encoding/struct.Span.html">Span</a> {
-        <span class="kw">let </span>bb_data = <span class="kw-2">&amp;</span><a class="self" href="#804">self</a>.mir.basic_blocks[<a href="#804">bbi</a>];
-        <a href="#805">bb_data</a>.terminator().source_info.span
+    <span class="kw">pub fn </span>get_span_of_basic_block(<span class="kw-2">&amp;</span><span class="self">self</span>, bbi: mir::BasicBlock) -&gt; Span {
+        <span class="kw">let </span>bb_data = <span class="kw-2">&amp;</span><span class="self">self</span>.mir.basic_blocks[bbi];
+        bb_data.terminator().source_info.span
     }
 
-    <span class="kw">pub fn </span>register_span&lt;T: Into&lt;MultiSpan&gt;&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, span: T) -&gt; <a href="../../../../vir/gen/polymorphic/ast/common/struct.Position.html">vir::Position</a> {
-        <a class="self" href="#809">self</a>.encoder.<a href="../encoder.rs.html#229">error_manager</a>().<a href="../errors/error_manager.rs.html#207">register_span</a>(<a class="self" href="#809">self</a>.def_id, <a href="#809">span</a>)
+    <span class="kw">pub fn </span>register_span&lt;T: Into&lt;MultiSpan&gt;&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, span: T) -&gt; vir::Position {
+        <span class="self">self</span>.encoder.error_manager().register_span(<span class="self">self</span>.def_id, span)
     }
 
-    <span class="kw">pub fn </span>register_error&lt;T: Into&lt;MultiSpan&gt;&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, span: T, error_ctxt: <a href="../errors/error_manager.rs.html#52">ErrorCtxt</a>) -&gt; <a href="../../../../vir/gen/polymorphic/ast/common/struct.Position.html">vir::Position</a> {
-        <a class="self" href="#813">self</a>.encoder.<a href="../encoder.rs.html#229">error_manager</a>().<a href="../errors/error_manager.rs.html#247">register_error</a>(<a href="#813">span</a>, <a href="#813">error_ctxt</a>, <a class="self" href="#813">self</a>.def_id)
+    <span class="kw">pub fn </span>register_error&lt;T: Into&lt;MultiSpan&gt;&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, span: T, error_ctxt: ErrorCtxt) -&gt; vir::Position {
+        <span class="self">self</span>.encoder.error_manager().register_error(span, error_ctxt, <span class="self">self</span>.def_id)
     }
 
     <span class="doccomment">/// Return the cause of a call to `begin_panic`
-    </span><span class="kw">pub fn </span>encode_panic_cause(<span class="kw-2">&amp;</span><span class="self">self</span>, span: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/span_encoding/struct.Span.html">Span</a>) -&gt; <a href="../errors/error_manager.rs.html#20">PanicCause</a> {
-        <span class="kw">let </span>macro_backtrace: Vec&lt;<span class="kw">_</span>&gt; = <a href="#818">span</a>.macro_backtrace().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
-        <a class="macro" href="../../../../log/macro.debug.html">debug!</a>(<span class="string">&quot;macro_backtrace: {:?}&quot;</span>, macro_backtrace);
+    </span><span class="kw">pub fn </span>encode_panic_cause(<span class="kw-2">&amp;</span><span class="self">self</span>, span: Span) -&gt; PanicCause {
+        <span class="kw">let </span>macro_backtrace: Vec&lt;<span class="kw">_</span>&gt; = span.macro_backtrace().collect();
+        <span class="macro">debug!</span>(<span class="string">&quot;macro_backtrace: {:?}&quot;</span>, macro_backtrace);
 
         <span class="comment">// To classify the cause of the panic it&#39;s enough to look at the top 3 macro calls
         </span><span class="kw">let </span>lookup_size = <span class="number">3</span>;
-        <span class="kw">let </span>env_name = <a class="self" href="#818">self</a>.encoder.<a href="../encoder.rs.html#225">env</a>().name;
-        <span class="kw">let </span>macro_names: Vec&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt; = <a href="#819">macro_backtrace</a>.iter()
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">take</a>(<a href="#823">lookup_size</a>)
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter_map</a>(|x| <a href="#827">x</a>.macro_def_id.map(|y| <a href="#824">env_name</a>.get_absolute_item_name(<a href="#827">y</a>)))
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
-        <a class="macro" href="../../../../log/macro.debug.html">debug!</a>(<span class="string">&quot;macro_names: {:?}&quot;</span>, macro_names);
+        <span class="kw">let </span>env_name = <span class="self">self</span>.encoder.env().name;
+        <span class="kw">let </span>macro_names: Vec&lt;String&gt; = macro_backtrace.iter()
+            .take(lookup_size)
+            .filter_map(|x| x.macro_def_id.map(|y| env_name.get_absolute_item_name(y)))
+            .collect();
+        <span class="macro">debug!</span>(<span class="string">&quot;macro_names: {:?}&quot;</span>, macro_names);
 
-        <span class="kw">let </span>macro_names_str: Vec&lt;<span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt; = <a href="#825">macro_names</a>.iter()
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|x| <a href="#832">x</a>.as_str())
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
-        <span class="kw">match </span><span class="kw-2">&amp;</span><a href="#831">macro_names_str</a>[..] {
+        <span class="kw">let </span>macro_names_str: Vec&lt;<span class="kw-2">&amp;</span>str&gt; = macro_names.iter()
+            .map(|x| x.as_str())
+            .collect();
+        <span class="kw">match </span><span class="kw-2">&amp;</span>macro_names_str[..] {
             [<span class="string">&quot;core::panic::panic_2015&quot;</span>, <span class="string">&quot;core::macros::panic&quot;</span>, <span class="string">&quot;std::unimplemented&quot;</span>]
-            | [<span class="string">&quot;std::unimplemented&quot;</span>, ..] =&gt; <a href="../errors/error_manager.rs.html#32">PanicCause::Unimplemented</a>,
+            | [<span class="string">&quot;std::unimplemented&quot;</span>, ..] =&gt; PanicCause::Unimplemented,
             [<span class="string">&quot;core::panic::panic_2015&quot;</span>, <span class="string">&quot;core::macros::panic&quot;</span>, <span class="string">&quot;std::unreachable&quot;</span>]
             | [<span class="string">&quot;core::panic::unreachable_2015&quot;</span>, <span class="string">&quot;std::unreachable&quot;</span>, ..]
-            | [<span class="string">&quot;std::unreachable&quot;</span>, ..] =&gt; <a href="../errors/error_manager.rs.html#30">PanicCause::Unreachable</a>,
-            [<span class="string">&quot;std::assert&quot;</span>, <span class="string">&quot;std::debug_assert&quot;</span>, ..] =&gt; <a href="../errors/error_manager.rs.html#28">PanicCause::DebugAssert</a>,
-            [<span class="string">&quot;std::assert&quot;</span>, ..] =&gt; <a href="../errors/error_manager.rs.html#26">PanicCause::Assert</a>,
-            [<span class="string">&quot;std::panic::panic_2015&quot;</span>, <span class="string">&quot;std::panic&quot;</span>, <span class="string">&quot;std::debug_assert&quot;</span>] =&gt; <a href="../errors/error_manager.rs.html#28">PanicCause::DebugAssert</a>,
+            | [<span class="string">&quot;std::unreachable&quot;</span>, ..] =&gt; PanicCause::Unreachable,
+            [<span class="string">&quot;std::assert&quot;</span>, <span class="string">&quot;std::debug_assert&quot;</span>, ..] =&gt; PanicCause::DebugAssert,
+            [<span class="string">&quot;std::assert&quot;</span>, ..] =&gt; PanicCause::Assert,
+            [<span class="string">&quot;std::panic::panic_2015&quot;</span>, <span class="string">&quot;std::panic&quot;</span>, <span class="string">&quot;std::debug_assert&quot;</span>] =&gt; PanicCause::DebugAssert,
             <span class="comment">// TODO: assert!(_, &quot;&quot;) currently has the same backtrace as panic!()
             // see https://github.com/rust-lang/rust/issues/82157
             //[&quot;std::panic::panic_2015&quot;, &quot;std::panic&quot;, ..] =&gt; PanicCause::Assert,
-            </span>[<span class="string">&quot;std::panic::panic_2015&quot;</span>, <span class="string">&quot;std::panic&quot;</span>, ..] =&gt; <a href="../errors/error_manager.rs.html#24">PanicCause::Panic</a>,
-            <span class="kw">_ </span>=&gt; <a href="../errors/error_manager.rs.html#22">PanicCause::Generic</a>,
+            </span>[<span class="string">&quot;std::panic::panic_2015&quot;</span>, <span class="string">&quot;std::panic&quot;</span>, ..] =&gt; PanicCause::Panic,
+            <span class="kw">_ </span>=&gt; PanicCause::Generic,
         }
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="prusti_viper" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="prusti_viper" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

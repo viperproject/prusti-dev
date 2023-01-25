@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/openssl-0.10.42/src/pkcs12.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>pkcs12.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../openssl/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/openssl-0.10.45/src/pkcs12.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>pkcs12.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../openssl/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -320,32 +320,32 @@
 <a href="#320" id="320">320</a>
 </pre><pre class="rust"><code><span class="doccomment">//! PKCS #12 archives.
 
-</span><span class="kw">use </span>foreign_types::{<a href="../../foreign_types_shared/trait.ForeignType.html">ForeignType</a>, <a href="../../foreign_types_shared/trait.ForeignTypeRef.html">ForeignTypeRef</a>};
-<span class="kw">use </span><a href="../../libc/unix/type.c_int.html">libc::c_int</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/ffi/c_str/struct.CString.html">std::ffi::CString</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/ptr/index.html">std::ptr</a>;
+</span><span class="kw">use </span>foreign_types::{ForeignType, ForeignTypeRef};
+<span class="kw">use </span>libc::c_int;
+<span class="kw">use </span>std::ffi::CString;
+<span class="kw">use </span>std::ptr;
 
-<span class="kw">use </span><a href="error.rs.html#39"><span class="kw">crate</span>::error::ErrorStack</a>;
+<span class="kw">use </span><span class="kw">crate</span>::error::ErrorStack;
 <span class="attr">#[cfg(not(boringssl))]
-</span><span class="kw">use </span><a href="hash.rs.html#22"><span class="kw">crate</span>::hash::MessageDigest</a>;
-<span class="kw">use </span><a href="nid.rs.html#49"><span class="kw">crate</span>::nid::Nid</a>;
-<span class="kw">use </span><span class="kw">crate</span>::pkey::{<a href="pkey.rs.html#128">HasPrivate</a>, <a href="pkey.rs.html#132-140">PKey</a>, <a href="pkey.rs.html#132-140">PKeyRef</a>, <a href="pkey.rs.html#73">Private</a>};
-<span class="kw">use </span><a href="stack.rs.html#43"><span class="kw">crate</span>::stack::Stack</a>;
-<span class="kw">use </span><a href="util.rs.html#69"><span class="kw">crate</span>::util::ForeignTypeExt</a>;
-<span class="kw">use </span><span class="kw">crate</span>::x509::{<a href="x509/mod.rs.html#362-370">X509Ref</a>, <a href="x509/mod.rs.html#362-370">X509</a>};
-<span class="kw">use crate</span>::{<a href="lib.rs.html#202">cvt</a>, <a href="lib.rs.html#193">cvt_p</a>};
-<span class="kw">use </span><a href="../../openssl_macros/attr.corresponds.html">openssl_macros::corresponds</a>;
+</span><span class="kw">use </span><span class="kw">crate</span>::hash::MessageDigest;
+<span class="kw">use </span><span class="kw">crate</span>::nid::Nid;
+<span class="kw">use </span><span class="kw">crate</span>::pkey::{HasPrivate, PKey, PKeyRef, Private};
+<span class="kw">use </span><span class="kw">crate</span>::stack::Stack;
+<span class="kw">use </span><span class="kw">crate</span>::util::ForeignTypeExt;
+<span class="kw">use </span><span class="kw">crate</span>::x509::{X509Ref, X509};
+<span class="kw">use crate</span>::{cvt, cvt_p};
+<span class="kw">use </span>openssl_macros::corresponds;
 
-<a class="macro" href="macros.rs.html#134-163">foreign_type_and_impl_send_sync! </a>{
-    <span class="kw">type </span>CType = <a href="../../openssl_sys/openssl/handwritten/pkcs12/enum.PKCS12.html">ffi::PKCS12</a>;
+<span class="macro">foreign_type_and_impl_send_sync! </span>{
+    <span class="kw">type </span>CType = ffi::PKCS12;
     <span class="kw">fn </span>drop = ffi::PKCS12_free;
 
     <span class="kw">pub struct </span>Pkcs12;
     <span class="kw">pub struct </span>Pkcs12Ref;
 }
 
-<span class="kw">impl </span><a href="#19-25">Pkcs12Ref</a> {
-    <a class="macro" href="macros.rs.html#89-103">to_der! </a>{
+<span class="kw">impl </span>Pkcs12Ref {
+    <span class="macro">to_der! </span>{
         <span class="doccomment">/// Serializes the `Pkcs12` to its standard DER encoding.
         </span><span class="attr">#[corresponds(i2d_PKCS12)]
         </span>to_der,
@@ -354,9 +354,9 @@
 
     <span class="doccomment">/// Extracts the contents of the `Pkcs12`.
     </span><span class="attr">#[corresponds(PKCS12_parse)]
-    </span><span class="kw">pub fn </span>parse(<span class="kw-2">&amp;</span><span class="self">self</span>, pass: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#96">ParsedPkcs12</a>, <a href="error.rs.html#39">ErrorStack</a>&gt; {
+    </span><span class="kw">pub fn </span>parse(<span class="kw-2">&amp;</span><span class="self">self</span>, pass: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;ParsedPkcs12, ErrorStack&gt; {
         <span class="kw">unsafe </span>{
-            <span class="kw">let </span>pass = CString::new(<a href="#37">pass</a>.as_bytes()).unwrap();
+            <span class="kw">let </span>pass = CString::new(pass.as_bytes()).unwrap();
 
             <span class="kw">let </span><span class="kw-2">mut </span>pkey = ptr::null_mut();
             <span class="kw">let </span><span class="kw-2">mut </span>cert = ptr::null_mut();
@@ -370,18 +370,18 @@
                 <span class="kw-2">&amp;mut </span>chain,
             ))<span class="question-mark">?</span>;
 
-            <span class="kw">let </span>pkey = PKey::from_ptr(<a href="#41">pkey</a>);
-            <span class="kw">let </span>cert = X509::from_ptr(<a href="#42">cert</a>);
+            <span class="kw">let </span>pkey = PKey::from_ptr(pkey);
+            <span class="kw">let </span>cert = X509::from_ptr(cert);
 
-            <span class="kw">let </span>chain = Stack::from_ptr_opt(<a href="#43">chain</a>);
+            <span class="kw">let </span>chain = Stack::from_ptr_opt(chain);
 
-            <span class="prelude-val">Ok</span>(<a href="#96">ParsedPkcs12</a> { <a href="#53">pkey</a>, <a href="#54">cert</a>, <a href="#56">chain</a> })
+            <span class="prelude-val">Ok</span>(ParsedPkcs12 { pkey, cert, chain })
         }
     }
 }
 
-<span class="kw">impl </span><a href="#19-25">Pkcs12</a> {
-    <a class="macro" href="macros.rs.html#105-118">from_der! </a>{
+<span class="kw">impl </span>Pkcs12 {
+    <span class="macro">from_der! </span>{
         <span class="doccomment">/// Deserializes a DER-encoded PKCS#12 archive.
         </span><span class="attr">#[corresponds(d2i_PKCS12)]
         </span>from_der,
@@ -398,10 +398,10 @@
     /// * `iter` - `2048`
     /// * `mac_iter` - `2048`
     /// * `mac_md` - `SHA-256` (3.0.0+) or `SHA-1` (`SHA-1` only for BoringSSL)
-    </span><span class="kw">pub fn </span>builder() -&gt; <a href="#102">Pkcs12Builder</a> {
-        <a href="../../openssl/fn.init.html">ffi::init</a>();
+    </span><span class="kw">pub fn </span>builder() -&gt; Pkcs12Builder {
+        ffi::init();
 
-        <a href="#102">Pkcs12Builder</a> {
+        Pkcs12Builder {
             nid_key: Nid::UNDEF,
             nid_cert: Nid::UNDEF,
             iter: ffi::PKCS12_DEFAULT_ITER,
@@ -414,61 +414,61 @@
 }
 
 <span class="kw">pub struct </span>ParsedPkcs12 {
-    <span class="kw">pub </span>pkey: PKey&lt;<a href="pkey.rs.html#73">Private</a>&gt;,
-    <span class="kw">pub </span>cert: <a href="x509/mod.rs.html#362-370">X509</a>,
-    <span class="kw">pub </span>chain: <span class="prelude-ty">Option</span>&lt;Stack&lt;<a href="x509/mod.rs.html#362-370">X509</a>&gt;&gt;,
+    <span class="kw">pub </span>pkey: PKey&lt;Private&gt;,
+    <span class="kw">pub </span>cert: X509,
+    <span class="kw">pub </span>chain: <span class="prelude-ty">Option</span>&lt;Stack&lt;X509&gt;&gt;,
 }
 
 <span class="kw">pub struct </span>Pkcs12Builder {
-    nid_key: <a href="nid.rs.html#49">Nid</a>,
-    nid_cert: <a href="nid.rs.html#49">Nid</a>,
-    iter: <a href="../../libc/unix/type.c_int.html">c_int</a>,
-    mac_iter: <a href="../../libc/unix/type.c_int.html">c_int</a>,
+    nid_key: Nid,
+    nid_cert: Nid,
+    iter: c_int,
+    mac_iter: c_int,
     <span class="attr">#[cfg(not(boringssl))]
-    </span>mac_md: <span class="prelude-ty">Option</span>&lt;<a href="hash.rs.html#22">MessageDigest</a>&gt;,
-    ca: <span class="prelude-ty">Option</span>&lt;Stack&lt;<a href="x509/mod.rs.html#362-370">X509</a>&gt;&gt;,
+    </span>mac_md: <span class="prelude-ty">Option</span>&lt;MessageDigest&gt;,
+    ca: <span class="prelude-ty">Option</span>&lt;Stack&lt;X509&gt;&gt;,
 }
 
-<span class="kw">impl </span><a href="#102">Pkcs12Builder</a> {
+<span class="kw">impl </span>Pkcs12Builder {
     <span class="doccomment">/// The encryption algorithm that should be used for the key
-    </span><span class="kw">pub fn </span>key_algorithm(<span class="kw-2">&amp;mut </span><span class="self">self</span>, nid: <a href="nid.rs.html#49">Nid</a>) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self </span>{
-        <a class="self" href="#114">self</a>.nid_key = <a href="#114">nid</a>;
-        <span class="self"><a href="#114">self</a>
+    </span><span class="kw">pub fn </span>key_algorithm(<span class="kw-2">&amp;mut </span><span class="self">self</span>, nid: Nid) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self </span>{
+        <span class="self">self</span>.nid_key = nid;
+        <span class="self">self
     </span>}
 
     <span class="doccomment">/// The encryption algorithm that should be used for the cert
-    </span><span class="kw">pub fn </span>cert_algorithm(<span class="kw-2">&amp;mut </span><span class="self">self</span>, nid: <a href="nid.rs.html#49">Nid</a>) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self </span>{
-        <a class="self" href="#120">self</a>.nid_cert = <a href="#120">nid</a>;
-        <span class="self"><a href="#120">self</a>
+    </span><span class="kw">pub fn </span>cert_algorithm(<span class="kw-2">&amp;mut </span><span class="self">self</span>, nid: Nid) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self </span>{
+        <span class="self">self</span>.nid_cert = nid;
+        <span class="self">self
     </span>}
 
     <span class="doccomment">/// Key iteration count, default is 2048 as of this writing
-    </span><span class="kw">pub fn </span>key_iter(<span class="kw-2">&amp;mut </span><span class="self">self</span>, iter: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self </span>{
-        <a class="self" href="#126">self</a>.iter = <a href="#126">iter</a> <span class="kw">as </span><a href="../../libc/unix/type.c_int.html">c_int</a>;
-        <span class="self"><a href="#126">self</a>
+    </span><span class="kw">pub fn </span>key_iter(<span class="kw-2">&amp;mut </span><span class="self">self</span>, iter: u32) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self </span>{
+        <span class="self">self</span>.iter = iter <span class="kw">as </span>c_int;
+        <span class="self">self
     </span>}
 
     <span class="doccomment">/// MAC iteration count, default is the same as key_iter.
     ///
     /// Old implementations don&#39;t understand MAC iterations greater than 1, (pre 1.0.1?), if such
     /// compatibility is required this should be set to 1.
-    </span><span class="kw">pub fn </span>mac_iter(<span class="kw-2">&amp;mut </span><span class="self">self</span>, mac_iter: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self </span>{
-        <a class="self" href="#135">self</a>.mac_iter = <a href="#135">mac_iter</a> <span class="kw">as </span><a href="../../libc/unix/type.c_int.html">c_int</a>;
-        <span class="self"><a href="#135">self</a>
+    </span><span class="kw">pub fn </span>mac_iter(<span class="kw-2">&amp;mut </span><span class="self">self</span>, mac_iter: u32) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self </span>{
+        <span class="self">self</span>.mac_iter = mac_iter <span class="kw">as </span>c_int;
+        <span class="self">self
     </span>}
 
     <span class="doccomment">/// MAC message digest type
     </span><span class="attr">#[cfg(not(boringssl))]
-    </span><span class="kw">pub fn </span>mac_md(<span class="kw-2">&amp;mut </span><span class="self">self</span>, md: <a href="hash.rs.html#22">MessageDigest</a>) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self </span>{
-        <a class="self" href="#142">self</a>.mac_md = <span class="prelude-val">Some</span>(<a href="#142">md</a>);
-        <span class="self"><a href="#142">self</a>
+    </span><span class="kw">pub fn </span>mac_md(<span class="kw-2">&amp;mut </span><span class="self">self</span>, md: MessageDigest) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self </span>{
+        <span class="self">self</span>.mac_md = <span class="prelude-val">Some</span>(md);
+        <span class="self">self
     </span>}
 
     <span class="doccomment">/// An additional set of certificates to include in the archive beyond the one provided to
     /// `build`.
-    </span><span class="kw">pub fn </span>ca(<span class="kw-2">&amp;mut </span><span class="self">self</span>, ca: Stack&lt;<a href="x509/mod.rs.html#362-370">X509</a>&gt;) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self </span>{
-        <a class="self" href="#149">self</a>.ca = <span class="prelude-val">Some</span>(<a href="#149">ca</a>);
-        <span class="self"><a href="#149">self</a>
+    </span><span class="kw">pub fn </span>ca(<span class="kw-2">&amp;mut </span><span class="self">self</span>, ca: Stack&lt;X509&gt;) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self </span>{
+        <span class="self">self</span>.ca = <span class="prelude-val">Some</span>(ca);
+        <span class="self">self
     </span>}
 
     <span class="doccomment">/// Builds the PKCS #12 object
@@ -482,26 +482,26 @@
     </span><span class="attr">#[corresponds(PKCS12_create)]
     </span><span class="kw">pub fn </span>build&lt;T&gt;(
         <span class="self">self</span>,
-        password: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>,
-        friendly_name: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>,
+        password: <span class="kw-2">&amp;</span>str,
+        friendly_name: <span class="kw-2">&amp;</span>str,
         pkey: <span class="kw-2">&amp;</span>PKeyRef&lt;T&gt;,
-        cert: <span class="kw-2">&amp;</span><a href="x509/mod.rs.html#362-370">X509Ref</a>,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#19-25">Pkcs12</a>, <a href="error.rs.html#39">ErrorStack</a>&gt;
+        cert: <span class="kw-2">&amp;</span>X509Ref,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;Pkcs12, ErrorStack&gt;
     <span class="kw">where
-        </span>T: <a href="pkey.rs.html#128">HasPrivate</a>,
+        </span>T: HasPrivate,
     {
         <span class="kw">unsafe </span>{
-            <span class="kw">let </span>pass = CString::new(<a href="#165">password</a>).unwrap();
-            <span class="kw">let </span>friendly_name = CString::new(<a href="#166">friendly_name</a>).unwrap();
-            <span class="kw">let </span>pkey = <a href="#167">pkey</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>();
-            <span class="kw">let </span>cert = <a href="#168">cert</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>();
-            <span class="kw">let </span>ca = <span class="self"><a href="#164">self</a>
+            <span class="kw">let </span>pass = CString::new(password).unwrap();
+            <span class="kw">let </span>friendly_name = CString::new(friendly_name).unwrap();
+            <span class="kw">let </span>pkey = pkey.as_ptr();
+            <span class="kw">let </span>cert = cert.as_ptr();
+            <span class="kw">let </span>ca = <span class="self">self
                 </span>.ca
                 .as_ref()
-                .map(|ca| <a href="#181">ca</a>.<a href="../../foreign_types_shared/trait.ForeignType.html">as_ptr</a>())
+                .map(|ca| ca.as_ptr())
                 .unwrap_or(ptr::null_mut());
-            <span class="kw">let </span>nid_key = <a class="self" href="#164">self</a>.nid_key.<a href="nid.rs.html#60">as_raw</a>();
-            <span class="kw">let </span>nid_cert = <a class="self" href="#164">self</a>.nid_cert.<a href="nid.rs.html#60">as_raw</a>();
+            <span class="kw">let </span>nid_key = <span class="self">self</span>.nid_key.as_raw();
+            <span class="kw">let </span>nid_cert = <span class="self">self</span>.nid_cert.as_raw();
 
             <span class="comment">// According to the OpenSSL docs, keytype is a non-standard extension for MSIE,
             // It&#39;s values are KEY_SIG or KEY_EX, see the OpenSSL docs for more information:
@@ -526,9 +526,9 @@
             </span><span class="comment">// BoringSSL does not support overriding the MAC and will always
             // use SHA-1
             </span>{
-                <span class="kw">let </span>md_type = <span class="self"><a href="#164">self</a>
+                <span class="kw">let </span>md_type = <span class="self">self
                     </span>.mac_md
-                    .map(|md_type| <a href="#211">md_type</a>.<a href="hash.rs.html#138">as_ptr</a>())
+                    .map(|md_type| md_type.as_ptr())
                     .unwrap_or(ptr::null());
 
                 cvt(ffi::PKCS12_set_mac(
@@ -542,7 +542,7 @@
                 ))<span class="question-mark">?</span>;
             }
 
-            <span class="prelude-val">Ok</span>(<a href="#191">pkcs12</a>)
+            <span class="prelude-val">Ok</span>(pkcs12)
         }
     }
 }
@@ -639,4 +639,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="openssl" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="openssl" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.21.2/src/process/unix/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../../tokio/index.html"><img class="rust-logo" src="../../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.23.0/src/process/unix/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../../tokio/index.html"><img class="rust-logo" src="../../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -295,6 +295,31 @@
 <a href="#295" id="295">295</a>
 <a href="#296" id="296">296</a>
 <a href="#297" id="297">297</a>
+<a href="#298" id="298">298</a>
+<a href="#299" id="299">299</a>
+<a href="#300" id="300">300</a>
+<a href="#301" id="301">301</a>
+<a href="#302" id="302">302</a>
+<a href="#303" id="303">303</a>
+<a href="#304" id="304">304</a>
+<a href="#305" id="305">305</a>
+<a href="#306" id="306">306</a>
+<a href="#307" id="307">307</a>
+<a href="#308" id="308">308</a>
+<a href="#309" id="309">309</a>
+<a href="#310" id="310">310</a>
+<a href="#311" id="311">311</a>
+<a href="#312" id="312">312</a>
+<a href="#313" id="313">313</a>
+<a href="#314" id="314">314</a>
+<a href="#315" id="315">315</a>
+<a href="#316" id="316">316</a>
+<a href="#317" id="317">317</a>
+<a href="#318" id="318">318</a>
+<a href="#319" id="319">319</a>
+<a href="#320" id="320">320</a>
+<a href="#321" id="321">321</a>
+<a href="#322" id="322">322</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Unix handling of child processes.
 //!
 //! Right now the only &quot;fancy&quot; thing about this is how we implement the
@@ -318,89 +343,98 @@
 //! processes in general aren&#39;t scalable (e.g. millions) so it shouldn&#39;t be that
 //! bad in theory...
 
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span><a href="driver.rs.html#1-58">driver</a>;
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span>orphan;
+<span class="kw">use </span>orphan::{OrphanQueue, OrphanQueueImpl, Wait};
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span><a href="orphan.rs.html#1-321">orphan</a>;
-<span class="kw">use </span>orphan::{<a href="orphan.rs.html#27">OrphanQueue</a>, <a href="orphan.rs.html#40">OrphanQueueImpl</a>, <a href="orphan.rs.html#9">Wait</a>};
+<span class="kw">mod </span>reap;
+<span class="kw">use </span>reap::Reaper;
 
-<span class="kw">mod </span><a href="reap.rs.html#1-298">reap</a>;
-<span class="kw">use </span><a href="reap.rs.html#16">reap::Reaper</a>;
+<span class="kw">use </span><span class="kw">crate</span>::io::{AsyncRead, AsyncWrite, PollEvented, ReadBuf};
+<span class="kw">use </span><span class="kw">crate</span>::process::kill::Kill;
+<span class="kw">use </span><span class="kw">crate</span>::process::SpawnedChild;
+<span class="kw">use </span><span class="kw">crate</span>::runtime::signal::Handle <span class="kw">as </span>SignalHandle;
+<span class="kw">use </span><span class="kw">crate</span>::signal::unix::{signal, Signal, SignalKind};
 
-<span class="kw">use </span><span class="kw">crate</span>::io::{<a href="../../io/async_read.rs.html#43">AsyncRead</a>, <a href="../../io/async_write.rs.html#45">AsyncWrite</a>, <a href="../../io/poll_evented.rs.html#64">PollEvented</a>, <a href="../../io/read_buf.rs.html#23">ReadBuf</a>};
-<span class="kw">use </span><a href="../kill.rs.html#4"><span class="kw">crate</span>::process::kill::Kill</a>;
-<span class="kw">use </span><a href="../mod.rs.html#279"><span class="kw">crate</span>::process::SpawnedChild</a>;
-<span class="kw">use </span><a href="../../signal/unix/driver.rs.html#36"><span class="kw">crate</span>::signal::unix::driver::Handle</a> <span class="kw">as </span>SignalHandle;
-<span class="kw">use </span><span class="kw">crate</span>::signal::unix::{<a href="../../signal/unix.rs.html#393">signal</a>, <a href="../../signal/unix.rs.html#361">Signal</a>, <a href="../../signal/unix.rs.html#68">SignalKind</a>};
-<span class="kw">use </span><a href="../../util/once_cell.rs.html#6"><span class="kw">crate</span>::util::once_cell::OnceCell</a>;
-
-<span class="kw">use </span><a href="../../../../mio/event/source/trait.Source.html">mio::event::Source</a>;
+<span class="kw">use </span>mio::event::Source;
 <span class="kw">use </span>mio::unix::SourceFd;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">std::fmt</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/fs/struct.File.html">std::fs::File</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">std::future::Future</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/io/index.html">std::io</a>;
-<span class="kw">use </span>std::os::unix::io::{<a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">AsRawFd</a>, <a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.FromRawFd.html">FromRawFd</a>, <a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.IntoRawFd.html">IntoRawFd</a>, <a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a>};
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/pin/struct.Pin.html">std::pin::Pin</a>;
-<span class="kw">use </span>std::process::{<a href="https://doc.rust-lang.org/nightly/std/process/struct.Child.html">Child</a> <span class="kw">as </span>StdChild, <a href="https://doc.rust-lang.org/nightly/std/process/struct.ExitStatus.html">ExitStatus</a>, <a href="https://doc.rust-lang.org/nightly/std/process/struct.Stdio.html">Stdio</a>};
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">std::task::Context</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">std::task::Poll</a>;
+<span class="kw">use </span>std::fmt;
+<span class="kw">use </span>std::fs::File;
+<span class="kw">use </span>std::future::Future;
+<span class="kw">use </span>std::io;
+<span class="kw">use </span>std::os::unix::io::{AsRawFd, FromRawFd, IntoRawFd, RawFd};
+<span class="kw">use </span>std::pin::Pin;
+<span class="kw">use </span>std::process::{Child <span class="kw">as </span>StdChild, ExitStatus, Stdio};
+<span class="kw">use </span>std::task::Context;
+<span class="kw">use </span>std::task::Poll;
 
-<span class="kw">impl </span><a href="orphan.rs.html#9">Wait</a> <span class="kw">for </span><a href="https://doc.rust-lang.org/nightly/std/process/struct.Child.html">StdChild</a> {
-    <span class="kw">fn </span>id(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
-        <a class="self" href="#52">self</a>.id()
+<span class="kw">impl </span>Wait <span class="kw">for </span>StdChild {
+    <span class="kw">fn </span>id(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u32 {
+        <span class="self">self</span>.id()
     }
 
-    <span class="kw">fn </span>try_wait(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; io::Result&lt;<span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/process/struct.ExitStatus.html">ExitStatus</a>&gt;&gt; {
-        <a class="self" href="#56">self</a>.try_wait()
+    <span class="kw">fn </span>try_wait(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; io::Result&lt;<span class="prelude-ty">Option</span>&lt;ExitStatus&gt;&gt; {
+        <span class="self">self</span>.try_wait()
     }
 }
 
-<span class="kw">impl </span><a href="../kill.rs.html#4">Kill</a> <span class="kw">for </span><a href="https://doc.rust-lang.org/nightly/std/process/struct.Child.html">StdChild</a> {
+<span class="kw">impl </span>Kill <span class="kw">for </span>StdChild {
     <span class="kw">fn </span>kill(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; io::Result&lt;()&gt; {
-        <a class="self" href="#62">self</a>.kill()
+        <span class="self">self</span>.kill()
     }
 }
 
-<span class="kw">fn </span>get_orphan_queue() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>OrphanQueueImpl&lt;<a href="https://doc.rust-lang.org/nightly/std/process/struct.Child.html">StdChild</a>&gt; {
-    <span class="kw">static </span>ORPHAN_QUEUE: OnceCell&lt;OrphanQueueImpl&lt;<a href="https://doc.rust-lang.org/nightly/std/process/struct.Child.html">StdChild</a>&gt;&gt; = OnceCell::new();
+<span class="macro">cfg_not_has_const_mutex_new! </span>{
+    <span class="kw">fn </span>get_orphan_queue() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>OrphanQueueImpl&lt;StdChild&gt; {
+        <span class="kw">use </span><span class="kw">crate</span>::util::once_cell::OnceCell;
 
-    <a href="#68">ORPHAN_QUEUE</a>.<a href="../../util/once_cell.rs.html#28">get</a>(OrphanQueueImpl::new)
+        <span class="kw">static </span>ORPHAN_QUEUE: OnceCell&lt;OrphanQueueImpl&lt;StdChild&gt;&gt; = OnceCell::new();
+
+        ORPHAN_QUEUE.get(OrphanQueueImpl::new)
+    }
+}
+
+<span class="macro">cfg_has_const_mutex_new! </span>{
+    <span class="kw">fn </span>get_orphan_queue() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>OrphanQueueImpl&lt;StdChild&gt; {
+        <span class="kw">static </span>ORPHAN_QUEUE: OrphanQueueImpl&lt;StdChild&gt; = OrphanQueueImpl::new();
+
+        <span class="kw-2">&amp;</span>ORPHAN_QUEUE
+    }
 }
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>GlobalOrphanQueue;
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="#73">GlobalOrphanQueue</a> {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, fmt: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a href="#67">get_orphan_queue</a>().<a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt</a>(<a href="#76">fmt</a>)
+<span class="kw">impl </span>fmt::Debug <span class="kw">for </span>GlobalOrphanQueue {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, fmt: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        get_orphan_queue().fmt(fmt)
     }
 }
 
-<span class="kw">impl </span><a href="#73">GlobalOrphanQueue</a> {
-    <span class="kw">fn </span>reap_orphans(handle: <span class="kw-2">&amp;</span><a href="../../signal/unix/driver.rs.html#36">SignalHandle</a>) {
-        <a href="#67">get_orphan_queue</a>().<a href="orphan.rs.html#67-69">reap_orphans</a>(<a href="#82">handle</a>)
+<span class="kw">impl </span>GlobalOrphanQueue {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>reap_orphans(handle: <span class="kw-2">&amp;</span>SignalHandle) {
+        get_orphan_queue().reap_orphans(handle)
     }
 }
 
-<span class="kw">impl </span>OrphanQueue&lt;<a href="https://doc.rust-lang.org/nightly/std/process/struct.Child.html">StdChild</a>&gt; <span class="kw">for </span><a href="#73">GlobalOrphanQueue</a> {
-    <span class="kw">fn </span>push_orphan(<span class="kw-2">&amp;</span><span class="self">self</span>, orphan: <a href="https://doc.rust-lang.org/nightly/std/process/struct.Child.html">StdChild</a>) {
-        <a href="#67">get_orphan_queue</a>().<a href="orphan.rs.html#58-60">push_orphan</a>(<a href="#88">orphan</a>)
+<span class="kw">impl </span>OrphanQueue&lt;StdChild&gt; <span class="kw">for </span>GlobalOrphanQueue {
+    <span class="kw">fn </span>push_orphan(<span class="kw-2">&amp;</span><span class="self">self</span>, orphan: StdChild) {
+        get_orphan_queue().push_orphan(orphan)
     }
 }
 
 <span class="attr">#[must_use = <span class="string">&quot;futures do nothing unless polled&quot;</span>]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>Child {
-    inner: Reaper&lt;<a href="https://doc.rust-lang.org/nightly/std/process/struct.Child.html">StdChild</a>, <a href="#73">GlobalOrphanQueue</a>, <a href="../../signal/unix.rs.html#361">Signal</a>&gt;,
+    inner: Reaper&lt;StdChild, GlobalOrphanQueue, Signal&gt;,
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="#94">Child</a> {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, fmt: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a href="#99">fmt</a>.debug_struct(<span class="string">&quot;Child&quot;</span>)
-            .field(<span class="string">&quot;pid&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="#99">self</a>.inner.id())
+<span class="kw">impl </span>fmt::Debug <span class="kw">for </span>Child {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, fmt: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        fmt.debug_struct(<span class="string">&quot;Child&quot;</span>)
+            .field(<span class="string">&quot;pid&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.inner.id())
             .finish()
     }
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>spawn_child(cmd: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/std/process/struct.Command.html">std::process::Command</a>) -&gt; io::Result&lt;<a href="../mod.rs.html#279">SpawnedChild</a>&gt; {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>spawn_child(cmd: <span class="kw-2">&amp;mut </span>std::process::Command) -&gt; io::Result&lt;SpawnedChild&gt; {
     <span class="kw">let </span><span class="kw-2">mut </span>child = cmd.spawn()<span class="question-mark">?</span>;
     <span class="kw">let </span>stdin = child.stdin.take().map(stdio).transpose()<span class="question-mark">?</span>;
     <span class="kw">let </span>stdout = child.stdout.take().map(stdio).transpose()<span class="question-mark">?</span>;
@@ -408,37 +442,37 @@
 
     <span class="kw">let </span>signal = signal(SignalKind::child())<span class="question-mark">?</span>;
 
-    <span class="prelude-val">Ok</span>(<a href="../mod.rs.html#279">SpawnedChild</a> {
-        child: <a href="#94">Child</a> {
-            inner: Reaper::new(<a href="#107">child</a>, <a href="#73">GlobalOrphanQueue</a>, <a href="#112">signal</a>),
+    <span class="prelude-val">Ok</span>(SpawnedChild {
+        child: Child {
+            inner: Reaper::new(child, GlobalOrphanQueue, signal),
         },
-        <a href="#108">stdin</a>,
-        <a href="#109">stdout</a>,
-        <a href="#110">stderr</a>,
+        stdin,
+        stdout,
+        stderr,
     })
 }
 
-<span class="kw">impl </span><a href="#94">Child</a> {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>id(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
-        <a class="self" href="#125">self</a>.inner.id()
+<span class="kw">impl </span>Child {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>id(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u32 {
+        <span class="self">self</span>.inner.id()
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>try_wait(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; io::Result&lt;<span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/process/struct.ExitStatus.html">ExitStatus</a>&gt;&gt; {
-        <a class="self" href="#129">self</a>.inner.<a href="reap.rs.html#55">inner_mut</a>().try_wait()
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>try_wait(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; io::Result&lt;<span class="prelude-ty">Option</span>&lt;ExitStatus&gt;&gt; {
+        <span class="self">self</span>.inner.inner_mut().try_wait()
     }
 }
 
-<span class="kw">impl </span><a href="../kill.rs.html#4">Kill</a> <span class="kw">for </span><a href="#94">Child</a> {
+<span class="kw">impl </span>Kill <span class="kw">for </span>Child {
     <span class="kw">fn </span>kill(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; io::Result&lt;()&gt; {
-        <a class="self" href="#135">self</a>.inner.<a href="../kill.rs.html#6">kill</a>()
+        <span class="self">self</span>.inner.kill()
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a> <span class="kw">for </span><a href="#94">Child</a> {
-    <span class="kw">type </span>Output = io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/process/struct.ExitStatus.html">ExitStatus</a>&gt;;
+<span class="kw">impl </span>Future <span class="kw">for </span>Child {
+    <span class="kw">type </span>Output = io::Result&lt;ExitStatus&gt;;
 
     <span class="kw">fn </span>poll(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
-        Pin::new(<span class="kw-2">&amp;mut </span><a class="self" href="#143">self</a>.inner).<a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">poll</a>(<a href="#143">cx</a>)
+        Pin::new(<span class="kw-2">&amp;mut </span><span class="self">self</span>.inner).poll(cx)
     }
 }
 
@@ -446,39 +480,43 @@
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>Pipe {
     <span class="comment">// Actually a pipe and not a File. However, we are reusing `File` to get
     // close on drop. This is a similar trick as `mio`.
-    </span>fd: <a href="https://doc.rust-lang.org/nightly/std/fs/struct.File.html">File</a>,
+    </span>fd: File,
 }
 
-<span class="kw">impl</span>&lt;T: <a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.IntoRawFd.html">IntoRawFd</a>&gt; From&lt;T&gt; <span class="kw">for </span><a href="#149">Pipe</a> {
+<span class="kw">impl</span>&lt;T: IntoRawFd&gt; From&lt;T&gt; <span class="kw">for </span>Pipe {
     <span class="kw">fn </span>from(fd: T) -&gt; <span class="self">Self </span>{
-        <span class="kw">let </span>fd = <span class="kw">unsafe </span>{ File::from_raw_fd(<a href="#156">fd</a>.<a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.IntoRawFd.html">into_raw_fd</a>()) };
-        <span class="self">Self </span>{ <a href="#157">fd</a> }
+        <span class="kw">let </span>fd = <span class="kw">unsafe </span>{ File::from_raw_fd(fd.into_raw_fd()) };
+        <span class="self">Self </span>{ fd }
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; <a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">io::Read</a> <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="#149">Pipe</a> {
-    <span class="kw">fn </span>read(<span class="kw-2">&amp;mut </span><span class="self">self</span>, bytes: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
-        (<span class="kw-2">&amp;</span><a class="self" href="#163">self</a>.fd).<a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">read</a>(<a href="#163">bytes</a>)
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; io::Read <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Pipe {
+    <span class="kw">fn </span>read(<span class="kw-2">&amp;mut </span><span class="self">self</span>, bytes: <span class="kw-2">&amp;mut </span>[u8]) -&gt; io::Result&lt;usize&gt; {
+        (<span class="kw-2">&amp;</span><span class="self">self</span>.fd).read(bytes)
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; <a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">io::Write</a> <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="#149">Pipe</a> {
-    <span class="kw">fn </span>write(<span class="kw-2">&amp;mut </span><span class="self">self</span>, bytes: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
-        (<span class="kw-2">&amp;</span><a class="self" href="#169">self</a>.fd).<a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">write</a>(<a href="#169">bytes</a>)
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; io::Write <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Pipe {
+    <span class="kw">fn </span>write(<span class="kw-2">&amp;mut </span><span class="self">self</span>, bytes: <span class="kw-2">&amp;</span>[u8]) -&gt; io::Result&lt;usize&gt; {
+        (<span class="kw-2">&amp;</span><span class="self">self</span>.fd).write(bytes)
     }
 
     <span class="kw">fn </span>flush(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; io::Result&lt;()&gt; {
-        (<span class="kw-2">&amp;</span><a class="self" href="#173">self</a>.fd).<a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">flush</a>()
+        (<span class="kw-2">&amp;</span><span class="self">self</span>.fd).flush()
+    }
+
+    <span class="kw">fn </span>write_vectored(<span class="kw-2">&amp;mut </span><span class="self">self</span>, bufs: <span class="kw-2">&amp;</span>[io::IoSlice&lt;<span class="lifetime">&#39;_</span>&gt;]) -&gt; io::Result&lt;usize&gt; {
+        (<span class="kw-2">&amp;</span><span class="self">self</span>.fd).write_vectored(bufs)
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">AsRawFd</a> <span class="kw">for </span><a href="#149">Pipe</a> {
-    <span class="kw">fn </span>as_raw_fd(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a> {
-        <a class="self" href="#179">self</a>.fd.<a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">as_raw_fd</a>()
+<span class="kw">impl </span>AsRawFd <span class="kw">for </span>Pipe {
+    <span class="kw">fn </span>as_raw_fd(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; RawFd {
+        <span class="self">self</span>.fd.as_raw_fd()
     }
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>convert_to_stdio(io: <a href="#220">ChildStdio</a>) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/process/struct.Stdio.html">Stdio</a>&gt; {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>convert_to_stdio(io: ChildStdio) -&gt; io::Result&lt;Stdio&gt; {
     <span class="kw">let </span><span class="kw-2">mut </span>fd = io.inner.into_inner()<span class="question-mark">?</span>.fd;
 
     <span class="comment">// Ensure that the fd to be inherited is set to *blocking* mode, as this
@@ -487,56 +525,56 @@
     // change it to nonblocking mode.
     </span>set_nonblocking(<span class="kw-2">&amp;mut </span>fd, <span class="bool-val">false</span>)<span class="question-mark">?</span>;
 
-    <span class="prelude-val">Ok</span>(Stdio::from(<a href="#185">fd</a>))
+    <span class="prelude-val">Ok</span>(Stdio::from(fd))
 }
 
-<span class="kw">impl </span><a href="../../../../mio/event/source/trait.Source.html">Source</a> <span class="kw">for </span><a href="#149">Pipe</a> {
+<span class="kw">impl </span>Source <span class="kw">for </span>Pipe {
     <span class="kw">fn </span>register(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        registry: <span class="kw-2">&amp;</span><a href="../../../../mio/poll/struct.Registry.html">mio::Registry</a>,
-        token: <a href="../../../../mio/token/struct.Token.html">mio::Token</a>,
-        interest: <a href="../../../../mio/interest/struct.Interest.html">mio::Interest</a>,
+        registry: <span class="kw-2">&amp;</span>mio::Registry,
+        token: mio::Token,
+        interest: mio::Interest,
     ) -&gt; io::Result&lt;()&gt; {
-        SourceFd(<span class="kw-2">&amp;</span><a class="self" href="#198">self</a>.<a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">as_raw_fd</a>()).<a href="../../../../mio/event/source/trait.Source.html">register</a>(<a href="#199">registry</a>, <a href="#200">token</a>, <a href="#201">interest</a>)
+        SourceFd(<span class="kw-2">&amp;</span><span class="self">self</span>.as_raw_fd()).register(registry, token, interest)
     }
 
     <span class="kw">fn </span>reregister(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        registry: <span class="kw-2">&amp;</span><a href="../../../../mio/poll/struct.Registry.html">mio::Registry</a>,
-        token: <a href="../../../../mio/token/struct.Token.html">mio::Token</a>,
-        interest: <a href="../../../../mio/interest/struct.Interest.html">mio::Interest</a>,
+        registry: <span class="kw-2">&amp;</span>mio::Registry,
+        token: mio::Token,
+        interest: mio::Interest,
     ) -&gt; io::Result&lt;()&gt; {
-        SourceFd(<span class="kw-2">&amp;</span><a class="self" href="#207">self</a>.<a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">as_raw_fd</a>()).<a href="../../../../mio/event/source/trait.Source.html">reregister</a>(<a href="#208">registry</a>, <a href="#209">token</a>, <a href="#210">interest</a>)
+        SourceFd(<span class="kw-2">&amp;</span><span class="self">self</span>.as_raw_fd()).reregister(registry, token, interest)
     }
 
-    <span class="kw">fn </span>deregister(<span class="kw-2">&amp;mut </span><span class="self">self</span>, registry: <span class="kw-2">&amp;</span><a href="../../../../mio/poll/struct.Registry.html">mio::Registry</a>) -&gt; io::Result&lt;()&gt; {
-        SourceFd(<span class="kw-2">&amp;</span><a class="self" href="#215">self</a>.<a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">as_raw_fd</a>()).<a href="../../../../mio/event/source/trait.Source.html">deregister</a>(<a href="#215">registry</a>)
+    <span class="kw">fn </span>deregister(<span class="kw-2">&amp;mut </span><span class="self">self</span>, registry: <span class="kw-2">&amp;</span>mio::Registry) -&gt; io::Result&lt;()&gt; {
+        SourceFd(<span class="kw-2">&amp;</span><span class="self">self</span>.as_raw_fd()).deregister(registry)
     }
 }
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>ChildStdio {
-    inner: PollEvented&lt;<a href="#149">Pipe</a>&gt;,
+    inner: PollEvented&lt;Pipe&gt;,
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="#220">ChildStdio</a> {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, fmt: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="self" href="#225">self</a>.inner.<a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt</a>(<a href="#225">fmt</a>)
+<span class="kw">impl </span>fmt::Debug <span class="kw">for </span>ChildStdio {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, fmt: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        <span class="self">self</span>.inner.fmt(fmt)
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">AsRawFd</a> <span class="kw">for </span><a href="#220">ChildStdio</a> {
-    <span class="kw">fn </span>as_raw_fd(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a> {
-        <a class="self" href="#231">self</a>.inner.<a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">as_raw_fd</a>()
+<span class="kw">impl </span>AsRawFd <span class="kw">for </span>ChildStdio {
+    <span class="kw">fn </span>as_raw_fd(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; RawFd {
+        <span class="self">self</span>.inner.as_raw_fd()
     }
 }
 
-<span class="kw">impl </span><a href="../../io/async_write.rs.html#45">AsyncWrite</a> <span class="kw">for </span><a href="#220">ChildStdio</a> {
+<span class="kw">impl </span>AsyncWrite <span class="kw">for </span>ChildStdio {
     <span class="kw">fn </span>poll_write(
         <span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;,
         cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
-        buf: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
-    ) -&gt; Poll&lt;io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;&gt; {
-        <a class="self" href="#238">self</a>.inner.<a href="../../io/poll_evented.rs.html#186-188">poll_write</a>(<a href="#239">cx</a>, <a href="#240">buf</a>)
+        buf: <span class="kw-2">&amp;</span>[u8],
+    ) -&gt; Poll&lt;io::Result&lt;usize&gt;&gt; {
+        <span class="self">self</span>.inner.poll_write(cx, buf)
     }
 
     <span class="kw">fn </span>poll_flush(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, _cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;io::Result&lt;()&gt;&gt; {
@@ -546,34 +584,46 @@
     <span class="kw">fn </span>poll_shutdown(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, _cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;io::Result&lt;()&gt;&gt; {
         Poll::Ready(<span class="prelude-val">Ok</span>(()))
     }
+
+    <span class="kw">fn </span>poll_write_vectored(
+        <span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;,
+        cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        bufs: <span class="kw-2">&amp;</span>[io::IoSlice&lt;<span class="lifetime">&#39;_</span>&gt;],
+    ) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;usize, io::Error&gt;&gt; {
+        <span class="self">self</span>.inner.poll_write_vectored(cx, bufs)
+    }
+
+    <span class="kw">fn </span>is_write_vectored(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="bool-val">true
+    </span>}
 }
 
-<span class="kw">impl </span><a href="../../io/async_read.rs.html#43">AsyncRead</a> <span class="kw">for </span><a href="#220">ChildStdio</a> {
+<span class="kw">impl </span>AsyncRead <span class="kw">for </span>ChildStdio {
     <span class="kw">fn </span>poll_read(
         <span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;,
         cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
         buf: <span class="kw-2">&amp;mut </span>ReadBuf&lt;<span class="lifetime">&#39;_</span>&gt;,
     ) -&gt; Poll&lt;io::Result&lt;()&gt;&gt; {
         <span class="comment">// Safety: pipes support reading into uninitialized memory
-        </span><span class="kw">unsafe </span>{ <a class="self" href="#256">self</a>.inner.<a href="../../io/poll_evented.rs.html#148-154">poll_read</a>(<a href="#257">cx</a>, <a href="#258">buf</a>) }
+        </span><span class="kw">unsafe </span>{ <span class="self">self</span>.inner.poll_read(cx, buf) }
     }
 }
 
-<span class="kw">fn </span>set_nonblocking&lt;T: <a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">AsRawFd</a>&gt;(fd: <span class="kw-2">&amp;mut </span>T, nonblocking: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; io::Result&lt;()&gt; {
+<span class="kw">fn </span>set_nonblocking&lt;T: AsRawFd&gt;(fd: <span class="kw-2">&amp;mut </span>T, nonblocking: bool) -&gt; io::Result&lt;()&gt; {
     <span class="kw">unsafe </span>{
-        <span class="kw">let </span>fd = <a href="#265">fd</a>.<a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">as_raw_fd</a>();
-        <span class="kw">let </span>previous = libc::fcntl(<a href="#267">fd</a>, libc::F_GETFL);
+        <span class="kw">let </span>fd = fd.as_raw_fd();
+        <span class="kw">let </span>previous = libc::fcntl(fd, libc::F_GETFL);
         <span class="kw">if </span>previous == -<span class="number">1 </span>{
             <span class="kw">return </span><span class="prelude-val">Err</span>(io::Error::last_os_error());
         }
 
         <span class="kw">let </span>new = <span class="kw">if </span>nonblocking {
-            <a href="#268">previous</a> | libc::O_NONBLOCK
+            previous | libc::O_NONBLOCK
         } <span class="kw">else </span>{
-            <a href="#268">previous</a> &amp; !libc::O_NONBLOCK
+            previous &amp; !libc::O_NONBLOCK
         };
 
-        <span class="kw">let </span>r = libc::fcntl(<a href="#267">fd</a>, libc::F_SETFL, <a href="#273">new</a>);
+        <span class="kw">let </span>r = libc::fcntl(fd, libc::F_SETFL, new);
         <span class="kw">if </span>r == -<span class="number">1 </span>{
             <span class="kw">return </span><span class="prelude-val">Err</span>(io::Error::last_os_error());
         }
@@ -582,15 +632,15 @@
     <span class="prelude-val">Ok</span>(())
 }
 
-<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>stdio&lt;T&gt;(io: T) -&gt; io::Result&lt;<a href="#220">ChildStdio</a>&gt;
+<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>stdio&lt;T&gt;(io: T) -&gt; io::Result&lt;ChildStdio&gt;
 <span class="kw">where
-    </span>T: <a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.IntoRawFd.html">IntoRawFd</a>,
+    </span>T: IntoRawFd,
 {
     <span class="comment">// Set the fd to nonblocking before we pass it to the event loop
-    </span><span class="kw">let </span><span class="kw-2">mut </span>pipe = Pipe::from(<a href="#288">io</a>);
+    </span><span class="kw">let </span><span class="kw-2">mut </span>pipe = Pipe::from(io);
     set_nonblocking(<span class="kw-2">&amp;mut </span>pipe, <span class="bool-val">true</span>)<span class="question-mark">?</span>;
 
-    PollEvented::new(<a href="#293">pipe</a>).map(|inner| <a href="#220">ChildStdio</a> { <a href="#296">inner</a> })
+    PollEvented::new(pipe).map(|inner| ChildStdio { inner })
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="tokio" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="tokio" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

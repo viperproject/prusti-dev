@@ -1,5 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/sha1-0.10.5/src/compress/soft.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>soft.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/RustCrypto/media/6ee8e381/logo.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../sha1/index.html">
-                        <img src="https://raw.githubusercontent.com/RustCrypto/media/6ee8e381/logo.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/sha1-0.10.5/src/compress/soft.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>soft.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/RustCrypto/media/6ee8e381/logo.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../sha1/index.html">
+                        <img src="https://raw.githubusercontent.com/RustCrypto/media/6ee8e381/logo.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -260,68 +260,68 @@
 <a href="#259" id="259">259</a>
 <a href="#260" id="260">260</a>
 </pre><pre class="rust"><code><span class="attr">#![allow(clippy::many_single_char_names)]
-</span><span class="kw">use </span><a href="../compress.rs.html#27"><span class="kw">super</span>::BLOCK_SIZE</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/convert/trait.TryInto.html">core::convert::TryInto</a>;
+</span><span class="kw">use </span><span class="kw">super</span>::BLOCK_SIZE;
+<span class="kw">use </span>core::convert::TryInto;
 
-<span class="kw">const </span>K: [<a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>; <span class="number">4</span>] = [<span class="number">0x5A827999</span>, <span class="number">0x6ED9EBA1</span>, <span class="number">0x8F1BBCDC</span>, <span class="number">0xCA62C1D6</span>];
+<span class="kw">const </span>K: [u32; <span class="number">4</span>] = [<span class="number">0x5A827999</span>, <span class="number">0x6ED9EBA1</span>, <span class="number">0x8F1BBCDC</span>, <span class="number">0xCA62C1D6</span>];
 
 <span class="attr">#[inline(always)]
-</span><span class="kw">fn </span>add(a: [<a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>; <span class="number">4</span>], b: [<a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>; <span class="number">4</span>]) -&gt; [<a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>; <span class="number">4</span>] {
+</span><span class="kw">fn </span>add(a: [u32; <span class="number">4</span>], b: [u32; <span class="number">4</span>]) -&gt; [u32; <span class="number">4</span>] {
     [
-        <a href="#8">a</a>[<span class="number">0</span>].wrapping_add(<a href="#8">b</a>[<span class="number">0</span>]),
-        <a href="#8">a</a>[<span class="number">1</span>].wrapping_add(<a href="#8">b</a>[<span class="number">1</span>]),
-        <a href="#8">a</a>[<span class="number">2</span>].wrapping_add(<a href="#8">b</a>[<span class="number">2</span>]),
-        <a href="#8">a</a>[<span class="number">3</span>].wrapping_add(<a href="#8">b</a>[<span class="number">3</span>]),
+        a[<span class="number">0</span>].wrapping_add(b[<span class="number">0</span>]),
+        a[<span class="number">1</span>].wrapping_add(b[<span class="number">1</span>]),
+        a[<span class="number">2</span>].wrapping_add(b[<span class="number">2</span>]),
+        a[<span class="number">3</span>].wrapping_add(b[<span class="number">3</span>]),
     ]
 }
 
 <span class="attr">#[inline(always)]
-</span><span class="kw">fn </span>xor(a: [<a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>; <span class="number">4</span>], b: [<a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>; <span class="number">4</span>]) -&gt; [<a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>; <span class="number">4</span>] {
-    [<a href="#18">a</a>[<span class="number">0</span>] ^ <a href="#18">b</a>[<span class="number">0</span>], <a href="#18">a</a>[<span class="number">1</span>] ^ <a href="#18">b</a>[<span class="number">1</span>], <a href="#18">a</a>[<span class="number">2</span>] ^ <a href="#18">b</a>[<span class="number">2</span>], <a href="#18">a</a>[<span class="number">3</span>] ^ <a href="#18">b</a>[<span class="number">3</span>]]
+</span><span class="kw">fn </span>xor(a: [u32; <span class="number">4</span>], b: [u32; <span class="number">4</span>]) -&gt; [u32; <span class="number">4</span>] {
+    [a[<span class="number">0</span>] ^ b[<span class="number">0</span>], a[<span class="number">1</span>] ^ b[<span class="number">1</span>], a[<span class="number">2</span>] ^ b[<span class="number">2</span>], a[<span class="number">3</span>] ^ b[<span class="number">3</span>]]
 }
 
 <span class="attr">#[inline]
-</span><span class="kw">pub fn </span>sha1_first_add(e: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>, w0: [<a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>; <span class="number">4</span>]) -&gt; [<a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>; <span class="number">4</span>] {
-    <span class="kw">let </span>[a, b, c, d] = <a href="#23">w0</a>;
-    [<a href="#23">e</a>.wrapping_add(<a href="#24">a</a>), <a href="#24">b</a>, <a href="#24">c</a>, <a href="#24">d</a>]
+</span><span class="kw">pub fn </span>sha1_first_add(e: u32, w0: [u32; <span class="number">4</span>]) -&gt; [u32; <span class="number">4</span>] {
+    <span class="kw">let </span>[a, b, c, d] = w0;
+    [e.wrapping_add(a), b, c, d]
 }
 
-<span class="kw">fn </span>sha1msg1(a: [<a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>; <span class="number">4</span>], b: [<a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>; <span class="number">4</span>]) -&gt; [<a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>; <span class="number">4</span>] {
-    <span class="kw">let </span>[<span class="kw">_</span>, <span class="kw">_</span>, w2, w3] = <a href="#28">a</a>;
-    <span class="kw">let </span>[w4, w5, <span class="kw">_</span>, <span class="kw">_</span>] = <a href="#28">b</a>;
-    [<a href="#28">a</a>[<span class="number">0</span>] ^ <a href="#29">w2</a>, <a href="#28">a</a>[<span class="number">1</span>] ^ <a href="#29">w3</a>, <a href="#28">a</a>[<span class="number">2</span>] ^ <a href="#30">w4</a>, <a href="#28">a</a>[<span class="number">3</span>] ^ <a href="#30">w5</a>]
+<span class="kw">fn </span>sha1msg1(a: [u32; <span class="number">4</span>], b: [u32; <span class="number">4</span>]) -&gt; [u32; <span class="number">4</span>] {
+    <span class="kw">let </span>[<span class="kw">_</span>, <span class="kw">_</span>, w2, w3] = a;
+    <span class="kw">let </span>[w4, w5, <span class="kw">_</span>, <span class="kw">_</span>] = b;
+    [a[<span class="number">0</span>] ^ w2, a[<span class="number">1</span>] ^ w3, a[<span class="number">2</span>] ^ w4, a[<span class="number">3</span>] ^ w5]
 }
 
-<span class="kw">fn </span>sha1msg2(a: [<a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>; <span class="number">4</span>], b: [<a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>; <span class="number">4</span>]) -&gt; [<a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>; <span class="number">4</span>] {
-    <span class="kw">let </span>[x0, x1, x2, x3] = <a href="#34">a</a>;
-    <span class="kw">let </span>[<span class="kw">_</span>, w13, w14, w15] = <a href="#34">b</a>;
+<span class="kw">fn </span>sha1msg2(a: [u32; <span class="number">4</span>], b: [u32; <span class="number">4</span>]) -&gt; [u32; <span class="number">4</span>] {
+    <span class="kw">let </span>[x0, x1, x2, x3] = a;
+    <span class="kw">let </span>[<span class="kw">_</span>, w13, w14, w15] = b;
 
-    <span class="kw">let </span>w16 = (<a href="#35">x0</a> ^ <a href="#36">w13</a>).rotate_left(<span class="number">1</span>);
-    <span class="kw">let </span>w17 = (<a href="#35">x1</a> ^ <a href="#36">w14</a>).rotate_left(<span class="number">1</span>);
-    <span class="kw">let </span>w18 = (<a href="#35">x2</a> ^ <a href="#36">w15</a>).rotate_left(<span class="number">1</span>);
-    <span class="kw">let </span>w19 = (<a href="#35">x3</a> ^ <a href="#38">w16</a>).rotate_left(<span class="number">1</span>);
+    <span class="kw">let </span>w16 = (x0 ^ w13).rotate_left(<span class="number">1</span>);
+    <span class="kw">let </span>w17 = (x1 ^ w14).rotate_left(<span class="number">1</span>);
+    <span class="kw">let </span>w18 = (x2 ^ w15).rotate_left(<span class="number">1</span>);
+    <span class="kw">let </span>w19 = (x3 ^ w16).rotate_left(<span class="number">1</span>);
 
-    [<a href="#38">w16</a>, <a href="#39">w17</a>, <a href="#40">w18</a>, <a href="#41">w19</a>]
+    [w16, w17, w18, w19]
 }
 
 <span class="attr">#[inline]
-</span><span class="kw">fn </span>sha1_first_half(abcd: [<a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>; <span class="number">4</span>], msg: [<a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>; <span class="number">4</span>]) -&gt; [<a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>; <span class="number">4</span>] {
-    <a href="#23">sha1_first_add</a>(<a href="#47">abcd</a>[<span class="number">0</span>].rotate_left(<span class="number">30</span>), <a href="#47">msg</a>)
+</span><span class="kw">fn </span>sha1_first_half(abcd: [u32; <span class="number">4</span>], msg: [u32; <span class="number">4</span>]) -&gt; [u32; <span class="number">4</span>] {
+    sha1_first_add(abcd[<span class="number">0</span>].rotate_left(<span class="number">30</span>), msg)
 }
 
-<span class="kw">fn </span>sha1_digest_round_x4(abcd: [<a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>; <span class="number">4</span>], work: [<a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>; <span class="number">4</span>], i: <a href="https://doc.rust-lang.org/nightly/std/primitive.i8.html">i8</a>) -&gt; [<a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>; <span class="number">4</span>] {
-    <span class="kw">match </span><a href="#51">i</a> {
-        <span class="number">0 </span>=&gt; <a href="#61">sha1rnds4c</a>(<a href="#51">abcd</a>, <a href="#8">add</a>(<a href="#51">work</a>, [<a href="#5">K</a>[<span class="number">0</span>]; <span class="number">4</span>])),
-        <span class="number">1 </span>=&gt; <a href="#99">sha1rnds4p</a>(<a href="#51">abcd</a>, <a href="#8">add</a>(<a href="#51">work</a>, [<a href="#5">K</a>[<span class="number">1</span>]; <span class="number">4</span>])),
-        <span class="number">2 </span>=&gt; <a href="#137">sha1rnds4m</a>(<a href="#51">abcd</a>, <a href="#8">add</a>(<a href="#51">work</a>, [<a href="#5">K</a>[<span class="number">2</span>]; <span class="number">4</span>])),
-        <span class="number">3 </span>=&gt; <a href="#99">sha1rnds4p</a>(<a href="#51">abcd</a>, <a href="#8">add</a>(<a href="#51">work</a>, [<a href="#5">K</a>[<span class="number">3</span>]; <span class="number">4</span>])),
-        <span class="kw">_ </span>=&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(<span class="string">&quot;unknown icosaround index&quot;</span>),
+<span class="kw">fn </span>sha1_digest_round_x4(abcd: [u32; <span class="number">4</span>], work: [u32; <span class="number">4</span>], i: i8) -&gt; [u32; <span class="number">4</span>] {
+    <span class="kw">match </span>i {
+        <span class="number">0 </span>=&gt; sha1rnds4c(abcd, add(work, [K[<span class="number">0</span>]; <span class="number">4</span>])),
+        <span class="number">1 </span>=&gt; sha1rnds4p(abcd, add(work, [K[<span class="number">1</span>]; <span class="number">4</span>])),
+        <span class="number">2 </span>=&gt; sha1rnds4m(abcd, add(work, [K[<span class="number">2</span>]; <span class="number">4</span>])),
+        <span class="number">3 </span>=&gt; sha1rnds4p(abcd, add(work, [K[<span class="number">3</span>]; <span class="number">4</span>])),
+        <span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>(<span class="string">&quot;unknown icosaround index&quot;</span>),
     }
 }
 
-<span class="kw">fn </span>sha1rnds4c(abcd: [<a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>; <span class="number">4</span>], msg: [<a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>; <span class="number">4</span>]) -&gt; [<a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>; <span class="number">4</span>] {
-    <span class="kw">let </span>[<span class="kw-2">mut </span>a, <span class="kw-2">mut </span>b, <span class="kw-2">mut </span>c, <span class="kw-2">mut </span>d] = <a href="#61">abcd</a>;
-    <span class="kw">let </span>[t, u, v, w] = <a href="#61">msg</a>;
+<span class="kw">fn </span>sha1rnds4c(abcd: [u32; <span class="number">4</span>], msg: [u32; <span class="number">4</span>]) -&gt; [u32; <span class="number">4</span>] {
+    <span class="kw">let </span>[<span class="kw-2">mut </span>a, <span class="kw-2">mut </span>b, <span class="kw-2">mut </span>c, <span class="kw-2">mut </span>d] = abcd;
+    <span class="kw">let </span>[t, u, v, w] = msg;
     <span class="kw">let </span><span class="kw-2">mut </span>e = <span class="number">0u32</span>;
 
     <span class="macro">macro_rules! </span>bool3ary_202 {
@@ -330,36 +330,36 @@
         };
     } <span class="comment">// Choose, MD5F, SHA1C
 
-    </span><a href="#64">e</a> = <a href="#64">e</a>
-        .wrapping_add(<a href="#62">a</a>.rotate_left(<span class="number">5</span>))
-        .wrapping_add(<a class="macro" href="#66-70">bool3ary_202!</a>(b, c, d))
-        .wrapping_add(<a href="#63">t</a>);
-    <a href="#62">b</a> = <a href="#62">b</a>.rotate_left(<span class="number">30</span>);
+    </span>e = e
+        .wrapping_add(a.rotate_left(<span class="number">5</span>))
+        .wrapping_add(<span class="macro">bool3ary_202!</span>(b, c, d))
+        .wrapping_add(t);
+    b = b.rotate_left(<span class="number">30</span>);
 
-    <a href="#62">d</a> = <a href="#62">d</a>
-        .wrapping_add(<a href="#64">e</a>.rotate_left(<span class="number">5</span>))
-        .wrapping_add(<a class="macro" href="#66-70">bool3ary_202!</a>(a, b, c))
-        .wrapping_add(<a href="#63">u</a>);
-    <a href="#62">a</a> = <a href="#62">a</a>.rotate_left(<span class="number">30</span>);
+    d = d
+        .wrapping_add(e.rotate_left(<span class="number">5</span>))
+        .wrapping_add(<span class="macro">bool3ary_202!</span>(a, b, c))
+        .wrapping_add(u);
+    a = a.rotate_left(<span class="number">30</span>);
 
-    <a href="#62">c</a> = <a href="#62">c</a>
-        .wrapping_add(<a href="#62">d</a>.rotate_left(<span class="number">5</span>))
-        .wrapping_add(<a class="macro" href="#66-70">bool3ary_202!</a>(e, a, b))
-        .wrapping_add(<a href="#63">v</a>);
-    <a href="#64">e</a> = <a href="#64">e</a>.rotate_left(<span class="number">30</span>);
+    c = c
+        .wrapping_add(d.rotate_left(<span class="number">5</span>))
+        .wrapping_add(<span class="macro">bool3ary_202!</span>(e, a, b))
+        .wrapping_add(v);
+    e = e.rotate_left(<span class="number">30</span>);
 
-    <a href="#62">b</a> = <a href="#62">b</a>
-        .wrapping_add(<a href="#62">c</a>.rotate_left(<span class="number">5</span>))
-        .wrapping_add(<a class="macro" href="#66-70">bool3ary_202!</a>(d, e, a))
-        .wrapping_add(<a href="#63">w</a>);
-    <a href="#62">d</a> = <a href="#62">d</a>.rotate_left(<span class="number">30</span>);
+    b = b
+        .wrapping_add(c.rotate_left(<span class="number">5</span>))
+        .wrapping_add(<span class="macro">bool3ary_202!</span>(d, e, a))
+        .wrapping_add(w);
+    d = d.rotate_left(<span class="number">30</span>);
 
-    [<a href="#62">b</a>, <a href="#62">c</a>, <a href="#62">d</a>, <a href="#64">e</a>]
+    [b, c, d, e]
 }
 
-<span class="kw">fn </span>sha1rnds4p(abcd: [<a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>; <span class="number">4</span>], msg: [<a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>; <span class="number">4</span>]) -&gt; [<a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>; <span class="number">4</span>] {
-    <span class="kw">let </span>[<span class="kw-2">mut </span>a, <span class="kw-2">mut </span>b, <span class="kw-2">mut </span>c, <span class="kw-2">mut </span>d] = <a href="#99">abcd</a>;
-    <span class="kw">let </span>[t, u, v, w] = <a href="#99">msg</a>;
+<span class="kw">fn </span>sha1rnds4p(abcd: [u32; <span class="number">4</span>], msg: [u32; <span class="number">4</span>]) -&gt; [u32; <span class="number">4</span>] {
+    <span class="kw">let </span>[<span class="kw-2">mut </span>a, <span class="kw-2">mut </span>b, <span class="kw-2">mut </span>c, <span class="kw-2">mut </span>d] = abcd;
+    <span class="kw">let </span>[t, u, v, w] = msg;
     <span class="kw">let </span><span class="kw-2">mut </span>e = <span class="number">0u32</span>;
 
     <span class="macro">macro_rules! </span>bool3ary_150 {
@@ -368,36 +368,36 @@
         </span>};
     } <span class="comment">// Parity, XOR, MD5H, SHA1P
 
-    </span><a href="#102">e</a> = <a href="#102">e</a>
-        .wrapping_add(<a href="#100">a</a>.rotate_left(<span class="number">5</span>))
-        .wrapping_add(<a class="macro" href="#104-108">bool3ary_150!</a>(b, c, d))
-        .wrapping_add(<a href="#101">t</a>);
-    <a href="#100">b</a> = <a href="#100">b</a>.rotate_left(<span class="number">30</span>);
+    </span>e = e
+        .wrapping_add(a.rotate_left(<span class="number">5</span>))
+        .wrapping_add(<span class="macro">bool3ary_150!</span>(b, c, d))
+        .wrapping_add(t);
+    b = b.rotate_left(<span class="number">30</span>);
 
-    <a href="#100">d</a> = <a href="#100">d</a>
-        .wrapping_add(<a href="#102">e</a>.rotate_left(<span class="number">5</span>))
-        .wrapping_add(<a class="macro" href="#104-108">bool3ary_150!</a>(a, b, c))
-        .wrapping_add(<a href="#101">u</a>);
-    <a href="#100">a</a> = <a href="#100">a</a>.rotate_left(<span class="number">30</span>);
+    d = d
+        .wrapping_add(e.rotate_left(<span class="number">5</span>))
+        .wrapping_add(<span class="macro">bool3ary_150!</span>(a, b, c))
+        .wrapping_add(u);
+    a = a.rotate_left(<span class="number">30</span>);
 
-    <a href="#100">c</a> = <a href="#100">c</a>
-        .wrapping_add(<a href="#100">d</a>.rotate_left(<span class="number">5</span>))
-        .wrapping_add(<a class="macro" href="#104-108">bool3ary_150!</a>(e, a, b))
-        .wrapping_add(<a href="#101">v</a>);
-    <a href="#102">e</a> = <a href="#102">e</a>.rotate_left(<span class="number">30</span>);
+    c = c
+        .wrapping_add(d.rotate_left(<span class="number">5</span>))
+        .wrapping_add(<span class="macro">bool3ary_150!</span>(e, a, b))
+        .wrapping_add(v);
+    e = e.rotate_left(<span class="number">30</span>);
 
-    <a href="#100">b</a> = <a href="#100">b</a>
-        .wrapping_add(<a href="#100">c</a>.rotate_left(<span class="number">5</span>))
-        .wrapping_add(<a class="macro" href="#104-108">bool3ary_150!</a>(d, e, a))
-        .wrapping_add(<a href="#101">w</a>);
-    <a href="#100">d</a> = <a href="#100">d</a>.rotate_left(<span class="number">30</span>);
+    b = b
+        .wrapping_add(c.rotate_left(<span class="number">5</span>))
+        .wrapping_add(<span class="macro">bool3ary_150!</span>(d, e, a))
+        .wrapping_add(w);
+    d = d.rotate_left(<span class="number">30</span>);
 
-    [<a href="#100">b</a>, <a href="#100">c</a>, <a href="#100">d</a>, <a href="#102">e</a>]
+    [b, c, d, e]
 }
 
-<span class="kw">fn </span>sha1rnds4m(abcd: [<a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>; <span class="number">4</span>], msg: [<a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>; <span class="number">4</span>]) -&gt; [<a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>; <span class="number">4</span>] {
-    <span class="kw">let </span>[<span class="kw-2">mut </span>a, <span class="kw-2">mut </span>b, <span class="kw-2">mut </span>c, <span class="kw-2">mut </span>d] = <a href="#137">abcd</a>;
-    <span class="kw">let </span>[t, u, v, w] = <a href="#137">msg</a>;
+<span class="kw">fn </span>sha1rnds4m(abcd: [u32; <span class="number">4</span>], msg: [u32; <span class="number">4</span>]) -&gt; [u32; <span class="number">4</span>] {
+    <span class="kw">let </span>[<span class="kw-2">mut </span>a, <span class="kw-2">mut </span>b, <span class="kw-2">mut </span>c, <span class="kw-2">mut </span>d] = abcd;
+    <span class="kw">let </span>[t, u, v, w] = msg;
     <span class="kw">let </span><span class="kw-2">mut </span>e = <span class="number">0u32</span>;
 
     <span class="macro">macro_rules! </span>bool3ary_232 {
@@ -406,31 +406,31 @@
         };
     } <span class="comment">// Majority, SHA1M
 
-    </span><a href="#140">e</a> = <a href="#140">e</a>
-        .wrapping_add(<a href="#138">a</a>.rotate_left(<span class="number">5</span>))
-        .wrapping_add(<a class="macro" href="#142-146">bool3ary_232!</a>(b, c, d))
-        .wrapping_add(<a href="#139">t</a>);
-    <a href="#138">b</a> = <a href="#138">b</a>.rotate_left(<span class="number">30</span>);
+    </span>e = e
+        .wrapping_add(a.rotate_left(<span class="number">5</span>))
+        .wrapping_add(<span class="macro">bool3ary_232!</span>(b, c, d))
+        .wrapping_add(t);
+    b = b.rotate_left(<span class="number">30</span>);
 
-    <a href="#138">d</a> = <a href="#138">d</a>
-        .wrapping_add(<a href="#140">e</a>.rotate_left(<span class="number">5</span>))
-        .wrapping_add(<a class="macro" href="#142-146">bool3ary_232!</a>(a, b, c))
-        .wrapping_add(<a href="#139">u</a>);
-    <a href="#138">a</a> = <a href="#138">a</a>.rotate_left(<span class="number">30</span>);
+    d = d
+        .wrapping_add(e.rotate_left(<span class="number">5</span>))
+        .wrapping_add(<span class="macro">bool3ary_232!</span>(a, b, c))
+        .wrapping_add(u);
+    a = a.rotate_left(<span class="number">30</span>);
 
-    <a href="#138">c</a> = <a href="#138">c</a>
-        .wrapping_add(<a href="#138">d</a>.rotate_left(<span class="number">5</span>))
-        .wrapping_add(<a class="macro" href="#142-146">bool3ary_232!</a>(e, a, b))
-        .wrapping_add(<a href="#139">v</a>);
-    <a href="#140">e</a> = <a href="#140">e</a>.rotate_left(<span class="number">30</span>);
+    c = c
+        .wrapping_add(d.rotate_left(<span class="number">5</span>))
+        .wrapping_add(<span class="macro">bool3ary_232!</span>(e, a, b))
+        .wrapping_add(v);
+    e = e.rotate_left(<span class="number">30</span>);
 
-    <a href="#138">b</a> = <a href="#138">b</a>
-        .wrapping_add(<a href="#138">c</a>.rotate_left(<span class="number">5</span>))
-        .wrapping_add(<a class="macro" href="#142-146">bool3ary_232!</a>(d, e, a))
-        .wrapping_add(<a href="#139">w</a>);
-    <a href="#138">d</a> = <a href="#138">d</a>.rotate_left(<span class="number">30</span>);
+    b = b
+        .wrapping_add(c.rotate_left(<span class="number">5</span>))
+        .wrapping_add(<span class="macro">bool3ary_232!</span>(d, e, a))
+        .wrapping_add(w);
+    d = d.rotate_left(<span class="number">30</span>);
 
-    [<a href="#138">b</a>, <a href="#138">c</a>, <a href="#138">d</a>, <a href="#140">e</a>]
+    [b, c, d, e]
 }
 
 <span class="macro">macro_rules! </span>rounds4 {
@@ -457,67 +457,67 @@
 }
 
 <span class="attr">#[inline(always)]
-</span><span class="kw">fn </span>sha1_digest_block_u32(state: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>; <span class="number">5</span>], block: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>; <span class="number">16</span>]) {
-    <span class="kw">let </span><span class="kw-2">mut </span>w0 = [<a href="#199">block</a>[<span class="number">0</span>], <a href="#199">block</a>[<span class="number">1</span>], <a href="#199">block</a>[<span class="number">2</span>], <a href="#199">block</a>[<span class="number">3</span>]];
-    <span class="kw">let </span><span class="kw-2">mut </span>w1 = [<a href="#199">block</a>[<span class="number">4</span>], <a href="#199">block</a>[<span class="number">5</span>], <a href="#199">block</a>[<span class="number">6</span>], <a href="#199">block</a>[<span class="number">7</span>]];
-    <span class="kw">let </span><span class="kw-2">mut </span>w2 = [<a href="#199">block</a>[<span class="number">8</span>], <a href="#199">block</a>[<span class="number">9</span>], <a href="#199">block</a>[<span class="number">10</span>], <a href="#199">block</a>[<span class="number">11</span>]];
-    <span class="kw">let </span><span class="kw-2">mut </span>w3 = [<a href="#199">block</a>[<span class="number">12</span>], <a href="#199">block</a>[<span class="number">13</span>], <a href="#199">block</a>[<span class="number">14</span>], <a href="#199">block</a>[<span class="number">15</span>]];
+</span><span class="kw">fn </span>sha1_digest_block_u32(state: <span class="kw-2">&amp;mut </span>[u32; <span class="number">5</span>], block: <span class="kw-2">&amp;</span>[u32; <span class="number">16</span>]) {
+    <span class="kw">let </span><span class="kw-2">mut </span>w0 = [block[<span class="number">0</span>], block[<span class="number">1</span>], block[<span class="number">2</span>], block[<span class="number">3</span>]];
+    <span class="kw">let </span><span class="kw-2">mut </span>w1 = [block[<span class="number">4</span>], block[<span class="number">5</span>], block[<span class="number">6</span>], block[<span class="number">7</span>]];
+    <span class="kw">let </span><span class="kw-2">mut </span>w2 = [block[<span class="number">8</span>], block[<span class="number">9</span>], block[<span class="number">10</span>], block[<span class="number">11</span>]];
+    <span class="kw">let </span><span class="kw-2">mut </span>w3 = [block[<span class="number">12</span>], block[<span class="number">13</span>], block[<span class="number">14</span>], block[<span class="number">15</span>]];
     <span class="attr">#[allow(clippy::needless_late_init)]
     </span><span class="kw">let </span><span class="kw-2">mut </span>w4;
 
-    <span class="kw">let </span><span class="kw-2">mut </span>h0 = [<a href="#199">state</a>[<span class="number">0</span>], <a href="#199">state</a>[<span class="number">1</span>], <a href="#199">state</a>[<span class="number">2</span>], <a href="#199">state</a>[<span class="number">3</span>]];
-    <span class="kw">let </span><span class="kw-2">mut </span>h1 = <a href="#23">sha1_first_add</a>(<a href="#199">state</a>[<span class="number">4</span>], <a href="#200">w0</a>);
+    <span class="kw">let </span><span class="kw-2">mut </span>h0 = [state[<span class="number">0</span>], state[<span class="number">1</span>], state[<span class="number">2</span>], state[<span class="number">3</span>]];
+    <span class="kw">let </span><span class="kw-2">mut </span>h1 = sha1_first_add(state[<span class="number">4</span>], w0);
 
     <span class="comment">// Rounds 0..20
-    </span><a href="#208">h1</a> = <a href="#51">sha1_digest_round_x4</a>(<a href="#207">h0</a>, <a href="#208">h1</a>, <span class="number">0</span>);
-    <a href="#207">h0</a> = <a class="macro" href="#175-179">rounds4!</a>(h1, h0, w1, <span class="number">0</span>);
-    <a href="#208">h1</a> = <a class="macro" href="#175-179">rounds4!</a>(h0, h1, w2, <span class="number">0</span>);
-    <a href="#207">h0</a> = <a class="macro" href="#175-179">rounds4!</a>(h1, h0, w3, <span class="number">0</span>);
-    <a class="macro" href="#187-196">schedule_rounds4!</a>(h0, h1, w0, w1, w2, w3, w4, <span class="number">0</span>);
+    </span>h1 = sha1_digest_round_x4(h0, h1, <span class="number">0</span>);
+    h0 = <span class="macro">rounds4!</span>(h1, h0, w1, <span class="number">0</span>);
+    h1 = <span class="macro">rounds4!</span>(h0, h1, w2, <span class="number">0</span>);
+    h0 = <span class="macro">rounds4!</span>(h1, h0, w3, <span class="number">0</span>);
+    <span class="macro">schedule_rounds4!</span>(h0, h1, w0, w1, w2, w3, w4, <span class="number">0</span>);
 
     <span class="comment">// Rounds 20..40
-    </span><a class="macro" href="#187-196">schedule_rounds4!</a>(h1, h0, w1, w2, w3, w4, w0, <span class="number">1</span>);
-    <a class="macro" href="#187-196">schedule_rounds4!</a>(h0, h1, w2, w3, w4, w0, w1, <span class="number">1</span>);
-    <a class="macro" href="#187-196">schedule_rounds4!</a>(h1, h0, w3, w4, w0, w1, w2, <span class="number">1</span>);
-    <a class="macro" href="#187-196">schedule_rounds4!</a>(h0, h1, w4, w0, w1, w2, w3, <span class="number">1</span>);
-    <a class="macro" href="#187-196">schedule_rounds4!</a>(h1, h0, w0, w1, w2, w3, w4, <span class="number">1</span>);
+    </span><span class="macro">schedule_rounds4!</span>(h1, h0, w1, w2, w3, w4, w0, <span class="number">1</span>);
+    <span class="macro">schedule_rounds4!</span>(h0, h1, w2, w3, w4, w0, w1, <span class="number">1</span>);
+    <span class="macro">schedule_rounds4!</span>(h1, h0, w3, w4, w0, w1, w2, <span class="number">1</span>);
+    <span class="macro">schedule_rounds4!</span>(h0, h1, w4, w0, w1, w2, w3, <span class="number">1</span>);
+    <span class="macro">schedule_rounds4!</span>(h1, h0, w0, w1, w2, w3, w4, <span class="number">1</span>);
 
     <span class="comment">// Rounds 40..60
-    </span><a class="macro" href="#187-196">schedule_rounds4!</a>(h0, h1, w1, w2, w3, w4, w0, <span class="number">2</span>);
-    <a class="macro" href="#187-196">schedule_rounds4!</a>(h1, h0, w2, w3, w4, w0, w1, <span class="number">2</span>);
-    <a class="macro" href="#187-196">schedule_rounds4!</a>(h0, h1, w3, w4, w0, w1, w2, <span class="number">2</span>);
-    <a class="macro" href="#187-196">schedule_rounds4!</a>(h1, h0, w4, w0, w1, w2, w3, <span class="number">2</span>);
-    <a class="macro" href="#187-196">schedule_rounds4!</a>(h0, h1, w0, w1, w2, w3, w4, <span class="number">2</span>);
+    </span><span class="macro">schedule_rounds4!</span>(h0, h1, w1, w2, w3, w4, w0, <span class="number">2</span>);
+    <span class="macro">schedule_rounds4!</span>(h1, h0, w2, w3, w4, w0, w1, <span class="number">2</span>);
+    <span class="macro">schedule_rounds4!</span>(h0, h1, w3, w4, w0, w1, w2, <span class="number">2</span>);
+    <span class="macro">schedule_rounds4!</span>(h1, h0, w4, w0, w1, w2, w3, <span class="number">2</span>);
+    <span class="macro">schedule_rounds4!</span>(h0, h1, w0, w1, w2, w3, w4, <span class="number">2</span>);
 
     <span class="comment">// Rounds 60..80
-    </span><a class="macro" href="#187-196">schedule_rounds4!</a>(h1, h0, w1, w2, w3, w4, w0, <span class="number">3</span>);
-    <a class="macro" href="#187-196">schedule_rounds4!</a>(h0, h1, w2, w3, w4, w0, w1, <span class="number">3</span>);
-    <a class="macro" href="#187-196">schedule_rounds4!</a>(h1, h0, w3, w4, w0, w1, w2, <span class="number">3</span>);
-    <a class="macro" href="#187-196">schedule_rounds4!</a>(h0, h1, w4, w0, w1, w2, w3, <span class="number">3</span>);
-    <a class="macro" href="#187-196">schedule_rounds4!</a>(h1, h0, w0, w1, w2, w3, w4, <span class="number">3</span>);
+    </span><span class="macro">schedule_rounds4!</span>(h1, h0, w1, w2, w3, w4, w0, <span class="number">3</span>);
+    <span class="macro">schedule_rounds4!</span>(h0, h1, w2, w3, w4, w0, w1, <span class="number">3</span>);
+    <span class="macro">schedule_rounds4!</span>(h1, h0, w3, w4, w0, w1, w2, <span class="number">3</span>);
+    <span class="macro">schedule_rounds4!</span>(h0, h1, w4, w0, w1, w2, w3, <span class="number">3</span>);
+    <span class="macro">schedule_rounds4!</span>(h1, h0, w0, w1, w2, w3, w4, <span class="number">3</span>);
 
-    <span class="kw">let </span>e = <a href="#208">h1</a>[<span class="number">0</span>].rotate_left(<span class="number">30</span>);
-    <span class="kw">let </span>[a, b, c, d] = <a href="#207">h0</a>;
+    <span class="kw">let </span>e = h1[<span class="number">0</span>].rotate_left(<span class="number">30</span>);
+    <span class="kw">let </span>[a, b, c, d] = h0;
 
-    <a href="#199">state</a>[<span class="number">0</span>] = <a href="#199">state</a>[<span class="number">0</span>].wrapping_add(<a href="#239">a</a>);
-    <a href="#199">state</a>[<span class="number">1</span>] = <a href="#199">state</a>[<span class="number">1</span>].wrapping_add(<a href="#239">b</a>);
-    <a href="#199">state</a>[<span class="number">2</span>] = <a href="#199">state</a>[<span class="number">2</span>].wrapping_add(<a href="#239">c</a>);
-    <a href="#199">state</a>[<span class="number">3</span>] = <a href="#199">state</a>[<span class="number">3</span>].wrapping_add(<a href="#239">d</a>);
-    <a href="#199">state</a>[<span class="number">4</span>] = <a href="#199">state</a>[<span class="number">4</span>].wrapping_add(<a href="#238">e</a>);
+    state[<span class="number">0</span>] = state[<span class="number">0</span>].wrapping_add(a);
+    state[<span class="number">1</span>] = state[<span class="number">1</span>].wrapping_add(b);
+    state[<span class="number">2</span>] = state[<span class="number">2</span>].wrapping_add(c);
+    state[<span class="number">3</span>] = state[<span class="number">3</span>].wrapping_add(d);
+    state[<span class="number">4</span>] = state[<span class="number">4</span>].wrapping_add(e);
 }
 
-<span class="kw">pub fn </span>compress(state: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>; <span class="number">5</span>], blocks: <span class="kw-2">&amp;</span>[[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <a href="../compress.rs.html#27">BLOCK_SIZE</a>]]) {
-    <span class="kw">let </span><span class="kw-2">mut </span>block_u32 = [<span class="number">0u32</span>; <a href="../compress.rs.html#27">BLOCK_SIZE</a> / <span class="number">4</span>];
+<span class="kw">pub fn </span>compress(state: <span class="kw-2">&amp;mut </span>[u32; <span class="number">5</span>], blocks: <span class="kw-2">&amp;</span>[[u8; BLOCK_SIZE]]) {
+    <span class="kw">let </span><span class="kw-2">mut </span>block_u32 = [<span class="number">0u32</span>; BLOCK_SIZE / <span class="number">4</span>];
     <span class="comment">// since LLVM can&#39;t properly use aliasing yet it will make
     // unnecessary state stores without this copy
-    </span><span class="kw">let </span><span class="kw-2">mut </span>state_cpy = <span class="kw-2">*</span><a href="#248">state</a>;
+    </span><span class="kw">let </span><span class="kw-2">mut </span>state_cpy = <span class="kw-2">*</span>state;
     <span class="kw">for </span>block <span class="kw">in </span>blocks.iter() {
         <span class="kw">for </span>(o, chunk) <span class="kw">in </span>block_u32.iter_mut().zip(block.chunks_exact(<span class="number">4</span>)) {
             <span class="kw-2">*</span>o = u32::from_be_bytes(chunk.try_into().unwrap());
         }
         sha1_digest_block_u32(<span class="kw-2">&amp;mut </span>state_cpy, <span class="kw-2">&amp;</span>block_u32);
     }
-    <span class="kw-2">*</span><a href="#248">state</a> = <a href="#252">state_cpy</a>;
+    <span class="kw-2">*</span>state = state_cpy;
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="sha1" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="sha1" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

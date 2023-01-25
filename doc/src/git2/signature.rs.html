@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/git2-0.14.4/src/signature.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>signature.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../git2/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/git2-0.14.4/src/signature.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>signature.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../git2/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -177,16 +177,16 @@
 <a href="#177" id="177">177</a>
 <a href="#178" id="178">178</a>
 <a href="#179" id="179">179</a>
-</pre><pre class="rust"><code><span class="kw">use </span><a href="../../libc/index.html">libc</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/ffi/c_str/struct.CString.html">std::ffi::CString</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">std::fmt</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/marker/index.html">std::marker</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/mem/index.html">std::mem</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/ptr/index.html">std::ptr</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/str/index.html">std::str</a>;
+</pre><pre class="rust"><code><span class="kw">use </span>libc;
+<span class="kw">use </span>std::ffi::CString;
+<span class="kw">use </span>std::fmt;
+<span class="kw">use </span>std::marker;
+<span class="kw">use </span>std::mem;
+<span class="kw">use </span>std::ptr;
+<span class="kw">use </span>std::str;
 
-<span class="kw">use </span><a href="util.rs.html#25"><span class="kw">crate</span>::util::Binding</a>;
-<span class="kw">use crate</span>::{<a href="../../libgit2_sys/index.html">raw</a>, <a href="error.rs.html#12">Error</a>, <a href="time.rs.html#10">Time</a>};
+<span class="kw">use </span><span class="kw">crate</span>::util::Binding;
+<span class="kw">use crate</span>::{raw, Error, Time};
 
 <span class="doccomment">/// A Signature is used to indicate authorship of various actions throughout the
 /// library.
@@ -198,23 +198,23 @@
 ///
 /// [`Repository::signature`]: struct.Repository.html#method.signature
 </span><span class="kw">pub struct </span>Signature&lt;<span class="lifetime">&#39;a</span>&gt; {
-    raw: <span class="kw-2">*mut </span><a href="../../libgit2_sys/struct.git_signature.html">raw::git_signature</a>,
-    _marker: marker::PhantomData&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt;,
-    owned: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
+    raw: <span class="kw-2">*mut </span>raw::git_signature,
+    _marker: marker::PhantomData&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>str&gt;,
+    owned: bool,
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; Signature&lt;<span class="lifetime">&#39;a</span>&gt; {
     <span class="doccomment">/// Create a new action signature with a timestamp of &#39;now&#39;.
     ///
     /// See `new` for more information
-    </span><span class="kw">pub fn </span>now(name: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, email: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Result</span>&lt;Signature&lt;<span class="lifetime">&#39;static</span>&gt;, <a href="error.rs.html#12">Error</a>&gt; {
-        <a href="lib.rs.html#717"><span class="kw">crate</span>::init</a>();
+    </span><span class="kw">pub fn </span>now(name: <span class="kw-2">&amp;</span>str, email: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;Signature&lt;<span class="lifetime">&#39;static</span>&gt;, Error&gt; {
+        <span class="kw">crate</span>::init();
         <span class="kw">let </span><span class="kw-2">mut </span>ret = ptr::null_mut();
         <span class="kw">let </span>name = CString::new(name)<span class="question-mark">?</span>;
         <span class="kw">let </span>email = CString::new(email)<span class="question-mark">?</span>;
         <span class="kw">unsafe </span>{
-            <a class="macro" href="call.rs.html#12-19">try_call!</a>(raw::git_signature_now(<span class="kw-2">&amp;mut </span>ret, name, email));
-            <span class="prelude-val">Ok</span>(<a href="util.rs.html#28">Binding::from_raw</a>(<a href="#33">ret</a>))
+            <span class="macro">try_call!</span>(raw::git_signature_now(<span class="kw-2">&amp;mut </span>ret, name, email));
+            <span class="prelude-val">Ok</span>(Binding::from_raw(ret))
         }
     }
 
@@ -224,73 +224,73 @@
     /// the time zone offset in minutes.
     ///
     /// Returns error if either `name` or `email` contain angle brackets.
-    </span><span class="kw">pub fn </span>new(name: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, email: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, time: <span class="kw-2">&amp;</span><a href="time.rs.html#10">Time</a>) -&gt; <span class="prelude-ty">Result</span>&lt;Signature&lt;<span class="lifetime">&#39;static</span>&gt;, <a href="error.rs.html#12">Error</a>&gt; {
-        <a href="lib.rs.html#717"><span class="kw">crate</span>::init</a>();
+    </span><span class="kw">pub fn </span>new(name: <span class="kw-2">&amp;</span>str, email: <span class="kw-2">&amp;</span>str, time: <span class="kw-2">&amp;</span>Time) -&gt; <span class="prelude-ty">Result</span>&lt;Signature&lt;<span class="lifetime">&#39;static</span>&gt;, Error&gt; {
+        <span class="kw">crate</span>::init();
         <span class="kw">let </span><span class="kw-2">mut </span>ret = ptr::null_mut();
         <span class="kw">let </span>name = CString::new(name)<span class="question-mark">?</span>;
         <span class="kw">let </span>email = CString::new(email)<span class="question-mark">?</span>;
         <span class="kw">unsafe </span>{
-            <a class="macro" href="call.rs.html#12-19">try_call!</a>(raw::git_signature_new(
+            <span class="macro">try_call!</span>(raw::git_signature_new(
                 <span class="kw-2">&amp;mut </span>ret,
                 name,
                 email,
                 time.seconds() <span class="kw">as </span>raw::git_time_t,
                 time.offset_minutes() <span class="kw">as </span>libc::c_int
             ));
-            <span class="prelude-val">Ok</span>(<a href="util.rs.html#28">Binding::from_raw</a>(<a href="#50">ret</a>))
+            <span class="prelude-val">Ok</span>(Binding::from_raw(ret))
         }
     }
 
     <span class="doccomment">/// Gets the name on the signature.
     ///
     /// Returns `None` if the name is not valid utf-8
-    </span><span class="kw">pub fn </span>name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt; {
-        <a href="https://doc.rust-lang.org/nightly/core/str/converts/fn.from_utf8.html">str::from_utf8</a>(<a class="self" href="#68">self</a>.<a href="#73">name_bytes</a>()).ok()
+    </span><span class="kw">pub fn </span>name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>str&gt; {
+        str::from_utf8(<span class="self">self</span>.name_bytes()).ok()
     }
 
     <span class="doccomment">/// Gets the name on the signature as a byte slice.
-    </span><span class="kw">pub fn </span>name_bytes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>] {
-        <span class="kw">unsafe </span>{ <a href="lib.rs.html#856"><span class="kw">crate</span>::opt_bytes</a>(<a class="self" href="#73">self</a>, (<span class="kw-2">*</span><a class="self" href="#73">self</a>.raw).name).unwrap() }
+    </span><span class="kw">pub fn </span>name_bytes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[u8] {
+        <span class="kw">unsafe </span>{ <span class="kw">crate</span>::opt_bytes(<span class="self">self</span>, (<span class="kw-2">*</span><span class="self">self</span>.raw).name).unwrap() }
     }
 
     <span class="doccomment">/// Gets the email on the signature.
     ///
     /// Returns `None` if the email is not valid utf-8
-    </span><span class="kw">pub fn </span>email(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt; {
-        <a href="https://doc.rust-lang.org/nightly/core/str/converts/fn.from_utf8.html">str::from_utf8</a>(<a class="self" href="#80">self</a>.<a href="#85">email_bytes</a>()).ok()
+    </span><span class="kw">pub fn </span>email(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>str&gt; {
+        str::from_utf8(<span class="self">self</span>.email_bytes()).ok()
     }
 
     <span class="doccomment">/// Gets the email on the signature as a byte slice.
-    </span><span class="kw">pub fn </span>email_bytes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>] {
-        <span class="kw">unsafe </span>{ <a href="lib.rs.html#856"><span class="kw">crate</span>::opt_bytes</a>(<a class="self" href="#85">self</a>, (<span class="kw-2">*</span><a class="self" href="#85">self</a>.raw).email).unwrap() }
+    </span><span class="kw">pub fn </span>email_bytes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[u8] {
+        <span class="kw">unsafe </span>{ <span class="kw">crate</span>::opt_bytes(<span class="self">self</span>, (<span class="kw-2">*</span><span class="self">self</span>.raw).email).unwrap() }
     }
 
     <span class="doccomment">/// Get the `when` of this signature.
-    </span><span class="kw">pub fn </span>when(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="time.rs.html#10">Time</a> {
-        <span class="kw">unsafe </span>{ <a href="util.rs.html#28">Binding::from_raw</a>((<span class="kw-2">*</span><a class="self" href="#90">self</a>.raw).when) }
+    </span><span class="kw">pub fn </span>when(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Time {
+        <span class="kw">unsafe </span>{ Binding::from_raw((<span class="kw-2">*</span><span class="self">self</span>.raw).when) }
     }
 
     <span class="doccomment">/// Convert a signature of any lifetime into an owned signature with a
     /// static lifetime.
     </span><span class="kw">pub fn </span>to_owned(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Signature&lt;<span class="lifetime">&#39;static</span>&gt; {
         <span class="kw">unsafe </span>{
-            <span class="kw">let </span>me = mem::transmute::&lt;<span class="kw-2">&amp;</span>Signature&lt;<span class="lifetime">&#39;a</span>&gt;, <span class="kw-2">&amp;</span>Signature&lt;<span class="lifetime">&#39;static</span>&gt;&gt;(<a class="self" href="#96">self</a>);
-            <a href="#98">me</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()
+            <span class="kw">let </span>me = mem::transmute::&lt;<span class="kw-2">&amp;</span>Signature&lt;<span class="lifetime">&#39;a</span>&gt;, <span class="kw-2">&amp;</span>Signature&lt;<span class="lifetime">&#39;static</span>&gt;&gt;(<span class="self">self</span>);
+            me.clone()
         }
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; <a href="util.rs.html#25">Binding</a> <span class="kw">for </span>Signature&lt;<span class="lifetime">&#39;a</span>&gt; {
-    <span class="kw">type </span>Raw = <span class="kw-2">*mut </span><a href="../../libgit2_sys/struct.git_signature.html">raw::git_signature</a>;
-    <span class="kw">unsafe fn </span>from_raw(raw: <span class="kw-2">*mut </span><a href="../../libgit2_sys/struct.git_signature.html">raw::git_signature</a>) -&gt; Signature&lt;<span class="lifetime">&#39;a</span>&gt; {
-        <a href="#21">Signature</a> {
-            <a href="#106">raw</a>,
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; Binding <span class="kw">for </span>Signature&lt;<span class="lifetime">&#39;a</span>&gt; {
+    <span class="kw">type </span>Raw = <span class="kw-2">*mut </span>raw::git_signature;
+    <span class="kw">unsafe fn </span>from_raw(raw: <span class="kw-2">*mut </span>raw::git_signature) -&gt; Signature&lt;<span class="lifetime">&#39;a</span>&gt; {
+        Signature {
+            raw,
             _marker: marker::PhantomData,
             owned: <span class="bool-val">true</span>,
         }
     }
-    <span class="kw">fn </span>raw(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">*mut </span><a href="../../libgit2_sys/struct.git_signature.html">raw::git_signature</a> {
-        <a class="self" href="#113">self</a>.raw
+    <span class="kw">fn </span>raw(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">*mut </span>raw::git_signature {
+        <span class="self">self</span>.raw
     }
 }
 
@@ -299,37 +299,37 @@
 ///
 /// This function is unsafe as there is no guarantee that `raw` is valid for
 /// `&#39;a` nor if it&#39;s a valid pointer.
-</span><span class="kw">pub unsafe fn </span>from_raw_const&lt;<span class="lifetime">&#39;b</span>, T&gt;(_lt: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span>T, raw: <span class="kw-2">*const </span><a href="../../libgit2_sys/struct.git_signature.html">raw::git_signature</a>) -&gt; Signature&lt;<span class="lifetime">&#39;b</span>&gt; {
-    <a href="#21">Signature</a> {
-        raw: <a href="#123">raw</a> <span class="kw">as </span><span class="kw-2">*mut </span><a href="../../libgit2_sys/struct.git_signature.html">raw::git_signature</a>,
+</span><span class="kw">pub unsafe fn </span>from_raw_const&lt;<span class="lifetime">&#39;b</span>, T&gt;(_lt: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span>T, raw: <span class="kw-2">*const </span>raw::git_signature) -&gt; Signature&lt;<span class="lifetime">&#39;b</span>&gt; {
+    Signature {
+        raw: raw <span class="kw">as </span><span class="kw-2">*mut </span>raw::git_signature,
         _marker: marker::PhantomData,
         owned: <span class="bool-val">false</span>,
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> <span class="kw">for </span>Signature&lt;<span class="lifetime">&#39;static</span>&gt; {
+<span class="kw">impl </span>Clone <span class="kw">for </span>Signature&lt;<span class="lifetime">&#39;static</span>&gt; {
     <span class="kw">fn </span>clone(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Signature&lt;<span class="lifetime">&#39;static</span>&gt; {
         <span class="comment">// TODO: can this be defined for &#39;a and just do a plain old copy if the
         //       lifetime isn&#39;t static?
         </span><span class="kw">let </span><span class="kw-2">mut </span>raw = ptr::null_mut();
-        <span class="kw">let </span>rc = <span class="kw">unsafe </span>{ raw::git_signature_dup(<span class="kw-2">&amp;mut </span><a href="#135">raw</a>, <span class="kw-2">&amp;*</span><a class="self" href="#132">self</a>.raw) };
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert_eq.html">assert_eq!</a>(rc, <span class="number">0</span>);
-        <span class="kw">unsafe </span>{ <a href="util.rs.html#28">Binding::from_raw</a>(<a href="#135">raw</a>) }
+        <span class="kw">let </span>rc = <span class="kw">unsafe </span>{ raw::git_signature_dup(<span class="kw-2">&amp;mut </span>raw, <span class="kw-2">&amp;*</span><span class="self">self</span>.raw) };
+        <span class="macro">assert_eq!</span>(rc, <span class="number">0</span>);
+        <span class="kw">unsafe </span>{ Binding::from_raw(raw) }
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span>Signature&lt;<span class="lifetime">&#39;a</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; Drop <span class="kw">for </span>Signature&lt;<span class="lifetime">&#39;a</span>&gt; {
     <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="kw">if </span><span class="self">self</span>.owned {
-            <span class="kw">unsafe </span>{ raw::git_signature_free(<a class="self" href="#143">self</a>.raw) }
+            <span class="kw">unsafe </span>{ raw::git_signature_free(<span class="self">self</span>.raw) }
         }
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for </span>Signature&lt;<span class="lifetime">&#39;a</span>&gt; {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(
-            <a href="#151">f</a>,
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; fmt::Display <span class="kw">for </span>Signature&lt;<span class="lifetime">&#39;a</span>&gt; {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        <span class="macro">write!</span>(
+            f,
             <span class="string">&quot;{} &lt;{}&gt;&quot;</span>,
             String::from_utf8_lossy(<span class="self">self</span>.name_bytes()),
             String::from_utf8_lossy(<span class="self">self</span>.email_bytes())
@@ -357,4 +357,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="git2" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="git2" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

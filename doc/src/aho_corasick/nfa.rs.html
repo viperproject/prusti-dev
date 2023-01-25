@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/aho-corasick-0.7.19/src/nfa.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>nfa.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../aho_corasick/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/aho-corasick-0.7.20/src/nfa.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>nfa.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../aho_corasick/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -1212,189 +1212,26 @@
 <a href="#1212" id="1212">1212</a>
 <a href="#1213" id="1213">1213</a>
 <a href="#1214" id="1214">1214</a>
-<a href="#1215" id="1215">1215</a>
-<a href="#1216" id="1216">1216</a>
-<a href="#1217" id="1217">1217</a>
-<a href="#1218" id="1218">1218</a>
-<a href="#1219" id="1219">1219</a>
-<a href="#1220" id="1220">1220</a>
-<a href="#1221" id="1221">1221</a>
-<a href="#1222" id="1222">1222</a>
-<a href="#1223" id="1223">1223</a>
-<a href="#1224" id="1224">1224</a>
-<a href="#1225" id="1225">1225</a>
-<a href="#1226" id="1226">1226</a>
-<a href="#1227" id="1227">1227</a>
-<a href="#1228" id="1228">1228</a>
-<a href="#1229" id="1229">1229</a>
-<a href="#1230" id="1230">1230</a>
-<a href="#1231" id="1231">1231</a>
-<a href="#1232" id="1232">1232</a>
-<a href="#1233" id="1233">1233</a>
-<a href="#1234" id="1234">1234</a>
-<a href="#1235" id="1235">1235</a>
-<a href="#1236" id="1236">1236</a>
-<a href="#1237" id="1237">1237</a>
-<a href="#1238" id="1238">1238</a>
-<a href="#1239" id="1239">1239</a>
-<a href="#1240" id="1240">1240</a>
-<a href="#1241" id="1241">1241</a>
-<a href="#1242" id="1242">1242</a>
-<a href="#1243" id="1243">1243</a>
-<a href="#1244" id="1244">1244</a>
-<a href="#1245" id="1245">1245</a>
-<a href="#1246" id="1246">1246</a>
-<a href="#1247" id="1247">1247</a>
-<a href="#1248" id="1248">1248</a>
-<a href="#1249" id="1249">1249</a>
-<a href="#1250" id="1250">1250</a>
-<a href="#1251" id="1251">1251</a>
-<a href="#1252" id="1252">1252</a>
-<a href="#1253" id="1253">1253</a>
-<a href="#1254" id="1254">1254</a>
-<a href="#1255" id="1255">1255</a>
-<a href="#1256" id="1256">1256</a>
-<a href="#1257" id="1257">1257</a>
-<a href="#1258" id="1258">1258</a>
-<a href="#1259" id="1259">1259</a>
-<a href="#1260" id="1260">1260</a>
-<a href="#1261" id="1261">1261</a>
-<a href="#1262" id="1262">1262</a>
-<a href="#1263" id="1263">1263</a>
-<a href="#1264" id="1264">1264</a>
-<a href="#1265" id="1265">1265</a>
-<a href="#1266" id="1266">1266</a>
-<a href="#1267" id="1267">1267</a>
-<a href="#1268" id="1268">1268</a>
-<a href="#1269" id="1269">1269</a>
-<a href="#1270" id="1270">1270</a>
-<a href="#1271" id="1271">1271</a>
-<a href="#1272" id="1272">1272</a>
-<a href="#1273" id="1273">1273</a>
-<a href="#1274" id="1274">1274</a>
-<a href="#1275" id="1275">1275</a>
-<a href="#1276" id="1276">1276</a>
-<a href="#1277" id="1277">1277</a>
-<a href="#1278" id="1278">1278</a>
-<a href="#1279" id="1279">1279</a>
-<a href="#1280" id="1280">1280</a>
-<a href="#1281" id="1281">1281</a>
-<a href="#1282" id="1282">1282</a>
-<a href="#1283" id="1283">1283</a>
-<a href="#1284" id="1284">1284</a>
-<a href="#1285" id="1285">1285</a>
-<a href="#1286" id="1286">1286</a>
-<a href="#1287" id="1287">1287</a>
-<a href="#1288" id="1288">1288</a>
-<a href="#1289" id="1289">1289</a>
-<a href="#1290" id="1290">1290</a>
-<a href="#1291" id="1291">1291</a>
-<a href="#1292" id="1292">1292</a>
-<a href="#1293" id="1293">1293</a>
-<a href="#1294" id="1294">1294</a>
-<a href="#1295" id="1295">1295</a>
-<a href="#1296" id="1296">1296</a>
-<a href="#1297" id="1297">1297</a>
-<a href="#1298" id="1298">1298</a>
-<a href="#1299" id="1299">1299</a>
-<a href="#1300" id="1300">1300</a>
-<a href="#1301" id="1301">1301</a>
-<a href="#1302" id="1302">1302</a>
-<a href="#1303" id="1303">1303</a>
-<a href="#1304" id="1304">1304</a>
-<a href="#1305" id="1305">1305</a>
-<a href="#1306" id="1306">1306</a>
-<a href="#1307" id="1307">1307</a>
-<a href="#1308" id="1308">1308</a>
-<a href="#1309" id="1309">1309</a>
-<a href="#1310" id="1310">1310</a>
-<a href="#1311" id="1311">1311</a>
-<a href="#1312" id="1312">1312</a>
-<a href="#1313" id="1313">1313</a>
-<a href="#1314" id="1314">1314</a>
-<a href="#1315" id="1315">1315</a>
-<a href="#1316" id="1316">1316</a>
-<a href="#1317" id="1317">1317</a>
-<a href="#1318" id="1318">1318</a>
-<a href="#1319" id="1319">1319</a>
-<a href="#1320" id="1320">1320</a>
-<a href="#1321" id="1321">1321</a>
-<a href="#1322" id="1322">1322</a>
-<a href="#1323" id="1323">1323</a>
-<a href="#1324" id="1324">1324</a>
-<a href="#1325" id="1325">1325</a>
-<a href="#1326" id="1326">1326</a>
-<a href="#1327" id="1327">1327</a>
-<a href="#1328" id="1328">1328</a>
-<a href="#1329" id="1329">1329</a>
-<a href="#1330" id="1330">1330</a>
-<a href="#1331" id="1331">1331</a>
-<a href="#1332" id="1332">1332</a>
-<a href="#1333" id="1333">1333</a>
-<a href="#1334" id="1334">1334</a>
-<a href="#1335" id="1335">1335</a>
-<a href="#1336" id="1336">1336</a>
-<a href="#1337" id="1337">1337</a>
-<a href="#1338" id="1338">1338</a>
-<a href="#1339" id="1339">1339</a>
-<a href="#1340" id="1340">1340</a>
-<a href="#1341" id="1341">1341</a>
-<a href="#1342" id="1342">1342</a>
-<a href="#1343" id="1343">1343</a>
-<a href="#1344" id="1344">1344</a>
-<a href="#1345" id="1345">1345</a>
-<a href="#1346" id="1346">1346</a>
-<a href="#1347" id="1347">1347</a>
-<a href="#1348" id="1348">1348</a>
-<a href="#1349" id="1349">1349</a>
-<a href="#1350" id="1350">1350</a>
-<a href="#1351" id="1351">1351</a>
-<a href="#1352" id="1352">1352</a>
-<a href="#1353" id="1353">1353</a>
-<a href="#1354" id="1354">1354</a>
-<a href="#1355" id="1355">1355</a>
-<a href="#1356" id="1356">1356</a>
-<a href="#1357" id="1357">1357</a>
-<a href="#1358" id="1358">1358</a>
-<a href="#1359" id="1359">1359</a>
-<a href="#1360" id="1360">1360</a>
-<a href="#1361" id="1361">1361</a>
-<a href="#1362" id="1362">1362</a>
-<a href="#1363" id="1363">1363</a>
-<a href="#1364" id="1364">1364</a>
-<a href="#1365" id="1365">1365</a>
-<a href="#1366" id="1366">1366</a>
-<a href="#1367" id="1367">1367</a>
-<a href="#1368" id="1368">1368</a>
-<a href="#1369" id="1369">1369</a>
-<a href="#1370" id="1370">1370</a>
-<a href="#1371" id="1371">1371</a>
-<a href="#1372" id="1372">1372</a>
-<a href="#1373" id="1373">1373</a>
-<a href="#1374" id="1374">1374</a>
-<a href="#1375" id="1375">1375</a>
-<a href="#1376" id="1376">1376</a>
-<a href="#1377" id="1377">1377</a>
-</pre><pre class="rust"><code><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/cmp/index.html">std::cmp</a>;
-<span class="kw">use </span>std::collections::{<a href="https://doc.rust-lang.org/nightly/alloc/collections/btree/set/struct.BTreeSet.html">BTreeSet</a>, <a href="https://doc.rust-lang.org/nightly/alloc/collections/vec_deque/struct.VecDeque.html">VecDeque</a>};
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">std::fmt</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/mem/fn.size_of.html">std::mem::size_of</a>;
-<span class="kw">use </span>std::ops::{<a href="https://doc.rust-lang.org/nightly/core/ops/index/trait.Index.html">Index</a>, <a href="https://doc.rust-lang.org/nightly/core/ops/index/trait.IndexMut.html">IndexMut</a>};
+</pre><pre class="rust"><code><span class="kw">use </span>std::cmp;
+<span class="kw">use </span>std::collections::{BTreeSet, VecDeque};
+<span class="kw">use </span>std::fmt;
+<span class="kw">use </span>std::mem::size_of;
+<span class="kw">use </span>std::ops::{Index, IndexMut};
 
-<span class="kw">use </span><a href="ahocorasick.rs.html#2041"><span class="kw">crate</span>::ahocorasick::MatchKind</a>;
-<span class="kw">use </span><a href="automaton.rs.html#80"><span class="kw">crate</span>::automaton::Automaton</a>;
-<span class="kw">use </span><span class="kw">crate</span>::classes::{<a href="classes.rs.html#154">ByteClassBuilder</a>, <a href="classes.rs.html#9">ByteClasses</a>};
-<span class="kw">use </span><a href="error.rs.html#5"><span class="kw">crate</span>::error::Result</a>;
-<span class="kw">use </span><span class="kw">crate</span>::prefilter::{<a class="self" href="lib.rs.html#212">self</a>, <a href="prefilter.rs.html#1022">opposite_ascii_case</a>, <a href="prefilter.rs.html#50-51">Prefilter</a>, <a href="prefilter.rs.html#123">PrefilterObj</a>};
-<span class="kw">use </span><span class="kw">crate</span>::state_id::{<a href="state_id.rs.html#45">dead_id</a>, <a href="state_id.rs.html#39">fail_id</a>, <a href="state_id.rs.html#29">usize_to_state_id</a>, <a href="state_id.rs.html#72-81">StateID</a>};
-<span class="kw">use </span><a href="lib.rs.html#239"><span class="kw">crate</span>::Match</a>;
+<span class="kw">use </span><span class="kw">crate</span>::ahocorasick::MatchKind;
+<span class="kw">use </span><span class="kw">crate</span>::automaton::Automaton;
+<span class="kw">use </span><span class="kw">crate</span>::classes::{ByteClassBuilder, ByteClasses};
+<span class="kw">use </span><span class="kw">crate</span>::error::Result;
+<span class="kw">use </span><span class="kw">crate</span>::prefilter::{<span class="self">self</span>, opposite_ascii_case, Prefilter, PrefilterObj};
+<span class="kw">use </span><span class="kw">crate</span>::state_id::{dead_id, fail_id, usize_to_state_id, StateID};
+<span class="kw">use </span><span class="kw">crate</span>::Match;
 
 <span class="doccomment">/// The identifier for a pattern, which is simply the position of the pattern
 /// in the sequence of patterns given by the caller.
-</span><span class="kw">pub type </span>PatternID = <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>;
+</span><span class="kw">pub type </span>PatternID = usize;
 
 <span class="doccomment">/// The length of a pattern, in bytes.
-</span><span class="kw">pub type </span>PatternLength = <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>;
+</span><span class="kw">pub type </span>PatternLength = usize;
 
 <span class="doccomment">/// An Aho-Corasick automaton, represented as an NFA.
 ///
@@ -1423,27 +1260,27 @@
 </span><span class="attr">#[derive(Clone)]
 </span><span class="kw">pub struct </span>NFA&lt;S&gt; {
     <span class="doccomment">/// The match semantics built into this NFA.
-    </span>match_kind: <a href="ahocorasick.rs.html#2041">MatchKind</a>,
+    </span>match_kind: MatchKind,
     <span class="doccomment">/// The start state id as an index into `states`.
     </span>start_id: S,
     <span class="doccomment">/// The length, in bytes, of the longest pattern in this automaton. This
     /// information is useful for keeping correct buffer sizes when searching
     /// on streams.
-    </span>max_pattern_len: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+    </span>max_pattern_len: usize,
     <span class="doccomment">/// The total number of patterns added to this automaton, including
     /// patterns that may never be matched.
-    </span>pattern_count: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+    </span>pattern_count: usize,
     <span class="doccomment">/// The number of bytes of heap used by this NFA&#39;s transition table.
-    </span>heap_bytes: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+    </span>heap_bytes: usize,
     <span class="doccomment">/// A prefilter for quickly skipping to candidate matches, if pertinent.
-    </span>prefilter: <span class="prelude-ty">Option</span>&lt;<a href="prefilter.rs.html#123">PrefilterObj</a>&gt;,
+    </span>prefilter: <span class="prelude-ty">Option</span>&lt;PrefilterObj&gt;,
     <span class="doccomment">/// Whether this automaton anchors all matches to the start of input.
-    </span>anchored: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
+    </span>anchored: bool,
     <span class="doccomment">/// A set of equivalence classes in terms of bytes. We compute this while
     /// building the NFA, but don&#39;t use it in the NFA&#39;s states. Instead, we
     /// use this for building the DFA. We store it on the NFA since it&#39;s easy
-    /// to compute while visiting the the patterns.
-    </span>byte_classes: <a href="classes.rs.html#9">ByteClasses</a>,
+    /// to compute while visiting the patterns.
+    </span>byte_classes: ByteClasses,
     <span class="doccomment">/// A set of states. Each state defines its own transitions, a fail
     /// transition and a set of indices corresponding to matches.
     ///
@@ -1464,194 +1301,194 @@
     </span>states: Vec&lt;State&lt;S&gt;&gt;,
 }
 
-<span class="kw">impl</span>&lt;S: <a href="state_id.rs.html#72-81">StateID</a>&gt; NFA&lt;S&gt; {
+<span class="kw">impl</span>&lt;S: StateID&gt; NFA&lt;S&gt; {
     <span class="doccomment">/// Returns the equivalence classes of bytes found while constructing
     /// this NFA.
     ///
     /// Note that the NFA doesn&#39;t actually make use of these equivalence
     /// classes. Instead, these are useful for building the DFA when desired.
-    </span><span class="kw">pub fn </span>byte_classes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="classes.rs.html#9">ByteClasses</a> {
-        <span class="kw-2">&amp;</span><a class="self" href="#96">self</a>.byte_classes
+    </span><span class="kw">pub fn </span>byte_classes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>ByteClasses {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.byte_classes
     }
 
     <span class="doccomment">/// Returns a prefilter, if one exists.
-    </span><span class="kw">pub fn </span>prefilter_obj(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="prefilter.rs.html#123">PrefilterObj</a>&gt; {
-        <a class="self" href="#101">self</a>.prefilter.as_ref()
+    </span><span class="kw">pub fn </span>prefilter_obj(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>PrefilterObj&gt; {
+        <span class="self">self</span>.prefilter.as_ref()
     }
 
     <span class="doccomment">/// Returns the total number of heap bytes used by this NFA&#39;s transition
     /// table.
-    </span><span class="kw">pub fn </span>heap_bytes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="self" href="#107">self</a>.heap_bytes
-            + <a class="self" href="#107">self</a>.prefilter.as_ref().map_or(<span class="number">0</span>, |p| <a href="#109">p</a>.<a href="prefilter.rs.html#138">as_ref</a>().<a href="prefilter.rs.html#71">heap_bytes</a>())
+    </span><span class="kw">pub fn </span>heap_bytes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+        <span class="self">self</span>.heap_bytes
+            + <span class="self">self</span>.prefilter.as_ref().map_or(<span class="number">0</span>, |p| p.as_ref().heap_bytes())
     }
 
     <span class="doccomment">/// Return the length of the longest pattern in this automaton.
-    </span><span class="kw">pub fn </span>max_pattern_len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="self" href="#113">self</a>.max_pattern_len
+    </span><span class="kw">pub fn </span>max_pattern_len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+        <span class="self">self</span>.max_pattern_len
     }
 
     <span class="doccomment">/// Return the total number of patterns added to this automaton.
-    </span><span class="kw">pub fn </span>pattern_count(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="self" href="#118">self</a>.pattern_count
+    </span><span class="kw">pub fn </span>pattern_count(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+        <span class="self">self</span>.pattern_count
     }
 
     <span class="doccomment">/// Returns the total number of states in this NFA.
-    </span><span class="kw">pub fn </span>state_len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="self" href="#123">self</a>.states.len()
+    </span><span class="kw">pub fn </span>state_len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+        <span class="self">self</span>.states.len()
     }
 
     <span class="doccomment">/// Returns the matches for the given state.
-    </span><span class="kw">pub fn </span>matches(<span class="kw-2">&amp;</span><span class="self">self</span>, id: S) -&gt; <span class="kw-2">&amp;</span>[(<a href="#17">PatternID</a>, <a href="#20">PatternLength</a>)] {
-        <span class="kw-2">&amp;</span><a class="self" href="#128">self</a>.states[<a href="#128">id</a>.<a href="state_id.rs.html#98">to_usize</a>()].matches
+    </span><span class="kw">pub fn </span>matches(<span class="kw-2">&amp;</span><span class="self">self</span>, id: S) -&gt; <span class="kw-2">&amp;</span>[(PatternID, PatternLength)] {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.states[id.to_usize()].matches
     }
 
     <span class="doccomment">/// Returns an iterator over all transitions in the given state according
     /// to the given equivalence classes, including transitions to `fail_id()`.
     /// The number of transitions returned is always equivalent to the number
     /// of equivalence classes.
-    </span><span class="kw">pub fn </span>iter_all_transitions&lt;F: FnMut(<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>, S)&gt;(
+    </span><span class="kw">pub fn </span>iter_all_transitions&lt;F: FnMut(u8, S)&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        byte_classes: <span class="kw-2">&amp;</span><a href="classes.rs.html#9">ByteClasses</a>,
+        byte_classes: <span class="kw-2">&amp;</span>ByteClasses,
         id: S,
         f: F,
     ) {
-        <a class="self" href="#137">self</a>.states[<a href="#139">id</a>.<a href="state_id.rs.html#98">to_usize</a>()].trans.<a href="#455">iter_all</a>(<a href="#138">byte_classes</a>, <a href="#140">f</a>);
+        <span class="self">self</span>.states[id.to_usize()].trans.iter_all(byte_classes, f);
     }
 
     <span class="doccomment">/// Returns the failure transition for the given state.
     </span><span class="kw">pub fn </span>failure_transition(<span class="kw-2">&amp;</span><span class="self">self</span>, id: S) -&gt; S {
-        <a class="self" href="#146">self</a>.states[<a href="#146">id</a>.<a href="state_id.rs.html#98">to_usize</a>()].fail
+        <span class="self">self</span>.states[id.to_usize()].fail
     }
 
     <span class="doccomment">/// Returns the next state for the given state and input byte.
     ///
     /// Note that this does not follow failure transitions. As such, the id
     /// returned may be `fail_id`.
-    </span><span class="kw">pub fn </span>next_state(<span class="kw-2">&amp;</span><span class="self">self</span>, current: S, input: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) -&gt; S {
-        <a class="self" href="#154">self</a>.states[<a href="#154">current</a>.<a href="state_id.rs.html#98">to_usize</a>()].<a href="#327">next_state</a>(<a href="#154">input</a>)
+    </span><span class="kw">pub fn </span>next_state(<span class="kw-2">&amp;</span><span class="self">self</span>, current: S, input: u8) -&gt; S {
+        <span class="self">self</span>.states[current.to_usize()].next_state(input)
     }
 
     <span class="kw">fn </span>state(<span class="kw-2">&amp;</span><span class="self">self</span>, id: S) -&gt; <span class="kw-2">&amp;</span>State&lt;S&gt; {
-        <span class="kw-2">&amp;</span><a class="self" href="#158">self</a>.states[<a href="#158">id</a>.<a href="state_id.rs.html#98">to_usize</a>()]
+        <span class="kw-2">&amp;</span><span class="self">self</span>.states[id.to_usize()]
     }
 
     <span class="kw">fn </span>state_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>, id: S) -&gt; <span class="kw-2">&amp;mut </span>State&lt;S&gt; {
-        <span class="kw-2">&amp;mut </span><a class="self" href="#162">self</a>.states[<a href="#162">id</a>.<a href="state_id.rs.html#98">to_usize</a>()]
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>.states[id.to_usize()]
     }
 
     <span class="kw">fn </span>start(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>State&lt;S&gt; {
-        <a class="self" href="#166">self</a>.<a href="#158">state</a>(<a class="self" href="#166">self</a>.start_id)
+        <span class="self">self</span>.state(<span class="self">self</span>.start_id)
     }
 
     <span class="kw">fn </span>start_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>State&lt;S&gt; {
-        <span class="kw">let </span>id = <a class="self" href="#170">self</a>.start_id;
-        <a class="self" href="#170">self</a>.<a href="#162">state_mut</a>(<a href="#171">id</a>)
+        <span class="kw">let </span>id = <span class="self">self</span>.start_id;
+        <span class="self">self</span>.state_mut(id)
     }
 
     <span class="kw">fn </span>iter_transitions_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>, id: S) -&gt; IterTransitionsMut&lt;<span class="lifetime">&#39;_</span>, S&gt; {
-        IterTransitionsMut::new(<a class="self" href="#175">self</a>, <a href="#175">id</a>)
+        IterTransitionsMut::new(<span class="self">self</span>, id)
     }
 
     <span class="kw">fn </span>copy_matches(<span class="kw-2">&amp;mut </span><span class="self">self</span>, src: S, dst: S) {
         <span class="kw">let </span>(src, dst) =
-            <a href="#1337">get_two_mut</a>(<span class="kw-2">&amp;mut </span><a class="self" href="#179">self</a>.states, <a href="#179">src</a>.<a href="state_id.rs.html#98">to_usize</a>(), <a href="#179">dst</a>.<a href="state_id.rs.html#98">to_usize</a>());
-        <a href="#180">dst</a>.matches.extend_from_slice(<span class="kw-2">&amp;</span><a href="#180">src</a>.matches);
+            get_two_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>.states, src.to_usize(), dst.to_usize());
+        dst.matches.extend_from_slice(<span class="kw-2">&amp;</span>src.matches);
     }
 
     <span class="kw">fn </span>copy_empty_matches(<span class="kw-2">&amp;mut </span><span class="self">self</span>, dst: S) {
-        <span class="kw">let </span>start_id = <a class="self" href="#185">self</a>.start_id;
-        <a class="self" href="#185">self</a>.<a href="#179">copy_matches</a>(<a href="#186">start_id</a>, <a href="#185">dst</a>);
+        <span class="kw">let </span>start_id = <span class="self">self</span>.start_id;
+        <span class="self">self</span>.copy_matches(start_id, dst);
     }
 
-    <span class="kw">fn </span>add_dense_state(<span class="kw-2">&amp;mut </span><span class="self">self</span>, depth: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="prelude-ty">Result</span>&lt;S&gt; {
-        <span class="kw">let </span>trans = <a href="#392">Transitions::Dense</a>(Dense::new());
+    <span class="kw">fn </span>add_dense_state(<span class="kw-2">&amp;mut </span><span class="self">self</span>, depth: usize) -&gt; <span class="prelude-ty">Result</span>&lt;S&gt; {
+        <span class="kw">let </span>trans = Transitions::Dense(Dense::new());
         <span class="kw">let </span>id = usize_to_state_id(<span class="self">self</span>.states.len())<span class="question-mark">?</span>;
-        <a class="self" href="#190">self</a>.states.push(<a href="#290">State</a> {
-            <a href="#191">trans</a>,
+        <span class="self">self</span>.states.push(State {
+            trans,
             <span class="comment">// Anchored automatons do not have any failure transitions.
-            </span>fail: <span class="kw">if </span><span class="self">self</span>.anchored { <a href="state_id.rs.html#45">dead_id</a>() } <span class="kw">else </span>{ <a class="self" href="#190">self</a>.start_id },
-            <a href="#190">depth</a>,
-            matches: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[],
+            </span>fail: <span class="kw">if </span><span class="self">self</span>.anchored { dead_id() } <span class="kw">else </span>{ <span class="self">self</span>.start_id },
+            depth,
+            matches: <span class="macro">vec!</span>[],
         });
-        <span class="prelude-val">Ok</span>(<a href="#192">id</a>)
+        <span class="prelude-val">Ok</span>(id)
     }
 
-    <span class="kw">fn </span>add_sparse_state(<span class="kw-2">&amp;mut </span><span class="self">self</span>, depth: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="prelude-ty">Result</span>&lt;S&gt; {
-        <span class="kw">let </span>trans = <a href="#391">Transitions::Sparse</a>(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[]);
+    <span class="kw">fn </span>add_sparse_state(<span class="kw-2">&amp;mut </span><span class="self">self</span>, depth: usize) -&gt; <span class="prelude-ty">Result</span>&lt;S&gt; {
+        <span class="kw">let </span>trans = Transitions::Sparse(<span class="macro">vec!</span>[]);
         <span class="kw">let </span>id = usize_to_state_id(<span class="self">self</span>.states.len())<span class="question-mark">?</span>;
-        <a class="self" href="#203">self</a>.states.push(<a href="#290">State</a> {
-            <a href="#204">trans</a>,
+        <span class="self">self</span>.states.push(State {
+            trans,
             <span class="comment">// Anchored automatons do not have any failure transitions.
-            </span>fail: <span class="kw">if </span><span class="self">self</span>.anchored { <a href="state_id.rs.html#45">dead_id</a>() } <span class="kw">else </span>{ <a class="self" href="#203">self</a>.start_id },
-            <a href="#203">depth</a>,
-            matches: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[],
+            </span>fail: <span class="kw">if </span><span class="self">self</span>.anchored { dead_id() } <span class="kw">else </span>{ <span class="self">self</span>.start_id },
+            depth,
+            matches: <span class="macro">vec!</span>[],
         });
-        <span class="prelude-val">Ok</span>(<a href="#205">id</a>)
+        <span class="prelude-val">Ok</span>(id)
     }
 }
 
-<span class="kw">impl</span>&lt;S: <a href="state_id.rs.html#72-81">StateID</a>&gt; <a href="automaton.rs.html#80">Automaton</a> <span class="kw">for </span>NFA&lt;S&gt; {
+<span class="kw">impl</span>&lt;S: StateID&gt; Automaton <span class="kw">for </span>NFA&lt;S&gt; {
     <span class="kw">type </span>ID = S;
 
-    <span class="kw">fn </span>match_kind(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="ahocorasick.rs.html#2041">MatchKind</a> {
-        <span class="kw-2">&amp;</span><a class="self" href="#220">self</a>.match_kind
+    <span class="kw">fn </span>match_kind(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>MatchKind {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.match_kind
     }
 
-    <span class="kw">fn </span>anchored(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#224">self</a>.anchored
+    <span class="kw">fn </span>anchored(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.anchored
     }
 
-    <span class="kw">fn </span>prefilter(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="kw">dyn </span><a href="prefilter.rs.html#50-51">Prefilter</a>&gt; {
-        <a class="self" href="#228">self</a>.prefilter.as_ref().map(|p| <a href="#229">p</a>.<a href="prefilter.rs.html#138">as_ref</a>())
+    <span class="kw">fn </span>prefilter(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="kw">dyn </span>Prefilter&gt; {
+        <span class="self">self</span>.prefilter.as_ref().map(|p| p.as_ref())
     }
 
     <span class="kw">fn </span>start_state(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; S {
-        <a class="self" href="#232">self</a>.start_id
+        <span class="self">self</span>.start_id
     }
 
-    <span class="kw">fn </span>is_valid(<span class="kw-2">&amp;</span><span class="self">self</span>, id: S) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a href="#236">id</a>.<a href="state_id.rs.html#98">to_usize</a>() &lt; <a class="self" href="#236">self</a>.states.len()
+    <span class="kw">fn </span>is_valid(<span class="kw-2">&amp;</span><span class="self">self</span>, id: S) -&gt; bool {
+        id.to_usize() &lt; <span class="self">self</span>.states.len()
     }
 
-    <span class="kw">fn </span>is_match_state(<span class="kw-2">&amp;</span><span class="self">self</span>, id: S) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#240">self</a>.states[<a href="#240">id</a>.<a href="state_id.rs.html#98">to_usize</a>()].<a href="#312">is_match</a>()
+    <span class="kw">fn </span>is_match_state(<span class="kw-2">&amp;</span><span class="self">self</span>, id: S) -&gt; bool {
+        <span class="self">self</span>.states[id.to_usize()].is_match()
     }
 
     <span class="kw">fn </span>get_match(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         id: S,
-        match_index: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-        end: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-    ) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="lib.rs.html#239">Match</a>&gt; {
-        <span class="kw">let </span>state = <span class="kw">match </span><a class="self" href="#245">self</a>.states.get(<a href="#246">id</a>.<a href="state_id.rs.html#98">to_usize</a>()) {
+        match_index: usize,
+        end: usize,
+    ) -&gt; <span class="prelude-ty">Option</span>&lt;Match&gt; {
+        <span class="kw">let </span>state = <span class="kw">match </span><span class="self">self</span>.states.get(id.to_usize()) {
             <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="prelude-val">None</span>,
-            <span class="prelude-val">Some</span>(state) =&gt; <a href="#252">state</a>,
+            <span class="prelude-val">Some</span>(state) =&gt; state,
         };
-        <a href="#250">state</a>.matches.get(<a href="#247">match_index</a>).map(|<span class="kw-2">&amp;</span>(id, len)| <a href="lib.rs.html#239">Match</a> {
-            pattern: <a href="#254">id</a>,
-            <a href="#254">len</a>,
-            <a href="#248">end</a>,
+        state.matches.get(match_index).map(|<span class="kw-2">&amp;</span>(id, len)| Match {
+            pattern: id,
+            len,
+            end,
         })
     }
 
-    <span class="kw">fn </span>match_count(<span class="kw-2">&amp;</span><span class="self">self</span>, id: S) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="self" href="#261">self</a>.states[<a href="#261">id</a>.<a href="state_id.rs.html#98">to_usize</a>()].matches.len()
+    <span class="kw">fn </span>match_count(<span class="kw-2">&amp;</span><span class="self">self</span>, id: S) -&gt; usize {
+        <span class="self">self</span>.states[id.to_usize()].matches.len()
     }
 
-    <span class="kw">fn </span>next_state(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw-2">mut </span>current: S, input: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) -&gt; S {
+    <span class="kw">fn </span>next_state(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw-2">mut </span>current: S, input: u8) -&gt; S {
         <span class="comment">// This terminates since:
         //
         // 1. `State.fail` never points to fail_id().
         // 2. All `State.fail` values point to a state closer to `start`.
         // 3. The start state has no transitions to fail_id().
         </span><span class="kw">loop </span>{
-            <span class="kw">let </span>state = <span class="kw-2">&amp;</span><a class="self" href="#265">self</a>.states[<a href="#265">current</a>.<a href="state_id.rs.html#98">to_usize</a>()];
-            <span class="kw">let </span>next = <a href="#272">state</a>.<a href="#327">next_state</a>(<a href="#265">input</a>);
+            <span class="kw">let </span>state = <span class="kw-2">&amp;</span><span class="self">self</span>.states[current.to_usize()];
+            <span class="kw">let </span>next = state.next_state(input);
             <span class="kw">if </span>next != fail_id() {
-                <span class="kw">return </span><a href="#273">next</a>;
+                <span class="kw">return </span>next;
             }
-            <a href="#265">current</a> = <a href="#272">state</a>.fail;
+            current = state.fail;
         }
     }
 }
@@ -1667,46 +1504,35 @@
 </span><span class="kw">pub struct </span>State&lt;S&gt; {
     trans: Transitions&lt;S&gt;,
     fail: S,
-    matches: Vec&lt;(<a href="#17">PatternID</a>, <a href="#20">PatternLength</a>)&gt;,
+    matches: Vec&lt;(PatternID, PatternLength)&gt;,
     <span class="comment">// TODO: Strictly speaking, this isn&#39;t needed for searching. It&#39;s only
     // used when building an NFA that supports leftmost match semantics. We
     // could drop this from the state and dynamically build a map only when
     // computing failure transitions, but it&#39;s not clear which is better.
     // Benchmark this.
-    </span>depth: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+    </span>depth: usize,
 }
 
-<span class="kw">impl</span>&lt;S: <a href="state_id.rs.html#72-81">StateID</a>&gt; State&lt;S&gt; {
-    <span class="kw">fn </span>heap_bytes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="self" href="#303">self</a>.trans.<a href="#396">heap_bytes</a>()
-            + (<a class="self" href="#303">self</a>.matches.len() * size_of::&lt;(<a href="#17">PatternID</a>, <a href="#20">PatternLength</a>)&gt;())
+<span class="kw">impl</span>&lt;S: StateID&gt; State&lt;S&gt; {
+    <span class="kw">fn </span>heap_bytes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+        <span class="self">self</span>.trans.heap_bytes()
+            + (<span class="self">self</span>.matches.len() * size_of::&lt;(PatternID, PatternLength)&gt;())
     }
 
-    <span class="kw">fn </span>add_match(<span class="kw-2">&amp;mut </span><span class="self">self</span>, i: <a href="#17">PatternID</a>, len: <a href="#20">PatternLength</a>) {
-        <a class="self" href="#308">self</a>.matches.push((<a href="#308">i</a>, <a href="#308">len</a>));
+    <span class="kw">fn </span>add_match(<span class="kw-2">&amp;mut </span><span class="self">self</span>, i: PatternID, len: PatternLength) {
+        <span class="self">self</span>.matches.push((i, len));
     }
 
-    <span class="kw">fn </span>is_match(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        !<a class="self" href="#312">self</a>.matches.is_empty()
+    <span class="kw">fn </span>is_match(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        !<span class="self">self</span>.matches.is_empty()
     }
 
-    <span class="kw">fn </span>get_longest_match_len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
-        <span class="comment">// Why is this true? Because the first match in any matching state
-        // will always correspond to the match added to it during trie
-        // construction (since when we copy matches due to failure transitions,
-        // we always append them). Therefore, it follows that the first match
-        // must always be longest since any subsequent match must be from a
-        // failure transition, and a failure transition by construction points
-        // to a proper suffix. A proper suffix is, by definition, smaller.
-        </span><a class="self" href="#316">self</a>.matches.get(<span class="number">0</span>).map(|<span class="kw-2">&amp;</span>(<span class="kw">_</span>, len)| <a href="#324">len</a>)
+    <span class="kw">fn </span>next_state(<span class="kw-2">&amp;</span><span class="self">self</span>, input: u8) -&gt; S {
+        <span class="self">self</span>.trans.next_state(input)
     }
 
-    <span class="kw">fn </span>next_state(<span class="kw-2">&amp;</span><span class="self">self</span>, input: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) -&gt; S {
-        <a class="self" href="#327">self</a>.trans.<a href="#405">next_state</a>(<a href="#327">input</a>)
-    }
-
-    <span class="kw">fn </span>set_next_state(<span class="kw-2">&amp;mut </span><span class="self">self</span>, input: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>, next: S) {
-        <a class="self" href="#331">self</a>.trans.<a href="#419">set_next_state</a>(<a href="#331">input</a>, <a href="#331">next</a>);
+    <span class="kw">fn </span>set_next_state(<span class="kw-2">&amp;mut </span><span class="self">self</span>, input: u8, next: S) {
+        <span class="self">self</span>.trans.set_next_state(input, next);
     }
 }
 
@@ -1720,35 +1546,35 @@
 
 <span class="kw">impl</span>&lt;S&gt; Dense&lt;S&gt;
 <span class="kw">where
-    </span>S: <a href="state_id.rs.html#72-81">StateID</a>,
+    </span>S: StateID,
 {
     <span class="kw">fn </span>new() -&gt; <span class="self">Self </span>{
-        <a href="#342">Dense</a>(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[fail_id(); <span class="number">256</span>])
+        Dense(<span class="macro">vec!</span>[fail_id(); <span class="number">256</span>])
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="self" href="#353">self</a>.<span class="number">0</span>.len()
+    </span><span class="kw">fn </span>len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+        <span class="self">self</span>.<span class="number">0</span>.len()
     }
 }
 
-<span class="kw">impl</span>&lt;S&gt; Index&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt; <span class="kw">for </span>Dense&lt;S&gt; {
+<span class="kw">impl</span>&lt;S&gt; Index&lt;u8&gt; <span class="kw">for </span>Dense&lt;S&gt; {
     <span class="kw">type </span>Output = S;
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>index(<span class="kw-2">&amp;</span><span class="self">self</span>, i: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) -&gt; <span class="kw-2">&amp;</span>S {
+    </span><span class="kw">fn </span>index(<span class="kw-2">&amp;</span><span class="self">self</span>, i: u8) -&gt; <span class="kw-2">&amp;</span>S {
         <span class="comment">// SAFETY: This is safe because all dense transitions have
         // exactly 256 elements, so all u8 values are valid indices.
-        </span><span class="kw-2">&amp;</span><a class="self" href="#362">self</a>.<span class="number">0</span>[<a href="#362">i</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>]
+        </span><span class="kw-2">&amp;</span><span class="self">self</span>.<span class="number">0</span>[i <span class="kw">as </span>usize]
     }
 }
 
-<span class="kw">impl</span>&lt;S&gt; IndexMut&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt; <span class="kw">for </span>Dense&lt;S&gt; {
+<span class="kw">impl</span>&lt;S&gt; IndexMut&lt;u8&gt; <span class="kw">for </span>Dense&lt;S&gt; {
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>index_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>, i: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) -&gt; <span class="kw-2">&amp;mut </span>S {
+    </span><span class="kw">fn </span>index_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>, i: u8) -&gt; <span class="kw-2">&amp;mut </span>S {
         <span class="comment">// SAFETY: This is safe because all dense transitions have
         // exactly 256 elements, so all u8 values are valid indices.
-        </span><span class="kw-2">&amp;mut </span><a class="self" href="#371">self</a>.<span class="number">0</span>[<a href="#371">i</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>]
+        </span><span class="kw-2">&amp;mut </span><span class="self">self</span>.<span class="number">0</span>[i <span class="kw">as </span>usize]
     }
 }
 
@@ -1765,58 +1591,58 @@
 /// that will be most frequently visited.
 </span><span class="attr">#[derive(Clone, Debug)]
 </span><span class="kw">enum </span>Transitions&lt;S&gt; {
-    Sparse(Vec&lt;(<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>, S)&gt;),
+    Sparse(Vec&lt;(u8, S)&gt;),
     Dense(Dense&lt;S&gt;),
 }
 
-<span class="kw">impl</span>&lt;S: <a href="state_id.rs.html#72-81">StateID</a>&gt; Transitions&lt;S&gt; {
-    <span class="kw">fn </span>heap_bytes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="#396">self</a> </span>{
-            <a href="#391">Transitions::Sparse</a>(<span class="kw-2">ref </span>sparse) =&gt; {
-                <a href="#398">sparse</a>.len() * size_of::&lt;(<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>, S)&gt;()
+<span class="kw">impl</span>&lt;S: StateID&gt; Transitions&lt;S&gt; {
+    <span class="kw">fn </span>heap_bytes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+        <span class="kw">match </span><span class="kw-2">*</span><span class="self">self </span>{
+            Transitions::Sparse(<span class="kw-2">ref </span>sparse) =&gt; {
+                sparse.len() * size_of::&lt;(u8, S)&gt;()
             }
-            <a href="#392">Transitions::Dense</a>(<span class="kw-2">ref </span>dense) =&gt; <a href="#401">dense</a>.<a href="#353">len</a>() * size_of::&lt;S&gt;(),
+            Transitions::Dense(<span class="kw-2">ref </span>dense) =&gt; dense.len() * size_of::&lt;S&gt;(),
         }
     }
 
-    <span class="kw">fn </span>next_state(<span class="kw-2">&amp;</span><span class="self">self</span>, input: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) -&gt; S {
-        <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="#405">self</a> </span>{
-            <a href="#391">Transitions::Sparse</a>(<span class="kw-2">ref </span>sparse) =&gt; {
+    <span class="kw">fn </span>next_state(<span class="kw-2">&amp;</span><span class="self">self</span>, input: u8) -&gt; S {
+        <span class="kw">match </span><span class="kw-2">*</span><span class="self">self </span>{
+            Transitions::Sparse(<span class="kw-2">ref </span>sparse) =&gt; {
                 <span class="kw">for </span><span class="kw-2">&amp;</span>(b, id) <span class="kw">in </span>sparse {
                     <span class="kw">if </span>b == input {
                         <span class="kw">return </span>id;
                     }
                 }
-                <a href="state_id.rs.html#39">fail_id</a>()
+                fail_id()
             }
-            <a href="#392">Transitions::Dense</a>(<span class="kw-2">ref </span>dense) =&gt; <a href="#415">dense</a>[<a href="#405">input</a>],
+            Transitions::Dense(<span class="kw-2">ref </span>dense) =&gt; dense[input],
         }
     }
 
-    <span class="kw">fn </span>set_next_state(<span class="kw-2">&amp;mut </span><span class="self">self</span>, input: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>, next: S) {
-        <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="#419">self</a> </span>{
-            <a href="#391">Transitions::Sparse</a>(<span class="kw-2">ref mut </span>sparse) =&gt; {
-                <span class="kw">match </span><a href="#421">sparse</a>.binary_search_by_key(<span class="kw-2">&amp;</span><a href="#419">input</a>, |<span class="kw-2">&amp;</span>(b, <span class="kw">_</span>)| <a href="#422">b</a>) {
-                    <span class="prelude-val">Ok</span>(i) =&gt; <a href="#421">sparse</a>[<a href="#423">i</a>] = (<a href="#419">input</a>, <a href="#419">next</a>),
-                    <span class="prelude-val">Err</span>(i) =&gt; <a href="#421">sparse</a>.insert(<a href="#424">i</a>, (<a href="#419">input</a>, <a href="#419">next</a>)),
+    <span class="kw">fn </span>set_next_state(<span class="kw-2">&amp;mut </span><span class="self">self</span>, input: u8, next: S) {
+        <span class="kw">match </span><span class="kw-2">*</span><span class="self">self </span>{
+            Transitions::Sparse(<span class="kw-2">ref mut </span>sparse) =&gt; {
+                <span class="kw">match </span>sparse.binary_search_by_key(<span class="kw-2">&amp;</span>input, |<span class="kw-2">&amp;</span>(b, <span class="kw">_</span>)| b) {
+                    <span class="prelude-val">Ok</span>(i) =&gt; sparse[i] = (input, next),
+                    <span class="prelude-val">Err</span>(i) =&gt; sparse.insert(i, (input, next)),
                 }
             }
-            <a href="#392">Transitions::Dense</a>(<span class="kw-2">ref mut </span>dense) =&gt; {
-                <a href="#427">dense</a>[<a href="#419">input</a>] = <a href="#419">next</a>;
+            Transitions::Dense(<span class="kw-2">ref mut </span>dense) =&gt; {
+                dense[input] = next;
             }
         }
     }
 
     <span class="doccomment">/// Iterate over transitions in this state while skipping over transitions
     /// to `fail_id()`.
-    </span><span class="kw">fn </span>iter&lt;F: FnMut(<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>, S)&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw-2">mut </span>f: F) {
-        <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="#435">self</a> </span>{
-            <a href="#391">Transitions::Sparse</a>(<span class="kw-2">ref </span>sparse) =&gt; {
+    </span><span class="kw">fn </span>iter&lt;F: FnMut(u8, S)&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw-2">mut </span>f: F) {
+        <span class="kw">match </span><span class="kw-2">*</span><span class="self">self </span>{
+            Transitions::Sparse(<span class="kw-2">ref </span>sparse) =&gt; {
                 <span class="kw">for </span><span class="kw-2">&amp;</span>(b, id) <span class="kw">in </span>sparse {
                     f(b, id);
                 }
             }
-            <a href="#392">Transitions::Dense</a>(<span class="kw-2">ref </span>dense) =&gt; {
+            Transitions::Dense(<span class="kw-2">ref </span>dense) =&gt; {
                 <span class="kw">for </span>b <span class="kw">in </span>AllBytesIter::new() {
                     <span class="kw">let </span>id = dense[b];
                     <span class="kw">if </span>id != fail_id() {
@@ -1829,13 +1655,13 @@
 
     <span class="doccomment">/// Iterate over all transitions in this state according to the given
     /// equivalence classes, including transitions to `fail_id()`.
-    </span><span class="kw">fn </span>iter_all&lt;F: FnMut(<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>, S)&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, classes: <span class="kw-2">&amp;</span><a href="classes.rs.html#9">ByteClasses</a>, <span class="kw-2">mut </span>f: F) {
+    </span><span class="kw">fn </span>iter_all&lt;F: FnMut(u8, S)&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, classes: <span class="kw-2">&amp;</span>ByteClasses, <span class="kw-2">mut </span>f: F) {
         <span class="kw">if </span>classes.is_singleton() {
-            <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="#455">self</a> </span>{
-                <a href="#391">Transitions::Sparse</a>(<span class="kw-2">ref </span>sparse) =&gt; {
-                    <a href="#1318">sparse_iter</a>(<a href="#458">sparse</a>, <a href="#455">f</a>);
+            <span class="kw">match </span><span class="kw-2">*</span><span class="self">self </span>{
+                Transitions::Sparse(<span class="kw-2">ref </span>sparse) =&gt; {
+                    sparse_iter(sparse, f);
                 }
-                <a href="#392">Transitions::Dense</a>(<span class="kw-2">ref </span>dense) =&gt; {
+                Transitions::Dense(<span class="kw-2">ref </span>dense) =&gt; {
                     <span class="kw">for </span>b <span class="kw">in </span>AllBytesIter::new() {
                         f(b, dense[b]);
                     }
@@ -1844,18 +1670,18 @@
         } <span class="kw">else </span>{
             <span class="comment">// In this case, we only want to yield a single byte for each
             // equivalence class.
-            </span><span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="#455">self</a> </span>{
-                <a href="#391">Transitions::Sparse</a>(<span class="kw-2">ref </span>sparse) =&gt; {
+            </span><span class="kw">match </span><span class="kw-2">*</span><span class="self">self </span>{
+                Transitions::Sparse(<span class="kw-2">ref </span>sparse) =&gt; {
                     <span class="kw">let </span><span class="kw-2">mut </span>last_class = <span class="prelude-val">None</span>;
-                    <a href="#1318">sparse_iter</a>(<a href="#471">sparse</a>, |b, next| {
-                        <span class="kw">let </span>class = <a href="#455">classes</a>.<a href="classes.rs.html#36">get</a>(<a href="#473">b</a>);
+                    sparse_iter(sparse, |b, next| {
+                        <span class="kw">let </span>class = classes.get(b);
                         <span class="kw">if </span>last_class != <span class="prelude-val">Some</span>(class) {
-                            <a href="#472">last_class</a> = <span class="prelude-val">Some</span>(<a href="#474">class</a>);
-                            <a href="#455">f</a>(<a href="#473">b</a>, <a href="#473">next</a>);
+                            last_class = <span class="prelude-val">Some</span>(class);
+                            f(b, next);
                         }
                     })
                 }
-                <a href="#392">Transitions::Dense</a>(<span class="kw-2">ref </span>dense) =&gt; {
+                Transitions::Dense(<span class="kw-2">ref </span>dense) =&gt; {
                     <span class="kw">for </span>b <span class="kw">in </span>classes.representatives() {
                         f(b, dense[b]);
                     }
@@ -1874,36 +1700,36 @@
 /// is iterating over transitions, the caller can still mutate the NFA. This
 /// is useful when creating failure transitions.
 </span><span class="attr">#[derive(Debug)]
-</span><span class="kw">struct </span>IterTransitionsMut&lt;<span class="lifetime">&#39;a</span>, S: <a href="state_id.rs.html#72-81">StateID</a>&gt; {
+</span><span class="kw">struct </span>IterTransitionsMut&lt;<span class="lifetime">&#39;a</span>, S: StateID&gt; {
     nfa: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>NFA&lt;S&gt;,
     state_id: S,
-    cur: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+    cur: usize,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, S: <a href="state_id.rs.html#72-81">StateID</a>&gt; IterTransitionsMut&lt;<span class="lifetime">&#39;a</span>, S&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, S: StateID&gt; IterTransitionsMut&lt;<span class="lifetime">&#39;a</span>, S&gt; {
     <span class="kw">fn </span>new(nfa: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>NFA&lt;S&gt;, state_id: S) -&gt; IterTransitionsMut&lt;<span class="lifetime">&#39;a</span>, S&gt; {
-        <a href="#500">IterTransitionsMut</a> { <a href="#507">nfa</a>, <a href="#507">state_id</a>, cur: <span class="number">0 </span>}
+        IterTransitionsMut { nfa, state_id, cur: <span class="number">0 </span>}
     }
 
     <span class="kw">fn </span>nfa(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>NFA&lt;S&gt; {
-        <a class="self" href="#511">self</a>.nfa
+        <span class="self">self</span>.nfa
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, S: <a href="state_id.rs.html#72-81">StateID</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a> <span class="kw">for </span>IterTransitionsMut&lt;<span class="lifetime">&#39;a</span>, S&gt; {
-    <span class="kw">type </span>Item = (<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>, S);
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, S: StateID&gt; Iterator <span class="kw">for </span>IterTransitionsMut&lt;<span class="lifetime">&#39;a</span>, S&gt; {
+    <span class="kw">type </span>Item = (u8, S);
 
-    <span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;(<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>, S)&gt; {
-        <span class="kw">match </span><a class="self" href="#519">self</a>.nfa.states[<a class="self" href="#519">self</a>.state_id.<a href="state_id.rs.html#98">to_usize</a>()].trans {
-            <a href="#391">Transitions::Sparse</a>(<span class="kw-2">ref </span>sparse) =&gt; {
+    <span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;(u8, S)&gt; {
+        <span class="kw">match </span><span class="self">self</span>.nfa.states[<span class="self">self</span>.state_id.to_usize()].trans {
+            Transitions::Sparse(<span class="kw-2">ref </span>sparse) =&gt; {
                 <span class="kw">if </span><span class="self">self</span>.cur &gt;= sparse.len() {
                     <span class="kw">return </span><span class="prelude-val">None</span>;
                 }
-                <span class="kw">let </span>i = <a class="self" href="#519">self</a>.cur;
-                <a class="self" href="#519">self</a>.cur += <span class="number">1</span>;
-                <span class="prelude-val">Some</span>(<a href="#521">sparse</a>[<a href="#525">i</a>])
+                <span class="kw">let </span>i = <span class="self">self</span>.cur;
+                <span class="self">self</span>.cur += <span class="number">1</span>;
+                <span class="prelude-val">Some</span>(sparse[i])
             }
-            <a href="#392">Transitions::Dense</a>(<span class="kw-2">ref </span>dense) =&gt; {
+            Transitions::Dense(<span class="kw-2">ref </span>dense) =&gt; {
                 <span class="kw">while </span><span class="self">self</span>.cur &lt; dense.len() {
                     <span class="comment">// There are always exactly 255 transitions in dense repr.
                     </span><span class="macro">debug_assert!</span>(<span class="self">self</span>.cur &lt; <span class="number">256</span>);
@@ -1924,16 +1750,16 @@
 <span class="doccomment">/// A simple builder for configuring the NFA construction of Aho-Corasick.
 </span><span class="attr">#[derive(Clone, Debug)]
 </span><span class="kw">pub struct </span>Builder {
-    dense_depth: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-    match_kind: <a href="ahocorasick.rs.html#2041">MatchKind</a>,
-    prefilter: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-    anchored: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-    ascii_case_insensitive: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
+    dense_depth: usize,
+    match_kind: MatchKind,
+    prefilter: bool,
+    anchored: bool,
+    ascii_case_insensitive: bool,
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for </span><a href="#549">Builder</a> {
-    <span class="kw">fn </span>default() -&gt; <a href="#549">Builder</a> {
-        <a href="#549">Builder</a> {
+<span class="kw">impl </span>Default <span class="kw">for </span>Builder {
+    <span class="kw">fn </span>default() -&gt; Builder {
+        Builder {
             dense_depth: <span class="number">2</span>,
             match_kind: MatchKind::default(),
             prefilter: <span class="bool-val">true</span>,
@@ -1943,42 +1769,42 @@
     }
 }
 
-<span class="kw">impl </span><a href="#549">Builder</a> {
-    <span class="kw">pub fn </span>new() -&gt; <a href="#549">Builder</a> {
+<span class="kw">impl </span>Builder {
+    <span class="kw">pub fn </span>new() -&gt; Builder {
         Builder::default()
     }
 
-    <span class="kw">pub fn </span>build&lt;I, P, S: <a href="state_id.rs.html#72-81">StateID</a>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, patterns: I) -&gt; <span class="prelude-ty">Result</span>&lt;NFA&lt;S&gt;&gt;
+    <span class="kw">pub fn </span>build&lt;I, P, S: StateID&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, patterns: I) -&gt; <span class="prelude-ty">Result</span>&lt;NFA&lt;S&gt;&gt;
     <span class="kw">where
         </span>I: IntoIterator&lt;Item = P&gt;,
-        P: AsRef&lt;[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;,
+        P: AsRef&lt;[u8]&gt;,
     {
-        Compiler::new(<span class="self">self</span>)<span class="question-mark">?</span>.<a href="#640-643">compile</a>(<a href="#574">patterns</a>)
+        Compiler::new(<span class="self">self</span>)<span class="question-mark">?</span>.compile(patterns)
     }
 
-    <span class="kw">pub fn </span>match_kind(<span class="kw-2">&amp;mut </span><span class="self">self</span>, kind: <a href="ahocorasick.rs.html#2041">MatchKind</a>) -&gt; <span class="kw-2">&amp;mut </span><a href="#549">Builder</a> {
-        <a class="self" href="#582">self</a>.match_kind = <a href="#582">kind</a>;
-        <span class="self"><a href="#582">self</a>
+    <span class="kw">pub fn </span>match_kind(<span class="kw-2">&amp;mut </span><span class="self">self</span>, kind: MatchKind) -&gt; <span class="kw-2">&amp;mut </span>Builder {
+        <span class="self">self</span>.match_kind = kind;
+        <span class="self">self
     </span>}
 
-    <span class="kw">pub fn </span>dense_depth(<span class="kw-2">&amp;mut </span><span class="self">self</span>, depth: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="kw-2">&amp;mut </span><a href="#549">Builder</a> {
-        <a class="self" href="#587">self</a>.dense_depth = <a href="#587">depth</a>;
-        <span class="self"><a href="#587">self</a>
+    <span class="kw">pub fn </span>dense_depth(<span class="kw-2">&amp;mut </span><span class="self">self</span>, depth: usize) -&gt; <span class="kw-2">&amp;mut </span>Builder {
+        <span class="self">self</span>.dense_depth = depth;
+        <span class="self">self
     </span>}
 
-    <span class="kw">pub fn </span>prefilter(<span class="kw-2">&amp;mut </span><span class="self">self</span>, yes: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="kw-2">&amp;mut </span><a href="#549">Builder</a> {
-        <a class="self" href="#592">self</a>.prefilter = <a href="#592">yes</a>;
-        <span class="self"><a href="#592">self</a>
+    <span class="kw">pub fn </span>prefilter(<span class="kw-2">&amp;mut </span><span class="self">self</span>, yes: bool) -&gt; <span class="kw-2">&amp;mut </span>Builder {
+        <span class="self">self</span>.prefilter = yes;
+        <span class="self">self
     </span>}
 
-    <span class="kw">pub fn </span>anchored(<span class="kw-2">&amp;mut </span><span class="self">self</span>, yes: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="kw-2">&amp;mut </span><a href="#549">Builder</a> {
-        <a class="self" href="#597">self</a>.anchored = <a href="#597">yes</a>;
-        <span class="self"><a href="#597">self</a>
+    <span class="kw">pub fn </span>anchored(<span class="kw-2">&amp;mut </span><span class="self">self</span>, yes: bool) -&gt; <span class="kw-2">&amp;mut </span>Builder {
+        <span class="self">self</span>.anchored = yes;
+        <span class="self">self
     </span>}
 
-    <span class="kw">pub fn </span>ascii_case_insensitive(<span class="kw-2">&amp;mut </span><span class="self">self</span>, yes: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="kw-2">&amp;mut </span><a href="#549">Builder</a> {
-        <a class="self" href="#602">self</a>.ascii_case_insensitive = <a href="#602">yes</a>;
-        <span class="self"><a href="#602">self</a>
+    <span class="kw">pub fn </span>ascii_case_insensitive(<span class="kw-2">&amp;mut </span><span class="self">self</span>, yes: bool) -&gt; <span class="kw-2">&amp;mut </span>Builder {
+        <span class="self">self</span>.ascii_case_insensitive = yes;
+        <span class="self">self
     </span>}
 }
 
@@ -1986,29 +1812,29 @@
 /// of an Aho-Corasick automaton. This roughly corresponds to the standard
 /// formulation described in textbooks.
 </span><span class="attr">#[derive(Debug)]
-</span><span class="kw">struct </span>Compiler&lt;<span class="lifetime">&#39;a</span>, S: <a href="state_id.rs.html#72-81">StateID</a>&gt; {
-    builder: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="#549">Builder</a>,
-    prefilter: <a href="prefilter.rs.html#273">prefilter::Builder</a>,
+</span><span class="kw">struct </span>Compiler&lt;<span class="lifetime">&#39;a</span>, S: StateID&gt; {
+    builder: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Builder,
+    prefilter: prefilter::Builder,
     nfa: NFA&lt;S&gt;,
-    byte_classes: <a href="classes.rs.html#154">ByteClassBuilder</a>,
+    byte_classes: ByteClassBuilder,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, S: <a href="state_id.rs.html#72-81">StateID</a>&gt; Compiler&lt;<span class="lifetime">&#39;a</span>, S&gt; {
-    <span class="kw">fn </span>new(builder: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="#549">Builder</a>) -&gt; <span class="prelude-ty">Result</span>&lt;Compiler&lt;<span class="lifetime">&#39;a</span>, S&gt;&gt; {
-        <span class="prelude-val">Ok</span>(<a href="#612">Compiler</a> {
-            <a href="#620">builder</a>,
-            prefilter: prefilter::Builder::new(<a href="#620">builder</a>.match_kind)
-                .<a href="prefilter.rs.html#298">ascii_case_insensitive</a>(<a href="#620">builder</a>.ascii_case_insensitive),
-            nfa: <a href="#47">NFA</a> {
-                match_kind: <a href="#620">builder</a>.match_kind,
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, S: StateID&gt; Compiler&lt;<span class="lifetime">&#39;a</span>, S&gt; {
+    <span class="kw">fn </span>new(builder: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Builder) -&gt; <span class="prelude-ty">Result</span>&lt;Compiler&lt;<span class="lifetime">&#39;a</span>, S&gt;&gt; {
+        <span class="prelude-val">Ok</span>(Compiler {
+            builder,
+            prefilter: prefilter::Builder::new(builder.match_kind)
+                .ascii_case_insensitive(builder.ascii_case_insensitive),
+            nfa: NFA {
+                match_kind: builder.match_kind,
                 start_id: usize_to_state_id(<span class="number">2</span>)<span class="question-mark">?</span>,
                 max_pattern_len: <span class="number">0</span>,
                 pattern_count: <span class="number">0</span>,
                 heap_bytes: <span class="number">0</span>,
                 prefilter: <span class="prelude-val">None</span>,
-                anchored: <a href="#620">builder</a>.anchored,
+                anchored: builder.anchored,
                 byte_classes: ByteClasses::singletons(),
-                states: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[],
+                states: <span class="macro">vec!</span>[],
             },
             byte_classes: ByteClassBuilder::new(),
         })
@@ -2017,28 +1843,24 @@
     <span class="kw">fn </span>compile&lt;I, P&gt;(<span class="kw-2">mut </span><span class="self">self</span>, patterns: I) -&gt; <span class="prelude-ty">Result</span>&lt;NFA&lt;S&gt;&gt;
     <span class="kw">where
         </span>I: IntoIterator&lt;Item = P&gt;,
-        P: AsRef&lt;[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;,
+        P: AsRef&lt;[u8]&gt;,
     {
         <span class="self">self</span>.add_state(<span class="number">0</span>)<span class="question-mark">?</span>; <span class="comment">// the fail state, which is never entered
         </span><span class="self">self</span>.add_state(<span class="number">0</span>)<span class="question-mark">?</span>; <span class="comment">// the dead state, only used for leftmost
         </span><span class="self">self</span>.add_state(<span class="number">0</span>)<span class="question-mark">?</span>; <span class="comment">// the start state
         </span><span class="self">self</span>.build_trie(patterns)<span class="question-mark">?</span>;
-        <a class="self" href="#640">self</a>.<a href="#1127">add_start_state_loop</a>();
-        <a class="self" href="#640">self</a>.<a href="#1168">add_dead_state_loop</a>();
+        <span class="self">self</span>.add_start_state_loop();
+        <span class="self">self</span>.add_dead_state_loop();
         <span class="kw">if </span>!<span class="self">self</span>.builder.anchored {
-            <span class="kw">if </span><span class="self">self</span>.match_kind().is_leftmost() {
-                <a class="self" href="#640">self</a>.<a href="#924">fill_failure_transitions_leftmost</a>();
-            } <span class="kw">else </span>{
-                <a class="self" href="#640">self</a>.<a href="#842">fill_failure_transitions_standard</a>();
-            }
+            <span class="self">self</span>.fill_failure_transitions();
         }
-        <a class="self" href="#640">self</a>.<a href="#1151">close_start_state_loop</a>();
-        <a class="self" href="#640">self</a>.nfa.byte_classes = <a class="self" href="#640">self</a>.byte_classes.<a href="classes.rs.html#176">build</a>();
+        <span class="self">self</span>.close_start_state_loop();
+        <span class="self">self</span>.nfa.byte_classes = <span class="self">self</span>.byte_classes.build();
         <span class="kw">if </span>!<span class="self">self</span>.builder.anchored {
-            <a class="self" href="#640">self</a>.nfa.prefilter = <a class="self" href="#640">self</a>.prefilter.<a href="prefilter.rs.html#309">build</a>();
+            <span class="self">self</span>.nfa.prefilter = <span class="self">self</span>.prefilter.build();
         }
-        <a class="self" href="#640">self</a>.<a href="#1176">calculate_size</a>();
-        <span class="prelude-val">Ok</span>(<a class="self" href="#640">self</a>.nfa)
+        <span class="self">self</span>.calculate_size();
+        <span class="prelude-val">Ok</span>(<span class="self">self</span>.nfa)
     }
 
     <span class="doccomment">/// This sets up the initial prefix trie that makes up the Aho-Corasick
@@ -2048,7 +1870,7 @@
     </span><span class="kw">fn </span>build_trie&lt;I, P&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, patterns: I) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt;
     <span class="kw">where
         </span>I: IntoIterator&lt;Item = P&gt;,
-        P: AsRef&lt;[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;,
+        P: AsRef&lt;[u8]&gt;,
     {
         <span class="lifetime">&#39;PATTERNS</span>: <span class="kw">for </span>(pati, pat) <span class="kw">in </span>patterns.into_iter().enumerate() {
             <span class="kw">let </span>pat = pat.as_ref();
@@ -2116,7 +1938,8 @@
     }
 
     <span class="doccomment">/// This routine creates failure transitions according to the standard
-    /// textbook formulation of the Aho-Corasick algorithm.
+    /// textbook formulation of the Aho-Corasick algorithm, with a couple small
+    /// tweaks to support &quot;leftmost&quot; semantics.
     ///
     /// Building failure transitions is the most interesting part of building
     /// the Aho-Corasick automaton, because they are what allow searches to
@@ -2184,11 +2007,15 @@
     /// &#39;abcd&#39;, &#39;b&#39;, &#39;bcd&#39; and &#39;cd&#39;:
     ///
     /// ```ignore
-    ///        - a - S1 - b - S2 - c - S3 - d - S4*
-    ///       /
-    ///     S0 - b - S5* - c - S6 - d - S7*
-    ///       \
-    ///        - c - S8 - d - S9*
+    ///          - a - S1 - b - S2* - c - S3 - d - S4*
+    ///         /               /         /
+    ///        /         -------   -------
+    ///       /         /         /
+    ///     S0 --- b - S5* - c - S6 - d - S7*
+    ///       \                  /
+    ///        \         --------
+    ///         \       /
+    ///          - c - S8 - d - S9*
     /// ```
     ///
     /// The failure transitions for this trie are defined from S2 to S5,
@@ -2216,20 +2043,50 @@
     /// We don&#39;t actually use recursion to implement this, but instead, use a
     /// breadth first search of the automaton. Our base case is the start
     /// state, whose failure transition is just a transition to itself.
-    </span><span class="kw">fn </span>fill_failure_transitions_standard(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+    ///
+    /// When building a leftmost automaton, we proceed as above, but only
+    /// include a subset of failure transitions. Namely, we omit any failure
+    /// transitions that appear after a match state in the trie. This is
+    /// because failure transitions always point back to a proper suffix of
+    /// what has been seen so far. Thus, following a failure transition after
+    /// a match implies looking for a match that starts after the one that has
+    /// already been seen, which is of course therefore not the leftmost match.
+    ///
+    /// N.B. I came up with this algorithm on my own, and after scouring all of
+    /// the other AC implementations I know of (Perl, Snort, many on GitHub).
+    /// I couldn&#39;t find any that implement leftmost semantics like this.
+    /// Perl of course needs leftmost-first semantics, but they implement it
+    /// with a seeming hack at *search* time instead of encoding it into the
+    /// automaton. There are also a couple Java libraries that support leftmost
+    /// longest semantics, but they do it by building a queue of matches at
+    /// search time, which is even worse than what Perl is doing. ---AG
+    </span><span class="kw">fn </span>fill_failure_transitions(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+        <span class="kw">let </span>kind = <span class="self">self</span>.match_kind();
         <span class="comment">// Initialize the queue for breadth first search with all transitions
         // out of the start state. We handle the start state specially because
         // we only want to follow non-self transitions. If we followed self
         // transitions, then this would never terminate.
         </span><span class="kw">let </span><span class="kw-2">mut </span>queue = VecDeque::new();
-        <span class="kw">let </span><span class="kw-2">mut </span>seen = <a class="self" href="#842">self</a>.<a href="#1110">queued_set</a>();
-        <span class="kw">for </span>b <span class="kw">in </span>AllBytesIter::new() {
-            <span class="kw">let </span>next = <span class="self">self</span>.nfa.start().next_state(b);
-            <span class="kw">if </span>next != <span class="self">self</span>.nfa.start_id {
-                <span class="kw">if </span>!seen.contains(next) {
-                    queue.push_back(next);
-                    seen.insert(next);
-                }
+        <span class="kw">let </span><span class="kw-2">mut </span>seen = <span class="self">self</span>.queued_set();
+        <span class="kw">let </span><span class="kw-2">mut </span>it = <span class="self">self</span>.nfa.iter_transitions_mut(<span class="self">self</span>.nfa.start_id);
+        <span class="kw">while let </span><span class="prelude-val">Some</span>((<span class="kw">_</span>, next)) = it.next() {
+            <span class="comment">// Skip anything we&#39;ve seen before and any self-transitions on the
+            // start state.
+            </span><span class="kw">if </span>next == it.nfa().start_id || seen.contains(next) {
+                <span class="kw">continue</span>;
+            }
+            queue.push_back(next);
+            seen.insert(next);
+            <span class="comment">// Under leftmost semantics, if a state immediately following
+            // the start state is a match state, then we never want to
+            // follow its failure transition since the failure transition
+            // necessarily leads back to the start state, which we never
+            // want to do for leftmost matching after a match has been
+            // found.
+            //
+            // We apply the same logic to non-start states below as well.
+            </span><span class="kw">if </span>kind.is_leftmost() &amp;&amp; it.nfa().state(next).is_match() {
+                it.nfa().state_mut(next).fail = dead_id();
             }
         }
         <span class="kw">while let </span><span class="prelude-val">Some</span>(id) = queue.pop_front() {
@@ -2247,6 +2104,31 @@
                 queue.push_back(next);
                 seen.insert(next);
 
+                <span class="comment">// As above for start states, under leftmost semantics, once
+                // we see a match all subsequent states should have no failure
+                // transitions because failure transitions always imply looking
+                // for a match that is a suffix of what has been seen so far
+                // (where &quot;seen so far&quot; corresponds to the string formed by
+                // following the transitions from the start state to the
+                // current state). Under leftmost semantics, we specifically do
+                // not want to allow this to happen because we always want to
+                // report the match found at the leftmost position.
+                //
+                // The difference between leftmost-first and leftmost-longest
+                // occurs previously while we build the trie. For
+                // leftmost-first, we simply omit any entries that would
+                // otherwise require passing through a match state.
+                //
+                // Note that for correctness, the failure transition has to be
+                // set to the dead state for ALL states following a match, not
+                // just the match state itself. However, by setting the failure
+                // transition to the dead state on all match states, the dead
+                // state will automatically propagate to all subsequent states
+                // via the failure state computation below.
+                </span><span class="kw">if </span>kind.is_leftmost() &amp;&amp; it.nfa().state(next).is_match() {
+                    it.nfa().state_mut(next).fail = dead_id();
+                    <span class="kw">continue</span>;
+                }
                 <span class="kw">let </span><span class="kw-2">mut </span>fail = it.nfa().state(id).fail;
                 <span class="kw">while </span>it.nfa().state(fail).next_state(b) == fail_id() {
                     fail = it.nfa().state(fail).fail;
@@ -2264,218 +2146,10 @@
             // in addition to its own. For the non-overlapping case, such
             // states only report the first match, which is never empty since
             // it isn&#39;t a start state.
-            </span>it.nfa().copy_empty_matches(id);
-        }
-    }
-
-    <span class="doccomment">/// This routine is just like fill_failure_transitions_standard, except
-    /// it adds failure transitions in a way that preserves leftmost match
-    /// semantics (for both leftmost-first and leftmost-longest).
-    ///
-    /// The algorithms are so similar that it would be possible to write it
-    /// generically. But doing so without overhead would require a bit of
-    /// ceremony, so we just copy it and add in the extra leftmost logic.
-    /// Moreover, the standard algorithm above is so simple that it feels like
-    /// a crime to disturb it.
-    ///
-    /// In effect, this proceeds just like the standard approach, but we
-    /// specifically add only a subset of all failure transitions. Namely, we
-    /// only add failure transitions that either do not occur after a match
-    /// or failure transitions that do occur after a match but preserve the
-    /// match. The comments in the implementation below should help.
-    ///
-    /// N.B. The only differences in the automaton between leftmost-first and
-    /// leftmost-longest are in trie construction. Otherwise, both have exactly
-    /// the same set of failure transitions. leftmost-longest adds everything
-    /// to the trie, where as leftmost-first skips any patterns for which there
-    /// exists a prefix of it that was added earlier.
-    ///
-    /// N.B. I came up with this algorithm on my own, and after scouring all of
-    /// the other AC implementations I know of (Perl, Snort, many on GitHub).
-    /// I couldn&#39;t find any that implement leftmost semantics like this.
-    /// Perl of course needs leftmost-first semantics, but they implement it
-    /// with a seeming hack at *search* time instead of encoding it into the
-    /// automaton. There are also a couple Java libraries that support leftmost
-    /// longest semantics, but they do it by building a queue of matches at
-    /// search time, which is even worse than what Perl is doing. ---AG
-    </span><span class="kw">fn </span>fill_failure_transitions_leftmost(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <span class="doccomment">/// Represents an item in our queue of states to process.
-        ///
-        /// Fundamentally, this queue serves the same purpose as the queue
-        /// for filling failure transitions using the standard formulation.
-        /// In the leftmost case, though, we need to track a bit more
-        /// information. See comments below.
-        </span><span class="attr">#[derive(Clone, Copy, Debug)]
-        </span><span class="kw">struct </span>QueuedState&lt;S&gt; {
-            <span class="doccomment">/// The id of the state to visit.
-            </span>id: S,
-            <span class="doccomment">/// The depth at which the first match was observed in the path
-            /// to this state. Note that this corresponds to the depth at
-            /// which the beginning of the match was detected. If no match
-            /// has been seen, then this is None.
-            </span>match_at_depth: <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;,
-        }
-
-        <span class="kw">impl</span>&lt;S: <a href="state_id.rs.html#72-81">StateID</a>&gt; QueuedState&lt;S&gt; {
-            <span class="doccomment">/// Create a queued state corresponding to the given NFA&#39;s start
-            /// state.
-            </span><span class="kw">fn </span>start(nfa: <span class="kw-2">&amp;</span>NFA&lt;S&gt;) -&gt; QueuedState&lt;S&gt; {
-                <span class="kw">let </span>match_at_depth =
-                    <span class="kw">if </span>nfa.start().is_match() { <span class="prelude-val">Some</span>(<span class="number">0</span>) } <span class="kw">else </span>{ <span class="prelude-val">None </span>};
-                <a href="#932">QueuedState</a> { id: <a href="#945">nfa</a>.start_id, <a href="#946">match_at_depth</a> }
-            }
-
-            <span class="doccomment">/// Return the next state to queue up. The given id must be a state
-            /// corresponding to a single transition from this queued state.
-            </span><span class="kw">fn </span>next_queued_state(
-                <span class="kw-2">&amp;</span><span class="self">self</span>,
-                nfa: <span class="kw-2">&amp;</span>NFA&lt;S&gt;,
-                id: S,
-            ) -&gt; QueuedState&lt;S&gt; {
-                <span class="kw">let </span>match_at_depth = <a class="self" href="#954">self</a>.<a href="#965-969">next_match_at_depth</a>(<a href="#955">nfa</a>, <a href="#956">id</a>);
-                <a href="#932">QueuedState</a> { <a href="#956">id</a>, <a href="#958">match_at_depth</a> }
-            }
-
-            <span class="doccomment">/// Return the earliest depth at which a match has occurred for
-            /// the given state. The given state must correspond to a single
-            /// transition from this queued state.
-            </span><span class="kw">fn </span>next_match_at_depth(
-                <span class="kw-2">&amp;</span><span class="self">self</span>,
-                nfa: <span class="kw-2">&amp;</span>NFA&lt;S&gt;,
-                next: S,
-            ) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
-                <span class="comment">// This is a little tricky. If the previous state has already
-                // seen a match or if `next` isn&#39;t a match state, then nothing
-                // needs to change since a later state cannot find an earlier
-                // match.
-                </span><span class="kw">match </span><a class="self" href="#966">self</a>.match_at_depth {
-                    <span class="prelude-val">Some</span>(x) =&gt; <span class="kw">return </span><span class="prelude-val">Some</span>(<a href="#975">x</a>),
-                    <span class="prelude-val">None </span><span class="kw">if </span><a href="#967">nfa</a>.<a href="#158">state</a>(<a href="#968">next</a>).<a href="#312">is_match</a>() =&gt; {}
-                    <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="prelude-val">None</span>,
-                }
-                <span class="kw">let </span>depth = <a href="#967">nfa</a>.<a href="#158">state</a>(<a href="#968">next</a>).depth
-                    - <a href="#967">nfa</a>.<a href="#158">state</a>(<a href="#968">next</a>).<a href="#316">get_longest_match_len</a>().unwrap()
-                    + <span class="number">1</span>;
-                <span class="prelude-val">Some</span>(<a href="#979">depth</a>)
+            </span><span class="kw">if </span>!kind.is_leftmost() {
+                it.nfa().copy_empty_matches(id);
             }
         }
-
-        <span class="comment">// Initialize the queue for breadth first search with all transitions
-        // out of the start state. We handle the start state specially because
-        // we only want to follow non-self transitions. If we followed self
-        // transitions, then this would never terminate.
-        </span><span class="kw">let </span><span class="kw-2">mut </span>queue: VecDeque&lt;QueuedState&lt;S&gt;&gt; = VecDeque::new();
-        <span class="kw">let </span><span class="kw-2">mut </span>seen = <a class="self" href="#924">self</a>.<a href="#1110">queued_set</a>();
-        <span class="kw">let </span>start = QueuedState::start(<span class="kw-2">&amp;</span><a class="self" href="#924">self</a>.nfa);
-        <span class="kw">for </span>b <span class="kw">in </span>AllBytesIter::new() {
-            <span class="kw">let </span>next_id = <span class="self">self</span>.nfa.start().next_state(b);
-            <span class="kw">if </span>next_id != start.id {
-                <span class="kw">let </span>next = start.next_queued_state(<span class="kw-2">&amp;</span><span class="self">self</span>.nfa, next_id);
-                <span class="kw">if </span>!seen.contains(next.id) {
-                    queue.push_back(next);
-                    seen.insert(next.id);
-                }
-                <span class="comment">// If a state immediately following the start state is a match
-                // state, then we never want to follow its failure transition
-                // since the failure transition necessarily leads back to the
-                // start state, which we never want to do for leftmost matching
-                // after a match has been found.
-                //
-                // N.B. This is a special case of the more general handling
-                // found below.
-                </span><span class="kw">if </span><span class="self">self</span>.nfa.state(next_id).is_match() {
-                    <span class="self">self</span>.nfa.state_mut(next_id).fail = dead_id();
-                }
-            }
-        }
-        <span class="kw">while let </span><span class="prelude-val">Some</span>(item) = queue.pop_front() {
-            <span class="kw">let </span><span class="kw-2">mut </span>any_trans = <span class="bool-val">false</span>;
-            <span class="kw">let </span><span class="kw-2">mut </span>it = <span class="self">self</span>.nfa.iter_transitions_mut(item.id);
-            <span class="kw">while let </span><span class="prelude-val">Some</span>((b, next_id)) = it.next() {
-                any_trans = <span class="bool-val">true</span>;
-
-                <span class="comment">// Queue up the next state.
-                </span><span class="kw">let </span>next = item.next_queued_state(it.nfa(), next_id);
-                <span class="kw">if </span>seen.contains(next.id) {
-                    <span class="comment">// The only way to visit a duplicate state in a transition
-                    // list is when ASCII case insensitivity is enabled. In
-                    // this case, we want to skip it since it&#39;s redundant work.
-                    // But it would also end up duplicating matches, which
-                    // results in reporting duplicate matches in some cases.
-                    // See the &#39;acasei010&#39; regression test.
-                    </span><span class="kw">continue</span>;
-                }
-                queue.push_back(next);
-                seen.insert(next.id);
-
-                <span class="comment">// Find the failure state for next. Same as standard.
-                </span><span class="kw">let </span><span class="kw-2">mut </span>fail = it.nfa().state(item.id).fail;
-                <span class="kw">while </span>it.nfa().state(fail).next_state(b) == fail_id() {
-                    fail = it.nfa().state(fail).fail;
-                }
-                fail = it.nfa().state(fail).next_state(b);
-
-                <span class="comment">// This is the key difference from the standard formulation.
-                // Namely, if we&#39;ve seen a match, then we only want a failure
-                // transition if the failure transition preserves the match
-                // we&#39;ve seen. In general, this is not true of all failure
-                // transitions since they can point back to any suffix of what
-                // we&#39;ve seen so far. Instead, we only want to point back to
-                // suffixes that contain any match we&#39;ve seen.
-                //
-                // We achieve this by comparing the depth of the failure
-                // transition with the number of states between this state
-                // and the beginning of the earliest match detected. If the
-                // depth of the failure state is smaller than this difference,
-                // then it cannot contain the match. If it&#39;s bigger or equal
-                // to the difference, then it necessarily includes the match
-                // we&#39;ve seen since all failure transitions correspond to a
-                // suffix.
-                //
-                // If we&#39;ve determined that we don&#39;t want the failure
-                // transition, then we set this state&#39;s failure transition to
-                // the dead state. In other words, when a search hits this
-                // state, it will not continue and correctly stop. (N.B. A
-                // dead state is different than a fail state. A dead state
-                // MUST be preceded by a match and acts as a sentinel to search
-                // routines to terminate.)
-                //
-                // Understanding this is tricky, and it took me several days
-                // to think through this and get it right. If you want to grok
-                // it, then I&#39;d recommend: 1) switch the implementation to
-                // always use the standard algorithm for filling in failure
-                // transitions, 2) run the test suite and 3) examine the test
-                // failures. Write out the automatons for them and try to work
-                // backwards by figuring out which failure transitions should
-                // be removed. You should arrive at the same rule used below.
-                </span><span class="kw">if let </span><span class="prelude-val">Some</span>(match_depth) = next.match_at_depth {
-                    <span class="kw">let </span>fail_depth = it.nfa().state(fail).depth;
-                    <span class="kw">let </span>next_depth = it.nfa().state(next.id).depth;
-                    <span class="kw">if </span>next_depth - match_depth + <span class="number">1 </span>&gt; fail_depth {
-                        it.nfa().state_mut(next.id).fail = dead_id();
-                        <span class="kw">continue</span>;
-                    }
-                    <span class="macro">assert_ne!</span>(
-                        start.id,
-                        it.nfa().state(next.id).fail,
-                        <span class="string">&quot;states that are match states or follow match \
-                         states should never have a failure transition \
-                         back to the start state in leftmost searching&quot;</span>,
-                    );
-                }
-                it.nfa().state_mut(next.id).fail = fail;
-                it.nfa().copy_matches(fail, next.id);
-            }
-            <span class="comment">// If there are no transitions for this state and if it&#39;s a match
-            // state, then we must set its failure transition to the dead
-            // state since we never want it to restart the search.
-            </span><span class="kw">if </span>!any_trans &amp;&amp; it.nfa().state(item.id).is_match() {
-                it.nfa().state_mut(item.id).fail = dead_id();
-            }
-            <span class="comment">// We don&#39;t need to copy empty matches from the start state here
-            // because that&#39;s only necessary for overlapping matches and
-            // leftmost match kinds don&#39;t support overlapping matches.
-        </span>}
     }
 
     <span class="doccomment">/// Returns a set that tracked queued states.
@@ -2502,8 +2176,8 @@
     /// construction depends on transitions to `fail_id` to determine whether a
     /// state already exists or not.
     </span><span class="kw">fn </span>add_start_state_loop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <span class="kw">let </span>start_id = <a class="self" href="#1127">self</a>.nfa.start_id;
-        <span class="kw">let </span>start = <a class="self" href="#1127">self</a>.nfa.<a href="#170">start_mut</a>();
+        <span class="kw">let </span>start_id = <span class="self">self</span>.nfa.start_id;
+        <span class="kw">let </span>start = <span class="self">self</span>.nfa.start_mut();
         <span class="kw">for </span>b <span class="kw">in </span>AllBytesIter::new() {
             <span class="kw">if </span>start.next_state(b) == fail_id() {
                 start.set_next_state(b, start_id);
@@ -2529,8 +2203,8 @@
         <span class="kw">if </span><span class="self">self</span>.builder.anchored
             || (<span class="self">self</span>.match_kind().is_leftmost() &amp;&amp; <span class="self">self</span>.nfa.start().is_match())
         {
-            <span class="kw">let </span>start_id = <a class="self" href="#1151">self</a>.nfa.start_id;
-            <span class="kw">let </span>start = <a class="self" href="#1151">self</a>.nfa.<a href="#170">start_mut</a>();
+            <span class="kw">let </span>start_id = <span class="self">self</span>.nfa.start_id;
+            <span class="kw">let </span>start = <span class="self">self</span>.nfa.start_mut();
             <span class="kw">for </span>b <span class="kw">in </span>AllBytesIter::new() {
                 <span class="kw">if </span>start.next_state(b) == start_id {
                     start.set_next_state(b, dead_id());
@@ -2543,7 +2217,7 @@
     /// Normally, missing transitions map back to the failure state, but the
     /// point of the dead state is to act as a sink that can never be escaped.
     </span><span class="kw">fn </span>add_dead_state_loop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <span class="kw">let </span>dead = <a class="self" href="#1168">self</a>.nfa.<a href="#162">state_mut</a>(<a href="state_id.rs.html#45">dead_id</a>());
+        <span class="kw">let </span>dead = <span class="self">self</span>.nfa.state_mut(dead_id());
         <span class="kw">for </span>b <span class="kw">in </span>AllBytesIter::new() {
             dead.set_next_state(b, dead_id());
         }
@@ -2553,9 +2227,9 @@
     </span><span class="kw">fn </span>calculate_size(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="kw">let </span><span class="kw-2">mut </span>size = <span class="number">0</span>;
         <span class="kw">for </span>state <span class="kw">in </span><span class="kw-2">&amp;</span><span class="self">self</span>.nfa.states {
-            size += state.heap_bytes();
+            size += size_of::&lt;State&lt;S&gt;&gt;() + state.heap_bytes();
         }
-        <a class="self" href="#1176">self</a>.nfa.heap_bytes = <a href="#1177">size</a>;
+        <span class="self">self</span>.nfa.heap_bytes = size;
     }
 
     <span class="doccomment">/// Add a new state to the underlying NFA with the given depth. The depth
@@ -2563,17 +2237,17 @@
     ///
     /// If adding the new state would overflow the chosen state ID
     /// representation, then this returns an error.
-    </span><span class="kw">fn </span>add_state(<span class="kw-2">&amp;mut </span><span class="self">self</span>, depth: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="prelude-ty">Result</span>&lt;S&gt; {
+    </span><span class="kw">fn </span>add_state(<span class="kw-2">&amp;mut </span><span class="self">self</span>, depth: usize) -&gt; <span class="prelude-ty">Result</span>&lt;S&gt; {
         <span class="kw">if </span>depth &lt; <span class="self">self</span>.builder.dense_depth {
-            <a class="self" href="#1189">self</a>.nfa.<a href="#190">add_dense_state</a>(<a href="#1189">depth</a>)
+            <span class="self">self</span>.nfa.add_dense_state(depth)
         } <span class="kw">else </span>{
-            <a class="self" href="#1189">self</a>.nfa.<a href="#203">add_sparse_state</a>(<a href="#1189">depth</a>)
+            <span class="self">self</span>.nfa.add_sparse_state(depth)
         }
     }
 
     <span class="doccomment">/// Returns the match kind configured on the underlying builder.
-    </span><span class="kw">fn </span>match_kind(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="ahocorasick.rs.html#2041">MatchKind</a> {
-        <a class="self" href="#1198">self</a>.builder.match_kind
+    </span><span class="kw">fn </span>match_kind(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; MatchKind {
+        <span class="self">self</span>.builder.match_kind
     }
 }
 
@@ -2589,32 +2263,32 @@
     set: <span class="prelude-ty">Option</span>&lt;BTreeSet&lt;S&gt;&gt;,
 }
 
-<span class="kw">impl</span>&lt;S: <a href="state_id.rs.html#72-81">StateID</a>&gt; QueuedSet&lt;S&gt; {
+<span class="kw">impl</span>&lt;S: StateID&gt; QueuedSet&lt;S&gt; {
     <span class="doccomment">/// Return an inert set that returns `false` for every state ID membership
     /// test.
     </span><span class="kw">fn </span>inert() -&gt; QueuedSet&lt;S&gt; {
-        <a href="#1211">QueuedSet</a> { set: <span class="prelude-val">None </span>}
+        QueuedSet { set: <span class="prelude-val">None </span>}
     }
 
     <span class="doccomment">/// Return an active set that tracks state ID membership.
     </span><span class="kw">fn </span>active() -&gt; QueuedSet&lt;S&gt; {
-        <a href="#1211">QueuedSet</a> { set: <span class="prelude-val">Some</span>(BTreeSet::new()) }
+        QueuedSet { set: <span class="prelude-val">Some</span>(BTreeSet::new()) }
     }
 
     <span class="doccomment">/// Inserts the given state ID into this set. (If the set is inert, then
     /// this is a no-op.)
     </span><span class="kw">fn </span>insert(<span class="kw-2">&amp;mut </span><span class="self">self</span>, state_id: S) {
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">ref mut </span>set) = <a class="self" href="#1229">self</a>.set {
-            <a href="#1230">set</a>.insert(<a href="#1229">state_id</a>);
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">ref mut </span>set) = <span class="self">self</span>.set {
+            set.insert(state_id);
         }
     }
 
     <span class="doccomment">/// Returns true if and only if the given state ID is in this set. If the
     /// set is inert, this always returns false.
-    </span><span class="kw">fn </span>contains(<span class="kw-2">&amp;</span><span class="self">self</span>, state_id: S) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">match </span><a class="self" href="#1237">self</a>.set {
+    </span><span class="kw">fn </span>contains(<span class="kw-2">&amp;</span><span class="self">self</span>, state_id: S) -&gt; bool {
+        <span class="kw">match </span><span class="self">self</span>.set {
             <span class="prelude-val">None </span>=&gt; <span class="bool-val">false</span>,
-            <span class="prelude-val">Some</span>(<span class="kw-2">ref </span>set) =&gt; <a href="#1240">set</a>.contains(<span class="kw-2">&amp;</span><a href="#1237">state_id</a>),
+            <span class="prelude-val">Some</span>(<span class="kw-2">ref </span>set) =&gt; set.contains(<span class="kw-2">&amp;</span>state_id),
         }
     }
 }
@@ -2628,30 +2302,30 @@
 /// inclusive range syntax was stabilized in Rust 1.26. We can get rid of this
 /// once our MSRV is Rust 1.26 or newer.
 </span><span class="attr">#[derive(Debug)]
-</span><span class="kw">struct </span>AllBytesIter(<a href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>);
+</span><span class="kw">struct </span>AllBytesIter(u16);
 
-<span class="kw">impl </span><a href="#1254">AllBytesIter</a> {
-    <span class="kw">fn </span>new() -&gt; <a href="#1254">AllBytesIter</a> {
-        <a href="#1254">AllBytesIter</a>(<span class="number">0</span>)
+<span class="kw">impl </span>AllBytesIter {
+    <span class="kw">fn </span>new() -&gt; AllBytesIter {
+        AllBytesIter(<span class="number">0</span>)
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a> <span class="kw">for </span><a href="#1254">AllBytesIter</a> {
-    <span class="kw">type </span>Item = <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>;
+<span class="kw">impl </span>Iterator <span class="kw">for </span>AllBytesIter {
+    <span class="kw">type </span>Item = u8;
 
     <span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt; {
         <span class="kw">if </span><span class="self">self</span>.<span class="number">0 </span>&gt;= <span class="number">256 </span>{
             <span class="prelude-val">None
         </span>} <span class="kw">else </span>{
-            <span class="kw">let </span>b = <a class="self" href="#1265">self</a>.<span class="number">0 </span><span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>;
-            <a class="self" href="#1265">self</a>.<span class="number">0 </span>+= <span class="number">1</span>;
-            <span class="prelude-val">Some</span>(<a href="#1269">b</a>)
+            <span class="kw">let </span>b = <span class="self">self</span>.<span class="number">0 </span><span class="kw">as </span>u8;
+            <span class="self">self</span>.<span class="number">0 </span>+= <span class="number">1</span>;
+            <span class="prelude-val">Some</span>(b)
         }
     }
 }
 
-<span class="kw">impl</span>&lt;S: <a href="state_id.rs.html#72-81">StateID</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span>NFA&lt;S&gt; {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+<span class="kw">impl</span>&lt;S: StateID&gt; fmt::Debug <span class="kw">for </span>NFA&lt;S&gt; {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
         <span class="macro">writeln!</span>(f, <span class="string">&quot;NFA(&quot;</span>)<span class="question-mark">?</span>;
         <span class="macro">writeln!</span>(f, <span class="string">&quot;match_kind: {:?}&quot;</span>, <span class="self">self</span>.match_kind)<span class="question-mark">?</span>;
         <span class="macro">writeln!</span>(f, <span class="string">&quot;prefilter: {:?}&quot;</span>, <span class="self">self</span>.prefilter)<span class="question-mark">?</span>;
@@ -2692,7 +2366,7 @@
 }
 
 <span class="doccomment">/// Iterate over all possible byte transitions given a sparse set.
-</span><span class="kw">fn </span>sparse_iter&lt;S: <a href="state_id.rs.html#72-81">StateID</a>, F: FnMut(<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>, S)&gt;(trans: <span class="kw-2">&amp;</span>[(<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>, S)], <span class="kw-2">mut </span>f: F) {
+</span><span class="kw">fn </span>sparse_iter&lt;S: StateID, F: FnMut(u8, S)&gt;(trans: <span class="kw-2">&amp;</span>[(u8, S)], <span class="kw-2">mut </span>f: F) {
     <span class="kw">let </span><span class="kw-2">mut </span>byte = <span class="number">0u16</span>;
     <span class="kw">for </span><span class="kw-2">&amp;</span>(b, id) <span class="kw">in </span>trans {
         <span class="kw">while </span>byte &lt; (b <span class="kw">as </span>u16) {
@@ -2711,22 +2385,22 @@
 /// slice.
 ///
 /// This panics if i == j.
-</span><span class="kw">fn </span>get_two_mut&lt;T&gt;(xs: <span class="kw-2">&amp;mut </span>[T], i: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, j: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; (<span class="kw-2">&amp;mut </span>T, <span class="kw-2">&amp;mut </span>T) {
-    <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(i != j, <span class="string">&quot;{} must not be equal to {}&quot;</span>, i, j);
+</span><span class="kw">fn </span>get_two_mut&lt;T&gt;(xs: <span class="kw-2">&amp;mut </span>[T], i: usize, j: usize) -&gt; (<span class="kw-2">&amp;mut </span>T, <span class="kw-2">&amp;mut </span>T) {
+    <span class="macro">assert!</span>(i != j, <span class="string">&quot;{} must not be equal to {}&quot;</span>, i, j);
     <span class="kw">if </span>i &lt; j {
-        <span class="kw">let </span>(before, after) = <a href="#1337">xs</a>.split_at_mut(<a href="#1337">j</a>);
-        (<span class="kw-2">&amp;mut </span><a href="#1340">before</a>[<a href="#1337">i</a>], <span class="kw-2">&amp;mut </span><a href="#1340">after</a>[<span class="number">0</span>])
+        <span class="kw">let </span>(before, after) = xs.split_at_mut(j);
+        (<span class="kw-2">&amp;mut </span>before[i], <span class="kw-2">&amp;mut </span>after[<span class="number">0</span>])
     } <span class="kw">else </span>{
-        <span class="kw">let </span>(before, after) = <a href="#1337">xs</a>.split_at_mut(<a href="#1337">i</a>);
-        (<span class="kw-2">&amp;mut </span><a href="#1343">after</a>[<span class="number">0</span>], <span class="kw-2">&amp;mut </span><a href="#1343">before</a>[<a href="#1337">j</a>])
+        <span class="kw">let </span>(before, after) = xs.split_at_mut(i);
+        (<span class="kw-2">&amp;mut </span>after[<span class="number">0</span>], <span class="kw-2">&amp;mut </span>before[j])
     }
 }
 
 <span class="doccomment">/// Return the given byte as its escaped string form.
-</span><span class="kw">fn </span>escape(b: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a> {
+</span><span class="kw">fn </span>escape(b: u8) -&gt; String {
     <span class="kw">use </span>std::ascii;
 
-    String::from_utf8(ascii::escape_default(<a href="#1349">b</a>).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;()).unwrap()
+    String::from_utf8(ascii::escape_default(b).collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;()).unwrap()
 }
 
 <span class="attr">#[cfg(test)]
@@ -2753,4 +2427,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="aho_corasick" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="aho_corasick" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/warp-0.3.3/src/filters/header.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>header.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../warp/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/warp-0.3.3/src/filters/header.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>header.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../warp/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -234,16 +234,16 @@
 //! of them, like `exact` and `exact_ignore_case`, are just predicates,
 //! they don&#39;t extract any values. The `header` filter allows parsing
 //! a type from any header.
-</span><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/convert/enum.Infallible.html">std::convert::Infallible</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/str/traits/trait.FromStr.html">std::str::FromStr</a>;
+</span><span class="kw">use </span>std::convert::Infallible;
+<span class="kw">use </span>std::str::FromStr;
 
-<span class="kw">use </span><a href="../../../futures_util/future/index.html">futures_util::future</a>;
-<span class="kw">use </span>headers::{<a href="../../../headers_core/trait.Header.html">Header</a>, <a href="../../../headers/map_ext/trait.HeaderMapExt.html">HeaderMapExt</a>};
-<span class="kw">use </span><a href="../../../http/header/value/struct.HeaderValue.html">http::header::HeaderValue</a>;
-<span class="kw">use </span><a href="../../../http/header/map/struct.HeaderMap.html">http::HeaderMap</a>;
+<span class="kw">use </span>futures_util::future;
+<span class="kw">use </span>headers::{Header, HeaderMapExt};
+<span class="kw">use </span>http::header::HeaderValue;
+<span class="kw">use </span>http::HeaderMap;
 
-<span class="kw">use </span><span class="kw">crate</span>::filter::{<a href="../filter/mod.rs.html#448-453">filter_fn</a>, <a href="../filter/mod.rs.html#458-465">filter_fn_one</a>, <a href="../filter/mod.rs.html#93">Filter</a>, <a href="../generic.rs.html#4">One</a>};
-<span class="kw">use </span><span class="kw">crate</span>::reject::{<a class="self" href="../lib.rs.html#95">self</a>, <a href="../reject.rs.html#205">Rejection</a>};
+<span class="kw">use </span><span class="kw">crate</span>::filter::{filter_fn, filter_fn_one, Filter, One};
+<span class="kw">use </span><span class="kw">crate</span>::reject::{<span class="self">self</span>, Rejection};
 
 <span class="doccomment">/// Create a `Filter` that tries to parse the specified header.
 ///
@@ -264,30 +264,30 @@
 /// // Parse `foo: bar` into a `String`
 /// let foo = warp::header::&lt;String&gt;(&quot;foo&quot;);
 /// ```
-</span><span class="kw">pub fn </span>header&lt;T: <a href="https://doc.rust-lang.org/nightly/core/str/traits/trait.FromStr.html">FromStr</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <span class="lifetime">&#39;static</span>&gt;(
-    name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>,
-) -&gt; <span class="kw">impl </span>Filter&lt;Extract = One&lt;T&gt;, Error = <a href="../reject.rs.html#205">Rejection</a>&gt; + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html">Copy</a> {
-    <a href="../filter/mod.rs.html#458-465">filter_fn_one</a>(<span class="kw">move </span>|route| {
-        <a class="macro" href="../../../tracing/tracing/macro.trace.html">tracing::trace!</a>(<span class="string">&quot;header({:?})&quot;</span>, name);
-        <span class="kw">let </span>route = <a href="#40">route</a>
-            .<a href="../route.rs.html#65">headers</a>()
-            .get(<a href="#38">name</a>)
-            .ok_or_else(|| <a href="../reject.rs.html#95">reject::missing_header</a>(<a href="#38">name</a>))
-            .and_then(|value| <a href="#46">value</a>.to_str().map_err(|<span class="kw">_</span>| <a href="../reject.rs.html#101">reject::invalid_header</a>(<a href="#38">name</a>)))
-            .and_then(|s| T::from_str(<a href="#47">s</a>).map_err(|<span class="kw">_</span>| <a href="../reject.rs.html#101">reject::invalid_header</a>(<a href="#38">name</a>)));
-        future::ready(<a href="#42">route</a>)
+</span><span class="kw">pub fn </span>header&lt;T: FromStr + Send + <span class="lifetime">&#39;static</span>&gt;(
+    name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
+) -&gt; <span class="kw">impl </span>Filter&lt;Extract = One&lt;T&gt;, Error = Rejection&gt; + Copy {
+    filter_fn_one(<span class="kw">move </span>|route| {
+        <span class="macro">tracing::trace!</span>(<span class="string">&quot;header({:?})&quot;</span>, name);
+        <span class="kw">let </span>route = route
+            .headers()
+            .get(name)
+            .ok_or_else(|| reject::missing_header(name))
+            .and_then(|value| value.to_str().map_err(|<span class="kw">_</span>| reject::invalid_header(name)))
+            .and_then(|s| T::from_str(s).map_err(|<span class="kw">_</span>| reject::invalid_header(name)));
+        future::ready(route)
     })
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>header2&lt;T: <a href="../../../headers_core/trait.Header.html">Header</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <span class="lifetime">&#39;static</span>&gt;(
-) -&gt; <span class="kw">impl </span>Filter&lt;Extract = One&lt;T&gt;, Error = <a href="../reject.rs.html#205">Rejection</a>&gt; + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html">Copy</a> {
-    <a href="../filter/mod.rs.html#458-465">filter_fn_one</a>(<span class="kw">move </span>|route| {
-        <a class="macro" href="../../../tracing/tracing/macro.trace.html">tracing::trace!</a>(<span class="string">&quot;header2({:?})&quot;</span>, T::name());
-        <span class="kw">let </span>route = <a href="#54">route</a>
-            .<a href="../route.rs.html#65">headers</a>()
-            .<a href="../../../headers/map_ext/trait.HeaderMapExt.html">typed_get</a>()
-            .ok_or_else(|| <a href="../reject.rs.html#101">reject::invalid_header</a>(T::name().as_str()));
-        future::ready(<a href="#56">route</a>)
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>header2&lt;T: Header + Send + <span class="lifetime">&#39;static</span>&gt;(
+) -&gt; <span class="kw">impl </span>Filter&lt;Extract = One&lt;T&gt;, Error = Rejection&gt; + Copy {
+    filter_fn_one(<span class="kw">move </span>|route| {
+        <span class="macro">tracing::trace!</span>(<span class="string">&quot;header2({:?})&quot;</span>, T::name());
+        <span class="kw">let </span>route = route
+            .headers()
+            .typed_get()
+            .ok_or_else(|| reject::invalid_header(T::name().as_str()));
+        future::ready(route)
     })
 }
 
@@ -304,34 +304,34 @@
 /// let opt_auth = warp::header::optional::&lt;String&gt;(&quot;authorization&quot;);
 /// ```
 </span><span class="kw">pub fn </span>optional&lt;T&gt;(
-    name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>,
-) -&gt; <span class="kw">impl </span>Filter&lt;Extract = One&lt;<span class="prelude-ty">Option</span>&lt;T&gt;&gt;, Error = <a href="../reject.rs.html#205">Rejection</a>&gt; + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html">Copy</a>
+    name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
+) -&gt; <span class="kw">impl </span>Filter&lt;Extract = One&lt;<span class="prelude-ty">Option</span>&lt;T&gt;&gt;, Error = Rejection&gt; + Copy
 <span class="kw">where
-    </span>T: <a href="https://doc.rust-lang.org/nightly/core/str/traits/trait.FromStr.html">FromStr</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <span class="lifetime">&#39;static</span>,
+    </span>T: FromStr + Send + <span class="lifetime">&#39;static</span>,
 {
-    <a href="../filter/mod.rs.html#458-465">filter_fn_one</a>(<span class="kw">move </span>|route| {
-        <a class="macro" href="../../../tracing/tracing/macro.trace.html">tracing::trace!</a>(<span class="string">&quot;optional({:?})&quot;</span>, name);
-        <span class="kw">let </span>result = <a href="#82">route</a>.<a href="../route.rs.html#65">headers</a>().get(<a href="#77">name</a>).map(|value| {
+    filter_fn_one(<span class="kw">move </span>|route| {
+        <span class="macro">tracing::trace!</span>(<span class="string">&quot;optional({:?})&quot;</span>, name);
+        <span class="kw">let </span>result = route.headers().get(name).map(|value| {
             value
                 .to_str()
                 .map_err(|<span class="kw">_</span>| reject::invalid_header(name))<span class="question-mark">?
                 </span>.parse::&lt;T&gt;()
-                .map_err(|<span class="kw">_</span>| <a href="../reject.rs.html#101">reject::invalid_header</a>(<a href="#77">name</a>))
+                .map_err(|<span class="kw">_</span>| reject::invalid_header(name))
         });
 
-        <span class="kw">match </span><a href="#84">result</a> {
-            <span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(t)) =&gt; future::ok(<span class="prelude-val">Some</span>(<a href="#93">t</a>)),
-            <span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(e)) =&gt; future::err(<a href="#94">e</a>),
+        <span class="kw">match </span>result {
+            <span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(t)) =&gt; future::ok(<span class="prelude-val">Some</span>(t)),
+            <span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(e)) =&gt; future::err(e),
             <span class="prelude-val">None </span>=&gt; future::ok(<span class="prelude-val">None</span>),
         }
     })
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>optional2&lt;T&gt;() -&gt; <span class="kw">impl </span>Filter&lt;Extract = One&lt;<span class="prelude-ty">Option</span>&lt;T&gt;&gt;, Error = <a href="https://doc.rust-lang.org/nightly/core/convert/enum.Infallible.html">Infallible</a>&gt; + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html">Copy</a>
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>optional2&lt;T&gt;() -&gt; <span class="kw">impl </span>Filter&lt;Extract = One&lt;<span class="prelude-ty">Option</span>&lt;T&gt;&gt;, Error = Infallible&gt; + Copy
 <span class="kw">where
-    </span>T: <a href="../../../headers_core/trait.Header.html">Header</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <span class="lifetime">&#39;static</span>,
+    </span>T: Header + Send + <span class="lifetime">&#39;static</span>,
 {
-    <a href="../filter/mod.rs.html#458-465">filter_fn_one</a>(<span class="kw">move </span>|route| future::ready(<span class="prelude-val">Ok</span>(<a href="#104">route</a>.<a href="../route.rs.html#65">headers</a>().<a href="../../../headers/map_ext/trait.HeaderMapExt.html">typed_get</a>())))
+    filter_fn_one(<span class="kw">move </span>|route| future::ready(<span class="prelude-val">Ok</span>(route.headers().typed_get())))
 }
 
 <span class="comment">/* TODO
@@ -365,23 +365,23 @@ where
 /// let must_dnt = warp::header::exact(&quot;dnt&quot;, &quot;1&quot;);
 /// ```
 </span><span class="kw">pub fn </span>exact(
-    name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>,
-    value: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>,
-) -&gt; <span class="kw">impl </span>Filter&lt;Extract = (), Error = <a href="../reject.rs.html#205">Rejection</a>&gt; + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html">Copy</a> {
-    <a href="../filter/mod.rs.html#448-453">filter_fn</a>(<span class="kw">move </span>|route| {
-        <a class="macro" href="../../../tracing/tracing/macro.trace.html">tracing::trace!</a>(<span class="string">&quot;exact?({:?}, {:?})&quot;</span>, name, value);
-        <span class="kw">let </span>route = <a href="#141">route</a>
-            .<a href="../route.rs.html#65">headers</a>()
-            .get(<a href="#138">name</a>)
-            .ok_or_else(|| <a href="../reject.rs.html#95">reject::missing_header</a>(<a href="#138">name</a>))
+    name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
+    value: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
+) -&gt; <span class="kw">impl </span>Filter&lt;Extract = (), Error = Rejection&gt; + Copy {
+    filter_fn(<span class="kw">move </span>|route| {
+        <span class="macro">tracing::trace!</span>(<span class="string">&quot;exact?({:?}, {:?})&quot;</span>, name, value);
+        <span class="kw">let </span>route = route
+            .headers()
+            .get(name)
+            .ok_or_else(|| reject::missing_header(name))
             .and_then(|val| {
                 <span class="kw">if </span>val == value {
                     <span class="prelude-val">Ok</span>(())
                 } <span class="kw">else </span>{
-                    <span class="prelude-val">Err</span>(<a href="../reject.rs.html#101">reject::invalid_header</a>(<a href="#138">name</a>))
+                    <span class="prelude-val">Err</span>(reject::invalid_header(name))
                 }
             });
-        future::ready(<a href="#143">route</a>)
+        future::ready(route)
     })
 }
 
@@ -397,23 +397,23 @@ where
 /// let keep_alive = warp::header::exact_ignore_case(&quot;connection&quot;, &quot;keep-alive&quot;);
 /// ```
 </span><span class="kw">pub fn </span>exact_ignore_case(
-    name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>,
-    value: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>,
-) -&gt; <span class="kw">impl </span>Filter&lt;Extract = (), Error = <a href="../reject.rs.html#205">Rejection</a>&gt; + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html">Copy</a> {
-    <a href="../filter/mod.rs.html#448-453">filter_fn</a>(<span class="kw">move </span>|route| {
-        <a class="macro" href="../../../tracing/tracing/macro.trace.html">tracing::trace!</a>(<span class="string">&quot;exact_ignore_case({:?}, {:?})&quot;</span>, name, value);
-        <span class="kw">let </span>route = <a href="#173">route</a>
-            .<a href="../route.rs.html#65">headers</a>()
-            .get(<a href="#170">name</a>)
-            .ok_or_else(|| <a href="../reject.rs.html#95">reject::missing_header</a>(<a href="#170">name</a>))
+    name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
+    value: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
+) -&gt; <span class="kw">impl </span>Filter&lt;Extract = (), Error = Rejection&gt; + Copy {
+    filter_fn(<span class="kw">move </span>|route| {
+        <span class="macro">tracing::trace!</span>(<span class="string">&quot;exact_ignore_case({:?}, {:?})&quot;</span>, name, value);
+        <span class="kw">let </span>route = route
+            .headers()
+            .get(name)
+            .ok_or_else(|| reject::missing_header(name))
             .and_then(|val| {
                 <span class="kw">if </span>val.as_bytes().eq_ignore_ascii_case(value.as_bytes()) {
                     <span class="prelude-val">Ok</span>(())
                 } <span class="kw">else </span>{
-                    <span class="prelude-val">Err</span>(<a href="../reject.rs.html#101">reject::invalid_header</a>(<a href="#170">name</a>))
+                    <span class="prelude-val">Err</span>(reject::invalid_header(name))
                 }
             });
-        future::ready(<a href="#175">route</a>)
+        future::ready(route)
     })
 }
 
@@ -430,16 +430,16 @@ where
 ///     });
 /// ```
 </span><span class="kw">pub fn </span>value(
-    name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>,
-) -&gt; <span class="kw">impl </span>Filter&lt;Extract = One&lt;<a href="../../../http/header/value/struct.HeaderValue.html">HeaderValue</a>&gt;, Error = <a href="../reject.rs.html#205">Rejection</a>&gt; + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html">Copy</a> {
-    <a href="../filter/mod.rs.html#458-465">filter_fn_one</a>(<span class="kw">move </span>|route| {
-        <a class="macro" href="../../../tracing/tracing/macro.trace.html">tracing::trace!</a>(<span class="string">&quot;value({:?})&quot;</span>, name);
-        <span class="kw">let </span>route = <a href="#205">route</a>
-            .<a href="../route.rs.html#65">headers</a>()
-            .get(<a href="#203">name</a>)
+    name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
+) -&gt; <span class="kw">impl </span>Filter&lt;Extract = One&lt;HeaderValue&gt;, Error = Rejection&gt; + Copy {
+    filter_fn_one(<span class="kw">move </span>|route| {
+        <span class="macro">tracing::trace!</span>(<span class="string">&quot;value({:?})&quot;</span>, name);
+        <span class="kw">let </span>route = route
+            .headers()
+            .get(name)
             .cloned()
-            .ok_or_else(|| <a href="../reject.rs.html#95">reject::missing_header</a>(<a href="#203">name</a>));
-        future::ready(<a href="#207">route</a>)
+            .ok_or_else(|| reject::missing_header(name));
+        future::ready(route)
     })
 }
 
@@ -455,8 +455,8 @@ where
 ///         format!(&quot;header count: {}&quot;, headers.len())
 ///     });
 /// ```
-</span><span class="kw">pub fn </span>headers_cloned() -&gt; <span class="kw">impl </span>Filter&lt;Extract = One&lt;<a href="../../../http/header/map/struct.HeaderMap.html">HeaderMap</a>&gt;, Error = <a href="https://doc.rust-lang.org/nightly/core/convert/enum.Infallible.html">Infallible</a>&gt; + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html">Copy</a> {
-    <a href="../filter/mod.rs.html#458-465">filter_fn_one</a>(|route| future::ok(<a href="#229">route</a>.<a href="../route.rs.html#65">headers</a>().<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()))
+</span><span class="kw">pub fn </span>headers_cloned() -&gt; <span class="kw">impl </span>Filter&lt;Extract = One&lt;HeaderMap&gt;, Error = Infallible&gt; + Copy {
+    filter_fn_one(|route| future::ok(route.headers().clone()))
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="warp" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="warp" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

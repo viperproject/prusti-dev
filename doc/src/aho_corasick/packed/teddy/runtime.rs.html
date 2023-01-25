@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/aho-corasick-0.7.19/src/packed/teddy/runtime.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>runtime.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../../aho_corasick/index.html"><img class="rust-logo" src="../../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/aho-corasick-0.7.20/src/packed/teddy/runtime.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>runtime.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../../aho_corasick/index.html"><img class="rust-logo" src="../../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -1252,13 +1252,13 @@
 //
 // All variants are fairly heavily tested in src/packed/tests.rs.
 
-</span><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/core_arch/arch/x86_64/index.html">std::arch::x86_64</a>::<span class="kw-2">*</span>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/mem/index.html">std::mem</a>;
+</span><span class="kw">use </span>std::arch::x86_64::<span class="kw-2">*</span>;
+<span class="kw">use </span>std::mem;
 
-<span class="kw">use </span><span class="kw">crate</span>::packed::pattern::{<a href="../pattern.rs.html#13">PatternID</a>, <a href="../pattern.rs.html#25">Patterns</a>};
-<span class="kw">use </span><a href="mod.rs.html#11"><span class="kw">crate</span>::packed::teddy::compile</a>;
-<span class="kw">use </span><a href="../mod.rs.html#117"><span class="kw">crate</span>::packed::vector</a>::<span class="kw-2">*</span>;
-<span class="kw">use </span><a href="../../lib.rs.html#239"><span class="kw">crate</span>::Match</a>;
+<span class="kw">use </span><span class="kw">crate</span>::packed::pattern::{PatternID, Patterns};
+<span class="kw">use </span><span class="kw">crate</span>::packed::teddy::compile;
+<span class="kw">use </span><span class="kw">crate</span>::packed::vector::<span class="kw-2">*</span>;
+<span class="kw">use </span><span class="kw">crate</span>::Match;
 
 <span class="doccomment">/// The Teddy runtime.
 ///
@@ -1280,7 +1280,7 @@
     <span class="doccomment">/// The allocation of patterns in buckets. This only contains the IDs of
     /// patterns. In order to do full verification, callers must provide the
     /// actual patterns when using Teddy.
-    </span><span class="kw">pub </span>buckets: Vec&lt;Vec&lt;<a href="../pattern.rs.html#13">PatternID</a>&gt;&gt;,
+    </span><span class="kw">pub </span>buckets: Vec&lt;Vec&lt;PatternID&gt;&gt;,
     <span class="doccomment">/// The maximum identifier of a pattern. This is used as a sanity check to
     /// ensure that the patterns provided by the caller are the same as the
     /// patterns that were used to compile the matcher. This sanity check
@@ -1290,12 +1290,12 @@
     /// Note that users of the aho-corasick crate cannot get this wrong. Only
     /// code internal to this crate can get it wrong, since neither `Patterns`
     /// type nor the Teddy runtime are public API items.
-    </span><span class="kw">pub </span>max_pattern_id: <a href="../pattern.rs.html#13">PatternID</a>,
+    </span><span class="kw">pub </span>max_pattern_id: PatternID,
     <span class="doccomment">/// The actual runtime to use.
-    </span><span class="kw">pub </span>exec: <a href="#410">Exec</a>,
+    </span><span class="kw">pub </span>exec: Exec,
 }
 
-<span class="kw">impl </span><a href="#75">Teddy</a> {
+<span class="kw">impl </span>Teddy {
     <span class="doccomment">/// Return the first occurrence of a match in the given haystack after or
     /// starting at `at`.
     ///
@@ -1306,10 +1306,10 @@
     /// leftmost-longest) set on `pats`.
     </span><span class="kw">pub fn </span>find_at(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        pats: <span class="kw-2">&amp;</span><a href="../pattern.rs.html#25">Patterns</a>,
-        haystack: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
-        at: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-    ) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="../../lib.rs.html#239">Match</a>&gt; {
+        pats: <span class="kw-2">&amp;</span>Patterns,
+        haystack: <span class="kw-2">&amp;</span>[u8],
+        at: usize,
+    ) -&gt; <span class="prelude-ty">Option</span>&lt;Match&gt; {
         <span class="comment">// This assert is a bit subtle, but it&#39;s an important guarantee.
         // Namely, if the maximum pattern ID seen by Teddy is the same as the
         // one in the patterns given, then we are guaranteed that every pattern
@@ -1319,7 +1319,7 @@
         // otherwise make `find_at` unsafe to call. But this assert lets us
         // keep this routine safe and eliminate an important bounds check in
         // verification.
-        </span><a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert_eq.html">assert_eq!</a>(
+        </span><span class="macro">assert_eq!</span>(
             <span class="self">self</span>.max_pattern_id,
             pats.max_pattern_id(),
             <span class="string">&quot;teddy must be called with same patterns it was built with&quot;</span>,
@@ -1328,7 +1328,7 @@
         // for Teddy to be able to work. The minimum number varies depending on
         // which matcher is used below. If this is violated, then it&#39;s possible
         // for searching to do out-of-bounds writes.
-        </span><a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(haystack[at..].len() &gt;= <span class="self">self</span>.minimum_len());
+        </span><span class="macro">assert!</span>(haystack[at..].len() &gt;= <span class="self">self</span>.minimum_len());
         <span class="comment">// SAFETY: The various Teddy matchers are always safe to call because
         // the Teddy builder guarantees that a particular Exec variant is
         // built only when it can be run the current CPU. That is, the Teddy
@@ -1337,33 +1337,33 @@
         // once in the builder, and we rely on the type system to avoid needing
         // to do it again.
         </span><span class="kw">unsafe </span>{
-            <span class="kw">match </span><a class="self" href="#104">self</a>.exec {
-                <a href="#411">Exec::TeddySlim1Mask128</a>(<span class="kw-2">ref </span>e) =&gt; {
-                    <a href="#137">e</a>.<a href="#433-439">find_at</a>(<a href="#105">pats</a>, <a class="self" href="#104">self</a>, <a href="#106">haystack</a>, <a href="#107">at</a>)
+            <span class="kw">match </span><span class="self">self</span>.exec {
+                Exec::TeddySlim1Mask128(<span class="kw-2">ref </span>e) =&gt; {
+                    e.find_at(pats, <span class="self">self</span>, haystack, at)
                 }
-                <a href="#412">Exec::TeddySlim1Mask256</a>(<span class="kw-2">ref </span>e) =&gt; {
-                    <a href="#140">e</a>.<a href="#483-489">find_at</a>(<a href="#105">pats</a>, <a class="self" href="#104">self</a>, <a href="#106">haystack</a>, <a href="#107">at</a>)
+                Exec::TeddySlim1Mask256(<span class="kw-2">ref </span>e) =&gt; {
+                    e.find_at(pats, <span class="self">self</span>, haystack, at)
                 }
-                <a href="#413">Exec::TeddyFat1Mask256</a>(<span class="kw-2">ref </span>e) =&gt; {
-                    <a href="#143">e</a>.<a href="#533-539">find_at</a>(<a href="#105">pats</a>, <a class="self" href="#104">self</a>, <a href="#106">haystack</a>, <a href="#107">at</a>)
+                Exec::TeddyFat1Mask256(<span class="kw-2">ref </span>e) =&gt; {
+                    e.find_at(pats, <span class="self">self</span>, haystack, at)
                 }
-                <a href="#414">Exec::TeddySlim2Mask128</a>(<span class="kw-2">ref </span>e) =&gt; {
-                    <a href="#146">e</a>.<a href="#584-590">find_at</a>(<a href="#105">pats</a>, <a class="self" href="#104">self</a>, <a href="#106">haystack</a>, <a href="#107">at</a>)
+                Exec::TeddySlim2Mask128(<span class="kw-2">ref </span>e) =&gt; {
+                    e.find_at(pats, <span class="self">self</span>, haystack, at)
                 }
-                <a href="#415">Exec::TeddySlim2Mask256</a>(<span class="kw-2">ref </span>e) =&gt; {
-                    <a href="#149">e</a>.<a href="#646-652">find_at</a>(<a href="#105">pats</a>, <a class="self" href="#104">self</a>, <a href="#106">haystack</a>, <a href="#107">at</a>)
+                Exec::TeddySlim2Mask256(<span class="kw-2">ref </span>e) =&gt; {
+                    e.find_at(pats, <span class="self">self</span>, haystack, at)
                 }
-                <a href="#416">Exec::TeddyFat2Mask256</a>(<span class="kw-2">ref </span>e) =&gt; {
-                    <a href="#152">e</a>.<a href="#710-716">find_at</a>(<a href="#105">pats</a>, <a class="self" href="#104">self</a>, <a href="#106">haystack</a>, <a href="#107">at</a>)
+                Exec::TeddyFat2Mask256(<span class="kw-2">ref </span>e) =&gt; {
+                    e.find_at(pats, <span class="self">self</span>, haystack, at)
                 }
-                <a href="#417">Exec::TeddySlim3Mask128</a>(<span class="kw-2">ref </span>e) =&gt; {
-                    <a href="#155">e</a>.<a href="#777-783">find_at</a>(<a href="#105">pats</a>, <a class="self" href="#104">self</a>, <a href="#106">haystack</a>, <a href="#107">at</a>)
+                Exec::TeddySlim3Mask128(<span class="kw-2">ref </span>e) =&gt; {
+                    e.find_at(pats, <span class="self">self</span>, haystack, at)
                 }
-                <a href="#418">Exec::TeddySlim3Mask256</a>(<span class="kw-2">ref </span>e) =&gt; {
-                    <a href="#158">e</a>.<a href="#847-853">find_at</a>(<a href="#105">pats</a>, <a class="self" href="#104">self</a>, <a href="#106">haystack</a>, <a href="#107">at</a>)
+                Exec::TeddySlim3Mask256(<span class="kw-2">ref </span>e) =&gt; {
+                    e.find_at(pats, <span class="self">self</span>, haystack, at)
                 }
-                <a href="#419">Exec::TeddyFat3Mask256</a>(<span class="kw-2">ref </span>e) =&gt; {
-                    <a href="#161">e</a>.<a href="#918-924">find_at</a>(<a href="#105">pats</a>, <a class="self" href="#104">self</a>, <a href="#106">haystack</a>, <a href="#107">at</a>)
+                Exec::TeddyFat3Mask256(<span class="kw-2">ref </span>e) =&gt; {
+                    e.find_at(pats, <span class="self">self</span>, haystack, at)
                 }
             }
         }
@@ -1372,29 +1372,29 @@
     <span class="doccomment">/// Returns the minimum length of a haystack that must be provided by
     /// callers to this Teddy searcher. Providing a haystack shorter than this
     /// will result in a panic, but will never violate memory safety.
-    </span><span class="kw">pub fn </span>minimum_len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
+    </span><span class="kw">pub fn </span>minimum_len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
         <span class="comment">// SAFETY: These values must be correct in order to ensure safety.
         // The Teddy runtime assumes their haystacks have at least these
         // lengths. Violating this will sacrifice memory safety.
-        </span><span class="kw">match </span><a class="self" href="#171">self</a>.exec {
-            <a href="#411">Exec::TeddySlim1Mask128</a>(<span class="kw">_</span>) =&gt; <span class="number">16</span>,
-            <a href="#412">Exec::TeddySlim1Mask256</a>(<span class="kw">_</span>) =&gt; <span class="number">32</span>,
-            <a href="#413">Exec::TeddyFat1Mask256</a>(<span class="kw">_</span>) =&gt; <span class="number">16</span>,
-            <a href="#414">Exec::TeddySlim2Mask128</a>(<span class="kw">_</span>) =&gt; <span class="number">17</span>,
-            <a href="#415">Exec::TeddySlim2Mask256</a>(<span class="kw">_</span>) =&gt; <span class="number">33</span>,
-            <a href="#416">Exec::TeddyFat2Mask256</a>(<span class="kw">_</span>) =&gt; <span class="number">17</span>,
-            <a href="#417">Exec::TeddySlim3Mask128</a>(<span class="kw">_</span>) =&gt; <span class="number">18</span>,
-            <a href="#418">Exec::TeddySlim3Mask256</a>(<span class="kw">_</span>) =&gt; <span class="number">34</span>,
-            <a href="#419">Exec::TeddyFat3Mask256</a>(<span class="kw">_</span>) =&gt; <span class="number">34</span>,
+        </span><span class="kw">match </span><span class="self">self</span>.exec {
+            Exec::TeddySlim1Mask128(<span class="kw">_</span>) =&gt; <span class="number">16</span>,
+            Exec::TeddySlim1Mask256(<span class="kw">_</span>) =&gt; <span class="number">32</span>,
+            Exec::TeddyFat1Mask256(<span class="kw">_</span>) =&gt; <span class="number">16</span>,
+            Exec::TeddySlim2Mask128(<span class="kw">_</span>) =&gt; <span class="number">17</span>,
+            Exec::TeddySlim2Mask256(<span class="kw">_</span>) =&gt; <span class="number">33</span>,
+            Exec::TeddyFat2Mask256(<span class="kw">_</span>) =&gt; <span class="number">17</span>,
+            Exec::TeddySlim3Mask128(<span class="kw">_</span>) =&gt; <span class="number">18</span>,
+            Exec::TeddySlim3Mask256(<span class="kw">_</span>) =&gt; <span class="number">34</span>,
+            Exec::TeddyFat3Mask256(<span class="kw">_</span>) =&gt; <span class="number">34</span>,
         }
     }
 
     <span class="doccomment">/// Returns the approximate total amount of heap used by this searcher, in
     /// units of bytes.
-    </span><span class="kw">pub fn </span>heap_bytes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <span class="kw">let </span>num_patterns = <a class="self" href="#190">self</a>.max_pattern_id <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> + <span class="number">1</span>;
-        <a class="self" href="#190">self</a>.buckets.len() * mem::size_of::&lt;Vec&lt;<a href="../pattern.rs.html#13">PatternID</a>&gt;&gt;()
-            + <a href="#191">num_patterns</a> * mem::size_of::&lt;<a href="../pattern.rs.html#13">PatternID</a>&gt;()
+    </span><span class="kw">pub fn </span>heap_bytes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+        <span class="kw">let </span>num_patterns = <span class="self">self</span>.max_pattern_id <span class="kw">as </span>usize + <span class="number">1</span>;
+        <span class="self">self</span>.buckets.len() * mem::size_of::&lt;Vec&lt;PatternID&gt;&gt;()
+            + num_patterns * mem::size_of::&lt;PatternID&gt;()
     }
 
     <span class="doccomment">/// Runs the verification routine for Slim 128-bit Teddy.
@@ -1409,17 +1409,17 @@
     </span><span class="attr">#[inline(always)]
     </span><span class="kw">unsafe fn </span>verify128(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        pats: <span class="kw-2">&amp;</span><a href="../pattern.rs.html#25">Patterns</a>,
-        haystack: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
-        at: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-        cand: <a href="https://doc.rust-lang.org/nightly/core/core_arch/x86/struct.__m128i.html">__m128i</a>,
-    ) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="../../lib.rs.html#239">Match</a>&gt; {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(!is_all_zeroes128(cand));
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert_eq.html">debug_assert_eq!</a>(<span class="number">8</span>, <span class="self">self</span>.buckets.len());
+        pats: <span class="kw-2">&amp;</span>Patterns,
+        haystack: <span class="kw-2">&amp;</span>[u8],
+        at: usize,
+        cand: __m128i,
+    ) -&gt; <span class="prelude-ty">Option</span>&lt;Match&gt; {
+        <span class="macro">debug_assert!</span>(!is_all_zeroes128(cand));
+        <span class="macro">debug_assert_eq!</span>(<span class="number">8</span>, <span class="self">self</span>.buckets.len());
 
         <span class="comment">// Convert the candidate into 64-bit chunks, and then verify each of
         // those chunks.
-        </span><span class="kw">let </span>parts = <a href="../vector.rs.html#75">unpack64x128</a>(<a href="#211">cand</a>);
+        </span><span class="kw">let </span>parts = unpack64x128(cand);
         <span class="kw">for </span>(i, <span class="kw-2">&amp;</span>part) <span class="kw">in </span>parts.iter().enumerate() {
             <span class="kw">let </span>pos = at + i * <span class="number">8</span>;
             <span class="kw">if let </span><span class="prelude-val">Some</span>(m) = <span class="self">self</span>.verify64(pats, <span class="number">8</span>, haystack, pos, part) {
@@ -1441,17 +1441,17 @@
     </span><span class="attr">#[inline(always)]
     </span><span class="kw">unsafe fn </span>verify256(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        pats: <span class="kw-2">&amp;</span><a href="../pattern.rs.html#25">Patterns</a>,
-        haystack: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
-        at: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-        cand: <a href="https://doc.rust-lang.org/nightly/core/core_arch/x86/struct.__m256i.html">__m256i</a>,
-    ) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="../../lib.rs.html#239">Match</a>&gt; {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(!is_all_zeroes256(cand));
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert_eq.html">debug_assert_eq!</a>(<span class="number">8</span>, <span class="self">self</span>.buckets.len());
+        pats: <span class="kw-2">&amp;</span>Patterns,
+        haystack: <span class="kw-2">&amp;</span>[u8],
+        at: usize,
+        cand: __m256i,
+    ) -&gt; <span class="prelude-ty">Option</span>&lt;Match&gt; {
+        <span class="macro">debug_assert!</span>(!is_all_zeroes256(cand));
+        <span class="macro">debug_assert_eq!</span>(<span class="number">8</span>, <span class="self">self</span>.buckets.len());
 
         <span class="comment">// Convert the candidate into 64-bit chunks, and then verify each of
         // those chunks.
-        </span><span class="kw">let </span>parts = <a href="../vector.rs.html#86">unpack64x256</a>(<a href="#243">cand</a>);
+        </span><span class="kw">let </span>parts = unpack64x256(cand);
         <span class="kw">for </span>(i, <span class="kw-2">&amp;</span>part) <span class="kw">in </span>parts.iter().enumerate() {
             <span class="kw">let </span>pos = at + i * <span class="number">8</span>;
             <span class="kw">if let </span><span class="prelude-val">Some</span>(m) = <span class="self">self</span>.verify64(pats, <span class="number">8</span>, haystack, pos, part) {
@@ -1474,13 +1474,13 @@
     </span><span class="attr">#[inline(always)]
     </span><span class="kw">unsafe fn </span>verify_fat256(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        pats: <span class="kw-2">&amp;</span><a href="../pattern.rs.html#25">Patterns</a>,
-        haystack: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
-        at: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-        cand: <a href="https://doc.rust-lang.org/nightly/core/core_arch/x86/struct.__m256i.html">__m256i</a>,
-    ) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="../../lib.rs.html#239">Match</a>&gt; {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(!is_all_zeroes256(cand));
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert_eq.html">debug_assert_eq!</a>(<span class="number">16</span>, <span class="self">self</span>.buckets.len());
+        pats: <span class="kw-2">&amp;</span>Patterns,
+        haystack: <span class="kw-2">&amp;</span>[u8],
+        at: usize,
+        cand: __m256i,
+    ) -&gt; <span class="prelude-ty">Option</span>&lt;Match&gt; {
+        <span class="macro">debug_assert!</span>(!is_all_zeroes256(cand));
+        <span class="macro">debug_assert_eq!</span>(<span class="number">16</span>, <span class="self">self</span>.buckets.len());
 
         <span class="comment">// This is a bit tricky, but we basically want to convert our
         // candidate, which looks like this
@@ -1505,19 +1505,19 @@
         // change: we treat each bitset as 16 bits instead of 8 bits.
 
         // Swap the 128-bit lanes in the candidate vector.
-        </span><span class="kw">let </span>swap = _mm256_permute4x64_epi64(<a href="#276">cand</a>, <span class="number">0x4E</span>);
+        </span><span class="kw">let </span>swap = _mm256_permute4x64_epi64(cand, <span class="number">0x4E</span>);
         <span class="comment">// Interleave the bytes from the low 128-bit lanes, starting with
         // cand first.
-        </span><span class="kw">let </span>r1 = _mm256_unpacklo_epi8(<a href="#276">cand</a>, <a href="#304">swap</a>);
+        </span><span class="kw">let </span>r1 = _mm256_unpacklo_epi8(cand, swap);
         <span class="comment">// Interleave the bytes from the high 128-bit lanes, starting with
         // cand first.
-        </span><span class="kw">let </span>r2 = _mm256_unpackhi_epi8(<a href="#276">cand</a>, <a href="#304">swap</a>);
+        </span><span class="kw">let </span>r2 = _mm256_unpackhi_epi8(cand, swap);
         <span class="comment">// Now just take the 2 low 64-bit integers from both r1 and r2. We
         // can drop the high 64-bit integers because they are a mirror image
         // of the low 64-bit integers. All we care about are the low 128-bit
         // lanes of r1 and r2. Combined, they contain all our 16-bit bitsets
         // laid out in the desired order, as described above.
-        </span><span class="kw">let </span>parts = <a href="../vector.rs.html#106">unpacklo64x256</a>(<a href="#307">r1</a>, <a href="#310">r2</a>);
+        </span><span class="kw">let </span>parts = unpacklo64x256(r1, r2);
         <span class="kw">for </span>(i, <span class="kw-2">&amp;</span>part) <span class="kw">in </span>parts.iter().enumerate() {
             <span class="kw">let </span>pos = at + i * <span class="number">4</span>;
             <span class="kw">if let </span><span class="prelude-val">Some</span>(m) = <span class="self">self</span>.verify64(pats, <span class="number">16</span>, haystack, pos, part) {
@@ -1533,16 +1533,16 @@
     </span><span class="attr">#[inline(always)]
     </span><span class="kw">fn </span>verify64(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        pats: <span class="kw-2">&amp;</span><a href="../pattern.rs.html#25">Patterns</a>,
-        bucket_count: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-        haystack: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
-        at: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-        <span class="kw-2">mut </span>cand: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>,
-    ) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="../../lib.rs.html#239">Match</a>&gt; {
+        pats: <span class="kw-2">&amp;</span>Patterns,
+        bucket_count: usize,
+        haystack: <span class="kw-2">&amp;</span>[u8],
+        at: usize,
+        <span class="kw-2">mut </span>cand: u64,
+    ) -&gt; <span class="prelude-ty">Option</span>&lt;Match&gt; {
         <span class="comment">// N.B. While the bucket count is known from self.buckets.len(),
         // requiring it as a parameter makes it easier for the optimizer to
         // know its value, and thus produce more efficient codegen.
-        </span><a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(bucket_count == <span class="number">8 </span>|| bucket_count == <span class="number">16</span>);
+        </span><span class="macro">debug_assert!</span>(bucket_count == <span class="number">8 </span>|| bucket_count == <span class="number">16</span>);
         <span class="kw">while </span>cand != <span class="number">0 </span>{
             <span class="kw">let </span>bit = cand.trailing_zeros() <span class="kw">as </span>usize;
             cand &amp;= !(<span class="number">1 </span>&lt;&lt; bit);
@@ -1561,11 +1561,11 @@
     </span><span class="attr">#[inline(always)]
     </span><span class="kw">fn </span>verify_bucket(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        pats: <span class="kw-2">&amp;</span><a href="../pattern.rs.html#25">Patterns</a>,
-        haystack: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
-        bucket: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-        at: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-    ) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="../../lib.rs.html#239">Match</a>&gt; {
+        pats: <span class="kw-2">&amp;</span>Patterns,
+        haystack: <span class="kw-2">&amp;</span>[u8],
+        bucket: usize,
+        at: usize,
+    ) -&gt; <span class="prelude-ty">Option</span>&lt;Match&gt; {
         <span class="comment">// Forcing this function to not inline and be &quot;cold&quot; seems to help
         // the codegen for Teddy overall. Interestingly, this is good for a
         // 16% boost in the sherlock/packed/teddy/name/alt1 benchmark (among
@@ -1574,11 +1574,11 @@
         </span><span class="attr">#[cold]
         #[inline(never)]
         </span><span class="kw">fn </span>match_from_span(
-            pati: <a href="../pattern.rs.html#13">PatternID</a>,
-            start: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-            end: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-        ) -&gt; <a href="../../lib.rs.html#239">Match</a> {
-            Match::from_span(<a href="#373">pati</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="#374">start</a>, <a href="#375">end</a>)
+            pati: PatternID,
+            start: usize,
+            end: usize,
+        ) -&gt; Match {
+            Match::from_span(pati <span class="kw">as </span>usize, start, end)
         }
 
         <span class="comment">// N.B. The bounds check for this bucket lookup *should* be elided
@@ -1612,15 +1612,15 @@
 /// while the 256-bit searchers require AVX2.
 </span><span class="attr">#[derive(Clone, Debug)]
 </span><span class="kw">pub enum </span>Exec {
-    TeddySlim1Mask128(<a href="#427">TeddySlim1Mask128</a>),
-    TeddySlim1Mask256(<a href="#477">TeddySlim1Mask256</a>),
-    TeddyFat1Mask256(<a href="#527">TeddyFat1Mask256</a>),
-    TeddySlim2Mask128(<a href="#577">TeddySlim2Mask128</a>),
-    TeddySlim2Mask256(<a href="#639">TeddySlim2Mask256</a>),
-    TeddyFat2Mask256(<a href="#703">TeddyFat2Mask256</a>),
-    TeddySlim3Mask128(<a href="#769">TeddySlim3Mask128</a>),
-    TeddySlim3Mask256(<a href="#839">TeddySlim3Mask256</a>),
-    TeddyFat3Mask256(<a href="#910">TeddyFat3Mask256</a>),
+    TeddySlim1Mask128(TeddySlim1Mask128),
+    TeddySlim1Mask256(TeddySlim1Mask256),
+    TeddyFat1Mask256(TeddyFat1Mask256),
+    TeddySlim2Mask128(TeddySlim2Mask128),
+    TeddySlim2Mask256(TeddySlim2Mask256),
+    TeddyFat2Mask256(TeddyFat2Mask256),
+    TeddySlim3Mask128(TeddySlim3Mask128),
+    TeddySlim3Mask256(TeddySlim3Mask256),
+    TeddyFat3Mask256(TeddyFat3Mask256),
 }
 
 <span class="comment">// Most of the code below remains undocumented because they are effectively
@@ -1629,24 +1629,24 @@
 
 </span><span class="attr">#[derive(Clone, Debug)]
 </span><span class="kw">pub struct </span>TeddySlim1Mask128 {
-    <span class="kw">pub </span>mask1: <a href="#986">Mask128</a>,
+    <span class="kw">pub </span>mask1: Mask128,
 }
 
-<span class="kw">impl </span><a href="#427">TeddySlim1Mask128</a> {
+<span class="kw">impl </span>TeddySlim1Mask128 {
     <span class="attr">#[target_feature(enable = <span class="string">&quot;ssse3&quot;</span>)]
     </span><span class="kw">unsafe fn </span>find_at(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        pats: <span class="kw-2">&amp;</span><a href="../pattern.rs.html#25">Patterns</a>,
-        teddy: <span class="kw-2">&amp;</span><a href="#75">Teddy</a>,
-        haystack: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
-        <span class="kw-2">mut </span>at: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-    ) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="../../lib.rs.html#239">Match</a>&gt; {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(haystack[at..].len() &gt;= teddy.minimum_len());
+        pats: <span class="kw-2">&amp;</span>Patterns,
+        teddy: <span class="kw-2">&amp;</span>Teddy,
+        haystack: <span class="kw-2">&amp;</span>[u8],
+        <span class="kw-2">mut </span>at: usize,
+    ) -&gt; <span class="prelude-ty">Option</span>&lt;Match&gt; {
+        <span class="macro">debug_assert!</span>(haystack[at..].len() &gt;= teddy.minimum_len());
         <span class="comment">// This assert helps eliminate bounds checks for bucket lookups in
         // Teddy::verify_bucket, which has a small (3-4%) performance boost.
-        </span><a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert_eq.html">assert_eq!</a>(<span class="number">8</span>, teddy.buckets.len());
+        </span><span class="macro">assert_eq!</span>(<span class="number">8</span>, teddy.buckets.len());
 
-        <span class="kw">let </span>len = <a href="#437">haystack</a>.len();
+        <span class="kw">let </span>len = haystack.len();
         <span class="kw">while </span>at &lt;= len - <span class="number">16 </span>{
             <span class="kw">let </span>c = <span class="self">self</span>.candidate(haystack, at);
             <span class="kw">if </span>!is_all_zeroes128(c) {
@@ -1657,11 +1657,11 @@
             at += <span class="number">16</span>;
         }
         <span class="kw">if </span>at &lt; len {
-            <a href="#438">at</a> = <a href="#445">len</a> - <span class="number">16</span>;
-            <span class="kw">let </span>c = <a class="self" href="#434">self</a>.<a href="#468">candidate</a>(<a href="#437">haystack</a>, <a href="#438">at</a>);
+            at = len - <span class="number">16</span>;
+            <span class="kw">let </span>c = <span class="self">self</span>.candidate(haystack, at);
             <span class="kw">if </span>!is_all_zeroes128(c) {
-                <span class="kw">if let </span><span class="prelude-val">Some</span>(m) = <a href="#436">teddy</a>.<a href="#206-212">verify128</a>(<a href="#435">pats</a>, <a href="#437">haystack</a>, <a href="#438">at</a>, <a href="#457">c</a>) {
-                    <span class="kw">return </span><span class="prelude-val">Some</span>(<a href="#459">m</a>);
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(m) = teddy.verify128(pats, haystack, at, c) {
+                    <span class="kw">return </span><span class="prelude-val">Some</span>(m);
                 }
             }
         }
@@ -1669,34 +1669,34 @@
     </span>}
 
     <span class="attr">#[inline(always)]
-    </span><span class="kw">unsafe fn </span>candidate(<span class="kw-2">&amp;</span><span class="self">self</span>, haystack: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], at: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/core_arch/x86/struct.__m128i.html">__m128i</a> {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(haystack[at..].len() &gt;= <span class="number">16</span>);
+    </span><span class="kw">unsafe fn </span>candidate(<span class="kw-2">&amp;</span><span class="self">self</span>, haystack: <span class="kw-2">&amp;</span>[u8], at: usize) -&gt; __m128i {
+        <span class="macro">debug_assert!</span>(haystack[at..].len() &gt;= <span class="number">16</span>);
 
-        <span class="kw">let </span>chunk = <a href="../vector.rs.html#140">loadu128</a>(<a href="#468">haystack</a>, <a href="#468">at</a>);
-        <a href="#1055">members1m128</a>(<a href="#471">chunk</a>, <a class="self" href="#468">self</a>.mask1)
+        <span class="kw">let </span>chunk = loadu128(haystack, at);
+        members1m128(chunk, <span class="self">self</span>.mask1)
     }
 }
 
 <span class="attr">#[derive(Clone, Debug)]
 </span><span class="kw">pub struct </span>TeddySlim1Mask256 {
-    <span class="kw">pub </span>mask1: <a href="#1020">Mask256</a>,
+    <span class="kw">pub </span>mask1: Mask256,
 }
 
-<span class="kw">impl </span><a href="#477">TeddySlim1Mask256</a> {
+<span class="kw">impl </span>TeddySlim1Mask256 {
     <span class="attr">#[target_feature(enable = <span class="string">&quot;avx2&quot;</span>)]
     </span><span class="kw">unsafe fn </span>find_at(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        pats: <span class="kw-2">&amp;</span><a href="../pattern.rs.html#25">Patterns</a>,
-        teddy: <span class="kw-2">&amp;</span><a href="#75">Teddy</a>,
-        haystack: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
-        <span class="kw-2">mut </span>at: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-    ) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="../../lib.rs.html#239">Match</a>&gt; {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(haystack[at..].len() &gt;= teddy.minimum_len());
+        pats: <span class="kw-2">&amp;</span>Patterns,
+        teddy: <span class="kw-2">&amp;</span>Teddy,
+        haystack: <span class="kw-2">&amp;</span>[u8],
+        <span class="kw-2">mut </span>at: usize,
+    ) -&gt; <span class="prelude-ty">Option</span>&lt;Match&gt; {
+        <span class="macro">debug_assert!</span>(haystack[at..].len() &gt;= teddy.minimum_len());
         <span class="comment">// This assert helps eliminate bounds checks for bucket lookups in
         // Teddy::verify_bucket, which has a small (3-4%) performance boost.
-        </span><a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert_eq.html">assert_eq!</a>(<span class="number">8</span>, teddy.buckets.len());
+        </span><span class="macro">assert_eq!</span>(<span class="number">8</span>, teddy.buckets.len());
 
-        <span class="kw">let </span>len = <a href="#487">haystack</a>.len();
+        <span class="kw">let </span>len = haystack.len();
         <span class="kw">while </span>at &lt;= len - <span class="number">32 </span>{
             <span class="kw">let </span>c = <span class="self">self</span>.candidate(haystack, at);
             <span class="kw">if </span>!is_all_zeroes256(c) {
@@ -1707,11 +1707,11 @@
             at += <span class="number">32</span>;
         }
         <span class="kw">if </span>at &lt; len {
-            <a href="#488">at</a> = <a href="#495">len</a> - <span class="number">32</span>;
-            <span class="kw">let </span>c = <a class="self" href="#484">self</a>.<a href="#518">candidate</a>(<a href="#487">haystack</a>, <a href="#488">at</a>);
+            at = len - <span class="number">32</span>;
+            <span class="kw">let </span>c = <span class="self">self</span>.candidate(haystack, at);
             <span class="kw">if </span>!is_all_zeroes256(c) {
-                <span class="kw">if let </span><span class="prelude-val">Some</span>(m) = <a href="#486">teddy</a>.<a href="#238-244">verify256</a>(<a href="#485">pats</a>, <a href="#487">haystack</a>, <a href="#488">at</a>, <a href="#507">c</a>) {
-                    <span class="kw">return </span><span class="prelude-val">Some</span>(<a href="#509">m</a>);
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(m) = teddy.verify256(pats, haystack, at, c) {
+                    <span class="kw">return </span><span class="prelude-val">Some</span>(m);
                 }
             }
         }
@@ -1719,34 +1719,34 @@
     </span>}
 
     <span class="attr">#[inline(always)]
-    </span><span class="kw">unsafe fn </span>candidate(<span class="kw-2">&amp;</span><span class="self">self</span>, haystack: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], at: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/core_arch/x86/struct.__m256i.html">__m256i</a> {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(haystack[at..].len() &gt;= <span class="number">32</span>);
+    </span><span class="kw">unsafe fn </span>candidate(<span class="kw-2">&amp;</span><span class="self">self</span>, haystack: <span class="kw-2">&amp;</span>[u8], at: usize) -&gt; __m256i {
+        <span class="macro">debug_assert!</span>(haystack[at..].len() &gt;= <span class="number">32</span>);
 
-        <span class="kw">let </span>chunk = <a href="../vector.rs.html#154">loadu256</a>(<a href="#518">haystack</a>, <a href="#518">at</a>);
-        <a href="#1074">members1m256</a>(<a href="#521">chunk</a>, <a class="self" href="#518">self</a>.mask1)
+        <span class="kw">let </span>chunk = loadu256(haystack, at);
+        members1m256(chunk, <span class="self">self</span>.mask1)
     }
 }
 
 <span class="attr">#[derive(Clone, Debug)]
 </span><span class="kw">pub struct </span>TeddyFat1Mask256 {
-    <span class="kw">pub </span>mask1: <a href="#1020">Mask256</a>,
+    <span class="kw">pub </span>mask1: Mask256,
 }
 
-<span class="kw">impl </span><a href="#527">TeddyFat1Mask256</a> {
+<span class="kw">impl </span>TeddyFat1Mask256 {
     <span class="attr">#[target_feature(enable = <span class="string">&quot;avx2&quot;</span>)]
     </span><span class="kw">unsafe fn </span>find_at(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        pats: <span class="kw-2">&amp;</span><a href="../pattern.rs.html#25">Patterns</a>,
-        teddy: <span class="kw-2">&amp;</span><a href="#75">Teddy</a>,
-        haystack: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
-        <span class="kw-2">mut </span>at: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-    ) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="../../lib.rs.html#239">Match</a>&gt; {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(haystack[at..].len() &gt;= teddy.minimum_len());
+        pats: <span class="kw-2">&amp;</span>Patterns,
+        teddy: <span class="kw-2">&amp;</span>Teddy,
+        haystack: <span class="kw-2">&amp;</span>[u8],
+        <span class="kw-2">mut </span>at: usize,
+    ) -&gt; <span class="prelude-ty">Option</span>&lt;Match&gt; {
+        <span class="macro">debug_assert!</span>(haystack[at..].len() &gt;= teddy.minimum_len());
         <span class="comment">// This assert helps eliminate bounds checks for bucket lookups in
         // Teddy::verify_bucket, which has a small (3-4%) performance boost.
-        </span><a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert_eq.html">assert_eq!</a>(<span class="number">16</span>, teddy.buckets.len());
+        </span><span class="macro">assert_eq!</span>(<span class="number">16</span>, teddy.buckets.len());
 
-        <span class="kw">let </span>len = <a href="#537">haystack</a>.len();
+        <span class="kw">let </span>len = haystack.len();
         <span class="kw">while </span>at &lt;= len - <span class="number">16 </span>{
             <span class="kw">let </span>c = <span class="self">self</span>.candidate(haystack, at);
             <span class="kw">if </span>!is_all_zeroes256(c) {
@@ -1757,11 +1757,11 @@
             at += <span class="number">16</span>;
         }
         <span class="kw">if </span>at &lt; len {
-            <a href="#538">at</a> = <a href="#545">len</a> - <span class="number">16</span>;
-            <span class="kw">let </span>c = <a class="self" href="#534">self</a>.<a href="#568">candidate</a>(<a href="#537">haystack</a>, <a href="#538">at</a>);
+            at = len - <span class="number">16</span>;
+            <span class="kw">let </span>c = <span class="self">self</span>.candidate(haystack, at);
             <span class="kw">if </span>!is_all_zeroes256(c) {
-                <span class="kw">if let </span><span class="prelude-val">Some</span>(m) = <a href="#536">teddy</a>.<a href="#271-277">verify_fat256</a>(<a href="#535">pats</a>, <a href="#537">haystack</a>, <a href="#538">at</a>, <a href="#557">c</a>) {
-                    <span class="kw">return </span><span class="prelude-val">Some</span>(<a href="#559">m</a>);
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(m) = teddy.verify_fat256(pats, haystack, at, c) {
+                    <span class="kw">return </span><span class="prelude-val">Some</span>(m);
                 }
             }
         }
@@ -1769,37 +1769,37 @@
     </span>}
 
     <span class="attr">#[inline(always)]
-    </span><span class="kw">unsafe fn </span>candidate(<span class="kw-2">&amp;</span><span class="self">self</span>, haystack: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], at: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/core_arch/x86/struct.__m256i.html">__m256i</a> {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(haystack[at..].len() &gt;= <span class="number">16</span>);
+    </span><span class="kw">unsafe fn </span>candidate(<span class="kw-2">&amp;</span><span class="self">self</span>, haystack: <span class="kw-2">&amp;</span>[u8], at: usize) -&gt; __m256i {
+        <span class="macro">debug_assert!</span>(haystack[at..].len() &gt;= <span class="number">16</span>);
 
-        <span class="kw">let </span>chunk = _mm256_broadcastsi128_si256(<a href="../vector.rs.html#140">loadu128</a>(<a href="#568">haystack</a>, <a href="#568">at</a>));
-        <a href="#1074">members1m256</a>(<a href="#571">chunk</a>, <a class="self" href="#568">self</a>.mask1)
+        <span class="kw">let </span>chunk = _mm256_broadcastsi128_si256(loadu128(haystack, at));
+        members1m256(chunk, <span class="self">self</span>.mask1)
     }
 }
 
 <span class="attr">#[derive(Clone, Debug)]
 </span><span class="kw">pub struct </span>TeddySlim2Mask128 {
-    <span class="kw">pub </span>mask1: <a href="#986">Mask128</a>,
-    <span class="kw">pub </span>mask2: <a href="#986">Mask128</a>,
+    <span class="kw">pub </span>mask1: Mask128,
+    <span class="kw">pub </span>mask2: Mask128,
 }
 
-<span class="kw">impl </span><a href="#577">TeddySlim2Mask128</a> {
+<span class="kw">impl </span>TeddySlim2Mask128 {
     <span class="attr">#[target_feature(enable = <span class="string">&quot;ssse3&quot;</span>)]
     </span><span class="kw">unsafe fn </span>find_at(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        pats: <span class="kw-2">&amp;</span><a href="../pattern.rs.html#25">Patterns</a>,
-        teddy: <span class="kw-2">&amp;</span><a href="#75">Teddy</a>,
-        haystack: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
-        <span class="kw-2">mut </span>at: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-    ) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="../../lib.rs.html#239">Match</a>&gt; {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(haystack[at..].len() &gt;= teddy.minimum_len());
+        pats: <span class="kw-2">&amp;</span>Patterns,
+        teddy: <span class="kw-2">&amp;</span>Teddy,
+        haystack: <span class="kw-2">&amp;</span>[u8],
+        <span class="kw-2">mut </span>at: usize,
+    ) -&gt; <span class="prelude-ty">Option</span>&lt;Match&gt; {
+        <span class="macro">debug_assert!</span>(haystack[at..].len() &gt;= teddy.minimum_len());
         <span class="comment">// This assert helps eliminate bounds checks for bucket lookups in
         // Teddy::verify_bucket, which has a small (3-4%) performance boost.
-        </span><a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert_eq.html">assert_eq!</a>(<span class="number">8</span>, teddy.buckets.len());
+        </span><span class="macro">assert_eq!</span>(<span class="number">8</span>, teddy.buckets.len());
 
-        <a href="#589">at</a> += <span class="number">1</span>;
-        <span class="kw">let </span>len = <a href="#588">haystack</a>.len();
-        <span class="kw">let </span><span class="kw-2">mut </span>prev0 = <a href="../vector.rs.html#173">ones128</a>();
+        at += <span class="number">1</span>;
+        <span class="kw">let </span>len = haystack.len();
+        <span class="kw">let </span><span class="kw-2">mut </span>prev0 = ones128();
         <span class="kw">while </span>at &lt;= len - <span class="number">16 </span>{
             <span class="kw">let </span>c = <span class="self">self</span>.candidate(haystack, at, <span class="kw-2">&amp;mut </span>prev0);
             <span class="kw">if </span>!is_all_zeroes128(c) {
@@ -1810,13 +1810,13 @@
             at += <span class="number">16</span>;
         }
         <span class="kw">if </span>at &lt; len {
-            <a href="#589">at</a> = <a href="#597">len</a> - <span class="number">16</span>;
-            <a href="#598">prev0</a> = <a href="../vector.rs.html#173">ones128</a>();
+            at = len - <span class="number">16</span>;
+            prev0 = ones128();
 
-            <span class="kw">let </span>c = <a class="self" href="#585">self</a>.<a href="#623-628">candidate</a>(<a href="#588">haystack</a>, <a href="#589">at</a>, <span class="kw-2">&amp;mut </span><a href="#598">prev0</a>);
+            <span class="kw">let </span>c = <span class="self">self</span>.candidate(haystack, at, <span class="kw-2">&amp;mut </span>prev0);
             <span class="kw">if </span>!is_all_zeroes128(c) {
-                <span class="kw">if let </span><span class="prelude-val">Some</span>(m) = <a href="#587">teddy</a>.<a href="#206-212">verify128</a>(<a href="#586">pats</a>, <a href="#588">haystack</a>, <a href="#589">at</a> - <span class="number">1</span>, <a href="#612">c</a>) {
-                    <span class="kw">return </span><span class="prelude-val">Some</span>(<a href="#614">m</a>);
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(m) = teddy.verify128(pats, haystack, at - <span class="number">1</span>, c) {
+                    <span class="kw">return </span><span class="prelude-val">Some</span>(m);
                 }
             }
         }
@@ -1826,42 +1826,42 @@
     <span class="attr">#[inline(always)]
     </span><span class="kw">unsafe fn </span>candidate(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        haystack: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
-        at: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-        prev0: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/core_arch/x86/struct.__m128i.html">__m128i</a>,
-    ) -&gt; <a href="https://doc.rust-lang.org/nightly/core/core_arch/x86/struct.__m128i.html">__m128i</a> {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(haystack[at..].len() &gt;= <span class="number">16</span>);
+        haystack: <span class="kw-2">&amp;</span>[u8],
+        at: usize,
+        prev0: <span class="kw-2">&amp;mut </span>__m128i,
+    ) -&gt; __m128i {
+        <span class="macro">debug_assert!</span>(haystack[at..].len() &gt;= <span class="number">16</span>);
 
-        <span class="kw">let </span>chunk = <a href="../vector.rs.html#140">loadu128</a>(<a href="#625">haystack</a>, <a href="#626">at</a>);
-        <span class="kw">let </span>(res0, res1) = <a href="#1091-1095">members2m128</a>(<a href="#631">chunk</a>, <a class="self" href="#624">self</a>.mask1, <a class="self" href="#624">self</a>.mask2);
-        <span class="kw">let </span>res0prev0 = _mm_alignr_epi8(<a href="#632">res0</a>, <span class="kw-2">*</span><a href="#627">prev0</a>, <span class="number">15</span>);
-        _mm_and_si128(<a href="#633">res0prev0</a>, <a href="#632">res1</a>)
+        <span class="kw">let </span>chunk = loadu128(haystack, at);
+        <span class="kw">let </span>(res0, res1) = members2m128(chunk, <span class="self">self</span>.mask1, <span class="self">self</span>.mask2);
+        <span class="kw">let </span>res0prev0 = _mm_alignr_epi8(res0, <span class="kw-2">*</span>prev0, <span class="number">15</span>);
+        _mm_and_si128(res0prev0, res1)
     }
 }
 
 <span class="attr">#[derive(Clone, Debug)]
 </span><span class="kw">pub struct </span>TeddySlim2Mask256 {
-    <span class="kw">pub </span>mask1: <a href="#1020">Mask256</a>,
-    <span class="kw">pub </span>mask2: <a href="#1020">Mask256</a>,
+    <span class="kw">pub </span>mask1: Mask256,
+    <span class="kw">pub </span>mask2: Mask256,
 }
 
-<span class="kw">impl </span><a href="#639">TeddySlim2Mask256</a> {
+<span class="kw">impl </span>TeddySlim2Mask256 {
     <span class="attr">#[target_feature(enable = <span class="string">&quot;avx2&quot;</span>)]
     </span><span class="kw">unsafe fn </span>find_at(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        pats: <span class="kw-2">&amp;</span><a href="../pattern.rs.html#25">Patterns</a>,
-        teddy: <span class="kw-2">&amp;</span><a href="#75">Teddy</a>,
-        haystack: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
-        <span class="kw-2">mut </span>at: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-    ) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="../../lib.rs.html#239">Match</a>&gt; {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(haystack[at..].len() &gt;= teddy.minimum_len());
+        pats: <span class="kw-2">&amp;</span>Patterns,
+        teddy: <span class="kw-2">&amp;</span>Teddy,
+        haystack: <span class="kw-2">&amp;</span>[u8],
+        <span class="kw-2">mut </span>at: usize,
+    ) -&gt; <span class="prelude-ty">Option</span>&lt;Match&gt; {
+        <span class="macro">debug_assert!</span>(haystack[at..].len() &gt;= teddy.minimum_len());
         <span class="comment">// This assert helps eliminate bounds checks for bucket lookups in
         // Teddy::verify_bucket, which has a small (3-4%) performance boost.
-        </span><a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert_eq.html">assert_eq!</a>(<span class="number">8</span>, teddy.buckets.len());
+        </span><span class="macro">assert_eq!</span>(<span class="number">8</span>, teddy.buckets.len());
 
-        <a href="#651">at</a> += <span class="number">1</span>;
-        <span class="kw">let </span>len = <a href="#650">haystack</a>.len();
-        <span class="kw">let </span><span class="kw-2">mut </span>prev0 = <a href="../vector.rs.html#179">ones256</a>();
+        at += <span class="number">1</span>;
+        <span class="kw">let </span>len = haystack.len();
+        <span class="kw">let </span><span class="kw-2">mut </span>prev0 = ones256();
         <span class="kw">while </span>at &lt;= len - <span class="number">32 </span>{
             <span class="kw">let </span>c = <span class="self">self</span>.candidate(haystack, at, <span class="kw-2">&amp;mut </span>prev0);
             <span class="kw">if </span>!is_all_zeroes256(c) {
@@ -1872,13 +1872,13 @@
             at += <span class="number">32</span>;
         }
         <span class="kw">if </span>at &lt; len {
-            <a href="#651">at</a> = <a href="#659">len</a> - <span class="number">32</span>;
-            <a href="#660">prev0</a> = <a href="../vector.rs.html#179">ones256</a>();
+            at = len - <span class="number">32</span>;
+            prev0 = ones256();
 
-            <span class="kw">let </span>c = <a class="self" href="#647">self</a>.<a href="#685-690">candidate</a>(<a href="#650">haystack</a>, <a href="#651">at</a>, <span class="kw-2">&amp;mut </span><a href="#660">prev0</a>);
+            <span class="kw">let </span>c = <span class="self">self</span>.candidate(haystack, at, <span class="kw-2">&amp;mut </span>prev0);
             <span class="kw">if </span>!is_all_zeroes256(c) {
-                <span class="kw">if let </span><span class="prelude-val">Some</span>(m) = <a href="#649">teddy</a>.<a href="#238-244">verify256</a>(<a href="#648">pats</a>, <a href="#650">haystack</a>, <a href="#651">at</a> - <span class="number">1</span>, <a href="#674">c</a>) {
-                    <span class="kw">return </span><span class="prelude-val">Some</span>(<a href="#676">m</a>);
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(m) = teddy.verify256(pats, haystack, at - <span class="number">1</span>, c) {
+                    <span class="kw">return </span><span class="prelude-val">Some</span>(m);
                 }
             }
         }
@@ -1888,44 +1888,44 @@
     <span class="attr">#[inline(always)]
     </span><span class="kw">unsafe fn </span>candidate(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        haystack: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
-        at: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-        prev0: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/core_arch/x86/struct.__m256i.html">__m256i</a>,
-    ) -&gt; <a href="https://doc.rust-lang.org/nightly/core/core_arch/x86/struct.__m256i.html">__m256i</a> {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(haystack[at..].len() &gt;= <span class="number">32</span>);
+        haystack: <span class="kw-2">&amp;</span>[u8],
+        at: usize,
+        prev0: <span class="kw-2">&amp;mut </span>__m256i,
+    ) -&gt; __m256i {
+        <span class="macro">debug_assert!</span>(haystack[at..].len() &gt;= <span class="number">32</span>);
 
-        <span class="kw">let </span>chunk = <a href="../vector.rs.html#154">loadu256</a>(<a href="#687">haystack</a>, <a href="#688">at</a>);
-        <span class="kw">let </span>(res0, res1) = <a href="#1121-1125">members2m256</a>(<a href="#693">chunk</a>, <a class="self" href="#686">self</a>.mask1, <a class="self" href="#686">self</a>.mask2);
-        <span class="kw">let </span>res0prev0 = <a href="../vector.rs.html#65">alignr256_15</a>(<a href="#694">res0</a>, <span class="kw-2">*</span><a href="#689">prev0</a>);
-        <span class="kw">let </span>res = _mm256_and_si256(<a href="#695">res0prev0</a>, <a href="#694">res1</a>);
-        <span class="kw-2">*</span><a href="#689">prev0</a> = <a href="#694">res0</a>;
-        <a href="#696">res</a>
+        <span class="kw">let </span>chunk = loadu256(haystack, at);
+        <span class="kw">let </span>(res0, res1) = members2m256(chunk, <span class="self">self</span>.mask1, <span class="self">self</span>.mask2);
+        <span class="kw">let </span>res0prev0 = alignr256_15(res0, <span class="kw-2">*</span>prev0);
+        <span class="kw">let </span>res = _mm256_and_si256(res0prev0, res1);
+        <span class="kw-2">*</span>prev0 = res0;
+        res
     }
 }
 
 <span class="attr">#[derive(Clone, Debug)]
 </span><span class="kw">pub struct </span>TeddyFat2Mask256 {
-    <span class="kw">pub </span>mask1: <a href="#1020">Mask256</a>,
-    <span class="kw">pub </span>mask2: <a href="#1020">Mask256</a>,
+    <span class="kw">pub </span>mask1: Mask256,
+    <span class="kw">pub </span>mask2: Mask256,
 }
 
-<span class="kw">impl </span><a href="#703">TeddyFat2Mask256</a> {
+<span class="kw">impl </span>TeddyFat2Mask256 {
     <span class="attr">#[target_feature(enable = <span class="string">&quot;avx2&quot;</span>)]
     </span><span class="kw">unsafe fn </span>find_at(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        pats: <span class="kw-2">&amp;</span><a href="../pattern.rs.html#25">Patterns</a>,
-        teddy: <span class="kw-2">&amp;</span><a href="#75">Teddy</a>,
-        haystack: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
-        <span class="kw-2">mut </span>at: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-    ) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="../../lib.rs.html#239">Match</a>&gt; {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(haystack[at..].len() &gt;= teddy.minimum_len());
+        pats: <span class="kw-2">&amp;</span>Patterns,
+        teddy: <span class="kw-2">&amp;</span>Teddy,
+        haystack: <span class="kw-2">&amp;</span>[u8],
+        <span class="kw-2">mut </span>at: usize,
+    ) -&gt; <span class="prelude-ty">Option</span>&lt;Match&gt; {
+        <span class="macro">debug_assert!</span>(haystack[at..].len() &gt;= teddy.minimum_len());
         <span class="comment">// This assert helps eliminate bounds checks for bucket lookups in
         // Teddy::verify_bucket, which has a small (3-4%) performance boost.
-        </span><a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert_eq.html">assert_eq!</a>(<span class="number">16</span>, teddy.buckets.len());
+        </span><span class="macro">assert_eq!</span>(<span class="number">16</span>, teddy.buckets.len());
 
-        <a href="#715">at</a> += <span class="number">1</span>;
-        <span class="kw">let </span>len = <a href="#714">haystack</a>.len();
-        <span class="kw">let </span><span class="kw-2">mut </span>prev0 = <a href="../vector.rs.html#179">ones256</a>();
+        at += <span class="number">1</span>;
+        <span class="kw">let </span>len = haystack.len();
+        <span class="kw">let </span><span class="kw-2">mut </span>prev0 = ones256();
         <span class="kw">while </span>at &lt;= len - <span class="number">16 </span>{
             <span class="kw">let </span>c = <span class="self">self</span>.candidate(haystack, at, <span class="kw-2">&amp;mut </span>prev0);
             <span class="kw">if </span>!is_all_zeroes256(c) {
@@ -1937,14 +1937,14 @@
             at += <span class="number">16</span>;
         }
         <span class="kw">if </span>at &lt; len {
-            <a href="#715">at</a> = <a href="#723">len</a> - <span class="number">16</span>;
-            <a href="#724">prev0</a> = <a href="../vector.rs.html#179">ones256</a>();
+            at = len - <span class="number">16</span>;
+            prev0 = ones256();
 
-            <span class="kw">let </span>c = <a class="self" href="#711">self</a>.<a href="#751-756">candidate</a>(<a href="#714">haystack</a>, <a href="#715">at</a>, <span class="kw-2">&amp;mut </span><a href="#724">prev0</a>);
+            <span class="kw">let </span>c = <span class="self">self</span>.candidate(haystack, at, <span class="kw-2">&amp;mut </span>prev0);
             <span class="kw">if </span>!is_all_zeroes256(c) {
-                <span class="kw">if let </span><span class="prelude-val">Some</span>(m) = <a href="#713">teddy</a>.<a href="#271-277">verify_fat256</a>(<a href="#712">pats</a>, <a href="#714">haystack</a>, <a href="#715">at</a> - <span class="number">1</span>, <a href="#739">c</a>)
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(m) = teddy.verify_fat256(pats, haystack, at - <span class="number">1</span>, c)
                 {
-                    <span class="kw">return </span><span class="prelude-val">Some</span>(<a href="#741">m</a>);
+                    <span class="kw">return </span><span class="prelude-val">Some</span>(m);
                 }
             }
         }
@@ -1954,45 +1954,45 @@
     <span class="attr">#[inline(always)]
     </span><span class="kw">unsafe fn </span>candidate(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        haystack: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
-        at: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-        prev0: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/core_arch/x86/struct.__m256i.html">__m256i</a>,
-    ) -&gt; <a href="https://doc.rust-lang.org/nightly/core/core_arch/x86/struct.__m256i.html">__m256i</a> {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(haystack[at..].len() &gt;= <span class="number">16</span>);
+        haystack: <span class="kw-2">&amp;</span>[u8],
+        at: usize,
+        prev0: <span class="kw-2">&amp;mut </span>__m256i,
+    ) -&gt; __m256i {
+        <span class="macro">debug_assert!</span>(haystack[at..].len() &gt;= <span class="number">16</span>);
 
-        <span class="kw">let </span>chunk = _mm256_broadcastsi128_si256(<a href="../vector.rs.html#140">loadu128</a>(<a href="#753">haystack</a>, <a href="#754">at</a>));
-        <span class="kw">let </span>(res0, res1) = <a href="#1121-1125">members2m256</a>(<a href="#759">chunk</a>, <a class="self" href="#752">self</a>.mask1, <a class="self" href="#752">self</a>.mask2);
-        <span class="kw">let </span>res0prev0 = _mm256_alignr_epi8(<a href="#760">res0</a>, <span class="kw-2">*</span><a href="#755">prev0</a>, <span class="number">15</span>);
-        <span class="kw">let </span>res = _mm256_and_si256(<a href="#761">res0prev0</a>, <a href="#760">res1</a>);
-        <span class="kw-2">*</span><a href="#755">prev0</a> = <a href="#760">res0</a>;
-        <a href="#762">res</a>
+        <span class="kw">let </span>chunk = _mm256_broadcastsi128_si256(loadu128(haystack, at));
+        <span class="kw">let </span>(res0, res1) = members2m256(chunk, <span class="self">self</span>.mask1, <span class="self">self</span>.mask2);
+        <span class="kw">let </span>res0prev0 = _mm256_alignr_epi8(res0, <span class="kw-2">*</span>prev0, <span class="number">15</span>);
+        <span class="kw">let </span>res = _mm256_and_si256(res0prev0, res1);
+        <span class="kw-2">*</span>prev0 = res0;
+        res
     }
 }
 
 <span class="attr">#[derive(Clone, Debug)]
 </span><span class="kw">pub struct </span>TeddySlim3Mask128 {
-    <span class="kw">pub </span>mask1: <a href="#986">Mask128</a>,
-    <span class="kw">pub </span>mask2: <a href="#986">Mask128</a>,
-    <span class="kw">pub </span>mask3: <a href="#986">Mask128</a>,
+    <span class="kw">pub </span>mask1: Mask128,
+    <span class="kw">pub </span>mask2: Mask128,
+    <span class="kw">pub </span>mask3: Mask128,
 }
 
-<span class="kw">impl </span><a href="#769">TeddySlim3Mask128</a> {
+<span class="kw">impl </span>TeddySlim3Mask128 {
     <span class="attr">#[target_feature(enable = <span class="string">&quot;ssse3&quot;</span>)]
     </span><span class="kw">unsafe fn </span>find_at(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        pats: <span class="kw-2">&amp;</span><a href="../pattern.rs.html#25">Patterns</a>,
-        teddy: <span class="kw-2">&amp;</span><a href="#75">Teddy</a>,
-        haystack: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
-        <span class="kw-2">mut </span>at: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-    ) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="../../lib.rs.html#239">Match</a>&gt; {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(haystack[at..].len() &gt;= teddy.minimum_len());
+        pats: <span class="kw-2">&amp;</span>Patterns,
+        teddy: <span class="kw-2">&amp;</span>Teddy,
+        haystack: <span class="kw-2">&amp;</span>[u8],
+        <span class="kw-2">mut </span>at: usize,
+    ) -&gt; <span class="prelude-ty">Option</span>&lt;Match&gt; {
+        <span class="macro">debug_assert!</span>(haystack[at..].len() &gt;= teddy.minimum_len());
         <span class="comment">// This assert helps eliminate bounds checks for bucket lookups in
         // Teddy::verify_bucket, which has a small (3-4%) performance boost.
-        </span><a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert_eq.html">assert_eq!</a>(<span class="number">8</span>, teddy.buckets.len());
+        </span><span class="macro">assert_eq!</span>(<span class="number">8</span>, teddy.buckets.len());
 
-        <a href="#782">at</a> += <span class="number">2</span>;
-        <span class="kw">let </span>len = <a href="#781">haystack</a>.len();
-        <span class="kw">let </span>(<span class="kw-2">mut </span>prev0, <span class="kw-2">mut </span>prev1) = (<a href="../vector.rs.html#173">ones128</a>(), <a href="../vector.rs.html#173">ones128</a>());
+        at += <span class="number">2</span>;
+        <span class="kw">let </span>len = haystack.len();
+        <span class="kw">let </span>(<span class="kw-2">mut </span>prev0, <span class="kw-2">mut </span>prev1) = (ones128(), ones128());
         <span class="kw">while </span>at &lt;= len - <span class="number">16 </span>{
             <span class="kw">let </span>c = <span class="self">self</span>.candidate(haystack, at, <span class="kw-2">&amp;mut </span>prev0, <span class="kw-2">&amp;mut </span>prev1);
             <span class="kw">if </span>!is_all_zeroes128(c) {
@@ -2003,14 +2003,14 @@
             at += <span class="number">16</span>;
         }
         <span class="kw">if </span>at &lt; len {
-            <a href="#782">at</a> = <a href="#790">len</a> - <span class="number">16</span>;
-            <a href="#791">prev0</a> = <a href="../vector.rs.html#173">ones128</a>();
-            <a href="#791">prev1</a> = <a href="../vector.rs.html#173">ones128</a>();
+            at = len - <span class="number">16</span>;
+            prev0 = ones128();
+            prev1 = ones128();
 
-            <span class="kw">let </span>c = <a class="self" href="#778">self</a>.<a href="#817-823">candidate</a>(<a href="#781">haystack</a>, <a href="#782">at</a>, <span class="kw-2">&amp;mut </span><a href="#791">prev0</a>, <span class="kw-2">&amp;mut </span><a href="#791">prev1</a>);
+            <span class="kw">let </span>c = <span class="self">self</span>.candidate(haystack, at, <span class="kw-2">&amp;mut </span>prev0, <span class="kw-2">&amp;mut </span>prev1);
             <span class="kw">if </span>!is_all_zeroes128(c) {
-                <span class="kw">if let </span><span class="prelude-val">Some</span>(m) = <a href="#780">teddy</a>.<a href="#206-212">verify128</a>(<a href="#779">pats</a>, <a href="#781">haystack</a>, <a href="#782">at</a> - <span class="number">2</span>, <a href="#806">c</a>) {
-                    <span class="kw">return </span><span class="prelude-val">Some</span>(<a href="#808">m</a>);
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(m) = teddy.verify128(pats, haystack, at - <span class="number">2</span>, c) {
+                    <span class="kw">return </span><span class="prelude-val">Some</span>(m);
                 }
             }
         }
@@ -2020,49 +2020,49 @@
     <span class="attr">#[inline(always)]
     </span><span class="kw">unsafe fn </span>candidate(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        haystack: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
-        at: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-        prev0: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/core_arch/x86/struct.__m128i.html">__m128i</a>,
-        prev1: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/core_arch/x86/struct.__m128i.html">__m128i</a>,
-    ) -&gt; <a href="https://doc.rust-lang.org/nightly/core/core_arch/x86/struct.__m128i.html">__m128i</a> {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(haystack[at..].len() &gt;= <span class="number">16</span>);
+        haystack: <span class="kw-2">&amp;</span>[u8],
+        at: usize,
+        prev0: <span class="kw-2">&amp;mut </span>__m128i,
+        prev1: <span class="kw-2">&amp;mut </span>__m128i,
+    ) -&gt; __m128i {
+        <span class="macro">debug_assert!</span>(haystack[at..].len() &gt;= <span class="number">16</span>);
 
-        <span class="kw">let </span>chunk = <a href="../vector.rs.html#140">loadu128</a>(<a href="#819">haystack</a>, <a href="#820">at</a>);
+        <span class="kw">let </span>chunk = loadu128(haystack, at);
         <span class="kw">let </span>(res0, res1, res2) =
-            <a href="#1147-1152">members3m128</a>(<a href="#826">chunk</a>, <a class="self" href="#818">self</a>.mask1, <a class="self" href="#818">self</a>.mask2, <a class="self" href="#818">self</a>.mask3);
-        <span class="kw">let </span>res0prev0 = _mm_alignr_epi8(<a href="#827">res0</a>, <span class="kw-2">*</span><a href="#821">prev0</a>, <span class="number">14</span>);
-        <span class="kw">let </span>res1prev1 = _mm_alignr_epi8(<a href="#827">res1</a>, <span class="kw-2">*</span><a href="#822">prev1</a>, <span class="number">15</span>);
-        <span class="kw">let </span>res = _mm_and_si128(_mm_and_si128(<a href="#829">res0prev0</a>, <a href="#830">res1prev1</a>), <a href="#827">res2</a>);
-        <span class="kw-2">*</span><a href="#821">prev0</a> = <a href="#827">res0</a>;
-        <span class="kw-2">*</span><a href="#822">prev1</a> = <a href="#827">res1</a>;
-        <a href="#831">res</a>
+            members3m128(chunk, <span class="self">self</span>.mask1, <span class="self">self</span>.mask2, <span class="self">self</span>.mask3);
+        <span class="kw">let </span>res0prev0 = _mm_alignr_epi8(res0, <span class="kw-2">*</span>prev0, <span class="number">14</span>);
+        <span class="kw">let </span>res1prev1 = _mm_alignr_epi8(res1, <span class="kw-2">*</span>prev1, <span class="number">15</span>);
+        <span class="kw">let </span>res = _mm_and_si128(_mm_and_si128(res0prev0, res1prev1), res2);
+        <span class="kw-2">*</span>prev0 = res0;
+        <span class="kw-2">*</span>prev1 = res1;
+        res
     }
 }
 
 <span class="attr">#[derive(Clone, Debug)]
 </span><span class="kw">pub struct </span>TeddySlim3Mask256 {
-    <span class="kw">pub </span>mask1: <a href="#1020">Mask256</a>,
-    <span class="kw">pub </span>mask2: <a href="#1020">Mask256</a>,
-    <span class="kw">pub </span>mask3: <a href="#1020">Mask256</a>,
+    <span class="kw">pub </span>mask1: Mask256,
+    <span class="kw">pub </span>mask2: Mask256,
+    <span class="kw">pub </span>mask3: Mask256,
 }
 
-<span class="kw">impl </span><a href="#839">TeddySlim3Mask256</a> {
+<span class="kw">impl </span>TeddySlim3Mask256 {
     <span class="attr">#[target_feature(enable = <span class="string">&quot;avx2&quot;</span>)]
     </span><span class="kw">unsafe fn </span>find_at(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        pats: <span class="kw-2">&amp;</span><a href="../pattern.rs.html#25">Patterns</a>,
-        teddy: <span class="kw-2">&amp;</span><a href="#75">Teddy</a>,
-        haystack: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
-        <span class="kw-2">mut </span>at: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-    ) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="../../lib.rs.html#239">Match</a>&gt; {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(haystack[at..].len() &gt;= teddy.minimum_len());
+        pats: <span class="kw-2">&amp;</span>Patterns,
+        teddy: <span class="kw-2">&amp;</span>Teddy,
+        haystack: <span class="kw-2">&amp;</span>[u8],
+        <span class="kw-2">mut </span>at: usize,
+    ) -&gt; <span class="prelude-ty">Option</span>&lt;Match&gt; {
+        <span class="macro">debug_assert!</span>(haystack[at..].len() &gt;= teddy.minimum_len());
         <span class="comment">// This assert helps eliminate bounds checks for bucket lookups in
         // Teddy::verify_bucket, which has a small (3-4%) performance boost.
-        </span><a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert_eq.html">assert_eq!</a>(<span class="number">8</span>, teddy.buckets.len());
+        </span><span class="macro">assert_eq!</span>(<span class="number">8</span>, teddy.buckets.len());
 
-        <a href="#852">at</a> += <span class="number">2</span>;
-        <span class="kw">let </span>len = <a href="#851">haystack</a>.len();
-        <span class="kw">let </span>(<span class="kw-2">mut </span>prev0, <span class="kw-2">mut </span>prev1) = (<a href="../vector.rs.html#179">ones256</a>(), <a href="../vector.rs.html#179">ones256</a>());
+        at += <span class="number">2</span>;
+        <span class="kw">let </span>len = haystack.len();
+        <span class="kw">let </span>(<span class="kw-2">mut </span>prev0, <span class="kw-2">mut </span>prev1) = (ones256(), ones256());
         <span class="kw">while </span>at &lt;= len - <span class="number">32 </span>{
             <span class="kw">let </span>c = <span class="self">self</span>.candidate(haystack, at, <span class="kw-2">&amp;mut </span>prev0, <span class="kw-2">&amp;mut </span>prev1);
             <span class="kw">if </span>!is_all_zeroes256(c) {
@@ -2073,14 +2073,14 @@
             at += <span class="number">32</span>;
         }
         <span class="kw">if </span>at &lt; len {
-            <a href="#852">at</a> = <a href="#860">len</a> - <span class="number">32</span>;
-            <a href="#861">prev0</a> = <a href="../vector.rs.html#179">ones256</a>();
-            <a href="#861">prev1</a> = <a href="../vector.rs.html#179">ones256</a>();
+            at = len - <span class="number">32</span>;
+            prev0 = ones256();
+            prev1 = ones256();
 
-            <span class="kw">let </span>c = <a class="self" href="#848">self</a>.<a href="#887-893">candidate</a>(<a href="#851">haystack</a>, <a href="#852">at</a>, <span class="kw-2">&amp;mut </span><a href="#861">prev0</a>, <span class="kw-2">&amp;mut </span><a href="#861">prev1</a>);
+            <span class="kw">let </span>c = <span class="self">self</span>.candidate(haystack, at, <span class="kw-2">&amp;mut </span>prev0, <span class="kw-2">&amp;mut </span>prev1);
             <span class="kw">if </span>!is_all_zeroes256(c) {
-                <span class="kw">if let </span><span class="prelude-val">Some</span>(m) = <a href="#850">teddy</a>.<a href="#238-244">verify256</a>(<a href="#849">pats</a>, <a href="#851">haystack</a>, <a href="#852">at</a> - <span class="number">2</span>, <a href="#876">c</a>) {
-                    <span class="kw">return </span><span class="prelude-val">Some</span>(<a href="#878">m</a>);
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(m) = teddy.verify256(pats, haystack, at - <span class="number">2</span>, c) {
+                    <span class="kw">return </span><span class="prelude-val">Some</span>(m);
                 }
             }
         }
@@ -2090,50 +2090,50 @@
     <span class="attr">#[inline(always)]
     </span><span class="kw">unsafe fn </span>candidate(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        haystack: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
-        at: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-        prev0: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/core_arch/x86/struct.__m256i.html">__m256i</a>,
-        prev1: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/core_arch/x86/struct.__m256i.html">__m256i</a>,
-    ) -&gt; <a href="https://doc.rust-lang.org/nightly/core/core_arch/x86/struct.__m256i.html">__m256i</a> {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(haystack[at..].len() &gt;= <span class="number">32</span>);
+        haystack: <span class="kw-2">&amp;</span>[u8],
+        at: usize,
+        prev0: <span class="kw-2">&amp;mut </span>__m256i,
+        prev1: <span class="kw-2">&amp;mut </span>__m256i,
+    ) -&gt; __m256i {
+        <span class="macro">debug_assert!</span>(haystack[at..].len() &gt;= <span class="number">32</span>);
 
-        <span class="kw">let </span>chunk = <a href="../vector.rs.html#154">loadu256</a>(<a href="#889">haystack</a>, <a href="#890">at</a>);
+        <span class="kw">let </span>chunk = loadu256(haystack, at);
         <span class="kw">let </span>(res0, res1, res2) =
-            <a href="#1182-1187">members3m256</a>(<a href="#896">chunk</a>, <a class="self" href="#888">self</a>.mask1, <a class="self" href="#888">self</a>.mask2, <a class="self" href="#888">self</a>.mask3);
-        <span class="kw">let </span>res0prev0 = <a href="../vector.rs.html#24">alignr256_14</a>(<a href="#897">res0</a>, <span class="kw-2">*</span><a href="#891">prev0</a>);
-        <span class="kw">let </span>res1prev1 = <a href="../vector.rs.html#65">alignr256_15</a>(<a href="#897">res1</a>, <span class="kw-2">*</span><a href="#892">prev1</a>);
+            members3m256(chunk, <span class="self">self</span>.mask1, <span class="self">self</span>.mask2, <span class="self">self</span>.mask3);
+        <span class="kw">let </span>res0prev0 = alignr256_14(res0, <span class="kw-2">*</span>prev0);
+        <span class="kw">let </span>res1prev1 = alignr256_15(res1, <span class="kw-2">*</span>prev1);
         <span class="kw">let </span>res =
-            _mm256_and_si256(_mm256_and_si256(<a href="#899">res0prev0</a>, <a href="#900">res1prev1</a>), <a href="#897">res2</a>);
-        <span class="kw-2">*</span><a href="#891">prev0</a> = <a href="#897">res0</a>;
-        <span class="kw-2">*</span><a href="#892">prev1</a> = <a href="#897">res1</a>;
-        <a href="#901">res</a>
+            _mm256_and_si256(_mm256_and_si256(res0prev0, res1prev1), res2);
+        <span class="kw-2">*</span>prev0 = res0;
+        <span class="kw-2">*</span>prev1 = res1;
+        res
     }
 }
 
 <span class="attr">#[derive(Clone, Debug)]
 </span><span class="kw">pub struct </span>TeddyFat3Mask256 {
-    <span class="kw">pub </span>mask1: <a href="#1020">Mask256</a>,
-    <span class="kw">pub </span>mask2: <a href="#1020">Mask256</a>,
-    <span class="kw">pub </span>mask3: <a href="#1020">Mask256</a>,
+    <span class="kw">pub </span>mask1: Mask256,
+    <span class="kw">pub </span>mask2: Mask256,
+    <span class="kw">pub </span>mask3: Mask256,
 }
 
-<span class="kw">impl </span><a href="#910">TeddyFat3Mask256</a> {
+<span class="kw">impl </span>TeddyFat3Mask256 {
     <span class="attr">#[target_feature(enable = <span class="string">&quot;avx2&quot;</span>)]
     </span><span class="kw">unsafe fn </span>find_at(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        pats: <span class="kw-2">&amp;</span><a href="../pattern.rs.html#25">Patterns</a>,
-        teddy: <span class="kw-2">&amp;</span><a href="#75">Teddy</a>,
-        haystack: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
-        <span class="kw-2">mut </span>at: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-    ) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="../../lib.rs.html#239">Match</a>&gt; {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(haystack[at..].len() &gt;= teddy.minimum_len());
+        pats: <span class="kw-2">&amp;</span>Patterns,
+        teddy: <span class="kw-2">&amp;</span>Teddy,
+        haystack: <span class="kw-2">&amp;</span>[u8],
+        <span class="kw-2">mut </span>at: usize,
+    ) -&gt; <span class="prelude-ty">Option</span>&lt;Match&gt; {
+        <span class="macro">debug_assert!</span>(haystack[at..].len() &gt;= teddy.minimum_len());
         <span class="comment">// This assert helps eliminate bounds checks for bucket lookups in
         // Teddy::verify_bucket, which has a small (3-4%) performance boost.
-        </span><a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert_eq.html">assert_eq!</a>(<span class="number">16</span>, teddy.buckets.len());
+        </span><span class="macro">assert_eq!</span>(<span class="number">16</span>, teddy.buckets.len());
 
-        <a href="#923">at</a> += <span class="number">2</span>;
-        <span class="kw">let </span>len = <a href="#922">haystack</a>.len();
-        <span class="kw">let </span>(<span class="kw-2">mut </span>prev0, <span class="kw-2">mut </span>prev1) = (<a href="../vector.rs.html#179">ones256</a>(), <a href="../vector.rs.html#179">ones256</a>());
+        at += <span class="number">2</span>;
+        <span class="kw">let </span>len = haystack.len();
+        <span class="kw">let </span>(<span class="kw-2">mut </span>prev0, <span class="kw-2">mut </span>prev1) = (ones256(), ones256());
         <span class="kw">while </span>at &lt;= len - <span class="number">16 </span>{
             <span class="kw">let </span>c = <span class="self">self</span>.candidate(haystack, at, <span class="kw-2">&amp;mut </span>prev0, <span class="kw-2">&amp;mut </span>prev1);
             <span class="kw">if </span>!is_all_zeroes256(c) {
@@ -2145,15 +2145,15 @@
             at += <span class="number">16</span>;
         }
         <span class="kw">if </span>at &lt; len {
-            <a href="#923">at</a> = <a href="#931">len</a> - <span class="number">16</span>;
-            <a href="#932">prev0</a> = <a href="../vector.rs.html#179">ones256</a>();
-            <a href="#932">prev1</a> = <a href="../vector.rs.html#179">ones256</a>();
+            at = len - <span class="number">16</span>;
+            prev0 = ones256();
+            prev1 = ones256();
 
-            <span class="kw">let </span>c = <a class="self" href="#919">self</a>.<a href="#960-966">candidate</a>(<a href="#922">haystack</a>, <a href="#923">at</a>, <span class="kw-2">&amp;mut </span><a href="#932">prev0</a>, <span class="kw-2">&amp;mut </span><a href="#932">prev1</a>);
+            <span class="kw">let </span>c = <span class="self">self</span>.candidate(haystack, at, <span class="kw-2">&amp;mut </span>prev0, <span class="kw-2">&amp;mut </span>prev1);
             <span class="kw">if </span>!is_all_zeroes256(c) {
-                <span class="kw">if let </span><span class="prelude-val">Some</span>(m) = <a href="#921">teddy</a>.<a href="#271-277">verify_fat256</a>(<a href="#920">pats</a>, <a href="#922">haystack</a>, <a href="#923">at</a> - <span class="number">2</span>, <a href="#948">c</a>)
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(m) = teddy.verify_fat256(pats, haystack, at - <span class="number">2</span>, c)
                 {
-                    <span class="kw">return </span><span class="prelude-val">Some</span>(<a href="#950">m</a>);
+                    <span class="kw">return </span><span class="prelude-val">Some</span>(m);
                 }
             }
         }
@@ -2163,23 +2163,23 @@
     <span class="attr">#[inline(always)]
     </span><span class="kw">unsafe fn </span>candidate(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        haystack: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
-        at: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-        prev0: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/core_arch/x86/struct.__m256i.html">__m256i</a>,
-        prev1: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/core_arch/x86/struct.__m256i.html">__m256i</a>,
-    ) -&gt; <a href="https://doc.rust-lang.org/nightly/core/core_arch/x86/struct.__m256i.html">__m256i</a> {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(haystack[at..].len() &gt;= <span class="number">16</span>);
+        haystack: <span class="kw-2">&amp;</span>[u8],
+        at: usize,
+        prev0: <span class="kw-2">&amp;mut </span>__m256i,
+        prev1: <span class="kw-2">&amp;mut </span>__m256i,
+    ) -&gt; __m256i {
+        <span class="macro">debug_assert!</span>(haystack[at..].len() &gt;= <span class="number">16</span>);
 
-        <span class="kw">let </span>chunk = _mm256_broadcastsi128_si256(<a href="../vector.rs.html#140">loadu128</a>(<a href="#962">haystack</a>, <a href="#963">at</a>));
+        <span class="kw">let </span>chunk = _mm256_broadcastsi128_si256(loadu128(haystack, at));
         <span class="kw">let </span>(res0, res1, res2) =
-            <a href="#1182-1187">members3m256</a>(<a href="#969">chunk</a>, <a class="self" href="#961">self</a>.mask1, <a class="self" href="#961">self</a>.mask2, <a class="self" href="#961">self</a>.mask3);
-        <span class="kw">let </span>res0prev0 = _mm256_alignr_epi8(<a href="#970">res0</a>, <span class="kw-2">*</span><a href="#964">prev0</a>, <span class="number">14</span>);
-        <span class="kw">let </span>res1prev1 = _mm256_alignr_epi8(<a href="#970">res1</a>, <span class="kw-2">*</span><a href="#965">prev1</a>, <span class="number">15</span>);
+            members3m256(chunk, <span class="self">self</span>.mask1, <span class="self">self</span>.mask2, <span class="self">self</span>.mask3);
+        <span class="kw">let </span>res0prev0 = _mm256_alignr_epi8(res0, <span class="kw-2">*</span>prev0, <span class="number">14</span>);
+        <span class="kw">let </span>res1prev1 = _mm256_alignr_epi8(res1, <span class="kw-2">*</span>prev1, <span class="number">15</span>);
         <span class="kw">let </span>res =
-            _mm256_and_si256(_mm256_and_si256(<a href="#972">res0prev0</a>, <a href="#973">res1prev1</a>), <a href="#970">res2</a>);
-        <span class="kw-2">*</span><a href="#964">prev0</a> = <a href="#970">res0</a>;
-        <span class="kw-2">*</span><a href="#965">prev1</a> = <a href="#970">res1</a>;
-        <a href="#974">res</a>
+            _mm256_and_si256(_mm256_and_si256(res0prev0, res1prev1), res2);
+        <span class="kw-2">*</span>prev0 = res0;
+        <span class="kw-2">*</span>prev1 = res1;
+        res
     }
 }
 
@@ -2188,19 +2188,19 @@
 /// the nybble `j` is in the bucket `i` at a particular position.
 </span><span class="attr">#[derive(Clone, Copy, Debug)]
 </span><span class="kw">pub struct </span>Mask128 {
-    lo: <a href="https://doc.rust-lang.org/nightly/core/core_arch/x86/struct.__m128i.html">__m128i</a>,
-    hi: <a href="https://doc.rust-lang.org/nightly/core/core_arch/x86/struct.__m128i.html">__m128i</a>,
+    lo: __m128i,
+    hi: __m128i,
 }
 
-<span class="kw">impl </span><a href="#986">Mask128</a> {
+<span class="kw">impl </span>Mask128 {
     <span class="doccomment">/// Create a new SIMD mask from the mask produced by the Teddy builder.
-    </span><span class="kw">pub fn </span>new(mask: <a href="compile.rs.html#331">compile::Mask</a>) -&gt; <a href="#986">Mask128</a> {
+    </span><span class="kw">pub fn </span>new(mask: compile::Mask) -&gt; Mask128 {
         <span class="comment">// SAFETY: This is safe since [u8; 16] has the same representation
         // as __m128i.
         </span><span class="kw">unsafe </span>{
-            <a href="#986">Mask128</a> {
-                lo: mem::transmute(<a href="#993">mask</a>.<a href="compile.rs.html#378">lo128</a>()),
-                hi: mem::transmute(<a href="#993">mask</a>.<a href="compile.rs.html#390">hi128</a>()),
+            Mask128 {
+                lo: mem::transmute(mask.lo128()),
+                hi: mem::transmute(mask.hi128()),
             }
         }
     }
@@ -2222,19 +2222,19 @@
 /// if it&#39;s in the higher 128 bits.
 </span><span class="attr">#[derive(Clone, Copy, Debug)]
 </span><span class="kw">pub struct </span>Mask256 {
-    lo: <a href="https://doc.rust-lang.org/nightly/core/core_arch/x86/struct.__m256i.html">__m256i</a>,
-    hi: <a href="https://doc.rust-lang.org/nightly/core/core_arch/x86/struct.__m256i.html">__m256i</a>,
+    lo: __m256i,
+    hi: __m256i,
 }
 
-<span class="kw">impl </span><a href="#1020">Mask256</a> {
+<span class="kw">impl </span>Mask256 {
     <span class="doccomment">/// Create a new SIMD mask from the mask produced by the Teddy builder.
-    </span><span class="kw">pub fn </span>new(mask: <a href="compile.rs.html#331">compile::Mask</a>) -&gt; <a href="#1020">Mask256</a> {
+    </span><span class="kw">pub fn </span>new(mask: compile::Mask) -&gt; Mask256 {
         <span class="comment">// SAFETY: This is safe since [u8; 32] has the same representation
         // as __m256i.
         </span><span class="kw">unsafe </span>{
-            <a href="#1020">Mask256</a> {
-                lo: mem::transmute(<a href="#1027">mask</a>.<a href="compile.rs.html#385">lo256</a>()),
-                hi: mem::transmute(<a href="#1027">mask</a>.<a href="compile.rs.html#397">hi256</a>()),
+            Mask256 {
+                lo: mem::transmute(mask.lo256()),
+                hi: mem::transmute(mask.hi256()),
             }
         }
     }
@@ -2256,13 +2256,13 @@
 /// corresponds to the start of the window), and `mask1` corresponds to a
 /// low/high mask for the first byte of all patterns that are being searched.
 </span><span class="attr">#[target_feature(enable = <span class="string">&quot;ssse3&quot;</span>)]
-</span><span class="kw">unsafe fn </span>members1m128(chunk: <a href="https://doc.rust-lang.org/nightly/core/core_arch/x86/struct.__m128i.html">__m128i</a>, mask1: <a href="#986">Mask128</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/core_arch/x86/struct.__m128i.html">__m128i</a> {
+</span><span class="kw">unsafe fn </span>members1m128(chunk: __m128i, mask1: Mask128) -&gt; __m128i {
     <span class="kw">let </span>lomask = _mm_set1_epi8(<span class="number">0xF</span>);
-    <span class="kw">let </span>hlo = _mm_and_si128(<a href="#1055">chunk</a>, <a href="#1056">lomask</a>);
-    <span class="kw">let </span>hhi = _mm_and_si128(_mm_srli_epi16(<a href="#1055">chunk</a>, <span class="number">4</span>), <a href="#1056">lomask</a>);
+    <span class="kw">let </span>hlo = _mm_and_si128(chunk, lomask);
+    <span class="kw">let </span>hhi = _mm_and_si128(_mm_srli_epi16(chunk, <span class="number">4</span>), lomask);
     _mm_and_si128(
-        _mm_shuffle_epi8(<a href="#1055">mask1</a>.lo, <a href="#1057">hlo</a>),
-        _mm_shuffle_epi8(<a href="#1055">mask1</a>.hi, <a href="#1058">hhi</a>),
+        _mm_shuffle_epi8(mask1.lo, hlo),
+        _mm_shuffle_epi8(mask1.hi, hhi),
     )
 }
 
@@ -2275,13 +2275,13 @@
 /// `chunk` is the same as the low 128 bits, which corresponds to a 16 byte
 /// window in the haystack.
 </span><span class="attr">#[target_feature(enable = <span class="string">&quot;avx2&quot;</span>)]
-</span><span class="kw">unsafe fn </span>members1m256(chunk: <a href="https://doc.rust-lang.org/nightly/core/core_arch/x86/struct.__m256i.html">__m256i</a>, mask1: <a href="#1020">Mask256</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/core_arch/x86/struct.__m256i.html">__m256i</a> {
+</span><span class="kw">unsafe fn </span>members1m256(chunk: __m256i, mask1: Mask256) -&gt; __m256i {
     <span class="kw">let </span>lomask = _mm256_set1_epi8(<span class="number">0xF</span>);
-    <span class="kw">let </span>hlo = _mm256_and_si256(<a href="#1074">chunk</a>, <a href="#1075">lomask</a>);
-    <span class="kw">let </span>hhi = _mm256_and_si256(_mm256_srli_epi16(<a href="#1074">chunk</a>, <span class="number">4</span>), <a href="#1075">lomask</a>);
+    <span class="kw">let </span>hlo = _mm256_and_si256(chunk, lomask);
+    <span class="kw">let </span>hhi = _mm256_and_si256(_mm256_srli_epi16(chunk, <span class="number">4</span>), lomask);
     _mm256_and_si256(
-        _mm256_shuffle_epi8(<a href="#1074">mask1</a>.lo, <a href="#1076">hlo</a>),
-        _mm256_shuffle_epi8(<a href="#1074">mask1</a>.hi, <a href="#1077">hhi</a>),
+        _mm256_shuffle_epi8(mask1.lo, hlo),
+        _mm256_shuffle_epi8(mask1.hi, hhi),
     )
 }
 
@@ -2293,22 +2293,22 @@
 /// second bytes in the patterns represented by the masks.
 </span><span class="attr">#[target_feature(enable = <span class="string">&quot;ssse3&quot;</span>)]
 </span><span class="kw">unsafe fn </span>members2m128(
-    chunk: <a href="https://doc.rust-lang.org/nightly/core/core_arch/x86/struct.__m128i.html">__m128i</a>,
-    mask1: <a href="#986">Mask128</a>,
-    mask2: <a href="#986">Mask128</a>,
-) -&gt; (<a href="https://doc.rust-lang.org/nightly/core/core_arch/x86/struct.__m128i.html">__m128i</a>, <a href="https://doc.rust-lang.org/nightly/core/core_arch/x86/struct.__m128i.html">__m128i</a>) {
+    chunk: __m128i,
+    mask1: Mask128,
+    mask2: Mask128,
+) -&gt; (__m128i, __m128i) {
     <span class="kw">let </span>lomask = _mm_set1_epi8(<span class="number">0xF</span>);
-    <span class="kw">let </span>hlo = _mm_and_si128(<a href="#1092">chunk</a>, <a href="#1096">lomask</a>);
-    <span class="kw">let </span>hhi = _mm_and_si128(_mm_srli_epi16(<a href="#1092">chunk</a>, <span class="number">4</span>), <a href="#1096">lomask</a>);
+    <span class="kw">let </span>hlo = _mm_and_si128(chunk, lomask);
+    <span class="kw">let </span>hhi = _mm_and_si128(_mm_srli_epi16(chunk, <span class="number">4</span>), lomask);
     <span class="kw">let </span>res0 = _mm_and_si128(
-        _mm_shuffle_epi8(<a href="#1093">mask1</a>.lo, <a href="#1097">hlo</a>),
-        _mm_shuffle_epi8(<a href="#1093">mask1</a>.hi, <a href="#1098">hhi</a>),
+        _mm_shuffle_epi8(mask1.lo, hlo),
+        _mm_shuffle_epi8(mask1.hi, hhi),
     );
     <span class="kw">let </span>res1 = _mm_and_si128(
-        _mm_shuffle_epi8(<a href="#1094">mask2</a>.lo, <a href="#1097">hlo</a>),
-        _mm_shuffle_epi8(<a href="#1094">mask2</a>.hi, <a href="#1098">hhi</a>),
+        _mm_shuffle_epi8(mask2.lo, hlo),
+        _mm_shuffle_epi8(mask2.hi, hhi),
     );
-    (<a href="#1099">res0</a>, <a href="#1103">res1</a>)
+    (res0, res1)
 }
 
 <span class="doccomment">/// Return candidates for Slim 256-bit Teddy, where `chunk` corresponds
@@ -2323,22 +2323,22 @@
 /// window in the haystack.
 </span><span class="attr">#[target_feature(enable = <span class="string">&quot;avx2&quot;</span>)]
 </span><span class="kw">unsafe fn </span>members2m256(
-    chunk: <a href="https://doc.rust-lang.org/nightly/core/core_arch/x86/struct.__m256i.html">__m256i</a>,
-    mask1: <a href="#1020">Mask256</a>,
-    mask2: <a href="#1020">Mask256</a>,
-) -&gt; (<a href="https://doc.rust-lang.org/nightly/core/core_arch/x86/struct.__m256i.html">__m256i</a>, <a href="https://doc.rust-lang.org/nightly/core/core_arch/x86/struct.__m256i.html">__m256i</a>) {
+    chunk: __m256i,
+    mask1: Mask256,
+    mask2: Mask256,
+) -&gt; (__m256i, __m256i) {
     <span class="kw">let </span>lomask = _mm256_set1_epi8(<span class="number">0xF</span>);
-    <span class="kw">let </span>hlo = _mm256_and_si256(<a href="#1122">chunk</a>, <a href="#1126">lomask</a>);
-    <span class="kw">let </span>hhi = _mm256_and_si256(_mm256_srli_epi16(<a href="#1122">chunk</a>, <span class="number">4</span>), <a href="#1126">lomask</a>);
+    <span class="kw">let </span>hlo = _mm256_and_si256(chunk, lomask);
+    <span class="kw">let </span>hhi = _mm256_and_si256(_mm256_srli_epi16(chunk, <span class="number">4</span>), lomask);
     <span class="kw">let </span>res0 = _mm256_and_si256(
-        _mm256_shuffle_epi8(<a href="#1123">mask1</a>.lo, <a href="#1127">hlo</a>),
-        _mm256_shuffle_epi8(<a href="#1123">mask1</a>.hi, <a href="#1128">hhi</a>),
+        _mm256_shuffle_epi8(mask1.lo, hlo),
+        _mm256_shuffle_epi8(mask1.hi, hhi),
     );
     <span class="kw">let </span>res1 = _mm256_and_si256(
-        _mm256_shuffle_epi8(<a href="#1124">mask2</a>.lo, <a href="#1127">hlo</a>),
-        _mm256_shuffle_epi8(<a href="#1124">mask2</a>.hi, <a href="#1128">hhi</a>),
+        _mm256_shuffle_epi8(mask2.lo, hlo),
+        _mm256_shuffle_epi8(mask2.hi, hhi),
     );
-    (<a href="#1129">res0</a>, <a href="#1133">res1</a>)
+    (res0, res1)
 }
 
 <span class="doccomment">/// Return candidates for Slim 128-bit Teddy, where `chunk` corresponds
@@ -2349,27 +2349,27 @@
 /// first, second and third bytes in the patterns represented by the masks.
 </span><span class="attr">#[target_feature(enable = <span class="string">&quot;ssse3&quot;</span>)]
 </span><span class="kw">unsafe fn </span>members3m128(
-    chunk: <a href="https://doc.rust-lang.org/nightly/core/core_arch/x86/struct.__m128i.html">__m128i</a>,
-    mask1: <a href="#986">Mask128</a>,
-    mask2: <a href="#986">Mask128</a>,
-    mask3: <a href="#986">Mask128</a>,
-) -&gt; (<a href="https://doc.rust-lang.org/nightly/core/core_arch/x86/struct.__m128i.html">__m128i</a>, <a href="https://doc.rust-lang.org/nightly/core/core_arch/x86/struct.__m128i.html">__m128i</a>, <a href="https://doc.rust-lang.org/nightly/core/core_arch/x86/struct.__m128i.html">__m128i</a>) {
+    chunk: __m128i,
+    mask1: Mask128,
+    mask2: Mask128,
+    mask3: Mask128,
+) -&gt; (__m128i, __m128i, __m128i) {
     <span class="kw">let </span>lomask = _mm_set1_epi8(<span class="number">0xF</span>);
-    <span class="kw">let </span>hlo = _mm_and_si128(<a href="#1148">chunk</a>, <a href="#1153">lomask</a>);
-    <span class="kw">let </span>hhi = _mm_and_si128(_mm_srli_epi16(<a href="#1148">chunk</a>, <span class="number">4</span>), <a href="#1153">lomask</a>);
+    <span class="kw">let </span>hlo = _mm_and_si128(chunk, lomask);
+    <span class="kw">let </span>hhi = _mm_and_si128(_mm_srli_epi16(chunk, <span class="number">4</span>), lomask);
     <span class="kw">let </span>res0 = _mm_and_si128(
-        _mm_shuffle_epi8(<a href="#1149">mask1</a>.lo, <a href="#1154">hlo</a>),
-        _mm_shuffle_epi8(<a href="#1149">mask1</a>.hi, <a href="#1155">hhi</a>),
+        _mm_shuffle_epi8(mask1.lo, hlo),
+        _mm_shuffle_epi8(mask1.hi, hhi),
     );
     <span class="kw">let </span>res1 = _mm_and_si128(
-        _mm_shuffle_epi8(<a href="#1150">mask2</a>.lo, <a href="#1154">hlo</a>),
-        _mm_shuffle_epi8(<a href="#1150">mask2</a>.hi, <a href="#1155">hhi</a>),
+        _mm_shuffle_epi8(mask2.lo, hlo),
+        _mm_shuffle_epi8(mask2.hi, hhi),
     );
     <span class="kw">let </span>res2 = _mm_and_si128(
-        _mm_shuffle_epi8(<a href="#1151">mask3</a>.lo, <a href="#1154">hlo</a>),
-        _mm_shuffle_epi8(<a href="#1151">mask3</a>.hi, <a href="#1155">hhi</a>),
+        _mm_shuffle_epi8(mask3.lo, hlo),
+        _mm_shuffle_epi8(mask3.hi, hhi),
     );
-    (<a href="#1156">res0</a>, <a href="#1160">res1</a>, <a href="#1164">res2</a>)
+    (res0, res1, res2)
 }
 
 <span class="doccomment">/// Return candidates for Slim 256-bit Teddy, where `chunk` corresponds
@@ -2384,27 +2384,27 @@
 /// window in the haystack.
 </span><span class="attr">#[target_feature(enable = <span class="string">&quot;avx2&quot;</span>)]
 </span><span class="kw">unsafe fn </span>members3m256(
-    chunk: <a href="https://doc.rust-lang.org/nightly/core/core_arch/x86/struct.__m256i.html">__m256i</a>,
-    mask1: <a href="#1020">Mask256</a>,
-    mask2: <a href="#1020">Mask256</a>,
-    mask3: <a href="#1020">Mask256</a>,
-) -&gt; (<a href="https://doc.rust-lang.org/nightly/core/core_arch/x86/struct.__m256i.html">__m256i</a>, <a href="https://doc.rust-lang.org/nightly/core/core_arch/x86/struct.__m256i.html">__m256i</a>, <a href="https://doc.rust-lang.org/nightly/core/core_arch/x86/struct.__m256i.html">__m256i</a>) {
+    chunk: __m256i,
+    mask1: Mask256,
+    mask2: Mask256,
+    mask3: Mask256,
+) -&gt; (__m256i, __m256i, __m256i) {
     <span class="kw">let </span>lomask = _mm256_set1_epi8(<span class="number">0xF</span>);
-    <span class="kw">let </span>hlo = _mm256_and_si256(<a href="#1183">chunk</a>, <a href="#1188">lomask</a>);
-    <span class="kw">let </span>hhi = _mm256_and_si256(_mm256_srli_epi16(<a href="#1183">chunk</a>, <span class="number">4</span>), <a href="#1188">lomask</a>);
+    <span class="kw">let </span>hlo = _mm256_and_si256(chunk, lomask);
+    <span class="kw">let </span>hhi = _mm256_and_si256(_mm256_srli_epi16(chunk, <span class="number">4</span>), lomask);
     <span class="kw">let </span>res0 = _mm256_and_si256(
-        _mm256_shuffle_epi8(<a href="#1184">mask1</a>.lo, <a href="#1189">hlo</a>),
-        _mm256_shuffle_epi8(<a href="#1184">mask1</a>.hi, <a href="#1190">hhi</a>),
+        _mm256_shuffle_epi8(mask1.lo, hlo),
+        _mm256_shuffle_epi8(mask1.hi, hhi),
     );
     <span class="kw">let </span>res1 = _mm256_and_si256(
-        _mm256_shuffle_epi8(<a href="#1185">mask2</a>.lo, <a href="#1189">hlo</a>),
-        _mm256_shuffle_epi8(<a href="#1185">mask2</a>.hi, <a href="#1190">hhi</a>),
+        _mm256_shuffle_epi8(mask2.lo, hlo),
+        _mm256_shuffle_epi8(mask2.hi, hhi),
     );
     <span class="kw">let </span>res2 = _mm256_and_si256(
-        _mm256_shuffle_epi8(<a href="#1186">mask3</a>.lo, <a href="#1189">hlo</a>),
-        _mm256_shuffle_epi8(<a href="#1186">mask3</a>.hi, <a href="#1190">hhi</a>),
+        _mm256_shuffle_epi8(mask3.lo, hlo),
+        _mm256_shuffle_epi8(mask3.hi, hhi),
     );
-    (<a href="#1191">res0</a>, <a href="#1195">res1</a>, <a href="#1199">res2</a>)
+    (res0, res1, res2)
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="aho_corasick" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="aho_corasick" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/h2-0.3.15/src/codec/framed_write.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>framed_write.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../h2/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/h2-0.3.15/src/codec/framed_write.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>framed_write.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../h2/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -372,17 +372,17 @@
 <a href="#372" id="372">372</a>
 <a href="#373" id="373">373</a>
 <a href="#374" id="374">374</a>
-</pre><pre class="rust"><code><span class="kw">use </span><a href="error.rs.html#14"><span class="kw">crate</span>::codec::UserError</a>;
-<span class="kw">use </span><a href="error.rs.html#14"><span class="kw">crate</span>::codec::UserError</a>::<span class="kw-2">*</span>;
-<span class="kw">use </span><span class="kw">crate</span>::frame::{<a class="self" href="../lib.rs.html#116">self</a>, <a href="../frame/mod.rs.html#80">Frame</a>, <a href="../frame/mod.rs.html#75">FrameSize</a>};
-<span class="kw">use </span><a href="../lib.rs.html#106"><span class="kw">crate</span>::hpack</a>;
+</pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::codec::UserError;
+<span class="kw">use </span><span class="kw">crate</span>::codec::UserError::<span class="kw-2">*</span>;
+<span class="kw">use </span><span class="kw">crate</span>::frame::{<span class="self">self</span>, Frame, FrameSize};
+<span class="kw">use </span><span class="kw">crate</span>::hpack;
 
-<span class="kw">use </span>bytes::{<a href="../../../bytes/buf/buf_impl/trait.Buf.html">Buf</a>, <a href="../../../bytes/buf/buf_mut/trait.BufMut.html">BufMut</a>, <a href="../../../bytes/bytes_mut/struct.BytesMut.html">BytesMut</a>};
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/pin/struct.Pin.html">std::pin::Pin</a>;
-<span class="kw">use </span>std::task::{<a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>, <a href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">Poll</a>};
-<span class="kw">use </span>tokio::io::{<a href="../../../tokio/io/async_read/trait.AsyncRead.html">AsyncRead</a>, <a href="../../../tokio/io/async_write/trait.AsyncWrite.html">AsyncWrite</a>, <a href="../../../tokio/io/read_buf/struct.ReadBuf.html">ReadBuf</a>};
+<span class="kw">use </span>bytes::{Buf, BufMut, BytesMut};
+<span class="kw">use </span>std::pin::Pin;
+<span class="kw">use </span>std::task::{Context, Poll};
+<span class="kw">use </span>tokio::io::{AsyncRead, AsyncWrite, ReadBuf};
 
-<span class="kw">use </span>std::io::{<a class="self" href="https://doc.rust-lang.org/nightly/std/io/index.html">self</a>, <a href="https://doc.rust-lang.org/nightly/std/io/cursor/struct.Cursor.html">Cursor</a>, <a href="https://doc.rust-lang.org/nightly/std/io/struct.IoSlice.html">IoSlice</a>};
+<span class="kw">use </span>std::io::{<span class="self">self</span>, Cursor, IoSlice};
 
 <span class="comment">// A macro to get around a method needing to borrow &amp;mut self
 </span><span class="macro">macro_rules! </span>limited_write_buf {
@@ -403,12 +403,12 @@
 <span class="attr">#[derive(Debug)]
 </span><span class="kw">struct </span>Encoder&lt;B&gt; {
     <span class="doccomment">/// HPACK encoder
-    </span>hpack: <a href="../hpack/encoder.rs.html#8">hpack::Encoder</a>,
+    </span>hpack: hpack::Encoder,
 
     <span class="doccomment">/// Write buffer
     ///
     /// TODO: Should this be a ring buffer?
-    </span>buf: Cursor&lt;<a href="../../../bytes/bytes_mut/struct.BytesMut.html">BytesMut</a>&gt;,
+    </span>buf: Cursor&lt;BytesMut&gt;,
 
     <span class="doccomment">/// Next frame to encode
     </span>next: <span class="prelude-ty">Option</span>&lt;Next&lt;B&gt;&gt;,
@@ -417,49 +417,49 @@
     </span>last_data_frame: <span class="prelude-ty">Option</span>&lt;frame::Data&lt;B&gt;&gt;,
 
     <span class="doccomment">/// Max frame size, this is specified by the peer
-    </span>max_frame_size: <a href="../frame/mod.rs.html#75">FrameSize</a>,
+    </span>max_frame_size: FrameSize,
 
     <span class="doccomment">/// Whether or not the wrapped `AsyncWrite` supports vectored IO.
-    </span>is_write_vectored: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
+    </span>is_write_vectored: bool,
 }
 
 <span class="attr">#[derive(Debug)]
 </span><span class="kw">enum </span>Next&lt;B&gt; {
     Data(frame::Data&lt;B&gt;),
-    Continuation(<a href="../frame/headers.rs.html#55">frame::Continuation</a>),
+    Continuation(frame::Continuation),
 }
 
 <span class="doccomment">/// Initialize the connection with this amount of write buffer.
 ///
 /// The minimum MAX_FRAME_SIZE is 16kb, so always be able to send a HEADERS
 /// frame that big.
-</span><span class="kw">const </span>DEFAULT_BUFFER_CAPACITY: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> = <span class="number">16 </span>* <span class="number">1_024</span>;
+</span><span class="kw">const </span>DEFAULT_BUFFER_CAPACITY: usize = <span class="number">16 </span>* <span class="number">1_024</span>;
 
 <span class="doccomment">/// Min buffer required to attempt to write a frame
-</span><span class="kw">const </span>MIN_BUFFER_CAPACITY: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> = <a href="../frame/mod.rs.html#77">frame::HEADER_LEN</a> + <a href="#70">CHAIN_THRESHOLD</a>;
+</span><span class="kw">const </span>MIN_BUFFER_CAPACITY: usize = frame::HEADER_LEN + CHAIN_THRESHOLD;
 
 <span class="doccomment">/// Chain payloads bigger than this. The remote will never advertise a max frame
 /// size less than this (well, the spec says the max frame size can&#39;t be less
 /// than 16kb, so not even close).
-</span><span class="kw">const </span>CHAIN_THRESHOLD: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> = <span class="number">256</span>;
+</span><span class="kw">const </span>CHAIN_THRESHOLD: usize = <span class="number">256</span>;
 
 <span class="comment">// TODO: Make generic
 </span><span class="kw">impl</span>&lt;T, B&gt; FramedWrite&lt;T, B&gt;
 <span class="kw">where
-    </span>T: <a href="../../../tokio/io/async_write/trait.AsyncWrite.html">AsyncWrite</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
-    B: <a href="../../../bytes/buf/buf_impl/trait.Buf.html">Buf</a>,
+    </span>T: AsyncWrite + Unpin,
+    B: Buf,
 {
     <span class="kw">pub fn </span>new(inner: T) -&gt; FramedWrite&lt;T, B&gt; {
-        <span class="kw">let </span>is_write_vectored = <a href="#78">inner</a>.<a href="../../../tokio/io/async_write/trait.AsyncWrite.html">is_write_vectored</a>();
-        <a href="#22">FramedWrite</a> {
-            <a href="#78">inner</a>,
-            encoder: <a href="#30">Encoder</a> {
+        <span class="kw">let </span>is_write_vectored = inner.is_write_vectored();
+        FramedWrite {
+            inner,
+            encoder: Encoder {
                 hpack: hpack::Encoder::default(),
-                buf: Cursor::new(BytesMut::with_capacity(<a href="#62">DEFAULT_BUFFER_CAPACITY</a>)),
+                buf: Cursor::new(BytesMut::with_capacity(DEFAULT_BUFFER_CAPACITY)),
                 next: <span class="prelude-val">None</span>,
                 last_data_frame: <span class="prelude-val">None</span>,
-                max_frame_size: <a href="../frame/settings.rs.html#47">frame::DEFAULT_MAX_FRAME_SIZE</a>,
-                <a href="#79">is_write_vectored</a>,
+                max_frame_size: frame::DEFAULT_MAX_FRAME_SIZE,
+                is_write_vectored,
             },
         }
     }
@@ -468,7 +468,7 @@
     ///
     /// Calling this function may result in the current contents of the buffer
     /// to be flushed to `T`.
-    </span><span class="kw">pub fn </span>poll_ready(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cx: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>) -&gt; Poll&lt;io::Result&lt;()&gt;&gt; {
+    </span><span class="kw">pub fn </span>poll_ready(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cx: <span class="kw-2">&amp;mut </span>Context) -&gt; Poll&lt;io::Result&lt;()&gt;&gt; {
         <span class="kw">if </span>!<span class="self">self</span>.encoder.has_capacity() {
             <span class="comment">// Try flushing
             </span><span class="macro">ready!</span>(<span class="self">self</span>.flush(cx))<span class="question-mark">?</span>;
@@ -485,14 +485,14 @@
     ///
     /// `poll_ready` must be called first to ensure that a frame may be
     /// accepted.
-    </span><span class="kw">pub fn </span>buffer(<span class="kw-2">&amp;mut </span><span class="self">self</span>, item: Frame&lt;B&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#14">UserError</a>&gt; {
-        <a class="self" href="#114">self</a>.encoder.<a href="#226">buffer</a>(<a href="#114">item</a>)
+    </span><span class="kw">pub fn </span>buffer(<span class="kw-2">&amp;mut </span><span class="self">self</span>, item: Frame&lt;B&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;(), UserError&gt; {
+        <span class="self">self</span>.encoder.buffer(item)
     }
 
     <span class="doccomment">/// Flush buffered data to the wire
-    </span><span class="kw">pub fn </span>flush(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cx: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>) -&gt; Poll&lt;io::Result&lt;()&gt;&gt; {
-        <span class="kw">let </span>span = <a class="macro" href="../../../tracing/tracing/macro.trace_span.html">tracing::trace_span!</a>(<span class="string">&quot;FramedWrite::flush&quot;</span>);
-        <span class="kw">let </span>_e = <a href="#120">span</a>.enter();
+    </span><span class="kw">pub fn </span>flush(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cx: <span class="kw-2">&amp;mut </span>Context) -&gt; Poll&lt;io::Result&lt;()&gt;&gt; {
+        <span class="kw">let </span>span = <span class="macro">tracing::trace_span!</span>(<span class="string">&quot;FramedWrite::flush&quot;</span>);
+        <span class="kw">let </span>_e = span.enter();
 
         <span class="kw">loop </span>{
             <span class="kw">while </span>!<span class="self">self</span>.encoder.is_empty() {
@@ -519,13 +519,13 @@
                 }
             }
 
-            <span class="kw">match </span><a class="self" href="#119">self</a>.encoder.<a href="#202">unset_frame</a>() {
-                <a href="#194">ControlFlow::Continue</a> =&gt; (),
-                <a href="#195">ControlFlow::Break</a> =&gt; <span class="kw">break</span>,
+            <span class="kw">match </span><span class="self">self</span>.encoder.unset_frame() {
+                ControlFlow::Continue =&gt; (),
+                ControlFlow::Break =&gt; <span class="kw">break</span>,
             }
         }
 
-        <a class="macro" href="../../../tracing/tracing/macro.trace.html">tracing::trace!</a>(<span class="string">&quot;flushing buffer&quot;</span>);
+        <span class="macro">tracing::trace!</span>(<span class="string">&quot;flushing buffer&quot;</span>);
         <span class="comment">// Flush the upstream
         </span><span class="macro">ready!</span>(Pin::new(<span class="kw-2">&amp;mut </span><span class="self">self</span>.inner).poll_flush(cx))<span class="question-mark">?</span>;
 
@@ -533,34 +533,34 @@
     }
 
     <span class="doccomment">/// Close the codec
-    </span><span class="kw">pub fn </span>shutdown(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cx: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>) -&gt; Poll&lt;io::Result&lt;()&gt;&gt; {
+    </span><span class="kw">pub fn </span>shutdown(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cx: <span class="kw-2">&amp;mut </span>Context) -&gt; Poll&lt;io::Result&lt;()&gt;&gt; {
         <span class="macro">ready!</span>(<span class="self">self</span>.flush(cx))<span class="question-mark">?</span>;
-        Pin::new(<span class="kw-2">&amp;mut </span><a class="self" href="#162">self</a>.inner).<a href="../../../tokio/io/async_write/trait.AsyncWrite.html">poll_shutdown</a>(<a href="#162">cx</a>)
+        Pin::new(<span class="kw-2">&amp;mut </span><span class="self">self</span>.inner).poll_shutdown(cx)
     }
 }
 
 <span class="kw">fn </span>write&lt;T, B&gt;(
     writer: <span class="kw-2">&amp;mut </span>T,
-    is_write_vectored: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
+    is_write_vectored: bool,
     buf: <span class="kw-2">&amp;mut </span>B,
     cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
 ) -&gt; Poll&lt;io::Result&lt;()&gt;&gt;
 <span class="kw">where
-    </span>T: <a href="../../../tokio/io/async_write/trait.AsyncWrite.html">AsyncWrite</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
-    B: <a href="../../../bytes/buf/buf_impl/trait.Buf.html">Buf</a>,
+    </span>T: AsyncWrite + Unpin,
+    B: Buf,
 {
     <span class="comment">// TODO(eliza): when tokio-util 0.5.1 is released, this
     // could just use `poll_write_buf`...
-    </span><span class="kw">const </span>MAX_IOVS: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> = <span class="number">64</span>;
+    </span><span class="kw">const </span>MAX_IOVS: usize = <span class="number">64</span>;
     <span class="kw">let </span>n = <span class="kw">if </span>is_write_vectored {
-        <span class="kw">let </span><span class="kw-2">mut </span>bufs = [IoSlice::new(<span class="kw-2">&amp;</span>[]); <a href="#180">MAX_IOVS</a>];
-        <span class="kw">let </span>cnt = <a href="#171">buf</a>.<a href="../../../bytes/buf/buf_impl/trait.Buf.html">chunks_vectored</a>(<span class="kw-2">&amp;mut </span><a href="#182">bufs</a>);
+        <span class="kw">let </span><span class="kw-2">mut </span>bufs = [IoSlice::new(<span class="kw-2">&amp;</span>[]); MAX_IOVS];
+        <span class="kw">let </span>cnt = buf.chunks_vectored(<span class="kw-2">&amp;mut </span>bufs);
         <span class="macro">ready!</span>(Pin::new(writer).poll_write_vectored(cx, <span class="kw-2">&amp;</span>bufs[..cnt]))<span class="question-mark">?
     </span>} <span class="kw">else </span>{
         <span class="macro">ready!</span>(Pin::new(writer).poll_write(cx, buf.chunk()))<span class="question-mark">?
     </span>};
-    <a href="#171">buf</a>.<a href="../../../bytes/buf/buf_impl/trait.Buf.html">advance</a>(<a href="#181">n</a>);
-    <span class="prelude-val">Ok</span>(()).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()
+    buf.advance(n);
+    <span class="prelude-val">Ok</span>(()).into()
 }
 
 <span class="attr">#[must_use]
@@ -571,170 +571,170 @@
 
 <span class="kw">impl</span>&lt;B&gt; Encoder&lt;B&gt;
 <span class="kw">where
-    </span>B: <a href="../../../bytes/buf/buf_impl/trait.Buf.html">Buf</a>,
+    </span>B: Buf,
 {
-    <span class="kw">fn </span>unset_frame(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <a href="#193">ControlFlow</a> {
+    <span class="kw">fn </span>unset_frame(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; ControlFlow {
         <span class="comment">// Clear internal buffer
-        </span><a class="self" href="#202">self</a>.buf.set_position(<span class="number">0</span>);
-        <a class="self" href="#202">self</a>.buf.get_mut().clear();
+        </span><span class="self">self</span>.buf.set_position(<span class="number">0</span>);
+        <span class="self">self</span>.buf.get_mut().clear();
 
         <span class="comment">// The data frame has been written, so unset it
-        </span><span class="kw">match </span><a class="self" href="#202">self</a>.next.take() {
-            <span class="prelude-val">Some</span>(<a href="#54">Next::Data</a>(frame)) =&gt; {
-                <a class="self" href="#202">self</a>.last_data_frame = <span class="prelude-val">Some</span>(<a href="#209">frame</a>);
-                <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(<span class="self">self</span>.is_empty());
-                <a href="#195">ControlFlow::Break</a>
+        </span><span class="kw">match </span><span class="self">self</span>.next.take() {
+            <span class="prelude-val">Some</span>(Next::Data(frame)) =&gt; {
+                <span class="self">self</span>.last_data_frame = <span class="prelude-val">Some</span>(frame);
+                <span class="macro">debug_assert!</span>(<span class="self">self</span>.is_empty());
+                ControlFlow::Break
             }
-            <span class="prelude-val">Some</span>(<a href="#55">Next::Continuation</a>(frame)) =&gt; {
+            <span class="prelude-val">Some</span>(Next::Continuation(frame)) =&gt; {
                 <span class="comment">// Buffer the continuation frame, then try to write again
-                </span><span class="kw">let </span><span class="kw-2">mut </span>buf = <a class="macro" href="#14-19">limited_write_buf!</a>(<span class="self">self</span>);
-                <span class="kw">if let </span><span class="prelude-val">Some</span>(continuation) = <a href="#214">frame</a>.<a href="../frame/headers.rs.html#531">encode</a>(<span class="kw-2">&amp;mut </span><a href="#216">buf</a>) {
-                    <a class="self" href="#202">self</a>.next = <span class="prelude-val">Some</span>(<a href="#55">Next::Continuation</a>(<a href="#217">continuation</a>));
+                </span><span class="kw">let </span><span class="kw-2">mut </span>buf = <span class="macro">limited_write_buf!</span>(<span class="self">self</span>);
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(continuation) = frame.encode(<span class="kw-2">&amp;mut </span>buf) {
+                    <span class="self">self</span>.next = <span class="prelude-val">Some</span>(Next::Continuation(continuation));
                 }
-                <a href="#194">ControlFlow::Continue</a>
+                ControlFlow::Continue
             }
-            <span class="prelude-val">None </span>=&gt; <a href="#195">ControlFlow::Break</a>,
+            <span class="prelude-val">None </span>=&gt; ControlFlow::Break,
         }
     }
 
-    <span class="kw">fn </span>buffer(<span class="kw-2">&amp;mut </span><span class="self">self</span>, item: Frame&lt;B&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#14">UserError</a>&gt; {
+    <span class="kw">fn </span>buffer(<span class="kw-2">&amp;mut </span><span class="self">self</span>, item: Frame&lt;B&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;(), UserError&gt; {
         <span class="comment">// Ensure that we have enough capacity to accept the write.
-        </span><a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(<span class="self">self</span>.has_capacity());
-        <span class="kw">let </span>span = <a class="macro" href="../../../tracing/tracing/macro.trace_span.html">tracing::trace_span!</a>(<span class="string">&quot;FramedWrite::buffer&quot;</span>, frame = <span class="question-mark">?</span>item);
-        <span class="kw">let </span>_e = <a href="#229">span</a>.enter();
+        </span><span class="macro">assert!</span>(<span class="self">self</span>.has_capacity());
+        <span class="kw">let </span>span = <span class="macro">tracing::trace_span!</span>(<span class="string">&quot;FramedWrite::buffer&quot;</span>, frame = <span class="question-mark">?</span>item);
+        <span class="kw">let </span>_e = span.enter();
 
-        <a class="macro" href="../../../tracing/tracing/macro.debug.html">tracing::debug!</a>(frame = <span class="question-mark">?</span>item, <span class="string">&quot;send&quot;</span>);
+        <span class="macro">tracing::debug!</span>(frame = <span class="question-mark">?</span>item, <span class="string">&quot;send&quot;</span>);
 
-        <span class="kw">match </span><a href="#226">item</a> {
-            <a href="../frame/mod.rs.html#81">Frame::Data</a>(<span class="kw-2">mut </span>v) =&gt; {
+        <span class="kw">match </span>item {
+            Frame::Data(<span class="kw-2">mut </span>v) =&gt; {
                 <span class="comment">// Ensure that the payload is not greater than the max frame.
-                </span><span class="kw">let </span>len = <a href="#235">v</a>.<a href="../frame/data.rs.html#82">payload</a>().<a href="../../../bytes/buf/buf_impl/trait.Buf.html">remaining</a>();
+                </span><span class="kw">let </span>len = v.payload().remaining();
 
                 <span class="kw">if </span>len &gt; <span class="self">self</span>.max_frame_size() {
-                    <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="error.rs.html#22">PayloadTooBig</a>);
+                    <span class="kw">return </span><span class="prelude-val">Err</span>(PayloadTooBig);
                 }
 
                 <span class="kw">if </span>len &gt;= CHAIN_THRESHOLD {
-                    <span class="kw">let </span>head = <a href="#235">v</a>.<a href="../frame/data.rs.html#102">head</a>();
+                    <span class="kw">let </span>head = v.head();
 
                     <span class="comment">// Encode the frame head to the buffer
-                    </span><a href="#244">head</a>.<a href="../frame/head.rs.html#66">encode</a>(<a href="#237">len</a>, <a class="self" href="#226">self</a>.buf.get_mut());
+                    </span>head.encode(len, <span class="self">self</span>.buf.get_mut());
 
                     <span class="comment">// Save the data frame
-                    </span><a class="self" href="#226">self</a>.next = <span class="prelude-val">Some</span>(<a href="#54">Next::Data</a>(<a href="#235">v</a>));
+                    </span><span class="self">self</span>.next = <span class="prelude-val">Some</span>(Next::Data(v));
                 } <span class="kw">else </span>{
-                    <a href="#235">v</a>.<a href="../frame/data.rs.html#150">encode_chunk</a>(<a class="self" href="#226">self</a>.buf.get_mut());
+                    v.encode_chunk(<span class="self">self</span>.buf.get_mut());
 
                     <span class="comment">// The chunk has been fully encoded, so there is no need to
                     // keep it around
-                    </span><a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert_eq.html">assert_eq!</a>(v.payload().remaining(), <span class="number">0</span>, <span class="string">&quot;chunk not fully encoded&quot;</span>);
+                    </span><span class="macro">assert_eq!</span>(v.payload().remaining(), <span class="number">0</span>, <span class="string">&quot;chunk not fully encoded&quot;</span>);
 
                     <span class="comment">// Save off the last frame...
-                    </span><a class="self" href="#226">self</a>.last_data_frame = <span class="prelude-val">Some</span>(<a href="#235">v</a>);
+                    </span><span class="self">self</span>.last_data_frame = <span class="prelude-val">Some</span>(v);
                 }
             }
-            <a href="../frame/mod.rs.html#82">Frame::Headers</a>(v) =&gt; {
-                <span class="kw">let </span><span class="kw-2">mut </span>buf = <a class="macro" href="#14-19">limited_write_buf!</a>(<span class="self">self</span>);
-                <span class="kw">if let </span><span class="prelude-val">Some</span>(continuation) = <a href="#262">v</a>.<a href="../frame/headers.rs.html#263-267">encode</a>(<span class="kw-2">&amp;mut </span><a class="self" href="#226">self</a>.hpack, <span class="kw-2">&amp;mut </span><a href="#263">buf</a>) {
-                    <a class="self" href="#226">self</a>.next = <span class="prelude-val">Some</span>(<a href="#55">Next::Continuation</a>(<a href="#264">continuation</a>));
+            Frame::Headers(v) =&gt; {
+                <span class="kw">let </span><span class="kw-2">mut </span>buf = <span class="macro">limited_write_buf!</span>(<span class="self">self</span>);
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(continuation) = v.encode(<span class="kw-2">&amp;mut </span><span class="self">self</span>.hpack, <span class="kw-2">&amp;mut </span>buf) {
+                    <span class="self">self</span>.next = <span class="prelude-val">Some</span>(Next::Continuation(continuation));
                 }
             }
-            <a href="../frame/mod.rs.html#84">Frame::PushPromise</a>(v) =&gt; {
-                <span class="kw">let </span><span class="kw-2">mut </span>buf = <a class="macro" href="#14-19">limited_write_buf!</a>(<span class="self">self</span>);
-                <span class="kw">if let </span><span class="prelude-val">Some</span>(continuation) = <a href="#268">v</a>.<a href="../frame/headers.rs.html#479-483">encode</a>(<span class="kw-2">&amp;mut </span><a class="self" href="#226">self</a>.hpack, <span class="kw-2">&amp;mut </span><a href="#269">buf</a>) {
-                    <a class="self" href="#226">self</a>.next = <span class="prelude-val">Some</span>(<a href="#55">Next::Continuation</a>(<a href="#270">continuation</a>));
+            Frame::PushPromise(v) =&gt; {
+                <span class="kw">let </span><span class="kw-2">mut </span>buf = <span class="macro">limited_write_buf!</span>(<span class="self">self</span>);
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(continuation) = v.encode(<span class="kw-2">&amp;mut </span><span class="self">self</span>.hpack, <span class="kw-2">&amp;mut </span>buf) {
+                    <span class="self">self</span>.next = <span class="prelude-val">Some</span>(Next::Continuation(continuation));
                 }
             }
-            <a href="../frame/mod.rs.html#85">Frame::Settings</a>(v) =&gt; {
-                <a href="#274">v</a>.<a href="../frame/settings.rs.html#215">encode</a>(<a class="self" href="#226">self</a>.buf.get_mut());
-                <a class="macro" href="../../../tracing/tracing/macro.trace.html">tracing::trace!</a>(rem = <span class="self">self</span>.buf.remaining(), <span class="string">&quot;encoded settings&quot;</span>);
+            Frame::Settings(v) =&gt; {
+                v.encode(<span class="self">self</span>.buf.get_mut());
+                <span class="macro">tracing::trace!</span>(rem = <span class="self">self</span>.buf.remaining(), <span class="string">&quot;encoded settings&quot;</span>);
             }
-            <a href="../frame/mod.rs.html#87">Frame::GoAway</a>(v) =&gt; {
-                <a href="#278">v</a>.<a href="../frame/go_away.rs.html#52">encode</a>(<a class="self" href="#226">self</a>.buf.get_mut());
-                <a class="macro" href="../../../tracing/tracing/macro.trace.html">tracing::trace!</a>(rem = <span class="self">self</span>.buf.remaining(), <span class="string">&quot;encoded go_away&quot;</span>);
+            Frame::GoAway(v) =&gt; {
+                v.encode(<span class="self">self</span>.buf.get_mut());
+                <span class="macro">tracing::trace!</span>(rem = <span class="self">self</span>.buf.remaining(), <span class="string">&quot;encoded go_away&quot;</span>);
             }
-            <a href="../frame/mod.rs.html#86">Frame::Ping</a>(v) =&gt; {
-                <a href="#282">v</a>.<a href="../frame/ping.rs.html#86">encode</a>(<a class="self" href="#226">self</a>.buf.get_mut());
-                <a class="macro" href="../../../tracing/tracing/macro.trace.html">tracing::trace!</a>(rem = <span class="self">self</span>.buf.remaining(), <span class="string">&quot;encoded ping&quot;</span>);
+            Frame::Ping(v) =&gt; {
+                v.encode(<span class="self">self</span>.buf.get_mut());
+                <span class="macro">tracing::trace!</span>(rem = <span class="self">self</span>.buf.remaining(), <span class="string">&quot;encoded ping&quot;</span>);
             }
-            <a href="../frame/mod.rs.html#88">Frame::WindowUpdate</a>(v) =&gt; {
-                <a href="#286">v</a>.<a href="../frame/window_update.rs.html#50">encode</a>(<a class="self" href="#226">self</a>.buf.get_mut());
-                <a class="macro" href="../../../tracing/tracing/macro.trace.html">tracing::trace!</a>(rem = <span class="self">self</span>.buf.remaining(), <span class="string">&quot;encoded window_update&quot;</span>);
+            Frame::WindowUpdate(v) =&gt; {
+                v.encode(<span class="self">self</span>.buf.get_mut());
+                <span class="macro">tracing::trace!</span>(rem = <span class="self">self</span>.buf.remaining(), <span class="string">&quot;encoded window_update&quot;</span>);
             }
 
-            <a href="../frame/mod.rs.html#83">Frame::Priority</a>(<span class="kw">_</span>) =&gt; {
+            Frame::Priority(<span class="kw">_</span>) =&gt; {
                 <span class="comment">/*
                 v.encode(self.buf.get_mut());
                 tracing::trace!(&quot;encoded priority; rem={:?}&quot;, self.buf.remaining());
                 */
-                </span><a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unimplemented.html">unimplemented!</a>();
+                </span><span class="macro">unimplemented!</span>();
             }
-            <a href="../frame/mod.rs.html#89">Frame::Reset</a>(v) =&gt; {
-                <a href="#298">v</a>.<a href="../frame/reset.rs.html#40">encode</a>(<a class="self" href="#226">self</a>.buf.get_mut());
-                <a class="macro" href="../../../tracing/tracing/macro.trace.html">tracing::trace!</a>(rem = <span class="self">self</span>.buf.remaining(), <span class="string">&quot;encoded reset&quot;</span>);
+            Frame::Reset(v) =&gt; {
+                v.encode(<span class="self">self</span>.buf.get_mut());
+                <span class="macro">tracing::trace!</span>(rem = <span class="self">self</span>.buf.remaining(), <span class="string">&quot;encoded reset&quot;</span>);
             }
         }
 
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="kw">fn </span>has_capacity(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#307">self</a>.next.is_none() &amp;&amp; <a class="self" href="#307">self</a>.buf.get_ref().<a href="../../../bytes/buf/buf_mut/trait.BufMut.html">remaining_mut</a>() &gt;= <a href="#65">MIN_BUFFER_CAPACITY</a>
+    <span class="kw">fn </span>has_capacity(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.next.is_none() &amp;&amp; <span class="self">self</span>.buf.get_ref().remaining_mut() &gt;= MIN_BUFFER_CAPACITY
     }
 
-    <span class="kw">fn </span>is_empty(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">match </span><a class="self" href="#311">self</a>.next {
-            <span class="prelude-val">Some</span>(<a href="#54">Next::Data</a>(<span class="kw-2">ref </span>frame)) =&gt; !<a href="#313">frame</a>.<a href="../frame/data.rs.html#82">payload</a>().<a href="../../../bytes/buf/buf_impl/trait.Buf.html">has_remaining</a>(),
-            <span class="kw">_ </span>=&gt; !<a class="self" href="#311">self</a>.buf.<a href="../../../bytes/buf/buf_impl/trait.Buf.html">has_remaining</a>(),
+    <span class="kw">fn </span>is_empty(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="kw">match </span><span class="self">self</span>.next {
+            <span class="prelude-val">Some</span>(Next::Data(<span class="kw-2">ref </span>frame)) =&gt; !frame.payload().has_remaining(),
+            <span class="kw">_ </span>=&gt; !<span class="self">self</span>.buf.has_remaining(),
         }
     }
 }
 
 <span class="kw">impl</span>&lt;B&gt; Encoder&lt;B&gt; {
-    <span class="kw">fn </span>max_frame_size(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="self" href="#320">self</a>.max_frame_size <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>
+    <span class="kw">fn </span>max_frame_size(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+        <span class="self">self</span>.max_frame_size <span class="kw">as </span>usize
     }
 }
 
 <span class="kw">impl</span>&lt;T, B&gt; FramedWrite&lt;T, B&gt; {
     <span class="doccomment">/// Returns the max frame size that can be sent
-    </span><span class="kw">pub fn </span>max_frame_size(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="self" href="#327">self</a>.encoder.<a href="#320">max_frame_size</a>()
+    </span><span class="kw">pub fn </span>max_frame_size(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+        <span class="self">self</span>.encoder.max_frame_size()
     }
 
     <span class="doccomment">/// Set the peer&#39;s max frame size.
-    </span><span class="kw">pub fn </span>set_max_frame_size(<span class="kw-2">&amp;mut </span><span class="self">self</span>, val: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(val &lt;= frame::MAX_MAX_FRAME_SIZE <span class="kw">as </span>usize);
-        <a class="self" href="#332">self</a>.encoder.max_frame_size = <a href="#332">val</a> <span class="kw">as </span><a href="../frame/mod.rs.html#75">FrameSize</a>;
+    </span><span class="kw">pub fn </span>set_max_frame_size(<span class="kw-2">&amp;mut </span><span class="self">self</span>, val: usize) {
+        <span class="macro">assert!</span>(val &lt;= frame::MAX_MAX_FRAME_SIZE <span class="kw">as </span>usize);
+        <span class="self">self</span>.encoder.max_frame_size = val <span class="kw">as </span>FrameSize;
     }
 
     <span class="doccomment">/// Set the peer&#39;s header table size.
-    </span><span class="kw">pub fn </span>set_header_table_size(<span class="kw-2">&amp;mut </span><span class="self">self</span>, val: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
-        <a class="self" href="#338">self</a>.encoder.hpack.<a href="../hpack/encoder.rs.html#30">update_max_size</a>(<a href="#338">val</a>);
+    </span><span class="kw">pub fn </span>set_header_table_size(<span class="kw-2">&amp;mut </span><span class="self">self</span>, val: usize) {
+        <span class="self">self</span>.encoder.hpack.update_max_size(val);
     }
 
     <span class="doccomment">/// Retrieve the last data frame that has been sent
     </span><span class="kw">pub fn </span>take_last_data_frame(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;frame::Data&lt;B&gt;&gt; {
-        <a class="self" href="#343">self</a>.encoder.last_data_frame.take()
+        <span class="self">self</span>.encoder.last_data_frame.take()
     }
 
     <span class="kw">pub fn </span>get_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>T {
-        <span class="kw-2">&amp;mut </span><a class="self" href="#347">self</a>.inner
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>.inner
     }
 }
 
-<span class="kw">impl</span>&lt;T: <a href="../../../tokio/io/async_read/trait.AsyncRead.html">AsyncRead</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>, B&gt; <a href="../../../tokio/io/async_read/trait.AsyncRead.html">AsyncRead</a> <span class="kw">for </span>FramedWrite&lt;T, B&gt; {
+<span class="kw">impl</span>&lt;T: AsyncRead + Unpin, B&gt; AsyncRead <span class="kw">for </span>FramedWrite&lt;T, B&gt; {
     <span class="kw">fn </span>poll_read(
         <span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;,
         cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
-        buf: <span class="kw-2">&amp;mut </span><a href="../../../tokio/io/read_buf/struct.ReadBuf.html">ReadBuf</a>,
+        buf: <span class="kw-2">&amp;mut </span>ReadBuf,
     ) -&gt; Poll&lt;io::Result&lt;()&gt;&gt; {
-        Pin::new(<span class="kw-2">&amp;mut </span><a class="self" href="#354">self</a>.inner).<a href="../../../tokio/io/async_read/trait.AsyncRead.html">poll_read</a>(<a href="#355">cx</a>, <a href="#356">buf</a>)
+        Pin::new(<span class="kw-2">&amp;mut </span><span class="self">self</span>.inner).poll_read(cx, buf)
     }
 }
 
 <span class="comment">// We never project the Pin to `B`.
-</span><span class="kw">impl</span>&lt;T: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>, B&gt; <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a> <span class="kw">for </span>FramedWrite&lt;T, B&gt; {}
+</span><span class="kw">impl</span>&lt;T: Unpin, B&gt; Unpin <span class="kw">for </span>FramedWrite&lt;T, B&gt; {}
 
 <span class="attr">#[cfg(feature = <span class="string">&quot;unstable&quot;</span>)]
 </span><span class="kw">mod </span>unstable {
@@ -747,4 +747,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="h2" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="h2" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

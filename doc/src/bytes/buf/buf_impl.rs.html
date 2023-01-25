@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/bytes-1.2.1/src/buf/buf_impl.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>buf_impl.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../bytes/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/bytes-1.3.0/src/buf/buf_impl.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>buf_impl.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../bytes/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -1072,16 +1072,334 @@
 <a href="#1072" id="1072">1072</a>
 <a href="#1073" id="1073">1073</a>
 <a href="#1074" id="1074">1074</a>
+<a href="#1075" id="1075">1075</a>
+<a href="#1076" id="1076">1076</a>
+<a href="#1077" id="1077">1077</a>
+<a href="#1078" id="1078">1078</a>
+<a href="#1079" id="1079">1079</a>
+<a href="#1080" id="1080">1080</a>
+<a href="#1081" id="1081">1081</a>
+<a href="#1082" id="1082">1082</a>
+<a href="#1083" id="1083">1083</a>
+<a href="#1084" id="1084">1084</a>
+<a href="#1085" id="1085">1085</a>
+<a href="#1086" id="1086">1086</a>
+<a href="#1087" id="1087">1087</a>
+<a href="#1088" id="1088">1088</a>
+<a href="#1089" id="1089">1089</a>
+<a href="#1090" id="1090">1090</a>
+<a href="#1091" id="1091">1091</a>
+<a href="#1092" id="1092">1092</a>
+<a href="#1093" id="1093">1093</a>
+<a href="#1094" id="1094">1094</a>
+<a href="#1095" id="1095">1095</a>
+<a href="#1096" id="1096">1096</a>
+<a href="#1097" id="1097">1097</a>
+<a href="#1098" id="1098">1098</a>
+<a href="#1099" id="1099">1099</a>
+<a href="#1100" id="1100">1100</a>
+<a href="#1101" id="1101">1101</a>
+<a href="#1102" id="1102">1102</a>
+<a href="#1103" id="1103">1103</a>
+<a href="#1104" id="1104">1104</a>
+<a href="#1105" id="1105">1105</a>
+<a href="#1106" id="1106">1106</a>
+<a href="#1107" id="1107">1107</a>
+<a href="#1108" id="1108">1108</a>
+<a href="#1109" id="1109">1109</a>
+<a href="#1110" id="1110">1110</a>
+<a href="#1111" id="1111">1111</a>
+<a href="#1112" id="1112">1112</a>
+<a href="#1113" id="1113">1113</a>
+<a href="#1114" id="1114">1114</a>
+<a href="#1115" id="1115">1115</a>
+<a href="#1116" id="1116">1116</a>
+<a href="#1117" id="1117">1117</a>
+<a href="#1118" id="1118">1118</a>
+<a href="#1119" id="1119">1119</a>
+<a href="#1120" id="1120">1120</a>
+<a href="#1121" id="1121">1121</a>
+<a href="#1122" id="1122">1122</a>
+<a href="#1123" id="1123">1123</a>
+<a href="#1124" id="1124">1124</a>
+<a href="#1125" id="1125">1125</a>
+<a href="#1126" id="1126">1126</a>
+<a href="#1127" id="1127">1127</a>
+<a href="#1128" id="1128">1128</a>
+<a href="#1129" id="1129">1129</a>
+<a href="#1130" id="1130">1130</a>
+<a href="#1131" id="1131">1131</a>
+<a href="#1132" id="1132">1132</a>
+<a href="#1133" id="1133">1133</a>
+<a href="#1134" id="1134">1134</a>
+<a href="#1135" id="1135">1135</a>
+<a href="#1136" id="1136">1136</a>
+<a href="#1137" id="1137">1137</a>
+<a href="#1138" id="1138">1138</a>
+<a href="#1139" id="1139">1139</a>
+<a href="#1140" id="1140">1140</a>
+<a href="#1141" id="1141">1141</a>
+<a href="#1142" id="1142">1142</a>
+<a href="#1143" id="1143">1143</a>
+<a href="#1144" id="1144">1144</a>
+<a href="#1145" id="1145">1145</a>
+<a href="#1146" id="1146">1146</a>
+<a href="#1147" id="1147">1147</a>
+<a href="#1148" id="1148">1148</a>
+<a href="#1149" id="1149">1149</a>
+<a href="#1150" id="1150">1150</a>
+<a href="#1151" id="1151">1151</a>
+<a href="#1152" id="1152">1152</a>
+<a href="#1153" id="1153">1153</a>
+<a href="#1154" id="1154">1154</a>
+<a href="#1155" id="1155">1155</a>
+<a href="#1156" id="1156">1156</a>
+<a href="#1157" id="1157">1157</a>
+<a href="#1158" id="1158">1158</a>
+<a href="#1159" id="1159">1159</a>
+<a href="#1160" id="1160">1160</a>
+<a href="#1161" id="1161">1161</a>
+<a href="#1162" id="1162">1162</a>
+<a href="#1163" id="1163">1163</a>
+<a href="#1164" id="1164">1164</a>
+<a href="#1165" id="1165">1165</a>
+<a href="#1166" id="1166">1166</a>
+<a href="#1167" id="1167">1167</a>
+<a href="#1168" id="1168">1168</a>
+<a href="#1169" id="1169">1169</a>
+<a href="#1170" id="1170">1170</a>
+<a href="#1171" id="1171">1171</a>
+<a href="#1172" id="1172">1172</a>
+<a href="#1173" id="1173">1173</a>
+<a href="#1174" id="1174">1174</a>
+<a href="#1175" id="1175">1175</a>
+<a href="#1176" id="1176">1176</a>
+<a href="#1177" id="1177">1177</a>
+<a href="#1178" id="1178">1178</a>
+<a href="#1179" id="1179">1179</a>
+<a href="#1180" id="1180">1180</a>
+<a href="#1181" id="1181">1181</a>
+<a href="#1182" id="1182">1182</a>
+<a href="#1183" id="1183">1183</a>
+<a href="#1184" id="1184">1184</a>
+<a href="#1185" id="1185">1185</a>
+<a href="#1186" id="1186">1186</a>
+<a href="#1187" id="1187">1187</a>
+<a href="#1188" id="1188">1188</a>
+<a href="#1189" id="1189">1189</a>
+<a href="#1190" id="1190">1190</a>
+<a href="#1191" id="1191">1191</a>
+<a href="#1192" id="1192">1192</a>
+<a href="#1193" id="1193">1193</a>
+<a href="#1194" id="1194">1194</a>
+<a href="#1195" id="1195">1195</a>
+<a href="#1196" id="1196">1196</a>
+<a href="#1197" id="1197">1197</a>
+<a href="#1198" id="1198">1198</a>
+<a href="#1199" id="1199">1199</a>
+<a href="#1200" id="1200">1200</a>
+<a href="#1201" id="1201">1201</a>
+<a href="#1202" id="1202">1202</a>
+<a href="#1203" id="1203">1203</a>
+<a href="#1204" id="1204">1204</a>
+<a href="#1205" id="1205">1205</a>
+<a href="#1206" id="1206">1206</a>
+<a href="#1207" id="1207">1207</a>
+<a href="#1208" id="1208">1208</a>
+<a href="#1209" id="1209">1209</a>
+<a href="#1210" id="1210">1210</a>
+<a href="#1211" id="1211">1211</a>
+<a href="#1212" id="1212">1212</a>
+<a href="#1213" id="1213">1213</a>
+<a href="#1214" id="1214">1214</a>
+<a href="#1215" id="1215">1215</a>
+<a href="#1216" id="1216">1216</a>
+<a href="#1217" id="1217">1217</a>
+<a href="#1218" id="1218">1218</a>
+<a href="#1219" id="1219">1219</a>
+<a href="#1220" id="1220">1220</a>
+<a href="#1221" id="1221">1221</a>
+<a href="#1222" id="1222">1222</a>
+<a href="#1223" id="1223">1223</a>
+<a href="#1224" id="1224">1224</a>
+<a href="#1225" id="1225">1225</a>
+<a href="#1226" id="1226">1226</a>
+<a href="#1227" id="1227">1227</a>
+<a href="#1228" id="1228">1228</a>
+<a href="#1229" id="1229">1229</a>
+<a href="#1230" id="1230">1230</a>
+<a href="#1231" id="1231">1231</a>
+<a href="#1232" id="1232">1232</a>
+<a href="#1233" id="1233">1233</a>
+<a href="#1234" id="1234">1234</a>
+<a href="#1235" id="1235">1235</a>
+<a href="#1236" id="1236">1236</a>
+<a href="#1237" id="1237">1237</a>
+<a href="#1238" id="1238">1238</a>
+<a href="#1239" id="1239">1239</a>
+<a href="#1240" id="1240">1240</a>
+<a href="#1241" id="1241">1241</a>
+<a href="#1242" id="1242">1242</a>
+<a href="#1243" id="1243">1243</a>
+<a href="#1244" id="1244">1244</a>
+<a href="#1245" id="1245">1245</a>
+<a href="#1246" id="1246">1246</a>
+<a href="#1247" id="1247">1247</a>
+<a href="#1248" id="1248">1248</a>
+<a href="#1249" id="1249">1249</a>
+<a href="#1250" id="1250">1250</a>
+<a href="#1251" id="1251">1251</a>
+<a href="#1252" id="1252">1252</a>
+<a href="#1253" id="1253">1253</a>
+<a href="#1254" id="1254">1254</a>
+<a href="#1255" id="1255">1255</a>
+<a href="#1256" id="1256">1256</a>
+<a href="#1257" id="1257">1257</a>
+<a href="#1258" id="1258">1258</a>
+<a href="#1259" id="1259">1259</a>
+<a href="#1260" id="1260">1260</a>
+<a href="#1261" id="1261">1261</a>
+<a href="#1262" id="1262">1262</a>
+<a href="#1263" id="1263">1263</a>
+<a href="#1264" id="1264">1264</a>
+<a href="#1265" id="1265">1265</a>
+<a href="#1266" id="1266">1266</a>
+<a href="#1267" id="1267">1267</a>
+<a href="#1268" id="1268">1268</a>
+<a href="#1269" id="1269">1269</a>
+<a href="#1270" id="1270">1270</a>
+<a href="#1271" id="1271">1271</a>
+<a href="#1272" id="1272">1272</a>
+<a href="#1273" id="1273">1273</a>
+<a href="#1274" id="1274">1274</a>
+<a href="#1275" id="1275">1275</a>
+<a href="#1276" id="1276">1276</a>
+<a href="#1277" id="1277">1277</a>
+<a href="#1278" id="1278">1278</a>
+<a href="#1279" id="1279">1279</a>
+<a href="#1280" id="1280">1280</a>
+<a href="#1281" id="1281">1281</a>
+<a href="#1282" id="1282">1282</a>
+<a href="#1283" id="1283">1283</a>
+<a href="#1284" id="1284">1284</a>
+<a href="#1285" id="1285">1285</a>
+<a href="#1286" id="1286">1286</a>
+<a href="#1287" id="1287">1287</a>
+<a href="#1288" id="1288">1288</a>
+<a href="#1289" id="1289">1289</a>
+<a href="#1290" id="1290">1290</a>
+<a href="#1291" id="1291">1291</a>
+<a href="#1292" id="1292">1292</a>
+<a href="#1293" id="1293">1293</a>
+<a href="#1294" id="1294">1294</a>
+<a href="#1295" id="1295">1295</a>
+<a href="#1296" id="1296">1296</a>
+<a href="#1297" id="1297">1297</a>
+<a href="#1298" id="1298">1298</a>
+<a href="#1299" id="1299">1299</a>
+<a href="#1300" id="1300">1300</a>
+<a href="#1301" id="1301">1301</a>
+<a href="#1302" id="1302">1302</a>
+<a href="#1303" id="1303">1303</a>
+<a href="#1304" id="1304">1304</a>
+<a href="#1305" id="1305">1305</a>
+<a href="#1306" id="1306">1306</a>
+<a href="#1307" id="1307">1307</a>
+<a href="#1308" id="1308">1308</a>
+<a href="#1309" id="1309">1309</a>
+<a href="#1310" id="1310">1310</a>
+<a href="#1311" id="1311">1311</a>
+<a href="#1312" id="1312">1312</a>
+<a href="#1313" id="1313">1313</a>
+<a href="#1314" id="1314">1314</a>
+<a href="#1315" id="1315">1315</a>
+<a href="#1316" id="1316">1316</a>
+<a href="#1317" id="1317">1317</a>
+<a href="#1318" id="1318">1318</a>
+<a href="#1319" id="1319">1319</a>
+<a href="#1320" id="1320">1320</a>
+<a href="#1321" id="1321">1321</a>
+<a href="#1322" id="1322">1322</a>
+<a href="#1323" id="1323">1323</a>
+<a href="#1324" id="1324">1324</a>
+<a href="#1325" id="1325">1325</a>
+<a href="#1326" id="1326">1326</a>
+<a href="#1327" id="1327">1327</a>
+<a href="#1328" id="1328">1328</a>
+<a href="#1329" id="1329">1329</a>
+<a href="#1330" id="1330">1330</a>
+<a href="#1331" id="1331">1331</a>
+<a href="#1332" id="1332">1332</a>
+<a href="#1333" id="1333">1333</a>
+<a href="#1334" id="1334">1334</a>
+<a href="#1335" id="1335">1335</a>
+<a href="#1336" id="1336">1336</a>
+<a href="#1337" id="1337">1337</a>
+<a href="#1338" id="1338">1338</a>
+<a href="#1339" id="1339">1339</a>
+<a href="#1340" id="1340">1340</a>
+<a href="#1341" id="1341">1341</a>
+<a href="#1342" id="1342">1342</a>
+<a href="#1343" id="1343">1343</a>
+<a href="#1344" id="1344">1344</a>
+<a href="#1345" id="1345">1345</a>
+<a href="#1346" id="1346">1346</a>
+<a href="#1347" id="1347">1347</a>
+<a href="#1348" id="1348">1348</a>
+<a href="#1349" id="1349">1349</a>
+<a href="#1350" id="1350">1350</a>
+<a href="#1351" id="1351">1351</a>
+<a href="#1352" id="1352">1352</a>
+<a href="#1353" id="1353">1353</a>
+<a href="#1354" id="1354">1354</a>
+<a href="#1355" id="1355">1355</a>
+<a href="#1356" id="1356">1356</a>
+<a href="#1357" id="1357">1357</a>
+<a href="#1358" id="1358">1358</a>
+<a href="#1359" id="1359">1359</a>
+<a href="#1360" id="1360">1360</a>
+<a href="#1361" id="1361">1361</a>
+<a href="#1362" id="1362">1362</a>
+<a href="#1363" id="1363">1363</a>
+<a href="#1364" id="1364">1364</a>
+<a href="#1365" id="1365">1365</a>
+<a href="#1366" id="1366">1366</a>
+<a href="#1367" id="1367">1367</a>
+<a href="#1368" id="1368">1368</a>
+<a href="#1369" id="1369">1369</a>
+<a href="#1370" id="1370">1370</a>
+<a href="#1371" id="1371">1371</a>
+<a href="#1372" id="1372">1372</a>
+<a href="#1373" id="1373">1373</a>
+<a href="#1374" id="1374">1374</a>
+<a href="#1375" id="1375">1375</a>
+<a href="#1376" id="1376">1376</a>
+<a href="#1377" id="1377">1377</a>
+<a href="#1378" id="1378">1378</a>
+<a href="#1379" id="1379">1379</a>
+<a href="#1380" id="1380">1380</a>
+<a href="#1381" id="1381">1381</a>
+<a href="#1382" id="1382">1382</a>
+<a href="#1383" id="1383">1383</a>
+<a href="#1384" id="1384">1384</a>
+<a href="#1385" id="1385">1385</a>
+<a href="#1386" id="1386">1386</a>
+<a href="#1387" id="1387">1387</a>
+<a href="#1388" id="1388">1388</a>
+<a href="#1389" id="1389">1389</a>
+<a href="#1390" id="1390">1390</a>
+<a href="#1391" id="1391">1391</a>
+<a href="#1392" id="1392">1392</a>
 </pre><pre class="rust"><code><span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
-</span><span class="kw">use </span><span class="kw">crate</span>::buf::{<a href="mod.rs.html#25">reader</a>, <a href="reader.rs.html#11">Reader</a>};
-<span class="kw">use </span><span class="kw">crate</span>::buf::{<a href="mod.rs.html#26">take</a>, <a href="chain.rs.html#32">Chain</a>, <a href="take.rs.html#10">Take</a>};
+</span><span class="kw">use </span><span class="kw">crate</span>::buf::{reader, Reader};
+<span class="kw">use </span><span class="kw">crate</span>::buf::{take, Chain, Take};
 
-<span class="kw">use </span>core::{<a href="https://doc.rust-lang.org/nightly/core/cmp/index.html">cmp</a>, <a href="https://doc.rust-lang.org/nightly/core/mem/index.html">mem</a>, <a href="https://doc.rust-lang.org/nightly/core/ptr/index.html">ptr</a>};
+<span class="kw">use </span>core::{cmp, mem, ptr};
 
 <span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
-</span><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/io/struct.IoSlice.html">std::io::IoSlice</a>;
+</span><span class="kw">use </span>std::io::IoSlice;
 
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/boxed/struct.Box.html">alloc::boxed::Box</a>;
+<span class="kw">use </span>alloc::boxed::Box;
 
 <span class="macro">macro_rules! </span>buf_get_impl {
     (<span class="macro-nonterminal">$this</span>:ident, <span class="macro-nonterminal">$typ</span>:tt::<span class="macro-nonterminal">$conv</span>:tt) =&gt; {{
@@ -1173,7 +1491,7 @@
     /// Implementations of `remaining` should ensure that the return value does
     /// not change unless a call is made to `advance` or any other function that
     /// is documented to change the `Buf`&#39;s current position.
-    </span><span class="kw">fn </span>remaining(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>;
+    </span><span class="kw">fn </span>remaining(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize;
 
     <span class="doccomment">/// Returns a slice starting at the current position and of length between 0
     /// and `Buf::remaining()`. Note that this *can* return shorter slice (this allows
@@ -1204,7 +1522,7 @@
     </span><span class="comment">// The `chunk` method was previously called `bytes`. This alias makes the rename
     // more easily discoverable.
     </span><span class="attr">#[cfg_attr(docsrs, doc(alias = <span class="string">&quot;bytes&quot;</span>))]
-    </span><span class="kw">fn </span>chunk(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>];
+    </span><span class="kw">fn </span>chunk(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[u8];
 
     <span class="doccomment">/// Fills `dst` with potentially multiple slices starting at `self`&#39;s
     /// current position.
@@ -1234,13 +1552,13 @@
     ///
     /// [`writev`]: http://man7.org/linux/man-pages/man2/readv.2.html
     </span><span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
-    </span><span class="kw">fn </span>chunks_vectored&lt;<span class="lifetime">&#39;a</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="self">self</span>, dst: <span class="kw-2">&amp;mut </span>[IoSlice&lt;<span class="lifetime">&#39;a</span>&gt;]) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
+    </span><span class="kw">fn </span>chunks_vectored&lt;<span class="lifetime">&#39;a</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="self">self</span>, dst: <span class="kw-2">&amp;mut </span>[IoSlice&lt;<span class="lifetime">&#39;a</span>&gt;]) -&gt; usize {
         <span class="kw">if </span>dst.is_empty() {
             <span class="kw">return </span><span class="number">0</span>;
         }
 
         <span class="kw">if </span><span class="self">self</span>.has_remaining() {
-            <a href="#163">dst</a>[<span class="number">0</span>] = IoSlice::new(<a class="self" href="#163">self</a>.<a href="#133">chunk</a>());
+            dst[<span class="number">0</span>] = IoSlice::new(<span class="self">self</span>.chunk());
             <span class="number">1
         </span>} <span class="kw">else </span>{
             <span class="number">0
@@ -1277,7 +1595,7 @@
     /// behave as if `cnt == self.remaining()`.
     ///
     /// A call with `cnt == 0` should never panic and be a no-op.
-    </span><span class="kw">fn </span>advance(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cnt: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>);
+    </span><span class="kw">fn </span>advance(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cnt: usize);
 
     <span class="doccomment">/// Returns true if there are any more bytes to consume
     ///
@@ -1296,8 +1614,8 @@
     ///
     /// assert!(!buf.has_remaining());
     /// ```
-    </span><span class="kw">fn </span>has_remaining(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#225">self</a>.<a href="#102">remaining</a>() &gt; <span class="number">0
+    </span><span class="kw">fn </span>has_remaining(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.remaining() &gt; <span class="number">0
     </span>}
 
     <span class="doccomment">/// Copies bytes from `self` into `dst`.
@@ -1321,10 +1639,10 @@
     /// # Panics
     ///
     /// This function panics if `self.remaining() &lt; dst.len()`
-    </span><span class="kw">fn </span>copy_to_slice(<span class="kw-2">&amp;mut </span><span class="self">self</span>, dst: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) {
+    </span><span class="kw">fn </span>copy_to_slice(<span class="kw-2">&amp;mut </span><span class="self">self</span>, dst: <span class="kw-2">&amp;mut </span>[u8]) {
         <span class="kw">let </span><span class="kw-2">mut </span>off = <span class="number">0</span>;
 
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(<span class="self">self</span>.remaining() &gt;= dst.len());
+        <span class="macro">assert!</span>(<span class="self">self</span>.remaining() &gt;= dst.len());
 
         <span class="kw">while </span>off &lt; dst.len() {
             <span class="kw">let </span>cnt;
@@ -1358,11 +1676,11 @@
     /// # Panics
     ///
     /// This function panics if there is no more remaining data in `self`.
-    </span><span class="kw">fn </span>get_u8(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a> {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(<span class="self">self</span>.remaining() &gt;= <span class="number">1</span>);
-        <span class="kw">let </span>ret = <a class="self" href="#287">self</a>.<a href="#133">chunk</a>()[<span class="number">0</span>];
-        <a class="self" href="#287">self</a>.<a href="#206">advance</a>(<span class="number">1</span>);
-        <a href="#289">ret</a>
+    </span><span class="kw">fn </span>get_u8(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; u8 {
+        <span class="macro">assert!</span>(<span class="self">self</span>.remaining() &gt;= <span class="number">1</span>);
+        <span class="kw">let </span>ret = <span class="self">self</span>.chunk()[<span class="number">0</span>];
+        <span class="self">self</span>.advance(<span class="number">1</span>);
+        ret
     }
 
     <span class="doccomment">/// Gets a signed 8 bit integer from `self`.
@@ -1381,11 +1699,11 @@
     /// # Panics
     ///
     /// This function panics if there is no more remaining data in `self`.
-    </span><span class="kw">fn </span>get_i8(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.i8.html">i8</a> {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(<span class="self">self</span>.remaining() &gt;= <span class="number">1</span>);
-        <span class="kw">let </span>ret = <a class="self" href="#310">self</a>.<a href="#133">chunk</a>()[<span class="number">0</span>] <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.i8.html">i8</a>;
-        <a class="self" href="#310">self</a>.<a href="#206">advance</a>(<span class="number">1</span>);
-        <a href="#312">ret</a>
+    </span><span class="kw">fn </span>get_i8(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; i8 {
+        <span class="macro">assert!</span>(<span class="self">self</span>.remaining() &gt;= <span class="number">1</span>);
+        <span class="kw">let </span>ret = <span class="self">self</span>.chunk()[<span class="number">0</span>] <span class="kw">as </span>i8;
+        <span class="self">self</span>.advance(<span class="number">1</span>);
+        ret
     }
 
     <span class="doccomment">/// Gets an unsigned 16 bit integer from `self` in big-endian byte order.
@@ -1404,8 +1722,8 @@
     /// # Panics
     ///
     /// This function panics if there is not enough remaining data in `self`.
-    </span><span class="kw">fn </span>get_u16(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a> {
-        <a class="macro" href="#12-50">buf_get_impl!</a>(<span class="self">self</span>, u16::from_be_bytes);
+    </span><span class="kw">fn </span>get_u16(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; u16 {
+        <span class="macro">buf_get_impl!</span>(<span class="self">self</span>, u16::from_be_bytes);
     }
 
     <span class="doccomment">/// Gets an unsigned 16 bit integer from `self` in little-endian byte order.
@@ -1424,8 +1742,31 @@
     /// # Panics
     ///
     /// This function panics if there is not enough remaining data in `self`.
-    </span><span class="kw">fn </span>get_u16_le(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a> {
-        <a class="macro" href="#12-50">buf_get_impl!</a>(<span class="self">self</span>, u16::from_le_bytes);
+    </span><span class="kw">fn </span>get_u16_le(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; u16 {
+        <span class="macro">buf_get_impl!</span>(<span class="self">self</span>, u16::from_le_bytes);
+    }
+
+    <span class="doccomment">/// Gets an unsigned 16 bit integer from `self` in native-endian byte order.
+    ///
+    /// The current position is advanced by 2.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use bytes::Buf;
+    ///
+    /// let mut buf: &amp;[u8] = match cfg!(target_endian = &quot;big&quot;) {
+    ///     true =&gt; b&quot;\x08\x09 hello&quot;,
+    ///     false =&gt; b&quot;\x09\x08 hello&quot;,
+    /// };
+    /// assert_eq!(0x0809, buf.get_u16_ne());
+    /// ```
+    ///
+    /// # Panics
+    ///
+    /// This function panics if there is not enough remaining data in `self`.
+    </span><span class="kw">fn </span>get_u16_ne(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; u16 {
+        <span class="macro">buf_get_impl!</span>(<span class="self">self</span>, u16::from_ne_bytes);
     }
 
     <span class="doccomment">/// Gets a signed 16 bit integer from `self` in big-endian byte order.
@@ -1444,8 +1785,8 @@
     /// # Panics
     ///
     /// This function panics if there is not enough remaining data in `self`.
-    </span><span class="kw">fn </span>get_i16(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.i16.html">i16</a> {
-        <a class="macro" href="#12-50">buf_get_impl!</a>(<span class="self">self</span>, i16::from_be_bytes);
+    </span><span class="kw">fn </span>get_i16(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; i16 {
+        <span class="macro">buf_get_impl!</span>(<span class="self">self</span>, i16::from_be_bytes);
     }
 
     <span class="doccomment">/// Gets a signed 16 bit integer from `self` in little-endian byte order.
@@ -1464,8 +1805,31 @@
     /// # Panics
     ///
     /// This function panics if there is not enough remaining data in `self`.
-    </span><span class="kw">fn </span>get_i16_le(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.i16.html">i16</a> {
-        <a class="macro" href="#12-50">buf_get_impl!</a>(<span class="self">self</span>, i16::from_le_bytes);
+    </span><span class="kw">fn </span>get_i16_le(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; i16 {
+        <span class="macro">buf_get_impl!</span>(<span class="self">self</span>, i16::from_le_bytes);
+    }
+
+    <span class="doccomment">/// Gets a signed 16 bit integer from `self` in native-endian byte order.
+    ///
+    /// The current position is advanced by 2.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use bytes::Buf;
+    ///
+    /// let mut buf: &amp;[u8] = match cfg!(target_endian = &quot;big&quot;) {
+    ///     true =&gt; b&quot;\x08\x09 hello&quot;,
+    ///     false =&gt; b&quot;\x09\x08 hello&quot;,
+    /// };
+    /// assert_eq!(0x0809, buf.get_i16_ne());
+    /// ```
+    ///
+    /// # Panics
+    ///
+    /// This function panics if there is not enough remaining data in `self`.
+    </span><span class="kw">fn </span>get_i16_ne(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; i16 {
+        <span class="macro">buf_get_impl!</span>(<span class="self">self</span>, i16::from_ne_bytes);
     }
 
     <span class="doccomment">/// Gets an unsigned 32 bit integer from `self` in the big-endian byte order.
@@ -1484,8 +1848,8 @@
     /// # Panics
     ///
     /// This function panics if there is not enough remaining data in `self`.
-    </span><span class="kw">fn </span>get_u32(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
-        <a class="macro" href="#12-50">buf_get_impl!</a>(<span class="self">self</span>, u32::from_be_bytes);
+    </span><span class="kw">fn </span>get_u32(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; u32 {
+        <span class="macro">buf_get_impl!</span>(<span class="self">self</span>, u32::from_be_bytes);
     }
 
     <span class="doccomment">/// Gets an unsigned 32 bit integer from `self` in the little-endian byte order.
@@ -1504,8 +1868,31 @@
     /// # Panics
     ///
     /// This function panics if there is not enough remaining data in `self`.
-    </span><span class="kw">fn </span>get_u32_le(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
-        <a class="macro" href="#12-50">buf_get_impl!</a>(<span class="self">self</span>, u32::from_le_bytes);
+    </span><span class="kw">fn </span>get_u32_le(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; u32 {
+        <span class="macro">buf_get_impl!</span>(<span class="self">self</span>, u32::from_le_bytes);
+    }
+
+    <span class="doccomment">/// Gets an unsigned 32 bit integer from `self` in native-endian byte order.
+    ///
+    /// The current position is advanced by 4.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use bytes::Buf;
+    ///
+    /// let mut buf: &amp;[u8] = match cfg!(target_endian = &quot;big&quot;) {
+    ///     true =&gt; b&quot;\x08\x09\xA0\xA1 hello&quot;,
+    ///     false =&gt; b&quot;\xA1\xA0\x09\x08 hello&quot;,
+    /// };
+    /// assert_eq!(0x0809A0A1, buf.get_u32_ne());
+    /// ```
+    ///
+    /// # Panics
+    ///
+    /// This function panics if there is not enough remaining data in `self`.
+    </span><span class="kw">fn </span>get_u32_ne(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; u32 {
+        <span class="macro">buf_get_impl!</span>(<span class="self">self</span>, u32::from_ne_bytes);
     }
 
     <span class="doccomment">/// Gets a signed 32 bit integer from `self` in big-endian byte order.
@@ -1524,8 +1911,8 @@
     /// # Panics
     ///
     /// This function panics if there is not enough remaining data in `self`.
-    </span><span class="kw">fn </span>get_i32(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a> {
-        <a class="macro" href="#12-50">buf_get_impl!</a>(<span class="self">self</span>, i32::from_be_bytes);
+    </span><span class="kw">fn </span>get_i32(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; i32 {
+        <span class="macro">buf_get_impl!</span>(<span class="self">self</span>, i32::from_be_bytes);
     }
 
     <span class="doccomment">/// Gets a signed 32 bit integer from `self` in little-endian byte order.
@@ -1544,8 +1931,31 @@
     /// # Panics
     ///
     /// This function panics if there is not enough remaining data in `self`.
-    </span><span class="kw">fn </span>get_i32_le(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a> {
-        <a class="macro" href="#12-50">buf_get_impl!</a>(<span class="self">self</span>, i32::from_le_bytes);
+    </span><span class="kw">fn </span>get_i32_le(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; i32 {
+        <span class="macro">buf_get_impl!</span>(<span class="self">self</span>, i32::from_le_bytes);
+    }
+
+    <span class="doccomment">/// Gets a signed 32 bit integer from `self` in native-endian byte order.
+    ///
+    /// The current position is advanced by 4.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use bytes::Buf;
+    ///
+    /// let mut buf: &amp;[u8] = match cfg!(target_endian = &quot;big&quot;) {
+    ///     true =&gt; b&quot;\x08\x09\xA0\xA1 hello&quot;,
+    ///     false =&gt; b&quot;\xA1\xA0\x09\x08 hello&quot;,
+    /// };
+    /// assert_eq!(0x0809A0A1, buf.get_i32_ne());
+    /// ```
+    ///
+    /// # Panics
+    ///
+    /// This function panics if there is not enough remaining data in `self`.
+    </span><span class="kw">fn </span>get_i32_ne(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; i32 {
+        <span class="macro">buf_get_impl!</span>(<span class="self">self</span>, i32::from_ne_bytes);
     }
 
     <span class="doccomment">/// Gets an unsigned 64 bit integer from `self` in big-endian byte order.
@@ -1564,8 +1974,8 @@
     /// # Panics
     ///
     /// This function panics if there is not enough remaining data in `self`.
-    </span><span class="kw">fn </span>get_u64(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> {
-        <a class="macro" href="#12-50">buf_get_impl!</a>(<span class="self">self</span>, u64::from_be_bytes);
+    </span><span class="kw">fn </span>get_u64(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; u64 {
+        <span class="macro">buf_get_impl!</span>(<span class="self">self</span>, u64::from_be_bytes);
     }
 
     <span class="doccomment">/// Gets an unsigned 64 bit integer from `self` in little-endian byte order.
@@ -1584,8 +1994,31 @@
     /// # Panics
     ///
     /// This function panics if there is not enough remaining data in `self`.
-    </span><span class="kw">fn </span>get_u64_le(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> {
-        <a class="macro" href="#12-50">buf_get_impl!</a>(<span class="self">self</span>, u64::from_le_bytes);
+    </span><span class="kw">fn </span>get_u64_le(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; u64 {
+        <span class="macro">buf_get_impl!</span>(<span class="self">self</span>, u64::from_le_bytes);
+    }
+
+    <span class="doccomment">/// Gets an unsigned 64 bit integer from `self` in native-endian byte order.
+    ///
+    /// The current position is advanced by 8.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use bytes::Buf;
+    ///
+    /// let mut buf: &amp;[u8] = match cfg!(target_endian = &quot;big&quot;) {
+    ///     true =&gt; b&quot;\x01\x02\x03\x04\x05\x06\x07\x08 hello&quot;,
+    ///     false =&gt; b&quot;\x08\x07\x06\x05\x04\x03\x02\x01 hello&quot;,
+    /// };
+    /// assert_eq!(0x0102030405060708, buf.get_u64_ne());
+    /// ```
+    ///
+    /// # Panics
+    ///
+    /// This function panics if there is not enough remaining data in `self`.
+    </span><span class="kw">fn </span>get_u64_ne(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; u64 {
+        <span class="macro">buf_get_impl!</span>(<span class="self">self</span>, u64::from_ne_bytes);
     }
 
     <span class="doccomment">/// Gets a signed 64 bit integer from `self` in big-endian byte order.
@@ -1604,8 +2037,8 @@
     /// # Panics
     ///
     /// This function panics if there is not enough remaining data in `self`.
-    </span><span class="kw">fn </span>get_i64(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a> {
-        <a class="macro" href="#12-50">buf_get_impl!</a>(<span class="self">self</span>, i64::from_be_bytes);
+    </span><span class="kw">fn </span>get_i64(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; i64 {
+        <span class="macro">buf_get_impl!</span>(<span class="self">self</span>, i64::from_be_bytes);
     }
 
     <span class="doccomment">/// Gets a signed 64 bit integer from `self` in little-endian byte order.
@@ -1624,8 +2057,31 @@
     /// # Panics
     ///
     /// This function panics if there is not enough remaining data in `self`.
-    </span><span class="kw">fn </span>get_i64_le(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a> {
-        <a class="macro" href="#12-50">buf_get_impl!</a>(<span class="self">self</span>, i64::from_le_bytes);
+    </span><span class="kw">fn </span>get_i64_le(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; i64 {
+        <span class="macro">buf_get_impl!</span>(<span class="self">self</span>, i64::from_le_bytes);
+    }
+
+    <span class="doccomment">/// Gets a signed 64 bit integer from `self` in native-endian byte order.
+    ///
+    /// The current position is advanced by 8.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use bytes::Buf;
+    ///
+    /// let mut buf: &amp;[u8] = match cfg!(target_endian = &quot;big&quot;) {
+    ///     true =&gt; b&quot;\x01\x02\x03\x04\x05\x06\x07\x08 hello&quot;,
+    ///     false =&gt; b&quot;\x08\x07\x06\x05\x04\x03\x02\x01 hello&quot;,
+    /// };
+    /// assert_eq!(0x0102030405060708, buf.get_i64_ne());
+    /// ```
+    ///
+    /// # Panics
+    ///
+    /// This function panics if there is not enough remaining data in `self`.
+    </span><span class="kw">fn </span>get_i64_ne(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; i64 {
+        <span class="macro">buf_get_impl!</span>(<span class="self">self</span>, i64::from_ne_bytes);
     }
 
     <span class="doccomment">/// Gets an unsigned 128 bit integer from `self` in big-endian byte order.
@@ -1644,8 +2100,8 @@
     /// # Panics
     ///
     /// This function panics if there is not enough remaining data in `self`.
-    </span><span class="kw">fn </span>get_u128(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u128.html">u128</a> {
-        <a class="macro" href="#12-50">buf_get_impl!</a>(<span class="self">self</span>, u128::from_be_bytes);
+    </span><span class="kw">fn </span>get_u128(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; u128 {
+        <span class="macro">buf_get_impl!</span>(<span class="self">self</span>, u128::from_be_bytes);
     }
 
     <span class="doccomment">/// Gets an unsigned 128 bit integer from `self` in little-endian byte order.
@@ -1664,8 +2120,31 @@
     /// # Panics
     ///
     /// This function panics if there is not enough remaining data in `self`.
-    </span><span class="kw">fn </span>get_u128_le(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u128.html">u128</a> {
-        <a class="macro" href="#12-50">buf_get_impl!</a>(<span class="self">self</span>, u128::from_le_bytes);
+    </span><span class="kw">fn </span>get_u128_le(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; u128 {
+        <span class="macro">buf_get_impl!</span>(<span class="self">self</span>, u128::from_le_bytes);
+    }
+
+    <span class="doccomment">/// Gets an unsigned 128 bit integer from `self` in native-endian byte order.
+    ///
+    /// The current position is advanced by 16.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use bytes::Buf;
+    ///
+    /// let mut buf: &amp;[u8] = match cfg!(target_endian = &quot;big&quot;) {
+    ///     true =&gt; b&quot;\x01\x02\x03\x04\x05\x06\x07\x08\x09\x10\x11\x12\x13\x14\x15\x16 hello&quot;,
+    ///     false =&gt; b&quot;\x16\x15\x14\x13\x12\x11\x10\x09\x08\x07\x06\x05\x04\x03\x02\x01 hello&quot;,
+    /// };
+    /// assert_eq!(0x01020304050607080910111213141516, buf.get_u128_ne());
+    /// ```
+    ///
+    /// # Panics
+    ///
+    /// This function panics if there is not enough remaining data in `self`.
+    </span><span class="kw">fn </span>get_u128_ne(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; u128 {
+        <span class="macro">buf_get_impl!</span>(<span class="self">self</span>, u128::from_ne_bytes);
     }
 
     <span class="doccomment">/// Gets a signed 128 bit integer from `self` in big-endian byte order.
@@ -1684,8 +2163,8 @@
     /// # Panics
     ///
     /// This function panics if there is not enough remaining data in `self`.
-    </span><span class="kw">fn </span>get_i128(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.i128.html">i128</a> {
-        <a class="macro" href="#12-50">buf_get_impl!</a>(<span class="self">self</span>, i128::from_be_bytes);
+    </span><span class="kw">fn </span>get_i128(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; i128 {
+        <span class="macro">buf_get_impl!</span>(<span class="self">self</span>, i128::from_be_bytes);
     }
 
     <span class="doccomment">/// Gets a signed 128 bit integer from `self` in little-endian byte order.
@@ -1704,8 +2183,31 @@
     /// # Panics
     ///
     /// This function panics if there is not enough remaining data in `self`.
-    </span><span class="kw">fn </span>get_i128_le(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.i128.html">i128</a> {
-        <a class="macro" href="#12-50">buf_get_impl!</a>(<span class="self">self</span>, i128::from_le_bytes);
+    </span><span class="kw">fn </span>get_i128_le(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; i128 {
+        <span class="macro">buf_get_impl!</span>(<span class="self">self</span>, i128::from_le_bytes);
+    }
+
+    <span class="doccomment">/// Gets a signed 128 bit integer from `self` in native-endian byte order.
+    ///
+    /// The current position is advanced by 16.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use bytes::Buf;
+    ///
+    /// let mut buf: &amp;[u8] = match cfg!(target_endian = &quot;big&quot;) {
+    ///     true =&gt; b&quot;\x01\x02\x03\x04\x05\x06\x07\x08\x09\x10\x11\x12\x13\x14\x15\x16 hello&quot;,
+    ///     false =&gt; b&quot;\x16\x15\x14\x13\x12\x11\x10\x09\x08\x07\x06\x05\x04\x03\x02\x01 hello&quot;,
+    /// };
+    /// assert_eq!(0x01020304050607080910111213141516, buf.get_i128_ne());
+    /// ```
+    ///
+    /// # Panics
+    ///
+    /// This function panics if there is not enough remaining data in `self`.
+    </span><span class="kw">fn </span>get_i128_ne(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; i128 {
+        <span class="macro">buf_get_impl!</span>(<span class="self">self</span>, i128::from_ne_bytes);
     }
 
     <span class="doccomment">/// Gets an unsigned n-byte integer from `self` in big-endian byte order.
@@ -1724,8 +2226,8 @@
     /// # Panics
     ///
     /// This function panics if there is not enough remaining data in `self`.
-    </span><span class="kw">fn </span>get_uint(<span class="kw-2">&amp;mut </span><span class="self">self</span>, nbytes: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> {
-        <a class="macro" href="#12-50">buf_get_impl!</a>(be =&gt; <span class="self">self</span>, u64, nbytes);
+    </span><span class="kw">fn </span>get_uint(<span class="kw-2">&amp;mut </span><span class="self">self</span>, nbytes: usize) -&gt; u64 {
+        <span class="macro">buf_get_impl!</span>(be =&gt; <span class="self">self</span>, u64, nbytes);
     }
 
     <span class="doccomment">/// Gets an unsigned n-byte integer from `self` in little-endian byte order.
@@ -1744,8 +2246,35 @@
     /// # Panics
     ///
     /// This function panics if there is not enough remaining data in `self`.
-    </span><span class="kw">fn </span>get_uint_le(<span class="kw-2">&amp;mut </span><span class="self">self</span>, nbytes: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> {
-        <a class="macro" href="#12-50">buf_get_impl!</a>(le =&gt; <span class="self">self</span>, u64, nbytes);
+    </span><span class="kw">fn </span>get_uint_le(<span class="kw-2">&amp;mut </span><span class="self">self</span>, nbytes: usize) -&gt; u64 {
+        <span class="macro">buf_get_impl!</span>(le =&gt; <span class="self">self</span>, u64, nbytes);
+    }
+
+    <span class="doccomment">/// Gets an unsigned n-byte integer from `self` in native-endian byte order.
+    ///
+    /// The current position is advanced by `nbytes`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use bytes::Buf;
+    ///
+    /// let mut buf: &amp;[u8] = match cfg!(target_endian = &quot;big&quot;) {
+    ///     true =&gt; b&quot;\x01\x02\x03 hello&quot;,
+    ///     false =&gt; b&quot;\x03\x02\x01 hello&quot;,
+    /// };
+    /// assert_eq!(0x010203, buf.get_uint_ne(3));
+    /// ```
+    ///
+    /// # Panics
+    ///
+    /// This function panics if there is not enough remaining data in `self`.
+    </span><span class="kw">fn </span>get_uint_ne(<span class="kw-2">&amp;mut </span><span class="self">self</span>, nbytes: usize) -&gt; u64 {
+        <span class="kw">if </span><span class="macro">cfg!</span>(target_endian = <span class="string">&quot;big&quot;</span>) {
+            <span class="self">self</span>.get_uint(nbytes)
+        } <span class="kw">else </span>{
+            <span class="self">self</span>.get_uint_le(nbytes)
+        }
     }
 
     <span class="doccomment">/// Gets a signed n-byte integer from `self` in big-endian byte order.
@@ -1764,8 +2293,8 @@
     /// # Panics
     ///
     /// This function panics if there is not enough remaining data in `self`.
-    </span><span class="kw">fn </span>get_int(<span class="kw-2">&amp;mut </span><span class="self">self</span>, nbytes: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a> {
-        <a class="macro" href="#12-50">buf_get_impl!</a>(be =&gt; <span class="self">self</span>, i64, nbytes);
+    </span><span class="kw">fn </span>get_int(<span class="kw-2">&amp;mut </span><span class="self">self</span>, nbytes: usize) -&gt; i64 {
+        <span class="macro">buf_get_impl!</span>(be =&gt; <span class="self">self</span>, i64, nbytes);
     }
 
     <span class="doccomment">/// Gets a signed n-byte integer from `self` in little-endian byte order.
@@ -1784,8 +2313,35 @@
     /// # Panics
     ///
     /// This function panics if there is not enough remaining data in `self`.
-    </span><span class="kw">fn </span>get_int_le(<span class="kw-2">&amp;mut </span><span class="self">self</span>, nbytes: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a> {
-        <a class="macro" href="#12-50">buf_get_impl!</a>(le =&gt; <span class="self">self</span>, i64, nbytes);
+    </span><span class="kw">fn </span>get_int_le(<span class="kw-2">&amp;mut </span><span class="self">self</span>, nbytes: usize) -&gt; i64 {
+        <span class="macro">buf_get_impl!</span>(le =&gt; <span class="self">self</span>, i64, nbytes);
+    }
+
+    <span class="doccomment">/// Gets a signed n-byte integer from `self` in native-endian byte order.
+    ///
+    /// The current position is advanced by `nbytes`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use bytes::Buf;
+    ///
+    /// let mut buf: &amp;[u8] = match cfg!(target_endian = &quot;big&quot;) {
+    ///     true =&gt; b&quot;\x01\x02\x03 hello&quot;,
+    ///     false =&gt; b&quot;\x03\x02\x01 hello&quot;,
+    /// };
+    /// assert_eq!(0x010203, buf.get_int_ne(3));
+    /// ```
+    ///
+    /// # Panics
+    ///
+    /// This function panics if there is not enough remaining data in `self`.
+    </span><span class="kw">fn </span>get_int_ne(<span class="kw-2">&amp;mut </span><span class="self">self</span>, nbytes: usize) -&gt; i64 {
+        <span class="kw">if </span><span class="macro">cfg!</span>(target_endian = <span class="string">&quot;big&quot;</span>) {
+            <span class="self">self</span>.get_int(nbytes)
+        } <span class="kw">else </span>{
+            <span class="self">self</span>.get_int_le(nbytes)
+        }
     }
 
     <span class="doccomment">/// Gets an IEEE754 single-precision (4 bytes) floating point number from
@@ -1805,8 +2361,8 @@
     /// # Panics
     ///
     /// This function panics if there is not enough remaining data in `self`.
-    </span><span class="kw">fn </span>get_f32(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.f32.html">f32</a> {
-        f32::from_bits(<span class="self">Self</span>::get_u32(<a class="self" href="#734">self</a>))
+    </span><span class="kw">fn </span>get_f32(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; f32 {
+        f32::from_bits(<span class="self">Self</span>::get_u32(<span class="self">self</span>))
     }
 
     <span class="doccomment">/// Gets an IEEE754 single-precision (4 bytes) floating point number from
@@ -1826,8 +2382,32 @@
     /// # Panics
     ///
     /// This function panics if there is not enough remaining data in `self`.
-    </span><span class="kw">fn </span>get_f32_le(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.f32.html">f32</a> {
-        f32::from_bits(<span class="self">Self</span>::get_u32_le(<a class="self" href="#755">self</a>))
+    </span><span class="kw">fn </span>get_f32_le(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; f32 {
+        f32::from_bits(<span class="self">Self</span>::get_u32_le(<span class="self">self</span>))
+    }
+
+    <span class="doccomment">/// Gets an IEEE754 single-precision (4 bytes) floating point number from
+    /// `self` in native-endian byte order.
+    ///
+    /// The current position is advanced by 4.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use bytes::Buf;
+    ///
+    /// let mut buf: &amp;[u8] = match cfg!(target_endian = &quot;big&quot;) {
+    ///     true =&gt; b&quot;\x3F\x99\x99\x9A hello&quot;,
+    ///     false =&gt; b&quot;\x9A\x99\x99\x3F hello&quot;,
+    /// };
+    /// assert_eq!(1.2f32, buf.get_f32_ne());
+    /// ```
+    ///
+    /// # Panics
+    ///
+    /// This function panics if there is not enough remaining data in `self`.
+    </span><span class="kw">fn </span>get_f32_ne(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; f32 {
+        f32::from_bits(<span class="self">Self</span>::get_u32_ne(<span class="self">self</span>))
     }
 
     <span class="doccomment">/// Gets an IEEE754 double-precision (8 bytes) floating point number from
@@ -1847,8 +2427,8 @@
     /// # Panics
     ///
     /// This function panics if there is not enough remaining data in `self`.
-    </span><span class="kw">fn </span>get_f64(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.f64.html">f64</a> {
-        f64::from_bits(<span class="self">Self</span>::get_u64(<a class="self" href="#776">self</a>))
+    </span><span class="kw">fn </span>get_f64(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; f64 {
+        f64::from_bits(<span class="self">Self</span>::get_u64(<span class="self">self</span>))
     }
 
     <span class="doccomment">/// Gets an IEEE754 double-precision (8 bytes) floating point number from
@@ -1868,8 +2448,32 @@
     /// # Panics
     ///
     /// This function panics if there is not enough remaining data in `self`.
-    </span><span class="kw">fn </span>get_f64_le(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.f64.html">f64</a> {
-        f64::from_bits(<span class="self">Self</span>::get_u64_le(<a class="self" href="#797">self</a>))
+    </span><span class="kw">fn </span>get_f64_le(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; f64 {
+        f64::from_bits(<span class="self">Self</span>::get_u64_le(<span class="self">self</span>))
+    }
+
+    <span class="doccomment">/// Gets an IEEE754 double-precision (8 bytes) floating point number from
+    /// `self` in native-endian byte order.
+    ///
+    /// The current position is advanced by 8.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use bytes::Buf;
+    ///
+    /// let mut buf: &amp;[u8] = match cfg!(target_endian = &quot;big&quot;) {
+    ///     true =&gt; b&quot;\x3F\xF3\x33\x33\x33\x33\x33\x33 hello&quot;,
+    ///     false =&gt; b&quot;\x33\x33\x33\x33\x33\x33\xF3\x3F hello&quot;,
+    /// };
+    /// assert_eq!(1.2f64, buf.get_f64_ne());
+    /// ```
+    ///
+    /// # Panics
+    ///
+    /// This function panics if there is not enough remaining data in `self`.
+    </span><span class="kw">fn </span>get_f64_ne(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; f64 {
+        f64::from_bits(<span class="self">Self</span>::get_u64_ne(<span class="self">self</span>))
     }
 
     <span class="doccomment">/// Consumes `len` bytes inside self and returns new instance of `Bytes`
@@ -1887,14 +2491,14 @@
     /// let bytes = (&amp;b&quot;hello world&quot;[..]).copy_to_bytes(5);
     /// assert_eq!(&amp;bytes[..], &amp;b&quot;hello&quot;[..]);
     /// ```
-    </span><span class="kw">fn </span>copy_to_bytes(<span class="kw-2">&amp;mut </span><span class="self">self</span>, len: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a href="../bytes.rs.html#100"><span class="kw">crate</span>::Bytes</a> {
-        <span class="kw">use </span><a href="buf_mut.rs.html#29"><span class="kw">super</span>::BufMut</a>;
+    </span><span class="kw">fn </span>copy_to_bytes(<span class="kw-2">&amp;mut </span><span class="self">self</span>, len: usize) -&gt; <span class="kw">crate</span>::Bytes {
+        <span class="kw">use </span><span class="kw">super</span>::BufMut;
 
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(len &lt;= <span class="self">self</span>.remaining(), <span class="string">&quot;`len` greater than remaining&quot;</span>);
+        <span class="macro">assert!</span>(len &lt;= <span class="self">self</span>.remaining(), <span class="string">&quot;`len` greater than remaining&quot;</span>);
 
-        <span class="kw">let </span><span class="kw-2">mut </span>ret = <span class="kw">crate</span>::BytesMut::with_capacity(<a href="#816">len</a>);
-        <a href="#821">ret</a>.<a href="buf_mut.rs.html#197-199">put</a>(<a class="self" href="#816">self</a>.<a href="#847-849">take</a>(<a href="#816">len</a>));
-        <a href="#821">ret</a>.<a href="../bytes_mut.rs.html#240">freeze</a>()
+        <span class="kw">let </span><span class="kw-2">mut </span>ret = <span class="kw">crate</span>::BytesMut::with_capacity(len);
+        ret.put(<span class="self">self</span>.take(len));
+        ret.freeze()
     }
 
     <span class="doccomment">/// Creates an adaptor which will read at most `limit` bytes from `self`.
@@ -1918,11 +2522,11 @@
     /// dst.put(&amp;mut buf);
     /// assert_eq!(dst, b&quot; world&quot;);
     /// ```
-    </span><span class="kw">fn </span>take(<span class="self">self</span>, limit: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; Take&lt;<span class="self">Self</span>&gt;
+    </span><span class="kw">fn </span>take(<span class="self">self</span>, limit: usize) -&gt; Take&lt;<span class="self">Self</span>&gt;
     <span class="kw">where
-        </span><span class="self">Self</span>: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>,
+        </span><span class="self">Self</span>: Sized,
     {
-        <a href="take.rs.html#15">take::new</a>(<a class="self" href="#847">self</a>, <a href="#847">limit</a>)
+        take::new(<span class="self">self</span>, limit)
     }
 
     <span class="doccomment">/// Creates an adaptor which will chain this buffer with another.
@@ -1940,11 +2544,11 @@
     /// let full = chain.copy_to_bytes(11);
     /// assert_eq!(full.chunk(), b&quot;hello world&quot;);
     /// ```
-    </span><span class="kw">fn </span>chain&lt;U: <a href="#76">Buf</a>&gt;(<span class="self">self</span>, next: U) -&gt; Chain&lt;<span class="self">Self</span>, U&gt;
+    </span><span class="kw">fn </span>chain&lt;U: Buf&gt;(<span class="self">self</span>, next: U) -&gt; Chain&lt;<span class="self">Self</span>, U&gt;
     <span class="kw">where
-        </span><span class="self">Self</span>: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>,
+        </span><span class="self">Self</span>: Sized,
     {
-        Chain::new(<a class="self" href="#869">self</a>, <a href="#869">next</a>)
+        Chain::new(<span class="self">self</span>, next)
     }
 
     <span class="doccomment">/// Creates an adaptor which implements the `Read` trait for `self`.
@@ -1973,9 +2577,9 @@
     </span><span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
     </span><span class="kw">fn </span>reader(<span class="self">self</span>) -&gt; Reader&lt;<span class="self">Self</span>&gt;
     <span class="kw">where
-        </span><span class="self">Self</span>: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>,
+        </span><span class="self">Self</span>: Sized,
     {
-        <a href="reader.rs.html#15">reader::new</a>(<a class="self" href="#900">self</a>)
+        reader::new(<span class="self">self</span>)
     }
 }
 
@@ -2022,12 +2626,20 @@
             (<span class="kw-2">**</span><span class="self">self</span>).get_u16_le()
         }
 
+        <span class="kw">fn </span>get_u16_ne(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; u16 {
+            (<span class="kw-2">**</span><span class="self">self</span>).get_u16_ne()
+        }
+
         <span class="kw">fn </span>get_i16(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; i16 {
             (<span class="kw-2">**</span><span class="self">self</span>).get_i16()
         }
 
         <span class="kw">fn </span>get_i16_le(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; i16 {
             (<span class="kw-2">**</span><span class="self">self</span>).get_i16_le()
+        }
+
+        <span class="kw">fn </span>get_i16_ne(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; i16 {
+            (<span class="kw-2">**</span><span class="self">self</span>).get_i16_ne()
         }
 
         <span class="kw">fn </span>get_u32(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; u32 {
@@ -2038,12 +2650,20 @@
             (<span class="kw-2">**</span><span class="self">self</span>).get_u32_le()
         }
 
+        <span class="kw">fn </span>get_u32_ne(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; u32 {
+            (<span class="kw-2">**</span><span class="self">self</span>).get_u32_ne()
+        }
+
         <span class="kw">fn </span>get_i32(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; i32 {
             (<span class="kw-2">**</span><span class="self">self</span>).get_i32()
         }
 
         <span class="kw">fn </span>get_i32_le(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; i32 {
             (<span class="kw-2">**</span><span class="self">self</span>).get_i32_le()
+        }
+
+        <span class="kw">fn </span>get_i32_ne(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; i32 {
+            (<span class="kw-2">**</span><span class="self">self</span>).get_i32_ne()
         }
 
         <span class="kw">fn </span>get_u64(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; u64 {
@@ -2054,12 +2674,20 @@
             (<span class="kw-2">**</span><span class="self">self</span>).get_u64_le()
         }
 
+        <span class="kw">fn </span>get_u64_ne(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; u64 {
+            (<span class="kw-2">**</span><span class="self">self</span>).get_u64_ne()
+        }
+
         <span class="kw">fn </span>get_i64(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; i64 {
             (<span class="kw-2">**</span><span class="self">self</span>).get_i64()
         }
 
         <span class="kw">fn </span>get_i64_le(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; i64 {
             (<span class="kw-2">**</span><span class="self">self</span>).get_i64_le()
+        }
+
+        <span class="kw">fn </span>get_i64_ne(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; i64 {
+            (<span class="kw-2">**</span><span class="self">self</span>).get_i64_ne()
         }
 
         <span class="kw">fn </span>get_uint(<span class="kw-2">&amp;mut </span><span class="self">self</span>, nbytes: usize) -&gt; u64 {
@@ -2070,6 +2698,10 @@
             (<span class="kw-2">**</span><span class="self">self</span>).get_uint_le(nbytes)
         }
 
+        <span class="kw">fn </span>get_uint_ne(<span class="kw-2">&amp;mut </span><span class="self">self</span>, nbytes: usize) -&gt; u64 {
+            (<span class="kw-2">**</span><span class="self">self</span>).get_uint_ne(nbytes)
+        }
+
         <span class="kw">fn </span>get_int(<span class="kw-2">&amp;mut </span><span class="self">self</span>, nbytes: usize) -&gt; i64 {
             (<span class="kw-2">**</span><span class="self">self</span>).get_int(nbytes)
         }
@@ -2078,73 +2710,77 @@
             (<span class="kw-2">**</span><span class="self">self</span>).get_int_le(nbytes)
         }
 
+        <span class="kw">fn </span>get_int_ne(<span class="kw-2">&amp;mut </span><span class="self">self</span>, nbytes: usize) -&gt; i64 {
+            (<span class="kw-2">**</span><span class="self">self</span>).get_int_ne(nbytes)
+        }
+
         <span class="kw">fn </span>copy_to_bytes(<span class="kw-2">&amp;mut </span><span class="self">self</span>, len: usize) -&gt; <span class="kw">crate</span>::Bytes {
             (<span class="kw-2">**</span><span class="self">self</span>).copy_to_bytes(len)
         }
     };
 }
 
-<span class="kw">impl</span>&lt;T: <a href="#76">Buf</a> + <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>&gt; <a href="#76">Buf</a> <span class="kw">for </span><span class="kw-2">&amp;mut </span>T {
-    <a class="macro" href="#908-1011">deref_forward_buf!</a>();
+<span class="kw">impl</span>&lt;T: Buf + <span class="question-mark">?</span>Sized&gt; Buf <span class="kw">for </span><span class="kw-2">&amp;mut </span>T {
+    <span class="macro">deref_forward_buf!</span>();
 }
 
-<span class="kw">impl</span>&lt;T: <a href="#76">Buf</a> + <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>&gt; <a href="#76">Buf</a> <span class="kw">for </span>Box&lt;T&gt; {
-    <a class="macro" href="#908-1011">deref_forward_buf!</a>();
+<span class="kw">impl</span>&lt;T: Buf + <span class="question-mark">?</span>Sized&gt; Buf <span class="kw">for </span>Box&lt;T&gt; {
+    <span class="macro">deref_forward_buf!</span>();
 }
 
-<span class="kw">impl </span><a href="#76">Buf</a> <span class="kw">for </span><span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>] {
+<span class="kw">impl </span>Buf <span class="kw">for </span><span class="kw-2">&amp;</span>[u8] {
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>remaining(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="self" href="#1023">self</a>.len()
+    </span><span class="kw">fn </span>remaining(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+        <span class="self">self</span>.len()
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>chunk(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>] {
-        <span class="self"><a href="#1028">self</a>
+    </span><span class="kw">fn </span>chunk(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[u8] {
+        <span class="self">self
     </span>}
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>advance(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cnt: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
-        <span class="kw-2">*</span><span class="self"><a href="#1033">self</a> </span>= <span class="kw-2">&amp;</span><a class="self" href="#1033">self</a>[<a href="#1033">cnt</a>..];
+    </span><span class="kw">fn </span>advance(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cnt: usize) {
+        <span class="kw-2">*</span><span class="self">self </span>= <span class="kw-2">&amp;</span><span class="self">self</span>[cnt..];
     }
 }
 
 <span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
-</span><span class="kw">impl</span>&lt;T: AsRef&lt;[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;&gt; <a href="#76">Buf</a> <span class="kw">for </span>std::io::Cursor&lt;T&gt; {
-    <span class="kw">fn </span>remaining(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <span class="kw">let </span>len = <a class="self" href="#1040">self</a>.get_ref().<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>().len();
-        <span class="kw">let </span>pos = <a class="self" href="#1040">self</a>.position();
+</span><span class="kw">impl</span>&lt;T: AsRef&lt;[u8]&gt;&gt; Buf <span class="kw">for </span>std::io::Cursor&lt;T&gt; {
+    <span class="kw">fn </span>remaining(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+        <span class="kw">let </span>len = <span class="self">self</span>.get_ref().as_ref().len();
+        <span class="kw">let </span>pos = <span class="self">self</span>.position();
 
         <span class="kw">if </span>pos &gt;= len <span class="kw">as </span>u64 {
             <span class="kw">return </span><span class="number">0</span>;
         }
 
-        <a href="#1041">len</a> - <a href="#1042">pos</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>
+        len - pos <span class="kw">as </span>usize
     }
 
-    <span class="kw">fn </span>chunk(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>] {
-        <span class="kw">let </span>len = <a class="self" href="#1051">self</a>.get_ref().<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>().len();
-        <span class="kw">let </span>pos = <a class="self" href="#1051">self</a>.position();
+    <span class="kw">fn </span>chunk(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[u8] {
+        <span class="kw">let </span>len = <span class="self">self</span>.get_ref().as_ref().len();
+        <span class="kw">let </span>pos = <span class="self">self</span>.position();
 
         <span class="kw">if </span>pos &gt;= len <span class="kw">as </span>u64 {
             <span class="kw">return </span><span class="kw-2">&amp;</span>[];
         }
 
-        <span class="kw-2">&amp;</span><a class="self" href="#1051">self</a>.get_ref().<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>()[<a href="#1053">pos</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>..]
+        <span class="kw-2">&amp;</span><span class="self">self</span>.get_ref().as_ref()[pos <span class="kw">as </span>usize..]
     }
 
-    <span class="kw">fn </span>advance(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cnt: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
-        <span class="kw">let </span>pos = (<a class="self" href="#1062">self</a>.position() <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>)
-            .checked_add(<a href="#1062">cnt</a>)
+    <span class="kw">fn </span>advance(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cnt: usize) {
+        <span class="kw">let </span>pos = (<span class="self">self</span>.position() <span class="kw">as </span>usize)
+            .checked_add(cnt)
             .expect(<span class="string">&quot;overflow&quot;</span>);
 
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(pos &lt;= <span class="self">self</span>.get_ref().as_ref().len());
-        <a class="self" href="#1062">self</a>.set_position(<a href="#1063">pos</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>);
+        <span class="macro">assert!</span>(pos &lt;= <span class="self">self</span>.get_ref().as_ref().len());
+        <span class="self">self</span>.set_position(pos <span class="kw">as </span>u64);
     }
 }
 
 <span class="comment">// The existence of this function makes the compiler catch if the Buf
 // trait is &quot;object-safe&quot; or not.
-</span><span class="kw">fn </span>_assert_trait_object(_b: <span class="kw-2">&amp;</span><span class="kw">dyn </span><a href="#76">Buf</a>) {}
+</span><span class="kw">fn </span>_assert_trait_object(_b: <span class="kw-2">&amp;</span><span class="kw">dyn </span>Buf) {}
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="bytes" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="bytes" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

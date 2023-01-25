@@ -1,5 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/clap-4.0.26/src/builder/arg.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>arg.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../clap/index.html">
-                        <img src="https://raw.githubusercontent.com/clap-rs/clap/master/assets/clap.png" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/clap-4.0.32/src/builder/arg.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>arg.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../clap/index.html">
+                        <img src="https://raw.githubusercontent.com/clap-rs/clap/master/assets/clap.png" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -4645,24 +4645,24 @@
 <span class="attr">#[cfg(feature = <span class="string">&quot;env&quot;</span>)]
 </span><span class="kw">use </span>std::ffi::OsString;
 <span class="kw">use </span>std::{
-    cmp::{<a href="https://doc.rust-lang.org/nightly/core/cmp/derive.Ord.html">Ord</a>, <a href="https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html">Ordering</a>},
-    fmt::{<a class="self" href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">self</a>, <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">Display</a>, <a href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">Formatter</a>},
-    <a href="https://doc.rust-lang.org/nightly/alloc/str/index.html">str</a>,
+    cmp::{Ord, Ordering},
+    fmt::{<span class="self">self</span>, Display, Formatter},
+    str,
 };
 
 <span class="comment">// Internal
-</span><span class="kw">use super</span>::{<a href="arg_settings.rs.html#11">ArgFlags</a>, <a href="arg_settings.rs.html#29">ArgSettings</a>};
-<span class="kw">use </span><a href="arg_predicate.rs.html#7"><span class="kw">crate</span>::builder::ArgPredicate</a>;
-<span class="kw">use </span><a href="resettable.rs.html#46"><span class="kw">crate</span>::builder::IntoResettable</a>;
-<span class="kw">use </span><a href="os_str.rs.html#8"><span class="kw">crate</span>::builder::OsStr</a>;
-<span class="kw">use </span><a href="possible_value.rs.html#31"><span class="kw">crate</span>::builder::PossibleValue</a>;
-<span class="kw">use </span><a href="str.rs.html#6"><span class="kw">crate</span>::builder::Str</a>;
-<span class="kw">use </span><a href="styled_str.rs.html#3"><span class="kw">crate</span>::builder::StyledStr</a>;
-<span class="kw">use </span><a href="range.rs.html#3"><span class="kw">crate</span>::builder::ValueRange</a>;
-<span class="kw">use </span><a href="action.rs.html#27"><span class="kw">crate</span>::ArgAction</a>;
-<span class="kw">use </span><a href="../util/id.rs.html#9"><span class="kw">crate</span>::Id</a>;
-<span class="kw">use </span><a href="value_hint.rs.html#29"><span class="kw">crate</span>::ValueHint</a>;
-<span class="kw">use </span><a href="../lib.rs.html#157"><span class="kw">crate</span>::INTERNAL_ERROR_MSG</a>;
+</span><span class="kw">use super</span>::{ArgFlags, ArgSettings};
+<span class="kw">use </span><span class="kw">crate</span>::builder::ArgPredicate;
+<span class="kw">use </span><span class="kw">crate</span>::builder::IntoResettable;
+<span class="kw">use </span><span class="kw">crate</span>::builder::OsStr;
+<span class="kw">use </span><span class="kw">crate</span>::builder::PossibleValue;
+<span class="kw">use </span><span class="kw">crate</span>::builder::Str;
+<span class="kw">use </span><span class="kw">crate</span>::builder::StyledStr;
+<span class="kw">use </span><span class="kw">crate</span>::builder::ValueRange;
+<span class="kw">use </span><span class="kw">crate</span>::ArgAction;
+<span class="kw">use </span><span class="kw">crate</span>::Id;
+<span class="kw">use </span><span class="kw">crate</span>::ValueHint;
+<span class="kw">use </span><span class="kw">crate</span>::INTERNAL_ERROR_MSG;
 
 <span class="doccomment">/// The abstract representation of a command line argument. Used to set all the options and
 /// relationships that define a valid argument for the program.
@@ -4693,41 +4693,41 @@
 /// ```
 </span><span class="attr">#[derive(Default, Clone)]
 </span><span class="kw">pub struct </span>Arg {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) id: <a href="../util/id.rs.html#9">Id</a>,
-    <span class="kw">pub</span>(<span class="kw">crate</span>) help: <span class="prelude-ty">Option</span>&lt;<a href="styled_str.rs.html#3">StyledStr</a>&gt;,
-    <span class="kw">pub</span>(<span class="kw">crate</span>) long_help: <span class="prelude-ty">Option</span>&lt;<a href="styled_str.rs.html#3">StyledStr</a>&gt;,
-    <span class="kw">pub</span>(<span class="kw">crate</span>) action: <span class="prelude-ty">Option</span>&lt;<a href="action.rs.html#27">ArgAction</a>&gt;,
-    <span class="kw">pub</span>(<span class="kw">crate</span>) value_parser: <span class="prelude-ty">Option</span>&lt;<a href="value_parser.rs.html#59"><span class="kw">super</span>::ValueParser</a>&gt;,
-    <span class="kw">pub</span>(<span class="kw">crate</span>) blacklist: Vec&lt;<a href="../util/id.rs.html#9">Id</a>&gt;,
-    <span class="kw">pub</span>(<span class="kw">crate</span>) settings: <a href="arg_settings.rs.html#11">ArgFlags</a>,
-    <span class="kw">pub</span>(<span class="kw">crate</span>) overrides: Vec&lt;<a href="../util/id.rs.html#9">Id</a>&gt;,
-    <span class="kw">pub</span>(<span class="kw">crate</span>) groups: Vec&lt;<a href="../util/id.rs.html#9">Id</a>&gt;,
-    <span class="kw">pub</span>(<span class="kw">crate</span>) requires: Vec&lt;(<a href="arg_predicate.rs.html#7">ArgPredicate</a>, <a href="../util/id.rs.html#9">Id</a>)&gt;,
-    <span class="kw">pub</span>(<span class="kw">crate</span>) r_ifs: Vec&lt;(<a href="../util/id.rs.html#9">Id</a>, <a href="os_str.rs.html#8">OsStr</a>)&gt;,
-    <span class="kw">pub</span>(<span class="kw">crate</span>) r_ifs_all: Vec&lt;(<a href="../util/id.rs.html#9">Id</a>, <a href="os_str.rs.html#8">OsStr</a>)&gt;,
-    <span class="kw">pub</span>(<span class="kw">crate</span>) r_unless: Vec&lt;<a href="../util/id.rs.html#9">Id</a>&gt;,
-    <span class="kw">pub</span>(<span class="kw">crate</span>) r_unless_all: Vec&lt;<a href="../util/id.rs.html#9">Id</a>&gt;,
-    <span class="kw">pub</span>(<span class="kw">crate</span>) short: <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>&gt;,
-    <span class="kw">pub</span>(<span class="kw">crate</span>) long: <span class="prelude-ty">Option</span>&lt;<a href="str.rs.html#6">Str</a>&gt;,
-    <span class="kw">pub</span>(<span class="kw">crate</span>) aliases: Vec&lt;(<a href="str.rs.html#6">Str</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>)&gt;, <span class="comment">// (name, visible)
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) short_aliases: Vec&lt;(<a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>)&gt;, <span class="comment">// (name, visible)
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) disp_ord: <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;,
-    <span class="kw">pub</span>(<span class="kw">crate</span>) val_names: Vec&lt;<a href="str.rs.html#6">Str</a>&gt;,
-    <span class="kw">pub</span>(<span class="kw">crate</span>) num_vals: <span class="prelude-ty">Option</span>&lt;<a href="range.rs.html#3">ValueRange</a>&gt;,
-    <span class="kw">pub</span>(<span class="kw">crate</span>) val_delim: <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>&gt;,
-    <span class="kw">pub</span>(<span class="kw">crate</span>) default_vals: Vec&lt;<a href="os_str.rs.html#8">OsStr</a>&gt;,
-    <span class="kw">pub</span>(<span class="kw">crate</span>) default_vals_ifs: Vec&lt;(<a href="../util/id.rs.html#9">Id</a>, <a href="arg_predicate.rs.html#7">ArgPredicate</a>, <span class="prelude-ty">Option</span>&lt;<a href="os_str.rs.html#8">OsStr</a>&gt;)&gt;,
-    <span class="kw">pub</span>(<span class="kw">crate</span>) default_missing_vals: Vec&lt;<a href="os_str.rs.html#8">OsStr</a>&gt;,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) id: Id,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) help: <span class="prelude-ty">Option</span>&lt;StyledStr&gt;,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) long_help: <span class="prelude-ty">Option</span>&lt;StyledStr&gt;,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) action: <span class="prelude-ty">Option</span>&lt;ArgAction&gt;,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) value_parser: <span class="prelude-ty">Option</span>&lt;<span class="kw">super</span>::ValueParser&gt;,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) blacklist: Vec&lt;Id&gt;,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) settings: ArgFlags,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) overrides: Vec&lt;Id&gt;,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) groups: Vec&lt;Id&gt;,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) requires: Vec&lt;(ArgPredicate, Id)&gt;,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) r_ifs: Vec&lt;(Id, OsStr)&gt;,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) r_ifs_all: Vec&lt;(Id, OsStr)&gt;,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) r_unless: Vec&lt;Id&gt;,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) r_unless_all: Vec&lt;Id&gt;,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) short: <span class="prelude-ty">Option</span>&lt;char&gt;,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) long: <span class="prelude-ty">Option</span>&lt;Str&gt;,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) aliases: Vec&lt;(Str, bool)&gt;, <span class="comment">// (name, visible)
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) short_aliases: Vec&lt;(char, bool)&gt;, <span class="comment">// (name, visible)
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) disp_ord: <span class="prelude-ty">Option</span>&lt;usize&gt;,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) val_names: Vec&lt;Str&gt;,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) num_vals: <span class="prelude-ty">Option</span>&lt;ValueRange&gt;,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) val_delim: <span class="prelude-ty">Option</span>&lt;char&gt;,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) default_vals: Vec&lt;OsStr&gt;,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) default_vals_ifs: Vec&lt;(Id, ArgPredicate, <span class="prelude-ty">Option</span>&lt;OsStr&gt;)&gt;,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) default_missing_vals: Vec&lt;OsStr&gt;,
     <span class="attr">#[cfg(feature = <span class="string">&quot;env&quot;</span>)]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) env: <span class="prelude-ty">Option</span>&lt;(OsStr, <span class="prelude-ty">Option</span>&lt;OsString&gt;)&gt;,
-    <span class="kw">pub</span>(<span class="kw">crate</span>) terminator: <span class="prelude-ty">Option</span>&lt;<a href="str.rs.html#6">Str</a>&gt;,
-    <span class="kw">pub</span>(<span class="kw">crate</span>) index: <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;,
-    <span class="kw">pub</span>(<span class="kw">crate</span>) help_heading: <span class="prelude-ty">Option</span>&lt;<span class="prelude-ty">Option</span>&lt;<a href="str.rs.html#6">Str</a>&gt;&gt;,
-    <span class="kw">pub</span>(<span class="kw">crate</span>) value_hint: <span class="prelude-ty">Option</span>&lt;<a href="value_hint.rs.html#29">ValueHint</a>&gt;,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) terminator: <span class="prelude-ty">Option</span>&lt;Str&gt;,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) index: <span class="prelude-ty">Option</span>&lt;usize&gt;,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) help_heading: <span class="prelude-ty">Option</span>&lt;<span class="prelude-ty">Option</span>&lt;Str&gt;&gt;,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) value_hint: <span class="prelude-ty">Option</span>&lt;ValueHint&gt;,
 }
 
 <span class="doccomment">/// # Basic API
-</span><span class="kw">impl </span><a href="#54">Arg</a> {
+</span><span class="kw">impl </span>Arg {
     <span class="doccomment">/// Create a new [`Arg`] with a unique name.
     ///
     /// The name is used to check whether or not the argument was used at
@@ -4745,17 +4745,17 @@
     /// # ;
     /// ```
     /// [`Arg::action(ArgAction::Set)`]: Arg::action()
-    </span><span class="kw">pub fn </span>new(id: <span class="kw">impl </span>Into&lt;<a href="../util/id.rs.html#9">Id</a>&gt;) -&gt; <span class="self">Self </span>{
-        Arg::default().<a href="#115">id</a>(<a href="#107">id</a>)
+    </span><span class="kw">pub fn </span>new(id: <span class="kw">impl </span>Into&lt;Id&gt;) -&gt; <span class="self">Self </span>{
+        Arg::default().id(id)
     }
 
     <span class="doccomment">/// Set the identifier used for referencing this argument in the clap API.
     ///
     /// See [`Arg::new`] for more details.
     </span><span class="attr">#[must_use]
-    </span><span class="kw">pub fn </span>id(<span class="kw-2">mut </span><span class="self">self</span>, id: <span class="kw">impl </span>Into&lt;<a href="../util/id.rs.html#9">Id</a>&gt;) -&gt; <span class="self">Self </span>{
-        <a class="self" href="#115">self</a>.id = <a href="#115">id</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>();
-        <span class="self"><a href="#115">self</a>
+    </span><span class="kw">pub fn </span>id(<span class="kw-2">mut </span><span class="self">self</span>, id: <span class="kw">impl </span>Into&lt;Id&gt;) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.id = id.into();
+        <span class="self">self
     </span>}
 
     <span class="doccomment">/// Sets the short version of the argument without the preceding `-`.
@@ -4803,14 +4803,14 @@
     /// ```
     </span><span class="attr">#[inline]
     #[must_use]
-    </span><span class="kw">pub fn </span>short(<span class="kw-2">mut </span><span class="self">self</span>, s: <span class="kw">impl </span>IntoResettable&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>&gt;) -&gt; <span class="self">Self </span>{
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(s) = <a href="#165">s</a>.<a href="resettable.rs.html#48">into_resettable</a>().<a href="resettable.rs.html#22">into_option</a>() {
-            <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(s != <span class="string">&#39;-&#39;</span>, <span class="string">&quot;short option name cannot be `-`&quot;</span>);
-            <a class="self" href="#165">self</a>.short = <span class="prelude-val">Some</span>(<a href="#166">s</a>);
+    </span><span class="kw">pub fn </span>short(<span class="kw-2">mut </span><span class="self">self</span>, s: <span class="kw">impl </span>IntoResettable&lt;char&gt;) -&gt; <span class="self">Self </span>{
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(s) = s.into_resettable().into_option() {
+            <span class="macro">debug_assert!</span>(s != <span class="string">&#39;-&#39;</span>, <span class="string">&quot;short option name cannot be `-`&quot;</span>);
+            <span class="self">self</span>.short = <span class="prelude-val">Some</span>(s);
         } <span class="kw">else </span>{
-            <a class="self" href="#165">self</a>.short = <span class="prelude-val">None</span>;
+            <span class="self">self</span>.short = <span class="prelude-val">None</span>;
         }
-        <span class="self"><a href="#165">self</a>
+        <span class="self">self
     </span>}
 
     <span class="doccomment">/// Sets the long version of the argument without the preceding `--`.
@@ -4844,9 +4844,9 @@
     /// ```
     </span><span class="attr">#[inline]
     #[must_use]
-    </span><span class="kw">pub fn </span>long(<span class="kw-2">mut </span><span class="self">self</span>, l: <span class="kw">impl </span>IntoResettable&lt;<a href="str.rs.html#6">Str</a>&gt;) -&gt; <span class="self">Self </span>{
-        <a class="self" href="#206">self</a>.long = <a href="#206">l</a>.<a href="resettable.rs.html#48">into_resettable</a>().<a href="resettable.rs.html#22">into_option</a>();
-        <span class="self"><a href="#206">self</a>
+    </span><span class="kw">pub fn </span>long(<span class="kw-2">mut </span><span class="self">self</span>, l: <span class="kw">impl </span>IntoResettable&lt;Str&gt;) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.long = l.into_resettable().into_option();
+        <span class="self">self
     </span>}
 
     <span class="doccomment">/// Add an alias, which functions as a hidden long flag.
@@ -4869,13 +4869,13 @@
     /// assert_eq!(m.get_one::&lt;String&gt;(&quot;test&quot;).unwrap(), &quot;cool&quot;);
     /// ```
     </span><span class="attr">#[must_use]
-    </span><span class="kw">pub fn </span>alias(<span class="kw-2">mut </span><span class="self">self</span>, name: <span class="kw">impl </span>IntoResettable&lt;<a href="str.rs.html#6">Str</a>&gt;) -&gt; <span class="self">Self </span>{
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(name) = <a href="#231">name</a>.<a href="resettable.rs.html#48">into_resettable</a>().<a href="resettable.rs.html#22">into_option</a>() {
-            <a class="self" href="#231">self</a>.aliases.push((<a href="#232">name</a>, <span class="bool-val">false</span>));
+    </span><span class="kw">pub fn </span>alias(<span class="kw-2">mut </span><span class="self">self</span>, name: <span class="kw">impl </span>IntoResettable&lt;Str&gt;) -&gt; <span class="self">Self </span>{
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(name) = name.into_resettable().into_option() {
+            <span class="self">self</span>.aliases.push((name, <span class="bool-val">false</span>));
         } <span class="kw">else </span>{
-            <a class="self" href="#231">self</a>.aliases.clear();
+            <span class="self">self</span>.aliases.clear();
         }
-        <span class="self"><a href="#231">self</a>
+        <span class="self">self
     </span>}
 
     <span class="doccomment">/// Add an alias, which functions as a hidden short flag.
@@ -4898,14 +4898,14 @@
     /// assert_eq!(m.get_one::&lt;String&gt;(&quot;test&quot;).unwrap(), &quot;cool&quot;);
     /// ```
     </span><span class="attr">#[must_use]
-    </span><span class="kw">pub fn </span>short_alias(<span class="kw-2">mut </span><span class="self">self</span>, name: <span class="kw">impl </span>IntoResettable&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>&gt;) -&gt; <span class="self">Self </span>{
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(name) = <a href="#260">name</a>.<a href="resettable.rs.html#48">into_resettable</a>().<a href="resettable.rs.html#22">into_option</a>() {
-            <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(name != <span class="string">&#39;-&#39;</span>, <span class="string">&quot;short alias name cannot be `-`&quot;</span>);
-            <a class="self" href="#260">self</a>.short_aliases.push((<a href="#261">name</a>, <span class="bool-val">false</span>));
+    </span><span class="kw">pub fn </span>short_alias(<span class="kw-2">mut </span><span class="self">self</span>, name: <span class="kw">impl </span>IntoResettable&lt;char&gt;) -&gt; <span class="self">Self </span>{
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(name) = name.into_resettable().into_option() {
+            <span class="macro">debug_assert!</span>(name != <span class="string">&#39;-&#39;</span>, <span class="string">&quot;short alias name cannot be `-`&quot;</span>);
+            <span class="self">self</span>.short_aliases.push((name, <span class="bool-val">false</span>));
         } <span class="kw">else </span>{
-            <a class="self" href="#260">self</a>.short_aliases.clear();
+            <span class="self">self</span>.short_aliases.clear();
         }
-        <span class="self"><a href="#260">self</a>
+        <span class="self">self
     </span>}
 
     <span class="doccomment">/// Add aliases, which function as hidden long flags.
@@ -4930,10 +4930,10 @@
     /// assert_eq!(*m.get_one::&lt;bool&gt;(&quot;test&quot;).expect(&quot;defaulted by clap&quot;), true);
     /// ```
     </span><span class="attr">#[must_use]
-    </span><span class="kw">pub fn </span>aliases(<span class="kw-2">mut </span><span class="self">self</span>, names: <span class="kw">impl </span>IntoIterator&lt;Item = <span class="kw">impl </span>Into&lt;<a href="str.rs.html#6">Str</a>&gt;&gt;) -&gt; <span class="self">Self </span>{
-        <a class="self" href="#292">self</a>.aliases
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a href="#292">names</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|x| (<a href="#294">x</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(), <span class="bool-val">false</span>)));
-        <span class="self"><a href="#292">self</a>
+    </span><span class="kw">pub fn </span>aliases(<span class="kw-2">mut </span><span class="self">self</span>, names: <span class="kw">impl </span>IntoIterator&lt;Item = <span class="kw">impl </span>Into&lt;Str&gt;&gt;) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.aliases
+            .extend(names.into_iter().map(|x| (x.into(), <span class="bool-val">false</span>)));
+        <span class="self">self
     </span>}
 
     <span class="doccomment">/// Add aliases, which functions as a hidden short flag.
@@ -4958,12 +4958,12 @@
     /// assert_eq!(*m.get_one::&lt;bool&gt;(&quot;test&quot;).expect(&quot;defaulted by clap&quot;), true);
     /// ```
     </span><span class="attr">#[must_use]
-    </span><span class="kw">pub fn </span>short_aliases(<span class="kw-2">mut </span><span class="self">self</span>, names: <span class="kw">impl </span>IntoIterator&lt;Item = <a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>&gt;) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub fn </span>short_aliases(<span class="kw-2">mut </span><span class="self">self</span>, names: <span class="kw">impl </span>IntoIterator&lt;Item = char&gt;) -&gt; <span class="self">Self </span>{
         <span class="kw">for </span>s <span class="kw">in </span>names {
             <span class="macro">debug_assert!</span>(s != <span class="string">&#39;-&#39;</span>, <span class="string">&quot;short alias name cannot be `-`&quot;</span>);
             <span class="self">self</span>.short_aliases.push((s, <span class="bool-val">false</span>));
         }
-        <span class="self"><a href="#320">self</a>
+        <span class="self">self
     </span>}
 
     <span class="doccomment">/// Add an alias, which functions as a visible long flag.
@@ -4986,13 +4986,13 @@
     /// ```
     /// [`Command::alias`]: Arg::alias()
     </span><span class="attr">#[must_use]
-    </span><span class="kw">pub fn </span>visible_alias(<span class="kw-2">mut </span><span class="self">self</span>, name: <span class="kw">impl </span>IntoResettable&lt;<a href="str.rs.html#6">Str</a>&gt;) -&gt; <span class="self">Self </span>{
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(name) = <a href="#348">name</a>.<a href="resettable.rs.html#48">into_resettable</a>().<a href="resettable.rs.html#22">into_option</a>() {
-            <a class="self" href="#348">self</a>.aliases.push((<a href="#349">name</a>, <span class="bool-val">true</span>));
+    </span><span class="kw">pub fn </span>visible_alias(<span class="kw-2">mut </span><span class="self">self</span>, name: <span class="kw">impl </span>IntoResettable&lt;Str&gt;) -&gt; <span class="self">Self </span>{
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(name) = name.into_resettable().into_option() {
+            <span class="self">self</span>.aliases.push((name, <span class="bool-val">true</span>));
         } <span class="kw">else </span>{
-            <a class="self" href="#348">self</a>.aliases.clear();
+            <span class="self">self</span>.aliases.clear();
         }
-        <span class="self"><a href="#348">self</a>
+        <span class="self">self
     </span>}
 
     <span class="doccomment">/// Add an alias, which functions as a visible short flag.
@@ -5014,14 +5014,14 @@
     /// assert_eq!(m.get_one::&lt;String&gt;(&quot;test&quot;).unwrap(), &quot;coffee&quot;);
     /// ```
     </span><span class="attr">#[must_use]
-    </span><span class="kw">pub fn </span>visible_short_alias(<span class="kw-2">mut </span><span class="self">self</span>, name: <span class="kw">impl </span>IntoResettable&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>&gt;) -&gt; <span class="self">Self </span>{
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(name) = <a href="#376">name</a>.<a href="resettable.rs.html#48">into_resettable</a>().<a href="resettable.rs.html#22">into_option</a>() {
-            <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(name != <span class="string">&#39;-&#39;</span>, <span class="string">&quot;short alias name cannot be `-`&quot;</span>);
-            <a class="self" href="#376">self</a>.short_aliases.push((<a href="#377">name</a>, <span class="bool-val">true</span>));
+    </span><span class="kw">pub fn </span>visible_short_alias(<span class="kw-2">mut </span><span class="self">self</span>, name: <span class="kw">impl </span>IntoResettable&lt;char&gt;) -&gt; <span class="self">Self </span>{
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(name) = name.into_resettable().into_option() {
+            <span class="macro">debug_assert!</span>(name != <span class="string">&#39;-&#39;</span>, <span class="string">&quot;short alias name cannot be `-`&quot;</span>);
+            <span class="self">self</span>.short_aliases.push((name, <span class="bool-val">true</span>));
         } <span class="kw">else </span>{
-            <a class="self" href="#376">self</a>.short_aliases.clear();
+            <span class="self">self</span>.short_aliases.clear();
         }
-        <span class="self"><a href="#376">self</a>
+        <span class="self">self
     </span>}
 
     <span class="doccomment">/// Add aliases, which function as visible long flags.
@@ -5044,10 +5044,10 @@
     /// ```
     /// [`Command::aliases`]: Arg::aliases()
     </span><span class="attr">#[must_use]
-    </span><span class="kw">pub fn </span>visible_aliases(<span class="kw-2">mut </span><span class="self">self</span>, names: <span class="kw">impl </span>IntoIterator&lt;Item = <span class="kw">impl </span>Into&lt;<a href="str.rs.html#6">Str</a>&gt;&gt;) -&gt; <span class="self">Self </span>{
-        <a class="self" href="#406">self</a>.aliases
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a href="#406">names</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|n| (<a href="#408">n</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(), <span class="bool-val">true</span>)));
-        <span class="self"><a href="#406">self</a>
+    </span><span class="kw">pub fn </span>visible_aliases(<span class="kw-2">mut </span><span class="self">self</span>, names: <span class="kw">impl </span>IntoIterator&lt;Item = <span class="kw">impl </span>Into&lt;Str&gt;&gt;) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.aliases
+            .extend(names.into_iter().map(|n| (n.into(), <span class="bool-val">true</span>)));
+        <span class="self">self
     </span>}
 
     <span class="doccomment">/// Add aliases, which function as visible short flags.
@@ -5069,12 +5069,12 @@
     /// assert_eq!(*m.get_one::&lt;bool&gt;(&quot;test&quot;).expect(&quot;defaulted by clap&quot;), true);
     /// ```
     </span><span class="attr">#[must_use]
-    </span><span class="kw">pub fn </span>visible_short_aliases(<span class="kw-2">mut </span><span class="self">self</span>, names: <span class="kw">impl </span>IntoIterator&lt;Item = <a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>&gt;) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub fn </span>visible_short_aliases(<span class="kw-2">mut </span><span class="self">self</span>, names: <span class="kw">impl </span>IntoIterator&lt;Item = char&gt;) -&gt; <span class="self">Self </span>{
         <span class="kw">for </span>n <span class="kw">in </span>names {
             <span class="macro">debug_assert!</span>(n != <span class="string">&#39;-&#39;</span>, <span class="string">&quot;short alias name cannot be `-`&quot;</span>);
             <span class="self">self</span>.short_aliases.push((n, <span class="bool-val">true</span>));
         }
-        <span class="self"><a href="#431">self</a>
+        <span class="self">self
     </span>}
 
     <span class="doccomment">/// Specifies the index of a positional argument **starting at** 1.
@@ -5129,9 +5129,9 @@
     /// [`Command`]: crate::Command
     </span><span class="attr">#[inline]
     #[must_use]
-    </span><span class="kw">pub fn </span>index(<span class="kw-2">mut </span><span class="self">self</span>, idx: <span class="kw">impl </span>IntoResettable&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;) -&gt; <span class="self">Self </span>{
-        <a class="self" href="#491">self</a>.index = <a href="#491">idx</a>.<a href="resettable.rs.html#48">into_resettable</a>().<a href="resettable.rs.html#22">into_option</a>();
-        <span class="self"><a href="#491">self</a>
+    </span><span class="kw">pub fn </span>index(<span class="kw-2">mut </span><span class="self">self</span>, idx: <span class="kw">impl </span>IntoResettable&lt;usize&gt;) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.index = idx.into_resettable().into_option();
+        <span class="self">self
     </span>}
 
     <span class="doccomment">/// This is a &quot;VarArg&quot; and everything that follows should be captured by it, as if the user had
@@ -5157,11 +5157,11 @@
     /// assert_eq!(trail, [&quot;arg1&quot;, &quot;-r&quot;, &quot;val1&quot;]);
     /// ```
     /// [`Arg::num_args(..)`]: crate::Arg::num_args()
-    </span><span class="kw">pub fn </span>trailing_var_arg(<span class="self">self</span>, yes: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub fn </span>trailing_var_arg(<span class="self">self</span>, yes: bool) -&gt; <span class="self">Self </span>{
         <span class="kw">if </span>yes {
-            <a class="self" href="#519">self</a>.<a href="#831-833">setting</a>(<a href="arg_settings.rs.html#39">ArgSettings::TrailingVarArg</a>)
+            <span class="self">self</span>.setting(ArgSettings::TrailingVarArg)
         } <span class="kw">else </span>{
-            <a class="self" href="#519">self</a>.<a href="#841-843">unset_setting</a>(<a href="arg_settings.rs.html#39">ArgSettings::TrailingVarArg</a>)
+            <span class="self">self</span>.unset_setting(ArgSettings::TrailingVarArg)
         }
     }
 
@@ -5243,11 +5243,11 @@
     /// [`UnknownArgument`]: crate::error::ErrorKind::UnknownArgument
     </span><span class="attr">#[inline]
     #[must_use]
-    </span><span class="kw">pub fn </span>last(<span class="self">self</span>, yes: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub fn </span>last(<span class="self">self</span>, yes: bool) -&gt; <span class="self">Self </span>{
         <span class="kw">if </span>yes {
-            <a class="self" href="#605">self</a>.<a href="#831-833">setting</a>(<a href="arg_settings.rs.html#38">ArgSettings::Last</a>)
+            <span class="self">self</span>.setting(ArgSettings::Last)
         } <span class="kw">else </span>{
-            <a class="self" href="#605">self</a>.<a href="#841-843">unset_setting</a>(<a href="arg_settings.rs.html#38">ArgSettings::Last</a>)
+            <span class="self">self</span>.unset_setting(ArgSettings::Last)
         }
     }
 
@@ -5306,11 +5306,11 @@
     /// ```
     </span><span class="attr">#[inline]
     #[must_use]
-    </span><span class="kw">pub fn </span>required(<span class="self">self</span>, yes: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub fn </span>required(<span class="self">self</span>, yes: bool) -&gt; <span class="self">Self </span>{
         <span class="kw">if </span>yes {
-            <a class="self" href="#668">self</a>.<a href="#831-833">setting</a>(<a href="arg_settings.rs.html#30">ArgSettings::Required</a>)
+            <span class="self">self</span>.setting(ArgSettings::Required)
         } <span class="kw">else </span>{
-            <a class="self" href="#668">self</a>.<a href="#841-843">unset_setting</a>(<a href="arg_settings.rs.html#30">ArgSettings::Required</a>)
+            <span class="self">self</span>.unset_setting(ArgSettings::Required)
         }
     }
 
@@ -5369,13 +5369,13 @@
     /// [Conflicting]: Arg::conflicts_with()
     /// [override]: Arg::overrides_with()
     </span><span class="attr">#[must_use]
-    </span><span class="kw">pub fn </span>requires(<span class="kw-2">mut </span><span class="self">self</span>, arg_id: <span class="kw">impl </span>IntoResettable&lt;<a href="../util/id.rs.html#9">Id</a>&gt;) -&gt; <span class="self">Self </span>{
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(arg_id) = <a href="#731">arg_id</a>.<a href="resettable.rs.html#48">into_resettable</a>().<a href="resettable.rs.html#22">into_option</a>() {
-            <a class="self" href="#731">self</a>.requires.push((<a href="arg_predicate.rs.html#9">ArgPredicate::IsPresent</a>, <a href="#732">arg_id</a>));
+    </span><span class="kw">pub fn </span>requires(<span class="kw-2">mut </span><span class="self">self</span>, arg_id: <span class="kw">impl </span>IntoResettable&lt;Id&gt;) -&gt; <span class="self">Self </span>{
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(arg_id) = arg_id.into_resettable().into_option() {
+            <span class="self">self</span>.requires.push((ArgPredicate::IsPresent, arg_id));
         } <span class="kw">else </span>{
-            <a class="self" href="#731">self</a>.requires.clear();
+            <span class="self">self</span>.requires.clear();
         }
-        <span class="self"><a href="#731">self</a>
+        <span class="self">self
     </span>}
 
     <span class="doccomment">/// This argument must be passed alone; it conflicts with all other arguments.
@@ -5411,11 +5411,11 @@
     /// ```
     </span><span class="attr">#[inline]
     #[must_use]
-    </span><span class="kw">pub fn </span>exclusive(<span class="self">self</span>, yes: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub fn </span>exclusive(<span class="self">self</span>, yes: bool) -&gt; <span class="self">Self </span>{
         <span class="kw">if </span>yes {
-            <a class="self" href="#773">self</a>.<a href="#831-833">setting</a>(<a href="arg_settings.rs.html#48">ArgSettings::Exclusive</a>)
+            <span class="self">self</span>.setting(ArgSettings::Exclusive)
         } <span class="kw">else </span>{
-            <a class="self" href="#773">self</a>.<a href="#841-843">unset_setting</a>(<a href="arg_settings.rs.html#48">ArgSettings::Exclusive</a>)
+            <span class="self">self</span>.unset_setting(ArgSettings::Exclusive)
         }
     }
 
@@ -5454,42 +5454,42 @@
     /// [`Subcommand`]: crate::Subcommand
     </span><span class="attr">#[inline]
     #[must_use]
-    </span><span class="kw">pub fn </span>global(<span class="self">self</span>, yes: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub fn </span>global(<span class="self">self</span>, yes: bool) -&gt; <span class="self">Self </span>{
         <span class="kw">if </span>yes {
-            <a class="self" href="#816">self</a>.<a href="#831-833">setting</a>(<a href="arg_settings.rs.html#31">ArgSettings::Global</a>)
+            <span class="self">self</span>.setting(ArgSettings::Global)
         } <span class="kw">else </span>{
-            <a class="self" href="#816">self</a>.<a href="#841-843">unset_setting</a>(<a href="arg_settings.rs.html#31">ArgSettings::Global</a>)
+            <span class="self">self</span>.unset_setting(ArgSettings::Global)
         }
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>is_set(<span class="kw-2">&amp;</span><span class="self">self</span>, s: <a href="arg_settings.rs.html#29">ArgSettings</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#825">self</a>.settings.<a href="arg_settings.rs.html#77-97">is_set</a>(<a href="#825">s</a>)
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>is_set(<span class="kw-2">&amp;</span><span class="self">self</span>, s: ArgSettings) -&gt; bool {
+        <span class="self">self</span>.settings.is_set(s)
     }
 
     <span class="attr">#[inline]
     #[must_use]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>setting&lt;F&gt;(<span class="kw-2">mut </span><span class="self">self</span>, setting: F) -&gt; <span class="self">Self
     </span><span class="kw">where
-        </span>F: Into&lt;<a href="arg_settings.rs.html#11">ArgFlags</a>&gt;,
+        </span>F: Into&lt;ArgFlags&gt;,
     {
-        <a class="self" href="#831">self</a>.settings.<a href="arg_settings.rs.html#77-97">insert</a>(<a href="#831">setting</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>());
-        <span class="self"><a href="#831">self</a>
+        <span class="self">self</span>.settings.insert(setting.into());
+        <span class="self">self
     </span>}
 
     <span class="attr">#[inline]
     #[must_use]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>unset_setting&lt;F&gt;(<span class="kw-2">mut </span><span class="self">self</span>, setting: F) -&gt; <span class="self">Self
     </span><span class="kw">where
-        </span>F: Into&lt;<a href="arg_settings.rs.html#11">ArgFlags</a>&gt;,
+        </span>F: Into&lt;ArgFlags&gt;,
     {
-        <a class="self" href="#841">self</a>.settings.<a href="arg_settings.rs.html#77-97">remove</a>(<a href="#841">setting</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>());
-        <span class="self"><a href="#841">self</a>
+        <span class="self">self</span>.settings.remove(setting.into());
+        <span class="self">self
     </span>}
 }
 
 <span class="doccomment">/// # Value Handling
-</span><span class="kw">impl </span><a href="#54">Arg</a> {
+</span><span class="kw">impl </span>Arg {
     <span class="doccomment">/// Specify how to react to an argument when parsing it.
     ///
     /// [ArgAction][crate::ArgAction] controls things like
@@ -5520,9 +5520,9 @@
     /// ```
     </span><span class="attr">#[inline]
     #[must_use]
-    </span><span class="kw">pub fn </span>action(<span class="kw-2">mut </span><span class="self">self</span>, action: <span class="kw">impl </span>IntoResettable&lt;<a href="action.rs.html#27">ArgAction</a>&gt;) -&gt; <span class="self">Self </span>{
-        <a class="self" href="#882">self</a>.action = <a href="#882">action</a>.<a href="resettable.rs.html#48">into_resettable</a>().<a href="resettable.rs.html#22">into_option</a>();
-        <span class="self"><a href="#882">self</a>
+    </span><span class="kw">pub fn </span>action(<span class="kw-2">mut </span><span class="self">self</span>, action: <span class="kw">impl </span>IntoResettable&lt;ArgAction&gt;) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.action = action.into_resettable().into_option();
+        <span class="self">self
     </span>}
 
     <span class="doccomment">/// Specify the typed behavior of the argument.
@@ -5581,9 +5581,9 @@
     ///     .expect(&quot;required&quot;);
     /// assert_eq!(port, 3001);
     /// ```
-    </span><span class="kw">pub fn </span>value_parser(<span class="kw-2">mut </span><span class="self">self</span>, parser: <span class="kw">impl </span>IntoResettable&lt;<a href="value_parser.rs.html#59"><span class="kw">super</span>::ValueParser</a>&gt;) -&gt; <span class="self">Self </span>{
-        <a class="self" href="#943">self</a>.value_parser = <a href="#943">parser</a>.<a href="resettable.rs.html#48">into_resettable</a>().<a href="resettable.rs.html#22">into_option</a>();
-        <span class="self"><a href="#943">self</a>
+    </span><span class="kw">pub fn </span>value_parser(<span class="kw-2">mut </span><span class="self">self</span>, parser: <span class="kw">impl </span>IntoResettable&lt;<span class="kw">super</span>::ValueParser&gt;) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.value_parser = parser.into_resettable().into_option();
+        <span class="self">self
     </span>}
 
     <span class="doccomment">/// Specifies the number of arguments parsed per occurrence
@@ -5733,9 +5733,9 @@
     /// ```
     </span><span class="attr">#[inline]
     #[must_use]
-    </span><span class="kw">pub fn </span>num_args(<span class="kw-2">mut </span><span class="self">self</span>, qty: <span class="kw">impl </span>IntoResettable&lt;<a href="range.rs.html#3">ValueRange</a>&gt;) -&gt; <span class="self">Self </span>{
-        <a class="self" href="#1095">self</a>.num_vals = <a href="#1095">qty</a>.<a href="resettable.rs.html#48">into_resettable</a>().<a href="resettable.rs.html#22">into_option</a>();
-        <span class="self"><a href="#1095">self</a>
+    </span><span class="kw">pub fn </span>num_args(<span class="kw-2">mut </span><span class="self">self</span>, qty: <span class="kw">impl </span>IntoResettable&lt;ValueRange&gt;) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.num_vals = qty.into_resettable().into_option();
+        <span class="self">self
     </span>}
 
     <span class="attr">#[doc(hidden)]
@@ -5743,8 +5743,8 @@
         feature = <span class="string">&quot;deprecated&quot;</span>,
         deprecated(since = <span class="string">&quot;4.0.0&quot;</span>, note = <span class="string">&quot;Replaced with `Arg::num_args`&quot;</span>)
     )]
-    </span><span class="kw">pub fn </span>number_of_values(<span class="self">self</span>, qty: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="self">Self </span>{
-        <a class="self" href="#1105">self</a>.<a href="#1095">num_args</a>(<a href="#1105">qty</a>)
+    </span><span class="kw">pub fn </span>number_of_values(<span class="self">self</span>, qty: usize) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.num_args(qty)
     }
 
     <span class="doccomment">/// Placeholder for the argument&#39;s value in the help message / usage.
@@ -5794,12 +5794,12 @@
     /// [`Arg::action(ArgAction::Set)`]: Arg::action()
     </span><span class="attr">#[inline]
     #[must_use]
-    </span><span class="kw">pub fn </span>value_name(<span class="kw-2">mut </span><span class="self">self</span>, name: <span class="kw">impl </span>IntoResettable&lt;<a href="str.rs.html#6">Str</a>&gt;) -&gt; <span class="self">Self </span>{
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(name) = <a href="#1156">name</a>.<a href="resettable.rs.html#48">into_resettable</a>().<a href="resettable.rs.html#22">into_option</a>() {
-            <a class="self" href="#1156">self</a>.<a href="#1219">value_names</a>([<a href="#1157">name</a>])
+    </span><span class="kw">pub fn </span>value_name(<span class="kw-2">mut </span><span class="self">self</span>, name: <span class="kw">impl </span>IntoResettable&lt;Str&gt;) -&gt; <span class="self">Self </span>{
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(name) = name.into_resettable().into_option() {
+            <span class="self">self</span>.value_names([name])
         } <span class="kw">else </span>{
-            <a class="self" href="#1156">self</a>.val_names.clear();
-            <span class="self"><a href="#1156">self</a>
+            <span class="self">self</span>.val_names.clear();
+            <span class="self">self
         </span>}
     }
 
@@ -5857,9 +5857,9 @@
     /// [`Arg::action(ArgAction::Set)`]: Arg::action()
     /// [`Arg::num_args(1..)`]: Arg::num_args()
     </span><span class="attr">#[must_use]
-    </span><span class="kw">pub fn </span>value_names(<span class="kw-2">mut </span><span class="self">self</span>, names: <span class="kw">impl </span>IntoIterator&lt;Item = <span class="kw">impl </span>Into&lt;<a href="str.rs.html#6">Str</a>&gt;&gt;) -&gt; <span class="self">Self </span>{
-        <a class="self" href="#1219">self</a>.val_names = <a href="#1219">names</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|s| <a href="#1220">s</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
-        <span class="self"><a href="#1219">self</a>
+    </span><span class="kw">pub fn </span>value_names(<span class="kw-2">mut </span><span class="self">self</span>, names: <span class="kw">impl </span>IntoIterator&lt;Item = <span class="kw">impl </span>Into&lt;Str&gt;&gt;) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.val_names = names.into_iter().map(|s| s.into()).collect();
+        <span class="self">self
     </span>}
 
     <span class="doccomment">/// Provide the shell a hint about how to complete this argument.
@@ -5892,9 +5892,9 @@
     ///     );
     /// ```
     </span><span class="attr">#[must_use]
-    </span><span class="kw">pub fn </span>value_hint(<span class="kw-2">mut </span><span class="self">self</span>, value_hint: <span class="kw">impl </span>IntoResettable&lt;<a href="value_hint.rs.html#29">ValueHint</a>&gt;) -&gt; <span class="self">Self </span>{
-        <a class="self" href="#1254">self</a>.value_hint = <a href="#1254">value_hint</a>.<a href="resettable.rs.html#48">into_resettable</a>().<a href="resettable.rs.html#22">into_option</a>();
-        <span class="self"><a href="#1254">self</a>
+    </span><span class="kw">pub fn </span>value_hint(<span class="kw-2">mut </span><span class="self">self</span>, value_hint: <span class="kw">impl </span>IntoResettable&lt;ValueHint&gt;) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.value_hint = value_hint.into_resettable().into_option();
+        <span class="self">self
     </span>}
 
     <span class="doccomment">/// Match values against [`PossibleValuesParser`][crate::builder::PossibleValuesParser] without matching case.
@@ -5947,11 +5947,11 @@
     /// ```
     </span><span class="attr">#[inline]
     #[must_use]
-    </span><span class="kw">pub fn </span>ignore_case(<span class="self">self</span>, yes: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub fn </span>ignore_case(<span class="self">self</span>, yes: bool) -&gt; <span class="self">Self </span>{
         <span class="kw">if </span>yes {
-            <a class="self" href="#1309">self</a>.<a href="#831-833">setting</a>(<a href="arg_settings.rs.html#41">ArgSettings::IgnoreCase</a>)
+            <span class="self">self</span>.setting(ArgSettings::IgnoreCase)
         } <span class="kw">else </span>{
-            <a class="self" href="#1309">self</a>.<a href="#841-843">unset_setting</a>(<a href="arg_settings.rs.html#41">ArgSettings::IgnoreCase</a>)
+            <span class="self">self</span>.unset_setting(ArgSettings::IgnoreCase)
         }
     }
 
@@ -6009,11 +6009,11 @@
     /// [`Arg::num_args(1)`]: Arg::num_args()
     </span><span class="attr">#[inline]
     #[must_use]
-    </span><span class="kw">pub fn </span>allow_hyphen_values(<span class="self">self</span>, yes: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub fn </span>allow_hyphen_values(<span class="self">self</span>, yes: bool) -&gt; <span class="self">Self </span>{
         <span class="kw">if </span>yes {
-            <a class="self" href="#1371">self</a>.<a href="#831-833">setting</a>(<a href="arg_settings.rs.html#35">ArgSettings::AllowHyphenValues</a>)
+            <span class="self">self</span>.setting(ArgSettings::AllowHyphenValues)
         } <span class="kw">else </span>{
-            <a class="self" href="#1371">self</a>.<a href="#841-843">unset_setting</a>(<a href="arg_settings.rs.html#35">ArgSettings::AllowHyphenValues</a>)
+            <span class="self">self</span>.unset_setting(ArgSettings::AllowHyphenValues)
         }
     }
 
@@ -6038,11 +6038,11 @@
     /// assert_eq!(m.get_one::&lt;String&gt;(&quot;num&quot;).unwrap(), &quot;-20&quot;);
     /// ```
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>allow_negative_numbers(<span class="self">self</span>, yes: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub fn </span>allow_negative_numbers(<span class="self">self</span>, yes: bool) -&gt; <span class="self">Self </span>{
         <span class="kw">if </span>yes {
-            <a class="self" href="#1400">self</a>.<a href="#831-833">setting</a>(<a href="arg_settings.rs.html#36">ArgSettings::AllowNegativeNumbers</a>)
+            <span class="self">self</span>.setting(ArgSettings::AllowNegativeNumbers)
         } <span class="kw">else </span>{
-            <a class="self" href="#1400">self</a>.<a href="#841-843">unset_setting</a>(<a href="arg_settings.rs.html#36">ArgSettings::AllowNegativeNumbers</a>)
+            <span class="self">self</span>.unset_setting(ArgSettings::AllowNegativeNumbers)
         }
     }
 
@@ -6090,11 +6090,11 @@
     /// ```
     </span><span class="attr">#[inline]
     #[must_use]
-    </span><span class="kw">pub fn </span>require_equals(<span class="self">self</span>, yes: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub fn </span>require_equals(<span class="self">self</span>, yes: bool) -&gt; <span class="self">Self </span>{
         <span class="kw">if </span>yes {
-            <a class="self" href="#1452">self</a>.<a href="#831-833">setting</a>(<a href="arg_settings.rs.html#37">ArgSettings::RequireEquals</a>)
+            <span class="self">self</span>.setting(ArgSettings::RequireEquals)
         } <span class="kw">else </span>{
-            <a class="self" href="#1452">self</a>.<a href="#841-843">unset_setting</a>(<a href="arg_settings.rs.html#37">ArgSettings::RequireEquals</a>)
+            <span class="self">self</span>.unset_setting(ArgSettings::RequireEquals)
         }
     }
 
@@ -6103,13 +6103,13 @@
         feature = <span class="string">&quot;deprecated&quot;</span>,
         deprecated(since = <span class="string">&quot;4.0.0&quot;</span>, note = <span class="string">&quot;Replaced with `Arg::value_delimiter`&quot;</span>)
     )]
-    </span><span class="kw">pub fn </span>use_value_delimiter(<span class="kw-2">mut </span><span class="self">self</span>, yes: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub fn </span>use_value_delimiter(<span class="kw-2">mut </span><span class="self">self</span>, yes: bool) -&gt; <span class="self">Self </span>{
         <span class="kw">if </span>yes {
-            <a class="self" href="#1465">self</a>.val_delim.get_or_insert(<span class="string">&#39;,&#39;</span>);
+            <span class="self">self</span>.val_delim.get_or_insert(<span class="string">&#39;,&#39;</span>);
         } <span class="kw">else </span>{
-            <a class="self" href="#1465">self</a>.val_delim = <span class="prelude-val">None</span>;
+            <span class="self">self</span>.val_delim = <span class="prelude-val">None</span>;
         }
-        <span class="self"><a href="#1465">self</a>
+        <span class="self">self
     </span>}
 
     <span class="doccomment">/// Allow grouping of multiple values via a delimiter.
@@ -6139,9 +6139,9 @@
     /// [`Arg::action(ArgAction::Set)`]: Arg::action()
     </span><span class="attr">#[inline]
     #[must_use]
-    </span><span class="kw">pub fn </span>value_delimiter(<span class="kw-2">mut </span><span class="self">self</span>, d: <span class="kw">impl </span>IntoResettable&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>&gt;) -&gt; <span class="self">Self </span>{
-        <a class="self" href="#1501">self</a>.val_delim = <a href="#1501">d</a>.<a href="resettable.rs.html#48">into_resettable</a>().<a href="resettable.rs.html#22">into_option</a>();
-        <span class="self"><a href="#1501">self</a>
+    </span><span class="kw">pub fn </span>value_delimiter(<span class="kw-2">mut </span><span class="self">self</span>, d: <span class="kw">impl </span>IntoResettable&lt;char&gt;) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.val_delim = d.into_resettable().into_option();
+        <span class="self">self
     </span>}
 
     <span class="doccomment">/// Sentinel to **stop** parsing multiple values of a given argument.
@@ -6192,9 +6192,9 @@
     /// [`num_args`]: Arg::num_args()
     </span><span class="attr">#[inline]
     #[must_use]
-    </span><span class="kw">pub fn </span>value_terminator(<span class="kw-2">mut </span><span class="self">self</span>, term: <span class="kw">impl </span>IntoResettable&lt;<a href="str.rs.html#6">Str</a>&gt;) -&gt; <span class="self">Self </span>{
-        <a class="self" href="#1554">self</a>.terminator = <a href="#1554">term</a>.<a href="resettable.rs.html#48">into_resettable</a>().<a href="resettable.rs.html#22">into_option</a>();
-        <span class="self"><a href="#1554">self</a>
+    </span><span class="kw">pub fn </span>value_terminator(<span class="kw-2">mut </span><span class="self">self</span>, term: <span class="kw">impl </span>IntoResettable&lt;Str&gt;) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.terminator = term.into_resettable().into_option();
+        <span class="self">self
     </span>}
 
     <span class="doccomment">/// Consume all following arguments.
@@ -6221,11 +6221,11 @@
     /// [`Arg::last(true)`]: Arg::last()
     </span><span class="attr">#[inline]
     #[must_use]
-    </span><span class="kw">pub fn </span>raw(<span class="kw-2">mut </span><span class="self">self</span>, yes: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub fn </span>raw(<span class="kw-2">mut </span><span class="self">self</span>, yes: bool) -&gt; <span class="self">Self </span>{
         <span class="kw">if </span>yes {
-            <a class="self" href="#1583">self</a>.num_vals.get_or_insert_with(|| (<span class="number">1</span>..).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>());
+            <span class="self">self</span>.num_vals.get_or_insert_with(|| (<span class="number">1</span>..).into());
         }
-        <a class="self" href="#1583">self</a>.<a href="#1371">allow_hyphen_values</a>(<a href="#1583">yes</a>).<a href="#605">last</a>(<a href="#1583">yes</a>)
+        <span class="self">self</span>.allow_hyphen_values(yes).last(yes)
     }
 
     <span class="doccomment">/// Value for the argument when not present.
@@ -6284,12 +6284,12 @@
     /// [`Arg::default_value_if`]: Arg::default_value_if()
     </span><span class="attr">#[inline]
     #[must_use]
-    </span><span class="kw">pub fn </span>default_value(<span class="kw-2">mut </span><span class="self">self</span>, val: <span class="kw">impl </span>IntoResettable&lt;<a href="os_str.rs.html#8">OsStr</a>&gt;) -&gt; <span class="self">Self </span>{
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(val) = <a href="#1646">val</a>.<a href="resettable.rs.html#48">into_resettable</a>().<a href="resettable.rs.html#22">into_option</a>() {
-            <a class="self" href="#1646">self</a>.<a href="#1673">default_values</a>([<a href="#1647">val</a>])
+    </span><span class="kw">pub fn </span>default_value(<span class="kw-2">mut </span><span class="self">self</span>, val: <span class="kw">impl </span>IntoResettable&lt;OsStr&gt;) -&gt; <span class="self">Self </span>{
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(val) = val.into_resettable().into_option() {
+            <span class="self">self</span>.default_values([val])
         } <span class="kw">else </span>{
-            <a class="self" href="#1646">self</a>.default_vals.clear();
-            <span class="self"><a href="#1646">self</a>
+            <span class="self">self</span>.default_vals.clear();
+            <span class="self">self
         </span>}
     }
 
@@ -6300,8 +6300,8 @@
         feature = <span class="string">&quot;deprecated&quot;</span>,
         deprecated(since = <span class="string">&quot;4.0.0&quot;</span>, note = <span class="string">&quot;Replaced with `Arg::default_value`&quot;</span>)
     )]
-    </span><span class="kw">pub fn </span>default_value_os(<span class="self">self</span>, val: <span class="kw">impl </span>Into&lt;<a href="os_str.rs.html#8">OsStr</a>&gt;) -&gt; <span class="self">Self </span>{
-        <a class="self" href="#1662">self</a>.<a href="#1673">default_values</a>([<a href="#1662">val</a>])
+    </span><span class="kw">pub fn </span>default_value_os(<span class="self">self</span>, val: <span class="kw">impl </span>Into&lt;OsStr&gt;) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.default_values([val])
     }
 
     <span class="doccomment">/// Value for the argument when not present.
@@ -6311,9 +6311,9 @@
     /// [`Arg::default_value`]: Arg::default_value()
     </span><span class="attr">#[inline]
     #[must_use]
-    </span><span class="kw">pub fn </span>default_values(<span class="kw-2">mut </span><span class="self">self</span>, vals: <span class="kw">impl </span>IntoIterator&lt;Item = <span class="kw">impl </span>Into&lt;<a href="os_str.rs.html#8">OsStr</a>&gt;&gt;) -&gt; <span class="self">Self </span>{
-        <a class="self" href="#1673">self</a>.default_vals = <a href="#1673">vals</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|s| <a href="#1674">s</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
-        <span class="self"><a href="#1673">self</a>
+    </span><span class="kw">pub fn </span>default_values(<span class="kw-2">mut </span><span class="self">self</span>, vals: <span class="kw">impl </span>IntoIterator&lt;Item = <span class="kw">impl </span>Into&lt;OsStr&gt;&gt;) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.default_vals = vals.into_iter().map(|s| s.into()).collect();
+        <span class="self">self
     </span>}
 
     <span class="attr">#[inline]
@@ -6323,8 +6323,8 @@
         feature = <span class="string">&quot;deprecated&quot;</span>,
         deprecated(since = <span class="string">&quot;4.0.0&quot;</span>, note = <span class="string">&quot;Replaced with `Arg::default_values`&quot;</span>)
     )]
-    </span><span class="kw">pub fn </span>default_values_os(<span class="self">self</span>, vals: <span class="kw">impl </span>IntoIterator&lt;Item = <span class="kw">impl </span>Into&lt;<a href="os_str.rs.html#8">OsStr</a>&gt;&gt;) -&gt; <span class="self">Self </span>{
-        <a class="self" href="#1685">self</a>.<a href="#1673">default_values</a>(<a href="#1685">vals</a>)
+    </span><span class="kw">pub fn </span>default_values_os(<span class="self">self</span>, vals: <span class="kw">impl </span>IntoIterator&lt;Item = <span class="kw">impl </span>Into&lt;OsStr&gt;&gt;) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.default_values(vals)
     }
 
     <span class="doccomment">/// Value for the argument when the flag is present but no value is specified.
@@ -6418,12 +6418,12 @@
     /// [`Arg::default_value`]: Arg::default_value()
     </span><span class="attr">#[inline]
     #[must_use]
-    </span><span class="kw">pub fn </span>default_missing_value(<span class="kw-2">mut </span><span class="self">self</span>, val: <span class="kw">impl </span>IntoResettable&lt;<a href="os_str.rs.html#8">OsStr</a>&gt;) -&gt; <span class="self">Self </span>{
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(val) = <a href="#1780">val</a>.<a href="resettable.rs.html#48">into_resettable</a>().<a href="resettable.rs.html#22">into_option</a>() {
-            <a class="self" href="#1780">self</a>.<a href="#1820-1823">default_missing_values_os</a>([<a href="#1781">val</a>])
+    </span><span class="kw">pub fn </span>default_missing_value(<span class="kw-2">mut </span><span class="self">self</span>, val: <span class="kw">impl </span>IntoResettable&lt;OsStr&gt;) -&gt; <span class="self">Self </span>{
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(val) = val.into_resettable().into_option() {
+            <span class="self">self</span>.default_missing_values_os([val])
         } <span class="kw">else </span>{
-            <a class="self" href="#1780">self</a>.default_missing_vals.clear();
-            <span class="self"><a href="#1780">self</a>
+            <span class="self">self</span>.default_missing_vals.clear();
+            <span class="self">self
         </span>}
     }
 
@@ -6435,8 +6435,8 @@
     /// [`OsStr`]: std::ffi::OsStr
     </span><span class="attr">#[inline]
     #[must_use]
-    </span><span class="kw">pub fn </span>default_missing_value_os(<span class="self">self</span>, val: <span class="kw">impl </span>Into&lt;<a href="os_str.rs.html#8">OsStr</a>&gt;) -&gt; <span class="self">Self </span>{
-        <a class="self" href="#1797">self</a>.<a href="#1820-1823">default_missing_values_os</a>([<a href="#1797">val</a>])
+    </span><span class="kw">pub fn </span>default_missing_value_os(<span class="self">self</span>, val: <span class="kw">impl </span>Into&lt;OsStr&gt;) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.default_missing_values_os([val])
     }
 
     <span class="doccomment">/// Value for the argument when the flag is present but no value is specified.
@@ -6446,8 +6446,8 @@
     /// [`Arg::default_missing_value`]: Arg::default_missing_value()
     </span><span class="attr">#[inline]
     #[must_use]
-    </span><span class="kw">pub fn </span>default_missing_values(<span class="self">self</span>, vals: <span class="kw">impl </span>IntoIterator&lt;Item = <span class="kw">impl </span>Into&lt;<a href="os_str.rs.html#8">OsStr</a>&gt;&gt;) -&gt; <span class="self">Self </span>{
-        <a class="self" href="#1808">self</a>.<a href="#1820-1823">default_missing_values_os</a>(<a href="#1808">vals</a>)
+    </span><span class="kw">pub fn </span>default_missing_values(<span class="self">self</span>, vals: <span class="kw">impl </span>IntoIterator&lt;Item = <span class="kw">impl </span>Into&lt;OsStr&gt;&gt;) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.default_missing_values_os(vals)
     }
 
     <span class="doccomment">/// Value for the argument when the flag is present but no value is specified.
@@ -6460,10 +6460,10 @@
     #[must_use]
     </span><span class="kw">pub fn </span>default_missing_values_os(
         <span class="kw-2">mut </span><span class="self">self</span>,
-        vals: <span class="kw">impl </span>IntoIterator&lt;Item = <span class="kw">impl </span>Into&lt;<a href="os_str.rs.html#8">OsStr</a>&gt;&gt;,
+        vals: <span class="kw">impl </span>IntoIterator&lt;Item = <span class="kw">impl </span>Into&lt;OsStr&gt;&gt;,
     ) -&gt; <span class="self">Self </span>{
-        <a class="self" href="#1821">self</a>.default_missing_vals = <a href="#1822">vals</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|s| <a href="#1824">s</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
-        <span class="self"><a href="#1821">self</a>
+        <span class="self">self</span>.default_missing_vals = vals.into_iter().map(|s| s.into()).collect();
+        <span class="self">self
     </span>}
 
     <span class="doccomment">/// Read from `name` environment variable when argument is not present.
@@ -6636,7 +6636,7 @@
 }
 
 <span class="doccomment">/// # Help
-</span><span class="kw">impl </span><a href="#54">Arg</a> {
+</span><span class="kw">impl </span>Arg {
     <span class="doccomment">/// Sets the description of the argument for short help (`-h`).
     ///
     /// Typically, this is a short (one line) description of the arg.
@@ -6681,9 +6681,9 @@
     /// [`Arg::long_help`]: Arg::long_help()
     </span><span class="attr">#[inline]
     #[must_use]
-    </span><span class="kw">pub fn </span>help(<span class="kw-2">mut </span><span class="self">self</span>, h: <span class="kw">impl </span>IntoResettable&lt;<a href="styled_str.rs.html#3">StyledStr</a>&gt;) -&gt; <span class="self">Self </span>{
-        <a class="self" href="#2043">self</a>.help = <a href="#2043">h</a>.<a href="resettable.rs.html#48">into_resettable</a>().<a href="resettable.rs.html#22">into_option</a>();
-        <span class="self"><a href="#2043">self</a>
+    </span><span class="kw">pub fn </span>help(<span class="kw-2">mut </span><span class="self">self</span>, h: <span class="kw">impl </span>IntoResettable&lt;StyledStr&gt;) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.help = h.into_resettable().into_option();
+        <span class="self">self
     </span>}
 
     <span class="doccomment">/// Sets the description of the argument for long help (`--help`).
@@ -6743,9 +6743,9 @@
     /// [`Arg::help`]: Arg::help()
     </span><span class="attr">#[inline]
     #[must_use]
-    </span><span class="kw">pub fn </span>long_help(<span class="kw-2">mut </span><span class="self">self</span>, h: <span class="kw">impl </span>IntoResettable&lt;<a href="styled_str.rs.html#3">StyledStr</a>&gt;) -&gt; <span class="self">Self </span>{
-        <a class="self" href="#2105">self</a>.long_help = <a href="#2105">h</a>.<a href="resettable.rs.html#48">into_resettable</a>().<a href="resettable.rs.html#22">into_option</a>();
-        <span class="self"><a href="#2105">self</a>
+    </span><span class="kw">pub fn </span>long_help(<span class="kw-2">mut </span><span class="self">self</span>, h: <span class="kw">impl </span>IntoResettable&lt;StyledStr&gt;) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.long_help = h.into_resettable().into_option();
+        <span class="self">self
     </span>}
 
     <span class="doccomment">/// Allows custom ordering of args within the help message.
@@ -6803,9 +6803,9 @@
     /// [index]: Arg::index()
     </span><span class="attr">#[inline]
     #[must_use]
-    </span><span class="kw">pub fn </span>display_order(<span class="kw-2">mut </span><span class="self">self</span>, ord: <span class="kw">impl </span>IntoResettable&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;) -&gt; <span class="self">Self </span>{
-        <a class="self" href="#2165">self</a>.disp_ord = <a href="#2165">ord</a>.<a href="resettable.rs.html#48">into_resettable</a>().<a href="resettable.rs.html#22">into_option</a>();
-        <span class="self"><a href="#2165">self</a>
+    </span><span class="kw">pub fn </span>display_order(<span class="kw-2">mut </span><span class="self">self</span>, ord: <span class="kw">impl </span>IntoResettable&lt;usize&gt;) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.disp_ord = ord.into_resettable().into_option();
+        <span class="self">self
     </span>}
 
     <span class="doccomment">/// Override the [current] help section.
@@ -6813,9 +6813,9 @@
     /// [current]: crate::Command::next_help_heading
     </span><span class="attr">#[inline]
     #[must_use]
-    </span><span class="kw">pub fn </span>help_heading(<span class="kw-2">mut </span><span class="self">self</span>, heading: <span class="kw">impl </span>IntoResettable&lt;<a href="str.rs.html#6">Str</a>&gt;) -&gt; <span class="self">Self </span>{
-        <a class="self" href="#2175">self</a>.help_heading = <span class="prelude-val">Some</span>(<a href="#2175">heading</a>.<a href="resettable.rs.html#48">into_resettable</a>().<a href="resettable.rs.html#22">into_option</a>());
-        <span class="self"><a href="#2175">self</a>
+    </span><span class="kw">pub fn </span>help_heading(<span class="kw-2">mut </span><span class="self">self</span>, heading: <span class="kw">impl </span>IntoResettable&lt;Str&gt;) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.help_heading = <span class="prelude-val">Some</span>(heading.into_resettable().into_option());
+        <span class="self">self
     </span>}
 
     <span class="doccomment">/// Render the [help][Arg::help] on the line after the argument.
@@ -6863,11 +6863,11 @@
     /// ```
     </span><span class="attr">#[inline]
     #[must_use]
-    </span><span class="kw">pub fn </span>next_line_help(<span class="self">self</span>, yes: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub fn </span>next_line_help(<span class="self">self</span>, yes: bool) -&gt; <span class="self">Self </span>{
         <span class="kw">if </span>yes {
-            <a class="self" href="#2225">self</a>.<a href="#831-833">setting</a>(<a href="arg_settings.rs.html#33">ArgSettings::NextLineHelp</a>)
+            <span class="self">self</span>.setting(ArgSettings::NextLineHelp)
         } <span class="kw">else </span>{
-            <a class="self" href="#2225">self</a>.<a href="#841-843">unset_setting</a>(<a href="arg_settings.rs.html#33">ArgSettings::NextLineHelp</a>)
+            <span class="self">self</span>.unset_setting(ArgSettings::NextLineHelp)
         }
     }
 
@@ -6905,11 +6905,11 @@
     /// ```
     </span><span class="attr">#[inline]
     #[must_use]
-    </span><span class="kw">pub fn </span>hide(<span class="self">self</span>, yes: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub fn </span>hide(<span class="self">self</span>, yes: bool) -&gt; <span class="self">Self </span>{
         <span class="kw">if </span>yes {
-            <a class="self" href="#2267">self</a>.<a href="#831-833">setting</a>(<a href="arg_settings.rs.html#32">ArgSettings::Hidden</a>)
+            <span class="self">self</span>.setting(ArgSettings::Hidden)
         } <span class="kw">else </span>{
-            <a class="self" href="#2267">self</a>.<a href="#841-843">unset_setting</a>(<a href="arg_settings.rs.html#32">ArgSettings::Hidden</a>)
+            <span class="self">self</span>.unset_setting(ArgSettings::Hidden)
         }
     }
 
@@ -6938,11 +6938,11 @@
     /// the help text would be omitted.
     </span><span class="attr">#[inline]
     #[must_use]
-    </span><span class="kw">pub fn </span>hide_possible_values(<span class="self">self</span>, yes: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub fn </span>hide_possible_values(<span class="self">self</span>, yes: bool) -&gt; <span class="self">Self </span>{
         <span class="kw">if </span>yes {
-            <a class="self" href="#2300">self</a>.<a href="#831-833">setting</a>(<a href="arg_settings.rs.html#34">ArgSettings::HidePossibleValues</a>)
+            <span class="self">self</span>.setting(ArgSettings::HidePossibleValues)
         } <span class="kw">else </span>{
-            <a class="self" href="#2300">self</a>.<a href="#841-843">unset_setting</a>(<a href="arg_settings.rs.html#34">ArgSettings::HidePossibleValues</a>)
+            <span class="self">self</span>.unset_setting(ArgSettings::HidePossibleValues)
         }
     }
 
@@ -6969,11 +6969,11 @@
     /// the help text would be omitted.
     </span><span class="attr">#[inline]
     #[must_use]
-    </span><span class="kw">pub fn </span>hide_default_value(<span class="self">self</span>, yes: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub fn </span>hide_default_value(<span class="self">self</span>, yes: bool) -&gt; <span class="self">Self </span>{
         <span class="kw">if </span>yes {
-            <a class="self" href="#2331">self</a>.<a href="#831-833">setting</a>(<a href="arg_settings.rs.html#40">ArgSettings::HideDefaultValue</a>)
+            <span class="self">self</span>.setting(ArgSettings::HideDefaultValue)
         } <span class="kw">else </span>{
-            <a class="self" href="#2331">self</a>.<a href="#841-843">unset_setting</a>(<a href="arg_settings.rs.html#40">ArgSettings::HideDefaultValue</a>)
+            <span class="self">self</span>.unset_setting(ArgSettings::HideDefaultValue)
         }
     }
 
@@ -7107,11 +7107,11 @@
     /// ```
     </span><span class="attr">#[inline]
     #[must_use]
-    </span><span class="kw">pub fn </span>hide_short_help(<span class="self">self</span>, yes: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub fn </span>hide_short_help(<span class="self">self</span>, yes: bool) -&gt; <span class="self">Self </span>{
         <span class="kw">if </span>yes {
-            <a class="self" href="#2469">self</a>.<a href="#831-833">setting</a>(<a href="arg_settings.rs.html#46">ArgSettings::HiddenShortHelp</a>)
+            <span class="self">self</span>.setting(ArgSettings::HiddenShortHelp)
         } <span class="kw">else </span>{
-            <a class="self" href="#2469">self</a>.<a href="#841-843">unset_setting</a>(<a href="arg_settings.rs.html#46">ArgSettings::HiddenShortHelp</a>)
+            <span class="self">self</span>.unset_setting(ArgSettings::HiddenShortHelp)
         }
     }
 
@@ -7180,17 +7180,17 @@
     /// ```
     </span><span class="attr">#[inline]
     #[must_use]
-    </span><span class="kw">pub fn </span>hide_long_help(<span class="self">self</span>, yes: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub fn </span>hide_long_help(<span class="self">self</span>, yes: bool) -&gt; <span class="self">Self </span>{
         <span class="kw">if </span>yes {
-            <a class="self" href="#2542">self</a>.<a href="#831-833">setting</a>(<a href="arg_settings.rs.html#47">ArgSettings::HiddenLongHelp</a>)
+            <span class="self">self</span>.setting(ArgSettings::HiddenLongHelp)
         } <span class="kw">else </span>{
-            <a class="self" href="#2542">self</a>.<a href="#841-843">unset_setting</a>(<a href="arg_settings.rs.html#47">ArgSettings::HiddenLongHelp</a>)
+            <span class="self">self</span>.unset_setting(ArgSettings::HiddenLongHelp)
         }
     }
 }
 
 <span class="doccomment">/// # Advanced Argument Relations
-</span><span class="kw">impl </span><a href="#54">Arg</a> {
+</span><span class="kw">impl </span>Arg {
     <span class="doccomment">/// The name of the [`ArgGroup`] the argument belongs to.
     ///
     /// # Examples
@@ -7226,13 +7226,13 @@
     ///
     /// [`ArgGroup`]: crate::ArgGroup
     </span><span class="attr">#[must_use]
-    </span><span class="kw">pub fn </span>group(<span class="kw-2">mut </span><span class="self">self</span>, group_id: <span class="kw">impl </span>IntoResettable&lt;<a href="../util/id.rs.html#9">Id</a>&gt;) -&gt; <span class="self">Self </span>{
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(group_id) = <a href="#2588">group_id</a>.<a href="resettable.rs.html#48">into_resettable</a>().<a href="resettable.rs.html#22">into_option</a>() {
-            <a class="self" href="#2588">self</a>.groups.push(<a href="#2589">group_id</a>);
+    </span><span class="kw">pub fn </span>group(<span class="kw-2">mut </span><span class="self">self</span>, group_id: <span class="kw">impl </span>IntoResettable&lt;Id&gt;) -&gt; <span class="self">Self </span>{
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(group_id) = group_id.into_resettable().into_option() {
+            <span class="self">self</span>.groups.push(group_id);
         } <span class="kw">else </span>{
-            <a class="self" href="#2588">self</a>.groups.clear();
+            <span class="self">self</span>.groups.clear();
         }
-        <span class="self"><a href="#2588">self</a>
+        <span class="self">self
     </span>}
 
     <span class="doccomment">/// The names of [`ArgGroup`]&#39;s the argument belongs to.
@@ -7271,9 +7271,9 @@
     ///
     /// [`ArgGroup`]: crate::ArgGroup
     </span><span class="attr">#[must_use]
-    </span><span class="kw">pub fn </span>groups(<span class="kw-2">mut </span><span class="self">self</span>, group_ids: <span class="kw">impl </span>IntoIterator&lt;Item = <span class="kw">impl </span>Into&lt;<a href="../util/id.rs.html#9">Id</a>&gt;&gt;) -&gt; <span class="self">Self </span>{
-        <a class="self" href="#2633">self</a>.groups.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a href="#2633">group_ids</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">Into::into</a>));
-        <span class="self"><a href="#2633">self</a>
+    </span><span class="kw">pub fn </span>groups(<span class="kw-2">mut </span><span class="self">self</span>, group_ids: <span class="kw">impl </span>IntoIterator&lt;Item = <span class="kw">impl </span>Into&lt;Id&gt;&gt;) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.groups.extend(group_ids.into_iter().map(Into::into));
+        <span class="self">self
     </span>}
 
     <span class="doccomment">/// Specifies the value of the argument if `arg` has been used at runtime.
@@ -7389,16 +7389,16 @@
     </span><span class="attr">#[must_use]
     </span><span class="kw">pub fn </span>default_value_if(
         <span class="kw-2">mut </span><span class="self">self</span>,
-        arg_id: <span class="kw">impl </span>Into&lt;<a href="../util/id.rs.html#9">Id</a>&gt;,
-        predicate: <span class="kw">impl </span>Into&lt;<a href="arg_predicate.rs.html#7">ArgPredicate</a>&gt;,
-        default: <span class="kw">impl </span>IntoResettable&lt;<a href="os_str.rs.html#8">OsStr</a>&gt;,
+        arg_id: <span class="kw">impl </span>Into&lt;Id&gt;,
+        predicate: <span class="kw">impl </span>Into&lt;ArgPredicate&gt;,
+        default: <span class="kw">impl </span>IntoResettable&lt;OsStr&gt;,
     ) -&gt; <span class="self">Self </span>{
-        <a class="self" href="#2750">self</a>.default_vals_ifs.push((
-            <a href="#2751">arg_id</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
-            <a href="#2752">predicate</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
-            <a href="#2753">default</a>.<a href="resettable.rs.html#48">into_resettable</a>().<a href="resettable.rs.html#22">into_option</a>(),
+        <span class="self">self</span>.default_vals_ifs.push((
+            arg_id.into(),
+            predicate.into(),
+            default.into_resettable().into_option(),
         ));
-        <span class="self"><a href="#2750">self</a>
+        <span class="self">self
     </span>}
 
     <span class="attr">#[must_use]
@@ -7409,11 +7409,11 @@
     )]
     </span><span class="kw">pub fn </span>default_value_if_os(
         <span class="self">self</span>,
-        arg_id: <span class="kw">impl </span>Into&lt;<a href="../util/id.rs.html#9">Id</a>&gt;,
-        predicate: <span class="kw">impl </span>Into&lt;<a href="arg_predicate.rs.html#7">ArgPredicate</a>&gt;,
-        default: <span class="kw">impl </span>IntoResettable&lt;<a href="os_str.rs.html#8">OsStr</a>&gt;,
+        arg_id: <span class="kw">impl </span>Into&lt;Id&gt;,
+        predicate: <span class="kw">impl </span>Into&lt;ArgPredicate&gt;,
+        default: <span class="kw">impl </span>IntoResettable&lt;OsStr&gt;,
     ) -&gt; <span class="self">Self </span>{
-        <a class="self" href="#2770">self</a>.<a href="#2749-2754">default_value_if</a>(<a href="#2771">arg_id</a>, <a href="#2772">predicate</a>, <a href="#2773">default</a>)
+        <span class="self">self</span>.default_value_if(arg_id, predicate, default)
     }
 
     <span class="doccomment">/// Specifies multiple values and conditions in the same manner as [`Arg::default_value_if`].
@@ -7502,16 +7502,16 @@
         <span class="kw-2">mut </span><span class="self">self</span>,
         ifs: <span class="kw">impl </span>IntoIterator&lt;
             Item = (
-                <span class="kw">impl </span>Into&lt;<a href="../util/id.rs.html#9">Id</a>&gt;,
-                <span class="kw">impl </span>Into&lt;<a href="arg_predicate.rs.html#7">ArgPredicate</a>&gt;,
-                <span class="kw">impl </span>IntoResettable&lt;<a href="os_str.rs.html#8">OsStr</a>&gt;,
+                <span class="kw">impl </span>Into&lt;Id&gt;,
+                <span class="kw">impl </span>Into&lt;ArgPredicate&gt;,
+                <span class="kw">impl </span>IntoResettable&lt;OsStr&gt;,
             ),
         &gt;,
     ) -&gt; <span class="self">Self </span>{
         <span class="kw">for </span>(arg, predicate, default) <span class="kw">in </span>ifs {
             <span class="self">self </span>= <span class="self">self</span>.default_value_if(arg, predicate, default);
         }
-        <span class="self"><a href="#2861">self</a>
+        <span class="self">self
     </span>}
 
     <span class="attr">#[must_use]
@@ -7524,13 +7524,13 @@
         <span class="self">self</span>,
         ifs: <span class="kw">impl </span>IntoIterator&lt;
             Item = (
-                <span class="kw">impl </span>Into&lt;<a href="../util/id.rs.html#9">Id</a>&gt;,
-                <span class="kw">impl </span>Into&lt;<a href="arg_predicate.rs.html#7">ArgPredicate</a>&gt;,
-                <span class="kw">impl </span>IntoResettable&lt;<a href="os_str.rs.html#8">OsStr</a>&gt;,
+                <span class="kw">impl </span>Into&lt;Id&gt;,
+                <span class="kw">impl </span>Into&lt;ArgPredicate&gt;,
+                <span class="kw">impl </span>IntoResettable&lt;OsStr&gt;,
             ),
         &gt;,
     ) -&gt; <span class="self">Self </span>{
-        <a class="self" href="#2883">self</a>.<a href="#2860-2869">default_value_ifs</a>(<a href="#2884">ifs</a>)
+        <span class="self">self</span>.default_value_ifs(ifs)
     }
 
     <span class="doccomment">/// Set this arg as [required] as long as the specified argument is not present at runtime.
@@ -7587,13 +7587,13 @@
     /// ```
     /// [required]: Arg::required()
     </span><span class="attr">#[must_use]
-    </span><span class="kw">pub fn </span>required_unless_present(<span class="kw-2">mut </span><span class="self">self</span>, arg_id: <span class="kw">impl </span>IntoResettable&lt;<a href="../util/id.rs.html#9">Id</a>&gt;) -&gt; <span class="self">Self </span>{
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(arg_id) = <a href="#2949">arg_id</a>.<a href="resettable.rs.html#48">into_resettable</a>().<a href="resettable.rs.html#22">into_option</a>() {
-            <a class="self" href="#2949">self</a>.r_unless.push(<a href="#2950">arg_id</a>);
+    </span><span class="kw">pub fn </span>required_unless_present(<span class="kw-2">mut </span><span class="self">self</span>, arg_id: <span class="kw">impl </span>IntoResettable&lt;Id&gt;) -&gt; <span class="self">Self </span>{
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(arg_id) = arg_id.into_resettable().into_option() {
+            <span class="self">self</span>.r_unless.push(arg_id);
         } <span class="kw">else </span>{
-            <a class="self" href="#2949">self</a>.r_unless.clear();
+            <span class="self">self</span>.r_unless.clear();
         }
-        <span class="self"><a href="#2949">self</a>
+        <span class="self">self
     </span>}
 
     <span class="doccomment">/// Sets this arg as [required] unless *all* of the specified arguments are present at runtime.
@@ -7666,10 +7666,10 @@
     </span><span class="attr">#[must_use]
     </span><span class="kw">pub fn </span>required_unless_present_all(
         <span class="kw-2">mut </span><span class="self">self</span>,
-        names: <span class="kw">impl </span>IntoIterator&lt;Item = <span class="kw">impl </span>Into&lt;<a href="../util/id.rs.html#9">Id</a>&gt;&gt;,
+        names: <span class="kw">impl </span>IntoIterator&lt;Item = <span class="kw">impl </span>Into&lt;Id&gt;&gt;,
     ) -&gt; <span class="self">Self </span>{
-        <a class="self" href="#3027">self</a>.r_unless_all.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a href="#3028">names</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">Into::into</a>));
-        <span class="self"><a href="#3027">self</a>
+        <span class="self">self</span>.r_unless_all.extend(names.into_iter().map(Into::into));
+        <span class="self">self
     </span>}
 
     <span class="doccomment">/// Sets this arg as [required] unless *any* of the specified arguments are present at runtime.
@@ -7744,10 +7744,10 @@
     </span><span class="attr">#[must_use]
     </span><span class="kw">pub fn </span>required_unless_present_any(
         <span class="kw-2">mut </span><span class="self">self</span>,
-        names: <span class="kw">impl </span>IntoIterator&lt;Item = <span class="kw">impl </span>Into&lt;<a href="../util/id.rs.html#9">Id</a>&gt;&gt;,
+        names: <span class="kw">impl </span>IntoIterator&lt;Item = <span class="kw">impl </span>Into&lt;Id&gt;&gt;,
     ) -&gt; <span class="self">Self </span>{
-        <a class="self" href="#3105">self</a>.r_unless.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a href="#3106">names</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">Into::into</a>));
-        <span class="self"><a href="#3105">self</a>
+        <span class="self">self</span>.r_unless.extend(names.into_iter().map(Into::into));
+        <span class="self">self
     </span>}
 
     <span class="doccomment">/// This argument is [required] only if the specified `arg` is present at runtime and its value
@@ -7830,9 +7830,9 @@
     /// [Conflicting]: Arg::conflicts_with()
     /// [required]: Arg::required()
     </span><span class="attr">#[must_use]
-    </span><span class="kw">pub fn </span>required_if_eq(<span class="kw-2">mut </span><span class="self">self</span>, arg_id: <span class="kw">impl </span>Into&lt;<a href="../util/id.rs.html#9">Id</a>&gt;, val: <span class="kw">impl </span>Into&lt;<a href="os_str.rs.html#8">OsStr</a>&gt;) -&gt; <span class="self">Self </span>{
-        <a class="self" href="#3192">self</a>.r_ifs.push((<a href="#3192">arg_id</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(), <a href="#3192">val</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()));
-        <span class="self"><a href="#3192">self</a>
+    </span><span class="kw">pub fn </span>required_if_eq(<span class="kw-2">mut </span><span class="self">self</span>, arg_id: <span class="kw">impl </span>Into&lt;Id&gt;, val: <span class="kw">impl </span>Into&lt;OsStr&gt;) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.r_ifs.push((arg_id.into(), val.into()));
+        <span class="self">self
     </span>}
 
     <span class="doccomment">/// Specify this argument is [required] based on multiple conditions.
@@ -7911,11 +7911,11 @@
     </span><span class="attr">#[must_use]
     </span><span class="kw">pub fn </span>required_if_eq_any(
         <span class="kw-2">mut </span><span class="self">self</span>,
-        ifs: <span class="kw">impl </span>IntoIterator&lt;Item = (<span class="kw">impl </span>Into&lt;<a href="../util/id.rs.html#9">Id</a>&gt;, <span class="kw">impl </span>Into&lt;<a href="os_str.rs.html#8">OsStr</a>&gt;)&gt;,
+        ifs: <span class="kw">impl </span>IntoIterator&lt;Item = (<span class="kw">impl </span>Into&lt;Id&gt;, <span class="kw">impl </span>Into&lt;OsStr&gt;)&gt;,
     ) -&gt; <span class="self">Self </span>{
-        <a class="self" href="#3272">self</a>.r_ifs
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a href="#3273">ifs</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|(id, val)| (<a href="#3276">id</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(), <a href="#3276">val</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())));
-        <span class="self"><a href="#3272">self</a>
+        <span class="self">self</span>.r_ifs
+            .extend(ifs.into_iter().map(|(id, val)| (id.into(), val.into())));
+        <span class="self">self
     </span>}
 
     <span class="doccomment">/// Specify this argument is [required] based on multiple conditions.
@@ -7992,11 +7992,11 @@
     </span><span class="attr">#[must_use]
     </span><span class="kw">pub fn </span>required_if_eq_all(
         <span class="kw-2">mut </span><span class="self">self</span>,
-        ifs: <span class="kw">impl </span>IntoIterator&lt;Item = (<span class="kw">impl </span>Into&lt;<a href="../util/id.rs.html#9">Id</a>&gt;, <span class="kw">impl </span>Into&lt;<a href="os_str.rs.html#8">OsStr</a>&gt;)&gt;,
+        ifs: <span class="kw">impl </span>IntoIterator&lt;Item = (<span class="kw">impl </span>Into&lt;Id&gt;, <span class="kw">impl </span>Into&lt;OsStr&gt;)&gt;,
     ) -&gt; <span class="self">Self </span>{
-        <a class="self" href="#3353">self</a>.r_ifs_all
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a href="#3354">ifs</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|(id, val)| (<a href="#3357">id</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(), <a href="#3357">val</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())));
-        <span class="self"><a href="#3353">self</a>
+        <span class="self">self</span>.r_ifs_all
+            .extend(ifs.into_iter().map(|(id, val)| (id.into(), val.into())));
+        <span class="self">self
     </span>}
 
     <span class="doccomment">/// Require another argument if this arg matches the [`ArgPredicate`]
@@ -8055,9 +8055,9 @@
     /// [Conflicting]: Arg::conflicts_with()
     /// [override]: Arg::overrides_with()
     </span><span class="attr">#[must_use]
-    </span><span class="kw">pub fn </span>requires_if(<span class="kw-2">mut </span><span class="self">self</span>, val: <span class="kw">impl </span>Into&lt;<a href="arg_predicate.rs.html#7">ArgPredicate</a>&gt;, arg_id: <span class="kw">impl </span>Into&lt;<a href="../util/id.rs.html#9">Id</a>&gt;) -&gt; <span class="self">Self </span>{
-        <a class="self" href="#3417">self</a>.requires.push((<a href="#3417">val</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(), <a href="#3417">arg_id</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()));
-        <span class="self"><a href="#3417">self</a>
+    </span><span class="kw">pub fn </span>requires_if(<span class="kw-2">mut </span><span class="self">self</span>, val: <span class="kw">impl </span>Into&lt;ArgPredicate&gt;, arg_id: <span class="kw">impl </span>Into&lt;Id&gt;) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.requires.push((val.into(), arg_id.into()));
+        <span class="self">self
     </span>}
 
     <span class="doccomment">/// Allows multiple conditional requirements.
@@ -8133,11 +8133,11 @@
     </span><span class="attr">#[must_use]
     </span><span class="kw">pub fn </span>requires_ifs(
         <span class="kw-2">mut </span><span class="self">self</span>,
-        ifs: <span class="kw">impl </span>IntoIterator&lt;Item = (<span class="kw">impl </span>Into&lt;<a href="arg_predicate.rs.html#7">ArgPredicate</a>&gt;, <span class="kw">impl </span>Into&lt;<a href="../util/id.rs.html#9">Id</a>&gt;)&gt;,
+        ifs: <span class="kw">impl </span>IntoIterator&lt;Item = (<span class="kw">impl </span>Into&lt;ArgPredicate&gt;, <span class="kw">impl </span>Into&lt;Id&gt;)&gt;,
     ) -&gt; <span class="self">Self </span>{
-        <a class="self" href="#3494">self</a>.requires
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a href="#3495">ifs</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|(val, arg)| (<a href="#3498">val</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(), <a href="#3498">arg</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())));
-        <span class="self"><a href="#3494">self</a>
+        <span class="self">self</span>.requires
+            .extend(ifs.into_iter().map(|(val, arg)| (val.into(), arg.into())));
+        <span class="self">self
     </span>}
 
     <span class="attr">#[doc(hidden)]
@@ -8145,8 +8145,8 @@
         feature = <span class="string">&quot;deprecated&quot;</span>,
         deprecated(since = <span class="string">&quot;4.0.0&quot;</span>, note = <span class="string">&quot;Replaced with `Arg::requires_ifs`&quot;</span>)
     )]
-    </span><span class="kw">pub fn </span>requires_all(<span class="self">self</span>, ids: <span class="kw">impl </span>IntoIterator&lt;Item = <span class="kw">impl </span>Into&lt;<a href="../util/id.rs.html#9">Id</a>&gt;&gt;) -&gt; <span class="self">Self </span>{
-        <a class="self" href="#3507">self</a>.<a href="#3493-3496">requires_ifs</a>(<a href="#3507">ids</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|id| (<a href="arg_predicate.rs.html#9">ArgPredicate::IsPresent</a>, <a href="#3508">id</a>)))
+    </span><span class="kw">pub fn </span>requires_all(<span class="self">self</span>, ids: <span class="kw">impl </span>IntoIterator&lt;Item = <span class="kw">impl </span>Into&lt;Id&gt;&gt;) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.requires_ifs(ids.into_iter().map(|id| (ArgPredicate::IsPresent, id)))
     }
 
     <span class="doccomment">/// This argument is mutually exclusive with the specified argument.
@@ -8196,13 +8196,13 @@
     /// [`Arg::conflicts_with_all(names)`]: Arg::conflicts_with_all()
     /// [`Arg::exclusive(true)`]: Arg::exclusive()
     </span><span class="attr">#[must_use]
-    </span><span class="kw">pub fn </span>conflicts_with(<span class="kw-2">mut </span><span class="self">self</span>, arg_id: <span class="kw">impl </span>IntoResettable&lt;<a href="../util/id.rs.html#9">Id</a>&gt;) -&gt; <span class="self">Self </span>{
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(arg_id) = <a href="#3558">arg_id</a>.<a href="resettable.rs.html#48">into_resettable</a>().<a href="resettable.rs.html#22">into_option</a>() {
-            <a class="self" href="#3558">self</a>.blacklist.push(<a href="#3559">arg_id</a>);
+    </span><span class="kw">pub fn </span>conflicts_with(<span class="kw-2">mut </span><span class="self">self</span>, arg_id: <span class="kw">impl </span>IntoResettable&lt;Id&gt;) -&gt; <span class="self">Self </span>{
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(arg_id) = arg_id.into_resettable().into_option() {
+            <span class="self">self</span>.blacklist.push(arg_id);
         } <span class="kw">else </span>{
-            <a class="self" href="#3558">self</a>.blacklist.clear();
+            <span class="self">self</span>.blacklist.clear();
         }
-        <span class="self"><a href="#3558">self</a>
+        <span class="self">self
     </span>}
 
     <span class="doccomment">/// This argument is mutually exclusive with the specified arguments.
@@ -8250,9 +8250,9 @@
     /// [`Arg::conflicts_with`]: Arg::conflicts_with()
     /// [`Arg::exclusive(true)`]: Arg::exclusive()
     </span><span class="attr">#[must_use]
-    </span><span class="kw">pub fn </span>conflicts_with_all(<span class="kw-2">mut </span><span class="self">self</span>, names: <span class="kw">impl </span>IntoIterator&lt;Item = <span class="kw">impl </span>Into&lt;<a href="../util/id.rs.html#9">Id</a>&gt;&gt;) -&gt; <span class="self">Self </span>{
-        <a class="self" href="#3612">self</a>.blacklist.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a href="#3612">names</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">Into::into</a>));
-        <span class="self"><a href="#3612">self</a>
+    </span><span class="kw">pub fn </span>conflicts_with_all(<span class="kw-2">mut </span><span class="self">self</span>, names: <span class="kw">impl </span>IntoIterator&lt;Item = <span class="kw">impl </span>Into&lt;Id&gt;&gt;) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.blacklist.extend(names.into_iter().map(Into::into));
+        <span class="self">self
     </span>}
 
     <span class="doccomment">/// Sets an overridable argument.
@@ -8286,13 +8286,13 @@
     /// assert!(!*m.get_one::&lt;bool&gt;(&quot;flag&quot;).unwrap());
     /// ```
     </span><span class="attr">#[must_use]
-    </span><span class="kw">pub fn </span>overrides_with(<span class="kw-2">mut </span><span class="self">self</span>, arg_id: <span class="kw">impl </span>IntoResettable&lt;<a href="../util/id.rs.html#9">Id</a>&gt;) -&gt; <span class="self">Self </span>{
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(arg_id) = <a href="#3648">arg_id</a>.<a href="resettable.rs.html#48">into_resettable</a>().<a href="resettable.rs.html#22">into_option</a>() {
-            <a class="self" href="#3648">self</a>.overrides.push(<a href="#3649">arg_id</a>);
+    </span><span class="kw">pub fn </span>overrides_with(<span class="kw-2">mut </span><span class="self">self</span>, arg_id: <span class="kw">impl </span>IntoResettable&lt;Id&gt;) -&gt; <span class="self">Self </span>{
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(arg_id) = arg_id.into_resettable().into_option() {
+            <span class="self">self</span>.overrides.push(arg_id);
         } <span class="kw">else </span>{
-            <a class="self" href="#3648">self</a>.overrides.clear();
+            <span class="self">self</span>.overrides.clear();
         }
-        <span class="self"><a href="#3648">self</a>
+        <span class="self">self
     </span>}
 
     <span class="doccomment">/// Sets multiple mutually overridable arguments by name.
@@ -8326,24 +8326,24 @@
     /// assert!(!*m.get_one::&lt;bool&gt;(&quot;flag&quot;).unwrap());
     /// ```
     </span><span class="attr">#[must_use]
-    </span><span class="kw">pub fn </span>overrides_with_all(<span class="kw-2">mut </span><span class="self">self</span>, names: <span class="kw">impl </span>IntoIterator&lt;Item = <span class="kw">impl </span>Into&lt;<a href="../util/id.rs.html#9">Id</a>&gt;&gt;) -&gt; <span class="self">Self </span>{
-        <a class="self" href="#3688">self</a>.overrides.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a href="#3688">names</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">Into::into</a>));
-        <span class="self"><a href="#3688">self</a>
+    </span><span class="kw">pub fn </span>overrides_with_all(<span class="kw-2">mut </span><span class="self">self</span>, names: <span class="kw">impl </span>IntoIterator&lt;Item = <span class="kw">impl </span>Into&lt;Id&gt;&gt;) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.overrides.extend(names.into_iter().map(Into::into));
+        <span class="self">self
     </span>}
 }
 
 <span class="doccomment">/// # Reflection
-</span><span class="kw">impl </span><a href="#54">Arg</a> {
+</span><span class="kw">impl </span>Arg {
     <span class="doccomment">/// Get the name of the argument
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>get_id(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="../util/id.rs.html#9">Id</a> {
-        <span class="kw-2">&amp;</span><a class="self" href="#3698">self</a>.id
+    </span><span class="kw">pub fn </span>get_id(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Id {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.id
     }
 
     <span class="doccomment">/// Get the help specified for this argument, if any
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>get_help(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="styled_str.rs.html#3">StyledStr</a>&gt; {
-        <a class="self" href="#3704">self</a>.help.as_ref()
+    </span><span class="kw">pub fn </span>get_help(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>StyledStr&gt; {
+        <span class="self">self</span>.help.as_ref()
     }
 
     <span class="doccomment">/// Get the long help specified for this argument, if any
@@ -8357,161 +8357,161 @@
     /// ```
     ///
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>get_long_help(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="styled_str.rs.html#3">StyledStr</a>&gt; {
-        <a class="self" href="#3719">self</a>.long_help.as_ref()
+    </span><span class="kw">pub fn </span>get_long_help(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>StyledStr&gt; {
+        <span class="self">self</span>.long_help.as_ref()
     }
 
     <span class="doccomment">/// Get the help heading specified for this argument, if any
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>get_help_heading(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt; {
-        <a class="self" href="#3725">self</a>.help_heading
+    </span><span class="kw">pub fn </span>get_help_heading(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>str&gt; {
+        <span class="self">self</span>.help_heading
             .as_ref()
-            .map(|s| <a href="#3728">s</a>.as_deref())
+            .map(|s| s.as_deref())
             .unwrap_or_default()
     }
 
     <span class="doccomment">/// Get the short option name for this argument, if any
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>get_short(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>&gt; {
-        <a class="self" href="#3734">self</a>.short
+    </span><span class="kw">pub fn </span>get_short(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;char&gt; {
+        <span class="self">self</span>.short
     }
 
     <span class="doccomment">/// Get visible short aliases for this argument, if any
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>get_visible_short_aliases(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>&gt;&gt; {
+    </span><span class="kw">pub fn </span>get_visible_short_aliases(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Vec&lt;char&gt;&gt; {
         <span class="kw">if </span><span class="self">self</span>.short_aliases.is_empty() {
             <span class="prelude-val">None
         </span>} <span class="kw">else </span>{
             <span class="prelude-val">Some</span>(
-                <a class="self" href="#3740">self</a>.short_aliases
+                <span class="self">self</span>.short_aliases
                     .iter()
-                    .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter_map</a>(|(c, v)| <span class="kw">if </span><span class="kw-2">*</span>v { <span class="prelude-val">Some</span>(<a href="#3747">c</a>) } <span class="kw">else </span>{ <span class="prelude-val">None </span>})
-                    .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">copied</a>()
-                    .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>(),
+                    .filter_map(|(c, v)| <span class="kw">if </span><span class="kw-2">*</span>v { <span class="prelude-val">Some</span>(c) } <span class="kw">else </span>{ <span class="prelude-val">None </span>})
+                    .copied()
+                    .collect(),
             )
         }
     }
 
     <span class="doccomment">/// Get *all* short aliases for this argument, if any, both visible and hidden.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>get_all_short_aliases(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>&gt;&gt; {
+    </span><span class="kw">pub fn </span>get_all_short_aliases(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Vec&lt;char&gt;&gt; {
         <span class="kw">if </span><span class="self">self</span>.short_aliases.is_empty() {
             <span class="prelude-val">None
         </span>} <span class="kw">else </span>{
-            <span class="prelude-val">Some</span>(<a class="self" href="#3756">self</a>.short_aliases.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|(s, <span class="kw">_</span>)| <a href="#3760">s</a>).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">copied</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>())
+            <span class="prelude-val">Some</span>(<span class="self">self</span>.short_aliases.iter().map(|(s, <span class="kw">_</span>)| s).copied().collect())
         }
     }
 
     <span class="doccomment">/// Get the short option name and its visible aliases, if any
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>get_short_and_visible_aliases(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>&gt;&gt; {
-        <span class="kw">let </span><span class="kw-2">mut </span>shorts = <span class="kw">match </span><a class="self" href="#3766">self</a>.short {
-            <span class="prelude-val">Some</span>(short) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[short],
+    </span><span class="kw">pub fn </span>get_short_and_visible_aliases(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Vec&lt;char&gt;&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>shorts = <span class="kw">match </span><span class="self">self</span>.short {
+            <span class="prelude-val">Some</span>(short) =&gt; <span class="macro">vec!</span>[short],
             <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="prelude-val">None</span>,
         };
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(aliases) = <a class="self" href="#3766">self</a>.<a href="#3740">get_visible_short_aliases</a>() {
-            <a href="#3767">shorts</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a href="#3771">aliases</a>);
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(aliases) = <span class="self">self</span>.get_visible_short_aliases() {
+            shorts.extend(aliases);
         }
-        <span class="prelude-val">Some</span>(<a href="#3767">shorts</a>)
+        <span class="prelude-val">Some</span>(shorts)
     }
 
     <span class="doccomment">/// Get the long option name for this argument, if any
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>get_long(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt; {
-        <a class="self" href="#3779">self</a>.long.as_deref()
+    </span><span class="kw">pub fn </span>get_long(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>str&gt; {
+        <span class="self">self</span>.long.as_deref()
     }
 
     <span class="doccomment">/// Get visible aliases for this argument, if any
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>get_visible_aliases(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Vec&lt;<span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt;&gt; {
+    </span><span class="kw">pub fn </span>get_visible_aliases(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Vec&lt;<span class="kw-2">&amp;</span>str&gt;&gt; {
         <span class="kw">if </span><span class="self">self</span>.aliases.is_empty() {
             <span class="prelude-val">None
         </span>} <span class="kw">else </span>{
             <span class="prelude-val">Some</span>(
-                <a class="self" href="#3785">self</a>.aliases
+                <span class="self">self</span>.aliases
                     .iter()
-                    .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter_map</a>(|(s, v)| <span class="kw">if </span><span class="kw-2">*</span>v { <span class="prelude-val">Some</span>(<a href="#3792">s</a>.<a href="str.rs.html#36">as_str</a>()) } <span class="kw">else </span>{ <span class="prelude-val">None </span>})
-                    .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>(),
+                    .filter_map(|(s, v)| <span class="kw">if </span><span class="kw-2">*</span>v { <span class="prelude-val">Some</span>(s.as_str()) } <span class="kw">else </span>{ <span class="prelude-val">None </span>})
+                    .collect(),
             )
         }
     }
 
     <span class="doccomment">/// Get *all* aliases for this argument, if any, both visible and hidden.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>get_all_aliases(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Vec&lt;<span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt;&gt; {
+    </span><span class="kw">pub fn </span>get_all_aliases(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Vec&lt;<span class="kw-2">&amp;</span>str&gt;&gt; {
         <span class="kw">if </span><span class="self">self</span>.aliases.is_empty() {
             <span class="prelude-val">None
         </span>} <span class="kw">else </span>{
-            <span class="prelude-val">Some</span>(<a class="self" href="#3800">self</a>.aliases.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|(s, <span class="kw">_</span>)| <a href="#3804">s</a>.<a href="str.rs.html#36">as_str</a>()).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>())
+            <span class="prelude-val">Some</span>(<span class="self">self</span>.aliases.iter().map(|(s, <span class="kw">_</span>)| s.as_str()).collect())
         }
     }
 
     <span class="doccomment">/// Get the long option name and its visible aliases, if any
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>get_long_and_visible_aliases(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Vec&lt;<span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt;&gt; {
-        <span class="kw">let </span><span class="kw-2">mut </span>longs = <span class="kw">match </span><a class="self" href="#3810">self</a>.<a href="#3779">get_long</a>() {
-            <span class="prelude-val">Some</span>(long) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[long],
+    </span><span class="kw">pub fn </span>get_long_and_visible_aliases(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Vec&lt;<span class="kw-2">&amp;</span>str&gt;&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>longs = <span class="kw">match </span><span class="self">self</span>.get_long() {
+            <span class="prelude-val">Some</span>(long) =&gt; <span class="macro">vec!</span>[long],
             <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="prelude-val">None</span>,
         };
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(aliases) = <a class="self" href="#3810">self</a>.<a href="#3785">get_visible_aliases</a>() {
-            <a href="#3811">longs</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a href="#3815">aliases</a>);
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(aliases) = <span class="self">self</span>.get_visible_aliases() {
+            longs.extend(aliases);
         }
-        <span class="prelude-val">Some</span>(<a href="#3811">longs</a>)
+        <span class="prelude-val">Some</span>(longs)
     }
 
     <span class="doccomment">/// Get the names of possible values for this argument. Only useful for user
     /// facing applications, such as building help messages or man files
-    </span><span class="kw">pub fn </span>get_possible_values(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Vec&lt;<a href="possible_value.rs.html#31">PossibleValue</a>&gt; {
+    </span><span class="kw">pub fn </span>get_possible_values(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Vec&lt;PossibleValue&gt; {
         <span class="kw">if </span>!<span class="self">self</span>.is_takes_value_set() {
-            <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[]
+            <span class="macro">vec!</span>[]
         } <span class="kw">else </span>{
-            <a class="self" href="#3823">self</a>.<a href="#3971">get_value_parser</a>()
-                .<a href="value_parser.rs.html#243-245">possible_values</a>()
-                .map(|pvs| <a href="#3829">pvs</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>())
+            <span class="self">self</span>.get_value_parser()
+                .possible_values()
+                .map(|pvs| pvs.collect())
                 .unwrap_or_default()
         }
     }
 
     <span class="doccomment">/// Get the names of values for this argument.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>get_value_names(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>[<a href="str.rs.html#6">Str</a>]&gt; {
+    </span><span class="kw">pub fn </span>get_value_names(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>[Str]&gt; {
         <span class="kw">if </span><span class="self">self</span>.val_names.is_empty() {
             <span class="prelude-val">None
         </span>} <span class="kw">else </span>{
-            <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><a class="self" href="#3836">self</a>.val_names)
+            <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.val_names)
         }
     }
 
     <span class="doccomment">/// Get the number of values for this argument.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>get_num_args(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="range.rs.html#3">ValueRange</a>&gt; {
-        <a class="self" href="#3846">self</a>.num_vals
+    </span><span class="kw">pub fn </span>get_num_args(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;ValueRange&gt; {
+        <span class="self">self</span>.num_vals
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_min_vals(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="self" href="#3851">self</a>.<a href="#3846">get_num_args</a>().expect(<a href="../lib.rs.html#157">INTERNAL_ERROR_MSG</a>).<a href="range.rs.html#57">min_values</a>()
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_min_vals(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+        <span class="self">self</span>.get_num_args().expect(INTERNAL_ERROR_MSG).min_values()
     }
 
     <span class="doccomment">/// Get the delimiter between multiple values
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>get_value_delimiter(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>&gt; {
-        <a class="self" href="#3857">self</a>.val_delim
+    </span><span class="kw">pub fn </span>get_value_delimiter(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;char&gt; {
+        <span class="self">self</span>.val_delim
     }
 
     <span class="doccomment">/// Get the index of this argument, if any
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>get_index(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
-        <a class="self" href="#3863">self</a>.index
+    </span><span class="kw">pub fn </span>get_index(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;usize&gt; {
+        <span class="self">self</span>.index
     }
 
     <span class="doccomment">/// Get the value hint of this argument
-    </span><span class="kw">pub fn </span>get_value_hint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="value_hint.rs.html#29">ValueHint</a> {
-        <a class="self" href="#3868">self</a>.value_hint.unwrap_or_else(|| {
+    </span><span class="kw">pub fn </span>get_value_hint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; ValueHint {
+        <span class="self">self</span>.value_hint.unwrap_or_else(|| {
             <span class="kw">if </span><span class="self">self</span>.is_takes_value_set() {
-                <span class="kw">let </span>type_id = <a class="self" href="#3868">self</a>.<a href="#3971">get_value_parser</a>().<a href="value_parser.rs.html#235">type_id</a>();
+                <span class="kw">let </span>type_id = <span class="self">self</span>.get_value_parser().type_id();
                 <span class="kw">if </span>type_id == <span class="kw">crate</span>::parser::AnyValueId::of::&lt;std::path::PathBuf&gt;() {
-                    <a href="value_hint.rs.html#36">ValueHint::AnyPath</a>
+                    ValueHint::AnyPath
                 } <span class="kw">else </span>{
                     ValueHint::default()
                 }
@@ -8545,8 +8545,8 @@
     /// let arg = Arg::new(&quot;foo&quot;).default_value(&quot;default value&quot;);
     /// assert_eq!(arg.get_default_values(), &amp;[&quot;default value&quot;]);
     /// ```
-    </span><span class="kw">pub fn </span>get_default_values(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[<a href="os_str.rs.html#8">OsStr</a>] {
-        <span class="kw-2">&amp;</span><a class="self" href="#3907">self</a>.default_vals
+    </span><span class="kw">pub fn </span>get_default_values(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[OsStr] {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.default_vals
     }
 
     <span class="doccomment">/// Checks whether this argument is a positional or not.
@@ -8561,37 +8561,37 @@
     /// let arg = Arg::new(&quot;foo&quot;).long(&quot;foo&quot;);
     /// assert_eq!(arg.is_positional(), false);
     /// ```
-    </span><span class="kw">pub fn </span>is_positional(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#3923">self</a>.<a href="#3779">get_long</a>().is_none() &amp;&amp; <a class="self" href="#3923">self</a>.<a href="#3734">get_short</a>().is_none()
+    </span><span class="kw">pub fn </span>is_positional(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.get_long().is_none() &amp;&amp; <span class="self">self</span>.get_short().is_none()
     }
 
     <span class="doccomment">/// Reports whether [`Arg::required`] is set
-    </span><span class="kw">pub fn </span>is_required_set(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#3928">self</a>.<a href="#825">is_set</a>(<a href="arg_settings.rs.html#30">ArgSettings::Required</a>)
+    </span><span class="kw">pub fn </span>is_required_set(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.is_set(ArgSettings::Required)
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>is_multiple_values_set(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#3932">self</a>.<a href="#3846">get_num_args</a>().unwrap_or_default().<a href="range.rs.html#90">is_multiple</a>()
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>is_multiple_values_set(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.get_num_args().unwrap_or_default().is_multiple()
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>is_takes_value_set(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#3936">self</a>.<a href="#3951">get_action</a>().<a href="action.rs.html#280">takes_values</a>()
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>is_takes_value_set(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.get_action().takes_values()
     }
 
     <span class="doccomment">/// Report whether [`Arg::allow_hyphen_values`] is set
-    </span><span class="kw">pub fn </span>is_allow_hyphen_values_set(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#3941">self</a>.<a href="#825">is_set</a>(<a href="arg_settings.rs.html#35">ArgSettings::AllowHyphenValues</a>)
+    </span><span class="kw">pub fn </span>is_allow_hyphen_values_set(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.is_set(ArgSettings::AllowHyphenValues)
     }
 
     <span class="doccomment">/// Report whether [`Arg::allow_negative_numbers`] is set
-    </span><span class="kw">pub fn </span>is_allow_negative_numbers_set(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#3946">self</a>.<a href="#825">is_set</a>(<a href="arg_settings.rs.html#36">ArgSettings::AllowNegativeNumbers</a>)
+    </span><span class="kw">pub fn </span>is_allow_negative_numbers_set(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.is_set(ArgSettings::AllowNegativeNumbers)
     }
 
     <span class="doccomment">/// Behavior when parsing the argument
-    </span><span class="kw">pub fn </span>get_action(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="action.rs.html#27"><span class="kw">super</span>::ArgAction</a> {
-        <span class="kw">const </span>DEFAULT: <a href="action.rs.html#27"><span class="kw">super</span>::ArgAction</a> = <a href="action.rs.html#53"><span class="kw">super</span>::ArgAction::Set</a>;
-        <a class="self" href="#3951">self</a>.action.as_ref().unwrap_or(<span class="kw-2">&amp;</span><a href="#3952">DEFAULT</a>)
+    </span><span class="kw">pub fn </span>get_action(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="kw">super</span>::ArgAction {
+        <span class="kw">const </span>DEFAULT: <span class="kw">super</span>::ArgAction = <span class="kw">super</span>::ArgAction::Set;
+        <span class="self">self</span>.action.as_ref().unwrap_or(<span class="kw-2">&amp;</span>DEFAULT)
     }
 
     <span class="doccomment">/// Configured parser for argument values
@@ -8609,38 +8609,38 @@
     ///     .get_value_parser();
     /// println!(&quot;{:?}&quot;, value_parser);
     /// ```
-    </span><span class="kw">pub fn </span>get_value_parser(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="value_parser.rs.html#59"><span class="kw">super</span>::ValueParser</a> {
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(value_parser) = <a class="self" href="#3971">self</a>.value_parser.as_ref() {
-            <a href="#3972">value_parser</a>
+    </span><span class="kw">pub fn </span>get_value_parser(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="kw">super</span>::ValueParser {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(value_parser) = <span class="self">self</span>.value_parser.as_ref() {
+            value_parser
         } <span class="kw">else </span>{
-            <span class="kw">static </span>DEFAULT: <a href="value_parser.rs.html#59"><span class="kw">super</span>::ValueParser</a> = <span class="kw">super</span>::ValueParser::string();
-            <span class="kw-2">&amp;</span><a href="#3975">DEFAULT</a>
+            <span class="kw">static </span>DEFAULT: <span class="kw">super</span>::ValueParser = <span class="kw">super</span>::ValueParser::string();
+            <span class="kw-2">&amp;</span>DEFAULT
         }
     }
 
     <span class="doccomment">/// Report whether [`Arg::global`] is set
-    </span><span class="kw">pub fn </span>is_global_set(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#3981">self</a>.<a href="#825">is_set</a>(<a href="arg_settings.rs.html#31">ArgSettings::Global</a>)
+    </span><span class="kw">pub fn </span>is_global_set(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.is_set(ArgSettings::Global)
     }
 
     <span class="doccomment">/// Report whether [`Arg::next_line_help`] is set
-    </span><span class="kw">pub fn </span>is_next_line_help_set(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#3986">self</a>.<a href="#825">is_set</a>(<a href="arg_settings.rs.html#33">ArgSettings::NextLineHelp</a>)
+    </span><span class="kw">pub fn </span>is_next_line_help_set(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.is_set(ArgSettings::NextLineHelp)
     }
 
     <span class="doccomment">/// Report whether [`Arg::hide`] is set
-    </span><span class="kw">pub fn </span>is_hide_set(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#3991">self</a>.<a href="#825">is_set</a>(<a href="arg_settings.rs.html#32">ArgSettings::Hidden</a>)
+    </span><span class="kw">pub fn </span>is_hide_set(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.is_set(ArgSettings::Hidden)
     }
 
     <span class="doccomment">/// Report whether [`Arg::hide_default_value`] is set
-    </span><span class="kw">pub fn </span>is_hide_default_value_set(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#3996">self</a>.<a href="#825">is_set</a>(<a href="arg_settings.rs.html#40">ArgSettings::HideDefaultValue</a>)
+    </span><span class="kw">pub fn </span>is_hide_default_value_set(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.is_set(ArgSettings::HideDefaultValue)
     }
 
     <span class="doccomment">/// Report whether [`Arg::hide_possible_values`] is set
-    </span><span class="kw">pub fn </span>is_hide_possible_values_set(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#4001">self</a>.<a href="#825">is_set</a>(<a href="arg_settings.rs.html#34">ArgSettings::HidePossibleValues</a>)
+    </span><span class="kw">pub fn </span>is_hide_possible_values_set(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.is_set(ArgSettings::HidePossibleValues)
     }
 
     <span class="doccomment">/// Report whether [`Arg::hide_env`] is set
@@ -8656,48 +8656,48 @@
     }
 
     <span class="doccomment">/// Report whether [`Arg::hide_short_help`] is set
-    </span><span class="kw">pub fn </span>is_hide_short_help_set(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#4018">self</a>.<a href="#825">is_set</a>(<a href="arg_settings.rs.html#46">ArgSettings::HiddenShortHelp</a>)
+    </span><span class="kw">pub fn </span>is_hide_short_help_set(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.is_set(ArgSettings::HiddenShortHelp)
     }
 
     <span class="doccomment">/// Report whether [`Arg::hide_long_help`] is set
-    </span><span class="kw">pub fn </span>is_hide_long_help_set(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#4023">self</a>.<a href="#825">is_set</a>(<a href="arg_settings.rs.html#47">ArgSettings::HiddenLongHelp</a>)
+    </span><span class="kw">pub fn </span>is_hide_long_help_set(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.is_set(ArgSettings::HiddenLongHelp)
     }
 
     <span class="doccomment">/// Report whether [`Arg::require_equals`] is set
-    </span><span class="kw">pub fn </span>is_require_equals_set(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#4028">self</a>.<a href="#825">is_set</a>(<a href="arg_settings.rs.html#37">ArgSettings::RequireEquals</a>)
+    </span><span class="kw">pub fn </span>is_require_equals_set(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.is_set(ArgSettings::RequireEquals)
     }
 
     <span class="doccomment">/// Reports whether [`Arg::exclusive`] is set
-    </span><span class="kw">pub fn </span>is_exclusive_set(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#4033">self</a>.<a href="#825">is_set</a>(<a href="arg_settings.rs.html#48">ArgSettings::Exclusive</a>)
+    </span><span class="kw">pub fn </span>is_exclusive_set(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.is_set(ArgSettings::Exclusive)
     }
 
     <span class="doccomment">/// Report whether [`Arg::trailing_var_arg`] is set
-    </span><span class="kw">pub fn </span>is_trailing_var_arg_set(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#4038">self</a>.<a href="#825">is_set</a>(<a href="arg_settings.rs.html#39">ArgSettings::TrailingVarArg</a>)
+    </span><span class="kw">pub fn </span>is_trailing_var_arg_set(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.is_set(ArgSettings::TrailingVarArg)
     }
 
     <span class="doccomment">/// Reports whether [`Arg::last`] is set
-    </span><span class="kw">pub fn </span>is_last_set(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#4043">self</a>.<a href="#825">is_set</a>(<a href="arg_settings.rs.html#38">ArgSettings::Last</a>)
+    </span><span class="kw">pub fn </span>is_last_set(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.is_set(ArgSettings::Last)
     }
 
     <span class="doccomment">/// Reports whether [`Arg::ignore_case`] is set
-    </span><span class="kw">pub fn </span>is_ignore_case_set(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#4048">self</a>.<a href="#825">is_set</a>(<a href="arg_settings.rs.html#41">ArgSettings::IgnoreCase</a>)
+    </span><span class="kw">pub fn </span>is_ignore_case_set(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.is_set(ArgSettings::IgnoreCase)
     }
 }
 
 <span class="doccomment">/// # Internally used only
-</span><span class="kw">impl </span><a href="#54">Arg</a> {
+</span><span class="kw">impl </span>Arg {
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>_build(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="kw">if </span><span class="self">self</span>.action.is_none() {
             <span class="kw">if </span><span class="self">self</span>.num_vals == <span class="prelude-val">Some</span>(ValueRange::EMPTY) {
-                <span class="kw">let </span>action = <a href="action.rs.html#148"><span class="kw">super</span>::ArgAction::SetTrue</a>;
-                <a class="self" href="#4055">self</a>.action = <span class="prelude-val">Some</span>(<a href="#4058">action</a>);
+                <span class="kw">let </span>action = <span class="kw">super</span>::ArgAction::SetTrue;
+                <span class="self">self</span>.action = <span class="prelude-val">Some</span>(action);
             } <span class="kw">else </span>{
                 <span class="kw">let </span>action =
                     <span class="kw">if </span><span class="self">self</span>.is_positional() &amp;&amp; <span class="self">self</span>.num_vals.unwrap_or_default().is_unbounded() {
@@ -8705,139 +8705,139 @@
                         //
                         // Bounded values are probably a group and the user should explicitly opt-in to
                         // Append
-                        </span><a href="action.rs.html#75"><span class="kw">super</span>::ArgAction::Append</a>
+                        </span><span class="kw">super</span>::ArgAction::Append
                     } <span class="kw">else </span>{
-                        <a href="action.rs.html#53"><span class="kw">super</span>::ArgAction::Set</a>
+                        <span class="kw">super</span>::ArgAction::Set
                     };
-                <a class="self" href="#4055">self</a>.action = <span class="prelude-val">Some</span>(<a href="#4061">action</a>);
+                <span class="self">self</span>.action = <span class="prelude-val">Some</span>(action);
             }
         }
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(action) = <a class="self" href="#4055">self</a>.action.as_ref() {
-            <span class="kw">if let </span><span class="prelude-val">Some</span>(default_value) = <a href="#4074">action</a>.<a href="action.rs.html#292">default_value</a>() {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(action) = <span class="self">self</span>.action.as_ref() {
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(default_value) = action.default_value() {
                 <span class="kw">if </span><span class="self">self</span>.default_vals.is_empty() {
-                    <a class="self" href="#4055">self</a>.default_vals = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[default_value.into()];
+                    <span class="self">self</span>.default_vals = <span class="macro">vec!</span>[default_value.into()];
                 }
             }
-            <span class="kw">if let </span><span class="prelude-val">Some</span>(default_value) = <a href="#4074">action</a>.<a href="action.rs.html#304">default_missing_value</a>() {
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(default_value) = action.default_missing_value() {
                 <span class="kw">if </span><span class="self">self</span>.default_missing_vals.is_empty() {
-                    <a class="self" href="#4055">self</a>.default_missing_vals = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[default_value.into()];
+                    <span class="self">self</span>.default_missing_vals = <span class="macro">vec!</span>[default_value.into()];
                 }
             }
         }
 
         <span class="kw">if </span><span class="self">self</span>.value_parser.is_none() {
-            <span class="kw">if let </span><span class="prelude-val">Some</span>(default) = <a class="self" href="#4055">self</a>.action.as_ref().and_then(|a| <a href="#4088">a</a>.<a href="action.rs.html#316">default_value_parser</a>()) {
-                <a class="self" href="#4055">self</a>.value_parser = <span class="prelude-val">Some</span>(<a href="#4088">default</a>);
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(default) = <span class="self">self</span>.action.as_ref().and_then(|a| a.default_value_parser()) {
+                <span class="self">self</span>.value_parser = <span class="prelude-val">Some</span>(default);
             } <span class="kw">else </span>{
-                <a class="self" href="#4055">self</a>.value_parser = <span class="prelude-val">Some</span>(<span class="kw">super</span>::ValueParser::string());
+                <span class="self">self</span>.value_parser = <span class="prelude-val">Some</span>(<span class="kw">super</span>::ValueParser::string());
             }
         }
 
-        <span class="kw">let </span>val_names_len = <a class="self" href="#4055">self</a>.val_names.len();
+        <span class="kw">let </span>val_names_len = <span class="self">self</span>.val_names.len();
         <span class="kw">if </span>val_names_len &gt; <span class="number">1 </span>{
-            <a class="self" href="#4055">self</a>.num_vals.get_or_insert(<a href="#4095">val_names_len</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>());
+            <span class="self">self</span>.num_vals.get_or_insert(val_names_len.into());
         } <span class="kw">else </span>{
             <span class="kw">let </span>nargs = <span class="kw">if </span><span class="self">self</span>.get_action().takes_values() {
                 ValueRange::SINGLE
             } <span class="kw">else </span>{
                 ValueRange::EMPTY
             };
-            <a class="self" href="#4055">self</a>.num_vals.get_or_insert(<a href="#4099">nargs</a>);
+            <span class="self">self</span>.num_vals.get_or_insert(nargs);
         }
     }
 
     <span class="comment">// Used for positionals when printing
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>name_no_brackets(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a> {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>name_no_brackets(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; String {
         <span class="macro">debug!</span>(<span class="string">&quot;Arg::name_no_brackets:{}&quot;</span>, <span class="self">self</span>.get_id());
         <span class="kw">let </span>delim = <span class="string">&quot; &quot;</span>;
         <span class="kw">if </span>!<span class="self">self</span>.val_names.is_empty() {
             <span class="macro">debug!</span>(<span class="string">&quot;Arg::name_no_brackets: val_names={:#?}&quot;</span>, <span class="self">self</span>.val_names);
 
             <span class="kw">if </span><span class="self">self</span>.val_names.len() &gt; <span class="number">1 </span>{
-                <a class="self" href="#4109">self</a>.val_names
+                <span class="self">self</span>.val_names
                     .iter()
-                    .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|n| <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;&lt;{}&gt;&quot;</span>, n))
-                    .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;()
-                    .join(<a href="#4111">delim</a>)
+                    .map(|n| <span class="macro">format!</span>(<span class="string">&quot;&lt;{}&gt;&quot;</span>, n))
+                    .collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;()
+                    .join(delim)
             } <span class="kw">else </span>{
-                <a class="self" href="#4109">self</a>.val_names
+                <span class="self">self</span>.val_names
                     .first()
-                    .expect(<a href="../lib.rs.html#157">INTERNAL_ERROR_MSG</a>)
-                    .<a href="str.rs.html#36">as_str</a>()
-                    .<a href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">to_owned</a>()
+                    .expect(INTERNAL_ERROR_MSG)
+                    .as_str()
+                    .to_owned()
             }
         } <span class="kw">else </span>{
             <span class="macro">debug!</span>(<span class="string">&quot;Arg::name_no_brackets: just name&quot;</span>);
-            <a class="self" href="#4109">self</a>.<a href="#3698">get_id</a>().<a href="../util/id.rs.html#21">as_str</a>().<a href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">to_owned</a>()
+            <span class="self">self</span>.get_id().as_str().to_owned()
         }
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>stylized(<span class="kw-2">&amp;</span><span class="self">self</span>, required: <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>&gt;) -&gt; <a href="styled_str.rs.html#3">StyledStr</a> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>stylized(<span class="kw-2">&amp;</span><span class="self">self</span>, required: <span class="prelude-ty">Option</span>&lt;bool&gt;) -&gt; StyledStr {
         <span class="kw">let </span><span class="kw-2">mut </span>styled = StyledStr::new();
         <span class="comment">// Write the name such --long or -l
-        </span><span class="kw">if let </span><span class="prelude-val">Some</span>(l) = <a class="self" href="#4134">self</a>.<a href="#3779">get_long</a>() {
-            <a href="#4135">styled</a>.<a href="styled_str.rs.html#35">literal</a>(<span class="string">&quot;--&quot;</span>);
-            <a href="#4135">styled</a>.<a href="styled_str.rs.html#35">literal</a>(<a href="#4137">l</a>);
-        } <span class="kw">else if let </span><span class="prelude-val">Some</span>(s) = <a class="self" href="#4134">self</a>.<a href="#3734">get_short</a>() {
-            <a href="#4135">styled</a>.<a href="styled_str.rs.html#35">literal</a>(<span class="string">&quot;-&quot;</span>);
-            <a href="#4135">styled</a>.<a href="styled_str.rs.html#35">literal</a>(<a href="#4140">s</a>);
+        </span><span class="kw">if let </span><span class="prelude-val">Some</span>(l) = <span class="self">self</span>.get_long() {
+            styled.literal(<span class="string">&quot;--&quot;</span>);
+            styled.literal(l);
+        } <span class="kw">else if let </span><span class="prelude-val">Some</span>(s) = <span class="self">self</span>.get_short() {
+            styled.literal(<span class="string">&quot;-&quot;</span>);
+            styled.literal(s);
         }
-        <a href="#4135">styled</a>.<a href="styled_str.rs.html#186-189">extend</a>(<a class="self" href="#4134">self</a>.<a href="#4148">stylize_arg_suffix</a>(<a href="#4134">required</a>).<a href="styled_str.rs.html#177">into_iter</a>());
-        <a href="#4135">styled</a>
+        styled.extend(<span class="self">self</span>.stylize_arg_suffix(required).into_iter());
+        styled
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>stylize_arg_suffix(<span class="kw-2">&amp;</span><span class="self">self</span>, required: <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>&gt;) -&gt; <a href="styled_str.rs.html#3">StyledStr</a> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>stylize_arg_suffix(<span class="kw-2">&amp;</span><span class="self">self</span>, required: <span class="prelude-ty">Option</span>&lt;bool&gt;) -&gt; StyledStr {
         <span class="kw">let </span><span class="kw-2">mut </span>styled = StyledStr::new();
 
         <span class="kw">let </span><span class="kw-2">mut </span>need_closing_bracket = <span class="bool-val">false</span>;
         <span class="kw">if </span><span class="self">self</span>.is_takes_value_set() &amp;&amp; !<span class="self">self</span>.is_positional() {
-            <span class="kw">let </span>is_optional_val = <a class="self" href="#4148">self</a>.<a href="#3851">get_min_vals</a>() == <span class="number">0</span>;
+            <span class="kw">let </span>is_optional_val = <span class="self">self</span>.get_min_vals() == <span class="number">0</span>;
             <span class="kw">if </span><span class="self">self</span>.is_require_equals_set() {
                 <span class="kw">if </span>is_optional_val {
-                    <a href="#4151">need_closing_bracket</a> = <span class="bool-val">true</span>;
-                    <a href="#4149">styled</a>.<a href="styled_str.rs.html#39">placeholder</a>(<span class="string">&quot;[=&quot;</span>);
+                    need_closing_bracket = <span class="bool-val">true</span>;
+                    styled.placeholder(<span class="string">&quot;[=&quot;</span>);
                 } <span class="kw">else </span>{
-                    <a href="#4149">styled</a>.<a href="styled_str.rs.html#35">literal</a>(<span class="string">&quot;=&quot;</span>);
+                    styled.literal(<span class="string">&quot;=&quot;</span>);
                 }
             } <span class="kw">else if </span>is_optional_val {
-                <a href="#4151">need_closing_bracket</a> = <span class="bool-val">true</span>;
-                <a href="#4149">styled</a>.<a href="styled_str.rs.html#39">placeholder</a>(<span class="string">&quot; [&quot;</span>);
+                need_closing_bracket = <span class="bool-val">true</span>;
+                styled.placeholder(<span class="string">&quot; [&quot;</span>);
             } <span class="kw">else </span>{
-                <a href="#4149">styled</a>.<a href="styled_str.rs.html#39">placeholder</a>(<span class="string">&quot; &quot;</span>);
+                styled.placeholder(<span class="string">&quot; &quot;</span>);
             }
         }
         <span class="kw">if </span><span class="self">self</span>.is_takes_value_set() || <span class="self">self</span>.is_positional() {
-            <span class="kw">let </span>required = <a href="#4148">required</a>.unwrap_or_else(|| <a class="self" href="#4148">self</a>.<a href="#3928">is_required_set</a>());
-            <span class="kw">let </span>arg_val = <a class="self" href="#4148">self</a>.<a href="#4183">render_arg_val</a>(<a href="#4169">required</a>);
-            <a href="#4149">styled</a>.<a href="styled_str.rs.html#39">placeholder</a>(<a href="#4170">arg_val</a>);
-        } <span class="kw">else if </span><a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.matches.html">matches!</a>(<span class="kw-2">*</span><span class="self">self</span>.get_action(), ArgAction::Count) {
-            <a href="#4149">styled</a>.<a href="styled_str.rs.html#39">placeholder</a>(<span class="string">&quot;...&quot;</span>);
+            <span class="kw">let </span>required = required.unwrap_or_else(|| <span class="self">self</span>.is_required_set());
+            <span class="kw">let </span>arg_val = <span class="self">self</span>.render_arg_val(required);
+            styled.placeholder(arg_val);
+        } <span class="kw">else if </span><span class="macro">matches!</span>(<span class="kw-2">*</span><span class="self">self</span>.get_action(), ArgAction::Count) {
+            styled.placeholder(<span class="string">&quot;...&quot;</span>);
         }
         <span class="kw">if </span>need_closing_bracket {
-            <a href="#4149">styled</a>.<a href="styled_str.rs.html#39">placeholder</a>(<span class="string">&quot;]&quot;</span>);
+            styled.placeholder(<span class="string">&quot;]&quot;</span>);
         }
 
-        <a href="#4149">styled</a>
+        styled
     }
 
-    <span class="doccomment">/// Write the values such as &lt;name1&gt; &lt;name2&gt;
-    </span><span class="kw">fn </span>render_arg_val(<span class="kw-2">&amp;</span><span class="self">self</span>, required: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a> {
+    <span class="doccomment">/// Write the values such as `&lt;name1&gt; &lt;name2&gt;`
+    </span><span class="kw">fn </span>render_arg_val(<span class="kw-2">&amp;</span><span class="self">self</span>, required: bool) -&gt; String {
         <span class="kw">let </span><span class="kw-2">mut </span>rendered = String::new();
 
-        <span class="kw">let </span>num_vals = <a class="self" href="#4183">self</a>.<a href="#3846">get_num_args</a>().unwrap_or_else(|| <span class="number">1</span>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>());
+        <span class="kw">let </span>num_vals = <span class="self">self</span>.get_num_args().unwrap_or_else(|| <span class="number">1</span>.into());
 
         <span class="kw">let </span><span class="kw-2">mut </span>val_names = <span class="kw">if </span><span class="self">self</span>.val_names.is_empty() {
-            <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[<span class="self">self</span>.id.as_internal_str().to_owned()]
+            <span class="macro">vec!</span>[<span class="self">self</span>.id.as_internal_str().to_owned()]
         } <span class="kw">else </span>{
-            <a class="self" href="#4183">self</a>.val_names.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()
+            <span class="self">self</span>.val_names.clone()
         };
         <span class="kw">if </span>val_names.len() == <span class="number">1 </span>{
-            <span class="kw">let </span>min = <a href="#4186">num_vals</a>.<a href="range.rs.html#57">min_values</a>().<a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Ord.html">max</a>(<span class="number">1</span>);
-            <span class="kw">let </span>val_name = <a href="#4188">val_names</a>.pop().unwrap();
-            <a href="#4188">val_names</a> = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[val_name; min];
+            <span class="kw">let </span>min = num_vals.min_values().max(<span class="number">1</span>);
+            <span class="kw">let </span>val_name = val_names.pop().unwrap();
+            val_names = <span class="macro">vec!</span>[val_name; min];
         }
 
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(<span class="self">self</span>.is_takes_value_set());
+        <span class="macro">debug_assert!</span>(<span class="self">self</span>.is_takes_value_set());
         <span class="kw">for </span>(n, val_name) <span class="kw">in </span>val_names.iter().enumerate() {
             <span class="kw">let </span>arg_name = <span class="kw">if </span><span class="self">self</span>.is_positional() &amp;&amp; (num_vals.min_values() == <span class="number">0 </span>|| !required) {
                 <span class="macro">format!</span>(<span class="string">&quot;[{}]&quot;</span>, val_name)
@@ -8852,100 +8852,100 @@
         }
 
         <span class="kw">let </span><span class="kw-2">mut </span>extra_values = <span class="bool-val">false</span>;
-        <a href="#4213">extra_values</a> |= <a href="#4188">val_names</a>.len() &lt; <a href="#4186">num_vals</a>.<a href="range.rs.html#62">max_values</a>();
+        extra_values |= val_names.len() &lt; num_vals.max_values();
         <span class="kw">if </span><span class="self">self</span>.is_positional() &amp;&amp; <span class="macro">matches!</span>(<span class="kw-2">*</span><span class="self">self</span>.get_action(), ArgAction::Append) {
-            <a href="#4213">extra_values</a> = <span class="bool-val">true</span>;
+            extra_values = <span class="bool-val">true</span>;
         }
         <span class="kw">if </span>extra_values {
-            <a href="#4184">rendered</a>.push_str(<span class="string">&quot;...&quot;</span>);
+            rendered.push_str(<span class="string">&quot;...&quot;</span>);
         }
 
-        <a href="#4184">rendered</a>
+        rendered
     }
 
     <span class="doccomment">/// Either multiple values or occurrences
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>is_multiple(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#4226">self</a>.<a href="#3932">is_multiple_values_set</a>() || <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.matches.html">matches!</a>(<span class="kw-2">*</span><span class="self">self</span>.get_action(), ArgAction::Append)
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>is_multiple(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.is_multiple_values_set() || <span class="macro">matches!</span>(<span class="kw-2">*</span><span class="self">self</span>.get_action(), ArgAction::Append)
     }
 
     <span class="attr">#[cfg(feature = <span class="string">&quot;help&quot;</span>)]
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_display_order(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="self" href="#4231">self</a>.disp_ord.unwrap_or(<span class="number">999</span>)
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_display_order(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+        <span class="self">self</span>.disp_ord.unwrap_or(<span class="number">999</span>)
     }
 }
 
-<span class="kw">impl </span>From&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;_ </span><a href="#54">Arg</a>&gt; <span class="kw">for </span><a href="#54">Arg</a> {
-    <span class="kw">fn </span>from(a: <span class="kw-2">&amp;</span><a href="#54">Arg</a>) -&gt; <span class="self">Self </span>{
-        <a href="#4237">a</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()
+<span class="kw">impl </span>From&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;_ </span>Arg&gt; <span class="kw">for </span>Arg {
+    <span class="kw">fn </span>from(a: <span class="kw-2">&amp;</span>Arg) -&gt; <span class="self">Self </span>{
+        a.clone()
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/cmp/trait.PartialEq.html">PartialEq</a> <span class="kw">for </span><a href="#54">Arg</a> {
-    <span class="kw">fn </span>eq(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><a href="#54">Arg</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#4243">self</a>.<a href="#3698">get_id</a>() == <a href="#4243">other</a>.<a href="#3698">get_id</a>()
+<span class="kw">impl </span>PartialEq <span class="kw">for </span>Arg {
+    <span class="kw">fn </span>eq(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span>Arg) -&gt; bool {
+        <span class="self">self</span>.get_id() == other.get_id()
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/cmp/trait.PartialOrd.html">PartialOrd</a> <span class="kw">for </span><a href="#54">Arg</a> {
-    <span class="kw">fn </span>partial_cmp(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html">Ordering</a>&gt; {
-        <span class="prelude-val">Some</span>(<a class="self" href="#4249">self</a>.<a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Ord.html">cmp</a>(<a href="#4249">other</a>))
+<span class="kw">impl </span>PartialOrd <span class="kw">for </span>Arg {
+    <span class="kw">fn </span>partial_cmp(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Ordering&gt; {
+        <span class="prelude-val">Some</span>(<span class="self">self</span>.cmp(other))
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Ord.html">Ord</a> <span class="kw">for </span><a href="#54">Arg</a> {
-    <span class="kw">fn </span>cmp(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><a href="#54">Arg</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html">Ordering</a> {
-        <a class="self" href="#4255">self</a>.<a href="#3698">get_id</a>().<a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Ord.html">cmp</a>(<a href="#4255">other</a>.<a href="#3698">get_id</a>())
+<span class="kw">impl </span>Ord <span class="kw">for </span>Arg {
+    <span class="kw">fn </span>cmp(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span>Arg) -&gt; Ordering {
+        <span class="self">self</span>.get_id().cmp(other.get_id())
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Eq.html">Eq</a> <span class="kw">for </span><a href="#54">Arg</a> {}
+<span class="kw">impl </span>Eq <span class="kw">for </span>Arg {}
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">Display</a> <span class="kw">for </span><a href="#54">Arg</a> {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">Formatter</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="self" href="#4263">self</a>.<a href="#4134">stylized</a>(<span class="prelude-val">None</span>).<a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt</a>(<a href="#4263">f</a>)
+<span class="kw">impl </span>Display <span class="kw">for </span>Arg {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>Formatter) -&gt; fmt::Result {
+        <span class="self">self</span>.stylized(<span class="prelude-val">None</span>).fmt(f)
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="#54">Arg</a> {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">Formatter</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="https://doc.rust-lang.org/nightly/core/fmt/struct.Error.html">fmt::Error</a>&gt; {
-        <span class="kw">let </span><span class="kw-2">mut </span>ds = <a href="#4269">f</a>.debug_struct(<span class="string">&quot;Arg&quot;</span>);
+<span class="kw">impl </span>fmt::Debug <span class="kw">for </span>Arg {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>Formatter) -&gt; <span class="prelude-ty">Result</span>&lt;(), fmt::Error&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>ds = f.debug_struct(<span class="string">&quot;Arg&quot;</span>);
 
         <span class="attr">#[allow(unused_mut)]
-        </span><span class="kw">let </span><span class="kw-2">mut </span>ds = <a href="#4270">ds</a>
-            .field(<span class="string">&quot;id&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="#4269">self</a>.id)
-            .field(<span class="string">&quot;help&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="#4269">self</a>.help)
-            .field(<span class="string">&quot;long_help&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="#4269">self</a>.long_help)
-            .field(<span class="string">&quot;action&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="#4269">self</a>.action)
-            .field(<span class="string">&quot;value_parser&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="#4269">self</a>.value_parser)
-            .field(<span class="string">&quot;blacklist&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="#4269">self</a>.blacklist)
-            .field(<span class="string">&quot;settings&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="#4269">self</a>.settings)
-            .field(<span class="string">&quot;overrides&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="#4269">self</a>.overrides)
-            .field(<span class="string">&quot;groups&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="#4269">self</a>.groups)
-            .field(<span class="string">&quot;requires&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="#4269">self</a>.requires)
-            .field(<span class="string">&quot;r_ifs&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="#4269">self</a>.r_ifs)
-            .field(<span class="string">&quot;r_unless&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="#4269">self</a>.r_unless)
-            .field(<span class="string">&quot;short&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="#4269">self</a>.short)
-            .field(<span class="string">&quot;long&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="#4269">self</a>.long)
-            .field(<span class="string">&quot;aliases&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="#4269">self</a>.aliases)
-            .field(<span class="string">&quot;short_aliases&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="#4269">self</a>.short_aliases)
-            .field(<span class="string">&quot;disp_ord&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="#4269">self</a>.disp_ord)
-            .field(<span class="string">&quot;val_names&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="#4269">self</a>.val_names)
-            .field(<span class="string">&quot;num_vals&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="#4269">self</a>.num_vals)
-            .field(<span class="string">&quot;val_delim&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="#4269">self</a>.val_delim)
-            .field(<span class="string">&quot;default_vals&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="#4269">self</a>.default_vals)
-            .field(<span class="string">&quot;default_vals_ifs&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="#4269">self</a>.default_vals_ifs)
-            .field(<span class="string">&quot;terminator&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="#4269">self</a>.terminator)
-            .field(<span class="string">&quot;index&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="#4269">self</a>.index)
-            .field(<span class="string">&quot;help_heading&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="#4269">self</a>.help_heading)
-            .field(<span class="string">&quot;value_hint&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="#4269">self</a>.value_hint)
-            .field(<span class="string">&quot;default_missing_vals&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="#4269">self</a>.default_missing_vals);
+        </span><span class="kw">let </span><span class="kw-2">mut </span>ds = ds
+            .field(<span class="string">&quot;id&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.id)
+            .field(<span class="string">&quot;help&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.help)
+            .field(<span class="string">&quot;long_help&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.long_help)
+            .field(<span class="string">&quot;action&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.action)
+            .field(<span class="string">&quot;value_parser&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.value_parser)
+            .field(<span class="string">&quot;blacklist&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.blacklist)
+            .field(<span class="string">&quot;settings&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.settings)
+            .field(<span class="string">&quot;overrides&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.overrides)
+            .field(<span class="string">&quot;groups&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.groups)
+            .field(<span class="string">&quot;requires&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.requires)
+            .field(<span class="string">&quot;r_ifs&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.r_ifs)
+            .field(<span class="string">&quot;r_unless&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.r_unless)
+            .field(<span class="string">&quot;short&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.short)
+            .field(<span class="string">&quot;long&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.long)
+            .field(<span class="string">&quot;aliases&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.aliases)
+            .field(<span class="string">&quot;short_aliases&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.short_aliases)
+            .field(<span class="string">&quot;disp_ord&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.disp_ord)
+            .field(<span class="string">&quot;val_names&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.val_names)
+            .field(<span class="string">&quot;num_vals&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.num_vals)
+            .field(<span class="string">&quot;val_delim&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.val_delim)
+            .field(<span class="string">&quot;default_vals&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.default_vals)
+            .field(<span class="string">&quot;default_vals_ifs&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.default_vals_ifs)
+            .field(<span class="string">&quot;terminator&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.terminator)
+            .field(<span class="string">&quot;index&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.index)
+            .field(<span class="string">&quot;help_heading&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.help_heading)
+            .field(<span class="string">&quot;value_hint&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.value_hint)
+            .field(<span class="string">&quot;default_missing_vals&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.default_missing_vals);
 
         <span class="attr">#[cfg(feature = <span class="string">&quot;env&quot;</span>)]
         </span>{
             ds = ds.field(<span class="string">&quot;env&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.env);
         }
 
-        <a href="#4273">ds</a>.finish()
+        ds.finish()
     }
 }
 
@@ -9280,4 +9280,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="clap" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="clap" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

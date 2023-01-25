@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/futures-core-0.3.25/src/stream.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>stream.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../futures_core/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/futures-core-0.3.25/src/stream.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>stream.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../futures_core/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -235,14 +235,14 @@
 <a href="#235" id="235">235</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Asynchronous streams.
 
-</span><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.DerefMut.html">core::ops::DerefMut</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/pin/struct.Pin.html">core::pin::Pin</a>;
-<span class="kw">use </span>core::task::{<a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>, <a href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">Poll</a>};
+</span><span class="kw">use </span>core::ops::DerefMut;
+<span class="kw">use </span>core::pin::Pin;
+<span class="kw">use </span>core::task::{Context, Poll};
 
 <span class="doccomment">/// An owned dynamically typed [`Stream`] for use in cases where you can&#39;t
 /// statically type your result or need to add some indirection.
 </span><span class="attr">#[cfg(feature = <span class="string">&quot;alloc&quot;</span>)]
-</span><span class="kw">pub type </span>BoxStream&lt;<span class="lifetime">&#39;a</span>, T&gt; = Pin&lt;alloc::boxed::Box&lt;<span class="kw">dyn </span>Stream&lt;Item = T&gt; + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <span class="lifetime">&#39;a</span>&gt;&gt;;
+</span><span class="kw">pub type </span>BoxStream&lt;<span class="lifetime">&#39;a</span>, T&gt; = Pin&lt;alloc::boxed::Box&lt;<span class="kw">dyn </span>Stream&lt;Item = T&gt; + Send + <span class="lifetime">&#39;a</span>&gt;&gt;;
 
 <span class="doccomment">/// `BoxStream`, but without the `Send` requirement.
 </span><span class="attr">#[cfg(feature = <span class="string">&quot;alloc&quot;</span>)]
@@ -327,36 +327,36 @@
     /// The default implementation returns `(0, `[`None`]`)` which is correct for any
     /// stream.
     </span><span class="attr">#[inline]
-    </span><span class="kw">fn </span>size_hint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;) {
+    </span><span class="kw">fn </span>size_hint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (usize, <span class="prelude-ty">Option</span>&lt;usize&gt;) {
         (<span class="number">0</span>, <span class="prelude-val">None</span>)
     }
 }
 
-<span class="kw">impl</span>&lt;S: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> + <a href="#27">Stream</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>&gt; <a href="#27">Stream</a> <span class="kw">for </span><span class="kw-2">&amp;mut </span>S {
+<span class="kw">impl</span>&lt;S: <span class="question-mark">?</span>Sized + Stream + Unpin&gt; Stream <span class="kw">for </span><span class="kw-2">&amp;mut </span>S {
     <span class="kw">type </span>Item = S::Item;
 
     <span class="kw">fn </span>poll_next(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt;&gt; {
-        S::poll_next(Pin::new(<span class="kw-2">&amp;mut **</span><a class="self" href="#103">self</a>), <a href="#103">cx</a>)
+        S::poll_next(Pin::new(<span class="kw-2">&amp;mut **</span><span class="self">self</span>), cx)
     }
 
-    <span class="kw">fn </span>size_hint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;) {
-        (<span class="kw-2">**</span><a class="self" href="#107">self</a>).<a href="#95">size_hint</a>()
+    <span class="kw">fn </span>size_hint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (usize, <span class="prelude-ty">Option</span>&lt;usize&gt;) {
+        (<span class="kw-2">**</span><span class="self">self</span>).size_hint()
     }
 }
 
-<span class="kw">impl</span>&lt;P&gt; <a href="#27">Stream</a> <span class="kw">for </span>Pin&lt;P&gt;
+<span class="kw">impl</span>&lt;P&gt; Stream <span class="kw">for </span>Pin&lt;P&gt;
 <span class="kw">where
-    </span>P: <a href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.DerefMut.html">DerefMut</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
-    P::Target: <a href="#27">Stream</a>,
+    </span>P: DerefMut + Unpin,
+    P::Target: Stream,
 {
     <span class="kw">type </span>Item = &lt;P::Target <span class="kw">as </span>Stream&gt;::Item;
 
     <span class="kw">fn </span>poll_next(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt;&gt; {
-        <a class="self" href="#119">self</a>.get_mut().as_mut().<a href="#66">poll_next</a>(<a href="#119">cx</a>)
+        <span class="self">self</span>.get_mut().as_mut().poll_next(cx)
     }
 
-    <span class="kw">fn </span>size_hint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;) {
-        (<span class="kw-2">**</span><a class="self" href="#123">self</a>).<a href="#95">size_hint</a>()
+    <span class="kw">fn </span>size_hint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (usize, <span class="prelude-ty">Option</span>&lt;usize&gt;) {
+        (<span class="kw-2">**</span><span class="self">self</span>).size_hint()
     }
 }
 
@@ -368,38 +368,38 @@
 /// `Poll::Ready(None)`. However, `is_terminated` may also return `true` if a
 /// stream has become inactive and can no longer make progress and should be
 /// ignored or dropped rather than being polled again.
-</span><span class="kw">pub trait </span>FusedStream: <a href="#27">Stream</a> {
+</span><span class="kw">pub trait </span>FusedStream: Stream {
     <span class="doccomment">/// Returns `true` if the stream should no longer be polled.
-    </span><span class="kw">fn </span>is_terminated(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>;
+    </span><span class="kw">fn </span>is_terminated(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool;
 }
 
-<span class="kw">impl</span>&lt;F: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> + <a href="#136">FusedStream</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>&gt; <a href="#136">FusedStream</a> <span class="kw">for </span><span class="kw-2">&amp;mut </span>F {
-    <span class="kw">fn </span>is_terminated(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        &lt;F <span class="kw">as </span>FusedStream&gt;::is_terminated(<span class="kw-2">&amp;**</span><a class="self" href="#142">self</a>)
+<span class="kw">impl</span>&lt;F: <span class="question-mark">?</span>Sized + FusedStream + Unpin&gt; FusedStream <span class="kw">for </span><span class="kw-2">&amp;mut </span>F {
+    <span class="kw">fn </span>is_terminated(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        &lt;F <span class="kw">as </span>FusedStream&gt;::is_terminated(<span class="kw-2">&amp;**</span><span class="self">self</span>)
     }
 }
 
-<span class="kw">impl</span>&lt;P&gt; <a href="#136">FusedStream</a> <span class="kw">for </span>Pin&lt;P&gt;
+<span class="kw">impl</span>&lt;P&gt; FusedStream <span class="kw">for </span>Pin&lt;P&gt;
 <span class="kw">where
-    </span>P: <a href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.DerefMut.html">DerefMut</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
-    P::Target: <a href="#136">FusedStream</a>,
+    </span>P: DerefMut + Unpin,
+    P::Target: FusedStream,
 {
-    <span class="kw">fn </span>is_terminated(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        &lt;P::Target <span class="kw">as </span>FusedStream&gt;::is_terminated(<span class="kw-2">&amp;**</span><a class="self" href="#152">self</a>)
+    <span class="kw">fn </span>is_terminated(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        &lt;P::Target <span class="kw">as </span>FusedStream&gt;::is_terminated(<span class="kw-2">&amp;**</span><span class="self">self</span>)
     }
 }
 
 <span class="kw">mod </span>private_try_stream {
-    <span class="kw">use </span><a href="#27"><span class="kw">super</span>::Stream</a>;
+    <span class="kw">use </span><span class="kw">super</span>::Stream;
 
     <span class="kw">pub trait </span>Sealed {}
 
-    <span class="kw">impl</span>&lt;S, T, E&gt; <a href="#160">Sealed</a> <span class="kw">for </span>S <span class="kw">where </span>S: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> + Stream&lt;Item = <span class="prelude-ty">Result</span>&lt;T, E&gt;&gt; {}
+    <span class="kw">impl</span>&lt;S, T, E&gt; Sealed <span class="kw">for </span>S <span class="kw">where </span>S: <span class="question-mark">?</span>Sized + Stream&lt;Item = <span class="prelude-ty">Result</span>&lt;T, E&gt;&gt; {}
 }
 
 <span class="doccomment">/// A convenience for streams that return `Result` values that includes
 /// a variety of adapters tailored to such futures.
-</span><span class="kw">pub trait </span>TryStream: <a href="#27">Stream</a> + <a href="#160">private_try_stream::Sealed</a> {
+</span><span class="kw">pub trait </span>TryStream: Stream + private_try_stream::Sealed {
     <span class="doccomment">/// The type of successful values yielded by this future
     </span><span class="kw">type </span><span class="prelude-val">Ok</span>;
 
@@ -417,9 +417,9 @@
     ) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;<span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Ok, <span class="self">Self</span>::Error&gt;&gt;&gt;;
 }
 
-<span class="kw">impl</span>&lt;S, T, E&gt; <a href="#167">TryStream</a> <span class="kw">for </span>S
+<span class="kw">impl</span>&lt;S, T, E&gt; TryStream <span class="kw">for </span>S
 <span class="kw">where
-    </span>S: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> + Stream&lt;Item = <span class="prelude-ty">Result</span>&lt;T, E&gt;&gt;,
+    </span>S: <span class="question-mark">?</span>Sized + Stream&lt;Item = <span class="prelude-ty">Result</span>&lt;T, E&gt;&gt;,
 {
     <span class="kw">type </span><span class="prelude-val">Ok </span>= T;
     <span class="kw">type </span>Error = E;
@@ -428,45 +428,45 @@
         <span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;,
         cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
     ) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;<span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Ok, <span class="self">Self</span>::Error&gt;&gt;&gt; {
-        <a class="self" href="#193">self</a>.<a href="#66">poll_next</a>(<a href="#194">cx</a>)
+        <span class="self">self</span>.poll_next(cx)
     }
 }
 
 <span class="attr">#[cfg(feature = <span class="string">&quot;alloc&quot;</span>)]
 </span><span class="kw">mod </span>if_alloc {
     <span class="kw">use super</span>::<span class="kw-2">*</span>;
-    <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/boxed/struct.Box.html">alloc::boxed::Box</a>;
+    <span class="kw">use </span>alloc::boxed::Box;
 
-    <span class="kw">impl</span>&lt;S: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> + <a href="#27">Stream</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>&gt; <a href="#27">Stream</a> <span class="kw">for </span>Box&lt;S&gt; {
+    <span class="kw">impl</span>&lt;S: <span class="question-mark">?</span>Sized + Stream + Unpin&gt; Stream <span class="kw">for </span>Box&lt;S&gt; {
         <span class="kw">type </span>Item = S::Item;
 
         <span class="kw">fn </span>poll_next(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt;&gt; {
-            Pin::new(<span class="kw-2">&amp;mut **</span><a class="self" href="#208">self</a>).<a href="#66">poll_next</a>(<a href="#208">cx</a>)
+            Pin::new(<span class="kw-2">&amp;mut **</span><span class="self">self</span>).poll_next(cx)
         }
 
-        <span class="kw">fn </span>size_hint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;) {
-            (<span class="kw-2">**</span><a class="self" href="#212">self</a>).<a href="#95">size_hint</a>()
+        <span class="kw">fn </span>size_hint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (usize, <span class="prelude-ty">Option</span>&lt;usize&gt;) {
+            (<span class="kw-2">**</span><span class="self">self</span>).size_hint()
         }
     }
 
     <span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
-    </span><span class="kw">impl</span>&lt;S: <a href="#27">Stream</a>&gt; <a href="#27">Stream</a> <span class="kw">for </span>std::panic::AssertUnwindSafe&lt;S&gt; {
+    </span><span class="kw">impl</span>&lt;S: Stream&gt; Stream <span class="kw">for </span>std::panic::AssertUnwindSafe&lt;S&gt; {
         <span class="kw">type </span>Item = S::Item;
 
         <span class="kw">fn </span>poll_next(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;S::Item&gt;&gt; {
-            <span class="kw">unsafe </span>{ <a class="self" href="#221">self</a>.map_unchecked_mut(|x| <span class="kw-2">&amp;mut </span><a href="#222">x</a>.<span class="number">0</span>) }.<a href="#66">poll_next</a>(<a href="#221">cx</a>)
+            <span class="kw">unsafe </span>{ <span class="self">self</span>.map_unchecked_mut(|x| <span class="kw-2">&amp;mut </span>x.<span class="number">0</span>) }.poll_next(cx)
         }
 
-        <span class="kw">fn </span>size_hint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;) {
-            <a class="self" href="#225">self</a>.<span class="number">0</span>.<a href="#95">size_hint</a>()
+        <span class="kw">fn </span>size_hint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (usize, <span class="prelude-ty">Option</span>&lt;usize&gt;) {
+            <span class="self">self</span>.<span class="number">0</span>.size_hint()
         }
     }
 
-    <span class="kw">impl</span>&lt;S: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> + <a href="#136">FusedStream</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>&gt; <a href="#136">FusedStream</a> <span class="kw">for </span>Box&lt;S&gt; {
-        <span class="kw">fn </span>is_terminated(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-            &lt;S <span class="kw">as </span>FusedStream&gt;::is_terminated(<span class="kw-2">&amp;**</span><a class="self" href="#231">self</a>)
+    <span class="kw">impl</span>&lt;S: <span class="question-mark">?</span>Sized + FusedStream + Unpin&gt; FusedStream <span class="kw">for </span>Box&lt;S&gt; {
+        <span class="kw">fn </span>is_terminated(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+            &lt;S <span class="kw">as </span>FusedStream&gt;::is_terminated(<span class="kw-2">&amp;**</span><span class="self">self</span>)
         }
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="futures_core" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="futures_core" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

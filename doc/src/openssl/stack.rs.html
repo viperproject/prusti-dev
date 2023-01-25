@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/openssl-0.10.42/src/stack.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>stack.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../openssl/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/openssl-0.10.45/src/stack.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>stack.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../openssl/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -378,26 +378,26 @@
 <a href="#378" id="378">378</a>
 <a href="#379" id="379">379</a>
 <a href="#380" id="380">380</a>
-</pre><pre class="rust"><code><span class="kw">use </span><a href="../../cfg_if/macro.cfg_if.html">cfg_if::cfg_if</a>;
-<span class="kw">use </span>foreign_types::{<a href="../../foreign_types_shared/trait.ForeignType.html">ForeignType</a>, <a href="../../foreign_types_shared/trait.ForeignTypeRef.html">ForeignTypeRef</a>, <a href="../../foreign_types_shared/struct.Opaque.html">Opaque</a>};
-<span class="kw">use </span><a href="../../libc/unix/type.c_int.html">libc::c_int</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/borrow/trait.Borrow.html">std::borrow::Borrow</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">std::convert::AsRef</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">std::fmt</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/iter/index.html">std::iter</a>;
+</pre><pre class="rust"><code><span class="kw">use </span>cfg_if::cfg_if;
+<span class="kw">use </span>foreign_types::{ForeignType, ForeignTypeRef, Opaque};
+<span class="kw">use </span>libc::c_int;
+<span class="kw">use </span>std::borrow::Borrow;
+<span class="kw">use </span>std::convert::AsRef;
+<span class="kw">use </span>std::fmt;
+<span class="kw">use </span>std::iter;
 <span class="kw">use </span>std::marker::PhantomData;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/mem/index.html">std::mem</a>;
-<span class="kw">use </span>std::ops::{<a href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.Deref.html">Deref</a>, <a href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.DerefMut.html">DerefMut</a>, <a href="https://doc.rust-lang.org/nightly/core/ops/index/trait.Index.html">Index</a>, <a href="https://doc.rust-lang.org/nightly/core/ops/index/trait.IndexMut.html">IndexMut</a>, <a href="https://doc.rust-lang.org/nightly/core/ops/range/struct.Range.html">Range</a>};
+<span class="kw">use </span>std::mem;
+<span class="kw">use </span>std::ops::{Deref, DerefMut, Index, IndexMut, Range};
 
-<span class="kw">use </span><a href="error.rs.html#39"><span class="kw">crate</span>::error::ErrorStack</a>;
-<span class="kw">use </span><a href="util.rs.html#69"><span class="kw">crate</span>::util::ForeignTypeExt</a>;
-<span class="kw">use crate</span>::{<a href="lib.rs.html#202">cvt</a>, <a href="lib.rs.html#193">cvt_p</a>, <a href="lib.rs.html#190">LenType</a>};
+<span class="kw">use </span><span class="kw">crate</span>::error::ErrorStack;
+<span class="kw">use </span><span class="kw">crate</span>::util::ForeignTypeExt;
+<span class="kw">use crate</span>::{cvt, cvt_p, LenType};
 
 <span class="macro">cfg_if! </span>{
     <span class="kw">if </span><span class="attr">#[cfg(ossl110)] </span>{
         <span class="kw">use </span>ffi::{
-            <a href="../../openssl_sys/openssl/handwritten/stack/fn.OPENSSL_sk_pop.html">OPENSSL_sk_pop</a>, <a href="../../openssl_sys/openssl/handwritten/stack/fn.OPENSSL_sk_free.html">OPENSSL_sk_free</a>, <a href="../../openssl_sys/openssl/handwritten/stack/fn.OPENSSL_sk_num.html">OPENSSL_sk_num</a>, <a href="../../openssl_sys/openssl/handwritten/stack/fn.OPENSSL_sk_value.html">OPENSSL_sk_value</a>, <a href="../../openssl_sys/openssl/handwritten/stack/enum.OPENSSL_STACK.html">OPENSSL_STACK</a>,
-            <a href="../../openssl_sys/openssl/handwritten/stack/fn.OPENSSL_sk_new_null.html">OPENSSL_sk_new_null</a>, <a href="../../openssl_sys/openssl/handwritten/stack/fn.OPENSSL_sk_push.html">OPENSSL_sk_push</a>,
+            OPENSSL_sk_pop, OPENSSL_sk_free, OPENSSL_sk_num, OPENSSL_sk_value, OPENSSL_STACK,
+            OPENSSL_sk_new_null, OPENSSL_sk_push,
         };
     } <span class="kw">else </span>{
         <span class="kw">use </span>ffi::{
@@ -411,7 +411,7 @@
 <span class="doccomment">/// Trait implemented by types which can be placed in a stack.
 ///
 /// It should not be implemented for any type outside of this crate.
-</span><span class="kw">pub trait </span>Stackable: <a href="../../foreign_types_shared/trait.ForeignType.html">ForeignType</a> {
+</span><span class="kw">pub trait </span>Stackable: ForeignType {
     <span class="doccomment">/// The C stack type for this element.
     ///
     /// Generally called `stack_st_{ELEMENT_TYPE}`, normally hidden by the
@@ -420,210 +420,210 @@
 }
 
 <span class="doccomment">/// An owned stack of `T`.
-</span><span class="kw">pub struct </span>Stack&lt;T: <a href="#34">Stackable</a>&gt;(<span class="kw-2">*mut </span>T::StackType);
+</span><span class="kw">pub struct </span>Stack&lt;T: Stackable&gt;(<span class="kw-2">*mut </span>T::StackType);
 
-<span class="kw">unsafe impl</span>&lt;T: <a href="#34">Stackable</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="kw">for </span>Stack&lt;T&gt; {}
-<span class="kw">unsafe impl</span>&lt;T: <a href="#34">Stackable</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> <span class="kw">for </span>Stack&lt;T&gt; {}
+<span class="kw">unsafe impl</span>&lt;T: Stackable + Send&gt; Send <span class="kw">for </span>Stack&lt;T&gt; {}
+<span class="kw">unsafe impl</span>&lt;T: Stackable + Sync&gt; Sync <span class="kw">for </span>Stack&lt;T&gt; {}
 
-<span class="kw">impl</span>&lt;T&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span>Stack&lt;T&gt;
+<span class="kw">impl</span>&lt;T&gt; fmt::Debug <span class="kw">for </span>Stack&lt;T&gt;
 <span class="kw">where
-    </span>T: <a href="#34">Stackable</a>,
-    T::Ref: <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a>,
+    </span>T: Stackable,
+    T::Ref: fmt::Debug,
 {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, fmt: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a href="#53">fmt</a>.debug_list().entries(<a class="self" href="#53">self</a>).finish()
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, fmt: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        fmt.debug_list().entries(<span class="self">self</span>).finish()
     }
 }
-<span class="kw">impl</span>&lt;T: <a href="#34">Stackable</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span>Stack&lt;T&gt; {
+<span class="kw">impl</span>&lt;T: Stackable&gt; Drop <span class="kw">for </span>Stack&lt;T&gt; {
     <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="kw">unsafe </span>{
             <span class="kw">while </span><span class="self">self</span>.pop().is_some() {}
-            <a href="../../openssl_sys/openssl/handwritten/stack/fn.OPENSSL_sk_free.html">OPENSSL_sk_free</a>(<a class="self" href="#58">self</a>.<span class="number">0 </span><span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>);
+            OPENSSL_sk_free(<span class="self">self</span>.<span class="number">0 </span><span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>);
         }
     }
 }
 
-<span class="kw">impl</span>&lt;T: <a href="#34">Stackable</a>&gt; Stack&lt;T&gt; {
-    <span class="kw">pub fn </span>new() -&gt; <span class="prelude-ty">Result</span>&lt;Stack&lt;T&gt;, <a href="error.rs.html#39">ErrorStack</a>&gt; {
+<span class="kw">impl</span>&lt;T: Stackable&gt; Stack&lt;T&gt; {
+    <span class="kw">pub fn </span>new() -&gt; <span class="prelude-ty">Result</span>&lt;Stack&lt;T&gt;, ErrorStack&gt; {
         <span class="kw">unsafe </span>{
-            <a href="../../openssl/fn.init.html">ffi::init</a>();
+            ffi::init();
             <span class="kw">let </span>ptr = cvt_p(OPENSSL_sk_new_null())<span class="question-mark">?</span>;
-            <span class="prelude-val">Ok</span>(<a href="#43">Stack</a>(<a href="#70">ptr</a> <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>))
+            <span class="prelude-val">Ok</span>(Stack(ptr <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>))
         }
     }
 }
 
-<span class="kw">impl</span>&lt;T: <a href="#34">Stackable</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">iter::IntoIterator</a> <span class="kw">for </span>Stack&lt;T&gt; {
+<span class="kw">impl</span>&lt;T: Stackable&gt; iter::IntoIterator <span class="kw">for </span>Stack&lt;T&gt; {
     <span class="kw">type </span>IntoIter = IntoIter&lt;T&gt;;
     <span class="kw">type </span>Item = T;
 
     <span class="kw">fn </span>into_iter(<span class="self">self</span>) -&gt; IntoIter&lt;T&gt; {
-        <span class="kw">let </span>it = <a href="#136">IntoIter</a> {
-            stack: <a class="self" href="#80">self</a>.<span class="number">0</span>,
-            idxs: <span class="number">0</span>..<a class="self" href="#80">self</a>.<a href="#195">len</a>() <span class="kw">as </span><a href="lib.rs.html#190">LenType</a>,
+        <span class="kw">let </span>it = IntoIter {
+            stack: <span class="self">self</span>.<span class="number">0</span>,
+            idxs: <span class="number">0</span>..<span class="self">self</span>.len() <span class="kw">as </span>LenType,
         };
-        mem::forget(<a class="self" href="#80">self</a>);
-        <a href="#81">it</a>
+        mem::forget(<span class="self">self</span>);
+        it
     }
 }
 
-<span class="kw">impl</span>&lt;T: <a href="#34">Stackable</a>&gt; AsRef&lt;StackRef&lt;T&gt;&gt; <span class="kw">for </span>Stack&lt;T&gt; {
+<span class="kw">impl</span>&lt;T: Stackable&gt; AsRef&lt;StackRef&lt;T&gt;&gt; <span class="kw">for </span>Stack&lt;T&gt; {
     <span class="kw">fn </span>as_ref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StackRef&lt;T&gt; {
-        <span class="self"><a href="#91">self</a>
+        <span class="self">self
     </span>}
 }
 
-<span class="kw">impl</span>&lt;T: <a href="#34">Stackable</a>&gt; Borrow&lt;StackRef&lt;T&gt;&gt; <span class="kw">for </span>Stack&lt;T&gt; {
+<span class="kw">impl</span>&lt;T: Stackable&gt; Borrow&lt;StackRef&lt;T&gt;&gt; <span class="kw">for </span>Stack&lt;T&gt; {
     <span class="kw">fn </span>borrow(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StackRef&lt;T&gt; {
-        <span class="self"><a href="#97">self</a>
+        <span class="self">self
     </span>}
 }
 
-<span class="kw">impl</span>&lt;T: <a href="#34">Stackable</a>&gt; <a href="../../foreign_types_shared/trait.ForeignType.html">ForeignType</a> <span class="kw">for </span>Stack&lt;T&gt; {
+<span class="kw">impl</span>&lt;T: Stackable&gt; ForeignType <span class="kw">for </span>Stack&lt;T&gt; {
     <span class="kw">type </span>CType = T::StackType;
     <span class="kw">type </span>Ref = StackRef&lt;T&gt;;
 
     <span class="attr">#[inline]
     </span><span class="kw">unsafe fn </span>from_ptr(ptr: <span class="kw-2">*mut </span>T::StackType) -&gt; Stack&lt;T&gt; {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(
+        <span class="macro">assert!</span>(
             !ptr.is_null(),
             <span class="string">&quot;Must not instantiate a Stack from a null-ptr - use Stack::new() in \
              that case&quot;
         </span>);
-        <a href="#43">Stack</a>(<a href="#107">ptr</a>)
+        Stack(ptr)
     }
 
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>as_ptr(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">*mut </span>T::StackType {
-        <a class="self" href="#117">self</a>.<span class="number">0
+        <span class="self">self</span>.<span class="number">0
     </span>}
 }
 
-<span class="kw">impl</span>&lt;T: <a href="#34">Stackable</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.Deref.html">Deref</a> <span class="kw">for </span>Stack&lt;T&gt; {
+<span class="kw">impl</span>&lt;T: Stackable&gt; Deref <span class="kw">for </span>Stack&lt;T&gt; {
     <span class="kw">type </span>Target = StackRef&lt;T&gt;;
 
     <span class="kw">fn </span>deref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StackRef&lt;T&gt; {
-        <span class="kw">unsafe </span>{ StackRef::from_ptr(<a class="self" href="#125">self</a>.<span class="number">0</span>) }
+        <span class="kw">unsafe </span>{ StackRef::from_ptr(<span class="self">self</span>.<span class="number">0</span>) }
     }
 }
 
-<span class="kw">impl</span>&lt;T: <a href="#34">Stackable</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.DerefMut.html">DerefMut</a> <span class="kw">for </span>Stack&lt;T&gt; {
+<span class="kw">impl</span>&lt;T: Stackable&gt; DerefMut <span class="kw">for </span>Stack&lt;T&gt; {
     <span class="kw">fn </span>deref_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>StackRef&lt;T&gt; {
-        <span class="kw">unsafe </span>{ StackRef::from_ptr_mut(<a class="self" href="#131">self</a>.<span class="number">0</span>) }
+        <span class="kw">unsafe </span>{ StackRef::from_ptr_mut(<span class="self">self</span>.<span class="number">0</span>) }
     }
 }
 
-<span class="kw">pub struct </span>IntoIter&lt;T: <a href="#34">Stackable</a>&gt; {
+<span class="kw">pub struct </span>IntoIter&lt;T: Stackable&gt; {
     stack: <span class="kw-2">*mut </span>T::StackType,
-    idxs: Range&lt;<a href="lib.rs.html#190">LenType</a>&gt;,
+    idxs: Range&lt;LenType&gt;,
 }
 
-<span class="kw">impl</span>&lt;T: <a href="#34">Stackable</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span>IntoIter&lt;T&gt; {
+<span class="kw">impl</span>&lt;T: Stackable&gt; Drop <span class="kw">for </span>IntoIter&lt;T&gt; {
     <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="kw">unsafe </span>{
             <span class="comment">// https://github.com/rust-lang/rust-clippy/issues/7510
             </span><span class="attr">#[allow(clippy::while_let_on_iterator)]
             </span><span class="kw">while let </span><span class="prelude-val">Some</span>(<span class="kw">_</span>) = <span class="self">self</span>.next() {}
-            <a href="../../openssl_sys/openssl/handwritten/stack/fn.OPENSSL_sk_free.html">OPENSSL_sk_free</a>(<a class="self" href="#142">self</a>.stack <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>);
+            OPENSSL_sk_free(<span class="self">self</span>.stack <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>);
         }
     }
 }
 
-<span class="kw">impl</span>&lt;T: <a href="#34">Stackable</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a> <span class="kw">for </span>IntoIter&lt;T&gt; {
+<span class="kw">impl</span>&lt;T: Stackable&gt; Iterator <span class="kw">for </span>IntoIter&lt;T&gt; {
     <span class="kw">type </span>Item = T;
 
     <span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;T&gt; {
         <span class="kw">unsafe </span>{
-            <a class="self" href="#155">self</a>.idxs
-                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>()
-                .map(|i| T::from_ptr(<a href="../../openssl_sys/openssl/handwritten/stack/fn.OPENSSL_sk_value.html">OPENSSL_sk_value</a>(<a class="self" href="#155">self</a>.stack <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>, <a href="#159">i</a>) <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>))
+            <span class="self">self</span>.idxs
+                .next()
+                .map(|i| T::from_ptr(OPENSSL_sk_value(<span class="self">self</span>.stack <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>, i) <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>))
         }
     }
 
-    <span class="kw">fn </span>size_hint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;) {
-        <a class="self" href="#163">self</a>.idxs.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">size_hint</a>()
+    <span class="kw">fn </span>size_hint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (usize, <span class="prelude-ty">Option</span>&lt;usize&gt;) {
+        <span class="self">self</span>.idxs.size_hint()
     }
 }
 
-<span class="kw">impl</span>&lt;T: <a href="#34">Stackable</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/double_ended/trait.DoubleEndedIterator.html">DoubleEndedIterator</a> <span class="kw">for </span>IntoIter&lt;T&gt; {
+<span class="kw">impl</span>&lt;T: Stackable&gt; DoubleEndedIterator <span class="kw">for </span>IntoIter&lt;T&gt; {
     <span class="kw">fn </span>next_back(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;T&gt; {
         <span class="kw">unsafe </span>{
-            <a class="self" href="#169">self</a>.idxs
-                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/double_ended/trait.DoubleEndedIterator.html">next_back</a>()
-                .map(|i| T::from_ptr(<a href="../../openssl_sys/openssl/handwritten/stack/fn.OPENSSL_sk_value.html">OPENSSL_sk_value</a>(<a class="self" href="#169">self</a>.stack <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>, <a href="#173">i</a>) <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>))
+            <span class="self">self</span>.idxs
+                .next_back()
+                .map(|i| T::from_ptr(OPENSSL_sk_value(<span class="self">self</span>.stack <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>, i) <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>))
         }
     }
 }
 
-<span class="kw">impl</span>&lt;T: <a href="#34">Stackable</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/exact_size/trait.ExactSizeIterator.html">ExactSizeIterator</a> <span class="kw">for </span>IntoIter&lt;T&gt; {}
+<span class="kw">impl</span>&lt;T: Stackable&gt; ExactSizeIterator <span class="kw">for </span>IntoIter&lt;T&gt; {}
 
-<span class="kw">pub struct </span>StackRef&lt;T: <a href="#34">Stackable</a>&gt;(<a href="../../foreign_types_shared/struct.Opaque.html">Opaque</a>, PhantomData&lt;T&gt;);
+<span class="kw">pub struct </span>StackRef&lt;T: Stackable&gt;(Opaque, PhantomData&lt;T&gt;);
 
-<span class="kw">unsafe impl</span>&lt;T: <a href="#34">Stackable</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="kw">for </span>StackRef&lt;T&gt; {}
-<span class="kw">unsafe impl</span>&lt;T: <a href="#34">Stackable</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> <span class="kw">for </span>StackRef&lt;T&gt; {}
+<span class="kw">unsafe impl</span>&lt;T: Stackable + Send&gt; Send <span class="kw">for </span>StackRef&lt;T&gt; {}
+<span class="kw">unsafe impl</span>&lt;T: Stackable + Sync&gt; Sync <span class="kw">for </span>StackRef&lt;T&gt; {}
 
-<span class="kw">impl</span>&lt;T: <a href="#34">Stackable</a>&gt; <a href="../../foreign_types_shared/trait.ForeignTypeRef.html">ForeignTypeRef</a> <span class="kw">for </span>StackRef&lt;T&gt; {
+<span class="kw">impl</span>&lt;T: Stackable&gt; ForeignTypeRef <span class="kw">for </span>StackRef&lt;T&gt; {
     <span class="kw">type </span>CType = T::StackType;
 }
 
-<span class="kw">impl</span>&lt;T: <a href="#34">Stackable</a>&gt; StackRef&lt;T&gt; {
-    <span class="kw">fn </span>as_stack(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">*mut </span><a href="../../openssl_sys/openssl/handwritten/stack/enum.OPENSSL_STACK.html">OPENSSL_STACK</a> {
-        <a class="self" href="#190">self</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>() <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_
+<span class="kw">impl</span>&lt;T: Stackable&gt; StackRef&lt;T&gt; {
+    <span class="kw">fn </span>as_stack(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">*mut </span>OPENSSL_STACK {
+        <span class="self">self</span>.as_ptr() <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_
     </span>}
 
     <span class="doccomment">/// Returns the number of items in the stack.
-    </span><span class="kw">pub fn </span>len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <span class="kw">unsafe </span>{ <a href="../../openssl_sys/openssl/handwritten/stack/fn.OPENSSL_sk_num.html">OPENSSL_sk_num</a>(<a class="self" href="#195">self</a>.<a href="#190">as_stack</a>()) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> }
+    </span><span class="kw">pub fn </span>len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+        <span class="kw">unsafe </span>{ OPENSSL_sk_num(<span class="self">self</span>.as_stack()) <span class="kw">as </span>usize }
     }
 
     <span class="doccomment">/// Determines if the stack is empty.
-    </span><span class="kw">pub fn </span>is_empty(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#200">self</a>.<a href="#195">len</a>() == <span class="number">0
+    </span><span class="kw">pub fn </span>is_empty(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.len() == <span class="number">0
     </span>}
 
     <span class="kw">pub fn </span>iter(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Iter&lt;<span class="lifetime">&#39;_</span>, T&gt; {
-        <a href="#315">Iter</a> {
-            stack: <a class="self" href="#204">self</a>,
-            idxs: <span class="number">0</span>..<a class="self" href="#204">self</a>.<a href="#195">len</a>() <span class="kw">as </span><a href="lib.rs.html#190">LenType</a>,
+        Iter {
+            stack: <span class="self">self</span>,
+            idxs: <span class="number">0</span>..<span class="self">self</span>.len() <span class="kw">as </span>LenType,
         }
     }
 
     <span class="kw">pub fn </span>iter_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; IterMut&lt;<span class="lifetime">&#39;_</span>, T&gt; {
-        <a href="#349">IterMut</a> {
-            idxs: <span class="number">0</span>..<a class="self" href="#211">self</a>.<a href="#195">len</a>() <span class="kw">as </span><a href="lib.rs.html#190">LenType</a>,
-            stack: <a class="self" href="#211">self</a>,
+        IterMut {
+            idxs: <span class="number">0</span>..<span class="self">self</span>.len() <span class="kw">as </span>LenType,
+            stack: <span class="self">self</span>,
         }
     }
 
     <span class="doccomment">/// Returns a reference to the element at the given index in the
     /// stack or `None` if the index is out of bounds
-    </span><span class="kw">pub fn </span>get(<span class="kw-2">&amp;</span><span class="self">self</span>, idx: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>T::Ref&gt; {
+    </span><span class="kw">pub fn </span>get(<span class="kw-2">&amp;</span><span class="self">self</span>, idx: usize) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>T::Ref&gt; {
         <span class="kw">unsafe </span>{
             <span class="kw">if </span>idx &gt;= <span class="self">self</span>.len() {
                 <span class="kw">return </span><span class="prelude-val">None</span>;
             }
 
-            <span class="prelude-val">Some</span>(T::Ref::from_ptr(<a class="self" href="#220">self</a>.<a href="#259">_get</a>(<a href="#220">idx</a>)))
+            <span class="prelude-val">Some</span>(T::Ref::from_ptr(<span class="self">self</span>._get(idx)))
         }
     }
 
     <span class="doccomment">/// Returns a mutable reference to the element at the given index in the
     /// stack or `None` if the index is out of bounds
-    </span><span class="kw">pub fn </span>get_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>, idx: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;mut </span>T::Ref&gt; {
+    </span><span class="kw">pub fn </span>get_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>, idx: usize) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;mut </span>T::Ref&gt; {
         <span class="kw">unsafe </span>{
             <span class="kw">if </span>idx &gt;= <span class="self">self</span>.len() {
                 <span class="kw">return </span><span class="prelude-val">None</span>;
             }
 
-            <span class="prelude-val">Some</span>(T::Ref::from_ptr_mut(<a class="self" href="#232">self</a>.<a href="#259">_get</a>(<a href="#232">idx</a>)))
+            <span class="prelude-val">Some</span>(T::Ref::from_ptr_mut(<span class="self">self</span>._get(idx)))
         }
     }
 
     <span class="doccomment">/// Pushes a value onto the top of the stack.
-    </span><span class="kw">pub fn </span>push(<span class="kw-2">&amp;mut </span><span class="self">self</span>, data: T) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#39">ErrorStack</a>&gt; {
+    </span><span class="kw">pub fn </span>push(<span class="kw-2">&amp;mut </span><span class="self">self</span>, data: T) -&gt; <span class="prelude-ty">Result</span>&lt;(), ErrorStack&gt; {
         <span class="kw">unsafe </span>{
             cvt(OPENSSL_sk_push(<span class="self">self</span>.as_stack(), data.as_ptr() <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>) <span class="kw">as </span>c_int)<span class="question-mark">?</span>;
-            mem::forget(<a href="#243">data</a>);
+            mem::forget(data);
             <span class="prelude-val">Ok</span>(())
         }
     }
@@ -631,132 +631,132 @@
     <span class="doccomment">/// Removes the last element from the stack and returns it.
     </span><span class="kw">pub fn </span>pop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;T&gt; {
         <span class="kw">unsafe </span>{
-            <span class="kw">let </span>ptr = <a href="../../openssl_sys/openssl/handwritten/stack/fn.OPENSSL_sk_pop.html">OPENSSL_sk_pop</a>(<a class="self" href="#252">self</a>.<a href="#190">as_stack</a>());
-            T::from_ptr_opt(<a href="#254">ptr</a> <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>)
+            <span class="kw">let </span>ptr = OPENSSL_sk_pop(<span class="self">self</span>.as_stack());
+            T::from_ptr_opt(ptr <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>)
         }
     }
 
-    <span class="kw">unsafe fn </span>_get(<span class="kw-2">&amp;</span><span class="self">self</span>, idx: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="kw-2">*mut </span>T::CType {
-        <a href="../../openssl_sys/openssl/handwritten/stack/fn.OPENSSL_sk_value.html">OPENSSL_sk_value</a>(<a class="self" href="#259">self</a>.<a href="#190">as_stack</a>(), <a href="#259">idx</a> <span class="kw">as </span><a href="lib.rs.html#190">LenType</a>) <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_
+    <span class="kw">unsafe fn </span>_get(<span class="kw-2">&amp;</span><span class="self">self</span>, idx: usize) -&gt; <span class="kw-2">*mut </span>T::CType {
+        OPENSSL_sk_value(<span class="self">self</span>.as_stack(), idx <span class="kw">as </span>LenType) <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_
     </span>}
 }
 
-<span class="kw">impl</span>&lt;T: <a href="#34">Stackable</a>&gt; Index&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; <span class="kw">for </span>StackRef&lt;T&gt; {
+<span class="kw">impl</span>&lt;T: Stackable&gt; Index&lt;usize&gt; <span class="kw">for </span>StackRef&lt;T&gt; {
     <span class="kw">type </span>Output = T::Ref;
 
-    <span class="kw">fn </span>index(<span class="kw-2">&amp;</span><span class="self">self</span>, index: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="kw-2">&amp;</span>T::Ref {
-        <a class="self" href="#267">self</a>.<a href="#220">get</a>(<a href="#267">index</a>).unwrap()
+    <span class="kw">fn </span>index(<span class="kw-2">&amp;</span><span class="self">self</span>, index: usize) -&gt; <span class="kw-2">&amp;</span>T::Ref {
+        <span class="self">self</span>.get(index).unwrap()
     }
 }
 
-<span class="kw">impl</span>&lt;T: <a href="#34">Stackable</a>&gt; IndexMut&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; <span class="kw">for </span>StackRef&lt;T&gt; {
-    <span class="kw">fn </span>index_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>, index: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="kw-2">&amp;mut </span>T::Ref {
-        <a class="self" href="#273">self</a>.<a href="#232">get_mut</a>(<a href="#273">index</a>).unwrap()
+<span class="kw">impl</span>&lt;T: Stackable&gt; IndexMut&lt;usize&gt; <span class="kw">for </span>StackRef&lt;T&gt; {
+    <span class="kw">fn </span>index_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>, index: usize) -&gt; <span class="kw-2">&amp;mut </span>T::Ref {
+        <span class="self">self</span>.get_mut(index).unwrap()
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T: <a href="#34">Stackable</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">iter::IntoIterator</a> <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>StackRef&lt;T&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T: Stackable&gt; iter::IntoIterator <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>StackRef&lt;T&gt; {
     <span class="kw">type </span>Item = <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>T::Ref;
     <span class="kw">type </span>IntoIter = Iter&lt;<span class="lifetime">&#39;a</span>, T&gt;;
 
     <span class="kw">fn </span>into_iter(<span class="self">self</span>) -&gt; Iter&lt;<span class="lifetime">&#39;a</span>, T&gt; {
-        <a class="self" href="#282">self</a>.<a href="#204">iter</a>()
+        <span class="self">self</span>.iter()
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T: <a href="#34">Stackable</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">iter::IntoIterator</a> <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>StackRef&lt;T&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T: Stackable&gt; iter::IntoIterator <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>StackRef&lt;T&gt; {
     <span class="kw">type </span>Item = <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>T::Ref;
     <span class="kw">type </span>IntoIter = IterMut&lt;<span class="lifetime">&#39;a</span>, T&gt;;
 
     <span class="kw">fn </span>into_iter(<span class="self">self</span>) -&gt; IterMut&lt;<span class="lifetime">&#39;a</span>, T&gt; {
-        <a class="self" href="#291">self</a>.<a href="#211">iter_mut</a>()
+        <span class="self">self</span>.iter_mut()
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T: <a href="#34">Stackable</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">iter::IntoIterator</a> <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Stack&lt;T&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T: Stackable&gt; iter::IntoIterator <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Stack&lt;T&gt; {
     <span class="kw">type </span>Item = <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>T::Ref;
     <span class="kw">type </span>IntoIter = Iter&lt;<span class="lifetime">&#39;a</span>, T&gt;;
 
     <span class="kw">fn </span>into_iter(<span class="self">self</span>) -&gt; Iter&lt;<span class="lifetime">&#39;a</span>, T&gt; {
-        <a class="self" href="#300">self</a>.<a href="#204">iter</a>()
+        <span class="self">self</span>.iter()
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T: <a href="#34">Stackable</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">iter::IntoIterator</a> <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>Stack&lt;T&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T: Stackable&gt; iter::IntoIterator <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>Stack&lt;T&gt; {
     <span class="kw">type </span>Item = <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>T::Ref;
     <span class="kw">type </span>IntoIter = IterMut&lt;<span class="lifetime">&#39;a</span>, T&gt;;
 
     <span class="kw">fn </span>into_iter(<span class="self">self</span>) -&gt; IterMut&lt;<span class="lifetime">&#39;a</span>, T&gt; {
-        <a class="self" href="#309">self</a>.<a href="#211">iter_mut</a>()
+        <span class="self">self</span>.iter_mut()
     }
 }
 
 <span class="doccomment">/// An iterator over the stack&#39;s contents.
-</span><span class="kw">pub struct </span>Iter&lt;<span class="lifetime">&#39;a</span>, T: <a href="#34">Stackable</a>&gt; {
+</span><span class="kw">pub struct </span>Iter&lt;<span class="lifetime">&#39;a</span>, T: Stackable&gt; {
     stack: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>StackRef&lt;T&gt;,
-    idxs: Range&lt;<a href="lib.rs.html#190">LenType</a>&gt;,
+    idxs: Range&lt;LenType&gt;,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T: <a href="#34">Stackable</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a> <span class="kw">for </span>Iter&lt;<span class="lifetime">&#39;a</span>, T&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T: Stackable&gt; Iterator <span class="kw">for </span>Iter&lt;<span class="lifetime">&#39;a</span>, T&gt; {
     <span class="kw">type </span>Item = <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>T::Ref;
 
     <span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>T::Ref&gt; {
         <span class="kw">unsafe </span>{
-            <a class="self" href="#323">self</a>.idxs
-                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>()
-                .map(|i| T::Ref::from_ptr(<a href="../../openssl_sys/openssl/handwritten/stack/fn.OPENSSL_sk_value.html">OPENSSL_sk_value</a>(<a class="self" href="#323">self</a>.stack.<a href="#190">as_stack</a>(), <a href="#327">i</a>) <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>))
+            <span class="self">self</span>.idxs
+                .next()
+                .map(|i| T::Ref::from_ptr(OPENSSL_sk_value(<span class="self">self</span>.stack.as_stack(), i) <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>))
         }
     }
 
-    <span class="kw">fn </span>size_hint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;) {
-        <a class="self" href="#331">self</a>.idxs.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">size_hint</a>()
+    <span class="kw">fn </span>size_hint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (usize, <span class="prelude-ty">Option</span>&lt;usize&gt;) {
+        <span class="self">self</span>.idxs.size_hint()
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T: <a href="#34">Stackable</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/double_ended/trait.DoubleEndedIterator.html">DoubleEndedIterator</a> <span class="kw">for </span>Iter&lt;<span class="lifetime">&#39;a</span>, T&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T: Stackable&gt; DoubleEndedIterator <span class="kw">for </span>Iter&lt;<span class="lifetime">&#39;a</span>, T&gt; {
     <span class="kw">fn </span>next_back(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>T::Ref&gt; {
         <span class="kw">unsafe </span>{
-            <a class="self" href="#337">self</a>.idxs
-                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/double_ended/trait.DoubleEndedIterator.html">next_back</a>()
-                .map(|i| T::Ref::from_ptr(<a href="../../openssl_sys/openssl/handwritten/stack/fn.OPENSSL_sk_value.html">OPENSSL_sk_value</a>(<a class="self" href="#337">self</a>.stack.<a href="#190">as_stack</a>(), <a href="#341">i</a>) <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>))
+            <span class="self">self</span>.idxs
+                .next_back()
+                .map(|i| T::Ref::from_ptr(OPENSSL_sk_value(<span class="self">self</span>.stack.as_stack(), i) <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>))
         }
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T: <a href="#34">Stackable</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/exact_size/trait.ExactSizeIterator.html">ExactSizeIterator</a> <span class="kw">for </span>Iter&lt;<span class="lifetime">&#39;a</span>, T&gt; {}
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T: Stackable&gt; ExactSizeIterator <span class="kw">for </span>Iter&lt;<span class="lifetime">&#39;a</span>, T&gt; {}
 
 <span class="doccomment">/// A mutable iterator over the stack&#39;s contents.
-</span><span class="kw">pub struct </span>IterMut&lt;<span class="lifetime">&#39;a</span>, T: <a href="#34">Stackable</a>&gt; {
+</span><span class="kw">pub struct </span>IterMut&lt;<span class="lifetime">&#39;a</span>, T: Stackable&gt; {
     stack: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>StackRef&lt;T&gt;,
-    idxs: Range&lt;<a href="lib.rs.html#190">LenType</a>&gt;,
+    idxs: Range&lt;LenType&gt;,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T: <a href="#34">Stackable</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a> <span class="kw">for </span>IterMut&lt;<span class="lifetime">&#39;a</span>, T&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T: Stackable&gt; Iterator <span class="kw">for </span>IterMut&lt;<span class="lifetime">&#39;a</span>, T&gt; {
     <span class="kw">type </span>Item = <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>T::Ref;
 
     <span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>T::Ref&gt; {
         <span class="kw">unsafe </span>{
-            <a class="self" href="#357">self</a>.idxs
-                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>()
-                .map(|i| T::Ref::from_ptr_mut(<a href="../../openssl_sys/openssl/handwritten/stack/fn.OPENSSL_sk_value.html">OPENSSL_sk_value</a>(<a class="self" href="#357">self</a>.stack.<a href="#190">as_stack</a>(), <a href="#361">i</a>) <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>))
+            <span class="self">self</span>.idxs
+                .next()
+                .map(|i| T::Ref::from_ptr_mut(OPENSSL_sk_value(<span class="self">self</span>.stack.as_stack(), i) <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>))
         }
     }
 
-    <span class="kw">fn </span>size_hint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;) {
-        <a class="self" href="#365">self</a>.idxs.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">size_hint</a>()
+    <span class="kw">fn </span>size_hint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (usize, <span class="prelude-ty">Option</span>&lt;usize&gt;) {
+        <span class="self">self</span>.idxs.size_hint()
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T: <a href="#34">Stackable</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/double_ended/trait.DoubleEndedIterator.html">DoubleEndedIterator</a> <span class="kw">for </span>IterMut&lt;<span class="lifetime">&#39;a</span>, T&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T: Stackable&gt; DoubleEndedIterator <span class="kw">for </span>IterMut&lt;<span class="lifetime">&#39;a</span>, T&gt; {
     <span class="kw">fn </span>next_back(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>T::Ref&gt; {
         <span class="kw">unsafe </span>{
-            <a class="self" href="#371">self</a>.idxs
-                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/double_ended/trait.DoubleEndedIterator.html">next_back</a>()
-                .map(|i| T::Ref::from_ptr_mut(<a href="../../openssl_sys/openssl/handwritten/stack/fn.OPENSSL_sk_value.html">OPENSSL_sk_value</a>(<a class="self" href="#371">self</a>.stack.<a href="#190">as_stack</a>(), <a href="#375">i</a>) <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>))
+            <span class="self">self</span>.idxs
+                .next_back()
+                .map(|i| T::Ref::from_ptr_mut(OPENSSL_sk_value(<span class="self">self</span>.stack.as_stack(), i) <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>))
         }
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T: <a href="#34">Stackable</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/exact_size/trait.ExactSizeIterator.html">ExactSizeIterator</a> <span class="kw">for </span>IterMut&lt;<span class="lifetime">&#39;a</span>, T&gt; {}
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T: Stackable&gt; ExactSizeIterator <span class="kw">for </span>IterMut&lt;<span class="lifetime">&#39;a</span>, T&gt; {}
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="openssl" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="openssl" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

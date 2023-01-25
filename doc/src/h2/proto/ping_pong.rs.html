@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/h2-0.3.15/src/proto/ping_pong.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>ping_pong.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../h2/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/h2-0.3.15/src/proto/ping_pong.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>ping_pong.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../h2/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -292,45 +292,45 @@
 <a href="#292" id="292">292</a>
 <a href="#293" id="293">293</a>
 <a href="#294" id="294">294</a>
-</pre><pre class="rust"><code><span class="kw">use </span><a href="../codec/mod.rs.html#24"><span class="kw">crate</span>::codec::Codec</a>;
-<span class="kw">use </span><a href="../frame/ping.rs.html#9"><span class="kw">crate</span>::frame::Ping</a>;
-<span class="kw">use </span><span class="kw">crate</span>::proto::{<a class="self" href="../lib.rs.html#109">self</a>, <a href="mod.rs.html#28">PingPayload</a>};
+</pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::codec::Codec;
+<span class="kw">use </span><span class="kw">crate</span>::frame::Ping;
+<span class="kw">use </span><span class="kw">crate</span>::proto::{<span class="self">self</span>, PingPayload};
 
-<span class="kw">use </span><a href="../../../bytes/buf/buf_impl/trait.Buf.html">bytes::Buf</a>;
-<span class="kw">use </span><a href="../../../futures_core/task/__internal/atomic_waker/struct.AtomicWaker.html">futures_util::task::AtomicWaker</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/io/index.html">std::io</a>;
-<span class="kw">use </span>std::sync::atomic::{<a href="https://doc.rust-lang.org/nightly/core/sync/atomic/struct.AtomicUsize.html">AtomicUsize</a>, <a href="https://doc.rust-lang.org/nightly/core/sync/atomic/enum.Ordering.html">Ordering</a>};
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/sync/struct.Arc.html">std::sync::Arc</a>;
-<span class="kw">use </span>std::task::{<a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>, <a href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">Poll</a>};
-<span class="kw">use </span><a href="../../../tokio/io/async_write/trait.AsyncWrite.html">tokio::io::AsyncWrite</a>;
+<span class="kw">use </span>bytes::Buf;
+<span class="kw">use </span>futures_util::task::AtomicWaker;
+<span class="kw">use </span>std::io;
+<span class="kw">use </span>std::sync::atomic::{AtomicUsize, Ordering};
+<span class="kw">use </span>std::sync::Arc;
+<span class="kw">use </span>std::task::{Context, Poll};
+<span class="kw">use </span>tokio::io::AsyncWrite;
 
 <span class="doccomment">/// Acknowledges ping requests from the remote.
 </span><span class="attr">#[derive(Debug)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>PingPong {
-    pending_ping: <span class="prelude-ty">Option</span>&lt;<a href="#37">PendingPing</a>&gt;,
-    pending_pong: <span class="prelude-ty">Option</span>&lt;<a href="mod.rs.html#28">PingPayload</a>&gt;,
-    user_pings: <span class="prelude-ty">Option</span>&lt;<a href="#25">UserPingsRx</a>&gt;,
+    pending_ping: <span class="prelude-ty">Option</span>&lt;PendingPing&gt;,
+    pending_pong: <span class="prelude-ty">Option</span>&lt;PingPayload&gt;,
+    user_pings: <span class="prelude-ty">Option</span>&lt;UserPingsRx&gt;,
 }
 
 <span class="attr">#[derive(Debug)]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>UserPings(Arc&lt;<a href="#28">UserPingsInner</a>&gt;);
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>UserPings(Arc&lt;UserPingsInner&gt;);
 
 <span class="attr">#[derive(Debug)]
-</span><span class="kw">struct </span>UserPingsRx(Arc&lt;<a href="#28">UserPingsInner</a>&gt;);
+</span><span class="kw">struct </span>UserPingsRx(Arc&lt;UserPingsInner&gt;);
 
 <span class="attr">#[derive(Debug)]
 </span><span class="kw">struct </span>UserPingsInner {
-    state: <a href="https://doc.rust-lang.org/nightly/core/sync/atomic/struct.AtomicUsize.html">AtomicUsize</a>,
+    state: AtomicUsize,
     <span class="doccomment">/// Task to wake up the main `Connection`.
-    </span>ping_task: <a href="../../../futures_core/task/__internal/atomic_waker/struct.AtomicWaker.html">AtomicWaker</a>,
+    </span>ping_task: AtomicWaker,
     <span class="doccomment">/// Task to wake up `share::PingPong::poll_pong`.
-    </span>pong_task: <a href="../../../futures_core/task/__internal/atomic_waker/struct.AtomicWaker.html">AtomicWaker</a>,
+    </span>pong_task: AtomicWaker,
 }
 
 <span class="attr">#[derive(Debug)]
 </span><span class="kw">struct </span>PendingPing {
-    payload: <a href="mod.rs.html#28">PingPayload</a>,
-    sent: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
+    payload: PingPayload,
+    sent: bool,
 }
 
 <span class="doccomment">/// Status returned from `PingPong::recv_ping`.
@@ -342,21 +342,21 @@
 }
 
 <span class="doccomment">/// No user ping pending.
-</span><span class="kw">const </span>USER_STATE_EMPTY: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> = <span class="number">0</span>;
+</span><span class="kw">const </span>USER_STATE_EMPTY: usize = <span class="number">0</span>;
 <span class="doccomment">/// User has called `send_ping`, but PING hasn&#39;t been written yet.
-</span><span class="kw">const </span>USER_STATE_PENDING_PING: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> = <span class="number">1</span>;
+</span><span class="kw">const </span>USER_STATE_PENDING_PING: usize = <span class="number">1</span>;
 <span class="doccomment">/// User PING has been written, waiting for PONG.
-</span><span class="kw">const </span>USER_STATE_PENDING_PONG: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> = <span class="number">2</span>;
+</span><span class="kw">const </span>USER_STATE_PENDING_PONG: usize = <span class="number">2</span>;
 <span class="doccomment">/// We&#39;ve received user PONG, waiting for user to `poll_pong`.
-</span><span class="kw">const </span>USER_STATE_RECEIVED_PONG: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> = <span class="number">3</span>;
+</span><span class="kw">const </span>USER_STATE_RECEIVED_PONG: usize = <span class="number">3</span>;
 <span class="doccomment">/// The connection is closed.
-</span><span class="kw">const </span>USER_STATE_CLOSED: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> = <span class="number">4</span>;
+</span><span class="kw">const </span>USER_STATE_CLOSED: usize = <span class="number">4</span>;
 
 <span class="comment">// ===== impl PingPong =====
 
-</span><span class="kw">impl </span><a href="#15">PingPong</a> {
+</span><span class="kw">impl </span>PingPong {
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new() -&gt; <span class="self">Self </span>{
-        <a href="#15">PingPong</a> {
+        PingPong {
             pending_ping: <span class="prelude-val">None</span>,
             pending_pong: <span class="prelude-val">None</span>,
             user_pings: <span class="prelude-val">None</span>,
@@ -364,87 +364,87 @@
     }
 
     <span class="doccomment">/// Can only be called once. If called a second time, returns `None`.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>take_user_pings(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="#22">UserPings</a>&gt; {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>take_user_pings(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;UserPings&gt; {
         <span class="kw">if </span><span class="self">self</span>.user_pings.is_some() {
             <span class="kw">return </span><span class="prelude-val">None</span>;
         }
 
-        <span class="kw">let </span>user_pings = Arc::new(<a href="#28">UserPingsInner</a> {
-            state: AtomicUsize::new(<a href="#51">USER_STATE_EMPTY</a>),
+        <span class="kw">let </span>user_pings = Arc::new(UserPingsInner {
+            state: AtomicUsize::new(USER_STATE_EMPTY),
             ping_task: AtomicWaker::new(),
             pong_task: AtomicWaker::new(),
         });
-        <a class="self" href="#73">self</a>.user_pings = <span class="prelude-val">Some</span>(<a href="#25">UserPingsRx</a>(<a href="#78">user_pings</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()));
-        <span class="prelude-val">Some</span>(<a href="#22">UserPings</a>(<a href="#78">user_pings</a>))
+        <span class="self">self</span>.user_pings = <span class="prelude-val">Some</span>(UserPingsRx(user_pings.clone()));
+        <span class="prelude-val">Some</span>(UserPings(user_pings))
     }
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>ping_shutdown(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(<span class="self">self</span>.pending_ping.is_none());
+        <span class="macro">assert!</span>(<span class="self">self</span>.pending_ping.is_none());
 
-        <a class="self" href="#87">self</a>.pending_ping = <span class="prelude-val">Some</span>(<a href="#37">PendingPing</a> {
+        <span class="self">self</span>.pending_ping = <span class="prelude-val">Some</span>(PendingPing {
             payload: Ping::SHUTDOWN,
             sent: <span class="bool-val">false</span>,
         });
     }
 
     <span class="doccomment">/// Process a ping
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>recv_ping(<span class="kw-2">&amp;mut </span><span class="self">self</span>, ping: <a href="../frame/ping.rs.html#9">Ping</a>) -&gt; <a href="#44">ReceivedPing</a> {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>recv_ping(<span class="kw-2">&amp;mut </span><span class="self">self</span>, ping: Ping) -&gt; ReceivedPing {
         <span class="comment">// The caller should always check that `send_pongs` returns ready before
         // calling `recv_ping`.
-        </span><a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(<span class="self">self</span>.pending_pong.is_none());
+        </span><span class="macro">assert!</span>(<span class="self">self</span>.pending_pong.is_none());
 
         <span class="kw">if </span>ping.is_ack() {
-            <span class="kw">if let </span><span class="prelude-val">Some</span>(pending) = <a class="self" href="#97">self</a>.pending_ping.take() {
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(pending) = <span class="self">self</span>.pending_ping.take() {
                 <span class="kw">if </span><span class="kw-2">&amp;</span>pending.payload == ping.payload() {
-                    <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert_eq.html">assert_eq!</a>(
+                    <span class="macro">assert_eq!</span>(
                         <span class="kw-2">&amp;</span>pending.payload,
                         <span class="kw-2">&amp;</span>Ping::SHUTDOWN,
                         <span class="string">&quot;pending_ping should be for shutdown&quot;</span>,
                     );
-                    <a class="macro" href="../../../tracing/tracing/macro.trace.html">tracing::trace!</a>(<span class="string">&quot;recv PING SHUTDOWN ack&quot;</span>);
-                    <span class="kw">return </span><a href="#47">ReceivedPing::Shutdown</a>;
+                    <span class="macro">tracing::trace!</span>(<span class="string">&quot;recv PING SHUTDOWN ack&quot;</span>);
+                    <span class="kw">return </span>ReceivedPing::Shutdown;
                 }
 
                 <span class="comment">// if not the payload we expected, put it back.
-                </span><a class="self" href="#97">self</a>.pending_ping = <span class="prelude-val">Some</span>(<a href="#103">pending</a>);
+                </span><span class="self">self</span>.pending_ping = <span class="prelude-val">Some</span>(pending);
             }
 
-            <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">ref </span>users) = <a class="self" href="#97">self</a>.user_pings {
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">ref </span>users) = <span class="self">self</span>.user_pings {
                 <span class="kw">if </span>ping.payload() == <span class="kw-2">&amp;</span>Ping::USER &amp;&amp; users.receive_pong() {
-                    <a class="macro" href="../../../tracing/tracing/macro.trace.html">tracing::trace!</a>(<span class="string">&quot;recv PING USER ack&quot;</span>);
-                    <span class="kw">return </span><a href="#46">ReceivedPing::Unknown</a>;
+                    <span class="macro">tracing::trace!</span>(<span class="string">&quot;recv PING USER ack&quot;</span>);
+                    <span class="kw">return </span>ReceivedPing::Unknown;
                 }
             }
 
             <span class="comment">// else we were acked a ping we didn&#39;t send?
             // The spec doesn&#39;t require us to do anything about this,
             // so for resiliency, just ignore it for now.
-            </span><a class="macro" href="../../../tracing/tracing/macro.warn.html">tracing::warn!</a>(<span class="string">&quot;recv PING ack that we never sent: {:?}&quot;</span>, ping);
-            <a href="#46">ReceivedPing::Unknown</a>
+            </span><span class="macro">tracing::warn!</span>(<span class="string">&quot;recv PING ack that we never sent: {:?}&quot;</span>, ping);
+            ReceivedPing::Unknown
         } <span class="kw">else </span>{
             <span class="comment">// Save the ping&#39;s payload to be sent as an acknowledgement.
-            </span><a class="self" href="#97">self</a>.pending_pong = <span class="prelude-val">Some</span>(<a href="#97">ping</a>.<a href="../frame/ping.rs.html#51">into_payload</a>());
-            <a href="#45">ReceivedPing::MustAck</a>
+            </span><span class="self">self</span>.pending_pong = <span class="prelude-val">Some</span>(ping.into_payload());
+            ReceivedPing::MustAck
         }
     }
 
     <span class="doccomment">/// Send any pending pongs.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>send_pending_pong&lt;T, B&gt;(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        cx: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>,
+        cx: <span class="kw-2">&amp;mut </span>Context,
         dst: <span class="kw-2">&amp;mut </span>Codec&lt;T, B&gt;,
     ) -&gt; Poll&lt;io::Result&lt;()&gt;&gt;
     <span class="kw">where
-        </span>T: <a href="../../../tokio/io/async_write/trait.AsyncWrite.html">AsyncWrite</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
-        B: <a href="../../../bytes/buf/buf_impl/trait.Buf.html">Buf</a>,
+        </span>T: AsyncWrite + Unpin,
+        B: Buf,
     {
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(pong) = <a class="self" href="#139">self</a>.pending_pong.take() {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(pong) = <span class="self">self</span>.pending_pong.take() {
             <span class="kw">if </span>!dst.poll_ready(cx)<span class="question-mark">?</span>.is_ready() {
-                <a class="self" href="#139">self</a>.pending_pong = <span class="prelude-val">Some</span>(<a href="#147">pong</a>);
+                <span class="self">self</span>.pending_pong = <span class="prelude-val">Some</span>(pong);
                 <span class="kw">return </span>Poll::Pending;
             }
 
-            <a href="#141">dst</a>.<a href="../codec/mod.rs.html#140">buffer</a>(Ping::pong(<a href="#147">pong</a>).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
+            dst.buffer(Ping::pong(pong).into())
                 .expect(<span class="string">&quot;invalid pong frame&quot;</span>);
         }
 
@@ -454,37 +454,37 @@
     <span class="doccomment">/// Send any pending pings.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>send_pending_ping&lt;T, B&gt;(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        cx: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>,
+        cx: <span class="kw-2">&amp;mut </span>Context,
         dst: <span class="kw-2">&amp;mut </span>Codec&lt;T, B&gt;,
     ) -&gt; Poll&lt;io::Result&lt;()&gt;&gt;
     <span class="kw">where
-        </span>T: <a href="../../../tokio/io/async_write/trait.AsyncWrite.html">AsyncWrite</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
-        B: <a href="../../../bytes/buf/buf_impl/trait.Buf.html">Buf</a>,
+        </span>T: AsyncWrite + Unpin,
+        B: Buf,
     {
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">ref mut </span>ping) = <a class="self" href="#162">self</a>.pending_ping {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">ref mut </span>ping) = <span class="self">self</span>.pending_ping {
             <span class="kw">if </span>!ping.sent {
                 <span class="kw">if </span>!dst.poll_ready(cx)<span class="question-mark">?</span>.is_ready() {
                     <span class="kw">return </span>Poll::Pending;
                 }
 
-                <a href="#164">dst</a>.<a href="../codec/mod.rs.html#140">buffer</a>(Ping::new(<a href="#170">ping</a>.payload).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
+                dst.buffer(Ping::new(ping.payload).into())
                     .expect(<span class="string">&quot;invalid ping frame&quot;</span>);
-                <a href="#170">ping</a>.sent = <span class="bool-val">true</span>;
+                ping.sent = <span class="bool-val">true</span>;
             }
-        } <span class="kw">else if let </span><span class="prelude-val">Some</span>(<span class="kw-2">ref </span>users) = <a class="self" href="#162">self</a>.user_pings {
+        } <span class="kw">else if let </span><span class="prelude-val">Some</span>(<span class="kw-2">ref </span>users) = <span class="self">self</span>.user_pings {
             <span class="kw">if </span>users.<span class="number">0</span>.state.load(Ordering::Acquire) == USER_STATE_PENDING_PING {
                 <span class="kw">if </span>!dst.poll_ready(cx)<span class="question-mark">?</span>.is_ready() {
                     <span class="kw">return </span>Poll::Pending;
                 }
 
-                <a href="#164">dst</a>.<a href="../codec/mod.rs.html#140">buffer</a>(Ping::new(Ping::USER).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
+                dst.buffer(Ping::new(Ping::USER).into())
                     .expect(<span class="string">&quot;invalid ping frame&quot;</span>);
-                <a href="#180">users</a>
+                users
                     .<span class="number">0
                     </span>.state
-                    .store(<a href="#55">USER_STATE_PENDING_PONG</a>, Ordering::Release);
+                    .store(USER_STATE_PENDING_PONG, Ordering::Release);
             } <span class="kw">else </span>{
-                <a href="#180">users</a>.<span class="number">0</span>.ping_task.register(<a href="#163">cx</a>.waker());
+                users.<span class="number">0</span>.ping_task.register(cx.waker());
             }
         }
 
@@ -492,10 +492,10 @@
     }
 }
 
-<span class="kw">impl </span><a href="#44">ReceivedPing</a> {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>is_shutdown(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="#202">self</a> </span>{
-            <a href="#47">ReceivedPing::Shutdown</a> =&gt; <span class="bool-val">true</span>,
+<span class="kw">impl </span>ReceivedPing {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>is_shutdown(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="kw">match </span><span class="kw-2">*</span><span class="self">self </span>{
+            ReceivedPing::Shutdown =&gt; <span class="bool-val">true</span>,
             <span class="kw">_ </span>=&gt; <span class="bool-val">false</span>,
         }
     }
@@ -503,25 +503,25 @@
 
 <span class="comment">// ===== impl UserPings =====
 
-</span><span class="kw">impl </span><a href="#22">UserPings</a> {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>send_ping(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="prelude-ty">Option</span>&lt;<a href="error.rs.html#10">proto::Error</a>&gt;&gt; {
-        <span class="kw">let </span>prev = <span class="self"><a href="#213">self</a>
+</span><span class="kw">impl </span>UserPings {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>send_ping(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="prelude-ty">Option</span>&lt;proto::Error&gt;&gt; {
+        <span class="kw">let </span>prev = <span class="self">self
             </span>.<span class="number">0
             </span>.state
             .compare_exchange(
-                <a href="#51">USER_STATE_EMPTY</a>,        <span class="comment">// current
-                </span><a href="#53">USER_STATE_PENDING_PING</a>, <span class="comment">// new
+                USER_STATE_EMPTY,        <span class="comment">// current
+                </span>USER_STATE_PENDING_PING, <span class="comment">// new
                 </span>Ordering::AcqRel,
                 Ordering::Acquire,
             )
-            .unwrap_or_else(|v| <a href="#223">v</a>);
+            .unwrap_or_else(|v| v);
 
-        <span class="kw">match </span><a href="#214">prev</a> {
-            <a href="#51">USER_STATE_EMPTY</a> =&gt; {
-                <a class="self" href="#213">self</a>.<span class="number">0</span>.ping_task.wake();
+        <span class="kw">match </span>prev {
+            USER_STATE_EMPTY =&gt; {
+                <span class="self">self</span>.<span class="number">0</span>.ping_task.wake();
                 <span class="prelude-val">Ok</span>(())
             }
-            <a href="#59">USER_STATE_CLOSED</a> =&gt; <span class="prelude-val">Err</span>(<span class="prelude-val">Some</span>(<a href="#292">broken_pipe</a>().<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())),
+            USER_STATE_CLOSED =&gt; <span class="prelude-val">Err</span>(<span class="prelude-val">Some</span>(broken_pipe().into())),
             <span class="kw">_ </span>=&gt; {
                 <span class="comment">// Was already pending, user error!
                 </span><span class="prelude-val">Err</span>(<span class="prelude-val">None</span>)
@@ -529,24 +529,24 @@
         }
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>poll_pong(<span class="kw-2">&amp;</span><span class="self">self</span>, cx: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#10">proto::Error</a>&gt;&gt; {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>poll_pong(<span class="kw-2">&amp;</span><span class="self">self</span>, cx: <span class="kw-2">&amp;mut </span>Context) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;(), proto::Error&gt;&gt; {
         <span class="comment">// Must register before checking state, in case state were to change
         // before we could register, and then the ping would just be lost.
-        </span><a class="self" href="#238">self</a>.<span class="number">0</span>.pong_task.register(<a href="#238">cx</a>.waker());
-        <span class="kw">let </span>prev = <span class="self"><a href="#238">self</a>
+        </span><span class="self">self</span>.<span class="number">0</span>.pong_task.register(cx.waker());
+        <span class="kw">let </span>prev = <span class="self">self
             </span>.<span class="number">0
             </span>.state
             .compare_exchange(
-                <a href="#57">USER_STATE_RECEIVED_PONG</a>, <span class="comment">// current
-                </span><a href="#51">USER_STATE_EMPTY</a>,         <span class="comment">// new
+                USER_STATE_RECEIVED_PONG, <span class="comment">// current
+                </span>USER_STATE_EMPTY,         <span class="comment">// new
                 </span>Ordering::AcqRel,
                 Ordering::Acquire,
             )
-            .unwrap_or_else(|v| <a href="#251">v</a>);
+            .unwrap_or_else(|v| v);
 
-        <span class="kw">match </span><a href="#242">prev</a> {
-            <a href="#57">USER_STATE_RECEIVED_PONG</a> =&gt; Poll::Ready(<span class="prelude-val">Ok</span>(())),
-            <a href="#59">USER_STATE_CLOSED</a> =&gt; Poll::Ready(<span class="prelude-val">Err</span>(<a href="#292">broken_pipe</a>().<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())),
+        <span class="kw">match </span>prev {
+            USER_STATE_RECEIVED_PONG =&gt; Poll::Ready(<span class="prelude-val">Ok</span>(())),
+            USER_STATE_CLOSED =&gt; Poll::Ready(<span class="prelude-val">Err</span>(broken_pipe().into())),
             <span class="kw">_ </span>=&gt; Poll::Pending,
         }
     }
@@ -554,21 +554,21 @@
 
 <span class="comment">// ===== impl UserPingsRx =====
 
-</span><span class="kw">impl </span><a href="#25">UserPingsRx</a> {
-    <span class="kw">fn </span>receive_pong(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">let </span>prev = <span class="self"><a href="#264">self</a>
+</span><span class="kw">impl </span>UserPingsRx {
+    <span class="kw">fn </span>receive_pong(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="kw">let </span>prev = <span class="self">self
             </span>.<span class="number">0
             </span>.state
             .compare_exchange(
-                <a href="#55">USER_STATE_PENDING_PONG</a>,  <span class="comment">// current
-                </span><a href="#57">USER_STATE_RECEIVED_PONG</a>, <span class="comment">// new
+                USER_STATE_PENDING_PONG,  <span class="comment">// current
+                </span>USER_STATE_RECEIVED_PONG, <span class="comment">// new
                 </span>Ordering::AcqRel,
                 Ordering::Acquire,
             )
-            .unwrap_or_else(|v| <a href="#274">v</a>);
+            .unwrap_or_else(|v| v);
 
         <span class="kw">if </span>prev == USER_STATE_PENDING_PONG {
-            <a class="self" href="#264">self</a>.<span class="number">0</span>.pong_task.wake();
+            <span class="self">self</span>.<span class="number">0</span>.pong_task.wake();
             <span class="bool-val">true
         </span>} <span class="kw">else </span>{
             <span class="bool-val">false
@@ -576,15 +576,15 @@
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span><a href="#25">UserPingsRx</a> {
+<span class="kw">impl </span>Drop <span class="kw">for </span>UserPingsRx {
     <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <a class="self" href="#286">self</a>.<span class="number">0</span>.state.store(<a href="#59">USER_STATE_CLOSED</a>, Ordering::Release);
-        <a class="self" href="#286">self</a>.<span class="number">0</span>.pong_task.wake();
+        <span class="self">self</span>.<span class="number">0</span>.state.store(USER_STATE_CLOSED, Ordering::Release);
+        <span class="self">self</span>.<span class="number">0</span>.pong_task.wake();
     }
 }
 
-<span class="kw">fn </span>broken_pipe() -&gt; <a href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a> {
-    io::ErrorKind::BrokenPipe.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()
+<span class="kw">fn </span>broken_pipe() -&gt; io::Error {
+    io::ErrorKind::BrokenPipe.into()
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="h2" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="h2" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

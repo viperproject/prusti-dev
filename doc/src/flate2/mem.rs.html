@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/flate2-1.0.24/src/mem.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mem.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../flate2/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/flate2-1.0.25/src/mem.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mem.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../flate2/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -786,13 +786,13 @@
 <a href="#786" id="786">786</a>
 <a href="#787" id="787">787</a>
 <a href="#788" id="788">788</a>
-</pre><pre class="rust"><code><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">std::error::Error</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">std::fmt</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/io/index.html">std::io</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/slice/index.html">std::slice</a>;
+</pre><pre class="rust"><code><span class="kw">use </span>std::error::Error;
+<span class="kw">use </span>std::fmt;
+<span class="kw">use </span>std::io;
+<span class="kw">use </span>std::slice;
 
-<span class="kw">use </span><span class="kw">crate</span>::ffi::{<a class="self" href="lib.rs.html#89">self</a>, <a href="ffi/mod.rs.html#10">Backend</a>, <a href="ffi/c.rs.html#266">Deflate</a>, <a href="ffi/mod.rs.html#26">DeflateBackend</a>, <a href="ffi/c.rs.html#15">ErrorMessage</a>, <a href="ffi/c.rs.html#181">Inflate</a>, <a href="ffi/mod.rs.html#15">InflateBackend</a>};
-<span class="kw">use </span><a href="lib.rs.html#157"><span class="kw">crate</span>::Compression</a>;
+<span class="kw">use </span><span class="kw">crate</span>::ffi::{<span class="self">self</span>, Backend, Deflate, DeflateBackend, ErrorMessage, Inflate, InflateBackend};
+<span class="kw">use </span><span class="kw">crate</span>::Compression;
 
 <span class="doccomment">/// Raw in-memory compression stream for blocks of data.
 ///
@@ -808,7 +808,7 @@
 /// [`Write`]: https://doc.rust-lang.org/std/io/trait.Write.html
 </span><span class="attr">#[derive(Debug)]
 </span><span class="kw">pub struct </span>Compress {
-    inner: <a href="ffi/c.rs.html#266">Deflate</a>,
+    inner: Deflate,
 }
 
 <span class="doccomment">/// Raw in-memory decompression stream for blocks of data.
@@ -825,7 +825,7 @@
 /// [`Write`]: https://doc.rust-lang.org/std/io/trait.Write.html
 </span><span class="attr">#[derive(Debug)]
 </span><span class="kw">pub struct </span>Decompress {
-    inner: <a href="ffi/c.rs.html#181">Inflate</a>,
+    inner: Inflate,
 }
 
 <span class="attr">#[derive(Copy, Clone, PartialEq, Eq, Debug)]
@@ -835,7 +835,7 @@
     <span class="doccomment">/// A typical parameter for passing to compression/decompression functions,
     /// this indicates that the underlying stream to decide how much data to
     /// accumulate before producing output in order to maximize compression.
-    </span><span class="prelude-val">None </span>= <a href="../../libz_sys/constant.Z_NO_FLUSH.html">ffi::MZ_NO_FLUSH</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.isize.html">isize</a>,
+    </span><span class="prelude-val">None </span>= ffi::MZ_NO_FLUSH <span class="kw">as </span>isize,
 
     <span class="doccomment">/// All pending output is flushed to the output buffer and the output is
     /// aligned on a byte boundary so that the decompressor can get all input
@@ -844,7 +844,7 @@
     /// Flushing may degrade compression for some compression algorithms and so
     /// it should only be used when necessary. This will complete the current
     /// deflate block and follow it with an empty stored block.
-    </span>Sync = <a href="../../libz_sys/constant.Z_SYNC_FLUSH.html">ffi::MZ_SYNC_FLUSH</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.isize.html">isize</a>,
+    </span>Sync = ffi::MZ_SYNC_FLUSH <span class="kw">as </span>isize,
 
     <span class="doccomment">/// All pending output is flushed to the output buffer, but the output is
     /// not aligned to a byte boundary.
@@ -854,20 +854,20 @@
     /// it with an empty fixed codes block that is 10 bites long, and it assures
     /// that enough bytes are output in order for the decompressor to finish the
     /// block before the empty fixed code block.
-    </span>Partial = <a href="../../libz_sys/constant.Z_PARTIAL_FLUSH.html">ffi::MZ_PARTIAL_FLUSH</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.isize.html">isize</a>,
+    </span>Partial = ffi::MZ_PARTIAL_FLUSH <span class="kw">as </span>isize,
 
     <span class="doccomment">/// All output is flushed as with `Flush::Sync` and the compression state is
     /// reset so decompression can restart from this point if previous
     /// compressed data has been damaged or if random access is desired.
     ///
     /// Using this option too often can seriously degrade compression.
-    </span>Full = <a href="../../libz_sys/constant.Z_FULL_FLUSH.html">ffi::MZ_FULL_FLUSH</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.isize.html">isize</a>,
+    </span>Full = ffi::MZ_FULL_FLUSH <span class="kw">as </span>isize,
 
     <span class="doccomment">/// Pending input is processed and pending output is flushed.
     ///
     /// The return value may indicate that the stream is not yet done and more
     /// data has yet to be processed.
-    </span>Finish = <a href="../../libz_sys/constant.Z_FINISH.html">ffi::MZ_FINISH</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.isize.html">isize</a>,
+    </span>Finish = ffi::MZ_FINISH <span class="kw">as </span>isize,
 
     <span class="attr">#[doc(hidden)]
     </span>_Nonexhaustive,
@@ -880,7 +880,7 @@
     <span class="doccomment">/// A typical parameter for passing to compression/decompression functions,
     /// this indicates that the underlying stream to decide how much data to
     /// accumulate before producing output in order to maximize compression.
-    </span><span class="prelude-val">None </span>= <a href="../../libz_sys/constant.Z_NO_FLUSH.html">ffi::MZ_NO_FLUSH</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.isize.html">isize</a>,
+    </span><span class="prelude-val">None </span>= ffi::MZ_NO_FLUSH <span class="kw">as </span>isize,
 
     <span class="doccomment">/// All pending output is flushed to the output buffer and the output is
     /// aligned on a byte boundary so that the decompressor can get all input
@@ -889,13 +889,13 @@
     /// Flushing may degrade compression for some compression algorithms and so
     /// it should only be used when necessary. This will complete the current
     /// deflate block and follow it with an empty stored block.
-    </span>Sync = <a href="../../libz_sys/constant.Z_SYNC_FLUSH.html">ffi::MZ_SYNC_FLUSH</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.isize.html">isize</a>,
+    </span>Sync = ffi::MZ_SYNC_FLUSH <span class="kw">as </span>isize,
 
     <span class="doccomment">/// Pending input is processed and pending output is flushed.
     ///
     /// The return value may indicate that the stream is not yet done and more
     /// data has yet to be processed.
-    </span>Finish = <a href="../../libz_sys/constant.Z_FINISH.html">ffi::MZ_FINISH</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.isize.html">isize</a>,
+    </span>Finish = ffi::MZ_FINISH <span class="kw">as </span>isize,
 
     <span class="attr">#[doc(hidden)]
     </span>_Nonexhaustive,
@@ -904,37 +904,37 @@
 <span class="doccomment">/// The inner state for an error when decompressing
 </span><span class="attr">#[derive(Debug)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">enum </span>DecompressErrorInner {
-    General { msg: <a href="ffi/c.rs.html#15">ErrorMessage</a> },
-    NeedsDictionary(<a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>),
+    General { msg: ErrorMessage },
+    NeedsDictionary(u32),
 }
 
 <span class="doccomment">/// Error returned when a decompression object finds that the input stream of
 /// bytes was not a valid input stream of bytes.
 </span><span class="attr">#[derive(Debug)]
-</span><span class="kw">pub struct </span>DecompressError(<span class="kw">pub</span>(<span class="kw">crate</span>) <a href="#118">DecompressErrorInner</a>);
+</span><span class="kw">pub struct </span>DecompressError(<span class="kw">pub</span>(<span class="kw">crate</span>) DecompressErrorInner);
 
-<span class="kw">impl </span><a href="#126">DecompressError</a> {
+<span class="kw">impl </span>DecompressError {
     <span class="doccomment">/// Indicates whether decompression failed due to requiring a dictionary.
     ///
     /// The resulting integer is the Adler-32 checksum of the dictionary
     /// required.
-    </span><span class="kw">pub fn </span>needs_dictionary(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>&gt; {
-        <span class="kw">match </span><a class="self" href="#133">self</a>.<span class="number">0 </span>{
-            <a href="#120">DecompressErrorInner::NeedsDictionary</a>(adler) =&gt; <span class="prelude-val">Some</span>(<a href="#135">adler</a>),
+    </span><span class="kw">pub fn </span>needs_dictionary(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;u32&gt; {
+        <span class="kw">match </span><span class="self">self</span>.<span class="number">0 </span>{
+            DecompressErrorInner::NeedsDictionary(adler) =&gt; <span class="prelude-val">Some</span>(adler),
             <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
         }
     }
 }
 
 <span class="attr">#[inline]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>decompress_failed&lt;T&gt;(msg: <a href="ffi/c.rs.html#15">ErrorMessage</a>) -&gt; <span class="prelude-ty">Result</span>&lt;T, <a href="#126">DecompressError</a>&gt; {
-    <span class="prelude-val">Err</span>(<a href="#126">DecompressError</a>(<a href="#119">DecompressErrorInner::General</a> { <a href="#142">msg</a> }))
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>decompress_failed&lt;T&gt;(msg: ErrorMessage) -&gt; <span class="prelude-ty">Result</span>&lt;T, DecompressError&gt; {
+    <span class="prelude-val">Err</span>(DecompressError(DecompressErrorInner::General { msg }))
 }
 
 <span class="attr">#[inline]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>decompress_need_dict&lt;T&gt;(adler: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; <span class="prelude-ty">Result</span>&lt;T, <a href="#126">DecompressError</a>&gt; {
-    <span class="prelude-val">Err</span>(<a href="#126">DecompressError</a>(<a href="#120">DecompressErrorInner::NeedsDictionary</a>(
-        <a href="#147">adler</a>,
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>decompress_need_dict&lt;T&gt;(adler: u32) -&gt; <span class="prelude-ty">Result</span>&lt;T, DecompressError&gt; {
+    <span class="prelude-val">Err</span>(DecompressError(DecompressErrorInner::NeedsDictionary(
+        adler,
     )))
 }
 
@@ -942,12 +942,12 @@
 /// generates an error.
 </span><span class="attr">#[derive(Debug)]
 </span><span class="kw">pub struct </span>CompressError {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) msg: <a href="ffi/c.rs.html#15">ErrorMessage</a>,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) msg: ErrorMessage,
 }
 
 <span class="attr">#[inline]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>compress_failed&lt;T&gt;(msg: <a href="ffi/c.rs.html#15">ErrorMessage</a>) -&gt; <span class="prelude-ty">Result</span>&lt;T, <a href="#156">CompressError</a>&gt; {
-    <span class="prelude-val">Err</span>(<a href="#156">CompressError</a> { <a href="#161">msg</a> })
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>compress_failed&lt;T&gt;(msg: ErrorMessage) -&gt; <span class="prelude-ty">Result</span>&lt;T, CompressError&gt; {
+    <span class="prelude-val">Err</span>(CompressError { msg })
 }
 
 <span class="doccomment">/// Possible status results of compressing some data or successfully
@@ -979,15 +979,15 @@
     </span>StreamEnd,
 }
 
-<span class="kw">impl </span><a href="#22">Compress</a> {
+<span class="kw">impl </span>Compress {
     <span class="doccomment">/// Creates a new object ready for compressing data that it&#39;s given.
     ///
     /// The `level` argument here indicates what level of compression is going
     /// to be performed, and the `zlib_header` argument indicates whether the
     /// output data should have a zlib header or not.
-    </span><span class="kw">pub fn </span>new(level: <a href="lib.rs.html#157">Compression</a>, zlib_header: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <a href="#22">Compress</a> {
-        <a href="#22">Compress</a> {
-            inner: Deflate::make(<a href="#200">level</a>, <a href="#200">zlib_header</a>, <a href="ffi/c.rs.html#387">ffi::MZ_DEFAULT_WINDOW_BITS</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>),
+    </span><span class="kw">pub fn </span>new(level: Compression, zlib_header: bool) -&gt; Compress {
+        Compress {
+            inner: Deflate::make(level, zlib_header, ffi::MZ_DEFAULT_WINDOW_BITS <span class="kw">as </span>u8),
         }
     }
 
@@ -1010,16 +1010,16 @@
     /// Other backends currently do not support custom window bits.
     </span><span class="attr">#[cfg(feature = <span class="string">&quot;any_zlib&quot;</span>)]
     </span><span class="kw">pub fn </span>new_with_window_bits(
-        level: <a href="lib.rs.html#157">Compression</a>,
-        zlib_header: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-        window_bits: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>,
-    ) -&gt; <a href="#22">Compress</a> {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(
+        level: Compression,
+        zlib_header: bool,
+        window_bits: u8,
+    ) -&gt; Compress {
+        <span class="macro">assert!</span>(
             window_bits &gt; <span class="number">8 </span>&amp;&amp; window_bits &lt; <span class="number">16</span>,
             <span class="string">&quot;window_bits must be within 9 ..= 15&quot;
         </span>);
-        <a href="#22">Compress</a> {
-            inner: Deflate::make(<a href="#225">level</a>, <a href="#226">zlib_header</a>, <a href="#227">window_bits</a>),
+        Compress {
+            inner: Deflate::make(level, zlib_header, window_bits),
         }
     }
 
@@ -1041,44 +1041,44 @@
     /// This constructor is only available when the `zlib` feature is used.
     /// Other backends currently do not support gzip headers for Compress.
     </span><span class="attr">#[cfg(feature = <span class="string">&quot;any_zlib&quot;</span>)]
-    </span><span class="kw">pub fn </span>new_gzip(level: <a href="lib.rs.html#157">Compression</a>, window_bits: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) -&gt; <a href="#22">Compress</a> {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(
+    </span><span class="kw">pub fn </span>new_gzip(level: Compression, window_bits: u8) -&gt; Compress {
+        <span class="macro">assert!</span>(
             window_bits &gt; <span class="number">8 </span>&amp;&amp; window_bits &lt; <span class="number">16</span>,
             <span class="string">&quot;window_bits must be within 9 ..= 15&quot;
         </span>);
-        <a href="#22">Compress</a> {
-            inner: Deflate::make(<a href="#256">level</a>, <span class="bool-val">true</span>, <a href="#256">window_bits</a> + <span class="number">16</span>),
+        Compress {
+            inner: Deflate::make(level, <span class="bool-val">true</span>, window_bits + <span class="number">16</span>),
         }
     }
 
     <span class="doccomment">/// Returns the total number of input bytes which have been processed by
     /// this compression object.
-    </span><span class="kw">pub fn </span>total_in(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> {
-        <a class="self" href="#268">self</a>.inner.<a href="ffi/mod.rs.html#11">total_in</a>()
+    </span><span class="kw">pub fn </span>total_in(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u64 {
+        <span class="self">self</span>.inner.total_in()
     }
 
     <span class="doccomment">/// Returns the total number of output bytes which have been produced by
     /// this compression object.
-    </span><span class="kw">pub fn </span>total_out(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> {
-        <a class="self" href="#274">self</a>.inner.<a href="ffi/mod.rs.html#12">total_out</a>()
+    </span><span class="kw">pub fn </span>total_out(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u64 {
+        <span class="self">self</span>.inner.total_out()
     }
 
     <span class="doccomment">/// Specifies the compression dictionary to use.
     ///
     /// Returns the Adler-32 checksum of the dictionary.
     </span><span class="attr">#[cfg(feature = <span class="string">&quot;any_zlib&quot;</span>)]
-    </span><span class="kw">pub fn </span>set_dictionary(<span class="kw-2">&amp;mut </span><span class="self">self</span>, dictionary: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>, <a href="#156">CompressError</a>&gt; {
-        <span class="kw">let </span>stream = <span class="kw-2">&amp;mut *</span><a class="self" href="#282">self</a>.inner.inner.stream_wrapper;
-        <a href="#283">stream</a>.msg = std::ptr::null_mut();
+    </span><span class="kw">pub fn </span>set_dictionary(<span class="kw-2">&amp;mut </span><span class="self">self</span>, dictionary: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;u32, CompressError&gt; {
+        <span class="kw">let </span>stream = <span class="kw-2">&amp;mut *</span><span class="self">self</span>.inner.inner.stream_wrapper;
+        stream.msg = std::ptr::null_mut();
         <span class="kw">let </span>rc = <span class="kw">unsafe </span>{
-            <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(dictionary.len() &lt; ffi::uInt::MAX <span class="kw">as </span>usize);
-            <a href="../../libz_sys/fn.deflateSetDictionary.html">ffi::deflateSetDictionary</a>(<a href="#283">stream</a>, <a href="#282">dictionary</a>.as_ptr(), <a href="#282">dictionary</a>.len() <span class="kw">as </span><a href="../../libz_sys/type.uInt.html">ffi::uInt</a>)
+            <span class="macro">assert!</span>(dictionary.len() &lt; ffi::uInt::MAX <span class="kw">as </span>usize);
+            ffi::deflateSetDictionary(stream, dictionary.as_ptr(), dictionary.len() <span class="kw">as </span>ffi::uInt)
         };
 
-        <span class="kw">match </span><a href="#285">rc</a> {
-            <a href="../../libz_sys/constant.Z_STREAM_ERROR.html">ffi::MZ_STREAM_ERROR</a> =&gt; <a href="#161">compress_failed</a>(<a class="self" href="#282">self</a>.inner.inner.<a href="ffi/c.rs.html#150">msg</a>()),
-            <a href="../../libz_sys/constant.Z_OK.html">ffi::MZ_OK</a> =&gt; <span class="prelude-val">Ok</span>(<a href="#283">stream</a>.adler <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>),
-            c =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(<span class="string">&quot;unknown return code: {}&quot;</span>, c),
+        <span class="kw">match </span>rc {
+            ffi::MZ_STREAM_ERROR =&gt; compress_failed(<span class="self">self</span>.inner.inner.msg()),
+            ffi::MZ_OK =&gt; <span class="prelude-val">Ok</span>(stream.adler <span class="kw">as </span>u32),
+            c =&gt; <span class="macro">panic!</span>(<span class="string">&quot;unknown return code: {}&quot;</span>, c),
         }
     }
 
@@ -1086,7 +1086,7 @@
     ///
     /// This is equivalent to dropping this object and then creating a new one.
     </span><span class="kw">pub fn </span>reset(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <a class="self" href="#300">self</a>.inner.<a href="ffi/mod.rs.html#34">reset</a>();
+        <span class="self">self</span>.inner.reset();
     }
 
     <span class="doccomment">/// Dynamically updates the compression level.
@@ -1100,17 +1100,17 @@
     /// compression level. Flushing the stream before calling this method
     /// ensures that the function will succeed on the first call.
     </span><span class="attr">#[cfg(feature = <span class="string">&quot;any_zlib&quot;</span>)]
-    </span><span class="kw">pub fn </span>set_level(<span class="kw-2">&amp;mut </span><span class="self">self</span>, level: <a href="lib.rs.html#157">Compression</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="#156">CompressError</a>&gt; {
-        <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/os/raw/type.c_int.html">std::os::raw::c_int</a>;
-        <span class="kw">let </span>stream = <span class="kw-2">&amp;mut *</span><a class="self" href="#315">self</a>.inner.inner.stream_wrapper;
-        <a href="#317">stream</a>.msg = std::ptr::null_mut();
+    </span><span class="kw">pub fn </span>set_level(<span class="kw-2">&amp;mut </span><span class="self">self</span>, level: Compression) -&gt; <span class="prelude-ty">Result</span>&lt;(), CompressError&gt; {
+        <span class="kw">use </span>std::os::raw::c_int;
+        <span class="kw">let </span>stream = <span class="kw-2">&amp;mut *</span><span class="self">self</span>.inner.inner.stream_wrapper;
+        stream.msg = std::ptr::null_mut();
 
-        <span class="kw">let </span>rc = <span class="kw">unsafe </span>{ <a href="../../libz_sys/fn.deflateParams.html">ffi::deflateParams</a>(<a href="#317">stream</a>, <a href="#315">level</a>.<span class="number">0 </span><span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/os/raw/type.c_int.html">c_int</a>, <a href="../../libz_sys/constant.Z_DEFAULT_STRATEGY.html">ffi::MZ_DEFAULT_STRATEGY</a>) };
+        <span class="kw">let </span>rc = <span class="kw">unsafe </span>{ ffi::deflateParams(stream, level.<span class="number">0 </span><span class="kw">as </span>c_int, ffi::MZ_DEFAULT_STRATEGY) };
 
-        <span class="kw">match </span><a href="#320">rc</a> {
-            <a href="../../libz_sys/constant.Z_OK.html">ffi::MZ_OK</a> =&gt; <span class="prelude-val">Ok</span>(()),
-            <a href="../../libz_sys/constant.Z_BUF_ERROR.html">ffi::MZ_BUF_ERROR</a> =&gt; <a href="#161">compress_failed</a>(<a class="self" href="#315">self</a>.inner.inner.<a href="ffi/c.rs.html#150">msg</a>()),
-            c =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(<span class="string">&quot;unknown return code: {}&quot;</span>, c),
+        <span class="kw">match </span>rc {
+            ffi::MZ_OK =&gt; <span class="prelude-val">Ok</span>(()),
+            ffi::MZ_BUF_ERROR =&gt; compress_failed(<span class="self">self</span>.inner.inner.msg()),
+            c =&gt; <span class="macro">panic!</span>(<span class="string">&quot;unknown return code: {}&quot;</span>, c),
         }
     }
 
@@ -1123,11 +1123,11 @@
     /// the `total_in` and `total_out` functions before/after this is called.
     </span><span class="kw">pub fn </span>compress(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        input: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
-        output: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
-        flush: <a href="#46">FlushCompress</a>,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#168">Status</a>, <a href="#156">CompressError</a>&gt; {
-        <a class="self" href="#337">self</a>.inner.<a href="ffi/mod.rs.html#28-33">compress</a>(<a href="#338">input</a>, <a href="#339">output</a>, <a href="#340">flush</a>)
+        input: <span class="kw-2">&amp;</span>[u8],
+        output: <span class="kw-2">&amp;mut </span>[u8],
+        flush: FlushCompress,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;Status, CompressError&gt; {
+        <span class="self">self</span>.inner.compress(input, output, flush)
     }
 
     <span class="doccomment">/// Compresses the input data into the extra space of the output, consuming
@@ -1140,34 +1140,34 @@
     /// function.
     </span><span class="kw">pub fn </span>compress_vec(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        input: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
-        output: <span class="kw-2">&amp;mut </span>Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;,
-        flush: <a href="#46">FlushCompress</a>,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#168">Status</a>, <a href="#156">CompressError</a>&gt; {
-        <span class="kw">let </span>cap = <a href="#356">output</a>.capacity();
-        <span class="kw">let </span>len = <a href="#356">output</a>.len();
+        input: <span class="kw-2">&amp;</span>[u8],
+        output: <span class="kw-2">&amp;mut </span>Vec&lt;u8&gt;,
+        flush: FlushCompress,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;Status, CompressError&gt; {
+        <span class="kw">let </span>cap = output.capacity();
+        <span class="kw">let </span>len = output.len();
 
         <span class="kw">unsafe </span>{
-            <span class="kw">let </span>before = <a class="self" href="#354">self</a>.<a href="#274">total_out</a>();
+            <span class="kw">let </span>before = <span class="self">self</span>.total_out();
             <span class="kw">let </span>ret = {
-                <span class="kw">let </span>ptr = <a href="#356">output</a>.as_mut_ptr().offset(<a href="#360">len</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.isize.html">isize</a>);
-                <span class="kw">let </span>out = slice::from_raw_parts_mut(<a href="#365">ptr</a>, <a href="#359">cap</a> - <a href="#360">len</a>);
-                <a class="self" href="#354">self</a>.<a href="#336-341">compress</a>(<a href="#355">input</a>, <a href="#366">out</a>, <a href="#357">flush</a>)
+                <span class="kw">let </span>ptr = output.as_mut_ptr().offset(len <span class="kw">as </span>isize);
+                <span class="kw">let </span>out = slice::from_raw_parts_mut(ptr, cap - len);
+                <span class="self">self</span>.compress(input, out, flush)
             };
-            <a href="#356">output</a>.set_len((<a class="self" href="#354">self</a>.<a href="#274">total_out</a>() - <a href="#363">before</a>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> + <a href="#360">len</a>);
-            <a href="#364">ret</a>
+            output.set_len((<span class="self">self</span>.total_out() - before) <span class="kw">as </span>usize + len);
+            ret
         }
     }
 }
 
-<span class="kw">impl </span><a href="#39">Decompress</a> {
+<span class="kw">impl </span>Decompress {
     <span class="doccomment">/// Creates a new object ready for decompressing data that it&#39;s given.
     ///
     /// The `zlib_header` argument indicates whether the input data is expected
     /// to have a zlib header or not.
-    </span><span class="kw">pub fn </span>new(zlib_header: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <a href="#39">Decompress</a> {
-        <a href="#39">Decompress</a> {
-            inner: Inflate::make(<a href="#380">zlib_header</a>, <a href="ffi/c.rs.html#387">ffi::MZ_DEFAULT_WINDOW_BITS</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>),
+    </span><span class="kw">pub fn </span>new(zlib_header: bool) -&gt; Decompress {
+        Decompress {
+            inner: Inflate::make(zlib_header, ffi::MZ_DEFAULT_WINDOW_BITS <span class="kw">as </span>u8),
         }
     }
 
@@ -1187,13 +1187,13 @@
     /// This constructor is only available when the `zlib` feature is used.
     /// Other backends currently do not support custom window bits.
     </span><span class="attr">#[cfg(feature = <span class="string">&quot;any_zlib&quot;</span>)]
-    </span><span class="kw">pub fn </span>new_with_window_bits(zlib_header: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>, window_bits: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) -&gt; <a href="#39">Decompress</a> {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(
+    </span><span class="kw">pub fn </span>new_with_window_bits(zlib_header: bool, window_bits: u8) -&gt; Decompress {
+        <span class="macro">assert!</span>(
             window_bits &gt; <span class="number">8 </span>&amp;&amp; window_bits &lt; <span class="number">16</span>,
             <span class="string">&quot;window_bits must be within 9 ..= 15&quot;
         </span>);
-        <a href="#39">Decompress</a> {
-            inner: Inflate::make(<a href="#402">zlib_header</a>, <a href="#402">window_bits</a>),
+        Decompress {
+            inner: Inflate::make(zlib_header, window_bits),
         }
     }
 
@@ -1212,26 +1212,26 @@
     /// This constructor is only available when the `zlib` feature is used.
     /// Other backends currently do not support gzip headers for Decompress.
     </span><span class="attr">#[cfg(feature = <span class="string">&quot;any_zlib&quot;</span>)]
-    </span><span class="kw">pub fn </span>new_gzip(window_bits: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) -&gt; <a href="#39">Decompress</a> {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(
+    </span><span class="kw">pub fn </span>new_gzip(window_bits: u8) -&gt; Decompress {
+        <span class="macro">assert!</span>(
             window_bits &gt; <span class="number">8 </span>&amp;&amp; window_bits &lt; <span class="number">16</span>,
             <span class="string">&quot;window_bits must be within 9 ..= 15&quot;
         </span>);
-        <a href="#39">Decompress</a> {
-            inner: Inflate::make(<span class="bool-val">true</span>, <a href="#427">window_bits</a> + <span class="number">16</span>),
+        Decompress {
+            inner: Inflate::make(<span class="bool-val">true</span>, window_bits + <span class="number">16</span>),
         }
     }
 
     <span class="doccomment">/// Returns the total number of input bytes which have been processed by
     /// this decompression object.
-    </span><span class="kw">pub fn </span>total_in(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> {
-        <a class="self" href="#439">self</a>.inner.<a href="ffi/mod.rs.html#11">total_in</a>()
+    </span><span class="kw">pub fn </span>total_in(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u64 {
+        <span class="self">self</span>.inner.total_in()
     }
 
     <span class="doccomment">/// Returns the total number of output bytes which have been produced by
     /// this decompression object.
-    </span><span class="kw">pub fn </span>total_out(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> {
-        <a class="self" href="#445">self</a>.inner.<a href="ffi/mod.rs.html#12">total_out</a>()
+    </span><span class="kw">pub fn </span>total_out(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u64 {
+        <span class="self">self</span>.inner.total_out()
     }
 
     <span class="doccomment">/// Decompresses the input data into the output, consuming only as much
@@ -1258,11 +1258,11 @@
     /// `DecompressError` to indicate that the stream of input bytes is corrupted.
     </span><span class="kw">pub fn </span>decompress(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        input: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
-        output: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
-        flush: <a href="#91">FlushDecompress</a>,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#168">Status</a>, <a href="#126">DecompressError</a>&gt; {
-        <a class="self" href="#472">self</a>.inner.<a href="ffi/mod.rs.html#17-22">decompress</a>(<a href="#473">input</a>, <a href="#474">output</a>, <a href="#475">flush</a>)
+        input: <span class="kw-2">&amp;</span>[u8],
+        output: <span class="kw-2">&amp;mut </span>[u8],
+        flush: FlushDecompress,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;Status, DecompressError&gt; {
+        <span class="self">self</span>.inner.decompress(input, output, flush)
     }
 
     <span class="doccomment">/// Decompresses the input data into the extra space in the output vector
@@ -1281,40 +1281,40 @@
     /// `DecompressError` to indicate that the stream of input bytes is corrupted.
     </span><span class="kw">pub fn </span>decompress_vec(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        input: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
-        output: <span class="kw-2">&amp;mut </span>Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;,
-        flush: <a href="#91">FlushDecompress</a>,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#168">Status</a>, <a href="#126">DecompressError</a>&gt; {
-        <span class="kw">let </span>cap = <a href="#497">output</a>.capacity();
-        <span class="kw">let </span>len = <a href="#497">output</a>.len();
+        input: <span class="kw-2">&amp;</span>[u8],
+        output: <span class="kw-2">&amp;mut </span>Vec&lt;u8&gt;,
+        flush: FlushDecompress,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;Status, DecompressError&gt; {
+        <span class="kw">let </span>cap = output.capacity();
+        <span class="kw">let </span>len = output.len();
 
         <span class="kw">unsafe </span>{
-            <span class="kw">let </span>before = <a class="self" href="#495">self</a>.<a href="#445">total_out</a>();
+            <span class="kw">let </span>before = <span class="self">self</span>.total_out();
             <span class="kw">let </span>ret = {
-                <span class="kw">let </span>ptr = <a href="#497">output</a>.as_mut_ptr().offset(<a href="#501">len</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.isize.html">isize</a>);
-                <span class="kw">let </span>out = slice::from_raw_parts_mut(<a href="#506">ptr</a>, <a href="#500">cap</a> - <a href="#501">len</a>);
-                <a class="self" href="#495">self</a>.<a href="#471-476">decompress</a>(<a href="#496">input</a>, <a href="#507">out</a>, <a href="#498">flush</a>)
+                <span class="kw">let </span>ptr = output.as_mut_ptr().offset(len <span class="kw">as </span>isize);
+                <span class="kw">let </span>out = slice::from_raw_parts_mut(ptr, cap - len);
+                <span class="self">self</span>.decompress(input, out, flush)
             };
-            <a href="#497">output</a>.set_len((<a class="self" href="#495">self</a>.<a href="#445">total_out</a>() - <a href="#504">before</a>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> + <a href="#501">len</a>);
-            <a href="#505">ret</a>
+            output.set_len((<span class="self">self</span>.total_out() - before) <span class="kw">as </span>usize + len);
+            ret
         }
     }
 
     <span class="doccomment">/// Specifies the decompression dictionary to use.
     </span><span class="attr">#[cfg(feature = <span class="string">&quot;any_zlib&quot;</span>)]
-    </span><span class="kw">pub fn </span>set_dictionary(<span class="kw-2">&amp;mut </span><span class="self">self</span>, dictionary: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>, <a href="#126">DecompressError</a>&gt; {
-        <span class="kw">let </span>stream = <span class="kw-2">&amp;mut *</span><a class="self" href="#517">self</a>.inner.inner.stream_wrapper;
-        <a href="#518">stream</a>.msg = std::ptr::null_mut();
+    </span><span class="kw">pub fn </span>set_dictionary(<span class="kw-2">&amp;mut </span><span class="self">self</span>, dictionary: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;u32, DecompressError&gt; {
+        <span class="kw">let </span>stream = <span class="kw-2">&amp;mut *</span><span class="self">self</span>.inner.inner.stream_wrapper;
+        stream.msg = std::ptr::null_mut();
         <span class="kw">let </span>rc = <span class="kw">unsafe </span>{
-            <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(dictionary.len() &lt; ffi::uInt::MAX <span class="kw">as </span>usize);
-            <a href="../../libz_sys/fn.inflateSetDictionary.html">ffi::inflateSetDictionary</a>(<a href="#518">stream</a>, <a href="#517">dictionary</a>.as_ptr(), <a href="#517">dictionary</a>.len() <span class="kw">as </span><a href="../../libz_sys/type.uInt.html">ffi::uInt</a>)
+            <span class="macro">assert!</span>(dictionary.len() &lt; ffi::uInt::MAX <span class="kw">as </span>usize);
+            ffi::inflateSetDictionary(stream, dictionary.as_ptr(), dictionary.len() <span class="kw">as </span>ffi::uInt)
         };
 
-        <span class="kw">match </span><a href="#520">rc</a> {
-            <a href="../../libz_sys/constant.Z_STREAM_ERROR.html">ffi::MZ_STREAM_ERROR</a> =&gt; <a href="#142">decompress_failed</a>(<a class="self" href="#517">self</a>.inner.inner.<a href="ffi/c.rs.html#150">msg</a>()),
-            <a href="../../libz_sys/constant.Z_DATA_ERROR.html">ffi::MZ_DATA_ERROR</a> =&gt; <a href="#147">decompress_need_dict</a>(<a href="#518">stream</a>.adler <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>),
-            <a href="../../libz_sys/constant.Z_OK.html">ffi::MZ_OK</a> =&gt; <span class="prelude-val">Ok</span>(<a href="#518">stream</a>.adler <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>),
-            c =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(<span class="string">&quot;unknown return code: {}&quot;</span>, c),
+        <span class="kw">match </span>rc {
+            ffi::MZ_STREAM_ERROR =&gt; decompress_failed(<span class="self">self</span>.inner.inner.msg()),
+            ffi::MZ_DATA_ERROR =&gt; decompress_need_dict(stream.adler <span class="kw">as </span>u32),
+            ffi::MZ_OK =&gt; <span class="prelude-val">Ok</span>(stream.adler <span class="kw">as </span>u32),
+            c =&gt; <span class="macro">panic!</span>(<span class="string">&quot;unknown return code: {}&quot;</span>, c),
         }
     }
 
@@ -1326,62 +1326,62 @@
     ///
     /// The argument provided here indicates whether the reset state will
     /// attempt to decode a zlib header first or not.
-    </span><span class="kw">pub fn </span>reset(<span class="kw-2">&amp;mut </span><span class="self">self</span>, zlib_header: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) {
-        <a class="self" href="#541">self</a>.inner.<a href="ffi/mod.rs.html#23">reset</a>(<a href="#541">zlib_header</a>);
+    </span><span class="kw">pub fn </span>reset(<span class="kw-2">&amp;mut </span><span class="self">self</span>, zlib_header: bool) {
+        <span class="self">self</span>.inner.reset(zlib_header);
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">Error</a> <span class="kw">for </span><a href="#126">DecompressError</a> {}
+<span class="kw">impl </span>Error <span class="kw">for </span>DecompressError {}
 
-<span class="kw">impl </span><a href="#126">DecompressError</a> {
+<span class="kw">impl </span>DecompressError {
     <span class="doccomment">/// Retrieve the implementation&#39;s message about why the operation failed, if one exists.
-    </span><span class="kw">pub fn </span>message(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt; {
-        <span class="kw">match </span><span class="kw-2">&amp;</span><a class="self" href="#550">self</a>.<span class="number">0 </span>{
-            <a href="#119">DecompressErrorInner::General</a> { msg } =&gt; <a href="#552">msg</a>.<a href="ffi/c.rs.html#18">get</a>(),
+    </span><span class="kw">pub fn </span>message(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>str&gt; {
+        <span class="kw">match </span><span class="kw-2">&amp;</span><span class="self">self</span>.<span class="number">0 </span>{
+            DecompressErrorInner::General { msg } =&gt; msg.get(),
             <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
         }
     }
 }
 
-<span class="kw">impl </span>From&lt;<a href="#126">DecompressError</a>&gt; <span class="kw">for </span><a href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a> {
-    <span class="kw">fn </span>from(data: <a href="#126">DecompressError</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a> {
-        io::Error::new(io::ErrorKind::Other, <a href="#559">data</a>)
+<span class="kw">impl </span>From&lt;DecompressError&gt; <span class="kw">for </span>io::Error {
+    <span class="kw">fn </span>from(data: DecompressError) -&gt; io::Error {
+        io::Error::new(io::ErrorKind::Other, data)
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for </span><a href="#126">DecompressError</a> {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <span class="kw">let </span>msg = <span class="kw">match </span><span class="kw-2">&amp;</span><a class="self" href="#565">self</a>.<span class="number">0 </span>{
-            <a href="#119">DecompressErrorInner::General</a> { msg } =&gt; <a href="#567">msg</a>.<a href="ffi/c.rs.html#18">get</a>(),
-            <a href="#120">DecompressErrorInner::NeedsDictionary</a> { .. } =&gt; <span class="prelude-val">Some</span>(<span class="string">&quot;requires a dictionary&quot;</span>),
+<span class="kw">impl </span>fmt::Display <span class="kw">for </span>DecompressError {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter) -&gt; fmt::Result {
+        <span class="kw">let </span>msg = <span class="kw">match </span><span class="kw-2">&amp;</span><span class="self">self</span>.<span class="number">0 </span>{
+            DecompressErrorInner::General { msg } =&gt; msg.get(),
+            DecompressErrorInner::NeedsDictionary { .. } =&gt; <span class="prelude-val">Some</span>(<span class="string">&quot;requires a dictionary&quot;</span>),
         };
-        <span class="kw">match </span><a href="#566">msg</a> {
-            <span class="prelude-val">Some</span>(msg) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#565">f</a>, <span class="string">&quot;deflate decompression error: {}&quot;</span>, msg),
-            <span class="prelude-val">None </span>=&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#565">f</a>, <span class="string">&quot;deflate decompression error&quot;</span>),
+        <span class="kw">match </span>msg {
+            <span class="prelude-val">Some</span>(msg) =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;deflate decompression error: {}&quot;</span>, msg),
+            <span class="prelude-val">None </span>=&gt; <span class="macro">write!</span>(f, <span class="string">&quot;deflate decompression error&quot;</span>),
         }
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">Error</a> <span class="kw">for </span><a href="#156">CompressError</a> {}
+<span class="kw">impl </span>Error <span class="kw">for </span>CompressError {}
 
-<span class="kw">impl </span><a href="#156">CompressError</a> {
+<span class="kw">impl </span>CompressError {
     <span class="doccomment">/// Retrieve the implementation&#39;s message about why the operation failed, if one exists.
-    </span><span class="kw">pub fn </span>message(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt; {
-        <a class="self" href="#581">self</a>.msg.<a href="ffi/c.rs.html#18">get</a>()
+    </span><span class="kw">pub fn </span>message(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>str&gt; {
+        <span class="self">self</span>.msg.get()
     }
 }
 
-<span class="kw">impl </span>From&lt;<a href="#156">CompressError</a>&gt; <span class="kw">for </span><a href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a> {
-    <span class="kw">fn </span>from(data: <a href="#156">CompressError</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a> {
-        io::Error::new(io::ErrorKind::Other, <a href="#587">data</a>)
+<span class="kw">impl </span>From&lt;CompressError&gt; <span class="kw">for </span>io::Error {
+    <span class="kw">fn </span>from(data: CompressError) -&gt; io::Error {
+        io::Error::new(io::ErrorKind::Other, data)
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for </span><a href="#156">CompressError</a> {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <span class="kw">match </span><a class="self" href="#593">self</a>.msg.<a href="ffi/c.rs.html#18">get</a>() {
-            <span class="prelude-val">Some</span>(msg) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#593">f</a>, <span class="string">&quot;deflate compression error: {}&quot;</span>, msg),
-            <span class="prelude-val">None </span>=&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#593">f</a>, <span class="string">&quot;deflate compression error&quot;</span>),
+<span class="kw">impl </span>fmt::Display <span class="kw">for </span>CompressError {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter) -&gt; fmt::Result {
+        <span class="kw">match </span><span class="self">self</span>.msg.get() {
+            <span class="prelude-val">Some</span>(msg) =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;deflate compression error: {}&quot;</span>, msg),
+            <span class="prelude-val">None </span>=&gt; <span class="macro">write!</span>(f, <span class="string">&quot;deflate compression error&quot;</span>),
         }
     }
 }
@@ -1575,4 +1575,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="flate2" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="flate2" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

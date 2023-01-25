@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/yaml-rust-0.4.5/src/scanner.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>scanner.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../yaml_rust/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/yaml-rust-0.4.5/src/scanner.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>scanner.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../yaml_rust/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -2180,9 +2180,9 @@
 <a href="#2180" id="2180">2180</a>
 <a href="#2181" id="2181">2181</a>
 <a href="#2182" id="2182">2182</a>
-</pre><pre class="rust"><code><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/collections/vec_deque/struct.VecDeque.html">std::collections::VecDeque</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">std::error::Error</a>;
-<span class="kw">use </span>std::{<a href="https://doc.rust-lang.org/nightly/core/char/index.html">char</a>, <a href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">fmt</a>};
+</pre><pre class="rust"><code><span class="kw">use </span>std::collections::VecDeque;
+<span class="kw">use </span>std::error::Error;
+<span class="kw">use </span>std::{char, fmt};
 
 <span class="attr">#[derive(Clone, Copy, PartialEq, Debug, Eq)]
 </span><span class="kw">pub enum </span>TEncoding {
@@ -2202,63 +2202,63 @@
 
 <span class="attr">#[derive(Clone, Copy, PartialEq, Debug, Eq)]
 </span><span class="kw">pub struct </span>Marker {
-    index: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-    line: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-    col: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+    index: usize,
+    line: usize,
+    col: usize,
 }
 
-<span class="kw">impl </span><a href="#22">Marker</a> {
-    <span class="kw">fn </span>new(index: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, line: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, col: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a href="#22">Marker</a> {
-        <a href="#22">Marker</a> { <a href="#29">index</a>, <a href="#29">line</a>, <a href="#29">col</a> }
+<span class="kw">impl </span>Marker {
+    <span class="kw">fn </span>new(index: usize, line: usize, col: usize) -&gt; Marker {
+        Marker { index, line, col }
     }
 
-    <span class="kw">pub fn </span>index(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="self" href="#33">self</a>.index
+    <span class="kw">pub fn </span>index(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+        <span class="self">self</span>.index
     }
 
-    <span class="kw">pub fn </span>line(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="self" href="#37">self</a>.line
+    <span class="kw">pub fn </span>line(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+        <span class="self">self</span>.line
     }
 
-    <span class="kw">pub fn </span>col(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="self" href="#41">self</a>.col
+    <span class="kw">pub fn </span>col(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+        <span class="self">self</span>.col
     }
 }
 
 <span class="attr">#[derive(Clone, PartialEq, Debug, Eq)]
 </span><span class="kw">pub struct </span>ScanError {
-    mark: <a href="#22">Marker</a>,
-    info: <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>,
+    mark: Marker,
+    info: String,
 }
 
-<span class="kw">impl </span><a href="#47">ScanError</a> {
-    <span class="kw">pub fn </span>new(loc: <a href="#22">Marker</a>, info: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <a href="#47">ScanError</a> {
-        <a href="#47">ScanError</a> {
-            mark: <a href="#53">loc</a>,
-            info: <a href="#53">info</a>.<a href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">to_owned</a>(),
+<span class="kw">impl </span>ScanError {
+    <span class="kw">pub fn </span>new(loc: Marker, info: <span class="kw-2">&amp;</span>str) -&gt; ScanError {
+        ScanError {
+            mark: loc,
+            info: info.to_owned(),
         }
     }
 
-    <span class="kw">pub fn </span>marker(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="#22">Marker</a> {
-        <span class="kw-2">&amp;</span><a class="self" href="#60">self</a>.mark
+    <span class="kw">pub fn </span>marker(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Marker {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.mark
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">Error</a> <span class="kw">for </span><a href="#47">ScanError</a> {
-    <span class="kw">fn </span>description(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> {
-        <a class="self" href="#66">self</a>.info.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>()
+<span class="kw">impl </span>Error <span class="kw">for </span>ScanError {
+    <span class="kw">fn </span>description(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>str {
+        <span class="self">self</span>.info.as_ref()
     }
 
-    <span class="kw">fn </span>cause(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="kw">dyn </span><a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">Error</a>&gt; {
+    <span class="kw">fn </span>cause(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="kw">dyn </span>Error&gt; {
         <span class="prelude-val">None
     </span>}
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for </span><a href="#47">ScanError</a> {
+<span class="kw">impl </span>fmt::Display <span class="kw">for </span>ScanError {
     <span class="comment">// col starts from 0
-    </span><span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, formatter: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(
-            <a href="#77">formatter</a>,
+    </span><span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, formatter: <span class="kw-2">&amp;mut </span>fmt::Formatter) -&gt; fmt::Result {
+        <span class="macro">write!</span>(
+            formatter,
             <span class="string">&quot;{} at line {} column {}&quot;</span>,
             <span class="self">self</span>.info,
             <span class="self">self</span>.mark.line,
@@ -2270,12 +2270,12 @@
 <span class="attr">#[derive(Clone, PartialEq, Debug, Eq)]
 </span><span class="kw">pub enum </span>TokenType {
     NoToken,
-    StreamStart(<a href="#6">TEncoding</a>),
+    StreamStart(TEncoding),
     StreamEnd,
     <span class="doccomment">/// major, minor
-    </span>VersionDirective(<a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>),
+    </span>VersionDirective(u32, u32),
     <span class="doccomment">/// handle, prefix
-    </span>TagDirective(<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>),
+    </span>TagDirective(String, String),
     DocumentStart,
     DocumentEnd,
     BlockSequenceStart,
@@ -2289,31 +2289,31 @@
     FlowEntry,
     Key,
     Value,
-    Alias(<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>),
-    Anchor(<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>),
+    Alias(String),
+    Anchor(String),
     <span class="doccomment">/// handle, suffix
-    </span>Tag(<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>),
-    Scalar(<a href="#11">TScalarStyle</a>, <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>),
+    </span>Tag(String, String),
+    Scalar(TScalarStyle, String),
 }
 
 <span class="attr">#[derive(Clone, PartialEq, Debug, Eq)]
-</span><span class="kw">pub struct </span>Token(<span class="kw">pub </span><a href="#22">Marker</a>, <span class="kw">pub </span><a href="#89">TokenType</a>);
+</span><span class="kw">pub struct </span>Token(<span class="kw">pub </span>Marker, <span class="kw">pub </span>TokenType);
 
 <span class="attr">#[derive(Clone, PartialEq, Debug, Eq)]
 </span><span class="kw">struct </span>SimpleKey {
-    possible: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-    required: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-    token_number: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-    mark: <a href="#22">Marker</a>,
+    possible: bool,
+    required: bool,
+    token_number: usize,
+    mark: Marker,
 }
 
-<span class="kw">impl </span><a href="#121">SimpleKey</a> {
-    <span class="kw">fn </span>new(mark: <a href="#22">Marker</a>) -&gt; <a href="#121">SimpleKey</a> {
-        <a href="#121">SimpleKey</a> {
+<span class="kw">impl </span>SimpleKey {
+    <span class="kw">fn </span>new(mark: Marker) -&gt; SimpleKey {
+        SimpleKey {
             possible: <span class="bool-val">false</span>,
             required: <span class="bool-val">false</span>,
             token_number: <span class="number">0</span>,
-            <a href="#129">mark</a>,
+            mark,
         }
     }
 }
@@ -2321,33 +2321,33 @@
 <span class="attr">#[derive(Debug)]
 </span><span class="kw">pub struct </span>Scanner&lt;T&gt; {
     rdr: T,
-    mark: <a href="#22">Marker</a>,
-    tokens: VecDeque&lt;<a href="#118">Token</a>&gt;,
-    buffer: VecDeque&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>&gt;,
-    error: <span class="prelude-ty">Option</span>&lt;<a href="#47">ScanError</a>&gt;,
+    mark: Marker,
+    tokens: VecDeque&lt;Token&gt;,
+    buffer: VecDeque&lt;char&gt;,
+    error: <span class="prelude-ty">Option</span>&lt;ScanError&gt;,
 
-    stream_start_produced: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-    stream_end_produced: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-    adjacent_value_allowed_at: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-    simple_key_allowed: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-    simple_keys: Vec&lt;<a href="#121">SimpleKey</a>&gt;,
-    indent: <a href="https://doc.rust-lang.org/nightly/std/primitive.isize.html">isize</a>,
-    indents: Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.isize.html">isize</a>&gt;,
-    flow_level: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>,
-    tokens_parsed: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-    token_available: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
+    stream_start_produced: bool,
+    stream_end_produced: bool,
+    adjacent_value_allowed_at: usize,
+    simple_key_allowed: bool,
+    simple_keys: Vec&lt;SimpleKey&gt;,
+    indent: isize,
+    indents: Vec&lt;isize&gt;,
+    flow_level: u8,
+    tokens_parsed: usize,
+    token_available: bool,
 }
 
-<span class="kw">impl</span>&lt;T: Iterator&lt;Item = <a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>&gt;&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a> <span class="kw">for </span>Scanner&lt;T&gt; {
-    <span class="kw">type </span>Item = <a href="#118">Token</a>;
-    <span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="#118">Token</a>&gt; {
+<span class="kw">impl</span>&lt;T: Iterator&lt;Item = char&gt;&gt; Iterator <span class="kw">for </span>Scanner&lt;T&gt; {
+    <span class="kw">type </span>Item = Token;
+    <span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Token&gt; {
         <span class="kw">if </span><span class="self">self</span>.error.is_some() {
             <span class="kw">return </span><span class="prelude-val">None</span>;
         }
-        <span class="kw">match </span><a class="self" href="#161">self</a>.<a href="#428">next_token</a>() {
-            <span class="prelude-val">Ok</span>(tok) =&gt; <a href="#166">tok</a>,
+        <span class="kw">match </span><span class="self">self</span>.next_token() {
+            <span class="prelude-val">Ok</span>(tok) =&gt; tok,
             <span class="prelude-val">Err</span>(e) =&gt; {
-                <a class="self" href="#161">self</a>.error = <span class="prelude-val">Some</span>(<a href="#167">e</a>);
+                <span class="self">self</span>.error = <span class="prelude-val">Some</span>(e);
                 <span class="prelude-val">None
             </span>}
         }
@@ -2355,65 +2355,65 @@
 }
 
 <span class="attr">#[inline]
-</span><span class="kw">fn </span>is_z(c: <a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-    <a href="#176">c</a> == <span class="string">&#39;\0&#39;
+</span><span class="kw">fn </span>is_z(c: char) -&gt; bool {
+    c == <span class="string">&#39;\0&#39;
 </span>}
 <span class="attr">#[inline]
-</span><span class="kw">fn </span>is_break(c: <a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-    <a href="#180">c</a> == <span class="string">&#39;\n&#39; </span>|| <a href="#180">c</a> == <span class="string">&#39;\r&#39;
+</span><span class="kw">fn </span>is_break(c: char) -&gt; bool {
+    c == <span class="string">&#39;\n&#39; </span>|| c == <span class="string">&#39;\r&#39;
 </span>}
 <span class="attr">#[inline]
-</span><span class="kw">fn </span>is_breakz(c: <a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-    <a href="#180">is_break</a>(<a href="#184">c</a>) || <a href="#176">is_z</a>(<a href="#184">c</a>)
+</span><span class="kw">fn </span>is_breakz(c: char) -&gt; bool {
+    is_break(c) || is_z(c)
 }
 <span class="attr">#[inline]
-</span><span class="kw">fn </span>is_blank(c: <a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-    <a href="#188">c</a> == <span class="string">&#39; &#39; </span>|| <a href="#188">c</a> == <span class="string">&#39;\t&#39;
+</span><span class="kw">fn </span>is_blank(c: char) -&gt; bool {
+    c == <span class="string">&#39; &#39; </span>|| c == <span class="string">&#39;\t&#39;
 </span>}
 <span class="attr">#[inline]
-</span><span class="kw">fn </span>is_blankz(c: <a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-    <a href="#188">is_blank</a>(<a href="#192">c</a>) || <a href="#184">is_breakz</a>(<a href="#192">c</a>)
+</span><span class="kw">fn </span>is_blankz(c: char) -&gt; bool {
+    is_blank(c) || is_breakz(c)
 }
 <span class="attr">#[inline]
-</span><span class="kw">fn </span>is_digit(c: <a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-    <a href="#196">c</a> &gt;= <span class="string">&#39;0&#39; </span>&amp;&amp; <a href="#196">c</a> &lt;= <span class="string">&#39;9&#39;
+</span><span class="kw">fn </span>is_digit(c: char) -&gt; bool {
+    c &gt;= <span class="string">&#39;0&#39; </span>&amp;&amp; c &lt;= <span class="string">&#39;9&#39;
 </span>}
 <span class="attr">#[inline]
-</span><span class="kw">fn </span>is_alpha(c: <a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-    <span class="kw">match </span><a href="#200">c</a> {
+</span><span class="kw">fn </span>is_alpha(c: char) -&gt; bool {
+    <span class="kw">match </span>c {
         <span class="string">&#39;0&#39;</span>..=<span class="string">&#39;9&#39; </span>| <span class="string">&#39;a&#39;</span>..=<span class="string">&#39;z&#39; </span>| <span class="string">&#39;A&#39;</span>..=<span class="string">&#39;Z&#39; </span>=&gt; <span class="bool-val">true</span>,
         <span class="string">&#39;_&#39; </span>| <span class="string">&#39;-&#39; </span>=&gt; <span class="bool-val">true</span>,
         <span class="kw">_ </span>=&gt; <span class="bool-val">false</span>,
     }
 }
 <span class="attr">#[inline]
-</span><span class="kw">fn </span>is_hex(c: <a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-    (<a href="#208">c</a> &gt;= <span class="string">&#39;0&#39; </span>&amp;&amp; <a href="#208">c</a> &lt;= <span class="string">&#39;9&#39;</span>) || (<a href="#208">c</a> &gt;= <span class="string">&#39;a&#39; </span>&amp;&amp; <a href="#208">c</a> &lt;= <span class="string">&#39;f&#39;</span>) || (<a href="#208">c</a> &gt;= <span class="string">&#39;A&#39; </span>&amp;&amp; <a href="#208">c</a> &lt;= <span class="string">&#39;F&#39;</span>)
+</span><span class="kw">fn </span>is_hex(c: char) -&gt; bool {
+    (c &gt;= <span class="string">&#39;0&#39; </span>&amp;&amp; c &lt;= <span class="string">&#39;9&#39;</span>) || (c &gt;= <span class="string">&#39;a&#39; </span>&amp;&amp; c &lt;= <span class="string">&#39;f&#39;</span>) || (c &gt;= <span class="string">&#39;A&#39; </span>&amp;&amp; c &lt;= <span class="string">&#39;F&#39;</span>)
 }
 <span class="attr">#[inline]
-</span><span class="kw">fn </span>as_hex(c: <a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
-    <span class="kw">match </span><a href="#212">c</a> {
-        <span class="string">&#39;0&#39;</span>..=<span class="string">&#39;9&#39; </span>=&gt; (<a href="#212">c</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) - (<span class="string">&#39;0&#39; </span><span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>),
-        <span class="string">&#39;a&#39;</span>..=<span class="string">&#39;f&#39; </span>=&gt; (<a href="#212">c</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) - (<span class="string">&#39;a&#39; </span><span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) + <span class="number">10</span>,
-        <span class="string">&#39;A&#39;</span>..=<span class="string">&#39;F&#39; </span>=&gt; (<a href="#212">c</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) - (<span class="string">&#39;A&#39; </span><span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) + <span class="number">10</span>,
-        <span class="kw">_ </span>=&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(),
+</span><span class="kw">fn </span>as_hex(c: char) -&gt; u32 {
+    <span class="kw">match </span>c {
+        <span class="string">&#39;0&#39;</span>..=<span class="string">&#39;9&#39; </span>=&gt; (c <span class="kw">as </span>u32) - (<span class="string">&#39;0&#39; </span><span class="kw">as </span>u32),
+        <span class="string">&#39;a&#39;</span>..=<span class="string">&#39;f&#39; </span>=&gt; (c <span class="kw">as </span>u32) - (<span class="string">&#39;a&#39; </span><span class="kw">as </span>u32) + <span class="number">10</span>,
+        <span class="string">&#39;A&#39;</span>..=<span class="string">&#39;F&#39; </span>=&gt; (c <span class="kw">as </span>u32) - (<span class="string">&#39;A&#39; </span><span class="kw">as </span>u32) + <span class="number">10</span>,
+        <span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>(),
     }
 }
 <span class="attr">#[inline]
-</span><span class="kw">fn </span>is_flow(c: <a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-    <span class="kw">match </span><a href="#221">c</a> {
+</span><span class="kw">fn </span>is_flow(c: char) -&gt; bool {
+    <span class="kw">match </span>c {
         <span class="string">&#39;,&#39; </span>| <span class="string">&#39;[&#39; </span>| <span class="string">&#39;]&#39; </span>| <span class="string">&#39;{&#39; </span>| <span class="string">&#39;}&#39; </span>=&gt; <span class="bool-val">true</span>,
         <span class="kw">_ </span>=&gt; <span class="bool-val">false</span>,
     }
 }
 
-<span class="kw">pub type </span>ScanResult = <span class="prelude-ty">Result</span>&lt;(), <a href="#47">ScanError</a>&gt;;
+<span class="kw">pub type </span>ScanResult = <span class="prelude-ty">Result</span>&lt;(), ScanError&gt;;
 
-<span class="kw">impl</span>&lt;T: Iterator&lt;Item = <a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>&gt;&gt; Scanner&lt;T&gt; {
+<span class="kw">impl</span>&lt;T: Iterator&lt;Item = char&gt;&gt; Scanner&lt;T&gt; {
     <span class="doccomment">/// Creates the YAML tokenizer.
     </span><span class="kw">pub fn </span>new(rdr: T) -&gt; Scanner&lt;T&gt; {
-        <a href="#140">Scanner</a> {
-            <a href="#232">rdr</a>,
+        Scanner {
+            rdr,
             buffer: VecDeque::new(),
             mark: Marker::new(<span class="number">0</span>, <span class="number">1</span>, <span class="number">0</span>),
             tokens: VecDeque::new(),
@@ -2432,15 +2432,15 @@
         }
     }
     <span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>get_error(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="#47">ScanError</a>&gt; {
-        <span class="kw">match </span><a class="self" href="#253">self</a>.error {
+    </span><span class="kw">pub fn </span>get_error(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;ScanError&gt; {
+        <span class="kw">match </span><span class="self">self</span>.error {
             <span class="prelude-val">None </span>=&gt; <span class="prelude-val">None</span>,
-            <span class="prelude-val">Some</span>(<span class="kw-2">ref </span>e) =&gt; <span class="prelude-val">Some</span>(<a href="#256">e</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()),
+            <span class="prelude-val">Some</span>(<span class="kw-2">ref </span>e) =&gt; <span class="prelude-val">Some</span>(e.clone()),
         }
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>lookahead(<span class="kw-2">&amp;mut </span><span class="self">self</span>, count: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
+    </span><span class="kw">fn </span>lookahead(<span class="kw-2">&amp;mut </span><span class="self">self</span>, count: usize) {
         <span class="kw">if </span><span class="self">self</span>.buffer.len() &gt;= count {
             <span class="kw">return</span>;
         }
@@ -2450,94 +2450,94 @@
     }
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>skip(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <span class="kw">let </span>c = <a class="self" href="#270">self</a>.buffer.pop_front().unwrap();
+        <span class="kw">let </span>c = <span class="self">self</span>.buffer.pop_front().unwrap();
 
-        <a class="self" href="#270">self</a>.mark.index += <span class="number">1</span>;
+        <span class="self">self</span>.mark.index += <span class="number">1</span>;
         <span class="kw">if </span>c == <span class="string">&#39;\n&#39; </span>{
-            <a class="self" href="#270">self</a>.mark.line += <span class="number">1</span>;
-            <a class="self" href="#270">self</a>.mark.col = <span class="number">0</span>;
+            <span class="self">self</span>.mark.line += <span class="number">1</span>;
+            <span class="self">self</span>.mark.col = <span class="number">0</span>;
         } <span class="kw">else </span>{
-            <a class="self" href="#270">self</a>.mark.col += <span class="number">1</span>;
+            <span class="self">self</span>.mark.col += <span class="number">1</span>;
         }
     }
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>skip_line(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="kw">if </span><span class="self">self</span>.buffer[<span class="number">0</span>] == <span class="string">&#39;\r&#39; </span>&amp;&amp; <span class="self">self</span>.buffer[<span class="number">1</span>] == <span class="string">&#39;\n&#39; </span>{
-            <a class="self" href="#282">self</a>.<a href="#270">skip</a>();
-            <a class="self" href="#282">self</a>.<a href="#270">skip</a>();
+            <span class="self">self</span>.skip();
+            <span class="self">self</span>.skip();
         } <span class="kw">else if </span>is_break(<span class="self">self</span>.buffer[<span class="number">0</span>]) {
-            <a class="self" href="#282">self</a>.<a href="#270">skip</a>();
+            <span class="self">self</span>.skip();
         }
     }
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>ch(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a> {
-        <a class="self" href="#291">self</a>.buffer[<span class="number">0</span>]
+    </span><span class="kw">fn </span>ch(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; char {
+        <span class="self">self</span>.buffer[<span class="number">0</span>]
     }
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>ch_is(<span class="kw-2">&amp;</span><span class="self">self</span>, c: <a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#295">self</a>.buffer[<span class="number">0</span>] == <a href="#295">c</a>
+    </span><span class="kw">fn </span>ch_is(<span class="kw-2">&amp;</span><span class="self">self</span>, c: char) -&gt; bool {
+        <span class="self">self</span>.buffer[<span class="number">0</span>] == c
     }
     <span class="attr">#[allow(dead_code)]
     #[inline]
-    </span><span class="kw">fn </span>eof(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#300">self</a>.<a href="#295">ch_is</a>(<span class="string">&#39;\0&#39;</span>)
+    </span><span class="kw">fn </span>eof(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.ch_is(<span class="string">&#39;\0&#39;</span>)
     }
     <span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>stream_started(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#304">self</a>.stream_start_produced
+    </span><span class="kw">pub fn </span>stream_started(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.stream_start_produced
     }
     <span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>stream_ended(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#308">self</a>.stream_end_produced
+    </span><span class="kw">pub fn </span>stream_ended(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.stream_end_produced
     }
     <span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>mark(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="#22">Marker</a> {
-        <a class="self" href="#312">self</a>.mark
+    </span><span class="kw">pub fn </span>mark(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Marker {
+        <span class="self">self</span>.mark
     }
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>read_break(<span class="kw-2">&amp;mut </span><span class="self">self</span>, s: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>) {
+    </span><span class="kw">fn </span>read_break(<span class="kw-2">&amp;mut </span><span class="self">self</span>, s: <span class="kw-2">&amp;mut </span>String) {
         <span class="kw">if </span><span class="self">self</span>.buffer[<span class="number">0</span>] == <span class="string">&#39;\r&#39; </span>&amp;&amp; <span class="self">self</span>.buffer[<span class="number">1</span>] == <span class="string">&#39;\n&#39; </span>{
-            <a href="#316">s</a>.push(<span class="string">&#39;\n&#39;</span>);
-            <a class="self" href="#316">self</a>.<a href="#270">skip</a>();
-            <a class="self" href="#316">self</a>.<a href="#270">skip</a>();
+            s.push(<span class="string">&#39;\n&#39;</span>);
+            <span class="self">self</span>.skip();
+            <span class="self">self</span>.skip();
         } <span class="kw">else if </span><span class="self">self</span>.buffer[<span class="number">0</span>] == <span class="string">&#39;\r&#39; </span>|| <span class="self">self</span>.buffer[<span class="number">0</span>] == <span class="string">&#39;\n&#39; </span>{
-            <a href="#316">s</a>.push(<span class="string">&#39;\n&#39;</span>);
-            <a class="self" href="#316">self</a>.<a href="#270">skip</a>();
+            s.push(<span class="string">&#39;\n&#39;</span>);
+            <span class="self">self</span>.skip();
         } <span class="kw">else </span>{
-            <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>();
+            <span class="macro">unreachable!</span>();
         }
     }
-    <span class="kw">fn </span>insert_token(<span class="kw-2">&amp;mut </span><span class="self">self</span>, pos: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, tok: <a href="#118">Token</a>) {
-        <span class="kw">let </span>old_len = <a class="self" href="#328">self</a>.tokens.len();
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(pos &lt;= old_len);
-        <a class="self" href="#328">self</a>.tokens.push_back(<a href="#328">tok</a>);
+    <span class="kw">fn </span>insert_token(<span class="kw-2">&amp;mut </span><span class="self">self</span>, pos: usize, tok: Token) {
+        <span class="kw">let </span>old_len = <span class="self">self</span>.tokens.len();
+        <span class="macro">assert!</span>(pos &lt;= old_len);
+        <span class="self">self</span>.tokens.push_back(tok);
         <span class="kw">for </span>i <span class="kw">in </span><span class="number">0</span>..old_len - pos {
             <span class="self">self</span>.tokens.swap(old_len - i, old_len - i - <span class="number">1</span>);
         }
     }
     <span class="kw">fn </span>allow_simple_key(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <a class="self" href="#336">self</a>.simple_key_allowed = <span class="bool-val">true</span>;
+        <span class="self">self</span>.simple_key_allowed = <span class="bool-val">true</span>;
     }
     <span class="kw">fn </span>disallow_simple_key(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <a class="self" href="#339">self</a>.simple_key_allowed = <span class="bool-val">false</span>;
+        <span class="self">self</span>.simple_key_allowed = <span class="bool-val">false</span>;
     }
 
-    <span class="kw">pub fn </span>fetch_next_token(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <a href="#228">ScanResult</a> {
-        <a class="self" href="#343">self</a>.<a href="#261">lookahead</a>(<span class="number">1</span>);
+    <span class="kw">pub fn </span>fetch_next_token(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; ScanResult {
+        <span class="self">self</span>.lookahead(<span class="number">1</span>);
         <span class="comment">// println!(&quot;--&gt; fetch_next_token Cur {:?} {:?}&quot;, self.mark, self.ch());
 
         </span><span class="kw">if </span>!<span class="self">self</span>.stream_start_produced {
-            <a class="self" href="#343">self</a>.<a href="#511">fetch_stream_start</a>();
+            <span class="self">self</span>.fetch_stream_start();
             <span class="kw">return </span><span class="prelude-val">Ok</span>(());
         }
-        <a class="self" href="#343">self</a>.<a href="#486">skip_to_next_token</a>();
+        <span class="self">self</span>.skip_to_next_token();
 
         <span class="self">self</span>.stale_simple_keys()<span class="question-mark">?</span>;
 
-        <span class="kw">let </span>mark = <a class="self" href="#343">self</a>.mark;
-        <a class="self" href="#343">self</a>.<a href="#1704">unroll_indent</a>(<a href="#355">mark</a>.col <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.isize.html">isize</a>);
+        <span class="kw">let </span>mark = <span class="self">self</span>.mark;
+        <span class="self">self</span>.unroll_indent(mark.col <span class="kw">as </span>isize);
 
-        <a class="self" href="#343">self</a>.<a href="#261">lookahead</a>(<span class="number">4</span>);
+        <span class="self">self</span>.lookahead(<span class="number">4</span>);
 
         <span class="kw">if </span>is_z(<span class="self">self</span>.ch()) {
             <span class="self">self</span>.fetch_stream_end()<span class="question-mark">?</span>;
@@ -2546,7 +2546,7 @@
 
         <span class="comment">// Is it a directive?
         </span><span class="kw">if </span><span class="self">self</span>.mark.col == <span class="number">0 </span>&amp;&amp; <span class="self">self</span>.ch_is(<span class="string">&#39;%&#39;</span>) {
-            <span class="kw">return </span><a class="self" href="#343">self</a>.<a href="#537">fetch_directive</a>();
+            <span class="kw">return </span><span class="self">self</span>.fetch_directive();
         }
 
         <span class="kw">if </span><span class="self">self</span>.mark.col == <span class="number">0
@@ -2569,45 +2569,45 @@
             <span class="kw">return </span><span class="prelude-val">Ok</span>(());
         }
 
-        <span class="kw">let </span>c = <a class="self" href="#343">self</a>.buffer[<span class="number">0</span>];
-        <span class="kw">let </span>nc = <a class="self" href="#343">self</a>.buffer[<span class="number">1</span>];
-        <span class="kw">match </span><a href="#390">c</a> {
-            <span class="string">&#39;[&#39; </span>=&gt; <a class="self" href="#343">self</a>.<a href="#965">fetch_flow_collection_start</a>(<a href="#102">TokenType::FlowSequenceStart</a>),
-            <span class="string">&#39;{&#39; </span>=&gt; <a class="self" href="#343">self</a>.<a href="#965">fetch_flow_collection_start</a>(<a href="#104">TokenType::FlowMappingStart</a>),
-            <span class="string">&#39;]&#39; </span>=&gt; <a class="self" href="#343">self</a>.<a href="#980">fetch_flow_collection_end</a>(<a href="#103">TokenType::FlowSequenceEnd</a>),
-            <span class="string">&#39;}&#39; </span>=&gt; <a class="self" href="#343">self</a>.<a href="#980">fetch_flow_collection_end</a>(<a href="#105">TokenType::FlowMappingEnd</a>),
-            <span class="string">&#39;,&#39; </span>=&gt; <a class="self" href="#343">self</a>.<a href="#993">fetch_flow_entry</a>(),
-            <span class="string">&#39;-&#39; </span><span class="kw">if </span><a href="#192">is_blankz</a>(<a href="#391">nc</a>) =&gt; <a class="self" href="#343">self</a>.<a href="#1020">fetch_block_entry</a>(),
-            <span class="string">&#39;?&#39; </span><span class="kw">if </span><a href="#192">is_blankz</a>(<a href="#391">nc</a>) =&gt; <a class="self" href="#343">self</a>.<a href="#1608">fetch_key</a>(),
-            <span class="string">&#39;:&#39; </span><span class="kw">if </span><a href="#192">is_blankz</a>(<a href="#391">nc</a>)
-                || (<a class="self" href="#343">self</a>.flow_level &gt; <span class="number">0
-                    </span>&amp;&amp; (<a href="#221">is_flow</a>(<a href="#391">nc</a>) || <a class="self" href="#343">self</a>.mark.index == <a class="self" href="#343">self</a>.adjacent_value_allowed_at)) =&gt;
+        <span class="kw">let </span>c = <span class="self">self</span>.buffer[<span class="number">0</span>];
+        <span class="kw">let </span>nc = <span class="self">self</span>.buffer[<span class="number">1</span>];
+        <span class="kw">match </span>c {
+            <span class="string">&#39;[&#39; </span>=&gt; <span class="self">self</span>.fetch_flow_collection_start(TokenType::FlowSequenceStart),
+            <span class="string">&#39;{&#39; </span>=&gt; <span class="self">self</span>.fetch_flow_collection_start(TokenType::FlowMappingStart),
+            <span class="string">&#39;]&#39; </span>=&gt; <span class="self">self</span>.fetch_flow_collection_end(TokenType::FlowSequenceEnd),
+            <span class="string">&#39;}&#39; </span>=&gt; <span class="self">self</span>.fetch_flow_collection_end(TokenType::FlowMappingEnd),
+            <span class="string">&#39;,&#39; </span>=&gt; <span class="self">self</span>.fetch_flow_entry(),
+            <span class="string">&#39;-&#39; </span><span class="kw">if </span>is_blankz(nc) =&gt; <span class="self">self</span>.fetch_block_entry(),
+            <span class="string">&#39;?&#39; </span><span class="kw">if </span>is_blankz(nc) =&gt; <span class="self">self</span>.fetch_key(),
+            <span class="string">&#39;:&#39; </span><span class="kw">if </span>is_blankz(nc)
+                || (<span class="self">self</span>.flow_level &gt; <span class="number">0
+                    </span>&amp;&amp; (is_flow(nc) || <span class="self">self</span>.mark.index == <span class="self">self</span>.adjacent_value_allowed_at)) =&gt;
             {
-                <a class="self" href="#343">self</a>.<a href="#1639">fetch_value</a>()
+                <span class="self">self</span>.fetch_value()
             }
             <span class="comment">// Is it an alias?
-            </span><span class="string">&#39;*&#39; </span>=&gt; <a class="self" href="#343">self</a>.<a href="#925">fetch_anchor</a>(<span class="bool-val">true</span>),
+            </span><span class="string">&#39;*&#39; </span>=&gt; <span class="self">self</span>.fetch_anchor(<span class="bool-val">true</span>),
             <span class="comment">// Is it an anchor?
-            </span><span class="string">&#39;&amp;&#39; </span>=&gt; <a class="self" href="#343">self</a>.<a href="#925">fetch_anchor</a>(<span class="bool-val">false</span>),
-            <span class="string">&#39;!&#39; </span>=&gt; <a class="self" href="#343">self</a>.<a href="#714">fetch_tag</a>(),
+            </span><span class="string">&#39;&amp;&#39; </span>=&gt; <span class="self">self</span>.fetch_anchor(<span class="bool-val">false</span>),
+            <span class="string">&#39;!&#39; </span>=&gt; <span class="self">self</span>.fetch_tag(),
             <span class="comment">// Is it a literal scalar?
-            </span><span class="string">&#39;|&#39; </span><span class="kw">if </span><a class="self" href="#343">self</a>.flow_level == <span class="number">0 </span>=&gt; <a class="self" href="#343">self</a>.<a href="#1066">fetch_block_scalar</a>(<span class="bool-val">true</span>),
+            </span><span class="string">&#39;|&#39; </span><span class="kw">if </span><span class="self">self</span>.flow_level == <span class="number">0 </span>=&gt; <span class="self">self</span>.fetch_block_scalar(<span class="bool-val">true</span>),
             <span class="comment">// Is it a folded scalar?
-            </span><span class="string">&#39;&gt;&#39; </span><span class="kw">if </span><a class="self" href="#343">self</a>.flow_level == <span class="number">0 </span>=&gt; <a class="self" href="#343">self</a>.<a href="#1066">fetch_block_scalar</a>(<span class="bool-val">false</span>),
-            <span class="string">&#39;\&#39;&#39; </span>=&gt; <a class="self" href="#343">self</a>.<a href="#1269">fetch_flow_scalar</a>(<span class="bool-val">true</span>),
-            <span class="string">&#39;&quot;&#39; </span>=&gt; <a class="self" href="#343">self</a>.<a href="#1269">fetch_flow_scalar</a>(<span class="bool-val">false</span>),
+            </span><span class="string">&#39;&gt;&#39; </span><span class="kw">if </span><span class="self">self</span>.flow_level == <span class="number">0 </span>=&gt; <span class="self">self</span>.fetch_block_scalar(<span class="bool-val">false</span>),
+            <span class="string">&#39;\&#39;&#39; </span>=&gt; <span class="self">self</span>.fetch_flow_scalar(<span class="bool-val">true</span>),
+            <span class="string">&#39;&quot;&#39; </span>=&gt; <span class="self">self</span>.fetch_flow_scalar(<span class="bool-val">false</span>),
             <span class="comment">// plain scalar
-            </span><span class="string">&#39;-&#39; </span><span class="kw">if </span>!<a href="#192">is_blankz</a>(<a href="#391">nc</a>) =&gt; <a class="self" href="#343">self</a>.<a href="#1481">fetch_plain_scalar</a>(),
-            <span class="string">&#39;:&#39; </span>| <span class="string">&#39;?&#39; </span><span class="kw">if </span>!<a href="#192">is_blankz</a>(<a href="#391">nc</a>) &amp;&amp; <a class="self" href="#343">self</a>.flow_level == <span class="number">0 </span>=&gt; <a class="self" href="#343">self</a>.<a href="#1481">fetch_plain_scalar</a>(),
+            </span><span class="string">&#39;-&#39; </span><span class="kw">if </span>!is_blankz(nc) =&gt; <span class="self">self</span>.fetch_plain_scalar(),
+            <span class="string">&#39;:&#39; </span>| <span class="string">&#39;?&#39; </span><span class="kw">if </span>!is_blankz(nc) &amp;&amp; <span class="self">self</span>.flow_level == <span class="number">0 </span>=&gt; <span class="self">self</span>.fetch_plain_scalar(),
             <span class="string">&#39;%&#39; </span>| <span class="string">&#39;@&#39; </span>| <span class="string">&#39;`&#39; </span>=&gt; <span class="prelude-val">Err</span>(ScanError::new(
-                <a class="self" href="#343">self</a>.mark,
-                <span class="kw-2">&amp;</span><a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;unexpected character: `{}&#39;&quot;</span>, c),
+                <span class="self">self</span>.mark,
+                <span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;unexpected character: `{}&#39;&quot;</span>, c),
             )),
-            <span class="kw">_ </span>=&gt; <a class="self" href="#343">self</a>.<a href="#1481">fetch_plain_scalar</a>(),
+            <span class="kw">_ </span>=&gt; <span class="self">self</span>.fetch_plain_scalar(),
         }
     }
 
-    <span class="kw">pub fn </span>next_token(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<a href="#118">Token</a>&gt;, <a href="#47">ScanError</a>&gt; {
+    <span class="kw">pub fn </span>next_token(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;Token&gt;, ScanError&gt; {
         <span class="kw">if </span><span class="self">self</span>.stream_end_produced {
             <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>);
         }
@@ -2615,22 +2615,22 @@
         <span class="kw">if </span>!<span class="self">self</span>.token_available {
             <span class="self">self</span>.fetch_more_tokens()<span class="question-mark">?</span>;
         }
-        <span class="kw">let </span>t = <a class="self" href="#428">self</a>.tokens.pop_front().unwrap();
-        <a class="self" href="#428">self</a>.token_available = <span class="bool-val">false</span>;
-        <a class="self" href="#428">self</a>.tokens_parsed += <span class="number">1</span>;
+        <span class="kw">let </span>t = <span class="self">self</span>.tokens.pop_front().unwrap();
+        <span class="self">self</span>.token_available = <span class="bool-val">false</span>;
+        <span class="self">self</span>.tokens_parsed += <span class="number">1</span>;
 
-        <span class="kw">if let </span><a href="#92">TokenType::StreamEnd</a> = <a href="#436">t</a>.<span class="number">1 </span>{
-            <a class="self" href="#428">self</a>.stream_end_produced = <span class="bool-val">true</span>;
+        <span class="kw">if let </span>TokenType::StreamEnd = t.<span class="number">1 </span>{
+            <span class="self">self</span>.stream_end_produced = <span class="bool-val">true</span>;
         }
-        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<a href="#436">t</a>))
+        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(t))
     }
 
-    <span class="kw">pub fn </span>fetch_more_tokens(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <a href="#228">ScanResult</a> {
+    <span class="kw">pub fn </span>fetch_more_tokens(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; ScanResult {
         <span class="kw">let </span><span class="kw-2">mut </span>need_more;
         <span class="kw">loop </span>{
-            <a href="#447">need_more</a> = <span class="bool-val">false</span>;
+            need_more = <span class="bool-val">false</span>;
             <span class="kw">if </span><span class="self">self</span>.tokens.is_empty() {
-                <a href="#447">need_more</a> = <span class="bool-val">true</span>;
+                need_more = <span class="bool-val">true</span>;
             } <span class="kw">else </span>{
                 <span class="self">self</span>.stale_simple_keys()<span class="question-mark">?</span>;
                 <span class="kw">for </span>sk <span class="kw">in </span><span class="kw-2">&amp;</span><span class="self">self</span>.simple_keys {
@@ -2646,12 +2646,12 @@
             }
             <span class="self">self</span>.fetch_next_token()<span class="question-mark">?</span>;
         }
-        <a class="self" href="#446">self</a>.token_available = <span class="bool-val">true</span>;
+        <span class="self">self</span>.token_available = <span class="bool-val">true</span>;
 
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="kw">fn </span>stale_simple_keys(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <a href="#228">ScanResult</a> {
+    <span class="kw">fn </span>stale_simple_keys(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; ScanResult {
         <span class="kw">for </span>sk <span class="kw">in </span><span class="kw-2">&amp;mut </span><span class="self">self</span>.simple_keys {
             <span class="kw">if </span>sk.possible
                 &amp;&amp; (sk.mark.line &lt; <span class="self">self</span>.mark.line || sk.mark.index + <span class="number">1024 </span>&lt; <span class="self">self</span>.mark.index)
@@ -2667,16 +2667,16 @@
 
     <span class="kw">fn </span>skip_to_next_token(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="kw">loop </span>{
-            <a class="self" href="#486">self</a>.<a href="#261">lookahead</a>(<span class="number">1</span>);
+            <span class="self">self</span>.lookahead(<span class="number">1</span>);
             <span class="comment">// TODO(chenyh) BOM
-            </span><span class="kw">match </span><a class="self" href="#486">self</a>.<a href="#291">ch</a>() {
-                <span class="string">&#39; &#39; </span>=&gt; <a class="self" href="#486">self</a>.<a href="#270">skip</a>(),
-                <span class="string">&#39;\t&#39; </span><span class="kw">if </span><a class="self" href="#486">self</a>.flow_level &gt; <span class="number">0 </span>|| !<a class="self" href="#486">self</a>.simple_key_allowed =&gt; <a class="self" href="#486">self</a>.<a href="#270">skip</a>(),
+            </span><span class="kw">match </span><span class="self">self</span>.ch() {
+                <span class="string">&#39; &#39; </span>=&gt; <span class="self">self</span>.skip(),
+                <span class="string">&#39;\t&#39; </span><span class="kw">if </span><span class="self">self</span>.flow_level &gt; <span class="number">0 </span>|| !<span class="self">self</span>.simple_key_allowed =&gt; <span class="self">self</span>.skip(),
                 <span class="string">&#39;\n&#39; </span>| <span class="string">&#39;\r&#39; </span>=&gt; {
-                    <a class="self" href="#486">self</a>.<a href="#261">lookahead</a>(<span class="number">2</span>);
-                    <a class="self" href="#486">self</a>.<a href="#282">skip_line</a>();
+                    <span class="self">self</span>.lookahead(<span class="number">2</span>);
+                    <span class="self">self</span>.skip_line();
                     <span class="kw">if </span><span class="self">self</span>.flow_level == <span class="number">0 </span>{
-                        <a class="self" href="#486">self</a>.<a href="#336">allow_simple_key</a>();
+                        <span class="self">self</span>.allow_simple_key();
                     }
                 }
                 <span class="string">&#39;#&#39; </span>=&gt; {
@@ -2691,70 +2691,70 @@
     }
 
     <span class="kw">fn </span>fetch_stream_start(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <span class="kw">let </span>mark = <a class="self" href="#511">self</a>.mark;
-        <a class="self" href="#511">self</a>.indent = -<span class="number">1</span>;
-        <a class="self" href="#511">self</a>.stream_start_produced = <span class="bool-val">true</span>;
-        <a class="self" href="#511">self</a>.<a href="#336">allow_simple_key</a>();
-        <a class="self" href="#511">self</a>.tokens
-            .push_back(<a href="#118">Token</a>(<a href="#512">mark</a>, <a href="#91">TokenType::StreamStart</a>(<a href="#7">TEncoding::Utf8</a>)));
-        <a class="self" href="#511">self</a>.simple_keys.push(SimpleKey::new(Marker::new(<span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>)));
+        <span class="kw">let </span>mark = <span class="self">self</span>.mark;
+        <span class="self">self</span>.indent = -<span class="number">1</span>;
+        <span class="self">self</span>.stream_start_produced = <span class="bool-val">true</span>;
+        <span class="self">self</span>.allow_simple_key();
+        <span class="self">self</span>.tokens
+            .push_back(Token(mark, TokenType::StreamStart(TEncoding::Utf8)));
+        <span class="self">self</span>.simple_keys.push(SimpleKey::new(Marker::new(<span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>)));
     }
 
-    <span class="kw">fn </span>fetch_stream_end(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <a href="#228">ScanResult</a> {
+    <span class="kw">fn </span>fetch_stream_end(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; ScanResult {
         <span class="comment">// force new line
         </span><span class="kw">if </span><span class="self">self</span>.mark.col != <span class="number">0 </span>{
-            <a class="self" href="#521">self</a>.mark.col = <span class="number">0</span>;
-            <a class="self" href="#521">self</a>.mark.line += <span class="number">1</span>;
+            <span class="self">self</span>.mark.col = <span class="number">0</span>;
+            <span class="self">self</span>.mark.line += <span class="number">1</span>;
         }
 
-        <a class="self" href="#521">self</a>.<a href="#1704">unroll_indent</a>(-<span class="number">1</span>);
+        <span class="self">self</span>.unroll_indent(-<span class="number">1</span>);
         <span class="self">self</span>.remove_simple_key()<span class="question-mark">?</span>;
-        <a class="self" href="#521">self</a>.<a href="#339">disallow_simple_key</a>();
+        <span class="self">self</span>.disallow_simple_key();
 
-        <a class="self" href="#521">self</a>.tokens
-            .push_back(<a href="#118">Token</a>(<a class="self" href="#521">self</a>.mark, <a href="#92">TokenType::StreamEnd</a>));
+        <span class="self">self</span>.tokens
+            .push_back(Token(<span class="self">self</span>.mark, TokenType::StreamEnd));
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="kw">fn </span>fetch_directive(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <a href="#228">ScanResult</a> {
-        <a class="self" href="#537">self</a>.<a href="#1704">unroll_indent</a>(-<span class="number">1</span>);
+    <span class="kw">fn </span>fetch_directive(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; ScanResult {
+        <span class="self">self</span>.unroll_indent(-<span class="number">1</span>);
         <span class="self">self</span>.remove_simple_key()<span class="question-mark">?</span>;
 
-        <a class="self" href="#537">self</a>.<a href="#339">disallow_simple_key</a>();
+        <span class="self">self</span>.disallow_simple_key();
 
         <span class="kw">let </span>tok = <span class="self">self</span>.scan_directive()<span class="question-mark">?</span>;
 
-        <a class="self" href="#537">self</a>.tokens.push_back(<a href="#543">tok</a>);
+        <span class="self">self</span>.tokens.push_back(tok);
 
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="kw">fn </span>scan_directive(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#118">Token</a>, <a href="#47">ScanError</a>&gt; {
-        <span class="kw">let </span>start_mark = <a class="self" href="#550">self</a>.mark;
-        <a class="self" href="#550">self</a>.<a href="#270">skip</a>();
+    <span class="kw">fn </span>scan_directive(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;Token, ScanError&gt; {
+        <span class="kw">let </span>start_mark = <span class="self">self</span>.mark;
+        <span class="self">self</span>.skip();
 
         <span class="kw">let </span>name = <span class="self">self</span>.scan_directive_name()<span class="question-mark">?</span>;
-        <span class="kw">let </span>tok = <span class="kw">match </span><a href="#554">name</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>() {
+        <span class="kw">let </span>tok = <span class="kw">match </span>name.as_ref() {
             <span class="string">&quot;YAML&quot; </span>=&gt; <span class="self">self</span>.scan_version_directive_value(<span class="kw-2">&amp;</span>start_mark)<span class="question-mark">?</span>,
             <span class="string">&quot;TAG&quot; </span>=&gt; <span class="self">self</span>.scan_tag_directive_value(<span class="kw-2">&amp;</span>start_mark)<span class="question-mark">?</span>,
             <span class="comment">// XXX This should be a warning instead of an error
             </span><span class="kw">_ </span>=&gt; {
                 <span class="comment">// skip current line
-                </span><a class="self" href="#550">self</a>.<a href="#261">lookahead</a>(<span class="number">1</span>);
+                </span><span class="self">self</span>.lookahead(<span class="number">1</span>);
                 <span class="kw">while </span>!is_breakz(<span class="self">self</span>.ch()) {
                     <span class="self">self</span>.skip();
                     <span class="self">self</span>.lookahead(<span class="number">1</span>);
                 }
                 <span class="comment">// XXX return an empty TagDirective token
-                </span><a href="#118">Token</a>(
-                    <a href="#551">start_mark</a>,
-                    <a href="#96">TokenType::TagDirective</a>(String::new(), String::new()),
+                </span>Token(
+                    start_mark,
+                    TokenType::TagDirective(String::new(), String::new()),
                 )
                 <span class="comment">// return Err(ScanError::new(start_mark,
                 //     &quot;while scanning a directive, found unknown directive name&quot;))
             </span>}
         };
-        <a class="self" href="#550">self</a>.<a href="#261">lookahead</a>(<span class="number">1</span>);
+        <span class="self">self</span>.lookahead(<span class="number">1</span>);
 
         <span class="kw">while </span>is_blank(<span class="self">self</span>.ch()) {
             <span class="self">self</span>.skip();
@@ -2770,22 +2770,22 @@
 
         <span class="kw">if </span>!is_breakz(<span class="self">self</span>.ch()) {
             <span class="kw">return </span><span class="prelude-val">Err</span>(ScanError::new(
-                <a href="#551">start_mark</a>,
+                start_mark,
                 <span class="string">&quot;while scanning a directive, did not find expected comment or line break&quot;</span>,
             ));
         }
 
         <span class="comment">// Eat a line break
         </span><span class="kw">if </span>is_break(<span class="self">self</span>.ch()) {
-            <a class="self" href="#550">self</a>.<a href="#261">lookahead</a>(<span class="number">2</span>);
-            <a class="self" href="#550">self</a>.<a href="#282">skip_line</a>();
+            <span class="self">self</span>.lookahead(<span class="number">2</span>);
+            <span class="self">self</span>.skip_line();
         }
 
-        <span class="prelude-val">Ok</span>(<a href="#555">tok</a>)
+        <span class="prelude-val">Ok</span>(tok)
     }
 
-    <span class="kw">fn </span>scan_version_directive_value(<span class="kw-2">&amp;mut </span><span class="self">self</span>, mark: <span class="kw-2">&amp;</span><a href="#22">Marker</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#118">Token</a>, <a href="#47">ScanError</a>&gt; {
-        <a class="self" href="#605">self</a>.<a href="#261">lookahead</a>(<span class="number">1</span>);
+    <span class="kw">fn </span>scan_version_directive_value(<span class="kw-2">&amp;mut </span><span class="self">self</span>, mark: <span class="kw-2">&amp;</span>Marker) -&gt; <span class="prelude-ty">Result</span>&lt;Token, ScanError&gt; {
+        <span class="self">self</span>.lookahead(<span class="number">1</span>);
 
         <span class="kw">while </span>is_blank(<span class="self">self</span>.ch()) {
             <span class="self">self</span>.skip();
@@ -2796,22 +2796,22 @@
 
         <span class="kw">if </span><span class="self">self</span>.ch() != <span class="string">&#39;.&#39; </span>{
             <span class="kw">return </span><span class="prelude-val">Err</span>(ScanError::new(
-                <span class="kw-2">*</span><a href="#605">mark</a>,
+                <span class="kw-2">*</span>mark,
                 <span class="string">&quot;while scanning a YAML directive, did not find expected digit or &#39;.&#39; character&quot;</span>,
             ));
         }
 
-        <a class="self" href="#605">self</a>.<a href="#270">skip</a>();
+        <span class="self">self</span>.skip();
 
         <span class="kw">let </span>minor = <span class="self">self</span>.scan_version_directive_number(mark)<span class="question-mark">?</span>;
 
-        <span class="prelude-val">Ok</span>(<a href="#118">Token</a>(<span class="kw-2">*</span><a href="#605">mark</a>, <a href="#94">TokenType::VersionDirective</a>(<a href="#613">major</a>, <a href="#624">minor</a>)))
+        <span class="prelude-val">Ok</span>(Token(<span class="kw-2">*</span>mark, TokenType::VersionDirective(major, minor)))
     }
 
-    <span class="kw">fn </span>scan_directive_name(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, <a href="#47">ScanError</a>&gt; {
-        <span class="kw">let </span>start_mark = <a class="self" href="#629">self</a>.mark;
+    <span class="kw">fn </span>scan_directive_name(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;String, ScanError&gt; {
+        <span class="kw">let </span>start_mark = <span class="self">self</span>.mark;
         <span class="kw">let </span><span class="kw-2">mut </span>string = String::new();
-        <a class="self" href="#629">self</a>.<a href="#261">lookahead</a>(<span class="number">1</span>);
+        <span class="self">self</span>.lookahead(<span class="number">1</span>);
         <span class="kw">while </span>is_alpha(<span class="self">self</span>.ch()) {
             string.push(<span class="self">self</span>.ch());
             <span class="self">self</span>.skip();
@@ -2820,25 +2820,25 @@
 
         <span class="kw">if </span>string.is_empty() {
             <span class="kw">return </span><span class="prelude-val">Err</span>(ScanError::new(
-                <a href="#630">start_mark</a>,
+                start_mark,
                 <span class="string">&quot;while scanning a directive, could not find expected directive name&quot;</span>,
             ));
         }
 
         <span class="kw">if </span>!is_blankz(<span class="self">self</span>.ch()) {
             <span class="kw">return </span><span class="prelude-val">Err</span>(ScanError::new(
-                <a href="#630">start_mark</a>,
+                start_mark,
                 <span class="string">&quot;while scanning a directive, found unexpected non-alphabetical character&quot;</span>,
             ));
         }
 
-        <span class="prelude-val">Ok</span>(<a href="#631">string</a>)
+        <span class="prelude-val">Ok</span>(string)
     }
 
-    <span class="kw">fn </span>scan_version_directive_number(<span class="kw-2">&amp;mut </span><span class="self">self</span>, mark: <span class="kw-2">&amp;</span><a href="#22">Marker</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>, <a href="#47">ScanError</a>&gt; {
+    <span class="kw">fn </span>scan_version_directive_number(<span class="kw-2">&amp;mut </span><span class="self">self</span>, mark: <span class="kw-2">&amp;</span>Marker) -&gt; <span class="prelude-ty">Result</span>&lt;u32, ScanError&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>val = <span class="number">0u32</span>;
         <span class="kw">let </span><span class="kw-2">mut </span>length = <span class="number">0usize</span>;
-        <a class="self" href="#656">self</a>.<a href="#261">lookahead</a>(<span class="number">1</span>);
+        <span class="self">self</span>.lookahead(<span class="number">1</span>);
         <span class="kw">while </span>is_digit(<span class="self">self</span>.ch()) {
             <span class="kw">if </span>length + <span class="number">1 </span>&gt; <span class="number">9 </span>{
                 <span class="kw">return </span><span class="prelude-val">Err</span>(ScanError::new(
@@ -2854,16 +2854,16 @@
 
         <span class="kw">if </span>length == <span class="number">0 </span>{
             <span class="kw">return </span><span class="prelude-val">Err</span>(ScanError::new(
-                <span class="kw-2">*</span><a href="#656">mark</a>,
+                <span class="kw-2">*</span>mark,
                 <span class="string">&quot;while scanning a YAML directive, did not find expected version number&quot;</span>,
             ));
         }
 
-        <span class="prelude-val">Ok</span>(<a href="#657">val</a>)
+        <span class="prelude-val">Ok</span>(val)
     }
 
-    <span class="kw">fn </span>scan_tag_directive_value(<span class="kw-2">&amp;mut </span><span class="self">self</span>, mark: <span class="kw-2">&amp;</span><a href="#22">Marker</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#118">Token</a>, <a href="#47">ScanError</a>&gt; {
-        <a class="self" href="#683">self</a>.<a href="#261">lookahead</a>(<span class="number">1</span>);
+    <span class="kw">fn </span>scan_tag_directive_value(<span class="kw-2">&amp;mut </span><span class="self">self</span>, mark: <span class="kw-2">&amp;</span>Marker) -&gt; <span class="prelude-ty">Result</span>&lt;Token, ScanError&gt; {
+        <span class="self">self</span>.lookahead(<span class="number">1</span>);
         <span class="comment">/* Eat whitespaces. */
         </span><span class="kw">while </span>is_blank(<span class="self">self</span>.ch()) {
             <span class="self">self</span>.skip();
@@ -2871,107 +2871,107 @@
         }
         <span class="kw">let </span>handle = <span class="self">self</span>.scan_tag_handle(<span class="bool-val">true</span>, mark)<span class="question-mark">?</span>;
 
-        <a class="self" href="#683">self</a>.<a href="#261">lookahead</a>(<span class="number">1</span>);
+        <span class="self">self</span>.lookahead(<span class="number">1</span>);
         <span class="comment">/* Eat whitespaces. */
         </span><span class="kw">while </span>is_blank(<span class="self">self</span>.ch()) {
             <span class="self">self</span>.skip();
             <span class="self">self</span>.lookahead(<span class="number">1</span>);
         }
 
-        <span class="kw">let </span>is_secondary = <a href="#690">handle</a> == <span class="string">&quot;!!&quot;</span>;
+        <span class="kw">let </span>is_secondary = handle == <span class="string">&quot;!!&quot;</span>;
         <span class="kw">let </span>prefix = <span class="self">self</span>.scan_tag_uri(<span class="bool-val">true</span>, is_secondary, <span class="kw-2">&amp;</span>String::new(), mark)<span class="question-mark">?</span>;
 
-        <a class="self" href="#683">self</a>.<a href="#261">lookahead</a>(<span class="number">1</span>);
+        <span class="self">self</span>.lookahead(<span class="number">1</span>);
 
         <span class="kw">if </span>is_blankz(<span class="self">self</span>.ch()) {
-            <span class="prelude-val">Ok</span>(<a href="#118">Token</a>(<span class="kw-2">*</span><a href="#683">mark</a>, <a href="#96">TokenType::TagDirective</a>(<a href="#690">handle</a>, <a href="#700">prefix</a>)))
+            <span class="prelude-val">Ok</span>(Token(<span class="kw-2">*</span>mark, TokenType::TagDirective(handle, prefix)))
         } <span class="kw">else </span>{
             <span class="prelude-val">Err</span>(ScanError::new(
-                <span class="kw-2">*</span><a href="#683">mark</a>,
+                <span class="kw-2">*</span>mark,
                 <span class="string">&quot;while scanning TAG, did not find expected whitespace or line break&quot;</span>,
             ))
         }
     }
 
-    <span class="kw">fn </span>fetch_tag(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <a href="#228">ScanResult</a> {
+    <span class="kw">fn </span>fetch_tag(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; ScanResult {
         <span class="self">self</span>.save_simple_key()<span class="question-mark">?</span>;
-        <a class="self" href="#714">self</a>.<a href="#339">disallow_simple_key</a>();
+        <span class="self">self</span>.disallow_simple_key();
 
         <span class="kw">let </span>tok = <span class="self">self</span>.scan_tag()<span class="question-mark">?</span>;
-        <a class="self" href="#714">self</a>.tokens.push_back(<a href="#718">tok</a>);
+        <span class="self">self</span>.tokens.push_back(tok);
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="kw">fn </span>scan_tag(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#118">Token</a>, <a href="#47">ScanError</a>&gt; {
-        <span class="kw">let </span>start_mark = <a class="self" href="#723">self</a>.mark;
+    <span class="kw">fn </span>scan_tag(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;Token, ScanError&gt; {
+        <span class="kw">let </span>start_mark = <span class="self">self</span>.mark;
         <span class="kw">let </span><span class="kw-2">mut </span>handle = String::new();
         <span class="kw">let </span><span class="kw-2">mut </span>suffix;
         <span class="kw">let </span><span class="kw-2">mut </span>secondary = <span class="bool-val">false</span>;
 
         <span class="comment">// Check if the tag is in the canonical form (verbatim).
-        </span><a class="self" href="#723">self</a>.<a href="#261">lookahead</a>(<span class="number">2</span>);
+        </span><span class="self">self</span>.lookahead(<span class="number">2</span>);
 
         <span class="kw">if </span><span class="self">self</span>.buffer[<span class="number">1</span>] == <span class="string">&#39;&lt;&#39; </span>{
             <span class="comment">// Eat &#39;!&lt;&#39;
-            </span><a class="self" href="#723">self</a>.<a href="#270">skip</a>();
-            <a class="self" href="#723">self</a>.<a href="#270">skip</a>();
-            <a href="#726">suffix</a> = <span class="self">self</span>.scan_tag_uri(<span class="bool-val">false</span>, <span class="bool-val">false</span>, <span class="kw-2">&amp;</span>String::new(), <span class="kw-2">&amp;</span>start_mark)<span class="question-mark">?</span>;
+            </span><span class="self">self</span>.skip();
+            <span class="self">self</span>.skip();
+            suffix = <span class="self">self</span>.scan_tag_uri(<span class="bool-val">false</span>, <span class="bool-val">false</span>, <span class="kw-2">&amp;</span>String::new(), <span class="kw-2">&amp;</span>start_mark)<span class="question-mark">?</span>;
 
             <span class="kw">if </span><span class="self">self</span>.ch() != <span class="string">&#39;&gt;&#39; </span>{
                 <span class="kw">return </span><span class="prelude-val">Err</span>(ScanError::new(
-                    <a href="#724">start_mark</a>,
+                    start_mark,
                     <span class="string">&quot;while scanning a tag, did not find the expected &#39;&gt;&#39;&quot;</span>,
                 ));
             }
 
-            <a class="self" href="#723">self</a>.<a href="#270">skip</a>();
+            <span class="self">self</span>.skip();
         } <span class="kw">else </span>{
             <span class="comment">// The tag has either the &#39;!suffix&#39; or the &#39;!handle!suffix&#39;
-            </span><a href="#725">handle</a> = <span class="self">self</span>.scan_tag_handle(<span class="bool-val">false</span>, <span class="kw-2">&amp;</span>start_mark)<span class="question-mark">?</span>;
+            </span>handle = <span class="self">self</span>.scan_tag_handle(<span class="bool-val">false</span>, <span class="kw-2">&amp;</span>start_mark)<span class="question-mark">?</span>;
             <span class="comment">// Check if it is, indeed, handle.
             </span><span class="kw">if </span>handle.len() &gt;= <span class="number">2 </span>&amp;&amp; handle.starts_with(<span class="string">&#39;!&#39;</span>) &amp;&amp; handle.ends_with(<span class="string">&#39;!&#39;</span>) {
                 <span class="kw">if </span>handle == <span class="string">&quot;!!&quot; </span>{
-                    <a href="#727">secondary</a> = <span class="bool-val">true</span>;
+                    secondary = <span class="bool-val">true</span>;
                 }
-                <a href="#726">suffix</a> = <span class="self">self</span>.scan_tag_uri(<span class="bool-val">false</span>, secondary, <span class="kw-2">&amp;</span>String::new(), <span class="kw-2">&amp;</span>start_mark)<span class="question-mark">?</span>;
+                suffix = <span class="self">self</span>.scan_tag_uri(<span class="bool-val">false</span>, secondary, <span class="kw-2">&amp;</span>String::new(), <span class="kw-2">&amp;</span>start_mark)<span class="question-mark">?</span>;
             } <span class="kw">else </span>{
-                <a href="#726">suffix</a> = <span class="self">self</span>.scan_tag_uri(<span class="bool-val">false</span>, <span class="bool-val">false</span>, <span class="kw-2">&amp;</span>handle, <span class="kw-2">&amp;</span>start_mark)<span class="question-mark">?</span>;
-                <a href="#725">handle</a> = <span class="string">&quot;!&quot;</span>.<a href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">to_owned</a>();
+                suffix = <span class="self">self</span>.scan_tag_uri(<span class="bool-val">false</span>, <span class="bool-val">false</span>, <span class="kw-2">&amp;</span>handle, <span class="kw-2">&amp;</span>start_mark)<span class="question-mark">?</span>;
+                handle = <span class="string">&quot;!&quot;</span>.to_owned();
                 <span class="comment">// A special case: the &#39;!&#39; tag.  Set the handle to &#39;&#39; and the
                 // suffix to &#39;!&#39;.
                 </span><span class="kw">if </span>suffix.is_empty() {
-                    <a href="#725">handle</a>.clear();
-                    <a href="#726">suffix</a> = <span class="string">&quot;!&quot;</span>.<a href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">to_owned</a>();
+                    handle.clear();
+                    suffix = <span class="string">&quot;!&quot;</span>.to_owned();
                 }
             }
         }
 
-        <a class="self" href="#723">self</a>.<a href="#261">lookahead</a>(<span class="number">1</span>);
+        <span class="self">self</span>.lookahead(<span class="number">1</span>);
         <span class="kw">if </span>is_blankz(<span class="self">self</span>.ch()) {
             <span class="comment">// XXX: ex 7.2, an empty scalar can follow a secondary tag
-            </span><span class="prelude-val">Ok</span>(<a href="#118">Token</a>(<a href="#724">start_mark</a>, <a href="#113">TokenType::Tag</a>(<a href="#725">handle</a>, <a href="#726">suffix</a>)))
+            </span><span class="prelude-val">Ok</span>(Token(start_mark, TokenType::Tag(handle, suffix)))
         } <span class="kw">else </span>{
             <span class="prelude-val">Err</span>(ScanError::new(
-                <a href="#724">start_mark</a>,
+                start_mark,
                 <span class="string">&quot;while scanning a tag, did not find expected whitespace or line break&quot;</span>,
             ))
         }
     }
 
-    <span class="kw">fn </span>scan_tag_handle(<span class="kw-2">&amp;mut </span><span class="self">self</span>, directive: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>, mark: <span class="kw-2">&amp;</span><a href="#22">Marker</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, <a href="#47">ScanError</a>&gt; {
+    <span class="kw">fn </span>scan_tag_handle(<span class="kw-2">&amp;mut </span><span class="self">self</span>, directive: bool, mark: <span class="kw-2">&amp;</span>Marker) -&gt; <span class="prelude-ty">Result</span>&lt;String, ScanError&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>string = String::new();
-        <a class="self" href="#779">self</a>.<a href="#261">lookahead</a>(<span class="number">1</span>);
+        <span class="self">self</span>.lookahead(<span class="number">1</span>);
         <span class="kw">if </span><span class="self">self</span>.ch() != <span class="string">&#39;!&#39; </span>{
             <span class="kw">return </span><span class="prelude-val">Err</span>(ScanError::new(
-                <span class="kw-2">*</span><a href="#779">mark</a>,
+                <span class="kw-2">*</span>mark,
                 <span class="string">&quot;while scanning a tag, did not find expected &#39;!&#39;&quot;</span>,
             ));
         }
 
-        <a href="#780">string</a>.push(<a class="self" href="#779">self</a>.<a href="#291">ch</a>());
-        <a class="self" href="#779">self</a>.<a href="#270">skip</a>();
+        string.push(<span class="self">self</span>.ch());
+        <span class="self">self</span>.skip();
 
-        <a class="self" href="#779">self</a>.<a href="#261">lookahead</a>(<span class="number">1</span>);
+        <span class="self">self</span>.lookahead(<span class="number">1</span>);
         <span class="kw">while </span>is_alpha(<span class="self">self</span>.ch()) {
             string.push(<span class="self">self</span>.ch());
             <span class="self">self</span>.skip();
@@ -2980,37 +2980,37 @@
 
         <span class="comment">// Check if the trailing character is &#39;!&#39; and copy it.
         </span><span class="kw">if </span><span class="self">self</span>.ch() == <span class="string">&#39;!&#39; </span>{
-            <a href="#780">string</a>.push(<a class="self" href="#779">self</a>.<a href="#291">ch</a>());
-            <a class="self" href="#779">self</a>.<a href="#270">skip</a>();
+            string.push(<span class="self">self</span>.ch());
+            <span class="self">self</span>.skip();
         } <span class="kw">else if </span>directive &amp;&amp; string != <span class="string">&quot;!&quot; </span>{
             <span class="comment">// It&#39;s either the &#39;!&#39; tag or not really a tag handle.  If it&#39;s a %TAG
             // directive, it&#39;s an error.  If it&#39;s a tag token, it must be a part of
             // URI.
             </span><span class="kw">return </span><span class="prelude-val">Err</span>(ScanError::new(
-                <span class="kw-2">*</span><a href="#779">mark</a>,
+                <span class="kw-2">*</span>mark,
                 <span class="string">&quot;while parsing a tag directive, did not find expected &#39;!&#39;&quot;</span>,
             ));
         }
-        <span class="prelude-val">Ok</span>(<a href="#780">string</a>)
+        <span class="prelude-val">Ok</span>(string)
     }
 
     <span class="kw">fn </span>scan_tag_uri(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        directive: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-        _is_secondary: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-        head: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>,
-        mark: <span class="kw-2">&amp;</span><a href="#22">Marker</a>,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, <a href="#47">ScanError</a>&gt; {
-        <span class="kw">let </span><span class="kw-2">mut </span>length = <a href="#819">head</a>.len();
+        directive: bool,
+        _is_secondary: bool,
+        head: <span class="kw-2">&amp;</span>str,
+        mark: <span class="kw-2">&amp;</span>Marker,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;String, ScanError&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>length = head.len();
         <span class="kw">let </span><span class="kw-2">mut </span>string = String::new();
 
         <span class="comment">// Copy the head if needed.
         // Note that we don&#39;t copy the leading &#39;!&#39; character.
         </span><span class="kw">if </span>length &gt; <span class="number">1 </span>{
-            <a href="#823">string</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a href="#819">head</a>.chars().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">skip</a>(<span class="number">1</span>));
+            string.extend(head.chars().skip(<span class="number">1</span>));
         }
 
-        <a class="self" href="#816">self</a>.<a href="#261">lookahead</a>(<span class="number">1</span>);
+        <span class="self">self</span>.lookahead(<span class="number">1</span>);
         <span class="comment">/*
          * The set of characters that may appear in URI is as follows:
          *
@@ -3039,88 +3039,88 @@
 
         <span class="kw">if </span>length == <span class="number">0 </span>{
             <span class="kw">return </span><span class="prelude-val">Err</span>(ScanError::new(
-                <span class="kw-2">*</span><a href="#820">mark</a>,
+                <span class="kw-2">*</span>mark,
                 <span class="string">&quot;while parsing a tag, did not find expected tag URI&quot;</span>,
             ));
         }
 
-        <span class="prelude-val">Ok</span>(<a href="#823">string</a>)
+        <span class="prelude-val">Ok</span>(string)
     }
 
-    <span class="kw">fn </span>scan_uri_escapes(<span class="kw-2">&amp;mut </span><span class="self">self</span>, _directive: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>, mark: <span class="kw-2">&amp;</span><a href="#22">Marker</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>, <a href="#47">ScanError</a>&gt; {
+    <span class="kw">fn </span>scan_uri_escapes(<span class="kw-2">&amp;mut </span><span class="self">self</span>, _directive: bool, mark: <span class="kw-2">&amp;</span>Marker) -&gt; <span class="prelude-ty">Result</span>&lt;char, ScanError&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>width = <span class="number">0usize</span>;
         <span class="kw">let </span><span class="kw-2">mut </span>code = <span class="number">0u32</span>;
         <span class="kw">loop </span>{
-            <a class="self" href="#868">self</a>.<a href="#261">lookahead</a>(<span class="number">3</span>);
+            <span class="self">self</span>.lookahead(<span class="number">3</span>);
 
             <span class="kw">if </span>!(<span class="self">self</span>.ch() == <span class="string">&#39;%&#39; </span>&amp;&amp; is_hex(<span class="self">self</span>.buffer[<span class="number">1</span>]) &amp;&amp; is_hex(<span class="self">self</span>.buffer[<span class="number">2</span>])) {
                 <span class="kw">return </span><span class="prelude-val">Err</span>(ScanError::new(
-                    <span class="kw-2">*</span><a href="#868">mark</a>,
+                    <span class="kw-2">*</span>mark,
                     <span class="string">&quot;while parsing a tag, did not find URI escaped octet&quot;</span>,
                 ));
             }
 
-            <span class="kw">let </span>octet = (<a href="#212">as_hex</a>(<a class="self" href="#868">self</a>.buffer[<span class="number">1</span>]) &lt;&lt; <span class="number">4</span>) + <a href="#212">as_hex</a>(<a class="self" href="#868">self</a>.buffer[<span class="number">2</span>]);
+            <span class="kw">let </span>octet = (as_hex(<span class="self">self</span>.buffer[<span class="number">1</span>]) &lt;&lt; <span class="number">4</span>) + as_hex(<span class="self">self</span>.buffer[<span class="number">2</span>]);
             <span class="kw">if </span>width == <span class="number">0 </span>{
-                <a href="#869">width</a> = <span class="kw">match </span><a href="#881">octet</a> {
-                    <span class="kw">_ if </span><a href="#881">octet</a> &amp; <span class="number">0x80 </span>== <span class="number">0x00 </span>=&gt; <span class="number">1</span>,
-                    <span class="kw">_ if </span><a href="#881">octet</a> &amp; <span class="number">0xE0 </span>== <span class="number">0xC0 </span>=&gt; <span class="number">2</span>,
-                    <span class="kw">_ if </span><a href="#881">octet</a> &amp; <span class="number">0xF0 </span>== <span class="number">0xE0 </span>=&gt; <span class="number">3</span>,
-                    <span class="kw">_ if </span><a href="#881">octet</a> &amp; <span class="number">0xF8 </span>== <span class="number">0xF0 </span>=&gt; <span class="number">4</span>,
+                width = <span class="kw">match </span>octet {
+                    <span class="kw">_ if </span>octet &amp; <span class="number">0x80 </span>== <span class="number">0x00 </span>=&gt; <span class="number">1</span>,
+                    <span class="kw">_ if </span>octet &amp; <span class="number">0xE0 </span>== <span class="number">0xC0 </span>=&gt; <span class="number">2</span>,
+                    <span class="kw">_ if </span>octet &amp; <span class="number">0xF0 </span>== <span class="number">0xE0 </span>=&gt; <span class="number">3</span>,
+                    <span class="kw">_ if </span>octet &amp; <span class="number">0xF8 </span>== <span class="number">0xF0 </span>=&gt; <span class="number">4</span>,
                     <span class="kw">_ </span>=&gt; {
                         <span class="kw">return </span><span class="prelude-val">Err</span>(ScanError::new(
-                            <span class="kw-2">*</span><a href="#868">mark</a>,
+                            <span class="kw-2">*</span>mark,
                             <span class="string">&quot;while parsing a tag, found an incorrect leading UTF-8 octet&quot;</span>,
                         ));
                     }
                 };
-                <a href="#870">code</a> = <a href="#881">octet</a>;
+                code = octet;
             } <span class="kw">else </span>{
                 <span class="kw">if </span>octet &amp; <span class="number">0xc0 </span>!= <span class="number">0x80 </span>{
                     <span class="kw">return </span><span class="prelude-val">Err</span>(ScanError::new(
-                        <span class="kw-2">*</span><a href="#868">mark</a>,
+                        <span class="kw-2">*</span>mark,
                         <span class="string">&quot;while parsing a tag, found an incorrect trailing UTF-8 octet&quot;</span>,
                     ));
                 }
-                <a href="#870">code</a> = (<a href="#870">code</a> &lt;&lt; <span class="number">8</span>) + <a href="#881">octet</a>;
+                code = (code &lt;&lt; <span class="number">8</span>) + octet;
             }
 
-            <a class="self" href="#868">self</a>.<a href="#270">skip</a>();
-            <a class="self" href="#868">self</a>.<a href="#270">skip</a>();
-            <a class="self" href="#868">self</a>.<a href="#270">skip</a>();
+            <span class="self">self</span>.skip();
+            <span class="self">self</span>.skip();
+            <span class="self">self</span>.skip();
 
-            <a href="#869">width</a> -= <span class="number">1</span>;
+            width -= <span class="number">1</span>;
             <span class="kw">if </span>width == <span class="number">0 </span>{
                 <span class="kw">break</span>;
             }
         }
 
-        <span class="kw">match </span>char::from_u32(<a href="#870">code</a>) {
-            <span class="prelude-val">Some</span>(ch) =&gt; <span class="prelude-val">Ok</span>(<a href="#917">ch</a>),
+        <span class="kw">match </span>char::from_u32(code) {
+            <span class="prelude-val">Some</span>(ch) =&gt; <span class="prelude-val">Ok</span>(ch),
             <span class="prelude-val">None </span>=&gt; <span class="prelude-val">Err</span>(ScanError::new(
-                <span class="kw-2">*</span><a href="#868">mark</a>,
+                <span class="kw-2">*</span>mark,
                 <span class="string">&quot;while parsing a tag, found an invalid UTF-8 codepoint&quot;</span>,
             )),
         }
     }
 
-    <span class="kw">fn </span>fetch_anchor(<span class="kw-2">&amp;mut </span><span class="self">self</span>, alias: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <a href="#228">ScanResult</a> {
+    <span class="kw">fn </span>fetch_anchor(<span class="kw-2">&amp;mut </span><span class="self">self</span>, alias: bool) -&gt; ScanResult {
         <span class="self">self</span>.save_simple_key()<span class="question-mark">?</span>;
-        <a class="self" href="#925">self</a>.<a href="#339">disallow_simple_key</a>();
+        <span class="self">self</span>.disallow_simple_key();
 
         <span class="kw">let </span>tok = <span class="self">self</span>.scan_anchor(alias)<span class="question-mark">?</span>;
 
-        <a class="self" href="#925">self</a>.tokens.push_back(<a href="#929">tok</a>);
+        <span class="self">self</span>.tokens.push_back(tok);
 
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="kw">fn </span>scan_anchor(<span class="kw-2">&amp;mut </span><span class="self">self</span>, alias: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#118">Token</a>, <a href="#47">ScanError</a>&gt; {
+    <span class="kw">fn </span>scan_anchor(<span class="kw-2">&amp;mut </span><span class="self">self</span>, alias: bool) -&gt; <span class="prelude-ty">Result</span>&lt;Token, ScanError&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>string = String::new();
-        <span class="kw">let </span>start_mark = <a class="self" href="#936">self</a>.mark;
+        <span class="kw">let </span>start_mark = <span class="self">self</span>.mark;
 
-        <a class="self" href="#936">self</a>.<a href="#270">skip</a>();
-        <a class="self" href="#936">self</a>.<a href="#261">lookahead</a>(<span class="number">1</span>);
+        <span class="self">self</span>.skip();
+        <span class="self">self</span>.lookahead(<span class="number">1</span>);
         <span class="kw">while </span>is_alpha(<span class="self">self</span>.ch()) {
             string.push(<span class="self">self</span>.ch());
             <span class="self">self</span>.skip();
@@ -3134,59 +3134,59 @@
                 <span class="kw">_ </span>=&gt; <span class="bool-val">true</span>,
             }
         {
-            <span class="kw">return </span><span class="prelude-val">Err</span>(ScanError::new(<a href="#938">start_mark</a>, <span class="string">&quot;while scanning an anchor or alias, did not find expected alphabetic or numeric character&quot;</span>));
+            <span class="kw">return </span><span class="prelude-val">Err</span>(ScanError::new(start_mark, <span class="string">&quot;while scanning an anchor or alias, did not find expected alphabetic or numeric character&quot;</span>));
         }
 
         <span class="kw">if </span>alias {
-            <span class="prelude-val">Ok</span>(<a href="#118">Token</a>(<a href="#938">start_mark</a>, <a href="#110">TokenType::Alias</a>(<a href="#937">string</a>)))
+            <span class="prelude-val">Ok</span>(Token(start_mark, TokenType::Alias(string)))
         } <span class="kw">else </span>{
-            <span class="prelude-val">Ok</span>(<a href="#118">Token</a>(<a href="#938">start_mark</a>, <a href="#111">TokenType::Anchor</a>(<a href="#937">string</a>)))
+            <span class="prelude-val">Ok</span>(Token(start_mark, TokenType::Anchor(string)))
         }
     }
 
-    <span class="kw">fn </span>fetch_flow_collection_start(<span class="kw-2">&amp;mut </span><span class="self">self</span>, tok: <a href="#89">TokenType</a>) -&gt; <a href="#228">ScanResult</a> {
+    <span class="kw">fn </span>fetch_flow_collection_start(<span class="kw-2">&amp;mut </span><span class="self">self</span>, tok: TokenType) -&gt; ScanResult {
         <span class="comment">// The indicators &#39;[&#39; and &#39;{&#39; may start a simple key.
         </span><span class="self">self</span>.save_simple_key()<span class="question-mark">?</span>;
 
         <span class="self">self</span>.increase_flow_level()<span class="question-mark">?</span>;
 
-        <a class="self" href="#965">self</a>.<a href="#336">allow_simple_key</a>();
+        <span class="self">self</span>.allow_simple_key();
 
-        <span class="kw">let </span>start_mark = <a class="self" href="#965">self</a>.mark;
-        <a class="self" href="#965">self</a>.<a href="#270">skip</a>();
+        <span class="kw">let </span>start_mark = <span class="self">self</span>.mark;
+        <span class="self">self</span>.skip();
 
-        <a class="self" href="#965">self</a>.tokens.push_back(<a href="#118">Token</a>(<a href="#973">start_mark</a>, <a href="#965">tok</a>));
+        <span class="self">self</span>.tokens.push_back(Token(start_mark, tok));
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="kw">fn </span>fetch_flow_collection_end(<span class="kw-2">&amp;mut </span><span class="self">self</span>, tok: <a href="#89">TokenType</a>) -&gt; <a href="#228">ScanResult</a> {
+    <span class="kw">fn </span>fetch_flow_collection_end(<span class="kw-2">&amp;mut </span><span class="self">self</span>, tok: TokenType) -&gt; ScanResult {
         <span class="self">self</span>.remove_simple_key()<span class="question-mark">?</span>;
-        <a class="self" href="#980">self</a>.<a href="#1013">decrease_flow_level</a>();
+        <span class="self">self</span>.decrease_flow_level();
 
-        <a class="self" href="#980">self</a>.<a href="#339">disallow_simple_key</a>();
+        <span class="self">self</span>.disallow_simple_key();
 
-        <span class="kw">let </span>start_mark = <a class="self" href="#980">self</a>.mark;
-        <a class="self" href="#980">self</a>.<a href="#270">skip</a>();
+        <span class="kw">let </span>start_mark = <span class="self">self</span>.mark;
+        <span class="self">self</span>.skip();
 
-        <a class="self" href="#980">self</a>.tokens.push_back(<a href="#118">Token</a>(<a href="#986">start_mark</a>, <a href="#980">tok</a>));
+        <span class="self">self</span>.tokens.push_back(Token(start_mark, tok));
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="kw">fn </span>fetch_flow_entry(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <a href="#228">ScanResult</a> {
+    <span class="kw">fn </span>fetch_flow_entry(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; ScanResult {
         <span class="self">self</span>.remove_simple_key()<span class="question-mark">?</span>;
-        <a class="self" href="#993">self</a>.<a href="#336">allow_simple_key</a>();
+        <span class="self">self</span>.allow_simple_key();
 
-        <span class="kw">let </span>start_mark = <a class="self" href="#993">self</a>.mark;
-        <a class="self" href="#993">self</a>.<a href="#270">skip</a>();
+        <span class="kw">let </span>start_mark = <span class="self">self</span>.mark;
+        <span class="self">self</span>.skip();
 
-        <a class="self" href="#993">self</a>.tokens
-            .push_back(<a href="#118">Token</a>(<a href="#997">start_mark</a>, <a href="#107">TokenType::FlowEntry</a>));
+        <span class="self">self</span>.tokens
+            .push_back(Token(start_mark, TokenType::FlowEntry));
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="kw">fn </span>increase_flow_level(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <a href="#228">ScanResult</a> {
-        <a class="self" href="#1005">self</a>.simple_keys.push(SimpleKey::new(Marker::new(<span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>)));
-        <a class="self" href="#1005">self</a>.flow_level = <span class="self">self
+    <span class="kw">fn </span>increase_flow_level(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; ScanResult {
+        <span class="self">self</span>.simple_keys.push(SimpleKey::new(Marker::new(<span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>)));
+        <span class="self">self</span>.flow_level = <span class="self">self
             </span>.flow_level
             .checked_add(<span class="number">1</span>)
             .ok_or_else(|| ScanError::new(<span class="self">self</span>.mark, <span class="string">&quot;recursion limit exceeded&quot;</span>))<span class="question-mark">?</span>;
@@ -3194,123 +3194,123 @@
     }
     <span class="kw">fn </span>decrease_flow_level(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="kw">if </span><span class="self">self</span>.flow_level &gt; <span class="number">0 </span>{
-            <a class="self" href="#1013">self</a>.flow_level -= <span class="number">1</span>;
-            <a class="self" href="#1013">self</a>.simple_keys.pop().unwrap();
+            <span class="self">self</span>.flow_level -= <span class="number">1</span>;
+            <span class="self">self</span>.simple_keys.pop().unwrap();
         }
     }
 
-    <span class="kw">fn </span>fetch_block_entry(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <a href="#228">ScanResult</a> {
+    <span class="kw">fn </span>fetch_block_entry(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; ScanResult {
         <span class="kw">if </span><span class="self">self</span>.flow_level == <span class="number">0 </span>{
             <span class="comment">// Check if we are allowed to start a new entry.
             </span><span class="kw">if </span>!<span class="self">self</span>.simple_key_allowed {
                 <span class="kw">return </span><span class="prelude-val">Err</span>(ScanError::new(
-                    <a class="self" href="#1020">self</a>.mark,
+                    <span class="self">self</span>.mark,
                     <span class="string">&quot;block sequence entries are not allowed in this context&quot;</span>,
                 ));
             }
 
-            <span class="kw">let </span>mark = <a class="self" href="#1020">self</a>.mark;
+            <span class="kw">let </span>mark = <span class="self">self</span>.mark;
             <span class="comment">// generate BLOCK-SEQUENCE-START if indented
-            </span><a class="self" href="#1020">self</a>.<a href="#1688">roll_indent</a>(<a href="#1030">mark</a>.col, <span class="prelude-val">None</span>, <a href="#99">TokenType::BlockSequenceStart</a>, <a href="#1030">mark</a>);
+            </span><span class="self">self</span>.roll_indent(mark.col, <span class="prelude-val">None</span>, TokenType::BlockSequenceStart, mark);
         } <span class="kw">else </span>{
             <span class="comment">// - * only allowed in block
             </span><span class="kw">return </span><span class="prelude-val">Err</span>(ScanError::new(
-                <a class="self" href="#1020">self</a>.mark,
+                <span class="self">self</span>.mark,
                 <span class="string">r#&quot;&quot;-&quot; is only valid inside a block&quot;#</span>,
             ));
         }
         <span class="self">self</span>.remove_simple_key()<span class="question-mark">?</span>;
-        <a class="self" href="#1020">self</a>.<a href="#336">allow_simple_key</a>();
+        <span class="self">self</span>.allow_simple_key();
 
-        <span class="kw">let </span>start_mark = <a class="self" href="#1020">self</a>.mark;
-        <a class="self" href="#1020">self</a>.<a href="#270">skip</a>();
+        <span class="kw">let </span>start_mark = <span class="self">self</span>.mark;
+        <span class="self">self</span>.skip();
 
-        <a class="self" href="#1020">self</a>.tokens
-            .push_back(<a href="#118">Token</a>(<a href="#1043">start_mark</a>, <a href="#106">TokenType::BlockEntry</a>));
+        <span class="self">self</span>.tokens
+            .push_back(Token(start_mark, TokenType::BlockEntry));
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="kw">fn </span>fetch_document_indicator(<span class="kw-2">&amp;mut </span><span class="self">self</span>, t: <a href="#89">TokenType</a>) -&gt; <a href="#228">ScanResult</a> {
-        <a class="self" href="#1051">self</a>.<a href="#1704">unroll_indent</a>(-<span class="number">1</span>);
+    <span class="kw">fn </span>fetch_document_indicator(<span class="kw-2">&amp;mut </span><span class="self">self</span>, t: TokenType) -&gt; ScanResult {
+        <span class="self">self</span>.unroll_indent(-<span class="number">1</span>);
         <span class="self">self</span>.remove_simple_key()<span class="question-mark">?</span>;
-        <a class="self" href="#1051">self</a>.<a href="#339">disallow_simple_key</a>();
+        <span class="self">self</span>.disallow_simple_key();
 
-        <span class="kw">let </span>mark = <a class="self" href="#1051">self</a>.mark;
+        <span class="kw">let </span>mark = <span class="self">self</span>.mark;
 
-        <a class="self" href="#1051">self</a>.<a href="#270">skip</a>();
-        <a class="self" href="#1051">self</a>.<a href="#270">skip</a>();
-        <a class="self" href="#1051">self</a>.<a href="#270">skip</a>();
+        <span class="self">self</span>.skip();
+        <span class="self">self</span>.skip();
+        <span class="self">self</span>.skip();
 
-        <a class="self" href="#1051">self</a>.tokens.push_back(<a href="#118">Token</a>(<a href="#1056">mark</a>, <a href="#1051">t</a>));
+        <span class="self">self</span>.tokens.push_back(Token(mark, t));
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="kw">fn </span>fetch_block_scalar(<span class="kw-2">&amp;mut </span><span class="self">self</span>, literal: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <a href="#228">ScanResult</a> {
+    <span class="kw">fn </span>fetch_block_scalar(<span class="kw-2">&amp;mut </span><span class="self">self</span>, literal: bool) -&gt; ScanResult {
         <span class="self">self</span>.save_simple_key()<span class="question-mark">?</span>;
-        <a class="self" href="#1066">self</a>.<a href="#336">allow_simple_key</a>();
+        <span class="self">self</span>.allow_simple_key();
         <span class="kw">let </span>tok = <span class="self">self</span>.scan_block_scalar(literal)<span class="question-mark">?</span>;
 
-        <a class="self" href="#1066">self</a>.tokens.push_back(<a href="#1069">tok</a>);
+        <span class="self">self</span>.tokens.push_back(tok);
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="kw">fn </span>scan_block_scalar(<span class="kw-2">&amp;mut </span><span class="self">self</span>, literal: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#118">Token</a>, <a href="#47">ScanError</a>&gt; {
-        <span class="kw">let </span>start_mark = <a class="self" href="#1075">self</a>.mark;
-        <span class="kw">let </span><span class="kw-2">mut </span>chomping: <a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a> = <span class="number">0</span>;
-        <span class="kw">let </span><span class="kw-2">mut </span>increment: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> = <span class="number">0</span>;
-        <span class="kw">let </span><span class="kw-2">mut </span>indent: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> = <span class="number">0</span>;
-        <span class="kw">let </span><span class="kw-2">mut </span>trailing_blank: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>;
-        <span class="kw">let </span><span class="kw-2">mut </span>leading_blank: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> = <span class="bool-val">false</span>;
+    <span class="kw">fn </span>scan_block_scalar(<span class="kw-2">&amp;mut </span><span class="self">self</span>, literal: bool) -&gt; <span class="prelude-ty">Result</span>&lt;Token, ScanError&gt; {
+        <span class="kw">let </span>start_mark = <span class="self">self</span>.mark;
+        <span class="kw">let </span><span class="kw-2">mut </span>chomping: i32 = <span class="number">0</span>;
+        <span class="kw">let </span><span class="kw-2">mut </span>increment: usize = <span class="number">0</span>;
+        <span class="kw">let </span><span class="kw-2">mut </span>indent: usize = <span class="number">0</span>;
+        <span class="kw">let </span><span class="kw-2">mut </span>trailing_blank: bool;
+        <span class="kw">let </span><span class="kw-2">mut </span>leading_blank: bool = <span class="bool-val">false</span>;
 
         <span class="kw">let </span><span class="kw-2">mut </span>string = String::new();
         <span class="kw">let </span><span class="kw-2">mut </span>leading_break = String::new();
         <span class="kw">let </span><span class="kw-2">mut </span>trailing_breaks = String::new();
 
         <span class="comment">// skip &#39;|&#39; or &#39;&gt;&#39;
-        </span><a class="self" href="#1075">self</a>.<a href="#270">skip</a>();
-        <a class="self" href="#1075">self</a>.<a href="#261">lookahead</a>(<span class="number">1</span>);
+        </span><span class="self">self</span>.skip();
+        <span class="self">self</span>.lookahead(<span class="number">1</span>);
 
         <span class="kw">if </span><span class="self">self</span>.ch() == <span class="string">&#39;+&#39; </span>|| <span class="self">self</span>.ch() == <span class="string">&#39;-&#39; </span>{
             <span class="kw">if </span><span class="self">self</span>.ch() == <span class="string">&#39;+&#39; </span>{
-                <a href="#1077">chomping</a> = <span class="number">1</span>;
+                chomping = <span class="number">1</span>;
             } <span class="kw">else </span>{
-                <a href="#1077">chomping</a> = -<span class="number">1</span>;
+                chomping = -<span class="number">1</span>;
             }
-            <a class="self" href="#1075">self</a>.<a href="#270">skip</a>();
-            <a class="self" href="#1075">self</a>.<a href="#261">lookahead</a>(<span class="number">1</span>);
+            <span class="self">self</span>.skip();
+            <span class="self">self</span>.lookahead(<span class="number">1</span>);
             <span class="kw">if </span>is_digit(<span class="self">self</span>.ch()) {
                 <span class="kw">if </span><span class="self">self</span>.ch() == <span class="string">&#39;0&#39; </span>{
                     <span class="kw">return </span><span class="prelude-val">Err</span>(ScanError::new(
-                        <a href="#1076">start_mark</a>,
+                        start_mark,
                         <span class="string">&quot;while scanning a block scalar, found an indentation indicator equal to 0&quot;</span>,
                     ));
                 }
-                <a href="#1078">increment</a> = (<a class="self" href="#1075">self</a>.<a href="#291">ch</a>() <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) - (<span class="string">&#39;0&#39; </span><span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>);
-                <a class="self" href="#1075">self</a>.<a href="#270">skip</a>();
+                increment = (<span class="self">self</span>.ch() <span class="kw">as </span>usize) - (<span class="string">&#39;0&#39; </span><span class="kw">as </span>usize);
+                <span class="self">self</span>.skip();
             }
         } <span class="kw">else if </span>is_digit(<span class="self">self</span>.ch()) {
             <span class="kw">if </span><span class="self">self</span>.ch() == <span class="string">&#39;0&#39; </span>{
                 <span class="kw">return </span><span class="prelude-val">Err</span>(ScanError::new(
-                    <a href="#1076">start_mark</a>,
+                    start_mark,
                     <span class="string">&quot;while scanning a block scalar, found an indentation indicator equal to 0&quot;</span>,
                 ));
             }
 
-            <a href="#1078">increment</a> = (<a class="self" href="#1075">self</a>.<a href="#291">ch</a>() <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) - (<span class="string">&#39;0&#39; </span><span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>);
-            <a class="self" href="#1075">self</a>.<a href="#270">skip</a>();
-            <a class="self" href="#1075">self</a>.<a href="#261">lookahead</a>(<span class="number">1</span>);
+            increment = (<span class="self">self</span>.ch() <span class="kw">as </span>usize) - (<span class="string">&#39;0&#39; </span><span class="kw">as </span>usize);
+            <span class="self">self</span>.skip();
+            <span class="self">self</span>.lookahead(<span class="number">1</span>);
             <span class="kw">if </span><span class="self">self</span>.ch() == <span class="string">&#39;+&#39; </span>|| <span class="self">self</span>.ch() == <span class="string">&#39;-&#39; </span>{
                 <span class="kw">if </span><span class="self">self</span>.ch() == <span class="string">&#39;+&#39; </span>{
-                    <a href="#1077">chomping</a> = <span class="number">1</span>;
+                    chomping = <span class="number">1</span>;
                 } <span class="kw">else </span>{
-                    <a href="#1077">chomping</a> = -<span class="number">1</span>;
+                    chomping = -<span class="number">1</span>;
                 }
-                <a class="self" href="#1075">self</a>.<a href="#270">skip</a>();
+                <span class="self">self</span>.skip();
             }
         }
 
         <span class="comment">// Eat whitespaces and comments to the end of the line.
-        </span><a class="self" href="#1075">self</a>.<a href="#261">lookahead</a>(<span class="number">1</span>);
+        </span><span class="self">self</span>.lookahead(<span class="number">1</span>);
 
         <span class="kw">while </span>is_blank(<span class="self">self</span>.ch()) {
             <span class="self">self</span>.skip();
@@ -3327,29 +3327,29 @@
         <span class="comment">// Check if we are at the end of the line.
         </span><span class="kw">if </span>!is_breakz(<span class="self">self</span>.ch()) {
             <span class="kw">return </span><span class="prelude-val">Err</span>(ScanError::new(
-                <a href="#1076">start_mark</a>,
+                start_mark,
                 <span class="string">&quot;while scanning a block scalar, did not find expected comment or line break&quot;</span>,
             ));
         }
 
         <span class="kw">if </span>is_break(<span class="self">self</span>.ch()) {
-            <a class="self" href="#1075">self</a>.<a href="#261">lookahead</a>(<span class="number">2</span>);
-            <a class="self" href="#1075">self</a>.<a href="#282">skip_line</a>();
+            <span class="self">self</span>.lookahead(<span class="number">2</span>);
+            <span class="self">self</span>.skip_line();
         }
 
         <span class="kw">if </span>increment &gt; <span class="number">0 </span>{
-            <a href="#1079">indent</a> = <span class="kw">if </span><span class="self">self</span>.indent &gt;= <span class="number">0 </span>{
-                (<a class="self" href="#1075">self</a>.indent + <a href="#1078">increment</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.isize.html">isize</a>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>
+            indent = <span class="kw">if </span><span class="self">self</span>.indent &gt;= <span class="number">0 </span>{
+                (<span class="self">self</span>.indent + increment <span class="kw">as </span>isize) <span class="kw">as </span>usize
             } <span class="kw">else </span>{
-                <a href="#1078">increment</a>
+                increment
             }
         }
         <span class="comment">// Scan the leading line breaks and determine the indentation level if needed.
         </span><span class="self">self</span>.block_scalar_breaks(<span class="kw-2">&amp;mut </span>indent, <span class="kw-2">&amp;mut </span>trailing_breaks)<span class="question-mark">?</span>;
 
-        <a class="self" href="#1075">self</a>.<a href="#261">lookahead</a>(<span class="number">1</span>);
+        <span class="self">self</span>.lookahead(<span class="number">1</span>);
 
-        <span class="kw">let </span>start_mark = <a class="self" href="#1075">self</a>.mark;
+        <span class="kw">let </span>start_mark = <span class="self">self</span>.mark;
 
         <span class="kw">while </span><span class="self">self</span>.mark.col == indent &amp;&amp; !is_z(<span class="self">self</span>.ch()) {
             <span class="comment">// We are at the beginning of a non-empty line.
@@ -3388,42 +3388,42 @@
 
         <span class="comment">// Chomp the tail.
         </span><span class="kw">if </span>chomping != -<span class="number">1 </span>{
-            <a href="#1083">string</a>.push_str(<span class="kw-2">&amp;</span><a href="#1084">leading_break</a>);
+            string.push_str(<span class="kw-2">&amp;</span>leading_break);
         }
 
         <span class="kw">if </span>chomping == <span class="number">1 </span>{
-            <a href="#1083">string</a>.push_str(<span class="kw-2">&amp;</span><a href="#1085">trailing_breaks</a>);
+            string.push_str(<span class="kw-2">&amp;</span>trailing_breaks);
         }
 
         <span class="kw">if </span>literal {
-            <span class="prelude-val">Ok</span>(<a href="#118">Token</a>(
-                <a href="#1170">start_mark</a>,
-                <a href="#114">TokenType::Scalar</a>(<a href="#17">TScalarStyle::Literal</a>, <a href="#1083">string</a>),
+            <span class="prelude-val">Ok</span>(Token(
+                start_mark,
+                TokenType::Scalar(TScalarStyle::Literal, string),
             ))
         } <span class="kw">else </span>{
-            <span class="prelude-val">Ok</span>(<a href="#118">Token</a>(
-                <a href="#1170">start_mark</a>,
-                <a href="#114">TokenType::Scalar</a>(<a href="#18">TScalarStyle::Foled</a>, <a href="#1083">string</a>),
+            <span class="prelude-val">Ok</span>(Token(
+                start_mark,
+                TokenType::Scalar(TScalarStyle::Foled, string),
             ))
         }
     }
 
-    <span class="kw">fn </span>block_scalar_breaks(<span class="kw-2">&amp;mut </span><span class="self">self</span>, indent: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, breaks: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>) -&gt; <a href="#228">ScanResult</a> {
+    <span class="kw">fn </span>block_scalar_breaks(<span class="kw-2">&amp;mut </span><span class="self">self</span>, indent: <span class="kw-2">&amp;mut </span>usize, breaks: <span class="kw-2">&amp;mut </span>String) -&gt; ScanResult {
         <span class="kw">let </span><span class="kw-2">mut </span>max_indent = <span class="number">0</span>;
         <span class="kw">loop </span>{
-            <a class="self" href="#1229">self</a>.<a href="#261">lookahead</a>(<span class="number">1</span>);
+            <span class="self">self</span>.lookahead(<span class="number">1</span>);
             <span class="kw">while </span>(<span class="kw-2">*</span>indent == <span class="number">0 </span>|| <span class="self">self</span>.mark.col &lt; <span class="kw-2">*</span>indent) &amp;&amp; <span class="self">self</span>.buffer[<span class="number">0</span>] == <span class="string">&#39; &#39; </span>{
                 <span class="self">self</span>.skip();
                 <span class="self">self</span>.lookahead(<span class="number">1</span>);
             }
 
             <span class="kw">if </span><span class="self">self</span>.mark.col &gt; max_indent {
-                <a href="#1230">max_indent</a> = <a class="self" href="#1229">self</a>.mark.col;
+                max_indent = <span class="self">self</span>.mark.col;
             }
 
             <span class="comment">// Check for a tab character messing the indentation.
             </span><span class="kw">if </span>(<span class="kw-2">*</span>indent == <span class="number">0 </span>|| <span class="self">self</span>.mark.col &lt; <span class="kw-2">*</span>indent) &amp;&amp; <span class="self">self</span>.buffer[<span class="number">0</span>] == <span class="string">&#39;\t&#39; </span>{
-                <span class="kw">return </span><span class="prelude-val">Err</span>(ScanError::new(<a class="self" href="#1229">self</a>.mark,
+                <span class="kw">return </span><span class="prelude-val">Err</span>(ScanError::new(<span class="self">self</span>.mark,
                         <span class="string">&quot;while scanning a block scalar, found a tab character where an indentation space is expected&quot;</span>));
             }
 
@@ -3431,39 +3431,39 @@
                 <span class="kw">break</span>;
             }
 
-            <a class="self" href="#1229">self</a>.<a href="#261">lookahead</a>(<span class="number">2</span>);
+            <span class="self">self</span>.lookahead(<span class="number">2</span>);
             <span class="comment">// Consume the line break.
-            </span><a class="self" href="#1229">self</a>.<a href="#316">read_break</a>(<a href="#1229">breaks</a>);
+            </span><span class="self">self</span>.read_break(breaks);
         }
 
         <span class="kw">if </span><span class="kw-2">*</span>indent == <span class="number">0 </span>{
-            <span class="kw-2">*</span><a href="#1229">indent</a> = <a href="#1230">max_indent</a>;
+            <span class="kw-2">*</span>indent = max_indent;
             <span class="kw">if </span><span class="kw-2">*</span>indent &lt; (<span class="self">self</span>.indent + <span class="number">1</span>) <span class="kw">as </span>usize {
-                <span class="kw-2">*</span><a href="#1229">indent</a> = (<a class="self" href="#1229">self</a>.indent + <span class="number">1</span>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>;
+                <span class="kw-2">*</span>indent = (<span class="self">self</span>.indent + <span class="number">1</span>) <span class="kw">as </span>usize;
             }
             <span class="kw">if </span><span class="kw-2">*</span>indent &lt; <span class="number">1 </span>{
-                <span class="kw-2">*</span><a href="#1229">indent</a> = <span class="number">1</span>;
+                <span class="kw-2">*</span>indent = <span class="number">1</span>;
             }
         }
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="kw">fn </span>fetch_flow_scalar(<span class="kw-2">&amp;mut </span><span class="self">self</span>, single: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <a href="#228">ScanResult</a> {
+    <span class="kw">fn </span>fetch_flow_scalar(<span class="kw-2">&amp;mut </span><span class="self">self</span>, single: bool) -&gt; ScanResult {
         <span class="self">self</span>.save_simple_key()<span class="question-mark">?</span>;
-        <a class="self" href="#1269">self</a>.<a href="#339">disallow_simple_key</a>();
+        <span class="self">self</span>.disallow_simple_key();
 
         <span class="kw">let </span>tok = <span class="self">self</span>.scan_flow_scalar(single)<span class="question-mark">?</span>;
 
         <span class="comment">// From spec: To ensure JSON compatibility, if a key inside a flow mapping is JSON-like,
         // YAML allows the following value to be specified adjacent to the “:”.
-        </span><a class="self" href="#1269">self</a>.adjacent_value_allowed_at = <a class="self" href="#1269">self</a>.mark.index;
+        </span><span class="self">self</span>.adjacent_value_allowed_at = <span class="self">self</span>.mark.index;
 
-        <a class="self" href="#1269">self</a>.tokens.push_back(<a href="#1273">tok</a>);
+        <span class="self">self</span>.tokens.push_back(tok);
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="kw">fn </span>scan_flow_scalar(<span class="kw-2">&amp;mut </span><span class="self">self</span>, single: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#118">Token</a>, <a href="#47">ScanError</a>&gt; {
-        <span class="kw">let </span>start_mark = <a class="self" href="#1283">self</a>.mark;
+    <span class="kw">fn </span>scan_flow_scalar(<span class="kw-2">&amp;mut </span><span class="self">self</span>, single: bool) -&gt; <span class="prelude-ty">Result</span>&lt;Token, ScanError&gt; {
+        <span class="kw">let </span>start_mark = <span class="self">self</span>.mark;
 
         <span class="kw">let </span><span class="kw-2">mut </span>string = String::new();
         <span class="kw">let </span><span class="kw-2">mut </span>leading_break = String::new();
@@ -3472,11 +3472,11 @@
         <span class="kw">let </span><span class="kw-2">mut </span>leading_blanks;
 
         <span class="comment">/* Eat the left quote. */
-        </span><a class="self" href="#1283">self</a>.<a href="#270">skip</a>();
+        </span><span class="self">self</span>.skip();
 
         <span class="kw">loop </span>{
             <span class="comment">/* Check for a document indicator. */
-            </span><a class="self" href="#1283">self</a>.<a href="#261">lookahead</a>(<span class="number">4</span>);
+            </span><span class="self">self</span>.lookahead(<span class="number">4</span>);
 
             <span class="kw">if </span><span class="self">self</span>.mark.col == <span class="number">0
                 </span>&amp;&amp; (((<span class="self">self</span>.buffer[<span class="number">0</span>] == <span class="string">&#39;-&#39;</span>) &amp;&amp; (<span class="self">self</span>.buffer[<span class="number">1</span>] == <span class="string">&#39;-&#39;</span>) &amp;&amp; (<span class="self">self</span>.buffer[<span class="number">2</span>] == <span class="string">&#39;-&#39;</span>))
@@ -3486,21 +3486,21 @@
                 &amp;&amp; is_blankz(<span class="self">self</span>.buffer[<span class="number">3</span>])
             {
                 <span class="kw">return </span><span class="prelude-val">Err</span>(ScanError::new(
-                    <a href="#1284">start_mark</a>,
+                    start_mark,
                     <span class="string">&quot;while scanning a quoted scalar, found unexpected document indicator&quot;</span>,
                 ));
             }
 
             <span class="kw">if </span>is_z(<span class="self">self</span>.ch()) {
                 <span class="kw">return </span><span class="prelude-val">Err</span>(ScanError::new(
-                    <a href="#1284">start_mark</a>,
+                    start_mark,
                     <span class="string">&quot;while scanning a quoted scalar, found unexpected end of stream&quot;</span>,
                 ));
             }
 
-            <a class="self" href="#1283">self</a>.<a href="#261">lookahead</a>(<span class="number">2</span>);
+            <span class="self">self</span>.lookahead(<span class="number">2</span>);
 
-            <a href="#1290">leading_blanks</a> = <span class="bool-val">false</span>;
+            leading_blanks = <span class="bool-val">false</span>;
             <span class="comment">// Consume non-blank characters.
 
             </span><span class="kw">while </span>!is_blankz(<span class="self">self</span>.ch()) {
@@ -3592,10 +3592,10 @@
                 }
                 <span class="self">self</span>.lookahead(<span class="number">2</span>);
             }
-            <a class="self" href="#1283">self</a>.<a href="#261">lookahead</a>(<span class="number">1</span>);
-            <span class="kw">match </span><a class="self" href="#1283">self</a>.<a href="#291">ch</a>() {
-                <span class="string">&#39;\&#39;&#39; </span><span class="kw">if </span><a href="#1283">single</a> =&gt; <span class="kw">break</span>,
-                <span class="string">&#39;&quot;&#39; </span><span class="kw">if </span>!<a href="#1283">single</a> =&gt; <span class="kw">break</span>,
+            <span class="self">self</span>.lookahead(<span class="number">1</span>);
+            <span class="kw">match </span><span class="self">self</span>.ch() {
+                <span class="string">&#39;\&#39;&#39; </span><span class="kw">if </span>single =&gt; <span class="kw">break</span>,
+                <span class="string">&#39;&quot;&#39; </span><span class="kw">if </span>!single =&gt; <span class="kw">break</span>,
                 <span class="kw">_ </span>=&gt; {}
             }
 
@@ -3625,54 +3625,54 @@
             <span class="comment">// Join the whitespaces or fold line breaks.
             </span><span class="kw">if </span>leading_blanks {
                 <span class="kw">if </span>leading_break.is_empty() {
-                    <a href="#1286">string</a>.push_str(<span class="kw-2">&amp;</span><a href="#1287">leading_break</a>);
-                    <a href="#1286">string</a>.push_str(<span class="kw-2">&amp;</span><a href="#1288">trailing_breaks</a>);
-                    <a href="#1288">trailing_breaks</a>.clear();
-                    <a href="#1287">leading_break</a>.clear();
+                    string.push_str(<span class="kw-2">&amp;</span>leading_break);
+                    string.push_str(<span class="kw-2">&amp;</span>trailing_breaks);
+                    trailing_breaks.clear();
+                    leading_break.clear();
                 } <span class="kw">else </span>{
                     <span class="kw">if </span>trailing_breaks.is_empty() {
-                        <a href="#1286">string</a>.push(<span class="string">&#39; &#39;</span>);
+                        string.push(<span class="string">&#39; &#39;</span>);
                     } <span class="kw">else </span>{
-                        <a href="#1286">string</a>.push_str(<span class="kw-2">&amp;</span><a href="#1288">trailing_breaks</a>);
-                        <a href="#1288">trailing_breaks</a>.clear();
+                        string.push_str(<span class="kw-2">&amp;</span>trailing_breaks);
+                        trailing_breaks.clear();
                     }
-                    <a href="#1287">leading_break</a>.clear();
+                    leading_break.clear();
                 }
             } <span class="kw">else </span>{
-                <a href="#1286">string</a>.push_str(<span class="kw-2">&amp;</span><a href="#1289">whitespaces</a>);
-                <a href="#1289">whitespaces</a>.clear();
+                string.push_str(<span class="kw-2">&amp;</span>whitespaces);
+                whitespaces.clear();
             }
         } <span class="comment">// loop
 
         // Eat the right quote.
-        </span><a class="self" href="#1283">self</a>.<a href="#270">skip</a>();
+        </span><span class="self">self</span>.skip();
 
         <span class="kw">if </span>single {
-            <span class="prelude-val">Ok</span>(<a href="#118">Token</a>(
-                <a href="#1284">start_mark</a>,
-                <a href="#114">TokenType::Scalar</a>(<a href="#14">TScalarStyle::SingleQuoted</a>, <a href="#1286">string</a>),
+            <span class="prelude-val">Ok</span>(Token(
+                start_mark,
+                TokenType::Scalar(TScalarStyle::SingleQuoted, string),
             ))
         } <span class="kw">else </span>{
-            <span class="prelude-val">Ok</span>(<a href="#118">Token</a>(
-                <a href="#1284">start_mark</a>,
-                <a href="#114">TokenType::Scalar</a>(<a href="#15">TScalarStyle::DoubleQuoted</a>, <a href="#1286">string</a>),
+            <span class="prelude-val">Ok</span>(Token(
+                start_mark,
+                TokenType::Scalar(TScalarStyle::DoubleQuoted, string),
             ))
         }
     }
 
-    <span class="kw">fn </span>fetch_plain_scalar(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <a href="#228">ScanResult</a> {
+    <span class="kw">fn </span>fetch_plain_scalar(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; ScanResult {
         <span class="self">self</span>.save_simple_key()<span class="question-mark">?</span>;
-        <a class="self" href="#1481">self</a>.<a href="#339">disallow_simple_key</a>();
+        <span class="self">self</span>.disallow_simple_key();
 
         <span class="kw">let </span>tok = <span class="self">self</span>.scan_plain_scalar()<span class="question-mark">?</span>;
 
-        <a class="self" href="#1481">self</a>.tokens.push_back(<a href="#1485">tok</a>);
+        <span class="self">self</span>.tokens.push_back(tok);
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="kw">fn </span>scan_plain_scalar(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#118">Token</a>, <a href="#47">ScanError</a>&gt; {
-        <span class="kw">let </span>indent = <a class="self" href="#1491">self</a>.indent + <span class="number">1</span>;
-        <span class="kw">let </span>start_mark = <a class="self" href="#1491">self</a>.mark;
+    <span class="kw">fn </span>scan_plain_scalar(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;Token, ScanError&gt; {
+        <span class="kw">let </span>indent = <span class="self">self</span>.indent + <span class="number">1</span>;
+        <span class="kw">let </span>start_mark = <span class="self">self</span>.mark;
 
         <span class="kw">let </span><span class="kw-2">mut </span>string = String::new();
         <span class="kw">let </span><span class="kw-2">mut </span>leading_break = String::new();
@@ -3682,7 +3682,7 @@
 
         <span class="kw">loop </span>{
             <span class="comment">/* Check for a document indicator. */
-            </span><a class="self" href="#1491">self</a>.<a href="#261">lookahead</a>(<span class="number">4</span>);
+            </span><span class="self">self</span>.lookahead(<span class="number">4</span>);
 
             <span class="kw">if </span><span class="self">self</span>.mark.col == <span class="number">0
                 </span>&amp;&amp; (((<span class="self">self</span>.buffer[<span class="number">0</span>] == <span class="string">&#39;-&#39;</span>) &amp;&amp; (<span class="self">self</span>.buffer[<span class="number">1</span>] == <span class="string">&#39;-&#39;</span>) &amp;&amp; (<span class="self">self</span>.buffer[<span class="number">2</span>] == <span class="string">&#39;-&#39;</span>))
@@ -3740,7 +3740,7 @@
             </span><span class="kw">if </span>!(is_blank(<span class="self">self</span>.ch()) || is_break(<span class="self">self</span>.ch())) {
                 <span class="kw">break</span>;
             }
-            <a class="self" href="#1491">self</a>.<a href="#261">lookahead</a>(<span class="number">1</span>);
+            <span class="self">self</span>.lookahead(<span class="number">1</span>);
 
             <span class="kw">while </span>is_blank(<span class="self">self</span>.ch()) || is_break(<span class="self">self</span>.ch()) {
                 <span class="kw">if </span>is_blank(<span class="self">self</span>.ch()) {
@@ -3778,112 +3778,112 @@
         }
 
         <span class="kw">if </span>leading_blanks {
-            <a class="self" href="#1491">self</a>.<a href="#336">allow_simple_key</a>();
+            <span class="self">self</span>.allow_simple_key();
         }
 
-        <span class="prelude-val">Ok</span>(<a href="#118">Token</a>(
-            <a href="#1493">start_mark</a>,
-            <a href="#114">TokenType::Scalar</a>(<a href="#13">TScalarStyle::Plain</a>, <a href="#1495">string</a>),
+        <span class="prelude-val">Ok</span>(Token(
+            start_mark,
+            TokenType::Scalar(TScalarStyle::Plain, string),
         ))
     }
 
-    <span class="kw">fn </span>fetch_key(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <a href="#228">ScanResult</a> {
-        <span class="kw">let </span>start_mark = <a class="self" href="#1608">self</a>.mark;
+    <span class="kw">fn </span>fetch_key(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; ScanResult {
+        <span class="kw">let </span>start_mark = <span class="self">self</span>.mark;
         <span class="kw">if </span><span class="self">self</span>.flow_level == <span class="number">0 </span>{
             <span class="comment">// Check if we are allowed to start a new key (not necessarily simple).
             </span><span class="kw">if </span>!<span class="self">self</span>.simple_key_allowed {
                 <span class="kw">return </span><span class="prelude-val">Err</span>(ScanError::new(
-                    <a class="self" href="#1608">self</a>.mark,
+                    <span class="self">self</span>.mark,
                     <span class="string">&quot;mapping keys are not allowed in this context&quot;</span>,
                 ));
             }
-            <a class="self" href="#1608">self</a>.<a href="#1688">roll_indent</a>(
-                <a href="#1609">start_mark</a>.col,
+            <span class="self">self</span>.roll_indent(
+                start_mark.col,
                 <span class="prelude-val">None</span>,
-                <a href="#100">TokenType::BlockMappingStart</a>,
-                <a href="#1609">start_mark</a>,
+                TokenType::BlockMappingStart,
+                start_mark,
             );
         }
 
         <span class="self">self</span>.remove_simple_key()<span class="question-mark">?</span>;
 
         <span class="kw">if </span><span class="self">self</span>.flow_level == <span class="number">0 </span>{
-            <a class="self" href="#1608">self</a>.<a href="#336">allow_simple_key</a>();
+            <span class="self">self</span>.allow_simple_key();
         } <span class="kw">else </span>{
-            <a class="self" href="#1608">self</a>.<a href="#339">disallow_simple_key</a>();
+            <span class="self">self</span>.disallow_simple_key();
         }
 
-        <a class="self" href="#1608">self</a>.<a href="#270">skip</a>();
-        <a class="self" href="#1608">self</a>.tokens.push_back(<a href="#118">Token</a>(<a href="#1609">start_mark</a>, <a href="#108">TokenType::Key</a>));
+        <span class="self">self</span>.skip();
+        <span class="self">self</span>.tokens.push_back(Token(start_mark, TokenType::Key));
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="kw">fn </span>fetch_value(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <a href="#228">ScanResult</a> {
-        <span class="kw">let </span>sk = <a class="self" href="#1639">self</a>.simple_keys.last().unwrap().<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
-        <span class="kw">let </span>start_mark = <a class="self" href="#1639">self</a>.mark;
+    <span class="kw">fn </span>fetch_value(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; ScanResult {
+        <span class="kw">let </span>sk = <span class="self">self</span>.simple_keys.last().unwrap().clone();
+        <span class="kw">let </span>start_mark = <span class="self">self</span>.mark;
         <span class="kw">if </span>sk.possible {
             <span class="comment">// insert simple key
-            </span><span class="kw">let </span>tok = <a href="#118">Token</a>(<a href="#1640">sk</a>.mark, <a href="#108">TokenType::Key</a>);
-            <span class="kw">let </span>tokens_parsed = <a class="self" href="#1639">self</a>.tokens_parsed;
-            <a class="self" href="#1639">self</a>.<a href="#328">insert_token</a>(<a href="#1640">sk</a>.token_number - <a href="#1645">tokens_parsed</a>, <a href="#1644">tok</a>);
+            </span><span class="kw">let </span>tok = Token(sk.mark, TokenType::Key);
+            <span class="kw">let </span>tokens_parsed = <span class="self">self</span>.tokens_parsed;
+            <span class="self">self</span>.insert_token(sk.token_number - tokens_parsed, tok);
 
             <span class="comment">// Add the BLOCK-MAPPING-START token if needed.
-            </span><a class="self" href="#1639">self</a>.<a href="#1688">roll_indent</a>(
-                <a href="#1640">sk</a>.mark.col,
-                <span class="prelude-val">Some</span>(<a href="#1640">sk</a>.token_number),
-                <a href="#100">TokenType::BlockMappingStart</a>,
-                <a href="#1641">start_mark</a>,
+            </span><span class="self">self</span>.roll_indent(
+                sk.mark.col,
+                <span class="prelude-val">Some</span>(sk.token_number),
+                TokenType::BlockMappingStart,
+                start_mark,
             );
 
-            <a class="self" href="#1639">self</a>.simple_keys.last_mut().unwrap().possible = <span class="bool-val">false</span>;
-            <a class="self" href="#1639">self</a>.<a href="#339">disallow_simple_key</a>();
+            <span class="self">self</span>.simple_keys.last_mut().unwrap().possible = <span class="bool-val">false</span>;
+            <span class="self">self</span>.disallow_simple_key();
         } <span class="kw">else </span>{
             <span class="comment">// The &#39;:&#39; indicator follows a complex key.
             </span><span class="kw">if </span><span class="self">self</span>.flow_level == <span class="number">0 </span>{
                 <span class="kw">if </span>!<span class="self">self</span>.simple_key_allowed {
                     <span class="kw">return </span><span class="prelude-val">Err</span>(ScanError::new(
-                        <a href="#1641">start_mark</a>,
+                        start_mark,
                         <span class="string">&quot;mapping values are not allowed in this context&quot;</span>,
                     ));
                 }
 
-                <a class="self" href="#1639">self</a>.<a href="#1688">roll_indent</a>(
-                    <a href="#1641">start_mark</a>.col,
+                <span class="self">self</span>.roll_indent(
+                    start_mark.col,
                     <span class="prelude-val">None</span>,
-                    <a href="#100">TokenType::BlockMappingStart</a>,
-                    <a href="#1641">start_mark</a>,
+                    TokenType::BlockMappingStart,
+                    start_mark,
                 );
             }
 
             <span class="kw">if </span><span class="self">self</span>.flow_level == <span class="number">0 </span>{
-                <a class="self" href="#1639">self</a>.<a href="#336">allow_simple_key</a>();
+                <span class="self">self</span>.allow_simple_key();
             } <span class="kw">else </span>{
-                <a class="self" href="#1639">self</a>.<a href="#339">disallow_simple_key</a>();
+                <span class="self">self</span>.disallow_simple_key();
             }
         }
-        <a class="self" href="#1639">self</a>.<a href="#270">skip</a>();
-        <a class="self" href="#1639">self</a>.tokens.push_back(<a href="#118">Token</a>(<a href="#1641">start_mark</a>, <a href="#109">TokenType::Value</a>));
+        <span class="self">self</span>.skip();
+        <span class="self">self</span>.tokens.push_back(Token(start_mark, TokenType::Value));
 
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="kw">fn </span>roll_indent(<span class="kw-2">&amp;mut </span><span class="self">self</span>, col: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, number: <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;, tok: <a href="#89">TokenType</a>, mark: <a href="#22">Marker</a>) {
+    <span class="kw">fn </span>roll_indent(<span class="kw-2">&amp;mut </span><span class="self">self</span>, col: usize, number: <span class="prelude-ty">Option</span>&lt;usize&gt;, tok: TokenType, mark: Marker) {
         <span class="kw">if </span><span class="self">self</span>.flow_level &gt; <span class="number">0 </span>{
             <span class="kw">return</span>;
         }
 
         <span class="kw">if </span><span class="self">self</span>.indent &lt; col <span class="kw">as </span>isize {
-            <a class="self" href="#1688">self</a>.indents.push(<a class="self" href="#1688">self</a>.indent);
-            <a class="self" href="#1688">self</a>.indent = <a href="#1688">col</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.isize.html">isize</a>;
-            <span class="kw">let </span>tokens_parsed = <a class="self" href="#1688">self</a>.tokens_parsed;
-            <span class="kw">match </span><a href="#1688">number</a> {
-                <span class="prelude-val">Some</span>(n) =&gt; <a class="self" href="#1688">self</a>.<a href="#328">insert_token</a>(<a href="#1698">n</a> - <a href="#1696">tokens_parsed</a>, <a href="#118">Token</a>(<a href="#1688">mark</a>, <a href="#1688">tok</a>)),
-                <span class="prelude-val">None </span>=&gt; <a class="self" href="#1688">self</a>.tokens.push_back(<a href="#118">Token</a>(<a href="#1688">mark</a>, <a href="#1688">tok</a>)),
+            <span class="self">self</span>.indents.push(<span class="self">self</span>.indent);
+            <span class="self">self</span>.indent = col <span class="kw">as </span>isize;
+            <span class="kw">let </span>tokens_parsed = <span class="self">self</span>.tokens_parsed;
+            <span class="kw">match </span>number {
+                <span class="prelude-val">Some</span>(n) =&gt; <span class="self">self</span>.insert_token(n - tokens_parsed, Token(mark, tok)),
+                <span class="prelude-val">None </span>=&gt; <span class="self">self</span>.tokens.push_back(Token(mark, tok)),
             }
         }
     }
 
-    <span class="kw">fn </span>unroll_indent(<span class="kw-2">&amp;mut </span><span class="self">self</span>, col: <a href="https://doc.rust-lang.org/nightly/std/primitive.isize.html">isize</a>) {
+    <span class="kw">fn </span>unroll_indent(<span class="kw-2">&amp;mut </span><span class="self">self</span>, col: isize) {
         <span class="kw">if </span><span class="self">self</span>.flow_level &gt; <span class="number">0 </span>{
             <span class="kw">return</span>;
         }
@@ -3893,29 +3893,29 @@
         }
     }
 
-    <span class="kw">fn </span>save_simple_key(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="#47">ScanError</a>&gt; {
-        <span class="kw">let </span>required = <a class="self" href="#1714">self</a>.flow_level &gt; <span class="number">0 </span>&amp;&amp; <a class="self" href="#1714">self</a>.indent == (<a class="self" href="#1714">self</a>.mark.col <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.isize.html">isize</a>);
+    <span class="kw">fn </span>save_simple_key(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), ScanError&gt; {
+        <span class="kw">let </span>required = <span class="self">self</span>.flow_level &gt; <span class="number">0 </span>&amp;&amp; <span class="self">self</span>.indent == (<span class="self">self</span>.mark.col <span class="kw">as </span>isize);
         <span class="kw">if </span><span class="self">self</span>.simple_key_allowed {
-            <span class="kw">let </span><span class="kw-2">mut </span>sk = SimpleKey::new(<a class="self" href="#1714">self</a>.mark);
-            <a href="#1717">sk</a>.possible = <span class="bool-val">true</span>;
-            <a href="#1717">sk</a>.required = <a href="#1715">required</a>;
-            <a href="#1717">sk</a>.token_number = <a class="self" href="#1714">self</a>.tokens_parsed + <a class="self" href="#1714">self</a>.tokens.len();
+            <span class="kw">let </span><span class="kw-2">mut </span>sk = SimpleKey::new(<span class="self">self</span>.mark);
+            sk.possible = <span class="bool-val">true</span>;
+            sk.required = required;
+            sk.token_number = <span class="self">self</span>.tokens_parsed + <span class="self">self</span>.tokens.len();
 
             <span class="self">self</span>.remove_simple_key()<span class="question-mark">?</span>;
 
-            <a class="self" href="#1714">self</a>.simple_keys.pop();
-            <a class="self" href="#1714">self</a>.simple_keys.push(<a href="#1717">sk</a>);
+            <span class="self">self</span>.simple_keys.pop();
+            <span class="self">self</span>.simple_keys.push(sk);
         }
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="kw">fn </span>remove_simple_key(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <a href="#228">ScanResult</a> {
-        <span class="kw">let </span>last = <a class="self" href="#1730">self</a>.simple_keys.last_mut().unwrap();
+    <span class="kw">fn </span>remove_simple_key(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; ScanResult {
+        <span class="kw">let </span>last = <span class="self">self</span>.simple_keys.last_mut().unwrap();
         <span class="kw">if </span>last.possible &amp;&amp; last.required {
-            <span class="kw">return </span><span class="prelude-val">Err</span>(ScanError::new(<a class="self" href="#1730">self</a>.mark, <span class="string">&quot;simple key expected&quot;</span>));
+            <span class="kw">return </span><span class="prelude-val">Err</span>(ScanError::new(<span class="self">self</span>.mark, <span class="string">&quot;simple key expected&quot;</span>));
         }
 
-        <a href="#1731">last</a>.possible = <span class="bool-val">false</span>;
+        last.possible = <span class="bool-val">false</span>;
         <span class="prelude-val">Ok</span>(())
     }
 }
@@ -4363,4 +4363,4 @@ key:
     </span>}
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="yaml_rust" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="yaml_rust" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

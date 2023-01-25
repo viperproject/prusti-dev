@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `vir-gen/src/deriver/visitors.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>visitors.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../vir_gen/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `vir-gen/src/deriver/visitors.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>visitors.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../vir_gen/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -632,23 +632,23 @@
 <a href="#632" id="632">632</a>
 <a href="#633" id="633">633</a>
 <a href="#634" id="634">634</a>
-</pre><pre class="rust"><code><span class="kw">use </span><span class="kw">super</span>::common::{<a href="common.rs.html#159">get_option_vec_type_arg</a>, <a href="common.rs.html#4">DeriveInfo</a>};
+</pre><pre class="rust"><code><span class="kw">use </span><span class="kw">super</span>::common::{get_option_vec_type_arg, DeriveInfo};
 <span class="kw">use crate</span>::{
     deriver::common::{
-        <a href="common.rs.html#30-32">extract_variant_type</a>, <a href="common.rs.html#69-72">find_variant_enum</a>, <a href="common.rs.html#87-90">find_variant_struct</a>, <a href="common.rs.html#150">get_option_box_type_arg</a>,
-        <a href="common.rs.html#141">get_option_type_arg</a>, <a href="common.rs.html#168">get_vec_type_arg</a>, <a href="common.rs.html#116">type_to_indent</a>,
+        extract_variant_type, find_variant_enum, find_variant_struct, get_option_box_type_arg,
+        get_option_type_arg, get_vec_type_arg, type_to_indent,
     },
-    helpers::{<a href="../helpers.rs.html#43">append_ident</a>, <a href="../helpers.rs.html#10">method_name_from_camel</a>, <a href="../helpers.rs.html#15">prefixed_method_name_from_camel</a>, <a href="../helpers.rs.html#49">unbox_type</a>},
+    helpers::{append_ident, method_name_from_camel, prefixed_method_name_from_camel, unbox_type},
 };
-<span class="kw">use </span><a href="../../../proc_macro2/struct.Span.html">proc_macro2::Span</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/collections/btree/set/struct.BTreeSet.html">std::collections::BTreeSet</a>;
-<span class="kw">use </span><a href="../../../syn/macro.parse_quote.html">syn::parse_quote</a>;
+<span class="kw">use </span>proc_macro2::Span;
+<span class="kw">use </span>std::collections::BTreeSet;
+<span class="kw">use </span>syn::parse_quote;
 
 <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>derive(
-    items: <span class="kw-2">&amp;</span>[<a href="../../../syn/item/enum.Item.html">syn::Item</a>],
-    visitors_to_derive: Vec&lt;<a href="common.rs.html#4">DeriveInfo</a>&gt;,
-) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<a href="../../../syn/item/enum.Item.html">syn::Item</a>&gt;, <a href="../../../syn/error/struct.Error.html">syn::Error</a>&gt; {
-    <span class="kw">let </span><span class="kw-2">mut </span>module_items: Vec&lt;<a href="../../../syn/item/enum.Item.html">syn::Item</a>&gt; = Vec::new();
+    items: <span class="kw-2">&amp;</span>[syn::Item],
+    visitors_to_derive: Vec&lt;DeriveInfo&gt;,
+) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;syn::Item&gt;, syn::Error&gt; {
+    <span class="kw">let </span><span class="kw-2">mut </span>module_items: Vec&lt;syn::Item&gt; = Vec::new();
     <span class="kw">for </span>DeriveInfo {
         enum_ident,
         variants,
@@ -704,7 +704,7 @@
     <span class="kw">if </span>module_items.is_empty() {
         <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>)
     } <span class="kw">else </span>{
-        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<a class="macro" href="../../../syn/macro.parse_quote.html">parse_quote! </a>{
+        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="macro">parse_quote! </span>{
             <span class="attr">#[allow(clippy::unused_unit, clippy::ptr_arg)]
             </span><span class="kw">pub mod </span>visitors {
                 <span class="kw">use super</span>::<span class="kw-2">*</span>;
@@ -722,181 +722,181 @@
     FallibleFolder,
 }
 
-<span class="kw">impl </span><a href="#84">DeriverKind</a> {
-    <span class="kw">fn </span>is_fallible(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.matches.html">matches!</a>(
+<span class="kw">impl </span>DeriverKind {
+    <span class="kw">fn </span>is_fallible(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="macro">matches!</span>(
             <span class="self">self</span>,
             DeriverKind::FallibleWalker | DeriverKind::FallibleFolder
         )
     }
-    <span class="kw">fn </span>is_folder(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.matches.html">matches!</a>(<span class="self">self</span>, DeriverKind::Folder | DeriverKind::FallibleFolder)
+    <span class="kw">fn </span>is_folder(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="macro">matches!</span>(<span class="self">self</span>, DeriverKind::Folder | DeriverKind::FallibleFolder)
     }
 }
 
 <span class="kw">struct </span>Deriver {
-    enum_ident: <a href="../../../proc_macro2/struct.Ident.html">syn::Ident</a>,
-    trait_ident: <a href="../../../proc_macro2/struct.Ident.html">syn::Ident</a>,
-    trait_items: Vec&lt;<a href="../../../syn/item/enum.TraitItem.html">syn::TraitItem</a>&gt;,
-    default_functions: Vec&lt;<a href="../../../syn/item/enum.Item.html">syn::Item</a>&gt;,
-    kind: <a href="#84">DeriverKind</a>,
+    enum_ident: syn::Ident,
+    trait_ident: syn::Ident,
+    trait_items: Vec&lt;syn::TraitItem&gt;,
+    default_functions: Vec&lt;syn::Item&gt;,
+    kind: DeriverKind,
 }
 
-<span class="kw">impl </span><a href="#103">Deriver</a> {
-    <span class="kw">fn </span>new(enum_ident: <a href="../../../proc_macro2/struct.Ident.html">syn::Ident</a>, kind: <a href="#84">DeriverKind</a>) -&gt; <span class="self">Self </span>{
+<span class="kw">impl </span>Deriver {
+    <span class="kw">fn </span>new(enum_ident: syn::Ident, kind: DeriverKind) -&gt; <span class="self">Self </span>{
         <span class="kw">let </span>trait_items = <span class="kw">if </span>kind.is_fallible() {
-            <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[<span class="macro">parse_quote! </span>{
+            <span class="macro">vec!</span>[<span class="macro">parse_quote! </span>{
                 <span class="kw">type </span>Error;
             }]
         } <span class="kw">else </span>{
             Vec::new()
         };
         <span class="self">Self </span>{
-            trait_ident: <a href="../helpers.rs.html#43">append_ident</a>(<span class="kw-2">&amp;</span><a href="#112">enum_ident</a>, <span class="kw-2">&amp;</span><a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;{:?}&quot;</span>, kind)),
-            <a href="#112">enum_ident</a>,
-            <a href="#113">trait_items</a>,
+            trait_ident: append_ident(<span class="kw-2">&amp;</span>enum_ident, <span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;{kind:?}&quot;</span>)),
+            enum_ident,
+            trait_items,
             default_functions: Vec::new(),
-            <a href="#112">kind</a>,
+            kind,
         }
     }
-    <span class="kw">fn </span>create_walk_method(<span class="kw-2">&amp;mut </span><span class="self">self</span>, ty: <span class="kw-2">&amp;</span><a href="../../../proc_macro2/struct.Ident.html">syn::Ident</a>, variant: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="../../../syn/data/struct.Variant.html">syn::Variant</a>&gt;) {
-        <span class="kw">let </span>method_name = <a class="self" href="#128">self</a>.<a href="#530">create_method_name</a>(<a href="#128">ty</a>);
-        <span class="kw">let </span>method_name_enum = <a href="../helpers.rs.html#43">append_ident</a>(<span class="kw-2">&amp;</span><a href="#129">method_name</a>, <span class="string">&quot;_enum&quot;</span>);
-        <span class="kw">let </span>parameter_name = <a href="../helpers.rs.html#10">method_name_from_camel</a>(<a href="#128">ty</a>);
-        <span class="kw">let </span>default_method_name = <a class="self" href="#128">self</a>.<a href="#558">create_default_method_name</a>(<a href="#128">ty</a>);
-        <span class="kw">let </span>parameter_type = <a class="self" href="#128">self</a>.<a href="#614">create_parameter_type</a>(<a href="#128">ty</a>);
-        <span class="kw">let </span>result_type_enum = <a class="self" href="#128">self</a>.<a href="#570">create_result_type</a>(<span class="kw-2">&amp;</span><a class="self" href="#128">self</a>.enum_ident, <span class="bool-val">false</span>);
-        <span class="kw">let </span>call_enum: <a href="../../../syn/expr/enum.Expr.html">syn::Expr</a> = <a class="macro" href="../../../syn/macro.parse_quote.html">parse_quote! </a>{
+    <span class="kw">fn </span>create_walk_method(<span class="kw-2">&amp;mut </span><span class="self">self</span>, ty: <span class="kw-2">&amp;</span>syn::Ident, variant: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>syn::Variant&gt;) {
+        <span class="kw">let </span>method_name = <span class="self">self</span>.create_method_name(ty);
+        <span class="kw">let </span>method_name_enum = append_ident(<span class="kw-2">&amp;</span>method_name, <span class="string">&quot;_enum&quot;</span>);
+        <span class="kw">let </span>parameter_name = method_name_from_camel(ty);
+        <span class="kw">let </span>default_method_name = <span class="self">self</span>.create_default_method_name(ty);
+        <span class="kw">let </span>parameter_type = <span class="self">self</span>.create_parameter_type(ty);
+        <span class="kw">let </span>result_type_enum = <span class="self">self</span>.create_result_type(<span class="kw-2">&amp;</span><span class="self">self</span>.enum_ident, <span class="bool-val">false</span>);
+        <span class="kw">let </span>call_enum: syn::Expr = <span class="macro">parse_quote! </span>{
             <span class="self">self</span>.#method_name(#parameter_name)
         };
-        <span class="kw">let </span>body_enum: <a href="../../../syn/expr/enum.Expr.html">syn::Expr</a> = <span class="kw">if let </span><span class="prelude-val">Some</span>(variant) = <a href="#128">variant</a> {
-            <span class="kw">let </span>enum_ident = <span class="kw-2">&amp;</span><a class="self" href="#128">self</a>.enum_ident;
-            <span class="kw">let </span>variant_ident = <span class="kw-2">&amp;</span><a href="#138">variant</a>.ident;
+        <span class="kw">let </span>body_enum: syn::Expr = <span class="kw">if let </span><span class="prelude-val">Some</span>(variant) = variant {
+            <span class="kw">let </span>enum_ident = <span class="kw-2">&amp;</span><span class="self">self</span>.enum_ident;
+            <span class="kw">let </span>variant_ident = <span class="kw-2">&amp;</span>variant.ident;
             <span class="kw">if </span><span class="self">self</span>.kind.is_fallible() {
-                <a class="macro" href="../../../syn/macro.parse_quote.html">parse_quote! </a>{
+                <span class="macro">parse_quote! </span>{
                     #call_enum.map(#enum_ident::#variant_ident)
                 }
             } <span class="kw">else </span>{
-                <a class="macro" href="../../../syn/macro.parse_quote.html">parse_quote! </a>{
+                <span class="macro">parse_quote! </span>{
                     #enum_ident::#variant_ident(#call_enum)
                 }
             }
         } <span class="kw">else </span>{
-            <a href="#135">call_enum</a>
+            call_enum
         };
-        <span class="kw">let </span>method_enum = <a class="macro" href="../../../syn/macro.parse_quote.html">parse_quote! </a>{
+        <span class="kw">let </span>method_enum = <span class="macro">parse_quote! </span>{
             <span class="kw">fn </span>#method_name_enum(<span class="kw-2">&amp;mut </span><span class="self">self</span>, #parameter_name: #parameter_type) -&gt; #result_type_enum {
                 #body_enum
             }
         };
-        <span class="kw">let </span>result_type = <a class="self" href="#128">self</a>.<a href="#570">create_result_type</a>(<a href="#128">ty</a>, <span class="bool-val">false</span>);
-        <a class="self" href="#128">self</a>.trait_items.push(<a href="#153">method_enum</a>);
-        <span class="kw">let </span>method = <a class="macro" href="../../../syn/macro.parse_quote.html">parse_quote! </a>{
+        <span class="kw">let </span>result_type = <span class="self">self</span>.create_result_type(ty, <span class="bool-val">false</span>);
+        <span class="self">self</span>.trait_items.push(method_enum);
+        <span class="kw">let </span>method = <span class="macro">parse_quote! </span>{
             <span class="kw">fn </span>#method_name(<span class="kw-2">&amp;mut </span><span class="self">self</span>, #parameter_name: #parameter_type) -&gt; #result_type {
                 #default_method_name(<span class="self">self</span>, #parameter_name)
             }
         };
-        <a class="self" href="#128">self</a>.trait_items.push(<a href="#160">method</a>);
+        <span class="self">self</span>.trait_items.push(method);
     }
-    <span class="kw">fn </span>create_enum_boxed_walk_method(<span class="kw-2">&amp;mut </span><span class="self">self</span>, ty: <span class="kw-2">&amp;</span><a href="../../../proc_macro2/struct.Ident.html">syn::Ident</a>) {
-        <span class="kw">let </span>method_name = <a href="../helpers.rs.html#43">append_ident</a>(<span class="kw-2">&amp;</span><a class="self" href="#167">self</a>.<a href="#530">create_method_name</a>(<a href="#167">ty</a>), <span class="string">&quot;_boxed&quot;</span>);
-        <span class="kw">let </span>parameter_name = <a href="../helpers.rs.html#10">method_name_from_camel</a>(<a href="#167">ty</a>);
-        <span class="kw">let </span>called_method_name = <a class="self" href="#167">self</a>.<a href="#530">create_method_name</a>(<a href="#167">ty</a>);
-        <span class="kw">let </span>parameter_type = <a class="self" href="#167">self</a>.<a href="#614">create_parameter_type</a>(<a href="#167">ty</a>);
-        <span class="kw">let </span>result_type = <a class="self" href="#167">self</a>.<a href="#573">create_boxed_result_type</a>(<a href="#167">ty</a>, <span class="bool-val">false</span>);
-        <span class="kw">let </span>body: <a href="../../../syn/expr/enum.Expr.html">syn::Expr</a> = <span class="kw">if </span><span class="self">self</span>.kind.is_fallible() {
-            <a class="macro" href="../../../syn/macro.parse_quote.html">parse_quote! </a>{
+    <span class="kw">fn </span>create_enum_boxed_walk_method(<span class="kw-2">&amp;mut </span><span class="self">self</span>, ty: <span class="kw-2">&amp;</span>syn::Ident) {
+        <span class="kw">let </span>method_name = append_ident(<span class="kw-2">&amp;</span><span class="self">self</span>.create_method_name(ty), <span class="string">&quot;_boxed&quot;</span>);
+        <span class="kw">let </span>parameter_name = method_name_from_camel(ty);
+        <span class="kw">let </span>called_method_name = <span class="self">self</span>.create_method_name(ty);
+        <span class="kw">let </span>parameter_type = <span class="self">self</span>.create_parameter_type(ty);
+        <span class="kw">let </span>result_type = <span class="self">self</span>.create_boxed_result_type(ty, <span class="bool-val">false</span>);
+        <span class="kw">let </span>body: syn::Expr = <span class="kw">if </span><span class="self">self</span>.kind.is_fallible() {
+            <span class="macro">parse_quote! </span>{
                 <span class="self">self</span>.#called_method_name(<span class="kw-2">*</span>#parameter_name).map(Box::new)
             }
         } <span class="kw">else </span>{
-            <a class="macro" href="../../../syn/macro.parse_quote.html">parse_quote! </a>{
+            <span class="macro">parse_quote! </span>{
                 Box::new(<span class="self">self</span>.#called_method_name(<span class="kw-2">*</span>#parameter_name))
             }
         };
-        <span class="kw">let </span>method = <a class="macro" href="../../../syn/macro.parse_quote.html">parse_quote! </a>{
+        <span class="kw">let </span>method = <span class="macro">parse_quote! </span>{
             <span class="attr">#[allow(clippy::boxed_local)]
             </span><span class="kw">fn </span>#method_name(<span class="kw-2">&amp;mut </span><span class="self">self</span>, #parameter_name: Box&lt;#parameter_type&gt;) -&gt; #result_type {
                 #body
             }
         };
-        <a class="self" href="#167">self</a>.trait_items.push(<a href="#182">method</a>);
+        <span class="self">self</span>.trait_items.push(method);
     }
-    <span class="kw">fn </span>create_argless_walk_method(<span class="kw-2">&amp;mut </span><span class="self">self</span>, ty: <span class="kw-2">&amp;</span><a href="../../../proc_macro2/struct.Ident.html">syn::Ident</a>) {
-        <span class="kw">let </span>method_name = <a class="self" href="#190">self</a>.<a href="#530">create_method_name</a>(<a href="#190">ty</a>);
-        <span class="kw">let </span>enum_ident = <span class="kw-2">&amp;</span><a class="self" href="#190">self</a>.enum_ident;
-        <span class="kw">let </span>result_type = <a class="self" href="#190">self</a>.<a href="#570">create_result_type</a>(<a href="#192">enum_ident</a>, <span class="bool-val">false</span>);
-        <span class="kw">let </span>result: <a href="../../../syn/expr/enum.Expr.html">syn::Expr</a> = <span class="kw">match </span><a class="self" href="#190">self</a>.kind {
-            <a href="#85">DeriverKind::Walker</a> =&gt; {
-                <a class="macro" href="../../../syn/macro.parse_quote.html">parse_quote! </a>{
+    <span class="kw">fn </span>create_argless_walk_method(<span class="kw-2">&amp;mut </span><span class="self">self</span>, ty: <span class="kw-2">&amp;</span>syn::Ident) {
+        <span class="kw">let </span>method_name = <span class="self">self</span>.create_method_name(ty);
+        <span class="kw">let </span>enum_ident = <span class="kw-2">&amp;</span><span class="self">self</span>.enum_ident;
+        <span class="kw">let </span>result_type = <span class="self">self</span>.create_result_type(enum_ident, <span class="bool-val">false</span>);
+        <span class="kw">let </span>result: syn::Expr = <span class="kw">match </span><span class="self">self</span>.kind {
+            DeriverKind::Walker =&gt; {
+                <span class="macro">parse_quote! </span>{
                     ()
                 }
             }
-            <a href="#86">DeriverKind::FallibleWalker</a> =&gt; {
-                <a class="macro" href="../../../syn/macro.parse_quote.html">parse_quote! </a>{
+            DeriverKind::FallibleWalker =&gt; {
+                <span class="macro">parse_quote! </span>{
                     <span class="prelude-val">Ok</span>(())
                 }
             }
-            <a href="#87">DeriverKind::Folder</a> =&gt; {
-                <a class="macro" href="../../../syn/macro.parse_quote.html">parse_quote! </a>{
+            DeriverKind::Folder =&gt; {
+                <span class="macro">parse_quote! </span>{
                     #enum_ident::#ty
                 }
             }
-            <a href="#88">DeriverKind::FallibleFolder</a> =&gt; {
-                <a class="macro" href="../../../syn/macro.parse_quote.html">parse_quote! </a>{
+            DeriverKind::FallibleFolder =&gt; {
+                <span class="macro">parse_quote! </span>{
                     <span class="prelude-val">Ok</span>(#enum_ident::#ty)
                 }
             }
         };
-        <span class="kw">let </span>method = <a class="macro" href="../../../syn/macro.parse_quote.html">parse_quote! </a>{
+        <span class="kw">let </span>method = <span class="macro">parse_quote! </span>{
             <span class="kw">fn </span>#method_name(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; #result_type {
                 #result
             }
         };
-        <a class="self" href="#190">self</a>.trait_items.push(<a href="#216">method</a>);
+        <span class="self">self</span>.trait_items.push(method);
     }
-    <span class="kw">fn </span>create_empty_walk_method(<span class="kw-2">&amp;mut </span><span class="self">self</span>, ty: <span class="kw-2">&amp;</span><a href="../../../proc_macro2/struct.Ident.html">syn::Ident</a>) {
-        <span class="kw">let </span>method_name = <a class="self" href="#223">self</a>.<a href="#530">create_method_name</a>(<a href="#223">ty</a>);
-        <span class="kw">let </span>parameter_name = <a href="../helpers.rs.html#15">prefixed_method_name_from_camel</a>(<span class="string">&quot;_&quot;</span>, <a href="#223">ty</a>);
-        <span class="kw">let </span>parameter_type = <a class="self" href="#223">self</a>.<a href="#614">create_parameter_type</a>(<a href="#223">ty</a>);
-        <span class="kw">let </span>result_type = <a class="self" href="#223">self</a>.<a href="#570">create_result_type</a>(<a href="#223">ty</a>, <span class="bool-val">false</span>);
-        <span class="kw">let </span>result: <a href="../../../syn/expr/enum.Expr.html">syn::Expr</a> = <span class="kw">match </span><a class="self" href="#223">self</a>.kind {
-            <a href="#85">DeriverKind::Walker</a> =&gt; {
-                <a class="macro" href="../../../syn/macro.parse_quote.html">parse_quote! </a>{
+    <span class="kw">fn </span>create_empty_walk_method(<span class="kw-2">&amp;mut </span><span class="self">self</span>, ty: <span class="kw-2">&amp;</span>syn::Ident) {
+        <span class="kw">let </span>method_name = <span class="self">self</span>.create_method_name(ty);
+        <span class="kw">let </span>parameter_name = prefixed_method_name_from_camel(<span class="string">&quot;_&quot;</span>, ty);
+        <span class="kw">let </span>parameter_type = <span class="self">self</span>.create_parameter_type(ty);
+        <span class="kw">let </span>result_type = <span class="self">self</span>.create_result_type(ty, <span class="bool-val">false</span>);
+        <span class="kw">let </span>result: syn::Expr = <span class="kw">match </span><span class="self">self</span>.kind {
+            DeriverKind::Walker =&gt; {
+                <span class="macro">parse_quote! </span>{
                     ()
                 }
             }
-            <a href="#86">DeriverKind::FallibleWalker</a> =&gt; {
-                <a class="macro" href="../../../syn/macro.parse_quote.html">parse_quote! </a>{
+            DeriverKind::FallibleWalker =&gt; {
+                <span class="macro">parse_quote! </span>{
                     <span class="prelude-val">Ok</span>(())
                 }
             }
-            <a href="#87">DeriverKind::Folder</a> =&gt; {
-                <a class="macro" href="../../../syn/macro.parse_quote.html">parse_quote! </a>{
+            DeriverKind::Folder =&gt; {
+                <span class="macro">parse_quote! </span>{
                     #parameter_name
                 }
             }
-            <a href="#88">DeriverKind::FallibleFolder</a> =&gt; {
-                <a class="macro" href="../../../syn/macro.parse_quote.html">parse_quote! </a>{
+            DeriverKind::FallibleFolder =&gt; {
+                <span class="macro">parse_quote! </span>{
                     <span class="prelude-val">Ok</span>(#parameter_name)
                 }
             }
         };
-        <span class="kw">let </span>method = <a class="macro" href="../../../syn/macro.parse_quote.html">parse_quote! </a>{
+        <span class="kw">let </span>method = <span class="macro">parse_quote! </span>{
             <span class="kw">fn </span>#method_name(<span class="kw-2">&amp;mut </span><span class="self">self</span>, #parameter_name: #parameter_type) -&gt; #result_type {
                 #result
             }
         };
-        <a class="self" href="#223">self</a>.trait_items.push(<a href="#250">method</a>);
+        <span class="self">self</span>.trait_items.push(method);
     }
     <span class="kw">fn </span>create_default_enum_function(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        variants: <span class="kw-2">&amp;</span>[<a href="../../../syn/data/struct.Variant.html">syn::Variant</a>],
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../../syn/error/struct.Error.html">syn::Error</a>&gt; {
-        <span class="kw">let </span>enum_ident = <span class="kw-2">&amp;</span><a class="self" href="#258">self</a>.enum_ident;
-        <span class="kw">let </span>trait_ident = <span class="kw-2">&amp;</span><a class="self" href="#258">self</a>.trait_ident;
-        <span class="kw">let </span>parameter_name = <a href="../helpers.rs.html#10">method_name_from_camel</a>(<a href="#261">enum_ident</a>);
-        <span class="kw">let </span>default_method_name = <a class="self" href="#258">self</a>.<a href="#558">create_default_method_name</a>(<a href="#261">enum_ident</a>);
-        <span class="kw">let </span><span class="kw-2">mut </span>arms: Vec&lt;<a href="../../../syn/expr/struct.Arm.html">syn::Arm</a>&gt; = Vec::new();
+        variants: <span class="kw-2">&amp;</span>[syn::Variant],
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), syn::Error&gt; {
+        <span class="kw">let </span>enum_ident = <span class="kw-2">&amp;</span><span class="self">self</span>.enum_ident;
+        <span class="kw">let </span>trait_ident = <span class="kw-2">&amp;</span><span class="self">self</span>.trait_ident;
+        <span class="kw">let </span>parameter_name = method_name_from_camel(enum_ident);
+        <span class="kw">let </span>default_method_name = <span class="self">self</span>.create_default_method_name(enum_ident);
+        <span class="kw">let </span><span class="kw-2">mut </span>arms: Vec&lt;syn::Arm&gt; = Vec::new();
         <span class="kw">for </span>variant <span class="kw">in </span>variants {
             <span class="kw">let </span>variant_ident = <span class="kw-2">&amp;</span>variant.ident;
             <span class="kw">let </span>variant_name = method_name_from_camel(variant_ident);
@@ -918,63 +918,63 @@
             };
             arms.push(arm);
         }
-        <span class="kw">let </span>parameter_type = <a class="self" href="#258">self</a>.<a href="#614">create_parameter_type</a>(<a href="#261">enum_ident</a>);
-        <span class="kw">let </span>result_type = <a class="self" href="#258">self</a>.<a href="#570">create_result_type</a>(<a href="#261">enum_ident</a>, <span class="bool-val">true</span>);
-        <span class="kw">let </span>result: <a href="../../../syn/expr/enum.Expr.html">syn::Expr</a> = <span class="kw">if </span><span class="self">self</span>.kind.is_fallible() {
-            <a class="macro" href="../../../syn/macro.parse_quote.html">parse_quote! </a>{
+        <span class="kw">let </span>parameter_type = <span class="self">self</span>.create_parameter_type(enum_ident);
+        <span class="kw">let </span>result_type = <span class="self">self</span>.create_result_type(enum_ident, <span class="bool-val">true</span>);
+        <span class="kw">let </span>result: syn::Expr = <span class="kw">if </span><span class="self">self</span>.kind.is_fallible() {
+            <span class="macro">parse_quote! </span>{
                 <span class="prelude-val">Ok</span>(<span class="kw">match </span>#parameter_name {
                     #(#arms)*
                 })
             }
         } <span class="kw">else </span>{
-            <a class="macro" href="../../../syn/macro.parse_quote.html">parse_quote! </a>{
+            <span class="macro">parse_quote! </span>{
                 <span class="kw">match </span>#parameter_name {
                     #(#arms)*
                 }
             }
         };
-        <span class="kw">let </span>default_function = <a class="macro" href="../../../syn/macro.parse_quote.html">parse_quote! </a>{
+        <span class="kw">let </span>default_function = <span class="macro">parse_quote! </span>{
             <span class="attr">#[allow(clippy::unit_arg)]
             </span><span class="kw">pub fn </span>#default_method_name&lt;T: #trait_ident&gt;(this: <span class="kw-2">&amp;mut </span>T, #parameter_name: #parameter_type) -&gt; #result_type {
                 #result
             }
         };
-        <a class="self" href="#258">self</a>.default_functions.push(<a href="#302">default_function</a>);
+        <span class="self">self</span>.default_functions.push(default_function);
         <span class="prelude-val">Ok</span>(())
     }
     <span class="kw">fn </span>create_default_empty_enum_function(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        variant: <span class="kw-2">&amp;</span><a href="../../../syn/data/struct.Variant.html">syn::Variant</a>,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;<a href="../../../proc_macro2/struct.Ident.html">syn::Ident</a>&gt;, <a href="../../../syn/error/struct.Error.html">syn::Error</a>&gt; {
-        <span class="kw">let </span>trait_ident = <span class="kw-2">&amp;</span><a class="self" href="#312">self</a>.trait_ident;
+        variant: <span class="kw-2">&amp;</span>syn::Variant,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;syn::Ident&gt;, syn::Error&gt; {
+        <span class="kw">let </span>trait_ident = <span class="kw-2">&amp;</span><span class="self">self</span>.trait_ident;
         <span class="kw">let </span>variant_type = extract_variant_type(variant)<span class="question-mark">?</span>.unwrap();
-        <span class="kw">let </span>parameter_name = <a href="../helpers.rs.html#10">method_name_from_camel</a>(<a href="#316">variant_type</a>);
-        <span class="kw">let </span>default_method_name = <a class="self" href="#312">self</a>.<a href="#558">create_default_method_name</a>(<a href="#316">variant_type</a>);
-        <span class="kw">let </span>parameter_type = <a class="self" href="#312">self</a>.<a href="#614">create_parameter_type</a>(<a href="#316">variant_type</a>);
-        <span class="kw">let </span>result_type = <a class="self" href="#312">self</a>.<a href="#570">create_result_type</a>(<a href="#316">variant_type</a>, <span class="bool-val">true</span>);
-        <span class="kw">let </span>result: <a href="../../../syn/expr/enum.Expr.html">syn::Expr</a> = <span class="kw">match </span><a class="self" href="#312">self</a>.kind {
-            <a href="#85">DeriverKind::Walker</a> =&gt; {
-                <a class="macro" href="../../../syn/macro.parse_quote.html">parse_quote! </a>{
+        <span class="kw">let </span>parameter_name = method_name_from_camel(variant_type);
+        <span class="kw">let </span>default_method_name = <span class="self">self</span>.create_default_method_name(variant_type);
+        <span class="kw">let </span>parameter_type = <span class="self">self</span>.create_parameter_type(variant_type);
+        <span class="kw">let </span>result_type = <span class="self">self</span>.create_result_type(variant_type, <span class="bool-val">true</span>);
+        <span class="kw">let </span>result: syn::Expr = <span class="kw">match </span><span class="self">self</span>.kind {
+            DeriverKind::Walker =&gt; {
+                <span class="macro">parse_quote! </span>{
                     ()
                 }
             }
-            <a href="#86">DeriverKind::FallibleWalker</a> =&gt; {
-                <a class="macro" href="../../../syn/macro.parse_quote.html">parse_quote! </a>{
+            DeriverKind::FallibleWalker =&gt; {
+                <span class="macro">parse_quote! </span>{
                     <span class="prelude-val">Ok</span>(())
                 }
             }
-            <a href="#87">DeriverKind::Folder</a> =&gt; {
-                <a class="macro" href="../../../syn/macro.parse_quote.html">parse_quote! </a>{
+            DeriverKind::Folder =&gt; {
+                <span class="macro">parse_quote! </span>{
                     #parameter_name
                 }
             }
-            <a href="#88">DeriverKind::FallibleFolder</a> =&gt; {
-                <a class="macro" href="../../../syn/macro.parse_quote.html">parse_quote! </a>{
+            DeriverKind::FallibleFolder =&gt; {
+                <span class="macro">parse_quote! </span>{
                     <span class="prelude-val">Ok</span>(#parameter_name)
                 }
             }
         };
-        <span class="kw">let </span>default_function = <a class="macro" href="../../../syn/macro.parse_quote.html">parse_quote! </a>{
+        <span class="kw">let </span>default_function = <span class="macro">parse_quote! </span>{
             <span class="attr">#[allow(unused_variables)]
             </span><span class="kw">pub fn </span>#default_method_name&lt;T: #trait_ident&gt;(
                 this: <span class="kw-2">&amp;mut </span>T,
@@ -983,25 +983,25 @@
                 #result
             }
         };
-        <a class="self" href="#312">self</a>.default_functions.push(<a href="#343">default_function</a>);
+        <span class="self">self</span>.default_functions.push(default_function);
         <span class="prelude-val">Ok</span>(Vec::new())
     }
     <span class="kw">fn </span>create_default_struct_function(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        unboxed_args: <span class="kw-2">&amp;mut </span>BTreeSet&lt;<a href="../../../proc_macro2/struct.Ident.html">syn::Ident</a>&gt;,
-        items: <span class="kw-2">&amp;</span>[<a href="../../../syn/item/enum.Item.html">syn::Item</a>],
-        variant: <span class="kw-2">&amp;</span><a href="../../../syn/data/struct.Variant.html">syn::Variant</a>,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;<a href="../../../proc_macro2/struct.Ident.html">syn::Ident</a>&gt;, <a href="../../../syn/error/struct.Error.html">syn::Error</a>&gt; {
-        <span class="kw">let </span>trait_ident = <span class="kw-2">&amp;</span><a class="self" href="#356">self</a>.trait_ident;
+        unboxed_args: <span class="kw-2">&amp;mut </span>BTreeSet&lt;syn::Ident&gt;,
+        items: <span class="kw-2">&amp;</span>[syn::Item],
+        variant: <span class="kw-2">&amp;</span>syn::Variant,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;syn::Ident&gt;, syn::Error&gt; {
+        <span class="kw">let </span>trait_ident = <span class="kw-2">&amp;</span><span class="self">self</span>.trait_ident;
         <span class="kw">let </span>variant_type = extract_variant_type(variant)<span class="question-mark">?</span>.unwrap();
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(_variant_enum) = <a href="common.rs.html#69-72">find_variant_enum</a>(<a href="#358">items</a>, <a href="#362">variant_type</a>) {
-            <span class="kw">return </span><a class="self" href="#356">self</a>.<a href="#311-314">create_default_empty_enum_function</a>(<a href="#359">variant</a>);
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(_variant_enum) = find_variant_enum(items, variant_type) {
+            <span class="kw">return </span><span class="self">self</span>.create_default_empty_enum_function(variant);
         }
         <span class="kw">let </span>variant_struct = find_variant_struct(items, variant_type)<span class="question-mark">?</span>;
-        <span class="kw">let </span>parameter_name = <a href="../helpers.rs.html#10">method_name_from_camel</a>(<a href="#362">variant_type</a>);
-        <span class="kw">let </span>default_method_name = <a class="self" href="#356">self</a>.<a href="#558">create_default_method_name</a>(<a href="#362">variant_type</a>);
-        <span class="kw">let </span><span class="kw-2">mut </span>field_names = Vec::&lt;<a href="../../../proc_macro2/struct.Ident.html">syn::Ident</a>&gt;::new();
-        <span class="kw">let </span><span class="kw-2">mut </span>visit_fields = Vec::&lt;<a href="../../../syn/stmt/enum.Stmt.html">syn::Stmt</a>&gt;::new();
+        <span class="kw">let </span>parameter_name = method_name_from_camel(variant_type);
+        <span class="kw">let </span>default_method_name = <span class="self">self</span>.create_default_method_name(variant_type);
+        <span class="kw">let </span><span class="kw-2">mut </span>field_names = Vec::&lt;syn::Ident&gt;::new();
+        <span class="kw">let </span><span class="kw-2">mut </span>visit_fields = Vec::&lt;syn::Stmt&gt;::new();
         <span class="kw">let </span><span class="kw-2">mut </span>walked_types = Vec::new();
         <span class="kw">for </span>field <span class="kw">in </span><span class="kw-2">&amp;</span>variant_struct.fields {
             <span class="kw">let </span>name = field.ident.as_ref().unwrap();
@@ -1119,35 +1119,35 @@
 
             visit_fields.push(statement);
         }
-        <span class="kw">let </span>parameter_type = <a class="self" href="#356">self</a>.<a href="#614">create_parameter_type</a>(<a href="#362">variant_type</a>);
-        <span class="kw">let </span>result_type = <a class="self" href="#356">self</a>.<a href="#570">create_result_type</a>(<a href="#362">variant_type</a>, <span class="bool-val">true</span>);
-        <span class="kw">let </span>result: <a href="../../../syn/expr/enum.Expr.html">syn::Expr</a> = <span class="kw">match </span><a class="self" href="#356">self</a>.kind {
-            <a href="#85">DeriverKind::Walker</a> =&gt; {
-                <a class="macro" href="../../../syn/macro.parse_quote.html">parse_quote! </a>{
+        <span class="kw">let </span>parameter_type = <span class="self">self</span>.create_parameter_type(variant_type);
+        <span class="kw">let </span>result_type = <span class="self">self</span>.create_result_type(variant_type, <span class="bool-val">true</span>);
+        <span class="kw">let </span>result: syn::Expr = <span class="kw">match </span><span class="self">self</span>.kind {
+            DeriverKind::Walker =&gt; {
+                <span class="macro">parse_quote! </span>{
                     ()
                 }
             }
-            <a href="#86">DeriverKind::FallibleWalker</a> =&gt; {
-                <a class="macro" href="../../../syn/macro.parse_quote.html">parse_quote! </a>{
+            DeriverKind::FallibleWalker =&gt; {
+                <span class="macro">parse_quote! </span>{
                     <span class="prelude-val">Ok</span>(())
                 }
             }
-            <a href="#87">DeriverKind::Folder</a> =&gt; {
-                <a class="macro" href="../../../syn/macro.parse_quote.html">parse_quote! </a>{
+            DeriverKind::Folder =&gt; {
+                <span class="macro">parse_quote! </span>{
                     #variant_type {
                         #(#field_names),*
                     }
                 }
             }
-            <a href="#88">DeriverKind::FallibleFolder</a> =&gt; {
-                <a class="macro" href="../../../syn/macro.parse_quote.html">parse_quote! </a>{
+            DeriverKind::FallibleFolder =&gt; {
+                <span class="macro">parse_quote! </span>{
                     <span class="prelude-val">Ok</span>(#variant_type {
                         #(#field_names),*
                     })
                 }
             }
         };
-        <span class="kw">let </span>default_function = <a class="macro" href="../../../syn/macro.parse_quote.html">parse_quote! </a>{
+        <span class="kw">let </span>default_function = <span class="macro">parse_quote! </span>{
             <span class="attr">#[allow(unused_variables)]
             #[allow(clippy::manual_map)]
             </span><span class="kw">pub fn </span>#default_method_name&lt;T: #trait_ident&gt;(this: <span class="kw-2">&amp;mut </span>T, #parameter_name: #parameter_type) -&gt; #result_type {
@@ -1158,108 +1158,108 @@
                 #result
             }
         };
-        <a class="self" href="#356">self</a>.default_functions.push(<a href="#516">default_function</a>);
-        <span class="prelude-val">Ok</span>(<a href="#371">walked_types</a>)
+        <span class="self">self</span>.default_functions.push(default_function);
+        <span class="prelude-val">Ok</span>(walked_types)
     }
-    <span class="kw">fn </span>create_method_name(<span class="kw-2">&amp;</span><span class="self">self</span>, ty: <span class="kw-2">&amp;</span><a href="../../../proc_macro2/struct.Ident.html">syn::Ident</a>) -&gt; <a href="../../../proc_macro2/struct.Ident.html">syn::Ident</a> {
-        <span class="kw">match </span><a class="self" href="#530">self</a>.kind {
-            <a href="#85">DeriverKind::Walker</a> =&gt; <a href="../helpers.rs.html#15">prefixed_method_name_from_camel</a>(<span class="string">&quot;walk_&quot;</span>, <a href="#530">ty</a>),
-            <a href="#86">DeriverKind::FallibleWalker</a> =&gt; <a href="../helpers.rs.html#15">prefixed_method_name_from_camel</a>(<span class="string">&quot;fallible_walk_&quot;</span>, <a href="#530">ty</a>),
-            <a href="#87">DeriverKind::Folder</a> =&gt; <a href="../helpers.rs.html#15">prefixed_method_name_from_camel</a>(<span class="string">&quot;fold_&quot;</span>, <a href="#530">ty</a>),
-            <a href="#88">DeriverKind::FallibleFolder</a> =&gt; <a href="../helpers.rs.html#15">prefixed_method_name_from_camel</a>(<span class="string">&quot;fallible_fold_&quot;</span>, <a href="#530">ty</a>),
+    <span class="kw">fn </span>create_method_name(<span class="kw-2">&amp;</span><span class="self">self</span>, ty: <span class="kw-2">&amp;</span>syn::Ident) -&gt; syn::Ident {
+        <span class="kw">match </span><span class="self">self</span>.kind {
+            DeriverKind::Walker =&gt; prefixed_method_name_from_camel(<span class="string">&quot;walk_&quot;</span>, ty),
+            DeriverKind::FallibleWalker =&gt; prefixed_method_name_from_camel(<span class="string">&quot;fallible_walk_&quot;</span>, ty),
+            DeriverKind::Folder =&gt; prefixed_method_name_from_camel(<span class="string">&quot;fold_&quot;</span>, ty),
+            DeriverKind::FallibleFolder =&gt; prefixed_method_name_from_camel(<span class="string">&quot;fallible_fold_&quot;</span>, ty),
         }
     }
     <span class="kw">fn </span>create_method_call(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        element: <span class="kw-2">&amp;</span><a href="../../../proc_macro2/struct.Ident.html">syn::Ident</a>,
-        ty: <span class="kw-2">&amp;</span><a href="../../../proc_macro2/struct.Ident.html">syn::Ident</a>,
-        unbox_arg: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-        unboxed_args: <span class="kw-2">&amp;mut </span>BTreeSet&lt;<a href="../../../proc_macro2/struct.Ident.html">syn::Ident</a>&gt;,
-    ) -&gt; <a href="../../../syn/expr/enum.Expr.html">syn::Expr</a> {
-        <span class="kw">let </span>method_name = <a class="self" href="#539">self</a>.<a href="#530">create_method_name</a>(<a href="#541">ty</a>);
+        element: <span class="kw-2">&amp;</span>syn::Ident,
+        ty: <span class="kw-2">&amp;</span>syn::Ident,
+        unbox_arg: bool,
+        unboxed_args: <span class="kw-2">&amp;mut </span>BTreeSet&lt;syn::Ident&gt;,
+    ) -&gt; syn::Expr {
+        <span class="kw">let </span>method_name = <span class="self">self</span>.create_method_name(ty);
         <span class="kw">let </span>method_name = <span class="kw">if </span>unbox_arg {
-            <a href="#543">unboxed_args</a>.insert(<a href="#541">ty</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
-            <a href="../helpers.rs.html#43">append_ident</a>(<span class="kw-2">&amp;</span><a href="#545">method_name</a>, <span class="string">&quot;_boxed&quot;</span>)
+            unboxed_args.insert(ty.clone());
+            append_ident(<span class="kw-2">&amp;</span>method_name, <span class="string">&quot;_boxed&quot;</span>)
         } <span class="kw">else </span>{
-            <a href="#545">method_name</a>
+            method_name
         };
         <span class="kw">if </span><span class="self">self</span>.kind.is_fallible() {
-            <a class="macro" href="../../../syn/macro.parse_quote.html">parse_quote! </a>{ this.#method_name(#element)<span class="question-mark">? </span>}
+            <span class="macro">parse_quote! </span>{ this.#method_name(#element)<span class="question-mark">? </span>}
         } <span class="kw">else </span>{
-            <a class="macro" href="../../../syn/macro.parse_quote.html">parse_quote! </a>{ this.#method_name(#element) }
+            <span class="macro">parse_quote! </span>{ this.#method_name(#element) }
         }
     }
-    <span class="kw">fn </span>create_default_method_name(<span class="kw-2">&amp;</span><span class="self">self</span>, ty: <span class="kw-2">&amp;</span><a href="../../../proc_macro2/struct.Ident.html">syn::Ident</a>) -&gt; <a href="../../../proc_macro2/struct.Ident.html">syn::Ident</a> {
-        <span class="kw">match </span><a class="self" href="#558">self</a>.kind {
-            <a href="#85">DeriverKind::Walker</a> =&gt; <a href="../helpers.rs.html#15">prefixed_method_name_from_camel</a>(<span class="string">&quot;default_walk_&quot;</span>, <a href="#558">ty</a>),
-            <a href="#86">DeriverKind::FallibleWalker</a> =&gt; {
-                <a href="../helpers.rs.html#15">prefixed_method_name_from_camel</a>(<span class="string">&quot;default_fallible_walk_&quot;</span>, <a href="#558">ty</a>)
+    <span class="kw">fn </span>create_default_method_name(<span class="kw-2">&amp;</span><span class="self">self</span>, ty: <span class="kw-2">&amp;</span>syn::Ident) -&gt; syn::Ident {
+        <span class="kw">match </span><span class="self">self</span>.kind {
+            DeriverKind::Walker =&gt; prefixed_method_name_from_camel(<span class="string">&quot;default_walk_&quot;</span>, ty),
+            DeriverKind::FallibleWalker =&gt; {
+                prefixed_method_name_from_camel(<span class="string">&quot;default_fallible_walk_&quot;</span>, ty)
             }
-            <a href="#87">DeriverKind::Folder</a> =&gt; <a href="../helpers.rs.html#15">prefixed_method_name_from_camel</a>(<span class="string">&quot;default_fold_&quot;</span>, <a href="#558">ty</a>),
-            <a href="#88">DeriverKind::FallibleFolder</a> =&gt; {
-                <a href="../helpers.rs.html#15">prefixed_method_name_from_camel</a>(<span class="string">&quot;default_fallible_fold_&quot;</span>, <a href="#558">ty</a>)
+            DeriverKind::Folder =&gt; prefixed_method_name_from_camel(<span class="string">&quot;default_fold_&quot;</span>, ty),
+            DeriverKind::FallibleFolder =&gt; {
+                prefixed_method_name_from_camel(<span class="string">&quot;default_fallible_fold_&quot;</span>, ty)
             }
         }
     }
-    <span class="kw">fn </span>create_result_type(<span class="kw-2">&amp;</span><span class="self">self</span>, ty: <span class="kw-2">&amp;</span><a href="../../../proc_macro2/struct.Ident.html">syn::Ident</a>, in_default: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <a href="../../../syn/ty/enum.Type.html">syn::Type</a> {
-        <a class="self" href="#570">self</a>.<a href="#576">create_result_type_with</a>(<a class="macro" href="../../../syn/macro.parse_quote.html">syn::parse_quote! </a>{ #ty }, <a href="#570">in_default</a>)
+    <span class="kw">fn </span>create_result_type(<span class="kw-2">&amp;</span><span class="self">self</span>, ty: <span class="kw-2">&amp;</span>syn::Ident, in_default: bool) -&gt; syn::Type {
+        <span class="self">self</span>.create_result_type_with(<span class="macro">syn::parse_quote! </span>{ #ty }, in_default)
     }
-    <span class="kw">fn </span>create_boxed_result_type(<span class="kw-2">&amp;</span><span class="self">self</span>, ty: <span class="kw-2">&amp;</span><a href="../../../proc_macro2/struct.Ident.html">syn::Ident</a>, in_default: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <a href="../../../syn/ty/enum.Type.html">syn::Type</a> {
-        <a class="self" href="#573">self</a>.<a href="#576">create_result_type_with</a>(<a class="macro" href="../../../syn/macro.parse_quote.html">syn::parse_quote! </a>{ Box&lt;#ty&gt; }, <a href="#573">in_default</a>)
+    <span class="kw">fn </span>create_boxed_result_type(<span class="kw-2">&amp;</span><span class="self">self</span>, ty: <span class="kw-2">&amp;</span>syn::Ident, in_default: bool) -&gt; syn::Type {
+        <span class="self">self</span>.create_result_type_with(<span class="macro">syn::parse_quote! </span>{ Box&lt;#ty&gt; }, in_default)
     }
-    <span class="kw">fn </span>create_result_type_with(<span class="kw-2">&amp;</span><span class="self">self</span>, ty: <a href="../../../syn/ty/enum.Type.html">syn::Type</a>, in_default: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <a href="../../../syn/ty/enum.Type.html">syn::Type</a> {
-        <span class="kw">match </span><a class="self" href="#576">self</a>.kind {
-            <a href="#85">DeriverKind::Walker</a> =&gt; {
-                <a class="macro" href="../../../syn/macro.parse_quote.html">parse_quote! </a>{
+    <span class="kw">fn </span>create_result_type_with(<span class="kw-2">&amp;</span><span class="self">self</span>, ty: syn::Type, in_default: bool) -&gt; syn::Type {
+        <span class="kw">match </span><span class="self">self</span>.kind {
+            DeriverKind::Walker =&gt; {
+                <span class="macro">parse_quote! </span>{
                     ()
                 }
             }
-            <a href="#86">DeriverKind::FallibleWalker</a> =&gt; {
+            DeriverKind::FallibleWalker =&gt; {
                 <span class="kw">if </span>in_default {
-                    <span class="kw">let </span>trait_ident = <span class="kw-2">&amp;</span><a class="self" href="#576">self</a>.trait_ident;
-                    <a class="macro" href="../../../syn/macro.parse_quote.html">parse_quote! </a>{
+                    <span class="kw">let </span>trait_ident = <span class="kw-2">&amp;</span><span class="self">self</span>.trait_ident;
+                    <span class="macro">parse_quote! </span>{
                         <span class="prelude-ty">Result</span>&lt;(), &lt;T <span class="kw">as </span>#trait_ident&gt;::Error&gt;
                     }
                 } <span class="kw">else </span>{
-                    <a class="macro" href="../../../syn/macro.parse_quote.html">parse_quote! </a>{
+                    <span class="macro">parse_quote! </span>{
                         <span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt;
                     }
                 }
             }
-            <a href="#87">DeriverKind::Folder</a> =&gt; {
-                <a class="macro" href="../../../syn/macro.parse_quote.html">parse_quote! </a>{
+            DeriverKind::Folder =&gt; {
+                <span class="macro">parse_quote! </span>{
                     #ty
                 }
             }
-            <a href="#88">DeriverKind::FallibleFolder</a> =&gt; {
+            DeriverKind::FallibleFolder =&gt; {
                 <span class="kw">if </span>in_default {
-                    <span class="kw">let </span>trait_ident = <span class="kw-2">&amp;</span><a class="self" href="#576">self</a>.trait_ident;
-                    <a class="macro" href="../../../syn/macro.parse_quote.html">parse_quote! </a>{
+                    <span class="kw">let </span>trait_ident = <span class="kw-2">&amp;</span><span class="self">self</span>.trait_ident;
+                    <span class="macro">parse_quote! </span>{
                         <span class="prelude-ty">Result</span>&lt;#ty, &lt;T <span class="kw">as </span>#trait_ident&gt;::Error&gt;
                     }
                 } <span class="kw">else </span>{
-                    <a class="macro" href="../../../syn/macro.parse_quote.html">parse_quote! </a>{
+                    <span class="macro">parse_quote! </span>{
                         <span class="prelude-ty">Result</span>&lt;#ty, <span class="self">Self</span>::Error&gt;
                     }
                 }
             }
         }
     }
-    <span class="kw">fn </span>create_parameter_type(<span class="kw-2">&amp;</span><span class="self">self</span>, ty: <span class="kw-2">&amp;</span><a href="../../../proc_macro2/struct.Ident.html">syn::Ident</a>) -&gt; <a href="../../../syn/ty/enum.Type.html">syn::Type</a> {
+    <span class="kw">fn </span>create_parameter_type(<span class="kw-2">&amp;</span><span class="self">self</span>, ty: <span class="kw-2">&amp;</span>syn::Ident) -&gt; syn::Type {
         <span class="kw">if </span><span class="self">self</span>.kind.is_folder() {
-            <a class="macro" href="../../../syn/macro.parse_quote.html">parse_quote! </a>{
+            <span class="macro">parse_quote! </span>{
                 #ty
             }
         } <span class="kw">else </span>{
-            <a class="macro" href="../../../syn/macro.parse_quote.html">parse_quote! </a>{
+            <span class="macro">parse_quote! </span>{
                 <span class="kw-2">&amp;</span>#ty
             }
         }
     }
-    <span class="kw">fn </span>generate_trait(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../../../syn/item/enum.Item.html">syn::Item</a> {
-        <span class="kw">let </span>trait_ident = <span class="kw-2">&amp;</span><a class="self" href="#625">self</a>.trait_ident;
-        <span class="kw">let </span>trait_items = <span class="kw-2">&amp;</span><a class="self" href="#625">self</a>.trait_items;
-        <a class="macro" href="../../../syn/macro.parse_quote.html">parse_quote! </a>{
+    <span class="kw">fn </span>generate_trait(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; syn::Item {
+        <span class="kw">let </span>trait_ident = <span class="kw-2">&amp;</span><span class="self">self</span>.trait_ident;
+        <span class="kw">let </span>trait_items = <span class="kw-2">&amp;</span><span class="self">self</span>.trait_items;
+        <span class="macro">parse_quote! </span>{
             <span class="kw">pub trait </span>#trait_ident: Sized {
                 #(#trait_items)*
             }
@@ -1267,4 +1267,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="vir_gen" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="vir_gen" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

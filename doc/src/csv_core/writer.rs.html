@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/csv-core-0.1.10/src/writer.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>writer.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../csv_core/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/csv-core-0.1.10/src/writer.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>writer.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../csv_core/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -1045,12 +1045,12 @@
 <a href="#1045" id="1045">1045</a>
 <a href="#1046" id="1046">1046</a>
 <a href="#1047" id="1047">1047</a>
-</pre><pre class="rust"><code><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/fmt/index.html">core::fmt</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/str/index.html">core::str</a>;
+</pre><pre class="rust"><code><span class="kw">use </span>core::fmt;
+<span class="kw">use </span>core::str;
 
-<span class="kw">use </span><a href="../../memchr/memchr/fn.memchr.html">memchr::memchr</a>;
+<span class="kw">use </span>memchr::memchr;
 
-<span class="kw">use crate</span>::{<a href="lib.rs.html#159">QuoteStyle</a>, <a href="lib.rs.html#118">Terminator</a>};
+<span class="kw">use crate</span>::{QuoteStyle, Terminator};
 
 <span class="doccomment">/// A builder for configuring a CSV writer.
 ///
@@ -1058,60 +1058,60 @@
 /// style and more.
 </span><span class="attr">#[derive(Debug)]
 </span><span class="kw">pub struct </span>WriterBuilder {
-    wtr: <a href="#160">Writer</a>,
+    wtr: Writer,
 }
 
-<span class="kw">impl </span><a href="#13">WriterBuilder</a> {
+<span class="kw">impl </span>WriterBuilder {
     <span class="doccomment">/// Create a new builder for configuring a CSV writer.
-    </span><span class="kw">pub fn </span>new() -&gt; <a href="#13">WriterBuilder</a> {
-        <span class="kw">let </span>wtr = <a href="#160">Writer</a> {
+    </span><span class="kw">pub fn </span>new() -&gt; WriterBuilder {
+        <span class="kw">let </span>wtr = Writer {
             state: WriterState::default(),
             requires_quotes: [<span class="bool-val">false</span>; <span class="number">256</span>],
             delimiter: <span class="string">b&#39;,&#39;</span>,
-            term: <a href="lib.rs.html#122">Terminator::Any</a>(<span class="string">b&#39;\n&#39;</span>),
+            term: Terminator::Any(<span class="string">b&#39;\n&#39;</span>),
             style: QuoteStyle::default(),
             quote: <span class="string">b&#39;&quot;&#39;</span>,
             escape: <span class="string">b&#39;\\&#39;</span>,
             double_quote: <span class="bool-val">true</span>,
         };
-        <a href="#13">WriterBuilder</a> { wtr: <a href="#20">wtr</a> }
+        WriterBuilder { wtr: wtr }
     }
 
     <span class="doccomment">/// Builder a CSV writer from this configuration.
-    </span><span class="kw">pub fn </span>build(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="#160">Writer</a> {
-        <span class="kw">use </span><a href="lib.rs.html#118"><span class="kw">crate</span>::Terminator</a>::<span class="kw-2">*</span>;
+    </span><span class="kw">pub fn </span>build(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Writer {
+        <span class="kw">use </span><span class="kw">crate</span>::Terminator::<span class="kw-2">*</span>;
 
-        <span class="kw">let </span><span class="kw-2">mut </span>wtr = <a class="self" href="#34">self</a>.wtr.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
-        <a href="#37">wtr</a>.requires_quotes[<a class="self" href="#34">self</a>.wtr.delimiter <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>] = <span class="bool-val">true</span>;
-        <a href="#37">wtr</a>.requires_quotes[<a class="self" href="#34">self</a>.wtr.quote <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>] = <span class="bool-val">true</span>;
+        <span class="kw">let </span><span class="kw-2">mut </span>wtr = <span class="self">self</span>.wtr.clone();
+        wtr.requires_quotes[<span class="self">self</span>.wtr.delimiter <span class="kw">as </span>usize] = <span class="bool-val">true</span>;
+        wtr.requires_quotes[<span class="self">self</span>.wtr.quote <span class="kw">as </span>usize] = <span class="bool-val">true</span>;
         <span class="kw">if </span>!<span class="self">self</span>.wtr.double_quote {
             <span class="comment">// We only need to quote the escape character if the escape
             // character is used for escaping quotes.
-            </span><a href="#37">wtr</a>.requires_quotes[<a class="self" href="#34">self</a>.wtr.escape <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>] = <span class="bool-val">true</span>;
+            </span>wtr.requires_quotes[<span class="self">self</span>.wtr.escape <span class="kw">as </span>usize] = <span class="bool-val">true</span>;
         }
-        <span class="kw">match </span><a class="self" href="#34">self</a>.wtr.term {
-            <a href="lib.rs.html#120">CRLF</a> | <a href="lib.rs.html#122">Any</a>(<span class="string">b&#39;\n&#39;</span>) | <a href="lib.rs.html#122">Any</a>(<span class="string">b&#39;\r&#39;</span>) =&gt; {
+        <span class="kw">match </span><span class="self">self</span>.wtr.term {
+            CRLF | Any(<span class="string">b&#39;\n&#39;</span>) | Any(<span class="string">b&#39;\r&#39;</span>) =&gt; {
                 <span class="comment">// This is a bit hokey. By default, the record terminator
                 // is &#39;\n&#39;, but we still need to quote &#39;\r&#39; (even if our
                 // terminator is only `\n`) because the reader interprets &#39;\r&#39;
                 // as a record terminator by default.
-                </span><a href="#37">wtr</a>.requires_quotes[<span class="string">b&#39;\r&#39; </span><span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>] = <span class="bool-val">true</span>;
-                <a href="#37">wtr</a>.requires_quotes[<span class="string">b&#39;\n&#39; </span><span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>] = <span class="bool-val">true</span>;
+                </span>wtr.requires_quotes[<span class="string">b&#39;\r&#39; </span><span class="kw">as </span>usize] = <span class="bool-val">true</span>;
+                wtr.requires_quotes[<span class="string">b&#39;\n&#39; </span><span class="kw">as </span>usize] = <span class="bool-val">true</span>;
             }
-            <a href="lib.rs.html#122">Any</a>(b) =&gt; {
-                <a href="#37">wtr</a>.requires_quotes[<a href="#54">b</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>] = <span class="bool-val">true</span>;
+            Any(b) =&gt; {
+                wtr.requires_quotes[b <span class="kw">as </span>usize] = <span class="bool-val">true</span>;
             }
-            <span class="kw">_ </span>=&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(),
+            <span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>(),
         }
-        <a href="#37">wtr</a>
+        wtr
     }
 
     <span class="doccomment">/// The field delimiter to use when writing CSV.
     ///
     /// The default is `b&#39;,&#39;`.
-    </span><span class="kw">pub fn </span>delimiter(<span class="kw-2">&amp;mut </span><span class="self">self</span>, delimiter: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) -&gt; <span class="kw-2">&amp;mut </span><a href="#13">WriterBuilder</a> {
-        <a class="self" href="#65">self</a>.wtr.delimiter = <a href="#65">delimiter</a>;
-        <span class="self"><a href="#65">self</a>
+    </span><span class="kw">pub fn </span>delimiter(<span class="kw-2">&amp;mut </span><span class="self">self</span>, delimiter: u8) -&gt; <span class="kw-2">&amp;mut </span>WriterBuilder {
+        <span class="self">self</span>.wtr.delimiter = delimiter;
+        <span class="self">self
     </span>}
 
     <span class="doccomment">/// The record terminator to use when writing CSV.
@@ -1120,9 +1120,9 @@
     ///
     /// Note that RFC 4180 specifies that record terminators should be `\r\n`.
     /// To use `\r\n`, use the special `Terminator::CRLF` value.
-    </span><span class="kw">pub fn </span>terminator(<span class="kw-2">&amp;mut </span><span class="self">self</span>, term: <a href="lib.rs.html#118">Terminator</a>) -&gt; <span class="kw-2">&amp;mut </span><a href="#13">WriterBuilder</a> {
-        <a class="self" href="#76">self</a>.wtr.term = <a href="#76">term</a>;
-        <span class="self"><a href="#76">self</a>
+    </span><span class="kw">pub fn </span>terminator(<span class="kw-2">&amp;mut </span><span class="self">self</span>, term: Terminator) -&gt; <span class="kw-2">&amp;mut </span>WriterBuilder {
+        <span class="self">self</span>.wtr.term = term;
+        <span class="self">self
     </span>}
 
     <span class="doccomment">/// The quoting style to use when writing CSV.
@@ -1132,17 +1132,17 @@
     ///
     /// Note that unless the quote style is set to `Never`, an empty field is
     /// quoted if it is the only field in a record.
-    </span><span class="kw">pub fn </span>quote_style(<span class="kw-2">&amp;mut </span><span class="self">self</span>, style: <a href="lib.rs.html#159">QuoteStyle</a>) -&gt; <span class="kw-2">&amp;mut </span><a href="#13">WriterBuilder</a> {
-        <a class="self" href="#88">self</a>.wtr.style = <a href="#88">style</a>;
-        <span class="self"><a href="#88">self</a>
+    </span><span class="kw">pub fn </span>quote_style(<span class="kw-2">&amp;mut </span><span class="self">self</span>, style: QuoteStyle) -&gt; <span class="kw-2">&amp;mut </span>WriterBuilder {
+        <span class="self">self</span>.wtr.style = style;
+        <span class="self">self
     </span>}
 
     <span class="doccomment">/// The quote character to use when writing CSV.
     ///
     /// The default value is `b&#39;&quot;&#39;`.
-    </span><span class="kw">pub fn </span>quote(<span class="kw-2">&amp;mut </span><span class="self">self</span>, quote: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) -&gt; <span class="kw-2">&amp;mut </span><a href="#13">WriterBuilder</a> {
-        <a class="self" href="#96">self</a>.wtr.quote = <a href="#96">quote</a>;
-        <span class="self"><a href="#96">self</a>
+    </span><span class="kw">pub fn </span>quote(<span class="kw-2">&amp;mut </span><span class="self">self</span>, quote: u8) -&gt; <span class="kw-2">&amp;mut </span>WriterBuilder {
+        <span class="self">self</span>.wtr.quote = quote;
+        <span class="self">self
     </span>}
 
     <span class="doccomment">/// The escape character to use when writing CSV.
@@ -1150,9 +1150,9 @@
     /// This is only used when `double_quote` is set to `false`.
     ///
     /// The default value is `b&#39;\\&#39;`.
-    </span><span class="kw">pub fn </span>escape(<span class="kw-2">&amp;mut </span><span class="self">self</span>, escape: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) -&gt; <span class="kw-2">&amp;mut </span><a href="#13">WriterBuilder</a> {
-        <a class="self" href="#106">self</a>.wtr.escape = <a href="#106">escape</a>;
-        <span class="self"><a href="#106">self</a>
+    </span><span class="kw">pub fn </span>escape(<span class="kw-2">&amp;mut </span><span class="self">self</span>, escape: u8) -&gt; <span class="kw-2">&amp;mut </span>WriterBuilder {
+        <span class="self">self</span>.wtr.escape = escape;
+        <span class="self">self
     </span>}
 
     <span class="doccomment">/// The quoting escape mechanism to use when writing CSV.
@@ -1162,14 +1162,14 @@
     ///
     /// When disabled, quotes are escaped with the escape character (which
     /// is `\\` by default).
-    </span><span class="kw">pub fn </span>double_quote(<span class="kw-2">&amp;mut </span><span class="self">self</span>, yes: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="kw-2">&amp;mut </span><a href="#13">WriterBuilder</a> {
-        <a class="self" href="#118">self</a>.wtr.double_quote = <a href="#118">yes</a>;
-        <span class="self"><a href="#118">self</a>
+    </span><span class="kw">pub fn </span>double_quote(<span class="kw-2">&amp;mut </span><span class="self">self</span>, yes: bool) -&gt; <span class="kw-2">&amp;mut </span>WriterBuilder {
+        <span class="self">self</span>.wtr.double_quote = yes;
+        <span class="self">self
     </span>}
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for </span><a href="#13">WriterBuilder</a> {
-    <span class="kw">fn </span>default() -&gt; <a href="#13">WriterBuilder</a> {
+<span class="kw">impl </span>Default <span class="kw">for </span>WriterBuilder {
+    <span class="kw">fn </span>default() -&gt; WriterBuilder {
         WriterBuilder::new()
     }
 }
@@ -1205,45 +1205,45 @@
 /// `terminator` method on `WriterBuilder` to set the terminator to `\r\n` if
 /// it&#39;s desired.
 </span><span class="kw">pub struct </span>Writer {
-    state: <a href="#205">WriterState</a>,
-    requires_quotes: [<a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>; <span class="number">256</span>],
-    delimiter: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>,
-    term: <a href="lib.rs.html#118">Terminator</a>,
-    style: <a href="lib.rs.html#159">QuoteStyle</a>,
-    quote: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>,
-    escape: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>,
-    double_quote: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
+    state: WriterState,
+    requires_quotes: [bool; <span class="number">256</span>],
+    delimiter: u8,
+    term: Terminator,
+    style: QuoteStyle,
+    quote: u8,
+    escape: u8,
+    double_quote: bool,
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> <span class="kw">for </span><a href="#160">Writer</a> {
-    <span class="kw">fn </span>clone(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="#160">Writer</a> {
+<span class="kw">impl </span>Clone <span class="kw">for </span>Writer {
+    <span class="kw">fn </span>clone(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Writer {
         <span class="kw">let </span><span class="kw-2">mut </span>requires_quotes = [<span class="bool-val">false</span>; <span class="number">256</span>];
         <span class="kw">for </span>i <span class="kw">in </span><span class="number">0</span>..<span class="number">256 </span>{
             requires_quotes[i] = <span class="self">self</span>.requires_quotes[i];
         }
-        <a href="#160">Writer</a> {
-            state: <a class="self" href="#172">self</a>.state.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
-            requires_quotes: <a href="#173">requires_quotes</a>,
-            delimiter: <a class="self" href="#172">self</a>.delimiter,
-            term: <a class="self" href="#172">self</a>.term,
-            style: <a class="self" href="#172">self</a>.style,
-            quote: <a class="self" href="#172">self</a>.quote,
-            escape: <a class="self" href="#172">self</a>.escape,
-            double_quote: <a class="self" href="#172">self</a>.double_quote,
+        Writer {
+            state: <span class="self">self</span>.state.clone(),
+            requires_quotes: requires_quotes,
+            delimiter: <span class="self">self</span>.delimiter,
+            term: <span class="self">self</span>.term,
+            style: <span class="self">self</span>.style,
+            quote: <span class="self">self</span>.quote,
+            escape: <span class="self">self</span>.escape,
+            double_quote: <span class="self">self</span>.double_quote,
         }
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="#160">Writer</a> {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a href="#191">f</a>.debug_struct(<span class="string">&quot;Writer&quot;</span>)
-            .field(<span class="string">&quot;state&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="#191">self</a>.state)
-            .field(<span class="string">&quot;delimiter&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="#191">self</a>.delimiter)
-            .field(<span class="string">&quot;term&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="#191">self</a>.term)
-            .field(<span class="string">&quot;style&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="#191">self</a>.style)
-            .field(<span class="string">&quot;quote&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="#191">self</a>.quote)
-            .field(<span class="string">&quot;escape&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="#191">self</a>.escape)
-            .field(<span class="string">&quot;double_quote&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="#191">self</a>.double_quote)
+<span class="kw">impl </span>fmt::Debug <span class="kw">for </span>Writer {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter) -&gt; fmt::Result {
+        f.debug_struct(<span class="string">&quot;Writer&quot;</span>)
+            .field(<span class="string">&quot;state&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.state)
+            .field(<span class="string">&quot;delimiter&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.delimiter)
+            .field(<span class="string">&quot;term&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.term)
+            .field(<span class="string">&quot;style&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.style)
+            .field(<span class="string">&quot;quote&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.quote)
+            .field(<span class="string">&quot;escape&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.escape)
+            .field(<span class="string">&quot;double_quote&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.double_quote)
             .finish()
     }
 }
@@ -1253,21 +1253,21 @@
     <span class="doccomment">/// This is set whenever we&#39;ve begun writing the contents of a field, even
     /// if the contents are empty. We use it to avoid re-computing whether
     /// quotes are necessary.
-    </span>in_field: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
+    </span>in_field: bool,
     <span class="doccomment">/// This is set whenever we&#39;ve started writing a field that is enclosed in
     /// quotes. When the writer is finished, or if a delimiter or terminator
     /// are written, then a closing quote is inserted when this is true.
-    </span>quoting: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
+    </span>quoting: bool,
     <span class="doccomment">/// The number of total bytes written for the current record.
     ///
     /// If the writer is finished or a terminator is written when this is `0`,
     /// then an empty field is added as a pair of adjacent quotes.
-    </span>record_bytes: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>,
+    </span>record_bytes: u64,
 }
 
-<span class="kw">impl </span><a href="#160">Writer</a> {
+<span class="kw">impl </span>Writer {
     <span class="doccomment">/// Creates a new CSV writer with the default configuration.
-    </span><span class="kw">pub fn </span>new() -&gt; <a href="#160">Writer</a> {
+    </span><span class="kw">pub fn </span>new() -&gt; Writer {
         Writer::default()
     }
 
@@ -1275,30 +1275,30 @@
     ///
     /// This must be called when one is done writing CSV data to `output`.
     /// In particular, it will write closing quotes if necessary.
-    </span><span class="kw">pub fn </span>finish(<span class="kw-2">&amp;mut </span><span class="self">self</span>, <span class="kw-2">mut </span>output: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; (<a href="#137">WriteResult</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
+    </span><span class="kw">pub fn </span>finish(<span class="kw-2">&amp;mut </span><span class="self">self</span>, <span class="kw-2">mut </span>output: <span class="kw-2">&amp;mut </span>[u8]) -&gt; (WriteResult, usize) {
         <span class="kw">let </span><span class="kw-2">mut </span>nout = <span class="number">0</span>;
         <span class="kw">if </span><span class="self">self</span>.state.record_bytes == <span class="number">0 </span>&amp;&amp; <span class="self">self</span>.state.in_field {
-            <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(!<span class="self">self</span>.state.quoting);
-            <span class="kw">let </span>(res, o) = <a class="self" href="#231">self</a>.<a href="#469">write</a>(<span class="kw-2">&amp;</span>[<a class="self" href="#231">self</a>.quote, <a class="self" href="#231">self</a>.quote], <a href="#231">output</a>);
+            <span class="macro">assert!</span>(!<span class="self">self</span>.state.quoting);
+            <span class="kw">let </span>(res, o) = <span class="self">self</span>.write(<span class="kw-2">&amp;</span>[<span class="self">self</span>.quote, <span class="self">self</span>.quote], output);
             <span class="kw">if </span>o == <span class="number">0 </span>{
-                <span class="kw">return </span>(<a href="#235">res</a>, <span class="number">0</span>);
+                <span class="kw">return </span>(res, <span class="number">0</span>);
             }
-            <a href="#231">output</a> = <span class="kw-2">&amp;mut </span><a href="#616">moving</a>(<a href="#231">output</a>)[<a href="#235">o</a>..];
-            <a href="#232">nout</a> += <a href="#235">o</a>;
-            <a class="self" href="#231">self</a>.state.record_bytes += <a href="#235">o</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>;
+            output = <span class="kw-2">&amp;mut </span>moving(output)[o..];
+            nout += o;
+            <span class="self">self</span>.state.record_bytes += o <span class="kw">as </span>u64;
         }
         <span class="kw">if </span>!<span class="self">self</span>.state.quoting {
-            <span class="kw">return </span>(<a href="#140">WriteResult::InputEmpty</a>, <a href="#232">nout</a>);
+            <span class="kw">return </span>(WriteResult::InputEmpty, nout);
         }
-        <span class="kw">let </span>(res, o) = <a class="self" href="#231">self</a>.<a href="#469">write</a>(<span class="kw-2">&amp;</span>[<a class="self" href="#231">self</a>.quote], <a href="#231">output</a>);
+        <span class="kw">let </span>(res, o) = <span class="self">self</span>.write(<span class="kw-2">&amp;</span>[<span class="self">self</span>.quote], output);
         <span class="kw">if </span>o == <span class="number">0 </span>{
-            <span class="kw">return </span>(<a href="#246">res</a>, <a href="#232">nout</a>);
+            <span class="kw">return </span>(res, nout);
         }
-        <a href="#232">nout</a> += <a href="#246">o</a>;
-        <a class="self" href="#231">self</a>.state.record_bytes = <span class="number">0</span>;
-        <a class="self" href="#231">self</a>.state.in_field = <span class="bool-val">false</span>;
-        <a class="self" href="#231">self</a>.state.quoting = <span class="bool-val">false</span>;
-        (<a href="#246">res</a>, <a href="#232">nout</a>)
+        nout += o;
+        <span class="self">self</span>.state.record_bytes = <span class="number">0</span>;
+        <span class="self">self</span>.state.in_field = <span class="bool-val">false</span>;
+        <span class="self">self</span>.state.quoting = <span class="bool-val">false</span>;
+        (res, nout)
     }
 
     <span class="doccomment">/// Write a single CSV field from `input` to `output` while employing this
@@ -1325,33 +1325,33 @@
     /// to be quoted or not cannot be determined.
     </span><span class="kw">pub fn </span>field(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        input: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
-        <span class="kw-2">mut </span>output: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
-    ) -&gt; (<a href="#137">WriteResult</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
+        input: <span class="kw-2">&amp;</span>[u8],
+        <span class="kw-2">mut </span>output: <span class="kw-2">&amp;mut </span>[u8],
+    ) -&gt; (WriteResult, usize, usize) {
         <span class="kw">let </span>(<span class="kw-2">mut </span>nin, <span class="kw-2">mut </span>nout) = (<span class="number">0</span>, <span class="number">0</span>);
 
         <span class="kw">if </span>!<span class="self">self</span>.state.in_field {
-            <a class="self" href="#280">self</a>.state.quoting = <a class="self" href="#280">self</a>.<a href="#422">should_quote</a>(<a href="#281">input</a>);
+            <span class="self">self</span>.state.quoting = <span class="self">self</span>.should_quote(input);
             <span class="kw">if </span><span class="self">self</span>.state.quoting {
-                <span class="kw">let </span>(res, o) = <a class="self" href="#280">self</a>.<a href="#469">write</a>(<span class="kw-2">&amp;</span>[<a class="self" href="#280">self</a>.quote], <a href="#282">output</a>);
+                <span class="kw">let </span>(res, o) = <span class="self">self</span>.write(<span class="kw-2">&amp;</span>[<span class="self">self</span>.quote], output);
                 <span class="kw">if </span>o == <span class="number">0 </span>{
-                    <span class="kw">return </span>(<a href="#289">res</a>, <span class="number">0</span>, <span class="number">0</span>);
+                    <span class="kw">return </span>(res, <span class="number">0</span>, <span class="number">0</span>);
                 }
-                <a href="#282">output</a> = <span class="kw-2">&amp;mut </span><a href="#616">moving</a>(<a href="#282">output</a>)[<a href="#289">o</a>..];
-                <a href="#284">nout</a> += <a href="#289">o</a>;
-                <a class="self" href="#280">self</a>.state.record_bytes += <a href="#289">o</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>;
+                output = <span class="kw-2">&amp;mut </span>moving(output)[o..];
+                nout += o;
+                <span class="self">self</span>.state.record_bytes += o <span class="kw">as </span>u64;
             }
-            <a class="self" href="#280">self</a>.state.in_field = <span class="bool-val">true</span>;
+            <span class="self">self</span>.state.in_field = <span class="bool-val">true</span>;
         }
         <span class="kw">let </span>(res, i, o) = <span class="kw">if </span><span class="self">self</span>.state.quoting {
-            <a href="#527-533">quote</a>(<a href="#281">input</a>, <a href="#282">output</a>, <a class="self" href="#280">self</a>.quote, <a class="self" href="#280">self</a>.escape, <a class="self" href="#280">self</a>.double_quote)
+            quote(input, output, <span class="self">self</span>.quote, <span class="self">self</span>.escape, <span class="self">self</span>.double_quote)
         } <span class="kw">else </span>{
-            <a href="#586-589">write_optimistic</a>(<a href="#281">input</a>, <a href="#282">output</a>)
+            write_optimistic(input, output)
         };
-        <a href="#284">nin</a> += <a href="#299">i</a>;
-        <a href="#284">nout</a> += <a href="#299">o</a>;
-        <a class="self" href="#280">self</a>.state.record_bytes += <a href="#299">o</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>;
-        (<a href="#299">res</a>, <a href="#284">nin</a>, <a href="#284">nout</a>)
+        nin += i;
+        nout += o;
+        <span class="self">self</span>.state.record_bytes += o <span class="kw">as </span>u64;
+        (res, nin, nout)
     }
 
     <span class="doccomment">/// Write the configured field delimiter to `output`.
@@ -1364,27 +1364,27 @@
     /// field, or `2` in case of an end quote and a field separator).
     </span><span class="kw">pub fn </span>delimiter(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        <span class="kw-2">mut </span>output: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
-    ) -&gt; (<a href="#137">WriteResult</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
+        <span class="kw-2">mut </span>output: <span class="kw-2">&amp;mut </span>[u8],
+    ) -&gt; (WriteResult, usize) {
         <span class="kw">let </span><span class="kw-2">mut </span>nout = <span class="number">0</span>;
         <span class="kw">if </span><span class="self">self</span>.state.quoting {
-            <span class="kw">let </span>(res, o) = <a class="self" href="#319">self</a>.<a href="#469">write</a>(<span class="kw-2">&amp;</span>[<a class="self" href="#319">self</a>.quote], <a href="#320">output</a>);
+            <span class="kw">let </span>(res, o) = <span class="self">self</span>.write(<span class="kw-2">&amp;</span>[<span class="self">self</span>.quote], output);
             <span class="kw">if </span>o == <span class="number">0 </span>{
-                <span class="kw">return </span>(<a href="#324">res</a>, <a href="#324">o</a>);
+                <span class="kw">return </span>(res, o);
             }
-            <a href="#320">output</a> = <span class="kw-2">&amp;mut </span><a href="#616">moving</a>(<a href="#320">output</a>)[<a href="#324">o</a>..];
-            <a href="#322">nout</a> += <a href="#324">o</a>;
-            <a class="self" href="#319">self</a>.state.record_bytes += <a href="#324">o</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>;
-            <a class="self" href="#319">self</a>.state.quoting = <span class="bool-val">false</span>;
+            output = <span class="kw-2">&amp;mut </span>moving(output)[o..];
+            nout += o;
+            <span class="self">self</span>.state.record_bytes += o <span class="kw">as </span>u64;
+            <span class="self">self</span>.state.quoting = <span class="bool-val">false</span>;
         }
-        <span class="kw">let </span>(res, o) = <a class="self" href="#319">self</a>.<a href="#469">write</a>(<span class="kw-2">&amp;</span>[<a class="self" href="#319">self</a>.delimiter], <a href="#320">output</a>);
+        <span class="kw">let </span>(res, o) = <span class="self">self</span>.write(<span class="kw-2">&amp;</span>[<span class="self">self</span>.delimiter], output);
         <span class="kw">if </span>o == <span class="number">0 </span>{
-            <span class="kw">return </span>(<a href="#333">res</a>, <a href="#322">nout</a>);
+            <span class="kw">return </span>(res, nout);
         }
-        <a href="#322">nout</a> += <a href="#333">o</a>;
-        <a class="self" href="#319">self</a>.state.record_bytes += <a href="#333">o</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>;
-        <a class="self" href="#319">self</a>.state.in_field = <span class="bool-val">false</span>;
-        (<a href="#333">res</a>, <a href="#322">nout</a>)
+        nout += o;
+        <span class="self">self</span>.state.record_bytes += o <span class="kw">as </span>u64;
+        <span class="self">self</span>.state.in_field = <span class="bool-val">false</span>;
+        (res, nout)
     }
 
     <span class="doccomment">/// Write the configured record terminator to `output`.
@@ -1396,48 +1396,48 @@
     /// written to `output` (which is always `1` or `2`).
     </span><span class="kw">pub fn </span>terminator(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        <span class="kw-2">mut </span>output: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
-    ) -&gt; (<a href="#137">WriteResult</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
+        <span class="kw-2">mut </span>output: <span class="kw-2">&amp;mut </span>[u8],
+    ) -&gt; (WriteResult, usize) {
         <span class="kw">let </span><span class="kw-2">mut </span>nout = <span class="number">0</span>;
         <span class="kw">if </span><span class="self">self</span>.state.record_bytes == <span class="number">0 </span>{
-            <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(!<span class="self">self</span>.state.quoting);
-            <span class="kw">let </span>(res, o) = <a class="self" href="#351">self</a>.<a href="#469">write</a>(<span class="kw-2">&amp;</span>[<a class="self" href="#351">self</a>.quote, <a class="self" href="#351">self</a>.quote], <a href="#352">output</a>);
+            <span class="macro">assert!</span>(!<span class="self">self</span>.state.quoting);
+            <span class="kw">let </span>(res, o) = <span class="self">self</span>.write(<span class="kw-2">&amp;</span>[<span class="self">self</span>.quote, <span class="self">self</span>.quote], output);
             <span class="kw">if </span>o == <span class="number">0 </span>{
-                <span class="kw">return </span>(<a href="#357">res</a>, <span class="number">0</span>);
+                <span class="kw">return </span>(res, <span class="number">0</span>);
             }
-            <a href="#352">output</a> = <span class="kw-2">&amp;mut </span><a href="#616">moving</a>(<a href="#352">output</a>)[<a href="#357">o</a>..];
-            <a href="#354">nout</a> += <a href="#357">o</a>;
-            <a class="self" href="#351">self</a>.state.record_bytes += <a href="#357">o</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>;
+            output = <span class="kw-2">&amp;mut </span>moving(output)[o..];
+            nout += o;
+            <span class="self">self</span>.state.record_bytes += o <span class="kw">as </span>u64;
         }
         <span class="kw">if </span><span class="self">self</span>.state.quoting {
-            <span class="kw">let </span>(res, o) = <a class="self" href="#351">self</a>.<a href="#469">write</a>(<span class="kw-2">&amp;</span>[<a class="self" href="#351">self</a>.quote], <a href="#352">output</a>);
+            <span class="kw">let </span>(res, o) = <span class="self">self</span>.write(<span class="kw-2">&amp;</span>[<span class="self">self</span>.quote], output);
             <span class="kw">if </span>o == <span class="number">0 </span>{
-                <span class="kw">return </span>(<a href="#366">res</a>, <a href="#366">o</a>);
+                <span class="kw">return </span>(res, o);
             }
-            <a href="#352">output</a> = <span class="kw-2">&amp;mut </span><a href="#616">moving</a>(<a href="#352">output</a>)[<a href="#366">o</a>..];
-            <a href="#354">nout</a> += <a href="#366">o</a>;
-            <a class="self" href="#351">self</a>.state.record_bytes += <a href="#366">o</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>;
-            <a class="self" href="#351">self</a>.state.quoting = <span class="bool-val">false</span>;
+            output = <span class="kw-2">&amp;mut </span>moving(output)[o..];
+            nout += o;
+            <span class="self">self</span>.state.record_bytes += o <span class="kw">as </span>u64;
+            <span class="self">self</span>.state.quoting = <span class="bool-val">false</span>;
         }
-        <span class="kw">let </span>(res, o) = <span class="kw">match </span><a class="self" href="#351">self</a>.term {
-            <a href="lib.rs.html#120">Terminator::CRLF</a> =&gt; <a href="#605">write_pessimistic</a>(<span class="kw-2">&amp;</span>[<span class="string">b&#39;\r&#39;</span>, <span class="string">b&#39;\n&#39;</span>], <a href="#352">output</a>),
-            <a href="lib.rs.html#122">Terminator::Any</a>(b) =&gt; <a href="#605">write_pessimistic</a>(<span class="kw-2">&amp;</span>[<a href="#377">b</a>], <a href="#352">output</a>),
-            <span class="kw">_ </span>=&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(),
+        <span class="kw">let </span>(res, o) = <span class="kw">match </span><span class="self">self</span>.term {
+            Terminator::CRLF =&gt; write_pessimistic(<span class="kw-2">&amp;</span>[<span class="string">b&#39;\r&#39;</span>, <span class="string">b&#39;\n&#39;</span>], output),
+            Terminator::Any(b) =&gt; write_pessimistic(<span class="kw-2">&amp;</span>[b], output),
+            <span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>(),
         };
         <span class="kw">if </span>o == <span class="number">0 </span>{
-            <span class="kw">return </span>(<a href="#375">res</a>, <a href="#354">nout</a>);
+            <span class="kw">return </span>(res, nout);
         }
-        <a href="#354">nout</a> += <a href="#375">o</a>;
-        <a class="self" href="#351">self</a>.state.record_bytes = <span class="number">0</span>;
-        <a class="self" href="#351">self</a>.state.in_field = <span class="bool-val">false</span>;
-        (<a href="#375">res</a>, <a href="#354">nout</a>)
+        nout += o;
+        <span class="self">self</span>.state.record_bytes = <span class="number">0</span>;
+        <span class="self">self</span>.state.in_field = <span class="bool-val">false</span>;
+        (res, nout)
     }
 
     <span class="doccomment">/// Returns true if and only if the given input field *requires* quotes to
     /// preserve the integrity of `input` while taking into account the current
     /// configuration of this writer (except for the configured quoting style).
     </span><span class="attr">#[inline]
-    </span><span class="kw">fn </span>needs_quotes(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw-2">mut </span>input: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+    </span><span class="kw">fn </span>needs_quotes(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw-2">mut </span>input: <span class="kw-2">&amp;</span>[u8]) -&gt; bool {
         <span class="kw">let </span><span class="kw-2">mut </span>needs = <span class="bool-val">false</span>;
         <span class="kw">while </span>!needs &amp;&amp; input.len() &gt;= <span class="number">8 </span>{
             needs = <span class="self">self</span>.requires_quotes[input[<span class="number">0</span>] <span class="kw">as </span>usize]
@@ -1450,7 +1450,7 @@
                 || <span class="self">self</span>.requires_quotes[input[<span class="number">7</span>] <span class="kw">as </span>usize];
             input = <span class="kw-2">&amp;</span>input[<span class="number">8</span>..];
         }
-        <a href="#394">needs</a> || <a href="#393">input</a>.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">any</a>(|<span class="kw-2">&amp;</span>b| <a class="self" href="#393">self</a>.<a href="#415">is_special_byte</a>(<a href="#406">b</a>))
+        needs || input.iter().any(|<span class="kw-2">&amp;</span>b| <span class="self">self</span>.is_special_byte(b))
     }
 
     <span class="doccomment">/// Returns true if and only if the given byte corresponds to a special
@@ -1459,92 +1459,92 @@
     /// Note that this does **not** take into account this writer&#39;s quoting
     /// style.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>is_special_byte(<span class="kw-2">&amp;</span><span class="self">self</span>, b: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#415">self</a>.requires_quotes[<a href="#415">b</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>]
+    </span><span class="kw">pub fn </span>is_special_byte(<span class="kw-2">&amp;</span><span class="self">self</span>, b: u8) -&gt; bool {
+        <span class="self">self</span>.requires_quotes[b <span class="kw">as </span>usize]
     }
 
     <span class="doccomment">/// Returns true if and only if we should put the given field data
     /// in quotes. This takes the quoting style into account.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>should_quote(<span class="kw-2">&amp;</span><span class="self">self</span>, input: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">match </span><a class="self" href="#422">self</a>.style {
-            <a href="lib.rs.html#161">QuoteStyle::Always</a> =&gt; <span class="bool-val">true</span>,
-            <a href="lib.rs.html#175">QuoteStyle::Never</a> =&gt; <span class="bool-val">false</span>,
-            <a href="lib.rs.html#173">QuoteStyle::NonNumeric</a> =&gt; <a href="#492">is_non_numeric</a>(<a href="#422">input</a>),
-            <a href="lib.rs.html#169">QuoteStyle::Necessary</a> =&gt; <a class="self" href="#422">self</a>.<a href="#393">needs_quotes</a>(<a href="#422">input</a>),
-            <span class="kw">_ </span>=&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(),
+    </span><span class="kw">pub fn </span>should_quote(<span class="kw-2">&amp;</span><span class="self">self</span>, input: <span class="kw-2">&amp;</span>[u8]) -&gt; bool {
+        <span class="kw">match </span><span class="self">self</span>.style {
+            QuoteStyle::Always =&gt; <span class="bool-val">true</span>,
+            QuoteStyle::Never =&gt; <span class="bool-val">false</span>,
+            QuoteStyle::NonNumeric =&gt; is_non_numeric(input),
+            QuoteStyle::Necessary =&gt; <span class="self">self</span>.needs_quotes(input),
+            <span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>(),
         }
     }
 
     <span class="doccomment">/// Return the delimiter used for this writer.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>get_delimiter(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a> {
-        <a class="self" href="#434">self</a>.delimiter
+    </span><span class="kw">pub fn </span>get_delimiter(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u8 {
+        <span class="self">self</span>.delimiter
     }
 
     <span class="doccomment">/// Return the terminator used for this writer.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>get_terminator(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="lib.rs.html#118">Terminator</a> {
-        <a class="self" href="#440">self</a>.term
+    </span><span class="kw">pub fn </span>get_terminator(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Terminator {
+        <span class="self">self</span>.term
     }
 
     <span class="doccomment">/// Return the quoting style used for this writer.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>get_quote_style(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="lib.rs.html#159">QuoteStyle</a> {
-        <a class="self" href="#446">self</a>.style
+    </span><span class="kw">pub fn </span>get_quote_style(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; QuoteStyle {
+        <span class="self">self</span>.style
     }
 
     <span class="doccomment">/// Return the quote character used for this writer.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>get_quote(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a> {
-        <a class="self" href="#452">self</a>.quote
+    </span><span class="kw">pub fn </span>get_quote(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u8 {
+        <span class="self">self</span>.quote
     }
 
     <span class="doccomment">/// Return the escape character used for this writer.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>get_escape(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a> {
-        <a class="self" href="#458">self</a>.escape
+    </span><span class="kw">pub fn </span>get_escape(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u8 {
+        <span class="self">self</span>.escape
     }
 
     <span class="doccomment">/// Return whether this writer doubles quotes or not. When the writer
     /// does not double quotes, it will escape them using the escape character.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>get_double_quote(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#465">self</a>.double_quote
+    </span><span class="kw">pub fn </span>get_double_quote(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.double_quote
     }
 
-    <span class="kw">fn </span>write(<span class="kw-2">&amp;</span><span class="self">self</span>, data: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], output: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; (<a href="#137">WriteResult</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
+    <span class="kw">fn </span>write(<span class="kw-2">&amp;</span><span class="self">self</span>, data: <span class="kw-2">&amp;</span>[u8], output: <span class="kw-2">&amp;mut </span>[u8]) -&gt; (WriteResult, usize) {
         <span class="kw">if </span>data.len() &gt; output.len() {
-            (<a href="#145">WriteResult::OutputFull</a>, <span class="number">0</span>)
+            (WriteResult::OutputFull, <span class="number">0</span>)
         } <span class="kw">else </span>{
-            <a href="#469">output</a>[..<a href="#469">data</a>.len()].copy_from_slice(<a href="#469">data</a>);
-            (<a href="#140">WriteResult::InputEmpty</a>, <a href="#469">data</a>.len())
+            output[..data.len()].copy_from_slice(data);
+            (WriteResult::InputEmpty, data.len())
         }
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for </span><a href="#160">Writer</a> {
-    <span class="kw">fn </span>default() -&gt; <a href="#160">Writer</a> {
-        WriterBuilder::new().<a href="#34">build</a>()
+<span class="kw">impl </span>Default <span class="kw">for </span>Writer {
+    <span class="kw">fn </span>default() -&gt; Writer {
+        WriterBuilder::new().build()
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for </span><a href="#205">WriterState</a> {
-    <span class="kw">fn </span>default() -&gt; <a href="#205">WriterState</a> {
-        <a href="#205">WriterState</a> { in_field: <span class="bool-val">false</span>, quoting: <span class="bool-val">false</span>, record_bytes: <span class="number">0 </span>}
+<span class="kw">impl </span>Default <span class="kw">for </span>WriterState {
+    <span class="kw">fn </span>default() -&gt; WriterState {
+        WriterState { in_field: <span class="bool-val">false</span>, quoting: <span class="bool-val">false</span>, record_bytes: <span class="number">0 </span>}
     }
 }
 
 <span class="doccomment">/// Returns true if and only if the given input is non-numeric.
-</span><span class="kw">pub fn </span>is_non_numeric(input: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-    <span class="kw">let </span>s = <span class="kw">match </span><a href="https://doc.rust-lang.org/nightly/core/str/converts/fn.from_utf8.html">str::from_utf8</a>(<a href="#492">input</a>) {
+</span><span class="kw">pub fn </span>is_non_numeric(input: <span class="kw-2">&amp;</span>[u8]) -&gt; bool {
+    <span class="kw">let </span>s = <span class="kw">match </span>str::from_utf8(input) {
         <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; <span class="kw">return </span><span class="bool-val">true</span>,
-        <span class="prelude-val">Ok</span>(s) =&gt; <a href="#495">s</a>,
+        <span class="prelude-val">Ok</span>(s) =&gt; s,
     };
     <span class="comment">// I suppose this could be faster if we wrote validators of numbers instead
     // of using the actual parser, but that&#39;s probably a lot of work for a bit
     // of a niche feature.
-    </span>!<a href="#493">s</a>.parse::&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.f64.html">f64</a>&gt;().is_ok() &amp;&amp; !<a href="#493">s</a>.parse::&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.i128.html">i128</a>&gt;().is_ok()
+    </span>!s.parse::&lt;f64&gt;().is_ok() &amp;&amp; !s.parse::&lt;i128&gt;().is_ok()
 }
 
 <span class="doccomment">/// Escape quotes `input` and writes the result to `output`.
@@ -1572,48 +1572,48 @@
 /// N.B. This function is provided for low level usage. It is called
 /// automatically if you&#39;re using a `Writer`.
 </span><span class="kw">pub fn </span>quote(
-    <span class="kw-2">mut </span>input: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
-    <span class="kw-2">mut </span>output: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
-    quote: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>,
-    escape: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>,
-    double_quote: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-) -&gt; (<a href="#137">WriteResult</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
+    <span class="kw-2">mut </span>input: <span class="kw-2">&amp;</span>[u8],
+    <span class="kw-2">mut </span>output: <span class="kw-2">&amp;mut </span>[u8],
+    quote: u8,
+    escape: u8,
+    double_quote: bool,
+) -&gt; (WriteResult, usize, usize) {
     <span class="kw">let </span>(<span class="kw-2">mut </span>nin, <span class="kw-2">mut </span>nout) = (<span class="number">0</span>, <span class="number">0</span>);
     <span class="kw">loop </span>{
-        <span class="kw">match </span><a href="../../memchr/memchr/fn.memchr.html">memchr</a>(<a href="#530">quote</a>, <a href="#528">input</a>) {
+        <span class="kw">match </span>memchr(quote, input) {
             <span class="prelude-val">None </span>=&gt; {
-                <span class="kw">let </span>(res, i, o) = <a href="#586-589">write_optimistic</a>(<a href="#528">input</a>, <a href="#529">output</a>);
-                <a href="#534">nin</a> += <a href="#538">i</a>;
-                <a href="#534">nout</a> += <a href="#538">o</a>;
-                <span class="kw">return </span>(<a href="#538">res</a>, <a href="#534">nin</a>, <a href="#534">nout</a>);
+                <span class="kw">let </span>(res, i, o) = write_optimistic(input, output);
+                nin += i;
+                nout += o;
+                <span class="kw">return </span>(res, nin, nout);
             }
             <span class="prelude-val">Some</span>(next_quote) =&gt; {
                 <span class="kw">let </span>(res, i, o) =
-                    <a href="#586-589">write_optimistic</a>(<span class="kw-2">&amp;</span><a href="#528">input</a>[..<a href="#543">next_quote</a>], <a href="#529">output</a>);
-                <a href="#528">input</a> = <span class="kw-2">&amp;</span><a href="#528">input</a>[<a href="#544">i</a>..];
-                <a href="#529">output</a> = <span class="kw-2">&amp;mut </span><a href="#616">moving</a>(<a href="#529">output</a>)[<a href="#544">o</a>..];
-                <a href="#534">nin</a> += <a href="#544">i</a>;
-                <a href="#534">nout</a> += <a href="#544">o</a>;
-                <span class="kw">if let </span><a href="#145">WriteResult::OutputFull</a> = <a href="#544">res</a> {
-                    <span class="kw">return </span>(<a href="#544">res</a>, <a href="#534">nin</a>, <a href="#534">nout</a>);
+                    write_optimistic(<span class="kw-2">&amp;</span>input[..next_quote], output);
+                input = <span class="kw-2">&amp;</span>input[i..];
+                output = <span class="kw-2">&amp;mut </span>moving(output)[o..];
+                nin += i;
+                nout += o;
+                <span class="kw">if let </span>WriteResult::OutputFull = res {
+                    <span class="kw">return </span>(res, nin, nout);
                 }
                 <span class="kw">if </span>double_quote {
-                    <span class="kw">let </span>(res, o) = <a href="#605">write_pessimistic</a>(<span class="kw-2">&amp;</span>[<a href="#530">quote</a>, <a href="#530">quote</a>], <a href="#529">output</a>);
-                    <span class="kw">if let </span><a href="#145">WriteResult::OutputFull</a> = <a href="#554">res</a> {
-                        <span class="kw">return </span>(<a href="#554">res</a>, <a href="#534">nin</a>, <a href="#534">nout</a>);
+                    <span class="kw">let </span>(res, o) = write_pessimistic(<span class="kw-2">&amp;</span>[quote, quote], output);
+                    <span class="kw">if let </span>WriteResult::OutputFull = res {
+                        <span class="kw">return </span>(res, nin, nout);
                     }
-                    <a href="#534">nout</a> += <a href="#554">o</a>;
-                    <a href="#529">output</a> = <span class="kw-2">&amp;mut </span><a href="#616">moving</a>(<a href="#529">output</a>)[<a href="#554">o</a>..];
+                    nout += o;
+                    output = <span class="kw-2">&amp;mut </span>moving(output)[o..];
                 } <span class="kw">else </span>{
-                    <span class="kw">let </span>(res, o) = <a href="#605">write_pessimistic</a>(<span class="kw-2">&amp;</span>[<a href="#531">escape</a>, <a href="#530">quote</a>], <a href="#529">output</a>);
-                    <span class="kw">if let </span><a href="#145">WriteResult::OutputFull</a> = <a href="#561">res</a> {
-                        <span class="kw">return </span>(<a href="#561">res</a>, <a href="#534">nin</a>, <a href="#534">nout</a>);
+                    <span class="kw">let </span>(res, o) = write_pessimistic(<span class="kw-2">&amp;</span>[escape, quote], output);
+                    <span class="kw">if let </span>WriteResult::OutputFull = res {
+                        <span class="kw">return </span>(res, nin, nout);
                     }
-                    <a href="#534">nout</a> += <a href="#561">o</a>;
-                    <a href="#529">output</a> = <span class="kw-2">&amp;mut </span><a href="#616">moving</a>(<a href="#529">output</a>)[<a href="#561">o</a>..];
+                    nout += o;
+                    output = <span class="kw-2">&amp;mut </span>moving(output)[o..];
                 }
-                <a href="#534">nin</a> += <span class="number">1</span>;
-                <a href="#528">input</a> = <span class="kw-2">&amp;</span><a href="#528">input</a>[<span class="number">1</span>..];
+                nin += <span class="number">1</span>;
+                input = <span class="kw-2">&amp;</span>input[<span class="number">1</span>..];
             }
         }
     }
@@ -1631,16 +1631,16 @@
 /// `WriteResult::InputEmpty` is returned, in addition to the number of bytes
 /// consumed from `input` and the number of bytes written to `output`.
 </span><span class="kw">fn </span>write_optimistic(
-    input: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
-    output: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
-) -&gt; (<a href="#137">WriteResult</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
+    input: <span class="kw-2">&amp;</span>[u8],
+    output: <span class="kw-2">&amp;mut </span>[u8],
+) -&gt; (WriteResult, usize, usize) {
     <span class="kw">if </span>input.len() &gt; output.len() {
-        <span class="kw">let </span>input = <span class="kw-2">&amp;</span><a href="#587">input</a>[..<a href="#588">output</a>.len()];
-        <a href="#588">output</a>.copy_from_slice(<a href="#591">input</a>);
-        (<a href="#145">WriteResult::OutputFull</a>, <a href="#588">output</a>.len(), <a href="#588">output</a>.len())
+        <span class="kw">let </span>input = <span class="kw-2">&amp;</span>input[..output.len()];
+        output.copy_from_slice(input);
+        (WriteResult::OutputFull, output.len(), output.len())
     } <span class="kw">else </span>{
-        <a href="#588">output</a>[..<a href="#587">input</a>.len()].copy_from_slice(<a href="#587">input</a>);
-        (<a href="#140">WriteResult::InputEmpty</a>, <a href="#587">input</a>.len(), <a href="#587">input</a>.len())
+        output[..input.len()].copy_from_slice(input);
+        (WriteResult::InputEmpty, input.len(), input.len())
     }
 }
 
@@ -1649,19 +1649,19 @@
 /// `WriteResult::OutputFull` and copy nothing into `output`. Otherwise,
 /// return `WriteResult::InputEmpty` and the number of bytes copied into
 /// `output`.
-</span><span class="kw">fn </span>write_pessimistic(input: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], output: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; (<a href="#137">WriteResult</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
+</span><span class="kw">fn </span>write_pessimistic(input: <span class="kw-2">&amp;</span>[u8], output: <span class="kw-2">&amp;mut </span>[u8]) -&gt; (WriteResult, usize) {
     <span class="kw">if </span>input.len() &gt; output.len() {
-        (<a href="#145">WriteResult::OutputFull</a>, <span class="number">0</span>)
+        (WriteResult::OutputFull, <span class="number">0</span>)
     } <span class="kw">else </span>{
-        <a href="#605">output</a>[..<a href="#605">input</a>.len()].copy_from_slice(<a href="#605">input</a>);
-        (<a href="#140">WriteResult::InputEmpty</a>, <a href="#605">input</a>.len())
+        output[..input.len()].copy_from_slice(input);
+        (WriteResult::InputEmpty, input.len())
     }
 }
 
 <span class="doccomment">/// This avoids reborrowing.
 /// See: https://bluss.github.io/rust/fun/2015/10/11/stuff-the-identity-function-does/
 </span><span class="kw">fn </span>moving&lt;T&gt;(x: T) -&gt; T {
-    <a href="#616">x</a>
+    x
 }
 
 <span class="attr">#[cfg(test)]
@@ -2093,4 +2093,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="csv_core" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="csv_core" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

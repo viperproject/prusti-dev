@@ -1,5 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/uuid-1.2.2/src/fmt.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>fmt.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="icon" href="https://www.rust-lang.org/favicon.ico"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../uuid/index.html">
-                        <img src="https://www.rust-lang.org/logos/rust-logo-128x128-blk-v2.png" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/uuid-1.2.2/src/fmt.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>fmt.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="icon" href="https://www.rust-lang.org/favicon.ico"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../uuid/index.html">
+                        <img src="https://www.rust-lang.org/logos/rust-logo-128x128-blk-v2.png" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -1051,51 +1051,51 @@
 </span><span class="doccomment">//! Adapters for alternative string formats.
 
 </span><span class="kw">use crate</span>::{
-    std::{<a href="https://doc.rust-lang.org/nightly/core/borrow/trait.Borrow.html">borrow::Borrow</a>, <a href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">fmt</a>, <a href="https://doc.rust-lang.org/nightly/core/ptr/index.html">ptr</a>, <a href="https://doc.rust-lang.org/nightly/alloc/str/index.html">str</a>},
-    <a href="lib.rs.html#436">Uuid</a>, <a href="lib.rs.html#328">Variant</a>,
+    std::{borrow::Borrow, fmt, ptr, str},
+    Uuid, Variant,
 };
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">std::fmt::Debug</a> <span class="kw">for </span><a href="lib.rs.html#436">Uuid</a> {
+<span class="kw">impl </span>std::fmt::Debug <span class="kw">for </span>Uuid {
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.LowerHex.html">fmt::LowerHex::fmt</a>(<a class="self" href="#21">self</a>, <a href="#21">f</a>)
+    </span><span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        fmt::LowerHex::fmt(<span class="self">self</span>, f)
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for </span><a href="lib.rs.html#436">Uuid</a> {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.LowerHex.html">fmt::LowerHex::fmt</a>(<a class="self" href="#27">self</a>, <a href="#27">f</a>)
+<span class="kw">impl </span>fmt::Display <span class="kw">for </span>Uuid {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        fmt::LowerHex::fmt(<span class="self">self</span>, f)
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for </span><a href="lib.rs.html#328">Variant</a> {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="#33">self</a> </span>{
-            <a href="lib.rs.html#330">Variant::NCS</a> =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#33">f</a>, <span class="string">&quot;NCS&quot;</span>),
-            <a href="lib.rs.html#332">Variant::RFC4122</a> =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#33">f</a>, <span class="string">&quot;RFC4122&quot;</span>),
-            <a href="lib.rs.html#334">Variant::Microsoft</a> =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#33">f</a>, <span class="string">&quot;Microsoft&quot;</span>),
-            <a href="lib.rs.html#336">Variant::Future</a> =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#33">f</a>, <span class="string">&quot;Future&quot;</span>),
+<span class="kw">impl </span>fmt::Display <span class="kw">for </span>Variant {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        <span class="kw">match </span><span class="kw-2">*</span><span class="self">self </span>{
+            Variant::NCS =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;NCS&quot;</span>),
+            Variant::RFC4122 =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;RFC4122&quot;</span>),
+            Variant::Microsoft =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;Microsoft&quot;</span>),
+            Variant::Future =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;Future&quot;</span>),
         }
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.LowerHex.html">fmt::LowerHex</a> <span class="kw">for </span><a href="lib.rs.html#436">Uuid</a> {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+<span class="kw">impl </span>fmt::LowerHex <span class="kw">for </span>Uuid {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
         <span class="kw">if </span>f.alternate() {
-            <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.LowerHex.html">fmt::LowerHex::fmt</a>(<a class="self" href="#44">self</a>.<a href="#110">as_simple</a>(), <a href="#44">f</a>)
+            fmt::LowerHex::fmt(<span class="self">self</span>.as_simple(), f)
         } <span class="kw">else </span>{
-            <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.LowerHex.html">fmt::LowerHex::fmt</a>(<a class="self" href="#44">self</a>.<a href="#97">as_hyphenated</a>(), <a href="#44">f</a>)
+            fmt::LowerHex::fmt(<span class="self">self</span>.as_hyphenated(), f)
         }
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.UpperHex.html">fmt::UpperHex</a> <span class="kw">for </span><a href="lib.rs.html#436">Uuid</a> {
+<span class="kw">impl </span>fmt::UpperHex <span class="kw">for </span>Uuid {
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+    </span><span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
         <span class="kw">if </span>f.alternate() {
-            <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.UpperHex.html">fmt::UpperHex::fmt</a>(<a class="self" href="#55">self</a>.<a href="#110">as_simple</a>(), <a href="#55">f</a>)
+            fmt::UpperHex::fmt(<span class="self">self</span>.as_simple(), f)
         } <span class="kw">else </span>{
-            <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.UpperHex.html">fmt::UpperHex::fmt</a>(<a class="self" href="#55">self</a>.<a href="#97">as_hyphenated</a>(), <a href="#55">f</a>)
+            fmt::UpperHex::fmt(<span class="self">self</span>.as_hyphenated(), f)
         }
     }
 }
@@ -1104,90 +1104,90 @@
 /// `67e55044-10b1-426f-9247-bb680e5fe0c8`.
 </span><span class="attr">#[derive(Clone, Copy, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd)]
 #[repr(transparent)]
-</span><span class="kw">pub struct </span>Hyphenated(<a href="lib.rs.html#436">Uuid</a>);
+</span><span class="kw">pub struct </span>Hyphenated(Uuid);
 
 <span class="doccomment">/// Format a [`Uuid`] as a simple string, like
 /// `67e5504410b1426f9247bb680e5fe0c8`.
 </span><span class="attr">#[derive(Clone, Copy, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd)]
 #[repr(transparent)]
-</span><span class="kw">pub struct </span>Simple(<a href="lib.rs.html#436">Uuid</a>);
+</span><span class="kw">pub struct </span>Simple(Uuid);
 
 <span class="doccomment">/// Format a [`Uuid`] as a URN string, like
 /// `urn:uuid:67e55044-10b1-426f-9247-bb680e5fe0c8`.
 </span><span class="attr">#[derive(Clone, Copy, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd)]
 #[repr(transparent)]
-</span><span class="kw">pub struct </span>Urn(<a href="lib.rs.html#436">Uuid</a>);
+</span><span class="kw">pub struct </span>Urn(Uuid);
 
 <span class="doccomment">/// Format a [`Uuid`] as a braced hyphenated string, like
 /// `{67e55044-10b1-426f-9247-bb680e5fe0c8}`.
 </span><span class="attr">#[derive(Clone, Copy, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd)]
 #[repr(transparent)]
-</span><span class="kw">pub struct </span>Braced(<a href="lib.rs.html#436">Uuid</a>);
+</span><span class="kw">pub struct </span>Braced(Uuid);
 
-<span class="kw">impl </span><a href="lib.rs.html#436">Uuid</a> {
+<span class="kw">impl </span>Uuid {
     <span class="doccomment">/// Get a [`Hyphenated`] formatter.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub const fn </span>hyphenated(<span class="self">self</span>) -&gt; <a href="#68">Hyphenated</a> {
-        <a href="#68">Hyphenated</a>(<a class="self" href="#91">self</a>)
+    </span><span class="kw">pub const fn </span>hyphenated(<span class="self">self</span>) -&gt; Hyphenated {
+        Hyphenated(<span class="self">self</span>)
     }
 
     <span class="doccomment">/// Get a borrowed [`Hyphenated`] formatter.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>as_hyphenated(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="#68">Hyphenated</a> {
+    </span><span class="kw">pub fn </span>as_hyphenated(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Hyphenated {
         <span class="comment">// SAFETY: `Uuid` and `Hyphenated` have the same ABI
-        </span><span class="kw">unsafe </span>{ <span class="kw-2">&amp;*</span>(<span class="self"><a href="#97">self</a> </span><span class="kw">as </span><span class="kw-2">*const </span><a href="lib.rs.html#436">Uuid</a> <span class="kw">as </span><span class="kw-2">*const </span><a href="#68">Hyphenated</a>) }
+        </span><span class="kw">unsafe </span>{ <span class="kw-2">&amp;*</span>(<span class="self">self </span><span class="kw">as </span><span class="kw-2">*const </span>Uuid <span class="kw">as </span><span class="kw-2">*const </span>Hyphenated) }
     }
 
     <span class="doccomment">/// Get a [`Simple`] formatter.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub const fn </span>simple(<span class="self">self</span>) -&gt; <a href="#74">Simple</a> {
-        <a href="#74">Simple</a>(<a class="self" href="#104">self</a>)
+    </span><span class="kw">pub const fn </span>simple(<span class="self">self</span>) -&gt; Simple {
+        Simple(<span class="self">self</span>)
     }
 
     <span class="doccomment">/// Get a borrowed [`Simple`] formatter.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>as_simple(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="#74">Simple</a> {
+    </span><span class="kw">pub fn </span>as_simple(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Simple {
         <span class="comment">// SAFETY: `Uuid` and `Simple` have the same ABI
-        </span><span class="kw">unsafe </span>{ <span class="kw-2">&amp;*</span>(<span class="self"><a href="#110">self</a> </span><span class="kw">as </span><span class="kw-2">*const </span><a href="lib.rs.html#436">Uuid</a> <span class="kw">as </span><span class="kw-2">*const </span><a href="#74">Simple</a>) }
+        </span><span class="kw">unsafe </span>{ <span class="kw-2">&amp;*</span>(<span class="self">self </span><span class="kw">as </span><span class="kw-2">*const </span>Uuid <span class="kw">as </span><span class="kw-2">*const </span>Simple) }
     }
 
     <span class="doccomment">/// Get a [`Urn`] formatter.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub const fn </span>urn(<span class="self">self</span>) -&gt; <a href="#80">Urn</a> {
-        <a href="#80">Urn</a>(<a class="self" href="#117">self</a>)
+    </span><span class="kw">pub const fn </span>urn(<span class="self">self</span>) -&gt; Urn {
+        Urn(<span class="self">self</span>)
     }
 
     <span class="doccomment">/// Get a borrowed [`Urn`] formatter.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>as_urn(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="#80">Urn</a> {
+    </span><span class="kw">pub fn </span>as_urn(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Urn {
         <span class="comment">// SAFETY: `Uuid` and `Urn` have the same ABI
-        </span><span class="kw">unsafe </span>{ <span class="kw-2">&amp;*</span>(<span class="self"><a href="#123">self</a> </span><span class="kw">as </span><span class="kw-2">*const </span><a href="lib.rs.html#436">Uuid</a> <span class="kw">as </span><span class="kw-2">*const </span><a href="#80">Urn</a>) }
+        </span><span class="kw">unsafe </span>{ <span class="kw-2">&amp;*</span>(<span class="self">self </span><span class="kw">as </span><span class="kw-2">*const </span>Uuid <span class="kw">as </span><span class="kw-2">*const </span>Urn) }
     }
 
     <span class="doccomment">/// Get a [`Braced`] formatter.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub const fn </span>braced(<span class="self">self</span>) -&gt; <a href="#86">Braced</a> {
-        <a href="#86">Braced</a>(<a class="self" href="#130">self</a>)
+    </span><span class="kw">pub const fn </span>braced(<span class="self">self</span>) -&gt; Braced {
+        Braced(<span class="self">self</span>)
     }
 
     <span class="doccomment">/// Get a borrowed [`Braced`] formatter.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>as_braced(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="#86">Braced</a> {
+    </span><span class="kw">pub fn </span>as_braced(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Braced {
         <span class="comment">// SAFETY: `Uuid` and `Braced` have the same ABI
-        </span><span class="kw">unsafe </span>{ <span class="kw-2">&amp;*</span>(<span class="self"><a href="#136">self</a> </span><span class="kw">as </span><span class="kw-2">*const </span><a href="lib.rs.html#436">Uuid</a> <span class="kw">as </span><span class="kw-2">*const </span><a href="#86">Braced</a>) }
+        </span><span class="kw">unsafe </span>{ <span class="kw-2">&amp;*</span>(<span class="self">self </span><span class="kw">as </span><span class="kw-2">*const </span>Uuid <span class="kw">as </span><span class="kw-2">*const </span>Braced) }
     }
 }
 
-<span class="kw">const </span>UPPER: [<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="number">16</span>] = [
+<span class="kw">const </span>UPPER: [u8; <span class="number">16</span>] = [
     <span class="string">b&#39;0&#39;</span>, <span class="string">b&#39;1&#39;</span>, <span class="string">b&#39;2&#39;</span>, <span class="string">b&#39;3&#39;</span>, <span class="string">b&#39;4&#39;</span>, <span class="string">b&#39;5&#39;</span>, <span class="string">b&#39;6&#39;</span>, <span class="string">b&#39;7&#39;</span>, <span class="string">b&#39;8&#39;</span>, <span class="string">b&#39;9&#39;</span>, <span class="string">b&#39;A&#39;</span>, <span class="string">b&#39;B&#39;</span>, <span class="string">b&#39;C&#39;</span>, <span class="string">b&#39;D&#39;</span>, <span class="string">b&#39;E&#39;</span>, <span class="string">b&#39;F&#39;</span>,
 ];
-<span class="kw">const </span>LOWER: [<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="number">16</span>] = [
+<span class="kw">const </span>LOWER: [u8; <span class="number">16</span>] = [
     <span class="string">b&#39;0&#39;</span>, <span class="string">b&#39;1&#39;</span>, <span class="string">b&#39;2&#39;</span>, <span class="string">b&#39;3&#39;</span>, <span class="string">b&#39;4&#39;</span>, <span class="string">b&#39;5&#39;</span>, <span class="string">b&#39;6&#39;</span>, <span class="string">b&#39;7&#39;</span>, <span class="string">b&#39;8&#39;</span>, <span class="string">b&#39;9&#39;</span>, <span class="string">b&#39;a&#39;</span>, <span class="string">b&#39;b&#39;</span>, <span class="string">b&#39;c&#39;</span>, <span class="string">b&#39;d&#39;</span>, <span class="string">b&#39;e&#39;</span>, <span class="string">b&#39;f&#39;</span>,
 ];
 
 <span class="attr">#[inline]
-</span><span class="kw">const fn </span>format_simple(src: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="number">16</span>], upper: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; [<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="number">32</span>] {
-    <span class="kw">let </span>lut = <span class="kw">if </span>upper { <span class="kw-2">&amp;</span><a href="#142">UPPER</a> } <span class="kw">else </span>{ <span class="kw-2">&amp;</span><a href="#145">LOWER</a> };
+</span><span class="kw">const fn </span>format_simple(src: <span class="kw-2">&amp;</span>[u8; <span class="number">16</span>], upper: bool) -&gt; [u8; <span class="number">32</span>] {
+    <span class="kw">let </span>lut = <span class="kw">if </span>upper { <span class="kw-2">&amp;</span>UPPER } <span class="kw">else </span>{ <span class="kw-2">&amp;</span>LOWER };
     <span class="kw">let </span><span class="kw-2">mut </span>dst = [<span class="number">0</span>; <span class="number">32</span>];
     <span class="kw">let </span><span class="kw-2">mut </span>i = <span class="number">0</span>;
     <span class="kw">while </span>i &lt; <span class="number">16 </span>{
@@ -1196,12 +1196,12 @@
         dst[i * <span class="number">2 </span>+ <span class="number">1</span>] = lut[(x &amp; <span class="number">0x0f</span>) <span class="kw">as </span>usize];
         i += <span class="number">1</span>;
     }
-    <a href="#152">dst</a>
+    dst
 }
 
 <span class="attr">#[inline]
-</span><span class="kw">const fn </span>format_hyphenated(src: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="number">16</span>], upper: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; [<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="number">36</span>] {
-    <span class="kw">let </span>lut = <span class="kw">if </span>upper { <span class="kw-2">&amp;</span><a href="#142">UPPER</a> } <span class="kw">else </span>{ <span class="kw-2">&amp;</span><a href="#145">LOWER</a> };
+</span><span class="kw">const fn </span>format_hyphenated(src: <span class="kw-2">&amp;</span>[u8; <span class="number">16</span>], upper: bool) -&gt; [u8; <span class="number">36</span>] {
+    <span class="kw">let </span>lut = <span class="kw">if </span>upper { <span class="kw-2">&amp;</span>UPPER } <span class="kw">else </span>{ <span class="kw-2">&amp;</span>LOWER };
     <span class="kw">let </span>groups = [(<span class="number">0</span>, <span class="number">8</span>), (<span class="number">9</span>, <span class="number">13</span>), (<span class="number">14</span>, <span class="number">18</span>), (<span class="number">19</span>, <span class="number">23</span>), (<span class="number">24</span>, <span class="number">36</span>)];
     <span class="kw">let </span><span class="kw-2">mut </span>dst = [<span class="number">0</span>; <span class="number">36</span>];
 
@@ -1223,78 +1223,78 @@
         }
         group_idx += <span class="number">1</span>;
     }
-    <a href="#167">dst</a>
+    dst
 }
 
 <span class="attr">#[inline]
-</span><span class="kw">fn </span>encode_simple&lt;<span class="lifetime">&#39;b</span>&gt;(src: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="number">16</span>], buffer: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span><span class="kw-2">mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], upper: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span><span class="kw-2">mut </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> {
-    <span class="kw">let </span>buf = <span class="kw-2">&amp;mut </span><a href="#191">buffer</a>[..Simple::LENGTH];
-    <span class="kw">let </span>dst = <a href="#192">buf</a>.as_mut_ptr();
+</span><span class="kw">fn </span>encode_simple&lt;<span class="lifetime">&#39;b</span>&gt;(src: <span class="kw-2">&amp;</span>[u8; <span class="number">16</span>], buffer: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span><span class="kw-2">mut </span>[u8], upper: bool) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span><span class="kw-2">mut </span>str {
+    <span class="kw">let </span>buf = <span class="kw-2">&amp;mut </span>buffer[..Simple::LENGTH];
+    <span class="kw">let </span>dst = buf.as_mut_ptr();
 
     <span class="comment">// SAFETY: `buf` is guaranteed to be at least `LEN` bytes
     // SAFETY: The encoded buffer is ASCII encoded
     </span><span class="kw">unsafe </span>{
-        ptr::write(<a href="#193">dst</a>.cast(), <a href="#150">format_simple</a>(<a href="#191">src</a>, <a href="#191">upper</a>));
-        str::from_utf8_unchecked_mut(<a href="#192">buf</a>)
+        ptr::write(dst.cast(), format_simple(src, upper));
+        str::from_utf8_unchecked_mut(buf)
     }
 }
 
 <span class="attr">#[inline]
-</span><span class="kw">fn </span>encode_hyphenated&lt;<span class="lifetime">&#39;b</span>&gt;(src: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="number">16</span>], buffer: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span><span class="kw-2">mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], upper: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span><span class="kw-2">mut </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> {
-    <span class="kw">let </span>buf = <span class="kw-2">&amp;mut </span><a href="#204">buffer</a>[..Hyphenated::LENGTH];
-    <span class="kw">let </span>dst = <a href="#205">buf</a>.as_mut_ptr();
+</span><span class="kw">fn </span>encode_hyphenated&lt;<span class="lifetime">&#39;b</span>&gt;(src: <span class="kw-2">&amp;</span>[u8; <span class="number">16</span>], buffer: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span><span class="kw-2">mut </span>[u8], upper: bool) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span><span class="kw-2">mut </span>str {
+    <span class="kw">let </span>buf = <span class="kw-2">&amp;mut </span>buffer[..Hyphenated::LENGTH];
+    <span class="kw">let </span>dst = buf.as_mut_ptr();
 
     <span class="comment">// SAFETY: `buf` is guaranteed to be at least `LEN` bytes
     // SAFETY: The encoded buffer is ASCII encoded
     </span><span class="kw">unsafe </span>{
-        ptr::write(<a href="#206">dst</a>.cast(), <a href="#164">format_hyphenated</a>(<a href="#204">src</a>, <a href="#204">upper</a>));
-        str::from_utf8_unchecked_mut(<a href="#205">buf</a>)
+        ptr::write(dst.cast(), format_hyphenated(src, upper));
+        str::from_utf8_unchecked_mut(buf)
     }
 }
 
 <span class="attr">#[inline]
-</span><span class="kw">fn </span>encode_braced&lt;<span class="lifetime">&#39;b</span>&gt;(src: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="number">16</span>], buffer: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span><span class="kw-2">mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], upper: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span><span class="kw-2">mut </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> {
-    <span class="kw">let </span>buf = <span class="kw-2">&amp;mut </span><a href="#217">buffer</a>[..Braced::LENGTH];
-    <a href="#218">buf</a>[<span class="number">0</span>] = <span class="string">b&#39;{&#39;</span>;
-    <a href="#218">buf</a>[Braced::LENGTH - <span class="number">1</span>] = <span class="string">b&#39;}&#39;</span>;
+</span><span class="kw">fn </span>encode_braced&lt;<span class="lifetime">&#39;b</span>&gt;(src: <span class="kw-2">&amp;</span>[u8; <span class="number">16</span>], buffer: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span><span class="kw-2">mut </span>[u8], upper: bool) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span><span class="kw-2">mut </span>str {
+    <span class="kw">let </span>buf = <span class="kw-2">&amp;mut </span>buffer[..Braced::LENGTH];
+    buf[<span class="number">0</span>] = <span class="string">b&#39;{&#39;</span>;
+    buf[Braced::LENGTH - <span class="number">1</span>] = <span class="string">b&#39;}&#39;</span>;
 
     <span class="comment">// SAFETY: `buf` is guaranteed to be at least `LEN` bytes
     // SAFETY: The encoded buffer is ASCII encoded
     </span><span class="kw">unsafe </span>{
-        <span class="kw">let </span>dst = <a href="#218">buf</a>.as_mut_ptr().add(<span class="number">1</span>);
+        <span class="kw">let </span>dst = buf.as_mut_ptr().add(<span class="number">1</span>);
 
-        ptr::write(<a href="#225">dst</a>.cast(), <a href="#164">format_hyphenated</a>(<a href="#217">src</a>, <a href="#217">upper</a>));
-        str::from_utf8_unchecked_mut(<a href="#218">buf</a>)
+        ptr::write(dst.cast(), format_hyphenated(src, upper));
+        str::from_utf8_unchecked_mut(buf)
     }
 }
 
 <span class="attr">#[inline]
-</span><span class="kw">fn </span>encode_urn&lt;<span class="lifetime">&#39;b</span>&gt;(src: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="number">16</span>], buffer: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span><span class="kw-2">mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], upper: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span><span class="kw-2">mut </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> {
-    <span class="kw">let </span>buf = <span class="kw-2">&amp;mut </span><a href="#233">buffer</a>[..Urn::LENGTH];
-    <a href="#234">buf</a>[..<span class="number">9</span>].copy_from_slice(<span class="string">b&quot;urn:uuid:&quot;</span>);
+</span><span class="kw">fn </span>encode_urn&lt;<span class="lifetime">&#39;b</span>&gt;(src: <span class="kw-2">&amp;</span>[u8; <span class="number">16</span>], buffer: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span><span class="kw-2">mut </span>[u8], upper: bool) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span><span class="kw-2">mut </span>str {
+    <span class="kw">let </span>buf = <span class="kw-2">&amp;mut </span>buffer[..Urn::LENGTH];
+    buf[..<span class="number">9</span>].copy_from_slice(<span class="string">b&quot;urn:uuid:&quot;</span>);
 
     <span class="comment">// SAFETY: `buf` is guaranteed to be at least `LEN` bytes
     // SAFETY: The encoded buffer is ASCII encoded
     </span><span class="kw">unsafe </span>{
-        <span class="kw">let </span>dst = <a href="#234">buf</a>.as_mut_ptr().add(<span class="number">9</span>);
+        <span class="kw">let </span>dst = buf.as_mut_ptr().add(<span class="number">9</span>);
 
-        ptr::write(<a href="#240">dst</a>.cast(), <a href="#164">format_hyphenated</a>(<a href="#233">src</a>, <a href="#233">upper</a>));
-        str::from_utf8_unchecked_mut(<a href="#234">buf</a>)
+        ptr::write(dst.cast(), format_hyphenated(src, upper));
+        str::from_utf8_unchecked_mut(buf)
     }
 }
 
-<span class="kw">impl </span><a href="#68">Hyphenated</a> {
+<span class="kw">impl </span>Hyphenated {
     <span class="doccomment">/// The length of a hyphenated [`Uuid`] string.
     ///
     /// [`Uuid`]: ../struct.Uuid.html
-    </span><span class="kw">pub const </span>LENGTH: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> = <span class="number">36</span>;
+    </span><span class="kw">pub const </span>LENGTH: usize = <span class="number">36</span>;
 
     <span class="doccomment">/// Creates a [`Hyphenated`] from a [`Uuid`].
     ///
     /// [`Uuid`]: ../struct.Uuid.html
     /// [`Hyphenated`]: struct.Hyphenated.html
-    </span><span class="kw">pub const fn </span>from_uuid(uuid: <a href="lib.rs.html#436">Uuid</a>) -&gt; <span class="self">Self </span>{
-        <a href="#68">Hyphenated</a>(<a href="#257">uuid</a>)
+    </span><span class="kw">pub const fn </span>from_uuid(uuid: Uuid) -&gt; <span class="self">Self </span>{
+        Hyphenated(uuid)
     }
 
     <span class="doccomment">/// Writes the [`Uuid`] as a lower-case hyphenated string to
@@ -1344,8 +1344,8 @@
     /// ```
     /// */
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>encode_lower&lt;<span class="lifetime">&#39;buf</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, buffer: <span class="kw-2">&amp;</span><span class="lifetime">&#39;buf </span><span class="kw-2">mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;buf </span><span class="kw-2">mut </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> {
-        <a href="#204">encode_hyphenated</a>(<a class="self" href="#308">self</a>.<span class="number">0</span>.<a href="lib.rs.html#802">as_bytes</a>(), <a href="#308">buffer</a>, <span class="bool-val">false</span>)
+    </span><span class="kw">pub fn </span>encode_lower&lt;<span class="lifetime">&#39;buf</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, buffer: <span class="kw-2">&amp;</span><span class="lifetime">&#39;buf </span><span class="kw-2">mut </span>[u8]) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;buf </span><span class="kw-2">mut </span>str {
+        encode_hyphenated(<span class="self">self</span>.<span class="number">0</span>.as_bytes(), buffer, <span class="bool-val">false</span>)
     }
 
     <span class="doccomment">/// Writes the [`Uuid`] as an upper-case hyphenated string to
@@ -1395,8 +1395,8 @@
     /// ```
     /// */
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>encode_upper&lt;<span class="lifetime">&#39;buf</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, buffer: <span class="kw-2">&amp;</span><span class="lifetime">&#39;buf </span><span class="kw-2">mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;buf </span><span class="kw-2">mut </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> {
-        <a href="#204">encode_hyphenated</a>(<a class="self" href="#359">self</a>.<span class="number">0</span>.<a href="lib.rs.html#802">as_bytes</a>(), <a href="#359">buffer</a>, <span class="bool-val">true</span>)
+    </span><span class="kw">pub fn </span>encode_upper&lt;<span class="lifetime">&#39;buf</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, buffer: <span class="kw-2">&amp;</span><span class="lifetime">&#39;buf </span><span class="kw-2">mut </span>[u8]) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;buf </span><span class="kw-2">mut </span>str {
+        encode_hyphenated(<span class="self">self</span>.<span class="number">0</span>.as_bytes(), buffer, <span class="bool-val">true</span>)
     }
 
     <span class="doccomment">/// Get a reference to the underlying [`Uuid`].
@@ -1409,8 +1409,8 @@
     /// let hyphenated = Uuid::nil().hyphenated();
     /// assert_eq!(*hyphenated.as_uuid(), Uuid::nil());
     /// ```
-    </span><span class="kw">pub const fn </span>as_uuid(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="lib.rs.html#436">Uuid</a> {
-        <span class="kw-2">&amp;</span><a class="self" href="#373">self</a>.<span class="number">0
+    </span><span class="kw">pub const fn </span>as_uuid(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Uuid {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="number">0
     </span>}
 
     <span class="doccomment">/// Consumes the [`Hyphenated`], returning the underlying [`Uuid`].
@@ -1423,23 +1423,23 @@
     /// let hyphenated = Uuid::nil().hyphenated();
     /// assert_eq!(hyphenated.into_uuid(), Uuid::nil());
     /// ```
-    </span><span class="kw">pub const fn </span>into_uuid(<span class="self">self</span>) -&gt; <a href="lib.rs.html#436">Uuid</a> {
-        <a class="self" href="#387">self</a>.<span class="number">0
+    </span><span class="kw">pub const fn </span>into_uuid(<span class="self">self</span>) -&gt; Uuid {
+        <span class="self">self</span>.<span class="number">0
     </span>}
 }
 
-<span class="kw">impl </span><a href="#86">Braced</a> {
+<span class="kw">impl </span>Braced {
     <span class="doccomment">/// The length of a braced [`Uuid`] string.
     ///
     /// [`Uuid`]: ../struct.Uuid.html
-    </span><span class="kw">pub const </span>LENGTH: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> = <span class="number">38</span>;
+    </span><span class="kw">pub const </span>LENGTH: usize = <span class="number">38</span>;
 
     <span class="doccomment">/// Creates a [`Braced`] from a [`Uuid`].
     ///
     /// [`Uuid`]: ../struct.Uuid.html
     /// [`Braced`]: struct.Braced.html
-    </span><span class="kw">pub const fn </span>from_uuid(uuid: <a href="lib.rs.html#436">Uuid</a>) -&gt; <span class="self">Self </span>{
-        <a href="#86">Braced</a>(<a href="#402">uuid</a>)
+    </span><span class="kw">pub const fn </span>from_uuid(uuid: Uuid) -&gt; <span class="self">Self </span>{
+        Braced(uuid)
     }
 
     <span class="doccomment">/// Writes the [`Uuid`] as a lower-case hyphenated string surrounded by
@@ -1489,8 +1489,8 @@
     /// ```
     /// */
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>encode_lower&lt;<span class="lifetime">&#39;buf</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, buffer: <span class="kw-2">&amp;</span><span class="lifetime">&#39;buf </span><span class="kw-2">mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;buf </span><span class="kw-2">mut </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> {
-        <a href="#217">encode_braced</a>(<a class="self" href="#453">self</a>.<span class="number">0</span>.<a href="lib.rs.html#802">as_bytes</a>(), <a href="#453">buffer</a>, <span class="bool-val">false</span>)
+    </span><span class="kw">pub fn </span>encode_lower&lt;<span class="lifetime">&#39;buf</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, buffer: <span class="kw-2">&amp;</span><span class="lifetime">&#39;buf </span><span class="kw-2">mut </span>[u8]) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;buf </span><span class="kw-2">mut </span>str {
+        encode_braced(<span class="self">self</span>.<span class="number">0</span>.as_bytes(), buffer, <span class="bool-val">false</span>)
     }
 
     <span class="doccomment">/// Writes the [`Uuid`] as an upper-case hyphenated string surrounded by
@@ -1540,8 +1540,8 @@
     /// ```
     /// */
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>encode_upper&lt;<span class="lifetime">&#39;buf</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, buffer: <span class="kw-2">&amp;</span><span class="lifetime">&#39;buf </span><span class="kw-2">mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;buf </span><span class="kw-2">mut </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> {
-        <a href="#217">encode_braced</a>(<a class="self" href="#504">self</a>.<span class="number">0</span>.<a href="lib.rs.html#802">as_bytes</a>(), <a href="#504">buffer</a>, <span class="bool-val">true</span>)
+    </span><span class="kw">pub fn </span>encode_upper&lt;<span class="lifetime">&#39;buf</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, buffer: <span class="kw-2">&amp;</span><span class="lifetime">&#39;buf </span><span class="kw-2">mut </span>[u8]) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;buf </span><span class="kw-2">mut </span>str {
+        encode_braced(<span class="self">self</span>.<span class="number">0</span>.as_bytes(), buffer, <span class="bool-val">true</span>)
     }
 
     <span class="doccomment">/// Get a reference to the underlying [`Uuid`].
@@ -1554,8 +1554,8 @@
     /// let braced = Uuid::nil().braced();
     /// assert_eq!(*braced.as_uuid(), Uuid::nil());
     /// ```
-    </span><span class="kw">pub const fn </span>as_uuid(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="lib.rs.html#436">Uuid</a> {
-        <span class="kw-2">&amp;</span><a class="self" href="#518">self</a>.<span class="number">0
+    </span><span class="kw">pub const fn </span>as_uuid(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Uuid {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="number">0
     </span>}
 
     <span class="doccomment">/// Consumes the [`Braced`], returning the underlying [`Uuid`].
@@ -1568,23 +1568,23 @@
     /// let braced = Uuid::nil().braced();
     /// assert_eq!(braced.into_uuid(), Uuid::nil());
     /// ```
-    </span><span class="kw">pub const fn </span>into_uuid(<span class="self">self</span>) -&gt; <a href="lib.rs.html#436">Uuid</a> {
-        <a class="self" href="#532">self</a>.<span class="number">0
+    </span><span class="kw">pub const fn </span>into_uuid(<span class="self">self</span>) -&gt; Uuid {
+        <span class="self">self</span>.<span class="number">0
     </span>}
 }
 
-<span class="kw">impl </span><a href="#74">Simple</a> {
+<span class="kw">impl </span>Simple {
     <span class="doccomment">/// The length of a simple [`Uuid`] string.
     ///
     /// [`Uuid`]: ../struct.Uuid.html
-    </span><span class="kw">pub const </span>LENGTH: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> = <span class="number">32</span>;
+    </span><span class="kw">pub const </span>LENGTH: usize = <span class="number">32</span>;
 
     <span class="doccomment">/// Creates a [`Simple`] from a [`Uuid`].
     ///
     /// [`Uuid`]: ../struct.Uuid.html
     /// [`Simple`]: struct.Simple.html
-    </span><span class="kw">pub const fn </span>from_uuid(uuid: <a href="lib.rs.html#436">Uuid</a>) -&gt; <span class="self">Self </span>{
-        <a href="#74">Simple</a>(<a href="#547">uuid</a>)
+    </span><span class="kw">pub const fn </span>from_uuid(uuid: Uuid) -&gt; <span class="self">Self </span>{
+        Simple(uuid)
     }
 
     <span class="doccomment">/// Writes the [`Uuid`] as a lower-case simple string to `buffer`,
@@ -1635,8 +1635,8 @@
     /// ```
     /// */
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>encode_lower&lt;<span class="lifetime">&#39;buf</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, buffer: <span class="kw-2">&amp;</span><span class="lifetime">&#39;buf </span><span class="kw-2">mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;buf </span><span class="kw-2">mut </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> {
-        <a href="#191">encode_simple</a>(<a class="self" href="#599">self</a>.<span class="number">0</span>.<a href="lib.rs.html#802">as_bytes</a>(), <a href="#599">buffer</a>, <span class="bool-val">false</span>)
+    </span><span class="kw">pub fn </span>encode_lower&lt;<span class="lifetime">&#39;buf</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, buffer: <span class="kw-2">&amp;</span><span class="lifetime">&#39;buf </span><span class="kw-2">mut </span>[u8]) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;buf </span><span class="kw-2">mut </span>str {
+        encode_simple(<span class="self">self</span>.<span class="number">0</span>.as_bytes(), buffer, <span class="bool-val">false</span>)
     }
 
     <span class="doccomment">/// Writes the [`Uuid`] as an upper-case simple string to `buffer`,
@@ -1683,8 +1683,8 @@
     /// ```
     /// */
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>encode_upper&lt;<span class="lifetime">&#39;buf</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, buffer: <span class="kw-2">&amp;</span><span class="lifetime">&#39;buf </span><span class="kw-2">mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;buf </span><span class="kw-2">mut </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> {
-        <a href="#191">encode_simple</a>(<a class="self" href="#647">self</a>.<span class="number">0</span>.<a href="lib.rs.html#802">as_bytes</a>(), <a href="#647">buffer</a>, <span class="bool-val">true</span>)
+    </span><span class="kw">pub fn </span>encode_upper&lt;<span class="lifetime">&#39;buf</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, buffer: <span class="kw-2">&amp;</span><span class="lifetime">&#39;buf </span><span class="kw-2">mut </span>[u8]) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;buf </span><span class="kw-2">mut </span>str {
+        encode_simple(<span class="self">self</span>.<span class="number">0</span>.as_bytes(), buffer, <span class="bool-val">true</span>)
     }
 
     <span class="doccomment">/// Get a reference to the underlying [`Uuid`].
@@ -1697,8 +1697,8 @@
     /// let simple = Uuid::nil().simple();
     /// assert_eq!(*simple.as_uuid(), Uuid::nil());
     /// ```
-    </span><span class="kw">pub const fn </span>as_uuid(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="lib.rs.html#436">Uuid</a> {
-        <span class="kw-2">&amp;</span><a class="self" href="#661">self</a>.<span class="number">0
+    </span><span class="kw">pub const fn </span>as_uuid(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Uuid {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="number">0
     </span>}
 
     <span class="doccomment">/// Consumes the [`Simple`], returning the underlying [`Uuid`].
@@ -1711,23 +1711,23 @@
     /// let simple = Uuid::nil().simple();
     /// assert_eq!(simple.into_uuid(), Uuid::nil());
     /// ```
-    </span><span class="kw">pub const fn </span>into_uuid(<span class="self">self</span>) -&gt; <a href="lib.rs.html#436">Uuid</a> {
-        <a class="self" href="#675">self</a>.<span class="number">0
+    </span><span class="kw">pub const fn </span>into_uuid(<span class="self">self</span>) -&gt; Uuid {
+        <span class="self">self</span>.<span class="number">0
     </span>}
 }
 
-<span class="kw">impl </span><a href="#80">Urn</a> {
+<span class="kw">impl </span>Urn {
     <span class="doccomment">/// The length of a URN [`Uuid`] string.
     ///
     /// [`Uuid`]: ../struct.Uuid.html
-    </span><span class="kw">pub const </span>LENGTH: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> = <span class="number">45</span>;
+    </span><span class="kw">pub const </span>LENGTH: usize = <span class="number">45</span>;
 
     <span class="doccomment">/// Creates a [`Urn`] from a [`Uuid`].
     ///
     /// [`Uuid`]: ../struct.Uuid.html
     /// [`Urn`]: struct.Urn.html
-    </span><span class="kw">pub const fn </span>from_uuid(uuid: <a href="lib.rs.html#436">Uuid</a>) -&gt; <span class="self">Self </span>{
-        <a href="#80">Urn</a>(<a href="#690">uuid</a>)
+    </span><span class="kw">pub const fn </span>from_uuid(uuid: Uuid) -&gt; <span class="self">Self </span>{
+        Urn(uuid)
     }
 
     <span class="doccomment">/// Writes the [`Uuid`] as a lower-case URN string to
@@ -1780,8 +1780,8 @@
     /// ```
     /// */
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>encode_lower&lt;<span class="lifetime">&#39;buf</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, buffer: <span class="kw-2">&amp;</span><span class="lifetime">&#39;buf </span><span class="kw-2">mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;buf </span><span class="kw-2">mut </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> {
-        <a href="#233">encode_urn</a>(<a class="self" href="#744">self</a>.<span class="number">0</span>.<a href="lib.rs.html#802">as_bytes</a>(), <a href="#744">buffer</a>, <span class="bool-val">false</span>)
+    </span><span class="kw">pub fn </span>encode_lower&lt;<span class="lifetime">&#39;buf</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, buffer: <span class="kw-2">&amp;</span><span class="lifetime">&#39;buf </span><span class="kw-2">mut </span>[u8]) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;buf </span><span class="kw-2">mut </span>str {
+        encode_urn(<span class="self">self</span>.<span class="number">0</span>.as_bytes(), buffer, <span class="bool-val">false</span>)
     }
 
     <span class="doccomment">/// Writes the [`Uuid`] as an upper-case URN string to
@@ -1833,8 +1833,8 @@
     /// ```
     /// */
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>encode_upper&lt;<span class="lifetime">&#39;buf</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, buffer: <span class="kw-2">&amp;</span><span class="lifetime">&#39;buf </span><span class="kw-2">mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;buf </span><span class="kw-2">mut </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> {
-        <a href="#233">encode_urn</a>(<a class="self" href="#797">self</a>.<span class="number">0</span>.<a href="lib.rs.html#802">as_bytes</a>(), <a href="#797">buffer</a>, <span class="bool-val">true</span>)
+    </span><span class="kw">pub fn </span>encode_upper&lt;<span class="lifetime">&#39;buf</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, buffer: <span class="kw-2">&amp;</span><span class="lifetime">&#39;buf </span><span class="kw-2">mut </span>[u8]) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;buf </span><span class="kw-2">mut </span>str {
+        encode_urn(<span class="self">self</span>.<span class="number">0</span>.as_bytes(), buffer, <span class="bool-val">true</span>)
     }
 
     <span class="doccomment">/// Get a reference to the underlying [`Uuid`].
@@ -1847,8 +1847,8 @@
     /// let urn = Uuid::nil().urn();
     /// assert_eq!(*urn.as_uuid(), Uuid::nil());
     /// ```
-    </span><span class="kw">pub const fn </span>as_uuid(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="lib.rs.html#436">Uuid</a> {
-        <span class="kw-2">&amp;</span><a class="self" href="#811">self</a>.<span class="number">0
+    </span><span class="kw">pub const fn </span>as_uuid(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Uuid {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="number">0
     </span>}
 
     <span class="doccomment">/// Consumes the [`Urn`], returning the underlying [`Uuid`].
@@ -1861,8 +1861,8 @@
     /// let urn = Uuid::nil().urn();
     /// assert_eq!(urn.into_uuid(), Uuid::nil());
     /// ```
-    </span><span class="kw">pub const fn </span>into_uuid(<span class="self">self</span>) -&gt; <a href="lib.rs.html#436">Uuid</a> {
-        <a class="self" href="#825">self</a>.<span class="number">0
+    </span><span class="kw">pub const fn </span>into_uuid(<span class="self">self</span>) -&gt; Uuid {
+        <span class="self">self</span>.<span class="number">0
     </span>}
 }
 
@@ -1952,7 +1952,7 @@
     };
 }
 
-<a class="macro" href="#830-853">impl_fmt_traits! </a>{
+<span class="macro">impl_fmt_traits! </span>{
     Hyphenated&lt;&gt;,
     Simple&lt;&gt;,
     Urn&lt;&gt;,
@@ -2076,4 +2076,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="uuid" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="uuid" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

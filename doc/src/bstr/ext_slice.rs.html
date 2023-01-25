@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/bstr-0.2.17/src/ext_slice.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>ext_slice.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../bstr/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/bstr-0.2.17/src/ext_slice.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>ext_slice.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../bstr/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -3654,27 +3654,27 @@
 <a href="#3654" id="3654">3654</a>
 <a href="#3655" id="3655">3655</a>
 </pre><pre class="rust"><code><span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
-</span><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/borrow/enum.Cow.html">std::borrow::Cow</a>;
+</span><span class="kw">use </span>std::borrow::Cow;
 <span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
-</span><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsStr.html">std::ffi::OsStr</a>;
+</span><span class="kw">use </span>std::ffi::OsStr;
 <span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
-</span><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">std::path::Path</a>;
+</span><span class="kw">use </span>std::path::Path;
 
-<span class="kw">use </span>core::{<a href="https://doc.rust-lang.org/nightly/core/iter/index.html">iter</a>, <a href="https://doc.rust-lang.org/nightly/core/ops/index.html">ops</a>, <a href="https://doc.rust-lang.org/nightly/core/ptr/index.html">ptr</a>, <a href="https://doc.rust-lang.org/nightly/core/slice/index.html">slice</a>, <a href="https://doc.rust-lang.org/nightly/core/str/index.html">str</a>};
-<span class="kw">use </span>memchr::{<a href="../../memchr/memchr/fn.memchr.html">memchr</a>, <a href="../../memchr/memmem/index.html">memmem</a>, <a href="../../memchr/memchr/fn.memrchr.html">memrchr</a>};
+<span class="kw">use </span>core::{iter, ops, ptr, slice, str};
+<span class="kw">use </span>memchr::{memchr, memmem, memrchr};
 
-<span class="kw">use </span><a href="lib.rs.html#392"><span class="kw">crate</span>::ascii</a>;
-<span class="kw">use </span><a href="bstr.rs.html#31"><span class="kw">crate</span>::bstr::BStr</a>;
-<span class="kw">use </span><a href="lib.rs.html#396"><span class="kw">crate</span>::byteset</a>;
+<span class="kw">use </span><span class="kw">crate</span>::ascii;
+<span class="kw">use </span><span class="kw">crate</span>::bstr::BStr;
+<span class="kw">use </span><span class="kw">crate</span>::byteset;
 <span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
-</span><span class="kw">use </span><a href="ext_vec.rs.html#117"><span class="kw">crate</span>::ext_vec::ByteVec</a>;
+</span><span class="kw">use </span><span class="kw">crate</span>::ext_vec::ByteVec;
 <span class="attr">#[cfg(feature = <span class="string">&quot;unicode&quot;</span>)]
 </span><span class="kw">use </span><span class="kw">crate</span>::unicode::{
-    <a href="unicode/whitespace.rs.html#7">whitespace_len_fwd</a>, <a href="unicode/whitespace.rs.html#12">whitespace_len_rev</a>, <a href="unicode/grapheme.rs.html#120">GraphemeIndices</a>, <a href="unicode/grapheme.rs.html#30">Graphemes</a>,
-    <a href="unicode/sentence.rs.html#93">SentenceIndices</a>, <a href="unicode/sentence.rs.html#22">Sentences</a>, <a href="unicode/word.rs.html#104">WordIndices</a>, <a href="unicode/word.rs.html#29">Words</a>, <a href="unicode/word.rs.html#250">WordsWithBreakIndices</a>,
-    <a href="unicode/word.rs.html#171">WordsWithBreaks</a>,
+    whitespace_len_fwd, whitespace_len_rev, GraphemeIndices, Graphemes,
+    SentenceIndices, Sentences, WordIndices, Words, WordsWithBreakIndices,
+    WordsWithBreaks,
 };
-<span class="kw">use </span><span class="kw">crate</span>::utf8::{<a class="self" href="lib.rs.html#407">self</a>, <a href="utf8.rs.html#163">CharIndices</a>, <a href="utf8.rs.html#84">Chars</a>, <a href="utf8.rs.html#234">Utf8Chunks</a>, <a href="utf8.rs.html#410">Utf8Error</a>};
+<span class="kw">use </span><span class="kw">crate</span>::utf8::{<span class="self">self</span>, CharIndices, Chars, Utf8Chunks, Utf8Error};
 
 <span class="doccomment">/// A short-hand constructor for building a `&amp;[u8]`.
 ///
@@ -3722,40 +3722,40 @@
 /// string literals. This can be quite convenient!
 </span><span class="attr">#[allow(non_snake_case)]
 #[inline]
-</span><span class="kw">pub fn </span>B&lt;<span class="lifetime">&#39;a</span>, B: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> + AsRef&lt;[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;&gt;(bytes: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>B) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>] {
-    <a href="#70">bytes</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>()
+</span><span class="kw">pub fn </span>B&lt;<span class="lifetime">&#39;a</span>, B: <span class="question-mark">?</span>Sized + AsRef&lt;[u8]&gt;&gt;(bytes: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>B) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[u8] {
+    bytes.as_ref()
 }
 
-<span class="kw">impl </span><a href="#92">ByteSlice</a> <span class="kw">for </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>] {
+<span class="kw">impl </span>ByteSlice <span class="kw">for </span>[u8] {
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>as_bytes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>] {
-        <span class="self"><a href="#76">self</a>
+    </span><span class="kw">fn </span>as_bytes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[u8] {
+        <span class="self">self
     </span>}
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>as_bytes_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>] {
-        <span class="self"><a href="#81">self</a>
+    </span><span class="kw">fn </span>as_bytes_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>[u8] {
+        <span class="self">self
     </span>}
 }
 
 <span class="doccomment">/// Ensure that callers cannot implement `ByteSlice` by making an
 /// umplementable trait its super trait.
 </span><span class="kw">pub trait </span>Sealed {}
-<span class="kw">impl </span><a href="#88">Sealed</a> <span class="kw">for </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>] {}
+<span class="kw">impl </span>Sealed <span class="kw">for </span>[u8] {}
 
 <span class="doccomment">/// A trait that extends `&amp;[u8]` with string oriented methods.
-</span><span class="kw">pub trait </span>ByteSlice: <a href="#88">Sealed</a> {
+</span><span class="kw">pub trait </span>ByteSlice: Sealed {
     <span class="doccomment">/// A method for accessing the raw bytes of this type. This is always a
     /// no-op and callers shouldn&#39;t care about it. This only exists for making
     /// the extension trait work.
     </span><span class="attr">#[doc(hidden)]
-    </span><span class="kw">fn </span>as_bytes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>];
+    </span><span class="kw">fn </span>as_bytes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[u8];
 
     <span class="doccomment">/// A method for accessing the raw bytes of this type, mutably. This is
     /// always a no-op and callers shouldn&#39;t care about it. This only exists
     /// for making the extension trait work.
     </span><span class="attr">#[doc(hidden)]
-    </span><span class="kw">fn </span>as_bytes_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>];
+    </span><span class="kw">fn </span>as_bytes_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>[u8];
 
     <span class="doccomment">/// Return this byte slice as a `&amp;BStr`.
     ///
@@ -3775,8 +3775,8 @@
     /// println!(&quot;{:?}&quot;, b&quot;foo\xFFbar&quot;.as_bstr());
     /// ```
     </span><span class="attr">#[inline]
-    </span><span class="kw">fn </span>as_bstr(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="bstr.rs.html#31">BStr</a> {
-        BStr::new(<a class="self" href="#123">self</a>.<a href="#97">as_bytes</a>())
+    </span><span class="kw">fn </span>as_bstr(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>BStr {
+        BStr::new(<span class="self">self</span>.as_bytes())
     }
 
     <span class="doccomment">/// Return this byte slice as a `&amp;mut BStr`.
@@ -3798,8 +3798,8 @@
     /// println!(&quot;{:?}&quot;, &amp;mut bytes.as_bstr_mut());
     /// ```
     </span><span class="attr">#[inline]
-    </span><span class="kw">fn </span>as_bstr_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span><a href="bstr.rs.html#31">BStr</a> {
-        BStr::new_mut(<a class="self" href="#146">self</a>.<a href="#103">as_bytes_mut</a>())
+    </span><span class="kw">fn </span>as_bstr_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>BStr {
+        BStr::new_mut(<span class="self">self</span>.as_bytes_mut())
     }
 
     <span class="doccomment">/// Create an immutable byte string from an OS string slice.
@@ -3825,13 +3825,13 @@
     /// ```
     </span><span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
     #[inline]
-    </span><span class="kw">fn </span>from_os_str(os_str: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsStr.html">OsStr</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt; {
+    </span><span class="kw">fn </span>from_os_str(os_str: <span class="kw-2">&amp;</span>OsStr) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>[u8]&gt; {
         <span class="attr">#[cfg(unix)]
         #[inline]
-        </span><span class="kw">fn </span>imp(os_str: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsStr.html">OsStr</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt; {
-            <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/os/unix/ffi/os_str/trait.OsStrExt.html">std::os::unix::ffi::OsStrExt</a>;
+        </span><span class="kw">fn </span>imp(os_str: <span class="kw-2">&amp;</span>OsStr) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>[u8]&gt; {
+            <span class="kw">use </span>std::os::unix::ffi::OsStrExt;
 
-            <span class="prelude-val">Some</span>(<a href="#176">os_str</a>.<a href="https://doc.rust-lang.org/nightly/std/os/unix/ffi/os_str/trait.OsStrExt.html">as_bytes</a>())
+            <span class="prelude-val">Some</span>(os_str.as_bytes())
         }
 
         <span class="attr">#[cfg(not(unix))]
@@ -3840,7 +3840,7 @@
             os_str.to_str().map(|s| s.as_bytes())
         }
 
-        <a href="#176">imp</a>(<a href="#173">os_str</a>)
+        imp(os_str)
     }
 
     <span class="doccomment">/// Create an immutable byte string from a file path.
@@ -3865,8 +3865,8 @@
     /// ```
     </span><span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
     #[inline]
-    </span><span class="kw">fn </span>from_path(path: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt; {
-        <span class="self">Self</span>::from_os_str(<a href="#213">path</a>.as_os_str())
+    </span><span class="kw">fn </span>from_path(path: <span class="kw-2">&amp;</span>Path) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>[u8]&gt; {
+        <span class="self">Self</span>::from_os_str(path.as_os_str())
     }
 
     <span class="doccomment">/// Safely convert this byte string into a `&amp;str` if it&#39;s valid UTF-8.
@@ -3898,11 +3898,11 @@
     /// # Ok(()) }; example().unwrap()
     /// ```
     </span><span class="attr">#[inline]
-    </span><span class="kw">fn </span>to_str(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, <a href="utf8.rs.html#410">Utf8Error</a>&gt; {
-        <a href="utf8.rs.html#471">utf8::validate</a>(<a class="self" href="#246">self</a>.<a href="#97">as_bytes</a>()).map(|<span class="kw">_</span>| {
+    </span><span class="kw">fn </span>to_str(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span>str, Utf8Error&gt; {
+        utf8::validate(<span class="self">self</span>.as_bytes()).map(|<span class="kw">_</span>| {
             <span class="comment">// SAFETY: This is safe because of the guarantees provided by
             // utf8::validate.
-            </span><span class="kw">unsafe </span>{ str::from_utf8_unchecked(<a class="self" href="#246">self</a>.<a href="#97">as_bytes</a>()) }
+            </span><span class="kw">unsafe </span>{ str::from_utf8_unchecked(<span class="self">self</span>.as_bytes()) }
         })
     }
 
@@ -3933,8 +3933,8 @@
     /// assert_eq!(&quot;☃βツ&quot;, s);
     /// ```
     </span><span class="attr">#[inline]
-    </span><span class="kw">unsafe fn </span>to_str_unchecked(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> {
-        str::from_utf8_unchecked(<a class="self" href="#281">self</a>.<a href="#97">as_bytes</a>())
+    </span><span class="kw">unsafe fn </span>to_str_unchecked(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>str {
+        str::from_utf8_unchecked(<span class="self">self</span>.as_bytes())
     }
 
     <span class="doccomment">/// Convert this byte string to a valid UTF-8 string by replacing invalid
@@ -3998,27 +3998,27 @@
     /// ```
     </span><span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
     #[inline]
-    </span><span class="kw">fn </span>to_str_lossy(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Cow&lt;<span class="lifetime">&#39;_</span>, <a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt; {
-        <span class="kw">match </span><a href="utf8.rs.html#471">utf8::validate</a>(<a class="self" href="#346">self</a>.<a href="#97">as_bytes</a>()) {
+    </span><span class="kw">fn </span>to_str_lossy(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Cow&lt;<span class="lifetime">&#39;_</span>, str&gt; {
+        <span class="kw">match </span>utf8::validate(<span class="self">self</span>.as_bytes()) {
             <span class="prelude-val">Ok</span>(()) =&gt; {
                 <span class="comment">// SAFETY: This is safe because of the guarantees provided by
                 // utf8::validate.
                 </span><span class="kw">unsafe </span>{
-                    Cow::Borrowed(str::from_utf8_unchecked(<a class="self" href="#346">self</a>.<a href="#97">as_bytes</a>()))
+                    Cow::Borrowed(str::from_utf8_unchecked(<span class="self">self</span>.as_bytes()))
                 }
             }
             <span class="prelude-val">Err</span>(err) =&gt; {
-                <span class="kw">let </span><span class="kw-2">mut </span>lossy = String::with_capacity(<a class="self" href="#346">self</a>.<a href="#97">as_bytes</a>().len());
+                <span class="kw">let </span><span class="kw-2">mut </span>lossy = String::with_capacity(<span class="self">self</span>.as_bytes().len());
                 <span class="kw">let </span>(valid, after) =
-                    <a class="self" href="#346">self</a>.<a href="#97">as_bytes</a>().split_at(<a href="#355">err</a>.<a href="utf8.rs.html#435">valid_up_to</a>());
+                    <span class="self">self</span>.as_bytes().split_at(err.valid_up_to());
                 <span class="comment">// SAFETY: This is safe because utf8::validate guarantees
                 // that all of `valid` is valid UTF-8.
-                </span><a href="#356">lossy</a>.push_str(<span class="kw">unsafe </span>{ str::from_utf8_unchecked(<a href="#357">valid</a>) });
-                <a href="#356">lossy</a>.push_str(<span class="string">&quot;\u{FFFD}&quot;</span>);
-                <span class="kw">if let </span><span class="prelude-val">Some</span>(len) = <a href="#355">err</a>.<a href="utf8.rs.html#449">error_len</a>() {
-                    <a href="#357">after</a>[<a href="#363">len</a>..].<a href="#403">to_str_lossy_into</a>(<span class="kw-2">&amp;mut </span><a href="#356">lossy</a>);
+                </span>lossy.push_str(<span class="kw">unsafe </span>{ str::from_utf8_unchecked(valid) });
+                lossy.push_str(<span class="string">&quot;\u{FFFD}&quot;</span>);
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(len) = err.error_len() {
+                    after[len..].to_str_lossy_into(<span class="kw-2">&amp;mut </span>lossy);
                 }
-                Cow::Owned(<a href="#356">lossy</a>)
+                Cow::Owned(lossy)
             }
         }
     }
@@ -4055,26 +4055,26 @@
     /// ```
     </span><span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
     #[inline]
-    </span><span class="kw">fn </span>to_str_lossy_into(<span class="kw-2">&amp;</span><span class="self">self</span>, dest: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>) {
-        <span class="kw">let </span><span class="kw-2">mut </span>bytes = <a class="self" href="#403">self</a>.<a href="#97">as_bytes</a>();
-        <a href="#403">dest</a>.reserve(<a href="#404">bytes</a>.len());
+    </span><span class="kw">fn </span>to_str_lossy_into(<span class="kw-2">&amp;</span><span class="self">self</span>, dest: <span class="kw-2">&amp;mut </span>String) {
+        <span class="kw">let </span><span class="kw-2">mut </span>bytes = <span class="self">self</span>.as_bytes();
+        dest.reserve(bytes.len());
         <span class="kw">loop </span>{
-            <span class="kw">match </span><a href="utf8.rs.html#471">utf8::validate</a>(<a href="#404">bytes</a>) {
+            <span class="kw">match </span>utf8::validate(bytes) {
                 <span class="prelude-val">Ok</span>(()) =&gt; {
                     <span class="comment">// SAFETY: This is safe because utf8::validate guarantees
                     // that all of `bytes` is valid UTF-8.
-                    </span><a href="#403">dest</a>.push_str(<span class="kw">unsafe </span>{ str::from_utf8_unchecked(<a href="#404">bytes</a>) });
+                    </span>dest.push_str(<span class="kw">unsafe </span>{ str::from_utf8_unchecked(bytes) });
                     <span class="kw">break</span>;
                 }
                 <span class="prelude-val">Err</span>(err) =&gt; {
-                    <span class="kw">let </span>(valid, after) = <a href="#404">bytes</a>.split_at(<a href="#414">err</a>.<a href="utf8.rs.html#435">valid_up_to</a>());
+                    <span class="kw">let </span>(valid, after) = bytes.split_at(err.valid_up_to());
                     <span class="comment">// SAFETY: This is safe because utf8::validate guarantees
                     // that all of `valid` is valid UTF-8.
-                    </span><a href="#403">dest</a>.push_str(<span class="kw">unsafe </span>{ str::from_utf8_unchecked(<a href="#415">valid</a>) });
-                    <a href="#403">dest</a>.push_str(<span class="string">&quot;\u{FFFD}&quot;</span>);
-                    <span class="kw">match </span><a href="#414">err</a>.<a href="utf8.rs.html#449">error_len</a>() {
+                    </span>dest.push_str(<span class="kw">unsafe </span>{ str::from_utf8_unchecked(valid) });
+                    dest.push_str(<span class="string">&quot;\u{FFFD}&quot;</span>);
+                    <span class="kw">match </span>err.error_len() {
                         <span class="prelude-val">None </span>=&gt; <span class="kw">break</span>,
-                        <span class="prelude-val">Some</span>(len) =&gt; <a href="#404">bytes</a> = <span class="kw-2">&amp;</span><a href="#415">after</a>[<a href="#422">len</a>..],
+                        <span class="prelude-val">Some</span>(len) =&gt; bytes = <span class="kw-2">&amp;</span>after[len..],
                     }
                 }
             }
@@ -4102,13 +4102,13 @@
     /// ```
     </span><span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
     #[inline]
-    </span><span class="kw">fn </span>to_os_str(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsStr.html">OsStr</a>, <a href="utf8.rs.html#410">Utf8Error</a>&gt; {
+    </span><span class="kw">fn </span>to_os_str(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span>OsStr, Utf8Error&gt; {
         <span class="attr">#[cfg(unix)]
         #[inline]
-        </span><span class="kw">fn </span>imp(bytes: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsStr.html">OsStr</a>, <a href="utf8.rs.html#410">Utf8Error</a>&gt; {
-            <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/os/unix/ffi/os_str/trait.OsStrExt.html">std::os::unix::ffi::OsStrExt</a>;
+        </span><span class="kw">fn </span>imp(bytes: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span>OsStr, Utf8Error&gt; {
+            <span class="kw">use </span>std::os::unix::ffi::OsStrExt;
 
-            <span class="prelude-val">Ok</span>(OsStr::from_bytes(<a href="#453">bytes</a>))
+            <span class="prelude-val">Ok</span>(OsStr::from_bytes(bytes))
         }
 
         <span class="attr">#[cfg(not(unix))]
@@ -4117,7 +4117,7 @@
             bytes.to_str().map(OsStr::new)
         }
 
-        <a href="#453">imp</a>(<a class="self" href="#450">self</a>.<a href="#97">as_bytes</a>())
+        imp(<span class="self">self</span>.as_bytes())
     }
 
     <span class="doccomment">/// Lossily create an OS string slice from this byte string.
@@ -4142,13 +4142,13 @@
     /// ```
     </span><span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
     #[inline]
-    </span><span class="kw">fn </span>to_os_str_lossy(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Cow&lt;<span class="lifetime">&#39;_</span>, <a href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsStr.html">OsStr</a>&gt; {
+    </span><span class="kw">fn </span>to_os_str_lossy(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Cow&lt;<span class="lifetime">&#39;_</span>, OsStr&gt; {
         <span class="attr">#[cfg(unix)]
         #[inline]
-        </span><span class="kw">fn </span>imp(bytes: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; Cow&lt;<span class="lifetime">&#39;_</span>, <a href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsStr.html">OsStr</a>&gt; {
-            <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/os/unix/ffi/os_str/trait.OsStrExt.html">std::os::unix::ffi::OsStrExt</a>;
+        </span><span class="kw">fn </span>imp(bytes: <span class="kw-2">&amp;</span>[u8]) -&gt; Cow&lt;<span class="lifetime">&#39;_</span>, OsStr&gt; {
+            <span class="kw">use </span>std::os::unix::ffi::OsStrExt;
 
-            Cow::Borrowed(OsStr::from_bytes(<a href="#493">bytes</a>))
+            Cow::Borrowed(OsStr::from_bytes(bytes))
         }
 
         <span class="attr">#[cfg(not(unix))]
@@ -4162,7 +4162,7 @@
             }
         }
 
-        <a href="#493">imp</a>(<a class="self" href="#490">self</a>.<a href="#97">as_bytes</a>())
+        imp(<span class="self">self</span>.as_bytes())
     }
 
     <span class="doccomment">/// Create a path slice from this byte string.
@@ -4186,8 +4186,8 @@
     /// ```
     </span><span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
     #[inline]
-    </span><span class="kw">fn </span>to_path(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>, <a href="utf8.rs.html#410">Utf8Error</a>&gt; {
-        <a class="self" href="#534">self</a>.<a href="#450">to_os_str</a>().map(Path::new)
+    </span><span class="kw">fn </span>to_path(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span>Path, Utf8Error&gt; {
+        <span class="self">self</span>.to_os_str().map(Path::new)
     }
 
     <span class="doccomment">/// Lossily create a path slice from this byte string.
@@ -4213,12 +4213,12 @@
     /// ```
     </span><span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
     #[inline]
-    </span><span class="kw">fn </span>to_path_lossy(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Cow&lt;<span class="lifetime">&#39;_</span>, <a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>&gt; {
-        <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/path/struct.PathBuf.html">std::path::PathBuf</a>;
+    </span><span class="kw">fn </span>to_path_lossy(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Cow&lt;<span class="lifetime">&#39;_</span>, Path&gt; {
+        <span class="kw">use </span>std::path::PathBuf;
 
-        <span class="kw">match </span><a class="self" href="#561">self</a>.<a href="#490">to_os_str_lossy</a>() {
-            Cow::Borrowed(x) =&gt; Cow::Borrowed(Path::new(<a href="#565">x</a>)),
-            Cow::Owned(x) =&gt; Cow::Owned(PathBuf::from(<a href="#566">x</a>)),
+        <span class="kw">match </span><span class="self">self</span>.to_os_str_lossy() {
+            Cow::Borrowed(x) =&gt; Cow::Borrowed(Path::new(x)),
+            Cow::Owned(x) =&gt; Cow::Owned(PathBuf::from(x)),
         }
     }
 
@@ -4241,13 +4241,13 @@
     /// ```
     </span><span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
     #[inline]
-    </span><span class="kw">fn </span>repeatn(<span class="kw-2">&amp;</span><span class="self">self</span>, n: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt; {
-        <span class="kw">let </span>bs = <a class="self" href="#589">self</a>.<a href="#97">as_bytes</a>();
-        <span class="kw">let </span><span class="kw-2">mut </span>dst = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[<span class="number">0</span>; bs.len() * n];
+    </span><span class="kw">fn </span>repeatn(<span class="kw-2">&amp;</span><span class="self">self</span>, n: usize) -&gt; Vec&lt;u8&gt; {
+        <span class="kw">let </span>bs = <span class="self">self</span>.as_bytes();
+        <span class="kw">let </span><span class="kw-2">mut </span>dst = <span class="macro">vec!</span>[<span class="number">0</span>; bs.len() * n];
         <span class="kw">for </span>i <span class="kw">in </span><span class="number">0</span>..n {
             dst[i * bs.len()..(i + <span class="number">1</span>) * bs.len()].copy_from_slice(bs);
         }
-        <a href="#591">dst</a>
+        dst
     }
 
     <span class="doccomment">/// Returns true if and only if this byte string contains the given needle.
@@ -4264,8 +4264,8 @@
     /// assert!(!b&quot;foo&quot;.contains_str(&quot;foobar&quot;));
     /// ```
     </span><span class="attr">#[inline]
-    </span><span class="kw">fn </span>contains_str&lt;B: AsRef&lt;[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, needle: B) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#612">self</a>.<a href="#683">find</a>(<a href="#612">needle</a>).is_some()
+    </span><span class="kw">fn </span>contains_str&lt;B: AsRef&lt;[u8]&gt;&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, needle: B) -&gt; bool {
+        <span class="self">self</span>.find(needle).is_some()
     }
 
     <span class="doccomment">/// Returns true if and only if this byte string has the given prefix.
@@ -4282,8 +4282,8 @@
     /// assert!(!b&quot;foo&quot;.starts_with_str(&quot;foobar&quot;));
     /// ```
     </span><span class="attr">#[inline]
-    </span><span class="kw">fn </span>starts_with_str&lt;B: AsRef&lt;[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, prefix: B) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#630">self</a>.<a href="#97">as_bytes</a>().starts_with(<a href="#630">prefix</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>())
+    </span><span class="kw">fn </span>starts_with_str&lt;B: AsRef&lt;[u8]&gt;&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, prefix: B) -&gt; bool {
+        <span class="self">self</span>.as_bytes().starts_with(prefix.as_ref())
     }
 
     <span class="doccomment">/// Returns true if and only if this byte string has the given suffix.
@@ -4300,8 +4300,8 @@
     /// assert!(!b&quot;bar&quot;.ends_with_str(&quot;foobar&quot;));
     /// ```
     </span><span class="attr">#[inline]
-    </span><span class="kw">fn </span>ends_with_str&lt;B: AsRef&lt;[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, suffix: B) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#648">self</a>.<a href="#97">as_bytes</a>().ends_with(<a href="#648">suffix</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>())
+    </span><span class="kw">fn </span>ends_with_str&lt;B: AsRef&lt;[u8]&gt;&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, suffix: B) -&gt; bool {
+        <span class="self">self</span>.as_bytes().ends_with(suffix.as_ref())
     }
 
     <span class="doccomment">/// Returns the index of the first occurrence of the given needle.
@@ -4335,8 +4335,8 @@
     /// assert_eq!(None, s.find(&quot;quux&quot;));
     /// ```
     </span><span class="attr">#[inline]
-    </span><span class="kw">fn </span>find&lt;B: AsRef&lt;[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, needle: B) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
-        Finder::new(<a href="#683">needle</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>()).<a href="#3049">find</a>(<a class="self" href="#683">self</a>.<a href="#97">as_bytes</a>())
+    </span><span class="kw">fn </span>find&lt;B: AsRef&lt;[u8]&gt;&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, needle: B) -&gt; <span class="prelude-ty">Option</span>&lt;usize&gt; {
+        Finder::new(needle.as_ref()).find(<span class="self">self</span>.as_bytes())
     }
 
     <span class="doccomment">/// Returns the index of the last occurrence of the given needle.
@@ -4372,8 +4372,8 @@
     /// assert_eq!(None, s.rfind(&quot;quux&quot;));
     /// ```
     </span><span class="attr">#[inline]
-    </span><span class="kw">fn </span>rfind&lt;B: AsRef&lt;[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, needle: B) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
-        FinderReverse::new(<a href="#720">needle</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>()).<a href="#3132">rfind</a>(<a class="self" href="#720">self</a>.<a href="#97">as_bytes</a>())
+    </span><span class="kw">fn </span>rfind&lt;B: AsRef&lt;[u8]&gt;&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, needle: B) -&gt; <span class="prelude-ty">Option</span>&lt;usize&gt; {
+        FinderReverse::new(needle.as_ref()).rfind(<span class="self">self</span>.as_bytes())
     }
 
     <span class="doccomment">/// Returns an iterator of the non-overlapping occurrences of the given
@@ -4414,11 +4414,11 @@
     /// assert_eq!(matches, vec![0]);
     /// ```
     </span><span class="attr">#[inline]
-    </span><span class="kw">fn </span>find_iter&lt;<span class="lifetime">&#39;a</span>, B: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> + AsRef&lt;[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;&gt;(
+    </span><span class="kw">fn </span>find_iter&lt;<span class="lifetime">&#39;a</span>, B: <span class="question-mark">?</span>Sized + AsRef&lt;[u8]&gt;&gt;(
         <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="self">self</span>,
         needle: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>B,
     ) -&gt; Find&lt;<span class="lifetime">&#39;a</span>&gt; {
-        Find::new(<a class="self" href="#763">self</a>.<a href="#97">as_bytes</a>(), <a href="#764">needle</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>())
+        Find::new(<span class="self">self</span>.as_bytes(), needle.as_ref())
     }
 
     <span class="doccomment">/// Returns an iterator of the non-overlapping occurrences of the given
@@ -4459,11 +4459,11 @@
     /// assert_eq!(matches, vec![0]);
     /// ```
     </span><span class="attr">#[inline]
-    </span><span class="kw">fn </span>rfind_iter&lt;<span class="lifetime">&#39;a</span>, B: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> + AsRef&lt;[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;&gt;(
+    </span><span class="kw">fn </span>rfind_iter&lt;<span class="lifetime">&#39;a</span>, B: <span class="question-mark">?</span>Sized + AsRef&lt;[u8]&gt;&gt;(
         <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="self">self</span>,
         needle: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>B,
     ) -&gt; FindReverse&lt;<span class="lifetime">&#39;a</span>&gt; {
-        FindReverse::new(<a class="self" href="#808">self</a>.<a href="#97">as_bytes</a>(), <a href="#809">needle</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>())
+        FindReverse::new(<span class="self">self</span>.as_bytes(), needle.as_ref())
     }
 
     <span class="doccomment">/// Returns the index of the first occurrence of the given byte. If the
@@ -4480,8 +4480,8 @@
     /// assert_eq!(None, b&quot;foo bar baz&quot;.find_byte(b&#39;y&#39;));
     /// ```
     </span><span class="attr">#[inline]
-    </span><span class="kw">fn </span>find_byte(<span class="kw-2">&amp;</span><span class="self">self</span>, byte: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
-        <a href="../../memchr/memchr/fn.memchr.html">memchr</a>(<a href="#828">byte</a>, <a class="self" href="#828">self</a>.<a href="#97">as_bytes</a>())
+    </span><span class="kw">fn </span>find_byte(<span class="kw-2">&amp;</span><span class="self">self</span>, byte: u8) -&gt; <span class="prelude-ty">Option</span>&lt;usize&gt; {
+        memchr(byte, <span class="self">self</span>.as_bytes())
     }
 
     <span class="doccomment">/// Returns the index of the last occurrence of the given byte. If the
@@ -4498,8 +4498,8 @@
     /// assert_eq!(None, b&quot;foo bar baz&quot;.rfind_byte(b&#39;y&#39;));
     /// ```
     </span><span class="attr">#[inline]
-    </span><span class="kw">fn </span>rfind_byte(<span class="kw-2">&amp;</span><span class="self">self</span>, byte: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
-        <a href="../../memchr/memchr/fn.memrchr.html">memrchr</a>(<a href="#846">byte</a>, <a class="self" href="#846">self</a>.<a href="#97">as_bytes</a>())
+    </span><span class="kw">fn </span>rfind_byte(<span class="kw-2">&amp;</span><span class="self">self</span>, byte: u8) -&gt; <span class="prelude-ty">Option</span>&lt;usize&gt; {
+        memrchr(byte, <span class="self">self</span>.as_bytes())
     }
 
     <span class="doccomment">/// Returns the index of the first occurrence of the given codepoint.
@@ -4522,8 +4522,8 @@
     /// assert_eq!(None, b&quot;foo bar baz&quot;.find_char(&#39;y&#39;));
     /// ```
     </span><span class="attr">#[inline]
-    </span><span class="kw">fn </span>find_char(<span class="kw-2">&amp;</span><span class="self">self</span>, ch: <a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
-        <a class="self" href="#870">self</a>.<a href="#683">find</a>(<a href="#870">ch</a>.encode_utf8(<span class="kw-2">&amp;mut </span>[<span class="number">0</span>; <span class="number">4</span>]))
+    </span><span class="kw">fn </span>find_char(<span class="kw-2">&amp;</span><span class="self">self</span>, ch: char) -&gt; <span class="prelude-ty">Option</span>&lt;usize&gt; {
+        <span class="self">self</span>.find(ch.encode_utf8(<span class="kw-2">&amp;mut </span>[<span class="number">0</span>; <span class="number">4</span>]))
     }
 
     <span class="doccomment">/// Returns the index of the last occurrence of the given codepoint.
@@ -4546,8 +4546,8 @@
     /// assert_eq!(None, b&quot;foo bar baz&quot;.rfind_char(&#39;y&#39;));
     /// ```
     </span><span class="attr">#[inline]
-    </span><span class="kw">fn </span>rfind_char(<span class="kw-2">&amp;</span><span class="self">self</span>, ch: <a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
-        <a class="self" href="#894">self</a>.<a href="#720">rfind</a>(<a href="#894">ch</a>.encode_utf8(<span class="kw-2">&amp;mut </span>[<span class="number">0</span>; <span class="number">4</span>]))
+    </span><span class="kw">fn </span>rfind_char(<span class="kw-2">&amp;</span><span class="self">self</span>, ch: char) -&gt; <span class="prelude-ty">Option</span>&lt;usize&gt; {
+        <span class="self">self</span>.rfind(ch.encode_utf8(<span class="kw-2">&amp;mut </span>[<span class="number">0</span>; <span class="number">4</span>]))
     }
 
     <span class="doccomment">/// Returns the index of the first occurrence of any of the bytes in the
@@ -4583,8 +4583,8 @@
     /// assert_eq!(None, b&quot;foo baz bar&quot;.find_byteset(b&quot;\t\n&quot;));
     /// ```
     </span><span class="attr">#[inline]
-    </span><span class="kw">fn </span>find_byteset&lt;B: AsRef&lt;[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, byteset: B) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
-        <a href="byteset/mod.rs.html#14">byteset::find</a>(<a class="self" href="#931">self</a>.<a href="#97">as_bytes</a>(), <a href="#931">byteset</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>())
+    </span><span class="kw">fn </span>find_byteset&lt;B: AsRef&lt;[u8]&gt;&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, byteset: B) -&gt; <span class="prelude-ty">Option</span>&lt;usize&gt; {
+        byteset::find(<span class="self">self</span>.as_bytes(), byteset.as_ref())
     }
 
     <span class="doccomment">/// Returns the index of the first occurrence of a byte that is not a member
@@ -4620,8 +4620,8 @@
     /// assert_eq!(b&quot;foo\nbaz\tbar&quot;.find_not_byteset(b&quot;\t\n&quot;), Some(0));
     /// ```
     </span><span class="attr">#[inline]
-    </span><span class="kw">fn </span>find_not_byteset&lt;B: AsRef&lt;[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, byteset: B) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
-        <a href="byteset/mod.rs.html#42">byteset::find_not</a>(<a class="self" href="#968">self</a>.<a href="#97">as_bytes</a>(), <a href="#968">byteset</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>())
+    </span><span class="kw">fn </span>find_not_byteset&lt;B: AsRef&lt;[u8]&gt;&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, byteset: B) -&gt; <span class="prelude-ty">Option</span>&lt;usize&gt; {
+        byteset::find_not(<span class="self">self</span>.as_bytes(), byteset.as_ref())
     }
 
     <span class="doccomment">/// Returns the index of the last occurrence of any of the bytes in the
@@ -4657,8 +4657,8 @@
     /// assert_eq!(b&quot;foo baz bar&quot;.rfind_byteset(b&quot;\n123&quot;), None);
     /// ```
     </span><span class="attr">#[inline]
-    </span><span class="kw">fn </span>rfind_byteset&lt;B: AsRef&lt;[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, byteset: B) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
-        <a href="byteset/mod.rs.html#28">byteset::rfind</a>(<a class="self" href="#1005">self</a>.<a href="#97">as_bytes</a>(), <a href="#1005">byteset</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>())
+    </span><span class="kw">fn </span>rfind_byteset&lt;B: AsRef&lt;[u8]&gt;&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, byteset: B) -&gt; <span class="prelude-ty">Option</span>&lt;usize&gt; {
+        byteset::rfind(<span class="self">self</span>.as_bytes(), byteset.as_ref())
     }
 
     <span class="doccomment">/// Returns the index of the last occurrence of a byte that is not a member
@@ -4694,8 +4694,8 @@
     /// assert_eq!(None, b&quot;foo baz bar&quot;.rfind_not_byteset(b&quot;barfoz &quot;));
     /// ```
     </span><span class="attr">#[inline]
-    </span><span class="kw">fn </span>rfind_not_byteset&lt;B: AsRef&lt;[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, byteset: B) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
-        <a href="byteset/mod.rs.html#62">byteset::rfind_not</a>(<a class="self" href="#1042">self</a>.<a href="#97">as_bytes</a>(), <a href="#1042">byteset</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>())
+    </span><span class="kw">fn </span>rfind_not_byteset&lt;B: AsRef&lt;[u8]&gt;&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, byteset: B) -&gt; <span class="prelude-ty">Option</span>&lt;usize&gt; {
+        byteset::rfind_not(<span class="self">self</span>.as_bytes(), byteset.as_ref())
     }
 
     <span class="doccomment">/// Returns an iterator over the fields in a byte string, separated by
@@ -4722,7 +4722,7 @@
     /// ```
     </span><span class="attr">#[inline]
     </span><span class="kw">fn </span>fields(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Fields&lt;<span class="lifetime">&#39;_</span>&gt; {
-        Fields::new(<a class="self" href="#1069">self</a>.<a href="#97">as_bytes</a>())
+        Fields::new(<span class="self">self</span>.as_bytes())
     }
 
     <span class="doccomment">/// Returns an iterator over the fields in a byte string, separated by
@@ -4753,8 +4753,8 @@
     /// assert_eq!(0, b&quot;1911354563&quot;.fields_with(|c| c.is_numeric()).count());
     /// ```
     </span><span class="attr">#[inline]
-    </span><span class="kw">fn </span>fields_with&lt;F: FnMut(<a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, f: F) -&gt; FieldsWith&lt;<span class="lifetime">&#39;_</span>, F&gt; {
-        FieldsWith::new(<a class="self" href="#1101">self</a>.<a href="#97">as_bytes</a>(), <a href="#1101">f</a>)
+    </span><span class="kw">fn </span>fields_with&lt;F: FnMut(char) -&gt; bool&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, f: F) -&gt; FieldsWith&lt;<span class="lifetime">&#39;_</span>, F&gt; {
+        FieldsWith::new(<span class="self">self</span>.as_bytes(), f)
     }
 
     <span class="doccomment">/// Returns an iterator over substrings of this byte string, separated
@@ -4846,11 +4846,11 @@
     /// It does *not* give you `[&quot;a&quot;, &quot;b&quot;, &quot;c&quot;]`. For that behavior, use
     /// [`fields`](#method.fields) instead.
     </span><span class="attr">#[inline]
-    </span><span class="kw">fn </span>split_str&lt;<span class="lifetime">&#39;a</span>, B: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> + AsRef&lt;[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;&gt;(
+    </span><span class="kw">fn </span>split_str&lt;<span class="lifetime">&#39;a</span>, B: <span class="question-mark">?</span>Sized + AsRef&lt;[u8]&gt;&gt;(
         <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="self">self</span>,
         splitter: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>B,
     ) -&gt; Split&lt;<span class="lifetime">&#39;a</span>&gt; {
-        Split::new(<a class="self" href="#1195">self</a>.<a href="#97">as_bytes</a>(), <a href="#1196">splitter</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>())
+        Split::new(<span class="self">self</span>.as_bytes(), splitter.as_ref())
     }
 
     <span class="doccomment">/// Returns an iterator over substrings of this byte string, separated by
@@ -4940,11 +4940,11 @@
     ///
     /// It does *not* give you `[&quot;a&quot;, &quot;b&quot;, &quot;c&quot;]`.
     </span><span class="attr">#[inline]
-    </span><span class="kw">fn </span>rsplit_str&lt;<span class="lifetime">&#39;a</span>, B: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> + AsRef&lt;[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;&gt;(
+    </span><span class="kw">fn </span>rsplit_str&lt;<span class="lifetime">&#39;a</span>, B: <span class="question-mark">?</span>Sized + AsRef&lt;[u8]&gt;&gt;(
         <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="self">self</span>,
         splitter: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>B,
     ) -&gt; SplitReverse&lt;<span class="lifetime">&#39;a</span>&gt; {
-        SplitReverse::new(<a class="self" href="#1289">self</a>.<a href="#97">as_bytes</a>(), <a href="#1290">splitter</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>())
+        SplitReverse::new(<span class="self">self</span>.as_bytes(), splitter.as_ref())
     }
 
     <span class="doccomment">/// Returns an iterator of at most `limit` substrings of this byte string,
@@ -4983,12 +4983,12 @@
     /// assert!(x.is_empty());
     /// ```
     </span><span class="attr">#[inline]
-    </span><span class="kw">fn </span>splitn_str&lt;<span class="lifetime">&#39;a</span>, B: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> + AsRef&lt;[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;&gt;(
+    </span><span class="kw">fn </span>splitn_str&lt;<span class="lifetime">&#39;a</span>, B: <span class="question-mark">?</span>Sized + AsRef&lt;[u8]&gt;&gt;(
         <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="self">self</span>,
-        limit: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+        limit: usize,
         splitter: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>B,
     ) -&gt; SplitN&lt;<span class="lifetime">&#39;a</span>&gt; {
-        SplitN::new(<a class="self" href="#1332">self</a>.<a href="#97">as_bytes</a>(), <a href="#1334">splitter</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>(), <a href="#1333">limit</a>)
+        SplitN::new(<span class="self">self</span>.as_bytes(), splitter.as_ref(), limit)
     }
 
     <span class="doccomment">/// Returns an iterator of at most `limit` substrings of this byte string,
@@ -5029,12 +5029,12 @@
     /// assert!(x.is_empty());
     /// ```
     </span><span class="attr">#[inline]
-    </span><span class="kw">fn </span>rsplitn_str&lt;<span class="lifetime">&#39;a</span>, B: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> + AsRef&lt;[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;&gt;(
+    </span><span class="kw">fn </span>rsplitn_str&lt;<span class="lifetime">&#39;a</span>, B: <span class="question-mark">?</span>Sized + AsRef&lt;[u8]&gt;&gt;(
         <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="self">self</span>,
-        limit: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+        limit: usize,
         splitter: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>B,
     ) -&gt; SplitNReverse&lt;<span class="lifetime">&#39;a</span>&gt; {
-        SplitNReverse::new(<a class="self" href="#1378">self</a>.<a href="#97">as_bytes</a>(), <a href="#1380">splitter</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>(), <a href="#1379">limit</a>)
+        SplitNReverse::new(<span class="self">self</span>.as_bytes(), splitter.as_ref(), limit)
     }
 
     <span class="doccomment">/// Replace all matches of the given needle with the given replacement, and
@@ -5073,14 +5073,14 @@
     /// ```
     </span><span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
     #[inline]
-    </span><span class="kw">fn </span>replace&lt;N: AsRef&lt;[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;, R: AsRef&lt;[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;&gt;(
+    </span><span class="kw">fn </span>replace&lt;N: AsRef&lt;[u8]&gt;, R: AsRef&lt;[u8]&gt;&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         needle: N,
         replacement: R,
-    ) -&gt; Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt; {
-        <span class="kw">let </span><span class="kw-2">mut </span>dest = Vec::with_capacity(<a class="self" href="#1422">self</a>.<a href="#97">as_bytes</a>().len());
-        <a class="self" href="#1422">self</a>.<a href="#1525-1530">replace_into</a>(<a href="#1423">needle</a>, <a href="#1424">replacement</a>, <span class="kw-2">&amp;mut </span><a href="#1426">dest</a>);
-        <a href="#1426">dest</a>
+    ) -&gt; Vec&lt;u8&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>dest = Vec::with_capacity(<span class="self">self</span>.as_bytes().len());
+        <span class="self">self</span>.replace_into(needle, replacement, <span class="kw-2">&amp;mut </span>dest);
+        dest
     }
 
     <span class="doccomment">/// Replace up to `limit` matches of the given needle with the given
@@ -5119,15 +5119,15 @@
     /// ```
     </span><span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
     #[inline]
-    </span><span class="kw">fn </span>replacen&lt;N: AsRef&lt;[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;, R: AsRef&lt;[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;&gt;(
+    </span><span class="kw">fn </span>replacen&lt;N: AsRef&lt;[u8]&gt;, R: AsRef&lt;[u8]&gt;&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         needle: N,
         replacement: R,
-        limit: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-    ) -&gt; Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt; {
-        <span class="kw">let </span><span class="kw-2">mut </span>dest = Vec::with_capacity(<a class="self" href="#1468">self</a>.<a href="#97">as_bytes</a>().len());
-        <a class="self" href="#1468">self</a>.<a href="#1589-1595">replacen_into</a>(<a href="#1469">needle</a>, <a href="#1470">replacement</a>, <a href="#1471">limit</a>, <span class="kw-2">&amp;mut </span><a href="#1473">dest</a>);
-        <a href="#1473">dest</a>
+        limit: usize,
+    ) -&gt; Vec&lt;u8&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>dest = Vec::with_capacity(<span class="self">self</span>.as_bytes().len());
+        <span class="self">self</span>.replacen_into(needle, replacement, limit, <span class="kw-2">&amp;mut </span>dest);
+        dest
     }
 
     <span class="doccomment">/// Replace all matches of the given needle with the given replacement,
@@ -5177,13 +5177,13 @@
     /// ```
     </span><span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
     #[inline]
-    </span><span class="kw">fn </span>replace_into&lt;N: AsRef&lt;[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;, R: AsRef&lt;[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;&gt;(
+    </span><span class="kw">fn </span>replace_into&lt;N: AsRef&lt;[u8]&gt;, R: AsRef&lt;[u8]&gt;&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         needle: N,
         replacement: R,
-        dest: <span class="kw-2">&amp;mut </span>Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;,
+        dest: <span class="kw-2">&amp;mut </span>Vec&lt;u8&gt;,
     ) {
-        <span class="kw">let </span>(needle, replacement) = (<a href="#1527">needle</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>(), <a href="#1528">replacement</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>());
+        <span class="kw">let </span>(needle, replacement) = (needle.as_ref(), replacement.as_ref());
 
         <span class="kw">let </span><span class="kw-2">mut </span>last = <span class="number">0</span>;
         <span class="kw">for </span>start <span class="kw">in </span><span class="self">self</span>.find_iter(needle) {
@@ -5191,7 +5191,7 @@
             dest.push_str(replacement);
             last = start + needle.len();
         }
-        <a href="#1529">dest</a>.<a href="ext_vec.rs.html#347">push_str</a>(<span class="kw-2">&amp;</span><a class="self" href="#1526">self</a>.<a href="#97">as_bytes</a>()[<a href="#1533">last</a>..]);
+        dest.push_str(<span class="kw-2">&amp;</span><span class="self">self</span>.as_bytes()[last..]);
     }
 
     <span class="doccomment">/// Replace up to `limit` matches of the given needle with the given
@@ -5241,14 +5241,14 @@
     /// ```
     </span><span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
     #[inline]
-    </span><span class="kw">fn </span>replacen_into&lt;N: AsRef&lt;[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;, R: AsRef&lt;[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;&gt;(
+    </span><span class="kw">fn </span>replacen_into&lt;N: AsRef&lt;[u8]&gt;, R: AsRef&lt;[u8]&gt;&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         needle: N,
         replacement: R,
-        limit: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-        dest: <span class="kw-2">&amp;mut </span>Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;,
+        limit: usize,
+        dest: <span class="kw-2">&amp;mut </span>Vec&lt;u8&gt;,
     ) {
-        <span class="kw">let </span>(needle, replacement) = (<a href="#1591">needle</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>(), <a href="#1592">replacement</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>());
+        <span class="kw">let </span>(needle, replacement) = (needle.as_ref(), replacement.as_ref());
 
         <span class="kw">let </span><span class="kw-2">mut </span>last = <span class="number">0</span>;
         <span class="kw">for </span>start <span class="kw">in </span><span class="self">self</span>.find_iter(needle).take(limit) {
@@ -5256,7 +5256,7 @@
             dest.push_str(replacement);
             last = start + needle.len();
         }
-        <a href="#1594">dest</a>.<a href="ext_vec.rs.html#347">push_str</a>(<span class="kw-2">&amp;</span><a class="self" href="#1590">self</a>.<a href="#97">as_bytes</a>()[<a href="#1598">last</a>..]);
+        dest.push_str(<span class="kw-2">&amp;</span><span class="self">self</span>.as_bytes()[last..]);
     }
 
     <span class="doccomment">/// Returns an iterator over the bytes in this byte string.
@@ -5274,7 +5274,7 @@
     /// ```
     </span><span class="attr">#[inline]
     </span><span class="kw">fn </span>bytes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Bytes&lt;<span class="lifetime">&#39;_</span>&gt; {
-        <a href="#3209">Bytes</a> { it: <a class="self" href="#1621">self</a>.<a href="#97">as_bytes</a>().iter() }
+        Bytes { it: <span class="self">self</span>.as_bytes().iter() }
     }
 
     <span class="doccomment">/// Returns an iterator over the Unicode scalar values in this byte string.
@@ -5304,7 +5304,7 @@
     /// ```
     </span><span class="attr">#[inline]
     </span><span class="kw">fn </span>chars(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Chars&lt;<span class="lifetime">&#39;_</span>&gt; {
-        Chars::new(<a class="self" href="#1651">self</a>.<a href="#97">as_bytes</a>())
+        Chars::new(<span class="self">self</span>.as_bytes())
     }
 
     <span class="doccomment">/// Returns an iterator over the Unicode scalar values in this byte string
@@ -5359,7 +5359,7 @@
     /// ```
     </span><span class="attr">#[inline]
     </span><span class="kw">fn </span>char_indices(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; CharIndices&lt;<span class="lifetime">&#39;_</span>&gt; {
-        CharIndices::new(<a class="self" href="#1706">self</a>.<a href="#97">as_bytes</a>())
+        CharIndices::new(<span class="self">self</span>.as_bytes())
     }
 
     <span class="doccomment">/// Iterate over chunks of valid UTF-8.
@@ -5396,7 +5396,7 @@
     /// ```
     </span><span class="attr">#[inline]
     </span><span class="kw">fn </span>utf8_chunks(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Utf8Chunks&lt;<span class="lifetime">&#39;_</span>&gt; {
-        <a href="utf8.rs.html#234">Utf8Chunks</a> { bytes: <a class="self" href="#1743">self</a>.<a href="#97">as_bytes</a>() }
+        Utf8Chunks { bytes: <span class="self">self</span>.as_bytes() }
     }
 
     <span class="doccomment">/// Returns an iterator over the grapheme clusters in this byte string.
@@ -5428,7 +5428,7 @@
     </span><span class="attr">#[cfg(feature = <span class="string">&quot;unicode&quot;</span>)]
     #[inline]
     </span><span class="kw">fn </span>graphemes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Graphemes&lt;<span class="lifetime">&#39;_</span>&gt; {
-        Graphemes::new(<a class="self" href="#1775">self</a>.<a href="#97">as_bytes</a>())
+        Graphemes::new(<span class="self">self</span>.as_bytes())
     }
 
     <span class="doccomment">/// Returns an iterator over the grapheme clusters in this byte string
@@ -5472,7 +5472,7 @@
     </span><span class="attr">#[cfg(feature = <span class="string">&quot;unicode&quot;</span>)]
     #[inline]
     </span><span class="kw">fn </span>grapheme_indices(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; GraphemeIndices&lt;<span class="lifetime">&#39;_</span>&gt; {
-        GraphemeIndices::new(<a class="self" href="#1819">self</a>.<a href="#97">as_bytes</a>())
+        GraphemeIndices::new(<span class="self">self</span>.as_bytes())
     }
 
     <span class="doccomment">/// Returns an iterator over the words in this byte string. If invalid
@@ -5508,7 +5508,7 @@
     </span><span class="attr">#[cfg(feature = <span class="string">&quot;unicode&quot;</span>)]
     #[inline]
     </span><span class="kw">fn </span>words(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Words&lt;<span class="lifetime">&#39;_</span>&gt; {
-        Words::new(<a class="self" href="#1855">self</a>.<a href="#97">as_bytes</a>())
+        Words::new(<span class="self">self</span>.as_bytes())
     }
 
     <span class="doccomment">/// Returns an iterator over the words in this byte string along with
@@ -5546,7 +5546,7 @@
     </span><span class="attr">#[cfg(feature = <span class="string">&quot;unicode&quot;</span>)]
     #[inline]
     </span><span class="kw">fn </span>word_indices(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; WordIndices&lt;<span class="lifetime">&#39;_</span>&gt; {
-        WordIndices::new(<a class="self" href="#1893">self</a>.<a href="#97">as_bytes</a>())
+        WordIndices::new(<span class="self">self</span>.as_bytes())
     }
 
     <span class="doccomment">/// Returns an iterator over the words in this byte string, along with
@@ -5576,7 +5576,7 @@
     </span><span class="attr">#[cfg(feature = <span class="string">&quot;unicode&quot;</span>)]
     #[inline]
     </span><span class="kw">fn </span>words_with_breaks(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; WordsWithBreaks&lt;<span class="lifetime">&#39;_</span>&gt; {
-        WordsWithBreaks::new(<a class="self" href="#1923">self</a>.<a href="#97">as_bytes</a>())
+        WordsWithBreaks::new(<span class="self">self</span>.as_bytes())
     }
 
     <span class="doccomment">/// Returns an iterator over the words and their byte offsets in this
@@ -5613,7 +5613,7 @@
     </span><span class="attr">#[cfg(feature = <span class="string">&quot;unicode&quot;</span>)]
     #[inline]
     </span><span class="kw">fn </span>words_with_break_indices(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; WordsWithBreakIndices&lt;<span class="lifetime">&#39;_</span>&gt; {
-        WordsWithBreakIndices::new(<a class="self" href="#1960">self</a>.<a href="#97">as_bytes</a>())
+        WordsWithBreakIndices::new(<span class="self">self</span>.as_bytes())
     }
 
     <span class="doccomment">/// Returns an iterator over the sentences in this byte string.
@@ -5645,7 +5645,7 @@
     </span><span class="attr">#[cfg(feature = <span class="string">&quot;unicode&quot;</span>)]
     #[inline]
     </span><span class="kw">fn </span>sentences(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Sentences&lt;<span class="lifetime">&#39;_</span>&gt; {
-        Sentences::new(<a class="self" href="#1992">self</a>.<a href="#97">as_bytes</a>())
+        Sentences::new(<span class="self">self</span>.as_bytes())
     }
 
     <span class="doccomment">/// Returns an iterator over the sentences in this byte string along with
@@ -5679,7 +5679,7 @@
     </span><span class="attr">#[cfg(feature = <span class="string">&quot;unicode&quot;</span>)]
     #[inline]
     </span><span class="kw">fn </span>sentence_indices(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; SentenceIndices&lt;<span class="lifetime">&#39;_</span>&gt; {
-        SentenceIndices::new(<a class="self" href="#2026">self</a>.<a href="#97">as_bytes</a>())
+        SentenceIndices::new(<span class="self">self</span>.as_bytes())
     }
 
     <span class="doccomment">/// An iterator over all lines in a byte string, without their
@@ -5710,7 +5710,7 @@
     /// ```
     </span><span class="attr">#[inline]
     </span><span class="kw">fn </span>lines(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Lines&lt;<span class="lifetime">&#39;_</span>&gt; {
-        Lines::new(<a class="self" href="#2057">self</a>.<a href="#97">as_bytes</a>())
+        Lines::new(<span class="self">self</span>.as_bytes())
     }
 
     <span class="doccomment">/// An iterator over all lines in a byte string, including their
@@ -5754,7 +5754,7 @@
     /// ```
     </span><span class="attr">#[inline]
     </span><span class="kw">fn </span>lines_with_terminator(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; LinesWithTerminator&lt;<span class="lifetime">&#39;_</span>&gt; {
-        LinesWithTerminator::new(<a class="self" href="#2101">self</a>.<a href="#97">as_bytes</a>())
+        LinesWithTerminator::new(<span class="self">self</span>.as_bytes())
     }
 
     <span class="doccomment">/// Return a byte string slice with leading and trailing whitespace
@@ -5775,8 +5775,8 @@
     /// ```
     </span><span class="attr">#[cfg(feature = <span class="string">&quot;unicode&quot;</span>)]
     #[inline]
-    </span><span class="kw">fn </span>trim(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>] {
-        <a class="self" href="#2123">self</a>.<a href="#2144">trim_start</a>().<a href="#2166">trim_end</a>()
+    </span><span class="kw">fn </span>trim(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[u8] {
+        <span class="self">self</span>.trim_start().trim_end()
     }
 
     <span class="doccomment">/// Return a byte string slice with leading whitespace removed.
@@ -5796,9 +5796,9 @@
     /// ```
     </span><span class="attr">#[cfg(feature = <span class="string">&quot;unicode&quot;</span>)]
     #[inline]
-    </span><span class="kw">fn </span>trim_start(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>] {
-        <span class="kw">let </span>start = <a href="unicode/whitespace.rs.html#7">whitespace_len_fwd</a>(<a class="self" href="#2144">self</a>.<a href="#97">as_bytes</a>());
-        <span class="kw-2">&amp;</span><a class="self" href="#2144">self</a>.<a href="#97">as_bytes</a>()[<a href="#2145">start</a>..]
+    </span><span class="kw">fn </span>trim_start(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[u8] {
+        <span class="kw">let </span>start = whitespace_len_fwd(<span class="self">self</span>.as_bytes());
+        <span class="kw-2">&amp;</span><span class="self">self</span>.as_bytes()[start..]
     }
 
     <span class="doccomment">/// Return a byte string slice with trailing whitespace removed.
@@ -5818,9 +5818,9 @@
     /// ```
     </span><span class="attr">#[cfg(feature = <span class="string">&quot;unicode&quot;</span>)]
     #[inline]
-    </span><span class="kw">fn </span>trim_end(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>] {
-        <span class="kw">let </span>end = <a href="unicode/whitespace.rs.html#12">whitespace_len_rev</a>(<a class="self" href="#2166">self</a>.<a href="#97">as_bytes</a>());
-        <span class="kw-2">&amp;</span><a class="self" href="#2166">self</a>.<a href="#97">as_bytes</a>()[..<a href="#2167">end</a>]
+    </span><span class="kw">fn </span>trim_end(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[u8] {
+        <span class="kw">let </span>end = whitespace_len_rev(<span class="self">self</span>.as_bytes());
+        <span class="kw-2">&amp;</span><span class="self">self</span>.as_bytes()[..end]
     }
 
     <span class="doccomment">/// Return a byte string slice with leading and trailing characters
@@ -5837,8 +5837,8 @@
     /// assert_eq!(s.trim_with(|c| c.is_numeric()), B(&quot;foo5bar&quot;));
     /// ```
     </span><span class="attr">#[inline]
-    </span><span class="kw">fn </span>trim_with&lt;F: FnMut(<a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw-2">mut </span>trim: F) -&gt; <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>] {
-        <a class="self" href="#2185">self</a>.<a href="#2203">trim_start_with</a>(<span class="kw-2">&amp;mut </span><a href="#2185">trim</a>).<a href="#2226">trim_end_with</a>(<span class="kw-2">&amp;mut </span><a href="#2185">trim</a>)
+    </span><span class="kw">fn </span>trim_with&lt;F: FnMut(char) -&gt; bool&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw-2">mut </span>trim: F) -&gt; <span class="kw-2">&amp;</span>[u8] {
+        <span class="self">self</span>.trim_start_with(<span class="kw-2">&amp;mut </span>trim).trim_end_with(<span class="kw-2">&amp;mut </span>trim)
     }
 
     <span class="doccomment">/// Return a byte string slice with leading characters satisfying the given
@@ -5855,7 +5855,7 @@
     /// assert_eq!(s.trim_start_with(|c| c.is_numeric()), B(&quot;foo5bar789&quot;));
     /// ```
     </span><span class="attr">#[inline]
-    </span><span class="kw">fn </span>trim_start_with&lt;F: FnMut(<a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw-2">mut </span>trim: F) -&gt; <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>] {
+    </span><span class="kw">fn </span>trim_start_with&lt;F: FnMut(char) -&gt; bool&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw-2">mut </span>trim: F) -&gt; <span class="kw-2">&amp;</span>[u8] {
         <span class="kw">for </span>(s, <span class="kw">_</span>, ch) <span class="kw">in </span><span class="self">self</span>.char_indices() {
             <span class="kw">if </span>!trim(ch) {
                 <span class="kw">return </span><span class="kw-2">&amp;</span><span class="self">self</span>.as_bytes()[s..];
@@ -5878,7 +5878,7 @@
     /// assert_eq!(s.trim_end_with(|c| c.is_numeric()), B(&quot;123foo5bar&quot;));
     /// ```
     </span><span class="attr">#[inline]
-    </span><span class="kw">fn </span>trim_end_with&lt;F: FnMut(<a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw-2">mut </span>trim: F) -&gt; <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>] {
+    </span><span class="kw">fn </span>trim_end_with&lt;F: FnMut(char) -&gt; bool&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw-2">mut </span>trim: F) -&gt; <span class="kw-2">&amp;</span>[u8] {
         <span class="kw">for </span>(<span class="kw">_</span>, e, ch) <span class="kw">in </span><span class="self">self</span>.char_indices().rev() {
             <span class="kw">if </span>!trim(ch) {
                 <span class="kw">return </span><span class="kw-2">&amp;</span><span class="self">self</span>.as_bytes()[..e];
@@ -5934,10 +5934,10 @@
     /// ```
     </span><span class="attr">#[cfg(all(feature = <span class="string">&quot;std&quot;</span>, feature = <span class="string">&quot;unicode&quot;</span>))]
     #[inline]
-    </span><span class="kw">fn </span>to_lowercase(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt; {
-        <span class="kw">let </span><span class="kw-2">mut </span>buf = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[];
-        <a class="self" href="#2282">self</a>.<a href="#2344">to_lowercase_into</a>(<span class="kw-2">&amp;mut </span><a href="#2283">buf</a>);
-        <a href="#2283">buf</a>
+    </span><span class="kw">fn </span>to_lowercase(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Vec&lt;u8&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>buf = <span class="macro">vec!</span>[];
+        <span class="self">self</span>.to_lowercase_into(<span class="kw-2">&amp;mut </span>buf);
+        buf
     }
 
     <span class="doccomment">/// Writes the lowercase equivalent of this byte string into the given
@@ -5996,7 +5996,7 @@
     /// ```
     </span><span class="attr">#[cfg(all(feature = <span class="string">&quot;std&quot;</span>, feature = <span class="string">&quot;unicode&quot;</span>))]
     #[inline]
-    </span><span class="kw">fn </span>to_lowercase_into(<span class="kw-2">&amp;</span><span class="self">self</span>, buf: <span class="kw-2">&amp;mut </span>Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;) {
+    </span><span class="kw">fn </span>to_lowercase_into(<span class="kw-2">&amp;</span><span class="self">self</span>, buf: <span class="kw-2">&amp;mut </span>Vec&lt;u8&gt;) {
         <span class="comment">// TODO: This is the best we can do given what std exposes I think.
         // If we roll our own case handling, then we might be able to do this
         // a bit faster. We shouldn&#39;t roll our own case handling unless we
@@ -6004,7 +6004,7 @@
 
         // TODO(BUG): This doesn&#39;t handle any special casing rules.
 
-        </span><a href="#2344">buf</a>.reserve(<a class="self" href="#2344">self</a>.<a href="#97">as_bytes</a>().len());
+        </span>buf.reserve(<span class="self">self</span>.as_bytes().len());
         <span class="kw">for </span>(s, e, ch) <span class="kw">in </span><span class="self">self</span>.char_indices() {
             <span class="kw">if </span>ch == <span class="string">&#39;\u{FFFD}&#39; </span>{
                 buf.push_str(<span class="kw-2">&amp;</span><span class="self">self</span>.as_bytes()[s..e]);
@@ -6051,8 +6051,8 @@
     /// ```
     </span><span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
     #[inline]
-    </span><span class="kw">fn </span>to_ascii_lowercase(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt; {
-        <a class="self" href="#2399">self</a>.<a href="#97">as_bytes</a>().to_ascii_lowercase()
+    </span><span class="kw">fn </span>to_ascii_lowercase(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Vec&lt;u8&gt; {
+        <span class="self">self</span>.as_bytes().to_ascii_lowercase()
     }
 
     <span class="doccomment">/// Convert this byte string to its lowercase ASCII equivalent in place.
@@ -6087,7 +6087,7 @@
     /// ```
     </span><span class="attr">#[inline]
     </span><span class="kw">fn </span>make_ascii_lowercase(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <a class="self" href="#2434">self</a>.<a href="#103">as_bytes_mut</a>().make_ascii_lowercase();
+        <span class="self">self</span>.as_bytes_mut().make_ascii_lowercase();
     }
 
     <span class="doccomment">/// Returns a new `Vec&lt;u8&gt;` containing the uppercase equivalent of this
@@ -6137,10 +6137,10 @@
     /// ```
     </span><span class="attr">#[cfg(all(feature = <span class="string">&quot;std&quot;</span>, feature = <span class="string">&quot;unicode&quot;</span>))]
     #[inline]
-    </span><span class="kw">fn </span>to_uppercase(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt; {
-        <span class="kw">let </span><span class="kw-2">mut </span>buf = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[];
-        <a class="self" href="#2485">self</a>.<a href="#2547">to_uppercase_into</a>(<span class="kw-2">&amp;mut </span><a href="#2486">buf</a>);
-        <a href="#2486">buf</a>
+    </span><span class="kw">fn </span>to_uppercase(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Vec&lt;u8&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>buf = <span class="macro">vec!</span>[];
+        <span class="self">self</span>.to_uppercase_into(<span class="kw-2">&amp;mut </span>buf);
+        buf
     }
 
     <span class="doccomment">/// Writes the uppercase equivalent of this byte string into the given
@@ -6199,12 +6199,12 @@
     /// ```
     </span><span class="attr">#[cfg(all(feature = <span class="string">&quot;std&quot;</span>, feature = <span class="string">&quot;unicode&quot;</span>))]
     #[inline]
-    </span><span class="kw">fn </span>to_uppercase_into(<span class="kw-2">&amp;</span><span class="self">self</span>, buf: <span class="kw-2">&amp;mut </span>Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;) {
+    </span><span class="kw">fn </span>to_uppercase_into(<span class="kw-2">&amp;</span><span class="self">self</span>, buf: <span class="kw-2">&amp;mut </span>Vec&lt;u8&gt;) {
         <span class="comment">// TODO: This is the best we can do given what std exposes I think.
         // If we roll our own case handling, then we might be able to do this
         // a bit faster. We shouldn&#39;t roll our own case handling unless we
         // need to, e.g., for doing caseless matching or case folding.
-        </span><a href="#2547">buf</a>.reserve(<a class="self" href="#2547">self</a>.<a href="#97">as_bytes</a>().len());
+        </span>buf.reserve(<span class="self">self</span>.as_bytes().len());
         <span class="kw">for </span>(s, e, ch) <span class="kw">in </span><span class="self">self</span>.char_indices() {
             <span class="kw">if </span>ch == <span class="string">&#39;\u{FFFD}&#39; </span>{
                 buf.push_str(<span class="kw-2">&amp;</span><span class="self">self</span>.as_bytes()[s..e]);
@@ -6251,8 +6251,8 @@
     /// ```
     </span><span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
     #[inline]
-    </span><span class="kw">fn </span>to_ascii_uppercase(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt; {
-        <a class="self" href="#2599">self</a>.<a href="#97">as_bytes</a>().to_ascii_uppercase()
+    </span><span class="kw">fn </span>to_ascii_uppercase(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Vec&lt;u8&gt; {
+        <span class="self">self</span>.as_bytes().to_ascii_uppercase()
     }
 
     <span class="doccomment">/// Convert this byte string to its uppercase ASCII equivalent in place.
@@ -6287,7 +6287,7 @@
     /// ```
     </span><span class="attr">#[inline]
     </span><span class="kw">fn </span>make_ascii_uppercase(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <a class="self" href="#2634">self</a>.<a href="#103">as_bytes_mut</a>().make_ascii_uppercase();
+        <span class="self">self</span>.as_bytes_mut().make_ascii_uppercase();
     }
 
     <span class="doccomment">/// Reverse the bytes in this string, in place.
@@ -6314,7 +6314,7 @@
     /// ```
     </span><span class="attr">#[inline]
     </span><span class="kw">fn </span>reverse_bytes(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <a class="self" href="#2661">self</a>.<a href="#103">as_bytes_mut</a>().reverse();
+        <span class="self">self</span>.as_bytes_mut().reverse();
     }
 
     <span class="doccomment">/// Reverse the codepoints in this string, in place.
@@ -6387,16 +6387,16 @@
     </span><span class="kw">fn </span>reverse_chars(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="kw">let </span><span class="kw-2">mut </span>i = <span class="number">0</span>;
         <span class="kw">loop </span>{
-            <span class="kw">let </span>(<span class="kw">_</span>, size) = <a href="utf8.rs.html#613">utf8::decode</a>(<span class="kw-2">&amp;</span><a class="self" href="#2732">self</a>.<a href="#97">as_bytes</a>()[<a href="#2733">i</a>..]);
+            <span class="kw">let </span>(<span class="kw">_</span>, size) = utf8::decode(<span class="kw-2">&amp;</span><span class="self">self</span>.as_bytes()[i..]);
             <span class="kw">if </span>size == <span class="number">0 </span>{
                 <span class="kw">break</span>;
             }
             <span class="kw">if </span>size &gt; <span class="number">1 </span>{
-                <a class="self" href="#2732">self</a>.<a href="#103">as_bytes_mut</a>()[<a href="#2733">i</a>..<a href="#2733">i</a> + <a href="#2735">size</a>].<a href="#2661">reverse_bytes</a>();
+                <span class="self">self</span>.as_bytes_mut()[i..i + size].reverse_bytes();
             }
-            <a href="#2733">i</a> += <a href="#2735">size</a>;
+            i += size;
         }
-        <a class="self" href="#2732">self</a>.<a href="#2661">reverse_bytes</a>();
+        <span class="self">self</span>.reverse_bytes();
     }
 
     <span class="doccomment">/// Reverse the graphemes in this string, in place.
@@ -6443,20 +6443,20 @@
     </span><span class="attr">#[cfg(feature = <span class="string">&quot;unicode&quot;</span>)]
     #[inline]
     </span><span class="kw">fn </span>reverse_graphemes(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <span class="kw">use </span><a href="unicode/grapheme.rs.html#191"><span class="kw">crate</span>::unicode::decode_grapheme</a>;
+        <span class="kw">use </span><span class="kw">crate</span>::unicode::decode_grapheme;
 
         <span class="kw">let </span><span class="kw-2">mut </span>i = <span class="number">0</span>;
         <span class="kw">loop </span>{
-            <span class="kw">let </span>(<span class="kw">_</span>, size) = <a href="unicode/grapheme.rs.html#191">decode_grapheme</a>(<span class="kw-2">&amp;</span><a class="self" href="#2790">self</a>.<a href="#97">as_bytes</a>()[<a href="#2793">i</a>..]);
+            <span class="kw">let </span>(<span class="kw">_</span>, size) = decode_grapheme(<span class="kw-2">&amp;</span><span class="self">self</span>.as_bytes()[i..]);
             <span class="kw">if </span>size == <span class="number">0 </span>{
                 <span class="kw">break</span>;
             }
             <span class="kw">if </span>size &gt; <span class="number">1 </span>{
-                <a class="self" href="#2790">self</a>.<a href="#103">as_bytes_mut</a>()[<a href="#2793">i</a>..<a href="#2793">i</a> + <a href="#2795">size</a>].<a href="#2661">reverse_bytes</a>();
+                <span class="self">self</span>.as_bytes_mut()[i..i + size].reverse_bytes();
             }
-            <a href="#2793">i</a> += <a href="#2795">size</a>;
+            i += size;
         }
-        <a class="self" href="#2790">self</a>.<a href="#2661">reverse_bytes</a>();
+        <span class="self">self</span>.reverse_bytes();
     }
 
     <span class="doccomment">/// Returns true if and only if every byte in this byte string is ASCII.
@@ -6477,8 +6477,8 @@
     /// assert!(!B(b&quot;\xFF&quot;).is_ascii());
     /// ```
     </span><span class="attr">#[inline]
-    </span><span class="kw">fn </span>is_ascii(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a href="ascii.rs.html#44">ascii::first_non_ascii_byte</a>(<a class="self" href="#2825">self</a>.<a href="#97">as_bytes</a>()) == <a class="self" href="#2825">self</a>.<a href="#97">as_bytes</a>().len()
+    </span><span class="kw">fn </span>is_ascii(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        ascii::first_non_ascii_byte(<span class="self">self</span>.as_bytes()) == <span class="self">self</span>.as_bytes().len()
     }
 
     <span class="doccomment">/// Returns true if and only if the entire byte string is valid UTF-8.
@@ -6505,8 +6505,8 @@
     /// assert!(!B(b&quot;\xF0\x82\x82\xAC&quot;).is_utf8());
     /// ```
     </span><span class="attr">#[inline]
-    </span><span class="kw">fn </span>is_utf8(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a href="utf8.rs.html#471">utf8::validate</a>(<a class="self" href="#2853">self</a>.<a href="#97">as_bytes</a>()).is_ok()
+    </span><span class="kw">fn </span>is_utf8(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        utf8::validate(<span class="self">self</span>.as_bytes()).is_ok()
     }
 
     <span class="doccomment">/// Returns the last byte in this byte string, if it&#39;s non-empty. If this
@@ -6526,9 +6526,9 @@
     /// assert_eq!(None, b&quot;&quot;.last_byte());
     /// ```
     </span><span class="attr">#[inline]
-    </span><span class="kw">fn </span>last_byte(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt; {
-        <span class="kw">let </span>bytes = <a class="self" href="#2874">self</a>.<a href="#97">as_bytes</a>();
-        <a href="#2875">bytes</a>.get(<a href="#2875">bytes</a>.len().saturating_sub(<span class="number">1</span>)).map(|<span class="kw-2">&amp;</span>b| <a href="#2876">b</a>)
+    </span><span class="kw">fn </span>last_byte(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;u8&gt; {
+        <span class="kw">let </span>bytes = <span class="self">self</span>.as_bytes();
+        bytes.get(bytes.len().saturating_sub(<span class="number">1</span>)).map(|<span class="kw-2">&amp;</span>b| b)
     }
 
     <span class="doccomment">/// Returns the index of the first non-ASCII byte in this byte string (if
@@ -6547,12 +6547,12 @@
     /// assert_eq!(Some(0), B(&quot;😀&quot;).find_non_ascii_byte());
     /// ```
     </span><span class="attr">#[inline]
-    </span><span class="kw">fn </span>find_non_ascii_byte(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
-        <span class="kw">let </span>index = <a href="ascii.rs.html#44">ascii::first_non_ascii_byte</a>(<a class="self" href="#2895">self</a>.<a href="#97">as_bytes</a>());
+    </span><span class="kw">fn </span>find_non_ascii_byte(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;usize&gt; {
+        <span class="kw">let </span>index = ascii::first_non_ascii_byte(<span class="self">self</span>.as_bytes());
         <span class="kw">if </span>index == <span class="self">self</span>.as_bytes().len() {
             <span class="prelude-val">None
         </span>} <span class="kw">else </span>{
-            <span class="prelude-val">Some</span>(<a href="#2896">index</a>)
+            <span class="prelude-val">Some</span>(index)
         }
     }
 
@@ -6582,29 +6582,29 @@
     /// assert_eq!(s, B(&quot;Hello, Wello!&quot;));
     /// ```
     </span><span class="attr">#[inline]
-    </span><span class="kw">fn </span>copy_within_str&lt;R&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, src: R, dest: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>)
+    </span><span class="kw">fn </span>copy_within_str&lt;R&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, src: R, dest: usize)
     <span class="kw">where
-        </span>R: ops::RangeBounds&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;,
+        </span>R: ops::RangeBounds&lt;usize&gt;,
     {
         <span class="comment">// TODO: Deprecate this once slice::copy_within stabilizes.
-        </span><span class="kw">let </span>src_start = <span class="kw">match </span><a href="#2930">src</a>.<a href="https://doc.rust-lang.org/nightly/core/ops/range/trait.RangeBounds.html">start_bound</a>() {
-            ops::Bound::Included(<span class="kw-2">&amp;</span>n) =&gt; <a href="#2936">n</a>,
+        </span><span class="kw">let </span>src_start = <span class="kw">match </span>src.start_bound() {
+            ops::Bound::Included(<span class="kw-2">&amp;</span>n) =&gt; n,
             ops::Bound::Excluded(<span class="kw-2">&amp;</span>n) =&gt; {
-                <a href="#2937">n</a>.checked_add(<span class="number">1</span>).expect(<span class="string">&quot;attempted to index slice beyond max&quot;</span>)
+                n.checked_add(<span class="number">1</span>).expect(<span class="string">&quot;attempted to index slice beyond max&quot;</span>)
             }
             ops::Bound::Unbounded =&gt; <span class="number">0</span>,
         };
-        <span class="kw">let </span>src_end = <span class="kw">match </span><a href="#2930">src</a>.<a href="https://doc.rust-lang.org/nightly/core/ops/range/trait.RangeBounds.html">end_bound</a>() {
+        <span class="kw">let </span>src_end = <span class="kw">match </span>src.end_bound() {
             ops::Bound::Included(<span class="kw-2">&amp;</span>n) =&gt; {
-                <a href="#2943">n</a>.checked_add(<span class="number">1</span>).expect(<span class="string">&quot;attempted to index slice beyond max&quot;</span>)
+                n.checked_add(<span class="number">1</span>).expect(<span class="string">&quot;attempted to index slice beyond max&quot;</span>)
             }
-            ops::Bound::Excluded(<span class="kw-2">&amp;</span>n) =&gt; <a href="#2946">n</a>,
-            ops::Bound::Unbounded =&gt; <a class="self" href="#2930">self</a>.<a href="#97">as_bytes</a>().len(),
+            ops::Bound::Excluded(<span class="kw-2">&amp;</span>n) =&gt; n,
+            ops::Bound::Unbounded =&gt; <span class="self">self</span>.as_bytes().len(),
         };
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(src_start &lt;= src_end, <span class="string">&quot;src end is before src start&quot;</span>);
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(src_end &lt;= <span class="self">self</span>.as_bytes().len(), <span class="string">&quot;src is out of bounds&quot;</span>);
-        <span class="kw">let </span>count = <a href="#2942">src_end</a> - <a href="#2935">src_start</a>;
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(
+        <span class="macro">assert!</span>(src_start &lt;= src_end, <span class="string">&quot;src end is before src start&quot;</span>);
+        <span class="macro">assert!</span>(src_end &lt;= <span class="self">self</span>.as_bytes().len(), <span class="string">&quot;src is out of bounds&quot;</span>);
+        <span class="kw">let </span>count = src_end - src_start;
+        <span class="macro">assert!</span>(
             dest &lt;= <span class="self">self</span>.as_bytes().len() - count,
             <span class="string">&quot;dest is out of bounds&quot;</span>,
         );
@@ -6615,9 +6615,9 @@
         // means we can copy without worrying about ownership/destructors.
         </span><span class="kw">unsafe </span>{
             ptr::copy(
-                <a class="self" href="#2930">self</a>.<a href="#97">as_bytes</a>().get_unchecked(<a href="#2935">src_start</a>),
-                <a class="self" href="#2930">self</a>.<a href="#103">as_bytes_mut</a>().get_unchecked_mut(<a href="#2930">dest</a>),
-                <a href="#2951">count</a>,
+                <span class="self">self</span>.as_bytes().get_unchecked(src_start),
+                <span class="self">self</span>.as_bytes_mut().get_unchecked_mut(dest),
+                count,
             );
         }
     }
@@ -6645,8 +6645,8 @@
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; Finder&lt;<span class="lifetime">&#39;a</span>&gt; {
     <span class="doccomment">/// Create a new finder for the given needle.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>new&lt;B: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> + AsRef&lt;[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;&gt;(needle: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>B) -&gt; Finder&lt;<span class="lifetime">&#39;a</span>&gt; {
-        <a href="#2988">Finder</a>(memmem::Finder::new(<a href="#2993">needle</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>()))
+    </span><span class="kw">pub fn </span>new&lt;B: <span class="question-mark">?</span>Sized + AsRef&lt;[u8]&gt;&gt;(needle: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>B) -&gt; Finder&lt;<span class="lifetime">&#39;a</span>&gt; {
+        Finder(memmem::Finder::new(needle.as_ref()))
     }
 
     <span class="doccomment">/// Convert this finder into its owned variant, such that it no longer
@@ -6659,7 +6659,7 @@
     </span><span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
     #[inline]
     </span><span class="kw">pub fn </span>into_owned(<span class="self">self</span>) -&gt; Finder&lt;<span class="lifetime">&#39;static</span>&gt; {
-        <a href="#2988">Finder</a>(<a class="self" href="#3006">self</a>.<span class="number">0</span>.into_owned())
+        Finder(<span class="self">self</span>.<span class="number">0</span>.into_owned())
     }
 
     <span class="doccomment">/// Returns the needle that this finder searches for.
@@ -6669,8 +6669,8 @@
     /// finder&#39;s needle can be either borrowed or owned, so the lifetime of the
     /// needle returned must necessarily be the shorter of the two.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>needle(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>] {
-        <a class="self" href="#3017">self</a>.<span class="number">0</span>.needle()
+    </span><span class="kw">pub fn </span>needle(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[u8] {
+        <span class="self">self</span>.<span class="number">0</span>.needle()
     }
 
     <span class="doccomment">/// Returns the index of the first occurrence of this needle in the given
@@ -6701,8 +6701,8 @@
     /// assert_eq!(None, Finder::new(&quot;quux&quot;).find(haystack));
     /// ```
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>find&lt;B: AsRef&lt;[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, haystack: B) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
-        <a class="self" href="#3049">self</a>.<span class="number">0</span>.find(<a href="#3049">haystack</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>())
+    </span><span class="kw">pub fn </span>find&lt;B: AsRef&lt;[u8]&gt;&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, haystack: B) -&gt; <span class="prelude-ty">Option</span>&lt;usize&gt; {
+        <span class="self">self</span>.<span class="number">0</span>.find(haystack.as_ref())
     }
 }
 
@@ -6728,8 +6728,8 @@
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; FinderReverse&lt;<span class="lifetime">&#39;a</span>&gt; {
     <span class="doccomment">/// Create a new reverse finder for the given needle.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>new&lt;B: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> + AsRef&lt;[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;&gt;(needle: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>B) -&gt; FinderReverse&lt;<span class="lifetime">&#39;a</span>&gt; {
-        <a href="#3071">FinderReverse</a>(memmem::FinderRev::new(<a href="#3076">needle</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>()))
+    </span><span class="kw">pub fn </span>new&lt;B: <span class="question-mark">?</span>Sized + AsRef&lt;[u8]&gt;&gt;(needle: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>B) -&gt; FinderReverse&lt;<span class="lifetime">&#39;a</span>&gt; {
+        FinderReverse(memmem::FinderRev::new(needle.as_ref()))
     }
 
     <span class="doccomment">/// Convert this finder into its owned variant, such that it no longer
@@ -6742,7 +6742,7 @@
     </span><span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
     #[inline]
     </span><span class="kw">pub fn </span>into_owned(<span class="self">self</span>) -&gt; FinderReverse&lt;<span class="lifetime">&#39;static</span>&gt; {
-        <a href="#3071">FinderReverse</a>(<a class="self" href="#3089">self</a>.<span class="number">0</span>.into_owned())
+        FinderReverse(<span class="self">self</span>.<span class="number">0</span>.into_owned())
     }
 
     <span class="doccomment">/// Returns the needle that this finder searches for.
@@ -6752,8 +6752,8 @@
     /// a finder&#39;s needle can be either borrowed or owned, so the lifetime of
     /// the needle returned must necessarily be the shorter of the two.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>needle(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>] {
-        <a class="self" href="#3100">self</a>.<span class="number">0</span>.needle()
+    </span><span class="kw">pub fn </span>needle(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[u8] {
+        <span class="self">self</span>.<span class="number">0</span>.needle()
     }
 
     <span class="doccomment">/// Returns the index of the last occurrence of this needle in the given
@@ -6784,8 +6784,8 @@
     /// assert_eq!(None, FinderReverse::new(&quot;quux&quot;).rfind(haystack));
     /// ```
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>rfind&lt;B: AsRef&lt;[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, haystack: B) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
-        <a class="self" href="#3132">self</a>.<span class="number">0</span>.rfind(<a href="#3132">haystack</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>())
+    </span><span class="kw">pub fn </span>rfind&lt;B: AsRef&lt;[u8]&gt;&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, haystack: B) -&gt; <span class="prelude-ty">Option</span>&lt;usize&gt; {
+        <span class="self">self</span>.<span class="number">0</span>.rfind(haystack.as_ref())
     }
 }
 
@@ -6798,22 +6798,22 @@
 </span><span class="attr">#[derive(Debug)]
 </span><span class="kw">pub struct </span>Find&lt;<span class="lifetime">&#39;a</span>&gt; {
     it: memmem::FindIter&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;a</span>&gt;,
-    haystack: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
-    needle: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
+    haystack: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[u8],
+    needle: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[u8],
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; Find&lt;<span class="lifetime">&#39;a</span>&gt; {
-    <span class="kw">fn </span>new(haystack: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], needle: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; Find&lt;<span class="lifetime">&#39;a</span>&gt; {
-        <a href="#3144">Find</a> { it: memmem::find_iter(<a href="#3151">haystack</a>, <a href="#3151">needle</a>), <a href="#3151">haystack</a>, <a href="#3151">needle</a> }
+    <span class="kw">fn </span>new(haystack: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[u8], needle: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[u8]) -&gt; Find&lt;<span class="lifetime">&#39;a</span>&gt; {
+        Find { it: memmem::find_iter(haystack, needle), haystack, needle }
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a> <span class="kw">for </span>Find&lt;<span class="lifetime">&#39;a</span>&gt; {
-    <span class="kw">type </span>Item = <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>;
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; Iterator <span class="kw">for </span>Find&lt;<span class="lifetime">&#39;a</span>&gt; {
+    <span class="kw">type </span>Item = usize;
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
-        <a class="self" href="#3160">self</a>.it.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>()
+    </span><span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;usize&gt; {
+        <span class="self">self</span>.it.next()
     }
 }
 
@@ -6826,34 +6826,34 @@
 </span><span class="attr">#[derive(Debug)]
 </span><span class="kw">pub struct </span>FindReverse&lt;<span class="lifetime">&#39;a</span>&gt; {
     it: memmem::FindRevIter&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;a</span>&gt;,
-    haystack: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
-    needle: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
+    haystack: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[u8],
+    needle: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[u8],
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; FindReverse&lt;<span class="lifetime">&#39;a</span>&gt; {
-    <span class="kw">fn </span>new(haystack: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], needle: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; FindReverse&lt;<span class="lifetime">&#39;a</span>&gt; {
-        <a href="#3172">FindReverse</a> {
-            it: memmem::rfind_iter(<a href="#3179">haystack</a>, <a href="#3179">needle</a>),
-            <a href="#3179">haystack</a>,
-            <a href="#3179">needle</a>,
+    <span class="kw">fn </span>new(haystack: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[u8], needle: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[u8]) -&gt; FindReverse&lt;<span class="lifetime">&#39;a</span>&gt; {
+        FindReverse {
+            it: memmem::rfind_iter(haystack, needle),
+            haystack,
+            needle,
         }
     }
 
-    <span class="kw">fn </span>haystack(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>] {
-        <a class="self" href="#3187">self</a>.haystack
+    <span class="kw">fn </span>haystack(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[u8] {
+        <span class="self">self</span>.haystack
     }
 
-    <span class="kw">fn </span>needle(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>] {
-        <a class="self" href="#3191">self</a>.needle
+    <span class="kw">fn </span>needle(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[u8] {
+        <span class="self">self</span>.needle
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a> <span class="kw">for </span>FindReverse&lt;<span class="lifetime">&#39;a</span>&gt; {
-    <span class="kw">type </span>Item = <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>;
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; Iterator <span class="kw">for </span>FindReverse&lt;<span class="lifetime">&#39;a</span>&gt; {
+    <span class="kw">type </span>Item = usize;
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
-        <a class="self" href="#3200">self</a>.it.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>()
+    </span><span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;usize&gt; {
+        <span class="self">self</span>.it.next()
     }
 }
 
@@ -6862,7 +6862,7 @@
 /// `&#39;a` is the lifetime of the byte string being traversed.
 </span><span class="attr">#[derive(Clone, Debug)]
 </span><span class="kw">pub struct </span>Bytes&lt;<span class="lifetime">&#39;a</span>&gt; {
-    it: slice::Iter&lt;<span class="lifetime">&#39;a</span>, <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;,
+    it: slice::Iter&lt;<span class="lifetime">&#39;a</span>, u8&gt;,
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; Bytes&lt;<span class="lifetime">&#39;a</span>&gt; {
@@ -6870,40 +6870,40 @@
     /// This has the same lifetime as the original slice,
     /// and so the iterator can continue to be used while this exists.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>as_slice(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>] {
-        <a class="self" href="#3218">self</a>.it.as_slice()
+    </span><span class="kw">pub fn </span>as_slice(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[u8] {
+        <span class="self">self</span>.it.as_slice()
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a> <span class="kw">for </span>Bytes&lt;<span class="lifetime">&#39;a</span>&gt; {
-    <span class="kw">type </span>Item = <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>;
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; Iterator <span class="kw">for </span>Bytes&lt;<span class="lifetime">&#39;a</span>&gt; {
+    <span class="kw">type </span>Item = u8;
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt; {
-        <a class="self" href="#3227">self</a>.it.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>().map(|<span class="kw-2">&amp;</span>b| <a href="#3228">b</a>)
+    </span><span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;u8&gt; {
+        <span class="self">self</span>.it.next().map(|<span class="kw-2">&amp;</span>b| b)
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>size_hint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;) {
-        <a class="self" href="#3232">self</a>.it.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">size_hint</a>()
-    }
-}
-
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/double_ended/trait.DoubleEndedIterator.html">DoubleEndedIterator</a> <span class="kw">for </span>Bytes&lt;<span class="lifetime">&#39;a</span>&gt; {
-    <span class="attr">#[inline]
-    </span><span class="kw">fn </span>next_back(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt; {
-        <a class="self" href="#3239">self</a>.it.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/double_ended/trait.DoubleEndedIterator.html">next_back</a>().map(|<span class="kw-2">&amp;</span>b| <a href="#3240">b</a>)
+    </span><span class="kw">fn </span>size_hint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (usize, <span class="prelude-ty">Option</span>&lt;usize&gt;) {
+        <span class="self">self</span>.it.size_hint()
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/exact_size/trait.ExactSizeIterator.html">ExactSizeIterator</a> <span class="kw">for </span>Bytes&lt;<span class="lifetime">&#39;a</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; DoubleEndedIterator <span class="kw">for </span>Bytes&lt;<span class="lifetime">&#39;a</span>&gt; {
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="self" href="#3246">self</a>.it.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/exact_size/trait.ExactSizeIterator.html">len</a>()
+    </span><span class="kw">fn </span>next_back(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;u8&gt; {
+        <span class="self">self</span>.it.next_back().map(|<span class="kw-2">&amp;</span>b| b)
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/marker/trait.FusedIterator.html">iter::FusedIterator</a> <span class="kw">for </span>Bytes&lt;<span class="lifetime">&#39;a</span>&gt; {}
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; ExactSizeIterator <span class="kw">for </span>Bytes&lt;<span class="lifetime">&#39;a</span>&gt; {
+    <span class="attr">#[inline]
+    </span><span class="kw">fn </span>len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+        <span class="self">self</span>.it.len()
+    }
+}
+
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; iter::FusedIterator <span class="kw">for </span>Bytes&lt;<span class="lifetime">&#39;a</span>&gt; {}
 
 <span class="doccomment">/// An iterator over the fields in a byte string, separated by whitespace.
 ///
@@ -6913,21 +6913,21 @@
 /// `&#39;a` is the lifetime of the byte string being split.
 </span><span class="attr">#[derive(Debug)]
 </span><span class="kw">pub struct </span>Fields&lt;<span class="lifetime">&#39;a</span>&gt; {
-    it: FieldsWith&lt;<span class="lifetime">&#39;a</span>, <span class="kw">fn</span>(<a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>&gt;,
+    it: FieldsWith&lt;<span class="lifetime">&#39;a</span>, <span class="kw">fn</span>(char) -&gt; bool&gt;,
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; Fields&lt;<span class="lifetime">&#39;a</span>&gt; {
-    <span class="kw">fn </span>new(bytes: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; Fields&lt;<span class="lifetime">&#39;a</span>&gt; {
-        <a href="#3260">Fields</a> { it: <a href="#3265">bytes</a>.<a href="#1101">fields_with</a>(|ch| <a href="#3266">ch</a>.is_whitespace()) }
+    <span class="kw">fn </span>new(bytes: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[u8]) -&gt; Fields&lt;<span class="lifetime">&#39;a</span>&gt; {
+        Fields { it: bytes.fields_with(|ch| ch.is_whitespace()) }
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a> <span class="kw">for </span>Fields&lt;<span class="lifetime">&#39;a</span>&gt; {
-    <span class="kw">type </span>Item = <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>];
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; Iterator <span class="kw">for </span>Fields&lt;<span class="lifetime">&#39;a</span>&gt; {
+    <span class="kw">type </span>Item = <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[u8];
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt; {
-        <a class="self" href="#3274">self</a>.it.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>()
+    </span><span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[u8]&gt; {
+        <span class="self">self</span>.it.next()
     }
 }
 
@@ -6943,29 +6943,29 @@
 </span><span class="attr">#[derive(Debug)]
 </span><span class="kw">pub struct </span>FieldsWith&lt;<span class="lifetime">&#39;a</span>, F&gt; {
     f: F,
-    bytes: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
+    bytes: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[u8],
     chars: CharIndices&lt;<span class="lifetime">&#39;a</span>&gt;,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, F: FnMut(<a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>&gt; FieldsWith&lt;<span class="lifetime">&#39;a</span>, F&gt; {
-    <span class="kw">fn </span>new(bytes: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], f: F) -&gt; FieldsWith&lt;<span class="lifetime">&#39;a</span>, F&gt; {
-        <a href="#3289">FieldsWith</a> { <a href="#3296">f</a>, <a href="#3296">bytes</a>, chars: <a href="#3296">bytes</a>.<a href="#1706">char_indices</a>() }
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, F: FnMut(char) -&gt; bool&gt; FieldsWith&lt;<span class="lifetime">&#39;a</span>, F&gt; {
+    <span class="kw">fn </span>new(bytes: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[u8], f: F) -&gt; FieldsWith&lt;<span class="lifetime">&#39;a</span>, F&gt; {
+        FieldsWith { f, bytes, chars: bytes.char_indices() }
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, F: FnMut(<a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a> <span class="kw">for </span>FieldsWith&lt;<span class="lifetime">&#39;a</span>, F&gt; {
-    <span class="kw">type </span>Item = <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>];
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, F: FnMut(char) -&gt; bool&gt; Iterator <span class="kw">for </span>FieldsWith&lt;<span class="lifetime">&#39;a</span>, F&gt; {
+    <span class="kw">type </span>Item = <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[u8];
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt; {
+    </span><span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[u8]&gt; {
         <span class="kw">let </span>(start, <span class="kw-2">mut </span>end);
         <span class="kw">loop </span>{
-            <span class="kw">match </span><a class="self" href="#3305">self</a>.chars.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>() {
+            <span class="kw">match </span><span class="self">self</span>.chars.next() {
                 <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="prelude-val">None</span>,
                 <span class="prelude-val">Some</span>((s, e, ch)) =&gt; {
                     <span class="kw">if </span>!(<span class="self">self</span>.f)(ch) {
-                        <a href="#3306">start</a> = <a href="#3310">s</a>;
-                        <a href="#3306">end</a> = <a href="#3310">e</a>;
+                        start = s;
+                        end = e;
                         <span class="kw">break</span>;
                     }
                 }
@@ -6977,7 +6977,7 @@
             }
             end = e;
         }
-        <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><a class="self" href="#3305">self</a>.bytes[<a href="#3306">start</a>..<a href="#3306">end</a>])
+        <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.bytes[start..end])
     }
 }
 
@@ -6990,45 +6990,45 @@
     <span class="doccomment">/// The end position of the previous match of our splitter. The element
     /// we yield corresponds to the substring starting at `last` up to the
     /// beginning of the next match of the splitter.
-    </span>last: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+    </span>last: usize,
     <span class="doccomment">/// Only set when iteration is complete. A corner case here is when a
     /// splitter is matched at the end of the haystack. At that point, we still
     /// need to yield an empty string following it.
-    </span>done: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
+    </span>done: bool,
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; Split&lt;<span class="lifetime">&#39;a</span>&gt; {
-    <span class="kw">fn </span>new(haystack: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], splitter: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; Split&lt;<span class="lifetime">&#39;a</span>&gt; {
-        <span class="kw">let </span>finder = <a href="#3346">haystack</a>.<a href="#762-765">find_iter</a>(<a href="#3346">splitter</a>);
-        <a href="#3333">Split</a> { <a href="#3347">finder</a>, last: <span class="number">0</span>, done: <span class="bool-val">false </span>}
+    <span class="kw">fn </span>new(haystack: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[u8], splitter: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[u8]) -&gt; Split&lt;<span class="lifetime">&#39;a</span>&gt; {
+        <span class="kw">let </span>finder = haystack.find_iter(splitter);
+        Split { finder, last: <span class="number">0</span>, done: <span class="bool-val">false </span>}
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a> <span class="kw">for </span>Split&lt;<span class="lifetime">&#39;a</span>&gt; {
-    <span class="kw">type </span>Item = <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>];
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; Iterator <span class="kw">for </span>Split&lt;<span class="lifetime">&#39;a</span>&gt; {
+    <span class="kw">type </span>Item = <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[u8];
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt; {
-        <span class="kw">let </span>haystack = <a class="self" href="#3356">self</a>.finder.haystack;
-        <span class="kw">match </span><a class="self" href="#3356">self</a>.finder.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>() {
+    </span><span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[u8]&gt; {
+        <span class="kw">let </span>haystack = <span class="self">self</span>.finder.haystack;
+        <span class="kw">match </span><span class="self">self</span>.finder.next() {
             <span class="prelude-val">Some</span>(start) =&gt; {
-                <span class="kw">let </span>next = <span class="kw-2">&amp;</span><a href="#3357">haystack</a>[<a class="self" href="#3356">self</a>.last..<a href="#3359">start</a>];
-                <a class="self" href="#3356">self</a>.last = <a href="#3359">start</a> + <a class="self" href="#3356">self</a>.finder.needle.len();
-                <span class="prelude-val">Some</span>(<a href="#3360">next</a>)
+                <span class="kw">let </span>next = <span class="kw-2">&amp;</span>haystack[<span class="self">self</span>.last..start];
+                <span class="self">self</span>.last = start + <span class="self">self</span>.finder.needle.len();
+                <span class="prelude-val">Some</span>(next)
             }
             <span class="prelude-val">None </span>=&gt; {
                 <span class="kw">if </span><span class="self">self</span>.last &gt;= haystack.len() {
                     <span class="kw">if </span>!<span class="self">self</span>.done {
-                        <a class="self" href="#3356">self</a>.done = <span class="bool-val">true</span>;
+                        <span class="self">self</span>.done = <span class="bool-val">true</span>;
                         <span class="prelude-val">Some</span>(<span class="string">b&quot;&quot;</span>)
                     } <span class="kw">else </span>{
                         <span class="prelude-val">None
                     </span>}
                 } <span class="kw">else </span>{
-                    <span class="kw">let </span>s = <span class="kw-2">&amp;</span><a href="#3357">haystack</a>[<a class="self" href="#3356">self</a>.last..];
-                    <a class="self" href="#3356">self</a>.last = <a href="#3357">haystack</a>.len();
-                    <a class="self" href="#3356">self</a>.done = <span class="bool-val">true</span>;
-                    <span class="prelude-val">Some</span>(<a href="#3373">s</a>)
+                    <span class="kw">let </span>s = <span class="kw-2">&amp;</span>haystack[<span class="self">self</span>.last..];
+                    <span class="self">self</span>.last = haystack.len();
+                    <span class="self">self</span>.done = <span class="bool-val">true</span>;
+                    <span class="prelude-val">Some</span>(s)
                 }
             }
         }
@@ -7046,46 +7046,46 @@
     <span class="doccomment">/// The end position of the previous match of our splitter. The element
     /// we yield corresponds to the substring starting at `last` up to the
     /// beginning of the next match of the splitter.
-    </span>last: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+    </span>last: usize,
     <span class="doccomment">/// Only set when iteration is complete. A corner case here is when a
     /// splitter is matched at the end of the haystack. At that point, we still
     /// need to yield an empty string following it.
-    </span>done: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
+    </span>done: bool,
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; SplitReverse&lt;<span class="lifetime">&#39;a</span>&gt; {
-    <span class="kw">fn </span>new(haystack: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], splitter: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; SplitReverse&lt;<span class="lifetime">&#39;a</span>&gt; {
-        <span class="kw">let </span>finder = <a href="#3402">haystack</a>.<a href="#807-810">rfind_iter</a>(<a href="#3402">splitter</a>);
-        <a href="#3389">SplitReverse</a> { <a href="#3403">finder</a>, last: <a href="#3402">haystack</a>.len(), done: <span class="bool-val">false </span>}
+    <span class="kw">fn </span>new(haystack: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[u8], splitter: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[u8]) -&gt; SplitReverse&lt;<span class="lifetime">&#39;a</span>&gt; {
+        <span class="kw">let </span>finder = haystack.rfind_iter(splitter);
+        SplitReverse { finder, last: haystack.len(), done: <span class="bool-val">false </span>}
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a> <span class="kw">for </span>SplitReverse&lt;<span class="lifetime">&#39;a</span>&gt; {
-    <span class="kw">type </span>Item = <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>];
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; Iterator <span class="kw">for </span>SplitReverse&lt;<span class="lifetime">&#39;a</span>&gt; {
+    <span class="kw">type </span>Item = <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[u8];
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt; {
-        <span class="kw">let </span>haystack = <a class="self" href="#3412">self</a>.finder.<a href="#3187">haystack</a>();
-        <span class="kw">match </span><a class="self" href="#3412">self</a>.finder.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>() {
+    </span><span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[u8]&gt; {
+        <span class="kw">let </span>haystack = <span class="self">self</span>.finder.haystack();
+        <span class="kw">match </span><span class="self">self</span>.finder.next() {
             <span class="prelude-val">Some</span>(start) =&gt; {
-                <span class="kw">let </span>nlen = <a class="self" href="#3412">self</a>.finder.<a href="#3191">needle</a>().len();
-                <span class="kw">let </span>next = <span class="kw-2">&amp;</span><a href="#3413">haystack</a>[<a href="#3415">start</a> + <a href="#3416">nlen</a>..<a class="self" href="#3412">self</a>.last];
-                <a class="self" href="#3412">self</a>.last = <a href="#3415">start</a>;
-                <span class="prelude-val">Some</span>(<a href="#3417">next</a>)
+                <span class="kw">let </span>nlen = <span class="self">self</span>.finder.needle().len();
+                <span class="kw">let </span>next = <span class="kw-2">&amp;</span>haystack[start + nlen..<span class="self">self</span>.last];
+                <span class="self">self</span>.last = start;
+                <span class="prelude-val">Some</span>(next)
             }
             <span class="prelude-val">None </span>=&gt; {
                 <span class="kw">if </span><span class="self">self</span>.last == <span class="number">0 </span>{
                     <span class="kw">if </span>!<span class="self">self</span>.done {
-                        <a class="self" href="#3412">self</a>.done = <span class="bool-val">true</span>;
+                        <span class="self">self</span>.done = <span class="bool-val">true</span>;
                         <span class="prelude-val">Some</span>(<span class="string">b&quot;&quot;</span>)
                     } <span class="kw">else </span>{
                         <span class="prelude-val">None
                     </span>}
                 } <span class="kw">else </span>{
-                    <span class="kw">let </span>s = <span class="kw-2">&amp;</span><a href="#3413">haystack</a>[..<a class="self" href="#3412">self</a>.last];
-                    <a class="self" href="#3412">self</a>.last = <span class="number">0</span>;
-                    <a class="self" href="#3412">self</a>.done = <span class="bool-val">true</span>;
-                    <span class="prelude-val">Some</span>(<a href="#3430">s</a>)
+                    <span class="kw">let </span>s = <span class="kw-2">&amp;</span>haystack[..<span class="self">self</span>.last];
+                    <span class="self">self</span>.last = <span class="number">0</span>;
+                    <span class="self">self</span>.done = <span class="bool-val">true</span>;
+                    <span class="prelude-val">Some</span>(s)
                 }
             }
         }
@@ -7100,33 +7100,33 @@
 </span><span class="attr">#[derive(Debug)]
 </span><span class="kw">pub struct </span>SplitN&lt;<span class="lifetime">&#39;a</span>&gt; {
     split: Split&lt;<span class="lifetime">&#39;a</span>&gt;,
-    limit: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-    count: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+    limit: usize,
+    count: usize,
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; SplitN&lt;<span class="lifetime">&#39;a</span>&gt; {
     <span class="kw">fn </span>new(
-        haystack: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
-        splitter: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
-        limit: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+        haystack: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[u8],
+        splitter: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[u8],
+        limit: usize,
     ) -&gt; SplitN&lt;<span class="lifetime">&#39;a</span>&gt; {
-        <span class="kw">let </span>split = <a href="#3454">haystack</a>.<a href="#1194-1197">split_str</a>(<a href="#3455">splitter</a>);
-        <a href="#3446">SplitN</a> { <a href="#3458">split</a>, <a href="#3456">limit</a>, count: <span class="number">0 </span>}
+        <span class="kw">let </span>split = haystack.split_str(splitter);
+        SplitN { split, limit, count: <span class="number">0 </span>}
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a> <span class="kw">for </span>SplitN&lt;<span class="lifetime">&#39;a</span>&gt; {
-    <span class="kw">type </span>Item = <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>];
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; Iterator <span class="kw">for </span>SplitN&lt;<span class="lifetime">&#39;a</span>&gt; {
+    <span class="kw">type </span>Item = <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[u8];
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt; {
-        <a class="self" href="#3467">self</a>.count += <span class="number">1</span>;
+    </span><span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[u8]&gt; {
+        <span class="self">self</span>.count += <span class="number">1</span>;
         <span class="kw">if </span><span class="self">self</span>.count &gt; <span class="self">self</span>.limit || <span class="self">self</span>.split.done {
             <span class="prelude-val">None
         </span>} <span class="kw">else if </span><span class="self">self</span>.count == <span class="self">self</span>.limit {
-            <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><a class="self" href="#3467">self</a>.split.finder.haystack[<a class="self" href="#3467">self</a>.split.last..])
+            <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.split.finder.haystack[<span class="self">self</span>.split.last..])
         } <span class="kw">else </span>{
-            <a class="self" href="#3467">self</a>.split.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>()
+            <span class="self">self</span>.split.next()
         }
     }
 }
@@ -7139,33 +7139,33 @@
 </span><span class="attr">#[derive(Debug)]
 </span><span class="kw">pub struct </span>SplitNReverse&lt;<span class="lifetime">&#39;a</span>&gt; {
     split: SplitReverse&lt;<span class="lifetime">&#39;a</span>&gt;,
-    limit: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-    count: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+    limit: usize,
+    count: usize,
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; SplitNReverse&lt;<span class="lifetime">&#39;a</span>&gt; {
     <span class="kw">fn </span>new(
-        haystack: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
-        splitter: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
-        limit: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+        haystack: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[u8],
+        splitter: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[u8],
+        limit: usize,
     ) -&gt; SplitNReverse&lt;<span class="lifetime">&#39;a</span>&gt; {
-        <span class="kw">let </span>split = <a href="#3493">haystack</a>.<a href="#1288-1291">rsplit_str</a>(<a href="#3494">splitter</a>);
-        <a href="#3485">SplitNReverse</a> { <a href="#3497">split</a>, <a href="#3495">limit</a>, count: <span class="number">0 </span>}
+        <span class="kw">let </span>split = haystack.rsplit_str(splitter);
+        SplitNReverse { split, limit, count: <span class="number">0 </span>}
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a> <span class="kw">for </span>SplitNReverse&lt;<span class="lifetime">&#39;a</span>&gt; {
-    <span class="kw">type </span>Item = <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>];
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; Iterator <span class="kw">for </span>SplitNReverse&lt;<span class="lifetime">&#39;a</span>&gt; {
+    <span class="kw">type </span>Item = <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[u8];
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt; {
-        <a class="self" href="#3506">self</a>.count += <span class="number">1</span>;
+    </span><span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[u8]&gt; {
+        <span class="self">self</span>.count += <span class="number">1</span>;
         <span class="kw">if </span><span class="self">self</span>.count &gt; <span class="self">self</span>.limit || <span class="self">self</span>.split.done {
             <span class="prelude-val">None
         </span>} <span class="kw">else if </span><span class="self">self</span>.count == <span class="self">self</span>.limit {
-            <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><a class="self" href="#3506">self</a>.split.finder.<a href="#3187">haystack</a>()[..<a class="self" href="#3506">self</a>.split.last])
+            <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.split.finder.haystack()[..<span class="self">self</span>.split.last])
         } <span class="kw">else </span>{
-            <a class="self" href="#3506">self</a>.split.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>()
+            <span class="self">self</span>.split.next()
         }
     }
 }
@@ -7181,24 +7181,24 @@
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; Lines&lt;<span class="lifetime">&#39;a</span>&gt; {
-    <span class="kw">fn </span>new(bytes: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; Lines&lt;<span class="lifetime">&#39;a</span>&gt; {
-        <a href="#3524">Lines</a> { it: LinesWithTerminator::new(<a href="#3529">bytes</a>) }
+    <span class="kw">fn </span>new(bytes: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[u8]) -&gt; Lines&lt;<span class="lifetime">&#39;a</span>&gt; {
+        Lines { it: LinesWithTerminator::new(bytes) }
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a> <span class="kw">for </span>Lines&lt;<span class="lifetime">&#39;a</span>&gt; {
-    <span class="kw">type </span>Item = <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>];
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; Iterator <span class="kw">for </span>Lines&lt;<span class="lifetime">&#39;a</span>&gt; {
+    <span class="kw">type </span>Item = <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[u8];
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt; {
+    </span><span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[u8]&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>line = <span class="self">self</span>.it.next()<span class="question-mark">?</span>;
         <span class="kw">if </span>line.last_byte() == <span class="prelude-val">Some</span>(<span class="string">b&#39;\n&#39;</span>) {
-            <a href="#3539">line</a> = <span class="kw-2">&amp;</span><a href="#3539">line</a>[..<a href="#3539">line</a>.len() - <span class="number">1</span>];
+            line = <span class="kw-2">&amp;</span>line[..line.len() - <span class="number">1</span>];
             <span class="kw">if </span>line.last_byte() == <span class="prelude-val">Some</span>(<span class="string">b&#39;\r&#39;</span>) {
-                <a href="#3539">line</a> = <span class="kw-2">&amp;</span><a href="#3539">line</a>[..<a href="#3539">line</a>.len() - <span class="number">1</span>];
+                line = <span class="kw-2">&amp;</span>line[..line.len() - <span class="number">1</span>];
             }
         }
-        <span class="prelude-val">Some</span>(<a href="#3539">line</a>)
+        <span class="prelude-val">Some</span>(line)
     }
 }
 
@@ -7216,31 +7216,31 @@
 ///
 /// `&#39;a` is the lifetime of the byte string being iterated over.
 </span><span class="kw">pub struct </span>LinesWithTerminator&lt;<span class="lifetime">&#39;a</span>&gt; {
-    bytes: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
+    bytes: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[u8],
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; LinesWithTerminator&lt;<span class="lifetime">&#39;a</span>&gt; {
-    <span class="kw">fn </span>new(bytes: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; LinesWithTerminator&lt;<span class="lifetime">&#39;a</span>&gt; {
-        <a href="#3563">LinesWithTerminator</a> { <a href="#3568">bytes</a> }
+    <span class="kw">fn </span>new(bytes: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[u8]) -&gt; LinesWithTerminator&lt;<span class="lifetime">&#39;a</span>&gt; {
+        LinesWithTerminator { bytes }
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a> <span class="kw">for </span>LinesWithTerminator&lt;<span class="lifetime">&#39;a</span>&gt; {
-    <span class="kw">type </span>Item = <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>];
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; Iterator <span class="kw">for </span>LinesWithTerminator&lt;<span class="lifetime">&#39;a</span>&gt; {
+    <span class="kw">type </span>Item = <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[u8];
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt; {
-        <span class="kw">match </span><a class="self" href="#3577">self</a>.bytes.<a href="#828">find_byte</a>(<span class="string">b&#39;\n&#39;</span>) {
-            <span class="prelude-val">None </span><span class="kw">if </span><a class="self" href="#3577">self</a>.bytes.is_empty() =&gt; <span class="prelude-val">None</span>,
+    </span><span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[u8]&gt; {
+        <span class="kw">match </span><span class="self">self</span>.bytes.find_byte(<span class="string">b&#39;\n&#39;</span>) {
+            <span class="prelude-val">None </span><span class="kw">if </span><span class="self">self</span>.bytes.is_empty() =&gt; <span class="prelude-val">None</span>,
             <span class="prelude-val">None </span>=&gt; {
-                <span class="kw">let </span>line = <a class="self" href="#3577">self</a>.bytes;
-                <a class="self" href="#3577">self</a>.bytes = <span class="string">b&quot;&quot;</span>;
-                <span class="prelude-val">Some</span>(<a href="#3581">line</a>)
+                <span class="kw">let </span>line = <span class="self">self</span>.bytes;
+                <span class="self">self</span>.bytes = <span class="string">b&quot;&quot;</span>;
+                <span class="prelude-val">Some</span>(line)
             }
             <span class="prelude-val">Some</span>(end) =&gt; {
-                <span class="kw">let </span>line = <span class="kw-2">&amp;</span><a class="self" href="#3577">self</a>.bytes[..<a href="#3585">end</a> + <span class="number">1</span>];
-                <a class="self" href="#3577">self</a>.bytes = <span class="kw-2">&amp;</span><a class="self" href="#3577">self</a>.bytes[<a href="#3585">end</a> + <span class="number">1</span>..];
-                <span class="prelude-val">Some</span>(<a href="#3586">line</a>)
+                <span class="kw">let </span>line = <span class="kw-2">&amp;</span><span class="self">self</span>.bytes[..end + <span class="number">1</span>];
+                <span class="self">self</span>.bytes = <span class="kw-2">&amp;</span><span class="self">self</span>.bytes[end + <span class="number">1</span>..];
+                <span class="prelude-val">Some</span>(line)
             }
         }
     }
@@ -7309,4 +7309,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="bstr" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="bstr" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

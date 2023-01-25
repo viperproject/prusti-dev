@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `prusti-interface/src/environment/mir_sets/place_set.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>place_set.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../../prusti_interface/index.html"><img class="rust-logo" src="../../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `prusti-interface/src/environment/mir_sets/place_set.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>place_set.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../../prusti_interface/index.html"><img class="rust-logo" src="../../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -179,26 +179,16 @@
 <a href="#179" id="179">179</a>
 <a href="#180" id="180">180</a>
 <a href="#181" id="181">181</a>
-<a href="#182" id="182">182</a>
-<a href="#183" id="183">183</a>
-<a href="#184" id="184">184</a>
-<a href="#185" id="185">185</a>
-<a href="#186" id="186">186</a>
-<a href="#187" id="187">187</a>
-<a href="#188" id="188">188</a>
-<a href="#189" id="189">189</a>
-<a href="#190" id="190">190</a>
-<a href="#191" id="191">191</a>
 </pre><pre class="rust"><code><span class="comment">// © 2019, ETH Zurich
 //
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-</span><span class="kw">use </span><span class="kw">crate</span>::utils::{<a class="self" href="../../lib.rs.html#24">self</a>, <a href="../../utils.rs.html#22">is_prefix</a>};
+</span><span class="kw">use </span><span class="kw">crate</span>::utils::{<span class="self">self</span>, is_prefix};
 <span class="kw">use </span>prusti_rustc_interface::{
-    <a href="../../../../rustc_hash/type.FxHashSet.html">data_structures::fx::FxHashSet</a>,
-    middle::{<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/index.html">mir</a>, <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/context/struct.TyCtxt.html">ty::TyCtxt</a>},
+    data_structures::fx::FxHashSet,
+    middle::{mir, ty::TyCtxt},
 };
 
 <span class="doccomment">/// A set of MIR places.
@@ -215,13 +205,13 @@
     <span class="kw">pub fn </span>new() -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>::default()
     }
-    <span class="kw">pub fn </span>contains(<span class="kw-2">&amp;</span><span class="self">self</span>, place: mir::Place&lt;<span class="lifetime">&#39;tcx</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#27">self</a>.places.contains(<span class="kw-2">&amp;</span><a href="#27">place</a>)
+    <span class="kw">pub fn </span>contains(<span class="kw-2">&amp;</span><span class="self">self</span>, place: mir::Place&lt;<span class="lifetime">&#39;tcx</span>&gt;) -&gt; bool {
+        <span class="self">self</span>.places.contains(<span class="kw-2">&amp;</span>place)
     }
-    <span class="kw">pub fn </span>contains_prefix_of(<span class="kw-2">&amp;</span><span class="self">self</span>, place: mir::Place&lt;<span class="lifetime">&#39;tcx</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#30">self</a>.places
+    <span class="kw">pub fn </span>contains_prefix_of(<span class="kw-2">&amp;</span><span class="self">self</span>, place: mir::Place&lt;<span class="lifetime">&#39;tcx</span>&gt;) -&gt; bool {
+        <span class="self">self</span>.places
             .iter()
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">any</a>(|potential_prefix| <a href="../../utils.rs.html#22">is_prefix</a>(<a href="#30">place</a>, <span class="kw-2">*</span><a href="#33">potential_prefix</a>))
+            .any(|potential_prefix| is_prefix(place, <span class="kw-2">*</span>potential_prefix))
     }
     <span class="kw">pub fn </span>check_invariant(<span class="kw-2">&amp;</span><span class="self">self</span>) {
         <span class="kw">for </span>place1 <span class="kw">in </span><span class="self">self</span>.places.iter() {
@@ -229,49 +219,45 @@
                 <span class="kw">if </span>place1 != place2 {
                     <span class="macro">assert!</span>(
                         !is_prefix(<span class="kw-2">*</span>place1, <span class="kw-2">*</span>place2),
-                        <span class="string">&quot;The place {:?} is a prefix of the place {:?}&quot;</span>,
-                        place2,
-                        place1
-                    );
+                        <span class="string">&quot;The place {place2:?} is a prefix of the place {place1:?}&quot;
+                    </span>);
                     <span class="macro">assert!</span>(
                         !is_prefix(<span class="kw-2">*</span>place2, <span class="kw-2">*</span>place1),
-                        <span class="string">&quot;The place {:?} is a prefix of the place {:?}&quot;</span>,
-                        place1,
-                        place2
-                    );
+                        <span class="string">&quot;The place {place1:?} is a prefix of the place {place2:?}&quot;
+                    </span>);
                 }
             }
         }
     }
     <span class="kw">pub fn </span>iter&lt;<span class="lifetime">&#39;a</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="self">self</span>) -&gt; <span class="kw">impl </span>Iterator&lt;Item = <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>mir::Place&lt;<span class="lifetime">&#39;tcx</span>&gt;&gt; {
-        <a class="self" href="#55">self</a>.places.iter()
+        <span class="self">self</span>.places.iter()
     }
     <span class="attr">#[allow(clippy::should_implement_trait)]
     </span><span class="kw">pub fn </span>into_iter(<span class="self">self</span>) -&gt; <span class="kw">impl </span>Iterator&lt;Item = mir::Place&lt;<span class="lifetime">&#39;tcx</span>&gt;&gt; {
-        <a class="self" href="#59">self</a>.places.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
+        <span class="self">self</span>.places.into_iter()
     }
     <span class="doccomment">/// Insert `place`.
     </span><span class="kw">pub fn </span>insert(<span class="kw-2">&amp;mut </span><span class="self">self</span>, place: mir::Place&lt;<span class="lifetime">&#39;tcx</span>&gt;, mir: <span class="kw-2">&amp;</span>mir::Body&lt;<span class="lifetime">&#39;tcx</span>&gt;, tcx: TyCtxt&lt;<span class="lifetime">&#39;tcx</span>&gt;) {
-        <a class="self" href="#63">self</a>.<a href="#35">check_invariant</a>();
+        <span class="self">self</span>.check_invariant();
         <span class="comment">// First, check that the place is not already marked as
         // definitely initialized.
         </span><span class="kw">if </span>!<span class="self">self</span>.places.iter().any(|other| is_prefix(place, <span class="kw-2">*</span>other)) {
             <span class="comment">// To maintain the invariant that we do not have a place and its
             // prefix in the set, we remove all places for which the given
             // one is a prefix.
-            </span><a class="self" href="#63">self</a>.places.retain(|other| !<a href="../../utils.rs.html#22">is_prefix</a>(<span class="kw-2">*</span><a href="#71">other</a>, <a href="#63">place</a>));
-            <a class="self" href="#63">self</a>.places.insert(<a href="#63">place</a>);
+            </span><span class="self">self</span>.places.retain(|other| !is_prefix(<span class="kw-2">*</span>other, place));
+            <span class="self">self</span>.places.insert(place);
             <span class="comment">// If all fields of a struct are definitely initialized,
             // just keep info that the struct is definitely initialized.
-            </span><a href="../../utils.rs.html#122-127">utils::collapse</a>(<a href="#63">mir</a>, <a href="#63">tcx</a>, <span class="kw-2">&amp;mut </span><a class="self" href="#63">self</a>.places, <a href="#63">place</a>);
+            </span>utils::collapse(mir, tcx, <span class="kw-2">&amp;mut </span><span class="self">self</span>.places, place);
         }
-        <a class="self" href="#63">self</a>.<a href="#35">check_invariant</a>();
+        <span class="self">self</span>.check_invariant();
     }
     <span class="doccomment">/// Remove `place`.
     </span><span class="kw">pub fn </span>remove(<span class="kw-2">&amp;mut </span><span class="self">self</span>, place: mir::Place&lt;<span class="lifetime">&#39;tcx</span>&gt;, mir: <span class="kw-2">&amp;</span>mir::Body&lt;<span class="lifetime">&#39;tcx</span>&gt;, tcx: TyCtxt&lt;<span class="lifetime">&#39;tcx</span>&gt;) {
-        <a class="self" href="#80">self</a>.<a href="#35">check_invariant</a>();
+        <span class="self">self</span>.check_invariant();
         <span class="kw">let </span><span class="kw-2">mut </span>places = Vec::new();
-        <span class="kw">let </span>old_places = std::mem::take(<span class="kw-2">&amp;mut </span><a class="self" href="#80">self</a>.places);
+        <span class="kw">let </span>old_places = std::mem::take(<span class="kw-2">&amp;mut </span><span class="self">self</span>.places);
         <span class="comment">// If needed, split the place whose part got uninitialized into
         // multiple places.
         </span><span class="kw">for </span>other <span class="kw">in </span>old_places.into_iter() {
@@ -292,35 +278,29 @@
         </span><span class="kw">for </span>place1 <span class="kw">in </span>places.iter() {
             <span class="macro">assert!</span>(
                 !is_prefix(<span class="kw-2">*</span>place1, place) &amp;&amp; !is_prefix(place, <span class="kw-2">*</span>place1),
-                <span class="string">&quot;Bug: failed to ensure that there are no prefixes: place={:?} place1={:?}&quot;</span>,
-                place,
-                place1
-            );
+                <span class="string">&quot;Bug: failed to ensure that there are no prefixes: place={place:?} place1={place1:?}&quot;
+            </span>);
             <span class="kw">for </span>place2 <span class="kw">in </span>places.iter() {
                 <span class="kw">if </span>place1 != place2 {
                     <span class="macro">assert!</span>(
                         !is_prefix(<span class="kw-2">*</span>place1, <span class="kw-2">*</span>place2),
-                        <span class="string">&quot;The place {:?} is a prefix of the place {:?}&quot;</span>,
-                        place2,
-                        place1
-                    );
+                        <span class="string">&quot;The place {place2:?} is a prefix of the place {place1:?}&quot;
+                    </span>);
                     <span class="macro">assert!</span>(
                         !is_prefix(<span class="kw-2">*</span>place2, <span class="kw-2">*</span>place1),
-                        <span class="string">&quot;The place {:?} is a prefix of the place {:?}&quot;</span>,
-                        place1,
-                        place2
-                    );
+                        <span class="string">&quot;The place {place1:?} is a prefix of the place {place2:?}&quot;
+                    </span>);
                 }
             }
         }
 
-        <a class="self" href="#80">self</a>.places = <a href="#82">places</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
-        <a class="self" href="#80">self</a>.<a href="#35">check_invariant</a>();
+        <span class="self">self</span>.places = places.into_iter().collect();
+        <span class="self">self</span>.check_invariant();
     }
     <span class="doccomment">/// Compute the intersection of the two place sets.
     </span><span class="kw">pub fn </span>merge(place_set1: <span class="kw-2">&amp;</span>PlaceSet&lt;<span class="lifetime">&#39;tcx</span>&gt;, place_set2: <span class="kw-2">&amp;</span>PlaceSet&lt;<span class="lifetime">&#39;tcx</span>&gt;) -&gt; PlaceSet&lt;<span class="lifetime">&#39;tcx</span>&gt; {
-        <a href="#130">place_set1</a>.<a href="#35">check_invariant</a>();
-        <a href="#130">place_set2</a>.<a href="#35">check_invariant</a>();
+        place_set1.check_invariant();
+        place_set2.check_invariant();
         <span class="kw">let </span><span class="kw-2">mut </span>places = FxHashSet::default();
         <span class="kw">let </span><span class="kw-2">mut </span>propage_places = |place_set1: <span class="kw-2">&amp;</span>PlaceSet&lt;<span class="lifetime">&#39;tcx</span>&gt;, place_set2: <span class="kw-2">&amp;</span>PlaceSet&lt;<span class="lifetime">&#39;tcx</span>&gt;| {
             <span class="kw">for </span>place <span class="kw">in </span>place_set1.iter() {
@@ -332,16 +312,16 @@
                 }
             }
         };
-        <a href="#134">propage_places</a>(<a href="#130">place_set1</a>, <a href="#130">place_set2</a>);
-        <a href="#134">propage_places</a>(<a href="#130">place_set2</a>, <a href="#130">place_set1</a>);
-        <span class="kw">let </span>result = <span class="self">Self </span>{ <a href="#133">places</a> };
-        <a href="#146">result</a>.<a href="#35">check_invariant</a>();
-        <a href="#146">result</a>
+        propage_places(place_set1, place_set2);
+        propage_places(place_set2, place_set1);
+        <span class="kw">let </span>result = <span class="self">Self </span>{ places };
+        result.check_invariant();
+        result
     }
     <span class="doccomment">/// This function fixes the invariant.
     </span><span class="kw">pub fn </span>deduplicate(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <span class="kw">let </span>old_places = std::mem::take(<span class="kw-2">&amp;mut </span><a class="self" href="#151">self</a>.places);
-        <span class="kw">let </span>places: Vec&lt;<span class="kw">_</span>&gt; = <a href="#152">old_places</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
+        <span class="kw">let </span>old_places = std::mem::take(<span class="kw-2">&amp;mut </span><span class="self">self</span>.places);
+        <span class="kw">let </span>places: Vec&lt;<span class="kw">_</span>&gt; = old_places.into_iter().collect();
         <span class="kw">let </span><span class="kw-2">mut </span>to_remove = FxHashSet::default();
         <span class="kw">for </span>(i, place) <span class="kw">in </span>places.iter().enumerate() {
             <span class="kw">for </span>(j, other) <span class="kw">in </span>places.iter().enumerate() {
@@ -362,23 +342,23 @@
                 <span class="self">self</span>.places.insert(place);
             }
         }
-        <a class="self" href="#151">self</a>.<a href="#35">check_invariant</a>();
+        <span class="self">self</span>.check_invariant();
     }
     <span class="doccomment">/// Compute the union of the two place sets.
     ///
     /// Note that this function may break the invariant that we never
     /// have a place and its descendants in the set.
     </span><span class="kw">pub fn </span>union(place_set1: <span class="kw-2">&amp;</span>PlaceSet&lt;<span class="lifetime">&#39;tcx</span>&gt;, place_set2: <span class="kw-2">&amp;</span>PlaceSet&lt;<span class="lifetime">&#39;tcx</span>&gt;) -&gt; PlaceSet&lt;<span class="lifetime">&#39;tcx</span>&gt; {
-        <span class="kw">let </span><span class="kw-2">mut </span>places = <a href="#180">place_set1</a>.places.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
-        <a href="#181">places</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a href="#180">place_set2</a>.<a href="#55">iter</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">cloned</a>());
-        <span class="self">Self </span>{ <a href="#181">places</a> }
+        <span class="kw">let </span><span class="kw-2">mut </span>places = place_set1.places.clone();
+        places.extend(place_set2.iter().cloned());
+        <span class="self">Self </span>{ places }
     }
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;tcx</span>&gt; From&lt;FxHashSet&lt;mir::Place&lt;<span class="lifetime">&#39;tcx</span>&gt;&gt;&gt; <span class="kw">for </span>PlaceSet&lt;<span class="lifetime">&#39;tcx</span>&gt; {
     <span class="kw">fn </span>from(places: FxHashSet&lt;mir::Place&lt;<span class="lifetime">&#39;tcx</span>&gt;&gt;) -&gt; <span class="self">Self </span>{
-        <span class="self">Self </span>{ <a href="#188">places</a> }
+        <span class="self">Self </span>{ places }
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="prusti_interface" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="prusti_interface" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

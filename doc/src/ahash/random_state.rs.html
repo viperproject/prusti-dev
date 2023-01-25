@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/ahash-0.7.6/src/random_state.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>random_state.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../ahash/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/ahash-0.7.6/src/random_state.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>random_state.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../ahash/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -357,9 +357,9 @@
 <a href="#357" id="357">357</a>
 <a href="#358" id="358">358</a>
 </pre><pre class="rust"><code><span class="attr">#[cfg(all(feature = <span class="string">&quot;runtime-rng&quot;</span>, not(all(feature = <span class="string">&quot;compile-time-rng&quot;</span>, test))))]
-</span><span class="kw">use </span><a href="convert.rs.html#1"><span class="kw">crate</span>::convert::Convert</a>;
+</span><span class="kw">use </span><span class="kw">crate</span>::convert::Convert;
 <span class="attr">#[cfg(feature = <span class="string">&quot;specialize&quot;</span>)]
-</span><span class="kw">use </span><a href="lib.rs.html#130"><span class="kw">crate</span>::BuildHasherExt</a>;
+</span><span class="kw">use </span><span class="kw">crate</span>::BuildHasherExt;
 
 <span class="attr">#[cfg(any(
     all(any(target_arch = <span class="string">&quot;x86&quot;</span>, target_arch = <span class="string">&quot;x86_64&quot;</span>), target_feature = <span class="string">&quot;aes&quot;</span>, not(miri)),
@@ -371,26 +371,26 @@
     all(any(target_arch = <span class="string">&quot;x86&quot;</span>, target_arch = <span class="string">&quot;x86_64&quot;</span>), target_feature = <span class="string">&quot;aes&quot;</span>, not(miri)),
     all(any(target_arch = <span class="string">&quot;arm&quot;</span>, target_arch = <span class="string">&quot;aarch64&quot;</span>), target_feature = <span class="string">&quot;crypto&quot;</span>, not(miri), feature = <span class="string">&quot;stdsimd&quot;</span>)
 )))]
-</span><span class="kw">pub use </span><a href="lib.rs.html#43"><span class="kw">crate</span>::fallback_hash</a>::<span class="kw-2">*</span>;
+</span><span class="kw">pub use </span><span class="kw">crate</span>::fallback_hash::<span class="kw-2">*</span>;
 
 <span class="attr">#[cfg(all(feature = <span class="string">&quot;compile-time-rng&quot;</span>, any(not(feature = <span class="string">&quot;runtime-rng&quot;</span>), test)))]
 </span><span class="kw">use </span>const_random::const_random;
-<span class="kw">use </span>core::any::{<a href="https://doc.rust-lang.org/nightly/core/any/trait.Any.html">Any</a>, <a href="https://doc.rust-lang.org/nightly/core/any/struct.TypeId.html">TypeId</a>};
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/fmt/index.html">core::fmt</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/hash/trait.BuildHasher.html">core::hash::BuildHasher</a>;
+<span class="kw">use </span>core::any::{Any, TypeId};
+<span class="kw">use </span>core::fmt;
+<span class="kw">use </span>core::hash::BuildHasher;
 <span class="attr">#[cfg(feature = <span class="string">&quot;specialize&quot;</span>)]
-</span><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/hash/macros/derive.Hash.html">core::hash::Hash</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/hash/trait.Hasher.html">core::hash::Hasher</a>;
+</span><span class="kw">use </span>core::hash::Hash;
+<span class="kw">use </span>core::hash::Hasher;
 
 <span class="attr">#[cfg(not(feature = <span class="string">&quot;std&quot;</span>))]
 </span><span class="kw">extern crate </span>alloc;
 <span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
 </span><span class="kw">extern crate </span>std <span class="kw">as </span>alloc;
 
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/boxed/struct.Box.html">alloc::boxed::Box</a>;
-<span class="kw">use </span>core::sync::atomic::{<a href="https://doc.rust-lang.org/nightly/core/sync/atomic/struct.AtomicUsize.html">AtomicUsize</a>, <a href="https://doc.rust-lang.org/nightly/core/sync/atomic/enum.Ordering.html">Ordering</a>};
+<span class="kw">use </span>alloc::boxed::Box;
+<span class="kw">use </span>core::sync::atomic::{AtomicUsize, Ordering};
 <span class="attr">#[cfg(not(all(target_arch = <span class="string">&quot;arm&quot;</span>, target_os = <span class="string">&quot;none&quot;</span>)))]
-</span><span class="kw">use </span><a href="../../once_cell/race/once_box/struct.OnceBox.html">once_cell::race::OnceBox</a>;
+</span><span class="kw">use </span>once_cell::race::OnceBox;
 
 <span class="attr">#[cfg(any(
     all(any(target_arch = <span class="string">&quot;x86&quot;</span>, target_arch = <span class="string">&quot;x86_64&quot;</span>), target_feature = <span class="string">&quot;aes&quot;</span>, not(miri)),
@@ -401,29 +401,29 @@
     all(any(target_arch = <span class="string">&quot;x86&quot;</span>, target_arch = <span class="string">&quot;x86_64&quot;</span>), target_feature = <span class="string">&quot;aes&quot;</span>, not(miri)),
     all(any(target_arch = <span class="string">&quot;arm&quot;</span>, target_arch = <span class="string">&quot;aarch64&quot;</span>), target_feature = <span class="string">&quot;crypto&quot;</span>, not(miri), feature = <span class="string">&quot;stdsimd&quot;</span>)
 )))]
-</span><span class="kw">use </span><a href="lib.rs.html#43"><span class="kw">crate</span>::fallback_hash</a>::<span class="kw-2">*</span>;
+</span><span class="kw">use </span><span class="kw">crate</span>::fallback_hash::<span class="kw-2">*</span>;
 
 <span class="attr">#[cfg(not(all(target_arch = <span class="string">&quot;arm&quot;</span>, target_os = <span class="string">&quot;none&quot;</span>)))]
-</span><span class="kw">static </span>RAND_SOURCE: OnceBox&lt;Box&lt;<span class="kw">dyn </span><a href="#53">RandomSource</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a>&gt;&gt; = OnceBox::new();
+</span><span class="kw">static </span>RAND_SOURCE: OnceBox&lt;Box&lt;<span class="kw">dyn </span>RandomSource + Send + Sync&gt;&gt; = OnceBox::new();
 
 <span class="doccomment">/// A supplier of Randomness used for different hashers.
 /// See [RandomState.set_random_source].
 </span><span class="kw">pub trait </span>RandomSource {
 
-    <span class="kw">fn </span>get_fixed_seeds(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>[[<a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>; <span class="number">4</span>]; <span class="number">2</span>];
+    <span class="kw">fn </span>get_fixed_seeds(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>[[u64; <span class="number">4</span>]; <span class="number">2</span>];
 
-    <span class="kw">fn </span>gen_hasher_seed(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>;
+    <span class="kw">fn </span>gen_hasher_seed(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize;
 
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>PI: [<a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>; <span class="number">4</span>] = [
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>PI: [u64; <span class="number">4</span>] = [
     <span class="number">0x243f_6a88_85a3_08d3</span>,
     <span class="number">0x1319_8a2e_0370_7344</span>,
     <span class="number">0xa409_3822_299f_31d0</span>,
     <span class="number">0x082e_fa98_ec4e_6c89</span>,
 ];
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>PI2: [<a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>; <span class="number">4</span>] = [
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>PI2: [u64; <span class="number">4</span>] = [
     <span class="number">0x4528_21e6_38d0_1377</span>,
     <span class="number">0xbe54_66cf_34e9_0c6c</span>,
     <span class="number">0xc0ac_29b7_c97c_50dd</span>,
@@ -431,33 +431,33 @@
 ];
 
 <span class="kw">struct </span>DefaultRandomSource {
-    counter: <a href="https://doc.rust-lang.org/nightly/core/sync/atomic/struct.AtomicUsize.html">AtomicUsize</a>,
+    counter: AtomicUsize,
 }
 
-<span class="kw">impl </span><a href="#75">DefaultRandomSource</a> {
-    <span class="kw">fn </span>new() -&gt; <a href="#75">DefaultRandomSource</a> {
-        <a href="#75">DefaultRandomSource</a> {
-            counter: AtomicUsize::new(<span class="kw-2">&amp;</span><a href="#61">PI</a> <span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_ as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>),
+<span class="kw">impl </span>DefaultRandomSource {
+    <span class="kw">fn </span>new() -&gt; DefaultRandomSource {
+        DefaultRandomSource {
+            counter: AtomicUsize::new(<span class="kw-2">&amp;</span>PI <span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_ as </span>usize),
         }
     }
 
-    <span class="kw">const fn </span>default() -&gt; <a href="#75">DefaultRandomSource</a> {
-        <a href="#75">DefaultRandomSource</a> {
-            counter: AtomicUsize::new(<a href="#61">PI</a>[<span class="number">3</span>] <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>),
+    <span class="kw">const fn </span>default() -&gt; DefaultRandomSource {
+        DefaultRandomSource {
+            counter: AtomicUsize::new(PI[<span class="number">3</span>] <span class="kw">as </span>usize),
         }
     }
 }
 
-<span class="kw">impl </span><a href="#53">RandomSource</a> <span class="kw">for </span><a href="#75">DefaultRandomSource</a> {
+<span class="kw">impl </span>RandomSource <span class="kw">for </span>DefaultRandomSource {
 
     <span class="attr">#[cfg(all(feature = <span class="string">&quot;runtime-rng&quot;</span>, not(all(feature = <span class="string">&quot;compile-time-rng&quot;</span>, test))))]
-    </span><span class="kw">fn </span>get_fixed_seeds(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>[[<a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>; <span class="number">4</span>]; <span class="number">2</span>] {
-        <span class="kw">static </span>SEEDS: OnceBox&lt;[[<a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>; <span class="number">4</span>]; <span class="number">2</span>]&gt; = OnceBox::new();
+    </span><span class="kw">fn </span>get_fixed_seeds(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>[[u64; <span class="number">4</span>]; <span class="number">2</span>] {
+        <span class="kw">static </span>SEEDS: OnceBox&lt;[[u64; <span class="number">4</span>]; <span class="number">2</span>]&gt; = OnceBox::new();
 
-        <a href="#97">SEEDS</a>.get_or_init(|| {
-            <span class="kw">let </span><span class="kw-2">mut </span>result: [<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="number">64</span>] = [<span class="number">0</span>; <span class="number">64</span>];
-            getrandom::getrandom(<span class="kw-2">&amp;mut </span><a href="#100">result</a>).expect(<span class="string">&quot;getrandom::getrandom() failed.&quot;</span>);
-            Box::new(<a href="#100">result</a>.<a href="convert.rs.html#2">convert</a>())
+        SEEDS.get_or_init(|| {
+            <span class="kw">let </span><span class="kw-2">mut </span>result: [u8; <span class="number">64</span>] = [<span class="number">0</span>; <span class="number">64</span>];
+            getrandom::getrandom(<span class="kw-2">&amp;mut </span>result).expect(<span class="string">&quot;getrandom::getrandom() failed.&quot;</span>);
+            Box::new(result.convert())
         })
     }
 
@@ -485,9 +485,9 @@
     }
 
     <span class="attr">#[cfg(not(all(target_arch = <span class="string">&quot;arm&quot;</span>, target_os = <span class="string">&quot;none&quot;</span>)))]
-    </span><span class="kw">fn </span>gen_hasher_seed(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <span class="kw">let </span>stack = <span class="self"><a href="#130">self</a> </span><span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_ as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>;
-        <a class="self" href="#130">self</a>.counter.fetch_add(<a href="#131">stack</a>, Ordering::Relaxed)
+    </span><span class="kw">fn </span>gen_hasher_seed(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+        <span class="kw">let </span>stack = <span class="self">self </span><span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_ as </span>usize;
+        <span class="self">self</span>.counter.fetch_add(stack, Ordering::Relaxed)
     }
 
     <span class="attr">#[cfg(all(target_arch = <span class="string">&quot;arm&quot;</span>, target_os = <span class="string">&quot;none&quot;</span>))]
@@ -509,19 +509,19 @@
 /// [HashMap]: std::collections::HashMap
 </span><span class="attr">#[derive(Clone)]
 </span><span class="kw">pub struct </span>RandomState {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) k0: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>,
-    <span class="kw">pub</span>(<span class="kw">crate</span>) k1: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>,
-    <span class="kw">pub</span>(<span class="kw">crate</span>) k2: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>,
-    <span class="kw">pub</span>(<span class="kw">crate</span>) k3: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) k0: u64,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) k1: u64,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) k2: u64,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) k3: u64,
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="#153">RandomState</a> {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a href="#161">f</a>.pad(<span class="string">&quot;RandomState { .. }&quot;</span>)
+<span class="kw">impl </span>fmt::Debug <span class="kw">for </span>RandomState {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        f.pad(<span class="string">&quot;RandomState { .. }&quot;</span>)
     }
 }
 
-<span class="kw">impl </span><a href="#153">RandomState</a> {
+<span class="kw">impl </span>RandomState {
 
     <span class="doccomment">/// Provides an optional way to manually supply a source of randomness for Hasher keys.
     ///
@@ -532,14 +532,14 @@
     /// If the source has already been specified `Err` is returned with a `bool` indicating if the set failed because
     /// method was previously invoked (true) or if the default source is already being used (false).
     </span><span class="attr">#[cfg(not(all(target_arch = <span class="string">&quot;arm&quot;</span>, target_os = <span class="string">&quot;none&quot;</span>)))]
-    </span><span class="kw">pub fn </span>set_random_source(source: <span class="kw">impl </span><a href="#53">RandomSource</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> + <span class="lifetime">&#39;static</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>&gt; {
-        <a href="#49">RAND_SOURCE</a>.set(Box::new(Box::new(<a href="#177">source</a>))).map_err(|s| <a href="#178">s</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>().<a href="https://doc.rust-lang.org/nightly/core/any/trait.Any.html">type_id</a>() != TypeId::of::&lt;<span class="kw-2">&amp;</span><a href="#75">DefaultRandomSource</a>&gt;())
+    </span><span class="kw">pub fn </span>set_random_source(source: <span class="kw">impl </span>RandomSource + Send + Sync + <span class="lifetime">&#39;static</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), bool&gt; {
+        RAND_SOURCE.set(Box::new(Box::new(source))).map_err(|s| s.as_ref().type_id() != TypeId::of::&lt;<span class="kw-2">&amp;</span>DefaultRandomSource&gt;())
     }
 
     <span class="attr">#[inline]
     #[cfg(not(all(target_arch = <span class="string">&quot;arm&quot;</span>, target_os = <span class="string">&quot;none&quot;</span>)))]
-    </span><span class="kw">fn </span>get_src() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><span class="kw">dyn </span><a href="#53">RandomSource</a> {
-        <a href="#49">RAND_SOURCE</a>.get_or_init(|| Box::new(Box::new(DefaultRandomSource::new()))).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>()
+    </span><span class="kw">fn </span>get_src() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><span class="kw">dyn </span>RandomSource {
+        RAND_SOURCE.get_or_init(|| Box::new(Box::new(DefaultRandomSource::new()))).as_ref()
     }
 
     <span class="attr">#[inline]
@@ -551,52 +551,52 @@
 
     <span class="doccomment">/// Use randomly generated keys
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>new() -&gt; <a href="#153">RandomState</a> {
+    </span><span class="kw">pub fn </span>new() -&gt; RandomState {
         <span class="kw">let </span>src = <span class="self">Self</span>::get_src();
-        <span class="kw">let </span>fixed = <a href="#197">src</a>.<a href="#55">get_fixed_seeds</a>();
-        <span class="self">Self</span>::from_keys(<span class="kw-2">&amp;</span><a href="#198">fixed</a>[<span class="number">0</span>], <span class="kw-2">&amp;</span><a href="#198">fixed</a>[<span class="number">1</span>], <a href="#197">src</a>.<a href="#57">gen_hasher_seed</a>())
+        <span class="kw">let </span>fixed = src.get_fixed_seeds();
+        <span class="self">Self</span>::from_keys(<span class="kw-2">&amp;</span>fixed[<span class="number">0</span>], <span class="kw-2">&amp;</span>fixed[<span class="number">1</span>], src.gen_hasher_seed())
     }
 
     <span class="doccomment">/// Allows for supplying seeds, but each time it is called the resulting state will be different.
     /// This is done using a static counter, so it can safely be used with a fixed keys.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>generate_with(k0: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>, k1: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>, k2: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>, k3: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) -&gt; <a href="#153">RandomState</a> {
+    </span><span class="kw">pub fn </span>generate_with(k0: u64, k1: u64, k2: u64, k3: u64) -&gt; RandomState {
         <span class="kw">let </span>src = <span class="self">Self</span>::get_src();
-        <span class="kw">let </span>fixed = <a href="#206">src</a>.<a href="#55">get_fixed_seeds</a>();
-        RandomState::from_keys(<span class="kw-2">&amp;</span><a href="#207">fixed</a>[<span class="number">0</span>], <span class="kw-2">&amp;</span>[<a href="#205">k0</a>, <a href="#205">k1</a>, <a href="#205">k2</a>, <a href="#205">k3</a>], <a href="#206">src</a>.<a href="#57">gen_hasher_seed</a>())
+        <span class="kw">let </span>fixed = src.get_fixed_seeds();
+        RandomState::from_keys(<span class="kw-2">&amp;</span>fixed[<span class="number">0</span>], <span class="kw-2">&amp;</span>[k0, k1, k2, k3], src.gen_hasher_seed())
     }
 
-    <span class="kw">fn </span>from_keys(a: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>; <span class="number">4</span>], b: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>; <span class="number">4</span>], c: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a href="#153">RandomState</a> {
-        <span class="kw">let </span><span class="kw-2">&amp;</span>[k0, k1, k2, k3] = <a href="#211">a</a>;
-        <span class="kw">let </span><span class="kw-2">mut </span>hasher = AHasher::from_random_state(<span class="kw-2">&amp;</span><a href="#153">RandomState</a> { <a href="#212">k0</a>, <a href="#212">k1</a>, <a href="#212">k2</a>, <a href="#212">k3</a> });
-        <a href="#213">hasher</a>.<a href="https://doc.rust-lang.org/nightly/core/hash/trait.Hasher.html">write_usize</a>(<a href="#211">c</a>);
-        <span class="kw">let </span>mix = |k: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>| {
-            <span class="kw">let </span><span class="kw-2">mut </span>h = <a href="#213">hasher</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
-            <a href="#216">h</a>.<a href="https://doc.rust-lang.org/nightly/core/hash/trait.Hasher.html">write_u64</a>(<a href="#215">k</a>);
-            <a href="#216">h</a>.<a href="https://doc.rust-lang.org/nightly/core/hash/trait.Hasher.html">finish</a>()
+    <span class="kw">fn </span>from_keys(a: <span class="kw-2">&amp;</span>[u64; <span class="number">4</span>], b: <span class="kw-2">&amp;</span>[u64; <span class="number">4</span>], c: usize) -&gt; RandomState {
+        <span class="kw">let </span><span class="kw-2">&amp;</span>[k0, k1, k2, k3] = a;
+        <span class="kw">let </span><span class="kw-2">mut </span>hasher = AHasher::from_random_state(<span class="kw-2">&amp;</span>RandomState { k0, k1, k2, k3 });
+        hasher.write_usize(c);
+        <span class="kw">let </span>mix = |k: u64| {
+            <span class="kw">let </span><span class="kw-2">mut </span>h = hasher.clone();
+            h.write_u64(k);
+            h.finish()
         };
-        <a href="#153">RandomState</a> {
-            k0: <a href="#215">mix</a>(<a href="#211">b</a>[<span class="number">0</span>]),
-            k1: <a href="#215">mix</a>(<a href="#211">b</a>[<span class="number">1</span>]),
-            k2: <a href="#215">mix</a>(<a href="#211">b</a>[<span class="number">2</span>]),
-            k3: <a href="#215">mix</a>(<a href="#211">b</a>[<span class="number">3</span>]),
+        RandomState {
+            k0: mix(b[<span class="number">0</span>]),
+            k1: mix(b[<span class="number">1</span>]),
+            k2: mix(b[<span class="number">2</span>]),
+            k3: mix(b[<span class="number">3</span>]),
         }
     }
 
     <span class="doccomment">/// Internal. Used by Default.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>with_fixed_keys() -&gt; <a href="#153">RandomState</a> {
-        <span class="kw">let </span>[k0, k1, k2, k3] = <span class="self">Self</span>::get_src().<a href="#55">get_fixed_seeds</a>()[<span class="number">0</span>];
-        <a href="#153">RandomState</a> { <a href="#231">k0</a>, <a href="#231">k1</a>, <a href="#231">k2</a>, <a href="#231">k3</a> }
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>with_fixed_keys() -&gt; RandomState {
+        <span class="kw">let </span>[k0, k1, k2, k3] = <span class="self">Self</span>::get_src().get_fixed_seeds()[<span class="number">0</span>];
+        RandomState { k0, k1, k2, k3 }
     }
 
     <span class="doccomment">/// Allows for explicitly setting a seed to used.
     ///
     /// Note: This method does not require the provided seed to be strong.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>with_seed(key: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a href="#153">RandomState</a> {
-        <span class="kw">let </span>fixed = <span class="self">Self</span>::get_src().<a href="#55">get_fixed_seeds</a>();
-        RandomState::from_keys(<span class="kw-2">&amp;</span><a href="#240">fixed</a>[<span class="number">0</span>], <span class="kw-2">&amp;</span><a href="#240">fixed</a>[<span class="number">1</span>], <a href="#239">key</a>)
+    </span><span class="kw">pub fn </span>with_seed(key: usize) -&gt; RandomState {
+        <span class="kw">let </span>fixed = <span class="self">Self</span>::get_src().get_fixed_seeds();
+        RandomState::from_keys(<span class="kw-2">&amp;</span>fixed[<span class="number">0</span>], <span class="kw-2">&amp;</span>fixed[<span class="number">1</span>], key)
     }
 
     <span class="doccomment">/// Allows for explicitly setting the seeds to used.
@@ -604,20 +604,20 @@
     /// Note: This method is robust against 0s being passed for one or more of the parameters
     /// or the same value being passed for more than one parameter.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub const fn </span>with_seeds(k0: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>, k1: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>, k2: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>, k3: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) -&gt; <a href="#153">RandomState</a> {
-        <a href="#153">RandomState</a> { k0: <a href="#249">k0</a> ^ <a href="#68">PI2</a>[<span class="number">0</span>], k1: <a href="#249">k1</a> ^ <a href="#68">PI2</a>[<span class="number">1</span>], k2: <a href="#249">k2</a> ^ <a href="#68">PI2</a>[<span class="number">2</span>], k3: <a href="#249">k3</a> ^ <a href="#68">PI2</a>[<span class="number">3</span>] }
+    </span><span class="kw">pub const fn </span>with_seeds(k0: u64, k1: u64, k2: u64, k3: u64) -&gt; RandomState {
+        RandomState { k0: k0 ^ PI2[<span class="number">0</span>], k1: k1 ^ PI2[<span class="number">1</span>], k2: k2 ^ PI2[<span class="number">2</span>], k3: k3 ^ PI2[<span class="number">3</span>] }
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for </span><a href="#153">RandomState</a> {
+<span class="kw">impl </span>Default <span class="kw">for </span>RandomState {
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>::new()
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/hash/trait.BuildHasher.html">BuildHasher</a> <span class="kw">for </span><a href="#153">RandomState</a> {
-    <span class="kw">type </span>Hasher = <a href="fallback_hash.rs.html#24">AHasher</a>;
+<span class="kw">impl </span>BuildHasher <span class="kw">for </span>RandomState {
+    <span class="kw">type </span>Hasher = AHasher;
 
     <span class="doccomment">/// Constructs a new [AHasher] with keys based on this [RandomState] object.
     /// This means that two different [RandomState]s will will generate
@@ -648,35 +648,35 @@
     /// [BuildHasher]: std::hash::BuildHasher
     /// [HashMap]: std::collections::HashMap
     </span><span class="attr">#[inline]
-    </span><span class="kw">fn </span>build_hasher(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="fallback_hash.rs.html#24">AHasher</a> {
-        AHasher::from_random_state(<a class="self" href="#293">self</a>)
+    </span><span class="kw">fn </span>build_hasher(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; AHasher {
+        AHasher::from_random_state(<span class="self">self</span>)
     }
 }
 
 <span class="attr">#[cfg(feature = <span class="string">&quot;specialize&quot;</span>)]
-</span><span class="kw">impl </span><a href="lib.rs.html#130">BuildHasherExt</a> <span class="kw">for </span><a href="#153">RandomState</a> {
+</span><span class="kw">impl </span>BuildHasherExt <span class="kw">for </span>RandomState {
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>hash_as_u64&lt;T: <a href="https://doc.rust-lang.org/nightly/core/hash/trait.Hash.html">Hash</a> + <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, value: <span class="kw-2">&amp;</span>T) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> {
-        <span class="kw">let </span><span class="kw-2">mut </span>hasher = <a href="fallback_hash.rs.html#226">AHasherU64</a> {
-            buffer: <a class="self" href="#301">self</a>.k0,
-            pad: <a class="self" href="#301">self</a>.k1,
+    </span><span class="kw">fn </span>hash_as_u64&lt;T: Hash + <span class="question-mark">?</span>Sized&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, value: <span class="kw-2">&amp;</span>T) -&gt; u64 {
+        <span class="kw">let </span><span class="kw-2">mut </span>hasher = AHasherU64 {
+            buffer: <span class="self">self</span>.k0,
+            pad: <span class="self">self</span>.k1,
         };
-        <a href="#301">value</a>.<a href="https://doc.rust-lang.org/nightly/core/hash/trait.Hash.html">hash</a>(<span class="kw-2">&amp;mut </span><a href="#302">hasher</a>);
-        <a href="#302">hasher</a>.<a href="https://doc.rust-lang.org/nightly/core/hash/trait.Hasher.html">finish</a>()
+        value.hash(<span class="kw-2">&amp;mut </span>hasher);
+        hasher.finish()
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>hash_as_fixed_length&lt;T: <a href="https://doc.rust-lang.org/nightly/core/hash/trait.Hash.html">Hash</a> + <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, value: <span class="kw-2">&amp;</span>T) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> {
-        <span class="kw">let </span><span class="kw-2">mut </span>hasher = <a href="fallback_hash.rs.html#277">AHasherFixed</a>(<a class="self" href="#311">self</a>.<a href="https://doc.rust-lang.org/nightly/core/hash/trait.BuildHasher.html">build_hasher</a>());
-        <a href="#311">value</a>.<a href="https://doc.rust-lang.org/nightly/core/hash/trait.Hash.html">hash</a>(<span class="kw-2">&amp;mut </span><a href="#312">hasher</a>);
-        <a href="#312">hasher</a>.<a href="https://doc.rust-lang.org/nightly/core/hash/trait.Hasher.html">finish</a>()
+    </span><span class="kw">fn </span>hash_as_fixed_length&lt;T: Hash + <span class="question-mark">?</span>Sized&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, value: <span class="kw-2">&amp;</span>T) -&gt; u64 {
+        <span class="kw">let </span><span class="kw-2">mut </span>hasher = AHasherFixed(<span class="self">self</span>.build_hasher());
+        value.hash(<span class="kw-2">&amp;mut </span>hasher);
+        hasher.finish()
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>hash_as_str&lt;T: <a href="https://doc.rust-lang.org/nightly/core/hash/trait.Hash.html">Hash</a> + <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, value: <span class="kw-2">&amp;</span>T) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> {
-        <span class="kw">let </span><span class="kw-2">mut </span>hasher = <a href="fallback_hash.rs.html#324">AHasherStr</a>(<a class="self" href="#318">self</a>.<a href="https://doc.rust-lang.org/nightly/core/hash/trait.BuildHasher.html">build_hasher</a>());
-        <a href="#318">value</a>.<a href="https://doc.rust-lang.org/nightly/core/hash/trait.Hash.html">hash</a>(<span class="kw-2">&amp;mut </span><a href="#319">hasher</a>);
-        <a href="#319">hasher</a>.<a href="https://doc.rust-lang.org/nightly/core/hash/trait.Hasher.html">finish</a>()
+    </span><span class="kw">fn </span>hash_as_str&lt;T: Hash + <span class="question-mark">?</span>Sized&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, value: <span class="kw-2">&amp;</span>T) -&gt; u64 {
+        <span class="kw">let </span><span class="kw-2">mut </span>hasher = AHasherStr(<span class="self">self</span>.build_hasher());
+        value.hash(<span class="kw-2">&amp;mut </span>hasher);
+        hasher.finish()
     }
 }
 
@@ -715,4 +715,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="ahash" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="ahash" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

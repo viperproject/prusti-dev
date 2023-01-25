@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/reqwest-0.11.13/src/connect.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>connect.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../reqwest/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/reqwest-0.11.13/src/connect.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>connect.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../reqwest/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -1123,44 +1123,44 @@
 <a href="#1123" id="1123">1123</a>
 <a href="#1124" id="1124">1124</a>
 </pre><pre class="rust"><code><span class="attr">#[cfg(feature = <span class="string">&quot;__tls&quot;</span>)]
-</span><span class="kw">use </span><a href="../../reqwest/header/struct.HeaderValue.html">http::header::HeaderValue</a>;
-<span class="kw">use </span>http::uri::{<a href="../../http/uri/authority/struct.Authority.html">Authority</a>, <a href="../../http/uri/scheme/struct.Scheme.html">Scheme</a>};
-<span class="kw">use </span><a href="../../http/uri/struct.Uri.html">http::Uri</a>;
-<span class="kw">use </span>hyper::client::connect::{<a href="../../hyper/client/connect/struct.Connected.html">Connected</a>, <a href="../../hyper/client/connect/trait.Connection.html">Connection</a>};
-<span class="kw">use </span><a href="../../tower_service/trait.Service.html">hyper::service::Service</a>;
+</span><span class="kw">use </span>http::header::HeaderValue;
+<span class="kw">use </span>http::uri::{Authority, Scheme};
+<span class="kw">use </span>http::Uri;
+<span class="kw">use </span>hyper::client::connect::{Connected, Connection};
+<span class="kw">use </span>hyper::service::Service;
 <span class="attr">#[cfg(feature = <span class="string">&quot;native-tls-crate&quot;</span>)]
-</span><span class="kw">use </span>native_tls_crate::{<a href="../../native_tls/struct.TlsConnector.html">TlsConnector</a>, <a href="../../native_tls/struct.TlsConnectorBuilder.html">TlsConnectorBuilder</a>};
-<span class="kw">use </span>tokio::io::{<a href="../../tokio/io/async_read/trait.AsyncRead.html">AsyncRead</a>, <a href="../../tokio/io/async_write/trait.AsyncWrite.html">AsyncWrite</a>, <a href="../../tokio/io/read_buf/struct.ReadBuf.html">ReadBuf</a>};
+</span><span class="kw">use </span>native_tls_crate::{TlsConnector, TlsConnectorBuilder};
+<span class="kw">use </span>tokio::io::{AsyncRead, AsyncWrite, ReadBuf};
 
-<span class="kw">use </span><a href="../../pin_project_lite/macro.pin_project.html">pin_project_lite::pin_project</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">std::future::Future</a>;
-<span class="kw">use </span>std::io::{<a class="self" href="https://doc.rust-lang.org/nightly/std/io/index.html">self</a>, <a href="https://doc.rust-lang.org/nightly/std/io/struct.IoSlice.html">IoSlice</a>};
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/net/ip_addr/enum.IpAddr.html">std::net::IpAddr</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/pin/struct.Pin.html">std::pin::Pin</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/sync/struct.Arc.html">std::sync::Arc</a>;
-<span class="kw">use </span>std::task::{<a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>, <a href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">Poll</a>};
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">std::time::Duration</a>;
+<span class="kw">use </span>pin_project_lite::pin_project;
+<span class="kw">use </span>std::future::Future;
+<span class="kw">use </span>std::io::{<span class="self">self</span>, IoSlice};
+<span class="kw">use </span>std::net::IpAddr;
+<span class="kw">use </span>std::pin::Pin;
+<span class="kw">use </span>std::sync::Arc;
+<span class="kw">use </span>std::task::{Context, Poll};
+<span class="kw">use </span>std::time::Duration;
 
 <span class="attr">#[cfg(feature = <span class="string">&quot;default-tls&quot;</span>)]
-</span><span class="kw">use </span><a href="#608-612"><span class="self">self</span>::native_tls_conn::NativeTlsConn</a>;
+</span><span class="kw">use </span><span class="self">self</span>::native_tls_conn::NativeTlsConn;
 <span class="attr">#[cfg(feature = <span class="string">&quot;__rustls&quot;</span>)]
 </span><span class="kw">use </span><span class="self">self</span>::rustls_tls_conn::RustlsTlsConn;
-<span class="kw">use </span><a href="dns/resolve.rs.html#33"><span class="kw">crate</span>::dns::DynResolver</a>;
-<span class="kw">use </span><a href="error.rs.html#20"><span class="kw">crate</span>::error::BoxError</a>;
-<span class="kw">use </span><span class="kw">crate</span>::proxy::{<a href="proxy.rs.html#54">Proxy</a>, <a href="proxy.rs.html#87">ProxyScheme</a>};
+<span class="kw">use </span><span class="kw">crate</span>::dns::DynResolver;
+<span class="kw">use </span><span class="kw">crate</span>::error::BoxError;
+<span class="kw">use </span><span class="kw">crate</span>::proxy::{Proxy, ProxyScheme};
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type </span>HttpConnector = hyper::client::HttpConnector&lt;<a href="dns/resolve.rs.html#33">DynResolver</a>&gt;;
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type </span>HttpConnector = hyper::client::HttpConnector&lt;DynResolver&gt;;
 
 <span class="attr">#[derive(Clone)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>Connector {
-    inner: <a href="#43">Inner</a>,
-    proxies: Arc&lt;Vec&lt;<a href="proxy.rs.html#54">Proxy</a>&gt;&gt;,
-    verbose: <a href="#843">verbose::Wrapper</a>,
-    timeout: <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a>&gt;,
+    inner: Inner,
+    proxies: Arc&lt;Vec&lt;Proxy&gt;&gt;,
+    verbose: verbose::Wrapper,
+    timeout: <span class="prelude-ty">Option</span>&lt;Duration&gt;,
     <span class="attr">#[cfg(feature = <span class="string">&quot;__tls&quot;</span>)]
-    </span>nodelay: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
+    </span>nodelay: bool,
     <span class="attr">#[cfg(feature = <span class="string">&quot;__tls&quot;</span>)]
-    </span>user_agent: <span class="prelude-ty">Option</span>&lt;<a href="../../reqwest/header/struct.HeaderValue.html">HeaderValue</a>&gt;,
+    </span>user_agent: <span class="prelude-ty">Option</span>&lt;HeaderValue&gt;,
 }
 
 <span class="attr">#[derive(Clone)]
@@ -1168,7 +1168,7 @@
     <span class="attr">#[cfg(not(feature = <span class="string">&quot;__tls&quot;</span>))]
     </span>Http(HttpConnector),
     <span class="attr">#[cfg(feature = <span class="string">&quot;default-tls&quot;</span>)]
-    </span>DefaultTls(<a href="#28">HttpConnector</a>, <a href="../../native_tls/struct.TlsConnector.html">TlsConnector</a>),
+    </span>DefaultTls(HttpConnector, TlsConnector),
     <span class="attr">#[cfg(feature = <span class="string">&quot;__rustls&quot;</span>)]
     </span>RustlsTls {
         http: HttpConnector,
@@ -1177,7 +1177,7 @@
     },
 }
 
-<span class="kw">impl </span><a href="#31">Connector</a> {
+<span class="kw">impl </span>Connector {
     <span class="attr">#[cfg(not(feature = <span class="string">&quot;__tls&quot;</span>))]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new&lt;T&gt;(
         <span class="kw-2">mut </span>http: HttpConnector,
@@ -1200,44 +1200,44 @@
 
     <span class="attr">#[cfg(feature = <span class="string">&quot;default-tls&quot;</span>)]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new_default_tls&lt;T&gt;(
-        http: <a href="#28">HttpConnector</a>,
-        tls: <a href="../../native_tls/struct.TlsConnectorBuilder.html">TlsConnectorBuilder</a>,
-        proxies: Arc&lt;Vec&lt;<a href="proxy.rs.html#54">Proxy</a>&gt;&gt;,
-        user_agent: <span class="prelude-ty">Option</span>&lt;<a href="../../reqwest/header/struct.HeaderValue.html">HeaderValue</a>&gt;,
+        http: HttpConnector,
+        tls: TlsConnectorBuilder,
+        proxies: Arc&lt;Vec&lt;Proxy&gt;&gt;,
+        user_agent: <span class="prelude-ty">Option</span>&lt;HeaderValue&gt;,
         local_addr: T,
-        nodelay: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-    ) -&gt; <span class="kw">crate</span>::Result&lt;<a href="#31">Connector</a>&gt;
+        nodelay: bool,
+    ) -&gt; <span class="kw">crate</span>::Result&lt;Connector&gt;
     <span class="kw">where
-        </span>T: Into&lt;<span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/net/ip_addr/enum.IpAddr.html">IpAddr</a>&gt;&gt;,
+        </span>T: Into&lt;<span class="prelude-ty">Option</span>&lt;IpAddr&gt;&gt;,
     {
         <span class="kw">let </span>tls = tls.build().map_err(<span class="kw">crate</span>::error::builder)<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(<span class="self">Self</span>::from_built_default_tls(
-            <a href="#79">http</a>, <a href="#89">tls</a>, <a href="#81">proxies</a>, <a href="#82">user_agent</a>, <a href="#83">local_addr</a>, <a href="#84">nodelay</a>,
+            http, tls, proxies, user_agent, local_addr, nodelay,
         ))
     }
 
     <span class="attr">#[cfg(feature = <span class="string">&quot;default-tls&quot;</span>)]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>from_built_default_tls&lt;T&gt;(
-        <span class="kw-2">mut </span>http: <a href="#28">HttpConnector</a>,
-        tls: <a href="../../native_tls/struct.TlsConnector.html">TlsConnector</a>,
-        proxies: Arc&lt;Vec&lt;<a href="proxy.rs.html#54">Proxy</a>&gt;&gt;,
-        user_agent: <span class="prelude-ty">Option</span>&lt;<a href="../../reqwest/header/struct.HeaderValue.html">HeaderValue</a>&gt;,
+        <span class="kw-2">mut </span>http: HttpConnector,
+        tls: TlsConnector,
+        proxies: Arc&lt;Vec&lt;Proxy&gt;&gt;,
+        user_agent: <span class="prelude-ty">Option</span>&lt;HeaderValue&gt;,
         local_addr: T,
-        nodelay: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-    ) -&gt; <a href="#31">Connector</a>
+        nodelay: bool,
+    ) -&gt; Connector
     <span class="kw">where
-        </span>T: Into&lt;<span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/net/ip_addr/enum.IpAddr.html">IpAddr</a>&gt;&gt;,
+        </span>T: Into&lt;<span class="prelude-ty">Option</span>&lt;IpAddr&gt;&gt;,
     {
-        <a href="#97">http</a>.set_local_address(<a href="#101">local_addr</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>());
-        <a href="#97">http</a>.enforce_http(<span class="bool-val">false</span>);
+        http.set_local_address(local_addr.into());
+        http.enforce_http(<span class="bool-val">false</span>);
 
-        <a href="#31">Connector</a> {
-            inner: <a href="#47">Inner::DefaultTls</a>(<a href="#97">http</a>, <a href="#98">tls</a>),
-            <a href="#99">proxies</a>,
-            verbose: <a href="#840">verbose::OFF</a>,
+        Connector {
+            inner: Inner::DefaultTls(http, tls),
+            proxies,
+            verbose: verbose::OFF,
             timeout: <span class="prelude-val">None</span>,
-            <a href="#102">nodelay</a>,
-            <a href="#100">user_agent</a>,
+            nodelay,
+            user_agent,
         }
     }
 
@@ -1279,12 +1279,12 @@
         }
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_timeout(<span class="kw-2">&amp;mut </span><span class="self">self</span>, timeout: <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a>&gt;) {
-        <a class="self" href="#158">self</a>.timeout = <a href="#158">timeout</a>;
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_timeout(<span class="kw-2">&amp;mut </span><span class="self">self</span>, timeout: <span class="prelude-ty">Option</span>&lt;Duration&gt;) {
+        <span class="self">self</span>.timeout = timeout;
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_verbose(<span class="kw-2">&amp;mut </span><span class="self">self</span>, enabled: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) {
-        <a class="self" href="#162">self</a>.verbose.<span class="number">0 </span>= <a href="#162">enabled</a>;
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_verbose(<span class="kw-2">&amp;mut </span><span class="self">self</span>, enabled: bool) {
+        <span class="self">self</span>.verbose.<span class="number">0 </span>= enabled;
     }
 
     <span class="attr">#[cfg(feature = <span class="string">&quot;socks&quot;</span>)]
@@ -1345,7 +1345,7 @@
         })
     }
 
-    <span class="kw">async fn </span>connect_with_maybe_proxy(<span class="self">self</span>, dst: <a href="../../http/uri/struct.Uri.html">Uri</a>, is_proxy: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#456-466">Conn</a>, <a href="error.rs.html#20">BoxError</a>&gt; {
+    <span class="kw">async fn </span>connect_with_maybe_proxy(<span class="self">self</span>, dst: Uri, is_proxy: bool) -&gt; <span class="prelude-ty">Result</span>&lt;Conn, BoxError&gt; {
         <span class="kw">match </span><span class="self">self</span>.inner {
             <span class="attr">#[cfg(not(feature = <span class="string">&quot;__tls&quot;</span>))]
             </span>Inner::Http(<span class="kw-2">mut </span>http) =&gt; {
@@ -1420,9 +1420,9 @@
 
     <span class="kw">async fn </span>connect_via_proxy(
         <span class="self">self</span>,
-        dst: <a href="../../http/uri/struct.Uri.html">Uri</a>,
-        proxy_scheme: <a href="proxy.rs.html#87">ProxyScheme</a>,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#456-466">Conn</a>, <a href="error.rs.html#20">BoxError</a>&gt; {
+        dst: Uri,
+        proxy_scheme: ProxyScheme,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;Conn, BoxError&gt; {
         <span class="macro">log::debug!</span>(<span class="string">&quot;proxy({:?}) intercepts &#39;{:?}&#39;&quot;</span>, proxy_scheme, dst);
 
         <span class="kw">let </span>(proxy_dst, _auth) = <span class="kw">match </span>proxy_scheme {
@@ -1503,10 +1503,10 @@
         <span class="self">self</span>.connect_with_maybe_proxy(proxy_dst, <span class="bool-val">true</span>).<span class="kw">await
     </span>}
 
-    <span class="kw">pub fn </span>set_keepalive(<span class="kw-2">&amp;mut </span><span class="self">self</span>, dur: <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a>&gt;) {
-        <span class="kw">match </span><span class="kw-2">&amp;mut </span><a class="self" href="#382">self</a>.inner {
+    <span class="kw">pub fn </span>set_keepalive(<span class="kw-2">&amp;mut </span><span class="self">self</span>, dur: <span class="prelude-ty">Option</span>&lt;Duration&gt;) {
+        <span class="kw">match </span><span class="kw-2">&amp;mut </span><span class="self">self</span>.inner {
             <span class="attr">#[cfg(feature = <span class="string">&quot;default-tls&quot;</span>)]
-            </span><a href="#47">Inner::DefaultTls</a>(http, _tls) =&gt; <a href="#385">http</a>.set_keepalive(<a href="#382">dur</a>),
+            </span>Inner::DefaultTls(http, _tls) =&gt; http.set_keepalive(dur),
             <span class="attr">#[cfg(feature = <span class="string">&quot;__rustls&quot;</span>)]
             </span>Inner::RustlsTls { http, .. } =&gt; http.set_keepalive(dur),
             <span class="attr">#[cfg(not(feature = <span class="string">&quot;__tls&quot;</span>))]
@@ -1515,19 +1515,19 @@
     }
 }
 
-<span class="kw">fn </span>into_uri(scheme: <a href="../../http/uri/scheme/struct.Scheme.html">Scheme</a>, host: <a href="../../http/uri/authority/struct.Authority.html">Authority</a>) -&gt; <a href="../../http/uri/struct.Uri.html">Uri</a> {
+<span class="kw">fn </span>into_uri(scheme: Scheme, host: Authority) -&gt; Uri {
     <span class="comment">// TODO: Should the `http` crate get `From&lt;(Scheme, Authority)&gt; for Uri`?
     </span>http::Uri::builder()
-        .scheme(<a href="#394">scheme</a>)
-        .authority(<a href="#394">host</a>)
+        .scheme(scheme)
+        .authority(host)
         .path_and_query(http::uri::PathAndQuery::from_static(<span class="string">&quot;/&quot;</span>))
         .build()
         .expect(<span class="string">&quot;scheme and authority is valid Uri&quot;</span>)
 }
 
-<span class="kw">async fn </span>with_timeout&lt;T, F&gt;(f: F, timeout: <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;T, <a href="error.rs.html#20">BoxError</a>&gt;
+<span class="kw">async fn </span>with_timeout&lt;T, F&gt;(f: F, timeout: <span class="prelude-ty">Option</span>&lt;Duration&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;T, BoxError&gt;
 <span class="kw">where
-    </span>F: Future&lt;Output = <span class="prelude-ty">Result</span>&lt;T, <a href="error.rs.html#20">BoxError</a>&gt;&gt;,
+    </span>F: Future&lt;Output = <span class="prelude-ty">Result</span>&lt;T, BoxError&gt;&gt;,
 {
     <span class="kw">if let </span><span class="prelude-val">Some</span>(to) = timeout {
         <span class="kw">match </span>tokio::time::timeout(to, f).<span class="kw">await </span>{
@@ -1540,18 +1540,18 @@
     </span>}
 }
 
-<span class="kw">impl </span>Service&lt;<a href="../../http/uri/struct.Uri.html">Uri</a>&gt; <span class="kw">for </span><a href="#31">Connector</a> {
-    <span class="kw">type </span>Response = <a href="#456-466">Conn</a>;
-    <span class="kw">type </span>Error = <a href="error.rs.html#20">BoxError</a>;
-    <span class="kw">type </span>Future = <a href="#519">Connecting</a>;
+<span class="kw">impl </span>Service&lt;Uri&gt; <span class="kw">for </span>Connector {
+    <span class="kw">type </span>Response = Conn;
+    <span class="kw">type </span>Error = BoxError;
+    <span class="kw">type </span>Future = Connecting;
 
     <span class="kw">fn </span>poll_ready(<span class="kw-2">&amp;mut </span><span class="self">self</span>, _cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt;&gt; {
         Poll::Ready(<span class="prelude-val">Ok</span>(()))
     }
 
-    <span class="kw">fn </span>call(<span class="kw-2">&amp;mut </span><span class="self">self</span>, dst: <a href="../../http/uri/struct.Uri.html">Uri</a>) -&gt; <span class="self">Self</span>::Future {
-        <a class="macro" href="../../log/macro.debug.html">log::debug!</a>(<span class="string">&quot;starting new connection: {:?}&quot;</span>, dst);
-        <span class="kw">let </span>timeout = <a class="self" href="#428">self</a>.timeout;
+    <span class="kw">fn </span>call(<span class="kw-2">&amp;mut </span><span class="self">self</span>, dst: Uri) -&gt; <span class="self">Self</span>::Future {
+        <span class="macro">log::debug!</span>(<span class="string">&quot;starting new connection: {:?}&quot;</span>, dst);
+        <span class="kw">let </span>timeout = <span class="self">self</span>.timeout;
         <span class="kw">for </span>prox <span class="kw">in </span><span class="self">self</span>.proxies.iter() {
             <span class="kw">if let </span><span class="prelude-val">Some</span>(proxy_scheme) = prox.intercept(<span class="kw-2">&amp;</span>dst) {
                 <span class="kw">return </span>Box::pin(with_timeout(
@@ -1561,97 +1561,97 @@
             }
         }
 
-        Box::pin(<a href="#404-406">with_timeout</a>(
-            <a class="self" href="#428">self</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>().<a href="#224">connect_with_maybe_proxy</a>(<a href="#428">dst</a>, <span class="bool-val">false</span>),
-            <a href="#430">timeout</a>,
+        Box::pin(with_timeout(
+            <span class="self">self</span>.clone().connect_with_maybe_proxy(dst, <span class="bool-val">false</span>),
+            timeout,
         ))
     }
 }
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">trait </span>AsyncConn:
-    <a href="../../tokio/io/async_read/trait.AsyncRead.html">AsyncRead</a> + <a href="../../tokio/io/async_write/trait.AsyncWrite.html">AsyncWrite</a> + <a href="../../hyper/client/connect/trait.Connection.html">Connection</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a> + <span class="lifetime">&#39;static
+    AsyncRead + AsyncWrite + Connection + Send + Sync + Unpin + <span class="lifetime">&#39;static
 </span>{
 }
 
-<span class="kw">impl</span>&lt;T: <a href="../../tokio/io/async_read/trait.AsyncRead.html">AsyncRead</a> + <a href="../../tokio/io/async_write/trait.AsyncWrite.html">AsyncWrite</a> + <a href="../../hyper/client/connect/trait.Connection.html">Connection</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a> + <span class="lifetime">&#39;static</span>&gt; <a href="#447-448">AsyncConn</a> <span class="kw">for </span>T {}
+<span class="kw">impl</span>&lt;T: AsyncRead + AsyncWrite + Connection + Send + Sync + Unpin + <span class="lifetime">&#39;static</span>&gt; AsyncConn <span class="kw">for </span>T {}
 
-<span class="kw">type </span>BoxConn = Box&lt;<span class="kw">dyn </span><a href="#447-448">AsyncConn</a>&gt;;
+<span class="kw">type </span>BoxConn = Box&lt;<span class="kw">dyn </span>AsyncConn&gt;;
 
-<a class="macro" href="../../pin_project_lite/macro.pin_project.html">pin_project! </a>{
+<span class="macro">pin_project! </span>{
     <span class="doccomment">/// Note: the `is_proxy` member means *is plain text HTTP proxy*.
     /// This tells hyper whether the URI should be written in
     /// * origin-form (`GET /just/a/path HTTP/1.1`), when `is_proxy == false`, or
     /// * absolute-form (`GET http://foo.bar/and/a/path HTTP/1.1`), otherwise.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>Conn {
         <span class="attr">#[pin]
-        </span>inner: <a href="#454">BoxConn</a>,
-        is_proxy: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
+        </span>inner: BoxConn,
+        is_proxy: bool,
     }
 }
 
-<span class="kw">impl </span><a href="../../hyper/client/connect/trait.Connection.html">Connection</a> <span class="kw">for </span><a href="#456-466">Conn</a> {
-    <span class="kw">fn </span>connected(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../../hyper/client/connect/struct.Connected.html">Connected</a> {
-        <a class="self" href="#469">self</a>.inner.<a href="../../hyper/client/connect/trait.Connection.html">connected</a>().proxy(<a class="self" href="#469">self</a>.is_proxy)
+<span class="kw">impl </span>Connection <span class="kw">for </span>Conn {
+    <span class="kw">fn </span>connected(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Connected {
+        <span class="self">self</span>.inner.connected().proxy(<span class="self">self</span>.is_proxy)
     }
 }
 
-<span class="kw">impl </span><a href="../../tokio/io/async_read/trait.AsyncRead.html">AsyncRead</a> <span class="kw">for </span><a href="#456-466">Conn</a> {
+<span class="kw">impl </span>AsyncRead <span class="kw">for </span>Conn {
     <span class="kw">fn </span>poll_read(
         <span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;,
-        cx: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>,
+        cx: <span class="kw-2">&amp;mut </span>Context,
         buf: <span class="kw-2">&amp;mut </span>ReadBuf&lt;<span class="lifetime">&#39;_</span>&gt;,
     ) -&gt; Poll&lt;io::Result&lt;()&gt;&gt; {
-        <span class="kw">let </span>this = <a class="self" href="#476">self</a>.<a href="#456-466">project</a>();
-        <a href="../../tokio/io/async_read/trait.AsyncRead.html">AsyncRead::poll_read</a>(<a href="#480">this</a>.inner, <a href="#477">cx</a>, <a href="#478">buf</a>)
+        <span class="kw">let </span>this = <span class="self">self</span>.project();
+        AsyncRead::poll_read(this.inner, cx, buf)
     }
 }
 
-<span class="kw">impl </span><a href="../../tokio/io/async_write/trait.AsyncWrite.html">AsyncWrite</a> <span class="kw">for </span><a href="#456-466">Conn</a> {
+<span class="kw">impl </span>AsyncWrite <span class="kw">for </span>Conn {
     <span class="kw">fn </span>poll_write(
         <span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;,
-        cx: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>,
-        buf: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
-    ) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a>&gt;&gt; {
-        <span class="kw">let </span>this = <a class="self" href="#487">self</a>.<a href="#456-466">project</a>();
-        <a href="../../tokio/io/async_write/trait.AsyncWrite.html">AsyncWrite::poll_write</a>(<a href="#491">this</a>.inner, <a href="#488">cx</a>, <a href="#489">buf</a>)
+        cx: <span class="kw-2">&amp;mut </span>Context,
+        buf: <span class="kw-2">&amp;</span>[u8],
+    ) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;usize, io::Error&gt;&gt; {
+        <span class="kw">let </span>this = <span class="self">self</span>.project();
+        AsyncWrite::poll_write(this.inner, cx, buf)
     }
 
     <span class="kw">fn </span>poll_write_vectored(
         <span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;,
         cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
         bufs: <span class="kw-2">&amp;</span>[IoSlice&lt;<span class="lifetime">&#39;_</span>&gt;],
-    ) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a>&gt;&gt; {
-        <span class="kw">let </span>this = <a class="self" href="#496">self</a>.<a href="#456-466">project</a>();
-        <a href="../../tokio/io/async_write/trait.AsyncWrite.html">AsyncWrite::poll_write_vectored</a>(<a href="#500">this</a>.inner, <a href="#497">cx</a>, <a href="#498">bufs</a>)
+    ) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;usize, io::Error&gt;&gt; {
+        <span class="kw">let </span>this = <span class="self">self</span>.project();
+        AsyncWrite::poll_write_vectored(this.inner, cx, bufs)
     }
 
-    <span class="kw">fn </span>is_write_vectored(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#504">self</a>.inner.<a href="../../tokio/io/async_write/trait.AsyncWrite.html">is_write_vectored</a>()
+    <span class="kw">fn </span>is_write_vectored(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.inner.is_write_vectored()
     }
 
-    <span class="kw">fn </span>poll_flush(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;(), <a href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a>&gt;&gt; {
-        <span class="kw">let </span>this = <a class="self" href="#508">self</a>.<a href="#456-466">project</a>();
-        <a href="../../tokio/io/async_write/trait.AsyncWrite.html">AsyncWrite::poll_flush</a>(<a href="#509">this</a>.inner, <a href="#508">cx</a>)
+    <span class="kw">fn </span>poll_flush(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;(), io::Error&gt;&gt; {
+        <span class="kw">let </span>this = <span class="self">self</span>.project();
+        AsyncWrite::poll_flush(this.inner, cx)
     }
 
-    <span class="kw">fn </span>poll_shutdown(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;(), <a href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a>&gt;&gt; {
-        <span class="kw">let </span>this = <a class="self" href="#513">self</a>.<a href="#456-466">project</a>();
-        <a href="../../tokio/io/async_write/trait.AsyncWrite.html">AsyncWrite::poll_shutdown</a>(<a href="#514">this</a>.inner, <a href="#513">cx</a>)
+    <span class="kw">fn </span>poll_shutdown(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;(), io::Error&gt;&gt; {
+        <span class="kw">let </span>this = <span class="self">self</span>.project();
+        AsyncWrite::poll_shutdown(this.inner, cx)
     }
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type </span>Connecting = Pin&lt;Box&lt;<span class="kw">dyn </span>Future&lt;Output = <span class="prelude-ty">Result</span>&lt;<a href="#456-466">Conn</a>, <a href="error.rs.html#20">BoxError</a>&gt;&gt; + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a>&gt;&gt;;
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type </span>Connecting = Pin&lt;Box&lt;<span class="kw">dyn </span>Future&lt;Output = <span class="prelude-ty">Result</span>&lt;Conn, BoxError&gt;&gt; + Send&gt;&gt;;
 
 <span class="attr">#[cfg(feature = <span class="string">&quot;__tls&quot;</span>)]
 </span><span class="kw">async fn </span>tunnel&lt;T&gt;(
     <span class="kw-2">mut </span>conn: T,
-    host: <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>,
-    port: <a href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>,
-    user_agent: <span class="prelude-ty">Option</span>&lt;<a href="../../reqwest/header/struct.HeaderValue.html">HeaderValue</a>&gt;,
-    auth: <span class="prelude-ty">Option</span>&lt;<a href="../../reqwest/header/struct.HeaderValue.html">HeaderValue</a>&gt;,
-) -&gt; <span class="prelude-ty">Result</span>&lt;T, <a href="error.rs.html#20">BoxError</a>&gt;
+    host: String,
+    port: u16,
+    user_agent: <span class="prelude-ty">Option</span>&lt;HeaderValue&gt;,
+    auth: <span class="prelude-ty">Option</span>&lt;HeaderValue&gt;,
+) -&gt; <span class="prelude-ty">Result</span>&lt;T, BoxError&gt;
 <span class="kw">where
-    </span>T: <a href="../../tokio/io/async_read/trait.AsyncRead.html">AsyncRead</a> + <a href="../../tokio/io/async_write/trait.AsyncWrite.html">AsyncWrite</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
+    </span>T: AsyncRead + AsyncWrite + Unpin,
 {
     <span class="kw">use </span>tokio::io::{AsyncReadExt, AsyncWriteExt};
 
@@ -1713,29 +1713,29 @@
 }
 
 <span class="attr">#[cfg(feature = <span class="string">&quot;__tls&quot;</span>)]
-</span><span class="kw">fn </span>tunnel_eof() -&gt; <a href="error.rs.html#20">BoxError</a> {
-    <span class="string">&quot;unexpected eof while tunneling&quot;</span>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()
+</span><span class="kw">fn </span>tunnel_eof() -&gt; BoxError {
+    <span class="string">&quot;unexpected eof while tunneling&quot;</span>.into()
 }
 
 <span class="attr">#[cfg(feature = <span class="string">&quot;default-tls&quot;</span>)]
 </span><span class="kw">mod </span>native_tls_conn {
-    <span class="kw">use </span>hyper::client::connect::{<a href="../../hyper/client/connect/struct.Connected.html">Connected</a>, <a href="../../hyper/client/connect/trait.Connection.html">Connection</a>};
-    <span class="kw">use </span><a href="../../pin_project_lite/macro.pin_project.html">pin_project_lite::pin_project</a>;
+    <span class="kw">use </span>hyper::client::connect::{Connected, Connection};
+    <span class="kw">use </span>pin_project_lite::pin_project;
     <span class="kw">use </span>std::{
-        io::{<a class="self" href="https://doc.rust-lang.org/nightly/std/io/index.html">self</a>, <a href="https://doc.rust-lang.org/nightly/std/io/struct.IoSlice.html">IoSlice</a>},
-        <a href="https://doc.rust-lang.org/nightly/core/pin/struct.Pin.html">pin::Pin</a>,
-        task::{<a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>, <a href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">Poll</a>},
+        io::{<span class="self">self</span>, IoSlice},
+        pin::Pin,
+        task::{Context, Poll},
     };
-    <span class="kw">use </span>tokio::io::{<a href="../../tokio/io/async_read/trait.AsyncRead.html">AsyncRead</a>, <a href="../../tokio/io/async_write/trait.AsyncWrite.html">AsyncWrite</a>, <a href="../../tokio/io/read_buf/struct.ReadBuf.html">ReadBuf</a>};
-    <span class="kw">use </span><a href="../../tokio_native_tls/struct.TlsStream.html">tokio_native_tls::TlsStream</a>;
+    <span class="kw">use </span>tokio::io::{AsyncRead, AsyncWrite, ReadBuf};
+    <span class="kw">use </span>tokio_native_tls::TlsStream;
 
-    <a class="macro" href="../../pin_project_lite/macro.pin_project.html">pin_project! </a>{
+    <span class="macro">pin_project! </span>{
         <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">struct </span>NativeTlsConn&lt;T&gt; {
             <span class="attr">#[pin] </span><span class="kw">pub</span>(<span class="kw">super</span>) inner: TlsStream&lt;T&gt;,
         }
     }
 
-    <span class="kw">impl</span>&lt;T: <a href="../../hyper/client/connect/trait.Connection.html">Connection</a> + <a href="../../tokio/io/async_read/trait.AsyncRead.html">AsyncRead</a> + <a href="../../tokio/io/async_write/trait.AsyncWrite.html">AsyncWrite</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>&gt; <a href="../../hyper/client/connect/trait.Connection.html">Connection</a> <span class="kw">for </span>NativeTlsConn&lt;T&gt; {
+    <span class="kw">impl</span>&lt;T: Connection + AsyncRead + AsyncWrite + Unpin&gt; Connection <span class="kw">for </span>NativeTlsConn&lt;T&gt; {
         <span class="attr">#[cfg(feature = <span class="string">&quot;native-tls-alpn&quot;</span>)]
         </span><span class="kw">fn </span>connected(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Connected {
             <span class="kw">match </span><span class="self">self</span>.inner.get_ref().negotiated_alpn().ok() {
@@ -1751,59 +1751,59 @@
         }
 
         <span class="attr">#[cfg(not(feature = <span class="string">&quot;native-tls-alpn&quot;</span>))]
-        </span><span class="kw">fn </span>connected(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../../hyper/client/connect/struct.Connected.html">Connected</a> {
-            <a class="self" href="#630">self</a>.inner.get_ref().get_ref().get_ref().<a href="../../hyper/client/connect/trait.Connection.html">connected</a>()
+        </span><span class="kw">fn </span>connected(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Connected {
+            <span class="self">self</span>.inner.get_ref().get_ref().get_ref().connected()
         }
     }
 
-    <span class="kw">impl</span>&lt;T: <a href="../../tokio/io/async_read/trait.AsyncRead.html">AsyncRead</a> + <a href="../../tokio/io/async_write/trait.AsyncWrite.html">AsyncWrite</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>&gt; <a href="../../tokio/io/async_read/trait.AsyncRead.html">AsyncRead</a> <span class="kw">for </span>NativeTlsConn&lt;T&gt; {
+    <span class="kw">impl</span>&lt;T: AsyncRead + AsyncWrite + Unpin&gt; AsyncRead <span class="kw">for </span>NativeTlsConn&lt;T&gt; {
         <span class="kw">fn </span>poll_read(
             <span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;,
-            cx: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>,
+            cx: <span class="kw-2">&amp;mut </span>Context,
             buf: <span class="kw-2">&amp;mut </span>ReadBuf&lt;<span class="lifetime">&#39;_</span>&gt;,
         ) -&gt; Poll&lt;tokio::io::Result&lt;()&gt;&gt; {
-            <span class="kw">let </span>this = <a class="self" href="#637">self</a>.<a href="#608-612">project</a>();
-            <a href="../../tokio/io/async_read/trait.AsyncRead.html">AsyncRead::poll_read</a>(<a href="#641">this</a>.inner, <a href="#638">cx</a>, <a href="#639">buf</a>)
+            <span class="kw">let </span>this = <span class="self">self</span>.project();
+            AsyncRead::poll_read(this.inner, cx, buf)
         }
     }
 
-    <span class="kw">impl</span>&lt;T: <a href="../../tokio/io/async_read/trait.AsyncRead.html">AsyncRead</a> + <a href="../../tokio/io/async_write/trait.AsyncWrite.html">AsyncWrite</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>&gt; <a href="../../tokio/io/async_write/trait.AsyncWrite.html">AsyncWrite</a> <span class="kw">for </span>NativeTlsConn&lt;T&gt; {
+    <span class="kw">impl</span>&lt;T: AsyncRead + AsyncWrite + Unpin&gt; AsyncWrite <span class="kw">for </span>NativeTlsConn&lt;T&gt; {
         <span class="kw">fn </span>poll_write(
             <span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;,
-            cx: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>,
-            buf: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
-        ) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">tokio::io::Error</a>&gt;&gt; {
-            <span class="kw">let </span>this = <a class="self" href="#648">self</a>.<a href="#608-612">project</a>();
-            <a href="../../tokio/io/async_write/trait.AsyncWrite.html">AsyncWrite::poll_write</a>(<a href="#652">this</a>.inner, <a href="#649">cx</a>, <a href="#650">buf</a>)
+            cx: <span class="kw-2">&amp;mut </span>Context,
+            buf: <span class="kw-2">&amp;</span>[u8],
+        ) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;usize, tokio::io::Error&gt;&gt; {
+            <span class="kw">let </span>this = <span class="self">self</span>.project();
+            AsyncWrite::poll_write(this.inner, cx, buf)
         }
 
         <span class="kw">fn </span>poll_write_vectored(
             <span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;,
             cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
             bufs: <span class="kw-2">&amp;</span>[IoSlice&lt;<span class="lifetime">&#39;_</span>&gt;],
-        ) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a>&gt;&gt; {
-            <span class="kw">let </span>this = <a class="self" href="#657">self</a>.<a href="#608-612">project</a>();
-            <a href="../../tokio/io/async_write/trait.AsyncWrite.html">AsyncWrite::poll_write_vectored</a>(<a href="#661">this</a>.inner, <a href="#658">cx</a>, <a href="#659">bufs</a>)
+        ) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;usize, io::Error&gt;&gt; {
+            <span class="kw">let </span>this = <span class="self">self</span>.project();
+            AsyncWrite::poll_write_vectored(this.inner, cx, bufs)
         }
 
-        <span class="kw">fn </span>is_write_vectored(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-            <a class="self" href="#665">self</a>.inner.<a href="../../tokio/io/async_write/trait.AsyncWrite.html">is_write_vectored</a>()
+        <span class="kw">fn </span>is_write_vectored(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+            <span class="self">self</span>.inner.is_write_vectored()
         }
 
         <span class="kw">fn </span>poll_flush(
             <span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;,
-            cx: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>,
-        ) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;(), <a href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">tokio::io::Error</a>&gt;&gt; {
-            <span class="kw">let </span>this = <a class="self" href="#670">self</a>.<a href="#608-612">project</a>();
-            <a href="../../tokio/io/async_write/trait.AsyncWrite.html">AsyncWrite::poll_flush</a>(<a href="#673">this</a>.inner, <a href="#671">cx</a>)
+            cx: <span class="kw-2">&amp;mut </span>Context,
+        ) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;(), tokio::io::Error&gt;&gt; {
+            <span class="kw">let </span>this = <span class="self">self</span>.project();
+            AsyncWrite::poll_flush(this.inner, cx)
         }
 
         <span class="kw">fn </span>poll_shutdown(
             <span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;,
-            cx: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>,
-        ) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;(), <a href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">tokio::io::Error</a>&gt;&gt; {
-            <span class="kw">let </span>this = <a class="self" href="#678">self</a>.<a href="#608-612">project</a>();
-            <a href="../../tokio/io/async_write/trait.AsyncWrite.html">AsyncWrite::poll_shutdown</a>(<a href="#681">this</a>.inner, <a href="#679">cx</a>)
+            cx: <span class="kw-2">&amp;mut </span>Context,
+        ) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;(), tokio::io::Error&gt;&gt; {
+            <span class="kw">let </span>this = <span class="self">self</span>.project();
+            AsyncWrite::poll_shutdown(this.inner, cx)
         }
     }
 }
@@ -1954,72 +1954,72 @@
 }
 
 <span class="kw">mod </span>verbose {
-    <span class="kw">use </span>hyper::client::connect::{<a href="../../hyper/client/connect/struct.Connected.html">Connected</a>, <a href="../../hyper/client/connect/trait.Connection.html">Connection</a>};
-    <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">std::fmt</a>;
-    <span class="kw">use </span>std::io::{<a class="self" href="https://doc.rust-lang.org/nightly/std/io/index.html">self</a>, <a href="https://doc.rust-lang.org/nightly/std/io/struct.IoSlice.html">IoSlice</a>};
-    <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/pin/struct.Pin.html">std::pin::Pin</a>;
-    <span class="kw">use </span>std::task::{<a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>, <a href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">Poll</a>};
-    <span class="kw">use </span>tokio::io::{<a href="../../tokio/io/async_read/trait.AsyncRead.html">AsyncRead</a>, <a href="../../tokio/io/async_write/trait.AsyncWrite.html">AsyncWrite</a>, <a href="../../tokio/io/read_buf/struct.ReadBuf.html">ReadBuf</a>};
+    <span class="kw">use </span>hyper::client::connect::{Connected, Connection};
+    <span class="kw">use </span>std::fmt;
+    <span class="kw">use </span>std::io::{<span class="self">self</span>, IoSlice};
+    <span class="kw">use </span>std::pin::Pin;
+    <span class="kw">use </span>std::task::{Context, Poll};
+    <span class="kw">use </span>tokio::io::{AsyncRead, AsyncWrite, ReadBuf};
 
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">const </span>OFF: <a href="#843">Wrapper</a> = <a href="#843">Wrapper</a>(<span class="bool-val">false</span>);
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">const </span>OFF: Wrapper = Wrapper(<span class="bool-val">false</span>);
 
     <span class="attr">#[derive(Clone, Copy)]
-    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">struct </span>Wrapper(<span class="kw">pub</span>(<span class="kw">super</span>) <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>);
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">struct </span>Wrapper(<span class="kw">pub</span>(<span class="kw">super</span>) bool);
 
-    <span class="kw">impl </span><a href="#843">Wrapper</a> {
-        <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>wrap&lt;T: <a href="#447-448"><span class="kw">super</span>::AsyncConn</a>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, conn: T) -&gt; <a href="#454"><span class="kw">super</span>::BoxConn</a> {
+    <span class="kw">impl </span>Wrapper {
+        <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>wrap&lt;T: <span class="kw">super</span>::AsyncConn&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, conn: T) -&gt; <span class="kw">super</span>::BoxConn {
             <span class="kw">if </span><span class="self">self</span>.<span class="number">0 </span>&amp;&amp; <span class="macro">log::log_enabled!</span>(log::Level::Trace) {
-                Box::new(<a href="#859">Verbose</a> {
+                Box::new(Verbose {
                     <span class="comment">// truncate is fine
-                    </span>id: <a href="util.rs.html#5"><span class="kw">crate</span>::util::fast_random</a>() <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>,
-                    inner: <a href="#846">conn</a>,
+                    </span>id: <span class="kw">crate</span>::util::fast_random() <span class="kw">as </span>u32,
+                    inner: conn,
                 })
             } <span class="kw">else </span>{
-                Box::new(<a href="#846">conn</a>)
+                Box::new(conn)
             }
         }
     }
 
     <span class="kw">struct </span>Verbose&lt;T&gt; {
-        id: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>,
+        id: u32,
         inner: T,
     }
 
-    <span class="kw">impl</span>&lt;T: <a href="../../hyper/client/connect/trait.Connection.html">Connection</a> + <a href="../../tokio/io/async_read/trait.AsyncRead.html">AsyncRead</a> + <a href="../../tokio/io/async_write/trait.AsyncWrite.html">AsyncWrite</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>&gt; <a href="../../hyper/client/connect/trait.Connection.html">Connection</a> <span class="kw">for </span>Verbose&lt;T&gt; {
-        <span class="kw">fn </span>connected(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../../hyper/client/connect/struct.Connected.html">Connected</a> {
-            <a class="self" href="#865">self</a>.inner.<a href="../../hyper/client/connect/trait.Connection.html">connected</a>()
+    <span class="kw">impl</span>&lt;T: Connection + AsyncRead + AsyncWrite + Unpin&gt; Connection <span class="kw">for </span>Verbose&lt;T&gt; {
+        <span class="kw">fn </span>connected(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Connected {
+            <span class="self">self</span>.inner.connected()
         }
     }
 
-    <span class="kw">impl</span>&lt;T: <a href="../../tokio/io/async_read/trait.AsyncRead.html">AsyncRead</a> + <a href="../../tokio/io/async_write/trait.AsyncWrite.html">AsyncWrite</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>&gt; <a href="../../tokio/io/async_read/trait.AsyncRead.html">AsyncRead</a> <span class="kw">for </span>Verbose&lt;T&gt; {
+    <span class="kw">impl</span>&lt;T: AsyncRead + AsyncWrite + Unpin&gt; AsyncRead <span class="kw">for </span>Verbose&lt;T&gt; {
         <span class="kw">fn </span>poll_read(
             <span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;,
-            cx: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>,
+            cx: <span class="kw-2">&amp;mut </span>Context,
             buf: <span class="kw-2">&amp;mut </span>ReadBuf&lt;<span class="lifetime">&#39;_</span>&gt;,
         ) -&gt; Poll&lt;std::io::Result&lt;()&gt;&gt; {
-            <span class="kw">match </span>Pin::new(<span class="kw-2">&amp;mut </span><a class="self" href="#872">self</a>.inner).<a href="../../tokio/io/async_read/trait.AsyncRead.html">poll_read</a>(<a href="#873">cx</a>, <a href="#874">buf</a>) {
+            <span class="kw">match </span>Pin::new(<span class="kw-2">&amp;mut </span><span class="self">self</span>.inner).poll_read(cx, buf) {
                 Poll::Ready(<span class="prelude-val">Ok</span>(())) =&gt; {
-                    <a class="macro" href="../../log/macro.trace.html">log::trace!</a>(<span class="string">&quot;{:08x} read: {:?}&quot;</span>, <span class="self">self</span>.id, Escape(buf.filled()));
+                    <span class="macro">log::trace!</span>(<span class="string">&quot;{:08x} read: {:?}&quot;</span>, <span class="self">self</span>.id, Escape(buf.filled()));
                     Poll::Ready(<span class="prelude-val">Ok</span>(()))
                 }
-                Poll::Ready(<span class="prelude-val">Err</span>(e)) =&gt; Poll::Ready(<span class="prelude-val">Err</span>(<a href="#881">e</a>)),
+                Poll::Ready(<span class="prelude-val">Err</span>(e)) =&gt; Poll::Ready(<span class="prelude-val">Err</span>(e)),
                 Poll::Pending =&gt; Poll::Pending,
             }
         }
     }
 
-    <span class="kw">impl</span>&lt;T: <a href="../../tokio/io/async_read/trait.AsyncRead.html">AsyncRead</a> + <a href="../../tokio/io/async_write/trait.AsyncWrite.html">AsyncWrite</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>&gt; <a href="../../tokio/io/async_write/trait.AsyncWrite.html">AsyncWrite</a> <span class="kw">for </span>Verbose&lt;T&gt; {
+    <span class="kw">impl</span>&lt;T: AsyncRead + AsyncWrite + Unpin&gt; AsyncWrite <span class="kw">for </span>Verbose&lt;T&gt; {
         <span class="kw">fn </span>poll_write(
             <span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;,
-            cx: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>,
-            buf: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
-        ) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">std::io::Error</a>&gt;&gt; {
-            <span class="kw">match </span>Pin::new(<span class="kw-2">&amp;mut </span><a class="self" href="#889">self</a>.inner).<a href="../../tokio/io/async_write/trait.AsyncWrite.html">poll_write</a>(<a href="#890">cx</a>, <a href="#891">buf</a>) {
+            cx: <span class="kw-2">&amp;mut </span>Context,
+            buf: <span class="kw-2">&amp;</span>[u8],
+        ) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;usize, std::io::Error&gt;&gt; {
+            <span class="kw">match </span>Pin::new(<span class="kw-2">&amp;mut </span><span class="self">self</span>.inner).poll_write(cx, buf) {
                 Poll::Ready(<span class="prelude-val">Ok</span>(n)) =&gt; {
-                    <a class="macro" href="../../log/macro.trace.html">log::trace!</a>(<span class="string">&quot;{:08x} write: {:?}&quot;</span>, <span class="self">self</span>.id, Escape(<span class="kw-2">&amp;</span>buf[..n]));
-                    Poll::Ready(<span class="prelude-val">Ok</span>(<a href="#894">n</a>))
+                    <span class="macro">log::trace!</span>(<span class="string">&quot;{:08x} write: {:?}&quot;</span>, <span class="self">self</span>.id, Escape(<span class="kw-2">&amp;</span>buf[..n]));
+                    Poll::Ready(<span class="prelude-val">Ok</span>(n))
                 }
-                Poll::Ready(<span class="prelude-val">Err</span>(e)) =&gt; Poll::Ready(<span class="prelude-val">Err</span>(<a href="#898">e</a>)),
+                Poll::Ready(<span class="prelude-val">Err</span>(e)) =&gt; Poll::Ready(<span class="prelude-val">Err</span>(e)),
                 Poll::Pending =&gt; Poll::Pending,
             }
         }
@@ -2028,33 +2028,33 @@
             <span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;,
             cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
             bufs: <span class="kw-2">&amp;</span>[IoSlice&lt;<span class="lifetime">&#39;_</span>&gt;],
-        ) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a>&gt;&gt; {
-            Pin::new(<span class="kw-2">&amp;mut </span><a class="self" href="#904">self</a>.inner).<a href="../../tokio/io/async_write/trait.AsyncWrite.html">poll_write_vectored</a>(<a href="#905">cx</a>, <a href="#906">bufs</a>)
+        ) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;usize, io::Error&gt;&gt; {
+            Pin::new(<span class="kw-2">&amp;mut </span><span class="self">self</span>.inner).poll_write_vectored(cx, bufs)
         }
 
-        <span class="kw">fn </span>is_write_vectored(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-            <a class="self" href="#911">self</a>.inner.<a href="../../tokio/io/async_write/trait.AsyncWrite.html">is_write_vectored</a>()
+        <span class="kw">fn </span>is_write_vectored(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+            <span class="self">self</span>.inner.is_write_vectored()
         }
 
         <span class="kw">fn </span>poll_flush(
             <span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;,
-            cx: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>,
-        ) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;(), <a href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">std::io::Error</a>&gt;&gt; {
-            Pin::new(<span class="kw-2">&amp;mut </span><a class="self" href="#916">self</a>.inner).<a href="../../tokio/io/async_write/trait.AsyncWrite.html">poll_flush</a>(<a href="#917">cx</a>)
+            cx: <span class="kw-2">&amp;mut </span>Context,
+        ) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;(), std::io::Error&gt;&gt; {
+            Pin::new(<span class="kw-2">&amp;mut </span><span class="self">self</span>.inner).poll_flush(cx)
         }
 
         <span class="kw">fn </span>poll_shutdown(
             <span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;,
-            cx: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>,
-        ) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;(), <a href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">std::io::Error</a>&gt;&gt; {
-            Pin::new(<span class="kw-2">&amp;mut </span><a class="self" href="#923">self</a>.inner).<a href="../../tokio/io/async_write/trait.AsyncWrite.html">poll_shutdown</a>(<a href="#924">cx</a>)
+            cx: <span class="kw-2">&amp;mut </span>Context,
+        ) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;(), std::io::Error&gt;&gt; {
+            Pin::new(<span class="kw-2">&amp;mut </span><span class="self">self</span>.inner).poll_shutdown(cx)
         }
     }
 
-    <span class="kw">struct </span>Escape&lt;<span class="lifetime">&#39;a</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]);
+    <span class="kw">struct </span>Escape&lt;<span class="lifetime">&#39;a</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[u8]);
 
-    <span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span>Escape&lt;<span class="lifetime">&#39;_</span>&gt; {
-        <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+    <span class="kw">impl </span>fmt::Debug <span class="kw">for </span>Escape&lt;<span class="lifetime">&#39;_</span>&gt; {
+        <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
             <span class="macro">write!</span>(f, <span class="string">&quot;b\&quot;&quot;</span>)<span class="question-mark">?</span>;
             <span class="kw">for </span><span class="kw-2">&amp;</span>c <span class="kw">in </span><span class="self">self</span>.<span class="number">0 </span>{
                 <span class="comment">// https://doc.rust-lang.org/reference.html#byte-escapes
@@ -2247,4 +2247,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="reqwest" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="reqwest" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

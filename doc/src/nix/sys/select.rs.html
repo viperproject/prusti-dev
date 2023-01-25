@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/nix-0.25.0/src/sys/select.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>select.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../nix/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/nix-0.26.1/src/sys/select.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>select.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../nix/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -432,63 +432,84 @@
 <a href="#432" id="432">432</a>
 <a href="#433" id="433">433</a>
 <a href="#434" id="434">434</a>
+<a href="#435" id="435">435</a>
+<a href="#436" id="436">436</a>
+<a href="#437" id="437">437</a>
+<a href="#438" id="438">438</a>
+<a href="#439" id="439">439</a>
+<a href="#440" id="440">440</a>
+<a href="#441" id="441">441</a>
+<a href="#442" id="442">442</a>
+<a href="#443" id="443">443</a>
+<a href="#444" id="444">444</a>
+<a href="#445" id="445">445</a>
+<a href="#446" id="446">446</a>
+<a href="#447" id="447">447</a>
+<a href="#448" id="448">448</a>
+<a href="#449" id="449">449</a>
+<a href="#450" id="450">450</a>
+<a href="#451" id="451">451</a>
+<a href="#452" id="452">452</a>
+<a href="#453" id="453">453</a>
+<a href="#454" id="454">454</a>
+<a href="#455" id="455">455</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Portably monitor a group of file descriptors for readiness.
-</span><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/convert/trait.TryFrom.html">std::convert::TryFrom</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/iter/traits/marker/trait.FusedIterator.html">std::iter::FusedIterator</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/mem/index.html">std::mem</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/ops/range/struct.Range.html">std::ops::Range</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">std::os::unix::io::RawFd</a>;
-<span class="kw">use </span>std::ptr::{<a href="https://doc.rust-lang.org/nightly/core/ptr/fn.null.html">null</a>, <a href="https://doc.rust-lang.org/nightly/core/ptr/fn.null_mut.html">null_mut</a>};
-<span class="kw">use </span>libc::{<a class="self" href="../../../libc/index.html">self</a>, <a href="../../../libc/unix/type.c_int.html">c_int</a>};
-<span class="kw">use </span><a href="../lib.rs.html#167"><span class="kw">crate</span>::Result</a>;
-<span class="kw">use </span><a href="../errno.rs.html#1163"><span class="kw">crate</span>::errno::Errno</a>;
-<span class="kw">use </span><span class="kw">crate</span>::sys::time::{<a href="time.rs.html#189">TimeSpec</a>, <a href="time.rs.html#451">TimeVal</a>};
+</span><span class="kw">use </span><span class="kw">crate</span>::errno::Errno;
+<span class="kw">use </span><span class="kw">crate</span>::sys::time::{TimeSpec, TimeVal};
+<span class="kw">use </span><span class="kw">crate</span>::Result;
+<span class="kw">use </span>libc::{<span class="self">self</span>, c_int};
+<span class="kw">use </span>std::convert::TryFrom;
+<span class="kw">use </span>std::iter::FusedIterator;
+<span class="kw">use </span>std::mem;
+<span class="kw">use </span>std::ops::Range;
+<span class="kw">use </span>std::os::unix::io::RawFd;
+<span class="kw">use </span>std::ptr::{null, null_mut};
 
-<span class="kw">pub use </span><a href="../../../nix/sys/select/constant.FD_SETSIZE.html">libc::FD_SETSIZE</a>;
+<span class="kw">pub use </span>libc::FD_SETSIZE;
 
 <span class="doccomment">/// Contains a set of file descriptors used by [`select`]
 </span><span class="attr">#[repr(transparent)]
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
-</span><span class="kw">pub struct </span>FdSet(<a href="../../../libc/unix/linux_like/struct.fd_set.html">libc::fd_set</a>);
+</span><span class="kw">pub struct </span>FdSet(libc::fd_set);
 
-<span class="kw">fn </span>assert_fd_valid(fd: <a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a>) {
-    <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(
+<span class="kw">fn </span>assert_fd_valid(fd: RawFd) {
+    <span class="macro">assert!</span>(
         usize::try_from(fd).map_or(<span class="bool-val">false</span>, |fd| fd &lt; FD_SETSIZE),
         <span class="string">&quot;fd must be in the range 0..FD_SETSIZE&quot;</span>,
     );
 }
 
-<span class="kw">impl </span><a href="#18">FdSet</a> {
+<span class="kw">impl </span>FdSet {
     <span class="doccomment">/// Create an empty `FdSet`
-    </span><span class="kw">pub fn </span>new() -&gt; <a href="#18">FdSet</a> {
+    </span><span class="kw">pub fn </span>new() -&gt; FdSet {
         <span class="kw">let </span><span class="kw-2">mut </span>fdset = mem::MaybeUninit::uninit();
         <span class="kw">unsafe </span>{
-            libc::FD_ZERO(<a href="#30">fdset</a>.as_mut_ptr());
-            <a href="#18">FdSet</a>(<a href="#30">fdset</a>.assume_init())
+            libc::FD_ZERO(fdset.as_mut_ptr());
+            FdSet(fdset.assume_init())
         }
     }
 
     <span class="doccomment">/// Add a file descriptor to an `FdSet`
-    </span><span class="kw">pub fn </span>insert(<span class="kw-2">&amp;mut </span><span class="self">self</span>, fd: <a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a>) {
-        <a href="#20">assert_fd_valid</a>(<a href="#38">fd</a>);
-        <span class="kw">unsafe </span>{ libc::FD_SET(<a href="#38">fd</a>, <span class="kw-2">&amp;mut </span><a class="self" href="#38">self</a>.<span class="number">0</span>) };
+    </span><span class="kw">pub fn </span>insert(<span class="kw-2">&amp;mut </span><span class="self">self</span>, fd: RawFd) {
+        assert_fd_valid(fd);
+        <span class="kw">unsafe </span>{ libc::FD_SET(fd, <span class="kw-2">&amp;mut </span><span class="self">self</span>.<span class="number">0</span>) };
     }
 
     <span class="doccomment">/// Remove a file descriptor from an `FdSet`
-    </span><span class="kw">pub fn </span>remove(<span class="kw-2">&amp;mut </span><span class="self">self</span>, fd: <a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a>) {
-        <a href="#20">assert_fd_valid</a>(<a href="#44">fd</a>);
-        <span class="kw">unsafe </span>{ libc::FD_CLR(<a href="#44">fd</a>, <span class="kw-2">&amp;mut </span><a class="self" href="#44">self</a>.<span class="number">0</span>) };
+    </span><span class="kw">pub fn </span>remove(<span class="kw-2">&amp;mut </span><span class="self">self</span>, fd: RawFd) {
+        assert_fd_valid(fd);
+        <span class="kw">unsafe </span>{ libc::FD_CLR(fd, <span class="kw-2">&amp;mut </span><span class="self">self</span>.<span class="number">0</span>) };
     }
 
     <span class="doccomment">/// Test an `FdSet` for the presence of a certain file descriptor.
-    </span><span class="kw">pub fn </span>contains(<span class="kw-2">&amp;</span><span class="self">self</span>, fd: <a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a href="#20">assert_fd_valid</a>(<a href="#50">fd</a>);
-        <span class="kw">unsafe </span>{ libc::FD_ISSET(<a href="#50">fd</a>, <span class="kw-2">&amp;</span><a class="self" href="#50">self</a>.<span class="number">0</span>) }
+    </span><span class="kw">pub fn </span>contains(<span class="kw-2">&amp;</span><span class="self">self</span>, fd: RawFd) -&gt; bool {
+        assert_fd_valid(fd);
+        <span class="kw">unsafe </span>{ libc::FD_ISSET(fd, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="number">0</span>) }
     }
 
     <span class="doccomment">/// Remove all file descriptors from this `FdSet`.
     </span><span class="kw">pub fn </span>clear(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <span class="kw">unsafe </span>{ libc::FD_ZERO(<span class="kw-2">&amp;mut </span><a class="self" href="#56">self</a>.<span class="number">0</span>) };
+        <span class="kw">unsafe </span>{ libc::FD_ZERO(<span class="kw-2">&amp;mut </span><span class="self">self</span>.<span class="number">0</span>) };
     }
 
     <span class="doccomment">/// Finds the highest file descriptor in the set.
@@ -508,8 +529,8 @@
     /// ```
     ///
     /// [`select`]: fn.select.html
-    </span><span class="kw">pub fn </span>highest(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a>&gt; {
-        <a class="self" href="#77">self</a>.<a href="#99">fds</a>(<span class="prelude-val">None</span>).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/double_ended/trait.DoubleEndedIterator.html">next_back</a>()
+    </span><span class="kw">pub fn </span>highest(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;RawFd&gt; {
+        <span class="self">self</span>.fds(<span class="prelude-val">None</span>).next_back()
     }
 
     <span class="doccomment">/// Returns an iterator over the file descriptors in the set.
@@ -530,15 +551,15 @@
     /// assert_eq!(fds, vec![4, 9]);
     /// ```
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>fds(<span class="kw-2">&amp;</span><span class="self">self</span>, highest: <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a>&gt;) -&gt; <a href="#115">Fds</a> {
-        <a href="#115">Fds</a> {
-            set: <a class="self" href="#99">self</a>,
-            range: <span class="number">0</span>..<a href="#99">highest</a>.map(|h| <a href="#102">h</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> + <span class="number">1</span>).unwrap_or(<a href="../../../nix/sys/select/constant.FD_SETSIZE.html">FD_SETSIZE</a>),
+    </span><span class="kw">pub fn </span>fds(<span class="kw-2">&amp;</span><span class="self">self</span>, highest: <span class="prelude-ty">Option</span>&lt;RawFd&gt;) -&gt; Fds {
+        Fds {
+            set: <span class="self">self</span>,
+            range: <span class="number">0</span>..highest.map(|h| h <span class="kw">as </span>usize + <span class="number">1</span>).unwrap_or(FD_SETSIZE),
         }
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for </span><a href="#18">FdSet</a> {
+<span class="kw">impl </span>Default <span class="kw">for </span>FdSet {
     <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>::new()
     }
@@ -547,14 +568,14 @@
 <span class="doccomment">/// Iterator over `FdSet`.
 </span><span class="attr">#[derive(Debug)]
 </span><span class="kw">pub struct </span>Fds&lt;<span class="lifetime">&#39;a</span>&gt; {
-    set: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="#18">FdSet</a>,
-    range: Range&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;,
+    set: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>FdSet,
+    range: Range&lt;usize&gt;,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a> <span class="kw">for </span>Fds&lt;<span class="lifetime">&#39;a</span>&gt; {
-    <span class="kw">type </span>Item = <a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a>;
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; Iterator <span class="kw">for </span>Fds&lt;<span class="lifetime">&#39;a</span>&gt; {
+    <span class="kw">type </span>Item = RawFd;
 
-    <span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a>&gt; {
+    <span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;RawFd&gt; {
         <span class="kw">for </span>i <span class="kw">in </span><span class="kw-2">&amp;mut </span><span class="self">self</span>.range {
             <span class="kw">if </span><span class="self">self</span>.set.contains(i <span class="kw">as </span>RawFd) {
                 <span class="kw">return </span><span class="prelude-val">Some</span>(i <span class="kw">as </span>RawFd);
@@ -564,15 +585,15 @@
     </span>}
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>size_hint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;) {
-        <span class="kw">let </span>(<span class="kw">_</span>, upper) = <a class="self" href="#133">self</a>.range.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">size_hint</a>();
-        (<span class="number">0</span>, <a href="#134">upper</a>)
+    </span><span class="kw">fn </span>size_hint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (usize, <span class="prelude-ty">Option</span>&lt;usize&gt;) {
+        <span class="kw">let </span>(<span class="kw">_</span>, upper) = <span class="self">self</span>.range.size_hint();
+        (<span class="number">0</span>, upper)
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/double_ended/trait.DoubleEndedIterator.html">DoubleEndedIterator</a> <span class="kw">for </span>Fds&lt;<span class="lifetime">&#39;a</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; DoubleEndedIterator <span class="kw">for </span>Fds&lt;<span class="lifetime">&#39;a</span>&gt; {
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>next_back(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a>&gt; {
+    </span><span class="kw">fn </span>next_back(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;RawFd&gt; {
         <span class="kw">while let </span><span class="prelude-val">Some</span>(i) = <span class="self">self</span>.range.next_back() {
             <span class="kw">if </span><span class="self">self</span>.set.contains(i <span class="kw">as </span>RawFd) {
                 <span class="kw">return </span><span class="prelude-val">Some</span>(i <span class="kw">as </span>RawFd);
@@ -582,7 +603,7 @@
     </span>}
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/marker/trait.FusedIterator.html">FusedIterator</a> <span class="kw">for </span>Fds&lt;<span class="lifetime">&#39;a</span>&gt; {}
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; FusedIterator <span class="kw">for </span>Fds&lt;<span class="lifetime">&#39;a</span>&gt; {}
 
 <span class="doccomment">/// Monitors file descriptors for readiness
 ///
@@ -607,49 +628,59 @@
 /// [select(2)](https://pubs.opengroup.org/onlinepubs/9699919799/functions/select.html)
 ///
 /// [`FdSet::highest`]: struct.FdSet.html#method.highest
-</span><span class="kw">pub fn </span>select&lt;<span class="lifetime">&#39;a</span>, N, R, W, E, T&gt;(nfds: N,
+</span><span class="kw">pub fn </span>select&lt;<span class="lifetime">&#39;a</span>, N, R, W, E, T&gt;(
+    nfds: N,
     readfds: R,
     writefds: W,
     errorfds: E,
-                                 timeout: T) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../../libc/unix/type.c_int.html">c_int</a>&gt;
+    timeout: T,
+) -&gt; <span class="prelude-ty">Result</span>&lt;c_int&gt;
 <span class="kw">where
-    </span>N: Into&lt;<span class="prelude-ty">Option</span>&lt;<a href="../../../libc/unix/type.c_int.html">c_int</a>&gt;&gt;,
-    R: Into&lt;<span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span><a href="#18">FdSet</a>&gt;&gt;,
-    W: Into&lt;<span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span><a href="#18">FdSet</a>&gt;&gt;,
-    E: Into&lt;<span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span><a href="#18">FdSet</a>&gt;&gt;,
-    T: Into&lt;<span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span><a href="time.rs.html#451">TimeVal</a>&gt;&gt;,
+    </span>N: Into&lt;<span class="prelude-ty">Option</span>&lt;c_int&gt;&gt;,
+    R: Into&lt;<span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>FdSet&gt;&gt;,
+    W: Into&lt;<span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>FdSet&gt;&gt;,
+    E: Into&lt;<span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>FdSet&gt;&gt;,
+    T: Into&lt;<span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>TimeVal&gt;&gt;,
 {
-    <span class="kw">let </span><span class="kw-2">mut </span>readfds = <a href="#177">readfds</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>();
-    <span class="kw">let </span><span class="kw-2">mut </span>writefds = <a href="#178">writefds</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>();
-    <span class="kw">let </span><span class="kw-2">mut </span>errorfds = <a href="#179">errorfds</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>();
-    <span class="kw">let </span>timeout = <a href="#180">timeout</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>();
+    <span class="kw">let </span><span class="kw-2">mut </span>readfds = readfds.into();
+    <span class="kw">let </span><span class="kw-2">mut </span>writefds = writefds.into();
+    <span class="kw">let </span><span class="kw-2">mut </span>errorfds = errorfds.into();
+    <span class="kw">let </span>timeout = timeout.into();
 
-    <span class="kw">let </span>nfds = <a href="#176">nfds</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>().unwrap_or_else(|| {
-        <a href="#188">readfds</a>.iter_mut()
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">chain</a>(<a href="#189">writefds</a>.iter_mut())
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">chain</a>(<a href="#190">errorfds</a>.iter_mut())
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|set| <a href="#197">set</a>.<a href="#77">highest</a>().unwrap_or(-<span class="number">1</span>))
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">max</a>()
-            .unwrap_or(-<span class="number">1</span>) + <span class="number">1
+    <span class="kw">let </span>nfds = nfds.into().unwrap_or_else(|| {
+        readfds
+            .iter_mut()
+            .chain(writefds.iter_mut())
+            .chain(errorfds.iter_mut())
+            .map(|set| set.highest().unwrap_or(-<span class="number">1</span>))
+            .max()
+            .unwrap_or(-<span class="number">1</span>)
+            + <span class="number">1
     </span>});
 
-    <span class="kw">let </span>readfds = <a href="#188">readfds</a>.map(|set| <a href="#202">set</a> <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_ as </span><span class="kw-2">*mut </span><a href="../../../libc/unix/linux_like/struct.fd_set.html">libc::fd_set</a>).unwrap_or(<a href="https://doc.rust-lang.org/nightly/core/ptr/fn.null_mut.html">null_mut</a>());
-    <span class="kw">let </span>writefds = <a href="#189">writefds</a>.map(|set| <a href="#203">set</a> <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_ as </span><span class="kw-2">*mut </span><a href="../../../libc/unix/linux_like/struct.fd_set.html">libc::fd_set</a>).unwrap_or(<a href="https://doc.rust-lang.org/nightly/core/ptr/fn.null_mut.html">null_mut</a>());
-    <span class="kw">let </span>errorfds = <a href="#190">errorfds</a>.map(|set| <a href="#204">set</a> <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_ as </span><span class="kw-2">*mut </span><a href="../../../libc/unix/linux_like/struct.fd_set.html">libc::fd_set</a>).unwrap_or(<a href="https://doc.rust-lang.org/nightly/core/ptr/fn.null_mut.html">null_mut</a>());
-    <span class="kw">let </span>timeout = <a href="#191">timeout</a>.map(|tv| <a href="#205">tv</a> <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_ as </span><span class="kw-2">*mut </span><a href="../../../libc/unix/struct.timeval.html">libc::timeval</a>)
-        .unwrap_or(<a href="https://doc.rust-lang.org/nightly/core/ptr/fn.null_mut.html">null_mut</a>());
+    <span class="kw">let </span>readfds = readfds
+        .map(|set| set <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_ as </span><span class="kw-2">*mut </span>libc::fd_set)
+        .unwrap_or(null_mut());
+    <span class="kw">let </span>writefds = writefds
+        .map(|set| set <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_ as </span><span class="kw-2">*mut </span>libc::fd_set)
+        .unwrap_or(null_mut());
+    <span class="kw">let </span>errorfds = errorfds
+        .map(|set| set <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_ as </span><span class="kw-2">*mut </span>libc::fd_set)
+        .unwrap_or(null_mut());
+    <span class="kw">let </span>timeout = timeout
+        .map(|tv| tv <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_ as </span><span class="kw-2">*mut </span>libc::timeval)
+        .unwrap_or(null_mut());
 
-    <span class="kw">let </span>res = <span class="kw">unsafe </span>{
-        libc::select(<a href="#193">nfds</a>, <a href="#202">readfds</a>, <a href="#203">writefds</a>, <a href="#204">errorfds</a>, <a href="#205">timeout</a>)
-    };
+    <span class="kw">let </span>res =
+        <span class="kw">unsafe </span>{ libc::select(nfds, readfds, writefds, errorfds, timeout) };
 
-    Errno::result(<a href="#208">res</a>)
+    Errno::result(res)
 }
 
 <span class="macro">feature! </span>{
 <span class="attr">#![feature = <span class="string">&quot;signal&quot;</span>]
 
-</span><span class="kw">use </span><a href="signal.rs.html#472"><span class="kw">crate</span>::sys::signal::SigSet</a>;
+</span><span class="kw">use </span><span class="kw">crate</span>::sys::signal::SigSet;
 
 <span class="doccomment">/// Monitors file descriptors for readiness with an altered signal mask.
 ///
@@ -685,50 +716,50 @@
     writefds: W,
     errorfds: E,
     timeout: T,
-                                     sigmask: S) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../../libc/unix/type.c_int.html">c_int</a>&gt;
+                                     sigmask: S) -&gt; <span class="prelude-ty">Result</span>&lt;c_int&gt;
 <span class="kw">where
-    </span>N: Into&lt;<span class="prelude-ty">Option</span>&lt;<a href="../../../libc/unix/type.c_int.html">c_int</a>&gt;&gt;,
-    R: Into&lt;<span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span><a href="#18">FdSet</a>&gt;&gt;,
-    W: Into&lt;<span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span><a href="#18">FdSet</a>&gt;&gt;,
-    E: Into&lt;<span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span><a href="#18">FdSet</a>&gt;&gt;,
-    T: Into&lt;<span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="time.rs.html#189">TimeSpec</a>&gt;&gt;,
-    S: Into&lt;<span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="signal.rs.html#472">SigSet</a>&gt;&gt;,
+    </span>N: Into&lt;<span class="prelude-ty">Option</span>&lt;c_int&gt;&gt;,
+    R: Into&lt;<span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>FdSet&gt;&gt;,
+    W: Into&lt;<span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>FdSet&gt;&gt;,
+    E: Into&lt;<span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>FdSet&gt;&gt;,
+    T: Into&lt;<span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>TimeSpec&gt;&gt;,
+    S: Into&lt;<span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>SigSet&gt;&gt;,
 {
-    <span class="kw">let </span><span class="kw-2">mut </span>readfds = <a href="#250">readfds</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>();
-    <span class="kw">let </span><span class="kw-2">mut </span>writefds = <a href="#251">writefds</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>();
-    <span class="kw">let </span><span class="kw-2">mut </span>errorfds = <a href="#252">errorfds</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>();
-    <span class="kw">let </span>sigmask = <a href="#254">sigmask</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>();
-    <span class="kw">let </span>timeout = <a href="#253">timeout</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>();
+    <span class="kw">let </span><span class="kw-2">mut </span>readfds = readfds.into();
+    <span class="kw">let </span><span class="kw-2">mut </span>writefds = writefds.into();
+    <span class="kw">let </span><span class="kw-2">mut </span>errorfds = errorfds.into();
+    <span class="kw">let </span>sigmask = sigmask.into();
+    <span class="kw">let </span>timeout = timeout.into();
 
-    <span class="kw">let </span>nfds = <a href="#249">nfds</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>().unwrap_or_else(|| {
-        <a href="#263">readfds</a>.iter_mut()
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">chain</a>(<a href="#264">writefds</a>.iter_mut())
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">chain</a>(<a href="#265">errorfds</a>.iter_mut())
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|set| <a href="#273">set</a>.<a href="#77">highest</a>().unwrap_or(-<span class="number">1</span>))
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">max</a>()
+    <span class="kw">let </span>nfds = nfds.into().unwrap_or_else(|| {
+        readfds.iter_mut()
+            .chain(writefds.iter_mut())
+            .chain(errorfds.iter_mut())
+            .map(|set| set.highest().unwrap_or(-<span class="number">1</span>))
+            .max()
             .unwrap_or(-<span class="number">1</span>) + <span class="number">1
     </span>});
 
-    <span class="kw">let </span>readfds = <a href="#263">readfds</a>.map(|set| <a href="#278">set</a> <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_ as </span><span class="kw-2">*mut </span><a href="../../../libc/unix/linux_like/struct.fd_set.html">libc::fd_set</a>).unwrap_or(<a href="https://doc.rust-lang.org/nightly/core/ptr/fn.null_mut.html">null_mut</a>());
-    <span class="kw">let </span>writefds = <a href="#264">writefds</a>.map(|set| <a href="#279">set</a> <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_ as </span><span class="kw-2">*mut </span><a href="../../../libc/unix/linux_like/struct.fd_set.html">libc::fd_set</a>).unwrap_or(<a href="https://doc.rust-lang.org/nightly/core/ptr/fn.null_mut.html">null_mut</a>());
-    <span class="kw">let </span>errorfds = <a href="#265">errorfds</a>.map(|set| <a href="#280">set</a> <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_ as </span><span class="kw-2">*mut </span><a href="../../../libc/unix/linux_like/struct.fd_set.html">libc::fd_set</a>).unwrap_or(<a href="https://doc.rust-lang.org/nightly/core/ptr/fn.null_mut.html">null_mut</a>());
-    <span class="kw">let </span>timeout = <a href="#267">timeout</a>.map(|ts| <a href="#281">ts</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>() <span class="kw">as </span><span class="kw-2">*const </span><a href="../../../libc/unix/struct.timespec.html">libc::timespec</a>).unwrap_or(<a href="https://doc.rust-lang.org/nightly/core/ptr/fn.null.html">null</a>());
-    <span class="kw">let </span>sigmask = <a href="#266">sigmask</a>.map(|sm| <a href="#282">sm</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>() <span class="kw">as </span><span class="kw-2">*const </span><a href="../../../libc/unix/linux_like/linux/gnu/b64/struct.sigset_t.html">libc::sigset_t</a>).unwrap_or(<a href="https://doc.rust-lang.org/nightly/core/ptr/fn.null.html">null</a>());
+    <span class="kw">let </span>readfds = readfds.map(|set| set <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_ as </span><span class="kw-2">*mut </span>libc::fd_set).unwrap_or(null_mut());
+    <span class="kw">let </span>writefds = writefds.map(|set| set <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_ as </span><span class="kw-2">*mut </span>libc::fd_set).unwrap_or(null_mut());
+    <span class="kw">let </span>errorfds = errorfds.map(|set| set <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_ as </span><span class="kw-2">*mut </span>libc::fd_set).unwrap_or(null_mut());
+    <span class="kw">let </span>timeout = timeout.map(|ts| ts.as_ref() <span class="kw">as </span><span class="kw-2">*const </span>libc::timespec).unwrap_or(null());
+    <span class="kw">let </span>sigmask = sigmask.map(|sm| sm.as_ref() <span class="kw">as </span><span class="kw-2">*const </span>libc::sigset_t).unwrap_or(null());
 
     <span class="kw">let </span>res = <span class="kw">unsafe </span>{
-        libc::pselect(<a href="#269">nfds</a>, <a href="#278">readfds</a>, <a href="#279">writefds</a>, <a href="#280">errorfds</a>, <a href="#281">timeout</a>, <a href="#282">sigmask</a>)
+        libc::pselect(nfds, readfds, writefds, errorfds, timeout, sigmask)
     };
 
-    Errno::result(<a href="#284">res</a>)
+    Errno::result(res)
 }
 }
 
 <span class="attr">#[cfg(test)]
 </span><span class="kw">mod </span>tests {
     <span class="kw">use super</span>::<span class="kw-2">*</span>;
-    <span class="kw">use </span>std::os::unix::io::RawFd;
     <span class="kw">use </span><span class="kw">crate</span>::sys::time::{TimeVal, TimeValLike};
-    <span class="kw">use </span><span class="kw">crate</span>::unistd::{write, pipe};
+    <span class="kw">use </span><span class="kw">crate</span>::unistd::{pipe, write};
+    <span class="kw">use </span>std::os::unix::io::RawFd;
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>fdset_insert() {
@@ -817,11 +848,10 @@
         fd_set.insert(r2);
 
         <span class="kw">let </span><span class="kw-2">mut </span>timeout = TimeVal::seconds(<span class="number">10</span>);
-        <span class="macro">assert_eq!</span>(<span class="number">1</span>, select(<span class="prelude-val">None</span>,
-                             <span class="kw-2">&amp;mut </span>fd_set,
-                             <span class="prelude-val">None</span>,
-                             <span class="prelude-val">None</span>,
-                             <span class="kw-2">&amp;mut </span>timeout).unwrap());
+        <span class="macro">assert_eq!</span>(
+            <span class="number">1</span>,
+            select(<span class="prelude-val">None</span>, <span class="kw-2">&amp;mut </span>fd_set, <span class="prelude-val">None</span>, <span class="prelude-val">None</span>, <span class="kw-2">&amp;mut </span>timeout).unwrap()
+        );
         <span class="macro">assert!</span>(fd_set.contains(r1));
         <span class="macro">assert!</span>(!fd_set.contains(r2));
     }
@@ -837,11 +867,17 @@
         fd_set.insert(r2);
 
         <span class="kw">let </span><span class="kw-2">mut </span>timeout = TimeVal::seconds(<span class="number">10</span>);
-        <span class="macro">assert_eq!</span>(<span class="number">1</span>, select(<span class="prelude-val">Some</span>(fd_set.highest().unwrap() + <span class="number">1</span>),
+        <span class="macro">assert_eq!</span>(
+            <span class="number">1</span>,
+            select(
+                <span class="prelude-val">Some</span>(fd_set.highest().unwrap() + <span class="number">1</span>),
                 <span class="kw-2">&amp;mut </span>fd_set,
                 <span class="prelude-val">None</span>,
                 <span class="prelude-val">None</span>,
-                             <span class="kw-2">&amp;mut </span>timeout).unwrap());
+                <span class="kw-2">&amp;mut </span>timeout
+            )
+            .unwrap()
+        );
         <span class="macro">assert!</span>(fd_set.contains(r1));
         <span class="macro">assert!</span>(!fd_set.contains(r2));
     }
@@ -857,14 +893,20 @@
         fd_set.insert(r2);
 
         <span class="kw">let </span><span class="kw-2">mut </span>timeout = TimeVal::seconds(<span class="number">10</span>);
-        <span class="macro">assert_eq!</span>(<span class="number">1</span>, select(::std::cmp::max(r1, r2) + <span class="number">1</span>,
+        <span class="macro">assert_eq!</span>(
+            <span class="number">1</span>,
+            select(
+                ::std::cmp::max(r1, r2) + <span class="number">1</span>,
                 <span class="kw-2">&amp;mut </span>fd_set,
                 <span class="prelude-val">None</span>,
                 <span class="prelude-val">None</span>,
-                             <span class="kw-2">&amp;mut </span>timeout).unwrap());
+                <span class="kw-2">&amp;mut </span>timeout
+            )
+            .unwrap()
+        );
         <span class="macro">assert!</span>(fd_set.contains(r1));
         <span class="macro">assert!</span>(!fd_set.contains(r2));
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="nix" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="nix" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

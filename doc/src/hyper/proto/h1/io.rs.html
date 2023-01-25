@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/hyper-0.14.23/src/proto/h1/io.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>io.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../../hyper/index.html"><img class="rust-logo" src="../../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/hyper-0.14.23/src/proto/h1/io.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>io.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../../hyper/index.html"><img class="rust-logo" src="../../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -1000,127 +1000,127 @@
 <a href="#1000" id="1000">1000</a>
 <a href="#1001" id="1001">1001</a>
 <a href="#1002" id="1002">1002</a>
-</pre><pre class="rust"><code><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/cmp/index.html">std::cmp</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">std::fmt</a>;
+</pre><pre class="rust"><code><span class="kw">use </span>std::cmp;
+<span class="kw">use </span>std::fmt;
 <span class="attr">#[cfg(all(feature = <span class="string">&quot;server&quot;</span>, feature = <span class="string">&quot;runtime&quot;</span>))]
-</span><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">std::future::Future</a>;
-<span class="kw">use </span>std::io::{<a class="self" href="https://doc.rust-lang.org/nightly/std/io/index.html">self</a>, <a href="https://doc.rust-lang.org/nightly/std/io/struct.IoSlice.html">IoSlice</a>};
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">std::marker::Unpin</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/mem/maybe_uninit/union.MaybeUninit.html">std::mem::MaybeUninit</a>;
+</span><span class="kw">use </span>std::future::Future;
+<span class="kw">use </span>std::io::{<span class="self">self</span>, IoSlice};
+<span class="kw">use </span>std::marker::Unpin;
+<span class="kw">use </span>std::mem::MaybeUninit;
 <span class="attr">#[cfg(all(feature = <span class="string">&quot;server&quot;</span>, feature = <span class="string">&quot;runtime&quot;</span>))]
-</span><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">std::time::Duration</a>;
+</span><span class="kw">use </span>std::time::Duration;
 
-<span class="kw">use </span>bytes::{<a href="../../../../hyper/body/trait.Buf.html">Buf</a>, <a href="../../../../bytes/buf/buf_mut/trait.BufMut.html">BufMut</a>, <a href="../../../../hyper/body/struct.Bytes.html">Bytes</a>, <a href="../../../../bytes/bytes_mut/struct.BytesMut.html">BytesMut</a>};
-<span class="kw">use </span>tokio::io::{<a href="../../../../tokio/io/async_read/trait.AsyncRead.html">AsyncRead</a>, <a href="../../../../tokio/io/async_write/trait.AsyncWrite.html">AsyncWrite</a>, <a href="../../../../tokio/io/read_buf/struct.ReadBuf.html">ReadBuf</a>};
+<span class="kw">use </span>bytes::{Buf, BufMut, Bytes, BytesMut};
+<span class="kw">use </span>tokio::io::{AsyncRead, AsyncWrite, ReadBuf};
 <span class="attr">#[cfg(all(feature = <span class="string">&quot;server&quot;</span>, feature = <span class="string">&quot;runtime&quot;</span>))]
-</span><span class="kw">use </span><a href="../../../../tokio/time/instant/struct.Instant.html">tokio::time::Instant</a>;
-<span class="kw">use </span>tracing::{<a href="../../../../tracing/macro.debug.html">debug</a>, <a href="../../../../tracing/macro.trace.html">trace</a>};
+</span><span class="kw">use </span>tokio::time::Instant;
+<span class="kw">use </span>tracing::{debug, trace};
 
-<span class="kw">use super</span>::{<a href="mod.rs.html#35">Http1Transaction</a>, <a href="mod.rs.html#75">ParseContext</a>, <a href="mod.rs.html#67">ParsedMessage</a>};
-<span class="kw">use </span><a href="../../common/buf.rs.html#6"><span class="kw">crate</span>::common::buf::BufList</a>;
-<span class="kw">use </span><span class="kw">crate</span>::common::{<a href="../../common/mod.rs.html#26">task</a>, <a href="https://doc.rust-lang.org/nightly/core/pin/struct.Pin.html">Pin</a>, <a href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">Poll</a>};
+<span class="kw">use super</span>::{Http1Transaction, ParseContext, ParsedMessage};
+<span class="kw">use </span><span class="kw">crate</span>::common::buf::BufList;
+<span class="kw">use </span><span class="kw">crate</span>::common::{task, Pin, Poll};
 
 <span class="doccomment">/// The initial buffer size allocated before trying to read from IO.
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>INIT_BUFFER_SIZE: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> = <span class="number">8192</span>;
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>INIT_BUFFER_SIZE: usize = <span class="number">8192</span>;
 
 <span class="doccomment">/// The minimum value that can be set to max buffer size.
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>MINIMUM_MAX_BUFFER_SIZE: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> = <a href="#22">INIT_BUFFER_SIZE</a>;
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>MINIMUM_MAX_BUFFER_SIZE: usize = INIT_BUFFER_SIZE;
 
 <span class="doccomment">/// The default maximum read buffer size. If the buffer gets this big and
 /// a message is still not complete, a `TooLarge` error is triggered.
 </span><span class="comment">// Note: if this changes, update server::conn::Http::max_buf_size docs.
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>DEFAULT_MAX_BUFFER_SIZE: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> = <span class="number">8192 </span>+ <span class="number">4096 </span>* <span class="number">100</span>;
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>DEFAULT_MAX_BUFFER_SIZE: usize = <span class="number">8192 </span>+ <span class="number">4096 </span>* <span class="number">100</span>;
 
 <span class="doccomment">/// The maximum number of distinct `Buf`s to hold in a list before requiring
 /// a flush. Only affects when the buffer strategy is to queue buffers.
 ///
 /// Note that a flush can happen before reaching the maximum. This simply
 /// forces a flush if the queue gets this big.
-</span><span class="kw">const </span>MAX_BUF_LIST_BUFFERS: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> = <span class="number">16</span>;
+</span><span class="kw">const </span>MAX_BUF_LIST_BUFFERS: usize = <span class="number">16</span>;
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>Buffered&lt;T, B&gt; {
-    flush_pipeline: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
+    flush_pipeline: bool,
     io: T,
-    read_blocked: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-    read_buf: <a href="../../../../bytes/bytes_mut/struct.BytesMut.html">BytesMut</a>,
-    read_buf_strategy: <a href="#389">ReadStrategy</a>,
+    read_blocked: bool,
+    read_buf: BytesMut,
+    read_buf_strategy: ReadStrategy,
     write_buf: WriteBuf&lt;B&gt;,
 }
 
-<span class="kw">impl</span>&lt;T, B&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span>Buffered&lt;T, B&gt;
+<span class="kw">impl</span>&lt;T, B&gt; fmt::Debug <span class="kw">for </span>Buffered&lt;T, B&gt;
 <span class="kw">where
-    </span>B: <a href="../../../../hyper/body/trait.Buf.html">Buf</a>,
+    </span>B: Buf,
 {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a href="#52">f</a>.debug_struct(<span class="string">&quot;Buffered&quot;</span>)
-            .field(<span class="string">&quot;read_buf&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="#52">self</a>.read_buf)
-            .field(<span class="string">&quot;write_buf&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="#52">self</a>.write_buf)
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        f.debug_struct(<span class="string">&quot;Buffered&quot;</span>)
+            .field(<span class="string">&quot;read_buf&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.read_buf)
+            .field(<span class="string">&quot;write_buf&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.write_buf)
             .finish()
     }
 }
 
 <span class="kw">impl</span>&lt;T, B&gt; Buffered&lt;T, B&gt;
 <span class="kw">where
-    </span>T: <a href="../../../../tokio/io/async_read/trait.AsyncRead.html">AsyncRead</a> + <a href="../../../../tokio/io/async_write/trait.AsyncWrite.html">AsyncWrite</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
-    B: <a href="../../../../hyper/body/trait.Buf.html">Buf</a>,
+    </span>T: AsyncRead + AsyncWrite + Unpin,
+    B: Buf,
 {
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(io: T) -&gt; Buffered&lt;T, B&gt; {
         <span class="kw">let </span>strategy = <span class="kw">if </span>io.is_write_vectored() {
-            <a href="#672">WriteStrategy::Queue</a>
+            WriteStrategy::Queue
         } <span class="kw">else </span>{
-            <a href="#671">WriteStrategy::Flatten</a>
+            WriteStrategy::Flatten
         };
-        <span class="kw">let </span>write_buf = WriteBuf::new(<a href="#66">strategy</a>);
-        <a href="#39">Buffered</a> {
+        <span class="kw">let </span>write_buf = WriteBuf::new(strategy);
+        Buffered {
             flush_pipeline: <span class="bool-val">false</span>,
-            <a href="#65">io</a>,
+            io,
             read_blocked: <span class="bool-val">false</span>,
             read_buf: BytesMut::with_capacity(<span class="number">0</span>),
             read_buf_strategy: ReadStrategy::default(),
-            <a href="#71">write_buf</a>,
+            write_buf,
         }
     }
 
     <span class="attr">#[cfg(feature = <span class="string">&quot;server&quot;</span>)]
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_flush_pipeline(<span class="kw-2">&amp;mut </span><span class="self">self</span>, enabled: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(!<span class="self">self</span>.write_buf.has_remaining());
-        <a class="self" href="#83">self</a>.flush_pipeline = <a href="#83">enabled</a>;
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_flush_pipeline(<span class="kw-2">&amp;mut </span><span class="self">self</span>, enabled: bool) {
+        <span class="macro">debug_assert!</span>(!<span class="self">self</span>.write_buf.has_remaining());
+        <span class="self">self</span>.flush_pipeline = enabled;
         <span class="kw">if </span>enabled {
-            <a class="self" href="#83">self</a>.<a href="#106">set_write_strategy_flatten</a>();
+            <span class="self">self</span>.set_write_strategy_flatten();
         }
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_max_buf_size(<span class="kw-2">&amp;mut </span><span class="self">self</span>, max: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_max_buf_size(<span class="kw-2">&amp;mut </span><span class="self">self</span>, max: usize) {
+        <span class="macro">assert!</span>(
             max &gt;= MINIMUM_MAX_BUFFER_SIZE,
             <span class="string">&quot;The max_buf_size cannot be smaller than {}.&quot;</span>,
             MINIMUM_MAX_BUFFER_SIZE,
         );
-        <a class="self" href="#91">self</a>.read_buf_strategy = ReadStrategy::with_max(<a href="#91">max</a>);
-        <a class="self" href="#91">self</a>.write_buf.max_buf_size = <a href="#91">max</a>;
+        <span class="self">self</span>.read_buf_strategy = ReadStrategy::with_max(max);
+        <span class="self">self</span>.write_buf.max_buf_size = max;
     }
 
     <span class="attr">#[cfg(feature = <span class="string">&quot;client&quot;</span>)]
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_read_buf_exact_size(<span class="kw-2">&amp;mut </span><span class="self">self</span>, sz: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
-        <a class="self" href="#102">self</a>.read_buf_strategy = <a href="#396">ReadStrategy::Exact</a>(<a href="#102">sz</a>);
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_read_buf_exact_size(<span class="kw-2">&amp;mut </span><span class="self">self</span>, sz: usize) {
+        <span class="self">self</span>.read_buf_strategy = ReadStrategy::Exact(sz);
     }
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_write_strategy_flatten(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="comment">// this should always be called only at construction time,
         // so this assert is here to catch myself
-        </span><a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(<span class="self">self</span>.write_buf.queue.bufs_cnt() == <span class="number">0</span>);
-        <a class="self" href="#106">self</a>.write_buf.<a href="#566">set_strategy</a>(<a href="#671">WriteStrategy::Flatten</a>);
+        </span><span class="macro">debug_assert!</span>(<span class="self">self</span>.write_buf.queue.bufs_cnt() == <span class="number">0</span>);
+        <span class="self">self</span>.write_buf.set_strategy(WriteStrategy::Flatten);
     }
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_write_strategy_queue(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="comment">// this should always be called only at construction time,
         // so this assert is here to catch myself
-        </span><a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(<span class="self">self</span>.write_buf.queue.bufs_cnt() == <span class="number">0</span>);
-        <a class="self" href="#113">self</a>.write_buf.<a href="#566">set_strategy</a>(<a href="#672">WriteStrategy::Queue</a>);
+        </span><span class="macro">debug_assert!</span>(<span class="self">self</span>.write_buf.queue.bufs_cnt() == <span class="number">0</span>);
+        <span class="self">self</span>.write_buf.set_strategy(WriteStrategy::Queue);
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>read_buf(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>] {
-        <a class="self" href="#120">self</a>.read_buf.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>()
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>read_buf(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[u8] {
+        <span class="self">self</span>.read_buf.as_ref()
     }
 
     <span class="attr">#[cfg(test)]
@@ -1131,8 +1131,8 @@
 
     <span class="doccomment">/// Return the &quot;allocated&quot; available space, not the potential space
     /// that could be allocated in the future.
-    </span><span class="kw">fn </span>read_buf_remaining_mut(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="self" href="#132">self</a>.read_buf.capacity() - <a class="self" href="#132">self</a>.read_buf.len()
+    </span><span class="kw">fn </span>read_buf_remaining_mut(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+        <span class="self">self</span>.read_buf.capacity() - <span class="self">self</span>.read_buf.len()
     }
 
     <span class="doccomment">/// Return whether we can append to the headers buffer.
@@ -1140,25 +1140,25 @@
     /// Reasons we can&#39;t:
     /// - The write buf is in queue mode, and some of the past body is still
     ///   needing to be flushed.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>can_headers_buf(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        !<a class="self" href="#141">self</a>.write_buf.queue.<a href="../../../../hyper/body/trait.Buf.html">has_remaining</a>()
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>can_headers_buf(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        !<span class="self">self</span>.write_buf.queue.has_remaining()
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>headers_buf(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt; {
-        <span class="kw">let </span>buf = <a class="self" href="#145">self</a>.write_buf.<a href="#616">headers_mut</a>();
-        <span class="kw-2">&amp;mut </span><a href="#146">buf</a>.bytes
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>headers_buf(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>Vec&lt;u8&gt; {
+        <span class="kw">let </span>buf = <span class="self">self</span>.write_buf.headers_mut();
+        <span class="kw-2">&amp;mut </span>buf.bytes
     }
 
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>write_buf(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>WriteBuf&lt;B&gt; {
-        <span class="kw-2">&amp;mut </span><a class="self" href="#150">self</a>.write_buf
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>.write_buf
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>buffer&lt;BB: <a href="../../../../hyper/body/trait.Buf.html">Buf</a> + Into&lt;B&gt;&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, buf: BB) {
-        <a class="self" href="#154">self</a>.write_buf.<a href="#570">buffer</a>(<a href="#154">buf</a>)
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>buffer&lt;BB: Buf + Into&lt;B&gt;&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, buf: BB) {
+        <span class="self">self</span>.write_buf.buffer(buf)
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>can_buffer(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#158">self</a>.flush_pipeline || <a class="self" href="#158">self</a>.write_buf.<a href="#607">can_buffer</a>()
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>can_buffer(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.flush_pipeline || <span class="self">self</span>.write_buf.can_buffer()
     }
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>consume_leading_lines(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
@@ -1170,7 +1170,7 @@
                     <span class="kw">_ </span>=&gt; <span class="kw">break</span>,
                 }
             }
-            <a class="self" href="#162">self</a>.read_buf.<a href="../../../../hyper/body/trait.Buf.html">advance</a>(<a href="#164">i</a>);
+            <span class="self">self</span>.read_buf.advance(i);
         }
     }
 
@@ -1180,7 +1180,7 @@
         parse_ctx: ParseContext&lt;<span class="lifetime">&#39;_</span>&gt;,
     ) -&gt; Poll&lt;<span class="kw">crate</span>::Result&lt;ParsedMessage&lt;S::Incoming&gt;&gt;&gt;
     <span class="kw">where
-        </span>S: <a href="mod.rs.html#35">Http1Transaction</a>,
+        </span>S: Http1Transaction,
     {
         <span class="kw">loop </span>{
             <span class="kw">match </span><span class="kw">super</span>::role::parse_headers::&lt;S&gt;(
@@ -1206,39 +1206,39 @@
                 },
             )<span class="question-mark">? </span>{
                 <span class="prelude-val">Some</span>(msg) =&gt; {
-                    <a class="macro" href="../../../../tracing/macro.debug.html">debug!</a>(<span class="string">&quot;parsed {} headers&quot;</span>, msg.head.headers.len());
+                    <span class="macro">debug!</span>(<span class="string">&quot;parsed {} headers&quot;</span>, msg.head.headers.len());
 
                     <span class="attr">#[cfg(all(feature = <span class="string">&quot;server&quot;</span>, feature = <span class="string">&quot;runtime&quot;</span>))]
                     </span>{
-                        <span class="kw-2">*</span><a href="#178">parse_ctx</a>.h1_header_read_timeout_running = <span class="bool-val">false</span>;
+                        <span class="kw-2">*</span>parse_ctx.h1_header_read_timeout_running = <span class="bool-val">false</span>;
 
                         <span class="kw">if let </span><span class="prelude-val">Some</span>(h1_header_read_timeout_fut) =
-                            <a href="#178">parse_ctx</a>.h1_header_read_timeout_fut
+                            parse_ctx.h1_header_read_timeout_fut
                         {
                             <span class="comment">// Reset the timer in order to avoid woken up when the timeout finishes
-                            </span><a href="#213">h1_header_read_timeout_fut</a>
+                            </span>h1_header_read_timeout_fut
                                 .as_mut()
                                 .reset(Instant::now() + Duration::from_secs(<span class="number">30 </span>* <span class="number">24 </span>* <span class="number">60 </span>* <span class="number">60</span>));
                         }
                     }
-                    <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Ok</span>(<a href="#206">msg</a>));
+                    <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Ok</span>(msg));
                 }
                 <span class="prelude-val">None </span>=&gt; {
-                    <span class="kw">let </span>max = <a class="self" href="#176">self</a>.read_buf_strategy.<a href="#416">max</a>();
+                    <span class="kw">let </span>max = <span class="self">self</span>.read_buf_strategy.max();
                     <span class="kw">if </span><span class="self">self</span>.read_buf.len() &gt;= max {
-                        <a class="macro" href="../../../../tracing/macro.debug.html">debug!</a>(<span class="string">&quot;max_buf_size ({}) reached, closing&quot;</span>, max);
+                        <span class="macro">debug!</span>(<span class="string">&quot;max_buf_size ({}) reached, closing&quot;</span>, max);
                         <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Err</span>(<span class="kw">crate</span>::Error::new_too_large()));
                     }
 
                     <span class="attr">#[cfg(all(feature = <span class="string">&quot;server&quot;</span>, feature = <span class="string">&quot;runtime&quot;</span>))]
                     </span><span class="kw">if </span><span class="kw-2">*</span>parse_ctx.h1_header_read_timeout_running {
                         <span class="kw">if let </span><span class="prelude-val">Some</span>(h1_header_read_timeout_fut) =
-                            <a href="#178">parse_ctx</a>.h1_header_read_timeout_fut
+                            parse_ctx.h1_header_read_timeout_fut
                         {
                             <span class="kw">if </span>Pin::new(h1_header_read_timeout_fut).poll(cx).is_ready() {
-                                <span class="kw-2">*</span><a href="#178">parse_ctx</a>.h1_header_read_timeout_running = <span class="bool-val">false</span>;
+                                <span class="kw-2">*</span>parse_ctx.h1_header_read_timeout_running = <span class="bool-val">false</span>;
 
-                                <a class="macro" href="../../../../tracing/macro.warn.html">tracing::warn!</a>(<span class="string">&quot;read header from client timeout&quot;</span>);
+                                <span class="macro">tracing::warn!</span>(<span class="string">&quot;read header from client timeout&quot;</span>);
                                 <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Err</span>(<span class="kw">crate</span>::Error::new_header_timeout()));
                             }
                         }
@@ -1246,7 +1246,7 @@
                 }
             }
             <span class="kw">if </span><span class="macro">ready!</span>(<span class="self">self</span>.poll_read_from_io(cx)).map_err(<span class="kw">crate</span>::Error::new_io)<span class="question-mark">? </span>== <span class="number">0 </span>{
-                <a class="macro" href="../../../../tracing/macro.trace.html">trace!</a>(<span class="string">&quot;parse eof&quot;</span>);
+                <span class="macro">trace!</span>(<span class="string">&quot;parse eof&quot;</span>);
                 <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Err</span>(<span class="kw">crate</span>::Error::new_incomplete()));
             }
         }
@@ -1255,82 +1255,82 @@
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>poll_read_from_io(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         cx: <span class="kw-2">&amp;mut </span>task::Context&lt;<span class="lifetime">&#39;_</span>&gt;,
-    ) -&gt; Poll&lt;io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;&gt; {
-        <a class="self" href="#254">self</a>.read_blocked = <span class="bool-val">false</span>;
-        <span class="kw">let </span>next = <a class="self" href="#254">self</a>.read_buf_strategy.<a href="#408">next</a>();
+    ) -&gt; Poll&lt;io::Result&lt;usize&gt;&gt; {
+        <span class="self">self</span>.read_blocked = <span class="bool-val">false</span>;
+        <span class="kw">let </span>next = <span class="self">self</span>.read_buf_strategy.next();
         <span class="kw">if </span><span class="self">self</span>.read_buf_remaining_mut() &lt; next {
-            <a class="self" href="#254">self</a>.read_buf.reserve(<a href="#258">next</a>);
+            <span class="self">self</span>.read_buf.reserve(next);
         }
 
-        <span class="kw">let </span>dst = <a class="self" href="#254">self</a>.read_buf.<a href="../../../../bytes/buf/buf_mut/trait.BufMut.html">chunk_mut</a>();
-        <span class="kw">let </span>dst = <span class="kw">unsafe </span>{ <span class="kw-2">&amp;mut *</span>(<a href="#263">dst</a> <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_ as </span><span class="kw-2">*mut </span>[MaybeUninit&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;]) };
-        <span class="kw">let </span><span class="kw-2">mut </span>buf = ReadBuf::uninit(<a href="#264">dst</a>);
-        <span class="kw">match </span>Pin::new(<span class="kw-2">&amp;mut </span><a class="self" href="#254">self</a>.io).<a href="../../../../tokio/io/async_read/trait.AsyncRead.html">poll_read</a>(<a href="#255">cx</a>, <span class="kw-2">&amp;mut </span><a href="#265">buf</a>) {
+        <span class="kw">let </span>dst = <span class="self">self</span>.read_buf.chunk_mut();
+        <span class="kw">let </span>dst = <span class="kw">unsafe </span>{ <span class="kw-2">&amp;mut *</span>(dst <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_ as </span><span class="kw-2">*mut </span>[MaybeUninit&lt;u8&gt;]) };
+        <span class="kw">let </span><span class="kw-2">mut </span>buf = ReadBuf::uninit(dst);
+        <span class="kw">match </span>Pin::new(<span class="kw-2">&amp;mut </span><span class="self">self</span>.io).poll_read(cx, <span class="kw-2">&amp;mut </span>buf) {
             Poll::Ready(<span class="prelude-val">Ok</span>(<span class="kw">_</span>)) =&gt; {
-                <span class="kw">let </span>n = <a href="#265">buf</a>.filled().len();
-                <a class="macro" href="../../../../tracing/macro.trace.html">trace!</a>(<span class="string">&quot;received {} bytes&quot;</span>, n);
+                <span class="kw">let </span>n = buf.filled().len();
+                <span class="macro">trace!</span>(<span class="string">&quot;received {} bytes&quot;</span>, n);
                 <span class="kw">unsafe </span>{
                     <span class="comment">// Safety: we just read that many bytes into the
                     // uninitialized part of the buffer, so this is okay.
                     // @tokio pls give me back `poll_read_buf` thanks
-                    </span><a class="self" href="#254">self</a>.read_buf.<a href="../../../../bytes/buf/buf_mut/trait.BufMut.html">advance_mut</a>(<a href="#268">n</a>);
+                    </span><span class="self">self</span>.read_buf.advance_mut(n);
                 }
-                <a class="self" href="#254">self</a>.read_buf_strategy.<a href="#424">record</a>(<a href="#268">n</a>);
-                Poll::Ready(<span class="prelude-val">Ok</span>(<a href="#268">n</a>))
+                <span class="self">self</span>.read_buf_strategy.record(n);
+                Poll::Ready(<span class="prelude-val">Ok</span>(n))
             }
             Poll::Pending =&gt; {
-                <a class="self" href="#254">self</a>.read_blocked = <span class="bool-val">true</span>;
+                <span class="self">self</span>.read_blocked = <span class="bool-val">true</span>;
                 Poll::Pending
             }
-            Poll::Ready(<span class="prelude-val">Err</span>(e)) =&gt; Poll::Ready(<span class="prelude-val">Err</span>(<a href="#283">e</a>)),
+            Poll::Ready(<span class="prelude-val">Err</span>(e)) =&gt; Poll::Ready(<span class="prelude-val">Err</span>(e)),
         }
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>into_inner(<span class="self">self</span>) -&gt; (T, <a href="../../../../hyper/body/struct.Bytes.html">Bytes</a>) {
-        (<a class="self" href="#287">self</a>.io, <a class="self" href="#287">self</a>.read_buf.freeze())
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>into_inner(<span class="self">self</span>) -&gt; (T, Bytes) {
+        (<span class="self">self</span>.io, <span class="self">self</span>.read_buf.freeze())
     }
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>io_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>T {
-        <span class="kw-2">&amp;mut </span><a class="self" href="#291">self</a>.io
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>.io
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>is_read_blocked(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#295">self</a>.read_blocked
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>is_read_blocked(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.read_blocked
     }
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>poll_flush(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cx: <span class="kw-2">&amp;mut </span>task::Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;io::Result&lt;()&gt;&gt; {
         <span class="kw">if </span><span class="self">self</span>.flush_pipeline &amp;&amp; !<span class="self">self</span>.read_buf.is_empty() {
             Poll::Ready(<span class="prelude-val">Ok</span>(()))
         } <span class="kw">else if </span><span class="self">self</span>.write_buf.remaining() == <span class="number">0 </span>{
-            Pin::new(<span class="kw-2">&amp;mut </span><a class="self" href="#299">self</a>.io).<a href="../../../../tokio/io/async_write/trait.AsyncWrite.html">poll_flush</a>(<a href="#299">cx</a>)
+            Pin::new(<span class="kw-2">&amp;mut </span><span class="self">self</span>.io).poll_flush(cx)
         } <span class="kw">else </span>{
-            <span class="kw">if let </span><a href="#671">WriteStrategy::Flatten</a> = <a class="self" href="#299">self</a>.write_buf.strategy {
-                <span class="kw">return </span><a class="self" href="#299">self</a>.<a href="#339">poll_flush_flattened</a>(<a href="#299">cx</a>);
+            <span class="kw">if let </span>WriteStrategy::Flatten = <span class="self">self</span>.write_buf.strategy {
+                <span class="kw">return </span><span class="self">self</span>.poll_flush_flattened(cx);
             }
 
-            <span class="kw">const </span>MAX_WRITEV_BUFS: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> = <span class="number">64</span>;
+            <span class="kw">const </span>MAX_WRITEV_BUFS: usize = <span class="number">64</span>;
             <span class="kw">loop </span>{
                 <span class="kw">let </span>n = {
-                    <span class="kw">let </span><span class="kw-2">mut </span>iovs = [IoSlice::new(<span class="kw-2">&amp;</span>[]); <a href="#309">MAX_WRITEV_BUFS</a>];
-                    <span class="kw">let </span>len = <a class="self" href="#299">self</a>.write_buf.<a href="../../../../hyper/body/trait.Buf.html">chunks_vectored</a>(<span class="kw-2">&amp;mut </span><a href="#312">iovs</a>);
+                    <span class="kw">let </span><span class="kw-2">mut </span>iovs = [IoSlice::new(<span class="kw-2">&amp;</span>[]); MAX_WRITEV_BUFS];
+                    <span class="kw">let </span>len = <span class="self">self</span>.write_buf.chunks_vectored(<span class="kw-2">&amp;mut </span>iovs);
                     <span class="macro">ready!</span>(Pin::new(<span class="kw-2">&amp;mut </span><span class="self">self</span>.io).poll_write_vectored(cx, <span class="kw-2">&amp;</span>iovs[..len]))<span class="question-mark">?
                 </span>};
                 <span class="comment">// TODO(eliza): we have to do this manually because
                 // `poll_write_buf` doesn&#39;t exist in Tokio 0.3 yet...when
                 // `poll_write_buf` comes back, the manual advance will need to leave!
-                </span><a class="self" href="#299">self</a>.write_buf.<a href="../../../../hyper/body/trait.Buf.html">advance</a>(<a href="#311">n</a>);
-                <a class="macro" href="../../../../tracing/macro.debug.html">debug!</a>(<span class="string">&quot;flushed {} bytes&quot;</span>, n);
+                </span><span class="self">self</span>.write_buf.advance(n);
+                <span class="macro">debug!</span>(<span class="string">&quot;flushed {} bytes&quot;</span>, n);
                 <span class="kw">if </span><span class="self">self</span>.write_buf.remaining() == <span class="number">0 </span>{
                     <span class="kw">break</span>;
                 } <span class="kw">else if </span>n == <span class="number">0 </span>{
-                    <a class="macro" href="../../../../tracing/macro.trace.html">trace!</a>(
+                    <span class="macro">trace!</span>(
                         <span class="string">&quot;write returned zero, but {} bytes remaining&quot;</span>,
                         <span class="self">self</span>.write_buf.remaining()
                     );
-                    <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Err</span>(io::ErrorKind::WriteZero.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()));
+                    <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Err</span>(io::ErrorKind::WriteZero.into()));
                 }
             }
-            Pin::new(<span class="kw-2">&amp;mut </span><a class="self" href="#299">self</a>.io).<a href="../../../../tokio/io/async_write/trait.AsyncWrite.html">poll_flush</a>(<a href="#299">cx</a>)
+            Pin::new(<span class="kw-2">&amp;mut </span><span class="self">self</span>.io).poll_flush(cx)
         }
     }
 
@@ -1341,20 +1341,20 @@
     </span><span class="kw">fn </span>poll_flush_flattened(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cx: <span class="kw-2">&amp;mut </span>task::Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;io::Result&lt;()&gt;&gt; {
         <span class="kw">loop </span>{
             <span class="kw">let </span>n = <span class="macro">ready!</span>(Pin::new(<span class="kw-2">&amp;mut </span><span class="self">self</span>.io).poll_write(cx, <span class="self">self</span>.write_buf.headers.chunk()))<span class="question-mark">?</span>;
-            <a class="macro" href="../../../../tracing/macro.debug.html">debug!</a>(<span class="string">&quot;flushed {} bytes&quot;</span>, n);
-            <a class="self" href="#339">self</a>.write_buf.headers.<a href="../../../../hyper/body/trait.Buf.html">advance</a>(<a href="#341">n</a>);
+            <span class="macro">debug!</span>(<span class="string">&quot;flushed {} bytes&quot;</span>, n);
+            <span class="self">self</span>.write_buf.headers.advance(n);
             <span class="kw">if </span><span class="self">self</span>.write_buf.headers.remaining() == <span class="number">0 </span>{
-                <a class="self" href="#339">self</a>.write_buf.headers.<a href="#508">reset</a>();
+                <span class="self">self</span>.write_buf.headers.reset();
                 <span class="kw">break</span>;
             } <span class="kw">else if </span>n == <span class="number">0 </span>{
-                <a class="macro" href="../../../../tracing/macro.trace.html">trace!</a>(
+                <span class="macro">trace!</span>(
                     <span class="string">&quot;write returned zero, but {} bytes remaining&quot;</span>,
                     <span class="self">self</span>.write_buf.remaining()
                 );
-                <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Err</span>(io::ErrorKind::WriteZero.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()));
+                <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Err</span>(io::ErrorKind::WriteZero.into()));
             }
         }
-        Pin::new(<span class="kw-2">&amp;mut </span><a class="self" href="#339">self</a>.io).<a href="../../../../tokio/io/async_write/trait.AsyncWrite.html">poll_flush</a>(<a href="#339">cx</a>)
+        Pin::new(<span class="kw-2">&amp;mut </span><span class="self">self</span>.io).poll_flush(cx)
     }
 
     <span class="attr">#[cfg(test)]
@@ -1364,25 +1364,25 @@
 }
 
 <span class="comment">// The `B` is a `Buf`, we never project a pin to it
-</span><span class="kw">impl</span>&lt;T: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>, B&gt; <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a> <span class="kw">for </span>Buffered&lt;T, B&gt; {}
+</span><span class="kw">impl</span>&lt;T: Unpin, B&gt; Unpin <span class="kw">for </span>Buffered&lt;T, B&gt; {}
 
 <span class="comment">// TODO: This trait is old... at least rename to PollBytes or something...
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">trait </span>MemRead {
-    <span class="kw">fn </span>read_mem(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cx: <span class="kw-2">&amp;mut </span>task::Context&lt;<span class="lifetime">&#39;_</span>&gt;, len: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; Poll&lt;io::Result&lt;<a href="../../../../hyper/body/struct.Bytes.html">Bytes</a>&gt;&gt;;
+    <span class="kw">fn </span>read_mem(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cx: <span class="kw-2">&amp;mut </span>task::Context&lt;<span class="lifetime">&#39;_</span>&gt;, len: usize) -&gt; Poll&lt;io::Result&lt;Bytes&gt;&gt;;
 }
 
-<span class="kw">impl</span>&lt;T, B&gt; <a href="#368">MemRead</a> <span class="kw">for </span>Buffered&lt;T, B&gt;
+<span class="kw">impl</span>&lt;T, B&gt; MemRead <span class="kw">for </span>Buffered&lt;T, B&gt;
 <span class="kw">where
-    </span>T: <a href="../../../../tokio/io/async_read/trait.AsyncRead.html">AsyncRead</a> + <a href="../../../../tokio/io/async_write/trait.AsyncWrite.html">AsyncWrite</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
-    B: <a href="../../../../hyper/body/trait.Buf.html">Buf</a>,
+    </span>T: AsyncRead + AsyncWrite + Unpin,
+    B: Buf,
 {
-    <span class="kw">fn </span>read_mem(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cx: <span class="kw-2">&amp;mut </span>task::Context&lt;<span class="lifetime">&#39;_</span>&gt;, len: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; Poll&lt;io::Result&lt;<a href="../../../../hyper/body/struct.Bytes.html">Bytes</a>&gt;&gt; {
+    <span class="kw">fn </span>read_mem(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cx: <span class="kw-2">&amp;mut </span>task::Context&lt;<span class="lifetime">&#39;_</span>&gt;, len: usize) -&gt; Poll&lt;io::Result&lt;Bytes&gt;&gt; {
         <span class="kw">if </span>!<span class="self">self</span>.read_buf.is_empty() {
-            <span class="kw">let </span>n = std::cmp::min(<a href="#377">len</a>, <a class="self" href="#377">self</a>.read_buf.len());
-            Poll::Ready(<span class="prelude-val">Ok</span>(<a class="self" href="#377">self</a>.read_buf.split_to(<a href="#379">n</a>).freeze()))
+            <span class="kw">let </span>n = std::cmp::min(len, <span class="self">self</span>.read_buf.len());
+            Poll::Ready(<span class="prelude-val">Ok</span>(<span class="self">self</span>.read_buf.split_to(n).freeze()))
         } <span class="kw">else </span>{
             <span class="kw">let </span>n = <span class="macro">ready!</span>(<span class="self">self</span>.poll_read_from_io(cx))<span class="question-mark">?</span>;
-            Poll::Ready(<span class="prelude-val">Ok</span>(<a class="self" href="#377">self</a>.read_buf.split_to(::std::cmp::min(<a href="#377">len</a>, <a href="#382">n</a>)).freeze()))
+            Poll::Ready(<span class="prelude-val">Ok</span>(<span class="self">self</span>.read_buf.split_to(::std::cmp::min(len, n)).freeze()))
         }
     }
 }
@@ -1390,109 +1390,109 @@
 <span class="attr">#[derive(Clone, Copy, Debug)]
 </span><span class="kw">enum </span>ReadStrategy {
     Adaptive {
-        decrease_now: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-        next: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-        max: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+        decrease_now: bool,
+        next: usize,
+        max: usize,
     },
     <span class="attr">#[cfg(feature = <span class="string">&quot;client&quot;</span>)]
-    </span>Exact(<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>),
+    </span>Exact(usize),
 }
 
-<span class="kw">impl </span><a href="#389">ReadStrategy</a> {
-    <span class="kw">fn </span>with_max(max: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a href="#389">ReadStrategy</a> {
-        <a href="#390">ReadStrategy::Adaptive</a> {
+<span class="kw">impl </span>ReadStrategy {
+    <span class="kw">fn </span>with_max(max: usize) -&gt; ReadStrategy {
+        ReadStrategy::Adaptive {
             decrease_now: <span class="bool-val">false</span>,
-            next: <a href="#22">INIT_BUFFER_SIZE</a>,
-            <a href="#400">max</a>,
+            next: INIT_BUFFER_SIZE,
+            max,
         }
     }
 
-    <span class="kw">fn </span>next(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="#408">self</a> </span>{
-            <a href="#390">ReadStrategy::Adaptive</a> { next, .. } =&gt; <a href="#410">next</a>,
+    <span class="kw">fn </span>next(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+        <span class="kw">match </span><span class="kw-2">*</span><span class="self">self </span>{
+            ReadStrategy::Adaptive { next, .. } =&gt; next,
             <span class="attr">#[cfg(feature = <span class="string">&quot;client&quot;</span>)]
-            </span><a href="#396">ReadStrategy::Exact</a>(exact) =&gt; <a href="#412">exact</a>,
+            </span>ReadStrategy::Exact(exact) =&gt; exact,
         }
     }
 
-    <span class="kw">fn </span>max(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="#416">self</a> </span>{
-            <a href="#390">ReadStrategy::Adaptive</a> { max, .. } =&gt; <a href="#418">max</a>,
+    <span class="kw">fn </span>max(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+        <span class="kw">match </span><span class="kw-2">*</span><span class="self">self </span>{
+            ReadStrategy::Adaptive { max, .. } =&gt; max,
             <span class="attr">#[cfg(feature = <span class="string">&quot;client&quot;</span>)]
-            </span><a href="#396">ReadStrategy::Exact</a>(exact) =&gt; <a href="#420">exact</a>,
+            </span>ReadStrategy::Exact(exact) =&gt; exact,
         }
     }
 
-    <span class="kw">fn </span>record(<span class="kw-2">&amp;mut </span><span class="self">self</span>, bytes_read: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
-        <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="#424">self</a> </span>{
-            <a href="#390">ReadStrategy::Adaptive</a> {
+    <span class="kw">fn </span>record(<span class="kw-2">&amp;mut </span><span class="self">self</span>, bytes_read: usize) {
+        <span class="kw">match </span><span class="kw-2">*</span><span class="self">self </span>{
+            ReadStrategy::Adaptive {
                 <span class="kw-2">ref mut </span>decrease_now,
                 <span class="kw-2">ref mut </span>next,
                 max,
                 ..
             } =&gt; {
                 <span class="kw">if </span>bytes_read &gt;= <span class="kw-2">*</span>next {
-                    <span class="kw-2">*</span><a href="#428">next</a> = cmp::min(<a href="#459">incr_power_of_two</a>(<span class="kw-2">*</span><a href="#428">next</a>), <a href="#429">max</a>);
-                    <span class="kw-2">*</span><a href="#427">decrease_now</a> = <span class="bool-val">false</span>;
+                    <span class="kw-2">*</span>next = cmp::min(incr_power_of_two(<span class="kw-2">*</span>next), max);
+                    <span class="kw-2">*</span>decrease_now = <span class="bool-val">false</span>;
                 } <span class="kw">else </span>{
-                    <span class="kw">let </span>decr_to = <a href="#463">prev_power_of_two</a>(<span class="kw-2">*</span><a href="#428">next</a>);
+                    <span class="kw">let </span>decr_to = prev_power_of_two(<span class="kw-2">*</span>next);
                     <span class="kw">if </span>bytes_read &lt; decr_to {
                         <span class="kw">if </span><span class="kw-2">*</span>decrease_now {
-                            <span class="kw-2">*</span><a href="#428">next</a> = cmp::max(<a href="#436">decr_to</a>, <a href="#22">INIT_BUFFER_SIZE</a>);
-                            <span class="kw-2">*</span><a href="#427">decrease_now</a> = <span class="bool-val">false</span>;
+                            <span class="kw-2">*</span>next = cmp::max(decr_to, INIT_BUFFER_SIZE);
+                            <span class="kw-2">*</span>decrease_now = <span class="bool-val">false</span>;
                         } <span class="kw">else </span>{
                             <span class="comment">// Decreasing is a two &quot;record&quot; process.
-                            </span><span class="kw-2">*</span><a href="#427">decrease_now</a> = <span class="bool-val">true</span>;
+                            </span><span class="kw-2">*</span>decrease_now = <span class="bool-val">true</span>;
                         }
                     } <span class="kw">else </span>{
                         <span class="comment">// A read within the current range should cancel
                         // a potential decrease, since we just saw proof
                         // that we still need this size.
-                        </span><span class="kw-2">*</span><a href="#427">decrease_now</a> = <span class="bool-val">false</span>;
+                        </span><span class="kw-2">*</span>decrease_now = <span class="bool-val">false</span>;
                     }
                 }
             }
             <span class="attr">#[cfg(feature = <span class="string">&quot;client&quot;</span>)]
-            </span><a href="#396">ReadStrategy::Exact</a>(<span class="kw">_</span>) =&gt; (),
+            </span>ReadStrategy::Exact(<span class="kw">_</span>) =&gt; (),
         }
     }
 }
 
-<span class="kw">fn </span>incr_power_of_two(n: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-    <a href="#459">n</a>.saturating_mul(<span class="number">2</span>)
+<span class="kw">fn </span>incr_power_of_two(n: usize) -&gt; usize {
+    n.saturating_mul(<span class="number">2</span>)
 }
 
-<span class="kw">fn </span>prev_power_of_two(n: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
+<span class="kw">fn </span>prev_power_of_two(n: usize) -&gt; usize {
     <span class="comment">// Only way this shift can underflow is if n is less than 4.
     // (Which would means `usize::MAX &gt;&gt; 64` and underflowed!)
-    </span><a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(n &gt;= <span class="number">4</span>);
-    (::std::usize::MAX &gt;&gt; (<a href="#463">n</a>.leading_zeros() + <span class="number">2</span>)) + <span class="number">1
+    </span><span class="macro">debug_assert!</span>(n &gt;= <span class="number">4</span>);
+    (::std::usize::MAX &gt;&gt; (n.leading_zeros() + <span class="number">2</span>)) + <span class="number">1
 </span>}
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for </span><a href="#389">ReadStrategy</a> {
-    <span class="kw">fn </span>default() -&gt; <a href="#389">ReadStrategy</a> {
-        ReadStrategy::with_max(<a href="#30">DEFAULT_MAX_BUFFER_SIZE</a>)
+<span class="kw">impl </span>Default <span class="kw">for </span>ReadStrategy {
+    <span class="kw">fn </span>default() -&gt; ReadStrategy {
+        ReadStrategy::with_max(DEFAULT_MAX_BUFFER_SIZE)
     }
 }
 
 <span class="attr">#[derive(Clone)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>Cursor&lt;T&gt; {
     bytes: T,
-    pos: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+    pos: usize,
 }
 
-<span class="kw">impl</span>&lt;T: AsRef&lt;[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;&gt; Cursor&lt;T&gt; {
+<span class="kw">impl</span>&lt;T: AsRef&lt;[u8]&gt;&gt; Cursor&lt;T&gt; {
     <span class="attr">#[inline]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(bytes: T) -&gt; Cursor&lt;T&gt; {
-        <a href="#477">Cursor</a> { <a href="#484">bytes</a>, pos: <span class="number">0 </span>}
+        Cursor { bytes, pos: <span class="number">0 </span>}
     }
 }
 
-<span class="kw">impl </span>Cursor&lt;Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;&gt; {
+<span class="kw">impl </span>Cursor&lt;Vec&lt;u8&gt;&gt; {
     <span class="doccomment">/// If we&#39;ve advanced the position a bit in this cursor, and wish to
     /// extend the underlying vector, we may wish to unshift the &quot;read&quot; bytes
     /// off, and move everything else over.
-    </span><span class="kw">fn </span>maybe_unshift(<span class="kw-2">&amp;mut </span><span class="self">self</span>, additional: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
+    </span><span class="kw">fn </span>maybe_unshift(<span class="kw-2">&amp;mut </span><span class="self">self</span>, additional: usize) {
         <span class="kw">if </span><span class="self">self</span>.pos == <span class="number">0 </span>{
             <span class="comment">// nothing to do
             </span><span class="kw">return</span>;
@@ -1503,80 +1503,80 @@
             </span><span class="kw">return</span>;
         }
 
-        <a class="self" href="#493">self</a>.bytes.drain(<span class="number">0</span>..<a class="self" href="#493">self</a>.pos);
-        <a class="self" href="#493">self</a>.pos = <span class="number">0</span>;
+        <span class="self">self</span>.bytes.drain(<span class="number">0</span>..<span class="self">self</span>.pos);
+        <span class="self">self</span>.pos = <span class="number">0</span>;
     }
 
     <span class="kw">fn </span>reset(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <a class="self" href="#508">self</a>.pos = <span class="number">0</span>;
-        <a class="self" href="#508">self</a>.bytes.clear();
+        <span class="self">self</span>.pos = <span class="number">0</span>;
+        <span class="self">self</span>.bytes.clear();
     }
 }
 
-<span class="kw">impl</span>&lt;T: AsRef&lt;[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span>Cursor&lt;T&gt; {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a href="#515">f</a>.debug_struct(<span class="string">&quot;Cursor&quot;</span>)
-            .field(<span class="string">&quot;pos&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="#515">self</a>.pos)
-            .field(<span class="string">&quot;len&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="#515">self</a>.bytes.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>().len())
+<span class="kw">impl</span>&lt;T: AsRef&lt;[u8]&gt;&gt; fmt::Debug <span class="kw">for </span>Cursor&lt;T&gt; {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        f.debug_struct(<span class="string">&quot;Cursor&quot;</span>)
+            .field(<span class="string">&quot;pos&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.pos)
+            .field(<span class="string">&quot;len&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.bytes.as_ref().len())
             .finish()
     }
 }
 
-<span class="kw">impl</span>&lt;T: AsRef&lt;[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;&gt; <a href="../../../../hyper/body/trait.Buf.html">Buf</a> <span class="kw">for </span>Cursor&lt;T&gt; {
+<span class="kw">impl</span>&lt;T: AsRef&lt;[u8]&gt;&gt; Buf <span class="kw">for </span>Cursor&lt;T&gt; {
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>remaining(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="self" href="#525">self</a>.bytes.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>().len() - <a class="self" href="#525">self</a>.pos
+    </span><span class="kw">fn </span>remaining(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+        <span class="self">self</span>.bytes.as_ref().len() - <span class="self">self</span>.pos
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>chunk(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>] {
-        <span class="kw-2">&amp;</span><a class="self" href="#530">self</a>.bytes.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>()[<a class="self" href="#530">self</a>.pos..]
+    </span><span class="kw">fn </span>chunk(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[u8] {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.bytes.as_ref()[<span class="self">self</span>.pos..]
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>advance(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cnt: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(<span class="self">self</span>.pos + cnt &lt;= <span class="self">self</span>.bytes.as_ref().len());
-        <a class="self" href="#535">self</a>.pos += <a href="#535">cnt</a>;
+    </span><span class="kw">fn </span>advance(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cnt: usize) {
+        <span class="macro">debug_assert!</span>(<span class="self">self</span>.pos + cnt &lt;= <span class="self">self</span>.bytes.as_ref().len());
+        <span class="self">self</span>.pos += cnt;
     }
 }
 
 <span class="comment">// an internal buffer to collect writes before flushes
 </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">struct </span>WriteBuf&lt;B&gt; {
     <span class="doccomment">/// Re-usable buffer that holds message headers
-    </span>headers: Cursor&lt;Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;&gt;,
-    max_buf_size: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+    </span>headers: Cursor&lt;Vec&lt;u8&gt;&gt;,
+    max_buf_size: usize,
     <span class="doccomment">/// Deque of user buffers if strategy is Queue
     </span>queue: BufList&lt;B&gt;,
-    strategy: <a href="#670">WriteStrategy</a>,
+    strategy: WriteStrategy,
 }
 
-<span class="kw">impl</span>&lt;B: <a href="../../../../hyper/body/trait.Buf.html">Buf</a>&gt; WriteBuf&lt;B&gt; {
-    <span class="kw">fn </span>new(strategy: <a href="#670">WriteStrategy</a>) -&gt; WriteBuf&lt;B&gt; {
-        <a href="#542">WriteBuf</a> {
-            headers: Cursor::new(Vec::with_capacity(<a href="#22">INIT_BUFFER_SIZE</a>)),
-            max_buf_size: <a href="#30">DEFAULT_MAX_BUFFER_SIZE</a>,
+<span class="kw">impl</span>&lt;B: Buf&gt; WriteBuf&lt;B&gt; {
+    <span class="kw">fn </span>new(strategy: WriteStrategy) -&gt; WriteBuf&lt;B&gt; {
+        WriteBuf {
+            headers: Cursor::new(Vec::with_capacity(INIT_BUFFER_SIZE)),
+            max_buf_size: DEFAULT_MAX_BUFFER_SIZE,
             queue: BufList::new(),
-            <a href="#552">strategy</a>,
+            strategy,
         }
     }
 }
 
 <span class="kw">impl</span>&lt;B&gt; WriteBuf&lt;B&gt;
 <span class="kw">where
-    </span>B: <a href="../../../../hyper/body/trait.Buf.html">Buf</a>,
+    </span>B: Buf,
 {
-    <span class="kw">fn </span>set_strategy(<span class="kw-2">&amp;mut </span><span class="self">self</span>, strategy: <a href="#670">WriteStrategy</a>) {
-        <a class="self" href="#566">self</a>.strategy = <a href="#566">strategy</a>;
+    <span class="kw">fn </span>set_strategy(<span class="kw-2">&amp;mut </span><span class="self">self</span>, strategy: WriteStrategy) {
+        <span class="self">self</span>.strategy = strategy;
     }
 
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>buffer&lt;BB: <a href="../../../../hyper/body/trait.Buf.html">Buf</a> + Into&lt;B&gt;&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, <span class="kw-2">mut </span>buf: BB) {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(buf.has_remaining());
-        <span class="kw">match </span><a class="self" href="#570">self</a>.strategy {
-            <a href="#671">WriteStrategy::Flatten</a> =&gt; {
-                <span class="kw">let </span>head = <a class="self" href="#570">self</a>.<a href="#616">headers_mut</a>();
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>buffer&lt;BB: Buf + Into&lt;B&gt;&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, <span class="kw-2">mut </span>buf: BB) {
+        <span class="macro">debug_assert!</span>(buf.has_remaining());
+        <span class="kw">match </span><span class="self">self</span>.strategy {
+            WriteStrategy::Flatten =&gt; {
+                <span class="kw">let </span>head = <span class="self">self</span>.headers_mut();
 
-                <a href="#574">head</a>.<a href="#493">maybe_unshift</a>(<a href="#570">buf</a>.<a href="../../../../hyper/body/trait.Buf.html">remaining</a>());
-                <a class="macro" href="../../../../tracing/macro.trace.html">trace!</a>(
+                head.maybe_unshift(buf.remaining());
+                <span class="macro">trace!</span>(
                     <span class="self">self</span>.len = head.remaining(),
                     buf.len = buf.remaining(),
                     <span class="string">&quot;buffer.flatten&quot;
@@ -1585,86 +1585,86 @@
                 //but accomplishes the same result.
                 </span><span class="kw">loop </span>{
                     <span class="kw">let </span>adv = {
-                        <span class="kw">let </span>slice = <a href="#570">buf</a>.<a href="../../../../hyper/body/trait.Buf.html">chunk</a>();
+                        <span class="kw">let </span>slice = buf.chunk();
                         <span class="kw">if </span>slice.is_empty() {
                             <span class="kw">return</span>;
                         }
-                        <a href="#574">head</a>.bytes.extend_from_slice(<a href="#586">slice</a>);
-                        <a href="#586">slice</a>.len()
+                        head.bytes.extend_from_slice(slice);
+                        slice.len()
                     };
-                    <a href="#570">buf</a>.<a href="../../../../hyper/body/trait.Buf.html">advance</a>(<a href="#585">adv</a>);
+                    buf.advance(adv);
                 }
             }
-            <a href="#672">WriteStrategy::Queue</a> =&gt; {
-                <a class="macro" href="../../../../tracing/macro.trace.html">trace!</a>(
+            WriteStrategy::Queue =&gt; {
+                <span class="macro">trace!</span>(
                     <span class="self">self</span>.len = <span class="self">self</span>.remaining(),
                     buf.len = buf.remaining(),
                     <span class="string">&quot;buffer.queue&quot;
                 </span>);
-                <a class="self" href="#570">self</a>.queue.<a href="../../common/buf.rs.html#18">push</a>(<a href="#570">buf</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>());
+                <span class="self">self</span>.queue.push(buf.into());
             }
         }
     }
 
-    <span class="kw">fn </span>can_buffer(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">match </span><a class="self" href="#607">self</a>.strategy {
-            <a href="#671">WriteStrategy::Flatten</a> =&gt; <a class="self" href="#607">self</a>.<a href="../../../../hyper/body/trait.Buf.html">remaining</a>() &lt; <a class="self" href="#607">self</a>.max_buf_size,
-            <a href="#672">WriteStrategy::Queue</a> =&gt; {
-                <a class="self" href="#607">self</a>.queue.<a href="../../common/buf.rs.html#25">bufs_cnt</a>() &lt; <a href="#37">MAX_BUF_LIST_BUFFERS</a> &amp;&amp; <a class="self" href="#607">self</a>.<a href="../../../../hyper/body/trait.Buf.html">remaining</a>() &lt; <a class="self" href="#607">self</a>.max_buf_size
+    <span class="kw">fn </span>can_buffer(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="kw">match </span><span class="self">self</span>.strategy {
+            WriteStrategy::Flatten =&gt; <span class="self">self</span>.remaining() &lt; <span class="self">self</span>.max_buf_size,
+            WriteStrategy::Queue =&gt; {
+                <span class="self">self</span>.queue.bufs_cnt() &lt; MAX_BUF_LIST_BUFFERS &amp;&amp; <span class="self">self</span>.remaining() &lt; <span class="self">self</span>.max_buf_size
             }
         }
     }
 
-    <span class="kw">fn </span>headers_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>Cursor&lt;Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;&gt; {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(!<span class="self">self</span>.queue.has_remaining());
-        <span class="kw-2">&amp;mut </span><a class="self" href="#616">self</a>.headers
+    <span class="kw">fn </span>headers_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>Cursor&lt;Vec&lt;u8&gt;&gt; {
+        <span class="macro">debug_assert!</span>(!<span class="self">self</span>.queue.has_remaining());
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>.headers
     }
 }
 
-<span class="kw">impl</span>&lt;B: <a href="../../../../hyper/body/trait.Buf.html">Buf</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span>WriteBuf&lt;B&gt; {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a href="#623">f</a>.debug_struct(<span class="string">&quot;WriteBuf&quot;</span>)
-            .field(<span class="string">&quot;remaining&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="#623">self</a>.<a href="../../../../hyper/body/trait.Buf.html">remaining</a>())
-            .field(<span class="string">&quot;strategy&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="#623">self</a>.strategy)
+<span class="kw">impl</span>&lt;B: Buf&gt; fmt::Debug <span class="kw">for </span>WriteBuf&lt;B&gt; {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        f.debug_struct(<span class="string">&quot;WriteBuf&quot;</span>)
+            .field(<span class="string">&quot;remaining&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.remaining())
+            .field(<span class="string">&quot;strategy&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.strategy)
             .finish()
     }
 }
 
-<span class="kw">impl</span>&lt;B: <a href="../../../../hyper/body/trait.Buf.html">Buf</a>&gt; <a href="../../../../hyper/body/trait.Buf.html">Buf</a> <span class="kw">for </span>WriteBuf&lt;B&gt; {
+<span class="kw">impl</span>&lt;B: Buf&gt; Buf <span class="kw">for </span>WriteBuf&lt;B&gt; {
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>remaining(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="self" href="#633">self</a>.headers.<a href="../../../../hyper/body/trait.Buf.html">remaining</a>() + <a class="self" href="#633">self</a>.queue.<a href="../../../../hyper/body/trait.Buf.html">remaining</a>()
+    </span><span class="kw">fn </span>remaining(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+        <span class="self">self</span>.headers.remaining() + <span class="self">self</span>.queue.remaining()
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>chunk(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>] {
-        <span class="kw">let </span>headers = <a class="self" href="#638">self</a>.headers.<a href="../../../../hyper/body/trait.Buf.html">chunk</a>();
+    </span><span class="kw">fn </span>chunk(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[u8] {
+        <span class="kw">let </span>headers = <span class="self">self</span>.headers.chunk();
         <span class="kw">if </span>!headers.is_empty() {
-            <a href="#639">headers</a>
+            headers
         } <span class="kw">else </span>{
-            <a class="self" href="#638">self</a>.queue.<a href="../../../../hyper/body/trait.Buf.html">chunk</a>()
+            <span class="self">self</span>.queue.chunk()
         }
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>advance(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cnt: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
-        <span class="kw">let </span>hrem = <a class="self" href="#648">self</a>.headers.<a href="../../../../hyper/body/trait.Buf.html">remaining</a>();
+    </span><span class="kw">fn </span>advance(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cnt: usize) {
+        <span class="kw">let </span>hrem = <span class="self">self</span>.headers.remaining();
 
-        <span class="kw">match </span><a href="#649">hrem</a>.<a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Ord.html">cmp</a>(<span class="kw-2">&amp;</span><a href="#648">cnt</a>) {
-            cmp::Ordering::Equal =&gt; <a class="self" href="#648">self</a>.headers.<a href="#508">reset</a>(),
-            cmp::Ordering::Greater =&gt; <a class="self" href="#648">self</a>.headers.<a href="../../../../hyper/body/trait.Buf.html">advance</a>(<a href="#648">cnt</a>),
+        <span class="kw">match </span>hrem.cmp(<span class="kw-2">&amp;</span>cnt) {
+            cmp::Ordering::Equal =&gt; <span class="self">self</span>.headers.reset(),
+            cmp::Ordering::Greater =&gt; <span class="self">self</span>.headers.advance(cnt),
             cmp::Ordering::Less =&gt; {
-                <span class="kw">let </span>qcnt = <a href="#648">cnt</a> - <a href="#649">hrem</a>;
-                <a class="self" href="#648">self</a>.headers.<a href="#508">reset</a>();
-                <a class="self" href="#648">self</a>.queue.<a href="../../../../hyper/body/trait.Buf.html">advance</a>(<a href="#655">qcnt</a>);
+                <span class="kw">let </span>qcnt = cnt - hrem;
+                <span class="self">self</span>.headers.reset();
+                <span class="self">self</span>.queue.advance(qcnt);
             }
         }
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>chunks_vectored&lt;<span class="lifetime">&#39;t</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;t </span><span class="self">self</span>, dst: <span class="kw-2">&amp;mut </span>[IoSlice&lt;<span class="lifetime">&#39;t</span>&gt;]) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <span class="kw">let </span>n = <a class="self" href="#663">self</a>.headers.<a href="../../../../hyper/body/trait.Buf.html">chunks_vectored</a>(<a href="#663">dst</a>);
-        <a class="self" href="#663">self</a>.queue.<a href="../../../../hyper/body/trait.Buf.html">chunks_vectored</a>(<span class="kw-2">&amp;mut </span><a href="#663">dst</a>[<a href="#664">n</a>..]) + <a href="#664">n</a>
+    </span><span class="kw">fn </span>chunks_vectored&lt;<span class="lifetime">&#39;t</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;t </span><span class="self">self</span>, dst: <span class="kw-2">&amp;mut </span>[IoSlice&lt;<span class="lifetime">&#39;t</span>&gt;]) -&gt; usize {
+        <span class="kw">let </span>n = <span class="self">self</span>.headers.chunks_vectored(dst);
+        <span class="self">self</span>.queue.chunks_vectored(<span class="kw-2">&amp;mut </span>dst[n..]) + n
     }
 }
 
@@ -2003,4 +2003,4 @@
     // }
 </span>}
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="hyper" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="hyper" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

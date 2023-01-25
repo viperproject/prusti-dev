@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/futures-util-0.3.25/src/stream/stream/zip.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>zip.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../../futures_util/index.html"><img class="rust-logo" src="../../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/futures-util-0.3.25/src/stream/stream/zip.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>zip.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../../futures_util/index.html"><img class="rust-logo" src="../../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -126,18 +126,18 @@
 <a href="#126" id="126">126</a>
 <a href="#127" id="127">127</a>
 <a href="#128" id="128">128</a>
-</pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::stream::{<a href="fuse.rs.html#9-18">Fuse</a>, <a href="mod.rs.html#249">StreamExt</a>};
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/cmp/index.html">core::cmp</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/pin/struct.Pin.html">core::pin::Pin</a>;
-<span class="kw">use </span>futures_core::stream::{<a href="../../../../futures_util/stream/trait.FusedStream.html">FusedStream</a>, <a href="../../../../futures_util/stream/trait.Stream.html">Stream</a>};
-<span class="kw">use </span>futures_core::task::{<a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>, <a href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">Poll</a>};
-<span class="kw">use </span><a href="../../../../pin_project_lite/macro.pin_project.html">pin_project_lite::pin_project</a>;
+</pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::stream::{Fuse, StreamExt};
+<span class="kw">use </span>core::cmp;
+<span class="kw">use </span>core::pin::Pin;
+<span class="kw">use </span>futures_core::stream::{FusedStream, Stream};
+<span class="kw">use </span>futures_core::task::{Context, Poll};
+<span class="kw">use </span>pin_project_lite::pin_project;
 
-<a class="macro" href="../../../../pin_project_lite/macro.pin_project.html">pin_project! </a>{
+<span class="macro">pin_project! </span>{
     <span class="doccomment">/// Stream for the [`zip`](super::StreamExt::zip) method.
     </span><span class="attr">#[derive(Debug)]
     #[must_use = <span class="string">&quot;streams do nothing unless polled&quot;</span>]
-    </span><span class="kw">pub struct </span>Zip&lt;St1: <a href="../../../../futures_util/stream/trait.Stream.html">Stream</a>, St2: <a href="../../../../futures_util/stream/trait.Stream.html">Stream</a>&gt; {
+    </span><span class="kw">pub struct </span>Zip&lt;St1: Stream, St2: Stream&gt; {
         <span class="attr">#[pin]
         </span>stream1: Fuse&lt;St1&gt;,
         <span class="attr">#[pin]
@@ -147,15 +147,15 @@
     }
 }
 
-<span class="kw">impl</span>&lt;St1: <a href="../../../../futures_util/stream/trait.Stream.html">Stream</a>, St2: <a href="../../../../futures_util/stream/trait.Stream.html">Stream</a>&gt; Zip&lt;St1, St2&gt; {
+<span class="kw">impl</span>&lt;St1: Stream, St2: Stream&gt; Zip&lt;St1, St2&gt; {
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>new(stream1: St1, stream2: St2) -&gt; <span class="self">Self </span>{
-        <span class="self">Self </span>{ stream1: <a href="#23">stream1</a>.<a href="mod.rs.html#1232-1234">fuse</a>(), stream2: <a href="#23">stream2</a>.<a href="mod.rs.html#1232-1234">fuse</a>(), queued1: <span class="prelude-val">None</span>, queued2: <span class="prelude-val">None </span>}
+        <span class="self">Self </span>{ stream1: stream1.fuse(), stream2: stream2.fuse(), queued1: <span class="prelude-val">None</span>, queued2: <span class="prelude-val">None </span>}
     }
 
     <span class="doccomment">/// Acquires a reference to the underlying streams that this combinator is
     /// pulling from.
     </span><span class="kw">pub fn </span>get_ref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (<span class="kw-2">&amp;</span>St1, <span class="kw-2">&amp;</span>St2) {
-        (<a class="self" href="#29">self</a>.stream1.<a href="fuse.rs.html#34">get_ref</a>(), <a class="self" href="#29">self</a>.stream2.<a href="fuse.rs.html#34">get_ref</a>())
+        (<span class="self">self</span>.stream1.get_ref(), <span class="self">self</span>.stream2.get_ref())
     }
 
     <span class="doccomment">/// Acquires a mutable reference to the underlying streams that this
@@ -164,7 +164,7 @@
     /// Note that care must be taken to avoid tampering with the state of the
     /// stream which may otherwise confuse this combinator.
     </span><span class="kw">pub fn </span>get_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; (<span class="kw-2">&amp;mut </span>St1, <span class="kw-2">&amp;mut </span>St2) {
-        (<a class="self" href="#38">self</a>.stream1.<a href="fuse.rs.html#34">get_mut</a>(), <a class="self" href="#38">self</a>.stream2.<a href="fuse.rs.html#34">get_mut</a>())
+        (<span class="self">self</span>.stream1.get_mut(), <span class="self">self</span>.stream2.get_mut())
     }
 
     <span class="doccomment">/// Acquires a pinned mutable reference to the underlying streams that this
@@ -173,8 +173,8 @@
     /// Note that care must be taken to avoid tampering with the state of the
     /// stream which may otherwise confuse this combinator.
     </span><span class="kw">pub fn </span>get_pin_mut(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;) -&gt; (Pin&lt;<span class="kw-2">&amp;mut </span>St1&gt;, Pin&lt;<span class="kw-2">&amp;mut </span>St2&gt;) {
-        <span class="kw">let </span>this = <a class="self" href="#47">self</a>.<a href="#8-20">project</a>();
-        (<a href="#48">this</a>.stream1.<a href="fuse.rs.html#34">get_pin_mut</a>(), <a href="#48">this</a>.stream2.<a href="fuse.rs.html#34">get_pin_mut</a>())
+        <span class="kw">let </span>this = <span class="self">self</span>.project();
+        (this.stream1.get_pin_mut(), this.stream2.get_pin_mut())
     }
 
     <span class="doccomment">/// Consumes this combinator, returning the underlying streams.
@@ -182,46 +182,46 @@
     /// Note that this may discard intermediate state of this combinator, so
     /// care should be taken to avoid losing resources when this is called.
     </span><span class="kw">pub fn </span>into_inner(<span class="self">self</span>) -&gt; (St1, St2) {
-        (<a class="self" href="#56">self</a>.stream1.<a href="fuse.rs.html#34">into_inner</a>(), <a class="self" href="#56">self</a>.stream2.<a href="fuse.rs.html#34">into_inner</a>())
+        (<span class="self">self</span>.stream1.into_inner(), <span class="self">self</span>.stream2.into_inner())
     }
 }
 
-<span class="kw">impl</span>&lt;St1, St2&gt; <a href="../../../../futures_util/stream/trait.FusedStream.html">FusedStream</a> <span class="kw">for </span>Zip&lt;St1, St2&gt;
+<span class="kw">impl</span>&lt;St1, St2&gt; FusedStream <span class="kw">for </span>Zip&lt;St1, St2&gt;
 <span class="kw">where
-    </span>St1: <a href="../../../../futures_util/stream/trait.Stream.html">Stream</a>,
-    St2: <a href="../../../../futures_util/stream/trait.Stream.html">Stream</a>,
+    </span>St1: Stream,
+    St2: Stream,
 {
-    <span class="kw">fn </span>is_terminated(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#66">self</a>.stream1.<a href="../../../../futures_util/stream/trait.FusedStream.html">is_terminated</a>() &amp;&amp; <a class="self" href="#66">self</a>.stream2.<a href="../../../../futures_util/stream/trait.FusedStream.html">is_terminated</a>()
+    <span class="kw">fn </span>is_terminated(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.stream1.is_terminated() &amp;&amp; <span class="self">self</span>.stream2.is_terminated()
     }
 }
 
-<span class="kw">impl</span>&lt;St1, St2&gt; <a href="../../../../futures_util/stream/trait.Stream.html">Stream</a> <span class="kw">for </span>Zip&lt;St1, St2&gt;
+<span class="kw">impl</span>&lt;St1, St2&gt; Stream <span class="kw">for </span>Zip&lt;St1, St2&gt;
 <span class="kw">where
-    </span>St1: <a href="../../../../futures_util/stream/trait.Stream.html">Stream</a>,
-    St2: <a href="../../../../futures_util/stream/trait.Stream.html">Stream</a>,
+    </span>St1: Stream,
+    St2: Stream,
 {
     <span class="kw">type </span>Item = (St1::Item, St2::Item);
 
     <span class="kw">fn </span>poll_next(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt;&gt; {
-        <span class="kw">let </span><span class="kw-2">mut </span>this = <a class="self" href="#78">self</a>.<a href="#8-20">project</a>();
+        <span class="kw">let </span><span class="kw-2">mut </span>this = <span class="self">self</span>.project();
 
         <span class="kw">if </span>this.queued1.is_none() {
-            <span class="kw">match </span><a href="#79">this</a>.stream1.as_mut().<a href="../../../../futures_util/stream/trait.Stream.html">poll_next</a>(<a href="#78">cx</a>) {
-                Poll::Ready(<span class="prelude-val">Some</span>(item1)) =&gt; <span class="kw-2">*</span><a href="#79">this</a>.queued1 = <span class="prelude-val">Some</span>(<a href="#83">item1</a>),
+            <span class="kw">match </span>this.stream1.as_mut().poll_next(cx) {
+                Poll::Ready(<span class="prelude-val">Some</span>(item1)) =&gt; <span class="kw-2">*</span>this.queued1 = <span class="prelude-val">Some</span>(item1),
                 Poll::Ready(<span class="prelude-val">None</span>) | Poll::Pending =&gt; {}
             }
         }
         <span class="kw">if </span>this.queued2.is_none() {
-            <span class="kw">match </span><a href="#79">this</a>.stream2.as_mut().<a href="../../../../futures_util/stream/trait.Stream.html">poll_next</a>(<a href="#78">cx</a>) {
-                Poll::Ready(<span class="prelude-val">Some</span>(item2)) =&gt; <span class="kw-2">*</span><a href="#79">this</a>.queued2 = <span class="prelude-val">Some</span>(<a href="#89">item2</a>),
+            <span class="kw">match </span>this.stream2.as_mut().poll_next(cx) {
+                Poll::Ready(<span class="prelude-val">Some</span>(item2)) =&gt; <span class="kw-2">*</span>this.queued2 = <span class="prelude-val">Some</span>(item2),
                 Poll::Ready(<span class="prelude-val">None</span>) | Poll::Pending =&gt; {}
             }
         }
 
         <span class="kw">if </span>this.queued1.is_some() &amp;&amp; this.queued2.is_some() {
-            <span class="kw">let </span>pair = (<a href="#79">this</a>.queued1.take().unwrap(), <a href="#79">this</a>.queued2.take().unwrap());
-            Poll::Ready(<span class="prelude-val">Some</span>(<a href="#95">pair</a>))
+            <span class="kw">let </span>pair = (this.queued1.take().unwrap(), this.queued2.take().unwrap());
+            Poll::Ready(<span class="prelude-val">Some</span>(pair))
         } <span class="kw">else if </span>this.stream1.is_done() || this.stream2.is_done() {
             Poll::Ready(<span class="prelude-val">None</span>)
         } <span class="kw">else </span>{
@@ -229,30 +229,30 @@
         }
     }
 
-    <span class="kw">fn </span>size_hint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;) {
-        <span class="kw">let </span>queued1_len = usize::from(<a class="self" href="#104">self</a>.queued1.is_some());
-        <span class="kw">let </span>queued2_len = usize::from(<a class="self" href="#104">self</a>.queued2.is_some());
-        <span class="kw">let </span>(stream1_lower, stream1_upper) = <a class="self" href="#104">self</a>.stream1.<a href="../../../../futures_util/stream/trait.Stream.html">size_hint</a>();
-        <span class="kw">let </span>(stream2_lower, stream2_upper) = <a class="self" href="#104">self</a>.stream2.<a href="../../../../futures_util/stream/trait.Stream.html">size_hint</a>();
+    <span class="kw">fn </span>size_hint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (usize, <span class="prelude-ty">Option</span>&lt;usize&gt;) {
+        <span class="kw">let </span>queued1_len = usize::from(<span class="self">self</span>.queued1.is_some());
+        <span class="kw">let </span>queued2_len = usize::from(<span class="self">self</span>.queued2.is_some());
+        <span class="kw">let </span>(stream1_lower, stream1_upper) = <span class="self">self</span>.stream1.size_hint();
+        <span class="kw">let </span>(stream2_lower, stream2_upper) = <span class="self">self</span>.stream2.size_hint();
 
-        <span class="kw">let </span>stream1_lower = <a href="#107">stream1_lower</a>.saturating_add(<a href="#105">queued1_len</a>);
-        <span class="kw">let </span>stream2_lower = <a href="#108">stream2_lower</a>.saturating_add(<a href="#106">queued2_len</a>);
+        <span class="kw">let </span>stream1_lower = stream1_lower.saturating_add(queued1_len);
+        <span class="kw">let </span>stream2_lower = stream2_lower.saturating_add(queued2_len);
 
-        <span class="kw">let </span>lower = cmp::min(<a href="#110">stream1_lower</a>, <a href="#111">stream2_lower</a>);
+        <span class="kw">let </span>lower = cmp::min(stream1_lower, stream2_lower);
 
-        <span class="kw">let </span>upper = <span class="kw">match </span>(<a href="#107">stream1_upper</a>, <a href="#108">stream2_upper</a>) {
+        <span class="kw">let </span>upper = <span class="kw">match </span>(stream1_upper, stream2_upper) {
             (<span class="prelude-val">Some</span>(x), <span class="prelude-val">Some</span>(y)) =&gt; {
-                <span class="kw">let </span>x = <a href="#116">x</a>.saturating_add(<a href="#105">queued1_len</a>);
-                <span class="kw">let </span>y = <a href="#116">y</a>.saturating_add(<a href="#106">queued2_len</a>);
-                <span class="prelude-val">Some</span>(cmp::min(<a href="#117">x</a>, <a href="#118">y</a>))
+                <span class="kw">let </span>x = x.saturating_add(queued1_len);
+                <span class="kw">let </span>y = y.saturating_add(queued2_len);
+                <span class="prelude-val">Some</span>(cmp::min(x, y))
             }
-            (<span class="prelude-val">Some</span>(x), <span class="prelude-val">None</span>) =&gt; <a href="#121">x</a>.checked_add(<a href="#105">queued1_len</a>),
-            (<span class="prelude-val">None</span>, <span class="prelude-val">Some</span>(y)) =&gt; <a href="#122">y</a>.checked_add(<a href="#106">queued2_len</a>),
+            (<span class="prelude-val">Some</span>(x), <span class="prelude-val">None</span>) =&gt; x.checked_add(queued1_len),
+            (<span class="prelude-val">None</span>, <span class="prelude-val">Some</span>(y)) =&gt; y.checked_add(queued2_len),
             (<span class="prelude-val">None</span>, <span class="prelude-val">None</span>) =&gt; <span class="prelude-val">None</span>,
         };
 
-        (<a href="#113">lower</a>, <a href="#115">upper</a>)
+        (lower, upper)
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="futures_util" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="futures_util" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

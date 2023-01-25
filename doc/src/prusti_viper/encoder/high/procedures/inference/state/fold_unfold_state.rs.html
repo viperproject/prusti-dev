@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `prusti-viper/src/encoder/high/procedures/inference/state/fold_unfold_state.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>fold_unfold_state.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../../../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../../../../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../../../../../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../../../../../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../../../../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../../../../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../../../../../../source-files.js"></script><script defer src="../../../../../../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../../../../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../../../../../prusti_viper/index.html"><img class="rust-logo" src="../../../../../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `prusti-viper/src/encoder/high/procedures/inference/state/fold_unfold_state.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>fold_unfold_state.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../../../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../../../../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../../../../../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../../../../../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../../../../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../../../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../../../../../source-files.js"></script><script defer src="../../../../../../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../../../../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../../../../../prusti_viper/index.html"><img class="rust-logo" src="../../../../../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -365,65 +365,65 @@
 <a href="#365" id="365">365</a>
 <a href="#366" id="366">366</a>
 </pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::encoder::{
-    <a href="../../../../errors/spanned_encoding_error.rs.html#23">errors::SpannedEncodingResult</a>, <a href="../permission.rs.html#4">high::procedures::inference::permission::Permission</a>,
+    errors::SpannedEncodingResult, high::procedures::inference::permission::Permission,
 };
-<span class="kw">use </span><a href="../../../../../../../log/macro.debug.html">log::debug</a>;
-<span class="kw">use </span>std::collections::{<a href="https://doc.rust-lang.org/nightly/alloc/collections/btree/map/struct.BTreeMap.html">BTreeMap</a>, <a href="https://doc.rust-lang.org/nightly/alloc/collections/btree/set/struct.BTreeSet.html">BTreeSet</a>};
+<span class="kw">use </span>log::debug;
+<span class="kw">use </span>std::collections::{BTreeMap, BTreeSet};
 <span class="kw">use </span>vir_crate::{
-    middle::{<span class="self"><a href="../../../../../../../vir/middle/index.html">self</a> </span><span class="kw">as </span>vir_mid},
-    typed::{<span class="self"><a href="../../../../../../../vir/typed/index.html">self</a> </span><span class="kw">as </span>vir_typed},
+    middle::{<span class="self">self </span><span class="kw">as </span>vir_mid},
+    typed::{<span class="self">self </span><span class="kw">as </span>vir_typed},
 };
 
-<span class="kw">use </span><a href="predicate_state.rs.html#10"><span class="kw">super</span>::PredicateState</a>;
+<span class="kw">use </span><span class="kw">super</span>::PredicateState;
 
 <span class="attr">#[derive(Clone)]
 </span><span class="kw">pub</span>(<span class="kw">in </span><span class="kw">super</span>::<span class="kw">super</span>::<span class="kw">super</span>) <span class="kw">struct </span>FoldUnfoldState {
     <span class="doccomment">/// If this state is a merge of multiple incoming states, then
     /// `incoming_labels` contains the list of basic blocks from where the
     /// already merged states came.
-    </span>incoming_labels: Vec&lt;<a href="../../../../../../../vir/gen/middle/cfg/procedure/struct.BasicBlockId.html">vir_mid::BasicBlockId</a>&gt;,
+    </span>incoming_labels: Vec&lt;vir_mid::BasicBlockId&gt;,
     <span class="doccomment">/// `VariableDecl` indicates the root of the allocation. Currently, we
     /// support only stack allocations. They can be uniquely identified by
     /// `VariableDecl` of their base.
-    </span>predicates: BTreeMap&lt;<a href="../../../../../../../vir/gen/typed/ast/variable/struct.VariableDecl.html">vir_typed::VariableDecl</a>, <a href="predicate_state.rs.html#10">PredicateState</a>&gt;,
+    </span>predicates: BTreeMap&lt;vir_typed::VariableDecl, PredicateState&gt;,
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">std::fmt::Display</a> <span class="kw">for </span><a href="#14">FoldUnfoldState</a> {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">std::fmt::Result</a> {
+<span class="kw">impl </span>std::fmt::Display <span class="kw">for </span>FoldUnfoldState {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; std::fmt::Result {
         <span class="macro">write!</span>(f, <span class="string">&quot;incoming labels: &quot;</span>)<span class="question-mark">?</span>;
         <span class="kw">for </span>label <span class="kw">in </span><span class="kw-2">&amp;</span><span class="self">self</span>.incoming_labels {
-            <span class="macro">write!</span>(f, <span class="string">&quot;{}, &quot;</span>, label)<span class="question-mark">?</span>;
+            <span class="macro">write!</span>(f, <span class="string">&quot;{label}, &quot;</span>)<span class="question-mark">?</span>;
         }
         <span class="macro">writeln!</span>(f, <span class="string">&quot;\nstates:&quot;</span>)<span class="question-mark">?</span>;
         <span class="kw">for </span>(variable, predicate) <span class="kw">in </span><span class="kw-2">&amp;</span><span class="self">self</span>.predicates {
-            <span class="macro">writeln!</span>(f, <span class="string">&quot;{}:\n{}&quot;</span>, variable, predicate)<span class="question-mark">?</span>;
+            <span class="macro">writeln!</span>(f, <span class="string">&quot;{variable}:\n{predicate}&quot;</span>)<span class="question-mark">?</span>;
         }
         <span class="prelude-val">Ok</span>(())
     }
 }
 
-<span class="kw">impl </span><a href="#14">FoldUnfoldState</a> {
+<span class="kw">impl </span>FoldUnfoldState {
     <span class="kw">pub</span>(<span class="kw">in </span><span class="kw">super</span>::<span class="kw">super</span>) <span class="kw">fn </span>new() -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
             incoming_labels: Vec::new(),
-            predicates: <a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default::default</a>(),
+            predicates: Default::default(),
         }
     }
 
     <span class="kw">pub</span>(<span class="kw">in </span><span class="kw">super</span>::<span class="kw">super</span>) <span class="kw">fn </span>debug_print(<span class="kw-2">&amp;</span><span class="self">self</span>) {
-        <a class="macro" href="../../../../../../../log/macro.debug.html">debug!</a>(<span class="string">&quot;state:\n{}&quot;</span>, <span class="self">self</span>);
+        <span class="macro">debug!</span>(<span class="string">&quot;state:\n{}&quot;</span>, <span class="self">self</span>);
     }
 
-    <span class="kw">pub</span>(<span class="kw">in </span><span class="kw">super</span>::<span class="kw">super</span>) <span class="kw">fn </span>contains_only_leakable(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#51">self</a>.predicates
+    <span class="kw">pub</span>(<span class="kw">in </span><span class="kw">super</span>::<span class="kw">super</span>) <span class="kw">fn </span>contains_only_leakable(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.predicates
             .values()
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">all</a>(|predicate| <a href="#54">predicate</a>.<a href="predicate_state.rs.html#61">contains_only_leakable</a>())
+            .all(|predicate| predicate.contains_only_leakable())
     }
 
     <span class="kw">pub</span>(<span class="kw">in </span><span class="kw">super</span>::<span class="kw">super</span>) <span class="kw">fn </span>reset_incoming_labels_with(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        incoming_label: <a href="../../../../../../../vir/gen/middle/cfg/procedure/struct.BasicBlockId.html">vir_mid::BasicBlockId</a>,
-        path_disambiguators: <span class="kw-2">&amp;</span>[<a href="../../../../../../../vir/gen/middle/cfg/procedure/struct.BasicBlockId.html">vir_mid::BasicBlockId</a>],
+        incoming_label: vir_mid::BasicBlockId,
+        path_disambiguators: <span class="kw-2">&amp;</span>[vir_mid::BasicBlockId],
     ) -&gt; SpannedEncodingResult&lt;()&gt; {
         <span class="kw">for </span>predicate_state <span class="kw">in </span><span class="self">self</span>.predicates.values_mut() {
             <span class="kw">if let </span>PredicateState::Conditional(states) = predicate_state {
@@ -445,8 +445,8 @@
                     .collect();
             }
         }
-        <a class="self" href="#58">self</a>.incoming_labels = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[incoming_label];
-        <a class="self" href="#58">self</a>.<a href="#351">check_no_default_position</a>();
+        <span class="self">self</span>.incoming_labels = <span class="macro">vec!</span>[incoming_label];
+        <span class="self">self</span>.check_no_default_position();
         <span class="prelude-val">Ok</span>(())
     }
 
@@ -454,27 +454,27 @@
     /// into `self`.
     </span><span class="kw">pub</span>(<span class="kw">in </span><span class="kw">super</span>::<span class="kw">super</span>) <span class="kw">fn </span>merge(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        incoming_label: <a href="../../../../../../../vir/gen/middle/cfg/procedure/struct.BasicBlockId.html">vir_mid::BasicBlockId</a>,
-        current_label: <a href="../../../../../../../vir/gen/middle/cfg/procedure/struct.BasicBlockId.html">vir_mid::BasicBlockId</a>,
+        incoming_label: vir_mid::BasicBlockId,
+        current_label: vir_mid::BasicBlockId,
         path_disambiguators: <span class="kw-2">&amp;</span>BTreeMap&lt;
-            (<a href="../../../../../../../vir/gen/middle/cfg/procedure/struct.BasicBlockId.html">vir_mid::BasicBlockId</a>, <a href="../../../../../../../vir/gen/middle/cfg/procedure/struct.BasicBlockId.html">vir_mid::BasicBlockId</a>),
-            Vec&lt;<a href="../../../../../../../vir/gen/middle/cfg/procedure/struct.BasicBlockId.html">vir_mid::BasicBlockId</a>&gt;,
+            (vir_mid::BasicBlockId, vir_mid::BasicBlockId),
+            Vec&lt;vir_mid::BasicBlockId&gt;,
         &gt;,
         <span class="kw-2">mut </span>incoming_state: <span class="self">Self</span>,
     ) -&gt; SpannedEncodingResult&lt;()&gt; {
         <span class="comment">// Roots that are available in both `self` and `incoming_state`.
-        </span><span class="kw">let </span>all_roots = <span class="self"><a href="#90">self</a>
+        </span><span class="kw">let </span>all_roots = <span class="self">self
             </span>.predicates
             .keys()
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">chain</a>(<a href="#97">incoming_state</a>.predicates.keys())
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">cloned</a>()
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>::&lt;BTreeSet&lt;<span class="kw">_</span>&gt;&gt;();
+            .chain(incoming_state.predicates.keys())
+            .cloned()
+            .collect::&lt;BTreeSet&lt;<span class="kw">_</span>&gt;&gt;();
 
         <span class="comment">// Merge `self` and `incoming_state` root by root.
         </span><span class="kw">let </span>empty_vec = Vec::new();
-        <span class="kw">let </span>incoming_label_path_disambiguators = <a href="#93">path_disambiguators</a>
-            .get(<span class="kw-2">&amp;</span>(<a href="#91">incoming_label</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), <a href="#92">current_label</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()))
-            .unwrap_or(<span class="kw-2">&amp;</span><a href="#108">empty_vec</a>);
+        <span class="kw">let </span>incoming_label_path_disambiguators = path_disambiguators
+            .get(<span class="kw-2">&amp;</span>(incoming_label.clone(), current_label.clone()))
+            .unwrap_or(<span class="kw-2">&amp;</span>empty_vec);
         <span class="kw">for </span>root <span class="kw">in </span>all_roots {
             <span class="kw">let </span>self_state = <span class="self">self</span>.predicates.remove(<span class="kw-2">&amp;</span>root);
             <span class="kw">let </span>incoming_predicate = incoming_state.predicates.remove(<span class="kw-2">&amp;</span>root);
@@ -604,46 +604,46 @@
             };
             <span class="self">self</span>.predicates.insert(root, merged_state);
         }
-        <a class="self" href="#90">self</a>.incoming_labels.push(<a href="#91">incoming_label</a>);
-        <a class="self" href="#90">self</a>.<a href="#351">check_no_default_position</a>();
+        <span class="self">self</span>.incoming_labels.push(incoming_label);
+        <span class="self">self</span>.check_no_default_position();
         <span class="prelude-val">Ok</span>(())
     }
 
     <span class="kw">pub</span>(<span class="kw">in </span><span class="kw">super</span>::<span class="kw">super</span>) <span class="kw">fn </span>insert_permissions(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        permissions: Vec&lt;<a href="../permission.rs.html#4">Permission</a>&gt;,
+        permissions: Vec&lt;Permission&gt;,
     ) -&gt; SpannedEncodingResult&lt;()&gt; {
         <span class="kw">for </span>permission <span class="kw">in </span>permissions {
             <span class="self">self</span>.insert_permission(permission)<span class="question-mark">?</span>;
         }
-        <a class="self" href="#247">self</a>.<a href="#351">check_no_default_position</a>();
+        <span class="self">self</span>.check_no_default_position();
         <span class="prelude-val">Ok</span>(())
     }
 
     <span class="kw">pub</span>(<span class="kw">in </span><span class="kw">super</span>::<span class="kw">super</span>) <span class="kw">fn </span>insert_permission(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        permission: <a href="../permission.rs.html#4">Permission</a>,
+        permission: Permission,
     ) -&gt; SpannedEncodingResult&lt;()&gt; {
-        <a class="self" href="#258">self</a>.<a href="#351">check_no_default_position</a>();
-        <span class="kw">let </span>place = <a href="#259">permission</a>.<a href="../permission.rs.html#26">get_place</a>();
+        <span class="self">self</span>.check_no_default_position();
+        <span class="kw">let </span>place = permission.get_place();
         <span class="kw">if let </span><span class="prelude-val">Some</span>(state) = <span class="self">self</span>.try_get_predicates_state(place)<span class="question-mark">? </span>{
             state.insert_permission(permission)<span class="question-mark">?</span>;
         } <span class="kw">else </span>{
-            <span class="kw">let </span>base = <a href="#262">place</a>.get_base().erase_lifetime();
-            <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(<span class="self">self
+            <span class="kw">let </span>base = place.get_base().erase_lifetime();
+            <span class="macro">assert!</span>(<span class="self">self
                 </span>.predicates
                 .insert(base, PredicateState::new_unconditional(permission))
                 .is_none());
         }
-        <a class="self" href="#258">self</a>.<a href="#351">check_no_default_position</a>();
+        <span class="self">self</span>.check_no_default_position();
         <span class="prelude-val">Ok</span>(())
     }
 
     <span class="kw">pub</span>(<span class="kw">in </span><span class="kw">super</span>::<span class="kw">super</span>) <span class="kw">fn </span>remove_permissions(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        permissions: <span class="kw-2">&amp;</span>[<a href="../permission.rs.html#4">Permission</a>],
+        permissions: <span class="kw-2">&amp;</span>[Permission],
     ) -&gt; SpannedEncodingResult&lt;()&gt; {
-        <a class="self" href="#277">self</a>.<a href="#351">check_no_default_position</a>();
+        <span class="self">self</span>.check_no_default_position();
         <span class="kw">for </span>permission <span class="kw">in </span>permissions {
             <span class="self">self</span>.remove_permission(permission)<span class="question-mark">?</span>;
         }
@@ -652,15 +652,15 @@
 
     <span class="kw">pub</span>(<span class="kw">in </span><span class="kw">super</span>::<span class="kw">super</span>) <span class="kw">fn </span>remove_permission(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        permission: <span class="kw-2">&amp;</span><a href="../permission.rs.html#4">Permission</a>,
+        permission: <span class="kw-2">&amp;</span>Permission,
     ) -&gt; SpannedEncodingResult&lt;()&gt; {
-        <a class="self" href="#288">self</a>.<a href="#351">check_no_default_position</a>();
-        <span class="kw">let </span>place = <a href="#289">permission</a>.<a href="../permission.rs.html#26">get_place</a>();
+        <span class="self">self</span>.check_no_default_position();
+        <span class="kw">let </span>place = permission.get_place();
         <span class="kw">if let </span><span class="prelude-val">Some</span>(state) = <span class="self">self</span>.try_get_predicates_state(place)<span class="question-mark">? </span>{
             state.remove_permission(permission)<span class="question-mark">?</span>;
             <span class="kw">if </span>state.is_empty() {
-                <span class="kw">let </span>base = <a href="#292">place</a>.get_base().erase_lifetime();
-                <a class="self" href="#288">self</a>.predicates.remove(<span class="kw-2">&amp;</span><a href="#296">base</a>);
+                <span class="kw">let </span>base = place.get_base().erase_lifetime();
+                <span class="self">self</span>.predicates.remove(<span class="kw-2">&amp;</span>base);
             } <span class="kw">else </span>{
                 state.remove_empty_states()<span class="question-mark">?</span>;
             }
@@ -670,36 +670,36 @@
 
     <span class="kw">pub</span>(<span class="kw">in </span><span class="kw">super</span>::<span class="kw">super</span>) <span class="kw">fn </span>iter_mut(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-    ) -&gt; SpannedEncodingResult&lt;<span class="kw">impl </span>Iterator&lt;Item = <span class="kw-2">&amp;mut </span><a href="predicate_state.rs.html#10">PredicateState</a>&gt;&gt; {
-        <a class="self" href="#306">self</a>.<a href="#351">check_no_default_position</a>();
-        <span class="prelude-val">Ok</span>(<a class="self" href="#306">self</a>.predicates.values_mut())
+    ) -&gt; SpannedEncodingResult&lt;<span class="kw">impl </span>Iterator&lt;Item = <span class="kw-2">&amp;mut </span>PredicateState&gt;&gt; {
+        <span class="self">self</span>.check_no_default_position();
+        <span class="prelude-val">Ok</span>(<span class="self">self</span>.predicates.values_mut())
     }
 
     <span class="kw">pub</span>(<span class="kw">in </span><span class="kw">super</span>::<span class="kw">super</span>) <span class="kw">fn </span>get_predicates_state(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        place: <span class="kw-2">&amp;</span><a href="../../../../../../../vir/gen/typed/ast/expression/enum.Expression.html">vir_typed::Expression</a>,
-    ) -&gt; SpannedEncodingResult&lt;<span class="kw-2">&amp;mut </span><a href="predicate_state.rs.html#10">PredicateState</a>&gt; {
+        place: <span class="kw-2">&amp;</span>vir_typed::Expression,
+    ) -&gt; SpannedEncodingResult&lt;<span class="kw-2">&amp;mut </span>PredicateState&gt; {
         <span class="prelude-val">Ok</span>(<span class="self">self
             </span>.try_get_predicates_state(place)<span class="question-mark">?
-            </span>.unwrap_or_else(|| <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(<span class="string">&quot;place: {place}&quot;</span>)))
+            </span>.unwrap_or_else(|| <span class="macro">unreachable!</span>(<span class="string">&quot;place: {place}&quot;</span>)))
     }
 
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>try_get_predicates_state(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        place: <span class="kw-2">&amp;</span><a href="../../../../../../../vir/gen/typed/ast/expression/enum.Expression.html">vir_typed::Expression</a>,
-    ) -&gt; SpannedEncodingResult&lt;<span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;mut </span><a href="predicate_state.rs.html#10">PredicateState</a>&gt;&gt; {
-        <a class="self" href="#322">self</a>.<a href="#351">check_no_default_position</a>();
-        <span class="kw">let </span>base = <a href="#323">place</a>.get_base().erase_lifetime();
-        <span class="prelude-val">Ok</span>(<a class="self" href="#322">self</a>.predicates.get_mut(<span class="kw-2">&amp;</span><a href="#326">base</a>))
+        place: <span class="kw-2">&amp;</span>vir_typed::Expression,
+    ) -&gt; SpannedEncodingResult&lt;<span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;mut </span>PredicateState&gt;&gt; {
+        <span class="self">self</span>.check_no_default_position();
+        <span class="kw">let </span>base = place.get_base().erase_lifetime();
+        <span class="prelude-val">Ok</span>(<span class="self">self</span>.predicates.get_mut(<span class="kw-2">&amp;</span>base))
     }
 
     <span class="kw">pub</span>(<span class="kw">in </span><span class="kw">super</span>::<span class="kw">super</span>) <span class="kw">fn </span>remove_empty_states(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        variable: <span class="kw-2">&amp;</span><a href="../../../../../../../vir/gen/typed/ast/variable/struct.VariableDecl.html">vir_typed::VariableDecl</a>,
+        variable: <span class="kw-2">&amp;</span>vir_typed::VariableDecl,
     ) -&gt; SpannedEncodingResult&lt;()&gt; {
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(predicate) = <a class="self" href="#331">self</a>.predicates.get_mut(<a href="#332">variable</a>) {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(predicate) = <span class="self">self</span>.predicates.get_mut(variable) {
             <span class="kw">if </span>predicate.is_empty() {
-                <a class="self" href="#331">self</a>.predicates.remove(<a href="#332">variable</a>);
+                <span class="self">self</span>.predicates.remove(variable);
             } <span class="kw">else </span>{
                 predicate.remove_empty_states()<span class="question-mark">?</span>;
             }
@@ -709,13 +709,13 @@
 
     <span class="doccomment">/// Remove all permissions. This is intended to be used only by `LeakAll` statement.
     </span><span class="kw">pub</span>(<span class="kw">in </span><span class="kw">super</span>::<span class="kw">super</span>) <span class="kw">fn </span>clear(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; SpannedEncodingResult&lt;()&gt; {
-        <a class="self" href="#345">self</a>.<a href="#351">check_no_default_position</a>();
-        <a class="self" href="#345">self</a>.predicates.clear();
+        <span class="self">self</span>.check_no_default_position();
+        <span class="self">self</span>.predicates.clear();
         <span class="prelude-val">Ok</span>(())
     }
 
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>check_no_default_position(<span class="kw-2">&amp;</span><span class="self">self</span>) {
-        <span class="kw">if </span><a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.cfg.html">cfg!</a>(debug_assertions) {
+        <span class="kw">if </span><span class="macro">cfg!</span>(debug_assertions) {
             <span class="kw">for </span>predicate <span class="kw">in </span><span class="self">self</span>.predicates.values() {
                 predicate.check_no_default_position();
             }
@@ -723,7 +723,7 @@
     }
 
     <span class="kw">pub</span>(<span class="kw">in </span><span class="kw">super</span>::<span class="kw">super</span>) <span class="kw">fn </span>check_consistency(<span class="kw-2">&amp;</span><span class="self">self</span>) {
-        <span class="kw">if </span><a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.cfg.html">cfg!</a>(debug_assertions) {
+        <span class="kw">if </span><span class="macro">cfg!</span>(debug_assertions) {
             <span class="kw">for </span>predicate <span class="kw">in </span><span class="self">self</span>.predicates.values() {
                 predicate.check_consistency();
             }
@@ -731,4 +731,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../../../../" data-static-root-path="../../../../../../../static.files/" data-current-crate="prusti_viper" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../../../../../" data-static-root-path="../../../../../../../static.files/" data-current-crate="prusti_viper" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

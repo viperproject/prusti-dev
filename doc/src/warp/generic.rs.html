@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/warp-0.3.3/src/generic.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>generic.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../warp/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/warp-0.3.3/src/generic.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>generic.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../warp/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -249,13 +249,13 @@
 <a href="#249" id="249">249</a>
 <a href="#250" id="250">250</a>
 </pre><pre class="rust"><code><span class="attr">#[derive(Debug)]
-</span><span class="kw">pub struct </span>Product&lt;H, T: <a href="#18">HList</a>&gt;(<span class="kw">pub</span>(<span class="kw">crate</span>) H, <span class="kw">pub</span>(<span class="kw">crate</span>) T);
+</span><span class="kw">pub struct </span>Product&lt;H, T: HList&gt;(<span class="kw">pub</span>(<span class="kw">crate</span>) H, <span class="kw">pub</span>(<span class="kw">crate</span>) T);
 
 <span class="kw">pub type </span>One&lt;T&gt; = (T,);
 
 <span class="attr">#[inline]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>one&lt;T&gt;(val: T) -&gt; One&lt;T&gt; {
-    (<a href="#7">val</a>,)
+    (val,)
 }
 
 <span class="attr">#[derive(Debug)]
@@ -265,14 +265,14 @@
 }
 
 <span class="comment">// Converts Product (and ()) into tuples.
-</span><span class="kw">pub trait </span>HList: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> {
+</span><span class="kw">pub trait </span>HList: Sized {
     <span class="kw">type </span>Tuple: Tuple&lt;HList = <span class="self">Self</span>&gt;;
 
     <span class="kw">fn </span>flatten(<span class="self">self</span>) -&gt; <span class="self">Self</span>::Tuple;
 }
 
 <span class="comment">// Typeclass that tuples can be converted into a Product (or unit ()).
-</span><span class="kw">pub trait </span>Tuple: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> {
+</span><span class="kw">pub trait </span>Tuple: Sized {
     <span class="kw">type </span>HList: HList&lt;Tuple = <span class="self">Self</span>&gt;;
 
     <span class="kw">fn </span>hlist(<span class="self">self</span>) -&gt; <span class="self">Self</span>::HList;
@@ -280,11 +280,11 @@
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>combine&lt;T&gt;(<span class="self">self</span>, other: T) -&gt; CombinedTuples&lt;<span class="self">Self</span>, T&gt;
     <span class="kw">where
-        </span><span class="self">Self</span>: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>,
-        T: <a href="#25">Tuple</a>,
+        </span><span class="self">Self</span>: Sized,
+        T: Tuple,
         <span class="self">Self</span>::HList: Combine&lt;T::HList&gt;,
     {
-        <a class="self" href="#31">self</a>.<a href="#28">hlist</a>().<a href="#48">combine</a>(<a href="#31">other</a>.<a href="#28">hlist</a>()).<a href="#21">flatten</a>()
+        <span class="self">self</span>.hlist().combine(other.hlist()).flatten()
     }
 }
 
@@ -292,8 +292,8 @@
     &lt;&lt;&lt;T <span class="kw">as </span>Tuple&gt;::HList <span class="kw">as </span>Combine&lt;&lt;U <span class="kw">as </span>Tuple&gt;::HList&gt;&gt;::Output <span class="kw">as </span>HList&gt;::Tuple;
 
 <span class="comment">// Combines Product together.
-</span><span class="kw">pub trait </span>Combine&lt;T: <a href="#18">HList</a>&gt; {
-    <span class="kw">type </span>Output: <a href="#18">HList</a>;
+</span><span class="kw">pub trait </span>Combine&lt;T: HList&gt; {
+    <span class="kw">type </span>Output: HList;
 
     <span class="kw">fn </span>combine(<span class="self">self</span>, other: T) -&gt; <span class="self">Self</span>::Output;
 }
@@ -306,34 +306,34 @@
 
 <span class="comment">// ===== impl Combine =====
 
-</span><span class="kw">impl</span>&lt;T: <a href="#18">HList</a>&gt; Combine&lt;T&gt; <span class="kw">for </span>() {
+</span><span class="kw">impl</span>&lt;T: HList&gt; Combine&lt;T&gt; <span class="kw">for </span>() {
     <span class="kw">type </span>Output = T;
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>combine(<span class="self">self</span>, other: T) -&gt; <span class="self">Self</span>::Output {
-        <a href="#62">other</a>
+        other
     }
 }
 
-<span class="kw">impl</span>&lt;H, T: <a href="#18">HList</a>, U: <a href="#18">HList</a>&gt; Combine&lt;U&gt; <span class="kw">for </span>Product&lt;H, T&gt;
+<span class="kw">impl</span>&lt;H, T: HList, U: HList&gt; Combine&lt;U&gt; <span class="kw">for </span>Product&lt;H, T&gt;
 <span class="kw">where
     </span>T: Combine&lt;U&gt;,
-    Product&lt;H, &lt;T <span class="kw">as </span>Combine&lt;U&gt;&gt;::Output&gt;: <a href="#18">HList</a>,
+    Product&lt;H, &lt;T <span class="kw">as </span>Combine&lt;U&gt;&gt;::Output&gt;: HList,
 {
     <span class="kw">type </span>Output = Product&lt;H, &lt;T <span class="kw">as </span>Combine&lt;U&gt;&gt;::Output&gt;;
 
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>combine(<span class="self">self</span>, other: U) -&gt; <span class="self">Self</span>::Output {
-        <a href="#2">Product</a>(<a class="self" href="#75">self</a>.<span class="number">0</span>, <a class="self" href="#75">self</a>.<span class="number">1</span>.<a href="#48">combine</a>(<a href="#75">other</a>))
+        Product(<span class="self">self</span>.<span class="number">0</span>, <span class="self">self</span>.<span class="number">1</span>.combine(other))
     }
 }
 
-<span class="kw">impl </span><a href="#18">HList</a> <span class="kw">for </span>() {
+<span class="kw">impl </span>HList <span class="kw">for </span>() {
     <span class="kw">type </span>Tuple = ();
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>flatten(<span class="self">self</span>) -&gt; <span class="self">Self</span>::Tuple {}
 }
 
-<span class="kw">impl </span><a href="#25">Tuple</a> <span class="kw">for </span>() {
+<span class="kw">impl </span>Tuple <span class="kw">for </span>() {
     <span class="kw">type </span>HList = ();
 
     <span class="attr">#[inline]
@@ -348,19 +348,19 @@
 
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>call(<span class="kw-2">&amp;</span><span class="self">self</span>, _args: ()) -&gt; <span class="self">Self</span>::Output {
-        (<span class="kw-2">*</span><a class="self" href="#100">self</a>)()
+        (<span class="kw-2">*</span><span class="self">self</span>)()
     }
 }
 
-<span class="kw">impl</span>&lt;F, R&gt; Func&lt;<a href="reject.rs.html#205"><span class="kw">crate</span>::Rejection</a>&gt; <span class="kw">for </span>F
+<span class="kw">impl</span>&lt;F, R&gt; Func&lt;<span class="kw">crate</span>::Rejection&gt; <span class="kw">for </span>F
 <span class="kw">where
-    </span>F: Fn(<a href="reject.rs.html#205"><span class="kw">crate</span>::Rejection</a>) -&gt; R,
+    </span>F: Fn(<span class="kw">crate</span>::Rejection) -&gt; R,
 {
     <span class="kw">type </span>Output = R;
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>call(<span class="kw-2">&amp;</span><span class="self">self</span>, arg: <a href="reject.rs.html#205"><span class="kw">crate</span>::Rejection</a>) -&gt; <span class="self">Self</span>::Output {
-        (<span class="kw-2">*</span><a class="self" href="#112">self</a>)(<a href="#112">arg</a>)
+    </span><span class="kw">fn </span>call(<span class="kw-2">&amp;</span><span class="self">self</span>, arg: <span class="kw">crate</span>::Rejection) -&gt; <span class="self">Self</span>::Output {
+        (<span class="kw-2">*</span><span class="self">self</span>)(arg)
     }
 }
 
@@ -480,7 +480,7 @@
     };
 }
 
-<a class="macro" href="#132-231">generics! </a>{
+<span class="macro">generics! </span>{
     <span class="macro-nonterminal">T1</span>,
     T2,
     T3,
@@ -499,4 +499,4 @@
     T16
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="warp" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="warp" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

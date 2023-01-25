@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/object-0.29.0/src/read/read_ref.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>read_ref.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../object/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/object-0.30.1/src/read/read_ref.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>read_ref.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../object/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -137,11 +137,11 @@
 <a href="#137" id="137">137</a>
 </pre><pre class="rust"><code><span class="attr">#![allow(clippy::len_without_is_empty)]
 
-</span><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/convert/trait.TryInto.html">core::convert::TryInto</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/ops/range/struct.Range.html">core::ops::Range</a>;
-<span class="kw">use </span>core::{<a href="https://doc.rust-lang.org/nightly/core/mem/index.html">mem</a>, <a href="https://doc.rust-lang.org/nightly/core/result/index.html">result</a>};
+</span><span class="kw">use </span>core::convert::TryInto;
+<span class="kw">use </span>core::ops::Range;
+<span class="kw">use </span>core::{mem, result};
 
-<span class="kw">use </span><span class="kw">crate</span>::pod::{<a href="../pod.rs.html#27">from_bytes</a>, <a href="../pod.rs.html#66">slice_from_bytes</a>, <a href="../pod.rs.html#21">Pod</a>};
+<span class="kw">use </span><span class="kw">crate</span>::pod::{from_bytes, slice_from_bytes, Pod};
 
 <span class="kw">type </span><span class="prelude-ty">Result</span>&lt;T&gt; = result::Result&lt;T, ()&gt;;
 
@@ -171,14 +171,14 @@
 // An alternative would be for methods to accept `&amp;mut self` and use a
 // `seek` method instead of the `offset` parameters, but this is less
 // convenient for implementers.
-</span><span class="kw">pub trait </span>ReadRef&lt;<span class="lifetime">&#39;a</span>&gt;: <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html">Copy</a> {
+</span><span class="kw">pub trait </span>ReadRef&lt;<span class="lifetime">&#39;a</span>&gt;: Clone + Copy {
     <span class="doccomment">/// The total size of the block of data.
-    </span><span class="kw">fn </span>len(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>&gt;;
+    </span><span class="kw">fn </span>len(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;u64&gt;;
 
     <span class="doccomment">/// Get a reference to a `u8` slice at the given offset.
     ///
     /// Returns an error if offset or size are out of bounds.
-    </span><span class="kw">fn </span>read_bytes_at(<span class="self">self</span>, offset: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>, size: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;;
+    </span><span class="kw">fn </span>read_bytes_at(<span class="self">self</span>, offset: u64, size: u64) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[u8]&gt;;
 
     <span class="doccomment">/// Get a reference to a delimited `u8` slice which starts at range.start.
     ///
@@ -186,15 +186,15 @@
     ///
     /// Returns an error if the range is out of bounds or the delimiter is
     /// not found in the range.
-    </span><span class="kw">fn </span>read_bytes_at_until(<span class="self">self</span>, range: Range&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>&gt;, delimiter: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;;
+    </span><span class="kw">fn </span>read_bytes_at_until(<span class="self">self</span>, range: Range&lt;u64&gt;, delimiter: u8) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[u8]&gt;;
 
     <span class="doccomment">/// Get a reference to a `u8` slice at the given offset, and update the offset.
     ///
     /// Returns an error if offset or size are out of bounds.
-    </span><span class="kw">fn </span>read_bytes(<span class="self">self</span>, offset: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>, size: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt; {
+    </span><span class="kw">fn </span>read_bytes(<span class="self">self</span>, offset: <span class="kw-2">&amp;mut </span>u64, size: u64) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[u8]&gt; {
         <span class="kw">let </span>bytes = <span class="self">self</span>.read_bytes_at(<span class="kw-2">*</span>offset, size)<span class="question-mark">?</span>;
-        <span class="kw-2">*</span><a href="#57">offset</a> = <a href="#57">offset</a>.wrapping_add(<a href="#57">size</a>);
-        <span class="prelude-val">Ok</span>(<a href="#58">bytes</a>)
+        <span class="kw-2">*</span>offset = offset.wrapping_add(size);
+        <span class="prelude-val">Ok</span>(bytes)
     }
 
     <span class="doccomment">/// Get a reference to a `Pod` type at the given offset, and update the offset.
@@ -206,11 +206,11 @@
     /// Implementors may want to provide their own implementation that ensures
     /// the alignment can be satisified. Alternatively, only use this method with
     /// types that do not need alignment (see the `unaligned` feature of this crate).
-    </span><span class="kw">fn </span>read&lt;T: <a href="../pod.rs.html#21">Pod</a>&gt;(<span class="self">self</span>, offset: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>T&gt; {
+    </span><span class="kw">fn </span>read&lt;T: Pod&gt;(<span class="self">self</span>, offset: <span class="kw-2">&amp;mut </span>u64) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>T&gt; {
         <span class="kw">let </span>size = mem::size_of::&lt;T&gt;().try_into().map_err(|<span class="kw">_</span>| ())<span class="question-mark">?</span>;
         <span class="kw">let </span>bytes = <span class="self">self</span>.read_bytes(offset, size)<span class="question-mark">?</span>;
         <span class="kw">let </span>(t, <span class="kw">_</span>) = from_bytes(bytes)<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(<a href="#75">t</a>)
+        <span class="prelude-val">Ok</span>(t)
     }
 
     <span class="doccomment">/// Get a reference to a `Pod` type at the given offset.
@@ -218,8 +218,8 @@
     /// Returns an error if offset or size are out of bounds.
     ///
     /// Also see the `read` method for information regarding alignment of `T`.
-    </span><span class="kw">fn </span>read_at&lt;T: <a href="../pod.rs.html#21">Pod</a>&gt;(<span class="self">self</span>, <span class="kw-2">mut </span>offset: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>T&gt; {
-        <a class="self" href="#84">self</a>.<a href="#72">read</a>(<span class="kw-2">&amp;mut </span><a href="#84">offset</a>)
+    </span><span class="kw">fn </span>read_at&lt;T: Pod&gt;(<span class="self">self</span>, <span class="kw-2">mut </span>offset: u64) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>T&gt; {
+        <span class="self">self</span>.read(<span class="kw-2">&amp;mut </span>offset)
     }
 
     <span class="doccomment">/// Get a reference to a slice of a `Pod` type at the given offset, and update the offset.
@@ -227,7 +227,7 @@
     /// Returns an error if offset or size are out of bounds.
     ///
     /// Also see the `read` method for information regarding alignment of `T`.
-    </span><span class="kw">fn </span>read_slice&lt;T: <a href="../pod.rs.html#21">Pod</a>&gt;(<span class="self">self</span>, offset: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>, count: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[T]&gt; {
+    </span><span class="kw">fn </span>read_slice&lt;T: Pod&gt;(<span class="self">self</span>, offset: <span class="kw-2">&amp;mut </span>u64, count: usize) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[T]&gt; {
         <span class="kw">let </span>size = count
             .checked_mul(mem::size_of::&lt;T&gt;())
             .ok_or(())<span class="question-mark">?
@@ -235,7 +235,7 @@
             .map_err(|<span class="kw">_</span>| ())<span class="question-mark">?</span>;
         <span class="kw">let </span>bytes = <span class="self">self</span>.read_bytes(offset, size)<span class="question-mark">?</span>;
         <span class="kw">let </span>(t, <span class="kw">_</span>) = slice_from_bytes(bytes, count)<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(<a href="#100">t</a>)
+        <span class="prelude-val">Ok</span>(t)
     }
 
     <span class="doccomment">/// Get a reference to a slice of a `Pod` type at the given offset.
@@ -243,34 +243,34 @@
     /// Returns an error if offset or size are out of bounds.
     ///
     /// Also see the `read` method for information regarding alignment of `T`.
-    </span><span class="kw">fn </span>read_slice_at&lt;T: <a href="../pod.rs.html#21">Pod</a>&gt;(<span class="self">self</span>, <span class="kw-2">mut </span>offset: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>, count: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[T]&gt; {
-        <a class="self" href="#109">self</a>.<a href="#93">read_slice</a>(<span class="kw-2">&amp;mut </span><a href="#109">offset</a>, <a href="#109">count</a>)
+    </span><span class="kw">fn </span>read_slice_at&lt;T: Pod&gt;(<span class="self">self</span>, <span class="kw-2">mut </span>offset: u64, count: usize) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[T]&gt; {
+        <span class="self">self</span>.read_slice(<span class="kw-2">&amp;mut </span>offset, count)
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; ReadRef&lt;<span class="lifetime">&#39;a</span>&gt; <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>] {
-    <span class="kw">fn </span>len(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>&gt; {
-        <a class="self" href="#115">self</a>.len().<a href="https://doc.rust-lang.org/nightly/core/convert/trait.TryInto.html">try_into</a>().map_err(|<span class="kw">_</span>| ())
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; ReadRef&lt;<span class="lifetime">&#39;a</span>&gt; <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[u8] {
+    <span class="kw">fn </span>len(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;u64&gt; {
+        <span class="self">self</span>.len().try_into().map_err(|<span class="kw">_</span>| ())
     }
 
-    <span class="kw">fn </span>read_bytes_at(<span class="self">self</span>, offset: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>, size: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt; {
-        <span class="kw">let </span>offset: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> = offset.try_into().map_err(|<span class="kw">_</span>| ())<span class="question-mark">?</span>;
-        <span class="kw">let </span>size: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> = size.try_into().map_err(|<span class="kw">_</span>| ())<span class="question-mark">?</span>;
-        <span class="self">self</span>.get(offset..).ok_or(())<span class="question-mark">?</span>.get(..<a href="#121">size</a>).ok_or(())
+    <span class="kw">fn </span>read_bytes_at(<span class="self">self</span>, offset: u64, size: u64) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[u8]&gt; {
+        <span class="kw">let </span>offset: usize = offset.try_into().map_err(|<span class="kw">_</span>| ())<span class="question-mark">?</span>;
+        <span class="kw">let </span>size: usize = size.try_into().map_err(|<span class="kw">_</span>| ())<span class="question-mark">?</span>;
+        <span class="self">self</span>.get(offset..).ok_or(())<span class="question-mark">?</span>.get(..size).ok_or(())
     }
 
-    <span class="kw">fn </span>read_bytes_at_until(<span class="self">self</span>, range: Range&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>&gt;, delimiter: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt; {
-        <span class="kw">let </span>start: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> = range.start.try_into().map_err(|<span class="kw">_</span>| ())<span class="question-mark">?</span>;
-        <span class="kw">let </span>end: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> = range.end.try_into().map_err(|<span class="kw">_</span>| ())<span class="question-mark">?</span>;
+    <span class="kw">fn </span>read_bytes_at_until(<span class="self">self</span>, range: Range&lt;u64&gt;, delimiter: u8) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[u8]&gt; {
+        <span class="kw">let </span>start: usize = range.start.try_into().map_err(|<span class="kw">_</span>| ())<span class="question-mark">?</span>;
+        <span class="kw">let </span>end: usize = range.end.try_into().map_err(|<span class="kw">_</span>| ())<span class="question-mark">?</span>;
         <span class="kw">let </span>bytes = <span class="self">self</span>.get(start..end).ok_or(())<span class="question-mark">?</span>;
-        <span class="kw">match </span>memchr::memchr(<a href="#125">delimiter</a>, <a href="#128">bytes</a>) {
+        <span class="kw">match </span>memchr::memchr(delimiter, bytes) {
             <span class="prelude-val">Some</span>(len) =&gt; {
                 <span class="comment">// This will never fail.
-                </span><a href="#128">bytes</a>.get(..<a href="#130">len</a>).ok_or(())
+                </span>bytes.get(..len).ok_or(())
             }
             <span class="prelude-val">None </span>=&gt; <span class="prelude-val">Err</span>(()),
         }
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="object" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="object" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

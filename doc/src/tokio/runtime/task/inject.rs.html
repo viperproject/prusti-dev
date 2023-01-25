@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.21.2/src/runtime/task/inject.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>inject.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../../tokio/index.html"><img class="rust-logo" src="../../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.23.0/src/runtime/task/inject.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>inject.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../../tokio/index.html"><img class="rust-logo" src="../../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -220,45 +220,45 @@
 <a href="#220" id="220">220</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Inject queue used to send wakeups to a work-stealing scheduler
 
-</span><span class="kw">use </span><a href="../../loom/std/atomic_usize.rs.html#6"><span class="kw">crate</span>::loom::sync::atomic::AtomicUsize</a>;
-<span class="kw">use </span><a href="../../loom/std/mutex.rs.html#6"><span class="kw">crate</span>::loom::sync::Mutex</a>;
-<span class="kw">use </span><a href="../mod.rs.html#187"><span class="kw">crate</span>::runtime::task</a>;
+</span><span class="kw">use </span><span class="kw">crate</span>::loom::sync::atomic::AtomicUsize;
+<span class="kw">use </span><span class="kw">crate</span>::loom::sync::Mutex;
+<span class="kw">use </span><span class="kw">crate</span>::runtime::task;
 
 <span class="kw">use </span>std::marker::PhantomData;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/ptr/non_null/struct.NonNull.html">std::ptr::NonNull</a>;
+<span class="kw">use </span>std::ptr::NonNull;
 <span class="kw">use </span>std::sync::atomic::Ordering::{Acquire, Release};
 
 <span class="doccomment">/// Growable, MPMC queue used to inject new tasks into the scheduler and as an
 /// overflow queue when the local, fixed-size, array queue overflows.
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>Inject&lt;T: <span class="lifetime">&#39;static</span>&gt; {
     <span class="doccomment">/// Pointers to the head and tail of the queue.
-    </span>pointers: Mutex&lt;<a href="#24">Pointers</a>&gt;,
+    </span>pointers: Mutex&lt;Pointers&gt;,
 
     <span class="doccomment">/// Number of pending tasks in the queue. This helps prevent unnecessary
     /// locking in the hot path.
-    </span>len: <a href="../../loom/std/atomic_usize.rs.html#6">AtomicUsize</a>,
+    </span>len: AtomicUsize,
 
     _p: PhantomData&lt;T&gt;,
 }
 
 <span class="kw">struct </span>Pointers {
     <span class="doccomment">/// True if the queue is closed.
-    </span>is_closed: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
+    </span>is_closed: bool,
 
     <span class="doccomment">/// Linked-list head.
-    </span>head: <span class="prelude-ty">Option</span>&lt;NonNull&lt;<a href="core.rs.html#59">task::Header</a>&gt;&gt;,
+    </span>head: <span class="prelude-ty">Option</span>&lt;NonNull&lt;task::Header&gt;&gt;,
 
     <span class="doccomment">/// Linked-list tail.
-    </span>tail: <span class="prelude-ty">Option</span>&lt;NonNull&lt;<a href="core.rs.html#59">task::Header</a>&gt;&gt;,
+    </span>tail: <span class="prelude-ty">Option</span>&lt;NonNull&lt;task::Header&gt;&gt;,
 }
 
-<span class="kw">unsafe impl</span>&lt;T&gt; <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="kw">for </span>Inject&lt;T&gt; {}
-<span class="kw">unsafe impl</span>&lt;T&gt; <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> <span class="kw">for </span>Inject&lt;T&gt; {}
+<span class="kw">unsafe impl</span>&lt;T&gt; Send <span class="kw">for </span>Inject&lt;T&gt; {}
+<span class="kw">unsafe impl</span>&lt;T&gt; Sync <span class="kw">for </span>Inject&lt;T&gt; {}
 
 <span class="kw">impl</span>&lt;T: <span class="lifetime">&#39;static</span>&gt; Inject&lt;T&gt; {
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new() -&gt; Inject&lt;T&gt; {
-        <a href="#13">Inject</a> {
-            pointers: Mutex::new(<a href="#24">Pointers</a> {
+        Inject {
+            pointers: Mutex::new(Pointers {
                 is_closed: <span class="bool-val">false</span>,
                 head: <span class="prelude-val">None</span>,
                 tail: <span class="prelude-val">None</span>,
@@ -268,29 +268,29 @@
         }
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>is_empty(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#51">self</a>.<a href="#72">len</a>() == <span class="number">0
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>is_empty(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.len() == <span class="number">0
     </span>}
 
     <span class="doccomment">/// Closes the injection queue, returns `true` if the queue is open when the
     /// transition is made.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>close(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">let </span><span class="kw-2">mut </span>p = <a class="self" href="#57">self</a>.pointers.<a href="../../loom/std/mutex.rs.html#16">lock</a>();
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>close(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="kw">let </span><span class="kw-2">mut </span>p = <span class="self">self</span>.pointers.lock();
 
         <span class="kw">if </span>p.is_closed {
             <span class="kw">return </span><span class="bool-val">false</span>;
         }
 
-        <a href="#58">p</a>.is_closed = <span class="bool-val">true</span>;
+        p.is_closed = <span class="bool-val">true</span>;
         <span class="bool-val">true
     </span>}
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>is_closed(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#68">self</a>.pointers.<a href="../../loom/std/mutex.rs.html#16">lock</a>().is_closed
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>is_closed(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.pointers.lock().is_closed
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="self" href="#72">self</a>.len.load(Acquire)
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+        <span class="self">self</span>.len.load(Acquire)
     }
 
     <span class="doccomment">/// Pushes a value into the queue.
@@ -298,30 +298,30 @@
     /// This does nothing if the queue is closed.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>push(<span class="kw-2">&amp;</span><span class="self">self</span>, task: task::Notified&lt;T&gt;) {
         <span class="comment">// Acquire queue lock
-        </span><span class="kw">let </span><span class="kw-2">mut </span>p = <a class="self" href="#79">self</a>.pointers.<a href="../../loom/std/mutex.rs.html#16">lock</a>();
+        </span><span class="kw">let </span><span class="kw-2">mut </span>p = <span class="self">self</span>.pointers.lock();
 
         <span class="kw">if </span>p.is_closed {
             <span class="kw">return</span>;
         }
 
         <span class="comment">// safety: only mutated with the lock held
-        </span><span class="kw">let </span>len = <span class="kw">unsafe </span>{ <a class="self" href="#79">self</a>.len.<a href="../../loom/std/atomic_usize.rs.html#25">unsync_load</a>() };
-        <span class="kw">let </span>task = <a href="#79">task</a>.<a href="mod.rs.html#365">into_raw</a>();
+        </span><span class="kw">let </span>len = <span class="kw">unsafe </span>{ <span class="self">self</span>.len.unsync_load() };
+        <span class="kw">let </span>task = task.into_raw();
 
         <span class="comment">// The next pointer should already be null
-        </span><a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(get_next(task).is_none());
+        </span><span class="macro">debug_assert!</span>(get_next(task).is_none());
 
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(tail) = <a href="#81">p</a>.tail {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(tail) = p.tail {
             <span class="comment">// safety: Holding the Notified for a task guarantees exclusive
             // access to the `queue_next` field.
-            </span><a href="#216">set_next</a>(<a href="#94">tail</a>, <span class="prelude-val">Some</span>(<a href="#89">task</a>));
+            </span>set_next(tail, <span class="prelude-val">Some</span>(task));
         } <span class="kw">else </span>{
-            <a href="#81">p</a>.head = <span class="prelude-val">Some</span>(<a href="#89">task</a>);
+            p.head = <span class="prelude-val">Some</span>(task);
         }
 
-        <a href="#81">p</a>.tail = <span class="prelude-val">Some</span>(<a href="#89">task</a>);
+        p.tail = <span class="prelude-val">Some</span>(task);
 
-        <a class="self" href="#79">self</a>.len.store(<a href="#88">len</a> + <span class="number">1</span>, Release);
+        <span class="self">self</span>.len.store(len + <span class="number">1</span>, Release);
     }
 
     <span class="doccomment">/// Pushes several values into the queue.
@@ -330,31 +330,31 @@
     <span class="kw">where
         </span>I: Iterator&lt;Item = task::Notified&lt;T&gt;&gt;,
     {
-        <span class="kw">let </span>first = <span class="kw">match </span><a href="#109">iter</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>() {
-            <span class="prelude-val">Some</span>(first) =&gt; <a href="#114">first</a>.<a href="mod.rs.html#365">into_raw</a>(),
+        <span class="kw">let </span>first = <span class="kw">match </span>iter.next() {
+            <span class="prelude-val">Some</span>(first) =&gt; first.into_raw(),
             <span class="prelude-val">None </span>=&gt; <span class="kw">return</span>,
         };
 
         <span class="comment">// Link up all the tasks.
-        </span><span class="kw">let </span><span class="kw-2">mut </span>prev = <a href="#113">first</a>;
+        </span><span class="kw">let </span><span class="kw-2">mut </span>prev = first;
         <span class="kw">let </span><span class="kw-2">mut </span>counter = <span class="number">1</span>;
 
         <span class="comment">// We are going to be called with an `std::iter::Chain`, and that
         // iterator overrides `for_each` to something that is easier for the
         // compiler to optimize than a loop.
-        </span><a href="#109">iter</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">for_each</a>(|next| {
-            <span class="kw">let </span>next = <a href="#125">next</a>.<a href="mod.rs.html#365">into_raw</a>();
+        </span>iter.for_each(|next| {
+            <span class="kw">let </span>next = next.into_raw();
 
             <span class="comment">// safety: Holding the Notified for a task guarantees exclusive
             // access to the `queue_next` field.
-            </span><a href="#216">set_next</a>(<a href="#119">prev</a>, <span class="prelude-val">Some</span>(<a href="#126">next</a>));
-            <a href="#119">prev</a> = <a href="#126">next</a>;
-            <a href="#120">counter</a> += <span class="number">1</span>;
+            </span>set_next(prev, <span class="prelude-val">Some</span>(next));
+            prev = next;
+            counter += <span class="number">1</span>;
         });
 
         <span class="comment">// Now that the tasks are linked together, insert them into the
         // linked list.
-        </span><a class="self" href="#109">self</a>.<a href="#145-150">push_batch_inner</a>(<a href="#113">first</a>, <a href="#119">prev</a>, <a href="#120">counter</a>);
+        </span><span class="self">self</span>.push_batch_inner(first, prev, counter);
     }
 
     <span class="doccomment">/// Inserts several tasks that have been linked together into the queue.
@@ -364,29 +364,29 @@
     </span><span class="attr">#[inline]
     </span><span class="kw">fn </span>push_batch_inner(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        batch_head: NonNull&lt;<a href="core.rs.html#59">task::Header</a>&gt;,
-        batch_tail: NonNull&lt;<a href="core.rs.html#59">task::Header</a>&gt;,
-        num: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+        batch_head: NonNull&lt;task::Header&gt;,
+        batch_tail: NonNull&lt;task::Header&gt;,
+        num: usize,
     ) {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(get_next(batch_tail).is_none());
+        <span class="macro">debug_assert!</span>(get_next(batch_tail).is_none());
 
-        <span class="kw">let </span><span class="kw-2">mut </span>p = <a class="self" href="#146">self</a>.pointers.<a href="../../loom/std/mutex.rs.html#16">lock</a>();
+        <span class="kw">let </span><span class="kw-2">mut </span>p = <span class="self">self</span>.pointers.lock();
 
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(tail) = <a href="#153">p</a>.tail {
-            <a href="#216">set_next</a>(<a href="#155">tail</a>, <span class="prelude-val">Some</span>(<a href="#147">batch_head</a>));
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(tail) = p.tail {
+            set_next(tail, <span class="prelude-val">Some</span>(batch_head));
         } <span class="kw">else </span>{
-            <a href="#153">p</a>.head = <span class="prelude-val">Some</span>(<a href="#147">batch_head</a>);
+            p.head = <span class="prelude-val">Some</span>(batch_head);
         }
 
-        <a href="#153">p</a>.tail = <span class="prelude-val">Some</span>(<a href="#148">batch_tail</a>);
+        p.tail = <span class="prelude-val">Some</span>(batch_tail);
 
         <span class="comment">// Increment the count.
         //
         // safety: All updates to the len atomic are guarded by the mutex. As
         // such, a non-atomic load followed by a store is safe.
-        </span><span class="kw">let </span>len = <span class="kw">unsafe </span>{ <a class="self" href="#146">self</a>.len.<a href="../../loom/std/atomic_usize.rs.html#25">unsync_load</a>() };
+        </span><span class="kw">let </span>len = <span class="kw">unsafe </span>{ <span class="self">self</span>.len.unsync_load() };
 
-        <a class="self" href="#146">self</a>.len.store(<a href="#167">len</a> + <a href="#149">num</a>, Release);
+        <span class="self">self</span>.len.store(len + num, Release);
     }
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>pop(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;task::Notified&lt;T&gt;&gt; {
@@ -395,48 +395,48 @@
             <span class="kw">return </span><span class="prelude-val">None</span>;
         }
 
-        <span class="kw">let </span><span class="kw-2">mut </span>p = <a class="self" href="#172">self</a>.pointers.<a href="../../loom/std/mutex.rs.html#16">lock</a>();
+        <span class="kw">let </span><span class="kw-2">mut </span>p = <span class="self">self</span>.pointers.lock();
 
         <span class="comment">// It is possible to hit null here if another thread popped the last
         // task between us checking `len` and acquiring the lock.
         </span><span class="kw">let </span>task = p.head<span class="question-mark">?</span>;
 
-        <a href="#178">p</a>.head = <a href="#212">get_next</a>(<a href="#182">task</a>);
+        p.head = get_next(task);
 
         <span class="kw">if </span>p.head.is_none() {
-            <a href="#178">p</a>.tail = <span class="prelude-val">None</span>;
+            p.tail = <span class="prelude-val">None</span>;
         }
 
-        <a href="#216">set_next</a>(<a href="#182">task</a>, <span class="prelude-val">None</span>);
+        set_next(task, <span class="prelude-val">None</span>);
 
         <span class="comment">// Decrement the count.
         //
         // safety: All updates to the len atomic are guarded by the mutex. As
         // such, a non-atomic load followed by a store is safe.
-        </span><a class="self" href="#172">self</a>.len
-            .store(<span class="kw">unsafe </span>{ <a class="self" href="#172">self</a>.len.<a href="../../loom/std/atomic_usize.rs.html#25">unsync_load</a>() } - <span class="number">1</span>, Release);
+        </span><span class="self">self</span>.len
+            .store(<span class="kw">unsafe </span>{ <span class="self">self</span>.len.unsync_load() } - <span class="number">1</span>, Release);
 
         <span class="comment">// safety: a `Notified` is pushed into the queue and now it is popped!
-        </span><span class="prelude-val">Some</span>(<span class="kw">unsafe </span>{ task::Notified::from_raw(<a href="#182">task</a>) })
+        </span><span class="prelude-val">Some</span>(<span class="kw">unsafe </span>{ task::Notified::from_raw(task) })
     }
 }
 
-<span class="kw">impl</span>&lt;T: <span class="lifetime">&#39;static</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span>Inject&lt;T&gt; {
+<span class="kw">impl</span>&lt;T: <span class="lifetime">&#39;static</span>&gt; Drop <span class="kw">for </span>Inject&lt;T&gt; {
     <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="kw">if </span>!std::thread::panicking() {
-            <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(<span class="self">self</span>.pop().is_none(), <span class="string">&quot;queue not empty&quot;</span>);
+            <span class="macro">assert!</span>(<span class="self">self</span>.pop().is_none(), <span class="string">&quot;queue not empty&quot;</span>);
         }
     }
 }
 
-<span class="kw">fn </span>get_next(header: NonNull&lt;<a href="core.rs.html#59">task::Header</a>&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;NonNull&lt;<a href="core.rs.html#59">task::Header</a>&gt;&gt; {
-    <span class="kw">unsafe </span>{ <a href="#212">header</a>.as_ref().queue_next.<a href="../../loom/std/unsafe_cell.rs.html#9">with</a>(|ptr| <span class="kw-2">*</span><a href="#213">ptr</a>) }
+<span class="kw">fn </span>get_next(header: NonNull&lt;task::Header&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;NonNull&lt;task::Header&gt;&gt; {
+    <span class="kw">unsafe </span>{ header.as_ref().queue_next.with(|ptr| <span class="kw-2">*</span>ptr) }
 }
 
-<span class="kw">fn </span>set_next(header: NonNull&lt;<a href="core.rs.html#59">task::Header</a>&gt;, val: <span class="prelude-ty">Option</span>&lt;NonNull&lt;<a href="core.rs.html#59">task::Header</a>&gt;&gt;) {
+<span class="kw">fn </span>set_next(header: NonNull&lt;task::Header&gt;, val: <span class="prelude-ty">Option</span>&lt;NonNull&lt;task::Header&gt;&gt;) {
     <span class="kw">unsafe </span>{
-        <a href="#216">header</a>.as_ref().<a href="core.rs.html#243">set_next</a>(<a href="#216">val</a>);
+        header.as_ref().set_next(val);
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="tokio" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="tokio" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

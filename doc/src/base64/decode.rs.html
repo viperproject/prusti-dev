@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/base64-0.13.1/src/decode.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>decode.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../base64/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/base64-0.13.1/src/decode.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>decode.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../base64/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -891,36 +891,36 @@
 <a href="#891" id="891">891</a>
 <a href="#892" id="892">892</a>
 <a href="#893" id="893">893</a>
-</pre><pre class="rust"><code><span class="kw">use crate</span>::{<a href="lib.rs.html#83">tables</a>, <a href="lib.rs.html#153">Config</a>, <a href="lib.rs.html#245">PAD_BYTE</a>};
+</pre><pre class="rust"><code><span class="kw">use crate</span>::{tables, Config, PAD_BYTE};
 
 <span class="attr">#[cfg(any(feature = <span class="string">&quot;alloc&quot;</span>, feature = <span class="string">&quot;std&quot;</span>, test))]
-</span><span class="kw">use </span><a href="lib.rs.html#190"><span class="kw">crate</span>::STANDARD</a>;
+</span><span class="kw">use </span><span class="kw">crate</span>::STANDARD;
 <span class="attr">#[cfg(any(feature = <span class="string">&quot;alloc&quot;</span>, feature = <span class="string">&quot;std&quot;</span>, test))]
-</span><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/vec/struct.Vec.html">alloc::vec::Vec</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/fmt/index.html">core::fmt</a>;
+</span><span class="kw">use </span>alloc::vec::Vec;
+<span class="kw">use </span>core::fmt;
 <span class="attr">#[cfg(any(feature = <span class="string">&quot;std&quot;</span>, test))]
-</span><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/error/index.html">std::error</a>;
+</span><span class="kw">use </span>std::error;
 
 <span class="comment">// decode logic operates on chunks of 8 input bytes without padding
-</span><span class="kw">const </span>INPUT_CHUNK_LEN: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> = <span class="number">8</span>;
-<span class="kw">const </span>DECODED_CHUNK_LEN: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> = <span class="number">6</span>;
+</span><span class="kw">const </span>INPUT_CHUNK_LEN: usize = <span class="number">8</span>;
+<span class="kw">const </span>DECODED_CHUNK_LEN: usize = <span class="number">6</span>;
 <span class="comment">// we read a u64 and write a u64, but a u64 of input only yields 6 bytes of output, so the last
 // 2 bytes of any output u64 should not be counted as written to (but must be available in a
 // slice).
-</span><span class="kw">const </span>DECODED_CHUNK_SUFFIX: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> = <span class="number">2</span>;
+</span><span class="kw">const </span>DECODED_CHUNK_SUFFIX: usize = <span class="number">2</span>;
 
 <span class="comment">// how many u64&#39;s of input to handle at a time
-</span><span class="kw">const </span>CHUNKS_PER_FAST_LOOP_BLOCK: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> = <span class="number">4</span>;
-<span class="kw">const </span>INPUT_BLOCK_LEN: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> = <a href="#20">CHUNKS_PER_FAST_LOOP_BLOCK</a> * <a href="#12">INPUT_CHUNK_LEN</a>;
+</span><span class="kw">const </span>CHUNKS_PER_FAST_LOOP_BLOCK: usize = <span class="number">4</span>;
+<span class="kw">const </span>INPUT_BLOCK_LEN: usize = CHUNKS_PER_FAST_LOOP_BLOCK * INPUT_CHUNK_LEN;
 <span class="comment">// includes the trailing 2 bytes for the final u64 write
-</span><span class="kw">const </span>DECODED_BLOCK_LEN: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> =
-    <a href="#20">CHUNKS_PER_FAST_LOOP_BLOCK</a> * <a href="#13">DECODED_CHUNK_LEN</a> + <a href="#17">DECODED_CHUNK_SUFFIX</a>;
+</span><span class="kw">const </span>DECODED_BLOCK_LEN: usize =
+    CHUNKS_PER_FAST_LOOP_BLOCK * DECODED_CHUNK_LEN + DECODED_CHUNK_SUFFIX;
 
 <span class="doccomment">/// Errors that can occur while decoding.
 </span><span class="attr">#[derive(Clone, Debug, PartialEq, Eq)]
 </span><span class="kw">pub enum </span>DecodeError {
     <span class="doccomment">/// An invalid byte was found in the input. The offset and offending byte are provided.
-    </span>InvalidByte(<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>),
+    </span>InvalidByte(usize, u8),
     <span class="doccomment">/// The length of the input is invalid.
     /// A typical cause of this is stray trailing whitespace or other separator bytes.
     /// In the case where excess trailing bytes have produced an invalid length *and* the last byte
@@ -931,34 +931,34 @@
     /// This is indicative of corrupted or truncated Base64.
     /// Unlike InvalidByte, which reports symbols that aren&#39;t in the alphabet, this error is for
     /// symbols that are in the alphabet but represent nonsensical encodings.
-    </span>InvalidLastSymbol(<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>),
+    </span>InvalidLastSymbol(usize, u8),
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for </span><a href="#28">DecodeError</a> {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="#45">self</a> </span>{
-            <a href="#30">DecodeError::InvalidByte</a>(index, byte) =&gt; {
-                <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#45">f</a>, <span class="string">&quot;Invalid byte {}, offset {}.&quot;</span>, byte, index)
+<span class="kw">impl </span>fmt::Display <span class="kw">for </span>DecodeError {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter) -&gt; fmt::Result {
+        <span class="kw">match </span><span class="kw-2">*</span><span class="self">self </span>{
+            DecodeError::InvalidByte(index, byte) =&gt; {
+                <span class="macro">write!</span>(f, <span class="string">&quot;Invalid byte {}, offset {}.&quot;</span>, byte, index)
             }
-            <a href="#36">DecodeError::InvalidLength</a> =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#45">f</a>, <span class="string">&quot;Encoded text cannot have a 6-bit remainder.&quot;</span>),
-            <a href="#41">DecodeError::InvalidLastSymbol</a>(index, byte) =&gt; {
-                <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#45">f</a>, <span class="string">&quot;Invalid last symbol {}, offset {}.&quot;</span>, byte, index)
+            DecodeError::InvalidLength =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;Encoded text cannot have a 6-bit remainder.&quot;</span>),
+            DecodeError::InvalidLastSymbol(index, byte) =&gt; {
+                <span class="macro">write!</span>(f, <span class="string">&quot;Invalid last symbol {}, offset {}.&quot;</span>, byte, index)
             }
         }
     }
 }
 
 <span class="attr">#[cfg(any(feature = <span class="string">&quot;std&quot;</span>, test))]
-</span><span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">error::Error</a> <span class="kw">for </span><a href="#28">DecodeError</a> {
-    <span class="kw">fn </span>description(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> {
-        <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="#60">self</a> </span>{
-            <a href="#30">DecodeError::InvalidByte</a>(<span class="kw">_</span>, <span class="kw">_</span>) =&gt; <span class="string">&quot;invalid byte&quot;</span>,
-            <a href="#36">DecodeError::InvalidLength</a> =&gt; <span class="string">&quot;invalid length&quot;</span>,
-            <a href="#41">DecodeError::InvalidLastSymbol</a>(<span class="kw">_</span>, <span class="kw">_</span>) =&gt; <span class="string">&quot;invalid last symbol&quot;</span>,
+</span><span class="kw">impl </span>error::Error <span class="kw">for </span>DecodeError {
+    <span class="kw">fn </span>description(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>str {
+        <span class="kw">match </span><span class="kw-2">*</span><span class="self">self </span>{
+            DecodeError::InvalidByte(<span class="kw">_</span>, <span class="kw">_</span>) =&gt; <span class="string">&quot;invalid byte&quot;</span>,
+            DecodeError::InvalidLength =&gt; <span class="string">&quot;invalid length&quot;</span>,
+            DecodeError::InvalidLastSymbol(<span class="kw">_</span>, <span class="kw">_</span>) =&gt; <span class="string">&quot;invalid last symbol&quot;</span>,
         }
     }
 
-    <span class="kw">fn </span>cause(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="kw">dyn </span><a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">error::Error</a>&gt; {
+    <span class="kw">fn </span>cause(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="kw">dyn </span>error::Error&gt; {
         <span class="prelude-val">None
     </span>}
 }
@@ -978,8 +978,8 @@
 ///}
 ///```
 </span><span class="attr">#[cfg(any(feature = <span class="string">&quot;alloc&quot;</span>, feature = <span class="string">&quot;std&quot;</span>, test))]
-</span><span class="kw">pub fn </span>decode&lt;T: AsRef&lt;[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;&gt;(input: T) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;, <a href="#28">DecodeError</a>&gt; {
-    <a href="#109">decode_config</a>(<a href="#88">input</a>, <a href="lib.rs.html#190">STANDARD</a>)
+</span><span class="kw">pub fn </span>decode&lt;T: AsRef&lt;[u8]&gt;&gt;(input: T) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;u8&gt;, DecodeError&gt; {
+    decode_config(input, STANDARD)
 }
 
 <span class="doccomment">///Decode from string reference as octets.
@@ -999,17 +999,17 @@
 ///}
 ///```
 </span><span class="attr">#[cfg(any(feature = <span class="string">&quot;alloc&quot;</span>, feature = <span class="string">&quot;std&quot;</span>, test))]
-</span><span class="kw">pub fn </span>decode_config&lt;T: AsRef&lt;[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;&gt;(input: T, config: <a href="lib.rs.html#153">Config</a>) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;, <a href="#28">DecodeError</a>&gt; {
-    <span class="kw">let </span>decoded_length_estimate = (<a href="#109">input</a>
-        .<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>()
+</span><span class="kw">pub fn </span>decode_config&lt;T: AsRef&lt;[u8]&gt;&gt;(input: T, config: Config) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;u8&gt;, DecodeError&gt; {
+    <span class="kw">let </span>decoded_length_estimate = (input
+        .as_ref()
         .len()
         .checked_add(<span class="number">3</span>)
         .expect(<span class="string">&quot;decoded length calculation overflow&quot;</span>))
         / <span class="number">4
         </span>* <span class="number">3</span>;
-    <span class="kw">let </span><span class="kw-2">mut </span>buffer = Vec::&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;::with_capacity(<a href="#110">decoded_length_estimate</a>);
+    <span class="kw">let </span><span class="kw-2">mut </span>buffer = Vec::&lt;u8&gt;::with_capacity(decoded_length_estimate);
 
-    <a href="#144-148">decode_config_buf</a>(<a href="#109">input</a>, <a href="#109">config</a>, <span class="kw-2">&amp;mut </span><a href="#117">buffer</a>).map(|<span class="kw">_</span>| <a href="#117">buffer</a>)
+    decode_config_buf(input, config, <span class="kw-2">&amp;mut </span>buffer).map(|<span class="kw">_</span>| buffer)
 }
 
 <span class="doccomment">///Decode from string reference as octets.
@@ -1034,29 +1034,29 @@
 ///}
 ///```
 </span><span class="attr">#[cfg(any(feature = <span class="string">&quot;alloc&quot;</span>, feature = <span class="string">&quot;std&quot;</span>, test))]
-</span><span class="kw">pub fn </span>decode_config_buf&lt;T: AsRef&lt;[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;&gt;(
+</span><span class="kw">pub fn </span>decode_config_buf&lt;T: AsRef&lt;[u8]&gt;&gt;(
     input: T,
-    config: <a href="lib.rs.html#153">Config</a>,
-    buffer: <span class="kw-2">&amp;mut </span>Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;,
-) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="#28">DecodeError</a>&gt; {
-    <span class="kw">let </span>input_bytes = <a href="#145">input</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>();
+    config: Config,
+    buffer: <span class="kw-2">&amp;mut </span>Vec&lt;u8&gt;,
+) -&gt; <span class="prelude-ty">Result</span>&lt;(), DecodeError&gt; {
+    <span class="kw">let </span>input_bytes = input.as_ref();
 
-    <span class="kw">let </span>starting_output_len = <a href="#147">buffer</a>.len();
+    <span class="kw">let </span>starting_output_len = buffer.len();
 
-    <span class="kw">let </span>num_chunks = <a href="#191">num_chunks</a>(<a href="#149">input_bytes</a>);
-    <span class="kw">let </span>decoded_len_estimate = <a href="#153">num_chunks</a>
-        .checked_mul(<a href="#13">DECODED_CHUNK_LEN</a>)
-        .and_then(|p| <a href="#156">p</a>.checked_add(<a href="#151">starting_output_len</a>))
+    <span class="kw">let </span>num_chunks = num_chunks(input_bytes);
+    <span class="kw">let </span>decoded_len_estimate = num_chunks
+        .checked_mul(DECODED_CHUNK_LEN)
+        .and_then(|p| p.checked_add(starting_output_len))
         .expect(<span class="string">&quot;Overflow when calculating output buffer length&quot;</span>);
-    <a href="#147">buffer</a>.resize(<a href="#154">decoded_len_estimate</a>, <span class="number">0</span>);
+    buffer.resize(decoded_len_estimate, <span class="number">0</span>);
 
     <span class="kw">let </span>bytes_written;
     {
-        <span class="kw">let </span>buffer_slice = <span class="kw-2">&amp;mut </span><a href="#147">buffer</a>.as_mut_slice()[<a href="#151">starting_output_len</a>..];
-        <a href="#160">bytes_written</a> = decode_helper(input_bytes, num_chunks, config, buffer_slice)<span class="question-mark">?</span>;
+        <span class="kw">let </span>buffer_slice = <span class="kw-2">&amp;mut </span>buffer.as_mut_slice()[starting_output_len..];
+        bytes_written = decode_helper(input_bytes, num_chunks, config, buffer_slice)<span class="question-mark">?</span>;
     }
 
-    <a href="#147">buffer</a>.truncate(<a href="#151">starting_output_len</a> + <a href="#160">bytes_written</a>);
+    buffer.truncate(starting_output_len + bytes_written);
 
     <span class="prelude-val">Ok</span>(())
 }
@@ -1070,23 +1070,23 @@
 /// input, rounded up, or in other words `(input_len + 3) / 4 * 3`.
 ///
 /// If the slice is not large enough, this will panic.
-</span><span class="kw">pub fn </span>decode_config_slice&lt;T: AsRef&lt;[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;&gt;(
+</span><span class="kw">pub fn </span>decode_config_slice&lt;T: AsRef&lt;[u8]&gt;&gt;(
     input: T,
-    config: <a href="lib.rs.html#153">Config</a>,
-    output: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
-) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="#28">DecodeError</a>&gt; {
-    <span class="kw">let </span>input_bytes = <a href="#181">input</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>();
+    config: Config,
+    output: <span class="kw-2">&amp;mut </span>[u8],
+) -&gt; <span class="prelude-ty">Result</span>&lt;usize, DecodeError&gt; {
+    <span class="kw">let </span>input_bytes = input.as_ref();
 
-    <a href="#205-210">decode_helper</a>(<a href="#185">input_bytes</a>, <a href="#191">num_chunks</a>(<a href="#185">input_bytes</a>), <a href="#182">config</a>, <a href="#183">output</a>)
+    decode_helper(input_bytes, num_chunks(input_bytes), config, output)
 }
 
 <span class="doccomment">/// Return the number of input chunks (including a possibly partial final chunk) in the input
-</span><span class="kw">fn </span>num_chunks(input: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-    <a href="#191">input</a>
+</span><span class="kw">fn </span>num_chunks(input: <span class="kw-2">&amp;</span>[u8]) -&gt; usize {
+    input
         .len()
-        .checked_add(<a href="#12">INPUT_CHUNK_LEN</a> - <span class="number">1</span>)
+        .checked_add(INPUT_CHUNK_LEN - <span class="number">1</span>)
         .expect(<span class="string">&quot;Overflow when calculating number of chunks in input&quot;</span>)
-        / <a href="#12">INPUT_CHUNK_LEN</a>
+        / INPUT_CHUNK_LEN
 }
 
 <span class="doccomment">/// Helper to avoid duplicating num_chunks calculation, which is costly on short inputs.
@@ -1096,65 +1096,65 @@
 // but this is fragile and the best setting changes with only minor code modifications.
 </span><span class="attr">#[inline]
 </span><span class="kw">fn </span>decode_helper(
-    input: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
-    num_chunks: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-    config: <a href="lib.rs.html#153">Config</a>,
-    output: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
-) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="#28">DecodeError</a>&gt; {
-    <span class="kw">let </span>char_set = <a href="#208">config</a>.char_set;
-    <span class="kw">let </span>decode_table = <a href="#211">char_set</a>.<a href="lib.rs.html#139">decode_table</a>();
+    input: <span class="kw-2">&amp;</span>[u8],
+    num_chunks: usize,
+    config: Config,
+    output: <span class="kw-2">&amp;mut </span>[u8],
+) -&gt; <span class="prelude-ty">Result</span>&lt;usize, DecodeError&gt; {
+    <span class="kw">let </span>char_set = config.char_set;
+    <span class="kw">let </span>decode_table = char_set.decode_table();
 
-    <span class="kw">let </span>remainder_len = <a href="#206">input</a>.len() % <a href="#12">INPUT_CHUNK_LEN</a>;
+    <span class="kw">let </span>remainder_len = input.len() % INPUT_CHUNK_LEN;
 
     <span class="comment">// Because the fast decode loop writes in groups of 8 bytes (unrolled to
     // CHUNKS_PER_FAST_LOOP_BLOCK times 8 bytes, where possible) and outputs 8 bytes at a time (of
     // which only 6 are valid data), we need to be sure that we stop using the fast decode loop
     // soon enough that there will always be 2 more bytes of valid data written after that loop.
-    </span><span class="kw">let </span>trailing_bytes_to_skip = <span class="kw">match </span><a href="#214">remainder_len</a> {
+    </span><span class="kw">let </span>trailing_bytes_to_skip = <span class="kw">match </span>remainder_len {
         <span class="comment">// if input is a multiple of the chunk size, ignore the last chunk as it may have padding,
         // and the fast decode logic cannot handle padding
-        </span><span class="number">0 </span>=&gt; <a href="#12">INPUT_CHUNK_LEN</a>,
+        </span><span class="number">0 </span>=&gt; INPUT_CHUNK_LEN,
         <span class="comment">// 1 and 5 trailing bytes are illegal: can&#39;t decode 6 bits of input into a byte
         </span><span class="number">1 </span>| <span class="number">5 </span>=&gt; {
             <span class="comment">// trailing whitespace is so common that it&#39;s worth it to check the last byte to
             // possibly return a better error message
-            </span><span class="kw">if let </span><span class="prelude-val">Some</span>(b) = <a href="#206">input</a>.last() {
+            </span><span class="kw">if let </span><span class="prelude-val">Some</span>(b) = input.last() {
                 <span class="kw">if </span><span class="kw-2">*</span>b != PAD_BYTE &amp;&amp; decode_table[<span class="kw-2">*</span>b <span class="kw">as </span>usize] == tables::INVALID_VALUE {
-                    <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="#30">DecodeError::InvalidByte</a>(<a href="#206">input</a>.len() - <span class="number">1</span>, <span class="kw-2">*</span><a href="#228">b</a>));
+                    <span class="kw">return </span><span class="prelude-val">Err</span>(DecodeError::InvalidByte(input.len() - <span class="number">1</span>, <span class="kw-2">*</span>b));
                 }
             }
 
-            <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="#36">DecodeError::InvalidLength</a>);
+            <span class="kw">return </span><span class="prelude-val">Err</span>(DecodeError::InvalidLength);
         }
         <span class="comment">// This will decode to one output byte, which isn&#39;t enough to overwrite the 2 extra bytes
         // written by the fast decode loop. So, we have to ignore both these 2 bytes and the
         // previous chunk.
-        </span><span class="number">2 </span>=&gt; <a href="#12">INPUT_CHUNK_LEN</a> + <span class="number">2</span>,
+        </span><span class="number">2 </span>=&gt; INPUT_CHUNK_LEN + <span class="number">2</span>,
         <span class="comment">// If this is 3 unpadded chars, then it would actually decode to 2 bytes. However, if this
         // is an erroneous 2 chars + 1 pad char that would decode to 1 byte, then it should fail
         // with an error, not panic from going past the bounds of the output slice, so we let it
         // use stage 3 + 4.
-        </span><span class="number">3 </span>=&gt; <a href="#12">INPUT_CHUNK_LEN</a> + <span class="number">3</span>,
+        </span><span class="number">3 </span>=&gt; INPUT_CHUNK_LEN + <span class="number">3</span>,
         <span class="comment">// This can also decode to one output byte because it may be 2 input chars + 2 padding
         // chars, which would decode to 1 byte.
-        </span><span class="number">4 </span>=&gt; <a href="#12">INPUT_CHUNK_LEN</a> + <span class="number">4</span>,
+        </span><span class="number">4 </span>=&gt; INPUT_CHUNK_LEN + <span class="number">4</span>,
         <span class="comment">// Everything else is a legal decode len (given that we don&#39;t require padding), and will
         // decode to at least 2 bytes of output.
-        </span><span class="kw">_ </span>=&gt; <a href="#214">remainder_len</a>,
+        </span><span class="kw">_ </span>=&gt; remainder_len,
     };
 
     <span class="comment">// rounded up to include partial chunks
-    </span><span class="kw">let </span><span class="kw-2">mut </span>remaining_chunks = <a href="#207">num_chunks</a>;
+    </span><span class="kw">let </span><span class="kw-2">mut </span>remaining_chunks = num_chunks;
 
     <span class="kw">let </span><span class="kw-2">mut </span>input_index = <span class="number">0</span>;
     <span class="kw">let </span><span class="kw-2">mut </span>output_index = <span class="number">0</span>;
 
     {
-        <span class="kw">let </span>length_of_fast_decode_chunks = <a href="#206">input</a>.len().saturating_sub(<a href="#220">trailing_bytes_to_skip</a>);
+        <span class="kw">let </span>length_of_fast_decode_chunks = input.len().saturating_sub(trailing_bytes_to_skip);
 
         <span class="comment">// Fast loop, stage 1
         // manual unroll to CHUNKS_PER_FAST_LOOP_BLOCK of u64s to amortize slice bounds checks
-        </span><span class="kw">if let </span><span class="prelude-val">Some</span>(max_start_index) = <a href="#260">length_of_fast_decode_chunks</a>.checked_sub(<a href="#21">INPUT_BLOCK_LEN</a>) {
+        </span><span class="kw">if let </span><span class="prelude-val">Some</span>(max_start_index) = length_of_fast_decode_chunks.checked_sub(INPUT_BLOCK_LEN) {
             <span class="kw">while </span>input_index &lt;= max_start_index {
                 <span class="kw">let </span>input_slice = <span class="kw-2">&amp;</span>input[input_index..(input_index + INPUT_BLOCK_LEN)];
                 <span class="kw">let </span>output_slice = <span class="kw-2">&amp;mut </span>output[output_index..(output_index + DECODED_BLOCK_LEN)];
@@ -1192,7 +1192,7 @@
 
         <span class="comment">// Fast loop, stage 2 (aka still pretty fast loop)
         // 8 bytes at a time for whatever we didn&#39;t do in stage 1.
-        </span><span class="kw">if let </span><span class="prelude-val">Some</span>(max_start_index) = <a href="#260">length_of_fast_decode_chunks</a>.checked_sub(<a href="#12">INPUT_CHUNK_LEN</a>) {
+        </span><span class="kw">if let </span><span class="prelude-val">Some</span>(max_start_index) = length_of_fast_decode_chunks.checked_sub(INPUT_CHUNK_LEN) {
             <span class="kw">while </span>input_index &lt; max_start_index {
                 decode_chunk(
                     <span class="kw-2">&amp;</span>input[input_index..(input_index + INPUT_CHUNK_LEN)],
@@ -1229,18 +1229,18 @@
     }
 
     <span class="comment">// always have one more (possibly partial) block of 8 input
-    </span><a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(input.len() - input_index &gt; <span class="number">1 </span>|| input.is_empty());
-    <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(input.len() - input_index &lt;= <span class="number">8</span>);
+    </span><span class="macro">debug_assert!</span>(input.len() - input_index &gt; <span class="number">1 </span>|| input.is_empty());
+    <span class="macro">debug_assert!</span>(input.len() - input_index &lt;= <span class="number">8</span>);
 
     <span class="comment">// Stage 4
     // Finally, decode any leftovers that aren&#39;t a complete input block of 8 bytes.
     // Use a u64 as a stack-resident 8 byte buffer.
-    </span><span class="kw">let </span><span class="kw-2">mut </span>leftover_bits: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> = <span class="number">0</span>;
+    </span><span class="kw">let </span><span class="kw-2">mut </span>leftover_bits: u64 = <span class="number">0</span>;
     <span class="kw">let </span><span class="kw-2">mut </span>morsels_in_leftover = <span class="number">0</span>;
     <span class="kw">let </span><span class="kw-2">mut </span>padding_bytes = <span class="number">0</span>;
-    <span class="kw">let </span><span class="kw-2">mut </span>first_padding_index: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> = <span class="number">0</span>;
+    <span class="kw">let </span><span class="kw-2">mut </span>first_padding_index: usize = <span class="number">0</span>;
     <span class="kw">let </span><span class="kw-2">mut </span>last_symbol = <span class="number">0_u8</span>;
-    <span class="kw">let </span>start_of_leftovers = <a href="#256">input_index</a>;
+    <span class="kw">let </span>start_of_leftovers = input_index;
     <span class="kw">for </span>(i, b) <span class="kw">in </span>input[start_of_leftovers..].iter().enumerate() {
         <span class="comment">// &#39;=&#39; padding
         </span><span class="kw">if </span><span class="kw-2">*</span>b == PAD_BYTE {
@@ -1302,7 +1302,7 @@
         morsels_in_leftover += <span class="number">1</span>;
     }
 
-    <span class="kw">let </span>leftover_bits_ready_to_append = <span class="kw">match </span><a href="#346">morsels_in_leftover</a> {
+    <span class="kw">let </span>leftover_bits_ready_to_append = <span class="kw">match </span>morsels_in_leftover {
         <span class="number">0 </span>=&gt; <span class="number">0</span>,
         <span class="number">2 </span>=&gt; <span class="number">8</span>,
         <span class="number">3 </span>=&gt; <span class="number">16</span>,
@@ -1310,19 +1310,19 @@
         <span class="number">6 </span>=&gt; <span class="number">32</span>,
         <span class="number">7 </span>=&gt; <span class="number">40</span>,
         <span class="number">8 </span>=&gt; <span class="number">48</span>,
-        <span class="kw">_ </span>=&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(
+        <span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>(
             <span class="string">&quot;Impossible: must only have 0 to 8 input bytes in last chunk, with no invalid lengths&quot;
         </span>),
     };
 
     <span class="comment">// if there are bits set outside the bits we care about, last symbol encodes trailing bits that
     // will not be included in the output
-    </span><span class="kw">let </span>mask = !<span class="number">0 </span>&gt;&gt; <a href="#412">leftover_bits_ready_to_append</a>;
+    </span><span class="kw">let </span>mask = !<span class="number">0 </span>&gt;&gt; leftover_bits_ready_to_append;
     <span class="kw">if </span>!config.decode_allow_trailing_bits &amp;&amp; (leftover_bits &amp; mask) != <span class="number">0 </span>{
         <span class="comment">// last morsel is at `morsels_in_leftover` - 1
-        </span><span class="kw">return </span><span class="prelude-val">Err</span>(<a href="#41">DecodeError::InvalidLastSymbol</a>(
-            <a href="#350">start_of_leftovers</a> + <a href="#346">morsels_in_leftover</a> - <span class="number">1</span>,
-            <a href="#349">last_symbol</a>,
+        </span><span class="kw">return </span><span class="prelude-val">Err</span>(DecodeError::InvalidLastSymbol(
+            start_of_leftovers + morsels_in_leftover - <span class="number">1</span>,
+            last_symbol,
         ));
     }
 
@@ -1336,12 +1336,12 @@
         leftover_bits_appended_to_buf += <span class="number">8</span>;
     }
 
-    <span class="prelude-val">Ok</span>(<a href="#257">output_index</a>)
+    <span class="prelude-val">Ok</span>(output_index)
 }
 
 <span class="attr">#[inline]
-</span><span class="kw">fn </span>write_u64(output: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], value: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) {
-    <a href="#450">output</a>[..<span class="number">8</span>].copy_from_slice(<span class="kw-2">&amp;</span><a href="#450">value</a>.to_be_bytes());
+</span><span class="kw">fn </span>write_u64(output: <span class="kw-2">&amp;mut </span>[u8], value: u64) {
+    output[..<span class="number">8</span>].copy_from_slice(<span class="kw-2">&amp;</span>value.to_be_bytes());
 }
 
 <span class="doccomment">/// Decode 8 bytes of input into 6 bytes of output. 8 bytes of output will be written, but only the
@@ -1356,83 +1356,83 @@
 </span><span class="comment">// yes, really inline (worth 30-50% speedup)
 </span><span class="attr">#[inline(always)]
 </span><span class="kw">fn </span>decode_chunk(
-    input: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
-    index_at_start_of_input: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-    decode_table: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="number">256</span>],
-    output: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
-) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="#28">DecodeError</a>&gt; {
-    <span class="kw">let </span><span class="kw-2">mut </span>accum: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>;
+    input: <span class="kw-2">&amp;</span>[u8],
+    index_at_start_of_input: usize,
+    decode_table: <span class="kw-2">&amp;</span>[u8; <span class="number">256</span>],
+    output: <span class="kw-2">&amp;mut </span>[u8],
+) -&gt; <span class="prelude-ty">Result</span>&lt;(), DecodeError&gt; {
+    <span class="kw">let </span><span class="kw-2">mut </span>accum: u64;
 
-    <span class="kw">let </span>morsel = <a href="#468">decode_table</a>[<a href="#466">input</a>[<span class="number">0</span>] <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>];
+    <span class="kw">let </span>morsel = decode_table[input[<span class="number">0</span>] <span class="kw">as </span>usize];
     <span class="kw">if </span>morsel == tables::INVALID_VALUE {
-        <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="#30">DecodeError::InvalidByte</a>(<a href="#467">index_at_start_of_input</a>, <a href="#466">input</a>[<span class="number">0</span>]));
+        <span class="kw">return </span><span class="prelude-val">Err</span>(DecodeError::InvalidByte(index_at_start_of_input, input[<span class="number">0</span>]));
     }
-    <a href="#471">accum</a> = (<a href="#473">morsel</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) &lt;&lt; <span class="number">58</span>;
+    accum = (morsel <span class="kw">as </span>u64) &lt;&lt; <span class="number">58</span>;
 
-    <span class="kw">let </span>morsel = <a href="#468">decode_table</a>[<a href="#466">input</a>[<span class="number">1</span>] <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>];
+    <span class="kw">let </span>morsel = decode_table[input[<span class="number">1</span>] <span class="kw">as </span>usize];
     <span class="kw">if </span>morsel == tables::INVALID_VALUE {
-        <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="#30">DecodeError::InvalidByte</a>(
-            <a href="#467">index_at_start_of_input</a> + <span class="number">1</span>,
-            <a href="#466">input</a>[<span class="number">1</span>],
+        <span class="kw">return </span><span class="prelude-val">Err</span>(DecodeError::InvalidByte(
+            index_at_start_of_input + <span class="number">1</span>,
+            input[<span class="number">1</span>],
         ));
     }
-    <a href="#471">accum</a> |= (<a href="#479">morsel</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) &lt;&lt; <span class="number">52</span>;
+    accum |= (morsel <span class="kw">as </span>u64) &lt;&lt; <span class="number">52</span>;
 
-    <span class="kw">let </span>morsel = <a href="#468">decode_table</a>[<a href="#466">input</a>[<span class="number">2</span>] <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>];
+    <span class="kw">let </span>morsel = decode_table[input[<span class="number">2</span>] <span class="kw">as </span>usize];
     <span class="kw">if </span>morsel == tables::INVALID_VALUE {
-        <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="#30">DecodeError::InvalidByte</a>(
-            <a href="#467">index_at_start_of_input</a> + <span class="number">2</span>,
-            <a href="#466">input</a>[<span class="number">2</span>],
+        <span class="kw">return </span><span class="prelude-val">Err</span>(DecodeError::InvalidByte(
+            index_at_start_of_input + <span class="number">2</span>,
+            input[<span class="number">2</span>],
         ));
     }
-    <a href="#471">accum</a> |= (<a href="#488">morsel</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) &lt;&lt; <span class="number">46</span>;
+    accum |= (morsel <span class="kw">as </span>u64) &lt;&lt; <span class="number">46</span>;
 
-    <span class="kw">let </span>morsel = <a href="#468">decode_table</a>[<a href="#466">input</a>[<span class="number">3</span>] <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>];
+    <span class="kw">let </span>morsel = decode_table[input[<span class="number">3</span>] <span class="kw">as </span>usize];
     <span class="kw">if </span>morsel == tables::INVALID_VALUE {
-        <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="#30">DecodeError::InvalidByte</a>(
-            <a href="#467">index_at_start_of_input</a> + <span class="number">3</span>,
-            <a href="#466">input</a>[<span class="number">3</span>],
+        <span class="kw">return </span><span class="prelude-val">Err</span>(DecodeError::InvalidByte(
+            index_at_start_of_input + <span class="number">3</span>,
+            input[<span class="number">3</span>],
         ));
     }
-    <a href="#471">accum</a> |= (<a href="#497">morsel</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) &lt;&lt; <span class="number">40</span>;
+    accum |= (morsel <span class="kw">as </span>u64) &lt;&lt; <span class="number">40</span>;
 
-    <span class="kw">let </span>morsel = <a href="#468">decode_table</a>[<a href="#466">input</a>[<span class="number">4</span>] <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>];
+    <span class="kw">let </span>morsel = decode_table[input[<span class="number">4</span>] <span class="kw">as </span>usize];
     <span class="kw">if </span>morsel == tables::INVALID_VALUE {
-        <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="#30">DecodeError::InvalidByte</a>(
-            <a href="#467">index_at_start_of_input</a> + <span class="number">4</span>,
-            <a href="#466">input</a>[<span class="number">4</span>],
+        <span class="kw">return </span><span class="prelude-val">Err</span>(DecodeError::InvalidByte(
+            index_at_start_of_input + <span class="number">4</span>,
+            input[<span class="number">4</span>],
         ));
     }
-    <a href="#471">accum</a> |= (<a href="#506">morsel</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) &lt;&lt; <span class="number">34</span>;
+    accum |= (morsel <span class="kw">as </span>u64) &lt;&lt; <span class="number">34</span>;
 
-    <span class="kw">let </span>morsel = <a href="#468">decode_table</a>[<a href="#466">input</a>[<span class="number">5</span>] <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>];
+    <span class="kw">let </span>morsel = decode_table[input[<span class="number">5</span>] <span class="kw">as </span>usize];
     <span class="kw">if </span>morsel == tables::INVALID_VALUE {
-        <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="#30">DecodeError::InvalidByte</a>(
-            <a href="#467">index_at_start_of_input</a> + <span class="number">5</span>,
-            <a href="#466">input</a>[<span class="number">5</span>],
+        <span class="kw">return </span><span class="prelude-val">Err</span>(DecodeError::InvalidByte(
+            index_at_start_of_input + <span class="number">5</span>,
+            input[<span class="number">5</span>],
         ));
     }
-    <a href="#471">accum</a> |= (<a href="#515">morsel</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) &lt;&lt; <span class="number">28</span>;
+    accum |= (morsel <span class="kw">as </span>u64) &lt;&lt; <span class="number">28</span>;
 
-    <span class="kw">let </span>morsel = <a href="#468">decode_table</a>[<a href="#466">input</a>[<span class="number">6</span>] <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>];
+    <span class="kw">let </span>morsel = decode_table[input[<span class="number">6</span>] <span class="kw">as </span>usize];
     <span class="kw">if </span>morsel == tables::INVALID_VALUE {
-        <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="#30">DecodeError::InvalidByte</a>(
-            <a href="#467">index_at_start_of_input</a> + <span class="number">6</span>,
-            <a href="#466">input</a>[<span class="number">6</span>],
+        <span class="kw">return </span><span class="prelude-val">Err</span>(DecodeError::InvalidByte(
+            index_at_start_of_input + <span class="number">6</span>,
+            input[<span class="number">6</span>],
         ));
     }
-    <a href="#471">accum</a> |= (<a href="#524">morsel</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) &lt;&lt; <span class="number">22</span>;
+    accum |= (morsel <span class="kw">as </span>u64) &lt;&lt; <span class="number">22</span>;
 
-    <span class="kw">let </span>morsel = <a href="#468">decode_table</a>[<a href="#466">input</a>[<span class="number">7</span>] <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>];
+    <span class="kw">let </span>morsel = decode_table[input[<span class="number">7</span>] <span class="kw">as </span>usize];
     <span class="kw">if </span>morsel == tables::INVALID_VALUE {
-        <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="#30">DecodeError::InvalidByte</a>(
-            <a href="#467">index_at_start_of_input</a> + <span class="number">7</span>,
-            <a href="#466">input</a>[<span class="number">7</span>],
+        <span class="kw">return </span><span class="prelude-val">Err</span>(DecodeError::InvalidByte(
+            index_at_start_of_input + <span class="number">7</span>,
+            input[<span class="number">7</span>],
         ));
     }
-    <a href="#471">accum</a> |= (<a href="#533">morsel</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) &lt;&lt; <span class="number">16</span>;
+    accum |= (morsel <span class="kw">as </span>u64) &lt;&lt; <span class="number">16</span>;
 
-    <a href="#450">write_u64</a>(<a href="#469">output</a>, <a href="#471">accum</a>);
+    write_u64(output, accum);
 
     <span class="prelude-val">Ok</span>(())
 }
@@ -1441,11 +1441,11 @@
 /// trailing garbage bytes.
 </span><span class="attr">#[inline]
 </span><span class="kw">fn </span>decode_chunk_precise(
-    input: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
-    index_at_start_of_input: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-    decode_table: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="number">256</span>],
-    output: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
-) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="#28">DecodeError</a>&gt; {
+    input: <span class="kw-2">&amp;</span>[u8],
+    index_at_start_of_input: usize,
+    decode_table: <span class="kw-2">&amp;</span>[u8; <span class="number">256</span>],
+    output: <span class="kw-2">&amp;mut </span>[u8],
+) -&gt; <span class="prelude-ty">Result</span>&lt;(), DecodeError&gt; {
     <span class="kw">let </span><span class="kw-2">mut </span>tmp_buf = [<span class="number">0_u8</span>; <span class="number">8</span>];
 
     decode_chunk(
@@ -1455,7 +1455,7 @@
         <span class="kw-2">&amp;mut </span>tmp_buf[..],
     )<span class="question-mark">?</span>;
 
-    <a href="#554">output</a>[<span class="number">0</span>..<span class="number">6</span>].copy_from_slice(<span class="kw-2">&amp;</span><a href="#556">tmp_buf</a>[<span class="number">0</span>..<span class="number">6</span>]);
+    output[<span class="number">0</span>..<span class="number">6</span>].copy_from_slice(<span class="kw-2">&amp;</span>tmp_buf[<span class="number">0</span>..<span class="number">6</span>]);
 
     <span class="prelude-val">Ok</span>(())
 }
@@ -1785,4 +1785,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="base64" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="base64" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/hyper-0.14.23/src/client/connect/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../../hyper/index.html"><img class="rust-logo" src="../../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/hyper-0.14.23/src/client/connect/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../../hyper/index.html"><img class="rust-logo" src="../../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -491,29 +491,29 @@
 //! [`AsyncRead`]: tokio::io::AsyncRead
 //! [`AsyncWrite`]: tokio::io::AsyncWrite
 //! [`Connection`]: Connection
-</span><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">std::fmt</a>;
+</span><span class="kw">use </span>std::fmt;
 
-<span class="kw">use </span><a href="../../../../http/extensions/struct.Extensions.html">::http::Extensions</a>;
+<span class="kw">use </span>::http::Extensions;
 
 <span class="macro">cfg_feature! </span>{
     <span class="attr">#![feature = <span class="string">&quot;tcp&quot;</span>]
 
-    </span><span class="kw">pub use </span><span class="self">self</span>::http::{<a href="http.rs.html#33">HttpConnector</a>, <a href="http.rs.html#67">HttpInfo</a>};
+    </span><span class="kw">pub use </span><span class="self">self</span>::http::{HttpConnector, HttpInfo};
 
-    <span class="kw">pub mod </span><a href="dns.rs.html#1-425">dns</a>;
-    <span class="kw">mod </span><a href="http.rs.html#1-1007">http</a>;
+    <span class="kw">pub mod </span>dns;
+    <span class="kw">mod </span>http;
 }
 
 <span class="macro">cfg_feature! </span>{
     <span class="attr">#![any(feature = <span class="string">&quot;http1&quot;</span>, feature = <span class="string">&quot;http2&quot;</span>)]
 
-    </span><span class="kw">pub use </span><a href="#292"><span class="self">self</span>::sealed::Connect</a>;
+    </span><span class="kw">pub use </span><span class="self">self</span>::sealed::Connect;
 }
 
 <span class="doccomment">/// Describes a type returned by a connector.
 </span><span class="kw">pub trait </span>Connection {
     <span class="doccomment">/// Return metadata describing the connection.
-    </span><span class="kw">fn </span>connected(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="#112">Connected</a>;
+    </span><span class="kw">fn </span>connected(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Connected;
 }
 
 <span class="doccomment">/// Extra information about the connected transport.
@@ -522,12 +522,12 @@
 /// was used, or if connected to an HTTP proxy.
 </span><span class="attr">#[derive(Debug)]
 </span><span class="kw">pub struct </span>Connected {
-    <span class="kw">pub</span>(<span class="kw">super</span>) alpn: <a href="#121">Alpn</a>,
-    <span class="kw">pub</span>(<span class="kw">super</span>) is_proxied: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-    <span class="kw">pub</span>(<span class="kw">super</span>) extra: <span class="prelude-ty">Option</span>&lt;<a href="#118">Extra</a>&gt;,
+    <span class="kw">pub</span>(<span class="kw">super</span>) alpn: Alpn,
+    <span class="kw">pub</span>(<span class="kw">super</span>) is_proxied: bool,
+    <span class="kw">pub</span>(<span class="kw">super</span>) extra: <span class="prelude-ty">Option</span>&lt;Extra&gt;,
 }
 
-<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">struct </span>Extra(Box&lt;<span class="kw">dyn </span><a href="#224">ExtraInner</a>&gt;);
+<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">struct </span>Extra(Box&lt;<span class="kw">dyn </span>ExtraInner&gt;);
 
 <span class="attr">#[derive(Clone, Copy, Debug, PartialEq)]
 </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">enum </span>Alpn {
@@ -535,11 +535,11 @@
     <span class="prelude-val">None</span>,
 }
 
-<span class="kw">impl </span><a href="#112">Connected</a> {
+<span class="kw">impl </span>Connected {
     <span class="doccomment">/// Create new `Connected` type with empty metadata.
-    </span><span class="kw">pub fn </span>new() -&gt; <a href="#112">Connected</a> {
-        <a href="#112">Connected</a> {
-            alpn: <a href="#123">Alpn::None</a>,
+    </span><span class="kw">pub fn </span>new() -&gt; Connected {
+        Connected {
+            alpn: Alpn::None,
             is_proxied: <span class="bool-val">false</span>,
             extra: <span class="prelude-val">None</span>,
         }
@@ -563,79 +563,79 @@
     /// ```
     ///
     /// Default is `false`.
-    </span><span class="kw">pub fn </span>proxy(<span class="kw-2">mut </span><span class="self">self</span>, is_proxied: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <a href="#112">Connected</a> {
-        <a class="self" href="#154">self</a>.is_proxied = <a href="#154">is_proxied</a>;
-        <span class="self"><a href="#154">self</a>
+    </span><span class="kw">pub fn </span>proxy(<span class="kw-2">mut </span><span class="self">self</span>, is_proxied: bool) -&gt; Connected {
+        <span class="self">self</span>.is_proxied = is_proxied;
+        <span class="self">self
     </span>}
 
     <span class="doccomment">/// Determines if the connected transport is to an HTTP proxy.
-    </span><span class="kw">pub fn </span>is_proxied(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#160">self</a>.is_proxied
+    </span><span class="kw">pub fn </span>is_proxied(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.is_proxied
     }
 
     <span class="doccomment">/// Set extra connection information to be set in the extensions of every `Response`.
-    </span><span class="kw">pub fn </span>extra&lt;T: <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> + <span class="lifetime">&#39;static</span>&gt;(<span class="kw-2">mut </span><span class="self">self</span>, extra: T) -&gt; <a href="#112">Connected</a> {
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(prev) = <a class="self" href="#165">self</a>.extra {
-            <a class="self" href="#165">self</a>.extra = <span class="prelude-val">Some</span>(<a href="#118">Extra</a>(Box::new(<a href="#248">ExtraChain</a>(<a href="#166">prev</a>.<span class="number">0</span>, <a href="#165">extra</a>))));
+    </span><span class="kw">pub fn </span>extra&lt;T: Clone + Send + Sync + <span class="lifetime">&#39;static</span>&gt;(<span class="kw-2">mut </span><span class="self">self</span>, extra: T) -&gt; Connected {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(prev) = <span class="self">self</span>.extra {
+            <span class="self">self</span>.extra = <span class="prelude-val">Some</span>(Extra(Box::new(ExtraChain(prev.<span class="number">0</span>, extra))));
         } <span class="kw">else </span>{
-            <a class="self" href="#165">self</a>.extra = <span class="prelude-val">Some</span>(<a href="#118">Extra</a>(Box::new(<a href="#233">ExtraEnvelope</a>(<a href="#165">extra</a>))));
+            <span class="self">self</span>.extra = <span class="prelude-val">Some</span>(Extra(Box::new(ExtraEnvelope(extra))));
         }
-        <span class="self"><a href="#165">self</a>
+        <span class="self">self
     </span>}
 
     <span class="doccomment">/// Copies the extra connection information into an `Extensions` map.
-    </span><span class="kw">pub fn </span>get_extras(<span class="kw-2">&amp;</span><span class="self">self</span>, extensions: <span class="kw-2">&amp;mut </span><a href="../../../../http/extensions/struct.Extensions.html">Extensions</a>) {
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(extra) = <span class="kw-2">&amp;</span><a class="self" href="#175">self</a>.extra {
-            <a href="#176">extra</a>.<a href="#207">set</a>(<a href="#175">extensions</a>);
+    </span><span class="kw">pub fn </span>get_extras(<span class="kw-2">&amp;</span><span class="self">self</span>, extensions: <span class="kw-2">&amp;mut </span>Extensions) {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(extra) = <span class="kw-2">&amp;</span><span class="self">self</span>.extra {
+            extra.set(extensions);
         }
     }
 
     <span class="doccomment">/// Set that the connected transport negotiated HTTP/2 as its next protocol.
-    </span><span class="kw">pub fn </span>negotiated_h2(<span class="kw-2">mut </span><span class="self">self</span>) -&gt; <a href="#112">Connected</a> {
-        <a class="self" href="#182">self</a>.alpn = <a href="#122">Alpn::H2</a>;
-        <span class="self"><a href="#182">self</a>
+    </span><span class="kw">pub fn </span>negotiated_h2(<span class="kw-2">mut </span><span class="self">self</span>) -&gt; Connected {
+        <span class="self">self</span>.alpn = Alpn::H2;
+        <span class="self">self
     </span>}
 
     <span class="doccomment">/// Determines if the connected transport negotiated HTTP/2 as its next protocol.
-    </span><span class="kw">pub fn </span>is_negotiated_h2(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#188">self</a>.alpn == <a href="#122">Alpn::H2</a>
+    </span><span class="kw">pub fn </span>is_negotiated_h2(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.alpn == Alpn::H2
     }
 
     <span class="comment">// Don&#39;t public expose that `Connected` is `Clone`, unsure if we want to
     // keep that contract...
     </span><span class="attr">#[cfg(feature = <span class="string">&quot;http2&quot;</span>)]
-    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>clone(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="#112">Connected</a> {
-        <a href="#112">Connected</a> {
-            alpn: <a class="self" href="#195">self</a>.alpn.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
-            is_proxied: <a class="self" href="#195">self</a>.is_proxied,
-            extra: <a class="self" href="#195">self</a>.extra.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>clone(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Connected {
+        Connected {
+            alpn: <span class="self">self</span>.alpn.clone(),
+            is_proxied: <span class="self">self</span>.is_proxied,
+            extra: <span class="self">self</span>.extra.clone(),
         }
     }
 }
 
 <span class="comment">// ===== impl Extra =====
 
-</span><span class="kw">impl </span><a href="#118">Extra</a> {
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>set(<span class="kw-2">&amp;</span><span class="self">self</span>, res: <span class="kw-2">&amp;mut </span><a href="../../../../http/extensions/struct.Extensions.html">Extensions</a>) {
-        <a class="self" href="#207">self</a>.<span class="number">0</span>.<a href="#226">set</a>(<a href="#207">res</a>);
+</span><span class="kw">impl </span>Extra {
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>set(<span class="kw-2">&amp;</span><span class="self">self</span>, res: <span class="kw-2">&amp;mut </span>Extensions) {
+        <span class="self">self</span>.<span class="number">0</span>.set(res);
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> <span class="kw">for </span><a href="#118">Extra</a> {
-    <span class="kw">fn </span>clone(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="#118">Extra</a> {
-        <a href="#118">Extra</a>(<a class="self" href="#213">self</a>.<span class="number">0</span>.<a href="#225">clone_box</a>())
+<span class="kw">impl </span>Clone <span class="kw">for </span>Extra {
+    <span class="kw">fn </span>clone(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Extra {
+        Extra(<span class="self">self</span>.<span class="number">0</span>.clone_box())
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="#118">Extra</a> {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a href="#219">f</a>.debug_struct(<span class="string">&quot;Extra&quot;</span>).finish()
+<span class="kw">impl </span>fmt::Debug <span class="kw">for </span>Extra {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        f.debug_struct(<span class="string">&quot;Extra&quot;</span>).finish()
     }
 }
 
-<span class="kw">trait </span>ExtraInner: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> {
-    <span class="kw">fn </span>clone_box(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Box&lt;<span class="kw">dyn </span><a href="#224">ExtraInner</a>&gt;;
-    <span class="kw">fn </span>set(<span class="kw-2">&amp;</span><span class="self">self</span>, res: <span class="kw-2">&amp;mut </span><a href="../../../../http/extensions/struct.Extensions.html">Extensions</a>);
+<span class="kw">trait </span>ExtraInner: Send + Sync {
+    <span class="kw">fn </span>clone_box(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Box&lt;<span class="kw">dyn </span>ExtraInner&gt;;
+    <span class="kw">fn </span>set(<span class="kw-2">&amp;</span><span class="self">self</span>, res: <span class="kw-2">&amp;mut </span>Extensions);
 }
 
 <span class="comment">// This indirection allows the `Connected` to have a type-erased &quot;extra&quot; value,
@@ -644,50 +644,50 @@
 </span><span class="attr">#[derive(Clone)]
 </span><span class="kw">struct </span>ExtraEnvelope&lt;T&gt;(T);
 
-<span class="kw">impl</span>&lt;T&gt; <a href="#224">ExtraInner</a> <span class="kw">for </span>ExtraEnvelope&lt;T&gt;
+<span class="kw">impl</span>&lt;T&gt; ExtraInner <span class="kw">for </span>ExtraEnvelope&lt;T&gt;
 <span class="kw">where
-    </span>T: <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> + <span class="lifetime">&#39;static</span>,
+    </span>T: Clone + Send + Sync + <span class="lifetime">&#39;static</span>,
 {
-    <span class="kw">fn </span>clone_box(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Box&lt;<span class="kw">dyn </span><a href="#224">ExtraInner</a>&gt; {
-        Box::new(<a class="self" href="#239">self</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>())
+    <span class="kw">fn </span>clone_box(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Box&lt;<span class="kw">dyn </span>ExtraInner&gt; {
+        Box::new(<span class="self">self</span>.clone())
     }
 
-    <span class="kw">fn </span>set(<span class="kw-2">&amp;</span><span class="self">self</span>, res: <span class="kw-2">&amp;mut </span><a href="../../../../http/extensions/struct.Extensions.html">Extensions</a>) {
-        <a href="#243">res</a>.insert(<a class="self" href="#243">self</a>.<span class="number">0</span>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
+    <span class="kw">fn </span>set(<span class="kw-2">&amp;</span><span class="self">self</span>, res: <span class="kw-2">&amp;mut </span>Extensions) {
+        res.insert(<span class="self">self</span>.<span class="number">0</span>.clone());
     }
 }
 
-<span class="kw">struct </span>ExtraChain&lt;T&gt;(Box&lt;<span class="kw">dyn </span><a href="#224">ExtraInner</a>&gt;, T);
+<span class="kw">struct </span>ExtraChain&lt;T&gt;(Box&lt;<span class="kw">dyn </span>ExtraInner&gt;, T);
 
-<span class="kw">impl</span>&lt;T: <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> <span class="kw">for </span>ExtraChain&lt;T&gt; {
+<span class="kw">impl</span>&lt;T: Clone&gt; Clone <span class="kw">for </span>ExtraChain&lt;T&gt; {
     <span class="kw">fn </span>clone(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self </span>{
-        <a href="#248">ExtraChain</a>(<a class="self" href="#251">self</a>.<span class="number">0</span>.<a href="#225">clone_box</a>(), <a class="self" href="#251">self</a>.<span class="number">1</span>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>())
+        ExtraChain(<span class="self">self</span>.<span class="number">0</span>.clone_box(), <span class="self">self</span>.<span class="number">1</span>.clone())
     }
 }
 
-<span class="kw">impl</span>&lt;T&gt; <a href="#224">ExtraInner</a> <span class="kw">for </span>ExtraChain&lt;T&gt;
+<span class="kw">impl</span>&lt;T&gt; ExtraInner <span class="kw">for </span>ExtraChain&lt;T&gt;
 <span class="kw">where
-    </span>T: <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> + <span class="lifetime">&#39;static</span>,
+    </span>T: Clone + Send + Sync + <span class="lifetime">&#39;static</span>,
 {
-    <span class="kw">fn </span>clone_box(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Box&lt;<span class="kw">dyn </span><a href="#224">ExtraInner</a>&gt; {
-        Box::new(<a class="self" href="#260">self</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>())
+    <span class="kw">fn </span>clone_box(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Box&lt;<span class="kw">dyn </span>ExtraInner&gt; {
+        Box::new(<span class="self">self</span>.clone())
     }
 
-    <span class="kw">fn </span>set(<span class="kw-2">&amp;</span><span class="self">self</span>, res: <span class="kw-2">&amp;mut </span><a href="../../../../http/extensions/struct.Extensions.html">Extensions</a>) {
-        <a class="self" href="#264">self</a>.<span class="number">0</span>.<a href="#226">set</a>(<a href="#264">res</a>);
-        <a href="#264">res</a>.insert(<a class="self" href="#264">self</a>.<span class="number">1</span>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
+    <span class="kw">fn </span>set(<span class="kw-2">&amp;</span><span class="self">self</span>, res: <span class="kw-2">&amp;mut </span>Extensions) {
+        <span class="self">self</span>.<span class="number">0</span>.set(res);
+        res.insert(<span class="self">self</span>.<span class="number">1</span>.clone());
     }
 }
 
 <span class="attr">#[cfg(any(feature = <span class="string">&quot;http1&quot;</span>, feature = <span class="string">&quot;http2&quot;</span>))]
 </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">mod </span>sealed {
-    <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">std::error::Error</a> <span class="kw">as </span>StdError;
+    <span class="kw">use </span>std::error::Error <span class="kw">as </span>StdError;
 
-    <span class="kw">use </span><a href="../../../../hyper/struct.Uri.html">::http::Uri</a>;
-    <span class="kw">use </span>tokio::io::{<a href="../../../../tokio/io/async_read/trait.AsyncRead.html">AsyncRead</a>, <a href="../../../../tokio/io/async_write/trait.AsyncWrite.html">AsyncWrite</a>};
+    <span class="kw">use </span>::http::Uri;
+    <span class="kw">use </span>tokio::io::{AsyncRead, AsyncWrite};
 
-    <span class="kw">use </span><a href="#102"><span class="kw">super</span>::Connection</a>;
-    <span class="kw">use </span><span class="kw">crate</span>::common::{<a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a>, <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>};
+    <span class="kw">use </span><span class="kw">super</span>::Connection;
+    <span class="kw">use </span><span class="kw">crate</span>::common::{Future, Unpin};
 
     <span class="doccomment">/// Connect to a destination, returning an IO transport.
     ///
@@ -701,57 +701,57 @@
     /// implement this trait, but `tower::Service&lt;Uri&gt;` instead.
     </span><span class="comment">// The `Sized` bound is to prevent creating `dyn Connect`, since they cannot
     // fit the `Connect` bounds because of the blanket impl for `Service`.
-    </span><span class="kw">pub trait </span>Connect: <a href="#346">Sealed</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> {
+    </span><span class="kw">pub trait </span>Connect: Sealed + Sized {
         <span class="attr">#[doc(hidden)]
-        </span><span class="kw">type </span>_Svc: <a href="#299">ConnectSvc</a>;
+        </span><span class="kw">type </span>_Svc: ConnectSvc;
         <span class="attr">#[doc(hidden)]
-        </span><span class="kw">fn </span>connect(<span class="self">self</span>, internal_only: <a href="#348">Internal</a>, dst: <a href="../../../../hyper/struct.Uri.html">Uri</a>) -&gt; &lt;<span class="self">Self</span>::_Svc <span class="kw">as </span>ConnectSvc&gt;::Future;
+        </span><span class="kw">fn </span>connect(<span class="self">self</span>, internal_only: Internal, dst: Uri) -&gt; &lt;<span class="self">Self</span>::_Svc <span class="kw">as </span>ConnectSvc&gt;::Future;
     }
 
     <span class="kw">pub trait </span>ConnectSvc {
-        <span class="kw">type </span>Connection: <a href="../../../../tokio/io/async_read/trait.AsyncRead.html">AsyncRead</a> + <a href="../../../../tokio/io/async_write/trait.AsyncWrite.html">AsyncWrite</a> + <a href="#102">Connection</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <span class="lifetime">&#39;static</span>;
-        <span class="kw">type </span>Error: Into&lt;Box&lt;<span class="kw">dyn </span><a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">StdError</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a>&gt;&gt;;
-        <span class="kw">type </span>Future: Future&lt;Output = <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Connection, <span class="self">Self</span>::Error&gt;&gt; + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <span class="lifetime">&#39;static</span>;
+        <span class="kw">type </span>Connection: AsyncRead + AsyncWrite + Connection + Unpin + Send + <span class="lifetime">&#39;static</span>;
+        <span class="kw">type </span>Error: Into&lt;Box&lt;<span class="kw">dyn </span>StdError + Send + Sync&gt;&gt;;
+        <span class="kw">type </span>Future: Future&lt;Output = <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Connection, <span class="self">Self</span>::Error&gt;&gt; + Unpin + Send + <span class="lifetime">&#39;static</span>;
 
-        <span class="kw">fn </span>connect(<span class="self">self</span>, internal_only: <a href="#348">Internal</a>, dst: <a href="../../../../hyper/struct.Uri.html">Uri</a>) -&gt; <span class="self">Self</span>::Future;
+        <span class="kw">fn </span>connect(<span class="self">self</span>, internal_only: Internal, dst: Uri) -&gt; <span class="self">Self</span>::Future;
     }
 
-    <span class="kw">impl</span>&lt;S, T&gt; <a href="#292">Connect</a> <span class="kw">for </span>S
+    <span class="kw">impl</span>&lt;S, T&gt; Connect <span class="kw">for </span>S
     <span class="kw">where
-        </span>S: tower_service::Service&lt;<a href="../../../../hyper/struct.Uri.html">Uri</a>, Response = T&gt; + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <span class="lifetime">&#39;static</span>,
-        S::Error: Into&lt;Box&lt;<span class="kw">dyn </span><a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">StdError</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a>&gt;&gt;,
-        S::Future: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a>,
-        T: <a href="../../../../tokio/io/async_read/trait.AsyncRead.html">AsyncRead</a> + <a href="../../../../tokio/io/async_write/trait.AsyncWrite.html">AsyncWrite</a> + <a href="#102">Connection</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <span class="lifetime">&#39;static</span>,
+        </span>S: tower_service::Service&lt;Uri, Response = T&gt; + Send + <span class="lifetime">&#39;static</span>,
+        S::Error: Into&lt;Box&lt;<span class="kw">dyn </span>StdError + Send + Sync&gt;&gt;,
+        S::Future: Unpin + Send,
+        T: AsyncRead + AsyncWrite + Connection + Unpin + Send + <span class="lifetime">&#39;static</span>,
     {
         <span class="kw">type </span>_Svc = S;
 
-        <span class="kw">fn </span>connect(<span class="self">self</span>, <span class="kw">_</span>: <a href="#348">Internal</a>, dst: <a href="../../../../hyper/struct.Uri.html">Uri</a>) -&gt; <span class="kw">crate</span>::service::Oneshot&lt;S, <a href="../../../../hyper/struct.Uri.html">Uri</a>&gt; {
-            <a href="../../service/oneshot.rs.html#8-10"><span class="kw">crate</span>::service::oneshot</a>(<a class="self" href="#316">self</a>, <a href="#316">dst</a>)
+        <span class="kw">fn </span>connect(<span class="self">self</span>, <span class="kw">_</span>: Internal, dst: Uri) -&gt; <span class="kw">crate</span>::service::Oneshot&lt;S, Uri&gt; {
+            <span class="kw">crate</span>::service::oneshot(<span class="self">self</span>, dst)
         }
     }
 
-    <span class="kw">impl</span>&lt;S, T&gt; <a href="#299">ConnectSvc</a> <span class="kw">for </span>S
+    <span class="kw">impl</span>&lt;S, T&gt; ConnectSvc <span class="kw">for </span>S
     <span class="kw">where
-        </span>S: tower_service::Service&lt;<a href="../../../../hyper/struct.Uri.html">Uri</a>, Response = T&gt; + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <span class="lifetime">&#39;static</span>,
-        S::Error: Into&lt;Box&lt;<span class="kw">dyn </span><a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">StdError</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a>&gt;&gt;,
-        S::Future: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a>,
-        T: <a href="../../../../tokio/io/async_read/trait.AsyncRead.html">AsyncRead</a> + <a href="../../../../tokio/io/async_write/trait.AsyncWrite.html">AsyncWrite</a> + <a href="#102">Connection</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <span class="lifetime">&#39;static</span>,
+        </span>S: tower_service::Service&lt;Uri, Response = T&gt; + Send + <span class="lifetime">&#39;static</span>,
+        S::Error: Into&lt;Box&lt;<span class="kw">dyn </span>StdError + Send + Sync&gt;&gt;,
+        S::Future: Unpin + Send,
+        T: AsyncRead + AsyncWrite + Connection + Unpin + Send + <span class="lifetime">&#39;static</span>,
     {
         <span class="kw">type </span>Connection = T;
         <span class="kw">type </span>Error = S::Error;
-        <span class="kw">type </span>Future = <span class="kw">crate</span>::service::Oneshot&lt;S, <a href="../../../../hyper/struct.Uri.html">Uri</a>&gt;;
+        <span class="kw">type </span>Future = <span class="kw">crate</span>::service::Oneshot&lt;S, Uri&gt;;
 
-        <span class="kw">fn </span>connect(<span class="self">self</span>, <span class="kw">_</span>: <a href="#348">Internal</a>, dst: <a href="../../../../hyper/struct.Uri.html">Uri</a>) -&gt; <span class="self">Self</span>::Future {
-            <a href="../../service/oneshot.rs.html#8-10"><span class="kw">crate</span>::service::oneshot</a>(<a class="self" href="#332">self</a>, <a href="#332">dst</a>)
+        <span class="kw">fn </span>connect(<span class="self">self</span>, <span class="kw">_</span>: Internal, dst: Uri) -&gt; <span class="self">Self</span>::Future {
+            <span class="kw">crate</span>::service::oneshot(<span class="self">self</span>, dst)
         }
     }
 
-    <span class="kw">impl</span>&lt;S, T&gt; <a href="#346">Sealed</a> <span class="kw">for </span>S
+    <span class="kw">impl</span>&lt;S, T&gt; Sealed <span class="kw">for </span>S
     <span class="kw">where
-        </span>S: tower_service::Service&lt;<a href="../../../../hyper/struct.Uri.html">Uri</a>, Response = T&gt; + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a>,
-        S::Error: Into&lt;Box&lt;<span class="kw">dyn </span><a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">StdError</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a>&gt;&gt;,
-        S::Future: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a>,
-        T: <a href="../../../../tokio/io/async_read/trait.AsyncRead.html">AsyncRead</a> + <a href="../../../../tokio/io/async_write/trait.AsyncWrite.html">AsyncWrite</a> + <a href="#102">Connection</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <span class="lifetime">&#39;static</span>,
+        </span>S: tower_service::Service&lt;Uri, Response = T&gt; + Send,
+        S::Error: Into&lt;Box&lt;<span class="kw">dyn </span>StdError + Send + Sync&gt;&gt;,
+        S::Future: Unpin + Send,
+        T: AsyncRead + AsyncWrite + Connection + Unpin + Send + <span class="lifetime">&#39;static</span>,
     {
     }
 
@@ -823,4 +823,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="hyper" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="hyper" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

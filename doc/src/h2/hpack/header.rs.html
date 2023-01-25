@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/h2-0.3.15/src/hpack/header.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>header.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../h2/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/h2-0.3.15/src/hpack/header.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>header.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../h2/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -306,31 +306,31 @@
 <a href="#306" id="306">306</a>
 <a href="#307" id="307">307</a>
 <a href="#308" id="308">308</a>
-</pre><pre class="rust"><code><span class="kw">use super</span>::{<a href="decoder.rs.html#27">DecoderError</a>, <a href="decoder.rs.html#41">NeedMore</a>};
-<span class="kw">use </span><a href="../ext.rs.html#13"><span class="kw">crate</span>::ext::Protocol</a>;
+</pre><pre class="rust"><code><span class="kw">use super</span>::{DecoderError, NeedMore};
+<span class="kw">use </span><span class="kw">crate</span>::ext::Protocol;
 
-<span class="kw">use </span><a href="../../../bytes/bytes/struct.Bytes.html">bytes::Bytes</a>;
-<span class="kw">use </span>http::header::{<a href="../../../http/header/name/struct.HeaderName.html">HeaderName</a>, <a href="../../../http/header/value/struct.HeaderValue.html">HeaderValue</a>};
-<span class="kw">use </span>http::{<a href="../../../http/method/struct.Method.html">Method</a>, <a href="../../../http/status/struct.StatusCode.html">StatusCode</a>};
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">std::fmt</a>;
+<span class="kw">use </span>bytes::Bytes;
+<span class="kw">use </span>http::header::{HeaderName, HeaderValue};
+<span class="kw">use </span>http::{Method, StatusCode};
+<span class="kw">use </span>std::fmt;
 
 <span class="doccomment">/// HTTP/2 Header
 </span><span class="attr">#[derive(Debug, Clone, Eq, PartialEq)]
-</span><span class="kw">pub enum </span>Header&lt;T = <a href="../../../http/header/name/struct.HeaderName.html">HeaderName</a>&gt; {
-    Field { name: T, value: <a href="../../../http/header/value/struct.HeaderValue.html">HeaderValue</a> },
+</span><span class="kw">pub enum </span>Header&lt;T = HeaderName&gt; {
+    Field { name: T, value: HeaderValue },
     <span class="comment">// TODO: Change these types to `http::uri` types.
-    </span>Authority(<a href="#36">BytesStr</a>),
-    Method(<a href="../../../http/method/struct.Method.html">Method</a>),
-    Scheme(<a href="#36">BytesStr</a>),
-    Path(<a href="#36">BytesStr</a>),
-    Protocol(<a href="../ext.rs.html#13">Protocol</a>),
-    Status(<a href="../../../http/status/struct.StatusCode.html">StatusCode</a>),
+    </span>Authority(BytesStr),
+    Method(Method),
+    Scheme(BytesStr),
+    Path(BytesStr),
+    Protocol(Protocol),
+    Status(StatusCode),
 }
 
 <span class="doccomment">/// The header field name
 </span><span class="attr">#[derive(Debug, Clone, Eq, PartialEq, Hash)]
 </span><span class="kw">pub enum </span>Name&lt;<span class="lifetime">&#39;a</span>&gt; {
-    Field(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="../../../http/header/name/struct.HeaderName.html">HeaderName</a>),
+    Field(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>HeaderName),
     Authority,
     Method,
     Scheme,
@@ -341,164 +341,164 @@
 
 <span class="attr">#[doc(hidden)]
 #[derive(Clone, Eq, PartialEq, Default)]
-</span><span class="kw">pub struct </span>BytesStr(<a href="../../../bytes/bytes/struct.Bytes.html">Bytes</a>);
+</span><span class="kw">pub struct </span>BytesStr(Bytes);
 
-<span class="kw">pub fn </span>len(name: <span class="kw-2">&amp;</span><a href="../../../http/header/name/struct.HeaderName.html">HeaderName</a>, value: <span class="kw-2">&amp;</span><a href="../../../http/header/value/struct.HeaderValue.html">HeaderValue</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-    <span class="kw">let </span>n: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> = <a href="#38">name</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>();
-    <span class="number">32 </span>+ <a href="#39">n</a>.len() + <a href="#38">value</a>.len()
+<span class="kw">pub fn </span>len(name: <span class="kw-2">&amp;</span>HeaderName, value: <span class="kw-2">&amp;</span>HeaderValue) -&gt; usize {
+    <span class="kw">let </span>n: <span class="kw-2">&amp;</span>str = name.as_ref();
+    <span class="number">32 </span>+ n.len() + value.len()
 }
 
-<span class="kw">impl </span>Header&lt;<span class="prelude-ty">Option</span>&lt;<a href="../../../http/header/name/struct.HeaderName.html">HeaderName</a>&gt;&gt; {
-    <span class="kw">pub fn </span>reify(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#11">Header</a>, <a href="../../../http/header/value/struct.HeaderValue.html">HeaderValue</a>&gt; {
-        <span class="kw">use </span><a href="#11"><span class="self">self</span>::Header</a>::<span class="kw-2">*</span>;
+<span class="kw">impl </span>Header&lt;<span class="prelude-ty">Option</span>&lt;HeaderName&gt;&gt; {
+    <span class="kw">pub fn </span>reify(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;Header, HeaderValue&gt; {
+        <span class="kw">use </span><span class="self">self</span>::Header::<span class="kw-2">*</span>;
 
-        <span class="prelude-val">Ok</span>(<span class="kw">match </span><span class="self"><a href="#44">self</a> </span>{
-            <a href="#12">Field</a> {
+        <span class="prelude-val">Ok</span>(<span class="kw">match </span><span class="self">self </span>{
+            Field {
                 name: <span class="prelude-val">Some</span>(n),
                 value,
-            } =&gt; <a href="#12">Field</a> { name: <a href="#49">n</a>, <a href="#50">value</a> },
-            <a href="#12">Field</a> { name: <span class="prelude-val">None</span>, value } =&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="#52">value</a>),
-            <a href="#14">Authority</a>(v) =&gt; <a href="#14">Authority</a>(<a href="#53">v</a>),
-            <a href="#15">Method</a>(v) =&gt; <a href="#15">Method</a>(<a href="#54">v</a>),
-            <a href="#16">Scheme</a>(v) =&gt; <a href="#16">Scheme</a>(<a href="#55">v</a>),
-            <a href="#17">Path</a>(v) =&gt; <a href="#17">Path</a>(<a href="#56">v</a>),
-            <a href="#18">Protocol</a>(v) =&gt; <a href="#18">Protocol</a>(<a href="#57">v</a>),
-            <a href="#19">Status</a>(v) =&gt; <a href="#19">Status</a>(<a href="#58">v</a>),
+            } =&gt; Field { name: n, value },
+            Field { name: <span class="prelude-val">None</span>, value } =&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(value),
+            Authority(v) =&gt; Authority(v),
+            Method(v) =&gt; Method(v),
+            Scheme(v) =&gt; Scheme(v),
+            Path(v) =&gt; Path(v),
+            Protocol(v) =&gt; Protocol(v),
+            Status(v) =&gt; Status(v),
         })
     }
 }
 
-<span class="kw">impl </span><a href="#11">Header</a> {
-    <span class="kw">pub fn </span>new(name: <a href="../../../bytes/bytes/struct.Bytes.html">Bytes</a>, value: <a href="../../../bytes/bytes/struct.Bytes.html">Bytes</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#11">Header</a>, <a href="decoder.rs.html#27">DecoderError</a>&gt; {
+<span class="kw">impl </span>Header {
+    <span class="kw">pub fn </span>new(name: Bytes, value: Bytes) -&gt; <span class="prelude-ty">Result</span>&lt;Header, DecoderError&gt; {
         <span class="kw">if </span>name.is_empty() {
-            <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="decoder.rs.html#37">DecoderError::NeedMore</a>(<a href="decoder.rs.html#42">NeedMore::UnexpectedEndOfStream</a>));
+            <span class="kw">return </span><span class="prelude-val">Err</span>(DecoderError::NeedMore(NeedMore::UnexpectedEndOfStream));
         }
         <span class="kw">if </span>name[<span class="number">0</span>] == <span class="string">b&#39;:&#39; </span>{
-            <span class="kw">match </span><span class="kw-2">&amp;</span><a href="#64">name</a>[<span class="number">1</span>..] {
+            <span class="kw">match </span><span class="kw-2">&amp;</span>name[<span class="number">1</span>..] {
                 <span class="string">b&quot;authority&quot; </span>=&gt; {
                     <span class="kw">let </span>value = BytesStr::try_from(value)<span class="question-mark">?</span>;
-                    <span class="prelude-val">Ok</span>(<a href="#14">Header::Authority</a>(<a href="#71">value</a>))
+                    <span class="prelude-val">Ok</span>(Header::Authority(value))
                 }
                 <span class="string">b&quot;method&quot; </span>=&gt; {
                     <span class="kw">let </span>method = Method::from_bytes(<span class="kw-2">&amp;</span>value)<span class="question-mark">?</span>;
-                    <span class="prelude-val">Ok</span>(<a href="#15">Header::Method</a>(<a href="#75">method</a>))
+                    <span class="prelude-val">Ok</span>(Header::Method(method))
                 }
                 <span class="string">b&quot;scheme&quot; </span>=&gt; {
                     <span class="kw">let </span>value = BytesStr::try_from(value)<span class="question-mark">?</span>;
-                    <span class="prelude-val">Ok</span>(<a href="#16">Header::Scheme</a>(<a href="#79">value</a>))
+                    <span class="prelude-val">Ok</span>(Header::Scheme(value))
                 }
                 <span class="string">b&quot;path&quot; </span>=&gt; {
                     <span class="kw">let </span>value = BytesStr::try_from(value)<span class="question-mark">?</span>;
-                    <span class="prelude-val">Ok</span>(<a href="#17">Header::Path</a>(<a href="#83">value</a>))
+                    <span class="prelude-val">Ok</span>(Header::Path(value))
                 }
                 <span class="string">b&quot;protocol&quot; </span>=&gt; {
                     <span class="kw">let </span>value = Protocol::try_from(value)<span class="question-mark">?</span>;
-                    <span class="prelude-val">Ok</span>(<a href="#18">Header::Protocol</a>(<a href="#87">value</a>))
+                    <span class="prelude-val">Ok</span>(Header::Protocol(value))
                 }
                 <span class="string">b&quot;status&quot; </span>=&gt; {
                     <span class="kw">let </span>status = StatusCode::from_bytes(<span class="kw-2">&amp;</span>value)<span class="question-mark">?</span>;
-                    <span class="prelude-val">Ok</span>(<a href="#19">Header::Status</a>(<a href="#91">status</a>))
+                    <span class="prelude-val">Ok</span>(Header::Status(status))
                 }
-                <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(<a href="decoder.rs.html#34">DecoderError::InvalidPseudoheader</a>),
+                <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(DecoderError::InvalidPseudoheader),
             }
         } <span class="kw">else </span>{
             <span class="comment">// HTTP/2 requires lower case header names
             </span><span class="kw">let </span>name = HeaderName::from_lowercase(<span class="kw-2">&amp;</span>name)<span class="question-mark">?</span>;
             <span class="kw">let </span>value = HeaderValue::from_bytes(<span class="kw-2">&amp;</span>value)<span class="question-mark">?</span>;
 
-            <span class="prelude-val">Ok</span>(<a href="#12">Header::Field</a> { <a href="#98">name</a>, <a href="#99">value</a> })
+            <span class="prelude-val">Ok</span>(Header::Field { name, value })
         }
     }
 
-    <span class="kw">pub fn </span>len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="#105">self</a> </span>{
-            <a href="#12">Header::Field</a> {
+    <span class="kw">pub fn </span>len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+        <span class="kw">match </span><span class="kw-2">*</span><span class="self">self </span>{
+            Header::Field {
                 <span class="kw-2">ref </span>name,
                 <span class="kw-2">ref </span>value,
-            } =&gt; <a href="#38">len</a>(<a href="#108">name</a>, <a href="#109">value</a>),
-            <a href="#14">Header::Authority</a>(<span class="kw-2">ref </span>v) =&gt; <span class="number">32 </span>+ <span class="number">10 </span>+ <a href="#111">v</a>.len(),
-            <a href="#15">Header::Method</a>(<span class="kw-2">ref </span>v) =&gt; <span class="number">32 </span>+ <span class="number">7 </span>+ <a href="#112">v</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>().len(),
-            <a href="#16">Header::Scheme</a>(<span class="kw-2">ref </span>v) =&gt; <span class="number">32 </span>+ <span class="number">7 </span>+ <a href="#113">v</a>.len(),
-            <a href="#17">Header::Path</a>(<span class="kw-2">ref </span>v) =&gt; <span class="number">32 </span>+ <span class="number">5 </span>+ <a href="#114">v</a>.len(),
-            <a href="#18">Header::Protocol</a>(<span class="kw-2">ref </span>v) =&gt; <span class="number">32 </span>+ <span class="number">9 </span>+ <a href="#115">v</a>.<a href="../ext.rs.html#26">as_str</a>().len(),
-            <a href="#19">Header::Status</a>(<span class="kw">_</span>) =&gt; <span class="number">32 </span>+ <span class="number">7 </span>+ <span class="number">3</span>,
+            } =&gt; len(name, value),
+            Header::Authority(<span class="kw-2">ref </span>v) =&gt; <span class="number">32 </span>+ <span class="number">10 </span>+ v.len(),
+            Header::Method(<span class="kw-2">ref </span>v) =&gt; <span class="number">32 </span>+ <span class="number">7 </span>+ v.as_ref().len(),
+            Header::Scheme(<span class="kw-2">ref </span>v) =&gt; <span class="number">32 </span>+ <span class="number">7 </span>+ v.len(),
+            Header::Path(<span class="kw-2">ref </span>v) =&gt; <span class="number">32 </span>+ <span class="number">5 </span>+ v.len(),
+            Header::Protocol(<span class="kw-2">ref </span>v) =&gt; <span class="number">32 </span>+ <span class="number">9 </span>+ v.as_str().len(),
+            Header::Status(<span class="kw">_</span>) =&gt; <span class="number">32 </span>+ <span class="number">7 </span>+ <span class="number">3</span>,
         }
     }
 
     <span class="doccomment">/// Returns the header name
-    </span><span class="kw">pub fn </span>name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="#24">Name</a> {
-        <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="#121">self</a> </span>{
-            <a href="#12">Header::Field</a> { <span class="kw-2">ref </span>name, .. } =&gt; <a href="#25">Name::Field</a>(<a href="#123">name</a>),
-            <a href="#14">Header::Authority</a>(..) =&gt; <a href="#26">Name::Authority</a>,
-            <a href="#15">Header::Method</a>(..) =&gt; <a href="#27">Name::Method</a>,
-            <a href="#16">Header::Scheme</a>(..) =&gt; <a href="#28">Name::Scheme</a>,
-            <a href="#17">Header::Path</a>(..) =&gt; <a href="#29">Name::Path</a>,
-            <a href="#18">Header::Protocol</a>(..) =&gt; <a href="#30">Name::Protocol</a>,
-            <a href="#19">Header::Status</a>(..) =&gt; <a href="#31">Name::Status</a>,
+    </span><span class="kw">pub fn </span>name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Name {
+        <span class="kw">match </span><span class="kw-2">*</span><span class="self">self </span>{
+            Header::Field { <span class="kw-2">ref </span>name, .. } =&gt; Name::Field(name),
+            Header::Authority(..) =&gt; Name::Authority,
+            Header::Method(..) =&gt; Name::Method,
+            Header::Scheme(..) =&gt; Name::Scheme,
+            Header::Path(..) =&gt; Name::Path,
+            Header::Protocol(..) =&gt; Name::Protocol,
+            Header::Status(..) =&gt; Name::Status,
         }
     }
 
-    <span class="kw">pub fn </span>value_slice(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>] {
-        <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="#133">self</a> </span>{
-            <a href="#12">Header::Field</a> { <span class="kw-2">ref </span>value, .. } =&gt; <a href="#135">value</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>(),
-            <a href="#14">Header::Authority</a>(<span class="kw-2">ref </span>v) =&gt; <a href="#136">v</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>(),
-            <a href="#15">Header::Method</a>(<span class="kw-2">ref </span>v) =&gt; <a href="#137">v</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>().<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>(),
-            <a href="#16">Header::Scheme</a>(<span class="kw-2">ref </span>v) =&gt; <a href="#138">v</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>(),
-            <a href="#17">Header::Path</a>(<span class="kw-2">ref </span>v) =&gt; <a href="#139">v</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>(),
-            <a href="#18">Header::Protocol</a>(<span class="kw-2">ref </span>v) =&gt; <a href="#140">v</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>(),
-            <a href="#19">Header::Status</a>(<span class="kw-2">ref </span>v) =&gt; <a href="#141">v</a>.as_str().<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>(),
+    <span class="kw">pub fn </span>value_slice(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[u8] {
+        <span class="kw">match </span><span class="kw-2">*</span><span class="self">self </span>{
+            Header::Field { <span class="kw-2">ref </span>value, .. } =&gt; value.as_ref(),
+            Header::Authority(<span class="kw-2">ref </span>v) =&gt; v.as_ref(),
+            Header::Method(<span class="kw-2">ref </span>v) =&gt; v.as_ref().as_ref(),
+            Header::Scheme(<span class="kw-2">ref </span>v) =&gt; v.as_ref(),
+            Header::Path(<span class="kw-2">ref </span>v) =&gt; v.as_ref(),
+            Header::Protocol(<span class="kw-2">ref </span>v) =&gt; v.as_ref(),
+            Header::Status(<span class="kw-2">ref </span>v) =&gt; v.as_str().as_ref(),
         }
     }
 
-    <span class="kw">pub fn </span>value_eq(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><a href="#11">Header</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="#145">self</a> </span>{
-            <a href="#12">Header::Field</a> { <span class="kw-2">ref </span>value, .. } =&gt; {
-                <span class="kw">let </span>a = <a href="#147">value</a>;
-                <span class="kw">match </span><span class="kw-2">*</span><a href="#145">other</a> {
-                    <a href="#12">Header::Field</a> { <span class="kw-2">ref </span>value, .. } =&gt; <a href="#148">a</a> == <a href="#150">value</a>,
+    <span class="kw">pub fn </span>value_eq(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span>Header) -&gt; bool {
+        <span class="kw">match </span><span class="kw-2">*</span><span class="self">self </span>{
+            Header::Field { <span class="kw-2">ref </span>value, .. } =&gt; {
+                <span class="kw">let </span>a = value;
+                <span class="kw">match </span><span class="kw-2">*</span>other {
+                    Header::Field { <span class="kw-2">ref </span>value, .. } =&gt; a == value,
                     <span class="kw">_ </span>=&gt; <span class="bool-val">false</span>,
                 }
             }
-            <a href="#14">Header::Authority</a>(<span class="kw-2">ref </span>a) =&gt; <span class="kw">match </span><span class="kw-2">*</span><a href="#145">other</a> {
-                <a href="#14">Header::Authority</a>(<span class="kw-2">ref </span>b) =&gt; <a href="#154">a</a> == <a href="#155">b</a>,
+            Header::Authority(<span class="kw-2">ref </span>a) =&gt; <span class="kw">match </span><span class="kw-2">*</span>other {
+                Header::Authority(<span class="kw-2">ref </span>b) =&gt; a == b,
                 <span class="kw">_ </span>=&gt; <span class="bool-val">false</span>,
             },
-            <a href="#15">Header::Method</a>(<span class="kw-2">ref </span>a) =&gt; <span class="kw">match </span><span class="kw-2">*</span><a href="#145">other</a> {
-                <a href="#15">Header::Method</a>(<span class="kw-2">ref </span>b) =&gt; <a href="#158">a</a> == <a href="#159">b</a>,
+            Header::Method(<span class="kw-2">ref </span>a) =&gt; <span class="kw">match </span><span class="kw-2">*</span>other {
+                Header::Method(<span class="kw-2">ref </span>b) =&gt; a == b,
                 <span class="kw">_ </span>=&gt; <span class="bool-val">false</span>,
             },
-            <a href="#16">Header::Scheme</a>(<span class="kw-2">ref </span>a) =&gt; <span class="kw">match </span><span class="kw-2">*</span><a href="#145">other</a> {
-                <a href="#16">Header::Scheme</a>(<span class="kw-2">ref </span>b) =&gt; <a href="#162">a</a> == <a href="#163">b</a>,
+            Header::Scheme(<span class="kw-2">ref </span>a) =&gt; <span class="kw">match </span><span class="kw-2">*</span>other {
+                Header::Scheme(<span class="kw-2">ref </span>b) =&gt; a == b,
                 <span class="kw">_ </span>=&gt; <span class="bool-val">false</span>,
             },
-            <a href="#17">Header::Path</a>(<span class="kw-2">ref </span>a) =&gt; <span class="kw">match </span><span class="kw-2">*</span><a href="#145">other</a> {
-                <a href="#17">Header::Path</a>(<span class="kw-2">ref </span>b) =&gt; <a href="#166">a</a> == <a href="#167">b</a>,
+            Header::Path(<span class="kw-2">ref </span>a) =&gt; <span class="kw">match </span><span class="kw-2">*</span>other {
+                Header::Path(<span class="kw-2">ref </span>b) =&gt; a == b,
                 <span class="kw">_ </span>=&gt; <span class="bool-val">false</span>,
             },
-            <a href="#18">Header::Protocol</a>(<span class="kw-2">ref </span>a) =&gt; <span class="kw">match </span><span class="kw-2">*</span><a href="#145">other</a> {
-                <a href="#18">Header::Protocol</a>(<span class="kw-2">ref </span>b) =&gt; <a href="#170">a</a> == <a href="#171">b</a>,
+            Header::Protocol(<span class="kw-2">ref </span>a) =&gt; <span class="kw">match </span><span class="kw-2">*</span>other {
+                Header::Protocol(<span class="kw-2">ref </span>b) =&gt; a == b,
                 <span class="kw">_ </span>=&gt; <span class="bool-val">false</span>,
             },
-            <a href="#19">Header::Status</a>(<span class="kw-2">ref </span>a) =&gt; <span class="kw">match </span><span class="kw-2">*</span><a href="#145">other</a> {
-                <a href="#19">Header::Status</a>(<span class="kw-2">ref </span>b) =&gt; <a href="#174">a</a> == <a href="#175">b</a>,
+            Header::Status(<span class="kw-2">ref </span>a) =&gt; <span class="kw">match </span><span class="kw-2">*</span>other {
+                Header::Status(<span class="kw-2">ref </span>b) =&gt; a == b,
                 <span class="kw">_ </span>=&gt; <span class="bool-val">false</span>,
             },
         }
     }
 
-    <span class="kw">pub fn </span>is_sensitive(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="#181">self</a> </span>{
-            <a href="#12">Header::Field</a> { <span class="kw-2">ref </span>value, .. } =&gt; <a href="#183">value</a>.is_sensitive(),
+    <span class="kw">pub fn </span>is_sensitive(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="kw">match </span><span class="kw-2">*</span><span class="self">self </span>{
+            Header::Field { <span class="kw-2">ref </span>value, .. } =&gt; value.is_sensitive(),
             <span class="comment">// TODO: Technically these other header values can be sensitive too.
             </span><span class="kw">_ </span>=&gt; <span class="bool-val">false</span>,
         }
     }
 
-    <span class="kw">pub fn </span>skip_value_index(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">use </span><a href="../../../http/header/index.html">http::header</a>;
+    <span class="kw">pub fn </span>skip_value_index(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="kw">use </span>http::header;
 
-        <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="#189">self</a> </span>{
-            <a href="#12">Header::Field</a> { <span class="kw-2">ref </span>name, .. } =&gt; <span class="kw">match </span><span class="kw-2">*</span><a href="#193">name</a> {
+        <span class="kw">match </span><span class="kw-2">*</span><span class="self">self </span>{
+            Header::Field { <span class="kw-2">ref </span>name, .. } =&gt; <span class="kw">match </span><span class="kw-2">*</span>name {
                 header::AGE
                 | header::AUTHORIZATION
                 | header::CONTENT_LENGTH
@@ -510,109 +510,109 @@
                 | header::SET_COOKIE =&gt; <span class="bool-val">true</span>,
                 <span class="kw">_ </span>=&gt; <span class="bool-val">false</span>,
             },
-            <a href="#17">Header::Path</a>(..) =&gt; <span class="bool-val">true</span>,
+            Header::Path(..) =&gt; <span class="bool-val">true</span>,
             <span class="kw">_ </span>=&gt; <span class="bool-val">false</span>,
         }
     }
 }
 
 <span class="comment">// Mostly for tests
-</span><span class="kw">impl </span>From&lt;<a href="#11">Header</a>&gt; <span class="kw">for </span>Header&lt;<span class="prelude-ty">Option</span>&lt;<a href="../../../http/header/name/struct.HeaderName.html">HeaderName</a>&gt;&gt; {
-    <span class="kw">fn </span>from(src: <a href="#11">Header</a>) -&gt; <span class="self">Self </span>{
-        <span class="kw">match </span><a href="#213">src</a> {
-            <a href="#12">Header::Field</a> { name, value } =&gt; <a href="#12">Header::Field</a> {
-                name: <span class="prelude-val">Some</span>(<a href="#215">name</a>),
-                <a href="#215">value</a>,
+</span><span class="kw">impl </span>From&lt;Header&gt; <span class="kw">for </span>Header&lt;<span class="prelude-ty">Option</span>&lt;HeaderName&gt;&gt; {
+    <span class="kw">fn </span>from(src: Header) -&gt; <span class="self">Self </span>{
+        <span class="kw">match </span>src {
+            Header::Field { name, value } =&gt; Header::Field {
+                name: <span class="prelude-val">Some</span>(name),
+                value,
             },
-            <a href="#14">Header::Authority</a>(v) =&gt; <a href="#14">Header::Authority</a>(<a href="#219">v</a>),
-            <a href="#15">Header::Method</a>(v) =&gt; <a href="#15">Header::Method</a>(<a href="#220">v</a>),
-            <a href="#16">Header::Scheme</a>(v) =&gt; <a href="#16">Header::Scheme</a>(<a href="#221">v</a>),
-            <a href="#17">Header::Path</a>(v) =&gt; <a href="#17">Header::Path</a>(<a href="#222">v</a>),
-            <a href="#18">Header::Protocol</a>(v) =&gt; <a href="#18">Header::Protocol</a>(<a href="#223">v</a>),
-            <a href="#19">Header::Status</a>(v) =&gt; <a href="#19">Header::Status</a>(<a href="#224">v</a>),
+            Header::Authority(v) =&gt; Header::Authority(v),
+            Header::Method(v) =&gt; Header::Method(v),
+            Header::Scheme(v) =&gt; Header::Scheme(v),
+            Header::Path(v) =&gt; Header::Path(v),
+            Header::Protocol(v) =&gt; Header::Protocol(v),
+            Header::Status(v) =&gt; Header::Status(v),
         }
     }
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; Name&lt;<span class="lifetime">&#39;a</span>&gt; {
-    <span class="kw">pub fn </span>into_entry(<span class="self">self</span>, value: <a href="../../../bytes/bytes/struct.Bytes.html">Bytes</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#11">Header</a>, <a href="decoder.rs.html#27">DecoderError</a>&gt; {
-        <span class="kw">match </span><span class="self"><a href="#230">self</a> </span>{
-            <a href="#25">Name::Field</a>(name) =&gt; <span class="prelude-val">Ok</span>(<a href="#12">Header::Field</a> {
-                name: <a href="#232">name</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+    <span class="kw">pub fn </span>into_entry(<span class="self">self</span>, value: Bytes) -&gt; <span class="prelude-ty">Result</span>&lt;Header, DecoderError&gt; {
+        <span class="kw">match </span><span class="self">self </span>{
+            Name::Field(name) =&gt; <span class="prelude-val">Ok</span>(Header::Field {
+                name: name.clone(),
                 value: HeaderValue::from_bytes(<span class="kw-2">&amp;*</span>value)<span class="question-mark">?</span>,
             }),
-            <a href="#26">Name::Authority</a> =&gt; <span class="prelude-val">Ok</span>(<a href="#14">Header::Authority</a>(BytesStr::try_from(value)<span class="question-mark">?</span>)),
-            <a href="#27">Name::Method</a> =&gt; <span class="prelude-val">Ok</span>(<a href="#15">Header::Method</a>(Method::from_bytes(<span class="kw-2">&amp;*</span>value)<span class="question-mark">?</span>)),
-            <a href="#28">Name::Scheme</a> =&gt; <span class="prelude-val">Ok</span>(<a href="#16">Header::Scheme</a>(BytesStr::try_from(value)<span class="question-mark">?</span>)),
-            <a href="#29">Name::Path</a> =&gt; <span class="prelude-val">Ok</span>(<a href="#17">Header::Path</a>(BytesStr::try_from(value)<span class="question-mark">?</span>)),
-            <a href="#30">Name::Protocol</a> =&gt; <span class="prelude-val">Ok</span>(<a href="#18">Header::Protocol</a>(Protocol::try_from(value)<span class="question-mark">?</span>)),
-            <a href="#31">Name::Status</a> =&gt; {
-                <span class="kw">match </span>StatusCode::from_bytes(<span class="kw-2">&amp;</span><a href="#230">value</a>) {
-                    <span class="prelude-val">Ok</span>(status) =&gt; <span class="prelude-val">Ok</span>(<a href="#19">Header::Status</a>(<a href="#243">status</a>)),
+            Name::Authority =&gt; <span class="prelude-val">Ok</span>(Header::Authority(BytesStr::try_from(value)<span class="question-mark">?</span>)),
+            Name::Method =&gt; <span class="prelude-val">Ok</span>(Header::Method(Method::from_bytes(<span class="kw-2">&amp;*</span>value)<span class="question-mark">?</span>)),
+            Name::Scheme =&gt; <span class="prelude-val">Ok</span>(Header::Scheme(BytesStr::try_from(value)<span class="question-mark">?</span>)),
+            Name::Path =&gt; <span class="prelude-val">Ok</span>(Header::Path(BytesStr::try_from(value)<span class="question-mark">?</span>)),
+            Name::Protocol =&gt; <span class="prelude-val">Ok</span>(Header::Protocol(Protocol::try_from(value)<span class="question-mark">?</span>)),
+            Name::Status =&gt; {
+                <span class="kw">match </span>StatusCode::from_bytes(<span class="kw-2">&amp;</span>value) {
+                    <span class="prelude-val">Ok</span>(status) =&gt; <span class="prelude-val">Ok</span>(Header::Status(status)),
                     <span class="comment">// TODO: better error handling
-                    </span><span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">Err</span>(<a href="decoder.rs.html#33">DecoderError::InvalidStatusCode</a>),
+                    </span><span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">Err</span>(DecoderError::InvalidStatusCode),
                 }
             }
         }
     }
 
-    <span class="kw">pub fn </span>as_slice(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>] {
-        <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="#251">self</a> </span>{
-            <a href="#25">Name::Field</a>(<span class="kw-2">ref </span>name) =&gt; <a href="#253">name</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>(),
-            <a href="#26">Name::Authority</a> =&gt; <span class="string">b&quot;:authority&quot;</span>,
-            <a href="#27">Name::Method</a> =&gt; <span class="string">b&quot;:method&quot;</span>,
-            <a href="#28">Name::Scheme</a> =&gt; <span class="string">b&quot;:scheme&quot;</span>,
-            <a href="#29">Name::Path</a> =&gt; <span class="string">b&quot;:path&quot;</span>,
-            <a href="#30">Name::Protocol</a> =&gt; <span class="string">b&quot;:protocol&quot;</span>,
-            <a href="#31">Name::Status</a> =&gt; <span class="string">b&quot;:status&quot;</span>,
+    <span class="kw">pub fn </span>as_slice(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[u8] {
+        <span class="kw">match </span><span class="kw-2">*</span><span class="self">self </span>{
+            Name::Field(<span class="kw-2">ref </span>name) =&gt; name.as_ref(),
+            Name::Authority =&gt; <span class="string">b&quot;:authority&quot;</span>,
+            Name::Method =&gt; <span class="string">b&quot;:method&quot;</span>,
+            Name::Scheme =&gt; <span class="string">b&quot;:scheme&quot;</span>,
+            Name::Path =&gt; <span class="string">b&quot;:path&quot;</span>,
+            Name::Protocol =&gt; <span class="string">b&quot;:protocol&quot;</span>,
+            Name::Status =&gt; <span class="string">b&quot;:status&quot;</span>,
         }
     }
 }
 
 <span class="comment">// ===== impl BytesStr =====
 
-</span><span class="kw">impl </span><a href="#36">BytesStr</a> {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>from_static(value: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="self">Self </span>{
-        <a href="#36">BytesStr</a>(Bytes::from_static(<a href="#267">value</a>.as_bytes()))
+</span><span class="kw">impl </span>BytesStr {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>from_static(value: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str) -&gt; <span class="self">Self </span>{
+        BytesStr(Bytes::from_static(value.as_bytes()))
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>from(value: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="self">Self </span>{
-        <a href="#36">BytesStr</a>(Bytes::copy_from_slice(<a href="#271">value</a>.as_bytes()))
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>from(value: <span class="kw-2">&amp;</span>str) -&gt; <span class="self">Self </span>{
+        BytesStr(Bytes::copy_from_slice(value.as_bytes()))
     }
 
     <span class="attr">#[doc(hidden)]
-    </span><span class="kw">pub fn </span>try_from(bytes: <a href="../../../bytes/bytes/struct.Bytes.html">Bytes</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, <a href="https://doc.rust-lang.org/nightly/core/str/error/struct.Utf8Error.html">std::str::Utf8Error</a>&gt; {
+    </span><span class="kw">pub fn </span>try_from(bytes: Bytes) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, std::str::Utf8Error&gt; {
         std::str::from_utf8(bytes.as_ref())<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(<a href="#36">BytesStr</a>(<a href="#276">bytes</a>))
+        <span class="prelude-val">Ok</span>(BytesStr(bytes))
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>as_str(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>as_str(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>str {
         <span class="comment">// Safety: check valid utf-8 in constructor
-        </span><span class="kw">unsafe </span>{ std::str::from_utf8_unchecked(<a class="self" href="#281">self</a>.<span class="number">0</span>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>()) }
+        </span><span class="kw">unsafe </span>{ std::str::from_utf8_unchecked(<span class="self">self</span>.<span class="number">0</span>.as_ref()) }
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>into_inner(<span class="self">self</span>) -&gt; <a href="../../../bytes/bytes/struct.Bytes.html">Bytes</a> {
-        <a class="self" href="#286">self</a>.<span class="number">0
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>into_inner(<span class="self">self</span>) -&gt; Bytes {
+        <span class="self">self</span>.<span class="number">0
     </span>}
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.Deref.html">std::ops::Deref</a> <span class="kw">for </span><a href="#36">BytesStr</a> {
-    <span class="kw">type </span>Target = <a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>;
-    <span class="kw">fn </span>deref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> {
-        <a class="self" href="#293">self</a>.<a href="#281">as_str</a>()
+<span class="kw">impl </span>std::ops::Deref <span class="kw">for </span>BytesStr {
+    <span class="kw">type </span>Target = str;
+    <span class="kw">fn </span>deref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>str {
+        <span class="self">self</span>.as_str()
     }
 }
 
-<span class="kw">impl </span>AsRef&lt;[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt; <span class="kw">for </span><a href="#36">BytesStr</a> {
-    <span class="kw">fn </span>as_ref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>] {
-        <a class="self" href="#299">self</a>.<span class="number">0</span>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>()
+<span class="kw">impl </span>AsRef&lt;[u8]&gt; <span class="kw">for </span>BytesStr {
+    <span class="kw">fn </span>as_ref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[u8] {
+        <span class="self">self</span>.<span class="number">0</span>.as_ref()
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="#36">BytesStr</a> {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="self" href="#305">self</a>.<span class="number">0</span>.<a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt</a>(<a href="#305">f</a>)
+<span class="kw">impl </span>fmt::Debug <span class="kw">for </span>BytesStr {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        <span class="self">self</span>.<span class="number">0</span>.fmt(f)
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="h2" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="h2" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

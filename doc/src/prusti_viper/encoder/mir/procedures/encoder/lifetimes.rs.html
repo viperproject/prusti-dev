@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `prusti-viper/src/encoder/mir/procedures/encoder/lifetimes.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lifetimes.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../../../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../../../../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../../../../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../../../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../../../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../../../../../source-files.js"></script><script defer src="../../../../../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../../../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../../../../prusti_viper/index.html"><img class="rust-logo" src="../../../../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `prusti-viper/src/encoder/mir/procedures/encoder/lifetimes.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lifetimes.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../../../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../../../../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../../../../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../../../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../../../../source-files.js"></script><script defer src="../../../../../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../../../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../../../../prusti_viper/index.html"><img class="rust-logo" src="../../../../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -1166,234 +1166,229 @@
 <a href="#1166" id="1166">1166</a>
 <a href="#1167" id="1167">1167</a>
 <a href="#1168" id="1168">1168</a>
-<a href="#1169" id="1169">1169</a>
-<a href="#1170" id="1170">1170</a>
-<a href="#1171" id="1171">1171</a>
-<a href="#1172" id="1172">1172</a>
 </pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::encoder::{
-    errors::{<a href="../../../errors/error_manager.rs.html#52">ErrorCtxt</a>, <a href="../../../errors/spanned_encoding_error.rs.html#23">SpannedEncodingResult</a>},
+    errors::{ErrorCtxt, SpannedEncodingResult},
     mir::{
-        <a href="../../errors/interface.rs.html#13">errors::ErrorInterface</a>,
-        procedures::encoder::{<a href="mod.rs.html#65">scc</a>::<span class="kw-2">*</span>, <a href="mod.rs.html#125">ProcedureEncoder</a>},
+        errors::ErrorInterface,
+        procedures::encoder::{scc::<span class="kw-2">*</span>, ProcedureEncoder},
     },
 };
 <span class="kw">use </span>prusti_interface::environment::{
-    <a href="../../../../../../prusti_interface/environment/debug_utils/to_text/trait.ToText.html">debug_utils::to_text::ToText</a>, <a href="../../../../../../prusti_interface/environment/mir_body/borrowck/facts/enum.RichLocation.html">mir_body::borrowck::facts::RichLocation</a>,
+    debug_utils::to_text::ToText, mir_body::borrowck::facts::RichLocation,
 };
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/index.html">prusti_rustc_interface::middle::mir</a>;
-<span class="kw">use </span>std::collections::{<a href="https://doc.rust-lang.org/nightly/alloc/collections/btree/map/struct.BTreeMap.html">BTreeMap</a>, <a href="https://doc.rust-lang.org/nightly/alloc/collections/btree/set/struct.BTreeSet.html">BTreeSet</a>};
-<span class="kw">use </span>vir_crate::high::{<span class="self"><a href="../../../../../../vir/high/index.html">self</a> </span><span class="kw">as </span>vir_high, <a href="../../../../../../vir/high/builders/procedure/struct.BasicBlockBuilder.html">builders::procedure::BasicBlockBuilder</a>};
+<span class="kw">use </span>prusti_rustc_interface::middle::mir;
+<span class="kw">use </span>std::collections::{BTreeMap, BTreeSet};
+<span class="kw">use </span>vir_crate::high::{<span class="self">self </span><span class="kw">as </span>vir_high, builders::procedure::BasicBlockBuilder};
 
 <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">trait </span>LifetimesEncoder&lt;<span class="lifetime">&#39;tcx</span>&gt; {
     <span class="kw">fn </span>encode_lft_for_statement_start(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        block_builder: <span class="kw-2">&amp;mut </span><a href="../../../../../../vir/high/builders/procedure/struct.BasicBlockBuilder.html">BasicBlockBuilder</a>,
-        location: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Location.html">mir::Location</a>,
-        original_lifetimes: <span class="kw-2">&amp;mut </span>BTreeSet&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt;,
-        derived_lifetimes: <span class="kw-2">&amp;mut </span>BTreeMap&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, BTreeSet&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt;&gt;,
+        block_builder: <span class="kw-2">&amp;mut </span>BasicBlockBuilder,
+        location: mir::Location,
+        original_lifetimes: <span class="kw-2">&amp;mut </span>BTreeSet&lt;String&gt;,
+        derived_lifetimes: <span class="kw-2">&amp;mut </span>BTreeMap&lt;String, BTreeSet&lt;String&gt;&gt;,
         statement: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>mir::Statement&lt;<span class="lifetime">&#39;tcx</span>&gt;&gt;,
     ) -&gt; SpannedEncodingResult&lt;()&gt;;
     <span class="kw">fn </span>encode_lft_for_statement_mid(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        block_builder: <span class="kw-2">&amp;mut </span><a href="../../../../../../vir/high/builders/procedure/struct.BasicBlockBuilder.html">BasicBlockBuilder</a>,
-        location: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Location.html">mir::Location</a>,
-        original_lifetimes: <span class="kw-2">&amp;mut </span>BTreeSet&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt;,
-        derived_lifetimes: <span class="kw-2">&amp;mut </span>BTreeMap&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, BTreeSet&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt;&gt;,
+        block_builder: <span class="kw-2">&amp;mut </span>BasicBlockBuilder,
+        location: mir::Location,
+        original_lifetimes: <span class="kw-2">&amp;mut </span>BTreeSet&lt;String&gt;,
+        derived_lifetimes: <span class="kw-2">&amp;mut </span>BTreeMap&lt;String, BTreeSet&lt;String&gt;&gt;,
         statement: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>mir::Statement&lt;<span class="lifetime">&#39;tcx</span>&gt;&gt;,
     ) -&gt; SpannedEncodingResult&lt;()&gt;;
     <span class="kw">fn </span>reborrow_lifetimes(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         statement: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>mir::Statement&lt;<span class="lifetime">&#39;tcx</span>&gt;&gt;,
-    ) -&gt; SpannedEncodingResult&lt;<span class="prelude-ty">Option</span>&lt;(<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, BTreeSet&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt;)&gt;&gt;;
+    ) -&gt; SpannedEncodingResult&lt;<span class="prelude-ty">Option</span>&lt;(String, BTreeSet&lt;String&gt;)&gt;&gt;;
     <span class="kw">fn </span>reborrow_operand_lifetime(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         statement: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>mir::Statement&lt;<span class="lifetime">&#39;tcx</span>&gt;&gt;,
-    ) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt;;
+    ) -&gt; <span class="prelude-ty">Option</span>&lt;String&gt;;
     <span class="kw">fn </span>encode_lft_for_block(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        target: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.BasicBlock.html">mir::BasicBlock</a>,
-        location: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Location.html">mir::Location</a>,
-        block_builder: <span class="kw-2">&amp;mut </span><a href="../../../../../../vir/high/builders/procedure/struct.BasicBlockBuilder.html">BasicBlockBuilder</a>,
+        target: mir::BasicBlock,
+        location: mir::Location,
+        block_builder: <span class="kw-2">&amp;mut </span>BasicBlockBuilder,
     ) -&gt; SpannedEncodingResult&lt;()&gt;;
     <span class="kw">fn </span>encode_lft_for_block_with_edge(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        target: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.BasicBlock.html">mir::BasicBlock</a>,
-        encoded_target: <a href="../../../../../../vir/gen/high/cfg/procedure/struct.BasicBlockId.html">vir_high::BasicBlockId</a>,
-        location: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Location.html">mir::Location</a>,
-        block_builder: <span class="kw-2">&amp;mut </span><a href="../../../../../../vir/high/builders/procedure/struct.BasicBlockBuilder.html">BasicBlockBuilder</a>,
-    ) -&gt; SpannedEncodingResult&lt;<a href="../../../../../../vir/gen/high/cfg/procedure/struct.BasicBlockId.html">vir_high::BasicBlockId</a>&gt;;
+        target: mir::BasicBlock,
+        encoded_target: vir_high::BasicBlockId,
+        location: mir::Location,
+        block_builder: <span class="kw-2">&amp;mut </span>BasicBlockBuilder,
+    ) -&gt; SpannedEncodingResult&lt;vir_high::BasicBlockId&gt;;
     <span class="attr">#[allow(clippy::too_many_arguments)]
     </span><span class="kw">fn </span>encode_lft(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        block_builder: <span class="kw-2">&amp;mut </span><a href="../../../../../../vir/high/builders/procedure/struct.BasicBlockBuilder.html">BasicBlockBuilder</a>,
-        location: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Location.html">mir::Location</a>,
-        old_original_lifetimes: <span class="kw-2">&amp;mut </span>BTreeSet&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt;,
-        old_derived_lifetimes: <span class="kw-2">&amp;mut </span>BTreeMap&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, BTreeSet&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt;&gt;,
-        new_derived_lifetimes: <span class="kw-2">&amp;mut </span>BTreeMap&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, BTreeSet&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt;&gt;,
-        shorten_lifetime_takes: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-        new_reborrow_lifetime_to_remove: <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt;,
-        reborrow_lifetimes: <span class="prelude-ty">Option</span>&lt;(<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, BTreeSet&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt;)&gt;,
+        block_builder: <span class="kw-2">&amp;mut </span>BasicBlockBuilder,
+        location: mir::Location,
+        old_original_lifetimes: <span class="kw-2">&amp;mut </span>BTreeSet&lt;String&gt;,
+        old_derived_lifetimes: <span class="kw-2">&amp;mut </span>BTreeMap&lt;String, BTreeSet&lt;String&gt;&gt;,
+        new_derived_lifetimes: <span class="kw-2">&amp;mut </span>BTreeMap&lt;String, BTreeSet&lt;String&gt;&gt;,
+        shorten_lifetime_takes: bool,
+        new_reborrow_lifetime_to_remove: <span class="prelude-ty">Option</span>&lt;String&gt;,
+        reborrow_lifetimes: <span class="prelude-ty">Option</span>&lt;(String, BTreeSet&lt;String&gt;)&gt;,
     ) -&gt; SpannedEncodingResult&lt;()&gt;;
     <span class="kw">fn </span>update_lifetimes_to_remove(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        old_original_lifetimes: <span class="kw-2">&amp;</span>BTreeSet&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt;,
-        new_derived_lifetimes: <span class="kw-2">&amp;</span>BTreeMap&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, BTreeSet&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt;&gt;,
-        new_reborrow_lifetime_to_remove: <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>,
-        lifetimes_to_create: <span class="kw-2">&amp;</span>BTreeSet&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt;,
+        old_original_lifetimes: <span class="kw-2">&amp;</span>BTreeSet&lt;String&gt;,
+        new_derived_lifetimes: <span class="kw-2">&amp;</span>BTreeMap&lt;String, BTreeSet&lt;String&gt;&gt;,
+        new_reborrow_lifetime_to_remove: String,
+        lifetimes_to_create: <span class="kw-2">&amp;</span>BTreeSet&lt;String&gt;,
     );
-    <span class="kw">fn </span>remove_reborrow_lifetimes_set(<span class="kw-2">&amp;mut </span><span class="self">self</span>, set: <span class="kw-2">&amp;mut </span>BTreeSet&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt;);
-    <span class="kw">fn </span>remove_reborrow_lifetimes_map(<span class="kw-2">&amp;mut </span><span class="self">self</span>, map: <span class="kw-2">&amp;mut </span>BTreeMap&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, BTreeSet&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt;&gt;);
+    <span class="kw">fn </span>remove_reborrow_lifetimes_set(<span class="kw-2">&amp;mut </span><span class="self">self</span>, set: <span class="kw-2">&amp;mut </span>BTreeSet&lt;String&gt;);
+    <span class="kw">fn </span>remove_reborrow_lifetimes_map(<span class="kw-2">&amp;mut </span><span class="self">self</span>, map: <span class="kw-2">&amp;mut </span>BTreeMap&lt;String, BTreeSet&lt;String&gt;&gt;);
     <span class="kw">fn </span>lifetime_backups(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        old_derived_lifetimes: <span class="kw-2">&amp;</span>BTreeMap&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, BTreeSet&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt;&gt;,
-        new_derived_lifetimes: <span class="kw-2">&amp;</span>BTreeMap&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, BTreeSet&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt;&gt;,
-        lifetime_backups: <span class="kw-2">&amp;mut </span>BTreeMap&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, (<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, <a href="../../../../../../vir/gen/high/ast/expression/struct.Local.html">vir_high::Local</a>)&gt;,
+        old_derived_lifetimes: <span class="kw-2">&amp;</span>BTreeMap&lt;String, BTreeSet&lt;String&gt;&gt;,
+        new_derived_lifetimes: <span class="kw-2">&amp;</span>BTreeMap&lt;String, BTreeSet&lt;String&gt;&gt;,
+        lifetime_backups: <span class="kw-2">&amp;mut </span>BTreeMap&lt;String, (String, vir_high::Local)&gt;,
     ) -&gt; SpannedEncodingResult&lt;()&gt;;
     <span class="kw">fn </span>encode_obtain_mut_ref(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        block_builder: <span class="kw-2">&amp;mut </span><a href="../../../../../../vir/high/builders/procedure/struct.BasicBlockBuilder.html">BasicBlockBuilder</a>,
-        location: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Location.html">mir::Location</a>,
-        lifetime_backups: <span class="kw-2">&amp;</span>BTreeMap&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, (<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, <a href="../../../../../../vir/gen/high/ast/expression/struct.Local.html">vir_high::Local</a>)&gt;,
+        block_builder: <span class="kw-2">&amp;mut </span>BasicBlockBuilder,
+        location: mir::Location,
+        lifetime_backups: <span class="kw-2">&amp;</span>BTreeMap&lt;String, (String, vir_high::Local)&gt;,
     ) -&gt; SpannedEncodingResult&lt;()&gt;;
     <span class="kw">fn </span>encode_lifetime_backups(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        block_builder: <span class="kw-2">&amp;mut </span><a href="../../../../../../vir/high/builders/procedure/struct.BasicBlockBuilder.html">BasicBlockBuilder</a>,
-        location: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Location.html">mir::Location</a>,
-        lifetime_backups: <span class="kw-2">&amp;</span>BTreeMap&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, (<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, <a href="../../../../../../vir/gen/high/ast/expression/struct.Local.html">vir_high::Local</a>)&gt;,
+        block_builder: <span class="kw-2">&amp;mut </span>BasicBlockBuilder,
+        location: mir::Location,
+        lifetime_backups: <span class="kw-2">&amp;</span>BTreeMap&lt;String, (String, vir_high::Local)&gt;,
     ) -&gt; SpannedEncodingResult&lt;()&gt;;
     <span class="kw">fn </span>encode_bor_shorten(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        block_builder: <span class="kw-2">&amp;mut </span><a href="../../../../../../vir/high/builders/procedure/struct.BasicBlockBuilder.html">BasicBlockBuilder</a>,
-        location: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Location.html">mir::Location</a>,
-        lifetime_backups: <span class="kw-2">&amp;</span>BTreeMap&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, (<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, <a href="../../../../../../vir/gen/high/ast/expression/struct.Local.html">vir_high::Local</a>)&gt;,
+        block_builder: <span class="kw-2">&amp;mut </span>BasicBlockBuilder,
+        location: mir::Location,
+        lifetime_backups: <span class="kw-2">&amp;</span>BTreeMap&lt;String, (String, vir_high::Local)&gt;,
     ) -&gt; SpannedEncodingResult&lt;()&gt;;
     <span class="kw">fn </span>encode_new_lft(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        block_builder: <span class="kw-2">&amp;mut </span><a href="../../../../../../vir/high/builders/procedure/struct.BasicBlockBuilder.html">BasicBlockBuilder</a>,
-        location: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Location.html">mir::Location</a>,
-        lifetimes_to_create: <span class="kw-2">&amp;</span>BTreeSet&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt;,
+        block_builder: <span class="kw-2">&amp;mut </span>BasicBlockBuilder,
+        location: mir::Location,
+        lifetimes_to_create: <span class="kw-2">&amp;</span>BTreeSet&lt;String&gt;,
     ) -&gt; SpannedEncodingResult&lt;()&gt;;
     <span class="kw">fn </span>encode_end_lft(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        block_builder: <span class="kw-2">&amp;mut </span><a href="../../../../../../vir/high/builders/procedure/struct.BasicBlockBuilder.html">BasicBlockBuilder</a>,
-        location: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Location.html">mir::Location</a>,
-        old_original_lifetimes: <span class="kw-2">&amp;</span>BTreeSet&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt;,
-        new_original_lifetimes: <span class="kw-2">&amp;</span>BTreeSet&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt;,
+        block_builder: <span class="kw-2">&amp;mut </span>BasicBlockBuilder,
+        location: mir::Location,
+        old_original_lifetimes: <span class="kw-2">&amp;</span>BTreeSet&lt;String&gt;,
+        new_original_lifetimes: <span class="kw-2">&amp;</span>BTreeSet&lt;String&gt;,
     ) -&gt; SpannedEncodingResult&lt;()&gt;;
     <span class="kw">fn </span>encode_lft_return(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        block_builder: <span class="kw-2">&amp;mut </span><a href="../../../../../../vir/high/builders/procedure/struct.BasicBlockBuilder.html">BasicBlockBuilder</a>,
-        location: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Location.html">mir::Location</a>,
-        old_derived_lifetimes: <span class="kw-2">&amp;</span>BTreeMap&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, BTreeSet&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt;&gt;,
-        new_derived_lifetimes: <span class="kw-2">&amp;</span>BTreeMap&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, BTreeSet&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt;&gt;,
+        block_builder: <span class="kw-2">&amp;mut </span>BasicBlockBuilder,
+        location: mir::Location,
+        old_derived_lifetimes: <span class="kw-2">&amp;</span>BTreeMap&lt;String, BTreeSet&lt;String&gt;&gt;,
+        new_derived_lifetimes: <span class="kw-2">&amp;</span>BTreeMap&lt;String, BTreeSet&lt;String&gt;&gt;,
     ) -&gt; SpannedEncodingResult&lt;()&gt;;
     <span class="kw">fn </span>encode_lft_take(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        block_builder: <span class="kw-2">&amp;mut </span><a href="../../../../../../vir/high/builders/procedure/struct.BasicBlockBuilder.html">BasicBlockBuilder</a>,
-        location: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Location.html">mir::Location</a>,
-        old_derived_lifetimes: <span class="kw-2">&amp;</span>BTreeMap&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, BTreeSet&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt;&gt;,
-        new_derived_lifetimes: <span class="kw-2">&amp;</span>BTreeMap&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, BTreeSet&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt;&gt;,
-        reborrow_lifetimes: <span class="kw-2">&amp;</span><span class="prelude-ty">Option</span>&lt;(<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, BTreeSet&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt;)&gt;,
+        block_builder: <span class="kw-2">&amp;mut </span>BasicBlockBuilder,
+        location: mir::Location,
+        old_derived_lifetimes: <span class="kw-2">&amp;</span>BTreeMap&lt;String, BTreeSet&lt;String&gt;&gt;,
+        new_derived_lifetimes: <span class="kw-2">&amp;</span>BTreeMap&lt;String, BTreeSet&lt;String&gt;&gt;,
+        reborrow_lifetimes: <span class="kw-2">&amp;</span><span class="prelude-ty">Option</span>&lt;(String, BTreeSet&lt;String&gt;)&gt;,
     ) -&gt; SpannedEncodingResult&lt;()&gt;;
     <span class="kw">fn </span>encode_dead_inclusion(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        block_builder: <span class="kw-2">&amp;mut </span><a href="../../../../../../vir/high/builders/procedure/struct.BasicBlockBuilder.html">BasicBlockBuilder</a>,
-        location: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Location.html">mir::Location</a>,
-        new_original_lifetimes: <span class="kw-2">&amp;</span>BTreeSet&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt;,
+        block_builder: <span class="kw-2">&amp;mut </span>BasicBlockBuilder,
+        location: mir::Location,
+        new_original_lifetimes: <span class="kw-2">&amp;</span>BTreeSet&lt;String&gt;,
     ) -&gt; SpannedEncodingResult&lt;()&gt;;
     <span class="kw">fn </span>encode_dead_lifetime(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        block_builder: <span class="kw-2">&amp;mut </span><a href="../../../../../../vir/high/builders/procedure/struct.BasicBlockBuilder.html">BasicBlockBuilder</a>,
-        location: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Location.html">mir::Location</a>,
-        lifetime: <a href="../../../../../../vir/gen/high/ast/ty/struct.LifetimeConst.html">vir_high::ty::LifetimeConst</a>,
+        block_builder: <span class="kw-2">&amp;mut </span>BasicBlockBuilder,
+        location: mir::Location,
+        lifetime: vir_high::ty::LifetimeConst,
     ) -&gt; SpannedEncodingResult&lt;()&gt;;
     <span class="kw">fn </span>encode_lifetimes_dead_on_edge(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        block_builder: <span class="kw-2">&amp;mut </span><a href="../../../../../../vir/high/builders/procedure/struct.BasicBlockBuilder.html">BasicBlockBuilder</a>,
-        from: <a href="../../../../../../prusti_interface/environment/mir_body/borrowck/facts/enum.RichLocation.html">RichLocation</a>,
-        to: <a href="../../../../../../prusti_interface/environment/mir_body/borrowck/facts/enum.RichLocation.html">RichLocation</a>,
+        block_builder: <span class="kw-2">&amp;mut </span>BasicBlockBuilder,
+        from: RichLocation,
+        to: RichLocation,
     ) -&gt; SpannedEncodingResult&lt;()&gt;;
     <span class="kw">fn </span>encode_lft_assert_subset(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        block_builder: <span class="kw-2">&amp;mut </span><a href="../../../../../../vir/high/builders/procedure/struct.BasicBlockBuilder.html">BasicBlockBuilder</a>,
-        location: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Location.html">mir::Location</a>,
-        lifetime_lhs: <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>,
-        lifetime_rhs: <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>,
+        block_builder: <span class="kw-2">&amp;mut </span>BasicBlockBuilder,
+        location: mir::Location,
+        lifetime_lhs: String,
+        lifetime_rhs: String,
     ) -&gt; SpannedEncodingResult&lt;()&gt;;
     <span class="kw">fn </span>encode_lft_variable(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        variable_name: <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>,
-    ) -&gt; SpannedEncodingResult&lt;<a href="../../../../../../vir/gen/high/ast/variable/struct.VariableDecl.html">vir_high::VariableDecl</a>&gt;;
+        variable_name: String,
+    ) -&gt; SpannedEncodingResult&lt;vir_high::VariableDecl&gt;;
     <span class="kw">fn </span>lifetimes_to_return(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        old_derived_lifetimes: <span class="kw-2">&amp;</span>BTreeMap&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, BTreeSet&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt;&gt;,
-        new_derived_lifetimes: <span class="kw-2">&amp;</span>BTreeMap&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, BTreeSet&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt;&gt;,
-    ) -&gt; BTreeMap&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, BTreeSet&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt;&gt;;
+        old_derived_lifetimes: <span class="kw-2">&amp;</span>BTreeMap&lt;String, BTreeSet&lt;String&gt;&gt;,
+        new_derived_lifetimes: <span class="kw-2">&amp;</span>BTreeMap&lt;String, BTreeSet&lt;String&gt;&gt;,
+    ) -&gt; BTreeMap&lt;String, BTreeSet&lt;String&gt;&gt;;
     <span class="kw">fn </span>lifetimes_to_take(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        old_derived_lifetimes: <span class="kw-2">&amp;</span>BTreeMap&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, BTreeSet&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt;&gt;,
-        new_derived_lifetimes: <span class="kw-2">&amp;</span>BTreeMap&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, BTreeSet&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt;&gt;,
-    ) -&gt; BTreeMap&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, BTreeSet&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt;&gt;;
+        old_derived_lifetimes: <span class="kw-2">&amp;</span>BTreeMap&lt;String, BTreeSet&lt;String&gt;&gt;,
+        new_derived_lifetimes: <span class="kw-2">&amp;</span>BTreeMap&lt;String, BTreeSet&lt;String&gt;&gt;,
+    ) -&gt; BTreeMap&lt;String, BTreeSet&lt;String&gt;&gt;;
     <span class="kw">fn </span>lifetimes_to_end(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        old_original_lifetimes: <span class="kw-2">&amp;</span>BTreeSet&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt;,
-        new_original_lifetimes: <span class="kw-2">&amp;</span>BTreeSet&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt;,
-    ) -&gt; BTreeSet&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt;;
+        old_original_lifetimes: <span class="kw-2">&amp;</span>BTreeSet&lt;String&gt;,
+        new_original_lifetimes: <span class="kw-2">&amp;</span>BTreeSet&lt;String&gt;,
+    ) -&gt; BTreeSet&lt;String&gt;;
     <span class="kw">fn </span>lifetimes_to_create(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        old_original_lifetimes: <span class="kw-2">&amp;</span>BTreeSet&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt;,
-        new_original_lifetimes: <span class="kw-2">&amp;</span>BTreeSet&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt;,
-    ) -&gt; BTreeSet&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt;;
-    <span class="kw">fn </span>lifetime_token_fractional_permission(<span class="kw-2">&amp;</span><span class="self">self</span>, denominator: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a href="../../../../../../vir/gen/high/ast/expression/enum.Expression.html">vir_high::Expression</a>;
+        old_original_lifetimes: <span class="kw-2">&amp;</span>BTreeSet&lt;String&gt;,
+        new_original_lifetimes: <span class="kw-2">&amp;</span>BTreeSet&lt;String&gt;,
+    ) -&gt; BTreeSet&lt;String&gt;;
+    <span class="kw">fn </span>lifetime_token_fractional_permission(<span class="kw-2">&amp;</span><span class="self">self</span>, denominator: usize) -&gt; vir_high::Expression;
     <span class="kw">fn </span>encode_lifetime_specifications(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-    ) -&gt; SpannedEncodingResult&lt;(Vec&lt;<a href="../../../../../../vir/gen/high/ast/statement/enum.Statement.html">vir_high::Statement</a>&gt;, Vec&lt;<a href="../../../../../../vir/gen/high/ast/statement/enum.Statement.html">vir_high::Statement</a>&gt;)&gt;;
+    ) -&gt; SpannedEncodingResult&lt;(Vec&lt;vir_high::Statement&gt;, Vec&lt;vir_high::Statement&gt;)&gt;;
     <span class="kw">fn </span>identical_lifetimes_map(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        existing_lifetimes: BTreeSet&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt;,
-        relations: BTreeSet&lt;(<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>)&gt;,
-    ) -&gt; BTreeMap&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt;;
-    <span class="kw">fn </span>opaque_lifetimes(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; SpannedEncodingResult&lt;Vec&lt;<a href="../../../../../../vir/gen/high/ast/ty/struct.LifetimeConst.html">vir_high::ty::LifetimeConst</a>&gt;&gt;;
+        existing_lifetimes: BTreeSet&lt;String&gt;,
+        relations: BTreeSet&lt;(String, String)&gt;,
+    ) -&gt; BTreeMap&lt;String, String&gt;;
+    <span class="kw">fn </span>opaque_lifetimes(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; SpannedEncodingResult&lt;Vec&lt;vir_high::ty::LifetimeConst&gt;&gt;;
     <span class="kw">fn </span>encode_inhale_lifetime_token(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        lifetime_const: <a href="../../../../../../vir/gen/high/ast/ty/struct.LifetimeConst.html">vir_high::ty::LifetimeConst</a>,
-        permission_amount: <a href="../../../../../../vir/gen/high/ast/expression/enum.Expression.html">vir_high::Expression</a>,
-    ) -&gt; SpannedEncodingResult&lt;<a href="../../../../../../vir/gen/high/ast/statement/enum.Statement.html">vir_high::Statement</a>&gt;;
+        lifetime_const: vir_high::ty::LifetimeConst,
+        permission_amount: vir_high::Expression,
+    ) -&gt; SpannedEncodingResult&lt;vir_high::Statement&gt;;
     <span class="kw">fn </span>encode_inhale_lifetime_tokens(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        block_builder: <span class="kw-2">&amp;mut </span><a href="../../../../../../vir/high/builders/procedure/struct.BasicBlockBuilder.html">BasicBlockBuilder</a>,
-        lifetime_names: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>],
-        permission_divisor_mult: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+        block_builder: <span class="kw-2">&amp;mut </span>BasicBlockBuilder,
+        lifetime_names: <span class="kw-2">&amp;</span>[String],
+        permission_divisor_mult: usize,
     ) -&gt; SpannedEncodingResult&lt;()&gt;;
     <span class="kw">fn </span>encode_exhale_lifetime_token(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        lifetime_const: <a href="../../../../../../vir/gen/high/ast/ty/struct.LifetimeConst.html">vir_high::ty::LifetimeConst</a>,
-        permission_amount: <a href="../../../../../../vir/gen/high/ast/expression/enum.Expression.html">vir_high::Expression</a>,
-    ) -&gt; SpannedEncodingResult&lt;<a href="../../../../../../vir/gen/high/ast/statement/enum.Statement.html">vir_high::Statement</a>&gt;;
+        lifetime_const: vir_high::ty::LifetimeConst,
+        permission_amount: vir_high::Expression,
+    ) -&gt; SpannedEncodingResult&lt;vir_high::Statement&gt;;
     <span class="kw">fn </span>encode_exhale_lifetime_tokens(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        block_builder: <span class="kw-2">&amp;mut </span><a href="../../../../../../vir/high/builders/procedure/struct.BasicBlockBuilder.html">BasicBlockBuilder</a>,
-        lifetime_names: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>],
-        permission_divisor_mult: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+        block_builder: <span class="kw-2">&amp;mut </span>BasicBlockBuilder,
+        lifetime_names: <span class="kw-2">&amp;</span>[String],
+        permission_divisor_mult: usize,
     ) -&gt; SpannedEncodingResult&lt;()&gt;;
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;p</span>, <span class="lifetime">&#39;v</span>: <span class="lifetime">&#39;p</span>, <span class="lifetime">&#39;tcx</span>: <span class="lifetime">&#39;v</span>&gt; LifetimesEncoder&lt;<span class="lifetime">&#39;tcx</span>&gt; <span class="kw">for </span>ProcedureEncoder&lt;<span class="lifetime">&#39;p</span>, <span class="lifetime">&#39;v</span>, <span class="lifetime">&#39;tcx</span>&gt; {
     <span class="kw">fn </span>encode_lft_for_statement_start(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        block_builder: <span class="kw-2">&amp;mut </span><a href="../../../../../../vir/high/builders/procedure/struct.BasicBlockBuilder.html">BasicBlockBuilder</a>,
-        location: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Location.html">mir::Location</a>,
-        original_lifetimes: <span class="kw-2">&amp;mut </span>BTreeSet&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt;,
-        derived_lifetimes: <span class="kw-2">&amp;mut </span>BTreeMap&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, BTreeSet&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt;&gt;,
+        block_builder: <span class="kw-2">&amp;mut </span>BasicBlockBuilder,
+        location: mir::Location,
+        original_lifetimes: <span class="kw-2">&amp;mut </span>BTreeSet&lt;String&gt;,
+        derived_lifetimes: <span class="kw-2">&amp;mut </span>BTreeMap&lt;String, BTreeSet&lt;String&gt;&gt;,
         statement: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>mir::Statement&lt;<span class="lifetime">&#39;tcx</span>&gt;&gt;,
     ) -&gt; SpannedEncodingResult&lt;()&gt; {
-        <span class="kw">let </span><span class="kw-2">mut </span>new_derived_lifetimes = <a class="self" href="#211">self</a>.lifetimes.get_origin_contains_loan_at_start(<a href="#213">location</a>);
-        <a href="#212">block_builder</a>.add_comment(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(
-            <span class="string">&quot;Prepare lifetimes for statement start {:?}&quot;</span>,
-            location
-        ));
-        <span class="kw">let </span>new_reborrow_lifetime_to_ignore: <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt; =
-            <a class="self" href="#211">self</a>.<a href="#36-39">reborrow_operand_lifetime</a>(<a href="#216">statement</a>);
+        <span class="kw">let </span><span class="kw-2">mut </span>new_derived_lifetimes = <span class="self">self</span>.lifetimes.get_origin_contains_loan_at_start(location);
+        block_builder.add_comment(<span class="macro">format!</span>(
+            <span class="string">&quot;Prepare lifetimes for statement start {location:?}&quot;
+        </span>));
+        <span class="kw">let </span>new_reborrow_lifetime_to_ignore: <span class="prelude-ty">Option</span>&lt;String&gt; =
+            <span class="self">self</span>.reborrow_operand_lifetime(statement);
         <span class="self">self</span>.encode_lft(
             block_builder,
             location,
@@ -1409,19 +1404,16 @@
 
     <span class="kw">fn </span>encode_lft_for_statement_mid(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        block_builder: <span class="kw-2">&amp;mut </span><a href="../../../../../../vir/high/builders/procedure/struct.BasicBlockBuilder.html">BasicBlockBuilder</a>,
-        location: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Location.html">mir::Location</a>,
-        original_lifetimes: <span class="kw-2">&amp;mut </span>BTreeSet&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt;,
-        derived_lifetimes: <span class="kw-2">&amp;mut </span>BTreeMap&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, BTreeSet&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt;&gt;,
+        block_builder: <span class="kw-2">&amp;mut </span>BasicBlockBuilder,
+        location: mir::Location,
+        original_lifetimes: <span class="kw-2">&amp;mut </span>BTreeSet&lt;String&gt;,
+        derived_lifetimes: <span class="kw-2">&amp;mut </span>BTreeMap&lt;String, BTreeSet&lt;String&gt;&gt;,
         statement: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>mir::Statement&lt;<span class="lifetime">&#39;tcx</span>&gt;&gt;,
     ) -&gt; SpannedEncodingResult&lt;()&gt; {
-        <span class="kw">let </span><span class="kw-2">mut </span>new_derived_lifetimes = <a class="self" href="#239">self</a>.lifetimes.get_origin_contains_loan_at_mid(<a href="#241">location</a>);
-        <a href="#240">block_builder</a>.add_comment(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(
-            <span class="string">&quot;Prepare lifetimes for statement mid {:?}&quot;</span>,
-            location
-        ));
-        <span class="kw">let </span>new_reborrow_lifetime_to_ignore: <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt; =
-            <a class="self" href="#239">self</a>.<a href="#36-39">reborrow_operand_lifetime</a>(<a href="#244">statement</a>);
+        <span class="kw">let </span><span class="kw-2">mut </span>new_derived_lifetimes = <span class="self">self</span>.lifetimes.get_origin_contains_loan_at_mid(location);
+        block_builder.add_comment(<span class="macro">format!</span>(<span class="string">&quot;Prepare lifetimes for statement mid {location:?}&quot;</span>));
+        <span class="kw">let </span>new_reborrow_lifetime_to_ignore: <span class="prelude-ty">Option</span>&lt;String&gt; =
+            <span class="self">self</span>.reborrow_operand_lifetime(statement);
         <span class="comment">// FIXME: The lifetimes read via the reborrow statement are currently not killed.
         </span><span class="kw">let </span>reborrow_lifetimes = <span class="self">self</span>.reborrow_lifetimes(statement)<span class="question-mark">?</span>;
         <span class="self">self</span>.encode_lft(
@@ -1440,25 +1432,25 @@
     <span class="kw">fn </span>reborrow_lifetimes(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         statement: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>mir::Statement&lt;<span class="lifetime">&#39;tcx</span>&gt;&gt;,
-    ) -&gt; SpannedEncodingResult&lt;<span class="prelude-ty">Option</span>&lt;(<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, BTreeSet&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt;)&gt;&gt; {
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(statement) = <a href="#270">statement</a> {
+    ) -&gt; SpannedEncodingResult&lt;<span class="prelude-ty">Option</span>&lt;(String, BTreeSet&lt;String&gt;)&gt;&gt; {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(statement) = statement {
             <span class="kw">if let </span>mir::StatementKind::Assign(<span class="kw">box </span>(
                 target,
                 mir::Rvalue::Ref(region, _borrow_kind, place),
-            )) = <span class="kw-2">&amp;</span><a href="#272">statement</a>.kind
+            )) = <span class="kw-2">&amp;</span>statement.kind
             {
-                <span class="kw">let </span>target_lifetime = <a class="self" href="#269">self</a>.procedure.get_lifetime_of_var(<a href="#274">target</a>.local);
-                <span class="kw">let </span>operand_lifetime: <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a> = <a href="#275">region</a>.<a href="../../../../../../prusti_interface/environment/debug_utils/to_text/trait.ToText.html">to_text</a>();
-                <span class="kw">if let </span><span class="prelude-val">Some</span>((reference, _projection)) = <a href="#275">place</a>.iter_projections().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">last</a>() {
-                    <span class="kw">let </span>value_lifetime = <a class="self" href="#269">self</a>.procedure.get_lifetime_of_var(<a href="#280">reference</a>.local);
+                <span class="kw">let </span>target_lifetime = <span class="self">self</span>.procedure.get_lifetime_of_var(target.local);
+                <span class="kw">let </span>operand_lifetime: String = region.to_text();
+                <span class="kw">if let </span><span class="prelude-val">Some</span>((reference, _projection)) = place.iter_projections().last() {
+                    <span class="kw">let </span>value_lifetime = <span class="self">self</span>.procedure.get_lifetime_of_var(reference.local);
                     <span class="kw">if let </span>(<span class="prelude-val">Some</span>(target_lifetime), <span class="prelude-val">Some</span>(value_lifetime)) =
-                        (<a href="#278">target_lifetime</a>, <a href="#281">value_lifetime</a>)
+                        (target_lifetime, value_lifetime)
                     {
-                        <span class="kw">let </span>values = [<a href="#279">operand_lifetime</a>, <a href="#282">target_lifetime</a>]
+                        <span class="kw">let </span>values = [operand_lifetime, target_lifetime]
                             .iter()
-                            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">cloned</a>()
-                            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
-                        <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>((<a href="#282">value_lifetime</a>, <a href="#285">values</a>)));
+                            .cloned()
+                            .collect();
+                        <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>((value_lifetime, values)));
                     }
                 }
             }
@@ -1469,17 +1461,17 @@
     <span class="kw">fn </span>reborrow_operand_lifetime(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         statement: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>mir::Statement&lt;<span class="lifetime">&#39;tcx</span>&gt;&gt;,
-    ) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt; {
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(statement) = <a href="#299">statement</a> {
+    ) -&gt; <span class="prelude-ty">Option</span>&lt;String&gt; {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(statement) = statement {
             <span class="kw">if let </span>mir::StatementKind::Assign(<span class="kw">box </span>(
                 _target,
                 mir::Rvalue::Ref(region, _borrow_kind, place),
-            )) = <span class="kw-2">&amp;</span><a href="#301">statement</a>.kind
+            )) = <span class="kw-2">&amp;</span>statement.kind
             {
-                <span class="kw">let </span>region_name: <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a> = <a href="#304">region</a>.<a href="../../../../../../prusti_interface/environment/debug_utils/to_text/trait.ToText.html">to_text</a>();
-                <span class="kw">if let </span><span class="prelude-val">Some</span>((_ref, projection)) = <a href="#304">place</a>.iter_projections().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">last</a>() {
+                <span class="kw">let </span>region_name: String = region.to_text();
+                <span class="kw">if let </span><span class="prelude-val">Some</span>((_ref, projection)) = place.iter_projections().last() {
                     <span class="kw">if </span>projection == mir::ProjectionElem::Deref {
-                        <span class="kw">return </span><span class="prelude-val">Some</span>(<a href="#307">region_name</a>);
+                        <span class="kw">return </span><span class="prelude-val">Some</span>(region_name);
                     }
                 }
             }
@@ -1489,15 +1481,15 @@
 
     <span class="kw">fn </span>encode_lft_for_block(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        target: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.BasicBlock.html">mir::BasicBlock</a>,
-        location: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Location.html">mir::Location</a>,
-        block_builder: <span class="kw-2">&amp;mut </span><a href="../../../../../../vir/high/builders/procedure/struct.BasicBlockBuilder.html">BasicBlockBuilder</a>,
+        target: mir::BasicBlock,
+        location: mir::Location,
+        block_builder: <span class="kw-2">&amp;mut </span>BasicBlockBuilder,
     ) -&gt; SpannedEncodingResult&lt;()&gt; {
-        <span class="kw">let </span><span class="kw-2">mut </span>needed_derived_lifetimes = <a class="self" href="#319">self</a>.<a href="mod.rs.html#1157-1160">needed_derived_lifetimes_for_block</a>(<span class="kw-2">&amp;</span><a href="#320">target</a>);
+        <span class="kw">let </span><span class="kw-2">mut </span>needed_derived_lifetimes = <span class="self">self</span>.needed_derived_lifetimes_for_block(<span class="kw-2">&amp;</span>target);
         <span class="kw">let </span><span class="kw-2">mut </span>current_derived_lifetimes =
-            <a class="self" href="#319">self</a>.lifetimes.get_origin_contains_loan_at_mid(<a href="#321">location</a>);
-        <span class="kw">let </span><span class="kw-2">mut </span>current_original_lifetimes = <a class="self" href="#319">self</a>.lifetimes.get_loan_live_at_start(<a href="#321">location</a>);
-        <a href="#322">block_builder</a>.add_comment(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;Prepare lifetimes for block {:?}&quot;</span>, target));
+            <span class="self">self</span>.lifetimes.get_origin_contains_loan_at_mid(location);
+        <span class="kw">let </span><span class="kw-2">mut </span>current_original_lifetimes = <span class="self">self</span>.lifetimes.get_loan_live_at_start(location);
+        block_builder.add_comment(<span class="macro">format!</span>(<span class="string">&quot;Prepare lifetimes for block {target:?}&quot;</span>));
         <span class="self">self</span>.encode_lft(
             block_builder,
             location,
@@ -1508,36 +1500,36 @@
             <span class="prelude-val">None</span>,
             <span class="prelude-val">None</span>,
         )<span class="question-mark">?</span>;
-        <a class="self" href="#319">self</a>.reborrow_lifetimes_to_remove_for_block
-            .entry(<a href="#320">target</a>)
+        <span class="self">self</span>.reborrow_lifetimes_to_remove_for_block
+            .entry(target)
             .or_insert_with(BTreeSet::new);
-        <span class="kw">let </span><span class="kw-2">mut </span>values = <span class="self"><a href="#319">self</a>
+        <span class="kw">let </span><span class="kw-2">mut </span>values = <span class="self">self
             </span>.reborrow_lifetimes_to_remove_for_block
-            .get(<span class="kw-2">&amp;</span><a class="self" href="#319">self</a>.current_basic_block.unwrap())
+            .get(<span class="kw-2">&amp;</span><span class="self">self</span>.current_basic_block.unwrap())
             .unwrap()
-            .<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
-        <a class="self" href="#319">self</a>.reborrow_lifetimes_to_remove_for_block
-            .get_mut(<span class="kw-2">&amp;</span><a href="#320">target</a>)
+            .clone();
+        <span class="self">self</span>.reborrow_lifetimes_to_remove_for_block
+            .get_mut(<span class="kw-2">&amp;</span>target)
             .unwrap()
-            .append(<span class="kw-2">&amp;mut </span><a href="#342">values</a>);
+            .append(<span class="kw-2">&amp;mut </span>values);
         <span class="prelude-val">Ok</span>(())
     }
 
     <span class="kw">fn </span>encode_lft_for_block_with_edge(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        target: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.BasicBlock.html">mir::BasicBlock</a>,
-        encoded_target: <a href="../../../../../../vir/gen/high/cfg/procedure/struct.BasicBlockId.html">vir_high::BasicBlockId</a>,
-        location: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Location.html">mir::Location</a>,
-        block_builder: <span class="kw-2">&amp;mut </span><a href="../../../../../../vir/high/builders/procedure/struct.BasicBlockBuilder.html">BasicBlockBuilder</a>,
-    ) -&gt; SpannedEncodingResult&lt;<a href="../../../../../../vir/gen/high/cfg/procedure/struct.BasicBlockId.html">vir_high::BasicBlockId</a>&gt; {
-        <span class="kw">let </span><span class="kw-2">mut </span>needed_derived_lifetimes = <a class="self" href="#355">self</a>.<a href="mod.rs.html#1157-1160">needed_derived_lifetimes_for_block</a>(<span class="kw-2">&amp;</span><a href="#356">target</a>);
+        target: mir::BasicBlock,
+        encoded_target: vir_high::BasicBlockId,
+        location: mir::Location,
+        block_builder: <span class="kw-2">&amp;mut </span>BasicBlockBuilder,
+    ) -&gt; SpannedEncodingResult&lt;vir_high::BasicBlockId&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>needed_derived_lifetimes = <span class="self">self</span>.needed_derived_lifetimes_for_block(<span class="kw-2">&amp;</span>target);
         <span class="kw">let </span><span class="kw-2">mut </span>current_derived_lifetimes =
-            <a class="self" href="#355">self</a>.lifetimes.get_origin_contains_loan_at_mid(<a href="#358">location</a>);
-        <span class="kw">let </span><span class="kw-2">mut </span>current_original_lifetimes = <a class="self" href="#355">self</a>.lifetimes.get_loan_live_at_start(<a href="#358">location</a>);
-        <span class="kw">let </span>fresh_destination_label = <a class="self" href="#355">self</a>.<a href="mod.rs.html#1867">fresh_basic_block_label</a>();
+            <span class="self">self</span>.lifetimes.get_origin_contains_loan_at_mid(location);
+        <span class="kw">let </span><span class="kw-2">mut </span>current_original_lifetimes = <span class="self">self</span>.lifetimes.get_loan_live_at_start(location);
+        <span class="kw">let </span>fresh_destination_label = <span class="self">self</span>.fresh_basic_block_label();
         <span class="kw">let </span><span class="kw-2">mut </span>intermediate_block_builder =
-            <a href="#359">block_builder</a>.create_basic_block_builder(<a href="#365">fresh_destination_label</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
-        <a href="#366">intermediate_block_builder</a>.add_comment(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;Prepare lifetimes for block {:?}&quot;</span>, target));
+            block_builder.create_basic_block_builder(fresh_destination_label.clone());
+        intermediate_block_builder.add_comment(<span class="macro">format!</span>(<span class="string">&quot;Prepare lifetimes for block {target:?}&quot;</span>));
         <span class="self">self</span>.encode_lft(
             <span class="kw-2">&amp;mut </span>intermediate_block_builder,
             location,
@@ -1548,56 +1540,56 @@
             <span class="prelude-val">None</span>,
             <span class="prelude-val">None</span>,
         )<span class="question-mark">?</span>;
-        <a class="self" href="#355">self</a>.reborrow_lifetimes_to_remove_for_block
-            .entry(<a href="#356">target</a>)
+        <span class="self">self</span>.reborrow_lifetimes_to_remove_for_block
+            .entry(target)
             .or_insert_with(BTreeSet::new);
-        <span class="kw">let </span><span class="kw-2">mut </span>values = <span class="self"><a href="#355">self</a>
+        <span class="kw">let </span><span class="kw-2">mut </span>values = <span class="self">self
             </span>.reborrow_lifetimes_to_remove_for_block
-            .get(<span class="kw-2">&amp;</span><a class="self" href="#355">self</a>.current_basic_block.unwrap())
+            .get(<span class="kw-2">&amp;</span><span class="self">self</span>.current_basic_block.unwrap())
             .unwrap()
-            .<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
-        <a class="self" href="#355">self</a>.reborrow_lifetimes_to_remove_for_block
-            .get_mut(<span class="kw-2">&amp;</span><a href="#356">target</a>)
+            .clone();
+        <span class="self">self</span>.reborrow_lifetimes_to_remove_for_block
+            .get_mut(<span class="kw-2">&amp;</span>target)
             .unwrap()
-            .append(<span class="kw-2">&amp;mut </span><a href="#382">values</a>);
-        <a href="#366">intermediate_block_builder</a>.set_successor_jump(vir_high::Successor::Goto(<a href="#357">encoded_target</a>));
-        <a href="#366">intermediate_block_builder</a>.build();
-        <span class="prelude-val">Ok</span>(<a href="#365">fresh_destination_label</a>)
+            .append(<span class="kw-2">&amp;mut </span>values);
+        intermediate_block_builder.set_successor_jump(vir_high::Successor::Goto(encoded_target));
+        intermediate_block_builder.build();
+        <span class="prelude-val">Ok</span>(fresh_destination_label)
     }
 
     <span class="doccomment">/// Adds all statements needed for the encoding of the location.
     </span><span class="kw">fn </span>encode_lft(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        block_builder: <span class="kw-2">&amp;mut </span><a href="../../../../../../vir/high/builders/procedure/struct.BasicBlockBuilder.html">BasicBlockBuilder</a>,
-        location: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Location.html">mir::Location</a>,
-        old_original_lifetimes: <span class="kw-2">&amp;mut </span>BTreeSet&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt;,
-        old_derived_lifetimes: <span class="kw-2">&amp;mut </span>BTreeMap&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, BTreeSet&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt;&gt;,
-        new_derived_lifetimes: <span class="kw-2">&amp;mut </span>BTreeMap&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, BTreeSet&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt;&gt;,
-        shorten_lifetimes: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-        new_reborrow_lifetime_to_remove: <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt;,
-        reborrow_lifetimes: <span class="prelude-ty">Option</span>&lt;(<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, BTreeSet&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt;)&gt;,
+        block_builder: <span class="kw-2">&amp;mut </span>BasicBlockBuilder,
+        location: mir::Location,
+        old_original_lifetimes: <span class="kw-2">&amp;mut </span>BTreeSet&lt;String&gt;,
+        old_derived_lifetimes: <span class="kw-2">&amp;mut </span>BTreeMap&lt;String, BTreeSet&lt;String&gt;&gt;,
+        new_derived_lifetimes: <span class="kw-2">&amp;mut </span>BTreeMap&lt;String, BTreeSet&lt;String&gt;&gt;,
+        shorten_lifetimes: bool,
+        new_reborrow_lifetime_to_remove: <span class="prelude-ty">Option</span>&lt;String&gt;,
+        reborrow_lifetimes: <span class="prelude-ty">Option</span>&lt;(String, BTreeSet&lt;String&gt;)&gt;,
     ) -&gt; SpannedEncodingResult&lt;()&gt; {
-        <span class="kw">let </span><span class="kw-2">mut </span>new_original_lifetimes: BTreeSet&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt; = <a href="#403">new_derived_lifetimes</a>
-            .<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()
+        <span class="kw">let </span><span class="kw-2">mut </span>new_original_lifetimes: BTreeSet&lt;String&gt; = new_derived_lifetimes
+            .clone()
             .into_values()
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">flatten</a>()
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
+            .flatten()
+            .collect();
         <span class="kw">let </span><span class="kw-2">mut </span>lifetimes_to_create =
-            <a class="self" href="#398">self</a>.<a href="#170-174">lifetimes_to_create</a>(<a href="#401">old_original_lifetimes</a>, <span class="kw-2">&amp;</span><a href="#408">new_original_lifetimes</a>);
-        <span class="kw">let </span><span class="kw-2">mut </span>lifetime_backups: BTreeMap&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, (<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, <a href="../../../../../../vir/gen/high/ast/expression/struct.Local.html">vir_high::Local</a>)&gt; = BTreeMap::new();
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(new_reborrow_lifetime_to_remove) = <a href="#405">new_reborrow_lifetime_to_remove</a> {
-            <a class="self" href="#398">self</a>.<a href="#65-71">update_lifetimes_to_remove</a>(
-                <a href="#401">old_original_lifetimes</a>,
-                <a href="#403">new_derived_lifetimes</a>,
-                <a href="#416">new_reborrow_lifetime_to_remove</a>,
-                <span class="kw-2">&amp;</span><a href="#413">lifetimes_to_create</a>,
+            <span class="self">self</span>.lifetimes_to_create(old_original_lifetimes, <span class="kw-2">&amp;</span>new_original_lifetimes);
+        <span class="kw">let </span><span class="kw-2">mut </span>lifetime_backups: BTreeMap&lt;String, (String, vir_high::Local)&gt; = BTreeMap::new();
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(new_reborrow_lifetime_to_remove) = new_reborrow_lifetime_to_remove {
+            <span class="self">self</span>.update_lifetimes_to_remove(
+                old_original_lifetimes,
+                new_derived_lifetimes,
+                new_reborrow_lifetime_to_remove,
+                <span class="kw-2">&amp;</span>lifetimes_to_create,
             );
         }
-        <a class="self" href="#398">self</a>.<a href="#72">remove_reborrow_lifetimes_set</a>(<span class="kw-2">&amp;mut </span><a href="#413">lifetimes_to_create</a>);
-        <a class="self" href="#398">self</a>.<a href="#72">remove_reborrow_lifetimes_set</a>(<span class="kw-2">&amp;mut </span><a href="#408">new_original_lifetimes</a>);
-        <a class="self" href="#398">self</a>.<a href="#72">remove_reborrow_lifetimes_set</a>(<a href="#401">old_original_lifetimes</a>);
-        <a class="self" href="#398">self</a>.<a href="#73">remove_reborrow_lifetimes_map</a>(<a href="#402">old_derived_lifetimes</a>);
-        <a class="self" href="#398">self</a>.<a href="#73">remove_reborrow_lifetimes_map</a>(<a href="#403">new_derived_lifetimes</a>);
+        <span class="self">self</span>.remove_reborrow_lifetimes_set(<span class="kw-2">&amp;mut </span>lifetimes_to_create);
+        <span class="self">self</span>.remove_reborrow_lifetimes_set(<span class="kw-2">&amp;mut </span>new_original_lifetimes);
+        <span class="self">self</span>.remove_reborrow_lifetimes_set(old_original_lifetimes);
+        <span class="self">self</span>.remove_reborrow_lifetimes_map(old_derived_lifetimes);
+        <span class="self">self</span>.remove_reborrow_lifetimes_map(new_derived_lifetimes);
         <span class="kw">if </span>shorten_lifetimes {
             <span class="self">self</span>.lifetime_backups(
                 old_derived_lifetimes,
@@ -1632,19 +1624,19 @@
         )<span class="question-mark">?</span>;
         <span class="self">self</span>.encode_bor_shorten(block_builder, location, <span class="kw-2">&amp;</span>lifetime_backups)<span class="question-mark">?</span>;
 
-        <span class="kw-2">*</span><a href="#401">old_original_lifetimes</a> = <a href="#408">new_original_lifetimes</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
-        <span class="kw-2">*</span><a href="#402">old_derived_lifetimes</a> = <a href="#403">new_derived_lifetimes</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
+        <span class="kw-2">*</span>old_original_lifetimes = new_original_lifetimes.clone();
+        <span class="kw-2">*</span>old_derived_lifetimes = new_derived_lifetimes.clone();
         <span class="prelude-val">Ok</span>(())
     }
 
     <span class="kw">fn </span>update_lifetimes_to_remove(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        old_original_lifetimes: <span class="kw-2">&amp;</span>BTreeSet&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt;,
-        new_derived_lifetimes: <span class="kw-2">&amp;</span>BTreeMap&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, BTreeSet&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt;&gt;,
-        lifetime_to_ignore: <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>,
-        lifetimes_to_create: <span class="kw-2">&amp;</span>BTreeSet&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt;,
+        old_original_lifetimes: <span class="kw-2">&amp;</span>BTreeSet&lt;String&gt;,
+        new_derived_lifetimes: <span class="kw-2">&amp;</span>BTreeMap&lt;String, BTreeSet&lt;String&gt;&gt;,
+        lifetime_to_ignore: String,
+        lifetimes_to_create: <span class="kw-2">&amp;</span>BTreeSet&lt;String&gt;,
     ) {
-        <span class="kw">let </span><span class="kw-2">mut </span>new_lifetimes_to_ignore: BTreeSet&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt; = BTreeSet::new();
+        <span class="kw">let </span><span class="kw-2">mut </span>new_lifetimes_to_ignore: BTreeSet&lt;String&gt; = BTreeSet::new();
         <span class="kw">for </span>(lifetime, derived_from) <span class="kw">in </span>new_derived_lifetimes.clone() {
             <span class="comment">// NOTE: if the lifetime is not derived from at least one already existing
             //   original lifetime, we can not delete the lifetimes it is derived from.
@@ -1663,54 +1655,54 @@
                     .collect();
             }
         }
-        <a class="self" href="#469">self</a>.reborrow_lifetimes_to_remove_for_block
-            .get_mut(<span class="kw-2">&amp;</span><a class="self" href="#469">self</a>.current_basic_block.unwrap())
+        <span class="self">self</span>.reborrow_lifetimes_to_remove_for_block
+            .get_mut(<span class="kw-2">&amp;</span><span class="self">self</span>.current_basic_block.unwrap())
             .unwrap()
-            .append(<span class="kw-2">&amp;mut </span><a href="#475">new_lifetimes_to_ignore</a>);
+            .append(<span class="kw-2">&amp;mut </span>new_lifetimes_to_ignore);
     }
 
-    <span class="kw">fn </span>remove_reborrow_lifetimes_set(<span class="kw-2">&amp;mut </span><span class="self">self</span>, set: <span class="kw-2">&amp;mut </span>BTreeSet&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt;) {
-        <span class="kw-2">*</span><a href="#500">set</a> = <a href="#500">set</a>
-            .<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()
+    <span class="kw">fn </span>remove_reborrow_lifetimes_set(<span class="kw-2">&amp;mut </span><span class="self">self</span>, set: <span class="kw-2">&amp;mut </span>BTreeSet&lt;String&gt;) {
+        <span class="kw-2">*</span>set = set
+            .clone()
             .iter()
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter</a>(|<span class="kw-2">&amp;</span>lft| {
-                !<span class="self"><a href="#500">self</a>
+            .filter(|<span class="kw-2">&amp;</span>lft| {
+                !<span class="self">self
                     </span>.reborrow_lifetimes_to_remove_for_block
-                    .get(<span class="kw-2">&amp;</span><a class="self" href="#500">self</a>.current_basic_block.unwrap())
+                    .get(<span class="kw-2">&amp;</span><span class="self">self</span>.current_basic_block.unwrap())
                     .unwrap()
-                    .contains(<a href="#504">lft</a>)
+                    .contains(lft)
             })
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">cloned</a>()
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
+            .cloned()
+            .collect();
     }
 
-    <span class="kw">fn </span>remove_reborrow_lifetimes_map(<span class="kw-2">&amp;mut </span><span class="self">self</span>, map: <span class="kw-2">&amp;mut </span>BTreeMap&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, BTreeSet&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt;&gt;) {
-        <span class="kw-2">*</span><a href="#515">map</a> = <a href="#515">map</a>
-            .<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()
+    <span class="kw">fn </span>remove_reborrow_lifetimes_map(<span class="kw-2">&amp;mut </span><span class="self">self</span>, map: <span class="kw-2">&amp;mut </span>BTreeMap&lt;String, BTreeSet&lt;String&gt;&gt;) {
+        <span class="kw-2">*</span>map = map
+            .clone()
             .iter()
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|(lifetime, derived_from)| {
-                <span class="kw">let </span>updated_derived_from: BTreeSet&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt; = <a href="#519">derived_from</a>
-                    .<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()
+            .map(|(lifetime, derived_from)| {
+                <span class="kw">let </span>updated_derived_from: BTreeSet&lt;String&gt; = derived_from
+                    .clone()
                     .iter()
-                    .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter</a>(|<span class="kw-2">&amp;</span>lft| {
-                        !<span class="self"><a href="#515">self</a>
+                    .filter(|<span class="kw-2">&amp;</span>lft| {
+                        !<span class="self">self
                             </span>.reborrow_lifetimes_to_remove_for_block
-                            .get(<span class="kw-2">&amp;</span><a class="self" href="#515">self</a>.current_basic_block.unwrap())
+                            .get(<span class="kw-2">&amp;</span><span class="self">self</span>.current_basic_block.unwrap())
                             .unwrap()
-                            .contains(<a href="#523">lft</a>)
+                            .contains(lft)
                     })
-                    .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">cloned</a>()
-                    .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
-                (<a href="#519">lifetime</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), <a href="#520">updated_derived_from</a>)
+                    .cloned()
+                    .collect();
+                (lifetime.clone(), updated_derived_from)
             })
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
+            .collect();
     }
 
     <span class="kw">fn </span>encode_bor_shorten(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        block_builder: <span class="kw-2">&amp;mut </span><a href="../../../../../../vir/high/builders/procedure/struct.BasicBlockBuilder.html">BasicBlockBuilder</a>,
-        location: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Location.html">mir::Location</a>,
-        lifetime_backups: <span class="kw-2">&amp;</span>BTreeMap&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, (<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, <a href="../../../../../../vir/gen/high/ast/expression/struct.Local.html">vir_high::Local</a>)&gt;,
+        block_builder: <span class="kw-2">&amp;mut </span>BasicBlockBuilder,
+        location: mir::Location,
+        lifetime_backups: <span class="kw-2">&amp;</span>BTreeMap&lt;String, (String, vir_high::Local)&gt;,
     ) -&gt; SpannedEncodingResult&lt;()&gt; {
         <span class="kw">for </span>(lifetime, (old_lifetime, object)) <span class="kw">in </span>lifetime_backups {
             block_builder.add_statement(<span class="self">self</span>.set_statement_error(
@@ -1733,9 +1725,9 @@
 
     <span class="kw">fn </span>lifetime_backups(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        old_derived_lifetimes: <span class="kw-2">&amp;</span>BTreeMap&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, BTreeSet&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt;&gt;,
-        new_derived_lifetimes: <span class="kw-2">&amp;</span>BTreeMap&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, BTreeSet&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt;&gt;,
-        lifetime_backups: <span class="kw-2">&amp;mut </span>BTreeMap&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, (<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, <a href="../../../../../../vir/gen/high/ast/expression/struct.Local.html">vir_high::Local</a>)&gt;,
+        old_derived_lifetimes: <span class="kw-2">&amp;</span>BTreeMap&lt;String, BTreeSet&lt;String&gt;&gt;,
+        new_derived_lifetimes: <span class="kw-2">&amp;</span>BTreeMap&lt;String, BTreeSet&lt;String&gt;&gt;,
+        lifetime_backups: <span class="kw-2">&amp;mut </span>BTreeMap&lt;String, (String, vir_high::Local)&gt;,
     ) -&gt; SpannedEncodingResult&lt;()&gt; {
         <span class="kw">for </span>(lifetime, <span class="kw">_</span>) <span class="kw">in </span>old_derived_lifetimes.clone() {
             <span class="kw">if </span>new_derived_lifetimes.contains_key(<span class="kw-2">&amp;</span>lifetime) {
@@ -1753,9 +1745,9 @@
 
     <span class="kw">fn </span>encode_obtain_mut_ref(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        block_builder: <span class="kw-2">&amp;mut </span><a href="../../../../../../vir/high/builders/procedure/struct.BasicBlockBuilder.html">BasicBlockBuilder</a>,
-        location: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Location.html">mir::Location</a>,
-        lifetime_backups: <span class="kw-2">&amp;</span>BTreeMap&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, (<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, <a href="../../../../../../vir/gen/high/ast/expression/struct.Local.html">vir_high::Local</a>)&gt;,
+        block_builder: <span class="kw-2">&amp;mut </span>BasicBlockBuilder,
+        location: mir::Location,
+        lifetime_backups: <span class="kw-2">&amp;</span>BTreeMap&lt;String, (String, vir_high::Local)&gt;,
     ) -&gt; SpannedEncodingResult&lt;()&gt; {
         <span class="kw">for </span>(lifetime, (_backup_var_name, object)) <span class="kw">in </span>lifetime_backups {
             block_builder.add_statement(<span class="self">self</span>.set_statement_error(
@@ -1774,9 +1766,9 @@
 
     <span class="kw">fn </span>encode_lifetime_backups(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        block_builder: <span class="kw-2">&amp;mut </span><a href="../../../../../../vir/high/builders/procedure/struct.BasicBlockBuilder.html">BasicBlockBuilder</a>,
-        location: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Location.html">mir::Location</a>,
-        lifetime_backups: <span class="kw-2">&amp;</span>BTreeMap&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, (<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, <a href="../../../../../../vir/gen/high/ast/expression/struct.Local.html">vir_high::Local</a>)&gt;,
+        block_builder: <span class="kw-2">&amp;mut </span>BasicBlockBuilder,
+        location: mir::Location,
+        lifetime_backups: <span class="kw-2">&amp;</span>BTreeMap&lt;String, (String, vir_high::Local)&gt;,
     ) -&gt; SpannedEncodingResult&lt;()&gt; {
         <span class="kw">for </span>(lifetime, (backup_var_name, _object)) <span class="kw">in </span>lifetime_backups {
             <span class="kw">let </span>lifetime_var = vir_high::VariableDecl::new(lifetime, vir_high::ty::Type::Lifetime);
@@ -1797,9 +1789,9 @@
 
     <span class="kw">fn </span>encode_new_lft(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        block_builder: <span class="kw-2">&amp;mut </span><a href="../../../../../../vir/high/builders/procedure/struct.BasicBlockBuilder.html">BasicBlockBuilder</a>,
-        location: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Location.html">mir::Location</a>,
-        lifetimes_to_create: <span class="kw-2">&amp;</span>BTreeSet&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt;,
+        block_builder: <span class="kw-2">&amp;mut </span>BasicBlockBuilder,
+        location: mir::Location,
+        lifetimes_to_create: <span class="kw-2">&amp;</span>BTreeSet&lt;String&gt;,
     ) -&gt; SpannedEncodingResult&lt;()&gt; {
         <span class="kw">for </span>lifetime <span class="kw">in </span>lifetimes_to_create {
             <span class="kw">let </span>lifetime_var = vir_high::VariableDecl::new(lifetime, vir_high::ty::Type::Lifetime);
@@ -1814,13 +1806,13 @@
 
     <span class="kw">fn </span>encode_end_lft(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        block_builder: <span class="kw-2">&amp;mut </span><a href="../../../../../../vir/high/builders/procedure/struct.BasicBlockBuilder.html">BasicBlockBuilder</a>,
-        location: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Location.html">mir::Location</a>,
-        old_original_lifetimes: <span class="kw-2">&amp;</span>BTreeSet&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt;,
-        new_original_lifetimes: <span class="kw-2">&amp;</span>BTreeSet&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt;,
+        block_builder: <span class="kw-2">&amp;mut </span>BasicBlockBuilder,
+        location: mir::Location,
+        old_original_lifetimes: <span class="kw-2">&amp;</span>BTreeSet&lt;String&gt;,
+        new_original_lifetimes: <span class="kw-2">&amp;</span>BTreeSet&lt;String&gt;,
     ) -&gt; SpannedEncodingResult&lt;()&gt; {
-        <span class="kw">let </span>lifetimes_to_end: BTreeSet&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt; =
-            <a class="self" href="#644">self</a>.<a href="#165-169">lifetimes_to_end</a>(<a href="#647">old_original_lifetimes</a>, <a href="#648">new_original_lifetimes</a>);
+        <span class="kw">let </span>lifetimes_to_end: BTreeSet&lt;String&gt; =
+            <span class="self">self</span>.lifetimes_to_end(old_original_lifetimes, new_original_lifetimes);
         <span class="kw">for </span>lifetime <span class="kw">in </span>lifetimes_to_end {
             <span class="kw">let </span>lifetime_var = vir_high::VariableDecl::new(lifetime, vir_high::ty::Type::Lifetime);
             block_builder.add_statement(<span class="self">self</span>.set_statement_error(
@@ -1834,13 +1826,13 @@
 
     <span class="kw">fn </span>encode_lft_return(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        block_builder: <span class="kw-2">&amp;mut </span><a href="../../../../../../vir/high/builders/procedure/struct.BasicBlockBuilder.html">BasicBlockBuilder</a>,
-        location: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Location.html">mir::Location</a>,
-        old_derived_lifetimes: <span class="kw-2">&amp;</span>BTreeMap&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, BTreeSet&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt;&gt;,
-        new_derived_lifetimes: <span class="kw-2">&amp;</span>BTreeMap&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, BTreeSet&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt;&gt;,
+        block_builder: <span class="kw-2">&amp;mut </span>BasicBlockBuilder,
+        location: mir::Location,
+        old_derived_lifetimes: <span class="kw-2">&amp;</span>BTreeMap&lt;String, BTreeSet&lt;String&gt;&gt;,
+        new_derived_lifetimes: <span class="kw-2">&amp;</span>BTreeMap&lt;String, BTreeSet&lt;String&gt;&gt;,
     ) -&gt; SpannedEncodingResult&lt;()&gt; {
         <span class="kw">let </span>lifetimes_to_return =
-            <a class="self" href="#664">self</a>.<a href="#155-159">lifetimes_to_return</a>(<a href="#667">old_derived_lifetimes</a>, <a href="#668">new_derived_lifetimes</a>);
+            <span class="self">self</span>.lifetimes_to_return(old_derived_lifetimes, new_derived_lifetimes);
         <span class="kw">for </span>(lifetime, derived_from) <span class="kw">in </span>lifetimes_to_return {
             <span class="kw">let </span>encoded_target = <span class="self">self</span>.encode_lft_variable(lifetime.clone())<span class="question-mark">?</span>;
             <span class="kw">let </span><span class="kw-2">mut </span>lifetimes: Vec&lt;vir_high::VariableDecl&gt; = Vec::new();
@@ -1864,14 +1856,14 @@
 
     <span class="kw">fn </span>encode_lft_take(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        block_builder: <span class="kw-2">&amp;mut </span><a href="../../../../../../vir/high/builders/procedure/struct.BasicBlockBuilder.html">BasicBlockBuilder</a>,
-        location: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Location.html">mir::Location</a>,
-        old_derived_lifetimes: <span class="kw-2">&amp;</span>BTreeMap&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, BTreeSet&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt;&gt;,
-        new_derived_lifetimes: <span class="kw-2">&amp;</span>BTreeMap&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, BTreeSet&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt;&gt;,
-        reborrow_lifetimes: <span class="kw-2">&amp;</span><span class="prelude-ty">Option</span>&lt;(<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, BTreeSet&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt;)&gt;,
+        block_builder: <span class="kw-2">&amp;mut </span>BasicBlockBuilder,
+        location: mir::Location,
+        old_derived_lifetimes: <span class="kw-2">&amp;</span>BTreeMap&lt;String, BTreeSet&lt;String&gt;&gt;,
+        new_derived_lifetimes: <span class="kw-2">&amp;</span>BTreeMap&lt;String, BTreeSet&lt;String&gt;&gt;,
+        reborrow_lifetimes: <span class="kw-2">&amp;</span><span class="prelude-ty">Option</span>&lt;(String, BTreeSet&lt;String&gt;)&gt;,
     ) -&gt; SpannedEncodingResult&lt;()&gt; {
         <span class="kw">let </span>lifetimes_to_take =
-            <a class="self" href="#694">self</a>.<a href="#160-164">lifetimes_to_take</a>(<a href="#697">old_derived_lifetimes</a>, <a href="#698">new_derived_lifetimes</a>);
+            <span class="self">self</span>.lifetimes_to_take(old_derived_lifetimes, new_derived_lifetimes);
         <span class="kw">for </span>(lifetime, derived_from) <span class="kw">in </span>lifetimes_to_take {
             <span class="kw">let </span>encoded_target = <span class="self">self</span>.encode_lft_variable(lifetime.clone())<span class="question-mark">?</span>;
             <span class="kw">let </span><span class="kw-2">mut </span>lifetimes: Vec&lt;vir_high::VariableDecl&gt; = Vec::new();
@@ -1890,7 +1882,7 @@
                 ),
             )<span class="question-mark">?</span>);
         }
-        <span class="kw">if let </span><span class="prelude-val">Some</span>((value_lifetime, lifetimes)) = <a href="#699">reborrow_lifetimes</a> {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>((value_lifetime, lifetimes)) = reborrow_lifetimes {
             <span class="kw">let </span>existing_lifetime = [<span class="self">self</span>.encode_lft_variable(value_lifetime.clone())<span class="question-mark">?</span>].to_vec();
             <span class="kw">for </span>lifetime <span class="kw">in </span>lifetimes {
                 <span class="kw">if </span>!new_derived_lifetimes.contains_key(lifetime) {
@@ -1912,9 +1904,9 @@
 
     <span class="kw">fn </span>encode_dead_inclusion(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        block_builder: <span class="kw-2">&amp;mut </span><a href="../../../../../../vir/high/builders/procedure/struct.BasicBlockBuilder.html">BasicBlockBuilder</a>,
-        location: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Location.html">mir::Location</a>,
-        new_original_lifetimes: <span class="kw-2">&amp;</span>BTreeSet&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt;,
+        block_builder: <span class="kw-2">&amp;mut </span>BasicBlockBuilder,
+        location: mir::Location,
+        new_original_lifetimes: <span class="kw-2">&amp;</span>BTreeSet&lt;String&gt;,
     ) -&gt; SpannedEncodingResult&lt;()&gt; {
         <span class="kw">for </span>(lifetime, derived_from_lifetimes) <span class="kw">in </span><span class="self">self</span>.derived_lifetimes_yet_to_kill.clone() {
             <span class="kw">for </span>derived_from <span class="kw">in </span>derived_from_lifetimes.iter() {
@@ -1936,11 +1928,11 @@
 
     <span class="kw">fn </span>encode_dead_lifetime(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        block_builder: <span class="kw-2">&amp;mut </span><a href="../../../../../../vir/high/builders/procedure/struct.BasicBlockBuilder.html">BasicBlockBuilder</a>,
-        location: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Location.html">mir::Location</a>,
-        lifetime: <a href="../../../../../../vir/gen/high/ast/ty/struct.LifetimeConst.html">vir_high::ty::LifetimeConst</a>,
+        block_builder: <span class="kw-2">&amp;mut </span>BasicBlockBuilder,
+        location: mir::Location,
+        lifetime: vir_high::ty::LifetimeConst,
     ) -&gt; SpannedEncodingResult&lt;()&gt; {
-        <a href="#767">block_builder</a>.add_statement(<span class="self">self</span>.set_statement_error(
+        block_builder.add_statement(<span class="self">self</span>.set_statement_error(
             location,
             ErrorCtxt::LifetimeEncoding,
             vir_high::Statement::dead_lifetime_no_pos(lifetime),
@@ -1950,9 +1942,9 @@
 
     <span class="kw">fn </span>encode_lifetimes_dead_on_edge(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        block_builder: <span class="kw-2">&amp;mut </span><a href="../../../../../../vir/high/builders/procedure/struct.BasicBlockBuilder.html">BasicBlockBuilder</a>,
-        from: <a href="../../../../../../prusti_interface/environment/mir_body/borrowck/facts/enum.RichLocation.html">RichLocation</a>,
-        to: <a href="../../../../../../prusti_interface/environment/mir_body/borrowck/facts/enum.RichLocation.html">RichLocation</a>,
+        block_builder: <span class="kw-2">&amp;mut </span>BasicBlockBuilder,
+        from: RichLocation,
+        to: RichLocation,
     ) -&gt; SpannedEncodingResult&lt;()&gt; {
         <span class="kw">for </span>lifetime <span class="kw">in </span><span class="self">self</span>.lifetimes.get_lifetimes_dead_on_edge(from, to) {
             <span class="self">self</span>.encode_dead_lifetime(
@@ -1966,10 +1958,10 @@
 
     <span class="kw">fn </span>encode_lft_assert_subset(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        block_builder: <span class="kw-2">&amp;mut </span><a href="../../../../../../vir/high/builders/procedure/struct.BasicBlockBuilder.html">BasicBlockBuilder</a>,
-        location: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Location.html">mir::Location</a>,
-        lifetime_lhs: <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>,
-        lifetime_rhs: <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>,
+        block_builder: <span class="kw-2">&amp;mut </span>BasicBlockBuilder,
+        location: mir::Location,
+        lifetime_lhs: String,
+        lifetime_rhs: String,
     ) -&gt; SpannedEncodingResult&lt;()&gt; {
         <span class="kw">let </span>assert_statement = <span class="self">self</span>.encoder.set_statement_error_ctxt(
             vir_high::Statement::assert_no_pos(vir_high::Expression::builtin_func_app_no_pos(
@@ -1993,7 +1985,7 @@
             ErrorCtxt::LifetimeEncoding,
             <span class="self">self</span>.def_id,
         )<span class="question-mark">?</span>;
-        <a href="#797">block_builder</a>.add_statement(<span class="self">self</span>.set_statement_error(
+        block_builder.add_statement(<span class="self">self</span>.set_statement_error(
             location,
             ErrorCtxt::LifetimeEncoding,
             assert_statement,
@@ -2003,10 +1995,10 @@
 
     <span class="kw">fn </span>encode_lft_variable(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        variable_name: <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>,
-    ) -&gt; SpannedEncodingResult&lt;<a href="../../../../../../vir/gen/high/ast/variable/struct.VariableDecl.html">vir_high::VariableDecl</a>&gt; {
+        variable_name: String,
+    ) -&gt; SpannedEncodingResult&lt;vir_high::VariableDecl&gt; {
         <span class="prelude-val">Ok</span>(vir_high::VariableDecl::new(
-            <a href="#834">variable_name</a>,
+            variable_name,
             vir_high::Type::Lifetime,
         ))
     }
@@ -2016,10 +2008,10 @@
     ///  - the lifetimes it depends on have changed
     </span><span class="kw">fn </span>lifetimes_to_return(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        old_derived_lifetimes: <span class="kw-2">&amp;</span>BTreeMap&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, BTreeSet&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt;&gt;,
-        new_derived_lifetimes: <span class="kw-2">&amp;</span>BTreeMap&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, BTreeSet&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt;&gt;,
-    ) -&gt; BTreeMap&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, BTreeSet&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt;&gt; {
-        <span class="kw">let </span><span class="kw-2">mut </span>derived_lifetimes_return: BTreeMap&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, BTreeSet&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt;&gt; = BTreeMap::new();
+        old_derived_lifetimes: <span class="kw-2">&amp;</span>BTreeMap&lt;String, BTreeSet&lt;String&gt;&gt;,
+        new_derived_lifetimes: <span class="kw-2">&amp;</span>BTreeMap&lt;String, BTreeSet&lt;String&gt;&gt;,
+    ) -&gt; BTreeMap&lt;String, BTreeSet&lt;String&gt;&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>derived_lifetimes_return: BTreeMap&lt;String, BTreeSet&lt;String&gt;&gt; = BTreeMap::new();
         <span class="kw">for </span>(lft, old_values) <span class="kw">in </span>old_derived_lifetimes.clone() {
             <span class="kw">if </span>!new_derived_lifetimes.contains_key(<span class="kw-2">&amp;</span>lft) {
                 derived_lifetimes_return.insert(lft.clone(), old_values.clone());
@@ -2030,7 +2022,7 @@
                 }
             }
         }
-        <a href="#850">derived_lifetimes_return</a>
+        derived_lifetimes_return
     }
 
     <span class="doccomment">/// A lifetime can be taken if:
@@ -2038,10 +2030,10 @@
     ///  - the lifetimes it depends on have changed
     </span><span class="kw">fn </span>lifetimes_to_take(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        old_derived_lifetimes: <span class="kw-2">&amp;</span>BTreeMap&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, BTreeSet&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt;&gt;,
-        new_derived_lifetimes: <span class="kw-2">&amp;</span>BTreeMap&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, BTreeSet&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt;&gt;,
-    ) -&gt; BTreeMap&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, BTreeSet&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt;&gt; {
-        <span class="kw">let </span><span class="kw-2">mut </span>derived_lifetimes_take: BTreeMap&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, BTreeSet&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt;&gt; = BTreeMap::new();
+        old_derived_lifetimes: <span class="kw-2">&amp;</span>BTreeMap&lt;String, BTreeSet&lt;String&gt;&gt;,
+        new_derived_lifetimes: <span class="kw-2">&amp;</span>BTreeMap&lt;String, BTreeSet&lt;String&gt;&gt;,
+    ) -&gt; BTreeMap&lt;String, BTreeSet&lt;String&gt;&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>derived_lifetimes_take: BTreeMap&lt;String, BTreeSet&lt;String&gt;&gt; = BTreeMap::new();
         <span class="kw">for </span>(lft, new_values) <span class="kw">in </span>new_derived_lifetimes.clone() {
             <span class="kw">if </span>!old_derived_lifetimes.contains_key(<span class="kw-2">&amp;</span>lft) {
                 derived_lifetimes_take.insert(lft.clone(), new_values.clone());
@@ -2052,55 +2044,55 @@
                 }
             }
         }
-        <a href="#872">derived_lifetimes_take</a>
+        derived_lifetimes_take
     }
 
     <span class="kw">fn </span>lifetimes_to_end(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        old_original_lifetimes: <span class="kw-2">&amp;</span>BTreeSet&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt;,
-        new_original_lifetimes: <span class="kw-2">&amp;</span>BTreeSet&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt;,
-    ) -&gt; BTreeSet&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt; {
-        <a href="#888">old_original_lifetimes</a>
-            .<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter</a>(|x| !<a href="#889">new_original_lifetimes</a>.contains(<a href="#894">x</a>))
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>()
+        old_original_lifetimes: <span class="kw-2">&amp;</span>BTreeSet&lt;String&gt;,
+        new_original_lifetimes: <span class="kw-2">&amp;</span>BTreeSet&lt;String&gt;,
+    ) -&gt; BTreeSet&lt;String&gt; {
+        old_original_lifetimes
+            .clone()
+            .into_iter()
+            .filter(|x| !new_original_lifetimes.contains(x))
+            .collect()
     }
 
     <span class="kw">fn </span>lifetimes_to_create(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        old_original_lifetimes: <span class="kw-2">&amp;</span>BTreeSet&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt;,
-        new_original_lifetimes: <span class="kw-2">&amp;</span>BTreeSet&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt;,
-    ) -&gt; BTreeSet&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt; {
-        <a href="#901">new_original_lifetimes</a>
-            .<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter</a>(|x| !<a href="#900">old_original_lifetimes</a>.contains(<a href="#906">x</a>))
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>()
+        old_original_lifetimes: <span class="kw-2">&amp;</span>BTreeSet&lt;String&gt;,
+        new_original_lifetimes: <span class="kw-2">&amp;</span>BTreeSet&lt;String&gt;,
+    ) -&gt; BTreeSet&lt;String&gt; {
+        new_original_lifetimes
+            .clone()
+            .into_iter()
+            .filter(|x| !old_original_lifetimes.contains(x))
+            .collect()
     }
 
-    <span class="kw">fn </span>lifetime_token_fractional_permission(<span class="kw-2">&amp;</span><span class="self">self</span>, denominator: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a href="../../../../../../vir/gen/high/ast/expression/enum.Expression.html">vir_high::Expression</a> {
+    <span class="kw">fn </span>lifetime_token_fractional_permission(<span class="kw-2">&amp;</span><span class="self">self</span>, denominator: usize) -&gt; vir_high::Expression {
         <span class="kw">let </span>denominator_expr = vir_high::Expression::constant_no_pos(
-            vir_high::expression::ConstantValue::BigInt(<a href="#910">denominator</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>()),
+            vir_high::expression::ConstantValue::BigInt(denominator.to_string()),
             vir_high::ty::Type::MPerm,
         );
         vir_high::Expression::binary_op_no_pos(
             vir_high::BinaryOpKind::Div,
-            <a class="self" href="#910">self</a>.lifetime_token_permission.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>().unwrap().<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
-            <a href="#911">denominator_expr</a>,
+            <span class="self">self</span>.lifetime_token_permission.clone().unwrap().into(),
+            denominator_expr,
         )
     }
 
     <span class="kw">fn </span>encode_lifetime_specifications(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-    ) -&gt; SpannedEncodingResult&lt;(Vec&lt;<a href="../../../../../../vir/gen/high/ast/statement/enum.Statement.html">vir_high::Statement</a>&gt;, Vec&lt;<a href="../../../../../../vir/gen/high/ast/statement/enum.Statement.html">vir_high::Statement</a>&gt;)&gt; {
-        <span class="kw">let </span><span class="kw-2">mut </span>preconditions = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[vir_high::Statement::comment(
+    ) -&gt; SpannedEncodingResult&lt;(Vec&lt;vir_high::Statement&gt;, Vec&lt;vir_high::Statement&gt;)&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>preconditions = <span class="macro">vec!</span>[vir_high::Statement::comment(
             <span class="string">&quot;Lifetime preconditions.&quot;</span>.to_string(),
         )];
         <span class="comment">// Make sure the lifetime_token_permissino is &gt; none and &lt; write
         </span><span class="kw">let </span>none_permission = vir_high::Expression::none_permission();
         <span class="kw">let </span>full_permission = vir_high::Expression::full_permission();
-        <a href="#925">preconditions</a>.push(<span class="self">self</span>.encoder.set_statement_error_ctxt(
+        preconditions.push(<span class="self">self</span>.encoder.set_statement_error_ctxt(
             vir_high::Statement::assume_no_pos(vir_high::Expression::binary_op_no_pos(
                 vir_high::BinaryOpKind::GtCmp,
                 <span class="self">self</span>.lifetime_token_permission.clone().unwrap().into(),
@@ -2110,7 +2102,7 @@
             ErrorCtxt::LifetimeInhale,
             <span class="self">self</span>.def_id,
         )<span class="question-mark">?</span>);
-        <a href="#925">preconditions</a>.push(<span class="self">self</span>.encoder.set_statement_error_ctxt(
+        preconditions.push(<span class="self">self</span>.encoder.set_statement_error_ctxt(
             vir_high::Statement::assume_no_pos(vir_high::Expression::binary_op_no_pos(
                 vir_high::BinaryOpKind::LtCmp,
                 <span class="self">self</span>.lifetime_token_permission.clone().unwrap().into(),
@@ -2131,13 +2123,13 @@
             preconditions.push(inhale_statement);
         }
         <span class="comment">// Precondition: take lifetimes.
-        </span><span class="kw">let </span>first_location = <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Location.html">mir::Location</a> {
+        </span><span class="kw">let </span>first_location = mir::Location {
             block: mir::START_BLOCK,
             statement_index: <span class="number">0</span>,
         };
-        <span class="kw">let </span>derived_lifetimes = <span class="self"><a href="#923">self</a>
+        <span class="kw">let </span>derived_lifetimes = <span class="self">self
             </span>.lifetimes
-            .get_origin_contains_loan_at_start(<a href="#962">first_location</a>);
+            .get_origin_contains_loan_at_start(first_location);
         <span class="kw">for </span>(derived, opaque) <span class="kw">in </span><span class="kw-2">&amp;</span>derived_lifetimes {
             <span class="comment">// TODO: Remove duplication with encode_lft_take and encode_lft_return
             </span><span class="kw">let </span>encoded_target = <span class="self">self</span>.encode_lft_variable(derived.clone())<span class="question-mark">?</span>;
@@ -2159,7 +2151,7 @@
         }
 
         <span class="comment">// Postcondition: Exhale (inhaled) LifetimeTokens
-        </span><span class="kw">let </span><span class="kw-2">mut </span>postconditions = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[vir_high::Statement::comment(
+        </span><span class="kw">let </span><span class="kw-2">mut </span>postconditions = <span class="macro">vec!</span>[vir_high::Statement::comment(
             <span class="string">&quot;Lifetime postconditions.&quot;</span>.to_string(),
         )];
         <span class="kw">for </span>(derived, opaque) <span class="kw">in </span><span class="kw-2">&amp;</span>derived_lifetimes {
@@ -2189,22 +2181,22 @@
             postconditions.push(exhale_statement);
         }
 
-        <span class="prelude-val">Ok</span>((<a href="#925">preconditions</a>, <a href="#990">postconditions</a>))
+        <span class="prelude-val">Ok</span>((preconditions, postconditions))
     }
 
     <span class="kw">fn </span>identical_lifetimes_map(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        existing_lifetimes: BTreeSet&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt;,
-        relations: BTreeSet&lt;(<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>)&gt;,
-    ) -&gt; BTreeMap&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt; {
-        <span class="kw">let </span>unique_lifetimes: BTreeSet&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt; = <a href="#1026">relations</a>
+        existing_lifetimes: BTreeSet&lt;String&gt;,
+        relations: BTreeSet&lt;(String, String)&gt;,
+    ) -&gt; BTreeMap&lt;String, String&gt; {
+        <span class="kw">let </span>unique_lifetimes: BTreeSet&lt;String&gt; = relations
             .iter()
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">flat_map</a>(|(x, y)| [<a href="#1030">x</a>, <a href="#1030">y</a>])
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">cloned</a>()
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
-        <span class="kw">let </span>n = <a href="#1028">unique_lifetimes</a>.len();
-        <span class="kw">let </span><span class="kw-2">mut </span>lft_enumarate: BTreeMap&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; = BTreeMap::new();
-        <span class="kw">let </span><span class="kw-2">mut </span>lft_enumarate_rev: BTreeMap&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt; = BTreeMap::new();
+            .flat_map(|(x, y)| [x, y])
+            .cloned()
+            .collect();
+        <span class="kw">let </span>n = unique_lifetimes.len();
+        <span class="kw">let </span><span class="kw-2">mut </span>lft_enumarate: BTreeMap&lt;String, usize&gt; = BTreeMap::new();
+        <span class="kw">let </span><span class="kw-2">mut </span>lft_enumarate_rev: BTreeMap&lt;usize, String&gt; = BTreeMap::new();
 
         <span class="kw">for </span>(i, e) <span class="kw">in </span>unique_lifetimes.iter().enumerate() {
             lft_enumarate.insert(e.to_string(), i);
@@ -2212,18 +2204,18 @@
         }
 
         <span class="kw">let </span>graph = {
-            <span class="kw">let </span><span class="kw-2">mut </span>g = Graph::new(<a href="#1033">n</a>);
+            <span class="kw">let </span><span class="kw-2">mut </span>g = Graph::new(n);
             <span class="kw">for </span>(k, v) <span class="kw">in </span>relations {
                 g.add_edge(
                     <span class="kw-2">*</span>lft_enumarate.get(<span class="kw-2">&amp;</span>k[..]).unwrap(),
                     <span class="kw-2">*</span>lft_enumarate.get(<span class="kw-2">&amp;</span>v[..]).unwrap(),
                 );
             }
-            <a href="#1043">g</a>
+            g
         };
 
         <span class="comment">// compute strongly connected components
-        </span><span class="kw">let </span><span class="kw-2">mut </span>identical_lifetimes: BTreeSet&lt;BTreeSet&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt;&gt; = BTreeSet::new();
+        </span><span class="kw">let </span><span class="kw-2">mut </span>identical_lifetimes: BTreeSet&lt;BTreeSet&lt;String&gt;&gt; = BTreeSet::new();
         <span class="kw">for </span>component <span class="kw">in </span>Tarjan::walk(<span class="kw-2">&amp;</span>graph) {
             identical_lifetimes.insert(
                 component
@@ -2235,7 +2227,7 @@
         }
 
         <span class="comment">// put data in correct shape
-        </span><span class="kw">let </span><span class="kw-2">mut </span>identical_lifetimes_map: BTreeMap&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt; = BTreeMap::new();
+        </span><span class="kw">let </span><span class="kw-2">mut </span>identical_lifetimes_map: BTreeMap&lt;String, String&gt; = BTreeMap::new();
         <span class="kw">for </span>component <span class="kw">in </span>identical_lifetimes {
             <span class="kw">let </span>existing_component_lifetims: BTreeSet&lt;String&gt; = component
                 .iter()
@@ -2258,39 +2250,39 @@
                 </span>}
             }
         }
-        <a href="#1066">identical_lifetimes_map</a>
+        identical_lifetimes_map
     }
 
-    <span class="kw">fn </span>opaque_lifetimes(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; SpannedEncodingResult&lt;Vec&lt;<a href="../../../../../../vir/gen/high/ast/ty/struct.LifetimeConst.html">vir_high::ty::LifetimeConst</a>&gt;&gt; {
-        <span class="prelude-val">Ok</span>(<span class="self"><a href="#1092">self</a>
+    <span class="kw">fn </span>opaque_lifetimes(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; SpannedEncodingResult&lt;Vec&lt;vir_high::ty::LifetimeConst&gt;&gt; {
+        <span class="prelude-val">Ok</span>(<span class="self">self
             </span>.lifetimes
             .get_opaque_lifetimes_with_names()
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(vir_high::ty::LifetimeConst::new)
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>())
+            .into_iter()
+            .map(vir_high::ty::LifetimeConst::new)
+            .collect())
     }
 
     <span class="kw">fn </span>encode_inhale_lifetime_token(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        lifetime_const: <a href="../../../../../../vir/gen/high/ast/ty/struct.LifetimeConst.html">vir_high::ty::LifetimeConst</a>,
-        permission_amount: <a href="../../../../../../vir/gen/high/ast/expression/enum.Expression.html">vir_high::Expression</a>,
-    ) -&gt; SpannedEncodingResult&lt;<a href="../../../../../../vir/gen/high/ast/statement/enum.Statement.html">vir_high::Statement</a>&gt; {
-        <a class="self" href="#1102">self</a>.encoder.<a href="../../errors/interface.rs.html#57-63">set_statement_error_ctxt</a>(
+        lifetime_const: vir_high::ty::LifetimeConst,
+        permission_amount: vir_high::Expression,
+    ) -&gt; SpannedEncodingResult&lt;vir_high::Statement&gt; {
+        <span class="self">self</span>.encoder.set_statement_error_ctxt(
             vir_high::Statement::inhale_no_pos(vir_high::Predicate::lifetime_token_no_pos(
-                <a href="#1103">lifetime_const</a>,
-                <a href="#1104">permission_amount</a>,
+                lifetime_const,
+                permission_amount,
             )),
-            <a class="self" href="#1102">self</a>.mir.span,
-            <a href="../../../errors/error_manager.rs.html#165">ErrorCtxt::LifetimeInhale</a>,
-            <a class="self" href="#1102">self</a>.def_id,
+            <span class="self">self</span>.mir.span,
+            ErrorCtxt::LifetimeInhale,
+            <span class="self">self</span>.def_id,
         )
     }
 
     <span class="kw">fn </span>encode_inhale_lifetime_tokens(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        block_builder: <span class="kw-2">&amp;mut </span><a href="../../../../../../vir/high/builders/procedure/struct.BasicBlockBuilder.html">BasicBlockBuilder</a>,
-        lifetime_names: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>],
-        permission_divisor_mult: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+        block_builder: <span class="kw-2">&amp;mut </span>BasicBlockBuilder,
+        lifetime_names: <span class="kw-2">&amp;</span>[String],
+        permission_divisor_mult: usize,
     ) -&gt; SpannedEncodingResult&lt;()&gt; {
         <span class="kw">for </span>lifetime <span class="kw">in </span>lifetime_names {
             <span class="kw">let </span>statement = <span class="self">self</span>.encode_inhale_lifetime_token(
@@ -2308,25 +2300,25 @@
 
     <span class="kw">fn </span>encode_exhale_lifetime_token(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        lifetime_const: <a href="../../../../../../vir/gen/high/ast/ty/struct.LifetimeConst.html">vir_high::ty::LifetimeConst</a>,
-        permission_amount: <a href="../../../../../../vir/gen/high/ast/expression/enum.Expression.html">vir_high::Expression</a>,
-    ) -&gt; SpannedEncodingResult&lt;<a href="../../../../../../vir/gen/high/ast/statement/enum.Statement.html">vir_high::Statement</a>&gt; {
-        <a class="self" href="#1138">self</a>.encoder.<a href="../../errors/interface.rs.html#57-63">set_statement_error_ctxt</a>(
+        lifetime_const: vir_high::ty::LifetimeConst,
+        permission_amount: vir_high::Expression,
+    ) -&gt; SpannedEncodingResult&lt;vir_high::Statement&gt; {
+        <span class="self">self</span>.encoder.set_statement_error_ctxt(
             vir_high::Statement::exhale_no_pos(vir_high::Predicate::lifetime_token_no_pos(
-                <a href="#1139">lifetime_const</a>,
-                <a href="#1140">permission_amount</a>,
+                lifetime_const,
+                permission_amount,
             )),
-            <a class="self" href="#1138">self</a>.mir.span,
-            <a href="../../../errors/error_manager.rs.html#167">ErrorCtxt::LifetimeExhale</a>,
-            <a class="self" href="#1138">self</a>.def_id,
+            <span class="self">self</span>.mir.span,
+            ErrorCtxt::LifetimeExhale,
+            <span class="self">self</span>.def_id,
         )
     }
 
     <span class="kw">fn </span>encode_exhale_lifetime_tokens(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        block_builder: <span class="kw-2">&amp;mut </span><a href="../../../../../../vir/high/builders/procedure/struct.BasicBlockBuilder.html">BasicBlockBuilder</a>,
-        lifetime_names: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>],
-        permission_divisor_mult: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+        block_builder: <span class="kw-2">&amp;mut </span>BasicBlockBuilder,
+        lifetime_names: <span class="kw-2">&amp;</span>[String],
+        permission_divisor_mult: usize,
     ) -&gt; SpannedEncodingResult&lt;()&gt; {
         <span class="kw">for </span>lifetime <span class="kw">in </span>lifetime_names {
             <span class="kw">let </span>statement = <span class="self">self</span>.encode_exhale_lifetime_token(
@@ -2343,4 +2335,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../../../" data-static-root-path="../../../../../../static.files/" data-current-crate="prusti_viper" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../../../../" data-static-root-path="../../../../../../static.files/" data-current-crate="prusti_viper" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

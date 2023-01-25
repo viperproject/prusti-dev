@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/futures-executor-0.3.25/src/local_pool.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>local_pool.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../futures_executor/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/futures-executor-0.3.25/src/local_pool.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>local_pool.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../futures_executor/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -400,23 +400,23 @@
 <a href="#400" id="400">400</a>
 <a href="#401" id="401">401</a>
 <a href="#402" id="402">402</a>
-</pre><pre class="rust"><code><span class="kw">use </span><a href="enter.rs.html#55"><span class="kw">crate</span>::enter</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">futures_core::future::Future</a>;
-<span class="kw">use </span><a href="../../futures_core/stream/trait.Stream.html">futures_core::stream::Stream</a>;
-<span class="kw">use </span>futures_core::task::{<a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>, <a href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">Poll</a>};
-<span class="kw">use </span>futures_task::{<a href="../../futures_task/waker_ref/fn.waker_ref.html">waker_ref</a>, <a href="../../futures_task/arc_wake/trait.ArcWake.html">ArcWake</a>};
-<span class="kw">use </span>futures_task::{<a href="../../futures_task/future_obj/struct.FutureObj.html">FutureObj</a>, <a href="../../futures_task/future_obj/struct.LocalFutureObj.html">LocalFutureObj</a>, <a href="../../futures_task/spawn/trait.LocalSpawn.html">LocalSpawn</a>, <a href="../../futures_task/spawn/trait.Spawn.html">Spawn</a>, <a href="../../futures_task/spawn/struct.SpawnError.html">SpawnError</a>};
-<span class="kw">use </span><a href="../../pin_utils/macro.pin_mut.html">futures_util::pin_mut</a>;
-<span class="kw">use </span><a href="../../futures_util/stream/futures_unordered/struct.FuturesUnordered.html">futures_util::stream::FuturesUnordered</a>;
-<span class="kw">use </span><a href="../../futures_util/stream/stream/trait.StreamExt.html">futures_util::stream::StreamExt</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/cell/struct.RefCell.html">std::cell::RefCell</a>;
-<span class="kw">use </span>std::ops::{<a href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.Deref.html">Deref</a>, <a href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.DerefMut.html">DerefMut</a>};
-<span class="kw">use </span>std::rc::{<a href="https://doc.rust-lang.org/nightly/alloc/rc/struct.Rc.html">Rc</a>, <a href="https://doc.rust-lang.org/nightly/alloc/rc/struct.Weak.html">Weak</a>};
+</pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::enter;
+<span class="kw">use </span>futures_core::future::Future;
+<span class="kw">use </span>futures_core::stream::Stream;
+<span class="kw">use </span>futures_core::task::{Context, Poll};
+<span class="kw">use </span>futures_task::{waker_ref, ArcWake};
+<span class="kw">use </span>futures_task::{FutureObj, LocalFutureObj, LocalSpawn, Spawn, SpawnError};
+<span class="kw">use </span>futures_util::pin_mut;
+<span class="kw">use </span>futures_util::stream::FuturesUnordered;
+<span class="kw">use </span>futures_util::stream::StreamExt;
+<span class="kw">use </span>std::cell::RefCell;
+<span class="kw">use </span>std::ops::{Deref, DerefMut};
+<span class="kw">use </span>std::rc::{Rc, Weak};
 <span class="kw">use </span>std::sync::{
-    atomic::{<a href="https://doc.rust-lang.org/nightly/core/sync/atomic/struct.AtomicBool.html">AtomicBool</a>, <a href="https://doc.rust-lang.org/nightly/core/sync/atomic/enum.Ordering.html">Ordering</a>},
-    <a href="https://doc.rust-lang.org/nightly/alloc/sync/struct.Arc.html">Arc</a>,
+    atomic::{AtomicBool, Ordering},
+    Arc,
 };
-<span class="kw">use </span>std::thread::{<a class="self" href="https://doc.rust-lang.org/nightly/std/thread/index.html">self</a>, <a href="https://doc.rust-lang.org/nightly/std/thread/struct.Thread.html">Thread</a>};
+<span class="kw">use </span>std::thread::{<span class="self">self</span>, Thread};
 
 <span class="doccomment">/// A single-threaded task pool for polling futures to completion.
 ///
@@ -432,47 +432,47 @@
 </span><span class="attr">#[derive(Debug)]
 </span><span class="kw">pub struct </span>LocalPool {
     pool: FuturesUnordered&lt;LocalFutureObj&lt;<span class="lifetime">&#39;static</span>, ()&gt;&gt;,
-    incoming: Rc&lt;<a href="#43">Incoming</a>&gt;,
+    incoming: Rc&lt;Incoming&gt;,
 }
 
 <span class="doccomment">/// A handle to a [`LocalPool`](LocalPool) that implements
 /// [`Spawn`](futures_task::Spawn).
 </span><span class="attr">#[derive(Clone, Debug)]
 </span><span class="kw">pub struct </span>LocalSpawner {
-    incoming: Weak&lt;<a href="#43">Incoming</a>&gt;,
+    incoming: Weak&lt;Incoming&gt;,
 }
 
 <span class="kw">type </span>Incoming = RefCell&lt;Vec&lt;LocalFutureObj&lt;<span class="lifetime">&#39;static</span>, ()&gt;&gt;&gt;;
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>ThreadNotify {
     <span class="doccomment">/// The (single) executor thread.
-    </span>thread: <a href="https://doc.rust-lang.org/nightly/std/thread/struct.Thread.html">Thread</a>,
+    </span>thread: Thread,
     <span class="doccomment">/// A flag to ensure a wakeup (i.e. `unpark()`) is not &quot;forgotten&quot;
     /// before the next `park()`, which may otherwise happen if the code
     /// being executed as part of the future(s) being polled makes use of
     /// park / unpark calls of its own, i.e. we cannot assume that no other
     /// code uses park / unpark on the executing `thread`.
-    </span>unparked: <a href="https://doc.rust-lang.org/nightly/core/sync/atomic/struct.AtomicBool.html">AtomicBool</a>,
+    </span>unparked: AtomicBool,
 }
 
-<a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.thread_local.html">thread_local! </a>{
+<span class="macro">thread_local! </span>{
     <span class="kw">static </span>CURRENT_THREAD_NOTIFY: Arc&lt;ThreadNotify&gt; = Arc::new(ThreadNotify {
         thread: thread::current(),
         unparked: AtomicBool::new(<span class="bool-val">false</span>),
     });
 }
 
-<span class="kw">impl </span><a href="../../futures_task/arc_wake/trait.ArcWake.html">ArcWake</a> <span class="kw">for </span><a href="#45">ThreadNotify</a> {
+<span class="kw">impl </span>ArcWake <span class="kw">for </span>ThreadNotify {
     <span class="kw">fn </span>wake_by_ref(arc_self: <span class="kw-2">&amp;</span>Arc&lt;<span class="self">Self</span>&gt;) {
         <span class="comment">// Make sure the wakeup is remembered until the next `park()`.
-        </span><span class="kw">let </span>unparked = <a href="#64">arc_self</a>.unparked.swap(<span class="bool-val">true</span>, Ordering::Release);
+        </span><span class="kw">let </span>unparked = arc_self.unparked.swap(<span class="bool-val">true</span>, Ordering::Release);
         <span class="kw">if </span>!unparked {
             <span class="comment">// If the thread has not been unparked yet, it must be done
             // now. If it was actually parked, it will run again,
             // otherwise the token made available by `unpark`
             // may be consumed before reaching `park()`, but `unparked`
             // ensures it is not forgotten.
-            </span><a href="#64">arc_self</a>.thread.unpark();
+            </span>arc_self.thread.unpark();
         }
     }
 }
@@ -480,17 +480,17 @@
 <span class="comment">// Set up and run a basic single-threaded spawner loop, invoking `f` on each
 // turn.
 </span><span class="kw">fn </span>run_executor&lt;T, F: FnMut(<span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;T&gt;&gt;(<span class="kw-2">mut </span>f: F) -&gt; T {
-    <span class="kw">let </span>_enter = <a href="enter.rs.html#55">enter</a>().expect(
+    <span class="kw">let </span>_enter = enter().expect(
         <span class="string">&quot;cannot execute `LocalPool` executor from within \
          another executor&quot;</span>,
     );
 
-    <a href="#56-61">CURRENT_THREAD_NOTIFY</a>.with(|thread_notify| {
-        <span class="kw">let </span>waker = <a href="../../futures_task/waker_ref/fn.waker_ref.html">waker_ref</a>(<a href="#86">thread_notify</a>);
-        <span class="kw">let </span><span class="kw-2">mut </span>cx = Context::from_waker(<span class="kw-2">&amp;</span><a href="#87">waker</a>);
+    CURRENT_THREAD_NOTIFY.with(|thread_notify| {
+        <span class="kw">let </span>waker = waker_ref(thread_notify);
+        <span class="kw">let </span><span class="kw-2">mut </span>cx = Context::from_waker(<span class="kw-2">&amp;</span>waker);
         <span class="kw">loop </span>{
-            <span class="kw">if let </span>Poll::Ready(t) = <a href="#80">f</a>(<span class="kw-2">&amp;mut </span><a href="#88">cx</a>) {
-                <span class="kw">return </span><a href="#90">t</a>;
+            <span class="kw">if let </span>Poll::Ready(t) = f(<span class="kw-2">&amp;mut </span>cx) {
+                <span class="kw">return </span>t;
             }
 
             <span class="comment">// Wait for a wakeup.
@@ -505,19 +505,19 @@
 }
 
 <span class="doccomment">/// Check for a wakeup, but don&#39;t consume it.
-</span><span class="kw">fn </span>woken() -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-    <a href="#56-61">CURRENT_THREAD_NOTIFY</a>.with(|thread_notify| <a href="#107">thread_notify</a>.unparked.load(Ordering::Acquire))
+</span><span class="kw">fn </span>woken() -&gt; bool {
+    CURRENT_THREAD_NOTIFY.with(|thread_notify| thread_notify.unparked.load(Ordering::Acquire))
 }
 
-<span class="kw">impl </span><a href="#31">LocalPool</a> {
+<span class="kw">impl </span>LocalPool {
     <span class="doccomment">/// Create a new, empty pool of tasks.
     </span><span class="kw">pub fn </span>new() -&gt; <span class="self">Self </span>{
-        <span class="self">Self </span>{ pool: FuturesUnordered::new(), incoming: <a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default::default</a>() }
+        <span class="self">Self </span>{ pool: FuturesUnordered::new(), incoming: Default::default() }
     }
 
     <span class="doccomment">/// Get a clonable handle to the pool as a [`Spawn`].
-    </span><span class="kw">pub fn </span>spawner(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="#39">LocalSpawner</a> {
-        <a href="#39">LocalSpawner</a> { incoming: Rc::downgrade(<span class="kw-2">&amp;</span><a class="self" href="#117">self</a>.incoming) }
+    </span><span class="kw">pub fn </span>spawner(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; LocalSpawner {
+        LocalSpawner { incoming: Rc::downgrade(<span class="kw-2">&amp;</span><span class="self">self</span>.incoming) }
     }
 
     <span class="doccomment">/// Run all tasks in the pool to completion.
@@ -536,7 +536,7 @@
     /// The function will block the calling thread until *all* tasks in the pool
     /// are complete, including any spawned while running existing tasks.
     </span><span class="kw">pub fn </span>run(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <a href="#80">run_executor</a>(|cx| <a class="self" href="#136">self</a>.<a href="#275">poll_pool</a>(<a href="#137">cx</a>))
+        run_executor(|cx| <span class="self">self</span>.poll_pool(cx))
     }
 
     <span class="doccomment">/// Runs all the tasks in the pool until the given future completes.
@@ -556,19 +556,19 @@
     /// be inert after the call completes, but can continue with further use of
     /// one of the pool&#39;s run or poll methods. While the function is running,
     /// however, all tasks in the pool will try to make progress.
-    </span><span class="kw">pub fn </span>run_until&lt;F: <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a>&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, future: F) -&gt; F::Output {
-        <a class="macro" href="../../pin_utils/macro.pin_mut.html">pin_mut!</a>(future);
+    </span><span class="kw">pub fn </span>run_until&lt;F: Future&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, future: F) -&gt; F::Output {
+        <span class="macro">pin_mut!</span>(future);
 
-        <a href="#80">run_executor</a>(|cx| {
+        run_executor(|cx| {
             {
                 <span class="comment">// if our main task is done, so are we
-                </span><span class="kw">let </span>result = <a href="#158">future</a>.as_mut().<a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">poll</a>(<a href="#160">cx</a>);
-                <span class="kw">if let </span>Poll::Ready(output) = <a href="#163">result</a> {
-                    <span class="kw">return </span>Poll::Ready(<a href="#164">output</a>);
+                </span><span class="kw">let </span>result = future.as_mut().poll(cx);
+                <span class="kw">if let </span>Poll::Ready(output) = result {
+                    <span class="kw">return </span>Poll::Ready(output);
                 }
             }
 
-            <span class="kw">let _ </span>= <a class="self" href="#157">self</a>.<a href="#275">poll_pool</a>(<a href="#160">cx</a>);
+            <span class="kw">let _ </span>= <span class="self">self</span>.poll_pool(cx);
             Poll::Pending
         })
     }
@@ -601,12 +601,12 @@
     /// task was completed; Remaining incomplete tasks in the pool can continue with
     /// further use of one of the pool&#39;s run or poll methods.
     /// Though only one task will be completed, progress may be made on multiple tasks.
-    </span><span class="kw">pub fn </span>try_run_one(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a href="#80">run_executor</a>(|cx| {
+    </span><span class="kw">pub fn </span>try_run_one(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; bool {
+        run_executor(|cx| {
             <span class="kw">loop </span>{
-                <a class="self" href="#202">self</a>.<a href="#295">drain_incoming</a>();
+                <span class="self">self</span>.drain_incoming();
 
-                <span class="kw">match </span><a class="self" href="#202">self</a>.pool.<a href="../../futures_util/stream/stream/trait.StreamExt.html">poll_next_unpin</a>(<a href="#203">cx</a>) {
+                <span class="kw">match </span><span class="self">self</span>.pool.poll_next_unpin(cx) {
                     <span class="comment">// Success!
                     </span>Poll::Ready(<span class="prelude-val">Some</span>(())) =&gt; <span class="kw">return </span>Poll::Ready(<span class="bool-val">true</span>),
                     <span class="comment">// The pool was empty.
@@ -653,7 +653,7 @@
     /// of the pool&#39;s run or poll methods. While the function is running, all tasks
     /// in the pool will try to make progress.
     </span><span class="kw">pub fn </span>run_until_stalled(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <a href="#80">run_executor</a>(|cx| <span class="kw">match </span><a class="self" href="#253">self</a>.<a href="#275">poll_pool</a>(<a href="#254">cx</a>) {
+        run_executor(|cx| <span class="kw">match </span><span class="self">self</span>.poll_pool(cx) {
             <span class="comment">// The pool is empty.
             </span>Poll::Ready(()) =&gt; Poll::Ready(()),
             Poll::Pending =&gt; {
@@ -676,16 +676,16 @@
     /// mean that the pool can&#39;t make progress.
     </span><span class="kw">fn </span>poll_pool(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;()&gt; {
         <span class="kw">loop </span>{
-            <a class="self" href="#275">self</a>.<a href="#295">drain_incoming</a>();
+            <span class="self">self</span>.drain_incoming();
 
-            <span class="kw">let </span>pool_ret = <a class="self" href="#275">self</a>.pool.<a href="../../futures_util/stream/stream/trait.StreamExt.html">poll_next_unpin</a>(<a href="#275">cx</a>);
+            <span class="kw">let </span>pool_ret = <span class="self">self</span>.pool.poll_next_unpin(cx);
 
             <span class="comment">// We queued up some new tasks; add them and poll again.
             </span><span class="kw">if </span>!<span class="self">self</span>.incoming.borrow().is_empty() {
                 <span class="kw">continue</span>;
             }
 
-            <span class="kw">match </span><a href="#279">pool_ret</a> {
+            <span class="kw">match </span>pool_ret {
                 Poll::Ready(<span class="prelude-val">Some</span>(())) =&gt; <span class="kw">continue</span>,
                 Poll::Ready(<span class="prelude-val">None</span>) =&gt; <span class="kw">return </span>Poll::Ready(()),
                 Poll::Pending =&gt; <span class="kw">return </span>Poll::Pending,
@@ -695,14 +695,14 @@
 
     <span class="doccomment">/// Empty the incoming queue of newly-spawned tasks.
     </span><span class="kw">fn </span>drain_incoming(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <span class="kw">let </span><span class="kw-2">mut </span>incoming = <a class="self" href="#295">self</a>.incoming.borrow_mut();
+        <span class="kw">let </span><span class="kw-2">mut </span>incoming = <span class="self">self</span>.incoming.borrow_mut();
         <span class="kw">for </span>task <span class="kw">in </span>incoming.drain(..) {
             <span class="self">self</span>.pool.push(task)
         }
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for </span><a href="#31">LocalPool</a> {
+<span class="kw">impl </span>Default <span class="kw">for </span>LocalPool {
     <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>::new()
     }
@@ -714,68 +714,68 @@
 ///
 /// Use a [`LocalPool`](LocalPool) if you need finer-grained control over
 /// spawned tasks.
-</span><span class="kw">pub fn </span>block_on&lt;F: <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a>&gt;(f: F) -&gt; F::Output {
-    <a class="macro" href="../../pin_utils/macro.pin_mut.html">pin_mut!</a>(f);
-    <a href="#80">run_executor</a>(|cx| <a href="#316">f</a>.as_mut().<a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">poll</a>(<a href="#317">cx</a>))
+</span><span class="kw">pub fn </span>block_on&lt;F: Future&gt;(f: F) -&gt; F::Output {
+    <span class="macro">pin_mut!</span>(f);
+    run_executor(|cx| f.as_mut().poll(cx))
 }
 
 <span class="doccomment">/// Turn a stream into a blocking iterator.
 ///
 /// When `next` is called on the resulting `BlockingStream`, the caller
 /// will be blocked until the next element of the `Stream` becomes available.
-</span><span class="kw">pub fn </span>block_on_stream&lt;S: <a href="../../futures_core/stream/trait.Stream.html">Stream</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>&gt;(stream: S) -&gt; BlockingStream&lt;S&gt; {
-    <a href="#330">BlockingStream</a> { <a href="#324">stream</a> }
+</span><span class="kw">pub fn </span>block_on_stream&lt;S: Stream + Unpin&gt;(stream: S) -&gt; BlockingStream&lt;S&gt; {
+    BlockingStream { stream }
 }
 
 <span class="doccomment">/// An iterator which blocks on values from a stream until they become available.
 </span><span class="attr">#[derive(Debug)]
-</span><span class="kw">pub struct </span>BlockingStream&lt;S: <a href="../../futures_core/stream/trait.Stream.html">Stream</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>&gt; {
+</span><span class="kw">pub struct </span>BlockingStream&lt;S: Stream + Unpin&gt; {
     stream: S,
 }
 
-<span class="kw">impl</span>&lt;S: <a href="../../futures_core/stream/trait.Stream.html">Stream</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.Deref.html">Deref</a> <span class="kw">for </span>BlockingStream&lt;S&gt; {
+<span class="kw">impl</span>&lt;S: Stream + Unpin&gt; Deref <span class="kw">for </span>BlockingStream&lt;S&gt; {
     <span class="kw">type </span>Target = S;
     <span class="kw">fn </span>deref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="self">Self</span>::Target {
-        <span class="kw-2">&amp;</span><a class="self" href="#336">self</a>.stream
+        <span class="kw-2">&amp;</span><span class="self">self</span>.stream
     }
 }
 
-<span class="kw">impl</span>&lt;S: <a href="../../futures_core/stream/trait.Stream.html">Stream</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.DerefMut.html">DerefMut</a> <span class="kw">for </span>BlockingStream&lt;S&gt; {
+<span class="kw">impl</span>&lt;S: Stream + Unpin&gt; DerefMut <span class="kw">for </span>BlockingStream&lt;S&gt; {
     <span class="kw">fn </span>deref_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self</span>::Target {
-        <span class="kw-2">&amp;mut </span><a class="self" href="#342">self</a>.stream
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>.stream
     }
 }
 
-<span class="kw">impl</span>&lt;S: <a href="../../futures_core/stream/trait.Stream.html">Stream</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>&gt; BlockingStream&lt;S&gt; {
+<span class="kw">impl</span>&lt;S: Stream + Unpin&gt; BlockingStream&lt;S&gt; {
     <span class="doccomment">/// Convert this `BlockingStream` into the inner `Stream` type.
     </span><span class="kw">pub fn </span>into_inner(<span class="self">self</span>) -&gt; S {
-        <a class="self" href="#349">self</a>.stream
+        <span class="self">self</span>.stream
     }
 }
 
-<span class="kw">impl</span>&lt;S: <a href="../../futures_core/stream/trait.Stream.html">Stream</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a> <span class="kw">for </span>BlockingStream&lt;S&gt; {
+<span class="kw">impl</span>&lt;S: Stream + Unpin&gt; Iterator <span class="kw">for </span>BlockingStream&lt;S&gt; {
     <span class="kw">type </span>Item = S::Item;
 
     <span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt; {
-        LocalPool::new().<a href="#157">run_until</a>(<a class="self" href="#357">self</a>.stream.<a href="../../futures_util/stream/stream/trait.StreamExt.html">next</a>())
+        LocalPool::new().run_until(<span class="self">self</span>.stream.next())
     }
 
-    <span class="kw">fn </span>size_hint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;) {
-        <a class="self" href="#361">self</a>.stream.<a href="../../futures_core/stream/trait.Stream.html">size_hint</a>()
+    <span class="kw">fn </span>size_hint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (usize, <span class="prelude-ty">Option</span>&lt;usize&gt;) {
+        <span class="self">self</span>.stream.size_hint()
     }
 }
 
-<span class="kw">impl </span><a href="../../futures_task/spawn/trait.Spawn.html">Spawn</a> <span class="kw">for </span><a href="#39">LocalSpawner</a> {
-    <span class="kw">fn </span>spawn_obj(<span class="kw-2">&amp;</span><span class="self">self</span>, future: FutureObj&lt;<span class="lifetime">&#39;static</span>, ()&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../futures_task/spawn/struct.SpawnError.html">SpawnError</a>&gt; {
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(incoming) = <a class="self" href="#367">self</a>.incoming.upgrade() {
-            <a href="#368">incoming</a>.borrow_mut().push(<a href="#367">future</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>());
+<span class="kw">impl </span>Spawn <span class="kw">for </span>LocalSpawner {
+    <span class="kw">fn </span>spawn_obj(<span class="kw-2">&amp;</span><span class="self">self</span>, future: FutureObj&lt;<span class="lifetime">&#39;static</span>, ()&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;(), SpawnError&gt; {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(incoming) = <span class="self">self</span>.incoming.upgrade() {
+            incoming.borrow_mut().push(future.into());
             <span class="prelude-val">Ok</span>(())
         } <span class="kw">else </span>{
             <span class="prelude-val">Err</span>(SpawnError::shutdown())
         }
     }
 
-    <span class="kw">fn </span>status(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../futures_task/spawn/struct.SpawnError.html">SpawnError</a>&gt; {
+    <span class="kw">fn </span>status(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), SpawnError&gt; {
         <span class="kw">if </span><span class="self">self</span>.incoming.upgrade().is_some() {
             <span class="prelude-val">Ok</span>(())
         } <span class="kw">else </span>{
@@ -784,17 +784,17 @@
     }
 }
 
-<span class="kw">impl </span><a href="../../futures_task/spawn/trait.LocalSpawn.html">LocalSpawn</a> <span class="kw">for </span><a href="#39">LocalSpawner</a> {
-    <span class="kw">fn </span>spawn_local_obj(<span class="kw-2">&amp;</span><span class="self">self</span>, future: LocalFutureObj&lt;<span class="lifetime">&#39;static</span>, ()&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../futures_task/spawn/struct.SpawnError.html">SpawnError</a>&gt; {
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(incoming) = <a class="self" href="#386">self</a>.incoming.upgrade() {
-            <a href="#387">incoming</a>.borrow_mut().push(<a href="#386">future</a>);
+<span class="kw">impl </span>LocalSpawn <span class="kw">for </span>LocalSpawner {
+    <span class="kw">fn </span>spawn_local_obj(<span class="kw-2">&amp;</span><span class="self">self</span>, future: LocalFutureObj&lt;<span class="lifetime">&#39;static</span>, ()&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;(), SpawnError&gt; {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(incoming) = <span class="self">self</span>.incoming.upgrade() {
+            incoming.borrow_mut().push(future);
             <span class="prelude-val">Ok</span>(())
         } <span class="kw">else </span>{
             <span class="prelude-val">Err</span>(SpawnError::shutdown())
         }
     }
 
-    <span class="kw">fn </span>status_local(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../futures_task/spawn/struct.SpawnError.html">SpawnError</a>&gt; {
+    <span class="kw">fn </span>status_local(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), SpawnError&gt; {
         <span class="kw">if </span><span class="self">self</span>.incoming.upgrade().is_some() {
             <span class="prelude-val">Ok</span>(())
         } <span class="kw">else </span>{
@@ -803,4 +803,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="futures_executor" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="futures_executor" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

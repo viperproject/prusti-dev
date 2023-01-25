@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/object-0.29.0/src/read/pe/relocation.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>relocation.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../../object/index.html"><img class="rust-logo" src="../../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/object-0.30.1/src/read/pe/relocation.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>relocation.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../../object/index.html"><img class="rust-logo" src="../../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -88,11 +88,11 @@
 <a href="#88" id="88">88</a>
 <a href="#89" id="89">89</a>
 <a href="#90" id="90">90</a>
-</pre><pre class="rust"><code><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/slice/index.html">core::slice</a>;
+</pre><pre class="rust"><code><span class="kw">use </span>core::slice;
 
-<span class="kw">use </span><span class="kw">crate</span>::endian::{<a href="../../endian.rs.html#317">LittleEndian</a> <span class="kw">as </span>LE, <a href="../../endian.rs.html#565">U16</a>};
-<span class="kw">use </span><a href="../../lib.rs.html#112"><span class="kw">crate</span>::pe</a>;
-<span class="kw">use </span><span class="kw">crate</span>::read::{<a href="../util.rs.html#16">Bytes</a>, <a href="../mod.rs.html#64">Error</a>, <a href="../mod.rs.html#79">ReadError</a>, <span class="prelude-ty">Result</span>};
+<span class="kw">use </span><span class="kw">crate</span>::endian::{LittleEndian <span class="kw">as </span>LE, U16};
+<span class="kw">use </span><span class="kw">crate</span>::pe;
+<span class="kw">use </span><span class="kw">crate</span>::read::{Bytes, Error, ReadError, <span class="prelude-ty">Result</span>};
 
 <span class="doccomment">/// An iterator over the relocation blocks in the `.reloc` section of a PE file.
 </span><span class="attr">#[derive(Debug, Default, Clone, Copy)]
@@ -102,8 +102,8 @@
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>&gt; RelocationBlockIterator&lt;<span class="lifetime">&#39;data</span>&gt; {
     <span class="doccomment">/// Construct a new iterator from the data of the `.reloc` section.
-    </span><span class="kw">pub fn </span>new(data: <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="self">Self </span>{
-        <a href="#9">RelocationBlockIterator</a> { data: <a href="../util.rs.html#16">Bytes</a>(<a href="#15">data</a>) }
+    </span><span class="kw">pub fn </span>new(data: <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[u8]) -&gt; <span class="self">Self </span>{
+        RelocationBlockIterator { data: Bytes(data) }
     }
 
     <span class="doccomment">/// Read the next relocation page.
@@ -115,21 +115,21 @@
             </span>.data
             .read::&lt;pe::ImageBaseRelocation&gt;()
             .read_error(<span class="string">&quot;Invalid PE reloc section size&quot;</span>)<span class="question-mark">?</span>;
-        <span class="kw">let </span>virtual_address = <a href="#24">header</a>.virtual_address.<a href="../../endian.rs.html#621">get</a>(<a href="../../endian.rs.html#317">LE</a>);
-        <span class="kw">let </span>size = <a href="#24">header</a>.size_of_block.<a href="../../endian.rs.html#621">get</a>(<a href="../../endian.rs.html#317">LE</a>);
+        <span class="kw">let </span>virtual_address = header.virtual_address.get(LE);
+        <span class="kw">let </span>size = header.size_of_block.get(LE);
         <span class="kw">if </span>size &lt;= <span class="number">8 </span>|| size &amp; <span class="number">3 </span>!= <span class="number">0 </span>{
-            <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../mod.rs.html#64">Error</a>(<span class="string">&quot;Invalid PE reloc block size&quot;</span>));
+            <span class="kw">return </span><span class="prelude-val">Err</span>(Error(<span class="string">&quot;Invalid PE reloc block size&quot;</span>));
         }
-        <span class="kw">let </span>count = (<a href="#29">size</a> - <span class="number">8</span>) / <span class="number">2</span>;
+        <span class="kw">let </span>count = (size - <span class="number">8</span>) / <span class="number">2</span>;
         <span class="kw">let </span>relocs = <span class="self">self
             </span>.data
             .read_slice::&lt;U16&lt;LE&gt;&gt;(count <span class="kw">as </span>usize)
             .read_error(<span class="string">&quot;Invalid PE reloc block size&quot;</span>)<span class="question-mark">?
             </span>.iter();
-        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<a href="#49">RelocationIterator</a> {
-            <a href="#28">virtual_address</a>,
-            <a href="#29">size</a>,
-            <a href="#34">relocs</a>,
+        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(RelocationIterator {
+            virtual_address,
+            size,
+            relocs,
         }))
     }
 }
@@ -137,33 +137,33 @@
 <span class="doccomment">/// An iterator of the relocations in a block in the `.reloc` section of a PE file.
 </span><span class="attr">#[derive(Debug, Clone)]
 </span><span class="kw">pub struct </span>RelocationIterator&lt;<span class="lifetime">&#39;data</span>&gt; {
-    virtual_address: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>,
-    size: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>,
-    relocs: slice::Iter&lt;<span class="lifetime">&#39;data</span>, U16&lt;<a href="../../endian.rs.html#317">LE</a>&gt;&gt;,
+    virtual_address: u32,
+    size: u32,
+    relocs: slice::Iter&lt;<span class="lifetime">&#39;data</span>, U16&lt;LE&gt;&gt;,
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>&gt; RelocationIterator&lt;<span class="lifetime">&#39;data</span>&gt; {
     <span class="doccomment">/// Return the virtual address of the page that this block of relocations applies to.
-    </span><span class="kw">pub fn </span>virtual_address(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
-        <a class="self" href="#57">self</a>.virtual_address
+    </span><span class="kw">pub fn </span>virtual_address(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u32 {
+        <span class="self">self</span>.virtual_address
     }
 
     <span class="doccomment">/// Return the size in bytes of this block of relocations.
-    </span><span class="kw">pub fn </span>size(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
-        <a class="self" href="#62">self</a>.size
+    </span><span class="kw">pub fn </span>size(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u32 {
+        <span class="self">self</span>.size
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a> <span class="kw">for </span>RelocationIterator&lt;<span class="lifetime">&#39;data</span>&gt; {
-    <span class="kw">type </span>Item = <a href="#85">Relocation</a>;
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>&gt; Iterator <span class="kw">for </span>RelocationIterator&lt;<span class="lifetime">&#39;data</span>&gt; {
+    <span class="kw">type </span>Item = Relocation;
 
-    <span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="#85">Relocation</a>&gt; {
+    <span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Relocation&gt; {
         <span class="kw">loop </span>{
-            <span class="kw">let </span>reloc = <span class="self">self</span>.relocs.next()<span class="question-mark">?</span>.<a href="../../endian.rs.html#599">get</a>(<a href="../../endian.rs.html#317">LE</a>);
+            <span class="kw">let </span>reloc = <span class="self">self</span>.relocs.next()<span class="question-mark">?</span>.get(LE);
             <span class="kw">if </span>reloc != <span class="number">0 </span>{
-                <span class="kw">return </span><span class="prelude-val">Some</span>(<a href="#85">Relocation</a> {
-                    virtual_address: <a class="self" href="#70">self</a>.virtual_address.wrapping_add((<a href="#72">reloc</a> &amp; <span class="number">0xfff</span>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>),
-                    typ: <a href="#72">reloc</a> &gt;&gt; <span class="number">12</span>,
+                <span class="kw">return </span><span class="prelude-val">Some</span>(Relocation {
+                    virtual_address: <span class="self">self</span>.virtual_address.wrapping_add((reloc &amp; <span class="number">0xfff</span>) <span class="kw">as </span>u32),
+                    typ: reloc &gt;&gt; <span class="number">12</span>,
                 });
             }
         }
@@ -174,9 +174,9 @@
 </span><span class="attr">#[derive(Debug, Default, Clone, Copy)]
 </span><span class="kw">pub struct </span>Relocation {
     <span class="doccomment">/// The virtual address of the relocation.
-    </span><span class="kw">pub </span>virtual_address: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>,
+    </span><span class="kw">pub </span>virtual_address: u32,
     <span class="doccomment">/// One of the `pe::IMAGE_REL_BASED_*` constants.
-    </span><span class="kw">pub </span>typ: <a href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>,
+    </span><span class="kw">pub </span>typ: u16,
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="object" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="object" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

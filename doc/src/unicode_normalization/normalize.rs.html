@@ -1,5 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/unicode-normalization-0.1.22/src/normalize.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>normalize.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="icon" href="https://unicode-rs.github.io/unicode-rs_sm.png"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../unicode_normalization/index.html">
-                        <img src="https://unicode-rs.github.io/unicode-rs_sm.png" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/unicode-normalization-0.1.22/src/normalize.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>normalize.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="icon" href="https://unicode-rs.github.io/unicode-rs_sm.png"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../unicode_normalization/index.html">
+                        <img src="https://unicode-rs.github.io/unicode-rs_sm.png" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -212,31 +212,31 @@
 
 </span><span class="doccomment">//! Functions for computing canonical and compatible decompositions for Unicode characters.
 </span><span class="kw">use </span><span class="kw">crate</span>::lookups::{
-    <a href="lookups.rs.html#45">canonical_fully_decomposed</a>, <a href="lookups.rs.html#69">cjk_compat_variants_fully_decomposed</a>,
-    <a href="lookups.rs.html#57">compatibility_fully_decomposed</a>, <a href="lookups.rs.html#30">composition_table</a>,
+    canonical_fully_decomposed, cjk_compat_variants_fully_decomposed,
+    compatibility_fully_decomposed, composition_table,
 };
 
-<span class="kw">use </span>core::{<a href="https://doc.rust-lang.org/nightly/core/char/index.html">char</a>, <a href="https://doc.rust-lang.org/nightly/core/ops/function/trait.FnMut.html">ops::FnMut</a>};
+<span class="kw">use </span>core::{char, ops::FnMut};
 
 <span class="doccomment">/// Compute canonical Unicode decomposition for character.
 /// See [Unicode Standard Annex #15](http://www.unicode.org/reports/tr15/)
 /// for more information.
 </span><span class="attr">#[inline]
-</span><span class="kw">pub fn </span>decompose_canonical&lt;F&gt;(c: <a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>, emit_char: F)
+</span><span class="kw">pub fn </span>decompose_canonical&lt;F&gt;(c: char, emit_char: F)
 <span class="kw">where
-    </span>F: FnMut(<a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>),
+    </span>F: FnMut(char),
 {
-    <a href="#74-77">decompose</a>(<a href="#23">c</a>, <a href="lookups.rs.html#45">canonical_fully_decomposed</a>, <a href="#23">emit_char</a>)
+    decompose(c, canonical_fully_decomposed, emit_char)
 }
 
 <span class="doccomment">/// Compute canonical or compatible Unicode decomposition for character.
 /// See [Unicode Standard Annex #15](http://www.unicode.org/reports/tr15/)
 /// for more information.
 </span><span class="attr">#[inline]
-</span><span class="kw">pub fn </span>decompose_compatible&lt;F: FnMut(<a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>)&gt;(c: <a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>, emit_char: F) {
+</span><span class="kw">pub fn </span>decompose_compatible&lt;F: FnMut(char)&gt;(c: char, emit_char: F) {
     <span class="kw">let </span>decompose_char =
-        |c| <a href="lookups.rs.html#57">compatibility_fully_decomposed</a>(<a href="#36">c</a>).or_else(|| <a href="lookups.rs.html#45">canonical_fully_decomposed</a>(<a href="#36">c</a>));
-    <a href="#74-77">decompose</a>(<a href="#34">c</a>, <a href="#35">decompose_char</a>, <a href="#34">emit_char</a>)
+        |c| compatibility_fully_decomposed(c).or_else(|| canonical_fully_decomposed(c));
+    decompose(c, decompose_char, emit_char)
 }
 
 <span class="doccomment">/// Compute standard-variation decomposition for character.
@@ -249,19 +249,19 @@
 /// [Unicode 6.3 Release Summary](https://www.unicode.org/versions/Unicode6.3.0/#Summary)
 /// for more information.
 </span><span class="attr">#[inline]
-</span><span class="kw">pub fn </span>decompose_cjk_compat_variants&lt;F&gt;(c: <a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>, <span class="kw-2">mut </span>emit_char: F)
+</span><span class="kw">pub fn </span>decompose_cjk_compat_variants&lt;F&gt;(c: char, <span class="kw-2">mut </span>emit_char: F)
 <span class="kw">where
-    </span>F: FnMut(<a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>),
+    </span>F: FnMut(char),
 {
     <span class="comment">// 7-bit ASCII never decomposes
     </span><span class="kw">if </span>c &lt;= <span class="string">&#39;\x7f&#39; </span>{
-        <a href="#50">emit_char</a>(<a href="#50">c</a>);
+        emit_char(c);
         <span class="kw">return</span>;
     }
 
     <span class="comment">// Don&#39;t perform decomposition for Hangul
 
-    </span><span class="kw">if let </span><span class="prelude-val">Some</span>(decomposed) = <a href="lookups.rs.html#69">cjk_compat_variants_fully_decomposed</a>(<a href="#50">c</a>) {
+    </span><span class="kw">if let </span><span class="prelude-val">Some</span>(decomposed) = cjk_compat_variants_fully_decomposed(c) {
         <span class="kw">for </span><span class="kw-2">&amp;</span>d <span class="kw">in </span>decomposed {
             emit_char(d);
         }
@@ -269,28 +269,28 @@
     }
 
     <span class="comment">// Finally bottom out.
-    </span><a href="#50">emit_char</a>(<a href="#50">c</a>);
+    </span>emit_char(c);
 }
 
 <span class="attr">#[inline]
-</span><span class="kw">fn </span>decompose&lt;D, F&gt;(c: <a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>, decompose_char: D, <span class="kw-2">mut </span>emit_char: F)
+</span><span class="kw">fn </span>decompose&lt;D, F&gt;(c: char, decompose_char: D, <span class="kw-2">mut </span>emit_char: F)
 <span class="kw">where
-    </span>D: Fn(<a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>]&gt;,
-    F: FnMut(<a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>),
+    </span>D: Fn(char) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>[char]&gt;,
+    F: FnMut(char),
 {
     <span class="comment">// 7-bit ASCII never decomposes
     </span><span class="kw">if </span>c &lt;= <span class="string">&#39;\x7f&#39; </span>{
-        <a href="#74">emit_char</a>(<a href="#74">c</a>);
+        emit_char(c);
         <span class="kw">return</span>;
     }
 
     <span class="comment">// Perform decomposition for Hangul
     </span><span class="kw">if </span>is_hangul_syllable(c) {
-        <a href="#137-139">decompose_hangul</a>(<a href="#74">c</a>, <a href="#74">emit_char</a>);
+        decompose_hangul(c, emit_char);
         <span class="kw">return</span>;
     }
 
-    <span class="kw">if let </span><span class="prelude-val">Some</span>(decomposed) = <a href="#74">decompose_char</a>(<a href="#74">c</a>) {
+    <span class="kw">if let </span><span class="prelude-val">Some</span>(decomposed) = decompose_char(c) {
         <span class="kw">for </span><span class="kw-2">&amp;</span>d <span class="kw">in </span>decomposed {
             emit_char(d);
         }
@@ -298,67 +298,67 @@
     }
 
     <span class="comment">// Finally bottom out.
-    </span><a href="#74">emit_char</a>(<a href="#74">c</a>);
+    </span>emit_char(c);
 }
 
 <span class="doccomment">/// Compose two characters into a single character, if possible.
 /// See [Unicode Standard Annex #15](http://www.unicode.org/reports/tr15/)
 /// for more information.
-</span><span class="kw">pub fn </span>compose(a: <a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>, b: <a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>&gt; {
-    <a href="#171">compose_hangul</a>(<a href="#105">a</a>, <a href="#105">b</a>).or_else(|| <a href="lookups.rs.html#30">composition_table</a>(<a href="#105">a</a>, <a href="#105">b</a>))
+</span><span class="kw">pub fn </span>compose(a: char, b: char) -&gt; <span class="prelude-ty">Option</span>&lt;char&gt; {
+    compose_hangul(a, b).or_else(|| composition_table(a, b))
 }
 
 <span class="comment">// Constants from Unicode 9.0.0 Section 3.12 Conjoining Jamo Behavior
 // http://www.unicode.org/versions/Unicode9.0.0/ch03.pdf#M9.32468.Heading.310.Combining.Jamo.Behavior
-</span><span class="kw">const </span>S_BASE: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> = <span class="number">0xAC00</span>;
-<span class="kw">const </span>L_BASE: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> = <span class="number">0x1100</span>;
-<span class="kw">const </span>V_BASE: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> = <span class="number">0x1161</span>;
-<span class="kw">const </span>T_BASE: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> = <span class="number">0x11A7</span>;
-<span class="kw">const </span>L_COUNT: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> = <span class="number">19</span>;
-<span class="kw">const </span>V_COUNT: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> = <span class="number">21</span>;
-<span class="kw">const </span>T_COUNT: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> = <span class="number">28</span>;
-<span class="kw">const </span>N_COUNT: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> = <a href="#116">V_COUNT</a> * <a href="#117">T_COUNT</a>;
-<span class="kw">const </span>S_COUNT: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> = <a href="#115">L_COUNT</a> * <a href="#118">N_COUNT</a>;
+</span><span class="kw">const </span>S_BASE: u32 = <span class="number">0xAC00</span>;
+<span class="kw">const </span>L_BASE: u32 = <span class="number">0x1100</span>;
+<span class="kw">const </span>V_BASE: u32 = <span class="number">0x1161</span>;
+<span class="kw">const </span>T_BASE: u32 = <span class="number">0x11A7</span>;
+<span class="kw">const </span>L_COUNT: u32 = <span class="number">19</span>;
+<span class="kw">const </span>V_COUNT: u32 = <span class="number">21</span>;
+<span class="kw">const </span>T_COUNT: u32 = <span class="number">28</span>;
+<span class="kw">const </span>N_COUNT: u32 = V_COUNT * T_COUNT;
+<span class="kw">const </span>S_COUNT: u32 = L_COUNT * N_COUNT;
 
-<span class="kw">const </span>S_LAST: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> = <a href="#111">S_BASE</a> + <a href="#119">S_COUNT</a> - <span class="number">1</span>;
-<span class="kw">const </span>L_LAST: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> = <a href="#112">L_BASE</a> + <a href="#115">L_COUNT</a> - <span class="number">1</span>;
-<span class="kw">const </span>V_LAST: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> = <a href="#113">V_BASE</a> + <a href="#116">V_COUNT</a> - <span class="number">1</span>;
-<span class="kw">const </span>T_LAST: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> = <a href="#114">T_BASE</a> + <a href="#117">T_COUNT</a> - <span class="number">1</span>;
+<span class="kw">const </span>S_LAST: u32 = S_BASE + S_COUNT - <span class="number">1</span>;
+<span class="kw">const </span>L_LAST: u32 = L_BASE + L_COUNT - <span class="number">1</span>;
+<span class="kw">const </span>V_LAST: u32 = V_BASE + V_COUNT - <span class="number">1</span>;
+<span class="kw">const </span>T_LAST: u32 = T_BASE + T_COUNT - <span class="number">1</span>;
 
 <span class="comment">// Composition only occurs for `TPart`s in `U+11A8 ... U+11C2`,
 // i.e. `T_BASE + 1 ... T_LAST`.
-</span><span class="kw">const </span>T_FIRST: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> = <a href="#114">T_BASE</a> + <span class="number">1</span>;
+</span><span class="kw">const </span>T_FIRST: u32 = T_BASE + <span class="number">1</span>;
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>is_hangul_syllable(c: <a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-    (<a href="#130">c</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) &gt;= <a href="#111">S_BASE</a> &amp;&amp; (<a href="#130">c</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) &lt; (<a href="#111">S_BASE</a> + <a href="#119">S_COUNT</a>)
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>is_hangul_syllable(c: char) -&gt; bool {
+    (c <span class="kw">as </span>u32) &gt;= S_BASE &amp;&amp; (c <span class="kw">as </span>u32) &lt; (S_BASE + S_COUNT)
 }
 
 <span class="comment">// Decompose a precomposed Hangul syllable
 </span><span class="attr">#[allow(unsafe_code)]
 #[inline(always)]
-</span><span class="kw">fn </span>decompose_hangul&lt;F&gt;(s: <a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>, <span class="kw-2">mut </span>emit_char: F)
+</span><span class="kw">fn </span>decompose_hangul&lt;F&gt;(s: char, <span class="kw-2">mut </span>emit_char: F)
 <span class="kw">where
-    </span>F: FnMut(<a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>),
+    </span>F: FnMut(char),
 {
-    <span class="kw">let </span>s_index = <a href="#137">s</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> - <a href="#111">S_BASE</a>;
-    <span class="kw">let </span>l_index = <a href="#141">s_index</a> / <a href="#118">N_COUNT</a>;
+    <span class="kw">let </span>s_index = s <span class="kw">as </span>u32 - S_BASE;
+    <span class="kw">let </span>l_index = s_index / N_COUNT;
     <span class="kw">unsafe </span>{
-        <a href="#137">emit_char</a>(char::from_u32_unchecked(<a href="#112">L_BASE</a> + <a href="#142">l_index</a>));
+        emit_char(char::from_u32_unchecked(L_BASE + l_index));
 
-        <span class="kw">let </span>v_index = (<a href="#141">s_index</a> % <a href="#118">N_COUNT</a>) / <a href="#117">T_COUNT</a>;
-        <a href="#137">emit_char</a>(char::from_u32_unchecked(<a href="#113">V_BASE</a> + <a href="#146">v_index</a>));
+        <span class="kw">let </span>v_index = (s_index % N_COUNT) / T_COUNT;
+        emit_char(char::from_u32_unchecked(V_BASE + v_index));
 
-        <span class="kw">let </span>t_index = <a href="#141">s_index</a> % <a href="#117">T_COUNT</a>;
+        <span class="kw">let </span>t_index = s_index % T_COUNT;
         <span class="kw">if </span>t_index &gt; <span class="number">0 </span>{
-            <a href="#137">emit_char</a>(char::from_u32_unchecked(<a href="#114">T_BASE</a> + <a href="#149">t_index</a>));
+            emit_char(char::from_u32_unchecked(T_BASE + t_index));
         }
     }
 }
 
 <span class="attr">#[inline]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>hangul_decomposition_length(s: <a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-    <span class="kw">let </span>si = <a href="#157">s</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> - <a href="#111">S_BASE</a>;
-    <span class="kw">let </span>ti = <a href="#158">si</a> % <a href="#117">T_COUNT</a>;
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>hangul_decomposition_length(s: char) -&gt; usize {
+    <span class="kw">let </span>si = s <span class="kw">as </span>u32 - S_BASE;
+    <span class="kw">let </span>ti = si % T_COUNT;
     <span class="kw">if </span>ti &gt; <span class="number">0 </span>{
         <span class="number">3
     </span>} <span class="kw">else </span>{
@@ -370,20 +370,20 @@
 </span><span class="attr">#[allow(unsafe_code)]
 #[inline(always)]
 #[allow(ellipsis_inclusive_range_patterns)]
-</span><span class="kw">fn </span>compose_hangul(a: <a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>, b: <a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>&gt; {
-    <span class="kw">let </span>(a, b) = (<a href="#171">a</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>, <a href="#171">b</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>);
-    <span class="kw">match </span>(<a href="#172">a</a>, <a href="#172">b</a>) {
+</span><span class="kw">fn </span>compose_hangul(a: char, b: char) -&gt; <span class="prelude-ty">Option</span>&lt;char&gt; {
+    <span class="kw">let </span>(a, b) = (a <span class="kw">as </span>u32, b <span class="kw">as </span>u32);
+    <span class="kw">match </span>(a, b) {
         <span class="comment">// Compose a leading consonant and a vowel together into an LV_Syllable
-        </span>(<a href="#112">L_BASE</a>...<a href="#122">L_LAST</a>, <a href="#113">V_BASE</a>...<a href="#123">V_LAST</a>) =&gt; {
-            <span class="kw">let </span>l_index = <a href="#172">a</a> - <a href="#112">L_BASE</a>;
-            <span class="kw">let </span>v_index = <a href="#172">b</a> - <a href="#113">V_BASE</a>;
-            <span class="kw">let </span>lv_index = <a href="#176">l_index</a> * <a href="#118">N_COUNT</a> + <a href="#177">v_index</a> * <a href="#117">T_COUNT</a>;
-            <span class="kw">let </span>s = <a href="#111">S_BASE</a> + <a href="#178">lv_index</a>;
-            <span class="prelude-val">Some</span>(<span class="kw">unsafe </span>{ char::from_u32_unchecked(<a href="#179">s</a>) })
+        </span>(L_BASE...L_LAST, V_BASE...V_LAST) =&gt; {
+            <span class="kw">let </span>l_index = a - L_BASE;
+            <span class="kw">let </span>v_index = b - V_BASE;
+            <span class="kw">let </span>lv_index = l_index * N_COUNT + v_index * T_COUNT;
+            <span class="kw">let </span>s = S_BASE + lv_index;
+            <span class="prelude-val">Some</span>(<span class="kw">unsafe </span>{ char::from_u32_unchecked(s) })
         }
         <span class="comment">// Compose an LV_Syllable and a trailing consonant into an LVT_Syllable
-        </span>(<a href="#111">S_BASE</a>...<a href="#121">S_LAST</a>, <a href="#128">T_FIRST</a>...<a href="#124">T_LAST</a>) <span class="kw">if </span>(<a href="#172">a</a> - <a href="#111">S_BASE</a>) % <a href="#117">T_COUNT</a> == <span class="number">0 </span>=&gt; {
-            <span class="prelude-val">Some</span>(<span class="kw">unsafe </span>{ char::from_u32_unchecked(<a href="#172">a</a> + (<a href="#172">b</a> - <a href="#114">T_BASE</a>)) })
+        </span>(S_BASE...S_LAST, T_FIRST...T_LAST) <span class="kw">if </span>(a - S_BASE) % T_COUNT == <span class="number">0 </span>=&gt; {
+            <span class="prelude-val">Some</span>(<span class="kw">unsafe </span>{ char::from_u32_unchecked(a + (b - T_BASE)) })
         }
         <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
     }
@@ -402,4 +402,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="unicode_normalization" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="unicode_normalization" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

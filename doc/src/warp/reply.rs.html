@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/warp-0.3.3/src/reply.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>reply.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../warp/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/warp-0.3.3/src/reply.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>reply.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../warp/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -617,26 +617,26 @@
 //!     .or(warp::post().and(custom));
 //! ```
 
-</span><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/borrow/enum.Cow.html">std::borrow::Cow</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/convert/trait.TryFrom.html">std::convert::TryFrom</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">std::error::Error</a> <span class="kw">as </span>StdError;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">std::fmt</a>;
+</span><span class="kw">use </span>std::borrow::Cow;
+<span class="kw">use </span>std::convert::TryFrom;
+<span class="kw">use </span>std::error::Error <span class="kw">as </span>StdError;
+<span class="kw">use </span>std::fmt;
 
-<span class="kw">use </span><span class="kw">crate</span>::generic::{<a href="generic.rs.html#12">Either</a>, <a href="generic.rs.html#4">One</a>};
-<span class="kw">use </span>http::header::{<a href="../../http/header/name/struct.HeaderName.html">HeaderName</a>, <a href="../../http/header/value/struct.HeaderValue.html">HeaderValue</a>, <a href="../../http/header/name/constant.CONTENT_TYPE.html">CONTENT_TYPE</a>};
-<span class="kw">use </span><a href="../../http/status/struct.StatusCode.html">http::StatusCode</a>;
-<span class="kw">use </span><a href="../../hyper/body/body/struct.Body.html">hyper::Body</a>;
-<span class="kw">use </span><a href="../../serde_derive/derive.Serialize.html">serde::Serialize</a>;
-<span class="kw">use </span><a href="../../serde_json/index.html">serde_json</a>;
+<span class="kw">use </span><span class="kw">crate</span>::generic::{Either, One};
+<span class="kw">use </span>http::header::{HeaderName, HeaderValue, CONTENT_TYPE};
+<span class="kw">use </span>http::StatusCode;
+<span class="kw">use </span>hyper::Body;
+<span class="kw">use </span>serde::Serialize;
+<span class="kw">use </span>serde_json;
 
 <span class="comment">// This re-export just looks weird in docs...
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span><a href="#525"><span class="self">self</span>::sealed::Reply_</a>;
-<span class="kw">use </span><span class="self">self</span>::sealed::{<a href="#541">BoxedReply</a>, <a href="#535">Internal</a>};
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span><span class="self">self</span>::sealed::Reply_;
+<span class="kw">use </span><span class="self">self</span>::sealed::{BoxedReply, Internal};
 <span class="attr">#[doc(hidden)]
-</span><span class="kw">pub use </span><a href="filters/mod.rs.html#23"><span class="kw">crate</span>::filters::reply</a> <span class="kw">as </span>with;
+</span><span class="kw">pub use </span><span class="kw">crate</span>::filters::reply <span class="kw">as </span>with;
 
 <span class="doccomment">/// Response type into which types implementing the `Reply` trait are convertable.
-</span><span class="kw">pub type </span>Response = ::http::Response&lt;<a href="../../hyper/body/body/struct.Body.html">Body</a>&gt;;
+</span><span class="kw">pub type </span>Response = ::http::Response&lt;Body&gt;;
 
 <span class="doccomment">/// Returns an empty `Reply` with status code `200 OK`.
 ///
@@ -653,7 +653,7 @@
 ///     });
 /// ```
 </span><span class="attr">#[inline]
-</span><span class="kw">pub fn </span>reply() -&gt; <span class="kw">impl </span><a href="#228">Reply</a> {
+</span><span class="kw">pub fn </span>reply() -&gt; <span class="kw">impl </span>Reply {
     StatusCode::OK
 }
 
@@ -683,13 +683,13 @@
 /// If a type fails to be serialized into JSON, the error is logged at the
 /// `error` level, and the returned `impl Reply` will be an empty
 /// `500 Internal Server Error` response.
-</span><span class="kw">pub fn </span>json&lt;T&gt;(val: <span class="kw-2">&amp;</span>T) -&gt; <a href="#115">Json</a>
+</span><span class="kw">pub fn </span>json&lt;T&gt;(val: <span class="kw-2">&amp;</span>T) -&gt; Json
 <span class="kw">where
-    </span>T: <a href="../../serde/ser/trait.Serialize.html">Serialize</a>,
+    </span>T: Serialize,
 {
-    <a href="#115">Json</a> {
-        inner: serde_json::to_vec(<a href="#102">val</a>).map_err(|err| {
-            <a class="macro" href="../../tracing/tracing/macro.error.html">tracing::error!</a>(<span class="string">&quot;reply::json error: {}&quot;</span>, err);
+    Json {
+        inner: serde_json::to_vec(val).map_err(|err| {
+            <span class="macro">tracing::error!</span>(<span class="string">&quot;reply::json error: {}&quot;</span>, err);
         }),
     }
 }
@@ -697,20 +697,20 @@
 <span class="doccomment">/// A JSON formatted reply.
 </span><span class="attr">#[allow(missing_debug_implementations)]
 </span><span class="kw">pub struct </span>Json {
-    inner: <span class="prelude-ty">Result</span>&lt;Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;, ()&gt;,
+    inner: <span class="prelude-ty">Result</span>&lt;Vec&lt;u8&gt;, ()&gt;,
 }
 
-<span class="kw">impl </span><a href="#228">Reply</a> <span class="kw">for </span><a href="#115">Json</a> {
+<span class="kw">impl </span>Reply <span class="kw">for </span>Json {
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>into_response(<span class="self">self</span>) -&gt; <a href="#55">Response</a> {
-        <span class="kw">match </span><a class="self" href="#121">self</a>.inner {
+    </span><span class="kw">fn </span>into_response(<span class="self">self</span>) -&gt; Response {
+        <span class="kw">match </span><span class="self">self</span>.inner {
             <span class="prelude-val">Ok</span>(body) =&gt; {
-                <span class="kw">let </span><span class="kw-2">mut </span>res = Response::new(<a href="#123">body</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>());
-                <a href="#124">res</a>.headers_mut()
-                    .insert(<a href="../../http/header/name/constant.CONTENT_TYPE.html">CONTENT_TYPE</a>, HeaderValue::from_static(<span class="string">&quot;application/json&quot;</span>));
-                <a href="#124">res</a>
+                <span class="kw">let </span><span class="kw-2">mut </span>res = Response::new(body.into());
+                res.headers_mut()
+                    .insert(CONTENT_TYPE, HeaderValue::from_static(<span class="string">&quot;application/json&quot;</span>));
+                res
             }
-            <span class="prelude-val">Err</span>(()) =&gt; StatusCode::INTERNAL_SERVER_ERROR.<a href="#232">into_response</a>(),
+            <span class="prelude-val">Err</span>(()) =&gt; StatusCode::INTERNAL_SERVER_ERROR.into_response(),
         }
     }
 }
@@ -718,13 +718,13 @@
 <span class="attr">#[derive(Debug)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>ReplyJsonError;
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for </span><a href="#135">ReplyJsonError</a> {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a href="#138">f</a>.write_str(<span class="string">&quot;warp::reply::json() failed&quot;</span>)
+<span class="kw">impl </span>fmt::Display <span class="kw">for </span>ReplyJsonError {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        f.write_str(<span class="string">&quot;warp::reply::json() failed&quot;</span>)
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">StdError</a> <span class="kw">for </span><a href="#135">ReplyJsonError</a> {}
+<span class="kw">impl </span>StdError <span class="kw">for </span>ReplyJsonError {}
 
 <span class="doccomment">/// Reply with a body and `content-type` set to `text/html; charset=utf-8`.
 ///
@@ -751,10 +751,10 @@
 /// ```
 </span><span class="kw">pub fn </span>html&lt;T&gt;(body: T) -&gt; Html&lt;T&gt;
 <span class="kw">where
-    </span><a href="../../hyper/body/body/struct.Body.html">Body</a>: From&lt;T&gt;,
-    T: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a>,
+    </span>Body: From&lt;T&gt;,
+    T: Send,
 {
-    <a href="#178">Html</a> { <a href="#168">body</a> }
+    Html { body }
 }
 
 <span class="doccomment">/// An HTML reply.
@@ -763,19 +763,19 @@
     body: T,
 }
 
-<span class="kw">impl</span>&lt;T&gt; <a href="#228">Reply</a> <span class="kw">for </span>Html&lt;T&gt;
+<span class="kw">impl</span>&lt;T&gt; Reply <span class="kw">for </span>Html&lt;T&gt;
 <span class="kw">where
-    </span><a href="../../hyper/body/body/struct.Body.html">Body</a>: From&lt;T&gt;,
-    T: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a>,
+    </span>Body: From&lt;T&gt;,
+    T: Send,
 {
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>into_response(<span class="self">self</span>) -&gt; <a href="#55">Response</a> {
-        <span class="kw">let </span><span class="kw-2">mut </span>res = Response::new(Body::from(<a class="self" href="#188">self</a>.body));
-        <a href="#189">res</a>.headers_mut().insert(
-            <a href="../../http/header/name/constant.CONTENT_TYPE.html">CONTENT_TYPE</a>,
+    </span><span class="kw">fn </span>into_response(<span class="self">self</span>) -&gt; Response {
+        <span class="kw">let </span><span class="kw-2">mut </span>res = Response::new(Body::from(<span class="self">self</span>.body));
+        res.headers_mut().insert(
+            CONTENT_TYPE,
             HeaderValue::from_static(<span class="string">&quot;text/html; charset=utf-8&quot;</span>),
         );
-        <a href="#189">res</a>
+        res
     }
 }
 
@@ -809,11 +809,11 @@
 ///
 /// let route = warp::any().map(handler);
 /// ```
-</span><span class="kw">pub trait </span>Reply: <a href="#541">BoxedReply</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> {
+</span><span class="kw">pub trait </span>Reply: BoxedReply + Send {
     <span class="doccomment">/// Converts the given value into a [`Response`].
     ///
     /// [`Response`]: type.Response.html
-    </span><span class="kw">fn </span>into_response(<span class="self">self</span>) -&gt; <a href="#55">Response</a>;
+    </span><span class="kw">fn </span>into_response(<span class="self">self</span>) -&gt; Response;
 
     <span class="comment">/*
     TODO: Currently unsure about having trait methods here, as it
@@ -874,14 +874,14 @@
     */
 </span>}
 
-<span class="kw">impl</span>&lt;T: <a href="#228">Reply</a> + <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>&gt; <a href="#228">Reply</a> <span class="kw">for </span>Box&lt;T&gt; {
-    <span class="kw">fn </span>into_response(<span class="self">self</span>) -&gt; <a href="#55">Response</a> {
-        <a class="self" href="#294">self</a>.<a href="#542">boxed_into_response</a>(<a href="#535">Internal</a>)
+<span class="kw">impl</span>&lt;T: Reply + <span class="question-mark">?</span>Sized&gt; Reply <span class="kw">for </span>Box&lt;T&gt; {
+    <span class="kw">fn </span>into_response(<span class="self">self</span>) -&gt; Response {
+        <span class="self">self</span>.boxed_into_response(Internal)
     }
 }
 
 <span class="kw">fn </span>_assert_object_safe() {
-    <span class="kw">fn </span>_assert(<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="kw">dyn </span><a href="#228">Reply</a>) {}
+    <span class="kw">fn </span>_assert(<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="kw">dyn </span>Reply) {}
 }
 
 <span class="doccomment">/// Wrap an `impl Reply` to change its `StatusCode`.
@@ -897,8 +897,8 @@
 ///         warp::reply::with_status(reply, warp::http::StatusCode::CREATED)
 ///     });
 /// ```
-</span><span class="kw">pub fn </span>with_status&lt;T: <a href="#228">Reply</a>&gt;(reply: T, status: <a href="../../http/status/struct.StatusCode.html">StatusCode</a>) -&gt; WithStatus&lt;T&gt; {
-    <a href="#324">WithStatus</a> { <a href="#316">reply</a>, <a href="#316">status</a> }
+</span><span class="kw">pub fn </span>with_status&lt;T: Reply&gt;(reply: T, status: StatusCode) -&gt; WithStatus&lt;T&gt; {
+    WithStatus { reply, status }
 }
 
 <span class="doccomment">/// Wrap an `impl Reply` to change its `StatusCode`.
@@ -907,14 +907,14 @@
 </span><span class="attr">#[derive(Debug)]
 </span><span class="kw">pub struct </span>WithStatus&lt;T&gt; {
     reply: T,
-    status: <a href="../../http/status/struct.StatusCode.html">StatusCode</a>,
+    status: StatusCode,
 }
 
-<span class="kw">impl</span>&lt;T: <a href="#228">Reply</a>&gt; <a href="#228">Reply</a> <span class="kw">for </span>WithStatus&lt;T&gt; {
-    <span class="kw">fn </span>into_response(<span class="self">self</span>) -&gt; <a href="#55">Response</a> {
-        <span class="kw">let </span><span class="kw-2">mut </span>res = <a class="self" href="#330">self</a>.reply.<a href="#232">into_response</a>();
-        <span class="kw-2">*</span><a href="#331">res</a>.status_mut() = <a class="self" href="#330">self</a>.status;
-        <a href="#331">res</a>
+<span class="kw">impl</span>&lt;T: Reply&gt; Reply <span class="kw">for </span>WithStatus&lt;T&gt; {
+    <span class="kw">fn </span>into_response(<span class="self">self</span>) -&gt; Response {
+        <span class="kw">let </span><span class="kw-2">mut </span>res = <span class="self">self</span>.reply.into_response();
+        <span class="kw-2">*</span>res.status_mut() = <span class="self">self</span>.status;
+        res
     }
 }
 
@@ -931,30 +931,30 @@
 ///         warp::reply::with_header(reply, &quot;server&quot;, &quot;warp&quot;)
 ///     });
 /// ```
-</span><span class="kw">pub fn </span>with_header&lt;T: <a href="#228">Reply</a>, K, V&gt;(reply: T, name: K, value: V) -&gt; WithHeader&lt;T&gt;
+</span><span class="kw">pub fn </span>with_header&lt;T: Reply, K, V&gt;(reply: T, name: K, value: V) -&gt; WithHeader&lt;T&gt;
 <span class="kw">where
-    </span><a href="../../http/header/name/struct.HeaderName.html">HeaderName</a>: TryFrom&lt;K&gt;,
-    &lt;<a href="../../http/header/name/struct.HeaderName.html">HeaderName</a> <span class="kw">as </span>TryFrom&lt;K&gt;&gt;::Error: Into&lt;<a href="../../http/error/struct.Error.html">http::Error</a>&gt;,
-    <a href="../../http/header/value/struct.HeaderValue.html">HeaderValue</a>: TryFrom&lt;V&gt;,
-    &lt;<a href="../../http/header/value/struct.HeaderValue.html">HeaderValue</a> <span class="kw">as </span>TryFrom&lt;V&gt;&gt;::Error: Into&lt;<a href="../../http/error/struct.Error.html">http::Error</a>&gt;,
+    </span>HeaderName: TryFrom&lt;K&gt;,
+    &lt;HeaderName <span class="kw">as </span>TryFrom&lt;K&gt;&gt;::Error: Into&lt;http::Error&gt;,
+    HeaderValue: TryFrom&lt;V&gt;,
+    &lt;HeaderValue <span class="kw">as </span>TryFrom&lt;V&gt;&gt;::Error: Into&lt;http::Error&gt;,
 {
-    <span class="kw">let </span>header = <span class="kw">match </span>&lt;<a href="../../http/header/name/struct.HeaderName.html">HeaderName</a> <span class="kw">as </span>TryFrom&lt;K&gt;&gt;::try_from(<a href="#350">name</a>) {
-        <span class="prelude-val">Ok</span>(name) =&gt; <span class="kw">match </span>&lt;<a href="../../http/header/value/struct.HeaderValue.html">HeaderValue</a> <span class="kw">as </span>TryFrom&lt;V&gt;&gt;::try_from(<a href="#350">value</a>) {
-            <span class="prelude-val">Ok</span>(value) =&gt; <span class="prelude-val">Some</span>((<a href="#358">name</a>, <a href="#359">value</a>)),
+    <span class="kw">let </span>header = <span class="kw">match </span>&lt;HeaderName <span class="kw">as </span>TryFrom&lt;K&gt;&gt;::try_from(name) {
+        <span class="prelude-val">Ok</span>(name) =&gt; <span class="kw">match </span>&lt;HeaderValue <span class="kw">as </span>TryFrom&lt;V&gt;&gt;::try_from(value) {
+            <span class="prelude-val">Ok</span>(value) =&gt; <span class="prelude-val">Some</span>((name, value)),
             <span class="prelude-val">Err</span>(err) =&gt; {
-                <span class="kw">let </span>err = <a href="#360">err</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>();
-                <a class="macro" href="../../tracing/tracing/macro.error.html">tracing::error!</a>(<span class="string">&quot;with_header value error: {}&quot;</span>, err);
+                <span class="kw">let </span>err = err.into();
+                <span class="macro">tracing::error!</span>(<span class="string">&quot;with_header value error: {}&quot;</span>, err);
                 <span class="prelude-val">None
             </span>}
         },
         <span class="prelude-val">Err</span>(err) =&gt; {
-            <span class="kw">let </span>err = <a href="#366">err</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>();
-            <a class="macro" href="../../tracing/tracing/macro.error.html">tracing::error!</a>(<span class="string">&quot;with_header name error: {}&quot;</span>, err);
+            <span class="kw">let </span>err = err.into();
+            <span class="macro">tracing::error!</span>(<span class="string">&quot;with_header name error: {}&quot;</span>, err);
             <span class="prelude-val">None
         </span>}
     };
 
-    <a href="#380">WithHeader</a> { <a href="#357">header</a>, <a href="#350">reply</a> }
+    WithHeader { header, reply }
 }
 
 <span class="doccomment">/// Wraps an `impl Reply` and adds a header when rendering.
@@ -962,156 +962,156 @@
 /// Returned by `warp::reply::with_header`.
 </span><span class="attr">#[derive(Debug)]
 </span><span class="kw">pub struct </span>WithHeader&lt;T&gt; {
-    header: <span class="prelude-ty">Option</span>&lt;(<a href="../../http/header/name/struct.HeaderName.html">HeaderName</a>, <a href="../../http/header/value/struct.HeaderValue.html">HeaderValue</a>)&gt;,
+    header: <span class="prelude-ty">Option</span>&lt;(HeaderName, HeaderValue)&gt;,
     reply: T,
 }
 
-<span class="kw">impl</span>&lt;T: <a href="#228">Reply</a>&gt; <a href="#228">Reply</a> <span class="kw">for </span>WithHeader&lt;T&gt; {
-    <span class="kw">fn </span>into_response(<span class="self">self</span>) -&gt; <a href="#55">Response</a> {
-        <span class="kw">let </span><span class="kw-2">mut </span>res = <a class="self" href="#386">self</a>.reply.<a href="#232">into_response</a>();
-        <span class="kw">if let </span><span class="prelude-val">Some</span>((name, value)) = <a class="self" href="#386">self</a>.header {
-            <a href="#387">res</a>.headers_mut().insert(<a href="#388">name</a>, <a href="#388">value</a>);
+<span class="kw">impl</span>&lt;T: Reply&gt; Reply <span class="kw">for </span>WithHeader&lt;T&gt; {
+    <span class="kw">fn </span>into_response(<span class="self">self</span>) -&gt; Response {
+        <span class="kw">let </span><span class="kw-2">mut </span>res = <span class="self">self</span>.reply.into_response();
+        <span class="kw">if let </span><span class="prelude-val">Some</span>((name, value)) = <span class="self">self</span>.header {
+            res.headers_mut().insert(name, value);
         }
-        <a href="#387">res</a>
+        res
     }
 }
 
-<span class="kw">impl</span>&lt;T: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a>&gt; <a href="#228">Reply</a> <span class="kw">for </span>::http::Response&lt;T&gt;
+<span class="kw">impl</span>&lt;T: Send&gt; Reply <span class="kw">for </span>::http::Response&lt;T&gt;
 <span class="kw">where
-    </span><a href="../../hyper/body/body/struct.Body.html">Body</a>: From&lt;T&gt;,
+    </span>Body: From&lt;T&gt;,
 {
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>into_response(<span class="self">self</span>) -&gt; <a href="#55">Response</a> {
-        <a class="self" href="#400">self</a>.map(Body::from)
+    </span><span class="kw">fn </span>into_response(<span class="self">self</span>) -&gt; Response {
+        <span class="self">self</span>.map(Body::from)
     }
 }
 
-<span class="kw">impl </span><a href="#228">Reply</a> <span class="kw">for </span><a href="../../http/status/struct.StatusCode.html">::http::StatusCode</a> {
+<span class="kw">impl </span>Reply <span class="kw">for </span>::http::StatusCode {
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>into_response(<span class="self">self</span>) -&gt; <a href="#55">Response</a> {
+    </span><span class="kw">fn </span>into_response(<span class="self">self</span>) -&gt; Response {
         <span class="kw">let </span><span class="kw-2">mut </span>res = Response::default();
-        <span class="kw-2">*</span><a href="#408">res</a>.status_mut() = <a class="self" href="#407">self</a>;
-        <a href="#408">res</a>
+        <span class="kw-2">*</span>res.status_mut() = <span class="self">self</span>;
+        res
     }
 }
 
-<span class="kw">impl</span>&lt;T&gt; <a href="#228">Reply</a> <span class="kw">for </span><span class="prelude-ty">Result</span>&lt;T, <a href="../../http/error/struct.Error.html">::http::Error</a>&gt;
+<span class="kw">impl</span>&lt;T&gt; Reply <span class="kw">for </span><span class="prelude-ty">Result</span>&lt;T, ::http::Error&gt;
 <span class="kw">where
-    </span>T: <a href="#228">Reply</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a>,
+    </span>T: Reply + Send,
 {
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>into_response(<span class="self">self</span>) -&gt; <a href="#55">Response</a> {
-        <span class="kw">match </span><span class="self"><a href="#419">self</a> </span>{
-            <span class="prelude-val">Ok</span>(t) =&gt; <a href="#421">t</a>.<a href="#232">into_response</a>(),
+    </span><span class="kw">fn </span>into_response(<span class="self">self</span>) -&gt; Response {
+        <span class="kw">match </span><span class="self">self </span>{
+            <span class="prelude-val">Ok</span>(t) =&gt; t.into_response(),
             <span class="prelude-val">Err</span>(e) =&gt; {
-                <a class="macro" href="../../tracing/tracing/macro.error.html">tracing::error!</a>(<span class="string">&quot;reply error: {:?}&quot;</span>, e);
-                StatusCode::INTERNAL_SERVER_ERROR.<a href="#232">into_response</a>()
+                <span class="macro">tracing::error!</span>(<span class="string">&quot;reply error: {:?}&quot;</span>, e);
+                StatusCode::INTERNAL_SERVER_ERROR.into_response()
             }
         }
     }
 }
 
-<span class="kw">fn </span>text_plain&lt;T: Into&lt;<a href="../../hyper/body/body/struct.Body.html">Body</a>&gt;&gt;(body: T) -&gt; <a href="#55">Response</a> {
-    <span class="kw">let </span><span class="kw-2">mut </span>response = ::http::Response::new(<a href="#430">body</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>());
-    <a href="#431">response</a>.headers_mut().insert(
-        <a href="../../http/header/name/constant.CONTENT_TYPE.html">CONTENT_TYPE</a>,
+<span class="kw">fn </span>text_plain&lt;T: Into&lt;Body&gt;&gt;(body: T) -&gt; Response {
+    <span class="kw">let </span><span class="kw-2">mut </span>response = ::http::Response::new(body.into());
+    response.headers_mut().insert(
+        CONTENT_TYPE,
         HeaderValue::from_static(<span class="string">&quot;text/plain; charset=utf-8&quot;</span>),
     );
-    <a href="#431">response</a>
+    response
 }
 
-<span class="kw">impl </span><a href="#228">Reply</a> <span class="kw">for </span><a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a> {
+<span class="kw">impl </span>Reply <span class="kw">for </span>String {
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>into_response(<span class="self">self</span>) -&gt; <a href="#55">Response</a> {
-        <a href="#430">text_plain</a>(<a class="self" href="#441">self</a>)
+    </span><span class="kw">fn </span>into_response(<span class="self">self</span>) -&gt; Response {
+        text_plain(<span class="self">self</span>)
     }
 }
 
-<span class="kw">impl </span><a href="#228">Reply</a> <span class="kw">for </span>Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt; {
+<span class="kw">impl </span>Reply <span class="kw">for </span>Vec&lt;u8&gt; {
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>into_response(<span class="self">self</span>) -&gt; <a href="#55">Response</a> {
+    </span><span class="kw">fn </span>into_response(<span class="self">self</span>) -&gt; Response {
         ::http::Response::builder()
             .header(
-                <a href="../../http/header/name/constant.CONTENT_TYPE.html">CONTENT_TYPE</a>,
+                CONTENT_TYPE,
                 HeaderValue::from_static(<span class="string">&quot;application/octet-stream&quot;</span>),
             )
-            .body(Body::from(<a class="self" href="#448">self</a>))
+            .body(Body::from(<span class="self">self</span>))
             .unwrap()
     }
 }
 
-<span class="kw">impl </span><a href="#228">Reply</a> <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> {
+<span class="kw">impl </span>Reply <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str {
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>into_response(<span class="self">self</span>) -&gt; <a href="#55">Response</a> {
-        <a href="#430">text_plain</a>(<a class="self" href="#461">self</a>)
+    </span><span class="kw">fn </span>into_response(<span class="self">self</span>) -&gt; Response {
+        text_plain(<span class="self">self</span>)
     }
 }
 
-<span class="kw">impl </span><a href="#228">Reply</a> <span class="kw">for </span>Cow&lt;<span class="lifetime">&#39;static</span>, <a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt; {
+<span class="kw">impl </span>Reply <span class="kw">for </span>Cow&lt;<span class="lifetime">&#39;static</span>, str&gt; {
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>into_response(<span class="self">self</span>) -&gt; <a href="#55">Response</a> {
-        <span class="kw">match </span><span class="self"><a href="#468">self</a> </span>{
-            Cow::Borrowed(s) =&gt; <a href="#470">s</a>.<a href="#232">into_response</a>(),
-            Cow::Owned(s) =&gt; <a href="#471">s</a>.<a href="#232">into_response</a>(),
+    </span><span class="kw">fn </span>into_response(<span class="self">self</span>) -&gt; Response {
+        <span class="kw">match </span><span class="self">self </span>{
+            Cow::Borrowed(s) =&gt; s.into_response(),
+            Cow::Owned(s) =&gt; s.into_response(),
         }
     }
 }
 
-<span class="kw">impl </span><a href="#228">Reply</a> <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>] {
+<span class="kw">impl </span>Reply <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>[u8] {
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>into_response(<span class="self">self</span>) -&gt; <a href="#55">Response</a> {
+    </span><span class="kw">fn </span>into_response(<span class="self">self</span>) -&gt; Response {
         ::http::Response::builder()
             .header(
-                <a href="../../http/header/name/constant.CONTENT_TYPE.html">CONTENT_TYPE</a>,
+                CONTENT_TYPE,
                 HeaderValue::from_static(<span class="string">&quot;application/octet-stream&quot;</span>),
             )
-            .body(Body::from(<a class="self" href="#478">self</a>))
+            .body(Body::from(<span class="self">self</span>))
             .unwrap()
     }
 }
 
-<span class="kw">impl</span>&lt;T, U&gt; <a href="#228">Reply</a> <span class="kw">for </span>Either&lt;T, U&gt;
+<span class="kw">impl</span>&lt;T, U&gt; Reply <span class="kw">for </span>Either&lt;T, U&gt;
 <span class="kw">where
-    </span>T: <a href="#228">Reply</a>,
-    U: <a href="#228">Reply</a>,
+    </span>T: Reply,
+    U: Reply,
 {
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>into_response(<span class="self">self</span>) -&gt; <a href="#55">Response</a> {
-        <span class="kw">match </span><span class="self"><a href="#495">self</a> </span>{
-            <a href="generic.rs.html#13">Either::A</a>(a) =&gt; <a href="#497">a</a>.<a href="#232">into_response</a>(),
-            <a href="generic.rs.html#14">Either::B</a>(b) =&gt; <a href="#498">b</a>.<a href="#232">into_response</a>(),
+    </span><span class="kw">fn </span>into_response(<span class="self">self</span>) -&gt; Response {
+        <span class="kw">match </span><span class="self">self </span>{
+            Either::A(a) =&gt; a.into_response(),
+            Either::B(b) =&gt; b.into_response(),
         }
     }
 }
 
-<span class="kw">impl</span>&lt;T&gt; <a href="#228">Reply</a> <span class="kw">for </span>One&lt;T&gt;
+<span class="kw">impl</span>&lt;T&gt; Reply <span class="kw">for </span>One&lt;T&gt;
 <span class="kw">where
-    </span>T: <a href="#228">Reply</a>,
+    </span>T: Reply,
 {
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>into_response(<span class="self">self</span>) -&gt; <a href="#55">Response</a> {
-        <a class="self" href="#508">self</a>.<span class="number">0</span>.<a href="#232">into_response</a>()
+    </span><span class="kw">fn </span>into_response(<span class="self">self</span>) -&gt; Response {
+        <span class="self">self</span>.<span class="number">0</span>.into_response()
     }
 }
 
-<span class="kw">impl </span><a href="#228">Reply</a> <span class="kw">for </span><a href="https://doc.rust-lang.org/nightly/core/convert/enum.Infallible.html">std::convert::Infallible</a> {
+<span class="kw">impl </span>Reply <span class="kw">for </span>std::convert::Infallible {
     <span class="attr">#[inline(always)]
-    </span><span class="kw">fn </span>into_response(<span class="self">self</span>) -&gt; <a href="#55">Response</a> {
-        <span class="kw">match </span><span class="self"><a href="#515">self</a> </span>{}
+    </span><span class="kw">fn </span>into_response(<span class="self">self</span>) -&gt; Response {
+        <span class="kw">match </span><span class="self">self </span>{}
     }
 }
 
 <span class="kw">mod </span>sealed {
-    <span class="kw">use super</span>::{<a href="#228">Reply</a>, <a href="#55">Response</a>};
+    <span class="kw">use super</span>::{Reply, Response};
 
     <span class="comment">// An opaque type to return `impl Reply` from trait methods.
     </span><span class="attr">#[allow(missing_debug_implementations)]
-    </span><span class="kw">pub struct </span>Reply_(<span class="kw">pub</span>(<span class="kw">crate</span>) <a href="#55">Response</a>);
+    </span><span class="kw">pub struct </span>Reply_(<span class="kw">pub</span>(<span class="kw">crate</span>) Response);
 
-    <span class="kw">impl </span><a href="#228">Reply</a> <span class="kw">for </span><a href="#525">Reply_</a> {
+    <span class="kw">impl </span>Reply <span class="kw">for </span>Reply_ {
         <span class="attr">#[inline]
-        </span><span class="kw">fn </span>into_response(<span class="self">self</span>) -&gt; <a href="#55">Response</a> {
-            <a class="self" href="#529">self</a>.<span class="number">0
+        </span><span class="kw">fn </span>into_response(<span class="self">self</span>) -&gt; Response {
+            <span class="self">self</span>.<span class="number">0
         </span>}
     }
 
@@ -1123,12 +1123,12 @@
     // A user doesn&#39;t need to worry about this, it&#39;s just trait
     // hackery to get `Box&lt;dyn Reply&gt;` working.
     </span><span class="kw">pub trait </span>BoxedReply {
-        <span class="kw">fn </span>boxed_into_response(<span class="self">self</span>: Box&lt;<span class="self">Self</span>&gt;, internal: <a href="#535">Internal</a>) -&gt; <a href="#55">Response</a>;
+        <span class="kw">fn </span>boxed_into_response(<span class="self">self</span>: Box&lt;<span class="self">Self</span>&gt;, internal: Internal) -&gt; Response;
     }
 
-    <span class="kw">impl</span>&lt;T: <a href="#228">Reply</a>&gt; <a href="#541">BoxedReply</a> <span class="kw">for </span>T {
-        <span class="kw">fn </span>boxed_into_response(<span class="self">self</span>: Box&lt;<span class="self">Self</span>&gt;, <span class="kw">_</span>: <a href="#535">Internal</a>) -&gt; <a href="#55">Response</a> {
-            (<span class="kw-2">*</span><a class="self" href="#546">self</a>).<a href="#232">into_response</a>()
+    <span class="kw">impl</span>&lt;T: Reply&gt; BoxedReply <span class="kw">for </span>T {
+        <span class="kw">fn </span>boxed_into_response(<span class="self">self</span>: Box&lt;<span class="self">Self</span>&gt;, <span class="kw">_</span>: Internal) -&gt; Response {
+            (<span class="kw-2">*</span><span class="self">self</span>).into_response()
         }
     }
 }
@@ -1167,4 +1167,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="warp" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="warp" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

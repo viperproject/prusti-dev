@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-util-0.7.4/src/codec/framed_impl.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>framed_impl.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../tokio_util/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-util-0.7.4/src/codec/framed_impl.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>framed_impl.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../tokio_util/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -306,23 +306,23 @@
 <a href="#306" id="306">306</a>
 <a href="#307" id="307">307</a>
 <a href="#308" id="308">308</a>
-</pre><pre class="rust"><code><span class="kw">use </span><a href="decoder.rs.html#35"><span class="kw">crate</span>::codec::decoder::Decoder</a>;
-<span class="kw">use </span><a href="encoder.rs.html#8"><span class="kw">crate</span>::codec::encoder::Encoder</a>;
+</pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::codec::decoder::Decoder;
+<span class="kw">use </span><span class="kw">crate</span>::codec::encoder::Encoder;
 
-<span class="kw">use </span><a href="../../../futures_core/stream/trait.Stream.html">futures_core::Stream</a>;
-<span class="kw">use </span>tokio::io::{<a href="../../../tokio/io/async_read/trait.AsyncRead.html">AsyncRead</a>, <a href="../../../tokio/io/async_write/trait.AsyncWrite.html">AsyncWrite</a>};
+<span class="kw">use </span>futures_core::Stream;
+<span class="kw">use </span>tokio::io::{AsyncRead, AsyncWrite};
 
-<span class="kw">use </span><a href="../../../bytes/bytes_mut/struct.BytesMut.html">bytes::BytesMut</a>;
-<span class="kw">use </span><a href="../../../futures_core/macro.ready.html">futures_core::ready</a>;
-<span class="kw">use </span><a href="../../../futures_sink/trait.Sink.html">futures_sink::Sink</a>;
-<span class="kw">use </span><a href="../../../pin_project_lite/macro.pin_project.html">pin_project_lite::pin_project</a>;
-<span class="kw">use </span>std::borrow::{<a href="https://doc.rust-lang.org/nightly/core/borrow/trait.Borrow.html">Borrow</a>, <a href="https://doc.rust-lang.org/nightly/core/borrow/trait.BorrowMut.html">BorrowMut</a>};
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/io/index.html">std::io</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/pin/struct.Pin.html">std::pin::Pin</a>;
-<span class="kw">use </span>std::task::{<a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>, <a href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">Poll</a>};
-<span class="kw">use </span><a href="../../../tracing/macro.trace.html">tracing::trace</a>;
+<span class="kw">use </span>bytes::BytesMut;
+<span class="kw">use </span>futures_core::ready;
+<span class="kw">use </span>futures_sink::Sink;
+<span class="kw">use </span>pin_project_lite::pin_project;
+<span class="kw">use </span>std::borrow::{Borrow, BorrowMut};
+<span class="kw">use </span>std::io;
+<span class="kw">use </span>std::pin::Pin;
+<span class="kw">use </span>std::task::{Context, Poll};
+<span class="kw">use </span>tracing::trace;
 
-<a class="macro" href="../../../pin_project_lite/macro.pin_project.html">pin_project! </a>{
+<span class="macro">pin_project! </span>{
     <span class="attr">#[derive(Debug)]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>FramedImpl&lt;T, U, State&gt; {
         <span class="attr">#[pin]
@@ -332,106 +332,106 @@
     }
 }
 
-<span class="kw">const </span>INITIAL_CAPACITY: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> = <span class="number">8 </span>* <span class="number">1024</span>;
-<span class="kw">const </span>BACKPRESSURE_BOUNDARY: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> = <a href="#27">INITIAL_CAPACITY</a>;
+<span class="kw">const </span>INITIAL_CAPACITY: usize = <span class="number">8 </span>* <span class="number">1024</span>;
+<span class="kw">const </span>BACKPRESSURE_BOUNDARY: usize = INITIAL_CAPACITY;
 
 <span class="attr">#[derive(Debug)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>ReadFrame {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) eof: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-    <span class="kw">pub</span>(<span class="kw">crate</span>) is_readable: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-    <span class="kw">pub</span>(<span class="kw">crate</span>) buffer: <a href="../../../bytes/bytes_mut/struct.BytesMut.html">BytesMut</a>,
-    <span class="kw">pub</span>(<span class="kw">crate</span>) has_errored: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) eof: bool,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) is_readable: bool,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) buffer: BytesMut,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) has_errored: bool,
 }
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>WriteFrame {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) buffer: <a href="../../../bytes/bytes_mut/struct.BytesMut.html">BytesMut</a>,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) buffer: BytesMut,
 }
 
 <span class="attr">#[derive(Default)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>RWFrames {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) read: <a href="#31">ReadFrame</a>,
-    <span class="kw">pub</span>(<span class="kw">crate</span>) write: <a href="#38">WriteFrame</a>,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) read: ReadFrame,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) write: WriteFrame,
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for </span><a href="#31">ReadFrame</a> {
+<span class="kw">impl </span>Default <span class="kw">for </span>ReadFrame {
     <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
             eof: <span class="bool-val">false</span>,
             is_readable: <span class="bool-val">false</span>,
-            buffer: BytesMut::with_capacity(<a href="#27">INITIAL_CAPACITY</a>),
+            buffer: BytesMut::with_capacity(INITIAL_CAPACITY),
             has_errored: <span class="bool-val">false</span>,
         }
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for </span><a href="#38">WriteFrame</a> {
+<span class="kw">impl </span>Default <span class="kw">for </span>WriteFrame {
     <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
-            buffer: BytesMut::with_capacity(<a href="#27">INITIAL_CAPACITY</a>),
+            buffer: BytesMut::with_capacity(INITIAL_CAPACITY),
         }
     }
 }
 
-<span class="kw">impl </span>From&lt;<a href="../../../bytes/bytes_mut/struct.BytesMut.html">BytesMut</a>&gt; <span class="kw">for </span><a href="#31">ReadFrame</a> {
-    <span class="kw">fn </span>from(<span class="kw-2">mut </span>buffer: <a href="../../../bytes/bytes_mut/struct.BytesMut.html">BytesMut</a>) -&gt; <span class="self">Self </span>{
-        <span class="kw">let </span>size = <a href="#68">buffer</a>.capacity();
+<span class="kw">impl </span>From&lt;BytesMut&gt; <span class="kw">for </span>ReadFrame {
+    <span class="kw">fn </span>from(<span class="kw-2">mut </span>buffer: BytesMut) -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span>size = buffer.capacity();
         <span class="kw">if </span>size &lt; INITIAL_CAPACITY {
-            <a href="#68">buffer</a>.reserve(<a href="#27">INITIAL_CAPACITY</a> - <a href="#69">size</a>);
+            buffer.reserve(INITIAL_CAPACITY - size);
         }
 
         <span class="self">Self </span>{
-            <a href="#68">buffer</a>,
-            is_readable: <a href="#69">size</a> &gt; <span class="number">0</span>,
+            buffer,
+            is_readable: size &gt; <span class="number">0</span>,
             eof: <span class="bool-val">false</span>,
             has_errored: <span class="bool-val">false</span>,
         }
     }
 }
 
-<span class="kw">impl </span>From&lt;<a href="../../../bytes/bytes_mut/struct.BytesMut.html">BytesMut</a>&gt; <span class="kw">for </span><a href="#38">WriteFrame</a> {
-    <span class="kw">fn </span>from(<span class="kw-2">mut </span>buffer: <a href="../../../bytes/bytes_mut/struct.BytesMut.html">BytesMut</a>) -&gt; <span class="self">Self </span>{
-        <span class="kw">let </span>size = <a href="#84">buffer</a>.capacity();
+<span class="kw">impl </span>From&lt;BytesMut&gt; <span class="kw">for </span>WriteFrame {
+    <span class="kw">fn </span>from(<span class="kw-2">mut </span>buffer: BytesMut) -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span>size = buffer.capacity();
         <span class="kw">if </span>size &lt; INITIAL_CAPACITY {
-            <a href="#84">buffer</a>.reserve(<a href="#27">INITIAL_CAPACITY</a> - <a href="#85">size</a>);
+            buffer.reserve(INITIAL_CAPACITY - size);
         }
 
-        <span class="self">Self </span>{ <a href="#84">buffer</a> }
+        <span class="self">Self </span>{ buffer }
     }
 }
 
-<span class="kw">impl </span>Borrow&lt;<a href="#31">ReadFrame</a>&gt; <span class="kw">for </span><a href="#43">RWFrames</a> {
-    <span class="kw">fn </span>borrow(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="#31">ReadFrame</a> {
-        <span class="kw-2">&amp;</span><a class="self" href="#95">self</a>.read
+<span class="kw">impl </span>Borrow&lt;ReadFrame&gt; <span class="kw">for </span>RWFrames {
+    <span class="kw">fn </span>borrow(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>ReadFrame {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.read
     }
 }
-<span class="kw">impl </span>BorrowMut&lt;<a href="#31">ReadFrame</a>&gt; <span class="kw">for </span><a href="#43">RWFrames</a> {
-    <span class="kw">fn </span>borrow_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span><a href="#31">ReadFrame</a> {
-        <span class="kw-2">&amp;mut </span><a class="self" href="#100">self</a>.read
+<span class="kw">impl </span>BorrowMut&lt;ReadFrame&gt; <span class="kw">for </span>RWFrames {
+    <span class="kw">fn </span>borrow_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>ReadFrame {
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>.read
     }
 }
-<span class="kw">impl </span>Borrow&lt;<a href="#38">WriteFrame</a>&gt; <span class="kw">for </span><a href="#43">RWFrames</a> {
-    <span class="kw">fn </span>borrow(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="#38">WriteFrame</a> {
-        <span class="kw-2">&amp;</span><a class="self" href="#105">self</a>.write
+<span class="kw">impl </span>Borrow&lt;WriteFrame&gt; <span class="kw">for </span>RWFrames {
+    <span class="kw">fn </span>borrow(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>WriteFrame {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.write
     }
 }
-<span class="kw">impl </span>BorrowMut&lt;<a href="#38">WriteFrame</a>&gt; <span class="kw">for </span><a href="#43">RWFrames</a> {
-    <span class="kw">fn </span>borrow_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span><a href="#38">WriteFrame</a> {
-        <span class="kw-2">&amp;mut </span><a class="self" href="#110">self</a>.write
+<span class="kw">impl </span>BorrowMut&lt;WriteFrame&gt; <span class="kw">for </span>RWFrames {
+    <span class="kw">fn </span>borrow_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>WriteFrame {
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>.write
     }
 }
-<span class="kw">impl</span>&lt;T, U, R&gt; <a href="../../../futures_core/stream/trait.Stream.html">Stream</a> <span class="kw">for </span>FramedImpl&lt;T, U, R&gt;
+<span class="kw">impl</span>&lt;T, U, R&gt; Stream <span class="kw">for </span>FramedImpl&lt;T, U, R&gt;
 <span class="kw">where
-    </span>T: <a href="../../../tokio/io/async_read/trait.AsyncRead.html">AsyncRead</a>,
-    U: <a href="decoder.rs.html#35">Decoder</a>,
-    R: BorrowMut&lt;<a href="#31">ReadFrame</a>&gt;,
+    </span>T: AsyncRead,
+    U: Decoder,
+    R: BorrowMut&lt;ReadFrame&gt;,
 {
     <span class="kw">type </span>Item = <span class="prelude-ty">Result</span>&lt;U::Item, U::Error&gt;;
 
     <span class="kw">fn </span>poll_next(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt;&gt; {
-        <span class="kw">use </span><a href="../lib.rs.html#108-112"><span class="kw">crate</span>::util::poll_read_buf</a>;
+        <span class="kw">use </span><span class="kw">crate</span>::util::poll_read_buf;
 
-        <span class="kw">let </span><span class="kw-2">mut </span>pinned = <a class="self" href="#122">self</a>.<a href="#17-25">project</a>();
-        <span class="kw">let </span>state: <span class="kw-2">&amp;mut </span><a href="#31">ReadFrame</a> = <a href="#125">pinned</a>.state.<a href="https://doc.rust-lang.org/nightly/core/borrow/trait.BorrowMut.html">borrow_mut</a>();
+        <span class="kw">let </span><span class="kw-2">mut </span>pinned = <span class="self">self</span>.project();
+        <span class="kw">let </span>state: <span class="kw-2">&amp;mut </span>ReadFrame = pinned.state.borrow_mut();
         <span class="comment">// The following loops implements a state machine with each state corresponding
         // to a combination of the `is_readable` and `eof` flags. States persist across
         // loop entries and most state transitions occur with a return.
@@ -468,9 +468,9 @@
             // See: https://github.com/tokio-rs/tokio/issues/3976
             </span><span class="kw">if </span>state.has_errored {
                 <span class="comment">// preparing has_errored -&gt; paused
-                </span><a class="macro" href="../../../tracing/macro.trace.html">trace!</a>(<span class="string">&quot;Returning None and setting paused&quot;</span>);
-                <a href="#126">state</a>.is_readable = <span class="bool-val">false</span>;
-                <a href="#126">state</a>.has_errored = <span class="bool-val">false</span>;
+                </span><span class="macro">trace!</span>(<span class="string">&quot;Returning None and setting paused&quot;</span>);
+                state.is_readable = <span class="bool-val">false</span>;
+                state.has_errored = <span class="bool-val">false</span>;
                 <span class="kw">return </span>Poll::Ready(<span class="prelude-val">None</span>);
             }
 
@@ -495,33 +495,33 @@
                         err
                     })<span class="question-mark">?</span>;
                     <span class="kw">if </span>frame.is_none() {
-                        <a href="#126">state</a>.is_readable = <span class="bool-val">false</span>; <span class="comment">// prepare pausing -&gt; paused
+                        state.is_readable = <span class="bool-val">false</span>; <span class="comment">// prepare pausing -&gt; paused
                     </span>}
                     <span class="comment">// implicit pausing -&gt; pausing or pausing -&gt; paused
-                    </span><span class="kw">return </span>Poll::Ready(<a href="#184">frame</a>.map(<span class="prelude-val">Ok</span>));
+                    </span><span class="kw">return </span>Poll::Ready(frame.map(<span class="prelude-val">Ok</span>));
                 }
 
                 <span class="comment">// framing
-                </span><a class="macro" href="../../../tracing/macro.trace.html">trace!</a>(<span class="string">&quot;attempting to decode a frame&quot;</span>);
+                </span><span class="macro">trace!</span>(<span class="string">&quot;attempting to decode a frame&quot;</span>);
 
                 <span class="kw">if let </span><span class="prelude-val">Some</span>(frame) = pinned.codec.decode(<span class="kw-2">&amp;mut </span>state.buffer).map_err(|op| {
                     <span class="macro">trace!</span>(<span class="string">&quot;Got an error, going to errored state&quot;</span>);
                     state.has_errored = <span class="bool-val">true</span>;
                     op
                 })<span class="question-mark">? </span>{
-                    <a class="macro" href="../../../tracing/macro.trace.html">trace!</a>(<span class="string">&quot;frame decoded from buffer&quot;</span>);
+                    <span class="macro">trace!</span>(<span class="string">&quot;frame decoded from buffer&quot;</span>);
                     <span class="comment">// implicit framing -&gt; framing
-                    </span><span class="kw">return </span>Poll::Ready(<span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(<a href="#199">frame</a>)));
+                    </span><span class="kw">return </span>Poll::Ready(<span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(frame)));
                 }
 
                 <span class="comment">// framing -&gt; reading
-                </span><a href="#126">state</a>.is_readable = <span class="bool-val">false</span>;
+                </span>state.is_readable = <span class="bool-val">false</span>;
             }
             <span class="comment">// reading or paused
             // If we can&#39;t build a frame yet, try to read more data and try again.
             // Make sure we&#39;ve got room for at least one byte to read to ensure
             // that we don&#39;t get a spurious 0 that looks like EOF.
-            </span><a href="#126">state</a>.buffer.reserve(<span class="number">1</span>);
+            </span>state.buffer.reserve(<span class="number">1</span>);
             <span class="kw">let </span>bytect = <span class="kw">match </span>poll_read_buf(pinned.inner.as_mut(), cx, <span class="kw-2">&amp;mut </span>state.buffer).map_err(
                 |err| {
                     <span class="macro">trace!</span>(<span class="string">&quot;Got an error, going to errored state&quot;</span>);
@@ -529,7 +529,7 @@
                     err
                 },
             )<span class="question-mark">? </span>{
-                Poll::Ready(ct) =&gt; <a href="#224">ct</a>,
+                Poll::Ready(ct) =&gt; ct,
                 <span class="comment">// implicit reading -&gt; reading or implicit paused -&gt; paused
                 </span>Poll::Pending =&gt; <span class="kw">return </span>Poll::Pending,
             };
@@ -542,37 +542,37 @@
                     </span><span class="kw">return </span>Poll::Ready(<span class="prelude-val">None</span>);
                 }
                 <span class="comment">// prepare reading -&gt; paused
-                </span><a href="#126">state</a>.eof = <span class="bool-val">true</span>;
+                </span>state.eof = <span class="bool-val">true</span>;
             } <span class="kw">else </span>{
                 <span class="comment">// prepare paused -&gt; framing or noop reading -&gt; framing
-                </span><a href="#126">state</a>.eof = <span class="bool-val">false</span>;
+                </span>state.eof = <span class="bool-val">false</span>;
             }
 
             <span class="comment">// paused -&gt; framing or reading -&gt; framing or reading -&gt; pausing
-            </span><a href="#126">state</a>.is_readable = <span class="bool-val">true</span>;
+            </span>state.is_readable = <span class="bool-val">true</span>;
         }
     }
 }
 
 <span class="kw">impl</span>&lt;T, I, U, W&gt; Sink&lt;I&gt; <span class="kw">for </span>FramedImpl&lt;T, U, W&gt;
 <span class="kw">where
-    </span>T: <a href="../../../tokio/io/async_write/trait.AsyncWrite.html">AsyncWrite</a>,
+    </span>T: AsyncWrite,
     U: Encoder&lt;I&gt;,
-    U::Error: From&lt;<a href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a>&gt;,
-    W: BorrowMut&lt;<a href="#38">WriteFrame</a>&gt;,
+    U::Error: From&lt;io::Error&gt;,
+    W: BorrowMut&lt;WriteFrame&gt;,
 {
     <span class="kw">type </span>Error = U::Error;
 
     <span class="kw">fn </span>poll_ready(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt;&gt; {
         <span class="kw">if </span><span class="self">self</span>.state.borrow().buffer.len() &gt;= BACKPRESSURE_BOUNDARY {
-            <a class="self" href="#258">self</a>.as_mut().<a href="../../../futures_sink/trait.Sink.html">poll_flush</a>(<a href="#258">cx</a>)
+            <span class="self">self</span>.as_mut().poll_flush(cx)
         } <span class="kw">else </span>{
             Poll::Ready(<span class="prelude-val">Ok</span>(()))
         }
     }
 
     <span class="kw">fn </span>start_send(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, item: I) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt; {
-        <span class="kw">let </span>pinned = <a class="self" href="#266">self</a>.<a href="#17-25">project</a>();
+        <span class="kw">let </span>pinned = <span class="self">self</span>.project();
         pinned
             .codec
             .encode(item, <span class="kw-2">&amp;mut </span>pinned.state.borrow_mut().buffer)<span class="question-mark">?</span>;
@@ -580,9 +580,9 @@
     }
 
     <span class="kw">fn </span>poll_flush(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt;&gt; {
-        <span class="kw">use </span><a href="../lib.rs.html#182-186"><span class="kw">crate</span>::util::poll_write_buf</a>;
-        <a class="macro" href="../../../tracing/macro.trace.html">trace!</a>(<span class="string">&quot;flushing framed transport&quot;</span>);
-        <span class="kw">let </span><span class="kw-2">mut </span>pinned = <a class="self" href="#274">self</a>.<a href="#17-25">project</a>();
+        <span class="kw">use </span><span class="kw">crate</span>::util::poll_write_buf;
+        <span class="macro">trace!</span>(<span class="string">&quot;flushing framed transport&quot;</span>);
+        <span class="kw">let </span><span class="kw-2">mut </span>pinned = <span class="self">self</span>.project();
 
         <span class="kw">while </span>!pinned.state.borrow_mut().buffer.is_empty() {
             <span class="kw">let </span>WriteFrame { buffer } = pinned.state.borrow_mut();
@@ -603,7 +603,7 @@
         <span class="comment">// Try flushing the underlying IO
         </span><span class="macro">ready!</span>(pinned.inner.poll_flush(cx))<span class="question-mark">?</span>;
 
-        <a class="macro" href="../../../tracing/macro.trace.html">trace!</a>(<span class="string">&quot;framed transport flushed&quot;</span>);
+        <span class="macro">trace!</span>(<span class="string">&quot;framed transport flushed&quot;</span>);
         Poll::Ready(<span class="prelude-val">Ok</span>(()))
     }
 
@@ -615,4 +615,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="tokio_util" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="tokio_util" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/mime-0.3.16/src/parse.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>parse.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../mime/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/mime-0.3.16/src/parse.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>parse.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../mime/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -362,13 +362,13 @@
 <a href="#362" id="362">362</a>
 <a href="#363" id="363">363</a>
 </pre><pre class="rust"><code><span class="attr">#[allow(unused, deprecated)]
-</span><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/ascii/trait.AsciiExt.html">std::ascii::AsciiExt</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">std::error::Error</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">std::fmt</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/iter/adapters/enumerate/struct.Enumerate.html">std::iter::Enumerate</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/str/iter/struct.Bytes.html">std::str::Bytes</a>;
+</span><span class="kw">use </span>std::ascii::AsciiExt;
+<span class="kw">use </span>std::error::Error;
+<span class="kw">use </span>std::fmt;
+<span class="kw">use </span>std::iter::Enumerate;
+<span class="kw">use </span>std::str::Bytes;
 
-<span class="kw">use super</span>::{<a href="lib.rs.html#43">Mime</a>, <a href="lib.rs.html#97">Source</a>, <a href="lib.rs.html#112">ParamSource</a>, <a href="lib.rs.html#119">Indexed</a>, <a href="lib.rs.html#589-643">CHARSET</a>, <a href="lib.rs.html#589-643">UTF_8</a>};
+<span class="kw">use super</span>::{Mime, Source, ParamSource, Indexed, CHARSET, UTF_8};
 
 <span class="attr">#[derive(Debug)]
 </span><span class="kw">pub enum </span>ParseError {
@@ -376,63 +376,63 @@
     MissingEqual,
     MissingQuote,
     InvalidToken {
-        pos: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-        byte: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>,
+        pos: usize,
+        byte: u8,
     },
 }
 
-<span class="kw">impl </span><a href="#11">ParseError</a> {
-    <span class="kw">fn </span>s(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> {
-        <span class="kw">use </span><a href="#11"><span class="self">self</span>::ParseError</a>::<span class="kw-2">*</span>;
+<span class="kw">impl </span>ParseError {
+    <span class="kw">fn </span>s(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>str {
+        <span class="kw">use </span><span class="self">self</span>::ParseError::<span class="kw-2">*</span>;
 
-        <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="#22">self</a> </span>{
-            <a href="#12">MissingSlash</a> =&gt; <span class="string">&quot;a slash (/) was missing between the type and subtype&quot;</span>,
-            <a href="#13">MissingEqual</a> =&gt; <span class="string">&quot;an equals sign (=) was missing between a parameter and its value&quot;</span>,
-            <a href="#14">MissingQuote</a> =&gt; <span class="string">&quot;a quote (\&quot;) was missing from a parameter value&quot;</span>,
-            <a href="#15">InvalidToken</a> { .. } =&gt; <span class="string">&quot;an invalid token was encountered&quot;</span>,
+        <span class="kw">match </span><span class="kw-2">*</span><span class="self">self </span>{
+            MissingSlash =&gt; <span class="string">&quot;a slash (/) was missing between the type and subtype&quot;</span>,
+            MissingEqual =&gt; <span class="string">&quot;an equals sign (=) was missing between a parameter and its value&quot;</span>,
+            MissingQuote =&gt; <span class="string">&quot;a quote (\&quot;) was missing from a parameter value&quot;</span>,
+            InvalidToken { .. } =&gt; <span class="string">&quot;an invalid token was encountered&quot;</span>,
         }
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for </span><a href="#11">ParseError</a> {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <span class="kw">if let </span><a href="#15">ParseError::InvalidToken</a> { pos, byte } = <span class="kw-2">*</span><span class="self"><a href="#35">self</a> </span>{
-            <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#35">f</a>, <span class="string">&quot;{}, {:X} at position {}&quot;</span>, <span class="self">self</span>.s(), byte, pos)
+<span class="kw">impl </span>fmt::Display <span class="kw">for </span>ParseError {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter) -&gt; fmt::Result {
+        <span class="kw">if let </span>ParseError::InvalidToken { pos, byte } = <span class="kw-2">*</span><span class="self">self </span>{
+            <span class="macro">write!</span>(f, <span class="string">&quot;{}, {:X} at position {}&quot;</span>, <span class="self">self</span>.s(), byte, pos)
         } <span class="kw">else </span>{
-            <a href="#35">f</a>.write_str(<a class="self" href="#35">self</a>.<a href="#22">s</a>())
+            f.write_str(<span class="self">self</span>.s())
         }
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">Error</a> <span class="kw">for </span><a href="#11">ParseError</a> {
+<span class="kw">impl </span>Error <span class="kw">for </span>ParseError {
     <span class="comment">// Minimum Rust is 1.15, Error::description was still required then
     </span><span class="attr">#[allow(deprecated)]
-    </span><span class="kw">fn </span>description(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> {
-        <a class="self" href="#47">self</a>.<a href="#22">s</a>()
+    </span><span class="kw">fn </span>description(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>str {
+        <span class="self">self</span>.s()
     }
 }
 
-<span class="kw">pub fn </span>parse(s: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="lib.rs.html#43">Mime</a>, <a href="#11">ParseError</a>&gt; {
+<span class="kw">pub fn </span>parse(s: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;Mime, ParseError&gt; {
     <span class="kw">if </span>s == <span class="string">&quot;*/*&quot; </span>{
-        <span class="kw">return </span><span class="prelude-val">Ok</span>(<a href="lib.rs.html#739-777">::STAR_STAR</a>);
+        <span class="kw">return </span><span class="prelude-val">Ok</span>(::STAR_STAR);
     }
 
-    <span class="kw">let </span><span class="kw-2">mut </span>iter = <a href="#52">s</a>.bytes().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">enumerate</a>();
+    <span class="kw">let </span><span class="kw-2">mut </span>iter = s.bytes().enumerate();
     <span class="comment">// toplevel
     </span><span class="kw">let </span><span class="kw-2">mut </span>start;
     <span class="kw">let </span>slash;
     <span class="kw">loop </span>{
-        <span class="kw">match </span><a href="#57">iter</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>() {
-            <span class="prelude-val">Some</span>((<span class="kw">_</span>, c)) <span class="kw">if </span><a href="#327">is_token</a>(<a href="#63">c</a>) =&gt; (),
-            <span class="prelude-val">Some</span>((i, <span class="string">b&#39;/&#39;</span>)) <span class="kw">if </span><a href="#64">i</a> &gt; <span class="number">0 </span>=&gt; {
-                <a href="#60">slash</a> = <a href="#64">i</a>;
-                <a href="#59">start</a> = <a href="#64">i</a> + <span class="number">1</span>;
+        <span class="kw">match </span>iter.next() {
+            <span class="prelude-val">Some</span>((<span class="kw">_</span>, c)) <span class="kw">if </span>is_token(c) =&gt; (),
+            <span class="prelude-val">Some</span>((i, <span class="string">b&#39;/&#39;</span>)) <span class="kw">if </span>i &gt; <span class="number">0 </span>=&gt; {
+                slash = i;
+                start = i + <span class="number">1</span>;
                 <span class="kw">break</span>;
             },
-            <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="#12">ParseError::MissingSlash</a>), <span class="comment">// EOF and no toplevel is no Mime
-            </span><span class="prelude-val">Some</span>((pos, byte)) =&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="#15">ParseError::InvalidToken</a> {
-                pos: <a href="#70">pos</a>,
-                byte: <a href="#70">byte</a>,
+            <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(ParseError::MissingSlash), <span class="comment">// EOF and no toplevel is no Mime
+            </span><span class="prelude-val">Some</span>((pos, byte)) =&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(ParseError::InvalidToken {
+                pos: pos,
+                byte: byte,
             })
         };
 
@@ -441,26 +441,26 @@
     <span class="comment">// sublevel
     </span><span class="kw">let </span><span class="kw-2">mut </span>plus = <span class="prelude-val">None</span>;
     <span class="kw">loop </span>{
-        <span class="kw">match </span><a href="#57">iter</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>() {
-            <span class="prelude-val">Some</span>((i, <span class="string">b&#39;+&#39;</span>)) <span class="kw">if </span><a href="#82">i</a> &gt; <a href="#59">start</a> =&gt; {
-                <a href="#79">plus</a> = <span class="prelude-val">Some</span>(<a href="#82">i</a>);
+        <span class="kw">match </span>iter.next() {
+            <span class="prelude-val">Some</span>((i, <span class="string">b&#39;+&#39;</span>)) <span class="kw">if </span>i &gt; start =&gt; {
+                plus = <span class="prelude-val">Some</span>(i);
             },
-            <span class="prelude-val">Some</span>((i, <span class="string">b&#39;;&#39;</span>)) <span class="kw">if </span><a href="#85">i</a> &gt; <a href="#59">start</a> =&gt; {
-                <a href="#59">start</a> = <a href="#85">i</a>;
+            <span class="prelude-val">Some</span>((i, <span class="string">b&#39;;&#39;</span>)) <span class="kw">if </span>i &gt; start =&gt; {
+                start = i;
                 <span class="kw">break</span>;
             },
-            <span class="prelude-val">Some</span>((<span class="kw">_</span>, c)) <span class="kw">if </span><a href="#327">is_token</a>(<a href="#89">c</a>) =&gt; (),
+            <span class="prelude-val">Some</span>((<span class="kw">_</span>, c)) <span class="kw">if </span>is_token(c) =&gt; (),
             <span class="prelude-val">None </span>=&gt; {
-                <span class="kw">return </span><span class="prelude-val">Ok</span>(<a href="lib.rs.html#43">Mime</a> {
-                    source: <a href="lib.rs.html#99">Source::Dynamic</a>(<a href="#52">s</a>.to_ascii_lowercase()),
-                    slash: <a href="#60">slash</a>,
-                    plus: <a href="#79">plus</a>,
-                    params: <a href="lib.rs.html#115">ParamSource::None</a>,
+                <span class="kw">return </span><span class="prelude-val">Ok</span>(Mime {
+                    source: Source::Dynamic(s.to_ascii_lowercase()),
+                    slash: slash,
+                    plus: plus,
+                    params: ParamSource::None,
                 });
             },
-            <span class="prelude-val">Some</span>((pos, byte)) =&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="#15">ParseError::InvalidToken</a> {
-                pos: <a href="#98">pos</a>,
-                byte: <a href="#98">byte</a>,
+            <span class="prelude-val">Some</span>((pos, byte)) =&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(ParseError::InvalidToken {
+                pos: pos,
+                byte: byte,
             })
         };
     }
@@ -468,28 +468,28 @@
     <span class="comment">// params
     </span><span class="kw">let </span>params = params_from_str(s, <span class="kw-2">&amp;mut </span>iter, start)<span class="question-mark">?</span>;
 
-    <span class="kw">let </span>src = <span class="kw">match </span><a href="#106">params</a> {
-        <a href="lib.rs.html#113">ParamSource::Utf8</a>(<span class="kw">_</span>)  =&gt; <a href="#52">s</a>.to_ascii_lowercase(),
-        <a href="lib.rs.html#114">ParamSource::Custom</a>(semicolon, <span class="kw-2">ref </span>indices) =&gt; <a href="#248">lower_ascii_with_params</a>(<a href="#52">s</a>, <a href="#110">semicolon</a>, <a href="#110">indices</a>),
-        <a href="lib.rs.html#115">ParamSource::None</a> =&gt; {
+    <span class="kw">let </span>src = <span class="kw">match </span>params {
+        ParamSource::Utf8(<span class="kw">_</span>)  =&gt; s.to_ascii_lowercase(),
+        ParamSource::Custom(semicolon, <span class="kw-2">ref </span>indices) =&gt; lower_ascii_with_params(s, semicolon, indices),
+        ParamSource::None =&gt; {
             <span class="comment">// Chop off the empty list
-            </span><a href="#52">s</a>[..<a href="#59">start</a>].to_ascii_lowercase()
+            </span>s[..start].to_ascii_lowercase()
         }
     };
 
-    <span class="prelude-val">Ok</span>(<a href="lib.rs.html#43">Mime</a> {
-        source: <a href="lib.rs.html#99">Source::Dynamic</a>(<a href="#108">src</a>),
-        slash: <a href="#60">slash</a>,
-        plus: <a href="#79">plus</a>,
-        params: <a href="#106">params</a>,
+    <span class="prelude-val">Ok</span>(Mime {
+        source: Source::Dynamic(src),
+        slash: slash,
+        plus: plus,
+        params: params,
     })
 }
 
 
-<span class="kw">fn </span>params_from_str(s: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, iter: <span class="kw-2">&amp;mut </span>Enumerate&lt;<a href="https://doc.rust-lang.org/nightly/core/str/iter/struct.Bytes.html">Bytes</a>&gt;, <span class="kw-2">mut </span>start: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="lib.rs.html#112">ParamSource</a>, <a href="#11">ParseError</a>&gt; {
-    <span class="kw">let </span>semicolon = <a href="#126">start</a>;
-    <a href="#126">start</a> += <span class="number">1</span>;
-    <span class="kw">let </span><span class="kw-2">mut </span>params = <a href="lib.rs.html#115">ParamSource::None</a>;
+<span class="kw">fn </span>params_from_str(s: <span class="kw-2">&amp;</span>str, iter: <span class="kw-2">&amp;mut </span>Enumerate&lt;Bytes&gt;, <span class="kw-2">mut </span>start: usize) -&gt; <span class="prelude-ty">Result</span>&lt;ParamSource, ParseError&gt; {
+    <span class="kw">let </span>semicolon = start;
+    start += <span class="number">1</span>;
+    <span class="kw">let </span><span class="kw-2">mut </span>params = ParamSource::None;
     <span class="lifetime">&#39;params</span>: <span class="kw">while </span>start &lt; s.len() {
         <span class="kw">let </span>name;
         <span class="comment">// name
@@ -605,12 +605,12 @@
             },
         }
     }
-    <span class="prelude-val">Ok</span>(<a href="#129">params</a>)
+    <span class="prelude-val">Ok</span>(params)
 }
 
-<span class="kw">fn </span>lower_ascii_with_params(s: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, semi: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, params: <span class="kw-2">&amp;</span>[(<a href="lib.rs.html#119">Indexed</a>, <a href="lib.rs.html#119">Indexed</a>)]) -&gt; <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a> {
-    <span class="kw">let </span><span class="kw-2">mut </span>owned = <a href="#248">s</a>.<a href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">to_owned</a>();
-    <a href="#249">owned</a>[..<a href="#248">semi</a>].make_ascii_lowercase();
+<span class="kw">fn </span>lower_ascii_with_params(s: <span class="kw-2">&amp;</span>str, semi: usize, params: <span class="kw-2">&amp;</span>[(Indexed, Indexed)]) -&gt; String {
+    <span class="kw">let </span><span class="kw-2">mut </span>owned = s.to_owned();
+    owned[..semi].make_ascii_lowercase();
 
     <span class="kw">for </span><span class="kw-2">&amp;</span>(<span class="kw-2">ref </span>name, <span class="kw-2">ref </span>value) <span class="kw">in </span>params {
         owned[name.<span class="number">0</span>..name.<span class="number">1</span>].make_ascii_lowercase();
@@ -622,7 +622,7 @@
         }
     }
 
-    <a href="#249">owned</a>
+    owned
 }
 
 <span class="comment">// From [RFC6838](http://tools.ietf.org/html/rfc6838#section-4.2):
@@ -668,7 +668,7 @@
     ])
 }
 
-<span class="kw">static </span>TOKEN_MAP: [<a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>; <span class="number">256</span>] = <a class="macro" href="#302-306">byte_map!</a>[
+<span class="kw">static </span>TOKEN_MAP: [bool; <span class="number">256</span>] = <span class="macro">byte_map!</span>[
     <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>,
     <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>,
     <span class="number">0</span>, <span class="number">1</span>, <span class="number">0</span>, <span class="number">1</span>, <span class="number">1</span>, <span class="number">1</span>, <span class="number">1</span>, <span class="number">1</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">1</span>, <span class="number">1</span>, <span class="number">0</span>, <span class="number">1</span>, <span class="number">1</span>, <span class="number">0</span>,
@@ -687,12 +687,12 @@
     <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>,
 ];
 
-<span class="kw">fn </span>is_token(c: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-    <a href="#308">TOKEN_MAP</a>[<a href="#327">c</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>]
+<span class="kw">fn </span>is_token(c: u8) -&gt; bool {
+    TOKEN_MAP[c <span class="kw">as </span>usize]
 }
 
-<span class="kw">fn </span>is_restricted_quoted_char(c: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-    <a href="#331">c</a> &gt; <span class="number">31 </span>&amp;&amp; <a href="#331">c</a> != <span class="number">127
+<span class="kw">fn </span>is_restricted_quoted_char(c: u8) -&gt; bool {
+    c &gt; <span class="number">31 </span>&amp;&amp; c != <span class="number">127
 </span>}
 
 <span class="attr">#[test]
@@ -725,4 +725,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="mime" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="mime" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

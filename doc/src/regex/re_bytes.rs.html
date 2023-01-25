@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-1.7.0/src/re_bytes.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>re_bytes.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../regex/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-1.7.0/src/re_bytes.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>re_bytes.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../regex/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -1258,68 +1258,68 @@
 <a href="#1258" id="1258">1258</a>
 <a href="#1259" id="1259">1259</a>
 <a href="#1260" id="1260">1260</a>
-</pre><pre class="rust"><code><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/borrow/enum.Cow.html">std::borrow::Cow</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/collections/hash/map/struct.HashMap.html">std::collections::HashMap</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">std::fmt</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/iter/traits/marker/trait.FusedIterator.html">std::iter::FusedIterator</a>;
-<span class="kw">use </span>std::ops::{<a href="https://doc.rust-lang.org/nightly/core/ops/index/trait.Index.html">Index</a>, <a href="https://doc.rust-lang.org/nightly/core/ops/range/struct.Range.html">Range</a>};
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/str/traits/trait.FromStr.html">std::str::FromStr</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/sync/struct.Arc.html">std::sync::Arc</a>;
+</pre><pre class="rust"><code><span class="kw">use </span>std::borrow::Cow;
+<span class="kw">use </span>std::collections::HashMap;
+<span class="kw">use </span>std::fmt;
+<span class="kw">use </span>std::iter::FusedIterator;
+<span class="kw">use </span>std::ops::{Index, Range};
+<span class="kw">use </span>std::str::FromStr;
+<span class="kw">use </span>std::sync::Arc;
 
-<span class="kw">use </span><a href="find_byte.rs.html#5"><span class="kw">crate</span>::find_byte::find_byte</a>;
+<span class="kw">use </span><span class="kw">crate</span>::find_byte::find_byte;
 
-<span class="kw">use </span><a href="error.rs.html#6"><span class="kw">crate</span>::error::Error</a>;
-<span class="kw">use </span><span class="kw">crate</span>::exec::{<a href="exec.rs.html#35">Exec</a>, <a href="exec.rs.html#53">ExecNoSync</a>};
-<span class="kw">use </span><a href="expand.rs.html#50-54"><span class="kw">crate</span>::expand::expand_bytes</a>;
-<span class="kw">use </span><a href="re_builder.rs.html#231"><span class="kw">crate</span>::re_builder::bytes::RegexBuilder</a>;
-<span class="kw">use </span><span class="kw">crate</span>::re_trait::{<a class="self" href="lib.rs.html#753">self</a>, <a href="re_trait.rs.html#104">RegularExpression</a>, <a href="re_trait.rs.html#58">SubCapturesPosIter</a>};
+<span class="kw">use </span><span class="kw">crate</span>::error::Error;
+<span class="kw">use </span><span class="kw">crate</span>::exec::{Exec, ExecNoSync};
+<span class="kw">use </span><span class="kw">crate</span>::expand::expand_bytes;
+<span class="kw">use </span><span class="kw">crate</span>::re_builder::bytes::RegexBuilder;
+<span class="kw">use </span><span class="kw">crate</span>::re_trait::{<span class="self">self</span>, RegularExpression, SubCapturesPosIter};
 
 <span class="doccomment">/// Match represents a single match of a regex in a haystack.
 ///
 /// The lifetime parameter `&#39;t` refers to the lifetime of the matched text.
 </span><span class="attr">#[derive(Copy, Clone, Debug, Eq, PartialEq)]
 </span><span class="kw">pub struct </span>Match&lt;<span class="lifetime">&#39;t</span>&gt; {
-    text: <span class="kw-2">&amp;</span><span class="lifetime">&#39;t </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
-    start: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-    end: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+    text: <span class="kw-2">&amp;</span><span class="lifetime">&#39;t </span>[u8],
+    start: usize,
+    end: usize,
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;t</span>&gt; Match&lt;<span class="lifetime">&#39;t</span>&gt; {
     <span class="doccomment">/// Returns the starting byte offset of the match in the haystack.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>start(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="self" href="#30">self</a>.start
+    </span><span class="kw">pub fn </span>start(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+        <span class="self">self</span>.start
     }
 
     <span class="doccomment">/// Returns the ending byte offset of the match in the haystack.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>end(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="self" href="#36">self</a>.end
+    </span><span class="kw">pub fn </span>end(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+        <span class="self">self</span>.end
     }
 
     <span class="doccomment">/// Returns the range over the starting and ending byte offsets of the
     /// match in the haystack.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>range(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Range&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
-        <a class="self" href="#43">self</a>.start..<a class="self" href="#43">self</a>.end
+    </span><span class="kw">pub fn </span>range(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Range&lt;usize&gt; {
+        <span class="self">self</span>.start..<span class="self">self</span>.end
     }
 
     <span class="doccomment">/// Returns the matched text.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>as_bytes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;t </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>] {
-        <span class="kw-2">&amp;</span><a class="self" href="#49">self</a>.text[<a class="self" href="#49">self</a>.<a href="#43">range</a>()]
+    </span><span class="kw">pub fn </span>as_bytes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;t </span>[u8] {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.text[<span class="self">self</span>.range()]
     }
 
     <span class="doccomment">/// Creates a new match from the given haystack and byte offsets.
     </span><span class="attr">#[inline]
-    </span><span class="kw">fn </span>new(haystack: <span class="kw-2">&amp;</span><span class="lifetime">&#39;t </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], start: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, end: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; Match&lt;<span class="lifetime">&#39;t</span>&gt; {
-        <a href="#21">Match</a> { text: <a href="#55">haystack</a>, <a href="#55">start</a>, <a href="#55">end</a> }
+    </span><span class="kw">fn </span>new(haystack: <span class="kw-2">&amp;</span><span class="lifetime">&#39;t </span>[u8], start: usize, end: usize) -&gt; Match&lt;<span class="lifetime">&#39;t</span>&gt; {
+        Match { text: haystack, start, end }
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;t</span>&gt; From&lt;Match&lt;<span class="lifetime">&#39;t</span>&gt;&gt; <span class="kw">for </span>Range&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
-    <span class="kw">fn </span>from(m: Match&lt;<span class="lifetime">&#39;t</span>&gt;) -&gt; Range&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
-        <a href="#61">m</a>.<a href="#43">range</a>()
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;t</span>&gt; From&lt;Match&lt;<span class="lifetime">&#39;t</span>&gt;&gt; <span class="kw">for </span>Range&lt;usize&gt; {
+    <span class="kw">fn </span>from(m: Match&lt;<span class="lifetime">&#39;t</span>&gt;) -&gt; Range&lt;usize&gt; {
+        m.range()
     }
 }
 
@@ -1335,19 +1335,19 @@
 /// these byte offsets may not correspond to UTF-8 sequence boundaries since
 /// the regexes in this module can match arbitrary bytes.
 </span><span class="attr">#[derive(Clone)]
-</span><span class="kw">pub struct </span>Regex(<a href="exec.rs.html#35">Exec</a>);
+</span><span class="kw">pub struct </span>Regex(Exec);
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for </span><a href="#78">Regex</a> {
+<span class="kw">impl </span>fmt::Display <span class="kw">for </span>Regex {
     <span class="doccomment">/// Shows the original regular expression.
-    </span><span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#82">f</a>, <span class="string">&quot;{}&quot;</span>, <span class="self">self</span>.as_str())
+    </span><span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        <span class="macro">write!</span>(f, <span class="string">&quot;{}&quot;</span>, <span class="self">self</span>.as_str())
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="#78">Regex</a> {
+<span class="kw">impl </span>fmt::Debug <span class="kw">for </span>Regex {
     <span class="doccomment">/// Shows the original regular expression.
-    </span><span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display::fmt</a>(<a class="self" href="#89">self</a>, <a href="#89">f</a>)
+    </span><span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        fmt::Display::fmt(<span class="self">self</span>, f)
     }
 }
 
@@ -1355,29 +1355,29 @@
 ///
 /// This is hidden because Exec isn&#39;t actually part of the public API.
 </span><span class="attr">#[doc(hidden)]
-</span><span class="kw">impl </span>From&lt;<a href="exec.rs.html#35">Exec</a>&gt; <span class="kw">for </span><a href="#78">Regex</a> {
-    <span class="kw">fn </span>from(exec: <a href="exec.rs.html#35">Exec</a>) -&gt; <a href="#78">Regex</a> {
-        <a href="#78">Regex</a>(<a href="#99">exec</a>)
+</span><span class="kw">impl </span>From&lt;Exec&gt; <span class="kw">for </span>Regex {
+    <span class="kw">fn </span>from(exec: Exec) -&gt; Regex {
+        Regex(exec)
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/str/traits/trait.FromStr.html">FromStr</a> <span class="kw">for </span><a href="#78">Regex</a> {
-    <span class="kw">type </span><span class="prelude-val">Err </span>= <a href="error.rs.html#6">Error</a>;
+<span class="kw">impl </span>FromStr <span class="kw">for </span>Regex {
+    <span class="kw">type </span><span class="prelude-val">Err </span>= Error;
 
     <span class="doccomment">/// Attempts to parse a string into a regular expression
-    </span><span class="kw">fn </span>from_str(s: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#78">Regex</a>, <a href="error.rs.html#6">Error</a>&gt; {
-        Regex::new(<a href="#108">s</a>)
+    </span><span class="kw">fn </span>from_str(s: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;Regex, Error&gt; {
+        Regex::new(s)
     }
 }
 
 <span class="doccomment">/// Core regular expression methods.
-</span><span class="kw">impl </span><a href="#78">Regex</a> {
+</span><span class="kw">impl </span>Regex {
     <span class="doccomment">/// Compiles a regular expression. Once compiled, it can be used repeatedly
     /// to search, split or replace text in a string.
     ///
     /// If an invalid expression is given, then an error is returned.
-    </span><span class="kw">pub fn </span>new(re: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#78">Regex</a>, <a href="error.rs.html#6">Error</a>&gt; {
-        RegexBuilder::new(<a href="#119">re</a>).<a href="re_builder.rs.html#231">build</a>()
+    </span><span class="kw">pub fn </span>new(re: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;Regex, Error&gt; {
+        RegexBuilder::new(re).build()
     }
 
     <span class="doccomment">/// Returns true if and only if there is a match for the regex in the
@@ -1399,8 +1399,8 @@
     /// assert!(Regex::new(r&quot;\b\w{13}\b&quot;).unwrap().is_match(text));
     /// # }
     /// ```
-    </span><span class="kw">pub fn </span>is_match(<span class="kw-2">&amp;</span><span class="self">self</span>, text: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#142">self</a>.<a href="#580">is_match_at</a>(<a href="#142">text</a>, <span class="number">0</span>)
+    </span><span class="kw">pub fn </span>is_match(<span class="kw-2">&amp;</span><span class="self">self</span>, text: <span class="kw-2">&amp;</span>[u8]) -&gt; bool {
+        <span class="self">self</span>.is_match_at(text, <span class="number">0</span>)
     }
 
     <span class="doccomment">/// Returns the start and end byte range of the leftmost-first match in
@@ -1423,8 +1423,8 @@
     /// assert_eq!((mat.start(), mat.end()), (2, 15));
     /// # }
     /// ```
-    </span><span class="kw">pub fn </span>find&lt;<span class="lifetime">&#39;t</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, text: <span class="kw-2">&amp;</span><span class="lifetime">&#39;t </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Option</span>&lt;Match&lt;<span class="lifetime">&#39;t</span>&gt;&gt; {
-        <a class="self" href="#166">self</a>.<a href="#590-594">find_at</a>(<a href="#166">text</a>, <span class="number">0</span>)
+    </span><span class="kw">pub fn </span>find&lt;<span class="lifetime">&#39;t</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, text: <span class="kw-2">&amp;</span><span class="lifetime">&#39;t </span>[u8]) -&gt; <span class="prelude-ty">Option</span>&lt;Match&lt;<span class="lifetime">&#39;t</span>&gt;&gt; {
+        <span class="self">self</span>.find_at(text, <span class="number">0</span>)
     }
 
     <span class="doccomment">/// Returns an iterator for each successive non-overlapping match in
@@ -1445,8 +1445,8 @@
     /// }
     /// # }
     /// ```
-    </span><span class="kw">pub fn </span>find_iter&lt;<span class="lifetime">&#39;r</span>, <span class="lifetime">&#39;t</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;r </span><span class="self">self</span>, text: <span class="kw-2">&amp;</span><span class="lifetime">&#39;t </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; Matches&lt;<span class="lifetime">&#39;r</span>, <span class="lifetime">&#39;t</span>&gt; {
-        <a href="#695">Matches</a>(<a class="self" href="#188">self</a>.<span class="number">0</span>.<a href="exec.rs.html#1263">searcher</a>().<a href="re_trait.rs.html#152">find_iter</a>(<a href="#188">text</a>))
+    </span><span class="kw">pub fn </span>find_iter&lt;<span class="lifetime">&#39;r</span>, <span class="lifetime">&#39;t</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;r </span><span class="self">self</span>, text: <span class="kw-2">&amp;</span><span class="lifetime">&#39;t </span>[u8]) -&gt; Matches&lt;<span class="lifetime">&#39;r</span>, <span class="lifetime">&#39;t</span>&gt; {
+        Matches(<span class="self">self</span>.<span class="number">0</span>.searcher().find_iter(text))
     }
 
     <span class="doccomment">/// Returns the capture groups corresponding to the leftmost-first
@@ -1512,12 +1512,12 @@
     ///
     /// The `0`th capture group is always unnamed, so it must always be
     /// accessed with `get(0)` or `[0]`.
-    </span><span class="kw">pub fn </span>captures&lt;<span class="lifetime">&#39;t</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, text: <span class="kw-2">&amp;</span><span class="lifetime">&#39;t </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Option</span>&lt;Captures&lt;<span class="lifetime">&#39;t</span>&gt;&gt; {
-        <span class="kw">let </span><span class="kw-2">mut </span>locs = <a class="self" href="#255">self</a>.<a href="#672">capture_locations</a>();
-        <a class="self" href="#255">self</a>.<a href="#625-630">captures_read_at</a>(<span class="kw-2">&amp;mut </span><a href="#256">locs</a>, <a href="#255">text</a>, <span class="number">0</span>).map(<span class="kw">move </span>|<span class="kw">_</span>| <a href="#912">Captures</a> {
-            <a href="#255">text</a>,
-            locs: <a href="#256">locs</a>.<span class="number">0</span>,
-            named_groups: <a class="self" href="#255">self</a>.<span class="number">0</span>.<a href="exec.rs.html#1311">capture_name_idx</a>().<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+    </span><span class="kw">pub fn </span>captures&lt;<span class="lifetime">&#39;t</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, text: <span class="kw-2">&amp;</span><span class="lifetime">&#39;t </span>[u8]) -&gt; <span class="prelude-ty">Option</span>&lt;Captures&lt;<span class="lifetime">&#39;t</span>&gt;&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>locs = <span class="self">self</span>.capture_locations();
+        <span class="self">self</span>.captures_read_at(<span class="kw-2">&amp;mut </span>locs, text, <span class="number">0</span>).map(<span class="kw">move </span>|<span class="kw">_</span>| Captures {
+            text,
+            locs: locs.<span class="number">0</span>,
+            named_groups: <span class="self">self</span>.<span class="number">0</span>.capture_name_idx().clone(),
         })
     }
 
@@ -1549,9 +1549,9 @@
     /// ```
     </span><span class="kw">pub fn </span>captures_iter&lt;<span class="lifetime">&#39;r</span>, <span class="lifetime">&#39;t</span>&gt;(
         <span class="kw-2">&amp;</span><span class="lifetime">&#39;r </span><span class="self">self</span>,
-        text: <span class="kw-2">&amp;</span><span class="lifetime">&#39;t </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
+        text: <span class="kw-2">&amp;</span><span class="lifetime">&#39;t </span>[u8],
     ) -&gt; CaptureMatches&lt;<span class="lifetime">&#39;r</span>, <span class="lifetime">&#39;t</span>&gt; {
-        <a href="#716">CaptureMatches</a>(<a class="self" href="#291">self</a>.<span class="number">0</span>.<a href="exec.rs.html#1263">searcher</a>().<a href="re_trait.rs.html#158">captures_iter</a>(<a href="#292">text</a>))
+        CaptureMatches(<span class="self">self</span>.<span class="number">0</span>.searcher().captures_iter(text))
     }
 
     <span class="doccomment">/// Returns an iterator of substrings of `text` delimited by a match of the
@@ -1574,8 +1574,8 @@
     /// ]);
     /// # }
     /// ```
-    </span><span class="kw">pub fn </span>split&lt;<span class="lifetime">&#39;r</span>, <span class="lifetime">&#39;t</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;r </span><span class="self">self</span>, text: <span class="kw-2">&amp;</span><span class="lifetime">&#39;t </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; Split&lt;<span class="lifetime">&#39;r</span>, <span class="lifetime">&#39;t</span>&gt; {
-        <a href="#739">Split</a> { finder: <a class="self" href="#317">self</a>.<a href="#188">find_iter</a>(<a href="#317">text</a>), last: <span class="number">0 </span>}
+    </span><span class="kw">pub fn </span>split&lt;<span class="lifetime">&#39;r</span>, <span class="lifetime">&#39;t</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;r </span><span class="self">self</span>, text: <span class="kw-2">&amp;</span><span class="lifetime">&#39;t </span>[u8]) -&gt; Split&lt;<span class="lifetime">&#39;r</span>, <span class="lifetime">&#39;t</span>&gt; {
+        Split { finder: <span class="self">self</span>.find_iter(text), last: <span class="number">0 </span>}
     }
 
     <span class="doccomment">/// Returns an iterator of at most `limit` substrings of `text` delimited
@@ -1600,10 +1600,10 @@
     /// ```
     </span><span class="kw">pub fn </span>splitn&lt;<span class="lifetime">&#39;r</span>, <span class="lifetime">&#39;t</span>&gt;(
         <span class="kw-2">&amp;</span><span class="lifetime">&#39;r </span><span class="self">self</span>,
-        text: <span class="kw-2">&amp;</span><span class="lifetime">&#39;t </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
-        limit: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+        text: <span class="kw-2">&amp;</span><span class="lifetime">&#39;t </span>[u8],
+        limit: usize,
     ) -&gt; SplitN&lt;<span class="lifetime">&#39;r</span>, <span class="lifetime">&#39;t</span>&gt; {
-        <a href="#777">SplitN</a> { splits: <a class="self" href="#342">self</a>.<a href="#317">split</a>(<a href="#343">text</a>), n: <a href="#344">limit</a> }
+        SplitN { splits: <span class="self">self</span>.split(text), n: limit }
     }
 
     <span class="doccomment">/// Replaces the leftmost-first match with the replacement provided. The
@@ -1714,12 +1714,12 @@
     /// assert_eq!(result, &amp;b&quot;$2 $last&quot;[..]);
     /// # }
     /// ```
-    </span><span class="kw">pub fn </span>replace&lt;<span class="lifetime">&#39;t</span>, R: <a href="#1111">Replacer</a>&gt;(
+    </span><span class="kw">pub fn </span>replace&lt;<span class="lifetime">&#39;t</span>, R: Replacer&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        text: <span class="kw-2">&amp;</span><span class="lifetime">&#39;t </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
+        text: <span class="kw-2">&amp;</span><span class="lifetime">&#39;t </span>[u8],
         rep: R,
-    ) -&gt; Cow&lt;<span class="lifetime">&#39;t</span>, [<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt; {
-        <a class="self" href="#458">self</a>.<a href="#485-490">replacen</a>(<a href="#459">text</a>, <span class="number">1</span>, <a href="#460">rep</a>)
+    ) -&gt; Cow&lt;<span class="lifetime">&#39;t</span>, [u8]&gt; {
+        <span class="self">self</span>.replacen(text, <span class="number">1</span>, rep)
     }
 
     <span class="doccomment">/// Replaces all non-overlapping matches in `text` with the replacement
@@ -1728,12 +1728,12 @@
     ///
     /// See the documentation for `replace` for details on how to access
     /// capturing group matches in the replacement text.
-    </span><span class="kw">pub fn </span>replace_all&lt;<span class="lifetime">&#39;t</span>, R: <a href="#1111">Replacer</a>&gt;(
+    </span><span class="kw">pub fn </span>replace_all&lt;<span class="lifetime">&#39;t</span>, R: Replacer&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        text: <span class="kw-2">&amp;</span><span class="lifetime">&#39;t </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
+        text: <span class="kw-2">&amp;</span><span class="lifetime">&#39;t </span>[u8],
         rep: R,
-    ) -&gt; Cow&lt;<span class="lifetime">&#39;t</span>, [<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt; {
-        <a class="self" href="#472">self</a>.<a href="#485-490">replacen</a>(<a href="#473">text</a>, <span class="number">0</span>, <a href="#474">rep</a>)
+    ) -&gt; Cow&lt;<span class="lifetime">&#39;t</span>, [u8]&gt; {
+        <span class="self">self</span>.replacen(text, <span class="number">0</span>, rep)
     }
 
     <span class="doccomment">/// Replaces at most `limit` non-overlapping matches in `text` with the
@@ -1742,18 +1742,18 @@
     ///
     /// See the documentation for `replace` for details on how to access
     /// capturing group matches in the replacement text.
-    </span><span class="kw">pub fn </span>replacen&lt;<span class="lifetime">&#39;t</span>, R: <a href="#1111">Replacer</a>&gt;(
+    </span><span class="kw">pub fn </span>replacen&lt;<span class="lifetime">&#39;t</span>, R: Replacer&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        text: <span class="kw-2">&amp;</span><span class="lifetime">&#39;t </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
-        limit: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+        text: <span class="kw-2">&amp;</span><span class="lifetime">&#39;t </span>[u8],
+        limit: usize,
         <span class="kw-2">mut </span>rep: R,
-    ) -&gt; Cow&lt;<span class="lifetime">&#39;t</span>, [<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt; {
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(rep) = <a href="#489">rep</a>.<a href="#1128">no_expansion</a>() {
-            <span class="kw">let </span><span class="kw-2">mut </span>it = <a class="self" href="#486">self</a>.<a href="#188">find_iter</a>(<a href="#487">text</a>).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">enumerate</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">peekable</a>();
+    ) -&gt; Cow&lt;<span class="lifetime">&#39;t</span>, [u8]&gt; {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(rep) = rep.no_expansion() {
+            <span class="kw">let </span><span class="kw-2">mut </span>it = <span class="self">self</span>.find_iter(text).enumerate().peekable();
             <span class="kw">if </span>it.peek().is_none() {
-                <span class="kw">return </span>Cow::Borrowed(<a href="#487">text</a>);
+                <span class="kw">return </span>Cow::Borrowed(text);
             }
-            <span class="kw">let </span><span class="kw-2">mut </span>new = Vec::with_capacity(<a href="#487">text</a>.len());
+            <span class="kw">let </span><span class="kw-2">mut </span>new = Vec::with_capacity(text.len());
             <span class="kw">let </span><span class="kw-2">mut </span>last_match = <span class="number">0</span>;
             <span class="kw">for </span>(i, m) <span class="kw">in </span>it {
                 <span class="kw">if </span>limit &gt; <span class="number">0 </span>&amp;&amp; i &gt;= limit {
@@ -1763,17 +1763,17 @@
                 new.extend_from_slice(<span class="kw-2">&amp;</span>rep);
                 last_match = m.end();
             }
-            <a href="#496">new</a>.extend_from_slice(<span class="kw-2">&amp;</span><a href="#487">text</a>[<a href="#497">last_match</a>..]);
-            <span class="kw">return </span>Cow::Owned(<a href="#496">new</a>);
+            new.extend_from_slice(<span class="kw-2">&amp;</span>text[last_match..]);
+            <span class="kw">return </span>Cow::Owned(new);
         }
 
         <span class="comment">// The slower path, which we use if the replacement needs access to
         // capture groups.
-        </span><span class="kw">let </span><span class="kw-2">mut </span>it = <a class="self" href="#486">self</a>.<a href="#290-293">captures_iter</a>(<a href="#487">text</a>).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">enumerate</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">peekable</a>();
+        </span><span class="kw">let </span><span class="kw-2">mut </span>it = <span class="self">self</span>.captures_iter(text).enumerate().peekable();
         <span class="kw">if </span>it.peek().is_none() {
-            <span class="kw">return </span>Cow::Borrowed(<a href="#487">text</a>);
+            <span class="kw">return </span>Cow::Borrowed(text);
         }
-        <span class="kw">let </span><span class="kw-2">mut </span>new = Vec::with_capacity(<a href="#487">text</a>.len());
+        <span class="kw">let </span><span class="kw-2">mut </span>new = Vec::with_capacity(text.len());
         <span class="kw">let </span><span class="kw-2">mut </span>last_match = <span class="number">0</span>;
         <span class="kw">for </span>(i, cap) <span class="kw">in </span>it {
             <span class="kw">if </span>limit &gt; <span class="number">0 </span>&amp;&amp; i &gt;= limit {
@@ -1785,13 +1785,13 @@
             rep.replace_append(<span class="kw-2">&amp;</span>cap, <span class="kw-2">&amp;mut </span>new);
             last_match = m.end();
         }
-        <a href="#516">new</a>.extend_from_slice(<span class="kw-2">&amp;</span><a href="#487">text</a>[<a href="#517">last_match</a>..]);
-        Cow::Owned(<a href="#516">new</a>)
+        new.extend_from_slice(<span class="kw-2">&amp;</span>text[last_match..]);
+        Cow::Owned(new)
     }
 }
 
 <span class="doccomment">/// Advanced or &quot;lower level&quot; search methods.
-</span><span class="kw">impl </span><a href="#78">Regex</a> {
+</span><span class="kw">impl </span>Regex {
     <span class="doccomment">/// Returns the end location of a match in the text given.
     ///
     /// This method may have the same performance characteristics as
@@ -1813,8 +1813,8 @@
     /// assert_eq!(pos, Some(1));
     /// # }
     /// ```
-    </span><span class="kw">pub fn </span>shortest_match(<span class="kw-2">&amp;</span><span class="self">self</span>, text: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
-        <a class="self" href="#556">self</a>.<a href="#566-570">shortest_match_at</a>(<a href="#556">text</a>, <span class="number">0</span>)
+    </span><span class="kw">pub fn </span>shortest_match(<span class="kw-2">&amp;</span><span class="self">self</span>, text: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Option</span>&lt;usize&gt; {
+        <span class="self">self</span>.shortest_match_at(text, <span class="number">0</span>)
     }
 
     <span class="doccomment">/// Returns the same as shortest_match, but starts the search at the given
@@ -1825,10 +1825,10 @@
     /// match when `start == 0`.
     </span><span class="kw">pub fn </span>shortest_match_at(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        text: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
-        start: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-    ) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
-        <a class="self" href="#567">self</a>.<span class="number">0</span>.<a href="exec.rs.html#1263">searcher</a>().<a href="re_trait.rs.html#125-129">shortest_match_at</a>(<a href="#568">text</a>, <a href="#569">start</a>)
+        text: <span class="kw-2">&amp;</span>[u8],
+        start: usize,
+    ) -&gt; <span class="prelude-ty">Option</span>&lt;usize&gt; {
+        <span class="self">self</span>.<span class="number">0</span>.searcher().shortest_match_at(text, start)
     }
 
     <span class="doccomment">/// Returns the same as is_match, but starts the search at the given
@@ -1837,8 +1837,8 @@
     /// The significance of the starting point is that it takes the surrounding
     /// context into consideration. For example, the `\A` anchor can only
     /// match when `start == 0`.
-    </span><span class="kw">pub fn </span>is_match_at(<span class="kw-2">&amp;</span><span class="self">self</span>, text: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], start: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#580">self</a>.<span class="number">0</span>.<a href="exec.rs.html#1263">searcher</a>().<a href="re_trait.rs.html#132">is_match_at</a>(<a href="#580">text</a>, <a href="#580">start</a>)
+    </span><span class="kw">pub fn </span>is_match_at(<span class="kw-2">&amp;</span><span class="self">self</span>, text: <span class="kw-2">&amp;</span>[u8], start: usize) -&gt; bool {
+        <span class="self">self</span>.<span class="number">0</span>.searcher().is_match_at(text, start)
     }
 
     <span class="doccomment">/// Returns the same as find, but starts the search at the given
@@ -1849,13 +1849,13 @@
     /// match when `start == 0`.
     </span><span class="kw">pub fn </span>find_at&lt;<span class="lifetime">&#39;t</span>&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        text: <span class="kw-2">&amp;</span><span class="lifetime">&#39;t </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
-        start: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+        text: <span class="kw-2">&amp;</span><span class="lifetime">&#39;t </span>[u8],
+        start: usize,
     ) -&gt; <span class="prelude-ty">Option</span>&lt;Match&lt;<span class="lifetime">&#39;t</span>&gt;&gt; {
-        <a class="self" href="#591">self</a>.<span class="number">0
-            </span>.<a href="exec.rs.html#1263">searcher</a>()
-            .<a href="re_trait.rs.html#135-139">find_at</a>(<a href="#592">text</a>, <a href="#593">start</a>)
-            .map(|(s, e)| Match::new(<a href="#592">text</a>, <a href="#598">s</a>, <a href="#598">e</a>))
+        <span class="self">self</span>.<span class="number">0
+            </span>.searcher()
+            .find_at(text, start)
+            .map(|(s, e)| Match::new(text, s, e))
     }
 
     <span class="doccomment">/// This is like `captures`, but uses
@@ -1870,10 +1870,10 @@
     /// equivalence to the `0`th capture group.
     </span><span class="kw">pub fn </span>captures_read&lt;<span class="lifetime">&#39;t</span>&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        locs: <span class="kw-2">&amp;mut </span><a href="#860">CaptureLocations</a>,
-        text: <span class="kw-2">&amp;</span><span class="lifetime">&#39;t </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
+        locs: <span class="kw-2">&amp;mut </span>CaptureLocations,
+        text: <span class="kw-2">&amp;</span><span class="lifetime">&#39;t </span>[u8],
     ) -&gt; <span class="prelude-ty">Option</span>&lt;Match&lt;<span class="lifetime">&#39;t</span>&gt;&gt; {
-        <a class="self" href="#612">self</a>.<a href="#625-630">captures_read_at</a>(<a href="#613">locs</a>, <a href="#614">text</a>, <span class="number">0</span>)
+        <span class="self">self</span>.captures_read_at(locs, text, <span class="number">0</span>)
     }
 
     <span class="doccomment">/// Returns the same as `captures_read`, but starts the search at the given
@@ -1884,14 +1884,14 @@
     /// match when `start == 0`.
     </span><span class="kw">pub fn </span>captures_read_at&lt;<span class="lifetime">&#39;t</span>&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        locs: <span class="kw-2">&amp;mut </span><a href="#860">CaptureLocations</a>,
-        text: <span class="kw-2">&amp;</span><span class="lifetime">&#39;t </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
-        start: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+        locs: <span class="kw-2">&amp;mut </span>CaptureLocations,
+        text: <span class="kw-2">&amp;</span><span class="lifetime">&#39;t </span>[u8],
+        start: usize,
     ) -&gt; <span class="prelude-ty">Option</span>&lt;Match&lt;<span class="lifetime">&#39;t</span>&gt;&gt; {
-        <a class="self" href="#626">self</a>.<span class="number">0
-            </span>.<a href="exec.rs.html#1263">searcher</a>()
-            .<a href="re_trait.rs.html#143-148">captures_read_at</a>(<span class="kw-2">&amp;mut </span><a href="#627">locs</a>.<span class="number">0</span>, <a href="#628">text</a>, <a href="#629">start</a>)
-            .map(|(s, e)| Match::new(<a href="#628">text</a>, <a href="#634">s</a>, <a href="#634">e</a>))
+        <span class="self">self</span>.<span class="number">0
+            </span>.searcher()
+            .captures_read_at(<span class="kw-2">&amp;mut </span>locs.<span class="number">0</span>, text, start)
+            .map(|(s, e)| Match::new(text, s, e))
     }
 
     <span class="doccomment">/// An undocumented alias for `captures_read_at`.
@@ -1902,35 +1902,35 @@
     </span><span class="attr">#[doc(hidden)]
     </span><span class="kw">pub fn </span>read_captures_at&lt;<span class="lifetime">&#39;t</span>&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        locs: <span class="kw-2">&amp;mut </span><a href="#860">CaptureLocations</a>,
-        text: <span class="kw-2">&amp;</span><span class="lifetime">&#39;t </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
-        start: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+        locs: <span class="kw-2">&amp;mut </span>CaptureLocations,
+        text: <span class="kw-2">&amp;</span><span class="lifetime">&#39;t </span>[u8],
+        start: usize,
     ) -&gt; <span class="prelude-ty">Option</span>&lt;Match&lt;<span class="lifetime">&#39;t</span>&gt;&gt; {
-        <a class="self" href="#644">self</a>.<a href="#625-630">captures_read_at</a>(<a href="#645">locs</a>, <a href="#646">text</a>, <a href="#647">start</a>)
+        <span class="self">self</span>.captures_read_at(locs, text, start)
     }
 }
 
 <span class="doccomment">/// Auxiliary methods.
-</span><span class="kw">impl </span><a href="#78">Regex</a> {
+</span><span class="kw">impl </span>Regex {
     <span class="doccomment">/// Returns the original string of this regex.
-    </span><span class="kw">pub fn </span>as_str(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> {
-        <span class="kw-2">&amp;</span><a class="self" href="#656">self</a>.<span class="number">0</span>.<a href="exec.rs.html#1298">regex_strings</a>()[<span class="number">0</span>]
+    </span><span class="kw">pub fn </span>as_str(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>str {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="number">0</span>.regex_strings()[<span class="number">0</span>]
     }
 
     <span class="doccomment">/// Returns an iterator over the capture names.
     </span><span class="kw">pub fn </span>capture_names(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; CaptureNames&lt;<span class="lifetime">&#39;_</span>&gt; {
-        <a href="#819">CaptureNames</a>(<a class="self" href="#661">self</a>.<span class="number">0</span>.<a href="exec.rs.html#1305">capture_names</a>().iter())
+        CaptureNames(<span class="self">self</span>.<span class="number">0</span>.capture_names().iter())
     }
 
     <span class="doccomment">/// Returns the number of captures.
-    </span><span class="kw">pub fn </span>captures_len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="self" href="#666">self</a>.<span class="number">0</span>.<a href="exec.rs.html#1305">capture_names</a>().len()
+    </span><span class="kw">pub fn </span>captures_len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+        <span class="self">self</span>.<span class="number">0</span>.capture_names().len()
     }
 
     <span class="doccomment">/// Returns an empty set of capture locations that can be reused in
     /// multiple calls to `captures_read` or `captures_read_at`.
-    </span><span class="kw">pub fn </span>capture_locations(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="#860">CaptureLocations</a> {
-        <a href="#860">CaptureLocations</a>(<a class="self" href="#672">self</a>.<span class="number">0</span>.<a href="exec.rs.html#1263">searcher</a>().<a href="re_trait.rs.html#113">locations</a>())
+    </span><span class="kw">pub fn </span>capture_locations(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; CaptureLocations {
+        CaptureLocations(<span class="self">self</span>.<span class="number">0</span>.searcher().locations())
     }
 
     <span class="doccomment">/// An alias for `capture_locations` to preserve backward compatibility.
@@ -1938,8 +1938,8 @@
     /// The `regex-capi` crate uses this method, so to avoid breaking that
     /// crate, we continue to export it as an undocumented API.
     </span><span class="attr">#[doc(hidden)]
-    </span><span class="kw">pub fn </span>locations(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="#860">CaptureLocations</a> {
-        <a href="#860">CaptureLocations</a>(<a class="self" href="#681">self</a>.<span class="number">0</span>.<a href="exec.rs.html#1263">searcher</a>().<a href="re_trait.rs.html#113">locations</a>())
+    </span><span class="kw">pub fn </span>locations(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; CaptureLocations {
+        CaptureLocations(<span class="self">self</span>.<span class="number">0</span>.searcher().locations())
     }
 }
 
@@ -1954,16 +1954,16 @@
 </span><span class="attr">#[derive(Debug)]
 </span><span class="kw">pub struct </span>Matches&lt;<span class="lifetime">&#39;r</span>, <span class="lifetime">&#39;t</span>&gt;(re_trait::Matches&lt;<span class="lifetime">&#39;t</span>, ExecNoSync&lt;<span class="lifetime">&#39;r</span>&gt;&gt;);
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;r</span>, <span class="lifetime">&#39;t</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a> <span class="kw">for </span>Matches&lt;<span class="lifetime">&#39;r</span>, <span class="lifetime">&#39;t</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;r</span>, <span class="lifetime">&#39;t</span>&gt; Iterator <span class="kw">for </span>Matches&lt;<span class="lifetime">&#39;r</span>, <span class="lifetime">&#39;t</span>&gt; {
     <span class="kw">type </span>Item = Match&lt;<span class="lifetime">&#39;t</span>&gt;;
 
     <span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Match&lt;<span class="lifetime">&#39;t</span>&gt;&gt; {
-        <span class="kw">let </span>text = <a class="self" href="#700">self</a>.<span class="number">0</span>.<a href="re_trait.rs.html#182">text</a>();
-        <a class="self" href="#700">self</a>.<span class="number">0</span>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>().map(|(s, e)| Match::new(<a href="#701">text</a>, <a href="#702">s</a>, <a href="#702">e</a>))
+        <span class="kw">let </span>text = <span class="self">self</span>.<span class="number">0</span>.text();
+        <span class="self">self</span>.<span class="number">0</span>.next().map(|(s, e)| Match::new(text, s, e))
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;r</span>, <span class="lifetime">&#39;t</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/marker/trait.FusedIterator.html">FusedIterator</a> <span class="kw">for </span>Matches&lt;<span class="lifetime">&#39;r</span>, <span class="lifetime">&#39;t</span>&gt; {}
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;r</span>, <span class="lifetime">&#39;t</span>&gt; FusedIterator <span class="kw">for </span>Matches&lt;<span class="lifetime">&#39;r</span>, <span class="lifetime">&#39;t</span>&gt; {}
 
 <span class="doccomment">/// An iterator that yields all non-overlapping capture groups matching a
 /// particular regular expression.
@@ -1977,19 +1977,19 @@
     re_trait::CaptureMatches&lt;<span class="lifetime">&#39;t</span>, ExecNoSync&lt;<span class="lifetime">&#39;r</span>&gt;&gt;,
 );
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;r</span>, <span class="lifetime">&#39;t</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a> <span class="kw">for </span>CaptureMatches&lt;<span class="lifetime">&#39;r</span>, <span class="lifetime">&#39;t</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;r</span>, <span class="lifetime">&#39;t</span>&gt; Iterator <span class="kw">for </span>CaptureMatches&lt;<span class="lifetime">&#39;r</span>, <span class="lifetime">&#39;t</span>&gt; {
     <span class="kw">type </span>Item = Captures&lt;<span class="lifetime">&#39;t</span>&gt;;
 
     <span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Captures&lt;<span class="lifetime">&#39;t</span>&gt;&gt; {
-        <a class="self" href="#723">self</a>.<span class="number">0</span>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>().map(|locs| <a href="#912">Captures</a> {
-            text: <a class="self" href="#723">self</a>.<span class="number">0</span>.<a href="re_trait.rs.html#246">text</a>(),
-            <a href="#724">locs</a>,
-            named_groups: <a class="self" href="#723">self</a>.<span class="number">0</span>.<a href="re_trait.rs.html#251">regex</a>().<a href="exec.rs.html#1249">capture_name_idx</a>().<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+        <span class="self">self</span>.<span class="number">0</span>.next().map(|locs| Captures {
+            text: <span class="self">self</span>.<span class="number">0</span>.text(),
+            locs,
+            named_groups: <span class="self">self</span>.<span class="number">0</span>.regex().capture_name_idx().clone(),
         })
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;r</span>, <span class="lifetime">&#39;t</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/marker/trait.FusedIterator.html">FusedIterator</a> <span class="kw">for </span>CaptureMatches&lt;<span class="lifetime">&#39;r</span>, <span class="lifetime">&#39;t</span>&gt; {}
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;r</span>, <span class="lifetime">&#39;t</span>&gt; FusedIterator <span class="kw">for </span>CaptureMatches&lt;<span class="lifetime">&#39;r</span>, <span class="lifetime">&#39;t</span>&gt; {}
 
 <span class="doccomment">/// Yields all substrings delimited by a regular expression match.
 ///
@@ -1998,34 +1998,34 @@
 </span><span class="attr">#[derive(Debug)]
 </span><span class="kw">pub struct </span>Split&lt;<span class="lifetime">&#39;r</span>, <span class="lifetime">&#39;t</span>&gt; {
     finder: Matches&lt;<span class="lifetime">&#39;r</span>, <span class="lifetime">&#39;t</span>&gt;,
-    last: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+    last: usize,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;r</span>, <span class="lifetime">&#39;t</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a> <span class="kw">for </span>Split&lt;<span class="lifetime">&#39;r</span>, <span class="lifetime">&#39;t</span>&gt; {
-    <span class="kw">type </span>Item = <span class="kw-2">&amp;</span><span class="lifetime">&#39;t </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>];
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;r</span>, <span class="lifetime">&#39;t</span>&gt; Iterator <span class="kw">for </span>Split&lt;<span class="lifetime">&#39;r</span>, <span class="lifetime">&#39;t</span>&gt; {
+    <span class="kw">type </span>Item = <span class="kw-2">&amp;</span><span class="lifetime">&#39;t </span>[u8];
 
-    <span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;t </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt; {
-        <span class="kw">let </span>text = <a class="self" href="#747">self</a>.finder.<span class="number">0</span>.<a href="re_trait.rs.html#182">text</a>();
-        <span class="kw">match </span><a class="self" href="#747">self</a>.finder.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>() {
+    <span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;t </span>[u8]&gt; {
+        <span class="kw">let </span>text = <span class="self">self</span>.finder.<span class="number">0</span>.text();
+        <span class="kw">match </span><span class="self">self</span>.finder.next() {
             <span class="prelude-val">None </span>=&gt; {
                 <span class="kw">if </span><span class="self">self</span>.last &gt; text.len() {
                     <span class="prelude-val">None
                 </span>} <span class="kw">else </span>{
-                    <span class="kw">let </span>s = <span class="kw-2">&amp;</span><a href="#748">text</a>[<a class="self" href="#747">self</a>.last..];
-                    <a class="self" href="#747">self</a>.last = <a href="#748">text</a>.len() + <span class="number">1</span>; <span class="comment">// Next call will return None
-                    </span><span class="prelude-val">Some</span>(<a href="#754">s</a>)
+                    <span class="kw">let </span>s = <span class="kw-2">&amp;</span>text[<span class="self">self</span>.last..];
+                    <span class="self">self</span>.last = text.len() + <span class="number">1</span>; <span class="comment">// Next call will return None
+                    </span><span class="prelude-val">Some</span>(s)
                 }
             }
             <span class="prelude-val">Some</span>(m) =&gt; {
-                <span class="kw">let </span>matched = <span class="kw-2">&amp;</span><a href="#748">text</a>[<a class="self" href="#747">self</a>.last..<a href="#759">m</a>.<a href="#30">start</a>()];
-                <a class="self" href="#747">self</a>.last = <a href="#759">m</a>.<a href="#36">end</a>();
-                <span class="prelude-val">Some</span>(<a href="#760">matched</a>)
+                <span class="kw">let </span>matched = <span class="kw-2">&amp;</span>text[<span class="self">self</span>.last..m.start()];
+                <span class="self">self</span>.last = m.end();
+                <span class="prelude-val">Some</span>(matched)
             }
         }
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;r</span>, <span class="lifetime">&#39;t</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/marker/trait.FusedIterator.html">FusedIterator</a> <span class="kw">for </span>Split&lt;<span class="lifetime">&#39;r</span>, <span class="lifetime">&#39;t</span>&gt; {}
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;r</span>, <span class="lifetime">&#39;t</span>&gt; FusedIterator <span class="kw">for </span>Split&lt;<span class="lifetime">&#39;r</span>, <span class="lifetime">&#39;t</span>&gt; {}
 
 <span class="doccomment">/// Yields at most `N` substrings delimited by a regular expression match.
 ///
@@ -2036,38 +2036,38 @@
 </span><span class="attr">#[derive(Debug)]
 </span><span class="kw">pub struct </span>SplitN&lt;<span class="lifetime">&#39;r</span>, <span class="lifetime">&#39;t</span>&gt; {
     splits: Split&lt;<span class="lifetime">&#39;r</span>, <span class="lifetime">&#39;t</span>&gt;,
-    n: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+    n: usize,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;r</span>, <span class="lifetime">&#39;t</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a> <span class="kw">for </span>SplitN&lt;<span class="lifetime">&#39;r</span>, <span class="lifetime">&#39;t</span>&gt; {
-    <span class="kw">type </span>Item = <span class="kw-2">&amp;</span><span class="lifetime">&#39;t </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>];
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;r</span>, <span class="lifetime">&#39;t</span>&gt; Iterator <span class="kw">for </span>SplitN&lt;<span class="lifetime">&#39;r</span>, <span class="lifetime">&#39;t</span>&gt; {
+    <span class="kw">type </span>Item = <span class="kw-2">&amp;</span><span class="lifetime">&#39;t </span>[u8];
 
-    <span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;t </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt; {
+    <span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;t </span>[u8]&gt; {
         <span class="kw">if </span><span class="self">self</span>.n == <span class="number">0 </span>{
             <span class="kw">return </span><span class="prelude-val">None</span>;
         }
 
-        <a class="self" href="#785">self</a>.n -= <span class="number">1</span>;
+        <span class="self">self</span>.n -= <span class="number">1</span>;
         <span class="kw">if </span><span class="self">self</span>.n &gt; <span class="number">0 </span>{
-            <span class="kw">return </span><a class="self" href="#785">self</a>.splits.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>();
+            <span class="kw">return </span><span class="self">self</span>.splits.next();
         }
 
-        <span class="kw">let </span>text = <a class="self" href="#785">self</a>.splits.finder.<span class="number">0</span>.<a href="re_trait.rs.html#182">text</a>();
+        <span class="kw">let </span>text = <span class="self">self</span>.splits.finder.<span class="number">0</span>.text();
         <span class="kw">if </span><span class="self">self</span>.splits.last &gt; text.len() {
             <span class="comment">// We&#39;ve already returned all substrings.
             </span><span class="prelude-val">None
         </span>} <span class="kw">else </span>{
             <span class="comment">// self.n == 0, so future calls will return None immediately
-            </span><span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><a href="#795">text</a>[<a class="self" href="#785">self</a>.splits.last..])
+            </span><span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>text[<span class="self">self</span>.splits.last..])
         }
     }
 
-    <span class="kw">fn </span>size_hint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;) {
-        (<span class="number">0</span>, <span class="prelude-val">Some</span>(<a class="self" href="#805">self</a>.n))
+    <span class="kw">fn </span>size_hint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (usize, <span class="prelude-ty">Option</span>&lt;usize&gt;) {
+        (<span class="number">0</span>, <span class="prelude-val">Some</span>(<span class="self">self</span>.n))
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;r</span>, <span class="lifetime">&#39;t</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/marker/trait.FusedIterator.html">FusedIterator</a> <span class="kw">for </span>SplitN&lt;<span class="lifetime">&#39;r</span>, <span class="lifetime">&#39;t</span>&gt; {}
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;r</span>, <span class="lifetime">&#39;t</span>&gt; FusedIterator <span class="kw">for </span>SplitN&lt;<span class="lifetime">&#39;r</span>, <span class="lifetime">&#39;t</span>&gt; {}
 
 <span class="doccomment">/// An iterator over the names of all possible captures.
 ///
@@ -2076,30 +2076,30 @@
 ///
 /// `&#39;r` is the lifetime of the compiled regular expression.
 </span><span class="attr">#[derive(Clone, Debug)]
-</span><span class="kw">pub struct </span>CaptureNames&lt;<span class="lifetime">&#39;r</span>&gt;(::std::slice::Iter&lt;<span class="lifetime">&#39;r</span>, <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt;&gt;);
+</span><span class="kw">pub struct </span>CaptureNames&lt;<span class="lifetime">&#39;r</span>&gt;(::std::slice::Iter&lt;<span class="lifetime">&#39;r</span>, <span class="prelude-ty">Option</span>&lt;String&gt;&gt;);
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;r</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a> <span class="kw">for </span>CaptureNames&lt;<span class="lifetime">&#39;r</span>&gt; {
-    <span class="kw">type </span>Item = <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;r </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt;;
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;r</span>&gt; Iterator <span class="kw">for </span>CaptureNames&lt;<span class="lifetime">&#39;r</span>&gt; {
+    <span class="kw">type </span>Item = <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;r </span>str&gt;;
 
-    <span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;r </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt;&gt; {
-        <a class="self" href="#824">self</a>.<span class="number">0
-            </span>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>()
+    <span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;r </span>str&gt;&gt; {
+        <span class="self">self</span>.<span class="number">0
+            </span>.next()
             .as_ref()
-            .map(|slot| <a href="#828">slot</a>.as_ref().map(|name| <a href="#828">name</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>()))
+            .map(|slot| slot.as_ref().map(|name| name.as_ref()))
     }
 
-    <span class="kw">fn </span>size_hint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;) {
-        <a class="self" href="#831">self</a>.<span class="number">0</span>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">size_hint</a>()
+    <span class="kw">fn </span>size_hint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (usize, <span class="prelude-ty">Option</span>&lt;usize&gt;) {
+        <span class="self">self</span>.<span class="number">0</span>.size_hint()
     }
 
-    <span class="kw">fn </span>count(<span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="self" href="#835">self</a>.<span class="number">0</span>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">count</a>()
+    <span class="kw">fn </span>count(<span class="self">self</span>) -&gt; usize {
+        <span class="self">self</span>.<span class="number">0</span>.count()
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;r</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/exact_size/trait.ExactSizeIterator.html">ExactSizeIterator</a> <span class="kw">for </span>CaptureNames&lt;<span class="lifetime">&#39;r</span>&gt; {}
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;r</span>&gt; ExactSizeIterator <span class="kw">for </span>CaptureNames&lt;<span class="lifetime">&#39;r</span>&gt; {}
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;r</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/marker/trait.FusedIterator.html">FusedIterator</a> <span class="kw">for </span>CaptureNames&lt;<span class="lifetime">&#39;r</span>&gt; {}
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;r</span>&gt; FusedIterator <span class="kw">for </span>CaptureNames&lt;<span class="lifetime">&#39;r</span>&gt; {}
 
 <span class="doccomment">/// CaptureLocations is a low level representation of the raw offsets of each
 /// submatch.
@@ -2117,7 +2117,7 @@
 /// `capture_locations` method on the `Regex` being used to execute the search.
 /// The value returned can then be reused in subsequent searches.
 </span><span class="attr">#[derive(Clone, Debug)]
-</span><span class="kw">pub struct </span>CaptureLocations(<a href="re_trait.rs.html#15">re_trait::Locations</a>);
+</span><span class="kw">pub struct </span>CaptureLocations(re_trait::Locations);
 
 <span class="doccomment">/// A type alias for `CaptureLocations` for backwards compatibility.
 ///
@@ -2125,16 +2125,16 @@
 /// undocumented API. To prevent breaking that code (e.g., in `regex-capi`),
 /// we continue re-exporting the same undocumented API.
 </span><span class="attr">#[doc(hidden)]
-</span><span class="kw">pub type </span>Locations = <a href="#860">CaptureLocations</a>;
+</span><span class="kw">pub type </span>Locations = CaptureLocations;
 
-<span class="kw">impl </span><a href="#860">CaptureLocations</a> {
+<span class="kw">impl </span>CaptureLocations {
     <span class="doccomment">/// Returns the start and end positions of the Nth capture group. Returns
     /// `None` if `i` is not a valid capture group or if the capture group did
     /// not match anything. The positions returned are *always* byte indices
     /// with respect to the original string matched.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>get(<span class="kw-2">&amp;</span><span class="self">self</span>, i: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="prelude-ty">Option</span>&lt;(<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>)&gt; {
-        <a class="self" href="#876">self</a>.<span class="number">0</span>.<a href="re_trait.rs.html#22">pos</a>(<a href="#876">i</a>)
+    </span><span class="kw">pub fn </span>get(<span class="kw-2">&amp;</span><span class="self">self</span>, i: usize) -&gt; <span class="prelude-ty">Option</span>&lt;(usize, usize)&gt; {
+        <span class="self">self</span>.<span class="number">0</span>.pos(i)
     }
 
     <span class="doccomment">/// Returns the total number of capture groups (even if they didn&#39;t match).
@@ -2142,8 +2142,8 @@
     /// This is always at least `1` since every regex has at least `1`
     /// capturing group that corresponds to the entire match.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="self" href="#885">self</a>.<span class="number">0</span>.<a href="re_trait.rs.html#41">len</a>()
+    </span><span class="kw">pub fn </span>len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+        <span class="self">self</span>.<span class="number">0</span>.len()
     }
 
     <span class="doccomment">/// An alias for the `get` method for backwards compatibility.
@@ -2153,8 +2153,8 @@
     /// re-exporting the same undocumented API.
     </span><span class="attr">#[doc(hidden)]
     #[inline]
-    </span><span class="kw">pub fn </span>pos(<span class="kw-2">&amp;</span><span class="self">self</span>, i: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="prelude-ty">Option</span>&lt;(<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>)&gt; {
-        <a class="self" href="#896">self</a>.<a href="#876">get</a>(<a href="#896">i</a>)
+    </span><span class="kw">pub fn </span>pos(<span class="kw-2">&amp;</span><span class="self">self</span>, i: usize) -&gt; <span class="prelude-ty">Option</span>&lt;(usize, usize)&gt; {
+        <span class="self">self</span>.get(i)
     }
 }
 
@@ -2170,9 +2170,9 @@
 ///
 /// `&#39;t` is the lifetime of the matched text.
 </span><span class="kw">pub struct </span>Captures&lt;<span class="lifetime">&#39;t</span>&gt; {
-    text: <span class="kw-2">&amp;</span><span class="lifetime">&#39;t </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
-    locs: <a href="re_trait.rs.html#15">re_trait::Locations</a>,
-    named_groups: Arc&lt;HashMap&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;&gt;,
+    text: <span class="kw-2">&amp;</span><span class="lifetime">&#39;t </span>[u8],
+    locs: re_trait::Locations,
+    named_groups: Arc&lt;HashMap&lt;String, usize&gt;&gt;,
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;t</span>&gt; Captures&lt;<span class="lifetime">&#39;t</span>&gt; {
@@ -2195,14 +2195,14 @@
     /// assert_eq!(text1, &amp;b&quot;123&quot;[..]);
     /// assert_eq!(text2, &amp;b&quot;&quot;[..]);
     /// ```
-    </span><span class="kw">pub fn </span>get(<span class="kw-2">&amp;</span><span class="self">self</span>, i: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="prelude-ty">Option</span>&lt;Match&lt;<span class="lifetime">&#39;t</span>&gt;&gt; {
-        <a class="self" href="#938">self</a>.locs.<a href="re_trait.rs.html#22">pos</a>(<a href="#938">i</a>).map(|(s, e)| Match::new(<a class="self" href="#938">self</a>.text, <a href="#939">s</a>, <a href="#939">e</a>))
+    </span><span class="kw">pub fn </span>get(<span class="kw-2">&amp;</span><span class="self">self</span>, i: usize) -&gt; <span class="prelude-ty">Option</span>&lt;Match&lt;<span class="lifetime">&#39;t</span>&gt;&gt; {
+        <span class="self">self</span>.locs.pos(i).map(|(s, e)| Match::new(<span class="self">self</span>.text, s, e))
     }
 
     <span class="doccomment">/// Returns the match for the capture group named `name`. If `name` isn&#39;t a
     /// valid capture group or didn&#39;t match anything, then `None` is returned.
-    </span><span class="kw">pub fn </span>name(<span class="kw-2">&amp;</span><span class="self">self</span>, name: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Option</span>&lt;Match&lt;<span class="lifetime">&#39;t</span>&gt;&gt; {
-        <a class="self" href="#944">self</a>.named_groups.get(<a href="#944">name</a>).and_then(|<span class="kw-2">&amp;</span>i| <a class="self" href="#944">self</a>.<a href="#938">get</a>(<a href="#945">i</a>))
+    </span><span class="kw">pub fn </span>name(<span class="kw-2">&amp;</span><span class="self">self</span>, name: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Option</span>&lt;Match&lt;<span class="lifetime">&#39;t</span>&gt;&gt; {
+        <span class="self">self</span>.named_groups.get(name).and_then(|<span class="kw-2">&amp;</span>i| <span class="self">self</span>.get(i))
     }
 
     <span class="doccomment">/// An iterator that yields all capturing matches in the order in which
@@ -2211,7 +2211,7 @@
     ///
     /// The first match always corresponds to the overall match of the regex.
     </span><span class="kw">pub fn </span>iter&lt;<span class="lifetime">&#39;c</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;c </span><span class="self">self</span>) -&gt; SubCaptureMatches&lt;<span class="lifetime">&#39;c</span>, <span class="lifetime">&#39;t</span>&gt; {
-        <a href="#1087">SubCaptureMatches</a> { caps: <a class="self" href="#953">self</a>, it: <a class="self" href="#953">self</a>.locs.<a href="re_trait.rs.html#33">iter</a>() }
+        SubCaptureMatches { caps: <span class="self">self</span>, it: <span class="self">self</span>.locs.iter() }
     }
 
     <span class="doccomment">/// Expands all instances of `$name` in `replacement` to the corresponding
@@ -2235,8 +2235,8 @@
     /// regex, then it is replaced with an empty string.
     ///
     /// To write a literal `$` use `$$`.
-    </span><span class="kw">pub fn </span>expand(<span class="kw-2">&amp;</span><span class="self">self</span>, replacement: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], dst: <span class="kw-2">&amp;mut </span>Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;) {
-        <a href="expand.rs.html#50-54">expand_bytes</a>(<a class="self" href="#978">self</a>, <a href="#978">replacement</a>, <a href="#978">dst</a>)
+    </span><span class="kw">pub fn </span>expand(<span class="kw-2">&amp;</span><span class="self">self</span>, replacement: <span class="kw-2">&amp;</span>[u8], dst: <span class="kw-2">&amp;mut </span>Vec&lt;u8&gt;) {
+        expand_bytes(<span class="self">self</span>, replacement, dst)
     }
 
     <span class="doccomment">/// Returns the total number of capture groups (even if they didn&#39;t match).
@@ -2244,41 +2244,41 @@
     /// This is always at least `1`, since every regex has at least one capture
     /// group that corresponds to the full match.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="self" href="#987">self</a>.locs.<a href="re_trait.rs.html#41">len</a>()
+    </span><span class="kw">pub fn </span>len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+        <span class="self">self</span>.locs.len()
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;t</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span>Captures&lt;<span class="lifetime">&#39;t</span>&gt; {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a href="#993">f</a>.debug_tuple(<span class="string">&quot;Captures&quot;</span>).field(<span class="kw-2">&amp;</span><a href="#998">CapturesDebug</a>(<a class="self" href="#993">self</a>)).finish()
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;t</span>&gt; fmt::Debug <span class="kw">for </span>Captures&lt;<span class="lifetime">&#39;t</span>&gt; {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        f.debug_tuple(<span class="string">&quot;Captures&quot;</span>).field(<span class="kw-2">&amp;</span>CapturesDebug(<span class="self">self</span>)).finish()
     }
 }
 
 <span class="kw">struct </span>CapturesDebug&lt;<span class="lifetime">&#39;c</span>, <span class="lifetime">&#39;t</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;c </span>Captures&lt;<span class="lifetime">&#39;t</span>&gt;);
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;c</span>, <span class="lifetime">&#39;t</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span>CapturesDebug&lt;<span class="lifetime">&#39;c</span>, <span class="lifetime">&#39;t</span>&gt; {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <span class="kw">fn </span>escape_bytes(bytes: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a> {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;c</span>, <span class="lifetime">&#39;t</span>&gt; fmt::Debug <span class="kw">for </span>CapturesDebug&lt;<span class="lifetime">&#39;c</span>, <span class="lifetime">&#39;t</span>&gt; {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        <span class="kw">fn </span>escape_bytes(bytes: <span class="kw-2">&amp;</span>[u8]) -&gt; String {
             <span class="kw">let </span><span class="kw-2">mut </span>s = String::new();
             <span class="kw">for </span><span class="kw-2">&amp;</span>b <span class="kw">in </span>bytes {
                 s.push_str(<span class="kw-2">&amp;</span>escape_byte(b));
             }
-            <a href="#1003">s</a>
+            s
         }
 
-        <span class="kw">fn </span>escape_byte(byte: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a> {
+        <span class="kw">fn </span>escape_byte(byte: u8) -&gt; String {
             <span class="kw">use </span>std::ascii::escape_default;
 
-            <span class="kw">let </span>escaped: Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt; = escape_default(<a href="#1010">byte</a>).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
-            String::from_utf8_lossy(<span class="kw-2">&amp;</span><a href="#1013">escaped</a>).into_owned()
+            <span class="kw">let </span>escaped: Vec&lt;u8&gt; = escape_default(byte).collect();
+            String::from_utf8_lossy(<span class="kw-2">&amp;</span>escaped).into_owned()
         }
 
         <span class="comment">// We&#39;d like to show something nice here, even if it means an
         // allocation to build a reverse index.
-        </span><span class="kw">let </span>slot_to_name: HashMap&lt;<span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt; =
-            <a class="self" href="#1001">self</a>.<span class="number">0</span>.named_groups.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|(a, b)| (<a href="#1020">b</a>, <a href="#1020">a</a>)).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
-        <span class="kw">let </span><span class="kw-2">mut </span>map = <a href="#1001">f</a>.debug_map();
+        </span><span class="kw">let </span>slot_to_name: HashMap&lt;<span class="kw-2">&amp;</span>usize, <span class="kw-2">&amp;</span>String&gt; =
+            <span class="self">self</span>.<span class="number">0</span>.named_groups.iter().map(|(a, b)| (b, a)).collect();
+        <span class="kw">let </span><span class="kw-2">mut </span>map = f.debug_map();
         <span class="kw">for </span>(slot, m) <span class="kw">in </span><span class="self">self</span>.<span class="number">0</span>.locs.iter().enumerate() {
             <span class="kw">let </span>m = m.map(|(s, e)| escape_bytes(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="number">0</span>.text[s..e]));
             <span class="kw">if let </span><span class="prelude-val">Some</span>(name) = slot_to_name.get(<span class="kw-2">&amp;</span>slot) {
@@ -2287,7 +2287,7 @@
                 map.entry(<span class="kw-2">&amp;</span>slot, <span class="kw-2">&amp;</span>m);
             }
         }
-        <a href="#1021">map</a>.finish()
+        map.finish()
     }
 }
 
@@ -2302,13 +2302,13 @@
 /// # Panics
 ///
 /// If there is no group at the given index.
-</span><span class="kw">impl</span>&lt;<span class="lifetime">&#39;t</span>&gt; Index&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; <span class="kw">for </span>Captures&lt;<span class="lifetime">&#39;t</span>&gt; {
-    <span class="kw">type </span>Output = [<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>];
+</span><span class="kw">impl</span>&lt;<span class="lifetime">&#39;t</span>&gt; Index&lt;usize&gt; <span class="kw">for </span>Captures&lt;<span class="lifetime">&#39;t</span>&gt; {
+    <span class="kw">type </span>Output = [u8];
 
-    <span class="kw">fn </span>index(<span class="kw-2">&amp;</span><span class="self">self</span>, i: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>] {
-        <a class="self" href="#1048">self</a>.<a href="#938">get</a>(<a href="#1048">i</a>)
-            .map(|m| <a href="#1050">m</a>.<a href="#49">as_bytes</a>())
-            .unwrap_or_else(|| <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(<span class="string">&quot;no group at index &#39;{}&#39;&quot;</span>, i))
+    <span class="kw">fn </span>index(<span class="kw-2">&amp;</span><span class="self">self</span>, i: usize) -&gt; <span class="kw-2">&amp;</span>[u8] {
+        <span class="self">self</span>.get(i)
+            .map(|m| m.as_bytes())
+            .unwrap_or_else(|| <span class="macro">panic!</span>(<span class="string">&quot;no group at index &#39;{}&#39;&quot;</span>, i))
     }
 }
 
@@ -2324,13 +2324,13 @@
 /// # Panics
 ///
 /// If there is no group named by the given value.
-</span><span class="kw">impl</span>&lt;<span class="lifetime">&#39;t</span>, <span class="lifetime">&#39;i</span>&gt; Index&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;i </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt; <span class="kw">for </span>Captures&lt;<span class="lifetime">&#39;t</span>&gt; {
-    <span class="kw">type </span>Output = [<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>];
+</span><span class="kw">impl</span>&lt;<span class="lifetime">&#39;t</span>, <span class="lifetime">&#39;i</span>&gt; Index&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;i </span>str&gt; <span class="kw">for </span>Captures&lt;<span class="lifetime">&#39;t</span>&gt; {
+    <span class="kw">type </span>Output = [u8];
 
-    <span class="kw">fn </span>index&lt;<span class="lifetime">&#39;a</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="self">self</span>, name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;i </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>] {
-        <a class="self" href="#1070">self</a>.<a href="#944">name</a>(<a href="#1070">name</a>)
-            .map(|m| <a href="#1072">m</a>.<a href="#49">as_bytes</a>())
-            .unwrap_or_else(|| <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(<span class="string">&quot;no group named &#39;{}&#39;&quot;</span>, name))
+    <span class="kw">fn </span>index&lt;<span class="lifetime">&#39;a</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="self">self</span>, name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;i </span>str) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[u8] {
+        <span class="self">self</span>.name(name)
+            .map(|m| m.as_bytes())
+            .unwrap_or_else(|| <span class="macro">panic!</span>(<span class="string">&quot;no group named &#39;{}&#39;&quot;</span>, name))
     }
 }
 
@@ -2349,17 +2349,17 @@
     it: SubCapturesPosIter&lt;<span class="lifetime">&#39;c</span>&gt;,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;c</span>, <span class="lifetime">&#39;t</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a> <span class="kw">for </span>SubCaptureMatches&lt;<span class="lifetime">&#39;c</span>, <span class="lifetime">&#39;t</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;c</span>, <span class="lifetime">&#39;t</span>&gt; Iterator <span class="kw">for </span>SubCaptureMatches&lt;<span class="lifetime">&#39;c</span>, <span class="lifetime">&#39;t</span>&gt; {
     <span class="kw">type </span>Item = <span class="prelude-ty">Option</span>&lt;Match&lt;<span class="lifetime">&#39;t</span>&gt;&gt;;
 
     <span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="prelude-ty">Option</span>&lt;Match&lt;<span class="lifetime">&#39;t</span>&gt;&gt;&gt; {
-        <a class="self" href="#1095">self</a>.it
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>()
-            .map(|cap| <a href="#1098">cap</a>.map(|(s, e)| Match::new(<a class="self" href="#1095">self</a>.caps.text, <a href="#1098">s</a>, <a href="#1098">e</a>)))
+        <span class="self">self</span>.it
+            .next()
+            .map(|cap| cap.map(|(s, e)| Match::new(<span class="self">self</span>.caps.text, s, e)))
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;c</span>, <span class="lifetime">&#39;t</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/marker/trait.FusedIterator.html">FusedIterator</a> <span class="kw">for </span>SubCaptureMatches&lt;<span class="lifetime">&#39;c</span>, <span class="lifetime">&#39;t</span>&gt; {}
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;c</span>, <span class="lifetime">&#39;t</span>&gt; FusedIterator <span class="kw">for </span>SubCaptureMatches&lt;<span class="lifetime">&#39;c</span>, <span class="lifetime">&#39;t</span>&gt; {}
 
 <span class="doccomment">/// Replacer describes types that can be used to replace matches in a byte
 /// string.
@@ -2376,7 +2376,7 @@
     ///
     /// For example, a no-op replacement would be
     /// `dst.extend(&amp;caps[0])`.
-    </span><span class="kw">fn </span>replace_append(<span class="kw-2">&amp;mut </span><span class="self">self</span>, caps: <span class="kw-2">&amp;</span>Captures&lt;<span class="lifetime">&#39;_</span>&gt;, dst: <span class="kw-2">&amp;mut </span>Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;);
+    </span><span class="kw">fn </span>replace_append(<span class="kw-2">&amp;mut </span><span class="self">self</span>, caps: <span class="kw-2">&amp;</span>Captures&lt;<span class="lifetime">&#39;_</span>&gt;, dst: <span class="kw-2">&amp;mut </span>Vec&lt;u8&gt;);
 
     <span class="doccomment">/// Return a fixed unchanging replacement byte string.
     ///
@@ -2385,7 +2385,7 @@
     /// be beneficial to avoid finding sub-captures.
     ///
     /// In general, this is called once for every call to `replacen`.
-    </span><span class="kw">fn </span>no_expansion&lt;<span class="lifetime">&#39;r</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;r </span><span class="kw-2">mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Cow&lt;<span class="lifetime">&#39;r</span>, [<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;&gt; {
+    </span><span class="kw">fn </span>no_expansion&lt;<span class="lifetime">&#39;r</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;r </span><span class="kw-2">mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Cow&lt;<span class="lifetime">&#39;r</span>, [u8]&gt;&gt; {
         <span class="prelude-val">None
     </span>}
 
@@ -2411,7 +2411,7 @@
     /// }
     /// ```
     </span><span class="kw">fn </span>by_ref&lt;<span class="lifetime">&#39;r</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;r </span><span class="kw-2">mut </span><span class="self">self</span>) -&gt; ReplacerRef&lt;<span class="lifetime">&#39;r</span>, <span class="self">Self</span>&gt; {
-        <a href="#1162">ReplacerRef</a>(<a class="self" href="#1153">self</a>)
+        ReplacerRef(<span class="self">self</span>)
     }
 }
 
@@ -2419,82 +2419,82 @@
 ///
 /// Returned by [`Replacer::by_ref`](trait.Replacer.html#method.by_ref).
 </span><span class="attr">#[derive(Debug)]
-</span><span class="kw">pub struct </span>ReplacerRef&lt;<span class="lifetime">&#39;a</span>, R: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>R);
+</span><span class="kw">pub struct </span>ReplacerRef&lt;<span class="lifetime">&#39;a</span>, R: <span class="question-mark">?</span>Sized&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>R);
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, R: <a href="#1111">Replacer</a> + <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> + <span class="lifetime">&#39;a</span>&gt; <a href="#1111">Replacer</a> <span class="kw">for </span>ReplacerRef&lt;<span class="lifetime">&#39;a</span>, R&gt; {
-    <span class="kw">fn </span>replace_append(<span class="kw-2">&amp;mut </span><span class="self">self</span>, caps: <span class="kw-2">&amp;</span>Captures&lt;<span class="lifetime">&#39;_</span>&gt;, dst: <span class="kw-2">&amp;mut </span>Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;) {
-        <a class="self" href="#1165">self</a>.<span class="number">0</span>.<a href="#1119">replace_append</a>(<a href="#1165">caps</a>, <a href="#1165">dst</a>)
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, R: Replacer + <span class="question-mark">?</span>Sized + <span class="lifetime">&#39;a</span>&gt; Replacer <span class="kw">for </span>ReplacerRef&lt;<span class="lifetime">&#39;a</span>, R&gt; {
+    <span class="kw">fn </span>replace_append(<span class="kw-2">&amp;mut </span><span class="self">self</span>, caps: <span class="kw-2">&amp;</span>Captures&lt;<span class="lifetime">&#39;_</span>&gt;, dst: <span class="kw-2">&amp;mut </span>Vec&lt;u8&gt;) {
+        <span class="self">self</span>.<span class="number">0</span>.replace_append(caps, dst)
     }
-    <span class="kw">fn </span>no_expansion&lt;<span class="lifetime">&#39;r</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;r </span><span class="kw-2">mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Cow&lt;<span class="lifetime">&#39;r</span>, [<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;&gt; {
-        <a class="self" href="#1168">self</a>.<span class="number">0</span>.<a href="#1128">no_expansion</a>()
-    }
-}
-
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; <a href="#1111">Replacer</a> <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>] {
-    <span class="kw">fn </span>replace_append(<span class="kw-2">&amp;mut </span><span class="self">self</span>, caps: <span class="kw-2">&amp;</span>Captures&lt;<span class="lifetime">&#39;_</span>&gt;, dst: <span class="kw-2">&amp;mut </span>Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;) {
-        <a href="#1174">caps</a>.<a href="#978">expand</a>(<span class="kw-2">*</span><a class="self" href="#1174">self</a>, <a href="#1174">dst</a>);
-    }
-
-    <span class="kw">fn </span>no_expansion(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Cow&lt;<span class="lifetime">&#39;_</span>, [<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;&gt; {
-        <a href="#1223">no_expansion</a>(<a class="self" href="#1178">self</a>)
+    <span class="kw">fn </span>no_expansion&lt;<span class="lifetime">&#39;r</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;r </span><span class="kw-2">mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Cow&lt;<span class="lifetime">&#39;r</span>, [u8]&gt;&gt; {
+        <span class="self">self</span>.<span class="number">0</span>.no_expansion()
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; <a href="#1111">Replacer</a> <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt; {
-    <span class="kw">fn </span>replace_append(<span class="kw-2">&amp;mut </span><span class="self">self</span>, caps: <span class="kw-2">&amp;</span>Captures&lt;<span class="lifetime">&#39;_</span>&gt;, dst: <span class="kw-2">&amp;mut </span>Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;) {
-        <a href="#1184">caps</a>.<a href="#978">expand</a>(<span class="kw-2">*</span><a class="self" href="#1184">self</a>, <a href="#1184">dst</a>);
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; Replacer <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[u8] {
+    <span class="kw">fn </span>replace_append(<span class="kw-2">&amp;mut </span><span class="self">self</span>, caps: <span class="kw-2">&amp;</span>Captures&lt;<span class="lifetime">&#39;_</span>&gt;, dst: <span class="kw-2">&amp;mut </span>Vec&lt;u8&gt;) {
+        caps.expand(<span class="kw-2">*</span><span class="self">self</span>, dst);
     }
 
-    <span class="kw">fn </span>no_expansion(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Cow&lt;<span class="lifetime">&#39;_</span>, [<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;&gt; {
-        <a href="#1223">no_expansion</a>(<a class="self" href="#1188">self</a>)
-    }
-}
-
-<span class="kw">impl </span><a href="#1111">Replacer</a> <span class="kw">for </span>Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt; {
-    <span class="kw">fn </span>replace_append(<span class="kw-2">&amp;mut </span><span class="self">self</span>, caps: <span class="kw-2">&amp;</span>Captures&lt;<span class="lifetime">&#39;_</span>&gt;, dst: <span class="kw-2">&amp;mut </span>Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;) {
-        <a href="#1194">caps</a>.<a href="#978">expand</a>(<a class="self" href="#1194">self</a>, <a href="#1194">dst</a>);
-    }
-
-    <span class="kw">fn </span>no_expansion(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Cow&lt;<span class="lifetime">&#39;_</span>, [<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;&gt; {
-        <a href="#1223">no_expansion</a>(<a class="self" href="#1198">self</a>)
+    <span class="kw">fn </span>no_expansion(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Cow&lt;<span class="lifetime">&#39;_</span>, [u8]&gt;&gt; {
+        no_expansion(<span class="self">self</span>)
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; <a href="#1111">Replacer</a> <span class="kw">for </span>Cow&lt;<span class="lifetime">&#39;a</span>, [<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt; {
-    <span class="kw">fn </span>replace_append(<span class="kw-2">&amp;mut </span><span class="self">self</span>, caps: <span class="kw-2">&amp;</span>Captures&lt;<span class="lifetime">&#39;_</span>&gt;, dst: <span class="kw-2">&amp;mut </span>Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;) {
-        <a href="#1204">caps</a>.<a href="#978">expand</a>(<a class="self" href="#1204">self</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>(), <a href="#1204">dst</a>);
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; Replacer <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Vec&lt;u8&gt; {
+    <span class="kw">fn </span>replace_append(<span class="kw-2">&amp;mut </span><span class="self">self</span>, caps: <span class="kw-2">&amp;</span>Captures&lt;<span class="lifetime">&#39;_</span>&gt;, dst: <span class="kw-2">&amp;mut </span>Vec&lt;u8&gt;) {
+        caps.expand(<span class="kw-2">*</span><span class="self">self</span>, dst);
     }
 
-    <span class="kw">fn </span>no_expansion(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Cow&lt;<span class="lifetime">&#39;_</span>, [<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;&gt; {
-        <a href="#1223">no_expansion</a>(<a class="self" href="#1208">self</a>)
-    }
-}
-
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; <a href="#1111">Replacer</a> <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Cow&lt;<span class="lifetime">&#39;a</span>, [<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt; {
-    <span class="kw">fn </span>replace_append(<span class="kw-2">&amp;mut </span><span class="self">self</span>, caps: <span class="kw-2">&amp;</span>Captures&lt;<span class="lifetime">&#39;_</span>&gt;, dst: <span class="kw-2">&amp;mut </span>Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;) {
-        <a href="#1214">caps</a>.<a href="#978">expand</a>(<a class="self" href="#1214">self</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>(), <a href="#1214">dst</a>);
-    }
-
-    <span class="kw">fn </span>no_expansion(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Cow&lt;<span class="lifetime">&#39;_</span>, [<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;&gt; {
-        <a href="#1223">no_expansion</a>(<a class="self" href="#1218">self</a>)
+    <span class="kw">fn </span>no_expansion(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Cow&lt;<span class="lifetime">&#39;_</span>, [u8]&gt;&gt; {
+        no_expansion(<span class="self">self</span>)
     }
 }
 
-<span class="kw">fn </span>no_expansion&lt;T: AsRef&lt;[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;&gt;(t: <span class="kw-2">&amp;</span>T) -&gt; <span class="prelude-ty">Option</span>&lt;Cow&lt;<span class="lifetime">&#39;_</span>, [<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;&gt; {
-    <span class="kw">let </span>s = <a href="#1223">t</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>();
-    <span class="kw">match </span><a href="find_byte.rs.html#5">find_byte</a>(<span class="string">b&#39;$&#39;</span>, <a href="#1224">s</a>) {
+<span class="kw">impl </span>Replacer <span class="kw">for </span>Vec&lt;u8&gt; {
+    <span class="kw">fn </span>replace_append(<span class="kw-2">&amp;mut </span><span class="self">self</span>, caps: <span class="kw-2">&amp;</span>Captures&lt;<span class="lifetime">&#39;_</span>&gt;, dst: <span class="kw-2">&amp;mut </span>Vec&lt;u8&gt;) {
+        caps.expand(<span class="self">self</span>, dst);
+    }
+
+    <span class="kw">fn </span>no_expansion(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Cow&lt;<span class="lifetime">&#39;_</span>, [u8]&gt;&gt; {
+        no_expansion(<span class="self">self</span>)
+    }
+}
+
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; Replacer <span class="kw">for </span>Cow&lt;<span class="lifetime">&#39;a</span>, [u8]&gt; {
+    <span class="kw">fn </span>replace_append(<span class="kw-2">&amp;mut </span><span class="self">self</span>, caps: <span class="kw-2">&amp;</span>Captures&lt;<span class="lifetime">&#39;_</span>&gt;, dst: <span class="kw-2">&amp;mut </span>Vec&lt;u8&gt;) {
+        caps.expand(<span class="self">self</span>.as_ref(), dst);
+    }
+
+    <span class="kw">fn </span>no_expansion(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Cow&lt;<span class="lifetime">&#39;_</span>, [u8]&gt;&gt; {
+        no_expansion(<span class="self">self</span>)
+    }
+}
+
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; Replacer <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Cow&lt;<span class="lifetime">&#39;a</span>, [u8]&gt; {
+    <span class="kw">fn </span>replace_append(<span class="kw-2">&amp;mut </span><span class="self">self</span>, caps: <span class="kw-2">&amp;</span>Captures&lt;<span class="lifetime">&#39;_</span>&gt;, dst: <span class="kw-2">&amp;mut </span>Vec&lt;u8&gt;) {
+        caps.expand(<span class="self">self</span>.as_ref(), dst);
+    }
+
+    <span class="kw">fn </span>no_expansion(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Cow&lt;<span class="lifetime">&#39;_</span>, [u8]&gt;&gt; {
+        no_expansion(<span class="self">self</span>)
+    }
+}
+
+<span class="kw">fn </span>no_expansion&lt;T: AsRef&lt;[u8]&gt;&gt;(t: <span class="kw-2">&amp;</span>T) -&gt; <span class="prelude-ty">Option</span>&lt;Cow&lt;<span class="lifetime">&#39;_</span>, [u8]&gt;&gt; {
+    <span class="kw">let </span>s = t.as_ref();
+    <span class="kw">match </span>find_byte(<span class="string">b&#39;$&#39;</span>, s) {
         <span class="prelude-val">Some</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">None</span>,
-        <span class="prelude-val">None </span>=&gt; <span class="prelude-val">Some</span>(Cow::Borrowed(<a href="#1224">s</a>)),
+        <span class="prelude-val">None </span>=&gt; <span class="prelude-val">Some</span>(Cow::Borrowed(s)),
     }
 }
 
-<span class="kw">impl</span>&lt;F, T&gt; <a href="#1111">Replacer</a> <span class="kw">for </span>F
+<span class="kw">impl</span>&lt;F, T&gt; Replacer <span class="kw">for </span>F
 <span class="kw">where
     </span>F: FnMut(<span class="kw-2">&amp;</span>Captures&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; T,
-    T: AsRef&lt;[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;,
+    T: AsRef&lt;[u8]&gt;,
 {
-    <span class="kw">fn </span>replace_append(<span class="kw-2">&amp;mut </span><span class="self">self</span>, caps: <span class="kw-2">&amp;</span>Captures&lt;<span class="lifetime">&#39;_</span>&gt;, dst: <span class="kw-2">&amp;mut </span>Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;) {
-        <a href="#1236">dst</a>.extend_from_slice((<span class="kw-2">*</span><a class="self" href="#1236">self</a>)(<a href="#1236">caps</a>).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>());
+    <span class="kw">fn </span>replace_append(<span class="kw-2">&amp;mut </span><span class="self">self</span>, caps: <span class="kw-2">&amp;</span>Captures&lt;<span class="lifetime">&#39;_</span>&gt;, dst: <span class="kw-2">&amp;mut </span>Vec&lt;u8&gt;) {
+        dst.extend_from_slice((<span class="kw-2">*</span><span class="self">self</span>)(caps).as_ref());
     }
 }
 
@@ -2507,16 +2507,16 @@
 ///
 /// `&#39;t` is the lifetime of the literal text.
 </span><span class="attr">#[derive(Clone, Debug)]
-</span><span class="kw">pub struct </span>NoExpand&lt;<span class="lifetime">&#39;t</span>&gt;(<span class="kw">pub </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;t </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]);
+</span><span class="kw">pub struct </span>NoExpand&lt;<span class="lifetime">&#39;t</span>&gt;(<span class="kw">pub </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;t </span>[u8]);
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;t</span>&gt; <a href="#1111">Replacer</a> <span class="kw">for </span>NoExpand&lt;<span class="lifetime">&#39;t</span>&gt; {
-    <span class="kw">fn </span>replace_append(<span class="kw-2">&amp;mut </span><span class="self">self</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>Captures&lt;<span class="lifetime">&#39;_</span>&gt;, dst: <span class="kw-2">&amp;mut </span>Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;) {
-        <a href="#1253">dst</a>.extend_from_slice(<a class="self" href="#1253">self</a>.<span class="number">0</span>);
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;t</span>&gt; Replacer <span class="kw">for </span>NoExpand&lt;<span class="lifetime">&#39;t</span>&gt; {
+    <span class="kw">fn </span>replace_append(<span class="kw-2">&amp;mut </span><span class="self">self</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>Captures&lt;<span class="lifetime">&#39;_</span>&gt;, dst: <span class="kw-2">&amp;mut </span>Vec&lt;u8&gt;) {
+        dst.extend_from_slice(<span class="self">self</span>.<span class="number">0</span>);
     }
 
-    <span class="kw">fn </span>no_expansion(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Cow&lt;<span class="lifetime">&#39;_</span>, [<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;&gt; {
-        <span class="prelude-val">Some</span>(Cow::Borrowed(<a class="self" href="#1257">self</a>.<span class="number">0</span>))
+    <span class="kw">fn </span>no_expansion(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Cow&lt;<span class="lifetime">&#39;_</span>, [u8]&gt;&gt; {
+        <span class="prelude-val">Some</span>(Cow::Borrowed(<span class="self">self</span>.<span class="number">0</span>))
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="regex" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="regex" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

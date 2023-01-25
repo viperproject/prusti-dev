@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/combine-4.6.6/src/stream/position.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>position.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../combine/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/combine-4.6.6/src/stream/position.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>position.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../combine/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -464,23 +464,23 @@
 <a href="#464" id="464">464</a>
 <a href="#465" id="465">465</a>
 </pre><pre class="rust"><code><span class="kw">use crate</span>::{
-    error::{<a href="../error.rs.html#456">ParseError</a>, <a href="../error.rs.html#946">ParseResult</a>, <a href="../error.rs.html#367">StreamError</a>},
-    <a href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">lib::fmt</a>,
+    error::{ParseError, ParseResult, StreamError},
+    lib::fmt,
     stream::{
-        <a href="mod.rs.html#1172">IteratorStream</a>, <a href="mod.rs.html#76">Positioned</a>, <a href="mod.rs.html#184">RangeStreamOnce</a>, <a href="mod.rs.html#143">ResetStream</a>, <a href="mod.rs.html#1034">SliceStream</a>, <a href="mod.rs.html#109">StreamErrorFor</a>,
-        <a href="mod.rs.html#116">StreamOnce</a>,
+        IteratorStream, Positioned, RangeStreamOnce, ResetStream, SliceStream, StreamErrorFor,
+        StreamOnce,
     },
 };
 
 <span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
-</span><span class="kw">use </span><a href="mod.rs.html#66"><span class="kw">crate</span>::stream::read</a>;
+</span><span class="kw">use </span><span class="kw">crate</span>::stream::read;
 
 <span class="doccomment">/// Trait for tracking the current position of a `Stream`.
 </span><span class="kw">pub trait </span>Positioner&lt;Item&gt; {
     <span class="doccomment">/// The type which keeps track of the position
-    </span><span class="kw">type </span>Position: <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> + <a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Ord.html">Ord</a>;
+    </span><span class="kw">type </span>Position: Clone + Ord;
 
-    <span class="kw">type </span>Checkpoint: <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a>;
+    <span class="kw">type </span>Checkpoint: Clone;
 
     <span class="doccomment">/// Returns the current position
     </span><span class="kw">fn </span>position(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self</span>::Position;
@@ -499,28 +499,28 @@
 
 <span class="doccomment">/// Defines a default `Positioner` type for a particular `Stream` type.
 </span><span class="kw">pub trait </span>DefaultPositioned {
-    <span class="kw">type </span>Positioner: <a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a>;
+    <span class="kw">type </span>Positioner: Default;
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; <a href="#36">DefaultPositioned</a> <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> {
-    <span class="kw">type </span>Positioner = <a href="#250">SourcePosition</a>;
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; DefaultPositioned <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>str {
+    <span class="kw">type </span>Positioner = SourcePosition;
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T&gt; <a href="#36">DefaultPositioned</a> <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[T] {
-    <span class="kw">type </span>Positioner = <a href="#198">IndexPositioner</a>;
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T&gt; DefaultPositioned <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[T] {
+    <span class="kw">type </span>Positioner = IndexPositioner;
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T&gt; <a href="#36">DefaultPositioned</a> <span class="kw">for </span>SliceStream&lt;<span class="lifetime">&#39;a</span>, T&gt; {
-    <span class="kw">type </span>Positioner = <a href="#198">IndexPositioner</a>;
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T&gt; DefaultPositioned <span class="kw">for </span>SliceStream&lt;<span class="lifetime">&#39;a</span>, T&gt; {
+    <span class="kw">type </span>Positioner = IndexPositioner;
 }
 
-<span class="kw">impl</span>&lt;T&gt; <a href="#36">DefaultPositioned</a> <span class="kw">for </span>IteratorStream&lt;T&gt; {
-    <span class="kw">type </span>Positioner = <a href="#198">IndexPositioner</a>;
+<span class="kw">impl</span>&lt;T&gt; DefaultPositioned <span class="kw">for </span>IteratorStream&lt;T&gt; {
+    <span class="kw">type </span>Positioner = IndexPositioner;
 }
 
 <span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
-</span><span class="kw">impl</span>&lt;R&gt; <a href="#36">DefaultPositioned</a> <span class="kw">for </span>read::Stream&lt;R&gt; {
-    <span class="kw">type </span>Positioner = <a href="#198">IndexPositioner</a>;
+</span><span class="kw">impl</span>&lt;R&gt; DefaultPositioned <span class="kw">for </span>read::Stream&lt;R&gt; {
+    <span class="kw">type </span>Positioner = IndexPositioner;
 }
 
 <span class="doccomment">/// The `Stream&lt;Input&gt;` struct maintains the current position in the stream `Input` using
@@ -556,29 +556,29 @@
 
 <span class="kw">impl</span>&lt;Input, X&gt; Stream&lt;Input, X&gt;
 <span class="kw">where
-    </span>Input: <a href="mod.rs.html#116">StreamOnce</a>,
+    </span>Input: StreamOnce,
     X: Positioner&lt;Input::Token&gt;,
 {
     <span class="doccomment">/// Creates a new `Stream&lt;Input, X&gt;` from an input stream and a positioner.
     </span><span class="kw">pub fn </span>with_positioner(input: Input, positioner: X) -&gt; Stream&lt;Input, X&gt; {
-        <a href="#85">Stream</a> { <a href="#98">input</a>, <a href="#98">positioner</a> }
+        Stream { input, positioner }
     }
 }
 
 <span class="kw">impl</span>&lt;Input&gt; Stream&lt;Input, Input::Positioner&gt;
 <span class="kw">where
-    </span>Input: <a href="mod.rs.html#116">StreamOnce</a> + <a href="#36">DefaultPositioned</a>,
+    </span>Input: StreamOnce + DefaultPositioned,
     Input::Positioner: Positioner&lt;Input::Token&gt;,
 {
     <span class="doccomment">/// Creates a new `Stream&lt;Input, X&gt;` from an input stream and its default positioner.
     </span><span class="kw">pub fn </span>new(input: Input) -&gt; Stream&lt;Input, Input::Positioner&gt; {
-        Stream::with_positioner(<a href="#109">input</a>, Input::Positioner::default())
+        Stream::with_positioner(input, Input::Positioner::default())
     }
 }
 
-<span class="kw">impl</span>&lt;Input, X, E&gt; <a href="mod.rs.html#76">Positioned</a> <span class="kw">for </span>Stream&lt;Input, X&gt;
+<span class="kw">impl</span>&lt;Input, X, E&gt; Positioned <span class="kw">for </span>Stream&lt;Input, X&gt;
 <span class="kw">where
-    </span>Input: <a href="mod.rs.html#116">StreamOnce</a>,
+    </span>Input: StreamOnce,
     X: Positioner&lt;Input::Token&gt;,
     E: StreamError&lt;Input::Token, Input::Range&gt;,
     Input::Error: ParseError&lt;Input::Token, Input::Range, X::Position, StreamError = E&gt;,
@@ -586,13 +586,13 @@
 {
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>position(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self</span>::Position {
-        <a class="self" href="#123">self</a>.positioner.<a href="#21">position</a>()
+        <span class="self">self</span>.positioner.position()
     }
 }
 
-<span class="kw">impl</span>&lt;Input, X, S&gt; <a href="mod.rs.html#116">StreamOnce</a> <span class="kw">for </span>Stream&lt;Input, X&gt;
+<span class="kw">impl</span>&lt;Input, X, S&gt; StreamOnce <span class="kw">for </span>Stream&lt;Input, X&gt;
 <span class="kw">where
-    </span>Input: <a href="mod.rs.html#116">StreamOnce</a>,
+    </span>Input: StreamOnce,
     X: Positioner&lt;Input::Token&gt;,
     S: StreamError&lt;Input::Token, Input::Range&gt;,
     Input::Error: ParseError&lt;Input::Token, Input::Range, X::Position, StreamError = S&gt;
@@ -605,54 +605,54 @@
 
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>uncons(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;Input::Token, StreamErrorFor&lt;<span class="self">Self</span>&gt;&gt; {
-        <a class="self" href="#142">self</a>.input.<a href="mod.rs.html#132">uncons</a>().map(|c| {
-            <a class="self" href="#142">self</a>.positioner.<a href="#23">update</a>(<span class="kw-2">&amp;</span><a href="#143">c</a>);
-            <a href="#143">c</a>
+        <span class="self">self</span>.input.uncons().map(|c| {
+            <span class="self">self</span>.positioner.update(<span class="kw-2">&amp;</span>c);
+            c
         })
     }
 
-    <span class="kw">fn </span>is_partial(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#149">self</a>.input.<a href="mod.rs.html#137">is_partial</a>()
+    <span class="kw">fn </span>is_partial(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.input.is_partial()
     }
 }
 
 <span class="kw">impl</span>&lt;Item, T&gt; Positioner&lt;Item&gt; <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;_ </span><span class="kw-2">mut </span>T
 <span class="kw">where
-    </span>Item: <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a>,
-    T: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> + Positioner&lt;Item&gt;,
+    </span>Item: Clone,
+    T: <span class="question-mark">?</span>Sized + Positioner&lt;Item&gt;,
 {
     <span class="kw">type </span>Position = T::Position;
     <span class="kw">type </span>Checkpoint = T::Checkpoint;
 
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>position(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; T::Position {
-        (<span class="kw-2">**</span><a class="self" href="#163">self</a>).<a href="#21">position</a>()
+        (<span class="kw-2">**</span><span class="self">self</span>).position()
     }
 
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>update(<span class="kw-2">&amp;mut </span><span class="self">self</span>, item: <span class="kw-2">&amp;</span>Item) {
-        (<span class="kw-2">**</span><a class="self" href="#168">self</a>).<a href="#23">update</a>(<a href="#168">item</a>)
+        (<span class="kw-2">**</span><span class="self">self</span>).update(item)
     }
 
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>checkpoint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self</span>::Checkpoint {
-        (<span class="kw-2">**</span><a class="self" href="#173">self</a>).<a href="#25">checkpoint</a>()
+        (<span class="kw-2">**</span><span class="self">self</span>).checkpoint()
     }
 
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>reset(<span class="kw-2">&amp;mut </span><span class="self">self</span>, checkpoint: <span class="self">Self</span>::Checkpoint) {
-        (<span class="kw-2">**</span><a class="self" href="#178">self</a>).<a href="#26">reset</a>(<a href="#178">checkpoint</a>)
+        (<span class="kw-2">**</span><span class="self">self</span>).reset(checkpoint)
     }
 }
 
 <span class="kw">impl</span>&lt;Item, Range, T&gt; RangePositioner&lt;Item, Range&gt; <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;_ </span><span class="kw-2">mut </span>T
 <span class="kw">where
-    </span>Item: <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a>,
-    Range: <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> + <a href="mod.rs.html#382"><span class="kw">crate</span>::stream::Range</a>,
-    T: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> + RangePositioner&lt;Item, Range&gt;,
+    </span>Item: Clone,
+    Range: Clone + <span class="kw">crate</span>::stream::Range,
+    T: <span class="question-mark">?</span>Sized + RangePositioner&lt;Item, Range&gt;,
 {
     <span class="kw">fn </span>update_range(<span class="kw-2">&amp;mut </span><span class="self">self</span>, range: <span class="kw-2">&amp;</span>Range) {
-        (<span class="kw-2">**</span><a class="self" href="#189">self</a>).<a href="#32">update_range</a>(<a href="#189">range</a>);
+        (<span class="kw-2">**</span><span class="self">self</span>).update_range(range);
     }
 }
 
@@ -660,53 +660,53 @@
 /// initial index is index 0.  Each `Item` committed increments the index by 1; each `range` committed
 /// increments the position by `range.len()`.
 </span><span class="attr">#[derive(Clone, Debug, Default, PartialEq)]
-</span><span class="kw">pub struct </span>IndexPositioner(<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>);
+</span><span class="kw">pub struct </span>IndexPositioner(usize);
 
-<span class="kw">impl</span>&lt;Item&gt; Positioner&lt;Item&gt; <span class="kw">for </span><a href="#198">IndexPositioner</a>
+<span class="kw">impl</span>&lt;Item&gt; Positioner&lt;Item&gt; <span class="kw">for </span>IndexPositioner
 <span class="kw">where
-    </span>Item: <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a>,
+    </span>Item: Clone,
 {
-    <span class="kw">type </span>Position = <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>;
+    <span class="kw">type </span>Position = usize;
     <span class="kw">type </span>Checkpoint = <span class="self">Self</span>;
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>position(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="self" href="#208">self</a>.<span class="number">0
+    </span><span class="kw">fn </span>position(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+        <span class="self">self</span>.<span class="number">0
     </span>}
 
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>update(<span class="kw-2">&amp;mut </span><span class="self">self</span>, _item: <span class="kw-2">&amp;</span>Item) {
-        <a class="self" href="#213">self</a>.<span class="number">0 </span>+= <span class="number">1
+        <span class="self">self</span>.<span class="number">0 </span>+= <span class="number">1
     </span>}
 
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>checkpoint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self</span>::Checkpoint {
-        <a class="self" href="#218">self</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()
+        <span class="self">self</span>.clone()
     }
 
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>reset(<span class="kw-2">&amp;mut </span><span class="self">self</span>, checkpoint: <span class="self">Self</span>::Checkpoint) {
-        <span class="kw-2">*</span><span class="self"><a href="#223">self</a> </span>= <a href="#223">checkpoint</a>;
+        <span class="kw-2">*</span><span class="self">self </span>= checkpoint;
     }
 }
 
-<span class="kw">impl </span><a href="#198">IndexPositioner</a> {
-    <span class="kw">pub fn </span>new() -&gt; <a href="#198">IndexPositioner</a> {
+<span class="kw">impl </span>IndexPositioner {
+    <span class="kw">pub fn </span>new() -&gt; IndexPositioner {
         IndexPositioner::new_with_position(<span class="number">0</span>)
     }
 
-    <span class="kw">pub fn </span>new_with_position(position: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a href="#198">IndexPositioner</a> {
-        <a href="#198">IndexPositioner</a>(<a href="#233">position</a>)
+    <span class="kw">pub fn </span>new_with_position(position: usize) -&gt; IndexPositioner {
+        IndexPositioner(position)
     }
 }
 
-<span class="kw">impl</span>&lt;Item, Range&gt; RangePositioner&lt;Item, Range&gt; <span class="kw">for </span><a href="#198">IndexPositioner</a>
+<span class="kw">impl</span>&lt;Item, Range&gt; RangePositioner&lt;Item, Range&gt; <span class="kw">for </span>IndexPositioner
 <span class="kw">where
-    </span>Item: <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a>,
-    Range: <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> + <a href="mod.rs.html#382"><span class="kw">crate</span>::stream::Range</a>,
+    </span>Item: Clone,
+    Range: Clone + <span class="kw">crate</span>::stream::Range,
 {
     <span class="kw">fn </span>update_range(<span class="kw-2">&amp;mut </span><span class="self">self</span>, range: <span class="kw-2">&amp;</span>Range) {
-        <a class="self" href="#243">self</a>.<span class="number">0 </span>+= <a href="#243">range</a>.<a href="mod.rs.html#385">len</a>()
+        <span class="self">self</span>.<span class="number">0 </span>+= range.len()
     }
 }
 
@@ -714,121 +714,121 @@
 </span><span class="attr">#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd)]
 </span><span class="kw">pub struct </span>SourcePosition {
     <span class="doccomment">/// Current line of the input
-    </span><span class="kw">pub </span>line: <a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>,
+    </span><span class="kw">pub </span>line: i32,
     <span class="doccomment">/// Current column of the input
-    </span><span class="kw">pub </span>column: <a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>,
+    </span><span class="kw">pub </span>column: i32,
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for </span><a href="#250">SourcePosition</a> {
+<span class="kw">impl </span>Default <span class="kw">for </span>SourcePosition {
     <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
-        <a href="#250">SourcePosition</a> { line: <span class="number">1</span>, column: <span class="number">1 </span>}
+        SourcePosition { line: <span class="number">1</span>, column: <span class="number">1 </span>}
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for </span><a href="#250">SourcePosition</a> {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#264">f</a>, <span class="string">&quot;line: {}, column: {}&quot;</span>, <span class="self">self</span>.line, <span class="self">self</span>.column)
+<span class="kw">impl </span>fmt::Display <span class="kw">for </span>SourcePosition {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        <span class="macro">write!</span>(f, <span class="string">&quot;line: {}, column: {}&quot;</span>, <span class="self">self</span>.line, <span class="self">self</span>.column)
     }
 }
 
-<span class="kw">impl </span><a href="#250">SourcePosition</a> {
+<span class="kw">impl </span>SourcePosition {
     <span class="kw">pub fn </span>new() -&gt; <span class="self">Self </span>{
         SourcePosition::default()
     }
 }
 
-<span class="kw">impl </span>Positioner&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>&gt; <span class="kw">for </span><a href="#250">SourcePosition</a> {
-    <span class="kw">type </span>Position = <a href="#250">SourcePosition</a>;
+<span class="kw">impl </span>Positioner&lt;char&gt; <span class="kw">for </span>SourcePosition {
+    <span class="kw">type </span>Position = SourcePosition;
     <span class="kw">type </span>Checkpoint = <span class="self">Self</span>;
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>position(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="#250">SourcePosition</a> {
-        <span class="kw-2">*</span><span class="self"><a href="#280">self</a>
+    </span><span class="kw">fn </span>position(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; SourcePosition {
+        <span class="kw-2">*</span><span class="self">self
     </span>}
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>update(<span class="kw-2">&amp;mut </span><span class="self">self</span>, token: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>) {
-        <a class="self" href="#285">self</a>.column += <span class="number">1</span>;
+    </span><span class="kw">fn </span>update(<span class="kw-2">&amp;mut </span><span class="self">self</span>, token: <span class="kw-2">&amp;</span>char) {
+        <span class="self">self</span>.column += <span class="number">1</span>;
         <span class="kw">if </span><span class="kw-2">*</span>token == <span class="string">&#39;\n&#39; </span>{
-            <a class="self" href="#285">self</a>.column = <span class="number">1</span>;
-            <a class="self" href="#285">self</a>.line += <span class="number">1</span>;
+            <span class="self">self</span>.column = <span class="number">1</span>;
+            <span class="self">self</span>.line += <span class="number">1</span>;
         }
     }
 
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>checkpoint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self</span>::Checkpoint {
-        <span class="kw-2">*</span><span class="self"><a href="#294">self</a>
+        <span class="kw-2">*</span><span class="self">self
     </span>}
 
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>reset(<span class="kw-2">&amp;mut </span><span class="self">self</span>, checkpoint: <span class="self">Self</span>::Checkpoint) {
-        <span class="kw-2">*</span><span class="self"><a href="#299">self</a> </span>= <a href="#299">checkpoint</a>;
+        <span class="kw-2">*</span><span class="self">self </span>= checkpoint;
     }
 }
 
-<span class="kw">impl </span>Positioner&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt; <span class="kw">for </span><a href="#250">SourcePosition</a> {
-    <span class="kw">type </span>Position = <a href="#250">SourcePosition</a>;
+<span class="kw">impl </span>Positioner&lt;u8&gt; <span class="kw">for </span>SourcePosition {
+    <span class="kw">type </span>Position = SourcePosition;
     <span class="kw">type </span>Checkpoint = <span class="self">Self</span>;
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>position(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="#250">SourcePosition</a> {
-        <span class="kw-2">*</span><span class="self"><a href="#309">self</a>
+    </span><span class="kw">fn </span>position(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; SourcePosition {
+        <span class="kw-2">*</span><span class="self">self
     </span>}
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>update(<span class="kw-2">&amp;mut </span><span class="self">self</span>, token: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) {
-        <a class="self" href="#314">self</a>.column += <span class="number">1</span>;
+    </span><span class="kw">fn </span>update(<span class="kw-2">&amp;mut </span><span class="self">self</span>, token: <span class="kw-2">&amp;</span>u8) {
+        <span class="self">self</span>.column += <span class="number">1</span>;
         <span class="kw">if </span><span class="kw-2">*</span>token == <span class="string">b&#39;\n&#39; </span>{
-            <a class="self" href="#314">self</a>.column = <span class="number">1</span>;
-            <a class="self" href="#314">self</a>.line += <span class="number">1</span>;
+            <span class="self">self</span>.column = <span class="number">1</span>;
+            <span class="self">self</span>.line += <span class="number">1</span>;
         }
     }
 
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>checkpoint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self</span>::Checkpoint {
-        <span class="kw-2">*</span><span class="self"><a href="#323">self</a>
+        <span class="kw-2">*</span><span class="self">self
     </span>}
 
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>reset(<span class="kw-2">&amp;mut </span><span class="self">self</span>, checkpoint: <span class="self">Self</span>::Checkpoint) {
-        <span class="kw-2">*</span><span class="self"><a href="#328">self</a> </span>= <a href="#328">checkpoint</a>;
+        <span class="kw-2">*</span><span class="self">self </span>= checkpoint;
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; RangePositioner&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt; <span class="kw">for </span><a href="#250">SourcePosition</a> {
-    <span class="kw">fn </span>update_range(<span class="kw-2">&amp;mut </span><span class="self">self</span>, range: &amp;&amp;<span class="lifetime">&#39;a </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; RangePositioner&lt;char, <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>str&gt; <span class="kw">for </span>SourcePosition {
+    <span class="kw">fn </span>update_range(<span class="kw-2">&amp;mut </span><span class="self">self</span>, range: &amp;&amp;<span class="lifetime">&#39;a </span>str) {
         <span class="kw">for </span>c <span class="kw">in </span>range.chars() {
             <span class="self">self</span>.update(<span class="kw-2">&amp;</span>c);
         }
     }
 }
 
-<span class="kw">impl</span>&lt;Input, X, S&gt; <a href="mod.rs.html#184">RangeStreamOnce</a> <span class="kw">for </span>Stream&lt;Input, X&gt;
+<span class="kw">impl</span>&lt;Input, X, S&gt; RangeStreamOnce <span class="kw">for </span>Stream&lt;Input, X&gt;
 <span class="kw">where
-    </span>Input: <a href="mod.rs.html#184">RangeStreamOnce</a>,
+    </span>Input: RangeStreamOnce,
     X: RangePositioner&lt;Input::Token, Input::Range&gt;,
     S: StreamError&lt;Input::Token, Input::Range&gt;,
     Input::Error: ParseError&lt;Input::Token, Input::Range, X::Position, StreamError = S&gt;,
     Input::Error: ParseError&lt;Input::Token, Input::Range, Input::Position, StreamError = S&gt;,
-    Input::Position: <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> + <a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Ord.html">Ord</a>,
+    Input::Position: Clone + Ord,
 {
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>uncons_range(<span class="kw-2">&amp;mut </span><span class="self">self</span>, size: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="prelude-ty">Result</span>&lt;Input::Range, StreamErrorFor&lt;<span class="self">Self</span>&gt;&gt; {
-        <a class="self" href="#351">self</a>.input.<a href="mod.rs.html#187">uncons_range</a>(<a href="#351">size</a>).map(|range| {
-            <a class="self" href="#351">self</a>.positioner.<a href="#32">update_range</a>(<span class="kw-2">&amp;</span><a href="#352">range</a>);
-            <a href="#352">range</a>
+    </span><span class="kw">fn </span>uncons_range(<span class="kw-2">&amp;mut </span><span class="self">self</span>, size: usize) -&gt; <span class="prelude-ty">Result</span>&lt;Input::Range, StreamErrorFor&lt;<span class="self">Self</span>&gt;&gt; {
+        <span class="self">self</span>.input.uncons_range(size).map(|range| {
+            <span class="self">self</span>.positioner.update_range(<span class="kw-2">&amp;</span>range);
+            range
         })
     }
 
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>uncons_while&lt;F&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, <span class="kw-2">mut </span>predicate: F) -&gt; <span class="prelude-ty">Result</span>&lt;Input::Range, StreamErrorFor&lt;<span class="self">Self</span>&gt;&gt;
     <span class="kw">where
-        </span>F: FnMut(Input::Token) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
+        </span>F: FnMut(Input::Token) -&gt; bool,
     {
-        <span class="kw">let </span>positioner = <span class="kw-2">&amp;mut </span><a class="self" href="#359">self</a>.positioner;
-        <a class="self" href="#359">self</a>.input.<a href="mod.rs.html#191-193">uncons_while</a>(|t| {
+        <span class="kw">let </span>positioner = <span class="kw-2">&amp;mut </span><span class="self">self</span>.positioner;
+        <span class="self">self</span>.input.uncons_while(|t| {
             <span class="kw">if </span>predicate(t.clone()) {
-                <a href="#363">positioner</a>.<a href="#23">update</a>(<span class="kw-2">&amp;</span><a href="#364">t</a>);
+                positioner.update(<span class="kw-2">&amp;</span>t);
                 <span class="bool-val">true
             </span>} <span class="kw">else </span>{
                 <span class="bool-val">false
@@ -842,12 +842,12 @@
         <span class="kw-2">mut </span>predicate: F,
     ) -&gt; ParseResult&lt;<span class="self">Self</span>::Range, StreamErrorFor&lt;<span class="self">Self</span>&gt;&gt;
     <span class="kw">where
-        </span>F: FnMut(<span class="self">Self</span>::Token) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
+        </span>F: FnMut(<span class="self">Self</span>::Token) -&gt; bool,
     {
-        <span class="kw">let </span>positioner = <span class="kw-2">&amp;mut </span><a class="self" href="#376">self</a>.positioner;
-        <a class="self" href="#376">self</a>.input.<a href="mod.rs.html#202-204">uncons_while1</a>(|t| {
+        <span class="kw">let </span>positioner = <span class="kw-2">&amp;mut </span><span class="self">self</span>.positioner;
+        <span class="self">self</span>.input.uncons_while1(|t| {
             <span class="kw">if </span>predicate(t.clone()) {
-                <a href="#382">positioner</a>.<a href="#23">update</a>(<span class="kw-2">&amp;</span><a href="#383">t</a>);
+                positioner.update(<span class="kw-2">&amp;</span>t);
                 <span class="bool-val">true
             </span>} <span class="kw">else </span>{
                 <span class="bool-val">false
@@ -856,18 +856,18 @@
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>distance(<span class="kw-2">&amp;</span><span class="self">self</span>, end: <span class="kw-2">&amp;</span><span class="self">Self</span>::Checkpoint) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="self" href="#394">self</a>.input.<a href="mod.rs.html#235">distance</a>(<span class="kw-2">&amp;</span><a href="#394">end</a>.input)
+    </span><span class="kw">fn </span>distance(<span class="kw-2">&amp;</span><span class="self">self</span>, end: <span class="kw-2">&amp;</span><span class="self">Self</span>::Checkpoint) -&gt; usize {
+        <span class="self">self</span>.input.distance(<span class="kw-2">&amp;</span>end.input)
     }
 
     <span class="kw">fn </span>range(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self</span>::Range {
-        <a class="self" href="#398">self</a>.input.<a href="mod.rs.html#238">range</a>()
+        <span class="self">self</span>.input.range()
     }
 }
 
-<span class="kw">impl</span>&lt;Input, X, S&gt; <a href="mod.rs.html#143">ResetStream</a> <span class="kw">for </span>Stream&lt;Input, X&gt;
+<span class="kw">impl</span>&lt;Input, X, S&gt; ResetStream <span class="kw">for </span>Stream&lt;Input, X&gt;
 <span class="kw">where
-    </span>Input: <a href="mod.rs.html#143">ResetStream</a>,
+    </span>Input: ResetStream,
     X: Positioner&lt;Input::Token&gt;,
     S: StreamError&lt;Input::Token, Input::Range&gt;,
     Input::Error: ParseError&lt;Input::Token, Input::Range, X::Position, StreamError = S&gt;,
@@ -875,14 +875,14 @@
 {
     <span class="kw">type </span>Checkpoint = Stream&lt;Input::Checkpoint, X::Checkpoint&gt;;
     <span class="kw">fn </span>checkpoint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self</span>::Checkpoint {
-        <a href="#85">Stream</a> {
-            input: <a class="self" href="#412">self</a>.input.<a href="mod.rs.html#148">checkpoint</a>(),
-            positioner: <a class="self" href="#412">self</a>.positioner.<a href="#25">checkpoint</a>(),
+        Stream {
+            input: <span class="self">self</span>.input.checkpoint(),
+            positioner: <span class="self">self</span>.positioner.checkpoint(),
         }
     }
     <span class="kw">fn </span>reset(<span class="kw-2">&amp;mut </span><span class="self">self</span>, checkpoint: <span class="self">Self</span>::Checkpoint) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt; {
         <span class="self">self</span>.input.reset(checkpoint.input)<span class="question-mark">?</span>;
-        <a class="self" href="#418">self</a>.positioner.<a href="#26">reset</a>(<a href="#418">checkpoint</a>.positioner);
+        <span class="self">self</span>.positioner.reset(checkpoint.positioner);
         <span class="prelude-val">Ok</span>(())
     }
 }
@@ -929,4 +929,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="combine" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="combine" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

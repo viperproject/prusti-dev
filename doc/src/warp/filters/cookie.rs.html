@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/warp-0.3.3/src/filters/cookie.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>cookie.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../warp/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/warp-0.3.3/src/filters/cookie.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>cookie.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../warp/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -46,28 +46,28 @@
 <a href="#46" id="46">46</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Cookie Filters
 
-</span><span class="kw">use </span><a href="../../../futures_util/future/index.html">futures_util::future</a>;
-<span class="kw">use </span><a href="../../../headers/common/cookie/struct.Cookie.html">headers::Cookie</a>;
+</span><span class="kw">use </span>futures_util::future;
+<span class="kw">use </span>headers::Cookie;
 
-<span class="kw">use </span><a href="mod.rs.html#15"><span class="kw">super</span>::header</a>;
-<span class="kw">use </span><span class="kw">crate</span>::filter::{<a href="../filter/mod.rs.html#93">Filter</a>, <a href="../generic.rs.html#4">One</a>};
-<span class="kw">use </span><a href="../reject.rs.html#205"><span class="kw">crate</span>::reject::Rejection</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/convert/enum.Infallible.html">std::convert::Infallible</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/str/traits/trait.FromStr.html">std::str::FromStr</a>;
+<span class="kw">use </span><span class="kw">super</span>::header;
+<span class="kw">use </span><span class="kw">crate</span>::filter::{Filter, One};
+<span class="kw">use </span><span class="kw">crate</span>::reject::Rejection;
+<span class="kw">use </span>std::convert::Infallible;
+<span class="kw">use </span>std::str::FromStr;
 
 <span class="doccomment">/// Creates a `Filter` that requires a cookie by name.
 ///
 /// If found, extracts the value of the cookie, otherwise rejects.
-</span><span class="kw">pub fn </span>cookie&lt;T&gt;(name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="kw">impl </span>Filter&lt;Extract = One&lt;T&gt;, Error = <a href="../reject.rs.html#205">Rejection</a>&gt; + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html">Copy</a>
+</span><span class="kw">pub fn </span>cookie&lt;T&gt;(name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str) -&gt; <span class="kw">impl </span>Filter&lt;Extract = One&lt;T&gt;, Error = Rejection&gt; + Copy
 <span class="kw">where
-    </span>T: <a href="https://doc.rust-lang.org/nightly/core/str/traits/trait.FromStr.html">FromStr</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <span class="lifetime">&#39;static</span>,
+    </span>T: FromStr + Send + <span class="lifetime">&#39;static</span>,
 {
-    <a href="header.rs.html#52-53">header::header2</a>().<a href="../filter/mod.rs.html#255-260">and_then</a>(<span class="kw">move </span>|cookie: <a href="../../../headers/common/cookie/struct.Cookie.html">Cookie</a>| {
-        <span class="kw">let </span>cookie = <a href="#19">cookie</a>
-            .get(<a href="#15">name</a>)
-            .ok_or_else(|| <a href="../reject.rs.html#107"><span class="kw">crate</span>::reject::missing_cookie</a>(<a href="#15">name</a>))
-            .and_then(|s| T::from_str(<a href="#23">s</a>).map_err(|<span class="kw">_</span>| <a href="../reject.rs.html#107"><span class="kw">crate</span>::reject::missing_cookie</a>(<a href="#15">name</a>)));
-        future::ready(<a href="#20">cookie</a>)
+    header::header2().and_then(<span class="kw">move </span>|cookie: Cookie| {
+        <span class="kw">let </span>cookie = cookie
+            .get(name)
+            .ok_or_else(|| <span class="kw">crate</span>::reject::missing_cookie(name))
+            .and_then(|s| T::from_str(s).map_err(|<span class="kw">_</span>| <span class="kw">crate</span>::reject::missing_cookie(name)));
+        future::ready(cookie)
     })
 }
 
@@ -76,19 +76,19 @@
 /// If found, extracts the value of the cookie, otherwise continues
 /// the request, extracting `None`.
 </span><span class="kw">pub fn </span>optional&lt;T&gt;(
-    name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>,
-) -&gt; <span class="kw">impl </span>Filter&lt;Extract = One&lt;<span class="prelude-ty">Option</span>&lt;T&gt;&gt;, Error = <a href="https://doc.rust-lang.org/nightly/core/convert/enum.Infallible.html">Infallible</a>&gt; + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html">Copy</a>
+    name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
+) -&gt; <span class="kw">impl </span>Filter&lt;Extract = One&lt;<span class="prelude-ty">Option</span>&lt;T&gt;&gt;, Error = Infallible&gt; + Copy
 <span class="kw">where
-    </span>T: <a href="https://doc.rust-lang.org/nightly/core/str/traits/trait.FromStr.html">FromStr</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <span class="lifetime">&#39;static</span>,
+    </span>T: FromStr + Send + <span class="lifetime">&#39;static</span>,
 {
-    <a href="header.rs.html#100-102">header::optional2</a>().<a href="../filter/mod.rs.html#191-194">map</a>(<span class="kw">move </span>|opt: <span class="prelude-ty">Option</span>&lt;<a href="../../../headers/common/cookie/struct.Cookie.html">Cookie</a>&gt;| {
-        <span class="kw">let </span>cookie = <a href="#38">opt</a>.and_then(|cookie| <a href="#39">cookie</a>.get(<a href="#33">name</a>).map(|x| T::from_str(<a href="#39">x</a>)));
-        <span class="kw">match </span><a href="#39">cookie</a> {
-            <span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(t)) =&gt; <span class="prelude-val">Some</span>(<a href="#41">t</a>),
+    header::optional2().map(<span class="kw">move </span>|opt: <span class="prelude-ty">Option</span>&lt;Cookie&gt;| {
+        <span class="kw">let </span>cookie = opt.and_then(|cookie| cookie.get(name).map(|x| T::from_str(x)));
+        <span class="kw">match </span>cookie {
+            <span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(t)) =&gt; <span class="prelude-val">Some</span>(t),
             <span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(<span class="kw">_</span>)) =&gt; <span class="prelude-val">None</span>,
             <span class="prelude-val">None </span>=&gt; <span class="prelude-val">None</span>,
         }
     })
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="warp" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="warp" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

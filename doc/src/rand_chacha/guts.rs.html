@@ -1,5 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/rand_chacha-0.3.1/src/guts.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>guts.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="icon" href="https://www.rust-lang.org/favicon.ico"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../rand_chacha/index.html">
-                        <img src="https://www.rust-lang.org/logos/rust-logo-128x128-blk.png" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/rand_chacha-0.3.1/src/guts.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>guts.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="icon" href="https://www.rust-lang.org/favicon.ico"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../rand_chacha/index.html">
+                        <img src="https://www.rust-lang.org/logos/rust-logo-128x128-blk.png" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -283,26 +283,26 @@
 
 </span><span class="doccomment">//! The ChaCha random number generator.
 
-</span><span class="kw">use </span>ppv_lite86::{<a href="../../ppv_lite86/macro.dispatch.html">dispatch</a>, <a href="../../ppv_lite86/macro.dispatch_light128.html">dispatch_light128</a>};
+</span><span class="kw">use </span>ppv_lite86::{dispatch, dispatch_light128};
 
-<span class="kw">pub use </span><a href="../../ppv_lite86/types/trait.Machine.html">ppv_lite86::Machine</a>;
-<span class="kw">use </span>ppv_lite86::{<a href="../../ppv_lite86/x86_64/union.vec128_storage.html">vec128_storage</a>, <a href="../../ppv_lite86/types/trait.ArithOps.html">ArithOps</a>, <a href="../../ppv_lite86/types/trait.BitOps32.html">BitOps32</a>, <a href="../../ppv_lite86/types/trait.LaneWords4.html">LaneWords4</a>, <a href="../../ppv_lite86/types/trait.MultiLane.html">MultiLane</a>, <a href="../../ppv_lite86/types/trait.StoreBytes.html">StoreBytes</a>, <a href="../../ppv_lite86/types/trait.Vec4.html">Vec4</a>};
+<span class="kw">pub use </span>ppv_lite86::Machine;
+<span class="kw">use </span>ppv_lite86::{vec128_storage, ArithOps, BitOps32, LaneWords4, MultiLane, StoreBytes, Vec4};
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>BLOCK: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> = <span class="number">64</span>;
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>BLOCK64: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> = <a href="#17">BLOCK</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>;
-<span class="kw">const </span>LOG2_BUFBLOCKS: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> = <span class="number">2</span>;
-<span class="kw">const </span>BUFBLOCKS: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> = <span class="number">1 </span>&lt;&lt; <a href="#19">LOG2_BUFBLOCKS</a>;
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>BUFSZ64: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> = <a href="#18">BLOCK64</a> * <a href="#20">BUFBLOCKS</a>;
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>BUFSZ: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> = <a href="#21">BUFSZ64</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>;
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>BLOCK: usize = <span class="number">64</span>;
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>BLOCK64: u64 = BLOCK <span class="kw">as </span>u64;
+<span class="kw">const </span>LOG2_BUFBLOCKS: u64 = <span class="number">2</span>;
+<span class="kw">const </span>BUFBLOCKS: u64 = <span class="number">1 </span>&lt;&lt; LOG2_BUFBLOCKS;
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>BUFSZ64: u64 = BLOCK64 * BUFBLOCKS;
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>BUFSZ: usize = BUFSZ64 <span class="kw">as </span>usize;
 
-<span class="kw">const </span>STREAM_PARAM_NONCE: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> = <span class="number">1</span>;
-<span class="kw">const </span>STREAM_PARAM_BLOCK: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> = <span class="number">0</span>;
+<span class="kw">const </span>STREAM_PARAM_NONCE: u32 = <span class="number">1</span>;
+<span class="kw">const </span>STREAM_PARAM_BLOCK: u32 = <span class="number">0</span>;
 
 <span class="attr">#[derive(Clone, PartialEq, Eq)]
 </span><span class="kw">pub struct </span>ChaCha {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) b: <a href="../../ppv_lite86/x86_64/union.vec128_storage.html">vec128_storage</a>,
-    <span class="kw">pub</span>(<span class="kw">crate</span>) c: <a href="../../ppv_lite86/x86_64/union.vec128_storage.html">vec128_storage</a>,
-    <span class="kw">pub</span>(<span class="kw">crate</span>) d: <a href="../../ppv_lite86/x86_64/union.vec128_storage.html">vec128_storage</a>,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) b: vec128_storage,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) c: vec128_storage,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) d: vec128_storage,
 }
 
 <span class="attr">#[derive(Clone)]
@@ -314,126 +314,126 @@
 }
 
 <span class="attr">#[inline(always)]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>round&lt;V: <a href="../../ppv_lite86/types/trait.ArithOps.html">ArithOps</a> + <a href="../../ppv_lite86/types/trait.BitOps32.html">BitOps32</a>&gt;(<span class="kw-2">mut </span>x: State&lt;V&gt;) -&gt; State&lt;V&gt; {
-    <a href="#43">x</a>.a += <a href="#43">x</a>.b;
-    <a href="#43">x</a>.d = (<a href="#43">x</a>.d ^ <a href="#43">x</a>.a).<a href="../../ppv_lite86/types/trait.RotateEachWord32.html">rotate_each_word_right16</a>();
-    <a href="#43">x</a>.c += <a href="#43">x</a>.d;
-    <a href="#43">x</a>.b = (<a href="#43">x</a>.b ^ <a href="#43">x</a>.c).<a href="../../ppv_lite86/types/trait.RotateEachWord32.html">rotate_each_word_right20</a>();
-    <a href="#43">x</a>.a += <a href="#43">x</a>.b;
-    <a href="#43">x</a>.d = (<a href="#43">x</a>.d ^ <a href="#43">x</a>.a).<a href="../../ppv_lite86/types/trait.RotateEachWord32.html">rotate_each_word_right24</a>();
-    <a href="#43">x</a>.c += <a href="#43">x</a>.d;
-    <a href="#43">x</a>.b = (<a href="#43">x</a>.b ^ <a href="#43">x</a>.c).<a href="../../ppv_lite86/types/trait.RotateEachWord32.html">rotate_each_word_right25</a>();
-    <a href="#43">x</a>
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>round&lt;V: ArithOps + BitOps32&gt;(<span class="kw-2">mut </span>x: State&lt;V&gt;) -&gt; State&lt;V&gt; {
+    x.a += x.b;
+    x.d = (x.d ^ x.a).rotate_each_word_right16();
+    x.c += x.d;
+    x.b = (x.b ^ x.c).rotate_each_word_right20();
+    x.a += x.b;
+    x.d = (x.d ^ x.a).rotate_each_word_right24();
+    x.c += x.d;
+    x.b = (x.b ^ x.c).rotate_each_word_right25();
+    x
 }
 
 <span class="attr">#[inline(always)]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>diagonalize&lt;V: <a href="../../ppv_lite86/types/trait.LaneWords4.html">LaneWords4</a>&gt;(<span class="kw-2">mut </span>x: State&lt;V&gt;) -&gt; State&lt;V&gt; {
-    <a href="#56">x</a>.b = <a href="#56">x</a>.b.<a href="../../ppv_lite86/types/trait.LaneWords4.html">shuffle_lane_words3012</a>();
-    <a href="#56">x</a>.c = <a href="#56">x</a>.c.<a href="../../ppv_lite86/types/trait.LaneWords4.html">shuffle_lane_words2301</a>();
-    <a href="#56">x</a>.d = <a href="#56">x</a>.d.<a href="../../ppv_lite86/types/trait.LaneWords4.html">shuffle_lane_words1230</a>();
-    <a href="#56">x</a>
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>diagonalize&lt;V: LaneWords4&gt;(<span class="kw-2">mut </span>x: State&lt;V&gt;) -&gt; State&lt;V&gt; {
+    x.b = x.b.shuffle_lane_words3012();
+    x.c = x.c.shuffle_lane_words2301();
+    x.d = x.d.shuffle_lane_words1230();
+    x
 }
 <span class="attr">#[inline(always)]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>undiagonalize&lt;V: <a href="../../ppv_lite86/types/trait.LaneWords4.html">LaneWords4</a>&gt;(<span class="kw-2">mut </span>x: State&lt;V&gt;) -&gt; State&lt;V&gt; {
-    <a href="#63">x</a>.b = <a href="#63">x</a>.b.<a href="../../ppv_lite86/types/trait.LaneWords4.html">shuffle_lane_words1230</a>();
-    <a href="#63">x</a>.c = <a href="#63">x</a>.c.<a href="../../ppv_lite86/types/trait.LaneWords4.html">shuffle_lane_words2301</a>();
-    <a href="#63">x</a>.d = <a href="#63">x</a>.d.<a href="../../ppv_lite86/types/trait.LaneWords4.html">shuffle_lane_words3012</a>();
-    <a href="#63">x</a>
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>undiagonalize&lt;V: LaneWords4&gt;(<span class="kw-2">mut </span>x: State&lt;V&gt;) -&gt; State&lt;V&gt; {
+    x.b = x.b.shuffle_lane_words1230();
+    x.c = x.c.shuffle_lane_words2301();
+    x.d = x.d.shuffle_lane_words3012();
+    x
 }
 
-<span class="kw">impl </span><a href="#28">ChaCha</a> {
+<span class="kw">impl </span>ChaCha {
     <span class="attr">#[inline(always)]
-    </span><span class="kw">pub fn </span>new(key: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="number">32</span>], nonce: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="self">Self </span>{
-        <a href="#234-254">init_chacha</a>(<a href="#72">key</a>, <a href="#72">nonce</a>)
+    </span><span class="kw">pub fn </span>new(key: <span class="kw-2">&amp;</span>[u8; <span class="number">32</span>], nonce: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="self">Self </span>{
+        init_chacha(key, nonce)
     }
 
     <span class="attr">#[inline(always)]
-    </span><span class="kw">fn </span>pos64&lt;M: <a href="../../ppv_lite86/types/trait.Machine.html">Machine</a>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, m: M) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> {
-        <span class="kw">let </span>d: M::u32x4 = <a href="#77">m</a>.<a href="../../ppv_lite86/types/trait.Machine.html">unpack</a>(<a class="self" href="#77">self</a>.d);
-        ((<a href="#78">d</a>.<a href="../../ppv_lite86/types/trait.Vec4.html">extract</a>(<span class="number">1</span>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) &lt;&lt; <span class="number">32</span>) | <a href="#78">d</a>.<a href="../../ppv_lite86/types/trait.Vec4.html">extract</a>(<span class="number">0</span>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>
+    </span><span class="kw">fn </span>pos64&lt;M: Machine&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, m: M) -&gt; u64 {
+        <span class="kw">let </span>d: M::u32x4 = m.unpack(<span class="self">self</span>.d);
+        ((d.extract(<span class="number">1</span>) <span class="kw">as </span>u64) &lt;&lt; <span class="number">32</span>) | d.extract(<span class="number">0</span>) <span class="kw">as </span>u64
     }
 
     <span class="doccomment">/// Produce 4 blocks of output, advancing the state
     </span><span class="attr">#[inline(always)]
-    </span><span class="kw">pub fn </span>refill4(<span class="kw-2">&amp;mut </span><span class="self">self</span>, drounds: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>, out: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <a href="#22">BUFSZ</a>]) {
-        <a href="#171-175">refill_wide</a>(<a class="self" href="#84">self</a>, <a href="#84">drounds</a>, <a href="#84">out</a>)
+    </span><span class="kw">pub fn </span>refill4(<span class="kw-2">&amp;mut </span><span class="self">self</span>, drounds: u32, out: <span class="kw-2">&amp;mut </span>[u8; BUFSZ]) {
+        refill_wide(<span class="self">self</span>, drounds, out)
     }
 
     <span class="attr">#[inline(always)]
-    </span><span class="kw">pub fn </span>set_block_pos(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) {
-        <a href="#201-209">set_stream_param</a>(<a class="self" href="#89">self</a>, <a href="#25">STREAM_PARAM_BLOCK</a>, <a href="#89">value</a>)
+    </span><span class="kw">pub fn </span>set_block_pos(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: u64) {
+        set_stream_param(<span class="self">self</span>, STREAM_PARAM_BLOCK, value)
     }
 
     <span class="attr">#[inline(always)]
-    </span><span class="kw">pub fn </span>get_block_pos(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> {
-        <a href="#211-216">get_stream_param</a>(<a class="self" href="#94">self</a>, <a href="#25">STREAM_PARAM_BLOCK</a>)
+    </span><span class="kw">pub fn </span>get_block_pos(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u64 {
+        get_stream_param(<span class="self">self</span>, STREAM_PARAM_BLOCK)
     }
 
     <span class="attr">#[inline(always)]
-    </span><span class="kw">pub fn </span>set_nonce(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) {
-        <a href="#201-209">set_stream_param</a>(<a class="self" href="#99">self</a>, <a href="#24">STREAM_PARAM_NONCE</a>, <a href="#99">value</a>)
+    </span><span class="kw">pub fn </span>set_nonce(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: u64) {
+        set_stream_param(<span class="self">self</span>, STREAM_PARAM_NONCE, value)
     }
 
     <span class="attr">#[inline(always)]
-    </span><span class="kw">pub fn </span>get_nonce(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> {
-        <a href="#211-216">get_stream_param</a>(<a class="self" href="#104">self</a>, <a href="#24">STREAM_PARAM_NONCE</a>)
+    </span><span class="kw">pub fn </span>get_nonce(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u64 {
+        get_stream_param(<span class="self">self</span>, STREAM_PARAM_NONCE)
     }
 
     <span class="attr">#[inline(always)]
-    </span><span class="kw">pub fn </span>get_seed(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; [<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="number">32</span>] {
-        <a href="#218-227">get_seed</a>(<a class="self" href="#109">self</a>)
+    </span><span class="kw">pub fn </span>get_seed(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; [u8; <span class="number">32</span>] {
+        get_seed(<span class="self">self</span>)
     }
 }
 
 <span class="attr">#[allow(clippy::many_single_char_names)]
 #[inline(always)]
-</span><span class="kw">fn </span>refill_wide_impl&lt;Mach: <a href="../../ppv_lite86/types/trait.Machine.html">Machine</a>&gt;(
-    m: Mach, state: <span class="kw-2">&amp;mut </span><a href="#28">ChaCha</a>, drounds: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>, out: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <a href="#22">BUFSZ</a>],
+</span><span class="kw">fn </span>refill_wide_impl&lt;Mach: Machine&gt;(
+    m: Mach, state: <span class="kw-2">&amp;mut </span>ChaCha, drounds: u32, out: <span class="kw-2">&amp;mut </span>[u8; BUFSZ],
 ) {
-    <span class="kw">let </span>k = <a href="#117">m</a>.<a href="../../ppv_lite86/types/trait.Machine.html">vec</a>([<span class="number">0x6170_7865</span>, <span class="number">0x3320_646e</span>, <span class="number">0x7962_2d32</span>, <span class="number">0x6b20_6574</span>]);
-    <span class="kw">let </span><span class="kw-2">mut </span>pos = <a href="#117">state</a>.<a href="#77">pos64</a>(<a href="#117">m</a>);
-    <span class="kw">let </span>d0: Mach::u32x4 = <a href="#117">m</a>.<a href="../../ppv_lite86/types/trait.Machine.html">unpack</a>(<a href="#117">state</a>.d);
-    <a href="#120">pos</a> = <a href="#120">pos</a>.wrapping_add(<span class="number">1</span>);
-    <span class="kw">let </span>d1 = <a href="#121">d0</a>.<a href="../../ppv_lite86/types/trait.Vec4.html">insert</a>((<a href="#120">pos</a> &gt;&gt; <span class="number">32</span>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>, <span class="number">1</span>).<a href="../../ppv_lite86/types/trait.Vec4.html">insert</a>(<a href="#120">pos</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>, <span class="number">0</span>);
-    <a href="#120">pos</a> = <a href="#120">pos</a>.wrapping_add(<span class="number">1</span>);
-    <span class="kw">let </span>d2 = <a href="#121">d0</a>.<a href="../../ppv_lite86/types/trait.Vec4.html">insert</a>((<a href="#120">pos</a> &gt;&gt; <span class="number">32</span>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>, <span class="number">1</span>).<a href="../../ppv_lite86/types/trait.Vec4.html">insert</a>(<a href="#120">pos</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>, <span class="number">0</span>);
-    <a href="#120">pos</a> = <a href="#120">pos</a>.wrapping_add(<span class="number">1</span>);
-    <span class="kw">let </span>d3 = <a href="#121">d0</a>.<a href="../../ppv_lite86/types/trait.Vec4.html">insert</a>((<a href="#120">pos</a> &gt;&gt; <span class="number">32</span>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>, <span class="number">1</span>).<a href="../../ppv_lite86/types/trait.Vec4.html">insert</a>(<a href="#120">pos</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>, <span class="number">0</span>);
+    <span class="kw">let </span>k = m.vec([<span class="number">0x6170_7865</span>, <span class="number">0x3320_646e</span>, <span class="number">0x7962_2d32</span>, <span class="number">0x6b20_6574</span>]);
+    <span class="kw">let </span><span class="kw-2">mut </span>pos = state.pos64(m);
+    <span class="kw">let </span>d0: Mach::u32x4 = m.unpack(state.d);
+    pos = pos.wrapping_add(<span class="number">1</span>);
+    <span class="kw">let </span>d1 = d0.insert((pos &gt;&gt; <span class="number">32</span>) <span class="kw">as </span>u32, <span class="number">1</span>).insert(pos <span class="kw">as </span>u32, <span class="number">0</span>);
+    pos = pos.wrapping_add(<span class="number">1</span>);
+    <span class="kw">let </span>d2 = d0.insert((pos &gt;&gt; <span class="number">32</span>) <span class="kw">as </span>u32, <span class="number">1</span>).insert(pos <span class="kw">as </span>u32, <span class="number">0</span>);
+    pos = pos.wrapping_add(<span class="number">1</span>);
+    <span class="kw">let </span>d3 = d0.insert((pos &gt;&gt; <span class="number">32</span>) <span class="kw">as </span>u32, <span class="number">1</span>).insert(pos <span class="kw">as </span>u32, <span class="number">0</span>);
 
-    <span class="kw">let </span>b = <a href="#117">m</a>.<a href="../../ppv_lite86/types/trait.Machine.html">unpack</a>(<a href="#117">state</a>.b);
-    <span class="kw">let </span>c = <a href="#117">m</a>.<a href="../../ppv_lite86/types/trait.Machine.html">unpack</a>(<a href="#117">state</a>.c);
-    <span class="kw">let </span><span class="kw-2">mut </span>x = <a href="#35">State</a> {
-        a: Mach::u32x4x4::from_lanes([<a href="#119">k</a>, <a href="#119">k</a>, <a href="#119">k</a>, <a href="#119">k</a>]),
-        b: Mach::u32x4x4::from_lanes([<a href="#129">b</a>, <a href="#129">b</a>, <a href="#129">b</a>, <a href="#129">b</a>]),
-        c: Mach::u32x4x4::from_lanes([<a href="#130">c</a>, <a href="#130">c</a>, <a href="#130">c</a>, <a href="#130">c</a>]),
-        d: <a href="#117">m</a>.<a href="../../ppv_lite86/types/trait.Machine.html">unpack</a>(Mach::u32x4x4::from_lanes([<a href="#121">d0</a>, <a href="#123">d1</a>, <a href="#125">d2</a>, <a href="#127">d3</a>]).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
+    <span class="kw">let </span>b = m.unpack(state.b);
+    <span class="kw">let </span>c = m.unpack(state.c);
+    <span class="kw">let </span><span class="kw-2">mut </span>x = State {
+        a: Mach::u32x4x4::from_lanes([k, k, k, k]),
+        b: Mach::u32x4x4::from_lanes([b, b, b, b]),
+        c: Mach::u32x4x4::from_lanes([c, c, c, c]),
+        d: m.unpack(Mach::u32x4x4::from_lanes([d0, d1, d2, d3]).into()),
     };
     <span class="kw">for _ in </span><span class="number">0</span>..drounds {
         x = round(x);
         x = undiagonalize(round(diagonalize(x)));
     }
-    <span class="kw">let </span><span class="kw-2">mut </span>pos = <a href="#117">state</a>.<a href="#77">pos64</a>(<a href="#117">m</a>);
-    <span class="kw">let </span>d0: Mach::u32x4 = <a href="#117">m</a>.<a href="../../ppv_lite86/types/trait.Machine.html">unpack</a>(<a href="#117">state</a>.d);
-    <a href="#141">pos</a> = <a href="#141">pos</a>.wrapping_add(<span class="number">1</span>);
-    <span class="kw">let </span>d1 = <a href="#142">d0</a>.<a href="../../ppv_lite86/types/trait.Vec4.html">insert</a>((<a href="#141">pos</a> &gt;&gt; <span class="number">32</span>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>, <span class="number">1</span>).<a href="../../ppv_lite86/types/trait.Vec4.html">insert</a>(<a href="#141">pos</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>, <span class="number">0</span>);
-    <a href="#141">pos</a> = <a href="#141">pos</a>.wrapping_add(<span class="number">1</span>);
-    <span class="kw">let </span>d2 = <a href="#142">d0</a>.<a href="../../ppv_lite86/types/trait.Vec4.html">insert</a>((<a href="#141">pos</a> &gt;&gt; <span class="number">32</span>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>, <span class="number">1</span>).<a href="../../ppv_lite86/types/trait.Vec4.html">insert</a>(<a href="#141">pos</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>, <span class="number">0</span>);
-    <a href="#141">pos</a> = <a href="#141">pos</a>.wrapping_add(<span class="number">1</span>);
-    <span class="kw">let </span>d3 = <a href="#142">d0</a>.<a href="../../ppv_lite86/types/trait.Vec4.html">insert</a>((<a href="#141">pos</a> &gt;&gt; <span class="number">32</span>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>, <span class="number">1</span>).<a href="../../ppv_lite86/types/trait.Vec4.html">insert</a>(<a href="#141">pos</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>, <span class="number">0</span>);
-    <a href="#141">pos</a> = <a href="#141">pos</a>.wrapping_add(<span class="number">1</span>);
-    <span class="kw">let </span>d4 = <a href="#142">d0</a>.<a href="../../ppv_lite86/types/trait.Vec4.html">insert</a>((<a href="#141">pos</a> &gt;&gt; <span class="number">32</span>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>, <span class="number">1</span>).<a href="../../ppv_lite86/types/trait.Vec4.html">insert</a>(<a href="#141">pos</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>, <span class="number">0</span>);
+    <span class="kw">let </span><span class="kw-2">mut </span>pos = state.pos64(m);
+    <span class="kw">let </span>d0: Mach::u32x4 = m.unpack(state.d);
+    pos = pos.wrapping_add(<span class="number">1</span>);
+    <span class="kw">let </span>d1 = d0.insert((pos &gt;&gt; <span class="number">32</span>) <span class="kw">as </span>u32, <span class="number">1</span>).insert(pos <span class="kw">as </span>u32, <span class="number">0</span>);
+    pos = pos.wrapping_add(<span class="number">1</span>);
+    <span class="kw">let </span>d2 = d0.insert((pos &gt;&gt; <span class="number">32</span>) <span class="kw">as </span>u32, <span class="number">1</span>).insert(pos <span class="kw">as </span>u32, <span class="number">0</span>);
+    pos = pos.wrapping_add(<span class="number">1</span>);
+    <span class="kw">let </span>d3 = d0.insert((pos &gt;&gt; <span class="number">32</span>) <span class="kw">as </span>u32, <span class="number">1</span>).insert(pos <span class="kw">as </span>u32, <span class="number">0</span>);
+    pos = pos.wrapping_add(<span class="number">1</span>);
+    <span class="kw">let </span>d4 = d0.insert((pos &gt;&gt; <span class="number">32</span>) <span class="kw">as </span>u32, <span class="number">1</span>).insert(pos <span class="kw">as </span>u32, <span class="number">0</span>);
 
     <span class="kw">let </span>(a, b, c, d) = (
-        <a href="#131">x</a>.a.<a href="../../ppv_lite86/types/trait.MultiLane.html">to_lanes</a>(),
-        <a href="#131">x</a>.b.<a href="../../ppv_lite86/types/trait.MultiLane.html">to_lanes</a>(),
-        <a href="#131">x</a>.c.<a href="../../ppv_lite86/types/trait.MultiLane.html">to_lanes</a>(),
-        <a href="#131">x</a>.d.<a href="../../ppv_lite86/types/trait.MultiLane.html">to_lanes</a>(),
+        x.a.to_lanes(),
+        x.b.to_lanes(),
+        x.c.to_lanes(),
+        x.d.to_lanes(),
     );
-    <span class="kw">let </span>sb = <a href="#117">m</a>.<a href="../../ppv_lite86/types/trait.Machine.html">unpack</a>(<a href="#117">state</a>.b);
-    <span class="kw">let </span>sc = <a href="#117">m</a>.<a href="../../ppv_lite86/types/trait.Machine.html">unpack</a>(<a href="#117">state</a>.c);
-    <span class="kw">let </span>sd = [<a href="#117">m</a>.<a href="../../ppv_lite86/types/trait.Machine.html">unpack</a>(<a href="#117">state</a>.d), <a href="#144">d1</a>, <a href="#146">d2</a>, <a href="#148">d3</a>];
-    <a href="#117">state</a>.d = <a href="#150">d4</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>();
-    <span class="kw">let </span><span class="kw-2">mut </span>words = <a href="#117">out</a>.chunks_exact_mut(<span class="number">16</span>);
+    <span class="kw">let </span>sb = m.unpack(state.b);
+    <span class="kw">let </span>sc = m.unpack(state.c);
+    <span class="kw">let </span>sd = [m.unpack(state.d), d1, d2, d3];
+    state.d = d4.into();
+    <span class="kw">let </span><span class="kw-2">mut </span>words = out.chunks_exact_mut(<span class="number">16</span>);
     <span class="kw">for </span>((((<span class="kw-2">&amp;</span>a, <span class="kw-2">&amp;</span>b), <span class="kw-2">&amp;</span>c), <span class="kw-2">&amp;</span>d), <span class="kw-2">&amp;</span>sd) <span class="kw">in </span>a.iter().zip(<span class="kw-2">&amp;</span>b).zip(<span class="kw-2">&amp;</span>c).zip(<span class="kw-2">&amp;</span>d).zip(<span class="kw-2">&amp;</span>sd) {
         (a + k).write_le(words.next().unwrap());
         (b + sb).write_le(words.next().unwrap());
@@ -442,16 +442,16 @@
     }
 }
 
-<a class="macro" href="../../ppv_lite86/macro.dispatch.html">dispatch!</a>(m, Mach, {
-    <span class="kw">fn </span>refill_wide(state: <span class="kw-2">&amp;mut </span><a href="#28">ChaCha</a>, drounds: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>, out: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <a href="#22">BUFSZ</a>]) {
+<span class="macro">dispatch!</span>(m, Mach, {
+    <span class="kw">fn </span>refill_wide(state: <span class="kw-2">&amp;mut </span>ChaCha, drounds: u32, out: <span class="kw-2">&amp;mut </span>[u8; BUFSZ]) {
         refill_wide_impl(m, state, drounds, out);
     }
 });
 
 <span class="comment">// Single-block, rounds-only; shared by try_apply_keystream for tails shorter than BUFSZ
 // and XChaCha&#39;s setup step.
-</span><a class="macro" href="../../ppv_lite86/macro.dispatch.html">dispatch!</a>(m, Mach, {
-    <span class="kw">fn </span>refill_narrow_rounds(state: <span class="kw-2">&amp;mut </span><a href="#28">ChaCha</a>, drounds: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; State&lt;<a href="../../ppv_lite86/x86_64/union.vec128_storage.html">vec128_storage</a>&gt; {
+</span><span class="macro">dispatch!</span>(m, Mach, {
+    <span class="kw">fn </span>refill_narrow_rounds(state: <span class="kw-2">&amp;mut </span>ChaCha, drounds: u32) -&gt; State&lt;vec128_storage&gt; {
         <span class="kw">let </span>k: Mach::u32x4 = m.vec([<span class="number">0x6170_7865</span>, <span class="number">0x3320_646e</span>, <span class="number">0x7962_2d32</span>, <span class="number">0x6b20_6574</span>]);
         <span class="kw">let </span><span class="kw-2">mut </span>x = State {
             a: k,
@@ -472,8 +472,8 @@
     }
 });
 
-<a class="macro" href="../../ppv_lite86/macro.dispatch_light128.html">dispatch_light128!</a>(m, Mach, {
-    <span class="kw">fn </span>set_stream_param(state: <span class="kw-2">&amp;mut </span><a href="#28">ChaCha</a>, param: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>, value: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) {
+<span class="macro">dispatch_light128!</span>(m, Mach, {
+    <span class="kw">fn </span>set_stream_param(state: <span class="kw-2">&amp;mut </span>ChaCha, param: u32, value: u64) {
         <span class="kw">let </span>d: Mach::u32x4 = m.unpack(state.d);
         state.d = d
             .insert((value &gt;&gt; <span class="number">32</span>) <span class="kw">as </span>u32, (param &lt;&lt; <span class="number">1</span>) | <span class="number">1</span>)
@@ -482,15 +482,15 @@
     }
 });
 
-<a class="macro" href="../../ppv_lite86/macro.dispatch_light128.html">dispatch_light128!</a>(m, Mach, {
-    <span class="kw">fn </span>get_stream_param(state: <span class="kw-2">&amp;</span><a href="#28">ChaCha</a>, param: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> {
+<span class="macro">dispatch_light128!</span>(m, Mach, {
+    <span class="kw">fn </span>get_stream_param(state: <span class="kw-2">&amp;</span>ChaCha, param: u32) -&gt; u64 {
         <span class="kw">let </span>d: Mach::u32x4 = m.unpack(state.d);
         ((d.extract((param &lt;&lt; <span class="number">1</span>) | <span class="number">1</span>) <span class="kw">as </span>u64) &lt;&lt; <span class="number">32</span>) | d.extract(param &lt;&lt; <span class="number">1</span>) <span class="kw">as </span>u64
     }
 });
 
-<a class="macro" href="../../ppv_lite86/macro.dispatch_light128.html">dispatch_light128!</a>(m, Mach, {
-    <span class="kw">fn </span>get_seed(state: <span class="kw-2">&amp;</span><a href="#28">ChaCha</a>) -&gt; [<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="number">32</span>] {
+<span class="macro">dispatch_light128!</span>(m, Mach, {
+    <span class="kw">fn </span>get_seed(state: <span class="kw-2">&amp;</span>ChaCha) -&gt; [u8; <span class="number">32</span>] {
         <span class="kw">let </span>b: Mach::u32x4 = m.unpack(state.b);
         <span class="kw">let </span>c: Mach::u32x4 = m.unpack(state.c);
         <span class="kw">let </span><span class="kw-2">mut </span>key = [<span class="number">0u8</span>; <span class="number">32</span>];
@@ -500,13 +500,13 @@
     }
 });
 
-<span class="kw">fn </span>read_u32le(xs: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
-    <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert_eq.html">assert_eq!</a>(xs.len(), <span class="number">4</span>);
-    u32::from(<a href="#229">xs</a>[<span class="number">0</span>]) | (u32::from(<a href="#229">xs</a>[<span class="number">1</span>]) &lt;&lt; <span class="number">8</span>) | (u32::from(<a href="#229">xs</a>[<span class="number">2</span>]) &lt;&lt; <span class="number">16</span>) | (u32::from(<a href="#229">xs</a>[<span class="number">3</span>]) &lt;&lt; <span class="number">24</span>)
+<span class="kw">fn </span>read_u32le(xs: <span class="kw-2">&amp;</span>[u8]) -&gt; u32 {
+    <span class="macro">assert_eq!</span>(xs.len(), <span class="number">4</span>);
+    u32::from(xs[<span class="number">0</span>]) | (u32::from(xs[<span class="number">1</span>]) &lt;&lt; <span class="number">8</span>) | (u32::from(xs[<span class="number">2</span>]) &lt;&lt; <span class="number">16</span>) | (u32::from(xs[<span class="number">3</span>]) &lt;&lt; <span class="number">24</span>)
 }
 
-<a class="macro" href="../../ppv_lite86/macro.dispatch_light128.html">dispatch_light128!</a>(m, Mach, {
-    <span class="kw">fn </span>init_chacha(key: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="number">32</span>], nonce: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <a href="#28">ChaCha</a> {
+<span class="macro">dispatch_light128!</span>(m, Mach, {
+    <span class="kw">fn </span>init_chacha(key: <span class="kw-2">&amp;</span>[u8; <span class="number">32</span>], nonce: <span class="kw-2">&amp;</span>[u8]) -&gt; ChaCha {
         <span class="kw">let </span>ctr_nonce = [
             <span class="number">0</span>,
             <span class="kw">if </span>nonce.len() == <span class="number">12 </span>{
@@ -527,8 +527,8 @@
     }
 });
 
-<a class="macro" href="../../ppv_lite86/macro.dispatch_light128.html">dispatch_light128!</a>(m, Mach, {
-    <span class="kw">fn </span>init_chacha_x(key: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="number">32</span>], nonce: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="number">24</span>], rounds: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; <a href="#28">ChaCha</a> {
+<span class="macro">dispatch_light128!</span>(m, Mach, {
+    <span class="kw">fn </span>init_chacha_x(key: <span class="kw-2">&amp;</span>[u8; <span class="number">32</span>], nonce: <span class="kw-2">&amp;</span>[u8; <span class="number">24</span>], rounds: u32) -&gt; ChaCha {
         <span class="kw">let </span>key0: Mach::u32x4 = m.read_le(<span class="kw-2">&amp;</span>key[..<span class="number">16</span>]);
         <span class="kw">let </span>key1: Mach::u32x4 = m.read_le(<span class="kw-2">&amp;</span>key[<span class="number">16</span>..]);
         <span class="kw">let </span>nonce0: Mach::u32x4 = m.read_le(<span class="kw-2">&amp;</span>nonce[..<span class="number">16</span>]);
@@ -546,4 +546,4 @@
     }
 });
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="rand_chacha" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="rand_chacha" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

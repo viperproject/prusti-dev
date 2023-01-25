@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/csv-core-0.1.10/src/reader.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>reader.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../csv_core/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/csv-core-0.1.10/src/reader.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>reader.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../csv_core/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -2003,9 +2003,9 @@
 <a href="#2003" id="2003">2003</a>
 <a href="#2004" id="2004">2004</a>
 <a href="#2005" id="2005">2005</a>
-</pre><pre class="rust"><code><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/fmt/index.html">core::fmt</a>;
+</pre><pre class="rust"><code><span class="kw">use </span>core::fmt;
 
-<span class="kw">use </span><a href="lib.rs.html#118"><span class="kw">crate</span>::Terminator</a>;
+<span class="kw">use </span><span class="kw">crate</span>::Terminator;
 
 <span class="comment">// BE ADVISED
 //
@@ -2100,45 +2100,45 @@
 </span><span class="attr">#[derive(Clone, Debug)]
 </span><span class="kw">pub struct </span>Reader {
     <span class="doccomment">/// A table-based DFA for parsing CSV.
-    </span>dfa: <a href="#1101">Dfa</a>,
+    </span>dfa: Dfa,
     <span class="doccomment">/// The current DFA state, if the DFA is used.
-    </span>dfa_state: <a href="#1284">DfaState</a>,
+    </span>dfa_state: DfaState,
     <span class="doccomment">/// The current NFA state, if the NFA is used.
-    </span>nfa_state: <a href="#417">NfaState</a>,
+    </span>nfa_state: NfaState,
     <span class="doccomment">/// The delimiter that separates fields.
-    </span>delimiter: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>,
+    </span>delimiter: u8,
     <span class="doccomment">/// The terminator that separates records.
-    </span>term: <a href="lib.rs.html#118">Terminator</a>,
+    </span>term: Terminator,
     <span class="doccomment">/// The quotation byte.
-    </span>quote: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>,
+    </span>quote: u8,
     <span class="doccomment">/// Whether to recognize escaped quotes.
-    </span>escape: <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;,
+    </span>escape: <span class="prelude-ty">Option</span>&lt;u8&gt;,
     <span class="doccomment">/// Whether to recognized doubled quotes.
-    </span>double_quote: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
+    </span>double_quote: bool,
     <span class="doccomment">/// If enabled, lines beginning with this byte are ignored.
-    </span>comment: <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;,
+    </span>comment: <span class="prelude-ty">Option</span>&lt;u8&gt;,
     <span class="doccomment">/// If enabled (the default), then quotes are respected. When disabled,
     /// quotes are not treated specially.
-    </span>quoting: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
+    </span>quoting: bool,
     <span class="doccomment">/// Whether to use the NFA for parsing.
     ///
     /// Generally this is for debugging. There&#39;s otherwise no good reason
     /// to avoid the DFA.
-    </span>use_nfa: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
+    </span>use_nfa: bool,
     <span class="doccomment">/// The current line number.
-    </span>line: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>,
+    </span>line: u64,
     <span class="doccomment">/// Whether this parser has ever read anything.
-    </span>has_read: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
+    </span>has_read: bool,
     <span class="doccomment">/// The current position in the output buffer when reading a record.
-    </span>output_pos: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+    </span>output_pos: usize,
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for </span><a href="#96">Reader</a> {
-    <span class="kw">fn </span>default() -&gt; <a href="#96">Reader</a> {
-        <a href="#96">Reader</a> {
+<span class="kw">impl </span>Default <span class="kw">for </span>Reader {
+    <span class="kw">fn </span>default() -&gt; Reader {
+        Reader {
             dfa: Dfa::new(),
             dfa_state: DfaState::start(),
-            nfa_state: <a href="#425">NfaState::StartRecord</a>,
+            nfa_state: NfaState::StartRecord,
             delimiter: <span class="string">b&#39;,&#39;</span>,
             term: Terminator::default(),
             quote: <span class="string">b&#39;&quot;&#39;</span>,
@@ -2161,28 +2161,28 @@
 /// cannot be changed.
 </span><span class="attr">#[derive(Debug, Default)]
 </span><span class="kw">pub struct </span>ReaderBuilder {
-    rdr: <a href="#96">Reader</a>,
+    rdr: Reader,
 }
 
-<span class="kw">impl </span><a href="#158">ReaderBuilder</a> {
+<span class="kw">impl </span>ReaderBuilder {
     <span class="doccomment">/// Create a new builder.
-    </span><span class="kw">pub fn </span>new() -&gt; <a href="#158">ReaderBuilder</a> {
+    </span><span class="kw">pub fn </span>new() -&gt; ReaderBuilder {
         ReaderBuilder::default()
     }
 
     <span class="doccomment">/// Build a CSV parser from this configuration.
-    </span><span class="kw">pub fn </span>build(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="#96">Reader</a> {
-        <span class="kw">let </span><span class="kw-2">mut </span>rdr = <a class="self" href="#169">self</a>.rdr.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
-        <a href="#170">rdr</a>.<a href="#766">build_dfa</a>();
-        <a href="#170">rdr</a>
+    </span><span class="kw">pub fn </span>build(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Reader {
+        <span class="kw">let </span><span class="kw-2">mut </span>rdr = <span class="self">self</span>.rdr.clone();
+        rdr.build_dfa();
+        rdr
     }
 
     <span class="doccomment">/// The field delimiter to use when parsing CSV.
     ///
     /// The default is `b&#39;,&#39;`.
-    </span><span class="kw">pub fn </span>delimiter(<span class="kw-2">&amp;mut </span><span class="self">self</span>, delimiter: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) -&gt; <span class="kw-2">&amp;mut </span><a href="#158">ReaderBuilder</a> {
-        <a class="self" href="#178">self</a>.rdr.delimiter = <a href="#178">delimiter</a>;
-        <span class="self"><a href="#178">self</a>
+    </span><span class="kw">pub fn </span>delimiter(<span class="kw-2">&amp;mut </span><span class="self">self</span>, delimiter: u8) -&gt; <span class="kw-2">&amp;mut </span>ReaderBuilder {
+        <span class="self">self</span>.rdr.delimiter = delimiter;
+        <span class="self">self
     </span>}
 
     <span class="doccomment">/// The record terminator to use when parsing CSV.
@@ -2190,17 +2190,17 @@
     /// A record terminator can be any single byte. The default is a special
     /// value, `Terminator::CRLF`, which treats any occurrence of `\r`, `\n`
     /// or `\r\n` as a single record terminator.
-    </span><span class="kw">pub fn </span>terminator(<span class="kw-2">&amp;mut </span><span class="self">self</span>, term: <a href="lib.rs.html#118">Terminator</a>) -&gt; <span class="kw-2">&amp;mut </span><a href="#158">ReaderBuilder</a> {
-        <a class="self" href="#188">self</a>.rdr.term = <a href="#188">term</a>;
-        <span class="self"><a href="#188">self</a>
+    </span><span class="kw">pub fn </span>terminator(<span class="kw-2">&amp;mut </span><span class="self">self</span>, term: Terminator) -&gt; <span class="kw-2">&amp;mut </span>ReaderBuilder {
+        <span class="self">self</span>.rdr.term = term;
+        <span class="self">self
     </span>}
 
     <span class="doccomment">/// The quote character to use when parsing CSV.
     ///
     /// The default is `b&#39;&quot;&#39;`.
-    </span><span class="kw">pub fn </span>quote(<span class="kw-2">&amp;mut </span><span class="self">self</span>, quote: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) -&gt; <span class="kw-2">&amp;mut </span><a href="#158">ReaderBuilder</a> {
-        <a class="self" href="#196">self</a>.rdr.quote = <a href="#196">quote</a>;
-        <span class="self"><a href="#196">self</a>
+    </span><span class="kw">pub fn </span>quote(<span class="kw-2">&amp;mut </span><span class="self">self</span>, quote: u8) -&gt; <span class="kw-2">&amp;mut </span>ReaderBuilder {
+        <span class="self">self</span>.rdr.quote = quote;
+        <span class="self">self
     </span>}
 
     <span class="doccomment">/// The escape character to use when parsing CSV.
@@ -2209,27 +2209,27 @@
     /// character like `\` (instead of escaping quotes by doubling them).
     ///
     /// By default, recognizing these idiosyncratic escapes is disabled.
-    </span><span class="kw">pub fn </span>escape(<span class="kw-2">&amp;mut </span><span class="self">self</span>, escape: <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;) -&gt; <span class="kw-2">&amp;mut </span><a href="#158">ReaderBuilder</a> {
-        <a class="self" href="#207">self</a>.rdr.escape = <a href="#207">escape</a>;
-        <span class="self"><a href="#207">self</a>
+    </span><span class="kw">pub fn </span>escape(<span class="kw-2">&amp;mut </span><span class="self">self</span>, escape: <span class="prelude-ty">Option</span>&lt;u8&gt;) -&gt; <span class="kw-2">&amp;mut </span>ReaderBuilder {
+        <span class="self">self</span>.rdr.escape = escape;
+        <span class="self">self
     </span>}
 
     <span class="doccomment">/// Enable double quote escapes.
     ///
     /// This is enabled by default, but it may be disabled. When disabled,
     /// doubled quotes are not interpreted as escapes.
-    </span><span class="kw">pub fn </span>double_quote(<span class="kw-2">&amp;mut </span><span class="self">self</span>, yes: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="kw-2">&amp;mut </span><a href="#158">ReaderBuilder</a> {
-        <a class="self" href="#216">self</a>.rdr.double_quote = <a href="#216">yes</a>;
-        <span class="self"><a href="#216">self</a>
+    </span><span class="kw">pub fn </span>double_quote(<span class="kw-2">&amp;mut </span><span class="self">self</span>, yes: bool) -&gt; <span class="kw-2">&amp;mut </span>ReaderBuilder {
+        <span class="self">self</span>.rdr.double_quote = yes;
+        <span class="self">self
     </span>}
 
     <span class="doccomment">/// Enable or disable quoting.
     ///
     /// This is enabled by default, but it may be disabled. When disabled,
     /// quotes are not treated specially.
-    </span><span class="kw">pub fn </span>quoting(<span class="kw-2">&amp;mut </span><span class="self">self</span>, yes: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="kw-2">&amp;mut </span><a href="#158">ReaderBuilder</a> {
-        <a class="self" href="#225">self</a>.rdr.quoting = <a href="#225">yes</a>;
-        <span class="self"><a href="#225">self</a>
+    </span><span class="kw">pub fn </span>quoting(<span class="kw-2">&amp;mut </span><span class="self">self</span>, yes: bool) -&gt; <span class="kw-2">&amp;mut </span>ReaderBuilder {
+        <span class="self">self</span>.rdr.quoting = yes;
+        <span class="self">self
     </span>}
 
     <span class="doccomment">/// The comment character to use when parsing CSV.
@@ -2238,9 +2238,9 @@
     /// line is ignored by the CSV parser.
     ///
     /// This is disabled by default.
-    </span><span class="kw">pub fn </span>comment(<span class="kw-2">&amp;mut </span><span class="self">self</span>, comment: <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;) -&gt; <span class="kw-2">&amp;mut </span><a href="#158">ReaderBuilder</a> {
-        <a class="self" href="#236">self</a>.rdr.comment = <a href="#236">comment</a>;
-        <span class="self"><a href="#236">self</a>
+    </span><span class="kw">pub fn </span>comment(<span class="kw-2">&amp;mut </span><span class="self">self</span>, comment: <span class="prelude-ty">Option</span>&lt;u8&gt;) -&gt; <span class="kw-2">&amp;mut </span>ReaderBuilder {
+        <span class="self">self</span>.rdr.comment = comment;
+        <span class="self">self
     </span>}
 
     <span class="doccomment">/// A convenience method for specifying a configuration to read ASCII
@@ -2248,8 +2248,8 @@
     ///
     /// This sets the delimiter and record terminator to the ASCII unit
     /// separator (`\x1F`) and record separator (`\x1E`), respectively.
-    </span><span class="kw">pub fn </span>ascii(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span><a href="#158">ReaderBuilder</a> {
-        <a class="self" href="#246">self</a>.<a href="#178">delimiter</a>(<span class="string">b&#39;\x1F&#39;</span>).<a href="#188">terminator</a>(<a href="lib.rs.html#122">Terminator::Any</a>(<span class="string">b&#39;\x1E&#39;</span>))
+    </span><span class="kw">pub fn </span>ascii(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>ReaderBuilder {
+        <span class="self">self</span>.delimiter(<span class="string">b&#39;\x1F&#39;</span>).terminator(Terminator::Any(<span class="string">b&#39;\x1E&#39;</span>))
     }
 
     <span class="doccomment">/// Enable or disable the NFA for parsing CSV.
@@ -2257,9 +2257,9 @@
     /// This is intended to be a debug option useful for debugging. The NFA
     /// is always slower than the DFA.
     </span><span class="attr">#[doc(hidden)]
-    </span><span class="kw">pub fn </span>nfa(<span class="kw-2">&amp;mut </span><span class="self">self</span>, yes: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="kw-2">&amp;mut </span><a href="#158">ReaderBuilder</a> {
-        <a class="self" href="#255">self</a>.rdr.use_nfa = <a href="#255">yes</a>;
-        <span class="self"><a href="#255">self</a>
+    </span><span class="kw">pub fn </span>nfa(<span class="kw-2">&amp;mut </span><span class="self">self</span>, yes: bool) -&gt; <span class="kw-2">&amp;mut </span>ReaderBuilder {
+        <span class="self">self</span>.rdr.use_nfa = yes;
+        <span class="self">self
     </span>}
 }
 
@@ -2278,7 +2278,7 @@
     /// corresponds to the end of a record.
     </span>Field {
         <span class="doccomment">/// Whether this was the last field in a record or not.
-        </span>record_end: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
+        </span>record_end: bool,
     },
     <span class="doccomment">/// All CSV data has been read.
     ///
@@ -2287,26 +2287,26 @@
     </span>End,
 }
 
-<span class="kw">impl </span><a href="#263">ReadFieldResult</a> {
+<span class="kw">impl </span>ReadFieldResult {
     <span class="kw">fn </span>from_nfa(
-        state: <a href="#417">NfaState</a>,
-        inpdone: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-        outdone: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-    ) -&gt; <a href="#263">ReadFieldResult</a> {
-        <span class="kw">match </span><a href="#287">state</a> {
-            <a href="#422">NfaState::End</a> =&gt; <a href="#282">ReadFieldResult::End</a>,
-            <a href="#437">NfaState::EndRecord</a> | <a href="#438">NfaState::CRLF</a> =&gt; {
-                <a href="#274">ReadFieldResult::Field</a> { record_end: <span class="bool-val">true </span>}
+        state: NfaState,
+        inpdone: bool,
+        outdone: bool,
+    ) -&gt; ReadFieldResult {
+        <span class="kw">match </span>state {
+            NfaState::End =&gt; ReadFieldResult::End,
+            NfaState::EndRecord | NfaState::CRLF =&gt; {
+                ReadFieldResult::Field { record_end: <span class="bool-val">true </span>}
             }
-            <a href="#434">NfaState::EndFieldDelim</a> =&gt; {
-                <a href="#274">ReadFieldResult::Field</a> { record_end: <span class="bool-val">false </span>}
+            NfaState::EndFieldDelim =&gt; {
+                ReadFieldResult::Field { record_end: <span class="bool-val">false </span>}
             }
             <span class="kw">_ </span>=&gt; {
-                <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(!state.is_field_final());
+                <span class="macro">assert!</span>(!state.is_field_final());
                 <span class="kw">if </span>!inpdone &amp;&amp; outdone {
-                    <a href="#269">ReadFieldResult::OutputFull</a>
+                    ReadFieldResult::OutputFull
                 } <span class="kw">else </span>{
-                    <a href="#266">ReadFieldResult::InputEmpty</a>
+                    ReadFieldResult::InputEmpty
                 }
             }
         }
@@ -2326,7 +2326,7 @@
     /// corresponds to the end of a record.
     </span>Field {
         <span class="doccomment">/// Whether this was the last field in a record or not.
-        </span>record_end: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
+        </span>record_end: bool,
     },
     <span class="doccomment">/// All CSV data has been read.
     ///
@@ -2356,28 +2356,28 @@
     </span>End,
 }
 
-<span class="kw">impl </span><a href="#335">ReadRecordResult</a> {
-    <span class="kw">fn </span>is_record(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw-2">*</span><span class="self"><a href="#355">self</a> </span>== <a href="#346">ReadRecordResult::Record</a>
+<span class="kw">impl </span>ReadRecordResult {
+    <span class="kw">fn </span>is_record(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="kw-2">*</span><span class="self">self </span>== ReadRecordResult::Record
     }
 
     <span class="kw">fn </span>from_nfa(
-        state: <a href="#417">NfaState</a>,
-        inpdone: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-        outdone: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-        endsdone: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-    ) -&gt; <a href="#335">ReadRecordResult</a> {
-        <span class="kw">match </span><a href="#360">state</a> {
-            <a href="#422">NfaState::End</a> =&gt; <a href="#351">ReadRecordResult::End</a>,
-            <a href="#437">NfaState::EndRecord</a> | <a href="#438">NfaState::CRLF</a> =&gt; <a href="#346">ReadRecordResult::Record</a>,
+        state: NfaState,
+        inpdone: bool,
+        outdone: bool,
+        endsdone: bool,
+    ) -&gt; ReadRecordResult {
+        <span class="kw">match </span>state {
+            NfaState::End =&gt; ReadRecordResult::End,
+            NfaState::EndRecord | NfaState::CRLF =&gt; ReadRecordResult::Record,
             <span class="kw">_ </span>=&gt; {
-                <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(!state.is_record_final());
+                <span class="macro">assert!</span>(!state.is_record_final());
                 <span class="kw">if </span>!inpdone &amp;&amp; outdone {
-                    <a href="#341">ReadRecordResult::OutputFull</a>
+                    ReadRecordResult::OutputFull
                 } <span class="kw">else if </span>!inpdone &amp;&amp; endsdone {
-                    <a href="#344">ReadRecordResult::OutputEndsFull</a>
+                    ReadRecordResult::OutputEndsFull
                 } <span class="kw">else </span>{
-                    <a href="#338">ReadRecordResult::InputEmpty</a>
+                    ReadRecordResult::InputEmpty
                 }
             }
         }
@@ -2444,70 +2444,70 @@
 }
 
 <span class="doccomment">/// A list of NFA states that have an explicit representation in the DFA.
-</span><span class="kw">const </span>NFA_STATES: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>[<a href="#417">NfaState</a>] = <span class="kw-2">&amp;</span>[
-    <a href="#425">NfaState::StartRecord</a>,
-    <a href="#426">NfaState::StartField</a>,
-    <a href="#434">NfaState::EndFieldDelim</a>,
-    <a href="#427">NfaState::InField</a>,
-    <a href="#428">NfaState::InQuotedField</a>,
-    <a href="#429">NfaState::InEscapedQuote</a>,
-    <a href="#430">NfaState::InDoubleEscapedQuote</a>,
-    <a href="#431">NfaState::InComment</a>,
-    <a href="#437">NfaState::EndRecord</a>,
-    <a href="#438">NfaState::CRLF</a>,
+</span><span class="kw">const </span>NFA_STATES: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>[NfaState] = <span class="kw-2">&amp;</span>[
+    NfaState::StartRecord,
+    NfaState::StartField,
+    NfaState::EndFieldDelim,
+    NfaState::InField,
+    NfaState::InQuotedField,
+    NfaState::InEscapedQuote,
+    NfaState::InDoubleEscapedQuote,
+    NfaState::InComment,
+    NfaState::EndRecord,
+    NfaState::CRLF,
 ];
 
-<span class="kw">impl </span><a href="#417">NfaState</a> {
+<span class="kw">impl </span>NfaState {
     <span class="doccomment">/// Returns true if this state indicates that a field has been parsed.
-    </span><span class="kw">fn </span>is_field_final(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="#457">self</a> </span>{
-            <a href="#422">NfaState::End</a>
-            | <a href="#437">NfaState::EndRecord</a>
-            | <a href="#438">NfaState::CRLF</a>
-            | <a href="#434">NfaState::EndFieldDelim</a> =&gt; <span class="bool-val">true</span>,
+    </span><span class="kw">fn </span>is_field_final(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="kw">match </span><span class="kw-2">*</span><span class="self">self </span>{
+            NfaState::End
+            | NfaState::EndRecord
+            | NfaState::CRLF
+            | NfaState::EndFieldDelim =&gt; <span class="bool-val">true</span>,
             <span class="kw">_ </span>=&gt; <span class="bool-val">false</span>,
         }
     }
 
     <span class="doccomment">/// Returns true if this state indicates that a record has been parsed.
-    </span><span class="kw">fn </span>is_record_final(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="#468">self</a> </span>{
-            <a href="#422">NfaState::End</a> | <a href="#437">NfaState::EndRecord</a> | <a href="#438">NfaState::CRLF</a> =&gt; <span class="bool-val">true</span>,
+    </span><span class="kw">fn </span>is_record_final(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="kw">match </span><span class="kw-2">*</span><span class="self">self </span>{
+            NfaState::End | NfaState::EndRecord | NfaState::CRLF =&gt; <span class="bool-val">true</span>,
             <span class="kw">_ </span>=&gt; <span class="bool-val">false</span>,
         }
     }
 }
 
-<span class="kw">impl </span><a href="#96">Reader</a> {
+<span class="kw">impl </span>Reader {
     <span class="doccomment">/// Create a new CSV reader with a default parser configuration.
-    </span><span class="kw">pub fn </span>new() -&gt; <a href="#96">Reader</a> {
-        ReaderBuilder::new().<a href="#169">build</a>()
+    </span><span class="kw">pub fn </span>new() -&gt; Reader {
+        ReaderBuilder::new().build()
     }
 
     <span class="doccomment">/// Reset the parser such that it behaves as if it had never been used.
     ///
     /// This may be useful when reading CSV data in a random access pattern.
     </span><span class="kw">pub fn </span>reset(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <a class="self" href="#485">self</a>.dfa_state = <a class="self" href="#485">self</a>.dfa.<a href="#1143">new_state</a>(<a href="#425">NfaState::StartRecord</a>);
-        <a class="self" href="#485">self</a>.nfa_state = <a href="#425">NfaState::StartRecord</a>;
-        <a class="self" href="#485">self</a>.line = <span class="number">1</span>;
-        <a class="self" href="#485">self</a>.has_read = <span class="bool-val">false</span>;
+        <span class="self">self</span>.dfa_state = <span class="self">self</span>.dfa.new_state(NfaState::StartRecord);
+        <span class="self">self</span>.nfa_state = NfaState::StartRecord;
+        <span class="self">self</span>.line = <span class="number">1</span>;
+        <span class="self">self</span>.has_read = <span class="bool-val">false</span>;
     }
 
     <span class="doccomment">/// Return the current line number as measured by the number of occurrences
     /// of `\n`.
     ///
     /// Line numbers starts at `1` and are reset when `reset` is called.
-    </span><span class="kw">pub fn </span>line(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> {
-        <a class="self" href="#496">self</a>.line
+    </span><span class="kw">pub fn </span>line(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u64 {
+        <span class="self">self</span>.line
     }
 
     <span class="doccomment">/// Set the line number.
     ///
     /// This is useful after a call to `reset` where the caller knows the
     /// line number from some additional context.
-    </span><span class="kw">pub fn </span>set_line(<span class="kw-2">&amp;mut </span><span class="self">self</span>, line: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) {
-        <a class="self" href="#504">self</a>.line = <a href="#504">line</a>;
+    </span><span class="kw">pub fn </span>set_line(<span class="kw-2">&amp;mut </span><span class="self">self</span>, line: u64) {
+        <span class="self">self</span>.line = line;
     }
 
     <span class="doccomment">/// Parse a single CSV field in `input` and copy field data to `output`.
@@ -2541,17 +2541,17 @@
     /// parse over *no* parse.
     </span><span class="kw">pub fn </span>read_field(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        input: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
-        output: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
-    ) -&gt; (<a href="#263">ReadFieldResult</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
-        <span class="kw">let </span>(input, bom_nin) = <a class="self" href="#538">self</a>.<a href="#612">strip_utf8_bom</a>(<a href="#539">input</a>);
+        input: <span class="kw-2">&amp;</span>[u8],
+        output: <span class="kw-2">&amp;mut </span>[u8],
+    ) -&gt; (ReadFieldResult, usize, usize) {
+        <span class="kw">let </span>(input, bom_nin) = <span class="self">self</span>.strip_utf8_bom(input);
         <span class="kw">let </span>(res, nin, nout) = <span class="kw">if </span><span class="self">self</span>.use_nfa {
-            <a class="self" href="#538">self</a>.<a href="#921-925">read_field_nfa</a>(<a href="#542">input</a>, <a href="#540">output</a>)
+            <span class="self">self</span>.read_field_nfa(input, output)
         } <span class="kw">else </span>{
-            <a class="self" href="#538">self</a>.<a href="#706-710">read_field_dfa</a>(<a href="#542">input</a>, <a href="#540">output</a>)
+            <span class="self">self</span>.read_field_dfa(input, output)
         };
-        <a class="self" href="#538">self</a>.has_read = <span class="bool-val">true</span>;
-        (<a href="#543">res</a>, <a href="#543">nin</a> + <a href="#542">bom_nin</a>, <a href="#543">nout</a>)
+        <span class="self">self</span>.has_read = <span class="bool-val">true</span>;
+        (res, nin + bom_nin, nout)
     }
 
     <span class="doccomment">/// Parse a single CSV record in `input` and copy each field contiguously
@@ -2597,47 +2597,47 @@
     /// parse over *no* parse.
     </span><span class="kw">pub fn </span>read_record(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        input: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
-        output: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
-        ends: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>],
-    ) -&gt; (<a href="#335">ReadRecordResult</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
-        <span class="kw">let </span>(input, bom_nin) = <a class="self" href="#594">self</a>.<a href="#612">strip_utf8_bom</a>(<a href="#595">input</a>);
+        input: <span class="kw-2">&amp;</span>[u8],
+        output: <span class="kw-2">&amp;mut </span>[u8],
+        ends: <span class="kw-2">&amp;mut </span>[usize],
+    ) -&gt; (ReadRecordResult, usize, usize, usize) {
+        <span class="kw">let </span>(input, bom_nin) = <span class="self">self</span>.strip_utf8_bom(input);
         <span class="kw">let </span>(res, nin, nout, nend) = <span class="kw">if </span><span class="self">self</span>.use_nfa {
-            <a class="self" href="#594">self</a>.<a href="#854-859">read_record_nfa</a>(<a href="#599">input</a>, <a href="#596">output</a>, <a href="#597">ends</a>)
+            <span class="self">self</span>.read_record_nfa(input, output, ends)
         } <span class="kw">else </span>{
-            <a class="self" href="#594">self</a>.<a href="#626-631">read_record_dfa</a>(<a href="#599">input</a>, <a href="#596">output</a>, <a href="#597">ends</a>)
+            <span class="self">self</span>.read_record_dfa(input, output, ends)
         };
-        <a class="self" href="#594">self</a>.has_read = <span class="bool-val">true</span>;
-        (<a href="#600">res</a>, <a href="#600">nin</a> + <a href="#599">bom_nin</a>, <a href="#600">nout</a>, <a href="#600">nend</a>)
+        <span class="self">self</span>.has_read = <span class="bool-val">true</span>;
+        (res, nin + bom_nin, nout, nend)
     }
 
     <span class="doccomment">/// Strip off a possible UTF-8 BOM at the start of a file. Quick note that
     /// this method will fail to strip off the BOM if only part of the BOM is
     /// buffered. Hopefully that won&#39;t happen very often.
-    </span><span class="kw">fn </span>strip_utf8_bom&lt;<span class="lifetime">&#39;a</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, input: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; (<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
+    </span><span class="kw">fn </span>strip_utf8_bom&lt;<span class="lifetime">&#39;a</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, input: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[u8]) -&gt; (<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[u8], usize) {
         <span class="kw">let </span>(input, nin) = <span class="kw">if </span>{
             !<span class="self">self</span>.has_read
                 &amp;&amp; input.len() &gt;= <span class="number">3
                 </span>&amp;&amp; <span class="kw-2">&amp;</span>input[<span class="number">0</span>..<span class="number">3</span>] == <span class="string">b&quot;\xef\xbb\xbf&quot;
         </span>} {
-            (<span class="kw-2">&amp;</span><a href="#612">input</a>[<span class="number">3</span>..], <span class="number">3</span>)
+            (<span class="kw-2">&amp;</span>input[<span class="number">3</span>..], <span class="number">3</span>)
         } <span class="kw">else </span>{
-            (<a href="#612">input</a>, <span class="number">0</span>)
+            (input, <span class="number">0</span>)
         };
-        (<a href="#613">input</a>, <a href="#613">nin</a>)
+        (input, nin)
     }
 
     <span class="attr">#[inline(always)]
     </span><span class="kw">fn </span>read_record_dfa(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        input: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
-        output: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
-        ends: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>],
-    ) -&gt; (<a href="#335">ReadRecordResult</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
+        input: <span class="kw-2">&amp;</span>[u8],
+        output: <span class="kw-2">&amp;mut </span>[u8],
+        ends: <span class="kw-2">&amp;mut </span>[usize],
+    ) -&gt; (ReadRecordResult, usize, usize, usize) {
         <span class="kw">if </span>input.is_empty() {
-            <span class="kw">let </span>s = <a class="self" href="#627">self</a>.<a href="#752">transition_final_dfa</a>(<a class="self" href="#627">self</a>.dfa_state);
+            <span class="kw">let </span>s = <span class="self">self</span>.transition_final_dfa(<span class="self">self</span>.dfa_state);
             <span class="kw">let </span>res =
-                <a class="self" href="#627">self</a>.dfa.<a href="#1200-1207">new_read_record_result</a>(<a href="#633">s</a>, <span class="bool-val">true</span>, <span class="bool-val">false</span>, <span class="bool-val">false</span>, <span class="bool-val">false</span>);
+                <span class="self">self</span>.dfa.new_read_record_result(s, <span class="bool-val">true</span>, <span class="bool-val">false</span>, <span class="bool-val">false</span>, <span class="bool-val">false</span>);
             <span class="comment">// This part is a little tricky. When reading the final record,
             // the last result the caller will get is an InputEmpty, and while
             // they&#39;ll have everything they need in `output`, they&#39;ll be
@@ -2645,30 +2645,30 @@
             // We insert that here, but we must take care to handle the case
             // where `ends` doesn&#39;t have enough space. If it doesn&#39;t have
             // enough space, then we also can&#39;t transition to the next state.
-            </span><span class="kw">return match </span><a href="#634">res</a> {
-                <a href="#346">ReadRecordResult::Record</a> =&gt; {
+            </span><span class="kw">return match </span>res {
+                ReadRecordResult::Record =&gt; {
                     <span class="kw">if </span>ends.is_empty() {
-                        <span class="kw">return </span>(<a href="#344">ReadRecordResult::OutputEndsFull</a>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>);
+                        <span class="kw">return </span>(ReadRecordResult::OutputEndsFull, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>);
                     }
-                    <a class="self" href="#627">self</a>.dfa_state = <a href="#633">s</a>;
-                    <a href="#630">ends</a>[<span class="number">0</span>] = <a class="self" href="#627">self</a>.output_pos;
-                    <a class="self" href="#627">self</a>.output_pos = <span class="number">0</span>;
-                    (<a href="#634">res</a>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">1</span>)
+                    <span class="self">self</span>.dfa_state = s;
+                    ends[<span class="number">0</span>] = <span class="self">self</span>.output_pos;
+                    <span class="self">self</span>.output_pos = <span class="number">0</span>;
+                    (res, <span class="number">0</span>, <span class="number">0</span>, <span class="number">1</span>)
                 }
                 <span class="kw">_ </span>=&gt; {
-                    <a class="self" href="#627">self</a>.dfa_state = <a href="#633">s</a>;
-                    (<a href="#634">res</a>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>)
+                    <span class="self">self</span>.dfa_state = s;
+                    (res, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>)
                 }
             };
         }
         <span class="kw">if </span>output.is_empty() {
-            <span class="kw">return </span>(<a href="#341">ReadRecordResult::OutputFull</a>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>);
+            <span class="kw">return </span>(ReadRecordResult::OutputFull, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>);
         }
         <span class="kw">if </span>ends.is_empty() {
-            <span class="kw">return </span>(<a href="#344">ReadRecordResult::OutputEndsFull</a>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>);
+            <span class="kw">return </span>(ReadRecordResult::OutputEndsFull, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>);
         }
         <span class="kw">let </span>(<span class="kw-2">mut </span>nin, <span class="kw-2">mut </span>nout, <span class="kw-2">mut </span>nend) = (<span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>);
-        <span class="kw">let </span><span class="kw-2">mut </span>state = <a class="self" href="#627">self</a>.dfa_state;
+        <span class="kw">let </span><span class="kw-2">mut </span>state = <span class="self">self</span>.dfa_state;
         <span class="kw">while </span>nin &lt; input.len() &amp;&amp; nout &lt; output.len() &amp;&amp; nend &lt; ends.len() {
             <span class="kw">let </span>(s, has_out) = <span class="self">self</span>.dfa.get_output(state, input[nin]);
             <span class="self">self</span>.line += (input[nin] == <span class="string">b&#39;\n&#39;</span>) <span class="kw">as </span>u64;
@@ -2691,43 +2691,43 @@
                     .scan_and_copy(input, <span class="kw-2">&amp;mut </span>nin, output, <span class="kw-2">&amp;mut </span>nout);
             }
         }
-        <span class="kw">let </span>res = <a class="self" href="#627">self</a>.dfa.<a href="#1200-1207">new_read_record_result</a>(
-            <a href="#666">state</a>,
+        <span class="kw">let </span>res = <span class="self">self</span>.dfa.new_read_record_result(
+            state,
             <span class="bool-val">false</span>,
-            <a href="#665">nin</a> &gt;= <a href="#628">input</a>.len(),
-            <a href="#665">nout</a> &gt;= <a href="#629">output</a>.len(),
-            <a href="#665">nend</a> &gt;= <a href="#630">ends</a>.len(),
+            nin &gt;= input.len(),
+            nout &gt;= output.len(),
+            nend &gt;= ends.len(),
         );
-        <a class="self" href="#627">self</a>.dfa_state = <a href="#666">state</a>;
+        <span class="self">self</span>.dfa_state = state;
         <span class="kw">if </span>res.is_record() {
-            <a class="self" href="#627">self</a>.output_pos = <span class="number">0</span>;
+            <span class="self">self</span>.output_pos = <span class="number">0</span>;
         } <span class="kw">else </span>{
-            <a class="self" href="#627">self</a>.output_pos += <a href="#665">nout</a>;
+            <span class="self">self</span>.output_pos += nout;
         }
-        (<a href="#689">res</a>, <a href="#665">nin</a>, <a href="#665">nout</a>, <a href="#665">nend</a>)
+        (res, nin, nout, nend)
     }
 
     <span class="attr">#[inline(always)]
     </span><span class="kw">fn </span>read_field_dfa(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        input: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
-        output: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
-    ) -&gt; (<a href="#263">ReadFieldResult</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
+        input: <span class="kw-2">&amp;</span>[u8],
+        output: <span class="kw-2">&amp;mut </span>[u8],
+    ) -&gt; (ReadFieldResult, usize, usize) {
         <span class="kw">if </span>input.is_empty() {
-            <a class="self" href="#707">self</a>.dfa_state = <a class="self" href="#707">self</a>.<a href="#752">transition_final_dfa</a>(<a class="self" href="#707">self</a>.dfa_state);
-            <span class="kw">let </span>res = <a class="self" href="#707">self</a>.dfa.<a href="#1177-1183">new_read_field_result</a>(
-                <a class="self" href="#707">self</a>.dfa_state,
+            <span class="self">self</span>.dfa_state = <span class="self">self</span>.transition_final_dfa(<span class="self">self</span>.dfa_state);
+            <span class="kw">let </span>res = <span class="self">self</span>.dfa.new_read_field_result(
+                <span class="self">self</span>.dfa_state,
                 <span class="bool-val">true</span>,
                 <span class="bool-val">false</span>,
                 <span class="bool-val">false</span>,
             );
-            <span class="kw">return </span>(<a href="#713">res</a>, <span class="number">0</span>, <span class="number">0</span>);
+            <span class="kw">return </span>(res, <span class="number">0</span>, <span class="number">0</span>);
         }
         <span class="kw">if </span>output.is_empty() {
-            <span class="kw">return </span>(<a href="#269">ReadFieldResult::OutputFull</a>, <span class="number">0</span>, <span class="number">0</span>);
+            <span class="kw">return </span>(ReadFieldResult::OutputFull, <span class="number">0</span>, <span class="number">0</span>);
         }
         <span class="kw">let </span>(<span class="kw-2">mut </span>nin, <span class="kw-2">mut </span>nout) = (<span class="number">0</span>, <span class="number">0</span>);
-        <span class="kw">let </span><span class="kw-2">mut </span>state = <a class="self" href="#707">self</a>.dfa_state;
+        <span class="kw">let </span><span class="kw-2">mut </span>state = <span class="self">self</span>.dfa_state;
         <span class="kw">while </span>nin &lt; input.len() &amp;&amp; nout &lt; output.len() {
             <span class="kw">let </span>b = input[nin];
             <span class="self">self</span>.line += (b == <span class="string">b&#39;\n&#39;</span>) <span class="kw">as </span>u64;
@@ -2742,27 +2742,27 @@
                 <span class="kw">break</span>;
             }
         }
-        <span class="kw">let </span>res = <a class="self" href="#707">self</a>.dfa.<a href="#1177-1183">new_read_field_result</a>(
-            <a href="#725">state</a>,
+        <span class="kw">let </span>res = <span class="self">self</span>.dfa.new_read_field_result(
+            state,
             <span class="bool-val">false</span>,
-            <a href="#724">nin</a> &gt;= <a href="#708">input</a>.len(),
-            <a href="#724">nout</a> &gt;= <a href="#709">output</a>.len(),
+            nin &gt;= input.len(),
+            nout &gt;= output.len(),
         );
-        <a class="self" href="#707">self</a>.dfa_state = <a href="#725">state</a>;
-        (<a href="#740">res</a>, <a href="#724">nin</a>, <a href="#724">nout</a>)
+        <span class="self">self</span>.dfa_state = state;
+        (res, nin, nout)
     }
 
     <span class="doccomment">/// Perform the final state transition, i.e., when the caller indicates
     /// that the input has been exhausted.
-    </span><span class="kw">fn </span>transition_final_dfa(<span class="kw-2">&amp;</span><span class="self">self</span>, state: <a href="#1284">DfaState</a>) -&gt; <a href="#1284">DfaState</a> {
+    </span><span class="kw">fn </span>transition_final_dfa(<span class="kw-2">&amp;</span><span class="self">self</span>, state: DfaState) -&gt; DfaState {
         <span class="comment">// If we&#39;&#39;ve already emitted a record or think we&#39;re ready to start
         // parsing a new record, then we should sink into the final state
         // and never move from there. (pro-tip: the start state doubles as
         // the final state!)
         </span><span class="kw">if </span>state &gt;= <span class="self">self</span>.dfa.final_record || state.is_start() {
-            <a class="self" href="#752">self</a>.dfa.<a href="#1149">new_state_final_end</a>()
+            <span class="self">self</span>.dfa.new_state_final_end()
         } <span class="kw">else </span>{
-            <a class="self" href="#752">self</a>.dfa.<a href="#1153">new_state_final_record</a>()
+            <span class="self">self</span>.dfa.new_state_final_record()
         }
     }
 
@@ -2807,23 +2807,23 @@
         // Even though this requires an extra bit of indirection when computing
         // the next transition, microbenchmarks say that it doesn&#39;t make much
         // of a difference. Perhaps because everything fits into the L1 cache.
-        </span><a class="self" href="#766">self</a>.dfa.classes.<a href="#1236">add</a>(<a class="self" href="#766">self</a>.delimiter);
+        </span><span class="self">self</span>.dfa.classes.add(<span class="self">self</span>.delimiter);
         <span class="kw">if </span><span class="self">self</span>.quoting {
-            <a class="self" href="#766">self</a>.dfa.classes.<a href="#1236">add</a>(<a class="self" href="#766">self</a>.quote);
-            <span class="kw">if let </span><span class="prelude-val">Some</span>(escape) = <a class="self" href="#766">self</a>.escape {
-                <a class="self" href="#766">self</a>.dfa.classes.<a href="#1236">add</a>(<a href="#808">escape</a>);
+            <span class="self">self</span>.dfa.classes.add(<span class="self">self</span>.quote);
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(escape) = <span class="self">self</span>.escape {
+                <span class="self">self</span>.dfa.classes.add(escape);
             }
         }
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(comment) = <a class="self" href="#766">self</a>.comment {
-            <a class="self" href="#766">self</a>.dfa.classes.<a href="#1236">add</a>(<a href="#812">comment</a>);
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(comment) = <span class="self">self</span>.comment {
+            <span class="self">self</span>.dfa.classes.add(comment);
         }
-        <span class="kw">match </span><a class="self" href="#766">self</a>.term {
-            <a href="lib.rs.html#122">Terminator::Any</a>(b) =&gt; <a class="self" href="#766">self</a>.dfa.classes.<a href="#1236">add</a>(<a href="#816">b</a>),
-            <a href="lib.rs.html#120">Terminator::CRLF</a> =&gt; {
-                <a class="self" href="#766">self</a>.dfa.classes.<a href="#1236">add</a>(<span class="string">b&#39;\r&#39;</span>);
-                <a class="self" href="#766">self</a>.dfa.classes.<a href="#1236">add</a>(<span class="string">b&#39;\n&#39;</span>);
+        <span class="kw">match </span><span class="self">self</span>.term {
+            Terminator::Any(b) =&gt; <span class="self">self</span>.dfa.classes.add(b),
+            Terminator::CRLF =&gt; {
+                <span class="self">self</span>.dfa.classes.add(<span class="string">b&#39;\r&#39;</span>);
+                <span class="self">self</span>.dfa.classes.add(<span class="string">b&#39;\n&#39;</span>);
             }
-            <span class="kw">_ </span>=&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(),
+            <span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>(),
         }
         <span class="comment">// Build the DFA transition table by computing the DFA state for all
         // possible combinations of state and input byte.
@@ -2846,8 +2846,8 @@
                 );
             }
         }
-        <a class="self" href="#766">self</a>.dfa_state = <a class="self" href="#766">self</a>.dfa.<a href="#1143">new_state</a>(<a href="#425">NfaState::StartRecord</a>);
-        <a class="self" href="#766">self</a>.dfa.<a href="#1170">finish</a>();
+        <span class="self">self</span>.dfa_state = <span class="self">self</span>.dfa.new_state(NfaState::StartRecord);
+        <span class="self">self</span>.dfa.finish();
     }
 
     <span class="comment">// The NFA implementation follows. The transition_final_nfa and
@@ -2858,37 +2858,37 @@
     </span><span class="attr">#[inline(always)]
     </span><span class="kw">fn </span>read_record_nfa(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        input: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
-        output: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
-        ends: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>],
-    ) -&gt; (<a href="#335">ReadRecordResult</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
+        input: <span class="kw-2">&amp;</span>[u8],
+        output: <span class="kw-2">&amp;mut </span>[u8],
+        ends: <span class="kw-2">&amp;mut </span>[usize],
+    ) -&gt; (ReadRecordResult, usize, usize, usize) {
         <span class="kw">if </span>input.is_empty() {
-            <span class="kw">let </span>s = <a class="self" href="#855">self</a>.<a href="#968">transition_final_nfa</a>(<a class="self" href="#855">self</a>.nfa_state);
-            <span class="kw">let </span>res = ReadRecordResult::from_nfa(<a href="#861">s</a>, <span class="bool-val">false</span>, <span class="bool-val">false</span>, <span class="bool-val">false</span>);
-            <span class="kw">return match </span><a href="#862">res</a> {
-                <a href="#346">ReadRecordResult::Record</a> =&gt; {
+            <span class="kw">let </span>s = <span class="self">self</span>.transition_final_nfa(<span class="self">self</span>.nfa_state);
+            <span class="kw">let </span>res = ReadRecordResult::from_nfa(s, <span class="bool-val">false</span>, <span class="bool-val">false</span>, <span class="bool-val">false</span>);
+            <span class="kw">return match </span>res {
+                ReadRecordResult::Record =&gt; {
                     <span class="kw">if </span>ends.is_empty() {
-                        <span class="kw">return </span>(<a href="#344">ReadRecordResult::OutputEndsFull</a>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>);
+                        <span class="kw">return </span>(ReadRecordResult::OutputEndsFull, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>);
                     }
-                    <a class="self" href="#855">self</a>.nfa_state = <a href="#861">s</a>;
-                    <a href="#858">ends</a>[<span class="number">0</span>] = <a class="self" href="#855">self</a>.output_pos;
-                    <a class="self" href="#855">self</a>.output_pos = <span class="number">0</span>;
-                    (<a href="#862">res</a>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">1</span>)
+                    <span class="self">self</span>.nfa_state = s;
+                    ends[<span class="number">0</span>] = <span class="self">self</span>.output_pos;
+                    <span class="self">self</span>.output_pos = <span class="number">0</span>;
+                    (res, <span class="number">0</span>, <span class="number">0</span>, <span class="number">1</span>)
                 }
                 <span class="kw">_ </span>=&gt; {
-                    <a class="self" href="#855">self</a>.nfa_state = <a href="#861">s</a>;
-                    (<a href="#862">res</a>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>)
+                    <span class="self">self</span>.nfa_state = s;
+                    (res, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>)
                 }
             };
         }
         <span class="kw">if </span>output.is_empty() {
-            <span class="kw">return </span>(<a href="#341">ReadRecordResult::OutputFull</a>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>);
+            <span class="kw">return </span>(ReadRecordResult::OutputFull, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>);
         }
         <span class="kw">if </span>ends.is_empty() {
-            <span class="kw">return </span>(<a href="#344">ReadRecordResult::OutputEndsFull</a>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>);
+            <span class="kw">return </span>(ReadRecordResult::OutputEndsFull, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>);
         }
-        <span class="kw">let </span>(<span class="kw-2">mut </span>nin, <span class="kw-2">mut </span>nout, <span class="kw-2">mut </span>nend) = (<span class="number">0</span>, <a class="self" href="#855">self</a>.output_pos, <span class="number">0</span>);
-        <span class="kw">let </span><span class="kw-2">mut </span>state = <a class="self" href="#855">self</a>.nfa_state;
+        <span class="kw">let </span>(<span class="kw-2">mut </span>nin, <span class="kw-2">mut </span>nout, <span class="kw-2">mut </span>nend) = (<span class="number">0</span>, <span class="self">self</span>.output_pos, <span class="number">0</span>);
+        <span class="kw">let </span><span class="kw-2">mut </span>state = <span class="self">self</span>.nfa_state;
         <span class="kw">while </span>nin &lt; input.len() &amp;&amp; nout &lt; output.len() &amp;&amp; nend &lt; ends.len() {
             <span class="kw">let </span>(s, io) = <span class="self">self</span>.transition_nfa(state, input[nin]);
             <span class="kw">match </span>io {
@@ -2912,34 +2912,34 @@
             }
         }
         <span class="kw">let </span>res = ReadRecordResult::from_nfa(
-            <a href="#886">state</a>,
-            <a href="#885">nin</a> &gt;= <a href="#856">input</a>.len(),
-            <a href="#885">nout</a> &gt;= <a href="#857">output</a>.len(),
-            <a href="#885">nend</a> &gt;= <a href="#858">ends</a>.len(),
+            state,
+            nin &gt;= input.len(),
+            nout &gt;= output.len(),
+            nend &gt;= ends.len(),
         );
-        <a class="self" href="#855">self</a>.nfa_state = <a href="#886">state</a>;
-        <a class="self" href="#855">self</a>.output_pos = <span class="kw">if </span>res.is_record() { <span class="number">0 </span>} <span class="kw">else </span>{ <a href="#885">nout</a> };
-        (<a href="#909">res</a>, <a href="#885">nin</a>, <a href="#885">nout</a>, <a href="#885">nend</a>)
+        <span class="self">self</span>.nfa_state = state;
+        <span class="self">self</span>.output_pos = <span class="kw">if </span>res.is_record() { <span class="number">0 </span>} <span class="kw">else </span>{ nout };
+        (res, nin, nout, nend)
     }
 
     <span class="attr">#[inline(always)]
     </span><span class="kw">fn </span>read_field_nfa(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        input: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
-        output: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
-    ) -&gt; (<a href="#263">ReadFieldResult</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
+        input: <span class="kw-2">&amp;</span>[u8],
+        output: <span class="kw-2">&amp;mut </span>[u8],
+    ) -&gt; (ReadFieldResult, usize, usize) {
         <span class="kw">if </span>input.is_empty() {
-            <a class="self" href="#922">self</a>.nfa_state = <a class="self" href="#922">self</a>.<a href="#968">transition_final_nfa</a>(<a class="self" href="#922">self</a>.nfa_state);
-            <span class="kw">let </span>res = ReadFieldResult::from_nfa(<a class="self" href="#922">self</a>.nfa_state, <span class="bool-val">false</span>, <span class="bool-val">false</span>);
-            <span class="kw">return </span>(<a href="#928">res</a>, <span class="number">0</span>, <span class="number">0</span>);
+            <span class="self">self</span>.nfa_state = <span class="self">self</span>.transition_final_nfa(<span class="self">self</span>.nfa_state);
+            <span class="kw">let </span>res = ReadFieldResult::from_nfa(<span class="self">self</span>.nfa_state, <span class="bool-val">false</span>, <span class="bool-val">false</span>);
+            <span class="kw">return </span>(res, <span class="number">0</span>, <span class="number">0</span>);
         }
         <span class="kw">if </span>output.is_empty() {
             <span class="comment">// If the output buffer is empty, then we can never make progress,
             // so just quit now.
-            </span><span class="kw">return </span>(<a href="#269">ReadFieldResult::OutputFull</a>, <span class="number">0</span>, <span class="number">0</span>);
+            </span><span class="kw">return </span>(ReadFieldResult::OutputFull, <span class="number">0</span>, <span class="number">0</span>);
         }
         <span class="kw">let </span>(<span class="kw-2">mut </span>nin, <span class="kw-2">mut </span>nout) = (<span class="number">0</span>, <span class="number">0</span>);
-        <span class="kw">let </span><span class="kw-2">mut </span>state = <a class="self" href="#922">self</a>.nfa_state;
+        <span class="kw">let </span><span class="kw-2">mut </span>state = <span class="self">self</span>.nfa_state;
         <span class="kw">while </span>nin &lt; input.len() &amp;&amp; nout &lt; output.len() {
             <span class="kw">let </span>(s, io) = <span class="self">self</span>.transition_nfa(state, input[nin]);
             <span class="kw">match </span>io {
@@ -2959,24 +2959,24 @@
             }
         }
         <span class="kw">let </span>res = ReadFieldResult::from_nfa(
-            <a href="#937">state</a>,
-            <a href="#936">nin</a> &gt;= <a href="#923">input</a>.len(),
-            <a href="#936">nout</a> &gt;= <a href="#924">output</a>.len(),
+            state,
+            nin &gt;= input.len(),
+            nout &gt;= output.len(),
         );
-        <a class="self" href="#922">self</a>.nfa_state = <a href="#937">state</a>;
-        (<a href="#956">res</a>, <a href="#936">nin</a>, <a href="#936">nout</a>)
+        <span class="self">self</span>.nfa_state = state;
+        (res, nin, nout)
     }
 
     <span class="doccomment">/// Compute the final NFA transition after all caller-provided input has
     /// been exhausted.
     </span><span class="attr">#[inline(always)]
-    </span><span class="kw">fn </span>transition_final_nfa(<span class="kw-2">&amp;</span><span class="self">self</span>, state: <a href="#417">NfaState</a>) -&gt; <a href="#417">NfaState</a> {
-        <span class="kw">use </span><a href="#417"><span class="self">self</span>::NfaState</a>::<span class="kw-2">*</span>;
-        <span class="kw">match </span><a href="#968">state</a> {
-            <a href="#422">End</a> | <a href="#425">StartRecord</a> | <a href="#437">EndRecord</a> | <a href="#431">InComment</a> | <a href="#438">CRLF</a> =&gt; <a href="#422">End</a>,
-            <a href="#426">StartField</a> | <a href="#434">EndFieldDelim</a> | <a href="#420">EndFieldTerm</a> | <a href="#427">InField</a>
-            | <a href="#428">InQuotedField</a> | <a href="#429">InEscapedQuote</a> | <a href="#430">InDoubleEscapedQuote</a>
-            | <a href="#421">InRecordTerm</a> =&gt; <a href="#437">EndRecord</a>,
+    </span><span class="kw">fn </span>transition_final_nfa(<span class="kw-2">&amp;</span><span class="self">self</span>, state: NfaState) -&gt; NfaState {
+        <span class="kw">use </span><span class="self">self</span>::NfaState::<span class="kw-2">*</span>;
+        <span class="kw">match </span>state {
+            End | StartRecord | EndRecord | InComment | CRLF =&gt; End,
+            StartField | EndFieldDelim | EndFieldTerm | InField
+            | InQuotedField | InEscapedQuote | InDoubleEscapedQuote
+            | InRecordTerm =&gt; EndRecord,
         }
     }
 
@@ -2989,84 +2989,84 @@
     </span><span class="attr">#[inline(always)]
     </span><span class="kw">fn </span>transition_nfa(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        state: <a href="#417">NfaState</a>,
-        c: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>,
-    ) -&gt; (<a href="#417">NfaState</a>, <a href="#400">NfaInputAction</a>) {
-        <span class="kw">use </span><a href="#417"><span class="self">self</span>::NfaState</a>::<span class="kw-2">*</span>;
-        <span class="kw">match </span><a href="#987">state</a> {
-            <a href="#422">End</a> =&gt; (<a href="#422">End</a>, <a href="#402">NfaInputAction::Epsilon</a>),
-            <a href="#425">StartRecord</a> =&gt; {
+        state: NfaState,
+        c: u8,
+    ) -&gt; (NfaState, NfaInputAction) {
+        <span class="kw">use </span><span class="self">self</span>::NfaState::<span class="kw-2">*</span>;
+        <span class="kw">match </span>state {
+            End =&gt; (End, NfaInputAction::Epsilon),
+            StartRecord =&gt; {
                 <span class="kw">if </span><span class="self">self</span>.term.equals(c) {
-                    (<a href="#425">StartRecord</a>, <a href="#408">NfaInputAction::Discard</a>)
+                    (StartRecord, NfaInputAction::Discard)
                 } <span class="kw">else if </span><span class="self">self</span>.comment == <span class="prelude-val">Some</span>(c) {
-                    (<a href="#431">InComment</a>, <a href="#408">NfaInputAction::Discard</a>)
+                    (InComment, NfaInputAction::Discard)
                 } <span class="kw">else </span>{
-                    (<a href="#426">StartField</a>, <a href="#402">NfaInputAction::Epsilon</a>)
+                    (StartField, NfaInputAction::Epsilon)
                 }
             }
-            <a href="#437">EndRecord</a> =&gt; (<a href="#425">StartRecord</a>, <a href="#402">NfaInputAction::Epsilon</a>),
-            <a href="#426">StartField</a> =&gt; {
+            EndRecord =&gt; (StartRecord, NfaInputAction::Epsilon),
+            StartField =&gt; {
                 <span class="kw">if </span><span class="self">self</span>.quoting &amp;&amp; <span class="self">self</span>.quote == c {
-                    (<a href="#428">InQuotedField</a>, <a href="#408">NfaInputAction::Discard</a>)
+                    (InQuotedField, NfaInputAction::Discard)
                 } <span class="kw">else if </span><span class="self">self</span>.delimiter == c {
-                    (<a href="#434">EndFieldDelim</a>, <a href="#408">NfaInputAction::Discard</a>)
+                    (EndFieldDelim, NfaInputAction::Discard)
                 } <span class="kw">else if </span><span class="self">self</span>.term.equals(c) {
-                    (<a href="#420">EndFieldTerm</a>, <a href="#402">NfaInputAction::Epsilon</a>)
+                    (EndFieldTerm, NfaInputAction::Epsilon)
                 } <span class="kw">else </span>{
-                    (<a href="#427">InField</a>, <a href="#404">NfaInputAction::CopyToOutput</a>)
+                    (InField, NfaInputAction::CopyToOutput)
                 }
             }
-            <a href="#434">EndFieldDelim</a> =&gt; (<a href="#426">StartField</a>, <a href="#402">NfaInputAction::Epsilon</a>),
-            <a href="#420">EndFieldTerm</a> =&gt; (<a href="#421">InRecordTerm</a>, <a href="#402">NfaInputAction::Epsilon</a>),
-            <a href="#427">InField</a> =&gt; {
+            EndFieldDelim =&gt; (StartField, NfaInputAction::Epsilon),
+            EndFieldTerm =&gt; (InRecordTerm, NfaInputAction::Epsilon),
+            InField =&gt; {
                 <span class="kw">if </span><span class="self">self</span>.delimiter == c {
-                    (<a href="#434">EndFieldDelim</a>, <a href="#408">NfaInputAction::Discard</a>)
+                    (EndFieldDelim, NfaInputAction::Discard)
                 } <span class="kw">else if </span><span class="self">self</span>.term.equals(c) {
-                    (<a href="#420">EndFieldTerm</a>, <a href="#402">NfaInputAction::Epsilon</a>)
+                    (EndFieldTerm, NfaInputAction::Epsilon)
                 } <span class="kw">else </span>{
-                    (<a href="#427">InField</a>, <a href="#404">NfaInputAction::CopyToOutput</a>)
+                    (InField, NfaInputAction::CopyToOutput)
                 }
             }
-            <a href="#428">InQuotedField</a> =&gt; {
+            InQuotedField =&gt; {
                 <span class="kw">if </span><span class="self">self</span>.quoting &amp;&amp; <span class="self">self</span>.quote == c {
-                    (<a href="#430">InDoubleEscapedQuote</a>, <a href="#408">NfaInputAction::Discard</a>)
+                    (InDoubleEscapedQuote, NfaInputAction::Discard)
                 } <span class="kw">else if </span><span class="self">self</span>.quoting &amp;&amp; <span class="self">self</span>.escape == <span class="prelude-val">Some</span>(c) {
-                    (<a href="#429">InEscapedQuote</a>, <a href="#408">NfaInputAction::Discard</a>)
+                    (InEscapedQuote, NfaInputAction::Discard)
                 } <span class="kw">else </span>{
-                    (<a href="#428">InQuotedField</a>, <a href="#404">NfaInputAction::CopyToOutput</a>)
+                    (InQuotedField, NfaInputAction::CopyToOutput)
                 }
             }
-            <a href="#429">InEscapedQuote</a> =&gt; (<a href="#428">InQuotedField</a>, <a href="#404">NfaInputAction::CopyToOutput</a>),
-            <a href="#430">InDoubleEscapedQuote</a> =&gt; {
+            InEscapedQuote =&gt; (InQuotedField, NfaInputAction::CopyToOutput),
+            InDoubleEscapedQuote =&gt; {
                 <span class="kw">if </span><span class="self">self</span>.quoting &amp;&amp; <span class="self">self</span>.double_quote &amp;&amp; <span class="self">self</span>.quote == c {
-                    (<a href="#428">InQuotedField</a>, <a href="#404">NfaInputAction::CopyToOutput</a>)
+                    (InQuotedField, NfaInputAction::CopyToOutput)
                 } <span class="kw">else if </span><span class="self">self</span>.delimiter == c {
-                    (<a href="#434">EndFieldDelim</a>, <a href="#408">NfaInputAction::Discard</a>)
+                    (EndFieldDelim, NfaInputAction::Discard)
                 } <span class="kw">else if </span><span class="self">self</span>.term.equals(c) {
-                    (<a href="#420">EndFieldTerm</a>, <a href="#402">NfaInputAction::Epsilon</a>)
+                    (EndFieldTerm, NfaInputAction::Epsilon)
                 } <span class="kw">else </span>{
-                    (<a href="#427">InField</a>, <a href="#404">NfaInputAction::CopyToOutput</a>)
+                    (InField, NfaInputAction::CopyToOutput)
                 }
             }
-            <a href="#431">InComment</a> =&gt; {
+            InComment =&gt; {
                 <span class="kw">if </span><span class="string">b&#39;\n&#39; </span>== c {
-                    (<a href="#425">StartRecord</a>, <a href="#408">NfaInputAction::Discard</a>)
+                    (StartRecord, NfaInputAction::Discard)
                 } <span class="kw">else </span>{
-                    (<a href="#431">InComment</a>, <a href="#408">NfaInputAction::Discard</a>)
+                    (InComment, NfaInputAction::Discard)
                 }
             }
-            <a href="#421">InRecordTerm</a> =&gt; {
+            InRecordTerm =&gt; {
                 <span class="kw">if </span><span class="self">self</span>.term.is_crlf() &amp;&amp; <span class="string">b&#39;\r&#39; </span>== c {
-                    (<a href="#438">CRLF</a>, <a href="#408">NfaInputAction::Discard</a>)
+                    (CRLF, NfaInputAction::Discard)
                 } <span class="kw">else </span>{
-                    (<a href="#437">EndRecord</a>, <a href="#408">NfaInputAction::Discard</a>)
+                    (EndRecord, NfaInputAction::Discard)
                 }
             }
-            <a href="#438">CRLF</a> =&gt; {
+            CRLF =&gt; {
                 <span class="kw">if </span><span class="string">b&#39;\n&#39; </span>== c {
-                    (<a href="#425">StartRecord</a>, <a href="#408">NfaInputAction::Discard</a>)
+                    (StartRecord, NfaInputAction::Discard)
                 } <span class="kw">else </span>{
-                    (<a href="#425">StartRecord</a>, <a href="#402">NfaInputAction::Epsilon</a>)
+                    (StartRecord, NfaInputAction::Epsilon)
                 }
             }
         }
@@ -3091,13 +3091,13 @@
 /// NFA states that are in the DFA. In particular, any NFA state that can only
 /// be reached by epsilon transitions will never have explicit usage in the
 /// DFA.
-</span><span class="kw">const </span>TRANS_CLASSES: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> = <span class="number">7</span>;
-<span class="kw">const </span>DFA_STATES: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> = <span class="number">10</span>;
-<span class="kw">const </span>TRANS_SIZE: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> = <a href="#1089">TRANS_CLASSES</a> * <a href="#1090">DFA_STATES</a>;
+</span><span class="kw">const </span>TRANS_CLASSES: usize = <span class="number">7</span>;
+<span class="kw">const </span>DFA_STATES: usize = <span class="number">10</span>;
+<span class="kw">const </span>TRANS_SIZE: usize = TRANS_CLASSES * DFA_STATES;
 
 <span class="doccomment">/// The number of possible transition classes. (See the comment on `TRANS_SIZE`
 /// for more details.)
-</span><span class="kw">const </span>CLASS_SIZE: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> = <span class="number">256</span>;
+</span><span class="kw">const </span>CLASS_SIZE: usize = <span class="number">256</span>;
 
 <span class="doccomment">/// A representation of a DFA.
 ///
@@ -3110,118 +3110,118 @@
     ///
     /// DFA states are represented as an index corresponding to the start of
     /// its row in this table.
-    </span>trans: [<a href="#1284">DfaState</a>; <a href="#1091">TRANS_SIZE</a>],
+    </span>trans: [DfaState; TRANS_SIZE],
     <span class="doccomment">/// A table with the same layout as `trans`, except its values indicate
     /// whether a particular `(state, equivalence class)` pair should emit an
     /// output byte.
-    </span>has_output: [<a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>; <a href="#1091">TRANS_SIZE</a>],
+    </span>has_output: [bool; TRANS_SIZE],
     <span class="doccomment">/// A map from input byte to equivalence class.
     ///
     /// This is responsible for reducing the effective alphabet size from
     /// 256 to `TRANS_CLASSES`.
-    </span>classes: <a href="#1226">DfaClasses</a>,
+    </span>classes: DfaClasses,
     <span class="doccomment">/// The DFA state corresponding to being inside an unquoted field.
-    </span>in_field: <a href="#1284">DfaState</a>,
+    </span>in_field: DfaState,
     <span class="doccomment">/// The DFA state corresponding to being inside an quoted field.
-    </span>in_quoted: <a href="#1284">DfaState</a>,
+    </span>in_quoted: DfaState,
     <span class="doccomment">/// The minimum DFA state that indicates a field has been parsed. All DFA
     /// states greater than this are also final-field states.
-    </span>final_field: <a href="#1284">DfaState</a>,
+    </span>final_field: DfaState,
     <span class="doccomment">/// The minimum DFA state that indicates a record has been parsed. All DFA
     /// states greater than this are also final-record states.
-    </span>final_record: <a href="#1284">DfaState</a>,
+    </span>final_record: DfaState,
 }
 
-<span class="kw">impl </span><a href="#1101">Dfa</a> {
-    <span class="kw">fn </span>new() -&gt; <a href="#1101">Dfa</a> {
-        <a href="#1101">Dfa</a> {
-            trans: [<a href="#1284">DfaState</a>(<span class="number">0</span>); <a href="#1091">TRANS_SIZE</a>],
-            has_output: [<span class="bool-val">false</span>; <a href="#1091">TRANS_SIZE</a>],
+<span class="kw">impl </span>Dfa {
+    <span class="kw">fn </span>new() -&gt; Dfa {
+        Dfa {
+            trans: [DfaState(<span class="number">0</span>); TRANS_SIZE],
+            has_output: [<span class="bool-val">false</span>; TRANS_SIZE],
             classes: DfaClasses::new(),
-            in_field: <a href="#1284">DfaState</a>(<span class="number">0</span>),
-            in_quoted: <a href="#1284">DfaState</a>(<span class="number">0</span>),
-            final_field: <a href="#1284">DfaState</a>(<span class="number">0</span>),
-            final_record: <a href="#1284">DfaState</a>(<span class="number">0</span>),
+            in_field: DfaState(<span class="number">0</span>),
+            in_quoted: DfaState(<span class="number">0</span>),
+            final_field: DfaState(<span class="number">0</span>),
+            final_record: DfaState(<span class="number">0</span>),
         }
     }
 
-    <span class="kw">fn </span>new_state(<span class="kw-2">&amp;</span><span class="self">self</span>, nfa_state: <a href="#417">NfaState</a>) -&gt; <a href="#1284">DfaState</a> {
-        <span class="kw">let </span>nclasses = <a class="self" href="#1143">self</a>.classes.<a href="#1244">num_classes</a>() <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>;
-        <span class="kw">let </span>idx = (<a href="#1143">nfa_state</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>).checked_mul(<a href="#1144">nclasses</a>).unwrap();
-        <a href="#1284">DfaState</a>(<a href="#1145">idx</a>)
+    <span class="kw">fn </span>new_state(<span class="kw-2">&amp;</span><span class="self">self</span>, nfa_state: NfaState) -&gt; DfaState {
+        <span class="kw">let </span>nclasses = <span class="self">self</span>.classes.num_classes() <span class="kw">as </span>u8;
+        <span class="kw">let </span>idx = (nfa_state <span class="kw">as </span>u8).checked_mul(nclasses).unwrap();
+        DfaState(idx)
     }
 
-    <span class="kw">fn </span>new_state_final_end(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="#1284">DfaState</a> {
-        <a class="self" href="#1149">self</a>.<a href="#1143">new_state</a>(<a href="#425">NfaState::StartRecord</a>)
+    <span class="kw">fn </span>new_state_final_end(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; DfaState {
+        <span class="self">self</span>.new_state(NfaState::StartRecord)
     }
 
-    <span class="kw">fn </span>new_state_final_record(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="#1284">DfaState</a> {
-        <a class="self" href="#1153">self</a>.<a href="#1143">new_state</a>(<a href="#437">NfaState::EndRecord</a>)
+    <span class="kw">fn </span>new_state_final_record(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; DfaState {
+        <span class="self">self</span>.new_state(NfaState::EndRecord)
     }
 
-    <span class="kw">fn </span>get_output(<span class="kw-2">&amp;</span><span class="self">self</span>, state: <a href="#1284">DfaState</a>, c: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) -&gt; (<a href="#1284">DfaState</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) {
-        <span class="kw">let </span>cls = <a class="self" href="#1157">self</a>.classes.classes[<a href="#1157">c</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>];
-        <span class="kw">let </span>idx = <a href="#1157">state</a>.<span class="number">0 </span><span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> + <a href="#1158">cls</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>;
-        (<a class="self" href="#1157">self</a>.trans[<a href="#1159">idx</a>], <a class="self" href="#1157">self</a>.has_output[<a href="#1159">idx</a>])
+    <span class="kw">fn </span>get_output(<span class="kw-2">&amp;</span><span class="self">self</span>, state: DfaState, c: u8) -&gt; (DfaState, bool) {
+        <span class="kw">let </span>cls = <span class="self">self</span>.classes.classes[c <span class="kw">as </span>usize];
+        <span class="kw">let </span>idx = state.<span class="number">0 </span><span class="kw">as </span>usize + cls <span class="kw">as </span>usize;
+        (<span class="self">self</span>.trans[idx], <span class="self">self</span>.has_output[idx])
     }
 
-    <span class="kw">fn </span>set(<span class="kw-2">&amp;mut </span><span class="self">self</span>, from: <a href="#1284">DfaState</a>, c: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>, to: <a href="#1284">DfaState</a>, output: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) {
-        <span class="kw">let </span>cls = <a class="self" href="#1163">self</a>.classes.classes[<a href="#1163">c</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>];
-        <span class="kw">let </span>idx = <a href="#1163">from</a>.<span class="number">0 </span><span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> + <a href="#1164">cls</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>;
-        <a class="self" href="#1163">self</a>.trans[<a href="#1165">idx</a>] = <a href="#1163">to</a>;
-        <a class="self" href="#1163">self</a>.has_output[<a href="#1165">idx</a>] = <a href="#1163">output</a>;
+    <span class="kw">fn </span>set(<span class="kw-2">&amp;mut </span><span class="self">self</span>, from: DfaState, c: u8, to: DfaState, output: bool) {
+        <span class="kw">let </span>cls = <span class="self">self</span>.classes.classes[c <span class="kw">as </span>usize];
+        <span class="kw">let </span>idx = from.<span class="number">0 </span><span class="kw">as </span>usize + cls <span class="kw">as </span>usize;
+        <span class="self">self</span>.trans[idx] = to;
+        <span class="self">self</span>.has_output[idx] = output;
     }
 
     <span class="kw">fn </span>finish(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <a class="self" href="#1170">self</a>.in_field = <a class="self" href="#1170">self</a>.<a href="#1143">new_state</a>(<a href="#427">NfaState::InField</a>);
-        <a class="self" href="#1170">self</a>.in_quoted = <a class="self" href="#1170">self</a>.<a href="#1143">new_state</a>(<a href="#428">NfaState::InQuotedField</a>);
-        <a class="self" href="#1170">self</a>.final_field = <a class="self" href="#1170">self</a>.<a href="#1143">new_state</a>(<a href="#434">NfaState::EndFieldDelim</a>);
-        <a class="self" href="#1170">self</a>.final_record = <a class="self" href="#1170">self</a>.<a href="#1143">new_state</a>(<a href="#437">NfaState::EndRecord</a>);
+        <span class="self">self</span>.in_field = <span class="self">self</span>.new_state(NfaState::InField);
+        <span class="self">self</span>.in_quoted = <span class="self">self</span>.new_state(NfaState::InQuotedField);
+        <span class="self">self</span>.final_field = <span class="self">self</span>.new_state(NfaState::EndFieldDelim);
+        <span class="self">self</span>.final_record = <span class="self">self</span>.new_state(NfaState::EndRecord);
     }
 
     <span class="kw">fn </span>new_read_field_result(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        state: <a href="#1284">DfaState</a>,
-        is_final_trans: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-        inpdone: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-        outdone: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-    ) -&gt; <a href="#263">ReadFieldResult</a> {
+        state: DfaState,
+        is_final_trans: bool,
+        inpdone: bool,
+        outdone: bool,
+    ) -&gt; ReadFieldResult {
         <span class="kw">if </span>state &gt;= <span class="self">self</span>.final_record {
-            <a href="#274">ReadFieldResult::Field</a> { record_end: <span class="bool-val">true </span>}
+            ReadFieldResult::Field { record_end: <span class="bool-val">true </span>}
         } <span class="kw">else if </span>state == <span class="self">self</span>.final_field {
-            <a href="#274">ReadFieldResult::Field</a> { record_end: <span class="bool-val">false </span>}
+            ReadFieldResult::Field { record_end: <span class="bool-val">false </span>}
         } <span class="kw">else if </span>is_final_trans &amp;&amp; state.is_start() {
-            <a href="#282">ReadFieldResult::End</a>
+            ReadFieldResult::End
         } <span class="kw">else </span>{
-            <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(state &lt; <span class="self">self</span>.final_field);
+            <span class="macro">debug_assert!</span>(state &lt; <span class="self">self</span>.final_field);
             <span class="kw">if </span>!inpdone &amp;&amp; outdone {
-                <a href="#269">ReadFieldResult::OutputFull</a>
+                ReadFieldResult::OutputFull
             } <span class="kw">else </span>{
-                <a href="#266">ReadFieldResult::InputEmpty</a>
+                ReadFieldResult::InputEmpty
             }
         }
     }
 
     <span class="kw">fn </span>new_read_record_result(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        state: <a href="#1284">DfaState</a>,
-        is_final_trans: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-        inpdone: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-        outdone: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-        endsdone: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-    ) -&gt; <a href="#335">ReadRecordResult</a> {
+        state: DfaState,
+        is_final_trans: bool,
+        inpdone: bool,
+        outdone: bool,
+        endsdone: bool,
+    ) -&gt; ReadRecordResult {
         <span class="kw">if </span>state &gt;= <span class="self">self</span>.final_record {
-            <a href="#346">ReadRecordResult::Record</a>
+            ReadRecordResult::Record
         } <span class="kw">else if </span>is_final_trans &amp;&amp; state.is_start() {
-            <a href="#351">ReadRecordResult::End</a>
+            ReadRecordResult::End
         } <span class="kw">else </span>{
-            <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(state &lt; <span class="self">self</span>.final_record);
+            <span class="macro">debug_assert!</span>(state &lt; <span class="self">self</span>.final_record);
             <span class="kw">if </span>!inpdone &amp;&amp; outdone {
-                <a href="#341">ReadRecordResult::OutputFull</a>
+                ReadRecordResult::OutputFull
             } <span class="kw">else if </span>!inpdone &amp;&amp; endsdone {
-                <a href="#344">ReadRecordResult::OutputEndsFull</a>
+                ReadRecordResult::OutputEndsFull
             } <span class="kw">else </span>{
-                <a href="#338">ReadRecordResult::InputEmpty</a>
+                ReadRecordResult::InputEmpty
             }
         }
     }
@@ -3229,25 +3229,25 @@
 
 <span class="doccomment">/// A map from input byte to equivalence class.
 </span><span class="kw">struct </span>DfaClasses {
-    classes: [<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <a href="#1095">CLASS_SIZE</a>],
-    next_class: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+    classes: [u8; CLASS_SIZE],
+    next_class: usize,
 }
 
-<span class="kw">impl </span><a href="#1226">DfaClasses</a> {
-    <span class="kw">fn </span>new() -&gt; <a href="#1226">DfaClasses</a> {
-        <a href="#1226">DfaClasses</a> { classes: [<span class="number">0</span>; <a href="#1095">CLASS_SIZE</a>], next_class: <span class="number">1 </span>}
+<span class="kw">impl </span>DfaClasses {
+    <span class="kw">fn </span>new() -&gt; DfaClasses {
+        DfaClasses { classes: [<span class="number">0</span>; CLASS_SIZE], next_class: <span class="number">1 </span>}
     }
 
-    <span class="kw">fn </span>add(<span class="kw-2">&amp;mut </span><span class="self">self</span>, b: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) {
+    <span class="kw">fn </span>add(<span class="kw-2">&amp;mut </span><span class="self">self</span>, b: u8) {
         <span class="kw">if </span><span class="self">self</span>.next_class &gt; CLASS_SIZE {
-            <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.panic.html">panic!</a>(<span class="string">&quot;added too many classes&quot;</span>)
+            <span class="macro">panic!</span>(<span class="string">&quot;added too many classes&quot;</span>)
         }
-        <a class="self" href="#1236">self</a>.classes[<a href="#1236">b</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>] = <a class="self" href="#1236">self</a>.next_class <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>;
-        <a class="self" href="#1236">self</a>.next_class = <a class="self" href="#1236">self</a>.next_class + <span class="number">1</span>;
+        <span class="self">self</span>.classes[b <span class="kw">as </span>usize] = <span class="self">self</span>.next_class <span class="kw">as </span>u8;
+        <span class="self">self</span>.next_class = <span class="self">self</span>.next_class + <span class="number">1</span>;
     }
 
-    <span class="kw">fn </span>num_classes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="self" href="#1244">self</a>.next_class <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>
+    <span class="kw">fn </span>num_classes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+        <span class="self">self</span>.next_class <span class="kw">as </span>usize
     }
 
     <span class="doccomment">/// Scan and copy the input bytes to the output buffer quickly.
@@ -3263,10 +3263,10 @@
     </span><span class="attr">#[inline(always)]
     </span><span class="kw">fn </span>scan_and_copy(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        input: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
-        nin: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-        output: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
-        nout: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+        input: <span class="kw-2">&amp;</span>[u8],
+        nin: <span class="kw-2">&amp;mut </span>usize,
+        output: <span class="kw-2">&amp;mut </span>[u8],
+        nout: <span class="kw-2">&amp;mut </span>usize,
     ) {
         <span class="kw">while </span><span class="kw-2">*</span>nin &lt; input.len()
             &amp;&amp; <span class="kw-2">*</span>nout &lt; output.len()
@@ -3286,47 +3286,47 @@
 /// single multiplication instruction when computing the next transition for
 /// a particular input byte.
 </span><span class="attr">#[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
-</span><span class="kw">struct </span>DfaState(<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>);
+</span><span class="kw">struct </span>DfaState(u8);
 
-<span class="kw">impl </span><a href="#1284">DfaState</a> {
-    <span class="kw">fn </span>start() -&gt; <a href="#1284">DfaState</a> {
-        <a href="#1284">DfaState</a>(<span class="number">0</span>)
+<span class="kw">impl </span>DfaState {
+    <span class="kw">fn </span>start() -&gt; DfaState {
+        DfaState(<span class="number">0</span>)
     }
 
-    <span class="kw">fn </span>is_start(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#1291">self</a>.<span class="number">0 </span>== <span class="number">0
+    <span class="kw">fn </span>is_start(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.<span class="number">0 </span>== <span class="number">0
     </span>}
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="#1101">Dfa</a> {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#1297">f</a>, <span class="string">&quot;Dfa(N/A)&quot;</span>)
+<span class="kw">impl </span>fmt::Debug <span class="kw">for </span>Dfa {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter) -&gt; fmt::Result {
+        <span class="macro">write!</span>(f, <span class="string">&quot;Dfa(N/A)&quot;</span>)
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="#1226">DfaClasses</a> {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(
-            <a href="#1303">f</a>,
+<span class="kw">impl </span>fmt::Debug <span class="kw">for </span>DfaClasses {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter) -&gt; fmt::Result {
+        <span class="macro">write!</span>(
+            f,
             <span class="string">&quot;DfaClasses {{ classes: N/A, next_class: {:?} }}&quot;</span>,
             <span class="self">self</span>.next_class
         )
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> <span class="kw">for </span><a href="#1101">Dfa</a> {
-    <span class="kw">fn </span>clone(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="#1101">Dfa</a> {
+<span class="kw">impl </span>Clone <span class="kw">for </span>Dfa {
+    <span class="kw">fn </span>clone(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Dfa {
         <span class="kw">let </span><span class="kw-2">mut </span>dfa = Dfa::new();
-        <a href="#1314">dfa</a>.trans.copy_from_slice(<span class="kw-2">&amp;</span><a class="self" href="#1313">self</a>.trans);
-        <a href="#1314">dfa</a>
+        dfa.trans.copy_from_slice(<span class="kw-2">&amp;</span><span class="self">self</span>.trans);
+        dfa
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> <span class="kw">for </span><a href="#1226">DfaClasses</a> {
-    <span class="kw">fn </span>clone(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="#1226">DfaClasses</a> {
+<span class="kw">impl </span>Clone <span class="kw">for </span>DfaClasses {
+    <span class="kw">fn </span>clone(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; DfaClasses {
         <span class="kw">let </span><span class="kw-2">mut </span>x = DfaClasses::new();
-        <a href="#1322">x</a>.classes.copy_from_slice(<span class="kw-2">&amp;</span><a class="self" href="#1321">self</a>.classes);
-        <a href="#1322">x</a>
+        x.classes.copy_from_slice(<span class="kw-2">&amp;</span><span class="self">self</span>.classes);
+        x
     }
 }
 
@@ -4009,4 +4009,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="csv_core" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="csv_core" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

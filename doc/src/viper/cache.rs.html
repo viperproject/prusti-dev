@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `viper/src/cache.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>cache.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../viper/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `viper/src/cache.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>cache.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../viper/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -151,71 +151,71 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-</span><span class="kw">use </span>log::{<a href="../../log/macro.error.html">error</a>, <a href="../../log/macro.info.html">info</a>, <a href="../../log/macro.warn.html">warn</a>};
+</span><span class="kw">use </span>log::{error, info, warn};
 
-<span class="kw">use </span><a href="verification_result.rs.html#11"><span class="kw">crate</span>::verification_result::VerificationResult</a>;
+<span class="kw">use </span><span class="kw">crate</span>::verification_result::VerificationResult;
 <span class="kw">use </span>std::{
-    <a href="https://doc.rust-lang.org/nightly/std/collections/hash/map/struct.HashMap.html">collections::HashMap</a>,
-    <a href="https://doc.rust-lang.org/nightly/std/fs/index.html">fs</a>, <a href="https://doc.rust-lang.org/nightly/std/io/index.html">io</a>,
-    <a href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.DerefMut.html">ops::DerefMut</a>,
-    path::{<a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>, <a href="https://doc.rust-lang.org/nightly/std/path/struct.PathBuf.html">PathBuf</a>},
-    sync::{<a href="https://doc.rust-lang.org/nightly/alloc/sync/struct.Arc.html">Arc</a>, <a href="https://doc.rust-lang.org/nightly/std/sync/mutex/struct.Mutex.html">Mutex</a>},
+    collections::HashMap,
+    fs, io,
+    ops::DerefMut,
+    path::{Path, PathBuf},
+    sync::{Arc, Mutex},
 };
 
 <span class="kw">pub trait </span>Cache {
-    <span class="kw">fn </span>get(<span class="kw-2">&amp;</span><span class="self">self</span>, request: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="verification_result.rs.html#11">VerificationResult</a>&gt;;
-    <span class="kw">fn </span>insert(<span class="self">self</span>, request: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>, result: <a href="verification_result.rs.html#11">VerificationResult</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="verification_result.rs.html#11">VerificationResult</a>&gt;;
+    <span class="kw">fn </span>get(<span class="kw-2">&amp;</span><span class="self">self</span>, request: u64) -&gt; <span class="prelude-ty">Option</span>&lt;VerificationResult&gt;;
+    <span class="kw">fn </span>insert(<span class="self">self</span>, request: u64, result: VerificationResult) -&gt; <span class="prelude-ty">Option</span>&lt;VerificationResult&gt;;
 }
 <span class="comment">// We can change the representation here (e.g. adding fields):
 </span><span class="attr">#[derive(Debug, Clone)]
 </span><span class="kw">pub struct </span>PersistentCache {
-    updated: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-    load_loc: <a href="https://doc.rust-lang.org/nightly/std/path/struct.PathBuf.html">PathBuf</a>,
-    data: HashMap&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>, <a href="verification_result.rs.html#11">VerificationResult</a>&gt;,
+    updated: bool,
+    load_loc: PathBuf,
+    data: HashMap&lt;u64, VerificationResult&gt;,
 }
 
-<span class="kw">const </span>RESULT_CACHE_VERSION: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> = <span class="number">3</span>;
+<span class="kw">const </span>RESULT_CACHE_VERSION: u64 = <span class="number">3</span>;
 
 <span class="attr">#[derive(Debug, serde::Serialize, serde::Deserialize)]
 </span><span class="kw">struct </span>ResultCache {
-    data: HashMap&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>, <a href="verification_result.rs.html#11">VerificationResult</a>&gt;,
-    version: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>,
+    data: HashMap&lt;u64, VerificationResult&gt;,
+    version: u64,
 }
 
-<span class="kw">impl </span>From&lt;(<a href="https://doc.rust-lang.org/nightly/std/path/struct.PathBuf.html">PathBuf</a>, <a href="#33">ResultCache</a>)&gt; <span class="kw">for </span><a href="#24">PersistentCache</a> {
+<span class="kw">impl </span>From&lt;(PathBuf, ResultCache)&gt; <span class="kw">for </span>PersistentCache {
     <span class="doccomment">/// Used when loading cache from disk
-    </span><span class="kw">fn </span>from((load_loc, rc): (<a href="https://doc.rust-lang.org/nightly/std/path/struct.PathBuf.html">PathBuf</a>, <a href="#33">ResultCache</a>)) -&gt; <span class="self">Self </span>{
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert_eq.html">assert_eq!</a>(rc.version, RESULT_CACHE_VERSION);
-        <span class="kw">let </span>data = <a href="#40">rc</a>.data;
-        <a href="#24">PersistentCache</a> {
+    </span><span class="kw">fn </span>from((load_loc, rc): (PathBuf, ResultCache)) -&gt; <span class="self">Self </span>{
+        <span class="macro">assert_eq!</span>(rc.version, RESULT_CACHE_VERSION);
+        <span class="kw">let </span>data = rc.data;
+        PersistentCache {
             updated: <span class="bool-val">false</span>,
-            <a href="#40">load_loc</a>,
-            <a href="#42">data</a>,
+            load_loc,
+            data,
         }
     }
 }
-<span class="kw">impl </span>From&lt;<span class="kw-2">&amp;</span><a href="#24">PersistentCache</a>&gt; <span class="kw">for </span><a href="#33">ResultCache</a> {
+<span class="kw">impl </span>From&lt;<span class="kw-2">&amp;</span>PersistentCache&gt; <span class="kw">for </span>ResultCache {
     <span class="doccomment">/// Used when saving cache to disk
-    </span><span class="kw">fn </span>from(cache: <span class="kw-2">&amp;</span><a href="#24">PersistentCache</a>) -&gt; <span class="self">Self </span>{
-        <a href="#33">ResultCache</a> {
-            data: <a href="#52">cache</a>.data.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
-            version: <a href="#30">RESULT_CACHE_VERSION</a>,
+    </span><span class="kw">fn </span>from(cache: <span class="kw-2">&amp;</span>PersistentCache) -&gt; <span class="self">Self </span>{
+        ResultCache {
+            data: cache.data.clone(),
+            version: RESULT_CACHE_VERSION,
         }
     }
 }
 
-<span class="kw">impl </span><a href="#24">PersistentCache</a> {
-    <span class="kw">pub fn </span>load_cache(cache_loc: <a href="https://doc.rust-lang.org/nightly/std/path/struct.PathBuf.html">PathBuf</a>) -&gt; <span class="self">Self </span>{
-        <span class="kw">let </span><span class="kw-2">mut </span>data_res: <span class="prelude-ty">Option</span>&lt;<a href="#33">ResultCache</a>&gt; = <span class="prelude-val">None</span>;
+<span class="kw">impl </span>PersistentCache {
+    <span class="kw">pub fn </span>load_cache(cache_loc: PathBuf) -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span><span class="kw-2">mut </span>data_res: <span class="prelude-ty">Option</span>&lt;ResultCache&gt; = <span class="prelude-val">None</span>;
         <span class="kw">if </span>!cache_loc.as_os_str().is_empty() {
-            <span class="kw">if let </span><span class="prelude-val">Ok</span>(f) = fs::File::open(<span class="kw-2">&amp;</span><a href="#61">cache_loc</a>) {
-                <span class="kw">match </span>bincode::deserialize_from::&lt;<span class="kw">_</span>, <a href="#33">ResultCache</a>&gt;(<span class="kw-2">&amp;mut </span>io::BufReader::new(<a href="#64">f</a>)) {
+            <span class="kw">if let </span><span class="prelude-val">Ok</span>(f) = fs::File::open(<span class="kw-2">&amp;</span>cache_loc) {
+                <span class="kw">match </span>bincode::deserialize_from::&lt;<span class="kw">_</span>, ResultCache&gt;(<span class="kw-2">&amp;mut </span>io::BufReader::new(f)) {
                     <span class="prelude-val">Ok</span>(data) =&gt; {
                         <span class="kw">if </span>data.version == RESULT_CACHE_VERSION {
-                            <a class="macro" href="../../log/macro.info.html">info!</a>(<span class="string">&quot;Loaded cache from \&quot;{}\&quot;&quot;</span>, cache_loc.display());
-                            <a href="#62">data_res</a> = <span class="prelude-val">Some</span>(<a href="#66">data</a>);
+                            <span class="macro">info!</span>(<span class="string">&quot;Loaded cache from \&quot;{}\&quot;&quot;</span>, cache_loc.display());
+                            data_res = <span class="prelude-val">Some</span>(data);
                         } <span class="kw">else </span>{
-                            <a class="macro" href="../../log/macro.error.html">error!</a>(
+                            <span class="macro">error!</span>(
                                 <span class="string">&quot;Cache version mismatch when reading from \&quot;{}\&quot;: \
                                     expected={} actual={}&quot;</span>,
                                 cache_loc.display(),
@@ -224,73 +224,73 @@
                             )
                         }
                     }
-                    <span class="prelude-val">Err</span>(e) =&gt; <a class="macro" href="../../log/macro.error.html">error!</a>(<span class="string">&quot;Failed to read cache from \&quot;{}\&quot;: {e}&quot;</span>, cache_loc.display()),
+                    <span class="prelude-val">Err</span>(e) =&gt; <span class="macro">error!</span>(<span class="string">&quot;Failed to read cache from \&quot;{}\&quot;: {e}&quot;</span>, cache_loc.display()),
                 }
             }
         }
         PersistentCache::from((
-            <a href="#61">cache_loc</a>,
-            <a href="#62">data_res</a>.unwrap_or_else(|| {
-                <a class="macro" href="../../log/macro.info.html">info!</a>(<span class="string">&quot;Cache file doesn&#39;t exist or is invalid. Using fresh cache.&quot;</span>);
-                <a href="#33">ResultCache</a> {
+            cache_loc,
+            data_res.unwrap_or_else(|| {
+                <span class="macro">info!</span>(<span class="string">&quot;Cache file doesn&#39;t exist or is invalid. Using fresh cache.&quot;</span>);
+                ResultCache {
                     data: HashMap::new(),
-                    version: <a href="#30">RESULT_CACHE_VERSION</a>,
+                    version: RESULT_CACHE_VERSION,
                 }
             }),
         ))
     }
-    <span class="kw">pub fn </span>save_cache(<span class="kw-2">&amp;</span><span class="self">self</span>, cache_loc: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>) {
-        <span class="kw">match </span>fs::File::create(<a href="#95">cache_loc</a>) {
+    <span class="kw">pub fn </span>save_cache(<span class="kw-2">&amp;</span><span class="self">self</span>, cache_loc: <span class="kw-2">&amp;</span>Path) {
+        <span class="kw">match </span>fs::File::create(cache_loc) {
             <span class="prelude-val">Ok</span>(f) =&gt; {
-                <a class="macro" href="../../log/macro.info.html">info!</a>(<span class="string">&quot;Saving cache to \&quot;{}\&quot;&quot;</span>, cache_loc.display());
-                bincode::serialize_into(<span class="kw-2">&amp;mut </span>io::BufWriter::new(<a href="#97">f</a>), <span class="kw-2">&amp;</span>ResultCache::from(<a class="self" href="#95">self</a>))
-                    .unwrap_or_else(|e| <a class="macro" href="../../log/macro.error.html">error!</a>(<span class="string">&quot;Failed to write cache: {e}&quot;</span>));
+                <span class="macro">info!</span>(<span class="string">&quot;Saving cache to \&quot;{}\&quot;&quot;</span>, cache_loc.display());
+                bincode::serialize_into(<span class="kw-2">&amp;mut </span>io::BufWriter::new(f), <span class="kw-2">&amp;</span>ResultCache::from(<span class="self">self</span>))
+                    .unwrap_or_else(|e| <span class="macro">error!</span>(<span class="string">&quot;Failed to write cache: {e}&quot;</span>));
             }
-            <span class="prelude-val">Err</span>(e) =&gt; <a class="macro" href="../../log/macro.error.html">error!</a>(<span class="string">&quot;Failed to create cache file: {e}&quot;</span>),
+            <span class="prelude-val">Err</span>(e) =&gt; <span class="macro">error!</span>(<span class="string">&quot;Failed to create cache file: {e}&quot;</span>),
         }
     }
     <span class="kw">pub fn </span>save(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="comment">// Save cache to disk, if changed and save path is valid
         </span><span class="kw">if </span><span class="self">self</span>.updated {
             <span class="kw">if </span><span class="self">self</span>.load_loc.as_os_str().is_empty() {
-                <a class="macro" href="../../log/macro.warn.html">warn!</a>(<span class="string">&quot;Cannot save cache, because the cache path is empty.&quot;</span>)
+                <span class="macro">warn!</span>(<span class="string">&quot;Cannot save cache, because the cache path is empty.&quot;</span>)
             } <span class="kw">else </span>{
-                <span class="kw">let </span><span class="kw-2">mut </span>save_dir = <a class="self" href="#105">self</a>.load_loc.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
-                <a href="#111">save_dir</a>.pop();
-                <span class="kw">match </span>fs::create_dir_all(<span class="kw-2">&amp;</span><a href="#111">save_dir</a>) {
-                    <span class="prelude-val">Ok</span>(()) =&gt; <a class="self" href="#105">self</a>.<a href="#95">save_cache</a>(<span class="kw-2">&amp;</span><a class="self" href="#105">self</a>.load_loc),
-                    <span class="prelude-val">Err</span>(e) =&gt; <a class="macro" href="../../log/macro.error.html">error!</a>(<span class="string">&quot;Failed to create cache dir: {e}&quot;</span>),
+                <span class="kw">let </span><span class="kw-2">mut </span>save_dir = <span class="self">self</span>.load_loc.clone();
+                save_dir.pop();
+                <span class="kw">match </span>fs::create_dir_all(<span class="kw-2">&amp;</span>save_dir) {
+                    <span class="prelude-val">Ok</span>(()) =&gt; <span class="self">self</span>.save_cache(<span class="kw-2">&amp;</span><span class="self">self</span>.load_loc),
+                    <span class="prelude-val">Err</span>(e) =&gt; <span class="macro">error!</span>(<span class="string">&quot;Failed to create cache dir: {e}&quot;</span>),
                 }
             }
         }
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span><a href="#24">PersistentCache</a> {
+<span class="kw">impl </span>Drop <span class="kw">for </span>PersistentCache {
     <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <a class="self" href="#123">self</a>.<a href="#105">save</a>();
+        <span class="self">self</span>.save();
     }
 }
 
-<span class="kw">impl </span><a href="#18">Cache</a> <span class="kw">for </span><span class="kw-2">&amp;mut </span><a href="#24">PersistentCache</a> {
-    <span class="kw">fn </span>get(<span class="kw-2">&amp;</span><span class="self">self</span>, request: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="verification_result.rs.html#11">VerificationResult</a>&gt; {
-        <a class="self" href="#129">self</a>.data.get(<span class="kw-2">&amp;</span><a href="#129">request</a>).cloned()
+<span class="kw">impl </span>Cache <span class="kw">for </span><span class="kw-2">&amp;mut </span>PersistentCache {
+    <span class="kw">fn </span>get(<span class="kw-2">&amp;</span><span class="self">self</span>, request: u64) -&gt; <span class="prelude-ty">Option</span>&lt;VerificationResult&gt; {
+        <span class="self">self</span>.data.get(<span class="kw-2">&amp;</span>request).cloned()
     }
-    <span class="kw">fn </span>insert(<span class="self">self</span>, request: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>, result: <a href="verification_result.rs.html#11">VerificationResult</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="verification_result.rs.html#11">VerificationResult</a>&gt; {
-        <a class="self" href="#132">self</a>.updated = <span class="bool-val">true</span>;
-        <a class="self" href="#132">self</a>.data.insert(<a href="#132">request</a>, <a href="#132">result</a>)
+    <span class="kw">fn </span>insert(<span class="self">self</span>, request: u64, result: VerificationResult) -&gt; <span class="prelude-ty">Option</span>&lt;VerificationResult&gt; {
+        <span class="self">self</span>.updated = <span class="bool-val">true</span>;
+        <span class="self">self</span>.data.insert(request, result)
     }
 }
 
-<span class="kw">impl </span><a href="#18">Cache</a> <span class="kw">for </span><span class="kw-2">&amp;</span>Arc&lt;Mutex&lt;<a href="#24">PersistentCache</a>&gt;&gt; {
-    <span class="kw">fn </span>get(<span class="kw-2">&amp;</span><span class="self">self</span>, request: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="verification_result.rs.html#11">VerificationResult</a>&gt; {
-        <span class="kw">let </span><span class="kw-2">mut </span>cache = <a class="self" href="#139">self</a>.lock().unwrap();
-        <a href="#140">cache</a>.<a href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.DerefMut.html">deref_mut</a>().<a href="#19">get</a>(<a href="#139">request</a>)
+<span class="kw">impl </span>Cache <span class="kw">for </span><span class="kw-2">&amp;</span>Arc&lt;Mutex&lt;PersistentCache&gt;&gt; {
+    <span class="kw">fn </span>get(<span class="kw-2">&amp;</span><span class="self">self</span>, request: u64) -&gt; <span class="prelude-ty">Option</span>&lt;VerificationResult&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>cache = <span class="self">self</span>.lock().unwrap();
+        cache.deref_mut().get(request)
     }
-    <span class="kw">fn </span>insert(<span class="self">self</span>, request: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>, result: <a href="verification_result.rs.html#11">VerificationResult</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="verification_result.rs.html#11">VerificationResult</a>&gt; {
-        <span class="kw">let </span><span class="kw-2">mut </span>cache = <a class="self" href="#143">self</a>.lock().unwrap();
-        <a href="#144">cache</a>.<a href="#20">insert</a>(<a href="#143">request</a>, <a href="#143">result</a>)
+    <span class="kw">fn </span>insert(<span class="self">self</span>, request: u64, result: VerificationResult) -&gt; <span class="prelude-ty">Option</span>&lt;VerificationResult&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>cache = <span class="self">self</span>.lock().unwrap();
+        cache.insert(request, result)
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="viper" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="viper" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

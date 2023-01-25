@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/bincode-1.3.3/src/error.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>error.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../bincode/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/bincode-1.3.3/src/error.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>error.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../bincode/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -113,35 +113,35 @@
 <a href="#113" id="113">113</a>
 <a href="#114" id="114">114</a>
 <a href="#115" id="115">115</a>
-</pre><pre class="rust"><code><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">std::error::Error</a> <span class="kw">as </span>StdError;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/io/index.html">std::io</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/str/error/struct.Utf8Error.html">std::str::Utf8Error</a>;
-<span class="kw">use </span>std::{<a href="https://doc.rust-lang.org/nightly/std/error/index.html">error</a>, <a href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">fmt</a>};
+</pre><pre class="rust"><code><span class="kw">use </span>std::error::Error <span class="kw">as </span>StdError;
+<span class="kw">use </span>std::io;
+<span class="kw">use </span>std::str::Utf8Error;
+<span class="kw">use </span>std::{error, fmt};
 
-<span class="kw">use </span><a href="../../serde/index.html">serde</a>;
+<span class="kw">use </span>serde;
 
 <span class="doccomment">/// The result of a serialization or deserialization operation.
-</span><span class="kw">pub type </span><span class="prelude-ty">Result</span>&lt;T&gt; = ::std::result::Result&lt;T, <a href="#12">Error</a>&gt;;
+</span><span class="kw">pub type </span><span class="prelude-ty">Result</span>&lt;T&gt; = ::std::result::Result&lt;T, Error&gt;;
 
 <span class="doccomment">/// An error that can be produced during (de)serializing.
-</span><span class="kw">pub type </span>Error = Box&lt;<a href="#16">ErrorKind</a>&gt;;
+</span><span class="kw">pub type </span>Error = Box&lt;ErrorKind&gt;;
 
 <span class="doccomment">/// The kind of error that can be produced during a serialization or deserialization.
 </span><span class="attr">#[derive(Debug)]
 </span><span class="kw">pub enum </span>ErrorKind {
     <span class="doccomment">/// If the error stems from the reader/writer that is being used
     /// during (de)serialization, that error will be stored and returned here.
-    </span>Io(<a href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a>),
+    </span>Io(io::Error),
     <span class="doccomment">/// Returned if the deserializer attempts to deserialize a string that is not valid utf8
-    </span>InvalidUtf8Encoding(<a href="https://doc.rust-lang.org/nightly/core/str/error/struct.Utf8Error.html">Utf8Error</a>),
+    </span>InvalidUtf8Encoding(Utf8Error),
     <span class="doccomment">/// Returned if the deserializer attempts to deserialize a bool that was
     /// not encoded as either a 1 or a 0
-    </span>InvalidBoolEncoding(<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>),
+    </span>InvalidBoolEncoding(u8),
     <span class="doccomment">/// Returned if the deserializer attempts to deserialize a char that is not in the correct format.
     </span>InvalidCharEncoding,
     <span class="doccomment">/// Returned if the deserializer attempts to deserialize the tag of an enum that is
     /// not in the expected ranges
-    </span>InvalidTagEncoding(<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>),
+    </span>InvalidTagEncoding(usize),
     <span class="doccomment">/// Serde has a deserialize_any method that lets the format hint to the
     /// object which route to take in deserializing.
     </span>DeserializeAnyNotSupported,
@@ -151,82 +151,82 @@
     <span class="doccomment">/// Bincode can not encode sequences of unknown length (like iterators).
     </span>SequenceMustHaveLength,
     <span class="doccomment">/// A custom error message from Serde.
-    </span>Custom(<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>),
+    </span>Custom(String),
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">StdError</a> <span class="kw">for </span><a href="#16">ErrorKind</a> {
-    <span class="kw">fn </span>description(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> {
-        <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="#43">self</a> </span>{
-            <a href="#19">ErrorKind::Io</a>(<span class="kw-2">ref </span>err) =&gt; <a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">error::Error::description</a>(<a href="#45">err</a>),
-            <a href="#21">ErrorKind::InvalidUtf8Encoding</a>(<span class="kw">_</span>) =&gt; <span class="string">&quot;string is not valid utf8&quot;</span>,
-            <a href="#24">ErrorKind::InvalidBoolEncoding</a>(<span class="kw">_</span>) =&gt; <span class="string">&quot;invalid u8 while decoding bool&quot;</span>,
-            <a href="#26">ErrorKind::InvalidCharEncoding</a> =&gt; <span class="string">&quot;char is not valid&quot;</span>,
-            <a href="#29">ErrorKind::InvalidTagEncoding</a>(<span class="kw">_</span>) =&gt; <span class="string">&quot;tag for enum is not valid&quot;</span>,
-            <a href="#37">ErrorKind::SequenceMustHaveLength</a> =&gt; {
+<span class="kw">impl </span>StdError <span class="kw">for </span>ErrorKind {
+    <span class="kw">fn </span>description(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>str {
+        <span class="kw">match </span><span class="kw-2">*</span><span class="self">self </span>{
+            ErrorKind::Io(<span class="kw-2">ref </span>err) =&gt; error::Error::description(err),
+            ErrorKind::InvalidUtf8Encoding(<span class="kw">_</span>) =&gt; <span class="string">&quot;string is not valid utf8&quot;</span>,
+            ErrorKind::InvalidBoolEncoding(<span class="kw">_</span>) =&gt; <span class="string">&quot;invalid u8 while decoding bool&quot;</span>,
+            ErrorKind::InvalidCharEncoding =&gt; <span class="string">&quot;char is not valid&quot;</span>,
+            ErrorKind::InvalidTagEncoding(<span class="kw">_</span>) =&gt; <span class="string">&quot;tag for enum is not valid&quot;</span>,
+            ErrorKind::SequenceMustHaveLength =&gt; {
                 <span class="string">&quot;Bincode can only encode sequences and maps that have a knowable size ahead of time&quot;
             </span>}
-            <a href="#32">ErrorKind::DeserializeAnyNotSupported</a> =&gt; {
+            ErrorKind::DeserializeAnyNotSupported =&gt; {
                 <span class="string">&quot;Bincode doesn&#39;t support serde::Deserializer::deserialize_any&quot;
             </span>}
-            <a href="#35">ErrorKind::SizeLimit</a> =&gt; <span class="string">&quot;the size limit has been reached&quot;</span>,
-            <a href="#39">ErrorKind::Custom</a>(<span class="kw-2">ref </span>msg) =&gt; <a href="#57">msg</a>,
+            ErrorKind::SizeLimit =&gt; <span class="string">&quot;the size limit has been reached&quot;</span>,
+            ErrorKind::Custom(<span class="kw-2">ref </span>msg) =&gt; msg,
         }
     }
 
-    <span class="kw">fn </span>cause(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">error::Error</a>&gt; {
-        <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="#61">self</a> </span>{
-            <a href="#19">ErrorKind::Io</a>(<span class="kw-2">ref </span>err) =&gt; <span class="prelude-val">Some</span>(<a href="#63">err</a>),
-            <a href="#21">ErrorKind::InvalidUtf8Encoding</a>(<span class="kw">_</span>) =&gt; <span class="prelude-val">None</span>,
-            <a href="#24">ErrorKind::InvalidBoolEncoding</a>(<span class="kw">_</span>) =&gt; <span class="prelude-val">None</span>,
-            <a href="#26">ErrorKind::InvalidCharEncoding</a> =&gt; <span class="prelude-val">None</span>,
-            <a href="#29">ErrorKind::InvalidTagEncoding</a>(<span class="kw">_</span>) =&gt; <span class="prelude-val">None</span>,
-            <a href="#37">ErrorKind::SequenceMustHaveLength</a> =&gt; <span class="prelude-val">None</span>,
-            <a href="#32">ErrorKind::DeserializeAnyNotSupported</a> =&gt; <span class="prelude-val">None</span>,
-            <a href="#35">ErrorKind::SizeLimit</a> =&gt; <span class="prelude-val">None</span>,
-            <a href="#39">ErrorKind::Custom</a>(<span class="kw">_</span>) =&gt; <span class="prelude-val">None</span>,
+    <span class="kw">fn </span>cause(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>error::Error&gt; {
+        <span class="kw">match </span><span class="kw-2">*</span><span class="self">self </span>{
+            ErrorKind::Io(<span class="kw-2">ref </span>err) =&gt; <span class="prelude-val">Some</span>(err),
+            ErrorKind::InvalidUtf8Encoding(<span class="kw">_</span>) =&gt; <span class="prelude-val">None</span>,
+            ErrorKind::InvalidBoolEncoding(<span class="kw">_</span>) =&gt; <span class="prelude-val">None</span>,
+            ErrorKind::InvalidCharEncoding =&gt; <span class="prelude-val">None</span>,
+            ErrorKind::InvalidTagEncoding(<span class="kw">_</span>) =&gt; <span class="prelude-val">None</span>,
+            ErrorKind::SequenceMustHaveLength =&gt; <span class="prelude-val">None</span>,
+            ErrorKind::DeserializeAnyNotSupported =&gt; <span class="prelude-val">None</span>,
+            ErrorKind::SizeLimit =&gt; <span class="prelude-val">None</span>,
+            ErrorKind::Custom(<span class="kw">_</span>) =&gt; <span class="prelude-val">None</span>,
         }
     }
 }
 
-<span class="kw">impl </span>From&lt;<a href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a>&gt; <span class="kw">for </span><a href="#12">Error</a> {
-    <span class="kw">fn </span>from(err: <a href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a>) -&gt; <a href="#12">Error</a> {
-        <a href="#19">ErrorKind::Io</a>(<a href="#77">err</a>).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()
+<span class="kw">impl </span>From&lt;io::Error&gt; <span class="kw">for </span>Error {
+    <span class="kw">fn </span>from(err: io::Error) -&gt; Error {
+        ErrorKind::Io(err).into()
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for </span><a href="#16">ErrorKind</a> {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, fmt: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="#83">self</a> </span>{
-            <a href="#19">ErrorKind::Io</a>(<span class="kw-2">ref </span>ioerr) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#83">fmt</a>, <span class="string">&quot;io error: {}&quot;</span>, ioerr),
-            <a href="#21">ErrorKind::InvalidUtf8Encoding</a>(<span class="kw-2">ref </span>e) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#83">fmt</a>, <span class="string">&quot;{}: {}&quot;</span>, <span class="self">self</span>.description(), e),
-            <a href="#24">ErrorKind::InvalidBoolEncoding</a>(b) =&gt; {
-                <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#83">fmt</a>, <span class="string">&quot;{}, expected 0 or 1, found {}&quot;</span>, <span class="self">self</span>.description(), b)
+<span class="kw">impl </span>fmt::Display <span class="kw">for </span>ErrorKind {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, fmt: <span class="kw-2">&amp;mut </span>fmt::Formatter) -&gt; fmt::Result {
+        <span class="kw">match </span><span class="kw-2">*</span><span class="self">self </span>{
+            ErrorKind::Io(<span class="kw-2">ref </span>ioerr) =&gt; <span class="macro">write!</span>(fmt, <span class="string">&quot;io error: {}&quot;</span>, ioerr),
+            ErrorKind::InvalidUtf8Encoding(<span class="kw-2">ref </span>e) =&gt; <span class="macro">write!</span>(fmt, <span class="string">&quot;{}: {}&quot;</span>, <span class="self">self</span>.description(), e),
+            ErrorKind::InvalidBoolEncoding(b) =&gt; {
+                <span class="macro">write!</span>(fmt, <span class="string">&quot;{}, expected 0 or 1, found {}&quot;</span>, <span class="self">self</span>.description(), b)
             }
-            <a href="#26">ErrorKind::InvalidCharEncoding</a> =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#83">fmt</a>, <span class="string">&quot;{}&quot;</span>, <span class="self">self</span>.description()),
-            <a href="#29">ErrorKind::InvalidTagEncoding</a>(tag) =&gt; {
-                <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#83">fmt</a>, <span class="string">&quot;{}, found {}&quot;</span>, <span class="self">self</span>.description(), tag)
+            ErrorKind::InvalidCharEncoding =&gt; <span class="macro">write!</span>(fmt, <span class="string">&quot;{}&quot;</span>, <span class="self">self</span>.description()),
+            ErrorKind::InvalidTagEncoding(tag) =&gt; {
+                <span class="macro">write!</span>(fmt, <span class="string">&quot;{}, found {}&quot;</span>, <span class="self">self</span>.description(), tag)
             }
-            <a href="#37">ErrorKind::SequenceMustHaveLength</a> =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#83">fmt</a>, <span class="string">&quot;{}&quot;</span>, <span class="self">self</span>.description()),
-            <a href="#35">ErrorKind::SizeLimit</a> =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#83">fmt</a>, <span class="string">&quot;{}&quot;</span>, <span class="self">self</span>.description()),
-            <a href="#32">ErrorKind::DeserializeAnyNotSupported</a> =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(
-                <a href="#83">fmt</a>,
+            ErrorKind::SequenceMustHaveLength =&gt; <span class="macro">write!</span>(fmt, <span class="string">&quot;{}&quot;</span>, <span class="self">self</span>.description()),
+            ErrorKind::SizeLimit =&gt; <span class="macro">write!</span>(fmt, <span class="string">&quot;{}&quot;</span>, <span class="self">self</span>.description()),
+            ErrorKind::DeserializeAnyNotSupported =&gt; <span class="macro">write!</span>(
+                fmt,
                 <span class="string">&quot;Bincode does not support the serde::Deserializer::deserialize_any method&quot;
             </span>),
-            <a href="#39">ErrorKind::Custom</a>(<span class="kw-2">ref </span>s) =&gt; <a href="#100">s</a>.<a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt</a>(<a href="#83">fmt</a>),
+            ErrorKind::Custom(<span class="kw-2">ref </span>s) =&gt; s.fmt(fmt),
         }
     }
 }
 
-<span class="kw">impl </span><a href="../../serde/de/trait.Error.html">serde::de::Error</a> <span class="kw">for </span><a href="#12">Error</a> {
-    <span class="kw">fn </span>custom&lt;T: <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a>&gt;(desc: T) -&gt; <a href="#12">Error</a> {
-        <a href="#39">ErrorKind::Custom</a>(<a href="#106">desc</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>()).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()
+<span class="kw">impl </span>serde::de::Error <span class="kw">for </span>Error {
+    <span class="kw">fn </span>custom&lt;T: fmt::Display&gt;(desc: T) -&gt; Error {
+        ErrorKind::Custom(desc.to_string()).into()
     }
 }
 
-<span class="kw">impl </span><a href="../../serde/ser/trait.Error.html">serde::ser::Error</a> <span class="kw">for </span><a href="#12">Error</a> {
-    <span class="kw">fn </span>custom&lt;T: <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a>&gt;(msg: T) -&gt; <span class="self">Self </span>{
-        <a href="#39">ErrorKind::Custom</a>(<a href="#112">msg</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>()).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()
+<span class="kw">impl </span>serde::ser::Error <span class="kw">for </span>Error {
+    <span class="kw">fn </span>custom&lt;T: fmt::Display&gt;(msg: T) -&gt; <span class="self">Self </span>{
+        ErrorKind::Custom(msg.to_string()).into()
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="bincode" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="bincode" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

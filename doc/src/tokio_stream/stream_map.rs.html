@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-stream-0.1.11/src/stream_map.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>stream_map.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../tokio_stream/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-stream-0.1.11/src/stream_map.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>stream_map.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../tokio_stream/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -688,12 +688,12 @@
 <a href="#688" id="688">688</a>
 <a href="#689" id="689">689</a>
 <a href="#690" id="690">690</a>
-</pre><pre class="rust"><code><span class="kw">use </span><a href="../../futures_core/stream/trait.Stream.html"><span class="kw">crate</span>::Stream</a>;
+</pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::Stream;
 
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/borrow/trait.Borrow.html">std::borrow::Borrow</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/hash/macros/derive.Hash.html">std::hash::Hash</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/pin/struct.Pin.html">std::pin::Pin</a>;
-<span class="kw">use </span>std::task::{<a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>, <a href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">Poll</a>};
+<span class="kw">use </span>std::borrow::Borrow;
+<span class="kw">use </span>std::hash::Hash;
+<span class="kw">use </span>std::pin::Pin;
+<span class="kw">use </span>std::task::{Context, Poll};
 
 <span class="doccomment">/// Combine many streams into one, indexing each source stream with a unique
 /// key.
@@ -887,7 +887,7 @@
     /// }
     /// ```
     </span><span class="kw">pub fn </span>iter(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl </span>Iterator&lt;Item = <span class="kw-2">&amp;</span>(K, V)&gt; {
-        <a class="self" href="#199">self</a>.entries.iter()
+        <span class="self">self</span>.entries.iter()
     }
 
     <span class="doccomment">/// An iterator visiting all key-value pairs mutably in arbitrary order.
@@ -910,7 +910,7 @@
     /// }
     /// ```
     </span><span class="kw">pub fn </span>iter_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw">impl </span>Iterator&lt;Item = <span class="kw-2">&amp;mut </span>(K, V)&gt; {
-        <a class="self" href="#222">self</a>.entries.iter_mut()
+        <span class="self">self</span>.entries.iter_mut()
     }
 
     <span class="doccomment">/// Creates an empty `StreamMap`.
@@ -926,7 +926,7 @@
     /// let map: StreamMap&lt;&amp;str, Pending&lt;()&gt;&gt; = StreamMap::new();
     /// ```
     </span><span class="kw">pub fn </span>new() -&gt; StreamMap&lt;K, V&gt; {
-        <a href="#174">StreamMap</a> { entries: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[] }
+        StreamMap { entries: <span class="macro">vec!</span>[] }
     }
 
     <span class="doccomment">/// Creates an empty `StreamMap` with the specified capacity.
@@ -941,9 +941,9 @@
     ///
     /// let map: StreamMap&lt;&amp;str, Pending&lt;()&gt;&gt; = StreamMap::with_capacity(10);
     /// ```
-    </span><span class="kw">pub fn </span>with_capacity(capacity: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; StreamMap&lt;K, V&gt; {
-        <a href="#174">StreamMap</a> {
-            entries: Vec::with_capacity(<a href="#254">capacity</a>),
+    </span><span class="kw">pub fn </span>with_capacity(capacity: usize) -&gt; StreamMap&lt;K, V&gt; {
+        StreamMap {
+            entries: Vec::with_capacity(capacity),
         }
     }
 
@@ -967,7 +967,7 @@
     /// }
     /// ```
     </span><span class="kw">pub fn </span>keys(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl </span>Iterator&lt;Item = <span class="kw-2">&amp;</span>K&gt; {
-        <a class="self" href="#279">self</a>.<a href="#199">iter</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|(k, <span class="kw">_</span>)| <a href="#280">k</a>)
+        <span class="self">self</span>.iter().map(|(k, <span class="kw">_</span>)| k)
     }
 
     <span class="doccomment">/// An iterator visiting all values in arbitrary order.
@@ -990,7 +990,7 @@
     /// }
     /// ```
     </span><span class="kw">pub fn </span>values(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl </span>Iterator&lt;Item = <span class="kw-2">&amp;</span>V&gt; {
-        <a class="self" href="#302">self</a>.<a href="#199">iter</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|(<span class="kw">_</span>, v)| <a href="#303">v</a>)
+        <span class="self">self</span>.iter().map(|(<span class="kw">_</span>, v)| v)
     }
 
     <span class="doccomment">/// An iterator visiting all values mutably in arbitrary order.
@@ -1013,7 +1013,7 @@
     /// }
     /// ```
     </span><span class="kw">pub fn </span>values_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw">impl </span>Iterator&lt;Item = <span class="kw-2">&amp;mut </span>V&gt; {
-        <a class="self" href="#325">self</a>.<a href="#222">iter_mut</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|(<span class="kw">_</span>, v)| <a href="#326">v</a>)
+        <span class="self">self</span>.iter_mut().map(|(<span class="kw">_</span>, v)| v)
     }
 
     <span class="doccomment">/// Returns the number of streams the map can hold without reallocating.
@@ -1029,8 +1029,8 @@
     /// let map: StreamMap&lt;i32, Pending&lt;()&gt;&gt; = StreamMap::with_capacity(100);
     /// assert!(map.capacity() &gt;= 100);
     /// ```
-    </span><span class="kw">pub fn </span>capacity(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="self" href="#342">self</a>.entries.capacity()
+    </span><span class="kw">pub fn </span>capacity(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+        <span class="self">self</span>.entries.capacity()
     }
 
     <span class="doccomment">/// Returns the number of streams in the map.
@@ -1045,8 +1045,8 @@
     /// a.insert(1, pending::&lt;i32&gt;());
     /// assert_eq!(a.len(), 1);
     /// ```
-    </span><span class="kw">pub fn </span>len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="self" href="#358">self</a>.entries.len()
+    </span><span class="kw">pub fn </span>len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+        <span class="self">self</span>.entries.len()
     }
 
     <span class="doccomment">/// Returns `true` if the map contains no elements.
@@ -1061,8 +1061,8 @@
     /// a.insert(1, pending::&lt;i32&gt;());
     /// assert!(!a.is_empty());
     /// ```
-    </span><span class="kw">pub fn </span>is_empty(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#374">self</a>.entries.is_empty()
+    </span><span class="kw">pub fn </span>is_empty(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.entries.is_empty()
     }
 
     <span class="doccomment">/// Clears the map, removing all key-stream pairs. Keeps the allocated
@@ -1079,7 +1079,7 @@
     /// assert!(a.is_empty());
     /// ```
     </span><span class="kw">pub fn </span>clear(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <a class="self" href="#391">self</a>.entries.clear();
+        <span class="self">self</span>.entries.clear();
     }
 
     <span class="doccomment">/// Insert a key-stream pair into the map.
@@ -1104,12 +1104,12 @@
     /// ```
     </span><span class="kw">pub fn </span>insert(<span class="kw-2">&amp;mut </span><span class="self">self</span>, k: K, stream: V) -&gt; <span class="prelude-ty">Option</span>&lt;V&gt;
     <span class="kw">where
-        </span>K: <a href="https://doc.rust-lang.org/nightly/core/hash/trait.Hash.html">Hash</a> + <a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Eq.html">Eq</a>,
+        </span>K: Hash + Eq,
     {
-        <span class="kw">let </span>ret = <a class="self" href="#415">self</a>.<a href="#440-443">remove</a>(<span class="kw-2">&amp;</span><a href="#415">k</a>);
-        <a class="self" href="#415">self</a>.entries.push((<a href="#415">k</a>, <a href="#415">stream</a>));
+        <span class="kw">let </span>ret = <span class="self">self</span>.remove(<span class="kw-2">&amp;</span>k);
+        <span class="self">self</span>.entries.push((k, stream));
 
-        <a href="#419">ret</a>
+        ret
     }
 
     <span class="doccomment">/// Removes a key from the map, returning the stream at the key if the key was previously in the map.
@@ -1127,10 +1127,10 @@
     /// assert!(map.remove(&amp;1).is_some());
     /// assert!(map.remove(&amp;1).is_none());
     /// ```
-    </span><span class="kw">pub fn </span>remove&lt;Q: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, k: <span class="kw-2">&amp;</span>Q) -&gt; <span class="prelude-ty">Option</span>&lt;V&gt;
+    </span><span class="kw">pub fn </span>remove&lt;Q: <span class="question-mark">?</span>Sized&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, k: <span class="kw-2">&amp;</span>Q) -&gt; <span class="prelude-ty">Option</span>&lt;V&gt;
     <span class="kw">where
         </span>K: Borrow&lt;Q&gt;,
-        Q: <a href="https://doc.rust-lang.org/nightly/core/hash/trait.Hash.html">Hash</a> + <a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Eq.html">Eq</a>,
+        Q: Hash + Eq,
     {
         <span class="kw">for </span>i <span class="kw">in </span><span class="number">0</span>..<span class="self">self</span>.entries.len() {
             <span class="kw">if </span><span class="self">self</span>.entries[i].<span class="number">0</span>.borrow() == k {
@@ -1156,10 +1156,10 @@
     /// assert_eq!(map.contains_key(&amp;1), true);
     /// assert_eq!(map.contains_key(&amp;2), false);
     /// ```
-    </span><span class="kw">pub fn </span>contains_key&lt;Q: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, k: <span class="kw-2">&amp;</span>Q) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>
+    </span><span class="kw">pub fn </span>contains_key&lt;Q: <span class="question-mark">?</span>Sized&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, k: <span class="kw-2">&amp;</span>Q) -&gt; bool
     <span class="kw">where
         </span>K: Borrow&lt;Q&gt;,
-        Q: <a href="https://doc.rust-lang.org/nightly/core/hash/trait.Hash.html">Hash</a> + <a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Eq.html">Eq</a>,
+        Q: Hash + Eq,
     {
         <span class="kw">for </span>i <span class="kw">in </span><span class="number">0</span>..<span class="self">self</span>.entries.len() {
             <span class="kw">if </span><span class="self">self</span>.entries[i].<span class="number">0</span>.borrow() == k {
@@ -1173,15 +1173,15 @@
 
 <span class="kw">impl</span>&lt;K, V&gt; StreamMap&lt;K, V&gt;
 <span class="kw">where
-    </span>K: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
-    V: <a href="../../futures_core/stream/trait.Stream.html">Stream</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
+    </span>K: Unpin,
+    V: Stream + Unpin,
 {
     <span class="doccomment">/// Polls the next value, includes the vec entry index
-    </span><span class="kw">fn </span>poll_next_entry(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;(<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, V::Item)&gt;&gt; {
-        <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">Poll</a>::<span class="kw-2">*</span>;
+    </span><span class="kw">fn </span>poll_next_entry(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;(usize, V::Item)&gt;&gt; {
+        <span class="kw">use </span>Poll::<span class="kw-2">*</span>;
 
-        <span class="kw">let </span>start = <a href="#683"><span class="self">self</span>::rand::thread_rng_n</a>(<a class="self" href="#490">self</a>.entries.len() <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>;
-        <span class="kw">let </span><span class="kw-2">mut </span>idx = <a href="#493">start</a>;
+        <span class="kw">let </span>start = <span class="self">self</span>::rand::thread_rng_n(<span class="self">self</span>.entries.len() <span class="kw">as </span>u32) <span class="kw">as </span>usize;
+        <span class="kw">let </span><span class="kw-2">mut </span>idx = start;
 
         <span class="kw">for _ in </span><span class="number">0</span>..<span class="self">self</span>.entries.len() {
             <span class="kw">let </span>(<span class="kw">_</span>, stream) = <span class="kw-2">&amp;mut </span><span class="self">self</span>.entries[idx];
@@ -1217,29 +1217,29 @@
     }
 }
 
-<span class="kw">impl</span>&lt;K, V&gt; <a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for </span>StreamMap&lt;K, V&gt; {
+<span class="kw">impl</span>&lt;K, V&gt; Default <span class="kw">for </span>StreamMap&lt;K, V&gt; {
     <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>::new()
     }
 }
 
-<span class="kw">impl</span>&lt;K, V&gt; <a href="../../futures_core/stream/trait.Stream.html">Stream</a> <span class="kw">for </span>StreamMap&lt;K, V&gt;
+<span class="kw">impl</span>&lt;K, V&gt; Stream <span class="kw">for </span>StreamMap&lt;K, V&gt;
 <span class="kw">where
-    </span>K: <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
-    V: <a href="../../futures_core/stream/trait.Stream.html">Stream</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
+    </span>K: Clone + Unpin,
+    V: Stream + Unpin,
 {
     <span class="kw">type </span>Item = (K, V::Item);
 
     <span class="kw">fn </span>poll_next(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt;&gt; {
-        <span class="kw">if let </span><span class="prelude-val">Some</span>((idx, val)) = <a class="macro" href="macros.rs.html#61-68">ready!</a>(<span class="self">self</span>.poll_next_entry(cx)) {
-            <span class="kw">let </span>key = <a class="self" href="#543">self</a>.entries[<a href="#544">idx</a>].<span class="number">0</span>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
-            Poll::Ready(<span class="prelude-val">Some</span>((<a href="#545">key</a>, <a href="#544">val</a>)))
+        <span class="kw">if let </span><span class="prelude-val">Some</span>((idx, val)) = <span class="macro">ready!</span>(<span class="self">self</span>.poll_next_entry(cx)) {
+            <span class="kw">let </span>key = <span class="self">self</span>.entries[idx].<span class="number">0</span>.clone();
+            Poll::Ready(<span class="prelude-val">Some</span>((key, val)))
         } <span class="kw">else </span>{
             Poll::Ready(<span class="prelude-val">None</span>)
         }
     }
 
-    <span class="kw">fn </span>size_hint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;) {
+    <span class="kw">fn </span>size_hint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (usize, <span class="prelude-ty">Option</span>&lt;usize&gt;) {
         <span class="kw">let </span><span class="kw-2">mut </span>ret = (<span class="number">0</span>, <span class="prelude-val">Some</span>(<span class="number">0</span>));
 
         <span class="kw">for </span>(<span class="kw">_</span>, stream) <span class="kw">in </span><span class="kw-2">&amp;</span><span class="self">self</span>.entries {
@@ -1254,24 +1254,24 @@
             }
         }
 
-        <a href="#553">ret</a>
+        ret
     }
 }
 
 <span class="kw">impl</span>&lt;K, V&gt; std::iter::FromIterator&lt;(K, V)&gt; <span class="kw">for </span>StreamMap&lt;K, V&gt;
 <span class="kw">where
-    </span>K: <a href="https://doc.rust-lang.org/nightly/core/hash/trait.Hash.html">Hash</a> + <a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Eq.html">Eq</a>,
+    </span>K: Hash + Eq,
 {
     <span class="kw">fn </span>from_iter&lt;T: IntoIterator&lt;Item = (K, V)&gt;&gt;(iter: T) -&gt; <span class="self">Self </span>{
-        <span class="kw">let </span>iterator = <a href="#575">iter</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>();
-        <span class="kw">let </span>(lower_bound, <span class="kw">_</span>) = <a href="#576">iterator</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">size_hint</a>();
-        <span class="kw">let </span><span class="kw-2">mut </span>stream_map = <span class="self">Self</span>::with_capacity(<a href="#577">lower_bound</a>);
+        <span class="kw">let </span>iterator = iter.into_iter();
+        <span class="kw">let </span>(lower_bound, <span class="kw">_</span>) = iterator.size_hint();
+        <span class="kw">let </span><span class="kw-2">mut </span>stream_map = <span class="self">Self</span>::with_capacity(lower_bound);
 
         <span class="kw">for </span>(key, value) <span class="kw">in </span>iterator {
             stream_map.insert(key, value);
         }
 
-        <a href="#578">stream_map</a>
+        stream_map
     }
 }
 
@@ -1280,33 +1280,33 @@
     <span class="kw">where
         </span>T: IntoIterator&lt;Item = (K, V)&gt;,
     {
-        <a class="self" href="#589">self</a>.entries.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a href="#589">iter</a>);
+        <span class="self">self</span>.entries.extend(iter);
     }
 }
 
 <span class="kw">mod </span>rand {
-    <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/cell/struct.Cell.html">std::cell::Cell</a>;
+    <span class="kw">use </span>std::cell::Cell;
 
     <span class="kw">mod </span>loom {
         <span class="attr">#[cfg(not(loom))]
         </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span>rand {
-            <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/collections/hash/map/struct.RandomState.html">std::collections::hash_map::RandomState</a>;
-            <span class="kw">use </span>std::hash::{<a href="https://doc.rust-lang.org/nightly/core/hash/trait.BuildHasher.html">BuildHasher</a>, <a href="https://doc.rust-lang.org/nightly/core/hash/macros/derive.Hash.html">Hash</a>, <a href="https://doc.rust-lang.org/nightly/core/hash/trait.Hasher.html">Hasher</a>};
-            <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/sync/atomic/struct.AtomicU32.html">std::sync::atomic::AtomicU32</a>;
+            <span class="kw">use </span>std::collections::hash_map::RandomState;
+            <span class="kw">use </span>std::hash::{BuildHasher, Hash, Hasher};
+            <span class="kw">use </span>std::sync::atomic::AtomicU32;
             <span class="kw">use </span>std::sync::atomic::Ordering::Relaxed;
 
-            <span class="kw">static </span>COUNTER: <a href="https://doc.rust-lang.org/nightly/core/sync/atomic/struct.AtomicU32.html">AtomicU32</a> = AtomicU32::new(<span class="number">1</span>);
+            <span class="kw">static </span>COUNTER: AtomicU32 = AtomicU32::new(<span class="number">1</span>);
 
-            <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>seed() -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> {
+            <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>seed() -&gt; u64 {
                 <span class="kw">let </span>rand_state = RandomState::new();
 
-                <span class="kw">let </span><span class="kw-2">mut </span>hasher = <a href="#611">rand_state</a>.<a href="https://doc.rust-lang.org/nightly/core/hash/trait.BuildHasher.html">build_hasher</a>();
+                <span class="kw">let </span><span class="kw-2">mut </span>hasher = rand_state.build_hasher();
 
                 <span class="comment">// Hash some unique-ish data to generate some new state
-                </span><a href="#608">COUNTER</a>.fetch_add(<span class="number">1</span>, Relaxed).<a href="https://doc.rust-lang.org/nightly/core/hash/trait.Hash.html">hash</a>(<span class="kw-2">&amp;mut </span><a href="#613">hasher</a>);
+                </span>COUNTER.fetch_add(<span class="number">1</span>, Relaxed).hash(<span class="kw-2">&amp;mut </span>hasher);
 
                 <span class="comment">// Get the seed
-                </span><a href="#613">hasher</a>.<a href="https://doc.rust-lang.org/nightly/core/hash/trait.Hasher.html">finish</a>()
+                </span>hasher.finish()
             }
         }
 
@@ -1327,56 +1327,56 @@
     /// &lt;http://simul.iro.umontreal.ca/testu01/tu01.html&gt;
     </span><span class="attr">#[derive(Debug)]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>FastRand {
-        one: Cell&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>&gt;,
-        two: Cell&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>&gt;,
+        one: Cell&lt;u32&gt;,
+        two: Cell&lt;u32&gt;,
     }
 
-    <span class="kw">impl </span><a href="#639">FastRand</a> {
+    <span class="kw">impl </span>FastRand {
         <span class="doccomment">/// Initialize a new, thread-local, fast random number generator.
-        </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(seed: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) -&gt; <a href="#639">FastRand</a> {
-            <span class="kw">let </span>one = (<a href="#646">seed</a> &gt;&gt; <span class="number">32</span>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>;
-            <span class="kw">let </span><span class="kw-2">mut </span>two = <a href="#646">seed</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>;
+        </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(seed: u64) -&gt; FastRand {
+            <span class="kw">let </span>one = (seed &gt;&gt; <span class="number">32</span>) <span class="kw">as </span>u32;
+            <span class="kw">let </span><span class="kw-2">mut </span>two = seed <span class="kw">as </span>u32;
 
             <span class="kw">if </span>two == <span class="number">0 </span>{
                 <span class="comment">// This value cannot be zero
-                </span><a href="#648">two</a> = <span class="number">1</span>;
+                </span>two = <span class="number">1</span>;
             }
 
-            <a href="#639">FastRand</a> {
-                one: Cell::new(<a href="#647">one</a>),
-                two: Cell::new(<a href="#648">two</a>),
+            FastRand {
+                one: Cell::new(one),
+                two: Cell::new(two),
             }
         }
 
-        <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>fastrand_n(<span class="kw-2">&amp;</span><span class="self">self</span>, n: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
+        <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>fastrand_n(<span class="kw-2">&amp;</span><span class="self">self</span>, n: u32) -&gt; u32 {
             <span class="comment">// This is similar to fastrand() % n, but faster.
             // See https://lemire.me/blog/2016/06/27/a-fast-alternative-to-the-modulo-reduction/
-            </span><span class="kw">let </span>mul = (<a class="self" href="#661">self</a>.<a href="#668">fastrand</a>() <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>).wrapping_mul(<a href="#661">n</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>);
-            (<a href="#664">mul</a> &gt;&gt; <span class="number">32</span>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>
+            </span><span class="kw">let </span>mul = (<span class="self">self</span>.fastrand() <span class="kw">as </span>u64).wrapping_mul(n <span class="kw">as </span>u64);
+            (mul &gt;&gt; <span class="number">32</span>) <span class="kw">as </span>u32
         }
 
-        <span class="kw">fn </span>fastrand(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
-            <span class="kw">let </span><span class="kw-2">mut </span>s1 = <a class="self" href="#668">self</a>.one.get();
-            <span class="kw">let </span>s0 = <a class="self" href="#668">self</a>.two.get();
+        <span class="kw">fn </span>fastrand(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u32 {
+            <span class="kw">let </span><span class="kw-2">mut </span>s1 = <span class="self">self</span>.one.get();
+            <span class="kw">let </span>s0 = <span class="self">self</span>.two.get();
 
-            <a href="#669">s1</a> ^= <a href="#669">s1</a> &lt;&lt; <span class="number">17</span>;
-            <a href="#669">s1</a> = <a href="#669">s1</a> ^ <a href="#670">s0</a> ^ <a href="#669">s1</a> &gt;&gt; <span class="number">7 </span>^ <a href="#670">s0</a> &gt;&gt; <span class="number">16</span>;
+            s1 ^= s1 &lt;&lt; <span class="number">17</span>;
+            s1 = s1 ^ s0 ^ s1 &gt;&gt; <span class="number">7 </span>^ s0 &gt;&gt; <span class="number">16</span>;
 
-            <a class="self" href="#668">self</a>.one.set(<a href="#670">s0</a>);
-            <a class="self" href="#668">self</a>.two.set(<a href="#669">s1</a>);
+            <span class="self">self</span>.one.set(s0);
+            <span class="self">self</span>.two.set(s1);
 
-            <a href="#670">s0</a>.wrapping_add(<a href="#669">s1</a>)
+            s0.wrapping_add(s1)
         }
     }
 
     <span class="comment">// Used by `StreamMap`
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>thread_rng_n(n: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.thread_local.html">thread_local! </a>{
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>thread_rng_n(n: u32) -&gt; u32 {
+        <span class="macro">thread_local! </span>{
             <span class="kw">static </span>THREAD_RNG: FastRand = FastRand::new(loom::rand::seed());
         }
 
-        <a href="#684-686">THREAD_RNG</a>.with(|rng| <a href="#688">rng</a>.<a href="#661">fastrand_n</a>(<a href="#683">n</a>))
+        THREAD_RNG.with(|rng| rng.fastrand_n(n))
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="tokio_stream" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="tokio_stream" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

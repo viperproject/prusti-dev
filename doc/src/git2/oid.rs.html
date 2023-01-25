@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/git2-0.14.4/src/oid.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>oid.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../git2/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/git2-0.14.4/src/oid.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>oid.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../git2/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -257,83 +257,83 @@
 <a href="#257" id="257">257</a>
 <a href="#258" id="258">258</a>
 <a href="#259" id="259">259</a>
-</pre><pre class="rust"><code><span class="kw">use </span><a href="../../libc/index.html">libc</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html">std::cmp::Ordering</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">std::fmt</a>;
-<span class="kw">use </span>std::hash::{<a href="https://doc.rust-lang.org/nightly/core/hash/macros/derive.Hash.html">Hash</a>, <a href="https://doc.rust-lang.org/nightly/core/hash/trait.Hasher.html">Hasher</a>};
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">std::path::Path</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/str/index.html">std::str</a>;
+</pre><pre class="rust"><code><span class="kw">use </span>libc;
+<span class="kw">use </span>std::cmp::Ordering;
+<span class="kw">use </span>std::fmt;
+<span class="kw">use </span>std::hash::{Hash, Hasher};
+<span class="kw">use </span>std::path::Path;
+<span class="kw">use </span>std::str;
 
-<span class="kw">use crate</span>::{<a href="../../libgit2_sys/index.html">raw</a>, <a href="error.rs.html#12">Error</a>, <a href="util.rs.html#101">IntoCString</a>, <a href="lib.rs.html#336">ObjectType</a>};
+<span class="kw">use crate</span>::{raw, Error, IntoCString, ObjectType};
 
-<span class="kw">use </span><span class="kw">crate</span>::util::{<a href="util.rs.html#190">c_cmp_to_ordering</a>, <a href="util.rs.html#25">Binding</a>};
+<span class="kw">use </span><span class="kw">crate</span>::util::{c_cmp_to_ordering, Binding};
 
 <span class="doccomment">/// Unique identity of any object (commit, tree, blob, tag).
 </span><span class="attr">#[derive(Copy, Clone)]
 #[repr(C)]
 </span><span class="kw">pub struct </span>Oid {
-    raw: <a href="../../libgit2_sys/struct.git_oid.html">raw::git_oid</a>,
+    raw: raw::git_oid,
 }
 
-<span class="kw">impl </span><a href="#15">Oid</a> {
+<span class="kw">impl </span>Oid {
     <span class="doccomment">/// Parse a hex-formatted object id into an Oid structure.
     ///
     /// # Errors
     ///
     /// Returns an error if the string is empty, is longer than 40 hex
     /// characters, or contains any non-hex characters.
-    </span><span class="kw">pub fn </span>from_str(s: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#15">Oid</a>, <a href="error.rs.html#12">Error</a>&gt; {
-        <a href="lib.rs.html#717"><span class="kw">crate</span>::init</a>();
-        <span class="kw">let </span><span class="kw-2">mut </span>raw = <a href="../../libgit2_sys/struct.git_oid.html">raw::git_oid</a> {
+    </span><span class="kw">pub fn </span>from_str(s: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;Oid, Error&gt; {
+        <span class="kw">crate</span>::init();
+        <span class="kw">let </span><span class="kw-2">mut </span>raw = raw::git_oid {
             id: [<span class="number">0</span>; raw::GIT_OID_RAWSZ],
         };
         <span class="kw">unsafe </span>{
-            <a class="macro" href="call.rs.html#12-19">try_call!</a>(raw::git_oid_fromstrn(
+            <span class="macro">try_call!</span>(raw::git_oid_fromstrn(
                 <span class="kw-2">&amp;mut </span>raw,
                 s.as_bytes().as_ptr() <span class="kw">as </span><span class="kw-2">*const </span>libc::c_char,
                 s.len() <span class="kw">as </span>libc::size_t
             ));
         }
-        <span class="prelude-val">Ok</span>(<a href="#15">Oid</a> { <a href="#28">raw</a> })
+        <span class="prelude-val">Ok</span>(Oid { raw })
     }
 
     <span class="doccomment">/// Parse a raw object id into an Oid structure.
     ///
     /// If the array given is not 20 bytes in length, an error is returned.
-    </span><span class="kw">pub fn </span>from_bytes(bytes: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#15">Oid</a>, <a href="error.rs.html#12">Error</a>&gt; {
-        <a href="lib.rs.html#717"><span class="kw">crate</span>::init</a>();
-        <span class="kw">let </span><span class="kw-2">mut </span>raw = <a href="../../libgit2_sys/struct.git_oid.html">raw::git_oid</a> {
+    </span><span class="kw">pub fn </span>from_bytes(bytes: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;Oid, Error&gt; {
+        <span class="kw">crate</span>::init();
+        <span class="kw">let </span><span class="kw-2">mut </span>raw = raw::git_oid {
             id: [<span class="number">0</span>; raw::GIT_OID_RAWSZ],
         };
         <span class="kw">if </span>bytes.len() != raw::GIT_OID_RAWSZ {
             <span class="prelude-val">Err</span>(Error::from_str(<span class="string">&quot;raw byte array must be 20 bytes&quot;</span>))
         } <span class="kw">else </span>{
             <span class="kw">unsafe </span>{
-                <a class="macro" href="call.rs.html#12-19">try_call!</a>(raw::git_oid_fromraw(<span class="kw-2">&amp;mut </span>raw, bytes.as_ptr()));
+                <span class="macro">try_call!</span>(raw::git_oid_fromraw(<span class="kw-2">&amp;mut </span>raw, bytes.as_ptr()));
             }
-            <span class="prelude-val">Ok</span>(<a href="#15">Oid</a> { <a href="#46">raw</a> })
+            <span class="prelude-val">Ok</span>(Oid { raw })
         }
     }
 
     <span class="doccomment">/// Creates an all zero Oid structure.
-    </span><span class="kw">pub fn </span>zero() -&gt; <a href="#15">Oid</a> {
-        <span class="kw">let </span>out = <a href="../../libgit2_sys/struct.git_oid.html">raw::git_oid</a> {
+    </span><span class="kw">pub fn </span>zero() -&gt; Oid {
+        <span class="kw">let </span>out = raw::git_oid {
             id: [<span class="number">0</span>; raw::GIT_OID_RAWSZ],
         };
-        <a href="#15">Oid</a> { raw: <a href="#61">out</a> }
+        Oid { raw: out }
     }
 
     <span class="doccomment">/// Hashes the provided data as an object of the provided type, and returns
     /// an Oid corresponding to the result. This does not store the object
     /// inside any object database or repository.
-    </span><span class="kw">pub fn </span>hash_object(kind: <a href="lib.rs.html#336">ObjectType</a>, bytes: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#15">Oid</a>, <a href="error.rs.html#12">Error</a>&gt; {
-        <a href="lib.rs.html#717"><span class="kw">crate</span>::init</a>();
+    </span><span class="kw">pub fn </span>hash_object(kind: ObjectType, bytes: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;Oid, Error&gt; {
+        <span class="kw">crate</span>::init();
 
-        <span class="kw">let </span><span class="kw-2">mut </span>out = <a href="../../libgit2_sys/struct.git_oid.html">raw::git_oid</a> {
+        <span class="kw">let </span><span class="kw-2">mut </span>out = raw::git_oid {
             id: [<span class="number">0</span>; raw::GIT_OID_RAWSZ],
         };
         <span class="kw">unsafe </span>{
-            <a class="macro" href="call.rs.html#12-19">try_call!</a>(raw::git_odb_hash(
+            <span class="macro">try_call!</span>(raw::git_odb_hash(
                 <span class="kw-2">&amp;mut </span>out,
                 bytes.as_ptr() <span class="kw">as </span><span class="kw-2">*const </span>libc::c_void,
                 bytes.len(),
@@ -341,74 +341,74 @@
             ));
         }
 
-        <span class="prelude-val">Ok</span>(<a href="#15">Oid</a> { raw: <a href="#73">out</a> })
+        <span class="prelude-val">Ok</span>(Oid { raw: out })
     }
 
     <span class="doccomment">/// Hashes the content of the provided file as an object of the provided type,
     /// and returns an Oid corresponding to the result. This does not store the object
     /// inside any object database or repository.
-    </span><span class="kw">pub fn </span>hash_file&lt;P: AsRef&lt;<a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>&gt;&gt;(kind: <a href="lib.rs.html#336">ObjectType</a>, path: P) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#15">Oid</a>, <a href="error.rs.html#12">Error</a>&gt; {
-        <a href="lib.rs.html#717"><span class="kw">crate</span>::init</a>();
+    </span><span class="kw">pub fn </span>hash_file&lt;P: AsRef&lt;Path&gt;&gt;(kind: ObjectType, path: P) -&gt; <span class="prelude-ty">Result</span>&lt;Oid, Error&gt; {
+        <span class="kw">crate</span>::init();
 
         <span class="comment">// Normal file path OK (does not need Windows conversion).
         </span><span class="kw">let </span>rpath = path.as_ref().into_c_string()<span class="question-mark">?</span>;
 
-        <span class="kw">let </span><span class="kw-2">mut </span>out = <a href="../../libgit2_sys/struct.git_oid.html">raw::git_oid</a> {
+        <span class="kw">let </span><span class="kw-2">mut </span>out = raw::git_oid {
             id: [<span class="number">0</span>; raw::GIT_OID_RAWSZ],
         };
         <span class="kw">unsafe </span>{
-            <a class="macro" href="call.rs.html#12-19">try_call!</a>(raw::git_odb_hashfile(<span class="kw-2">&amp;mut </span>out, rpath, kind.raw()));
+            <span class="macro">try_call!</span>(raw::git_odb_hashfile(<span class="kw-2">&amp;mut </span>out, rpath, kind.raw()));
         }
 
-        <span class="prelude-val">Ok</span>(<a href="#15">Oid</a> { raw: <a href="#97">out</a> })
+        <span class="prelude-val">Ok</span>(Oid { raw: out })
     }
 
     <span class="doccomment">/// View this OID as a byte-slice 20 bytes in length.
-    </span><span class="kw">pub fn </span>as_bytes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>] {
-        <span class="kw-2">&amp;</span><a class="self" href="#108">self</a>.raw.id
+    </span><span class="kw">pub fn </span>as_bytes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[u8] {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.raw.id
     }
 
     <span class="doccomment">/// Test if this OID is all zeros.
-    </span><span class="kw">pub fn </span>is_zero(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">unsafe </span>{ raw::git_oid_iszero(<span class="kw-2">&amp;</span><a class="self" href="#113">self</a>.raw) == <span class="number">1 </span>}
+    </span><span class="kw">pub fn </span>is_zero(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="kw">unsafe </span>{ raw::git_oid_iszero(<span class="kw-2">&amp;</span><span class="self">self</span>.raw) == <span class="number">1 </span>}
     }
 }
 
-<span class="kw">impl </span><a href="util.rs.html#25">Binding</a> <span class="kw">for </span><a href="#15">Oid</a> {
-    <span class="kw">type </span>Raw = <span class="kw-2">*const </span><a href="../../libgit2_sys/struct.git_oid.html">raw::git_oid</a>;
+<span class="kw">impl </span>Binding <span class="kw">for </span>Oid {
+    <span class="kw">type </span>Raw = <span class="kw-2">*const </span>raw::git_oid;
 
-    <span class="kw">unsafe fn </span>from_raw(oid: <span class="kw-2">*const </span><a href="../../libgit2_sys/struct.git_oid.html">raw::git_oid</a>) -&gt; <a href="#15">Oid</a> {
-        <a href="#15">Oid</a> { raw: <span class="kw-2">*</span><a href="#121">oid</a> }
+    <span class="kw">unsafe fn </span>from_raw(oid: <span class="kw-2">*const </span>raw::git_oid) -&gt; Oid {
+        Oid { raw: <span class="kw-2">*</span>oid }
     }
-    <span class="kw">fn </span>raw(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">*const </span><a href="../../libgit2_sys/struct.git_oid.html">raw::git_oid</a> {
-        <span class="kw-2">&amp;</span><a class="self" href="#124">self</a>.raw <span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_
+    <span class="kw">fn </span>raw(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">*const </span>raw::git_oid {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.raw <span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_
     </span>}
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="#15">Oid</a> {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display::fmt</a>(<a class="self" href="#130">self</a>, <a href="#130">f</a>)
+<span class="kw">impl </span>fmt::Debug <span class="kw">for </span>Oid {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        fmt::Display::fmt(<span class="self">self</span>, f)
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for </span><a href="#15">Oid</a> {
+<span class="kw">impl </span>fmt::Display <span class="kw">for </span>Oid {
     <span class="doccomment">/// Hex-encode this Oid into a formatter.
-    </span><span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+    </span><span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
         <span class="kw">let </span><span class="kw-2">mut </span>dst = [<span class="number">0u8</span>; raw::GIT_OID_HEXSZ + <span class="number">1</span>];
         <span class="kw">unsafe </span>{
             raw::git_oid_tostr(
-                <a href="#138">dst</a>.as_mut_ptr() <span class="kw">as </span><span class="kw-2">*mut </span><a href="../../libc/unix/linux_like/linux/gnu/b64/x86_64/type.c_char.html">libc::c_char</a>,
-                <a href="#138">dst</a>.len() <span class="kw">as </span><a href="../../libc/unix/type.size_t.html">libc::size_t</a>,
-                <span class="kw-2">&amp;</span><a class="self" href="#137">self</a>.raw,
+                dst.as_mut_ptr() <span class="kw">as </span><span class="kw-2">*mut </span>libc::c_char,
+                dst.len() <span class="kw">as </span>libc::size_t,
+                <span class="kw-2">&amp;</span><span class="self">self</span>.raw,
             );
         }
-        <span class="kw">let </span>s = <span class="kw-2">&amp;</span><a href="#138">dst</a>[..<a href="#138">dst</a>.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">position</a>(|<span class="kw-2">&amp;</span>a| <a href="#146">a</a> == <span class="number">0</span>).unwrap()];
-        <a href="https://doc.rust-lang.org/nightly/core/str/converts/fn.from_utf8.html">str::from_utf8</a>(<a href="#146">s</a>).unwrap().<a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt</a>(<a href="#137">f</a>)
+        <span class="kw">let </span>s = <span class="kw-2">&amp;</span>dst[..dst.iter().position(|<span class="kw-2">&amp;</span>a| a == <span class="number">0</span>).unwrap()];
+        str::from_utf8(s).unwrap().fmt(f)
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/str/traits/trait.FromStr.html">str::FromStr</a> <span class="kw">for </span><a href="#15">Oid</a> {
-    <span class="kw">type </span><span class="prelude-val">Err </span>= <a href="error.rs.html#12">Error</a>;
+<span class="kw">impl </span>str::FromStr <span class="kw">for </span>Oid {
+    <span class="kw">type </span><span class="prelude-val">Err </span>= Error;
 
     <span class="doccomment">/// Parse a hex-formatted object id into an Oid structure.
     ///
@@ -416,39 +416,39 @@
     ///
     /// Returns an error if the string is empty, is longer than 40 hex
     /// characters, or contains any non-hex characters.
-    </span><span class="kw">fn </span>from_str(s: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#15">Oid</a>, <a href="error.rs.html#12">Error</a>&gt; {
-        Oid::from_str(<a href="#160">s</a>)
+    </span><span class="kw">fn </span>from_str(s: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;Oid, Error&gt; {
+        Oid::from_str(s)
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/cmp/trait.PartialEq.html">PartialEq</a> <span class="kw">for </span><a href="#15">Oid</a> {
-    <span class="kw">fn </span>eq(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><a href="#15">Oid</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">unsafe </span>{ raw::git_oid_equal(<span class="kw-2">&amp;</span><a class="self" href="#166">self</a>.raw, <span class="kw-2">&amp;</span><a href="#166">other</a>.raw) != <span class="number">0 </span>}
+<span class="kw">impl </span>PartialEq <span class="kw">for </span>Oid {
+    <span class="kw">fn </span>eq(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span>Oid) -&gt; bool {
+        <span class="kw">unsafe </span>{ raw::git_oid_equal(<span class="kw-2">&amp;</span><span class="self">self</span>.raw, <span class="kw-2">&amp;</span>other.raw) != <span class="number">0 </span>}
     }
 }
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Eq.html">Eq</a> <span class="kw">for </span><a href="#15">Oid</a> {}
+<span class="kw">impl </span>Eq <span class="kw">for </span>Oid {}
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/cmp/trait.PartialOrd.html">PartialOrd</a> <span class="kw">for </span><a href="#15">Oid</a> {
-    <span class="kw">fn </span>partial_cmp(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><a href="#15">Oid</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html">Ordering</a>&gt; {
-        <span class="prelude-val">Some</span>(<a class="self" href="#173">self</a>.<a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Ord.html">cmp</a>(<a href="#173">other</a>))
-    }
-}
-
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Ord.html">Ord</a> <span class="kw">for </span><a href="#15">Oid</a> {
-    <span class="kw">fn </span>cmp(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><a href="#15">Oid</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html">Ordering</a> {
-        <a href="util.rs.html#190">c_cmp_to_ordering</a>(<span class="kw">unsafe </span>{ raw::git_oid_cmp(<span class="kw-2">&amp;</span><a class="self" href="#179">self</a>.raw, <span class="kw-2">&amp;</span><a href="#179">other</a>.raw) })
+<span class="kw">impl </span>PartialOrd <span class="kw">for </span>Oid {
+    <span class="kw">fn </span>partial_cmp(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span>Oid) -&gt; <span class="prelude-ty">Option</span>&lt;Ordering&gt; {
+        <span class="prelude-val">Some</span>(<span class="self">self</span>.cmp(other))
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/hash/trait.Hash.html">Hash</a> <span class="kw">for </span><a href="#15">Oid</a> {
-    <span class="kw">fn </span>hash&lt;H: <a href="https://doc.rust-lang.org/nightly/core/hash/trait.Hasher.html">Hasher</a>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, into: <span class="kw-2">&amp;mut </span>H) {
-        <a class="self" href="#185">self</a>.raw.id.<a href="https://doc.rust-lang.org/nightly/core/hash/trait.Hash.html">hash</a>(<a href="#185">into</a>)
+<span class="kw">impl </span>Ord <span class="kw">for </span>Oid {
+    <span class="kw">fn </span>cmp(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span>Oid) -&gt; Ordering {
+        c_cmp_to_ordering(<span class="kw">unsafe </span>{ raw::git_oid_cmp(<span class="kw-2">&amp;</span><span class="self">self</span>.raw, <span class="kw-2">&amp;</span>other.raw) })
     }
 }
 
-<span class="kw">impl </span>AsRef&lt;[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt; <span class="kw">for </span><a href="#15">Oid</a> {
-    <span class="kw">fn </span>as_ref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>] {
-        <a class="self" href="#191">self</a>.<a href="#108">as_bytes</a>()
+<span class="kw">impl </span>Hash <span class="kw">for </span>Oid {
+    <span class="kw">fn </span>hash&lt;H: Hasher&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, into: <span class="kw-2">&amp;mut </span>H) {
+        <span class="self">self</span>.raw.id.hash(into)
+    }
+}
+
+<span class="kw">impl </span>AsRef&lt;[u8]&gt; <span class="kw">for </span>Oid {
+    <span class="kw">fn </span>as_ref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[u8] {
+        <span class="self">self</span>.as_bytes()
     }
 }
 
@@ -517,4 +517,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="git2" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="git2" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

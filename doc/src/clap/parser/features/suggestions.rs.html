@@ -1,5 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/clap-4.0.26/src/parser/features/suggestions.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>suggestions.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../../clap/index.html">
-                        <img src="https://raw.githubusercontent.com/clap-rs/clap/master/assets/clap.png" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/clap-4.0.32/src/parser/features/suggestions.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>suggestions.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../../clap/index.html">
+                        <img src="https://raw.githubusercontent.com/clap-rs/clap/master/assets/clap.png" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -105,28 +105,28 @@
 <a href="#104" id="104">104</a>
 <a href="#105" id="105">105</a>
 </pre><pre class="rust"><code><span class="attr">#[cfg(feature = <span class="string">&quot;suggestions&quot;</span>)]
-</span><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html">std::cmp::Ordering</a>;
+</span><span class="kw">use </span>std::cmp::Ordering;
 
 <span class="comment">// Internal
-</span><span class="kw">use </span><a href="../../builder/command.rs.html#71"><span class="kw">crate</span>::builder::Command</a>;
+</span><span class="kw">use </span><span class="kw">crate</span>::builder::Command;
 
 <span class="doccomment">/// Produces multiple strings from a given list of possible values which are similar
 /// to the passed in value `v` within a certain confidence by least confidence.
 /// Thus in a list of possible values like [&quot;foo&quot;, &quot;bar&quot;], the value &quot;fop&quot; will yield
 /// `Some(&quot;foo&quot;)`, whereas &quot;blark&quot; would yield `None`.
 </span><span class="attr">#[cfg(feature = <span class="string">&quot;suggestions&quot;</span>)]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>did_you_mean&lt;T, I&gt;(v: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, possible_values: I) -&gt; Vec&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt;
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>did_you_mean&lt;T, I&gt;(v: <span class="kw-2">&amp;</span>str, possible_values: I) -&gt; Vec&lt;String&gt;
 <span class="kw">where
-    </span>T: AsRef&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt;,
+    </span>T: AsRef&lt;str&gt;,
     I: IntoIterator&lt;Item = T&gt;,
 {
-    <span class="kw">let </span><span class="kw-2">mut </span>candidates: Vec&lt;(<a href="https://doc.rust-lang.org/nightly/std/primitive.f64.html">f64</a>, <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>)&gt; = <a href="#12">possible_values</a>
-        .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
-        .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|pv| (strsim::jaro_winkler(<a href="#12">v</a>, <a href="#19">pv</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>()), <a href="#19">pv</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>().<a href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">to_owned</a>()))
-        .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter</a>(|(confidence, <span class="kw">_</span>)| <span class="kw-2">*</span><a href="#20">confidence</a> &gt; <span class="number">0.8</span>)
-        .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
-    <a href="#17">candidates</a>.sort_by(|a, b| <a href="#22">a</a>.<span class="number">0</span>.<a href="https://doc.rust-lang.org/nightly/core/cmp/trait.PartialOrd.html">partial_cmp</a>(<span class="kw-2">&amp;</span><a href="#22">b</a>.<span class="number">0</span>).unwrap_or(Ordering::Equal));
-    <a href="#17">candidates</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|(<span class="kw">_</span>, pv)| <a href="#23">pv</a>).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>()
+    <span class="kw">let </span><span class="kw-2">mut </span>candidates: Vec&lt;(f64, String)&gt; = possible_values
+        .into_iter()
+        .map(|pv| (strsim::jaro_winkler(v, pv.as_ref()), pv.as_ref().to_owned()))
+        .filter(|(confidence, <span class="kw">_</span>)| <span class="kw-2">*</span>confidence &gt; <span class="number">0.8</span>)
+        .collect();
+    candidates.sort_by(|a, b| a.<span class="number">0</span>.partial_cmp(<span class="kw-2">&amp;</span>b.<span class="number">0</span>).unwrap_or(Ordering::Equal));
+    candidates.into_iter().map(|(<span class="kw">_</span>, pv)| pv).collect()
 }
 
 <span class="attr">#[cfg(not(feature = <span class="string">&quot;suggestions&quot;</span>))]
@@ -140,41 +140,41 @@
 
 <span class="doccomment">/// Returns a suffix that can be empty, or is the standard &#39;did you mean&#39; phrase
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>did_you_mean_flag&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;help</span>, I, T&gt;(
-    arg: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>,
-    remaining_args: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsStr.html">std::ffi::OsStr</a>],
+    arg: <span class="kw-2">&amp;</span>str,
+    remaining_args: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span>std::ffi::OsStr],
     longs: I,
-    subcommands: <span class="kw">impl </span>IntoIterator&lt;Item = <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span><a href="../../builder/command.rs.html#71">Command</a>&gt;,
-) -&gt; <span class="prelude-ty">Option</span>&lt;(<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt;)&gt;
+    subcommands: <span class="kw">impl </span>IntoIterator&lt;Item = <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>Command&gt;,
+) -&gt; <span class="prelude-ty">Option</span>&lt;(String, <span class="prelude-ty">Option</span>&lt;String&gt;)&gt;
 <span class="kw">where
     </span><span class="lifetime">&#39;help</span>: <span class="lifetime">&#39;a</span>,
-    T: AsRef&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt;,
+    T: AsRef&lt;str&gt;,
     I: IntoIterator&lt;Item = T&gt;,
 {
-    <span class="kw">use </span><a href="../../mkeymap.rs.html#25"><span class="kw">crate</span>::mkeymap::KeyType</a>;
+    <span class="kw">use </span><span class="kw">crate</span>::mkeymap::KeyType;
 
-    <span class="kw">match </span><a href="#12-15">did_you_mean</a>(<a href="#37">arg</a>, <a href="#39">longs</a>).pop() {
-        <span class="prelude-val">Some</span>(candidate) =&gt; <span class="prelude-val">Some</span>((<a href="#50">candidate</a>, <span class="prelude-val">None</span>)),
-        <span class="prelude-val">None </span>=&gt; <a href="#40">subcommands</a>
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter_map</a>(|subcommand| {
-                <a href="#53">subcommand</a>.<a href="../../builder/command.rs.html#3826">_build_self</a>(<span class="bool-val">false</span>);
+    <span class="kw">match </span>did_you_mean(arg, longs).pop() {
+        <span class="prelude-val">Some</span>(candidate) =&gt; <span class="prelude-val">Some</span>((candidate, <span class="prelude-val">None</span>)),
+        <span class="prelude-val">None </span>=&gt; subcommands
+            .into_iter()
+            .filter_map(|subcommand| {
+                subcommand._build_self(<span class="bool-val">false</span>);
 
-                <span class="kw">let </span>longs = <a href="#53">subcommand</a>.<a href="../../builder/command.rs.html#3761">get_keymap</a>().<a href="../../mkeymap.rs.html#112">keys</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter_map</a>(|a| {
-                    <span class="kw">if let </span><a href="../../mkeymap.rs.html#27">KeyType::Long</a>(v) = <a href="#56">a</a> {
-                        <span class="prelude-val">Some</span>(<a href="#57">v</a>.to_string_lossy().into_owned())
+                <span class="kw">let </span>longs = subcommand.get_keymap().keys().filter_map(|a| {
+                    <span class="kw">if let </span>KeyType::Long(v) = a {
+                        <span class="prelude-val">Some</span>(v.to_string_lossy().into_owned())
                     } <span class="kw">else </span>{
                         <span class="prelude-val">None
                     </span>}
                 });
 
-                <span class="kw">let </span>subcommand_name = <a href="#53">subcommand</a>.<a href="../../builder/command.rs.html#3234">get_name</a>();
+                <span class="kw">let </span>subcommand_name = subcommand.get_name();
 
-                <span class="kw">let </span>candidate = <a class="macro" href="../../macros.rs.html#676-685">some!</a>(did_you_mean(arg, longs).pop());
-                <span class="kw">let </span>score = <a class="macro" href="../../macros.rs.html#676-685">some!</a>(remaining_args.iter().position(|x| subcommand_name == <span class="kw-2">*</span>x));
-                <span class="prelude-val">Some</span>((<a href="#67">score</a>, (<a href="#66">candidate</a>, <span class="prelude-val">Some</span>(<a href="#64">subcommand_name</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>()))))
+                <span class="kw">let </span>candidate = <span class="macro">some!</span>(did_you_mean(arg, longs).pop());
+                <span class="kw">let </span>score = <span class="macro">some!</span>(remaining_args.iter().position(|x| subcommand_name == <span class="kw-2">*</span>x));
+                <span class="prelude-val">Some</span>((score, (candidate, <span class="prelude-val">Some</span>(subcommand_name.to_string()))))
             })
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">min_by_key</a>(|(x, <span class="kw">_</span>)| <span class="kw-2">*</span><a href="#70">x</a>)
-            .map(|(<span class="kw">_</span>, suggestion)| <a href="#71">suggestion</a>),
+            .min_by_key(|(x, <span class="kw">_</span>)| <span class="kw-2">*</span>x)
+            .map(|(<span class="kw">_</span>, suggestion)| suggestion),
     }
 }
 
@@ -210,4 +210,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="clap" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="clap" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

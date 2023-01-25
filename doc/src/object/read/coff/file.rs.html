@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/object-0.29.0/src/read/coff/file.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>file.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../../object/index.html"><img class="rust-logo" src="../../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/object-0.30.1/src/read/coff/file.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>file.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../../object/index.html"><img class="rust-logo" src="../../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -245,18 +245,18 @@
 <a href="#245" id="245">245</a>
 <a href="#246" id="246">246</a>
 <a href="#247" id="247">247</a>
-</pre><pre class="rust"><code><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/vec/struct.Vec.html">alloc::vec::Vec</a>;
+</pre><pre class="rust"><code><span class="kw">use </span>alloc::vec::Vec;
 
 <span class="kw">use </span><span class="kw">crate</span>::read::{
-    <a class="self" href="../../lib.rs.html#98">self</a>, <a href="../../common.rs.html#5">Architecture</a>, <a href="../mod.rs.html#478">Export</a>, <a href="../../common.rs.html#351">FileFlags</a>, <a href="../mod.rs.html#456">Import</a>, <a href="../traits.rs.html#460">NoDynamicRelocationIterator</a>, <a href="../traits.rs.html#13">Object</a>, <a href="../mod.rs.html#248">ObjectKind</a>,
-    <a href="../traits.rs.html#270">ObjectSection</a>, <a href="../mod.rs.html#79">ReadError</a>, <a href="../read_ref.rs.html#37">ReadRef</a>, <span class="prelude-ty">Result</span>, <a href="../mod.rs.html#263">SectionIndex</a>, <a href="../mod.rs.html#267">SymbolIndex</a>,
+    <span class="self">self</span>, Architecture, Export, FileFlags, Import, NoDynamicRelocationIterator, Object, ObjectKind,
+    ObjectSection, ReadError, ReadRef, <span class="prelude-ty">Result</span>, SectionIndex, SymbolIndex,
 };
-<span class="kw">use crate</span>::{<a href="../../lib.rs.html#112">pe</a>, <a href="../../endian.rs.html#317">LittleEndian</a> <span class="kw">as </span>LE};
+<span class="kw">use crate</span>::{pe, LittleEndian <span class="kw">as </span>LE};
 
 <span class="kw">use super</span>::{
-    <a href="comdat.rs.html#35">CoffComdat</a>, <a href="comdat.rs.html#13">CoffComdatIterator</a>, <a href="section.rs.html#221">CoffSection</a>, <a href="section.rs.html#202">CoffSectionIterator</a>, <a href="section.rs.html#127">CoffSegment</a>,
-    <a href="section.rs.html#109">CoffSegmentIterator</a>, <a href="symbol.rs.html#319">CoffSymbol</a>, <a href="symbol.rs.html#288">CoffSymbolIterator</a>, <a href="symbol.rs.html#255">CoffSymbolTable</a>, <a href="section.rs.html#16">SectionTable</a>,
-    <a href="symbol.rs.html#20">SymbolTable</a>,
+    CoffComdat, CoffComdatIterator, CoffSection, CoffSectionIterator, CoffSegment,
+    CoffSegmentIterator, CoffSymbol, CoffSymbolIterator, CoffSymbolTable, SectionTable,
+    SymbolTable,
 };
 
 <span class="doccomment">/// The common parts of `PeFile` and `CoffFile`.
@@ -265,13 +265,13 @@
     <span class="kw">pub</span>(<span class="kw">crate</span>) sections: SectionTable&lt;<span class="lifetime">&#39;data</span>&gt;,
     <span class="comment">// TODO: ImageSymbolExBytes
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) symbols: SymbolTable&lt;<span class="lifetime">&#39;data</span>, R&gt;,
-    <span class="kw">pub</span>(<span class="kw">crate</span>) image_base: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) image_base: u64,
 }
 
 <span class="doccomment">/// A COFF object file.
 </span><span class="attr">#[derive(Debug)]
-</span><span class="kw">pub struct </span>CoffFile&lt;<span class="lifetime">&#39;data</span>, R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt; = <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt; {
-    <span class="kw">pub</span>(<span class="kw">super</span>) header: <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span><a href="../../pe.rs.html#261">pe::ImageFileHeader</a>,
+</span><span class="kw">pub struct </span>CoffFile&lt;<span class="lifetime">&#39;data</span>, R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt; = <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[u8]&gt; {
+    <span class="kw">pub</span>(<span class="kw">super</span>) header: <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>pe::ImageFileHeader,
     <span class="kw">pub</span>(<span class="kw">super</span>) common: CoffCommon&lt;<span class="lifetime">&#39;data</span>, R&gt;,
     <span class="kw">pub</span>(<span class="kw">super</span>) data: R,
 }
@@ -284,19 +284,19 @@
         <span class="kw">let </span>sections = header.sections(data, offset)<span class="question-mark">?</span>;
         <span class="kw">let </span>symbols = header.symbols(data)<span class="question-mark">?</span>;
 
-        <span class="prelude-val">Ok</span>(<a href="#26">CoffFile</a> {
-            <a href="#36">header</a>,
-            common: <a href="#17">CoffCommon</a> {
-                <a href="#37">sections</a>,
-                <a href="#38">symbols</a>,
+        <span class="prelude-val">Ok</span>(CoffFile {
+            header,
+            common: CoffCommon {
+                sections,
+                symbols,
                 image_base: <span class="number">0</span>,
             },
-            <a href="#34">data</a>,
+            data,
         })
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>, R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt;&gt; <a href="../mod.rs.html#59">read::private::Sealed</a> <span class="kw">for </span>CoffFile&lt;<span class="lifetime">&#39;data</span>, R&gt; {}
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>, R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt;&gt; read::private::Sealed <span class="kw">for </span>CoffFile&lt;<span class="lifetime">&#39;data</span>, R&gt; {}
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R&gt; Object&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>&gt; <span class="kw">for </span>CoffFile&lt;<span class="lifetime">&#39;data</span>, R&gt;
 <span class="kw">where
@@ -312,97 +312,97 @@
     <span class="kw">type </span>Symbol = CoffSymbol&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R&gt;;
     <span class="kw">type </span>SymbolIterator = CoffSymbolIterator&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R&gt;;
     <span class="kw">type </span>SymbolTable = CoffSymbolTable&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R&gt;;
-    <span class="kw">type </span>DynamicRelocationIterator = <a href="../traits.rs.html#460">NoDynamicRelocationIterator</a>;
+    <span class="kw">type </span>DynamicRelocationIterator = NoDynamicRelocationIterator;
 
-    <span class="kw">fn </span>architecture(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../../common.rs.html#5">Architecture</a> {
-        <span class="kw">match </span><a class="self" href="#70">self</a>.header.machine.<a href="../../endian.rs.html#599">get</a>(<a href="../../endian.rs.html#317">LE</a>) {
-            <a href="../../pe.rs.html#333">pe::IMAGE_FILE_MACHINE_ARMNT</a> =&gt; <a href="../../common.rs.html#8">Architecture::Arm</a>,
-            <a href="../../pe.rs.html#359">pe::IMAGE_FILE_MACHINE_ARM64</a> =&gt; <a href="../../common.rs.html#7">Architecture::Aarch64</a>,
-            <a href="../../pe.rs.html#308">pe::IMAGE_FILE_MACHINE_I386</a> =&gt; <a href="../../common.rs.html#11">Architecture::I386</a>,
-            <a href="../../pe.rs.html#355">pe::IMAGE_FILE_MACHINE_AMD64</a> =&gt; <a href="../../common.rs.html#12">Architecture::X86_64</a>,
-            <span class="kw">_ </span>=&gt; <a href="../../common.rs.html#6">Architecture::Unknown</a>,
+    <span class="kw">fn </span>architecture(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Architecture {
+        <span class="kw">match </span><span class="self">self</span>.header.machine.get(LE) {
+            pe::IMAGE_FILE_MACHINE_ARMNT =&gt; Architecture::Arm,
+            pe::IMAGE_FILE_MACHINE_ARM64 =&gt; Architecture::Aarch64,
+            pe::IMAGE_FILE_MACHINE_I386 =&gt; Architecture::I386,
+            pe::IMAGE_FILE_MACHINE_AMD64 =&gt; Architecture::X86_64,
+            <span class="kw">_ </span>=&gt; Architecture::Unknown,
         }
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>is_little_endian(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+    </span><span class="kw">fn </span>is_little_endian(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="bool-val">true
     </span>}
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>is_64(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+    </span><span class="kw">fn </span>is_64(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="comment">// Windows COFF is always 32-bit, even for 64-bit architectures. This could be confusing.
         </span><span class="bool-val">false
     </span>}
 
-    <span class="kw">fn </span>kind(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../mod.rs.html#248">ObjectKind</a> {
-        <a href="../mod.rs.html#252">ObjectKind::Relocatable</a>
+    <span class="kw">fn </span>kind(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; ObjectKind {
+        ObjectKind::Relocatable
     }
 
     <span class="kw">fn </span>segments(<span class="kw-2">&amp;</span><span class="lifetime">&#39;file </span><span class="self">self</span>) -&gt; CoffSegmentIterator&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R&gt; {
-        <a href="section.rs.html#109">CoffSegmentIterator</a> {
-            file: <a class="self" href="#95">self</a>,
-            iter: <a class="self" href="#95">self</a>.common.sections.<a href="section.rs.html#40">iter</a>(),
+        CoffSegmentIterator {
+            file: <span class="self">self</span>,
+            iter: <span class="self">self</span>.common.sections.iter(),
         }
     }
 
     <span class="kw">fn </span>section_by_name_bytes(
         <span class="kw-2">&amp;</span><span class="lifetime">&#39;file </span><span class="self">self</span>,
-        section_name: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
+        section_name: <span class="kw-2">&amp;</span>[u8],
     ) -&gt; <span class="prelude-ty">Option</span>&lt;CoffSection&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R&gt;&gt; {
-        <a class="self" href="#103">self</a>.<a href="../traits.rs.html#107">sections</a>()
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">find</a>(|section| <a href="#107">section</a>.<a href="../traits.rs.html#327">name_bytes</a>() == <span class="prelude-val">Ok</span>(<a href="#104">section_name</a>))
+        <span class="self">self</span>.sections()
+            .find(|section| section.name_bytes() == <span class="prelude-val">Ok</span>(section_name))
     }
 
-    <span class="kw">fn </span>section_by_index(<span class="kw-2">&amp;</span><span class="lifetime">&#39;file </span><span class="self">self</span>, index: <a href="../mod.rs.html#263">SectionIndex</a>) -&gt; <span class="prelude-ty">Result</span>&lt;CoffSection&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R&gt;&gt; {
+    <span class="kw">fn </span>section_by_index(<span class="kw-2">&amp;</span><span class="lifetime">&#39;file </span><span class="self">self</span>, index: SectionIndex) -&gt; <span class="prelude-ty">Result</span>&lt;CoffSection&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R&gt;&gt; {
         <span class="kw">let </span>section = <span class="self">self</span>.common.sections.section(index.<span class="number">0</span>)<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(<a href="section.rs.html#221">CoffSection</a> {
-            file: <a class="self" href="#110">self</a>,
-            <a href="#110">index</a>,
-            <a href="#111">section</a>,
+        <span class="prelude-val">Ok</span>(CoffSection {
+            file: <span class="self">self</span>,
+            index,
+            section,
         })
     }
 
     <span class="kw">fn </span>sections(<span class="kw-2">&amp;</span><span class="lifetime">&#39;file </span><span class="self">self</span>) -&gt; CoffSectionIterator&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R&gt; {
-        <a href="section.rs.html#202">CoffSectionIterator</a> {
-            file: <a class="self" href="#119">self</a>,
-            iter: <a class="self" href="#119">self</a>.common.sections.<a href="section.rs.html#40">iter</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">enumerate</a>(),
+        CoffSectionIterator {
+            file: <span class="self">self</span>,
+            iter: <span class="self">self</span>.common.sections.iter().enumerate(),
         }
     }
 
     <span class="kw">fn </span>comdats(<span class="kw-2">&amp;</span><span class="lifetime">&#39;file </span><span class="self">self</span>) -&gt; CoffComdatIterator&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R&gt; {
-        <a href="comdat.rs.html#13">CoffComdatIterator</a> {
-            file: <a class="self" href="#126">self</a>,
+        CoffComdatIterator {
+            file: <span class="self">self</span>,
             index: <span class="number">0</span>,
         }
     }
 
-    <span class="kw">fn </span>symbol_by_index(<span class="kw-2">&amp;</span><span class="lifetime">&#39;file </span><span class="self">self</span>, index: <a href="../mod.rs.html#267">SymbolIndex</a>) -&gt; <span class="prelude-ty">Result</span>&lt;CoffSymbol&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R&gt;&gt; {
+    <span class="kw">fn </span>symbol_by_index(<span class="kw-2">&amp;</span><span class="lifetime">&#39;file </span><span class="self">self</span>, index: SymbolIndex) -&gt; <span class="prelude-ty">Result</span>&lt;CoffSymbol&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R&gt;&gt; {
         <span class="kw">let </span>symbol = <span class="self">self</span>.common.symbols.symbol(index.<span class="number">0</span>)<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(<a href="symbol.rs.html#319">CoffSymbol</a> {
-            file: <span class="kw-2">&amp;</span><a class="self" href="#133">self</a>.common,
-            <a href="#133">index</a>,
-            <a href="#134">symbol</a>,
+        <span class="prelude-val">Ok</span>(CoffSymbol {
+            file: <span class="kw-2">&amp;</span><span class="self">self</span>.common,
+            index,
+            symbol,
         })
     }
 
     <span class="kw">fn </span>symbols(<span class="kw-2">&amp;</span><span class="lifetime">&#39;file </span><span class="self">self</span>) -&gt; CoffSymbolIterator&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R&gt; {
-        <a href="symbol.rs.html#288">CoffSymbolIterator</a> {
-            file: <span class="kw-2">&amp;</span><a class="self" href="#142">self</a>.common,
+        CoffSymbolIterator {
+            file: <span class="kw-2">&amp;</span><span class="self">self</span>.common,
             index: <span class="number">0</span>,
         }
     }
 
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>symbol_table(<span class="kw-2">&amp;</span><span class="lifetime">&#39;file </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;CoffSymbolTable&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R&gt;&gt; {
-        <span class="prelude-val">Some</span>(<a href="symbol.rs.html#255">CoffSymbolTable</a> { file: <span class="kw-2">&amp;</span><a class="self" href="#150">self</a>.common })
+        <span class="prelude-val">Some</span>(CoffSymbolTable { file: <span class="kw-2">&amp;</span><span class="self">self</span>.common })
     }
 
     <span class="kw">fn </span>dynamic_symbols(<span class="kw-2">&amp;</span><span class="lifetime">&#39;file </span><span class="self">self</span>) -&gt; CoffSymbolIterator&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R&gt; {
-        <a href="symbol.rs.html#288">CoffSymbolIterator</a> {
-            file: <span class="kw-2">&amp;</span><a class="self" href="#154">self</a>.common,
+        CoffSymbolIterator {
+            file: <span class="kw-2">&amp;</span><span class="self">self</span>.common,
             <span class="comment">// Hack: don&#39;t return any.
-            </span>index: <a class="self" href="#154">self</a>.common.symbols.<a href="symbol.rs.html#81">len</a>(),
+            </span>index: <span class="self">self</span>.common.symbols.len(),
         }
     }
 
@@ -412,7 +412,7 @@
     </span>}
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>dynamic_relocations(<span class="kw-2">&amp;</span><span class="lifetime">&#39;file </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="../traits.rs.html#460">NoDynamicRelocationIterator</a>&gt; {
+    </span><span class="kw">fn </span>dynamic_relocations(<span class="kw-2">&amp;</span><span class="lifetime">&#39;file </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;NoDynamicRelocationIterator&gt; {
         <span class="prelude-val">None
     </span>}
 
@@ -428,44 +428,44 @@
         </span><span class="prelude-val">Ok</span>(Vec::new())
     }
 
-    <span class="kw">fn </span>has_debug_symbols(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#184">self</a>.<a href="../traits.rs.html#90">section_by_name</a>(<span class="string">&quot;.debug_info&quot;</span>).is_some()
+    <span class="kw">fn </span>has_debug_symbols(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.section_by_name(<span class="string">&quot;.debug_info&quot;</span>).is_some()
     }
 
-    <span class="kw">fn </span>relative_address_base(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> {
+    <span class="kw">fn </span>relative_address_base(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u64 {
         <span class="number">0
     </span>}
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>entry(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> {
+    </span><span class="kw">fn </span>entry(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u64 {
         <span class="number">0
     </span>}
 
-    <span class="kw">fn </span>flags(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../../common.rs.html#351">FileFlags</a> {
-        <a href="../../common.rs.html#369">FileFlags::Coff</a> {
-            characteristics: <a class="self" href="#197">self</a>.header.characteristics.<a href="../../endian.rs.html#599">get</a>(<a href="../../endian.rs.html#317">LE</a>),
+    <span class="kw">fn </span>flags(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; FileFlags {
+        FileFlags::Coff {
+            characteristics: <span class="self">self</span>.header.characteristics.get(LE),
         }
     }
 }
 
-<span class="kw">impl </span><a href="../../pe.rs.html#261">pe::ImageFileHeader</a> {
+<span class="kw">impl </span>pe::ImageFileHeader {
     <span class="doccomment">/// Read the file header.
     ///
     /// `data` must be the entire file data.
     /// `offset` must be the file header offset. It is updated to point after the optional header,
     /// which is where the section headers are located.
-    </span><span class="kw">pub fn </span>parse&lt;<span class="lifetime">&#39;data</span>, R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt;&gt;(data: R, offset: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) -&gt; read::Result&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span><span class="self">Self</span>&gt; {
+    </span><span class="kw">pub fn </span>parse&lt;<span class="lifetime">&#39;data</span>, R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt;&gt;(data: R, offset: <span class="kw-2">&amp;mut </span>u64) -&gt; read::Result&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span><span class="self">Self</span>&gt; {
         <span class="kw">let </span>header = data
             .read::&lt;pe::ImageFileHeader&gt;(offset)
             .read_error(<span class="string">&quot;Invalid COFF file header size or alignment&quot;</span>)<span class="question-mark">?</span>;
 
         <span class="comment">// Skip over the optional header.
-        </span><span class="kw-2">*</span><a href="#210">offset</a> = offset
+        </span><span class="kw-2">*</span>offset = offset
             .checked_add(header.size_of_optional_header.get(LE).into())
             .read_error(<span class="string">&quot;Invalid COFF optional header size&quot;</span>)<span class="question-mark">?</span>;
 
         <span class="comment">// TODO: maybe validate that the machine is known?
-        </span><span class="prelude-val">Ok</span>(<a href="#211">header</a>)
+        </span><span class="prelude-val">Ok</span>(header)
     }
 
     <span class="doccomment">/// Read the section table.
@@ -476,9 +476,9 @@
     </span><span class="kw">pub fn </span>sections&lt;<span class="lifetime">&#39;data</span>, R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt;&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         data: R,
-        offset: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>,
+        offset: u64,
     ) -&gt; read::Result&lt;SectionTable&lt;<span class="lifetime">&#39;data</span>&gt;&gt; {
-        SectionTable::parse(<a class="self" href="#230">self</a>, <a href="#231">data</a>, <a href="#232">offset</a>)
+        SectionTable::parse(<span class="self">self</span>, data, offset)
     }
 
     <span class="doccomment">/// Read the symbol table and string table.
@@ -489,8 +489,8 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         data: R,
     ) -&gt; read::Result&lt;SymbolTable&lt;<span class="lifetime">&#39;data</span>, R&gt;&gt; {
-        SymbolTable::parse(<a class="self" href="#242">self</a>, <a href="#243">data</a>)
+        SymbolTable::parse(<span class="self">self</span>, data)
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="object" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="object" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

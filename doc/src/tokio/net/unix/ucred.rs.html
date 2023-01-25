@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.21.2/src/net/unix/ucred.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>ucred.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../../tokio/index.html"><img class="rust-logo" src="../../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.23.0/src/net/unix/ucred.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>ucred.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../../tokio/index.html"><img class="rust-logo" src="../../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -250,41 +250,41 @@
 <a href="#250" id="250">250</a>
 <a href="#251" id="251">251</a>
 <a href="#252" id="252">252</a>
-</pre><pre class="rust"><code><span class="kw">use </span>libc::{<a href="../../../../libc/unix/type.gid_t.html">gid_t</a>, <a href="../../../../libc/unix/type.pid_t.html">pid_t</a>, <a href="../../../../libc/unix/type.uid_t.html">uid_t</a>};
+</pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::net::unix;
 
 <span class="doccomment">/// Credentials of a process.
 </span><span class="attr">#[derive(Copy, Clone, Eq, PartialEq, Hash, Debug)]
 </span><span class="kw">pub struct </span>UCred {
     <span class="doccomment">/// PID (process ID) of the process.
-    </span>pid: <span class="prelude-ty">Option</span>&lt;<a href="../../../../libc/unix/type.pid_t.html">pid_t</a>&gt;,
+    </span>pid: <span class="prelude-ty">Option</span>&lt;unix::pid_t&gt;,
     <span class="doccomment">/// UID (user ID) of the process.
-    </span>uid: <a href="../../../../libc/unix/type.uid_t.html">uid_t</a>,
+    </span>uid: unix::uid_t,
     <span class="doccomment">/// GID (group ID) of the process.
-    </span>gid: <a href="../../../../libc/unix/type.gid_t.html">gid_t</a>,
+    </span>gid: unix::gid_t,
 }
 
-<span class="kw">impl </span><a href="#5">UCred</a> {
+<span class="kw">impl </span>UCred {
     <span class="doccomment">/// Gets UID (user ID) of the process.
-    </span><span class="kw">pub fn </span>uid(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../../../../libc/unix/type.uid_t.html">uid_t</a> {
-        <a class="self" href="#16">self</a>.uid
+    </span><span class="kw">pub fn </span>uid(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; unix::uid_t {
+        <span class="self">self</span>.uid
     }
 
     <span class="doccomment">/// Gets GID (group ID) of the process.
-    </span><span class="kw">pub fn </span>gid(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../../../../libc/unix/type.gid_t.html">gid_t</a> {
-        <a class="self" href="#21">self</a>.gid
+    </span><span class="kw">pub fn </span>gid(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; unix::gid_t {
+        <span class="self">self</span>.gid
     }
 
     <span class="doccomment">/// Gets PID (process ID) of the process.
     ///
     /// This is only implemented under Linux, Android, iOS, macOS, Solaris and
     /// Illumos. On other platforms this will always return `None`.
-    </span><span class="kw">pub fn </span>pid(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="../../../../libc/unix/type.pid_t.html">pid_t</a>&gt; {
-        <a class="self" href="#29">self</a>.pid
+    </span><span class="kw">pub fn </span>pid(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;unix::pid_t&gt; {
+        <span class="self">self</span>.pid
     }
 }
 
 <span class="attr">#[cfg(any(target_os = <span class="string">&quot;linux&quot;</span>, target_os = <span class="string">&quot;android&quot;</span>, target_os = <span class="string">&quot;openbsd&quot;</span>))]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span><a href="#61"><span class="self">self</span>::impl_linux::get_peer_cred</a>;
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span><span class="self">self</span>::impl_linux::get_peer_cred;
 
 <span class="attr">#[cfg(any(target_os = <span class="string">&quot;netbsd&quot;</span>))]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span><span class="self">self</span>::impl_netbsd::get_peer_cred;
@@ -300,48 +300,48 @@
 
 <span class="attr">#[cfg(any(target_os = <span class="string">&quot;linux&quot;</span>, target_os = <span class="string">&quot;android&quot;</span>, target_os = <span class="string">&quot;openbsd&quot;</span>))]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span>impl_linux {
-    <span class="kw">use </span><a href="stream.rs.html#35"><span class="kw">crate</span>::net::unix::UnixStream</a>;
+    <span class="kw">use </span><span class="kw">crate</span>::net::unix::{<span class="self">self</span>, UnixStream};
 
-    <span class="kw">use </span>libc::{<a href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>, <a href="../../../../libc/unix/fn.getsockopt.html">getsockopt</a>, <a href="../../../../libc/unix/linux_like/linux/type.socklen_t.html">socklen_t</a>, <a href="../../../../libc/unix/linux_like/linux/arch/generic/constant.SOL_SOCKET.html">SOL_SOCKET</a>, <a href="../../../../libc/unix/linux_like/linux/arch/generic/constant.SO_PEERCRED.html">SO_PEERCRED</a>};
-    <span class="kw">use </span>std::{<a href="https://doc.rust-lang.org/nightly/std/io/index.html">io</a>, <a href="https://doc.rust-lang.org/nightly/core/mem/index.html">mem</a>};
+    <span class="kw">use </span>libc::{c_void, getsockopt, socklen_t, SOL_SOCKET, SO_PEERCRED};
+    <span class="kw">use </span>std::{io, mem};
 
     <span class="attr">#[cfg(target_os = <span class="string">&quot;openbsd&quot;</span>)]
     </span><span class="kw">use </span>libc::sockpeercred <span class="kw">as </span>ucred;
     <span class="attr">#[cfg(any(target_os = <span class="string">&quot;linux&quot;</span>, target_os = <span class="string">&quot;android&quot;</span>))]
-    </span><span class="kw">use </span><a href="../../../../libc/unix/linux_like/linux/struct.ucred.html">libc::ucred</a>;
+    </span><span class="kw">use </span>libc::ucred;
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_peer_cred(sock: <span class="kw-2">&amp;</span><a href="stream.rs.html#35">UnixStream</a>) -&gt; io::Result&lt;<a href="#5"><span class="kw">super</span>::UCred</a>&gt; {
-        <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">std::os::unix::io::AsRawFd</a>;
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_peer_cred(sock: <span class="kw-2">&amp;</span>UnixStream) -&gt; io::Result&lt;<span class="kw">super</span>::UCred&gt; {
+        <span class="kw">use </span>std::os::unix::io::AsRawFd;
 
         <span class="kw">unsafe </span>{
-            <span class="kw">let </span>raw_fd = <a href="#61">sock</a>.<a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">as_raw_fd</a>();
+            <span class="kw">let </span>raw_fd = sock.as_raw_fd();
 
-            <span class="kw">let </span><span class="kw-2">mut </span>ucred = <a href="../../../../libc/unix/linux_like/linux/struct.ucred.html">ucred</a> {
+            <span class="kw">let </span><span class="kw-2">mut </span>ucred = ucred {
                 pid: <span class="number">0</span>,
                 uid: <span class="number">0</span>,
                 gid: <span class="number">0</span>,
             };
 
-            <span class="kw">let </span>ucred_size = mem::size_of::&lt;<a href="../../../../libc/unix/linux_like/linux/struct.ucred.html">ucred</a>&gt;();
+            <span class="kw">let </span>ucred_size = mem::size_of::&lt;ucred&gt;();
 
             <span class="comment">// These paranoid checks should be optimized-out
-            </span><a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(mem::size_of::&lt;u32&gt;() &lt;= mem::size_of::&lt;usize&gt;());
-            <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(ucred_size &lt;= u32::MAX <span class="kw">as </span>usize);
+            </span><span class="macro">assert!</span>(mem::size_of::&lt;u32&gt;() &lt;= mem::size_of::&lt;usize&gt;());
+            <span class="macro">assert!</span>(ucred_size &lt;= u32::MAX <span class="kw">as </span>usize);
 
-            <span class="kw">let </span><span class="kw-2">mut </span>ucred_size = <a href="#73">ucred_size</a> <span class="kw">as </span><a href="../../../../libc/unix/linux_like/linux/type.socklen_t.html">socklen_t</a>;
+            <span class="kw">let </span><span class="kw-2">mut </span>ucred_size = ucred_size <span class="kw">as </span>socklen_t;
 
-            <span class="kw">let </span>ret = <a href="../../../../libc/unix/fn.getsockopt.html">getsockopt</a>(
-                <a href="#65">raw_fd</a>,
-                <a href="../../../../libc/unix/linux_like/linux/arch/generic/constant.SOL_SOCKET.html">SOL_SOCKET</a>,
-                <a href="../../../../libc/unix/linux_like/linux/arch/generic/constant.SO_PEERCRED.html">SO_PEERCRED</a>,
-                <span class="kw-2">&amp;mut </span><a href="#67">ucred</a> <span class="kw">as </span><span class="kw-2">*mut </span><a href="../../../../libc/unix/linux_like/linux/struct.ucred.html">ucred</a> <span class="kw">as </span><span class="kw-2">*mut </span><a href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>,
-                <span class="kw-2">&amp;mut </span><a href="#79">ucred_size</a>,
+            <span class="kw">let </span>ret = getsockopt(
+                raw_fd,
+                SOL_SOCKET,
+                SO_PEERCRED,
+                <span class="kw-2">&amp;mut </span>ucred <span class="kw">as </span><span class="kw-2">*mut </span>ucred <span class="kw">as </span><span class="kw-2">*mut </span>c_void,
+                <span class="kw-2">&amp;mut </span>ucred_size,
             );
             <span class="kw">if </span>ret == <span class="number">0 </span>&amp;&amp; ucred_size <span class="kw">as </span>usize == mem::size_of::&lt;ucred&gt;() {
-                <span class="prelude-val">Ok</span>(<a href="#5"><span class="kw">super</span>::UCred</a> {
-                    uid: <a href="#67">ucred</a>.uid,
-                    gid: <a href="#67">ucred</a>.gid,
-                    pid: <span class="prelude-val">Some</span>(<a href="#67">ucred</a>.pid),
+                <span class="prelude-val">Ok</span>(<span class="kw">super</span>::UCred {
+                    uid: ucred.uid <span class="kw">as </span>unix::uid_t,
+                    gid: ucred.gid <span class="kw">as </span>unix::gid_t,
+                    pid: <span class="prelude-val">Some</span>(ucred.pid <span class="kw">as </span>unix::pid_t),
                 })
             } <span class="kw">else </span>{
                 <span class="prelude-val">Err</span>(io::Error::last_os_error())
@@ -352,7 +352,7 @@
 
 <span class="attr">#[cfg(any(target_os = <span class="string">&quot;netbsd&quot;</span>))]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span>impl_netbsd {
-    <span class="kw">use </span><span class="kw">crate</span>::net::unix::UnixStream;
+    <span class="kw">use </span><span class="kw">crate</span>::net::unix::{<span class="self">self</span>, UnixStream};
 
     <span class="kw">use </span>libc::{c_void, getsockopt, socklen_t, unpcbid, LOCAL_PEEREID, SOL_SOCKET};
     <span class="kw">use </span>std::io;
@@ -381,9 +381,9 @@
             );
             <span class="kw">if </span>ret == <span class="number">0 </span>&amp;&amp; unpcbid_size <span class="kw">as </span>usize == size_of::&lt;unpcbid&gt;() {
                 <span class="prelude-val">Ok</span>(<span class="kw">super</span>::UCred {
-                    uid: unpcbid.unp_euid,
-                    gid: unpcbid.unp_egid,
-                    pid: <span class="prelude-val">Some</span>(unpcbid.unp_pid),
+                    uid: unpcbid.unp_euid <span class="kw">as </span>unix::uid_t,
+                    gid: unpcbid.unp_egid <span class="kw">as </span>unix::gid_t,
+                    pid: <span class="prelude-val">Some</span>(unpcbid.unp_pid <span class="kw">as </span>unix::pid_t),
                 })
             } <span class="kw">else </span>{
                 <span class="prelude-val">Err</span>(io::Error::last_os_error())
@@ -394,7 +394,7 @@
 
 <span class="attr">#[cfg(any(target_os = <span class="string">&quot;dragonfly&quot;</span>, target_os = <span class="string">&quot;freebsd&quot;</span>))]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span>impl_bsd {
-    <span class="kw">use </span><span class="kw">crate</span>::net::unix::UnixStream;
+    <span class="kw">use </span><span class="kw">crate</span>::net::unix::{<span class="self">self</span>, UnixStream};
 
     <span class="kw">use </span>libc::getpeereid;
     <span class="kw">use </span>std::io;
@@ -412,8 +412,8 @@
 
             <span class="kw">if </span>ret == <span class="number">0 </span>{
                 <span class="prelude-val">Ok</span>(<span class="kw">super</span>::UCred {
-                    uid: uid.assume_init(),
-                    gid: gid.assume_init(),
+                    uid: uid.assume_init() <span class="kw">as </span>unix::uid_t,
+                    gid: gid.assume_init() <span class="kw">as </span>unix::gid_t,
                     pid: <span class="prelude-val">None</span>,
                 })
             } <span class="kw">else </span>{
@@ -425,7 +425,7 @@
 
 <span class="attr">#[cfg(any(target_os = <span class="string">&quot;macos&quot;</span>, target_os = <span class="string">&quot;ios&quot;</span>))]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span>impl_macos {
-    <span class="kw">use </span><span class="kw">crate</span>::net::unix::UnixStream;
+    <span class="kw">use </span><span class="kw">crate</span>::net::unix::{<span class="self">self</span>, UnixStream};
 
     <span class="kw">use </span>libc::{c_void, getpeereid, getsockopt, pid_t, LOCAL_PEEREPID, SOL_LOCAL};
     <span class="kw">use </span>std::io;
@@ -459,9 +459,9 @@
 
             <span class="kw">if </span>ret == <span class="number">0 </span>{
                 <span class="prelude-val">Ok</span>(<span class="kw">super</span>::UCred {
-                    uid: uid.assume_init(),
-                    gid: gid.assume_init(),
-                    pid: <span class="prelude-val">Some</span>(pid.assume_init()),
+                    uid: uid.assume_init() <span class="kw">as </span>unix::uid_t,
+                    gid: gid.assume_init() <span class="kw">as </span>unix::gid_t,
+                    pid: <span class="prelude-val">Some</span>(pid.assume_init() <span class="kw">as </span>unix::pid_t),
                 })
             } <span class="kw">else </span>{
                 <span class="prelude-val">Err</span>(io::Error::last_os_error())
@@ -472,7 +472,7 @@
 
 <span class="attr">#[cfg(any(target_os = <span class="string">&quot;solaris&quot;</span>, target_os = <span class="string">&quot;illumos&quot;</span>))]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span>impl_solaris {
-    <span class="kw">use </span><span class="kw">crate</span>::net::unix::UnixStream;
+    <span class="kw">use </span><span class="kw">crate</span>::net::unix::{<span class="self">self</span>, UnixStream};
     <span class="kw">use </span>std::io;
     <span class="kw">use </span>std::os::unix::io::AsRawFd;
     <span class="kw">use </span>std::ptr;
@@ -492,9 +492,9 @@
                 libc::ucred_free(cred);
 
                 <span class="prelude-val">Ok</span>(<span class="kw">super</span>::UCred {
-                    uid,
-                    gid,
-                    pid: <span class="prelude-val">Some</span>(pid),
+                    uid: uid <span class="kw">as </span>unix::uid_t,
+                    gid: gid <span class="kw">as </span>unix::gid_t,
+                    pid: <span class="prelude-val">Some</span>(pid <span class="kw">as </span>unix::pid_t),
                 })
             } <span class="kw">else </span>{
                 <span class="prelude-val">Err</span>(io::Error::last_os_error())
@@ -503,4 +503,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="tokio" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="tokio" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

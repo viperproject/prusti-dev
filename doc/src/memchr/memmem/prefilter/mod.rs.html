@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/memchr-2.5.0/src/memmem/prefilter/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../../memchr/index.html"><img class="rust-logo" src="../../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/memchr-2.5.0/src/memmem/prefilter/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../../memchr/index.html"><img class="rust-logo" src="../../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -568,20 +568,20 @@
 <a href="#568" id="568">568</a>
 <a href="#569" id="569">569</a>
 <a href="#570" id="570">570</a>
-</pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::memmem::{<a href="../rarebytes.rs.html#15">rarebytes::RareNeedleBytes</a>, <a href="../mod.rs.html#767">NeedleInfo</a>};
+</pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::memmem::{rarebytes::RareNeedleBytes, NeedleInfo};
 
-<span class="kw">mod </span><a href="fallback.rs.html#31-122">fallback</a>;
+<span class="kw">mod </span>fallback;
 <span class="attr">#[cfg(memchr_runtime_simd)]
-</span><span class="kw">mod </span><a href="genericsimd.rs.html#1-207">genericsimd</a>;
+</span><span class="kw">mod </span>genericsimd;
 <span class="attr">#[cfg(all(not(miri), target_arch = <span class="string">&quot;wasm32&quot;</span>, memchr_runtime_simd))]
 </span><span class="kw">mod </span>wasm;
 <span class="attr">#[cfg(all(not(miri), target_arch = <span class="string">&quot;x86_64&quot;</span>, memchr_runtime_simd))]
-</span><span class="kw">mod </span><a href="x86/mod.rs.html#3-5">x86</a>;
+</span><span class="kw">mod </span>x86;
 
 <span class="doccomment">/// The maximum frequency rank permitted for the fallback prefilter. If the
 /// rarest byte in the needle has a frequency rank above this value, then no
 /// prefilter is used if the fallback prefilter would otherwise be selected.
-</span><span class="kw">const </span>MAX_FALLBACK_RANK: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> = <span class="number">250</span>;
+</span><span class="kw">const </span>MAX_FALLBACK_RANK: usize = <span class="number">250</span>;
 
 <span class="doccomment">/// A combination of prefilter effectiveness state, the prefilter function and
 /// the needle info required to run a prefilter.
@@ -591,11 +591,11 @@
 /// parameters.
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>Pre&lt;<span class="lifetime">&#39;a</span>&gt; {
     <span class="doccomment">/// State that tracks the effectiveness of a prefilter.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) state: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span><a href="#204">PrefilterState</a>,
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) state: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>PrefilterState,
     <span class="doccomment">/// The actual prefilter function.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) prefn: <a href="#74">PrefilterFn</a>,
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) prefn: PrefilterFn,
     <span class="doccomment">/// Information about a needle, such as its RK hash and rare byte offsets.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) ninfo: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="../mod.rs.html#767">NeedleInfo</a>,
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) ninfo: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>NeedleInfo,
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; Pre&lt;<span class="lifetime">&#39;a</span>&gt; {
@@ -603,16 +603,16 @@
     </span><span class="attr">#[inline(always)]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>call(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        haystack: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
-        needle: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
-    ) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
-        <a class="self" href="#35">self</a>.prefn.<a href="#124-130">call</a>(<a class="self" href="#35">self</a>.state, <a class="self" href="#35">self</a>.ninfo, <a href="#36">haystack</a>, <a href="#37">needle</a>)
+        haystack: <span class="kw-2">&amp;</span>[u8],
+        needle: <span class="kw-2">&amp;</span>[u8],
+    ) -&gt; <span class="prelude-ty">Option</span>&lt;usize&gt; {
+        <span class="self">self</span>.prefn.call(<span class="self">self</span>.state, <span class="self">self</span>.ninfo, haystack, needle)
     }
 
     <span class="doccomment">/// Return true if and only if this prefilter should be used.
     </span><span class="attr">#[inline(always)]
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>should_call(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#44">self</a>.state.<a href="#257">is_effective</a>()
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>should_call(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.state.is_effective()
     }
 }
 
@@ -641,7 +641,7 @@
 /// Thus, callers must ensure that when a prefilter function is created that it
 /// is safe to call for the current environment.
 </span><span class="attr">#[derive(Clone, Copy)]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>PrefilterFn(<a href="#88">PrefilterFnTy</a>);
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>PrefilterFn(PrefilterFnTy);
 
 <span class="doccomment">/// The type of a prefilter function. All prefilters must satisfy this
 /// signature.
@@ -656,11 +656,11 @@
 /// (Unless AVX2 is enabled at compile time, but this is typically rare, since
 /// it produces a non-portable binary.)
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type </span>PrefilterFnTy = <span class="kw">unsafe fn</span>(
-    prestate: <span class="kw-2">&amp;mut </span><a href="#204">PrefilterState</a>,
-    ninfo: <span class="kw-2">&amp;</span><a href="../mod.rs.html#767">NeedleInfo</a>,
-    haystack: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
-    needle: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
-) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;;
+    prestate: <span class="kw-2">&amp;mut </span>PrefilterState,
+    ninfo: <span class="kw-2">&amp;</span>NeedleInfo,
+    haystack: <span class="kw-2">&amp;</span>[u8],
+    needle: <span class="kw-2">&amp;</span>[u8],
+) -&gt; <span class="prelude-ty">Option</span>&lt;usize&gt;;
 
 <span class="comment">// If the haystack is too small for SSE2, then just run memchr on the
 // rarest byte and be done with it. (It is likely that this code path is
@@ -668,16 +668,16 @@
 // Rabin-Karp for such a small haystack.)
 </span><span class="attr">#[cfg(memchr_runtime_simd)]
 </span><span class="kw">fn </span>simple_memchr_fallback(
-    _prestate: <span class="kw-2">&amp;mut </span><a href="#204">PrefilterState</a>,
-    ninfo: <span class="kw-2">&amp;</span><a href="../mod.rs.html#767">NeedleInfo</a>,
-    haystack: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
-    needle: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
-) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
-    <span class="kw">let </span>(rare, <span class="kw">_</span>) = <a href="#102">ninfo</a>.rarebytes.<a href="../rarebytes.rs.html#100">as_rare_ordered_usize</a>();
-    <a href="../../memchr/mod.rs.html#87"><span class="kw">crate</span>::memchr</a>(<a href="#104">needle</a>[<a href="#106">rare</a>], <a href="#103">haystack</a>).map(|i| <a href="#107">i</a>.saturating_sub(<a href="#106">rare</a>))
+    _prestate: <span class="kw-2">&amp;mut </span>PrefilterState,
+    ninfo: <span class="kw-2">&amp;</span>NeedleInfo,
+    haystack: <span class="kw-2">&amp;</span>[u8],
+    needle: <span class="kw-2">&amp;</span>[u8],
+) -&gt; <span class="prelude-ty">Option</span>&lt;usize&gt; {
+    <span class="kw">let </span>(rare, <span class="kw">_</span>) = ninfo.rarebytes.as_rare_ordered_usize();
+    <span class="kw">crate</span>::memchr(needle[rare], haystack).map(|i| i.saturating_sub(rare))
 }
 
-<span class="kw">impl </span><a href="#74">PrefilterFn</a> {
+<span class="kw">impl </span>PrefilterFn {
     <span class="doccomment">/// Create a new prefilter function from the function pointer given.
     ///
     /// # Safety
@@ -686,27 +686,27 @@
     /// for all inputs in the current environment. For example, if the given
     /// prefilter function uses AVX instructions, then the caller must ensure
     /// that the appropriate AVX CPU features are enabled.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">unsafe fn </span>new(prefn: <a href="#88">PrefilterFnTy</a>) -&gt; <a href="#74">PrefilterFn</a> {
-        <a href="#74">PrefilterFn</a>(<a href="#119">prefn</a>)
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">unsafe fn </span>new(prefn: PrefilterFnTy) -&gt; PrefilterFn {
+        PrefilterFn(prefn)
     }
 
     <span class="doccomment">/// Call the underlying prefilter function with the given arguments.
     </span><span class="kw">pub fn </span>call(
         <span class="self">self</span>,
-        prestate: <span class="kw-2">&amp;mut </span><a href="#204">PrefilterState</a>,
-        ninfo: <span class="kw-2">&amp;</span><a href="../mod.rs.html#767">NeedleInfo</a>,
-        haystack: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
-        needle: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
-    ) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
+        prestate: <span class="kw-2">&amp;mut </span>PrefilterState,
+        ninfo: <span class="kw-2">&amp;</span>NeedleInfo,
+        haystack: <span class="kw-2">&amp;</span>[u8],
+        needle: <span class="kw-2">&amp;</span>[u8],
+    ) -&gt; <span class="prelude-ty">Option</span>&lt;usize&gt; {
         <span class="comment">// SAFETY: Callers have the burden of ensuring that a prefilter
         // function is safe to call for all inputs in the current environment.
-        </span><span class="kw">unsafe </span>{ (<a class="self" href="#125">self</a>.<span class="number">0</span>)(<a href="#126">prestate</a>, <a href="#127">ninfo</a>, <a href="#128">haystack</a>, <a href="#129">needle</a>) }
+        </span><span class="kw">unsafe </span>{ (<span class="self">self</span>.<span class="number">0</span>)(prestate, ninfo, haystack, needle) }
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">core::fmt::Debug</a> <span class="kw">for </span><a href="#74">PrefilterFn</a> {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">core::fmt::Formatter</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">core::fmt::Result</a> {
-        <span class="string">&quot;&lt;prefilter-fn(...)&gt;&quot;</span>.<a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt</a>(<a href="#138">f</a>)
+<span class="kw">impl </span>core::fmt::Debug <span class="kw">for </span>PrefilterFn {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>core::fmt::Formatter) -&gt; core::fmt::Result {
+        <span class="string">&quot;&lt;prefilter-fn(...)&gt;&quot;</span>.fmt(f)
     }
 }
 
@@ -746,16 +746,16 @@
     </span>Auto,
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for </span><a href="#170">Prefilter</a> {
-    <span class="kw">fn </span>default() -&gt; <a href="#170">Prefilter</a> {
-        <a href="#176">Prefilter::Auto</a>
+<span class="kw">impl </span>Default <span class="kw">for </span>Prefilter {
+    <span class="kw">fn </span>default() -&gt; Prefilter {
+        Prefilter::Auto
     }
 }
 
-<span class="kw">impl </span><a href="#170">Prefilter</a> {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>is_none(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="#186">self</a> </span>{
-            <a href="#172">Prefilter::None</a> =&gt; <span class="bool-val">true</span>,
+<span class="kw">impl </span>Prefilter {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>is_none(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="kw">match </span><span class="kw-2">*</span><span class="self">self </span>{
+            Prefilter::None =&gt; <span class="bool-val">true</span>,
             <span class="kw">_ </span>=&gt; <span class="bool-val">false</span>,
         }
     }
@@ -778,15 +778,15 @@
     /// additional checks to determine whether the prefilter is still
     /// &quot;effective.&quot; Once a prefilter becomes inert, it should no longer be
     /// used (according to our heuristics).
-    </span>skips: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>,
+    </span>skips: u32,
     <span class="doccomment">/// The total number of bytes that have been skipped.
-    </span>skipped: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>,
+    </span>skipped: u32,
 }
 
-<span class="kw">impl </span><a href="#204">PrefilterState</a> {
+<span class="kw">impl </span>PrefilterState {
     <span class="doccomment">/// The minimum number of skip attempts to try before considering whether
     /// a prefilter is effective or not.
-    </span><span class="kw">const </span>MIN_SKIPS: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> = <span class="number">50</span>;
+    </span><span class="kw">const </span>MIN_SKIPS: u32 = <span class="number">50</span>;
 
     <span class="doccomment">/// The minimum amount of bytes that skipping must average.
     ///
@@ -794,37 +794,37 @@
     /// the microbenchmarks. In particular, this can impact the
     /// pathological/repeated-{huge,small} benchmarks quite a bit if it&#39;s set
     /// too low.
-    </span><span class="kw">const </span>MIN_SKIP_BYTES: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> = <span class="number">8</span>;
+    </span><span class="kw">const </span>MIN_SKIP_BYTES: u32 = <span class="number">8</span>;
 
     <span class="doccomment">/// Create a fresh prefilter state.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new() -&gt; <a href="#204">PrefilterState</a> {
-        <a href="#204">PrefilterState</a> { skips: <span class="number">1</span>, skipped: <span class="number">0 </span>}
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new() -&gt; PrefilterState {
+        PrefilterState { skips: <span class="number">1</span>, skipped: <span class="number">0 </span>}
     }
 
     <span class="doccomment">/// Create a fresh prefilter state that is always inert.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>inert() -&gt; <a href="#204">PrefilterState</a> {
-        <a href="#204">PrefilterState</a> { skips: <span class="number">0</span>, skipped: <span class="number">0 </span>}
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>inert() -&gt; PrefilterState {
+        PrefilterState { skips: <span class="number">0</span>, skipped: <span class="number">0 </span>}
     }
 
     <span class="doccomment">/// Update this state with the number of bytes skipped on the last
     /// invocation of the prefilter.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>update(<span class="kw-2">&amp;mut </span><span class="self">self</span>, skipped: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
-        <a class="self" href="#242">self</a>.skips = <a class="self" href="#242">self</a>.skips.saturating_add(<span class="number">1</span>);
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>update(<span class="kw-2">&amp;mut </span><span class="self">self</span>, skipped: usize) {
+        <span class="self">self</span>.skips = <span class="self">self</span>.skips.saturating_add(<span class="number">1</span>);
         <span class="comment">// We need to do this dance since it&#39;s technically possible for
         // `skipped` to overflow a `u32`. (And we use a `u32` to reduce the
         // size of a prefilter state.)
         </span><span class="kw">if </span>skipped &gt; core::u32::MAX <span class="kw">as </span>usize {
-            <a class="self" href="#242">self</a>.skipped = core::u32::MAX;
+            <span class="self">self</span>.skipped = core::u32::MAX;
         } <span class="kw">else </span>{
-            <a class="self" href="#242">self</a>.skipped = <a class="self" href="#242">self</a>.skipped.saturating_add(<a href="#242">skipped</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>);
+            <span class="self">self</span>.skipped = <span class="self">self</span>.skipped.saturating_add(skipped <span class="kw">as </span>u32);
         }
     }
 
     <span class="doccomment">/// Return true if and only if this state indicates that a prefilter is
     /// still effective.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>is_effective(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>is_effective(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; bool {
         <span class="kw">if </span><span class="self">self</span>.is_inert() {
             <span class="kw">return </span><span class="bool-val">false</span>;
         }
@@ -836,18 +836,18 @@
         }
 
         <span class="comment">// We&#39;re inert.
-        </span><a class="self" href="#257">self</a>.skips = <span class="number">0</span>;
+        </span><span class="self">self</span>.skips = <span class="number">0</span>;
         <span class="bool-val">false
     </span>}
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>is_inert(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#274">self</a>.skips == <span class="number">0
+    </span><span class="kw">fn </span>is_inert(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.skips == <span class="number">0
     </span>}
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>skips(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
-        <a class="self" href="#279">self</a>.skips.saturating_sub(<span class="number">1</span>)
+    </span><span class="kw">fn </span>skips(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u32 {
+        <span class="self">self</span>.skips.saturating_sub(<span class="number">1</span>)
     }
 }
 
@@ -858,10 +858,10 @@
 /// SSE and then followed by a generic one based on memchr.
 </span><span class="attr">#[inline(always)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>forward(
-    config: <span class="kw-2">&amp;</span><a href="#170">Prefilter</a>,
-    rare: <span class="kw-2">&amp;</span><a href="../rarebytes.rs.html#15">RareNeedleBytes</a>,
-    needle: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
-) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="#74">PrefilterFn</a>&gt; {
+    config: <span class="kw-2">&amp;</span>Prefilter,
+    rare: <span class="kw-2">&amp;</span>RareNeedleBytes,
+    needle: <span class="kw-2">&amp;</span>[u8],
+) -&gt; <span class="prelude-ty">Option</span>&lt;PrefilterFn&gt; {
     <span class="kw">if </span>config.is_none() || needle.len() &lt;= <span class="number">1 </span>{
         <span class="kw">return </span><span class="prelude-val">None</span>;
     }
@@ -870,18 +870,18 @@
     </span>{
         <span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
         </span>{
-            <span class="kw">if </span><a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.cfg.html">cfg!</a>(memchr_runtime_avx) {
-                <span class="kw">if </span><a class="macro" href="https://doc.rust-lang.org/nightly/std_detect/macro.is_x86_feature_detected.html">is_x86_feature_detected!</a>(<span class="string">&quot;avx2&quot;</span>) {
+            <span class="kw">if </span><span class="macro">cfg!</span>(memchr_runtime_avx) {
+                <span class="kw">if </span><span class="macro">is_x86_feature_detected!</span>(<span class="string">&quot;avx2&quot;</span>) {
                     <span class="comment">// SAFETY: x86::avx::find only requires the avx2 feature,
                     // which we&#39;ve just checked above.
-                    </span><span class="kw">return unsafe </span>{ <span class="prelude-val">Some</span>(PrefilterFn::new(<a href="x86/avx.rs.html#18-23">x86::avx::find</a>)) };
+                    </span><span class="kw">return unsafe </span>{ <span class="prelude-val">Some</span>(PrefilterFn::new(x86::avx::find)) };
                 }
             }
         }
-        <span class="kw">if </span><a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.cfg.html">cfg!</a>(memchr_runtime_sse2) {
+        <span class="kw">if </span><span class="macro">cfg!</span>(memchr_runtime_sse2) {
             <span class="comment">// SAFETY: x86::sse::find only requires the sse2 feature, which is
             // guaranteed to be available on x86_64.
-            </span><span class="kw">return unsafe </span>{ <span class="prelude-val">Some</span>(PrefilterFn::new(<a href="x86/sse.rs.html#18-23">x86::sse::find</a>)) };
+            </span><span class="kw">return unsafe </span>{ <span class="prelude-val">Some</span>(PrefilterFn::new(x86::sse::find)) };
         }
     }
     <span class="attr">#[cfg(all(not(miri), target_arch = <span class="string">&quot;wasm32&quot;</span>, memchr_runtime_simd))]
@@ -897,10 +897,10 @@
     <span class="comment">// Check that our rarest byte has a reasonably low rank. The main issue
     // here is that the fallback prefilter can perform pretty poorly if it&#39;s
     // given common bytes. So we try to avoid the worst cases here.
-    </span><span class="kw">let </span>(rare1_rank, <span class="kw">_</span>) = <a href="#292">rare</a>.<a href="../rarebytes.rs.html#126">as_ranks</a>(<a href="#293">needle</a>);
+    </span><span class="kw">let </span>(rare1_rank, <span class="kw">_</span>) = rare.as_ranks(needle);
     <span class="kw">if </span>rare1_rank &lt;= MAX_FALLBACK_RANK {
         <span class="comment">// SAFETY: fallback::find is safe to call in all environments.
-        </span><span class="kw">return unsafe </span>{ <span class="prelude-val">Some</span>(PrefilterFn::new(<a href="fallback.rs.html#49-54">fallback::find</a>)) };
+        </span><span class="kw">return unsafe </span>{ <span class="prelude-val">Some</span>(PrefilterFn::new(fallback::find)) };
     }
     <span class="prelude-val">None
 </span>}
@@ -916,7 +916,7 @@
 ///
 /// We keep it around for now in case we want to bring it back.
 </span><span class="attr">#[allow(dead_code)]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>minimum_len(_haystack: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], needle: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>minimum_len(_haystack: <span class="kw-2">&amp;</span>[u8], needle: <span class="kw-2">&amp;</span>[u8]) -&gt; usize {
     <span class="comment">// If the haystack length isn&#39;t greater than needle.len() * FACTOR, then
     // no prefilter will be used. The presumption here is that since there
     // are so few bytes to check, it&#39;s not worth running the prefilter since
@@ -925,15 +925,15 @@
     //
     // Increase the factor noticeably hurts the
     // memmem/krate/prebuilt/teeny-*/never-john-watson benchmarks.
-    </span><span class="kw">const </span>PREFILTER_LENGTH_FACTOR: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> = <span class="number">2</span>;
-    <span class="kw">const </span>VECTOR_MIN_LENGTH: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> = <span class="number">16</span>;
+    </span><span class="kw">const </span>PREFILTER_LENGTH_FACTOR: usize = <span class="number">2</span>;
+    <span class="kw">const </span>VECTOR_MIN_LENGTH: usize = <span class="number">16</span>;
     <span class="kw">let </span>min = core::cmp::max(
-        <a href="#359">VECTOR_MIN_LENGTH</a>,
-        <a href="#358">PREFILTER_LENGTH_FACTOR</a> * <a href="#349">needle</a>.len(),
+        VECTOR_MIN_LENGTH,
+        PREFILTER_LENGTH_FACTOR * needle.len(),
     );
     <span class="comment">// For haystacks with length==min, we still want to avoid the prefilter,
     // so add 1.
-    </span><a href="#360">min</a> + <span class="number">1
+    </span>min + <span class="number">1
 </span>}
 
 <span class="attr">#[cfg(all(test, feature = <span class="string">&quot;std&quot;</span>, not(miri)))]
@@ -1139,4 +1139,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="memchr" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="memchr" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

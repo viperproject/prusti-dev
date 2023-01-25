@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `prusti-viper/src/encoder/mir/pure/interpreter/backward_interpreter.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>backward_interpreter.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../../../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../../../../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../../../../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../../../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../../../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../../../../../source-files.js"></script><script defer src="../../../../../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../../../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../../../../prusti_viper/index.html"><img class="rust-logo" src="../../../../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `prusti-viper/src/encoder/mir/pure/interpreter/backward_interpreter.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>backward_interpreter.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../../../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../../../../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../../../../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../../../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../../../../source-files.js"></script><script defer src="../../../../../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../../../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../../../../prusti_viper/index.html"><img class="rust-logo" src="../../../../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -217,25 +217,25 @@
 
 </span><span class="doccomment">//! A MIR interpreter that translates MIR into vir_poly expressions.
 
-</span><span class="kw">use </span><a href="../../../../../../log/macro.trace.html">log::trace</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/index.html">prusti_rustc_interface::middle::mir</a>;
-<span class="kw">use </span><a href="../../../../../../rustc_hash/type.FxHashMap.html">rustc_hash::FxHashMap</a>;
-<span class="kw">use </span>std::{<a href="https://doc.rust-lang.org/nightly/core/fmt/macros/derive.Debug.html">fmt::Debug</a>, <a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.FromIterator.html">iter::FromIterator</a>, <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">marker::Sized</a>};
+</span><span class="kw">use </span>log::trace;
+<span class="kw">use </span>prusti_rustc_interface::middle::mir;
+<span class="kw">use </span>rustc_hash::FxHashMap;
+<span class="kw">use </span>std::{fmt::Debug, iter::FromIterator, marker::Sized};
 
 <span class="doccomment">/// Backward interpreter for a loop-less MIR
 </span><span class="kw">pub trait </span>BackwardMirInterpreter&lt;<span class="lifetime">&#39;tcx</span>&gt; {
-    <span class="kw">type </span>Error: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>;
-    <span class="kw">type </span>State: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>;
+    <span class="kw">type </span>Error: Sized;
+    <span class="kw">type </span>State: Sized;
     <span class="kw">fn </span>apply_terminator(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        bb: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.BasicBlock.html">mir::BasicBlock</a>,
+        bb: mir::BasicBlock,
         terminator: <span class="kw-2">&amp;</span>mir::Terminator&lt;<span class="lifetime">&#39;tcx</span>&gt;,
-        states: FxHashMap&lt;<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.BasicBlock.html">mir::BasicBlock</a>, <span class="kw-2">&amp;</span><span class="self">Self</span>::State&gt;,
+        states: FxHashMap&lt;mir::BasicBlock, <span class="kw-2">&amp;</span><span class="self">Self</span>::State&gt;,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::State, <span class="self">Self</span>::Error&gt;;
     <span class="kw">fn </span>apply_statement(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        bb: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.BasicBlock.html">mir::BasicBlock</a>,
-        stmt_index: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+        bb: mir::BasicBlock,
+        stmt_index: usize,
         stmt: <span class="kw-2">&amp;</span>mir::Statement&lt;<span class="lifetime">&#39;tcx</span>&gt;,
         state: <span class="kw-2">&amp;mut </span><span class="self">Self</span>::State,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt;;
@@ -248,22 +248,22 @@
     interpreter: <span class="kw-2">&amp;</span>I,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;S&gt;, E&gt;
 <span class="kw">where
-    </span>S: <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">Debug</a>,
-    E: <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">Debug</a>,
+    </span>S: Debug,
+    E: Debug,
     I: BackwardMirInterpreter&lt;<span class="lifetime">&#39;tcx</span>, State = S, Error = E&gt;,
 {
-    <span class="kw">let </span>basic_blocks = <span class="kw-2">&amp;</span><a href="#36">mir</a>.basic_blocks;
-    <span class="kw">let </span><span class="kw-2">mut </span>heads: FxHashMap&lt;<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.BasicBlock.html">mir::BasicBlock</a>, S&gt; = FxHashMap::default();
+    <span class="kw">let </span>basic_blocks = <span class="kw-2">&amp;</span>mir.basic_blocks;
+    <span class="kw">let </span><span class="kw-2">mut </span>heads: FxHashMap&lt;mir::BasicBlock, S&gt; = FxHashMap::default();
 
     <span class="comment">// Find the final basic blocks
-    </span><span class="kw">let </span><span class="kw-2">mut </span>pending_blocks: Vec&lt;<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.BasicBlock.html">mir::BasicBlock</a>&gt; = <a href="#44">basic_blocks</a>
+    </span><span class="kw">let </span><span class="kw-2">mut </span>pending_blocks: Vec&lt;mir::BasicBlock&gt; = basic_blocks
         .iter_enumerated()
-        .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter</a>(|(<span class="kw">_</span>, bb_data)| <span class="kw">match </span><a href="#50">bb_data</a>.terminator {
-            <span class="prelude-val">Some</span>(<span class="kw-2">ref </span>term) =&gt; <a href="#51">term</a>.successors().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>().is_none(),
+        .filter(|(<span class="kw">_</span>, bb_data)| <span class="kw">match </span>bb_data.terminator {
+            <span class="prelude-val">Some</span>(<span class="kw-2">ref </span>term) =&gt; term.successors().next().is_none(),
             <span class="kw">_ </span>=&gt; <span class="bool-val">false</span>,
         })
-        .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|(bb, <span class="kw">_</span>)| <a href="#54">bb</a>)
-        .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
+        .map(|(bb, <span class="kw">_</span>)| bb)
+        .collect();
 
     <span class="comment">// Interpret all the blocks in `pending_blocks`
     </span><span class="kw">while </span>!pending_blocks.is_empty() {
@@ -302,34 +302,34 @@
         }
     }
 
-    <span class="kw">let </span>result = <a href="#45">heads</a>.remove(<span class="kw-2">&amp;</span><a href="#44">basic_blocks</a>.indices().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>().unwrap());
+    <span class="kw">let </span>result = heads.remove(<span class="kw-2">&amp;</span>basic_blocks.indices().next().unwrap());
 
     <span class="kw">if </span>result.is_none() {
-        <a class="macro" href="../../../../../../log/macro.trace.html">trace!</a>(<span class="string">&quot;heads: {:?}&quot;</span>, heads);
+        <span class="macro">trace!</span>(<span class="string">&quot;heads: {:?}&quot;</span>, heads);
     }
 
-    <span class="prelude-val">Ok</span>(<a href="#94">result</a>)
+    <span class="prelude-val">Ok</span>(result)
 }
 
 <span class="doccomment">/// Interpret a loop-less MIR starting from the end and return the **initial** state.
 /// The result is None if the CFG contains a loop.
 </span><span class="kw">pub fn </span>run_backward_interpretation_point_to_point&lt;
     <span class="lifetime">&#39;tcx</span>,
-    S: <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">Debug</a> + <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a>,
+    S: Debug + Clone,
     E,
     I: BackwardMirInterpreter&lt;<span class="lifetime">&#39;tcx</span>, State = S, Error = E&gt;,
 &gt;(
     mir: <span class="kw-2">&amp;</span>mir::Body&lt;<span class="lifetime">&#39;tcx</span>&gt;,
     interpreter: <span class="kw-2">&amp;</span>I,
-    initial_bbi: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.BasicBlock.html">mir::BasicBlock</a>,
-    final_bbi: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.BasicBlock.html">mir::BasicBlock</a>,
-    final_stmt_index: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+    initial_bbi: mir::BasicBlock,
+    final_bbi: mir::BasicBlock,
+    final_stmt_index: usize,
     final_state: S,
     undef_state: S,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;S&gt;, E&gt; {
-    <span class="kw">let </span>basic_blocks = <span class="kw-2">&amp;</span><a href="#111">mir</a>.basic_blocks;
-    <span class="kw">let </span><span class="kw-2">mut </span>heads: FxHashMap&lt;<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.BasicBlock.html">mir::BasicBlock</a>, S&gt; = FxHashMap::default();
-    <a class="macro" href="../../../../../../log/macro.trace.html">trace!</a>(
+    <span class="kw">let </span>basic_blocks = <span class="kw-2">&amp;</span>mir.basic_blocks;
+    <span class="kw">let </span><span class="kw-2">mut </span>heads: FxHashMap&lt;mir::BasicBlock, S&gt; = FxHashMap::default();
+    <span class="macro">trace!</span>(
         <span class="string">&quot;[start] run_backward_interpretation_point_to_point:\n - from final block {:?}, statement {}\n - and state {:?}\n - to initial block {:?}\n - using undef state {:?}&quot;</span>,
         final_bbi,
         final_stmt_index,
@@ -339,7 +339,7 @@
     );
 
     <span class="comment">// Find the final basic blocks
-    </span><span class="kw">let </span><span class="kw-2">mut </span>pending_blocks: Vec&lt;<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.BasicBlock.html">mir::BasicBlock</a>&gt; = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[final_bbi];
+    </span><span class="kw">let </span><span class="kw-2">mut </span>pending_blocks: Vec&lt;mir::BasicBlock&gt; = <span class="macro">vec!</span>[final_bbi];
 
     <span class="comment">// Interpret all the blocks in `pending_blocks`
     </span><span class="kw">while </span>!pending_blocks.is_empty() {
@@ -402,13 +402,13 @@
         }
     }
 
-    <span class="kw">let </span>result = <a href="#120">heads</a>.remove(<span class="kw-2">&amp;</span><a href="#113">initial_bbi</a>);
+    <span class="kw">let </span>result = heads.remove(<span class="kw-2">&amp;</span>initial_bbi);
 
     <span class="kw">if </span>result.is_none() {
-        <a class="macro" href="../../../../../../log/macro.trace.html">trace!</a>(<span class="string">&quot;heads: {:?}&quot;</span>, heads);
+        <span class="macro">trace!</span>(<span class="string">&quot;heads: {:?}&quot;</span>, heads);
     }
 
-    <a class="macro" href="../../../../../../log/macro.trace.html">trace!</a>(
+    <span class="macro">trace!</span>(
         <span class="string">&quot;[end] run_backward_interpretation_point_to_point:\n - from final final block {:?}, statement {}\n - and state {:?}\n - to initial block {:?}\n - using undef state {:?}\n - resulted in state {:?}&quot;</span>,
         final_bbi,
         final_stmt_index,
@@ -418,7 +418,7 @@
         result
     );
 
-    <span class="prelude-val">Ok</span>(<a href="#194">result</a>)
+    <span class="prelude-val">Ok</span>(result)
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../../../" data-static-root-path="../../../../../../static.files/" data-current-crate="prusti_viper" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../../../../" data-static-root-path="../../../../../../static.files/" data-current-crate="prusti_viper" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

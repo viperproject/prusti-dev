@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/reqwest-0.11.13/src/error.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>error.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../reqwest/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/reqwest-0.11.13/src/error.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>error.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../reqwest/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -382,14 +382,14 @@
 <a href="#382" id="382">382</a>
 <a href="#383" id="383">383</a>
 </pre><pre class="rust"><code><span class="attr">#![cfg_attr(target_arch = <span class="string">&quot;wasm32&quot;</span>, allow(unused))]
-</span><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">std::error::Error</a> <span class="kw">as </span>StdError;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">std::fmt</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/io/index.html">std::io</a>;
+</span><span class="kw">use </span>std::error::Error <span class="kw">as </span>StdError;
+<span class="kw">use </span>std::fmt;
+<span class="kw">use </span>std::io;
 
-<span class="kw">use crate</span>::{<a href="../../reqwest/struct.StatusCode.html">StatusCode</a>, <a href="../../reqwest/struct.Url.html">Url</a>};
+<span class="kw">use crate</span>::{StatusCode, Url};
 
 <span class="doccomment">/// A `Result` alias where the `Err` case is `reqwest::Error`.
-</span><span class="kw">pub type </span><span class="prelude-ty">Result</span>&lt;T&gt; = std::result::Result&lt;T, <a href="#16">Error</a>&gt;;
+</span><span class="kw">pub type </span><span class="prelude-ty">Result</span>&lt;T&gt; = std::result::Result&lt;T, Error&gt;;
 
 <span class="doccomment">/// The Errors that may occur when processing a `Request`.
 ///
@@ -397,26 +397,26 @@
 /// contains sensitive information (e.g. an API key as a query parameter), be
 /// sure to remove it ([`without_url`](Error::without_url))
 </span><span class="kw">pub struct </span>Error {
-    inner: Box&lt;<a href="#22">Inner</a>&gt;,
+    inner: Box&lt;Inner&gt;,
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type </span>BoxError = Box&lt;<span class="kw">dyn </span><a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">StdError</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a>&gt;;
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type </span>BoxError = Box&lt;<span class="kw">dyn </span>StdError + Send + Sync&gt;;
 
 <span class="kw">struct </span>Inner {
-    kind: <a href="#233">Kind</a>,
-    source: <span class="prelude-ty">Option</span>&lt;<a href="#20">BoxError</a>&gt;,
-    url: <span class="prelude-ty">Option</span>&lt;<a href="../../reqwest/struct.Url.html">Url</a>&gt;,
+    kind: Kind,
+    source: <span class="prelude-ty">Option</span>&lt;BoxError&gt;,
+    url: <span class="prelude-ty">Option</span>&lt;Url&gt;,
 }
 
-<span class="kw">impl </span><a href="#16">Error</a> {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new&lt;E&gt;(kind: <a href="#233">Kind</a>, source: <span class="prelude-ty">Option</span>&lt;E&gt;) -&gt; <a href="#16">Error</a>
+<span class="kw">impl </span>Error {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new&lt;E&gt;(kind: Kind, source: <span class="prelude-ty">Option</span>&lt;E&gt;) -&gt; Error
     <span class="kw">where
-        </span>E: Into&lt;<a href="#20">BoxError</a>&gt;,
+        </span>E: Into&lt;BoxError&gt;,
     {
-        <a href="#16">Error</a> {
-            inner: Box::new(<a href="#22">Inner</a> {
-                <a href="#29">kind</a>,
-                source: <a href="#29">source</a>.map(<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">Into::into</a>),
+        Error {
+            inner: Box::new(Inner {
+                kind,
+                source: source.map(Into::into),
                 url: <span class="prelude-val">None</span>,
             }),
         }
@@ -439,8 +439,8 @@
     /// }
     /// # }
     /// ```
-    </span><span class="kw">pub fn </span>url(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="../../reqwest/struct.Url.html">Url</a>&gt; {
-        <a class="self" href="#59">self</a>.inner.url.as_ref()
+    </span><span class="kw">pub fn </span>url(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Url&gt; {
+        <span class="self">self</span>.inner.url.as_ref()
     }
 
     <span class="doccomment">/// Returns a mutable reference to the URL related to this error
@@ -448,41 +448,41 @@
     /// This is useful if you need to remove sensitive information from the URL
     /// (e.g. an API key in the query), but do not want to remove the URL
     /// entirely.
-    </span><span class="kw">pub fn </span>url_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;mut </span><a href="../../reqwest/struct.Url.html">Url</a>&gt; {
-        <a class="self" href="#68">self</a>.inner.url.as_mut()
+    </span><span class="kw">pub fn </span>url_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;mut </span>Url&gt; {
+        <span class="self">self</span>.inner.url.as_mut()
     }
 
     <span class="doccomment">/// Add a url related to this error (overwriting any existing)
-    </span><span class="kw">pub fn </span>with_url(<span class="kw-2">mut </span><span class="self">self</span>, url: <a href="../../reqwest/struct.Url.html">Url</a>) -&gt; <span class="self">Self </span>{
-        <a class="self" href="#73">self</a>.inner.url = <span class="prelude-val">Some</span>(<a href="#73">url</a>);
-        <span class="self"><a href="#73">self</a>
+    </span><span class="kw">pub fn </span>with_url(<span class="kw-2">mut </span><span class="self">self</span>, url: Url) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.inner.url = <span class="prelude-val">Some</span>(url);
+        <span class="self">self
     </span>}
 
     <span class="doccomment">/// Strip the related url from this error (if, for example, it contains
     /// sensitive information)
     </span><span class="kw">pub fn </span>without_url(<span class="kw-2">mut </span><span class="self">self</span>) -&gt; <span class="self">Self </span>{
-        <a class="self" href="#80">self</a>.inner.url = <span class="prelude-val">None</span>;
-        <span class="self"><a href="#80">self</a>
+        <span class="self">self</span>.inner.url = <span class="prelude-val">None</span>;
+        <span class="self">self
     </span>}
 
     <span class="doccomment">/// Returns true if the error is from a type Builder.
-    </span><span class="kw">pub fn </span>is_builder(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.matches.html">matches!</a>(<span class="self">self</span>.inner.kind, Kind::Builder)
+    </span><span class="kw">pub fn </span>is_builder(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="macro">matches!</span>(<span class="self">self</span>.inner.kind, Kind::Builder)
     }
 
     <span class="doccomment">/// Returns true if the error is from a `RedirectPolicy`.
-    </span><span class="kw">pub fn </span>is_redirect(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.matches.html">matches!</a>(<span class="self">self</span>.inner.kind, Kind::Redirect)
+    </span><span class="kw">pub fn </span>is_redirect(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="macro">matches!</span>(<span class="self">self</span>.inner.kind, Kind::Redirect)
     }
 
     <span class="doccomment">/// Returns true if the error is from `Response::error_for_status`.
-    </span><span class="kw">pub fn </span>is_status(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.matches.html">matches!</a>(<span class="self">self</span>.inner.kind, Kind::Status(<span class="kw">_</span>))
+    </span><span class="kw">pub fn </span>is_status(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="macro">matches!</span>(<span class="self">self</span>.inner.kind, Kind::Status(<span class="kw">_</span>))
     }
 
     <span class="doccomment">/// Returns true if the error is related to a timeout.
-    </span><span class="kw">pub fn </span>is_timeout(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">let </span><span class="kw-2">mut </span>source = <a class="self" href="#101">self</a>.<a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">source</a>();
+    </span><span class="kw">pub fn </span>is_timeout(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="kw">let </span><span class="kw-2">mut </span>source = <span class="self">self</span>.source();
 
         <span class="kw">while let </span><span class="prelude-val">Some</span>(err) = source {
             <span class="kw">if </span>err.is::&lt;TimedOut&gt;() {
@@ -495,14 +495,14 @@
     </span>}
 
     <span class="doccomment">/// Returns true if the error is related to the request
-    </span><span class="kw">pub fn </span>is_request(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.matches.html">matches!</a>(<span class="self">self</span>.inner.kind, Kind::Request)
+    </span><span class="kw">pub fn </span>is_request(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="macro">matches!</span>(<span class="self">self</span>.inner.kind, Kind::Request)
     }
 
     <span class="attr">#[cfg(not(target_arch = <span class="string">&quot;wasm32&quot;</span>))]
     </span><span class="doccomment">/// Returns true if the error is related to connect
-    </span><span class="kw">pub fn </span>is_connect(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">let </span><span class="kw-2">mut </span>source = <a class="self" href="#121">self</a>.<a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">source</a>();
+    </span><span class="kw">pub fn </span>is_connect(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="kw">let </span><span class="kw-2">mut </span>source = <span class="self">self</span>.source();
 
         <span class="kw">while let </span><span class="prelude-val">Some</span>(err) = source {
             <span class="kw">if let </span><span class="prelude-val">Some</span>(hyper_err) = err.downcast_ref::&lt;hyper::Error&gt;() {
@@ -518,19 +518,19 @@
     </span>}
 
     <span class="doccomment">/// Returns true if the error is related to the request or response body
-    </span><span class="kw">pub fn </span>is_body(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.matches.html">matches!</a>(<span class="self">self</span>.inner.kind, Kind::Body)
+    </span><span class="kw">pub fn </span>is_body(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="macro">matches!</span>(<span class="self">self</span>.inner.kind, Kind::Body)
     }
 
     <span class="doccomment">/// Returns true if the error is related to decoding the response&#39;s body
-    </span><span class="kw">pub fn </span>is_decode(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.matches.html">matches!</a>(<span class="self">self</span>.inner.kind, Kind::Decode)
+    </span><span class="kw">pub fn </span>is_decode(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="macro">matches!</span>(<span class="self">self</span>.inner.kind, Kind::Decode)
     }
 
     <span class="doccomment">/// Returns the status code, if the error was generated from a response.
-    </span><span class="kw">pub fn </span>status(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="../../reqwest/struct.StatusCode.html">StatusCode</a>&gt; {
-        <span class="kw">match </span><a class="self" href="#148">self</a>.inner.kind {
-            <a href="#237">Kind::Status</a>(code) =&gt; <span class="prelude-val">Some</span>(<a href="#150">code</a>),
+    </span><span class="kw">pub fn </span>status(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;StatusCode&gt; {
+        <span class="kw">match </span><span class="self">self</span>.inner.kind {
+            Kind::Status(code) =&gt; <span class="prelude-val">Some</span>(code),
             <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
         }
     }
@@ -538,53 +538,53 @@
     <span class="comment">// private
 
     </span><span class="attr">#[allow(unused)]
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>into_io(<span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a> {
-        io::Error::new(io::ErrorKind::Other, <a class="self" href="#158">self</a>)
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>into_io(<span class="self">self</span>) -&gt; io::Error {
+        io::Error::new(io::ErrorKind::Other, <span class="self">self</span>)
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="#16">Error</a> {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <span class="kw">let </span><span class="kw-2">mut </span>builder = <a href="#164">f</a>.debug_struct(<span class="string">&quot;reqwest::Error&quot;</span>);
+<span class="kw">impl </span>fmt::Debug <span class="kw">for </span>Error {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter) -&gt; fmt::Result {
+        <span class="kw">let </span><span class="kw-2">mut </span>builder = f.debug_struct(<span class="string">&quot;reqwest::Error&quot;</span>);
 
-        <a href="#165">builder</a>.field(<span class="string">&quot;kind&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="#164">self</a>.inner.kind);
+        builder.field(<span class="string">&quot;kind&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.inner.kind);
 
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">ref </span>url) = <a class="self" href="#164">self</a>.inner.url {
-            <a href="#165">builder</a>.field(<span class="string">&quot;url&quot;</span>, <a href="#169">url</a>);
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">ref </span>url) = <span class="self">self</span>.inner.url {
+            builder.field(<span class="string">&quot;url&quot;</span>, url);
         }
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">ref </span>source) = <a class="self" href="#164">self</a>.inner.source {
-            <a href="#165">builder</a>.field(<span class="string">&quot;source&quot;</span>, <a href="#172">source</a>);
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">ref </span>source) = <span class="self">self</span>.inner.source {
+            builder.field(<span class="string">&quot;source&quot;</span>, source);
         }
 
-        <a href="#165">builder</a>.finish()
+        builder.finish()
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for </span><a href="#16">Error</a> {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <span class="kw">match </span><a class="self" href="#181">self</a>.inner.kind {
-            <a href="#234">Kind::Builder</a> =&gt; f.write_str(<span class="string">&quot;builder error&quot;</span>)<span class="question-mark">?</span>,
-            <a href="#235">Kind::Request</a> =&gt; f.write_str(<span class="string">&quot;error sending request&quot;</span>)<span class="question-mark">?</span>,
-            <a href="#238">Kind::Body</a> =&gt; f.write_str(<span class="string">&quot;request or response body error&quot;</span>)<span class="question-mark">?</span>,
-            <a href="#239">Kind::Decode</a> =&gt; f.write_str(<span class="string">&quot;error decoding response body&quot;</span>)<span class="question-mark">?</span>,
-            <a href="#236">Kind::Redirect</a> =&gt; f.write_str(<span class="string">&quot;error following redirect&quot;</span>)<span class="question-mark">?</span>,
-            <a href="#240">Kind::Upgrade</a> =&gt; f.write_str(<span class="string">&quot;error upgrading connection&quot;</span>)<span class="question-mark">?</span>,
-            <a href="#237">Kind::Status</a>(<span class="kw-2">ref </span>code) =&gt; {
+<span class="kw">impl </span>fmt::Display <span class="kw">for </span>Error {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter) -&gt; fmt::Result {
+        <span class="kw">match </span><span class="self">self</span>.inner.kind {
+            Kind::Builder =&gt; f.write_str(<span class="string">&quot;builder error&quot;</span>)<span class="question-mark">?</span>,
+            Kind::Request =&gt; f.write_str(<span class="string">&quot;error sending request&quot;</span>)<span class="question-mark">?</span>,
+            Kind::Body =&gt; f.write_str(<span class="string">&quot;request or response body error&quot;</span>)<span class="question-mark">?</span>,
+            Kind::Decode =&gt; f.write_str(<span class="string">&quot;error decoding response body&quot;</span>)<span class="question-mark">?</span>,
+            Kind::Redirect =&gt; f.write_str(<span class="string">&quot;error following redirect&quot;</span>)<span class="question-mark">?</span>,
+            Kind::Upgrade =&gt; f.write_str(<span class="string">&quot;error upgrading connection&quot;</span>)<span class="question-mark">?</span>,
+            Kind::Status(<span class="kw-2">ref </span>code) =&gt; {
                 <span class="kw">let </span>prefix = <span class="kw">if </span>code.is_client_error() {
                     <span class="string">&quot;HTTP status client error&quot;
                 </span>} <span class="kw">else </span>{
-                    <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(code.is_server_error());
+                    <span class="macro">debug_assert!</span>(code.is_server_error());
                     <span class="string">&quot;HTTP status server error&quot;
                 </span>};
                 <span class="macro">write!</span>(f, <span class="string">&quot;{} ({})&quot;</span>, prefix, code)<span class="question-mark">?</span>;
             }
         };
 
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(url) = <span class="kw-2">&amp;</span><a class="self" href="#181">self</a>.inner.url {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(url) = <span class="kw-2">&amp;</span><span class="self">self</span>.inner.url {
             <span class="macro">write!</span>(f, <span class="string">&quot; for url ({})&quot;</span>, url.as_str())<span class="question-mark">?</span>;
         }
 
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(e) = <span class="kw-2">&amp;</span><a class="self" href="#181">self</a>.inner.source {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(e) = <span class="kw-2">&amp;</span><span class="self">self</span>.inner.source {
             <span class="macro">write!</span>(f, <span class="string">&quot;: {}&quot;</span>, e)<span class="question-mark">?</span>;
         }
 
@@ -592,9 +592,9 @@
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">StdError</a> <span class="kw">for </span><a href="#16">Error</a> {
-    <span class="kw">fn </span>source(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>(<span class="kw">dyn </span><a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">StdError</a> + <span class="lifetime">&#39;static</span>)&gt; {
-        <a class="self" href="#213">self</a>.inner.source.as_ref().map(|e| <span class="kw-2">&amp;**</span><a href="#214">e</a> <span class="kw">as _</span>)
+<span class="kw">impl </span>StdError <span class="kw">for </span>Error {
+    <span class="kw">fn </span>source(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>(<span class="kw">dyn </span>StdError + <span class="lifetime">&#39;static</span>)&gt; {
+        <span class="self">self</span>.inner.source.as_ref().map(|e| <span class="kw-2">&amp;**</span>e <span class="kw">as _</span>)
     }
 }
 
@@ -617,7 +617,7 @@
     Builder,
     Request,
     Redirect,
-    Status(<a href="../../reqwest/struct.StatusCode.html">StatusCode</a>),
+    Status(StatusCode),
     Body,
     Decode,
     Upgrade,
@@ -625,32 +625,32 @@
 
 <span class="comment">// constructors
 
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>builder&lt;E: Into&lt;<a href="#20">BoxError</a>&gt;&gt;(e: E) -&gt; <a href="#16">Error</a> {
-    Error::new(<a href="#234">Kind::Builder</a>, <span class="prelude-val">Some</span>(<a href="#245">e</a>))
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>builder&lt;E: Into&lt;BoxError&gt;&gt;(e: E) -&gt; Error {
+    Error::new(Kind::Builder, <span class="prelude-val">Some</span>(e))
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>body&lt;E: Into&lt;<a href="#20">BoxError</a>&gt;&gt;(e: E) -&gt; <a href="#16">Error</a> {
-    Error::new(<a href="#238">Kind::Body</a>, <span class="prelude-val">Some</span>(<a href="#249">e</a>))
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>body&lt;E: Into&lt;BoxError&gt;&gt;(e: E) -&gt; Error {
+    Error::new(Kind::Body, <span class="prelude-val">Some</span>(e))
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>decode&lt;E: Into&lt;<a href="#20">BoxError</a>&gt;&gt;(e: E) -&gt; <a href="#16">Error</a> {
-    Error::new(<a href="#239">Kind::Decode</a>, <span class="prelude-val">Some</span>(<a href="#253">e</a>))
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>decode&lt;E: Into&lt;BoxError&gt;&gt;(e: E) -&gt; Error {
+    Error::new(Kind::Decode, <span class="prelude-val">Some</span>(e))
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>request&lt;E: Into&lt;<a href="#20">BoxError</a>&gt;&gt;(e: E) -&gt; <a href="#16">Error</a> {
-    Error::new(<a href="#235">Kind::Request</a>, <span class="prelude-val">Some</span>(<a href="#257">e</a>))
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>request&lt;E: Into&lt;BoxError&gt;&gt;(e: E) -&gt; Error {
+    Error::new(Kind::Request, <span class="prelude-val">Some</span>(e))
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>redirect&lt;E: Into&lt;<a href="#20">BoxError</a>&gt;&gt;(e: E, url: <a href="../../reqwest/struct.Url.html">Url</a>) -&gt; <a href="#16">Error</a> {
-    Error::new(<a href="#236">Kind::Redirect</a>, <span class="prelude-val">Some</span>(<a href="#261">e</a>)).<a href="#73">with_url</a>(<a href="#261">url</a>)
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>redirect&lt;E: Into&lt;BoxError&gt;&gt;(e: E, url: Url) -&gt; Error {
+    Error::new(Kind::Redirect, <span class="prelude-val">Some</span>(e)).with_url(url)
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>status_code(url: <a href="../../reqwest/struct.Url.html">Url</a>, status: <a href="../../reqwest/struct.StatusCode.html">StatusCode</a>) -&gt; <a href="#16">Error</a> {
-    Error::new(<a href="#237">Kind::Status</a>(<a href="#265">status</a>), <span class="prelude-val">None</span>::&lt;<a href="#16">Error</a>&gt;).<a href="#73">with_url</a>(<a href="#265">url</a>)
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>status_code(url: Url, status: StatusCode) -&gt; Error {
+    Error::new(Kind::Status(status), <span class="prelude-val">None</span>::&lt;Error&gt;).with_url(url)
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>url_bad_scheme(url: <a href="../../reqwest/struct.Url.html">Url</a>) -&gt; <a href="#16">Error</a> {
-    Error::new(<a href="#234">Kind::Builder</a>, <span class="prelude-val">Some</span>(<a href="#316">BadScheme</a>)).<a href="#73">with_url</a>(<a href="#269">url</a>)
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>url_bad_scheme(url: Url) -&gt; Error {
+    Error::new(Kind::Builder, <span class="prelude-val">Some</span>(BadScheme)).with_url(url)
 }
 
 <span class="macro">if_wasm! </span>{
@@ -659,26 +659,26 @@
     }
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>upgrade&lt;E: Into&lt;<a href="#20">BoxError</a>&gt;&gt;(e: E) -&gt; <a href="#16">Error</a> {
-    Error::new(<a href="#240">Kind::Upgrade</a>, <span class="prelude-val">Some</span>(<a href="#279">e</a>))
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>upgrade&lt;E: Into&lt;BoxError&gt;&gt;(e: E) -&gt; Error {
+    Error::new(Kind::Upgrade, <span class="prelude-val">Some</span>(e))
 }
 
 <span class="comment">// io::Error helpers
 
 </span><span class="attr">#[allow(unused)]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>into_io(e: <a href="#16">Error</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a> {
-    <a href="#286">e</a>.<a href="#158">into_io</a>()
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>into_io(e: Error) -&gt; io::Error {
+    e.into_io()
 }
 
 <span class="attr">#[allow(unused)]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>decode_io(e: <a href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a>) -&gt; <a href="#16">Error</a> {
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>decode_io(e: io::Error) -&gt; Error {
     <span class="kw">if </span>e.get_ref().map(|r| r.is::&lt;Error&gt;()).unwrap_or(<span class="bool-val">false</span>) {
-        <span class="kw-2">*</span><a href="#291">e</a>.into_inner()
+        <span class="kw-2">*</span>e.into_inner()
             .expect(<span class="string">&quot;io::Error::get_ref was Some(_)&quot;</span>)
-            .downcast::&lt;<a href="#16">Error</a>&gt;()
+            .downcast::&lt;Error&gt;()
             .expect(<span class="string">&quot;StdError::is() was true&quot;</span>)
     } <span class="kw">else </span>{
-        <a href="#253">decode</a>(<a href="#291">e</a>)
+        decode(e)
     }
 }
 
@@ -687,24 +687,24 @@
 </span><span class="attr">#[derive(Debug)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>TimedOut;
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for </span><a href="#305">TimedOut</a> {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a href="#308">f</a>.write_str(<span class="string">&quot;operation timed out&quot;</span>)
+<span class="kw">impl </span>fmt::Display <span class="kw">for </span>TimedOut {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter) -&gt; fmt::Result {
+        f.write_str(<span class="string">&quot;operation timed out&quot;</span>)
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">StdError</a> <span class="kw">for </span><a href="#305">TimedOut</a> {}
+<span class="kw">impl </span>StdError <span class="kw">for </span>TimedOut {}
 
 <span class="attr">#[derive(Debug)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>BadScheme;
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for </span><a href="#316">BadScheme</a> {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a href="#319">f</a>.write_str(<span class="string">&quot;URL scheme is not allowed&quot;</span>)
+<span class="kw">impl </span>fmt::Display <span class="kw">for </span>BadScheme {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter) -&gt; fmt::Result {
+        f.write_str(<span class="string">&quot;URL scheme is not allowed&quot;</span>)
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">StdError</a> <span class="kw">for </span><a href="#316">BadScheme</a> {}
+<span class="kw">impl </span>StdError <span class="kw">for </span>BadScheme {}
 
 <span class="attr">#[cfg(test)]
 </span><span class="kw">mod </span>tests {
@@ -765,4 +765,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="reqwest" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="reqwest" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

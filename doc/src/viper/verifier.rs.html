@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `viper/src/verifier.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>verifier.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../viper/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `viper/src/verifier.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>verifier.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../viper/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -353,18 +353,18 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 </span><span class="kw">use crate</span>::{
-    <a href="lib.rs.html#9">ast_factory</a>::<span class="kw-2">*</span>,
-    <a href="ast_utils.rs.html#12">ast_utils::AstUtils</a>,
-    <a href="jni_utils.rs.html#20">jni_utils::JniUtils</a>,
-    <a href="silicon_counterexample.rs.html#8">silicon_counterexample::SiliconCounterexample</a>,
-    <a href="smt_manager.rs.html#9">smt_manager::SmtManager</a>,
-    <a href="verification_backend.rs.html#10">verification_backend::VerificationBackend</a>,
-    verification_result::{<a href="verification_result.rs.html#29">VerificationError</a>, <a href="verification_result.rs.html#11">VerificationResult</a>},
+    ast_factory::<span class="kw-2">*</span>,
+    ast_utils::AstUtils,
+    jni_utils::JniUtils,
+    silicon_counterexample::SiliconCounterexample,
+    smt_manager::SmtManager,
+    verification_backend::VerificationBackend,
+    verification_result::{VerificationError, VerificationResult},
 };
-<span class="kw">use </span>jni::{<a href="../../jni/wrapper/objects/jobject/struct.JObject.html">objects::JObject</a>, <a href="../../jni/wrapper/jnienv/struct.JNIEnv.html">JNIEnv</a>};
-<span class="kw">use </span>log::{<a href="../../log/macro.debug.html">debug</a>, <a href="../../log/macro.error.html">error</a>, <a href="../../log/macro.info.html">info</a>};
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/path/struct.PathBuf.html">std::path::PathBuf</a>;
-<span class="kw">use </span>viper_sys::wrappers::{<a href="../../viper_sys/wrappers/scala/index.html">scala</a>, <a href="../../viper_sys/wrappers/viper/index.html">viper</a>::<span class="kw-2">*</span>};
+<span class="kw">use </span>jni::{objects::JObject, JNIEnv};
+<span class="kw">use </span>log::{debug, error, info};
+<span class="kw">use </span>std::path::PathBuf;
+<span class="kw">use </span>viper_sys::wrappers::{scala, viper::<span class="kw-2">*</span>};
 
 <span class="kw">pub struct </span>Verifier&lt;<span class="lifetime">&#39;a</span>&gt; {
     env: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>JNIEnv&lt;<span class="lifetime">&#39;a</span>&gt;,
@@ -372,147 +372,147 @@
     verifier_instance: JObject&lt;<span class="lifetime">&#39;a</span>&gt;,
     jni: JniUtils&lt;<span class="lifetime">&#39;a</span>&gt;,
     ast_utils: AstUtils&lt;<span class="lifetime">&#39;a</span>&gt;,
-    smt_manager: <a href="smt_manager.rs.html#9">SmtManager</a>,
+    smt_manager: SmtManager,
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; Verifier&lt;<span class="lifetime">&#39;a</span>&gt; {
     <span class="kw">pub fn </span>new(
-        env: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="../../jni/wrapper/jnienv/struct.JNIEnv.html">JNIEnv</a>,
-        backend: <a href="verification_backend.rs.html#10">VerificationBackend</a>,
-        report_path: <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/path/struct.PathBuf.html">PathBuf</a>&gt;,
-        smt_manager: <a href="smt_manager.rs.html#9">SmtManager</a>,
+        env: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>JNIEnv,
+        backend: VerificationBackend,
+        report_path: <span class="prelude-ty">Option</span>&lt;PathBuf&gt;,
+        smt_manager: SmtManager,
     ) -&gt; <span class="self">Self </span>{
-        <span class="kw">let </span>jni = JniUtils::new(<a href="#32">env</a>);
-        <span class="kw">let </span>ast_utils = AstUtils::new(<a href="#32">env</a>);
-        <span class="kw">let </span>verifier_wrapper = silver::verifier::Verifier::with(<a href="#32">env</a>);
-        <span class="kw">let </span>verifier_instance = <a href="#37">jni</a>.<a href="jni_utils.rs.html#63">unwrap_result</a>(<a href="#32">env</a>.with_local_frame(<span class="number">16</span>, || {
-            <span class="kw">let </span>reporter = <span class="kw">if let </span><span class="prelude-val">Some</span>(real_report_path) = <a href="#34">report_path</a> {
-                <a href="#37">jni</a>.<a href="jni_utils.rs.html#63">unwrap_result</a>(silver::reporter::CSVReporter::with(<a href="#32">env</a>).new(
-                    <a href="#37">jni</a>.<a href="jni_utils.rs.html#77">new_string</a>(<span class="string">&quot;csv_reporter&quot;</span>),
-                    <a href="#37">jni</a>.<a href="jni_utils.rs.html#77">new_string</a>(<a href="#41">real_report_path</a>.to_str().unwrap()),
+        <span class="kw">let </span>jni = JniUtils::new(env);
+        <span class="kw">let </span>ast_utils = AstUtils::new(env);
+        <span class="kw">let </span>verifier_wrapper = silver::verifier::Verifier::with(env);
+        <span class="kw">let </span>verifier_instance = jni.unwrap_result(env.with_local_frame(<span class="number">16</span>, || {
+            <span class="kw">let </span>reporter = <span class="kw">if let </span><span class="prelude-val">Some</span>(real_report_path) = report_path {
+                jni.unwrap_result(silver::reporter::CSVReporter::with(env).new(
+                    jni.new_string(<span class="string">&quot;csv_reporter&quot;</span>),
+                    jni.new_string(real_report_path.to_str().unwrap()),
                 ))
             } <span class="kw">else </span>{
-                <a href="#37">jni</a>.<a href="jni_utils.rs.html#63">unwrap_result</a>(silver::reporter::NoopReporter_object::with(<a href="#32">env</a>).singleton())
+                jni.unwrap_result(silver::reporter::NoopReporter_object::with(env).singleton())
             };
 
-            <span class="kw">let </span>debug_info = <a href="#37">jni</a>.<a href="jni_utils.rs.html#101">new_seq</a>(<span class="kw-2">&amp;</span>[]);
-            <span class="kw">match </span><a href="#33">backend</a> {
-                <a href="verification_backend.rs.html#11">VerificationBackend::Silicon</a> =&gt; {
-                    silicon::Silicon::with(<a href="#32">env</a>).new(<a href="#41">reporter</a>, <a href="#50">debug_info</a>)
+            <span class="kw">let </span>debug_info = jni.new_seq(<span class="kw-2">&amp;</span>[]);
+            <span class="kw">match </span>backend {
+                VerificationBackend::Silicon =&gt; {
+                    silicon::Silicon::with(env).new(reporter, debug_info)
                 }
-                <a href="verification_backend.rs.html#12">VerificationBackend::Carbon</a> =&gt; {
-                    carbon::CarbonVerifier::with(<a href="#32">env</a>).new(<a href="#41">reporter</a>, <a href="#50">debug_info</a>)
+                VerificationBackend::Carbon =&gt; {
+                    carbon::CarbonVerifier::with(env).new(reporter, debug_info)
                 }
             }
         }));
 
-        <a href="#38">ast_utils</a>.<a href="ast_utils.rs.html#54">with_local_frame</a>(<span class="number">16</span>, || {
+        ast_utils.with_local_frame(<span class="number">16</span>, || {
             <span class="kw">let </span>name =
-                <a href="#37">jni</a>.<a href="jni_utils.rs.html#118">to_string</a>(<a href="#37">jni</a>.<a href="jni_utils.rs.html#63">unwrap_result</a>(<a href="#39">verifier_wrapper</a>.call_name(<a href="#40">verifier_instance</a>)));
-            <span class="kw">let </span>build_version = <a href="#37">jni</a>.<a href="jni_utils.rs.html#118">to_string</a>(
-                <a href="#37">jni</a>.<a href="jni_utils.rs.html#63">unwrap_result</a>(<a href="#39">verifier_wrapper</a>.call_buildVersion(<a href="#40">verifier_instance</a>)),
+                jni.to_string(jni.unwrap_result(verifier_wrapper.call_name(verifier_instance)));
+            <span class="kw">let </span>build_version = jni.to_string(
+                jni.unwrap_result(verifier_wrapper.call_buildVersion(verifier_instance)),
             );
-            <a class="macro" href="../../log/macro.info.html">info!</a>(<span class="string">&quot;Using backend {} version {}&quot;</span>, name, build_version);
+            <span class="macro">info!</span>(<span class="string">&quot;Using backend {} version {}&quot;</span>, name, build_version);
         });
 
-        <a href="#21">Verifier</a> {
-            <a href="#32">env</a>,
-            <a href="#39">verifier_wrapper</a>,
-            <a href="#40">verifier_instance</a>,
-            <a href="#37">jni</a>,
-            <a href="#38">ast_utils</a>,
-            <a href="#35">smt_manager</a>,
+        Verifier {
+            env,
+            verifier_wrapper,
+            verifier_instance,
+            jni,
+            ast_utils,
+            smt_manager,
         }
     }
 
     <span class="attr">#[must_use]
-    </span><span class="kw">pub fn </span>parse_command_line(<span class="self">self</span>, args: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>]) -&gt; <span class="self">Self </span>{
-        <a class="self" href="#81">self</a>.ast_utils.<a href="ast_utils.rs.html#54">with_local_frame</a>(<span class="number">16</span>, || {
-            <span class="kw">let </span>args = <a class="self" href="#81">self</a>.jni.<a href="jni_utils.rs.html#101">new_seq</a>(
-                <span class="kw-2">&amp;</span><a href="#81">args</a>
+    </span><span class="kw">pub fn </span>parse_command_line(<span class="self">self</span>, args: <span class="kw-2">&amp;</span>[String]) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.ast_utils.with_local_frame(<span class="number">16</span>, || {
+            <span class="kw">let </span>args = <span class="self">self</span>.jni.new_seq(
+                <span class="kw-2">&amp;</span>args
                     .iter()
-                    .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|x| <a class="self" href="#81">self</a>.jni.<a href="jni_utils.rs.html#77">new_string</a>(<a href="#86">x</a>))
-                    .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>::&lt;Vec&lt;<a href="../../jni/wrapper/objects/jobject/struct.JObject.html">JObject</a>&gt;&gt;(),
+                    .map(|x| <span class="self">self</span>.jni.new_string(x))
+                    .collect::&lt;Vec&lt;JObject&gt;&gt;(),
             );
-            <a class="self" href="#81">self</a>.jni.<a href="jni_utils.rs.html#63">unwrap_result</a>(
-                <a class="self" href="#81">self</a>.verifier_wrapper
-                    .call_parseCommandLine(<a class="self" href="#81">self</a>.verifier_instance, <a href="#83">args</a>),
+            <span class="self">self</span>.jni.unwrap_result(
+                <span class="self">self</span>.verifier_wrapper
+                    .call_parseCommandLine(<span class="self">self</span>.verifier_instance, args),
             );
         });
-        <span class="self"><a href="#81">self</a>
+        <span class="self">self
     </span>}
 
     <span class="attr">#[must_use]
     </span><span class="kw">pub fn </span>start(<span class="self">self</span>) -&gt; <span class="self">Self </span>{
-        <a class="self" href="#98">self</a>.ast_utils.<a href="ast_utils.rs.html#54">with_local_frame</a>(<span class="number">16</span>, || {
-            <a class="self" href="#98">self</a>.jni
-                .<a href="jni_utils.rs.html#63">unwrap_result</a>(<a class="self" href="#98">self</a>.verifier_wrapper.call_start(<a class="self" href="#98">self</a>.verifier_instance));
+        <span class="self">self</span>.ast_utils.with_local_frame(<span class="number">16</span>, || {
+            <span class="self">self</span>.jni
+                .unwrap_result(<span class="self">self</span>.verifier_wrapper.call_start(<span class="self">self</span>.verifier_instance));
         });
-        <span class="self"><a href="#98">self</a>
+        <span class="self">self
     </span>}
 
-    <span class="kw">pub fn </span>verify(<span class="kw-2">&amp;mut </span><span class="self">self</span>, program: <a href="ast_factory/structs.rs.html#7">Program</a>) -&gt; <a href="verification_result.rs.html#11">VerificationResult</a> {
-        <a class="self" href="#106">self</a>.ast_utils.<a href="ast_utils.rs.html#54">with_local_frame</a>(<span class="number">16</span>, || {
-            <a class="macro" href="../../log/macro.debug.html">debug!</a>(
+    <span class="kw">pub fn </span>verify(<span class="kw-2">&amp;mut </span><span class="self">self</span>, program: Program) -&gt; VerificationResult {
+        <span class="self">self</span>.ast_utils.with_local_frame(<span class="number">16</span>, || {
+            <span class="macro">debug!</span>(
                 <span class="string">&quot;Program to be verified:\n{}&quot;</span>,
                 <span class="self">self</span>.ast_utils.pretty_print(program)
             );
 
-            <a class="macro" href="utils.rs.html#37-53">run_timed!</a>(<span class="string">&quot;Viper consistency checks&quot;</span>, debug,
-                <span class="kw">let </span>consistency_errors = <span class="kw">match </span><a class="self" href="#106">self</a>.ast_utils.<a href="ast_utils.rs.html#24-27">check_consistency</a>(<a href="#106">program</a>) {
-                    <span class="prelude-val">Ok</span>(errors) =&gt; <a href="#115">errors</a>,
+            <span class="macro">run_timed!</span>(<span class="string">&quot;Viper consistency checks&quot;</span>, debug,
+                <span class="kw">let </span>consistency_errors = <span class="kw">match </span><span class="self">self</span>.ast_utils.check_consistency(program) {
+                    <span class="prelude-val">Ok</span>(errors) =&gt; errors,
                     <span class="prelude-val">Err</span>(java_exception) =&gt; {
-                        <span class="kw">return </span><a href="verification_result.rs.html#19">VerificationResult::JavaException</a>(<a href="#116">java_exception</a>);
+                        <span class="kw">return </span>VerificationResult::JavaException(java_exception);
                     }
                 };
             );
 
             <span class="kw">if </span>!consistency_errors.is_empty() {
-                <a class="macro" href="../../log/macro.debug.html">debug!</a>(
+                <span class="macro">debug!</span>(
                     <span class="string">&quot;The provided Viper program has {} consistency errors.&quot;</span>,
                     consistency_errors.len()
                 );
-                <span class="kw">return </span><a href="verification_result.rs.html#17">VerificationResult::ConsistencyErrors</a>(
-                    <a href="#114">consistency_errors</a>
-                        .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
-                        .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|e| <a class="self" href="#106">self</a>.jni.<a href="jni_utils.rs.html#118">to_string</a>(<a href="#130">e</a>))
-                        .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>(),
+                <span class="kw">return </span>VerificationResult::ConsistencyErrors(
+                    consistency_errors
+                        .into_iter()
+                        .map(|e| <span class="self">self</span>.jni.to_string(e))
+                        .collect(),
                 );
             }
 
-            <a class="macro" href="utils.rs.html#37-53">run_timed!</a>(<span class="string">&quot;Viper verification&quot;</span>, debug,
-                <span class="kw">let </span>viper_result = <a class="self" href="#106">self</a>.jni.<a href="jni_utils.rs.html#63">unwrap_result</a>(
-                    <a class="self" href="#106">self</a>.verifier_wrapper
-                        .call_verify(<a class="self" href="#106">self</a>.verifier_instance, <a href="#106">program</a>.<a href="ast_factory/structs.rs.html#7">to_jobject</a>()),
+            <span class="macro">run_timed!</span>(<span class="string">&quot;Viper verification&quot;</span>, debug,
+                <span class="kw">let </span>viper_result = <span class="self">self</span>.jni.unwrap_result(
+                    <span class="self">self</span>.verifier_wrapper
+                        .call_verify(<span class="self">self</span>.verifier_instance, program.to_jobject()),
                 );
             );
-            <a class="macro" href="../../log/macro.debug.html">debug!</a>(
+            <span class="macro">debug!</span>(
                 <span class="string">&quot;Viper verification result: {}&quot;</span>,
                 <span class="self">self</span>.jni.to_string(viper_result)
             );
 
-            <span class="kw">let </span>is_failure = <span class="self"><a href="#106">self</a>
+            <span class="kw">let </span>is_failure = <span class="self">self
                 </span>.jni
-                .<a href="jni_utils.rs.html#187">is_instance_of</a>(<a href="#136">viper_result</a>, <span class="string">&quot;viper/silver/verifier/Failure&quot;</span>);
+                .is_instance_of(viper_result, <span class="string">&quot;viper/silver/verifier/Failure&quot;</span>);
 
-            <a class="self" href="#106">self</a>.smt_manager.<a href="smt_manager.rs.html#109">stop_and_check</a>();
+            <span class="self">self</span>.smt_manager.stop_and_check();
 
             <span class="kw">if </span>is_failure {
-                <span class="kw">let </span><span class="kw-2">mut </span>errors: Vec&lt;<a href="verification_result.rs.html#29">VerificationError</a>&gt; = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[];
+                <span class="kw">let </span><span class="kw-2">mut </span>errors: Vec&lt;VerificationError&gt; = <span class="macro">vec!</span>[];
 
-                <span class="kw">let </span>viper_errors = <a class="self" href="#106">self</a>.jni.<a href="jni_utils.rs.html#133">seq_to_vec</a>(<a class="self" href="#106">self</a>.jni.<a href="jni_utils.rs.html#63">unwrap_result</a>(
-                    silver::verifier::Failure::with(<a class="self" href="#106">self</a>.env).call_errors(<a href="#136">viper_result</a>),
+                <span class="kw">let </span>viper_errors = <span class="self">self</span>.jni.seq_to_vec(<span class="self">self</span>.jni.unwrap_result(
+                    silver::verifier::Failure::with(<span class="self">self</span>.env).call_errors(viper_result),
                 ));
 
-                <span class="kw">let </span>verification_error_wrapper = silver::verifier::VerificationError::with(<a class="self" href="#106">self</a>.env);
+                <span class="kw">let </span>verification_error_wrapper = silver::verifier::VerificationError::with(<span class="self">self</span>.env);
 
-                <span class="kw">let </span>error_node_positioned_wrapper = silver::ast::Positioned::with(<a class="self" href="#106">self</a>.env);
+                <span class="kw">let </span>error_node_positioned_wrapper = silver::ast::Positioned::with(<span class="self">self</span>.env);
 
-                <span class="kw">let </span>failure_context_wrapper = silver::verifier::FailureContext::with(<a class="self" href="#106">self</a>.env);
+                <span class="kw">let </span>failure_context_wrapper = silver::verifier::FailureContext::with(<span class="self">self</span>.env);
 
-                <span class="kw">let </span>has_identifier_wrapper = silver::ast::HasIdentifier::with(<a class="self" href="#106">self</a>.env);
+                <span class="kw">let </span>has_identifier_wrapper = silver::ast::HasIdentifier::with(<span class="self">self</span>.env);
 
-                <span class="kw">let </span>error_reason_wrapper = silver::verifier::ErrorReason::with(<a class="self" href="#106">self</a>.env);
+                <span class="kw">let </span>error_reason_wrapper = silver::verifier::ErrorReason::with(<span class="self">self</span>.env);
 
                 <span class="kw">for </span>viper_error <span class="kw">in </span>viper_errors {
                     <span class="kw">let </span>is_verification_error = <span class="self">self
@@ -675,24 +675,24 @@
                     ))
                 }
 
-                <a href="verification_result.rs.html#15">VerificationResult::Failure</a>(<a href="#153">errors</a>)
+                VerificationResult::Failure(errors)
             } <span class="kw">else </span>{
-                <a href="verification_result.rs.html#13">VerificationResult::Success</a>
+                VerificationResult::Success
             }
         })
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span>Verifier&lt;<span class="lifetime">&#39;a</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; Drop <span class="kw">for </span>Verifier&lt;<span class="lifetime">&#39;a</span>&gt; {
     <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="comment">// Tell the verifier to stop its threads.
-        </span><a class="self" href="#339">self</a>.jni
-            .<a href="jni_utils.rs.html#63">unwrap_result</a>(<a class="self" href="#339">self</a>.verifier_wrapper.call_stop(<a class="self" href="#339">self</a>.verifier_instance));
+        </span><span class="self">self</span>.jni
+            .unwrap_result(<span class="self">self</span>.verifier_wrapper.call_stop(<span class="self">self</span>.verifier_instance));
         <span class="comment">// Delete the local reference to the verifier in the JVM
         // so that the JVM garbage collector can clean it up.
-        </span><a class="self" href="#339">self</a>.jni
-            .<a href="jni_utils.rs.html#63">unwrap_result</a>(<a class="self" href="#339">self</a>.env.delete_local_ref(<a class="self" href="#339">self</a>.verifier_instance));
+        </span><span class="self">self</span>.jni
+            .unwrap_result(<span class="self">self</span>.env.delete_local_ref(<span class="self">self</span>.verifier_instance));
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="viper" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="viper" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

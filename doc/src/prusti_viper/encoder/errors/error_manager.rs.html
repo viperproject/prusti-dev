@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `prusti-viper/src/encoder/errors/error_manager.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>error_manager.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../../prusti_viper/index.html"><img class="rust-logo" src="../../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `prusti-viper/src/encoder/errors/error_manager.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>error_manager.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../../prusti_viper/index.html"><img class="rust-logo" src="../../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -735,23 +735,21 @@
 <a href="#735" id="735">735</a>
 <a href="#736" id="736">736</a>
 <a href="#737" id="737">737</a>
-<a href="#738" id="738">738</a>
-<a href="#739" id="739">739</a>
 </pre><pre class="rust"><code><span class="comment">// © 2019, ETH Zurich
 //
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-</span><span class="kw">use </span><a href="../../../../vir/gen/polymorphic/ast/common/struct.Position.html">vir_crate::polymorphic::Position</a>;
-<span class="kw">use </span><a href="../../../../rustc_hash/type.FxHashMap.html">rustc_hash::FxHashMap</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/source_map/struct.SourceMap.html">prusti_rustc_interface::span::source_map::SourceMap</a>;
+</span><span class="kw">use </span>vir_crate::polymorphic::Position;
+<span class="kw">use </span>rustc_hash::FxHashMap;
+<span class="kw">use </span>prusti_rustc_interface::span::source_map::SourceMap;
 <span class="kw">use </span>prusti_rustc_interface::errors::MultiSpan;
-<span class="kw">use </span><a href="../../../../viper/verification_result/struct.VerificationError.html">viper::VerificationError</a>;
-<span class="kw">use </span><a href="../../../../prusti_interface/prusti_error/struct.PrustiError.html">prusti_interface::PrustiError</a>;
-<span class="kw">use </span>log::{<a href="../../../../log/macro.debug.html">debug</a>, <a href="../../../../log/macro.trace.html">trace</a>};
-<span class="kw">use </span><a href="position_manager.rs.html#18"><span class="kw">super</span>::PositionManager</a>;
-<span class="kw">use </span><a href="../../../../prusti_interface/data/type.ProcedureDefId.html">prusti_interface::data::ProcedureDefId</a>;
+<span class="kw">use </span>viper::VerificationError;
+<span class="kw">use </span>prusti_interface::PrustiError;
+<span class="kw">use </span>log::{debug, trace};
+<span class="kw">use </span><span class="kw">super</span>::PositionManager;
+<span class="kw">use </span>prusti_interface::data::ProcedureDefId;
 
 
 <span class="doccomment">/// The cause of a panic!()
@@ -790,7 +788,7 @@
 </span><span class="attr">#[derive(Clone, Debug, Eq, PartialEq, Hash)]
 </span><span class="kw">pub enum </span>ErrorCtxt {
     <span class="doccomment">/// A Viper `assert false` that encodes a Rust panic
-    </span>Panic(<a href="#20">PanicCause</a>),
+    </span>Panic(PanicCause),
     <span class="doccomment">/// A Viper `exhale expr` that encodes the call of a Rust procedure with precondition `expr`
     </span>ExhaleMethodPrecondition,
     <span class="doccomment">/// An error when assuming method&#39;s functional specification.
@@ -831,12 +829,12 @@
     </span>UnexpectedAssignMethodTerminationMeasure,
     <span class="doccomment">/// A Viper `assert false` that encodes the failure (panic) of an `assert` Rust terminator
     /// Arguments: the message of the Rust assertion
-    </span>AssertTerminator(<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>),
+    </span>AssertTerminator(String),
     <span class="doccomment">/// A Viper `assert false` in the context of a bounds check
     </span>BoundsCheckAssert,
     <span class="doccomment">/// A Viper `assert false` in the context of a hardcoded bounds check (e.g. when we hardcode a `index`)
     /// TODO: remove this in favor of extern_spec for e.g. the stdlib `fn index(...)`
-    </span>SliceRangeBoundsCheckAssert(<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>),
+    </span>SliceRangeBoundsCheckAssert(String),
     <span class="doccomment">/// A Viper `assert false` that encodes an `abort` Rust terminator
     </span>AbortTerminator,
     <span class="doccomment">/// A Viper `assert false` that encodes an `unreachable` Rust terminator
@@ -844,7 +842,7 @@
     <span class="doccomment">/// An error that should never happen
     </span>Unexpected,
     <span class="doccomment">/// An unexpected verification error happenning inside built-in method.
-    </span>UnexpectedBuiltinMethod(<a href="#37">BuiltinMethodKind</a>),
+    </span>UnexpectedBuiltinMethod(BuiltinMethodKind),
     <span class="doccomment">/// Unexpected error when verifying a `StorageLive` statement.
     </span>UnexpectedStorageLive,
     <span class="doccomment">/// Unexpected error when verifying a `StorageDead` statement.
@@ -867,7 +865,7 @@
     <span class="doccomment">/// A Viper function with `false` precondition that encodes the failure (panic) of an
     /// `assert` Rust terminator in a Rust pure function.
     /// Arguments: the message of the Rust assertion
-    </span>PureFunctionAssertTerminator(<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>),
+    </span>PureFunctionAssertTerminator(String),
     <span class="doccomment">/// Package a magic wand for the postcondition, at the end of a method
     </span>PackageMagicWandForPostcondition,
     <span class="doccomment">/// Apply a magic wand as a borrow expires, relevant for pledge conditions
@@ -875,7 +873,7 @@
     <span class="doccomment">/// A diverging function call performed in a pure function
     </span>DivergingCallInPureFunction,
     <span class="doccomment">/// A Viper pure function call with `false` precondition that encodes a Rust panic in a pure function
-    </span>PanicInPureFunction(<a href="#20">PanicCause</a>),
+    </span>PanicInPureFunction(PanicCause),
     <span class="doccomment">/// A Viper `assert e1 ==&gt; e2` that encodes a weakening of the precondition
     /// of a method implementation of a trait
     </span>AssertMethodPreconditionWeakening,
@@ -885,7 +883,7 @@
     <span class="doccomment">/// A cast like `usize as u32`.
     </span>TypeCast,
     <span class="doccomment">/// A Viper `assert false` that encodes an unsupported feature.
-    </span>Unsupported(<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>),
+    </span>Unsupported(String),
     <span class="doccomment">/// Failed to obtain capability by unfolding.
     </span>Unfold,
     <span class="doccomment">/// Failed to obtain capability by unfolding an union variant.
@@ -925,39 +923,39 @@
 </span><span class="attr">#[derive(Clone)]
 </span><span class="kw">pub struct </span>ErrorManager&lt;<span class="lifetime">&#39;tcx</span>&gt; {
     position_manager: PositionManager&lt;<span class="lifetime">&#39;tcx</span>&gt;,
-    error_contexts: FxHashMap&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>, <a href="#52">ErrorCtxt</a>&gt;,
-    inner_positions: FxHashMap&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>, <a href="../../../../vir/gen/polymorphic/ast/common/struct.Position.html">Position</a>&gt;,
+    error_contexts: FxHashMap&lt;u64, ErrorCtxt&gt;,
+    inner_positions: FxHashMap&lt;u64, Position&gt;,
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;tcx</span>&gt; ErrorManager&lt;<span class="lifetime">&#39;tcx</span>&gt; {
-    <span class="kw">pub fn </span>new(codemap: <span class="kw-2">&amp;</span><span class="lifetime">&#39;tcx </span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/source_map/struct.SourceMap.html">SourceMap</a>) -&gt; <span class="self">Self </span>{
-        <a href="#187">ErrorManager</a> {
-            position_manager: PositionManager::new(<a href="#194">codemap</a>),
+    <span class="kw">pub fn </span>new(codemap: <span class="kw-2">&amp;</span><span class="lifetime">&#39;tcx </span>SourceMap) -&gt; <span class="self">Self </span>{
+        ErrorManager {
+            position_manager: PositionManager::new(codemap),
             error_contexts: FxHashMap::default(),
             inner_positions: FxHashMap::default(),
         }
     }
 
-    <span class="kw">pub fn </span>position_manager(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="position_manager.rs.html#18">PositionManager</a> {
-        <span class="kw-2">&amp;</span><a class="self" href="#202">self</a>.position_manager
+    <span class="kw">pub fn </span>position_manager(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>PositionManager {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.position_manager
     }
 
     <span class="doccomment">/// Register a new VIR position.
-    </span><span class="kw">pub fn </span>register_span&lt;T: Into&lt;MultiSpan&gt;&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, def_id: <a href="../../../../prusti_interface/data/type.ProcedureDefId.html">ProcedureDefId</a>, span: T) -&gt; <a href="../../../../vir/gen/polymorphic/ast/common/struct.Position.html">Position</a> {
-        <a class="self" href="#207">self</a>.position_manager.<a href="position_manager.rs.html#38">register_span</a>(<a href="#207">def_id</a>, <a href="#207">span</a>)
+    </span><span class="kw">pub fn </span>register_span&lt;T: Into&lt;MultiSpan&gt;&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, def_id: ProcedureDefId, span: T) -&gt; Position {
+        <span class="self">self</span>.position_manager.register_span(def_id, span)
     }
 
     <span class="doccomment">/// Duplicate an existing VIR position.
-    </span><span class="kw">pub fn </span>duplicate_position(<span class="kw-2">&amp;mut </span><span class="self">self</span>, pos: <a href="../../../../vir/gen/polymorphic/ast/common/struct.Position.html">Position</a>) -&gt; <a href="../../../../vir/gen/polymorphic/ast/common/struct.Position.html">Position</a> {
-        <a class="self" href="#212">self</a>.position_manager.<a href="position_manager.rs.html#74">duplicate</a>(<a href="#212">pos</a>)
+    </span><span class="kw">pub fn </span>duplicate_position(<span class="kw-2">&amp;mut </span><span class="self">self</span>, pos: Position) -&gt; Position {
+        <span class="self">self</span>.position_manager.duplicate(pos)
     }
 
     <span class="doccomment">/// Register the ErrorCtxt on an existing VIR position.
-    </span><span class="kw">pub fn </span>set_error(<span class="kw-2">&amp;mut </span><span class="self">self</span>, pos: <a href="../../../../vir/gen/polymorphic/ast/common/struct.Position.html">Position</a>, error_ctxt: <a href="#52">ErrorCtxt</a>) {
-        <a class="macro" href="../../../../log/macro.trace.html">trace!</a>(<span class="string">&quot;Register error {:?} at position id {:?}&quot;</span>, error_ctxt, pos.id());
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert_ne.html">assert_ne!</a>(pos, Position::default(), <span class="string">&quot;Trying to register an error on a default position&quot;</span>);
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(existing_error_ctxt) = <a class="self" href="#217">self</a>.error_contexts.get(<span class="kw-2">&amp;</span><a href="#217">pos</a>.id()) {
-            <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert_eq.html">debug_assert_eq!</a>(
+    </span><span class="kw">pub fn </span>set_error(<span class="kw-2">&amp;mut </span><span class="self">self</span>, pos: Position, error_ctxt: ErrorCtxt) {
+        <span class="macro">trace!</span>(<span class="string">&quot;Register error {:?} at position id {:?}&quot;</span>, error_ctxt, pos.id());
+        <span class="macro">assert_ne!</span>(pos, Position::default(), <span class="string">&quot;Trying to register an error on a default position&quot;</span>);
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(existing_error_ctxt) = <span class="self">self</span>.error_contexts.get(<span class="kw-2">&amp;</span>pos.id()) {
+            <span class="macro">debug_assert_eq!</span>(
                 existing_error_ctxt, <span class="kw-2">&amp;</span>error_ctxt,
                 <span class="string">&quot;An existing error context would be overwritten.\n\
                 Position id: {}\n\
@@ -968,45 +966,44 @@
                 error_ctxt
             );
         }
-        <a class="self" href="#217">self</a>.error_contexts.insert(<a href="#217">pos</a>.id(), <a href="#217">error_ctxt</a>);
+        <span class="self">self</span>.error_contexts.insert(pos.id(), error_ctxt);
     }
 
     <span class="doccomment">/// Creates a new position with `error_ctxt` that is linked to `pos`. This
     /// method is used for setting the surrounding context position of an
     /// expression&#39;s position.
-    </span><span class="kw">pub fn </span>set_surrounding_error_context(<span class="kw-2">&amp;mut </span><span class="self">self</span>, pos: <a href="../../../../vir/gen/polymorphic/ast/common/struct.Position.html">Position</a>, error_ctxt: <a href="#52">ErrorCtxt</a>) -&gt; <a href="../../../../vir/gen/polymorphic/ast/common/struct.Position.html">Position</a> {
-        <span class="kw">let </span>surrounding_position = <a class="self" href="#238">self</a>.<a href="#212">duplicate_position</a>(<a href="#238">pos</a>);
-        <a class="self" href="#238">self</a>.<a href="#217">set_error</a>(<a href="#239">surrounding_position</a>, <a href="#238">error_ctxt</a>);
-        <a class="self" href="#238">self</a>.inner_positions.insert(<a href="#239">surrounding_position</a>.id(), <a href="#238">pos</a>);
-        <a href="#239">surrounding_position</a>
+    </span><span class="kw">pub fn </span>set_surrounding_error_context(<span class="kw-2">&amp;mut </span><span class="self">self</span>, pos: Position, error_ctxt: ErrorCtxt) -&gt; Position {
+        <span class="kw">let </span>surrounding_position = <span class="self">self</span>.duplicate_position(pos);
+        <span class="self">self</span>.set_error(surrounding_position, error_ctxt);
+        <span class="self">self</span>.inner_positions.insert(surrounding_position.id(), pos);
+        surrounding_position
     }
 
     <span class="doccomment">/// Register a new VIR position with the given ErrorCtxt.
     /// Equivalent to calling `set_error` on the output of `register_span`.
-    </span><span class="kw">pub fn </span>register_error&lt;T: Into&lt;MultiSpan&gt;&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, span: T, error_ctxt: <a href="#52">ErrorCtxt</a>, def_id: <a href="../../../../prusti_interface/data/type.ProcedureDefId.html">ProcedureDefId</a>) -&gt; <a href="../../../../vir/gen/polymorphic/ast/common/struct.Position.html">Position</a> {
-        <span class="kw">let </span>pos = <a class="self" href="#247">self</a>.<a href="#207">register_span</a>(<a href="#247">def_id</a>, <a href="#247">span</a>);
-        <a class="self" href="#247">self</a>.<a href="#217">set_error</a>(<a href="#248">pos</a>, <a href="#247">error_ctxt</a>);
-        <a href="#248">pos</a>
+    </span><span class="kw">pub fn </span>register_error&lt;T: Into&lt;MultiSpan&gt;&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, span: T, error_ctxt: ErrorCtxt, def_id: ProcedureDefId) -&gt; Position {
+        <span class="kw">let </span>pos = <span class="self">self</span>.register_span(def_id, span);
+        <span class="self">self</span>.set_error(pos, error_ctxt);
+        pos
     }
 
-    <span class="kw">pub fn </span>get_def_id(<span class="kw-2">&amp;</span><span class="self">self</span>, ver_error: <span class="kw-2">&amp;</span><a href="../../../../viper/verification_result/struct.VerificationError.html">VerificationError</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="../../../../prusti_interface/data/type.ProcedureDefId.html">ProcedureDefId</a>&gt; {
-        <a href="#253">ver_error</a>.offending_pos_id.as_ref()
-            .and_then(|id| <a href="#255">id</a>.parse().ok())
-            .and_then(|id| <a class="self" href="#253">self</a>.position_manager.def_id.get(<span class="kw-2">&amp;</span><a href="#256">id</a>).copied())
+    <span class="kw">pub fn </span>get_def_id(<span class="kw-2">&amp;</span><span class="self">self</span>, ver_error: <span class="kw-2">&amp;</span>VerificationError) -&gt; <span class="prelude-ty">Option</span>&lt;ProcedureDefId&gt; {
+        ver_error.offending_pos_id.as_ref()
+            .and_then(|id| id.parse().ok())
+            .and_then(|id| <span class="self">self</span>.position_manager.def_id.get(<span class="kw-2">&amp;</span>id).copied())
     }
 
-    <span class="kw">pub fn </span>translate_verification_error(<span class="kw-2">&amp;</span><span class="self">self</span>, ver_error: <span class="kw-2">&amp;</span><a href="../../../../viper/verification_result/struct.VerificationError.html">VerificationError</a>) -&gt; <a href="../../../../prusti_interface/prusti_error/struct.PrustiError.html">PrustiError</a> {
-        <a class="macro" href="../../../../log/macro.debug.html">debug!</a>(<span class="string">&quot;Verification error: {:?}&quot;</span>, ver_error);
-        <span class="kw">let </span>opt_pos_id: <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>&gt; = <span class="kw">match </span><a href="#259">ver_error</a>.offending_pos_id {
+    <span class="kw">pub fn </span>translate_verification_error(<span class="kw-2">&amp;</span><span class="self">self</span>, ver_error: <span class="kw-2">&amp;</span>VerificationError) -&gt; PrustiError {
+        <span class="macro">debug!</span>(<span class="string">&quot;Verification error: {:?}&quot;</span>, ver_error);
+        <span class="kw">let </span>opt_pos_id: <span class="prelude-ty">Option</span>&lt;u64&gt; = <span class="kw">match </span>ver_error.offending_pos_id {
             <span class="prelude-val">Some</span>(<span class="kw-2">ref </span>viper_pos_id) =&gt; {
-                <span class="kw">match </span><a href="#262">viper_pos_id</a>.parse() {
-                    <span class="prelude-val">Ok</span>(pos_id) =&gt; <span class="prelude-val">Some</span>(<a href="#264">pos_id</a>),
+                <span class="kw">match </span>viper_pos_id.parse() {
+                    <span class="prelude-val">Ok</span>(pos_id) =&gt; <span class="prelude-val">Some</span>(pos_id),
                     <span class="prelude-val">Err</span>(err) =&gt; {
                         <span class="kw">return </span>PrustiError::internal(
-                            <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(
-                                <span class="string">&quot;unexpected Viper position &#39;{}&#39;: {}&quot;</span>,
-                                viper_pos_id, err
-                            ),
+                            <span class="macro">format!</span>(
+                                <span class="string">&quot;unexpected Viper position &#39;{viper_pos_id}&#39;: {err}&quot;
+                            </span>),
                             MultiSpan::new()
                         );
                     }
@@ -1014,16 +1011,15 @@
             }
             <span class="prelude-val">None </span>=&gt; <span class="prelude-val">None
         </span>};
-        <span class="kw">let </span>opt_reason_pos_id: <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>&gt; = <span class="kw">match </span><a href="#259">ver_error</a>.reason_pos_id {
+        <span class="kw">let </span>opt_reason_pos_id: <span class="prelude-ty">Option</span>&lt;u64&gt; = <span class="kw">match </span>ver_error.reason_pos_id {
             <span class="prelude-val">Some</span>(<span class="kw-2">ref </span>viper_reason_pos_id) =&gt; {
-                <span class="kw">match </span><a href="#279">viper_reason_pos_id</a>.parse() {
-                    <span class="prelude-val">Ok</span>(reason_pos_id) =&gt; <span class="prelude-val">Some</span>(<a href="#281">reason_pos_id</a>),
+                <span class="kw">match </span>viper_reason_pos_id.parse() {
+                    <span class="prelude-val">Ok</span>(reason_pos_id) =&gt; <span class="prelude-val">Some</span>(reason_pos_id),
                     <span class="prelude-val">Err</span>(err) =&gt; {
                         <span class="kw">return </span>PrustiError::internal(
-                            <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(
-                                <span class="string">&quot;unexpected Viper reason position &#39;{}&#39;: {}&quot;</span>,
-                                viper_reason_pos_id, err
-                            ),
+                            <span class="macro">format!</span>(
+                                <span class="string">&quot;unexpected Viper reason position &#39;{viper_reason_pos_id}&#39;: {err}&quot;
+                            </span>),
                             MultiSpan::new()
                         );
                     }
@@ -1032,42 +1028,42 @@
             <span class="prelude-val">None </span>=&gt; <span class="prelude-val">None
         </span>};
 
-        <span class="kw">let </span>opt_error_ctxts = <a href="#261">opt_pos_id</a>
-            .and_then(|pos_id| <a class="self" href="#259">self</a>.error_contexts.get(<span class="kw-2">&amp;</span><a href="#297">pos_id</a>));
-        <span class="kw">let </span>opt_error_span = <a href="#261">opt_pos_id</a>.and_then(|pos_id| <a class="self" href="#259">self</a>.position_manager.source_span.get(<span class="kw-2">&amp;</span><a href="#298">pos_id</a>));
-        <span class="kw">let </span>opt_cause_span = <a href="#278">opt_reason_pos_id</a>.and_then(|reason_pos_id| {
-            <span class="kw">let </span>res = <a class="self" href="#259">self</a>.position_manager.source_span.get(<span class="kw-2">&amp;</span><a href="#299">reason_pos_id</a>);
+        <span class="kw">let </span>opt_error_ctxts = opt_pos_id
+            .and_then(|pos_id| <span class="self">self</span>.error_contexts.get(<span class="kw-2">&amp;</span>pos_id));
+        <span class="kw">let </span>opt_error_span = opt_pos_id.and_then(|pos_id| <span class="self">self</span>.position_manager.source_span.get(<span class="kw-2">&amp;</span>pos_id));
+        <span class="kw">let </span>opt_cause_span = opt_reason_pos_id.and_then(|reason_pos_id| {
+            <span class="kw">let </span>res = <span class="self">self</span>.position_manager.source_span.get(<span class="kw-2">&amp;</span>reason_pos_id);
             <span class="kw">if </span>res.is_none() {
-                <a class="macro" href="../../../../log/macro.debug.html">debug!</a>(<span class="string">&quot;Unregistered reason position: {:?}&quot;</span>, reason_pos_id);
+                <span class="macro">debug!</span>(<span class="string">&quot;Unregistered reason position: {:?}&quot;</span>, reason_pos_id);
             }
-            <a href="#300">res</a>
+            res
         });
 
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(error_ctxt) = <a href="#296">opt_error_ctxts</a> {
-            <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(opt_error_span.is_some());
-            <span class="kw">let </span>error_span = <a href="#298">opt_error_span</a>.cloned().unwrap_or_else(MultiSpan::new);
-            <a class="self" href="#259">self</a>.<a href="#355-361">translate_verification_error_with_context</a>(
-                <a href="#259">ver_error</a>,
-                <a href="#309">error_span</a>,
-                <a href="#299">opt_cause_span</a>,
-                <a href="#307">error_ctxt</a>
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(error_ctxt) = opt_error_ctxts {
+            <span class="macro">debug_assert!</span>(opt_error_span.is_some());
+            <span class="kw">let </span>error_span = opt_error_span.cloned().unwrap_or_else(MultiSpan::new);
+            <span class="self">self</span>.translate_verification_error_with_context(
+                ver_error,
+                error_span,
+                opt_cause_span,
+                error_ctxt
             )
         } <span class="kw">else </span>{
-            <a class="macro" href="../../../../log/macro.debug.html">debug!</a>(<span class="string">&quot;Unregistered verification error: {:?}&quot;</span>, ver_error);
-            <span class="kw">let </span>error_span = <span class="kw">if let </span><span class="prelude-val">Some</span>(error_span) = <a href="#298">opt_error_span</a> {
-                <a href="#318">error_span</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()
+            <span class="macro">debug!</span>(<span class="string">&quot;Unregistered verification error: {:?}&quot;</span>, ver_error);
+            <span class="kw">let </span>error_span = <span class="kw">if let </span><span class="prelude-val">Some</span>(error_span) = opt_error_span {
+                error_span.clone()
             } <span class="kw">else </span>{
-                <a href="#299">opt_cause_span</a>.cloned().unwrap_or_else(MultiSpan::new)
+                opt_cause_span.cloned().unwrap_or_else(MultiSpan::new)
             };
 
-            <span class="kw">match </span><a href="#261">opt_pos_id</a> {
+            <span class="kw">match </span>opt_pos_id {
                 <span class="prelude-val">Some</span>(<span class="kw-2">ref </span>pos_id) =&gt; {
                     PrustiError::internal(
-                        <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(
+                        <span class="macro">format!</span>(
                             <span class="string">&quot;unregistered verification error: [{}; {}] {}&quot;</span>,
                             ver_error.full_id, pos_id, ver_error.message
                         ),
-                        <a href="#318">error_span</a>
+                        error_span
                     ).set_help(
                         <span class="string">&quot;This could be caused by too small assertion timeout. \
                         Try increasing it by setting the configuration parameter \
@@ -1076,11 +1072,11 @@
                 }
                 <span class="prelude-val">None </span>=&gt; {
                     PrustiError::internal(
-                        <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(
+                        <span class="macro">format!</span>(
                             <span class="string">&quot;unregistered verification error: [{}] {}&quot;</span>,
                             ver_error.full_id, ver_error.message
                         ),
-                        <a href="#318">error_span</a>
+                        error_span
                     ).set_help(
                         <span class="string">&quot;This could be caused by too small assertion timeout. \
                         Try increasing it by setting the configuration parameter \
@@ -1093,360 +1089,360 @@
 
     <span class="kw">fn </span>translate_verification_error_with_context(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        ver_error: <span class="kw-2">&amp;</span><a href="../../../../viper/verification_result/struct.VerificationError.html">VerificationError</a>,
+        ver_error: <span class="kw-2">&amp;</span>VerificationError,
         error_span: MultiSpan,
         opt_cause_span: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>MultiSpan&gt;,
-        error_ctxt: <span class="kw-2">&amp;</span><a href="#52">ErrorCtxt</a>,
-    ) -&gt; <a href="../../../../prusti_interface/prusti_error/struct.PrustiError.html">PrustiError</a> {
-        <span class="kw">match </span>(<a href="#357">ver_error</a>.full_id.as_str(), <a href="#360">error_ctxt</a>) {
-            (<span class="string">&quot;assert.failed:assertion.false&quot;</span>, <a href="#54">ErrorCtxt::Panic</a>(<a href="#22">PanicCause::Generic</a>)) =&gt; {
-                PrustiError::verification(<span class="string">&quot;statement might panic&quot;</span>, <a href="#358">error_span</a>)
-                    .set_failing_assertion(<a href="#359">opt_cause_span</a>)
+        error_ctxt: <span class="kw-2">&amp;</span>ErrorCtxt,
+    ) -&gt; PrustiError {
+        <span class="kw">match </span>(ver_error.full_id.as_str(), error_ctxt) {
+            (<span class="string">&quot;assert.failed:assertion.false&quot;</span>, ErrorCtxt::Panic(PanicCause::Generic)) =&gt; {
+                PrustiError::verification(<span class="string">&quot;statement might panic&quot;</span>, error_span)
+                    .set_failing_assertion(opt_cause_span)
             }
 
-            (<span class="string">&quot;assert.failed:assertion.false&quot;</span>, <a href="#54">ErrorCtxt::Panic</a>(<a href="#24">PanicCause::Panic</a>)) =&gt; {
-                PrustiError::verification(<span class="string">&quot;panic!(..) statement might be reachable&quot;</span>, <a href="#358">error_span</a>)
-                    .set_failing_assertion(<a href="#359">opt_cause_span</a>)
+            (<span class="string">&quot;assert.failed:assertion.false&quot;</span>, ErrorCtxt::Panic(PanicCause::Panic)) =&gt; {
+                PrustiError::verification(<span class="string">&quot;panic!(..) statement might be reachable&quot;</span>, error_span)
+                    .set_failing_assertion(opt_cause_span)
             }
 
-            (<span class="string">&quot;assert.failed:assertion.false&quot;</span>, <a href="#54">ErrorCtxt::Panic</a>(<a href="#26">PanicCause::Assert</a>)) |
-            (<span class="string">&quot;assert.failed:assertion.false&quot;</span>, <a href="#54">ErrorCtxt::Panic</a>(<a href="#28">PanicCause::DebugAssert</a>)) =&gt; {
-                    PrustiError::verification(<span class="string">&quot;the asserted expression might not hold&quot;</span>, <a href="#358">error_span</a>)
-                    .set_failing_assertion(<a href="#359">opt_cause_span</a>)
+            (<span class="string">&quot;assert.failed:assertion.false&quot;</span>, ErrorCtxt::Panic(PanicCause::Assert)) |
+            (<span class="string">&quot;assert.failed:assertion.false&quot;</span>, ErrorCtxt::Panic(PanicCause::DebugAssert)) =&gt; {
+                    PrustiError::verification(<span class="string">&quot;the asserted expression might not hold&quot;</span>, error_span)
+                    .set_failing_assertion(opt_cause_span)
             }
 
-            (<span class="string">&quot;assert.failed:assertion.false&quot;</span>, <a href="#54">ErrorCtxt::Panic</a>(<a href="#30">PanicCause::Unreachable</a>)) =&gt; {
-                PrustiError::verification(<span class="string">&quot;unreachable!(..) statement might be reachable&quot;</span>, <a href="#358">error_span</a>)
-                    .set_failing_assertion(<a href="#359">opt_cause_span</a>)
+            (<span class="string">&quot;assert.failed:assertion.false&quot;</span>, ErrorCtxt::Panic(PanicCause::Unreachable)) =&gt; {
+                PrustiError::verification(<span class="string">&quot;unreachable!(..) statement might be reachable&quot;</span>, error_span)
+                    .set_failing_assertion(opt_cause_span)
             }
 
-            (<span class="string">&quot;assert.failed:assertion.false&quot;</span>, <a href="#54">ErrorCtxt::Panic</a>(<a href="#32">PanicCause::Unimplemented</a>)) =&gt; {
-                PrustiError::verification(<span class="string">&quot;unimplemented!(..) statement might be reachable&quot;</span>, <a href="#358">error_span</a>)
-                    .set_failing_assertion(<a href="#359">opt_cause_span</a>)
+            (<span class="string">&quot;assert.failed:assertion.false&quot;</span>, ErrorCtxt::Panic(PanicCause::Unimplemented)) =&gt; {
+                PrustiError::verification(<span class="string">&quot;unimplemented!(..) statement might be reachable&quot;</span>, error_span)
+                    .set_failing_assertion(opt_cause_span)
             }
 
-            (<span class="string">&quot;assert.failed:assertion.false&quot;</span>, <a href="#95">ErrorCtxt::AssertTerminator</a>(<span class="kw-2">ref </span>message)) =&gt; {
-                PrustiError::verification(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;assertion might fail with \&quot;{}\&quot;&quot;</span>, message), <a href="#358">error_span</a>)
-                    .set_failing_assertion(<a href="#359">opt_cause_span</a>)
+            (<span class="string">&quot;assert.failed:assertion.false&quot;</span>, ErrorCtxt::AssertTerminator(<span class="kw-2">ref </span>message)) =&gt; {
+                PrustiError::verification(<span class="macro">format!</span>(<span class="string">&quot;assertion might fail with \&quot;{message}\&quot;&quot;</span>), error_span)
+                    .set_failing_assertion(opt_cause_span)
             }
 
-            (<span class="string">&quot;assert.failed:assertion.false&quot;</span>, <a href="#102">ErrorCtxt::AbortTerminator</a>) =&gt; {
-                PrustiError::verification(<span class="string">&quot;statement might abort&quot;</span>, <a href="#358">error_span</a>)
-                    .set_failing_assertion(<a href="#359">opt_cause_span</a>)
+            (<span class="string">&quot;assert.failed:assertion.false&quot;</span>, ErrorCtxt::AbortTerminator) =&gt; {
+                PrustiError::verification(<span class="string">&quot;statement might abort&quot;</span>, error_span)
+                    .set_failing_assertion(opt_cause_span)
             }
 
-            (<span class="string">&quot;assert.failed:assertion.false&quot;</span>, <a href="#104">ErrorCtxt::UnreachableTerminator</a>) =&gt; {
+            (<span class="string">&quot;assert.failed:assertion.false&quot;</span>, ErrorCtxt::UnreachableTerminator) =&gt; {
                 PrustiError::internal(
                     <span class="string">&quot;unreachable code might be reachable&quot;</span>,
-                    <a href="#358">error_span</a>
-                ).set_failing_assertion(<a href="#359">opt_cause_span</a>)
+                    error_span
+                ).set_failing_assertion(opt_cause_span)
                     .set_help(<span class="string">&quot;This might be a bug in the Rust compiler.&quot;</span>)
             }
 
-            (<span class="string">&quot;assert.failed:assertion.false&quot;</span>, <a href="#56">ErrorCtxt::ExhaleMethodPrecondition</a>) =&gt; {
-                PrustiError::verification(<span class="string">&quot;precondition might not hold.&quot;</span>, <a href="#358">error_span</a>)
-                    .set_failing_assertion(<a href="#359">opt_cause_span</a>)
+            (<span class="string">&quot;assert.failed:assertion.false&quot;</span>, ErrorCtxt::ExhaleMethodPrecondition) =&gt; {
+                PrustiError::verification(<span class="string">&quot;precondition might not hold.&quot;</span>, error_span)
+                    .set_failing_assertion(opt_cause_span)
             }
 
-            (<span class="string">&quot;fold.failed:assertion.false&quot;</span>, <a href="#56">ErrorCtxt::ExhaleMethodPrecondition</a>) =&gt; {
+            (<span class="string">&quot;fold.failed:assertion.false&quot;</span>, ErrorCtxt::ExhaleMethodPrecondition) =&gt; {
                 PrustiError::verification(
                     <span class="string">&quot;implicit type invariant expected by the function call might not hold.&quot;</span>,
-                    <a href="#358">error_span</a>
-                ).set_failing_assertion(<a href="#359">opt_cause_span</a>)
+                    error_span
+                ).set_failing_assertion(opt_cause_span)
             }
 
-            (<span class="string">&quot;assert.failed:assertion.false&quot;</span>, <a href="#66">ErrorCtxt::ExhaleMethodPostcondition</a>) =&gt; {
-                PrustiError::verification(<span class="string">&quot;postcondition might not hold.&quot;</span>, <a href="#358">error_span</a>)
-                    .push_primary_span(<a href="#359">opt_cause_span</a>)
+            (<span class="string">&quot;assert.failed:assertion.false&quot;</span>, ErrorCtxt::ExhaleMethodPostcondition) =&gt; {
+                PrustiError::verification(<span class="string">&quot;postcondition might not hold.&quot;</span>, error_span)
+                    .push_primary_span(opt_cause_span)
             }
 
-            (<span class="string">&quot;assert.failed:assertion.false&quot;</span>, <a href="#70">ErrorCtxt::ExhaleLoopInvariantOnEntry</a>) =&gt; {
-                PrustiError::verification(<span class="string">&quot;loop invariant might not hold in the first loop iteration.&quot;</span>, <a href="#358">error_span</a>)
-                    .push_primary_span(<a href="#359">opt_cause_span</a>)
+            (<span class="string">&quot;assert.failed:assertion.false&quot;</span>, ErrorCtxt::ExhaleLoopInvariantOnEntry) =&gt; {
+                PrustiError::verification(<span class="string">&quot;loop invariant might not hold in the first loop iteration.&quot;</span>, error_span)
+                    .push_primary_span(opt_cause_span)
             }
 
-            (<span class="string">&quot;fold.failed:assertion.false&quot;</span>, <a href="#70">ErrorCtxt::ExhaleLoopInvariantOnEntry</a>) =&gt; {
+            (<span class="string">&quot;fold.failed:assertion.false&quot;</span>, ErrorCtxt::ExhaleLoopInvariantOnEntry) =&gt; {
                 PrustiError::verification(
                     <span class="string">&quot;implicit type invariant of a variable might not hold on loop entry.&quot;</span>,
-                    <a href="#358">error_span</a>
-                ).push_primary_span(<a href="#359">opt_cause_span</a>)
+                    error_span
+                ).push_primary_span(opt_cause_span)
             }
 
-            (<span class="string">&quot;assert.failed:assertion.false&quot;</span>, <a href="#73">ErrorCtxt::AssertLoopInvariantOnEntry</a>) =&gt; {
-                PrustiError::verification(<span class="string">&quot;loop invariant might not hold in the first loop iteration.&quot;</span>, <a href="#358">error_span</a>)
-                    .push_primary_span(<a href="#359">opt_cause_span</a>)
+            (<span class="string">&quot;assert.failed:assertion.false&quot;</span>, ErrorCtxt::AssertLoopInvariantOnEntry) =&gt; {
+                PrustiError::verification(<span class="string">&quot;loop invariant might not hold in the first loop iteration.&quot;</span>, error_span)
+                    .push_primary_span(opt_cause_span)
             }
 
-            (<span class="string">&quot;assert.failed:assertion.false&quot;</span>, <a href="#71">ErrorCtxt::ExhaleLoopInvariantAfterIteration</a>) =&gt; {
+            (<span class="string">&quot;assert.failed:assertion.false&quot;</span>, ErrorCtxt::ExhaleLoopInvariantAfterIteration) =&gt; {
                 PrustiError::verification(
                     <span class="string">&quot;loop invariant might not hold after a loop iteration that preserves the loop condition.&quot;</span>,
-                    <a href="#358">error_span</a>
-                ).push_primary_span(<a href="#359">opt_cause_span</a>)
+                    error_span
+                ).push_primary_span(opt_cause_span)
             }
 
-            (<span class="string">&quot;assert.failed:assertion.false&quot;</span>, <a href="#74">ErrorCtxt::AssertLoopInvariantAfterIteration</a>) =&gt; {
+            (<span class="string">&quot;assert.failed:assertion.false&quot;</span>, ErrorCtxt::AssertLoopInvariantAfterIteration) =&gt; {
                 PrustiError::verification(
                     <span class="string">&quot;loop invariant might not hold after a loop iteration that preserves the loop condition.&quot;</span>,
-                    <a href="#358">error_span</a>
-                ).push_primary_span(<a href="#359">opt_cause_span</a>)
+                    error_span
+                ).push_primary_span(opt_cause_span)
             }
 
-            (<span class="string">&quot;assert.failed:assertion.false&quot;</span>, <a href="#157">ErrorCtxt::DropCall</a>) =&gt; {
+            (<span class="string">&quot;assert.failed:assertion.false&quot;</span>, ErrorCtxt::DropCall) =&gt; {
                 PrustiError::verification(
                     <span class="string">&quot;the drop handler was called.&quot;</span>,
-                    <a href="#358">error_span</a>
-                ).push_primary_span(<a href="#359">opt_cause_span</a>)
+                    error_span
+                ).push_primary_span(opt_cause_span)
             }
 
-            (<span class="string">&quot;application.precondition:assertion.false&quot;</span>, <a href="#125">ErrorCtxt::PureFunctionCall</a>) =&gt; {
+            (<span class="string">&quot;application.precondition:assertion.false&quot;</span>, ErrorCtxt::PureFunctionCall) =&gt; {
                 PrustiError::verification(
                     <span class="string">&quot;precondition of pure function call might not hold.&quot;</span>,
-                    <a href="#358">error_span</a>
-                ).set_failing_assertion(<a href="#359">opt_cause_span</a>)
+                    error_span
+                ).set_failing_assertion(opt_cause_span)
             }
 
-            (<span class="string">&quot;package.failed:assertion.false&quot;</span>, <a href="#133">ErrorCtxt::PackageMagicWandForPostcondition</a>) =&gt; {
+            (<span class="string">&quot;package.failed:assertion.false&quot;</span>, ErrorCtxt::PackageMagicWandForPostcondition) =&gt; {
                 PrustiError::verification(
                     <span class="string">&quot;pledge in the postcondition might not hold.&quot;</span>,
-                    <a href="#358">error_span</a>
-                ).push_primary_span(<a href="#359">opt_cause_span</a>)
+                    error_span
+                ).push_primary_span(opt_cause_span)
             }
 
             (
                 <span class="string">&quot;application.precondition:assertion.false&quot;</span>,
-                <a href="#137">ErrorCtxt::DivergingCallInPureFunction</a>,
+                ErrorCtxt::DivergingCallInPureFunction,
             ) =&gt; {
                 PrustiError::verification(
                     <span class="string">&quot;diverging function call in pure function might be reachable.&quot;</span>,
-                    <a href="#358">error_span</a>
-                ).push_primary_span(<a href="#359">opt_cause_span</a>)
+                    error_span
+                ).push_primary_span(opt_cause_span)
             }
 
             (
                 <span class="string">&quot;application.precondition:assertion.false&quot;</span>,
-                <a href="#139">ErrorCtxt::PanicInPureFunction</a>(<a href="#22">PanicCause::Generic</a>),
+                ErrorCtxt::PanicInPureFunction(PanicCause::Generic),
             ) =&gt; {
-                PrustiError::disabled_verification(<span class="string">&quot;statement in pure function might panic&quot;</span>, <a href="#358">error_span</a>)
-                    .push_primary_span(<a href="#359">opt_cause_span</a>)
+                PrustiError::disabled_verification(<span class="string">&quot;statement in pure function might panic&quot;</span>, error_span)
+                    .push_primary_span(opt_cause_span)
             }
 
             (
                 <span class="string">&quot;application.precondition:assertion.false&quot;</span>,
-                <a href="#139">ErrorCtxt::PanicInPureFunction</a>(<a href="#24">PanicCause::Panic</a>),
+                ErrorCtxt::PanicInPureFunction(PanicCause::Panic),
             ) =&gt; {
                 PrustiError::disabled_verification(
                     <span class="string">&quot;panic!(..) statement in pure function might panic&quot;</span>,
-                    <a href="#358">error_span</a>
-                ).push_primary_span(<a href="#359">opt_cause_span</a>)
+                    error_span
+                ).push_primary_span(opt_cause_span)
             }
 
             (
                 <span class="string">&quot;application.precondition:assertion.false&quot;</span>,
-                <a href="#139">ErrorCtxt::PanicInPureFunction</a>(<a href="#26">PanicCause::Assert</a>),
+                ErrorCtxt::PanicInPureFunction(PanicCause::Assert),
             ) =&gt; {
-                PrustiError::disabled_verification(<span class="string">&quot;asserted expression might not hold&quot;</span>, <a href="#358">error_span</a>)
-                    .set_failing_assertion(<a href="#359">opt_cause_span</a>)
+                PrustiError::disabled_verification(<span class="string">&quot;asserted expression might not hold&quot;</span>, error_span)
+                    .set_failing_assertion(opt_cause_span)
             }
 
             (
                 <span class="string">&quot;application.precondition:assertion.false&quot;</span>,
-                <a href="#139">ErrorCtxt::PanicInPureFunction</a>(<a href="#30">PanicCause::Unreachable</a>),
+                ErrorCtxt::PanicInPureFunction(PanicCause::Unreachable),
             ) =&gt; {
                 PrustiError::disabled_verification(
                     <span class="string">&quot;unreachable!(..) statement in pure function might be reachable&quot;</span>,
-                    <a href="#358">error_span</a>
-                ).push_primary_span(<a href="#359">opt_cause_span</a>)
+                    error_span
+                ).push_primary_span(opt_cause_span)
             }
 
             (
                 <span class="string">&quot;application.precondition:assertion.false&quot;</span>,
-                <a href="#139">ErrorCtxt::PanicInPureFunction</a>(<a href="#32">PanicCause::Unimplemented</a>),
+                ErrorCtxt::PanicInPureFunction(PanicCause::Unimplemented),
             ) =&gt; {
                 PrustiError::disabled_verification(
                     <span class="string">&quot;unimplemented!(..) statement in pure function might be reachable&quot;</span>,
-                    <a href="#358">error_span</a>
-                ).push_primary_span(<a href="#359">opt_cause_span</a>)
+                    error_span
+                ).push_primary_span(opt_cause_span)
             }
 
-            (<span class="string">&quot;postcondition.violated:assertion.false&quot;</span>, <a href="#123">ErrorCtxt::PureFunctionDefinition</a>) |
-            (<span class="string">&quot;postcondition.violated:assertion.false&quot;</span>, <a href="#125">ErrorCtxt::PureFunctionCall</a>) =&gt; {
+            (<span class="string">&quot;postcondition.violated:assertion.false&quot;</span>, ErrorCtxt::PureFunctionDefinition) |
+            (<span class="string">&quot;postcondition.violated:assertion.false&quot;</span>, ErrorCtxt::PureFunctionCall) =&gt; {
                 PrustiError::disabled_verification(
                     <span class="string">&quot;postcondition of pure function definition might not hold&quot;</span>,
-                    <a href="#358">error_span</a>
-                ).push_primary_span(<a href="#359">opt_cause_span</a>)
+                    error_span
+                ).push_primary_span(opt_cause_span)
             }
 
             (
                 <span class="string">&quot;application.precondition:assertion.false&quot;</span>,
-                <a href="#131">ErrorCtxt::PureFunctionAssertTerminator</a>(<span class="kw-2">ref </span>message),
+                ErrorCtxt::PureFunctionAssertTerminator(<span class="kw-2">ref </span>message),
             ) =&gt; {
                 PrustiError::disabled_verification(
-                    <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;assertion might fail with \&quot;{}\&quot;&quot;</span>, message),
-                    <a href="#358">error_span</a>
-                ).set_failing_assertion(<a href="#359">opt_cause_span</a>)
+                    <span class="macro">format!</span>(<span class="string">&quot;assertion might fail with \&quot;{message}\&quot;&quot;</span>),
+                    error_span
+                ).set_failing_assertion(opt_cause_span)
             },
 
-            (<span class="string">&quot;application.precondition:assertion.false&quot;</span>, <a href="#147">ErrorCtxt::TypeCast</a>) =&gt; {
+            (<span class="string">&quot;application.precondition:assertion.false&quot;</span>, ErrorCtxt::TypeCast) =&gt; {
                 PrustiError::verification(
                     <span class="string">&quot;value might not fit into the target type.&quot;</span>,
-                    <a href="#358">error_span</a>
-                ).set_failing_assertion(<a href="#359">opt_cause_span</a>)
+                    error_span
+                ).set_failing_assertion(opt_cause_span)
             }
 
-            (<span class="string">&quot;apply.failed:assertion.false&quot;</span>, <a href="#135">ErrorCtxt::ApplyMagicWandOnExpiry</a>) =&gt; {
-                PrustiError::verification(<span class="string">&quot;obligation might not hold on borrow expiry&quot;</span>, <a href="#358">error_span</a>)
-                    .set_failing_assertion(<a href="#359">opt_cause_span</a>)
+            (<span class="string">&quot;apply.failed:assertion.false&quot;</span>, ErrorCtxt::ApplyMagicWandOnExpiry) =&gt; {
+                PrustiError::verification(<span class="string">&quot;obligation might not hold on borrow expiry&quot;</span>, error_span)
+                    .set_failing_assertion(opt_cause_span)
             }
 
-            (<span class="string">&quot;assert.failed:assertion.false&quot;</span>, <a href="#62">ErrorCtxt::AssertMethodPostcondition</a>) =&gt; {
-                PrustiError::verification(<span class="string">&quot;postcondition might not hold.&quot;</span>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(), <a href="#358">error_span</a>)
-                    .push_primary_span(<a href="#359">opt_cause_span</a>)
+            (<span class="string">&quot;assert.failed:assertion.false&quot;</span>, ErrorCtxt::AssertMethodPostcondition) =&gt; {
+                PrustiError::verification(<span class="string">&quot;postcondition might not hold.&quot;</span>.to_string(), error_span)
+                    .push_primary_span(opt_cause_span)
             }
 
             (
                 <span class="string">&quot;assert.failed:assertion.false&quot;</span>,
-                <a href="#64">ErrorCtxt::AssertMethodPostconditionTypeInvariants</a>,
+                ErrorCtxt::AssertMethodPostconditionTypeInvariants,
             ) =&gt; {
                 PrustiError::verification(
-                    <span class="string">&quot;type invariants might not hold at the end of the method.&quot;</span>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(),
-                    <a href="#358">error_span</a>
-                ).set_failing_assertion(<a href="#359">opt_cause_span</a>)
+                    <span class="string">&quot;type invariants might not hold at the end of the method.&quot;</span>.to_string(),
+                    error_span
+                ).set_failing_assertion(opt_cause_span)
             },
 
-            (<span class="string">&quot;fold.failed:assertion.false&quot;</span>, <a href="#133">ErrorCtxt::PackageMagicWandForPostcondition</a>) |
-            (<span class="string">&quot;fold.failed:assertion.false&quot;</span>, <a href="#64">ErrorCtxt::AssertMethodPostconditionTypeInvariants</a>) =&gt; {
+            (<span class="string">&quot;fold.failed:assertion.false&quot;</span>, ErrorCtxt::PackageMagicWandForPostcondition) |
+            (<span class="string">&quot;fold.failed:assertion.false&quot;</span>, ErrorCtxt::AssertMethodPostconditionTypeInvariants) =&gt; {
                 PrustiError::verification(
-                    <span class="string">&quot;implicit type invariants might not hold at the end of the method.&quot;</span>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(),
-                    <a href="#358">error_span</a>
-                ).set_failing_assertion(<a href="#359">opt_cause_span</a>)
+                    <span class="string">&quot;implicit type invariants might not hold at the end of the method.&quot;</span>.to_string(),
+                    error_span
+                ).set_failing_assertion(opt_cause_span)
             }
 
-            (<span class="string">&quot;fold.failed:assertion.false&quot;</span>, <a href="#116">ErrorCtxt::CopyPlace</a>) =&gt; {
+            (<span class="string">&quot;fold.failed:assertion.false&quot;</span>, ErrorCtxt::CopyPlace) =&gt; {
                 PrustiError::verification(
-                    <span class="string">&quot;the copied value may not be fully initialized.&quot;</span>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(),
-                    <a href="#358">error_span</a>
-                ).set_failing_assertion(<a href="#359">opt_cause_span</a>)
+                    <span class="string">&quot;the copied value may not be fully initialized.&quot;</span>.to_string(),
+                    error_span
+                ).set_failing_assertion(opt_cause_span)
             }
 
-            (<span class="string">&quot;unfold.failed:insufficient.permission&quot;</span>, <a href="#153">ErrorCtxt::UnfoldUnionVariant</a>) =&gt; {
+            (<span class="string">&quot;unfold.failed:insufficient.permission&quot;</span>, ErrorCtxt::UnfoldUnionVariant) =&gt; {
                 PrustiError::verification(
-                    <span class="string">&quot;failed to unpack the capability of union&#39;s field.&quot;</span>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(),
-                    <a href="#358">error_span</a>
-                ).set_failing_assertion(<a href="#359">opt_cause_span</a>)
+                    <span class="string">&quot;failed to unpack the capability of union&#39;s field.&quot;</span>.to_string(),
+                    error_span
+                ).set_failing_assertion(opt_cause_span)
                 .set_help(<span class="string">&quot;check that the field was initialized.&quot;</span>)
                 .add_note(<span class="string">&quot;Prusti does not support yet reinterpreting memory of Rust unions&#39; fields and allow reading only the field that was previously initialized.&quot;</span>, <span class="prelude-val">None</span>)
             }
 
-            (<span class="string">&quot;assert.failed:assertion.false&quot;</span>, <a href="#142">ErrorCtxt::AssertMethodPreconditionWeakening</a>) =&gt; {
-                PrustiError::verification(<span class="string">&quot;the method&#39;s precondition may not be a valid weakening of the trait&#39;s precondition.&quot;</span>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(), <a href="#358">error_span</a>)
+            (<span class="string">&quot;assert.failed:assertion.false&quot;</span>, ErrorCtxt::AssertMethodPreconditionWeakening) =&gt; {
+                PrustiError::verification(<span class="string">&quot;the method&#39;s precondition may not be a valid weakening of the trait&#39;s precondition.&quot;</span>.to_string(), error_span)
                     .set_help(<span class="string">&quot;The trait&#39;s precondition should imply the implemented method&#39;s precondition.&quot;</span>)
             }
 
-            (<span class="string">&quot;assert.failed:assertion.false&quot;</span>, <a href="#145">ErrorCtxt::AssertMethodPostconditionStrengthening</a>) =&gt; {
-                PrustiError::verification(<span class="string">&quot;the method&#39;s postcondition may not be a valid strengthening of the trait&#39;s postcondition.&quot;</span>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(), <a href="#358">error_span</a>)
+            (<span class="string">&quot;assert.failed:assertion.false&quot;</span>, ErrorCtxt::AssertMethodPostconditionStrengthening) =&gt; {
+                PrustiError::verification(<span class="string">&quot;the method&#39;s postcondition may not be a valid strengthening of the trait&#39;s postcondition.&quot;</span>.to_string(), error_span)
                     .set_help(<span class="string">&quot;The implemented method&#39;s postcondition should imply the trait&#39;s postcondition.&quot;</span>)
             }
 
-            (<span class="string">&quot;assert.failed:assertion.false&quot;</span>, <a href="#97">ErrorCtxt::BoundsCheckAssert</a>) |
-            (<span class="string">&quot;application.precondition:assertion.false&quot;</span>, <a href="#97">ErrorCtxt::BoundsCheckAssert</a>) =&gt; {
+            (<span class="string">&quot;assert.failed:assertion.false&quot;</span>, ErrorCtxt::BoundsCheckAssert) |
+            (<span class="string">&quot;application.precondition:assertion.false&quot;</span>, ErrorCtxt::BoundsCheckAssert) =&gt; {
                 PrustiError::verification(
-                    <span class="string">&quot;the array or slice index may be out of bounds&quot;</span>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(),
-                    <a href="#358">error_span</a>,
-                ).set_failing_assertion(<a href="#359">opt_cause_span</a>)
+                    <span class="string">&quot;the array or slice index may be out of bounds&quot;</span>.to_string(),
+                    error_span,
+                ).set_failing_assertion(opt_cause_span)
             }
 
-            (<span class="string">&quot;assert.failed:assertion.false&quot;</span>, <a href="#100">ErrorCtxt::SliceRangeBoundsCheckAssert</a>(s)) |
-            (<span class="string">&quot;application.precondition:assertion.false&quot;</span>, <a href="#100">ErrorCtxt::SliceRangeBoundsCheckAssert</a>(s)) =&gt; {
+            (<span class="string">&quot;assert.failed:assertion.false&quot;</span>, ErrorCtxt::SliceRangeBoundsCheckAssert(s)) |
+            (<span class="string">&quot;application.precondition:assertion.false&quot;</span>, ErrorCtxt::SliceRangeBoundsCheckAssert(s)) =&gt; {
                 PrustiError::verification(
-                    <a href="#619">s</a>,
-                    <a href="#358">error_span</a>,
-                ).set_failing_assertion(<a href="#359">opt_cause_span</a>)
+                    s,
+                    error_span,
+                ).set_failing_assertion(opt_cause_span)
             }
 
-            (<span class="string">&quot;assert.failed:assertion.false&quot;</span>, <a href="#149">ErrorCtxt::Unsupported</a>(<span class="kw-2">ref </span>reason)) =&gt; {
+            (<span class="string">&quot;assert.failed:assertion.false&quot;</span>, ErrorCtxt::Unsupported(<span class="kw-2">ref </span>reason)) =&gt; {
                 PrustiError::unsupported(
-                    <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;an unsupported Rust feature might be reachable: {}.&quot;</span>, reason),
-                    <a href="#358">error_span</a>
-                ).set_failing_assertion(<a href="#359">opt_cause_span</a>)
+                    <span class="macro">format!</span>(<span class="string">&quot;an unsupported Rust feature might be reachable: {reason}.&quot;</span>),
+                    error_span
+                ).set_failing_assertion(opt_cause_span)
             }
 
-            (<span class="string">&quot;assert.failed:seq.index.length&quot;</span>, <a href="#54">ErrorCtxt::Panic</a>(<a href="#26">PanicCause::Assert</a>)) =&gt; {
+            (<span class="string">&quot;assert.failed:seq.index.length&quot;</span>, ErrorCtxt::Panic(PanicCause::Assert)) =&gt; {
                 PrustiError::verification(
-                    <span class="string">&quot;the sequence index may be out of bounds&quot;</span>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(),
-                    <a href="#358">error_span</a>
-                ).set_failing_assertion(<a href="#359">opt_cause_span</a>)
+                    <span class="string">&quot;the sequence index may be out of bounds&quot;</span>.to_string(),
+                    error_span
+                ).set_failing_assertion(opt_cause_span)
             }
 
-            (<span class="string">&quot;assert.failed:seq.index.negative&quot;</span>, <a href="#54">ErrorCtxt::Panic</a>(<a href="#26">PanicCause::Assert</a>)) =&gt; {
+            (<span class="string">&quot;assert.failed:seq.index.negative&quot;</span>, ErrorCtxt::Panic(PanicCause::Assert)) =&gt; {
                 PrustiError::verification(
-                    <span class="string">&quot;the sequence index may be negative&quot;</span>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(),
-                    <a href="#358">error_span</a>
-                ).set_failing_assertion(<a href="#359">opt_cause_span</a>)
+                    <span class="string">&quot;the sequence index may be negative&quot;</span>.to_string(),
+                    error_span
+                ).set_failing_assertion(opt_cause_span)
             }
 
             (<span class="string">&quot;inhale.failed:map.key.contains&quot;</span>, <span class="kw">_</span>) =&gt; {
                 PrustiError::verification(
-                    <span class="string">&quot;the key might not be in the map&quot;</span>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(),
-                    <a href="#358">error_span</a>
-                ).set_failing_assertion(<a href="#359">opt_cause_span</a>)
+                    <span class="string">&quot;the key might not be in the map&quot;</span>.to_string(),
+                    error_span
+                ).set_failing_assertion(opt_cause_span)
             }
 
-            (<span class="string">&quot;assert.failed:assertion.false&quot;</span>, <a href="#84">ErrorCtxt::UnexpectedReachableLoop</a>) =&gt; {
+            (<span class="string">&quot;assert.failed:assertion.false&quot;</span>, ErrorCtxt::UnexpectedReachableLoop) =&gt; {
                 PrustiError::verification(
-                    <span class="string">&quot;this loop might not terminate&quot;</span>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(),
-                    <a href="#358">error_span</a>
+                    <span class="string">&quot;this loop might not terminate&quot;</span>.to_string(),
+                    error_span
                 ).set_help(<span class="string">&quot;Consider attaching a loop variant at the begin of the loop with the `body_variant!` macro.\nAlternatively, remove the `#[terminates] attribute of this function, in case this is not within a ghost block.&quot;</span>)
             }
 
-            (<span class="string">&quot;assert.failed:assertion.false&quot;</span>, <a href="#86">ErrorCtxt::UnexpectedReachableCall</a>) =&gt; {
+            (<span class="string">&quot;assert.failed:assertion.false&quot;</span>, ErrorCtxt::UnexpectedReachableCall) =&gt; {
                 PrustiError::verification(
-                    <span class="string">&quot;this function call might not terminate&quot;</span>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(),
-                    <a href="#358">error_span</a>
+                    <span class="string">&quot;this function call might not terminate&quot;</span>.to_string(),
+                    error_span
                 ).set_help(<span class="string">&quot;Consider marking the called function with `#[terminates]` or making it `#[pure]`\nAlternatively, remove the `#[terminates] attribute of this function.&quot;</span>)
             }
 
-            (<span class="string">&quot;assert.failed:assertion.false&quot;</span>, <a href="#88">ErrorCtxt::CallTerminationMeasureLower</a>) =&gt; {
+            (<span class="string">&quot;assert.failed:assertion.false&quot;</span>, ErrorCtxt::CallTerminationMeasureLower) =&gt; {
                 PrustiError::verification(
-                    <span class="string">&quot;the termination measure of this call is not necessarily lower&quot;</span>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(),
-                    <a href="#358">error_span</a>
+                    <span class="string">&quot;the termination measure of this call is not necessarily lower&quot;</span>.to_string(),
+                    error_span
                 )
             }
 
-            (<span class="string">&quot;assert.failed:assertion.false&quot;</span>, <a href="#90">ErrorCtxt::CallTerminationMeasureNonNegative</a>) =&gt; {
+            (<span class="string">&quot;assert.failed:assertion.false&quot;</span>, ErrorCtxt::CallTerminationMeasureNonNegative) =&gt; {
                 PrustiError::verification(
-                    <span class="string">&quot;the termination measure of this call might become negative&quot;</span>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(),
-                    <a href="#358">error_span</a>
+                    <span class="string">&quot;the termination measure of this call might become negative&quot;</span>.to_string(),
+                    error_span
                 )
             }
 
-            (<span class="string">&quot;assert.failed:assertion.false&quot;</span>, <a href="#80">ErrorCtxt::LoopVariantOnEntry</a>) =&gt; {
+            (<span class="string">&quot;assert.failed:assertion.false&quot;</span>, ErrorCtxt::LoopVariantOnEntry) =&gt; {
                 PrustiError::verification(
-                    <span class="string">&quot;The loop variant might not hold on entry (is lower or equal to zero)&quot;</span>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(),
-                    <a href="#358">error_span</a>
+                    <span class="string">&quot;The loop variant might not hold on entry (is lower or equal to zero)&quot;</span>.to_string(),
+                    error_span
                 )
             }
-            (<span class="string">&quot;assert.failed:assertion.false&quot;</span>, <a href="#82">ErrorCtxt::LoopVariantNonDecreased</a>) =&gt; {
+            (<span class="string">&quot;assert.failed:assertion.false&quot;</span>, ErrorCtxt::LoopVariantNonDecreased) =&gt; {
                 PrustiError::verification(
-                    <span class="string">&quot;The loop variant might not have decreased&quot;</span>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(),
-                    <a href="#358">error_span</a>
+                    <span class="string">&quot;The loop variant might not have decreased&quot;</span>.to_string(),
+                    error_span
                 )
             }
-            (<span class="string">&quot;assert.failed:assertion.false&quot;</span>, <a href="#81">ErrorCtxt::LoopVariantAfterIteration</a>) =&gt; {
+            (<span class="string">&quot;assert.failed:assertion.false&quot;</span>, ErrorCtxt::LoopVariantAfterIteration) =&gt; {
                 PrustiError::verification(
-                    <span class="string">&quot;The loop variant might go below zero while the loop continues&quot;</span>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(),
-                    <a href="#358">error_span</a>
+                    <span class="string">&quot;The loop variant might go below zero while the loop continues&quot;</span>.to_string(),
+                    error_span
                 )
             }
 
-            (full_err_id, <a href="#106">ErrorCtxt::Unexpected</a>) =&gt; {
+            (full_err_id, ErrorCtxt::Unexpected) =&gt; {
                 PrustiError::internal(
-                    <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(
+                    <span class="macro">format!</span>(
                         <span class="string">&quot;unexpected verification error: [{}] {}&quot;</span>,
                         full_err_id, ver_error.message
                     ),
-                    <a href="#358">error_span</a>,
+                    error_span,
                 ).set_failing_assertion(
-                    <a href="#359">opt_cause_span</a>
+                    opt_cause_span
                 ).set_help(
                     <span class="string">&quot;This could be caused by too small assertion timeout. \
                     Try increasing it by setting the configuration parameter \
@@ -1455,18 +1451,18 @@
             },
 
             <span class="kw">_ </span>=&gt; {
-                <a class="macro" href="../../../../log/macro.debug.html">debug!</a>(
+                <span class="macro">debug!</span>(
                     <span class="string">&quot;Unhandled verification error: {:?}, context: {:?}&quot;</span>,
                     ver_error, error_ctxt
                 );
                 PrustiError::internal(
-                    <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(
+                    <span class="macro">format!</span>(
                         <span class="string">&quot;unhandled verification error: {} [{}] {:?}&quot;</span>,
                         ver_error.message, ver_error.full_id.as_str(), error_ctxt
                     ),
-                    <a href="#358">error_span</a>,
+                    error_span,
                 ).set_failing_assertion(
-                    <a href="#359">opt_cause_span</a>
+                    opt_cause_span
                 ).set_help(
                     <span class="string">&quot;This could be caused by too small assertion timeout. \
                     Try increasing it by setting the configuration parameter \
@@ -1477,4 +1473,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="prusti_viper" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="prusti_viper" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

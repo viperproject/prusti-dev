@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.21.2/src/runtime/scheduler/current_thread.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>current_thread.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../../tokio/index.html"><img class="rust-logo" src="../../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.23.0/src/runtime/scheduler/current_thread.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>current_thread.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../../tokio/index.html"><img class="rust-logo" src="../../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -612,406 +612,427 @@
 <a href="#612" id="612">612</a>
 <a href="#613" id="613">613</a>
 <a href="#614" id="614">614</a>
-</pre><pre class="rust"><code><span class="kw">use </span><a href="../../future/poll_fn.rs.html#18-20"><span class="kw">crate</span>::future::poll_fn</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/sync/atomic/struct.AtomicBool.html"><span class="kw">crate</span>::loom::sync::atomic::AtomicBool</a>;
-<span class="kw">use </span><span class="kw">crate</span>::loom::sync::{<a href="https://doc.rust-lang.org/nightly/alloc/sync/struct.Arc.html">Arc</a>, <a href="../../loom/std/mutex.rs.html#6">Mutex</a>};
-<span class="kw">use </span><span class="kw">crate</span>::park::{<a href="../../park/mod.rs.html#49">Park</a>, <a href="../../park/mod.rs.html#93">Unpark</a>};
-<span class="kw">use </span><a href="../context.rs.html#105"><span class="kw">crate</span>::runtime::context::EnterGuard</a>;
-<span class="kw">use </span><a href="../driver.rs.html#150"><span class="kw">crate</span>::runtime::driver::Driver</a>;
-<span class="kw">use </span><span class="kw">crate</span>::runtime::task::{<a class="self" href="../mod.rs.html#187">self</a>, <a href="../task/join.rs.html#154">JoinHandle</a>, <a href="../task/list.rs.html#56">OwnedTasks</a>, <a href="../task/mod.rs.html#249">Schedule</a>, <a href="../task/mod.rs.html#210">Task</a>};
-<span class="kw">use </span><span class="kw">crate</span>::runtime::{<a href="../config.rs.html#4">Config</a>, <a href="../handle.rs.html#23">HandleInner</a>};
-<span class="kw">use </span><span class="kw">crate</span>::runtime::{<a href="../metrics/mock.rs.html#7">MetricsBatch</a>, <a href="../metrics/mock.rs.html#3">SchedulerMetrics</a>, <a href="../metrics/mock.rs.html#5">WorkerMetrics</a>};
-<span class="kw">use </span><a href="../../sync/notify.rs.html#199"><span class="kw">crate</span>::sync::notify::Notify</a>;
-<span class="kw">use </span><a href="../../util/atomic_cell.rs.html#6"><span class="kw">crate</span>::util::atomic_cell::AtomicCell</a>;
-<span class="kw">use </span><span class="kw">crate</span>::util::{<a href="../../util/wake.rs.html#33">waker_ref</a>, <a href="../../util/wake.rs.html#9">Wake</a>, <a href="../../util/wake.rs.html#19">WakerRef</a>};
+<a href="#615" id="615">615</a>
+<a href="#616" id="616">616</a>
+<a href="#617" id="617">617</a>
+<a href="#618" id="618">618</a>
+<a href="#619" id="619">619</a>
+<a href="#620" id="620">620</a>
+<a href="#621" id="621">621</a>
+<a href="#622" id="622">622</a>
+<a href="#623" id="623">623</a>
+<a href="#624" id="624">624</a>
+<a href="#625" id="625">625</a>
+<a href="#626" id="626">626</a>
+<a href="#627" id="627">627</a>
+<a href="#628" id="628">628</a>
+<a href="#629" id="629">629</a>
+<a href="#630" id="630">630</a>
+<a href="#631" id="631">631</a>
+<a href="#632" id="632">632</a>
+<a href="#633" id="633">633</a>
+<a href="#634" id="634">634</a>
+</pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::future::poll_fn;
+<span class="kw">use </span><span class="kw">crate</span>::loom::sync::atomic::AtomicBool;
+<span class="kw">use </span><span class="kw">crate</span>::loom::sync::{Arc, Mutex};
+<span class="kw">use </span><span class="kw">crate</span>::runtime::driver::{<span class="self">self</span>, Driver};
+<span class="kw">use </span><span class="kw">crate</span>::runtime::task::{<span class="self">self</span>, JoinHandle, OwnedTasks, Schedule, Task};
+<span class="kw">use </span><span class="kw">crate</span>::runtime::{blocking, context, scheduler, Config};
+<span class="kw">use </span><span class="kw">crate</span>::runtime::{MetricsBatch, SchedulerMetrics, WorkerMetrics};
+<span class="kw">use </span><span class="kw">crate</span>::sync::notify::Notify;
+<span class="kw">use </span><span class="kw">crate</span>::util::atomic_cell::AtomicCell;
+<span class="kw">use </span><span class="kw">crate</span>::util::{waker_ref, RngSeedGenerator, Wake, WakerRef};
 
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/cell/struct.RefCell.html">std::cell::RefCell</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/collections/vec_deque/struct.VecDeque.html">std::collections::VecDeque</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">std::fmt</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">std::future::Future</a>;
+<span class="kw">use </span>std::cell::RefCell;
+<span class="kw">use </span>std::collections::VecDeque;
+<span class="kw">use </span>std::fmt;
+<span class="kw">use </span>std::future::Future;
 <span class="kw">use </span>std::sync::atomic::Ordering::{AcqRel, Release};
 <span class="kw">use </span>std::task::Poll::{Pending, Ready};
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">std::time::Duration</a>;
+<span class="kw">use </span>std::time::Duration;
 
 <span class="doccomment">/// Executes tasks on the current thread
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>CurrentThread {
     <span class="doccomment">/// Core scheduler data is acquired by a thread entering `block_on`.
-    </span>core: AtomicCell&lt;<a href="#43">Core</a>&gt;,
+    </span>core: AtomicCell&lt;Core&gt;,
 
     <span class="doccomment">/// Notifier for waking up other threads to steal the
     /// driver.
-    </span>notify: <a href="../../sync/notify.rs.html#199">Notify</a>,
+    </span>notify: Notify,
+}
 
-    <span class="doccomment">/// Sendable task spawner
-    </span>spawner: <a href="#67">Spawner</a>,
+<span class="doccomment">/// Handle to the current thread scheduler
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>Handle {
+    <span class="doccomment">/// Scheduler state shared across threads
+    </span>shared: Shared,
 
-    <span class="doccomment">/// This is usually None, but right before dropping the CurrentThread
-    /// scheduler, it is changed to `Some` with the context being the runtime&#39;s
-    /// own context. This ensures that any tasks dropped in the `CurrentThread`&#39;s
-    /// destructor run in that runtime&#39;s context.
-    </span>context_guard: <span class="prelude-ty">Option</span>&lt;<a href="../context.rs.html#105">EnterGuard</a>&gt;,
+    <span class="doccomment">/// Resource driver handles
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) driver: driver::Handle,
+
+    <span class="doccomment">/// Blocking pool spawner
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) blocking_spawner: blocking::Spawner,
+
+    <span class="doccomment">/// Current random number generator seed
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) seed_generator: RngSeedGenerator,
 }
 
 <span class="doccomment">/// Data required for executing the scheduler. The struct is passed around to
 /// a function that will perform the scheduling work and acts as a capability token.
 </span><span class="kw">struct </span>Core {
     <span class="doccomment">/// Scheduler run queue
-    </span>tasks: VecDeque&lt;task::Notified&lt;Arc&lt;<a href="#72">Shared</a>&gt;&gt;&gt;,
-
-    <span class="doccomment">/// Sendable task spawner
-    </span>spawner: <a href="#67">Spawner</a>,
+    </span>tasks: VecDeque&lt;task::Notified&lt;Arc&lt;Handle&gt;&gt;&gt;,
 
     <span class="doccomment">/// Current tick
-    </span>tick: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>,
+    </span>tick: u32,
 
     <span class="doccomment">/// Runtime driver
     ///
     /// The driver is removed before starting to park the thread
-    </span>driver: <span class="prelude-ty">Option</span>&lt;<a href="../driver.rs.html#150">Driver</a>&gt;,
+    </span>driver: <span class="prelude-ty">Option</span>&lt;Driver&gt;,
 
     <span class="doccomment">/// Metrics batch
-    </span>metrics: <a href="../metrics/mock.rs.html#7">MetricsBatch</a>,
+    </span>metrics: MetricsBatch,
 
     <span class="doccomment">/// True if a task panicked without being handled and the runtime is
     /// configured to shutdown on unhandled panic.
-    </span>unhandled_panic: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-}
-
-<span class="attr">#[derive(Clone)]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>Spawner {
-    shared: Arc&lt;<a href="#72">Shared</a>&gt;,
+    </span>unhandled_panic: bool,
 }
 
 <span class="doccomment">/// Scheduler state shared between threads.
 </span><span class="kw">struct </span>Shared {
     <span class="doccomment">/// Remote run queue. None if the `Runtime` has been dropped.
-    </span>queue: Mutex&lt;<span class="prelude-ty">Option</span>&lt;VecDeque&lt;task::Notified&lt;Arc&lt;<a href="#72">Shared</a>&gt;&gt;&gt;&gt;&gt;,
+    </span>queue: Mutex&lt;<span class="prelude-ty">Option</span>&lt;VecDeque&lt;task::Notified&lt;Arc&lt;Handle&gt;&gt;&gt;&gt;&gt;,
 
     <span class="doccomment">/// Collection of all active tasks spawned onto this executor.
-    </span>owned: OwnedTasks&lt;Arc&lt;<a href="#72">Shared</a>&gt;&gt;,
-
-    <span class="doccomment">/// Unpark the blocked thread.
-    </span>unpark: &lt;<a href="../driver.rs.html#150">Driver</a> <span class="kw">as </span>Park&gt;::Unpark,
+    </span>owned: OwnedTasks&lt;Arc&lt;Handle&gt;&gt;,
 
     <span class="doccomment">/// Indicates whether the blocked on thread was woken.
-    </span>woken: <a href="https://doc.rust-lang.org/nightly/core/sync/atomic/struct.AtomicBool.html">AtomicBool</a>,
-
-    <span class="doccomment">/// Handle to I/O driver, timer, blocking pool, ...
-    </span>handle_inner: <a href="../handle.rs.html#23">HandleInner</a>,
+    </span>woken: AtomicBool,
 
     <span class="doccomment">/// Scheduler configuration options
-    </span>config: <a href="../config.rs.html#4">Config</a>,
+    </span>config: Config,
 
     <span class="doccomment">/// Keeps track of various runtime metrics.
-    </span>scheduler_metrics: <a href="../metrics/mock.rs.html#3">SchedulerMetrics</a>,
+    </span>scheduler_metrics: SchedulerMetrics,
 
     <span class="doccomment">/// This scheduler only has one worker.
-    </span>worker_metrics: <a href="../metrics/mock.rs.html#5">WorkerMetrics</a>,
+    </span>worker_metrics: WorkerMetrics,
 }
 
 <span class="doccomment">/// Thread-local context.
 </span><span class="kw">struct </span>Context {
-    <span class="doccomment">/// Handle to the spawner
-    </span>spawner: <a href="#67">Spawner</a>,
+    <span class="doccomment">/// Scheduler handle
+    </span>handle: Arc&lt;Handle&gt;,
 
     <span class="doccomment">/// Scheduler core, enabling the holder of `Context` to execute the
     /// scheduler.
-    </span>core: RefCell&lt;<span class="prelude-ty">Option</span>&lt;Box&lt;<a href="#43">Core</a>&gt;&gt;&gt;,
+    </span>core: RefCell&lt;<span class="prelude-ty">Option</span>&lt;Box&lt;Core&gt;&gt;&gt;,
 }
 
 <span class="doccomment">/// Initial queue capacity.
-</span><span class="kw">const </span>INITIAL_CAPACITY: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> = <span class="number">64</span>;
+</span><span class="kw">const </span>INITIAL_CAPACITY: usize = <span class="number">64</span>;
 
 <span class="comment">// Tracks the current CurrentThread.
-</span><a class="macro" href="../../macros/scoped_tls.rs.html#7-21">scoped_thread_local!</a>(<span class="kw">static </span>CURRENT: Context);
+</span><span class="macro">scoped_thread_local!</span>(<span class="kw">static </span>CURRENT: Context);
 
-<span class="kw">impl </span><a href="#23">CurrentThread</a> {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(driver: <a href="../driver.rs.html#150">Driver</a>, handle_inner: <a href="../handle.rs.html#23">HandleInner</a>, config: <a href="../config.rs.html#4">Config</a>) -&gt; <a href="#23">CurrentThread</a> {
-        <span class="kw">let </span>unpark = <a href="#115">driver</a>.<a href="../../park/mod.rs.html#57">unpark</a>();
-
-        <span class="kw">let </span>spawner = <a href="#67">Spawner</a> {
-            shared: Arc::new(<a href="#72">Shared</a> {
-                queue: Mutex::new(<span class="prelude-val">Some</span>(VecDeque::with_capacity(<a href="#109">INITIAL_CAPACITY</a>))),
+<span class="kw">impl </span>CurrentThread {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(
+        driver: Driver,
+        driver_handle: driver::Handle,
+        blocking_spawner: blocking::Spawner,
+        seed_generator: RngSeedGenerator,
+        config: Config,
+    ) -&gt; (CurrentThread, Arc&lt;Handle&gt;) {
+        <span class="kw">let </span>handle = Arc::new(Handle {
+            shared: Shared {
+                queue: Mutex::new(<span class="prelude-val">Some</span>(VecDeque::with_capacity(INITIAL_CAPACITY))),
                 owned: OwnedTasks::new(),
-                <a href="#116">unpark</a>,
                 woken: AtomicBool::new(<span class="bool-val">false</span>),
-                <a href="#115">handle_inner</a>,
-                <a href="#115">config</a>,
+                config,
                 scheduler_metrics: SchedulerMetrics::new(),
                 worker_metrics: WorkerMetrics::new(),
-            }),
-        };
+            },
+            driver: driver_handle,
+            blocking_spawner,
+            seed_generator,
+        });
 
-        <span class="kw">let </span>core = AtomicCell::new(<span class="prelude-val">Some</span>(Box::new(<a href="#43">Core</a> {
-            tasks: VecDeque::with_capacity(<a href="#109">INITIAL_CAPACITY</a>),
-            spawner: <a href="#118">spawner</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+        <span class="kw">let </span>core = AtomicCell::new(<span class="prelude-val">Some</span>(Box::new(Core {
+            tasks: VecDeque::with_capacity(INITIAL_CAPACITY),
             tick: <span class="number">0</span>,
-            driver: <span class="prelude-val">Some</span>(<a href="#115">driver</a>),
+            driver: <span class="prelude-val">Some</span>(driver),
             metrics: MetricsBatch::new(),
             unhandled_panic: <span class="bool-val">false</span>,
         })));
 
-        <a href="#23">CurrentThread</a> {
-            <a href="#131">core</a>,
+        <span class="kw">let </span>scheduler = CurrentThread {
+            core,
             notify: Notify::new(),
-            <a href="#118">spawner</a>,
-            context_guard: <span class="prelude-val">None</span>,
-        }
-    }
+        };
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>spawner(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="#67">Spawner</a> {
-        <span class="kw-2">&amp;</span><a class="self" href="#148">self</a>.spawner
+        (scheduler, handle)
     }
 
     <span class="attr">#[track_caller]
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>block_on&lt;F: <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, future: F) -&gt; F::Output {
-        <a class="macro" href="../../macros/pin.rs.html#125-144">pin!</a>(future);
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>block_on&lt;F: Future&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, handle: <span class="kw-2">&amp;</span>scheduler::Handle, future: F) -&gt; F::Output {
+        <span class="macro">pin!</span>(future);
+
+        <span class="kw">let </span><span class="kw-2">mut </span>enter = <span class="kw">crate</span>::runtime::context::enter_runtime(handle, <span class="bool-val">false</span>);
+        <span class="kw">let </span>handle = handle.as_current_thread();
 
         <span class="comment">// Attempt to steal the scheduler core and block_on the future if we can
         // there, otherwise, lets select on a notification that the core is
         // available or the future is complete.
         </span><span class="kw">loop </span>{
-            <span class="kw">if let </span><span class="prelude-val">Some</span>(core) = <a class="self" href="#153">self</a>.<a href="#188">take_core</a>() {
-                <span class="kw">return </span><a href="#160">core</a>.<a href="#514">block_on</a>(<a href="#154">future</a>);
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(core) = <span class="self">self</span>.take_core(handle) {
+                <span class="kw">return </span>core.block_on(future);
             } <span class="kw">else </span>{
-                <span class="kw">let </span><span class="kw-2">mut </span>enter = <a href="../enter.rs.html#35"><span class="kw">crate</span>::runtime::enter</a>(<span class="bool-val">false</span>);
+                <span class="kw">let </span>notified = <span class="self">self</span>.notify.notified();
+                <span class="macro">pin!</span>(notified);
 
-                <span class="kw">let </span>notified = <a class="self" href="#153">self</a>.notify.<a href="../../sync/notify.rs.html#383">notified</a>();
-                <a class="macro" href="../../macros/pin.rs.html#125-144">pin!</a>(notified);
-
-                <span class="kw">if let </span><span class="prelude-val">Some</span>(out) = <a href="#163">enter</a>
-                    .<a href="../enter.rs.html#145-147">block_on</a>(<a href="../../future/poll_fn.rs.html#18-20">poll_fn</a>(|cx| {
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(out) = enter
+                    .blocking
+                    .block_on(poll_fn(|cx| {
                         <span class="kw">if </span>notified.as_mut().poll(cx).is_ready() {
                             <span class="kw">return </span>Ready(<span class="prelude-val">None</span>);
                         }
 
-                        <span class="kw">if let </span>Ready(out) = <a href="#154">future</a>.as_mut().<a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">poll</a>(<a href="#169">cx</a>) {
-                            <span class="kw">return </span>Ready(<span class="prelude-val">Some</span>(<a href="#174">out</a>));
+                        <span class="kw">if let </span>Ready(out) = future.as_mut().poll(cx) {
+                            <span class="kw">return </span>Ready(<span class="prelude-val">Some</span>(out));
                         }
 
                         Pending
                     }))
                     .expect(<span class="string">&quot;Failed to `Enter::block_on`&quot;</span>)
                 {
-                    <span class="kw">return </span><a href="#168">out</a>;
+                    <span class="kw">return </span>out;
                 }
             }
         }
     }
 
-    <span class="kw">fn </span>take_core(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;CoreGuard&lt;<span class="lifetime">&#39;_</span>&gt;&gt; {
+    <span class="kw">fn </span>take_core(<span class="kw-2">&amp;</span><span class="self">self</span>, handle: <span class="kw-2">&amp;</span>Arc&lt;Handle&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;CoreGuard&lt;<span class="lifetime">&#39;_</span>&gt;&gt; {
         <span class="kw">let </span>core = <span class="self">self</span>.core.take()<span class="question-mark">?</span>;
 
-        <span class="prelude-val">Some</span>(<a href="#507">CoreGuard</a> {
-            context: <a href="#99">Context</a> {
-                spawner: <a class="self" href="#188">self</a>.spawner.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
-                core: RefCell::new(<span class="prelude-val">Some</span>(<a href="#189">core</a>)),
+        <span class="prelude-val">Some</span>(CoreGuard {
+            context: Context {
+                handle: handle.clone(),
+                core: RefCell::new(<span class="prelude-val">Some</span>(core)),
             },
-            scheduler: <a class="self" href="#188">self</a>,
+            scheduler: <span class="self">self</span>,
         })
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_context_guard(<span class="kw-2">&amp;mut </span><span class="self">self</span>, guard: <a href="../context.rs.html#105">EnterGuard</a>) {
-        <a class="self" href="#200">self</a>.context_guard = <span class="prelude-val">Some</span>(<a href="#200">guard</a>);
-    }
-}
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>shutdown(<span class="kw-2">&amp;mut </span><span class="self">self</span>, handle: <span class="kw-2">&amp;</span>scheduler::Handle) {
+        <span class="kw">let </span>handle = handle.as_current_thread();
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span><a href="#23">CurrentThread</a> {
-    <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="comment">// Avoid a double panic if we are currently panicking and
         // the lock may be poisoned.
 
-        </span><span class="kw">let </span>core = <span class="kw">match </span><a class="self" href="#206">self</a>.<a href="#188">take_core</a>() {
-            <span class="prelude-val">Some</span>(core) =&gt; <a href="#211">core</a>,
-            <span class="prelude-val">None </span><span class="kw">if </span><a href="https://doc.rust-lang.org/nightly/std/thread/fn.panicking.html">std::thread::panicking</a>() =&gt; <span class="kw">return</span>,
-            <span class="prelude-val">None </span>=&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(<span class="string">&quot;Oh no! We never placed the Core back, this is a bug!&quot;</span>),
+        </span><span class="kw">let </span>core = <span class="kw">match </span><span class="self">self</span>.take_core(handle) {
+            <span class="prelude-val">Some</span>(core) =&gt; core,
+            <span class="prelude-val">None </span><span class="kw">if </span>std::thread::panicking() =&gt; <span class="kw">return</span>,
+            <span class="prelude-val">None </span>=&gt; <span class="macro">panic!</span>(<span class="string">&quot;Oh no! We never placed the Core back, this is a bug!&quot;</span>),
         };
 
-        <a href="#210">core</a>.<a href="#587-589">enter</a>(|<span class="kw-2">mut </span>core, context| {
+        core.enter(|<span class="kw-2">mut </span>core, _context| {
             <span class="comment">// Drain the OwnedTasks collection. This call also closes the
             // collection, ensuring that no tasks are ever pushed after this
             // call returns.
-            </span><a href="#216">context</a>.spawner.shared.owned.<a href="../task/list.rs.html#130-132">close_and_shutdown_all</a>();
+            </span>handle.shared.owned.close_and_shutdown_all();
 
             <span class="comment">// Drain local queue
             // We already shut down every task, so we just need to drop the task.
-            </span><span class="kw">while let </span><span class="prelude-val">Some</span>(task) = core.pop_task() {
+            </span><span class="kw">while let </span><span class="prelude-val">Some</span>(task) = core.pop_task(handle) {
                 drop(task);
             }
 
             <span class="comment">// Drain remote queue and set it to None
-            </span><span class="kw">let </span>remote_queue = <a href="#216">core</a>.spawner.shared.queue.<a href="../../loom/std/mutex.rs.html#16">lock</a>().take();
+            </span><span class="kw">let </span>remote_queue = handle.shared.queue.lock().take();
 
             <span class="comment">// Using `Option::take` to replace the shared queue with `None`.
             // We already shut down every task, so we just need to drop the task.
-            </span><span class="kw">if let </span><span class="prelude-val">Some</span>(remote_queue) = <a href="#229">remote_queue</a> {
+            </span><span class="kw">if let </span><span class="prelude-val">Some</span>(remote_queue) = remote_queue {
                 <span class="kw">for </span>task <span class="kw">in </span>remote_queue {
                     drop(task);
                 }
             }
 
-            <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(context.spawner.shared.owned.is_empty());
+            <span class="macro">assert!</span>(handle.shared.owned.is_empty());
 
             <span class="comment">// Submit metrics
-            </span><a href="#216">core</a>.metrics.<a href="../metrics/mock.rs.html#31">submit</a>(<span class="kw-2">&amp;</span><a href="#216">core</a>.spawner.shared.worker_metrics);
+            </span>core.metrics.submit(<span class="kw-2">&amp;</span>handle.shared.worker_metrics);
 
-            (<a href="#216">core</a>, ())
+            <span class="comment">// Shutdown the resource drivers
+            </span><span class="kw">if let </span><span class="prelude-val">Some</span>(driver) = core.driver.as_mut() {
+                driver.shutdown(<span class="kw-2">&amp;</span>handle.driver);
+            }
+
+            (core, ())
         });
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="#23">CurrentThread</a> {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, fmt: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a href="#250">fmt</a>.debug_struct(<span class="string">&quot;CurrentThread&quot;</span>).finish()
+<span class="kw">impl </span>fmt::Debug <span class="kw">for </span>CurrentThread {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, fmt: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        fmt.debug_struct(<span class="string">&quot;CurrentThread&quot;</span>).finish()
     }
 }
 
 <span class="comment">// ===== impl Core =====
 
-</span><span class="kw">impl </span><a href="#43">Core</a> {
-    <span class="kw">fn </span>pop_task(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;task::Notified&lt;Arc&lt;<a href="#72">Shared</a>&gt;&gt;&gt; {
-        <span class="kw">let </span>ret = <a class="self" href="#258">self</a>.tasks.pop_front();
-        <a class="self" href="#258">self</a>.spawner
+</span><span class="kw">impl </span>Core {
+    <span class="kw">fn </span>pop_task(<span class="kw-2">&amp;mut </span><span class="self">self</span>, handle: <span class="kw-2">&amp;</span>Handle) -&gt; <span class="prelude-ty">Option</span>&lt;task::Notified&lt;Arc&lt;Handle&gt;&gt;&gt; {
+        <span class="kw">let </span>ret = <span class="self">self</span>.tasks.pop_front();
+        handle
             .shared
             .worker_metrics
-            .<a href="../metrics/mock.rs.html#23">set_queue_depth</a>(<a class="self" href="#258">self</a>.tasks.len());
-        <a href="#259">ret</a>
+            .set_queue_depth(<span class="self">self</span>.tasks.len());
+        ret
     }
 
-    <span class="kw">fn </span>push_task(<span class="kw-2">&amp;mut </span><span class="self">self</span>, task: task::Notified&lt;Arc&lt;<a href="#72">Shared</a>&gt;&gt;) {
-        <a class="self" href="#267">self</a>.tasks.push_back(<a href="#267">task</a>);
-        <a class="self" href="#267">self</a>.metrics.<a href="../metrics/mock.rs.html#35">inc_local_schedule_count</a>();
-        <a class="self" href="#267">self</a>.spawner
+    <span class="kw">fn </span>push_task(<span class="kw-2">&amp;mut </span><span class="self">self</span>, handle: <span class="kw-2">&amp;</span>Handle, task: task::Notified&lt;Arc&lt;Handle&gt;&gt;) {
+        <span class="self">self</span>.tasks.push_back(task);
+        <span class="self">self</span>.metrics.inc_local_schedule_count();
+        handle
             .shared
             .worker_metrics
-            .<a href="../metrics/mock.rs.html#23">set_queue_depth</a>(<a class="self" href="#267">self</a>.tasks.len());
+            .set_queue_depth(<span class="self">self</span>.tasks.len());
     }
+}
+
+<span class="kw">fn </span>did_defer_tasks() -&gt; bool {
+    context::with_defer(|deferred| !deferred.is_empty()).unwrap()
+}
+
+<span class="kw">fn </span>wake_deferred_tasks() {
+    context::with_defer(|deferred| deferred.wake());
 }
 
 <span class="comment">// ===== impl Context =====
 
-</span><span class="kw">impl </span><a href="#99">Context</a> {
+</span><span class="kw">impl </span>Context {
     <span class="doccomment">/// Execute the closure with the given scheduler core stored in the
     /// thread-local context.
-    </span><span class="kw">fn </span>run_task&lt;R&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw-2">mut </span>core: Box&lt;<a href="#43">Core</a>&gt;, f: <span class="kw">impl </span>FnOnce() -&gt; R) -&gt; (Box&lt;<a href="#43">Core</a>&gt;, R) {
-        <a href="#282">core</a>.metrics.<a href="../metrics/mock.rs.html#34">incr_poll_count</a>();
-        <a class="self" href="#282">self</a>.<a href="#342">enter</a>(<a href="#282">core</a>, || <a href="../../coop.rs.html#71"><span class="kw">crate</span>::coop::budget</a>(<a href="#282">f</a>))
+    </span><span class="kw">fn </span>run_task&lt;R&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw-2">mut </span>core: Box&lt;Core&gt;, f: <span class="kw">impl </span>FnOnce() -&gt; R) -&gt; (Box&lt;Core&gt;, R) {
+        core.metrics.incr_poll_count();
+        <span class="self">self</span>.enter(core, || <span class="kw">crate</span>::runtime::coop::budget(f))
     }
 
     <span class="doccomment">/// Blocks the current thread until an event is received by the driver,
     /// including I/O events, timer events, ...
-    </span><span class="kw">fn </span>park(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw-2">mut </span>core: Box&lt;<a href="#43">Core</a>&gt;) -&gt; Box&lt;<a href="#43">Core</a>&gt; {
-        <span class="kw">let </span><span class="kw-2">mut </span>driver = <a href="#289">core</a>.driver.take().expect(<span class="string">&quot;driver missing&quot;</span>);
+    </span><span class="kw">fn </span>park(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw-2">mut </span>core: Box&lt;Core&gt;, handle: <span class="kw-2">&amp;</span>Handle) -&gt; Box&lt;Core&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>driver = core.driver.take().expect(<span class="string">&quot;driver missing&quot;</span>);
 
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(f) = <span class="kw-2">&amp;</span><a class="self" href="#289">self</a>.spawner.shared.config.before_park {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(f) = <span class="kw-2">&amp;</span>handle.shared.config.before_park {
             <span class="comment">// Incorrect lint, the closures are actually different types so `f`
             // cannot be passed as an argument to `enter`.
             </span><span class="attr">#[allow(clippy::redundant_closure)]
-            </span><span class="kw">let </span>(c, <span class="kw">_</span>) = <a class="self" href="#289">self</a>.<a href="#342">enter</a>(<a href="#289">core</a>, || <a href="#292">f</a>());
-            <a href="#289">core</a> = <a href="#296">c</a>;
+            </span><span class="kw">let </span>(c, <span class="kw">_</span>) = <span class="self">self</span>.enter(core, || f());
+            core = c;
         }
 
         <span class="comment">// This check will fail if `before_park` spawns a task for us to run
         // instead of parking the thread
         </span><span class="kw">if </span>core.tasks.is_empty() {
             <span class="comment">// Park until the thread is signaled
-            </span><a href="#289">core</a>.metrics.<a href="../metrics/mock.rs.html#32">about_to_park</a>();
-            <a href="#289">core</a>.metrics.<a href="../metrics/mock.rs.html#31">submit</a>(<span class="kw-2">&amp;</span><a href="#289">core</a>.spawner.shared.worker_metrics);
+            </span>core.metrics.about_to_park();
+            core.metrics.submit(<span class="kw-2">&amp;</span>handle.shared.worker_metrics);
 
-            <span class="kw">let </span>(c, <span class="kw">_</span>) = <a class="self" href="#289">self</a>.<a href="#342">enter</a>(<a href="#289">core</a>, || {
-                <a href="#290">driver</a>.<a href="../../park/mod.rs.html#70">park</a>().expect(<span class="string">&quot;failed to park&quot;</span>);
+            <span class="kw">let </span>(c, <span class="kw">_</span>) = <span class="self">self</span>.enter(core, || {
+                driver.park(<span class="kw-2">&amp;</span>handle.driver);
+                wake_deferred_tasks();
             });
 
-            <a href="#289">core</a> = <a href="#307">c</a>;
-            <a href="#289">core</a>.metrics.<a href="../metrics/mock.rs.html#33">returned_from_park</a>();
+            core = c;
+            core.metrics.returned_from_park();
         }
 
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(f) = <span class="kw-2">&amp;</span><a class="self" href="#289">self</a>.spawner.shared.config.after_unpark {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(f) = <span class="kw-2">&amp;</span>handle.shared.config.after_unpark {
             <span class="comment">// Incorrect lint, the closures are actually different types so `f`
             // cannot be passed as an argument to `enter`.
             </span><span class="attr">#[allow(clippy::redundant_closure)]
-            </span><span class="kw">let </span>(c, <span class="kw">_</span>) = <a class="self" href="#289">self</a>.<a href="#342">enter</a>(<a href="#289">core</a>, || <a href="#315">f</a>());
-            <a href="#289">core</a> = <a href="#319">c</a>;
+            </span><span class="kw">let </span>(c, <span class="kw">_</span>) = <span class="self">self</span>.enter(core, || f());
+            core = c;
         }
 
-        <a href="#289">core</a>.driver = <span class="prelude-val">Some</span>(<a href="#290">driver</a>);
-        <a href="#289">core</a>
+        core.driver = <span class="prelude-val">Some</span>(driver);
+        core
     }
 
     <span class="doccomment">/// Checks the driver for new events without blocking the thread.
-    </span><span class="kw">fn </span>park_yield(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw-2">mut </span>core: Box&lt;<a href="#43">Core</a>&gt;) -&gt; Box&lt;<a href="#43">Core</a>&gt; {
-        <span class="kw">let </span><span class="kw-2">mut </span>driver = <a href="#328">core</a>.driver.take().expect(<span class="string">&quot;driver missing&quot;</span>);
+    </span><span class="kw">fn </span>park_yield(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw-2">mut </span>core: Box&lt;Core&gt;, handle: <span class="kw-2">&amp;</span>Handle) -&gt; Box&lt;Core&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>driver = core.driver.take().expect(<span class="string">&quot;driver missing&quot;</span>);
 
-        <a href="#328">core</a>.metrics.<a href="../metrics/mock.rs.html#31">submit</a>(<span class="kw-2">&amp;</span><a href="#328">core</a>.spawner.shared.worker_metrics);
-        <span class="kw">let </span>(<span class="kw-2">mut </span>core, <span class="kw">_</span>) = <a class="self" href="#328">self</a>.<a href="#342">enter</a>(<a href="#328">core</a>, || {
-            <a href="#329">driver</a>
-                .<a href="../../park/mod.rs.html#86">park_timeout</a>(Duration::from_millis(<span class="number">0</span>))
-                .expect(<span class="string">&quot;failed to park&quot;</span>);
+        core.metrics.submit(<span class="kw-2">&amp;</span>handle.shared.worker_metrics);
+        <span class="kw">let </span>(<span class="kw-2">mut </span>core, <span class="kw">_</span>) = <span class="self">self</span>.enter(core, || {
+            driver.park_timeout(<span class="kw-2">&amp;</span>handle.driver, Duration::from_millis(<span class="number">0</span>));
+            wake_deferred_tasks();
         });
 
-        <a href="#332">core</a>.driver = <span class="prelude-val">Some</span>(<a href="#329">driver</a>);
-        <a href="#332">core</a>
+        core.driver = <span class="prelude-val">Some</span>(driver);
+        core
     }
 
-    <span class="kw">fn </span>enter&lt;R&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, core: Box&lt;<a href="#43">Core</a>&gt;, f: <span class="kw">impl </span>FnOnce() -&gt; R) -&gt; (Box&lt;<a href="#43">Core</a>&gt;, R) {
+    <span class="kw">fn </span>enter&lt;R&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, core: Box&lt;Core&gt;, f: <span class="kw">impl </span>FnOnce() -&gt; R) -&gt; (Box&lt;Core&gt;, R) {
         <span class="comment">// Store the scheduler core in the thread-local context
         //
         // A drop-guard is employed at a higher level.
-        </span><span class="kw-2">*</span><a class="self" href="#342">self</a>.core.borrow_mut() = <span class="prelude-val">Some</span>(<a href="#342">core</a>);
+        </span><span class="kw-2">*</span><span class="self">self</span>.core.borrow_mut() = <span class="prelude-val">Some</span>(core);
 
         <span class="comment">// Execute the closure while tracking the execution budget
-        </span><span class="kw">let </span>ret = <a href="#342">f</a>();
+        </span><span class="kw">let </span>ret = f();
 
         <span class="comment">// Take the scheduler core back
-        </span><span class="kw">let </span>core = <a class="self" href="#342">self</a>.core.borrow_mut().take().expect(<span class="string">&quot;core missing&quot;</span>);
-        (<a href="#352">core</a>, <a href="#349">ret</a>)
+        </span><span class="kw">let </span>core = <span class="self">self</span>.core.borrow_mut().take().expect(<span class="string">&quot;core missing&quot;</span>);
+        (core, ret)
     }
 }
 
-<span class="comment">// ===== impl Spawner =====
+<span class="comment">// ===== impl Handle =====
 
-</span><span class="kw">impl </span><a href="#67">Spawner</a> {
+</span><span class="kw">impl </span>Handle {
     <span class="doccomment">/// Spawns a future onto the `CurrentThread` scheduler
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>spawn&lt;F&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, future: F, id: <a href="../task/mod.rs.html#206"><span class="kw">crate</span>::runtime::task::Id</a>) -&gt; JoinHandle&lt;F::Output&gt;
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>spawn&lt;F&gt;(
+        me: <span class="kw-2">&amp;</span>Arc&lt;<span class="self">Self</span>&gt;,
+        future: F,
+        id: <span class="kw">crate</span>::runtime::task::Id,
+    ) -&gt; JoinHandle&lt;F::Output&gt;
     <span class="kw">where
-        </span>F: <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html"><span class="kw">crate</span>::future::Future</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <span class="lifetime">&#39;static</span>,
-        F::Output: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <span class="lifetime">&#39;static</span>,
+        </span>F: <span class="kw">crate</span>::future::Future + Send + <span class="lifetime">&#39;static</span>,
+        F::Output: Send + <span class="lifetime">&#39;static</span>,
     {
-        <span class="kw">let </span>(handle, notified) = <a class="self" href="#361">self</a>.shared.owned.<a href="../task/list.rs.html#83-92">bind</a>(<a href="#361">future</a>, <a class="self" href="#361">self</a>.shared.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), <a href="#361">id</a>);
+        <span class="kw">let </span>(handle, notified) = me.shared.owned.bind(future, me.clone(), id);
 
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(notified) = <a href="#366">notified</a> {
-            <a class="self" href="#361">self</a>.shared.<a href="../task/mod.rs.html#258">schedule</a>(<a href="#368">notified</a>);
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(notified) = notified {
+            me.schedule(notified);
         }
 
-        <a href="#366">handle</a>
+        handle
     }
 
-    <span class="kw">fn </span>pop(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;task::Notified&lt;Arc&lt;<a href="#72">Shared</a>&gt;&gt;&gt; {
-        <span class="kw">match </span><a class="self" href="#375">self</a>.shared.queue.<a href="../../loom/std/mutex.rs.html#16">lock</a>().as_mut() {
-            <span class="prelude-val">Some</span>(queue) =&gt; <a href="#377">queue</a>.pop_front(),
+    <span class="kw">fn </span>pop(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;task::Notified&lt;Arc&lt;Handle&gt;&gt;&gt; {
+        <span class="kw">match </span><span class="self">self</span>.shared.queue.lock().as_mut() {
+            <span class="prelude-val">Some</span>(queue) =&gt; queue.pop_front(),
             <span class="prelude-val">None </span>=&gt; <span class="prelude-val">None</span>,
         }
     }
 
-    <span class="kw">fn </span>waker_ref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; WakerRef&lt;<span class="lifetime">&#39;_</span>&gt; {
+    <span class="kw">fn </span>waker_ref(me: <span class="kw-2">&amp;</span>Arc&lt;<span class="self">Self</span>&gt;) -&gt; WakerRef&lt;<span class="lifetime">&#39;_</span>&gt; {
         <span class="comment">// Set woken to true when enter block_on, ensure outer future
         // be polled for the first time when enter loop
-        </span><a class="self" href="#382">self</a>.shared.woken.store(<span class="bool-val">true</span>, Release);
-        <a href="../../util/wake.rs.html#33">waker_ref</a>(<span class="kw-2">&amp;</span><a class="self" href="#382">self</a>.shared)
+        </span>me.shared.woken.store(<span class="bool-val">true</span>, Release);
+        waker_ref(me)
     }
 
     <span class="comment">// reset woken to false and return original value
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>reset_woken(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#390">self</a>.shared.woken.swap(<span class="bool-val">false</span>, AcqRel)
-    }
-
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>as_handle_inner(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="../handle.rs.html#23">HandleInner</a> {
-        <span class="kw-2">&amp;</span><a class="self" href="#394">self</a>.shared.handle_inner
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>reset_woken(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.shared.woken.swap(<span class="bool-val">false</span>, AcqRel)
     }
 }
 
 <span class="macro">cfg_metrics! </span>{
-    <span class="kw">impl </span>Spawner {
+    <span class="kw">impl </span>Handle {
         <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>scheduler_metrics(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>SchedulerMetrics {
             <span class="kw-2">&amp;</span><span class="self">self</span>.shared.scheduler_metrics
         }
@@ -1019,7 +1040,9 @@
         <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>injection_queue_depth(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
             <span class="comment">// TODO: avoid having to lock. The multi-threaded injection queue
             // could probably be used here.
-            </span><span class="self">self</span>.shared.queue.lock()
+            </span><span class="self">self</span>.shared
+                .queue
+                .lock()
                 .as_ref()
                 .map(|queue| queue.len())
                 .unwrap_or(<span class="number">0</span>)
@@ -1029,44 +1052,56 @@
             <span class="macro">assert_eq!</span>(<span class="number">0</span>, worker);
             <span class="kw-2">&amp;</span><span class="self">self</span>.shared.worker_metrics
         }
+
+        <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>num_blocking_threads(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+            <span class="self">self</span>.blocking_spawner.num_threads()
+        }
+
+        <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>num_idle_blocking_threads(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+            <span class="self">self</span>.blocking_spawner.num_idle_threads()
+        }
+
+        <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>blocking_queue_depth(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+            <span class="self">self</span>.blocking_spawner.queue_depth()
+        }
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="#67">Spawner</a> {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, fmt: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a href="#422">fmt</a>.debug_struct(<span class="string">&quot;Spawner&quot;</span>).finish()
+<span class="kw">impl </span>fmt::Debug <span class="kw">for </span>Handle {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, fmt: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        fmt.debug_struct(<span class="string">&quot;current_thread::Handle { ... }&quot;</span>).finish()
     }
 }
 
 <span class="comment">// ===== impl Shared =====
 
-</span><span class="kw">impl </span><a href="../task/mod.rs.html#249">Schedule</a> <span class="kw">for </span>Arc&lt;<a href="#72">Shared</a>&gt; {
+</span><span class="kw">impl </span>Schedule <span class="kw">for </span>Arc&lt;Handle&gt; {
     <span class="kw">fn </span>release(<span class="kw-2">&amp;</span><span class="self">self</span>, task: <span class="kw-2">&amp;</span>Task&lt;<span class="self">Self</span>&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;Task&lt;<span class="self">Self</span>&gt;&gt; {
-        <a class="self" href="#430">self</a>.owned.<a href="../task/list.rs.html#156">remove</a>(<a href="#430">task</a>)
+        <span class="self">self</span>.shared.owned.remove(task)
     }
 
     <span class="kw">fn </span>schedule(<span class="kw-2">&amp;</span><span class="self">self</span>, task: task::Notified&lt;<span class="self">Self</span>&gt;) {
-        <a href="#112">CURRENT</a>.<a href="../../macros/scoped_tls.rs.html#65-67">with</a>(|maybe_cx| <span class="kw">match </span><a href="#435">maybe_cx</a> {
-            <span class="prelude-val">Some</span>(cx) <span class="kw">if </span>Arc::ptr_eq(<a class="self" href="#434">self</a>, <span class="kw-2">&amp;</span><a href="#436">cx</a>.spawner.shared) =&gt; {
-                <span class="kw">let </span><span class="kw-2">mut </span>core = <a href="#436">cx</a>.core.borrow_mut();
+        CURRENT.with(|maybe_cx| <span class="kw">match </span>maybe_cx {
+            <span class="prelude-val">Some</span>(cx) <span class="kw">if </span>Arc::ptr_eq(<span class="self">self</span>, <span class="kw-2">&amp;</span>cx.handle) =&gt; {
+                <span class="kw">let </span><span class="kw-2">mut </span>core = cx.core.borrow_mut();
 
                 <span class="comment">// If `None`, the runtime is shutting down, so there is no need
                 // to schedule the task.
-                </span><span class="kw">if let </span><span class="prelude-val">Some</span>(core) = <a href="#437">core</a>.as_mut() {
-                    <a href="#441">core</a>.<a href="#267">push_task</a>(<a href="#434">task</a>);
+                </span><span class="kw">if let </span><span class="prelude-val">Some</span>(core) = core.as_mut() {
+                    core.push_task(<span class="self">self</span>, task);
                 }
             }
             <span class="kw">_ </span>=&gt; {
                 <span class="comment">// Track that a task was scheduled from **outside** of the runtime.
-                </span><a class="self" href="#434">self</a>.scheduler_metrics.<a href="../metrics/mock.rs.html#15">inc_remote_schedule_count</a>();
+                </span><span class="self">self</span>.shared.scheduler_metrics.inc_remote_schedule_count();
 
                 <span class="comment">// If the queue is None, then the runtime has shut down. We
                 // don&#39;t need to do anything with the notification in that case.
-                </span><span class="kw">let </span><span class="kw-2">mut </span>guard = <a class="self" href="#434">self</a>.queue.<a href="../../loom/std/mutex.rs.html#16">lock</a>();
-                <span class="kw">if let </span><span class="prelude-val">Some</span>(queue) = <a href="#451">guard</a>.as_mut() {
-                    <a href="#452">queue</a>.push_back(<a href="#434">task</a>);
-                    <a href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>(<a href="#451">guard</a>);
-                    <a class="self" href="#434">self</a>.unpark.<a href="../../park/mod.rs.html#104">unpark</a>();
+                </span><span class="kw">let </span><span class="kw-2">mut </span>guard = <span class="self">self</span>.shared.queue.lock();
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(queue) = guard.as_mut() {
+                    queue.push_back(task);
+                    drop(guard);
+                    <span class="self">self</span>.driver.unpark();
                 }
             }
         });
@@ -1076,7 +1111,7 @@
         <span class="kw">fn </span>unhandled_panic(<span class="kw-2">&amp;</span><span class="self">self</span>) {
             <span class="kw">use </span><span class="kw">crate</span>::runtime::UnhandledPanic;
 
-            <span class="kw">match </span><span class="self">self</span>.config.unhandled_panic {
+            <span class="kw">match </span><span class="self">self</span>.shared.config.unhandled_panic {
                 UnhandledPanic::Ignore =&gt; {
                     <span class="comment">// Do nothing
                 </span>}
@@ -1085,13 +1120,13 @@
                     // `CURRENT` should match with `&amp;self`, i.e. there is no
                     // opportunity for a nested scheduler to be called.
                     </span>CURRENT.with(|maybe_cx| <span class="kw">match </span>maybe_cx {
-                        <span class="prelude-val">Some</span>(cx) <span class="kw">if </span>Arc::ptr_eq(<span class="self">self</span>, <span class="kw-2">&amp;</span>cx.spawner.shared) =&gt; {
+                        <span class="prelude-val">Some</span>(cx) <span class="kw">if </span>Arc::ptr_eq(<span class="self">self</span>, <span class="kw-2">&amp;</span>cx.handle) =&gt; {
                             <span class="kw">let </span><span class="kw-2">mut </span>core = cx.core.borrow_mut();
 
                             <span class="comment">// If `None`, the runtime is shutting down, so there is no need to signal shutdown
                             </span><span class="kw">if let </span><span class="prelude-val">Some</span>(core) = core.as_mut() {
                                 core.unhandled_panic = <span class="bool-val">true</span>;
-                                <span class="self">self</span>.owned.close_and_shutdown_all();
+                                <span class="self">self</span>.shared.owned.close_and_shutdown_all();
                             }
                         }
                         <span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>(<span class="string">&quot;runtime core not set in CURRENT thread-local&quot;</span>),
@@ -1102,15 +1137,15 @@
     }
 }
 
-<span class="kw">impl </span><a href="../../util/wake.rs.html#9">Wake</a> <span class="kw">for </span><a href="#72">Shared</a> {
+<span class="kw">impl </span>Wake <span class="kw">for </span>Handle {
     <span class="kw">fn </span>wake(arc_self: Arc&lt;<span class="self">Self</span>&gt;) {
-        <a href="../../util/wake.rs.html#14">Wake::wake_by_ref</a>(<span class="kw-2">&amp;</span><a href="#492">arc_self</a>)
+        Wake::wake_by_ref(<span class="kw-2">&amp;</span>arc_self)
     }
 
     <span class="doccomment">/// Wake by reference
     </span><span class="kw">fn </span>wake_by_ref(arc_self: <span class="kw-2">&amp;</span>Arc&lt;<span class="self">Self</span>&gt;) {
-        <a href="#497">arc_self</a>.woken.store(<span class="bool-val">true</span>, Release);
-        <a href="#497">arc_self</a>.unpark.<a href="../../park/mod.rs.html#104">unpark</a>();
+        arc_self.shared.woken.store(<span class="bool-val">true</span>, Release);
+        arc_self.driver.unpark();
     }
 }
 
@@ -1119,34 +1154,35 @@
 </span><span class="doccomment">/// Used to ensure we always place the `Core` value back into its slot in
 /// `CurrentThread`, even if the future panics.
 </span><span class="kw">struct </span>CoreGuard&lt;<span class="lifetime">&#39;a</span>&gt; {
-    context: <a href="#99">Context</a>,
-    scheduler: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="#23">CurrentThread</a>,
+    context: Context,
+    scheduler: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>CurrentThread,
 }
 
 <span class="kw">impl </span>CoreGuard&lt;<span class="lifetime">&#39;_</span>&gt; {
     <span class="attr">#[track_caller]
-    </span><span class="kw">fn </span>block_on&lt;F: <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a>&gt;(<span class="self">self</span>, future: F) -&gt; F::Output {
-        <span class="kw">let </span>ret = <a class="self" href="#514">self</a>.<a href="#587-589">enter</a>(|<span class="kw-2">mut </span>core, context| {
-            <span class="kw">let </span>_enter = <a href="../enter.rs.html#35"><span class="kw">crate</span>::runtime::enter</a>(<span class="bool-val">false</span>);
-            <span class="kw">let </span>waker = <a href="#515">context</a>.spawner.<a href="#382">waker_ref</a>();
-            <span class="kw">let </span><span class="kw-2">mut </span>cx = std::task::Context::from_waker(<span class="kw-2">&amp;</span><a href="#517">waker</a>);
+    </span><span class="kw">fn </span>block_on&lt;F: Future&gt;(<span class="self">self</span>, future: F) -&gt; F::Output {
+        <span class="kw">let </span>ret = <span class="self">self</span>.enter(|<span class="kw-2">mut </span>core, context| {
+            <span class="kw">let </span>waker = Handle::waker_ref(<span class="kw-2">&amp;</span>context.handle);
+            <span class="kw">let </span><span class="kw-2">mut </span>cx = std::task::Context::from_waker(<span class="kw-2">&amp;</span>waker);
 
-            <a class="macro" href="../../macros/pin.rs.html#125-144">pin!</a>(future);
+            <span class="macro">pin!</span>(future);
 
             <span class="lifetime">&#39;outer</span>: <span class="kw">loop </span>{
-                <span class="kw">if </span>core.spawner.reset_woken() {
-                    <span class="kw">let </span>(c, res) = <a href="#515">context</a>.<a href="#342">enter</a>(<a href="#515">core</a>, || {
-                        <a href="../../coop.rs.html#71"><span class="kw">crate</span>::coop::budget</a>(|| <a href="#520">future</a>.as_mut().<a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">poll</a>(<span class="kw-2">&amp;mut </span><a href="#518">cx</a>))
+                <span class="kw">let </span>handle = <span class="kw-2">&amp;</span>context.handle;
+
+                <span class="kw">if </span>handle.reset_woken() {
+                    <span class="kw">let </span>(c, res) = context.enter(core, || {
+                        <span class="kw">crate</span>::runtime::coop::budget(|| future.as_mut().poll(<span class="kw-2">&amp;mut </span>cx))
                     });
 
-                    <a href="#515">core</a> = <a href="#524">c</a>;
+                    core = c;
 
-                    <span class="kw">if let </span>Ready(v) = <a href="#524">res</a> {
-                        <span class="kw">return </span>(<a href="#515">core</a>, <span class="prelude-val">Some</span>(<a href="#530">v</a>));
+                    <span class="kw">if let </span>Ready(v) = res {
+                        <span class="kw">return </span>(core, <span class="prelude-val">Some</span>(v));
                     }
                 }
 
-                <span class="kw">for _ in </span><span class="number">0</span>..core.spawner.shared.config.event_interval {
+                <span class="kw">for _ in </span><span class="number">0</span>..handle.shared.config.event_interval {
                     <span class="comment">// Make sure we didn&#39;t hit an unhandled_panic
                     </span><span class="kw">if </span>core.unhandled_panic {
                         <span class="kw">return </span>(core, <span class="prelude-val">None</span>);
@@ -1156,23 +1192,27 @@
                     </span><span class="kw">let </span>tick = core.tick;
                     core.tick = core.tick.wrapping_add(<span class="number">1</span>);
 
-                    <span class="kw">let </span>entry = <span class="kw">if </span>tick % core.spawner.shared.config.global_queue_interval == <span class="number">0 </span>{
-                        core.spawner.pop().or_else(|| core.tasks.pop_front())
+                    <span class="kw">let </span>entry = <span class="kw">if </span>tick % handle.shared.config.global_queue_interval == <span class="number">0 </span>{
+                        handle.pop().or_else(|| core.tasks.pop_front())
                     } <span class="kw">else </span>{
-                        core.tasks.pop_front().or_else(|| core.spawner.pop())
+                        core.tasks.pop_front().or_else(|| handle.pop())
                     };
 
                     <span class="kw">let </span>task = <span class="kw">match </span>entry {
                         <span class="prelude-val">Some</span>(entry) =&gt; entry,
                         <span class="prelude-val">None </span>=&gt; {
-                            core = context.park(core);
+                            core = <span class="kw">if </span>did_defer_tasks() {
+                                context.park_yield(core, handle)
+                            } <span class="kw">else </span>{
+                                context.park(core, handle)
+                            };
 
                             <span class="comment">// Try polling the `block_on` future next
                             </span><span class="kw">continue </span><span class="lifetime">&#39;outer</span>;
                         }
                     };
 
-                    <span class="kw">let </span>task = context.spawner.shared.owned.assert_owner(task);
+                    <span class="kw">let </span>task = context.handle.shared.owned.assert_owner(task);
 
                     <span class="kw">let </span>(c, <span class="kw">_</span>) = context.run_task(core, || {
                         task.run();
@@ -1183,15 +1223,15 @@
 
                 <span class="comment">// Yield to the driver, this drives the timer and pulls any
                 // pending I/O events.
-                </span><a href="#515">core</a> = <a href="#515">context</a>.<a href="#328">park_yield</a>(<a href="#515">core</a>);
+                </span>core = context.park_yield(core, handle);
             }
         });
 
-        <span class="kw">match </span><a href="#515">ret</a> {
-            <span class="prelude-val">Some</span>(ret) =&gt; <a href="#577">ret</a>,
+        <span class="kw">match </span>ret {
+            <span class="prelude-val">Some</span>(ret) =&gt; ret,
             <span class="prelude-val">None </span>=&gt; {
                 <span class="comment">// `block_on` panicked.
-                </span><a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(<span class="string">&quot;a spawned task panicked and the runtime is configured to shut down on unhandled panic&quot;</span>);
+                </span><span class="macro">panic!</span>(<span class="string">&quot;a spawned task panicked and the runtime is configured to shut down on unhandled panic&quot;</span>);
             }
         }
     }
@@ -1200,31 +1240,31 @@
     /// scheduler state in the thread-local.
     </span><span class="kw">fn </span>enter&lt;F, R&gt;(<span class="self">self</span>, f: F) -&gt; R
     <span class="kw">where
-        </span>F: FnOnce(Box&lt;<a href="#43">Core</a>&gt;, <span class="kw-2">&amp;</span><a href="#99">Context</a>) -&gt; (Box&lt;<a href="#43">Core</a>&gt;, R),
+        </span>F: FnOnce(Box&lt;Core&gt;, <span class="kw-2">&amp;</span>Context) -&gt; (Box&lt;Core&gt;, R),
     {
         <span class="comment">// Remove `core` from `context` to pass into the closure.
-        </span><span class="kw">let </span>core = <a class="self" href="#587">self</a>.context.core.borrow_mut().take().expect(<span class="string">&quot;core missing&quot;</span>);
+        </span><span class="kw">let </span>core = <span class="self">self</span>.context.core.borrow_mut().take().expect(<span class="string">&quot;core missing&quot;</span>);
 
         <span class="comment">// Call the closure and place `core` back
-        </span><span class="kw">let </span>(core, ret) = <a href="#112">CURRENT</a>.<a href="../../macros/scoped_tls.rs.html#35-37">set</a>(<span class="kw-2">&amp;</span><a class="self" href="#587">self</a>.context, || <a href="#587">f</a>(<a href="#592">core</a>, <span class="kw-2">&amp;</span><a class="self" href="#587">self</a>.context));
+        </span><span class="kw">let </span>(core, ret) = CURRENT.set(<span class="kw-2">&amp;</span><span class="self">self</span>.context, || f(core, <span class="kw-2">&amp;</span><span class="self">self</span>.context));
 
-        <span class="kw-2">*</span><a class="self" href="#587">self</a>.context.core.borrow_mut() = <span class="prelude-val">Some</span>(<a href="#595">core</a>);
+        <span class="kw-2">*</span><span class="self">self</span>.context.core.borrow_mut() = <span class="prelude-val">Some</span>(core);
 
-        <a href="#595">ret</a>
+        ret
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span>CoreGuard&lt;<span class="lifetime">&#39;_</span>&gt; {
+<span class="kw">impl </span>Drop <span class="kw">for </span>CoreGuard&lt;<span class="lifetime">&#39;_</span>&gt; {
     <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(core) = <a class="self" href="#604">self</a>.context.core.borrow_mut().take() {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(core) = <span class="self">self</span>.context.core.borrow_mut().take() {
             <span class="comment">// Replace old scheduler back into the state to allow
             // other threads to pick it up and drive it.
-            </span><a class="self" href="#604">self</a>.scheduler.core.<a href="../../util/atomic_cell.rs.html#25">set</a>(<a href="#605">core</a>);
+            </span><span class="self">self</span>.scheduler.core.set(core);
 
             <span class="comment">// Wake up other possible threads that could steal the driver.
-            </span><a class="self" href="#604">self</a>.scheduler.notify.<a href="../../sync/notify.rs.html#435">notify_one</a>()
+            </span><span class="self">self</span>.scheduler.notify.notify_one()
         }
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="tokio" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="tokio" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

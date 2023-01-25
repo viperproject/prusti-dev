@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tar-0.4.38/src/header.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>header.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../tar/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tar-0.4.38/src/header.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>header.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../tar/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -1641,28 +1641,28 @@
 <a href="#1641" id="1641">1641</a>
 <a href="#1642" id="1642">1642</a>
 </pre><pre class="rust"><code><span class="attr">#[cfg(unix)]
-</span><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/os/unix/prelude/index.html">std::os::unix::prelude</a>::<span class="kw-2">*</span>;
+</span><span class="kw">use </span>std::os::unix::prelude::<span class="kw-2">*</span>;
 <span class="attr">#[cfg(windows)]
 </span><span class="kw">use </span>std::os::windows::prelude::<span class="kw-2">*</span>;
 
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/borrow/enum.Cow.html">std::borrow::Cow</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">std::fmt</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/fs/index.html">std::fs</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/io/index.html">std::io</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/iter/index.html">std::iter</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/iter/sources/repeat/fn.repeat.html">std::iter::repeat</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/mem/index.html">std::mem</a>;
-<span class="kw">use </span>std::path::{<a href="https://doc.rust-lang.org/nightly/std/path/enum.Component.html">Component</a>, <a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>, <a href="https://doc.rust-lang.org/nightly/std/path/struct.PathBuf.html">PathBuf</a>};
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/str/index.html">std::str</a>;
+<span class="kw">use </span>std::borrow::Cow;
+<span class="kw">use </span>std::fmt;
+<span class="kw">use </span>std::fs;
+<span class="kw">use </span>std::io;
+<span class="kw">use </span>std::iter;
+<span class="kw">use </span>std::iter::repeat;
+<span class="kw">use </span>std::mem;
+<span class="kw">use </span>std::path::{Component, Path, PathBuf};
+<span class="kw">use </span>std::str;
 
-<span class="kw">use </span><a href="lib.rs.html#42"><span class="kw">crate</span>::other</a>;
-<span class="kw">use </span><a href="entry_type.rs.html#9"><span class="kw">crate</span>::EntryType</a>;
+<span class="kw">use </span><span class="kw">crate</span>::other;
+<span class="kw">use </span><span class="kw">crate</span>::EntryType;
 
 <span class="doccomment">/// Representation of the header of an entry in an archive
 </span><span class="attr">#[repr(C)]
 #[allow(missing_docs)]
 </span><span class="kw">pub struct </span>Header {
-    bytes: [<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="number">512</span>],
+    bytes: [u8; <span class="number">512</span>],
 }
 
 <span class="doccomment">/// Declares the information that should be included when filling a Header
@@ -1683,73 +1683,73 @@
 </span><span class="attr">#[repr(C)]
 #[allow(missing_docs)]
 </span><span class="kw">pub struct </span>OldHeader {
-    <span class="kw">pub </span>name: [<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="number">100</span>],
-    <span class="kw">pub </span>mode: [<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="number">8</span>],
-    <span class="kw">pub </span>uid: [<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="number">8</span>],
-    <span class="kw">pub </span>gid: [<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="number">8</span>],
-    <span class="kw">pub </span>size: [<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="number">12</span>],
-    <span class="kw">pub </span>mtime: [<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="number">12</span>],
-    <span class="kw">pub </span>cksum: [<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="number">8</span>],
-    <span class="kw">pub </span>linkflag: [<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="number">1</span>],
-    <span class="kw">pub </span>linkname: [<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="number">100</span>],
-    <span class="kw">pub </span>pad: [<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="number">255</span>],
+    <span class="kw">pub </span>name: [u8; <span class="number">100</span>],
+    <span class="kw">pub </span>mode: [u8; <span class="number">8</span>],
+    <span class="kw">pub </span>uid: [u8; <span class="number">8</span>],
+    <span class="kw">pub </span>gid: [u8; <span class="number">8</span>],
+    <span class="kw">pub </span>size: [u8; <span class="number">12</span>],
+    <span class="kw">pub </span>mtime: [u8; <span class="number">12</span>],
+    <span class="kw">pub </span>cksum: [u8; <span class="number">8</span>],
+    <span class="kw">pub </span>linkflag: [u8; <span class="number">1</span>],
+    <span class="kw">pub </span>linkname: [u8; <span class="number">100</span>],
+    <span class="kw">pub </span>pad: [u8; <span class="number">255</span>],
 }
 
 <span class="doccomment">/// Representation of the header of an entry in an archive
 </span><span class="attr">#[repr(C)]
 #[allow(missing_docs)]
 </span><span class="kw">pub struct </span>UstarHeader {
-    <span class="kw">pub </span>name: [<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="number">100</span>],
-    <span class="kw">pub </span>mode: [<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="number">8</span>],
-    <span class="kw">pub </span>uid: [<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="number">8</span>],
-    <span class="kw">pub </span>gid: [<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="number">8</span>],
-    <span class="kw">pub </span>size: [<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="number">12</span>],
-    <span class="kw">pub </span>mtime: [<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="number">12</span>],
-    <span class="kw">pub </span>cksum: [<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="number">8</span>],
-    <span class="kw">pub </span>typeflag: [<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="number">1</span>],
-    <span class="kw">pub </span>linkname: [<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="number">100</span>],
+    <span class="kw">pub </span>name: [u8; <span class="number">100</span>],
+    <span class="kw">pub </span>mode: [u8; <span class="number">8</span>],
+    <span class="kw">pub </span>uid: [u8; <span class="number">8</span>],
+    <span class="kw">pub </span>gid: [u8; <span class="number">8</span>],
+    <span class="kw">pub </span>size: [u8; <span class="number">12</span>],
+    <span class="kw">pub </span>mtime: [u8; <span class="number">12</span>],
+    <span class="kw">pub </span>cksum: [u8; <span class="number">8</span>],
+    <span class="kw">pub </span>typeflag: [u8; <span class="number">1</span>],
+    <span class="kw">pub </span>linkname: [u8; <span class="number">100</span>],
 
     <span class="comment">// UStar format
-    </span><span class="kw">pub </span>magic: [<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="number">6</span>],
-    <span class="kw">pub </span>version: [<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="number">2</span>],
-    <span class="kw">pub </span>uname: [<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="number">32</span>],
-    <span class="kw">pub </span>gname: [<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="number">32</span>],
-    <span class="kw">pub </span>dev_major: [<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="number">8</span>],
-    <span class="kw">pub </span>dev_minor: [<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="number">8</span>],
-    <span class="kw">pub </span>prefix: [<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="number">155</span>],
-    <span class="kw">pub </span>pad: [<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="number">12</span>],
+    </span><span class="kw">pub </span>magic: [u8; <span class="number">6</span>],
+    <span class="kw">pub </span>version: [u8; <span class="number">2</span>],
+    <span class="kw">pub </span>uname: [u8; <span class="number">32</span>],
+    <span class="kw">pub </span>gname: [u8; <span class="number">32</span>],
+    <span class="kw">pub </span>dev_major: [u8; <span class="number">8</span>],
+    <span class="kw">pub </span>dev_minor: [u8; <span class="number">8</span>],
+    <span class="kw">pub </span>prefix: [u8; <span class="number">155</span>],
+    <span class="kw">pub </span>pad: [u8; <span class="number">12</span>],
 }
 
 <span class="doccomment">/// Representation of the header of an entry in an archive
 </span><span class="attr">#[repr(C)]
 #[allow(missing_docs)]
 </span><span class="kw">pub struct </span>GnuHeader {
-    <span class="kw">pub </span>name: [<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="number">100</span>],
-    <span class="kw">pub </span>mode: [<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="number">8</span>],
-    <span class="kw">pub </span>uid: [<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="number">8</span>],
-    <span class="kw">pub </span>gid: [<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="number">8</span>],
-    <span class="kw">pub </span>size: [<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="number">12</span>],
-    <span class="kw">pub </span>mtime: [<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="number">12</span>],
-    <span class="kw">pub </span>cksum: [<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="number">8</span>],
-    <span class="kw">pub </span>typeflag: [<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="number">1</span>],
-    <span class="kw">pub </span>linkname: [<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="number">100</span>],
+    <span class="kw">pub </span>name: [u8; <span class="number">100</span>],
+    <span class="kw">pub </span>mode: [u8; <span class="number">8</span>],
+    <span class="kw">pub </span>uid: [u8; <span class="number">8</span>],
+    <span class="kw">pub </span>gid: [u8; <span class="number">8</span>],
+    <span class="kw">pub </span>size: [u8; <span class="number">12</span>],
+    <span class="kw">pub </span>mtime: [u8; <span class="number">12</span>],
+    <span class="kw">pub </span>cksum: [u8; <span class="number">8</span>],
+    <span class="kw">pub </span>typeflag: [u8; <span class="number">1</span>],
+    <span class="kw">pub </span>linkname: [u8; <span class="number">100</span>],
 
     <span class="comment">// GNU format
-    </span><span class="kw">pub </span>magic: [<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="number">6</span>],
-    <span class="kw">pub </span>version: [<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="number">2</span>],
-    <span class="kw">pub </span>uname: [<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="number">32</span>],
-    <span class="kw">pub </span>gname: [<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="number">32</span>],
-    <span class="kw">pub </span>dev_major: [<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="number">8</span>],
-    <span class="kw">pub </span>dev_minor: [<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="number">8</span>],
-    <span class="kw">pub </span>atime: [<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="number">12</span>],
-    <span class="kw">pub </span>ctime: [<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="number">12</span>],
-    <span class="kw">pub </span>offset: [<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="number">12</span>],
-    <span class="kw">pub </span>longnames: [<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="number">4</span>],
-    <span class="kw">pub </span>unused: [<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="number">1</span>],
-    <span class="kw">pub </span>sparse: [<a href="#118">GnuSparseHeader</a>; <span class="number">4</span>],
-    <span class="kw">pub </span>isextended: [<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="number">1</span>],
-    <span class="kw">pub </span>realsize: [<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="number">12</span>],
-    <span class="kw">pub </span>pad: [<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="number">17</span>],
+    </span><span class="kw">pub </span>magic: [u8; <span class="number">6</span>],
+    <span class="kw">pub </span>version: [u8; <span class="number">2</span>],
+    <span class="kw">pub </span>uname: [u8; <span class="number">32</span>],
+    <span class="kw">pub </span>gname: [u8; <span class="number">32</span>],
+    <span class="kw">pub </span>dev_major: [u8; <span class="number">8</span>],
+    <span class="kw">pub </span>dev_minor: [u8; <span class="number">8</span>],
+    <span class="kw">pub </span>atime: [u8; <span class="number">12</span>],
+    <span class="kw">pub </span>ctime: [u8; <span class="number">12</span>],
+    <span class="kw">pub </span>offset: [u8; <span class="number">12</span>],
+    <span class="kw">pub </span>longnames: [u8; <span class="number">4</span>],
+    <span class="kw">pub </span>unused: [u8; <span class="number">1</span>],
+    <span class="kw">pub </span>sparse: [GnuSparseHeader; <span class="number">4</span>],
+    <span class="kw">pub </span>isextended: [u8; <span class="number">1</span>],
+    <span class="kw">pub </span>realsize: [u8; <span class="number">12</span>],
+    <span class="kw">pub </span>pad: [u8; <span class="number">17</span>],
 }
 
 <span class="doccomment">/// Description of the header of a spare entry.
@@ -1758,8 +1758,8 @@
 </span><span class="attr">#[repr(C)]
 #[allow(missing_docs)]
 </span><span class="kw">pub struct </span>GnuSparseHeader {
-    <span class="kw">pub </span>offset: [<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="number">12</span>],
-    <span class="kw">pub </span>numbytes: [<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="number">12</span>],
+    <span class="kw">pub </span>offset: [u8; <span class="number">12</span>],
+    <span class="kw">pub </span>numbytes: [u8; <span class="number">12</span>],
 }
 
 <span class="doccomment">/// Representation of the entry found to represent extended GNU sparse files.
@@ -1769,26 +1769,26 @@
 </span><span class="attr">#[repr(C)]
 #[allow(missing_docs)]
 </span><span class="kw">pub struct </span>GnuExtSparseHeader {
-    <span class="kw">pub </span>sparse: [<a href="#118">GnuSparseHeader</a>; <span class="number">21</span>],
-    <span class="kw">pub </span>isextended: [<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="number">1</span>],
-    <span class="kw">pub </span>padding: [<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="number">7</span>],
+    <span class="kw">pub </span>sparse: [GnuSparseHeader; <span class="number">21</span>],
+    <span class="kw">pub </span>isextended: [u8; <span class="number">1</span>],
+    <span class="kw">pub </span>padding: [u8; <span class="number">7</span>],
 }
 
-<span class="kw">impl </span><a href="#22">Header</a> {
+<span class="kw">impl </span>Header {
     <span class="doccomment">/// Creates a new blank GNU header.
     ///
     /// The GNU style header is the default for this library and allows various
     /// extensions such as long path names, long link names, and setting the
     /// atime/ctime metadata attributes of files.
-    </span><span class="kw">pub fn </span>new_gnu() -&gt; <a href="#22">Header</a> {
-        <span class="kw">let </span><span class="kw-2">mut </span>header = <a href="#22">Header</a> { bytes: [<span class="number">0</span>; <span class="number">512</span>] };
+    </span><span class="kw">pub fn </span>new_gnu() -&gt; Header {
+        <span class="kw">let </span><span class="kw-2">mut </span>header = Header { bytes: [<span class="number">0</span>; <span class="number">512</span>] };
         <span class="kw">unsafe </span>{
-            <span class="kw">let </span>gnu = cast_mut::&lt;<span class="kw">_</span>, <a href="#84">GnuHeader</a>&gt;(<span class="kw-2">&amp;mut </span><a href="#142">header</a>);
-            <a href="#144">gnu</a>.magic = <span class="kw-2">*</span><span class="string">b&quot;ustar &quot;</span>;
-            <a href="#144">gnu</a>.version = <span class="kw-2">*</span><span class="string">b&quot; \0&quot;</span>;
+            <span class="kw">let </span>gnu = cast_mut::&lt;<span class="kw">_</span>, GnuHeader&gt;(<span class="kw-2">&amp;mut </span>header);
+            gnu.magic = <span class="kw-2">*</span><span class="string">b&quot;ustar &quot;</span>;
+            gnu.version = <span class="kw-2">*</span><span class="string">b&quot; \0&quot;</span>;
         }
-        <a href="#142">header</a>.<a href="#519">set_mtime</a>(<span class="number">0</span>);
-        <a href="#142">header</a>
+        header.set_mtime(<span class="number">0</span>);
+        header
     }
 
     <span class="doccomment">/// Creates a new blank UStar header.
@@ -1798,15 +1798,15 @@
     /// too long) path name.
     ///
     /// UStar is also the basis used for pax archives.
-    </span><span class="kw">pub fn </span>new_ustar() -&gt; <a href="#22">Header</a> {
-        <span class="kw">let </span><span class="kw-2">mut </span>header = <a href="#22">Header</a> { bytes: [<span class="number">0</span>; <span class="number">512</span>] };
+    </span><span class="kw">pub fn </span>new_ustar() -&gt; Header {
+        <span class="kw">let </span><span class="kw-2">mut </span>header = Header { bytes: [<span class="number">0</span>; <span class="number">512</span>] };
         <span class="kw">unsafe </span>{
-            <span class="kw">let </span>gnu = cast_mut::&lt;<span class="kw">_</span>, <a href="#59">UstarHeader</a>&gt;(<span class="kw-2">&amp;mut </span><a href="#160">header</a>);
-            <a href="#162">gnu</a>.magic = <span class="kw-2">*</span><span class="string">b&quot;ustar\0&quot;</span>;
-            <a href="#162">gnu</a>.version = <span class="kw-2">*</span><span class="string">b&quot;00&quot;</span>;
+            <span class="kw">let </span>gnu = cast_mut::&lt;<span class="kw">_</span>, UstarHeader&gt;(<span class="kw-2">&amp;mut </span>header);
+            gnu.magic = <span class="kw-2">*</span><span class="string">b&quot;ustar\0&quot;</span>;
+            gnu.version = <span class="kw-2">*</span><span class="string">b&quot;00&quot;</span>;
         }
-        <a href="#160">header</a>.<a href="#519">set_mtime</a>(<span class="number">0</span>);
-        <a href="#160">header</a>
+        header.set_mtime(<span class="number">0</span>);
+        header
     }
 
     <span class="doccomment">/// Creates a new blank old header.
@@ -1815,33 +1815,33 @@
     /// versions are compatible with (e.g. they are a superset). This header
     /// format limits the path name limit and isn&#39;t able to contain extra
     /// metadata like atime/ctime.
-    </span><span class="kw">pub fn </span>new_old() -&gt; <a href="#22">Header</a> {
-        <span class="kw">let </span><span class="kw-2">mut </span>header = <a href="#22">Header</a> { bytes: [<span class="number">0</span>; <span class="number">512</span>] };
-        <a href="#177">header</a>.<a href="#519">set_mtime</a>(<span class="number">0</span>);
-        <a href="#177">header</a>
+    </span><span class="kw">pub fn </span>new_old() -&gt; Header {
+        <span class="kw">let </span><span class="kw-2">mut </span>header = Header { bytes: [<span class="number">0</span>; <span class="number">512</span>] };
+        header.set_mtime(<span class="number">0</span>);
+        header
     }
 
-    <span class="kw">fn </span>is_ustar(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">let </span>ustar = <span class="kw">unsafe </span>{ cast::&lt;<span class="kw">_</span>, <a href="#59">UstarHeader</a>&gt;(<a class="self" href="#182">self</a>) };
-        <a href="#183">ustar</a>.magic[..] == <span class="string">b&quot;ustar\0&quot;</span>[..] &amp;&amp; <a href="#183">ustar</a>.version[..] == <span class="string">b&quot;00&quot;</span>[..]
+    <span class="kw">fn </span>is_ustar(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="kw">let </span>ustar = <span class="kw">unsafe </span>{ cast::&lt;<span class="kw">_</span>, UstarHeader&gt;(<span class="self">self</span>) };
+        ustar.magic[..] == <span class="string">b&quot;ustar\0&quot;</span>[..] &amp;&amp; ustar.version[..] == <span class="string">b&quot;00&quot;</span>[..]
     }
 
-    <span class="kw">fn </span>is_gnu(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">let </span>ustar = <span class="kw">unsafe </span>{ cast::&lt;<span class="kw">_</span>, <a href="#59">UstarHeader</a>&gt;(<a class="self" href="#187">self</a>) };
-        <a href="#188">ustar</a>.magic[..] == <span class="string">b&quot;ustar &quot;</span>[..] &amp;&amp; <a href="#188">ustar</a>.version[..] == <span class="string">b&quot; \0&quot;</span>[..]
+    <span class="kw">fn </span>is_gnu(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="kw">let </span>ustar = <span class="kw">unsafe </span>{ cast::&lt;<span class="kw">_</span>, UstarHeader&gt;(<span class="self">self</span>) };
+        ustar.magic[..] == <span class="string">b&quot;ustar &quot;</span>[..] &amp;&amp; ustar.version[..] == <span class="string">b&quot; \0&quot;</span>[..]
     }
 
     <span class="doccomment">/// View this archive header as a raw &quot;old&quot; archive header.
     ///
     /// This view will always succeed as all archive header formats will fill
     /// out at least the fields specified in the old header format.
-    </span><span class="kw">pub fn </span>as_old(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="#43">OldHeader</a> {
-        <span class="kw">unsafe </span>{ <a href="#898">cast</a>(<a class="self" href="#196">self</a>) }
+    </span><span class="kw">pub fn </span>as_old(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>OldHeader {
+        <span class="kw">unsafe </span>{ cast(<span class="self">self</span>) }
     }
 
     <span class="doccomment">/// Same as `as_old`, but the mutable version.
-    </span><span class="kw">pub fn </span>as_old_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span><a href="#43">OldHeader</a> {
-        <span class="kw">unsafe </span>{ <a href="#904">cast_mut</a>(<a class="self" href="#201">self</a>) }
+    </span><span class="kw">pub fn </span>as_old_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>OldHeader {
+        <span class="kw">unsafe </span>{ cast_mut(<span class="self">self</span>) }
     }
 
     <span class="doccomment">/// View this archive header as a raw UStar archive header.
@@ -1853,18 +1853,18 @@
     /// This cast may not succeed as this function will test whether the
     /// magic/version fields of the UStar format have the appropriate values,
     /// returning `None` if they aren&#39;t correct.
-    </span><span class="kw">pub fn </span>as_ustar(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="#59">UstarHeader</a>&gt; {
+    </span><span class="kw">pub fn </span>as_ustar(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>UstarHeader&gt; {
         <span class="kw">if </span><span class="self">self</span>.is_ustar() {
-            <span class="prelude-val">Some</span>(<span class="kw">unsafe </span>{ <a href="#898">cast</a>(<a class="self" href="#214">self</a>) })
+            <span class="prelude-val">Some</span>(<span class="kw">unsafe </span>{ cast(<span class="self">self</span>) })
         } <span class="kw">else </span>{
             <span class="prelude-val">None
         </span>}
     }
 
     <span class="doccomment">/// Same as `as_ustar_mut`, but the mutable version.
-    </span><span class="kw">pub fn </span>as_ustar_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;mut </span><a href="#59">UstarHeader</a>&gt; {
+    </span><span class="kw">pub fn </span>as_ustar_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;mut </span>UstarHeader&gt; {
         <span class="kw">if </span><span class="self">self</span>.is_ustar() {
-            <span class="prelude-val">Some</span>(<span class="kw">unsafe </span>{ <a href="#904">cast_mut</a>(<a class="self" href="#223">self</a>) })
+            <span class="prelude-val">Some</span>(<span class="kw">unsafe </span>{ cast_mut(<span class="self">self</span>) })
         } <span class="kw">else </span>{
             <span class="prelude-val">None
         </span>}
@@ -1879,18 +1879,18 @@
     /// This cast may not succeed as this function will test whether the
     /// magic/version fields of the GNU format have the appropriate values,
     /// returning `None` if they aren&#39;t correct.
-    </span><span class="kw">pub fn </span>as_gnu(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="#84">GnuHeader</a>&gt; {
+    </span><span class="kw">pub fn </span>as_gnu(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>GnuHeader&gt; {
         <span class="kw">if </span><span class="self">self</span>.is_gnu() {
-            <span class="prelude-val">Some</span>(<span class="kw">unsafe </span>{ <a href="#898">cast</a>(<a class="self" href="#240">self</a>) })
+            <span class="prelude-val">Some</span>(<span class="kw">unsafe </span>{ cast(<span class="self">self</span>) })
         } <span class="kw">else </span>{
             <span class="prelude-val">None
         </span>}
     }
 
     <span class="doccomment">/// Same as `as_gnu`, but the mutable version.
-    </span><span class="kw">pub fn </span>as_gnu_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;mut </span><a href="#84">GnuHeader</a>&gt; {
+    </span><span class="kw">pub fn </span>as_gnu_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;mut </span>GnuHeader&gt; {
         <span class="kw">if </span><span class="self">self</span>.is_gnu() {
-            <span class="prelude-val">Some</span>(<span class="kw">unsafe </span>{ <a href="#904">cast_mut</a>(<a class="self" href="#249">self</a>) })
+            <span class="prelude-val">Some</span>(<span class="kw">unsafe </span>{ cast_mut(<span class="self">self</span>) })
         } <span class="kw">else </span>{
             <span class="prelude-val">None
         </span>}
@@ -1899,20 +1899,20 @@
     <span class="doccomment">/// Treats the given byte slice as a header.
     ///
     /// Panics if the length of the passed slice is not equal to 512.
-    </span><span class="kw">pub fn </span>from_byte_slice(bytes: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="kw-2">&amp;</span><a href="#22">Header</a> {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert_eq.html">assert_eq!</a>(bytes.len(), mem::size_of::&lt;Header&gt;());
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert_eq.html">assert_eq!</a>(mem::align_of_val(bytes), mem::align_of::&lt;Header&gt;());
-        <span class="kw">unsafe </span>{ <span class="kw-2">&amp;*</span>(<a href="#260">bytes</a>.as_ptr() <span class="kw">as </span><span class="kw-2">*const </span><a href="#22">Header</a>) }
+    </span><span class="kw">pub fn </span>from_byte_slice(bytes: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="kw-2">&amp;</span>Header {
+        <span class="macro">assert_eq!</span>(bytes.len(), mem::size_of::&lt;Header&gt;());
+        <span class="macro">assert_eq!</span>(mem::align_of_val(bytes), mem::align_of::&lt;Header&gt;());
+        <span class="kw">unsafe </span>{ <span class="kw-2">&amp;*</span>(bytes.as_ptr() <span class="kw">as </span><span class="kw-2">*const </span>Header) }
     }
 
     <span class="doccomment">/// Returns a view into this header as a byte array.
-    </span><span class="kw">pub fn </span>as_bytes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="number">512</span>] {
-        <span class="kw-2">&amp;</span><a class="self" href="#267">self</a>.bytes
+    </span><span class="kw">pub fn </span>as_bytes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[u8; <span class="number">512</span>] {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.bytes
     }
 
     <span class="doccomment">/// Returns a view into this header as a byte array.
-    </span><span class="kw">pub fn </span>as_mut_bytes(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="number">512</span>] {
-        <span class="kw-2">&amp;mut </span><a class="self" href="#272">self</a>.bytes
+    </span><span class="kw">pub fn </span>as_mut_bytes(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>[u8; <span class="number">512</span>] {
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>.bytes
     }
 
     <span class="doccomment">/// Blanket sets the metadata in this header from the metadata argument
@@ -1921,14 +1921,14 @@
     /// This is useful for initializing a `Header` from the OS&#39;s metadata from a
     /// file. By default, this will use `HeaderMode::Complete` to include all
     /// metadata.
-    </span><span class="kw">pub fn </span>set_metadata(<span class="kw-2">&amp;mut </span><span class="self">self</span>, meta: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/fs/struct.Metadata.html">fs::Metadata</a>) {
-        <a class="self" href="#282">self</a>.<a href="#717">fill_from</a>(<a href="#282">meta</a>, <a href="#33">HeaderMode::Complete</a>);
+    </span><span class="kw">pub fn </span>set_metadata(<span class="kw-2">&amp;mut </span><span class="self">self</span>, meta: <span class="kw-2">&amp;</span>fs::Metadata) {
+        <span class="self">self</span>.fill_from(meta, HeaderMode::Complete);
     }
 
     <span class="doccomment">/// Sets only the metadata relevant to the given HeaderMode in this header
     /// from the metadata argument provided.
-    </span><span class="kw">pub fn </span>set_metadata_in_mode(<span class="kw-2">&amp;mut </span><span class="self">self</span>, meta: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/fs/struct.Metadata.html">fs::Metadata</a>, mode: <a href="#30">HeaderMode</a>) {
-        <a class="self" href="#288">self</a>.<a href="#717">fill_from</a>(<a href="#288">meta</a>, <a href="#288">mode</a>);
+    </span><span class="kw">pub fn </span>set_metadata_in_mode(<span class="kw-2">&amp;mut </span><span class="self">self</span>, meta: <span class="kw-2">&amp;</span>fs::Metadata, mode: HeaderMode) {
+        <span class="self">self</span>.fill_from(meta, mode);
     }
 
     <span class="doccomment">/// Returns the size of entry&#39;s data this header represents.
@@ -1939,11 +1939,11 @@
     /// describes.
     ///
     /// May return an error if the field is corrupted.
-    </span><span class="kw">pub fn </span>entry_size(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>&gt; {
-        <a href="#1431">num_field_wrapper_from</a>(<span class="kw-2">&amp;</span><a class="self" href="#300">self</a>.<a href="#196">as_old</a>().size).map_err(|err| {
+    </span><span class="kw">pub fn </span>entry_size(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;u64&gt; {
+        num_field_wrapper_from(<span class="kw-2">&amp;</span><span class="self">self</span>.as_old().size).map_err(|err| {
             io::Error::new(
-                <a href="#301">err</a>.kind(),
-                <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;{} when getting size for {}&quot;</span>, err, <span class="self">self</span>.path_lossy()),
+                err.kind(),
+                <span class="macro">format!</span>(<span class="string">&quot;{} when getting size for {}&quot;</span>, err, <span class="self">self</span>.path_lossy()),
             )
         })
     }
@@ -1951,19 +1951,19 @@
     <span class="doccomment">/// Returns the file size this header represents.
     ///
     /// May return an error if the field is corrupted.
-    </span><span class="kw">pub fn </span>size(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>&gt; {
+    </span><span class="kw">pub fn </span>size(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;u64&gt; {
         <span class="kw">if </span><span class="self">self</span>.entry_type().is_gnu_sparse() {
-            <a class="self" href="#312">self</a>.<a href="#240">as_gnu</a>()
-                .ok_or_else(|| <a href="lib.rs.html#42">other</a>(<span class="string">&quot;sparse header was not a gnu header&quot;</span>))
-                .and_then(|h| <a href="#316">h</a>.<a href="#1249">real_size</a>())
+            <span class="self">self</span>.as_gnu()
+                .ok_or_else(|| other(<span class="string">&quot;sparse header was not a gnu header&quot;</span>))
+                .and_then(|h| h.real_size())
         } <span class="kw">else </span>{
-            <a class="self" href="#312">self</a>.<a href="#300">entry_size</a>()
+            <span class="self">self</span>.entry_size()
         }
     }
 
     <span class="doccomment">/// Encodes the `size` argument into the size field of this header.
-    </span><span class="kw">pub fn </span>set_size(<span class="kw-2">&amp;mut </span><span class="self">self</span>, size: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) {
-        <a href="#1421">num_field_wrapper_into</a>(<span class="kw-2">&amp;mut </span><a class="self" href="#323">self</a>.<a href="#201">as_old_mut</a>().size, <a href="#323">size</a>);
+    </span><span class="kw">pub fn </span>set_size(<span class="kw-2">&amp;mut </span><span class="self">self</span>, size: u64) {
+        num_field_wrapper_into(<span class="kw-2">&amp;mut </span><span class="self">self</span>.as_old_mut().size, size);
     }
 
     <span class="doccomment">/// Returns the raw path name stored in this header.
@@ -1973,8 +1973,8 @@
     ///
     /// Note that this function will convert any `\` characters to directory
     /// separators.
-    </span><span class="kw">pub fn </span>path(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;Cow&lt;<a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>&gt;&gt; {
-        <a href="#1618">bytes2path</a>(<a class="self" href="#334">self</a>.<a href="#345">path_bytes</a>())
+    </span><span class="kw">pub fn </span>path(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;Cow&lt;Path&gt;&gt; {
+        bytes2path(<span class="self">self</span>.path_bytes())
     }
 
     <span class="doccomment">/// Returns the pathname stored in this header as a byte array.
@@ -1984,18 +1984,18 @@
     ///
     /// Note that this function will convert any `\` characters to directory
     /// separators.
-    </span><span class="kw">pub fn </span>path_bytes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Cow&lt;[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt; {
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(ustar) = <a class="self" href="#345">self</a>.<a href="#214">as_ustar</a>() {
-            <a href="#346">ustar</a>.<a href="#950">path_bytes</a>()
+    </span><span class="kw">pub fn </span>path_bytes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Cow&lt;[u8]&gt; {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(ustar) = <span class="self">self</span>.as_ustar() {
+            ustar.path_bytes()
         } <span class="kw">else </span>{
-            <span class="kw">let </span>name = <a href="#1472">truncate</a>(<span class="kw-2">&amp;</span><a class="self" href="#345">self</a>.<a href="#196">as_old</a>().name);
-            Cow::Borrowed(<a href="#349">name</a>)
+            <span class="kw">let </span>name = truncate(<span class="kw-2">&amp;</span><span class="self">self</span>.as_old().name);
+            Cow::Borrowed(name)
         }
     }
 
     <span class="doccomment">/// Gets the path in a &quot;lossy&quot; way, used for error reporting ONLY.
-    </span><span class="kw">fn </span>path_lossy(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a> {
-        String::from_utf8_lossy(<span class="kw-2">&amp;</span><a class="self" href="#355">self</a>.<a href="#345">path_bytes</a>()).<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>()
+    </span><span class="kw">fn </span>path_lossy(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; String {
+        String::from_utf8_lossy(<span class="kw-2">&amp;</span><span class="self">self</span>.path_bytes()).to_string()
     }
 
     <span class="doccomment">/// Sets the path name for this header.
@@ -2009,18 +2009,18 @@
     /// over 255 bytes, even for formats that support longer names. Instead,
     /// use `Builder` methods to insert a long-name extension at the same time
     /// as the file content.
-    </span><span class="kw">pub fn </span>set_path&lt;P: AsRef&lt;<a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>&gt;&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, p: P) -&gt; io::Result&lt;()&gt; {
-        <a class="self" href="#370">self</a>.<a href="#374">_set_path</a>(<a href="#370">p</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>())
+    </span><span class="kw">pub fn </span>set_path&lt;P: AsRef&lt;Path&gt;&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, p: P) -&gt; io::Result&lt;()&gt; {
+        <span class="self">self</span>._set_path(p.as_ref())
     }
 
-    <span class="kw">fn </span>_set_path(<span class="kw-2">&amp;mut </span><span class="self">self</span>, path: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>) -&gt; io::Result&lt;()&gt; {
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(ustar) = <a class="self" href="#374">self</a>.<a href="#223">as_ustar_mut</a>() {
-            <span class="kw">return </span><a href="#375">ustar</a>.<a href="#971">set_path</a>(<a href="#374">path</a>);
+    <span class="kw">fn </span>_set_path(<span class="kw-2">&amp;mut </span><span class="self">self</span>, path: <span class="kw-2">&amp;</span>Path) -&gt; io::Result&lt;()&gt; {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(ustar) = <span class="self">self</span>.as_ustar_mut() {
+            <span class="kw">return </span>ustar.set_path(path);
         }
-        <a href="#1502">copy_path_into</a>(<span class="kw-2">&amp;mut </span><a class="self" href="#374">self</a>.<a href="#201">as_old_mut</a>().name, <a href="#374">path</a>, <span class="bool-val">false</span>).map_err(|err| {
+        copy_path_into(<span class="kw-2">&amp;mut </span><span class="self">self</span>.as_old_mut().name, path, <span class="bool-val">false</span>).map_err(|err| {
             io::Error::new(
-                <a href="#378">err</a>.kind(),
-                <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;{} when setting path for {}&quot;</span>, err, <span class="self">self</span>.path_lossy()),
+                err.kind(),
+                <span class="macro">format!</span>(<span class="string">&quot;{} when setting path for {}&quot;</span>, err, <span class="self">self</span>.path_lossy()),
             )
         })
     }
@@ -2033,9 +2033,9 @@
     ///
     /// Note that this function will convert any `\` characters to directory
     /// separators.
-    </span><span class="kw">pub fn </span>link_name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;<span class="prelude-ty">Option</span>&lt;Cow&lt;<a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>&gt;&gt;&gt; {
-        <span class="kw">match </span><a class="self" href="#394">self</a>.<a href="#408">link_name_bytes</a>() {
-            <span class="prelude-val">Some</span>(bytes) =&gt; <a href="#1618">bytes2path</a>(<a href="#396">bytes</a>).map(<span class="prelude-val">Some</span>),
+    </span><span class="kw">pub fn </span>link_name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;<span class="prelude-ty">Option</span>&lt;Cow&lt;Path&gt;&gt;&gt; {
+        <span class="kw">match </span><span class="self">self</span>.link_name_bytes() {
+            <span class="prelude-val">Some</span>(bytes) =&gt; bytes2path(bytes).map(<span class="prelude-val">Some</span>),
             <span class="prelude-val">None </span>=&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>),
         }
     }
@@ -2047,10 +2047,10 @@
     ///
     /// Note that this function will convert any `\` characters to directory
     /// separators.
-    </span><span class="kw">pub fn </span>link_name_bytes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Cow&lt;[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;&gt; {
-        <span class="kw">let </span>old = <a class="self" href="#408">self</a>.<a href="#196">as_old</a>();
+    </span><span class="kw">pub fn </span>link_name_bytes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Cow&lt;[u8]&gt;&gt; {
+        <span class="kw">let </span>old = <span class="self">self</span>.as_old();
         <span class="kw">if </span>old.linkname[<span class="number">0</span>] != <span class="number">0 </span>{
-            <span class="prelude-val">Some</span>(Cow::Borrowed(<a href="#1472">truncate</a>(<span class="kw-2">&amp;</span><a href="#409">old</a>.linkname)))
+            <span class="prelude-val">Some</span>(Cow::Borrowed(truncate(<span class="kw-2">&amp;</span>old.linkname)))
         } <span class="kw">else </span>{
             <span class="prelude-val">None
         </span>}
@@ -2064,15 +2064,15 @@
     /// strip out any &quot;.&quot; path component, which signifies the current directory.
     ///
     /// To use GNU long link names, prefer instead [`crate::Builder::append_link`].
-    </span><span class="kw">pub fn </span>set_link_name&lt;P: AsRef&lt;<a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>&gt;&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, p: P) -&gt; io::Result&lt;()&gt; {
-        <a class="self" href="#425">self</a>.<a href="#429">_set_link_name</a>(<a href="#425">p</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>())
+    </span><span class="kw">pub fn </span>set_link_name&lt;P: AsRef&lt;Path&gt;&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, p: P) -&gt; io::Result&lt;()&gt; {
+        <span class="self">self</span>._set_link_name(p.as_ref())
     }
 
-    <span class="kw">fn </span>_set_link_name(<span class="kw-2">&amp;mut </span><span class="self">self</span>, path: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>) -&gt; io::Result&lt;()&gt; {
-        <a href="#1502">copy_path_into</a>(<span class="kw-2">&amp;mut </span><a class="self" href="#429">self</a>.<a href="#201">as_old_mut</a>().linkname, <a href="#429">path</a>, <span class="bool-val">true</span>).map_err(|err| {
+    <span class="kw">fn </span>_set_link_name(<span class="kw-2">&amp;mut </span><span class="self">self</span>, path: <span class="kw-2">&amp;</span>Path) -&gt; io::Result&lt;()&gt; {
+        copy_path_into(<span class="kw-2">&amp;mut </span><span class="self">self</span>.as_old_mut().linkname, path, <span class="bool-val">true</span>).map_err(|err| {
             io::Error::new(
-                <a href="#430">err</a>.kind(),
-                <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;{} when setting link name for {}&quot;</span>, err, <span class="self">self</span>.path_lossy()),
+                err.kind(),
+                <span class="macro">format!</span>(<span class="string">&quot;{} when setting link name for {}&quot;</span>, err, <span class="self">self</span>.path_lossy()),
             )
         })
     }
@@ -2081,75 +2081,75 @@
     ///
     /// This function is like [`Self::set_link_name`] but accepts an arbitrary byte array.
     /// Hence it will not perform any canonicalization, such as replacing duplicate `//` with `/`.
-    </span><span class="kw">pub fn </span>set_link_name_literal&lt;P: AsRef&lt;[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, p: P) -&gt; io::Result&lt;()&gt; {
-        <a class="self" href="#442">self</a>.<a href="#446">_set_link_name_literal</a>(<a href="#442">p</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>())
+    </span><span class="kw">pub fn </span>set_link_name_literal&lt;P: AsRef&lt;[u8]&gt;&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, p: P) -&gt; io::Result&lt;()&gt; {
+        <span class="self">self</span>._set_link_name_literal(p.as_ref())
     }
 
-    <span class="kw">fn </span>_set_link_name_literal(<span class="kw-2">&amp;mut </span><span class="self">self</span>, bytes: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; io::Result&lt;()&gt; {
-        <a href="#1481">copy_into</a>(<span class="kw-2">&amp;mut </span><a class="self" href="#446">self</a>.<a href="#201">as_old_mut</a>().linkname, <a href="#446">bytes</a>)
+    <span class="kw">fn </span>_set_link_name_literal(<span class="kw-2">&amp;mut </span><span class="self">self</span>, bytes: <span class="kw-2">&amp;</span>[u8]) -&gt; io::Result&lt;()&gt; {
+        copy_into(<span class="kw-2">&amp;mut </span><span class="self">self</span>.as_old_mut().linkname, bytes)
     }
 
     <span class="doccomment">/// Returns the mode bits for this file
     ///
     /// May return an error if the field is corrupted.
-    </span><span class="kw">pub fn </span>mode(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>&gt; {
-        <a href="#1394">octal_from</a>(<span class="kw-2">&amp;</span><a class="self" href="#453">self</a>.<a href="#196">as_old</a>().mode)
-            .map(|u| <a href="#455">u</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>)
+    </span><span class="kw">pub fn </span>mode(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;u32&gt; {
+        octal_from(<span class="kw-2">&amp;</span><span class="self">self</span>.as_old().mode)
+            .map(|u| u <span class="kw">as </span>u32)
             .map_err(|err| {
                 io::Error::new(
-                    <a href="#456">err</a>.kind(),
-                    <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;{} when getting mode for {}&quot;</span>, err, <span class="self">self</span>.path_lossy()),
+                    err.kind(),
+                    <span class="macro">format!</span>(<span class="string">&quot;{} when getting mode for {}&quot;</span>, err, <span class="self">self</span>.path_lossy()),
                 )
             })
     }
 
     <span class="doccomment">/// Encodes the `mode` provided into this header.
-    </span><span class="kw">pub fn </span>set_mode(<span class="kw-2">&amp;mut </span><span class="self">self</span>, mode: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) {
-        <a href="#1411">octal_into</a>(<span class="kw-2">&amp;mut </span><a class="self" href="#465">self</a>.<a href="#201">as_old_mut</a>().mode, <a href="#465">mode</a>);
+    </span><span class="kw">pub fn </span>set_mode(<span class="kw-2">&amp;mut </span><span class="self">self</span>, mode: u32) {
+        octal_into(<span class="kw-2">&amp;mut </span><span class="self">self</span>.as_old_mut().mode, mode);
     }
 
     <span class="doccomment">/// Returns the value of the owner&#39;s user ID field
     ///
     /// May return an error if the field is corrupted.
-    </span><span class="kw">pub fn </span>uid(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>&gt; {
-        <a href="#1431">num_field_wrapper_from</a>(<span class="kw-2">&amp;</span><a class="self" href="#472">self</a>.<a href="#196">as_old</a>().uid)
-            .map(|u| <a href="#474">u</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>)
+    </span><span class="kw">pub fn </span>uid(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;u64&gt; {
+        num_field_wrapper_from(<span class="kw-2">&amp;</span><span class="self">self</span>.as_old().uid)
+            .map(|u| u <span class="kw">as </span>u64)
             .map_err(|err| {
                 io::Error::new(
-                    <a href="#475">err</a>.kind(),
-                    <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;{} when getting uid for {}&quot;</span>, err, <span class="self">self</span>.path_lossy()),
+                    err.kind(),
+                    <span class="macro">format!</span>(<span class="string">&quot;{} when getting uid for {}&quot;</span>, err, <span class="self">self</span>.path_lossy()),
                 )
             })
     }
 
     <span class="doccomment">/// Encodes the `uid` provided into this header.
-    </span><span class="kw">pub fn </span>set_uid(<span class="kw-2">&amp;mut </span><span class="self">self</span>, uid: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) {
-        <a href="#1421">num_field_wrapper_into</a>(<span class="kw-2">&amp;mut </span><a class="self" href="#484">self</a>.<a href="#201">as_old_mut</a>().uid, <a href="#484">uid</a>);
+    </span><span class="kw">pub fn </span>set_uid(<span class="kw-2">&amp;mut </span><span class="self">self</span>, uid: u64) {
+        num_field_wrapper_into(<span class="kw-2">&amp;mut </span><span class="self">self</span>.as_old_mut().uid, uid);
     }
 
     <span class="doccomment">/// Returns the value of the group&#39;s user ID field
-    </span><span class="kw">pub fn </span>gid(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>&gt; {
-        <a href="#1431">num_field_wrapper_from</a>(<span class="kw-2">&amp;</span><a class="self" href="#489">self</a>.<a href="#196">as_old</a>().gid)
-            .map(|u| <a href="#491">u</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>)
+    </span><span class="kw">pub fn </span>gid(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;u64&gt; {
+        num_field_wrapper_from(<span class="kw-2">&amp;</span><span class="self">self</span>.as_old().gid)
+            .map(|u| u <span class="kw">as </span>u64)
             .map_err(|err| {
                 io::Error::new(
-                    <a href="#492">err</a>.kind(),
-                    <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;{} when getting gid for {}&quot;</span>, err, <span class="self">self</span>.path_lossy()),
+                    err.kind(),
+                    <span class="macro">format!</span>(<span class="string">&quot;{} when getting gid for {}&quot;</span>, err, <span class="self">self</span>.path_lossy()),
                 )
             })
     }
 
     <span class="doccomment">/// Encodes the `gid` provided into this header.
-    </span><span class="kw">pub fn </span>set_gid(<span class="kw-2">&amp;mut </span><span class="self">self</span>, gid: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) {
-        <a href="#1421">num_field_wrapper_into</a>(<span class="kw-2">&amp;mut </span><a class="self" href="#501">self</a>.<a href="#201">as_old_mut</a>().gid, <a href="#501">gid</a>);
+    </span><span class="kw">pub fn </span>set_gid(<span class="kw-2">&amp;mut </span><span class="self">self</span>, gid: u64) {
+        num_field_wrapper_into(<span class="kw-2">&amp;mut </span><span class="self">self</span>.as_old_mut().gid, gid);
     }
 
     <span class="doccomment">/// Returns the last modification time in Unix time format
-    </span><span class="kw">pub fn </span>mtime(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>&gt; {
-        <a href="#1431">num_field_wrapper_from</a>(<span class="kw-2">&amp;</span><a class="self" href="#506">self</a>.<a href="#196">as_old</a>().mtime).map_err(|err| {
+    </span><span class="kw">pub fn </span>mtime(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;u64&gt; {
+        num_field_wrapper_from(<span class="kw-2">&amp;</span><span class="self">self</span>.as_old().mtime).map_err(|err| {
             io::Error::new(
-                <a href="#507">err</a>.kind(),
-                <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;{} when getting mtime for {}&quot;</span>, err, <span class="self">self</span>.path_lossy()),
+                err.kind(),
+                <span class="macro">format!</span>(<span class="string">&quot;{} when getting mtime for {}&quot;</span>, err, <span class="self">self</span>.path_lossy()),
             )
         })
     }
@@ -2158,8 +2158,8 @@
     ///
     /// Note that this time is typically a number of seconds passed since
     /// January 1, 1970.
-    </span><span class="kw">pub fn </span>set_mtime(<span class="kw-2">&amp;mut </span><span class="self">self</span>, mtime: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) {
-        <a href="#1421">num_field_wrapper_into</a>(<span class="kw-2">&amp;mut </span><a class="self" href="#519">self</a>.<a href="#201">as_old_mut</a>().mtime, <a href="#519">mtime</a>);
+    </span><span class="kw">pub fn </span>set_mtime(<span class="kw-2">&amp;mut </span><span class="self">self</span>, mtime: u64) {
+        num_field_wrapper_into(<span class="kw-2">&amp;mut </span><span class="self">self</span>.as_old_mut().mtime, mtime);
     }
 
     <span class="doccomment">/// Return the user name of the owner of this file.
@@ -2168,9 +2168,9 @@
     /// present and was valid utf-8, `Ok(None)` indicates that the user name is
     /// not present in this archive format, and `Err` indicates that the user
     /// name was present but was not valid utf-8.
-    </span><span class="kw">pub fn </span>username(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt;, <a href="https://doc.rust-lang.org/nightly/core/str/error/struct.Utf8Error.html">str::Utf8Error</a>&gt; {
-        <span class="kw">match </span><a class="self" href="#529">self</a>.<a href="#540">username_bytes</a>() {
-            <span class="prelude-val">Some</span>(bytes) =&gt; <a href="https://doc.rust-lang.org/nightly/core/str/converts/fn.from_utf8.html">str::from_utf8</a>(<a href="#531">bytes</a>).map(<span class="prelude-val">Some</span>),
+    </span><span class="kw">pub fn </span>username(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>str&gt;, str::Utf8Error&gt; {
+        <span class="kw">match </span><span class="self">self</span>.username_bytes() {
+            <span class="prelude-val">Some</span>(bytes) =&gt; str::from_utf8(bytes).map(<span class="prelude-val">Some</span>),
             <span class="prelude-val">None </span>=&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>),
         }
     }
@@ -2179,11 +2179,11 @@
     ///
     /// A return value of `None` indicates that the user name is not present in
     /// this header format.
-    </span><span class="kw">pub fn </span>username_bytes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt; {
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(ustar) = <a class="self" href="#540">self</a>.<a href="#214">as_ustar</a>() {
-            <span class="prelude-val">Some</span>(<a href="#541">ustar</a>.<a href="#1029">username_bytes</a>())
-        } <span class="kw">else if let </span><span class="prelude-val">Some</span>(gnu) = <a class="self" href="#540">self</a>.<a href="#240">as_gnu</a>() {
-            <span class="prelude-val">Some</span>(<a href="#543">gnu</a>.<a href="#1121">username_bytes</a>())
+    </span><span class="kw">pub fn </span>username_bytes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>[u8]&gt; {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(ustar) = <span class="self">self</span>.as_ustar() {
+            <span class="prelude-val">Some</span>(ustar.username_bytes())
+        } <span class="kw">else if let </span><span class="prelude-val">Some</span>(gnu) = <span class="self">self</span>.as_gnu() {
+            <span class="prelude-val">Some</span>(gnu.username_bytes())
         } <span class="kw">else </span>{
             <span class="prelude-val">None
         </span>}
@@ -2193,14 +2193,14 @@
     ///
     /// This function will return an error if this header format cannot encode a
     /// user name or the name is too long.
-    </span><span class="kw">pub fn </span>set_username(<span class="kw-2">&amp;mut </span><span class="self">self</span>, name: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; io::Result&lt;()&gt; {
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(ustar) = <a class="self" href="#554">self</a>.<a href="#223">as_ustar_mut</a>() {
-            <span class="kw">return </span><a href="#555">ustar</a>.<a href="#1034">set_username</a>(<a href="#554">name</a>);
+    </span><span class="kw">pub fn </span>set_username(<span class="kw-2">&amp;mut </span><span class="self">self</span>, name: <span class="kw-2">&amp;</span>str) -&gt; io::Result&lt;()&gt; {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(ustar) = <span class="self">self</span>.as_ustar_mut() {
+            <span class="kw">return </span>ustar.set_username(name);
         }
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(gnu) = <a class="self" href="#554">self</a>.<a href="#249">as_gnu_mut</a>() {
-            <a href="#558">gnu</a>.<a href="#1135">set_username</a>(<a href="#554">name</a>)
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(gnu) = <span class="self">self</span>.as_gnu_mut() {
+            gnu.set_username(name)
         } <span class="kw">else </span>{
-            <span class="prelude-val">Err</span>(<a href="lib.rs.html#42">other</a>(<span class="string">&quot;not a ustar or gnu archive, cannot set username&quot;</span>))
+            <span class="prelude-val">Err</span>(other(<span class="string">&quot;not a ustar or gnu archive, cannot set username&quot;</span>))
         }
     }
 
@@ -2210,9 +2210,9 @@
     /// present and was valid utf-8, `Ok(None)` indicates that the group name is
     /// not present in this archive format, and `Err` indicates that the group
     /// name was present but was not valid utf-8.
-    </span><span class="kw">pub fn </span>groupname(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt;, <a href="https://doc.rust-lang.org/nightly/core/str/error/struct.Utf8Error.html">str::Utf8Error</a>&gt; {
-        <span class="kw">match </span><a class="self" href="#571">self</a>.<a href="#582">groupname_bytes</a>() {
-            <span class="prelude-val">Some</span>(bytes) =&gt; <a href="https://doc.rust-lang.org/nightly/core/str/converts/fn.from_utf8.html">str::from_utf8</a>(<a href="#573">bytes</a>).map(<span class="prelude-val">Some</span>),
+    </span><span class="kw">pub fn </span>groupname(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>str&gt;, str::Utf8Error&gt; {
+        <span class="kw">match </span><span class="self">self</span>.groupname_bytes() {
+            <span class="prelude-val">Some</span>(bytes) =&gt; str::from_utf8(bytes).map(<span class="prelude-val">Some</span>),
             <span class="prelude-val">None </span>=&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>),
         }
     }
@@ -2221,11 +2221,11 @@
     ///
     /// A return value of `None` indicates that the group name is not present in
     /// this header format.
-    </span><span class="kw">pub fn </span>groupname_bytes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt; {
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(ustar) = <a class="self" href="#582">self</a>.<a href="#214">as_ustar</a>() {
-            <span class="prelude-val">Some</span>(<a href="#583">ustar</a>.<a href="#1044">groupname_bytes</a>())
-        } <span class="kw">else if let </span><span class="prelude-val">Some</span>(gnu) = <a class="self" href="#582">self</a>.<a href="#240">as_gnu</a>() {
-            <span class="prelude-val">Some</span>(<a href="#585">gnu</a>.<a href="#1149">groupname_bytes</a>())
+    </span><span class="kw">pub fn </span>groupname_bytes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>[u8]&gt; {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(ustar) = <span class="self">self</span>.as_ustar() {
+            <span class="prelude-val">Some</span>(ustar.groupname_bytes())
+        } <span class="kw">else if let </span><span class="prelude-val">Some</span>(gnu) = <span class="self">self</span>.as_gnu() {
+            <span class="prelude-val">Some</span>(gnu.groupname_bytes())
         } <span class="kw">else </span>{
             <span class="prelude-val">None
         </span>}
@@ -2235,14 +2235,14 @@
     ///
     /// This function will return an error if this header format cannot encode a
     /// group name or the name is too long.
-    </span><span class="kw">pub fn </span>set_groupname(<span class="kw-2">&amp;mut </span><span class="self">self</span>, name: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; io::Result&lt;()&gt; {
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(ustar) = <a class="self" href="#596">self</a>.<a href="#223">as_ustar_mut</a>() {
-            <span class="kw">return </span><a href="#597">ustar</a>.<a href="#1049">set_groupname</a>(<a href="#596">name</a>);
+    </span><span class="kw">pub fn </span>set_groupname(<span class="kw-2">&amp;mut </span><span class="self">self</span>, name: <span class="kw-2">&amp;</span>str) -&gt; io::Result&lt;()&gt; {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(ustar) = <span class="self">self</span>.as_ustar_mut() {
+            <span class="kw">return </span>ustar.set_groupname(name);
         }
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(gnu) = <a class="self" href="#596">self</a>.<a href="#249">as_gnu_mut</a>() {
-            <a href="#600">gnu</a>.<a href="#1154">set_groupname</a>(<a href="#596">name</a>)
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(gnu) = <span class="self">self</span>.as_gnu_mut() {
+            gnu.set_groupname(name)
         } <span class="kw">else </span>{
-            <span class="prelude-val">Err</span>(<a href="lib.rs.html#42">other</a>(<span class="string">&quot;not a ustar or gnu archive, cannot set groupname&quot;</span>))
+            <span class="prelude-val">Err</span>(other(<span class="string">&quot;not a ustar or gnu archive, cannot set groupname&quot;</span>))
         }
     }
 
@@ -2253,11 +2253,11 @@
     /// and correctly decoded, `Ok(None)` indicates that this header format does
     /// not include the device major number, and `Err` indicates that it was
     /// present and failed to decode.
-    </span><span class="kw">pub fn </span>device_major(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;<span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>&gt;&gt; {
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(ustar) = <a class="self" href="#614">self</a>.<a href="#214">as_ustar</a>() {
-            <a href="#615">ustar</a>.<a href="#1059">device_major</a>().map(<span class="prelude-val">Some</span>)
-        } <span class="kw">else if let </span><span class="prelude-val">Some</span>(gnu) = <a class="self" href="#614">self</a>.<a href="#240">as_gnu</a>() {
-            <a href="#617">gnu</a>.<a href="#1168">device_major</a>().map(<span class="prelude-val">Some</span>)
+    </span><span class="kw">pub fn </span>device_major(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;<span class="prelude-ty">Option</span>&lt;u32&gt;&gt; {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(ustar) = <span class="self">self</span>.as_ustar() {
+            ustar.device_major().map(<span class="prelude-val">Some</span>)
+        } <span class="kw">else if let </span><span class="prelude-val">Some</span>(gnu) = <span class="self">self</span>.as_gnu() {
+            gnu.device_major().map(<span class="prelude-val">Some</span>)
         } <span class="kw">else </span>{
             <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>)
         }
@@ -2267,15 +2267,15 @@
     ///
     /// This function will return an error if this header format cannot encode a
     /// major device number.
-    </span><span class="kw">pub fn </span>set_device_major(<span class="kw-2">&amp;mut </span><span class="self">self</span>, major: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; io::Result&lt;()&gt; {
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(ustar) = <a class="self" href="#628">self</a>.<a href="#223">as_ustar_mut</a>() {
-            <a href="#629">ustar</a>.<a href="#1075">set_device_major</a>(<a href="#628">major</a>);
+    </span><span class="kw">pub fn </span>set_device_major(<span class="kw-2">&amp;mut </span><span class="self">self</span>, major: u32) -&gt; io::Result&lt;()&gt; {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(ustar) = <span class="self">self</span>.as_ustar_mut() {
+            ustar.set_device_major(major);
             <span class="prelude-val">Ok</span>(())
-        } <span class="kw">else if let </span><span class="prelude-val">Some</span>(gnu) = <a class="self" href="#628">self</a>.<a href="#249">as_gnu_mut</a>() {
-            <a href="#632">gnu</a>.<a href="#1184">set_device_major</a>(<a href="#628">major</a>);
+        } <span class="kw">else if let </span><span class="prelude-val">Some</span>(gnu) = <span class="self">self</span>.as_gnu_mut() {
+            gnu.set_device_major(major);
             <span class="prelude-val">Ok</span>(())
         } <span class="kw">else </span>{
-            <span class="prelude-val">Err</span>(<a href="lib.rs.html#42">other</a>(<span class="string">&quot;not a ustar or gnu archive, cannot set dev_major&quot;</span>))
+            <span class="prelude-val">Err</span>(other(<span class="string">&quot;not a ustar or gnu archive, cannot set dev_major&quot;</span>))
         }
     }
 
@@ -2286,11 +2286,11 @@
     /// and correctly decoded, `Ok(None)` indicates that this header format does
     /// not include the device minor number, and `Err` indicates that it was
     /// present and failed to decode.
-    </span><span class="kw">pub fn </span>device_minor(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;<span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>&gt;&gt; {
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(ustar) = <a class="self" href="#647">self</a>.<a href="#214">as_ustar</a>() {
-            <a href="#648">ustar</a>.<a href="#1080">device_minor</a>().map(<span class="prelude-val">Some</span>)
-        } <span class="kw">else if let </span><span class="prelude-val">Some</span>(gnu) = <a class="self" href="#647">self</a>.<a href="#240">as_gnu</a>() {
-            <a href="#650">gnu</a>.<a href="#1189">device_minor</a>().map(<span class="prelude-val">Some</span>)
+    </span><span class="kw">pub fn </span>device_minor(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;<span class="prelude-ty">Option</span>&lt;u32&gt;&gt; {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(ustar) = <span class="self">self</span>.as_ustar() {
+            ustar.device_minor().map(<span class="prelude-val">Some</span>)
+        } <span class="kw">else if let </span><span class="prelude-val">Some</span>(gnu) = <span class="self">self</span>.as_gnu() {
+            gnu.device_minor().map(<span class="prelude-val">Some</span>)
         } <span class="kw">else </span>{
             <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>)
         }
@@ -2300,38 +2300,38 @@
     ///
     /// This function will return an error if this header format cannot encode a
     /// minor device number.
-    </span><span class="kw">pub fn </span>set_device_minor(<span class="kw-2">&amp;mut </span><span class="self">self</span>, minor: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; io::Result&lt;()&gt; {
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(ustar) = <a class="self" href="#661">self</a>.<a href="#223">as_ustar_mut</a>() {
-            <a href="#662">ustar</a>.<a href="#1096">set_device_minor</a>(<a href="#661">minor</a>);
+    </span><span class="kw">pub fn </span>set_device_minor(<span class="kw-2">&amp;mut </span><span class="self">self</span>, minor: u32) -&gt; io::Result&lt;()&gt; {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(ustar) = <span class="self">self</span>.as_ustar_mut() {
+            ustar.set_device_minor(minor);
             <span class="prelude-val">Ok</span>(())
-        } <span class="kw">else if let </span><span class="prelude-val">Some</span>(gnu) = <a class="self" href="#661">self</a>.<a href="#249">as_gnu_mut</a>() {
-            <a href="#665">gnu</a>.<a href="#1205">set_device_minor</a>(<a href="#661">minor</a>);
+        } <span class="kw">else if let </span><span class="prelude-val">Some</span>(gnu) = <span class="self">self</span>.as_gnu_mut() {
+            gnu.set_device_minor(minor);
             <span class="prelude-val">Ok</span>(())
         } <span class="kw">else </span>{
-            <span class="prelude-val">Err</span>(<a href="lib.rs.html#42">other</a>(<span class="string">&quot;not a ustar or gnu archive, cannot set dev_minor&quot;</span>))
+            <span class="prelude-val">Err</span>(other(<span class="string">&quot;not a ustar or gnu archive, cannot set dev_minor&quot;</span>))
         }
     }
 
     <span class="doccomment">/// Returns the type of file described by this header.
-    </span><span class="kw">pub fn </span>entry_type(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="entry_type.rs.html#9">EntryType</a> {
-        EntryType::new(<a class="self" href="#674">self</a>.<a href="#196">as_old</a>().linkflag[<span class="number">0</span>])
+    </span><span class="kw">pub fn </span>entry_type(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; EntryType {
+        EntryType::new(<span class="self">self</span>.as_old().linkflag[<span class="number">0</span>])
     }
 
     <span class="doccomment">/// Sets the type of file that will be described by this header.
-    </span><span class="kw">pub fn </span>set_entry_type(<span class="kw-2">&amp;mut </span><span class="self">self</span>, ty: <a href="entry_type.rs.html#9">EntryType</a>) {
-        <a class="self" href="#679">self</a>.<a href="#201">as_old_mut</a>().linkflag = [<a href="#679">ty</a>.<a href="entry_type.rs.html#70">as_byte</a>()];
+    </span><span class="kw">pub fn </span>set_entry_type(<span class="kw-2">&amp;mut </span><span class="self">self</span>, ty: EntryType) {
+        <span class="self">self</span>.as_old_mut().linkflag = [ty.as_byte()];
     }
 
     <span class="doccomment">/// Returns the checksum field of this header.
     ///
     /// May return an error if the field is corrupted.
-    </span><span class="kw">pub fn </span>cksum(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>&gt; {
-        <a href="#1394">octal_from</a>(<span class="kw-2">&amp;</span><a class="self" href="#686">self</a>.<a href="#196">as_old</a>().cksum)
-            .map(|u| <a href="#688">u</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>)
+    </span><span class="kw">pub fn </span>cksum(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;u32&gt; {
+        octal_from(<span class="kw-2">&amp;</span><span class="self">self</span>.as_old().cksum)
+            .map(|u| u <span class="kw">as </span>u32)
             .map_err(|err| {
                 io::Error::new(
-                    <a href="#689">err</a>.kind(),
-                    <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;{} when getting cksum for {}&quot;</span>, err, <span class="self">self</span>.path_lossy()),
+                    err.kind(),
+                    <span class="macro">format!</span>(<span class="string">&quot;{} when getting cksum for {}&quot;</span>, err, <span class="self">self</span>.path_lossy()),
                 )
             })
     }
@@ -2339,38 +2339,38 @@
     <span class="doccomment">/// Sets the checksum field of this header based on the current fields in
     /// this header.
     </span><span class="kw">pub fn </span>set_cksum(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <span class="kw">let </span>cksum = <a class="self" href="#699">self</a>.<a href="#704">calculate_cksum</a>();
-        <a href="#1411">octal_into</a>(<span class="kw-2">&amp;mut </span><a class="self" href="#699">self</a>.<a href="#201">as_old_mut</a>().cksum, <a href="#700">cksum</a>);
+        <span class="kw">let </span>cksum = <span class="self">self</span>.calculate_cksum();
+        octal_into(<span class="kw-2">&amp;mut </span><span class="self">self</span>.as_old_mut().cksum, cksum);
     }
 
-    <span class="kw">fn </span>calculate_cksum(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
-        <span class="kw">let </span>old = <a class="self" href="#704">self</a>.<a href="#196">as_old</a>();
-        <span class="kw">let </span>start = <a href="#705">old</a> <span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_ as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>;
-        <span class="kw">let </span>cksum_start = <a href="#705">old</a>.cksum.as_ptr() <span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_ as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>;
-        <span class="kw">let </span>offset = <a href="#707">cksum_start</a> - <a href="#706">start</a>;
-        <span class="kw">let </span>len = <a href="#705">old</a>.cksum.len();
-        <a class="self" href="#704">self</a>.bytes[<span class="number">0</span>..<a href="#708">offset</a>]
+    <span class="kw">fn </span>calculate_cksum(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u32 {
+        <span class="kw">let </span>old = <span class="self">self</span>.as_old();
+        <span class="kw">let </span>start = old <span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_ as </span>usize;
+        <span class="kw">let </span>cksum_start = old.cksum.as_ptr() <span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_ as </span>usize;
+        <span class="kw">let </span>offset = cksum_start - start;
+        <span class="kw">let </span>len = old.cksum.len();
+        <span class="self">self</span>.bytes[<span class="number">0</span>..offset]
             .iter()
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">chain</a>(<a href="https://doc.rust-lang.org/nightly/core/iter/sources/repeat/fn.repeat.html">iter::repeat</a>(<span class="kw-2">&amp;</span><span class="string">b&#39; &#39;</span>).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">take</a>(<a href="#709">len</a>))
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">chain</a>(<span class="kw-2">&amp;</span><a class="self" href="#704">self</a>.bytes[<a href="#708">offset</a> + <a href="#709">len</a>..])
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">fold</a>(<span class="number">0</span>, |a, b| <a href="#714">a</a> + (<span class="kw-2">*</span><a href="#714">b</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>))
+            .chain(iter::repeat(<span class="kw-2">&amp;</span><span class="string">b&#39; &#39;</span>).take(len))
+            .chain(<span class="kw-2">&amp;</span><span class="self">self</span>.bytes[offset + len..])
+            .fold(<span class="number">0</span>, |a, b| a + (<span class="kw-2">*</span>b <span class="kw">as </span>u32))
     }
 
-    <span class="kw">fn </span>fill_from(<span class="kw-2">&amp;mut </span><span class="self">self</span>, meta: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/fs/struct.Metadata.html">fs::Metadata</a>, mode: <a href="#30">HeaderMode</a>) {
-        <a class="self" href="#717">self</a>.<a href="#742">fill_platform_from</a>(<a href="#717">meta</a>, <a href="#717">mode</a>);
+    <span class="kw">fn </span>fill_from(<span class="kw-2">&amp;mut </span><span class="self">self</span>, meta: <span class="kw-2">&amp;</span>fs::Metadata, mode: HeaderMode) {
+        <span class="self">self</span>.fill_platform_from(meta, mode);
         <span class="comment">// Set size of directories to zero
-        </span><a class="self" href="#717">self</a>.<a href="#323">set_size</a>(<span class="kw">if </span>meta.is_dir() || meta.file_type().is_symlink() {
+        </span><span class="self">self</span>.set_size(<span class="kw">if </span>meta.is_dir() || meta.file_type().is_symlink() {
             <span class="number">0
         </span>} <span class="kw">else </span>{
-            <a href="#717">meta</a>.len()
+            meta.len()
         });
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(ustar) = <a class="self" href="#717">self</a>.<a href="#223">as_ustar_mut</a>() {
-            <a href="#725">ustar</a>.<a href="#1075">set_device_major</a>(<span class="number">0</span>);
-            <a href="#725">ustar</a>.<a href="#1096">set_device_minor</a>(<span class="number">0</span>);
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(ustar) = <span class="self">self</span>.as_ustar_mut() {
+            ustar.set_device_major(<span class="number">0</span>);
+            ustar.set_device_minor(<span class="number">0</span>);
         }
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(gnu) = <a class="self" href="#717">self</a>.<a href="#249">as_gnu_mut</a>() {
-            <a href="#729">gnu</a>.<a href="#1184">set_device_major</a>(<span class="number">0</span>);
-            <a href="#729">gnu</a>.<a href="#1205">set_device_minor</a>(<span class="number">0</span>);
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(gnu) = <span class="self">self</span>.as_gnu_mut() {
+            gnu.set_device_major(<span class="number">0</span>);
+            gnu.set_device_minor(<span class="number">0</span>);
         }
     }
 
@@ -2381,15 +2381,15 @@
     }
 
     <span class="attr">#[cfg(unix)]
-    </span><span class="kw">fn </span>fill_platform_from(<span class="kw-2">&amp;mut </span><span class="self">self</span>, meta: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/fs/struct.Metadata.html">fs::Metadata</a>, mode: <a href="#30">HeaderMode</a>) {
-        <span class="kw">match </span><a href="#742">mode</a> {
-            <a href="#33">HeaderMode::Complete</a> =&gt; {
-                <a class="self" href="#742">self</a>.<a href="#519">set_mtime</a>(<a href="#742">meta</a>.<a href="https://doc.rust-lang.org/nightly/std/os/unix/fs/trait.MetadataExt.html">mtime</a>() <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>);
-                <a class="self" href="#742">self</a>.<a href="#484">set_uid</a>(<a href="#742">meta</a>.<a href="https://doc.rust-lang.org/nightly/std/os/unix/fs/trait.MetadataExt.html">uid</a>() <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>);
-                <a class="self" href="#742">self</a>.<a href="#501">set_gid</a>(<a href="#742">meta</a>.<a href="https://doc.rust-lang.org/nightly/std/os/unix/fs/trait.MetadataExt.html">gid</a>() <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>);
-                <a class="self" href="#742">self</a>.<a href="#465">set_mode</a>(<a href="#742">meta</a>.<a href="https://doc.rust-lang.org/nightly/std/os/unix/fs/trait.MetadataExt.html">mode</a>() <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>);
+    </span><span class="kw">fn </span>fill_platform_from(<span class="kw-2">&amp;mut </span><span class="self">self</span>, meta: <span class="kw-2">&amp;</span>fs::Metadata, mode: HeaderMode) {
+        <span class="kw">match </span>mode {
+            HeaderMode::Complete =&gt; {
+                <span class="self">self</span>.set_mtime(meta.mtime() <span class="kw">as </span>u64);
+                <span class="self">self</span>.set_uid(meta.uid() <span class="kw">as </span>u64);
+                <span class="self">self</span>.set_gid(meta.gid() <span class="kw">as </span>u64);
+                <span class="self">self</span>.set_mode(meta.mode() <span class="kw">as </span>u32);
             }
-            <a href="#37">HeaderMode::Deterministic</a> =&gt; {
+            HeaderMode::Deterministic =&gt; {
                 <span class="comment">// We could in theory set the mtime to zero here, but not all
                 // tools seem to behave well when ingesting files with a 0
                 // timestamp. For example rust-lang/cargo#9512 shows that lldb
@@ -2399,10 +2399,10 @@
                 // something that isn&#39;t zero. This time, chosen after careful
                 // deliberation, corresponds to Jul 23, 2006 -- the date of the
                 // first commit for what would become Rust.
-                </span><a class="self" href="#742">self</a>.<a href="#519">set_mtime</a>(<span class="number">1153704088</span>);
+                </span><span class="self">self</span>.set_mtime(<span class="number">1153704088</span>);
 
-                <a class="self" href="#742">self</a>.<a href="#484">set_uid</a>(<span class="number">0</span>);
-                <a class="self" href="#742">self</a>.<a href="#501">set_gid</a>(<span class="number">0</span>);
+                <span class="self">self</span>.set_uid(<span class="number">0</span>);
+                <span class="self">self</span>.set_gid(<span class="number">0</span>);
 
                 <span class="comment">// Use a default umask value, but propagate the (user) execute bit.
                 </span><span class="kw">let </span>fs_mode = <span class="kw">if </span>meta.is_dir() || (<span class="number">0o100 </span>&amp; meta.mode() == <span class="number">0o100</span>) {
@@ -2410,7 +2410,7 @@
                 </span>} <span class="kw">else </span>{
                     <span class="number">0o644
                 </span>};
-                <a class="self" href="#742">self</a>.<a href="#465">set_mode</a>(<a href="#766">fs_mode</a>);
+                <span class="self">self</span>.set_mode(fs_mode);
             }
         }
 
@@ -2424,10 +2424,10 @@
         // [1]: https://github.com/alexcrichton/tar-rs/issues/70
 
         // TODO: need to bind more file types
-        </span><a class="self" href="#742">self</a>.<a href="#679">set_entry_type</a>(<a href="#787">entry_type</a>(<a href="#742">meta</a>.<a href="https://doc.rust-lang.org/nightly/std/os/unix/fs/trait.MetadataExt.html">mode</a>()));
+        </span><span class="self">self</span>.set_entry_type(entry_type(meta.mode()));
 
-        <span class="kw">fn </span>entry_type(mode: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; <a href="entry_type.rs.html#9">EntryType</a> {
-            <span class="kw">match </span><a href="#787">mode</a> <span class="kw">as </span>libc::mode_t &amp; libc::S_IFMT {
+        <span class="kw">fn </span>entry_type(mode: u32) -&gt; EntryType {
+            <span class="kw">match </span>mode <span class="kw">as </span>libc::mode_t &amp; libc::S_IFMT {
                 libc::S_IFREG =&gt; EntryType::file(),
                 libc::S_IFLNK =&gt; EntryType::symlink(),
                 libc::S_IFCHR =&gt; EntryType::character_special(),
@@ -2485,136 +2485,136 @@
         });
     }
 
-    <span class="kw">fn </span>debug_fields(<span class="kw-2">&amp;</span><span class="self">self</span>, b: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/fmt/builders/struct.DebugStruct.html">fmt::DebugStruct</a>) {
-        <span class="kw">if let </span><span class="prelude-val">Ok</span>(entry_size) = <a class="self" href="#846">self</a>.<a href="#300">entry_size</a>() {
-            <a href="#846">b</a>.field(<span class="string">&quot;entry_size&quot;</span>, <span class="kw-2">&amp;</span><a href="#847">entry_size</a>);
+    <span class="kw">fn </span>debug_fields(<span class="kw-2">&amp;</span><span class="self">self</span>, b: <span class="kw-2">&amp;mut </span>fmt::DebugStruct) {
+        <span class="kw">if let </span><span class="prelude-val">Ok</span>(entry_size) = <span class="self">self</span>.entry_size() {
+            b.field(<span class="string">&quot;entry_size&quot;</span>, <span class="kw-2">&amp;</span>entry_size);
         }
-        <span class="kw">if let </span><span class="prelude-val">Ok</span>(size) = <a class="self" href="#846">self</a>.<a href="#312">size</a>() {
-            <a href="#846">b</a>.field(<span class="string">&quot;size&quot;</span>, <span class="kw-2">&amp;</span><a href="#850">size</a>);
+        <span class="kw">if let </span><span class="prelude-val">Ok</span>(size) = <span class="self">self</span>.size() {
+            b.field(<span class="string">&quot;size&quot;</span>, <span class="kw-2">&amp;</span>size);
         }
-        <span class="kw">if let </span><span class="prelude-val">Ok</span>(path) = <a class="self" href="#846">self</a>.<a href="#334">path</a>() {
-            <a href="#846">b</a>.field(<span class="string">&quot;path&quot;</span>, <span class="kw-2">&amp;</span><a href="#853">path</a>);
+        <span class="kw">if let </span><span class="prelude-val">Ok</span>(path) = <span class="self">self</span>.path() {
+            b.field(<span class="string">&quot;path&quot;</span>, <span class="kw-2">&amp;</span>path);
         }
-        <span class="kw">if let </span><span class="prelude-val">Ok</span>(link_name) = <a class="self" href="#846">self</a>.<a href="#394">link_name</a>() {
-            <a href="#846">b</a>.field(<span class="string">&quot;link_name&quot;</span>, <span class="kw-2">&amp;</span><a href="#856">link_name</a>);
+        <span class="kw">if let </span><span class="prelude-val">Ok</span>(link_name) = <span class="self">self</span>.link_name() {
+            b.field(<span class="string">&quot;link_name&quot;</span>, <span class="kw-2">&amp;</span>link_name);
         }
-        <span class="kw">if let </span><span class="prelude-val">Ok</span>(mode) = <a class="self" href="#846">self</a>.<a href="#453">mode</a>() {
-            <a href="#846">b</a>.field(<span class="string">&quot;mode&quot;</span>, <span class="kw-2">&amp;</span><a href="#890">DebugAsOctal</a>(<a href="#859">mode</a>));
+        <span class="kw">if let </span><span class="prelude-val">Ok</span>(mode) = <span class="self">self</span>.mode() {
+            b.field(<span class="string">&quot;mode&quot;</span>, <span class="kw-2">&amp;</span>DebugAsOctal(mode));
         }
-        <span class="kw">if let </span><span class="prelude-val">Ok</span>(uid) = <a class="self" href="#846">self</a>.<a href="#472">uid</a>() {
-            <a href="#846">b</a>.field(<span class="string">&quot;uid&quot;</span>, <span class="kw-2">&amp;</span><a href="#862">uid</a>);
+        <span class="kw">if let </span><span class="prelude-val">Ok</span>(uid) = <span class="self">self</span>.uid() {
+            b.field(<span class="string">&quot;uid&quot;</span>, <span class="kw-2">&amp;</span>uid);
         }
-        <span class="kw">if let </span><span class="prelude-val">Ok</span>(gid) = <a class="self" href="#846">self</a>.<a href="#489">gid</a>() {
-            <a href="#846">b</a>.field(<span class="string">&quot;gid&quot;</span>, <span class="kw-2">&amp;</span><a href="#865">gid</a>);
+        <span class="kw">if let </span><span class="prelude-val">Ok</span>(gid) = <span class="self">self</span>.gid() {
+            b.field(<span class="string">&quot;gid&quot;</span>, <span class="kw-2">&amp;</span>gid);
         }
-        <span class="kw">if let </span><span class="prelude-val">Ok</span>(mtime) = <a class="self" href="#846">self</a>.<a href="#506">mtime</a>() {
-            <a href="#846">b</a>.field(<span class="string">&quot;mtime&quot;</span>, <span class="kw-2">&amp;</span><a href="#868">mtime</a>);
+        <span class="kw">if let </span><span class="prelude-val">Ok</span>(mtime) = <span class="self">self</span>.mtime() {
+            b.field(<span class="string">&quot;mtime&quot;</span>, <span class="kw-2">&amp;</span>mtime);
         }
-        <span class="kw">if let </span><span class="prelude-val">Ok</span>(username) = <a class="self" href="#846">self</a>.<a href="#529">username</a>() {
-            <a href="#846">b</a>.field(<span class="string">&quot;username&quot;</span>, <span class="kw-2">&amp;</span><a href="#871">username</a>);
+        <span class="kw">if let </span><span class="prelude-val">Ok</span>(username) = <span class="self">self</span>.username() {
+            b.field(<span class="string">&quot;username&quot;</span>, <span class="kw-2">&amp;</span>username);
         }
-        <span class="kw">if let </span><span class="prelude-val">Ok</span>(groupname) = <a class="self" href="#846">self</a>.<a href="#571">groupname</a>() {
-            <a href="#846">b</a>.field(<span class="string">&quot;groupname&quot;</span>, <span class="kw-2">&amp;</span><a href="#874">groupname</a>);
+        <span class="kw">if let </span><span class="prelude-val">Ok</span>(groupname) = <span class="self">self</span>.groupname() {
+            b.field(<span class="string">&quot;groupname&quot;</span>, <span class="kw-2">&amp;</span>groupname);
         }
-        <span class="kw">if let </span><span class="prelude-val">Ok</span>(device_major) = <a class="self" href="#846">self</a>.<a href="#614">device_major</a>() {
-            <a href="#846">b</a>.field(<span class="string">&quot;device_major&quot;</span>, <span class="kw-2">&amp;</span><a href="#877">device_major</a>);
+        <span class="kw">if let </span><span class="prelude-val">Ok</span>(device_major) = <span class="self">self</span>.device_major() {
+            b.field(<span class="string">&quot;device_major&quot;</span>, <span class="kw-2">&amp;</span>device_major);
         }
-        <span class="kw">if let </span><span class="prelude-val">Ok</span>(device_minor) = <a class="self" href="#846">self</a>.<a href="#647">device_minor</a>() {
-            <a href="#846">b</a>.field(<span class="string">&quot;device_minor&quot;</span>, <span class="kw-2">&amp;</span><a href="#880">device_minor</a>);
+        <span class="kw">if let </span><span class="prelude-val">Ok</span>(device_minor) = <span class="self">self</span>.device_minor() {
+            b.field(<span class="string">&quot;device_minor&quot;</span>, <span class="kw-2">&amp;</span>device_minor);
         }
-        <span class="kw">if let </span><span class="prelude-val">Ok</span>(cksum) = <a class="self" href="#846">self</a>.<a href="#686">cksum</a>() {
-            <a href="#846">b</a>.field(<span class="string">&quot;cksum&quot;</span>, <span class="kw-2">&amp;</span><a href="#883">cksum</a>);
-            <a href="#846">b</a>.field(<span class="string">&quot;cksum_valid&quot;</span>, <span class="kw-2">&amp;</span>(<a href="#883">cksum</a> == <a class="self" href="#846">self</a>.<a href="#704">calculate_cksum</a>()));
+        <span class="kw">if let </span><span class="prelude-val">Ok</span>(cksum) = <span class="self">self</span>.cksum() {
+            b.field(<span class="string">&quot;cksum&quot;</span>, <span class="kw-2">&amp;</span>cksum);
+            b.field(<span class="string">&quot;cksum_valid&quot;</span>, <span class="kw-2">&amp;</span>(cksum == <span class="self">self</span>.calculate_cksum()));
         }
     }
 }
 
 <span class="kw">struct </span>DebugAsOctal&lt;T&gt;(T);
 
-<span class="kw">impl</span>&lt;T: <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Octal.html">fmt::Octal</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span>DebugAsOctal&lt;T&gt; {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Octal.html">fmt::Octal::fmt</a>(<span class="kw-2">&amp;</span><a class="self" href="#893">self</a>.<span class="number">0</span>, <a href="#893">f</a>)
+<span class="kw">impl</span>&lt;T: fmt::Octal&gt; fmt::Debug <span class="kw">for </span>DebugAsOctal&lt;T&gt; {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter) -&gt; fmt::Result {
+        fmt::Octal::fmt(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="number">0</span>, f)
     }
 }
 
 <span class="kw">unsafe fn </span>cast&lt;T, U&gt;(a: <span class="kw-2">&amp;</span>T) -&gt; <span class="kw-2">&amp;</span>U {
-    <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert_eq.html">assert_eq!</a>(mem::size_of_val(a), mem::size_of::&lt;U&gt;());
-    <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert_eq.html">assert_eq!</a>(mem::align_of_val(a), mem::align_of::&lt;U&gt;());
-    <span class="kw-2">&amp;*</span>(<a href="#898">a</a> <span class="kw">as </span><span class="kw-2">*const </span>T <span class="kw">as </span><span class="kw-2">*const </span>U)
+    <span class="macro">assert_eq!</span>(mem::size_of_val(a), mem::size_of::&lt;U&gt;());
+    <span class="macro">assert_eq!</span>(mem::align_of_val(a), mem::align_of::&lt;U&gt;());
+    <span class="kw-2">&amp;*</span>(a <span class="kw">as </span><span class="kw-2">*const </span>T <span class="kw">as </span><span class="kw-2">*const </span>U)
 }
 
 <span class="kw">unsafe fn </span>cast_mut&lt;T, U&gt;(a: <span class="kw-2">&amp;mut </span>T) -&gt; <span class="kw-2">&amp;mut </span>U {
-    <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert_eq.html">assert_eq!</a>(mem::size_of_val(a), mem::size_of::&lt;U&gt;());
-    <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert_eq.html">assert_eq!</a>(mem::align_of_val(a), mem::align_of::&lt;U&gt;());
-    <span class="kw-2">&amp;mut *</span>(<a href="#904">a</a> <span class="kw">as </span><span class="kw-2">*mut </span>T <span class="kw">as </span><span class="kw-2">*mut </span>U)
+    <span class="macro">assert_eq!</span>(mem::size_of_val(a), mem::size_of::&lt;U&gt;());
+    <span class="macro">assert_eq!</span>(mem::align_of_val(a), mem::align_of::&lt;U&gt;());
+    <span class="kw-2">&amp;mut *</span>(a <span class="kw">as </span><span class="kw-2">*mut </span>T <span class="kw">as </span><span class="kw-2">*mut </span>U)
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> <span class="kw">for </span><a href="#22">Header</a> {
-    <span class="kw">fn </span>clone(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="#22">Header</a> {
-        <a href="#22">Header</a> { bytes: <a class="self" href="#911">self</a>.bytes }
+<span class="kw">impl </span>Clone <span class="kw">for </span>Header {
+    <span class="kw">fn </span>clone(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Header {
+        Header { bytes: <span class="self">self</span>.bytes }
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="#22">Header</a> {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(me) = <a class="self" href="#917">self</a>.<a href="#214">as_ustar</a>() {
-            <a href="#918">me</a>.<a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt</a>(<a href="#917">f</a>)
-        } <span class="kw">else if let </span><span class="prelude-val">Some</span>(me) = <a class="self" href="#917">self</a>.<a href="#240">as_gnu</a>() {
-            <a href="#920">me</a>.<a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt</a>(<a href="#917">f</a>)
+<span class="kw">impl </span>fmt::Debug <span class="kw">for </span>Header {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter) -&gt; fmt::Result {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(me) = <span class="self">self</span>.as_ustar() {
+            me.fmt(f)
+        } <span class="kw">else if let </span><span class="prelude-val">Some</span>(me) = <span class="self">self</span>.as_gnu() {
+            me.fmt(f)
         } <span class="kw">else </span>{
-            <a class="self" href="#917">self</a>.<a href="#196">as_old</a>().<a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt</a>(<a href="#917">f</a>)
+            <span class="self">self</span>.as_old().fmt(f)
         }
     }
 }
 
-<span class="kw">impl </span><a href="#43">OldHeader</a> {
+<span class="kw">impl </span>OldHeader {
     <span class="doccomment">/// Views this as a normal `Header`
-    </span><span class="kw">pub fn </span>as_header(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="#22">Header</a> {
-        <span class="kw">unsafe </span>{ <a href="#898">cast</a>(<a class="self" href="#930">self</a>) }
+    </span><span class="kw">pub fn </span>as_header(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Header {
+        <span class="kw">unsafe </span>{ cast(<span class="self">self</span>) }
     }
 
     <span class="doccomment">/// Views this as a normal `Header`
-    </span><span class="kw">pub fn </span>as_header_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span><a href="#22">Header</a> {
-        <span class="kw">unsafe </span>{ <a href="#904">cast_mut</a>(<a class="self" href="#935">self</a>) }
+    </span><span class="kw">pub fn </span>as_header_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>Header {
+        <span class="kw">unsafe </span>{ cast_mut(<span class="self">self</span>) }
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="#43">OldHeader</a> {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <span class="kw">let </span><span class="kw-2">mut </span>f = <a href="#941">f</a>.debug_struct(<span class="string">&quot;OldHeader&quot;</span>);
-        <a class="self" href="#941">self</a>.<a href="#930">as_header</a>().<a href="#846">debug_fields</a>(<span class="kw-2">&amp;mut </span><a href="#942">f</a>);
-        <a href="#942">f</a>.finish()
+<span class="kw">impl </span>fmt::Debug <span class="kw">for </span>OldHeader {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter) -&gt; fmt::Result {
+        <span class="kw">let </span><span class="kw-2">mut </span>f = f.debug_struct(<span class="string">&quot;OldHeader&quot;</span>);
+        <span class="self">self</span>.as_header().debug_fields(<span class="kw-2">&amp;mut </span>f);
+        f.finish()
     }
 }
 
-<span class="kw">impl </span><a href="#59">UstarHeader</a> {
+<span class="kw">impl </span>UstarHeader {
     <span class="doccomment">/// See `Header::path_bytes`
-    </span><span class="kw">pub fn </span>path_bytes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Cow&lt;[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt; {
+    </span><span class="kw">pub fn </span>path_bytes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Cow&lt;[u8]&gt; {
         <span class="kw">if </span><span class="self">self</span>.prefix[<span class="number">0</span>] == <span class="number">0 </span>&amp;&amp; !<span class="self">self</span>.name.contains(<span class="kw-2">&amp;</span><span class="string">b&#39;\\&#39;</span>) {
-            Cow::Borrowed(<a href="#1472">truncate</a>(<span class="kw-2">&amp;</span><a class="self" href="#950">self</a>.name))
+            Cow::Borrowed(truncate(<span class="kw-2">&amp;</span><span class="self">self</span>.name))
         } <span class="kw">else </span>{
             <span class="kw">let </span><span class="kw-2">mut </span>bytes = Vec::new();
-            <span class="kw">let </span>prefix = <a href="#1472">truncate</a>(<span class="kw-2">&amp;</span><a class="self" href="#950">self</a>.prefix);
+            <span class="kw">let </span>prefix = truncate(<span class="kw-2">&amp;</span><span class="self">self</span>.prefix);
             <span class="kw">if </span>!prefix.is_empty() {
-                <a href="#954">bytes</a>.extend_from_slice(<a href="#955">prefix</a>);
-                <a href="#954">bytes</a>.push(<span class="string">b&#39;/&#39;</span>);
+                bytes.extend_from_slice(prefix);
+                bytes.push(<span class="string">b&#39;/&#39;</span>);
             }
-            <a href="#954">bytes</a>.extend_from_slice(<a href="#1472">truncate</a>(<span class="kw-2">&amp;</span><a class="self" href="#950">self</a>.name));
-            Cow::Owned(<a href="#954">bytes</a>)
+            bytes.extend_from_slice(truncate(<span class="kw-2">&amp;</span><span class="self">self</span>.name));
+            Cow::Owned(bytes)
         }
     }
 
     <span class="doccomment">/// Gets the path in a &quot;lossy&quot; way, used for error reporting ONLY.
-    </span><span class="kw">fn </span>path_lossy(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a> {
-        String::from_utf8_lossy(<span class="kw-2">&amp;</span><a class="self" href="#966">self</a>.<a href="#950">path_bytes</a>()).<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>()
+    </span><span class="kw">fn </span>path_lossy(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; String {
+        String::from_utf8_lossy(<span class="kw-2">&amp;</span><span class="self">self</span>.path_bytes()).to_string()
     }
 
     <span class="doccomment">/// See `Header::set_path`
-    </span><span class="kw">pub fn </span>set_path&lt;P: AsRef&lt;<a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>&gt;&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, p: P) -&gt; io::Result&lt;()&gt; {
-        <a class="self" href="#971">self</a>.<a href="#975">_set_path</a>(<a href="#971">p</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>())
+    </span><span class="kw">pub fn </span>set_path&lt;P: AsRef&lt;Path&gt;&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, p: P) -&gt; io::Result&lt;()&gt; {
+        <span class="self">self</span>._set_path(p.as_ref())
     }
 
-    <span class="kw">fn </span>_set_path(<span class="kw-2">&amp;mut </span><span class="self">self</span>, path: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>) -&gt; io::Result&lt;()&gt; {
+    <span class="kw">fn </span>_set_path(<span class="kw-2">&amp;mut </span><span class="self">self</span>, path: <span class="kw-2">&amp;</span>Path) -&gt; io::Result&lt;()&gt; {
         <span class="comment">// This can probably be optimized quite a bit more, but for now just do
         // something that&#39;s relatively easy and readable.
         //
@@ -2624,7 +2624,7 @@
         // enough until the path fits in `prefix`, then we try to put both
         // halves into their destination.
         </span><span class="kw">let </span>bytes = path2bytes(path)<span class="question-mark">?</span>;
-        <span class="kw">let </span>(maxnamelen, maxprefixlen) = (<a class="self" href="#975">self</a>.name.len(), <a class="self" href="#975">self</a>.prefix.len());
+        <span class="kw">let </span>(maxnamelen, maxprefixlen) = (<span class="self">self</span>.name.len(), <span class="self">self</span>.prefix.len());
         <span class="kw">if </span>bytes.len() &lt;= maxnamelen {
             copy_path_into(<span class="kw-2">&amp;mut </span><span class="self">self</span>.name, path, <span class="bool-val">false</span>).map_err(|err| {
                 io::Error::new(
@@ -2633,19 +2633,19 @@
                 )
             })<span class="question-mark">?</span>;
         } <span class="kw">else </span>{
-            <span class="kw">let </span><span class="kw-2">mut </span>prefix = <a href="#975">path</a>;
+            <span class="kw">let </span><span class="kw-2">mut </span>prefix = path;
             <span class="kw">let </span><span class="kw-2">mut </span>prefixlen;
             <span class="kw">loop </span>{
-                <span class="kw">match </span><a href="#994">prefix</a>.parent() {
-                    <span class="prelude-val">Some</span>(parent) =&gt; <a href="#994">prefix</a> = <a href="#998">parent</a>,
+                <span class="kw">match </span>prefix.parent() {
+                    <span class="prelude-val">Some</span>(parent) =&gt; prefix = parent,
                     <span class="prelude-val">None </span>=&gt; {
-                        <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="lib.rs.html#42">other</a>(<span class="kw-2">&amp;</span><a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(
+                        <span class="kw">return </span><span class="prelude-val">Err</span>(other(<span class="kw-2">&amp;</span><span class="macro">format!</span>(
                             <span class="string">&quot;path cannot be split to be inserted into archive: {}&quot;</span>,
                             path.display()
                         )));
                     }
                 }
-                <a href="#995">prefixlen</a> = path2bytes(prefix)<span class="question-mark">?</span>.len();
+                prefixlen = path2bytes(prefix)<span class="question-mark">?</span>.len();
                 <span class="kw">if </span>prefixlen &lt;= maxprefixlen {
                     <span class="kw">break</span>;
                 }
@@ -2668,43 +2668,43 @@
     }
 
     <span class="doccomment">/// See `Header::username_bytes`
-    </span><span class="kw">pub fn </span>username_bytes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>] {
-        <a href="#1472">truncate</a>(<span class="kw-2">&amp;</span><a class="self" href="#1029">self</a>.uname)
+    </span><span class="kw">pub fn </span>username_bytes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[u8] {
+        truncate(<span class="kw-2">&amp;</span><span class="self">self</span>.uname)
     }
 
     <span class="doccomment">/// See `Header::set_username`
-    </span><span class="kw">pub fn </span>set_username(<span class="kw-2">&amp;mut </span><span class="self">self</span>, name: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; io::Result&lt;()&gt; {
-        <a href="#1481">copy_into</a>(<span class="kw-2">&amp;mut </span><a class="self" href="#1034">self</a>.uname, <a href="#1034">name</a>.as_bytes()).map_err(|err| {
+    </span><span class="kw">pub fn </span>set_username(<span class="kw-2">&amp;mut </span><span class="self">self</span>, name: <span class="kw-2">&amp;</span>str) -&gt; io::Result&lt;()&gt; {
+        copy_into(<span class="kw-2">&amp;mut </span><span class="self">self</span>.uname, name.as_bytes()).map_err(|err| {
             io::Error::new(
-                <a href="#1035">err</a>.kind(),
-                <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;{} when setting username for {}&quot;</span>, err, <span class="self">self</span>.path_lossy()),
+                err.kind(),
+                <span class="macro">format!</span>(<span class="string">&quot;{} when setting username for {}&quot;</span>, err, <span class="self">self</span>.path_lossy()),
             )
         })
     }
 
     <span class="doccomment">/// See `Header::groupname_bytes`
-    </span><span class="kw">pub fn </span>groupname_bytes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>] {
-        <a href="#1472">truncate</a>(<span class="kw-2">&amp;</span><a class="self" href="#1044">self</a>.gname)
+    </span><span class="kw">pub fn </span>groupname_bytes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[u8] {
+        truncate(<span class="kw-2">&amp;</span><span class="self">self</span>.gname)
     }
 
     <span class="doccomment">/// See `Header::set_groupname`
-    </span><span class="kw">pub fn </span>set_groupname(<span class="kw-2">&amp;mut </span><span class="self">self</span>, name: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; io::Result&lt;()&gt; {
-        <a href="#1481">copy_into</a>(<span class="kw-2">&amp;mut </span><a class="self" href="#1049">self</a>.gname, <a href="#1049">name</a>.as_bytes()).map_err(|err| {
+    </span><span class="kw">pub fn </span>set_groupname(<span class="kw-2">&amp;mut </span><span class="self">self</span>, name: <span class="kw-2">&amp;</span>str) -&gt; io::Result&lt;()&gt; {
+        copy_into(<span class="kw-2">&amp;mut </span><span class="self">self</span>.gname, name.as_bytes()).map_err(|err| {
             io::Error::new(
-                <a href="#1050">err</a>.kind(),
-                <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;{} when setting groupname for {}&quot;</span>, err, <span class="self">self</span>.path_lossy()),
+                err.kind(),
+                <span class="macro">format!</span>(<span class="string">&quot;{} when setting groupname for {}&quot;</span>, err, <span class="self">self</span>.path_lossy()),
             )
         })
     }
 
     <span class="doccomment">/// See `Header::device_major`
-    </span><span class="kw">pub fn </span>device_major(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>&gt; {
-        <a href="#1394">octal_from</a>(<span class="kw-2">&amp;</span><a class="self" href="#1059">self</a>.dev_major)
-            .map(|u| <a href="#1061">u</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>)
+    </span><span class="kw">pub fn </span>device_major(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;u32&gt; {
+        octal_from(<span class="kw-2">&amp;</span><span class="self">self</span>.dev_major)
+            .map(|u| u <span class="kw">as </span>u32)
             .map_err(|err| {
                 io::Error::new(
-                    <a href="#1062">err</a>.kind(),
-                    <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(
+                    err.kind(),
+                    <span class="macro">format!</span>(
                         <span class="string">&quot;{} when getting device_major for {}&quot;</span>,
                         err,
                         <span class="self">self</span>.path_lossy()
@@ -2714,18 +2714,18 @@
     }
 
     <span class="doccomment">/// See `Header::set_device_major`
-    </span><span class="kw">pub fn </span>set_device_major(<span class="kw-2">&amp;mut </span><span class="self">self</span>, major: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) {
-        <a href="#1411">octal_into</a>(<span class="kw-2">&amp;mut </span><a class="self" href="#1075">self</a>.dev_major, <a href="#1075">major</a>);
+    </span><span class="kw">pub fn </span>set_device_major(<span class="kw-2">&amp;mut </span><span class="self">self</span>, major: u32) {
+        octal_into(<span class="kw-2">&amp;mut </span><span class="self">self</span>.dev_major, major);
     }
 
     <span class="doccomment">/// See `Header::device_minor`
-    </span><span class="kw">pub fn </span>device_minor(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>&gt; {
-        <a href="#1394">octal_from</a>(<span class="kw-2">&amp;</span><a class="self" href="#1080">self</a>.dev_minor)
-            .map(|u| <a href="#1082">u</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>)
+    </span><span class="kw">pub fn </span>device_minor(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;u32&gt; {
+        octal_from(<span class="kw-2">&amp;</span><span class="self">self</span>.dev_minor)
+            .map(|u| u <span class="kw">as </span>u32)
             .map_err(|err| {
                 io::Error::new(
-                    <a href="#1083">err</a>.kind(),
-                    <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(
+                    err.kind(),
+                    <span class="macro">format!</span>(
                         <span class="string">&quot;{} when getting device_minor for {}&quot;</span>,
                         err,
                         <span class="self">self</span>.path_lossy()
@@ -2735,38 +2735,38 @@
     }
 
     <span class="doccomment">/// See `Header::set_device_minor`
-    </span><span class="kw">pub fn </span>set_device_minor(<span class="kw-2">&amp;mut </span><span class="self">self</span>, minor: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) {
-        <a href="#1411">octal_into</a>(<span class="kw-2">&amp;mut </span><a class="self" href="#1096">self</a>.dev_minor, <a href="#1096">minor</a>);
+    </span><span class="kw">pub fn </span>set_device_minor(<span class="kw-2">&amp;mut </span><span class="self">self</span>, minor: u32) {
+        octal_into(<span class="kw-2">&amp;mut </span><span class="self">self</span>.dev_minor, minor);
     }
 
     <span class="doccomment">/// Views this as a normal `Header`
-    </span><span class="kw">pub fn </span>as_header(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="#22">Header</a> {
-        <span class="kw">unsafe </span>{ <a href="#898">cast</a>(<a class="self" href="#1101">self</a>) }
+    </span><span class="kw">pub fn </span>as_header(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Header {
+        <span class="kw">unsafe </span>{ cast(<span class="self">self</span>) }
     }
 
     <span class="doccomment">/// Views this as a normal `Header`
-    </span><span class="kw">pub fn </span>as_header_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span><a href="#22">Header</a> {
-        <span class="kw">unsafe </span>{ <a href="#904">cast_mut</a>(<a class="self" href="#1106">self</a>) }
+    </span><span class="kw">pub fn </span>as_header_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>Header {
+        <span class="kw">unsafe </span>{ cast_mut(<span class="self">self</span>) }
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="#59">UstarHeader</a> {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <span class="kw">let </span><span class="kw-2">mut </span>f = <a href="#1112">f</a>.debug_struct(<span class="string">&quot;UstarHeader&quot;</span>);
-        <a class="self" href="#1112">self</a>.<a href="#1101">as_header</a>().<a href="#846">debug_fields</a>(<span class="kw-2">&amp;mut </span><a href="#1113">f</a>);
-        <a href="#1113">f</a>.finish()
+<span class="kw">impl </span>fmt::Debug <span class="kw">for </span>UstarHeader {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter) -&gt; fmt::Result {
+        <span class="kw">let </span><span class="kw-2">mut </span>f = f.debug_struct(<span class="string">&quot;UstarHeader&quot;</span>);
+        <span class="self">self</span>.as_header().debug_fields(<span class="kw-2">&amp;mut </span>f);
+        f.finish()
     }
 }
 
-<span class="kw">impl </span><a href="#84">GnuHeader</a> {
+<span class="kw">impl </span>GnuHeader {
     <span class="doccomment">/// See `Header::username_bytes`
-    </span><span class="kw">pub fn </span>username_bytes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>] {
-        <a href="#1472">truncate</a>(<span class="kw-2">&amp;</span><a class="self" href="#1121">self</a>.uname)
+    </span><span class="kw">pub fn </span>username_bytes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[u8] {
+        truncate(<span class="kw-2">&amp;</span><span class="self">self</span>.uname)
     }
 
     <span class="doccomment">/// Gets the fullname (group:user) in a &quot;lossy&quot; way, used for error reporting ONLY.
-    </span><span class="kw">fn </span>fullname_lossy(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a> {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(
+    </span><span class="kw">fn </span>fullname_lossy(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; String {
+        <span class="macro">format!</span>(
             <span class="string">&quot;{}:{}&quot;</span>,
             String::from_utf8_lossy(<span class="self">self</span>.groupname_bytes()),
             String::from_utf8_lossy(<span class="self">self</span>.username_bytes()),
@@ -2774,11 +2774,11 @@
     }
 
     <span class="doccomment">/// See `Header::set_username`
-    </span><span class="kw">pub fn </span>set_username(<span class="kw-2">&amp;mut </span><span class="self">self</span>, name: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; io::Result&lt;()&gt; {
-        <a href="#1481">copy_into</a>(<span class="kw-2">&amp;mut </span><a class="self" href="#1135">self</a>.uname, <a href="#1135">name</a>.as_bytes()).map_err(|err| {
+    </span><span class="kw">pub fn </span>set_username(<span class="kw-2">&amp;mut </span><span class="self">self</span>, name: <span class="kw-2">&amp;</span>str) -&gt; io::Result&lt;()&gt; {
+        copy_into(<span class="kw-2">&amp;mut </span><span class="self">self</span>.uname, name.as_bytes()).map_err(|err| {
             io::Error::new(
-                <a href="#1136">err</a>.kind(),
-                <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(
+                err.kind(),
+                <span class="macro">format!</span>(
                     <span class="string">&quot;{} when setting username for {}&quot;</span>,
                     err,
                     <span class="self">self</span>.fullname_lossy()
@@ -2788,16 +2788,16 @@
     }
 
     <span class="doccomment">/// See `Header::groupname_bytes`
-    </span><span class="kw">pub fn </span>groupname_bytes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>] {
-        <a href="#1472">truncate</a>(<span class="kw-2">&amp;</span><a class="self" href="#1149">self</a>.gname)
+    </span><span class="kw">pub fn </span>groupname_bytes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[u8] {
+        truncate(<span class="kw-2">&amp;</span><span class="self">self</span>.gname)
     }
 
     <span class="doccomment">/// See `Header::set_groupname`
-    </span><span class="kw">pub fn </span>set_groupname(<span class="kw-2">&amp;mut </span><span class="self">self</span>, name: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; io::Result&lt;()&gt; {
-        <a href="#1481">copy_into</a>(<span class="kw-2">&amp;mut </span><a class="self" href="#1154">self</a>.gname, <a href="#1154">name</a>.as_bytes()).map_err(|err| {
+    </span><span class="kw">pub fn </span>set_groupname(<span class="kw-2">&amp;mut </span><span class="self">self</span>, name: <span class="kw-2">&amp;</span>str) -&gt; io::Result&lt;()&gt; {
+        copy_into(<span class="kw-2">&amp;mut </span><span class="self">self</span>.gname, name.as_bytes()).map_err(|err| {
             io::Error::new(
-                <a href="#1155">err</a>.kind(),
-                <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(
+                err.kind(),
+                <span class="macro">format!</span>(
                     <span class="string">&quot;{} when setting groupname for {}&quot;</span>,
                     err,
                     <span class="self">self</span>.fullname_lossy()
@@ -2807,13 +2807,13 @@
     }
 
     <span class="doccomment">/// See `Header::device_major`
-    </span><span class="kw">pub fn </span>device_major(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>&gt; {
-        <a href="#1394">octal_from</a>(<span class="kw-2">&amp;</span><a class="self" href="#1168">self</a>.dev_major)
-            .map(|u| <a href="#1170">u</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>)
+    </span><span class="kw">pub fn </span>device_major(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;u32&gt; {
+        octal_from(<span class="kw-2">&amp;</span><span class="self">self</span>.dev_major)
+            .map(|u| u <span class="kw">as </span>u32)
             .map_err(|err| {
                 io::Error::new(
-                    <a href="#1171">err</a>.kind(),
-                    <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(
+                    err.kind(),
+                    <span class="macro">format!</span>(
                         <span class="string">&quot;{} when getting device_major for {}&quot;</span>,
                         err,
                         <span class="self">self</span>.fullname_lossy()
@@ -2823,18 +2823,18 @@
     }
 
     <span class="doccomment">/// See `Header::set_device_major`
-    </span><span class="kw">pub fn </span>set_device_major(<span class="kw-2">&amp;mut </span><span class="self">self</span>, major: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) {
-        <a href="#1411">octal_into</a>(<span class="kw-2">&amp;mut </span><a class="self" href="#1184">self</a>.dev_major, <a href="#1184">major</a>);
+    </span><span class="kw">pub fn </span>set_device_major(<span class="kw-2">&amp;mut </span><span class="self">self</span>, major: u32) {
+        octal_into(<span class="kw-2">&amp;mut </span><span class="self">self</span>.dev_major, major);
     }
 
     <span class="doccomment">/// See `Header::device_minor`
-    </span><span class="kw">pub fn </span>device_minor(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>&gt; {
-        <a href="#1394">octal_from</a>(<span class="kw-2">&amp;</span><a class="self" href="#1189">self</a>.dev_minor)
-            .map(|u| <a href="#1191">u</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>)
+    </span><span class="kw">pub fn </span>device_minor(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;u32&gt; {
+        octal_from(<span class="kw-2">&amp;</span><span class="self">self</span>.dev_minor)
+            .map(|u| u <span class="kw">as </span>u32)
             .map_err(|err| {
                 io::Error::new(
-                    <a href="#1192">err</a>.kind(),
-                    <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(
+                    err.kind(),
+                    <span class="macro">format!</span>(
                         <span class="string">&quot;{} when getting device_minor for {}&quot;</span>,
                         err,
                         <span class="self">self</span>.fullname_lossy()
@@ -2844,16 +2844,16 @@
     }
 
     <span class="doccomment">/// See `Header::set_device_minor`
-    </span><span class="kw">pub fn </span>set_device_minor(<span class="kw-2">&amp;mut </span><span class="self">self</span>, minor: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) {
-        <a href="#1411">octal_into</a>(<span class="kw-2">&amp;mut </span><a class="self" href="#1205">self</a>.dev_minor, <a href="#1205">minor</a>);
+    </span><span class="kw">pub fn </span>set_device_minor(<span class="kw-2">&amp;mut </span><span class="self">self</span>, minor: u32) {
+        octal_into(<span class="kw-2">&amp;mut </span><span class="self">self</span>.dev_minor, minor);
     }
 
     <span class="doccomment">/// Returns the last modification time in Unix time format
-    </span><span class="kw">pub fn </span>atime(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>&gt; {
-        <a href="#1431">num_field_wrapper_from</a>(<span class="kw-2">&amp;</span><a class="self" href="#1210">self</a>.atime).map_err(|err| {
+    </span><span class="kw">pub fn </span>atime(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;u64&gt; {
+        num_field_wrapper_from(<span class="kw-2">&amp;</span><span class="self">self</span>.atime).map_err(|err| {
             io::Error::new(
-                <a href="#1211">err</a>.kind(),
-                <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;{} when getting atime for {}&quot;</span>, err, <span class="self">self</span>.fullname_lossy()),
+                err.kind(),
+                <span class="macro">format!</span>(<span class="string">&quot;{} when getting atime for {}&quot;</span>, err, <span class="self">self</span>.fullname_lossy()),
             )
         })
     }
@@ -2862,16 +2862,16 @@
     ///
     /// Note that this time is typically a number of seconds passed since
     /// January 1, 1970.
-    </span><span class="kw">pub fn </span>set_atime(<span class="kw-2">&amp;mut </span><span class="self">self</span>, atime: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) {
-        <a href="#1421">num_field_wrapper_into</a>(<span class="kw-2">&amp;mut </span><a class="self" href="#1223">self</a>.atime, <a href="#1223">atime</a>);
+    </span><span class="kw">pub fn </span>set_atime(<span class="kw-2">&amp;mut </span><span class="self">self</span>, atime: u64) {
+        num_field_wrapper_into(<span class="kw-2">&amp;mut </span><span class="self">self</span>.atime, atime);
     }
 
     <span class="doccomment">/// Returns the last modification time in Unix time format
-    </span><span class="kw">pub fn </span>ctime(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>&gt; {
-        <a href="#1431">num_field_wrapper_from</a>(<span class="kw-2">&amp;</span><a class="self" href="#1228">self</a>.ctime).map_err(|err| {
+    </span><span class="kw">pub fn </span>ctime(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;u64&gt; {
+        num_field_wrapper_from(<span class="kw-2">&amp;</span><span class="self">self</span>.ctime).map_err(|err| {
             io::Error::new(
-                <a href="#1229">err</a>.kind(),
-                <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;{} when getting ctime for {}&quot;</span>, err, <span class="self">self</span>.fullname_lossy()),
+                err.kind(),
+                <span class="macro">format!</span>(<span class="string">&quot;{} when getting ctime for {}&quot;</span>, err, <span class="self">self</span>.fullname_lossy()),
             )
         })
     }
@@ -2880,19 +2880,19 @@
     ///
     /// Note that this time is typically a number of seconds passed since
     /// January 1, 1970.
-    </span><span class="kw">pub fn </span>set_ctime(<span class="kw-2">&amp;mut </span><span class="self">self</span>, ctime: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) {
-        <a href="#1421">num_field_wrapper_into</a>(<span class="kw-2">&amp;mut </span><a class="self" href="#1241">self</a>.ctime, <a href="#1241">ctime</a>);
+    </span><span class="kw">pub fn </span>set_ctime(<span class="kw-2">&amp;mut </span><span class="self">self</span>, ctime: u64) {
+        num_field_wrapper_into(<span class="kw-2">&amp;mut </span><span class="self">self</span>.ctime, ctime);
     }
 
     <span class="doccomment">/// Returns the &quot;real size&quot; of the file this header represents.
     ///
     /// This is applicable for sparse files where the returned size here is the
     /// size of the entire file after the sparse regions have been filled in.
-    </span><span class="kw">pub fn </span>real_size(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>&gt; {
-        <a href="#1394">octal_from</a>(<span class="kw-2">&amp;</span><a class="self" href="#1249">self</a>.realsize).map_err(|err| {
+    </span><span class="kw">pub fn </span>real_size(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;u64&gt; {
+        octal_from(<span class="kw-2">&amp;</span><span class="self">self</span>.realsize).map_err(|err| {
             io::Error::new(
-                <a href="#1250">err</a>.kind(),
-                <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(
+                err.kind(),
+                <span class="macro">format!</span>(
                     <span class="string">&quot;{} when getting real_size for {}&quot;</span>,
                     err,
                     <span class="self">self</span>.fullname_lossy()
@@ -2906,65 +2906,65 @@
     ///
     /// Note that this is handled internally by this library, and is likely only
     /// interesting if a `raw` iterator is being used.
-    </span><span class="kw">pub fn </span>is_extended(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#1267">self</a>.isextended[<span class="number">0</span>] == <span class="number">1
+    </span><span class="kw">pub fn </span>is_extended(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.isextended[<span class="number">0</span>] == <span class="number">1
     </span>}
 
     <span class="doccomment">/// Views this as a normal `Header`
-    </span><span class="kw">pub fn </span>as_header(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="#22">Header</a> {
-        <span class="kw">unsafe </span>{ <a href="#898">cast</a>(<a class="self" href="#1272">self</a>) }
+    </span><span class="kw">pub fn </span>as_header(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Header {
+        <span class="kw">unsafe </span>{ cast(<span class="self">self</span>) }
     }
 
     <span class="doccomment">/// Views this as a normal `Header`
-    </span><span class="kw">pub fn </span>as_header_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span><a href="#22">Header</a> {
-        <span class="kw">unsafe </span>{ <a href="#904">cast_mut</a>(<a class="self" href="#1277">self</a>) }
+    </span><span class="kw">pub fn </span>as_header_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>Header {
+        <span class="kw">unsafe </span>{ cast_mut(<span class="self">self</span>) }
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="#84">GnuHeader</a> {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <span class="kw">let </span><span class="kw-2">mut </span>f = <a href="#1283">f</a>.debug_struct(<span class="string">&quot;GnuHeader&quot;</span>);
-        <a class="self" href="#1283">self</a>.<a href="#1272">as_header</a>().<a href="#846">debug_fields</a>(<span class="kw-2">&amp;mut </span><a href="#1284">f</a>);
-        <span class="kw">if let </span><span class="prelude-val">Ok</span>(atime) = <a class="self" href="#1283">self</a>.<a href="#1210">atime</a>() {
-            <a href="#1284">f</a>.field(<span class="string">&quot;atime&quot;</span>, <span class="kw-2">&amp;</span><a href="#1286">atime</a>);
+<span class="kw">impl </span>fmt::Debug <span class="kw">for </span>GnuHeader {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter) -&gt; fmt::Result {
+        <span class="kw">let </span><span class="kw-2">mut </span>f = f.debug_struct(<span class="string">&quot;GnuHeader&quot;</span>);
+        <span class="self">self</span>.as_header().debug_fields(<span class="kw-2">&amp;mut </span>f);
+        <span class="kw">if let </span><span class="prelude-val">Ok</span>(atime) = <span class="self">self</span>.atime() {
+            f.field(<span class="string">&quot;atime&quot;</span>, <span class="kw-2">&amp;</span>atime);
         }
-        <span class="kw">if let </span><span class="prelude-val">Ok</span>(ctime) = <a class="self" href="#1283">self</a>.<a href="#1228">ctime</a>() {
-            <a href="#1284">f</a>.field(<span class="string">&quot;ctime&quot;</span>, <span class="kw-2">&amp;</span><a href="#1289">ctime</a>);
+        <span class="kw">if let </span><span class="prelude-val">Ok</span>(ctime) = <span class="self">self</span>.ctime() {
+            f.field(<span class="string">&quot;ctime&quot;</span>, <span class="kw-2">&amp;</span>ctime);
         }
-        <a href="#1284">f</a>.field(<span class="string">&quot;is_extended&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="#1283">self</a>.<a href="#1267">is_extended</a>())
-            .field(<span class="string">&quot;sparse&quot;</span>, <span class="kw-2">&amp;</span><a href="#1298">DebugSparseHeaders</a>(<span class="kw-2">&amp;</span><a class="self" href="#1283">self</a>.sparse))
+        f.field(<span class="string">&quot;is_extended&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.is_extended())
+            .field(<span class="string">&quot;sparse&quot;</span>, <span class="kw-2">&amp;</span>DebugSparseHeaders(<span class="kw-2">&amp;</span><span class="self">self</span>.sparse))
             .finish()
     }
 }
 
-<span class="kw">struct </span>DebugSparseHeaders&lt;<span class="lifetime">&#39;a</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[<a href="#118">GnuSparseHeader</a>]);
+<span class="kw">struct </span>DebugSparseHeaders&lt;<span class="lifetime">&#39;a</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[GnuSparseHeader]);
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span>DebugSparseHeaders&lt;<span class="lifetime">&#39;a</span>&gt; {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <span class="kw">let </span><span class="kw-2">mut </span>f = <a href="#1301">f</a>.debug_list();
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; fmt::Debug <span class="kw">for </span>DebugSparseHeaders&lt;<span class="lifetime">&#39;a</span>&gt; {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter) -&gt; fmt::Result {
+        <span class="kw">let </span><span class="kw-2">mut </span>f = f.debug_list();
         <span class="kw">for </span>header <span class="kw">in </span><span class="self">self</span>.<span class="number">0 </span>{
             <span class="kw">if </span>!header.is_empty() {
                 f.entry(header);
             }
         }
-        <a href="#1302">f</a>.finish()
+        f.finish()
     }
 }
 
-<span class="kw">impl </span><a href="#118">GnuSparseHeader</a> {
+<span class="kw">impl </span>GnuSparseHeader {
     <span class="doccomment">/// Returns true if block is empty
-    </span><span class="kw">pub fn </span>is_empty(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#1314">self</a>.offset[<span class="number">0</span>] == <span class="number">0 </span>|| <a class="self" href="#1314">self</a>.numbytes[<span class="number">0</span>] == <span class="number">0
+    </span><span class="kw">pub fn </span>is_empty(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.offset[<span class="number">0</span>] == <span class="number">0 </span>|| <span class="self">self</span>.numbytes[<span class="number">0</span>] == <span class="number">0
     </span>}
 
     <span class="doccomment">/// Offset of the block from the start of the file
     ///
     /// Returns `Err` for a malformed `offset` field.
-    </span><span class="kw">pub fn </span>offset(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>&gt; {
-        <a href="#1394">octal_from</a>(<span class="kw-2">&amp;</span><a class="self" href="#1321">self</a>.offset).map_err(|err| {
+    </span><span class="kw">pub fn </span>offset(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;u64&gt; {
+        octal_from(<span class="kw-2">&amp;</span><span class="self">self</span>.offset).map_err(|err| {
             io::Error::new(
-                <a href="#1322">err</a>.kind(),
-                <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;{} when getting offset from sparse header&quot;</span>, err),
+                err.kind(),
+                <span class="macro">format!</span>(<span class="string">&quot;{} when getting offset from sparse header&quot;</span>, err),
             )
         })
     }
@@ -2972,87 +2972,87 @@
     <span class="doccomment">/// Length of the block
     ///
     /// Returns `Err` for a malformed `numbytes` field.
-    </span><span class="kw">pub fn </span>length(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>&gt; {
-        <a href="#1394">octal_from</a>(<span class="kw-2">&amp;</span><a class="self" href="#1333">self</a>.numbytes).map_err(|err| {
+    </span><span class="kw">pub fn </span>length(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;u64&gt; {
+        octal_from(<span class="kw-2">&amp;</span><span class="self">self</span>.numbytes).map_err(|err| {
             io::Error::new(
-                <a href="#1334">err</a>.kind(),
-                <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;{} when getting length from sparse header&quot;</span>, err),
+                err.kind(),
+                <span class="macro">format!</span>(<span class="string">&quot;{} when getting length from sparse header&quot;</span>, err),
             )
         })
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="#118">GnuSparseHeader</a> {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <span class="kw">let </span><span class="kw-2">mut </span>f = <a href="#1344">f</a>.debug_struct(<span class="string">&quot;GnuSparseHeader&quot;</span>);
-        <span class="kw">if let </span><span class="prelude-val">Ok</span>(offset) = <a class="self" href="#1344">self</a>.<a href="#1321">offset</a>() {
-            <a href="#1345">f</a>.field(<span class="string">&quot;offset&quot;</span>, <span class="kw-2">&amp;</span><a href="#1346">offset</a>);
+<span class="kw">impl </span>fmt::Debug <span class="kw">for </span>GnuSparseHeader {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter) -&gt; fmt::Result {
+        <span class="kw">let </span><span class="kw-2">mut </span>f = f.debug_struct(<span class="string">&quot;GnuSparseHeader&quot;</span>);
+        <span class="kw">if let </span><span class="prelude-val">Ok</span>(offset) = <span class="self">self</span>.offset() {
+            f.field(<span class="string">&quot;offset&quot;</span>, <span class="kw-2">&amp;</span>offset);
         }
-        <span class="kw">if let </span><span class="prelude-val">Ok</span>(length) = <a class="self" href="#1344">self</a>.<a href="#1333">length</a>() {
-            <a href="#1345">f</a>.field(<span class="string">&quot;length&quot;</span>, <span class="kw-2">&amp;</span><a href="#1349">length</a>);
+        <span class="kw">if let </span><span class="prelude-val">Ok</span>(length) = <span class="self">self</span>.length() {
+            f.field(<span class="string">&quot;length&quot;</span>, <span class="kw-2">&amp;</span>length);
         }
-        <a href="#1345">f</a>.finish()
+        f.finish()
     }
 }
 
-<span class="kw">impl </span><a href="#129">GnuExtSparseHeader</a> {
+<span class="kw">impl </span>GnuExtSparseHeader {
     <span class="doccomment">/// Crates a new zero&#39;d out sparse header entry.
-    </span><span class="kw">pub fn </span>new() -&gt; <a href="#129">GnuExtSparseHeader</a> {
+    </span><span class="kw">pub fn </span>new() -&gt; GnuExtSparseHeader {
         <span class="kw">unsafe </span>{ mem::zeroed() }
     }
 
     <span class="doccomment">/// Returns a view into this header as a byte array.
-    </span><span class="kw">pub fn </span>as_bytes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="number">512</span>] {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert_eq.html">debug_assert_eq!</a>(mem::size_of_val(<span class="self">self</span>), <span class="number">512</span>);
-        <span class="kw">unsafe </span>{ mem::transmute(<a class="self" href="#1363">self</a>) }
+    </span><span class="kw">pub fn </span>as_bytes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[u8; <span class="number">512</span>] {
+        <span class="macro">debug_assert_eq!</span>(mem::size_of_val(<span class="self">self</span>), <span class="number">512</span>);
+        <span class="kw">unsafe </span>{ mem::transmute(<span class="self">self</span>) }
     }
 
     <span class="doccomment">/// Returns a view into this header as a byte array.
-    </span><span class="kw">pub fn </span>as_mut_bytes(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="number">512</span>] {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert_eq.html">debug_assert_eq!</a>(mem::size_of_val(<span class="self">self</span>), <span class="number">512</span>);
-        <span class="kw">unsafe </span>{ mem::transmute(<a class="self" href="#1369">self</a>) }
+    </span><span class="kw">pub fn </span>as_mut_bytes(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>[u8; <span class="number">512</span>] {
+        <span class="macro">debug_assert_eq!</span>(mem::size_of_val(<span class="self">self</span>), <span class="number">512</span>);
+        <span class="kw">unsafe </span>{ mem::transmute(<span class="self">self</span>) }
     }
 
     <span class="doccomment">/// Returns a slice of the underlying sparse headers.
     ///
     /// Some headers may represent empty chunks of both the offset and numbytes
     /// fields are 0.
-    </span><span class="kw">pub fn </span>sparse(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[<a href="#118">GnuSparseHeader</a>; <span class="number">21</span>] {
-        <span class="kw-2">&amp;</span><a class="self" href="#1378">self</a>.sparse
+    </span><span class="kw">pub fn </span>sparse(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[GnuSparseHeader; <span class="number">21</span>] {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.sparse
     }
 
     <span class="doccomment">/// Indicates if another sparse header should be following this one.
-    </span><span class="kw">pub fn </span>is_extended(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#1383">self</a>.isextended[<span class="number">0</span>] == <span class="number">1
+    </span><span class="kw">pub fn </span>is_extended(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.isextended[<span class="number">0</span>] == <span class="number">1
     </span>}
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for </span><a href="#129">GnuExtSparseHeader</a> {
+<span class="kw">impl </span>Default <span class="kw">for </span>GnuExtSparseHeader {
     <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>::new()
     }
 }
 
-<span class="kw">fn </span>octal_from(slice: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>&gt; {
-    <span class="kw">let </span>trun = <a href="#1472">truncate</a>(<a href="#1394">slice</a>);
-    <span class="kw">let </span>num = <span class="kw">match </span><a href="https://doc.rust-lang.org/nightly/core/str/converts/fn.from_utf8.html">str::from_utf8</a>(<a href="#1395">trun</a>) {
-        <span class="prelude-val">Ok</span>(n) =&gt; <a href="#1397">n</a>,
+<span class="kw">fn </span>octal_from(slice: <span class="kw-2">&amp;</span>[u8]) -&gt; io::Result&lt;u64&gt; {
+    <span class="kw">let </span>trun = truncate(slice);
+    <span class="kw">let </span>num = <span class="kw">match </span>str::from_utf8(trun) {
+        <span class="prelude-val">Ok</span>(n) =&gt; n,
         <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; {
-            <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="lib.rs.html#42">other</a>(<span class="kw-2">&amp;</span><a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(
+            <span class="kw">return </span><span class="prelude-val">Err</span>(other(<span class="kw-2">&amp;</span><span class="macro">format!</span>(
                 <span class="string">&quot;numeric field did not have utf-8 text: {}&quot;</span>,
                 String::from_utf8_lossy(trun)
             )));
         }
     };
-    <span class="kw">match </span>u64::from_str_radix(<a href="#1396">num</a>.trim(), <span class="number">8</span>) {
-        <span class="prelude-val">Ok</span>(n) =&gt; <span class="prelude-val">Ok</span>(<a href="#1406">n</a>),
-        <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">Err</span>(<a href="lib.rs.html#42">other</a>(<span class="kw-2">&amp;</span><a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;numeric field was not a number: {}&quot;</span>, num))),
+    <span class="kw">match </span>u64::from_str_radix(num.trim(), <span class="number">8</span>) {
+        <span class="prelude-val">Ok</span>(n) =&gt; <span class="prelude-val">Ok</span>(n),
+        <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">Err</span>(other(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;numeric field was not a number: {}&quot;</span>, num))),
     }
 }
 
-<span class="kw">fn </span>octal_into&lt;T: <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Octal.html">fmt::Octal</a>&gt;(dst: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], val: T) {
-    <span class="kw">let </span>o = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;{:o}&quot;</span>, val);
-    <span class="kw">let </span>value = <a href="#1412">o</a>.bytes().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">rev</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">chain</a>(<a href="https://doc.rust-lang.org/nightly/core/iter/sources/repeat/fn.repeat.html">repeat</a>(<span class="string">b&#39;0&#39;</span>));
+<span class="kw">fn </span>octal_into&lt;T: fmt::Octal&gt;(dst: <span class="kw-2">&amp;mut </span>[u8], val: T) {
+    <span class="kw">let </span>o = <span class="macro">format!</span>(<span class="string">&quot;{:o}&quot;</span>, val);
+    <span class="kw">let </span>value = o.bytes().rev().chain(repeat(<span class="string">b&#39;0&#39;</span>));
     <span class="kw">for </span>(slot, value) <span class="kw">in </span>dst.iter_mut().rev().skip(<span class="number">1</span>).zip(value) {
         <span class="kw-2">*</span>slot = value;
     }
@@ -3060,21 +3060,21 @@
 
 <span class="comment">// Wrapper to figure out if we should fill the header field using tar&#39;s numeric
 // extension (binary) or not (octal).
-</span><span class="kw">fn </span>num_field_wrapper_into(dst: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], src: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) {
+</span><span class="kw">fn </span>num_field_wrapper_into(dst: <span class="kw-2">&amp;mut </span>[u8], src: u64) {
     <span class="kw">if </span>src &gt;= <span class="number">8589934592 </span>|| (src &gt;= <span class="number">2097152 </span>&amp;&amp; dst.len() == <span class="number">8</span>) {
-        <a href="#1443">numeric_extended_into</a>(<a href="#1421">dst</a>, <a href="#1421">src</a>);
+        numeric_extended_into(dst, src);
     } <span class="kw">else </span>{
-        <a href="#1411">octal_into</a>(<a href="#1421">dst</a>, <a href="#1421">src</a>);
+        octal_into(dst, src);
     }
 }
 
 <span class="comment">// Wrapper to figure out if we should read the header field in binary (numeric
 // extension) or octal (standard encoding).
-</span><span class="kw">fn </span>num_field_wrapper_from(src: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>&gt; {
+</span><span class="kw">fn </span>num_field_wrapper_from(src: <span class="kw-2">&amp;</span>[u8]) -&gt; io::Result&lt;u64&gt; {
     <span class="kw">if </span>src[<span class="number">0</span>] &amp; <span class="number">0x80 </span>!= <span class="number">0 </span>{
-        <span class="prelude-val">Ok</span>(<a href="#1455">numeric_extended_from</a>(<a href="#1431">src</a>))
+        <span class="prelude-val">Ok</span>(numeric_extended_from(src))
     } <span class="kw">else </span>{
-        <a href="#1394">octal_from</a>(<a href="#1431">src</a>)
+        octal_from(src)
     }
 }
 
@@ -3082,8 +3082,8 @@
 // first byte is set to 1 and the remainder of the field is treated as binary
 // instead of octal ascii.
 // This handles writing u64 to 8 (uid, gid) or 12 (size, *time) bytes array.
-</span><span class="kw">fn </span>numeric_extended_into(dst: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], src: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) {
-    <span class="kw">let </span>len: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> = <a href="#1443">dst</a>.len();
+</span><span class="kw">fn </span>numeric_extended_into(dst: <span class="kw-2">&amp;mut </span>[u8], src: u64) {
+    <span class="kw">let </span>len: usize = dst.len();
     <span class="kw">for </span>(slot, val) <span class="kw">in </span>dst.iter_mut().zip(
         repeat(<span class="number">0</span>)
             .take(len - <span class="number">8</span>) <span class="comment">// to zero init extra bytes
@@ -3091,40 +3091,40 @@
     ) {
         <span class="kw-2">*</span>slot = val;
     }
-    <a href="#1443">dst</a>[<span class="number">0</span>] |= <span class="number">0x80</span>;
+    dst[<span class="number">0</span>] |= <span class="number">0x80</span>;
 }
 
-<span class="kw">fn </span>numeric_extended_from(src: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> {
-    <span class="kw">let </span><span class="kw-2">mut </span>dst: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> = <span class="number">0</span>;
+<span class="kw">fn </span>numeric_extended_from(src: <span class="kw-2">&amp;</span>[u8]) -&gt; u64 {
+    <span class="kw">let </span><span class="kw-2">mut </span>dst: u64 = <span class="number">0</span>;
     <span class="kw">let </span><span class="kw-2">mut </span>b_to_skip = <span class="number">1</span>;
     <span class="kw">if </span>src.len() == <span class="number">8 </span>{
         <span class="comment">// read first byte without extension flag bit
-        </span><a href="#1456">dst</a> = (<a href="#1455">src</a>[<span class="number">0</span>] ^ <span class="number">0x80</span>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>;
+        </span>dst = (src[<span class="number">0</span>] ^ <span class="number">0x80</span>) <span class="kw">as </span>u64;
     } <span class="kw">else </span>{
         <span class="comment">// only read last 8 bytes
-        </span><a href="#1457">b_to_skip</a> = <a href="#1455">src</a>.len() - <span class="number">8</span>;
+        </span>b_to_skip = src.len() - <span class="number">8</span>;
     }
     <span class="kw">for </span>byte <span class="kw">in </span>src.iter().skip(b_to_skip) {
         dst &lt;&lt;= <span class="number">8</span>;
         dst |= <span class="kw-2">*</span>byte <span class="kw">as </span>u64;
     }
-    <a href="#1456">dst</a>
+    dst
 }
 
-<span class="kw">fn </span>truncate(slice: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>] {
-    <span class="kw">match </span><a href="#1472">slice</a>.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">position</a>(|i| <span class="kw-2">*</span><a href="#1473">i</a> == <span class="number">0</span>) {
-        <span class="prelude-val">Some</span>(i) =&gt; <span class="kw-2">&amp;</span><a href="#1472">slice</a>[..<a href="#1474">i</a>],
-        <span class="prelude-val">None </span>=&gt; <a href="#1472">slice</a>,
+<span class="kw">fn </span>truncate(slice: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="kw-2">&amp;</span>[u8] {
+    <span class="kw">match </span>slice.iter().position(|i| <span class="kw-2">*</span>i == <span class="number">0</span>) {
+        <span class="prelude-val">Some</span>(i) =&gt; <span class="kw-2">&amp;</span>slice[..i],
+        <span class="prelude-val">None </span>=&gt; slice,
     }
 }
 
 <span class="doccomment">/// Copies `bytes` into the `slot` provided, returning an error if the `bytes`
 /// array is too long or if it contains any nul bytes.
-</span><span class="kw">fn </span>copy_into(slot: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], bytes: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; io::Result&lt;()&gt; {
+</span><span class="kw">fn </span>copy_into(slot: <span class="kw-2">&amp;mut </span>[u8], bytes: <span class="kw-2">&amp;</span>[u8]) -&gt; io::Result&lt;()&gt; {
     <span class="kw">if </span>bytes.len() &gt; slot.len() {
-        <span class="prelude-val">Err</span>(<a href="lib.rs.html#42">other</a>(<span class="string">&quot;provided value is too long&quot;</span>))
+        <span class="prelude-val">Err</span>(other(<span class="string">&quot;provided value is too long&quot;</span>))
     } <span class="kw">else if </span>bytes.iter().any(|b| <span class="kw-2">*</span>b == <span class="number">0</span>) {
-        <span class="prelude-val">Err</span>(<a href="lib.rs.html#42">other</a>(<span class="string">&quot;provided value contains a nul byte&quot;</span>))
+        <span class="prelude-val">Err</span>(other(<span class="string">&quot;provided value contains a nul byte&quot;</span>))
     } <span class="kw">else </span>{
         <span class="kw">for </span>(slot, val) <span class="kw">in </span>slot.iter_mut().zip(bytes.iter().chain(<span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="number">0</span>))) {
             <span class="kw-2">*</span>slot = <span class="kw-2">*</span>val;
@@ -3141,7 +3141,7 @@
 /// * a nul byte was found
 /// * an invalid path component is encountered (e.g. a root path or parent dir)
 /// * the path itself is empty
-</span><span class="kw">fn </span>copy_path_into(<span class="kw-2">mut </span>slot: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], path: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>, is_link_name: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; io::Result&lt;()&gt; {
+</span><span class="kw">fn </span>copy_path_into(<span class="kw-2">mut </span>slot: <span class="kw-2">&amp;mut </span>[u8], path: <span class="kw-2">&amp;</span>Path, is_link_name: bool) -&gt; io::Result&lt;()&gt; {
     <span class="kw">let </span><span class="kw-2">mut </span>emitted = <span class="bool-val">false</span>;
     <span class="kw">let </span><span class="kw-2">mut </span>needs_slash = <span class="bool-val">false</span>;
     <span class="kw">for </span>component <span class="kw">in </span>path.components() {
@@ -3173,17 +3173,17 @@
         emitted = <span class="bool-val">true</span>;
     }
     <span class="kw">if </span>!emitted {
-        <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="lib.rs.html#42">other</a>(<span class="string">&quot;paths in archives must have at least one component&quot;</span>));
+        <span class="kw">return </span><span class="prelude-val">Err</span>(other(<span class="string">&quot;paths in archives must have at least one component&quot;</span>));
     }
     <span class="kw">if </span>ends_with_slash(path) {
         copy(<span class="kw-2">&amp;mut </span>slot, <span class="kw-2">&amp;</span>[<span class="string">b&#39;/&#39;</span>])<span class="question-mark">?</span>;
     }
     <span class="kw">return </span><span class="prelude-val">Ok</span>(());
 
-    <span class="kw">fn </span>copy(slot: <span class="kw-2">&amp;mut &amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], bytes: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; io::Result&lt;()&gt; {
+    <span class="kw">fn </span>copy(slot: <span class="kw-2">&amp;mut &amp;mut </span>[u8], bytes: <span class="kw-2">&amp;</span>[u8]) -&gt; io::Result&lt;()&gt; {
         copy_into(<span class="kw-2">*</span>slot, bytes)<span class="question-mark">?</span>;
-        <span class="kw">let </span>tmp = mem::replace(<a href="#1541">slot</a>, <span class="kw-2">&amp;mut </span>[]);
-        <span class="kw-2">*</span><a href="#1541">slot</a> = <span class="kw-2">&amp;mut </span><a href="#1543">tmp</a>[<a href="#1541">bytes</a>.len()..];
+        <span class="kw">let </span>tmp = mem::replace(slot, <span class="kw-2">&amp;mut </span>[]);
+        <span class="kw-2">*</span>slot = <span class="kw-2">&amp;mut </span>tmp[bytes.len()..];
         <span class="prelude-val">Ok</span>(())
     }
 }
@@ -3200,8 +3200,8 @@
 }
 
 <span class="attr">#[cfg(unix)]
-</span><span class="kw">fn </span>ends_with_slash(p: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-    <a href="#1561">p</a>.as_os_str().<a href="https://doc.rust-lang.org/nightly/std/os/unix/ffi/os_str/trait.OsStrExt.html">as_bytes</a>().ends_with(<span class="kw-2">&amp;</span>[<span class="string">b&#39;/&#39;</span>])
+</span><span class="kw">fn </span>ends_with_slash(p: <span class="kw-2">&amp;</span>Path) -&gt; bool {
+    p.as_os_str().as_bytes().ends_with(<span class="kw-2">&amp;</span>[<span class="string">b&#39;/&#39;</span>])
 }
 
 <span class="attr">#[cfg(any(windows, target_arch = <span class="string">&quot;wasm32&quot;</span>))]
@@ -3228,8 +3228,8 @@
 
 <span class="attr">#[cfg(unix)]
 </span><span class="doccomment">/// On unix this will never fail
-</span><span class="kw">pub fn </span>path2bytes(p: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>) -&gt; io::Result&lt;Cow&lt;[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;&gt; {
-    <span class="prelude-val">Ok</span>(<a href="#1589">p</a>.as_os_str().<a href="https://doc.rust-lang.org/nightly/std/os/unix/ffi/os_str/trait.OsStrExt.html">as_bytes</a>()).map(Cow::Borrowed)
+</span><span class="kw">pub fn </span>path2bytes(p: <span class="kw-2">&amp;</span>Path) -&gt; io::Result&lt;Cow&lt;[u8]&gt;&gt; {
+    <span class="prelude-val">Ok</span>(p.as_os_str().as_bytes()).map(Cow::Borrowed)
 }
 
 <span class="attr">#[cfg(windows)]
@@ -3257,12 +3257,12 @@
 
 <span class="attr">#[cfg(unix)]
 </span><span class="doccomment">/// On unix this operation can never fail.
-</span><span class="kw">pub fn </span>bytes2path(bytes: Cow&lt;[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;) -&gt; io::Result&lt;Cow&lt;<a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>&gt;&gt; {
-    <span class="kw">use </span>std::ffi::{<a href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsStr.html">OsStr</a>, <a href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsString.html">OsString</a>};
+</span><span class="kw">pub fn </span>bytes2path(bytes: Cow&lt;[u8]&gt;) -&gt; io::Result&lt;Cow&lt;Path&gt;&gt; {
+    <span class="kw">use </span>std::ffi::{OsStr, OsString};
 
-    <span class="prelude-val">Ok</span>(<span class="kw">match </span><a href="#1618">bytes</a> {
-        Cow::Borrowed(bytes) =&gt; Cow::Borrowed(Path::new(OsStr::from_bytes(<a href="#1622">bytes</a>))),
-        Cow::Owned(bytes) =&gt; Cow::Owned(PathBuf::from(OsString::from_vec(<a href="#1623">bytes</a>))),
+    <span class="prelude-val">Ok</span>(<span class="kw">match </span>bytes {
+        Cow::Borrowed(bytes) =&gt; Cow::Borrowed(Path::new(OsStr::from_bytes(bytes))),
+        Cow::Owned(bytes) =&gt; Cow::Owned(PathBuf::from(OsString::from_vec(bytes))),
     })
 }
 
@@ -3283,4 +3283,4 @@
     io::Error::new(io::ErrorKind::InvalidData, <span class="string">&quot;Invalid utf-8&quot;</span>)
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="tar" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="tar" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

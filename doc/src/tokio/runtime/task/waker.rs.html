@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.21.2/src/runtime/task/waker.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>waker.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../../tokio/index.html"><img class="rust-logo" src="../../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.23.0/src/runtime/task/waker.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>waker.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../../tokio/index.html"><img class="rust-logo" src="../../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -102,53 +102,26 @@
 <a href="#102" id="102">102</a>
 <a href="#103" id="103">103</a>
 <a href="#104" id="104">104</a>
-<a href="#105" id="105">105</a>
-<a href="#106" id="106">106</a>
-<a href="#107" id="107">107</a>
-<a href="#108" id="108">108</a>
-<a href="#109" id="109">109</a>
-<a href="#110" id="110">110</a>
-<a href="#111" id="111">111</a>
-<a href="#112" id="112">112</a>
-<a href="#113" id="113">113</a>
-<a href="#114" id="114">114</a>
-<a href="#115" id="115">115</a>
-<a href="#116" id="116">116</a>
-<a href="#117" id="117">117</a>
-<a href="#118" id="118">118</a>
-<a href="#119" id="119">119</a>
-<a href="#120" id="120">120</a>
-<a href="#121" id="121">121</a>
-<a href="#122" id="122">122</a>
-<a href="#123" id="123">123</a>
-<a href="#124" id="124">124</a>
-<a href="#125" id="125">125</a>
-<a href="#126" id="126">126</a>
-<a href="#127" id="127">127</a>
-<a href="#128" id="128">128</a>
-<a href="#129" id="129">129</a>
-<a href="#130" id="130">130</a>
-</pre><pre class="rust"><code><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html"><span class="kw">crate</span>::future::Future</a>;
-<span class="kw">use </span><a href="harness.rs.html#14"><span class="kw">crate</span>::runtime::task::harness::Harness</a>;
-<span class="kw">use </span><span class="kw">crate</span>::runtime::task::{<a href="core.rs.html#59">Header</a>, <a href="mod.rs.html#249">Schedule</a>};
+</pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::future::Future;
+<span class="kw">use </span><span class="kw">crate</span>::runtime::task::{Header, RawTask, Schedule};
 
 <span class="kw">use </span>std::marker::PhantomData;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/mem/manually_drop/struct.ManuallyDrop.html">std::mem::ManuallyDrop</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/ops/index.html">std::ops</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/ptr/non_null/struct.NonNull.html">std::ptr::NonNull</a>;
-<span class="kw">use </span>std::task::{<a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.RawWaker.html">RawWaker</a>, <a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.RawWakerVTable.html">RawWakerVTable</a>, <a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Waker.html">Waker</a>};
+<span class="kw">use </span>std::mem::ManuallyDrop;
+<span class="kw">use </span>std::ops;
+<span class="kw">use </span>std::ptr::NonNull;
+<span class="kw">use </span>std::task::{RawWaker, RawWakerVTable, Waker};
 
 <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">struct </span>WakerRef&lt;<span class="lifetime">&#39;a</span>, S: <span class="lifetime">&#39;static</span>&gt; {
-    waker: ManuallyDrop&lt;<a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Waker.html">Waker</a>&gt;,
-    _p: PhantomData&lt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="core.rs.html#59">Header</a>, S)&gt;,
+    waker: ManuallyDrop&lt;Waker&gt;,
+    _p: PhantomData&lt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Header, S)&gt;,
 }
 
 <span class="doccomment">/// Returns a `WakerRef` which avoids having to preemptively increase the
 /// refcount if there is no need to do so.
-</span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>waker_ref&lt;T, S&gt;(header: <span class="kw-2">&amp;</span>NonNull&lt;<a href="core.rs.html#59">Header</a>&gt;) -&gt; WakerRef&lt;<span class="lifetime">&#39;_</span>, S&gt;
+</span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>waker_ref&lt;T, S&gt;(header: <span class="kw-2">&amp;</span>NonNull&lt;Header&gt;) -&gt; WakerRef&lt;<span class="lifetime">&#39;_</span>, S&gt;
 <span class="kw">where
-    </span>T: <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a>,
-    S: <a href="mod.rs.html#249">Schedule</a>,
+    </span>T: Future,
+    S: Schedule,
 {
     <span class="comment">// `Waker::will_wake` uses the VTABLE pointer as part of the check. This
     // means that `will_wake` will always return false when using the current
@@ -158,26 +131,26 @@
     // point and not an *owned* waker, we must ensure that `drop` is never
     // called on this waker instance. This is done by wrapping it with
     // `ManuallyDrop` and then never calling drop.
-    </span><span class="kw">let </span>waker = <span class="kw">unsafe </span>{ ManuallyDrop::new(Waker::from_raw(raw_waker::&lt;T, S&gt;(<span class="kw-2">*</span><a href="#18">header</a>))) };
+    </span><span class="kw">let </span>waker = <span class="kw">unsafe </span>{ ManuallyDrop::new(Waker::from_raw(raw_waker(<span class="kw-2">*</span>header))) };
 
-    <a href="#11">WakerRef</a> {
-        <a href="#31">waker</a>,
+    WakerRef {
+        waker,
         _p: PhantomData,
     }
 }
 
-<span class="kw">impl</span>&lt;S&gt; <a href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.Deref.html">ops::Deref</a> <span class="kw">for </span>WakerRef&lt;<span class="lifetime">&#39;_</span>, S&gt; {
-    <span class="kw">type </span>Target = <a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Waker.html">Waker</a>;
+<span class="kw">impl</span>&lt;S&gt; ops::Deref <span class="kw">for </span>WakerRef&lt;<span class="lifetime">&#39;_</span>, S&gt; {
+    <span class="kw">type </span>Target = Waker;
 
-    <span class="kw">fn </span>deref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Waker.html">Waker</a> {
-        <span class="kw-2">&amp;</span><a class="self" href="#42">self</a>.waker
+    <span class="kw">fn </span>deref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Waker {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.waker
     }
 }
 
 <span class="macro">cfg_trace! </span>{
     <span class="macro">macro_rules! </span>trace {
-        (<span class="macro-nonterminal">$harness</span>:expr, <span class="macro-nonterminal">$op</span>:expr) =&gt; {
-            <span class="kw">if let </span><span class="prelude-val">Some</span>(id) = <span class="macro-nonterminal">$harness</span>.id() {
+        (<span class="macro-nonterminal">$header</span>:expr, <span class="macro-nonterminal">$op</span>:expr) =&gt; {
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(id) = Header::get_tracing_id(<span class="kw-2">&amp;</span><span class="macro-nonterminal">$header</span>) {
                 <span class="macro">tracing::trace!</span>(
                     target: <span class="string">&quot;tokio::task::waker&quot;</span>,
                     op = <span class="macro-nonterminal">$op</span>,
@@ -190,73 +163,48 @@
 
 <span class="macro">cfg_not_trace! </span>{
     <span class="macro">macro_rules! </span>trace {
-        (<span class="macro-nonterminal">$harness</span>:expr, <span class="macro-nonterminal">$op</span>:expr) =&gt; {
+        (<span class="macro-nonterminal">$header</span>:expr, <span class="macro-nonterminal">$op</span>:expr) =&gt; {
             <span class="comment">// noop
-            </span><span class="kw">let _ </span>= <span class="kw-2">&amp;</span><span class="macro-nonterminal">$harness</span>;
+            </span><span class="kw">let _ </span>= <span class="kw-2">&amp;</span><span class="macro-nonterminal">$header</span>;
         }
     }
 }
 
-<span class="kw">unsafe fn </span>clone_waker&lt;T, S&gt;(ptr: <span class="kw-2">*const </span>()) -&gt; <a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.RawWaker.html">RawWaker</a>
-<span class="kw">where
-    </span>T: <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a>,
-    S: <a href="mod.rs.html#249">Schedule</a>,
-{
-    <span class="kw">let </span>header = <a href="#70">ptr</a> <span class="kw">as </span><span class="kw-2">*const </span><a href="core.rs.html#59">Header</a>;
-    <span class="kw">let </span>ptr = NonNull::new_unchecked(<a href="#70">ptr</a> <span class="kw">as </span><span class="kw-2">*mut </span><a href="core.rs.html#59">Header</a>);
-    <span class="kw">let </span>harness = Harness::&lt;T, S&gt;::from_raw(<a href="#76">ptr</a>);
-    <a class="macro" href="#62-67">trace!</a>(harness, <span class="string">&quot;waker.clone&quot;</span>);
-    (<span class="kw-2">*</span><a href="#75">header</a>).state.<a href="state.rs.html#414">ref_inc</a>();
-    raw_waker::&lt;T, S&gt;(<a href="#76">ptr</a>)
+<span class="kw">unsafe fn </span>clone_waker(ptr: <span class="kw-2">*const </span>()) -&gt; RawWaker {
+    <span class="kw">let </span>header = NonNull::new_unchecked(ptr <span class="kw">as </span><span class="kw-2">*mut </span>Header);
+    <span class="macro">trace!</span>(header, <span class="string">&quot;waker.clone&quot;</span>);
+    header.as_ref().state.ref_inc();
+    raw_waker(header)
 }
 
-<span class="kw">unsafe fn </span>drop_waker&lt;T, S&gt;(ptr: <span class="kw-2">*const </span>())
-<span class="kw">where
-    </span>T: <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a>,
-    S: <a href="mod.rs.html#249">Schedule</a>,
-{
-    <span class="kw">let </span>ptr = NonNull::new_unchecked(<a href="#83">ptr</a> <span class="kw">as </span><span class="kw-2">*mut </span><a href="core.rs.html#59">Header</a>);
-    <span class="kw">let </span>harness = Harness::&lt;T, S&gt;::from_raw(<a href="#88">ptr</a>);
-    <a class="macro" href="#62-67">trace!</a>(harness, <span class="string">&quot;waker.drop&quot;</span>);
-    <a href="#89">harness</a>.<a href="harness.rs.html#284">drop_reference</a>();
+<span class="kw">unsafe fn </span>drop_waker(ptr: <span class="kw-2">*const </span>()) {
+    <span class="kw">let </span>ptr = NonNull::new_unchecked(ptr <span class="kw">as </span><span class="kw-2">*mut </span>Header);
+    <span class="macro">trace!</span>(ptr, <span class="string">&quot;waker.drop&quot;</span>);
+    <span class="kw">let </span>raw = RawTask::from_raw(ptr);
+    raw.drop_reference();
 }
 
-<span class="kw">unsafe fn </span>wake_by_val&lt;T, S&gt;(ptr: <span class="kw-2">*const </span>())
-<span class="kw">where
-    </span>T: <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a>,
-    S: <a href="mod.rs.html#249">Schedule</a>,
-{
-    <span class="kw">let </span>ptr = NonNull::new_unchecked(<a href="#94">ptr</a> <span class="kw">as </span><span class="kw-2">*mut </span><a href="core.rs.html#59">Header</a>);
-    <span class="kw">let </span>harness = Harness::&lt;T, S&gt;::from_raw(<a href="#99">ptr</a>);
-    <a class="macro" href="#62-67">trace!</a>(harness, <span class="string">&quot;waker.wake&quot;</span>);
-    <a href="#100">harness</a>.<a href="harness.rs.html#237">wake_by_val</a>();
+<span class="kw">unsafe fn </span>wake_by_val(ptr: <span class="kw-2">*const </span>()) {
+    <span class="kw">let </span>ptr = NonNull::new_unchecked(ptr <span class="kw">as </span><span class="kw-2">*mut </span>Header);
+    <span class="macro">trace!</span>(ptr, <span class="string">&quot;waker.wake&quot;</span>);
+    <span class="kw">let </span>raw = RawTask::from_raw(ptr);
+    raw.wake_by_val();
 }
 
 <span class="comment">// Wake without consuming the waker
-</span><span class="kw">unsafe fn </span>wake_by_ref&lt;T, S&gt;(ptr: <span class="kw-2">*const </span>())
-<span class="kw">where
-    </span>T: <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a>,
-    S: <a href="mod.rs.html#249">Schedule</a>,
-{
-    <span class="kw">let </span>ptr = NonNull::new_unchecked(<a href="#106">ptr</a> <span class="kw">as </span><span class="kw-2">*mut </span><a href="core.rs.html#59">Header</a>);
-    <span class="kw">let </span>harness = Harness::&lt;T, S&gt;::from_raw(<a href="#111">ptr</a>);
-    <a class="macro" href="#62-67">trace!</a>(harness, <span class="string">&quot;waker.wake_by_ref&quot;</span>);
-    <a href="#112">harness</a>.<a href="harness.rs.html#267">wake_by_ref</a>();
+</span><span class="kw">unsafe fn </span>wake_by_ref(ptr: <span class="kw-2">*const </span>()) {
+    <span class="kw">let </span>ptr = NonNull::new_unchecked(ptr <span class="kw">as </span><span class="kw-2">*mut </span>Header);
+    <span class="macro">trace!</span>(ptr, <span class="string">&quot;waker.wake_by_ref&quot;</span>);
+    <span class="kw">let </span>raw = RawTask::from_raw(ptr);
+    raw.wake_by_ref();
 }
 
-<span class="kw">fn </span>raw_waker&lt;T, S&gt;(header: NonNull&lt;<a href="core.rs.html#59">Header</a>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.RawWaker.html">RawWaker</a>
-<span class="kw">where
-    </span>T: <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a>,
-    S: <a href="mod.rs.html#249">Schedule</a>,
-{
-    <span class="kw">let </span>ptr = <a href="#117">header</a>.as_ptr() <span class="kw">as </span><span class="kw-2">*const </span>();
-    <span class="kw">let </span>vtable = <span class="kw-2">&amp;</span>RawWakerVTable::new(
-        clone_waker::&lt;T, S&gt;,
-        wake_by_val::&lt;T, S&gt;,
-        wake_by_ref::&lt;T, S&gt;,
-        drop_waker::&lt;T, S&gt;,
-    );
-    RawWaker::new(<a href="#122">ptr</a>, <a href="#123">vtable</a>)
+<span class="kw">static </span>WAKER_VTABLE: RawWakerVTable =
+    RawWakerVTable::new(clone_waker, wake_by_val, wake_by_ref, drop_waker);
+
+<span class="kw">fn </span>raw_waker(header: NonNull&lt;Header&gt;) -&gt; RawWaker {
+    <span class="kw">let </span>ptr = header.as_ptr() <span class="kw">as </span><span class="kw-2">*const </span>();
+    RawWaker::new(ptr, <span class="kw-2">&amp;</span>WAKER_VTABLE)
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="tokio" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="tokio" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/object-0.29.0/src/read/elf/segment.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>segment.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../../object/index.html"><img class="rust-logo" src="../../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/object-0.30.1/src/read/elf/segment.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>segment.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../../object/index.html"><img class="rust-logo" src="../../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -331,43 +331,43 @@
 <a href="#331" id="331">331</a>
 <a href="#332" id="332">332</a>
 <a href="#333" id="333">333</a>
-</pre><pre class="rust"><code><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/fmt/macros/derive.Debug.html">core::fmt::Debug</a>;
-<span class="kw">use </span>core::{<a href="https://doc.rust-lang.org/nightly/core/mem/index.html">mem</a>, <a href="https://doc.rust-lang.org/nightly/core/slice/index.html">slice</a>, <a href="https://doc.rust-lang.org/nightly/core/str/index.html">str</a>};
+</pre><pre class="rust"><code><span class="kw">use </span>core::fmt::Debug;
+<span class="kw">use </span>core::{mem, slice, str};
 
-<span class="kw">use </span><a href="../../lib.rs.html#108"><span class="kw">crate</span>::elf</a>;
-<span class="kw">use </span><span class="kw">crate</span>::endian::{<a class="self" href="../../lib.rs.html#90">self</a>, <a href="../../endian.rs.html#278">Endianness</a>};
-<span class="kw">use </span><a href="../../pod.rs.html#21"><span class="kw">crate</span>::pod::Pod</a>;
-<span class="kw">use </span><span class="kw">crate</span>::read::{<a class="self" href="../../lib.rs.html#98">self</a>, <a href="../util.rs.html#16">Bytes</a>, <a href="../traits.rs.html#233">ObjectSegment</a>, <a href="../mod.rs.html#79">ReadError</a>, <a href="../read_ref.rs.html#37">ReadRef</a>, <a href="../../common.rs.html#378">SegmentFlags</a>};
+<span class="kw">use </span><span class="kw">crate</span>::elf;
+<span class="kw">use </span><span class="kw">crate</span>::endian::{<span class="self">self</span>, Endianness};
+<span class="kw">use </span><span class="kw">crate</span>::pod::Pod;
+<span class="kw">use </span><span class="kw">crate</span>::read::{<span class="self">self</span>, Bytes, ObjectSegment, ReadError, ReadRef, SegmentFlags};
 
-<span class="kw">use super</span>::{<a href="file.rs.html#30">ElfFile</a>, <a href="file.rs.html#437">FileHeader</a>, <a href="note.rs.html#14">NoteIterator</a>};
+<span class="kw">use super</span>::{ElfFile, FileHeader, NoteIterator};
 
 <span class="doccomment">/// An iterator over the segments of an `ElfFile32`.
-</span><span class="kw">pub type </span>ElfSegmentIterator32&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Endian = <a href="../../endian.rs.html#278">Endianness</a>, R = <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt; =
+</span><span class="kw">pub type </span>ElfSegmentIterator32&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Endian = Endianness, R = <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[u8]&gt; =
     ElfSegmentIterator&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, elf::FileHeader32&lt;Endian&gt;, R&gt;;
 <span class="doccomment">/// An iterator over the segments of an `ElfFile64`.
-</span><span class="kw">pub type </span>ElfSegmentIterator64&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Endian = <a href="../../endian.rs.html#278">Endianness</a>, R = <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt; =
+</span><span class="kw">pub type </span>ElfSegmentIterator64&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Endian = Endianness, R = <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[u8]&gt; =
     ElfSegmentIterator&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, elf::FileHeader64&lt;Endian&gt;, R&gt;;
 
 <span class="doccomment">/// An iterator over the segments of an `ElfFile`.
 </span><span class="attr">#[derive(Debug)]
-</span><span class="kw">pub struct </span>ElfSegmentIterator&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Elf, R = <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;
+</span><span class="kw">pub struct </span>ElfSegmentIterator&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Elf, R = <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[u8]&gt;
 <span class="kw">where
-    </span>Elf: <a href="file.rs.html#437">FileHeader</a>,
+    </span>Elf: FileHeader,
     R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt;,
 {
     <span class="kw">pub</span>(<span class="kw">super</span>) file: <span class="kw-2">&amp;</span><span class="lifetime">&#39;file </span>ElfFile&lt;<span class="lifetime">&#39;data</span>, Elf, R&gt;,
     <span class="kw">pub</span>(<span class="kw">super</span>) iter: slice::Iter&lt;<span class="lifetime">&#39;data</span>, Elf::ProgramHeader&gt;,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Elf, R&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a> <span class="kw">for </span>ElfSegmentIterator&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Elf, R&gt;
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Elf, R&gt; Iterator <span class="kw">for </span>ElfSegmentIterator&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Elf, R&gt;
 <span class="kw">where
-    </span>Elf: <a href="file.rs.html#437">FileHeader</a>,
+    </span>Elf: FileHeader,
     R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt;,
 {
     <span class="kw">type </span>Item = ElfSegment&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Elf, R&gt;;
 
     <span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt; {
-        <span class="kw">while let </span><span class="prelude-val">Some</span>(segment) = <span class="self">self</span>.iter.next() {
+        <span class="kw">for </span>segment <span class="kw">in </span><span class="self">self</span>.iter.by_ref() {
             <span class="kw">if </span>segment.p_type(<span class="self">self</span>.file.endian) == elf::PT_LOAD {
                 <span class="kw">return </span><span class="prelude-val">Some</span>(ElfSegment {
                     file: <span class="self">self</span>.file,
@@ -380,104 +380,104 @@
 }
 
 <span class="doccomment">/// A segment of an `ElfFile32`.
-</span><span class="kw">pub type </span>ElfSegment32&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Endian = <a href="../../endian.rs.html#278">Endianness</a>, R = <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt; =
+</span><span class="kw">pub type </span>ElfSegment32&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Endian = Endianness, R = <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[u8]&gt; =
     ElfSegment&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, elf::FileHeader32&lt;Endian&gt;, R&gt;;
 <span class="doccomment">/// A segment of an `ElfFile64`.
-</span><span class="kw">pub type </span>ElfSegment64&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Endian = <a href="../../endian.rs.html#278">Endianness</a>, R = <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt; =
+</span><span class="kw">pub type </span>ElfSegment64&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Endian = Endianness, R = <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[u8]&gt; =
     ElfSegment&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, elf::FileHeader64&lt;Endian&gt;, R&gt;;
 
 <span class="doccomment">/// A segment of an `ElfFile`.
 </span><span class="attr">#[derive(Debug)]
-</span><span class="kw">pub struct </span>ElfSegment&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Elf, R = <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;
+</span><span class="kw">pub struct </span>ElfSegment&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Elf, R = <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[u8]&gt;
 <span class="kw">where
     </span><span class="lifetime">&#39;data</span>: <span class="lifetime">&#39;file</span>,
-    Elf: <a href="file.rs.html#437">FileHeader</a>,
+    Elf: FileHeader,
     R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt;,
 {
     <span class="kw">pub</span>(<span class="kw">super</span>) file: <span class="kw-2">&amp;</span><span class="lifetime">&#39;file </span>ElfFile&lt;<span class="lifetime">&#39;data</span>, Elf, R&gt;,
     <span class="kw">pub</span>(<span class="kw">super</span>) segment: <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>Elf::ProgramHeader,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Elf: <a href="file.rs.html#437">FileHeader</a>, R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt;&gt; ElfSegment&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Elf, R&gt; {
-    <span class="kw">fn </span>bytes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; read::Result&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt; {
-        <a class="self" href="#69">self</a>.segment
-            .<a href="#163-167">data</a>(<a class="self" href="#69">self</a>.file.endian, <a class="self" href="#69">self</a>.file.data)
-            .<a href="../mod.rs.html#80">read_error</a>(<span class="string">&quot;Invalid ELF segment size or offset&quot;</span>)
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Elf: FileHeader, R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt;&gt; ElfSegment&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Elf, R&gt; {
+    <span class="kw">fn </span>bytes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; read::Result&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[u8]&gt; {
+        <span class="self">self</span>.segment
+            .data(<span class="self">self</span>.file.endian, <span class="self">self</span>.file.data)
+            .read_error(<span class="string">&quot;Invalid ELF segment size or offset&quot;</span>)
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Elf, R&gt; <a href="../mod.rs.html#59">read::private::Sealed</a> <span class="kw">for </span>ElfSegment&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Elf, R&gt;
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Elf, R&gt; read::private::Sealed <span class="kw">for </span>ElfSegment&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Elf, R&gt;
 <span class="kw">where
-    </span>Elf: <a href="file.rs.html#437">FileHeader</a>,
+    </span>Elf: FileHeader,
     R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt;,
 {
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Elf, R&gt; ObjectSegment&lt;<span class="lifetime">&#39;data</span>&gt; <span class="kw">for </span>ElfSegment&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Elf, R&gt;
 <span class="kw">where
-    </span>Elf: <a href="file.rs.html#437">FileHeader</a>,
+    </span>Elf: FileHeader,
     R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt;,
 {
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>address(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> {
-        <a class="self" href="#89">self</a>.segment.<a href="#149">p_vaddr</a>(<a class="self" href="#89">self</a>.file.endian).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()
+    </span><span class="kw">fn </span>address(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u64 {
+        <span class="self">self</span>.segment.p_vaddr(<span class="self">self</span>.file.endian).into()
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>size(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> {
-        <a class="self" href="#94">self</a>.segment.<a href="#152">p_memsz</a>(<a class="self" href="#94">self</a>.file.endian).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()
+    </span><span class="kw">fn </span>size(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u64 {
+        <span class="self">self</span>.segment.p_memsz(<span class="self">self</span>.file.endian).into()
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>align(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> {
-        <a class="self" href="#99">self</a>.segment.<a href="#153">p_align</a>(<a class="self" href="#99">self</a>.file.endian).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()
+    </span><span class="kw">fn </span>align(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u64 {
+        <span class="self">self</span>.segment.p_align(<span class="self">self</span>.file.endian).into()
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>file_range(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (<a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) {
-        <a class="self" href="#104">self</a>.segment.<a href="#156">file_range</a>(<a class="self" href="#104">self</a>.file.endian)
+    </span><span class="kw">fn </span>file_range(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (u64, u64) {
+        <span class="self">self</span>.segment.file_range(<span class="self">self</span>.file.endian)
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>data(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; read::Result&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt; {
-        <a class="self" href="#109">self</a>.<a href="#69">bytes</a>()
+    </span><span class="kw">fn </span>data(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; read::Result&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[u8]&gt; {
+        <span class="self">self</span>.bytes()
     }
 
-    <span class="kw">fn </span>data_range(<span class="kw-2">&amp;</span><span class="self">self</span>, address: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>, size: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) -&gt; read::Result&lt;<span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;&gt; {
-        <span class="prelude-val">Ok</span>(<a href="../util.rs.html#217-222">read::util::data_range</a>(
+    <span class="kw">fn </span>data_range(<span class="kw-2">&amp;</span><span class="self">self</span>, address: u64, size: u64) -&gt; read::Result&lt;<span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[u8]&gt;&gt; {
+        <span class="prelude-val">Ok</span>(read::util::data_range(
             <span class="self">self</span>.bytes()<span class="question-mark">?</span>,
-            <a class="self" href="#113">self</a>.<a href="../traits.rs.html#235">address</a>(),
-            <a href="#113">address</a>,
-            <a href="#113">size</a>,
+            <span class="self">self</span>.address(),
+            address,
+            size,
         ))
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>name_bytes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; read::Result&lt;<span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;&gt; {
+    </span><span class="kw">fn </span>name_bytes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; read::Result&lt;<span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>[u8]&gt;&gt; {
         <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>)
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; read::Result&lt;<span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt;&gt; {
+    </span><span class="kw">fn </span>name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; read::Result&lt;<span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>str&gt;&gt; {
         <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>)
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>flags(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../../common.rs.html#378">SegmentFlags</a> {
-        <span class="kw">let </span>p_flags = <a class="self" href="#133">self</a>.segment.<a href="#147">p_flags</a>(<a class="self" href="#133">self</a>.file.endian);
-        <a href="../../common.rs.html#382">SegmentFlags::Elf</a> { <a href="#134">p_flags</a> }
+    </span><span class="kw">fn </span>flags(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; SegmentFlags {
+        <span class="kw">let </span>p_flags = <span class="self">self</span>.segment.p_flags(<span class="self">self</span>.file.endian);
+        SegmentFlags::Elf { p_flags }
     }
 }
 
 <span class="doccomment">/// A trait for generic access to `ProgramHeader32` and `ProgramHeader64`.
 </span><span class="attr">#[allow(missing_docs)]
-</span><span class="kw">pub trait </span>ProgramHeader: <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">Debug</a> + <a href="../../pod.rs.html#21">Pod</a> {
+</span><span class="kw">pub trait </span>ProgramHeader: Debug + Pod {
     <span class="kw">type </span>Elf: FileHeader&lt;ProgramHeader = <span class="self">Self</span>, Endian = <span class="self">Self</span>::Endian, Word = <span class="self">Self</span>::Word&gt;;
-    <span class="kw">type </span>Word: Into&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>&gt;;
-    <span class="kw">type </span>Endian: <a href="../../endian.rs.html#13">endian::Endian</a>;
+    <span class="kw">type </span>Word: Into&lt;u64&gt;;
+    <span class="kw">type </span>Endian: endian::Endian;
 
-    <span class="kw">fn </span>p_type(<span class="kw-2">&amp;</span><span class="self">self</span>, endian: <span class="self">Self</span>::Endian) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>;
-    <span class="kw">fn </span>p_flags(<span class="kw-2">&amp;</span><span class="self">self</span>, endian: <span class="self">Self</span>::Endian) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>;
+    <span class="kw">fn </span>p_type(<span class="kw-2">&amp;</span><span class="self">self</span>, endian: <span class="self">Self</span>::Endian) -&gt; u32;
+    <span class="kw">fn </span>p_flags(<span class="kw-2">&amp;</span><span class="self">self</span>, endian: <span class="self">Self</span>::Endian) -&gt; u32;
     <span class="kw">fn </span>p_offset(<span class="kw-2">&amp;</span><span class="self">self</span>, endian: <span class="self">Self</span>::Endian) -&gt; <span class="self">Self</span>::Word;
     <span class="kw">fn </span>p_vaddr(<span class="kw-2">&amp;</span><span class="self">self</span>, endian: <span class="self">Self</span>::Endian) -&gt; <span class="self">Self</span>::Word;
     <span class="kw">fn </span>p_paddr(<span class="kw-2">&amp;</span><span class="self">self</span>, endian: <span class="self">Self</span>::Endian) -&gt; <span class="self">Self</span>::Word;
@@ -486,8 +486,8 @@
     <span class="kw">fn </span>p_align(<span class="kw-2">&amp;</span><span class="self">self</span>, endian: <span class="self">Self</span>::Endian) -&gt; <span class="self">Self</span>::Word;
 
     <span class="doccomment">/// Return the offset and size of the segment in the file.
-    </span><span class="kw">fn </span>file_range(<span class="kw-2">&amp;</span><span class="self">self</span>, endian: <span class="self">Self</span>::Endian) -&gt; (<a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) {
-        (<a class="self" href="#156">self</a>.<a href="#148">p_offset</a>(<a href="#156">endian</a>).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(), <a class="self" href="#156">self</a>.<a href="#151">p_filesz</a>(<a href="#156">endian</a>).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
+    </span><span class="kw">fn </span>file_range(<span class="kw-2">&amp;</span><span class="self">self</span>, endian: <span class="self">Self</span>::Endian) -&gt; (u64, u64) {
+        (<span class="self">self</span>.p_offset(endian).into(), <span class="self">self</span>.p_filesz(endian).into())
     }
 
     <span class="doccomment">/// Return the segment data.
@@ -497,9 +497,9 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         endian: <span class="self">Self</span>::Endian,
         data: R,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], ()&gt; {
-        <span class="kw">let </span>(offset, size) = <a class="self" href="#164">self</a>.<a href="#156">file_range</a>(<a href="#165">endian</a>);
-        <a href="#166">data</a>.<a href="../read_ref.rs.html#44">read_bytes_at</a>(<a href="#168">offset</a>, <a href="#168">size</a>)
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[u8], ()&gt; {
+        <span class="kw">let </span>(offset, size) = <span class="self">self</span>.file_range(endian);
+        data.read_bytes_at(offset, size)
     }
 
     <span class="doccomment">/// Return the segment data as a slice of the given type.
@@ -507,13 +507,13 @@
     /// Allows padding at the end of the data.
     /// Returns `Ok(&amp;[])` if the segment has no data.
     /// Returns `Err` for invalid values, including bad alignment.
-    </span><span class="kw">fn </span>data_as_array&lt;<span class="lifetime">&#39;data</span>, T: <a href="../../pod.rs.html#21">Pod</a>, R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt;&gt;(
+    </span><span class="kw">fn </span>data_as_array&lt;<span class="lifetime">&#39;data</span>, T: Pod, R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt;&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         endian: <span class="self">Self</span>::Endian,
         data: R,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[T], ()&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>data = <span class="self">self</span>.data(endian, data).map(Bytes)<span class="question-mark">?</span>;
-        <a href="#182">data</a>.<a href="../util.rs.html#118">read_slice</a>(<a href="#182">data</a>.<a href="../util.rs.html#27">len</a>() / mem::size_of::&lt;T&gt;())
+        data.read_slice(data.len() / mem::size_of::&lt;T&gt;())
     }
 
     <span class="doccomment">/// Return the segment data in the given virtual address range
@@ -524,14 +524,14 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         endian: <span class="self">Self</span>::Endian,
         data: R,
-        address: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>,
-        size: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;, ()&gt; {
-        <span class="prelude-val">Ok</span>(<a href="../util.rs.html#217-222">read::util::data_range</a>(
+        address: u64,
+        size: u64,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[u8]&gt;, ()&gt; {
+        <span class="prelude-val">Ok</span>(read::util::data_range(
             <span class="self">self</span>.data(endian, data)<span class="question-mark">?</span>,
-            <a class="self" href="#191">self</a>.<a href="#149">p_vaddr</a>(<a href="#192">endian</a>).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
-            <a href="#194">address</a>,
-            <a href="#195">size</a>,
+            <span class="self">self</span>.p_vaddr(endian).into(),
+            address,
+            size,
         ))
     }
 
@@ -550,7 +550,7 @@
         <span class="kw">let </span>dynamic = <span class="self">self
             </span>.data_as_array(endian, data)
             .read_error(<span class="string">&quot;Invalid ELF dynamic segment offset or size&quot;</span>)<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<a href="#217">dynamic</a>))
+        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(dynamic))
     }
 
     <span class="doccomment">/// Return a note iterator for the segment data.
@@ -569,100 +569,100 @@
             </span>.data(endian, data)
             .read_error(<span class="string">&quot;Invalid ELF note segment offset or size&quot;</span>)<span class="question-mark">?</span>;
         <span class="kw">let </span>notes = NoteIterator::new(endian, <span class="self">self</span>.p_align(endian), data)<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<a href="#238">notes</a>))
+        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(notes))
     }
 }
 
-<span class="kw">impl</span>&lt;Endian: <a href="../../endian.rs.html#13">endian::Endian</a>&gt; <a href="#141">ProgramHeader</a> <span class="kw">for </span>elf::ProgramHeader32&lt;Endian&gt; {
-    <span class="kw">type </span>Word = <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>;
+<span class="kw">impl</span>&lt;Endian: endian::Endian&gt; ProgramHeader <span class="kw">for </span>elf::ProgramHeader32&lt;Endian&gt; {
+    <span class="kw">type </span>Word = u32;
     <span class="kw">type </span>Endian = Endian;
     <span class="kw">type </span>Elf = elf::FileHeader32&lt;Endian&gt;;
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>p_type(<span class="kw-2">&amp;</span><span class="self">self</span>, endian: <span class="self">Self</span>::Endian) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
-        <a class="self" href="#249">self</a>.p_type.<a href="../../endian.rs.html#621">get</a>(<a href="#249">endian</a>)
+    </span><span class="kw">fn </span>p_type(<span class="kw-2">&amp;</span><span class="self">self</span>, endian: <span class="self">Self</span>::Endian) -&gt; u32 {
+        <span class="self">self</span>.p_type.get(endian)
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>p_flags(<span class="kw-2">&amp;</span><span class="self">self</span>, endian: <span class="self">Self</span>::Endian) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
-        <a class="self" href="#254">self</a>.p_flags.<a href="../../endian.rs.html#621">get</a>(<a href="#254">endian</a>)
+    </span><span class="kw">fn </span>p_flags(<span class="kw-2">&amp;</span><span class="self">self</span>, endian: <span class="self">Self</span>::Endian) -&gt; u32 {
+        <span class="self">self</span>.p_flags.get(endian)
     }
 
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>p_offset(<span class="kw-2">&amp;</span><span class="self">self</span>, endian: <span class="self">Self</span>::Endian) -&gt; <span class="self">Self</span>::Word {
-        <a class="self" href="#259">self</a>.p_offset.<a href="../../endian.rs.html#621">get</a>(<a href="#259">endian</a>)
+        <span class="self">self</span>.p_offset.get(endian)
     }
 
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>p_vaddr(<span class="kw-2">&amp;</span><span class="self">self</span>, endian: <span class="self">Self</span>::Endian) -&gt; <span class="self">Self</span>::Word {
-        <a class="self" href="#264">self</a>.p_vaddr.<a href="../../endian.rs.html#621">get</a>(<a href="#264">endian</a>)
+        <span class="self">self</span>.p_vaddr.get(endian)
     }
 
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>p_paddr(<span class="kw-2">&amp;</span><span class="self">self</span>, endian: <span class="self">Self</span>::Endian) -&gt; <span class="self">Self</span>::Word {
-        <a class="self" href="#269">self</a>.p_paddr.<a href="../../endian.rs.html#621">get</a>(<a href="#269">endian</a>)
+        <span class="self">self</span>.p_paddr.get(endian)
     }
 
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>p_filesz(<span class="kw-2">&amp;</span><span class="self">self</span>, endian: <span class="self">Self</span>::Endian) -&gt; <span class="self">Self</span>::Word {
-        <a class="self" href="#274">self</a>.p_filesz.<a href="../../endian.rs.html#621">get</a>(<a href="#274">endian</a>)
+        <span class="self">self</span>.p_filesz.get(endian)
     }
 
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>p_memsz(<span class="kw-2">&amp;</span><span class="self">self</span>, endian: <span class="self">Self</span>::Endian) -&gt; <span class="self">Self</span>::Word {
-        <a class="self" href="#279">self</a>.p_memsz.<a href="../../endian.rs.html#621">get</a>(<a href="#279">endian</a>)
+        <span class="self">self</span>.p_memsz.get(endian)
     }
 
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>p_align(<span class="kw-2">&amp;</span><span class="self">self</span>, endian: <span class="self">Self</span>::Endian) -&gt; <span class="self">Self</span>::Word {
-        <a class="self" href="#284">self</a>.p_align.<a href="../../endian.rs.html#621">get</a>(<a href="#284">endian</a>)
+        <span class="self">self</span>.p_align.get(endian)
     }
 }
 
-<span class="kw">impl</span>&lt;Endian: <a href="../../endian.rs.html#13">endian::Endian</a>&gt; <a href="#141">ProgramHeader</a> <span class="kw">for </span>elf::ProgramHeader64&lt;Endian&gt; {
-    <span class="kw">type </span>Word = <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>;
+<span class="kw">impl</span>&lt;Endian: endian::Endian&gt; ProgramHeader <span class="kw">for </span>elf::ProgramHeader64&lt;Endian&gt; {
+    <span class="kw">type </span>Word = u64;
     <span class="kw">type </span>Endian = Endian;
     <span class="kw">type </span>Elf = elf::FileHeader64&lt;Endian&gt;;
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>p_type(<span class="kw-2">&amp;</span><span class="self">self</span>, endian: <span class="self">Self</span>::Endian) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
-        <a class="self" href="#295">self</a>.p_type.<a href="../../endian.rs.html#621">get</a>(<a href="#295">endian</a>)
+    </span><span class="kw">fn </span>p_type(<span class="kw-2">&amp;</span><span class="self">self</span>, endian: <span class="self">Self</span>::Endian) -&gt; u32 {
+        <span class="self">self</span>.p_type.get(endian)
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>p_flags(<span class="kw-2">&amp;</span><span class="self">self</span>, endian: <span class="self">Self</span>::Endian) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
-        <a class="self" href="#300">self</a>.p_flags.<a href="../../endian.rs.html#621">get</a>(<a href="#300">endian</a>)
+    </span><span class="kw">fn </span>p_flags(<span class="kw-2">&amp;</span><span class="self">self</span>, endian: <span class="self">Self</span>::Endian) -&gt; u32 {
+        <span class="self">self</span>.p_flags.get(endian)
     }
 
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>p_offset(<span class="kw-2">&amp;</span><span class="self">self</span>, endian: <span class="self">Self</span>::Endian) -&gt; <span class="self">Self</span>::Word {
-        <a class="self" href="#305">self</a>.p_offset.<a href="../../endian.rs.html#643">get</a>(<a href="#305">endian</a>)
+        <span class="self">self</span>.p_offset.get(endian)
     }
 
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>p_vaddr(<span class="kw-2">&amp;</span><span class="self">self</span>, endian: <span class="self">Self</span>::Endian) -&gt; <span class="self">Self</span>::Word {
-        <a class="self" href="#310">self</a>.p_vaddr.<a href="../../endian.rs.html#643">get</a>(<a href="#310">endian</a>)
+        <span class="self">self</span>.p_vaddr.get(endian)
     }
 
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>p_paddr(<span class="kw-2">&amp;</span><span class="self">self</span>, endian: <span class="self">Self</span>::Endian) -&gt; <span class="self">Self</span>::Word {
-        <a class="self" href="#315">self</a>.p_paddr.<a href="../../endian.rs.html#643">get</a>(<a href="#315">endian</a>)
+        <span class="self">self</span>.p_paddr.get(endian)
     }
 
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>p_filesz(<span class="kw-2">&amp;</span><span class="self">self</span>, endian: <span class="self">Self</span>::Endian) -&gt; <span class="self">Self</span>::Word {
-        <a class="self" href="#320">self</a>.p_filesz.<a href="../../endian.rs.html#643">get</a>(<a href="#320">endian</a>)
+        <span class="self">self</span>.p_filesz.get(endian)
     }
 
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>p_memsz(<span class="kw-2">&amp;</span><span class="self">self</span>, endian: <span class="self">Self</span>::Endian) -&gt; <span class="self">Self</span>::Word {
-        <a class="self" href="#325">self</a>.p_memsz.<a href="../../endian.rs.html#643">get</a>(<a href="#325">endian</a>)
+        <span class="self">self</span>.p_memsz.get(endian)
     }
 
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>p_align(<span class="kw-2">&amp;</span><span class="self">self</span>, endian: <span class="self">Self</span>::Endian) -&gt; <span class="self">Self</span>::Word {
-        <a class="self" href="#330">self</a>.p_align.<a href="../../endian.rs.html#643">get</a>(<a href="#330">endian</a>)
+        <span class="self">self</span>.p_align.get(endian)
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="object" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="object" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

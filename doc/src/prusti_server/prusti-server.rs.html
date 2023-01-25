@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `prusti-launch/src/bin/prusti-server.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>prusti-server.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../prusti_server/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `prusti-launch/src/bin/prusti-server.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>prusti-server.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../prusti_server/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -63,56 +63,56 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 </span><span class="attr">#[cfg(target_family = <span class="string">&quot;unix&quot;</span>)]
-</span><span class="kw">use </span>nix::unistd::{<a href="../../nix/unistd/fn.setpgid.html">setpgid</a>, <a href="../../nix/unistd/struct.Pid.html">Pid</a>};
-<span class="kw">use </span><a href="../../prusti_utils/launch/index.html">prusti_utils::launch</a>;
-<span class="kw">use </span>std::{<a href="https://doc.rust-lang.org/nightly/std/path/struct.PathBuf.html">path::PathBuf</a>, <a href="https://doc.rust-lang.org/nightly/std/process/struct.Command.html">process::Command</a>};
+</span><span class="kw">use </span>nix::unistd::{setpgid, Pid};
+<span class="kw">use </span>prusti_utils::launch;
+<span class="kw">use </span>std::{path::PathBuf, process::Command};
 
 <span class="kw">fn </span>main() {
-    <span class="kw">if let </span><span class="prelude-val">Err</span>(code) = <a href="#18">process</a>(std::env::args().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">skip</a>(<span class="number">1</span>).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>()) {
-        <a href="https://doc.rust-lang.org/nightly/std/process/fn.exit.html">std::process::exit</a>(<a href="#13">code</a>);
+    <span class="kw">if let </span><span class="prelude-val">Err</span>(code) = process(std::env::args().skip(<span class="number">1</span>).collect()) {
+        std::process::exit(code);
     }
 }
 
-<span class="kw">fn </span>process(args: Vec&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>&gt; {
+<span class="kw">fn </span>process(args: Vec&lt;String&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;(), i32&gt; {
     <span class="kw">let </span>current_executable_dir = launch::get_current_executable_dir();
 
-    <span class="kw">let </span><span class="kw-2">mut </span>prusti_server_driver_path = <a href="#19">current_executable_dir</a>.join(<span class="string">&quot;prusti-server-driver&quot;</span>);
-    <span class="kw">if </span><a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.cfg.html">cfg!</a>(windows) {
-        <a href="#21">prusti_server_driver_path</a>.set_extension(<span class="string">&quot;exe&quot;</span>);
+    <span class="kw">let </span><span class="kw-2">mut </span>prusti_server_driver_path = current_executable_dir.join(<span class="string">&quot;prusti-server-driver&quot;</span>);
+    <span class="kw">if </span><span class="macro">cfg!</span>(windows) {
+        prusti_server_driver_path.set_extension(<span class="string">&quot;exe&quot;</span>);
     }
 
     <span class="kw">let </span>java_home = <span class="kw">match </span>std::env::var(<span class="string">&quot;JAVA_HOME&quot;</span>) {
-        <span class="prelude-val">Ok</span>(java_home) =&gt; PathBuf::from(<a href="#27">java_home</a>),
+        <span class="prelude-val">Ok</span>(java_home) =&gt; PathBuf::from(java_home),
         <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; launch::find_java_home()
             .expect(<span class="string">&quot;Failed to find Java home directory. Try setting JAVA_HOME&quot;</span>),
     };
 
-    <span class="kw">let </span><span class="kw-2">mut </span>cmd = Command::new(<span class="kw-2">&amp;</span><a href="#21">prusti_server_driver_path</a>);
-    <a href="#32">cmd</a>.args(<a href="#18">args</a>);
+    <span class="kw">let </span><span class="kw-2">mut </span>cmd = Command::new(<span class="kw-2">&amp;</span>prusti_server_driver_path);
+    cmd.args(args);
 
     <span class="comment">// Prevent shadowing of default log behavior.
-    </span><a href="#32">cmd</a>.env(<span class="string">&quot;DEFAULT_PRUSTI_LOG&quot;</span>, <span class="string">&quot;info&quot;</span>);
+    </span>cmd.env(<span class="string">&quot;DEFAULT_PRUSTI_LOG&quot;</span>, <span class="string">&quot;info&quot;</span>);
 
     <span class="kw">let </span>libjvm_path =
-        launch::find_libjvm(<span class="kw-2">&amp;</span><a href="#26">java_home</a>).expect(<span class="string">&quot;Failed to find JVM library. Check JAVA_HOME&quot;</span>);
-    launch::add_to_loader_path(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[libjvm_path], <span class="kw-2">&amp;mut </span><a href="#32">cmd</a>);
+        launch::find_libjvm(<span class="kw-2">&amp;</span>java_home).expect(<span class="string">&quot;Failed to find JVM library. Check JAVA_HOME&quot;</span>);
+    launch::add_to_loader_path(<span class="macro">vec!</span>[libjvm_path], <span class="kw-2">&amp;mut </span>cmd);
 
-    launch::set_environment_settings(<span class="kw-2">&amp;mut </span><a href="#32">cmd</a>, <span class="kw-2">&amp;</span><a href="#19">current_executable_dir</a>, <span class="kw-2">&amp;</span><a href="#26">java_home</a>);
+    launch::set_environment_settings(<span class="kw-2">&amp;mut </span>cmd, <span class="kw-2">&amp;</span>current_executable_dir, <span class="kw-2">&amp;</span>java_home);
 
     <span class="comment">// Move process to group leader if it isn&#39;t. The only applicable error should be EPERM which
     // can be thrown when the process is already the group leader. Thus, we ignore it.
     </span><span class="attr">#[cfg(target_family = <span class="string">&quot;unix&quot;</span>)]
-    </span><span class="kw">let _ </span>= <a href="../../nix/unistd/fn.setpgid.html">setpgid</a>(Pid::this(), Pid::this());
+    </span><span class="kw">let _ </span>= setpgid(Pid::this(), Pid::this());
     <span class="comment">// Register the SIGINT handler; CTRL_C_EVENT or CTRL_BREAK_EVENT on Windows
     </span>ctrlc::set_handler(launch::sigint_handler).expect(<span class="string">&quot;Error setting Ctrl-C handler&quot;</span>);
 
-    <span class="kw">let </span>exit_status = <a href="#32">cmd</a>.status().expect(<span class="string">&quot;could not run prusti-server-driver&quot;</span>);
+    <span class="kw">let </span>exit_status = cmd.status().expect(<span class="string">&quot;could not run prusti-server-driver&quot;</span>);
 
     <span class="kw">if </span>exit_status.success() {
         <span class="prelude-val">Ok</span>(())
     } <span class="kw">else </span>{
-        <span class="prelude-val">Err</span>(<a href="#51">exit_status</a>.code().unwrap_or(-<span class="number">1</span>))
+        <span class="prelude-val">Err</span>(exit_status.code().unwrap_or(-<span class="number">1</span>))
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="prusti_server" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="prusti_server" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

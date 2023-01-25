@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/backtrace-0.3.66/src/print.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>print.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../backtrace/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/backtrace-0.3.67/src/print.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>print.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../backtrace/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -301,12 +301,12 @@
 <a href="#301" id="301">301</a>
 <a href="#302" id="302">302</a>
 </pre><pre class="rust"><code><span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
-</span><span class="kw">use super</span>::{<a href="capture.rs.html#49">BacktraceFrame</a>, <a href="capture.rs.html#103">BacktraceSymbol</a>};
-<span class="kw">use super</span>::{<a href="types.rs.html#17">BytesOrWideString</a>, <a href="backtrace/mod.rs.html#76">Frame</a>, <a href="symbolize/mod.rs.html#318">SymbolName</a>};
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">core::ffi::c_void</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/fmt/index.html">core::fmt</a>;
+</span><span class="kw">use super</span>::{BacktraceFrame, BacktraceSymbol};
+<span class="kw">use super</span>::{BytesOrWideString, Frame, SymbolName};
+<span class="kw">use </span>core::ffi::c_void;
+<span class="kw">use </span>core::fmt;
 
-<span class="kw">const </span>HEX_WIDTH: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> = <span class="number">2 </span>+ <span class="number">2 </span>* core::mem::size_of::&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;();
+<span class="kw">const </span>HEX_WIDTH: usize = <span class="number">2 </span>+ <span class="number">2 </span>* core::mem::size_of::&lt;usize&gt;();
 
 <span class="attr">#[cfg(target_os = <span class="string">&quot;fuchsia&quot;</span>)]
 </span><span class="kw">mod </span>fuchsia;
@@ -318,10 +318,10 @@
 /// implementation already uses this printing format.
 </span><span class="kw">pub struct </span>BacktraceFmt&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span>&gt; {
     fmt: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;b</span>&gt;,
-    frame_index: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-    format: <a href="#27">PrintFmt</a>,
+    frame_index: usize,
+    format: PrintFmt,
     print_path:
-        <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>(<span class="kw">dyn </span>FnMut(<span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;, BytesOrWideString&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> + <span class="lifetime">&#39;b</span>),
+        <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>(<span class="kw">dyn </span>FnMut(<span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;, BytesOrWideString&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result + <span class="lifetime">&#39;b</span>),
 }
 
 <span class="doccomment">/// The styles of printing that we can print
@@ -345,15 +345,15 @@
     /// any printing of filenames, but this callback is required to do so.
     </span><span class="kw">pub fn </span>new(
         fmt: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;b</span>&gt;,
-        format: <a href="#27">PrintFmt</a>,
-        print_path: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>(<span class="kw">dyn </span>FnMut(<span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;, BytesOrWideString&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a>
+        format: PrintFmt,
+        print_path: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>(<span class="kw">dyn </span>FnMut(<span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;, BytesOrWideString&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result
                      + <span class="lifetime">&#39;b</span>),
     ) -&gt; <span class="self">Self </span>{
-        <a href="#17">BacktraceFmt</a> {
-            <a href="#45">fmt</a>,
+        BacktraceFmt {
+            fmt,
             frame_index: <span class="number">0</span>,
-            <a href="#46">format</a>,
-            <a href="#47">print_path</a>,
+            format,
+            print_path,
         }
     }
 
@@ -362,7 +362,7 @@
     /// This is required on some platforms for backtraces to be fully
     /// symbolicated later, and otherwise this should just be the first method
     /// you call after creating a `BacktraceFmt`.
-    </span><span class="kw">pub fn </span>add_context(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+    </span><span class="kw">pub fn </span>add_context(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; fmt::Result {
         <span class="attr">#[cfg(target_os = <span class="string">&quot;fuchsia&quot;</span>)]
         </span>fuchsia::print_dso_context(<span class="self">self</span>.fmt)<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(())
@@ -374,8 +374,8 @@
     /// to actually print a frame, and on destruction it will increment the
     /// frame counter.
     </span><span class="kw">pub fn </span>frame(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; BacktraceFrameFmt&lt;<span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span>&gt; {
-        <a href="#94">BacktraceFrameFmt</a> {
-            fmt: <a class="self" href="#74">self</a>,
+        BacktraceFrameFmt {
+            fmt: <span class="self">self</span>,
             symbol_index: <span class="number">0</span>,
         }
     }
@@ -384,7 +384,7 @@
     ///
     /// This is currently a no-op but is added for future compatibility with
     /// backtrace formats.
-    </span><span class="kw">pub fn </span>finish(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+    </span><span class="kw">pub fn </span>finish(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; fmt::Result {
         <span class="comment">// Currently a no-op-- including this hook to allow for future additions.
         </span><span class="prelude-val">Ok</span>(())
     }
@@ -395,7 +395,7 @@
 /// This type is created by the `BacktraceFmt::frame` function.
 </span><span class="kw">pub struct </span>BacktraceFrameFmt&lt;<span class="lifetime">&#39;fmt</span>, <span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span>&gt; {
     fmt: <span class="kw-2">&amp;</span><span class="lifetime">&#39;fmt </span><span class="kw-2">mut </span>BacktraceFmt&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span>&gt;,
-    symbol_index: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+    symbol_index: usize,
 }
 
 <span class="kw">impl </span>BacktraceFrameFmt&lt;<span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;_</span>&gt; {
@@ -409,8 +409,8 @@
     /// This function requires the `std` feature of the `backtrace` crate to be
     /// enabled, and the `std` feature is enabled by default.
     </span><span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
-    </span><span class="kw">pub fn </span>backtrace_frame(<span class="kw-2">&amp;mut </span><span class="self">self</span>, frame: <span class="kw-2">&amp;</span><a href="capture.rs.html#49">BacktraceFrame</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <span class="kw">let </span>symbols = <a href="#110">frame</a>.<a href="capture.rs.html#314">symbols</a>();
+    </span><span class="kw">pub fn </span>backtrace_frame(<span class="kw-2">&amp;mut </span><span class="self">self</span>, frame: <span class="kw-2">&amp;</span>BacktraceFrame) -&gt; fmt::Result {
+        <span class="kw">let </span>symbols = frame.symbols();
         <span class="kw">for </span>symbol <span class="kw">in </span>symbols {
             <span class="self">self</span>.backtrace_symbol(frame, symbol)<span class="question-mark">?</span>;
         }
@@ -429,15 +429,15 @@
     </span><span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
     </span><span class="kw">pub fn </span>backtrace_symbol(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        frame: <span class="kw-2">&amp;</span><a href="capture.rs.html#49">BacktraceFrame</a>,
-        symbol: <span class="kw-2">&amp;</span><a href="capture.rs.html#103">BacktraceSymbol</a>,
-    ) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+        frame: <span class="kw-2">&amp;</span>BacktraceFrame,
+        symbol: <span class="kw-2">&amp;</span>BacktraceSymbol,
+    ) -&gt; fmt::Result {
         <span class="self">self</span>.print_raw_with_column(
             frame.ip(),
             symbol.name(),
             <span class="comment">// TODO: this isn&#39;t great that we don&#39;t end up printing anything
             // with non-utf8 filenames. Thankfully almost everything is utf8 so
-            // this shouldn&#39;t be too too bad.
+            // this shouldn&#39;t be too bad.
             </span>symbol
                 .filename()
                 .and_then(|p| <span class="prelude-val">Some</span>(BytesOrWideString::Bytes(p.to_str()<span class="question-mark">?</span>.as_bytes()))),
@@ -449,7 +449,7 @@
 
     <span class="doccomment">/// Prints a raw traced `Frame` and `Symbol`, typically from within the raw
     /// callbacks of this crate.
-    </span><span class="kw">pub fn </span>symbol(<span class="kw-2">&amp;mut </span><span class="self">self</span>, frame: <span class="kw-2">&amp;</span><a href="backtrace/mod.rs.html#76">Frame</a>, symbol: <span class="kw-2">&amp;</span><a href="symbolize/mod.rs.html#190"><span class="kw">super</span>::Symbol</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+    </span><span class="kw">pub fn </span>symbol(<span class="kw-2">&amp;mut </span><span class="self">self</span>, frame: <span class="kw-2">&amp;</span>Frame, symbol: <span class="kw-2">&amp;</span><span class="kw">super</span>::Symbol) -&gt; fmt::Result {
         <span class="self">self</span>.print_raw_with_column(
             frame.ip(),
             symbol.name(),
@@ -467,12 +467,12 @@
     /// called multiple times for one frame.
     </span><span class="kw">pub fn </span>print_raw(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        frame_ip: <span class="kw-2">*mut </span><a href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>,
+        frame_ip: <span class="kw-2">*mut </span>c_void,
         symbol_name: <span class="prelude-ty">Option</span>&lt;SymbolName&lt;<span class="lifetime">&#39;_</span>&gt;&gt;,
         filename: <span class="prelude-ty">Option</span>&lt;BytesOrWideString&lt;<span class="lifetime">&#39;_</span>&gt;&gt;,
-        lineno: <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>&gt;,
-    ) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="self" href="#167">self</a>.<a href="#181-188">print_raw_with_column</a>(<a href="#168">frame_ip</a>, <a href="#169">symbol_name</a>, <a href="#170">filename</a>, <a href="#171">lineno</a>, <span class="prelude-val">None</span>)
+        lineno: <span class="prelude-ty">Option</span>&lt;u32&gt;,
+    ) -&gt; fmt::Result {
+        <span class="self">self</span>.print_raw_with_column(frame_ip, symbol_name, filename, lineno, <span class="prelude-val">None</span>)
     }
 
     <span class="doccomment">/// Adds a raw frame to the backtrace output, including column information.
@@ -482,36 +482,36 @@
     /// called multiple times for one frame.
     </span><span class="kw">pub fn </span>print_raw_with_column(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        frame_ip: <span class="kw-2">*mut </span><a href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>,
+        frame_ip: <span class="kw-2">*mut </span>c_void,
         symbol_name: <span class="prelude-ty">Option</span>&lt;SymbolName&lt;<span class="lifetime">&#39;_</span>&gt;&gt;,
         filename: <span class="prelude-ty">Option</span>&lt;BytesOrWideString&lt;<span class="lifetime">&#39;_</span>&gt;&gt;,
-        lineno: <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>&gt;,
-        colno: <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>&gt;,
-    ) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+        lineno: <span class="prelude-ty">Option</span>&lt;u32&gt;,
+        colno: <span class="prelude-ty">Option</span>&lt;u32&gt;,
+    ) -&gt; fmt::Result {
         <span class="comment">// Fuchsia is unable to symbolize within a process so it has a special
         // format which can be used to symbolize later. Print that instead of
         // printing addresses in our own format here.
-        </span><span class="kw">if </span><a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.cfg.html">cfg!</a>(target_os = <span class="string">&quot;fuchsia&quot;</span>) {
+        </span><span class="kw">if </span><span class="macro">cfg!</span>(target_os = <span class="string">&quot;fuchsia&quot;</span>) {
             <span class="self">self</span>.print_raw_fuchsia(frame_ip)<span class="question-mark">?</span>;
         } <span class="kw">else </span>{
             <span class="self">self</span>.print_raw_generic(frame_ip, symbol_name, filename, lineno, colno)<span class="question-mark">?</span>;
         }
-        <a class="self" href="#182">self</a>.symbol_index += <span class="number">1</span>;
+        <span class="self">self</span>.symbol_index += <span class="number">1</span>;
         <span class="prelude-val">Ok</span>(())
     }
 
     <span class="attr">#[allow(unused_mut)]
     </span><span class="kw">fn </span>print_raw_generic(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        <span class="kw-2">mut </span>frame_ip: <span class="kw-2">*mut </span><a href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>,
+        <span class="kw-2">mut </span>frame_ip: <span class="kw-2">*mut </span>c_void,
         symbol_name: <span class="prelude-ty">Option</span>&lt;SymbolName&lt;<span class="lifetime">&#39;_</span>&gt;&gt;,
         filename: <span class="prelude-ty">Option</span>&lt;BytesOrWideString&lt;<span class="lifetime">&#39;_</span>&gt;&gt;,
-        lineno: <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>&gt;,
-        colno: <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>&gt;,
-    ) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+        lineno: <span class="prelude-ty">Option</span>&lt;u32&gt;,
+        colno: <span class="prelude-ty">Option</span>&lt;u32&gt;,
+    ) -&gt; fmt::Result {
         <span class="comment">// No need to print &quot;null&quot; frames, it basically just means that the
         // system backtrace was a bit eager to trace back super far.
-        </span><span class="kw">if let </span><a href="#29">PrintFmt::Short</a> = <a class="self" href="#203">self</a>.fmt.format {
+        </span><span class="kw">if let </span>PrintFmt::Short = <span class="self">self</span>.fmt.format {
             <span class="kw">if </span>frame_ip.is_null() {
                 <span class="kw">return </span><span class="prelude-val">Ok</span>(());
             }
@@ -531,12 +531,12 @@
         // though we just print appropriate whitespace.
         </span><span class="kw">if </span><span class="self">self</span>.symbol_index == <span class="number">0 </span>{
             <span class="macro">write!</span>(<span class="self">self</span>.fmt.fmt, <span class="string">&quot;{:4}: &quot;</span>, <span class="self">self</span>.fmt.frame_index)<span class="question-mark">?</span>;
-            <span class="kw">if let </span><a href="#31">PrintFmt::Full</a> = <a class="self" href="#203">self</a>.fmt.format {
+            <span class="kw">if let </span>PrintFmt::Full = <span class="self">self</span>.fmt.format {
                 <span class="macro">write!</span>(<span class="self">self</span>.fmt.fmt, <span class="string">&quot;{:1$?} - &quot;</span>, frame_ip, HEX_WIDTH)<span class="question-mark">?</span>;
             }
         } <span class="kw">else </span>{
             <span class="macro">write!</span>(<span class="self">self</span>.fmt.fmt, <span class="string">&quot;      &quot;</span>)<span class="question-mark">?</span>;
-            <span class="kw">if let </span><a href="#31">PrintFmt::Full</a> = <a class="self" href="#203">self</a>.fmt.format {
+            <span class="kw">if let </span>PrintFmt::Full = <span class="self">self</span>.fmt.format {
                 <span class="macro">write!</span>(<span class="self">self</span>.fmt.fmt, <span class="string">&quot;{:1$}&quot;</span>, <span class="string">&quot;&quot;</span>, HEX_WIDTH + <span class="number">3</span>)<span class="question-mark">?</span>;
             }
         }
@@ -544,15 +544,15 @@
         <span class="comment">// Next up write out the symbol name, using the alternate formatting for
         // more information if we&#39;re a full backtrace. Here we also handle
         // symbols which don&#39;t have a name,
-        </span><span class="kw">match </span>(<a href="#205">symbol_name</a>, <span class="kw-2">&amp;</span><a class="self" href="#203">self</a>.fmt.format) {
-            (<span class="prelude-val">Some</span>(name), <a href="#29">PrintFmt::Short</a>) =&gt; <span class="macro">write!</span>(<span class="self">self</span>.fmt.fmt, <span class="string">&quot;{:#}&quot;</span>, name)<span class="question-mark">?</span>,
-            (<span class="prelude-val">Some</span>(name), <a href="#31">PrintFmt::Full</a>) =&gt; <span class="macro">write!</span>(<span class="self">self</span>.fmt.fmt, <span class="string">&quot;{}&quot;</span>, name)<span class="question-mark">?</span>,
-            (<span class="prelude-val">None</span>, <span class="kw">_</span>) | (<span class="kw">_</span>, <a href="#33">PrintFmt::__Nonexhaustive</a>) =&gt; <span class="macro">write!</span>(<span class="self">self</span>.fmt.fmt, <span class="string">&quot;&lt;unknown&gt;&quot;</span>)<span class="question-mark">?</span>,
+        </span><span class="kw">match </span>(symbol_name, <span class="kw-2">&amp;</span><span class="self">self</span>.fmt.format) {
+            (<span class="prelude-val">Some</span>(name), PrintFmt::Short) =&gt; <span class="macro">write!</span>(<span class="self">self</span>.fmt.fmt, <span class="string">&quot;{:#}&quot;</span>, name)<span class="question-mark">?</span>,
+            (<span class="prelude-val">Some</span>(name), PrintFmt::Full) =&gt; <span class="macro">write!</span>(<span class="self">self</span>.fmt.fmt, <span class="string">&quot;{}&quot;</span>, name)<span class="question-mark">?</span>,
+            (<span class="prelude-val">None</span>, <span class="kw">_</span>) | (<span class="kw">_</span>, PrintFmt::__Nonexhaustive) =&gt; <span class="macro">write!</span>(<span class="self">self</span>.fmt.fmt, <span class="string">&quot;&lt;unknown&gt;&quot;</span>)<span class="question-mark">?</span>,
         }
         <span class="self">self</span>.fmt.fmt.write_str(<span class="string">&quot;\n&quot;</span>)<span class="question-mark">?</span>;
 
         <span class="comment">// And last up, print out the filename/line number if they&#39;re available.
-        </span><span class="kw">if let </span>(<span class="prelude-val">Some</span>(file), <span class="prelude-val">Some</span>(line)) = (<a href="#206">filename</a>, <a href="#207">lineno</a>) {
+        </span><span class="kw">if let </span>(<span class="prelude-val">Some</span>(file), <span class="prelude-val">Some</span>(line)) = (filename, lineno) {
             <span class="self">self</span>.print_fileline(file, line, colno)<span class="question-mark">?</span>;
         }
 
@@ -562,12 +562,12 @@
     <span class="kw">fn </span>print_fileline(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         file: BytesOrWideString&lt;<span class="lifetime">&#39;_</span>&gt;,
-        line: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>,
-        colno: <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>&gt;,
-    ) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+        line: u32,
+        colno: <span class="prelude-ty">Option</span>&lt;u32&gt;,
+    ) -&gt; fmt::Result {
         <span class="comment">// Filename/line are printed on lines under the symbol name, so print
         // some appropriate whitespace to sort of right-align ourselves.
-        </span><span class="kw">if let </span><a href="#31">PrintFmt::Full</a> = <a class="self" href="#261">self</a>.fmt.format {
+        </span><span class="kw">if let </span>PrintFmt::Full = <span class="self">self</span>.fmt.format {
             <span class="macro">write!</span>(<span class="self">self</span>.fmt.fmt, <span class="string">&quot;{:1$}&quot;</span>, <span class="string">&quot;&quot;</span>, HEX_WIDTH)<span class="question-mark">?</span>;
         }
         <span class="macro">write!</span>(<span class="self">self</span>.fmt.fmt, <span class="string">&quot;             at &quot;</span>)<span class="question-mark">?</span>;
@@ -578,7 +578,7 @@
         <span class="macro">write!</span>(<span class="self">self</span>.fmt.fmt, <span class="string">&quot;:{}&quot;</span>, line)<span class="question-mark">?</span>;
 
         <span class="comment">// Add column number, if available.
-        </span><span class="kw">if let </span><span class="prelude-val">Some</span>(colno) = <a href="#264">colno</a> {
+        </span><span class="kw">if let </span><span class="prelude-val">Some</span>(colno) = colno {
             <span class="macro">write!</span>(<span class="self">self</span>.fmt.fmt, <span class="string">&quot;:{}&quot;</span>, colno)<span class="question-mark">?</span>;
         }
 
@@ -586,7 +586,7 @@
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="kw">fn </span>print_raw_fuchsia(<span class="kw-2">&amp;mut </span><span class="self">self</span>, frame_ip: <span class="kw-2">*mut </span><a href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+    <span class="kw">fn </span>print_raw_fuchsia(<span class="kw-2">&amp;mut </span><span class="self">self</span>, frame_ip: <span class="kw-2">*mut </span>c_void) -&gt; fmt::Result {
         <span class="comment">// We only care about the first symbol of a frame
         </span><span class="kw">if </span><span class="self">self</span>.symbol_index == <span class="number">0 </span>{
             <span class="self">self</span>.fmt.fmt.write_str(<span class="string">&quot;{{{bt:&quot;</span>)<span class="question-mark">?</span>;
@@ -597,10 +597,10 @@
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span>BacktraceFrameFmt&lt;<span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;_</span>&gt; {
+<span class="kw">impl </span>Drop <span class="kw">for </span>BacktraceFrameFmt&lt;<span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;_</span>&gt; {
     <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <a class="self" href="#299">self</a>.fmt.frame_index += <span class="number">1</span>;
+        <span class="self">self</span>.fmt.frame_index += <span class="number">1</span>;
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="backtrace" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="backtrace" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

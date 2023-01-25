@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/object-0.29.0/src/read/any.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>any.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../object/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/object-0.30.1/src/read/any.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>any.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../object/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -1249,29 +1249,121 @@
 <a href="#1249" id="1249">1249</a>
 <a href="#1250" id="1250">1250</a>
 <a href="#1251" id="1251">1251</a>
-</pre><pre class="rust"><code><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">alloc::fmt</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/vec/struct.Vec.html">alloc::vec::Vec</a>;
+<a href="#1252" id="1252">1252</a>
+<a href="#1253" id="1253">1253</a>
+<a href="#1254" id="1254">1254</a>
+<a href="#1255" id="1255">1255</a>
+<a href="#1256" id="1256">1256</a>
+<a href="#1257" id="1257">1257</a>
+<a href="#1258" id="1258">1258</a>
+<a href="#1259" id="1259">1259</a>
+<a href="#1260" id="1260">1260</a>
+<a href="#1261" id="1261">1261</a>
+<a href="#1262" id="1262">1262</a>
+<a href="#1263" id="1263">1263</a>
+<a href="#1264" id="1264">1264</a>
+<a href="#1265" id="1265">1265</a>
+<a href="#1266" id="1266">1266</a>
+<a href="#1267" id="1267">1267</a>
+<a href="#1268" id="1268">1268</a>
+<a href="#1269" id="1269">1269</a>
+<a href="#1270" id="1270">1270</a>
+<a href="#1271" id="1271">1271</a>
+<a href="#1272" id="1272">1272</a>
+<a href="#1273" id="1273">1273</a>
+<a href="#1274" id="1274">1274</a>
+<a href="#1275" id="1275">1275</a>
+<a href="#1276" id="1276">1276</a>
+<a href="#1277" id="1277">1277</a>
+<a href="#1278" id="1278">1278</a>
+<a href="#1279" id="1279">1279</a>
+<a href="#1280" id="1280">1280</a>
+<a href="#1281" id="1281">1281</a>
+<a href="#1282" id="1282">1282</a>
+<a href="#1283" id="1283">1283</a>
+<a href="#1284" id="1284">1284</a>
+<a href="#1285" id="1285">1285</a>
+<a href="#1286" id="1286">1286</a>
+<a href="#1287" id="1287">1287</a>
+<a href="#1288" id="1288">1288</a>
+<a href="#1289" id="1289">1289</a>
+<a href="#1290" id="1290">1290</a>
+<a href="#1291" id="1291">1291</a>
+<a href="#1292" id="1292">1292</a>
+<a href="#1293" id="1293">1293</a>
+<a href="#1294" id="1294">1294</a>
+<a href="#1295" id="1295">1295</a>
+<a href="#1296" id="1296">1296</a>
+<a href="#1297" id="1297">1297</a>
+<a href="#1298" id="1298">1298</a>
+<a href="#1299" id="1299">1299</a>
+<a href="#1300" id="1300">1300</a>
+<a href="#1301" id="1301">1301</a>
+<a href="#1302" id="1302">1302</a>
+<a href="#1303" id="1303">1303</a>
+<a href="#1304" id="1304">1304</a>
+<a href="#1305" id="1305">1305</a>
+<a href="#1306" id="1306">1306</a>
+<a href="#1307" id="1307">1307</a>
+<a href="#1308" id="1308">1308</a>
+<a href="#1309" id="1309">1309</a>
+<a href="#1310" id="1310">1310</a>
+<a href="#1311" id="1311">1311</a>
+<a href="#1312" id="1312">1312</a>
+<a href="#1313" id="1313">1313</a>
+<a href="#1314" id="1314">1314</a>
+<a href="#1315" id="1315">1315</a>
+<a href="#1316" id="1316">1316</a>
+<a href="#1317" id="1317">1317</a>
+<a href="#1318" id="1318">1318</a>
+<a href="#1319" id="1319">1319</a>
+<a href="#1320" id="1320">1320</a>
+<a href="#1321" id="1321">1321</a>
+<a href="#1322" id="1322">1322</a>
+<a href="#1323" id="1323">1323</a>
+<a href="#1324" id="1324">1324</a>
+<a href="#1325" id="1325">1325</a>
+<a href="#1326" id="1326">1326</a>
+<a href="#1327" id="1327">1327</a>
+<a href="#1328" id="1328">1328</a>
+<a href="#1329" id="1329">1329</a>
+<a href="#1330" id="1330">1330</a>
+<a href="#1331" id="1331">1331</a>
+<a href="#1332" id="1332">1332</a>
+<a href="#1333" id="1333">1333</a>
+<a href="#1334" id="1334">1334</a>
+<a href="#1335" id="1335">1335</a>
+<a href="#1336" id="1336">1336</a>
+<a href="#1337" id="1337">1337</a>
+<a href="#1338" id="1338">1338</a>
+<a href="#1339" id="1339">1339</a>
+<a href="#1340" id="1340">1340</a>
+<a href="#1341" id="1341">1341</a>
+</pre><pre class="rust"><code><span class="kw">use </span>alloc::fmt;
+<span class="kw">use </span>alloc::vec::Vec;
 <span class="kw">use </span>core::marker::PhantomData;
 
 <span class="attr">#[cfg(feature = <span class="string">&quot;coff&quot;</span>)]
-</span><span class="kw">use </span><a href="mod.rs.html#41"><span class="kw">crate</span>::read::coff</a>;
+</span><span class="kw">use </span><span class="kw">crate</span>::read::coff;
 <span class="attr">#[cfg(feature = <span class="string">&quot;elf&quot;</span>)]
-</span><span class="kw">use </span><a href="mod.rs.html#44"><span class="kw">crate</span>::read::elf</a>;
+</span><span class="kw">use </span><span class="kw">crate</span>::read::elf;
 <span class="attr">#[cfg(feature = <span class="string">&quot;macho&quot;</span>)]
-</span><span class="kw">use </span><a href="mod.rs.html#47"><span class="kw">crate</span>::read::macho</a>;
+</span><span class="kw">use </span><span class="kw">crate</span>::read::macho;
 <span class="attr">#[cfg(feature = <span class="string">&quot;pe&quot;</span>)]
-</span><span class="kw">use </span><a href="mod.rs.html#50"><span class="kw">crate</span>::read::pe</a>;
+</span><span class="kw">use </span><span class="kw">crate</span>::read::pe;
 <span class="attr">#[cfg(feature = <span class="string">&quot;wasm&quot;</span>)]
 </span><span class="kw">use </span><span class="kw">crate</span>::read::wasm;
+<span class="attr">#[cfg(feature = <span class="string">&quot;xcoff&quot;</span>)]
+</span><span class="kw">use </span><span class="kw">crate</span>::read::xcoff;
 <span class="kw">use </span><span class="kw">crate</span>::read::{
-    <a class="self" href="../lib.rs.html#98">self</a>, <a href="../common.rs.html#5">Architecture</a>, <a href="../common.rs.html#85">BinaryFormat</a>, <a href="mod.rs.html#500">CodeView</a>, <a href="../common.rs.html#195">ComdatKind</a>, <a href="mod.rs.html#659">CompressedData</a>, <a href="mod.rs.html#612">CompressedFileRange</a>,
-    <a href="mod.rs.html#64">Error</a>, <a href="mod.rs.html#478">Export</a>, <a href="../common.rs.html#351">FileFlags</a>, <a href="mod.rs.html#142">FileKind</a>, <a href="mod.rs.html#456">Import</a>, <a href="traits.rs.html#13">Object</a>, <a href="traits.rs.html#353">ObjectComdat</a>, <a href="mod.rs.html#248">ObjectKind</a>, <a href="mod.rs.html#378">ObjectMap</a>,
-    <a href="traits.rs.html#270">ObjectSection</a>, <a href="traits.rs.html#233">ObjectSegment</a>, <a href="traits.rs.html#397">ObjectSymbol</a>, <a href="traits.rs.html#376">ObjectSymbolTable</a>, <a href="read_ref.rs.html#37">ReadRef</a>, <a href="mod.rs.html#540">Relocation</a>, <span class="prelude-ty">Result</span>,
-    <a href="../common.rs.html#405">SectionFlags</a>, <a href="mod.rs.html#263">SectionIndex</a>, <a href="../common.rs.html#96">SectionKind</a>, <a href="../common.rs.html#378">SegmentFlags</a>, <a href="../common.rs.html#428">SymbolFlags</a>, <a href="mod.rs.html#267">SymbolIndex</a>, <a href="../common.rs.html#227">SymbolKind</a>,
-    <a href="mod.rs.html#309">SymbolMap</a>, <a href="mod.rs.html#343">SymbolMapName</a>, <a href="../common.rs.html#248">SymbolScope</a>, <a href="mod.rs.html#272">SymbolSection</a>,
+    <span class="self">self</span>, Architecture, BinaryFormat, CodeView, ComdatKind, CompressedData, CompressedFileRange,
+    Error, Export, FileFlags, FileKind, Import, Object, ObjectComdat, ObjectKind, ObjectMap,
+    ObjectSection, ObjectSegment, ObjectSymbol, ObjectSymbolTable, ReadRef, Relocation, <span class="prelude-ty">Result</span>,
+    SectionFlags, SectionIndex, SectionKind, SegmentFlags, SymbolFlags, SymbolIndex, SymbolKind,
+    SymbolMap, SymbolMapName, SymbolScope, SymbolSection,
 };
 <span class="attr">#[allow(unused_imports)]
-</span><span class="kw">use crate</span>::{<a href="../common.rs.html#66">AddressSize</a>, <a href="../endian.rs.html#13">Endian</a>, <a href="../endian.rs.html#278">Endianness</a>};
+</span><span class="kw">use crate</span>::{AddressSize, Endian, Endianness};
 
 <span class="doccomment">/// Evaluate an expression on the contents of a file format enum.
 ///
@@ -1295,6 +1387,10 @@
             </span><span class="macro-nonterminal">$</span><span class="kw">enum</span><span class="macro-nonterminal">::Pe64</span>(<span class="kw-2">ref </span><span class="macro-nonterminal">$var</span>) =&gt; <span class="macro-nonterminal">$body</span>,
             <span class="attr">#[cfg(feature = <span class="string">&quot;wasm&quot;</span>)]
             </span><span class="macro-nonterminal">$</span><span class="kw">enum</span><span class="macro-nonterminal">::Wasm</span>(<span class="kw-2">ref </span><span class="macro-nonterminal">$var</span>) =&gt; <span class="macro-nonterminal">$body</span>,
+            <span class="attr">#[cfg(feature = <span class="string">&quot;xcoff&quot;</span>)]
+            </span><span class="macro-nonterminal">$</span><span class="kw">enum</span><span class="macro-nonterminal">::Xcoff32</span>(<span class="kw-2">ref </span><span class="macro-nonterminal">$var</span>) =&gt; <span class="macro-nonterminal">$body</span>,
+            <span class="attr">#[cfg(feature = <span class="string">&quot;xcoff&quot;</span>)]
+            </span><span class="macro-nonterminal">$</span><span class="kw">enum</span><span class="macro-nonterminal">::Xcoff64</span>(<span class="kw-2">ref </span><span class="macro-nonterminal">$var</span>) =&gt; <span class="macro-nonterminal">$body</span>,
         }
     };
 }
@@ -1318,6 +1414,10 @@
             </span><span class="macro-nonterminal">$</span><span class="kw">enum</span><span class="macro-nonterminal">::Pe64</span>(<span class="kw-2">ref mut </span><span class="macro-nonterminal">$var</span>) =&gt; <span class="macro-nonterminal">$body</span>,
             <span class="attr">#[cfg(feature = <span class="string">&quot;wasm&quot;</span>)]
             </span><span class="macro-nonterminal">$</span><span class="kw">enum</span><span class="macro-nonterminal">::Wasm</span>(<span class="kw-2">ref mut </span><span class="macro-nonterminal">$var</span>) =&gt; <span class="macro-nonterminal">$body</span>,
+            <span class="attr">#[cfg(feature = <span class="string">&quot;xcoff&quot;</span>)]
+            </span><span class="macro-nonterminal">$</span><span class="kw">enum</span><span class="macro-nonterminal">::Xcoff32</span>(<span class="kw-2">ref mut </span><span class="macro-nonterminal">$var</span>) =&gt; <span class="macro-nonterminal">$body</span>,
+            <span class="attr">#[cfg(feature = <span class="string">&quot;xcoff&quot;</span>)]
+            </span><span class="macro-nonterminal">$</span><span class="kw">enum</span><span class="macro-nonterminal">::Xcoff64</span>(<span class="kw-2">ref mut </span><span class="macro-nonterminal">$var</span>) =&gt; <span class="macro-nonterminal">$body</span>,
         }
     };
 }
@@ -1342,6 +1442,10 @@
             </span><span class="macro-nonterminal">$from::Pe64</span>(<span class="kw-2">ref </span><span class="macro-nonterminal">$var</span>) =&gt; <span class="macro-nonterminal">$to::Pe64</span>(<span class="macro-nonterminal">$body</span>),
             <span class="attr">#[cfg(feature = <span class="string">&quot;wasm&quot;</span>)]
             </span><span class="macro-nonterminal">$from::Wasm</span>(<span class="kw-2">ref </span><span class="macro-nonterminal">$var</span>) =&gt; <span class="macro-nonterminal">$to::Wasm</span>(<span class="macro-nonterminal">$body</span>),
+            <span class="attr">#[cfg(feature = <span class="string">&quot;xcoff&quot;</span>)]
+            </span><span class="macro-nonterminal">$from::Xcoff32</span>(<span class="kw-2">ref </span><span class="macro-nonterminal">$var</span>) =&gt; <span class="macro-nonterminal">$to::Xcoff32</span>(<span class="macro-nonterminal">$body</span>),
+            <span class="attr">#[cfg(feature = <span class="string">&quot;xcoff&quot;</span>)]
+            </span><span class="macro-nonterminal">$from::Xcoff64</span>(<span class="kw-2">ref </span><span class="macro-nonterminal">$var</span>) =&gt; <span class="macro-nonterminal">$to::Xcoff64</span>(<span class="macro-nonterminal">$body</span>),
         }
     };
 }
@@ -1366,6 +1470,10 @@
             </span><span class="macro-nonterminal">$from::Pe64</span>(<span class="kw-2">ref </span><span class="macro-nonterminal">$var</span>) =&gt; <span class="macro-nonterminal">$body</span>.map(<span class="macro-nonterminal">$to::Pe64</span>),
             <span class="attr">#[cfg(feature = <span class="string">&quot;wasm&quot;</span>)]
             </span><span class="macro-nonterminal">$from::Wasm</span>(<span class="kw-2">ref </span><span class="macro-nonterminal">$var</span>) =&gt; <span class="macro-nonterminal">$body</span>.map(<span class="macro-nonterminal">$to::Wasm</span>),
+            <span class="attr">#[cfg(feature = <span class="string">&quot;xcoff&quot;</span>)]
+            </span><span class="macro-nonterminal">$from::Xcoff32</span>(<span class="kw-2">ref </span><span class="macro-nonterminal">$var</span>) =&gt; <span class="macro-nonterminal">$body</span>.map(<span class="macro-nonterminal">$to::Xcoff32</span>),
+            <span class="attr">#[cfg(feature = <span class="string">&quot;xcoff&quot;</span>)]
+            </span><span class="macro-nonterminal">$from::Xcoff64</span>(<span class="kw-2">ref </span><span class="macro-nonterminal">$var</span>) =&gt; <span class="macro-nonterminal">$body</span>.map(<span class="macro-nonterminal">$to::Xcoff64</span>),
         }
     };
 }
@@ -1389,6 +1497,10 @@
             </span><span class="macro-nonterminal">$from::Pe64</span>(<span class="kw-2">ref mut </span><span class="macro-nonterminal">$var</span>) =&gt; <span class="macro-nonterminal">$body</span>.map(<span class="macro-nonterminal">$to::Pe64</span>),
             <span class="attr">#[cfg(feature = <span class="string">&quot;wasm&quot;</span>)]
             </span><span class="macro-nonterminal">$from::Wasm</span>(<span class="kw-2">ref mut </span><span class="macro-nonterminal">$var</span>) =&gt; <span class="macro-nonterminal">$body</span>.map(<span class="macro-nonterminal">$to::Wasm</span>),
+            <span class="attr">#[cfg(feature = <span class="string">&quot;xcoff&quot;</span>)]
+            </span><span class="macro-nonterminal">$from::Xcoff32</span>(<span class="kw-2">ref mut </span><span class="macro-nonterminal">$var</span>) =&gt; <span class="macro-nonterminal">$body</span>.map(<span class="macro-nonterminal">$to::Xcoff32</span>),
+            <span class="attr">#[cfg(feature = <span class="string">&quot;xcoff&quot;</span>)]
+            </span><span class="macro-nonterminal">$from::Xcoff64</span>(<span class="kw-2">ref mut </span><span class="macro-nonterminal">$var</span>) =&gt; <span class="macro-nonterminal">$body</span>.map(<span class="macro-nonterminal">$to::Xcoff64</span>),
         }
     };
 }
@@ -1413,6 +1525,10 @@
             </span><span class="macro-nonterminal">$from::Pe64</span>(<span class="kw-2">ref mut </span>iter) =&gt; iter.next().map(<span class="macro-nonterminal">$to::Pe64</span>),
             <span class="attr">#[cfg(feature = <span class="string">&quot;wasm&quot;</span>)]
             </span><span class="macro-nonterminal">$from::Wasm</span>(<span class="kw-2">ref mut </span>iter) =&gt; iter.next().map(<span class="macro-nonterminal">$to::Wasm</span>),
+            <span class="attr">#[cfg(feature = <span class="string">&quot;xcoff&quot;</span>)]
+            </span><span class="macro-nonterminal">$from::Xcoff32</span>(<span class="kw-2">ref mut </span>iter) =&gt; iter.next().map(<span class="macro-nonterminal">$to::Xcoff32</span>),
+            <span class="attr">#[cfg(feature = <span class="string">&quot;xcoff&quot;</span>)]
+            </span><span class="macro-nonterminal">$from::Xcoff64</span>(<span class="kw-2">ref mut </span>iter) =&gt; iter.next().map(<span class="macro-nonterminal">$to::Xcoff64</span>),
         }
     };
 }
@@ -1421,7 +1537,7 @@
 ///
 /// Most functionality is provided by the `Object` trait implementation.
 </span><span class="attr">#[derive(Debug)]
-</span><span class="kw">pub struct </span>File&lt;<span class="lifetime">&#39;data</span>, R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt; = <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt; {
+</span><span class="kw">pub struct </span>File&lt;<span class="lifetime">&#39;data</span>, R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt; = <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[u8]&gt; {
     inner: FileInternal&lt;<span class="lifetime">&#39;data</span>, R&gt;,
 }
 
@@ -1430,19 +1546,23 @@
     <span class="attr">#[cfg(feature = <span class="string">&quot;coff&quot;</span>)]
     </span>Coff(coff::CoffFile&lt;<span class="lifetime">&#39;data</span>, R&gt;),
     <span class="attr">#[cfg(feature = <span class="string">&quot;elf&quot;</span>)]
-    </span>Elf32(elf::ElfFile32&lt;<span class="lifetime">&#39;data</span>, <a href="../endian.rs.html#278">Endianness</a>, R&gt;),
+    </span>Elf32(elf::ElfFile32&lt;<span class="lifetime">&#39;data</span>, Endianness, R&gt;),
     <span class="attr">#[cfg(feature = <span class="string">&quot;elf&quot;</span>)]
-    </span>Elf64(elf::ElfFile64&lt;<span class="lifetime">&#39;data</span>, <a href="../endian.rs.html#278">Endianness</a>, R&gt;),
+    </span>Elf64(elf::ElfFile64&lt;<span class="lifetime">&#39;data</span>, Endianness, R&gt;),
     <span class="attr">#[cfg(feature = <span class="string">&quot;macho&quot;</span>)]
-    </span>MachO32(macho::MachOFile32&lt;<span class="lifetime">&#39;data</span>, <a href="../endian.rs.html#278">Endianness</a>, R&gt;),
+    </span>MachO32(macho::MachOFile32&lt;<span class="lifetime">&#39;data</span>, Endianness, R&gt;),
     <span class="attr">#[cfg(feature = <span class="string">&quot;macho&quot;</span>)]
-    </span>MachO64(macho::MachOFile64&lt;<span class="lifetime">&#39;data</span>, <a href="../endian.rs.html#278">Endianness</a>, R&gt;),
+    </span>MachO64(macho::MachOFile64&lt;<span class="lifetime">&#39;data</span>, Endianness, R&gt;),
     <span class="attr">#[cfg(feature = <span class="string">&quot;pe&quot;</span>)]
     </span>Pe32(pe::PeFile32&lt;<span class="lifetime">&#39;data</span>, R&gt;),
     <span class="attr">#[cfg(feature = <span class="string">&quot;pe&quot;</span>)]
     </span>Pe64(pe::PeFile64&lt;<span class="lifetime">&#39;data</span>, R&gt;),
     <span class="attr">#[cfg(feature = <span class="string">&quot;wasm&quot;</span>)]
     </span>Wasm(wasm::WasmFile&lt;<span class="lifetime">&#39;data</span>, R&gt;),
+    <span class="attr">#[cfg(feature = <span class="string">&quot;xcoff&quot;</span>)]
+    </span>Xcoff32(xcoff::XcoffFile32&lt;<span class="lifetime">&#39;data</span>, R&gt;),
+    <span class="attr">#[cfg(feature = <span class="string">&quot;xcoff&quot;</span>)]
+    </span>Xcoff64(xcoff::XcoffFile64&lt;<span class="lifetime">&#39;data</span>, R&gt;),
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>, R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt;&gt; File&lt;<span class="lifetime">&#39;data</span>, R&gt; {
@@ -1450,62 +1570,68 @@
     </span><span class="kw">pub fn </span>parse(data: R) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
         <span class="kw">let </span>inner = <span class="kw">match </span>FileKind::parse(data)<span class="question-mark">? </span>{
             <span class="attr">#[cfg(feature = <span class="string">&quot;elf&quot;</span>)]
-            </span><a href="mod.rs.html#154">FileKind::Elf32</a> =&gt; <a href="#182">FileInternal::Elf32</a>(elf::ElfFile32::parse(data)<span class="question-mark">?</span>),
+            </span>FileKind::Elf32 =&gt; FileInternal::Elf32(elf::ElfFile32::parse(data)<span class="question-mark">?</span>),
             <span class="attr">#[cfg(feature = <span class="string">&quot;elf&quot;</span>)]
-            </span><a href="mod.rs.html#157">FileKind::Elf64</a> =&gt; <a href="#184">FileInternal::Elf64</a>(elf::ElfFile64::parse(data)<span class="question-mark">?</span>),
+            </span>FileKind::Elf64 =&gt; FileInternal::Elf64(elf::ElfFile64::parse(data)<span class="question-mark">?</span>),
             <span class="attr">#[cfg(feature = <span class="string">&quot;macho&quot;</span>)]
-            </span><a href="mod.rs.html#160">FileKind::MachO32</a> =&gt; <a href="#186">FileInternal::MachO32</a>(macho::MachOFile32::parse(data)<span class="question-mark">?</span>),
+            </span>FileKind::MachO32 =&gt; FileInternal::MachO32(macho::MachOFile32::parse(data)<span class="question-mark">?</span>),
             <span class="attr">#[cfg(feature = <span class="string">&quot;macho&quot;</span>)]
-            </span><a href="mod.rs.html#163">FileKind::MachO64</a> =&gt; <a href="#188">FileInternal::MachO64</a>(macho::MachOFile64::parse(data)<span class="question-mark">?</span>),
+            </span>FileKind::MachO64 =&gt; FileInternal::MachO64(macho::MachOFile64::parse(data)<span class="question-mark">?</span>),
             <span class="attr">#[cfg(feature = <span class="string">&quot;wasm&quot;</span>)]
             </span>FileKind::Wasm =&gt; FileInternal::Wasm(wasm::WasmFile::parse(data)<span class="question-mark">?</span>),
             <span class="attr">#[cfg(feature = <span class="string">&quot;pe&quot;</span>)]
-            </span><a href="mod.rs.html#172">FileKind::Pe32</a> =&gt; <a href="#190">FileInternal::Pe32</a>(pe::PeFile32::parse(data)<span class="question-mark">?</span>),
+            </span>FileKind::Pe32 =&gt; FileInternal::Pe32(pe::PeFile32::parse(data)<span class="question-mark">?</span>),
             <span class="attr">#[cfg(feature = <span class="string">&quot;pe&quot;</span>)]
-            </span><a href="mod.rs.html#175">FileKind::Pe64</a> =&gt; <a href="#192">FileInternal::Pe64</a>(pe::PeFile64::parse(data)<span class="question-mark">?</span>),
+            </span>FileKind::Pe64 =&gt; FileInternal::Pe64(pe::PeFile64::parse(data)<span class="question-mark">?</span>),
             <span class="attr">#[cfg(feature = <span class="string">&quot;coff&quot;</span>)]
-            </span><a href="mod.rs.html#148">FileKind::Coff</a> =&gt; <a href="#180">FileInternal::Coff</a>(coff::CoffFile::parse(data)<span class="question-mark">?</span>),
+            </span>FileKind::Coff =&gt; FileInternal::Coff(coff::CoffFile::parse(data)<span class="question-mark">?</span>),
+            <span class="attr">#[cfg(feature = <span class="string">&quot;xcoff&quot;</span>)]
+            </span>FileKind::Xcoff32 =&gt; FileInternal::Xcoff32(xcoff::XcoffFile32::parse(data)<span class="question-mark">?</span>),
+            <span class="attr">#[cfg(feature = <span class="string">&quot;xcoff&quot;</span>)]
+            </span>FileKind::Xcoff64 =&gt; FileInternal::Xcoff64(xcoff::XcoffFile64::parse(data)<span class="question-mark">?</span>),
             <span class="attr">#[allow(unreachable_patterns)]
-            </span><span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="mod.rs.html#64">Error</a>(<span class="string">&quot;Unsupported file format&quot;</span>)),
+            </span><span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(Error(<span class="string">&quot;Unsupported file format&quot;</span>)),
         };
-        <span class="prelude-val">Ok</span>(<a href="#173">File</a> { <a href="#200">inner</a> })
+        <span class="prelude-val">Ok</span>(File { inner })
     }
 
     <span class="doccomment">/// Parse a Mach-O image from the dyld shared cache.
     </span><span class="attr">#[cfg(feature = <span class="string">&quot;macho&quot;</span>)]
-    </span><span class="kw">pub fn </span>parse_dyld_cache_image&lt;<span class="lifetime">&#39;cache</span>, E: <a href="../endian.rs.html#13">Endian</a>&gt;(
+    </span><span class="kw">pub fn </span>parse_dyld_cache_image&lt;<span class="lifetime">&#39;cache</span>, E: Endian&gt;(
         image: <span class="kw-2">&amp;</span>macho::DyldCacheImage&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;cache</span>, E, R&gt;,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
-        <span class="kw">let </span>inner = <span class="kw">match </span><a href="#226">image</a>.cache.<a href="macho/dyld_cache.rs.html#104">architecture</a>().<a href="../common.rs.html#33">address_size</a>() {
-            <span class="prelude-val">Some</span>(<a href="../common.rs.html#70">AddressSize::U64</a>) =&gt; {
-                <a href="#188">FileInternal::MachO64</a>(macho::MachOFile64::parse_dyld_cache_image(image)<span class="question-mark">?</span>)
+        <span class="kw">let </span>inner = <span class="kw">match </span>image.cache.architecture().address_size() {
+            <span class="prelude-val">Some</span>(AddressSize::U64) =&gt; {
+                FileInternal::MachO64(macho::MachOFile64::parse_dyld_cache_image(image)<span class="question-mark">?</span>)
             }
-            <span class="prelude-val">Some</span>(<a href="../common.rs.html#69">AddressSize::U32</a>) =&gt; {
-                <a href="#186">FileInternal::MachO32</a>(macho::MachOFile32::parse_dyld_cache_image(image)<span class="question-mark">?</span>)
+            <span class="prelude-val">Some</span>(AddressSize::U32) =&gt; {
+                FileInternal::MachO32(macho::MachOFile32::parse_dyld_cache_image(image)<span class="question-mark">?</span>)
             }
-            <span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="mod.rs.html#64">Error</a>(<span class="string">&quot;Unsupported file format&quot;</span>)),
+            <span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(Error(<span class="string">&quot;Unsupported file format&quot;</span>)),
         };
-        <span class="prelude-val">Ok</span>(<a href="#173">File</a> { <a href="#228">inner</a> })
+        <span class="prelude-val">Ok</span>(File { inner })
     }
 
     <span class="doccomment">/// Return the file format.
-    </span><span class="kw">pub fn </span>format(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../common.rs.html#85">BinaryFormat</a> {
-        <span class="kw">match </span><a class="self" href="#241">self</a>.inner {
+    </span><span class="kw">pub fn </span>format(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; BinaryFormat {
+        <span class="kw">match </span><span class="self">self</span>.inner {
             <span class="attr">#[cfg(feature = <span class="string">&quot;coff&quot;</span>)]
-            </span><a href="#180">FileInternal::Coff</a>(<span class="kw">_</span>) =&gt; <a href="../common.rs.html#86">BinaryFormat::Coff</a>,
+            </span>FileInternal::Coff(<span class="kw">_</span>) =&gt; BinaryFormat::Coff,
             <span class="attr">#[cfg(feature = <span class="string">&quot;elf&quot;</span>)]
-            </span><a href="#182">FileInternal::Elf32</a>(<span class="kw">_</span>) | <a href="#184">FileInternal::Elf64</a>(<span class="kw">_</span>) =&gt; <a href="../common.rs.html#87">BinaryFormat::Elf</a>,
+            </span>FileInternal::Elf32(<span class="kw">_</span>) | FileInternal::Elf64(<span class="kw">_</span>) =&gt; BinaryFormat::Elf,
             <span class="attr">#[cfg(feature = <span class="string">&quot;macho&quot;</span>)]
-            </span><a href="#186">FileInternal::MachO32</a>(<span class="kw">_</span>) | <a href="#188">FileInternal::MachO64</a>(<span class="kw">_</span>) =&gt; <a href="../common.rs.html#88">BinaryFormat::MachO</a>,
+            </span>FileInternal::MachO32(<span class="kw">_</span>) | FileInternal::MachO64(<span class="kw">_</span>) =&gt; BinaryFormat::MachO,
             <span class="attr">#[cfg(feature = <span class="string">&quot;pe&quot;</span>)]
-            </span><a href="#190">FileInternal::Pe32</a>(<span class="kw">_</span>) | <a href="#192">FileInternal::Pe64</a>(<span class="kw">_</span>) =&gt; <a href="../common.rs.html#89">BinaryFormat::Pe</a>,
+            </span>FileInternal::Pe32(<span class="kw">_</span>) | FileInternal::Pe64(<span class="kw">_</span>) =&gt; BinaryFormat::Pe,
             <span class="attr">#[cfg(feature = <span class="string">&quot;wasm&quot;</span>)]
             </span>FileInternal::Wasm(<span class="kw">_</span>) =&gt; BinaryFormat::Wasm,
+            <span class="attr">#[cfg(feature = <span class="string">&quot;xcoff&quot;</span>)]
+            </span>FileInternal::Xcoff32(<span class="kw">_</span>) | FileInternal::Xcoff64(<span class="kw">_</span>) =&gt; BinaryFormat::Xcoff,
         }
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>, R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt;&gt; <a href="mod.rs.html#59">read::private::Sealed</a> <span class="kw">for </span>File&lt;<span class="lifetime">&#39;data</span>, R&gt; {}
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>, R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt;&gt; read::private::Sealed <span class="kw">for </span>File&lt;<span class="lifetime">&#39;data</span>, R&gt; {}
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R&gt; Object&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>&gt; <span class="kw">for </span>File&lt;<span class="lifetime">&#39;data</span>, R&gt;
 <span class="kw">where
@@ -1523,65 +1649,65 @@
     <span class="kw">type </span>SymbolTable = SymbolTable&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R&gt;;
     <span class="kw">type </span>DynamicRelocationIterator = DynamicRelocationIterator&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R&gt;;
 
-    <span class="kw">fn </span>architecture(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../common.rs.html#5">Architecture</a> {
-        <a class="macro" href="#28-49">with_inner!</a>(<span class="self">self</span>.inner, FileInternal, |x| x.architecture())
+    <span class="kw">fn </span>architecture(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Architecture {
+        <span class="macro">with_inner!</span>(<span class="self">self</span>.inner, FileInternal, |x| x.architecture())
     }
 
-    <span class="kw">fn </span>is_little_endian(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="macro" href="#28-49">with_inner!</a>(<span class="self">self</span>.inner, FileInternal, |x| x.is_little_endian())
+    <span class="kw">fn </span>is_little_endian(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="macro">with_inner!</span>(<span class="self">self</span>.inner, FileInternal, |x| x.is_little_endian())
     }
 
-    <span class="kw">fn </span>is_64(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="macro" href="#28-49">with_inner!</a>(<span class="self">self</span>.inner, FileInternal, |x| x.is_64())
+    <span class="kw">fn </span>is_64(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="macro">with_inner!</span>(<span class="self">self</span>.inner, FileInternal, |x| x.is_64())
     }
 
-    <span class="kw">fn </span>kind(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="mod.rs.html#248">ObjectKind</a> {
-        <a class="macro" href="#28-49">with_inner!</a>(<span class="self">self</span>.inner, FileInternal, |x| x.kind())
+    <span class="kw">fn </span>kind(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; ObjectKind {
+        <span class="macro">with_inner!</span>(<span class="self">self</span>.inner, FileInternal, |x| x.kind())
     }
 
     <span class="kw">fn </span>segments(<span class="kw-2">&amp;</span><span class="lifetime">&#39;file </span><span class="self">self</span>) -&gt; SegmentIterator&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R&gt; {
-        <a href="#443">SegmentIterator</a> {
-            inner: <a class="macro" href="#75-96">map_inner!</a>(<span class="self">self</span>.inner, FileInternal, SegmentIteratorInternal, |x| x
+        SegmentIterator {
+            inner: <span class="macro">map_inner!</span>(<span class="self">self</span>.inner, FileInternal, SegmentIteratorInternal, |x| x
                 .segments()),
         }
     }
 
-    <span class="kw">fn </span>section_by_name_bytes(<span class="kw-2">&amp;</span><span class="lifetime">&#39;file </span><span class="self">self</span>, section_name: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Option</span>&lt;Section&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R&gt;&gt; {
-        <a class="macro" href="#99-120">map_inner_option!</a>(<span class="self">self</span>.inner, FileInternal, SectionInternal, |x| x
+    <span class="kw">fn </span>section_by_name_bytes(<span class="kw-2">&amp;</span><span class="lifetime">&#39;file </span><span class="self">self</span>, section_name: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Option</span>&lt;Section&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R&gt;&gt; {
+        <span class="macro">map_inner_option!</span>(<span class="self">self</span>.inner, FileInternal, SectionInternal, |x| x
             .section_by_name_bytes(section_name))
-        .map(|inner| <a href="#615">Section</a> { <a href="#301">inner</a> })
+        .map(|inner| Section { inner })
     }
 
-    <span class="kw">fn </span>section_by_index(<span class="kw-2">&amp;</span><span class="lifetime">&#39;file </span><span class="self">self</span>, index: <a href="mod.rs.html#263">SectionIndex</a>) -&gt; <span class="prelude-ty">Result</span>&lt;Section&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R&gt;&gt; {
-        <a class="macro" href="#99-120">map_inner_option!</a>(<span class="self">self</span>.inner, FileInternal, SectionInternal, |x| x
+    <span class="kw">fn </span>section_by_index(<span class="kw-2">&amp;</span><span class="lifetime">&#39;file </span><span class="self">self</span>, index: SectionIndex) -&gt; <span class="prelude-ty">Result</span>&lt;Section&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R&gt;&gt; {
+        <span class="macro">map_inner_option!</span>(<span class="self">self</span>.inner, FileInternal, SectionInternal, |x| x
             .section_by_index(index))
-        .map(|inner| <a href="#615">Section</a> { <a href="#307">inner</a> })
+        .map(|inner| Section { inner })
     }
 
     <span class="kw">fn </span>sections(<span class="kw-2">&amp;</span><span class="lifetime">&#39;file </span><span class="self">self</span>) -&gt; SectionIterator&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R&gt; {
-        <a href="#574">SectionIterator</a> {
-            inner: <a class="macro" href="#75-96">map_inner!</a>(<span class="self">self</span>.inner, FileInternal, SectionIteratorInternal, |x| x
+        SectionIterator {
+            inner: <span class="macro">map_inner!</span>(<span class="self">self</span>.inner, FileInternal, SectionIteratorInternal, |x| x
                 .sections()),
         }
     }
 
     <span class="kw">fn </span>comdats(<span class="kw-2">&amp;</span><span class="lifetime">&#39;file </span><span class="self">self</span>) -&gt; ComdatIterator&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R&gt; {
-        <a href="#746">ComdatIterator</a> {
-            inner: <a class="macro" href="#75-96">map_inner!</a>(<span class="self">self</span>.inner, FileInternal, ComdatIteratorInternal, |x| x
+        ComdatIterator {
+            inner: <span class="macro">map_inner!</span>(<span class="self">self</span>.inner, FileInternal, ComdatIteratorInternal, |x| x
                 .comdats()),
         }
     }
 
-    <span class="kw">fn </span>symbol_by_index(<span class="kw-2">&amp;</span><span class="lifetime">&#39;file </span><span class="self">self</span>, index: <a href="mod.rs.html#267">SymbolIndex</a>) -&gt; <span class="prelude-ty">Result</span>&lt;Symbol&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R&gt;&gt; {
-        <a class="macro" href="#99-120">map_inner_option!</a>(<span class="self">self</span>.inner, FileInternal, SymbolInternal, |x| x
+    <span class="kw">fn </span>symbol_by_index(<span class="kw-2">&amp;</span><span class="lifetime">&#39;file </span><span class="self">self</span>, index: SymbolIndex) -&gt; <span class="prelude-ty">Result</span>&lt;Symbol&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R&gt;&gt; {
+        <span class="macro">map_inner_option!</span>(<span class="self">self</span>.inner, FileInternal, SymbolInternal, |x| x
             .symbol_by_index(index)
             .map(|x| (x, PhantomData)))
-        .map(|inner| <a href="#1044">Symbol</a> { <a href="#328">inner</a> })
+        .map(|inner| Symbol { inner })
     }
 
     <span class="kw">fn </span>symbols(<span class="kw-2">&amp;</span><span class="lifetime">&#39;file </span><span class="self">self</span>) -&gt; SymbolIterator&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R&gt; {
-        <a href="#980">SymbolIterator</a> {
-            inner: <a class="macro" href="#75-96">map_inner!</a>(<span class="self">self</span>.inner, FileInternal, SymbolIteratorInternal, |x| (
+        SymbolIterator {
+            inner: <span class="macro">map_inner!</span>(<span class="self">self</span>.inner, FileInternal, SymbolIteratorInternal, |x| (
                 x.symbols(),
                 PhantomData
             )),
@@ -1589,15 +1715,15 @@
     }
 
     <span class="kw">fn </span>symbol_table(<span class="kw-2">&amp;</span><span class="lifetime">&#39;file </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;SymbolTable&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R&gt;&gt; {
-        <a class="macro" href="#99-120">map_inner_option!</a>(<span class="self">self</span>.inner, FileInternal, SymbolTableInternal, |x| x
+        <span class="macro">map_inner_option!</span>(<span class="self">self</span>.inner, FileInternal, SymbolTableInternal, |x| x
             .symbol_table()
             .map(|x| (x, PhantomData)))
-        .map(|inner| <a href="#900">SymbolTable</a> { <a href="#344">inner</a> })
+        .map(|inner| SymbolTable { inner })
     }
 
     <span class="kw">fn </span>dynamic_symbols(<span class="kw-2">&amp;</span><span class="lifetime">&#39;file </span><span class="self">self</span>) -&gt; SymbolIterator&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R&gt; {
-        <a href="#980">SymbolIterator</a> {
-            inner: <a class="macro" href="#75-96">map_inner!</a>(<span class="self">self</span>.inner, FileInternal, SymbolIteratorInternal, |x| (
+        SymbolIterator {
+            inner: <span class="macro">map_inner!</span>(<span class="self">self</span>.inner, FileInternal, SymbolIteratorInternal, |x| (
                 x.dynamic_symbols(),
                 PhantomData
             )),
@@ -1605,25 +1731,25 @@
     }
 
     <span class="kw">fn </span>dynamic_symbol_table(<span class="kw-2">&amp;</span><span class="lifetime">&#39;file </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;SymbolTable&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R&gt;&gt; {
-        <a class="macro" href="#99-120">map_inner_option!</a>(<span class="self">self</span>.inner, FileInternal, SymbolTableInternal, |x| x
+        <span class="macro">map_inner_option!</span>(<span class="self">self</span>.inner, FileInternal, SymbolTableInternal, |x| x
             .dynamic_symbol_table()
             .map(|x| (x, PhantomData)))
-        .map(|inner| <a href="#900">SymbolTable</a> { <a href="#360">inner</a> })
+        .map(|inner| SymbolTable { inner })
     }
 
     <span class="attr">#[cfg(feature = <span class="string">&quot;elf&quot;</span>)]
     </span><span class="kw">fn </span>dynamic_relocations(<span class="kw-2">&amp;</span><span class="lifetime">&#39;file </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;DynamicRelocationIterator&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R&gt;&gt; {
-        <span class="kw">let </span>inner = <span class="kw">match </span><a class="self" href="#364">self</a>.inner {
-            <a href="#182">FileInternal::Elf32</a>(<span class="kw-2">ref </span>elf) =&gt; {
-                <a href="#1191">DynamicRelocationIteratorInternal::Elf32</a>(elf.dynamic_relocations()<span class="question-mark">?</span>)
+        <span class="kw">let </span>inner = <span class="kw">match </span><span class="self">self</span>.inner {
+            FileInternal::Elf32(<span class="kw-2">ref </span>elf) =&gt; {
+                DynamicRelocationIteratorInternal::Elf32(elf.dynamic_relocations()<span class="question-mark">?</span>)
             }
-            <a href="#184">FileInternal::Elf64</a>(<span class="kw-2">ref </span>elf) =&gt; {
-                <a href="#1193">DynamicRelocationIteratorInternal::Elf64</a>(elf.dynamic_relocations()<span class="question-mark">?</span>)
+            FileInternal::Elf64(<span class="kw-2">ref </span>elf) =&gt; {
+                DynamicRelocationIteratorInternal::Elf64(elf.dynamic_relocations()<span class="question-mark">?</span>)
             }
             <span class="attr">#[allow(unreachable_patterns)]
             </span><span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="prelude-val">None</span>,
         };
-        <span class="prelude-val">Some</span>(<a href="#1176">DynamicRelocationIterator</a> { <a href="#365">inner</a> })
+        <span class="prelude-val">Some</span>(DynamicRelocationIterator { inner })
     }
 
     <span class="attr">#[cfg(not(feature = <span class="string">&quot;elf&quot;</span>))]
@@ -1632,66 +1758,66 @@
     </span>}
 
     <span class="kw">fn </span>symbol_map(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; SymbolMap&lt;SymbolMapName&lt;<span class="lifetime">&#39;data</span>&gt;&gt; {
-        <a class="macro" href="#28-49">with_inner!</a>(<span class="self">self</span>.inner, FileInternal, |x| x.symbol_map())
+        <span class="macro">with_inner!</span>(<span class="self">self</span>.inner, FileInternal, |x| x.symbol_map())
     }
 
     <span class="kw">fn </span>object_map(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; ObjectMap&lt;<span class="lifetime">&#39;data</span>&gt; {
-        <a class="macro" href="#28-49">with_inner!</a>(<span class="self">self</span>.inner, FileInternal, |x| x.object_map())
+        <span class="macro">with_inner!</span>(<span class="self">self</span>.inner, FileInternal, |x| x.object_map())
     }
 
     <span class="kw">fn </span>imports(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;Import&lt;<span class="lifetime">&#39;data</span>&gt;&gt;&gt; {
-        <a class="macro" href="#28-49">with_inner!</a>(<span class="self">self</span>.inner, FileInternal, |x| x.imports())
+        <span class="macro">with_inner!</span>(<span class="self">self</span>.inner, FileInternal, |x| x.imports())
     }
 
     <span class="kw">fn </span>exports(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;Export&lt;<span class="lifetime">&#39;data</span>&gt;&gt;&gt; {
-        <a class="macro" href="#28-49">with_inner!</a>(<span class="self">self</span>.inner, FileInternal, |x| x.exports())
+        <span class="macro">with_inner!</span>(<span class="self">self</span>.inner, FileInternal, |x| x.exports())
     }
 
-    <span class="kw">fn </span>has_debug_symbols(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="macro" href="#28-49">with_inner!</a>(<span class="self">self</span>.inner, FileInternal, |x| x.has_debug_symbols())
-    }
-
-    <span class="attr">#[inline]
-    </span><span class="kw">fn </span>mach_uuid(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="number">16</span>]&gt;&gt; {
-        <a class="macro" href="#28-49">with_inner!</a>(<span class="self">self</span>.inner, FileInternal, |x| x.mach_uuid())
+    <span class="kw">fn </span>has_debug_symbols(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="macro">with_inner!</span>(<span class="self">self</span>.inner, FileInternal, |x| x.has_debug_symbols())
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>build_id(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;&gt; {
-        <a class="macro" href="#28-49">with_inner!</a>(<span class="self">self</span>.inner, FileInternal, |x| x.build_id())
+    </span><span class="kw">fn </span>mach_uuid(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;[u8; <span class="number">16</span>]&gt;&gt; {
+        <span class="macro">with_inner!</span>(<span class="self">self</span>.inner, FileInternal, |x| x.mach_uuid())
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>gnu_debuglink(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>)&gt;&gt; {
-        <a class="macro" href="#28-49">with_inner!</a>(<span class="self">self</span>.inner, FileInternal, |x| x.gnu_debuglink())
+    </span><span class="kw">fn </span>build_id(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[u8]&gt;&gt; {
+        <span class="macro">with_inner!</span>(<span class="self">self</span>.inner, FileInternal, |x| x.build_id())
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>gnu_debugaltlink(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>])&gt;&gt; {
-        <a class="macro" href="#28-49">with_inner!</a>(<span class="self">self</span>.inner, FileInternal, |x| x.gnu_debugaltlink())
+    </span><span class="kw">fn </span>gnu_debuglink(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[u8], u32)&gt;&gt; {
+        <span class="macro">with_inner!</span>(<span class="self">self</span>.inner, FileInternal, |x| x.gnu_debuglink())
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>pdb_info(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<a href="mod.rs.html#500">CodeView</a>&gt;&gt; {
-        <a class="macro" href="#28-49">with_inner!</a>(<span class="self">self</span>.inner, FileInternal, |x| x.pdb_info())
+    </span><span class="kw">fn </span>gnu_debugaltlink(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[u8], <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[u8])&gt;&gt; {
+        <span class="macro">with_inner!</span>(<span class="self">self</span>.inner, FileInternal, |x| x.gnu_debugaltlink())
     }
 
-    <span class="kw">fn </span>relative_address_base(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> {
-        <a class="macro" href="#28-49">with_inner!</a>(<span class="self">self</span>.inner, FileInternal, |x| x.relative_address_base())
+    <span class="attr">#[inline]
+    </span><span class="kw">fn </span>pdb_info(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;CodeView&gt;&gt; {
+        <span class="macro">with_inner!</span>(<span class="self">self</span>.inner, FileInternal, |x| x.pdb_info())
     }
 
-    <span class="kw">fn </span>entry(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> {
-        <a class="macro" href="#28-49">with_inner!</a>(<span class="self">self</span>.inner, FileInternal, |x| x.entry())
+    <span class="kw">fn </span>relative_address_base(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u64 {
+        <span class="macro">with_inner!</span>(<span class="self">self</span>.inner, FileInternal, |x| x.relative_address_base())
     }
 
-    <span class="kw">fn </span>flags(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../common.rs.html#351">FileFlags</a> {
-        <a class="macro" href="#28-49">with_inner!</a>(<span class="self">self</span>.inner, FileInternal, |x| x.flags())
+    <span class="kw">fn </span>entry(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u64 {
+        <span class="macro">with_inner!</span>(<span class="self">self</span>.inner, FileInternal, |x| x.entry())
+    }
+
+    <span class="kw">fn </span>flags(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; FileFlags {
+        <span class="macro">with_inner!</span>(<span class="self">self</span>.inner, FileInternal, |x| x.flags())
     }
 }
 
 <span class="doccomment">/// An iterator over the segments of a `File`.
 </span><span class="attr">#[derive(Debug)]
-</span><span class="kw">pub struct </span>SegmentIterator&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt; = <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;
+</span><span class="kw">pub struct </span>SegmentIterator&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt; = <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[u8]&gt;
 <span class="kw">where
     </span><span class="lifetime">&#39;data</span>: <span class="lifetime">&#39;file</span>,
 {
@@ -1706,32 +1832,36 @@
     <span class="attr">#[cfg(feature = <span class="string">&quot;coff&quot;</span>)]
     </span>Coff(coff::CoffSegmentIterator&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R&gt;),
     <span class="attr">#[cfg(feature = <span class="string">&quot;elf&quot;</span>)]
-    </span>Elf32(elf::ElfSegmentIterator32&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <a href="../endian.rs.html#278">Endianness</a>, R&gt;),
+    </span>Elf32(elf::ElfSegmentIterator32&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Endianness, R&gt;),
     <span class="attr">#[cfg(feature = <span class="string">&quot;elf&quot;</span>)]
-    </span>Elf64(elf::ElfSegmentIterator64&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <a href="../endian.rs.html#278">Endianness</a>, R&gt;),
+    </span>Elf64(elf::ElfSegmentIterator64&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Endianness, R&gt;),
     <span class="attr">#[cfg(feature = <span class="string">&quot;macho&quot;</span>)]
-    </span>MachO32(macho::MachOSegmentIterator32&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <a href="../endian.rs.html#278">Endianness</a>, R&gt;),
+    </span>MachO32(macho::MachOSegmentIterator32&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Endianness, R&gt;),
     <span class="attr">#[cfg(feature = <span class="string">&quot;macho&quot;</span>)]
-    </span>MachO64(macho::MachOSegmentIterator64&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <a href="../endian.rs.html#278">Endianness</a>, R&gt;),
+    </span>MachO64(macho::MachOSegmentIterator64&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Endianness, R&gt;),
     <span class="attr">#[cfg(feature = <span class="string">&quot;pe&quot;</span>)]
     </span>Pe32(pe::PeSegmentIterator32&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R&gt;),
     <span class="attr">#[cfg(feature = <span class="string">&quot;pe&quot;</span>)]
     </span>Pe64(pe::PeSegmentIterator64&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R&gt;),
     <span class="attr">#[cfg(feature = <span class="string">&quot;wasm&quot;</span>)]
     </span>Wasm(wasm::WasmSegmentIterator&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R&gt;),
+    <span class="attr">#[cfg(feature = <span class="string">&quot;xcoff&quot;</span>)]
+    </span>Xcoff32(xcoff::XcoffSegmentIterator32&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R&gt;),
+    <span class="attr">#[cfg(feature = <span class="string">&quot;xcoff&quot;</span>)]
+    </span>Xcoff64(xcoff::XcoffSegmentIterator64&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R&gt;),
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt;&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a> <span class="kw">for </span>SegmentIterator&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt;&gt; Iterator <span class="kw">for </span>SegmentIterator&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R&gt; {
     <span class="kw">type </span>Item = Segment&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R&gt;;
 
     <span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt; {
-        <a class="macro" href="#146-167">next_inner!</a>(<span class="self">self</span>.inner, SegmentIteratorInternal, SegmentInternal)
-            .map(|inner| <a href="#483">Segment</a> { <a href="#478">inner</a> })
+        <span class="macro">next_inner!</span>(<span class="self">self</span>.inner, SegmentIteratorInternal, SegmentInternal)
+            .map(|inner| Segment { inner })
     }
 }
 
 <span class="doccomment">/// A segment of a `File`.
-</span><span class="kw">pub struct </span>Segment&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt; = <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;
+</span><span class="kw">pub struct </span>Segment&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt; = <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[u8]&gt;
 <span class="kw">where
     </span><span class="lifetime">&#39;data</span>: <span class="lifetime">&#39;file</span>,
 {
@@ -1746,83 +1876,87 @@
     <span class="attr">#[cfg(feature = <span class="string">&quot;coff&quot;</span>)]
     </span>Coff(coff::CoffSegment&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R&gt;),
     <span class="attr">#[cfg(feature = <span class="string">&quot;elf&quot;</span>)]
-    </span>Elf32(elf::ElfSegment32&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <a href="../endian.rs.html#278">Endianness</a>, R&gt;),
+    </span>Elf32(elf::ElfSegment32&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Endianness, R&gt;),
     <span class="attr">#[cfg(feature = <span class="string">&quot;elf&quot;</span>)]
-    </span>Elf64(elf::ElfSegment64&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <a href="../endian.rs.html#278">Endianness</a>, R&gt;),
+    </span>Elf64(elf::ElfSegment64&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Endianness, R&gt;),
     <span class="attr">#[cfg(feature = <span class="string">&quot;macho&quot;</span>)]
-    </span>MachO32(macho::MachOSegment32&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <a href="../endian.rs.html#278">Endianness</a>, R&gt;),
+    </span>MachO32(macho::MachOSegment32&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Endianness, R&gt;),
     <span class="attr">#[cfg(feature = <span class="string">&quot;macho&quot;</span>)]
-    </span>MachO64(macho::MachOSegment64&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <a href="../endian.rs.html#278">Endianness</a>, R&gt;),
+    </span>MachO64(macho::MachOSegment64&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Endianness, R&gt;),
     <span class="attr">#[cfg(feature = <span class="string">&quot;pe&quot;</span>)]
     </span>Pe32(pe::PeSegment32&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R&gt;),
     <span class="attr">#[cfg(feature = <span class="string">&quot;pe&quot;</span>)]
     </span>Pe64(pe::PeSegment64&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R&gt;),
     <span class="attr">#[cfg(feature = <span class="string">&quot;wasm&quot;</span>)]
     </span>Wasm(wasm::WasmSegment&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R&gt;),
+    <span class="attr">#[cfg(feature = <span class="string">&quot;xcoff&quot;</span>)]
+    </span>Xcoff32(xcoff::XcoffSegment32&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R&gt;),
+    <span class="attr">#[cfg(feature = <span class="string">&quot;xcoff&quot;</span>)]
+    </span>Xcoff64(xcoff::XcoffSegment64&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R&gt;),
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt;&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span>Segment&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R&gt; {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt;&gt; fmt::Debug <span class="kw">for </span>Segment&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R&gt; {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
         <span class="comment">// It&#39;s painful to do much better than this
-        </span><span class="kw">let </span><span class="kw-2">mut </span>s = <a href="#514">f</a>.debug_struct(<span class="string">&quot;Segment&quot;</span>);
-        <span class="kw">match </span><a class="self" href="#514">self</a>.<a href="traits.rs.html#263">name</a>() {
+        </span><span class="kw">let </span><span class="kw-2">mut </span>s = f.debug_struct(<span class="string">&quot;Segment&quot;</span>);
+        <span class="kw">match </span><span class="self">self</span>.name() {
             <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="kw-2">ref </span>name)) =&gt; {
-                <a href="#516">s</a>.field(<span class="string">&quot;name&quot;</span>, <a href="#518">name</a>);
+                s.field(<span class="string">&quot;name&quot;</span>, name);
             }
             <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>) =&gt; {}
             <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; {
-                <a href="#516">s</a>.field(<span class="string">&quot;name&quot;</span>, <span class="kw-2">&amp;</span><span class="string">&quot;&lt;invalid&gt;&quot;</span>);
+                s.field(<span class="string">&quot;name&quot;</span>, <span class="kw-2">&amp;</span><span class="string">&quot;&lt;invalid&gt;&quot;</span>);
             }
         }
-        <a href="#516">s</a>.field(<span class="string">&quot;address&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="#514">self</a>.<a href="traits.rs.html#235">address</a>())
-            .field(<span class="string">&quot;size&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="#514">self</a>.<a href="traits.rs.html#238">size</a>())
+        s.field(<span class="string">&quot;address&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.address())
+            .field(<span class="string">&quot;size&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.size())
             .finish()
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt;&gt; <a href="mod.rs.html#59">read::private::Sealed</a> <span class="kw">for </span>Segment&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R&gt; {}
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt;&gt; read::private::Sealed <span class="kw">for </span>Segment&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R&gt; {}
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt;&gt; ObjectSegment&lt;<span class="lifetime">&#39;data</span>&gt; <span class="kw">for </span>Segment&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R&gt; {
-    <span class="kw">fn </span>address(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> {
-        <a class="macro" href="#28-49">with_inner!</a>(<span class="self">self</span>.inner, SegmentInternal, |x| x.address())
+    <span class="kw">fn </span>address(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u64 {
+        <span class="macro">with_inner!</span>(<span class="self">self</span>.inner, SegmentInternal, |x| x.address())
     }
 
-    <span class="kw">fn </span>size(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> {
-        <a class="macro" href="#28-49">with_inner!</a>(<span class="self">self</span>.inner, SegmentInternal, |x| x.size())
+    <span class="kw">fn </span>size(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u64 {
+        <span class="macro">with_inner!</span>(<span class="self">self</span>.inner, SegmentInternal, |x| x.size())
     }
 
-    <span class="kw">fn </span>align(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> {
-        <a class="macro" href="#28-49">with_inner!</a>(<span class="self">self</span>.inner, SegmentInternal, |x| x.align())
+    <span class="kw">fn </span>align(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u64 {
+        <span class="macro">with_inner!</span>(<span class="self">self</span>.inner, SegmentInternal, |x| x.align())
     }
 
-    <span class="kw">fn </span>file_range(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (<a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) {
-        <a class="macro" href="#28-49">with_inner!</a>(<span class="self">self</span>.inner, SegmentInternal, |x| x.file_range())
+    <span class="kw">fn </span>file_range(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (u64, u64) {
+        <span class="macro">with_inner!</span>(<span class="self">self</span>.inner, SegmentInternal, |x| x.file_range())
     }
 
-    <span class="kw">fn </span>data(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt; {
-        <a class="macro" href="#28-49">with_inner!</a>(<span class="self">self</span>.inner, SegmentInternal, |x| x.data())
+    <span class="kw">fn </span>data(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[u8]&gt; {
+        <span class="macro">with_inner!</span>(<span class="self">self</span>.inner, SegmentInternal, |x| x.data())
     }
 
-    <span class="kw">fn </span>data_range(<span class="kw-2">&amp;</span><span class="self">self</span>, address: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>, size: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;&gt; {
-        <a class="macro" href="#28-49">with_inner!</a>(<span class="self">self</span>.inner, SegmentInternal, |x| x.data_range(address, size))
+    <span class="kw">fn </span>data_range(<span class="kw-2">&amp;</span><span class="self">self</span>, address: u64, size: u64) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[u8]&gt;&gt; {
+        <span class="macro">with_inner!</span>(<span class="self">self</span>.inner, SegmentInternal, |x| x.data_range(address, size))
     }
 
-    <span class="kw">fn </span>name_bytes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;&gt; {
-        <a class="macro" href="#28-49">with_inner!</a>(<span class="self">self</span>.inner, SegmentInternal, |x| x.name_bytes())
+    <span class="kw">fn </span>name_bytes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>[u8]&gt;&gt; {
+        <span class="macro">with_inner!</span>(<span class="self">self</span>.inner, SegmentInternal, |x| x.name_bytes())
     }
 
-    <span class="kw">fn </span>name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt;&gt; {
-        <a class="macro" href="#28-49">with_inner!</a>(<span class="self">self</span>.inner, SegmentInternal, |x| x.name())
+    <span class="kw">fn </span>name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>str&gt;&gt; {
+        <span class="macro">with_inner!</span>(<span class="self">self</span>.inner, SegmentInternal, |x| x.name())
     }
 
-    <span class="kw">fn </span>flags(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../common.rs.html#378">SegmentFlags</a> {
-        <a class="macro" href="#28-49">with_inner!</a>(<span class="self">self</span>.inner, SegmentInternal, |x| x.flags())
+    <span class="kw">fn </span>flags(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; SegmentFlags {
+        <span class="macro">with_inner!</span>(<span class="self">self</span>.inner, SegmentInternal, |x| x.flags())
     }
 }
 
 <span class="doccomment">/// An iterator of the sections of a `File`.
 </span><span class="attr">#[derive(Debug)]
-</span><span class="kw">pub struct </span>SectionIterator&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt; = <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;
+</span><span class="kw">pub struct </span>SectionIterator&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt; = <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[u8]&gt;
 <span class="kw">where
     </span><span class="lifetime">&#39;data</span>: <span class="lifetime">&#39;file</span>,
 {
@@ -1838,32 +1972,36 @@
     <span class="attr">#[cfg(feature = <span class="string">&quot;coff&quot;</span>)]
     </span>Coff(coff::CoffSectionIterator&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R&gt;),
     <span class="attr">#[cfg(feature = <span class="string">&quot;elf&quot;</span>)]
-    </span>Elf32(elf::ElfSectionIterator32&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <a href="../endian.rs.html#278">Endianness</a>, R&gt;),
+    </span>Elf32(elf::ElfSectionIterator32&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Endianness, R&gt;),
     <span class="attr">#[cfg(feature = <span class="string">&quot;elf&quot;</span>)]
-    </span>Elf64(elf::ElfSectionIterator64&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <a href="../endian.rs.html#278">Endianness</a>, R&gt;),
+    </span>Elf64(elf::ElfSectionIterator64&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Endianness, R&gt;),
     <span class="attr">#[cfg(feature = <span class="string">&quot;macho&quot;</span>)]
-    </span>MachO32(macho::MachOSectionIterator32&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <a href="../endian.rs.html#278">Endianness</a>, R&gt;),
+    </span>MachO32(macho::MachOSectionIterator32&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Endianness, R&gt;),
     <span class="attr">#[cfg(feature = <span class="string">&quot;macho&quot;</span>)]
-    </span>MachO64(macho::MachOSectionIterator64&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <a href="../endian.rs.html#278">Endianness</a>, R&gt;),
+    </span>MachO64(macho::MachOSectionIterator64&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Endianness, R&gt;),
     <span class="attr">#[cfg(feature = <span class="string">&quot;pe&quot;</span>)]
     </span>Pe32(pe::PeSectionIterator32&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R&gt;),
     <span class="attr">#[cfg(feature = <span class="string">&quot;pe&quot;</span>)]
     </span>Pe64(pe::PeSectionIterator64&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R&gt;),
     <span class="attr">#[cfg(feature = <span class="string">&quot;wasm&quot;</span>)]
     </span>Wasm(wasm::WasmSectionIterator&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R&gt;),
+    <span class="attr">#[cfg(feature = <span class="string">&quot;xcoff&quot;</span>)]
+    </span>Xcoff32(xcoff::XcoffSectionIterator32&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R&gt;),
+    <span class="attr">#[cfg(feature = <span class="string">&quot;xcoff&quot;</span>)]
+    </span>Xcoff64(xcoff::XcoffSectionIterator64&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R&gt;),
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt;&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a> <span class="kw">for </span>SectionIterator&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt;&gt; Iterator <span class="kw">for </span>SectionIterator&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R&gt; {
     <span class="kw">type </span>Item = Section&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R&gt;;
 
     <span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt; {
-        <a class="macro" href="#146-167">next_inner!</a>(<span class="self">self</span>.inner, SectionIteratorInternal, SectionInternal)
-            .map(|inner| <a href="#615">Section</a> { <a href="#610">inner</a> })
+        <span class="macro">next_inner!</span>(<span class="self">self</span>.inner, SectionIteratorInternal, SectionInternal)
+            .map(|inner| Section { inner })
     }
 }
 
 <span class="doccomment">/// A Section of a File
-</span><span class="kw">pub struct </span>Section&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt; = <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;
+</span><span class="kw">pub struct </span>Section&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt; = <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[u8]&gt;
 <span class="kw">where
     </span><span class="lifetime">&#39;data</span>: <span class="lifetime">&#39;file</span>,
 {
@@ -1877,108 +2015,112 @@
     <span class="attr">#[cfg(feature = <span class="string">&quot;coff&quot;</span>)]
     </span>Coff(coff::CoffSection&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R&gt;),
     <span class="attr">#[cfg(feature = <span class="string">&quot;elf&quot;</span>)]
-    </span>Elf32(elf::ElfSection32&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <a href="../endian.rs.html#278">Endianness</a>, R&gt;),
+    </span>Elf32(elf::ElfSection32&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Endianness, R&gt;),
     <span class="attr">#[cfg(feature = <span class="string">&quot;elf&quot;</span>)]
-    </span>Elf64(elf::ElfSection64&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <a href="../endian.rs.html#278">Endianness</a>, R&gt;),
+    </span>Elf64(elf::ElfSection64&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Endianness, R&gt;),
     <span class="attr">#[cfg(feature = <span class="string">&quot;macho&quot;</span>)]
-    </span>MachO32(macho::MachOSection32&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <a href="../endian.rs.html#278">Endianness</a>, R&gt;),
+    </span>MachO32(macho::MachOSection32&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Endianness, R&gt;),
     <span class="attr">#[cfg(feature = <span class="string">&quot;macho&quot;</span>)]
-    </span>MachO64(macho::MachOSection64&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <a href="../endian.rs.html#278">Endianness</a>, R&gt;),
+    </span>MachO64(macho::MachOSection64&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Endianness, R&gt;),
     <span class="attr">#[cfg(feature = <span class="string">&quot;pe&quot;</span>)]
     </span>Pe32(pe::PeSection32&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R&gt;),
     <span class="attr">#[cfg(feature = <span class="string">&quot;pe&quot;</span>)]
     </span>Pe64(pe::PeSection64&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R&gt;),
     <span class="attr">#[cfg(feature = <span class="string">&quot;wasm&quot;</span>)]
     </span>Wasm(wasm::WasmSection&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R&gt;),
+    <span class="attr">#[cfg(feature = <span class="string">&quot;xcoff&quot;</span>)]
+    </span>Xcoff32(xcoff::XcoffSection32&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R&gt;),
+    <span class="attr">#[cfg(feature = <span class="string">&quot;xcoff&quot;</span>)]
+    </span>Xcoff64(xcoff::XcoffSection64&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R&gt;),
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt;&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span>Section&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R&gt; {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt;&gt; fmt::Debug <span class="kw">for </span>Section&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R&gt; {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
         <span class="comment">// It&#39;s painful to do much better than this
-        </span><span class="kw">let </span><span class="kw-2">mut </span>s = <a href="#645">f</a>.debug_struct(<span class="string">&quot;Section&quot;</span>);
-        <span class="kw">match </span><a class="self" href="#645">self</a>.<a href="traits.rs.html#340">segment_name</a>() {
+        </span><span class="kw">let </span><span class="kw-2">mut </span>s = f.debug_struct(<span class="string">&quot;Section&quot;</span>);
+        <span class="kw">match </span><span class="self">self</span>.segment_name() {
             <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="kw-2">ref </span>name)) =&gt; {
-                <a href="#647">s</a>.field(<span class="string">&quot;segment&quot;</span>, <a href="#649">name</a>);
+                s.field(<span class="string">&quot;segment&quot;</span>, name);
             }
             <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>) =&gt; {}
             <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; {
-                <a href="#647">s</a>.field(<span class="string">&quot;segment&quot;</span>, <span class="kw-2">&amp;</span><span class="string">&quot;&lt;invalid&gt;&quot;</span>);
+                s.field(<span class="string">&quot;segment&quot;</span>, <span class="kw-2">&amp;</span><span class="string">&quot;&lt;invalid&gt;&quot;</span>);
             }
         }
-        <a href="#647">s</a>.field(<span class="string">&quot;name&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="#645">self</a>.<a href="traits.rs.html#332">name</a>().unwrap_or(<span class="string">&quot;&lt;invalid&gt;&quot;</span>))
-            .field(<span class="string">&quot;address&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="#645">self</a>.<a href="traits.rs.html#281">address</a>())
-            .field(<span class="string">&quot;size&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="#645">self</a>.<a href="traits.rs.html#284">size</a>())
-            .field(<span class="string">&quot;align&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="#645">self</a>.<a href="traits.rs.html#287">align</a>())
-            .field(<span class="string">&quot;kind&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="#645">self</a>.<a href="traits.rs.html#343">kind</a>())
-            .field(<span class="string">&quot;flags&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="#645">self</a>.<a href="traits.rs.html#349">flags</a>())
+        s.field(<span class="string">&quot;name&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.name().unwrap_or(<span class="string">&quot;&lt;invalid&gt;&quot;</span>))
+            .field(<span class="string">&quot;address&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.address())
+            .field(<span class="string">&quot;size&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.size())
+            .field(<span class="string">&quot;align&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.align())
+            .field(<span class="string">&quot;kind&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.kind())
+            .field(<span class="string">&quot;flags&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.flags())
             .finish()
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt;&gt; <a href="mod.rs.html#59">read::private::Sealed</a> <span class="kw">for </span>Section&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R&gt; {}
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt;&gt; read::private::Sealed <span class="kw">for </span>Section&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R&gt; {}
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt;&gt; ObjectSection&lt;<span class="lifetime">&#39;data</span>&gt; <span class="kw">for </span>Section&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R&gt; {
     <span class="kw">type </span>RelocationIterator = SectionRelocationIterator&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R&gt;;
 
-    <span class="kw">fn </span>index(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="mod.rs.html#263">SectionIndex</a> {
-        <a class="macro" href="#28-49">with_inner!</a>(<span class="self">self</span>.inner, SectionInternal, |x| x.index())
+    <span class="kw">fn </span>index(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; SectionIndex {
+        <span class="macro">with_inner!</span>(<span class="self">self</span>.inner, SectionInternal, |x| x.index())
     }
 
-    <span class="kw">fn </span>address(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> {
-        <a class="macro" href="#28-49">with_inner!</a>(<span class="self">self</span>.inner, SectionInternal, |x| x.address())
+    <span class="kw">fn </span>address(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u64 {
+        <span class="macro">with_inner!</span>(<span class="self">self</span>.inner, SectionInternal, |x| x.address())
     }
 
-    <span class="kw">fn </span>size(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> {
-        <a class="macro" href="#28-49">with_inner!</a>(<span class="self">self</span>.inner, SectionInternal, |x| x.size())
+    <span class="kw">fn </span>size(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u64 {
+        <span class="macro">with_inner!</span>(<span class="self">self</span>.inner, SectionInternal, |x| x.size())
     }
 
-    <span class="kw">fn </span>align(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> {
-        <a class="macro" href="#28-49">with_inner!</a>(<span class="self">self</span>.inner, SectionInternal, |x| x.align())
+    <span class="kw">fn </span>align(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u64 {
+        <span class="macro">with_inner!</span>(<span class="self">self</span>.inner, SectionInternal, |x| x.align())
     }
 
-    <span class="kw">fn </span>file_range(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;(<a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>)&gt; {
-        <a class="macro" href="#28-49">with_inner!</a>(<span class="self">self</span>.inner, SectionInternal, |x| x.file_range())
+    <span class="kw">fn </span>file_range(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;(u64, u64)&gt; {
+        <span class="macro">with_inner!</span>(<span class="self">self</span>.inner, SectionInternal, |x| x.file_range())
     }
 
-    <span class="kw">fn </span>data(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt; {
-        <a class="macro" href="#28-49">with_inner!</a>(<span class="self">self</span>.inner, SectionInternal, |x| x.data())
+    <span class="kw">fn </span>data(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[u8]&gt; {
+        <span class="macro">with_inner!</span>(<span class="self">self</span>.inner, SectionInternal, |x| x.data())
     }
 
-    <span class="kw">fn </span>data_range(<span class="kw-2">&amp;</span><span class="self">self</span>, address: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>, size: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;&gt; {
-        <a class="macro" href="#28-49">with_inner!</a>(<span class="self">self</span>.inner, SectionInternal, |x| x.data_range(address, size))
+    <span class="kw">fn </span>data_range(<span class="kw-2">&amp;</span><span class="self">self</span>, address: u64, size: u64) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[u8]&gt;&gt; {
+        <span class="macro">with_inner!</span>(<span class="self">self</span>.inner, SectionInternal, |x| x.data_range(address, size))
     }
 
-    <span class="kw">fn </span>compressed_file_range(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="mod.rs.html#612">CompressedFileRange</a>&gt; {
-        <a class="macro" href="#28-49">with_inner!</a>(<span class="self">self</span>.inner, SectionInternal, |x| x.compressed_file_range())
+    <span class="kw">fn </span>compressed_file_range(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;CompressedFileRange&gt; {
+        <span class="macro">with_inner!</span>(<span class="self">self</span>.inner, SectionInternal, |x| x.compressed_file_range())
     }
 
     <span class="kw">fn </span>compressed_data(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;CompressedData&lt;<span class="lifetime">&#39;data</span>&gt;&gt; {
-        <a class="macro" href="#28-49">with_inner!</a>(<span class="self">self</span>.inner, SectionInternal, |x| x.compressed_data())
+        <span class="macro">with_inner!</span>(<span class="self">self</span>.inner, SectionInternal, |x| x.compressed_data())
     }
 
-    <span class="kw">fn </span>name_bytes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt; {
-        <a class="macro" href="#28-49">with_inner!</a>(<span class="self">self</span>.inner, SectionInternal, |x| x.name_bytes())
+    <span class="kw">fn </span>name_bytes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span>[u8]&gt; {
+        <span class="macro">with_inner!</span>(<span class="self">self</span>.inner, SectionInternal, |x| x.name_bytes())
     }
 
-    <span class="kw">fn </span>name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt; {
-        <a class="macro" href="#28-49">with_inner!</a>(<span class="self">self</span>.inner, SectionInternal, |x| x.name())
+    <span class="kw">fn </span>name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span>str&gt; {
+        <span class="macro">with_inner!</span>(<span class="self">self</span>.inner, SectionInternal, |x| x.name())
     }
 
-    <span class="kw">fn </span>segment_name_bytes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;&gt; {
-        <a class="macro" href="#28-49">with_inner!</a>(<span class="self">self</span>.inner, SectionInternal, |x| x.segment_name_bytes())
+    <span class="kw">fn </span>segment_name_bytes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>[u8]&gt;&gt; {
+        <span class="macro">with_inner!</span>(<span class="self">self</span>.inner, SectionInternal, |x| x.segment_name_bytes())
     }
 
-    <span class="kw">fn </span>segment_name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt;&gt; {
-        <a class="macro" href="#28-49">with_inner!</a>(<span class="self">self</span>.inner, SectionInternal, |x| x.segment_name())
+    <span class="kw">fn </span>segment_name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>str&gt;&gt; {
+        <span class="macro">with_inner!</span>(<span class="self">self</span>.inner, SectionInternal, |x| x.segment_name())
     }
 
-    <span class="kw">fn </span>kind(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../common.rs.html#96">SectionKind</a> {
-        <a class="macro" href="#28-49">with_inner!</a>(<span class="self">self</span>.inner, SectionInternal, |x| x.kind())
+    <span class="kw">fn </span>kind(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; SectionKind {
+        <span class="macro">with_inner!</span>(<span class="self">self</span>.inner, SectionInternal, |x| x.kind())
     }
 
     <span class="kw">fn </span>relocations(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; SectionRelocationIterator&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R&gt; {
-        <a href="#1215">SectionRelocationIterator</a> {
-            inner: <a class="macro" href="#75-96">map_inner!</a>(
+        SectionRelocationIterator {
+            inner: <span class="macro">map_inner!</span>(
                 <span class="self">self</span>.inner,
                 SectionInternal,
                 SectionRelocationIteratorInternal,
@@ -1987,14 +2129,14 @@
         }
     }
 
-    <span class="kw">fn </span>flags(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../common.rs.html#405">SectionFlags</a> {
-        <a class="macro" href="#28-49">with_inner!</a>(<span class="self">self</span>.inner, SectionInternal, |x| x.flags())
+    <span class="kw">fn </span>flags(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; SectionFlags {
+        <span class="macro">with_inner!</span>(<span class="self">self</span>.inner, SectionInternal, |x| x.flags())
     }
 }
 
 <span class="doccomment">/// An iterator of the COMDAT section groups of a `File`.
 </span><span class="attr">#[derive(Debug)]
-</span><span class="kw">pub struct </span>ComdatIterator&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt; = <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;
+</span><span class="kw">pub struct </span>ComdatIterator&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt; = <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[u8]&gt;
 <span class="kw">where
     </span><span class="lifetime">&#39;data</span>: <span class="lifetime">&#39;file</span>,
 {
@@ -2009,32 +2151,36 @@
     <span class="attr">#[cfg(feature = <span class="string">&quot;coff&quot;</span>)]
     </span>Coff(coff::CoffComdatIterator&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R&gt;),
     <span class="attr">#[cfg(feature = <span class="string">&quot;elf&quot;</span>)]
-    </span>Elf32(elf::ElfComdatIterator32&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <a href="../endian.rs.html#278">Endianness</a>, R&gt;),
+    </span>Elf32(elf::ElfComdatIterator32&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Endianness, R&gt;),
     <span class="attr">#[cfg(feature = <span class="string">&quot;elf&quot;</span>)]
-    </span>Elf64(elf::ElfComdatIterator64&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <a href="../endian.rs.html#278">Endianness</a>, R&gt;),
+    </span>Elf64(elf::ElfComdatIterator64&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Endianness, R&gt;),
     <span class="attr">#[cfg(feature = <span class="string">&quot;macho&quot;</span>)]
-    </span>MachO32(macho::MachOComdatIterator32&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <a href="../endian.rs.html#278">Endianness</a>, R&gt;),
+    </span>MachO32(macho::MachOComdatIterator32&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Endianness, R&gt;),
     <span class="attr">#[cfg(feature = <span class="string">&quot;macho&quot;</span>)]
-    </span>MachO64(macho::MachOComdatIterator64&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <a href="../endian.rs.html#278">Endianness</a>, R&gt;),
+    </span>MachO64(macho::MachOComdatIterator64&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Endianness, R&gt;),
     <span class="attr">#[cfg(feature = <span class="string">&quot;pe&quot;</span>)]
     </span>Pe32(pe::PeComdatIterator32&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R&gt;),
     <span class="attr">#[cfg(feature = <span class="string">&quot;pe&quot;</span>)]
     </span>Pe64(pe::PeComdatIterator64&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R&gt;),
     <span class="attr">#[cfg(feature = <span class="string">&quot;wasm&quot;</span>)]
     </span>Wasm(wasm::WasmComdatIterator&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R&gt;),
+    <span class="attr">#[cfg(feature = <span class="string">&quot;xcoff&quot;</span>)]
+    </span>Xcoff32(xcoff::XcoffComdatIterator32&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R&gt;),
+    <span class="attr">#[cfg(feature = <span class="string">&quot;xcoff&quot;</span>)]
+    </span>Xcoff64(xcoff::XcoffComdatIterator64&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R&gt;),
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt;&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a> <span class="kw">for </span>ComdatIterator&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt;&gt; Iterator <span class="kw">for </span>ComdatIterator&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R&gt; {
     <span class="kw">type </span>Item = Comdat&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R&gt;;
 
     <span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt; {
-        <a class="macro" href="#146-167">next_inner!</a>(<span class="self">self</span>.inner, ComdatIteratorInternal, ComdatInternal)
-            .map(|inner| <a href="#786">Comdat</a> { <a href="#781">inner</a> })
+        <span class="macro">next_inner!</span>(<span class="self">self</span>.inner, ComdatIteratorInternal, ComdatInternal)
+            .map(|inner| Comdat { inner })
     }
 }
 
 <span class="doccomment">/// A COMDAT section group of a `File`.
-</span><span class="kw">pub struct </span>Comdat&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt; = <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;
+</span><span class="kw">pub struct </span>Comdat&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt; = <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[u8]&gt;
 <span class="kw">where
     </span><span class="lifetime">&#39;data</span>: <span class="lifetime">&#39;file</span>,
 {
@@ -2048,55 +2194,59 @@
     <span class="attr">#[cfg(feature = <span class="string">&quot;coff&quot;</span>)]
     </span>Coff(coff::CoffComdat&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R&gt;),
     <span class="attr">#[cfg(feature = <span class="string">&quot;elf&quot;</span>)]
-    </span>Elf32(elf::ElfComdat32&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <a href="../endian.rs.html#278">Endianness</a>, R&gt;),
+    </span>Elf32(elf::ElfComdat32&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Endianness, R&gt;),
     <span class="attr">#[cfg(feature = <span class="string">&quot;elf&quot;</span>)]
-    </span>Elf64(elf::ElfComdat64&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <a href="../endian.rs.html#278">Endianness</a>, R&gt;),
+    </span>Elf64(elf::ElfComdat64&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Endianness, R&gt;),
     <span class="attr">#[cfg(feature = <span class="string">&quot;macho&quot;</span>)]
-    </span>MachO32(macho::MachOComdat32&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <a href="../endian.rs.html#278">Endianness</a>, R&gt;),
+    </span>MachO32(macho::MachOComdat32&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Endianness, R&gt;),
     <span class="attr">#[cfg(feature = <span class="string">&quot;macho&quot;</span>)]
-    </span>MachO64(macho::MachOComdat64&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <a href="../endian.rs.html#278">Endianness</a>, R&gt;),
+    </span>MachO64(macho::MachOComdat64&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Endianness, R&gt;),
     <span class="attr">#[cfg(feature = <span class="string">&quot;pe&quot;</span>)]
     </span>Pe32(pe::PeComdat32&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R&gt;),
     <span class="attr">#[cfg(feature = <span class="string">&quot;pe&quot;</span>)]
     </span>Pe64(pe::PeComdat64&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R&gt;),
     <span class="attr">#[cfg(feature = <span class="string">&quot;wasm&quot;</span>)]
     </span>Wasm(wasm::WasmComdat&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R&gt;),
+    <span class="attr">#[cfg(feature = <span class="string">&quot;xcoff&quot;</span>)]
+    </span>Xcoff32(xcoff::XcoffComdat32&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R&gt;),
+    <span class="attr">#[cfg(feature = <span class="string">&quot;xcoff&quot;</span>)]
+    </span>Xcoff64(xcoff::XcoffComdat64&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R&gt;),
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt;&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span>Comdat&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R&gt; {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <span class="kw">let </span><span class="kw-2">mut </span>s = <a href="#816">f</a>.debug_struct(<span class="string">&quot;Comdat&quot;</span>);
-        <a href="#817">s</a>.field(<span class="string">&quot;symbol&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="#816">self</a>.<a href="traits.rs.html#361">symbol</a>())
-            .field(<span class="string">&quot;name&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="#816">self</a>.<a href="traits.rs.html#369">name</a>().unwrap_or(<span class="string">&quot;&lt;invalid&gt;&quot;</span>))
-            .field(<span class="string">&quot;kind&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="#816">self</a>.<a href="traits.rs.html#358">kind</a>())
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt;&gt; fmt::Debug <span class="kw">for </span>Comdat&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R&gt; {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        <span class="kw">let </span><span class="kw-2">mut </span>s = f.debug_struct(<span class="string">&quot;Comdat&quot;</span>);
+        s.field(<span class="string">&quot;symbol&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.symbol())
+            .field(<span class="string">&quot;name&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.name().unwrap_or(<span class="string">&quot;&lt;invalid&gt;&quot;</span>))
+            .field(<span class="string">&quot;kind&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.kind())
             .finish()
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt;&gt; <a href="mod.rs.html#59">read::private::Sealed</a> <span class="kw">for </span>Comdat&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R&gt; {}
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt;&gt; read::private::Sealed <span class="kw">for </span>Comdat&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R&gt; {}
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt;&gt; ObjectComdat&lt;<span class="lifetime">&#39;data</span>&gt; <span class="kw">for </span>Comdat&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R&gt; {
     <span class="kw">type </span>SectionIterator = ComdatSectionIterator&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R&gt;;
 
-    <span class="kw">fn </span>kind(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../common.rs.html#195">ComdatKind</a> {
-        <a class="macro" href="#28-49">with_inner!</a>(<span class="self">self</span>.inner, ComdatInternal, |x| x.kind())
+    <span class="kw">fn </span>kind(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; ComdatKind {
+        <span class="macro">with_inner!</span>(<span class="self">self</span>.inner, ComdatInternal, |x| x.kind())
     }
 
-    <span class="kw">fn </span>symbol(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="mod.rs.html#267">SymbolIndex</a> {
-        <a class="macro" href="#28-49">with_inner!</a>(<span class="self">self</span>.inner, ComdatInternal, |x| x.symbol())
+    <span class="kw">fn </span>symbol(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; SymbolIndex {
+        <span class="macro">with_inner!</span>(<span class="self">self</span>.inner, ComdatInternal, |x| x.symbol())
     }
 
-    <span class="kw">fn </span>name_bytes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt; {
-        <a class="macro" href="#28-49">with_inner!</a>(<span class="self">self</span>.inner, ComdatInternal, |x| x.name_bytes())
+    <span class="kw">fn </span>name_bytes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span>[u8]&gt; {
+        <span class="macro">with_inner!</span>(<span class="self">self</span>.inner, ComdatInternal, |x| x.name_bytes())
     }
 
-    <span class="kw">fn </span>name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt; {
-        <a class="macro" href="#28-49">with_inner!</a>(<span class="self">self</span>.inner, ComdatInternal, |x| x.name())
+    <span class="kw">fn </span>name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span>str&gt; {
+        <span class="macro">with_inner!</span>(<span class="self">self</span>.inner, ComdatInternal, |x| x.name())
     }
 
     <span class="kw">fn </span>sections(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; ComdatSectionIterator&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R&gt; {
-        <a href="#860">ComdatSectionIterator</a> {
-            inner: <a class="macro" href="#75-96">map_inner!</a>(
+        ComdatSectionIterator {
+            inner: <span class="macro">map_inner!</span>(
                 <span class="self">self</span>.inner,
                 ComdatInternal,
                 ComdatSectionIteratorInternal,
@@ -2108,7 +2258,7 @@
 
 <span class="doccomment">/// An iterator over COMDAT section entries.
 </span><span class="attr">#[derive(Debug)]
-</span><span class="kw">pub struct </span>ComdatSectionIterator&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt; = <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;
+</span><span class="kw">pub struct </span>ComdatSectionIterator&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt; = <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[u8]&gt;
 <span class="kw">where
     </span><span class="lifetime">&#39;data</span>: <span class="lifetime">&#39;file</span>,
 {
@@ -2123,32 +2273,36 @@
     <span class="attr">#[cfg(feature = <span class="string">&quot;coff&quot;</span>)]
     </span>Coff(coff::CoffComdatSectionIterator&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R&gt;),
     <span class="attr">#[cfg(feature = <span class="string">&quot;elf&quot;</span>)]
-    </span>Elf32(elf::ElfComdatSectionIterator32&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <a href="../endian.rs.html#278">Endianness</a>, R&gt;),
+    </span>Elf32(elf::ElfComdatSectionIterator32&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Endianness, R&gt;),
     <span class="attr">#[cfg(feature = <span class="string">&quot;elf&quot;</span>)]
-    </span>Elf64(elf::ElfComdatSectionIterator64&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <a href="../endian.rs.html#278">Endianness</a>, R&gt;),
+    </span>Elf64(elf::ElfComdatSectionIterator64&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Endianness, R&gt;),
     <span class="attr">#[cfg(feature = <span class="string">&quot;macho&quot;</span>)]
-    </span>MachO32(macho::MachOComdatSectionIterator32&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <a href="../endian.rs.html#278">Endianness</a>, R&gt;),
+    </span>MachO32(macho::MachOComdatSectionIterator32&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Endianness, R&gt;),
     <span class="attr">#[cfg(feature = <span class="string">&quot;macho&quot;</span>)]
-    </span>MachO64(macho::MachOComdatSectionIterator64&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <a href="../endian.rs.html#278">Endianness</a>, R&gt;),
+    </span>MachO64(macho::MachOComdatSectionIterator64&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Endianness, R&gt;),
     <span class="attr">#[cfg(feature = <span class="string">&quot;pe&quot;</span>)]
     </span>Pe32(pe::PeComdatSectionIterator32&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R&gt;),
     <span class="attr">#[cfg(feature = <span class="string">&quot;pe&quot;</span>)]
     </span>Pe64(pe::PeComdatSectionIterator64&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R&gt;),
     <span class="attr">#[cfg(feature = <span class="string">&quot;wasm&quot;</span>)]
     </span>Wasm(wasm::WasmComdatSectionIterator&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R&gt;),
+    <span class="attr">#[cfg(feature = <span class="string">&quot;xcoff&quot;</span>)]
+    </span>Xcoff32(xcoff::XcoffComdatSectionIterator32&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R&gt;),
+    <span class="attr">#[cfg(feature = <span class="string">&quot;xcoff&quot;</span>)]
+    </span>Xcoff64(xcoff::XcoffComdatSectionIterator64&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R&gt;),
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt;&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a> <span class="kw">for </span>ComdatSectionIterator&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R&gt; {
-    <span class="kw">type </span>Item = <a href="mod.rs.html#263">SectionIndex</a>;
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt;&gt; Iterator <span class="kw">for </span>ComdatSectionIterator&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R&gt; {
+    <span class="kw">type </span>Item = SectionIndex;
 
     <span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt; {
-        <a class="macro" href="#51-72">with_inner_mut!</a>(<span class="self">self</span>.inner, ComdatSectionIteratorInternal, |x| x.next())
+        <span class="macro">with_inner_mut!</span>(<span class="self">self</span>.inner, ComdatSectionIteratorInternal, |x| x.next())
     }
 }
 
 <span class="doccomment">/// A symbol table.
 </span><span class="attr">#[derive(Debug)]
-</span><span class="kw">pub struct </span>SymbolTable&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R = <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;
+</span><span class="kw">pub struct </span>SymbolTable&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R = <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[u8]&gt;
 <span class="kw">where
     </span><span class="lifetime">&#39;data</span>: <span class="lifetime">&#39;file</span>,
     R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt;,
@@ -2167,28 +2321,28 @@
     <span class="attr">#[cfg(feature = <span class="string">&quot;elf&quot;</span>)]
     </span>Elf32(
         (
-            elf::ElfSymbolTable32&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <a href="../endian.rs.html#278">Endianness</a>, R&gt;,
+            elf::ElfSymbolTable32&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Endianness, R&gt;,
             PhantomData&lt;R&gt;,
         ),
     ),
     <span class="attr">#[cfg(feature = <span class="string">&quot;elf&quot;</span>)]
     </span>Elf64(
         (
-            elf::ElfSymbolTable64&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <a href="../endian.rs.html#278">Endianness</a>, R&gt;,
+            elf::ElfSymbolTable64&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Endianness, R&gt;,
             PhantomData&lt;R&gt;,
         ),
     ),
     <span class="attr">#[cfg(feature = <span class="string">&quot;macho&quot;</span>)]
     </span>MachO32(
         (
-            macho::MachOSymbolTable32&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <a href="../endian.rs.html#278">Endianness</a>, R&gt;,
+            macho::MachOSymbolTable32&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Endianness, R&gt;,
             PhantomData&lt;()&gt;,
         ),
     ),
     <span class="attr">#[cfg(feature = <span class="string">&quot;macho&quot;</span>)]
     </span>MachO64(
         (
-            macho::MachOSymbolTable64&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <a href="../endian.rs.html#278">Endianness</a>, R&gt;,
+            macho::MachOSymbolTable64&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Endianness, R&gt;,
             PhantomData&lt;()&gt;,
         ),
     ),
@@ -2198,17 +2352,21 @@
     </span>Pe64((coff::CoffSymbolTable&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R&gt;, PhantomData&lt;R&gt;)),
     <span class="attr">#[cfg(feature = <span class="string">&quot;wasm&quot;</span>)]
     </span>Wasm((wasm::WasmSymbolTable&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>&gt;, PhantomData&lt;R&gt;)),
+    <span class="attr">#[cfg(feature = <span class="string">&quot;xcoff&quot;</span>)]
+    </span>Xcoff32((xcoff::XcoffSymbolTable32&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R&gt;, PhantomData&lt;R&gt;)),
+    <span class="attr">#[cfg(feature = <span class="string">&quot;xcoff&quot;</span>)]
+    </span>Xcoff64((xcoff::XcoffSymbolTable64&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R&gt;, PhantomData&lt;R&gt;)),
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt;&gt; <a href="mod.rs.html#59">read::private::Sealed</a> <span class="kw">for </span>SymbolTable&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R&gt; {}
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt;&gt; read::private::Sealed <span class="kw">for </span>SymbolTable&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R&gt; {}
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt;&gt; ObjectSymbolTable&lt;<span class="lifetime">&#39;data</span>&gt; <span class="kw">for </span>SymbolTable&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R&gt; {
     <span class="kw">type </span>Symbol = Symbol&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R&gt;;
     <span class="kw">type </span>SymbolIterator = SymbolIterator&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R&gt;;
 
     <span class="kw">fn </span>symbols(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self</span>::SymbolIterator {
-        <a href="#980">SymbolIterator</a> {
-            inner: <a class="macro" href="#75-96">map_inner!</a>(
+        SymbolIterator {
+            inner: <span class="macro">map_inner!</span>(
                 <span class="self">self</span>.inner,
                 SymbolTableInternal,
                 SymbolIteratorInternal,
@@ -2217,18 +2375,18 @@
         }
     }
 
-    <span class="kw">fn </span>symbol_by_index(<span class="kw-2">&amp;</span><span class="self">self</span>, index: <a href="mod.rs.html#267">SymbolIndex</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Symbol&gt; {
-        <a class="macro" href="#99-120">map_inner_option!</a>(<span class="self">self</span>.inner, SymbolTableInternal, SymbolInternal, |x| x
+    <span class="kw">fn </span>symbol_by_index(<span class="kw-2">&amp;</span><span class="self">self</span>, index: SymbolIndex) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Symbol&gt; {
+        <span class="macro">map_inner_option!</span>(<span class="self">self</span>.inner, SymbolTableInternal, SymbolInternal, |x| x
             .<span class="number">0
             </span>.symbol_by_index(index)
             .map(|x| (x, PhantomData)))
-        .map(|inner| <a href="#1044">Symbol</a> { <a href="#974">inner</a> })
+        .map(|inner| Symbol { inner })
     }
 }
 
 <span class="doccomment">/// An iterator over symbol table entries.
 </span><span class="attr">#[derive(Debug)]
-</span><span class="kw">pub struct </span>SymbolIterator&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R = <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;
+</span><span class="kw">pub struct </span>SymbolIterator&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R = <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[u8]&gt;
 <span class="kw">where
     </span><span class="lifetime">&#39;data</span>: <span class="lifetime">&#39;file</span>,
     R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt;,
@@ -2247,28 +2405,28 @@
     <span class="attr">#[cfg(feature = <span class="string">&quot;elf&quot;</span>)]
     </span>Elf32(
         (
-            elf::ElfSymbolIterator32&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <a href="../endian.rs.html#278">Endianness</a>, R&gt;,
+            elf::ElfSymbolIterator32&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Endianness, R&gt;,
             PhantomData&lt;R&gt;,
         ),
     ),
     <span class="attr">#[cfg(feature = <span class="string">&quot;elf&quot;</span>)]
     </span>Elf64(
         (
-            elf::ElfSymbolIterator64&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <a href="../endian.rs.html#278">Endianness</a>, R&gt;,
+            elf::ElfSymbolIterator64&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Endianness, R&gt;,
             PhantomData&lt;R&gt;,
         ),
     ),
     <span class="attr">#[cfg(feature = <span class="string">&quot;macho&quot;</span>)]
     </span>MachO32(
         (
-            macho::MachOSymbolIterator32&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <a href="../endian.rs.html#278">Endianness</a>, R&gt;,
+            macho::MachOSymbolIterator32&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Endianness, R&gt;,
             PhantomData&lt;()&gt;,
         ),
     ),
     <span class="attr">#[cfg(feature = <span class="string">&quot;macho&quot;</span>)]
     </span>MachO64(
         (
-            macho::MachOSymbolIterator64&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <a href="../endian.rs.html#278">Endianness</a>, R&gt;,
+            macho::MachOSymbolIterator64&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Endianness, R&gt;,
             PhantomData&lt;()&gt;,
         ),
     ),
@@ -2278,21 +2436,35 @@
     </span>Pe64((coff::CoffSymbolIterator&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R&gt;, PhantomData&lt;R&gt;)),
     <span class="attr">#[cfg(feature = <span class="string">&quot;wasm&quot;</span>)]
     </span>Wasm((wasm::WasmSymbolIterator&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>&gt;, PhantomData&lt;R&gt;)),
+    <span class="attr">#[cfg(feature = <span class="string">&quot;xcoff&quot;</span>)]
+    </span>Xcoff32(
+        (
+            xcoff::XcoffSymbolIterator32&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R&gt;,
+            PhantomData&lt;R&gt;,
+        ),
+    ),
+    <span class="attr">#[cfg(feature = <span class="string">&quot;xcoff&quot;</span>)]
+    </span>Xcoff64(
+        (
+            xcoff::XcoffSymbolIterator64&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R&gt;,
+            PhantomData&lt;R&gt;,
+        ),
+    ),
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt;&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a> <span class="kw">for </span>SymbolIterator&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt;&gt; Iterator <span class="kw">for </span>SymbolIterator&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R&gt; {
     <span class="kw">type </span>Item = Symbol&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R&gt;;
 
     <span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt; {
-        <a class="macro" href="#122-143">map_inner_option_mut!</a>(<span class="self">self</span>.inner, SymbolIteratorInternal, SymbolInternal, |iter| {
+        <span class="macro">map_inner_option_mut!</span>(<span class="self">self</span>.inner, SymbolIteratorInternal, SymbolInternal, |iter| {
             iter.<span class="number">0</span>.next().map(|x| (x, PhantomData))
         })
-        .map(|inner| <a href="#1044">Symbol</a> { <a href="#1039">inner</a> })
+        .map(|inner| Symbol { inner })
     }
 }
 
 <span class="doccomment">/// A symbol table entry.
-</span><span class="kw">pub struct </span>Symbol&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R = <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;
+</span><span class="kw">pub struct </span>Symbol&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R = <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[u8]&gt;
 <span class="kw">where
     </span><span class="lifetime">&#39;data</span>: <span class="lifetime">&#39;file</span>,
     R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt;,
@@ -2310,28 +2482,28 @@
     <span class="attr">#[cfg(feature = <span class="string">&quot;elf&quot;</span>)]
     </span>Elf32(
         (
-            elf::ElfSymbol32&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <a href="../endian.rs.html#278">Endianness</a>, R&gt;,
+            elf::ElfSymbol32&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Endianness, R&gt;,
             PhantomData&lt;R&gt;,
         ),
     ),
     <span class="attr">#[cfg(feature = <span class="string">&quot;elf&quot;</span>)]
     </span>Elf64(
         (
-            elf::ElfSymbol64&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <a href="../endian.rs.html#278">Endianness</a>, R&gt;,
+            elf::ElfSymbol64&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Endianness, R&gt;,
             PhantomData&lt;R&gt;,
         ),
     ),
     <span class="attr">#[cfg(feature = <span class="string">&quot;macho&quot;</span>)]
     </span>MachO32(
         (
-            macho::MachOSymbol32&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <a href="../endian.rs.html#278">Endianness</a>, R&gt;,
+            macho::MachOSymbol32&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Endianness, R&gt;,
             PhantomData&lt;()&gt;,
         ),
     ),
     <span class="attr">#[cfg(feature = <span class="string">&quot;macho&quot;</span>)]
     </span>MachO64(
         (
-            macho::MachOSymbol64&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <a href="../endian.rs.html#278">Endianness</a>, R&gt;,
+            macho::MachOSymbol64&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Endianness, R&gt;,
             PhantomData&lt;()&gt;,
         ),
     ),
@@ -2341,90 +2513,94 @@
     </span>Pe64((coff::CoffSymbol&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R&gt;, PhantomData&lt;R&gt;)),
     <span class="attr">#[cfg(feature = <span class="string">&quot;wasm&quot;</span>)]
     </span>Wasm((wasm::WasmSymbol&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>&gt;, PhantomData&lt;R&gt;)),
+    <span class="attr">#[cfg(feature = <span class="string">&quot;xcoff&quot;</span>)]
+    </span>Xcoff32((xcoff::XcoffSymbol32&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R&gt;, PhantomData&lt;R&gt;)),
+    <span class="attr">#[cfg(feature = <span class="string">&quot;xcoff&quot;</span>)]
+    </span>Xcoff64((xcoff::XcoffSymbol64&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R&gt;, PhantomData&lt;R&gt;)),
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt;&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span>Symbol&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R&gt; {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a href="#1096">f</a>.debug_struct(<span class="string">&quot;Symbol&quot;</span>)
-            .field(<span class="string">&quot;name&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="#1096">self</a>.<a href="traits.rs.html#407">name</a>().unwrap_or(<span class="string">&quot;&lt;invalid&gt;&quot;</span>))
-            .field(<span class="string">&quot;address&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="#1096">self</a>.<a href="traits.rs.html#410">address</a>())
-            .field(<span class="string">&quot;size&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="#1096">self</a>.<a href="traits.rs.html#413">size</a>())
-            .field(<span class="string">&quot;kind&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="#1096">self</a>.<a href="traits.rs.html#416">kind</a>())
-            .field(<span class="string">&quot;section&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="#1096">self</a>.<a href="traits.rs.html#419">section</a>())
-            .field(<span class="string">&quot;scope&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="#1096">self</a>.<a href="traits.rs.html#444">scope</a>())
-            .field(<span class="string">&quot;weak&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="#1096">self</a>.<a href="traits.rs.html#441">is_weak</a>())
-            .field(<span class="string">&quot;flags&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="#1096">self</a>.<a href="traits.rs.html#455">flags</a>())
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt;&gt; fmt::Debug <span class="kw">for </span>Symbol&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R&gt; {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        f.debug_struct(<span class="string">&quot;Symbol&quot;</span>)
+            .field(<span class="string">&quot;name&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.name().unwrap_or(<span class="string">&quot;&lt;invalid&gt;&quot;</span>))
+            .field(<span class="string">&quot;address&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.address())
+            .field(<span class="string">&quot;size&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.size())
+            .field(<span class="string">&quot;kind&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.kind())
+            .field(<span class="string">&quot;section&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.section())
+            .field(<span class="string">&quot;scope&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.scope())
+            .field(<span class="string">&quot;weak&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.is_weak())
+            .field(<span class="string">&quot;flags&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.flags())
             .finish()
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt;&gt; <a href="mod.rs.html#59">read::private::Sealed</a> <span class="kw">for </span>Symbol&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R&gt; {}
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt;&gt; read::private::Sealed <span class="kw">for </span>Symbol&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R&gt; {}
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt;&gt; ObjectSymbol&lt;<span class="lifetime">&#39;data</span>&gt; <span class="kw">for </span>Symbol&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R&gt; {
-    <span class="kw">fn </span>index(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="mod.rs.html#267">SymbolIndex</a> {
-        <a class="macro" href="#28-49">with_inner!</a>(<span class="self">self</span>.inner, SymbolInternal, |x| x.<span class="number">0</span>.index())
+    <span class="kw">fn </span>index(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; SymbolIndex {
+        <span class="macro">with_inner!</span>(<span class="self">self</span>.inner, SymbolInternal, |x| x.<span class="number">0</span>.index())
     }
 
-    <span class="kw">fn </span>name_bytes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt; {
-        <a class="macro" href="#28-49">with_inner!</a>(<span class="self">self</span>.inner, SymbolInternal, |x| x.<span class="number">0</span>.name_bytes())
+    <span class="kw">fn </span>name_bytes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[u8]&gt; {
+        <span class="macro">with_inner!</span>(<span class="self">self</span>.inner, SymbolInternal, |x| x.<span class="number">0</span>.name_bytes())
     }
 
-    <span class="kw">fn </span>name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt; {
-        <a class="macro" href="#28-49">with_inner!</a>(<span class="self">self</span>.inner, SymbolInternal, |x| x.<span class="number">0</span>.name())
+    <span class="kw">fn </span>name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>str&gt; {
+        <span class="macro">with_inner!</span>(<span class="self">self</span>.inner, SymbolInternal, |x| x.<span class="number">0</span>.name())
     }
 
-    <span class="kw">fn </span>address(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> {
-        <a class="macro" href="#28-49">with_inner!</a>(<span class="self">self</span>.inner, SymbolInternal, |x| x.<span class="number">0</span>.address())
+    <span class="kw">fn </span>address(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u64 {
+        <span class="macro">with_inner!</span>(<span class="self">self</span>.inner, SymbolInternal, |x| x.<span class="number">0</span>.address())
     }
 
-    <span class="kw">fn </span>size(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> {
-        <a class="macro" href="#28-49">with_inner!</a>(<span class="self">self</span>.inner, SymbolInternal, |x| x.<span class="number">0</span>.size())
+    <span class="kw">fn </span>size(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u64 {
+        <span class="macro">with_inner!</span>(<span class="self">self</span>.inner, SymbolInternal, |x| x.<span class="number">0</span>.size())
     }
 
-    <span class="kw">fn </span>kind(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../common.rs.html#227">SymbolKind</a> {
-        <a class="macro" href="#28-49">with_inner!</a>(<span class="self">self</span>.inner, SymbolInternal, |x| x.<span class="number">0</span>.kind())
+    <span class="kw">fn </span>kind(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; SymbolKind {
+        <span class="macro">with_inner!</span>(<span class="self">self</span>.inner, SymbolInternal, |x| x.<span class="number">0</span>.kind())
     }
 
-    <span class="kw">fn </span>section(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="mod.rs.html#272">SymbolSection</a> {
-        <a class="macro" href="#28-49">with_inner!</a>(<span class="self">self</span>.inner, SymbolInternal, |x| x.<span class="number">0</span>.section())
+    <span class="kw">fn </span>section(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; SymbolSection {
+        <span class="macro">with_inner!</span>(<span class="self">self</span>.inner, SymbolInternal, |x| x.<span class="number">0</span>.section())
     }
 
-    <span class="kw">fn </span>is_undefined(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="macro" href="#28-49">with_inner!</a>(<span class="self">self</span>.inner, SymbolInternal, |x| x.<span class="number">0</span>.is_undefined())
+    <span class="kw">fn </span>is_undefined(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="macro">with_inner!</span>(<span class="self">self</span>.inner, SymbolInternal, |x| x.<span class="number">0</span>.is_undefined())
     }
 
-    <span class="kw">fn </span>is_definition(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="macro" href="#28-49">with_inner!</a>(<span class="self">self</span>.inner, SymbolInternal, |x| x.<span class="number">0</span>.is_definition())
+    <span class="kw">fn </span>is_definition(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="macro">with_inner!</span>(<span class="self">self</span>.inner, SymbolInternal, |x| x.<span class="number">0</span>.is_definition())
     }
 
-    <span class="kw">fn </span>is_common(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="macro" href="#28-49">with_inner!</a>(<span class="self">self</span>.inner, SymbolInternal, |x| x.<span class="number">0</span>.is_common())
+    <span class="kw">fn </span>is_common(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="macro">with_inner!</span>(<span class="self">self</span>.inner, SymbolInternal, |x| x.<span class="number">0</span>.is_common())
     }
 
-    <span class="kw">fn </span>is_weak(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="macro" href="#28-49">with_inner!</a>(<span class="self">self</span>.inner, SymbolInternal, |x| x.<span class="number">0</span>.is_weak())
+    <span class="kw">fn </span>is_weak(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="macro">with_inner!</span>(<span class="self">self</span>.inner, SymbolInternal, |x| x.<span class="number">0</span>.is_weak())
     }
 
-    <span class="kw">fn </span>scope(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../common.rs.html#248">SymbolScope</a> {
-        <a class="macro" href="#28-49">with_inner!</a>(<span class="self">self</span>.inner, SymbolInternal, |x| x.<span class="number">0</span>.scope())
+    <span class="kw">fn </span>scope(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; SymbolScope {
+        <span class="macro">with_inner!</span>(<span class="self">self</span>.inner, SymbolInternal, |x| x.<span class="number">0</span>.scope())
     }
 
-    <span class="kw">fn </span>is_global(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="macro" href="#28-49">with_inner!</a>(<span class="self">self</span>.inner, SymbolInternal, |x| x.<span class="number">0</span>.is_global())
+    <span class="kw">fn </span>is_global(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="macro">with_inner!</span>(<span class="self">self</span>.inner, SymbolInternal, |x| x.<span class="number">0</span>.is_global())
     }
 
-    <span class="kw">fn </span>is_local(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="macro" href="#28-49">with_inner!</a>(<span class="self">self</span>.inner, SymbolInternal, |x| x.<span class="number">0</span>.is_local())
+    <span class="kw">fn </span>is_local(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="macro">with_inner!</span>(<span class="self">self</span>.inner, SymbolInternal, |x| x.<span class="number">0</span>.is_local())
     }
 
-    <span class="kw">fn </span>flags(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; SymbolFlags&lt;<a href="mod.rs.html#263">SectionIndex</a>&gt; {
-        <a class="macro" href="#28-49">with_inner!</a>(<span class="self">self</span>.inner, SymbolInternal, |x| x.<span class="number">0</span>.flags())
+    <span class="kw">fn </span>flags(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; SymbolFlags&lt;SectionIndex&gt; {
+        <span class="macro">with_inner!</span>(<span class="self">self</span>.inner, SymbolInternal, |x| x.<span class="number">0</span>.flags())
     }
 }
 
 <span class="doccomment">/// An iterator over dynamic relocation entries.
 </span><span class="attr">#[derive(Debug)]
-</span><span class="kw">pub struct </span>DynamicRelocationIterator&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R = <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;
+</span><span class="kw">pub struct </span>DynamicRelocationIterator&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R = <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[u8]&gt;
 <span class="kw">where
     </span><span class="lifetime">&#39;data</span>: <span class="lifetime">&#39;file</span>,
     R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt;,
@@ -2439,31 +2615,31 @@
     R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt;,
 {
     <span class="attr">#[cfg(feature = <span class="string">&quot;elf&quot;</span>)]
-    </span>Elf32(elf::ElfDynamicRelocationIterator32&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <a href="../endian.rs.html#278">Endianness</a>, R&gt;),
+    </span>Elf32(elf::ElfDynamicRelocationIterator32&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Endianness, R&gt;),
     <span class="attr">#[cfg(feature = <span class="string">&quot;elf&quot;</span>)]
-    </span>Elf64(elf::ElfDynamicRelocationIterator64&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <a href="../endian.rs.html#278">Endianness</a>, R&gt;),
+    </span>Elf64(elf::ElfDynamicRelocationIterator64&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Endianness, R&gt;),
     <span class="comment">// We need to always use the lifetime parameters.
     </span><span class="attr">#[allow(unused)]
     </span><span class="prelude-val">None</span>(PhantomData&lt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>(), <span class="kw-2">&amp;</span><span class="lifetime">&#39;file </span>(), R)&gt;),
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt;&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a> <span class="kw">for </span>DynamicRelocationIterator&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R&gt; {
-    <span class="kw">type </span>Item = (<a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>, <a href="mod.rs.html#540">Relocation</a>);
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt;&gt; Iterator <span class="kw">for </span>DynamicRelocationIterator&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R&gt; {
+    <span class="kw">type </span>Item = (u64, Relocation);
 
     <span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt; {
-        <span class="kw">match </span><a class="self" href="#1202">self</a>.inner {
+        <span class="kw">match </span><span class="self">self</span>.inner {
             <span class="attr">#[cfg(feature = <span class="string">&quot;elf&quot;</span>)]
-            </span><a href="#1191">DynamicRelocationIteratorInternal::Elf32</a>(<span class="kw-2">ref mut </span>elf) =&gt; <a href="#1205">elf</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>(),
+            </span>DynamicRelocationIteratorInternal::Elf32(<span class="kw-2">ref mut </span>elf) =&gt; elf.next(),
             <span class="attr">#[cfg(feature = <span class="string">&quot;elf&quot;</span>)]
-            </span><a href="#1193">DynamicRelocationIteratorInternal::Elf64</a>(<span class="kw-2">ref mut </span>elf) =&gt; <a href="#1207">elf</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>(),
-            <a href="#1196">DynamicRelocationIteratorInternal::None</a>(<span class="kw">_</span>) =&gt; <span class="prelude-val">None</span>,
+            </span>DynamicRelocationIteratorInternal::Elf64(<span class="kw-2">ref mut </span>elf) =&gt; elf.next(),
+            DynamicRelocationIteratorInternal::None(<span class="kw">_</span>) =&gt; <span class="prelude-val">None</span>,
         }
     }
 }
 
 <span class="doccomment">/// An iterator over section relocation entries.
 </span><span class="attr">#[derive(Debug)]
-</span><span class="kw">pub struct </span>SectionRelocationIterator&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt; = <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;
+</span><span class="kw">pub struct </span>SectionRelocationIterator&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt; = <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[u8]&gt;
 <span class="kw">where
     </span><span class="lifetime">&#39;data</span>: <span class="lifetime">&#39;file</span>,
 {
@@ -2478,27 +2654,31 @@
     <span class="attr">#[cfg(feature = <span class="string">&quot;coff&quot;</span>)]
     </span>Coff(coff::CoffRelocationIterator&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R&gt;),
     <span class="attr">#[cfg(feature = <span class="string">&quot;elf&quot;</span>)]
-    </span>Elf32(elf::ElfSectionRelocationIterator32&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <a href="../endian.rs.html#278">Endianness</a>, R&gt;),
+    </span>Elf32(elf::ElfSectionRelocationIterator32&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Endianness, R&gt;),
     <span class="attr">#[cfg(feature = <span class="string">&quot;elf&quot;</span>)]
-    </span>Elf64(elf::ElfSectionRelocationIterator64&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <a href="../endian.rs.html#278">Endianness</a>, R&gt;),
+    </span>Elf64(elf::ElfSectionRelocationIterator64&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Endianness, R&gt;),
     <span class="attr">#[cfg(feature = <span class="string">&quot;macho&quot;</span>)]
-    </span>MachO32(macho::MachORelocationIterator32&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <a href="../endian.rs.html#278">Endianness</a>, R&gt;),
+    </span>MachO32(macho::MachORelocationIterator32&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Endianness, R&gt;),
     <span class="attr">#[cfg(feature = <span class="string">&quot;macho&quot;</span>)]
-    </span>MachO64(macho::MachORelocationIterator64&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <a href="../endian.rs.html#278">Endianness</a>, R&gt;),
+    </span>MachO64(macho::MachORelocationIterator64&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Endianness, R&gt;),
     <span class="attr">#[cfg(feature = <span class="string">&quot;pe&quot;</span>)]
     </span>Pe32(pe::PeRelocationIterator&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R&gt;),
     <span class="attr">#[cfg(feature = <span class="string">&quot;pe&quot;</span>)]
     </span>Pe64(pe::PeRelocationIterator&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R&gt;),
     <span class="attr">#[cfg(feature = <span class="string">&quot;wasm&quot;</span>)]
     </span>Wasm(wasm::WasmRelocationIterator&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R&gt;),
+    <span class="attr">#[cfg(feature = <span class="string">&quot;xcoff&quot;</span>)]
+    </span>Xcoff32(xcoff::XcoffRelocationIterator32&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R&gt;),
+    <span class="attr">#[cfg(feature = <span class="string">&quot;xcoff&quot;</span>)]
+    </span>Xcoff64(xcoff::XcoffRelocationIterator64&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R&gt;),
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt;&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a> <span class="kw">for </span>SectionRelocationIterator&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R&gt; {
-    <span class="kw">type </span>Item = (<a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>, <a href="mod.rs.html#540">Relocation</a>);
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt;&gt; Iterator <span class="kw">for </span>SectionRelocationIterator&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R&gt; {
+    <span class="kw">type </span>Item = (u64, Relocation);
 
     <span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt; {
-        <a class="macro" href="#51-72">with_inner_mut!</a>(<span class="self">self</span>.inner, SectionRelocationIteratorInternal, |x| x.next())
+        <span class="macro">with_inner_mut!</span>(<span class="self">self</span>.inner, SectionRelocationIteratorInternal, |x| x.next())
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="object" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="object" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

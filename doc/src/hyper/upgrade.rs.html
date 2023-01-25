@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/hyper-0.14.23/src/upgrade.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>upgrade.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../hyper/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/hyper-0.14.23/src/upgrade.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>upgrade.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../hyper/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -421,20 +421,20 @@
 //!
 //! [example]: https://github.com/hyperium/hyper/blob/master/examples/upgrades.rs
 
-</span><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/any/struct.TypeId.html">std::any::TypeId</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">std::error::Error</a> <span class="kw">as </span>StdError;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">std::fmt</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/io/index.html">std::io</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">std::marker::Unpin</a>;
+</span><span class="kw">use </span>std::any::TypeId;
+<span class="kw">use </span>std::error::Error <span class="kw">as </span>StdError;
+<span class="kw">use </span>std::fmt;
+<span class="kw">use </span>std::io;
+<span class="kw">use </span>std::marker::Unpin;
 
-<span class="kw">use </span><a href="../../hyper/body/struct.Bytes.html">bytes::Bytes</a>;
-<span class="kw">use </span>tokio::io::{<a href="../../tokio/io/async_read/trait.AsyncRead.html">AsyncRead</a>, <a href="../../tokio/io/async_write/trait.AsyncWrite.html">AsyncWrite</a>, <a href="../../tokio/io/read_buf/struct.ReadBuf.html">ReadBuf</a>};
-<span class="kw">use </span><a href="../../tokio/sync/oneshot/index.html">tokio::sync::oneshot</a>;
+<span class="kw">use </span>bytes::Bytes;
+<span class="kw">use </span>tokio::io::{AsyncRead, AsyncWrite, ReadBuf};
+<span class="kw">use </span>tokio::sync::oneshot;
 <span class="attr">#[cfg(any(feature = <span class="string">&quot;http1&quot;</span>, feature = <span class="string">&quot;http2&quot;</span>))]
-</span><span class="kw">use </span><a href="../../tracing/macro.trace.html">tracing::trace</a>;
+</span><span class="kw">use </span>tracing::trace;
 
-<span class="kw">use </span><a href="common/io/rewind.rs.html#11"><span class="kw">crate</span>::common::io::Rewind</a>;
-<span class="kw">use </span><span class="kw">crate</span>::common::{<a href="common/mod.rs.html#26">task</a>, <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a>, <a href="https://doc.rust-lang.org/nightly/core/pin/struct.Pin.html">Pin</a>, <a href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">Poll</a>};
+<span class="kw">use </span><span class="kw">crate</span>::common::io::Rewind;
+<span class="kw">use </span><span class="kw">crate</span>::common::{task, Future, Pin, Poll};
 
 <span class="doccomment">/// An upgraded HTTP connection.
 ///
@@ -445,14 +445,14 @@
 /// Alternatively, if the exact type is known, this can be deconstructed
 /// into its parts.
 </span><span class="kw">pub struct </span>Upgraded {
-    io: Rewind&lt;Box&lt;<span class="kw">dyn </span><a href="#268">Io</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a>&gt;&gt;,
+    io: Rewind&lt;Box&lt;<span class="kw">dyn </span>Io + Send&gt;&gt;,
 }
 
 <span class="doccomment">/// A future for a possible HTTP upgrade.
 ///
 /// If no upgrade was available, or it doesn&#39;t succeed, yields an `Error`.
 </span><span class="kw">pub struct </span>OnUpgrade {
-    rx: <span class="prelude-ty">Option</span>&lt;oneshot::Receiver&lt;<span class="kw">crate</span>::Result&lt;<a href="#65">Upgraded</a>&gt;&gt;&gt;,
+    rx: <span class="prelude-ty">Option</span>&lt;oneshot::Receiver&lt;<span class="kw">crate</span>::Result&lt;Upgraded&gt;&gt;&gt;,
 }
 
 <span class="doccomment">/// The deconstructed parts of an [`Upgraded`](Upgraded) type.
@@ -471,7 +471,7 @@
     ///
     /// You will want to check for any existing bytes if you plan to continue
     /// communicating on the IO object.
-    </span><span class="kw">pub </span>read_buf: <a href="../../hyper/body/struct.Bytes.html">Bytes</a>,
+    </span><span class="kw">pub </span>read_buf: Bytes,
     _inner: (),
 }
 
@@ -483,31 +483,31 @@
 /// - `http::Response&lt;B&gt;`
 /// - `&amp;mut http::Request&lt;B&gt;`
 /// - `&amp;mut http::Response&lt;B&gt;`
-</span><span class="kw">pub fn </span>on&lt;T: <a href="#298">sealed::CanUpgrade</a>&gt;(msg: T) -&gt; <a href="#72">OnUpgrade</a> {
-    <a href="#104">msg</a>.<a href="#299">on_upgrade</a>()
+</span><span class="kw">pub fn </span>on&lt;T: sealed::CanUpgrade&gt;(msg: T) -&gt; OnUpgrade {
+    msg.on_upgrade()
 }
 
 <span class="attr">#[cfg(any(feature = <span class="string">&quot;http1&quot;</span>, feature = <span class="string">&quot;http2&quot;</span>))]
 </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">struct </span>Pending {
-    tx: oneshot::Sender&lt;<span class="kw">crate</span>::Result&lt;<a href="#65">Upgraded</a>&gt;&gt;,
+    tx: oneshot::Sender&lt;<span class="kw">crate</span>::Result&lt;Upgraded&gt;&gt;,
 }
 
 <span class="attr">#[cfg(any(feature = <span class="string">&quot;http1&quot;</span>, feature = <span class="string">&quot;http2&quot;</span>))]
-</span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>pending() -&gt; (<a href="#109">Pending</a>, <a href="#72">OnUpgrade</a>) {
+</span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>pending() -&gt; (Pending, OnUpgrade) {
     <span class="kw">let </span>(tx, rx) = oneshot::channel();
-    (<a href="#109">Pending</a> { <a href="#115">tx</a> }, <a href="#72">OnUpgrade</a> { rx: <span class="prelude-val">Some</span>(<a href="#115">rx</a>) })
+    (Pending { tx }, OnUpgrade { rx: <span class="prelude-val">Some</span>(rx) })
 }
 
 <span class="comment">// ===== impl Upgraded =====
 
-</span><span class="kw">impl </span><a href="#65">Upgraded</a> {
+</span><span class="kw">impl </span>Upgraded {
     <span class="attr">#[cfg(any(feature = <span class="string">&quot;http1&quot;</span>, feature = <span class="string">&quot;http2&quot;</span>, test))]
-    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>new&lt;T&gt;(io: T, read_buf: <a href="../../hyper/body/struct.Bytes.html">Bytes</a>) -&gt; <span class="self">Self
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>new&lt;T&gt;(io: T, read_buf: Bytes) -&gt; <span class="self">Self
     </span><span class="kw">where
-        </span>T: <a href="../../tokio/io/async_read/trait.AsyncRead.html">AsyncRead</a> + <a href="../../tokio/io/async_write/trait.AsyncWrite.html">AsyncWrite</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <span class="lifetime">&#39;static</span>,
+        </span>T: AsyncRead + AsyncWrite + Unpin + Send + <span class="lifetime">&#39;static</span>,
     {
-        <a href="#65">Upgraded</a> {
-            io: Rewind::new_buffered(Box::new(<a href="#123">io</a>), <a href="#123">read_buf</a>),
+        Upgraded {
+            io: Rewind::new_buffered(Box::new(io), read_buf),
         }
     }
 
@@ -515,116 +515,116 @@
     ///
     /// On success, returns the downcasted parts. On error, returns the
     /// `Upgraded` back.
-    </span><span class="kw">pub fn </span>downcast&lt;T: <a href="../../tokio/io/async_read/trait.AsyncRead.html">AsyncRead</a> + <a href="../../tokio/io/async_write/trait.AsyncWrite.html">AsyncWrite</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a> + <span class="lifetime">&#39;static</span>&gt;(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;Parts&lt;T&gt;, <span class="self">Self</span>&gt; {
-        <span class="kw">let </span>(io, buf) = <a class="self" href="#136">self</a>.io.<a href="common/io/rewind.rs.html#38">into_inner</a>();
-        <span class="kw">match </span><a href="#137">io</a>.<a href="#282">__hyper_downcast</a>() {
-            <span class="prelude-val">Ok</span>(t) =&gt; <span class="prelude-val">Ok</span>(<a href="#81">Parts</a> {
-                io: <span class="kw-2">*</span><a href="#139">t</a>,
-                read_buf: <a href="#137">buf</a>,
+    </span><span class="kw">pub fn </span>downcast&lt;T: AsyncRead + AsyncWrite + Unpin + <span class="lifetime">&#39;static</span>&gt;(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;Parts&lt;T&gt;, <span class="self">Self</span>&gt; {
+        <span class="kw">let </span>(io, buf) = <span class="self">self</span>.io.into_inner();
+        <span class="kw">match </span>io.__hyper_downcast() {
+            <span class="prelude-val">Ok</span>(t) =&gt; <span class="prelude-val">Ok</span>(Parts {
+                io: <span class="kw-2">*</span>t,
+                read_buf: buf,
                 _inner: (),
             }),
-            <span class="prelude-val">Err</span>(io) =&gt; <span class="prelude-val">Err</span>(<a href="#65">Upgraded</a> {
-                io: Rewind::new_buffered(<a href="#144">io</a>, <a href="#137">buf</a>),
+            <span class="prelude-val">Err</span>(io) =&gt; <span class="prelude-val">Err</span>(Upgraded {
+                io: Rewind::new_buffered(io, buf),
             }),
         }
     }
 }
 
-<span class="kw">impl </span><a href="../../tokio/io/async_read/trait.AsyncRead.html">AsyncRead</a> <span class="kw">for </span><a href="#65">Upgraded</a> {
+<span class="kw">impl </span>AsyncRead <span class="kw">for </span>Upgraded {
     <span class="kw">fn </span>poll_read(
         <span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;,
         cx: <span class="kw-2">&amp;mut </span>task::Context&lt;<span class="lifetime">&#39;_</span>&gt;,
         buf: <span class="kw-2">&amp;mut </span>ReadBuf&lt;<span class="lifetime">&#39;_</span>&gt;,
     ) -&gt; Poll&lt;io::Result&lt;()&gt;&gt; {
-        Pin::new(<span class="kw-2">&amp;mut </span><a class="self" href="#153">self</a>.io).<a href="../../tokio/io/async_read/trait.AsyncRead.html">poll_read</a>(<a href="#154">cx</a>, <a href="#155">buf</a>)
+        Pin::new(<span class="kw-2">&amp;mut </span><span class="self">self</span>.io).poll_read(cx, buf)
     }
 }
 
-<span class="kw">impl </span><a href="../../tokio/io/async_write/trait.AsyncWrite.html">AsyncWrite</a> <span class="kw">for </span><a href="#65">Upgraded</a> {
+<span class="kw">impl </span>AsyncWrite <span class="kw">for </span>Upgraded {
     <span class="kw">fn </span>poll_write(
         <span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;,
         cx: <span class="kw-2">&amp;mut </span>task::Context&lt;<span class="lifetime">&#39;_</span>&gt;,
-        buf: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
-    ) -&gt; Poll&lt;io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;&gt; {
-        Pin::new(<span class="kw-2">&amp;mut </span><a class="self" href="#163">self</a>.io).<a href="../../tokio/io/async_write/trait.AsyncWrite.html">poll_write</a>(<a href="#164">cx</a>, <a href="#165">buf</a>)
+        buf: <span class="kw-2">&amp;</span>[u8],
+    ) -&gt; Poll&lt;io::Result&lt;usize&gt;&gt; {
+        Pin::new(<span class="kw-2">&amp;mut </span><span class="self">self</span>.io).poll_write(cx, buf)
     }
 
     <span class="kw">fn </span>poll_write_vectored(
         <span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;,
         cx: <span class="kw-2">&amp;mut </span>task::Context&lt;<span class="lifetime">&#39;_</span>&gt;,
         bufs: <span class="kw-2">&amp;</span>[io::IoSlice&lt;<span class="lifetime">&#39;_</span>&gt;],
-    ) -&gt; Poll&lt;io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;&gt; {
-        Pin::new(<span class="kw-2">&amp;mut </span><a class="self" href="#171">self</a>.io).<a href="../../tokio/io/async_write/trait.AsyncWrite.html">poll_write_vectored</a>(<a href="#172">cx</a>, <a href="#173">bufs</a>)
+    ) -&gt; Poll&lt;io::Result&lt;usize&gt;&gt; {
+        Pin::new(<span class="kw-2">&amp;mut </span><span class="self">self</span>.io).poll_write_vectored(cx, bufs)
     }
 
     <span class="kw">fn </span>poll_flush(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>task::Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;io::Result&lt;()&gt;&gt; {
-        Pin::new(<span class="kw-2">&amp;mut </span><a class="self" href="#178">self</a>.io).<a href="../../tokio/io/async_write/trait.AsyncWrite.html">poll_flush</a>(<a href="#178">cx</a>)
+        Pin::new(<span class="kw-2">&amp;mut </span><span class="self">self</span>.io).poll_flush(cx)
     }
 
     <span class="kw">fn </span>poll_shutdown(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>task::Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;io::Result&lt;()&gt;&gt; {
-        Pin::new(<span class="kw-2">&amp;mut </span><a class="self" href="#182">self</a>.io).<a href="../../tokio/io/async_write/trait.AsyncWrite.html">poll_shutdown</a>(<a href="#182">cx</a>)
+        Pin::new(<span class="kw-2">&amp;mut </span><span class="self">self</span>.io).poll_shutdown(cx)
     }
 
-    <span class="kw">fn </span>is_write_vectored(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#186">self</a>.io.<a href="../../tokio/io/async_write/trait.AsyncWrite.html">is_write_vectored</a>()
+    <span class="kw">fn </span>is_write_vectored(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.io.is_write_vectored()
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="#65">Upgraded</a> {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a href="#192">f</a>.debug_struct(<span class="string">&quot;Upgraded&quot;</span>).finish()
+<span class="kw">impl </span>fmt::Debug <span class="kw">for </span>Upgraded {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        f.debug_struct(<span class="string">&quot;Upgraded&quot;</span>).finish()
     }
 }
 
 <span class="comment">// ===== impl OnUpgrade =====
 
-</span><span class="kw">impl </span><a href="#72">OnUpgrade</a> {
+</span><span class="kw">impl </span>OnUpgrade {
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>none() -&gt; <span class="self">Self </span>{
-        <a href="#72">OnUpgrade</a> { rx: <span class="prelude-val">None </span>}
+        OnUpgrade { rx: <span class="prelude-val">None </span>}
     }
 
     <span class="attr">#[cfg(feature = <span class="string">&quot;http1&quot;</span>)]
-    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>is_none(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#205">self</a>.rx.is_none()
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>is_none(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.rx.is_none()
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a> <span class="kw">for </span><a href="#72">OnUpgrade</a> {
-    <span class="kw">type </span>Output = <span class="prelude-ty">Result</span>&lt;<a href="#65">Upgraded</a>, <a href="error.rs.html#11"><span class="kw">crate</span>::Error</a>&gt;;
+<span class="kw">impl </span>Future <span class="kw">for </span>OnUpgrade {
+    <span class="kw">type </span>Output = <span class="prelude-ty">Result</span>&lt;Upgraded, <span class="kw">crate</span>::Error&gt;;
 
     <span class="kw">fn </span>poll(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>task::Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
-        <span class="kw">match </span><a class="self" href="#213">self</a>.rx {
-            <span class="prelude-val">Some</span>(<span class="kw-2">ref mut </span>rx) =&gt; Pin::new(<a href="#215">rx</a>).<a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">poll</a>(<a href="#213">cx</a>).map(|res| <span class="kw">match </span><a href="#215">res</a> {
-                <span class="prelude-val">Ok</span>(<span class="prelude-val">Ok</span>(upgraded)) =&gt; <span class="prelude-val">Ok</span>(<a href="#216">upgraded</a>),
-                <span class="prelude-val">Ok</span>(<span class="prelude-val">Err</span>(err)) =&gt; <span class="prelude-val">Err</span>(<a href="#217">err</a>),
-                <span class="prelude-val">Err</span>(_oneshot_canceled) =&gt; <span class="prelude-val">Err</span>(<span class="kw">crate</span>::Error::new_canceled().<a href="error.rs.html#219">with</a>(<a href="#256">UpgradeExpected</a>)),
+        <span class="kw">match </span><span class="self">self</span>.rx {
+            <span class="prelude-val">Some</span>(<span class="kw-2">ref mut </span>rx) =&gt; Pin::new(rx).poll(cx).map(|res| <span class="kw">match </span>res {
+                <span class="prelude-val">Ok</span>(<span class="prelude-val">Ok</span>(upgraded)) =&gt; <span class="prelude-val">Ok</span>(upgraded),
+                <span class="prelude-val">Ok</span>(<span class="prelude-val">Err</span>(err)) =&gt; <span class="prelude-val">Err</span>(err),
+                <span class="prelude-val">Err</span>(_oneshot_canceled) =&gt; <span class="prelude-val">Err</span>(<span class="kw">crate</span>::Error::new_canceled().with(UpgradeExpected)),
             }),
             <span class="prelude-val">None </span>=&gt; Poll::Ready(<span class="prelude-val">Err</span>(<span class="kw">crate</span>::Error::new_user_no_upgrade())),
         }
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="#72">OnUpgrade</a> {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a href="#226">f</a>.debug_struct(<span class="string">&quot;OnUpgrade&quot;</span>).finish()
+<span class="kw">impl </span>fmt::Debug <span class="kw">for </span>OnUpgrade {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        f.debug_struct(<span class="string">&quot;OnUpgrade&quot;</span>).finish()
     }
 }
 
 <span class="comment">// ===== impl Pending =====
 
 </span><span class="attr">#[cfg(any(feature = <span class="string">&quot;http1&quot;</span>, feature = <span class="string">&quot;http2&quot;</span>))]
-</span><span class="kw">impl </span><a href="#109">Pending</a> {
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>fulfill(<span class="self">self</span>, upgraded: <a href="#65">Upgraded</a>) {
-        <a class="macro" href="../../tracing/macro.trace.html">trace!</a>(<span class="string">&quot;pending upgrade fulfill&quot;</span>);
-        <span class="kw">let _ </span>= <a class="self" href="#235">self</a>.tx.send(<span class="prelude-val">Ok</span>(<a href="#235">upgraded</a>));
+</span><span class="kw">impl </span>Pending {
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>fulfill(<span class="self">self</span>, upgraded: Upgraded) {
+        <span class="macro">trace!</span>(<span class="string">&quot;pending upgrade fulfill&quot;</span>);
+        <span class="kw">let _ </span>= <span class="self">self</span>.tx.send(<span class="prelude-val">Ok</span>(upgraded));
     }
 
     <span class="attr">#[cfg(feature = <span class="string">&quot;http1&quot;</span>)]
     </span><span class="doccomment">/// Don&#39;t fulfill the pending Upgrade, but instead signal that
     /// upgrades are handled manually.
     </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>manual(<span class="self">self</span>) {
-        <a class="macro" href="../../tracing/macro.trace.html">trace!</a>(<span class="string">&quot;pending upgrade handled manually&quot;</span>);
-        <span class="kw">let _ </span>= <a class="self" href="#243">self</a>.tx.send(<span class="prelude-val">Err</span>(<span class="kw">crate</span>::Error::new_user_manual_upgrade()));
+        <span class="macro">trace!</span>(<span class="string">&quot;pending upgrade handled manually&quot;</span>);
+        <span class="kw">let _ </span>= <span class="self">self</span>.tx.send(<span class="prelude-val">Err</span>(<span class="kw">crate</span>::Error::new_user_manual_upgrade()));
     }
 }
 
@@ -637,78 +637,78 @@
 </span><span class="attr">#[derive(Debug)]
 </span><span class="kw">struct </span>UpgradeExpected;
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for </span><a href="#256">UpgradeExpected</a> {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a href="#259">f</a>.write_str(<span class="string">&quot;upgrade expected but not completed&quot;</span>)
+<span class="kw">impl </span>fmt::Display <span class="kw">for </span>UpgradeExpected {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        f.write_str(<span class="string">&quot;upgrade expected but not completed&quot;</span>)
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">StdError</a> <span class="kw">for </span><a href="#256">UpgradeExpected</a> {}
+<span class="kw">impl </span>StdError <span class="kw">for </span>UpgradeExpected {}
 
 <span class="comment">// ===== impl Io =====
 
-</span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">trait </span>Io: <a href="../../tokio/io/async_read/trait.AsyncRead.html">AsyncRead</a> + <a href="../../tokio/io/async_write/trait.AsyncWrite.html">AsyncWrite</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a> + <span class="lifetime">&#39;static </span>{
-    <span class="kw">fn </span>__hyper_type_id(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/any/struct.TypeId.html">TypeId</a> {
+</span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">trait </span>Io: AsyncRead + AsyncWrite + Unpin + <span class="lifetime">&#39;static </span>{
+    <span class="kw">fn </span>__hyper_type_id(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; TypeId {
         TypeId::of::&lt;<span class="self">Self</span>&gt;()
     }
 }
 
-<span class="kw">impl</span>&lt;T: <a href="../../tokio/io/async_read/trait.AsyncRead.html">AsyncRead</a> + <a href="../../tokio/io/async_write/trait.AsyncWrite.html">AsyncWrite</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a> + <span class="lifetime">&#39;static</span>&gt; <a href="#268">Io</a> <span class="kw">for </span>T {}
+<span class="kw">impl</span>&lt;T: AsyncRead + AsyncWrite + Unpin + <span class="lifetime">&#39;static</span>&gt; Io <span class="kw">for </span>T {}
 
-<span class="kw">impl dyn </span><a href="#268">Io</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> {
-    <span class="kw">fn </span>__hyper_is&lt;T: <a href="#268">Io</a>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+<span class="kw">impl dyn </span>Io + Send {
+    <span class="kw">fn </span>__hyper_is&lt;T: Io&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="kw">let </span>t = TypeId::of::&lt;T&gt;();
-        <a class="self" href="#277">self</a>.<a href="#269">__hyper_type_id</a>() == <a href="#278">t</a>
+        <span class="self">self</span>.__hyper_type_id() == t
     }
 
-    <span class="kw">fn </span>__hyper_downcast&lt;T: <a href="#268">Io</a>&gt;(<span class="self">self</span>: Box&lt;<span class="self">Self</span>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;Box&lt;T&gt;, Box&lt;<span class="self">Self</span>&gt;&gt; {
+    <span class="kw">fn </span>__hyper_downcast&lt;T: Io&gt;(<span class="self">self</span>: Box&lt;<span class="self">Self</span>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;Box&lt;T&gt;, Box&lt;<span class="self">Self</span>&gt;&gt; {
         <span class="kw">if </span><span class="self">self</span>.__hyper_is::&lt;T&gt;() {
             <span class="comment">// Taken from `std::error::Error::downcast()`.
             </span><span class="kw">unsafe </span>{
-                <span class="kw">let </span>raw: <span class="kw-2">*mut </span><span class="kw">dyn </span><a href="#268">Io</a> = Box::into_raw(<a class="self" href="#282">self</a>);
-                <span class="prelude-val">Ok</span>(Box::from_raw(<a href="#286">raw</a> <span class="kw">as </span><span class="kw-2">*mut </span>T))
+                <span class="kw">let </span>raw: <span class="kw-2">*mut </span><span class="kw">dyn </span>Io = Box::into_raw(<span class="self">self</span>);
+                <span class="prelude-val">Ok</span>(Box::from_raw(raw <span class="kw">as </span><span class="kw-2">*mut </span>T))
             }
         } <span class="kw">else </span>{
-            <span class="prelude-val">Err</span>(<a class="self" href="#282">self</a>)
+            <span class="prelude-val">Err</span>(<span class="self">self</span>)
         }
     }
 }
 
 <span class="kw">mod </span>sealed {
-    <span class="kw">use </span><a href="#72"><span class="kw">super</span>::OnUpgrade</a>;
+    <span class="kw">use </span><span class="kw">super</span>::OnUpgrade;
 
     <span class="kw">pub trait </span>CanUpgrade {
-        <span class="kw">fn </span>on_upgrade(<span class="self">self</span>) -&gt; <a href="#72">OnUpgrade</a>;
+        <span class="kw">fn </span>on_upgrade(<span class="self">self</span>) -&gt; OnUpgrade;
     }
 
-    <span class="kw">impl</span>&lt;B&gt; <a href="#298">CanUpgrade</a> <span class="kw">for </span>http::Request&lt;B&gt; {
-        <span class="kw">fn </span>on_upgrade(<span class="kw-2">mut </span><span class="self">self</span>) -&gt; <a href="#72">OnUpgrade</a> {
-            <a class="self" href="#303">self</a>.extensions_mut()
-                .remove::&lt;<a href="#72">OnUpgrade</a>&gt;()
+    <span class="kw">impl</span>&lt;B&gt; CanUpgrade <span class="kw">for </span>http::Request&lt;B&gt; {
+        <span class="kw">fn </span>on_upgrade(<span class="kw-2">mut </span><span class="self">self</span>) -&gt; OnUpgrade {
+            <span class="self">self</span>.extensions_mut()
+                .remove::&lt;OnUpgrade&gt;()
                 .unwrap_or_else(OnUpgrade::none)
         }
     }
 
-    <span class="kw">impl</span>&lt;B&gt; <a href="#298">CanUpgrade</a> <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;_ </span><span class="kw-2">mut </span>http::Request&lt;B&gt; {
-        <span class="kw">fn </span>on_upgrade(<span class="self">self</span>) -&gt; <a href="#72">OnUpgrade</a> {
-            <a class="self" href="#311">self</a>.extensions_mut()
-                .remove::&lt;<a href="#72">OnUpgrade</a>&gt;()
+    <span class="kw">impl</span>&lt;B&gt; CanUpgrade <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;_ </span><span class="kw-2">mut </span>http::Request&lt;B&gt; {
+        <span class="kw">fn </span>on_upgrade(<span class="self">self</span>) -&gt; OnUpgrade {
+            <span class="self">self</span>.extensions_mut()
+                .remove::&lt;OnUpgrade&gt;()
                 .unwrap_or_else(OnUpgrade::none)
         }
     }
 
-    <span class="kw">impl</span>&lt;B&gt; <a href="#298">CanUpgrade</a> <span class="kw">for </span>http::Response&lt;B&gt; {
-        <span class="kw">fn </span>on_upgrade(<span class="kw-2">mut </span><span class="self">self</span>) -&gt; <a href="#72">OnUpgrade</a> {
-            <a class="self" href="#319">self</a>.extensions_mut()
-                .remove::&lt;<a href="#72">OnUpgrade</a>&gt;()
+    <span class="kw">impl</span>&lt;B&gt; CanUpgrade <span class="kw">for </span>http::Response&lt;B&gt; {
+        <span class="kw">fn </span>on_upgrade(<span class="kw-2">mut </span><span class="self">self</span>) -&gt; OnUpgrade {
+            <span class="self">self</span>.extensions_mut()
+                .remove::&lt;OnUpgrade&gt;()
                 .unwrap_or_else(OnUpgrade::none)
         }
     }
 
-    <span class="kw">impl</span>&lt;B&gt; <a href="#298">CanUpgrade</a> <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;_ </span><span class="kw-2">mut </span>http::Response&lt;B&gt; {
-        <span class="kw">fn </span>on_upgrade(<span class="self">self</span>) -&gt; <a href="#72">OnUpgrade</a> {
-            <a class="self" href="#327">self</a>.extensions_mut()
-                .remove::&lt;<a href="#72">OnUpgrade</a>&gt;()
+    <span class="kw">impl</span>&lt;B&gt; CanUpgrade <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;_ </span><span class="kw-2">mut </span>http::Response&lt;B&gt; {
+        <span class="kw">fn </span>on_upgrade(<span class="self">self</span>) -&gt; OnUpgrade {
+            <span class="self">self</span>.extensions_mut()
+                .remove::&lt;OnUpgrade&gt;()
                 .unwrap_or_else(OnUpgrade::none)
         }
     }
@@ -763,4 +763,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="hyper" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="hyper" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

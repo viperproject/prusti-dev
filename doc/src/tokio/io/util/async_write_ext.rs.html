@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.21.2/src/io/util/async_write_ext.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>async_write_ext.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../../tokio/index.html"><img class="rust-logo" src="../../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.23.0/src/io/util/async_write_ext.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>async_write_ext.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../../tokio/index.html"><img class="rust-logo" src="../../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -1291,26 +1291,26 @@
 <a href="#1291" id="1291">1291</a>
 <a href="#1292" id="1292">1292</a>
 <a href="#1293" id="1293">1293</a>
-</pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::io::util::flush::{<a href="flush.rs.html#26-28">flush</a>, <a href="flush.rs.html#10-23">Flush</a>};
-<span class="kw">use </span><span class="kw">crate</span>::io::util::shutdown::{<a href="shutdown.rs.html#26-28">shutdown</a>, <a href="shutdown.rs.html#10-23">Shutdown</a>};
-<span class="kw">use </span><span class="kw">crate</span>::io::util::write::{<a href="write.rs.html#25-27">write</a>, <a href="write.rs.html#10-21">Write</a>};
-<span class="kw">use </span><span class="kw">crate</span>::io::util::write_all::{<a href="write_all.rs.html#23-25">write_all</a>, <a href="write_all.rs.html#11-21">WriteAll</a>};
-<span class="kw">use </span><span class="kw">crate</span>::io::util::write_all_buf::{<a href="write_all_buf.rs.html#25-28">write_all_buf</a>, <a href="write_all_buf.rs.html#11-21">WriteAllBuf</a>};
-<span class="kw">use </span><span class="kw">crate</span>::io::util::write_buf::{<a href="write_buf.rs.html#25-28">write_buf</a>, <a href="write_buf.rs.html#11-21">WriteBuf</a>};
-<span class="kw">use </span><span class="kw">crate</span>::io::util::write_int::{<a href="write_int.rs.html#138">WriteF32</a>, <a href="write_int.rs.html#151">WriteF32Le</a>, <a href="write_int.rs.html#139">WriteF64</a>, <a href="write_int.rs.html#152">WriteF64Le</a>};
+</pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::io::util::flush::{flush, Flush};
+<span class="kw">use </span><span class="kw">crate</span>::io::util::shutdown::{shutdown, Shutdown};
+<span class="kw">use </span><span class="kw">crate</span>::io::util::write::{write, Write};
+<span class="kw">use </span><span class="kw">crate</span>::io::util::write_all::{write_all, WriteAll};
+<span class="kw">use </span><span class="kw">crate</span>::io::util::write_all_buf::{write_all_buf, WriteAllBuf};
+<span class="kw">use </span><span class="kw">crate</span>::io::util::write_buf::{write_buf, WriteBuf};
+<span class="kw">use </span><span class="kw">crate</span>::io::util::write_int::{WriteF32, WriteF32Le, WriteF64, WriteF64Le};
 <span class="kw">use </span><span class="kw">crate</span>::io::util::write_int::{
-    <a href="write_int.rs.html#136">WriteI128</a>, <a href="write_int.rs.html#149">WriteI128Le</a>, <a href="write_int.rs.html#133">WriteI16</a>, <a href="write_int.rs.html#146">WriteI16Le</a>, <a href="write_int.rs.html#134">WriteI32</a>, <a href="write_int.rs.html#147">WriteI32Le</a>, <a href="write_int.rs.html#135">WriteI64</a>, <a href="write_int.rs.html#148">WriteI64Le</a>,
-    <a href="write_int.rs.html#126">WriteI8</a>,
+    WriteI128, WriteI128Le, WriteI16, WriteI16Le, WriteI32, WriteI32Le, WriteI64, WriteI64Le,
+    WriteI8,
 };
 <span class="kw">use </span><span class="kw">crate</span>::io::util::write_int::{
-    <a href="write_int.rs.html#131">WriteU128</a>, <a href="write_int.rs.html#144">WriteU128Le</a>, <a href="write_int.rs.html#128">WriteU16</a>, <a href="write_int.rs.html#141">WriteU16Le</a>, <a href="write_int.rs.html#129">WriteU32</a>, <a href="write_int.rs.html#142">WriteU32Le</a>, <a href="write_int.rs.html#130">WriteU64</a>, <a href="write_int.rs.html#143">WriteU64Le</a>,
-    <a href="write_int.rs.html#125">WriteU8</a>,
+    WriteU128, WriteU128Le, WriteU16, WriteU16Le, WriteU32, WriteU32Le, WriteU64, WriteU64Le,
+    WriteU8,
 };
-<span class="kw">use </span><span class="kw">crate</span>::io::util::write_vectored::{<a href="write_vectored.rs.html#23-28">write_vectored</a>, <a href="write_vectored.rs.html#10-21">WriteVectored</a>};
-<span class="kw">use </span><a href="../async_write.rs.html#45"><span class="kw">crate</span>::io::AsyncWrite</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/io/struct.IoSlice.html">std::io::IoSlice</a>;
+<span class="kw">use </span><span class="kw">crate</span>::io::util::write_vectored::{write_vectored, WriteVectored};
+<span class="kw">use </span><span class="kw">crate</span>::io::AsyncWrite;
+<span class="kw">use </span>std::io::IoSlice;
 
-<span class="kw">use </span><a href="../../../../bytes/buf/buf_impl/trait.Buf.html">bytes::Buf</a>;
+<span class="kw">use </span>bytes::Buf;
 
 <span class="macro">cfg_io_util! </span>{
     <span class="doccomment">/// Defines numeric writer.
@@ -1359,7 +1359,7 @@
     /// See [module][crate::io] documentation for more details.
     ///
     /// [`AsyncWrite`]: AsyncWrite
-    </span><span class="kw">pub trait </span>AsyncWriteExt: <a href="../async_write.rs.html#45">AsyncWrite</a> {
+    </span><span class="kw">pub trait </span>AsyncWriteExt: AsyncWrite {
         <span class="doccomment">/// Writes a buffer into this writer, returning how many bytes were
         /// written.
         ///
@@ -1413,11 +1413,11 @@
         ///     Ok(())
         /// }
         /// ```
-        </span><span class="kw">fn </span>write&lt;<span class="lifetime">&#39;a</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span><span class="self">self</span>, src: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; Write&lt;<span class="lifetime">&#39;a</span>, <span class="self">Self</span>&gt;
+        </span><span class="kw">fn </span>write&lt;<span class="lifetime">&#39;a</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span><span class="self">self</span>, src: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[u8]) -&gt; Write&lt;<span class="lifetime">&#39;a</span>, <span class="self">Self</span>&gt;
         <span class="kw">where
-            </span><span class="self">Self</span>: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
+            </span><span class="self">Self</span>: Unpin,
         {
-            <a href="write.rs.html#25-27">write</a>(<a class="self" href="#123">self</a>, <a href="#123">src</a>)
+            write(<span class="self">self</span>, src)
         }
 
         <span class="doccomment">/// Like [`write`], except that it writes from a slice of buffers.
@@ -1463,9 +1463,9 @@
         /// [`write`]: AsyncWriteExt::write
         </span><span class="kw">fn </span>write_vectored&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span><span class="self">self</span>, bufs: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[IoSlice&lt;<span class="lifetime">&#39;b</span>&gt;]) -&gt; WriteVectored&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span>, <span class="self">Self</span>&gt;
         <span class="kw">where
-            </span><span class="self">Self</span>: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
+            </span><span class="self">Self</span>: Unpin,
         {
-            <a href="write_vectored.rs.html#23-28">write_vectored</a>(<a class="self" href="#171">self</a>, <a href="#171">bufs</a>)
+            write_vectored(<span class="self">self</span>, bufs)
         }
 
         <span class="doccomment">/// Writes a buffer into this writer, advancing the buffer&#39;s internal
@@ -1543,10 +1543,10 @@
         /// ```
         </span><span class="kw">fn </span>write_buf&lt;<span class="lifetime">&#39;a</span>, B&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span><span class="self">self</span>, src: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>B) -&gt; WriteBuf&lt;<span class="lifetime">&#39;a</span>, <span class="self">Self</span>, B&gt;
         <span class="kw">where
-            </span><span class="self">Self</span>: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
-            B: <a href="../../../../bytes/buf/buf_impl/trait.Buf.html">Buf</a>,
+            </span><span class="self">Self</span>: Sized + Unpin,
+            B: Buf,
         {
-            <a href="write_buf.rs.html#25-28">write_buf</a>(<a class="self" href="#251">self</a>, <a href="#251">src</a>)
+            write_buf(<span class="self">self</span>, src)
         }
 
         <span class="doccomment">/// Attempts to write an entire buffer into this writer.
@@ -1607,10 +1607,10 @@
         /// [`write`]: AsyncWriteExt::write
         </span><span class="kw">fn </span>write_all_buf&lt;<span class="lifetime">&#39;a</span>, B&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span><span class="self">self</span>, src: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>B) -&gt; WriteAllBuf&lt;<span class="lifetime">&#39;a</span>, <span class="self">Self</span>, B&gt;
         <span class="kw">where
-            </span><span class="self">Self</span>: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
-            B: <a href="../../../../bytes/buf/buf_impl/trait.Buf.html">Buf</a>,
+            </span><span class="self">Self</span>: Sized + Unpin,
+            B: Buf,
         {
-            <a href="write_all_buf.rs.html#25-28">write_all_buf</a>(<a class="self" href="#315">self</a>, <a href="#315">src</a>)
+            write_all_buf(<span class="self">self</span>, src)
         }
 
         <span class="doccomment">/// Attempts to write an entire buffer into this writer.
@@ -1654,14 +1654,14 @@
         /// ```
         ///
         /// [`write`]: AsyncWriteExt::write
-        </span><span class="kw">fn </span>write_all&lt;<span class="lifetime">&#39;a</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span><span class="self">self</span>, src: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; WriteAll&lt;<span class="lifetime">&#39;a</span>, <span class="self">Self</span>&gt;
+        </span><span class="kw">fn </span>write_all&lt;<span class="lifetime">&#39;a</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span><span class="self">self</span>, src: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[u8]) -&gt; WriteAll&lt;<span class="lifetime">&#39;a</span>, <span class="self">Self</span>&gt;
         <span class="kw">where
-            </span><span class="self">Self</span>: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
+            </span><span class="self">Self</span>: Unpin,
         {
-            <a href="write_all.rs.html#23-25">write_all</a>(<a class="self" href="#364">self</a>, <a href="#364">src</a>)
+            write_all(<span class="self">self</span>, src)
         }
 
-        <a class="macro" href="#24-38">write_impl! </a>{
+        <span class="macro">write_impl! </span>{
             <span class="doccomment">/// Writes an unsigned 8-bit integer to the underlying writer.
             ///
             /// Equivalent to:
@@ -1697,9 +1697,9 @@
             ///     Ok(())
             /// }
             /// ```
-            </span><span class="kw">fn </span>write_u8(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) -&gt; WriteU8;
+            </span><span class="kw">fn </span>write_u8(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: u8) -&gt; WriteU8;
 
-            <span class="doccomment">/// Writes an unsigned 8-bit integer to the underlying writer.
+            <span class="doccomment">/// Writes a signed 8-bit integer to the underlying writer.
             ///
             /// Equivalent to:
             ///
@@ -1718,7 +1718,7 @@
             ///
             /// # Examples
             ///
-            /// Write unsigned 8 bit integers to a `AsyncWrite`:
+            /// Write signed 8 bit integers to a `AsyncWrite`:
             ///
             /// ```rust
             /// use tokio::io::{self, AsyncWriteExt};
@@ -1727,14 +1727,14 @@
             /// async fn main() -&gt; io::Result&lt;()&gt; {
             ///     let mut writer = Vec::new();
             ///
-            ///     writer.write_u8(2).await?;
-            ///     writer.write_u8(5).await?;
+            ///     writer.write_i8(-2).await?;
+            ///     writer.write_i8(126).await?;
             ///
-            ///     assert_eq!(writer, b&quot;\x02\x05&quot;);
+            ///     assert_eq!(writer, b&quot;\xFE\x7E&quot;);
             ///     Ok(())
             /// }
             /// ```
-            </span><span class="kw">fn </span>write_i8(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: <a href="https://doc.rust-lang.org/nightly/std/primitive.i8.html">i8</a>) -&gt; WriteI8;
+            </span><span class="kw">fn </span>write_i8(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: i8) -&gt; WriteI8;
 
             <span class="doccomment">/// Writes an unsigned 16-bit integer in big-endian order to the
             /// underlying writer.
@@ -1772,7 +1772,7 @@
             ///     Ok(())
             /// }
             /// ```
-            </span><span class="kw">fn </span>write_u16(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: <a href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>) -&gt; WriteU16;
+            </span><span class="kw">fn </span>write_u16(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: u16) -&gt; WriteU16;
 
             <span class="doccomment">/// Writes a signed 16-bit integer in big-endian order to the
             /// underlying writer.
@@ -1810,7 +1810,7 @@
             ///     Ok(())
             /// }
             /// ```
-            </span><span class="kw">fn </span>write_i16(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: <a href="https://doc.rust-lang.org/nightly/std/primitive.i16.html">i16</a>) -&gt; WriteI16;
+            </span><span class="kw">fn </span>write_i16(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: i16) -&gt; WriteI16;
 
             <span class="doccomment">/// Writes an unsigned 32-bit integer in big-endian order to the
             /// underlying writer.
@@ -1848,7 +1848,7 @@
             ///     Ok(())
             /// }
             /// ```
-            </span><span class="kw">fn </span>write_u32(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; WriteU32;
+            </span><span class="kw">fn </span>write_u32(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: u32) -&gt; WriteU32;
 
             <span class="doccomment">/// Writes a signed 32-bit integer in big-endian order to the
             /// underlying writer.
@@ -1886,7 +1886,7 @@
             ///     Ok(())
             /// }
             /// ```
-            </span><span class="kw">fn </span>write_i32(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: <a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>) -&gt; WriteI32;
+            </span><span class="kw">fn </span>write_i32(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: i32) -&gt; WriteI32;
 
             <span class="doccomment">/// Writes an unsigned 64-bit integer in big-endian order to the
             /// underlying writer.
@@ -1924,7 +1924,7 @@
             ///     Ok(())
             /// }
             /// ```
-            </span><span class="kw">fn </span>write_u64(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) -&gt; WriteU64;
+            </span><span class="kw">fn </span>write_u64(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: u64) -&gt; WriteU64;
 
             <span class="doccomment">/// Writes an signed 64-bit integer in big-endian order to the
             /// underlying writer.
@@ -1962,7 +1962,7 @@
             ///     Ok(())
             /// }
             /// ```
-            </span><span class="kw">fn </span>write_i64(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: <a href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>) -&gt; WriteI64;
+            </span><span class="kw">fn </span>write_i64(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: i64) -&gt; WriteI64;
 
             <span class="doccomment">/// Writes an unsigned 128-bit integer in big-endian order to the
             /// underlying writer.
@@ -2002,7 +2002,7 @@
             ///     Ok(())
             /// }
             /// ```
-            </span><span class="kw">fn </span>write_u128(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: <a href="https://doc.rust-lang.org/nightly/std/primitive.u128.html">u128</a>) -&gt; WriteU128;
+            </span><span class="kw">fn </span>write_u128(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: u128) -&gt; WriteU128;
 
             <span class="doccomment">/// Writes an signed 128-bit integer in big-endian order to the
             /// underlying writer.
@@ -2042,7 +2042,7 @@
             ///     Ok(())
             /// }
             /// ```
-            </span><span class="kw">fn </span>write_i128(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: <a href="https://doc.rust-lang.org/nightly/std/primitive.i128.html">i128</a>) -&gt; WriteI128;
+            </span><span class="kw">fn </span>write_i128(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: i128) -&gt; WriteI128;
 
             <span class="doccomment">/// Writes an 32-bit floating point type in big-endian order to the
             /// underlying writer.
@@ -2079,7 +2079,7 @@
             ///     Ok(())
             /// }
             /// ```
-            </span><span class="kw">fn </span>write_f32(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: <a href="https://doc.rust-lang.org/nightly/std/primitive.f32.html">f32</a>) -&gt; WriteF32;
+            </span><span class="kw">fn </span>write_f32(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: f32) -&gt; WriteF32;
 
             <span class="doccomment">/// Writes an 64-bit floating point type in big-endian order to the
             /// underlying writer.
@@ -2118,7 +2118,7 @@
             ///     Ok(())
             /// }
             /// ```
-            </span><span class="kw">fn </span>write_f64(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: <a href="https://doc.rust-lang.org/nightly/std/primitive.f64.html">f64</a>) -&gt; WriteF64;
+            </span><span class="kw">fn </span>write_f64(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: f64) -&gt; WriteF64;
 
             <span class="doccomment">/// Writes an unsigned 16-bit integer in little-endian order to the
             /// underlying writer.
@@ -2156,7 +2156,7 @@
             ///     Ok(())
             /// }
             /// ```
-            </span><span class="kw">fn </span>write_u16_le(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: <a href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>) -&gt; WriteU16Le;
+            </span><span class="kw">fn </span>write_u16_le(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: u16) -&gt; WriteU16Le;
 
             <span class="doccomment">/// Writes a signed 16-bit integer in little-endian order to the
             /// underlying writer.
@@ -2194,7 +2194,7 @@
             ///     Ok(())
             /// }
             /// ```
-            </span><span class="kw">fn </span>write_i16_le(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: <a href="https://doc.rust-lang.org/nightly/std/primitive.i16.html">i16</a>) -&gt; WriteI16Le;
+            </span><span class="kw">fn </span>write_i16_le(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: i16) -&gt; WriteI16Le;
 
             <span class="doccomment">/// Writes an unsigned 32-bit integer in little-endian order to the
             /// underlying writer.
@@ -2232,7 +2232,7 @@
             ///     Ok(())
             /// }
             /// ```
-            </span><span class="kw">fn </span>write_u32_le(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; WriteU32Le;
+            </span><span class="kw">fn </span>write_u32_le(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: u32) -&gt; WriteU32Le;
 
             <span class="doccomment">/// Writes a signed 32-bit integer in little-endian order to the
             /// underlying writer.
@@ -2270,7 +2270,7 @@
             ///     Ok(())
             /// }
             /// ```
-            </span><span class="kw">fn </span>write_i32_le(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: <a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>) -&gt; WriteI32Le;
+            </span><span class="kw">fn </span>write_i32_le(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: i32) -&gt; WriteI32Le;
 
             <span class="doccomment">/// Writes an unsigned 64-bit integer in little-endian order to the
             /// underlying writer.
@@ -2308,7 +2308,7 @@
             ///     Ok(())
             /// }
             /// ```
-            </span><span class="kw">fn </span>write_u64_le(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) -&gt; WriteU64Le;
+            </span><span class="kw">fn </span>write_u64_le(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: u64) -&gt; WriteU64Le;
 
             <span class="doccomment">/// Writes an signed 64-bit integer in little-endian order to the
             /// underlying writer.
@@ -2346,7 +2346,7 @@
             ///     Ok(())
             /// }
             /// ```
-            </span><span class="kw">fn </span>write_i64_le(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: <a href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>) -&gt; WriteI64Le;
+            </span><span class="kw">fn </span>write_i64_le(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: i64) -&gt; WriteI64Le;
 
             <span class="doccomment">/// Writes an unsigned 128-bit integer in little-endian order to the
             /// underlying writer.
@@ -2386,7 +2386,7 @@
             ///     Ok(())
             /// }
             /// ```
-            </span><span class="kw">fn </span>write_u128_le(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: <a href="https://doc.rust-lang.org/nightly/std/primitive.u128.html">u128</a>) -&gt; WriteU128Le;
+            </span><span class="kw">fn </span>write_u128_le(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: u128) -&gt; WriteU128Le;
 
             <span class="doccomment">/// Writes an signed 128-bit integer in little-endian order to the
             /// underlying writer.
@@ -2426,7 +2426,7 @@
             ///     Ok(())
             /// }
             /// ```
-            </span><span class="kw">fn </span>write_i128_le(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: <a href="https://doc.rust-lang.org/nightly/std/primitive.i128.html">i128</a>) -&gt; WriteI128Le;
+            </span><span class="kw">fn </span>write_i128_le(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: i128) -&gt; WriteI128Le;
 
             <span class="doccomment">/// Writes an 32-bit floating point type in little-endian order to the
             /// underlying writer.
@@ -2463,7 +2463,7 @@
             ///     Ok(())
             /// }
             /// ```
-            </span><span class="kw">fn </span>write_f32_le(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: <a href="https://doc.rust-lang.org/nightly/std/primitive.f32.html">f32</a>) -&gt; WriteF32Le;
+            </span><span class="kw">fn </span>write_f32_le(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: f32) -&gt; WriteF32Le;
 
             <span class="doccomment">/// Writes an 64-bit floating point type in little-endian order to the
             /// underlying writer.
@@ -2502,7 +2502,7 @@
             ///     Ok(())
             /// }
             /// ```
-            </span><span class="kw">fn </span>write_f64_le(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: <a href="https://doc.rust-lang.org/nightly/std/primitive.f64.html">f64</a>) -&gt; WriteF64Le;
+            </span><span class="kw">fn </span>write_f64_le(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: f64) -&gt; WriteF64Le;
         }
 
         <span class="doccomment">/// Flushes this output stream, ensuring that all intermediately buffered
@@ -2537,9 +2537,9 @@
         /// ```
         </span><span class="kw">fn </span>flush(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; Flush&lt;<span class="lifetime">&#39;_</span>, <span class="self">Self</span>&gt;
         <span class="kw">where
-            </span><span class="self">Self</span>: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
+            </span><span class="self">Self</span>: Unpin,
         {
-            <a href="flush.rs.html#26-28">flush</a>(<a class="self" href="#1245">self</a>)
+            flush(<span class="self">self</span>)
         }
 
         <span class="doccomment">/// Shuts down the output stream, ensuring that the value can be dropped
@@ -2576,13 +2576,13 @@
         /// ```
         </span><span class="kw">fn </span>shutdown(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; Shutdown&lt;<span class="lifetime">&#39;_</span>, <span class="self">Self</span>&gt;
         <span class="kw">where
-            </span><span class="self">Self</span>: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
+            </span><span class="self">Self</span>: Unpin,
         {
-            <a href="shutdown.rs.html#26-28">shutdown</a>(<a class="self" href="#1284">self</a>)
+            shutdown(<span class="self">self</span>)
         }
     }
 }
 
-<span class="kw">impl</span>&lt;W: <a href="../async_write.rs.html#45">AsyncWrite</a> + <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>&gt; <a href="#69">AsyncWriteExt</a> <span class="kw">for </span>W {}
+<span class="kw">impl</span>&lt;W: AsyncWrite + <span class="question-mark">?</span>Sized&gt; AsyncWriteExt <span class="kw">for </span>W {}
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="tokio" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="tokio" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/nix-0.25.0/src/sys/termios.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>termios.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../nix/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/nix-0.26.1/src/sys/termios.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>termios.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../nix/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -1112,6 +1112,119 @@
 <a href="#1112" id="1112">1112</a>
 <a href="#1113" id="1113">1113</a>
 <a href="#1114" id="1114">1114</a>
+<a href="#1115" id="1115">1115</a>
+<a href="#1116" id="1116">1116</a>
+<a href="#1117" id="1117">1117</a>
+<a href="#1118" id="1118">1118</a>
+<a href="#1119" id="1119">1119</a>
+<a href="#1120" id="1120">1120</a>
+<a href="#1121" id="1121">1121</a>
+<a href="#1122" id="1122">1122</a>
+<a href="#1123" id="1123">1123</a>
+<a href="#1124" id="1124">1124</a>
+<a href="#1125" id="1125">1125</a>
+<a href="#1126" id="1126">1126</a>
+<a href="#1127" id="1127">1127</a>
+<a href="#1128" id="1128">1128</a>
+<a href="#1129" id="1129">1129</a>
+<a href="#1130" id="1130">1130</a>
+<a href="#1131" id="1131">1131</a>
+<a href="#1132" id="1132">1132</a>
+<a href="#1133" id="1133">1133</a>
+<a href="#1134" id="1134">1134</a>
+<a href="#1135" id="1135">1135</a>
+<a href="#1136" id="1136">1136</a>
+<a href="#1137" id="1137">1137</a>
+<a href="#1138" id="1138">1138</a>
+<a href="#1139" id="1139">1139</a>
+<a href="#1140" id="1140">1140</a>
+<a href="#1141" id="1141">1141</a>
+<a href="#1142" id="1142">1142</a>
+<a href="#1143" id="1143">1143</a>
+<a href="#1144" id="1144">1144</a>
+<a href="#1145" id="1145">1145</a>
+<a href="#1146" id="1146">1146</a>
+<a href="#1147" id="1147">1147</a>
+<a href="#1148" id="1148">1148</a>
+<a href="#1149" id="1149">1149</a>
+<a href="#1150" id="1150">1150</a>
+<a href="#1151" id="1151">1151</a>
+<a href="#1152" id="1152">1152</a>
+<a href="#1153" id="1153">1153</a>
+<a href="#1154" id="1154">1154</a>
+<a href="#1155" id="1155">1155</a>
+<a href="#1156" id="1156">1156</a>
+<a href="#1157" id="1157">1157</a>
+<a href="#1158" id="1158">1158</a>
+<a href="#1159" id="1159">1159</a>
+<a href="#1160" id="1160">1160</a>
+<a href="#1161" id="1161">1161</a>
+<a href="#1162" id="1162">1162</a>
+<a href="#1163" id="1163">1163</a>
+<a href="#1164" id="1164">1164</a>
+<a href="#1165" id="1165">1165</a>
+<a href="#1166" id="1166">1166</a>
+<a href="#1167" id="1167">1167</a>
+<a href="#1168" id="1168">1168</a>
+<a href="#1169" id="1169">1169</a>
+<a href="#1170" id="1170">1170</a>
+<a href="#1171" id="1171">1171</a>
+<a href="#1172" id="1172">1172</a>
+<a href="#1173" id="1173">1173</a>
+<a href="#1174" id="1174">1174</a>
+<a href="#1175" id="1175">1175</a>
+<a href="#1176" id="1176">1176</a>
+<a href="#1177" id="1177">1177</a>
+<a href="#1178" id="1178">1178</a>
+<a href="#1179" id="1179">1179</a>
+<a href="#1180" id="1180">1180</a>
+<a href="#1181" id="1181">1181</a>
+<a href="#1182" id="1182">1182</a>
+<a href="#1183" id="1183">1183</a>
+<a href="#1184" id="1184">1184</a>
+<a href="#1185" id="1185">1185</a>
+<a href="#1186" id="1186">1186</a>
+<a href="#1187" id="1187">1187</a>
+<a href="#1188" id="1188">1188</a>
+<a href="#1189" id="1189">1189</a>
+<a href="#1190" id="1190">1190</a>
+<a href="#1191" id="1191">1191</a>
+<a href="#1192" id="1192">1192</a>
+<a href="#1193" id="1193">1193</a>
+<a href="#1194" id="1194">1194</a>
+<a href="#1195" id="1195">1195</a>
+<a href="#1196" id="1196">1196</a>
+<a href="#1197" id="1197">1197</a>
+<a href="#1198" id="1198">1198</a>
+<a href="#1199" id="1199">1199</a>
+<a href="#1200" id="1200">1200</a>
+<a href="#1201" id="1201">1201</a>
+<a href="#1202" id="1202">1202</a>
+<a href="#1203" id="1203">1203</a>
+<a href="#1204" id="1204">1204</a>
+<a href="#1205" id="1205">1205</a>
+<a href="#1206" id="1206">1206</a>
+<a href="#1207" id="1207">1207</a>
+<a href="#1208" id="1208">1208</a>
+<a href="#1209" id="1209">1209</a>
+<a href="#1210" id="1210">1210</a>
+<a href="#1211" id="1211">1211</a>
+<a href="#1212" id="1212">1212</a>
+<a href="#1213" id="1213">1213</a>
+<a href="#1214" id="1214">1214</a>
+<a href="#1215" id="1215">1215</a>
+<a href="#1216" id="1216">1216</a>
+<a href="#1217" id="1217">1217</a>
+<a href="#1218" id="1218">1218</a>
+<a href="#1219" id="1219">1219</a>
+<a href="#1220" id="1220">1220</a>
+<a href="#1221" id="1221">1221</a>
+<a href="#1222" id="1222">1222</a>
+<a href="#1223" id="1223">1223</a>
+<a href="#1224" id="1224">1224</a>
+<a href="#1225" id="1225">1225</a>
+<a href="#1226" id="1226">1226</a>
+<a href="#1227" id="1227">1227</a>
 </pre><pre class="rust"><code><span class="doccomment">//! An interface for controlling asynchronous communication ports
 //!
 //! This interface provides a safe wrapper around the termios subsystem defined by POSIX. The
@@ -1199,12 +1312,28 @@
 //!
 //! On non-BSDs, `cfgetispeed()` and `cfgetospeed()` both return a `BaudRate`:
 //!
-</span><span class="attr">#![cfg_attr(any(target_os = <span class="string">&quot;freebsd&quot;</span>, target_os = <span class="string">&quot;dragonfly&quot;</span>, target_os = <span class="string">&quot;ios&quot;</span>,
-                target_os = <span class="string">&quot;macos&quot;</span>, target_os = <span class="string">&quot;netbsd&quot;</span>, target_os = <span class="string">&quot;openbsd&quot;</span>),
-            doc = <span class="string">&quot; ```rust,ignore&quot;</span>)]
-#![cfg_attr(not(any(target_os = <span class="string">&quot;freebsd&quot;</span>, target_os = <span class="string">&quot;dragonfly&quot;</span>, target_os = <span class="string">&quot;ios&quot;</span>,
-                    target_os = <span class="string">&quot;macos&quot;</span>, target_os = <span class="string">&quot;netbsd&quot;</span>, target_os = <span class="string">&quot;openbsd&quot;</span>)),
-            doc = <span class="string">&quot; ```rust&quot;</span>)]
+</span><span class="attr">#![cfg_attr(
+    any(
+        target_os = <span class="string">&quot;freebsd&quot;</span>,
+        target_os = <span class="string">&quot;dragonfly&quot;</span>,
+        target_os = <span class="string">&quot;ios&quot;</span>,
+        target_os = <span class="string">&quot;macos&quot;</span>,
+        target_os = <span class="string">&quot;netbsd&quot;</span>,
+        target_os = <span class="string">&quot;openbsd&quot;
+    </span>),
+    doc = <span class="string">&quot; ```rust,ignore&quot;
+</span>)]
+#![cfg_attr(
+    not(any(
+        target_os = <span class="string">&quot;freebsd&quot;</span>,
+        target_os = <span class="string">&quot;dragonfly&quot;</span>,
+        target_os = <span class="string">&quot;ios&quot;</span>,
+        target_os = <span class="string">&quot;macos&quot;</span>,
+        target_os = <span class="string">&quot;netbsd&quot;</span>,
+        target_os = <span class="string">&quot;openbsd&quot;
+    </span>)),
+    doc = <span class="string">&quot; ```rust&quot;
+</span>)]
 </span><span class="doccomment">//! # use nix::sys::termios::{BaudRate, cfgetispeed, cfgetospeed, cfsetspeed, Termios};
 //! # fn main() {
 //! # let mut t: Termios = unsafe { std::mem::zeroed() };
@@ -1216,12 +1345,28 @@
 //!
 //! But on the BSDs, `cfgetispeed()` and `cfgetospeed()` both return `u32`s:
 //!
-</span><span class="attr">#![cfg_attr(any(target_os = <span class="string">&quot;freebsd&quot;</span>, target_os = <span class="string">&quot;dragonfly&quot;</span>, target_os = <span class="string">&quot;ios&quot;</span>,
-                target_os = <span class="string">&quot;macos&quot;</span>, target_os = <span class="string">&quot;netbsd&quot;</span>, target_os = <span class="string">&quot;openbsd&quot;</span>),
-            doc = <span class="string">&quot; ```rust&quot;</span>)]
-#![cfg_attr(not(any(target_os = <span class="string">&quot;freebsd&quot;</span>, target_os = <span class="string">&quot;dragonfly&quot;</span>, target_os = <span class="string">&quot;ios&quot;</span>,
-                    target_os = <span class="string">&quot;macos&quot;</span>, target_os = <span class="string">&quot;netbsd&quot;</span>, target_os = <span class="string">&quot;openbsd&quot;</span>)),
-            doc = <span class="string">&quot; ```rust,ignore&quot;</span>)]
+</span><span class="attr">#![cfg_attr(
+    any(
+        target_os = <span class="string">&quot;freebsd&quot;</span>,
+        target_os = <span class="string">&quot;dragonfly&quot;</span>,
+        target_os = <span class="string">&quot;ios&quot;</span>,
+        target_os = <span class="string">&quot;macos&quot;</span>,
+        target_os = <span class="string">&quot;netbsd&quot;</span>,
+        target_os = <span class="string">&quot;openbsd&quot;
+    </span>),
+    doc = <span class="string">&quot; ```rust&quot;
+</span>)]
+#![cfg_attr(
+    not(any(
+        target_os = <span class="string">&quot;freebsd&quot;</span>,
+        target_os = <span class="string">&quot;dragonfly&quot;</span>,
+        target_os = <span class="string">&quot;ios&quot;</span>,
+        target_os = <span class="string">&quot;macos&quot;</span>,
+        target_os = <span class="string">&quot;netbsd&quot;</span>,
+        target_os = <span class="string">&quot;openbsd&quot;
+    </span>)),
+    doc = <span class="string">&quot; ```rust,ignore&quot;
+</span>)]
 </span><span class="doccomment">//! # use nix::sys::termios::{BaudRate, cfgetispeed, cfgetospeed, cfsetspeed, Termios};
 //! # fn main() {
 //! # let mut t: Termios = unsafe { std::mem::zeroed() };
@@ -1233,12 +1378,28 @@
 //!
 //! It&#39;s trivial to convert from a `BaudRate` to a `u32` on BSDs:
 //!
-</span><span class="attr">#![cfg_attr(any(target_os = <span class="string">&quot;freebsd&quot;</span>, target_os = <span class="string">&quot;dragonfly&quot;</span>, target_os = <span class="string">&quot;ios&quot;</span>,
-                target_os = <span class="string">&quot;macos&quot;</span>, target_os = <span class="string">&quot;netbsd&quot;</span>, target_os = <span class="string">&quot;openbsd&quot;</span>),
-            doc = <span class="string">&quot; ```rust&quot;</span>)]
-#![cfg_attr(not(any(target_os = <span class="string">&quot;freebsd&quot;</span>, target_os = <span class="string">&quot;dragonfly&quot;</span>, target_os = <span class="string">&quot;ios&quot;</span>,
-                    target_os = <span class="string">&quot;macos&quot;</span>, target_os = <span class="string">&quot;netbsd&quot;</span>, target_os = <span class="string">&quot;openbsd&quot;</span>)),
-            doc = <span class="string">&quot; ```rust,ignore&quot;</span>)]
+</span><span class="attr">#![cfg_attr(
+    any(
+        target_os = <span class="string">&quot;freebsd&quot;</span>,
+        target_os = <span class="string">&quot;dragonfly&quot;</span>,
+        target_os = <span class="string">&quot;ios&quot;</span>,
+        target_os = <span class="string">&quot;macos&quot;</span>,
+        target_os = <span class="string">&quot;netbsd&quot;</span>,
+        target_os = <span class="string">&quot;openbsd&quot;
+    </span>),
+    doc = <span class="string">&quot; ```rust&quot;
+</span>)]
+#![cfg_attr(
+    not(any(
+        target_os = <span class="string">&quot;freebsd&quot;</span>,
+        target_os = <span class="string">&quot;dragonfly&quot;</span>,
+        target_os = <span class="string">&quot;ios&quot;</span>,
+        target_os = <span class="string">&quot;macos&quot;</span>,
+        target_os = <span class="string">&quot;netbsd&quot;</span>,
+        target_os = <span class="string">&quot;openbsd&quot;
+    </span>)),
+    doc = <span class="string">&quot; ```rust,ignore&quot;
+</span>)]
 </span><span class="doccomment">//! # use nix::sys::termios::{BaudRate, cfgetispeed, cfsetspeed, Termios};
 //! # fn main() {
 //! # let mut t: Termios = unsafe { std::mem::zeroed() };
@@ -1251,12 +1412,28 @@
 //! And on BSDs you can specify arbitrary baud rates (**note** this depends on hardware support)
 //! by specifying baud rates directly using `u32`s:
 //!
-</span><span class="attr">#![cfg_attr(any(target_os = <span class="string">&quot;freebsd&quot;</span>, target_os = <span class="string">&quot;dragonfly&quot;</span>, target_os = <span class="string">&quot;ios&quot;</span>,
-                target_os = <span class="string">&quot;macos&quot;</span>, target_os = <span class="string">&quot;netbsd&quot;</span>, target_os = <span class="string">&quot;openbsd&quot;</span>),
-            doc = <span class="string">&quot; ```rust&quot;</span>)]
-#![cfg_attr(not(any(target_os = <span class="string">&quot;freebsd&quot;</span>, target_os = <span class="string">&quot;dragonfly&quot;</span>, target_os = <span class="string">&quot;ios&quot;</span>,
-                    target_os = <span class="string">&quot;macos&quot;</span>, target_os = <span class="string">&quot;netbsd&quot;</span>, target_os = <span class="string">&quot;openbsd&quot;</span>)),
-            doc = <span class="string">&quot; ```rust,ignore&quot;</span>)]
+</span><span class="attr">#![cfg_attr(
+    any(
+        target_os = <span class="string">&quot;freebsd&quot;</span>,
+        target_os = <span class="string">&quot;dragonfly&quot;</span>,
+        target_os = <span class="string">&quot;ios&quot;</span>,
+        target_os = <span class="string">&quot;macos&quot;</span>,
+        target_os = <span class="string">&quot;netbsd&quot;</span>,
+        target_os = <span class="string">&quot;openbsd&quot;
+    </span>),
+    doc = <span class="string">&quot; ```rust&quot;
+</span>)]
+#![cfg_attr(
+    not(any(
+        target_os = <span class="string">&quot;freebsd&quot;</span>,
+        target_os = <span class="string">&quot;dragonfly&quot;</span>,
+        target_os = <span class="string">&quot;ios&quot;</span>,
+        target_os = <span class="string">&quot;macos&quot;</span>,
+        target_os = <span class="string">&quot;netbsd&quot;</span>,
+        target_os = <span class="string">&quot;openbsd&quot;
+    </span>)),
+    doc = <span class="string">&quot; ```rust,ignore&quot;
+</span>)]
 </span><span class="doccomment">//! # use nix::sys::termios::{cfsetispeed, cfsetospeed, cfsetspeed, Termios};
 //! # fn main() {
 //! # let mut t: Termios = unsafe { std::mem::zeroed() };
@@ -1265,17 +1442,17 @@
 //! cfsetspeed(&amp;mut t, 9600u32);
 //! # }
 //! ```
-</span><span class="kw">use </span><a href="../../../cfg_if/macro.cfg_if.html">cfg_if::cfg_if</a>;
-<span class="kw">use </span><a href="../lib.rs.html#167"><span class="kw">crate</span>::Result</a>;
-<span class="kw">use </span><a href="../errno.rs.html#1163"><span class="kw">crate</span>::errno::Errno</a>;
-<span class="kw">use </span>libc::{<a class="self" href="../../../libc/index.html">self</a>, <a href="../../../libc/unix/type.c_int.html">c_int</a>, <a href="../../../libc/unix/linux_like/type.tcflag_t.html">tcflag_t</a>};
-<span class="kw">use </span>std::cell::{<a href="https://doc.rust-lang.org/nightly/core/cell/struct.Ref.html">Ref</a>, <a href="https://doc.rust-lang.org/nightly/core/cell/struct.RefCell.html">RefCell</a>};
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/convert/trait.From.html">std::convert::From</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/mem/index.html">std::mem</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">std::os::unix::io::RawFd</a>;
+</span><span class="kw">use </span><span class="kw">crate</span>::errno::Errno;
+<span class="kw">use </span><span class="kw">crate</span>::Result;
+<span class="kw">use </span>cfg_if::cfg_if;
+<span class="kw">use </span>libc::{<span class="self">self</span>, c_int, tcflag_t};
+<span class="kw">use </span>std::cell::{Ref, RefCell};
+<span class="kw">use </span>std::convert::From;
+<span class="kw">use </span>std::mem;
+<span class="kw">use </span>std::os::unix::io::RawFd;
 
 <span class="attr">#[cfg(feature = <span class="string">&quot;process&quot;</span>)]
-</span><span class="kw">use </span><a href="../unistd.rs.html#182"><span class="kw">crate</span>::unistd::Pid</a>;
+</span><span class="kw">use </span><span class="kw">crate</span>::unistd::Pid;
 
 <span class="doccomment">/// Stores settings for the termios API
 ///
@@ -1284,34 +1461,48 @@
 /// an open port using `tcgetattr()`.
 </span><span class="attr">#[derive(Clone, Debug, Eq, PartialEq)]
 </span><span class="kw">pub struct </span>Termios {
-    inner: RefCell&lt;<a href="../../../libc/unix/linux_like/linux/gnu/struct.termios.html">libc::termios</a>&gt;,
+    inner: RefCell&lt;libc::termios&gt;,
     <span class="doccomment">/// Input mode flags (see `termios.c_iflag` documentation)
-    </span><span class="kw">pub </span>input_flags: <a href="#520-544">InputFlags</a>,
+    </span><span class="kw">pub </span>input_flags: InputFlags,
     <span class="doccomment">/// Output mode flags (see `termios.c_oflag` documentation)
-    </span><span class="kw">pub </span>output_flags: <a href="#546-755">OutputFlags</a>,
+    </span><span class="kw">pub </span>output_flags: OutputFlags,
     <span class="doccomment">/// Control mode flags (see `termios.c_cflag` documentation)
-    </span><span class="kw">pub </span>control_flags: <a href="#757-835">ControlFlags</a>,
+    </span><span class="kw">pub </span>control_flags: ControlFlags,
     <span class="doccomment">/// Local mode flags (see `termios.c_lflag` documentation)
-    </span><span class="kw">pub </span>local_flags: <a href="#837-884">LocalFlags</a>,
+    </span><span class="kw">pub </span>local_flags: LocalFlags,
     <span class="doccomment">/// Control characters (see `termios.c_cc` documentation)
-    </span><span class="kw">pub </span>control_chars: [<a href="../../../libc/unix/type.cc_t.html">libc::cc_t</a>; <a href="../../../nix/sys/termios/constant.NCCS.html">NCCS</a>],
+    </span><span class="kw">pub </span>control_chars: [libc::cc_t; NCCS],
+    <span class="doccomment">/// Line discipline (see `termios.c_line` documentation)
+    </span><span class="attr">#[cfg(any(target_os = <span class="string">&quot;linux&quot;</span>, target_os = <span class="string">&quot;android&quot;</span>,))]
+    </span><span class="kw">pub </span>line_discipline: libc::cc_t,
+    <span class="doccomment">/// Line discipline (see `termios.c_line` documentation)
+    </span><span class="attr">#[cfg(target_os = <span class="string">&quot;haiku&quot;</span>)]
+    </span><span class="kw">pub </span>line_discipline: libc::c_char,
 }
 
-<span class="kw">impl </span><a href="#172">Termios</a> {
+<span class="kw">impl </span>Termios {
     <span class="doccomment">/// Exposes an immutable reference to the underlying `libc::termios` data structure.
     ///
     /// This is not part of `nix`&#39;s public API because it requires additional work to maintain type
     /// safety.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_libc_termios(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Ref&lt;<a href="../../../libc/unix/linux_like/linux/gnu/struct.termios.html">libc::termios</a>&gt; {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_libc_termios(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Ref&lt;libc::termios&gt; {
         {
-            <span class="kw">let </span><span class="kw-2">mut </span>termios = <a class="self" href="#191">self</a>.inner.borrow_mut();
-            <a href="#193">termios</a>.c_iflag = <a class="self" href="#191">self</a>.input_flags.<a href="#520-544">bits</a>();
-            <a href="#193">termios</a>.c_oflag = <a class="self" href="#191">self</a>.output_flags.<a href="#546-755">bits</a>();
-            <a href="#193">termios</a>.c_cflag = <a class="self" href="#191">self</a>.control_flags.<a href="#757-835">bits</a>();
-            <a href="#193">termios</a>.c_lflag = <a class="self" href="#191">self</a>.local_flags.<a href="#837-884">bits</a>();
-            <a href="#193">termios</a>.c_cc = <a class="self" href="#191">self</a>.control_chars;
+            <span class="kw">let </span><span class="kw-2">mut </span>termios = <span class="self">self</span>.inner.borrow_mut();
+            termios.c_iflag = <span class="self">self</span>.input_flags.bits();
+            termios.c_oflag = <span class="self">self</span>.output_flags.bits();
+            termios.c_cflag = <span class="self">self</span>.control_flags.bits();
+            termios.c_lflag = <span class="self">self</span>.local_flags.bits();
+            termios.c_cc = <span class="self">self</span>.control_chars;
+            <span class="attr">#[cfg(any(
+                target_os = <span class="string">&quot;linux&quot;</span>,
+                target_os = <span class="string">&quot;android&quot;</span>,
+                target_os = <span class="string">&quot;haiku&quot;</span>,
+            ))]
+            </span>{
+                termios.c_line = <span class="self">self</span>.line_discipline;
+            }
         }
-        <a class="self" href="#191">self</a>.inner.borrow()
+        <span class="self">self</span>.inner.borrow()
     }
 
     <span class="doccomment">/// Exposes the inner `libc::termios` datastore within `Termios`.
@@ -1320,49 +1511,71 @@
     /// not automatically update the safe wrapper type around it. In this case it should also be
     /// paired with a call to `update_wrapper()` so that the wrapper-type and internal
     /// representation stay consistent.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">unsafe fn </span>get_libc_termios_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">*mut </span><a href="../../../libc/unix/linux_like/linux/gnu/struct.termios.html">libc::termios</a> {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">unsafe fn </span>get_libc_termios_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">*mut </span>libc::termios {
         {
-            <span class="kw">let </span><span class="kw-2">mut </span>termios = <a class="self" href="#209">self</a>.inner.borrow_mut();
-            <a href="#211">termios</a>.c_iflag = <a class="self" href="#209">self</a>.input_flags.<a href="#520-544">bits</a>();
-            <a href="#211">termios</a>.c_oflag = <a class="self" href="#209">self</a>.output_flags.<a href="#546-755">bits</a>();
-            <a href="#211">termios</a>.c_cflag = <a class="self" href="#209">self</a>.control_flags.<a href="#757-835">bits</a>();
-            <a href="#211">termios</a>.c_lflag = <a class="self" href="#209">self</a>.local_flags.<a href="#837-884">bits</a>();
-            <a href="#211">termios</a>.c_cc = <a class="self" href="#209">self</a>.control_chars;
+            <span class="kw">let </span><span class="kw-2">mut </span>termios = <span class="self">self</span>.inner.borrow_mut();
+            termios.c_iflag = <span class="self">self</span>.input_flags.bits();
+            termios.c_oflag = <span class="self">self</span>.output_flags.bits();
+            termios.c_cflag = <span class="self">self</span>.control_flags.bits();
+            termios.c_lflag = <span class="self">self</span>.local_flags.bits();
+            termios.c_cc = <span class="self">self</span>.control_chars;
+            <span class="attr">#[cfg(any(
+                target_os = <span class="string">&quot;linux&quot;</span>,
+                target_os = <span class="string">&quot;android&quot;</span>,
+                target_os = <span class="string">&quot;haiku&quot;</span>,
+            ))]
+            </span>{
+                termios.c_line = <span class="self">self</span>.line_discipline;
+            }
         }
-        <a class="self" href="#209">self</a>.inner.as_ptr()
+        <span class="self">self</span>.inner.as_ptr()
     }
 
     <span class="doccomment">/// Updates the wrapper values from the internal `libc::termios` data structure.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>update_wrapper(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <span class="kw">let </span>termios = <span class="kw-2">*</span><a class="self" href="#222">self</a>.inner.borrow_mut();
-        <a class="self" href="#222">self</a>.input_flags = InputFlags::from_bits_truncate(<a href="#223">termios</a>.c_iflag);
-        <a class="self" href="#222">self</a>.output_flags = OutputFlags::from_bits_truncate(<a href="#223">termios</a>.c_oflag);
-        <a class="self" href="#222">self</a>.control_flags = ControlFlags::from_bits_truncate(<a href="#223">termios</a>.c_cflag);
-        <a class="self" href="#222">self</a>.local_flags = LocalFlags::from_bits_truncate(<a href="#223">termios</a>.c_lflag);
-        <a class="self" href="#222">self</a>.control_chars = <a href="#223">termios</a>.c_cc;
-    }
-}
-
-<span class="kw">impl </span>From&lt;<a href="../../../libc/unix/linux_like/linux/gnu/struct.termios.html">libc::termios</a>&gt; <span class="kw">for </span><a href="#172">Termios</a> {
-    <span class="kw">fn </span>from(termios: <a href="../../../libc/unix/linux_like/linux/gnu/struct.termios.html">libc::termios</a>) -&gt; <span class="self">Self </span>{
-        <a href="#172">Termios</a> {
-            inner: RefCell::new(<a href="#233">termios</a>),
-            input_flags: InputFlags::from_bits_truncate(<a href="#233">termios</a>.c_iflag),
-            output_flags: OutputFlags::from_bits_truncate(<a href="#233">termios</a>.c_oflag),
-            control_flags: ControlFlags::from_bits_truncate(<a href="#233">termios</a>.c_cflag),
-            local_flags: LocalFlags::from_bits_truncate(<a href="#233">termios</a>.c_lflag),
-            control_chars: <a href="#233">termios</a>.c_cc,
+        <span class="kw">let </span>termios = <span class="kw-2">*</span><span class="self">self</span>.inner.borrow_mut();
+        <span class="self">self</span>.input_flags = InputFlags::from_bits_truncate(termios.c_iflag);
+        <span class="self">self</span>.output_flags = OutputFlags::from_bits_truncate(termios.c_oflag);
+        <span class="self">self</span>.control_flags = ControlFlags::from_bits_truncate(termios.c_cflag);
+        <span class="self">self</span>.local_flags = LocalFlags::from_bits_truncate(termios.c_lflag);
+        <span class="self">self</span>.control_chars = termios.c_cc;
+        <span class="attr">#[cfg(any(
+            target_os = <span class="string">&quot;linux&quot;</span>,
+            target_os = <span class="string">&quot;android&quot;</span>,
+            target_os = <span class="string">&quot;haiku&quot;</span>,
+        ))]
+        </span>{
+            <span class="self">self</span>.line_discipline = termios.c_line;
         }
     }
 }
 
-<span class="kw">impl </span>From&lt;<a href="#172">Termios</a>&gt; <span class="kw">for </span><a href="../../../libc/unix/linux_like/linux/gnu/struct.termios.html">libc::termios</a> {
-    <span class="kw">fn </span>from(termios: <a href="#172">Termios</a>) -&gt; <span class="self">Self </span>{
-        <a href="#246">termios</a>.inner.into_inner()
+<span class="kw">impl </span>From&lt;libc::termios&gt; <span class="kw">for </span>Termios {
+    <span class="kw">fn </span>from(termios: libc::termios) -&gt; <span class="self">Self </span>{
+        Termios {
+            inner: RefCell::new(termios),
+            input_flags: InputFlags::from_bits_truncate(termios.c_iflag),
+            output_flags: OutputFlags::from_bits_truncate(termios.c_oflag),
+            control_flags: ControlFlags::from_bits_truncate(termios.c_cflag),
+            local_flags: LocalFlags::from_bits_truncate(termios.c_lflag),
+            control_chars: termios.c_cc,
+            <span class="attr">#[cfg(any(
+                target_os = <span class="string">&quot;linux&quot;</span>,
+                target_os = <span class="string">&quot;android&quot;</span>,
+                target_os = <span class="string">&quot;haiku&quot;</span>,
+            ))]
+            </span>line_discipline: termios.c_line,
+        }
     }
 }
 
-<a class="macro" href="../macros.rs.html#100-328">libc_enum!</a>{
+<span class="kw">impl </span>From&lt;Termios&gt; <span class="kw">for </span>libc::termios {
+    <span class="kw">fn </span>from(termios: Termios) -&gt; <span class="self">Self </span>{
+        termios.inner.into_inner()
+    }
+}
+
+<span class="macro">libc_enum! </span>{
     <span class="doccomment">/// Baud rates supported by the system.
     ///
     /// For the BSDs, arbitrary baud rates can be specified by using `u32`s directly instead of this
@@ -1474,15 +1687,17 @@
         #[cfg_attr(docsrs, doc(cfg(all())))]
         </span>B4000000,
     }
-    <span class="kw">impl </span>TryFrom&lt;<a href="../../../libc/unix/linux_like/type.speed_t.html">libc::speed_t</a>&gt;
+    <span class="kw">impl </span>TryFrom&lt;libc::speed_t&gt;
 }
 
-<span class="attr">#[cfg(any(target_os = <span class="string">&quot;freebsd&quot;</span>,
-          target_os = <span class="string">&quot;dragonfly&quot;</span>,
-          target_os = <span class="string">&quot;ios&quot;</span>,
-          target_os = <span class="string">&quot;macos&quot;</span>,
-          target_os = <span class="string">&quot;netbsd&quot;</span>,
-          target_os = <span class="string">&quot;openbsd&quot;</span>))]
+<span class="attr">#[cfg(any(
+    target_os = <span class="string">&quot;freebsd&quot;</span>,
+    target_os = <span class="string">&quot;dragonfly&quot;</span>,
+    target_os = <span class="string">&quot;ios&quot;</span>,
+    target_os = <span class="string">&quot;macos&quot;</span>,
+    target_os = <span class="string">&quot;netbsd&quot;</span>,
+    target_os = <span class="string">&quot;openbsd&quot;
+</span>))]
 </span><span class="kw">impl </span>From&lt;BaudRate&gt; <span class="kw">for </span>u32 {
     <span class="kw">fn </span>from(b: BaudRate) -&gt; u32 {
         b <span class="kw">as </span>u32
@@ -1496,9 +1711,8 @@
     }
 }
 
-
 <span class="comment">// TODO: Add TCSASOFT, which will require treating this as a bitfield.
-</span><a class="macro" href="../macros.rs.html#100-328">libc_enum! </a>{
+</span><span class="macro">libc_enum! </span>{
     <span class="doccomment">/// Specify when a port configuration change should occur.
     ///
     /// Used as an argument to `tcsetattr()`
@@ -1514,7 +1728,7 @@
     }
 }
 
-<a class="macro" href="../macros.rs.html#100-328">libc_enum! </a>{
+<span class="macro">libc_enum! </span>{
     <span class="doccomment">/// Specify a combination of the input and output buffers to flush
     ///
     /// Used as an argument to `tcflush()`.
@@ -1530,7 +1744,7 @@
     }
 }
 
-<a class="macro" href="../macros.rs.html#100-328">libc_enum! </a>{
+<span class="macro">libc_enum! </span>{
     <span class="doccomment">/// Specify how transmission flow should be altered
     ///
     /// Used as an argument to `tcflow()`.
@@ -1550,7 +1764,7 @@
 
 <span class="comment">// TODO: Make this usable directly as a slice index.
 </span><span class="attr">#[cfg(not(target_os = <span class="string">&quot;haiku&quot;</span>))]
-</span><a class="macro" href="../macros.rs.html#100-328">libc_enum! </a>{
+</span><span class="macro">libc_enum! </span>{
     <span class="doccomment">/// Indices into the `termios.c_cc` array for special characters.
     </span><span class="attr">#[repr(usize)]
     #[non_exhaustive]
@@ -1613,27 +1827,32 @@
     }
 }
 
-<span class="attr">#[cfg(any(all(target_os = <span class="string">&quot;linux&quot;</span>, target_arch = <span class="string">&quot;sparc64&quot;</span>),
-        target_os = <span class="string">&quot;illumos&quot;</span>, target_os = <span class="string">&quot;solaris&quot;</span>))]
+<span class="attr">#[cfg(any(
+    all(target_os = <span class="string">&quot;linux&quot;</span>, target_arch = <span class="string">&quot;sparc64&quot;</span>),
+    target_os = <span class="string">&quot;illumos&quot;</span>,
+    target_os = <span class="string">&quot;solaris&quot;
+</span>))]
 </span><span class="kw">impl </span>SpecialCharacterIndices {
     <span class="kw">pub const </span>VMIN: SpecialCharacterIndices = SpecialCharacterIndices::VEOF;
     <span class="kw">pub const </span>VTIME: SpecialCharacterIndices = SpecialCharacterIndices::VEOL;
 }
 
-<span class="kw">pub use </span><a href="../../../nix/sys/termios/constant.NCCS.html">libc::NCCS</a>;
-<span class="attr">#[cfg(any(target_os = <span class="string">&quot;android&quot;</span>,
-          target_os = <span class="string">&quot;dragonfly&quot;</span>,
-          target_os = <span class="string">&quot;freebsd&quot;</span>,
-          target_os = <span class="string">&quot;linux&quot;</span>,
-          target_os = <span class="string">&quot;macos&quot;</span>,
-          target_os = <span class="string">&quot;netbsd&quot;</span>,
-          target_os = <span class="string">&quot;openbsd&quot;</span>))]
+<span class="kw">pub use </span>libc::NCCS;
+<span class="attr">#[cfg(any(
+    target_os = <span class="string">&quot;android&quot;</span>,
+    target_os = <span class="string">&quot;dragonfly&quot;</span>,
+    target_os = <span class="string">&quot;freebsd&quot;</span>,
+    target_os = <span class="string">&quot;linux&quot;</span>,
+    target_os = <span class="string">&quot;macos&quot;</span>,
+    target_os = <span class="string">&quot;netbsd&quot;</span>,
+    target_os = <span class="string">&quot;openbsd&quot;
+</span>))]
 #[cfg_attr(docsrs, doc(cfg(all())))]
-</span><span class="kw">pub use </span><a href="../../../nix/sys/termios/constant._POSIX_VDISABLE.html">libc::_POSIX_VDISABLE</a>;
+</span><span class="kw">pub use </span>libc::_POSIX_VDISABLE;
 
-<a class="macro" href="../macros.rs.html#55-75">libc_bitflags! </a>{
+<span class="macro">libc_bitflags! </span>{
     <span class="doccomment">/// Flags for configuring the input mode of a terminal
-    </span><span class="kw">pub struct </span>InputFlags: <a href="../../../libc/unix/linux_like/type.tcflag_t.html">tcflag_t</a> {
+    </span><span class="kw">pub struct </span>InputFlags: tcflag_t {
         IGNBRK;
         BRKINT;
         IGNPAR;
@@ -1657,9 +1876,9 @@
     }
 }
 
-<a class="macro" href="../macros.rs.html#55-75">libc_bitflags! </a>{
+<span class="macro">libc_bitflags! </span>{
     <span class="doccomment">/// Flags for configuring the output mode of a terminal
-    </span><span class="kw">pub struct </span>OutputFlags: <a href="../../../libc/unix/linux_like/type.tcflag_t.html">tcflag_t</a> {
+    </span><span class="kw">pub struct </span>OutputFlags: tcflag_t {
         OPOST;
         <span class="attr">#[cfg(any(target_os = <span class="string">&quot;android&quot;</span>,
                   target_os = <span class="string">&quot;haiku&quot;</span>,
@@ -1868,9 +2087,9 @@
     }
 }
 
-<a class="macro" href="../macros.rs.html#55-75">libc_bitflags! </a>{
+<span class="macro">libc_bitflags! </span>{
     <span class="doccomment">/// Flags for setting the control mode of a terminal
-    </span><span class="kw">pub struct </span>ControlFlags: <a href="../../../libc/unix/linux_like/type.tcflag_t.html">tcflag_t</a> {
+    </span><span class="kw">pub struct </span>ControlFlags: tcflag_t {
         <span class="attr">#[cfg(any(target_os = <span class="string">&quot;dragonfly&quot;</span>,
                   target_os = <span class="string">&quot;freebsd&quot;</span>,
                   target_os = <span class="string">&quot;ios&quot;</span>,
@@ -1948,9 +2167,9 @@
     }
 }
 
-<a class="macro" href="../macros.rs.html#55-75">libc_bitflags! </a>{
+<span class="macro">libc_bitflags! </span>{
     <span class="doccomment">/// Flags for setting any local modes
-    </span><span class="kw">pub struct </span>LocalFlags: <a href="../../../libc/unix/linux_like/type.tcflag_t.html">tcflag_t</a> {
+    </span><span class="kw">pub struct </span>LocalFlags: tcflag_t {
         <span class="attr">#[cfg(not(target_os = <span class="string">&quot;redox&quot;</span>))]
         #[cfg_attr(docsrs, doc(cfg(all())))]
         </span>ECHOKE;
@@ -1997,7 +2216,7 @@
     }
 }
 
-<span class="macro">cfg_if!</span>{
+<span class="macro">cfg_if! </span>{
     <span class="kw">if </span><span class="attr">#[cfg(any(target_os = <span class="string">&quot;freebsd&quot;</span>,
                  target_os = <span class="string">&quot;dragonfly&quot;</span>,
                  target_os = <span class="string">&quot;ios&quot;</span>,
@@ -2008,6 +2227,8 @@
         /// [cfgetispeed(3p)](https://pubs.opengroup.org/onlinepubs/9699919799/functions/cfgetispeed.html)).
         ///
         /// `cfgetispeed()` extracts the input baud rate from the given `Termios` structure.
+        </span><span class="comment">// The cast is not unnecessary on all platforms.
+        </span><span class="attr">#[allow(clippy::unnecessary_cast)]
         </span><span class="kw">pub fn </span>cfgetispeed(termios: <span class="kw-2">&amp;</span>Termios) -&gt; u32 {
             <span class="kw">let </span>inner_termios = termios.get_libc_termios();
             <span class="kw">unsafe </span>{ libc::cfgetispeed(<span class="kw-2">&amp;*</span>inner_termios) <span class="kw">as </span>u32 }
@@ -2017,6 +2238,8 @@
         /// [cfgetospeed(3p)](https://pubs.opengroup.org/onlinepubs/9699919799/functions/cfgetospeed.html)).
         ///
         /// `cfgetospeed()` extracts the output baud rate from the given `Termios` structure.
+        </span><span class="comment">// The cast is not unnecessary on all platforms.
+        </span><span class="attr">#[allow(clippy::unnecessary_cast)]
         </span><span class="kw">pub fn </span>cfgetospeed(termios: <span class="kw-2">&amp;</span>Termios) -&gt; u32 {
             <span class="kw">let </span>inner_termios = termios.get_libc_termios();
             <span class="kw">unsafe </span>{ libc::cfgetospeed(<span class="kw-2">&amp;*</span>inner_termios) <span class="kw">as </span>u32 }
@@ -2056,46 +2279,46 @@
             Errno::result(res).map(drop)
         }
     } <span class="kw">else </span>{
-        <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/convert/trait.TryInto.html">std::convert::TryInto</a>;
+        <span class="kw">use </span>std::convert::TryInto;
 
         <span class="doccomment">/// Get input baud rate (see
         /// [cfgetispeed(3p)](https://pubs.opengroup.org/onlinepubs/9699919799/functions/cfgetispeed.html)).
         ///
         /// `cfgetispeed()` extracts the input baud rate from the given `Termios` structure.
-        </span><span class="kw">pub fn </span>cfgetispeed(termios: <span class="kw-2">&amp;</span><a href="#172">Termios</a>) -&gt; <a href="#251-364">BaudRate</a> {
-            <span class="kw">let </span>inner_termios = <a href="#951">termios</a>.<a href="#191">get_libc_termios</a>();
-            <span class="kw">unsafe </span>{ libc::cfgetispeed(<span class="kw-2">&amp;*</span><a href="#952">inner_termios</a>) }.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.TryInto.html">try_into</a>().unwrap()
+        </span><span class="kw">pub fn </span>cfgetispeed(termios: <span class="kw-2">&amp;</span>Termios) -&gt; BaudRate {
+            <span class="kw">let </span>inner_termios = termios.get_libc_termios();
+            <span class="kw">unsafe </span>{ libc::cfgetispeed(<span class="kw-2">&amp;*</span>inner_termios) }.try_into().unwrap()
         }
 
         <span class="doccomment">/// Get output baud rate (see
         /// [cfgetospeed(3p)](https://pubs.opengroup.org/onlinepubs/9699919799/functions/cfgetospeed.html)).
         ///
         /// `cfgetospeed()` extracts the output baud rate from the given `Termios` structure.
-        </span><span class="kw">pub fn </span>cfgetospeed(termios: <span class="kw-2">&amp;</span><a href="#172">Termios</a>) -&gt; <a href="#251-364">BaudRate</a> {
-            <span class="kw">let </span>inner_termios = <a href="#960">termios</a>.<a href="#191">get_libc_termios</a>();
-            <span class="kw">unsafe </span>{ libc::cfgetospeed(<span class="kw-2">&amp;*</span><a href="#961">inner_termios</a>) }.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.TryInto.html">try_into</a>().unwrap()
+        </span><span class="kw">pub fn </span>cfgetospeed(termios: <span class="kw-2">&amp;</span>Termios) -&gt; BaudRate {
+            <span class="kw">let </span>inner_termios = termios.get_libc_termios();
+            <span class="kw">unsafe </span>{ libc::cfgetospeed(<span class="kw-2">&amp;*</span>inner_termios) }.try_into().unwrap()
         }
 
         <span class="doccomment">/// Set input baud rate (see
         /// [cfsetispeed(3p)](https://pubs.opengroup.org/onlinepubs/9699919799/functions/cfsetispeed.html)).
         ///
         /// `cfsetispeed()` sets the intput baud rate in the given `Termios` structure.
-        </span><span class="kw">pub fn </span>cfsetispeed(termios: <span class="kw-2">&amp;mut </span><a href="#172">Termios</a>, baud: <a href="#251-364">BaudRate</a>) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
-            <span class="kw">let </span>inner_termios = <span class="kw">unsafe </span>{ <a href="#969">termios</a>.<a href="#209">get_libc_termios_mut</a>() };
-            <span class="kw">let </span>res = <span class="kw">unsafe </span>{ libc::cfsetispeed(<a href="#970">inner_termios</a>, <a href="#969">baud</a> <span class="kw">as </span><a href="../../../libc/unix/linux_like/type.speed_t.html">libc::speed_t</a>) };
-            <a href="#969">termios</a>.<a href="#222">update_wrapper</a>();
-            Errno::result(<a href="#971">res</a>).map(<a href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>)
+        </span><span class="kw">pub fn </span>cfsetispeed(termios: <span class="kw-2">&amp;mut </span>Termios, baud: BaudRate) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+            <span class="kw">let </span>inner_termios = <span class="kw">unsafe </span>{ termios.get_libc_termios_mut() };
+            <span class="kw">let </span>res = <span class="kw">unsafe </span>{ libc::cfsetispeed(inner_termios, baud <span class="kw">as </span>libc::speed_t) };
+            termios.update_wrapper();
+            Errno::result(res).map(drop)
         }
 
         <span class="doccomment">/// Set output baud rate (see
         /// [cfsetospeed(3p)](https://pubs.opengroup.org/onlinepubs/9699919799/functions/cfsetospeed.html)).
         ///
         /// `cfsetospeed()` sets the output baud rate in the given `Termios` structure.
-        </span><span class="kw">pub fn </span>cfsetospeed(termios: <span class="kw-2">&amp;mut </span><a href="#172">Termios</a>, baud: <a href="#251-364">BaudRate</a>) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
-            <span class="kw">let </span>inner_termios = <span class="kw">unsafe </span>{ <a href="#980">termios</a>.<a href="#209">get_libc_termios_mut</a>() };
-            <span class="kw">let </span>res = <span class="kw">unsafe </span>{ libc::cfsetospeed(<a href="#981">inner_termios</a>, <a href="#980">baud</a> <span class="kw">as </span><a href="../../../libc/unix/linux_like/type.speed_t.html">libc::speed_t</a>) };
-            <a href="#980">termios</a>.<a href="#222">update_wrapper</a>();
-            Errno::result(<a href="#982">res</a>).map(<a href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>)
+        </span><span class="kw">pub fn </span>cfsetospeed(termios: <span class="kw-2">&amp;mut </span>Termios, baud: BaudRate) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+            <span class="kw">let </span>inner_termios = <span class="kw">unsafe </span>{ termios.get_libc_termios_mut() };
+            <span class="kw">let </span>res = <span class="kw">unsafe </span>{ libc::cfsetospeed(inner_termios, baud <span class="kw">as </span>libc::speed_t) };
+            termios.update_wrapper();
+            Errno::result(res).map(drop)
         }
 
         <span class="doccomment">/// Set both the input and output baud rates (see
@@ -2104,11 +2327,11 @@
         /// `cfsetspeed()` sets the input and output baud rate in the given `Termios` structure. Note that
         /// this is part of the 4.4BSD standard and not part of POSIX.
         </span><span class="attr">#[cfg(not(target_os = <span class="string">&quot;haiku&quot;</span>))]
-        </span><span class="kw">pub fn </span>cfsetspeed(termios: <span class="kw-2">&amp;mut </span><a href="#172">Termios</a>, baud: <a href="#251-364">BaudRate</a>) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
-            <span class="kw">let </span>inner_termios = <span class="kw">unsafe </span>{ <a href="#993">termios</a>.<a href="#209">get_libc_termios_mut</a>() };
-            <span class="kw">let </span>res = <span class="kw">unsafe </span>{ libc::cfsetspeed(<a href="#994">inner_termios</a>, <a href="#993">baud</a> <span class="kw">as </span><a href="../../../libc/unix/linux_like/type.speed_t.html">libc::speed_t</a>) };
-            <a href="#993">termios</a>.<a href="#222">update_wrapper</a>();
-            Errno::result(<a href="#995">res</a>).map(<a href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>)
+        </span><span class="kw">pub fn </span>cfsetspeed(termios: <span class="kw-2">&amp;mut </span>Termios, baud: BaudRate) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+            <span class="kw">let </span>inner_termios = <span class="kw">unsafe </span>{ termios.get_libc_termios_mut() };
+            <span class="kw">let </span>res = <span class="kw">unsafe </span>{ libc::cfsetspeed(inner_termios, baud <span class="kw">as </span>libc::speed_t) };
+            termios.update_wrapper();
+            Errno::result(res).map(drop)
         }
     }
 }
@@ -2119,12 +2342,12 @@
 /// `cfmakeraw()` configures the termios structure such that input is available character-by-
 /// character, echoing is disabled, and all special input and output processing is disabled. Note
 /// that this is a non-standard function, but is available on Linux and BSDs.
-</span><span class="kw">pub fn </span>cfmakeraw(termios: <span class="kw-2">&amp;mut </span><a href="#172">Termios</a>) {
-    <span class="kw">let </span>inner_termios = <span class="kw">unsafe </span>{ <a href="#1008">termios</a>.<a href="#209">get_libc_termios_mut</a>() };
+</span><span class="kw">pub fn </span>cfmakeraw(termios: <span class="kw-2">&amp;mut </span>Termios) {
+    <span class="kw">let </span>inner_termios = <span class="kw">unsafe </span>{ termios.get_libc_termios_mut() };
     <span class="kw">unsafe </span>{
-        libc::cfmakeraw(<a href="#1009">inner_termios</a>);
+        libc::cfmakeraw(inner_termios);
     }
-    <a href="#1008">termios</a>.<a href="#222">update_wrapper</a>();
+    termios.update_wrapper();
 }
 
 <span class="doccomment">/// Configures the port to &quot;sane&quot; mode (like the configuration of a newly created terminal) (see
@@ -2147,14 +2370,14 @@
 /// `tcgetattr()` returns a `Termios` structure with the current configuration for a port. Modifying
 /// this structure *will not* reconfigure the port, instead the modifications should be done to
 /// the `Termios` structure and then the port should be reconfigured using `tcsetattr()`.
-</span><span class="kw">pub fn </span>tcgetattr(fd: <a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#172">Termios</a>&gt; {
+</span><span class="kw">pub fn </span>tcgetattr(fd: RawFd) -&gt; <span class="prelude-ty">Result</span>&lt;Termios&gt; {
     <span class="kw">let </span><span class="kw-2">mut </span>termios = mem::MaybeUninit::uninit();
 
-    <span class="kw">let </span>res = <span class="kw">unsafe </span>{ libc::tcgetattr(<a href="#1036">fd</a>, <a href="#1037">termios</a>.as_mut_ptr()) };
+    <span class="kw">let </span>res = <span class="kw">unsafe </span>{ libc::tcgetattr(fd, termios.as_mut_ptr()) };
 
     Errno::result(res)<span class="question-mark">?</span>;
 
-    <span class="kw">unsafe </span>{ <span class="prelude-val">Ok</span>(<a href="#1037">termios</a>.assume_init().<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()) }
+    <span class="kw">unsafe </span>{ <span class="prelude-val">Ok</span>(termios.assume_init().into()) }
 }
 
 <span class="doccomment">/// Set the configuration for a terminal (see
@@ -2163,15 +2386,18 @@
 /// `tcsetattr()` reconfigures the given port based on a given `Termios` structure. This change
 /// takes affect at a time specified by `actions`. Note that this function may return success if
 /// *any* of the parameters were successfully set, not only if all were set successfully.
-</span><span class="kw">pub fn </span>tcsetattr(fd: <a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a>, actions: <a href="#387-401">SetArg</a>, termios: <span class="kw-2">&amp;</span><a href="#172">Termios</a>) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
-    <span class="kw">let </span>inner_termios = <a href="#1052">termios</a>.<a href="#191">get_libc_termios</a>();
-    Errno::result(<span class="kw">unsafe </span>{ libc::tcsetattr(<a href="#1052">fd</a>, <a href="#1052">actions</a> <span class="kw">as </span><a href="../../../libc/unix/type.c_int.html">c_int</a>, <span class="kw-2">&amp;*</span><a href="#1053">inner_termios</a>) }).map(<a href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>)
+</span><span class="kw">pub fn </span>tcsetattr(fd: RawFd, actions: SetArg, termios: <span class="kw-2">&amp;</span>Termios) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+    <span class="kw">let </span>inner_termios = termios.get_libc_termios();
+    Errno::result(<span class="kw">unsafe </span>{
+        libc::tcsetattr(fd, actions <span class="kw">as </span>c_int, <span class="kw-2">&amp;*</span>inner_termios)
+    })
+    .map(drop)
 }
 
 <span class="doccomment">/// Block until all output data is written (see
 /// [tcdrain(3p)](https://pubs.opengroup.org/onlinepubs/9699919799/functions/tcdrain.html)).
-</span><span class="kw">pub fn </span>tcdrain(fd: <a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a>) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
-    Errno::result(<span class="kw">unsafe </span>{ libc::tcdrain(<a href="#1059">fd</a>) }).map(<a href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>)
+</span><span class="kw">pub fn </span>tcdrain(fd: RawFd) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+    Errno::result(<span class="kw">unsafe </span>{ libc::tcdrain(fd) }).map(drop)
 }
 
 <span class="doccomment">/// Suspend or resume the transmission or reception of data (see
@@ -2179,8 +2405,8 @@
 ///
 /// `tcflow()` suspends of resumes the transmission or reception of data for the given port
 /// depending on the value of `action`.
-</span><span class="kw">pub fn </span>tcflow(fd: <a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a>, action: <a href="#419-435">FlowArg</a>) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
-    Errno::result(<span class="kw">unsafe </span>{ libc::tcflow(<a href="#1068">fd</a>, <a href="#1068">action</a> <span class="kw">as </span><a href="../../../libc/unix/type.c_int.html">c_int</a>) }).map(<a href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>)
+</span><span class="kw">pub fn </span>tcflow(fd: RawFd, action: FlowArg) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+    Errno::result(<span class="kw">unsafe </span>{ libc::tcflow(fd, action <span class="kw">as </span>c_int) }).map(drop)
 }
 
 <span class="doccomment">/// Discard data in the output or input queue (see
@@ -2188,8 +2414,8 @@
 ///
 /// `tcflush()` will discard data for a terminal port in the input queue, output queue, or both
 /// depending on the value of `action`.
-</span><span class="kw">pub fn </span>tcflush(fd: <a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a>, action: <a href="#403-417">FlushArg</a>) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
-    Errno::result(<span class="kw">unsafe </span>{ libc::tcflush(<a href="#1077">fd</a>, <a href="#1077">action</a> <span class="kw">as </span><a href="../../../libc/unix/type.c_int.html">c_int</a>) }).map(<a href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>)
+</span><span class="kw">pub fn </span>tcflush(fd: RawFd, action: FlushArg) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+    Errno::result(<span class="kw">unsafe </span>{ libc::tcflush(fd, action <span class="kw">as </span>c_int) }).map(drop)
 }
 
 <span class="doccomment">/// Send a break for a specific duration (see
@@ -2197,18 +2423,18 @@
 ///
 /// When using asynchronous data transmission `tcsendbreak()` will transmit a continuous stream
 /// of zero-valued bits for an implementation-defined duration.
-</span><span class="kw">pub fn </span>tcsendbreak(fd: <a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a>, duration: <a href="../../../libc/unix/type.c_int.html">c_int</a>) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
-    Errno::result(<span class="kw">unsafe </span>{ libc::tcsendbreak(<a href="#1086">fd</a>, <a href="#1086">duration</a>) }).map(<a href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>)
+</span><span class="kw">pub fn </span>tcsendbreak(fd: RawFd, duration: c_int) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+    Errno::result(<span class="kw">unsafe </span>{ libc::tcsendbreak(fd, duration) }).map(drop)
 }
 
 <span class="macro">feature! </span>{
 <span class="attr">#![feature = <span class="string">&quot;process&quot;</span>]
 </span><span class="doccomment">/// Get the session controlled by the given terminal (see
 /// [tcgetsid(3)](https://pubs.opengroup.org/onlinepubs/9699919799/functions/tcgetsid.html)).
-</span><span class="kw">pub fn </span>tcgetsid(fd: <a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../unistd.rs.html#182">Pid</a>&gt; {
-    <span class="kw">let </span>res = <span class="kw">unsafe </span>{ libc::tcgetsid(<a href="#1094">fd</a>) };
+</span><span class="kw">pub fn </span>tcgetsid(fd: RawFd) -&gt; <span class="prelude-ty">Result</span>&lt;Pid&gt; {
+    <span class="kw">let </span>res = <span class="kw">unsafe </span>{ libc::tcgetsid(fd) };
 
-    Errno::result(<a href="#1095">res</a>).map(Pid::from_raw)
+    Errno::result(res).map(Pid::from_raw)
 }
 }
 
@@ -2227,4 +2453,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="nix" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="nix" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

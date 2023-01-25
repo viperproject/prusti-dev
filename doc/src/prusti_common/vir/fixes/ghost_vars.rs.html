@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `prusti-common/src/vir/fixes/ghost_vars.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>ghost_vars.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../../prusti_common/index.html"><img class="rust-logo" src="../../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `prusti-common/src/vir/fixes/ghost_vars.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>ghost_vars.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../../prusti_common/index.html"><img class="rust-logo" src="../../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -104,9 +104,9 @@
 
 </span><span class="doccomment">//! Fix ghost variables.
 
-</span><span class="kw">use </span><span class="kw">super</span>::<span class="kw">super</span>::polymorphic_vir::{<a href="../../../../prusti_common/vir/polymorphic_vir/ast/index.html">ast</a>, <a href="../../../../prusti_common/vir/polymorphic_vir/cfg/index.html">cfg</a>};
-<span class="kw">use </span><a href="../../../../fxhash/type.FxHashSet.html">fxhash::FxHashSet</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/mem/index.html">std::mem</a>;
+</span><span class="kw">use </span><span class="kw">super</span>::<span class="kw">super</span>::polymorphic_vir::{ast, cfg};
+<span class="kw">use </span>fxhash::FxHashSet;
+<span class="kw">use </span>std::mem;
 
 <span class="doccomment">/// Viper has a consistency check that only variables declared inside
 /// the package statement can be assigned in it. Since these ghost
@@ -115,8 +115,8 @@
 /// creating the encoding. Therefore, we fix this with an additional
 /// pass that renames all variables declared inside package statements
 /// so that they are unique.
-</span><span class="kw">pub fn </span>fix_ghost_vars(<span class="kw-2">mut </span>method: <a href="../../../../prusti_common/vir/polymorphic_vir/struct.CfgMethod.html">cfg::CfgMethod</a>) -&gt; <a href="../../../../prusti_common/vir/polymorphic_vir/struct.CfgMethod.html">cfg::CfgMethod</a> {
-    <span class="kw">let </span><span class="kw-2">mut </span>fixer = <a href="#36">GhostVarFixer</a> {
+</span><span class="kw">pub fn </span>fix_ghost_vars(<span class="kw-2">mut </span>method: cfg::CfgMethod) -&gt; cfg::CfgMethod {
+    <span class="kw">let </span><span class="kw-2">mut </span>fixer = GhostVarFixer {
         package_stmt_count: <span class="number">0</span>,
         vars: <span class="prelude-val">None</span>,
     };
@@ -128,71 +128,71 @@
             mem::swap(<span class="kw-2">&amp;mut </span>sentinel_stmt, stmt);
         }
     }
-    <a href="#20">method</a>
+    method
 }
 
 <span class="kw">struct </span>GhostVarFixer {
     <span class="doccomment">/// A counter that assigns a unique number to each package statement.
-    </span>package_stmt_count: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>,
+    </span>package_stmt_count: u32,
     <span class="doccomment">/// A set of variables declared inside a package stmt that should be
     /// renamed.
-    </span>vars: <span class="prelude-ty">Option</span>&lt;FxHashSet&lt;<a href="../../../../prusti_common/vir/polymorphic_vir/struct.LocalVar.html">ast::LocalVar</a>&gt;&gt;,
+    </span>vars: <span class="prelude-ty">Option</span>&lt;FxHashSet&lt;ast::LocalVar&gt;&gt;,
 }
 
-<span class="kw">impl </span><a href="#36">GhostVarFixer</a> {
-    <span class="kw">fn </span>fix_name(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw-2">mut </span>local_var: <a href="../../../../prusti_common/vir/polymorphic_vir/struct.LocalVar.html">ast::LocalVar</a>) -&gt; <a href="../../../../prusti_common/vir/polymorphic_vir/struct.LocalVar.html">ast::LocalVar</a> {
-        <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Write.html">std::fmt::Write</a>;
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#45">local_var</a>.name, <span class="string">&quot;$p{}&quot;</span>, <span class="self">self</span>.package_stmt_count).unwrap();
-        <a href="#45">local_var</a>
+<span class="kw">impl </span>GhostVarFixer {
+    <span class="kw">fn </span>fix_name(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw-2">mut </span>local_var: ast::LocalVar) -&gt; ast::LocalVar {
+        <span class="kw">use </span>std::fmt::Write;
+        <span class="macro">write!</span>(local_var.name, <span class="string">&quot;$p{}&quot;</span>, <span class="self">self</span>.package_stmt_count).unwrap();
+        local_var
     }
 }
 
-<span class="kw">impl </span><a href="../../../../prusti_common/vir/polymorphic_vir/trait.ExprFolder.html">ast::ExprFolder</a> <span class="kw">for </span><a href="#36">GhostVarFixer</a> {
-    <span class="kw">fn </span>fold_local(<span class="kw-2">&amp;mut </span><span class="self">self</span>, <a href="../../../../prusti_common/vir/polymorphic_vir/struct.Local.html">ast::Local</a> { variable, position }: <a href="../../../../prusti_common/vir/polymorphic_vir/struct.Local.html">ast::Local</a>) -&gt; <a href="../../../../prusti_common/vir/polymorphic_vir/enum.Expr.html">ast::Expr</a> {
-        <span class="kw">match </span><a class="self" href="#53">self</a>.vars {
-            <span class="prelude-val">Some</span>(<span class="kw-2">ref </span>vars) <span class="kw">if </span><a href="#55">vars</a>.contains(<span class="kw-2">&amp;</span><a href="#53">variable</a>) =&gt; {
-                ast::Expr::local_with_pos(<a class="self" href="#53">self</a>.<a href="#45">fix_name</a>(<a href="#53">variable</a>), <a href="#53">position</a>)
+<span class="kw">impl </span>ast::ExprFolder <span class="kw">for </span>GhostVarFixer {
+    <span class="kw">fn </span>fold_local(<span class="kw-2">&amp;mut </span><span class="self">self</span>, ast::Local { variable, position }: ast::Local) -&gt; ast::Expr {
+        <span class="kw">match </span><span class="self">self</span>.vars {
+            <span class="prelude-val">Some</span>(<span class="kw-2">ref </span>vars) <span class="kw">if </span>vars.contains(<span class="kw-2">&amp;</span>variable) =&gt; {
+                ast::Expr::local_with_pos(<span class="self">self</span>.fix_name(variable), position)
             }
-            <span class="kw">_ </span>=&gt; ast::Expr::local_with_pos(<a href="#53">variable</a>, <a href="#53">position</a>),
+            <span class="kw">_ </span>=&gt; ast::Expr::local_with_pos(variable, position),
         }
     }
 }
 
-<span class="kw">impl </span><a href="../../../../prusti_common/vir/polymorphic_vir/trait.StmtFolder.html">ast::StmtFolder</a> <span class="kw">for </span><a href="#36">GhostVarFixer</a> {
-    <span class="kw">fn </span>fold_expr(<span class="kw-2">&amp;mut </span><span class="self">self</span>, e: <a href="../../../../prusti_common/vir/polymorphic_vir/enum.Expr.html">ast::Expr</a>) -&gt; <a href="../../../../prusti_common/vir/polymorphic_vir/enum.Expr.html">ast::Expr</a> {
-        <a href="../../../../prusti_common/vir/polymorphic_vir/trait.ExprFolder.html">ast::ExprFolder::fold</a>(<a class="self" href="#64">self</a>, <a href="#64">e</a>)
+<span class="kw">impl </span>ast::StmtFolder <span class="kw">for </span>GhostVarFixer {
+    <span class="kw">fn </span>fold_expr(<span class="kw-2">&amp;mut </span><span class="self">self</span>, e: ast::Expr) -&gt; ast::Expr {
+        ast::ExprFolder::fold(<span class="self">self</span>, e)
     }
 
     <span class="kw">fn </span>fold_package_magic_wand(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        <a href="../../../../prusti_common/vir/polymorphic_vir/struct.PackageMagicWand.html">ast::PackageMagicWand</a> {
+        ast::PackageMagicWand {
             magic_wand,
             package_stmts,
             label,
             variables,
             position,
-        }: <a href="../../../../prusti_common/vir/polymorphic_vir/struct.PackageMagicWand.html">ast::PackageMagicWand</a>,
-    ) -&gt; <a href="../../../../prusti_common/vir/polymorphic_vir/enum.Stmt.html">ast::Stmt</a> {
-        <span class="kw">let </span>magic_wand = <a class="self" href="#69">self</a>.<a href="../../../../prusti_common/vir/polymorphic_vir/trait.StmtFolder.html">fold_expr</a>(<a href="#71">magic_wand</a>);
-        <a class="self" href="#69">self</a>.vars = <span class="prelude-val">Some</span>(<a href="#74">variables</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>());
-        <span class="kw">let </span>package_stmts = <a href="#72">package_stmts</a>
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|stmt| <a class="self" href="#69">self</a>.<a href="../../../../prusti_common/vir/polymorphic_vir/trait.StmtFolder.html">fold</a>(<a href="#82">stmt</a>))
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
-        <span class="kw">let </span>unfixed_vars = <a class="self" href="#69">self</a>.vars.take().unwrap();
-        <span class="kw">let </span>variables = <a href="#84">unfixed_vars</a>
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|var| <a class="self" href="#69">self</a>.<a href="#45">fix_name</a>(<a href="#87">var</a>))
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
-        <a class="self" href="#69">self</a>.package_stmt_count += <span class="number">1</span>;
-        ast::Stmt::PackageMagicWand(<a href="../../../../prusti_common/vir/polymorphic_vir/struct.PackageMagicWand.html">ast::PackageMagicWand</a> {
-            <a href="#78">magic_wand</a>,
-            <a href="#80">package_stmts</a>,
-            <a href="#73">label</a>,
-            <a href="#85">variables</a>,
-            <a href="#75">position</a>,
+        }: ast::PackageMagicWand,
+    ) -&gt; ast::Stmt {
+        <span class="kw">let </span>magic_wand = <span class="self">self</span>.fold_expr(magic_wand);
+        <span class="self">self</span>.vars = <span class="prelude-val">Some</span>(variables.into_iter().collect());
+        <span class="kw">let </span>package_stmts = package_stmts
+            .into_iter()
+            .map(|stmt| <span class="self">self</span>.fold(stmt))
+            .collect();
+        <span class="kw">let </span>unfixed_vars = <span class="self">self</span>.vars.take().unwrap();
+        <span class="kw">let </span>variables = unfixed_vars
+            .into_iter()
+            .map(|var| <span class="self">self</span>.fix_name(var))
+            .collect();
+        <span class="self">self</span>.package_stmt_count += <span class="number">1</span>;
+        ast::Stmt::PackageMagicWand(ast::PackageMagicWand {
+            magic_wand,
+            package_stmts,
+            label,
+            variables,
+            position,
         })
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="prusti_common" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="prusti_common" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

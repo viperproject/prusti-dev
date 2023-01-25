@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `viper/src/ast_factory/expression.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>expression.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../viper/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `viper/src/ast_factory/expression.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>expression.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../viper/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -1460,16 +1460,46 @@
 <a href="#1460" id="1460">1460</a>
 <a href="#1461" id="1461">1461</a>
 <a href="#1462" id="1462">1462</a>
+<a href="#1463" id="1463">1463</a>
+<a href="#1464" id="1464">1464</a>
+<a href="#1465" id="1465">1465</a>
+<a href="#1466" id="1466">1466</a>
+<a href="#1467" id="1467">1467</a>
+<a href="#1468" id="1468">1468</a>
+<a href="#1469" id="1469">1469</a>
+<a href="#1470" id="1470">1470</a>
+<a href="#1471" id="1471">1471</a>
+<a href="#1472" id="1472">1472</a>
+<a href="#1473" id="1473">1473</a>
+<a href="#1474" id="1474">1474</a>
+<a href="#1475" id="1475">1475</a>
+<a href="#1476" id="1476">1476</a>
+<a href="#1477" id="1477">1477</a>
+<a href="#1478" id="1478">1478</a>
+<a href="#1479" id="1479">1479</a>
+<a href="#1480" id="1480">1480</a>
+<a href="#1481" id="1481">1481</a>
+<a href="#1482" id="1482">1482</a>
+<a href="#1483" id="1483">1483</a>
+<a href="#1484" id="1484">1484</a>
+<a href="#1485" id="1485">1485</a>
+<a href="#1486" id="1486">1486</a>
+<a href="#1487" id="1487">1487</a>
+<a href="#1488" id="1488">1488</a>
+<a href="#1489" id="1489">1489</a>
+<a href="#1490" id="1490">1490</a>
+<a href="#1491" id="1491">1491</a>
+<a href="#1492" id="1492">1492</a>
 </pre><pre class="rust"><code><span class="comment">// This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 </span><span class="kw">use </span><span class="kw">crate</span>::ast_factory::{
-    structs::{<a href="structs.rs.html#13">DomainFunc</a>, <a href="structs.rs.html#9">Expr</a>, <a href="structs.rs.html#17">Field</a>, <a href="structs.rs.html#19">LocalVarDecl</a>, <a href="structs.rs.html#22">Location</a>, <a href="structs.rs.html#11">Position</a>, <a href="structs.rs.html#10">Trigger</a>, <a href="structs.rs.html#8">Type</a>},
-    <a href="mod.rs.html#21">AstFactory</a>,
+    structs::{DomainFunc, Expr, Field, LocalVarDecl, Location, Position, Trigger, Type},
+    AstFactory,
 };
-<span class="kw">use </span><a href="../../../jni/wrapper/objects/jobject/struct.JObject.html">jni::objects::JObject</a>;
-<span class="kw">use </span><a href="../../../viper_sys/wrappers/viper/silver/ast/index.html">viper_sys::wrappers::viper::silver::ast</a>;
+<span class="kw">use </span>jni::objects::JObject;
+<span class="kw">use </span>viper_sys::wrappers::viper::silver::ast;
 
 <span class="comment">// Floating-Point Operations
 </span><span class="attr">#[derive(Debug, Clone, Copy)]
@@ -1541,21 +1571,21 @@
     BV128,
 }
 
-<span class="kw">impl </span><a href="#74">BvSize</a> {
-    <span class="kw">fn </span>to_i32(<span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a> {
-        <span class="kw">match </span><span class="self"><a href="#83">self</a> </span>{
-            <a href="#75">BvSize::BV8</a> =&gt; <span class="number">8</span>,
-            <a href="#76">BvSize::BV16</a> =&gt; <span class="number">16</span>,
-            <a href="#77">BvSize::BV32</a> =&gt; <span class="number">32</span>,
-            <a href="#78">BvSize::BV64</a> =&gt; <span class="number">64</span>,
-            <a href="#79">BvSize::BV128</a> =&gt; <span class="number">128</span>,
+<span class="kw">impl </span>BvSize {
+    <span class="kw">fn </span>to_i32(<span class="self">self</span>) -&gt; i32 {
+        <span class="kw">match </span><span class="self">self </span>{
+            BvSize::BV8 =&gt; <span class="number">8</span>,
+            BvSize::BV16 =&gt; <span class="number">16</span>,
+            BvSize::BV32 =&gt; <span class="number">32</span>,
+            BvSize::BV64 =&gt; <span class="number">64</span>,
+            BvSize::BV128 =&gt; <span class="number">128</span>,
         }
     }
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; AstFactory&lt;<span class="lifetime">&#39;a</span>&gt; {
-    <span class="kw">pub fn </span>add_with_pos(<span class="kw-2">&amp;</span><span class="self">self</span>, left: <a href="structs.rs.html#9">Expr</a>, right: <a href="structs.rs.html#9">Expr</a>, pos: <a href="structs.rs.html#11">Position</a>) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
-        <a class="macro" href="macros.rs.html#53-68">build_ast_node_with_pos!</a>(
+    <span class="kw">pub fn </span>add_with_pos(<span class="kw-2">&amp;</span><span class="self">self</span>, left: Expr, right: Expr, pos: Position) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
+        <span class="macro">build_ast_node_with_pos!</span>(
             <span class="self">self</span>,
             Expr,
             ast::Add,
@@ -1564,12 +1594,12 @@
             pos.to_jobject()
         )
     }
-    <span class="kw">pub fn </span>add(<span class="kw-2">&amp;</span><span class="self">self</span>, left: <a href="structs.rs.html#9">Expr</a>, right: <a href="structs.rs.html#9">Expr</a>) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
-        <a class="self" href="#105">self</a>.<a href="#95">add_with_pos</a>(<a href="#105">left</a>, <a href="#105">right</a>, <a class="self" href="#105">self</a>.<a href="position.rs.html#10">no_position</a>())
+    <span class="kw">pub fn </span>add(<span class="kw-2">&amp;</span><span class="self">self</span>, left: Expr, right: Expr) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
+        <span class="self">self</span>.add_with_pos(left, right, <span class="self">self</span>.no_position())
     }
 
-    <span class="kw">pub fn </span>sub_with_pos(<span class="kw-2">&amp;</span><span class="self">self</span>, left: <a href="structs.rs.html#9">Expr</a>, right: <a href="structs.rs.html#9">Expr</a>, pos: <a href="structs.rs.html#11">Position</a>) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
-        <a class="macro" href="macros.rs.html#53-68">build_ast_node_with_pos!</a>(
+    <span class="kw">pub fn </span>sub_with_pos(<span class="kw-2">&amp;</span><span class="self">self</span>, left: Expr, right: Expr, pos: Position) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
+        <span class="macro">build_ast_node_with_pos!</span>(
             <span class="self">self</span>,
             Expr,
             ast::Sub,
@@ -1579,12 +1609,12 @@
         )
     }
 
-    <span class="kw">pub fn </span>sub(<span class="kw-2">&amp;</span><span class="self">self</span>, left: <a href="structs.rs.html#9">Expr</a>, right: <a href="structs.rs.html#9">Expr</a>) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
-        <a class="self" href="#120">self</a>.<a href="#109">sub_with_pos</a>(<a href="#120">left</a>, <a href="#120">right</a>, <a class="self" href="#120">self</a>.<a href="position.rs.html#10">no_position</a>())
+    <span class="kw">pub fn </span>sub(<span class="kw-2">&amp;</span><span class="self">self</span>, left: Expr, right: Expr) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
+        <span class="self">self</span>.sub_with_pos(left, right, <span class="self">self</span>.no_position())
     }
 
-    <span class="kw">pub fn </span>mul_with_pos(<span class="kw-2">&amp;</span><span class="self">self</span>, left: <a href="structs.rs.html#9">Expr</a>, right: <a href="structs.rs.html#9">Expr</a>, pos: <a href="structs.rs.html#11">Position</a>) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
-        <a class="macro" href="macros.rs.html#53-68">build_ast_node_with_pos!</a>(
+    <span class="kw">pub fn </span>mul_with_pos(<span class="kw-2">&amp;</span><span class="self">self</span>, left: Expr, right: Expr, pos: Position) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
+        <span class="macro">build_ast_node_with_pos!</span>(
             <span class="self">self</span>,
             Expr,
             ast::Mul,
@@ -1594,12 +1624,12 @@
         )
     }
 
-    <span class="kw">pub fn </span>mul(<span class="kw-2">&amp;</span><span class="self">self</span>, left: <a href="structs.rs.html#9">Expr</a>, right: <a href="structs.rs.html#9">Expr</a>) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
-        <a class="self" href="#135">self</a>.<a href="#124">mul_with_pos</a>(<a href="#135">left</a>, <a href="#135">right</a>, <a class="self" href="#135">self</a>.<a href="position.rs.html#10">no_position</a>())
+    <span class="kw">pub fn </span>mul(<span class="kw-2">&amp;</span><span class="self">self</span>, left: Expr, right: Expr) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
+        <span class="self">self</span>.mul_with_pos(left, right, <span class="self">self</span>.no_position())
     }
 
-    <span class="kw">pub fn </span>div_with_pos(<span class="kw-2">&amp;</span><span class="self">self</span>, left: <a href="structs.rs.html#9">Expr</a>, right: <a href="structs.rs.html#9">Expr</a>, pos: <a href="structs.rs.html#11">Position</a>) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
-        <a class="macro" href="macros.rs.html#53-68">build_ast_node_with_pos!</a>(
+    <span class="kw">pub fn </span>div_with_pos(<span class="kw-2">&amp;</span><span class="self">self</span>, left: Expr, right: Expr, pos: Position) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
+        <span class="macro">build_ast_node_with_pos!</span>(
             <span class="self">self</span>,
             Expr,
             ast::Div,
@@ -1609,12 +1639,12 @@
         )
     }
 
-    <span class="kw">pub fn </span>div(<span class="kw-2">&amp;</span><span class="self">self</span>, left: <a href="structs.rs.html#9">Expr</a>, right: <a href="structs.rs.html#9">Expr</a>) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
-        <a class="self" href="#150">self</a>.<a href="#139">div_with_pos</a>(<a href="#150">left</a>, <a href="#150">right</a>, <a class="self" href="#150">self</a>.<a href="position.rs.html#10">no_position</a>())
+    <span class="kw">pub fn </span>div(<span class="kw-2">&amp;</span><span class="self">self</span>, left: Expr, right: Expr) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
+        <span class="self">self</span>.div_with_pos(left, right, <span class="self">self</span>.no_position())
     }
 
-    <span class="kw">pub fn </span>module_with_pos(<span class="kw-2">&amp;</span><span class="self">self</span>, left: <a href="structs.rs.html#9">Expr</a>, right: <a href="structs.rs.html#9">Expr</a>, pos: <a href="structs.rs.html#11">Position</a>) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
-        <a class="macro" href="macros.rs.html#53-68">build_ast_node_with_pos!</a>(
+    <span class="kw">pub fn </span>module_with_pos(<span class="kw-2">&amp;</span><span class="self">self</span>, left: Expr, right: Expr, pos: Position) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
+        <span class="macro">build_ast_node_with_pos!</span>(
             <span class="self">self</span>,
             Expr,
             ast::Mod,
@@ -1624,12 +1654,12 @@
         )
     }
 
-    <span class="kw">pub fn </span>module(<span class="kw-2">&amp;</span><span class="self">self</span>, left: <a href="structs.rs.html#9">Expr</a>, right: <a href="structs.rs.html#9">Expr</a>) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
-        <a class="self" href="#165">self</a>.<a href="#154">module_with_pos</a>(<a href="#165">left</a>, <a href="#165">right</a>, <a class="self" href="#165">self</a>.<a href="position.rs.html#10">no_position</a>())
+    <span class="kw">pub fn </span>module(<span class="kw-2">&amp;</span><span class="self">self</span>, left: Expr, right: Expr) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
+        <span class="self">self</span>.module_with_pos(left, right, <span class="self">self</span>.no_position())
     }
 
-    <span class="kw">pub fn </span>lt_cmp_with_pos(<span class="kw-2">&amp;</span><span class="self">self</span>, left: <a href="structs.rs.html#9">Expr</a>, right: <a href="structs.rs.html#9">Expr</a>, pos: <a href="structs.rs.html#11">Position</a>) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
-        <a class="macro" href="macros.rs.html#53-68">build_ast_node_with_pos!</a>(
+    <span class="kw">pub fn </span>lt_cmp_with_pos(<span class="kw-2">&amp;</span><span class="self">self</span>, left: Expr, right: Expr, pos: Position) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
+        <span class="macro">build_ast_node_with_pos!</span>(
             <span class="self">self</span>,
             Expr,
             ast::LtCmp,
@@ -1639,12 +1669,12 @@
         )
     }
 
-    <span class="kw">pub fn </span>lt_cmp(<span class="kw-2">&amp;</span><span class="self">self</span>, left: <a href="structs.rs.html#9">Expr</a>, right: <a href="structs.rs.html#9">Expr</a>) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
-        <a class="self" href="#180">self</a>.<a href="#169">lt_cmp_with_pos</a>(<a href="#180">left</a>, <a href="#180">right</a>, <a class="self" href="#180">self</a>.<a href="position.rs.html#10">no_position</a>())
+    <span class="kw">pub fn </span>lt_cmp(<span class="kw-2">&amp;</span><span class="self">self</span>, left: Expr, right: Expr) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
+        <span class="self">self</span>.lt_cmp_with_pos(left, right, <span class="self">self</span>.no_position())
     }
 
-    <span class="kw">pub fn </span>le_cmp_with_pos(<span class="kw-2">&amp;</span><span class="self">self</span>, left: <a href="structs.rs.html#9">Expr</a>, right: <a href="structs.rs.html#9">Expr</a>, pos: <a href="structs.rs.html#11">Position</a>) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
-        <a class="macro" href="macros.rs.html#53-68">build_ast_node_with_pos!</a>(
+    <span class="kw">pub fn </span>le_cmp_with_pos(<span class="kw-2">&amp;</span><span class="self">self</span>, left: Expr, right: Expr, pos: Position) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
+        <span class="macro">build_ast_node_with_pos!</span>(
             <span class="self">self</span>,
             Expr,
             ast::LeCmp,
@@ -1654,12 +1684,12 @@
         )
     }
 
-    <span class="kw">pub fn </span>le_cmp(<span class="kw-2">&amp;</span><span class="self">self</span>, left: <a href="structs.rs.html#9">Expr</a>, right: <a href="structs.rs.html#9">Expr</a>) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
-        <a class="self" href="#195">self</a>.<a href="#184">le_cmp_with_pos</a>(<a href="#195">left</a>, <a href="#195">right</a>, <a class="self" href="#195">self</a>.<a href="position.rs.html#10">no_position</a>())
+    <span class="kw">pub fn </span>le_cmp(<span class="kw-2">&amp;</span><span class="self">self</span>, left: Expr, right: Expr) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
+        <span class="self">self</span>.le_cmp_with_pos(left, right, <span class="self">self</span>.no_position())
     }
 
-    <span class="kw">pub fn </span>gt_cmp_with_pos(<span class="kw-2">&amp;</span><span class="self">self</span>, left: <a href="structs.rs.html#9">Expr</a>, right: <a href="structs.rs.html#9">Expr</a>, pos: <a href="structs.rs.html#11">Position</a>) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
-        <a class="macro" href="macros.rs.html#53-68">build_ast_node_with_pos!</a>(
+    <span class="kw">pub fn </span>gt_cmp_with_pos(<span class="kw-2">&amp;</span><span class="self">self</span>, left: Expr, right: Expr, pos: Position) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
+        <span class="macro">build_ast_node_with_pos!</span>(
             <span class="self">self</span>,
             Expr,
             ast::GtCmp,
@@ -1669,12 +1699,12 @@
         )
     }
 
-    <span class="kw">pub fn </span>gt_cmp(<span class="kw-2">&amp;</span><span class="self">self</span>, left: <a href="structs.rs.html#9">Expr</a>, right: <a href="structs.rs.html#9">Expr</a>) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
-        <a class="self" href="#210">self</a>.<a href="#199">gt_cmp_with_pos</a>(<a href="#210">left</a>, <a href="#210">right</a>, <a class="self" href="#210">self</a>.<a href="position.rs.html#10">no_position</a>())
+    <span class="kw">pub fn </span>gt_cmp(<span class="kw-2">&amp;</span><span class="self">self</span>, left: Expr, right: Expr) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
+        <span class="self">self</span>.gt_cmp_with_pos(left, right, <span class="self">self</span>.no_position())
     }
 
-    <span class="kw">pub fn </span>ge_cmp_with_pos(<span class="kw-2">&amp;</span><span class="self">self</span>, left: <a href="structs.rs.html#9">Expr</a>, right: <a href="structs.rs.html#9">Expr</a>, pos: <a href="structs.rs.html#11">Position</a>) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
-        <a class="macro" href="macros.rs.html#53-68">build_ast_node_with_pos!</a>(
+    <span class="kw">pub fn </span>ge_cmp_with_pos(<span class="kw-2">&amp;</span><span class="self">self</span>, left: Expr, right: Expr, pos: Position) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
+        <span class="macro">build_ast_node_with_pos!</span>(
             <span class="self">self</span>,
             Expr,
             ast::GeCmp,
@@ -1684,12 +1714,12 @@
         )
     }
 
-    <span class="kw">pub fn </span>ge_cmp(<span class="kw-2">&amp;</span><span class="self">self</span>, left: <a href="structs.rs.html#9">Expr</a>, right: <a href="structs.rs.html#9">Expr</a>) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
-        <a class="self" href="#225">self</a>.<a href="#214">ge_cmp_with_pos</a>(<a href="#225">left</a>, <a href="#225">right</a>, <a class="self" href="#225">self</a>.<a href="position.rs.html#10">no_position</a>())
+    <span class="kw">pub fn </span>ge_cmp(<span class="kw-2">&amp;</span><span class="self">self</span>, left: Expr, right: Expr) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
+        <span class="self">self</span>.ge_cmp_with_pos(left, right, <span class="self">self</span>.no_position())
     }
 
-    <span class="kw">pub fn </span>eq_cmp_with_pos(<span class="kw-2">&amp;</span><span class="self">self</span>, left: <a href="structs.rs.html#9">Expr</a>, right: <a href="structs.rs.html#9">Expr</a>, pos: <a href="structs.rs.html#11">Position</a>) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
-        <a class="macro" href="macros.rs.html#53-68">build_ast_node_with_pos!</a>(
+    <span class="kw">pub fn </span>eq_cmp_with_pos(<span class="kw-2">&amp;</span><span class="self">self</span>, left: Expr, right: Expr, pos: Position) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
+        <span class="macro">build_ast_node_with_pos!</span>(
             <span class="self">self</span>,
             Expr,
             ast::EqCmp,
@@ -1699,12 +1729,12 @@
         )
     }
 
-    <span class="kw">pub fn </span>eq_cmp(<span class="kw-2">&amp;</span><span class="self">self</span>, left: <a href="structs.rs.html#9">Expr</a>, right: <a href="structs.rs.html#9">Expr</a>) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
-        <a class="self" href="#240">self</a>.<a href="#229">eq_cmp_with_pos</a>(<a href="#240">left</a>, <a href="#240">right</a>, <a class="self" href="#240">self</a>.<a href="position.rs.html#10">no_position</a>())
+    <span class="kw">pub fn </span>eq_cmp(<span class="kw-2">&amp;</span><span class="self">self</span>, left: Expr, right: Expr) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
+        <span class="self">self</span>.eq_cmp_with_pos(left, right, <span class="self">self</span>.no_position())
     }
 
-    <span class="kw">pub fn </span>ne_cmp_with_pos(<span class="kw-2">&amp;</span><span class="self">self</span>, left: <a href="structs.rs.html#9">Expr</a>, right: <a href="structs.rs.html#9">Expr</a>, pos: <a href="structs.rs.html#11">Position</a>) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
-        <a class="macro" href="macros.rs.html#53-68">build_ast_node_with_pos!</a>(
+    <span class="kw">pub fn </span>ne_cmp_with_pos(<span class="kw-2">&amp;</span><span class="self">self</span>, left: Expr, right: Expr, pos: Position) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
+        <span class="macro">build_ast_node_with_pos!</span>(
             <span class="self">self</span>,
             Expr,
             ast::NeCmp,
@@ -1714,409 +1744,439 @@
         )
     }
 
-    <span class="kw">pub fn </span>ne_cmp(<span class="kw-2">&amp;</span><span class="self">self</span>, left: <a href="structs.rs.html#9">Expr</a>, right: <a href="structs.rs.html#9">Expr</a>) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
-        <a class="self" href="#255">self</a>.<a href="#244">ne_cmp_with_pos</a>(<a href="#255">left</a>, <a href="#255">right</a>, <a class="self" href="#255">self</a>.<a href="position.rs.html#10">no_position</a>())
+    <span class="kw">pub fn </span>ne_cmp(<span class="kw-2">&amp;</span><span class="self">self</span>, left: Expr, right: Expr) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
+        <span class="self">self</span>.ne_cmp_with_pos(left, right, <span class="self">self</span>.no_position())
     }
 
-    <span class="kw">pub fn </span>int_lit_with_pos(<span class="kw-2">&amp;</span><span class="self">self</span>, i: <a href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>, pos: <a href="structs.rs.html#11">Position</a>) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
-        <span class="kw">let </span>big_i = <a class="self" href="#259">self</a>.jni.<a href="../jni_utils.rs.html#91">new_big_int</a>(<span class="kw-2">&amp;</span><a href="#259">i</a>);
-        <a class="macro" href="macros.rs.html#53-68">build_ast_node_with_pos!</a>(<span class="self">self</span>, Expr, ast::IntLit, big_i, pos.to_jobject())
+    <span class="kw">pub fn </span>int_lit_with_pos(<span class="kw-2">&amp;</span><span class="self">self</span>, i: i64, pos: Position) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
+        <span class="kw">let </span>big_i = <span class="self">self</span>.jni.new_big_int(<span class="kw-2">&amp;</span>i);
+        <span class="macro">build_ast_node_with_pos!</span>(<span class="self">self</span>, Expr, ast::IntLit, big_i, pos.to_jobject())
     }
 
-    <span class="kw">pub fn </span>int_lit(<span class="kw-2">&amp;</span><span class="self">self</span>, i: <a href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
-        <a class="self" href="#264">self</a>.<a href="#259">int_lit_with_pos</a>(<a href="#264">i</a>, <a class="self" href="#264">self</a>.<a href="position.rs.html#10">no_position</a>())
+    <span class="kw">pub fn </span>int_lit(<span class="kw-2">&amp;</span><span class="self">self</span>, i: i64) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
+        <span class="self">self</span>.int_lit_with_pos(i, <span class="self">self</span>.no_position())
     }
 
-    <span class="kw">pub fn </span>int_lit_from_ref_with_pos(<span class="kw-2">&amp;</span><span class="self">self</span>, i: <span class="kw-2">&amp;</span><span class="kw">dyn </span><a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">ToString</a>, pos: <a href="structs.rs.html#11">Position</a>) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
-        <span class="kw">let </span>big_i = <a class="self" href="#268">self</a>.jni.<a href="../jni_utils.rs.html#91">new_big_int</a>(<a href="#268">i</a>);
-        <a class="macro" href="macros.rs.html#53-68">build_ast_node_with_pos!</a>(<span class="self">self</span>, Expr, ast::IntLit, big_i, pos.to_jobject())
+    <span class="kw">pub fn </span>int_lit_from_ref_with_pos(<span class="kw-2">&amp;</span><span class="self">self</span>, i: <span class="kw-2">&amp;</span><span class="kw">dyn </span>ToString, pos: Position) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
+        <span class="kw">let </span>big_i = <span class="self">self</span>.jni.new_big_int(i);
+        <span class="macro">build_ast_node_with_pos!</span>(<span class="self">self</span>, Expr, ast::IntLit, big_i, pos.to_jobject())
     }
 
-    <span class="kw">pub fn </span>int_lit_from_ref(<span class="kw-2">&amp;</span><span class="self">self</span>, i: <span class="kw-2">&amp;</span><span class="kw">dyn </span><a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">ToString</a>) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
-        <a class="self" href="#273">self</a>.<a href="#268">int_lit_from_ref_with_pos</a>(<a href="#273">i</a>, <a class="self" href="#273">self</a>.<a href="position.rs.html#10">no_position</a>())
+    <span class="kw">pub fn </span>int_lit_from_ref(<span class="kw-2">&amp;</span><span class="self">self</span>, i: <span class="kw-2">&amp;</span><span class="kw">dyn </span>ToString) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
+        <span class="self">self</span>.int_lit_from_ref_with_pos(i, <span class="self">self</span>.no_position())
     }
 
-    <span class="kw">pub fn </span>minus_with_pos(<span class="kw-2">&amp;</span><span class="self">self</span>, expr: <a href="structs.rs.html#9">Expr</a>, pos: <a href="structs.rs.html#11">Position</a>) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
-        <a class="macro" href="macros.rs.html#53-68">build_ast_node_with_pos!</a>(<span class="self">self</span>, Expr, ast::Minus, expr.to_jobject(), pos.to_jobject())
+    <span class="kw">pub fn </span>minus_with_pos(<span class="kw-2">&amp;</span><span class="self">self</span>, expr: Expr, pos: Position) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
+        <span class="macro">build_ast_node_with_pos!</span>(<span class="self">self</span>, Expr, ast::Minus, expr.to_jobject(), pos.to_jobject())
     }
 
-    <span class="kw">pub fn </span>minus(<span class="kw-2">&amp;</span><span class="self">self</span>, expr: <a href="structs.rs.html#9">Expr</a>) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
-        <a class="self" href="#281">self</a>.<a href="#277">minus_with_pos</a>(<a href="#281">expr</a>, <a class="self" href="#281">self</a>.<a href="position.rs.html#10">no_position</a>())
+    <span class="kw">pub fn </span>minus(<span class="kw-2">&amp;</span><span class="self">self</span>, expr: Expr) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
+        <span class="self">self</span>.minus_with_pos(expr, <span class="self">self</span>.no_position())
     }
 
     <span class="comment">// Backend Bitvectors
-    </span><span class="kw">pub fn </span>backend_bv8_lit(<span class="kw-2">&amp;</span><span class="self">self</span>, bits: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
-        <span class="kw">let </span>bv_factory_ = ast::utility::BVFactory::with(<a class="self" href="#286">self</a>.env);
-        <span class="kw">let </span>bv_factory = ast::utility::BVFactory::new(<span class="kw-2">&amp;</span><a href="#287">bv_factory_</a>, <span class="number">8</span>).unwrap();
+    </span><span class="kw">pub fn </span>backend_bv8_lit(<span class="kw-2">&amp;</span><span class="self">self</span>, bits: u8) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
+        <span class="kw">let </span>bv_factory_ = ast::utility::BVFactory::with(<span class="self">self</span>.env);
+        <span class="kw">let </span>bv_factory = ast::utility::BVFactory::new(<span class="kw-2">&amp;</span>bv_factory_, <span class="number">8</span>).unwrap();
         <span class="kw">let </span>from_int = ast::utility::BVFactory::call_from__int(
-            <span class="kw-2">&amp;</span><a href="#287">bv_factory_</a>,
-            <a href="#288">bv_factory</a>,
-            <a class="self" href="#286">self</a>.jni.<a href="../jni_utils.rs.html#77">new_string</a>(<span class="string">&quot;toBV8&quot;</span>),
+            <span class="kw-2">&amp;</span>bv_factory_,
+            bv_factory,
+            <span class="self">self</span>.jni.new_string(<span class="string">&quot;bv8_from_int&quot;</span>),
         )
         .unwrap();
-        <a class="self" href="#286">self</a>.<a href="#992-997">backend_func_app</a>(<a href="#289">from_int</a>, <span class="kw-2">&amp;</span>[<a class="self" href="#286">self</a>.<a href="#264">int_lit</a>(<a href="#286">bits</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>)], <a class="self" href="#286">self</a>.<a href="position.rs.html#10">no_position</a>())
+        <span class="self">self</span>.backend_func_app(from_int, <span class="kw-2">&amp;</span>[<span class="self">self</span>.int_lit(bits <span class="kw">as </span>i64)], <span class="self">self</span>.no_position())
     }
 
-    <span class="kw">pub fn </span>backend_bv8_lit_str(<span class="kw-2">&amp;</span><span class="self">self</span>, bits: <span class="kw-2">&amp;</span><span class="kw">dyn </span><a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">ToString</a>) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
-        <span class="kw">let </span>bv_factory_ = ast::utility::BVFactory::with(<a class="self" href="#298">self</a>.env);
-        <span class="kw">let </span>bv_factory = ast::utility::BVFactory::new(<span class="kw-2">&amp;</span><a href="#299">bv_factory_</a>, <span class="number">8</span>).unwrap();
+    <span class="kw">pub fn </span>backend_bv8_lit_str(<span class="kw-2">&amp;</span><span class="self">self</span>, bits: <span class="kw-2">&amp;</span><span class="kw">dyn </span>ToString) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
+        <span class="kw">let </span>bv_factory_ = ast::utility::BVFactory::with(<span class="self">self</span>.env);
+        <span class="kw">let </span>bv_factory = ast::utility::BVFactory::new(<span class="kw-2">&amp;</span>bv_factory_, <span class="number">8</span>).unwrap();
         <span class="kw">let </span>from_int = ast::utility::BVFactory::call_from__int(
-            <span class="kw-2">&amp;</span><a href="#299">bv_factory_</a>,
-            <a href="#300">bv_factory</a>,
-            <a class="self" href="#298">self</a>.jni.<a href="../jni_utils.rs.html#77">new_string</a>(<span class="string">&quot;toBV8&quot;</span>),
+            <span class="kw-2">&amp;</span>bv_factory_,
+            bv_factory,
+            <span class="self">self</span>.jni.new_string(<span class="string">&quot;bv8_from_int&quot;</span>),
         )
         .unwrap();
-        <a class="self" href="#298">self</a>.<a href="#992-997">backend_func_app</a>(<a href="#301">from_int</a>, <span class="kw-2">&amp;</span>[<a class="self" href="#298">self</a>.<a href="#273">int_lit_from_ref</a>(<a href="#298">bits</a>)], <a class="self" href="#298">self</a>.<a href="position.rs.html#10">no_position</a>())
+        <span class="self">self</span>.backend_func_app(from_int, <span class="kw-2">&amp;</span>[<span class="self">self</span>.int_lit_from_ref(bits)], <span class="self">self</span>.no_position())
     }
 
-    <span class="kw">pub fn </span>backend_bv16_lit(<span class="kw-2">&amp;</span><span class="self">self</span>, bits: <a href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
-        <span class="kw">let </span>bv_factory_ = ast::utility::BVFactory::with(<a class="self" href="#310">self</a>.env);
-        <span class="kw">let </span>bv_factory = ast::utility::BVFactory::new(<span class="kw-2">&amp;</span><a href="#311">bv_factory_</a>, <span class="number">16</span>).unwrap();
+    <span class="kw">pub fn </span>backend_bv16_lit(<span class="kw-2">&amp;</span><span class="self">self</span>, bits: u16) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
+        <span class="kw">let </span>bv_factory_ = ast::utility::BVFactory::with(<span class="self">self</span>.env);
+        <span class="kw">let </span>bv_factory = ast::utility::BVFactory::new(<span class="kw-2">&amp;</span>bv_factory_, <span class="number">16</span>).unwrap();
         <span class="kw">let </span>from_int = ast::utility::BVFactory::call_from__int(
-            <span class="kw-2">&amp;</span><a href="#311">bv_factory_</a>,
-            <a href="#312">bv_factory</a>,
-            <a class="self" href="#310">self</a>.jni.<a href="../jni_utils.rs.html#77">new_string</a>(<span class="string">&quot;toBV16&quot;</span>),
+            <span class="kw-2">&amp;</span>bv_factory_,
+            bv_factory,
+            <span class="self">self</span>.jni.new_string(<span class="string">&quot;bv16_from_int&quot;</span>),
         )
         .unwrap();
-        <a class="self" href="#310">self</a>.<a href="#992-997">backend_func_app</a>(<a href="#313">from_int</a>, <span class="kw-2">&amp;</span>[<a class="self" href="#310">self</a>.<a href="#264">int_lit</a>(<a href="#310">bits</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>)], <a class="self" href="#310">self</a>.<a href="position.rs.html#10">no_position</a>())
+        <span class="self">self</span>.backend_func_app(from_int, <span class="kw-2">&amp;</span>[<span class="self">self</span>.int_lit(bits <span class="kw">as </span>i64)], <span class="self">self</span>.no_position())
     }
 
-    <span class="kw">pub fn </span>backend_bv16_lit_str(<span class="kw-2">&amp;</span><span class="self">self</span>, bits: <span class="kw-2">&amp;</span><span class="kw">dyn </span><a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">ToString</a>) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
-        <span class="kw">let </span>bv_factory_ = ast::utility::BVFactory::with(<a class="self" href="#322">self</a>.env);
-        <span class="kw">let </span>bv_factory = ast::utility::BVFactory::new(<span class="kw-2">&amp;</span><a href="#323">bv_factory_</a>, <span class="number">16</span>).unwrap();
+    <span class="kw">pub fn </span>backend_bv16_lit_str(<span class="kw-2">&amp;</span><span class="self">self</span>, bits: <span class="kw-2">&amp;</span><span class="kw">dyn </span>ToString) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
+        <span class="kw">let </span>bv_factory_ = ast::utility::BVFactory::with(<span class="self">self</span>.env);
+        <span class="kw">let </span>bv_factory = ast::utility::BVFactory::new(<span class="kw-2">&amp;</span>bv_factory_, <span class="number">16</span>).unwrap();
         <span class="kw">let </span>from_int = ast::utility::BVFactory::call_from__int(
-            <span class="kw-2">&amp;</span><a href="#323">bv_factory_</a>,
-            <a href="#324">bv_factory</a>,
-            <a class="self" href="#322">self</a>.jni.<a href="../jni_utils.rs.html#77">new_string</a>(<span class="string">&quot;toBV16&quot;</span>),
+            <span class="kw-2">&amp;</span>bv_factory_,
+            bv_factory,
+            <span class="self">self</span>.jni.new_string(<span class="string">&quot;bv16_from_int&quot;</span>),
         )
         .unwrap();
-        <a class="self" href="#322">self</a>.<a href="#992-997">backend_func_app</a>(<a href="#325">from_int</a>, <span class="kw-2">&amp;</span>[<a class="self" href="#322">self</a>.<a href="#273">int_lit_from_ref</a>(<a href="#322">bits</a>)], <a class="self" href="#322">self</a>.<a href="position.rs.html#10">no_position</a>())
+        <span class="self">self</span>.backend_func_app(from_int, <span class="kw-2">&amp;</span>[<span class="self">self</span>.int_lit_from_ref(bits)], <span class="self">self</span>.no_position())
     }
 
-    <span class="kw">pub fn </span>backend_bv32_lit(<span class="kw-2">&amp;</span><span class="self">self</span>, bits: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
-        <span class="kw">let </span>bv_factory_ = ast::utility::BVFactory::with(<a class="self" href="#334">self</a>.env);
-        <span class="kw">let </span>bv_factory = ast::utility::BVFactory::new(<span class="kw-2">&amp;</span><a href="#335">bv_factory_</a>, <span class="number">32</span>).unwrap();
+    <span class="kw">pub fn </span>backend_bv32_lit(<span class="kw-2">&amp;</span><span class="self">self</span>, bits: u32) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
+        <span class="kw">let </span>bv_factory_ = ast::utility::BVFactory::with(<span class="self">self</span>.env);
+        <span class="kw">let </span>bv_factory = ast::utility::BVFactory::new(<span class="kw-2">&amp;</span>bv_factory_, <span class="number">32</span>).unwrap();
         <span class="kw">let </span>from_int = ast::utility::BVFactory::call_from__int(
-            <span class="kw-2">&amp;</span><a href="#335">bv_factory_</a>,
-            <a href="#336">bv_factory</a>,
-            <a class="self" href="#334">self</a>.jni.<a href="../jni_utils.rs.html#77">new_string</a>(<span class="string">&quot;toBV32&quot;</span>),
+            <span class="kw-2">&amp;</span>bv_factory_,
+            bv_factory,
+            <span class="self">self</span>.jni.new_string(<span class="string">&quot;bv32_from_int&quot;</span>),
         )
         .unwrap();
-        <a class="self" href="#334">self</a>.<a href="#992-997">backend_func_app</a>(<a href="#337">from_int</a>, <span class="kw-2">&amp;</span>[<a class="self" href="#334">self</a>.<a href="#264">int_lit</a>(<a href="#334">bits</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>)], <a class="self" href="#334">self</a>.<a href="position.rs.html#10">no_position</a>())
+        <span class="self">self</span>.backend_func_app(from_int, <span class="kw-2">&amp;</span>[<span class="self">self</span>.int_lit(bits <span class="kw">as </span>i64)], <span class="self">self</span>.no_position())
     }
 
-    <span class="kw">pub fn </span>backend_bv32_lit_str(<span class="kw-2">&amp;</span><span class="self">self</span>, bits: <span class="kw-2">&amp;</span><span class="kw">dyn </span><a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">ToString</a>) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
-        <span class="kw">let </span>bv_factory_ = ast::utility::BVFactory::with(<a class="self" href="#346">self</a>.env);
-        <span class="kw">let </span>bv_factory = ast::utility::BVFactory::new(<span class="kw-2">&amp;</span><a href="#347">bv_factory_</a>, <span class="number">32</span>).unwrap();
+    <span class="kw">pub fn </span>backend_bv32_lit_str(<span class="kw-2">&amp;</span><span class="self">self</span>, bits: <span class="kw-2">&amp;</span><span class="kw">dyn </span>ToString) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
+        <span class="kw">let </span>bv_factory_ = ast::utility::BVFactory::with(<span class="self">self</span>.env);
+        <span class="kw">let </span>bv_factory = ast::utility::BVFactory::new(<span class="kw-2">&amp;</span>bv_factory_, <span class="number">32</span>).unwrap();
         <span class="kw">let </span>from_int = ast::utility::BVFactory::call_from__int(
-            <span class="kw-2">&amp;</span><a href="#347">bv_factory_</a>,
-            <a href="#348">bv_factory</a>,
-            <a class="self" href="#346">self</a>.jni.<a href="../jni_utils.rs.html#77">new_string</a>(<span class="string">&quot;toBV32&quot;</span>),
+            <span class="kw-2">&amp;</span>bv_factory_,
+            bv_factory,
+            <span class="self">self</span>.jni.new_string(<span class="string">&quot;bv32_from_int&quot;</span>),
         )
         .unwrap();
-        <a class="self" href="#346">self</a>.<a href="#992-997">backend_func_app</a>(<a href="#349">from_int</a>, <span class="kw-2">&amp;</span>[<a class="self" href="#346">self</a>.<a href="#273">int_lit_from_ref</a>(<a href="#346">bits</a>)], <a class="self" href="#346">self</a>.<a href="position.rs.html#10">no_position</a>())
+        <span class="self">self</span>.backend_func_app(from_int, <span class="kw-2">&amp;</span>[<span class="self">self</span>.int_lit_from_ref(bits)], <span class="self">self</span>.no_position())
     }
 
-    <span class="kw">pub fn </span>backend_bv64_lit(<span class="kw-2">&amp;</span><span class="self">self</span>, bits: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
-        <span class="kw">let </span>bv_factory_ = ast::utility::BVFactory::with(<a class="self" href="#358">self</a>.env);
-        <span class="kw">let </span>bv_factory = ast::utility::BVFactory::new(<span class="kw-2">&amp;</span><a href="#359">bv_factory_</a>, <span class="number">64</span>).unwrap();
+    <span class="kw">pub fn </span>backend_bv64_lit(<span class="kw-2">&amp;</span><span class="self">self</span>, bits: u64) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
+        <span class="kw">let </span>bv_factory_ = ast::utility::BVFactory::with(<span class="self">self</span>.env);
+        <span class="kw">let </span>bv_factory = ast::utility::BVFactory::new(<span class="kw-2">&amp;</span>bv_factory_, <span class="number">64</span>).unwrap();
         <span class="kw">let </span>from_int = ast::utility::BVFactory::call_from__int(
-            <span class="kw-2">&amp;</span><a href="#359">bv_factory_</a>,
-            <a href="#360">bv_factory</a>,
-            <a class="self" href="#358">self</a>.jni.<a href="../jni_utils.rs.html#77">new_string</a>(<span class="string">&quot;toBV64&quot;</span>),
+            <span class="kw-2">&amp;</span>bv_factory_,
+            bv_factory,
+            <span class="self">self</span>.jni.new_string(<span class="string">&quot;bv64_from_int&quot;</span>),
         )
         .unwrap();
-        <a class="self" href="#358">self</a>.<a href="#992-997">backend_func_app</a>(<a href="#361">from_int</a>, <span class="kw-2">&amp;</span>[<a class="self" href="#358">self</a>.<a href="#264">int_lit</a>(<a href="#358">bits</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>)], <a class="self" href="#358">self</a>.<a href="position.rs.html#10">no_position</a>())
+        <span class="self">self</span>.backend_func_app(from_int, <span class="kw-2">&amp;</span>[<span class="self">self</span>.int_lit(bits <span class="kw">as </span>i64)], <span class="self">self</span>.no_position())
     }
 
-    <span class="kw">pub fn </span>backend_bv64_lit_str(<span class="kw-2">&amp;</span><span class="self">self</span>, bits: <span class="kw-2">&amp;</span><span class="kw">dyn </span><a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">ToString</a>) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
-        <span class="kw">let </span>bv_factory_ = ast::utility::BVFactory::with(<a class="self" href="#370">self</a>.env);
-        <span class="kw">let </span>bv_factory = ast::utility::BVFactory::new(<span class="kw-2">&amp;</span><a href="#371">bv_factory_</a>, <span class="number">64</span>).unwrap();
+    <span class="kw">pub fn </span>backend_bv64_lit_str(<span class="kw-2">&amp;</span><span class="self">self</span>, bits: <span class="kw-2">&amp;</span><span class="kw">dyn </span>ToString) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
+        <span class="kw">let </span>bv_factory_ = ast::utility::BVFactory::with(<span class="self">self</span>.env);
+        <span class="kw">let </span>bv_factory = ast::utility::BVFactory::new(<span class="kw-2">&amp;</span>bv_factory_, <span class="number">64</span>).unwrap();
         <span class="kw">let </span>from_int = ast::utility::BVFactory::call_from__int(
-            <span class="kw-2">&amp;</span><a href="#371">bv_factory_</a>,
-            <a href="#372">bv_factory</a>,
-            <a class="self" href="#370">self</a>.jni.<a href="../jni_utils.rs.html#77">new_string</a>(<span class="string">&quot;toBV64&quot;</span>),
+            <span class="kw-2">&amp;</span>bv_factory_,
+            bv_factory,
+            <span class="self">self</span>.jni.new_string(<span class="string">&quot;bv64_to_int&quot;</span>),
         )
         .unwrap();
-        <a class="self" href="#370">self</a>.<a href="#992-997">backend_func_app</a>(<a href="#373">from_int</a>, <span class="kw-2">&amp;</span>[<a class="self" href="#370">self</a>.<a href="#273">int_lit_from_ref</a>(<a href="#370">bits</a>)], <a class="self" href="#370">self</a>.<a href="position.rs.html#10">no_position</a>())
+        <span class="self">self</span>.backend_func_app(from_int, <span class="kw-2">&amp;</span>[<span class="self">self</span>.int_lit_from_ref(bits)], <span class="self">self</span>.no_position())
     }
 
-    <span class="kw">pub fn </span>backend_bv128_lit(<span class="kw-2">&amp;</span><span class="self">self</span>, bits: <a href="https://doc.rust-lang.org/nightly/std/primitive.u128.html">u128</a>) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
-        <span class="kw">let </span>bv_factory_ = ast::utility::BVFactory::with(<a class="self" href="#382">self</a>.env);
-        <span class="kw">let </span>bv_factory = ast::utility::BVFactory::new(<span class="kw-2">&amp;</span><a href="#383">bv_factory_</a>, <span class="number">128</span>).unwrap();
+    <span class="kw">pub fn </span>backend_bv128_lit(<span class="kw-2">&amp;</span><span class="self">self</span>, bits: u128) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
+        <span class="kw">let </span>bv_factory_ = ast::utility::BVFactory::with(<span class="self">self</span>.env);
+        <span class="kw">let </span>bv_factory = ast::utility::BVFactory::new(<span class="kw-2">&amp;</span>bv_factory_, <span class="number">128</span>).unwrap();
         <span class="kw">let </span>from_int = ast::utility::BVFactory::call_from__int(
-            <span class="kw-2">&amp;</span><a href="#383">bv_factory_</a>,
-            <a href="#384">bv_factory</a>,
-            <a class="self" href="#382">self</a>.jni.<a href="../jni_utils.rs.html#77">new_string</a>(<span class="string">&quot;toBV128&quot;</span>),
+            <span class="kw-2">&amp;</span>bv_factory_,
+            bv_factory,
+            <span class="self">self</span>.jni.new_string(<span class="string">&quot;bv128_from_int&quot;</span>),
         )
         .unwrap();
-        <a class="self" href="#382">self</a>.<a href="#992-997">backend_func_app</a>(<a href="#385">from_int</a>, <span class="kw-2">&amp;</span>[<a class="self" href="#382">self</a>.<a href="#264">int_lit</a>(<a href="#382">bits</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>)], <a class="self" href="#382">self</a>.<a href="position.rs.html#10">no_position</a>())
+        <span class="self">self</span>.backend_func_app(from_int, <span class="kw-2">&amp;</span>[<span class="self">self</span>.int_lit(bits <span class="kw">as </span>i64)], <span class="self">self</span>.no_position())
     }
 
-    <span class="kw">pub fn </span>backend_bv128_lit_str(<span class="kw-2">&amp;</span><span class="self">self</span>, bits: <span class="kw-2">&amp;</span><span class="kw">dyn </span><a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">ToString</a>) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
-        <span class="kw">let </span>bv_factory_ = ast::utility::BVFactory::with(<a class="self" href="#394">self</a>.env);
-        <span class="kw">let </span>bv_factory = ast::utility::BVFactory::new(<span class="kw-2">&amp;</span><a href="#395">bv_factory_</a>, <span class="number">128</span>).unwrap();
+    <span class="kw">pub fn </span>backend_bv128_lit_str(<span class="kw-2">&amp;</span><span class="self">self</span>, bits: <span class="kw-2">&amp;</span><span class="kw">dyn </span>ToString) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
+        <span class="kw">let </span>bv_factory_ = ast::utility::BVFactory::with(<span class="self">self</span>.env);
+        <span class="kw">let </span>bv_factory = ast::utility::BVFactory::new(<span class="kw-2">&amp;</span>bv_factory_, <span class="number">128</span>).unwrap();
         <span class="kw">let </span>from_int = ast::utility::BVFactory::call_from__int(
-            <span class="kw-2">&amp;</span><a href="#395">bv_factory_</a>,
-            <a href="#396">bv_factory</a>,
-            <a class="self" href="#394">self</a>.jni.<a href="../jni_utils.rs.html#77">new_string</a>(<span class="string">&quot;toBV128&quot;</span>),
+            <span class="kw-2">&amp;</span>bv_factory_,
+            bv_factory,
+            <span class="self">self</span>.jni.new_string(<span class="string">&quot;bv128_from_int&quot;</span>),
         )
         .unwrap();
-        <a class="self" href="#394">self</a>.<a href="#992-997">backend_func_app</a>(<a href="#397">from_int</a>, <span class="kw-2">&amp;</span>[<a class="self" href="#394">self</a>.<a href="#273">int_lit_from_ref</a>(<a href="#394">bits</a>)], <a class="self" href="#394">self</a>.<a href="position.rs.html#10">no_position</a>())
+        <span class="self">self</span>.backend_func_app(from_int, <span class="kw-2">&amp;</span>[<span class="self">self</span>.int_lit_from_ref(bits)], <span class="self">self</span>.no_position())
     }
 
-    <span class="kw">pub fn </span>bv_factory(<span class="kw-2">&amp;</span><span class="self">self</span>, bv_size: <a href="#74">BvSize</a>) -&gt; (ast::utility::BVFactory&lt;<span class="lifetime">&#39;a</span>&gt;, JObject&lt;<span class="lifetime">&#39;a</span>&gt;) {
-        <span class="kw">let </span>factory_ = ast::utility::BVFactory::with(<a class="self" href="#406">self</a>.env); <span class="comment">// FloatFactory
-        </span><span class="kw">let </span>factory = ast::utility::BVFactory::new(<span class="kw-2">&amp;</span><a href="#407">factory_</a>, <a href="#406">bv_size</a>.<a href="#83">to_i32</a>()).unwrap();
-        (<a href="#407">factory_</a>, <a href="#408">factory</a>)
+    <span class="kw">pub fn </span>bv_factory(<span class="kw-2">&amp;</span><span class="self">self</span>, bv_size: BvSize) -&gt; (ast::utility::BVFactory&lt;<span class="lifetime">&#39;a</span>&gt;, JObject&lt;<span class="lifetime">&#39;a</span>&gt;) {
+        <span class="kw">let </span>factory_ = ast::utility::BVFactory::with(<span class="self">self</span>.env); <span class="comment">// FloatFactory
+        </span><span class="kw">let </span>factory = ast::utility::BVFactory::new(<span class="kw-2">&amp;</span>factory_, bv_size.to_i32()).unwrap();
+        (factory_, factory)
     }
 
-    <span class="kw">pub fn </span>int_to_backend_bv(<span class="kw-2">&amp;</span><span class="self">self</span>, bv_size: <a href="#74">BvSize</a>, expr: Expr&lt;<span class="lifetime">&#39;a</span>&gt;) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
-        <span class="kw">let </span>(factory_, factory) = <a class="self" href="#412">self</a>.<a href="#406">bv_factory</a>(<a href="#412">bv_size</a>);
+    <span class="kw">pub fn </span>int_to_backend_bv(<span class="kw-2">&amp;</span><span class="self">self</span>, bv_size: BvSize, expr: Expr&lt;<span class="lifetime">&#39;a</span>&gt;) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
+        <span class="kw">let </span>(factory_, factory) = <span class="self">self</span>.bv_factory(bv_size);
         <span class="kw">let </span>from_int = ast::utility::BVFactory::call_to__int(
-            <span class="kw-2">&amp;</span><a href="#413">factory_</a>,
-            <a href="#413">factory</a>,
-            <a class="self" href="#412">self</a>.jni.<a href="../jni_utils.rs.html#77">new_string</a>(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;toBV{}&quot;</span>, bv_size.to_i32())),
+            <span class="kw-2">&amp;</span>factory_,
+            factory,
+            <span class="self">self</span>.jni
+                .new_string(<span class="macro">format!</span>(<span class="string">&quot;bv{}_from_int&quot;</span>, bv_size.to_i32())),
         )
         .unwrap();
-        <a class="self" href="#412">self</a>.<a href="#992-997">backend_func_app</a>(<a href="#414">from_int</a>, <span class="kw-2">&amp;</span>[<a href="#412">expr</a>], <a class="self" href="#412">self</a>.<a href="position.rs.html#10">no_position</a>())
+        <span class="self">self</span>.backend_func_app(from_int, <span class="kw-2">&amp;</span>[expr], <span class="self">self</span>.no_position())
     }
 
-    <span class="kw">pub fn </span>backend_bv_to_int(<span class="kw-2">&amp;</span><span class="self">self</span>, bv_size: <a href="#74">BvSize</a>, expr: Expr&lt;<span class="lifetime">&#39;a</span>&gt;) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
-        <span class="kw">let </span>(factory_, factory) = <a class="self" href="#423">self</a>.<a href="#406">bv_factory</a>(<a href="#423">bv_size</a>);
+    <span class="kw">pub fn </span>backend_bv_to_int(<span class="kw-2">&amp;</span><span class="self">self</span>, bv_size: BvSize, expr: Expr&lt;<span class="lifetime">&#39;a</span>&gt;) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
+        <span class="kw">let </span>(factory_, factory) = <span class="self">self</span>.bv_factory(bv_size);
         <span class="kw">let </span>to_int = ast::utility::BVFactory::call_to__int(
-            <span class="kw-2">&amp;</span><a href="#424">factory_</a>,
-            <a href="#424">factory</a>,
-            <a class="self" href="#423">self</a>.jni.<a href="../jni_utils.rs.html#77">new_string</a>(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;fromBV{}&quot;</span>, bv_size.to_i32())),
+            <span class="kw-2">&amp;</span>factory_,
+            factory,
+            <span class="self">self</span>.jni
+                .new_string(<span class="macro">format!</span>(<span class="string">&quot;bv{}_to_int&quot;</span>, bv_size.to_i32())),
         )
         .unwrap();
-        <a class="self" href="#423">self</a>.<a href="#992-997">backend_func_app</a>(<a href="#425">to_int</a>, <span class="kw-2">&amp;</span>[<a href="#423">expr</a>], <a class="self" href="#423">self</a>.<a href="position.rs.html#10">no_position</a>())
+        <span class="self">self</span>.backend_func_app(to_int, <span class="kw-2">&amp;</span>[expr], <span class="self">self</span>.no_position())
     }
 
-    <span class="kw">pub fn </span>bv_binop(<span class="kw-2">&amp;</span><span class="self">self</span>, op_kind: <a href="#60">BinOpBv</a>, bv_size: <a href="#74">BvSize</a>, left: <a href="structs.rs.html#9">Expr</a>, right: <a href="structs.rs.html#9">Expr</a>) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
-        <span class="kw">let </span>(factory_, factory) = <a class="self" href="#434">self</a>.<a href="#406">bv_factory</a>(<a href="#434">bv_size</a>);
-        <span class="kw">let </span>op = <span class="kw">match </span><a href="#434">op_kind</a> {
-            <a href="#61">BinOpBv::BitAnd</a> =&gt; {
-                ast::utility::BVFactory::call_and(<span class="kw-2">&amp;</span><a href="#435">factory_</a>, <a href="#435">factory</a>, <a class="self" href="#434">self</a>.jni.<a href="../jni_utils.rs.html#77">new_string</a>(<span class="string">&quot;and&quot;</span>))
-            }
-            <a href="#62">BinOpBv::BitOr</a> =&gt; {
-                ast::utility::BVFactory::call_or(<span class="kw-2">&amp;</span><a href="#435">factory_</a>, <a href="#435">factory</a>, <a class="self" href="#434">self</a>.jni.<a href="../jni_utils.rs.html#77">new_string</a>(<span class="string">&quot;or&quot;</span>))
-            }
-            <a href="#63">BinOpBv::BitXor</a> =&gt; {
-                ast::utility::BVFactory::call_xor(<span class="kw-2">&amp;</span><a href="#435">factory_</a>, <a href="#435">factory</a>, <a class="self" href="#434">self</a>.jni.<a href="../jni_utils.rs.html#77">new_string</a>(<span class="string">&quot;xor&quot;</span>))
-            }
-            <a href="#64">BinOpBv::BvAdd</a> =&gt; {
-                ast::utility::BVFactory::call_add(<span class="kw-2">&amp;</span><a href="#435">factory_</a>, <a href="#435">factory</a>, <a class="self" href="#434">self</a>.jni.<a href="../jni_utils.rs.html#77">new_string</a>(<span class="string">&quot;add&quot;</span>))
-            }
-            <a href="#65">BinOpBv::BvSub</a> =&gt; {
-                ast::utility::BVFactory::call_sub(<span class="kw-2">&amp;</span><a href="#435">factory_</a>, <a href="#435">factory</a>, <a class="self" href="#434">self</a>.jni.<a href="../jni_utils.rs.html#77">new_string</a>(<span class="string">&quot;sub&quot;</span>))
-            }
-            <a href="#66">BinOpBv::BvMul</a> =&gt; {
-                ast::utility::BVFactory::call_mul(<span class="kw-2">&amp;</span><a href="#435">factory_</a>, <a href="#435">factory</a>, <a class="self" href="#434">self</a>.jni.<a href="../jni_utils.rs.html#77">new_string</a>(<span class="string">&quot;mul&quot;</span>))
-            }
-            <a href="#67">BinOpBv::BvUDiv</a> =&gt; {
-                ast::utility::BVFactory::call_udiv(<span class="kw-2">&amp;</span><a href="#435">factory_</a>, <a href="#435">factory</a>, <a class="self" href="#434">self</a>.jni.<a href="../jni_utils.rs.html#77">new_string</a>(<span class="string">&quot;udiv&quot;</span>))
-            }
-            <a href="#68">BinOpBv::BvShl</a> =&gt; {
-                ast::utility::BVFactory::call_shl(<span class="kw-2">&amp;</span><a href="#435">factory_</a>, <a href="#435">factory</a>, <a class="self" href="#434">self</a>.jni.<a href="../jni_utils.rs.html#77">new_string</a>(<span class="string">&quot;shl&quot;</span>))
-            }
-            <a href="#69">BinOpBv::BvLShr</a> =&gt; {
-                ast::utility::BVFactory::call_lshr(<span class="kw-2">&amp;</span><a href="#435">factory_</a>, <a href="#435">factory</a>, <a class="self" href="#434">self</a>.jni.<a href="../jni_utils.rs.html#77">new_string</a>(<span class="string">&quot;lshr&quot;</span>))
-            }
-            <a href="#70">BinOpBv::BvAShr</a> =&gt; {
-                ast::utility::BVFactory::call_ashr(<span class="kw-2">&amp;</span><a href="#435">factory_</a>, <a href="#435">factory</a>, <a class="self" href="#434">self</a>.jni.<a href="../jni_utils.rs.html#77">new_string</a>(<span class="string">&quot;rshr&quot;</span>))
-            }
+    <span class="kw">pub fn </span>bv_binop(<span class="kw-2">&amp;</span><span class="self">self</span>, op_kind: BinOpBv, bv_size: BvSize, left: Expr, right: Expr) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
+        <span class="kw">let </span>(factory_, factory) = <span class="self">self</span>.bv_factory(bv_size);
+        <span class="kw">let </span>size = bv_size.to_i32();
+        <span class="kw">let </span>op = <span class="kw">match </span>op_kind {
+            BinOpBv::BitAnd =&gt; ast::utility::BVFactory::call_and(
+                <span class="kw-2">&amp;</span>factory_,
+                factory,
+                <span class="self">self</span>.jni.new_string(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;bv{size}_and&quot;</span>)),
+            ),
+            BinOpBv::BitOr =&gt; ast::utility::BVFactory::call_or(
+                <span class="kw-2">&amp;</span>factory_,
+                factory,
+                <span class="self">self</span>.jni.new_string(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;bv{size}_or&quot;</span>)),
+            ),
+            BinOpBv::BitXor =&gt; ast::utility::BVFactory::call_xor(
+                <span class="kw-2">&amp;</span>factory_,
+                factory,
+                <span class="self">self</span>.jni.new_string(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;bv{size}_xor&quot;</span>)),
+            ),
+            BinOpBv::BvAdd =&gt; ast::utility::BVFactory::call_add(
+                <span class="kw-2">&amp;</span>factory_,
+                factory,
+                <span class="self">self</span>.jni.new_string(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;bv{size}_add&quot;</span>)),
+            ),
+            BinOpBv::BvSub =&gt; ast::utility::BVFactory::call_sub(
+                <span class="kw-2">&amp;</span>factory_,
+                factory,
+                <span class="self">self</span>.jni.new_string(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;bv{size}_sub&quot;</span>)),
+            ),
+            BinOpBv::BvMul =&gt; ast::utility::BVFactory::call_mul(
+                <span class="kw-2">&amp;</span>factory_,
+                factory,
+                <span class="self">self</span>.jni.new_string(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;bv{size}_mul&quot;</span>)),
+            ),
+            BinOpBv::BvUDiv =&gt; ast::utility::BVFactory::call_udiv(
+                <span class="kw-2">&amp;</span>factory_,
+                factory,
+                <span class="self">self</span>.jni.new_string(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;bv{size}_udiv&quot;</span>)),
+            ),
+            BinOpBv::BvShl =&gt; ast::utility::BVFactory::call_shl(
+                <span class="kw-2">&amp;</span>factory_,
+                factory,
+                <span class="self">self</span>.jni.new_string(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;bv{size}_shl&quot;</span>)),
+            ),
+            BinOpBv::BvLShr =&gt; ast::utility::BVFactory::call_lshr(
+                <span class="kw-2">&amp;</span>factory_,
+                factory,
+                <span class="self">self</span>.jni.new_string(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;bv{size}_lshr&quot;</span>)),
+            ),
+            BinOpBv::BvAShr =&gt; ast::utility::BVFactory::call_ashr(
+                <span class="kw-2">&amp;</span>factory_,
+                factory,
+                <span class="self">self</span>.jni.new_string(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;bv{size}_ashr&quot;</span>)),
+            ),
         }
         .unwrap();
-        <a class="self" href="#434">self</a>.<a href="#992-997">backend_func_app</a>(<a href="#436">op</a>, <span class="kw-2">&amp;</span>[<a href="#434">left</a>, <a href="#434">right</a>], <a class="self" href="#434">self</a>.<a href="position.rs.html#10">no_position</a>())
+        <span class="self">self</span>.backend_func_app(op, <span class="kw-2">&amp;</span>[left, right], <span class="self">self</span>.no_position())
     }
 
-    <span class="kw">pub fn </span>bv_unnop(<span class="kw-2">&amp;</span><span class="self">self</span>, op_kind: <a href="#50">UnOpBv</a>, bv_size: <a href="#74">BvSize</a>, arg: <a href="structs.rs.html#9">Expr</a>) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
-        <span class="kw">let </span>(factory_, factory) = <a class="self" href="#472">self</a>.<a href="#406">bv_factory</a>(<a href="#472">bv_size</a>);
-        <span class="kw">let </span>op = <span class="kw">match </span><a href="#472">op_kind</a> {
-            <a href="#51">UnOpBv::Not</a> =&gt; {
-                ast::utility::BVFactory::call_not(<span class="kw-2">&amp;</span><a href="#473">factory_</a>, <a href="#473">factory</a>, <a class="self" href="#472">self</a>.jni.<a href="../jni_utils.rs.html#77">new_string</a>(<span class="string">&quot;not&quot;</span>))
+    <span class="kw">pub fn </span>bv_unnop(<span class="kw-2">&amp;</span><span class="self">self</span>, op_kind: UnOpBv, bv_size: BvSize, arg: Expr) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
+        <span class="kw">let </span>(factory_, factory) = <span class="self">self</span>.bv_factory(bv_size);
+        <span class="kw">let </span>op = <span class="kw">match </span>op_kind {
+            UnOpBv::Not =&gt; {
+                ast::utility::BVFactory::call_not(<span class="kw-2">&amp;</span>factory_, factory, <span class="self">self</span>.jni.new_string(<span class="string">&quot;not&quot;</span>))
             }
-            <a href="#52">UnOpBv::Neg</a> =&gt; {
-                ast::utility::BVFactory::call_neg(<span class="kw-2">&amp;</span><a href="#473">factory_</a>, <a href="#473">factory</a>, <a class="self" href="#472">self</a>.jni.<a href="../jni_utils.rs.html#77">new_string</a>(<span class="string">&quot;neg&quot;</span>))
+            UnOpBv::Neg =&gt; {
+                ast::utility::BVFactory::call_neg(<span class="kw-2">&amp;</span>factory_, factory, <span class="self">self</span>.jni.new_string(<span class="string">&quot;neg&quot;</span>))
             }
-            <span class="kw">_ </span>=&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(<span class="string">&quot;unimplemented unop for bitvectors&quot;</span>),
+            <span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>(<span class="string">&quot;unimplemented unop for bitvectors&quot;</span>),
         }
         .unwrap();
-        <a class="self" href="#472">self</a>.<a href="#992-997">backend_func_app</a>(<a href="#474">op</a>, <span class="kw-2">&amp;</span>[<a href="#472">arg</a>], <a class="self" href="#472">self</a>.<a href="position.rs.html#10">no_position</a>())
+        <span class="self">self</span>.backend_func_app(op, <span class="kw-2">&amp;</span>[arg], <span class="self">self</span>.no_position())
     }
 
     <span class="comment">// Backend Floating-Points
     </span><span class="kw">pub fn </span>float_binop(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        op_kind: <a href="#28">BinOpFloat</a>,
-        f_size: <a href="#44">FloatSizeViper</a>,
-        left: <a href="structs.rs.html#9">Expr</a>,
-        right: <a href="structs.rs.html#9">Expr</a>,
+        op_kind: BinOpFloat,
+        f_size: FloatSizeViper,
+        left: Expr,
+        right: Expr,
     ) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
-        <span class="kw">let </span>rm = ast::utility::RoundingMode::with(<a class="self" href="#489">self</a>.env)
+        <span class="kw">let </span>rm = ast::utility::RoundingMode::with(<span class="self">self</span>.env)
             .call_RNE()
             .unwrap(); <span class="comment">// Rounding mode
-        </span><span class="kw">let </span>factory_ = ast::utility::FloatFactory::with(<a class="self" href="#489">self</a>.env); <span class="comment">// FloatFactory
-        </span><span class="kw">let </span>factory = <span class="kw">match </span><a href="#491">f_size</a> {
+        </span><span class="kw">let </span>factory_ = ast::utility::FloatFactory::with(<span class="self">self</span>.env); <span class="comment">// FloatFactory
+        </span><span class="kw">let </span>factory = <span class="kw">match </span>f_size {
             <span class="comment">//
-            </span><a href="#45">FloatSizeViper::F32</a> =&gt; ast::utility::FloatFactory::new(<span class="kw-2">&amp;</span><a href="#498">factory_</a>, <span class="number">24</span>, <span class="number">8</span>, <a href="#495">rm</a>),
-            <a href="#46">FloatSizeViper::F64</a> =&gt; ast::utility::FloatFactory::new(<span class="kw-2">&amp;</span><a href="#498">factory_</a>, <span class="number">52</span>, <span class="number">12</span>, <a href="#495">rm</a>),
+            </span>FloatSizeViper::F32 =&gt; ast::utility::FloatFactory::new(<span class="kw-2">&amp;</span>factory_, <span class="number">24</span>, <span class="number">8</span>, rm),
+            FloatSizeViper::F64 =&gt; ast::utility::FloatFactory::new(<span class="kw-2">&amp;</span>factory_, <span class="number">52</span>, <span class="number">12</span>, rm),
         }
         .unwrap();
-        <span class="kw">let </span>op = <span class="kw">match </span><a href="#490">op_kind</a> {
+        <span class="kw">let </span>size = <span class="kw">match </span>f_size {
+            FloatSizeViper::F32 =&gt; <span class="number">32</span>,
+            FloatSizeViper::F64 =&gt; <span class="number">64</span>,
+        };
+        <span class="kw">let </span>op = <span class="kw">match </span>op_kind {
             <span class="comment">// create FloatFactory function to call
-            </span><a href="#29">BinOpFloat::Add</a> =&gt; ast::utility::FloatFactory::call_add(
-                <span class="kw-2">&amp;</span><a href="#498">factory_</a>,
-                <a href="#499">factory</a>,
-                <a class="self" href="#489">self</a>.jni.<a href="../jni_utils.rs.html#77">new_string</a>(<span class="string">&quot;fp_add&quot;</span>),
+            </span>BinOpFloat::Add =&gt; ast::utility::FloatFactory::call_add(
+                <span class="kw-2">&amp;</span>factory_,
+                factory,
+                <span class="self">self</span>.jni.new_string(<span class="macro">format!</span>(<span class="string">&quot;f{size}_fp_add&quot;</span>)),
             ),
-            <a href="#30">BinOpFloat::Sub</a> =&gt; ast::utility::FloatFactory::call_sub(
-                <span class="kw-2">&amp;</span><a href="#498">factory_</a>,
-                <a href="#499">factory</a>,
-                <a class="self" href="#489">self</a>.jni.<a href="../jni_utils.rs.html#77">new_string</a>(<span class="string">&quot;fp_sub&quot;</span>),
+            BinOpFloat::Sub =&gt; ast::utility::FloatFactory::call_sub(
+                <span class="kw-2">&amp;</span>factory_,
+                factory,
+                <span class="self">self</span>.jni.new_string(<span class="macro">format!</span>(<span class="string">&quot;f{size}_fp_sub&quot;</span>)),
             ),
-            <a href="#31">BinOpFloat::Mul</a> =&gt; ast::utility::FloatFactory::call_mul(
-                <span class="kw-2">&amp;</span><a href="#498">factory_</a>,
-                <a href="#499">factory</a>,
-                <a class="self" href="#489">self</a>.jni.<a href="../jni_utils.rs.html#77">new_string</a>(<span class="string">&quot;fp_mul&quot;</span>),
+            BinOpFloat::Mul =&gt; ast::utility::FloatFactory::call_mul(
+                <span class="kw-2">&amp;</span>factory_,
+                factory,
+                <span class="self">self</span>.jni.new_string(<span class="macro">format!</span>(<span class="string">&quot;f{size}_fp_mul&quot;</span>)),
             ),
-            <a href="#32">BinOpFloat::Div</a> =&gt; ast::utility::FloatFactory::call_div(
-                <span class="kw-2">&amp;</span><a href="#498">factory_</a>,
-                <a href="#499">factory</a>,
-                <a class="self" href="#489">self</a>.jni.<a href="../jni_utils.rs.html#77">new_string</a>(<span class="string">&quot;fp_div&quot;</span>),
+            BinOpFloat::Div =&gt; ast::utility::FloatFactory::call_div(
+                <span class="kw-2">&amp;</span>factory_,
+                factory,
+                <span class="self">self</span>.jni.new_string(<span class="macro">format!</span>(<span class="string">&quot;f{size}_fp_div&quot;</span>)),
             ),
-            <a href="#38">BinOpFloat::Min</a> =&gt; ast::utility::FloatFactory::call_min(
-                <span class="kw-2">&amp;</span><a href="#498">factory_</a>,
-                <a href="#499">factory</a>,
-                <a class="self" href="#489">self</a>.jni.<a href="../jni_utils.rs.html#77">new_string</a>(<span class="string">&quot;fp_min&quot;</span>),
+            BinOpFloat::Min =&gt; ast::utility::FloatFactory::call_min(
+                <span class="kw-2">&amp;</span>factory_,
+                factory,
+                <span class="self">self</span>.jni.new_string(<span class="macro">format!</span>(<span class="string">&quot;f{size}_fp_min&quot;</span>)),
             ),
-            <a href="#39">BinOpFloat::Max</a> =&gt; ast::utility::FloatFactory::call_max(
-                <span class="kw-2">&amp;</span><a href="#498">factory_</a>,
-                <a href="#499">factory</a>,
-                <a class="self" href="#489">self</a>.jni.<a href="../jni_utils.rs.html#77">new_string</a>(<span class="string">&quot;fp_max&quot;</span>),
+            BinOpFloat::Max =&gt; ast::utility::FloatFactory::call_max(
+                <span class="kw-2">&amp;</span>factory_,
+                factory,
+                <span class="self">self</span>.jni.new_string(<span class="macro">format!</span>(<span class="string">&quot;f{size}_fp_max&quot;</span>)),
             ),
-            <a href="#33">BinOpFloat::Eq</a> =&gt; ast::utility::FloatFactory::call_eq(
-                <span class="kw-2">&amp;</span><a href="#498">factory_</a>,
-                <a href="#499">factory</a>,
-                <a class="self" href="#489">self</a>.jni.<a href="../jni_utils.rs.html#77">new_string</a>(<span class="string">&quot;fp_eq&quot;</span>),
+            BinOpFloat::Eq =&gt; ast::utility::FloatFactory::call_eq(
+                <span class="kw-2">&amp;</span>factory_,
+                factory,
+                <span class="self">self</span>.jni.new_string(<span class="macro">format!</span>(<span class="string">&quot;f{size}_fp_eq&quot;</span>)),
             ),
-            <a href="#34">BinOpFloat::Leq</a> =&gt; ast::utility::FloatFactory::call_leq(
-                <span class="kw-2">&amp;</span><a href="#498">factory_</a>,
-                <a href="#499">factory</a>,
-                <a class="self" href="#489">self</a>.jni.<a href="../jni_utils.rs.html#77">new_string</a>(<span class="string">&quot;fp_leq&quot;</span>),
+            BinOpFloat::Leq =&gt; ast::utility::FloatFactory::call_leq(
+                <span class="kw-2">&amp;</span>factory_,
+                factory,
+                <span class="self">self</span>.jni.new_string(<span class="macro">format!</span>(<span class="string">&quot;f{size}_fp_leq&quot;</span>)),
             ),
-            <a href="#35">BinOpFloat::Geq</a> =&gt; ast::utility::FloatFactory::call_geq(
-                <span class="kw-2">&amp;</span><a href="#498">factory_</a>,
-                <a href="#499">factory</a>,
-                <a class="self" href="#489">self</a>.jni.<a href="../jni_utils.rs.html#77">new_string</a>(<span class="string">&quot;fp_geq&quot;</span>),
+            BinOpFloat::Geq =&gt; ast::utility::FloatFactory::call_geq(
+                <span class="kw-2">&amp;</span>factory_,
+                factory,
+                <span class="self">self</span>.jni.new_string(<span class="macro">format!</span>(<span class="string">&quot;f{size}_fp_geq&quot;</span>)),
             ),
-            <a href="#36">BinOpFloat::Lt</a> =&gt; ast::utility::FloatFactory::call_lt(
-                <span class="kw-2">&amp;</span><a href="#498">factory_</a>,
-                <a href="#499">factory</a>,
-                <a class="self" href="#489">self</a>.jni.<a href="../jni_utils.rs.html#77">new_string</a>(<span class="string">&quot;fp_lt&quot;</span>),
+            BinOpFloat::Lt =&gt; ast::utility::FloatFactory::call_lt(
+                <span class="kw-2">&amp;</span>factory_,
+                factory,
+                <span class="self">self</span>.jni.new_string(<span class="macro">format!</span>(<span class="string">&quot;f{size}_fp_lt&quot;</span>)),
             ),
-            <a href="#37">BinOpFloat::Gt</a> =&gt; ast::utility::FloatFactory::call_gt(
-                <span class="kw-2">&amp;</span><a href="#498">factory_</a>,
-                <a href="#499">factory</a>,
-                <a class="self" href="#489">self</a>.jni.<a href="../jni_utils.rs.html#77">new_string</a>(<span class="string">&quot;fp_gt&quot;</span>),
+            BinOpFloat::Gt =&gt; ast::utility::FloatFactory::call_gt(
+                <span class="kw-2">&amp;</span>factory_,
+                factory,
+                <span class="self">self</span>.jni.new_string(<span class="macro">format!</span>(<span class="string">&quot;f{size}_fp_gt&quot;</span>)),
             ),
         }
         .unwrap();
-        <a class="self" href="#489">self</a>.<a href="#992-997">backend_func_app</a>(<a href="#505">op</a>, <span class="kw-2">&amp;</span>[<a href="#492">left</a>, <a href="#493">right</a>], <a class="self" href="#489">self</a>.<a href="position.rs.html#10">no_position</a>())
+        <span class="self">self</span>.backend_func_app(op, <span class="kw-2">&amp;</span>[left, right], <span class="self">self</span>.no_position())
     }
 
-    <span class="kw">pub fn </span>float_unop(<span class="kw-2">&amp;</span><span class="self">self</span>, op_kind: <a href="#14">UnOpFloat</a>, f_size: <a href="#44">FloatSizeViper</a>, arg: <a href="structs.rs.html#9">Expr</a>) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
-        <span class="kw">let </span>rm = ast::utility::RoundingMode::with(<a class="self" href="#567">self</a>.env)
+    <span class="kw">pub fn </span>float_unop(<span class="kw-2">&amp;</span><span class="self">self</span>, op_kind: UnOpFloat, f_size: FloatSizeViper, arg: Expr) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
+        <span class="kw">let </span>rm = ast::utility::RoundingMode::with(<span class="self">self</span>.env)
             .call_RNE()
             .unwrap(); <span class="comment">// Rounding mode
-        </span><span class="kw">let </span>factory_ = ast::utility::FloatFactory::with(<a class="self" href="#567">self</a>.env); <span class="comment">// FloatFactory
-        </span><span class="kw">let </span>factory = <span class="kw">match </span><a href="#567">f_size</a> {
+        </span><span class="kw">let </span>factory_ = ast::utility::FloatFactory::with(<span class="self">self</span>.env); <span class="comment">// FloatFactory
+        </span><span class="kw">let </span>factory = <span class="kw">match </span>f_size {
             <span class="comment">// FloatFactory JObject
-            </span><a href="#45">FloatSizeViper::F32</a> =&gt; ast::utility::FloatFactory::new(<span class="kw-2">&amp;</span><a href="#571">factory_</a>, <span class="number">24</span>, <span class="number">8</span>, <a href="#568">rm</a>),
-            <a href="#46">FloatSizeViper::F64</a> =&gt; ast::utility::FloatFactory::new(<span class="kw-2">&amp;</span><a href="#571">factory_</a>, <span class="number">52</span>, <span class="number">12</span>, <a href="#568">rm</a>),
+            </span>FloatSizeViper::F32 =&gt; ast::utility::FloatFactory::new(<span class="kw-2">&amp;</span>factory_, <span class="number">24</span>, <span class="number">8</span>, rm),
+            FloatSizeViper::F64 =&gt; ast::utility::FloatFactory::new(<span class="kw-2">&amp;</span>factory_, <span class="number">52</span>, <span class="number">12</span>, rm),
+        }
+        .unwrap();
+        <span class="kw">let </span>size = <span class="kw">match </span>f_size {
+            FloatSizeViper::F32 =&gt; <span class="number">32</span>,
+            FloatSizeViper::F64 =&gt; <span class="number">64</span>,
+        };
+        <span class="kw">let </span>op = <span class="kw">match </span>op_kind {
+            UnOpFloat::Neg =&gt; ast::utility::FloatFactory::call_neg(
+                <span class="kw-2">&amp;</span>factory_,
+                factory,
+                <span class="self">self</span>.jni.new_string(<span class="macro">format!</span>(<span class="string">&quot;f{size}_fp_neg&quot;</span>)),
+            ),
+            UnOpFloat::Abs =&gt; ast::utility::FloatFactory::call_abs(
+                <span class="kw-2">&amp;</span>factory_,
+                factory,
+                <span class="self">self</span>.jni.new_string(<span class="macro">format!</span>(<span class="string">&quot;f{size}_fp_abs&quot;</span>)),
+            ),
+            UnOpFloat::IsZero =&gt; ast::utility::FloatFactory::call_isZero(
+                <span class="kw-2">&amp;</span>factory_,
+                factory,
+                <span class="self">self</span>.jni.new_string(<span class="macro">format!</span>(<span class="string">&quot;f{size}_fp_is_zero&quot;</span>)),
+            ),
+            UnOpFloat::IsInfinite =&gt; ast::utility::FloatFactory::call_isInfinite(
+                <span class="kw-2">&amp;</span>factory_,
+                factory,
+                <span class="self">self</span>.jni.new_string(<span class="macro">format!</span>(<span class="string">&quot;f{size}_fp_is_infinite&quot;</span>)),
+            ),
+            UnOpFloat::IsNan =&gt; ast::utility::FloatFactory::call_isNaN(
+                <span class="kw-2">&amp;</span>factory_,
+                factory,
+                <span class="self">self</span>.jni.new_string(<span class="macro">format!</span>(<span class="string">&quot;f{size}_fp_is_nan&quot;</span>)),
+            ),
+            UnOpFloat::IsNegative =&gt; ast::utility::FloatFactory::call_isNegative(
+                <span class="kw-2">&amp;</span>factory_,
+                factory,
+                <span class="self">self</span>.jni.new_string(<span class="macro">format!</span>(<span class="string">&quot;f{size}_fp_is_negative&quot;</span>)),
+            ),
+            UnOpFloat::IsPositive =&gt; ast::utility::FloatFactory::call_isPositive(
+                <span class="kw-2">&amp;</span>factory_,
+                factory,
+                <span class="self">self</span>.jni.new_string(<span class="macro">format!</span>(<span class="string">&quot;f{size}_fp_is_positive&quot;</span>)),
+            ),
+            UnOpFloat::GetType =&gt; <span class="macro">todo!</span>(),
+            UnOpFloat::FromBV =&gt; <span class="macro">todo!</span>(),
+            UnOpFloat::ToBV =&gt; <span class="macro">todo!</span>(),
         }
         .unwrap();
 
-        <span class="kw">let </span>op = <span class="kw">match </span><a href="#567">op_kind</a> {
-            <a href="#15">UnOpFloat::Neg</a> =&gt; ast::utility::FloatFactory::call_neg(
-                <span class="kw-2">&amp;</span><a href="#571">factory_</a>,
-                <a href="#572">factory</a>,
-                <a class="self" href="#567">self</a>.jni.<a href="../jni_utils.rs.html#77">new_string</a>(<span class="string">&quot;fp_neg&quot;</span>),
-            ),
-            <a href="#16">UnOpFloat::Abs</a> =&gt; ast::utility::FloatFactory::call_abs(
-                <span class="kw-2">&amp;</span><a href="#571">factory_</a>,
-                <a href="#572">factory</a>,
-                <a class="self" href="#567">self</a>.jni.<a href="../jni_utils.rs.html#77">new_string</a>(<span class="string">&quot;fp_abs&quot;</span>),
-            ),
-            <a href="#17">UnOpFloat::IsZero</a> =&gt; ast::utility::FloatFactory::call_isZero(
-                <span class="kw-2">&amp;</span><a href="#571">factory_</a>,
-                <a href="#572">factory</a>,
-                <a class="self" href="#567">self</a>.jni.<a href="../jni_utils.rs.html#77">new_string</a>(<span class="string">&quot;fp_isZero&quot;</span>),
-            ),
-            <a href="#18">UnOpFloat::IsInfinite</a> =&gt; ast::utility::FloatFactory::call_isInfinite(
-                <span class="kw-2">&amp;</span><a href="#571">factory_</a>,
-                <a href="#572">factory</a>,
-                <a class="self" href="#567">self</a>.jni.<a href="../jni_utils.rs.html#77">new_string</a>(<span class="string">&quot;fp_isInfinite&quot;</span>),
-            ),
-            <a href="#19">UnOpFloat::IsNan</a> =&gt; ast::utility::FloatFactory::call_isNaN(
-                <span class="kw-2">&amp;</span><a href="#571">factory_</a>,
-                <a href="#572">factory</a>,
-                <a class="self" href="#567">self</a>.jni.<a href="../jni_utils.rs.html#77">new_string</a>(<span class="string">&quot;fp_isNaN&quot;</span>),
-            ),
-            <a href="#20">UnOpFloat::IsNegative</a> =&gt; ast::utility::FloatFactory::call_isNegative(
-                <span class="kw-2">&amp;</span><a href="#571">factory_</a>,
-                <a href="#572">factory</a>,
-                <a class="self" href="#567">self</a>.jni.<a href="../jni_utils.rs.html#77">new_string</a>(<span class="string">&quot;fp_isNegative&quot;</span>),
-            ),
-            <a href="#21">UnOpFloat::IsPositive</a> =&gt; ast::utility::FloatFactory::call_isPositive(
-                <span class="kw-2">&amp;</span><a href="#571">factory_</a>,
-                <a href="#572">factory</a>,
-                <a class="self" href="#567">self</a>.jni.<a href="../jni_utils.rs.html#77">new_string</a>(<span class="string">&quot;fp_isPositive&quot;</span>),
-            ),
-            <a href="#22">UnOpFloat::GetType</a> =&gt; ast::utility::FloatFactory::call_typ(<span class="kw-2">&amp;</span><a href="#571">factory_</a>, <a href="#572">factory</a>),
-            <a href="#23">UnOpFloat::FromBV</a> =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.todo.html">todo!</a>(),
-            <a href="#24">UnOpFloat::ToBV</a> =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.todo.html">todo!</a>(),
-        }
-        .unwrap();
-
-        <a class="self" href="#567">self</a>.<a href="#992-997">backend_func_app</a>(<a href="#579">op</a>, <span class="kw-2">&amp;</span>[<a href="#567">arg</a>], <a class="self" href="#567">self</a>.<a href="position.rs.html#10">no_position</a>())
+        <span class="self">self</span>.backend_func_app(op, <span class="kw-2">&amp;</span>[arg], <span class="self">self</span>.no_position())
     }
 
-    <span class="kw">pub fn </span>backend_f32_lit(<span class="kw-2">&amp;</span><span class="self">self</span>, bits: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
-        <span class="kw">let </span>bv = <a class="self" href="#624">self</a>.<a href="#334">backend_bv32_lit</a>(<a href="#624">bits</a>);
-        <span class="kw">let </span>rm = ast::utility::RoundingMode::with(<a class="self" href="#624">self</a>.env)
+    <span class="kw">pub fn </span>backend_f32_lit(<span class="kw-2">&amp;</span><span class="self">self</span>, bits: u32) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
+        <span class="kw">let </span>bv = <span class="self">self</span>.backend_bv32_lit(bits);
+        <span class="kw">let </span>rm = ast::utility::RoundingMode::with(<span class="self">self</span>.env)
             .call_RNE()
             .unwrap(); <span class="comment">// Rounding mode
-        </span><span class="kw">let </span>float_factory_ = ast::utility::FloatFactory::with(<a class="self" href="#624">self</a>.env); <span class="comment">// FloatFactory
-        </span><span class="kw">let </span>float_factory = ast::utility::FloatFactory::new(<span class="kw-2">&amp;</span><a href="#629">float_factory_</a>, <span class="number">24</span>, <span class="number">8</span>, <a href="#626">rm</a>).unwrap(); <span class="comment">// FloatFactory JObject
+        </span><span class="kw">let </span>float_factory_ = ast::utility::FloatFactory::with(<span class="self">self</span>.env); <span class="comment">// FloatFactory
+        </span><span class="kw">let </span>float_factory = ast::utility::FloatFactory::new(<span class="kw-2">&amp;</span>float_factory_, <span class="number">24</span>, <span class="number">8</span>, rm).unwrap(); <span class="comment">// FloatFactory JObject
         </span><span class="kw">let </span>from_bv = ast::utility::FloatFactory::call_from__bv(
-            <span class="kw-2">&amp;</span><a href="#629">float_factory_</a>,
-            <a href="#630">float_factory</a>,
-            <a class="self" href="#624">self</a>.jni.<a href="../jni_utils.rs.html#77">new_string</a>(<span class="string">&quot;tofp&quot;</span>),
+            <span class="kw-2">&amp;</span>float_factory_,
+            float_factory,
+            <span class="self">self</span>.jni.new_string(<span class="string">&quot;f32_from_bv&quot;</span>),
         )
         .unwrap();
-        <a class="self" href="#624">self</a>.<a href="#992-997">backend_func_app</a>(<a href="#631">from_bv</a>, <span class="kw-2">&amp;</span>[<a href="#625">bv</a>], <a class="self" href="#624">self</a>.<a href="position.rs.html#10">no_position</a>())
+        <span class="self">self</span>.backend_func_app(from_bv, <span class="kw-2">&amp;</span>[bv], <span class="self">self</span>.no_position())
     }
 
-    <span class="kw">pub fn </span>backend_f64_lit(<span class="kw-2">&amp;</span><span class="self">self</span>, bits: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
-        <span class="kw">let </span>bv = <a class="self" href="#640">self</a>.<a href="#358">backend_bv64_lit</a>(<a href="#640">bits</a>);
-        <span class="kw">let </span>rm = ast::utility::RoundingMode::with(<a class="self" href="#640">self</a>.env)
+    <span class="kw">pub fn </span>backend_f64_lit(<span class="kw-2">&amp;</span><span class="self">self</span>, bits: u64) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
+        <span class="kw">let </span>bv = <span class="self">self</span>.backend_bv64_lit(bits);
+        <span class="kw">let </span>rm = ast::utility::RoundingMode::with(<span class="self">self</span>.env)
             .call_RNE()
             .unwrap(); <span class="comment">// Rounding mode
-        </span><span class="kw">let </span>float_factory_ = ast::utility::FloatFactory::with(<a class="self" href="#640">self</a>.env); <span class="comment">// FloatFactory
-        </span><span class="kw">let </span>float_factory = ast::utility::FloatFactory::new(<span class="kw-2">&amp;</span><a href="#645">float_factory_</a>, <span class="number">52</span>, <span class="number">12</span>, <a href="#642">rm</a>).unwrap(); <span class="comment">// FloatFactory JObject
+        </span><span class="kw">let </span>float_factory_ = ast::utility::FloatFactory::with(<span class="self">self</span>.env); <span class="comment">// FloatFactory
+        </span><span class="kw">let </span>float_factory = ast::utility::FloatFactory::new(<span class="kw-2">&amp;</span>float_factory_, <span class="number">52</span>, <span class="number">12</span>, rm).unwrap(); <span class="comment">// FloatFactory JObject
         </span><span class="kw">let </span>from_bv = ast::utility::FloatFactory::call_from__bv(
-            <span class="kw-2">&amp;</span><a href="#645">float_factory_</a>,
-            <a href="#646">float_factory</a>,
-            <a class="self" href="#640">self</a>.jni.<a href="../jni_utils.rs.html#77">new_string</a>(<span class="string">&quot;tofp&quot;</span>),
+            <span class="kw-2">&amp;</span>float_factory_,
+            float_factory,
+            <span class="self">self</span>.jni.new_string(<span class="string">&quot;f64_from_bv&quot;</span>),
         )
         .unwrap();
-        <a class="self" href="#640">self</a>.<a href="#992-997">backend_func_app</a>(<a href="#647">from_bv</a>, <span class="kw-2">&amp;</span>[<a href="#641">bv</a>], <a class="self" href="#640">self</a>.<a href="position.rs.html#10">no_position</a>())
+        <span class="self">self</span>.backend_func_app(from_bv, <span class="kw-2">&amp;</span>[bv], <span class="self">self</span>.no_position())
     }
 
-    <span class="kw">pub fn </span>or_with_pos(<span class="kw-2">&amp;</span><span class="self">self</span>, left: <a href="structs.rs.html#9">Expr</a>, right: <a href="structs.rs.html#9">Expr</a>, pos: <a href="structs.rs.html#11">Position</a>) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
-        <a class="macro" href="macros.rs.html#53-68">build_ast_node_with_pos!</a>(
+    <span class="kw">pub fn </span>or_with_pos(<span class="kw-2">&amp;</span><span class="self">self</span>, left: Expr, right: Expr, pos: Position) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
+        <span class="macro">build_ast_node_with_pos!</span>(
             <span class="self">self</span>,
             Expr,
             ast::Or,
@@ -2126,12 +2186,12 @@
         )
     }
 
-    <span class="kw">pub fn </span>or(<span class="kw-2">&amp;</span><span class="self">self</span>, left: <a href="structs.rs.html#9">Expr</a>, right: <a href="structs.rs.html#9">Expr</a>) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
-        <a class="self" href="#667">self</a>.<a href="#656">or_with_pos</a>(<a href="#667">left</a>, <a href="#667">right</a>, <a class="self" href="#667">self</a>.<a href="position.rs.html#10">no_position</a>())
+    <span class="kw">pub fn </span>or(<span class="kw-2">&amp;</span><span class="self">self</span>, left: Expr, right: Expr) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
+        <span class="self">self</span>.or_with_pos(left, right, <span class="self">self</span>.no_position())
     }
 
-    <span class="kw">pub fn </span>and_with_pos(<span class="kw-2">&amp;</span><span class="self">self</span>, left: <a href="structs.rs.html#9">Expr</a>, right: <a href="structs.rs.html#9">Expr</a>, pos: <a href="structs.rs.html#11">Position</a>) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
-        <a class="macro" href="macros.rs.html#53-68">build_ast_node_with_pos!</a>(
+    <span class="kw">pub fn </span>and_with_pos(<span class="kw-2">&amp;</span><span class="self">self</span>, left: Expr, right: Expr, pos: Position) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
+        <span class="macro">build_ast_node_with_pos!</span>(
             <span class="self">self</span>,
             Expr,
             ast::And,
@@ -2141,12 +2201,12 @@
         )
     }
 
-    <span class="kw">pub fn </span>and(<span class="kw-2">&amp;</span><span class="self">self</span>, left: <a href="structs.rs.html#9">Expr</a>, right: <a href="structs.rs.html#9">Expr</a>) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
-        <a class="self" href="#682">self</a>.<a href="#671">and_with_pos</a>(<a href="#682">left</a>, <a href="#682">right</a>, <a class="self" href="#682">self</a>.<a href="position.rs.html#10">no_position</a>())
+    <span class="kw">pub fn </span>and(<span class="kw-2">&amp;</span><span class="self">self</span>, left: Expr, right: Expr) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
+        <span class="self">self</span>.and_with_pos(left, right, <span class="self">self</span>.no_position())
     }
 
-    <span class="kw">pub fn </span>implies_with_pos(<span class="kw-2">&amp;</span><span class="self">self</span>, left: <a href="structs.rs.html#9">Expr</a>, right: <a href="structs.rs.html#9">Expr</a>, pos: <a href="structs.rs.html#11">Position</a>) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
-        <a class="macro" href="macros.rs.html#53-68">build_ast_node_with_pos!</a>(
+    <span class="kw">pub fn </span>implies_with_pos(<span class="kw-2">&amp;</span><span class="self">self</span>, left: Expr, right: Expr, pos: Position) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
+        <span class="macro">build_ast_node_with_pos!</span>(
             <span class="self">self</span>,
             Expr,
             ast::Implies,
@@ -2156,8 +2216,8 @@
         )
     }
 
-    <span class="kw">pub fn </span>implies(<span class="kw-2">&amp;</span><span class="self">self</span>, left: <a href="structs.rs.html#9">Expr</a>, right: <a href="structs.rs.html#9">Expr</a>) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
-        <a class="macro" href="macros.rs.html#71-89">build_ast_node!</a>(
+    <span class="kw">pub fn </span>implies(<span class="kw-2">&amp;</span><span class="self">self</span>, left: Expr, right: Expr) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
+        <span class="macro">build_ast_node!</span>(
             <span class="self">self</span>,
             Expr,
             ast::Implies,
@@ -2166,8 +2226,8 @@
         )
     }
 
-    <span class="kw">pub fn </span>magic_wand_with_pos(<span class="kw-2">&amp;</span><span class="self">self</span>, left: <a href="structs.rs.html#9">Expr</a>, right: <a href="structs.rs.html#9">Expr</a>, pos: <a href="structs.rs.html#11">Position</a>) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
-        <a class="macro" href="macros.rs.html#53-68">build_ast_node_with_pos!</a>(
+    <span class="kw">pub fn </span>magic_wand_with_pos(<span class="kw-2">&amp;</span><span class="self">self</span>, left: Expr, right: Expr, pos: Position) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
+        <span class="macro">build_ast_node_with_pos!</span>(
             <span class="self">self</span>,
             Expr,
             ast::MagicWand,
@@ -2177,49 +2237,49 @@
         )
     }
 
-    <span class="kw">pub fn </span>magic_wand(<span class="kw-2">&amp;</span><span class="self">self</span>, left: <a href="structs.rs.html#9">Expr</a>, right: <a href="structs.rs.html#9">Expr</a>) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
-        <a class="self" href="#718">self</a>.<a href="#707">magic_wand_with_pos</a>(<a href="#718">left</a>, <a href="#718">right</a>, <a class="self" href="#718">self</a>.<a href="position.rs.html#10">no_position</a>())
+    <span class="kw">pub fn </span>magic_wand(<span class="kw-2">&amp;</span><span class="self">self</span>, left: Expr, right: Expr) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
+        <span class="self">self</span>.magic_wand_with_pos(left, right, <span class="self">self</span>.no_position())
     }
 
-    <span class="kw">pub fn </span>not_with_pos(<span class="kw-2">&amp;</span><span class="self">self</span>, expr: <a href="structs.rs.html#9">Expr</a>, pos: <a href="structs.rs.html#11">Position</a>) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
-        <a class="macro" href="macros.rs.html#53-68">build_ast_node_with_pos!</a>(<span class="self">self</span>, Expr, ast::Not, expr.to_jobject(), pos.to_jobject())
+    <span class="kw">pub fn </span>not_with_pos(<span class="kw-2">&amp;</span><span class="self">self</span>, expr: Expr, pos: Position) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
+        <span class="macro">build_ast_node_with_pos!</span>(<span class="self">self</span>, Expr, ast::Not, expr.to_jobject(), pos.to_jobject())
     }
 
-    <span class="kw">pub fn </span>not(<span class="kw-2">&amp;</span><span class="self">self</span>, expr: <a href="structs.rs.html#9">Expr</a>) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
-        <a class="self" href="#726">self</a>.<a href="#722">not_with_pos</a>(<a href="#726">expr</a>, <a class="self" href="#726">self</a>.<a href="position.rs.html#10">no_position</a>())
+    <span class="kw">pub fn </span>not(<span class="kw-2">&amp;</span><span class="self">self</span>, expr: Expr) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
+        <span class="self">self</span>.not_with_pos(expr, <span class="self">self</span>.no_position())
     }
 
-    <span class="kw">pub fn </span>true_lit_with_pos(<span class="kw-2">&amp;</span><span class="self">self</span>, pos: <a href="structs.rs.html#11">Position</a>) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
-        <a class="macro" href="macros.rs.html#53-68">build_ast_node_with_pos!</a>(<span class="self">self</span>, Expr, ast::TrueLit, pos.to_jobject())
+    <span class="kw">pub fn </span>true_lit_with_pos(<span class="kw-2">&amp;</span><span class="self">self</span>, pos: Position) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
+        <span class="macro">build_ast_node_with_pos!</span>(<span class="self">self</span>, Expr, ast::TrueLit, pos.to_jobject())
     }
 
     <span class="kw">pub fn </span>true_lit(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
-        <a class="self" href="#734">self</a>.<a href="#730">true_lit_with_pos</a>(<a class="self" href="#734">self</a>.<a href="position.rs.html#10">no_position</a>())
+        <span class="self">self</span>.true_lit_with_pos(<span class="self">self</span>.no_position())
     }
 
-    <span class="kw">pub fn </span>false_lit_with_pos(<span class="kw-2">&amp;</span><span class="self">self</span>, pos: <a href="structs.rs.html#11">Position</a>) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
-        <a class="macro" href="macros.rs.html#53-68">build_ast_node_with_pos!</a>(<span class="self">self</span>, Expr, ast::FalseLit, pos.to_jobject())
+    <span class="kw">pub fn </span>false_lit_with_pos(<span class="kw-2">&amp;</span><span class="self">self</span>, pos: Position) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
+        <span class="macro">build_ast_node_with_pos!</span>(<span class="self">self</span>, Expr, ast::FalseLit, pos.to_jobject())
     }
 
     <span class="kw">pub fn </span>false_lit(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
-        <a class="self" href="#742">self</a>.<a href="#738">false_lit_with_pos</a>(<a class="self" href="#742">self</a>.<a href="position.rs.html#10">no_position</a>())
+        <span class="self">self</span>.false_lit_with_pos(<span class="self">self</span>.no_position())
     }
 
-    <span class="kw">pub fn </span>null_lit_with_pos(<span class="kw-2">&amp;</span><span class="self">self</span>, pos: <a href="structs.rs.html#11">Position</a>) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
-        <a class="macro" href="macros.rs.html#53-68">build_ast_node_with_pos!</a>(<span class="self">self</span>, Expr, ast::NullLit, pos.to_jobject())
+    <span class="kw">pub fn </span>null_lit_with_pos(<span class="kw-2">&amp;</span><span class="self">self</span>, pos: Position) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
+        <span class="macro">build_ast_node_with_pos!</span>(<span class="self">self</span>, Expr, ast::NullLit, pos.to_jobject())
     }
 
     <span class="kw">pub fn </span>null_lit(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
-        <a class="self" href="#750">self</a>.<a href="#746">null_lit_with_pos</a>(<a class="self" href="#750">self</a>.<a href="position.rs.html#10">no_position</a>())
+        <span class="self">self</span>.null_lit_with_pos(<span class="self">self</span>.no_position())
     }
 
     <span class="kw">pub fn </span>field_access_predicate_with_pos(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        loc: <a href="structs.rs.html#9">Expr</a>,
-        perm: <a href="structs.rs.html#9">Expr</a>,
-        pos: <a href="structs.rs.html#11">Position</a>,
+        loc: Expr,
+        perm: Expr,
+        pos: Position,
     ) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
-        <a class="macro" href="macros.rs.html#53-68">build_ast_node_with_pos!</a>(
+        <span class="macro">build_ast_node_with_pos!</span>(
             <span class="self">self</span>,
             Expr,
             ast::FieldAccessPredicate,
@@ -2229,17 +2289,17 @@
         )
     }
 
-    <span class="kw">pub fn </span>field_access_predicate(<span class="kw-2">&amp;</span><span class="self">self</span>, loc: <a href="structs.rs.html#9">Expr</a>, perm: <a href="structs.rs.html#9">Expr</a>) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
-        <a class="self" href="#770">self</a>.<a href="#754-759">field_access_predicate_with_pos</a>(<a href="#770">loc</a>, <a href="#770">perm</a>, <a class="self" href="#770">self</a>.<a href="position.rs.html#10">no_position</a>())
+    <span class="kw">pub fn </span>field_access_predicate(<span class="kw-2">&amp;</span><span class="self">self</span>, loc: Expr, perm: Expr) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
+        <span class="self">self</span>.field_access_predicate_with_pos(loc, perm, <span class="self">self</span>.no_position())
     }
 
     <span class="kw">pub fn </span>predicate_access_predicate_with_pos(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        loc: <a href="structs.rs.html#9">Expr</a>,
-        perm: <a href="structs.rs.html#9">Expr</a>,
-        pos: <a href="structs.rs.html#11">Position</a>,
+        loc: Expr,
+        perm: Expr,
+        pos: Position,
     ) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
-        <a class="macro" href="macros.rs.html#53-68">build_ast_node_with_pos!</a>(
+        <span class="macro">build_ast_node_with_pos!</span>(
             <span class="self">self</span>,
             Expr,
             ast::PredicateAccessPredicate,
@@ -2249,12 +2309,12 @@
         )
     }
 
-    <span class="kw">pub fn </span>predicate_access_predicate(<span class="kw-2">&amp;</span><span class="self">self</span>, loc: <a href="structs.rs.html#9">Expr</a>, perm: <a href="structs.rs.html#9">Expr</a>) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
-        <a class="self" href="#790">self</a>.<a href="#774-779">predicate_access_predicate_with_pos</a>(<a href="#790">loc</a>, <a href="#790">perm</a>, <a class="self" href="#790">self</a>.<a href="position.rs.html#10">no_position</a>())
+    <span class="kw">pub fn </span>predicate_access_predicate(<span class="kw-2">&amp;</span><span class="self">self</span>, loc: Expr, perm: Expr) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
+        <span class="self">self</span>.predicate_access_predicate_with_pos(loc, perm, <span class="self">self</span>.no_position())
     }
 
-    <span class="kw">pub fn </span>inhale_exhale_pred(<span class="kw-2">&amp;</span><span class="self">self</span>, inhale: <a href="structs.rs.html#9">Expr</a>, exhale: <a href="structs.rs.html#9">Expr</a>) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
-        <a class="macro" href="macros.rs.html#71-89">build_ast_node!</a>(
+    <span class="kw">pub fn </span>inhale_exhale_pred(<span class="kw-2">&amp;</span><span class="self">self</span>, inhale: Expr, exhale: Expr) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
+        <span class="macro">build_ast_node!</span>(
             <span class="self">self</span>,
             Expr,
             ast::InhaleExhaleExp,
@@ -2264,23 +2324,23 @@
     }
 
     <span class="kw">pub fn </span>wildcard_perm(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
-        <a class="macro" href="macros.rs.html#71-89">build_ast_node!</a>(<span class="self">self</span>, Expr, ast::WildcardPerm)
+        <span class="macro">build_ast_node!</span>(<span class="self">self</span>, Expr, ast::WildcardPerm)
     }
 
     <span class="kw">pub fn </span>full_perm(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
-        <a class="macro" href="macros.rs.html#71-89">build_ast_node!</a>(<span class="self">self</span>, Expr, ast::FullPerm)
+        <span class="macro">build_ast_node!</span>(<span class="self">self</span>, Expr, ast::FullPerm)
     }
 
     <span class="kw">pub fn </span>no_perm(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
-        <a class="macro" href="macros.rs.html#71-89">build_ast_node!</a>(<span class="self">self</span>, Expr, ast::NoPerm)
+        <span class="macro">build_ast_node!</span>(<span class="self">self</span>, Expr, ast::NoPerm)
     }
 
     <span class="kw">pub fn </span>epsilon_perm(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
-        <a class="macro" href="macros.rs.html#71-89">build_ast_node!</a>(<span class="self">self</span>, Expr, ast::EpsilonPerm)
+        <span class="macro">build_ast_node!</span>(<span class="self">self</span>, Expr, ast::EpsilonPerm)
     }
 
-    <span class="kw">pub fn </span>fractional_perm(<span class="kw-2">&amp;</span><span class="self">self</span>, left: <a href="structs.rs.html#9">Expr</a>, right: <a href="structs.rs.html#9">Expr</a>) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
-        <a class="macro" href="macros.rs.html#71-89">build_ast_node!</a>(
+    <span class="kw">pub fn </span>fractional_perm(<span class="kw-2">&amp;</span><span class="self">self</span>, left: Expr, right: Expr) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
+        <span class="macro">build_ast_node!</span>(
             <span class="self">self</span>,
             Expr,
             ast::FractionalPerm,
@@ -2289,8 +2349,8 @@
         )
     }
 
-    <span class="kw">pub fn </span>perm_div(<span class="kw-2">&amp;</span><span class="self">self</span>, left: <a href="structs.rs.html#9">Expr</a>, right: <a href="structs.rs.html#9">Expr</a>) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
-        <a class="macro" href="macros.rs.html#71-89">build_ast_node!</a>(
+    <span class="kw">pub fn </span>perm_div(<span class="kw-2">&amp;</span><span class="self">self</span>, left: Expr, right: Expr) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
+        <span class="macro">build_ast_node!</span>(
             <span class="self">self</span>,
             Expr,
             ast::PermDiv,
@@ -2299,16 +2359,16 @@
         )
     }
 
-    <span class="kw">pub fn </span>current_perm(<span class="kw-2">&amp;</span><span class="self">self</span>, loc: <a href="structs.rs.html#9">Expr</a>) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
-        <a class="macro" href="macros.rs.html#71-89">build_ast_node!</a>(<span class="self">self</span>, Expr, ast::CurrentPerm, loc.to_jobject())
+    <span class="kw">pub fn </span>current_perm(<span class="kw-2">&amp;</span><span class="self">self</span>, loc: Expr) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
+        <span class="macro">build_ast_node!</span>(<span class="self">self</span>, Expr, ast::CurrentPerm, loc.to_jobject())
     }
 
-    <span class="kw">pub fn </span>perm_minus(<span class="kw-2">&amp;</span><span class="self">self</span>, expr: <a href="structs.rs.html#9">Expr</a>) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
-        <a class="macro" href="macros.rs.html#71-89">build_ast_node!</a>(<span class="self">self</span>, Expr, ast::PermMinus, expr.to_jobject())
+    <span class="kw">pub fn </span>perm_minus(<span class="kw-2">&amp;</span><span class="self">self</span>, expr: Expr) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
+        <span class="macro">build_ast_node!</span>(<span class="self">self</span>, Expr, ast::PermMinus, expr.to_jobject())
     }
 
-    <span class="kw">pub fn </span>perm_add(<span class="kw-2">&amp;</span><span class="self">self</span>, left: <a href="structs.rs.html#9">Expr</a>, right: <a href="structs.rs.html#9">Expr</a>) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
-        <a class="macro" href="macros.rs.html#71-89">build_ast_node!</a>(
+    <span class="kw">pub fn </span>perm_add(<span class="kw-2">&amp;</span><span class="self">self</span>, left: Expr, right: Expr) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
+        <span class="macro">build_ast_node!</span>(
             <span class="self">self</span>,
             Expr,
             ast::PermAdd,
@@ -2317,8 +2377,8 @@
         )
     }
 
-    <span class="kw">pub fn </span>perm_sub(<span class="kw-2">&amp;</span><span class="self">self</span>, left: <a href="structs.rs.html#9">Expr</a>, right: <a href="structs.rs.html#9">Expr</a>) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
-        <a class="macro" href="macros.rs.html#71-89">build_ast_node!</a>(
+    <span class="kw">pub fn </span>perm_sub(<span class="kw-2">&amp;</span><span class="self">self</span>, left: Expr, right: Expr) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
+        <span class="macro">build_ast_node!</span>(
             <span class="self">self</span>,
             Expr,
             ast::PermSub,
@@ -2327,8 +2387,8 @@
         )
     }
 
-    <span class="kw">pub fn </span>perm_mul(<span class="kw-2">&amp;</span><span class="self">self</span>, left: <a href="structs.rs.html#9">Expr</a>, right: <a href="structs.rs.html#9">Expr</a>) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
-        <a class="macro" href="macros.rs.html#71-89">build_ast_node!</a>(
+    <span class="kw">pub fn </span>perm_mul(<span class="kw-2">&amp;</span><span class="self">self</span>, left: Expr, right: Expr) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
+        <span class="macro">build_ast_node!</span>(
             <span class="self">self</span>,
             Expr,
             ast::PermMul,
@@ -2337,8 +2397,8 @@
         )
     }
 
-    <span class="kw">pub fn </span>int_perm_mul(<span class="kw-2">&amp;</span><span class="self">self</span>, left: <a href="structs.rs.html#9">Expr</a>, right: <a href="structs.rs.html#9">Expr</a>) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
-        <a class="macro" href="macros.rs.html#71-89">build_ast_node!</a>(
+    <span class="kw">pub fn </span>int_perm_mul(<span class="kw-2">&amp;</span><span class="self">self</span>, left: Expr, right: Expr) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
+        <span class="macro">build_ast_node!</span>(
             <span class="self">self</span>,
             Expr,
             ast::IntPermMul,
@@ -2347,8 +2407,8 @@
         )
     }
 
-    <span class="kw">pub fn </span>perm_lt_cmp(<span class="kw-2">&amp;</span><span class="self">self</span>, left: <a href="structs.rs.html#9">Expr</a>, right: <a href="structs.rs.html#9">Expr</a>) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
-        <a class="macro" href="macros.rs.html#71-89">build_ast_node!</a>(
+    <span class="kw">pub fn </span>perm_lt_cmp(<span class="kw-2">&amp;</span><span class="self">self</span>, left: Expr, right: Expr) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
+        <span class="macro">build_ast_node!</span>(
             <span class="self">self</span>,
             Expr,
             ast::PermLtCmp,
@@ -2357,8 +2417,8 @@
         )
     }
 
-    <span class="kw">pub fn </span>perm_le_cmp(<span class="kw-2">&amp;</span><span class="self">self</span>, left: <a href="structs.rs.html#9">Expr</a>, right: <a href="structs.rs.html#9">Expr</a>) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
-        <a class="macro" href="macros.rs.html#71-89">build_ast_node!</a>(
+    <span class="kw">pub fn </span>perm_le_cmp(<span class="kw-2">&amp;</span><span class="self">self</span>, left: Expr, right: Expr) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
+        <span class="macro">build_ast_node!</span>(
             <span class="self">self</span>,
             Expr,
             ast::PermLeCmp,
@@ -2367,8 +2427,8 @@
         )
     }
 
-    <span class="kw">pub fn </span>perm_gt_cmp(<span class="kw-2">&amp;</span><span class="self">self</span>, left: <a href="structs.rs.html#9">Expr</a>, right: <a href="structs.rs.html#9">Expr</a>) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
-        <a class="macro" href="macros.rs.html#71-89">build_ast_node!</a>(
+    <span class="kw">pub fn </span>perm_gt_cmp(<span class="kw-2">&amp;</span><span class="self">self</span>, left: Expr, right: Expr) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
+        <span class="macro">build_ast_node!</span>(
             <span class="self">self</span>,
             Expr,
             ast::PermGtCmp,
@@ -2377,8 +2437,8 @@
         )
     }
 
-    <span class="kw">pub fn </span>perm_ge_cmp(<span class="kw-2">&amp;</span><span class="self">self</span>, left: <a href="structs.rs.html#9">Expr</a>, right: <a href="structs.rs.html#9">Expr</a>) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
-        <a class="macro" href="macros.rs.html#71-89">build_ast_node!</a>(
+    <span class="kw">pub fn </span>perm_ge_cmp(<span class="kw-2">&amp;</span><span class="self">self</span>, left: Expr, right: Expr) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
+        <span class="macro">build_ast_node!</span>(
             <span class="self">self</span>,
             Expr,
             ast::PermGeCmp,
@@ -2389,91 +2449,91 @@
 
     <span class="kw">pub fn </span>func_app(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        function_name: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>,
-        args: <span class="kw-2">&amp;</span>[<a href="structs.rs.html#9">Expr</a>],
-        return_type: <a href="structs.rs.html#8">Type</a>,
-        pos: <a href="structs.rs.html#11">Position</a>,
+        function_name: <span class="kw-2">&amp;</span>str,
+        args: <span class="kw-2">&amp;</span>[Expr],
+        return_type: Type,
+        pos: Position,
     ) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
-        <span class="kw">let </span>func_app_wrapper = ast::FuncApp::with(<a class="self" href="#929">self</a>.env);
-        <span class="kw">let </span>obj = <a class="self" href="#929">self</a>.jni.<a href="../jni_utils.rs.html#63">unwrap_result</a>(<a href="#935">func_app_wrapper</a>.call_apply(
-            <a class="self" href="#929">self</a>.jni.<a href="../jni_utils.rs.html#77">new_string</a>(<a href="#930">function_name</a>),
-            <a class="self" href="#929">self</a>.jni.<a href="../jni_utils.rs.html#101">new_seq</a>(<span class="kw-2">&amp;</span><a class="macro" href="macros.rs.html#32-36">map_to_jobjects!</a>(<a href="#931">args</a>)),
-            <a href="#933">pos</a>.<a href="structs.rs.html#11">to_jobject</a>(),
-            <a class="self" href="#929">self</a>.<a href="mod.rs.html#34">no_info</a>(),
-            <a href="#932">return_type</a>.<a href="structs.rs.html#8">to_jobject</a>(),
-            <a class="self" href="#929">self</a>.<a href="mod.rs.html#52">no_trafos</a>(),
+        <span class="kw">let </span>func_app_wrapper = ast::FuncApp::with(<span class="self">self</span>.env);
+        <span class="kw">let </span>obj = <span class="self">self</span>.jni.unwrap_result(func_app_wrapper.call_apply(
+            <span class="self">self</span>.jni.new_string(function_name),
+            <span class="self">self</span>.jni.new_seq(<span class="kw-2">&amp;</span><span class="macro">map_to_jobjects!</span>(args)),
+            pos.to_jobject(),
+            <span class="self">self</span>.no_info(),
+            return_type.to_jobject(),
+            <span class="self">self</span>.no_trafos(),
         ));
-        Expr::new(<a href="#936">obj</a>)
+        Expr::new(obj)
     }
 
     <span class="kw">pub fn </span>domain_func_app2(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        function_name: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>,
-        args: <span class="kw-2">&amp;</span>[<a href="structs.rs.html#9">Expr</a>],
-        type_var_map: <span class="kw-2">&amp;</span>[(<a href="structs.rs.html#8">Type</a>, <a href="structs.rs.html#8">Type</a>)],
-        return_type: <a href="structs.rs.html#8">Type</a>,
-        domain_name: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>,
-        pos: <a href="structs.rs.html#11">Position</a>,
+        function_name: <span class="kw-2">&amp;</span>str,
+        args: <span class="kw-2">&amp;</span>[Expr],
+        type_var_map: <span class="kw-2">&amp;</span>[(Type, Type)],
+        return_type: Type,
+        domain_name: <span class="kw-2">&amp;</span>str,
+        pos: Position,
     ) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
-        <span class="kw">let </span>domain_func_app_wrapper = ast::DomainFuncApp::with(<a class="self" href="#948">self</a>.env);
-        <span class="kw">let </span>obj = <a class="self" href="#948">self</a>.jni.<a href="../jni_utils.rs.html#63">unwrap_result</a>(<a href="#956">domain_func_app_wrapper</a>.new(
-            <a class="self" href="#948">self</a>.jni.<a href="../jni_utils.rs.html#77">new_string</a>(<a href="#949">function_name</a>),
-            <a class="self" href="#948">self</a>.jni.<a href="../jni_utils.rs.html#101">new_seq</a>(<span class="kw-2">&amp;</span><a class="macro" href="macros.rs.html#32-36">map_to_jobjects!</a>(<a href="#950">args</a>)),
-            <a class="self" href="#948">self</a>.jni.<a href="../jni_utils.rs.html#81">new_map</a>(<span class="kw-2">&amp;</span><a class="macro" href="macros.rs.html#46-50">map_to_jobject_pairs!</a>(<a href="#951">type_var_map</a>)),
-            <a href="#954">pos</a>.<a href="structs.rs.html#11">to_jobject</a>(),
-            <a class="self" href="#948">self</a>.<a href="mod.rs.html#34">no_info</a>(),
-            <a href="#952">return_type</a>.<a href="structs.rs.html#8">to_jobject</a>(),
-            <a class="self" href="#948">self</a>.jni.<a href="../jni_utils.rs.html#77">new_string</a>(<a href="#953">domain_name</a>),
-            <a class="self" href="#948">self</a>.<a href="mod.rs.html#52">no_trafos</a>(),
+        <span class="kw">let </span>domain_func_app_wrapper = ast::DomainFuncApp::with(<span class="self">self</span>.env);
+        <span class="kw">let </span>obj = <span class="self">self</span>.jni.unwrap_result(domain_func_app_wrapper.new(
+            <span class="self">self</span>.jni.new_string(function_name),
+            <span class="self">self</span>.jni.new_seq(<span class="kw-2">&amp;</span><span class="macro">map_to_jobjects!</span>(args)),
+            <span class="self">self</span>.jni.new_map(<span class="kw-2">&amp;</span><span class="macro">map_to_jobject_pairs!</span>(type_var_map)),
+            pos.to_jobject(),
+            <span class="self">self</span>.no_info(),
+            return_type.to_jobject(),
+            <span class="self">self</span>.jni.new_string(domain_name),
+            <span class="self">self</span>.no_trafos(),
         ));
-        Expr::new(<a href="#957">obj</a>)
+        Expr::new(obj)
     }
 
     <span class="kw">pub fn </span>domain_func_app(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        domain_func: <a href="structs.rs.html#13">DomainFunc</a>,
-        args: <span class="kw-2">&amp;</span>[<a href="structs.rs.html#9">Expr</a>],
-        type_var_map: <span class="kw-2">&amp;</span>[(<a href="structs.rs.html#8">Type</a>, <a href="structs.rs.html#8">Type</a>)],
+        domain_func: DomainFunc,
+        args: <span class="kw-2">&amp;</span>[Expr],
+        type_var_map: <span class="kw-2">&amp;</span>[(Type, Type)],
     ) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
-        <span class="kw">let </span>domain_func_app_object_wrapper = ast::DomainFuncApp_object::with(<a class="self" href="#971">self</a>.env);
-        <span class="kw">let </span>obj = <a class="self" href="#971">self</a>.jni.<a href="../jni_utils.rs.html#63">unwrap_result</a>(
-            <a href="#976">domain_func_app_object_wrapper</a>.call_apply(
-                <a class="self" href="#971">self</a>.jni
-                    .<a href="../jni_utils.rs.html#63">unwrap_result</a>(<a href="#976">domain_func_app_object_wrapper</a>.singleton()),
-                <a href="#972">domain_func</a>.<a href="structs.rs.html#13">to_jobject</a>(),
-                <a class="self" href="#971">self</a>.jni.<a href="../jni_utils.rs.html#101">new_seq</a>(<span class="kw-2">&amp;</span><a class="macro" href="macros.rs.html#32-36">map_to_jobjects!</a>(<a href="#973">args</a>)),
-                <a class="self" href="#971">self</a>.jni.<a href="../jni_utils.rs.html#81">new_map</a>(<span class="kw-2">&amp;</span><a class="macro" href="macros.rs.html#46-50">map_to_jobject_pairs!</a>(<a href="#974">type_var_map</a>)),
-                <a class="self" href="#971">self</a>.<a href="position.rs.html#10">no_position</a>().<a href="structs.rs.html#11">to_jobject</a>(),
-                <a class="self" href="#971">self</a>.<a href="mod.rs.html#34">no_info</a>(),
-                <a class="self" href="#971">self</a>.<a href="mod.rs.html#52">no_trafos</a>(),
+        <span class="kw">let </span>domain_func_app_object_wrapper = ast::DomainFuncApp_object::with(<span class="self">self</span>.env);
+        <span class="kw">let </span>obj = <span class="self">self</span>.jni.unwrap_result(
+            domain_func_app_object_wrapper.call_apply(
+                <span class="self">self</span>.jni
+                    .unwrap_result(domain_func_app_object_wrapper.singleton()),
+                domain_func.to_jobject(),
+                <span class="self">self</span>.jni.new_seq(<span class="kw-2">&amp;</span><span class="macro">map_to_jobjects!</span>(args)),
+                <span class="self">self</span>.jni.new_map(<span class="kw-2">&amp;</span><span class="macro">map_to_jobject_pairs!</span>(type_var_map)),
+                <span class="self">self</span>.no_position().to_jobject(),
+                <span class="self">self</span>.no_info(),
+                <span class="self">self</span>.no_trafos(),
             ),
         );
-        Expr::new(<a href="#977">obj</a>)
+        Expr::new(obj)
     }
 
     <span class="kw">pub fn </span>backend_func_app(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        backend_function: <a href="../../../jni/wrapper/objects/jobject/struct.JObject.html">JObject</a>,
-        args: <span class="kw-2">&amp;</span>[<a href="structs.rs.html#9">Expr</a>],
-        pos: <a href="structs.rs.html#11">Position</a>,
+        backend_function: JObject,
+        args: <span class="kw-2">&amp;</span>[Expr],
+        pos: Position,
     ) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
-        <span class="kw">let </span>backendfunc_app_object_wrapper = ast::BackendFuncApp_object::with(<a class="self" href="#993">self</a>.env);
-        <span class="kw">let </span>obj = <a class="self" href="#993">self</a>.jni.<a href="../jni_utils.rs.html#63">unwrap_result</a>(
-            <a href="#998">backendfunc_app_object_wrapper</a>.call_apply(
-                <a class="self" href="#993">self</a>.jni
-                    .<a href="../jni_utils.rs.html#63">unwrap_result</a>(<a href="#998">backendfunc_app_object_wrapper</a>.singleton()),
-                <a href="#994">backend_function</a>,
-                <a class="self" href="#993">self</a>.jni.<a href="../jni_utils.rs.html#101">new_seq</a>(<span class="kw-2">&amp;</span><a class="macro" href="macros.rs.html#32-36">map_to_jobjects!</a>(<a href="#995">args</a>)),
-                <a href="#996">pos</a>.<a href="structs.rs.html#11">to_jobject</a>(),
-                <a class="self" href="#993">self</a>.<a href="mod.rs.html#34">no_info</a>(),
-                <a class="self" href="#993">self</a>.<a href="mod.rs.html#52">no_trafos</a>(),
+        <span class="kw">let </span>backendfunc_app_object_wrapper = ast::BackendFuncApp_object::with(<span class="self">self</span>.env);
+        <span class="kw">let </span>obj = <span class="self">self</span>.jni.unwrap_result(
+            backendfunc_app_object_wrapper.call_apply(
+                <span class="self">self</span>.jni
+                    .unwrap_result(backendfunc_app_object_wrapper.singleton()),
+                backend_function,
+                <span class="self">self</span>.jni.new_seq(<span class="kw-2">&amp;</span><span class="macro">map_to_jobjects!</span>(args)),
+                pos.to_jobject(),
+                <span class="self">self</span>.no_info(),
+                <span class="self">self</span>.no_trafos(),
             ),
         );
-        Expr::new(<a href="#999">obj</a>)
+        Expr::new(obj)
     }
 
-    <span class="kw">pub fn </span>field_access_with_pos(<span class="kw-2">&amp;</span><span class="self">self</span>, rcv: <a href="structs.rs.html#9">Expr</a>, field: <a href="structs.rs.html#17">Field</a>, pos: <a href="structs.rs.html#11">Position</a>) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
-        <a class="macro" href="macros.rs.html#53-68">build_ast_node_with_pos!</a>(
+    <span class="kw">pub fn </span>field_access_with_pos(<span class="kw-2">&amp;</span><span class="self">self</span>, rcv: Expr, field: Field, pos: Position) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
+        <span class="macro">build_ast_node_with_pos!</span>(
             <span class="self">self</span>,
             Expr,
             ast::FieldAccess,
@@ -2483,12 +2543,12 @@
         )
     }
 
-    <span class="kw">pub fn </span>field_access(<span class="kw-2">&amp;</span><span class="self">self</span>, rcv: <a href="structs.rs.html#9">Expr</a>, field: <a href="structs.rs.html#17">Field</a>) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
-        <a class="self" href="#1024">self</a>.<a href="#1013">field_access_with_pos</a>(<a href="#1024">rcv</a>, <a href="#1024">field</a>, <a class="self" href="#1024">self</a>.<a href="position.rs.html#10">no_position</a>())
+    <span class="kw">pub fn </span>field_access(<span class="kw-2">&amp;</span><span class="self">self</span>, rcv: Expr, field: Field) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
+        <span class="self">self</span>.field_access_with_pos(rcv, field, <span class="self">self</span>.no_position())
     }
 
-    <span class="kw">pub fn </span>predicate_access(<span class="kw-2">&amp;</span><span class="self">self</span>, args: <span class="kw-2">&amp;</span>[<a href="structs.rs.html#9">Expr</a>], predicate_name: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
-        <a class="macro" href="macros.rs.html#71-89">build_ast_node!</a>(
+    <span class="kw">pub fn </span>predicate_access(<span class="kw-2">&amp;</span><span class="self">self</span>, args: <span class="kw-2">&amp;</span>[Expr], predicate_name: <span class="kw-2">&amp;</span>str) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
+        <span class="macro">build_ast_node!</span>(
             <span class="self">self</span>,
             Expr,
             ast::PredicateAccess,
@@ -2499,11 +2559,11 @@
 
     <span class="kw">pub fn </span>predicate_access_with_pos(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        args: <span class="kw-2">&amp;</span>[<a href="structs.rs.html#9">Expr</a>],
-        predicate_name: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>,
-        pos: <a href="structs.rs.html#11">Position</a>,
+        args: <span class="kw-2">&amp;</span>[Expr],
+        predicate_name: <span class="kw-2">&amp;</span>str,
+        pos: Position,
     ) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
-        <a class="macro" href="macros.rs.html#53-68">build_ast_node_with_pos!</a>(
+        <span class="macro">build_ast_node_with_pos!</span>(
             <span class="self">self</span>,
             Expr,
             ast::PredicateAccess,
@@ -2515,12 +2575,12 @@
 
     <span class="kw">pub fn </span>cond_exp_with_pos(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        cond: <a href="structs.rs.html#9">Expr</a>,
-        then_expr: <a href="structs.rs.html#9">Expr</a>,
-        else_expr: <a href="structs.rs.html#9">Expr</a>,
-        pos: <a href="structs.rs.html#11">Position</a>,
+        cond: Expr,
+        then_expr: Expr,
+        else_expr: Expr,
+        pos: Position,
     ) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
-        <a class="macro" href="macros.rs.html#53-68">build_ast_node_with_pos!</a>(
+        <span class="macro">build_ast_node_with_pos!</span>(
             <span class="self">self</span>,
             Expr,
             ast::CondExp,
@@ -2531,12 +2591,12 @@
         )
     }
 
-    <span class="kw">pub fn </span>cond_exp(<span class="kw-2">&amp;</span><span class="self">self</span>, cond: <a href="structs.rs.html#9">Expr</a>, then_expr: <a href="structs.rs.html#9">Expr</a>, else_expr: <a href="structs.rs.html#9">Expr</a>) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
-        <a class="self" href="#1072">self</a>.<a href="#1054-1060">cond_exp_with_pos</a>(<a href="#1072">cond</a>, <a href="#1072">then_expr</a>, <a href="#1072">else_expr</a>, <a class="self" href="#1072">self</a>.<a href="position.rs.html#10">no_position</a>())
+    <span class="kw">pub fn </span>cond_exp(<span class="kw-2">&amp;</span><span class="self">self</span>, cond: Expr, then_expr: Expr, else_expr: Expr) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
+        <span class="self">self</span>.cond_exp_with_pos(cond, then_expr, else_expr, <span class="self">self</span>.no_position())
     }
 
-    <span class="kw">pub fn </span>unfolding_with_pos(<span class="kw-2">&amp;</span><span class="self">self</span>, acc: <a href="structs.rs.html#9">Expr</a>, body: <a href="structs.rs.html#9">Expr</a>, pos: <a href="structs.rs.html#11">Position</a>) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
-        <a class="macro" href="macros.rs.html#53-68">build_ast_node_with_pos!</a>(
+    <span class="kw">pub fn </span>unfolding_with_pos(<span class="kw-2">&amp;</span><span class="self">self</span>, acc: Expr, body: Expr, pos: Position) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
+        <span class="macro">build_ast_node_with_pos!</span>(
             <span class="self">self</span>,
             Expr,
             ast::Unfolding,
@@ -2546,12 +2606,12 @@
         )
     }
 
-    <span class="kw">pub fn </span>unfolding(<span class="kw-2">&amp;</span><span class="self">self</span>, acc: <a href="structs.rs.html#9">Expr</a>, body: <a href="structs.rs.html#9">Expr</a>) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
-        <a class="self" href="#1087">self</a>.<a href="#1076">unfolding_with_pos</a>(<a href="#1087">acc</a>, <a href="#1087">body</a>, <a class="self" href="#1087">self</a>.<a href="position.rs.html#10">no_position</a>())
+    <span class="kw">pub fn </span>unfolding(<span class="kw-2">&amp;</span><span class="self">self</span>, acc: Expr, body: Expr) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
+        <span class="self">self</span>.unfolding_with_pos(acc, body, <span class="self">self</span>.no_position())
     }
 
-    <span class="kw">pub fn </span>applying(<span class="kw-2">&amp;</span><span class="self">self</span>, wand: <a href="structs.rs.html#9">Expr</a>, body: <a href="structs.rs.html#9">Expr</a>) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
-        <a class="macro" href="macros.rs.html#71-89">build_ast_node!</a>(
+    <span class="kw">pub fn </span>applying(<span class="kw-2">&amp;</span><span class="self">self</span>, wand: Expr, body: Expr) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
+        <span class="macro">build_ast_node!</span>(
             <span class="self">self</span>,
             Expr,
             ast::Applying,
@@ -2560,12 +2620,12 @@
         )
     }
 
-    <span class="kw">pub fn </span>old(<span class="kw-2">&amp;</span><span class="self">self</span>, expr: <a href="structs.rs.html#9">Expr</a>) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
-        <a class="macro" href="macros.rs.html#71-89">build_ast_node!</a>(<span class="self">self</span>, Expr, ast::Old, expr.to_jobject())
+    <span class="kw">pub fn </span>old(<span class="kw-2">&amp;</span><span class="self">self</span>, expr: Expr) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
+        <span class="macro">build_ast_node!</span>(<span class="self">self</span>, Expr, ast::Old, expr.to_jobject())
     }
 
-    <span class="kw">pub fn </span>labelled_old_with_pos(<span class="kw-2">&amp;</span><span class="self">self</span>, expr: <a href="structs.rs.html#9">Expr</a>, old_label: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, pos: <a href="structs.rs.html#11">Position</a>) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
-        <a class="macro" href="macros.rs.html#53-68">build_ast_node_with_pos!</a>(
+    <span class="kw">pub fn </span>labelled_old_with_pos(<span class="kw-2">&amp;</span><span class="self">self</span>, expr: Expr, old_label: <span class="kw-2">&amp;</span>str, pos: Position) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
+        <span class="macro">build_ast_node_with_pos!</span>(
             <span class="self">self</span>,
             Expr,
             ast::LabelledOld,
@@ -2575,18 +2635,18 @@
         )
     }
 
-    <span class="kw">pub fn </span>labelled_old(<span class="kw-2">&amp;</span><span class="self">self</span>, expr: <a href="structs.rs.html#9">Expr</a>, old_label: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
-        <a class="self" href="#1116">self</a>.<a href="#1105">labelled_old_with_pos</a>(<a href="#1116">expr</a>, <a href="#1116">old_label</a>, <a class="self" href="#1116">self</a>.<a href="position.rs.html#10">no_position</a>())
+    <span class="kw">pub fn </span>labelled_old(<span class="kw-2">&amp;</span><span class="self">self</span>, expr: Expr, old_label: <span class="kw-2">&amp;</span>str) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
+        <span class="self">self</span>.labelled_old_with_pos(expr, old_label, <span class="self">self</span>.no_position())
     }
 
     <span class="kw">pub fn </span>let_expr_with_pos(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        variable: <a href="structs.rs.html#19">LocalVarDecl</a>,
-        expr: <a href="structs.rs.html#9">Expr</a>,
-        body: <a href="structs.rs.html#9">Expr</a>,
-        pos: <a href="structs.rs.html#11">Position</a>,
+        variable: LocalVarDecl,
+        expr: Expr,
+        body: Expr,
+        pos: Position,
     ) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
-        <a class="macro" href="macros.rs.html#53-68">build_ast_node_with_pos!</a>(
+        <span class="macro">build_ast_node_with_pos!</span>(
             <span class="self">self</span>,
             Expr,
             ast::Let,
@@ -2597,18 +2657,18 @@
         )
     }
 
-    <span class="kw">pub fn </span>let_expr(<span class="kw-2">&amp;</span><span class="self">self</span>, variable: <a href="structs.rs.html#19">LocalVarDecl</a>, expr: <a href="structs.rs.html#9">Expr</a>, body: <a href="structs.rs.html#9">Expr</a>) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
-        <a class="self" href="#1138">self</a>.<a href="#1120-1126">let_expr_with_pos</a>(<a href="#1138">variable</a>, <a href="#1138">expr</a>, <a href="#1138">body</a>, <a class="self" href="#1138">self</a>.<a href="position.rs.html#10">no_position</a>())
+    <span class="kw">pub fn </span>let_expr(<span class="kw-2">&amp;</span><span class="self">self</span>, variable: LocalVarDecl, expr: Expr, body: Expr) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
+        <span class="self">self</span>.let_expr_with_pos(variable, expr, body, <span class="self">self</span>.no_position())
     }
 
     <span class="kw">pub fn </span>forall_with_pos(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        variables: <span class="kw-2">&amp;</span>[<a href="structs.rs.html#19">LocalVarDecl</a>],
-        triggers: <span class="kw-2">&amp;</span>[<a href="structs.rs.html#10">Trigger</a>],
-        expr: <a href="structs.rs.html#9">Expr</a>,
-        pos: <a href="structs.rs.html#11">Position</a>,
+        variables: <span class="kw-2">&amp;</span>[LocalVarDecl],
+        triggers: <span class="kw-2">&amp;</span>[Trigger],
+        expr: Expr,
+        pos: Position,
     ) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
-        <a class="macro" href="macros.rs.html#53-68">build_ast_node_with_pos!</a>(
+        <span class="macro">build_ast_node_with_pos!</span>(
             <span class="self">self</span>,
             Expr,
             ast::Forall,
@@ -2619,18 +2679,18 @@
         )
     }
 
-    <span class="kw">pub fn </span>forall(<span class="kw-2">&amp;</span><span class="self">self</span>, variables: <span class="kw-2">&amp;</span>[<a href="structs.rs.html#19">LocalVarDecl</a>], triggers: <span class="kw-2">&amp;</span>[<a href="structs.rs.html#10">Trigger</a>], expr: <a href="structs.rs.html#9">Expr</a>) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
-        <a class="self" href="#1160">self</a>.<a href="#1142-1148">forall_with_pos</a>(<a href="#1160">variables</a>, <a href="#1160">triggers</a>, <a href="#1160">expr</a>, <a class="self" href="#1160">self</a>.<a href="position.rs.html#10">no_position</a>())
+    <span class="kw">pub fn </span>forall(<span class="kw-2">&amp;</span><span class="self">self</span>, variables: <span class="kw-2">&amp;</span>[LocalVarDecl], triggers: <span class="kw-2">&amp;</span>[Trigger], expr: Expr) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
+        <span class="self">self</span>.forall_with_pos(variables, triggers, expr, <span class="self">self</span>.no_position())
     }
 
     <span class="kw">pub fn </span>exists_with_pos(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        variables: <span class="kw-2">&amp;</span>[<a href="structs.rs.html#19">LocalVarDecl</a>],
-        triggers: <span class="kw-2">&amp;</span>[<a href="structs.rs.html#10">Trigger</a>],
-        expr: <a href="structs.rs.html#9">Expr</a>,
-        _pos: <a href="structs.rs.html#11">Position</a>, <span class="comment">// FIXME: Why???
+        variables: <span class="kw-2">&amp;</span>[LocalVarDecl],
+        triggers: <span class="kw-2">&amp;</span>[Trigger],
+        expr: Expr,
+        _pos: Position, <span class="comment">// FIXME: Why???
     </span>) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
-        <a class="macro" href="macros.rs.html#53-68">build_ast_node_with_pos!</a>(
+        <span class="macro">build_ast_node_with_pos!</span>(
             <span class="self">self</span>,
             Expr,
             ast::Exists,
@@ -2641,17 +2701,17 @@
         )
     }
 
-    <span class="kw">pub fn </span>exists(<span class="kw-2">&amp;</span><span class="self">self</span>, variables: <span class="kw-2">&amp;</span>[<a href="structs.rs.html#19">LocalVarDecl</a>], triggers: <span class="kw-2">&amp;</span>[<a href="structs.rs.html#10">Trigger</a>], expr: <a href="structs.rs.html#9">Expr</a>) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
-        <a class="self" href="#1182">self</a>.<a href="#1164-1170">exists_with_pos</a>(<a href="#1182">variables</a>, <a href="#1182">triggers</a>, <a href="#1182">expr</a>, <a class="self" href="#1182">self</a>.<a href="position.rs.html#10">no_position</a>())
+    <span class="kw">pub fn </span>exists(<span class="kw-2">&amp;</span><span class="self">self</span>, variables: <span class="kw-2">&amp;</span>[LocalVarDecl], triggers: <span class="kw-2">&amp;</span>[Trigger], expr: Expr) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
+        <span class="self">self</span>.exists_with_pos(variables, triggers, expr, <span class="self">self</span>.no_position())
     }
 
     <span class="kw">pub fn </span>for_perm(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        variable: <a href="structs.rs.html#19">LocalVarDecl</a>,
-        access_list: <span class="kw-2">&amp;</span>[<a href="structs.rs.html#22">Location</a>],
-        body: <a href="structs.rs.html#9">Expr</a>,
+        variable: LocalVarDecl,
+        access_list: <span class="kw-2">&amp;</span>[Location],
+        body: Expr,
     ) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
-        <a class="macro" href="macros.rs.html#71-89">build_ast_node!</a>(
+        <span class="macro">build_ast_node!</span>(
             <span class="self">self</span>,
             Expr,
             ast::ForPerm,
@@ -2661,8 +2721,8 @@
         )
     }
 
-    <span class="kw">pub fn </span>trigger_with_pos(<span class="kw-2">&amp;</span><span class="self">self</span>, exps: <span class="kw-2">&amp;</span>[<a href="structs.rs.html#9">Expr</a>], pos: <a href="structs.rs.html#11">Position</a>) -&gt; Trigger&lt;<span class="lifetime">&#39;a</span>&gt; {
-        <a class="macro" href="macros.rs.html#53-68">build_ast_node_with_pos!</a>(
+    <span class="kw">pub fn </span>trigger_with_pos(<span class="kw-2">&amp;</span><span class="self">self</span>, exps: <span class="kw-2">&amp;</span>[Expr], pos: Position) -&gt; Trigger&lt;<span class="lifetime">&#39;a</span>&gt; {
+        <span class="macro">build_ast_node_with_pos!</span>(
             <span class="self">self</span>,
             Trigger,
             ast::Trigger,
@@ -2671,12 +2731,12 @@
         )
     }
 
-    <span class="kw">pub fn </span>trigger(<span class="kw-2">&amp;</span><span class="self">self</span>, exps: <span class="kw-2">&amp;</span>[<a href="structs.rs.html#9">Expr</a>]) -&gt; Trigger&lt;<span class="lifetime">&#39;a</span>&gt; {
-        <a class="self" href="#1212">self</a>.<a href="#1202">trigger_with_pos</a>(<a href="#1212">exps</a>, <a class="self" href="#1212">self</a>.<a href="position.rs.html#10">no_position</a>())
+    <span class="kw">pub fn </span>trigger(<span class="kw-2">&amp;</span><span class="self">self</span>, exps: <span class="kw-2">&amp;</span>[Expr]) -&gt; Trigger&lt;<span class="lifetime">&#39;a</span>&gt; {
+        <span class="self">self</span>.trigger_with_pos(exps, <span class="self">self</span>.no_position())
     }
 
-    <span class="kw">pub fn </span>local_var_with_pos(<span class="kw-2">&amp;</span><span class="self">self</span>, name: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, var_type: <a href="structs.rs.html#8">Type</a>, pos: <a href="structs.rs.html#11">Position</a>) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
-        <a class="macro" href="macros.rs.html#53-68">build_ast_node_with_pos!</a>(
+    <span class="kw">pub fn </span>local_var_with_pos(<span class="kw-2">&amp;</span><span class="self">self</span>, name: <span class="kw-2">&amp;</span>str, var_type: Type, pos: Position) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
+        <span class="macro">build_ast_node_with_pos!</span>(
             <span class="self">self</span>,
             Expr,
             ast::LocalVar,
@@ -2686,12 +2746,12 @@
         )
     }
 
-    <span class="kw">pub fn </span>local_var(<span class="kw-2">&amp;</span><span class="self">self</span>, name: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, var_type: <a href="structs.rs.html#8">Type</a>) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
-        <a class="self" href="#1227">self</a>.<a href="#1216">local_var_with_pos</a>(<a href="#1227">name</a>, <a href="#1227">var_type</a>, <a class="self" href="#1227">self</a>.<a href="position.rs.html#10">no_position</a>())
+    <span class="kw">pub fn </span>local_var(<span class="kw-2">&amp;</span><span class="self">self</span>, name: <span class="kw-2">&amp;</span>str, var_type: Type) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
+        <span class="self">self</span>.local_var_with_pos(name, var_type, <span class="self">self</span>.no_position())
     }
 
-    <span class="kw">pub fn </span>result_with_pos(<span class="kw-2">&amp;</span><span class="self">self</span>, var_type: <a href="structs.rs.html#8">Type</a>, pos: <a href="structs.rs.html#11">Position</a>) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
-        <a class="macro" href="macros.rs.html#53-68">build_ast_node_with_pos!</a>(
+    <span class="kw">pub fn </span>result_with_pos(<span class="kw-2">&amp;</span><span class="self">self</span>, var_type: Type, pos: Position) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
+        <span class="macro">build_ast_node_with_pos!</span>(
             <span class="self">self</span>,
             Expr,
             ast::Result,
@@ -2700,12 +2760,12 @@
         )
     }
 
-    <span class="kw">pub fn </span>empty_seq(<span class="kw-2">&amp;</span><span class="self">self</span>, elem_type: <a href="structs.rs.html#8">Type</a>) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
-        <a class="macro" href="macros.rs.html#71-89">build_ast_node!</a>(<span class="self">self</span>, Expr, ast::EmptySeq, elem_type.to_jobject())
+    <span class="kw">pub fn </span>empty_seq(<span class="kw-2">&amp;</span><span class="self">self</span>, elem_type: Type) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
+        <span class="macro">build_ast_node!</span>(<span class="self">self</span>, Expr, ast::EmptySeq, elem_type.to_jobject())
     }
 
-    <span class="kw">pub fn </span>explicit_seq(<span class="kw-2">&amp;</span><span class="self">self</span>, elems: <span class="kw-2">&amp;</span>[<a href="structs.rs.html#9">Expr</a>]) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
-        <a class="macro" href="macros.rs.html#71-89">build_ast_node!</a>(
+    <span class="kw">pub fn </span>explicit_seq(<span class="kw-2">&amp;</span><span class="self">self</span>, elems: <span class="kw-2">&amp;</span>[Expr]) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
+        <span class="macro">build_ast_node!</span>(
             <span class="self">self</span>,
             Expr,
             ast::ExplicitSeq,
@@ -2713,8 +2773,8 @@
         )
     }
 
-    <span class="kw">pub fn </span>empty_map(<span class="kw-2">&amp;</span><span class="self">self</span>, key_ty: <a href="structs.rs.html#8">Type</a>, val_ty: <a href="structs.rs.html#8">Type</a>) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
-        <a class="macro" href="macros.rs.html#71-89">build_ast_node!</a>(
+    <span class="kw">pub fn </span>empty_map(<span class="kw-2">&amp;</span><span class="self">self</span>, key_ty: Type, val_ty: Type) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
+        <span class="macro">build_ast_node!</span>(
             <span class="self">self</span>,
             Expr,
             ast::EmptyMap,
@@ -2723,8 +2783,8 @@
         )
     }
 
-    <span class="kw">pub fn </span>explicit_map(<span class="kw-2">&amp;</span><span class="self">self</span>, keys_values: <span class="kw-2">&amp;</span>[<a href="structs.rs.html#9">Expr</a>]) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
-        <a class="macro" href="macros.rs.html#71-89">build_ast_node!</a>(
+    <span class="kw">pub fn </span>explicit_map(<span class="kw-2">&amp;</span><span class="self">self</span>, keys_values: <span class="kw-2">&amp;</span>[Expr]) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
+        <span class="macro">build_ast_node!</span>(
             <span class="self">self</span>,
             Expr,
             ast::ExplicitMap,
@@ -2732,8 +2792,8 @@
         )
     }
 
-    <span class="kw">pub fn </span>update_map(<span class="kw-2">&amp;</span><span class="self">self</span>, map: <a href="structs.rs.html#9">Expr</a>, key: <a href="structs.rs.html#9">Expr</a>, val: <a href="structs.rs.html#9">Expr</a>) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
-        <a class="macro" href="macros.rs.html#71-89">build_ast_node!</a>(
+    <span class="kw">pub fn </span>update_map(<span class="kw-2">&amp;</span><span class="self">self</span>, map: Expr, key: Expr, val: Expr) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
+        <span class="macro">build_ast_node!</span>(
             <span class="self">self</span>,
             Expr,
             ast::MapUpdate,
@@ -2743,8 +2803,8 @@
         )
     }
 
-    <span class="kw">pub fn </span>lookup_map(<span class="kw-2">&amp;</span><span class="self">self</span>, map: <a href="structs.rs.html#9">Expr</a>, key: <a href="structs.rs.html#9">Expr</a>) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
-        <a class="macro" href="macros.rs.html#71-89">build_ast_node!</a>(
+    <span class="kw">pub fn </span>lookup_map(<span class="kw-2">&amp;</span><span class="self">self</span>, map: Expr, key: Expr) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
+        <span class="macro">build_ast_node!</span>(
             <span class="self">self</span>,
             Expr,
             ast::MapLookup,
@@ -2753,8 +2813,8 @@
         )
     }
 
-    <span class="kw">pub fn </span>map_contains(<span class="kw-2">&amp;</span><span class="self">self</span>, map: <a href="structs.rs.html#9">Expr</a>, key: <a href="structs.rs.html#9">Expr</a>) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
-        <a class="macro" href="macros.rs.html#71-89">build_ast_node!</a>(
+    <span class="kw">pub fn </span>map_contains(<span class="kw-2">&amp;</span><span class="self">self</span>, map: Expr, key: Expr) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
+        <span class="macro">build_ast_node!</span>(
             <span class="self">self</span>,
             Expr,
             ast::MapContains,
@@ -2763,12 +2823,12 @@
         )
     }
 
-    <span class="kw">pub fn </span>map_len(<span class="kw-2">&amp;</span><span class="self">self</span>, map: <a href="structs.rs.html#9">Expr</a>) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
-        <a class="macro" href="macros.rs.html#71-89">build_ast_node!</a>(<span class="self">self</span>, Expr, ast::MapCardinality, map.to_jobject())
+    <span class="kw">pub fn </span>map_len(<span class="kw-2">&amp;</span><span class="self">self</span>, map: Expr) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
+        <span class="macro">build_ast_node!</span>(<span class="self">self</span>, Expr, ast::MapCardinality, map.to_jobject())
     }
 
-    <span class="kw">pub fn </span>range_seq(<span class="kw-2">&amp;</span><span class="self">self</span>, low: <a href="structs.rs.html#9">Expr</a>, high: <a href="structs.rs.html#9">Expr</a>) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
-        <a class="macro" href="macros.rs.html#71-89">build_ast_node!</a>(
+    <span class="kw">pub fn </span>range_seq(<span class="kw-2">&amp;</span><span class="self">self</span>, low: Expr, high: Expr) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
+        <span class="macro">build_ast_node!</span>(
             <span class="self">self</span>,
             Expr,
             ast::RangeSeq,
@@ -2777,8 +2837,8 @@
         )
     }
 
-    <span class="kw">pub fn </span>seq_append(<span class="kw-2">&amp;</span><span class="self">self</span>, left: <a href="structs.rs.html#9">Expr</a>, right: <a href="structs.rs.html#9">Expr</a>) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
-        <a class="macro" href="macros.rs.html#71-89">build_ast_node!</a>(
+    <span class="kw">pub fn </span>seq_append(<span class="kw-2">&amp;</span><span class="self">self</span>, left: Expr, right: Expr) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
+        <span class="macro">build_ast_node!</span>(
             <span class="self">self</span>,
             Expr,
             ast::SeqAppend,
@@ -2787,8 +2847,8 @@
         )
     }
 
-    <span class="kw">pub fn </span>seq_index(<span class="kw-2">&amp;</span><span class="self">self</span>, seq: <a href="structs.rs.html#9">Expr</a>, index: <a href="structs.rs.html#9">Expr</a>) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
-        <a class="macro" href="macros.rs.html#71-89">build_ast_node!</a>(
+    <span class="kw">pub fn </span>seq_index(<span class="kw-2">&amp;</span><span class="self">self</span>, seq: Expr, index: Expr) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
+        <span class="macro">build_ast_node!</span>(
             <span class="self">self</span>,
             Expr,
             ast::SeqIndex,
@@ -2797,16 +2857,16 @@
         )
     }
 
-    <span class="kw">pub fn </span>seq_take(<span class="kw-2">&amp;</span><span class="self">self</span>, seq: <a href="structs.rs.html#9">Expr</a>, num: <a href="structs.rs.html#9">Expr</a>) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
-        <a class="macro" href="macros.rs.html#71-89">build_ast_node!</a>(<span class="self">self</span>, Expr, ast::SeqTake, seq.to_jobject(), num.to_jobject())
+    <span class="kw">pub fn </span>seq_take(<span class="kw-2">&amp;</span><span class="self">self</span>, seq: Expr, num: Expr) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
+        <span class="macro">build_ast_node!</span>(<span class="self">self</span>, Expr, ast::SeqTake, seq.to_jobject(), num.to_jobject())
     }
 
-    <span class="kw">pub fn </span>seq_drop(<span class="kw-2">&amp;</span><span class="self">self</span>, seq: <a href="structs.rs.html#9">Expr</a>, num: <a href="structs.rs.html#9">Expr</a>) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
-        <a class="macro" href="macros.rs.html#71-89">build_ast_node!</a>(<span class="self">self</span>, Expr, ast::SeqDrop, seq.to_jobject(), num.to_jobject())
+    <span class="kw">pub fn </span>seq_drop(<span class="kw-2">&amp;</span><span class="self">self</span>, seq: Expr, num: Expr) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
+        <span class="macro">build_ast_node!</span>(<span class="self">self</span>, Expr, ast::SeqDrop, seq.to_jobject(), num.to_jobject())
     }
 
-    <span class="kw">pub fn </span>seq_contains(<span class="kw-2">&amp;</span><span class="self">self</span>, elem: <a href="structs.rs.html#9">Expr</a>, seq: <a href="structs.rs.html#9">Expr</a>) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
-        <a class="macro" href="macros.rs.html#71-89">build_ast_node!</a>(
+    <span class="kw">pub fn </span>seq_contains(<span class="kw-2">&amp;</span><span class="self">self</span>, elem: Expr, seq: Expr) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
+        <span class="macro">build_ast_node!</span>(
             <span class="self">self</span>,
             Expr,
             ast::SeqContains,
@@ -2815,8 +2875,8 @@
         )
     }
 
-    <span class="kw">pub fn </span>seq_update(<span class="kw-2">&amp;</span><span class="self">self</span>, seq: <a href="structs.rs.html#9">Expr</a>, index: <a href="structs.rs.html#9">Expr</a>, elem: <a href="structs.rs.html#9">Expr</a>) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
-        <a class="macro" href="macros.rs.html#71-89">build_ast_node!</a>(
+    <span class="kw">pub fn </span>seq_update(<span class="kw-2">&amp;</span><span class="self">self</span>, seq: Expr, index: Expr, elem: Expr) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
+        <span class="macro">build_ast_node!</span>(
             <span class="self">self</span>,
             Expr,
             ast::SeqUpdate,
@@ -2826,16 +2886,16 @@
         )
     }
 
-    <span class="kw">pub fn </span>seq_length(<span class="kw-2">&amp;</span><span class="self">self</span>, seq: <a href="structs.rs.html#9">Expr</a>) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
-        <a class="macro" href="macros.rs.html#71-89">build_ast_node!</a>(<span class="self">self</span>, Expr, ast::SeqLength, seq.to_jobject())
+    <span class="kw">pub fn </span>seq_length(<span class="kw-2">&amp;</span><span class="self">self</span>, seq: Expr) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
+        <span class="macro">build_ast_node!</span>(<span class="self">self</span>, Expr, ast::SeqLength, seq.to_jobject())
     }
 
-    <span class="kw">pub fn </span>empty_set(<span class="kw-2">&amp;</span><span class="self">self</span>, elem_type: <a href="structs.rs.html#8">Type</a>) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
-        <a class="macro" href="macros.rs.html#71-89">build_ast_node!</a>(<span class="self">self</span>, Expr, ast::EmptySet, elem_type.to_jobject())
+    <span class="kw">pub fn </span>empty_set(<span class="kw-2">&amp;</span><span class="self">self</span>, elem_type: Type) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
+        <span class="macro">build_ast_node!</span>(<span class="self">self</span>, Expr, ast::EmptySet, elem_type.to_jobject())
     }
 
-    <span class="kw">pub fn </span>explicit_set(<span class="kw-2">&amp;</span><span class="self">self</span>, elems: <span class="kw-2">&amp;</span>[<a href="structs.rs.html#9">Expr</a>]) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
-        <a class="macro" href="macros.rs.html#71-89">build_ast_node!</a>(
+    <span class="kw">pub fn </span>explicit_set(<span class="kw-2">&amp;</span><span class="self">self</span>, elems: <span class="kw-2">&amp;</span>[Expr]) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
+        <span class="macro">build_ast_node!</span>(
             <span class="self">self</span>,
             Expr,
             ast::ExplicitSet,
@@ -2843,12 +2903,12 @@
         )
     }
 
-    <span class="kw">pub fn </span>empty_multiset(<span class="kw-2">&amp;</span><span class="self">self</span>, elem_type: <a href="structs.rs.html#8">Type</a>) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
-        <a class="macro" href="macros.rs.html#71-89">build_ast_node!</a>(<span class="self">self</span>, Expr, ast::EmptyMultiset, elem_type.to_jobject())
+    <span class="kw">pub fn </span>empty_multiset(<span class="kw-2">&amp;</span><span class="self">self</span>, elem_type: Type) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
+        <span class="macro">build_ast_node!</span>(<span class="self">self</span>, Expr, ast::EmptyMultiset, elem_type.to_jobject())
     }
 
-    <span class="kw">pub fn </span>explicit_multiset(<span class="kw-2">&amp;</span><span class="self">self</span>, elems: <span class="kw-2">&amp;</span>[<a href="structs.rs.html#9">Expr</a>]) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
-        <a class="macro" href="macros.rs.html#71-89">build_ast_node!</a>(
+    <span class="kw">pub fn </span>explicit_multiset(<span class="kw-2">&amp;</span><span class="self">self</span>, elems: <span class="kw-2">&amp;</span>[Expr]) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
+        <span class="macro">build_ast_node!</span>(
             <span class="self">self</span>,
             Expr,
             ast::ExplicitMultiset,
@@ -2856,8 +2916,8 @@
         )
     }
 
-    <span class="kw">pub fn </span>any_set_union(<span class="kw-2">&amp;</span><span class="self">self</span>, left: <a href="structs.rs.html#9">Expr</a>, right: <a href="structs.rs.html#9">Expr</a>) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
-        <a class="macro" href="macros.rs.html#71-89">build_ast_node!</a>(
+    <span class="kw">pub fn </span>any_set_union(<span class="kw-2">&amp;</span><span class="self">self</span>, left: Expr, right: Expr) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
+        <span class="macro">build_ast_node!</span>(
             <span class="self">self</span>,
             Expr,
             ast::AnySetUnion,
@@ -2866,8 +2926,8 @@
         )
     }
 
-    <span class="kw">pub fn </span>any_set_intersection(<span class="kw-2">&amp;</span><span class="self">self</span>, left: <a href="structs.rs.html#9">Expr</a>, right: <a href="structs.rs.html#9">Expr</a>) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
-        <a class="macro" href="macros.rs.html#71-89">build_ast_node!</a>(
+    <span class="kw">pub fn </span>any_set_intersection(<span class="kw-2">&amp;</span><span class="self">self</span>, left: Expr, right: Expr) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
+        <span class="macro">build_ast_node!</span>(
             <span class="self">self</span>,
             Expr,
             ast::AnySetIntersection,
@@ -2876,8 +2936,8 @@
         )
     }
 
-    <span class="kw">pub fn </span>any_set_subset(<span class="kw-2">&amp;</span><span class="self">self</span>, left: <a href="structs.rs.html#9">Expr</a>, right: <a href="structs.rs.html#9">Expr</a>) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
-        <a class="macro" href="macros.rs.html#71-89">build_ast_node!</a>(
+    <span class="kw">pub fn </span>any_set_subset(<span class="kw-2">&amp;</span><span class="self">self</span>, left: Expr, right: Expr) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
+        <span class="macro">build_ast_node!</span>(
             <span class="self">self</span>,
             Expr,
             ast::AnySetSubset,
@@ -2886,8 +2946,8 @@
         )
     }
 
-    <span class="kw">pub fn </span>any_set_minus(<span class="kw-2">&amp;</span><span class="self">self</span>, left: <a href="structs.rs.html#9">Expr</a>, right: <a href="structs.rs.html#9">Expr</a>) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
-        <a class="macro" href="macros.rs.html#71-89">build_ast_node!</a>(
+    <span class="kw">pub fn </span>any_set_minus(<span class="kw-2">&amp;</span><span class="self">self</span>, left: Expr, right: Expr) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
+        <span class="macro">build_ast_node!</span>(
             <span class="self">self</span>,
             Expr,
             ast::AnySetMinus,
@@ -2896,8 +2956,8 @@
         )
     }
 
-    <span class="kw">pub fn </span>any_set_contains(<span class="kw-2">&amp;</span><span class="self">self</span>, elem: <a href="structs.rs.html#9">Expr</a>, set: <a href="structs.rs.html#9">Expr</a>) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
-        <a class="macro" href="macros.rs.html#71-89">build_ast_node!</a>(
+    <span class="kw">pub fn </span>any_set_contains(<span class="kw-2">&amp;</span><span class="self">self</span>, elem: Expr, set: Expr) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
+        <span class="macro">build_ast_node!</span>(
             <span class="self">self</span>,
             Expr,
             ast::AnySetContains,
@@ -2906,21 +2966,21 @@
         )
     }
 
-    <span class="kw">pub fn </span>any_set_cardinality(<span class="kw-2">&amp;</span><span class="self">self</span>, set: <a href="structs.rs.html#9">Expr</a>) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
-        <a class="macro" href="macros.rs.html#71-89">build_ast_node!</a>(<span class="self">self</span>, Expr, ast::AnySetCardinality, set.to_jobject())
+    <span class="kw">pub fn </span>any_set_cardinality(<span class="kw-2">&amp;</span><span class="self">self</span>, set: Expr) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
+        <span class="macro">build_ast_node!</span>(<span class="self">self</span>, Expr, ast::AnySetCardinality, set.to_jobject())
     }
 
-    <span class="kw">pub fn </span>simplified_expression(<span class="kw-2">&amp;</span><span class="self">self</span>, expr: <a href="structs.rs.html#9">Expr</a>) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
-        <span class="kw">let </span>simplifier_object_wrapper = ast::utility::Simplifier_object::with(<a class="self" href="#1451">self</a>.env);
-        <span class="kw">let </span>obj = <a class="self" href="#1451">self</a>.jni.<a href="../jni_utils.rs.html#63">unwrap_result</a>(
-            <a href="#1452">simplifier_object_wrapper</a>.call_simplify(
-                <a class="self" href="#1451">self</a>.jni
-                    .<a href="../jni_utils.rs.html#63">unwrap_result</a>(<a href="#1452">simplifier_object_wrapper</a>.singleton()),
-                <a href="#1451">expr</a>.<a href="structs.rs.html#9">to_jobject</a>(),
+    <span class="kw">pub fn </span>simplified_expression(<span class="kw-2">&amp;</span><span class="self">self</span>, expr: Expr) -&gt; Expr&lt;<span class="lifetime">&#39;a</span>&gt; {
+        <span class="kw">let </span>simplifier_object_wrapper = ast::utility::Simplifier_object::with(<span class="self">self</span>.env);
+        <span class="kw">let </span>obj = <span class="self">self</span>.jni.unwrap_result(
+            simplifier_object_wrapper.call_simplify(
+                <span class="self">self</span>.jni
+                    .unwrap_result(simplifier_object_wrapper.singleton()),
+                expr.to_jobject(),
             ),
         );
-        Expr::new(<a href="#1453">obj</a>)
+        Expr::new(obj)
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="viper" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="viper" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

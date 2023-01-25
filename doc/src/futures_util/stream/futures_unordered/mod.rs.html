@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/futures-util-0.3.25/src/stream/futures_unordered/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../../futures_util/index.html"><img class="rust-logo" src="../../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/futures-util-0.3.25/src/stream/futures_unordered/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../../futures_util/index.html"><img class="rust-logo" src="../../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -661,33 +661,33 @@
 //! This module is only available when the `std` or `alloc` feature of this
 //! library is activated, and it is activated by default.
 
-</span><span class="kw">use </span><a href="../../../../futures_util/task/struct.AtomicWaker.html"><span class="kw">crate</span>::task::AtomicWaker</a>;
-<span class="kw">use </span>alloc::sync::{<a href="https://doc.rust-lang.org/nightly/alloc/sync/struct.Arc.html">Arc</a>, <a href="https://doc.rust-lang.org/nightly/alloc/sync/struct.Weak.html">Weak</a>};
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/cell/struct.UnsafeCell.html">core::cell::UnsafeCell</a>;
-<span class="kw">use </span>core::fmt::{<a class="self" href="https://doc.rust-lang.org/nightly/core/fmt/index.html">self</a>, <a href="https://doc.rust-lang.org/nightly/core/fmt/macros/derive.Debug.html">Debug</a>};
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.FromIterator.html">core::iter::FromIterator</a>;
+</span><span class="kw">use </span><span class="kw">crate</span>::task::AtomicWaker;
+<span class="kw">use </span>alloc::sync::{Arc, Weak};
+<span class="kw">use </span>core::cell::UnsafeCell;
+<span class="kw">use </span>core::fmt::{<span class="self">self</span>, Debug};
+<span class="kw">use </span>core::iter::FromIterator;
 <span class="kw">use </span>core::marker::PhantomData;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/mem/index.html">core::mem</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/pin/struct.Pin.html">core::pin::Pin</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/ptr/index.html">core::ptr</a>;
+<span class="kw">use </span>core::mem;
+<span class="kw">use </span>core::pin::Pin;
+<span class="kw">use </span>core::ptr;
 <span class="kw">use </span>core::sync::atomic::Ordering::{AcqRel, Acquire, Relaxed, Release, SeqCst};
-<span class="kw">use </span>core::sync::atomic::{<a href="https://doc.rust-lang.org/nightly/core/sync/atomic/struct.AtomicBool.html">AtomicBool</a>, <a href="https://doc.rust-lang.org/nightly/core/sync/atomic/struct.AtomicPtr.html">AtomicPtr</a>};
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">futures_core::future::Future</a>;
-<span class="kw">use </span>futures_core::stream::{<a href="../../../../futures_util/stream/trait.FusedStream.html">FusedStream</a>, <a href="../../../../futures_util/stream/trait.Stream.html">Stream</a>};
-<span class="kw">use </span>futures_core::task::{<a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>, <a href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">Poll</a>};
-<span class="kw">use </span>futures_task::{<a href="../../../../futures_util/task/struct.FutureObj.html">FutureObj</a>, <a href="../../../../futures_util/task/struct.LocalFutureObj.html">LocalFutureObj</a>, <a href="../../../../futures_util/task/trait.LocalSpawn.html">LocalSpawn</a>, <a href="../../../../futures_util/task/trait.Spawn.html">Spawn</a>, <a href="../../../../futures_util/task/struct.SpawnError.html">SpawnError</a>};
+<span class="kw">use </span>core::sync::atomic::{AtomicBool, AtomicPtr};
+<span class="kw">use </span>futures_core::future::Future;
+<span class="kw">use </span>futures_core::stream::{FusedStream, Stream};
+<span class="kw">use </span>futures_core::task::{Context, Poll};
+<span class="kw">use </span>futures_task::{FutureObj, LocalFutureObj, LocalSpawn, Spawn, SpawnError};
 
-<span class="kw">mod </span><a href="abort.rs.html#1-12">abort</a>;
+<span class="kw">mod </span>abort;
 
-<span class="kw">mod </span><a href="iter.rs.html#1-172">iter</a>;
+<span class="kw">mod </span>iter;
 <span class="attr">#[allow(unreachable_pub)] </span><span class="comment">// https://github.com/rust-lang/rust/issues/102352
-</span><span class="kw">pub use </span><span class="self">self</span>::iter::{<a href="iter.rs.html#35">IntoIter</a>, <a href="iter.rs.html#31">Iter</a>, <a href="iter.rs.html#18">IterMut</a>, <a href="iter.rs.html#10">IterPinMut</a>, <a href="iter.rs.html#22">IterPinRef</a>};
+</span><span class="kw">pub use </span><span class="self">self</span>::iter::{IntoIter, Iter, IterMut, IterPinMut, IterPinRef};
 
-<span class="kw">mod </span><a href="task.rs.html#1-125">task</a>;
-<span class="kw">use </span><a href="task.rs.html#10"><span class="self">self</span>::task::Task</a>;
+<span class="kw">mod </span>task;
+<span class="kw">use </span><span class="self">self</span>::task::Task;
 
-<span class="kw">mod </span><a href="ready_to_run_queue.rs.html#1-122">ready_to_run_queue</a>;
-<span class="kw">use </span><span class="self">self</span>::ready_to_run_queue::{<a href="ready_to_run_queue.rs.html#11">Dequeue</a>, <a href="ready_to_run_queue.rs.html#17">ReadyToRunQueue</a>};
+<span class="kw">mod </span>ready_to_run_queue;
+<span class="kw">use </span><span class="self">self</span>::ready_to_run_queue::{Dequeue, ReadyToRunQueue};
 
 <span class="doccomment">/// A set of futures which may complete in any order.
 ///
@@ -713,23 +713,23 @@
 </span><span class="kw">pub struct </span>FuturesUnordered&lt;Fut&gt; {
     ready_to_run_queue: Arc&lt;ReadyToRunQueue&lt;Fut&gt;&gt;,
     head_all: AtomicPtr&lt;Task&lt;Fut&gt;&gt;,
-    is_terminated: <a href="https://doc.rust-lang.org/nightly/core/sync/atomic/struct.AtomicBool.html">AtomicBool</a>,
+    is_terminated: AtomicBool,
 }
 
-<span class="kw">unsafe impl</span>&lt;Fut: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="kw">for </span>FuturesUnordered&lt;Fut&gt; {}
-<span class="kw">unsafe impl</span>&lt;Fut: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> <span class="kw">for </span>FuturesUnordered&lt;Fut&gt; {}
-<span class="kw">impl</span>&lt;Fut&gt; <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a> <span class="kw">for </span>FuturesUnordered&lt;Fut&gt; {}
+<span class="kw">unsafe impl</span>&lt;Fut: Send&gt; Send <span class="kw">for </span>FuturesUnordered&lt;Fut&gt; {}
+<span class="kw">unsafe impl</span>&lt;Fut: Sync&gt; Sync <span class="kw">for </span>FuturesUnordered&lt;Fut&gt; {}
+<span class="kw">impl</span>&lt;Fut&gt; Unpin <span class="kw">for </span>FuturesUnordered&lt;Fut&gt; {}
 
-<span class="kw">impl </span><a href="../../../../futures_util/task/trait.Spawn.html">Spawn</a> <span class="kw">for </span>FuturesUnordered&lt;FutureObj&lt;<span class="lifetime">&#39;_</span>, ()&gt;&gt; {
-    <span class="kw">fn </span>spawn_obj(<span class="kw-2">&amp;</span><span class="self">self</span>, future_obj: FutureObj&lt;<span class="lifetime">&#39;static</span>, ()&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../../../futures_util/task/struct.SpawnError.html">SpawnError</a>&gt; {
-        <a class="self" href="#66">self</a>.<a href="#163">push</a>(<a href="#66">future_obj</a>);
+<span class="kw">impl </span>Spawn <span class="kw">for </span>FuturesUnordered&lt;FutureObj&lt;<span class="lifetime">&#39;_</span>, ()&gt;&gt; {
+    <span class="kw">fn </span>spawn_obj(<span class="kw-2">&amp;</span><span class="self">self</span>, future_obj: FutureObj&lt;<span class="lifetime">&#39;static</span>, ()&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;(), SpawnError&gt; {
+        <span class="self">self</span>.push(future_obj);
         <span class="prelude-val">Ok</span>(())
     }
 }
 
-<span class="kw">impl </span><a href="../../../../futures_util/task/trait.LocalSpawn.html">LocalSpawn</a> <span class="kw">for </span>FuturesUnordered&lt;LocalFutureObj&lt;<span class="lifetime">&#39;_</span>, ()&gt;&gt; {
-    <span class="kw">fn </span>spawn_local_obj(<span class="kw-2">&amp;</span><span class="self">self</span>, future_obj: LocalFutureObj&lt;<span class="lifetime">&#39;static</span>, ()&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../../../futures_util/task/struct.SpawnError.html">SpawnError</a>&gt; {
-        <a class="self" href="#73">self</a>.<a href="#163">push</a>(<a href="#73">future_obj</a>);
+<span class="kw">impl </span>LocalSpawn <span class="kw">for </span>FuturesUnordered&lt;LocalFutureObj&lt;<span class="lifetime">&#39;_</span>, ()&gt;&gt; {
+    <span class="kw">fn </span>spawn_local_obj(<span class="kw-2">&amp;</span><span class="self">self</span>, future_obj: LocalFutureObj&lt;<span class="lifetime">&#39;static</span>, ()&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;(), SpawnError&gt; {
+        <span class="self">self</span>.push(future_obj);
         <span class="prelude-val">Ok</span>(())
     }
 }
@@ -759,7 +759,7 @@
 // notification is received, the task will only be inserted into the ready to
 // run queue if it isn&#39;t inserted already.
 
-</span><span class="kw">impl</span>&lt;Fut&gt; <a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for </span>FuturesUnordered&lt;Fut&gt; {
+</span><span class="kw">impl</span>&lt;Fut&gt; Default <span class="kw">for </span>FuturesUnordered&lt;Fut&gt; {
     <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>::new()
     }
@@ -772,7 +772,7 @@
     /// In this state, [`FuturesUnordered::poll_next`](Stream::poll_next) will
     /// return [`Poll::Ready(None)`](Poll::Ready).
     </span><span class="kw">pub fn </span>new() -&gt; <span class="self">Self </span>{
-        <span class="kw">let </span>stub = Arc::new(<a href="task.rs.html#10">Task</a> {
+        <span class="kw">let </span>stub = Arc::new(Task {
             future: UnsafeCell::new(<span class="prelude-val">None</span>),
             next_all: AtomicPtr::new(ptr::null_mut()),
             prev_all: UnsafeCell::new(ptr::null()),
@@ -782,17 +782,17 @@
             ready_to_run_queue: Weak::new(),
             woken: AtomicBool::new(<span class="bool-val">false</span>),
         });
-        <span class="kw">let </span>stub_ptr = Arc::as_ptr(<span class="kw-2">&amp;</span><a href="#117">stub</a>);
-        <span class="kw">let </span>ready_to_run_queue = Arc::new(<a href="ready_to_run_queue.rs.html#17">ReadyToRunQueue</a> {
+        <span class="kw">let </span>stub_ptr = Arc::as_ptr(<span class="kw-2">&amp;</span>stub);
+        <span class="kw">let </span>ready_to_run_queue = Arc::new(ReadyToRunQueue {
             waker: AtomicWaker::new(),
-            head: AtomicPtr::new(<a href="#127">stub_ptr</a> <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>),
-            tail: UnsafeCell::new(<a href="#127">stub_ptr</a>),
-            <a href="#117">stub</a>,
+            head: AtomicPtr::new(stub_ptr <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>),
+            tail: UnsafeCell::new(stub_ptr),
+            stub,
         });
 
         <span class="self">Self </span>{
             head_all: AtomicPtr::new(ptr::null_mut()),
-            <a href="#128">ready_to_run_queue</a>,
+            ready_to_run_queue,
             is_terminated: AtomicBool::new(<span class="bool-val">false</span>),
         }
     }
@@ -800,16 +800,16 @@
     <span class="doccomment">/// Returns the number of futures contained in the set.
     ///
     /// This represents the total number of in-flight futures.
-    </span><span class="kw">pub fn </span>len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <span class="kw">let </span>(<span class="kw">_</span>, len) = <a class="self" href="#145">self</a>.<a href="#228">atomic_load_head_and_len_all</a>();
-        <a href="#146">len</a>
+    </span><span class="kw">pub fn </span>len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+        <span class="kw">let </span>(<span class="kw">_</span>, len) = <span class="self">self</span>.atomic_load_head_and_len_all();
+        len
     }
 
     <span class="doccomment">/// Returns `true` if the set contains no futures.
-    </span><span class="kw">pub fn </span>is_empty(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+    </span><span class="kw">pub fn </span>is_empty(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="comment">// Relaxed ordering can be used here since we don&#39;t need to read from
         // the head pointer, only check whether it is null.
-        </span><a class="self" href="#151">self</a>.head_all.load(Relaxed).is_null()
+        </span><span class="self">self</span>.head_all.load(Relaxed).is_null()
     }
 
     <span class="doccomment">/// Push a future into the set.
@@ -819,82 +819,82 @@
     /// ensure that [`FuturesUnordered::poll_next`](Stream::poll_next) is called
     /// in order to receive wake-up notifications for the given future.
     </span><span class="kw">pub fn </span>push(<span class="kw-2">&amp;</span><span class="self">self</span>, future: Fut) {
-        <span class="kw">let </span>task = Arc::new(<a href="task.rs.html#10">Task</a> {
-            future: UnsafeCell::new(<span class="prelude-val">Some</span>(<a href="#163">future</a>)),
-            next_all: AtomicPtr::new(<a class="self" href="#163">self</a>.<a href="#377">pending_next_all</a>()),
+        <span class="kw">let </span>task = Arc::new(Task {
+            future: UnsafeCell::new(<span class="prelude-val">Some</span>(future)),
+            next_all: AtomicPtr::new(<span class="self">self</span>.pending_next_all()),
             prev_all: UnsafeCell::new(ptr::null_mut()),
             len_all: UnsafeCell::new(<span class="number">0</span>),
             next_ready_to_run: AtomicPtr::new(ptr::null_mut()),
             queued: AtomicBool::new(<span class="bool-val">true</span>),
-            ready_to_run_queue: Arc::downgrade(<span class="kw-2">&amp;</span><a class="self" href="#163">self</a>.ready_to_run_queue),
+            ready_to_run_queue: Arc::downgrade(<span class="kw-2">&amp;</span><span class="self">self</span>.ready_to_run_queue),
             woken: AtomicBool::new(<span class="bool-val">false</span>),
         });
 
         <span class="comment">// Reset the `is_terminated` flag if we&#39;ve previously marked ourselves
         // as terminated.
-        </span><a class="self" href="#163">self</a>.is_terminated.store(<span class="bool-val">false</span>, Relaxed);
+        </span><span class="self">self</span>.is_terminated.store(<span class="bool-val">false</span>, Relaxed);
 
         <span class="comment">// Right now our task has a strong reference count of 1. We transfer
         // ownership of this reference count to our internal linked list
         // and we&#39;ll reclaim ownership through the `unlink` method below.
-        </span><span class="kw">let </span>ptr = <a class="self" href="#163">self</a>.<a href="#283">link</a>(<a href="#164">task</a>);
+        </span><span class="kw">let </span>ptr = <span class="self">self</span>.link(task);
 
         <span class="comment">// We&#39;ll need to get the future &quot;into the system&quot; to start tracking it,
         // e.g. getting its wake-up notifications going to us tracking which
         // futures are ready. To do that we unconditionally enqueue it for
         // polling here.
-        </span><a class="self" href="#163">self</a>.ready_to_run_queue.<a href="ready_to_run_queue.rs.html#31">enqueue</a>(<a href="#182">ptr</a>);
+        </span><span class="self">self</span>.ready_to_run_queue.enqueue(ptr);
     }
 
     <span class="doccomment">/// Returns an iterator that allows inspecting each future in the set.
     </span><span class="kw">pub fn </span>iter(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Iter&lt;<span class="lifetime">&#39;_</span>, Fut&gt;
     <span class="kw">where
-        </span>Fut: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
+        </span>Fut: Unpin,
     {
-        <a href="iter.rs.html#31">Iter</a>(Pin::new(<a class="self" href="#192">self</a>).<a href="#200">iter_pin_ref</a>())
+        Iter(Pin::new(<span class="self">self</span>).iter_pin_ref())
     }
 
     <span class="doccomment">/// Returns an iterator that allows inspecting each future in the set.
     </span><span class="kw">pub fn </span>iter_pin_ref(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;</span><span class="self">Self</span>&gt;) -&gt; IterPinRef&lt;<span class="lifetime">&#39;_</span>, Fut&gt; {
-        <span class="kw">let </span>(task, len) = <a class="self" href="#200">self</a>.<a href="#228">atomic_load_head_and_len_all</a>();
-        <span class="kw">let </span>pending_next_all = <a class="self" href="#200">self</a>.<a href="#377">pending_next_all</a>();
+        <span class="kw">let </span>(task, len) = <span class="self">self</span>.atomic_load_head_and_len_all();
+        <span class="kw">let </span>pending_next_all = <span class="self">self</span>.pending_next_all();
 
-        <a href="iter.rs.html#22">IterPinRef</a> { <a href="#201">task</a>, <a href="#201">len</a>, <a href="#202">pending_next_all</a>, _marker: PhantomData }
+        IterPinRef { task, len, pending_next_all, _marker: PhantomData }
     }
 
     <span class="doccomment">/// Returns an iterator that allows modifying each future in the set.
     </span><span class="kw">pub fn </span>iter_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; IterMut&lt;<span class="lifetime">&#39;_</span>, Fut&gt;
     <span class="kw">where
-        </span>Fut: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
+        </span>Fut: Unpin,
     {
-        <a href="iter.rs.html#18">IterMut</a>(Pin::new(<a class="self" href="#208">self</a>).<a href="#216">iter_pin_mut</a>())
+        IterMut(Pin::new(<span class="self">self</span>).iter_pin_mut())
     }
 
     <span class="doccomment">/// Returns an iterator that allows modifying each future in the set.
     </span><span class="kw">pub fn </span>iter_pin_mut(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;) -&gt; IterPinMut&lt;<span class="lifetime">&#39;_</span>, Fut&gt; {
         <span class="comment">// `head_all` can be accessed directly and we don&#39;t need to spin on
         // `Task::next_all` since we have exclusive access to the set.
-        </span><span class="kw">let </span>task = <span class="kw-2">*</span><a class="self" href="#216">self</a>.head_all.get_mut();
-        <span class="kw">let </span>len = <span class="kw">if </span>task.is_null() { <span class="number">0 </span>} <span class="kw">else </span>{ <span class="kw">unsafe </span>{ <span class="kw-2">*</span>(<span class="kw-2">*</span><a href="#219">task</a>).len_all.get() } };
+        </span><span class="kw">let </span>task = <span class="kw-2">*</span><span class="self">self</span>.head_all.get_mut();
+        <span class="kw">let </span>len = <span class="kw">if </span>task.is_null() { <span class="number">0 </span>} <span class="kw">else </span>{ <span class="kw">unsafe </span>{ <span class="kw-2">*</span>(<span class="kw-2">*</span>task).len_all.get() } };
 
-        <a href="iter.rs.html#10">IterPinMut</a> { <a href="#219">task</a>, <a href="#220">len</a>, _marker: PhantomData }
+        IterPinMut { task, len, _marker: PhantomData }
     }
 
     <span class="doccomment">/// Returns the current head node and number of futures in the list of all
     /// futures within a context where access is shared with other threads
     /// (mostly for use with the `len` and `iter_pin_ref` methods).
-    </span><span class="kw">fn </span>atomic_load_head_and_len_all(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (<span class="kw-2">*const </span>Task&lt;Fut&gt;, <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
-        <span class="kw">let </span>task = <a class="self" href="#228">self</a>.head_all.load(Acquire);
+    </span><span class="kw">fn </span>atomic_load_head_and_len_all(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (<span class="kw-2">*const </span>Task&lt;Fut&gt;, usize) {
+        <span class="kw">let </span>task = <span class="self">self</span>.head_all.load(Acquire);
         <span class="kw">let </span>len = <span class="kw">if </span>task.is_null() {
             <span class="number">0
         </span>} <span class="kw">else </span>{
             <span class="kw">unsafe </span>{
-                (<span class="kw-2">*</span><a href="#229">task</a>).<a href="task.rs.html#95-99">spin_next_all</a>(<a class="self" href="#228">self</a>.<a href="#377">pending_next_all</a>(), Acquire);
-                <span class="kw-2">*</span>(<span class="kw-2">*</span><a href="#229">task</a>).len_all.get()
+                (<span class="kw-2">*</span>task).spin_next_all(<span class="self">self</span>.pending_next_all(), Acquire);
+                <span class="kw-2">*</span>(<span class="kw-2">*</span>task).len_all.get()
             }
         };
 
-        (<a href="#229">task</a>, <a href="#230">len</a>)
+        (task, len)
     }
 
     <span class="doccomment">/// Releases the task. It destroys the future inside and either drops
@@ -902,14 +902,14 @@
     /// The task this method is called on must have been unlinked before.
     </span><span class="kw">fn </span>release_task(<span class="kw-2">&amp;mut </span><span class="self">self</span>, task: Arc&lt;Task&lt;Fut&gt;&gt;) {
         <span class="comment">// `release_task` must only be called on unlinked tasks
-        </span><a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert_eq.html">debug_assert_eq!</a>(task.next_all.load(Relaxed), <span class="self">self</span>.pending_next_all());
+        </span><span class="macro">debug_assert_eq!</span>(task.next_all.load(Relaxed), <span class="self">self</span>.pending_next_all());
         <span class="kw">unsafe </span>{
-            <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>((<span class="kw-2">*</span>task.prev_all.get()).is_null());
+            <span class="macro">debug_assert!</span>((<span class="kw-2">*</span>task.prev_all.get()).is_null());
         }
 
         <span class="comment">// The future is done, try to reset the queued flag. This will prevent
         // `wake` from doing any work in the future
-        </span><span class="kw">let </span>prev = <a href="#245">task</a>.queued.swap(<span class="bool-val">true</span>, SeqCst);
+        </span><span class="kw">let </span>prev = task.queued.swap(<span class="bool-val">true</span>, SeqCst);
 
         <span class="comment">// Drop the future, even if it hasn&#39;t finished yet. This is safe
         // because we&#39;re dropping the future on the thread that owns
@@ -918,7 +918,7 @@
         </span><span class="kw">unsafe </span>{
             <span class="comment">// Set to `None` rather than `take()`ing to prevent moving the
             // future.
-            </span><span class="kw-2">*</span><a href="#245">task</a>.future.get() = <span class="prelude-val">None</span>;
+            </span><span class="kw-2">*</span>task.future.get() = <span class="prelude-val">None</span>;
         }
 
         <span class="comment">// If the queued flag was previously set, then it means that this task
@@ -933,7 +933,7 @@
         // again. The task itself will be deallocated once all reference counts
         // have been dropped elsewhere by the various wakers that contain it.
         </span><span class="kw">if </span>prev {
-            mem::forget(<a href="#245">task</a>);
+            mem::forget(task);
         }
     }
 
@@ -941,12 +941,12 @@
     </span><span class="kw">fn </span>link(<span class="kw-2">&amp;</span><span class="self">self</span>, task: Arc&lt;Task&lt;Fut&gt;&gt;) -&gt; <span class="kw-2">*const </span>Task&lt;Fut&gt; {
         <span class="comment">// `next_all` should already be reset to the pending state before this
         // function is called.
-        </span><a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert_eq.html">debug_assert_eq!</a>(task.next_all.load(Relaxed), <span class="self">self</span>.pending_next_all());
-        <span class="kw">let </span>ptr = Arc::into_raw(<a href="#283">task</a>);
+        </span><span class="macro">debug_assert_eq!</span>(task.next_all.load(Relaxed), <span class="self">self</span>.pending_next_all());
+        <span class="kw">let </span>ptr = Arc::into_raw(task);
 
         <span class="comment">// Atomically swap out the old head node to get the node that should be
         // assigned to `next_all`.
-        </span><span class="kw">let </span>next = <a class="self" href="#283">self</a>.head_all.swap(<a href="#287">ptr</a> <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>, AcqRel);
+        </span><span class="kw">let </span>next = <span class="self">self</span>.head_all.swap(ptr <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>, AcqRel);
 
         <span class="kw">unsafe </span>{
             <span class="comment">// Store the new list length in the new node.
@@ -955,23 +955,23 @@
             </span>} <span class="kw">else </span>{
                 <span class="comment">// Make sure `next_all` has been written to signal that it is
                 // safe to read `len_all`.
-                </span>(<span class="kw-2">*</span><a href="#291">next</a>).<a href="task.rs.html#95-99">spin_next_all</a>(<a class="self" href="#283">self</a>.<a href="#377">pending_next_all</a>(), Acquire);
-                <span class="kw-2">*</span>(<span class="kw-2">*</span><a href="#291">next</a>).len_all.get() + <span class="number">1
+                </span>(<span class="kw-2">*</span>next).spin_next_all(<span class="self">self</span>.pending_next_all(), Acquire);
+                <span class="kw-2">*</span>(<span class="kw-2">*</span>next).len_all.get() + <span class="number">1
             </span>};
-            <span class="kw-2">*</span>(<span class="kw-2">*</span><a href="#287">ptr</a>).len_all.get() = <a href="#295">new_len</a>;
+            <span class="kw-2">*</span>(<span class="kw-2">*</span>ptr).len_all.get() = new_len;
 
             <span class="comment">// Write the old head as the next node pointer, signaling to other
             // threads that `len_all` and `next_all` are ready to read.
-            </span>(<span class="kw-2">*</span><a href="#287">ptr</a>).next_all.store(<a href="#291">next</a>, Release);
+            </span>(<span class="kw-2">*</span>ptr).next_all.store(next, Release);
 
             <span class="comment">// `prev_all` updates don&#39;t need to be synchronized, as the field is
             // only ever used after exclusive access has been acquired.
             </span><span class="kw">if </span>!next.is_null() {
-                <span class="kw-2">*</span>(<span class="kw-2">*</span><a href="#291">next</a>).prev_all.get() = <a href="#287">ptr</a>;
+                <span class="kw-2">*</span>(<span class="kw-2">*</span>next).prev_all.get() = ptr;
             }
         }
 
-        <a href="#287">ptr</a>
+        ptr
     }
 
     <span class="doccomment">/// Remove the task from the linked list tracking all tasks currently
@@ -981,33 +981,33 @@
     </span><span class="kw">unsafe fn </span>unlink(<span class="kw-2">&amp;mut </span><span class="self">self</span>, task: <span class="kw-2">*const </span>Task&lt;Fut&gt;) -&gt; Arc&lt;Task&lt;Fut&gt;&gt; {
         <span class="comment">// Compute the new list length now in case we&#39;re removing the head node
         // and won&#39;t be able to retrieve the correct length later.
-        </span><span class="kw">let </span>head = <span class="kw-2">*</span><a class="self" href="#323">self</a>.head_all.get_mut();
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(!head.is_null());
-        <span class="kw">let </span>new_len = <span class="kw-2">*</span>(<span class="kw-2">*</span><a href="#326">head</a>).len_all.get() - <span class="number">1</span>;
+        </span><span class="kw">let </span>head = <span class="kw-2">*</span><span class="self">self</span>.head_all.get_mut();
+        <span class="macro">debug_assert!</span>(!head.is_null());
+        <span class="kw">let </span>new_len = <span class="kw-2">*</span>(<span class="kw-2">*</span>head).len_all.get() - <span class="number">1</span>;
 
-        <span class="kw">let </span>task = Arc::from_raw(<a href="#323">task</a>);
-        <span class="kw">let </span>next = <a href="#330">task</a>.next_all.load(Relaxed);
-        <span class="kw">let </span>prev = <span class="kw-2">*</span><a href="#330">task</a>.prev_all.get();
-        <a href="#330">task</a>.next_all.store(<a class="self" href="#323">self</a>.<a href="#377">pending_next_all</a>(), Relaxed);
-        <span class="kw-2">*</span><a href="#330">task</a>.prev_all.get() = ptr::null_mut();
+        <span class="kw">let </span>task = Arc::from_raw(task);
+        <span class="kw">let </span>next = task.next_all.load(Relaxed);
+        <span class="kw">let </span>prev = <span class="kw-2">*</span>task.prev_all.get();
+        task.next_all.store(<span class="self">self</span>.pending_next_all(), Relaxed);
+        <span class="kw-2">*</span>task.prev_all.get() = ptr::null_mut();
 
         <span class="kw">if </span>!next.is_null() {
-            <span class="kw-2">*</span>(<span class="kw-2">*</span><a href="#331">next</a>).prev_all.get() = <a href="#332">prev</a>;
+            <span class="kw-2">*</span>(<span class="kw-2">*</span>next).prev_all.get() = prev;
         }
 
         <span class="kw">if </span>!prev.is_null() {
-            (<span class="kw-2">*</span><a href="#332">prev</a>).next_all.store(<a href="#331">next</a>, Relaxed);
+            (<span class="kw-2">*</span>prev).next_all.store(next, Relaxed);
         } <span class="kw">else </span>{
-            <span class="kw-2">*</span><a class="self" href="#323">self</a>.head_all.get_mut() = <a href="#331">next</a>;
+            <span class="kw-2">*</span><span class="self">self</span>.head_all.get_mut() = next;
         }
 
         <span class="comment">// Store the new list length in the head node.
-        </span><span class="kw">let </span>head = <span class="kw-2">*</span><a class="self" href="#323">self</a>.head_all.get_mut();
+        </span><span class="kw">let </span>head = <span class="kw-2">*</span><span class="self">self</span>.head_all.get_mut();
         <span class="kw">if </span>!head.is_null() {
-            <span class="kw-2">*</span>(<span class="kw-2">*</span><a href="#347">head</a>).len_all.get() = <a href="#328">new_len</a>;
+            <span class="kw-2">*</span>(<span class="kw-2">*</span>head).len_all.get() = new_len;
         }
 
-        <a href="#330">task</a>
+        task
     }
 
     <span class="doccomment">/// Returns the reserved value for `Task::next_all` to indicate a pending
@@ -1036,15 +1036,15 @@
         <span class="comment">// The `ReadyToRunQueue` stub is never inserted into the `head_all`
         // list, and its pointer value will remain valid for the lifetime of
         // this `FuturesUnordered`, so we can make use of its value here.
-        </span>Arc::as_ptr(<span class="kw-2">&amp;</span><a class="self" href="#377">self</a>.ready_to_run_queue.stub) <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_
+        </span>Arc::as_ptr(<span class="kw-2">&amp;</span><span class="self">self</span>.ready_to_run_queue.stub) <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_
     </span>}
 }
 
-<span class="kw">impl</span>&lt;Fut: <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a>&gt; <a href="../../../../futures_util/stream/trait.Stream.html">Stream</a> <span class="kw">for </span>FuturesUnordered&lt;Fut&gt; {
+<span class="kw">impl</span>&lt;Fut: Future&gt; Stream <span class="kw">for </span>FuturesUnordered&lt;Fut&gt; {
     <span class="kw">type </span>Item = Fut::Output;
 
     <span class="kw">fn </span>poll_next(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt;&gt; {
-        <span class="kw">let </span>len = <a class="self" href="#388">self</a>.<a href="#145">len</a>();
+        <span class="kw">let </span>len = <span class="self">self</span>.len();
 
         <span class="comment">// Keep track of how many child futures we have polled,
         // in case we want to forcibly yield.
@@ -1052,40 +1052,40 @@
         <span class="kw">let </span><span class="kw-2">mut </span>yielded = <span class="number">0</span>;
 
         <span class="comment">// Ensure `parent` is correctly set.
-        </span><a class="self" href="#388">self</a>.ready_to_run_queue.waker.register(<a href="#388">cx</a>.waker());
+        </span><span class="self">self</span>.ready_to_run_queue.waker.register(cx.waker());
 
         <span class="kw">loop </span>{
             <span class="comment">// Safety: &amp;mut self guarantees the mutual exclusion `dequeue`
             // expects
-            </span><span class="kw">let </span>task = <span class="kw">match unsafe </span>{ <a class="self" href="#388">self</a>.ready_to_run_queue.<a href="ready_to_run_queue.rs.html#49">dequeue</a>() } {
-                <a href="ready_to_run_queue.rs.html#13">Dequeue::Empty</a> =&gt; {
+            </span><span class="kw">let </span>task = <span class="kw">match unsafe </span>{ <span class="self">self</span>.ready_to_run_queue.dequeue() } {
+                Dequeue::Empty =&gt; {
                     <span class="kw">if </span><span class="self">self</span>.is_empty() {
                         <span class="comment">// We can only consider ourselves terminated once we
                         // have yielded a `None`
-                        </span><span class="kw-2">*</span><a class="self" href="#388">self</a>.is_terminated.get_mut() = <span class="bool-val">true</span>;
+                        </span><span class="kw-2">*</span><span class="self">self</span>.is_terminated.get_mut() = <span class="bool-val">true</span>;
                         <span class="kw">return </span>Poll::Ready(<span class="prelude-val">None</span>);
                     } <span class="kw">else </span>{
                         <span class="kw">return </span>Poll::Pending;
                     }
                 }
-                <a href="ready_to_run_queue.rs.html#14">Dequeue::Inconsistent</a> =&gt; {
+                Dequeue::Inconsistent =&gt; {
                     <span class="comment">// At this point, it may be worth yielding the thread &amp;
                     // spinning a few times... but for now, just yield using the
                     // task system.
-                    </span><a href="#388">cx</a>.waker().wake_by_ref();
+                    </span>cx.waker().wake_by_ref();
                     <span class="kw">return </span>Poll::Pending;
                 }
-                <a href="ready_to_run_queue.rs.html#12">Dequeue::Data</a>(task) =&gt; <a href="#420">task</a>,
+                Dequeue::Data(task) =&gt; task,
             };
 
-            <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(task != <span class="self">self</span>.ready_to_run_queue.stub());
+            <span class="macro">debug_assert!</span>(task != <span class="self">self</span>.ready_to_run_queue.stub());
 
             <span class="comment">// Safety:
             // - `task` is a valid pointer.
             // - We are the only thread that accesses the `UnsafeCell` that
             //   contains the future
-            </span><span class="kw">let </span>future = <span class="kw">match unsafe </span>{ <span class="kw-2">&amp;mut *</span>(<span class="kw-2">*</span><a href="#402">task</a>).future.get() } {
-                <span class="prelude-val">Some</span>(future) =&gt; <a href="#430">future</a>,
+            </span><span class="kw">let </span>future = <span class="kw">match unsafe </span>{ <span class="kw-2">&amp;mut *</span>(<span class="kw-2">*</span>task).future.get() } {
+                <span class="prelude-val">Some</span>(future) =&gt; future,
 
                 <span class="comment">// If the future has already gone away then we&#39;re just
                 // cleaning out this task. See the comment in
@@ -1098,26 +1098,26 @@
                     // queue.
 
                     // Safety: `task` is a valid pointer
-                    </span><span class="kw">let </span>task = <span class="kw">unsafe </span>{ Arc::from_raw(<a href="#402">task</a>) };
+                    </span><span class="kw">let </span>task = <span class="kw">unsafe </span>{ Arc::from_raw(task) };
 
                     <span class="comment">// Double check that the call to `release_task` really
                     // happened. Calling it required the task to be unlinked.
-                    </span><a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert_eq.html">debug_assert_eq!</a>(task.next_all.load(Relaxed), <span class="self">self</span>.pending_next_all());
+                    </span><span class="macro">debug_assert_eq!</span>(task.next_all.load(Relaxed), <span class="self">self</span>.pending_next_all());
                     <span class="kw">unsafe </span>{
-                        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>((<span class="kw-2">*</span>task.prev_all.get()).is_null());
+                        <span class="macro">debug_assert!</span>((<span class="kw-2">*</span>task.prev_all.get()).is_null());
                     }
                     <span class="kw">continue</span>;
                 }
             };
 
             <span class="comment">// Safety: `task` is a valid pointer
-            </span><span class="kw">let </span>task = <span class="kw">unsafe </span>{ <a class="self" href="#388">self</a>.<a href="#323">unlink</a>(<a href="#402">task</a>) };
+            </span><span class="kw">let </span>task = <span class="kw">unsafe </span>{ <span class="self">self</span>.unlink(task) };
 
             <span class="comment">// Unset queued flag: This must be done before polling to ensure
             // that the future&#39;s task gets rescheduled if it sends a wake-up
             // notification **during** the call to `poll`.
-            </span><span class="kw">let </span>prev = <a href="#456">task</a>.queued.swap(<span class="bool-val">false</span>, SeqCst);
-            <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(prev);
+            </span><span class="kw">let </span>prev = task.queued.swap(<span class="bool-val">false</span>, SeqCst);
+            <span class="macro">assert!</span>(prev);
 
             <span class="comment">// We&#39;re going to need to be very careful if the `poll`
             // method below panics. We need to (a) not leak memory and
@@ -1138,15 +1138,15 @@
                 task: <span class="prelude-ty">Option</span>&lt;Arc&lt;Task&lt;Fut&gt;&gt;&gt;,
             }
 
-            <span class="kw">impl</span>&lt;Fut&gt; <a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span>Bomb&lt;<span class="lifetime">&#39;_</span>, Fut&gt; {
+            <span class="kw">impl</span>&lt;Fut&gt; Drop <span class="kw">for </span>Bomb&lt;<span class="lifetime">&#39;_</span>, Fut&gt; {
                 <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-                    <span class="kw">if let </span><span class="prelude-val">Some</span>(task) = <a class="self" href="#484">self</a>.task.take() {
-                        <a class="self" href="#484">self</a>.queue.<a href="#245">release_task</a>(<a href="#485">task</a>);
+                    <span class="kw">if let </span><span class="prelude-val">Some</span>(task) = <span class="self">self</span>.task.take() {
+                        <span class="self">self</span>.queue.release_task(task);
                     }
                 }
             }
 
-            <span class="kw">let </span><span class="kw-2">mut </span>bomb = <a href="#478">Bomb</a> { task: <span class="prelude-val">Some</span>(<a href="#456">task</a>), queue: <span class="kw-2">&amp;mut *</span><span class="self"><a href="#388">self</a> </span>};
+            <span class="kw">let </span><span class="kw-2">mut </span>bomb = Bomb { task: <span class="prelude-val">Some</span>(task), queue: <span class="kw-2">&amp;mut *</span><span class="self">self </span>};
 
             <span class="comment">// Poll the underlying future with the appropriate waker
             // implementation. This is where a large bit of the unsafety
@@ -1160,27 +1160,27 @@
             // the internal allocation, appropriately accessing fields and
             // deallocating the task if need be.
             </span><span class="kw">let </span>res = {
-                <span class="kw">let </span>task = <a href="#491">bomb</a>.task.as_ref().unwrap();
+                <span class="kw">let </span>task = bomb.task.as_ref().unwrap();
                 <span class="comment">// We are only interested in whether the future is awoken before it
                 // finishes polling, so reset the flag here.
-                </span><a href="#505">task</a>.woken.store(<span class="bool-val">false</span>, Relaxed);
-                <span class="kw">let </span>waker = Task::waker_ref(<a href="#505">task</a>);
-                <span class="kw">let </span><span class="kw-2">mut </span>cx = Context::from_waker(<span class="kw-2">&amp;</span><a href="#509">waker</a>);
+                </span>task.woken.store(<span class="bool-val">false</span>, Relaxed);
+                <span class="kw">let </span>waker = Task::waker_ref(task);
+                <span class="kw">let </span><span class="kw-2">mut </span>cx = Context::from_waker(<span class="kw-2">&amp;</span>waker);
 
                 <span class="comment">// Safety: We won&#39;t move the future ever again
-                </span><span class="kw">let </span>future = <span class="kw">unsafe </span>{ Pin::new_unchecked(<a href="#429">future</a>) };
+                </span><span class="kw">let </span>future = <span class="kw">unsafe </span>{ Pin::new_unchecked(future) };
 
-                <a href="#513">future</a>.<a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">poll</a>(<span class="kw-2">&amp;mut </span><a href="#510">cx</a>)
+                future.poll(<span class="kw-2">&amp;mut </span>cx)
             };
-            <a href="#393">polled</a> += <span class="number">1</span>;
+            polled += <span class="number">1</span>;
 
-            <span class="kw">match </span><a href="#504">res</a> {
+            <span class="kw">match </span>res {
                 Poll::Pending =&gt; {
-                    <span class="kw">let </span>task = <a href="#491">bomb</a>.task.take().unwrap();
+                    <span class="kw">let </span>task = bomb.task.take().unwrap();
                     <span class="comment">// If the future was awoken during polling, we assume
                     // the future wanted to explicitly yield.
-                    </span><a href="#394">yielded</a> += <a href="#521">task</a>.woken.load(Relaxed) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>;
-                    <a href="#491">bomb</a>.queue.<a href="#283">link</a>(<a href="#521">task</a>);
+                    </span>yielded += task.woken.load(Relaxed) <span class="kw">as </span>usize;
+                    bomb.queue.link(task);
 
                     <span class="comment">// If a future yields, we respect it and yield here.
                     // If all futures have been polled, we also yield here to
@@ -1188,37 +1188,37 @@
                     // (polling the same future twice per iteration may cause
                     // the problem: https://github.com/rust-lang/futures-rs/pull/2333)
                     </span><span class="kw">if </span>yielded &gt;= <span class="number">2 </span>|| polled == len {
-                        <a href="#388">cx</a>.waker().wake_by_ref();
+                        cx.waker().wake_by_ref();
                         <span class="kw">return </span>Poll::Pending;
                     }
                     <span class="kw">continue</span>;
                 }
-                Poll::Ready(output) =&gt; <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Some</span>(<a href="#538">output</a>)),
+                Poll::Ready(output) =&gt; <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Some</span>(output)),
             }
         }
     }
 
-    <span class="kw">fn </span>size_hint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;) {
-        <span class="kw">let </span>len = <a class="self" href="#543">self</a>.<a href="#145">len</a>();
-        (<a href="#544">len</a>, <span class="prelude-val">Some</span>(<a href="#544">len</a>))
+    <span class="kw">fn </span>size_hint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (usize, <span class="prelude-ty">Option</span>&lt;usize&gt;) {
+        <span class="kw">let </span>len = <span class="self">self</span>.len();
+        (len, <span class="prelude-val">Some</span>(len))
     }
 }
 
-<span class="kw">impl</span>&lt;Fut&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">Debug</a> <span class="kw">for </span>FuturesUnordered&lt;Fut&gt; {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#550">f</a>, <span class="string">&quot;FuturesUnordered {{ ... }}&quot;</span>)
+<span class="kw">impl</span>&lt;Fut&gt; Debug <span class="kw">for </span>FuturesUnordered&lt;Fut&gt; {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        <span class="macro">write!</span>(f, <span class="string">&quot;FuturesUnordered {{ ... }}&quot;</span>)
     }
 }
 
 <span class="kw">impl</span>&lt;Fut&gt; FuturesUnordered&lt;Fut&gt; {
     <span class="doccomment">/// Clears the set, removing all futures.
     </span><span class="kw">pub fn </span>clear(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <a class="self" href="#557">self</a>.<a href="#566">clear_head_all</a>();
+        <span class="self">self</span>.clear_head_all();
 
         <span class="comment">// we just cleared all the tasks, and we have &amp;mut self, so this is safe.
-        </span><span class="kw">unsafe </span>{ <a class="self" href="#557">self</a>.ready_to_run_queue.<a href="ready_to_run_queue.rs.html#99">clear</a>() };
+        </span><span class="kw">unsafe </span>{ <span class="self">self</span>.ready_to_run_queue.clear() };
 
-        <a class="self" href="#557">self</a>.is_terminated.store(<span class="bool-val">false</span>, Relaxed);
+        <span class="self">self</span>.is_terminated.store(<span class="bool-val">false</span>, Relaxed);
     }
 
     <span class="kw">fn </span>clear_head_all(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
@@ -1230,13 +1230,13 @@
     }
 }
 
-<span class="kw">impl</span>&lt;Fut&gt; <a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span>FuturesUnordered&lt;Fut&gt; {
+<span class="kw">impl</span>&lt;Fut&gt; Drop <span class="kw">for </span>FuturesUnordered&lt;Fut&gt; {
     <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="comment">// When a `FuturesUnordered` is dropped we want to drop all futures
         // associated with it. At the same time though there may be tons of
         // wakers flying around which contain `Task&lt;Fut&gt;` references
         // inside them. We&#39;ll let those naturally get deallocated.
-        </span><a class="self" href="#576">self</a>.<a href="#566">clear_head_all</a>();
+        </span><span class="self">self</span>.clear_head_all();
 
         <span class="comment">// Note that at this point we could still have a bunch of tasks in the
         // ready to run queue. None of those tasks, however, have futures
@@ -1253,35 +1253,35 @@
     </span>}
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, Fut: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">IntoIterator</a> <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>FuturesUnordered&lt;Fut&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, Fut: Unpin&gt; IntoIterator <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>FuturesUnordered&lt;Fut&gt; {
     <span class="kw">type </span>Item = <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Fut;
     <span class="kw">type </span>IntoIter = Iter&lt;<span class="lifetime">&#39;a</span>, Fut&gt;;
 
     <span class="kw">fn </span>into_iter(<span class="self">self</span>) -&gt; <span class="self">Self</span>::IntoIter {
-        <a class="self" href="#602">self</a>.<a href="#192-194">iter</a>()
+        <span class="self">self</span>.iter()
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, Fut: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">IntoIterator</a> <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>FuturesUnordered&lt;Fut&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, Fut: Unpin&gt; IntoIterator <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>FuturesUnordered&lt;Fut&gt; {
     <span class="kw">type </span>Item = <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>Fut;
     <span class="kw">type </span>IntoIter = IterMut&lt;<span class="lifetime">&#39;a</span>, Fut&gt;;
 
     <span class="kw">fn </span>into_iter(<span class="self">self</span>) -&gt; <span class="self">Self</span>::IntoIter {
-        <a class="self" href="#611">self</a>.<a href="#208-210">iter_mut</a>()
+        <span class="self">self</span>.iter_mut()
     }
 }
 
-<span class="kw">impl</span>&lt;Fut: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">IntoIterator</a> <span class="kw">for </span>FuturesUnordered&lt;Fut&gt; {
+<span class="kw">impl</span>&lt;Fut: Unpin&gt; IntoIterator <span class="kw">for </span>FuturesUnordered&lt;Fut&gt; {
     <span class="kw">type </span>Item = Fut;
     <span class="kw">type </span>IntoIter = IntoIter&lt;Fut&gt;;
 
     <span class="kw">fn </span>into_iter(<span class="kw-2">mut </span><span class="self">self</span>) -&gt; <span class="self">Self</span>::IntoIter {
         <span class="comment">// `head_all` can be accessed directly and we don&#39;t need to spin on
         // `Task::next_all` since we have exclusive access to the set.
-        </span><span class="kw">let </span>task = <span class="kw-2">*</span><a class="self" href="#620">self</a>.head_all.get_mut();
-        <span class="kw">let </span>len = <span class="kw">if </span>task.is_null() { <span class="number">0 </span>} <span class="kw">else </span>{ <span class="kw">unsafe </span>{ <span class="kw-2">*</span>(<span class="kw-2">*</span><a href="#623">task</a>).len_all.get() } };
+        </span><span class="kw">let </span>task = <span class="kw-2">*</span><span class="self">self</span>.head_all.get_mut();
+        <span class="kw">let </span>len = <span class="kw">if </span>task.is_null() { <span class="number">0 </span>} <span class="kw">else </span>{ <span class="kw">unsafe </span>{ <span class="kw-2">*</span>(<span class="kw-2">*</span>task).len_all.get() } };
 
-        <a href="iter.rs.html#35">IntoIter</a> { <a href="#624">len</a>, inner: <span class="self"><a href="#620">self</a> </span>}
+        IntoIter { len, inner: <span class="self">self </span>}
     }
 }
 
@@ -1291,16 +1291,16 @@
         </span>I: IntoIterator&lt;Item = Fut&gt;,
     {
         <span class="kw">let </span>acc = <span class="self">Self</span>::new();
-        <a href="#631">iter</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">fold</a>(<a href="#635">acc</a>, |acc, item| {
-            <a href="#636">acc</a>.<a href="#163">push</a>(<a href="#636">item</a>);
-            <a href="#636">acc</a>
+        iter.into_iter().fold(acc, |acc, item| {
+            acc.push(item);
+            acc
         })
     }
 }
 
-<span class="kw">impl</span>&lt;Fut: <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a>&gt; <a href="../../../../futures_util/stream/trait.FusedStream.html">FusedStream</a> <span class="kw">for </span>FuturesUnordered&lt;Fut&gt; {
-    <span class="kw">fn </span>is_terminated(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#644">self</a>.is_terminated.load(Relaxed)
+<span class="kw">impl</span>&lt;Fut: Future&gt; FusedStream <span class="kw">for </span>FuturesUnordered&lt;Fut&gt; {
+    <span class="kw">fn </span>is_terminated(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.is_terminated.load(Relaxed)
     }
 }
 
@@ -1315,4 +1315,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="futures_util" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="futures_util" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

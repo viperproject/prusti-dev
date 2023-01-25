@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/memoffset-0.6.5/src/raw_field.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>raw_field.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../memoffset/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/memoffset-0.7.1/src/raw_field.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>raw_field.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../memoffset/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -115,6 +115,115 @@
 <a href="#115" id="115">115</a>
 <a href="#116" id="116">116</a>
 <a href="#117" id="117">117</a>
+<a href="#118" id="118">118</a>
+<a href="#119" id="119">119</a>
+<a href="#120" id="120">120</a>
+<a href="#121" id="121">121</a>
+<a href="#122" id="122">122</a>
+<a href="#123" id="123">123</a>
+<a href="#124" id="124">124</a>
+<a href="#125" id="125">125</a>
+<a href="#126" id="126">126</a>
+<a href="#127" id="127">127</a>
+<a href="#128" id="128">128</a>
+<a href="#129" id="129">129</a>
+<a href="#130" id="130">130</a>
+<a href="#131" id="131">131</a>
+<a href="#132" id="132">132</a>
+<a href="#133" id="133">133</a>
+<a href="#134" id="134">134</a>
+<a href="#135" id="135">135</a>
+<a href="#136" id="136">136</a>
+<a href="#137" id="137">137</a>
+<a href="#138" id="138">138</a>
+<a href="#139" id="139">139</a>
+<a href="#140" id="140">140</a>
+<a href="#141" id="141">141</a>
+<a href="#142" id="142">142</a>
+<a href="#143" id="143">143</a>
+<a href="#144" id="144">144</a>
+<a href="#145" id="145">145</a>
+<a href="#146" id="146">146</a>
+<a href="#147" id="147">147</a>
+<a href="#148" id="148">148</a>
+<a href="#149" id="149">149</a>
+<a href="#150" id="150">150</a>
+<a href="#151" id="151">151</a>
+<a href="#152" id="152">152</a>
+<a href="#153" id="153">153</a>
+<a href="#154" id="154">154</a>
+<a href="#155" id="155">155</a>
+<a href="#156" id="156">156</a>
+<a href="#157" id="157">157</a>
+<a href="#158" id="158">158</a>
+<a href="#159" id="159">159</a>
+<a href="#160" id="160">160</a>
+<a href="#161" id="161">161</a>
+<a href="#162" id="162">162</a>
+<a href="#163" id="163">163</a>
+<a href="#164" id="164">164</a>
+<a href="#165" id="165">165</a>
+<a href="#166" id="166">166</a>
+<a href="#167" id="167">167</a>
+<a href="#168" id="168">168</a>
+<a href="#169" id="169">169</a>
+<a href="#170" id="170">170</a>
+<a href="#171" id="171">171</a>
+<a href="#172" id="172">172</a>
+<a href="#173" id="173">173</a>
+<a href="#174" id="174">174</a>
+<a href="#175" id="175">175</a>
+<a href="#176" id="176">176</a>
+<a href="#177" id="177">177</a>
+<a href="#178" id="178">178</a>
+<a href="#179" id="179">179</a>
+<a href="#180" id="180">180</a>
+<a href="#181" id="181">181</a>
+<a href="#182" id="182">182</a>
+<a href="#183" id="183">183</a>
+<a href="#184" id="184">184</a>
+<a href="#185" id="185">185</a>
+<a href="#186" id="186">186</a>
+<a href="#187" id="187">187</a>
+<a href="#188" id="188">188</a>
+<a href="#189" id="189">189</a>
+<a href="#190" id="190">190</a>
+<a href="#191" id="191">191</a>
+<a href="#192" id="192">192</a>
+<a href="#193" id="193">193</a>
+<a href="#194" id="194">194</a>
+<a href="#195" id="195">195</a>
+<a href="#196" id="196">196</a>
+<a href="#197" id="197">197</a>
+<a href="#198" id="198">198</a>
+<a href="#199" id="199">199</a>
+<a href="#200" id="200">200</a>
+<a href="#201" id="201">201</a>
+<a href="#202" id="202">202</a>
+<a href="#203" id="203">203</a>
+<a href="#204" id="204">204</a>
+<a href="#205" id="205">205</a>
+<a href="#206" id="206">206</a>
+<a href="#207" id="207">207</a>
+<a href="#208" id="208">208</a>
+<a href="#209" id="209">209</a>
+<a href="#210" id="210">210</a>
+<a href="#211" id="211">211</a>
+<a href="#212" id="212">212</a>
+<a href="#213" id="213">213</a>
+<a href="#214" id="214">214</a>
+<a href="#215" id="215">215</a>
+<a href="#216" id="216">216</a>
+<a href="#217" id="217">217</a>
+<a href="#218" id="218">218</a>
+<a href="#219" id="219">219</a>
+<a href="#220" id="220">220</a>
+<a href="#221" id="221">221</a>
+<a href="#222" id="222">222</a>
+<a href="#223" id="223">223</a>
+<a href="#224" id="224">224</a>
+<a href="#225" id="225">225</a>
+<a href="#226" id="226">226</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Gilad Naaman, Ralf Jung
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -156,6 +265,21 @@
 }
 
 <span class="doccomment">/// Deref-coercion protection macro.
+///
+/// Prevents complilation if the specified field name is not a part of the
+/// struct definition.
+///
+/// ```compile_fail
+/// use memoffset::_memoffset__field_check;
+///
+/// struct Foo {
+///     foo: i32,
+/// }
+///
+/// type BoxedFoo = Box&lt;Foo&gt;;
+///
+/// _memoffset__field_check!(BoxedFoo, foo);
+/// ```
 </span><span class="attr">#[cfg(allow_clippy)]
 #[macro_export]
 #[doc(hidden)]
@@ -181,7 +305,26 @@
 }
 
 <span class="doccomment">/// Deref-coercion protection macro.
-</span><span class="attr">#[macro_export]
+///
+/// Prevents complilation if the specified type is not a tuple.
+///
+/// ```compile_fail
+/// use memoffset::_memoffset__field_check_tuple;
+///
+/// _memoffset__field_check_tuple!(i32, 0);
+/// ```
+</span><span class="attr">#[cfg(allow_clippy)]
+#[macro_export]
+#[doc(hidden)]
+</span><span class="macro">macro_rules! </span>_memoffset__field_check_tuple {
+    (<span class="macro-nonterminal">$</span><span class="kw">type</span>:<span class="macro-nonterminal">ty</span>, <span class="macro-nonterminal">$field</span>:tt) =&gt; {
+        <span class="comment">// Make sure the type argument is a tuple
+        </span><span class="attr">#[allow(clippy::unneeded_wildcard_pattern)]
+        </span><span class="kw">let </span>(<span class="kw">_</span>, ..): <span class="macro-nonterminal">$</span><span class="kw">type</span>;
+    };
+}
+<span class="attr">#[<span class="macro-nonterminal">cfg</span>(not(allow_clippy))]
+#[macro_export]
 #[doc(hidden)]
 </span><span class="macro">macro_rules! </span>_memoffset__field_check_tuple {
     (<span class="macro-nonterminal">$</span><span class="kw">type</span>:<span class="macro-nonterminal">ty</span>, <span class="macro-nonterminal">$field</span>:tt) =&gt; {
@@ -190,12 +333,59 @@
     };
 }
 
+<span class="doccomment">/// Deref-coercion protection macro for unions.
+/// Unfortunately accepts single-field structs as well, which is not ideal,
+/// but ultimately pretty harmless.
+///
+/// ```compile_fail
+/// use memoffset::_memoffset__field_check_union;
+///
+/// union Foo {
+///     variant_a: i32,
+/// }
+///
+/// type BoxedFoo = Box&lt;Foo&gt;;
+///
+/// _memoffset__field_check_union!(BoxedFoo, variant_a);
+/// ```
+</span><span class="attr">#[<span class="macro-nonterminal">cfg</span>(allow_clippy)]
+#[macro_export]
+#[doc(hidden)]
+</span><span class="macro">macro_rules! </span>_memoffset__field_check_union {
+    (<span class="macro-nonterminal">$</span><span class="kw">type</span>:<span class="macro-nonterminal">path</span>, <span class="macro-nonterminal">$field</span>:tt) =&gt; {
+        <span class="comment">// Make sure the field actually exists. This line ensures that a
+        // compile-time error is generated if $field is accessed through a
+        // Deref impl.
+        </span><span class="attr">#[allow(clippy::unneeded_wildcard_pattern)]
+        </span><span class="comment">// rustc1.19 requires unsafe here for the pattern; not needed in newer versions
+        </span><span class="attr">#[allow(unused_unsafe)]
+        </span><span class="kw">unsafe </span>{
+            <span class="kw">let </span><span class="macro-nonterminal">$</span><span class="kw">type </span>{ <span class="macro-nonterminal">$field</span>: <span class="kw">_ </span>};
+        }
+    };
+}
+<span class="attr">#[cfg(not(allow_clippy))]
+#[macro_export]
+#[doc(hidden)]
+</span><span class="macro">macro_rules! </span>_memoffset__field_check_union {
+    (<span class="macro-nonterminal">$</span><span class="kw">type</span>:<span class="macro-nonterminal">path</span>, <span class="macro-nonterminal">$field</span>:tt) =&gt; {
+        <span class="comment">// Make sure the field actually exists. This line ensures that a
+        // compile-time error is generated if $field is accessed through a
+        // Deref impl.
+        // rustc1.19 requires unsafe here for the pattern; not needed in newer versions
+        </span><span class="attr">#[allow(unused_unsafe)]
+        </span><span class="kw">unsafe </span>{
+            <span class="kw">let </span><span class="macro-nonterminal">$</span><span class="kw">type </span>{ <span class="macro-nonterminal">$field</span>: <span class="kw">_ </span>};
+        }
+    };
+}
+
 <span class="doccomment">/// Computes a const raw pointer to the given field of the given base pointer
 /// to the given parent type.
 ///
 /// The `base` pointer *must not* be dangling, but it *may* point to
 /// uninitialized memory.
-</span><span class="attr">#[<span class="macro-nonterminal">macro_export</span>(local_inner_macros)]
+</span><span class="attr">#[macro_export(local_inner_macros)]
 </span><span class="macro">macro_rules! </span>raw_field {
     (<span class="macro-nonterminal">$base</span>:expr, <span class="macro-nonterminal">$parent</span>:path, <span class="macro-nonterminal">$field</span>:tt) =&gt; {{
         <span class="macro">_memoffset__field_check!</span>(<span class="macro-nonterminal">$parent</span>, <span class="macro-nonterminal">$field</span>);
@@ -232,5 +422,33 @@
         }
     }};
 }
+
+<span class="doccomment">/// Computes a const raw pointer to the given field of the given base pointer
+/// to the given parent tuple typle.
+///
+/// The `base` pointer *must not* be dangling, but it *may* point to
+/// uninitialized memory.
+///
+/// ## Note
+/// This macro is the same as `raw_field`, except for a different Deref-coercion check that
+/// supports unions.
+/// Due to macro_rules limitations, this check will accept structs with a single field as well as unions.
+/// This is not a stable guarantee, and future versions of this crate might fail
+/// on any use of this macro with a struct, without a semver bump.
+</span><span class="attr">#[macro_export(local_inner_macros)]
+</span><span class="macro">macro_rules! </span>raw_field_union {
+    (<span class="macro-nonterminal">$base</span>:expr, <span class="macro-nonterminal">$parent</span>:path, <span class="macro-nonterminal">$field</span>:tt) =&gt; {{
+        <span class="macro">_memoffset__field_check_union!</span>(<span class="macro-nonterminal">$parent</span>, <span class="macro-nonterminal">$field</span>);
+        <span class="kw">let </span>base = <span class="macro-nonterminal">$base</span>; <span class="comment">// evaluate $base outside the `unsafe` block
+
+        // Get the field address.
+        // Crucially, we know that this will not trigger a deref coercion because
+        // of the field check we did above.
+        </span><span class="attr">#[allow(unused_unsafe)] </span><span class="comment">// for when the macro is used in an unsafe block
+        </span><span class="kw">unsafe </span>{
+            <span class="macro">_memoffset__addr_of!</span>((<span class="kw-2">*</span>(base <span class="kw">as </span><span class="kw-2">*const </span><span class="macro-nonterminal">$parent</span>)).<span class="macro-nonterminal">$field</span>)
+        }
+    }};
+}
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="memoffset" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="memoffset" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

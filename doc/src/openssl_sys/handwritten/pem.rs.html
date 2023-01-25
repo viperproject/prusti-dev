@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/openssl-sys-0.9.77/src/./handwritten/pem.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>pem.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../openssl_sys/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/openssl-sys-0.9.80/src/./handwritten/pem.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>pem.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../openssl_sys/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -189,196 +189,196 @@
 <a href="#189" id="189">189</a>
 <a href="#190" id="190">190</a>
 <a href="#191" id="191">191</a>
-</pre><pre class="rust"><code><span class="kw">use </span><a href="../../../libc/index.html">libc</a>::<span class="kw-2">*</span>;
+</pre><pre class="rust"><code><span class="kw">use </span>libc::<span class="kw-2">*</span>;
 <span class="kw">use </span><span class="kw-2">*</span>;
 
 <span class="kw">pub type </span>pem_password_cb = <span class="prelude-ty">Option</span>&lt;
     <span class="kw">unsafe extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn</span>(
-        buf: <span class="kw-2">*mut </span><a href="../../../openssl_sys/type.c_char.html">c_char</a>,
-        size: <a href="../../../openssl_sys/type.c_int.html">c_int</a>,
-        rwflag: <a href="../../../openssl_sys/type.c_int.html">c_int</a>,
-        user_data: <span class="kw-2">*mut </span><a href="../../../openssl_sys/enum.c_void.html">c_void</a>,
-    ) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>,
+        buf: <span class="kw-2">*mut </span>c_char,
+        size: c_int,
+        rwflag: c_int,
+        user_data: <span class="kw-2">*mut </span>c_void,
+    ) -&gt; c_int,
 &gt;;
 
 <span class="macro">const_ptr_api! </span>{
     <span class="kw">extern </span><span class="string">&quot;C&quot; </span>{
-        <span class="kw">pub fn </span>PEM_write_bio_X509(bio: <span class="kw-2">*mut </span><a href="types.rs.html#18">BIO</a>, x509: <span class="attr">#[const_ptr_if(ossl300)] </span><a href="types.rs.html#257">X509</a>) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
-        <span class="kw">pub fn </span>PEM_write_bio_X509_REQ(bio: <span class="kw-2">*mut </span><a href="types.rs.html#18">BIO</a>, x509: <span class="attr">#[const_ptr_if(ossl300)] </span><a href="x509.rs.html#100">X509_REQ</a>) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
-        <span class="kw">pub fn </span>PEM_write_bio_X509_CRL(bio: <span class="kw-2">*mut </span><a href="types.rs.html#18">BIO</a>, x509: <span class="attr">#[const_ptr_if(ossl300)] </span><a href="x509.rs.html#37">X509_CRL</a>) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
+        <span class="kw">pub fn </span>PEM_write_bio_X509(bio: <span class="kw-2">*mut </span>BIO, x509: <span class="attr">#[const_ptr_if(ossl300)] </span>X509) -&gt; c_int;
+        <span class="kw">pub fn </span>PEM_write_bio_X509_REQ(bio: <span class="kw-2">*mut </span>BIO, x509: <span class="attr">#[const_ptr_if(ossl300)] </span>X509_REQ) -&gt; c_int;
+        <span class="kw">pub fn </span>PEM_write_bio_X509_CRL(bio: <span class="kw-2">*mut </span>BIO, x509: <span class="attr">#[const_ptr_if(ossl300)] </span>X509_CRL) -&gt; c_int;
         <span class="kw">pub fn </span>PEM_write_bio_RSAPrivateKey(
-            bp: <span class="kw-2">*mut </span><a href="types.rs.html#18">BIO</a>,
-            rsa: <span class="attr">#[const_ptr_if(ossl300)] </span><a href="types.rs.html#191">RSA</a>,
-            cipher: <span class="kw-2">*const </span><a href="types.rs.html#64">EVP_CIPHER</a>,
-            kstr: <span class="attr">#[const_ptr_if(ossl300)] </span><a href="../../../openssl_sys/type.c_uchar.html">c_uchar</a>,
-            klen: <a href="../../../openssl_sys/type.c_int.html">c_int</a>,
-            callback: <a href="#4">pem_password_cb</a>,
-            user_data: <span class="kw-2">*mut </span><a href="../../../openssl_sys/enum.c_void.html">c_void</a>,
-        ) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
-        <span class="kw">pub fn </span>PEM_write_bio_RSA_PUBKEY(bp: <span class="kw-2">*mut </span><a href="types.rs.html#18">BIO</a>, rsa: <span class="attr">#[const_ptr_if(ossl300)] </span><a href="types.rs.html#191">RSA</a>) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
+            bp: <span class="kw-2">*mut </span>BIO,
+            rsa: <span class="attr">#[const_ptr_if(ossl300)] </span>RSA,
+            cipher: <span class="kw-2">*const </span>EVP_CIPHER,
+            kstr: <span class="attr">#[const_ptr_if(ossl300)] </span>c_uchar,
+            klen: c_int,
+            callback: pem_password_cb,
+            user_data: <span class="kw-2">*mut </span>c_void,
+        ) -&gt; c_int;
+        <span class="kw">pub fn </span>PEM_write_bio_RSA_PUBKEY(bp: <span class="kw-2">*mut </span>BIO, rsa: <span class="attr">#[const_ptr_if(ossl300)] </span>RSA) -&gt; c_int;
         <span class="kw">pub fn </span>PEM_write_bio_DSAPrivateKey(
-            bp: <span class="kw-2">*mut </span><a href="types.rs.html#18">BIO</a>,
-            dsa: <span class="attr">#[const_ptr_if(ossl300)] </span><a href="types.rs.html#162">DSA</a>,
-            cipher: <span class="kw-2">*const </span><a href="types.rs.html#64">EVP_CIPHER</a>,
-            kstr: <span class="attr">#[const_ptr_if(ossl300)] </span><a href="../../../openssl_sys/type.c_uchar.html">c_uchar</a>,
-            klen: <a href="../../../openssl_sys/type.c_int.html">c_int</a>,
-            callback: <a href="#4">pem_password_cb</a>,
-            user_data: <span class="kw-2">*mut </span><a href="../../../openssl_sys/enum.c_void.html">c_void</a>,
-        ) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
+            bp: <span class="kw-2">*mut </span>BIO,
+            dsa: <span class="attr">#[const_ptr_if(ossl300)] </span>DSA,
+            cipher: <span class="kw-2">*const </span>EVP_CIPHER,
+            kstr: <span class="attr">#[const_ptr_if(ossl300)] </span>c_uchar,
+            klen: c_int,
+            callback: pem_password_cb,
+            user_data: <span class="kw-2">*mut </span>c_void,
+        ) -&gt; c_int;
         <span class="kw">pub fn </span>PEM_write_bio_ECPrivateKey(
-            bio: <span class="kw-2">*mut </span><a href="types.rs.html#18">BIO</a>,
-            key: <span class="attr">#[const_ptr_if(ossl300)] </span><a href="types.rs.html#253">EC_KEY</a>,
-            cipher: <span class="kw-2">*const </span><a href="types.rs.html#64">EVP_CIPHER</a>,
-            kstr: <span class="attr">#[const_ptr_if(ossl300)] </span><a href="../../../openssl_sys/type.c_uchar.html">c_uchar</a>,
-            klen: <a href="../../../openssl_sys/type.c_int.html">c_int</a>,
-            callback: <a href="#4">pem_password_cb</a>,
-            user_data: <span class="kw-2">*mut </span><a href="../../../openssl_sys/enum.c_void.html">c_void</a>,
-        ) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
-        <span class="kw">pub fn </span>PEM_write_bio_DSA_PUBKEY(bp: <span class="kw-2">*mut </span><a href="types.rs.html#18">BIO</a>, dsa: <span class="attr">#[const_ptr_if(ossl300)] </span><a href="types.rs.html#162">DSA</a>) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
+            bio: <span class="kw-2">*mut </span>BIO,
+            key: <span class="attr">#[const_ptr_if(ossl300)] </span>EC_KEY,
+            cipher: <span class="kw-2">*const </span>EVP_CIPHER,
+            kstr: <span class="attr">#[const_ptr_if(ossl300)] </span>c_uchar,
+            klen: c_int,
+            callback: pem_password_cb,
+            user_data: <span class="kw-2">*mut </span>c_void,
+        ) -&gt; c_int;
+        <span class="kw">pub fn </span>PEM_write_bio_DSA_PUBKEY(bp: <span class="kw-2">*mut </span>BIO, dsa: <span class="attr">#[const_ptr_if(ossl300)] </span>DSA) -&gt; c_int;
         <span class="kw">pub fn </span>PEM_write_bio_PrivateKey(
-            bio: <span class="kw-2">*mut </span><a href="types.rs.html#18">BIO</a>,
-            pkey: <span class="attr">#[const_ptr_if(ossl300)] </span><a href="../types.rs.html#6">EVP_PKEY</a>,
-            cipher: <span class="kw-2">*const </span><a href="types.rs.html#64">EVP_CIPHER</a>,
-            kstr: <span class="attr">#[const_ptr_if(ossl300)] </span><a href="../../../openssl_sys/type.c_uchar.html">c_uchar</a>,
-            klen: <a href="../../../openssl_sys/type.c_int.html">c_int</a>,
-            callback: <a href="#4">pem_password_cb</a>,
-            user_data: <span class="kw-2">*mut </span><a href="../../../openssl_sys/enum.c_void.html">c_void</a>,
-        ) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
-        <span class="kw">pub fn </span>PEM_write_bio_PUBKEY(bp: <span class="kw-2">*mut </span><a href="types.rs.html#18">BIO</a>, x: <span class="attr">#[const_ptr_if(ossl300)] </span><a href="../types.rs.html#6">EVP_PKEY</a>) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
+            bio: <span class="kw-2">*mut </span>BIO,
+            pkey: <span class="attr">#[const_ptr_if(ossl300)] </span>EVP_PKEY,
+            cipher: <span class="kw-2">*const </span>EVP_CIPHER,
+            kstr: <span class="attr">#[const_ptr_if(ossl300)] </span>c_uchar,
+            klen: c_int,
+            callback: pem_password_cb,
+            user_data: <span class="kw-2">*mut </span>c_void,
+        ) -&gt; c_int;
+        <span class="kw">pub fn </span>PEM_write_bio_PUBKEY(bp: <span class="kw-2">*mut </span>BIO, x: <span class="attr">#[const_ptr_if(ossl300)] </span>EVP_PKEY) -&gt; c_int;
         <span class="kw">pub fn </span>PEM_write_bio_PKCS8PrivateKey(
-            bio: <span class="kw-2">*mut </span><a href="types.rs.html#18">BIO</a>,
-            pkey: <span class="attr">#[const_ptr_if(ossl300)] </span><a href="../types.rs.html#6">EVP_PKEY</a>,
-            cipher: <span class="kw-2">*const </span><a href="types.rs.html#64">EVP_CIPHER</a>,
-            kstr: <span class="attr">#[const_ptr_if(ossl300)] </span><a href="../../../openssl_sys/type.c_char.html">c_char</a>,
-            klen: <a href="../../../openssl_sys/type.c_int.html">c_int</a>,
-            callback: <a href="#4">pem_password_cb</a>,
-            user_data: <span class="kw-2">*mut </span><a href="../../../openssl_sys/enum.c_void.html">c_void</a>,
-        ) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
-        <span class="kw">pub fn </span>PEM_write_bio_PKCS7(bp: <span class="kw-2">*mut </span><a href="types.rs.html#18">BIO</a>, x: <span class="attr">#[const_ptr_if(ossl300)] </span><a href="pkcs7.rs.html#9">PKCS7</a>) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
-        <span class="kw">pub fn </span>PEM_write_bio_EC_PUBKEY(bp: <span class="kw-2">*mut </span><a href="types.rs.html#18">BIO</a>, ec: <span class="attr">#[const_ptr_if(ossl300)] </span><a href="types.rs.html#253">EC_KEY</a>) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
+            bio: <span class="kw-2">*mut </span>BIO,
+            pkey: <span class="attr">#[const_ptr_if(ossl300)] </span>EVP_PKEY,
+            cipher: <span class="kw-2">*const </span>EVP_CIPHER,
+            kstr: <span class="attr">#[const_ptr_if(ossl300)] </span>c_char,
+            klen: c_int,
+            callback: pem_password_cb,
+            user_data: <span class="kw-2">*mut </span>c_void,
+        ) -&gt; c_int;
+        <span class="kw">pub fn </span>PEM_write_bio_PKCS7(bp: <span class="kw-2">*mut </span>BIO, x: <span class="attr">#[const_ptr_if(ossl300)] </span>PKCS7) -&gt; c_int;
+        <span class="kw">pub fn </span>PEM_write_bio_EC_PUBKEY(bp: <span class="kw-2">*mut </span>BIO, ec: <span class="attr">#[const_ptr_if(ossl300)] </span>EC_KEY) -&gt; c_int;
         <span class="kw">pub fn </span>i2d_PKCS8PrivateKey_bio(
-            bp: <span class="kw-2">*mut </span><a href="types.rs.html#18">BIO</a>,
-            x: <span class="attr">#[const_ptr_if(ossl300)] </span><a href="../types.rs.html#6">EVP_PKEY</a>,
-            enc: <span class="kw-2">*const </span><a href="types.rs.html#64">EVP_CIPHER</a>,
-            kstr: <span class="attr">#[const_ptr_if(ossl300)] </span><a href="../../../openssl_sys/type.c_char.html">c_char</a>,
-            klen: <a href="../../../openssl_sys/type.c_int.html">c_int</a>,
-            cb: <a href="#4">pem_password_cb</a>,
-            u: <span class="kw-2">*mut </span><a href="../../../openssl_sys/enum.c_void.html">c_void</a>,
-        ) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
+            bp: <span class="kw-2">*mut </span>BIO,
+            x: <span class="attr">#[const_ptr_if(ossl300)] </span>EVP_PKEY,
+            enc: <span class="kw-2">*const </span>EVP_CIPHER,
+            kstr: <span class="attr">#[const_ptr_if(ossl300)] </span>c_char,
+            klen: c_int,
+            cb: pem_password_cb,
+            u: <span class="kw-2">*mut </span>c_void,
+        ) -&gt; c_int;
     }
 }
 
 <span class="kw">extern </span><span class="string">&quot;C&quot; </span>{
     <span class="kw">pub fn </span>PEM_read_bio_X509(
-        bio: <span class="kw-2">*mut </span><a href="types.rs.html#18">BIO</a>,
-        out: <span class="kw-2">*mut *mut </span><a href="types.rs.html#257">X509</a>,
-        callback: <a href="#4">pem_password_cb</a>,
-        user_data: <span class="kw-2">*mut </span><a href="../../../openssl_sys/enum.c_void.html">c_void</a>,
-    ) -&gt; <span class="kw-2">*mut </span><a href="types.rs.html#257">X509</a>;
+        bio: <span class="kw-2">*mut </span>BIO,
+        out: <span class="kw-2">*mut *mut </span>X509,
+        callback: pem_password_cb,
+        user_data: <span class="kw-2">*mut </span>c_void,
+    ) -&gt; <span class="kw-2">*mut </span>X509;
     <span class="kw">pub fn </span>PEM_read_bio_X509_REQ(
-        bio: <span class="kw-2">*mut </span><a href="types.rs.html#18">BIO</a>,
-        out: <span class="kw-2">*mut *mut </span><a href="x509.rs.html#100">X509_REQ</a>,
-        callback: <a href="#4">pem_password_cb</a>,
-        user_data: <span class="kw-2">*mut </span><a href="../../../openssl_sys/enum.c_void.html">c_void</a>,
-    ) -&gt; <span class="kw-2">*mut </span><a href="x509.rs.html#100">X509_REQ</a>;
+        bio: <span class="kw-2">*mut </span>BIO,
+        out: <span class="kw-2">*mut *mut </span>X509_REQ,
+        callback: pem_password_cb,
+        user_data: <span class="kw-2">*mut </span>c_void,
+    ) -&gt; <span class="kw-2">*mut </span>X509_REQ;
     <span class="kw">pub fn </span>PEM_read_bio_X509_CRL(
-        bio: <span class="kw-2">*mut </span><a href="types.rs.html#18">BIO</a>,
-        out: <span class="kw-2">*mut *mut </span><a href="x509.rs.html#37">X509_CRL</a>,
-        callback: <a href="#4">pem_password_cb</a>,
-        user_data: <span class="kw-2">*mut </span><a href="../../../openssl_sys/enum.c_void.html">c_void</a>,
-    ) -&gt; <span class="kw-2">*mut </span><a href="x509.rs.html#37">X509_CRL</a>;
+        bio: <span class="kw-2">*mut </span>BIO,
+        out: <span class="kw-2">*mut *mut </span>X509_CRL,
+        callback: pem_password_cb,
+        user_data: <span class="kw-2">*mut </span>c_void,
+    ) -&gt; <span class="kw-2">*mut </span>X509_CRL;
     <span class="kw">pub fn </span>PEM_read_bio_RSAPrivateKey(
-        bio: <span class="kw-2">*mut </span><a href="types.rs.html#18">BIO</a>,
-        rsa: <span class="kw-2">*mut *mut </span><a href="types.rs.html#191">RSA</a>,
-        callback: <a href="#4">pem_password_cb</a>,
-        user_data: <span class="kw-2">*mut </span><a href="../../../openssl_sys/enum.c_void.html">c_void</a>,
-    ) -&gt; <span class="kw-2">*mut </span><a href="types.rs.html#191">RSA</a>;
+        bio: <span class="kw-2">*mut </span>BIO,
+        rsa: <span class="kw-2">*mut *mut </span>RSA,
+        callback: pem_password_cb,
+        user_data: <span class="kw-2">*mut </span>c_void,
+    ) -&gt; <span class="kw-2">*mut </span>RSA;
     <span class="kw">pub fn </span>PEM_read_bio_RSAPublicKey(
-        bio: <span class="kw-2">*mut </span><a href="types.rs.html#18">BIO</a>,
-        rsa: <span class="kw-2">*mut *mut </span><a href="types.rs.html#191">RSA</a>,
-        callback: <a href="#4">pem_password_cb</a>,
-        user_data: <span class="kw-2">*mut </span><a href="../../../openssl_sys/enum.c_void.html">c_void</a>,
-    ) -&gt; <span class="kw-2">*mut </span><a href="types.rs.html#191">RSA</a>;
-    <span class="kw">pub fn </span>PEM_write_bio_RSAPublicKey(bp: <span class="kw-2">*mut </span><a href="types.rs.html#18">BIO</a>, rsa: <span class="kw-2">*const </span><a href="types.rs.html#191">RSA</a>) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
+        bio: <span class="kw-2">*mut </span>BIO,
+        rsa: <span class="kw-2">*mut *mut </span>RSA,
+        callback: pem_password_cb,
+        user_data: <span class="kw-2">*mut </span>c_void,
+    ) -&gt; <span class="kw-2">*mut </span>RSA;
+    <span class="kw">pub fn </span>PEM_write_bio_RSAPublicKey(bp: <span class="kw-2">*mut </span>BIO, rsa: <span class="kw-2">*const </span>RSA) -&gt; c_int;
     <span class="kw">pub fn </span>PEM_read_bio_RSA_PUBKEY(
-        bio: <span class="kw-2">*mut </span><a href="types.rs.html#18">BIO</a>,
-        rsa: <span class="kw-2">*mut *mut </span><a href="types.rs.html#191">RSA</a>,
-        callback: <a href="#4">pem_password_cb</a>,
-        user_data: <span class="kw-2">*mut </span><a href="../../../openssl_sys/enum.c_void.html">c_void</a>,
-    ) -&gt; <span class="kw-2">*mut </span><a href="types.rs.html#191">RSA</a>;
+        bio: <span class="kw-2">*mut </span>BIO,
+        rsa: <span class="kw-2">*mut *mut </span>RSA,
+        callback: pem_password_cb,
+        user_data: <span class="kw-2">*mut </span>c_void,
+    ) -&gt; <span class="kw-2">*mut </span>RSA;
     <span class="kw">pub fn </span>PEM_read_bio_DSAPrivateKey(
-        bp: <span class="kw-2">*mut </span><a href="types.rs.html#18">BIO</a>,
-        dsa: <span class="kw-2">*mut *mut </span><a href="types.rs.html#162">DSA</a>,
-        callback: <a href="#4">pem_password_cb</a>,
-        user_data: <span class="kw-2">*mut </span><a href="../../../openssl_sys/enum.c_void.html">c_void</a>,
-    ) -&gt; <span class="kw-2">*mut </span><a href="types.rs.html#162">DSA</a>;
+        bp: <span class="kw-2">*mut </span>BIO,
+        dsa: <span class="kw-2">*mut *mut </span>DSA,
+        callback: pem_password_cb,
+        user_data: <span class="kw-2">*mut </span>c_void,
+    ) -&gt; <span class="kw-2">*mut </span>DSA;
     <span class="kw">pub fn </span>PEM_read_bio_DSA_PUBKEY(
-        bp: <span class="kw-2">*mut </span><a href="types.rs.html#18">BIO</a>,
-        dsa: <span class="kw-2">*mut *mut </span><a href="types.rs.html#162">DSA</a>,
-        callback: <a href="#4">pem_password_cb</a>,
-        user_data: <span class="kw-2">*mut </span><a href="../../../openssl_sys/enum.c_void.html">c_void</a>,
-    ) -&gt; <span class="kw-2">*mut </span><a href="types.rs.html#162">DSA</a>;
+        bp: <span class="kw-2">*mut </span>BIO,
+        dsa: <span class="kw-2">*mut *mut </span>DSA,
+        callback: pem_password_cb,
+        user_data: <span class="kw-2">*mut </span>c_void,
+    ) -&gt; <span class="kw-2">*mut </span>DSA;
     <span class="kw">pub fn </span>PEM_read_bio_ECPrivateKey(
-        bio: <span class="kw-2">*mut </span><a href="types.rs.html#18">BIO</a>,
-        key: <span class="kw-2">*mut *mut </span><a href="types.rs.html#253">EC_KEY</a>,
-        callback: <a href="#4">pem_password_cb</a>,
-        user_data: <span class="kw-2">*mut </span><a href="../../../openssl_sys/enum.c_void.html">c_void</a>,
-    ) -&gt; <span class="kw-2">*mut </span><a href="types.rs.html#253">EC_KEY</a>;
+        bio: <span class="kw-2">*mut </span>BIO,
+        key: <span class="kw-2">*mut *mut </span>EC_KEY,
+        callback: pem_password_cb,
+        user_data: <span class="kw-2">*mut </span>c_void,
+    ) -&gt; <span class="kw-2">*mut </span>EC_KEY;
     <span class="kw">pub fn </span>PEM_read_bio_EC_PUBKEY(
-        bp: <span class="kw-2">*mut </span><a href="types.rs.html#18">BIO</a>,
-        ec: <span class="kw-2">*mut *mut </span><a href="types.rs.html#253">EC_KEY</a>,
-        callback: <a href="#4">pem_password_cb</a>,
-        user_data: <span class="kw-2">*mut </span><a href="../../../openssl_sys/enum.c_void.html">c_void</a>,
-    ) -&gt; <span class="kw-2">*mut </span><a href="types.rs.html#253">EC_KEY</a>;
+        bp: <span class="kw-2">*mut </span>BIO,
+        ec: <span class="kw-2">*mut *mut </span>EC_KEY,
+        callback: pem_password_cb,
+        user_data: <span class="kw-2">*mut </span>c_void,
+    ) -&gt; <span class="kw-2">*mut </span>EC_KEY;
     <span class="kw">pub fn </span>PEM_read_bio_DHparams(
-        bio: <span class="kw-2">*mut </span><a href="types.rs.html#18">BIO</a>,
-        out: <span class="kw-2">*mut *mut </span><a href="types.rs.html#133">DH</a>,
-        callback: <a href="#4">pem_password_cb</a>,
-        user_data: <span class="kw-2">*mut </span><a href="../../../openssl_sys/enum.c_void.html">c_void</a>,
-    ) -&gt; <span class="kw-2">*mut </span><a href="types.rs.html#133">DH</a>;
-    <span class="kw">pub fn </span>PEM_write_bio_DHparams(bio: <span class="kw-2">*mut </span><a href="types.rs.html#18">BIO</a>, x: <span class="kw-2">*const </span><a href="types.rs.html#133">DH</a>) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
+        bio: <span class="kw-2">*mut </span>BIO,
+        out: <span class="kw-2">*mut *mut </span>DH,
+        callback: pem_password_cb,
+        user_data: <span class="kw-2">*mut </span>c_void,
+    ) -&gt; <span class="kw-2">*mut </span>DH;
+    <span class="kw">pub fn </span>PEM_write_bio_DHparams(bio: <span class="kw-2">*mut </span>BIO, x: <span class="kw-2">*const </span>DH) -&gt; c_int;
     <span class="kw">pub fn </span>PEM_read_bio_PrivateKey(
-        bio: <span class="kw-2">*mut </span><a href="types.rs.html#18">BIO</a>,
-        out: <span class="kw-2">*mut *mut </span><a href="../types.rs.html#6">EVP_PKEY</a>,
-        callback: <a href="#4">pem_password_cb</a>,
-        user_data: <span class="kw-2">*mut </span><a href="../../../openssl_sys/enum.c_void.html">c_void</a>,
-    ) -&gt; <span class="kw-2">*mut </span><a href="../types.rs.html#6">EVP_PKEY</a>;
+        bio: <span class="kw-2">*mut </span>BIO,
+        out: <span class="kw-2">*mut *mut </span>EVP_PKEY,
+        callback: pem_password_cb,
+        user_data: <span class="kw-2">*mut </span>c_void,
+    ) -&gt; <span class="kw-2">*mut </span>EVP_PKEY;
     <span class="kw">pub fn </span>PEM_read_bio_PUBKEY(
-        bio: <span class="kw-2">*mut </span><a href="types.rs.html#18">BIO</a>,
-        out: <span class="kw-2">*mut *mut </span><a href="../types.rs.html#6">EVP_PKEY</a>,
-        callback: <a href="#4">pem_password_cb</a>,
-        user_data: <span class="kw-2">*mut </span><a href="../../../openssl_sys/enum.c_void.html">c_void</a>,
-    ) -&gt; <span class="kw-2">*mut </span><a href="../types.rs.html#6">EVP_PKEY</a>;
+        bio: <span class="kw-2">*mut </span>BIO,
+        out: <span class="kw-2">*mut *mut </span>EVP_PKEY,
+        callback: pem_password_cb,
+        user_data: <span class="kw-2">*mut </span>c_void,
+    ) -&gt; <span class="kw-2">*mut </span>EVP_PKEY;
 
     <span class="kw">pub fn </span>d2i_PKCS8PrivateKey_bio(
-        bp: <span class="kw-2">*mut </span><a href="types.rs.html#18">BIO</a>,
-        x: <span class="kw-2">*mut *mut </span><a href="../types.rs.html#6">EVP_PKEY</a>,
-        cb: <a href="#4">pem_password_cb</a>,
-        u: <span class="kw-2">*mut </span><a href="../../../openssl_sys/enum.c_void.html">c_void</a>,
-    ) -&gt; <span class="kw-2">*mut </span><a href="../types.rs.html#6">EVP_PKEY</a>;
+        bp: <span class="kw-2">*mut </span>BIO,
+        x: <span class="kw-2">*mut *mut </span>EVP_PKEY,
+        cb: pem_password_cb,
+        u: <span class="kw-2">*mut </span>c_void,
+    ) -&gt; <span class="kw-2">*mut </span>EVP_PKEY;
     <span class="kw">pub fn </span>d2i_PKCS8_PRIV_KEY_INFO(
-        k: <span class="kw-2">*mut *mut </span><a href="types.rs.html#109">PKCS8_PRIV_KEY_INFO</a>,
-        buf: <span class="kw-2">*mut *const </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>,
-        length: <a href="../../../openssl_sys/type.c_long.html">c_long</a>,
-    ) -&gt; <span class="kw-2">*mut </span><a href="types.rs.html#109">PKCS8_PRIV_KEY_INFO</a>;
-    <span class="kw">pub fn </span>PKCS8_PRIV_KEY_INFO_free(p8inf: <span class="kw-2">*mut </span><a href="types.rs.html#109">PKCS8_PRIV_KEY_INFO</a>);
+        k: <span class="kw-2">*mut *mut </span>PKCS8_PRIV_KEY_INFO,
+        buf: <span class="kw-2">*mut *const </span>u8,
+        length: c_long,
+    ) -&gt; <span class="kw-2">*mut </span>PKCS8_PRIV_KEY_INFO;
+    <span class="kw">pub fn </span>PKCS8_PRIV_KEY_INFO_free(p8inf: <span class="kw-2">*mut </span>PKCS8_PRIV_KEY_INFO);
 
     <span class="kw">pub fn </span>PEM_read_bio_PKCS7(
-        bio: <span class="kw-2">*mut </span><a href="types.rs.html#18">BIO</a>,
-        out: <span class="kw-2">*mut *mut </span><a href="pkcs7.rs.html#9">PKCS7</a>,
-        cb: <a href="#4">pem_password_cb</a>,
-        u: <span class="kw-2">*mut </span><a href="../../../openssl_sys/enum.c_void.html">c_void</a>,
-    ) -&gt; <span class="kw-2">*mut </span><a href="pkcs7.rs.html#9">PKCS7</a>;
+        bio: <span class="kw-2">*mut </span>BIO,
+        out: <span class="kw-2">*mut *mut </span>PKCS7,
+        cb: pem_password_cb,
+        u: <span class="kw-2">*mut </span>c_void,
+    ) -&gt; <span class="kw-2">*mut </span>PKCS7;
 
     <span class="attr">#[cfg(ossl101)]
     </span><span class="kw">pub fn </span>PEM_read_bio_CMS(
-        bio: <span class="kw-2">*mut </span><a href="types.rs.html#18">BIO</a>,
-        out: <span class="kw-2">*mut *mut </span><a href="cms.rs.html#4">CMS_ContentInfo</a>,
-        callback: <a href="#4">pem_password_cb</a>,
-        user_data: <span class="kw-2">*mut </span><a href="../../../openssl_sys/enum.c_void.html">c_void</a>,
-    ) -&gt; <span class="kw-2">*mut </span><a href="cms.rs.html#4">CMS_ContentInfo</a>;
+        bio: <span class="kw-2">*mut </span>BIO,
+        out: <span class="kw-2">*mut *mut </span>CMS_ContentInfo,
+        callback: pem_password_cb,
+        user_data: <span class="kw-2">*mut </span>c_void,
+    ) -&gt; <span class="kw-2">*mut </span>CMS_ContentInfo;
     <span class="attr">#[cfg(ossl101)]
-    </span><span class="kw">pub fn </span>PEM_write_bio_CMS(bio: <span class="kw-2">*mut </span><a href="types.rs.html#18">BIO</a>, cms: <span class="kw-2">*const </span><a href="cms.rs.html#4">CMS_ContentInfo</a>) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
+    </span><span class="kw">pub fn </span>PEM_write_bio_CMS(bio: <span class="kw-2">*mut </span>BIO, cms: <span class="kw-2">*const </span>CMS_ContentInfo) -&gt; c_int;
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="openssl_sys" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="openssl_sys" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

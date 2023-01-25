@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/hashbrown-0.12.3/src/set.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>set.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../hashbrown/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/hashbrown-0.12.3/src/set.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>set.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../hashbrown/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -2788,17 +2788,17 @@
 <a href="#2788" id="2788">2788</a>
 <a href="#2789" id="2789">2789</a>
 <a href="#2790" id="2790">2790</a>
-</pre><pre class="rust"><code><span class="kw">use </span><a href="lib.rs.html#122"><span class="kw">crate</span>::TryReserveError</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">alloc::borrow::ToOwned</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/borrow/trait.Borrow.html">core::borrow::Borrow</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/fmt/index.html">core::fmt</a>;
-<span class="kw">use </span>core::hash::{<a href="https://doc.rust-lang.org/nightly/core/hash/trait.BuildHasher.html">BuildHasher</a>, <a href="https://doc.rust-lang.org/nightly/core/hash/macros/derive.Hash.html">Hash</a>};
-<span class="kw">use </span>core::iter::{<a href="https://doc.rust-lang.org/nightly/core/iter/adapters/chain/struct.Chain.html">Chain</a>, <a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.FromIterator.html">FromIterator</a>, <a href="https://doc.rust-lang.org/nightly/core/iter/traits/marker/trait.FusedIterator.html">FusedIterator</a>};
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/mem/index.html">core::mem</a>;
-<span class="kw">use </span>core::ops::{<a href="https://doc.rust-lang.org/nightly/core/ops/bit/trait.BitAnd.html">BitAnd</a>, <a href="https://doc.rust-lang.org/nightly/core/ops/bit/trait.BitOr.html">BitOr</a>, <a href="https://doc.rust-lang.org/nightly/core/ops/bit/trait.BitXor.html">BitXor</a>, <a href="https://doc.rust-lang.org/nightly/core/ops/arith/trait.Sub.html">Sub</a>};
+</pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::TryReserveError;
+<span class="kw">use </span>alloc::borrow::ToOwned;
+<span class="kw">use </span>core::borrow::Borrow;
+<span class="kw">use </span>core::fmt;
+<span class="kw">use </span>core::hash::{BuildHasher, Hash};
+<span class="kw">use </span>core::iter::{Chain, FromIterator, FusedIterator};
+<span class="kw">use </span>core::mem;
+<span class="kw">use </span>core::ops::{BitAnd, BitOr, BitXor, Sub};
 
-<span class="kw">use </span><span class="kw">super</span>::map::{<a class="self" href="lib.rs.html#79">self</a>, <a href="map.rs.html#2655">ConsumeAllOnDrop</a>, <a href="map.rs.html#13">DefaultHashBuilder</a>, <a href="map.rs.html#2685">DrainFilterInner</a>, <a href="map.rs.html#188">HashMap</a>, <a href="map.rs.html#2490">Keys</a>};
-<span class="kw">use </span><span class="kw">crate</span>::raw::{<a href="raw/alloc.rs.html#37">Allocator</a>, <a href="raw/alloc.rs.html#43">Global</a>};
+<span class="kw">use </span><span class="kw">super</span>::map::{<span class="self">self</span>, ConsumeAllOnDrop, DefaultHashBuilder, DrainFilterInner, HashMap, Keys};
+<span class="kw">use </span><span class="kw">crate</span>::raw::{Allocator, Global};
 
 <span class="comment">// Future Optimization (FIXME!)
 // =============================
@@ -2902,24 +2902,24 @@
 /// [`HashMap`]: struct.HashMap.html
 /// [`PartialEq`]: https://doc.rust-lang.org/std/cmp/trait.PartialEq.html
 /// [`RefCell`]: https://doc.rust-lang.org/std/cell/struct.RefCell.html
-</span><span class="kw">pub struct </span>HashSet&lt;T, S = <a href="map.rs.html#13">DefaultHashBuilder</a>, A: <a href="raw/alloc.rs.html#37">Allocator</a> + <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> = <a href="raw/alloc.rs.html#43">Global</a>&gt; {
+</span><span class="kw">pub struct </span>HashSet&lt;T, S = DefaultHashBuilder, A: Allocator + Clone = Global&gt; {
     <span class="kw">pub</span>(<span class="kw">crate</span>) map: HashMap&lt;T, (), S, A&gt;,
 }
 
-<span class="kw">impl</span>&lt;T: <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a>, S: <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a>, A: <a href="raw/alloc.rs.html#37">Allocator</a> + <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> <span class="kw">for </span>HashSet&lt;T, S, A&gt; {
+<span class="kw">impl</span>&lt;T: Clone, S: Clone, A: Allocator + Clone&gt; Clone <span class="kw">for </span>HashSet&lt;T, S, A&gt; {
     <span class="kw">fn </span>clone(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self </span>{
-        <a href="#115">HashSet</a> {
-            map: <a class="self" href="#120">self</a>.map.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+        HashSet {
+            map: <span class="self">self</span>.map.clone(),
         }
     }
 
     <span class="kw">fn </span>clone_from(<span class="kw-2">&amp;mut </span><span class="self">self</span>, source: <span class="kw-2">&amp;</span><span class="self">Self</span>) {
-        <a class="self" href="#126">self</a>.map.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone_from</a>(<span class="kw-2">&amp;</span><a href="#126">source</a>.map);
+        <span class="self">self</span>.map.clone_from(<span class="kw-2">&amp;</span>source.map);
     }
 }
 
 <span class="attr">#[cfg(feature = <span class="string">&quot;ahash&quot;</span>)]
-</span><span class="kw">impl</span>&lt;T&gt; HashSet&lt;T, <a href="map.rs.html#13">DefaultHashBuilder</a>&gt; {
+</span><span class="kw">impl</span>&lt;T&gt; HashSet&lt;T, DefaultHashBuilder&gt; {
     <span class="doccomment">/// Creates an empty `HashSet`.
     ///
     /// The hash set is initially created with a capacity of 0, so it will not allocate until it
@@ -2951,15 +2951,15 @@
     /// assert!(set.capacity() &gt;= 10);
     /// ```
     </span><span class="attr">#[cfg_attr(feature = <span class="string">&quot;inline-more&quot;</span>, inline)]
-    </span><span class="kw">pub fn </span>with_capacity(capacity: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub fn </span>with_capacity(capacity: usize) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
-            map: HashMap::with_capacity(<a href="#164">capacity</a>),
+            map: HashMap::with_capacity(capacity),
         }
     }
 }
 
 <span class="attr">#[cfg(feature = <span class="string">&quot;ahash&quot;</span>)]
-</span><span class="kw">impl</span>&lt;T: <a href="https://doc.rust-lang.org/nightly/core/hash/trait.Hash.html">Hash</a> + <a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Eq.html">Eq</a>, A: <a href="raw/alloc.rs.html#37">Allocator</a> + <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a>&gt; HashSet&lt;T, <a href="map.rs.html#13">DefaultHashBuilder</a>, A&gt; {
+</span><span class="kw">impl</span>&lt;T: Hash + Eq, A: Allocator + Clone&gt; HashSet&lt;T, DefaultHashBuilder, A&gt; {
     <span class="doccomment">/// Creates an empty `HashSet`.
     ///
     /// The hash set is initially created with a capacity of 0, so it will not allocate until it
@@ -2974,7 +2974,7 @@
     </span><span class="attr">#[cfg_attr(feature = <span class="string">&quot;inline-more&quot;</span>, inline)]
     </span><span class="kw">pub fn </span>new_in(alloc: A) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
-            map: HashMap::new_in(<a href="#185">alloc</a>),
+            map: HashMap::new_in(alloc),
         }
     }
 
@@ -2991,14 +2991,14 @@
     /// assert!(set.capacity() &gt;= 10);
     /// ```
     </span><span class="attr">#[cfg_attr(feature = <span class="string">&quot;inline-more&quot;</span>, inline)]
-    </span><span class="kw">pub fn </span>with_capacity_in(capacity: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, alloc: A) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub fn </span>with_capacity_in(capacity: usize, alloc: A) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
-            map: HashMap::with_capacity_in(<a href="#204">capacity</a>, <a href="#204">alloc</a>),
+            map: HashMap::with_capacity_in(capacity, alloc),
         }
     }
 }
 
-<span class="kw">impl</span>&lt;T, S, A: <a href="raw/alloc.rs.html#37">Allocator</a> + <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a>&gt; HashSet&lt;T, S, A&gt; {
+<span class="kw">impl</span>&lt;T, S, A: Allocator + Clone&gt; HashSet&lt;T, S, A&gt; {
     <span class="doccomment">/// Returns the number of elements the set can hold without reallocating.
     ///
     /// # Examples
@@ -3009,8 +3009,8 @@
     /// assert!(set.capacity() &gt;= 100);
     /// ```
     </span><span class="attr">#[cfg_attr(feature = <span class="string">&quot;inline-more&quot;</span>, inline)]
-    </span><span class="kw">pub fn </span>capacity(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="self" href="#222">self</a>.map.<a href="map.rs.html#524">capacity</a>()
+    </span><span class="kw">pub fn </span>capacity(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+        <span class="self">self</span>.map.capacity()
     }
 
     <span class="doccomment">/// An iterator visiting all elements in arbitrary order.
@@ -3031,8 +3031,8 @@
     /// ```
     </span><span class="attr">#[cfg_attr(feature = <span class="string">&quot;inline-more&quot;</span>, inline)]
     </span><span class="kw">pub fn </span>iter(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Iter&lt;<span class="lifetime">&#39;_</span>, T&gt; {
-        <a href="#1423">Iter</a> {
-            iter: <a class="self" href="#243">self</a>.map.<a href="map.rs.html#556">keys</a>(),
+        Iter {
+            iter: <span class="self">self</span>.map.keys(),
         }
     }
 
@@ -3049,8 +3049,8 @@
     /// assert_eq!(v.len(), 1);
     /// ```
     </span><span class="attr">#[cfg_attr(feature = <span class="string">&quot;inline-more&quot;</span>, inline)]
-    </span><span class="kw">pub fn </span>len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="self" href="#262">self</a>.map.<a href="map.rs.html#734">len</a>()
+    </span><span class="kw">pub fn </span>len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+        <span class="self">self</span>.map.len()
     }
 
     <span class="doccomment">/// Returns `true` if the set contains no elements.
@@ -3066,8 +3066,8 @@
     /// assert!(!v.is_empty());
     /// ```
     </span><span class="attr">#[cfg_attr(feature = <span class="string">&quot;inline-more&quot;</span>, inline)]
-    </span><span class="kw">pub fn </span>is_empty(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#279">self</a>.map.<a href="map.rs.html#751">is_empty</a>()
+    </span><span class="kw">pub fn </span>is_empty(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.map.is_empty()
     }
 
     <span class="doccomment">/// Clears the set, returning all elements in an iterator.
@@ -3089,8 +3089,8 @@
     /// ```
     </span><span class="attr">#[cfg_attr(feature = <span class="string">&quot;inline-more&quot;</span>, inline)]
     </span><span class="kw">pub fn </span>drain(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; Drain&lt;<span class="lifetime">&#39;_</span>, T, A&gt; {
-        <a href="#1445">Drain</a> {
-            iter: <a class="self" href="#301">self</a>.map.<a href="map.rs.html#794">drain</a>(),
+        Drain {
+            iter: <span class="self">self</span>.map.drain(),
         }
     }
 
@@ -3110,9 +3110,9 @@
     /// ```
     </span><span class="kw">pub fn </span>retain&lt;F&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, <span class="kw-2">mut </span>f: F)
     <span class="kw">where
-        </span>F: FnMut(<span class="kw-2">&amp;</span>T) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
+        </span>F: FnMut(<span class="kw-2">&amp;</span>T) -&gt; bool,
     {
-        <a class="self" href="#321">self</a>.map.<a href="map.rs.html#826-828">retain</a>(|k, <span class="kw">_</span>| <a href="#321">f</a>(<a href="#325">k</a>));
+        <span class="self">self</span>.map.retain(|k, <span class="kw">_</span>| f(k));
     }
 
     <span class="doccomment">/// Drains elements which are true under the given predicate,
@@ -3143,13 +3143,13 @@
     </span><span class="attr">#[cfg_attr(feature = <span class="string">&quot;inline-more&quot;</span>, inline)]
     </span><span class="kw">pub fn </span>drain_filter&lt;F&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, f: F) -&gt; DrainFilter&lt;<span class="lifetime">&#39;_</span>, T, F, A&gt;
     <span class="kw">where
-        </span>F: FnMut(<span class="kw-2">&amp;</span>T) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
+        </span>F: FnMut(<span class="kw-2">&amp;</span>T) -&gt; bool,
     {
-        <a href="#1456">DrainFilter</a> {
-            <a href="#354">f</a>,
-            inner: <a href="map.rs.html#2685">DrainFilterInner</a> {
-                iter: <span class="kw">unsafe </span>{ <a class="self" href="#354">self</a>.map.table.<a href="raw/mod.rs.html#936">iter</a>() },
-                table: <span class="kw-2">&amp;mut </span><a class="self" href="#354">self</a>.map.table,
+        DrainFilter {
+            f,
+            inner: DrainFilterInner {
+                iter: <span class="kw">unsafe </span>{ <span class="self">self</span>.map.table.iter() },
+                table: <span class="kw-2">&amp;mut </span><span class="self">self</span>.map.table,
             },
         }
     }
@@ -3168,11 +3168,11 @@
     /// ```
     </span><span class="attr">#[cfg_attr(feature = <span class="string">&quot;inline-more&quot;</span>, inline)]
     </span><span class="kw">pub fn </span>clear(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <a class="self" href="#380">self</a>.map.<a href="map.rs.html#922">clear</a>();
+        <span class="self">self</span>.map.clear();
     }
 }
 
-<span class="kw">impl</span>&lt;T, S&gt; HashSet&lt;T, S, <a href="raw/alloc.rs.html#43">Global</a>&gt; {
+<span class="kw">impl</span>&lt;T, S&gt; HashSet&lt;T, S, Global&gt; {
     <span class="doccomment">/// Creates a new empty hash set which will use the given hasher to hash
     /// keys.
     ///
@@ -3202,7 +3202,7 @@
     </span><span class="attr">#[cfg_attr(feature = <span class="string">&quot;inline-more&quot;</span>, inline)]
     </span><span class="kw">pub const fn </span>with_hasher(hasher: S) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
-            map: HashMap::with_hasher(<a href="#413">hasher</a>),
+            map: HashMap::with_hasher(hasher),
         }
     }
 
@@ -3233,21 +3233,21 @@
     ///
     /// [`BuildHasher`]: ../../std/hash/trait.BuildHasher.html
     </span><span class="attr">#[cfg_attr(feature = <span class="string">&quot;inline-more&quot;</span>, inline)]
-    </span><span class="kw">pub fn </span>with_capacity_and_hasher(capacity: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, hasher: S) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub fn </span>with_capacity_and_hasher(capacity: usize, hasher: S) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
-            map: HashMap::with_capacity_and_hasher(<a href="#446">capacity</a>, <a href="#446">hasher</a>),
+            map: HashMap::with_capacity_and_hasher(capacity, hasher),
         }
     }
 }
 
 <span class="kw">impl</span>&lt;T, S, A&gt; HashSet&lt;T, S, A&gt;
 <span class="kw">where
-    </span>A: <a href="raw/alloc.rs.html#37">Allocator</a> + <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a>,
+    </span>A: Allocator + Clone,
 {
     <span class="doccomment">/// Returns a reference to the underlying allocator.
     </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>allocator(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>A {
-        <a class="self" href="#459">self</a>.map.<a href="map.rs.html#430">allocator</a>()
+        <span class="self">self</span>.map.allocator()
     }
 
     <span class="doccomment">/// Creates a new empty hash set which will use the given hasher to hash
@@ -3273,7 +3273,7 @@
     </span><span class="attr">#[cfg_attr(feature = <span class="string">&quot;inline-more&quot;</span>, inline)]
     </span><span class="kw">pub fn </span>with_hasher_in(hasher: S, alloc: A) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
-            map: HashMap::with_hasher_in(<a href="#484">hasher</a>, <a href="#484">alloc</a>),
+            map: HashMap::with_hasher_in(hasher, alloc),
         }
     }
 
@@ -3299,9 +3299,9 @@
     /// set.insert(1);
     /// ```
     </span><span class="attr">#[cfg_attr(feature = <span class="string">&quot;inline-more&quot;</span>, inline)]
-    </span><span class="kw">pub fn </span>with_capacity_and_hasher_in(capacity: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, hasher: S, alloc: A) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub fn </span>with_capacity_and_hasher_in(capacity: usize, hasher: S, alloc: A) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
-            map: HashMap::with_capacity_and_hasher_in(<a href="#512">capacity</a>, <a href="#512">hasher</a>, <a href="#512">alloc</a>),
+            map: HashMap::with_capacity_and_hasher_in(capacity, hasher, alloc),
         }
     }
 
@@ -3321,15 +3321,15 @@
     /// ```
     </span><span class="attr">#[cfg_attr(feature = <span class="string">&quot;inline-more&quot;</span>, inline)]
     </span><span class="kw">pub fn </span>hasher(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>S {
-        <a class="self" href="#533">self</a>.map.<a href="map.rs.html#506">hasher</a>()
+        <span class="self">self</span>.map.hasher()
     }
 }
 
 <span class="kw">impl</span>&lt;T, S, A&gt; HashSet&lt;T, S, A&gt;
 <span class="kw">where
-    </span>T: <a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Eq.html">Eq</a> + <a href="https://doc.rust-lang.org/nightly/core/hash/trait.Hash.html">Hash</a>,
-    S: <a href="https://doc.rust-lang.org/nightly/core/hash/trait.BuildHasher.html">BuildHasher</a>,
-    A: <a href="raw/alloc.rs.html#37">Allocator</a> + <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a>,
+    </span>T: Eq + Hash,
+    S: BuildHasher,
+    A: Allocator + Clone,
 {
     <span class="doccomment">/// Reserves capacity for at least `additional` more elements to be inserted
     /// in the `HashSet`. The collection may reserve more space to avoid
@@ -3348,8 +3348,8 @@
     /// assert!(set.capacity() &gt;= 10);
     /// ```
     </span><span class="attr">#[cfg_attr(feature = <span class="string">&quot;inline-more&quot;</span>, inline)]
-    </span><span class="kw">pub fn </span>reserve(<span class="kw-2">&amp;mut </span><span class="self">self</span>, additional: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
-        <a class="self" href="#561">self</a>.map.<a href="map.rs.html#1013">reserve</a>(<a href="#561">additional</a>);
+    </span><span class="kw">pub fn </span>reserve(<span class="kw-2">&amp;mut </span><span class="self">self</span>, additional: usize) {
+        <span class="self">self</span>.map.reserve(additional);
     }
 
     <span class="doccomment">/// Tries to reserve capacity for at least `additional` more elements to be inserted
@@ -3369,8 +3369,8 @@
     /// set.try_reserve(10).expect(&quot;why is the test harness OOMing on 10 bytes?&quot;);
     /// ```
     </span><span class="attr">#[cfg_attr(feature = <span class="string">&quot;inline-more&quot;</span>, inline)]
-    </span><span class="kw">pub fn </span>try_reserve(<span class="kw-2">&amp;mut </span><span class="self">self</span>, additional: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="lib.rs.html#122">TryReserveError</a>&gt; {
-        <a class="self" href="#582">self</a>.map.<a href="map.rs.html#1063">try_reserve</a>(<a href="#582">additional</a>)
+    </span><span class="kw">pub fn </span>try_reserve(<span class="kw-2">&amp;mut </span><span class="self">self</span>, additional: usize) -&gt; <span class="prelude-ty">Result</span>&lt;(), TryReserveError&gt; {
+        <span class="self">self</span>.map.try_reserve(additional)
     }
 
     <span class="doccomment">/// Shrinks the capacity of the set as much as possible. It will drop
@@ -3391,7 +3391,7 @@
     /// ```
     </span><span class="attr">#[cfg_attr(feature = <span class="string">&quot;inline-more&quot;</span>, inline)]
     </span><span class="kw">pub fn </span>shrink_to_fit(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <a class="self" href="#603">self</a>.map.<a href="map.rs.html#1085">shrink_to_fit</a>();
+        <span class="self">self</span>.map.shrink_to_fit();
     }
 
     <span class="doccomment">/// Shrinks the capacity of the set with a lower limit. It will drop
@@ -3416,8 +3416,8 @@
     /// assert!(set.capacity() &gt;= 2);
     /// ```
     </span><span class="attr">#[cfg_attr(feature = <span class="string">&quot;inline-more&quot;</span>, inline)]
-    </span><span class="kw">pub fn </span>shrink_to(<span class="kw-2">&amp;mut </span><span class="self">self</span>, min_capacity: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
-        <a class="self" href="#629">self</a>.map.<a href="map.rs.html#1114">shrink_to</a>(<a href="#629">min_capacity</a>);
+    </span><span class="kw">pub fn </span>shrink_to(<span class="kw-2">&amp;mut </span><span class="self">self</span>, min_capacity: usize) {
+        <span class="self">self</span>.map.shrink_to(min_capacity);
     }
 
     <span class="doccomment">/// Visits the values representing the difference,
@@ -3445,9 +3445,9 @@
     /// ```
     </span><span class="attr">#[cfg_attr(feature = <span class="string">&quot;inline-more&quot;</span>, inline)]
     </span><span class="kw">pub fn </span>difference&lt;<span class="lifetime">&#39;a</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="self">Self</span>) -&gt; Difference&lt;<span class="lifetime">&#39;a</span>, T, S, A&gt; {
-        <a href="#1485">Difference</a> {
-            iter: <a class="self" href="#657">self</a>.<a href="#243">iter</a>(),
-            <a href="#657">other</a>,
+        Difference {
+            iter: <span class="self">self</span>.iter(),
+            other,
         }
     }
 
@@ -3474,8 +3474,8 @@
     /// ```
     </span><span class="attr">#[cfg_attr(feature = <span class="string">&quot;inline-more&quot;</span>, inline)]
     </span><span class="kw">pub fn </span>symmetric_difference&lt;<span class="lifetime">&#39;a</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="self">Self</span>) -&gt; SymmetricDifference&lt;<span class="lifetime">&#39;a</span>, T, S, A&gt; {
-        <a href="#1499">SymmetricDifference</a> {
-            iter: <a class="self" href="#686">self</a>.<a href="#657">difference</a>(<a href="#686">other</a>).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">chain</a>(<a href="#686">other</a>.<a href="#657">difference</a>(<a class="self" href="#686">self</a>)),
+        SymmetricDifference {
+            iter: <span class="self">self</span>.difference(other).chain(other.difference(<span class="self">self</span>)),
         }
     }
 
@@ -3500,13 +3500,13 @@
     </span><span class="attr">#[cfg_attr(feature = <span class="string">&quot;inline-more&quot;</span>, inline)]
     </span><span class="kw">pub fn </span>intersection&lt;<span class="lifetime">&#39;a</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="self">Self</span>) -&gt; Intersection&lt;<span class="lifetime">&#39;a</span>, T, S, A&gt; {
         <span class="kw">let </span>(smaller, larger) = <span class="kw">if </span><span class="self">self</span>.len() &lt;= other.len() {
-            (<a class="self" href="#711">self</a>, <a href="#711">other</a>)
+            (<span class="self">self</span>, other)
         } <span class="kw">else </span>{
-            (<a href="#711">other</a>, <a class="self" href="#711">self</a>)
+            (other, <span class="self">self</span>)
         };
-        <a href="#1471">Intersection</a> {
-            iter: <a href="#712">smaller</a>.<a href="#243">iter</a>(),
-            other: <a href="#712">larger</a>,
+        Intersection {
+            iter: smaller.iter(),
+            other: larger,
         }
     }
 
@@ -3533,12 +3533,12 @@
         <span class="comment">// We&#39;ll iterate one set in full, and only the remaining difference from the other.
         // Use the smaller set for the difference in order to reduce hash lookups.
         </span><span class="kw">let </span>(smaller, larger) = <span class="kw">if </span><span class="self">self</span>.len() &lt;= other.len() {
-            (<a class="self" href="#742">self</a>, <a href="#742">other</a>)
+            (<span class="self">self</span>, other)
         } <span class="kw">else </span>{
-            (<a href="#742">other</a>, <a class="self" href="#742">self</a>)
+            (other, <span class="self">self</span>)
         };
-        <a href="#1510">Union</a> {
-            iter: <a href="#745">larger</a>.<a href="#243">iter</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">chain</a>(<a href="#745">smaller</a>.<a href="#657">difference</a>(<a href="#745">larger</a>)),
+        Union {
+            iter: larger.iter().chain(smaller.difference(larger)),
         }
     }
 
@@ -3561,12 +3561,12 @@
     /// [`Eq`]: https://doc.rust-lang.org/std/cmp/trait.Eq.html
     /// [`Hash`]: https://doc.rust-lang.org/std/hash/trait.Hash.html
     </span><span class="attr">#[cfg_attr(feature = <span class="string">&quot;inline-more&quot;</span>, inline)]
-    </span><span class="kw">pub fn </span>contains&lt;Q: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, value: <span class="kw-2">&amp;</span>Q) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>
+    </span><span class="kw">pub fn </span>contains&lt;Q: <span class="question-mark">?</span>Sized&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, value: <span class="kw-2">&amp;</span>Q) -&gt; bool
     <span class="kw">where
         </span>T: Borrow&lt;Q&gt;,
-        Q: <a href="https://doc.rust-lang.org/nightly/core/hash/trait.Hash.html">Hash</a> + <a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Eq.html">Eq</a>,
+        Q: Hash + Eq,
     {
-        <a class="self" href="#774">self</a>.map.<a href="map.rs.html#1331-1334">contains_key</a>(<a href="#774">value</a>)
+        <span class="self">self</span>.map.contains_key(value)
     }
 
     <span class="doccomment">/// Returns a reference to the value in the set, if any, that is equal to the given value.
@@ -3588,14 +3588,14 @@
     /// [`Eq`]: https://doc.rust-lang.org/std/cmp/trait.Eq.html
     /// [`Hash`]: https://doc.rust-lang.org/std/hash/trait.Hash.html
     </span><span class="attr">#[cfg_attr(feature = <span class="string">&quot;inline-more&quot;</span>, inline)]
-    </span><span class="kw">pub fn </span>get&lt;Q: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, value: <span class="kw-2">&amp;</span>Q) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>T&gt;
+    </span><span class="kw">pub fn </span>get&lt;Q: <span class="question-mark">?</span>Sized&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, value: <span class="kw-2">&amp;</span>Q) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>T&gt;
     <span class="kw">where
         </span>T: Borrow&lt;Q&gt;,
-        Q: <a href="https://doc.rust-lang.org/nightly/core/hash/trait.Hash.html">Hash</a> + <a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Eq.html">Eq</a>,
+        Q: Hash + Eq,
     {
         <span class="comment">// Avoid `Option::map` because it bloats LLVM IR.
-        </span><span class="kw">match </span><a class="self" href="#801">self</a>.map.<a href="map.rs.html#1249-1252">get_key_value</a>(<a href="#801">value</a>) {
-            <span class="prelude-val">Some</span>((k, <span class="kw">_</span>)) =&gt; <span class="prelude-val">Some</span>(<a href="#808">k</a>),
+        </span><span class="kw">match </span><span class="self">self</span>.map.get_key_value(value) {
+            <span class="prelude-val">Some</span>((k, <span class="kw">_</span>)) =&gt; <span class="prelude-val">Some</span>(k),
             <span class="prelude-val">None </span>=&gt; <span class="prelude-val">None</span>,
         }
     }
@@ -3618,10 +3618,10 @@
     </span><span class="kw">pub fn </span>get_or_insert(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: T) -&gt; <span class="kw-2">&amp;</span>T {
         <span class="comment">// Although the raw entry gives us `&amp;mut T`, we only return `&amp;T` to be consistent with
         // `get`. Key mutation is &quot;raw&quot; because you&#39;re not supposed to affect `Eq` or `Hash`.
-        </span><a class="self" href="#828">self</a>.map
-            .<a href="map.rs.html#1963">raw_entry_mut</a>()
-            .<a href="map.rs.html#3103-3107">from_key</a>(<span class="kw-2">&amp;</span><a href="#828">value</a>)
-            .<a href="map.rs.html#3337-3340">or_insert</a>(<a href="#828">value</a>, ())
+        </span><span class="self">self</span>.map
+            .raw_entry_mut()
+            .from_key(<span class="kw-2">&amp;</span>value)
+            .or_insert(value, ())
             .<span class="number">0
     </span>}
 
@@ -3644,17 +3644,17 @@
     /// assert_eq!(set.len(), 4); // a new &quot;fish&quot; was inserted
     /// ```
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>get_or_insert_owned&lt;Q: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: <span class="kw-2">&amp;</span>Q) -&gt; <span class="kw-2">&amp;</span>T
+    </span><span class="kw">pub fn </span>get_or_insert_owned&lt;Q: <span class="question-mark">?</span>Sized&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: <span class="kw-2">&amp;</span>Q) -&gt; <span class="kw-2">&amp;</span>T
     <span class="kw">where
         </span>T: Borrow&lt;Q&gt;,
-        Q: <a href="https://doc.rust-lang.org/nightly/core/hash/trait.Hash.html">Hash</a> + <a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Eq.html">Eq</a> + ToOwned&lt;Owned = T&gt;,
+        Q: Hash + Eq + ToOwned&lt;Owned = T&gt;,
     {
         <span class="comment">// Although the raw entry gives us `&amp;mut T`, we only return `&amp;T` to be consistent with
         // `get`. Key mutation is &quot;raw&quot; because you&#39;re not supposed to affect `Eq` or `Hash`.
-        </span><a class="self" href="#857">self</a>.map
-            .<a href="map.rs.html#1963">raw_entry_mut</a>()
-            .<a href="map.rs.html#3103-3107">from_key</a>(<a href="#857">value</a>)
-            .<a href="map.rs.html#3365-3369">or_insert_with</a>(|| (<a href="#857">value</a>.<a href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">to_owned</a>(), ()))
+        </span><span class="self">self</span>.map
+            .raw_entry_mut()
+            .from_key(value)
+            .or_insert_with(|| (value.to_owned(), ()))
             .<span class="number">0
     </span>}
 
@@ -3677,18 +3677,18 @@
     /// assert_eq!(set.len(), 4); // a new &quot;fish&quot; was inserted
     /// ```
     </span><span class="attr">#[cfg_attr(feature = <span class="string">&quot;inline-more&quot;</span>, inline)]
-    </span><span class="kw">pub fn </span>get_or_insert_with&lt;Q: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>, F&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: <span class="kw-2">&amp;</span>Q, f: F) -&gt; <span class="kw-2">&amp;</span>T
+    </span><span class="kw">pub fn </span>get_or_insert_with&lt;Q: <span class="question-mark">?</span>Sized, F&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: <span class="kw-2">&amp;</span>Q, f: F) -&gt; <span class="kw-2">&amp;</span>T
     <span class="kw">where
         </span>T: Borrow&lt;Q&gt;,
-        Q: <a href="https://doc.rust-lang.org/nightly/core/hash/trait.Hash.html">Hash</a> + <a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Eq.html">Eq</a>,
+        Q: Hash + Eq,
         F: FnOnce(<span class="kw-2">&amp;</span>Q) -&gt; T,
     {
         <span class="comment">// Although the raw entry gives us `&amp;mut T`, we only return `&amp;T` to be consistent with
         // `get`. Key mutation is &quot;raw&quot; because you&#39;re not supposed to affect `Eq` or `Hash`.
-        </span><a class="self" href="#890">self</a>.map
-            .<a href="map.rs.html#1963">raw_entry_mut</a>()
-            .<a href="map.rs.html#3103-3107">from_key</a>(<a href="#890">value</a>)
-            .<a href="map.rs.html#3365-3369">or_insert_with</a>(|| (<a href="#890">f</a>(<a href="#890">value</a>), ()))
+        </span><span class="self">self</span>.map
+            .raw_entry_mut()
+            .from_key(value)
+            .or_insert_with(|| (f(value), ()))
             .<span class="number">0
     </span>}
 
@@ -3727,9 +3727,9 @@
     /// ```
     </span><span class="attr">#[cfg_attr(feature = <span class="string">&quot;inline-more&quot;</span>, inline)]
     </span><span class="kw">pub fn </span>entry(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: T) -&gt; Entry&lt;<span class="lifetime">&#39;_</span>, T, S, A&gt; {
-        <span class="kw">match </span><a class="self" href="#939">self</a>.map.<a href="map.rs.html#1139">entry</a>(<a href="#939">value</a>) {
-            <a href="map.rs.html#4127">map::Entry::Occupied</a>(entry) =&gt; <a href="#1943">Entry::Occupied</a>(<a href="#2006">OccupiedEntry</a> { inner: <a href="#941">entry</a> }),
-            <a href="map.rs.html#4142">map::Entry::Vacant</a>(entry) =&gt; <a href="#1958">Entry::Vacant</a>(<a href="#2044">VacantEntry</a> { inner: <a href="#942">entry</a> }),
+        <span class="kw">match </span><span class="self">self</span>.map.entry(value) {
+            map::Entry::Occupied(entry) =&gt; Entry::Occupied(OccupiedEntry { inner: entry }),
+            map::Entry::Vacant(entry) =&gt; Entry::Vacant(VacantEntry { inner: entry }),
         }
     }
 
@@ -3750,8 +3750,8 @@
     /// b.insert(1);
     /// assert_eq!(a.is_disjoint(&amp;b), false);
     /// ```
-    </span><span class="kw">pub fn </span>is_disjoint(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#963">self</a>.<a href="#243">iter</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">all</a>(|v| !<a href="#963">other</a>.<a href="#774-777">contains</a>(<a href="#964">v</a>))
+    </span><span class="kw">pub fn </span>is_disjoint(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; bool {
+        <span class="self">self</span>.iter().all(|v| !other.contains(v))
     }
 
     <span class="doccomment">/// Returns `true` if the set is a subset of another,
@@ -3771,8 +3771,8 @@
     /// set.insert(4);
     /// assert_eq!(set.is_subset(&amp;sup), false);
     /// ```
-    </span><span class="kw">pub fn </span>is_subset(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#984">self</a>.<a href="#262">len</a>() &lt;= <a href="#984">other</a>.<a href="#262">len</a>() &amp;&amp; <a class="self" href="#984">self</a>.<a href="#243">iter</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">all</a>(|v| <a href="#984">other</a>.<a href="#774-777">contains</a>(<a href="#985">v</a>))
+    </span><span class="kw">pub fn </span>is_subset(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; bool {
+        <span class="self">self</span>.len() &lt;= other.len() &amp;&amp; <span class="self">self</span>.iter().all(|v| other.contains(v))
     }
 
     <span class="doccomment">/// Returns `true` if the set is a superset of another,
@@ -3796,8 +3796,8 @@
     /// assert_eq!(set.is_superset(&amp;sub), true);
     /// ```
     </span><span class="attr">#[cfg_attr(feature = <span class="string">&quot;inline-more&quot;</span>, inline)]
-    </span><span class="kw">pub fn </span>is_superset(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a href="#1009">other</a>.<a href="#984">is_subset</a>(<a class="self" href="#1009">self</a>)
+    </span><span class="kw">pub fn </span>is_superset(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; bool {
+        other.is_subset(<span class="self">self</span>)
     }
 
     <span class="doccomment">/// Adds a value to the set.
@@ -3818,8 +3818,8 @@
     /// assert_eq!(set.len(), 1);
     /// ```
     </span><span class="attr">#[cfg_attr(feature = <span class="string">&quot;inline-more&quot;</span>, inline)]
-    </span><span class="kw">pub fn </span>insert(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: T) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#1031">self</a>.map.<a href="map.rs.html#1674">insert</a>(<a href="#1031">value</a>, ()).is_none()
+    </span><span class="kw">pub fn </span>insert(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: T) -&gt; bool {
+        <span class="self">self</span>.map.insert(value, ()).is_none()
     }
 
     <span class="doccomment">/// Insert a value the set without checking if the value already exists in the set.
@@ -3843,7 +3843,7 @@
     /// that values are unique.
     </span><span class="attr">#[cfg_attr(feature = <span class="string">&quot;inline-more&quot;</span>, inline)]
     </span><span class="kw">pub fn </span>insert_unique_unchecked(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: T) -&gt; <span class="kw-2">&amp;</span>T {
-        <a class="self" href="#1055">self</a>.map.<a href="map.rs.html#1735">insert_unique_unchecked</a>(<a href="#1055">value</a>, ()).<span class="number">0
+        <span class="self">self</span>.map.insert_unique_unchecked(value, ()).<span class="number">0
     </span>}
 
     <span class="doccomment">/// Adds a value to the set, replacing the existing value, if any, that is equal to the given
@@ -3863,10 +3863,10 @@
     /// ```
     </span><span class="attr">#[cfg_attr(feature = <span class="string">&quot;inline-more&quot;</span>, inline)]
     </span><span class="kw">pub fn </span>replace(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: T) -&gt; <span class="prelude-ty">Option</span>&lt;T&gt; {
-        <span class="kw">match </span><a class="self" href="#1075">self</a>.map.<a href="map.rs.html#1139">entry</a>(<a href="#1075">value</a>) {
-            <a href="map.rs.html#4127">map::Entry::Occupied</a>(occupied) =&gt; <span class="prelude-val">Some</span>(<a href="#1077">occupied</a>.<a href="map.rs.html#5423">replace_key</a>()),
-            <a href="map.rs.html#4142">map::Entry::Vacant</a>(vacant) =&gt; {
-                <a href="#1078">vacant</a>.<a href="map.rs.html#5561-5564">insert</a>(());
+        <span class="kw">match </span><span class="self">self</span>.map.entry(value) {
+            map::Entry::Occupied(occupied) =&gt; <span class="prelude-val">Some</span>(occupied.replace_key()),
+            map::Entry::Vacant(vacant) =&gt; {
+                vacant.insert(());
                 <span class="prelude-val">None
             </span>}
         }
@@ -3894,12 +3894,12 @@
     /// [`Eq`]: https://doc.rust-lang.org/std/cmp/trait.Eq.html
     /// [`Hash`]: https://doc.rust-lang.org/std/hash/trait.Hash.html
     </span><span class="attr">#[cfg_attr(feature = <span class="string">&quot;inline-more&quot;</span>, inline)]
-    </span><span class="kw">pub fn </span>remove&lt;Q: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: <span class="kw-2">&amp;</span>Q) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>
+    </span><span class="kw">pub fn </span>remove&lt;Q: <span class="question-mark">?</span>Sized&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: <span class="kw-2">&amp;</span>Q) -&gt; bool
     <span class="kw">where
         </span>T: Borrow&lt;Q&gt;,
-        Q: <a href="https://doc.rust-lang.org/nightly/core/hash/trait.Hash.html">Hash</a> + <a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Eq.html">Eq</a>,
+        Q: Hash + Eq,
     {
-        <a class="self" href="#1107">self</a>.map.<a href="map.rs.html#1813-1816">remove</a>(<a href="#1107">value</a>).is_some()
+        <span class="self">self</span>.map.remove(value).is_some()
     }
 
     <span class="doccomment">/// Removes and returns the value in the set, if any, that is equal to the given one.
@@ -3921,81 +3921,81 @@
     /// [`Eq`]: https://doc.rust-lang.org/std/cmp/trait.Eq.html
     /// [`Hash`]: https://doc.rust-lang.org/std/hash/trait.Hash.html
     </span><span class="attr">#[cfg_attr(feature = <span class="string">&quot;inline-more&quot;</span>, inline)]
-    </span><span class="kw">pub fn </span>take&lt;Q: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: <span class="kw-2">&amp;</span>Q) -&gt; <span class="prelude-ty">Option</span>&lt;T&gt;
+    </span><span class="kw">pub fn </span>take&lt;Q: <span class="question-mark">?</span>Sized&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: <span class="kw-2">&amp;</span>Q) -&gt; <span class="prelude-ty">Option</span>&lt;T&gt;
     <span class="kw">where
         </span>T: Borrow&lt;Q&gt;,
-        Q: <a href="https://doc.rust-lang.org/nightly/core/hash/trait.Hash.html">Hash</a> + <a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Eq.html">Eq</a>,
+        Q: Hash + Eq,
     {
         <span class="comment">// Avoid `Option::map` because it bloats LLVM IR.
-        </span><span class="kw">match </span><a class="self" href="#1134">self</a>.map.<a href="map.rs.html#1854-1857">remove_entry</a>(<a href="#1134">value</a>) {
-            <span class="prelude-val">Some</span>((k, <span class="kw">_</span>)) =&gt; <span class="prelude-val">Some</span>(<a href="#1141">k</a>),
+        </span><span class="kw">match </span><span class="self">self</span>.map.remove_entry(value) {
+            <span class="prelude-val">Some</span>((k, <span class="kw">_</span>)) =&gt; <span class="prelude-val">Some</span>(k),
             <span class="prelude-val">None </span>=&gt; <span class="prelude-val">None</span>,
         }
     }
 }
 
-<span class="kw">impl</span>&lt;T, S, A&gt; <a href="https://doc.rust-lang.org/nightly/core/cmp/trait.PartialEq.html">PartialEq</a> <span class="kw">for </span>HashSet&lt;T, S, A&gt;
+<span class="kw">impl</span>&lt;T, S, A&gt; PartialEq <span class="kw">for </span>HashSet&lt;T, S, A&gt;
 <span class="kw">where
-    </span>T: <a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Eq.html">Eq</a> + <a href="https://doc.rust-lang.org/nightly/core/hash/trait.Hash.html">Hash</a>,
-    S: <a href="https://doc.rust-lang.org/nightly/core/hash/trait.BuildHasher.html">BuildHasher</a>,
-    A: <a href="raw/alloc.rs.html#37">Allocator</a> + <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a>,
+    </span>T: Eq + Hash,
+    S: BuildHasher,
+    A: Allocator + Clone,
 {
-    <span class="kw">fn </span>eq(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+    <span class="kw">fn </span>eq(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; bool {
         <span class="kw">if </span><span class="self">self</span>.len() != other.len() {
             <span class="kw">return </span><span class="bool-val">false</span>;
         }
 
-        <a class="self" href="#1153">self</a>.<a href="#243">iter</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">all</a>(|key| <a href="#1153">other</a>.<a href="#774-777">contains</a>(<a href="#1158">key</a>))
+        <span class="self">self</span>.iter().all(|key| other.contains(key))
     }
 }
 
-<span class="kw">impl</span>&lt;T, S, A&gt; <a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Eq.html">Eq</a> <span class="kw">for </span>HashSet&lt;T, S, A&gt;
+<span class="kw">impl</span>&lt;T, S, A&gt; Eq <span class="kw">for </span>HashSet&lt;T, S, A&gt;
 <span class="kw">where
-    </span>T: <a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Eq.html">Eq</a> + <a href="https://doc.rust-lang.org/nightly/core/hash/trait.Hash.html">Hash</a>,
-    S: <a href="https://doc.rust-lang.org/nightly/core/hash/trait.BuildHasher.html">BuildHasher</a>,
-    A: <a href="raw/alloc.rs.html#37">Allocator</a> + <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a>,
+    </span>T: Eq + Hash,
+    S: BuildHasher,
+    A: Allocator + Clone,
 {
 }
 
-<span class="kw">impl</span>&lt;T, S, A&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span>HashSet&lt;T, S, A&gt;
+<span class="kw">impl</span>&lt;T, S, A&gt; fmt::Debug <span class="kw">for </span>HashSet&lt;T, S, A&gt;
 <span class="kw">where
-    </span>T: <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a>,
-    A: <a href="raw/alloc.rs.html#37">Allocator</a> + <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a>,
+    </span>T: fmt::Debug,
+    A: Allocator + Clone,
 {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a href="#1175">f</a>.debug_set().entries(<a class="self" href="#1175">self</a>.<a href="#243">iter</a>()).finish()
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        f.debug_set().entries(<span class="self">self</span>.iter()).finish()
     }
 }
 
 <span class="kw">impl</span>&lt;T, S, A&gt; From&lt;HashMap&lt;T, (), S, A&gt;&gt; <span class="kw">for </span>HashSet&lt;T, S, A&gt;
 <span class="kw">where
-    </span>A: <a href="raw/alloc.rs.html#37">Allocator</a> + <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a>,
+    </span>A: Allocator + Clone,
 {
     <span class="kw">fn </span>from(map: HashMap&lt;T, (), S, A&gt;) -&gt; <span class="self">Self </span>{
-        <span class="self">Self </span>{ <a href="#1184">map</a> }
+        <span class="self">Self </span>{ map }
     }
 }
 
 <span class="kw">impl</span>&lt;T, S, A&gt; FromIterator&lt;T&gt; <span class="kw">for </span>HashSet&lt;T, S, A&gt;
 <span class="kw">where
-    </span>T: <a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Eq.html">Eq</a> + <a href="https://doc.rust-lang.org/nightly/core/hash/trait.Hash.html">Hash</a>,
-    S: <a href="https://doc.rust-lang.org/nightly/core/hash/trait.BuildHasher.html">BuildHasher</a> + <a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a>,
-    A: <a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> + <a href="raw/alloc.rs.html#37">Allocator</a> + <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a>,
+    </span>T: Eq + Hash,
+    S: BuildHasher + Default,
+    A: Default + Allocator + Clone,
 {
     <span class="attr">#[cfg_attr(feature = <span class="string">&quot;inline-more&quot;</span>, inline)]
     </span><span class="kw">fn </span>from_iter&lt;I: IntoIterator&lt;Item = T&gt;&gt;(iter: I) -&gt; <span class="self">Self </span>{
-        <span class="kw">let </span><span class="kw-2">mut </span>set = <span class="self">Self</span>::with_hasher_in(<a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default::default</a>(), <a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default::default</a>());
-        <a href="#1197">set</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a href="#1196">iter</a>);
-        <a href="#1197">set</a>
+        <span class="kw">let </span><span class="kw-2">mut </span>set = <span class="self">Self</span>::with_hasher_in(Default::default(), Default::default());
+        set.extend(iter);
+        set
     }
 }
 
 <span class="comment">// The default hasher is used to match the std implementation signature
 </span><span class="attr">#[cfg(feature = <span class="string">&quot;ahash&quot;</span>)]
-</span><span class="kw">impl</span>&lt;T, A, <span class="kw">const </span>N: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; From&lt;[T; <a href="#1205">N</a>]&gt; <span class="kw">for </span>HashSet&lt;T, <a href="map.rs.html#13">DefaultHashBuilder</a>, A&gt;
+</span><span class="kw">impl</span>&lt;T, A, <span class="kw">const </span>N: usize&gt; From&lt;[T; N]&gt; <span class="kw">for </span>HashSet&lt;T, DefaultHashBuilder, A&gt;
 <span class="kw">where
-    </span>T: <a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Eq.html">Eq</a> + <a href="https://doc.rust-lang.org/nightly/core/hash/trait.Hash.html">Hash</a>,
-    A: <a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> + <a href="raw/alloc.rs.html#37">Allocator</a> + <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a>,
+    </span>T: Eq + Hash,
+    A: Default + Allocator + Clone,
 {
     <span class="doccomment">/// # Examples
     ///
@@ -4006,20 +4006,20 @@
     /// let set2: HashSet&lt;_&gt; = [1, 2, 3, 4].into();
     /// assert_eq!(set1, set2);
     /// ```
-    </span><span class="kw">fn </span>from(arr: [T; <a href="#1205">N</a>]) -&gt; <span class="self">Self </span>{
-        <a href="#1219">arr</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>()
+    </span><span class="kw">fn </span>from(arr: [T; N]) -&gt; <span class="self">Self </span>{
+        arr.into_iter().collect()
     }
 }
 
 <span class="kw">impl</span>&lt;T, S, A&gt; Extend&lt;T&gt; <span class="kw">for </span>HashSet&lt;T, S, A&gt;
 <span class="kw">where
-    </span>T: <a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Eq.html">Eq</a> + <a href="https://doc.rust-lang.org/nightly/core/hash/trait.Hash.html">Hash</a>,
-    S: <a href="https://doc.rust-lang.org/nightly/core/hash/trait.BuildHasher.html">BuildHasher</a>,
-    A: <a href="raw/alloc.rs.html#37">Allocator</a> + <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a>,
+    </span>T: Eq + Hash,
+    S: BuildHasher,
+    A: Allocator + Clone,
 {
     <span class="attr">#[cfg_attr(feature = <span class="string">&quot;inline-more&quot;</span>, inline)]
     </span><span class="kw">fn </span>extend&lt;I: IntoIterator&lt;Item = T&gt;&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, iter: I) {
-        <a class="self" href="#1231">self</a>.map.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a href="#1231">iter</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|k| (<a href="#1232">k</a>, ())));
+        <span class="self">self</span>.map.extend(iter.into_iter().map(|k| (k, ())));
     }
 
     <span class="attr">#[inline]
@@ -4037,13 +4037,13 @@
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T, S, A&gt; Extend&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>T&gt; <span class="kw">for </span>HashSet&lt;T, S, A&gt;
 <span class="kw">where
-    </span>T: <span class="lifetime">&#39;a </span>+ <a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Eq.html">Eq</a> + <a href="https://doc.rust-lang.org/nightly/core/hash/trait.Hash.html">Hash</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html">Copy</a>,
-    S: <a href="https://doc.rust-lang.org/nightly/core/hash/trait.BuildHasher.html">BuildHasher</a>,
-    A: <a href="raw/alloc.rs.html#37">Allocator</a> + <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a>,
+    </span>T: <span class="lifetime">&#39;a </span>+ Eq + Hash + Copy,
+    S: BuildHasher,
+    A: Allocator + Clone,
 {
     <span class="attr">#[cfg_attr(feature = <span class="string">&quot;inline-more&quot;</span>, inline)]
     </span><span class="kw">fn </span>extend&lt;I: IntoIterator&lt;Item = <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>T&gt;&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, iter: I) {
-        <a class="self" href="#1255">self</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a href="#1255">iter</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">copied</a>());
+        <span class="self">self</span>.extend(iter.into_iter().copied());
     }
 
     <span class="attr">#[inline]
@@ -4059,10 +4059,10 @@
     }
 }
 
-<span class="kw">impl</span>&lt;T, S, A&gt; <a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for </span>HashSet&lt;T, S, A&gt;
+<span class="kw">impl</span>&lt;T, S, A&gt; Default <span class="kw">for </span>HashSet&lt;T, S, A&gt;
 <span class="kw">where
-    </span>S: <a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a>,
-    A: <a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> + <a href="raw/alloc.rs.html#37">Allocator</a> + <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a>,
+    </span>S: Default,
+    A: Default + Allocator + Clone,
 {
     <span class="doccomment">/// Creates an empty `HashSet&lt;T, S&gt;` with the `Default` value for the hasher.
     </span><span class="attr">#[cfg_attr(feature = <span class="string">&quot;inline-more&quot;</span>, inline)]
@@ -4075,9 +4075,9 @@
 
 <span class="kw">impl</span>&lt;T, S, A&gt; BitOr&lt;<span class="kw-2">&amp;</span>HashSet&lt;T, S, A&gt;&gt; <span class="kw">for </span><span class="kw-2">&amp;</span>HashSet&lt;T, S, A&gt;
 <span class="kw">where
-    </span>T: <a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Eq.html">Eq</a> + <a href="https://doc.rust-lang.org/nightly/core/hash/trait.Hash.html">Hash</a> + <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a>,
-    S: <a href="https://doc.rust-lang.org/nightly/core/hash/trait.BuildHasher.html">BuildHasher</a> + <a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a>,
-    A: <a href="raw/alloc.rs.html#37">Allocator</a> + <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a>,
+    </span>T: Eq + Hash + Clone,
+    S: BuildHasher + Default,
+    A: Allocator + Clone,
 {
     <span class="kw">type </span>Output = HashSet&lt;T, S&gt;;
 
@@ -4102,15 +4102,15 @@
     /// assert_eq!(i, expected.len());
     /// ```
     </span><span class="kw">fn </span>bitor(<span class="self">self</span>, rhs: <span class="kw-2">&amp;</span>HashSet&lt;T, S, A&gt;) -&gt; HashSet&lt;T, S&gt; {
-        <a class="self" href="#1314">self</a>.<a href="#742">union</a>(<a href="#1314">rhs</a>).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">cloned</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>()
+        <span class="self">self</span>.union(rhs).cloned().collect()
     }
 }
 
 <span class="kw">impl</span>&lt;T, S, A&gt; BitAnd&lt;<span class="kw-2">&amp;</span>HashSet&lt;T, S, A&gt;&gt; <span class="kw">for </span><span class="kw-2">&amp;</span>HashSet&lt;T, S, A&gt;
 <span class="kw">where
-    </span>T: <a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Eq.html">Eq</a> + <a href="https://doc.rust-lang.org/nightly/core/hash/trait.Hash.html">Hash</a> + <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a>,
-    S: <a href="https://doc.rust-lang.org/nightly/core/hash/trait.BuildHasher.html">BuildHasher</a> + <a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a>,
-    A: <a href="raw/alloc.rs.html#37">Allocator</a> + <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a>,
+    </span>T: Eq + Hash + Clone,
+    S: BuildHasher + Default,
+    A: Allocator + Clone,
 {
     <span class="kw">type </span>Output = HashSet&lt;T, S&gt;;
 
@@ -4135,14 +4135,14 @@
     /// assert_eq!(i, expected.len());
     /// ```
     </span><span class="kw">fn </span>bitand(<span class="self">self</span>, rhs: <span class="kw-2">&amp;</span>HashSet&lt;T, S, A&gt;) -&gt; HashSet&lt;T, S&gt; {
-        <a class="self" href="#1347">self</a>.<a href="#711">intersection</a>(<a href="#1347">rhs</a>).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">cloned</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>()
+        <span class="self">self</span>.intersection(rhs).cloned().collect()
     }
 }
 
 <span class="kw">impl</span>&lt;T, S&gt; BitXor&lt;<span class="kw-2">&amp;</span>HashSet&lt;T, S&gt;&gt; <span class="kw">for </span><span class="kw-2">&amp;</span>HashSet&lt;T, S&gt;
 <span class="kw">where
-    </span>T: <a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Eq.html">Eq</a> + <a href="https://doc.rust-lang.org/nightly/core/hash/trait.Hash.html">Hash</a> + <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a>,
-    S: <a href="https://doc.rust-lang.org/nightly/core/hash/trait.BuildHasher.html">BuildHasher</a> + <a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a>,
+    </span>T: Eq + Hash + Clone,
+    S: BuildHasher + Default,
 {
     <span class="kw">type </span>Output = HashSet&lt;T, S&gt;;
 
@@ -4167,14 +4167,14 @@
     /// assert_eq!(i, expected.len());
     /// ```
     </span><span class="kw">fn </span>bitxor(<span class="self">self</span>, rhs: <span class="kw-2">&amp;</span>HashSet&lt;T, S&gt;) -&gt; HashSet&lt;T, S&gt; {
-        <a class="self" href="#1379">self</a>.<a href="#686">symmetric_difference</a>(<a href="#1379">rhs</a>).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">cloned</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>()
+        <span class="self">self</span>.symmetric_difference(rhs).cloned().collect()
     }
 }
 
 <span class="kw">impl</span>&lt;T, S&gt; Sub&lt;<span class="kw-2">&amp;</span>HashSet&lt;T, S&gt;&gt; <span class="kw">for </span><span class="kw-2">&amp;</span>HashSet&lt;T, S&gt;
 <span class="kw">where
-    </span>T: <a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Eq.html">Eq</a> + <a href="https://doc.rust-lang.org/nightly/core/hash/trait.Hash.html">Hash</a> + <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a>,
-    S: <a href="https://doc.rust-lang.org/nightly/core/hash/trait.BuildHasher.html">BuildHasher</a> + <a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a>,
+    </span>T: Eq + Hash + Clone,
+    S: BuildHasher + Default,
 {
     <span class="kw">type </span>Output = HashSet&lt;T, S&gt;;
 
@@ -4199,7 +4199,7 @@
     /// assert_eq!(i, expected.len());
     /// ```
     </span><span class="kw">fn </span>sub(<span class="self">self</span>, rhs: <span class="kw-2">&amp;</span>HashSet&lt;T, S&gt;) -&gt; HashSet&lt;T, S&gt; {
-        <a class="self" href="#1411">self</a>.<a href="#657">difference</a>(<a href="#1411">rhs</a>).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">cloned</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>()
+        <span class="self">self</span>.difference(rhs).cloned().collect()
     }
 }
 
@@ -4221,7 +4221,7 @@
 ///
 /// [`HashSet`]: struct.HashSet.html
 /// [`into_iter`]: struct.HashSet.html#method.into_iter
-</span><span class="kw">pub struct </span>IntoIter&lt;K, A: <a href="raw/alloc.rs.html#37">Allocator</a> + <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> = <a href="raw/alloc.rs.html#43">Global</a>&gt; {
+</span><span class="kw">pub struct </span>IntoIter&lt;K, A: Allocator + Clone = Global&gt; {
     iter: map::IntoIter&lt;K, (), A&gt;,
 }
 
@@ -4232,7 +4232,7 @@
 ///
 /// [`HashSet`]: struct.HashSet.html
 /// [`drain`]: struct.HashSet.html#method.drain
-</span><span class="kw">pub struct </span>Drain&lt;<span class="lifetime">&#39;a</span>, K, A: <a href="raw/alloc.rs.html#37">Allocator</a> + <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> = <a href="raw/alloc.rs.html#43">Global</a>&gt; {
+</span><span class="kw">pub struct </span>Drain&lt;<span class="lifetime">&#39;a</span>, K, A: Allocator + Clone = Global&gt; {
     iter: map::Drain&lt;<span class="lifetime">&#39;a</span>, K, (), A&gt;,
 }
 
@@ -4243,9 +4243,9 @@
 ///
 /// [`drain_filter`]: struct.HashSet.html#method.drain_filter
 /// [`HashSet`]: struct.HashSet.html
-</span><span class="kw">pub struct </span>DrainFilter&lt;<span class="lifetime">&#39;a</span>, K, F, A: <a href="raw/alloc.rs.html#37">Allocator</a> + <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> = <a href="raw/alloc.rs.html#43">Global</a>&gt;
+</span><span class="kw">pub struct </span>DrainFilter&lt;<span class="lifetime">&#39;a</span>, K, F, A: Allocator + Clone = Global&gt;
 <span class="kw">where
-    </span>F: FnMut(<span class="kw-2">&amp;</span>K) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
+    </span>F: FnMut(<span class="kw-2">&amp;</span>K) -&gt; bool,
 {
     f: F,
     inner: DrainFilterInner&lt;<span class="lifetime">&#39;a</span>, K, (), A&gt;,
@@ -4258,7 +4258,7 @@
 ///
 /// [`HashSet`]: struct.HashSet.html
 /// [`intersection`]: struct.HashSet.html#method.intersection
-</span><span class="kw">pub struct </span>Intersection&lt;<span class="lifetime">&#39;a</span>, T, S, A: <a href="raw/alloc.rs.html#37">Allocator</a> + <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> = <a href="raw/alloc.rs.html#43">Global</a>&gt; {
+</span><span class="kw">pub struct </span>Intersection&lt;<span class="lifetime">&#39;a</span>, T, S, A: Allocator + Clone = Global&gt; {
     <span class="comment">// iterator of the first set
     </span>iter: Iter&lt;<span class="lifetime">&#39;a</span>, T&gt;,
     <span class="comment">// the second set
@@ -4272,7 +4272,7 @@
 ///
 /// [`HashSet`]: struct.HashSet.html
 /// [`difference`]: struct.HashSet.html#method.difference
-</span><span class="kw">pub struct </span>Difference&lt;<span class="lifetime">&#39;a</span>, T, S, A: <a href="raw/alloc.rs.html#37">Allocator</a> + <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> = <a href="raw/alloc.rs.html#43">Global</a>&gt; {
+</span><span class="kw">pub struct </span>Difference&lt;<span class="lifetime">&#39;a</span>, T, S, A: Allocator + Clone = Global&gt; {
     <span class="comment">// iterator of the first set
     </span>iter: Iter&lt;<span class="lifetime">&#39;a</span>, T&gt;,
     <span class="comment">// the second set
@@ -4286,7 +4286,7 @@
 ///
 /// [`HashSet`]: struct.HashSet.html
 /// [`symmetric_difference`]: struct.HashSet.html#method.symmetric_difference
-</span><span class="kw">pub struct </span>SymmetricDifference&lt;<span class="lifetime">&#39;a</span>, T, S, A: <a href="raw/alloc.rs.html#37">Allocator</a> + <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> = <a href="raw/alloc.rs.html#43">Global</a>&gt; {
+</span><span class="kw">pub struct </span>SymmetricDifference&lt;<span class="lifetime">&#39;a</span>, T, S, A: Allocator + Clone = Global&gt; {
     iter: Chain&lt;Difference&lt;<span class="lifetime">&#39;a</span>, T, S, A&gt;, Difference&lt;<span class="lifetime">&#39;a</span>, T, S, A&gt;&gt;,
 }
 
@@ -4297,21 +4297,21 @@
 ///
 /// [`HashSet`]: struct.HashSet.html
 /// [`union`]: struct.HashSet.html#method.union
-</span><span class="kw">pub struct </span>Union&lt;<span class="lifetime">&#39;a</span>, T, S, A: <a href="raw/alloc.rs.html#37">Allocator</a> + <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> = <a href="raw/alloc.rs.html#43">Global</a>&gt; {
+</span><span class="kw">pub struct </span>Union&lt;<span class="lifetime">&#39;a</span>, T, S, A: Allocator + Clone = Global&gt; {
     iter: Chain&lt;Iter&lt;<span class="lifetime">&#39;a</span>, T&gt;, Difference&lt;<span class="lifetime">&#39;a</span>, T, S, A&gt;&gt;,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T, S, A: <a href="raw/alloc.rs.html#37">Allocator</a> + <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">IntoIterator</a> <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>HashSet&lt;T, S, A&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T, S, A: Allocator + Clone&gt; IntoIterator <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>HashSet&lt;T, S, A&gt; {
     <span class="kw">type </span>Item = <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>T;
     <span class="kw">type </span>IntoIter = Iter&lt;<span class="lifetime">&#39;a</span>, T&gt;;
 
     <span class="attr">#[cfg_attr(feature = <span class="string">&quot;inline-more&quot;</span>, inline)]
     </span><span class="kw">fn </span>into_iter(<span class="self">self</span>) -&gt; Iter&lt;<span class="lifetime">&#39;a</span>, T&gt; {
-        <a class="self" href="#1519">self</a>.<a href="#243">iter</a>()
+        <span class="self">self</span>.iter()
     }
 }
 
-<span class="kw">impl</span>&lt;T, S, A: <a href="raw/alloc.rs.html#37">Allocator</a> + <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">IntoIterator</a> <span class="kw">for </span>HashSet&lt;T, S, A&gt; {
+<span class="kw">impl</span>&lt;T, S, A: Allocator + Clone&gt; IntoIterator <span class="kw">for </span>HashSet&lt;T, S, A&gt; {
     <span class="kw">type </span>Item = T;
     <span class="kw">type </span>IntoIter = IntoIter&lt;T, A&gt;;
 
@@ -4337,111 +4337,111 @@
     /// ```
     </span><span class="attr">#[cfg_attr(feature = <span class="string">&quot;inline-more&quot;</span>, inline)]
     </span><span class="kw">fn </span>into_iter(<span class="self">self</span>) -&gt; IntoIter&lt;T, A&gt; {
-        <a href="#1434">IntoIter</a> {
-            iter: <a class="self" href="#1549">self</a>.map.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>(),
+        IntoIter {
+            iter: <span class="self">self</span>.map.into_iter(),
         }
     }
 }
 
-<span class="kw">impl</span>&lt;K&gt; <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> <span class="kw">for </span>Iter&lt;<span class="lifetime">&#39;_</span>, K&gt; {
+<span class="kw">impl</span>&lt;K&gt; Clone <span class="kw">for </span>Iter&lt;<span class="lifetime">&#39;_</span>, K&gt; {
     <span class="attr">#[cfg_attr(feature = <span class="string">&quot;inline-more&quot;</span>, inline)]
     </span><span class="kw">fn </span>clone(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self </span>{
-        <a href="#1423">Iter</a> {
-            iter: <a class="self" href="#1558">self</a>.iter.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+        Iter {
+            iter: <span class="self">self</span>.iter.clone(),
         }
     }
 }
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, K&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a> <span class="kw">for </span>Iter&lt;<span class="lifetime">&#39;a</span>, K&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, K&gt; Iterator <span class="kw">for </span>Iter&lt;<span class="lifetime">&#39;a</span>, K&gt; {
     <span class="kw">type </span>Item = <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>K;
 
     <span class="attr">#[cfg_attr(feature = <span class="string">&quot;inline-more&quot;</span>, inline)]
     </span><span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>K&gt; {
-        <a class="self" href="#1568">self</a>.iter.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>()
+        <span class="self">self</span>.iter.next()
     }
     <span class="attr">#[cfg_attr(feature = <span class="string">&quot;inline-more&quot;</span>, inline)]
-    </span><span class="kw">fn </span>size_hint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;) {
-        <a class="self" href="#1572">self</a>.iter.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">size_hint</a>()
+    </span><span class="kw">fn </span>size_hint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (usize, <span class="prelude-ty">Option</span>&lt;usize&gt;) {
+        <span class="self">self</span>.iter.size_hint()
     }
 }
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, K&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/exact_size/trait.ExactSizeIterator.html">ExactSizeIterator</a> <span class="kw">for </span>Iter&lt;<span class="lifetime">&#39;a</span>, K&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, K&gt; ExactSizeIterator <span class="kw">for </span>Iter&lt;<span class="lifetime">&#39;a</span>, K&gt; {
     <span class="attr">#[cfg_attr(feature = <span class="string">&quot;inline-more&quot;</span>, inline)]
-    </span><span class="kw">fn </span>len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="self" href="#1578">self</a>.iter.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/exact_size/trait.ExactSizeIterator.html">len</a>()
+    </span><span class="kw">fn </span>len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+        <span class="self">self</span>.iter.len()
     }
 }
-<span class="kw">impl</span>&lt;K&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/marker/trait.FusedIterator.html">FusedIterator</a> <span class="kw">for </span>Iter&lt;<span class="lifetime">&#39;_</span>, K&gt; {}
+<span class="kw">impl</span>&lt;K&gt; FusedIterator <span class="kw">for </span>Iter&lt;<span class="lifetime">&#39;_</span>, K&gt; {}
 
-<span class="kw">impl</span>&lt;K: <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span>Iter&lt;<span class="lifetime">&#39;_</span>, K&gt; {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a href="#1585">f</a>.debug_list().entries(<a class="self" href="#1585">self</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()).finish()
+<span class="kw">impl</span>&lt;K: fmt::Debug&gt; fmt::Debug <span class="kw">for </span>Iter&lt;<span class="lifetime">&#39;_</span>, K&gt; {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        f.debug_list().entries(<span class="self">self</span>.clone()).finish()
     }
 }
 
-<span class="kw">impl</span>&lt;K, A: <a href="raw/alloc.rs.html#37">Allocator</a> + <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a> <span class="kw">for </span>IntoIter&lt;K, A&gt; {
+<span class="kw">impl</span>&lt;K, A: Allocator + Clone&gt; Iterator <span class="kw">for </span>IntoIter&lt;K, A&gt; {
     <span class="kw">type </span>Item = K;
 
     <span class="attr">#[cfg_attr(feature = <span class="string">&quot;inline-more&quot;</span>, inline)]
     </span><span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;K&gt; {
         <span class="comment">// Avoid `Option::map` because it bloats LLVM IR.
-        </span><span class="kw">match </span><a class="self" href="#1594">self</a>.iter.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>() {
-            <span class="prelude-val">Some</span>((k, <span class="kw">_</span>)) =&gt; <span class="prelude-val">Some</span>(<a href="#1597">k</a>),
+        </span><span class="kw">match </span><span class="self">self</span>.iter.next() {
+            <span class="prelude-val">Some</span>((k, <span class="kw">_</span>)) =&gt; <span class="prelude-val">Some</span>(k),
             <span class="prelude-val">None </span>=&gt; <span class="prelude-val">None</span>,
         }
     }
     <span class="attr">#[cfg_attr(feature = <span class="string">&quot;inline-more&quot;</span>, inline)]
-    </span><span class="kw">fn </span>size_hint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;) {
-        <a class="self" href="#1602">self</a>.iter.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">size_hint</a>()
+    </span><span class="kw">fn </span>size_hint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (usize, <span class="prelude-ty">Option</span>&lt;usize&gt;) {
+        <span class="self">self</span>.iter.size_hint()
     }
 }
-<span class="kw">impl</span>&lt;K, A: <a href="raw/alloc.rs.html#37">Allocator</a> + <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/exact_size/trait.ExactSizeIterator.html">ExactSizeIterator</a> <span class="kw">for </span>IntoIter&lt;K, A&gt; {
+<span class="kw">impl</span>&lt;K, A: Allocator + Clone&gt; ExactSizeIterator <span class="kw">for </span>IntoIter&lt;K, A&gt; {
     <span class="attr">#[cfg_attr(feature = <span class="string">&quot;inline-more&quot;</span>, inline)]
-    </span><span class="kw">fn </span>len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="self" href="#1608">self</a>.iter.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/exact_size/trait.ExactSizeIterator.html">len</a>()
+    </span><span class="kw">fn </span>len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+        <span class="self">self</span>.iter.len()
     }
 }
-<span class="kw">impl</span>&lt;K, A: <a href="raw/alloc.rs.html#37">Allocator</a> + <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/marker/trait.FusedIterator.html">FusedIterator</a> <span class="kw">for </span>IntoIter&lt;K, A&gt; {}
+<span class="kw">impl</span>&lt;K, A: Allocator + Clone&gt; FusedIterator <span class="kw">for </span>IntoIter&lt;K, A&gt; {}
 
-<span class="kw">impl</span>&lt;K: <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a>, A: <a href="raw/alloc.rs.html#37">Allocator</a> + <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span>IntoIter&lt;K, A&gt; {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <span class="kw">let </span>entries_iter = <a class="self" href="#1615">self</a>.iter.<a href="map.rs.html#2329">iter</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|(k, <span class="kw">_</span>)| <a href="#1616">k</a>);
-        <a href="#1615">f</a>.debug_list().entries(<a href="#1616">entries_iter</a>).finish()
+<span class="kw">impl</span>&lt;K: fmt::Debug, A: Allocator + Clone&gt; fmt::Debug <span class="kw">for </span>IntoIter&lt;K, A&gt; {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        <span class="kw">let </span>entries_iter = <span class="self">self</span>.iter.iter().map(|(k, <span class="kw">_</span>)| k);
+        f.debug_list().entries(entries_iter).finish()
     }
 }
 
-<span class="kw">impl</span>&lt;K, A: <a href="raw/alloc.rs.html#37">Allocator</a> + <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a> <span class="kw">for </span>Drain&lt;<span class="lifetime">&#39;_</span>, K, A&gt; {
+<span class="kw">impl</span>&lt;K, A: Allocator + Clone&gt; Iterator <span class="kw">for </span>Drain&lt;<span class="lifetime">&#39;_</span>, K, A&gt; {
     <span class="kw">type </span>Item = K;
 
     <span class="attr">#[cfg_attr(feature = <span class="string">&quot;inline-more&quot;</span>, inline)]
     </span><span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;K&gt; {
         <span class="comment">// Avoid `Option::map` because it bloats LLVM IR.
-        </span><span class="kw">match </span><a class="self" href="#1625">self</a>.iter.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>() {
-            <span class="prelude-val">Some</span>((k, <span class="kw">_</span>)) =&gt; <span class="prelude-val">Some</span>(<a href="#1628">k</a>),
+        </span><span class="kw">match </span><span class="self">self</span>.iter.next() {
+            <span class="prelude-val">Some</span>((k, <span class="kw">_</span>)) =&gt; <span class="prelude-val">Some</span>(k),
             <span class="prelude-val">None </span>=&gt; <span class="prelude-val">None</span>,
         }
     }
     <span class="attr">#[cfg_attr(feature = <span class="string">&quot;inline-more&quot;</span>, inline)]
-    </span><span class="kw">fn </span>size_hint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;) {
-        <a class="self" href="#1633">self</a>.iter.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">size_hint</a>()
+    </span><span class="kw">fn </span>size_hint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (usize, <span class="prelude-ty">Option</span>&lt;usize&gt;) {
+        <span class="self">self</span>.iter.size_hint()
     }
 }
-<span class="kw">impl</span>&lt;K, A: <a href="raw/alloc.rs.html#37">Allocator</a> + <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/exact_size/trait.ExactSizeIterator.html">ExactSizeIterator</a> <span class="kw">for </span>Drain&lt;<span class="lifetime">&#39;_</span>, K, A&gt; {
+<span class="kw">impl</span>&lt;K, A: Allocator + Clone&gt; ExactSizeIterator <span class="kw">for </span>Drain&lt;<span class="lifetime">&#39;_</span>, K, A&gt; {
     <span class="attr">#[cfg_attr(feature = <span class="string">&quot;inline-more&quot;</span>, inline)]
-    </span><span class="kw">fn </span>len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="self" href="#1639">self</a>.iter.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/exact_size/trait.ExactSizeIterator.html">len</a>()
+    </span><span class="kw">fn </span>len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+        <span class="self">self</span>.iter.len()
     }
 }
-<span class="kw">impl</span>&lt;K, A: <a href="raw/alloc.rs.html#37">Allocator</a> + <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/marker/trait.FusedIterator.html">FusedIterator</a> <span class="kw">for </span>Drain&lt;<span class="lifetime">&#39;_</span>, K, A&gt; {}
+<span class="kw">impl</span>&lt;K, A: Allocator + Clone&gt; FusedIterator <span class="kw">for </span>Drain&lt;<span class="lifetime">&#39;_</span>, K, A&gt; {}
 
-<span class="kw">impl</span>&lt;K: <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a>, A: <a href="raw/alloc.rs.html#37">Allocator</a> + <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span>Drain&lt;<span class="lifetime">&#39;_</span>, K, A&gt; {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <span class="kw">let </span>entries_iter = <a class="self" href="#1646">self</a>.iter.<a href="map.rs.html#2593">iter</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|(k, <span class="kw">_</span>)| <a href="#1647">k</a>);
-        <a href="#1646">f</a>.debug_list().entries(<a href="#1647">entries_iter</a>).finish()
+<span class="kw">impl</span>&lt;K: fmt::Debug, A: Allocator + Clone&gt; fmt::Debug <span class="kw">for </span>Drain&lt;<span class="lifetime">&#39;_</span>, K, A&gt; {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        <span class="kw">let </span>entries_iter = <span class="self">self</span>.iter.iter().map(|(k, <span class="kw">_</span>)| k);
+        f.debug_list().entries(entries_iter).finish()
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, K, F, A: <a href="raw/alloc.rs.html#37">Allocator</a> + <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span>DrainFilter&lt;<span class="lifetime">&#39;a</span>, K, F, A&gt;
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, K, F, A: Allocator + Clone&gt; Drop <span class="kw">for </span>DrainFilter&lt;<span class="lifetime">&#39;a</span>, K, F, A&gt;
 <span class="kw">where
-    </span>F: FnMut(<span class="kw-2">&amp;</span>K) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
+    </span>F: FnMut(<span class="kw-2">&amp;</span>K) -&gt; bool,
 {
     <span class="attr">#[cfg_attr(feature = <span class="string">&quot;inline-more&quot;</span>, inline)]
     </span><span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
@@ -4453,45 +4453,45 @@
     }
 }
 
-<span class="kw">impl</span>&lt;K, F, A: <a href="raw/alloc.rs.html#37">Allocator</a> + <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a> <span class="kw">for </span>DrainFilter&lt;<span class="lifetime">&#39;_</span>, K, F, A&gt;
+<span class="kw">impl</span>&lt;K, F, A: Allocator + Clone&gt; Iterator <span class="kw">for </span>DrainFilter&lt;<span class="lifetime">&#39;_</span>, K, F, A&gt;
 <span class="kw">where
-    </span>F: FnMut(<span class="kw-2">&amp;</span>K) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
+    </span>F: FnMut(<span class="kw-2">&amp;</span>K) -&gt; bool,
 {
     <span class="kw">type </span>Item = K;
 
     <span class="attr">#[cfg_attr(feature = <span class="string">&quot;inline-more&quot;</span>, inline)]
     </span><span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt; {
-        <span class="kw">let </span>f = <span class="kw-2">&amp;mut </span><a class="self" href="#1673">self</a>.f;
+        <span class="kw">let </span>f = <span class="kw-2">&amp;mut </span><span class="self">self</span>.f;
         <span class="kw">let </span>(k, <span class="kw">_</span>) = <span class="self">self</span>.inner.next(<span class="kw-2">&amp;mut </span>|k, <span class="kw">_</span>| f(k))<span class="question-mark">?</span>;
-        <span class="prelude-val">Some</span>(<a href="#1675">k</a>)
+        <span class="prelude-val">Some</span>(k)
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>size_hint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;) {
-        (<span class="number">0</span>, <a class="self" href="#1680">self</a>.inner.iter.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">size_hint</a>().<span class="number">1</span>)
+    </span><span class="kw">fn </span>size_hint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (usize, <span class="prelude-ty">Option</span>&lt;usize&gt;) {
+        (<span class="number">0</span>, <span class="self">self</span>.inner.iter.size_hint().<span class="number">1</span>)
     }
 }
 
-<span class="kw">impl</span>&lt;K, F, A: <a href="raw/alloc.rs.html#37">Allocator</a> + <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/marker/trait.FusedIterator.html">FusedIterator</a> <span class="kw">for </span>DrainFilter&lt;<span class="lifetime">&#39;_</span>, K, F, A&gt; <span class="kw">where
-    </span>F: FnMut(<span class="kw-2">&amp;</span>K) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>
+<span class="kw">impl</span>&lt;K, F, A: Allocator + Clone&gt; FusedIterator <span class="kw">for </span>DrainFilter&lt;<span class="lifetime">&#39;_</span>, K, F, A&gt; <span class="kw">where
+    </span>F: FnMut(<span class="kw-2">&amp;</span>K) -&gt; bool
 {
 }
 
-<span class="kw">impl</span>&lt;T, S, A: <a href="raw/alloc.rs.html#37">Allocator</a> + <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> <span class="kw">for </span>Intersection&lt;<span class="lifetime">&#39;_</span>, T, S, A&gt; {
+<span class="kw">impl</span>&lt;T, S, A: Allocator + Clone&gt; Clone <span class="kw">for </span>Intersection&lt;<span class="lifetime">&#39;_</span>, T, S, A&gt; {
     <span class="attr">#[cfg_attr(feature = <span class="string">&quot;inline-more&quot;</span>, inline)]
     </span><span class="kw">fn </span>clone(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self </span>{
-        <a href="#1471">Intersection</a> {
-            iter: <a class="self" href="#1692">self</a>.iter.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
-            ..<span class="kw-2">*</span><span class="self"><a href="#1692">self</a>
+        Intersection {
+            iter: <span class="self">self</span>.iter.clone(),
+            ..<span class="kw-2">*</span><span class="self">self
         </span>}
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T, S, A&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a> <span class="kw">for </span>Intersection&lt;<span class="lifetime">&#39;a</span>, T, S, A&gt;
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T, S, A&gt; Iterator <span class="kw">for </span>Intersection&lt;<span class="lifetime">&#39;a</span>, T, S, A&gt;
 <span class="kw">where
-    </span>T: <a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Eq.html">Eq</a> + <a href="https://doc.rust-lang.org/nightly/core/hash/trait.Hash.html">Hash</a>,
-    S: <a href="https://doc.rust-lang.org/nightly/core/hash/trait.BuildHasher.html">BuildHasher</a>,
-    A: <a href="raw/alloc.rs.html#37">Allocator</a> + <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a>,
+    </span>T: Eq + Hash,
+    S: BuildHasher,
+    A: Allocator + Clone,
 {
     <span class="kw">type </span>Item = <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>T;
 
@@ -4500,52 +4500,52 @@
         <span class="kw">loop </span>{
             <span class="kw">let </span>elt = <span class="self">self</span>.iter.next()<span class="question-mark">?</span>;
             <span class="kw">if </span><span class="self">self</span>.other.contains(elt) {
-                <span class="kw">return </span><span class="prelude-val">Some</span>(<a href="#1711">elt</a>);
+                <span class="kw">return </span><span class="prelude-val">Some</span>(elt);
             }
         }
     }
 
     <span class="attr">#[cfg_attr(feature = <span class="string">&quot;inline-more&quot;</span>, inline)]
-    </span><span class="kw">fn </span>size_hint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;) {
-        <span class="kw">let </span>(<span class="kw">_</span>, upper) = <a class="self" href="#1719">self</a>.iter.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">size_hint</a>();
-        (<span class="number">0</span>, <a href="#1720">upper</a>)
+    </span><span class="kw">fn </span>size_hint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (usize, <span class="prelude-ty">Option</span>&lt;usize&gt;) {
+        <span class="kw">let </span>(<span class="kw">_</span>, upper) = <span class="self">self</span>.iter.size_hint();
+        (<span class="number">0</span>, upper)
     }
 }
 
-<span class="kw">impl</span>&lt;T, S, A&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span>Intersection&lt;<span class="lifetime">&#39;_</span>, T, S, A&gt;
+<span class="kw">impl</span>&lt;T, S, A&gt; fmt::Debug <span class="kw">for </span>Intersection&lt;<span class="lifetime">&#39;_</span>, T, S, A&gt;
 <span class="kw">where
-    </span>T: <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> + <a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Eq.html">Eq</a> + <a href="https://doc.rust-lang.org/nightly/core/hash/trait.Hash.html">Hash</a>,
-    S: <a href="https://doc.rust-lang.org/nightly/core/hash/trait.BuildHasher.html">BuildHasher</a>,
-    A: <a href="raw/alloc.rs.html#37">Allocator</a> + <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a>,
+    </span>T: fmt::Debug + Eq + Hash,
+    S: BuildHasher,
+    A: Allocator + Clone,
 {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a href="#1731">f</a>.debug_list().entries(<a class="self" href="#1731">self</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()).finish()
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        f.debug_list().entries(<span class="self">self</span>.clone()).finish()
     }
 }
 
-<span class="kw">impl</span>&lt;T, S, A&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/marker/trait.FusedIterator.html">FusedIterator</a> <span class="kw">for </span>Intersection&lt;<span class="lifetime">&#39;_</span>, T, S, A&gt;
+<span class="kw">impl</span>&lt;T, S, A&gt; FusedIterator <span class="kw">for </span>Intersection&lt;<span class="lifetime">&#39;_</span>, T, S, A&gt;
 <span class="kw">where
-    </span>T: <a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Eq.html">Eq</a> + <a href="https://doc.rust-lang.org/nightly/core/hash/trait.Hash.html">Hash</a>,
-    S: <a href="https://doc.rust-lang.org/nightly/core/hash/trait.BuildHasher.html">BuildHasher</a>,
-    A: <a href="raw/alloc.rs.html#37">Allocator</a> + <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a>,
+    </span>T: Eq + Hash,
+    S: BuildHasher,
+    A: Allocator + Clone,
 {
 }
 
-<span class="kw">impl</span>&lt;T, S, A: <a href="raw/alloc.rs.html#37">Allocator</a> + <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> <span class="kw">for </span>Difference&lt;<span class="lifetime">&#39;_</span>, T, S, A&gt; {
+<span class="kw">impl</span>&lt;T, S, A: Allocator + Clone&gt; Clone <span class="kw">for </span>Difference&lt;<span class="lifetime">&#39;_</span>, T, S, A&gt; {
     <span class="attr">#[cfg_attr(feature = <span class="string">&quot;inline-more&quot;</span>, inline)]
     </span><span class="kw">fn </span>clone(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self </span>{
-        <a href="#1485">Difference</a> {
-            iter: <a class="self" href="#1746">self</a>.iter.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
-            ..<span class="kw-2">*</span><span class="self"><a href="#1746">self</a>
+        Difference {
+            iter: <span class="self">self</span>.iter.clone(),
+            ..<span class="kw-2">*</span><span class="self">self
         </span>}
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T, S, A&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a> <span class="kw">for </span>Difference&lt;<span class="lifetime">&#39;a</span>, T, S, A&gt;
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T, S, A&gt; Iterator <span class="kw">for </span>Difference&lt;<span class="lifetime">&#39;a</span>, T, S, A&gt;
 <span class="kw">where
-    </span>T: <a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Eq.html">Eq</a> + <a href="https://doc.rust-lang.org/nightly/core/hash/trait.Hash.html">Hash</a>,
-    S: <a href="https://doc.rust-lang.org/nightly/core/hash/trait.BuildHasher.html">BuildHasher</a>,
-    A: <a href="raw/alloc.rs.html#37">Allocator</a> + <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a>,
+    </span>T: Eq + Hash,
+    S: BuildHasher,
+    A: Allocator + Clone,
 {
     <span class="kw">type </span>Item = <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>T;
 
@@ -4554,126 +4554,126 @@
         <span class="kw">loop </span>{
             <span class="kw">let </span>elt = <span class="self">self</span>.iter.next()<span class="question-mark">?</span>;
             <span class="kw">if </span>!<span class="self">self</span>.other.contains(elt) {
-                <span class="kw">return </span><span class="prelude-val">Some</span>(<a href="#1765">elt</a>);
+                <span class="kw">return </span><span class="prelude-val">Some</span>(elt);
             }
         }
     }
 
     <span class="attr">#[cfg_attr(feature = <span class="string">&quot;inline-more&quot;</span>, inline)]
-    </span><span class="kw">fn </span>size_hint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;) {
-        <span class="kw">let </span>(<span class="kw">_</span>, upper) = <a class="self" href="#1773">self</a>.iter.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">size_hint</a>();
-        (<span class="number">0</span>, <a href="#1774">upper</a>)
+    </span><span class="kw">fn </span>size_hint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (usize, <span class="prelude-ty">Option</span>&lt;usize&gt;) {
+        <span class="kw">let </span>(<span class="kw">_</span>, upper) = <span class="self">self</span>.iter.size_hint();
+        (<span class="number">0</span>, upper)
     }
 }
 
-<span class="kw">impl</span>&lt;T, S, A&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/marker/trait.FusedIterator.html">FusedIterator</a> <span class="kw">for </span>Difference&lt;<span class="lifetime">&#39;_</span>, T, S, A&gt;
+<span class="kw">impl</span>&lt;T, S, A&gt; FusedIterator <span class="kw">for </span>Difference&lt;<span class="lifetime">&#39;_</span>, T, S, A&gt;
 <span class="kw">where
-    </span>T: <a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Eq.html">Eq</a> + <a href="https://doc.rust-lang.org/nightly/core/hash/trait.Hash.html">Hash</a>,
-    S: <a href="https://doc.rust-lang.org/nightly/core/hash/trait.BuildHasher.html">BuildHasher</a>,
-    A: <a href="raw/alloc.rs.html#37">Allocator</a> + <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a>,
+    </span>T: Eq + Hash,
+    S: BuildHasher,
+    A: Allocator + Clone,
 {
 }
 
-<span class="kw">impl</span>&lt;T, S, A&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span>Difference&lt;<span class="lifetime">&#39;_</span>, T, S, A&gt;
+<span class="kw">impl</span>&lt;T, S, A&gt; fmt::Debug <span class="kw">for </span>Difference&lt;<span class="lifetime">&#39;_</span>, T, S, A&gt;
 <span class="kw">where
-    </span>T: <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> + <a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Eq.html">Eq</a> + <a href="https://doc.rust-lang.org/nightly/core/hash/trait.Hash.html">Hash</a>,
-    S: <a href="https://doc.rust-lang.org/nightly/core/hash/trait.BuildHasher.html">BuildHasher</a>,
-    A: <a href="raw/alloc.rs.html#37">Allocator</a> + <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a>,
+    </span>T: fmt::Debug + Eq + Hash,
+    S: BuildHasher,
+    A: Allocator + Clone,
 {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a href="#1793">f</a>.debug_list().entries(<a class="self" href="#1793">self</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()).finish()
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        f.debug_list().entries(<span class="self">self</span>.clone()).finish()
     }
 }
 
-<span class="kw">impl</span>&lt;T, S, A: <a href="raw/alloc.rs.html#37">Allocator</a> + <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> <span class="kw">for </span>SymmetricDifference&lt;<span class="lifetime">&#39;_</span>, T, S, A&gt; {
+<span class="kw">impl</span>&lt;T, S, A: Allocator + Clone&gt; Clone <span class="kw">for </span>SymmetricDifference&lt;<span class="lifetime">&#39;_</span>, T, S, A&gt; {
     <span class="attr">#[cfg_attr(feature = <span class="string">&quot;inline-more&quot;</span>, inline)]
     </span><span class="kw">fn </span>clone(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self </span>{
-        <a href="#1499">SymmetricDifference</a> {
-            iter: <a class="self" href="#1800">self</a>.iter.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+        SymmetricDifference {
+            iter: <span class="self">self</span>.iter.clone(),
         }
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T, S, A&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a> <span class="kw">for </span>SymmetricDifference&lt;<span class="lifetime">&#39;a</span>, T, S, A&gt;
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T, S, A&gt; Iterator <span class="kw">for </span>SymmetricDifference&lt;<span class="lifetime">&#39;a</span>, T, S, A&gt;
 <span class="kw">where
-    </span>T: <a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Eq.html">Eq</a> + <a href="https://doc.rust-lang.org/nightly/core/hash/trait.Hash.html">Hash</a>,
-    S: <a href="https://doc.rust-lang.org/nightly/core/hash/trait.BuildHasher.html">BuildHasher</a>,
-    A: <a href="raw/alloc.rs.html#37">Allocator</a> + <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a>,
+    </span>T: Eq + Hash,
+    S: BuildHasher,
+    A: Allocator + Clone,
 {
     <span class="kw">type </span>Item = <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>T;
 
     <span class="attr">#[cfg_attr(feature = <span class="string">&quot;inline-more&quot;</span>, inline)]
     </span><span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>T&gt; {
-        <a class="self" href="#1816">self</a>.iter.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>()
+        <span class="self">self</span>.iter.next()
     }
     <span class="attr">#[cfg_attr(feature = <span class="string">&quot;inline-more&quot;</span>, inline)]
-    </span><span class="kw">fn </span>size_hint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;) {
-        <a class="self" href="#1820">self</a>.iter.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">size_hint</a>()
+    </span><span class="kw">fn </span>size_hint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (usize, <span class="prelude-ty">Option</span>&lt;usize&gt;) {
+        <span class="self">self</span>.iter.size_hint()
     }
 }
 
-<span class="kw">impl</span>&lt;T, S, A&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/marker/trait.FusedIterator.html">FusedIterator</a> <span class="kw">for </span>SymmetricDifference&lt;<span class="lifetime">&#39;_</span>, T, S, A&gt;
+<span class="kw">impl</span>&lt;T, S, A&gt; FusedIterator <span class="kw">for </span>SymmetricDifference&lt;<span class="lifetime">&#39;_</span>, T, S, A&gt;
 <span class="kw">where
-    </span>T: <a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Eq.html">Eq</a> + <a href="https://doc.rust-lang.org/nightly/core/hash/trait.Hash.html">Hash</a>,
-    S: <a href="https://doc.rust-lang.org/nightly/core/hash/trait.BuildHasher.html">BuildHasher</a>,
-    A: <a href="raw/alloc.rs.html#37">Allocator</a> + <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a>,
+    </span>T: Eq + Hash,
+    S: BuildHasher,
+    A: Allocator + Clone,
 {
 }
 
-<span class="kw">impl</span>&lt;T, S, A&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span>SymmetricDifference&lt;<span class="lifetime">&#39;_</span>, T, S, A&gt;
+<span class="kw">impl</span>&lt;T, S, A&gt; fmt::Debug <span class="kw">for </span>SymmetricDifference&lt;<span class="lifetime">&#39;_</span>, T, S, A&gt;
 <span class="kw">where
-    </span>T: <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> + <a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Eq.html">Eq</a> + <a href="https://doc.rust-lang.org/nightly/core/hash/trait.Hash.html">Hash</a>,
-    S: <a href="https://doc.rust-lang.org/nightly/core/hash/trait.BuildHasher.html">BuildHasher</a>,
-    A: <a href="raw/alloc.rs.html#37">Allocator</a> + <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a>,
+    </span>T: fmt::Debug + Eq + Hash,
+    S: BuildHasher,
+    A: Allocator + Clone,
 {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a href="#1839">f</a>.debug_list().entries(<a class="self" href="#1839">self</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()).finish()
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        f.debug_list().entries(<span class="self">self</span>.clone()).finish()
     }
 }
 
-<span class="kw">impl</span>&lt;T, S, A: <a href="raw/alloc.rs.html#37">Allocator</a> + <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> <span class="kw">for </span>Union&lt;<span class="lifetime">&#39;_</span>, T, S, A&gt; {
+<span class="kw">impl</span>&lt;T, S, A: Allocator + Clone&gt; Clone <span class="kw">for </span>Union&lt;<span class="lifetime">&#39;_</span>, T, S, A&gt; {
     <span class="attr">#[cfg_attr(feature = <span class="string">&quot;inline-more&quot;</span>, inline)]
     </span><span class="kw">fn </span>clone(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self </span>{
-        <a href="#1510">Union</a> {
-            iter: <a class="self" href="#1846">self</a>.iter.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+        Union {
+            iter: <span class="self">self</span>.iter.clone(),
         }
     }
 }
 
-<span class="kw">impl</span>&lt;T, S, A&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/marker/trait.FusedIterator.html">FusedIterator</a> <span class="kw">for </span>Union&lt;<span class="lifetime">&#39;_</span>, T, S, A&gt;
+<span class="kw">impl</span>&lt;T, S, A&gt; FusedIterator <span class="kw">for </span>Union&lt;<span class="lifetime">&#39;_</span>, T, S, A&gt;
 <span class="kw">where
-    </span>T: <a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Eq.html">Eq</a> + <a href="https://doc.rust-lang.org/nightly/core/hash/trait.Hash.html">Hash</a>,
-    S: <a href="https://doc.rust-lang.org/nightly/core/hash/trait.BuildHasher.html">BuildHasher</a>,
-    A: <a href="raw/alloc.rs.html#37">Allocator</a> + <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a>,
+    </span>T: Eq + Hash,
+    S: BuildHasher,
+    A: Allocator + Clone,
 {
 }
 
-<span class="kw">impl</span>&lt;T, S, A&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span>Union&lt;<span class="lifetime">&#39;_</span>, T, S, A&gt;
+<span class="kw">impl</span>&lt;T, S, A&gt; fmt::Debug <span class="kw">for </span>Union&lt;<span class="lifetime">&#39;_</span>, T, S, A&gt;
 <span class="kw">where
-    </span>T: <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> + <a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Eq.html">Eq</a> + <a href="https://doc.rust-lang.org/nightly/core/hash/trait.Hash.html">Hash</a>,
-    S: <a href="https://doc.rust-lang.org/nightly/core/hash/trait.BuildHasher.html">BuildHasher</a>,
-    A: <a href="raw/alloc.rs.html#37">Allocator</a> + <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a>,
+    </span>T: fmt::Debug + Eq + Hash,
+    S: BuildHasher,
+    A: Allocator + Clone,
 {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a href="#1867">f</a>.debug_list().entries(<a class="self" href="#1867">self</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()).finish()
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        f.debug_list().entries(<span class="self">self</span>.clone()).finish()
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T, S, A&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a> <span class="kw">for </span>Union&lt;<span class="lifetime">&#39;a</span>, T, S, A&gt;
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T, S, A&gt; Iterator <span class="kw">for </span>Union&lt;<span class="lifetime">&#39;a</span>, T, S, A&gt;
 <span class="kw">where
-    </span>T: <a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Eq.html">Eq</a> + <a href="https://doc.rust-lang.org/nightly/core/hash/trait.Hash.html">Hash</a>,
-    S: <a href="https://doc.rust-lang.org/nightly/core/hash/trait.BuildHasher.html">BuildHasher</a>,
-    A: <a href="raw/alloc.rs.html#37">Allocator</a> + <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a>,
+    </span>T: Eq + Hash,
+    S: BuildHasher,
+    A: Allocator + Clone,
 {
     <span class="kw">type </span>Item = <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>T;
 
     <span class="attr">#[cfg_attr(feature = <span class="string">&quot;inline-more&quot;</span>, inline)]
     </span><span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>T&gt; {
-        <a class="self" href="#1881">self</a>.iter.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>()
+        <span class="self">self</span>.iter.next()
     }
     <span class="attr">#[cfg_attr(feature = <span class="string">&quot;inline-more&quot;</span>, inline)]
-    </span><span class="kw">fn </span>size_hint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;) {
-        <a class="self" href="#1885">self</a>.iter.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">size_hint</a>()
+    </span><span class="kw">fn </span>size_hint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (usize, <span class="prelude-ty">Option</span>&lt;usize&gt;) {
+        <span class="self">self</span>.iter.size_hint()
     }
 }
 
@@ -4713,9 +4713,9 @@
 /// vec.sort_unstable();
 /// assert_eq!(vec, [&quot;a&quot;, &quot;b&quot;, &quot;c&quot;, &quot;d&quot;, &quot;e&quot;]);
 /// ```
-</span><span class="kw">pub enum </span>Entry&lt;<span class="lifetime">&#39;a</span>, T, S, A = <a href="raw/alloc.rs.html#43">Global</a>&gt;
+</span><span class="kw">pub enum </span>Entry&lt;<span class="lifetime">&#39;a</span>, T, S, A = Global&gt;
 <span class="kw">where
-    </span>A: <a href="raw/alloc.rs.html#37">Allocator</a> + <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a>,
+    </span>A: Allocator + Clone,
 {
     <span class="doccomment">/// An occupied entry.
     ///
@@ -4748,11 +4748,11 @@
     </span>Vacant(VacantEntry&lt;<span class="lifetime">&#39;a</span>, T, S, A&gt;),
 }
 
-<span class="kw">impl</span>&lt;T: <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a>, S, A: <a href="raw/alloc.rs.html#37">Allocator</a> + <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span>Entry&lt;<span class="lifetime">&#39;_</span>, T, S, A&gt; {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="#1962">self</a> </span>{
-            <a href="#1958">Entry::Vacant</a>(<span class="kw-2">ref </span>v) =&gt; <a href="#1962">f</a>.debug_tuple(<span class="string">&quot;Entry&quot;</span>).field(<a href="#1964">v</a>).finish(),
-            <a href="#1943">Entry::Occupied</a>(<span class="kw-2">ref </span>o) =&gt; <a href="#1962">f</a>.debug_tuple(<span class="string">&quot;Entry&quot;</span>).field(<a href="#1965">o</a>).finish(),
+<span class="kw">impl</span>&lt;T: fmt::Debug, S, A: Allocator + Clone&gt; fmt::Debug <span class="kw">for </span>Entry&lt;<span class="lifetime">&#39;_</span>, T, S, A&gt; {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        <span class="kw">match </span><span class="kw-2">*</span><span class="self">self </span>{
+            Entry::Vacant(<span class="kw-2">ref </span>v) =&gt; f.debug_tuple(<span class="string">&quot;Entry&quot;</span>).field(v).finish(),
+            Entry::Occupied(<span class="kw-2">ref </span>o) =&gt; f.debug_tuple(<span class="string">&quot;Entry&quot;</span>).field(o).finish(),
         }
     }
 }
@@ -4793,14 +4793,14 @@
 /// assert_eq!(set.get(&amp;&quot;c&quot;), None);
 /// assert_eq!(set.len(), 2);
 /// ```
-</span><span class="kw">pub struct </span>OccupiedEntry&lt;<span class="lifetime">&#39;a</span>, T, S, A: <a href="raw/alloc.rs.html#37">Allocator</a> + <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> = <a href="raw/alloc.rs.html#43">Global</a>&gt; {
+</span><span class="kw">pub struct </span>OccupiedEntry&lt;<span class="lifetime">&#39;a</span>, T, S, A: Allocator + Clone = Global&gt; {
     inner: map::OccupiedEntry&lt;<span class="lifetime">&#39;a</span>, T, (), S, A&gt;,
 }
 
-<span class="kw">impl</span>&lt;T: <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a>, S, A: <a href="raw/alloc.rs.html#37">Allocator</a> + <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span>OccupiedEntry&lt;<span class="lifetime">&#39;_</span>, T, S, A&gt; {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a href="#2011">f</a>.debug_struct(<span class="string">&quot;OccupiedEntry&quot;</span>)
-            .field(<span class="string">&quot;value&quot;</span>, <a class="self" href="#2011">self</a>.<a href="#2148">get</a>())
+<span class="kw">impl</span>&lt;T: fmt::Debug, S, A: Allocator + Clone&gt; fmt::Debug <span class="kw">for </span>OccupiedEntry&lt;<span class="lifetime">&#39;_</span>, T, S, A&gt; {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        f.debug_struct(<span class="string">&quot;OccupiedEntry&quot;</span>)
+            .field(<span class="string">&quot;value&quot;</span>, <span class="self">self</span>.get())
             .finish()
     }
 }
@@ -4831,17 +4831,17 @@
 /// }
 /// assert!(set.contains(&quot;b&quot;) &amp;&amp; set.len() == 2);
 /// ```
-</span><span class="kw">pub struct </span>VacantEntry&lt;<span class="lifetime">&#39;a</span>, T, S, A: <a href="raw/alloc.rs.html#37">Allocator</a> + <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> = <a href="raw/alloc.rs.html#43">Global</a>&gt; {
+</span><span class="kw">pub struct </span>VacantEntry&lt;<span class="lifetime">&#39;a</span>, T, S, A: Allocator + Clone = Global&gt; {
     inner: map::VacantEntry&lt;<span class="lifetime">&#39;a</span>, T, (), S, A&gt;,
 }
 
-<span class="kw">impl</span>&lt;T: <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a>, S, A: <a href="raw/alloc.rs.html#37">Allocator</a> + <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span>VacantEntry&lt;<span class="lifetime">&#39;_</span>, T, S, A&gt; {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a href="#2049">f</a>.debug_tuple(<span class="string">&quot;VacantEntry&quot;</span>).field(<a class="self" href="#2049">self</a>.<a href="#2231">get</a>()).finish()
+<span class="kw">impl</span>&lt;T: fmt::Debug, S, A: Allocator + Clone&gt; fmt::Debug <span class="kw">for </span>VacantEntry&lt;<span class="lifetime">&#39;_</span>, T, S, A&gt; {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        f.debug_tuple(<span class="string">&quot;VacantEntry&quot;</span>).field(<span class="self">self</span>.get()).finish()
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T, S, A: <a href="raw/alloc.rs.html#37">Allocator</a> + <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a>&gt; Entry&lt;<span class="lifetime">&#39;a</span>, T, S, A&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T, S, A: Allocator + Clone&gt; Entry&lt;<span class="lifetime">&#39;a</span>, T, S, A&gt; {
     <span class="doccomment">/// Sets the value of the entry, and returns an OccupiedEntry.
     ///
     /// # Examples
@@ -4857,12 +4857,12 @@
     </span><span class="attr">#[cfg_attr(feature = <span class="string">&quot;inline-more&quot;</span>, inline)]
     </span><span class="kw">pub fn </span>insert(<span class="self">self</span>) -&gt; OccupiedEntry&lt;<span class="lifetime">&#39;a</span>, T, S, A&gt;
     <span class="kw">where
-        </span>T: <a href="https://doc.rust-lang.org/nightly/core/hash/trait.Hash.html">Hash</a>,
-        S: <a href="https://doc.rust-lang.org/nightly/core/hash/trait.BuildHasher.html">BuildHasher</a>,
+        </span>T: Hash,
+        S: BuildHasher,
     {
-        <span class="kw">match </span><span class="self"><a href="#2068">self</a> </span>{
-            <a href="#1943">Entry::Occupied</a>(entry) =&gt; <a href="#2074">entry</a>,
-            <a href="#1958">Entry::Vacant</a>(entry) =&gt; <a href="#2075">entry</a>.<a href="#2279-2282">insert_entry</a>(),
+        <span class="kw">match </span><span class="self">self </span>{
+            Entry::Occupied(entry) =&gt; entry,
+            Entry::Vacant(entry) =&gt; entry.insert_entry(),
         }
     }
 
@@ -4887,11 +4887,11 @@
     </span><span class="attr">#[cfg_attr(feature = <span class="string">&quot;inline-more&quot;</span>, inline)]
     </span><span class="kw">pub fn </span>or_insert(<span class="self">self</span>)
     <span class="kw">where
-        </span>T: <a href="https://doc.rust-lang.org/nightly/core/hash/trait.Hash.html">Hash</a>,
-        S: <a href="https://doc.rust-lang.org/nightly/core/hash/trait.BuildHasher.html">BuildHasher</a>,
+        </span>T: Hash,
+        S: BuildHasher,
     {
-        <span class="kw">if let </span><a href="#1958">Entry::Vacant</a>(entry) = <span class="self"><a href="#2098">self</a> </span>{
-            <a href="#2103">entry</a>.<a href="#2270-2273">insert</a>();
+        <span class="kw">if let </span>Entry::Vacant(entry) = <span class="self">self </span>{
+            entry.insert();
         }
     }
 
@@ -4911,14 +4911,14 @@
     /// ```
     </span><span class="attr">#[cfg_attr(feature = <span class="string">&quot;inline-more&quot;</span>, inline)]
     </span><span class="kw">pub fn </span>get(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>T {
-        <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="#2123">self</a> </span>{
-            <a href="#1943">Entry::Occupied</a>(<span class="kw-2">ref </span>entry) =&gt; <a href="#2125">entry</a>.<a href="#2148">get</a>(),
-            <a href="#1958">Entry::Vacant</a>(<span class="kw-2">ref </span>entry) =&gt; <a href="#2126">entry</a>.<a href="#2231">get</a>(),
+        <span class="kw">match </span><span class="kw-2">*</span><span class="self">self </span>{
+            Entry::Occupied(<span class="kw-2">ref </span>entry) =&gt; entry.get(),
+            Entry::Vacant(<span class="kw-2">ref </span>entry) =&gt; entry.get(),
         }
     }
 }
 
-<span class="kw">impl</span>&lt;T, S, A: <a href="raw/alloc.rs.html#37">Allocator</a> + <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a>&gt; OccupiedEntry&lt;<span class="lifetime">&#39;_</span>, T, S, A&gt; {
+<span class="kw">impl</span>&lt;T, S, A: Allocator + Clone&gt; OccupiedEntry&lt;<span class="lifetime">&#39;_</span>, T, S, A&gt; {
     <span class="doccomment">/// Gets a reference to the value in the entry.
     ///
     /// # Examples
@@ -4936,7 +4936,7 @@
     /// ```
     </span><span class="attr">#[cfg_attr(feature = <span class="string">&quot;inline-more&quot;</span>, inline)]
     </span><span class="kw">pub fn </span>get(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>T {
-        <a class="self" href="#2148">self</a>.inner.<a href="map.rs.html#5168">key</a>()
+        <span class="self">self</span>.inner.key()
     }
 
     <span class="doccomment">/// Takes the value out of the entry, and returns it.
@@ -4965,7 +4965,7 @@
     /// ```
     </span><span class="attr">#[cfg_attr(feature = <span class="string">&quot;inline-more&quot;</span>, inline)]
     </span><span class="kw">pub fn </span>remove(<span class="self">self</span>) -&gt; T {
-        <a class="self" href="#2177">self</a>.inner.<a href="map.rs.html#5198">remove_entry</a>().<span class="number">0
+        <span class="self">self</span>.inner.remove_entry().<span class="number">0
     </span>}
 
     <span class="doccomment">/// Replaces the entry, returning the old value. The new value in the hash map will be
@@ -5001,11 +5001,11 @@
     /// ```
     </span><span class="attr">#[cfg_attr(feature = <span class="string">&quot;inline-more&quot;</span>, inline)]
     </span><span class="kw">pub fn </span>replace(<span class="self">self</span>) -&gt; T {
-        <a class="self" href="#2213">self</a>.inner.<a href="map.rs.html#5423">replace_key</a>()
+        <span class="self">self</span>.inner.replace_key()
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T, S, A: <a href="raw/alloc.rs.html#37">Allocator</a> + <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a>&gt; VacantEntry&lt;<span class="lifetime">&#39;a</span>, T, S, A&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T, S, A: Allocator + Clone&gt; VacantEntry&lt;<span class="lifetime">&#39;a</span>, T, S, A&gt; {
     <span class="doccomment">/// Gets a reference to the value that would be used when inserting
     /// through the `VacantEntry`.
     ///
@@ -5019,7 +5019,7 @@
     /// ```
     </span><span class="attr">#[cfg_attr(feature = <span class="string">&quot;inline-more&quot;</span>, inline)]
     </span><span class="kw">pub fn </span>get(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>T {
-        <a class="self" href="#2231">self</a>.inner.<a href="map.rs.html#5521">key</a>()
+        <span class="self">self</span>.inner.key()
     }
 
     <span class="doccomment">/// Take ownership of the value.
@@ -5038,7 +5038,7 @@
     /// ```
     </span><span class="attr">#[cfg_attr(feature = <span class="string">&quot;inline-more&quot;</span>, inline)]
     </span><span class="kw">pub fn </span>into_value(<span class="self">self</span>) -&gt; T {
-        <a class="self" href="#2250">self</a>.inner.<a href="map.rs.html#5540">into_key</a>()
+        <span class="self">self</span>.inner.into_key()
     }
 
     <span class="doccomment">/// Sets the value of the entry with the VacantEntry&#39;s value.
@@ -5059,61 +5059,61 @@
     </span><span class="attr">#[cfg_attr(feature = <span class="string">&quot;inline-more&quot;</span>, inline)]
     </span><span class="kw">pub fn </span>insert(<span class="self">self</span>)
     <span class="kw">where
-        </span>T: <a href="https://doc.rust-lang.org/nightly/core/hash/trait.Hash.html">Hash</a>,
-        S: <a href="https://doc.rust-lang.org/nightly/core/hash/trait.BuildHasher.html">BuildHasher</a>,
+        </span>T: Hash,
+        S: BuildHasher,
     {
-        <a class="self" href="#2270">self</a>.inner.<a href="map.rs.html#5561-5564">insert</a>(());
+        <span class="self">self</span>.inner.insert(());
     }
 
     <span class="attr">#[cfg_attr(feature = <span class="string">&quot;inline-more&quot;</span>, inline)]
     </span><span class="kw">fn </span>insert_entry(<span class="self">self</span>) -&gt; OccupiedEntry&lt;<span class="lifetime">&#39;a</span>, T, S, A&gt;
     <span class="kw">where
-        </span>T: <a href="https://doc.rust-lang.org/nightly/core/hash/trait.Hash.html">Hash</a>,
-        S: <a href="https://doc.rust-lang.org/nightly/core/hash/trait.BuildHasher.html">BuildHasher</a>,
+        </span>T: Hash,
+        S: BuildHasher,
     {
-        <a href="#2006">OccupiedEntry</a> {
-            inner: <a class="self" href="#2279">self</a>.inner.<a href="map.rs.html#5576-5579">insert_entry</a>(()),
+        OccupiedEntry {
+            inner: <span class="self">self</span>.inner.insert_entry(()),
         }
     }
 }
 
 <span class="attr">#[allow(dead_code)]
 </span><span class="kw">fn </span>assert_covariance() {
-    <span class="kw">fn </span>set&lt;<span class="lifetime">&#39;new</span>&gt;(v: HashSet&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt;) -&gt; HashSet&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;new </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt; {
-        <a href="#2292">v</a>
+    <span class="kw">fn </span>set&lt;<span class="lifetime">&#39;new</span>&gt;(v: HashSet&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str&gt;) -&gt; HashSet&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;new </span>str&gt; {
+        v
     }
-    <span class="kw">fn </span>iter&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;new</span>&gt;(v: Iter&lt;<span class="lifetime">&#39;a</span>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt;) -&gt; Iter&lt;<span class="lifetime">&#39;a</span>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;new </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt; {
-        <a href="#2295">v</a>
+    <span class="kw">fn </span>iter&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;new</span>&gt;(v: Iter&lt;<span class="lifetime">&#39;a</span>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str&gt;) -&gt; Iter&lt;<span class="lifetime">&#39;a</span>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;new </span>str&gt; {
+        v
     }
-    <span class="kw">fn </span>into_iter&lt;<span class="lifetime">&#39;new</span>, A: <a href="raw/alloc.rs.html#37">Allocator</a> + <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a>&gt;(
-        v: IntoIter&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, A&gt;,
-    ) -&gt; IntoIter&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;new </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, A&gt; {
-        <a href="#2299">v</a>
+    <span class="kw">fn </span>into_iter&lt;<span class="lifetime">&#39;new</span>, A: Allocator + Clone&gt;(
+        v: IntoIter&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str, A&gt;,
+    ) -&gt; IntoIter&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;new </span>str, A&gt; {
+        v
     }
-    <span class="kw">fn </span>difference&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;new</span>, A: <a href="raw/alloc.rs.html#37">Allocator</a> + <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a>&gt;(
-        v: Difference&lt;<span class="lifetime">&#39;a</span>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, <a href="map.rs.html#13">DefaultHashBuilder</a>, A&gt;,
-    ) -&gt; Difference&lt;<span class="lifetime">&#39;a</span>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;new </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, <a href="map.rs.html#13">DefaultHashBuilder</a>, A&gt; {
-        <a href="#2304">v</a>
+    <span class="kw">fn </span>difference&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;new</span>, A: Allocator + Clone&gt;(
+        v: Difference&lt;<span class="lifetime">&#39;a</span>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str, DefaultHashBuilder, A&gt;,
+    ) -&gt; Difference&lt;<span class="lifetime">&#39;a</span>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;new </span>str, DefaultHashBuilder, A&gt; {
+        v
     }
-    <span class="kw">fn </span>symmetric_difference&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;new</span>, A: <a href="raw/alloc.rs.html#37">Allocator</a> + <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a>&gt;(
-        v: SymmetricDifference&lt;<span class="lifetime">&#39;a</span>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, <a href="map.rs.html#13">DefaultHashBuilder</a>, A&gt;,
-    ) -&gt; SymmetricDifference&lt;<span class="lifetime">&#39;a</span>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;new </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, <a href="map.rs.html#13">DefaultHashBuilder</a>, A&gt; {
-        <a href="#2309">v</a>
+    <span class="kw">fn </span>symmetric_difference&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;new</span>, A: Allocator + Clone&gt;(
+        v: SymmetricDifference&lt;<span class="lifetime">&#39;a</span>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str, DefaultHashBuilder, A&gt;,
+    ) -&gt; SymmetricDifference&lt;<span class="lifetime">&#39;a</span>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;new </span>str, DefaultHashBuilder, A&gt; {
+        v
     }
-    <span class="kw">fn </span>intersection&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;new</span>, A: <a href="raw/alloc.rs.html#37">Allocator</a> + <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a>&gt;(
-        v: Intersection&lt;<span class="lifetime">&#39;a</span>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, <a href="map.rs.html#13">DefaultHashBuilder</a>, A&gt;,
-    ) -&gt; Intersection&lt;<span class="lifetime">&#39;a</span>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;new </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, <a href="map.rs.html#13">DefaultHashBuilder</a>, A&gt; {
-        <a href="#2314">v</a>
+    <span class="kw">fn </span>intersection&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;new</span>, A: Allocator + Clone&gt;(
+        v: Intersection&lt;<span class="lifetime">&#39;a</span>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str, DefaultHashBuilder, A&gt;,
+    ) -&gt; Intersection&lt;<span class="lifetime">&#39;a</span>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;new </span>str, DefaultHashBuilder, A&gt; {
+        v
     }
-    <span class="kw">fn </span>union&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;new</span>, A: <a href="raw/alloc.rs.html#37">Allocator</a> + <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a>&gt;(
-        v: Union&lt;<span class="lifetime">&#39;a</span>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, <a href="map.rs.html#13">DefaultHashBuilder</a>, A&gt;,
-    ) -&gt; Union&lt;<span class="lifetime">&#39;a</span>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;new </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, <a href="map.rs.html#13">DefaultHashBuilder</a>, A&gt; {
-        <a href="#2319">v</a>
+    <span class="kw">fn </span>union&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;new</span>, A: Allocator + Clone&gt;(
+        v: Union&lt;<span class="lifetime">&#39;a</span>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str, DefaultHashBuilder, A&gt;,
+    ) -&gt; Union&lt;<span class="lifetime">&#39;a</span>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;new </span>str, DefaultHashBuilder, A&gt; {
+        v
     }
-    <span class="kw">fn </span>drain&lt;<span class="lifetime">&#39;new</span>, A: <a href="raw/alloc.rs.html#37">Allocator</a> + <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a>&gt;(
-        d: Drain&lt;<span class="lifetime">&#39;static</span>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, A&gt;,
-    ) -&gt; Drain&lt;<span class="lifetime">&#39;new</span>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;new </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, A&gt; {
-        <a href="#2324">d</a>
+    <span class="kw">fn </span>drain&lt;<span class="lifetime">&#39;new</span>, A: Allocator + Clone&gt;(
+        d: Drain&lt;<span class="lifetime">&#39;static</span>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str, A&gt;,
+    ) -&gt; Drain&lt;<span class="lifetime">&#39;new</span>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;new </span>str, A&gt; {
+        d
     }
 }
 
@@ -5579,4 +5579,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="hashbrown" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="hashbrown" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

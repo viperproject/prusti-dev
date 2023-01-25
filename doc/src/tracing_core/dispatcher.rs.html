@@ -1,5 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tracing-core-0.1.30/src/dispatcher.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>dispatcher.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../tracing_core/index.html">
-                        <img src="https://raw.githubusercontent.com/tokio-rs/tracing/master/assets/logo-type.png" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tracing-core-0.1.30/src/dispatcher.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>dispatcher.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../tracing_core/index.html">
+                        <img src="https://raw.githubusercontent.com/tokio-rs/tracing/master/assets/logo-type.png" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -1133,24 +1133,24 @@
 //! instrumentation.
 //!
 </span><span class="kw">use crate</span>::{
-    <a href="lib.rs.html#271">callsite</a>, <a href="lib.rs.html#277">span</a>,
-    subscriber::{<a class="self" href="lib.rs.html#279">self</a>, <a href="subscriber.rs.html#675">NoSubscriber</a>, <a href="subscriber.rs.html#83">Subscriber</a>},
-    <a href="event.rs.html#23">Event</a>, <a href="metadata.rs.html#240">LevelFilter</a>, <a href="metadata.rs.html#57">Metadata</a>,
+    callsite, span,
+    subscriber::{<span class="self">self</span>, NoSubscriber, Subscriber},
+    Event, LevelFilter, Metadata,
 };
 
 <span class="kw">use </span><span class="kw">crate</span>::stdlib::{
-    <a href="https://doc.rust-lang.org/nightly/core/any/trait.Any.html">any::Any</a>,
-    <a href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">fmt</a>,
+    any::Any,
+    fmt,
     sync::{
-        atomic::{<a href="https://doc.rust-lang.org/nightly/core/sync/atomic/struct.AtomicBool.html">AtomicBool</a>, <a href="https://doc.rust-lang.org/nightly/core/sync/atomic/struct.AtomicUsize.html">AtomicUsize</a>, <a href="https://doc.rust-lang.org/nightly/core/sync/atomic/enum.Ordering.html">Ordering</a>},
-        <a href="https://doc.rust-lang.org/nightly/alloc/sync/struct.Arc.html">Arc</a>, <a href="https://doc.rust-lang.org/nightly/alloc/sync/struct.Weak.html">Weak</a>,
+        atomic::{AtomicBool, AtomicUsize, Ordering},
+        Arc, Weak,
     },
 };
 
 <span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
 </span><span class="kw">use </span><span class="kw">crate</span>::stdlib::{
-    cell::{<a href="https://doc.rust-lang.org/nightly/core/cell/struct.Cell.html">Cell</a>, <a href="https://doc.rust-lang.org/nightly/core/cell/struct.RefCell.html">RefCell</a>, <a href="https://doc.rust-lang.org/nightly/core/cell/struct.RefMut.html">RefMut</a>},
-    <a href="https://doc.rust-lang.org/nightly/std/error/index.html">error</a>,
+    cell::{Cell, RefCell, RefMut},
+    error,
 };
 
 <span class="attr">#[cfg(feature = <span class="string">&quot;alloc&quot;</span>)]
@@ -1162,7 +1162,7 @@
 <span class="doccomment">/// `Dispatch` trace data to a [`Subscriber`].
 </span><span class="attr">#[derive(Clone)]
 </span><span class="kw">pub struct </span>Dispatch {
-    subscriber: Arc&lt;<span class="kw">dyn </span><a href="subscriber.rs.html#83">Subscriber</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a>&gt;,
+    subscriber: Arc&lt;<span class="kw">dyn </span>Subscriber + Send + Sync&gt;,
 }
 
 <span class="doccomment">/// `WeakDispatch` is a version of [`Dispatch`] that holds a non-owning reference
@@ -1185,7 +1185,7 @@
 /// [here]: Subscriber#avoiding-memory-leaks
 </span><span class="attr">#[derive(Clone)]
 </span><span class="kw">pub struct </span>WeakDispatch {
-    subscriber: Weak&lt;<span class="kw">dyn </span><a href="subscriber.rs.html#83">Subscriber</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a>&gt;,
+    subscriber: Weak&lt;<span class="kw">dyn </span>Subscriber + Send + Sync&gt;,
 }
 
 <span class="attr">#[cfg(feature = <span class="string">&quot;alloc&quot;</span>)]
@@ -1196,27 +1196,27 @@
 }
 
 <span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
-</span><a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.thread_local.html">thread_local! </a>{
+</span><span class="macro">thread_local! </span>{
     <span class="kw">static </span>CURRENT_STATE: State = State {
         default: RefCell::new(<span class="prelude-val">None</span>),
         can_enter: Cell::new(<span class="bool-val">true</span>),
     };
 }
 
-<span class="kw">static </span>EXISTS: <a href="https://doc.rust-lang.org/nightly/core/sync/atomic/struct.AtomicBool.html">AtomicBool</a> = AtomicBool::new(<span class="bool-val">false</span>);
-<span class="kw">static </span>GLOBAL_INIT: <a href="https://doc.rust-lang.org/nightly/core/sync/atomic/struct.AtomicUsize.html">AtomicUsize</a> = AtomicUsize::new(<a href="#200">UNINITIALIZED</a>);
+<span class="kw">static </span>EXISTS: AtomicBool = AtomicBool::new(<span class="bool-val">false</span>);
+<span class="kw">static </span>GLOBAL_INIT: AtomicUsize = AtomicUsize::new(UNINITIALIZED);
 
-<span class="kw">const </span>UNINITIALIZED: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> = <span class="number">0</span>;
-<span class="kw">const </span>INITIALIZING: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> = <span class="number">1</span>;
-<span class="kw">const </span>INITIALIZED: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> = <span class="number">2</span>;
+<span class="kw">const </span>UNINITIALIZED: usize = <span class="number">0</span>;
+<span class="kw">const </span>INITIALIZING: usize = <span class="number">1</span>;
+<span class="kw">const </span>INITIALIZED: usize = <span class="number">2</span>;
 
-<span class="kw">static </span><span class="kw-2">mut </span>GLOBAL_DISPATCH: <span class="prelude-ty">Option</span>&lt;<a href="#155">Dispatch</a>&gt; = <span class="prelude-val">None</span>;
+<span class="kw">static </span><span class="kw-2">mut </span>GLOBAL_DISPATCH: <span class="prelude-ty">Option</span>&lt;Dispatch&gt; = <span class="prelude-val">None</span>;
 
 <span class="doccomment">/// The dispatch state of a thread.
 </span><span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
 </span><span class="kw">struct </span>State {
     <span class="doccomment">/// This thread&#39;s current default dispatcher.
-    </span>default: RefCell&lt;<span class="prelude-ty">Option</span>&lt;<a href="#155">Dispatch</a>&gt;&gt;,
+    </span>default: RefCell&lt;<span class="prelude-ty">Option</span>&lt;Dispatch&gt;&gt;,
     <span class="doccomment">/// Whether or not we can currently begin dispatching a trace event.
     ///
     /// This is set to `false` when functions such as `enter`, `exit`, `event`,
@@ -1224,21 +1224,21 @@
     /// prevent further trace events triggered inside those functions from
     /// creating an infinite recursion. When we finish handling a dispatch, this
     /// is set back to `true`.
-    </span>can_enter: Cell&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>&gt;,
+    </span>can_enter: Cell&lt;bool&gt;,
 }
 
 <span class="doccomment">/// While this guard is active, additional calls to subscriber functions on
 /// the default dispatcher will not be able to access the dispatch context.
 /// Dropping the guard will allow the dispatch context to be re-entered.
 </span><span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
-</span><span class="kw">struct </span>Entered&lt;<span class="lifetime">&#39;a</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="#208">State</a>);
+</span><span class="kw">struct </span>Entered&lt;<span class="lifetime">&#39;a</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>State);
 
 <span class="doccomment">/// A guard that resets the current default dispatcher to the prior
 /// default dispatcher when dropped.
 </span><span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
 #[cfg_attr(docsrs, doc(cfg(feature = <span class="string">&quot;std&quot;</span>)))]
 #[derive(Debug)]
-</span><span class="kw">pub struct </span>DefaultGuard(<span class="prelude-ty">Option</span>&lt;<a href="#155">Dispatch</a>&gt;);
+</span><span class="kw">pub struct </span>DefaultGuard(<span class="prelude-ty">Option</span>&lt;Dispatch&gt;);
 
 <span class="doccomment">/// Sets this dispatch as the default for the duration of a closure.
 ///
@@ -1257,13 +1257,13 @@
 /// [`set_global_default`]: super::set_global_default
 </span><span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
 #[cfg_attr(docsrs, doc(cfg(feature = <span class="string">&quot;std&quot;</span>)))]
-</span><span class="kw">pub fn </span>with_default&lt;T&gt;(dispatcher: <span class="kw-2">&amp;</span><a href="#155">Dispatch</a>, f: <span class="kw">impl </span>FnOnce() -&gt; T) -&gt; T {
+</span><span class="kw">pub fn </span>with_default&lt;T&gt;(dispatcher: <span class="kw-2">&amp;</span>Dispatch, f: <span class="kw">impl </span>FnOnce() -&gt; T) -&gt; T {
     <span class="comment">// When this guard is dropped, the default dispatcher will be reset to the
     // prior default. Using this (rather than simply resetting after calling
     // `f`) ensures that we always reset to the prior dispatcher even if `f`
     // panics.
-    </span><span class="kw">let </span>_guard = <a href="#273">set_default</a>(<a href="#251">dispatcher</a>);
-    <a href="#251">f</a>()
+    </span><span class="kw">let </span>_guard = set_default(dispatcher);
+    f()
 }
 
 <span class="doccomment">/// Sets the dispatch as the default dispatch for the duration of the lifetime
@@ -1279,11 +1279,11 @@
 </span><span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
 #[cfg_attr(docsrs, doc(cfg(feature = <span class="string">&quot;std&quot;</span>)))]
 #[must_use = <span class="string">&quot;Dropping the guard unregisters the dispatcher.&quot;</span>]
-</span><span class="kw">pub fn </span>set_default(dispatcher: <span class="kw-2">&amp;</span><a href="#155">Dispatch</a>) -&gt; <a href="#232">DefaultGuard</a> {
+</span><span class="kw">pub fn </span>set_default(dispatcher: <span class="kw-2">&amp;</span>Dispatch) -&gt; DefaultGuard {
     <span class="comment">// When this guard is dropped, the default dispatcher will be reset to the
     // prior default. Using this ensures that we always reset to the prior
     // dispatcher even if the thread calling this function panics.
-    </span>State::set_default(<a href="#273">dispatcher</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>())
+    </span>State::set_default(dispatcher.clone())
 }
 
 <span class="doccomment">/// Sets this dispatch as the global default for the duration of the entire program.
@@ -1302,7 +1302,7 @@
 /// [span]: super::span
 /// [`Subscriber`]: super::subscriber::Subscriber
 /// [`Event`]: super::event::Event
-</span><span class="kw">pub fn </span>set_global_default(dispatcher: <a href="#155">Dispatch</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="#330">SetGlobalDefaultError</a>&gt; {
+</span><span class="kw">pub fn </span>set_global_default(dispatcher: Dispatch) -&gt; <span class="prelude-ty">Result</span>&lt;(), SetGlobalDefaultError&gt; {
     <span class="comment">// if `compare_exchange` returns Result::Ok(_), then `new` has been set and
     // `current`—now the prior value—has been returned in the `Ok()` branch.
     </span><span class="kw">if </span>GLOBAL_INIT
@@ -1315,13 +1315,13 @@
         .is_ok()
     {
         <span class="kw">unsafe </span>{
-            <a href="#204">GLOBAL_DISPATCH</a> = <span class="prelude-val">Some</span>(<a href="#296">dispatcher</a>);
+            GLOBAL_DISPATCH = <span class="prelude-val">Some</span>(dispatcher);
         }
-        <a href="#198">GLOBAL_INIT</a>.store(<a href="#202">INITIALIZED</a>, Ordering::SeqCst);
-        <a href="#197">EXISTS</a>.store(<span class="bool-val">true</span>, Ordering::Release);
+        GLOBAL_INIT.store(INITIALIZED, Ordering::SeqCst);
+        EXISTS.store(<span class="bool-val">true</span>, Ordering::Release);
         <span class="prelude-val">Ok</span>(())
     } <span class="kw">else </span>{
-        <span class="prelude-val">Err</span>(<a href="#330">SetGlobalDefaultError</a> { _no_construct: () })
+        <span class="prelude-val">Err</span>(SetGlobalDefaultError { _no_construct: () })
     }
 }
 
@@ -1331,8 +1331,8 @@
 /// at all or has yet to be initialized.
 </span><span class="attr">#[doc(hidden)]
 #[inline(always)]
-</span><span class="kw">pub fn </span>has_been_set() -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-    <a href="#197">EXISTS</a>.load(Ordering::Relaxed)
+</span><span class="kw">pub fn </span>has_been_set() -&gt; bool {
+    EXISTS.load(Ordering::Relaxed)
 }
 
 <span class="doccomment">/// Returned if setting the global dispatcher fails.
@@ -1340,26 +1340,26 @@
     _no_construct: (),
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="#330">SetGlobalDefaultError</a> {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a href="#335">f</a>.debug_tuple(<span class="string">&quot;SetGlobalDefaultError&quot;</span>)
+<span class="kw">impl </span>fmt::Debug <span class="kw">for </span>SetGlobalDefaultError {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        f.debug_tuple(<span class="string">&quot;SetGlobalDefaultError&quot;</span>)
             .field(<span class="kw-2">&amp;</span><span class="self">Self</span>::MESSAGE)
             .finish()
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for </span><a href="#330">SetGlobalDefaultError</a> {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a href="#343">f</a>.pad(<span class="self">Self</span>::MESSAGE)
+<span class="kw">impl </span>fmt::Display <span class="kw">for </span>SetGlobalDefaultError {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        f.pad(<span class="self">Self</span>::MESSAGE)
     }
 }
 
 <span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
 #[cfg_attr(docsrs, doc(cfg(feature = <span class="string">&quot;std&quot;</span>)))]
-</span><span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">error::Error</a> <span class="kw">for </span><a href="#330">SetGlobalDefaultError</a> {}
+</span><span class="kw">impl </span>error::Error <span class="kw">for </span>SetGlobalDefaultError {}
 
-<span class="kw">impl </span><a href="#330">SetGlobalDefaultError</a> {
-    <span class="kw">const </span>MESSAGE: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> = <span class="string">&quot;a global default trace dispatcher has already been set&quot;</span>;
+<span class="kw">impl </span>SetGlobalDefaultError {
+    <span class="kw">const </span>MESSAGE: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;a global default trace dispatcher has already been set&quot;</span>;
 }
 
 <span class="doccomment">/// Executes a closure with a reference to this thread&#39;s current [dispatcher].
@@ -1372,17 +1372,17 @@
 </span><span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
 </span><span class="kw">pub fn </span>get_default&lt;T, F&gt;(<span class="kw-2">mut </span>f: F) -&gt; T
 <span class="kw">where
-    </span>F: FnMut(<span class="kw-2">&amp;</span><a href="#155">Dispatch</a>) -&gt; T,
+    </span>F: FnMut(<span class="kw-2">&amp;</span>Dispatch) -&gt; T,
 {
-    <a href="#190-195">CURRENT_STATE</a>
+    CURRENT_STATE
         .try_with(|state| {
-            <span class="kw">if let </span><span class="prelude-val">Some</span>(entered) = <a href="#369">state</a>.<a href="#799">enter</a>() {
-                <span class="kw">return </span><a href="#364">f</a>(<span class="kw-2">&amp;*</span><a href="#370">entered</a>.<a href="#813">current</a>());
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(entered) = state.enter() {
+                <span class="kw">return </span>f(<span class="kw-2">&amp;*</span>entered.current());
             }
 
-            <a href="#364">f</a>(<span class="kw-2">&amp;</span>Dispatch::none())
+            f(<span class="kw-2">&amp;</span>Dispatch::none())
         })
-        .unwrap_or_else(|<span class="kw">_</span>| <a href="#364">f</a>(<span class="kw-2">&amp;</span>Dispatch::none()))
+        .unwrap_or_else(|<span class="kw">_</span>| f(<span class="kw-2">&amp;</span>Dispatch::none()))
 }
 
 <span class="doccomment">/// Executes a closure with a reference to this thread&#39;s current [dispatcher].
@@ -1395,7 +1395,7 @@
 </span><span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
 #[doc(hidden)]
 #[inline(never)]
-</span><span class="kw">pub fn </span>get_current&lt;T&gt;(f: <span class="kw">impl </span>FnOnce(<span class="kw-2">&amp;</span><a href="#155">Dispatch</a>) -&gt; T) -&gt; <span class="prelude-ty">Option</span>&lt;T&gt; {
+</span><span class="kw">pub fn </span>get_current&lt;T&gt;(f: <span class="kw">impl </span>FnOnce(<span class="kw-2">&amp;</span>Dispatch) -&gt; T) -&gt; <span class="prelude-ty">Option</span>&lt;T&gt; {
     CURRENT_STATE
         .try_with(|state| {
             <span class="kw">let </span>entered = state.enter()<span class="question-mark">?</span>;
@@ -1429,27 +1429,27 @@
     }
 }
 
-<span class="kw">fn </span>get_global() -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><a href="#155">Dispatch</a>&gt; {
+<span class="kw">fn </span>get_global() -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>Dispatch&gt; {
     <span class="kw">if </span>GLOBAL_INIT.load(Ordering::SeqCst) != INITIALIZED {
         <span class="kw">return </span><span class="prelude-val">None</span>;
     }
     <span class="kw">unsafe </span>{
         <span class="comment">// This is safe given the invariant that setting the global dispatcher
         // also sets `GLOBAL_INIT` to `INITIALIZED`.
-        </span><span class="prelude-val">Some</span>(<a href="#204">GLOBAL_DISPATCH</a>.as_ref().expect(
+        </span><span class="prelude-val">Some</span>(GLOBAL_DISPATCH.as_ref().expect(
             <span class="string">&quot;invariant violated: GLOBAL_DISPATCH must be initialized before GLOBAL_INIT is set&quot;</span>,
         ))
     }
 }
 
 <span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>Registrar(Weak&lt;<span class="kw">dyn </span><a href="subscriber.rs.html#83">Subscriber</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a>&gt;);
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>Registrar(Weak&lt;<span class="kw">dyn </span>Subscriber + Send + Sync&gt;);
 
-<span class="kw">impl </span><a href="#155">Dispatch</a> {
+<span class="kw">impl </span>Dispatch {
     <span class="doccomment">/// Returns a new `Dispatch` that discards events and spans.
     </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>none() -&gt; <span class="self">Self </span>{
-        <a href="#155">Dispatch</a> {
+        Dispatch {
             subscriber: Arc::new(NoSubscriber::default()),
         }
     }
@@ -1459,18 +1459,18 @@
     /// [`Subscriber`]: super::subscriber::Subscriber
     </span><span class="kw">pub fn </span>new&lt;S&gt;(subscriber: S) -&gt; <span class="self">Self
     </span><span class="kw">where
-        </span>S: <a href="subscriber.rs.html#83">Subscriber</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> + <span class="lifetime">&#39;static</span>,
+        </span>S: Subscriber + Send + Sync + <span class="lifetime">&#39;static</span>,
     {
-        <span class="kw">let </span>me = <a href="#155">Dispatch</a> {
-            subscriber: Arc::new(<a href="#451">subscriber</a>),
+        <span class="kw">let </span>me = Dispatch {
+            subscriber: Arc::new(subscriber),
         };
-        <a href="callsite.rs.html#488">callsite::register_dispatch</a>(<span class="kw-2">&amp;</span><a href="#455">me</a>);
-        <a href="#455">me</a>
+        callsite::register_dispatch(<span class="kw-2">&amp;</span>me);
+        me
     }
 
     <span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>registrar(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="#437">Registrar</a> {
-        <a href="#437">Registrar</a>(Arc::downgrade(<span class="kw-2">&amp;</span><a class="self" href="#463">self</a>.subscriber))
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>registrar(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Registrar {
+        Registrar(Arc::downgrade(<span class="kw-2">&amp;</span><span class="self">self</span>.subscriber))
     }
 
     <span class="doccomment">/// Creates a [`WeakDispatch`] from this `Dispatch`.
@@ -1487,16 +1487,16 @@
     ///
     /// [`Arc::downgrade`]: std::sync::Arc::downgrade
     /// [here]: Subscriber#avoiding-memory-leaks
-    </span><span class="kw">pub fn </span>downgrade(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="#178">WeakDispatch</a> {
-        <a href="#178">WeakDispatch</a> {
-            subscriber: Arc::downgrade(<span class="kw-2">&amp;</span><a class="self" href="#481">self</a>.subscriber),
+    </span><span class="kw">pub fn </span>downgrade(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; WeakDispatch {
+        WeakDispatch {
+            subscriber: Arc::downgrade(<span class="kw-2">&amp;</span><span class="self">self</span>.subscriber),
         }
     }
 
     <span class="attr">#[inline(always)]
     #[cfg(not(feature = <span class="string">&quot;alloc&quot;</span>))]
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>subscriber(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>(<span class="kw">dyn </span><a href="subscriber.rs.html#83">Subscriber</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a>) {
-        <span class="kw-2">&amp;</span><a class="self" href="#489">self</a>.subscriber
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>subscriber(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>(<span class="kw">dyn </span>Subscriber + Send + Sync) {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.subscriber
     }
 
     <span class="doccomment">/// Registers a new callsite with this collector, returning whether or not
@@ -1508,8 +1508,8 @@
     /// [`Subscriber`]: super::subscriber::Subscriber
     /// [`register_callsite`]: super::subscriber::Subscriber::register_callsite
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>register_callsite(<span class="kw-2">&amp;</span><span class="self">self</span>, metadata: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>Metadata&lt;<span class="lifetime">&#39;static</span>&gt;) -&gt; <a href="subscriber.rs.html#592">subscriber::Interest</a> {
-        <a class="self" href="#502">self</a>.subscriber.<a href="subscriber.rs.html#178">register_callsite</a>(<a href="#502">metadata</a>)
+    </span><span class="kw">pub fn </span>register_callsite(<span class="kw-2">&amp;</span><span class="self">self</span>, metadata: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>Metadata&lt;<span class="lifetime">&#39;static</span>&gt;) -&gt; subscriber::Interest {
+        <span class="self">self</span>.subscriber.register_callsite(metadata)
     }
 
     <span class="doccomment">/// Returns the highest [verbosity level][level] that this [`Subscriber`] will
@@ -1524,8 +1524,8 @@
     /// [`register_callsite`]: super::subscriber::Subscriber::max_level_hint
     </span><span class="comment">// TODO(eliza): consider making this a public API?
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>max_level_hint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="metadata.rs.html#240">LevelFilter</a>&gt; {
-        <a class="self" href="#518">self</a>.subscriber.<a href="subscriber.rs.html#230">max_level_hint</a>()
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>max_level_hint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;LevelFilter&gt; {
+        <span class="self">self</span>.subscriber.max_level_hint()
     }
 
     <span class="doccomment">/// Record the construction of a new span, returning a new [ID] for the
@@ -1538,8 +1538,8 @@
     /// [`Subscriber`]: super::subscriber::Subscriber
     /// [`new_span`]: super::subscriber::Subscriber::new_span
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>new_span(<span class="kw-2">&amp;</span><span class="self">self</span>, span: <span class="kw-2">&amp;</span>span::Attributes&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="span.rs.html#16">span::Id</a> {
-        <a class="self" href="#532">self</a>.subscriber.<a href="subscriber.rs.html#258">new_span</a>(<a href="#532">span</a>)
+    </span><span class="kw">pub fn </span>new_span(<span class="kw-2">&amp;</span><span class="self">self</span>, span: <span class="kw-2">&amp;</span>span::Attributes&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; span::Id {
+        <span class="self">self</span>.subscriber.new_span(span)
     }
 
     <span class="doccomment">/// Record a set of values on a span.
@@ -1550,8 +1550,8 @@
     /// [`Subscriber`]: super::subscriber::Subscriber
     /// [`record`]: super::subscriber::Subscriber::record
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>record(<span class="kw-2">&amp;</span><span class="self">self</span>, span: <span class="kw-2">&amp;</span><a href="span.rs.html#16">span::Id</a>, values: <span class="kw-2">&amp;</span>span::Record&lt;<span class="lifetime">&#39;_</span>&gt;) {
-        <a class="self" href="#544">self</a>.subscriber.<a href="subscriber.rs.html#298">record</a>(<a href="#544">span</a>, <a href="#544">values</a>)
+    </span><span class="kw">pub fn </span>record(<span class="kw-2">&amp;</span><span class="self">self</span>, span: <span class="kw-2">&amp;</span>span::Id, values: <span class="kw-2">&amp;</span>span::Record&lt;<span class="lifetime">&#39;_</span>&gt;) {
+        <span class="self">self</span>.subscriber.record(span, values)
     }
 
     <span class="doccomment">/// Adds an indication that `span` follows from the span with the id
@@ -1563,8 +1563,8 @@
     /// [`Subscriber`]: super::subscriber::Subscriber
     /// [`record_follows_from`]: super::subscriber::Subscriber::record_follows_from
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>record_follows_from(<span class="kw-2">&amp;</span><span class="self">self</span>, span: <span class="kw-2">&amp;</span><a href="span.rs.html#16">span::Id</a>, follows: <span class="kw-2">&amp;</span><a href="span.rs.html#16">span::Id</a>) {
-        <a class="self" href="#557">self</a>.subscriber.<a href="subscriber.rs.html#318">record_follows_from</a>(<a href="#557">span</a>, <a href="#557">follows</a>)
+    </span><span class="kw">pub fn </span>record_follows_from(<span class="kw-2">&amp;</span><span class="self">self</span>, span: <span class="kw-2">&amp;</span>span::Id, follows: <span class="kw-2">&amp;</span>span::Id) {
+        <span class="self">self</span>.subscriber.record_follows_from(span, follows)
     }
 
     <span class="doccomment">/// Returns true if a span with the specified [metadata] would be
@@ -1577,8 +1577,8 @@
     /// [`Subscriber`]: super::subscriber::Subscriber
     /// [`enabled`]: super::subscriber::Subscriber::enabled
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>enabled(<span class="kw-2">&amp;</span><span class="self">self</span>, metadata: <span class="kw-2">&amp;</span>Metadata&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#571">self</a>.subscriber.<a href="subscriber.rs.html#206">enabled</a>(<a href="#571">metadata</a>)
+    </span><span class="kw">pub fn </span>enabled(<span class="kw-2">&amp;</span><span class="self">self</span>, metadata: <span class="kw-2">&amp;</span>Metadata&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; bool {
+        <span class="self">self</span>.subscriber.enabled(metadata)
     }
 
     <span class="doccomment">/// Records that an [`Event`] has occurred.
@@ -1592,7 +1592,7 @@
     </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>event(<span class="kw-2">&amp;</span><span class="self">self</span>, event: <span class="kw-2">&amp;</span>Event&lt;<span class="lifetime">&#39;_</span>&gt;) {
         <span class="kw">if </span><span class="self">self</span>.subscriber.event_enabled(event) {
-            <a class="self" href="#584">self</a>.subscriber.<a href="subscriber.rs.html#349">event</a>(<a href="#584">event</a>);
+            <span class="self">self</span>.subscriber.event(event);
         }
     }
 
@@ -1603,8 +1603,8 @@
     ///
     /// [`Subscriber`]: super::subscriber::Subscriber
     /// [`enter`]: super::subscriber::Subscriber::enter
-    </span><span class="kw">pub fn </span>enter(<span class="kw-2">&amp;</span><span class="self">self</span>, span: <span class="kw-2">&amp;</span><a href="span.rs.html#16">span::Id</a>) {
-        <a class="self" href="#597">self</a>.subscriber.<a href="subscriber.rs.html#359">enter</a>(<a href="#597">span</a>);
+    </span><span class="kw">pub fn </span>enter(<span class="kw-2">&amp;</span><span class="self">self</span>, span: <span class="kw-2">&amp;</span>span::Id) {
+        <span class="self">self</span>.subscriber.enter(span);
     }
 
     <span class="doccomment">/// Records that a span has been exited.
@@ -1614,8 +1614,8 @@
     ///
     /// [`Subscriber`]: super::subscriber::Subscriber
     /// [`exit`]: super::subscriber::Subscriber::exit
-    </span><span class="kw">pub fn </span>exit(<span class="kw-2">&amp;</span><span class="self">self</span>, span: <span class="kw-2">&amp;</span><a href="span.rs.html#16">span::Id</a>) {
-        <a class="self" href="#608">self</a>.subscriber.<a href="subscriber.rs.html#371">exit</a>(<a href="#608">span</a>);
+    </span><span class="kw">pub fn </span>exit(<span class="kw-2">&amp;</span><span class="self">self</span>, span: <span class="kw-2">&amp;</span>span::Id) {
+        <span class="self">self</span>.subscriber.exit(span);
     }
 
     <span class="doccomment">/// Notifies the subscriber that a [span ID] has been cloned.
@@ -1633,8 +1633,8 @@
     /// [`clone_span`]: super::subscriber::Subscriber::clone_span
     /// [`new_span`]: super::subscriber::Subscriber::new_span
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>clone_span(<span class="kw-2">&amp;</span><span class="self">self</span>, id: <span class="kw-2">&amp;</span><a href="span.rs.html#16">span::Id</a>) -&gt; <a href="span.rs.html#16">span::Id</a> {
-        <a class="self" href="#627">self</a>.subscriber.<a href="subscriber.rs.html#393">clone_span</a>(<a href="#627">id</a>)
+    </span><span class="kw">pub fn </span>clone_span(<span class="kw-2">&amp;</span><span class="self">self</span>, id: <span class="kw-2">&amp;</span>span::Id) -&gt; span::Id {
+        <span class="self">self</span>.subscriber.clone_span(id)
     }
 
     <span class="doccomment">/// Notifies the subscriber that a [span ID] has been dropped.
@@ -1661,9 +1661,9 @@
     /// [`try_close`]: Entered::try_close()
     </span><span class="attr">#[inline]
     #[deprecated(since = <span class="string">&quot;0.1.2&quot;</span>, note = <span class="string">&quot;use `Dispatch::try_close` instead&quot;</span>)]
-    </span><span class="kw">pub fn </span>drop_span(<span class="kw-2">&amp;</span><span class="self">self</span>, id: <a href="span.rs.html#16">span::Id</a>) {
+    </span><span class="kw">pub fn </span>drop_span(<span class="kw-2">&amp;</span><span class="self">self</span>, id: span::Id) {
         <span class="attr">#[allow(deprecated)]
-        </span><a class="self" href="#655">self</a>.subscriber.<a href="subscriber.rs.html#407">drop_span</a>(<a href="#655">id</a>);
+        </span><span class="self">self</span>.subscriber.drop_span(id);
     }
 
     <span class="doccomment">/// Notifies the subscriber that a [span ID] has been dropped, and returns
@@ -1681,8 +1681,8 @@
     /// [`Subscriber`]: super::subscriber::Subscriber
     /// [`try_close`]: super::subscriber::Subscriber::try_close
     /// [`new_span`]: super::subscriber::Subscriber::new_span
-    </span><span class="kw">pub fn </span>try_close(<span class="kw-2">&amp;</span><span class="self">self</span>, id: <a href="span.rs.html#16">span::Id</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#675">self</a>.subscriber.<a href="subscriber.rs.html#445">try_close</a>(<a href="#675">id</a>)
+    </span><span class="kw">pub fn </span>try_close(<span class="kw-2">&amp;</span><span class="self">self</span>, id: span::Id) -&gt; bool {
+        <span class="self">self</span>.subscriber.try_close(id)
     }
 
     <span class="doccomment">/// Returns a type representing this subscriber&#39;s view of the current span.
@@ -1692,53 +1692,53 @@
     ///
     /// [`current`]: super::subscriber::Subscriber::current_span
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>current_span(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="span.rs.html#44">span::Current</a> {
-        <a class="self" href="#686">self</a>.subscriber.<a href="subscriber.rs.html#464">current_span</a>()
+    </span><span class="kw">pub fn </span>current_span(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; span::Current {
+        <span class="self">self</span>.subscriber.current_span()
     }
 
     <span class="doccomment">/// Returns `true` if this `Dispatch` forwards to a `Subscriber` of type
     /// `T`.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>is&lt;T: <a href="https://doc.rust-lang.org/nightly/core/any/trait.Any.html">Any</a>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        &lt;<span class="kw">dyn </span><a href="subscriber.rs.html#83">Subscriber</a>&gt;::is::&lt;T&gt;(<span class="kw-2">&amp;</span><a class="self" href="#693">self</a>.subscriber)
+    </span><span class="kw">pub fn </span>is&lt;T: Any&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        &lt;<span class="kw">dyn </span>Subscriber&gt;::is::&lt;T&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>.subscriber)
     }
 
     <span class="doccomment">/// Returns some reference to the `Subscriber` this `Dispatch` forwards to
     /// if it is of type `T`, or `None` if it isn&#39;t.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>downcast_ref&lt;T: <a href="https://doc.rust-lang.org/nightly/core/any/trait.Any.html">Any</a>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>T&gt; {
-        &lt;<span class="kw">dyn </span><a href="subscriber.rs.html#83">Subscriber</a>&gt;::downcast_ref(<span class="kw-2">&amp;</span><a class="self" href="#700">self</a>.subscriber)
+    </span><span class="kw">pub fn </span>downcast_ref&lt;T: Any&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>T&gt; {
+        &lt;<span class="kw">dyn </span>Subscriber&gt;::downcast_ref(<span class="kw-2">&amp;</span><span class="self">self</span>.subscriber)
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for </span><a href="#155">Dispatch</a> {
+<span class="kw">impl </span>Default <span class="kw">for </span>Dispatch {
     <span class="doccomment">/// Returns the current default dispatcher
     </span><span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
-        <a href="#364-366">get_default</a>(|default| <a href="#708">default</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>())
+        get_default(|default| default.clone())
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="#155">Dispatch</a> {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a href="#713">f</a>.debug_tuple(<span class="string">&quot;Dispatch&quot;</span>)
-            .field(<span class="kw-2">&amp;</span><a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.format_args.html">format_args!</a>(<span class="string">&quot;{:p}&quot;</span>, <span class="self">self</span>.subscriber))
+<span class="kw">impl </span>fmt::Debug <span class="kw">for </span>Dispatch {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        f.debug_tuple(<span class="string">&quot;Dispatch&quot;</span>)
+            .field(<span class="kw-2">&amp;</span><span class="macro">format_args!</span>(<span class="string">&quot;{:p}&quot;</span>, <span class="self">self</span>.subscriber))
             .finish()
     }
 }
 
-<span class="kw">impl</span>&lt;S&gt; From&lt;S&gt; <span class="kw">for </span><a href="#155">Dispatch</a>
+<span class="kw">impl</span>&lt;S&gt; From&lt;S&gt; <span class="kw">for </span>Dispatch
 <span class="kw">where
-    </span>S: <a href="subscriber.rs.html#83">Subscriber</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> + <span class="lifetime">&#39;static</span>,
+    </span>S: Subscriber + Send + Sync + <span class="lifetime">&#39;static</span>,
 {
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>from(subscriber: S) -&gt; <span class="self">Self </span>{
-        Dispatch::new(<a href="#725">subscriber</a>)
+        Dispatch::new(subscriber)
     }
 }
 
 <span class="comment">// === impl WeakDispatch ===
 
-</span><span class="kw">impl </span><a href="#178">WeakDispatch</a> {
+</span><span class="kw">impl </span>WeakDispatch {
     <span class="doccomment">/// Attempts to upgrade this `WeakDispatch` to a [`Dispatch`].
     ///
     /// Returns `None` if the referenced `Dispatch` has already been dropped.
@@ -1757,57 +1757,57 @@
     /// drop(strong); // But not any more.
     /// assert!(weak.upgrade().is_none());
     /// ```
-    </span><span class="kw">pub fn </span>upgrade(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="#155">Dispatch</a>&gt; {
-        <a class="self" href="#751">self</a>.subscriber
+    </span><span class="kw">pub fn </span>upgrade(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Dispatch&gt; {
+        <span class="self">self</span>.subscriber
             .upgrade()
-            .map(|subscriber| <a href="#155">Dispatch</a> { <a href="#754">subscriber</a> })
+            .map(|subscriber| Dispatch { subscriber })
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="#178">WeakDispatch</a> {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <span class="kw">let </span><span class="kw-2">mut </span>tuple = <a href="#759">f</a>.debug_tuple(<span class="string">&quot;WeakDispatch&quot;</span>);
-        <span class="kw">match </span><a class="self" href="#759">self</a>.subscriber.upgrade() {
-            <span class="prelude-val">Some</span>(subscriber) =&gt; <a href="#760">tuple</a>.field(<span class="kw-2">&amp;</span><a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.format_args.html">format_args!</a>(<span class="string">&quot;Some({:p})&quot;</span>, subscriber)),
-            <span class="prelude-val">None </span>=&gt; <a href="#760">tuple</a>.field(<span class="kw-2">&amp;</span><a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.format_args.html">format_args!</a>(<span class="string">&quot;None&quot;</span>)),
+<span class="kw">impl </span>fmt::Debug <span class="kw">for </span>WeakDispatch {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        <span class="kw">let </span><span class="kw-2">mut </span>tuple = f.debug_tuple(<span class="string">&quot;WeakDispatch&quot;</span>);
+        <span class="kw">match </span><span class="self">self</span>.subscriber.upgrade() {
+            <span class="prelude-val">Some</span>(subscriber) =&gt; tuple.field(<span class="kw-2">&amp;</span><span class="macro">format_args!</span>(<span class="string">&quot;Some({:p})&quot;</span>, subscriber)),
+            <span class="prelude-val">None </span>=&gt; tuple.field(<span class="kw-2">&amp;</span><span class="macro">format_args!</span>(<span class="string">&quot;None&quot;</span>)),
         };
-        <a href="#760">tuple</a>.finish()
+        tuple.finish()
     }
 }
 
 <span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
-</span><span class="kw">impl </span><a href="#437">Registrar</a> {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>upgrade(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="#155">Dispatch</a>&gt; {
-        <a class="self" href="#771">self</a>.<span class="number">0</span>.upgrade().map(|subscriber| <a href="#155">Dispatch</a> { <a href="#772">subscriber</a> })
+</span><span class="kw">impl </span>Registrar {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>upgrade(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Dispatch&gt; {
+        <span class="self">self</span>.<span class="number">0</span>.upgrade().map(|subscriber| Dispatch { subscriber })
     }
 }
 
 <span class="comment">// ===== impl State =====
 
 </span><span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
-</span><span class="kw">impl </span><a href="#208">State</a> {
+</span><span class="kw">impl </span>State {
     <span class="doccomment">/// Replaces the current default dispatcher on this thread with the provided
     /// dispatcher.Any
     ///
     /// Dropping the returned `ResetGuard` will reset the default dispatcher to
     /// the previous value.
     </span><span class="attr">#[inline]
-    </span><span class="kw">fn </span>set_default(new_dispatch: <a href="#155">Dispatch</a>) -&gt; <a href="#232">DefaultGuard</a> {
-        <span class="kw">let </span>prior = <a href="#190-195">CURRENT_STATE</a>
+    </span><span class="kw">fn </span>set_default(new_dispatch: Dispatch) -&gt; DefaultGuard {
+        <span class="kw">let </span>prior = CURRENT_STATE
             .try_with(|state| {
-                <a href="#788">state</a>.can_enter.set(<span class="bool-val">true</span>);
-                <a href="#788">state</a>.default.replace(<span class="prelude-val">Some</span>(<a href="#786">new_dispatch</a>))
+                state.can_enter.set(<span class="bool-val">true</span>);
+                state.default.replace(<span class="prelude-val">Some</span>(new_dispatch))
             })
             .ok()
             .flatten();
-        <a href="#197">EXISTS</a>.store(<span class="bool-val">true</span>, Ordering::Release);
-        <a href="#232">DefaultGuard</a>(<a href="#787">prior</a>)
+        EXISTS.store(<span class="bool-val">true</span>, Ordering::Release);
+        DefaultGuard(prior)
     }
 
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>enter(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Entered&lt;<span class="lifetime">&#39;_</span>&gt;&gt; {
         <span class="kw">if </span><span class="self">self</span>.can_enter.replace(<span class="bool-val">false</span>) {
-            <span class="prelude-val">Some</span>(<a href="#225">Entered</a>(<a class="self" href="#799">self</a>))
+            <span class="prelude-val">Some</span>(Entered(<span class="self">self</span>))
         } <span class="kw">else </span>{
             <span class="prelude-val">None
         </span>}
@@ -1819,26 +1819,26 @@
 </span><span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
 </span><span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; Entered&lt;<span class="lifetime">&#39;a</span>&gt; {
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>current(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; RefMut&lt;<span class="lifetime">&#39;a</span>, <a href="#155">Dispatch</a>&gt; {
-        <span class="kw">let </span>default = <a class="self" href="#813">self</a>.<span class="number">0</span>.default.borrow_mut();
-        RefMut::map(<a href="#814">default</a>, |default| {
-            <a href="#815">default</a>.get_or_insert_with(|| <a href="#423">get_global</a>().cloned().unwrap_or_else(Dispatch::none))
+    </span><span class="kw">fn </span>current(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; RefMut&lt;<span class="lifetime">&#39;a</span>, Dispatch&gt; {
+        <span class="kw">let </span>default = <span class="self">self</span>.<span class="number">0</span>.default.borrow_mut();
+        RefMut::map(default, |default| {
+            default.get_or_insert_with(|| get_global().cloned().unwrap_or_else(Dispatch::none))
         })
     }
 }
 
 <span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
-</span><span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span>Entered&lt;<span class="lifetime">&#39;a</span>&gt; {
+</span><span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; Drop <span class="kw">for </span>Entered&lt;<span class="lifetime">&#39;a</span>&gt; {
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <a class="self" href="#824">self</a>.<span class="number">0</span>.can_enter.set(<span class="bool-val">true</span>);
+        <span class="self">self</span>.<span class="number">0</span>.can_enter.set(<span class="bool-val">true</span>);
     }
 }
 
 <span class="comment">// ===== impl DefaultGuard =====
 
 </span><span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
-</span><span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span><a href="#232">DefaultGuard</a> {
+</span><span class="kw">impl </span>Drop <span class="kw">for </span>DefaultGuard {
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="comment">// Replace the dispatcher and then drop the old one outside
@@ -1846,8 +1846,8 @@
         // lead to the drop of a subscriber which, in the process,
         // could then also attempt to access the same thread local
         // state -- causing a clash.
-        </span><span class="kw">let </span>prev = <a href="#190-195">CURRENT_STATE</a>.try_with(|state| <a href="#840">state</a>.default.replace(<a class="self" href="#834">self</a>.<span class="number">0</span>.take()));
-        <a href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>(<a href="#840">prev</a>)
+        </span><span class="kw">let </span>prev = CURRENT_STATE.try_with(|state| state.default.replace(<span class="self">self</span>.<span class="number">0</span>.take()));
+        drop(prev)
     }
 }
 
@@ -2016,4 +2016,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="tracing_core" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="tracing_core" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

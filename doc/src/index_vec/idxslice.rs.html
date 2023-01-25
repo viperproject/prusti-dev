@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/index_vec-0.1.3/src/idxslice.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>idxslice.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../index_vec/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/index_vec-0.1.3/src/idxslice.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>idxslice.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../index_vec/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -867,18 +867,18 @@
 ///   `self.iter().position()` will return a `Option&lt;usize&gt;`
 </span><span class="attr">#[derive(Copy, Clone)]
 #[repr(transparent)]
-</span><span class="kw">pub struct </span>IndexSlice&lt;I: <a href="lib.rs.html#177">Idx</a>, T: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>&gt; {
+</span><span class="kw">pub struct </span>IndexSlice&lt;I: Idx, T: <span class="question-mark">?</span>Sized&gt; {
     _marker: PhantomData&lt;<span class="kw">fn</span>(<span class="kw-2">&amp;</span>I)&gt;,
     <span class="kw">pub </span>raw: T,
 }
 
 <span class="comment">// Whether `IndexSlice` is `Send` depends only on the data,
 // not the phantom data.
-</span><span class="kw">unsafe impl</span>&lt;I: <a href="lib.rs.html#177">Idx</a>, T&gt; <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="kw">for </span>IndexSlice&lt;I, [T]&gt; <span class="kw">where </span>T: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> {}
+</span><span class="kw">unsafe impl</span>&lt;I: Idx, T&gt; Send <span class="kw">for </span>IndexSlice&lt;I, [T]&gt; <span class="kw">where </span>T: Send {}
 
-<span class="kw">impl</span>&lt;I: <a href="lib.rs.html#177">Idx</a>, T: <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> + <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span>IndexSlice&lt;I, T&gt; {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, fmt: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug::fmt</a>(<span class="kw-2">&amp;</span><a class="self" href="#49">self</a>.raw, <a href="#49">fmt</a>)
+<span class="kw">impl</span>&lt;I: Idx, T: fmt::Debug + <span class="question-mark">?</span>Sized&gt; fmt::Debug <span class="kw">for </span>IndexSlice&lt;I, T&gt; {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, fmt: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        fmt::Debug::fmt(<span class="kw-2">&amp;</span><span class="self">self</span>.raw, fmt)
     }
 }
 <span class="doccomment">/// `IndexBox&lt;I, [T]&gt;`: An alias for indexed boxed slice.
@@ -887,38 +887,38 @@
 <span class="kw">type </span>SliceMapped&lt;Iter, I, T&gt; = iter::Map&lt;Iter, <span class="kw">fn</span>(<span class="kw-2">&amp;</span>[T]) -&gt; <span class="kw-2">&amp;</span>IndexSlice&lt;I, [T]&gt;&gt;;
 <span class="kw">type </span>SliceMappedMut&lt;Iter, I, T&gt; = iter::Map&lt;Iter, <span class="kw">fn</span>(<span class="kw-2">&amp;mut </span>[T]) -&gt; <span class="kw-2">&amp;mut </span>IndexSlice&lt;I, [T]&gt;&gt;;
 
-<span class="kw">impl</span>&lt;I: <a href="lib.rs.html#177">Idx</a>, T&gt; IndexSlice&lt;I, [T]&gt; {
+<span class="kw">impl</span>&lt;I: Idx, T&gt; IndexSlice&lt;I, [T]&gt; {
     <span class="doccomment">/// Construct a new IdxSlice by wrapping an existing slice.
     </span><span class="attr">#[inline(always)]
-    </span><span class="kw">pub fn </span>new&lt;S: AsRef&lt;[T]&gt; + <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>&gt;(s: <span class="kw-2">&amp;</span>S) -&gt; <span class="kw-2">&amp;</span><span class="self">Self </span>{
-        <span class="self">Self</span>::from_slice(<a href="#62">s</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>())
+    </span><span class="kw">pub fn </span>new&lt;S: AsRef&lt;[T]&gt; + <span class="question-mark">?</span>Sized&gt;(s: <span class="kw-2">&amp;</span>S) -&gt; <span class="kw-2">&amp;</span><span class="self">Self </span>{
+        <span class="self">Self</span>::from_slice(s.as_ref())
     }
 
     <span class="doccomment">/// Construct a new mutable IdxSlice by wrapping an existing mutable slice.
     </span><span class="attr">#[inline(always)]
-    </span><span class="kw">pub fn </span>new_mut&lt;S: AsMut&lt;[T]&gt; + <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>&gt;(s: <span class="kw-2">&amp;mut </span>S) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self </span>{
-        <span class="self">Self</span>::from_slice_mut(<a href="#68">s</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsMut.html">as_mut</a>())
+    </span><span class="kw">pub fn </span>new_mut&lt;S: AsMut&lt;[T]&gt; + <span class="question-mark">?</span>Sized&gt;(s: <span class="kw-2">&amp;mut </span>S) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self </span>{
+        <span class="self">Self</span>::from_slice_mut(s.as_mut())
     }
 
     <span class="doccomment">/// Construct a new IdxSlice by wrapping an existing slice.
     </span><span class="attr">#[inline(always)]
     </span><span class="kw">pub fn </span>from_slice(s: <span class="kw-2">&amp;</span>[T]) -&gt; <span class="kw-2">&amp;</span><span class="self">Self </span>{
-        <span class="kw">unsafe </span>{ <span class="kw-2">&amp;*</span>(<a href="#74">s</a> <span class="kw">as </span><span class="kw-2">*const </span>[T] <span class="kw">as </span><span class="kw-2">*const </span><span class="self">Self</span>) }
+        <span class="kw">unsafe </span>{ <span class="kw-2">&amp;*</span>(s <span class="kw">as </span><span class="kw-2">*const </span>[T] <span class="kw">as </span><span class="kw-2">*const </span><span class="self">Self</span>) }
     }
 
     <span class="doccomment">/// Construct a new mutable IdxSlice by wrapping an existing mutable slice.
     </span><span class="attr">#[inline(always)]
     </span><span class="kw">pub fn </span>from_slice_mut(s: <span class="kw-2">&amp;mut </span>[T]) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self </span>{
-        <span class="kw">unsafe </span>{ <span class="kw-2">&amp;mut *</span>(<a href="#80">s</a> <span class="kw">as </span><span class="kw-2">*mut </span>[T] <span class="kw">as </span><span class="kw-2">*mut </span><span class="self">Self</span>) }
+        <span class="kw">unsafe </span>{ <span class="kw-2">&amp;mut *</span>(s <span class="kw">as </span><span class="kw-2">*mut </span>[T] <span class="kw">as </span><span class="kw-2">*mut </span><span class="self">Self</span>) }
     }
 
     <span class="doccomment">/// Copies `self` into a new `IndexVec`.
     </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>to_vec(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; IndexVec&lt;I, T&gt;
     <span class="kw">where
-        </span>T: <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a>,
+        </span>T: Clone,
     {
-        IndexVec::from_vec(<a class="self" href="#86">self</a>.raw.to_vec())
+        IndexVec::from_vec(<span class="self">self</span>.raw.to_vec())
     }
 
     <span class="doccomment">/// Converts `self` into a vector without clones or allocation.
@@ -929,35 +929,35 @@
     #[allow(clippy::wrong_self_convention)]
     </span><span class="kw">pub fn </span>into_vec(<span class="self">self</span>: Box&lt;<span class="self">Self</span>&gt;) -&gt; IndexVec&lt;I, T&gt; {
         <span class="kw">unsafe </span>{
-            <span class="kw">let </span>len = <a class="self" href="#99">self</a>.<a href="#143">len</a>();
-            <span class="kw">let </span>b = Box::into_raw(<a class="self" href="#99">self</a>);
-            <span class="kw">let </span>xs = Vec::from_raw_parts(<a href="#102">b</a> <span class="kw">as </span><span class="kw-2">*mut </span>T, <a href="#101">len</a>, <a href="#101">len</a>);
-            IndexVec::from_vec(<a href="#103">xs</a>)
+            <span class="kw">let </span>len = <span class="self">self</span>.len();
+            <span class="kw">let </span>b = Box::into_raw(<span class="self">self</span>);
+            <span class="kw">let </span>xs = Vec::from_raw_parts(b <span class="kw">as </span><span class="kw-2">*mut </span>T, len, len);
+            IndexVec::from_vec(xs)
         }
     }
 
     <span class="doccomment">/// Returns the underlying slice.
     </span><span class="attr">#[inline(always)]
     </span><span class="kw">pub fn </span>as_raw_slice_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>[T] {
-        <span class="kw-2">&amp;mut </span><a class="self" href="#110">self</a>.raw
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>.raw
     }
 
     <span class="doccomment">/// Returns the underlying slice.
     </span><span class="attr">#[inline(always)]
     </span><span class="kw">pub fn </span>as_raw_slice(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[T] {
-        <span class="kw-2">&amp;</span><a class="self" href="#116">self</a>.raw
+        <span class="kw-2">&amp;</span><span class="self">self</span>.raw
     }
 
     <span class="doccomment">/// Returns an unsafe mutable pointer to the slice&#39;s buffer.
     </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>as_mut_ptr(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">*mut </span>T {
-        <a class="self" href="#122">self</a>.raw.as_mut_ptr()
+        <span class="self">self</span>.raw.as_mut_ptr()
     }
 
     <span class="doccomment">/// Returns an unsafe pointer to the slice&#39;s buffer.
     </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>as_ptr(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">*const </span>T {
-        <a class="self" href="#128">self</a>.raw.as_ptr()
+        <span class="self">self</span>.raw.as_ptr()
     }
 
     <span class="doccomment">/// Return the index of the last element, or panic.
@@ -965,26 +965,26 @@
     </span><span class="kw">pub fn </span>last_idx(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; I {
         <span class="comment">// TODO: should this still be a panic even when `I` has disabled
         // checking?
-        </span><a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(!<span class="self">self</span>.is_empty());
-        I::from_usize(<a class="self" href="#134">self</a>.<a href="#143">len</a>() - <span class="number">1</span>)
+        </span><span class="macro">assert!</span>(!<span class="self">self</span>.is_empty());
+        I::from_usize(<span class="self">self</span>.len() - <span class="number">1</span>)
     }
 
     <span class="doccomment">/// Returns the length of our slice.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="self" href="#143">self</a>.raw.len()
+    </span><span class="kw">pub fn </span>len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+        <span class="self">self</span>.raw.len()
     }
 
     <span class="doccomment">/// Returns the length of our slice as an `I`.
     </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>len_idx(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; I {
-        I::from_usize(<a class="self" href="#149">self</a>.raw.len())
+        I::from_usize(<span class="self">self</span>.raw.len())
     }
 
     <span class="doccomment">/// Returns true if we&#39;re empty.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>is_empty(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#155">self</a>.raw.is_empty()
+    </span><span class="kw">pub fn </span>is_empty(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.raw.is_empty()
     }
 
     <span class="doccomment">/// Get a iterator over reverences to our values.
@@ -993,7 +993,7 @@
     /// correct type) as you iterate.
     </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>iter(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; slice::Iter&lt;<span class="lifetime">&#39;_</span>, T&gt; {
-        <a class="self" href="#164">self</a>.raw.iter()
+        <span class="self">self</span>.raw.iter()
     }
 
     <span class="doccomment">/// Get a iterator over mut reverences to our values.
@@ -1002,114 +1002,114 @@
     /// the correct type) as you iterate.
     </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>iter_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; slice::IterMut&lt;<span class="lifetime">&#39;_</span>, T&gt; {
-        <a class="self" href="#173">self</a>.raw.iter_mut()
+        <span class="self">self</span>.raw.iter_mut()
     }
 
     <span class="doccomment">/// Similar to `self.iter().enumerate()` but with indices of `I` and not
     /// `usize`.
     </span><span class="attr">#[inline(always)]
     </span><span class="kw">pub fn </span>iter_enumerated(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Enumerated&lt;slice::Iter&lt;<span class="lifetime">&#39;_</span>, T&gt;, I, <span class="kw-2">&amp;</span>T&gt; {
-        <a class="self" href="#180">self</a>.raw
+        <span class="self">self</span>.raw
             .iter()
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">enumerate</a>()
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|(i, t)| (I::from_usize(<a href="#184">i</a>), <a href="#184">t</a>))
+            .enumerate()
+            .map(|(i, t)| (I::from_usize(i), t))
     }
 
     <span class="doccomment">/// Get an interator over all our indices.
     </span><span class="attr">#[inline(always)]
-    </span><span class="kw">pub fn </span>indices(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; iter::Map&lt;Range&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;, <span class="kw">fn</span>(<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; I&gt; {
-        (<span class="number">0</span>..<a class="self" href="#189">self</a>.raw.len()).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(I::from_usize)
+    </span><span class="kw">pub fn </span>indices(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; iter::Map&lt;Range&lt;usize&gt;, <span class="kw">fn</span>(usize) -&gt; I&gt; {
+        (<span class="number">0</span>..<span class="self">self</span>.raw.len()).map(I::from_usize)
     }
 
     <span class="doccomment">/// Similar to `self.iter_mut().enumerate()` but with indices of `I` and not
     /// `usize`.
     </span><span class="attr">#[inline(always)]
     </span><span class="kw">pub fn </span>iter_mut_enumerated(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; Enumerated&lt;slice::IterMut&lt;<span class="lifetime">&#39;_</span>, T&gt;, I, <span class="kw-2">&amp;mut </span>T&gt; {
-        <a class="self" href="#196">self</a>.raw
+        <span class="self">self</span>.raw
             .iter_mut()
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">enumerate</a>()
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|(i, t)| (I::from_usize(<a href="#200">i</a>), <a href="#200">t</a>))
+            .enumerate()
+            .map(|(i, t)| (I::from_usize(i), t))
     }
 
     <span class="doccomment">/// Forwards to the slice&#39;s `sort` implementation.
     </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>sort(<span class="kw-2">&amp;mut </span><span class="self">self</span>)
     <span class="kw">where
-        </span>T: <a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Ord.html">Ord</a>,
+        </span>T: Ord,
     {
-        <a class="self" href="#205">self</a>.raw.sort()
+        <span class="self">self</span>.raw.sort()
     }
 
     <span class="doccomment">/// Forwards to the slice&#39;s `sort_by` implementation.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>sort_by&lt;F: FnMut(<span class="kw-2">&amp;</span>T, <span class="kw-2">&amp;</span>T) -&gt; <a href="https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html">core::cmp::Ordering</a>&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, compare: F) {
-        <a class="self" href="#214">self</a>.raw.sort_by(<a href="#214">compare</a>)
+    </span><span class="kw">pub fn </span>sort_by&lt;F: FnMut(<span class="kw-2">&amp;</span>T, <span class="kw-2">&amp;</span>T) -&gt; core::cmp::Ordering&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, compare: F) {
+        <span class="self">self</span>.raw.sort_by(compare)
     }
 
     <span class="doccomment">/// Forwards to the slice&#39;s `sort_by_key` implementation.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>sort_by_key&lt;F: FnMut(<span class="kw-2">&amp;</span>T) -&gt; K, K: <a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Ord.html">Ord</a>&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, f: F) {
-        <a class="self" href="#220">self</a>.raw.sort_by_key(<a href="#220">f</a>)
+    </span><span class="kw">pub fn </span>sort_by_key&lt;F: FnMut(<span class="kw-2">&amp;</span>T) -&gt; K, K: Ord&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, f: F) {
+        <span class="self">self</span>.raw.sort_by_key(f)
     }
 
     <span class="doccomment">/// Forwards to the slice&#39;s `sort_by_cached_key` implementation.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>sort_by_cached_key&lt;F: FnMut(<span class="kw-2">&amp;</span>T) -&gt; K, K: <a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Ord.html">Ord</a>&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, f: F) {
-        <a class="self" href="#226">self</a>.raw.sort_by_cached_key(<a href="#226">f</a>)
+    </span><span class="kw">pub fn </span>sort_by_cached_key&lt;F: FnMut(<span class="kw-2">&amp;</span>T) -&gt; K, K: Ord&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, f: F) {
+        <span class="self">self</span>.raw.sort_by_cached_key(f)
     }
 
     <span class="doccomment">/// Forwards to the slice&#39;s `sort_unstable` implementation.
     </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>sort_unstable(<span class="kw-2">&amp;mut </span><span class="self">self</span>)
     <span class="kw">where
-        </span>T: <a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Ord.html">Ord</a>,
+        </span>T: Ord,
     {
-        <a class="self" href="#232">self</a>.raw.sort_unstable()
+        <span class="self">self</span>.raw.sort_unstable()
     }
 
     <span class="doccomment">/// Forwards to the slice&#39;s `sort_unstable_by` implementation.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>sort_unstable_by&lt;F: FnMut(<span class="kw-2">&amp;</span>T, <span class="kw-2">&amp;</span>T) -&gt; <a href="https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html">core::cmp::Ordering</a>&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, compare: F) {
-        <a class="self" href="#241">self</a>.raw.sort_unstable_by(<a href="#241">compare</a>)
+    </span><span class="kw">pub fn </span>sort_unstable_by&lt;F: FnMut(<span class="kw-2">&amp;</span>T, <span class="kw-2">&amp;</span>T) -&gt; core::cmp::Ordering&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, compare: F) {
+        <span class="self">self</span>.raw.sort_unstable_by(compare)
     }
 
     <span class="doccomment">/// Forwards to the slice&#39;s `sort_unstable_by_key` implementation.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>sort_unstable_by_key&lt;F: FnMut(<span class="kw-2">&amp;</span>T) -&gt; K, K: <a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Ord.html">Ord</a>&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, f: F) {
-        <a class="self" href="#247">self</a>.raw.sort_unstable_by_key(<a href="#247">f</a>)
+    </span><span class="kw">pub fn </span>sort_unstable_by_key&lt;F: FnMut(<span class="kw-2">&amp;</span>T) -&gt; K, K: Ord&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, f: F) {
+        <span class="self">self</span>.raw.sort_unstable_by_key(f)
     }
 
     <span class="doccomment">/// Forwards to the slice&#39;s `ends_with` implementation.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>ends_with&lt;S: AsRef&lt;[T]&gt; + <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, needle: <span class="kw-2">&amp;</span>S) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>
+    </span><span class="kw">pub fn </span>ends_with&lt;S: AsRef&lt;[T]&gt; + <span class="question-mark">?</span>Sized&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, needle: <span class="kw-2">&amp;</span>S) -&gt; bool
     <span class="kw">where
-        </span>T: <a href="https://doc.rust-lang.org/nightly/core/cmp/trait.PartialEq.html">PartialEq</a>,
+        </span>T: PartialEq,
     {
-        <a class="self" href="#253">self</a>.raw.ends_with(<a href="#253">needle</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>())
+        <span class="self">self</span>.raw.ends_with(needle.as_ref())
     }
 
     <span class="doccomment">/// Forwards to the slice&#39;s `starts_with` implementation.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>starts_with&lt;S: AsRef&lt;[T]&gt; + <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, needle: <span class="kw-2">&amp;</span>S) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>
+    </span><span class="kw">pub fn </span>starts_with&lt;S: AsRef&lt;[T]&gt; + <span class="question-mark">?</span>Sized&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, needle: <span class="kw-2">&amp;</span>S) -&gt; bool
     <span class="kw">where
-        </span>T: <a href="https://doc.rust-lang.org/nightly/core/cmp/trait.PartialEq.html">PartialEq</a>,
+        </span>T: PartialEq,
     {
-        <a class="self" href="#262">self</a>.raw.starts_with(<a href="#262">needle</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>())
+        <span class="self">self</span>.raw.starts_with(needle.as_ref())
     }
 
     <span class="doccomment">/// Forwards to the slice&#39;s `contains` implementation.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>contains(<span class="kw-2">&amp;</span><span class="self">self</span>, x: <span class="kw-2">&amp;</span>T) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>
+    </span><span class="kw">pub fn </span>contains(<span class="kw-2">&amp;</span><span class="self">self</span>, x: <span class="kw-2">&amp;</span>T) -&gt; bool
     <span class="kw">where
-        </span>T: <a href="https://doc.rust-lang.org/nightly/core/cmp/trait.PartialEq.html">PartialEq</a>,
+        </span>T: PartialEq,
     {
-        <a class="self" href="#271">self</a>.raw.contains(<a href="#271">x</a>)
+        <span class="self">self</span>.raw.contains(x)
     }
 
     <span class="doccomment">/// Forwards to the slice&#39;s `reverse` implementation.
     </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>reverse(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <a class="self" href="#280">self</a>.raw.reverse()
+        <span class="self">self</span>.raw.reverse()
     }
 
     <span class="doccomment">/// Call `slice::binary_search` converting the indices it gives us back as
@@ -1117,24 +1117,24 @@
     </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>binary_search(<span class="kw-2">&amp;</span><span class="self">self</span>, value: <span class="kw-2">&amp;</span>T) -&gt; <span class="prelude-ty">Result</span>&lt;I, I&gt;
     <span class="kw">where
-        </span>T: <a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Ord.html">Ord</a>,
+        </span>T: Ord,
     {
-        <span class="kw">match </span><a class="self" href="#287">self</a>.raw.binary_search(<a href="#287">value</a>) {
-            <span class="prelude-val">Ok</span>(i) =&gt; <span class="prelude-val">Ok</span>(I::from_usize(<a href="#292">i</a>)),
-            <span class="prelude-val">Err</span>(i) =&gt; <span class="prelude-val">Err</span>(I::from_usize(<a href="#293">i</a>)),
+        <span class="kw">match </span><span class="self">self</span>.raw.binary_search(value) {
+            <span class="prelude-val">Ok</span>(i) =&gt; <span class="prelude-val">Ok</span>(I::from_usize(i)),
+            <span class="prelude-val">Err</span>(i) =&gt; <span class="prelude-val">Err</span>(I::from_usize(i)),
         }
     }
 
     <span class="doccomment">/// Binary searches this sorted vec with a comparator function, converting
     /// the indices it gives us back to our Idx type.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>binary_search_by&lt;<span class="lifetime">&#39;a</span>, F: FnMut(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>T) -&gt; <a href="https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html">core::cmp::Ordering</a>&gt;(
+    </span><span class="kw">pub fn </span>binary_search_by&lt;<span class="lifetime">&#39;a</span>, F: FnMut(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>T) -&gt; core::cmp::Ordering&gt;(
         <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="self">self</span>,
         f: F,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;I, I&gt; {
-        <span class="kw">match </span><a class="self" href="#301">self</a>.raw.binary_search_by(<a href="#302">f</a>) {
-            <span class="prelude-val">Ok</span>(i) =&gt; <span class="prelude-val">Ok</span>(I::from_usize(<a href="#305">i</a>)),
-            <span class="prelude-val">Err</span>(i) =&gt; <span class="prelude-val">Err</span>(I::from_usize(<a href="#306">i</a>)),
+        <span class="kw">match </span><span class="self">self</span>.raw.binary_search_by(f) {
+            <span class="prelude-val">Ok</span>(i) =&gt; <span class="prelude-val">Ok</span>(I::from_usize(i)),
+            <span class="prelude-val">Err</span>(i) =&gt; <span class="prelude-val">Err</span>(I::from_usize(i)),
         }
     }
 
@@ -1142,72 +1142,72 @@
     </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>copy_from_slice(<span class="kw-2">&amp;mut </span><span class="self">self</span>, src: <span class="kw-2">&amp;</span><span class="self">Self</span>)
     <span class="kw">where
-        </span>T: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html">Copy</a>,
+        </span>T: Copy,
     {
-        <a class="self" href="#312">self</a>.raw.copy_from_slice(<span class="kw-2">&amp;</span><a href="#312">src</a>.raw)
+        <span class="self">self</span>.raw.copy_from_slice(<span class="kw-2">&amp;</span>src.raw)
     }
 
     <span class="doccomment">/// Copies the elements from `src` into `self`.
     </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>clone_from_slice(<span class="kw-2">&amp;mut </span><span class="self">self</span>, src: <span class="kw-2">&amp;</span><span class="self">Self</span>)
     <span class="kw">where
-        </span>T: <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a>,
+        </span>T: Clone,
     {
-        <a class="self" href="#321">self</a>.raw.clone_from_slice(<span class="kw-2">&amp;</span><a href="#321">src</a>.raw)
+        <span class="self">self</span>.raw.clone_from_slice(<span class="kw-2">&amp;</span>src.raw)
     }
 
     <span class="doccomment">/// Swaps all elements in `self` with those in `other`.
     </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>swap_with_slice(<span class="kw-2">&amp;mut </span><span class="self">self</span>, other: <span class="kw-2">&amp;mut </span><span class="self">Self</span>) {
-        <a class="self" href="#330">self</a>.raw.swap_with_slice(<span class="kw-2">&amp;mut </span><a href="#330">other</a>.raw)
+        <span class="self">self</span>.raw.swap_with_slice(<span class="kw-2">&amp;mut </span>other.raw)
     }
 
     <span class="doccomment">/// Binary searches this sorted vec with a key extraction function, converting
     /// the indices it gives us back to our Idx type.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>binary_search_by_key&lt;<span class="lifetime">&#39;a</span>, B: <a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Ord.html">Ord</a>, F: FnMut(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>T) -&gt; B&gt;(
+    </span><span class="kw">pub fn </span>binary_search_by_key&lt;<span class="lifetime">&#39;a</span>, B: Ord, F: FnMut(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>T) -&gt; B&gt;(
         <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="self">self</span>,
         b: <span class="kw-2">&amp;</span>B,
         f: F,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;I, I&gt; {
-        <span class="kw">match </span><a class="self" href="#338">self</a>.raw.binary_search_by_key(<a href="#339">b</a>, <a href="#340">f</a>) {
-            <span class="prelude-val">Ok</span>(i) =&gt; <span class="prelude-val">Ok</span>(I::from_usize(<a href="#343">i</a>)),
-            <span class="prelude-val">Err</span>(i) =&gt; <span class="prelude-val">Err</span>(I::from_usize(<a href="#344">i</a>)),
+        <span class="kw">match </span><span class="self">self</span>.raw.binary_search_by_key(b, f) {
+            <span class="prelude-val">Ok</span>(i) =&gt; <span class="prelude-val">Ok</span>(I::from_usize(i)),
+            <span class="prelude-val">Err</span>(i) =&gt; <span class="prelude-val">Err</span>(I::from_usize(i)),
         }
     }
     <span class="doccomment">/// Searches for an element in an iterator, returning its index. This is
     /// equivalent to `Iterator::position`, but returns `I` and not `usize`.
     </span><span class="attr">#[inline(always)]
-    </span><span class="kw">pub fn </span>position&lt;F: FnMut(<span class="kw-2">&amp;</span>T) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, f: F) -&gt; <span class="prelude-ty">Option</span>&lt;I&gt; {
-        <a class="self" href="#350">self</a>.raw.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">position</a>(<a href="#350">f</a>).map(I::from_usize)
+    </span><span class="kw">pub fn </span>position&lt;F: FnMut(<span class="kw-2">&amp;</span>T) -&gt; bool&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, f: F) -&gt; <span class="prelude-ty">Option</span>&lt;I&gt; {
+        <span class="self">self</span>.raw.iter().position(f).map(I::from_usize)
     }
 
     <span class="doccomment">/// Searches for an element in an iterator from the right, returning its
     /// index. This is equivalent to `Iterator::position`, but returns `I` and
     /// not `usize`.
     </span><span class="attr">#[inline(always)]
-    </span><span class="kw">pub fn </span>rposition&lt;F: FnMut(<span class="kw-2">&amp;</span>T) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, f: F) -&gt; <span class="prelude-ty">Option</span>&lt;I&gt; {
-        <a class="self" href="#358">self</a>.raw.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">rposition</a>(<a href="#358">f</a>).map(I::from_usize)
+    </span><span class="kw">pub fn </span>rposition&lt;F: FnMut(<span class="kw-2">&amp;</span>T) -&gt; bool&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, f: F) -&gt; <span class="prelude-ty">Option</span>&lt;I&gt; {
+        <span class="self">self</span>.raw.iter().rposition(f).map(I::from_usize)
     }
 
     <span class="doccomment">/// Swaps two elements in our vector.
     </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>swap(<span class="kw-2">&amp;mut </span><span class="self">self</span>, a: I, b: I) {
-        <a class="self" href="#364">self</a>.raw.swap(<a href="#364">a</a>.<a href="lib.rs.html#186">index</a>(), <a href="#364">b</a>.<a href="lib.rs.html#186">index</a>())
+        <span class="self">self</span>.raw.swap(a.index(), b.index())
     }
 
     <span class="doccomment">/// Divides our slice into two at an index.
     </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>split_at(<span class="kw-2">&amp;</span><span class="self">self</span>, a: I) -&gt; (<span class="kw-2">&amp;</span><span class="self">Self</span>, <span class="kw-2">&amp;</span><span class="self">Self</span>) {
-        <span class="kw">let </span>(a, b) = <a class="self" href="#370">self</a>.raw.split_at(<a href="#370">a</a>.<a href="lib.rs.html#186">index</a>());
-        (<span class="self">Self</span>::new(<a href="#371">a</a>), <span class="self">Self</span>::new(<a href="#371">b</a>))
+        <span class="kw">let </span>(a, b) = <span class="self">self</span>.raw.split_at(a.index());
+        (<span class="self">Self</span>::new(a), <span class="self">Self</span>::new(b))
     }
 
     <span class="doccomment">/// Divides our slice into two at an index.
     </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>split_at_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>, a: I) -&gt; (<span class="kw-2">&amp;mut </span><span class="self">Self</span>, <span class="kw-2">&amp;mut </span><span class="self">Self</span>) {
-        <span class="kw">let </span>(a, b) = <a class="self" href="#377">self</a>.raw.split_at_mut(<a href="#377">a</a>.<a href="lib.rs.html#186">index</a>());
-        (<span class="self">Self</span>::new_mut(<a href="#378">a</a>), <span class="self">Self</span>::new_mut(<a href="#378">b</a>))
+        <span class="kw">let </span>(a, b) = <span class="self">self</span>.raw.split_at_mut(a.index());
+        (<span class="self">Self</span>::new_mut(a), <span class="self">Self</span>::new_mut(b))
     }
 
     <span class="doccomment">/// Rotates our data in-place such that the first `mid` elements of the
@@ -1215,7 +1215,7 @@
     /// the front
     </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>rotate_left(<span class="kw-2">&amp;mut </span><span class="self">self</span>, mid: I) {
-        <a class="self" href="#386">self</a>.raw.rotate_left(<a href="#386">mid</a>.<a href="lib.rs.html#186">index</a>())
+        <span class="self">self</span>.raw.rotate_left(mid.index())
     }
 
     <span class="doccomment">/// Rotates our data in-place such that the first `self.len() - k` elements
@@ -1223,34 +1223,34 @@
     /// front
     </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>rotate_right(<span class="kw-2">&amp;mut </span><span class="self">self</span>, k: I) {
-        <a class="self" href="#394">self</a>.raw.rotate_right(<a href="#394">k</a>.<a href="lib.rs.html#186">index</a>())
+        <span class="self">self</span>.raw.rotate_right(k.index())
     }
 
     <span class="doccomment">/// Return the the last element, if we are not empty.
     </span><span class="attr">#[inline(always)]
     </span><span class="kw">pub fn </span>last(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>T&gt; {
-        <a class="self" href="#400">self</a>.<a href="#143">len</a>()
+        <span class="self">self</span>.len()
             .checked_sub(<span class="number">1</span>)
-            .and_then(|i| <a class="self" href="#400">self</a>.<a href="#437">get</a>(I::from_usize(<a href="#403">i</a>)))
+            .and_then(|i| <span class="self">self</span>.get(I::from_usize(i)))
     }
 
     <span class="doccomment">/// Return the the last element, if we are not empty.
     </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>last_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;mut </span>T&gt; {
         <span class="kw">let </span>i = <span class="self">self</span>.len().checked_sub(<span class="number">1</span>)<span class="question-mark">?</span>;
-        <a class="self" href="#408">self</a>.<a href="#444">get_mut</a>(I::from_usize(<a href="#409">i</a>))
+        <span class="self">self</span>.get_mut(I::from_usize(i))
     }
 
     <span class="doccomment">/// Return the the first element, if we are not empty.
     </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>first(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>T&gt; {
-        <a class="self" href="#415">self</a>.<a href="#437">get</a>(I::from_usize(<span class="number">0</span>))
+        <span class="self">self</span>.get(I::from_usize(<span class="number">0</span>))
     }
 
     <span class="doccomment">/// Return the the first element, if we are not empty.
     </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>first_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;mut </span>T&gt; {
-        <a class="self" href="#421">self</a>.<a href="#444">get_mut</a>(I::from_usize(<span class="number">0</span>))
+        <span class="self">self</span>.get_mut(I::from_usize(<span class="number">0</span>))
     }
 
     <span class="doccomment">/// Copies elements from one part of the slice to another part of itself,
@@ -1258,50 +1258,50 @@
     </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>copy_within&lt;R: IdxRangeBounds&lt;I&gt;&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, src: R, dst: I)
     <span class="kw">where
-        </span>T: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html">Copy</a>,
+        </span>T: Copy,
     {
-        <a class="self" href="#428">self</a>.raw.copy_within(<a href="#428">src</a>.<a href="indexing.rs.html#148">into_range</a>(), <a href="#428">dst</a>.<a href="lib.rs.html#186">index</a>())
+        <span class="self">self</span>.raw.copy_within(src.into_range(), dst.index())
     }
 
     <span class="doccomment">/// Get a ref to the item at the provided index, or None for out of bounds.
     </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>get&lt;J: IdxSliceIndex&lt;I, T&gt;&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, index: J) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>J::Output&gt; {
-        <a href="#437">index</a>.<a href="indexing.rs.html#13">get</a>(<a class="self" href="#437">self</a>)
+        index.get(<span class="self">self</span>)
     }
 
     <span class="doccomment">/// Get a mut ref to the item at the provided index, or None for out of
     /// bounds
     </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>get_mut&lt;J: IdxSliceIndex&lt;I, T&gt;&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, index: J) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;mut </span>J::Output&gt; {
-        <a href="#444">index</a>.<a href="indexing.rs.html#14">get_mut</a>(<a class="self" href="#444">self</a>)
+        index.get_mut(<span class="self">self</span>)
     }
 
     <span class="doccomment">/// Wraps the underlying slice&#39;s `windows` iterator with one that yields
     /// `IndexSlice`s with the correct index type.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>windows(<span class="kw-2">&amp;</span><span class="self">self</span>, size: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; SliceMapped&lt;slice::Windows&lt;<span class="lifetime">&#39;_</span>, T&gt;, I, T&gt; {
-        <a class="self" href="#451">self</a>.raw.windows(<a href="#451">size</a>).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(IndexSlice::new)
+    </span><span class="kw">pub fn </span>windows(<span class="kw-2">&amp;</span><span class="self">self</span>, size: usize) -&gt; SliceMapped&lt;slice::Windows&lt;<span class="lifetime">&#39;_</span>, T&gt;, I, T&gt; {
+        <span class="self">self</span>.raw.windows(size).map(IndexSlice::new)
     }
 
     <span class="doccomment">/// Wraps the underlying slice&#39;s `chunks` iterator with one that yields
     /// `IndexSlice`s with the correct index type.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>chunks(<span class="kw-2">&amp;</span><span class="self">self</span>, size: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; SliceMapped&lt;slice::Chunks&lt;<span class="lifetime">&#39;_</span>, T&gt;, I, T&gt; {
-        <a class="self" href="#458">self</a>.raw.chunks(<a href="#458">size</a>).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(IndexSlice::new)
+    </span><span class="kw">pub fn </span>chunks(<span class="kw-2">&amp;</span><span class="self">self</span>, size: usize) -&gt; SliceMapped&lt;slice::Chunks&lt;<span class="lifetime">&#39;_</span>, T&gt;, I, T&gt; {
+        <span class="self">self</span>.raw.chunks(size).map(IndexSlice::new)
     }
 
     <span class="doccomment">/// Wraps the underlying slice&#39;s `chunks_mut` iterator with one that yields
     /// `IndexSlice`s with the correct index type.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>chunks_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>, size: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; SliceMappedMut&lt;slice::ChunksMut&lt;<span class="lifetime">&#39;_</span>, T&gt;, I, T&gt; {
-        <a class="self" href="#465">self</a>.raw.chunks_mut(<a href="#465">size</a>).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(IndexSlice::new_mut)
+    </span><span class="kw">pub fn </span>chunks_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>, size: usize) -&gt; SliceMappedMut&lt;slice::ChunksMut&lt;<span class="lifetime">&#39;_</span>, T&gt;, I, T&gt; {
+        <span class="self">self</span>.raw.chunks_mut(size).map(IndexSlice::new_mut)
     }
 
     <span class="doccomment">/// Wraps the underlying slice&#39;s `chunks_exact` iterator with one that
     /// yields `IndexSlice`s with the correct index type.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>chunks_exact(<span class="kw-2">&amp;</span><span class="self">self</span>, chunk_size: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; SliceMapped&lt;slice::ChunksExact&lt;<span class="lifetime">&#39;_</span>, T&gt;, I, T&gt; {
-        <a class="self" href="#472">self</a>.raw.chunks_exact(<a href="#472">chunk_size</a>).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(IndexSlice::new)
+    </span><span class="kw">pub fn </span>chunks_exact(<span class="kw-2">&amp;</span><span class="self">self</span>, chunk_size: usize) -&gt; SliceMapped&lt;slice::ChunksExact&lt;<span class="lifetime">&#39;_</span>, T&gt;, I, T&gt; {
+        <span class="self">self</span>.raw.chunks_exact(chunk_size).map(IndexSlice::new)
     }
 
     <span class="doccomment">/// Wraps the underlying slice&#39;s `chunks_exact_mut` iterator with one that
@@ -1309,25 +1309,25 @@
     </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>chunks_exact_mut(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        chunk_size: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+        chunk_size: usize,
     ) -&gt; SliceMappedMut&lt;slice::ChunksExactMut&lt;<span class="lifetime">&#39;_</span>, T&gt;, I, T&gt; {
-        <a class="self" href="#480">self</a>.raw
-            .chunks_exact_mut(<a href="#481">chunk_size</a>)
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(IndexSlice::new_mut)
+        <span class="self">self</span>.raw
+            .chunks_exact_mut(chunk_size)
+            .map(IndexSlice::new_mut)
     }
 
     <span class="doccomment">/// Wraps the underlying slice&#39;s `rchunks` iterator with one that yields
     /// `IndexSlice`s with the correct index type.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>rchunks(<span class="kw-2">&amp;</span><span class="self">self</span>, size: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; SliceMapped&lt;slice::RChunks&lt;<span class="lifetime">&#39;_</span>, T&gt;, I, T&gt; {
-        <a class="self" href="#491">self</a>.raw.rchunks(<a href="#491">size</a>).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(IndexSlice::new)
+    </span><span class="kw">pub fn </span>rchunks(<span class="kw-2">&amp;</span><span class="self">self</span>, size: usize) -&gt; SliceMapped&lt;slice::RChunks&lt;<span class="lifetime">&#39;_</span>, T&gt;, I, T&gt; {
+        <span class="self">self</span>.raw.rchunks(size).map(IndexSlice::new)
     }
 
     <span class="doccomment">/// Wraps the underlying slice&#39;s `rchunks_mut` iterator with one that yields
     /// `IndexSlice`s with the correct index type.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>rchunks_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>, size: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; SliceMappedMut&lt;slice::RChunksMut&lt;<span class="lifetime">&#39;_</span>, T&gt;, I, T&gt; {
-        <a class="self" href="#498">self</a>.raw.rchunks_mut(<a href="#498">size</a>).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(IndexSlice::new_mut)
+    </span><span class="kw">pub fn </span>rchunks_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>, size: usize) -&gt; SliceMappedMut&lt;slice::RChunksMut&lt;<span class="lifetime">&#39;_</span>, T&gt;, I, T&gt; {
+        <span class="self">self</span>.raw.rchunks_mut(size).map(IndexSlice::new_mut)
     }
 
     <span class="doccomment">/// Wraps the underlying slice&#39;s `rchunks_exact` iterator with one that
@@ -1335,9 +1335,9 @@
     </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>rchunks_exact(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        chunk_size: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+        chunk_size: usize,
     ) -&gt; SliceMapped&lt;slice::RChunksExact&lt;<span class="lifetime">&#39;_</span>, T&gt;, I, T&gt; {
-        <a class="self" href="#506">self</a>.raw.rchunks_exact(<a href="#507">chunk_size</a>).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(IndexSlice::new)
+        <span class="self">self</span>.raw.rchunks_exact(chunk_size).map(IndexSlice::new)
     }
 
     <span class="doccomment">/// Wraps the underlying slice&#39;s `rchunks_exact_mut` iterator with one that
@@ -1345,88 +1345,88 @@
     </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>rchunks_exact_mut(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        chunk_size: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+        chunk_size: usize,
     ) -&gt; SliceMappedMut&lt;slice::RChunksExactMut&lt;<span class="lifetime">&#39;_</span>, T&gt;, I, T&gt; {
-        <a class="self" href="#516">self</a>.raw
-            .rchunks_exact_mut(<a href="#517">chunk_size</a>)
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(IndexSlice::new_mut)
+        <span class="self">self</span>.raw
+            .rchunks_exact_mut(chunk_size)
+            .map(IndexSlice::new_mut)
     }
 
     <span class="doccomment">/// Wraps the underlying slice&#39;s `split` iterator with one that yields
     /// `IndexSlice`s with the correct index type.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>split&lt;F: FnMut(<span class="kw-2">&amp;</span>T) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, f: F) -&gt; SliceMapped&lt;slice::Split&lt;<span class="lifetime">&#39;_</span>, T, F&gt;, I, T&gt; {
-        <a class="self" href="#527">self</a>.raw.split(<a href="#527">f</a>).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(IndexSlice::new)
+    </span><span class="kw">pub fn </span>split&lt;F: FnMut(<span class="kw-2">&amp;</span>T) -&gt; bool&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, f: F) -&gt; SliceMapped&lt;slice::Split&lt;<span class="lifetime">&#39;_</span>, T, F&gt;, I, T&gt; {
+        <span class="self">self</span>.raw.split(f).map(IndexSlice::new)
     }
 
     <span class="doccomment">/// Wraps the underlying slice&#39;s `split_mut` iterator with one that yields
     /// `IndexSlice`s with the correct index type.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>split_mut&lt;F: FnMut(<span class="kw-2">&amp;</span>T) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>&gt;(
+    </span><span class="kw">pub fn </span>split_mut&lt;F: FnMut(<span class="kw-2">&amp;</span>T) -&gt; bool&gt;(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         f: F,
     ) -&gt; SliceMappedMut&lt;slice::SplitMut&lt;<span class="lifetime">&#39;_</span>, T, F&gt;, I, T&gt; {
-        <a class="self" href="#535">self</a>.raw.split_mut(<a href="#536">f</a>).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(IndexSlice::new_mut)
+        <span class="self">self</span>.raw.split_mut(f).map(IndexSlice::new_mut)
     }
 
     <span class="doccomment">/// Wraps the underlying slice&#39;s `rsplit` iterator with one that yields
     /// `IndexSlice`s with the correct index type.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>rsplit&lt;F: FnMut(<span class="kw-2">&amp;</span>T) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, f: F) -&gt; SliceMapped&lt;slice::RSplit&lt;<span class="lifetime">&#39;_</span>, T, F&gt;, I, T&gt; {
-        <a class="self" href="#544">self</a>.raw.rsplit(<a href="#544">f</a>).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(IndexSlice::new)
+    </span><span class="kw">pub fn </span>rsplit&lt;F: FnMut(<span class="kw-2">&amp;</span>T) -&gt; bool&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, f: F) -&gt; SliceMapped&lt;slice::RSplit&lt;<span class="lifetime">&#39;_</span>, T, F&gt;, I, T&gt; {
+        <span class="self">self</span>.raw.rsplit(f).map(IndexSlice::new)
     }
 
     <span class="doccomment">/// Wraps the underlying slice&#39;s `rsplit_mut` iterator with one that yields
     /// `IndexSlice`s with the correct index type.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>rsplit_mut&lt;F: FnMut(<span class="kw-2">&amp;</span>T) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>&gt;(
+    </span><span class="kw">pub fn </span>rsplit_mut&lt;F: FnMut(<span class="kw-2">&amp;</span>T) -&gt; bool&gt;(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         f: F,
     ) -&gt; SliceMappedMut&lt;slice::RSplitMut&lt;<span class="lifetime">&#39;_</span>, T, F&gt;, I, T&gt; {
-        <a class="self" href="#552">self</a>.raw.rsplit_mut(<a href="#553">f</a>).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(IndexSlice::new_mut)
+        <span class="self">self</span>.raw.rsplit_mut(f).map(IndexSlice::new_mut)
     }
 
     <span class="doccomment">/// Wraps the underlying slice&#39;s `splitn` iterator with one that yields
     /// `IndexSlice`s with the correct index type.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>splitn&lt;F: FnMut(<span class="kw-2">&amp;</span>T) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>&gt;(
+    </span><span class="kw">pub fn </span>splitn&lt;F: FnMut(<span class="kw-2">&amp;</span>T) -&gt; bool&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        n: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+        n: usize,
         f: F,
     ) -&gt; SliceMapped&lt;slice::SplitN&lt;<span class="lifetime">&#39;_</span>, T, F&gt;, I, T&gt; {
-        <a class="self" href="#562">self</a>.raw.splitn(<a href="#563">n</a>, <a href="#564">f</a>).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(IndexSlice::new)
+        <span class="self">self</span>.raw.splitn(n, f).map(IndexSlice::new)
     }
     <span class="doccomment">/// Wraps the underlying slice&#39;s `splitn_mut` iterator with one that yields
     /// `IndexSlice`s with the correct index type.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>splitn_mut&lt;F: FnMut(<span class="kw-2">&amp;</span>T) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>&gt;(
+    </span><span class="kw">pub fn </span>splitn_mut&lt;F: FnMut(<span class="kw-2">&amp;</span>T) -&gt; bool&gt;(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        n: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+        n: usize,
         f: F,
     ) -&gt; SliceMappedMut&lt;slice::SplitNMut&lt;<span class="lifetime">&#39;_</span>, T, F&gt;, I, T&gt; {
-        <a class="self" href="#572">self</a>.raw.splitn_mut(<a href="#573">n</a>, <a href="#574">f</a>).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(IndexSlice::new_mut)
+        <span class="self">self</span>.raw.splitn_mut(n, f).map(IndexSlice::new_mut)
     }
 
     <span class="doccomment">/// Wraps the underlying slice&#39;s `rsplitn` iterator with one that yields
     /// `IndexSlice`s with the correct index type.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>rsplitn&lt;F: FnMut(<span class="kw-2">&amp;</span>T) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>&gt;(
+    </span><span class="kw">pub fn </span>rsplitn&lt;F: FnMut(<span class="kw-2">&amp;</span>T) -&gt; bool&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        n: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+        n: usize,
         f: F,
     ) -&gt; SliceMapped&lt;slice::RSplitN&lt;<span class="lifetime">&#39;_</span>, T, F&gt;, I, T&gt; {
-        <a class="self" href="#583">self</a>.raw.rsplitn(<a href="#584">n</a>, <a href="#585">f</a>).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(IndexSlice::new)
+        <span class="self">self</span>.raw.rsplitn(n, f).map(IndexSlice::new)
     }
 
     <span class="doccomment">/// Wraps the underlying slice&#39;s `rsplitn_mut` iterator with one that yields
     /// `IndexSlice`s with the correct index type.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>rsplitn_mut&lt;F: FnMut(<span class="kw-2">&amp;</span>T) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>&gt;(
+    </span><span class="kw">pub fn </span>rsplitn_mut&lt;F: FnMut(<span class="kw-2">&amp;</span>T) -&gt; bool&gt;(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        n: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+        n: usize,
         f: F,
     ) -&gt; SliceMappedMut&lt;slice::RSplitNMut&lt;<span class="lifetime">&#39;_</span>, T, F&gt;, I, T&gt; {
-        <a class="self" href="#594">self</a>.raw.rsplitn_mut(<a href="#595">n</a>, <a href="#596">f</a>).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(IndexSlice::new_mut)
+        <span class="self">self</span>.raw.rsplitn_mut(n, f).map(IndexSlice::new_mut)
     }
 
     <span class="doccomment">/// Create a IdxSlice from its pointer and length.
@@ -1436,8 +1436,8 @@
     /// This is equivalent to `core::slice::from_raw_parts` and has the same
     /// safety caveats.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub unsafe fn </span>from_raw_parts&lt;<span class="lifetime">&#39;a</span>&gt;(data: <span class="kw-2">*const </span>T, len: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="self">Self </span>{
-        <span class="self">Self</span>::new(slice::from_raw_parts(<a href="#608">data</a>, <a href="#608">len</a>))
+    </span><span class="kw">pub unsafe fn </span>from_raw_parts&lt;<span class="lifetime">&#39;a</span>&gt;(data: <span class="kw-2">*const </span>T, len: usize) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="self">Self </span>{
+        <span class="self">Self</span>::new(slice::from_raw_parts(data, len))
     }
 
     <span class="doccomment">/// Create a mutable IdxSlice from its pointer and length.
@@ -1447,8 +1447,8 @@
     /// This is equivalent to `core::slice::from_raw_parts_mut` and has the same
     /// safety caveats.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub unsafe fn </span>from_raw_parts_mut&lt;<span class="lifetime">&#39;a</span>&gt;(data: <span class="kw-2">*mut </span>T, len: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span><span class="self">Self </span>{
-        <span class="self">Self</span>::new_mut(slice::from_raw_parts_mut(<a href="#619">data</a>, <a href="#619">len</a>))
+    </span><span class="kw">pub unsafe fn </span>from_raw_parts_mut&lt;<span class="lifetime">&#39;a</span>&gt;(data: <span class="kw-2">*mut </span>T, len: usize) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span><span class="self">Self </span>{
+        <span class="self">Self</span>::new_mut(slice::from_raw_parts_mut(data, len))
     }
 
     <span class="doccomment">/// Returns the first and all the rest of the elements of the slice, or `None` if it is empty.
@@ -1457,7 +1457,7 @@
         <span class="kw">if </span><span class="self">self</span>.is_empty() {
             <span class="prelude-val">None
         </span>} <span class="kw">else </span>{
-            <span class="prelude-val">Some</span>((<span class="kw-2">&amp;</span><a class="self" href="#625">self</a>[I::from_usize(<span class="number">0</span>)], <span class="kw-2">&amp;</span><a class="self" href="#625">self</a>[I::from_usize(<span class="number">1</span>)..]))
+            <span class="prelude-val">Some</span>((<span class="kw-2">&amp;</span><span class="self">self</span>[I::from_usize(<span class="number">0</span>)], <span class="kw-2">&amp;</span><span class="self">self</span>[I::from_usize(<span class="number">1</span>)..]))
         }
     }
 
@@ -1467,8 +1467,8 @@
         <span class="kw">if </span><span class="self">self</span>.is_empty() {
             <span class="prelude-val">None
         </span>} <span class="kw">else </span>{
-            <span class="kw">let </span>split = <a class="self" href="#635">self</a>.<a href="#377">split_at_mut</a>(I::from_usize(<span class="number">1</span>));
-            <span class="prelude-val">Some</span>((<span class="kw-2">&amp;mut </span><a href="#639">split</a>.<span class="number">0</span>[I::from_usize(<span class="number">0</span>)], <a href="#639">split</a>.<span class="number">1</span>))
+            <span class="kw">let </span>split = <span class="self">self</span>.split_at_mut(I::from_usize(<span class="number">1</span>));
+            <span class="prelude-val">Some</span>((<span class="kw-2">&amp;mut </span>split.<span class="number">0</span>[I::from_usize(<span class="number">0</span>)], split.<span class="number">1</span>))
         }
     }
 
@@ -1478,8 +1478,8 @@
         <span class="kw">if </span><span class="self">self</span>.is_empty() {
             <span class="prelude-val">None
         </span>} <span class="kw">else </span>{
-            <span class="kw">let </span>last = <a class="self" href="#646">self</a>.<a href="#134">last_idx</a>();
-            <span class="prelude-val">Some</span>((<span class="kw-2">&amp;</span><a class="self" href="#646">self</a>[<a href="#650">last</a>], <span class="kw-2">&amp;</span><a class="self" href="#646">self</a>[..<a href="#650">last</a>]))
+            <span class="kw">let </span>last = <span class="self">self</span>.last_idx();
+            <span class="prelude-val">Some</span>((<span class="kw-2">&amp;</span><span class="self">self</span>[last], <span class="kw-2">&amp;</span><span class="self">self</span>[..last]))
         }
     }
 
@@ -1489,176 +1489,176 @@
         <span class="kw">if </span><span class="self">self</span>.is_empty() {
             <span class="prelude-val">None
         </span>} <span class="kw">else </span>{
-            <span class="kw">let </span>last = <a class="self" href="#657">self</a>.<a href="#134">last_idx</a>();
-            <span class="kw">let </span>split = <a class="self" href="#657">self</a>.<a href="#377">split_at_mut</a>(<a href="#661">last</a>);
-            <span class="prelude-val">Some</span>((<span class="kw-2">&amp;mut </span><a href="#662">split</a>.<span class="number">1</span>[<span class="number">0</span>], <a href="#662">split</a>.<span class="number">0</span>))
+            <span class="kw">let </span>last = <span class="self">self</span>.last_idx();
+            <span class="kw">let </span>split = <span class="self">self</span>.split_at_mut(last);
+            <span class="prelude-val">Some</span>((<span class="kw-2">&amp;mut </span>split.<span class="number">1</span>[<span class="number">0</span>], split.<span class="number">0</span>))
         }
     }
 }
 
-<span class="kw">impl</span>&lt;I: <a href="lib.rs.html#177">Idx</a>, A, B&gt; PartialEq&lt;IndexSlice&lt;I, [B]&gt;&gt; <span class="kw">for </span>IndexSlice&lt;I, [A]&gt;
+<span class="kw">impl</span>&lt;I: Idx, A, B&gt; PartialEq&lt;IndexSlice&lt;I, [B]&gt;&gt; <span class="kw">for </span>IndexSlice&lt;I, [A]&gt;
 <span class="kw">where
     </span>A: PartialEq&lt;B&gt;,
 {
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>eq(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span>IndexSlice&lt;I, [B]&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a href="https://doc.rust-lang.org/nightly/core/cmp/trait.PartialEq.html">PartialEq::eq</a>(<span class="kw-2">&amp;</span><a class="self" href="#673">self</a>.raw, <span class="kw-2">&amp;</span><a href="#673">other</a>.raw)
+    </span><span class="kw">fn </span>eq(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span>IndexSlice&lt;I, [B]&gt;) -&gt; bool {
+        PartialEq::eq(<span class="kw-2">&amp;</span><span class="self">self</span>.raw, <span class="kw-2">&amp;</span>other.raw)
     }
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>ne(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span>IndexSlice&lt;I, [B]&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a href="https://doc.rust-lang.org/nightly/core/cmp/trait.PartialEq.html">PartialEq::ne</a>(<span class="kw-2">&amp;</span><a class="self" href="#677">self</a>.raw, <span class="kw-2">&amp;</span><a href="#677">other</a>.raw)
+    </span><span class="kw">fn </span>ne(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span>IndexSlice&lt;I, [B]&gt;) -&gt; bool {
+        PartialEq::ne(<span class="kw-2">&amp;</span><span class="self">self</span>.raw, <span class="kw-2">&amp;</span>other.raw)
     }
 }
 
-<span class="kw">impl</span>&lt;I: <a href="lib.rs.html#177">Idx</a>, A: <a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Eq.html">Eq</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Eq.html">Eq</a> <span class="kw">for </span>IndexSlice&lt;I, [A]&gt; {}
+<span class="kw">impl</span>&lt;I: Idx, A: Eq&gt; Eq <span class="kw">for </span>IndexSlice&lt;I, [A]&gt; {}
 
-<span class="kw">impl</span>&lt;I: <a href="lib.rs.html#177">Idx</a>, A, B&gt; PartialEq&lt;[B]&gt; <span class="kw">for </span>IndexSlice&lt;I, [A]&gt;
+<span class="kw">impl</span>&lt;I: Idx, A, B&gt; PartialEq&lt;[B]&gt; <span class="kw">for </span>IndexSlice&lt;I, [A]&gt;
 <span class="kw">where
     </span>A: PartialEq&lt;B&gt;,
 {
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>eq(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span>[B]) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a href="https://doc.rust-lang.org/nightly/core/cmp/trait.PartialEq.html">PartialEq::eq</a>(<span class="kw-2">&amp;</span><a class="self" href="#689">self</a>.raw, <a href="#689">other</a>)
+    </span><span class="kw">fn </span>eq(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span>[B]) -&gt; bool {
+        PartialEq::eq(<span class="kw-2">&amp;</span><span class="self">self</span>.raw, other)
     }
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>ne(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span>[B]) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a href="https://doc.rust-lang.org/nightly/core/cmp/trait.PartialEq.html">PartialEq::ne</a>(<span class="kw-2">&amp;</span><a class="self" href="#693">self</a>.raw, <a href="#693">other</a>)
+    </span><span class="kw">fn </span>ne(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span>[B]) -&gt; bool {
+        PartialEq::ne(<span class="kw-2">&amp;</span><span class="self">self</span>.raw, other)
     }
 }
 
-<span class="kw">impl</span>&lt;I: <a href="lib.rs.html#177">Idx</a>, T: <a href="https://doc.rust-lang.org/nightly/core/cmp/trait.PartialOrd.html">PartialOrd</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/cmp/trait.PartialOrd.html">PartialOrd</a> <span class="kw">for </span>IndexSlice&lt;I, [T]&gt; {
+<span class="kw">impl</span>&lt;I: Idx, T: PartialOrd&gt; PartialOrd <span class="kw">for </span>IndexSlice&lt;I, [T]&gt; {
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>partial_cmp(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span>IndexSlice&lt;I, [T]&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html">core::cmp::Ordering</a>&gt; {
-        <a href="https://doc.rust-lang.org/nightly/core/cmp/trait.PartialOrd.html">PartialOrd::partial_cmp</a>(<span class="kw-2">&amp;</span><a class="self" href="#700">self</a>.raw, <span class="kw-2">&amp;</span><a href="#700">other</a>.raw)
+    </span><span class="kw">fn </span>partial_cmp(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span>IndexSlice&lt;I, [T]&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;core::cmp::Ordering&gt; {
+        PartialOrd::partial_cmp(<span class="kw-2">&amp;</span><span class="self">self</span>.raw, <span class="kw-2">&amp;</span>other.raw)
     }
 }
 
-<span class="kw">impl</span>&lt;I: <a href="lib.rs.html#177">Idx</a>, T: <a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Ord.html">core::cmp::Ord</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Ord.html">core::cmp::Ord</a> <span class="kw">for </span>IndexSlice&lt;I, [T]&gt; {
+<span class="kw">impl</span>&lt;I: Idx, T: core::cmp::Ord&gt; core::cmp::Ord <span class="kw">for </span>IndexSlice&lt;I, [T]&gt; {
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>cmp(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span>IndexSlice&lt;I, [T]&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html">core::cmp::Ordering</a> {
-        <a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Ord.html">core::cmp::Ord::cmp</a>(<span class="kw-2">&amp;</span><a class="self" href="#707">self</a>.raw, <span class="kw-2">&amp;</span><a href="#707">other</a>.raw)
+    </span><span class="kw">fn </span>cmp(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span>IndexSlice&lt;I, [T]&gt;) -&gt; core::cmp::Ordering {
+        core::cmp::Ord::cmp(<span class="kw-2">&amp;</span><span class="self">self</span>.raw, <span class="kw-2">&amp;</span>other.raw)
     }
 }
 
-<span class="kw">impl</span>&lt;I: <a href="lib.rs.html#177">Idx</a>, T: <a href="https://doc.rust-lang.org/nightly/core/hash/trait.Hash.html">core::hash::Hash</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/hash/trait.Hash.html">core::hash::Hash</a> <span class="kw">for </span>IndexSlice&lt;I, [T]&gt; {
+<span class="kw">impl</span>&lt;I: Idx, T: core::hash::Hash&gt; core::hash::Hash <span class="kw">for </span>IndexSlice&lt;I, [T]&gt; {
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>hash&lt;H: <a href="https://doc.rust-lang.org/nightly/core/hash/trait.Hasher.html">core::hash::Hasher</a>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, h: <span class="kw-2">&amp;mut </span>H) {
-        <a class="self" href="#714">self</a>.raw.<a href="https://doc.rust-lang.org/nightly/core/hash/trait.Hash.html">hash</a>(<a href="#714">h</a>)
+    </span><span class="kw">fn </span>hash&lt;H: core::hash::Hasher&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, h: <span class="kw-2">&amp;mut </span>H) {
+        <span class="self">self</span>.raw.hash(h)
     }
 }
 
-<span class="kw">impl</span>&lt;I: <a href="lib.rs.html#177">Idx</a>, T&gt; <a href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">alloc::borrow::ToOwned</a> <span class="kw">for </span>IndexSlice&lt;I, [T]&gt;
+<span class="kw">impl</span>&lt;I: Idx, T&gt; alloc::borrow::ToOwned <span class="kw">for </span>IndexSlice&lt;I, [T]&gt;
 <span class="kw">where
-    </span>T: <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a>,
+    </span>T: Clone,
 {
     <span class="kw">type </span>Owned = IndexVec&lt;I, T&gt;;
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>to_owned(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self</span>::Owned {
-        IndexVec::from(<a class="self" href="#725">self</a>.raw.to_vec())
+        IndexVec::from(<span class="self">self</span>.raw.to_vec())
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, I: <a href="lib.rs.html#177">Idx</a>, T&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">IntoIterator</a> <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>IndexSlice&lt;I, [T]&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, I: Idx, T&gt; IntoIterator <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>IndexSlice&lt;I, [T]&gt; {
     <span class="kw">type </span>Item = <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>T;
     <span class="kw">type </span>IntoIter = slice::Iter&lt;<span class="lifetime">&#39;a</span>, T&gt;;
 
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>into_iter(<span class="self">self</span>) -&gt; slice::Iter&lt;<span class="lifetime">&#39;a</span>, T&gt; {
-        <a class="self" href="#735">self</a>.raw.iter()
+        <span class="self">self</span>.raw.iter()
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, I: <a href="lib.rs.html#177">Idx</a>, T&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">IntoIterator</a> <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>IndexSlice&lt;I, [T]&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, I: Idx, T&gt; IntoIterator <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>IndexSlice&lt;I, [T]&gt; {
     <span class="kw">type </span>Item = <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>T;
     <span class="kw">type </span>IntoIter = slice::IterMut&lt;<span class="lifetime">&#39;a</span>, T&gt;;
 
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>into_iter(<span class="self">self</span>) -&gt; slice::IterMut&lt;<span class="lifetime">&#39;a</span>, T&gt; {
-        <a class="self" href="#745">self</a>.raw.iter_mut()
+        <span class="self">self</span>.raw.iter_mut()
     }
 }
 
-<span class="kw">impl</span>&lt;I: <a href="lib.rs.html#177">Idx</a>, T&gt; <a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for </span><span class="kw-2">&amp;</span>IndexSlice&lt;I, [T]&gt; {
+<span class="kw">impl</span>&lt;I: Idx, T&gt; Default <span class="kw">for </span><span class="kw-2">&amp;</span>IndexSlice&lt;I, [T]&gt; {
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
         IndexSlice::new(<span class="kw-2">&amp;</span>[])
     }
 }
 
-<span class="kw">impl</span>&lt;I: <a href="lib.rs.html#177">Idx</a>, T&gt; <a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for </span><span class="kw-2">&amp;mut </span>IndexSlice&lt;I, [T]&gt; {
+<span class="kw">impl</span>&lt;I: Idx, T&gt; Default <span class="kw">for </span><span class="kw-2">&amp;mut </span>IndexSlice&lt;I, [T]&gt; {
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
         IndexSlice::new_mut(<span class="kw-2">&amp;mut </span>[])
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, I: <a href="lib.rs.html#177">Idx</a>, T&gt; From&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[T]&gt; <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>IndexSlice&lt;I, [T]&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, I: Idx, T&gt; From&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[T]&gt; <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>IndexSlice&lt;I, [T]&gt; {
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>from(a: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[T]) -&gt; <span class="self">Self </span>{
-        IndexSlice::new(<a href="#766">a</a>)
+        IndexSlice::new(a)
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, I: <a href="lib.rs.html#177">Idx</a>, T&gt; From&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>[T]&gt; <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>IndexSlice&lt;I, [T]&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, I: Idx, T&gt; From&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>[T]&gt; <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>IndexSlice&lt;I, [T]&gt; {
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>from(a: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>[T]) -&gt; <span class="self">Self </span>{
-        IndexSlice::new_mut(<a href="#773">a</a>)
+        IndexSlice::new_mut(a)
     }
 }
 
-<span class="kw">impl</span>&lt;I: <a href="lib.rs.html#177">Idx</a>, T&gt; From&lt;Box&lt;[T]&gt;&gt; <span class="kw">for </span>Box&lt;IndexSlice&lt;I, [T]&gt;&gt; {
+<span class="kw">impl</span>&lt;I: Idx, T&gt; From&lt;Box&lt;[T]&gt;&gt; <span class="kw">for </span>Box&lt;IndexSlice&lt;I, [T]&gt;&gt; {
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>from(b: Box&lt;[T]&gt;) -&gt; <span class="self">Self </span>{
-        <span class="kw">unsafe </span>{ Box::from_raw(Box::into_raw(<a href="#780">b</a>) <span class="kw">as </span><span class="kw-2">*mut </span>IndexSlice&lt;I, [T]&gt;) }
+        <span class="kw">unsafe </span>{ Box::from_raw(Box::into_raw(b) <span class="kw">as </span><span class="kw-2">*mut </span>IndexSlice&lt;I, [T]&gt;) }
     }
 }
 
-<span class="kw">impl</span>&lt;I: <a href="lib.rs.html#177">Idx</a>, A&gt; AsRef&lt;[A]&gt; <span class="kw">for </span>IndexSlice&lt;I, [A]&gt; {
+<span class="kw">impl</span>&lt;I: Idx, A&gt; AsRef&lt;[A]&gt; <span class="kw">for </span>IndexSlice&lt;I, [A]&gt; {
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>as_ref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[A] {
-        <span class="kw-2">&amp;</span><a class="self" href="#787">self</a>.raw
+        <span class="kw-2">&amp;</span><span class="self">self</span>.raw
     }
 }
 
-<span class="kw">impl</span>&lt;I: <a href="lib.rs.html#177">Idx</a>, A&gt; AsMut&lt;[A]&gt; <span class="kw">for </span>IndexSlice&lt;I, [A]&gt; {
+<span class="kw">impl</span>&lt;I: Idx, A&gt; AsMut&lt;[A]&gt; <span class="kw">for </span>IndexSlice&lt;I, [A]&gt; {
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>as_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>[A] {
-        <span class="kw-2">&amp;mut </span><a class="self" href="#794">self</a>.raw
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>.raw
     }
 }
 
-<span class="kw">impl</span>&lt;I: <a href="lib.rs.html#177">Idx</a>, T: <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> <span class="kw">for </span>Box&lt;IndexSlice&lt;I, [T]&gt;&gt; {
+<span class="kw">impl</span>&lt;I: Idx, T: Clone&gt; Clone <span class="kw">for </span>Box&lt;IndexSlice&lt;I, [T]&gt;&gt; {
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>clone(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self </span>{
         <span class="comment">// Suboptimal, I think.
-        </span><a class="self" href="#801">self</a>.<a href="#86-88">to_vec</a>().<a href="lib.rs.html#361">into_boxed_slice</a>()
+        </span><span class="self">self</span>.to_vec().into_boxed_slice()
     }
 }
 
-<span class="kw">impl</span>&lt;I: <a href="lib.rs.html#177">Idx</a>, A&gt; FromIterator&lt;A&gt; <span class="kw">for </span>Box&lt;IndexSlice&lt;I, [A]&gt;&gt; {
+<span class="kw">impl</span>&lt;I: Idx, A&gt; FromIterator&lt;A&gt; <span class="kw">for </span>Box&lt;IndexSlice&lt;I, [A]&gt;&gt; {
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>from_iter&lt;T: IntoIterator&lt;Item = A&gt;&gt;(iter: T) -&gt; <span class="self">Self </span>{
-        <a href="#809">iter</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>::&lt;IndexVec&lt;I, <span class="kw">_</span>&gt;&gt;()
-            .<a href="lib.rs.html#361">into_boxed_slice</a>()
+        iter.into_iter()
+            .collect::&lt;IndexVec&lt;I, <span class="kw">_</span>&gt;&gt;()
+            .into_boxed_slice()
     }
 }
 
-<span class="kw">impl</span>&lt;I: <a href="lib.rs.html#177">Idx</a>, A&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">IntoIterator</a> <span class="kw">for </span>Box&lt;IndexSlice&lt;I, [A]&gt;&gt; {
+<span class="kw">impl</span>&lt;I: Idx, A&gt; IntoIterator <span class="kw">for </span>Box&lt;IndexSlice&lt;I, [A]&gt;&gt; {
     <span class="kw">type </span>Item = A;
     <span class="kw">type </span>IntoIter = vec::IntoIter&lt;A&gt;;
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>into_iter(<span class="self">self</span>) -&gt; <span class="self">Self</span>::IntoIter {
-        <span class="kw">let </span>v: IndexVec&lt;I, A&gt; = <a class="self" href="#820">self</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>();
-        <a href="#821">v</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
+        <span class="kw">let </span>v: IndexVec&lt;I, A&gt; = <span class="self">self</span>.into();
+        v.into_iter()
     }
 }
 
-<span class="kw">impl</span>&lt;I: <a href="lib.rs.html#177">Idx</a>, A&gt; <a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for </span>Box&lt;IndexSlice&lt;I, [A]&gt;&gt; {
+<span class="kw">impl</span>&lt;I: Idx, A&gt; Default <span class="kw">for </span>Box&lt;IndexSlice&lt;I, [A]&gt;&gt; {
     <span class="attr">#[inline(always)]
     </span><span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
-        <a class="macro" href="lib.rs.html#191-195">index_vec!</a>[].<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()
+        <span class="macro">index_vec!</span>[].into()
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="index_vec" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="index_vec" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

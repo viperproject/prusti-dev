@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/warp-0.3.3/src/server.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>server.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../warp/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/warp-0.3.3/src/server.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>server.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../warp/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -576,42 +576,42 @@
 <a href="#576" id="576">576</a>
 </pre><pre class="rust"><code><span class="attr">#[cfg(feature = <span class="string">&quot;tls&quot;</span>)]
 </span><span class="kw">use </span><span class="kw">crate</span>::tls::TlsConfigBuilder;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/convert/enum.Infallible.html">std::convert::Infallible</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">std::error::Error</a> <span class="kw">as </span>StdError;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">std::future::Future</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/net/socket_addr/enum.SocketAddr.html">std::net::SocketAddr</a>;
+<span class="kw">use </span>std::convert::Infallible;
+<span class="kw">use </span>std::error::Error <span class="kw">as </span>StdError;
+<span class="kw">use </span>std::future::Future;
+<span class="kw">use </span>std::net::SocketAddr;
 <span class="attr">#[cfg(feature = <span class="string">&quot;tls&quot;</span>)]
 </span><span class="kw">use </span>std::path::Path;
 
-<span class="kw">use </span>futures_util::{<a href="../../futures_util/future/index.html">future</a>, <a href="../../futures_util/future/future/trait.FutureExt.html">FutureExt</a>, <a href="../../futures_core/future/trait.TryFuture.html">TryFuture</a>, <a href="../../futures_core/stream/trait.TryStream.html">TryStream</a>, <a href="../../futures_util/stream/try_stream/trait.TryStreamExt.html">TryStreamExt</a>};
-<span class="kw">use </span><a href="../../hyper/server/tcp/struct.AddrIncoming.html">hyper::server::conn::AddrIncoming</a>;
-<span class="kw">use </span>hyper::service::{<a href="../../hyper/service/make/fn.make_service_fn.html">make_service_fn</a>, <a href="../../hyper/service/util/fn.service_fn.html">service_fn</a>};
-<span class="kw">use </span><a href="../../hyper/server/server/struct.Server.html">hyper::Server</a> <span class="kw">as </span>HyperServer;
-<span class="kw">use </span>tokio::io::{<a href="../../tokio/io/async_read/trait.AsyncRead.html">AsyncRead</a>, <a href="../../tokio/io/async_write/trait.AsyncWrite.html">AsyncWrite</a>};
-<span class="kw">use </span><a href="../../tracing/instrument/trait.Instrument.html">tracing::Instrument</a>;
+<span class="kw">use </span>futures_util::{future, FutureExt, TryFuture, TryStream, TryStreamExt};
+<span class="kw">use </span>hyper::server::conn::AddrIncoming;
+<span class="kw">use </span>hyper::service::{make_service_fn, service_fn};
+<span class="kw">use </span>hyper::Server <span class="kw">as </span>HyperServer;
+<span class="kw">use </span>tokio::io::{AsyncRead, AsyncWrite};
+<span class="kw">use </span>tracing::Instrument;
 
-<span class="kw">use </span><a href="filter/mod.rs.html#93"><span class="kw">crate</span>::filter::Filter</a>;
-<span class="kw">use </span><a href="reject.rs.html#608"><span class="kw">crate</span>::reject::IsReject</a>;
-<span class="kw">use </span><a href="reply.rs.html#228"><span class="kw">crate</span>::reply::Reply</a>;
-<span class="kw">use </span><a href="transport.rs.html#9"><span class="kw">crate</span>::transport::Transport</a>;
+<span class="kw">use </span><span class="kw">crate</span>::filter::Filter;
+<span class="kw">use </span><span class="kw">crate</span>::reject::IsReject;
+<span class="kw">use </span><span class="kw">crate</span>::reply::Reply;
+<span class="kw">use </span><span class="kw">crate</span>::transport::Transport;
 
 <span class="doccomment">/// Create a `Server` with the provided `Filter`.
 </span><span class="kw">pub fn </span>serve&lt;F&gt;(filter: F) -&gt; Server&lt;F&gt;
 <span class="kw">where
-    </span>F: <a href="filter/mod.rs.html#93">Filter</a> + <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> + <span class="lifetime">&#39;static</span>,
-    F::Extract: <a href="reply.rs.html#228">Reply</a>,
-    F::Error: <a href="reject.rs.html#608">IsReject</a>,
+    </span>F: Filter + Clone + Send + Sync + <span class="lifetime">&#39;static</span>,
+    F::Extract: Reply,
+    F::Error: IsReject,
 {
-    <a href="#37">Server</a> {
+    Server {
         pipeline: <span class="bool-val">false</span>,
-        <a href="#23">filter</a>,
+        filter,
     }
 }
 
 <span class="doccomment">/// A Warp Server ready to filter requests.
 </span><span class="attr">#[derive(Debug)]
 </span><span class="kw">pub struct </span>Server&lt;F&gt; {
-    pipeline: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
+    pipeline: bool,
     filter: F,
 }
 
@@ -699,12 +699,12 @@
 
 </span><span class="kw">impl</span>&lt;F&gt; Server&lt;F&gt;
 <span class="kw">where
-    </span>F: <a href="filter/mod.rs.html#93">Filter</a> + <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> + <span class="lifetime">&#39;static</span>,
-    &lt;F::Future <span class="kw">as </span>TryFuture&gt;::Ok: <a href="reply.rs.html#228">Reply</a>,
-    &lt;F::Future <span class="kw">as </span>TryFuture&gt;::Error: <a href="reject.rs.html#608">IsReject</a>,
+    </span>F: Filter + Clone + Send + Sync + <span class="lifetime">&#39;static</span>,
+    &lt;F::Future <span class="kw">as </span>TryFuture&gt;::Ok: Reply,
+    &lt;F::Future <span class="kw">as </span>TryFuture&gt;::Error: IsReject,
 {
     <span class="doccomment">/// Run this `Server` forever on the current thread.
-    </span><span class="kw">pub async fn </span>run(<span class="self">self</span>, addr: <span class="kw">impl </span>Into&lt;<a href="https://doc.rust-lang.org/nightly/std/net/socket_addr/enum.SocketAddr.html">SocketAddr</a>&gt;) {
+    </span><span class="kw">pub async fn </span>run(<span class="self">self</span>, addr: <span class="kw">impl </span>Into&lt;SocketAddr&gt;) {
         <span class="kw">let </span>(addr, fut) = <span class="self">self</span>.bind_ephemeral(addr);
         <span class="kw">let </span>span = <span class="macro">tracing::info_span!</span>(<span class="string">&quot;Server::run&quot;</span>, <span class="question-mark">?</span>addr);
         <span class="macro">tracing::info!</span>(parent: <span class="kw-2">&amp;</span>span, <span class="string">&quot;listening on http://{}&quot;</span>, addr);
@@ -718,9 +718,9 @@
     /// This can be used for Unix Domain Sockets, or TLS, etc.
     </span><span class="kw">pub async fn </span>run_incoming&lt;I&gt;(<span class="self">self</span>, incoming: I)
     <span class="kw">where
-        </span>I: <a href="../../futures_core/stream/trait.TryStream.html">TryStream</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a>,
-        I::Ok: <a href="../../tokio/io/async_read/trait.AsyncRead.html">AsyncRead</a> + <a href="../../tokio/io/async_write/trait.AsyncWrite.html">AsyncWrite</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <span class="lifetime">&#39;static </span>+ <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
-        I::Error: Into&lt;Box&lt;<span class="kw">dyn </span><a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">StdError</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a>&gt;&gt;,
+        </span>I: TryStream + Send,
+        I::Ok: AsyncRead + AsyncWrite + Send + <span class="lifetime">&#39;static </span>+ Unpin,
+        I::Error: Into&lt;Box&lt;<span class="kw">dyn </span>StdError + Send + Sync&gt;&gt;,
     {
         <span class="self">self</span>.run_incoming2(incoming.map_ok(<span class="kw">crate</span>::transport::LiftIo).into_stream())
             .instrument(<span class="macro">tracing::info_span!</span>(<span class="string">&quot;Server::run_incoming&quot;</span>))
@@ -729,9 +729,9 @@
 
     <span class="kw">async fn </span>run_incoming2&lt;I&gt;(<span class="self">self</span>, incoming: I)
     <span class="kw">where
-        </span>I: <a href="../../futures_core/stream/trait.TryStream.html">TryStream</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a>,
-        I::Ok: <a href="transport.rs.html#9">Transport</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <span class="lifetime">&#39;static </span>+ <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
-        I::Error: Into&lt;Box&lt;<span class="kw">dyn </span><a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">StdError</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a>&gt;&gt;,
+        </span>I: TryStream + Send,
+        I::Ok: Transport + Send + <span class="lifetime">&#39;static </span>+ Unpin,
+        I::Error: Into&lt;Box&lt;<span class="kw">dyn </span>StdError + Send + Sync&gt;&gt;,
     {
         <span class="kw">let </span>fut = <span class="self">self</span>.serve_incoming2(incoming);
 
@@ -746,9 +746,9 @@
     /// # Panics
     ///
     /// Panics if we are unable to bind to the provided address.
-    </span><span class="kw">pub fn </span>bind(<span class="self">self</span>, addr: <span class="kw">impl </span>Into&lt;<a href="https://doc.rust-lang.org/nightly/std/net/socket_addr/enum.SocketAddr.html">SocketAddr</a>&gt; + <span class="lifetime">&#39;static</span>) -&gt; <span class="kw">impl </span>Future&lt;Output = ()&gt; + <span class="lifetime">&#39;static </span>{
-        <span class="kw">let </span>(<span class="kw">_</span>, fut) = <a class="self" href="#173">self</a>.<a href="#209-212">bind_ephemeral</a>(<a href="#173">addr</a>);
-        <a href="#174">fut</a>
+    </span><span class="kw">pub fn </span>bind(<span class="self">self</span>, addr: <span class="kw">impl </span>Into&lt;SocketAddr&gt; + <span class="lifetime">&#39;static</span>) -&gt; <span class="kw">impl </span>Future&lt;Output = ()&gt; + <span class="lifetime">&#39;static </span>{
+        <span class="kw">let </span>(<span class="kw">_</span>, fut) = <span class="self">self</span>.bind_ephemeral(addr);
+        fut
     }
 
     <span class="doccomment">/// Bind to a socket address, returning a `Future` that can be
@@ -756,7 +756,7 @@
     ///
     /// In case we are unable to bind to the specified address, resolves to an
     /// error and logs the reason.
-    </span><span class="kw">pub async fn </span>try_bind(<span class="self">self</span>, addr: <span class="kw">impl </span>Into&lt;<a href="https://doc.rust-lang.org/nightly/std/net/socket_addr/enum.SocketAddr.html">SocketAddr</a>&gt;) {
+    </span><span class="kw">pub async fn </span>try_bind(<span class="self">self</span>, addr: <span class="kw">impl </span>Into&lt;SocketAddr&gt;) {
         <span class="kw">let </span>addr = addr.into();
         <span class="kw">let </span>srv = <span class="kw">match </span><span class="macro">try_bind!</span>(<span class="self">self</span>, <span class="kw-2">&amp;</span>addr) {
             <span class="prelude-val">Ok</span>((<span class="kw">_</span>, srv)) =&gt; srv,
@@ -784,16 +784,16 @@
     /// Panics if we are unable to bind to the provided address.
     </span><span class="kw">pub fn </span>bind_ephemeral(
         <span class="self">self</span>,
-        addr: <span class="kw">impl </span>Into&lt;<a href="https://doc.rust-lang.org/nightly/std/net/socket_addr/enum.SocketAddr.html">SocketAddr</a>&gt;,
-    ) -&gt; (<a href="https://doc.rust-lang.org/nightly/std/net/socket_addr/enum.SocketAddr.html">SocketAddr</a>, <span class="kw">impl </span>Future&lt;Output = ()&gt; + <span class="lifetime">&#39;static</span>) {
-        <span class="kw">let </span>(addr, srv) = <a class="macro" href="#96-110">bind!</a>(<span class="self">self</span>, addr);
-        <span class="kw">let </span>srv = <a href="#213">srv</a>.<a href="../../futures_util/future/future/trait.FutureExt.html">map</a>(|result| {
-            <span class="kw">if let </span><span class="prelude-val">Err</span>(err) = <a href="#214">result</a> {
-                <a class="macro" href="../../tracing/tracing/macro.error.html">tracing::error!</a>(<span class="string">&quot;server error: {}&quot;</span>, err)
+        addr: <span class="kw">impl </span>Into&lt;SocketAddr&gt;,
+    ) -&gt; (SocketAddr, <span class="kw">impl </span>Future&lt;Output = ()&gt; + <span class="lifetime">&#39;static</span>) {
+        <span class="kw">let </span>(addr, srv) = <span class="macro">bind!</span>(<span class="self">self</span>, addr);
+        <span class="kw">let </span>srv = srv.map(|result| {
+            <span class="kw">if let </span><span class="prelude-val">Err</span>(err) = result {
+                <span class="macro">tracing::error!</span>(<span class="string">&quot;server error: {}&quot;</span>, err)
             }
         });
 
-        (<a href="#213">addr</a>, <a href="#214">srv</a>)
+        (addr, srv)
     }
 
     <span class="doccomment">/// Tried to bind a possibly ephemeral socket address.
@@ -805,17 +805,17 @@
     /// the current runtime.
     </span><span class="kw">pub fn </span>try_bind_ephemeral(
         <span class="self">self</span>,
-        addr: <span class="kw">impl </span>Into&lt;<a href="https://doc.rust-lang.org/nightly/std/net/socket_addr/enum.SocketAddr.html">SocketAddr</a>&gt;,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;(<a href="https://doc.rust-lang.org/nightly/std/net/socket_addr/enum.SocketAddr.html">SocketAddr</a>, <span class="kw">impl </span>Future&lt;Output = ()&gt; + <span class="lifetime">&#39;static</span>), <a href="error.rs.html#8"><span class="kw">crate</span>::Error</a>&gt; {
-        <span class="kw">let </span>addr = <a href="#232">addr</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>();
+        addr: <span class="kw">impl </span>Into&lt;SocketAddr&gt;,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(SocketAddr, <span class="kw">impl </span>Future&lt;Output = ()&gt; + <span class="lifetime">&#39;static</span>), <span class="kw">crate</span>::Error&gt; {
+        <span class="kw">let </span>addr = addr.into();
         <span class="kw">let </span>(addr, srv) = <span class="macro">try_bind!</span>(<span class="self">self</span>, <span class="kw-2">&amp;</span>addr).map_err(<span class="kw">crate</span>::Error::new)<span class="question-mark">?</span>;
-        <span class="kw">let </span>srv = <a href="#235">srv</a>.<a href="../../futures_util/future/future/trait.FutureExt.html">map</a>(|result| {
-            <span class="kw">if let </span><span class="prelude-val">Err</span>(err) = <a href="#236">result</a> {
-                <a class="macro" href="../../tracing/tracing/macro.error.html">tracing::error!</a>(<span class="string">&quot;server error: {}&quot;</span>, err)
+        <span class="kw">let </span>srv = srv.map(|result| {
+            <span class="kw">if let </span><span class="prelude-val">Err</span>(err) = result {
+                <span class="macro">tracing::error!</span>(<span class="string">&quot;server error: {}&quot;</span>, err)
             }
         });
 
-        <span class="prelude-val">Ok</span>((<a href="#235">addr</a>, <a href="#236">srv</a>))
+        <span class="prelude-val">Ok</span>((addr, srv))
     }
 
     <span class="doccomment">/// Create a server with graceful shutdown signal.
@@ -853,16 +853,16 @@
     /// ```
     </span><span class="kw">pub fn </span>bind_with_graceful_shutdown(
         <span class="self">self</span>,
-        addr: <span class="kw">impl </span>Into&lt;<a href="https://doc.rust-lang.org/nightly/std/net/socket_addr/enum.SocketAddr.html">SocketAddr</a>&gt; + <span class="lifetime">&#39;static</span>,
-        signal: <span class="kw">impl </span>Future&lt;Output = ()&gt; + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <span class="lifetime">&#39;static</span>,
-    ) -&gt; (<a href="https://doc.rust-lang.org/nightly/std/net/socket_addr/enum.SocketAddr.html">SocketAddr</a>, <span class="kw">impl </span>Future&lt;Output = ()&gt; + <span class="lifetime">&#39;static</span>) {
-        <span class="kw">let </span>(addr, srv) = <a class="macro" href="#96-110">bind!</a>(<span class="self">self</span>, addr);
-        <span class="kw">let </span>fut = <a href="#283">srv</a>.with_graceful_shutdown(<a href="#281">signal</a>).<a href="../../futures_util/future/future/trait.FutureExt.html">map</a>(|result| {
-            <span class="kw">if let </span><span class="prelude-val">Err</span>(err) = <a href="#284">result</a> {
-                <a class="macro" href="../../tracing/tracing/macro.error.html">tracing::error!</a>(<span class="string">&quot;server error: {}&quot;</span>, err)
+        addr: <span class="kw">impl </span>Into&lt;SocketAddr&gt; + <span class="lifetime">&#39;static</span>,
+        signal: <span class="kw">impl </span>Future&lt;Output = ()&gt; + Send + <span class="lifetime">&#39;static</span>,
+    ) -&gt; (SocketAddr, <span class="kw">impl </span>Future&lt;Output = ()&gt; + <span class="lifetime">&#39;static</span>) {
+        <span class="kw">let </span>(addr, srv) = <span class="macro">bind!</span>(<span class="self">self</span>, addr);
+        <span class="kw">let </span>fut = srv.with_graceful_shutdown(signal).map(|result| {
+            <span class="kw">if let </span><span class="prelude-val">Err</span>(err) = result {
+                <span class="macro">tracing::error!</span>(<span class="string">&quot;server error: {}&quot;</span>, err)
             }
         });
-        (<a href="#283">addr</a>, <a href="#284">fut</a>)
+        (addr, fut)
     }
 
     <span class="doccomment">/// Create a server with graceful shutdown signal.
@@ -871,18 +871,18 @@
     /// process.
     </span><span class="kw">pub fn </span>try_bind_with_graceful_shutdown(
         <span class="self">self</span>,
-        addr: <span class="kw">impl </span>Into&lt;<a href="https://doc.rust-lang.org/nightly/std/net/socket_addr/enum.SocketAddr.html">SocketAddr</a>&gt; + <span class="lifetime">&#39;static</span>,
-        signal: <span class="kw">impl </span>Future&lt;Output = ()&gt; + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <span class="lifetime">&#39;static</span>,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;(<a href="https://doc.rust-lang.org/nightly/std/net/socket_addr/enum.SocketAddr.html">SocketAddr</a>, <span class="kw">impl </span>Future&lt;Output = ()&gt; + <span class="lifetime">&#39;static</span>), <a href="error.rs.html#8"><span class="kw">crate</span>::Error</a>&gt; {
-        <span class="kw">let </span>addr = <a href="#298">addr</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>();
+        addr: <span class="kw">impl </span>Into&lt;SocketAddr&gt; + <span class="lifetime">&#39;static</span>,
+        signal: <span class="kw">impl </span>Future&lt;Output = ()&gt; + Send + <span class="lifetime">&#39;static</span>,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(SocketAddr, <span class="kw">impl </span>Future&lt;Output = ()&gt; + <span class="lifetime">&#39;static</span>), <span class="kw">crate</span>::Error&gt; {
+        <span class="kw">let </span>addr = addr.into();
         <span class="kw">let </span>(addr, srv) = <span class="macro">try_bind!</span>(<span class="self">self</span>, <span class="kw-2">&amp;</span>addr).map_err(<span class="kw">crate</span>::Error::new)<span class="question-mark">?</span>;
-        <span class="kw">let </span>srv = <a href="#302">srv</a>.with_graceful_shutdown(<a href="#299">signal</a>).<a href="../../futures_util/future/future/trait.FutureExt.html">map</a>(|result| {
-            <span class="kw">if let </span><span class="prelude-val">Err</span>(err) = <a href="#303">result</a> {
-                <a class="macro" href="../../tracing/tracing/macro.error.html">tracing::error!</a>(<span class="string">&quot;server error: {}&quot;</span>, err)
+        <span class="kw">let </span>srv = srv.with_graceful_shutdown(signal).map(|result| {
+            <span class="kw">if let </span><span class="prelude-val">Err</span>(err) = result {
+                <span class="macro">tracing::error!</span>(<span class="string">&quot;server error: {}&quot;</span>, err)
             }
         });
 
-        <span class="prelude-val">Ok</span>((<a href="#302">addr</a>, <a href="#303">srv</a>))
+        <span class="prelude-val">Ok</span>((addr, srv))
     }
 
     <span class="doccomment">/// Setup this `Server` with a specific stream of incoming connections.
@@ -892,13 +892,13 @@
     /// Returns a `Future` that can be executed on the current runtime.
     </span><span class="kw">pub fn </span>serve_incoming&lt;I&gt;(<span class="self">self</span>, incoming: I) -&gt; <span class="kw">impl </span>Future&lt;Output = ()&gt;
     <span class="kw">where
-        </span>I: <a href="../../futures_core/stream/trait.TryStream.html">TryStream</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a>,
-        I::Ok: <a href="../../tokio/io/async_read/trait.AsyncRead.html">AsyncRead</a> + <a href="../../tokio/io/async_write/trait.AsyncWrite.html">AsyncWrite</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <span class="lifetime">&#39;static </span>+ <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
-        I::Error: Into&lt;Box&lt;<span class="kw">dyn </span><a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">StdError</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a>&gt;&gt;,
+        </span>I: TryStream + Send,
+        I::Ok: AsyncRead + AsyncWrite + Send + <span class="lifetime">&#39;static </span>+ Unpin,
+        I::Error: Into&lt;Box&lt;<span class="kw">dyn </span>StdError + Send + Sync&gt;&gt;,
     {
-        <span class="kw">let </span>incoming = <a href="#317">incoming</a>.<a href="../../futures_util/stream/try_stream/trait.TryStreamExt.html">map_ok</a>(<a href="transport.rs.html#19"><span class="kw">crate</span>::transport::LiftIo</a>);
-        <a class="self" href="#317">self</a>.<a href="#368-372">serve_incoming2</a>(<a href="#323">incoming</a>)
-            .<a href="../../tracing/instrument/trait.Instrument.html">instrument</a>(<a class="macro" href="../../tracing/tracing/macro.info_span.html">tracing::info_span!</a>(<span class="string">&quot;Server::serve_incoming&quot;</span>))
+        <span class="kw">let </span>incoming = incoming.map_ok(<span class="kw">crate</span>::transport::LiftIo);
+        <span class="self">self</span>.serve_incoming2(incoming)
+            .instrument(<span class="macro">tracing::info_span!</span>(<span class="string">&quot;Server::serve_incoming&quot;</span>))
     }
 
     <span class="doccomment">/// Setup this `Server` with a specific stream of incoming connections and a
@@ -913,16 +913,16 @@
     </span><span class="kw">pub fn </span>serve_incoming_with_graceful_shutdown&lt;I&gt;(
         <span class="self">self</span>,
         incoming: I,
-        signal: <span class="kw">impl </span>Future&lt;Output = ()&gt; + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <span class="lifetime">&#39;static</span>,
+        signal: <span class="kw">impl </span>Future&lt;Output = ()&gt; + Send + <span class="lifetime">&#39;static</span>,
     ) -&gt; <span class="kw">impl </span>Future&lt;Output = ()&gt;
     <span class="kw">where
-        </span>I: <a href="../../futures_core/stream/trait.TryStream.html">TryStream</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a>,
-        I::Ok: <a href="../../tokio/io/async_read/trait.AsyncRead.html">AsyncRead</a> + <a href="../../tokio/io/async_write/trait.AsyncWrite.html">AsyncWrite</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <span class="lifetime">&#39;static </span>+ <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
-        I::Error: Into&lt;Box&lt;<span class="kw">dyn </span><a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">StdError</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a>&gt;&gt;,
+        </span>I: TryStream + Send,
+        I::Ok: AsyncRead + AsyncWrite + Send + <span class="lifetime">&#39;static </span>+ Unpin,
+        I::Error: Into&lt;Box&lt;<span class="kw">dyn </span>StdError + Send + Sync&gt;&gt;,
     {
-        <span class="kw">let </span>incoming = <a href="#339">incoming</a>.<a href="../../futures_util/stream/try_stream/trait.TryStreamExt.html">map_ok</a>(<a href="transport.rs.html#19"><span class="kw">crate</span>::transport::LiftIo</a>);
-        <span class="kw">let </span>service = <a class="macro" href="#53-64">into_service!</a>(<span class="self">self</span>.filter);
-        <span class="kw">let </span>pipeline = <a class="self" href="#338">self</a>.pipeline;
+        <span class="kw">let </span>incoming = incoming.map_ok(<span class="kw">crate</span>::transport::LiftIo);
+        <span class="kw">let </span>service = <span class="macro">into_service!</span>(<span class="self">self</span>.filter);
+        <span class="kw">let </span>pipeline = <span class="self">self</span>.pipeline;
 
         <span class="kw">async move </span>{
             <span class="kw">let </span>srv =
@@ -932,20 +932,20 @@
                     .with_graceful_shutdown(signal)
                     .<span class="kw">await</span>;
 
-            <span class="kw">if let </span><span class="prelude-val">Err</span>(err) = <a href="#352">srv</a> {
-                <a class="macro" href="../../tracing/tracing/macro.error.html">tracing::error!</a>(<span class="string">&quot;server error: {}&quot;</span>, err);
+            <span class="kw">if let </span><span class="prelude-val">Err</span>(err) = srv {
+                <span class="macro">tracing::error!</span>(<span class="string">&quot;server error: {}&quot;</span>, err);
             }
         }
-        .<a href="../../tracing/instrument/trait.Instrument.html">instrument</a>(<a class="macro" href="../../tracing/tracing/macro.info_span.html">tracing::info_span!</a>(
+        .instrument(<span class="macro">tracing::info_span!</span>(
             <span class="string">&quot;Server::serve_incoming_with_graceful_shutdown&quot;
         </span>))
     }
 
     <span class="kw">async fn </span>serve_incoming2&lt;I&gt;(<span class="self">self</span>, incoming: I)
     <span class="kw">where
-        </span>I: <a href="../../futures_core/stream/trait.TryStream.html">TryStream</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a>,
-        I::Ok: <a href="transport.rs.html#9">Transport</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <span class="lifetime">&#39;static </span>+ <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
-        I::Error: Into&lt;Box&lt;<span class="kw">dyn </span><a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">StdError</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a>&gt;&gt;,
+        </span>I: TryStream + Send,
+        I::Ok: Transport + Send + <span class="lifetime">&#39;static </span>+ Unpin,
+        I::Error: Into&lt;Box&lt;<span class="kw">dyn </span>StdError + Send + Sync&gt;&gt;,
     {
         <span class="kw">let </span>service = <span class="macro">into_service!</span>(<span class="self">self</span>.filter);
 
@@ -964,8 +964,8 @@
     // It&#39;s only real use is to make silly pipeline benchmarks look better.
     </span><span class="attr">#[doc(hidden)]
     </span><span class="kw">pub fn </span>unstable_pipeline(<span class="kw-2">mut </span><span class="self">self</span>) -&gt; <span class="self">Self </span>{
-        <a class="self" href="#390">self</a>.pipeline = <span class="bool-val">true</span>;
-        <span class="self"><a href="#390">self</a>
+        <span class="self">self</span>.pipeline = <span class="bool-val">true</span>;
+        <span class="self">self
     </span>}
 
     <span class="doccomment">/// Configure a server to use TLS.
@@ -1151,4 +1151,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="warp" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="warp" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

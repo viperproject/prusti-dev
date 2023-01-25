@@ -1,5 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/clap-4.0.26/src/builder/value_parser.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>value_parser.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../clap/index.html">
-                        <img src="https://raw.githubusercontent.com/clap-rs/clap/master/assets/clap.png" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/clap-4.0.32/src/builder/value_parser.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>value_parser.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../clap/index.html">
+                        <img src="https://raw.githubusercontent.com/clap-rs/clap/master/assets/clap.png" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -2434,16 +2434,11 @@
 <a href="#2433" id="2433">2433</a>
 <a href="#2434" id="2434">2434</a>
 <a href="#2435" id="2435">2435</a>
-<a href="#2436" id="2436">2436</a>
-<a href="#2437" id="2437">2437</a>
-<a href="#2438" id="2438">2438</a>
-<a href="#2439" id="2439">2439</a>
-<a href="#2440" id="2440">2440</a>
-</pre><pre class="rust"><code><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/convert/trait.TryInto.html">std::convert::TryInto</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/ops/range/trait.RangeBounds.html">std::ops::RangeBounds</a>;
+</pre><pre class="rust"><code><span class="kw">use </span>std::convert::TryInto;
+<span class="kw">use </span>std::ops::RangeBounds;
 
-<span class="kw">use </span><a href="../parser/matches/any_value.rs.html#2"><span class="kw">crate</span>::parser::AnyValue</a>;
-<span class="kw">use </span><a href="../parser/matches/any_value.rs.html#42"><span class="kw">crate</span>::parser::AnyValueId</a>;
+<span class="kw">use </span><span class="kw">crate</span>::parser::AnyValue;
+<span class="kw">use </span><span class="kw">crate</span>::parser::AnyValueId;
 
 <span class="doccomment">/// Parse/validate argument values
 ///
@@ -2497,7 +2492,7 @@
 ///     .expect(&quot;required&quot;);
 /// assert_eq!(port, 3001);
 /// ```
-</span><span class="kw">pub struct </span>ValueParser(<a href="#61">ValueParserInner</a>);
+</span><span class="kw">pub struct </span>ValueParser(ValueParserInner);
 
 <span class="kw">enum </span>ValueParserInner {
     <span class="comment">// Common enough to optimize and for possible values
@@ -2508,10 +2503,10 @@
     </span>OsString,
     <span class="comment">// Common enough to optimize
     </span>PathBuf,
-    Other(Box&lt;<span class="kw">dyn </span><a href="#536">AnyValueParser</a>&gt;),
+    Other(Box&lt;<span class="kw">dyn </span>AnyValueParser&gt;),
 }
 
-<span class="kw">impl </span><a href="#59">ValueParser</a> {
+<span class="kw">impl </span>ValueParser {
     <span class="doccomment">/// Custom parser for argument values
     ///
     /// Pre-existing [`TypedValueParser`] implementations include:
@@ -2547,9 +2542,9 @@
     /// ```
     </span><span class="kw">pub fn </span>new&lt;P&gt;(other: P) -&gt; <span class="self">Self
     </span><span class="kw">where
-        </span>P: <a href="#650">TypedValueParser</a>,
+        </span>P: TypedValueParser,
     {
-        <span class="self">Self</span>(<a href="#70">ValueParserInner::Other</a>(Box::new(<a href="#107">other</a>)))
+        <span class="self">Self</span>(ValueParserInner::Other(Box::new(other)))
     }
 
     <span class="doccomment">/// [`bool`] parser for argument values
@@ -2576,7 +2571,7 @@
     /// assert!(cmd.try_get_matches_from_mut([&quot;cmd&quot;, &quot;forever&quot;]).is_err());
     /// ```
     </span><span class="kw">pub const fn </span>bool() -&gt; <span class="self">Self </span>{
-        <span class="self">Self</span>(<a href="#63">ValueParserInner::Bool</a>)
+        <span class="self">Self</span>(ValueParserInner::Bool)
     }
 
     <span class="doccomment">/// [`String`] parser for argument values
@@ -2600,7 +2595,7 @@
     /// assert_eq!(port, &quot;80&quot;);
     /// ```
     </span><span class="kw">pub const fn </span>string() -&gt; <span class="self">Self </span>{
-        <span class="self">Self</span>(<a href="#65">ValueParserInner::String</a>)
+        <span class="self">Self</span>(ValueParserInner::String)
     }
 
     <span class="doccomment">/// [`OsString`][std::ffi::OsString] parser for argument values
@@ -2630,7 +2625,7 @@
     /// assert_eq!(arg.as_bytes(), &amp;[0xe9]);
     /// ```
     </span><span class="kw">pub const fn </span>os_string() -&gt; <span class="self">Self </span>{
-        <span class="self">Self</span>(<a href="#67">ValueParserInner::OsString</a>)
+        <span class="self">Self</span>(ValueParserInner::OsString)
     }
 
     <span class="doccomment">/// [`PathBuf`][std::path::PathBuf] parser for argument values
@@ -2655,26 +2650,26 @@
     /// assert!(cmd.try_get_matches_from_mut([&quot;cmd&quot;, &quot;&quot;]).is_err());
     /// ```
     </span><span class="kw">pub const fn </span>path_buf() -&gt; <span class="self">Self </span>{
-        <span class="self">Self</span>(<a href="#69">ValueParserInner::PathBuf</a>)
+        <span class="self">Self</span>(ValueParserInner::PathBuf)
     }
 }
 
-<span class="kw">impl </span><a href="#59">ValueParser</a> {
+<span class="kw">impl </span>ValueParser {
     <span class="doccomment">/// Parse into a `AnyValue`
     ///
     /// When `arg` is `None`, an external subcommand value is being parsed.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>parse_ref(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        cmd: <span class="kw-2">&amp;</span><a href="command.rs.html#71"><span class="kw">crate</span>::Command</a>,
-        arg: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="arg.rs.html#54"><span class="kw">crate</span>::Arg</a>&gt;,
-        value: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsStr.html">std::ffi::OsStr</a>,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../parser/matches/any_value.rs.html#2">AnyValue</a>, <a href="../lib.rs.html#117"><span class="kw">crate</span>::Error</a>&gt; {
-        <a class="self" href="#226">self</a>.<a href="#249">any_value_parser</a>().<a href="#537-542">parse_ref</a>(<a href="#227">cmd</a>, <a href="#228">arg</a>, <a href="#229">value</a>)
+        cmd: <span class="kw-2">&amp;</span><span class="kw">crate</span>::Command,
+        arg: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="kw">crate</span>::Arg&gt;,
+        value: <span class="kw-2">&amp;</span>std::ffi::OsStr,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;AnyValue, <span class="kw">crate</span>::Error&gt; {
+        <span class="self">self</span>.any_value_parser().parse_ref(cmd, arg, value)
     }
 
     <span class="doccomment">/// Describes the content of `AnyValue`
-    </span><span class="kw">pub fn </span>type_id(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../parser/matches/any_value.rs.html#42">AnyValueId</a> {
-        <a class="self" href="#235">self</a>.<a href="#249">any_value_parser</a>().<a href="#552">type_id</a>()
+    </span><span class="kw">pub fn </span>type_id(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; AnyValueId {
+        <span class="self">self</span>.any_value_parser().type_id()
     }
 
     <span class="doccomment">/// Reflect on enumerated value properties
@@ -2683,17 +2678,17 @@
     /// applications like errors and completion.
     </span><span class="kw">pub fn </span>possible_values(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-    ) -&gt; <span class="prelude-ty">Option</span>&lt;Box&lt;<span class="kw">dyn </span>Iterator&lt;Item = <a href="possible_value.rs.html#31"><span class="kw">crate</span>::builder::PossibleValue</a>&gt; + <span class="lifetime">&#39;_</span>&gt;&gt; {
-        <a class="self" href="#244">self</a>.<a href="#249">any_value_parser</a>().<a href="#554-556">possible_values</a>()
+    ) -&gt; <span class="prelude-ty">Option</span>&lt;Box&lt;<span class="kw">dyn </span>Iterator&lt;Item = <span class="kw">crate</span>::builder::PossibleValue&gt; + <span class="lifetime">&#39;_</span>&gt;&gt; {
+        <span class="self">self</span>.any_value_parser().possible_values()
     }
 
-    <span class="kw">fn </span>any_value_parser(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="kw">dyn </span><a href="#536">AnyValueParser</a> {
-        <span class="kw">match </span><span class="kw-2">&amp;</span><a class="self" href="#249">self</a>.<span class="number">0 </span>{
-            <a href="#63">ValueParserInner::Bool</a> =&gt; <span class="kw-2">&amp;</span><a href="#1598">BoolValueParser</a> {},
-            <a href="#65">ValueParserInner::String</a> =&gt; <span class="kw-2">&amp;</span><a href="#816">StringValueParser</a> {},
-            <a href="#67">ValueParserInner::OsString</a> =&gt; <span class="kw-2">&amp;</span><a href="#864">OsStringValueParser</a> {},
-            <a href="#69">ValueParserInner::PathBuf</a> =&gt; <span class="kw-2">&amp;</span><a href="#906">PathBufValueParser</a> {},
-            <a href="#70">ValueParserInner::Other</a>(o) =&gt; <a href="#255">o</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>(),
+    <span class="kw">fn </span>any_value_parser(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="kw">dyn </span>AnyValueParser {
+        <span class="kw">match </span><span class="kw-2">&amp;</span><span class="self">self</span>.<span class="number">0 </span>{
+            ValueParserInner::Bool =&gt; <span class="kw-2">&amp;</span>BoolValueParser {},
+            ValueParserInner::String =&gt; <span class="kw-2">&amp;</span>StringValueParser {},
+            ValueParserInner::OsString =&gt; <span class="kw-2">&amp;</span>OsStringValueParser {},
+            ValueParserInner::PathBuf =&gt; <span class="kw-2">&amp;</span>PathBufValueParser {},
+            ValueParserInner::Other(o) =&gt; o.as_ref(),
         }
     }
 }
@@ -2720,18 +2715,18 @@
 ///     .expect(&quot;required&quot;);
 /// assert_eq!(hostname, &quot;rust-lang.org&quot;);
 /// ```
-</span><span class="kw">impl</span>&lt;P&gt; From&lt;P&gt; <span class="kw">for </span><a href="#59">ValueParser</a>
+</span><span class="kw">impl</span>&lt;P&gt; From&lt;P&gt; <span class="kw">for </span>ValueParser
 <span class="kw">where
-    </span>P: <a href="#650">TypedValueParser</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> + <span class="lifetime">&#39;static</span>,
+    </span>P: TypedValueParser + Send + Sync + <span class="lifetime">&#39;static</span>,
 {
     <span class="kw">fn </span>from(p: P) -&gt; <span class="self">Self </span>{
-        <span class="self">Self</span>::new(<a href="#286">p</a>)
+        <span class="self">Self</span>::new(p)
     }
 }
 
-<span class="kw">impl </span>From&lt;<a href="#2186">_AnonymousValueParser</a>&gt; <span class="kw">for </span><a href="#59">ValueParser</a> {
-    <span class="kw">fn </span>from(p: <a href="#2186">_AnonymousValueParser</a>) -&gt; <span class="self">Self </span>{
-        <a href="#292">p</a>.<span class="number">0
+<span class="kw">impl </span>From&lt;_AnonymousValueParser&gt; <span class="kw">for </span>ValueParser {
+    <span class="kw">fn </span>from(p: _AnonymousValueParser) -&gt; <span class="self">Self </span>{
+        p.<span class="number">0
     </span>}
 }
 
@@ -2758,10 +2753,10 @@
 ///     .expect(&quot;required&quot;);
 /// assert_eq!(port, 3001);
 /// ```
-</span><span class="kw">impl </span>From&lt;std::ops::Range&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>&gt;&gt; <span class="kw">for </span><a href="#59">ValueParser</a> {
-    <span class="kw">fn </span>from(value: std::ops::Range&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>&gt;) -&gt; <span class="self">Self </span>{
-        <span class="kw">let </span>inner = RangedI64ValueParser::&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>&gt;::new().<a href="#1248">range</a>(<a href="#321">value</a>.start..<a href="#321">value</a>.end);
-        <span class="self">Self</span>::from(<a href="#322">inner</a>)
+</span><span class="kw">impl </span>From&lt;std::ops::Range&lt;i64&gt;&gt; <span class="kw">for </span>ValueParser {
+    <span class="kw">fn </span>from(value: std::ops::Range&lt;i64&gt;) -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span>inner = RangedI64ValueParser::&lt;i64&gt;::new().range(value.start..value.end);
+        <span class="self">Self</span>::from(inner)
     }
 }
 
@@ -2788,10 +2783,10 @@
 ///     .expect(&quot;required&quot;);
 /// assert_eq!(port, 3001);
 /// ```
-</span><span class="kw">impl </span>From&lt;std::ops::RangeInclusive&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>&gt;&gt; <span class="kw">for </span><a href="#59">ValueParser</a> {
-    <span class="kw">fn </span>from(value: std::ops::RangeInclusive&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>&gt;) -&gt; <span class="self">Self </span>{
-        <span class="kw">let </span>inner = RangedI64ValueParser::&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>&gt;::new().<a href="#1248">range</a>(<a href="#351">value</a>.start()..=<a href="#351">value</a>.end());
-        <span class="self">Self</span>::from(<a href="#352">inner</a>)
+</span><span class="kw">impl </span>From&lt;std::ops::RangeInclusive&lt;i64&gt;&gt; <span class="kw">for </span>ValueParser {
+    <span class="kw">fn </span>from(value: std::ops::RangeInclusive&lt;i64&gt;) -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span>inner = RangedI64ValueParser::&lt;i64&gt;::new().range(value.start()..=value.end());
+        <span class="self">Self</span>::from(inner)
     }
 }
 
@@ -2818,10 +2813,10 @@
 ///     .expect(&quot;required&quot;);
 /// assert_eq!(port, 3001);
 /// ```
-</span><span class="kw">impl </span>From&lt;std::ops::RangeFrom&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>&gt;&gt; <span class="kw">for </span><a href="#59">ValueParser</a> {
-    <span class="kw">fn </span>from(value: std::ops::RangeFrom&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>&gt;) -&gt; <span class="self">Self </span>{
-        <span class="kw">let </span>inner = RangedI64ValueParser::&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>&gt;::new().<a href="#1248">range</a>(<a href="#381">value</a>.start..);
-        <span class="self">Self</span>::from(<a href="#382">inner</a>)
+</span><span class="kw">impl </span>From&lt;std::ops::RangeFrom&lt;i64&gt;&gt; <span class="kw">for </span>ValueParser {
+    <span class="kw">fn </span>from(value: std::ops::RangeFrom&lt;i64&gt;) -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span>inner = RangedI64ValueParser::&lt;i64&gt;::new().range(value.start..);
+        <span class="self">Self</span>::from(inner)
     }
 }
 
@@ -2848,10 +2843,10 @@
 ///     .expect(&quot;required&quot;);
 /// assert_eq!(port, 80);
 /// ```
-</span><span class="kw">impl </span>From&lt;std::ops::RangeTo&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>&gt;&gt; <span class="kw">for </span><a href="#59">ValueParser</a> {
-    <span class="kw">fn </span>from(value: std::ops::RangeTo&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>&gt;) -&gt; <span class="self">Self </span>{
-        <span class="kw">let </span>inner = RangedI64ValueParser::&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>&gt;::new().<a href="#1248">range</a>(..<a href="#411">value</a>.end);
-        <span class="self">Self</span>::from(<a href="#412">inner</a>)
+</span><span class="kw">impl </span>From&lt;std::ops::RangeTo&lt;i64&gt;&gt; <span class="kw">for </span>ValueParser {
+    <span class="kw">fn </span>from(value: std::ops::RangeTo&lt;i64&gt;) -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span>inner = RangedI64ValueParser::&lt;i64&gt;::new().range(..value.end);
+        <span class="self">Self</span>::from(inner)
     }
 }
 
@@ -2878,10 +2873,10 @@
 ///     .expect(&quot;required&quot;);
 /// assert_eq!(port, 80);
 /// ```
-</span><span class="kw">impl </span>From&lt;std::ops::RangeToInclusive&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>&gt;&gt; <span class="kw">for </span><a href="#59">ValueParser</a> {
-    <span class="kw">fn </span>from(value: std::ops::RangeToInclusive&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>&gt;) -&gt; <span class="self">Self </span>{
-        <span class="kw">let </span>inner = RangedI64ValueParser::&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>&gt;::new().<a href="#1248">range</a>(..=<a href="#441">value</a>.end);
-        <span class="self">Self</span>::from(<a href="#442">inner</a>)
+</span><span class="kw">impl </span>From&lt;std::ops::RangeToInclusive&lt;i64&gt;&gt; <span class="kw">for </span>ValueParser {
+    <span class="kw">fn </span>from(value: std::ops::RangeToInclusive&lt;i64&gt;) -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span>inner = RangedI64ValueParser::&lt;i64&gt;::new().range(..=value.end);
+        <span class="self">Self</span>::from(inner)
     }
 }
 
@@ -2908,10 +2903,10 @@
 ///     .expect(&quot;required&quot;);
 /// assert_eq!(port, 3001);
 /// ```
-</span><span class="kw">impl </span>From&lt;<a href="https://doc.rust-lang.org/nightly/core/ops/range/struct.RangeFull.html">std::ops::RangeFull</a>&gt; <span class="kw">for </span><a href="#59">ValueParser</a> {
-    <span class="kw">fn </span>from(value: <a href="https://doc.rust-lang.org/nightly/core/ops/range/struct.RangeFull.html">std::ops::RangeFull</a>) -&gt; <span class="self">Self </span>{
-        <span class="kw">let </span>inner = RangedI64ValueParser::&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>&gt;::new().<a href="#1248">range</a>(<a href="#471">value</a>);
-        <span class="self">Self</span>::from(<a href="#472">inner</a>)
+</span><span class="kw">impl </span>From&lt;std::ops::RangeFull&gt; <span class="kw">for </span>ValueParser {
+    <span class="kw">fn </span>from(value: std::ops::RangeFull) -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span>inner = RangedI64ValueParser::&lt;i64&gt;::new().range(value);
+        <span class="self">Self</span>::from(inner)
     }
 }
 
@@ -2939,103 +2934,138 @@
 ///     .expect(&quot;default&quot;);
 /// assert_eq!(color, &quot;never&quot;);
 /// ```
-</span><span class="kw">impl</span>&lt;P, <span class="kw">const </span>C: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; From&lt;[P; <a href="#501">C</a>]&gt; <span class="kw">for </span><a href="#59">ValueParser</a>
+</span><span class="kw">impl</span>&lt;P, <span class="kw">const </span>C: usize&gt; From&lt;[P; C]&gt; <span class="kw">for </span>ValueParser
 <span class="kw">where
-    </span>P: Into&lt;<a href="possible_value.rs.html#31"><span class="kw">super</span>::PossibleValue</a>&gt;,
+    </span>P: Into&lt;<span class="kw">super</span>::PossibleValue&gt;,
 {
-    <span class="kw">fn </span>from(values: [P; <a href="#501">C</a>]) -&gt; <span class="self">Self </span>{
-        <span class="kw">let </span>inner = PossibleValuesParser::from(<a href="#505">values</a>);
-        <span class="self">Self</span>::from(<a href="#506">inner</a>)
+    <span class="kw">fn </span>from(values: [P; C]) -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span>inner = PossibleValuesParser::from(values);
+        <span class="self">Self</span>::from(inner)
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">std::fmt::Debug</a> <span class="kw">for </span><a href="#59">ValueParser</a> {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">std::fmt::Formatter</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="https://doc.rust-lang.org/nightly/core/fmt/struct.Error.html">std::fmt::Error</a>&gt; {
-        <span class="kw">match </span><span class="kw-2">&amp;</span><a class="self" href="#512">self</a>.<span class="number">0 </span>{
-            <a href="#63">ValueParserInner::Bool</a> =&gt; <a href="#512">f</a>.debug_struct(<span class="string">&quot;ValueParser::bool&quot;</span>).finish(),
-            <a href="#65">ValueParserInner::String</a> =&gt; <a href="#512">f</a>.debug_struct(<span class="string">&quot;ValueParser::string&quot;</span>).finish(),
-            <a href="#67">ValueParserInner::OsString</a> =&gt; <a href="#512">f</a>.debug_struct(<span class="string">&quot;ValueParser::os_string&quot;</span>).finish(),
-            <a href="#69">ValueParserInner::PathBuf</a> =&gt; <a href="#512">f</a>.debug_struct(<span class="string">&quot;ValueParser::path_buf&quot;</span>).finish(),
-            <a href="#70">ValueParserInner::Other</a>(o) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#512">f</a>, <span class="string">&quot;ValueParser::other({:?})&quot;</span>, o.type_id()),
+<span class="doccomment">/// Create a [`ValueParser`] with [`PossibleValuesParser`]
+///
+/// See [`PossibleValuesParser`] for more flexibility in creating the
+/// [`PossibleValue`][crate::builder::PossibleValue]s.
+///
+/// # Examples
+///
+/// ```rust
+/// let possible = vec![&quot;always&quot;, &quot;auto&quot;, &quot;never&quot;];
+/// let mut cmd = clap::Command::new(&quot;raw&quot;)
+///     .arg(
+///         clap::Arg::new(&quot;color&quot;)
+///             .long(&quot;color&quot;)
+///             .value_parser(possible)
+///             .default_value(&quot;auto&quot;)
+///     );
+///
+/// let m = cmd.try_get_matches_from_mut(
+///     [&quot;cmd&quot;, &quot;--color&quot;, &quot;never&quot;]
+/// ).unwrap();
+///
+/// let color: &amp;String = m.get_one(&quot;color&quot;)
+///     .expect(&quot;default&quot;);
+/// assert_eq!(color, &quot;never&quot;);
+/// ```
+</span><span class="kw">impl</span>&lt;P&gt; From&lt;Vec&lt;P&gt;&gt; <span class="kw">for </span>ValueParser
+<span class="kw">where
+    </span>P: Into&lt;<span class="kw">super</span>::PossibleValue&gt;,
+{
+    <span class="kw">fn </span>from(values: Vec&lt;P&gt;) -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span>inner = PossibleValuesParser::from(values);
+        <span class="self">Self</span>::from(inner)
+    }
+}
+
+<span class="kw">impl </span>std::fmt::Debug <span class="kw">for </span>ValueParser {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter) -&gt; <span class="prelude-ty">Result</span>&lt;(), std::fmt::Error&gt; {
+        <span class="kw">match </span><span class="kw-2">&amp;</span><span class="self">self</span>.<span class="number">0 </span>{
+            ValueParserInner::Bool =&gt; f.debug_struct(<span class="string">&quot;ValueParser::bool&quot;</span>).finish(),
+            ValueParserInner::String =&gt; f.debug_struct(<span class="string">&quot;ValueParser::string&quot;</span>).finish(),
+            ValueParserInner::OsString =&gt; f.debug_struct(<span class="string">&quot;ValueParser::os_string&quot;</span>).finish(),
+            ValueParserInner::PathBuf =&gt; f.debug_struct(<span class="string">&quot;ValueParser::path_buf&quot;</span>).finish(),
+            ValueParserInner::Other(o) =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;ValueParser::other({:?})&quot;</span>, o.type_id()),
         }
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> <span class="kw">for </span><a href="#59">ValueParser</a> {
+<span class="kw">impl </span>Clone <span class="kw">for </span>ValueParser {
     <span class="kw">fn </span>clone(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self </span>{
-        <span class="self">Self</span>(<span class="kw">match </span><span class="kw-2">&amp;</span><a class="self" href="#524">self</a>.<span class="number">0 </span>{
-            <a href="#63">ValueParserInner::Bool</a> =&gt; <a href="#63">ValueParserInner::Bool</a>,
-            <a href="#65">ValueParserInner::String</a> =&gt; <a href="#65">ValueParserInner::String</a>,
-            <a href="#67">ValueParserInner::OsString</a> =&gt; <a href="#67">ValueParserInner::OsString</a>,
-            <a href="#69">ValueParserInner::PathBuf</a> =&gt; <a href="#69">ValueParserInner::PathBuf</a>,
-            <a href="#70">ValueParserInner::Other</a>(o) =&gt; <a href="#70">ValueParserInner::Other</a>(<a href="#530">o</a>.<a href="#558">clone_any</a>()),
+        <span class="self">Self</span>(<span class="kw">match </span><span class="kw-2">&amp;</span><span class="self">self</span>.<span class="number">0 </span>{
+            ValueParserInner::Bool =&gt; ValueParserInner::Bool,
+            ValueParserInner::String =&gt; ValueParserInner::String,
+            ValueParserInner::OsString =&gt; ValueParserInner::OsString,
+            ValueParserInner::PathBuf =&gt; ValueParserInner::PathBuf,
+            ValueParserInner::Other(o) =&gt; ValueParserInner::Other(o.clone_any()),
         })
     }
 }
 
 <span class="doccomment">/// A type-erased wrapper for [`TypedValueParser`].
-</span><span class="kw">trait </span>AnyValueParser: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> + <span class="lifetime">&#39;static </span>{
+</span><span class="kw">trait </span>AnyValueParser: Send + Sync + <span class="lifetime">&#39;static </span>{
     <span class="kw">fn </span>parse_ref(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        cmd: <span class="kw-2">&amp;</span><a href="command.rs.html#71"><span class="kw">crate</span>::Command</a>,
-        arg: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="arg.rs.html#54"><span class="kw">crate</span>::Arg</a>&gt;,
-        value: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsStr.html">std::ffi::OsStr</a>,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../parser/matches/any_value.rs.html#2">AnyValue</a>, <a href="../lib.rs.html#117"><span class="kw">crate</span>::Error</a>&gt;;
+        cmd: <span class="kw-2">&amp;</span><span class="kw">crate</span>::Command,
+        arg: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="kw">crate</span>::Arg&gt;,
+        value: <span class="kw-2">&amp;</span>std::ffi::OsStr,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;AnyValue, <span class="kw">crate</span>::Error&gt;;
 
     <span class="kw">fn </span>parse(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        cmd: <span class="kw-2">&amp;</span><a href="command.rs.html#71"><span class="kw">crate</span>::Command</a>,
-        arg: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="arg.rs.html#54"><span class="kw">crate</span>::Arg</a>&gt;,
-        value: <a href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsString.html">std::ffi::OsString</a>,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../parser/matches/any_value.rs.html#2">AnyValue</a>, <a href="../lib.rs.html#117"><span class="kw">crate</span>::Error</a>&gt;;
+        cmd: <span class="kw-2">&amp;</span><span class="kw">crate</span>::Command,
+        arg: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="kw">crate</span>::Arg&gt;,
+        value: std::ffi::OsString,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;AnyValue, <span class="kw">crate</span>::Error&gt;;
 
     <span class="doccomment">/// Describes the content of `AnyValue`
-    </span><span class="kw">fn </span>type_id(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../parser/matches/any_value.rs.html#42">AnyValueId</a>;
+    </span><span class="kw">fn </span>type_id(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; AnyValueId;
 
     <span class="kw">fn </span>possible_values(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-    ) -&gt; <span class="prelude-ty">Option</span>&lt;Box&lt;<span class="kw">dyn </span>Iterator&lt;Item = <a href="possible_value.rs.html#31"><span class="kw">crate</span>::builder::PossibleValue</a>&gt; + <span class="lifetime">&#39;_</span>&gt;&gt;;
+    ) -&gt; <span class="prelude-ty">Option</span>&lt;Box&lt;<span class="kw">dyn </span>Iterator&lt;Item = <span class="kw">crate</span>::builder::PossibleValue&gt; + <span class="lifetime">&#39;_</span>&gt;&gt;;
 
-    <span class="kw">fn </span>clone_any(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Box&lt;<span class="kw">dyn </span><a href="#536">AnyValueParser</a>&gt;;
+    <span class="kw">fn </span>clone_any(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Box&lt;<span class="kw">dyn </span>AnyValueParser&gt;;
 }
 
-<span class="kw">impl</span>&lt;T, P&gt; <a href="#536">AnyValueParser</a> <span class="kw">for </span>P
+<span class="kw">impl</span>&lt;T, P&gt; AnyValueParser <span class="kw">for </span>P
 <span class="kw">where
-    </span>T: <a href="https://doc.rust-lang.org/nightly/core/any/trait.Any.html">std::any::Any</a> + <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> + <span class="lifetime">&#39;static</span>,
+    </span>T: std::any::Any + Clone + Send + Sync + <span class="lifetime">&#39;static</span>,
     P: TypedValueParser&lt;Value = T&gt;,
 {
     <span class="kw">fn </span>parse_ref(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        cmd: <span class="kw-2">&amp;</span><a href="command.rs.html#71"><span class="kw">crate</span>::Command</a>,
-        arg: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="arg.rs.html#54"><span class="kw">crate</span>::Arg</a>&gt;,
-        value: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsStr.html">std::ffi::OsStr</a>,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../parser/matches/any_value.rs.html#2">AnyValue</a>, <a href="../lib.rs.html#117"><span class="kw">crate</span>::Error</a>&gt; {
-        <span class="kw">let </span>value = <a class="macro" href="../macros.rs.html#665-674">ok!</a>(TypedValueParser::parse_ref(<span class="self">self</span>, cmd, arg, value));
-        <span class="prelude-val">Ok</span>(AnyValue::new(<a href="#572">value</a>))
+        cmd: <span class="kw-2">&amp;</span><span class="kw">crate</span>::Command,
+        arg: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="kw">crate</span>::Arg&gt;,
+        value: <span class="kw-2">&amp;</span>std::ffi::OsStr,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;AnyValue, <span class="kw">crate</span>::Error&gt; {
+        <span class="kw">let </span>value = <span class="macro">ok!</span>(TypedValueParser::parse_ref(<span class="self">self</span>, cmd, arg, value));
+        <span class="prelude-val">Ok</span>(AnyValue::new(value))
     }
 
     <span class="kw">fn </span>parse(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        cmd: <span class="kw-2">&amp;</span><a href="command.rs.html#71"><span class="kw">crate</span>::Command</a>,
-        arg: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="arg.rs.html#54"><span class="kw">crate</span>::Arg</a>&gt;,
-        value: <a href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsString.html">std::ffi::OsString</a>,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../parser/matches/any_value.rs.html#2">AnyValue</a>, <a href="../lib.rs.html#117"><span class="kw">crate</span>::Error</a>&gt; {
-        <span class="kw">let </span>value = <a class="macro" href="../macros.rs.html#665-674">ok!</a>(TypedValueParser::parse(<span class="self">self</span>, cmd, arg, value));
-        <span class="prelude-val">Ok</span>(AnyValue::new(<a href="#582">value</a>))
+        cmd: <span class="kw-2">&amp;</span><span class="kw">crate</span>::Command,
+        arg: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="kw">crate</span>::Arg&gt;,
+        value: std::ffi::OsString,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;AnyValue, <span class="kw">crate</span>::Error&gt; {
+        <span class="kw">let </span>value = <span class="macro">ok!</span>(TypedValueParser::parse(<span class="self">self</span>, cmd, arg, value));
+        <span class="prelude-val">Ok</span>(AnyValue::new(value))
     }
 
-    <span class="kw">fn </span>type_id(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../parser/matches/any_value.rs.html#42">AnyValueId</a> {
+    <span class="kw">fn </span>type_id(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; AnyValueId {
         AnyValueId::of::&lt;T&gt;()
     }
 
     <span class="kw">fn </span>possible_values(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-    ) -&gt; <span class="prelude-ty">Option</span>&lt;Box&lt;<span class="kw">dyn </span>Iterator&lt;Item = <a href="possible_value.rs.html#31"><span class="kw">crate</span>::builder::PossibleValue</a>&gt; + <span class="lifetime">&#39;_</span>&gt;&gt; {
-        P::possible_values(<a class="self" href="#591">self</a>)
+    ) -&gt; <span class="prelude-ty">Option</span>&lt;Box&lt;<span class="kw">dyn </span>Iterator&lt;Item = <span class="kw">crate</span>::builder::PossibleValue&gt; + <span class="lifetime">&#39;_</span>&gt;&gt; {
+        P::possible_values(<span class="self">self</span>)
     }
 
-    <span class="kw">fn </span>clone_any(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Box&lt;<span class="kw">dyn </span><a href="#536">AnyValueParser</a>&gt; {
-        Box::new(<a class="self" href="#596">self</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>())
+    <span class="kw">fn </span>clone_any(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Box&lt;<span class="kw">dyn </span>AnyValueParser&gt; {
+        Box::new(<span class="self">self</span>.clone())
     }
 }
 
@@ -3088,30 +3118,30 @@
 ///     }
 /// }
 /// ```
-</span><span class="kw">pub trait </span>TypedValueParser: <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> + <span class="lifetime">&#39;static </span>{
+</span><span class="kw">pub trait </span>TypedValueParser: Clone + Send + Sync + <span class="lifetime">&#39;static </span>{
     <span class="doccomment">/// Argument&#39;s value type
-    </span><span class="kw">type </span>Value: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> + <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a>;
+    </span><span class="kw">type </span>Value: Send + Sync + Clone;
 
     <span class="doccomment">/// Parse the argument value
     ///
     /// When `arg` is `None`, an external subcommand value is being parsed.
     </span><span class="kw">fn </span>parse_ref(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        cmd: <span class="kw-2">&amp;</span><a href="command.rs.html#71"><span class="kw">crate</span>::Command</a>,
-        arg: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="arg.rs.html#54"><span class="kw">crate</span>::Arg</a>&gt;,
-        value: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsStr.html">std::ffi::OsStr</a>,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Value, <a href="../lib.rs.html#117"><span class="kw">crate</span>::Error</a>&gt;;
+        cmd: <span class="kw-2">&amp;</span><span class="kw">crate</span>::Command,
+        arg: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="kw">crate</span>::Arg&gt;,
+        value: <span class="kw-2">&amp;</span>std::ffi::OsStr,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Value, <span class="kw">crate</span>::Error&gt;;
 
     <span class="doccomment">/// Parse the argument value
     ///
     /// When `arg` is `None`, an external subcommand value is being parsed.
     </span><span class="kw">fn </span>parse(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        cmd: <span class="kw-2">&amp;</span><a href="command.rs.html#71"><span class="kw">crate</span>::Command</a>,
-        arg: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="arg.rs.html#54"><span class="kw">crate</span>::Arg</a>&gt;,
-        value: <a href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsString.html">std::ffi::OsString</a>,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Value, <a href="../lib.rs.html#117"><span class="kw">crate</span>::Error</a>&gt; {
-        <a class="self" href="#668">self</a>.<a href="#657-662">parse_ref</a>(<a href="#669">cmd</a>, <a href="#670">arg</a>, <span class="kw-2">&amp;</span><a href="#671">value</a>)
+        cmd: <span class="kw-2">&amp;</span><span class="kw">crate</span>::Command,
+        arg: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="kw">crate</span>::Arg&gt;,
+        value: std::ffi::OsString,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Value, <span class="kw">crate</span>::Error&gt; {
+        <span class="self">self</span>.parse_ref(cmd, arg, <span class="kw-2">&amp;</span>value)
     }
 
     <span class="doccomment">/// Reflect on enumerated value properties
@@ -3120,7 +3150,7 @@
     /// applications like errors and completion.
     </span><span class="kw">fn </span>possible_values(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-    ) -&gt; <span class="prelude-ty">Option</span>&lt;Box&lt;<span class="kw">dyn </span>Iterator&lt;Item = <a href="possible_value.rs.html#31"><span class="kw">crate</span>::builder::PossibleValue</a>&gt; + <span class="lifetime">&#39;_</span>&gt;&gt; {
+    ) -&gt; <span class="prelude-ty">Option</span>&lt;Box&lt;<span class="kw">dyn </span>Iterator&lt;Item = <span class="kw">crate</span>::builder::PossibleValue&gt; + <span class="lifetime">&#39;_</span>&gt;&gt; {
         <span class="prelude-val">None
     </span>}
 
@@ -3162,10 +3192,10 @@
     /// ```
     </span><span class="kw">fn </span>map&lt;T, F&gt;(<span class="self">self</span>, func: F) -&gt; MapValueParser&lt;<span class="self">Self</span>, F&gt;
     <span class="kw">where
-        </span>T: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> + <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a>,
-        F: Fn(<span class="self">Self</span>::Value) -&gt; T + <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a>,
+        </span>T: Send + Sync + Clone,
+        F: Fn(<span class="self">Self</span>::Value) -&gt; T + Clone,
     {
-        MapValueParser::new(<a class="self" href="#722">self</a>, <a href="#722">func</a>)
+        MapValueParser::new(<span class="self">self</span>, func)
     }
 
     <span class="doccomment">/// Adapt a `TypedValueParser` from one value to another
@@ -3211,41 +3241,41 @@
     /// ```
     </span><span class="kw">fn </span>try_map&lt;T, E, F&gt;(<span class="self">self</span>, func: F) -&gt; TryMapValueParser&lt;<span class="self">Self</span>, F&gt;
     <span class="kw">where
-        </span>F: Fn(<span class="self">Self</span>::Value) -&gt; <span class="prelude-ty">Result</span>&lt;T, E&gt; + <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> + <span class="lifetime">&#39;static</span>,
-        T: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> + <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a>,
-        E: Into&lt;Box&lt;<span class="kw">dyn </span><a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">std::error::Error</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> + <span class="lifetime">&#39;static</span>&gt;&gt;,
+        </span>F: Fn(<span class="self">Self</span>::Value) -&gt; <span class="prelude-ty">Result</span>&lt;T, E&gt; + Clone + Send + Sync + <span class="lifetime">&#39;static</span>,
+        T: Send + Sync + Clone,
+        E: Into&lt;Box&lt;<span class="kw">dyn </span>std::error::Error + Send + Sync + <span class="lifetime">&#39;static</span>&gt;&gt;,
     {
-        TryMapValueParser::new(<a class="self" href="#771">self</a>, <a href="#771">func</a>)
+        TryMapValueParser::new(<span class="self">self</span>, func)
     }
 }
 
-<span class="kw">impl</span>&lt;F, T, E&gt; <a href="#650">TypedValueParser</a> <span class="kw">for </span>F
+<span class="kw">impl</span>&lt;F, T, E&gt; TypedValueParser <span class="kw">for </span>F
 <span class="kw">where
-    </span>F: Fn(<span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Result</span>&lt;T, E&gt; + <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> + <span class="lifetime">&#39;static</span>,
-    E: Into&lt;Box&lt;<span class="kw">dyn </span><a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">std::error::Error</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> + <span class="lifetime">&#39;static</span>&gt;&gt;,
-    T: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> + <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a>,
+    </span>F: Fn(<span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;T, E&gt; + Clone + Send + Sync + <span class="lifetime">&#39;static</span>,
+    E: Into&lt;Box&lt;<span class="kw">dyn </span>std::error::Error + Send + Sync + <span class="lifetime">&#39;static</span>&gt;&gt;,
+    T: Send + Sync + Clone,
 {
     <span class="kw">type </span>Value = T;
 
     <span class="kw">fn </span>parse_ref(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        cmd: <span class="kw-2">&amp;</span><a href="command.rs.html#71"><span class="kw">crate</span>::Command</a>,
-        arg: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="arg.rs.html#54"><span class="kw">crate</span>::Arg</a>&gt;,
-        value: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsStr.html">std::ffi::OsStr</a>,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Value, <a href="../lib.rs.html#117"><span class="kw">crate</span>::Error</a>&gt; {
-        <span class="kw">let </span>value = <a class="macro" href="../macros.rs.html#665-674">ok!</a>(value.to_str().ok_or_else(|| {
+        cmd: <span class="kw-2">&amp;</span><span class="kw">crate</span>::Command,
+        arg: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="kw">crate</span>::Arg&gt;,
+        value: <span class="kw-2">&amp;</span>std::ffi::OsStr,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Value, <span class="kw">crate</span>::Error&gt; {
+        <span class="kw">let </span>value = <span class="macro">ok!</span>(value.to_str().ok_or_else(|| {
             <span class="kw">crate</span>::Error::invalid_utf8(
                 cmd,
                 <span class="kw">crate</span>::output::Usage::new(cmd).create_usage_with_title(<span class="kw-2">&amp;</span>[]),
             )
         }));
-        <span class="kw">let </span>value = <a class="macro" href="../macros.rs.html#665-674">ok!</a>((<span class="self">self</span>)(value).map_err(|e| {
+        <span class="kw">let </span>value = <span class="macro">ok!</span>((<span class="self">self</span>)(value).map_err(|e| {
             <span class="kw">let </span>arg = arg
                 .map(|a| a.to_string())
                 .unwrap_or_else(|| <span class="string">&quot;...&quot;</span>.to_owned());
             <span class="kw">crate</span>::Error::value_validation(arg, value.to_owned(), e.into()).with_cmd(cmd)
         }));
-        <span class="prelude-val">Ok</span>(<a href="#801">value</a>)
+        <span class="prelude-val">Ok</span>(value)
     }
 }
 
@@ -3256,42 +3286,42 @@
 #[non_exhaustive]
 </span><span class="kw">pub struct </span>StringValueParser {}
 
-<span class="kw">impl </span><a href="#816">StringValueParser</a> {
+<span class="kw">impl </span>StringValueParser {
     <span class="doccomment">/// Implementation for [`ValueParser::string`]
     </span><span class="kw">pub fn </span>new() -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{}
     }
 }
 
-<span class="kw">impl </span><a href="#650">TypedValueParser</a> <span class="kw">for </span><a href="#816">StringValueParser</a> {
-    <span class="kw">type </span>Value = <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>;
+<span class="kw">impl </span>TypedValueParser <span class="kw">for </span>StringValueParser {
+    <span class="kw">type </span>Value = String;
 
     <span class="kw">fn </span>parse_ref(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        cmd: <span class="kw-2">&amp;</span><a href="command.rs.html#71"><span class="kw">crate</span>::Command</a>,
-        arg: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="arg.rs.html#54"><span class="kw">crate</span>::Arg</a>&gt;,
-        value: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsStr.html">std::ffi::OsStr</a>,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Value, <a href="../lib.rs.html#117"><span class="kw">crate</span>::Error</a>&gt; {
-        <a href="#667-672">TypedValueParser::parse</a>(<a class="self" href="#829">self</a>, <a href="#830">cmd</a>, <a href="#831">arg</a>, <a href="#832">value</a>.<a href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">to_owned</a>())
+        cmd: <span class="kw-2">&amp;</span><span class="kw">crate</span>::Command,
+        arg: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="kw">crate</span>::Arg&gt;,
+        value: <span class="kw-2">&amp;</span>std::ffi::OsStr,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Value, <span class="kw">crate</span>::Error&gt; {
+        TypedValueParser::parse(<span class="self">self</span>, cmd, arg, value.to_owned())
     }
 
     <span class="kw">fn </span>parse(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        cmd: <span class="kw-2">&amp;</span><a href="command.rs.html#71"><span class="kw">crate</span>::Command</a>,
-        _arg: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="arg.rs.html#54"><span class="kw">crate</span>::Arg</a>&gt;,
-        value: <a href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsString.html">std::ffi::OsString</a>,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Value, <a href="../lib.rs.html#117"><span class="kw">crate</span>::Error</a>&gt; {
-        <span class="kw">let </span>value = <a class="macro" href="../macros.rs.html#665-674">ok!</a>(value.into_string().map_err(|<span class="kw">_</span>| {
+        cmd: <span class="kw-2">&amp;</span><span class="kw">crate</span>::Command,
+        _arg: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="kw">crate</span>::Arg&gt;,
+        value: std::ffi::OsString,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Value, <span class="kw">crate</span>::Error&gt; {
+        <span class="kw">let </span>value = <span class="macro">ok!</span>(value.into_string().map_err(|<span class="kw">_</span>| {
             <span class="kw">crate</span>::Error::invalid_utf8(
                 cmd,
                 <span class="kw">crate</span>::output::Usage::new(cmd).create_usage_with_title(<span class="kw-2">&amp;</span>[]),
             )
         }));
-        <span class="prelude-val">Ok</span>(<a href="#843">value</a>)
+        <span class="prelude-val">Ok</span>(value)
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for </span><a href="#816">StringValueParser</a> {
+<span class="kw">impl </span>Default <span class="kw">for </span>StringValueParser {
     <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>::new()
     }
@@ -3304,36 +3334,36 @@
 #[non_exhaustive]
 </span><span class="kw">pub struct </span>OsStringValueParser {}
 
-<span class="kw">impl </span><a href="#864">OsStringValueParser</a> {
+<span class="kw">impl </span>OsStringValueParser {
     <span class="doccomment">/// Implementation for [`ValueParser::os_string`]
     </span><span class="kw">pub fn </span>new() -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{}
     }
 }
 
-<span class="kw">impl </span><a href="#650">TypedValueParser</a> <span class="kw">for </span><a href="#864">OsStringValueParser</a> {
-    <span class="kw">type </span>Value = <a href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsString.html">std::ffi::OsString</a>;
+<span class="kw">impl </span>TypedValueParser <span class="kw">for </span>OsStringValueParser {
+    <span class="kw">type </span>Value = std::ffi::OsString;
 
     <span class="kw">fn </span>parse_ref(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        cmd: <span class="kw-2">&amp;</span><a href="command.rs.html#71"><span class="kw">crate</span>::Command</a>,
-        arg: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="arg.rs.html#54"><span class="kw">crate</span>::Arg</a>&gt;,
-        value: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsStr.html">std::ffi::OsStr</a>,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Value, <a href="../lib.rs.html#117"><span class="kw">crate</span>::Error</a>&gt; {
-        <a href="#667-672">TypedValueParser::parse</a>(<a class="self" href="#877">self</a>, <a href="#878">cmd</a>, <a href="#879">arg</a>, <a href="#880">value</a>.<a href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">to_owned</a>())
+        cmd: <span class="kw-2">&amp;</span><span class="kw">crate</span>::Command,
+        arg: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="kw">crate</span>::Arg&gt;,
+        value: <span class="kw-2">&amp;</span>std::ffi::OsStr,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Value, <span class="kw">crate</span>::Error&gt; {
+        TypedValueParser::parse(<span class="self">self</span>, cmd, arg, value.to_owned())
     }
 
     <span class="kw">fn </span>parse(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        _cmd: <span class="kw-2">&amp;</span><a href="command.rs.html#71"><span class="kw">crate</span>::Command</a>,
-        _arg: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="arg.rs.html#54"><span class="kw">crate</span>::Arg</a>&gt;,
-        value: <a href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsString.html">std::ffi::OsString</a>,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Value, <a href="../lib.rs.html#117"><span class="kw">crate</span>::Error</a>&gt; {
-        <span class="prelude-val">Ok</span>(<a href="#889">value</a>)
+        _cmd: <span class="kw-2">&amp;</span><span class="kw">crate</span>::Command,
+        _arg: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="kw">crate</span>::Arg&gt;,
+        value: std::ffi::OsString,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Value, <span class="kw">crate</span>::Error&gt; {
+        <span class="prelude-val">Ok</span>(value)
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for </span><a href="#864">OsStringValueParser</a> {
+<span class="kw">impl </span>Default <span class="kw">for </span>OsStringValueParser {
     <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>::new()
     }
@@ -3346,44 +3376,44 @@
 #[non_exhaustive]
 </span><span class="kw">pub struct </span>PathBufValueParser {}
 
-<span class="kw">impl </span><a href="#906">PathBufValueParser</a> {
+<span class="kw">impl </span>PathBufValueParser {
     <span class="doccomment">/// Implementation for [`ValueParser::path_buf`]
     </span><span class="kw">pub fn </span>new() -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{}
     }
 }
 
-<span class="kw">impl </span><a href="#650">TypedValueParser</a> <span class="kw">for </span><a href="#906">PathBufValueParser</a> {
-    <span class="kw">type </span>Value = <a href="https://doc.rust-lang.org/nightly/std/path/struct.PathBuf.html">std::path::PathBuf</a>;
+<span class="kw">impl </span>TypedValueParser <span class="kw">for </span>PathBufValueParser {
+    <span class="kw">type </span>Value = std::path::PathBuf;
 
     <span class="kw">fn </span>parse_ref(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        cmd: <span class="kw-2">&amp;</span><a href="command.rs.html#71"><span class="kw">crate</span>::Command</a>,
-        arg: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="arg.rs.html#54"><span class="kw">crate</span>::Arg</a>&gt;,
-        value: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsStr.html">std::ffi::OsStr</a>,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Value, <a href="../lib.rs.html#117"><span class="kw">crate</span>::Error</a>&gt; {
-        <a href="#667-672">TypedValueParser::parse</a>(<a class="self" href="#919">self</a>, <a href="#920">cmd</a>, <a href="#921">arg</a>, <a href="#922">value</a>.<a href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">to_owned</a>())
+        cmd: <span class="kw-2">&amp;</span><span class="kw">crate</span>::Command,
+        arg: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="kw">crate</span>::Arg&gt;,
+        value: <span class="kw-2">&amp;</span>std::ffi::OsStr,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Value, <span class="kw">crate</span>::Error&gt; {
+        TypedValueParser::parse(<span class="self">self</span>, cmd, arg, value.to_owned())
     }
 
     <span class="kw">fn </span>parse(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        cmd: <span class="kw-2">&amp;</span><a href="command.rs.html#71"><span class="kw">crate</span>::Command</a>,
-        arg: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="arg.rs.html#54"><span class="kw">crate</span>::Arg</a>&gt;,
-        value: <a href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsString.html">std::ffi::OsString</a>,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Value, <a href="../lib.rs.html#117"><span class="kw">crate</span>::Error</a>&gt; {
+        cmd: <span class="kw-2">&amp;</span><span class="kw">crate</span>::Command,
+        arg: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="kw">crate</span>::Arg&gt;,
+        value: std::ffi::OsString,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Value, <span class="kw">crate</span>::Error&gt; {
         <span class="kw">if </span>value.is_empty() {
             <span class="kw">return </span><span class="prelude-val">Err</span>(<span class="kw">crate</span>::Error::empty_value(
-                <a href="#929">cmd</a>,
+                cmd,
                 <span class="kw-2">&amp;</span>[],
-                <a href="#930">arg</a>.map(<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">ToString::to_string</a>)
-                    .unwrap_or_else(|| <span class="string">&quot;...&quot;</span>.<a href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">to_owned</a>()),
+                arg.map(ToString::to_string)
+                    .unwrap_or_else(|| <span class="string">&quot;...&quot;</span>.to_owned()),
             ));
         }
-        <span class="prelude-val">Ok</span>(<span class="self">Self</span>::Value::from(<a href="#931">value</a>))
+        <span class="prelude-val">Ok</span>(<span class="self">Self</span>::Value::from(value))
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for </span><a href="#906">PathBufValueParser</a> {
+<span class="kw">impl </span>Default <span class="kw">for </span>PathBufValueParser {
     <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>::new()
     }
@@ -3398,30 +3428,10 @@
 ///
 /// ```rust
 /// # use std::ffi::OsStr;
+/// # use clap::ColorChoice;
 /// # use clap::builder::TypedValueParser;
 /// # let cmd = clap::Command::new(&quot;test&quot;);
 /// # let arg = None;
-///
-/// #[derive(Copy, Clone, Debug, PartialEq, Eq)]
-/// enum ColorChoice {
-///     Always,
-///     Auto,
-///     Never,
-/// }
-///
-/// impl clap::ValueEnum for ColorChoice {
-///     fn value_variants&lt;&#39;a&gt;() -&gt; &amp;&#39;a [Self] {
-///         &amp;[Self::Always, Self::Auto, Self::Never]
-///     }
-///
-///     fn to_possible_value&lt;&#39;a&gt;(&amp;self) -&gt; Option&lt;clap::builder::PossibleValue&gt; {
-///         match self {
-///             Self::Always =&gt; Some(clap::builder::PossibleValue::new(&quot;always&quot;)),
-///             Self::Auto =&gt; Some(clap::builder::PossibleValue::new(&quot;auto&quot;)),
-///             Self::Never =&gt; Some(clap::builder::PossibleValue::new(&quot;never&quot;)),
-///         }
-///     }
-/// }
 ///
 /// // Usage
 /// let mut cmd = clap::Command::new(&quot;raw&quot;)
@@ -3447,38 +3457,38 @@
 /// assert_eq!(value_parser.parse_ref(&amp;cmd, arg, OsStr::new(&quot;never&quot;)).unwrap(), ColorChoice::Never);
 /// ```
 </span><span class="attr">#[derive(Clone, Debug)]
-</span><span class="kw">pub struct </span>EnumValueParser&lt;E: <a href="../derive.rs.html#374"><span class="kw">crate</span>::ValueEnum</a> + <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> + <span class="lifetime">&#39;static</span>&gt;(
+</span><span class="kw">pub struct </span>EnumValueParser&lt;E: <span class="kw">crate</span>::ValueEnum + Clone + Send + Sync + <span class="lifetime">&#39;static</span>&gt;(
     std::marker::PhantomData&lt;E&gt;,
 );
 
-<span class="kw">impl</span>&lt;E: <a href="../derive.rs.html#374"><span class="kw">crate</span>::ValueEnum</a> + <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> + <span class="lifetime">&#39;static</span>&gt; EnumValueParser&lt;E&gt; {
+<span class="kw">impl</span>&lt;E: <span class="kw">crate</span>::ValueEnum + Clone + Send + Sync + <span class="lifetime">&#39;static</span>&gt; EnumValueParser&lt;E&gt; {
     <span class="doccomment">/// Parse an [`ValueEnum`][crate::ValueEnum]
     </span><span class="kw">pub fn </span>new() -&gt; <span class="self">Self </span>{
-        <span class="kw">let </span>phantom: std::marker::PhantomData&lt;E&gt; = <a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default::default</a>();
-        <span class="self">Self</span>(<a href="#1016">phantom</a>)
+        <span class="kw">let </span>phantom: std::marker::PhantomData&lt;E&gt; = Default::default();
+        <span class="self">Self</span>(phantom)
     }
 }
 
-<span class="kw">impl</span>&lt;E: <a href="../derive.rs.html#374"><span class="kw">crate</span>::ValueEnum</a> + <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> + <span class="lifetime">&#39;static</span>&gt; <a href="#650">TypedValueParser</a> <span class="kw">for </span>EnumValueParser&lt;E&gt; {
+<span class="kw">impl</span>&lt;E: <span class="kw">crate</span>::ValueEnum + Clone + Send + Sync + <span class="lifetime">&#39;static</span>&gt; TypedValueParser <span class="kw">for </span>EnumValueParser&lt;E&gt; {
     <span class="kw">type </span>Value = E;
 
     <span class="kw">fn </span>parse_ref(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        cmd: <span class="kw-2">&amp;</span><a href="command.rs.html#71"><span class="kw">crate</span>::Command</a>,
-        arg: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="arg.rs.html#54"><span class="kw">crate</span>::Arg</a>&gt;,
-        value: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsStr.html">std::ffi::OsStr</a>,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Value, <a href="../lib.rs.html#117"><span class="kw">crate</span>::Error</a>&gt; {
-        <span class="kw">let </span>ignore_case = <a href="#1027">arg</a>.map(|a| <a href="#1030">a</a>.<a href="arg.rs.html#4048">is_ignore_case_set</a>()).unwrap_or(<span class="bool-val">false</span>);
+        cmd: <span class="kw-2">&amp;</span><span class="kw">crate</span>::Command,
+        arg: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="kw">crate</span>::Arg&gt;,
+        value: <span class="kw-2">&amp;</span>std::ffi::OsStr,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Value, <span class="kw">crate</span>::Error&gt; {
+        <span class="kw">let </span>ignore_case = arg.map(|a| a.is_ignore_case_set()).unwrap_or(<span class="bool-val">false</span>);
         <span class="kw">let </span>possible_vals = || {
             E::value_variants()
                 .iter()
-                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter_map</a>(|v| <a href="#1034">v</a>.<a href="../derive.rs.html#394">to_possible_value</a>())
-                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter</a>(|v| !<a href="#1035">v</a>.<a href="possible_value.rs.html#169">is_hide_set</a>())
-                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|v| <a href="#1036">v</a>.<a href="possible_value.rs.html#145">get_name</a>().<a href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">to_owned</a>())
-                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;()
+                .filter_map(|v| v.to_possible_value())
+                .filter(|v| !v.is_hide_set())
+                .map(|v| v.get_name().to_owned())
+                .collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;()
         };
 
-        <span class="kw">let </span>value = <a class="macro" href="../macros.rs.html#665-674">ok!</a>(value.to_str().ok_or_else(|| {
+        <span class="kw">let </span>value = <span class="macro">ok!</span>(value.to_str().ok_or_else(|| {
             <span class="kw">crate</span>::Error::invalid_value(
                 cmd,
                 value.to_string_lossy().into_owned(),
@@ -3487,7 +3497,7 @@
                     .unwrap_or_else(|| <span class="string">&quot;...&quot;</span>.to_owned()),
             )
         }));
-        <span class="kw">let </span>value = <a class="macro" href="../macros.rs.html#665-674">ok!</a>(E::value_variants()
+        <span class="kw">let </span>value = <span class="macro">ok!</span>(E::value_variants()
             .iter()
             .find(|v| {
                 v.to_possible_value()
@@ -3503,22 +3513,22 @@
                     .unwrap_or_else(|| <span class="string">&quot;...&quot;</span>.to_owned()),
             )
             }))
-            .<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
-        <span class="prelude-val">Ok</span>(<a href="#1049">value</a>)
+            .clone();
+        <span class="prelude-val">Ok</span>(value)
     }
 
     <span class="kw">fn </span>possible_values(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-    ) -&gt; <span class="prelude-ty">Option</span>&lt;Box&lt;<span class="kw">dyn </span>Iterator&lt;Item = <a href="possible_value.rs.html#31"><span class="kw">crate</span>::builder::PossibleValue</a>&gt; + <span class="lifetime">&#39;_</span>&gt;&gt; {
+    ) -&gt; <span class="prelude-ty">Option</span>&lt;Box&lt;<span class="kw">dyn </span>Iterator&lt;Item = <span class="kw">crate</span>::builder::PossibleValue&gt; + <span class="lifetime">&#39;_</span>&gt;&gt; {
         <span class="prelude-val">Some</span>(Box::new(
             E::value_variants()
                 .iter()
-                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter_map</a>(|v| <a href="#1075">v</a>.<a href="../derive.rs.html#394">to_possible_value</a>()),
+                .filter_map(|v| v.to_possible_value()),
         ))
     }
 }
 
-<span class="kw">impl</span>&lt;E: <a href="../derive.rs.html#374"><span class="kw">crate</span>::ValueEnum</a> + <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> + <span class="lifetime">&#39;static</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for </span>EnumValueParser&lt;E&gt; {
+<span class="kw">impl</span>&lt;E: <span class="kw">crate</span>::ValueEnum + Clone + Send + Sync + <span class="lifetime">&#39;static</span>&gt; Default <span class="kw">for </span>EnumValueParser&lt;E&gt; {
     <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>::new()
     }
@@ -3527,8 +3537,9 @@
 <span class="doccomment">/// Verify the value is from an enumerated set of [`PossibleValue`][crate::builder::PossibleValue].
 ///
 /// See also:
-/// - [`EnumValueParser`] for directly supporting `enum`s
-/// - [`TypedValueParser::map`] for adapting values to a more specialized type
+/// - [`EnumValueParser`] for directly supporting [`ValueEnum`][crate::ValueEnum] types
+/// - [`TypedValueParser::map`] for adapting values to a more specialized type, like an external
+///   enums that can&#39;t implement [`ValueEnum`][crate::ValueEnum]
 ///
 /// # Example
 ///
@@ -3561,75 +3572,75 @@
 /// assert_eq!(value_parser.parse_ref(&amp;cmd, arg, OsStr::new(&quot;never&quot;)).unwrap(), &quot;never&quot;);
 /// ```
 </span><span class="attr">#[derive(Clone, Debug)]
-</span><span class="kw">pub struct </span>PossibleValuesParser(Vec&lt;<a href="possible_value.rs.html#31"><span class="kw">super</span>::PossibleValue</a>&gt;);
+</span><span class="kw">pub struct </span>PossibleValuesParser(Vec&lt;<span class="kw">super</span>::PossibleValue&gt;);
 
-<span class="kw">impl </span><a href="#1123">PossibleValuesParser</a> {
+<span class="kw">impl </span>PossibleValuesParser {
     <span class="doccomment">/// Verify the value is from an enumerated set pf [`PossibleValue`][crate::builder::PossibleValue].
-    </span><span class="kw">pub fn </span>new(values: <span class="kw">impl </span>Into&lt;<a href="#1123">PossibleValuesParser</a>&gt;) -&gt; <span class="self">Self </span>{
-        <a href="#1127">values</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()
+    </span><span class="kw">pub fn </span>new(values: <span class="kw">impl </span>Into&lt;PossibleValuesParser&gt;) -&gt; <span class="self">Self </span>{
+        values.into()
     }
 }
 
-<span class="kw">impl </span><a href="#650">TypedValueParser</a> <span class="kw">for </span><a href="#1123">PossibleValuesParser</a> {
-    <span class="kw">type </span>Value = <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>;
+<span class="kw">impl </span>TypedValueParser <span class="kw">for </span>PossibleValuesParser {
+    <span class="kw">type </span>Value = String;
 
     <span class="kw">fn </span>parse_ref(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        cmd: <span class="kw-2">&amp;</span><a href="command.rs.html#71"><span class="kw">crate</span>::Command</a>,
-        arg: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="arg.rs.html#54"><span class="kw">crate</span>::Arg</a>&gt;,
-        value: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsStr.html">std::ffi::OsStr</a>,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Value, <a href="../lib.rs.html#117"><span class="kw">crate</span>::Error</a>&gt; {
-        <a href="#667-672">TypedValueParser::parse</a>(<a class="self" href="#1136">self</a>, <a href="#1137">cmd</a>, <a href="#1138">arg</a>, <a href="#1139">value</a>.<a href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">to_owned</a>())
+        cmd: <span class="kw-2">&amp;</span><span class="kw">crate</span>::Command,
+        arg: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="kw">crate</span>::Arg&gt;,
+        value: <span class="kw-2">&amp;</span>std::ffi::OsStr,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Value, <span class="kw">crate</span>::Error&gt; {
+        TypedValueParser::parse(<span class="self">self</span>, cmd, arg, value.to_owned())
     }
 
     <span class="kw">fn </span>parse(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        cmd: <span class="kw-2">&amp;</span><a href="command.rs.html#71"><span class="kw">crate</span>::Command</a>,
-        arg: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="arg.rs.html#54"><span class="kw">crate</span>::Arg</a>&gt;,
-        value: <a href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsString.html">std::ffi::OsString</a>,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, <a href="../lib.rs.html#117"><span class="kw">crate</span>::Error</a>&gt; {
-        <span class="kw">let </span>value = <a class="macro" href="../macros.rs.html#665-674">ok!</a>(value.into_string().map_err(|<span class="kw">_</span>| {
+        cmd: <span class="kw-2">&amp;</span><span class="kw">crate</span>::Command,
+        arg: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="kw">crate</span>::Arg&gt;,
+        value: std::ffi::OsString,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;String, <span class="kw">crate</span>::Error&gt; {
+        <span class="kw">let </span>value = <span class="macro">ok!</span>(value.into_string().map_err(|<span class="kw">_</span>| {
             <span class="kw">crate</span>::Error::invalid_utf8(
                 cmd,
                 <span class="kw">crate</span>::output::Usage::new(cmd).create_usage_with_title(<span class="kw-2">&amp;</span>[]),
             )
         }));
 
-        <span class="kw">let </span>ignore_case = <a href="#1147">arg</a>.map(|a| <a href="#1157">a</a>.<a href="arg.rs.html#4048">is_ignore_case_set</a>()).unwrap_or(<span class="bool-val">false</span>);
+        <span class="kw">let </span>ignore_case = arg.map(|a| a.is_ignore_case_set()).unwrap_or(<span class="bool-val">false</span>);
         <span class="kw">if </span><span class="self">self</span>.<span class="number">0</span>.iter().any(|v| v.matches(<span class="kw-2">&amp;</span>value, ignore_case)) {
-            <span class="prelude-val">Ok</span>(<a href="#1150">value</a>)
+            <span class="prelude-val">Ok</span>(value)
         } <span class="kw">else </span>{
-            <span class="kw">let </span>possible_vals = <span class="self"><a href="#1145">self</a>
+            <span class="kw">let </span>possible_vals = <span class="self">self
                 </span>.<span class="number">0
                 </span>.iter()
-                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter</a>(|v| !<a href="#1164">v</a>.<a href="possible_value.rs.html#169">is_hide_set</a>())
-                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|v| <a href="#1165">v</a>.<a href="possible_value.rs.html#145">get_name</a>().<a href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">to_owned</a>())
-                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;();
+                .filter(|v| !v.is_hide_set())
+                .map(|v| v.get_name().to_owned())
+                .collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;();
 
             <span class="prelude-val">Err</span>(<span class="kw">crate</span>::Error::invalid_value(
-                <a href="#1146">cmd</a>,
-                <a href="#1150">value</a>,
-                <span class="kw-2">&amp;</span><a href="#1161">possible_vals</a>,
-                <a href="#1147">arg</a>.map(<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">ToString::to_string</a>)
-                    .unwrap_or_else(|| <span class="string">&quot;...&quot;</span>.<a href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">to_owned</a>()),
+                cmd,
+                value,
+                <span class="kw-2">&amp;</span>possible_vals,
+                arg.map(ToString::to_string)
+                    .unwrap_or_else(|| <span class="string">&quot;...&quot;</span>.to_owned()),
             ))
         }
     }
 
     <span class="kw">fn </span>possible_values(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-    ) -&gt; <span class="prelude-ty">Option</span>&lt;Box&lt;<span class="kw">dyn </span>Iterator&lt;Item = <a href="possible_value.rs.html#31"><span class="kw">crate</span>::builder::PossibleValue</a>&gt; + <span class="lifetime">&#39;_</span>&gt;&gt; {
-        <span class="prelude-val">Some</span>(Box::new(<a class="self" href="#1179">self</a>.<span class="number">0</span>.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">cloned</a>()))
+    ) -&gt; <span class="prelude-ty">Option</span>&lt;Box&lt;<span class="kw">dyn </span>Iterator&lt;Item = <span class="kw">crate</span>::builder::PossibleValue&gt; + <span class="lifetime">&#39;_</span>&gt;&gt; {
+        <span class="prelude-val">Some</span>(Box::new(<span class="self">self</span>.<span class="number">0</span>.iter().cloned()))
     }
 }
 
-<span class="kw">impl</span>&lt;I, T&gt; From&lt;I&gt; <span class="kw">for </span><a href="#1123">PossibleValuesParser</a>
+<span class="kw">impl</span>&lt;I, T&gt; From&lt;I&gt; <span class="kw">for </span>PossibleValuesParser
 <span class="kw">where
     </span>I: IntoIterator&lt;Item = T&gt;,
-    T: Into&lt;<a href="possible_value.rs.html#31"><span class="kw">super</span>::PossibleValue</a>&gt;,
+    T: Into&lt;<span class="kw">super</span>::PossibleValue&gt;,
 {
     <span class="kw">fn </span>from(values: I) -&gt; <span class="self">Self </span>{
-        <span class="self">Self</span>(<a href="#1190">values</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|t| <a href="#1191">t</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>())
+        <span class="self">Self</span>(values.into_iter().map(|t| t.into()).collect())
     }
 }
 
@@ -3674,111 +3685,111 @@
 /// assert_eq!(value_parser.parse_ref(&amp;cmd, arg, OsStr::new(&quot;50&quot;)).unwrap(), 50);
 /// ```
 </span><span class="attr">#[derive(Copy, Clone, Debug)]
-</span><span class="kw">pub struct </span>RangedI64ValueParser&lt;T: std::convert::TryFrom&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>&gt; + <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> = <a href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>&gt; {
-    bounds: (std::ops::Bound&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>&gt;, std::ops::Bound&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>&gt;),
+</span><span class="kw">pub struct </span>RangedI64ValueParser&lt;T: std::convert::TryFrom&lt;i64&gt; + Clone + Send + Sync = i64&gt; {
+    bounds: (std::ops::Bound&lt;i64&gt;, std::ops::Bound&lt;i64&gt;),
     target: std::marker::PhantomData&lt;T&gt;,
 }
 
-<span class="kw">impl</span>&lt;T: std::convert::TryFrom&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>&gt; + <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a>&gt; RangedI64ValueParser&lt;T&gt; {
+<span class="kw">impl</span>&lt;T: std::convert::TryFrom&lt;i64&gt; + Clone + Send + Sync&gt; RangedI64ValueParser&lt;T&gt; {
     <span class="doccomment">/// Select full range of `i64`
     </span><span class="kw">pub fn </span>new() -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>::from(..)
     }
 
     <span class="doccomment">/// Narrow the supported range
-    </span><span class="kw">pub fn </span>range&lt;B: RangeBounds&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>&gt;&gt;(<span class="kw-2">mut </span><span class="self">self</span>, range: B) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub fn </span>range&lt;B: RangeBounds&lt;i64&gt;&gt;(<span class="kw-2">mut </span><span class="self">self</span>, range: B) -&gt; <span class="self">Self </span>{
         <span class="comment">// Consideration: when the user does `value_parser!(u8).range()`
         // - Avoid programming mistakes by accidentally expanding the range
         // - Make it convenient to limit the range like with `..10`
-        </span><span class="kw">let </span>start = <span class="kw">match </span><a href="#1248">range</a>.<a href="https://doc.rust-lang.org/nightly/core/ops/range/trait.RangeBounds.html">start_bound</a>() {
+        </span><span class="kw">let </span>start = <span class="kw">match </span>range.start_bound() {
             l @ std::ops::Bound::Included(i) =&gt; {
-                <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(
+                <span class="macro">debug_assert!</span>(
                     <span class="self">self</span>.bounds.contains(i),
                     <span class="string">&quot;{} must be in {:?}&quot;</span>,
                     i,
                     <span class="self">self</span>.bounds
                 );
-                <a href="#1253">l</a>.cloned()
+                l.cloned()
             }
             l @ std::ops::Bound::Excluded(i) =&gt; {
-                <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(
+                <span class="macro">debug_assert!</span>(
                     <span class="self">self</span>.bounds.contains(<span class="kw-2">&amp;</span>i.saturating_add(<span class="number">1</span>)),
                     <span class="string">&quot;{} must be in {:?}&quot;</span>,
                     i,
                     <span class="self">self</span>.bounds
                 );
-                <a href="#1262">l</a>.cloned()
+                l.cloned()
             }
-            std::ops::Bound::Unbounded =&gt; <a class="self" href="#1248">self</a>.bounds.<a href="https://doc.rust-lang.org/nightly/core/ops/range/trait.RangeBounds.html">start_bound</a>().cloned(),
+            std::ops::Bound::Unbounded =&gt; <span class="self">self</span>.bounds.start_bound().cloned(),
         };
-        <span class="kw">let </span>end = <span class="kw">match </span><a href="#1248">range</a>.<a href="https://doc.rust-lang.org/nightly/core/ops/range/trait.RangeBounds.html">end_bound</a>() {
+        <span class="kw">let </span>end = <span class="kw">match </span>range.end_bound() {
             l @ std::ops::Bound::Included(i) =&gt; {
-                <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(
+                <span class="macro">debug_assert!</span>(
                     <span class="self">self</span>.bounds.contains(i),
                     <span class="string">&quot;{} must be in {:?}&quot;</span>,
                     i,
                     <span class="self">self</span>.bounds
                 );
-                <a href="#1274">l</a>.cloned()
+                l.cloned()
             }
             l @ std::ops::Bound::Excluded(i) =&gt; {
-                <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(
+                <span class="macro">debug_assert!</span>(
                     <span class="self">self</span>.bounds.contains(<span class="kw-2">&amp;</span>i.saturating_sub(<span class="number">1</span>)),
                     <span class="string">&quot;{} must be in {:?}&quot;</span>,
                     i,
                     <span class="self">self</span>.bounds
                 );
-                <a href="#1283">l</a>.cloned()
+                l.cloned()
             }
-            std::ops::Bound::Unbounded =&gt; <a class="self" href="#1248">self</a>.bounds.<a href="https://doc.rust-lang.org/nightly/core/ops/range/trait.RangeBounds.html">end_bound</a>().cloned(),
+            std::ops::Bound::Unbounded =&gt; <span class="self">self</span>.bounds.end_bound().cloned(),
         };
-        <a class="self" href="#1248">self</a>.bounds = (<a href="#1252">start</a>, <a href="#1273">end</a>);
-        <span class="self"><a href="#1248">self</a>
+        <span class="self">self</span>.bounds = (start, end);
+        <span class="self">self
     </span>}
 
-    <span class="kw">fn </span>format_bounds(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a> {
-        <span class="kw">let </span><span class="kw-2">mut </span>result = <span class="kw">match </span><a class="self" href="#1298">self</a>.bounds.<span class="number">0 </span>{
-            std::ops::Bound::Included(i) =&gt; <a href="#1300">i</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(),
-            std::ops::Bound::Excluded(i) =&gt; <a href="#1301">i</a>.saturating_add(<span class="number">1</span>).<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(),
-            std::ops::Bound::Unbounded =&gt; i64::MIN.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(),
+    <span class="kw">fn </span>format_bounds(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; String {
+        <span class="kw">let </span><span class="kw-2">mut </span>result = <span class="kw">match </span><span class="self">self</span>.bounds.<span class="number">0 </span>{
+            std::ops::Bound::Included(i) =&gt; i.to_string(),
+            std::ops::Bound::Excluded(i) =&gt; i.saturating_add(<span class="number">1</span>).to_string(),
+            std::ops::Bound::Unbounded =&gt; i64::MIN.to_string(),
         };
-        <a href="#1299">result</a>.push_str(<span class="string">&quot;..&quot;</span>);
-        <span class="kw">match </span><a class="self" href="#1298">self</a>.bounds.<span class="number">1 </span>{
+        result.push_str(<span class="string">&quot;..&quot;</span>);
+        <span class="kw">match </span><span class="self">self</span>.bounds.<span class="number">1 </span>{
             std::ops::Bound::Included(i) =&gt; {
-                <a href="#1299">result</a>.push(<span class="string">&#39;=&#39;</span>);
-                <a href="#1299">result</a>.push_str(<span class="kw-2">&amp;</span><a href="#1306">i</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
+                result.push(<span class="string">&#39;=&#39;</span>);
+                result.push_str(<span class="kw-2">&amp;</span>i.to_string());
             }
             std::ops::Bound::Excluded(i) =&gt; {
-                <a href="#1299">result</a>.push_str(<span class="kw-2">&amp;</span><a href="#1310">i</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
+                result.push_str(<span class="kw-2">&amp;</span>i.to_string());
             }
             std::ops::Bound::Unbounded =&gt; {
-                <a href="#1299">result</a>.push_str(<span class="kw-2">&amp;</span>i64::MAX.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
+                result.push_str(<span class="kw-2">&amp;</span>i64::MAX.to_string());
             }
         }
-        <a href="#1299">result</a>
+        result
     }
 }
 
-<span class="kw">impl</span>&lt;T: std::convert::TryFrom&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>&gt; + <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> + <span class="lifetime">&#39;static</span>&gt; <a href="#650">TypedValueParser</a>
+<span class="kw">impl</span>&lt;T: std::convert::TryFrom&lt;i64&gt; + Clone + Send + Sync + <span class="lifetime">&#39;static</span>&gt; TypedValueParser
     <span class="kw">for </span>RangedI64ValueParser&lt;T&gt;
 <span class="kw">where
-    </span>&lt;T <span class="kw">as </span>std::convert::TryFrom&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>&gt;&gt;::Error: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> + <span class="lifetime">&#39;static </span>+ <a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">std::error::Error</a> + <a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">ToString</a>,
+    </span>&lt;T <span class="kw">as </span>std::convert::TryFrom&lt;i64&gt;&gt;::Error: Send + Sync + <span class="lifetime">&#39;static </span>+ std::error::Error + ToString,
 {
     <span class="kw">type </span>Value = T;
 
     <span class="kw">fn </span>parse_ref(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        cmd: <span class="kw-2">&amp;</span><a href="command.rs.html#71"><span class="kw">crate</span>::Command</a>,
-        arg: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="arg.rs.html#54"><span class="kw">crate</span>::Arg</a>&gt;,
-        raw_value: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsStr.html">std::ffi::OsStr</a>,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Value, <a href="../lib.rs.html#117"><span class="kw">crate</span>::Error</a>&gt; {
-        <span class="kw">let </span>value = <a class="macro" href="../macros.rs.html#665-674">ok!</a>(raw_value.to_str().ok_or_else(|| {
+        cmd: <span class="kw-2">&amp;</span><span class="kw">crate</span>::Command,
+        arg: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="kw">crate</span>::Arg&gt;,
+        raw_value: <span class="kw-2">&amp;</span>std::ffi::OsStr,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Value, <span class="kw">crate</span>::Error&gt; {
+        <span class="kw">let </span>value = <span class="macro">ok!</span>(raw_value.to_str().ok_or_else(|| {
             <span class="kw">crate</span>::Error::invalid_utf8(
                 cmd,
                 <span class="kw">crate</span>::output::Usage::new(cmd).create_usage_with_title(<span class="kw-2">&amp;</span>[]),
             )
         }));
-        <span class="kw">let </span>value = <a class="macro" href="../macros.rs.html#665-674">ok!</a>(value.parse::&lt;i64&gt;().map_err(|err| {
+        <span class="kw">let </span>value = <span class="macro">ok!</span>(value.parse::&lt;i64&gt;().map_err(|err| {
             <span class="kw">let </span>arg = arg
                 .map(|a| a.to_string())
                 .unwrap_or_else(|| <span class="string">&quot;...&quot;</span>.to_owned());
@@ -3790,19 +3801,19 @@
             .with_cmd(cmd)
         }));
         <span class="kw">if </span>!<span class="self">self</span>.bounds.contains(<span class="kw-2">&amp;</span>value) {
-            <span class="kw">let </span>arg = <a href="#1331">arg</a>
-                .map(|a| <a href="#1353">a</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>())
-                .unwrap_or_else(|| <span class="string">&quot;...&quot;</span>.<a href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">to_owned</a>());
+            <span class="kw">let </span>arg = arg
+                .map(|a| a.to_string())
+                .unwrap_or_else(|| <span class="string">&quot;...&quot;</span>.to_owned());
             <span class="kw">return </span><span class="prelude-val">Err</span>(<span class="kw">crate</span>::Error::value_validation(
-                <a href="#1352">arg</a>,
-                <a href="#1332">raw_value</a>.to_string_lossy().into_owned(),
-                <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;{} is not in {}&quot;</span>, value, <span class="self">self</span>.format_bounds()).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
+                arg,
+                raw_value.to_string_lossy().into_owned(),
+                <span class="macro">format!</span>(<span class="string">&quot;{} is not in {}&quot;</span>, value, <span class="self">self</span>.format_bounds()).into(),
             )
-            .<a href="../error/mod.rs.html#144">with_cmd</a>(<a href="#1330">cmd</a>));
+            .with_cmd(cmd));
         }
 
-        <span class="kw">let </span>value: <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Value, <span class="kw">_</span>&gt; = <a href="#1340">value</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.TryInto.html">try_into</a>();
-        <span class="kw">let </span>value = <a class="macro" href="../macros.rs.html#665-674">ok!</a>(value.map_err(|err| {
+        <span class="kw">let </span>value: <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Value, <span class="kw">_</span>&gt; = value.try_into();
+        <span class="kw">let </span>value = <span class="macro">ok!</span>(value.map_err(|err| {
             <span class="kw">let </span>arg = arg
                 .map(|a| a.to_string())
                 .unwrap_or_else(|| <span class="string">&quot;...&quot;</span>.to_owned());
@@ -3814,22 +3825,22 @@
             .with_cmd(cmd)
         }));
 
-        <span class="prelude-val">Ok</span>(<a href="#1364">value</a>)
+        <span class="prelude-val">Ok</span>(value)
     }
 }
 
-<span class="kw">impl</span>&lt;T: std::convert::TryFrom&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>&gt; + <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a>, B: RangeBounds&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>&gt;&gt; From&lt;B&gt;
+<span class="kw">impl</span>&lt;T: std::convert::TryFrom&lt;i64&gt; + Clone + Send + Sync, B: RangeBounds&lt;i64&gt;&gt; From&lt;B&gt;
     <span class="kw">for </span>RangedI64ValueParser&lt;T&gt;
 {
     <span class="kw">fn </span>from(range: B) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
-            bounds: (<a href="#1383">range</a>.<a href="https://doc.rust-lang.org/nightly/core/ops/range/trait.RangeBounds.html">start_bound</a>().cloned(), <a href="#1383">range</a>.<a href="https://doc.rust-lang.org/nightly/core/ops/range/trait.RangeBounds.html">end_bound</a>().cloned()),
-            target: <a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default::default</a>(),
+            bounds: (range.start_bound().cloned(), range.end_bound().cloned()),
+            target: Default::default(),
         }
     }
 }
 
-<span class="kw">impl</span>&lt;T: std::convert::TryFrom&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>&gt; + <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for </span>RangedI64ValueParser&lt;T&gt; {
+<span class="kw">impl</span>&lt;T: std::convert::TryFrom&lt;i64&gt; + Clone + Send + Sync&gt; Default <span class="kw">for </span>RangedI64ValueParser&lt;T&gt; {
     <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>::new()
     }
@@ -3872,111 +3883,111 @@
 /// assert_eq!(value_parser.parse_ref(&amp;cmd, arg, OsStr::new(&quot;50&quot;)).unwrap(), 50);
 /// ```
 </span><span class="attr">#[derive(Copy, Clone, Debug)]
-</span><span class="kw">pub struct </span>RangedU64ValueParser&lt;T: std::convert::TryFrom&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>&gt; = <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>&gt; {
-    bounds: (std::ops::Bound&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>&gt;, std::ops::Bound&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>&gt;),
+</span><span class="kw">pub struct </span>RangedU64ValueParser&lt;T: std::convert::TryFrom&lt;u64&gt; = u64&gt; {
+    bounds: (std::ops::Bound&lt;u64&gt;, std::ops::Bound&lt;u64&gt;),
     target: std::marker::PhantomData&lt;T&gt;,
 }
 
-<span class="kw">impl</span>&lt;T: std::convert::TryFrom&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>&gt;&gt; RangedU64ValueParser&lt;T&gt; {
+<span class="kw">impl</span>&lt;T: std::convert::TryFrom&lt;u64&gt;&gt; RangedU64ValueParser&lt;T&gt; {
     <span class="doccomment">/// Select full range of `u64`
     </span><span class="kw">pub fn </span>new() -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>::from(..)
     }
 
     <span class="doccomment">/// Narrow the supported range
-    </span><span class="kw">pub fn </span>range&lt;B: RangeBounds&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>&gt;&gt;(<span class="kw-2">mut </span><span class="self">self</span>, range: B) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub fn </span>range&lt;B: RangeBounds&lt;u64&gt;&gt;(<span class="kw-2">mut </span><span class="self">self</span>, range: B) -&gt; <span class="self">Self </span>{
         <span class="comment">// Consideration: when the user does `value_parser!(u8).range()`
         // - Avoid programming mistakes by accidentally expanding the range
         // - Make it convenient to limit the range like with `..10`
-        </span><span class="kw">let </span>start = <span class="kw">match </span><a href="#1446">range</a>.<a href="https://doc.rust-lang.org/nightly/core/ops/range/trait.RangeBounds.html">start_bound</a>() {
+        </span><span class="kw">let </span>start = <span class="kw">match </span>range.start_bound() {
             l @ std::ops::Bound::Included(i) =&gt; {
-                <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(
+                <span class="macro">debug_assert!</span>(
                     <span class="self">self</span>.bounds.contains(i),
                     <span class="string">&quot;{} must be in {:?}&quot;</span>,
                     i,
                     <span class="self">self</span>.bounds
                 );
-                <a href="#1451">l</a>.cloned()
+                l.cloned()
             }
             l @ std::ops::Bound::Excluded(i) =&gt; {
-                <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(
+                <span class="macro">debug_assert!</span>(
                     <span class="self">self</span>.bounds.contains(<span class="kw-2">&amp;</span>i.saturating_add(<span class="number">1</span>)),
                     <span class="string">&quot;{} must be in {:?}&quot;</span>,
                     i,
                     <span class="self">self</span>.bounds
                 );
-                <a href="#1460">l</a>.cloned()
+                l.cloned()
             }
-            std::ops::Bound::Unbounded =&gt; <a class="self" href="#1446">self</a>.bounds.<a href="https://doc.rust-lang.org/nightly/core/ops/range/trait.RangeBounds.html">start_bound</a>().cloned(),
+            std::ops::Bound::Unbounded =&gt; <span class="self">self</span>.bounds.start_bound().cloned(),
         };
-        <span class="kw">let </span>end = <span class="kw">match </span><a href="#1446">range</a>.<a href="https://doc.rust-lang.org/nightly/core/ops/range/trait.RangeBounds.html">end_bound</a>() {
+        <span class="kw">let </span>end = <span class="kw">match </span>range.end_bound() {
             l @ std::ops::Bound::Included(i) =&gt; {
-                <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(
+                <span class="macro">debug_assert!</span>(
                     <span class="self">self</span>.bounds.contains(i),
                     <span class="string">&quot;{} must be in {:?}&quot;</span>,
                     i,
                     <span class="self">self</span>.bounds
                 );
-                <a href="#1472">l</a>.cloned()
+                l.cloned()
             }
             l @ std::ops::Bound::Excluded(i) =&gt; {
-                <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(
+                <span class="macro">debug_assert!</span>(
                     <span class="self">self</span>.bounds.contains(<span class="kw-2">&amp;</span>i.saturating_sub(<span class="number">1</span>)),
                     <span class="string">&quot;{} must be in {:?}&quot;</span>,
                     i,
                     <span class="self">self</span>.bounds
                 );
-                <a href="#1481">l</a>.cloned()
+                l.cloned()
             }
-            std::ops::Bound::Unbounded =&gt; <a class="self" href="#1446">self</a>.bounds.<a href="https://doc.rust-lang.org/nightly/core/ops/range/trait.RangeBounds.html">end_bound</a>().cloned(),
+            std::ops::Bound::Unbounded =&gt; <span class="self">self</span>.bounds.end_bound().cloned(),
         };
-        <a class="self" href="#1446">self</a>.bounds = (<a href="#1450">start</a>, <a href="#1471">end</a>);
-        <span class="self"><a href="#1446">self</a>
+        <span class="self">self</span>.bounds = (start, end);
+        <span class="self">self
     </span>}
 
-    <span class="kw">fn </span>format_bounds(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a> {
-        <span class="kw">let </span><span class="kw-2">mut </span>result = <span class="kw">match </span><a class="self" href="#1496">self</a>.bounds.<span class="number">0 </span>{
-            std::ops::Bound::Included(i) =&gt; <a href="#1498">i</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(),
-            std::ops::Bound::Excluded(i) =&gt; <a href="#1499">i</a>.saturating_add(<span class="number">1</span>).<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(),
-            std::ops::Bound::Unbounded =&gt; u64::MIN.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(),
+    <span class="kw">fn </span>format_bounds(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; String {
+        <span class="kw">let </span><span class="kw-2">mut </span>result = <span class="kw">match </span><span class="self">self</span>.bounds.<span class="number">0 </span>{
+            std::ops::Bound::Included(i) =&gt; i.to_string(),
+            std::ops::Bound::Excluded(i) =&gt; i.saturating_add(<span class="number">1</span>).to_string(),
+            std::ops::Bound::Unbounded =&gt; u64::MIN.to_string(),
         };
-        <a href="#1497">result</a>.push_str(<span class="string">&quot;..&quot;</span>);
-        <span class="kw">match </span><a class="self" href="#1496">self</a>.bounds.<span class="number">1 </span>{
+        result.push_str(<span class="string">&quot;..&quot;</span>);
+        <span class="kw">match </span><span class="self">self</span>.bounds.<span class="number">1 </span>{
             std::ops::Bound::Included(i) =&gt; {
-                <a href="#1497">result</a>.push(<span class="string">&#39;=&#39;</span>);
-                <a href="#1497">result</a>.push_str(<span class="kw-2">&amp;</span><a href="#1504">i</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
+                result.push(<span class="string">&#39;=&#39;</span>);
+                result.push_str(<span class="kw-2">&amp;</span>i.to_string());
             }
             std::ops::Bound::Excluded(i) =&gt; {
-                <a href="#1497">result</a>.push_str(<span class="kw-2">&amp;</span><a href="#1508">i</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
+                result.push_str(<span class="kw-2">&amp;</span>i.to_string());
             }
             std::ops::Bound::Unbounded =&gt; {
-                <a href="#1497">result</a>.push_str(<span class="kw-2">&amp;</span>u64::MAX.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
+                result.push_str(<span class="kw-2">&amp;</span>u64::MAX.to_string());
             }
         }
-        <a href="#1497">result</a>
+        result
     }
 }
 
-<span class="kw">impl</span>&lt;T: std::convert::TryFrom&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>&gt; + <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> + <span class="lifetime">&#39;static</span>&gt; <a href="#650">TypedValueParser</a>
+<span class="kw">impl</span>&lt;T: std::convert::TryFrom&lt;u64&gt; + Clone + Send + Sync + <span class="lifetime">&#39;static</span>&gt; TypedValueParser
     <span class="kw">for </span>RangedU64ValueParser&lt;T&gt;
 <span class="kw">where
-    </span>&lt;T <span class="kw">as </span>std::convert::TryFrom&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>&gt;&gt;::Error: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> + <span class="lifetime">&#39;static </span>+ <a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">std::error::Error</a> + <a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">ToString</a>,
+    </span>&lt;T <span class="kw">as </span>std::convert::TryFrom&lt;u64&gt;&gt;::Error: Send + Sync + <span class="lifetime">&#39;static </span>+ std::error::Error + ToString,
 {
     <span class="kw">type </span>Value = T;
 
     <span class="kw">fn </span>parse_ref(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        cmd: <span class="kw-2">&amp;</span><a href="command.rs.html#71"><span class="kw">crate</span>::Command</a>,
-        arg: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="arg.rs.html#54"><span class="kw">crate</span>::Arg</a>&gt;,
-        raw_value: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsStr.html">std::ffi::OsStr</a>,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Value, <a href="../lib.rs.html#117"><span class="kw">crate</span>::Error</a>&gt; {
-        <span class="kw">let </span>value = <a class="macro" href="../macros.rs.html#665-674">ok!</a>(raw_value.to_str().ok_or_else(|| {
+        cmd: <span class="kw-2">&amp;</span><span class="kw">crate</span>::Command,
+        arg: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="kw">crate</span>::Arg&gt;,
+        raw_value: <span class="kw-2">&amp;</span>std::ffi::OsStr,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Value, <span class="kw">crate</span>::Error&gt; {
+        <span class="kw">let </span>value = <span class="macro">ok!</span>(raw_value.to_str().ok_or_else(|| {
             <span class="kw">crate</span>::Error::invalid_utf8(
                 cmd,
                 <span class="kw">crate</span>::output::Usage::new(cmd).create_usage_with_title(<span class="kw-2">&amp;</span>[]),
             )
         }));
-        <span class="kw">let </span>value = <a class="macro" href="../macros.rs.html#665-674">ok!</a>(value.parse::&lt;u64&gt;().map_err(|err| {
+        <span class="kw">let </span>value = <span class="macro">ok!</span>(value.parse::&lt;u64&gt;().map_err(|err| {
             <span class="kw">let </span>arg = arg
                 .map(|a| a.to_string())
                 .unwrap_or_else(|| <span class="string">&quot;...&quot;</span>.to_owned());
@@ -3988,19 +3999,19 @@
             .with_cmd(cmd)
         }));
         <span class="kw">if </span>!<span class="self">self</span>.bounds.contains(<span class="kw-2">&amp;</span>value) {
-            <span class="kw">let </span>arg = <a href="#1529">arg</a>
-                .map(|a| <a href="#1551">a</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>())
-                .unwrap_or_else(|| <span class="string">&quot;...&quot;</span>.<a href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">to_owned</a>());
+            <span class="kw">let </span>arg = arg
+                .map(|a| a.to_string())
+                .unwrap_or_else(|| <span class="string">&quot;...&quot;</span>.to_owned());
             <span class="kw">return </span><span class="prelude-val">Err</span>(<span class="kw">crate</span>::Error::value_validation(
-                <a href="#1550">arg</a>,
-                <a href="#1530">raw_value</a>.to_string_lossy().into_owned(),
-                <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;{} is not in {}&quot;</span>, value, <span class="self">self</span>.format_bounds()).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
+                arg,
+                raw_value.to_string_lossy().into_owned(),
+                <span class="macro">format!</span>(<span class="string">&quot;{} is not in {}&quot;</span>, value, <span class="self">self</span>.format_bounds()).into(),
             )
-            .<a href="../error/mod.rs.html#144">with_cmd</a>(<a href="#1528">cmd</a>));
+            .with_cmd(cmd));
         }
 
-        <span class="kw">let </span>value: <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Value, <span class="kw">_</span>&gt; = <a href="#1538">value</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.TryInto.html">try_into</a>();
-        <span class="kw">let </span>value = <a class="macro" href="../macros.rs.html#665-674">ok!</a>(value.map_err(|err| {
+        <span class="kw">let </span>value: <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Value, <span class="kw">_</span>&gt; = value.try_into();
+        <span class="kw">let </span>value = <span class="macro">ok!</span>(value.map_err(|err| {
             <span class="kw">let </span>arg = arg
                 .map(|a| a.to_string())
                 .unwrap_or_else(|| <span class="string">&quot;...&quot;</span>.to_owned());
@@ -4012,20 +4023,20 @@
             .with_cmd(cmd)
         }));
 
-        <span class="prelude-val">Ok</span>(<a href="#1562">value</a>)
+        <span class="prelude-val">Ok</span>(value)
     }
 }
 
-<span class="kw">impl</span>&lt;T: std::convert::TryFrom&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>&gt;, B: RangeBounds&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>&gt;&gt; From&lt;B&gt; <span class="kw">for </span>RangedU64ValueParser&lt;T&gt; {
+<span class="kw">impl</span>&lt;T: std::convert::TryFrom&lt;u64&gt;, B: RangeBounds&lt;u64&gt;&gt; From&lt;B&gt; <span class="kw">for </span>RangedU64ValueParser&lt;T&gt; {
     <span class="kw">fn </span>from(range: B) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
-            bounds: (<a href="#1579">range</a>.<a href="https://doc.rust-lang.org/nightly/core/ops/range/trait.RangeBounds.html">start_bound</a>().cloned(), <a href="#1579">range</a>.<a href="https://doc.rust-lang.org/nightly/core/ops/range/trait.RangeBounds.html">end_bound</a>().cloned()),
-            target: <a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default::default</a>(),
+            bounds: (range.start_bound().cloned(), range.end_bound().cloned()),
+            target: Default::default(),
         }
     }
 }
 
-<span class="kw">impl</span>&lt;T: std::convert::TryFrom&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>&gt;&gt; <a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for </span>RangedU64ValueParser&lt;T&gt; {
+<span class="kw">impl</span>&lt;T: std::convert::TryFrom&lt;u64&gt;&gt; Default <span class="kw">for </span>RangedU64ValueParser&lt;T&gt; {
     <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>::new()
     }
@@ -4038,29 +4049,29 @@
 #[non_exhaustive]
 </span><span class="kw">pub struct </span>BoolValueParser {}
 
-<span class="kw">impl </span><a href="#1598">BoolValueParser</a> {
+<span class="kw">impl </span>BoolValueParser {
     <span class="doccomment">/// Implementation for [`ValueParser::bool`]
     </span><span class="kw">pub fn </span>new() -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{}
     }
 
-    <span class="kw">fn </span>possible_values() -&gt; <span class="kw">impl </span>Iterator&lt;Item = <a href="possible_value.rs.html#31"><span class="kw">crate</span>::builder::PossibleValue</a>&gt; {
+    <span class="kw">fn </span>possible_values() -&gt; <span class="kw">impl </span>Iterator&lt;Item = <span class="kw">crate</span>::builder::PossibleValue&gt; {
         [<span class="string">&quot;true&quot;</span>, <span class="string">&quot;false&quot;</span>]
             .iter()
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">copied</a>()
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<span class="kw">crate</span>::builder::PossibleValue::new)
+            .copied()
+            .map(<span class="kw">crate</span>::builder::PossibleValue::new)
     }
 }
 
-<span class="kw">impl </span><a href="#650">TypedValueParser</a> <span class="kw">for </span><a href="#1598">BoolValueParser</a> {
-    <span class="kw">type </span>Value = <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>;
+<span class="kw">impl </span>TypedValueParser <span class="kw">for </span>BoolValueParser {
+    <span class="kw">type </span>Value = bool;
 
     <span class="kw">fn </span>parse_ref(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        cmd: <span class="kw-2">&amp;</span><a href="command.rs.html#71"><span class="kw">crate</span>::Command</a>,
-        arg: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="arg.rs.html#54"><span class="kw">crate</span>::Arg</a>&gt;,
-        value: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsStr.html">std::ffi::OsStr</a>,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Value, <a href="../lib.rs.html#117"><span class="kw">crate</span>::Error</a>&gt; {
+        cmd: <span class="kw-2">&amp;</span><span class="kw">crate</span>::Command,
+        arg: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="kw">crate</span>::Arg&gt;,
+        value: <span class="kw-2">&amp;</span>std::ffi::OsStr,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Value, <span class="kw">crate</span>::Error&gt; {
         <span class="kw">let </span>value = <span class="kw">if </span>value == std::ffi::OsStr::new(<span class="string">&quot;true&quot;</span>) {
             <span class="bool-val">true
         </span>} <span class="kw">else if </span>value == std::ffi::OsStr::new(<span class="string">&quot;false&quot;</span>) {
@@ -4068,28 +4079,28 @@
         </span>} <span class="kw">else </span>{
             <span class="comment">// Intentionally showing hidden as we hide all of them
             </span><span class="kw">let </span>possible_vals = <span class="self">Self</span>::possible_values()
-                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|v| <a href="#1630">v</a>.<a href="possible_value.rs.html#145">get_name</a>().<a href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">to_owned</a>())
-                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;();
+                .map(|v| v.get_name().to_owned())
+                .collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;();
 
             <span class="kw">return </span><span class="prelude-val">Err</span>(<span class="kw">crate</span>::Error::invalid_value(
-                <a href="#1619">cmd</a>,
-                <a href="#1621">value</a>.to_string_lossy().into_owned(),
-                <span class="kw-2">&amp;</span><a href="#1629">possible_vals</a>,
-                <a href="#1620">arg</a>.map(<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">ToString::to_string</a>)
-                    .unwrap_or_else(|| <span class="string">&quot;...&quot;</span>.<a href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">to_owned</a>()),
+                cmd,
+                value.to_string_lossy().into_owned(),
+                <span class="kw-2">&amp;</span>possible_vals,
+                arg.map(ToString::to_string)
+                    .unwrap_or_else(|| <span class="string">&quot;...&quot;</span>.to_owned()),
             ));
         };
-        <span class="prelude-val">Ok</span>(<a href="#1623">value</a>)
+        <span class="prelude-val">Ok</span>(value)
     }
 
     <span class="kw">fn </span>possible_values(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-    ) -&gt; <span class="prelude-ty">Option</span>&lt;Box&lt;<span class="kw">dyn </span>Iterator&lt;Item = <a href="possible_value.rs.html#31"><span class="kw">crate</span>::builder::PossibleValue</a>&gt; + <span class="lifetime">&#39;_</span>&gt;&gt; {
+    ) -&gt; <span class="prelude-ty">Option</span>&lt;Box&lt;<span class="kw">dyn </span>Iterator&lt;Item = <span class="kw">crate</span>::builder::PossibleValue&gt; + <span class="lifetime">&#39;_</span>&gt;&gt; {
         <span class="prelude-val">Some</span>(Box::new(<span class="self">Self</span>::possible_values()))
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for </span><a href="#1598">BoolValueParser</a> {
+<span class="kw">impl </span>Default <span class="kw">for </span>BoolValueParser {
     <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>::new()
     }
@@ -4137,31 +4148,31 @@
 #[non_exhaustive]
 </span><span class="kw">pub struct </span>FalseyValueParser {}
 
-<span class="kw">impl </span><a href="#1697">FalseyValueParser</a> {
+<span class="kw">impl </span>FalseyValueParser {
     <span class="doccomment">/// Parse false-like string values, everything else is `true`
     </span><span class="kw">pub fn </span>new() -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{}
     }
 
-    <span class="kw">fn </span>possible_values() -&gt; <span class="kw">impl </span>Iterator&lt;Item = <a href="possible_value.rs.html#31"><span class="kw">crate</span>::builder::PossibleValue</a>&gt; {
-        <a href="../util/str_to_bool.rs.html#2"><span class="kw">crate</span>::util::TRUE_LITERALS</a>
+    <span class="kw">fn </span>possible_values() -&gt; <span class="kw">impl </span>Iterator&lt;Item = <span class="kw">crate</span>::builder::PossibleValue&gt; {
+        <span class="kw">crate</span>::util::TRUE_LITERALS
             .iter()
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">chain</a>(<a href="../util/str_to_bool.rs.html#5"><span class="kw">crate</span>::util::FALSE_LITERALS</a>.iter())
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">copied</a>()
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|l| <span class="kw">crate</span>::builder::PossibleValue::new(<a href="#1710">l</a>).<a href="possible_value.rs.html#99">hide</a>(<a href="#1710">l</a> != <span class="string">&quot;true&quot; </span>&amp;&amp; <a href="#1710">l</a> != <span class="string">&quot;false&quot;</span>))
+            .chain(<span class="kw">crate</span>::util::FALSE_LITERALS.iter())
+            .copied()
+            .map(|l| <span class="kw">crate</span>::builder::PossibleValue::new(l).hide(l != <span class="string">&quot;true&quot; </span>&amp;&amp; l != <span class="string">&quot;false&quot;</span>))
     }
 }
 
-<span class="kw">impl </span><a href="#650">TypedValueParser</a> <span class="kw">for </span><a href="#1697">FalseyValueParser</a> {
-    <span class="kw">type </span>Value = <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>;
+<span class="kw">impl </span>TypedValueParser <span class="kw">for </span>FalseyValueParser {
+    <span class="kw">type </span>Value = bool;
 
     <span class="kw">fn </span>parse_ref(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        cmd: <span class="kw-2">&amp;</span><a href="command.rs.html#71"><span class="kw">crate</span>::Command</a>,
-        _arg: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="arg.rs.html#54"><span class="kw">crate</span>::Arg</a>&gt;,
-        value: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsStr.html">std::ffi::OsStr</a>,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Value, <a href="../lib.rs.html#117"><span class="kw">crate</span>::Error</a>&gt; {
-        <span class="kw">let </span>value = <a class="macro" href="../macros.rs.html#665-674">ok!</a>(value.to_str().ok_or_else(|| {
+        cmd: <span class="kw-2">&amp;</span><span class="kw">crate</span>::Command,
+        _arg: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="kw">crate</span>::Arg&gt;,
+        value: <span class="kw-2">&amp;</span>std::ffi::OsStr,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Value, <span class="kw">crate</span>::Error&gt; {
+        <span class="kw">let </span>value = <span class="macro">ok!</span>(value.to_str().ok_or_else(|| {
             <span class="kw">crate</span>::Error::invalid_utf8(
                 cmd,
                 <span class="kw">crate</span>::output::Usage::new(cmd).create_usage_with_title(<span class="kw-2">&amp;</span>[]),
@@ -4170,19 +4181,19 @@
         <span class="kw">let </span>value = <span class="kw">if </span>value.is_empty() {
             <span class="bool-val">false
         </span>} <span class="kw">else </span>{
-            <a href="../util/str_to_bool.rs.html#12"><span class="kw">crate</span>::util::str_to_bool</a>(<a href="#1723">value</a>).unwrap_or(<span class="bool-val">true</span>)
+            <span class="kw">crate</span>::util::str_to_bool(value).unwrap_or(<span class="bool-val">true</span>)
         };
-        <span class="prelude-val">Ok</span>(<a href="#1729">value</a>)
+        <span class="prelude-val">Ok</span>(value)
     }
 
     <span class="kw">fn </span>possible_values(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-    ) -&gt; <span class="prelude-ty">Option</span>&lt;Box&lt;<span class="kw">dyn </span>Iterator&lt;Item = <a href="possible_value.rs.html#31"><span class="kw">crate</span>::builder::PossibleValue</a>&gt; + <span class="lifetime">&#39;_</span>&gt;&gt; {
+    ) -&gt; <span class="prelude-ty">Option</span>&lt;Box&lt;<span class="kw">dyn </span>Iterator&lt;Item = <span class="kw">crate</span>::builder::PossibleValue&gt; + <span class="lifetime">&#39;_</span>&gt;&gt; {
         <span class="prelude-val">Some</span>(Box::new(<span class="self">Self</span>::possible_values()))
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for </span><a href="#1697">FalseyValueParser</a> {
+<span class="kw">impl </span>Default <span class="kw">for </span>FalseyValueParser {
     <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>::new()
     }
@@ -4234,54 +4245,54 @@
 #[non_exhaustive]
 </span><span class="kw">pub struct </span>BoolishValueParser {}
 
-<span class="kw">impl </span><a href="#1794">BoolishValueParser</a> {
+<span class="kw">impl </span>BoolishValueParser {
     <span class="doccomment">/// Parse bool-like string values, everything else is `true`
     </span><span class="kw">pub fn </span>new() -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{}
     }
 
-    <span class="kw">fn </span>possible_values() -&gt; <span class="kw">impl </span>Iterator&lt;Item = <a href="possible_value.rs.html#31"><span class="kw">crate</span>::builder::PossibleValue</a>&gt; {
-        <a href="../util/str_to_bool.rs.html#2"><span class="kw">crate</span>::util::TRUE_LITERALS</a>
+    <span class="kw">fn </span>possible_values() -&gt; <span class="kw">impl </span>Iterator&lt;Item = <span class="kw">crate</span>::builder::PossibleValue&gt; {
+        <span class="kw">crate</span>::util::TRUE_LITERALS
             .iter()
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">chain</a>(<a href="../util/str_to_bool.rs.html#5"><span class="kw">crate</span>::util::FALSE_LITERALS</a>.iter())
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">copied</a>()
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|l| <span class="kw">crate</span>::builder::PossibleValue::new(<a href="#1807">l</a>).<a href="possible_value.rs.html#99">hide</a>(<a href="#1807">l</a> != <span class="string">&quot;true&quot; </span>&amp;&amp; <a href="#1807">l</a> != <span class="string">&quot;false&quot;</span>))
+            .chain(<span class="kw">crate</span>::util::FALSE_LITERALS.iter())
+            .copied()
+            .map(|l| <span class="kw">crate</span>::builder::PossibleValue::new(l).hide(l != <span class="string">&quot;true&quot; </span>&amp;&amp; l != <span class="string">&quot;false&quot;</span>))
     }
 }
 
-<span class="kw">impl </span><a href="#650">TypedValueParser</a> <span class="kw">for </span><a href="#1794">BoolishValueParser</a> {
-    <span class="kw">type </span>Value = <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>;
+<span class="kw">impl </span>TypedValueParser <span class="kw">for </span>BoolishValueParser {
+    <span class="kw">type </span>Value = bool;
 
     <span class="kw">fn </span>parse_ref(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        cmd: <span class="kw-2">&amp;</span><a href="command.rs.html#71"><span class="kw">crate</span>::Command</a>,
-        arg: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="arg.rs.html#54"><span class="kw">crate</span>::Arg</a>&gt;,
-        value: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsStr.html">std::ffi::OsStr</a>,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Value, <a href="../lib.rs.html#117"><span class="kw">crate</span>::Error</a>&gt; {
-        <span class="kw">let </span>value = <a class="macro" href="../macros.rs.html#665-674">ok!</a>(value.to_str().ok_or_else(|| {
+        cmd: <span class="kw-2">&amp;</span><span class="kw">crate</span>::Command,
+        arg: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="kw">crate</span>::Arg&gt;,
+        value: <span class="kw-2">&amp;</span>std::ffi::OsStr,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Value, <span class="kw">crate</span>::Error&gt; {
+        <span class="kw">let </span>value = <span class="macro">ok!</span>(value.to_str().ok_or_else(|| {
             <span class="kw">crate</span>::Error::invalid_utf8(
                 cmd,
                 <span class="kw">crate</span>::output::Usage::new(cmd).create_usage_with_title(<span class="kw-2">&amp;</span>[]),
             )
         }));
-        <span class="kw">let </span>value = <a class="macro" href="../macros.rs.html#665-674">ok!</a>(<span class="kw">crate</span>::util::str_to_bool(value).ok_or_else(|| {
+        <span class="kw">let </span>value = <span class="macro">ok!</span>(<span class="kw">crate</span>::util::str_to_bool(value).ok_or_else(|| {
             <span class="kw">let </span>arg = arg
                 .map(|a| a.to_string())
                 .unwrap_or_else(|| <span class="string">&quot;...&quot;</span>.to_owned());
             <span class="kw">crate</span>::Error::value_validation(arg, value.to_owned(), <span class="string">&quot;value was not a boolean&quot;</span>.into())
                 .with_cmd(cmd)
         }));
-        <span class="prelude-val">Ok</span>(<a href="#1826">value</a>)
+        <span class="prelude-val">Ok</span>(value)
     }
 
     <span class="kw">fn </span>possible_values(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-    ) -&gt; <span class="prelude-ty">Option</span>&lt;Box&lt;<span class="kw">dyn </span>Iterator&lt;Item = <a href="possible_value.rs.html#31"><span class="kw">crate</span>::builder::PossibleValue</a>&gt; + <span class="lifetime">&#39;_</span>&gt;&gt; {
+    ) -&gt; <span class="prelude-ty">Option</span>&lt;Box&lt;<span class="kw">dyn </span>Iterator&lt;Item = <span class="kw">crate</span>::builder::PossibleValue&gt; + <span class="lifetime">&#39;_</span>&gt;&gt; {
         <span class="prelude-val">Some</span>(Box::new(<span class="self">Self</span>::possible_values()))
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for </span><a href="#1794">BoolishValueParser</a> {
+<span class="kw">impl </span>Default <span class="kw">for </span>BoolishValueParser {
     <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>::new()
     }
@@ -4323,41 +4334,41 @@
 #[non_exhaustive]
 </span><span class="kw">pub struct </span>NonEmptyStringValueParser {}
 
-<span class="kw">impl </span><a href="#1883">NonEmptyStringValueParser</a> {
+<span class="kw">impl </span>NonEmptyStringValueParser {
     <span class="doccomment">/// Parse non-empty string values
     </span><span class="kw">pub fn </span>new() -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{}
     }
 }
 
-<span class="kw">impl </span><a href="#650">TypedValueParser</a> <span class="kw">for </span><a href="#1883">NonEmptyStringValueParser</a> {
-    <span class="kw">type </span>Value = <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>;
+<span class="kw">impl </span>TypedValueParser <span class="kw">for </span>NonEmptyStringValueParser {
+    <span class="kw">type </span>Value = String;
 
     <span class="kw">fn </span>parse_ref(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        cmd: <span class="kw-2">&amp;</span><a href="command.rs.html#71"><span class="kw">crate</span>::Command</a>,
-        arg: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="arg.rs.html#54"><span class="kw">crate</span>::Arg</a>&gt;,
-        value: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsStr.html">std::ffi::OsStr</a>,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Value, <a href="../lib.rs.html#117"><span class="kw">crate</span>::Error</a>&gt; {
+        cmd: <span class="kw-2">&amp;</span><span class="kw">crate</span>::Command,
+        arg: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="kw">crate</span>::Arg&gt;,
+        value: <span class="kw-2">&amp;</span>std::ffi::OsStr,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Value, <span class="kw">crate</span>::Error&gt; {
         <span class="kw">if </span>value.is_empty() {
             <span class="kw">return </span><span class="prelude-val">Err</span>(<span class="kw">crate</span>::Error::empty_value(
-                <a href="#1897">cmd</a>,
+                cmd,
                 <span class="kw-2">&amp;</span>[],
-                <a href="#1898">arg</a>.map(<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">ToString::to_string</a>)
-                    .unwrap_or_else(|| <span class="string">&quot;...&quot;</span>.<a href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">to_owned</a>()),
+                arg.map(ToString::to_string)
+                    .unwrap_or_else(|| <span class="string">&quot;...&quot;</span>.to_owned()),
             ));
         }
-        <span class="kw">let </span>value = <a class="macro" href="../macros.rs.html#665-674">ok!</a>(value.to_str().ok_or_else(|| {
+        <span class="kw">let </span>value = <span class="macro">ok!</span>(value.to_str().ok_or_else(|| {
             <span class="kw">crate</span>::Error::invalid_utf8(
                 cmd,
                 <span class="kw">crate</span>::output::Usage::new(cmd).create_usage_with_title(<span class="kw-2">&amp;</span>[]),
             )
         }));
-        <span class="prelude-val">Ok</span>(<a href="#1909">value</a>.<a href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">to_owned</a>())
+        <span class="prelude-val">Ok</span>(value.to_owned())
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for </span><a href="#1883">NonEmptyStringValueParser</a> {
+<span class="kw">impl </span>Default <span class="kw">for </span>NonEmptyStringValueParser {
     <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>::new()
     }
@@ -4374,51 +4385,51 @@
 
 <span class="kw">impl</span>&lt;P, F, T&gt; MapValueParser&lt;P, F&gt;
 <span class="kw">where
-    </span>P: <a href="#650">TypedValueParser</a>,
-    P::Value: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> + <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a>,
-    F: Fn(P::Value) -&gt; T + <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a>,
-    T: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> + <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a>,
+    </span>P: TypedValueParser,
+    P::Value: Send + Sync + Clone,
+    F: Fn(P::Value) -&gt; T + Clone,
+    T: Send + Sync + Clone,
 {
     <span class="kw">fn </span>new(parser: P, func: F) -&gt; <span class="self">Self </span>{
-        <span class="self">Self </span>{ <a href="#1941">parser</a>, <a href="#1941">func</a> }
+        <span class="self">Self </span>{ parser, func }
     }
 }
 
-<span class="kw">impl</span>&lt;P, F, T&gt; <a href="#650">TypedValueParser</a> <span class="kw">for </span>MapValueParser&lt;P, F&gt;
+<span class="kw">impl</span>&lt;P, F, T&gt; TypedValueParser <span class="kw">for </span>MapValueParser&lt;P, F&gt;
 <span class="kw">where
-    </span>P: <a href="#650">TypedValueParser</a>,
-    P::Value: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> + <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a>,
-    F: Fn(P::Value) -&gt; T + <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> + <span class="lifetime">&#39;static</span>,
-    T: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> + <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a>,
+    </span>P: TypedValueParser,
+    P::Value: Send + Sync + Clone,
+    F: Fn(P::Value) -&gt; T + Clone + Send + Sync + <span class="lifetime">&#39;static</span>,
+    T: Send + Sync + Clone,
 {
     <span class="kw">type </span>Value = T;
 
     <span class="kw">fn </span>parse_ref(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        cmd: <span class="kw-2">&amp;</span><a href="command.rs.html#71"><span class="kw">crate</span>::Command</a>,
-        arg: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="arg.rs.html#54"><span class="kw">crate</span>::Arg</a>&gt;,
-        value: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsStr.html">std::ffi::OsStr</a>,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Value, <a href="../lib.rs.html#117"><span class="kw">crate</span>::Error</a>&gt; {
-        <span class="kw">let </span>value = <a class="macro" href="../macros.rs.html#665-674">ok!</a>(<span class="self">self</span>.parser.parse_ref(cmd, arg, value));
-        <span class="kw">let </span>value = (<a class="self" href="#1956">self</a>.func)(<a href="#1961">value</a>);
-        <span class="prelude-val">Ok</span>(<a href="#1962">value</a>)
+        cmd: <span class="kw-2">&amp;</span><span class="kw">crate</span>::Command,
+        arg: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="kw">crate</span>::Arg&gt;,
+        value: <span class="kw-2">&amp;</span>std::ffi::OsStr,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Value, <span class="kw">crate</span>::Error&gt; {
+        <span class="kw">let </span>value = <span class="macro">ok!</span>(<span class="self">self</span>.parser.parse_ref(cmd, arg, value));
+        <span class="kw">let </span>value = (<span class="self">self</span>.func)(value);
+        <span class="prelude-val">Ok</span>(value)
     }
 
     <span class="kw">fn </span>parse(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        cmd: <span class="kw-2">&amp;</span><a href="command.rs.html#71"><span class="kw">crate</span>::Command</a>,
-        arg: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="arg.rs.html#54"><span class="kw">crate</span>::Arg</a>&gt;,
-        value: <a href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsString.html">std::ffi::OsString</a>,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Value, <a href="../lib.rs.html#117"><span class="kw">crate</span>::Error</a>&gt; {
-        <span class="kw">let </span>value = <a class="macro" href="../macros.rs.html#665-674">ok!</a>(<span class="self">self</span>.parser.parse(cmd, arg, value));
-        <span class="kw">let </span>value = (<a class="self" href="#1967">self</a>.func)(<a href="#1972">value</a>);
-        <span class="prelude-val">Ok</span>(<a href="#1973">value</a>)
+        cmd: <span class="kw-2">&amp;</span><span class="kw">crate</span>::Command,
+        arg: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="kw">crate</span>::Arg&gt;,
+        value: std::ffi::OsString,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Value, <span class="kw">crate</span>::Error&gt; {
+        <span class="kw">let </span>value = <span class="macro">ok!</span>(<span class="self">self</span>.parser.parse(cmd, arg, value));
+        <span class="kw">let </span>value = (<span class="self">self</span>.func)(value);
+        <span class="prelude-val">Ok</span>(value)
     }
 
     <span class="kw">fn </span>possible_values(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-    ) -&gt; <span class="prelude-ty">Option</span>&lt;Box&lt;<span class="kw">dyn </span>Iterator&lt;Item = <a href="possible_value.rs.html#31"><span class="kw">crate</span>::builder::PossibleValue</a>&gt; + <span class="lifetime">&#39;_</span>&gt;&gt; {
-        <a class="self" href="#1978">self</a>.parser.<a href="#680-682">possible_values</a>()
+    ) -&gt; <span class="prelude-ty">Option</span>&lt;Box&lt;<span class="kw">dyn </span>Iterator&lt;Item = <span class="kw">crate</span>::builder::PossibleValue&gt; + <span class="lifetime">&#39;_</span>&gt;&gt; {
+        <span class="self">self</span>.parser.possible_values()
     }
 }
 
@@ -4433,48 +4444,48 @@
 
 <span class="kw">impl</span>&lt;P, F, T, E&gt; TryMapValueParser&lt;P, F&gt;
 <span class="kw">where
-    </span>P: <a href="#650">TypedValueParser</a>,
-    P::Value: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> + <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a>,
-    F: Fn(P::Value) -&gt; <span class="prelude-ty">Result</span>&lt;T, E&gt; + <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> + <span class="lifetime">&#39;static</span>,
-    T: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> + <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a>,
-    E: Into&lt;Box&lt;<span class="kw">dyn </span><a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">std::error::Error</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> + <span class="lifetime">&#39;static</span>&gt;&gt;,
+    </span>P: TypedValueParser,
+    P::Value: Send + Sync + Clone,
+    F: Fn(P::Value) -&gt; <span class="prelude-ty">Result</span>&lt;T, E&gt; + Clone + Send + Sync + <span class="lifetime">&#39;static</span>,
+    T: Send + Sync + Clone,
+    E: Into&lt;Box&lt;<span class="kw">dyn </span>std::error::Error + Send + Sync + <span class="lifetime">&#39;static</span>&gt;&gt;,
 {
     <span class="kw">fn </span>new(parser: P, func: F) -&gt; <span class="self">Self </span>{
-        <span class="self">Self </span>{ <a href="#2001">parser</a>, <a href="#2001">func</a> }
+        <span class="self">Self </span>{ parser, func }
     }
 }
 
-<span class="kw">impl</span>&lt;P, F, T, E&gt; <a href="#650">TypedValueParser</a> <span class="kw">for </span>TryMapValueParser&lt;P, F&gt;
+<span class="kw">impl</span>&lt;P, F, T, E&gt; TypedValueParser <span class="kw">for </span>TryMapValueParser&lt;P, F&gt;
 <span class="kw">where
-    </span>P: <a href="#650">TypedValueParser</a>,
-    P::Value: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> + <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a>,
-    F: Fn(P::Value) -&gt; <span class="prelude-ty">Result</span>&lt;T, E&gt; + <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> + <span class="lifetime">&#39;static</span>,
-    T: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> + <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a>,
-    E: Into&lt;Box&lt;<span class="kw">dyn </span><a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">std::error::Error</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> + <span class="lifetime">&#39;static</span>&gt;&gt;,
+    </span>P: TypedValueParser,
+    P::Value: Send + Sync + Clone,
+    F: Fn(P::Value) -&gt; <span class="prelude-ty">Result</span>&lt;T, E&gt; + Clone + Send + Sync + <span class="lifetime">&#39;static</span>,
+    T: Send + Sync + Clone,
+    E: Into&lt;Box&lt;<span class="kw">dyn </span>std::error::Error + Send + Sync + <span class="lifetime">&#39;static</span>&gt;&gt;,
 {
     <span class="kw">type </span>Value = T;
 
     <span class="kw">fn </span>parse_ref(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        cmd: <span class="kw-2">&amp;</span><a href="command.rs.html#71"><span class="kw">crate</span>::Command</a>,
-        arg: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="arg.rs.html#54"><span class="kw">crate</span>::Arg</a>&gt;,
-        value: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsStr.html">std::ffi::OsStr</a>,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Value, <a href="../lib.rs.html#117"><span class="kw">crate</span>::Error</a>&gt; {
-        <span class="kw">let </span>mid_value = <a class="macro" href="../macros.rs.html#665-674">ok!</a>(<span class="self">self</span>.parser.parse_ref(cmd, arg, value));
-        <span class="kw">let </span>value = <a class="macro" href="../macros.rs.html#665-674">ok!</a>((<span class="self">self</span>.func)(mid_value).map_err(|e| {
+        cmd: <span class="kw-2">&amp;</span><span class="kw">crate</span>::Command,
+        arg: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="kw">crate</span>::Arg&gt;,
+        value: <span class="kw-2">&amp;</span>std::ffi::OsStr,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Value, <span class="kw">crate</span>::Error&gt; {
+        <span class="kw">let </span>mid_value = <span class="macro">ok!</span>(<span class="self">self</span>.parser.parse_ref(cmd, arg, value));
+        <span class="kw">let </span>value = <span class="macro">ok!</span>((<span class="self">self</span>.func)(mid_value).map_err(|e| {
             <span class="kw">let </span>arg = arg
                 .map(|a| a.to_string())
                 .unwrap_or_else(|| <span class="string">&quot;...&quot;</span>.to_owned());
             <span class="kw">crate</span>::Error::value_validation(arg, value.to_string_lossy().into_owned(), e.into())
                 .with_cmd(cmd)
         }));
-        <span class="prelude-val">Ok</span>(<a href="#2023">value</a>)
+        <span class="prelude-val">Ok</span>(value)
     }
 
     <span class="kw">fn </span>possible_values(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-    ) -&gt; <span class="prelude-ty">Option</span>&lt;Box&lt;<span class="kw">dyn </span>Iterator&lt;Item = <a href="possible_value.rs.html#31"><span class="kw">crate</span>::builder::PossibleValue</a>&gt; + <span class="lifetime">&#39;_</span>&gt;&gt; {
-        <a class="self" href="#2034">self</a>.parser.<a href="#680-682">possible_values</a>()
+    ) -&gt; <span class="prelude-ty">Option</span>&lt;Box&lt;<span class="kw">dyn </span>Iterator&lt;Item = <span class="kw">crate</span>::builder::PossibleValue&gt; + <span class="lifetime">&#39;_</span>&gt;&gt; {
+        <span class="self">self</span>.parser.possible_values()
     }
 }
 
@@ -4522,86 +4533,86 @@
     <span class="doccomment">/// Create the specified [`Self::Parser`]
     </span><span class="kw">fn </span>value_parser() -&gt; <span class="self">Self</span>::Parser;
 }
-<span class="kw">impl </span><a href="#2074">ValueParserFactory</a> <span class="kw">for </span><a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a> {
-    <span class="kw">type </span>Parser = <a href="#59">ValueParser</a>;
+<span class="kw">impl </span>ValueParserFactory <span class="kw">for </span>String {
+    <span class="kw">type </span>Parser = ValueParser;
     <span class="kw">fn </span>value_parser() -&gt; <span class="self">Self</span>::Parser {
         ValueParser::string() <span class="comment">// Default `clap_derive` to optimized implementation
     </span>}
 }
-<span class="kw">impl </span><a href="#2074">ValueParserFactory</a> <span class="kw">for </span><a href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsString.html">std::ffi::OsString</a> {
-    <span class="kw">type </span>Parser = <a href="#59">ValueParser</a>;
+<span class="kw">impl </span>ValueParserFactory <span class="kw">for </span>std::ffi::OsString {
+    <span class="kw">type </span>Parser = ValueParser;
     <span class="kw">fn </span>value_parser() -&gt; <span class="self">Self</span>::Parser {
         ValueParser::os_string() <span class="comment">// Default `clap_derive` to optimized implementation
     </span>}
 }
-<span class="kw">impl </span><a href="#2074">ValueParserFactory</a> <span class="kw">for </span><a href="https://doc.rust-lang.org/nightly/std/path/struct.PathBuf.html">std::path::PathBuf</a> {
-    <span class="kw">type </span>Parser = <a href="#59">ValueParser</a>;
+<span class="kw">impl </span>ValueParserFactory <span class="kw">for </span>std::path::PathBuf {
+    <span class="kw">type </span>Parser = ValueParser;
     <span class="kw">fn </span>value_parser() -&gt; <span class="self">Self</span>::Parser {
         ValueParser::path_buf() <span class="comment">// Default `clap_derive` to optimized implementation
     </span>}
 }
-<span class="kw">impl </span><a href="#2074">ValueParserFactory</a> <span class="kw">for </span><a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-    <span class="kw">type </span>Parser = <a href="#59">ValueParser</a>;
+<span class="kw">impl </span>ValueParserFactory <span class="kw">for </span>bool {
+    <span class="kw">type </span>Parser = ValueParser;
     <span class="kw">fn </span>value_parser() -&gt; <span class="self">Self</span>::Parser {
         ValueParser::bool() <span class="comment">// Default `clap_derive` to optimized implementation
     </span>}
 }
-<span class="kw">impl </span><a href="#2074">ValueParserFactory</a> <span class="kw">for </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a> {
-    <span class="kw">type </span>Parser = RangedI64ValueParser&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;;
+<span class="kw">impl </span>ValueParserFactory <span class="kw">for </span>u8 {
+    <span class="kw">type </span>Parser = RangedI64ValueParser&lt;u8&gt;;
     <span class="kw">fn </span>value_parser() -&gt; <span class="self">Self</span>::Parser {
-        <span class="kw">let </span>start: <a href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a> = u8::MIN.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>();
-        <span class="kw">let </span>end: <a href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a> = u8::MAX.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>();
-        RangedI64ValueParser::new().<a href="#1248">range</a>(<a href="#2111">start</a>..=<a href="#2112">end</a>)
+        <span class="kw">let </span>start: i64 = u8::MIN.into();
+        <span class="kw">let </span>end: i64 = u8::MAX.into();
+        RangedI64ValueParser::new().range(start..=end)
     }
 }
-<span class="kw">impl </span><a href="#2074">ValueParserFactory</a> <span class="kw">for </span><a href="https://doc.rust-lang.org/nightly/std/primitive.i8.html">i8</a> {
-    <span class="kw">type </span>Parser = RangedI64ValueParser&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.i8.html">i8</a>&gt;;
+<span class="kw">impl </span>ValueParserFactory <span class="kw">for </span>i8 {
+    <span class="kw">type </span>Parser = RangedI64ValueParser&lt;i8&gt;;
     <span class="kw">fn </span>value_parser() -&gt; <span class="self">Self</span>::Parser {
-        <span class="kw">let </span>start: <a href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a> = i8::MIN.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>();
-        <span class="kw">let </span>end: <a href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a> = i8::MAX.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>();
-        RangedI64ValueParser::new().<a href="#1248">range</a>(<a href="#2119">start</a>..=<a href="#2120">end</a>)
+        <span class="kw">let </span>start: i64 = i8::MIN.into();
+        <span class="kw">let </span>end: i64 = i8::MAX.into();
+        RangedI64ValueParser::new().range(start..=end)
     }
 }
-<span class="kw">impl </span><a href="#2074">ValueParserFactory</a> <span class="kw">for </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a> {
-    <span class="kw">type </span>Parser = RangedI64ValueParser&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>&gt;;
+<span class="kw">impl </span>ValueParserFactory <span class="kw">for </span>u16 {
+    <span class="kw">type </span>Parser = RangedI64ValueParser&lt;u16&gt;;
     <span class="kw">fn </span>value_parser() -&gt; <span class="self">Self</span>::Parser {
-        <span class="kw">let </span>start: <a href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a> = u16::MIN.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>();
-        <span class="kw">let </span>end: <a href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a> = u16::MAX.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>();
-        RangedI64ValueParser::new().<a href="#1248">range</a>(<a href="#2127">start</a>..=<a href="#2128">end</a>)
+        <span class="kw">let </span>start: i64 = u16::MIN.into();
+        <span class="kw">let </span>end: i64 = u16::MAX.into();
+        RangedI64ValueParser::new().range(start..=end)
     }
 }
-<span class="kw">impl </span><a href="#2074">ValueParserFactory</a> <span class="kw">for </span><a href="https://doc.rust-lang.org/nightly/std/primitive.i16.html">i16</a> {
-    <span class="kw">type </span>Parser = RangedI64ValueParser&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.i16.html">i16</a>&gt;;
+<span class="kw">impl </span>ValueParserFactory <span class="kw">for </span>i16 {
+    <span class="kw">type </span>Parser = RangedI64ValueParser&lt;i16&gt;;
     <span class="kw">fn </span>value_parser() -&gt; <span class="self">Self</span>::Parser {
-        <span class="kw">let </span>start: <a href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a> = i16::MIN.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>();
-        <span class="kw">let </span>end: <a href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a> = i16::MAX.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>();
-        RangedI64ValueParser::new().<a href="#1248">range</a>(<a href="#2135">start</a>..=<a href="#2136">end</a>)
+        <span class="kw">let </span>start: i64 = i16::MIN.into();
+        <span class="kw">let </span>end: i64 = i16::MAX.into();
+        RangedI64ValueParser::new().range(start..=end)
     }
 }
-<span class="kw">impl </span><a href="#2074">ValueParserFactory</a> <span class="kw">for </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
-    <span class="kw">type </span>Parser = RangedI64ValueParser&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>&gt;;
+<span class="kw">impl </span>ValueParserFactory <span class="kw">for </span>u32 {
+    <span class="kw">type </span>Parser = RangedI64ValueParser&lt;u32&gt;;
     <span class="kw">fn </span>value_parser() -&gt; <span class="self">Self</span>::Parser {
-        <span class="kw">let </span>start: <a href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a> = u32::MIN.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>();
-        <span class="kw">let </span>end: <a href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a> = u32::MAX.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>();
-        RangedI64ValueParser::new().<a href="#1248">range</a>(<a href="#2143">start</a>..=<a href="#2144">end</a>)
+        <span class="kw">let </span>start: i64 = u32::MIN.into();
+        <span class="kw">let </span>end: i64 = u32::MAX.into();
+        RangedI64ValueParser::new().range(start..=end)
     }
 }
-<span class="kw">impl </span><a href="#2074">ValueParserFactory</a> <span class="kw">for </span><a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a> {
-    <span class="kw">type </span>Parser = RangedI64ValueParser&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>&gt;;
+<span class="kw">impl </span>ValueParserFactory <span class="kw">for </span>i32 {
+    <span class="kw">type </span>Parser = RangedI64ValueParser&lt;i32&gt;;
     <span class="kw">fn </span>value_parser() -&gt; <span class="self">Self</span>::Parser {
-        <span class="kw">let </span>start: <a href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a> = i32::MIN.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>();
-        <span class="kw">let </span>end: <a href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a> = i32::MAX.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>();
-        RangedI64ValueParser::new().<a href="#1248">range</a>(<a href="#2151">start</a>..=<a href="#2152">end</a>)
+        <span class="kw">let </span>start: i64 = i32::MIN.into();
+        <span class="kw">let </span>end: i64 = i32::MAX.into();
+        RangedI64ValueParser::new().range(start..=end)
     }
 }
-<span class="kw">impl </span><a href="#2074">ValueParserFactory</a> <span class="kw">for </span><a href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a> {
-    <span class="kw">type </span>Parser = RangedI64ValueParser&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>&gt;;
+<span class="kw">impl </span>ValueParserFactory <span class="kw">for </span>i64 {
+    <span class="kw">type </span>Parser = RangedI64ValueParser&lt;i64&gt;;
     <span class="kw">fn </span>value_parser() -&gt; <span class="self">Self</span>::Parser {
         RangedI64ValueParser::new()
     }
 }
-<span class="kw">impl </span><a href="#2074">ValueParserFactory</a> <span class="kw">for </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> {
-    <span class="kw">type </span>Parser = RangedU64ValueParser&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>&gt;;
+<span class="kw">impl </span>ValueParserFactory <span class="kw">for </span>u64 {
+    <span class="kw">type </span>Parser = RangedU64ValueParser&lt;u64&gt;;
     <span class="kw">fn </span>value_parser() -&gt; <span class="self">Self</span>::Parser {
         RangedU64ValueParser::new()
     }
@@ -4615,7 +4626,7 @@
     <span class="attr">#[doc(hidden)]
     #[allow(clippy::new_without_default)]
     </span><span class="kw">pub fn </span>new() -&gt; <span class="self">Self </span>{
-        <span class="self">Self</span>(<a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default::default</a>())
+        <span class="self">Self</span>(Default::default())
     }
 }
 
@@ -4624,18 +4635,18 @@
 /// Implementation may change to more specific instance in the future
 </span><span class="attr">#[doc(hidden)]
 #[derive(Debug)]
-</span><span class="kw">pub struct </span>_AnonymousValueParser(<a href="#59">ValueParser</a>);
+</span><span class="kw">pub struct </span>_AnonymousValueParser(ValueParser);
 
 <span class="attr">#[doc(hidden)]
 </span><span class="kw">pub mod </span>via_prelude {
     <span class="kw">use super</span>::<span class="kw-2">*</span>;
 
     <span class="attr">#[doc(hidden)]
-    </span><span class="kw">pub trait </span>_ValueParserViaFactory: <a href="#2385">private::_ValueParserViaFactorySealed</a> {
+    </span><span class="kw">pub trait </span>_ValueParserViaFactory: private::_ValueParserViaFactorySealed {
         <span class="kw">type </span>Parser;
         <span class="kw">fn </span>value_parser(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self</span>::Parser;
     }
-    <span class="kw">impl</span>&lt;P: <a href="#2074">ValueParserFactory</a>&gt; <a href="#2193">_ValueParserViaFactory</a> <span class="kw">for </span>&amp;&amp;&amp;&amp;&amp;&amp;_AutoValueParser&lt;P&gt; {
+    <span class="kw">impl</span>&lt;P: ValueParserFactory&gt; _ValueParserViaFactory <span class="kw">for </span>&amp;&amp;&amp;&amp;&amp;&amp;_AutoValueParser&lt;P&gt; {
         <span class="kw">type </span>Parser = P::Parser;
         <span class="kw">fn </span>value_parser(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self</span>::Parser {
             P::value_parser()
@@ -4643,12 +4654,12 @@
     }
 
     <span class="attr">#[doc(hidden)]
-    </span><span class="kw">pub trait </span>_ValueParserViaValueEnum: <a href="#2388">private::_ValueParserViaValueEnumSealed</a> {
+    </span><span class="kw">pub trait </span>_ValueParserViaValueEnum: private::_ValueParserViaValueEnumSealed {
         <span class="kw">type </span>Output;
 
         <span class="kw">fn </span>value_parser(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self</span>::Output;
     }
-    <span class="kw">impl</span>&lt;E: <a href="../derive.rs.html#374"><span class="kw">crate</span>::ValueEnum</a> + <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> + <span class="lifetime">&#39;static</span>&gt; <a href="#2205">_ValueParserViaValueEnum</a>
+    <span class="kw">impl</span>&lt;E: <span class="kw">crate</span>::ValueEnum + Clone + Send + Sync + <span class="lifetime">&#39;static</span>&gt; _ValueParserViaValueEnum
         <span class="kw">for </span>&amp;&amp;&amp;&amp;<span class="kw-2">&amp;</span>_AutoValueParser&lt;E&gt;
     {
         <span class="kw">type </span>Output = EnumValueParser&lt;E&gt;;
@@ -4659,79 +4670,79 @@
     }
 
     <span class="attr">#[doc(hidden)]
-    </span><span class="kw">pub trait </span>_ValueParserViaFromOsString: <a href="#2391">private::_ValueParserViaFromOsStringSealed</a> {
-        <span class="kw">fn </span>value_parser(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="#2186">_AnonymousValueParser</a>;
+    </span><span class="kw">pub trait </span>_ValueParserViaFromOsString: private::_ValueParserViaFromOsStringSealed {
+        <span class="kw">fn </span>value_parser(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; _AnonymousValueParser;
     }
-    <span class="kw">impl</span>&lt;FromOsString&gt; <a href="#2221">_ValueParserViaFromOsString</a> <span class="kw">for </span>&amp;&amp;&amp;&amp;_AutoValueParser&lt;FromOsString&gt;
+    <span class="kw">impl</span>&lt;FromOsString&gt; _ValueParserViaFromOsString <span class="kw">for </span>&amp;&amp;&amp;&amp;_AutoValueParser&lt;FromOsString&gt;
     <span class="kw">where
-        </span>FromOsString: From&lt;<a href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsString.html">std::ffi::OsString</a>&gt; + <a href="https://doc.rust-lang.org/nightly/core/any/trait.Any.html">std::any::Any</a> + <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> + <span class="lifetime">&#39;static</span>,
+        </span>FromOsString: From&lt;std::ffi::OsString&gt; + std::any::Any + Clone + Send + Sync + <span class="lifetime">&#39;static</span>,
     {
-        <span class="kw">fn </span>value_parser(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="#2186">_AnonymousValueParser</a> {
-            <a href="#2186">_AnonymousValueParser</a>(
+        <span class="kw">fn </span>value_parser(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; _AnonymousValueParser {
+            _AnonymousValueParser(
                 OsStringValueParser::new()
-                    .<a href="#722-725">map</a>(|s| FromOsString::from(<a href="#2231">s</a>))
-                    .<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
+                    .map(|s| FromOsString::from(s))
+                    .into(),
             )
         }
     }
 
     <span class="attr">#[doc(hidden)]
-    </span><span class="kw">pub trait </span>_ValueParserViaFromOsStr: <a href="#2397">private::_ValueParserViaFromOsStrSealed</a> {
-        <span class="kw">fn </span>value_parser(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="#2186">_AnonymousValueParser</a>;
+    </span><span class="kw">pub trait </span>_ValueParserViaFromOsStr: private::_ValueParserViaFromOsStrSealed {
+        <span class="kw">fn </span>value_parser(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; _AnonymousValueParser;
     }
-    <span class="kw">impl</span>&lt;FromOsStr&gt; <a href="#2238">_ValueParserViaFromOsStr</a> <span class="kw">for </span>&amp;&amp;<span class="kw-2">&amp;</span>_AutoValueParser&lt;FromOsStr&gt;
+    <span class="kw">impl</span>&lt;FromOsStr&gt; _ValueParserViaFromOsStr <span class="kw">for </span>&amp;&amp;<span class="kw-2">&amp;</span>_AutoValueParser&lt;FromOsStr&gt;
     <span class="kw">where
         </span>FromOsStr:
-            <span class="kw">for</span>&lt;<span class="lifetime">&#39;s</span>&gt; From&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;s </span><a href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsStr.html">std::ffi::OsStr</a>&gt; + <a href="https://doc.rust-lang.org/nightly/core/any/trait.Any.html">std::any::Any</a> + <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> + <span class="lifetime">&#39;static</span>,
+            <span class="kw">for</span>&lt;<span class="lifetime">&#39;s</span>&gt; From&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;s </span>std::ffi::OsStr&gt; + std::any::Any + Clone + Send + Sync + <span class="lifetime">&#39;static</span>,
     {
-        <span class="kw">fn </span>value_parser(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="#2186">_AnonymousValueParser</a> {
-            <a href="#2186">_AnonymousValueParser</a>(
+        <span class="kw">fn </span>value_parser(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; _AnonymousValueParser {
+            _AnonymousValueParser(
                 OsStringValueParser::new()
-                    .<a href="#722-725">map</a>(|s| FromOsStr::from(<span class="kw-2">&amp;</span><a href="#2249">s</a>))
-                    .<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
+                    .map(|s| FromOsStr::from(<span class="kw-2">&amp;</span>s))
+                    .into(),
             )
         }
     }
 
     <span class="attr">#[doc(hidden)]
-    </span><span class="kw">pub trait </span>_ValueParserViaFromString: <a href="#2403">private::_ValueParserViaFromStringSealed</a> {
-        <span class="kw">fn </span>value_parser(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="#2186">_AnonymousValueParser</a>;
+    </span><span class="kw">pub trait </span>_ValueParserViaFromString: private::_ValueParserViaFromStringSealed {
+        <span class="kw">fn </span>value_parser(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; _AnonymousValueParser;
     }
-    <span class="kw">impl</span>&lt;FromString&gt; <a href="#2256">_ValueParserViaFromString</a> <span class="kw">for </span>&amp;&amp;_AutoValueParser&lt;FromString&gt;
+    <span class="kw">impl</span>&lt;FromString&gt; _ValueParserViaFromString <span class="kw">for </span>&amp;&amp;_AutoValueParser&lt;FromString&gt;
     <span class="kw">where
-        </span>FromString: From&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt; + <a href="https://doc.rust-lang.org/nightly/core/any/trait.Any.html">std::any::Any</a> + <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> + <span class="lifetime">&#39;static</span>,
+        </span>FromString: From&lt;String&gt; + std::any::Any + Clone + Send + Sync + <span class="lifetime">&#39;static</span>,
     {
-        <span class="kw">fn </span>value_parser(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="#2186">_AnonymousValueParser</a> {
-            <a href="#2186">_AnonymousValueParser</a>(StringValueParser::new().<a href="#722-725">map</a>(|s| FromString::from(<a href="#2264">s</a>)).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
+        <span class="kw">fn </span>value_parser(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; _AnonymousValueParser {
+            _AnonymousValueParser(StringValueParser::new().map(|s| FromString::from(s)).into())
         }
     }
 
     <span class="attr">#[doc(hidden)]
-    </span><span class="kw">pub trait </span>_ValueParserViaFromStr: <a href="#2409">private::_ValueParserViaFromStrSealed</a> {
-        <span class="kw">fn </span>value_parser(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="#2186">_AnonymousValueParser</a>;
+    </span><span class="kw">pub trait </span>_ValueParserViaFromStr: private::_ValueParserViaFromStrSealed {
+        <span class="kw">fn </span>value_parser(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; _AnonymousValueParser;
     }
-    <span class="kw">impl</span>&lt;FromStr&gt; <a href="#2269">_ValueParserViaFromStr</a> <span class="kw">for </span><span class="kw-2">&amp;</span>_AutoValueParser&lt;FromStr&gt;
+    <span class="kw">impl</span>&lt;FromStr&gt; _ValueParserViaFromStr <span class="kw">for </span><span class="kw-2">&amp;</span>_AutoValueParser&lt;FromStr&gt;
     <span class="kw">where
-        </span>FromStr: <span class="kw">for</span>&lt;<span class="lifetime">&#39;s</span>&gt; From&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;s </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt; + <a href="https://doc.rust-lang.org/nightly/core/any/trait.Any.html">std::any::Any</a> + <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> + <span class="lifetime">&#39;static</span>,
+        </span>FromStr: <span class="kw">for</span>&lt;<span class="lifetime">&#39;s</span>&gt; From&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;s </span>str&gt; + std::any::Any + Clone + Send + Sync + <span class="lifetime">&#39;static</span>,
     {
-        <span class="kw">fn </span>value_parser(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="#2186">_AnonymousValueParser</a> {
-            <a href="#2186">_AnonymousValueParser</a>(StringValueParser::new().<a href="#722-725">map</a>(|s| FromStr::from(<span class="kw-2">&amp;</span><a href="#2277">s</a>)).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
+        <span class="kw">fn </span>value_parser(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; _AnonymousValueParser {
+            _AnonymousValueParser(StringValueParser::new().map(|s| FromStr::from(<span class="kw-2">&amp;</span>s)).into())
         }
     }
 
     <span class="attr">#[doc(hidden)]
-    </span><span class="kw">pub trait </span>_ValueParserViaParse: <a href="#2415">private::_ValueParserViaParseSealed</a> {
-        <span class="kw">fn </span>value_parser(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="#2186">_AnonymousValueParser</a>;
+    </span><span class="kw">pub trait </span>_ValueParserViaParse: private::_ValueParserViaParseSealed {
+        <span class="kw">fn </span>value_parser(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; _AnonymousValueParser;
     }
-    <span class="kw">impl</span>&lt;Parse&gt; <a href="#2282">_ValueParserViaParse</a> <span class="kw">for </span>_AutoValueParser&lt;Parse&gt;
+    <span class="kw">impl</span>&lt;Parse&gt; _ValueParserViaParse <span class="kw">for </span>_AutoValueParser&lt;Parse&gt;
     <span class="kw">where
-        </span>Parse: <a href="https://doc.rust-lang.org/nightly/core/str/traits/trait.FromStr.html">std::str::FromStr</a> + <a href="https://doc.rust-lang.org/nightly/core/any/trait.Any.html">std::any::Any</a> + <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> + <span class="lifetime">&#39;static</span>,
-        &lt;Parse <span class="kw">as </span>std::str::FromStr&gt;::Err: Into&lt;Box&lt;<span class="kw">dyn </span><a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">std::error::Error</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> + <span class="lifetime">&#39;static</span>&gt;&gt;,
+        </span>Parse: std::str::FromStr + std::any::Any + Clone + Send + Sync + <span class="lifetime">&#39;static</span>,
+        &lt;Parse <span class="kw">as </span>std::str::FromStr&gt;::Err: Into&lt;Box&lt;<span class="kw">dyn </span>std::error::Error + Send + Sync + <span class="lifetime">&#39;static</span>&gt;&gt;,
     {
-        <span class="kw">fn </span>value_parser(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="#2186">_AnonymousValueParser</a> {
-            <span class="kw">let </span>func: <span class="kw">fn</span>(<span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Result</span>&lt;Parse, &lt;Parse <span class="kw">as </span>std::str::FromStr&gt;::Err&gt; =
+        <span class="kw">fn </span>value_parser(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; _AnonymousValueParser {
+            <span class="kw">let </span>func: <span class="kw">fn</span>(<span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;Parse, &lt;Parse <span class="kw">as </span>std::str::FromStr&gt;::Err&gt; =
                 Parse::from_str;
-            <a href="#2186">_AnonymousValueParser</a>(ValueParser::new(<a href="#2291">func</a>))
+            _AnonymousValueParser(ValueParser::new(func))
         }
     }
 }
@@ -4768,6 +4779,7 @@
 ///
 /// Example mappings:
 /// ```rust
+/// # use clap::ColorChoice;
 /// // Built-in types
 /// let parser = clap::value_parser!(String);
 /// assert_eq!(format!(&quot;{:?}&quot;, parser), &quot;ValueParser::string&quot;);
@@ -4775,37 +4787,15 @@
 /// assert_eq!(format!(&quot;{:?}&quot;, parser), &quot;ValueParser::os_string&quot;);
 /// let parser = clap::value_parser!(std::path::PathBuf);
 /// assert_eq!(format!(&quot;{:?}&quot;, parser), &quot;ValueParser::path_buf&quot;);
-/// let parser = clap::value_parser!(u16).range(3000..);
-/// assert_eq!(format!(&quot;{:?}&quot;, parser), &quot;RangedI64ValueParser { bounds: (Included(3000), Included(65535)), target: PhantomData }&quot;);
-/// let parser = clap::value_parser!(u64).range(3000..);
-/// assert_eq!(format!(&quot;{:?}&quot;, parser), &quot;RangedU64ValueParser { bounds: (Included(3000), Unbounded), target: PhantomData }&quot;);
+/// clap::value_parser!(u16).range(3000..);
+/// clap::value_parser!(u64).range(3000..);
 ///
 /// // FromStr types
 /// let parser = clap::value_parser!(usize);
 /// assert_eq!(format!(&quot;{:?}&quot;, parser), &quot;_AnonymousValueParser(ValueParser::other(usize))&quot;);
 ///
 /// // ValueEnum types
-/// #[derive(Copy, Clone, Debug, PartialEq, Eq)]
-/// enum ColorChoice {
-///     Always,
-///     Auto,
-///     Never,
-/// }
-/// impl clap::ValueEnum for ColorChoice {
-///     // ...
-/// #     fn value_variants&lt;&#39;a&gt;() -&gt; &amp;&#39;a [Self] {
-/// #         &amp;[Self::Always, Self::Auto, Self::Never]
-/// #     }
-/// #     fn to_possible_value&lt;&#39;a&gt;(&amp;self) -&gt; Option&lt;clap::builder::PossibleValue&gt; {
-/// #         match self {
-/// #             Self::Always =&gt; Some(clap::builder::PossibleValue::new(&quot;always&quot;)),
-/// #             Self::Auto =&gt; Some(clap::builder::PossibleValue::new(&quot;auto&quot;)),
-/// #             Self::Never =&gt; Some(clap::builder::PossibleValue::new(&quot;never&quot;)),
-/// #         }
-/// #     }
-/// }
-/// let parser = clap::value_parser!(ColorChoice);
-/// assert_eq!(format!(&quot;{:?}&quot;, parser), &quot;EnumValueParser(PhantomData)&quot;);
+/// clap::value_parser!(ColorChoice);
 /// ```
 </span><span class="attr">#[macro_export]
 </span><span class="macro">macro_rules! </span>value_parser {
@@ -4821,43 +4811,43 @@
 
     <span class="comment">// Prefer these so `clap_derive` defaults to optimized implementations
     </span><span class="kw">pub trait </span>_ValueParserViaSelfSealed {}
-    <span class="kw">impl</span>&lt;P: Into&lt;<a href="#59">ValueParser</a>&gt;&gt; <a href="#2382">_ValueParserViaSelfSealed</a> <span class="kw">for </span>&amp;&amp;&amp;&amp;&amp;&amp;<span class="kw-2">&amp;</span>_AutoValueParser&lt;P&gt; {}
+    <span class="kw">impl</span>&lt;P: Into&lt;ValueParser&gt;&gt; _ValueParserViaSelfSealed <span class="kw">for </span>&amp;&amp;&amp;&amp;&amp;&amp;<span class="kw-2">&amp;</span>_AutoValueParser&lt;P&gt; {}
 
     <span class="kw">pub trait </span>_ValueParserViaFactorySealed {}
-    <span class="kw">impl</span>&lt;P: <a href="#2074">ValueParserFactory</a>&gt; <a href="#2385">_ValueParserViaFactorySealed</a> <span class="kw">for </span>&amp;&amp;&amp;&amp;&amp;&amp;_AutoValueParser&lt;P&gt; {}
+    <span class="kw">impl</span>&lt;P: ValueParserFactory&gt; _ValueParserViaFactorySealed <span class="kw">for </span>&amp;&amp;&amp;&amp;&amp;&amp;_AutoValueParser&lt;P&gt; {}
 
     <span class="kw">pub trait </span>_ValueParserViaValueEnumSealed {}
-    <span class="kw">impl</span>&lt;E: <a href="../derive.rs.html#374"><span class="kw">crate</span>::ValueEnum</a>&gt; <a href="#2388">_ValueParserViaValueEnumSealed</a> <span class="kw">for </span>&amp;&amp;&amp;&amp;<span class="kw-2">&amp;</span>_AutoValueParser&lt;E&gt; {}
+    <span class="kw">impl</span>&lt;E: <span class="kw">crate</span>::ValueEnum&gt; _ValueParserViaValueEnumSealed <span class="kw">for </span>&amp;&amp;&amp;&amp;<span class="kw-2">&amp;</span>_AutoValueParser&lt;E&gt; {}
 
     <span class="kw">pub trait </span>_ValueParserViaFromOsStringSealed {}
-    <span class="kw">impl</span>&lt;FromOsString&gt; <a href="#2391">_ValueParserViaFromOsStringSealed</a> <span class="kw">for </span>&amp;&amp;&amp;&amp;_AutoValueParser&lt;FromOsString&gt; <span class="kw">where
-        </span>FromOsString: From&lt;<a href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsString.html">std::ffi::OsString</a>&gt; + <a href="https://doc.rust-lang.org/nightly/core/any/trait.Any.html">std::any::Any</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> + <span class="lifetime">&#39;static
+    <span class="kw">impl</span>&lt;FromOsString&gt; _ValueParserViaFromOsStringSealed <span class="kw">for </span>&amp;&amp;&amp;&amp;_AutoValueParser&lt;FromOsString&gt; <span class="kw">where
+        </span>FromOsString: From&lt;std::ffi::OsString&gt; + std::any::Any + Send + Sync + <span class="lifetime">&#39;static
     </span>{
     }
 
     <span class="kw">pub trait </span>_ValueParserViaFromOsStrSealed {}
-    <span class="kw">impl</span>&lt;FromOsStr&gt; <a href="#2397">_ValueParserViaFromOsStrSealed</a> <span class="kw">for </span>&amp;&amp;<span class="kw-2">&amp;</span>_AutoValueParser&lt;FromOsStr&gt; <span class="kw">where
-        </span>FromOsStr: <span class="kw">for</span>&lt;<span class="lifetime">&#39;s</span>&gt; From&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;s </span><a href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsStr.html">std::ffi::OsStr</a>&gt; + <a href="https://doc.rust-lang.org/nightly/core/any/trait.Any.html">std::any::Any</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> + <span class="lifetime">&#39;static
+    <span class="kw">impl</span>&lt;FromOsStr&gt; _ValueParserViaFromOsStrSealed <span class="kw">for </span>&amp;&amp;<span class="kw-2">&amp;</span>_AutoValueParser&lt;FromOsStr&gt; <span class="kw">where
+        </span>FromOsStr: <span class="kw">for</span>&lt;<span class="lifetime">&#39;s</span>&gt; From&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;s </span>std::ffi::OsStr&gt; + std::any::Any + Send + Sync + <span class="lifetime">&#39;static
     </span>{
     }
 
     <span class="kw">pub trait </span>_ValueParserViaFromStringSealed {}
-    <span class="kw">impl</span>&lt;FromString&gt; <a href="#2403">_ValueParserViaFromStringSealed</a> <span class="kw">for </span>&amp;&amp;_AutoValueParser&lt;FromString&gt; <span class="kw">where
-        </span>FromString: From&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt; + <a href="https://doc.rust-lang.org/nightly/core/any/trait.Any.html">std::any::Any</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> + <span class="lifetime">&#39;static
+    <span class="kw">impl</span>&lt;FromString&gt; _ValueParserViaFromStringSealed <span class="kw">for </span>&amp;&amp;_AutoValueParser&lt;FromString&gt; <span class="kw">where
+        </span>FromString: From&lt;String&gt; + std::any::Any + Send + Sync + <span class="lifetime">&#39;static
     </span>{
     }
 
     <span class="kw">pub trait </span>_ValueParserViaFromStrSealed {}
-    <span class="kw">impl</span>&lt;FromStr&gt; <a href="#2409">_ValueParserViaFromStrSealed</a> <span class="kw">for </span><span class="kw-2">&amp;</span>_AutoValueParser&lt;FromStr&gt; <span class="kw">where
-        </span>FromStr: <span class="kw">for</span>&lt;<span class="lifetime">&#39;s</span>&gt; From&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;s </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt; + <a href="https://doc.rust-lang.org/nightly/core/any/trait.Any.html">std::any::Any</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> + <span class="lifetime">&#39;static
+    <span class="kw">impl</span>&lt;FromStr&gt; _ValueParserViaFromStrSealed <span class="kw">for </span><span class="kw-2">&amp;</span>_AutoValueParser&lt;FromStr&gt; <span class="kw">where
+        </span>FromStr: <span class="kw">for</span>&lt;<span class="lifetime">&#39;s</span>&gt; From&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;s </span>str&gt; + std::any::Any + Send + Sync + <span class="lifetime">&#39;static
     </span>{
     }
 
     <span class="kw">pub trait </span>_ValueParserViaParseSealed {}
-    <span class="kw">impl</span>&lt;Parse&gt; <a href="#2415">_ValueParserViaParseSealed</a> <span class="kw">for </span>_AutoValueParser&lt;Parse&gt;
+    <span class="kw">impl</span>&lt;Parse&gt; _ValueParserViaParseSealed <span class="kw">for </span>_AutoValueParser&lt;Parse&gt;
     <span class="kw">where
-        </span>Parse: <a href="https://doc.rust-lang.org/nightly/core/str/traits/trait.FromStr.html">std::str::FromStr</a> + <a href="https://doc.rust-lang.org/nightly/core/any/trait.Any.html">std::any::Any</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> + <span class="lifetime">&#39;static</span>,
-        &lt;Parse <span class="kw">as </span>std::str::FromStr&gt;::Err: Into&lt;Box&lt;<span class="kw">dyn </span><a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">std::error::Error</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> + <span class="lifetime">&#39;static</span>&gt;&gt;,
+        </span>Parse: std::str::FromStr + std::any::Any + Send + Sync + <span class="lifetime">&#39;static</span>,
+        &lt;Parse <span class="kw">as </span>std::str::FromStr&gt;::Err: Into&lt;Box&lt;<span class="kw">dyn </span>std::error::Error + Send + Sync + <span class="lifetime">&#39;static</span>&gt;&gt;,
     {
     }
 }
@@ -4880,4 +4870,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="clap" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="clap" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

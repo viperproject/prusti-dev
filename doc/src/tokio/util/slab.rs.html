@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.21.2/src/util/slab.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>slab.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../tokio/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.23.0/src/util/slab.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>slab.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../tokio/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -854,14 +854,14 @@
 <a href="#854" id="854">854</a>
 </pre><pre class="rust"><code><span class="attr">#![cfg_attr(not(feature = <span class="string">&quot;rt&quot;</span>), allow(dead_code))]
 
-</span><span class="kw">use </span><a href="../loom/std/unsafe_cell.rs.html#2"><span class="kw">crate</span>::loom::cell::UnsafeCell</a>;
-<span class="kw">use </span><span class="kw">crate</span>::loom::sync::atomic::{<a href="https://doc.rust-lang.org/nightly/core/sync/atomic/struct.AtomicBool.html">AtomicBool</a>, <a href="../loom/std/atomic_usize.rs.html#6">AtomicUsize</a>};
-<span class="kw">use </span><span class="kw">crate</span>::loom::sync::{<a href="https://doc.rust-lang.org/nightly/alloc/sync/struct.Arc.html">Arc</a>, <a href="../loom/std/mutex.rs.html#6">Mutex</a>};
-<span class="kw">use </span><a href="mod.rs.html#2"><span class="kw">crate</span>::util::bit</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">std::fmt</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/mem/index.html">std::mem</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/ops/index.html">std::ops</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/ptr/index.html">std::ptr</a>;
+</span><span class="kw">use </span><span class="kw">crate</span>::loom::cell::UnsafeCell;
+<span class="kw">use </span><span class="kw">crate</span>::loom::sync::atomic::{AtomicBool, AtomicUsize};
+<span class="kw">use </span><span class="kw">crate</span>::loom::sync::{Arc, Mutex};
+<span class="kw">use </span><span class="kw">crate</span>::util::bit;
+<span class="kw">use </span>std::fmt;
+<span class="kw">use </span>std::mem;
+<span class="kw">use </span>std::ops;
+<span class="kw">use </span>std::ptr;
 <span class="kw">use </span>std::sync::atomic::Ordering::Relaxed;
 
 <span class="doccomment">/// Amortized allocation for homogeneous data types.
@@ -911,10 +911,10 @@
 ///
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>Slab&lt;T&gt; {
     <span class="doccomment">/// Array of pages. Each page is synchronized.
-    </span>pages: [Arc&lt;Page&lt;T&gt;&gt;; <a href="#98">NUM_PAGES</a>],
+    </span>pages: [Arc&lt;Page&lt;T&gt;&gt;; NUM_PAGES],
 
     <span class="doccomment">/// Caches the array pointer &amp; number of initialized slots.
-    </span>cached: [CachedPage&lt;T&gt;; <a href="#98">NUM_PAGES</a>],
+    </span>cached: [CachedPage&lt;T&gt;; NUM_PAGES],
 }
 
 <span class="doccomment">/// Allocate values in the associated slab.
@@ -923,7 +923,7 @@
     /// following page has double the capacity of the previous page.
     ///
     /// Each returned `Ref` holds a reference count to this `Arc`.
-    </span>pages: [Arc&lt;Page&lt;T&gt;&gt;; <a href="#98">NUM_PAGES</a>],
+    </span>pages: [Arc&lt;Page&lt;T&gt;&gt;; NUM_PAGES],
 }
 
 <span class="doccomment">/// References a slot in the slab. Indexing a slot using an `Address` is memory
@@ -935,10 +935,10 @@
 /// the slot, the generations are compared. If they match, the value matches the
 /// address.
 </span><span class="attr">#[derive(Debug, Copy, Clone, PartialEq, Eq)]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>Address(<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>);
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>Address(usize);
 
 <span class="doccomment">/// An entry in the slab.
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">trait </span>Entry: <a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> {
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">trait </span>Entry: Default {
     <span class="doccomment">/// Resets the entry&#39;s value and track the generation.
     </span><span class="kw">fn </span>reset(<span class="kw-2">&amp;</span><span class="self">self</span>);
 }
@@ -949,11 +949,11 @@
 }
 
 <span class="doccomment">/// Maximum number of pages a slab can contain.
-</span><span class="kw">const </span>NUM_PAGES: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> = <span class="number">19</span>;
+</span><span class="kw">const </span>NUM_PAGES: usize = <span class="number">19</span>;
 
 <span class="doccomment">/// Minimum number of slots a page can contain.
-</span><span class="kw">const </span>PAGE_INITIAL_SIZE: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> = <span class="number">32</span>;
-<span class="kw">const </span>PAGE_INDEX_SHIFT: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> = <a href="#101">PAGE_INITIAL_SIZE</a>.trailing_zeros() + <span class="number">1</span>;
+</span><span class="kw">const </span>PAGE_INITIAL_SIZE: usize = <span class="number">32</span>;
+<span class="kw">const </span>PAGE_INDEX_SHIFT: u32 = PAGE_INITIAL_SIZE.trailing_zeros() + <span class="number">1</span>;
 
 <span class="doccomment">/// A page in the slab.
 </span><span class="kw">struct </span>Page&lt;T&gt; {
@@ -962,16 +962,16 @@
 
     <span class="comment">// Number of slots currently being used. This is not guaranteed to be up to
     // date and should only be used as a hint.
-    </span>used: <a href="../loom/std/atomic_usize.rs.html#6">AtomicUsize</a>,
+    </span>used: AtomicUsize,
 
     <span class="comment">// Set to `true` when the page has been allocated.
-    </span>allocated: <a href="https://doc.rust-lang.org/nightly/core/sync/atomic/struct.AtomicBool.html">AtomicBool</a>,
+    </span>allocated: AtomicBool,
 
     <span class="comment">// The number of slots the page can hold.
-    </span>len: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+    </span>len: usize,
 
     <span class="comment">// Length of all previous pages combined.
-    </span>prev_len: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+    </span>prev_len: usize,
 }
 
 <span class="kw">struct </span>CachedPage&lt;T&gt; {
@@ -979,7 +979,7 @@
     </span>slots: <span class="kw-2">*const </span>Slot&lt;T&gt;,
 
     <span class="doccomment">/// Number of initialized slots.
-    </span>init: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+    </span>init: usize,
 }
 
 <span class="doccomment">/// Page state.
@@ -987,18 +987,18 @@
     <span class="doccomment">/// Slots.
     </span>slots: Vec&lt;Slot&lt;T&gt;&gt;,
 
-    head: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+    head: usize,
 
     <span class="doccomment">/// Number of slots currently in use.
-    </span>used: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+    </span>used: usize,
 }
 
-<span class="kw">unsafe impl</span>&lt;T: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> <span class="kw">for </span>Page&lt;T&gt; {}
-<span class="kw">unsafe impl</span>&lt;T: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="kw">for </span>Page&lt;T&gt; {}
-<span class="kw">unsafe impl</span>&lt;T: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> <span class="kw">for </span>CachedPage&lt;T&gt; {}
-<span class="kw">unsafe impl</span>&lt;T: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="kw">for </span>CachedPage&lt;T&gt; {}
-<span class="kw">unsafe impl</span>&lt;T: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> <span class="kw">for </span>Ref&lt;T&gt; {}
-<span class="kw">unsafe impl</span>&lt;T: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="kw">for </span>Ref&lt;T&gt; {}
+<span class="kw">unsafe impl</span>&lt;T: Sync&gt; Sync <span class="kw">for </span>Page&lt;T&gt; {}
+<span class="kw">unsafe impl</span>&lt;T: Sync&gt; Send <span class="kw">for </span>Page&lt;T&gt; {}
+<span class="kw">unsafe impl</span>&lt;T: Sync&gt; Sync <span class="kw">for </span>CachedPage&lt;T&gt; {}
+<span class="kw">unsafe impl</span>&lt;T: Sync&gt; Send <span class="kw">for </span>CachedPage&lt;T&gt; {}
+<span class="kw">unsafe impl</span>&lt;T: Sync&gt; Sync <span class="kw">for </span>Ref&lt;T&gt; {}
+<span class="kw">unsafe impl</span>&lt;T: Sync&gt; Send <span class="kw">for </span>Ref&lt;T&gt; {}
 
 <span class="doccomment">/// A slot in the slab. Contains slot-specific metadata.
 ///
@@ -1010,13 +1010,13 @@
     </span>value: UnsafeCell&lt;Value&lt;T&gt;&gt;,
 
     <span class="doccomment">/// Next entry in the free list.
-    </span>next: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>,
+    </span>next: u32,
 
     <span class="doccomment">/// Makes miri happy by making mutable references not take exclusive access.
     ///
     /// Could probably also be fixed by replacing `slots` with a raw-pointer
     /// based equivalent.
-    </span>_pin: <a href="https://doc.rust-lang.org/nightly/core/marker/struct.PhantomPinned.html">std::marker::PhantomPinned</a>,
+    </span>_pin: std::marker::PhantomPinned,
 }
 
 <span class="doccomment">/// Value paired with a reference to the page.
@@ -1037,13 +1037,13 @@
         // out an array and every single entry, `Default::default()` is used to
         // initialize the array, then the array is iterated and each value is
         // initialized.
-        </span><span class="kw">let </span><span class="kw-2">mut </span>slab = <a href="#58">Slab</a> {
-            pages: <a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default::default</a>(),
-            cached: <a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default::default</a>(),
+        </span><span class="kw">let </span><span class="kw-2">mut </span>slab = Slab {
+            pages: Default::default(),
+            cached: Default::default(),
         };
 
-        <span class="kw">let </span><span class="kw-2">mut </span>len = <a href="#101">PAGE_INITIAL_SIZE</a>;
-        <span class="kw">let </span><span class="kw-2">mut </span>prev_len: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> = <span class="number">0</span>;
+        <span class="kw">let </span><span class="kw-2">mut </span>len = PAGE_INITIAL_SIZE;
+        <span class="kw">let </span><span class="kw-2">mut </span>prev_len: usize = <span class="number">0</span>;
 
         <span class="kw">for </span>page <span class="kw">in </span><span class="kw-2">&amp;mut </span>slab.pages {
             <span class="kw">let </span>page = Arc::get_mut(page).unwrap();
@@ -1060,30 +1060,30 @@
             );
         }
 
-        <a href="#186">slab</a>
+        slab
     }
 
     <span class="doccomment">/// Returns a new `Allocator`.
     ///
     /// The `Allocator` supports concurrent allocation of objects.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>allocator(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Allocator&lt;T&gt; {
-        <a href="#67">Allocator</a> {
-            pages: <a class="self" href="#215">self</a>.pages.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+        Allocator {
+            pages: <span class="self">self</span>.pages.clone(),
         }
     }
 
     <span class="doccomment">/// Returns a reference to the value stored at the given address.
     ///
     /// `&amp;mut self` is used as the call may update internal cached state.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get(<span class="kw-2">&amp;mut </span><span class="self">self</span>, addr: <a href="#84">Address</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>T&gt; {
-        <span class="kw">let </span>page_idx = <a href="#224">addr</a>.<a href="#592">page</a>();
-        <span class="kw">let </span>slot_idx = <a class="self" href="#224">self</a>.pages[<a href="#225">page_idx</a>].<a href="#461">slot</a>(<a href="#224">addr</a>);
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get(<span class="kw-2">&amp;mut </span><span class="self">self</span>, addr: Address) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>T&gt; {
+        <span class="kw">let </span>page_idx = addr.page();
+        <span class="kw">let </span>slot_idx = <span class="self">self</span>.pages[page_idx].slot(addr);
 
         <span class="comment">// If the address references a slot that was last seen as uninitialized,
         // the `CachedPage` is updated. This requires acquiring the page lock
         // and updating the slot pointer and initialized offset.
         </span><span class="kw">if </span><span class="self">self</span>.cached[page_idx].init &lt;= slot_idx {
-            <a class="self" href="#224">self</a>.cached[<a href="#225">page_idx</a>].<a href="#503">refresh</a>(<span class="kw-2">&amp;</span><a class="self" href="#224">self</a>.pages[<a href="#225">page_idx</a>]);
+            <span class="self">self</span>.cached[page_idx].refresh(<span class="kw-2">&amp;</span><span class="self">self</span>.pages[page_idx]);
         }
 
         <span class="comment">// If the address **still** references an uninitialized slot, then the
@@ -1099,7 +1099,7 @@
         //
         // The referenced data is never mutated. Only `&amp;self` references are
         // used and the data is `Sync`.
-        </span><span class="prelude-val">Some</span>(<a class="self" href="#224">self</a>.cached[<a href="#225">page_idx</a>].<a href="#513">get</a>(<a href="#226">slot_idx</a>))
+        </span><span class="prelude-val">Some</span>(<span class="self">self</span>.cached[page_idx].get(slot_idx))
     }
 
     <span class="doccomment">/// Calls the given function with a reference to each slot in the slab. The
@@ -1178,20 +1178,20 @@
     }
 }
 
-<span class="kw">impl</span>&lt;T&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span>Slab&lt;T&gt; {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, fmt: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a href="#615">debug</a>(<a href="#328">fmt</a>, <span class="string">&quot;Slab&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="#328">self</a>.pages[..])
+<span class="kw">impl</span>&lt;T&gt; fmt::Debug <span class="kw">for </span>Slab&lt;T&gt; {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, fmt: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        debug(fmt, <span class="string">&quot;Slab&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.pages[..])
     }
 }
 
-<span class="kw">impl</span>&lt;T: <a href="#87">Entry</a>&gt; Allocator&lt;T&gt; {
+<span class="kw">impl</span>&lt;T: Entry&gt; Allocator&lt;T&gt; {
     <span class="doccomment">/// Allocate a new entry and return a handle to the entry.
     ///
     /// Scans pages from smallest to biggest, stopping when a slot is found.
     /// Pages are allocated if necessary.
     ///
     /// Returns `None` if the slab is full.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>allocate(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;(<a href="#84">Address</a>, Ref&lt;T&gt;)&gt; {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>allocate(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;(Address, Ref&lt;T&gt;)&gt; {
         <span class="comment">// Find the first available slot.
         </span><span class="kw">for </span>page <span class="kw">in </span><span class="kw-2">&amp;</span><span class="self">self</span>.pages[..] {
             <span class="kw">if let </span><span class="prelude-val">Some</span>((addr, val)) = Page::allocate(page) {
@@ -1203,108 +1203,108 @@
     </span>}
 }
 
-<span class="kw">impl</span>&lt;T&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span>Allocator&lt;T&gt; {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, fmt: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a href="#615">debug</a>(<a href="#353">fmt</a>, <span class="string">&quot;slab::Allocator&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="#353">self</a>.pages[..])
+<span class="kw">impl</span>&lt;T&gt; fmt::Debug <span class="kw">for </span>Allocator&lt;T&gt; {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, fmt: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        debug(fmt, <span class="string">&quot;slab::Allocator&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.pages[..])
     }
 }
 
-<span class="kw">impl</span>&lt;T&gt; <a href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.Deref.html">ops::Deref</a> <span class="kw">for </span>Ref&lt;T&gt; {
+<span class="kw">impl</span>&lt;T&gt; ops::Deref <span class="kw">for </span>Ref&lt;T&gt; {
     <span class="kw">type </span>Target = T;
 
     <span class="kw">fn </span>deref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>T {
         <span class="comment">// Safety: `&amp;mut` is never handed out to the underlying value. The page
         // is not freed until all `Ref` values are dropped.
-        </span><span class="kw">unsafe </span>{ <span class="kw-2">&amp;</span>(<span class="kw-2">*</span><a class="self" href="#361">self</a>.value).value }
+        </span><span class="kw">unsafe </span>{ <span class="kw-2">&amp;</span>(<span class="kw-2">*</span><span class="self">self</span>.value).value }
     }
 }
 
-<span class="kw">impl</span>&lt;T&gt; <a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span>Ref&lt;T&gt; {
+<span class="kw">impl</span>&lt;T&gt; Drop <span class="kw">for </span>Ref&lt;T&gt; {
     <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="comment">// Safety: `&amp;mut` is never handed out to the underlying value. The page
         // is not freed until all `Ref` values are dropped.
-        </span><span class="kw">let _ </span>= <span class="kw">unsafe </span>{ (<span class="kw-2">*</span><a class="self" href="#369">self</a>.value).<a href="#583">release</a>() };
+        </span><span class="kw">let _ </span>= <span class="kw">unsafe </span>{ (<span class="kw-2">*</span><span class="self">self</span>.value).release() };
     }
 }
 
-<span class="kw">impl</span>&lt;T: <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span>Ref&lt;T&gt; {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, fmt: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        (<span class="kw-2">**</span><a class="self" href="#377">self</a>).<a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt</a>(<a href="#377">fmt</a>)
+<span class="kw">impl</span>&lt;T: fmt::Debug&gt; fmt::Debug <span class="kw">for </span>Ref&lt;T&gt; {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, fmt: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        (<span class="kw-2">**</span><span class="self">self</span>).fmt(fmt)
     }
 }
 
-<span class="kw">impl</span>&lt;T: <a href="#87">Entry</a>&gt; Page&lt;T&gt; {
+<span class="kw">impl</span>&lt;T: Entry&gt; Page&lt;T&gt; {
     <span class="comment">// Allocates an object, returns the ref and address.
     //
     // `self: &amp;Arc&lt;Page&lt;T&gt;&gt;` is avoided here as this would not work with the
     // loom `Arc`.
-    </span><span class="kw">fn </span>allocate(me: <span class="kw-2">&amp;</span>Arc&lt;Page&lt;T&gt;&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;(<a href="#84">Address</a>, Ref&lt;T&gt;)&gt; {
+    </span><span class="kw">fn </span>allocate(me: <span class="kw-2">&amp;</span>Arc&lt;Page&lt;T&gt;&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;(Address, Ref&lt;T&gt;)&gt; {
         <span class="comment">// Before acquiring the lock, use the `used` hint.
         </span><span class="kw">if </span>me.used.load(Relaxed) == me.len {
             <span class="kw">return </span><span class="prelude-val">None</span>;
         }
 
         <span class="comment">// Allocating objects requires synchronization
-        </span><span class="kw">let </span><span class="kw-2">mut </span>locked = <a href="#387">me</a>.slots.<a href="../loom/std/mutex.rs.html#16">lock</a>();
+        </span><span class="kw">let </span><span class="kw-2">mut </span>locked = me.slots.lock();
 
         <span class="kw">if </span>locked.head &lt; locked.slots.len() {
             <span class="comment">// Re-use an already initialized slot.
             //
             // Help out the borrow checker
-            </span><span class="kw">let </span>locked = <span class="kw-2">&amp;mut *</span><a href="#394">locked</a>;
+            </span><span class="kw">let </span>locked = <span class="kw-2">&amp;mut *</span>locked;
 
             <span class="comment">// Get the index of the slot at the head of the free stack. This is
             // the slot that will be reused.
-            </span><span class="kw">let </span>idx = <a href="#400">locked</a>.head;
-            <span class="kw">let </span>slot = <span class="kw-2">&amp;</span><a href="#400">locked</a>.slots[<a href="#404">idx</a>];
+            </span><span class="kw">let </span>idx = locked.head;
+            <span class="kw">let </span>slot = <span class="kw-2">&amp;</span>locked.slots[idx];
 
             <span class="comment">// Update the free stack head to point to the next slot.
-            </span><a href="#400">locked</a>.head = <a href="#405">slot</a>.next <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>;
+            </span>locked.head = slot.next <span class="kw">as </span>usize;
 
             <span class="comment">// Increment the number of used slots
-            </span><a href="#400">locked</a>.used += <span class="number">1</span>;
-            <a href="#387">me</a>.used.store(<a href="#400">locked</a>.used, Relaxed);
+            </span>locked.used += <span class="number">1</span>;
+            me.used.store(locked.used, Relaxed);
 
             <span class="comment">// Reset the slot
-            </span><a href="#405">slot</a>.value.<a href="../loom/std/unsafe_cell.rs.html#9">with</a>(|ptr| <span class="kw">unsafe </span>{ (<span class="kw-2">*</span><a href="#415">ptr</a>).value.<a href="#89">reset</a>() });
+            </span>slot.value.with(|ptr| <span class="kw">unsafe </span>{ (<span class="kw-2">*</span>ptr).value.reset() });
 
             <span class="comment">// Return a reference to the slot
-            </span><span class="prelude-val">Some</span>((<a href="#387">me</a>.<a href="#466">addr</a>(<a href="#404">idx</a>), <a href="#400">locked</a>.<a href="#569">gen_ref</a>(<a href="#404">idx</a>, <a href="#387">me</a>)))
+            </span><span class="prelude-val">Some</span>((me.addr(idx), locked.gen_ref(idx, me)))
         } <span class="kw">else if </span>me.len == locked.slots.len() {
             <span class="comment">// The page is full
             </span><span class="prelude-val">None
         </span>} <span class="kw">else </span>{
             <span class="comment">// No initialized slots are available, but the page has more
             // capacity. Initialize a new slot.
-            </span><span class="kw">let </span>idx = <a href="#394">locked</a>.slots.len();
+            </span><span class="kw">let </span>idx = locked.slots.len();
 
             <span class="kw">if </span>idx == <span class="number">0 </span>{
                 <span class="comment">// The page has not yet been allocated. Allocate the storage for
                 // all page slots.
-                </span><a href="#394">locked</a>.slots.reserve_exact(<a href="#387">me</a>.len);
+                </span>locked.slots.reserve_exact(me.len);
             }
 
             <span class="comment">// Initialize a new slot
-            </span><a href="#394">locked</a>.slots.push(<a href="#154">Slot</a> {
-                value: UnsafeCell::new(<a href="#169">Value</a> {
-                    value: <a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default::default</a>(),
-                    page: Arc::as_ptr(<a href="#387">me</a>),
+            </span>locked.slots.push(Slot {
+                value: UnsafeCell::new(Value {
+                    value: Default::default(),
+                    page: Arc::as_ptr(me),
                 }),
                 next: <span class="number">0</span>,
                 _pin: std::marker::PhantomPinned,
             });
 
             <span class="comment">// Increment the head to indicate the free stack is empty
-            </span><a href="#394">locked</a>.head += <span class="number">1</span>;
+            </span>locked.head += <span class="number">1</span>;
 
             <span class="comment">// Increment the number of used slots
-            </span><a href="#394">locked</a>.used += <span class="number">1</span>;
-            <a href="#387">me</a>.used.store(<a href="#394">locked</a>.used, Relaxed);
-            <a href="#387">me</a>.allocated.store(<span class="bool-val">true</span>, Relaxed);
+            </span>locked.used += <span class="number">1</span>;
+            me.used.store(locked.used, Relaxed);
+            me.allocated.store(<span class="bool-val">true</span>, Relaxed);
 
-            <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert_eq.html">debug_assert_eq!</a>(locked.slots.len(), locked.head);
+            <span class="macro">debug_assert_eq!</span>(locked.slots.len(), locked.head);
 
-            <span class="prelude-val">Some</span>((<a href="#387">me</a>.<a href="#466">addr</a>(<a href="#425">idx</a>), <a href="#394">locked</a>.<a href="#569">gen_ref</a>(<a href="#425">idx</a>, <a href="#387">me</a>)))
+            <span class="prelude-val">Some</span>((me.addr(idx), locked.gen_ref(idx, me)))
         }
     }
 }
@@ -1312,22 +1312,22 @@
 <span class="kw">impl</span>&lt;T&gt; Page&lt;T&gt; {
     <span class="doccomment">/// Returns the slot index within the current page referenced by the given
     /// address.
-    </span><span class="kw">fn </span>slot(<span class="kw-2">&amp;</span><span class="self">self</span>, addr: <a href="#84">Address</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a href="#461">addr</a>.<span class="number">0 </span>- <a class="self" href="#461">self</a>.prev_len
+    </span><span class="kw">fn </span>slot(<span class="kw-2">&amp;</span><span class="self">self</span>, addr: Address) -&gt; usize {
+        addr.<span class="number">0 </span>- <span class="self">self</span>.prev_len
     }
 
     <span class="doccomment">/// Returns the address for the given slot.
-    </span><span class="kw">fn </span>addr(<span class="kw-2">&amp;</span><span class="self">self</span>, slot: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a href="#84">Address</a> {
-        <a href="#84">Address</a>(<a href="#466">slot</a> + <a class="self" href="#466">self</a>.prev_len)
+    </span><span class="kw">fn </span>addr(<span class="kw-2">&amp;</span><span class="self">self</span>, slot: usize) -&gt; Address {
+        Address(slot + <span class="self">self</span>.prev_len)
     }
 }
 
-<span class="kw">impl</span>&lt;T&gt; <a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for </span>Page&lt;T&gt; {
+<span class="kw">impl</span>&lt;T&gt; Default <span class="kw">for </span>Page&lt;T&gt; {
     <span class="kw">fn </span>default() -&gt; Page&lt;T&gt; {
-        <a href="#105">Page</a> {
+        Page {
             used: AtomicUsize::new(<span class="number">0</span>),
             allocated: AtomicBool::new(<span class="bool-val">false</span>),
-            slots: Mutex::new(<a href="#132">Slots</a> {
+            slots: Mutex::new(Slots {
                 slots: Vec::new(),
                 head: <span class="number">0</span>,
                 used: <span class="number">0</span>,
@@ -1341,31 +1341,31 @@
 <span class="kw">impl</span>&lt;T&gt; Page&lt;T&gt; {
     <span class="doccomment">/// Release a slot into the page&#39;s free list.
     </span><span class="kw">fn </span>release(<span class="kw-2">&amp;</span><span class="self">self</span>, value: <span class="kw-2">*const </span>Value&lt;T&gt;) {
-        <span class="kw">let </span><span class="kw-2">mut </span>locked = <a class="self" href="#489">self</a>.slots.<a href="../loom/std/mutex.rs.html#16">lock</a>();
+        <span class="kw">let </span><span class="kw-2">mut </span>locked = <span class="self">self</span>.slots.lock();
 
-        <span class="kw">let </span>idx = <a href="#490">locked</a>.<a href="#551">index_for</a>(<a href="#489">value</a>);
-        <a href="#490">locked</a>.slots[<a href="#492">idx</a>].next = <a href="#490">locked</a>.head <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>;
-        <a href="#490">locked</a>.head = <a href="#492">idx</a>;
-        <a href="#490">locked</a>.used -= <span class="number">1</span>;
+        <span class="kw">let </span>idx = locked.index_for(value);
+        locked.slots[idx].next = locked.head <span class="kw">as </span>u32;
+        locked.head = idx;
+        locked.used -= <span class="number">1</span>;
 
-        <a class="self" href="#489">self</a>.used.store(<a href="#490">locked</a>.used, Relaxed);
+        <span class="self">self</span>.used.store(locked.used, Relaxed);
     }
 }
 
 <span class="kw">impl</span>&lt;T&gt; CachedPage&lt;T&gt; {
     <span class="doccomment">/// Refreshes the cache.
     </span><span class="kw">fn </span>refresh(<span class="kw-2">&amp;mut </span><span class="self">self</span>, page: <span class="kw-2">&amp;</span>Page&lt;T&gt;) {
-        <span class="kw">let </span>slots = <a href="#503">page</a>.slots.<a href="../loom/std/mutex.rs.html#16">lock</a>();
+        <span class="kw">let </span>slots = page.slots.lock();
 
         <span class="kw">if </span>!slots.slots.is_empty() {
-            <a class="self" href="#503">self</a>.slots = <a href="#504">slots</a>.slots.as_ptr();
-            <a class="self" href="#503">self</a>.init = <a href="#504">slots</a>.slots.len();
+            <span class="self">self</span>.slots = slots.slots.as_ptr();
+            <span class="self">self</span>.init = slots.slots.len();
         }
     }
 
     <span class="doccomment">/// Gets a value by index.
-    </span><span class="kw">fn </span>get(<span class="kw-2">&amp;</span><span class="self">self</span>, idx: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="kw-2">&amp;</span>T {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(idx &lt; <span class="self">self</span>.init);
+    </span><span class="kw">fn </span>get(<span class="kw-2">&amp;</span><span class="self">self</span>, idx: usize) -&gt; <span class="kw-2">&amp;</span>T {
+        <span class="macro">assert!</span>(idx &lt; <span class="self">self</span>.init);
 
         <span class="comment">// Safety: Pages are allocated concurrently, but are only ever
         // **deallocated** by `Slab`. `Slab` will always have a more
@@ -1374,17 +1374,17 @@
         // until `compact()` is called. The `compact()` function also updates
         // `CachedPage`.
         </span><span class="kw">unsafe </span>{
-            <span class="kw">let </span>slot = <a class="self" href="#513">self</a>.slots.add(<a href="#513">idx</a>);
-            <span class="kw">let </span>value = <a href="#523">slot</a> <span class="kw">as </span><span class="kw-2">*const </span>Value&lt;T&gt;;
+            <span class="kw">let </span>slot = <span class="self">self</span>.slots.add(idx);
+            <span class="kw">let </span>value = slot <span class="kw">as </span><span class="kw-2">*const </span>Value&lt;T&gt;;
 
-            <span class="kw-2">&amp;</span>(<span class="kw-2">*</span><a href="#524">value</a>).value
+            <span class="kw-2">&amp;</span>(<span class="kw-2">*</span>value).value
         }
     }
 }
 
-<span class="kw">impl</span>&lt;T&gt; <a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for </span>CachedPage&lt;T&gt; {
+<span class="kw">impl</span>&lt;T&gt; Default <span class="kw">for </span>CachedPage&lt;T&gt; {
     <span class="kw">fn </span>default() -&gt; CachedPage&lt;T&gt; {
-        <a href="#123">CachedPage</a> {
+        CachedPage {
             slots: ptr::null(),
             init: <span class="number">0</span>,
         }
@@ -1402,33 +1402,33 @@
     /// # Panics
     ///
     /// panics if the provided slot pointer is not contained by the page.
-    </span><span class="kw">fn </span>index_for(<span class="kw-2">&amp;</span><span class="self">self</span>, slot: <span class="kw-2">*const </span>Value&lt;T&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/mem/index.html">std::mem</a>;
+    </span><span class="kw">fn </span>index_for(<span class="kw-2">&amp;</span><span class="self">self</span>, slot: <span class="kw-2">*const </span>Value&lt;T&gt;) -&gt; usize {
+        <span class="kw">use </span>std::mem;
 
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert_ne.html">assert_ne!</a>(<span class="self">self</span>.slots.capacity(), <span class="number">0</span>, <span class="string">&quot;page is unallocated&quot;</span>);
+        <span class="macro">assert_ne!</span>(<span class="self">self</span>.slots.capacity(), <span class="number">0</span>, <span class="string">&quot;page is unallocated&quot;</span>);
 
-        <span class="kw">let </span>base = <a class="self" href="#551">self</a>.slots.as_ptr() <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>;
-        <span class="kw">let </span>slot = <a href="#551">slot</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>;
+        <span class="kw">let </span>base = <span class="self">self</span>.slots.as_ptr() <span class="kw">as </span>usize;
+        <span class="kw">let </span>slot = slot <span class="kw">as </span>usize;
         <span class="kw">let </span>width = mem::size_of::&lt;Slot&lt;T&gt;&gt;();
 
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(slot &gt;= base, <span class="string">&quot;unexpected pointer&quot;</span>);
+        <span class="macro">assert!</span>(slot &gt;= base, <span class="string">&quot;unexpected pointer&quot;</span>);
 
-        <span class="kw">let </span>idx = (<a href="#557">slot</a> - <a href="#556">base</a>) / <a href="#558">width</a>;
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(idx &lt; <span class="self">self</span>.slots.len() <span class="kw">as </span>usize);
+        <span class="kw">let </span>idx = (slot - base) / width;
+        <span class="macro">assert!</span>(idx &lt; <span class="self">self</span>.slots.len() <span class="kw">as </span>usize);
 
-        <a href="#562">idx</a>
+        idx
     }
 
     <span class="doccomment">/// Generates a `Ref` for the slot at the given index. This involves bumping the page&#39;s ref count.
-    </span><span class="kw">fn </span>gen_ref(<span class="kw-2">&amp;</span><span class="self">self</span>, idx: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, page: <span class="kw-2">&amp;</span>Arc&lt;Page&lt;T&gt;&gt;) -&gt; Ref&lt;T&gt; {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(idx &lt; <span class="self">self</span>.slots.len());
-        mem::forget(<a href="#569">page</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
+    </span><span class="kw">fn </span>gen_ref(<span class="kw-2">&amp;</span><span class="self">self</span>, idx: usize, page: <span class="kw-2">&amp;</span>Arc&lt;Page&lt;T&gt;&gt;) -&gt; Ref&lt;T&gt; {
+        <span class="macro">assert!</span>(idx &lt; <span class="self">self</span>.slots.len());
+        mem::forget(page.clone());
 
-        <span class="kw">let </span>vec_ptr = <a class="self" href="#569">self</a>.slots.as_ptr();
-        <span class="kw">let </span>slot: <span class="kw-2">*const </span>Slot&lt;T&gt; = <span class="kw">unsafe </span>{ <a href="#573">vec_ptr</a>.add(<a href="#569">idx</a>) };
-        <span class="kw">let </span>value: <span class="kw-2">*const </span>Value&lt;T&gt; = <a href="#574">slot</a> <span class="kw">as </span><span class="kw-2">*const </span>Value&lt;T&gt;;
+        <span class="kw">let </span>vec_ptr = <span class="self">self</span>.slots.as_ptr();
+        <span class="kw">let </span>slot: <span class="kw-2">*const </span>Slot&lt;T&gt; = <span class="kw">unsafe </span>{ vec_ptr.add(idx) };
+        <span class="kw">let </span>value: <span class="kw-2">*const </span>Value&lt;T&gt; = slot <span class="kw">as </span><span class="kw-2">*const </span>Value&lt;T&gt;;
 
-        <a href="#93">Ref</a> { <a href="#575">value</a> }
+        Ref { value }
     }
 }
 
@@ -1436,14 +1436,14 @@
     <span class="doccomment">/// Releases the slot, returning the `Arc&lt;Page&lt;T&gt;&gt;` logically owned by the ref.
     </span><span class="kw">fn </span>release(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Arc&lt;Page&lt;T&gt;&gt; {
         <span class="comment">// Safety: called by `Ref`, which owns an `Arc&lt;Page&lt;T&gt;&gt;` instance.
-        </span><span class="kw">let </span>page = <span class="kw">unsafe </span>{ Arc::from_raw(<a class="self" href="#583">self</a>.page) };
-        <a href="#585">page</a>.<a href="#489">release</a>(<span class="self"><a href="#583">self</a> </span><span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_</span>);
-        <a href="#585">page</a>
+        </span><span class="kw">let </span>page = <span class="kw">unsafe </span>{ Arc::from_raw(<span class="self">self</span>.page) };
+        page.release(<span class="self">self </span><span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_</span>);
+        page
     }
 }
 
-<span class="kw">impl </span><a href="#84">Address</a> {
-    <span class="kw">fn </span>page(<span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
+<span class="kw">impl </span>Address {
+    <span class="kw">fn </span>page(<span class="self">self</span>) -&gt; usize {
         <span class="comment">// Since every page is twice as large as the previous page, and all page
         // sizes are powers of two, we can determine the page index that
         // contains a given address by shifting the address down by the smallest
@@ -1453,20 +1453,20 @@
         // of leading zeros (unused twos places) in the number&#39;s binary
         // representation, and subtracting that count from the total number of
         // bits in a word.
-        </span><span class="kw">let </span>slot_shifted = (<a class="self" href="#592">self</a>.<span class="number">0 </span>+ <a href="#101">PAGE_INITIAL_SIZE</a>) &gt;&gt; <a href="#102">PAGE_INDEX_SHIFT</a>;
-        (<a href="bit.rs.html#64">bit::pointer_width</a>() - <a href="#602">slot_shifted</a>.leading_zeros()) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>
+        </span><span class="kw">let </span>slot_shifted = (<span class="self">self</span>.<span class="number">0 </span>+ PAGE_INITIAL_SIZE) &gt;&gt; PAGE_INDEX_SHIFT;
+        (bit::pointer_width() - slot_shifted.leading_zeros()) <span class="kw">as </span>usize
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>as_usize(<span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="self" href="#606">self</a>.<span class="number">0
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>as_usize(<span class="self">self</span>) -&gt; usize {
+        <span class="self">self</span>.<span class="number">0
     </span>}
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>from_usize(src: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a href="#84">Address</a> {
-        <a href="#84">Address</a>(<a href="#610">src</a>)
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>from_usize(src: usize) -&gt; Address {
+        Address(src)
     }
 }
 
-<span class="kw">fn </span>debug&lt;T&gt;(fmt: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;, name: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, pages: <span class="kw-2">&amp;</span>[Arc&lt;Page&lt;T&gt;&gt;]) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+<span class="kw">fn </span>debug&lt;T&gt;(fmt: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;, name: <span class="kw-2">&amp;</span>str, pages: <span class="kw-2">&amp;</span>[Arc&lt;Page&lt;T&gt;&gt;]) -&gt; fmt::Result {
     <span class="kw">let </span><span class="kw-2">mut </span>capacity = <span class="number">0</span>;
     <span class="kw">let </span><span class="kw-2">mut </span>len = <span class="number">0</span>;
 
@@ -1477,9 +1477,9 @@
         }
     }
 
-    <a href="#615">fmt</a>.debug_struct(<a href="#615">name</a>)
-        .field(<span class="string">&quot;len&quot;</span>, <span class="kw-2">&amp;</span><a href="#617">len</a>)
-        .field(<span class="string">&quot;capacity&quot;</span>, <span class="kw-2">&amp;</span><a href="#616">capacity</a>)
+    fmt.debug_struct(name)
+        .field(<span class="string">&quot;len&quot;</span>, <span class="kw-2">&amp;</span>len)
+        .field(<span class="string">&quot;capacity&quot;</span>, <span class="kw-2">&amp;</span>capacity)
         .finish()
 }
 
@@ -1707,4 +1707,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="tokio" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="tokio" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

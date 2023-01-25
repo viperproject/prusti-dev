@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/version-compare-0.1.1/src/cmp.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>cmp.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../version_compare/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/version-compare-0.1.1/src/cmp.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>cmp.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../version_compare/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -442,7 +442,7 @@
 //! Methods like `Cmp::from_sign(&quot;&gt;&quot;);` can be used to get a comparison operator by it&#39;s logical
 //! sign from a string.
 
-</span><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html">std::cmp::Ordering</a>;
+</span><span class="kw">use </span>std::cmp::Ordering;
 
 <span class="doccomment">/// Comparison operators enum.
 </span><span class="attr">#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
@@ -472,7 +472,7 @@
     </span>Gt,
 }
 
-<span class="kw">impl </span><a href="#13">Cmp</a> {
+<span class="kw">impl </span>Cmp {
     <span class="doccomment">/// Get a comparison operator by it&#39;s sign.
     /// Whitespaces are stripped from the sign string.
     /// An error is returned if the sign isn&#39;t recognized.
@@ -497,14 +497,14 @@
     /// assert!(Cmp::from_sign(&quot;*&quot;).is_err());
     /// ```
     </span><span class="attr">#[allow(clippy::result_map_unit_fn)]
-    </span><span class="kw">pub fn </span>from_sign&lt;S: AsRef&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt;&gt;(sign: S) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#13">Cmp</a>, ()&gt; {
-        <span class="kw">match </span><a href="#64">sign</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>().trim() {
-            <span class="string">&quot;==&quot; </span>| <span class="string">&quot;=&quot; </span>=&gt; <span class="prelude-val">Ok</span>(<a href="#16">Cmp::Eq</a>),
-            <span class="string">&quot;!=&quot; </span>| <span class="string">&quot;!&quot; </span>| <span class="string">&quot;&lt;&gt;&quot; </span>=&gt; <span class="prelude-val">Ok</span>(<a href="#20">Cmp::Ne</a>),
-            <span class="string">&quot;&lt;&quot; </span>=&gt; <span class="prelude-val">Ok</span>(<a href="#24">Cmp::Lt</a>),
-            <span class="string">&quot;&lt;=&quot; </span>=&gt; <span class="prelude-val">Ok</span>(<a href="#28">Cmp::Le</a>),
-            <span class="string">&quot;&gt;=&quot; </span>=&gt; <span class="prelude-val">Ok</span>(<a href="#32">Cmp::Ge</a>),
-            <span class="string">&quot;&gt;&quot; </span>=&gt; <span class="prelude-val">Ok</span>(<a href="#36">Cmp::Gt</a>),
+    </span><span class="kw">pub fn </span>from_sign&lt;S: AsRef&lt;str&gt;&gt;(sign: S) -&gt; <span class="prelude-ty">Result</span>&lt;Cmp, ()&gt; {
+        <span class="kw">match </span>sign.as_ref().trim() {
+            <span class="string">&quot;==&quot; </span>| <span class="string">&quot;=&quot; </span>=&gt; <span class="prelude-val">Ok</span>(Cmp::Eq),
+            <span class="string">&quot;!=&quot; </span>| <span class="string">&quot;!&quot; </span>| <span class="string">&quot;&lt;&gt;&quot; </span>=&gt; <span class="prelude-val">Ok</span>(Cmp::Ne),
+            <span class="string">&quot;&lt;&quot; </span>=&gt; <span class="prelude-val">Ok</span>(Cmp::Lt),
+            <span class="string">&quot;&lt;=&quot; </span>=&gt; <span class="prelude-val">Ok</span>(Cmp::Le),
+            <span class="string">&quot;&gt;=&quot; </span>=&gt; <span class="prelude-val">Ok</span>(Cmp::Ge),
+            <span class="string">&quot;&gt;&quot; </span>=&gt; <span class="prelude-val">Ok</span>(Cmp::Gt),
             <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(()),
         }
     }
@@ -524,14 +524,14 @@
     /// assert!(Cmp::from_name(&quot;abc&quot;).is_err());
     /// ```
     </span><span class="attr">#[allow(clippy::result_map_unit_fn)]
-    </span><span class="kw">pub fn </span>from_name&lt;S: AsRef&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt;&gt;(sign: S) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#13">Cmp</a>, ()&gt; {
-        <span class="kw">match </span><a href="#91">sign</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>().trim().to_lowercase().as_str() {
-            <span class="string">&quot;eq&quot; </span>=&gt; <span class="prelude-val">Ok</span>(<a href="#16">Cmp::Eq</a>),
-            <span class="string">&quot;ne&quot; </span>=&gt; <span class="prelude-val">Ok</span>(<a href="#20">Cmp::Ne</a>),
-            <span class="string">&quot;lt&quot; </span>=&gt; <span class="prelude-val">Ok</span>(<a href="#24">Cmp::Lt</a>),
-            <span class="string">&quot;le&quot; </span>=&gt; <span class="prelude-val">Ok</span>(<a href="#28">Cmp::Le</a>),
-            <span class="string">&quot;ge&quot; </span>=&gt; <span class="prelude-val">Ok</span>(<a href="#32">Cmp::Ge</a>),
-            <span class="string">&quot;gt&quot; </span>=&gt; <span class="prelude-val">Ok</span>(<a href="#36">Cmp::Gt</a>),
+    </span><span class="kw">pub fn </span>from_name&lt;S: AsRef&lt;str&gt;&gt;(sign: S) -&gt; <span class="prelude-ty">Result</span>&lt;Cmp, ()&gt; {
+        <span class="kw">match </span>sign.as_ref().trim().to_lowercase().as_str() {
+            <span class="string">&quot;eq&quot; </span>=&gt; <span class="prelude-val">Ok</span>(Cmp::Eq),
+            <span class="string">&quot;ne&quot; </span>=&gt; <span class="prelude-val">Ok</span>(Cmp::Ne),
+            <span class="string">&quot;lt&quot; </span>=&gt; <span class="prelude-val">Ok</span>(Cmp::Lt),
+            <span class="string">&quot;le&quot; </span>=&gt; <span class="prelude-val">Ok</span>(Cmp::Le),
+            <span class="string">&quot;ge&quot; </span>=&gt; <span class="prelude-val">Ok</span>(Cmp::Ge),
+            <span class="string">&quot;gt&quot; </span>=&gt; <span class="prelude-val">Ok</span>(Cmp::Gt),
             <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(()),
         }
     }
@@ -543,11 +543,11 @@
     /// * `Ordering::Less` -&gt; `Lt`
     /// * `Ordering::Equal` -&gt; `Eq`
     /// * `Ordering::Greater` -&gt; `Gt`
-    </span><span class="kw">pub fn </span>from_ord(ord: <a href="https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html">Ordering</a>) -&gt; <a href="#13">Cmp</a> {
-        <span class="kw">match </span><a href="#110">ord</a> {
-            Ordering::Less =&gt; <a href="#24">Cmp::Lt</a>,
-            Ordering::Equal =&gt; <a href="#16">Cmp::Eq</a>,
-            Ordering::Greater =&gt; <a href="#36">Cmp::Gt</a>,
+    </span><span class="kw">pub fn </span>from_ord(ord: Ordering) -&gt; Cmp {
+        <span class="kw">match </span>ord {
+            Ordering::Less =&gt; Cmp::Lt,
+            Ordering::Equal =&gt; Cmp::Eq,
+            Ordering::Greater =&gt; Cmp::Gt,
         }
     }
 
@@ -562,14 +562,14 @@
     /// assert_eq!(Cmp::Lt.name(), &quot;lt&quot;);
     /// assert_eq!(Cmp::Ge.name(), &quot;ge&quot;);
     /// ```
-    </span><span class="kw">pub fn </span>name&lt;<span class="lifetime">&#39;a</span>&gt;(<span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> {
-        <span class="kw">match </span><span class="self"><a href="#129">self</a> </span>{
-            <a href="#16">Cmp::Eq</a> =&gt; <span class="string">&quot;eq&quot;</span>,
-            <a href="#20">Cmp::Ne</a> =&gt; <span class="string">&quot;ne&quot;</span>,
-            <a href="#24">Cmp::Lt</a> =&gt; <span class="string">&quot;lt&quot;</span>,
-            <a href="#28">Cmp::Le</a> =&gt; <span class="string">&quot;le&quot;</span>,
-            <a href="#32">Cmp::Ge</a> =&gt; <span class="string">&quot;ge&quot;</span>,
-            <a href="#36">Cmp::Gt</a> =&gt; <span class="string">&quot;gt&quot;</span>,
+    </span><span class="kw">pub fn </span>name&lt;<span class="lifetime">&#39;a</span>&gt;(<span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>str {
+        <span class="kw">match </span><span class="self">self </span>{
+            Cmp::Eq =&gt; <span class="string">&quot;eq&quot;</span>,
+            Cmp::Ne =&gt; <span class="string">&quot;ne&quot;</span>,
+            Cmp::Lt =&gt; <span class="string">&quot;lt&quot;</span>,
+            Cmp::Le =&gt; <span class="string">&quot;le&quot;</span>,
+            Cmp::Ge =&gt; <span class="string">&quot;ge&quot;</span>,
+            Cmp::Gt =&gt; <span class="string">&quot;gt&quot;</span>,
         }
     }
 
@@ -592,13 +592,13 @@
     /// ```
     </span><span class="attr">#[must_use]
     </span><span class="kw">pub fn </span>invert(<span class="self">self</span>) -&gt; <span class="self">Self </span>{
-        <span class="kw">match </span><span class="self"><a href="#158">self</a> </span>{
-            <a href="#16">Cmp::Eq</a> =&gt; <a href="#20">Cmp::Ne</a>,
-            <a href="#20">Cmp::Ne</a> =&gt; <a href="#16">Cmp::Eq</a>,
-            <a href="#24">Cmp::Lt</a> =&gt; <a href="#32">Cmp::Ge</a>,
-            <a href="#28">Cmp::Le</a> =&gt; <a href="#36">Cmp::Gt</a>,
-            <a href="#32">Cmp::Ge</a> =&gt; <a href="#24">Cmp::Lt</a>,
-            <a href="#36">Cmp::Gt</a> =&gt; <a href="#28">Cmp::Le</a>,
+        <span class="kw">match </span><span class="self">self </span>{
+            Cmp::Eq =&gt; Cmp::Ne,
+            Cmp::Ne =&gt; Cmp::Eq,
+            Cmp::Lt =&gt; Cmp::Ge,
+            Cmp::Le =&gt; Cmp::Gt,
+            Cmp::Ge =&gt; Cmp::Lt,
+            Cmp::Gt =&gt; Cmp::Le,
         }
     }
 
@@ -621,13 +621,13 @@
     /// ```
     </span><span class="attr">#[must_use]
     </span><span class="kw">pub fn </span>opposite(<span class="self">self</span>) -&gt; <span class="self">Self </span>{
-        <span class="kw">match </span><span class="self"><a href="#187">self</a> </span>{
-            <a href="#16">Cmp::Eq</a> =&gt; <a href="#20">Cmp::Ne</a>,
-            <a href="#20">Cmp::Ne</a> =&gt; <a href="#16">Cmp::Eq</a>,
-            <a href="#24">Cmp::Lt</a> =&gt; <a href="#36">Cmp::Gt</a>,
-            <a href="#28">Cmp::Le</a> =&gt; <a href="#32">Cmp::Ge</a>,
-            <a href="#32">Cmp::Ge</a> =&gt; <a href="#28">Cmp::Le</a>,
-            <a href="#36">Cmp::Gt</a> =&gt; <a href="#24">Cmp::Lt</a>,
+        <span class="kw">match </span><span class="self">self </span>{
+            Cmp::Eq =&gt; Cmp::Ne,
+            Cmp::Ne =&gt; Cmp::Eq,
+            Cmp::Lt =&gt; Cmp::Gt,
+            Cmp::Le =&gt; Cmp::Ge,
+            Cmp::Ge =&gt; Cmp::Le,
+            Cmp::Gt =&gt; Cmp::Lt,
         }
     }
 
@@ -650,12 +650,12 @@
     /// ```
     </span><span class="attr">#[must_use]
     </span><span class="kw">pub fn </span>flip(<span class="self">self</span>) -&gt; <span class="self">Self </span>{
-        <span class="kw">match </span><span class="self"><a href="#216">self</a> </span>{
-            <a href="#24">Cmp::Lt</a> =&gt; <a href="#36">Cmp::Gt</a>,
-            <a href="#28">Cmp::Le</a> =&gt; <a href="#32">Cmp::Ge</a>,
-            <a href="#32">Cmp::Ge</a> =&gt; <a href="#28">Cmp::Le</a>,
-            <a href="#36">Cmp::Gt</a> =&gt; <a href="#24">Cmp::Lt</a>,
-            <span class="kw">_ </span>=&gt; <a class="self" href="#216">self</a>,
+        <span class="kw">match </span><span class="self">self </span>{
+            Cmp::Lt =&gt; Cmp::Gt,
+            Cmp::Le =&gt; Cmp::Ge,
+            Cmp::Ge =&gt; Cmp::Le,
+            Cmp::Gt =&gt; Cmp::Lt,
+            <span class="kw">_ </span>=&gt; <span class="self">self</span>,
         }
     }
 
@@ -683,14 +683,14 @@
     /// assert_eq!(Cmp::Lt.sign(), &quot;&lt;&quot;);
     /// assert_eq!(Cmp::Ge.flip().sign(), &quot;&lt;=&quot;);
     /// ```
-    </span><span class="kw">pub fn </span>sign(<span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> {
-        <span class="kw">match </span><span class="self"><a href="#250">self</a> </span>{
-            <a href="#16">Cmp::Eq</a> =&gt; <span class="string">&quot;==&quot;</span>,
-            <a href="#20">Cmp::Ne</a> =&gt; <span class="string">&quot;!=&quot;</span>,
-            <a href="#24">Cmp::Lt</a> =&gt; <span class="string">&quot;&lt;&quot;</span>,
-            <a href="#28">Cmp::Le</a> =&gt; <span class="string">&quot;&lt;=&quot;</span>,
-            <a href="#32">Cmp::Ge</a> =&gt; <span class="string">&quot;&gt;=&quot;</span>,
-            <a href="#36">Cmp::Gt</a> =&gt; <span class="string">&quot;&gt;&quot;</span>,
+    </span><span class="kw">pub fn </span>sign(<span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str {
+        <span class="kw">match </span><span class="self">self </span>{
+            Cmp::Eq =&gt; <span class="string">&quot;==&quot;</span>,
+            Cmp::Ne =&gt; <span class="string">&quot;!=&quot;</span>,
+            Cmp::Lt =&gt; <span class="string">&quot;&lt;&quot;</span>,
+            Cmp::Le =&gt; <span class="string">&quot;&lt;=&quot;</span>,
+            Cmp::Ge =&gt; <span class="string">&quot;&gt;=&quot;</span>,
+            Cmp::Gt =&gt; <span class="string">&quot;&gt;&quot;</span>,
         }
     }
 
@@ -714,11 +714,11 @@
     /// assert_eq!(a.compare(&amp;b).factor(), -1);
     /// assert_eq!(10 * b.compare(a).factor(), 10);
     /// ```
-    </span><span class="kw">pub fn </span>factor(<span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.i8.html">i8</a> {
-        <span class="kw">match </span><span class="self"><a href="#281">self</a> </span>{
-            <a href="#16">Cmp::Eq</a> | <a href="#20">Cmp::Ne</a> =&gt; <span class="number">0</span>,
-            <a href="#24">Cmp::Lt</a> | <a href="#28">Cmp::Le</a> =&gt; -<span class="number">1</span>,
-            <a href="#36">Cmp::Gt</a> | <a href="#32">Cmp::Ge</a> =&gt; <span class="number">1</span>,
+    </span><span class="kw">pub fn </span>factor(<span class="self">self</span>) -&gt; i8 {
+        <span class="kw">match </span><span class="self">self </span>{
+            Cmp::Eq | Cmp::Ne =&gt; <span class="number">0</span>,
+            Cmp::Lt | Cmp::Le =&gt; -<span class="number">1</span>,
+            Cmp::Gt | Cmp::Ge =&gt; <span class="number">1</span>,
         }
     }
 
@@ -743,11 +743,11 @@
     ///
     /// assert_eq!(a.compare(b).ord().unwrap(), Ordering::Less);
     /// ```
-    </span><span class="kw">pub fn </span>ord(<span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html">Ordering</a>&gt; {
-        <span class="kw">match </span><span class="self"><a href="#310">self</a> </span>{
-            <a href="#16">Cmp::Eq</a> =&gt; <span class="prelude-val">Some</span>(Ordering::Equal),
-            <a href="#24">Cmp::Lt</a> =&gt; <span class="prelude-val">Some</span>(Ordering::Less),
-            <a href="#36">Cmp::Gt</a> =&gt; <span class="prelude-val">Some</span>(Ordering::Greater),
+    </span><span class="kw">pub fn </span>ord(<span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Ordering&gt; {
+        <span class="kw">match </span><span class="self">self </span>{
+            Cmp::Eq =&gt; <span class="prelude-val">Some</span>(Ordering::Equal),
+            Cmp::Lt =&gt; <span class="prelude-val">Some</span>(Ordering::Less),
+            Cmp::Gt =&gt; <span class="prelude-val">Some</span>(Ordering::Greater),
             <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
         }
     }
@@ -871,4 +871,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="version_compare" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="version_compare" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/reqwest-0.11.13/src/async_impl/body.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>body.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../reqwest/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/reqwest-0.11.13/src/async_impl/body.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>body.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../reqwest/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -368,60 +368,60 @@
 <a href="#368" id="368">368</a>
 <a href="#369" id="369">369</a>
 <a href="#370" id="370">370</a>
-</pre><pre class="rust"><code><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">std::fmt</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">std::future::Future</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/pin/struct.Pin.html">std::pin::Pin</a>;
-<span class="kw">use </span>std::task::{<a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>, <a href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">Poll</a>};
+</pre><pre class="rust"><code><span class="kw">use </span>std::fmt;
+<span class="kw">use </span>std::future::Future;
+<span class="kw">use </span>std::pin::Pin;
+<span class="kw">use </span>std::task::{Context, Poll};
 
-<span class="kw">use </span><a href="../../../bytes/bytes/struct.Bytes.html">bytes::Bytes</a>;
-<span class="kw">use </span><a href="../../../futures_core/stream/trait.Stream.html">futures_core::Stream</a>;
-<span class="kw">use </span><a href="../../../http_body/trait.Body.html">http_body::Body</a> <span class="kw">as </span>HttpBody;
-<span class="kw">use </span><a href="../../../pin_project_lite/macro.pin_project.html">pin_project_lite::pin_project</a>;
+<span class="kw">use </span>bytes::Bytes;
+<span class="kw">use </span>futures_core::Stream;
+<span class="kw">use </span>http_body::Body <span class="kw">as </span>HttpBody;
+<span class="kw">use </span>pin_project_lite::pin_project;
 <span class="attr">#[cfg(feature = <span class="string">&quot;stream&quot;</span>)]
 </span><span class="kw">use </span>tokio::fs::File;
-<span class="kw">use </span><a href="../../../tokio/time/driver/sleep/struct.Sleep.html">tokio::time::Sleep</a>;
+<span class="kw">use </span>tokio::time::Sleep;
 <span class="attr">#[cfg(feature = <span class="string">&quot;stream&quot;</span>)]
 </span><span class="kw">use </span>tokio_util::io::ReaderStream;
 
 <span class="doccomment">/// An asynchronous request body.
 </span><span class="kw">pub struct </span>Body {
-    inner: <a href="#24">Inner</a>,
+    inner: Inner,
 }
 
 <span class="comment">// The `Stream` trait isn&#39;t stable, so the impl isn&#39;t public.
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>ImplStream(<a href="#17">Body</a>);
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>ImplStream(Body);
 
 <span class="kw">enum </span>Inner {
-    Reusable(<a href="../../../bytes/bytes/struct.Bytes.html">Bytes</a>),
+    Reusable(Bytes),
     Streaming {
         body: Pin&lt;
             Box&lt;
-                <span class="kw">dyn </span>HttpBody&lt;Data = <a href="../../../bytes/bytes/struct.Bytes.html">Bytes</a>, Error = Box&lt;<span class="kw">dyn </span><a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">std::error::Error</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a>&gt;&gt;
-                    + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a>
-                    + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a>,
+                <span class="kw">dyn </span>HttpBody&lt;Data = Bytes, Error = Box&lt;<span class="kw">dyn </span>std::error::Error + Send + Sync&gt;&gt;
+                    + Send
+                    + Sync,
             &gt;,
         &gt;,
-        timeout: <span class="prelude-ty">Option</span>&lt;Pin&lt;Box&lt;<a href="../../../tokio/time/driver/sleep/struct.Sleep.html">Sleep</a>&gt;&gt;&gt;,
+        timeout: <span class="prelude-ty">Option</span>&lt;Pin&lt;Box&lt;Sleep&gt;&gt;&gt;,
     },
 }
 
-<a class="macro" href="../../../pin_project_lite/macro.pin_project.html">pin_project! </a>{
+<span class="macro">pin_project! </span>{
     <span class="kw">struct </span>WrapStream&lt;S&gt; {
         <span class="attr">#[pin]
         </span>inner: S,
     }
 }
 
-<span class="kw">struct </span>WrapHyper(<a href="../../../hyper/body/body/struct.Body.html">hyper::Body</a>);
+<span class="kw">struct </span>WrapHyper(hyper::Body);
 
-<span class="kw">impl </span><a href="#17">Body</a> {
+<span class="kw">impl </span>Body {
     <span class="doccomment">/// Returns a reference to the internal data of the `Body`.
     ///
     /// `None` is returned, if the underlying data is a stream.
-    </span><span class="kw">pub fn </span>as_bytes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt; {
-        <span class="kw">match </span><span class="kw-2">&amp;</span><a class="self" href="#51">self</a>.inner {
-            <a href="#25">Inner::Reusable</a>(bytes) =&gt; <span class="prelude-val">Some</span>(<a href="#53">bytes</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>()),
-            <a href="#26">Inner::Streaming</a> { .. } =&gt; <span class="prelude-val">None</span>,
+    </span><span class="kw">pub fn </span>as_bytes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>[u8]&gt; {
+        <span class="kw">match </span><span class="kw-2">&amp;</span><span class="self">self</span>.inner {
+            Inner::Reusable(bytes) =&gt; <span class="prelude-val">Some</span>(bytes.as_ref()),
+            Inner::Streaming { .. } =&gt; <span class="prelude-val">None</span>,
         }
     }
 
@@ -459,30 +459,30 @@
         Body::stream(stream)
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>stream&lt;S&gt;(stream: S) -&gt; <a href="#17">Body</a>
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>stream&lt;S&gt;(stream: S) -&gt; Body
     <span class="kw">where
-        </span>S: <a href="../../../futures_core/stream/trait.TryStream.html">futures_core::stream::TryStream</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> + <span class="lifetime">&#39;static</span>,
-        S::Error: Into&lt;Box&lt;<span class="kw">dyn </span><a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">std::error::Error</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a>&gt;&gt;,
-        <a href="../../../bytes/bytes/struct.Bytes.html">Bytes</a>: From&lt;S::Ok&gt;,
+        </span>S: futures_core::stream::TryStream + Send + Sync + <span class="lifetime">&#39;static</span>,
+        S::Error: Into&lt;Box&lt;<span class="kw">dyn </span>std::error::Error + Send + Sync&gt;&gt;,
+        Bytes: From&lt;S::Ok&gt;,
     {
-        <span class="kw">use </span><a href="../../../futures_util/stream/try_stream/trait.TryStreamExt.html">futures_util::TryStreamExt</a>;
+        <span class="kw">use </span>futures_util::TryStreamExt;
 
-        <span class="kw">let </span>body = Box::pin(<a href="#38-43">WrapStream</a> {
-            inner: <a href="#92">stream</a>.<a href="../../../futures_util/stream/try_stream/trait.TryStreamExt.html">map_ok</a>(Bytes::from).<a href="../../../futures_util/stream/try_stream/trait.TryStreamExt.html">map_err</a>(<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">Into::into</a>),
+        <span class="kw">let </span>body = Box::pin(WrapStream {
+            inner: stream.map_ok(Bytes::from).map_err(Into::into),
         });
-        <a href="#17">Body</a> {
-            inner: <a href="#26">Inner::Streaming</a> {
-                <a href="#100">body</a>,
+        Body {
+            inner: Inner::Streaming {
+                body,
                 timeout: <span class="prelude-val">None</span>,
             },
         }
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>response(body: <a href="../../../hyper/body/body/struct.Body.html">hyper::Body</a>, timeout: <span class="prelude-ty">Option</span>&lt;Pin&lt;Box&lt;<a href="../../../tokio/time/driver/sleep/struct.Sleep.html">Sleep</a>&gt;&gt;&gt;) -&gt; <a href="#17">Body</a> {
-        <a href="#17">Body</a> {
-            inner: <a href="#26">Inner::Streaming</a> {
-                body: Box::pin(<a href="#45">WrapHyper</a>(<a href="#111">body</a>)),
-                <a href="#111">timeout</a>,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>response(body: hyper::Body, timeout: <span class="prelude-ty">Option</span>&lt;Pin&lt;Box&lt;Sleep&gt;&gt;&gt;) -&gt; Body {
+        Body {
+            inner: Inner::Streaming {
+                body: Box::pin(WrapHyper(body)),
+                timeout,
             },
         }
     }
@@ -497,34 +497,34 @@
         }
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>empty() -&gt; <a href="#17">Body</a> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>empty() -&gt; Body {
         Body::reusable(Bytes::new())
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>reusable(chunk: <a href="../../../bytes/bytes/struct.Bytes.html">Bytes</a>) -&gt; <a href="#17">Body</a> {
-        <a href="#17">Body</a> {
-            inner: <a href="#25">Inner::Reusable</a>(<a href="#134">chunk</a>),
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>reusable(chunk: Bytes) -&gt; Body {
+        Body {
+            inner: Inner::Reusable(chunk),
         }
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>try_reuse(<span class="self">self</span>) -&gt; (<span class="prelude-ty">Option</span>&lt;<a href="../../../bytes/bytes/struct.Bytes.html">Bytes</a>&gt;, <span class="self">Self</span>) {
-        <span class="kw">let </span>reuse = <span class="kw">match </span><a class="self" href="#140">self</a>.inner {
-            <a href="#25">Inner::Reusable</a>(<span class="kw-2">ref </span>chunk) =&gt; <span class="prelude-val">Some</span>(<a href="#142">chunk</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()),
-            <a href="#26">Inner::Streaming</a> { .. } =&gt; <span class="prelude-val">None</span>,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>try_reuse(<span class="self">self</span>) -&gt; (<span class="prelude-ty">Option</span>&lt;Bytes&gt;, <span class="self">Self</span>) {
+        <span class="kw">let </span>reuse = <span class="kw">match </span><span class="self">self</span>.inner {
+            Inner::Reusable(<span class="kw-2">ref </span>chunk) =&gt; <span class="prelude-val">Some</span>(chunk.clone()),
+            Inner::Streaming { .. } =&gt; <span class="prelude-val">None</span>,
         };
 
-        (<a href="#141">reuse</a>, <a class="self" href="#140">self</a>)
+        (reuse, <span class="self">self</span>)
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>try_clone(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="#17">Body</a>&gt; {
-        <span class="kw">match </span><a class="self" href="#149">self</a>.inner {
-            <a href="#25">Inner::Reusable</a>(<span class="kw-2">ref </span>chunk) =&gt; <span class="prelude-val">Some</span>(Body::reusable(<a href="#151">chunk</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>())),
-            <a href="#26">Inner::Streaming</a> { .. } =&gt; <span class="prelude-val">None</span>,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>try_clone(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Body&gt; {
+        <span class="kw">match </span><span class="self">self</span>.inner {
+            Inner::Reusable(<span class="kw-2">ref </span>chunk) =&gt; <span class="prelude-val">Some</span>(Body::reusable(chunk.clone())),
+            Inner::Streaming { .. } =&gt; <span class="prelude-val">None</span>,
         }
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>into_stream(<span class="self">self</span>) -&gt; <a href="#22">ImplStream</a> {
-        <a href="#22">ImplStream</a>(<a class="self" href="#156">self</a>)
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>into_stream(<span class="self">self</span>) -&gt; ImplStream {
+        ImplStream(<span class="self">self</span>)
     }
 
     <span class="attr">#[cfg(feature = <span class="string">&quot;multipart&quot;</span>)]
@@ -536,50 +536,50 @@
     }
 }
 
-<span class="kw">impl </span>From&lt;<a href="../../../hyper/body/body/struct.Body.html">hyper::Body</a>&gt; <span class="kw">for </span><a href="#17">Body</a> {
+<span class="kw">impl </span>From&lt;hyper::Body&gt; <span class="kw">for </span>Body {
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>from(body: <a href="../../../hyper/body/body/struct.Body.html">hyper::Body</a>) -&gt; <a href="#17">Body</a> {
+    </span><span class="kw">fn </span>from(body: hyper::Body) -&gt; Body {
         <span class="self">Self </span>{
-            inner: <a href="#26">Inner::Streaming</a> {
-                body: Box::pin(<a href="#45">WrapHyper</a>(<a href="#171">body</a>)),
+            inner: Inner::Streaming {
+                body: Box::pin(WrapHyper(body)),
                 timeout: <span class="prelude-val">None</span>,
             },
         }
     }
 }
 
-<span class="kw">impl </span>From&lt;<a href="../../../bytes/bytes/struct.Bytes.html">Bytes</a>&gt; <span class="kw">for </span><a href="#17">Body</a> {
+<span class="kw">impl </span>From&lt;Bytes&gt; <span class="kw">for </span>Body {
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>from(bytes: <a href="../../../bytes/bytes/struct.Bytes.html">Bytes</a>) -&gt; <a href="#17">Body</a> {
-        Body::reusable(<a href="#183">bytes</a>)
+    </span><span class="kw">fn </span>from(bytes: Bytes) -&gt; Body {
+        Body::reusable(bytes)
     }
 }
 
-<span class="kw">impl </span>From&lt;Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;&gt; <span class="kw">for </span><a href="#17">Body</a> {
+<span class="kw">impl </span>From&lt;Vec&lt;u8&gt;&gt; <span class="kw">for </span>Body {
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>from(vec: Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;) -&gt; <a href="#17">Body</a> {
-        Body::reusable(<a href="#190">vec</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
+    </span><span class="kw">fn </span>from(vec: Vec&lt;u8&gt;) -&gt; Body {
+        Body::reusable(vec.into())
     }
 }
 
-<span class="kw">impl </span>From&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt; <span class="kw">for </span><a href="#17">Body</a> {
+<span class="kw">impl </span>From&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>[u8]&gt; <span class="kw">for </span>Body {
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>from(s: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <a href="#17">Body</a> {
-        Body::reusable(Bytes::from_static(<a href="#197">s</a>))
+    </span><span class="kw">fn </span>from(s: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>[u8]) -&gt; Body {
+        Body::reusable(Bytes::from_static(s))
     }
 }
 
-<span class="kw">impl </span>From&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt; <span class="kw">for </span><a href="#17">Body</a> {
+<span class="kw">impl </span>From&lt;String&gt; <span class="kw">for </span>Body {
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>from(s: <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>) -&gt; <a href="#17">Body</a> {
-        Body::reusable(<a href="#204">s</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
+    </span><span class="kw">fn </span>from(s: String) -&gt; Body {
+        Body::reusable(s.into())
     }
 }
 
-<span class="kw">impl </span>From&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt; <span class="kw">for </span><a href="#17">Body</a> {
+<span class="kw">impl </span>From&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str&gt; <span class="kw">for </span>Body {
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>from(s: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <a href="#17">Body</a> {
-        <a href="#211">s</a>.as_bytes().<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()
+    </span><span class="kw">fn </span>from(s: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str) -&gt; Body {
+        s.as_bytes().into()
     }
 }
 
@@ -592,138 +592,138 @@
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="#17">Body</a> {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a href="#226">f</a>.debug_struct(<span class="string">&quot;Body&quot;</span>).finish()
+<span class="kw">impl </span>fmt::Debug <span class="kw">for </span>Body {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter) -&gt; fmt::Result {
+        f.debug_struct(<span class="string">&quot;Body&quot;</span>).finish()
     }
 }
 
 <span class="comment">// ===== impl ImplStream =====
 
-</span><span class="kw">impl </span><a href="../../../http_body/trait.Body.html">HttpBody</a> <span class="kw">for </span><a href="#22">ImplStream</a> {
-    <span class="kw">type </span>Data = <a href="../../../bytes/bytes/struct.Bytes.html">Bytes</a>;
-    <span class="kw">type </span>Error = <a href="../error.rs.html#16"><span class="kw">crate</span>::Error</a>;
+</span><span class="kw">impl </span>HttpBody <span class="kw">for </span>ImplStream {
+    <span class="kw">type </span>Data = Bytes;
+    <span class="kw">type </span>Error = <span class="kw">crate</span>::Error;
 
     <span class="kw">fn </span>poll_data(
         <span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;,
-        cx: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>,
+        cx: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;<span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Data, <span class="self">Self</span>::Error&gt;&gt;&gt; {
-        <span class="kw">let </span>opt_try_chunk = <span class="kw">match </span><a class="self" href="#238">self</a>.<span class="number">0</span>.inner {
-            <a href="#26">Inner::Streaming</a> {
+        <span class="kw">let </span>opt_try_chunk = <span class="kw">match </span><span class="self">self</span>.<span class="number">0</span>.inner {
+            Inner::Streaming {
                 <span class="kw-2">ref mut </span>body,
                 <span class="kw-2">ref mut </span>timeout,
             } =&gt; {
-                <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">ref mut </span>timeout) = <a href="#244">timeout</a> {
-                    <span class="kw">if let </span>Poll::Ready(()) = <a href="#246">timeout</a>.as_mut().<a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">poll</a>(<a href="#239">cx</a>) {
-                        <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(<a href="../error.rs.html#249"><span class="kw">crate</span>::error::body</a>(<a href="../error.rs.html#305"><span class="kw">crate</span>::error::TimedOut</a>))));
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">ref mut </span>timeout) = timeout {
+                    <span class="kw">if let </span>Poll::Ready(()) = timeout.as_mut().poll(cx) {
+                        <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(<span class="kw">crate</span>::error::body(<span class="kw">crate</span>::error::TimedOut))));
                     }
                 }
-                <a class="macro" href="../../../futures_core/futures_core/macro.ready.html">futures_core::ready!</a>(Pin::new(body).poll_data(cx))
-                    .map(|opt_chunk| <a href="#252">opt_chunk</a>.map(<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">Into::into</a>).map_err(<a href="../error.rs.html#249"><span class="kw">crate</span>::error::body</a>))
+                <span class="macro">futures_core::ready!</span>(Pin::new(body).poll_data(cx))
+                    .map(|opt_chunk| opt_chunk.map(Into::into).map_err(<span class="kw">crate</span>::error::body))
             }
-            <a href="#25">Inner::Reusable</a>(<span class="kw-2">ref mut </span>bytes) =&gt; {
+            Inner::Reusable(<span class="kw-2">ref mut </span>bytes) =&gt; {
                 <span class="kw">if </span>bytes.is_empty() {
                     <span class="prelude-val">None
                 </span>} <span class="kw">else </span>{
-                    <span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(std::mem::replace(<a href="#254">bytes</a>, Bytes::new())))
+                    <span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(std::mem::replace(bytes, Bytes::new())))
                 }
             }
         };
 
-        Poll::Ready(<a href="#241">opt_try_chunk</a>)
+        Poll::Ready(opt_try_chunk)
     }
 
     <span class="kw">fn </span>poll_trailers(
         <span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;,
-        _cx: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>,
-    ) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<a href="../../../reqwest/header/struct.HeaderMap.html">http::HeaderMap</a>&gt;, <span class="self">Self</span>::Error&gt;&gt; {
+        _cx: <span class="kw-2">&amp;mut </span>Context,
+    ) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;http::HeaderMap&gt;, <span class="self">Self</span>::Error&gt;&gt; {
         Poll::Ready(<span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>))
     }
 
-    <span class="kw">fn </span>is_end_stream(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">match </span><a class="self" href="#273">self</a>.<span class="number">0</span>.inner {
-            <a href="#26">Inner::Streaming</a> { <span class="kw-2">ref </span>body, .. } =&gt; <a href="#275">body</a>.<a href="../../../http_body/trait.Body.html">is_end_stream</a>(),
-            <a href="#25">Inner::Reusable</a>(<span class="kw-2">ref </span>bytes) =&gt; <a href="#276">bytes</a>.is_empty(),
+    <span class="kw">fn </span>is_end_stream(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="kw">match </span><span class="self">self</span>.<span class="number">0</span>.inner {
+            Inner::Streaming { <span class="kw-2">ref </span>body, .. } =&gt; body.is_end_stream(),
+            Inner::Reusable(<span class="kw-2">ref </span>bytes) =&gt; bytes.is_empty(),
         }
     }
 
-    <span class="kw">fn </span>size_hint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../../../http_body/size_hint/struct.SizeHint.html">http_body::SizeHint</a> {
-        <span class="kw">match </span><a class="self" href="#280">self</a>.<span class="number">0</span>.inner {
-            <a href="#26">Inner::Streaming</a> { <span class="kw-2">ref </span>body, .. } =&gt; <a href="#282">body</a>.<a href="../../../http_body/trait.Body.html">size_hint</a>(),
-            <a href="#25">Inner::Reusable</a>(<span class="kw-2">ref </span>bytes) =&gt; {
+    <span class="kw">fn </span>size_hint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; http_body::SizeHint {
+        <span class="kw">match </span><span class="self">self</span>.<span class="number">0</span>.inner {
+            Inner::Streaming { <span class="kw-2">ref </span>body, .. } =&gt; body.size_hint(),
+            Inner::Reusable(<span class="kw-2">ref </span>bytes) =&gt; {
                 <span class="kw">let </span><span class="kw-2">mut </span>hint = http_body::SizeHint::default();
-                <a href="#284">hint</a>.set_exact(<a href="#283">bytes</a>.len() <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>);
-                <a href="#284">hint</a>
+                hint.set_exact(bytes.len() <span class="kw">as </span>u64);
+                hint
             }
         }
     }
 }
 
-<span class="kw">impl </span><a href="../../../futures_core/stream/trait.Stream.html">Stream</a> <span class="kw">for </span><a href="#22">ImplStream</a> {
-    <span class="kw">type </span>Item = <span class="prelude-ty">Result</span>&lt;<a href="../../../bytes/bytes/struct.Bytes.html">Bytes</a>, <a href="../error.rs.html#16"><span class="kw">crate</span>::Error</a>&gt;;
+<span class="kw">impl </span>Stream <span class="kw">for </span>ImplStream {
+    <span class="kw">type </span>Item = <span class="prelude-ty">Result</span>&lt;Bytes, <span class="kw">crate</span>::Error&gt;;
 
-    <span class="kw">fn </span>poll_next(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt;&gt; {
-        <a class="self" href="#295">self</a>.<a href="../../../http_body/trait.Body.html">poll_data</a>(<a href="#295">cx</a>)
+    <span class="kw">fn </span>poll_next(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt;&gt; {
+        <span class="self">self</span>.poll_data(cx)
     }
 }
 
 <span class="comment">// ===== impl WrapStream =====
 
-</span><span class="kw">impl</span>&lt;S, D, E&gt; <a href="../../../http_body/trait.Body.html">HttpBody</a> <span class="kw">for </span>WrapStream&lt;S&gt;
+</span><span class="kw">impl</span>&lt;S, D, E&gt; HttpBody <span class="kw">for </span>WrapStream&lt;S&gt;
 <span class="kw">where
     </span>S: Stream&lt;Item = <span class="prelude-ty">Result</span>&lt;D, E&gt;&gt;,
-    D: Into&lt;<a href="../../../bytes/bytes/struct.Bytes.html">Bytes</a>&gt;,
-    E: Into&lt;Box&lt;<span class="kw">dyn </span><a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">std::error::Error</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a>&gt;&gt;,
+    D: Into&lt;Bytes&gt;,
+    E: Into&lt;Box&lt;<span class="kw">dyn </span>std::error::Error + Send + Sync&gt;&gt;,
 {
-    <span class="kw">type </span>Data = <a href="../../../bytes/bytes/struct.Bytes.html">Bytes</a>;
+    <span class="kw">type </span>Data = Bytes;
     <span class="kw">type </span>Error = E;
 
     <span class="kw">fn </span>poll_data(
         <span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;,
-        cx: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>,
+        cx: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;<span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Data, <span class="self">Self</span>::Error&gt;&gt;&gt; {
-        <span class="kw">let </span>item = <a class="macro" href="../../../futures_core/futures_core/macro.ready.html">futures_core::ready!</a>(<span class="self">self</span>.project().inner.poll_next(cx)<span class="question-mark">?</span>);
+        <span class="kw">let </span>item = <span class="macro">futures_core::ready!</span>(<span class="self">self</span>.project().inner.poll_next(cx)<span class="question-mark">?</span>);
 
-        Poll::Ready(<a href="#315">item</a>.map(|val| <span class="prelude-val">Ok</span>(<a href="#317">val</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())))
+        Poll::Ready(item.map(|val| <span class="prelude-val">Ok</span>(val.into())))
     }
 
     <span class="kw">fn </span>poll_trailers(
         <span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;,
-        _cx: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>,
-    ) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<a href="../../../reqwest/header/struct.HeaderMap.html">http::HeaderMap</a>&gt;, <span class="self">Self</span>::Error&gt;&gt; {
+        _cx: <span class="kw-2">&amp;mut </span>Context,
+    ) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;http::HeaderMap&gt;, <span class="self">Self</span>::Error&gt;&gt; {
         Poll::Ready(<span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>))
     }
 }
 
 <span class="comment">// ===== impl WrapHyper =====
 
-</span><span class="kw">impl </span><a href="../../../http_body/trait.Body.html">HttpBody</a> <span class="kw">for </span><a href="#45">WrapHyper</a> {
-    <span class="kw">type </span>Data = <a href="../../../bytes/bytes/struct.Bytes.html">Bytes</a>;
-    <span class="kw">type </span>Error = Box&lt;<span class="kw">dyn </span><a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">std::error::Error</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a>&gt;;
+</span><span class="kw">impl </span>HttpBody <span class="kw">for </span>WrapHyper {
+    <span class="kw">type </span>Data = Bytes;
+    <span class="kw">type </span>Error = Box&lt;<span class="kw">dyn </span>std::error::Error + Send + Sync&gt;;
 
     <span class="kw">fn </span>poll_data(
         <span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;,
-        cx: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>,
+        cx: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;<span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Data, <span class="self">Self</span>::Error&gt;&gt;&gt; {
         <span class="comment">// safe pin projection
-        </span>Pin::new(<span class="kw-2">&amp;mut </span><a class="self" href="#335">self</a>.<span class="number">0</span>)
-            .<a href="../../../http_body/trait.Body.html">poll_data</a>(<a href="#336">cx</a>)
-            .map(|opt| <a href="#341">opt</a>.map(|res| <a href="#341">res</a>.map_err(<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">Into::into</a>)))
+        </span>Pin::new(<span class="kw-2">&amp;mut </span><span class="self">self</span>.<span class="number">0</span>)
+            .poll_data(cx)
+            .map(|opt| opt.map(|res| res.map_err(Into::into)))
     }
 
     <span class="kw">fn </span>poll_trailers(
         <span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;,
-        _cx: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>,
-    ) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<a href="../../../reqwest/header/struct.HeaderMap.html">http::HeaderMap</a>&gt;, <span class="self">Self</span>::Error&gt;&gt; {
+        _cx: <span class="kw-2">&amp;mut </span>Context,
+    ) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;http::HeaderMap&gt;, <span class="self">Self</span>::Error&gt;&gt; {
         Poll::Ready(<span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>))
     }
 
-    <span class="kw">fn </span>is_end_stream(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#351">self</a>.<span class="number">0</span>.<a href="../../../http_body/trait.Body.html">is_end_stream</a>()
+    <span class="kw">fn </span>is_end_stream(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.<span class="number">0</span>.is_end_stream()
     }
 
-    <span class="kw">fn </span>size_hint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../../../http_body/size_hint/struct.SizeHint.html">http_body::SizeHint</a> {
-        <a href="../../../http_body/trait.Body.html">HttpBody::size_hint</a>(<span class="kw-2">&amp;</span><a class="self" href="#355">self</a>.<span class="number">0</span>)
+    <span class="kw">fn </span>size_hint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; http_body::SizeHint {
+        HttpBody::size_hint(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="number">0</span>)
     }
 }
 
@@ -739,4 +739,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="reqwest" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="reqwest" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

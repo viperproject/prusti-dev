@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/encoding_rs-0.8.31/src/variant.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>variant.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../encoding_rs/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/encoding_rs-0.8.31/src/variant.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>variant.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../encoding_rs/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -420,325 +420,325 @@
 //! allocation in Rust code, including the convenience methods on `Encoding`.
 
 </span><span class="kw">use super</span>::<span class="kw-2">*</span>;
-<span class="kw">use </span><a href="lib.rs.html#733">big5</a>::<span class="kw-2">*</span>;
-<span class="kw">use </span><a href="lib.rs.html#734">euc_jp</a>::<span class="kw-2">*</span>;
-<span class="kw">use </span><a href="lib.rs.html#735">euc_kr</a>::<span class="kw-2">*</span>;
-<span class="kw">use </span><a href="lib.rs.html#736">gb18030</a>::<span class="kw-2">*</span>;
-<span class="kw">use </span><a href="lib.rs.html#737">iso_2022_jp</a>::<span class="kw-2">*</span>;
-<span class="kw">use </span><a href="lib.rs.html#738">replacement</a>::<span class="kw-2">*</span>;
-<span class="kw">use </span><a href="lib.rs.html#739">shift_jis</a>::<span class="kw-2">*</span>;
-<span class="kw">use </span><a href="lib.rs.html#740">single_byte</a>::<span class="kw-2">*</span>;
-<span class="kw">use </span><a href="lib.rs.html#741">utf_16</a>::<span class="kw-2">*</span>;
-<span class="kw">use </span><a href="lib.rs.html#742">utf_8</a>::<span class="kw-2">*</span>;
-<span class="kw">use </span><a href="lib.rs.html#743">x_user_defined</a>::<span class="kw-2">*</span>;
+<span class="kw">use </span>big5::<span class="kw-2">*</span>;
+<span class="kw">use </span>euc_jp::<span class="kw-2">*</span>;
+<span class="kw">use </span>euc_kr::<span class="kw-2">*</span>;
+<span class="kw">use </span>gb18030::<span class="kw-2">*</span>;
+<span class="kw">use </span>iso_2022_jp::<span class="kw-2">*</span>;
+<span class="kw">use </span>replacement::<span class="kw-2">*</span>;
+<span class="kw">use </span>shift_jis::<span class="kw-2">*</span>;
+<span class="kw">use </span>single_byte::<span class="kw-2">*</span>;
+<span class="kw">use </span>utf_16::<span class="kw-2">*</span>;
+<span class="kw">use </span>utf_8::<span class="kw-2">*</span>;
+<span class="kw">use </span>x_user_defined::<span class="kw-2">*</span>;
 
 <span class="kw">pub enum </span>VariantDecoder {
-    SingleByte(<a href="single_byte.rs.html#16">SingleByteDecoder</a>),
-    Utf8(<a href="utf_8.rs.html#450">Utf8Decoder</a>),
-    Gb18030(<a href="gb18030.rs.html#43">Gb18030Decoder</a>),
-    Big5(<a href="big5.rs.html#17">Big5Decoder</a>),
-    EucJp(<a href="euc_jp.rs.html#44">EucJpDecoder</a>),
-    Iso2022Jp(<a href="iso_2022_jp.rs.html#28">Iso2022JpDecoder</a>),
-    ShiftJis(<a href="shift_jis.rs.html#18">ShiftJisDecoder</a>),
-    EucKr(<a href="euc_kr.rs.html#18">EucKrDecoder</a>),
-    Replacement(<a href="replacement.rs.html#13">ReplacementDecoder</a>),
-    UserDefined(<a href="x_user_defined.rs.html#27">UserDefinedDecoder</a>),
-    Utf16(<a href="utf_16.rs.html#14">Utf16Decoder</a>),
+    SingleByte(SingleByteDecoder),
+    Utf8(Utf8Decoder),
+    Gb18030(Gb18030Decoder),
+    Big5(Big5Decoder),
+    EucJp(EucJpDecoder),
+    Iso2022Jp(Iso2022JpDecoder),
+    ShiftJis(ShiftJisDecoder),
+    EucKr(EucKrDecoder),
+    Replacement(ReplacementDecoder),
+    UserDefined(UserDefinedDecoder),
+    Utf16(Utf16Decoder),
 }
 
-<span class="kw">impl </span><a href="#35">VariantDecoder</a> {
-    <span class="kw">pub fn </span>max_utf16_buffer_length(<span class="kw-2">&amp;</span><span class="self">self</span>, byte_length: <a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>&gt; {
-        <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="#50">self</a> </span>{
-            <a href="#36">VariantDecoder::SingleByte</a>(<span class="kw-2">ref </span>v) =&gt; <a href="#52">v</a>.<a href="single_byte.rs.html#25">max_utf16_buffer_length</a>(<a href="#50">byte_length</a>),
-            <a href="#37">VariantDecoder::Utf8</a>(<span class="kw-2">ref </span>v) =&gt; <a href="#53">v</a>.<a href="utf_8.rs.html#485">max_utf16_buffer_length</a>(<a href="#50">byte_length</a>),
-            <a href="#38">VariantDecoder::Gb18030</a>(<span class="kw-2">ref </span>v) =&gt; <a href="#54">v</a>.<a href="gb18030.rs.html#92">max_utf16_buffer_length</a>(<a href="#50">byte_length</a>),
-            <a href="#39">VariantDecoder::Big5</a>(<span class="kw-2">ref </span>v) =&gt; <a href="#55">v</a>.<a href="big5.rs.html#37">max_utf16_buffer_length</a>(<a href="#50">byte_length</a>),
-            <a href="#40">VariantDecoder::EucJp</a>(<span class="kw-2">ref </span>v) =&gt; <a href="#56">v</a>.<a href="euc_jp.rs.html#63">max_utf16_buffer_length</a>(<a href="#50">byte_length</a>),
-            <a href="#41">VariantDecoder::Iso2022Jp</a>(<span class="kw-2">ref </span>v) =&gt; <a href="#57">v</a>.<a href="iso_2022_jp.rs.html#76">max_utf16_buffer_length</a>(<a href="#50">byte_length</a>),
-            <a href="#42">VariantDecoder::ShiftJis</a>(<span class="kw-2">ref </span>v) =&gt; <a href="#58">v</a>.<a href="shift_jis.rs.html#38">max_utf16_buffer_length</a>(<a href="#50">byte_length</a>),
-            <a href="#43">VariantDecoder::EucKr</a>(<span class="kw-2">ref </span>v) =&gt; <a href="#59">v</a>.<a href="euc_kr.rs.html#38">max_utf16_buffer_length</a>(<a href="#50">byte_length</a>),
-            <a href="#44">VariantDecoder::Replacement</a>(<span class="kw-2">ref </span>v) =&gt; <a href="#60">v</a>.<a href="replacement.rs.html#22">max_utf16_buffer_length</a>(<a href="#50">byte_length</a>),
-            <a href="#45">VariantDecoder::UserDefined</a>(<span class="kw-2">ref </span>v) =&gt; <a href="#61">v</a>.<a href="x_user_defined.rs.html#34">max_utf16_buffer_length</a>(<a href="#50">byte_length</a>),
-            <a href="#46">VariantDecoder::Utf16</a>(<span class="kw-2">ref </span>v) =&gt; <a href="#62">v</a>.<a href="utf_16.rs.html#36">max_utf16_buffer_length</a>(<a href="#50">byte_length</a>),
+<span class="kw">impl </span>VariantDecoder {
+    <span class="kw">pub fn </span>max_utf16_buffer_length(<span class="kw-2">&amp;</span><span class="self">self</span>, byte_length: usize) -&gt; <span class="prelude-ty">Option</span>&lt;usize&gt; {
+        <span class="kw">match </span><span class="kw-2">*</span><span class="self">self </span>{
+            VariantDecoder::SingleByte(<span class="kw-2">ref </span>v) =&gt; v.max_utf16_buffer_length(byte_length),
+            VariantDecoder::Utf8(<span class="kw-2">ref </span>v) =&gt; v.max_utf16_buffer_length(byte_length),
+            VariantDecoder::Gb18030(<span class="kw-2">ref </span>v) =&gt; v.max_utf16_buffer_length(byte_length),
+            VariantDecoder::Big5(<span class="kw-2">ref </span>v) =&gt; v.max_utf16_buffer_length(byte_length),
+            VariantDecoder::EucJp(<span class="kw-2">ref </span>v) =&gt; v.max_utf16_buffer_length(byte_length),
+            VariantDecoder::Iso2022Jp(<span class="kw-2">ref </span>v) =&gt; v.max_utf16_buffer_length(byte_length),
+            VariantDecoder::ShiftJis(<span class="kw-2">ref </span>v) =&gt; v.max_utf16_buffer_length(byte_length),
+            VariantDecoder::EucKr(<span class="kw-2">ref </span>v) =&gt; v.max_utf16_buffer_length(byte_length),
+            VariantDecoder::Replacement(<span class="kw-2">ref </span>v) =&gt; v.max_utf16_buffer_length(byte_length),
+            VariantDecoder::UserDefined(<span class="kw-2">ref </span>v) =&gt; v.max_utf16_buffer_length(byte_length),
+            VariantDecoder::Utf16(<span class="kw-2">ref </span>v) =&gt; v.max_utf16_buffer_length(byte_length),
         }
     }
 
-    <span class="kw">pub fn </span>max_utf8_buffer_length_without_replacement(<span class="kw-2">&amp;</span><span class="self">self</span>, byte_length: <a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>&gt; {
-        <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="#66">self</a> </span>{
-            <a href="#36">VariantDecoder::SingleByte</a>(<span class="kw-2">ref </span>v) =&gt; {
-                <a href="#68">v</a>.<a href="single_byte.rs.html#29">max_utf8_buffer_length_without_replacement</a>(<a href="#66">byte_length</a>)
+    <span class="kw">pub fn </span>max_utf8_buffer_length_without_replacement(<span class="kw-2">&amp;</span><span class="self">self</span>, byte_length: usize) -&gt; <span class="prelude-ty">Option</span>&lt;usize&gt; {
+        <span class="kw">match </span><span class="kw-2">*</span><span class="self">self </span>{
+            VariantDecoder::SingleByte(<span class="kw-2">ref </span>v) =&gt; {
+                v.max_utf8_buffer_length_without_replacement(byte_length)
             }
-            <a href="#37">VariantDecoder::Utf8</a>(<span class="kw-2">ref </span>v) =&gt; {
-                <a href="#71">v</a>.<a href="utf_8.rs.html#489">max_utf8_buffer_length_without_replacement</a>(<a href="#66">byte_length</a>)
+            VariantDecoder::Utf8(<span class="kw-2">ref </span>v) =&gt; {
+                v.max_utf8_buffer_length_without_replacement(byte_length)
             }
-            <a href="#38">VariantDecoder::Gb18030</a>(<span class="kw-2">ref </span>v) =&gt; {
-                <a href="#74">v</a>.<a href="gb18030.rs.html#99">max_utf8_buffer_length_without_replacement</a>(<a href="#66">byte_length</a>)
+            VariantDecoder::Gb18030(<span class="kw-2">ref </span>v) =&gt; {
+                v.max_utf8_buffer_length_without_replacement(byte_length)
             }
-            <a href="#39">VariantDecoder::Big5</a>(<span class="kw-2">ref </span>v) =&gt; {
-                <a href="#77">v</a>.<a href="big5.rs.html#45">max_utf8_buffer_length_without_replacement</a>(<a href="#66">byte_length</a>)
+            VariantDecoder::Big5(<span class="kw-2">ref </span>v) =&gt; {
+                v.max_utf8_buffer_length_without_replacement(byte_length)
             }
-            <a href="#40">VariantDecoder::EucJp</a>(<span class="kw-2">ref </span>v) =&gt; {
-                <a href="#80">v</a>.<a href="euc_jp.rs.html#67">max_utf8_buffer_length_without_replacement</a>(<a href="#66">byte_length</a>)
+            VariantDecoder::EucJp(<span class="kw-2">ref </span>v) =&gt; {
+                v.max_utf8_buffer_length_without_replacement(byte_length)
             }
-            <a href="#41">VariantDecoder::Iso2022Jp</a>(<span class="kw-2">ref </span>v) =&gt; {
-                <a href="#83">v</a>.<a href="iso_2022_jp.rs.html#83">max_utf8_buffer_length_without_replacement</a>(<a href="#66">byte_length</a>)
+            VariantDecoder::Iso2022Jp(<span class="kw-2">ref </span>v) =&gt; {
+                v.max_utf8_buffer_length_without_replacement(byte_length)
             }
-            <a href="#42">VariantDecoder::ShiftJis</a>(<span class="kw-2">ref </span>v) =&gt; {
-                <a href="#86">v</a>.<a href="shift_jis.rs.html#42">max_utf8_buffer_length_without_replacement</a>(<a href="#66">byte_length</a>)
+            VariantDecoder::ShiftJis(<span class="kw-2">ref </span>v) =&gt; {
+                v.max_utf8_buffer_length_without_replacement(byte_length)
             }
-            <a href="#43">VariantDecoder::EucKr</a>(<span class="kw-2">ref </span>v) =&gt; {
-                <a href="#89">v</a>.<a href="euc_kr.rs.html#42">max_utf8_buffer_length_without_replacement</a>(<a href="#66">byte_length</a>)
+            VariantDecoder::EucKr(<span class="kw-2">ref </span>v) =&gt; {
+                v.max_utf8_buffer_length_without_replacement(byte_length)
             }
-            <a href="#44">VariantDecoder::Replacement</a>(<span class="kw-2">ref </span>v) =&gt; {
-                <a href="#92">v</a>.<a href="replacement.rs.html#26">max_utf8_buffer_length_without_replacement</a>(<a href="#66">byte_length</a>)
+            VariantDecoder::Replacement(<span class="kw-2">ref </span>v) =&gt; {
+                v.max_utf8_buffer_length_without_replacement(byte_length)
             }
-            <a href="#45">VariantDecoder::UserDefined</a>(<span class="kw-2">ref </span>v) =&gt; {
-                <a href="#95">v</a>.<a href="x_user_defined.rs.html#38">max_utf8_buffer_length_without_replacement</a>(<a href="#66">byte_length</a>)
+            VariantDecoder::UserDefined(<span class="kw-2">ref </span>v) =&gt; {
+                v.max_utf8_buffer_length_without_replacement(byte_length)
             }
-            <a href="#46">VariantDecoder::Utf16</a>(<span class="kw-2">ref </span>v) =&gt; {
-                <a href="#98">v</a>.<a href="utf_16.rs.html#43">max_utf8_buffer_length_without_replacement</a>(<a href="#66">byte_length</a>)
+            VariantDecoder::Utf16(<span class="kw-2">ref </span>v) =&gt; {
+                v.max_utf8_buffer_length_without_replacement(byte_length)
             }
         }
     }
 
-    <span class="kw">pub fn </span>max_utf8_buffer_length(<span class="kw-2">&amp;</span><span class="self">self</span>, byte_length: <a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>&gt; {
-        <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="#104">self</a> </span>{
-            <a href="#36">VariantDecoder::SingleByte</a>(<span class="kw-2">ref </span>v) =&gt; <a href="#106">v</a>.<a href="single_byte.rs.html#33">max_utf8_buffer_length</a>(<a href="#104">byte_length</a>),
-            <a href="#37">VariantDecoder::Utf8</a>(<span class="kw-2">ref </span>v) =&gt; <a href="#107">v</a>.<a href="utf_8.rs.html#493">max_utf8_buffer_length</a>(<a href="#104">byte_length</a>),
-            <a href="#38">VariantDecoder::Gb18030</a>(<span class="kw-2">ref </span>v) =&gt; <a href="#108">v</a>.<a href="gb18030.rs.html#107">max_utf8_buffer_length</a>(<a href="#104">byte_length</a>),
-            <a href="#39">VariantDecoder::Big5</a>(<span class="kw-2">ref </span>v) =&gt; <a href="#109">v</a>.<a href="big5.rs.html#67">max_utf8_buffer_length</a>(<a href="#104">byte_length</a>),
-            <a href="#40">VariantDecoder::EucJp</a>(<span class="kw-2">ref </span>v) =&gt; <a href="#110">v</a>.<a href="euc_jp.rs.html#73">max_utf8_buffer_length</a>(<a href="#104">byte_length</a>),
-            <a href="#41">VariantDecoder::Iso2022Jp</a>(<span class="kw-2">ref </span>v) =&gt; <a href="#111">v</a>.<a href="iso_2022_jp.rs.html#88">max_utf8_buffer_length</a>(<a href="#104">byte_length</a>),
-            <a href="#42">VariantDecoder::ShiftJis</a>(<span class="kw-2">ref </span>v) =&gt; <a href="#112">v</a>.<a href="shift_jis.rs.html#47">max_utf8_buffer_length</a>(<a href="#104">byte_length</a>),
-            <a href="#43">VariantDecoder::EucKr</a>(<span class="kw-2">ref </span>v) =&gt; <a href="#113">v</a>.<a href="euc_kr.rs.html#48">max_utf8_buffer_length</a>(<a href="#104">byte_length</a>),
-            <a href="#44">VariantDecoder::Replacement</a>(<span class="kw-2">ref </span>v) =&gt; <a href="#114">v</a>.<a href="replacement.rs.html#30">max_utf8_buffer_length</a>(<a href="#104">byte_length</a>),
-            <a href="#45">VariantDecoder::UserDefined</a>(<span class="kw-2">ref </span>v) =&gt; <a href="#115">v</a>.<a href="x_user_defined.rs.html#42">max_utf8_buffer_length</a>(<a href="#104">byte_length</a>),
-            <a href="#46">VariantDecoder::Utf16</a>(<span class="kw-2">ref </span>v) =&gt; <a href="#116">v</a>.<a href="utf_16.rs.html#53">max_utf8_buffer_length</a>(<a href="#104">byte_length</a>),
+    <span class="kw">pub fn </span>max_utf8_buffer_length(<span class="kw-2">&amp;</span><span class="self">self</span>, byte_length: usize) -&gt; <span class="prelude-ty">Option</span>&lt;usize&gt; {
+        <span class="kw">match </span><span class="kw-2">*</span><span class="self">self </span>{
+            VariantDecoder::SingleByte(<span class="kw-2">ref </span>v) =&gt; v.max_utf8_buffer_length(byte_length),
+            VariantDecoder::Utf8(<span class="kw-2">ref </span>v) =&gt; v.max_utf8_buffer_length(byte_length),
+            VariantDecoder::Gb18030(<span class="kw-2">ref </span>v) =&gt; v.max_utf8_buffer_length(byte_length),
+            VariantDecoder::Big5(<span class="kw-2">ref </span>v) =&gt; v.max_utf8_buffer_length(byte_length),
+            VariantDecoder::EucJp(<span class="kw-2">ref </span>v) =&gt; v.max_utf8_buffer_length(byte_length),
+            VariantDecoder::Iso2022Jp(<span class="kw-2">ref </span>v) =&gt; v.max_utf8_buffer_length(byte_length),
+            VariantDecoder::ShiftJis(<span class="kw-2">ref </span>v) =&gt; v.max_utf8_buffer_length(byte_length),
+            VariantDecoder::EucKr(<span class="kw-2">ref </span>v) =&gt; v.max_utf8_buffer_length(byte_length),
+            VariantDecoder::Replacement(<span class="kw-2">ref </span>v) =&gt; v.max_utf8_buffer_length(byte_length),
+            VariantDecoder::UserDefined(<span class="kw-2">ref </span>v) =&gt; v.max_utf8_buffer_length(byte_length),
+            VariantDecoder::Utf16(<span class="kw-2">ref </span>v) =&gt; v.max_utf8_buffer_length(byte_length),
         }
     }
 
     <span class="kw">pub fn </span>decode_to_utf16_raw(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        src: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>],
-        dst: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/core/primitive.u16.html">u16</a>],
-        last: <a href="https://doc.rust-lang.org/nightly/core/primitive.bool.html">bool</a>,
-    ) -&gt; (<a href="lib.rs.html#3554">DecoderResult</a>, <a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>, <a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>) {
-        <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="#121">self</a> </span>{
-            <a href="#36">VariantDecoder::SingleByte</a>(<span class="kw-2">ref mut </span>v) =&gt; <a href="#127">v</a>.<a href="single_byte.rs.html#143-148">decode_to_utf16_raw</a>(<a href="#122">src</a>, <a href="#123">dst</a>, <a href="#124">last</a>),
-            <a href="#37">VariantDecoder::Utf8</a>(<span class="kw-2">ref mut </span>v) =&gt; <a href="#128">v</a>.<a href="utf_8.rs.html#500-605">decode_to_utf16_raw</a>(<a href="#122">src</a>, <a href="#123">dst</a>, <a href="#124">last</a>),
-            <a href="#38">VariantDecoder::Gb18030</a>(<span class="kw-2">ref mut </span>v) =&gt; <a href="#129">v</a>.<a href="gb18030.rs.html#111-295">decode_to_utf16_raw</a>(<a href="#122">src</a>, <a href="#123">dst</a>, <a href="#124">last</a>),
-            <a href="#39">VariantDecoder::Big5</a>(<span class="kw-2">ref mut </span>v) =&gt; <a href="#130">v</a>.<a href="big5.rs.html#76-164">decode_to_utf16_raw</a>(<a href="#122">src</a>, <a href="#123">dst</a>, <a href="#124">last</a>),
-            <a href="#40">VariantDecoder::EucJp</a>(<span class="kw-2">ref mut </span>v) =&gt; <a href="#131">v</a>.<a href="euc_jp.rs.html#77-221">decode_to_utf16_raw</a>(<a href="#122">src</a>, <a href="#123">dst</a>, <a href="#124">last</a>),
-            <a href="#41">VariantDecoder::Iso2022Jp</a>(<span class="kw-2">ref mut </span>v) =&gt; <a href="#132">v</a>.<a href="iso_2022_jp.rs.html#98-364">decode_to_utf16_raw</a>(<a href="#122">src</a>, <a href="#123">dst</a>, <a href="#124">last</a>),
-            <a href="#42">VariantDecoder::ShiftJis</a>(<span class="kw-2">ref mut </span>v) =&gt; <a href="#133">v</a>.<a href="shift_jis.rs.html#51-171">decode_to_utf16_raw</a>(<a href="#122">src</a>, <a href="#123">dst</a>, <a href="#124">last</a>),
-            <a href="#43">VariantDecoder::EucKr</a>(<span class="kw-2">ref mut </span>v) =&gt; <a href="#134">v</a>.<a href="euc_kr.rs.html#52-185">decode_to_utf16_raw</a>(<a href="#122">src</a>, <a href="#123">dst</a>, <a href="#124">last</a>),
-            <a href="#44">VariantDecoder::Replacement</a>(<span class="kw-2">ref mut </span>v) =&gt; <a href="#135">v</a>.<a href="replacement.rs.html#34-39">decode_to_utf16_raw</a>(<a href="#122">src</a>, <a href="#123">dst</a>, <a href="#124">last</a>),
-            <a href="#45">VariantDecoder::UserDefined</a>(<span class="kw-2">ref mut </span>v) =&gt; <a href="#136">v</a>.<a href="x_user_defined.rs.html#73-78">decode_to_utf16_raw</a>(<a href="#122">src</a>, <a href="#123">dst</a>, <a href="#124">last</a>),
-            <a href="#46">VariantDecoder::Utf16</a>(<span class="kw-2">ref mut </span>v) =&gt; <a href="#137">v</a>.<a href="utf_16.rs.html#63-197">decode_to_utf16_raw</a>(<a href="#122">src</a>, <a href="#123">dst</a>, <a href="#124">last</a>),
+        src: <span class="kw-2">&amp;</span>[u8],
+        dst: <span class="kw-2">&amp;mut </span>[u16],
+        last: bool,
+    ) -&gt; (DecoderResult, usize, usize) {
+        <span class="kw">match </span><span class="kw-2">*</span><span class="self">self </span>{
+            VariantDecoder::SingleByte(<span class="kw-2">ref mut </span>v) =&gt; v.decode_to_utf16_raw(src, dst, last),
+            VariantDecoder::Utf8(<span class="kw-2">ref mut </span>v) =&gt; v.decode_to_utf16_raw(src, dst, last),
+            VariantDecoder::Gb18030(<span class="kw-2">ref mut </span>v) =&gt; v.decode_to_utf16_raw(src, dst, last),
+            VariantDecoder::Big5(<span class="kw-2">ref mut </span>v) =&gt; v.decode_to_utf16_raw(src, dst, last),
+            VariantDecoder::EucJp(<span class="kw-2">ref mut </span>v) =&gt; v.decode_to_utf16_raw(src, dst, last),
+            VariantDecoder::Iso2022Jp(<span class="kw-2">ref mut </span>v) =&gt; v.decode_to_utf16_raw(src, dst, last),
+            VariantDecoder::ShiftJis(<span class="kw-2">ref mut </span>v) =&gt; v.decode_to_utf16_raw(src, dst, last),
+            VariantDecoder::EucKr(<span class="kw-2">ref mut </span>v) =&gt; v.decode_to_utf16_raw(src, dst, last),
+            VariantDecoder::Replacement(<span class="kw-2">ref mut </span>v) =&gt; v.decode_to_utf16_raw(src, dst, last),
+            VariantDecoder::UserDefined(<span class="kw-2">ref mut </span>v) =&gt; v.decode_to_utf16_raw(src, dst, last),
+            VariantDecoder::Utf16(<span class="kw-2">ref mut </span>v) =&gt; v.decode_to_utf16_raw(src, dst, last),
         }
     }
 
     <span class="kw">pub fn </span>decode_to_utf8_raw(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        src: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>],
-        dst: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>],
-        last: <a href="https://doc.rust-lang.org/nightly/core/primitive.bool.html">bool</a>,
-    ) -&gt; (<a href="lib.rs.html#3554">DecoderResult</a>, <a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>, <a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>) {
-        <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="#142">self</a> </span>{
-            <a href="#36">VariantDecoder::SingleByte</a>(<span class="kw-2">ref mut </span>v) =&gt; <a href="#148">v</a>.<a href="single_byte.rs.html#37-42">decode_to_utf8_raw</a>(<a href="#143">src</a>, <a href="#144">dst</a>, <a href="#145">last</a>),
-            <a href="#37">VariantDecoder::Utf8</a>(<span class="kw-2">ref mut </span>v) =&gt; <a href="#149">v</a>.<a href="utf_8.rs.html#500-605">decode_to_utf8_raw</a>(<a href="#143">src</a>, <a href="#144">dst</a>, <a href="#145">last</a>),
-            <a href="#38">VariantDecoder::Gb18030</a>(<span class="kw-2">ref mut </span>v) =&gt; <a href="#150">v</a>.<a href="gb18030.rs.html#111-295">decode_to_utf8_raw</a>(<a href="#143">src</a>, <a href="#144">dst</a>, <a href="#145">last</a>),
-            <a href="#39">VariantDecoder::Big5</a>(<span class="kw-2">ref mut </span>v) =&gt; <a href="#151">v</a>.<a href="big5.rs.html#76-164">decode_to_utf8_raw</a>(<a href="#143">src</a>, <a href="#144">dst</a>, <a href="#145">last</a>),
-            <a href="#40">VariantDecoder::EucJp</a>(<span class="kw-2">ref mut </span>v) =&gt; <a href="#152">v</a>.<a href="euc_jp.rs.html#77-221">decode_to_utf8_raw</a>(<a href="#143">src</a>, <a href="#144">dst</a>, <a href="#145">last</a>),
-            <a href="#41">VariantDecoder::Iso2022Jp</a>(<span class="kw-2">ref mut </span>v) =&gt; <a href="#153">v</a>.<a href="iso_2022_jp.rs.html#98-364">decode_to_utf8_raw</a>(<a href="#143">src</a>, <a href="#144">dst</a>, <a href="#145">last</a>),
-            <a href="#42">VariantDecoder::ShiftJis</a>(<span class="kw-2">ref mut </span>v) =&gt; <a href="#154">v</a>.<a href="shift_jis.rs.html#51-171">decode_to_utf8_raw</a>(<a href="#143">src</a>, <a href="#144">dst</a>, <a href="#145">last</a>),
-            <a href="#43">VariantDecoder::EucKr</a>(<span class="kw-2">ref mut </span>v) =&gt; <a href="#155">v</a>.<a href="euc_kr.rs.html#52-185">decode_to_utf8_raw</a>(<a href="#143">src</a>, <a href="#144">dst</a>, <a href="#145">last</a>),
-            <a href="#44">VariantDecoder::Replacement</a>(<span class="kw-2">ref mut </span>v) =&gt; <a href="#156">v</a>.<a href="replacement.rs.html#53-58">decode_to_utf8_raw</a>(<a href="#143">src</a>, <a href="#144">dst</a>, <a href="#145">last</a>),
-            <a href="#45">VariantDecoder::UserDefined</a>(<span class="kw-2">ref mut </span>v) =&gt; <a href="#157">v</a>.<a href="x_user_defined.rs.html#46-70">decode_to_utf8_raw</a>(<a href="#143">src</a>, <a href="#144">dst</a>, <a href="#145">last</a>),
-            <a href="#46">VariantDecoder::Utf16</a>(<span class="kw-2">ref mut </span>v) =&gt; <a href="#158">v</a>.<a href="utf_16.rs.html#63-197">decode_to_utf8_raw</a>(<a href="#143">src</a>, <a href="#144">dst</a>, <a href="#145">last</a>),
+        src: <span class="kw-2">&amp;</span>[u8],
+        dst: <span class="kw-2">&amp;mut </span>[u8],
+        last: bool,
+    ) -&gt; (DecoderResult, usize, usize) {
+        <span class="kw">match </span><span class="kw-2">*</span><span class="self">self </span>{
+            VariantDecoder::SingleByte(<span class="kw-2">ref mut </span>v) =&gt; v.decode_to_utf8_raw(src, dst, last),
+            VariantDecoder::Utf8(<span class="kw-2">ref mut </span>v) =&gt; v.decode_to_utf8_raw(src, dst, last),
+            VariantDecoder::Gb18030(<span class="kw-2">ref mut </span>v) =&gt; v.decode_to_utf8_raw(src, dst, last),
+            VariantDecoder::Big5(<span class="kw-2">ref mut </span>v) =&gt; v.decode_to_utf8_raw(src, dst, last),
+            VariantDecoder::EucJp(<span class="kw-2">ref mut </span>v) =&gt; v.decode_to_utf8_raw(src, dst, last),
+            VariantDecoder::Iso2022Jp(<span class="kw-2">ref mut </span>v) =&gt; v.decode_to_utf8_raw(src, dst, last),
+            VariantDecoder::ShiftJis(<span class="kw-2">ref mut </span>v) =&gt; v.decode_to_utf8_raw(src, dst, last),
+            VariantDecoder::EucKr(<span class="kw-2">ref mut </span>v) =&gt; v.decode_to_utf8_raw(src, dst, last),
+            VariantDecoder::Replacement(<span class="kw-2">ref mut </span>v) =&gt; v.decode_to_utf8_raw(src, dst, last),
+            VariantDecoder::UserDefined(<span class="kw-2">ref mut </span>v) =&gt; v.decode_to_utf8_raw(src, dst, last),
+            VariantDecoder::Utf16(<span class="kw-2">ref mut </span>v) =&gt; v.decode_to_utf8_raw(src, dst, last),
         }
     }
 
-    <span class="kw">pub fn </span>latin1_byte_compatible_up_to(<span class="kw-2">&amp;</span><span class="self">self</span>, buffer: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>&gt; {
-        <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="#162">self</a> </span>{
-            <a href="#36">VariantDecoder::SingleByte</a>(<span class="kw-2">ref </span>v) =&gt; {
-                <span class="kw">return </span><span class="prelude-val">Some</span>(<a href="#164">v</a>.<a href="single_byte.rs.html#231">latin1_byte_compatible_up_to</a>(<a href="#162">buffer</a>));
+    <span class="kw">pub fn </span>latin1_byte_compatible_up_to(<span class="kw-2">&amp;</span><span class="self">self</span>, buffer: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Option</span>&lt;usize&gt; {
+        <span class="kw">match </span><span class="kw-2">*</span><span class="self">self </span>{
+            VariantDecoder::SingleByte(<span class="kw-2">ref </span>v) =&gt; {
+                <span class="kw">return </span><span class="prelude-val">Some</span>(v.latin1_byte_compatible_up_to(buffer));
             }
-            <a href="#37">VariantDecoder::Utf8</a>(<span class="kw-2">ref </span>v) =&gt; {
+            VariantDecoder::Utf8(<span class="kw-2">ref </span>v) =&gt; {
                 <span class="kw">if </span>!v.in_neutral_state() {
                     <span class="kw">return </span><span class="prelude-val">None</span>;
                 }
             }
-            <a href="#38">VariantDecoder::Gb18030</a>(<span class="kw-2">ref </span>v) =&gt; {
+            VariantDecoder::Gb18030(<span class="kw-2">ref </span>v) =&gt; {
                 <span class="kw">if </span>!v.in_neutral_state() {
                     <span class="kw">return </span><span class="prelude-val">None</span>;
                 }
             }
-            <a href="#39">VariantDecoder::Big5</a>(<span class="kw-2">ref </span>v) =&gt; {
+            VariantDecoder::Big5(<span class="kw-2">ref </span>v) =&gt; {
                 <span class="kw">if </span>!v.in_neutral_state() {
                     <span class="kw">return </span><span class="prelude-val">None</span>;
                 }
             }
-            <a href="#40">VariantDecoder::EucJp</a>(<span class="kw-2">ref </span>v) =&gt; {
+            VariantDecoder::EucJp(<span class="kw-2">ref </span>v) =&gt; {
                 <span class="kw">if </span>!v.in_neutral_state() {
                     <span class="kw">return </span><span class="prelude-val">None</span>;
                 }
             }
-            <a href="#41">VariantDecoder::Iso2022Jp</a>(<span class="kw-2">ref </span>v) =&gt; {
+            VariantDecoder::Iso2022Jp(<span class="kw-2">ref </span>v) =&gt; {
                 <span class="kw">if </span>v.in_neutral_state() {
-                    <span class="kw">return </span><span class="prelude-val">Some</span>(Encoding::iso_2022_jp_ascii_valid_up_to(<a href="#162">buffer</a>));
+                    <span class="kw">return </span><span class="prelude-val">Some</span>(Encoding::iso_2022_jp_ascii_valid_up_to(buffer));
                 }
                 <span class="kw">return </span><span class="prelude-val">None</span>;
             }
-            <a href="#42">VariantDecoder::ShiftJis</a>(<span class="kw-2">ref </span>v) =&gt; {
+            VariantDecoder::ShiftJis(<span class="kw-2">ref </span>v) =&gt; {
                 <span class="kw">if </span>!v.in_neutral_state() {
                     <span class="kw">return </span><span class="prelude-val">None</span>;
                 }
             }
-            <a href="#43">VariantDecoder::EucKr</a>(<span class="kw-2">ref </span>v) =&gt; {
+            VariantDecoder::EucKr(<span class="kw-2">ref </span>v) =&gt; {
                 <span class="kw">if </span>!v.in_neutral_state() {
                     <span class="kw">return </span><span class="prelude-val">None</span>;
                 }
             }
-            <a href="#45">VariantDecoder::UserDefined</a>(<span class="kw">_</span>) =&gt; {}
-            <a href="#44">VariantDecoder::Replacement</a>(<span class="kw">_</span>) | <a href="#46">VariantDecoder::Utf16</a>(<span class="kw">_</span>) =&gt; {
+            VariantDecoder::UserDefined(<span class="kw">_</span>) =&gt; {}
+            VariantDecoder::Replacement(<span class="kw">_</span>) | VariantDecoder::Utf16(<span class="kw">_</span>) =&gt; {
                 <span class="kw">return </span><span class="prelude-val">None</span>;
             }
         };
-        <span class="prelude-val">Some</span>(Encoding::ascii_valid_up_to(<a href="#162">buffer</a>))
+        <span class="prelude-val">Some</span>(Encoding::ascii_valid_up_to(buffer))
     }
 }
 
 <span class="kw">pub enum </span>VariantEncoder {
-    SingleByte(<a href="single_byte.rs.html#250">SingleByteEncoder</a>),
-    Utf8(<a href="utf_8.rs.html#825">Utf8Encoder</a>),
-    Gb18030(<a href="gb18030.rs.html#440">Gb18030Encoder</a>),
-    Big5(<a href="big5.rs.html#167">Big5Encoder</a>),
-    EucJp(<a href="euc_jp.rs.html#251">EucJpEncoder</a>),
-    Iso2022Jp(<a href="iso_2022_jp.rs.html#471">Iso2022JpEncoder</a>),
-    ShiftJis(<a href="shift_jis.rs.html#203">ShiftJisEncoder</a>),
-    EucKr(<a href="euc_kr.rs.html#291">EucKrEncoder</a>),
-    UserDefined(<a href="x_user_defined.rs.html#146">UserDefinedEncoder</a>),
+    SingleByte(SingleByteEncoder),
+    Utf8(Utf8Encoder),
+    Gb18030(Gb18030Encoder),
+    Big5(Big5Encoder),
+    EucJp(EucJpEncoder),
+    Iso2022Jp(Iso2022JpEncoder),
+    ShiftJis(ShiftJisEncoder),
+    EucKr(EucKrEncoder),
+    UserDefined(UserDefinedEncoder),
 }
 
-<span class="kw">impl </span><a href="#212">VariantEncoder</a> {
-    <span class="kw">pub fn </span>has_pending_state(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/primitive.bool.html">bool</a> {
-        <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="#225">self</a> </span>{
-            <a href="#218">VariantEncoder::Iso2022Jp</a>(<span class="kw-2">ref </span>v) =&gt; <a href="#227">v</a>.<a href="iso_2022_jp.rs.html#485">has_pending_state</a>(),
+<span class="kw">impl </span>VariantEncoder {
+    <span class="kw">pub fn </span>has_pending_state(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="kw">match </span><span class="kw-2">*</span><span class="self">self </span>{
+            VariantEncoder::Iso2022Jp(<span class="kw-2">ref </span>v) =&gt; v.has_pending_state(),
             <span class="kw">_ </span>=&gt; <span class="bool-val">false</span>,
         }
     }
     <span class="kw">pub fn </span>max_buffer_length_from_utf16_without_replacement(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        u16_length: <a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>,
-    ) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>&gt; {
-        <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="#232">self</a> </span>{
-            <a href="#213">VariantEncoder::SingleByte</a>(<span class="kw-2">ref </span>v) =&gt; {
-                <a href="#236">v</a>.<a href="single_byte.rs.html#276-279">max_buffer_length_from_utf16_without_replacement</a>(<a href="#233">u16_length</a>)
+        u16_length: usize,
+    ) -&gt; <span class="prelude-ty">Option</span>&lt;usize&gt; {
+        <span class="kw">match </span><span class="kw-2">*</span><span class="self">self </span>{
+            VariantEncoder::SingleByte(<span class="kw-2">ref </span>v) =&gt; {
+                v.max_buffer_length_from_utf16_without_replacement(u16_length)
             }
-            <a href="#214">VariantEncoder::Utf8</a>(<span class="kw-2">ref </span>v) =&gt; {
-                <a href="#239">v</a>.<a href="utf_8.rs.html#832-835">max_buffer_length_from_utf16_without_replacement</a>(<a href="#233">u16_length</a>)
+            VariantEncoder::Utf8(<span class="kw-2">ref </span>v) =&gt; {
+                v.max_buffer_length_from_utf16_without_replacement(u16_length)
             }
-            <a href="#215">VariantEncoder::Gb18030</a>(<span class="kw-2">ref </span>v) =&gt; {
-                <a href="#242">v</a>.<a href="gb18030.rs.html#454-457">max_buffer_length_from_utf16_without_replacement</a>(<a href="#233">u16_length</a>)
+            VariantEncoder::Gb18030(<span class="kw-2">ref </span>v) =&gt; {
+                v.max_buffer_length_from_utf16_without_replacement(u16_length)
             }
-            <a href="#216">VariantEncoder::Big5</a>(<span class="kw-2">ref </span>v) =&gt; {
-                <a href="#245">v</a>.<a href="big5.rs.html#174-177">max_buffer_length_from_utf16_without_replacement</a>(<a href="#233">u16_length</a>)
+            VariantEncoder::Big5(<span class="kw-2">ref </span>v) =&gt; {
+                v.max_buffer_length_from_utf16_without_replacement(u16_length)
             }
-            <a href="#217">VariantEncoder::EucJp</a>(<span class="kw-2">ref </span>v) =&gt; {
-                <a href="#248">v</a>.<a href="euc_jp.rs.html#258-261">max_buffer_length_from_utf16_without_replacement</a>(<a href="#233">u16_length</a>)
+            VariantEncoder::EucJp(<span class="kw-2">ref </span>v) =&gt; {
+                v.max_buffer_length_from_utf16_without_replacement(u16_length)
             }
-            <a href="#218">VariantEncoder::Iso2022Jp</a>(<span class="kw-2">ref </span>v) =&gt; {
-                <a href="#251">v</a>.<a href="iso_2022_jp.rs.html#492-495">max_buffer_length_from_utf16_without_replacement</a>(<a href="#233">u16_length</a>)
+            VariantEncoder::Iso2022Jp(<span class="kw-2">ref </span>v) =&gt; {
+                v.max_buffer_length_from_utf16_without_replacement(u16_length)
             }
-            <a href="#219">VariantEncoder::ShiftJis</a>(<span class="kw-2">ref </span>v) =&gt; {
-                <a href="#254">v</a>.<a href="shift_jis.rs.html#210-213">max_buffer_length_from_utf16_without_replacement</a>(<a href="#233">u16_length</a>)
+            VariantEncoder::ShiftJis(<span class="kw-2">ref </span>v) =&gt; {
+                v.max_buffer_length_from_utf16_without_replacement(u16_length)
             }
-            <a href="#220">VariantEncoder::EucKr</a>(<span class="kw-2">ref </span>v) =&gt; {
-                <a href="#257">v</a>.<a href="euc_kr.rs.html#298-301">max_buffer_length_from_utf16_without_replacement</a>(<a href="#233">u16_length</a>)
+            VariantEncoder::EucKr(<span class="kw-2">ref </span>v) =&gt; {
+                v.max_buffer_length_from_utf16_without_replacement(u16_length)
             }
-            <a href="#221">VariantEncoder::UserDefined</a>(<span class="kw-2">ref </span>v) =&gt; {
-                <a href="#260">v</a>.<a href="x_user_defined.rs.html#153-156">max_buffer_length_from_utf16_without_replacement</a>(<a href="#233">u16_length</a>)
+            VariantEncoder::UserDefined(<span class="kw-2">ref </span>v) =&gt; {
+                v.max_buffer_length_from_utf16_without_replacement(u16_length)
             }
         }
     }
 
     <span class="kw">pub fn </span>max_buffer_length_from_utf8_without_replacement(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        byte_length: <a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>,
-    ) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>&gt; {
-        <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="#267">self</a> </span>{
-            <a href="#213">VariantEncoder::SingleByte</a>(<span class="kw-2">ref </span>v) =&gt; {
-                <a href="#271">v</a>.<a href="single_byte.rs.html#283-286">max_buffer_length_from_utf8_without_replacement</a>(<a href="#268">byte_length</a>)
+        byte_length: usize,
+    ) -&gt; <span class="prelude-ty">Option</span>&lt;usize&gt; {
+        <span class="kw">match </span><span class="kw-2">*</span><span class="self">self </span>{
+            VariantEncoder::SingleByte(<span class="kw-2">ref </span>v) =&gt; {
+                v.max_buffer_length_from_utf8_without_replacement(byte_length)
             }
-            <a href="#214">VariantEncoder::Utf8</a>(<span class="kw-2">ref </span>v) =&gt; {
-                <a href="#274">v</a>.<a href="utf_8.rs.html#839-842">max_buffer_length_from_utf8_without_replacement</a>(<a href="#268">byte_length</a>)
+            VariantEncoder::Utf8(<span class="kw-2">ref </span>v) =&gt; {
+                v.max_buffer_length_from_utf8_without_replacement(byte_length)
             }
-            <a href="#215">VariantEncoder::Gb18030</a>(<span class="kw-2">ref </span>v) =&gt; {
-                <a href="#277">v</a>.<a href="gb18030.rs.html#467-470">max_buffer_length_from_utf8_without_replacement</a>(<a href="#268">byte_length</a>)
+            VariantEncoder::Gb18030(<span class="kw-2">ref </span>v) =&gt; {
+                v.max_buffer_length_from_utf8_without_replacement(byte_length)
             }
-            <a href="#216">VariantEncoder::Big5</a>(<span class="kw-2">ref </span>v) =&gt; {
-                <a href="#280">v</a>.<a href="big5.rs.html#184-187">max_buffer_length_from_utf8_without_replacement</a>(<a href="#268">byte_length</a>)
+            VariantEncoder::Big5(<span class="kw-2">ref </span>v) =&gt; {
+                v.max_buffer_length_from_utf8_without_replacement(byte_length)
             }
-            <a href="#217">VariantEncoder::EucJp</a>(<span class="kw-2">ref </span>v) =&gt; {
-                <a href="#283">v</a>.<a href="euc_jp.rs.html#265-268">max_buffer_length_from_utf8_without_replacement</a>(<a href="#268">byte_length</a>)
+            VariantEncoder::EucJp(<span class="kw-2">ref </span>v) =&gt; {
+                v.max_buffer_length_from_utf8_without_replacement(byte_length)
             }
-            <a href="#218">VariantEncoder::Iso2022Jp</a>(<span class="kw-2">ref </span>v) =&gt; {
-                <a href="#286">v</a>.<a href="iso_2022_jp.rs.html#510-513">max_buffer_length_from_utf8_without_replacement</a>(<a href="#268">byte_length</a>)
+            VariantEncoder::Iso2022Jp(<span class="kw-2">ref </span>v) =&gt; {
+                v.max_buffer_length_from_utf8_without_replacement(byte_length)
             }
-            <a href="#219">VariantEncoder::ShiftJis</a>(<span class="kw-2">ref </span>v) =&gt; {
-                <a href="#289">v</a>.<a href="shift_jis.rs.html#217-220">max_buffer_length_from_utf8_without_replacement</a>(<a href="#268">byte_length</a>)
+            VariantEncoder::ShiftJis(<span class="kw-2">ref </span>v) =&gt; {
+                v.max_buffer_length_from_utf8_without_replacement(byte_length)
             }
-            <a href="#220">VariantEncoder::EucKr</a>(<span class="kw-2">ref </span>v) =&gt; {
-                <a href="#292">v</a>.<a href="euc_kr.rs.html#305-308">max_buffer_length_from_utf8_without_replacement</a>(<a href="#268">byte_length</a>)
+            VariantEncoder::EucKr(<span class="kw-2">ref </span>v) =&gt; {
+                v.max_buffer_length_from_utf8_without_replacement(byte_length)
             }
-            <a href="#221">VariantEncoder::UserDefined</a>(<span class="kw-2">ref </span>v) =&gt; {
-                <a href="#295">v</a>.<a href="x_user_defined.rs.html#160-163">max_buffer_length_from_utf8_without_replacement</a>(<a href="#268">byte_length</a>)
+            VariantEncoder::UserDefined(<span class="kw-2">ref </span>v) =&gt; {
+                v.max_buffer_length_from_utf8_without_replacement(byte_length)
             }
         }
     }
 
     <span class="kw">pub fn </span>encode_from_utf16_raw(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        src: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/core/primitive.u16.html">u16</a>],
-        dst: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>],
-        last: <a href="https://doc.rust-lang.org/nightly/core/primitive.bool.html">bool</a>,
-    ) -&gt; (<a href="lib.rs.html#4322">EncoderResult</a>, <a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>, <a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>) {
-        <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="#302">self</a> </span>{
-            <a href="#213">VariantEncoder::SingleByte</a>(<span class="kw-2">ref mut </span>v) =&gt; <a href="#308">v</a>.<a href="single_byte.rs.html#376-381">encode_from_utf16_raw</a>(<a href="#303">src</a>, <a href="#304">dst</a>, <a href="#305">last</a>),
-            <a href="#214">VariantEncoder::Utf8</a>(<span class="kw-2">ref mut </span>v) =&gt; <a href="#309">v</a>.<a href="utf_8.rs.html#846-851">encode_from_utf16_raw</a>(<a href="#303">src</a>, <a href="#304">dst</a>, <a href="#305">last</a>),
-            <a href="#215">VariantEncoder::Gb18030</a>(<span class="kw-2">ref mut </span>v) =&gt; <a href="#310">v</a>.<a href="gb18030.rs.html#489-568">encode_from_utf16_raw</a>(<a href="#303">src</a>, <a href="#304">dst</a>, <a href="#305">last</a>),
-            <a href="#216">VariantEncoder::Big5</a>(<span class="kw-2">ref mut </span>v) =&gt; <a href="#311">v</a>.<a href="big5.rs.html#195-260">encode_from_utf16_raw</a>(<a href="#303">src</a>, <a href="#304">dst</a>, <a href="#305">last</a>),
-            <a href="#217">VariantEncoder::EucJp</a>(<span class="kw-2">ref mut </span>v) =&gt; <a href="#312">v</a>.<a href="euc_jp.rs.html#272-343">encode_from_utf16_raw</a>(<a href="#303">src</a>, <a href="#304">dst</a>, <a href="#305">last</a>),
-            <a href="#218">VariantEncoder::Iso2022Jp</a>(<span class="kw-2">ref mut </span>v) =&gt; <a href="#313">v</a>.<a href="iso_2022_jp.rs.html#525-751">encode_from_utf16_raw</a>(<a href="#303">src</a>, <a href="#304">dst</a>, <a href="#305">last</a>),
-            <a href="#219">VariantEncoder::ShiftJis</a>(<span class="kw-2">ref mut </span>v) =&gt; <a href="#314">v</a>.<a href="shift_jis.rs.html#224-302">encode_from_utf16_raw</a>(<a href="#303">src</a>, <a href="#304">dst</a>, <a href="#305">last</a>),
-            <a href="#220">VariantEncoder::EucKr</a>(<span class="kw-2">ref mut </span>v) =&gt; <a href="#315">v</a>.<a href="euc_kr.rs.html#312-359">encode_from_utf16_raw</a>(<a href="#303">src</a>, <a href="#304">dst</a>, <a href="#305">last</a>),
-            <a href="#221">VariantEncoder::UserDefined</a>(<span class="kw-2">ref mut </span>v) =&gt; <a href="#316">v</a>.<a href="x_user_defined.rs.html#167-193">encode_from_utf16_raw</a>(<a href="#303">src</a>, <a href="#304">dst</a>, <a href="#305">last</a>),
+        src: <span class="kw-2">&amp;</span>[u16],
+        dst: <span class="kw-2">&amp;mut </span>[u8],
+        last: bool,
+    ) -&gt; (EncoderResult, usize, usize) {
+        <span class="kw">match </span><span class="kw-2">*</span><span class="self">self </span>{
+            VariantEncoder::SingleByte(<span class="kw-2">ref mut </span>v) =&gt; v.encode_from_utf16_raw(src, dst, last),
+            VariantEncoder::Utf8(<span class="kw-2">ref mut </span>v) =&gt; v.encode_from_utf16_raw(src, dst, last),
+            VariantEncoder::Gb18030(<span class="kw-2">ref mut </span>v) =&gt; v.encode_from_utf16_raw(src, dst, last),
+            VariantEncoder::Big5(<span class="kw-2">ref mut </span>v) =&gt; v.encode_from_utf16_raw(src, dst, last),
+            VariantEncoder::EucJp(<span class="kw-2">ref mut </span>v) =&gt; v.encode_from_utf16_raw(src, dst, last),
+            VariantEncoder::Iso2022Jp(<span class="kw-2">ref mut </span>v) =&gt; v.encode_from_utf16_raw(src, dst, last),
+            VariantEncoder::ShiftJis(<span class="kw-2">ref mut </span>v) =&gt; v.encode_from_utf16_raw(src, dst, last),
+            VariantEncoder::EucKr(<span class="kw-2">ref mut </span>v) =&gt; v.encode_from_utf16_raw(src, dst, last),
+            VariantEncoder::UserDefined(<span class="kw-2">ref mut </span>v) =&gt; v.encode_from_utf16_raw(src, dst, last),
         }
     }
 
     <span class="kw">pub fn </span>encode_from_utf8_raw(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        src: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/core/primitive.str.html">str</a>,
-        dst: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>],
-        last: <a href="https://doc.rust-lang.org/nightly/core/primitive.bool.html">bool</a>,
-    ) -&gt; (<a href="lib.rs.html#4322">EncoderResult</a>, <a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>, <a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>) {
-        <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="#321">self</a> </span>{
-            <a href="#213">VariantEncoder::SingleByte</a>(<span class="kw-2">ref mut </span>v) =&gt; <a href="#327">v</a>.<a href="single_byte.rs.html#351-374">encode_from_utf8_raw</a>(<a href="#322">src</a>, <a href="#323">dst</a>, <a href="#324">last</a>),
-            <a href="#214">VariantEncoder::Utf8</a>(<span class="kw-2">ref mut </span>v) =&gt; <a href="#328">v</a>.<a href="utf_8.rs.html#864-869">encode_from_utf8_raw</a>(<a href="#322">src</a>, <a href="#323">dst</a>, <a href="#324">last</a>),
-            <a href="#215">VariantEncoder::Gb18030</a>(<span class="kw-2">ref mut </span>v) =&gt; <a href="#329">v</a>.<a href="gb18030.rs.html#489-568">encode_from_utf8_raw</a>(<a href="#322">src</a>, <a href="#323">dst</a>, <a href="#324">last</a>),
-            <a href="#216">VariantEncoder::Big5</a>(<span class="kw-2">ref mut </span>v) =&gt; <a href="#330">v</a>.<a href="big5.rs.html#195-260">encode_from_utf8_raw</a>(<a href="#322">src</a>, <a href="#323">dst</a>, <a href="#324">last</a>),
-            <a href="#217">VariantEncoder::EucJp</a>(<span class="kw-2">ref mut </span>v) =&gt; <a href="#331">v</a>.<a href="euc_jp.rs.html#272-343">encode_from_utf8_raw</a>(<a href="#322">src</a>, <a href="#323">dst</a>, <a href="#324">last</a>),
-            <a href="#218">VariantEncoder::Iso2022Jp</a>(<span class="kw-2">ref mut </span>v) =&gt; <a href="#332">v</a>.<a href="iso_2022_jp.rs.html#525-751">encode_from_utf8_raw</a>(<a href="#322">src</a>, <a href="#323">dst</a>, <a href="#324">last</a>),
-            <a href="#219">VariantEncoder::ShiftJis</a>(<span class="kw-2">ref mut </span>v) =&gt; <a href="#333">v</a>.<a href="shift_jis.rs.html#224-302">encode_from_utf8_raw</a>(<a href="#322">src</a>, <a href="#323">dst</a>, <a href="#324">last</a>),
-            <a href="#220">VariantEncoder::EucKr</a>(<span class="kw-2">ref mut </span>v) =&gt; <a href="#334">v</a>.<a href="euc_kr.rs.html#312-359">encode_from_utf8_raw</a>(<a href="#322">src</a>, <a href="#323">dst</a>, <a href="#324">last</a>),
-            <a href="#221">VariantEncoder::UserDefined</a>(<span class="kw-2">ref mut </span>v) =&gt; <a href="#335">v</a>.<a href="x_user_defined.rs.html#167-193">encode_from_utf8_raw</a>(<a href="#322">src</a>, <a href="#323">dst</a>, <a href="#324">last</a>),
+        src: <span class="kw-2">&amp;</span>str,
+        dst: <span class="kw-2">&amp;mut </span>[u8],
+        last: bool,
+    ) -&gt; (EncoderResult, usize, usize) {
+        <span class="kw">match </span><span class="kw-2">*</span><span class="self">self </span>{
+            VariantEncoder::SingleByte(<span class="kw-2">ref mut </span>v) =&gt; v.encode_from_utf8_raw(src, dst, last),
+            VariantEncoder::Utf8(<span class="kw-2">ref mut </span>v) =&gt; v.encode_from_utf8_raw(src, dst, last),
+            VariantEncoder::Gb18030(<span class="kw-2">ref mut </span>v) =&gt; v.encode_from_utf8_raw(src, dst, last),
+            VariantEncoder::Big5(<span class="kw-2">ref mut </span>v) =&gt; v.encode_from_utf8_raw(src, dst, last),
+            VariantEncoder::EucJp(<span class="kw-2">ref mut </span>v) =&gt; v.encode_from_utf8_raw(src, dst, last),
+            VariantEncoder::Iso2022Jp(<span class="kw-2">ref mut </span>v) =&gt; v.encode_from_utf8_raw(src, dst, last),
+            VariantEncoder::ShiftJis(<span class="kw-2">ref mut </span>v) =&gt; v.encode_from_utf8_raw(src, dst, last),
+            VariantEncoder::EucKr(<span class="kw-2">ref mut </span>v) =&gt; v.encode_from_utf8_raw(src, dst, last),
+            VariantEncoder::UserDefined(<span class="kw-2">ref mut </span>v) =&gt; v.encode_from_utf8_raw(src, dst, last),
         }
     }
 }
 
 <span class="kw">pub enum </span>VariantEncoding {
-    SingleByte(<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>[<a href="https://doc.rust-lang.org/nightly/core/primitive.u16.html">u16</a>; <span class="number">128</span>], <a href="https://doc.rust-lang.org/nightly/core/primitive.u16.html">u16</a>, <a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>, <a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>),
+    SingleByte(<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>[u16; <span class="number">128</span>], u16, u8, u8),
     Utf8,
     Gbk,
     Gb18030,
@@ -753,50 +753,50 @@
     UserDefined,
 }
 
-<span class="kw">impl </span><a href="#340">VariantEncoding</a> {
-    <span class="kw">pub fn </span>new_variant_decoder(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="#35">VariantDecoder</a> {
-        <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="#357">self</a> </span>{
-            <a href="#341">VariantEncoding::SingleByte</a>(table, <span class="kw">_</span>, <span class="kw">_</span>, <span class="kw">_</span>) =&gt; SingleByteDecoder::new(<a href="#359">table</a>),
-            <a href="#342">VariantEncoding::Utf8</a> =&gt; Utf8Decoder::new(),
-            <a href="#343">VariantEncoding::Gbk</a> | <a href="#344">VariantEncoding::Gb18030</a> =&gt; Gb18030Decoder::new(),
-            <a href="#345">VariantEncoding::Big5</a> =&gt; Big5Decoder::new(),
-            <a href="#346">VariantEncoding::EucJp</a> =&gt; EucJpDecoder::new(),
-            <a href="#347">VariantEncoding::Iso2022Jp</a> =&gt; Iso2022JpDecoder::new(),
-            <a href="#348">VariantEncoding::ShiftJis</a> =&gt; ShiftJisDecoder::new(),
-            <a href="#349">VariantEncoding::EucKr</a> =&gt; EucKrDecoder::new(),
-            <a href="#350">VariantEncoding::Replacement</a> =&gt; ReplacementDecoder::new(),
-            <a href="#353">VariantEncoding::UserDefined</a> =&gt; UserDefinedDecoder::new(),
-            <a href="#351">VariantEncoding::Utf16Be</a> =&gt; Utf16Decoder::new(<span class="bool-val">true</span>),
-            <a href="#352">VariantEncoding::Utf16Le</a> =&gt; Utf16Decoder::new(<span class="bool-val">false</span>),
+<span class="kw">impl </span>VariantEncoding {
+    <span class="kw">pub fn </span>new_variant_decoder(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; VariantDecoder {
+        <span class="kw">match </span><span class="kw-2">*</span><span class="self">self </span>{
+            VariantEncoding::SingleByte(table, <span class="kw">_</span>, <span class="kw">_</span>, <span class="kw">_</span>) =&gt; SingleByteDecoder::new(table),
+            VariantEncoding::Utf8 =&gt; Utf8Decoder::new(),
+            VariantEncoding::Gbk | VariantEncoding::Gb18030 =&gt; Gb18030Decoder::new(),
+            VariantEncoding::Big5 =&gt; Big5Decoder::new(),
+            VariantEncoding::EucJp =&gt; EucJpDecoder::new(),
+            VariantEncoding::Iso2022Jp =&gt; Iso2022JpDecoder::new(),
+            VariantEncoding::ShiftJis =&gt; ShiftJisDecoder::new(),
+            VariantEncoding::EucKr =&gt; EucKrDecoder::new(),
+            VariantEncoding::Replacement =&gt; ReplacementDecoder::new(),
+            VariantEncoding::UserDefined =&gt; UserDefinedDecoder::new(),
+            VariantEncoding::Utf16Be =&gt; Utf16Decoder::new(<span class="bool-val">true</span>),
+            VariantEncoding::Utf16Le =&gt; Utf16Decoder::new(<span class="bool-val">false</span>),
         }
     }
 
-    <span class="kw">pub fn </span>new_encoder(<span class="kw-2">&amp;</span><span class="self">self</span>, encoding: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><a href="lib.rs.html#2673">Encoding</a>) -&gt; <a href="lib.rs.html#4461">Encoder</a> {
-        <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="#374">self</a> </span>{
-            <a href="#341">VariantEncoding::SingleByte</a>(table, run_bmp_offset, run_byte_offset, run_length) =&gt; {
-                SingleByteEncoder::new(<a href="#374">encoding</a>, <a href="#376">table</a>, <a href="#376">run_bmp_offset</a>, <a href="#376">run_byte_offset</a>, <a href="#376">run_length</a>)
+    <span class="kw">pub fn </span>new_encoder(<span class="kw-2">&amp;</span><span class="self">self</span>, encoding: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>Encoding) -&gt; Encoder {
+        <span class="kw">match </span><span class="kw-2">*</span><span class="self">self </span>{
+            VariantEncoding::SingleByte(table, run_bmp_offset, run_byte_offset, run_length) =&gt; {
+                SingleByteEncoder::new(encoding, table, run_bmp_offset, run_byte_offset, run_length)
             }
-            <a href="#342">VariantEncoding::Utf8</a> =&gt; Utf8Encoder::new(<a href="#374">encoding</a>),
-            <a href="#343">VariantEncoding::Gbk</a> =&gt; Gb18030Encoder::new(<a href="#374">encoding</a>, <span class="bool-val">false</span>),
-            <a href="#344">VariantEncoding::Gb18030</a> =&gt; Gb18030Encoder::new(<a href="#374">encoding</a>, <span class="bool-val">true</span>),
-            <a href="#345">VariantEncoding::Big5</a> =&gt; Big5Encoder::new(<a href="#374">encoding</a>),
-            <a href="#346">VariantEncoding::EucJp</a> =&gt; EucJpEncoder::new(<a href="#374">encoding</a>),
-            <a href="#347">VariantEncoding::Iso2022Jp</a> =&gt; Iso2022JpEncoder::new(<a href="#374">encoding</a>),
-            <a href="#348">VariantEncoding::ShiftJis</a> =&gt; ShiftJisEncoder::new(<a href="#374">encoding</a>),
-            <a href="#349">VariantEncoding::EucKr</a> =&gt; EucKrEncoder::new(<a href="#374">encoding</a>),
-            <a href="#353">VariantEncoding::UserDefined</a> =&gt; UserDefinedEncoder::new(<a href="#374">encoding</a>),
-            <a href="#351">VariantEncoding::Utf16Be</a> | <a href="#350">VariantEncoding::Replacement</a> | <a href="#352">VariantEncoding::Utf16Le</a> =&gt; {
-                <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>()
+            VariantEncoding::Utf8 =&gt; Utf8Encoder::new(encoding),
+            VariantEncoding::Gbk =&gt; Gb18030Encoder::new(encoding, <span class="bool-val">false</span>),
+            VariantEncoding::Gb18030 =&gt; Gb18030Encoder::new(encoding, <span class="bool-val">true</span>),
+            VariantEncoding::Big5 =&gt; Big5Encoder::new(encoding),
+            VariantEncoding::EucJp =&gt; EucJpEncoder::new(encoding),
+            VariantEncoding::Iso2022Jp =&gt; Iso2022JpEncoder::new(encoding),
+            VariantEncoding::ShiftJis =&gt; ShiftJisEncoder::new(encoding),
+            VariantEncoding::EucKr =&gt; EucKrEncoder::new(encoding),
+            VariantEncoding::UserDefined =&gt; UserDefinedEncoder::new(encoding),
+            VariantEncoding::Utf16Be | VariantEncoding::Replacement | VariantEncoding::Utf16Le =&gt; {
+                <span class="macro">unreachable!</span>()
             }
         }
     }
 
-    <span class="kw">pub fn </span>is_single_byte(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/primitive.bool.html">bool</a> {
-        <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="#394">self</a> </span>{
-            <a href="#341">VariantEncoding::SingleByte</a>(<span class="kw">_</span>, <span class="kw">_</span>, <span class="kw">_</span>, <span class="kw">_</span>) | <a href="#353">VariantEncoding::UserDefined</a> =&gt; <span class="bool-val">true</span>,
+    <span class="kw">pub fn </span>is_single_byte(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="kw">match </span><span class="kw-2">*</span><span class="self">self </span>{
+            VariantEncoding::SingleByte(<span class="kw">_</span>, <span class="kw">_</span>, <span class="kw">_</span>, <span class="kw">_</span>) | VariantEncoding::UserDefined =&gt; <span class="bool-val">true</span>,
             <span class="kw">_ </span>=&gt; <span class="bool-val">false</span>,
         }
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="encoding_rs" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="encoding_rs" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

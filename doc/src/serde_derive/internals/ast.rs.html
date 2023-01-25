@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/serde_derive-1.0.147/src/internals/ast.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>ast.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../serde_derive/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/serde_derive-1.0.152/src/internals/ast.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>ast.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../serde_derive/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -202,25 +202,25 @@
 <a href="#202" id="202">202</a>
 </pre><pre class="rust"><code><span class="doccomment">//! A Serde ast, parsed from the Syn ast and ready to generate Rust code.
 
-</span><span class="kw">use </span><a href="mod.rs.html#2">internals::attr</a>;
-<span class="kw">use </span><a href="mod.rs.html#11">internals::check</a>;
-<span class="kw">use </span>internals::{<a href="ctxt.rs.html#13">Ctxt</a>, <a href="mod.rs.html#18">Derive</a>};
-<span class="kw">use </span><a href="https://docs.rs/syn/1.0.103/syn/index.html">syn</a>;
-<span class="kw">use </span><a href="https://docs.rs/syn/1.0.103/syn/punctuated/struct.Punctuated.html">syn::punctuated::Punctuated</a>;
+</span><span class="kw">use </span>internals::attr;
+<span class="kw">use </span>internals::check;
+<span class="kw">use </span>internals::{Ctxt, Derive};
+<span class="kw">use </span>syn;
+<span class="kw">use </span>syn::punctuated::Punctuated;
 
 <span class="doccomment">/// A source data structure annotated with `#[derive(Serialize)]` and/or `#[derive(Deserialize)]`,
 /// parsed into an internal representation.
 </span><span class="kw">pub struct </span>Container&lt;<span class="lifetime">&#39;a</span>&gt; {
     <span class="doccomment">/// The struct or enum name (without generics).
-    </span><span class="kw">pub </span>ident: <a href="https://docs.rs/proc-macro2/1.0.47/proc_macro2/struct.Ident.html">syn::Ident</a>,
+    </span><span class="kw">pub </span>ident: syn::Ident,
     <span class="doccomment">/// Attributes on the structure, parsed for Serde.
-    </span><span class="kw">pub </span>attrs: <a href="attr.rs.html#209">attr::Container</a>,
+    </span><span class="kw">pub </span>attrs: attr::Container,
     <span class="doccomment">/// The contents of the struct or enum.
     </span><span class="kw">pub </span>data: Data&lt;<span class="lifetime">&#39;a</span>&gt;,
     <span class="doccomment">/// Any generics on the struct or enum.
-    </span><span class="kw">pub </span>generics: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="https://docs.rs/syn/1.0.103/syn/generics/struct.Generics.html">syn::Generics</a>,
+    </span><span class="kw">pub </span>generics: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>syn::Generics,
     <span class="doccomment">/// Original input.
-    </span><span class="kw">pub </span>original: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="https://docs.rs/syn/1.0.103/syn/derive/struct.DeriveInput.html">syn::DeriveInput</a>,
+    </span><span class="kw">pub </span>original: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>syn::DeriveInput,
 }
 
 <span class="doccomment">/// The fields of a struct or enum.
@@ -228,24 +228,24 @@
 /// Analogous to `syn::Data`.
 </span><span class="kw">pub enum </span>Data&lt;<span class="lifetime">&#39;a</span>&gt; {
     Enum(Vec&lt;Variant&lt;<span class="lifetime">&#39;a</span>&gt;&gt;),
-    Struct(<a href="#50">Style</a>, Vec&lt;Field&lt;<span class="lifetime">&#39;a</span>&gt;&gt;),
+    Struct(Style, Vec&lt;Field&lt;<span class="lifetime">&#39;a</span>&gt;&gt;),
 }
 
 <span class="doccomment">/// A variant of an enum.
 </span><span class="kw">pub struct </span>Variant&lt;<span class="lifetime">&#39;a</span>&gt; {
-    <span class="kw">pub </span>ident: <a href="https://docs.rs/proc-macro2/1.0.47/proc_macro2/struct.Ident.html">syn::Ident</a>,
-    <span class="kw">pub </span>attrs: <a href="attr.rs.html#845">attr::Variant</a>,
-    <span class="kw">pub </span>style: <a href="#50">Style</a>,
+    <span class="kw">pub </span>ident: syn::Ident,
+    <span class="kw">pub </span>attrs: attr::Variant,
+    <span class="kw">pub </span>style: Style,
     <span class="kw">pub </span>fields: Vec&lt;Field&lt;<span class="lifetime">&#39;a</span>&gt;&gt;,
-    <span class="kw">pub </span>original: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="https://docs.rs/syn/1.0.103/syn/data/struct.Variant.html">syn::Variant</a>,
+    <span class="kw">pub </span>original: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>syn::Variant,
 }
 
 <span class="doccomment">/// A field of a struct.
 </span><span class="kw">pub struct </span>Field&lt;<span class="lifetime">&#39;a</span>&gt; {
-    <span class="kw">pub </span>member: <a href="https://docs.rs/syn/1.0.103/syn/expr/enum.Member.html">syn::Member</a>,
-    <span class="kw">pub </span>attrs: <a href="attr.rs.html#1107">attr::Field</a>,
-    <span class="kw">pub </span>ty: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="https://docs.rs/syn/1.0.103/syn/ty/enum.Type.html">syn::Type</a>,
-    <span class="kw">pub </span>original: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="https://docs.rs/syn/1.0.103/syn/data/struct.Field.html">syn::Field</a>,
+    <span class="kw">pub </span>member: syn::Member,
+    <span class="kw">pub </span>attrs: attr::Field,
+    <span class="kw">pub </span>ty: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>syn::Type,
+    <span class="kw">pub </span>original: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>syn::Field,
 }
 
 <span class="attr">#[derive(Copy, Clone)]
@@ -263,27 +263,27 @@
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; Container&lt;<span class="lifetime">&#39;a</span>&gt; {
     <span class="doccomment">/// Convert the raw Syn ast into a parsed container object, collecting errors in `cx`.
     </span><span class="kw">pub fn </span>from_ast(
-        cx: <span class="kw-2">&amp;</span><a href="ctxt.rs.html#13">Ctxt</a>,
-        item: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="https://docs.rs/syn/1.0.103/syn/derive/struct.DeriveInput.html">syn::DeriveInput</a>,
-        derive: <a href="mod.rs.html#18">Derive</a>,
+        cx: <span class="kw-2">&amp;</span>Ctxt,
+        item: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>syn::DeriveInput,
+        derive: Derive,
     ) -&gt; <span class="prelude-ty">Option</span>&lt;Container&lt;<span class="lifetime">&#39;a</span>&gt;&gt; {
-        <span class="kw">let </span><span class="kw-2">mut </span>attrs = attr::Container::from_ast(<a href="#64">cx</a>, <a href="#65">item</a>);
+        <span class="kw">let </span><span class="kw-2">mut </span>attrs = attr::Container::from_ast(cx, item);
 
-        <span class="kw">let </span><span class="kw-2">mut </span>data = <span class="kw">match </span><span class="kw-2">&amp;</span><a href="#65">item</a>.data {
-            syn::Data::Enum(data) =&gt; <a href="#28">Data::Enum</a>(<a href="#138-142">enum_from_ast</a>(<a href="#64">cx</a>, <span class="kw-2">&amp;</span><a href="#71">data</a>.variants, <a href="#68">attrs</a>.<a href="attr.rs.html#642">default</a>())),
+        <span class="kw">let </span><span class="kw-2">mut </span>data = <span class="kw">match </span><span class="kw-2">&amp;</span>item.data {
+            syn::Data::Enum(data) =&gt; Data::Enum(enum_from_ast(cx, <span class="kw-2">&amp;</span>data.variants, attrs.default())),
             syn::Data::Struct(data) =&gt; {
-                <span class="kw">let </span>(style, fields) = <a href="#160-165">struct_from_ast</a>(<a href="#64">cx</a>, <span class="kw-2">&amp;</span><a href="#72">data</a>.fields, <span class="prelude-val">None</span>, <a href="#68">attrs</a>.<a href="attr.rs.html#642">default</a>());
-                <a href="#29">Data::Struct</a>(<a href="#73">style</a>, <a href="#73">fields</a>)
+                <span class="kw">let </span>(style, fields) = struct_from_ast(cx, <span class="kw-2">&amp;</span>data.fields, <span class="prelude-val">None</span>, attrs.default());
+                Data::Struct(style, fields)
             }
             syn::Data::Union(<span class="kw">_</span>) =&gt; {
-                <a href="#64">cx</a>.<a href="ctxt.rs.html#32">error_spanned_by</a>(<a href="#65">item</a>, <span class="string">&quot;Serde does not support derive for unions&quot;</span>);
+                cx.error_spanned_by(item, <span class="string">&quot;Serde does not support derive for unions&quot;</span>);
                 <span class="kw">return </span><span class="prelude-val">None</span>;
             }
         };
 
         <span class="kw">let </span><span class="kw-2">mut </span>has_flatten = <span class="bool-val">false</span>;
-        <span class="kw">match </span><span class="kw-2">&amp;mut </span><a href="#70">data</a> {
-            <a href="#28">Data::Enum</a>(variants) =&gt; {
+        <span class="kw">match </span><span class="kw-2">&amp;mut </span>data {
+            Data::Enum(variants) =&gt; {
                 <span class="kw">for </span>variant <span class="kw">in </span>variants {
                     variant.attrs.rename_by_rules(attrs.rename_all_rules());
                     <span class="kw">for </span>field <span class="kw">in </span><span class="kw-2">&amp;mut </span>variant.fields {
@@ -296,7 +296,7 @@
                     }
                 }
             }
-            <a href="#29">Data::Struct</a>(<span class="kw">_</span>, fields) =&gt; {
+            Data::Struct(<span class="kw">_</span>, fields) =&gt; {
                 <span class="kw">for </span>field <span class="kw">in </span>fields {
                     <span class="kw">if </span>field.attrs.flatten() {
                         has_flatten = <span class="bool-val">true</span>;
@@ -307,100 +307,100 @@
         }
 
         <span class="kw">if </span>has_flatten {
-            <a href="#68">attrs</a>.<a href="attr.rs.html#686">mark_has_flatten</a>();
+            attrs.mark_has_flatten();
         }
 
-        <span class="kw">let </span><span class="kw-2">mut </span>item = <a href="#11">Container</a> {
-            ident: <a href="#65">item</a>.ident.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
-            <a href="#68">attrs</a>,
-            <a href="#70">data</a>,
-            generics: <span class="kw-2">&amp;</span><a href="#65">item</a>.generics,
-            original: <a href="#65">item</a>,
+        <span class="kw">let </span><span class="kw-2">mut </span>item = Container {
+            ident: item.ident.clone(),
+            attrs,
+            data,
+            generics: <span class="kw-2">&amp;</span>item.generics,
+            original: item,
         };
-        <a href="check.rs.html#8">check::check</a>(<a href="#64">cx</a>, <span class="kw-2">&amp;mut </span><a href="#111">item</a>, <a href="#66">derive</a>);
-        <span class="prelude-val">Some</span>(<a href="#111">item</a>)
+        check::check(cx, <span class="kw-2">&amp;mut </span>item, derive);
+        <span class="prelude-val">Some</span>(item)
     }
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; Data&lt;<span class="lifetime">&#39;a</span>&gt; {
     <span class="kw">pub fn </span>all_fields(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="self">self</span>) -&gt; Box&lt;Iterator&lt;Item = <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Field&lt;<span class="lifetime">&#39;a</span>&gt;&gt; + <span class="lifetime">&#39;a</span>&gt; {
-        <span class="kw">match </span><span class="self"><a href="#124">self</a> </span>{
-            <a href="#28">Data::Enum</a>(variants) =&gt; {
-                Box::new(<a href="#126">variants</a>.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">flat_map</a>(|variant| <a href="#127">variant</a>.fields.iter()))
+        <span class="kw">match </span><span class="self">self </span>{
+            Data::Enum(variants) =&gt; {
+                Box::new(variants.iter().flat_map(|variant| variant.fields.iter()))
             }
-            <a href="#29">Data::Struct</a>(<span class="kw">_</span>, fields) =&gt; Box::new(<a href="#129">fields</a>.iter()),
+            Data::Struct(<span class="kw">_</span>, fields) =&gt; Box::new(fields.iter()),
         }
     }
 
-    <span class="kw">pub fn </span>has_getter(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#133">self</a>.<a href="#124">all_fields</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">any</a>(|f| <a href="#134">f</a>.attrs.<a href="attr.rs.html#1481">getter</a>().is_some())
+    <span class="kw">pub fn </span>has_getter(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.all_fields().any(|f| f.attrs.getter().is_some())
     }
 }
 
 <span class="kw">fn </span>enum_from_ast&lt;<span class="lifetime">&#39;a</span>&gt;(
-    cx: <span class="kw-2">&amp;</span><a href="ctxt.rs.html#13">Ctxt</a>,
-    variants: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Punctuated&lt;<a href="https://docs.rs/syn/1.0.103/syn/data/struct.Variant.html">syn::Variant</a>, <a class="macro" href="https://docs.rs/syn/1.0.103/syn/macro.Token.html">Token!</a>[,]&gt;,
-    container_default: <span class="kw-2">&amp;</span><a href="attr.rs.html#1124">attr::Default</a>,
+    cx: <span class="kw-2">&amp;</span>Ctxt,
+    variants: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Punctuated&lt;syn::Variant, <span class="macro">Token!</span>[,]&gt;,
+    container_default: <span class="kw-2">&amp;</span>attr::Default,
 ) -&gt; Vec&lt;Variant&lt;<span class="lifetime">&#39;a</span>&gt;&gt; {
-    <a href="#140">variants</a>
+    variants
         .iter()
-        .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|variant| {
-            <span class="kw">let </span>attrs = attr::Variant::from_ast(<a href="#139">cx</a>, <a href="#145">variant</a>);
+        .map(|variant| {
+            <span class="kw">let </span>attrs = attr::Variant::from_ast(cx, variant);
             <span class="kw">let </span>(style, fields) =
-                <a href="#160-165">struct_from_ast</a>(<a href="#139">cx</a>, <span class="kw-2">&amp;</span><a href="#145">variant</a>.fields, <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><a href="#146">attrs</a>), <a href="#141">container_default</a>);
-            <a href="#33">Variant</a> {
-                ident: <a href="#145">variant</a>.ident.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
-                <a href="#146">attrs</a>,
-                <a href="#147">style</a>,
-                <a href="#147">fields</a>,
-                original: <a href="#145">variant</a>,
+                struct_from_ast(cx, <span class="kw-2">&amp;</span>variant.fields, <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>attrs), container_default);
+            Variant {
+                ident: variant.ident.clone(),
+                attrs,
+                style,
+                fields,
+                original: variant,
             }
         })
-        .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>()
+        .collect()
 }
 
 <span class="kw">fn </span>struct_from_ast&lt;<span class="lifetime">&#39;a</span>&gt;(
-    cx: <span class="kw-2">&amp;</span><a href="ctxt.rs.html#13">Ctxt</a>,
-    fields: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="https://docs.rs/syn/1.0.103/syn/data/enum.Fields.html">syn::Fields</a>,
-    attrs: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="attr.rs.html#845">attr::Variant</a>&gt;,
-    container_default: <span class="kw-2">&amp;</span><a href="attr.rs.html#1124">attr::Default</a>,
-) -&gt; (<a href="#50">Style</a>, Vec&lt;Field&lt;<span class="lifetime">&#39;a</span>&gt;&gt;) {
-    <span class="kw">match </span><a href="#162">fields</a> {
+    cx: <span class="kw-2">&amp;</span>Ctxt,
+    fields: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>syn::Fields,
+    attrs: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>attr::Variant&gt;,
+    container_default: <span class="kw-2">&amp;</span>attr::Default,
+) -&gt; (Style, Vec&lt;Field&lt;<span class="lifetime">&#39;a</span>&gt;&gt;) {
+    <span class="kw">match </span>fields {
         syn::Fields::Named(fields) =&gt; (
-            <a href="#52">Style::Struct</a>,
-            <a href="#183-188">fields_from_ast</a>(<a href="#161">cx</a>, <span class="kw-2">&amp;</span><a href="#167">fields</a>.named, <a href="#163">attrs</a>, <a href="#164">container_default</a>),
+            Style::Struct,
+            fields_from_ast(cx, <span class="kw-2">&amp;</span>fields.named, attrs, container_default),
         ),
-        syn::Fields::Unnamed(fields) <span class="kw">if </span><a href="#171">fields</a>.unnamed.len() == <span class="number">1 </span>=&gt; (
-            <a href="#56">Style::Newtype</a>,
-            <a href="#183-188">fields_from_ast</a>(<a href="#161">cx</a>, <span class="kw-2">&amp;</span><a href="#171">fields</a>.unnamed, <a href="#163">attrs</a>, <a href="#164">container_default</a>),
+        syn::Fields::Unnamed(fields) <span class="kw">if </span>fields.unnamed.len() == <span class="number">1 </span>=&gt; (
+            Style::Newtype,
+            fields_from_ast(cx, <span class="kw-2">&amp;</span>fields.unnamed, attrs, container_default),
         ),
         syn::Fields::Unnamed(fields) =&gt; (
-            <a href="#54">Style::Tuple</a>,
-            <a href="#183-188">fields_from_ast</a>(<a href="#161">cx</a>, <span class="kw-2">&amp;</span><a href="#175">fields</a>.unnamed, <a href="#163">attrs</a>, <a href="#164">container_default</a>),
+            Style::Tuple,
+            fields_from_ast(cx, <span class="kw-2">&amp;</span>fields.unnamed, attrs, container_default),
         ),
-        syn::Fields::Unit =&gt; (<a href="#58">Style::Unit</a>, Vec::new()),
+        syn::Fields::Unit =&gt; (Style::Unit, Vec::new()),
     }
 }
 
 <span class="kw">fn </span>fields_from_ast&lt;<span class="lifetime">&#39;a</span>&gt;(
-    cx: <span class="kw-2">&amp;</span><a href="ctxt.rs.html#13">Ctxt</a>,
-    fields: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Punctuated&lt;<a href="https://docs.rs/syn/1.0.103/syn/data/struct.Field.html">syn::Field</a>, <a class="macro" href="https://docs.rs/syn/1.0.103/syn/macro.Token.html">Token!</a>[,]&gt;,
-    attrs: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="attr.rs.html#845">attr::Variant</a>&gt;,
-    container_default: <span class="kw-2">&amp;</span><a href="attr.rs.html#1124">attr::Default</a>,
+    cx: <span class="kw-2">&amp;</span>Ctxt,
+    fields: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Punctuated&lt;syn::Field, <span class="macro">Token!</span>[,]&gt;,
+    attrs: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>attr::Variant&gt;,
+    container_default: <span class="kw-2">&amp;</span>attr::Default,
 ) -&gt; Vec&lt;Field&lt;<span class="lifetime">&#39;a</span>&gt;&gt; {
-    <a href="#185">fields</a>
+    fields
         .iter()
-        .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">enumerate</a>()
-        .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|(i, field)| <a href="#42">Field</a> {
-            member: <span class="kw">match </span><span class="kw-2">&amp;</span><a href="#192">field</a>.ident {
-                <span class="prelude-val">Some</span>(ident) =&gt; syn::Member::Named(<a href="#194">ident</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()),
-                <span class="prelude-val">None </span>=&gt; syn::Member::Unnamed(<a href="#192">i</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
+        .enumerate()
+        .map(|(i, field)| Field {
+            member: <span class="kw">match </span><span class="kw-2">&amp;</span>field.ident {
+                <span class="prelude-val">Some</span>(ident) =&gt; syn::Member::Named(ident.clone()),
+                <span class="prelude-val">None </span>=&gt; syn::Member::Unnamed(i.into()),
             },
-            attrs: attr::Field::from_ast(<a href="#184">cx</a>, <a href="#192">i</a>, <a href="#192">field</a>, <a href="#186">attrs</a>, <a href="#187">container_default</a>),
-            ty: <span class="kw-2">&amp;</span><a href="#192">field</a>.ty,
-            original: <a href="#192">field</a>,
+            attrs: attr::Field::from_ast(cx, i, field, attrs, container_default),
+            ty: <span class="kw-2">&amp;</span>field.ty,
+            original: field,
         })
-        .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>()
+        .collect()
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="serde_derive" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="serde_derive" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

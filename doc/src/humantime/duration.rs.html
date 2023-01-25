@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/humantime-2.1.0/src/duration.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>duration.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../humantime/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/humantime-2.1.0/src/duration.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>duration.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../humantime/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -454,10 +454,10 @@
 <a href="#454" id="454">454</a>
 <a href="#455" id="455">455</a>
 <a href="#456" id="456">456</a>
-</pre><pre class="rust"><code><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">std::error::Error</a> <span class="kw">as </span>StdError;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">std::fmt</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/str/iter/struct.Chars.html">std::str::Chars</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">std::time::Duration</a>;
+</pre><pre class="rust"><code><span class="kw">use </span>std::error::Error <span class="kw">as </span>StdError;
+<span class="kw">use </span>std::fmt;
+<span class="kw">use </span>std::str::Chars;
+<span class="kw">use </span>std::time::Duration;
 
 <span class="doccomment">/// Error parsing human-friendly duration
 </span><span class="attr">#[derive(Debug, PartialEq, Clone)]
@@ -467,7 +467,7 @@
     /// More specifically anything that is not alphanumeric is prohibited
     ///
     /// The field is an byte offset of the character in the string.
-    </span>InvalidCharacter(<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>),
+    </span>InvalidCharacter(usize),
     <span class="doccomment">/// Non-numeric value where number is expected
     ///
     /// This usually means that either time unit is broken into words,
@@ -476,7 +476,7 @@
     ///
     /// The field is an byte offset of the errorneous character
     /// in the string.
-    </span>NumberExpected(<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>),
+    </span>NumberExpected(usize),
     <span class="doccomment">/// Unit in the number is not one of allowed units
     ///
     /// See documentation of `parse_duration` for the list of supported
@@ -486,13 +486,13 @@
     /// the original string, containing errorneous value
     </span>UnknownUnit {
         <span class="doccomment">/// Start of the invalid unit inside the original string
-        </span>start: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+        </span>start: usize,
         <span class="doccomment">/// End of the invalid unit inside the original string
-        </span>end: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+        </span>end: usize,
         <span class="doccomment">/// The unit verbatim
-        </span>unit: <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>,
+        </span>unit: String,
         <span class="doccomment">/// A number associated with the unit
-        </span>value: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>,
+        </span>value: u64,
     },
     <span class="doccomment">/// The numeric value is too large
     ///
@@ -504,65 +504,65 @@
     </span>Empty,
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">StdError</a> <span class="kw">for </span><a href="#8">Error</a> {}
+<span class="kw">impl </span>StdError <span class="kw">for </span>Error {}
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for </span><a href="#8">Error</a> {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <span class="kw">match </span><span class="self"><a href="#54">self</a> </span>{
-            <a href="#14">Error::InvalidCharacter</a>(offset) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#54">f</a>, <span class="string">&quot;invalid character at {}&quot;</span>, offset),
-            <a href="#23">Error::NumberExpected</a>(offset) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#54">f</a>, <span class="string">&quot;expected number at {}&quot;</span>, offset),
-            <a href="#31">Error::UnknownUnit</a> { unit, value, .. } <span class="kw">if </span><span class="kw-2">&amp;</span><a href="#58">unit</a> == <span class="kw-2">&amp;</span><span class="string">&quot;&quot; </span>=&gt; {
-                <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#54">f</a>,
+<span class="kw">impl </span>fmt::Display <span class="kw">for </span>Error {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        <span class="kw">match </span><span class="self">self </span>{
+            Error::InvalidCharacter(offset) =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;invalid character at {}&quot;</span>, offset),
+            Error::NumberExpected(offset) =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;expected number at {}&quot;</span>, offset),
+            Error::UnknownUnit { unit, value, .. } <span class="kw">if </span><span class="kw-2">&amp;</span>unit == <span class="kw-2">&amp;</span><span class="string">&quot;&quot; </span>=&gt; {
+                <span class="macro">write!</span>(f,
                     <span class="string">&quot;time unit needed, for example {0}sec or {0}ms&quot;</span>,
                     value,
                 )
             }
-            <a href="#31">Error::UnknownUnit</a> { unit, .. } =&gt; {
-                <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(
-                    <a href="#54">f</a>,
+            Error::UnknownUnit { unit, .. } =&gt; {
+                <span class="macro">write!</span>(
+                    f,
                     <span class="string">&quot;unknown time unit {:?}, \
                     supported units: ns, us, ms, sec, min, hours, days, \
                     weeks, months, years (and few variations)&quot;</span>,
                     unit
                 )
             }
-            <a href="#46">Error::NumberOverflow</a> =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#54">f</a>, <span class="string">&quot;number is too large&quot;</span>),
-            <a href="#48">Error::Empty</a> =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#54">f</a>, <span class="string">&quot;value was empty&quot;</span>),
+            Error::NumberOverflow =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;number is too large&quot;</span>),
+            Error::Empty =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;value was empty&quot;</span>),
         }
     }
 }
 
 <span class="doccomment">/// A wrapper type that allows you to Display a Duration
 </span><span class="attr">#[derive(Debug, Clone)]
-</span><span class="kw">pub struct </span>FormattedDuration(<a href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a>);
+</span><span class="kw">pub struct </span>FormattedDuration(Duration);
 
-<span class="kw">trait </span>OverflowOp: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> {
-    <span class="kw">fn </span>mul(<span class="self">self</span>, other: <span class="self">Self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, <a href="#8">Error</a>&gt;;
-    <span class="kw">fn </span>add(<span class="self">self</span>, other: <span class="self">Self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, <a href="#8">Error</a>&gt;;
+<span class="kw">trait </span>OverflowOp: Sized {
+    <span class="kw">fn </span>mul(<span class="self">self</span>, other: <span class="self">Self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, Error&gt;;
+    <span class="kw">fn </span>add(<span class="self">self</span>, other: <span class="self">Self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, Error&gt;;
 }
 
-<span class="kw">impl </span><a href="#83">OverflowOp</a> <span class="kw">for </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> {
-    <span class="kw">fn </span>mul(<span class="self">self</span>, other: <span class="self">Self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, <a href="#8">Error</a>&gt; {
-        <a class="self" href="#89">self</a>.checked_mul(<a href="#89">other</a>).ok_or(<a href="#46">Error::NumberOverflow</a>)
+<span class="kw">impl </span>OverflowOp <span class="kw">for </span>u64 {
+    <span class="kw">fn </span>mul(<span class="self">self</span>, other: <span class="self">Self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, Error&gt; {
+        <span class="self">self</span>.checked_mul(other).ok_or(Error::NumberOverflow)
     }
-    <span class="kw">fn </span>add(<span class="self">self</span>, other: <span class="self">Self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, <a href="#8">Error</a>&gt; {
-        <a class="self" href="#92">self</a>.checked_add(<a href="#92">other</a>).ok_or(<a href="#46">Error::NumberOverflow</a>)
+    <span class="kw">fn </span>add(<span class="self">self</span>, other: <span class="self">Self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, Error&gt; {
+        <span class="self">self</span>.checked_add(other).ok_or(Error::NumberOverflow)
     }
 }
 
 <span class="kw">struct </span>Parser&lt;<span class="lifetime">&#39;a</span>&gt; {
     iter: Chars&lt;<span class="lifetime">&#39;a</span>&gt;,
-    src: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>,
-    current: (<a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>),
+    src: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>str,
+    current: (u64, u64),
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; Parser&lt;<span class="lifetime">&#39;a</span>&gt; {
-    <span class="kw">fn </span>off(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="self" href="#104">self</a>.src.len() - <a class="self" href="#104">self</a>.iter.as_str().len()
+    <span class="kw">fn </span>off(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+        <span class="self">self</span>.src.len() - <span class="self">self</span>.iter.as_str().len()
     }
 
-    <span class="kw">fn </span>parse_first_char(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>&gt;, <a href="#8">Error</a>&gt; {
-        <span class="kw">let </span>off = <a class="self" href="#108">self</a>.<a href="#104">off</a>();
+    <span class="kw">fn </span>parse_first_char(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;u64&gt;, Error&gt; {
+        <span class="kw">let </span>off = <span class="self">self</span>.off();
         <span class="kw">for </span>c <span class="kw">in </span><span class="self">self</span>.iter.by_ref() {
             <span class="kw">match </span>c {
                 <span class="string">&#39;0&#39;</span>..=<span class="string">&#39;9&#39; </span>=&gt; {
@@ -576,14 +576,14 @@
         }
         <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>)
     }
-    <span class="kw">fn </span>parse_unit(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>, start: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, end: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>)
-        -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="#8">Error</a>&gt;
+    <span class="kw">fn </span>parse_unit(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: u64, start: usize, end: usize)
+        -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt;
     {
-        <span class="kw">let </span>(<span class="kw-2">mut </span>sec, nsec) = <span class="kw">match </span><span class="kw-2">&amp;</span><a class="self" href="#123">self</a>.src[<a href="#123">start</a>..<a href="#123">end</a>] {
-            <span class="string">&quot;nanos&quot; </span>| <span class="string">&quot;nsec&quot; </span>| <span class="string">&quot;ns&quot; </span>=&gt; (<span class="number">0u64</span>, <a href="#123">n</a>),
+        <span class="kw">let </span>(<span class="kw-2">mut </span>sec, nsec) = <span class="kw">match </span><span class="kw-2">&amp;</span><span class="self">self</span>.src[start..end] {
+            <span class="string">&quot;nanos&quot; </span>| <span class="string">&quot;nsec&quot; </span>| <span class="string">&quot;ns&quot; </span>=&gt; (<span class="number">0u64</span>, n),
             <span class="string">&quot;usec&quot; </span>| <span class="string">&quot;us&quot; </span>=&gt; (<span class="number">0u64</span>, n.mul(<span class="number">1000</span>)<span class="question-mark">?</span>),
             <span class="string">&quot;millis&quot; </span>| <span class="string">&quot;msec&quot; </span>| <span class="string">&quot;ms&quot; </span>=&gt; (<span class="number">0u64</span>, n.mul(<span class="number">1_000_000</span>)<span class="question-mark">?</span>),
-            <span class="string">&quot;seconds&quot; </span>| <span class="string">&quot;second&quot; </span>| <span class="string">&quot;secs&quot; </span>| <span class="string">&quot;sec&quot; </span>| <span class="string">&quot;s&quot; </span>=&gt; (<a href="#123">n</a>, <span class="number">0</span>),
+            <span class="string">&quot;seconds&quot; </span>| <span class="string">&quot;second&quot; </span>| <span class="string">&quot;secs&quot; </span>| <span class="string">&quot;sec&quot; </span>| <span class="string">&quot;s&quot; </span>=&gt; (n, <span class="number">0</span>),
             <span class="string">&quot;minutes&quot; </span>| <span class="string">&quot;minute&quot; </span>| <span class="string">&quot;min&quot; </span>| <span class="string">&quot;mins&quot; </span>| <span class="string">&quot;m&quot;
             </span>=&gt; (n.mul(<span class="number">60</span>)<span class="question-mark">?</span>, <span class="number">0</span>),
             <span class="string">&quot;hours&quot; </span>| <span class="string">&quot;hour&quot; </span>| <span class="string">&quot;hr&quot; </span>| <span class="string">&quot;hrs&quot; </span>| <span class="string">&quot;h&quot; </span>=&gt; (n.mul(<span class="number">3600</span>)<span class="question-mark">?</span>, <span class="number">0</span>),
@@ -592,27 +592,27 @@
             <span class="string">&quot;months&quot; </span>| <span class="string">&quot;month&quot; </span>| <span class="string">&quot;M&quot; </span>=&gt; (n.mul(<span class="number">2_630_016</span>)<span class="question-mark">?</span>, <span class="number">0</span>), <span class="comment">// 30.44d
             </span><span class="string">&quot;years&quot; </span>| <span class="string">&quot;year&quot; </span>| <span class="string">&quot;y&quot; </span>=&gt; (n.mul(<span class="number">31_557_600</span>)<span class="question-mark">?</span>, <span class="number">0</span>), <span class="comment">// 365.25d
             </span><span class="kw">_ </span>=&gt; {
-                <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="#31">Error::UnknownUnit</a> {
-                    <a href="#123">start</a>, <a href="#123">end</a>,
-                    unit: <a class="self" href="#123">self</a>.src[<a href="#123">start</a>..<a href="#123">end</a>].<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(),
-                    value: <a href="#123">n</a>,
+                <span class="kw">return </span><span class="prelude-val">Err</span>(Error::UnknownUnit {
+                    start, end,
+                    unit: <span class="self">self</span>.src[start..end].to_string(),
+                    value: n,
                 });
             }
         };
         <span class="kw">let </span><span class="kw-2">mut </span>nsec = <span class="self">self</span>.current.<span class="number">1</span>.add(nsec)<span class="question-mark">?</span>;
         <span class="kw">if </span>nsec &gt; <span class="number">1_000_000_000 </span>{
-            <a href="#126">sec</a> = sec.add(nsec / <span class="number">1_000_000_000</span>)<span class="question-mark">?</span>;
-            <a href="#146">nsec</a> %= <span class="number">1_000_000_000</span>;
+            sec = sec.add(nsec / <span class="number">1_000_000_000</span>)<span class="question-mark">?</span>;
+            nsec %= <span class="number">1_000_000_000</span>;
         }
-        <a href="#126">sec</a> = <span class="self">self</span>.current.<span class="number">0</span>.add(sec)<span class="question-mark">?</span>;
-        <a class="self" href="#123">self</a>.current = (<a href="#126">sec</a>, <a href="#146">nsec</a>);
+        sec = <span class="self">self</span>.current.<span class="number">0</span>.add(sec)<span class="question-mark">?</span>;
+        <span class="self">self</span>.current = (sec, nsec);
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="kw">fn </span>parse(<span class="kw-2">mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a>, <a href="#8">Error</a>&gt; {
+    <span class="kw">fn </span>parse(<span class="kw-2">mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;Duration, Error&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>n = <span class="self">self</span>.parse_first_char()<span class="question-mark">?</span>.ok_or(Error::Empty)<span class="question-mark">?</span>;
         <span class="lifetime">&#39;outer</span>: <span class="kw">loop </span>{
-            <span class="kw">let </span><span class="kw-2">mut </span>off = <a class="self" href="#156">self</a>.<a href="#104">off</a>();
+            <span class="kw">let </span><span class="kw-2">mut </span>off = <span class="self">self</span>.off();
             <span class="kw">while let </span><span class="prelude-val">Some</span>(c) = <span class="self">self</span>.iter.next() {
                 <span class="kw">match </span>c {
                     <span class="string">&#39;0&#39;</span>..=<span class="string">&#39;9&#39; </span>=&gt; {
@@ -630,8 +630,8 @@
                 }
                 off = <span class="self">self</span>.off();
             }
-            <span class="kw">let </span>start = <a href="#159">off</a>;
-            <span class="kw">let </span><span class="kw-2">mut </span>off = <a class="self" href="#156">self</a>.<a href="#104">off</a>();
+            <span class="kw">let </span>start = off;
+            <span class="kw">let </span><span class="kw-2">mut </span>off = <span class="self">self</span>.off();
             <span class="kw">while let </span><span class="prelude-val">Some</span>(c) = <span class="self">self</span>.iter.next() {
                 <span class="kw">match </span>c {
                     <span class="string">&#39;0&#39;</span>..=<span class="string">&#39;9&#39; </span>=&gt; {
@@ -648,10 +648,10 @@
                 off = <span class="self">self</span>.off();
             }
             <span class="self">self</span>.parse_unit(n, start, off)<span class="question-mark">?</span>;
-            <a href="#157">n</a> = <span class="kw">match </span><span class="self">self</span>.parse_first_char()<span class="question-mark">? </span>{
-                <span class="prelude-val">Some</span>(n) =&gt; <a href="#196">n</a>,
+            n = <span class="kw">match </span><span class="self">self</span>.parse_first_char()<span class="question-mark">? </span>{
+                <span class="prelude-val">Some</span>(n) =&gt; n,
                 <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="prelude-val">Ok</span>(
-                    Duration::new(<a class="self" href="#156">self</a>.current.<span class="number">0</span>, <a class="self" href="#156">self</a>.current.<span class="number">1 </span><span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>)),
+                    Duration::new(<span class="self">self</span>.current.<span class="number">0</span>, <span class="self">self</span>.current.<span class="number">1 </span><span class="kw">as </span>u32)),
             };
         }
     }
@@ -683,12 +683,12 @@
 /// assert_eq!(parse_duration(&quot;2h 37min&quot;), Ok(Duration::new(9420, 0)));
 /// assert_eq!(parse_duration(&quot;32ms&quot;), Ok(Duration::new(0, 32_000_000)));
 /// ```
-</span><span class="kw">pub fn </span>parse_duration(s: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a>, <a href="#8">Error</a>&gt; {
-    <a href="#97">Parser</a> {
-        iter: <a href="#230">s</a>.chars(),
-        src: <a href="#230">s</a>,
+</span><span class="kw">pub fn </span>parse_duration(s: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;Duration, Error&gt; {
+    Parser {
+        iter: s.chars(),
+        src: s,
         current: (<span class="number">0</span>, <span class="number">0</span>),
-    }.<a href="#156">parse</a>()
+    }.parse()
 }
 
 <span class="doccomment">/// Formats duration into a human-readable string
@@ -708,13 +708,13 @@
 /// let val2 = Duration::new(0, 32_000_000);
 /// assert_eq!(format_duration(val2).to_string(), &quot;32ms&quot;);
 /// ```
-</span><span class="kw">pub fn </span>format_duration(val: <a href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a>) -&gt; <a href="#81">FormattedDuration</a> {
-    <a href="#81">FormattedDuration</a>(<a href="#255">val</a>)
+</span><span class="kw">pub fn </span>format_duration(val: Duration) -&gt; FormattedDuration {
+    FormattedDuration(val)
 }
 
-<span class="kw">fn </span>item_plural(f: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>, started: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-    name: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, value: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>)
-    -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a>
+<span class="kw">fn </span>item_plural(f: <span class="kw-2">&amp;mut </span>fmt::Formatter, started: <span class="kw-2">&amp;mut </span>bool,
+    name: <span class="kw-2">&amp;</span>str, value: u64)
+    -&gt; fmt::Result
 {
     <span class="kw">if </span>value &gt; <span class="number">0 </span>{
         <span class="kw">if </span><span class="kw-2">*</span>started {
@@ -724,53 +724,53 @@
         <span class="kw">if </span>value &gt; <span class="number">1 </span>{
             f.write_str(<span class="string">&quot;s&quot;</span>)<span class="question-mark">?</span>;
         }
-        <span class="kw-2">*</span><a href="#259">started</a> = <span class="bool-val">true</span>;
+        <span class="kw-2">*</span>started = <span class="bool-val">true</span>;
     }
     <span class="prelude-val">Ok</span>(())
 }
-<span class="kw">fn </span>item(f: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>, started: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>, name: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, value: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>)
-    -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a>
+<span class="kw">fn </span>item(f: <span class="kw-2">&amp;mut </span>fmt::Formatter, started: <span class="kw-2">&amp;mut </span>bool, name: <span class="kw-2">&amp;</span>str, value: u32)
+    -&gt; fmt::Result
 {
     <span class="kw">if </span>value &gt; <span class="number">0 </span>{
         <span class="kw">if </span><span class="kw-2">*</span>started {
             f.write_str(<span class="string">&quot; &quot;</span>)<span class="question-mark">?</span>;
         }
         <span class="macro">write!</span>(f, <span class="string">&quot;{}{}&quot;</span>, value, name)<span class="question-mark">?</span>;
-        <span class="kw-2">*</span><a href="#275">started</a> = <span class="bool-val">true</span>;
+        <span class="kw-2">*</span>started = <span class="bool-val">true</span>;
     }
     <span class="prelude-val">Ok</span>(())
 }
 
-<span class="kw">impl </span><a href="#81">FormattedDuration</a> {
+<span class="kw">impl </span>FormattedDuration {
     <span class="doccomment">/// Returns a reference to the [`Duration`][] that is being formatted.
-    </span><span class="kw">pub fn </span>get_ref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a> {
-        <span class="kw-2">&amp;</span><a class="self" href="#290">self</a>.<span class="number">0
+    </span><span class="kw">pub fn </span>get_ref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Duration {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="number">0
     </span>}
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for </span><a href="#81">FormattedDuration</a> {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <span class="kw">let </span>secs = <a class="self" href="#296">self</a>.<span class="number">0</span>.as_secs();
-        <span class="kw">let </span>nanos = <a class="self" href="#296">self</a>.<span class="number">0</span>.subsec_nanos();
+<span class="kw">impl </span>fmt::Display <span class="kw">for </span>FormattedDuration {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter) -&gt; fmt::Result {
+        <span class="kw">let </span>secs = <span class="self">self</span>.<span class="number">0</span>.as_secs();
+        <span class="kw">let </span>nanos = <span class="self">self</span>.<span class="number">0</span>.subsec_nanos();
 
         <span class="kw">if </span>secs == <span class="number">0 </span>&amp;&amp; nanos == <span class="number">0 </span>{
             f.write_str(<span class="string">&quot;0s&quot;</span>)<span class="question-mark">?</span>;
             <span class="kw">return </span><span class="prelude-val">Ok</span>(());
         }
 
-        <span class="kw">let </span>years = <a href="#297">secs</a> / <span class="number">31_557_600</span>;  <span class="comment">// 365.25d
-        </span><span class="kw">let </span>ydays = <a href="#297">secs</a> % <span class="number">31_557_600</span>;
-        <span class="kw">let </span>months = <a href="#306">ydays</a> / <span class="number">2_630_016</span>;  <span class="comment">// 30.44d
-        </span><span class="kw">let </span>mdays = <a href="#306">ydays</a> % <span class="number">2_630_016</span>;
-        <span class="kw">let </span>days = <a href="#308">mdays</a> / <span class="number">86400</span>;
-        <span class="kw">let </span>day_secs = <a href="#308">mdays</a> % <span class="number">86400</span>;
-        <span class="kw">let </span>hours = <a href="#310">day_secs</a> / <span class="number">3600</span>;
-        <span class="kw">let </span>minutes = <a href="#310">day_secs</a> % <span class="number">3600 </span>/ <span class="number">60</span>;
-        <span class="kw">let </span>seconds = <a href="#310">day_secs</a> % <span class="number">60</span>;
+        <span class="kw">let </span>years = secs / <span class="number">31_557_600</span>;  <span class="comment">// 365.25d
+        </span><span class="kw">let </span>ydays = secs % <span class="number">31_557_600</span>;
+        <span class="kw">let </span>months = ydays / <span class="number">2_630_016</span>;  <span class="comment">// 30.44d
+        </span><span class="kw">let </span>mdays = ydays % <span class="number">2_630_016</span>;
+        <span class="kw">let </span>days = mdays / <span class="number">86400</span>;
+        <span class="kw">let </span>day_secs = mdays % <span class="number">86400</span>;
+        <span class="kw">let </span>hours = day_secs / <span class="number">3600</span>;
+        <span class="kw">let </span>minutes = day_secs % <span class="number">3600 </span>/ <span class="number">60</span>;
+        <span class="kw">let </span>seconds = day_secs % <span class="number">60</span>;
 
-        <span class="kw">let </span>millis = <a href="#298">nanos</a> / <span class="number">1_000_000</span>;
-        <span class="kw">let </span>micros = <a href="#298">nanos</a> / <span class="number">1000 </span>% <span class="number">1000</span>;
-        <span class="kw">let </span>nanosec = <a href="#298">nanos</a> % <span class="number">1000</span>;
+        <span class="kw">let </span>millis = nanos / <span class="number">1_000_000</span>;
+        <span class="kw">let </span>micros = nanos / <span class="number">1000 </span>% <span class="number">1000</span>;
+        <span class="kw">let </span>nanosec = nanos % <span class="number">1000</span>;
 
         <span class="kw">let </span><span class="kw-2">ref mut </span>started = <span class="bool-val">false</span>;
         item_plural(f, started, <span class="string">&quot;year&quot;</span>, years)<span class="question-mark">?</span>;
@@ -911,4 +911,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="humantime" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="humantime" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

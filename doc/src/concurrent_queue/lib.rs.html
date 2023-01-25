@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/concurrent-queue-2.0.0/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../concurrent_queue/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/concurrent-queue-2.0.0/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../concurrent_queue/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -556,25 +556,25 @@
 <span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
 </span><span class="kw">extern crate </span>std;
 
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/boxed/struct.Box.html">alloc::boxed::Box</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/fmt/index.html">core::fmt</a>;
-<span class="kw">use </span>sync::atomic::{<a class="self" href="https://doc.rust-lang.org/nightly/core/sync/atomic/index.html">self</a>, <a href="https://doc.rust-lang.org/nightly/core/sync/atomic/struct.AtomicUsize.html">AtomicUsize</a>, <a href="https://doc.rust-lang.org/nightly/core/sync/atomic/enum.Ordering.html">Ordering</a>};
+<span class="kw">use </span>alloc::boxed::Box;
+<span class="kw">use </span>core::fmt;
+<span class="kw">use </span>sync::atomic::{<span class="self">self</span>, AtomicUsize, Ordering};
 
 <span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
-</span><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/error/index.html">std::error</a>;
+</span><span class="kw">use </span>std::error;
 <span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
-</span><span class="kw">use </span>std::panic::{<a href="https://doc.rust-lang.org/nightly/core/panic/unwind_safe/trait.RefUnwindSafe.html">RefUnwindSafe</a>, <a href="https://doc.rust-lang.org/nightly/core/panic/unwind_safe/trait.UnwindSafe.html">UnwindSafe</a>};
+</span><span class="kw">use </span>std::panic::{RefUnwindSafe, UnwindSafe};
 
-<span class="kw">use </span><a href="bounded.rs.html#22"><span class="kw">crate</span>::bounded::Bounded</a>;
-<span class="kw">use </span><a href="single.rs.html#14"><span class="kw">crate</span>::single::Single</a>;
-<span class="kw">use </span><a href="sync.rs.html#47"><span class="kw">crate</span>::sync::busy_wait</a>;
-<span class="kw">use </span><a href="unbounded.rs.html#142"><span class="kw">crate</span>::unbounded::Unbounded</a>;
+<span class="kw">use </span><span class="kw">crate</span>::bounded::Bounded;
+<span class="kw">use </span><span class="kw">crate</span>::single::Single;
+<span class="kw">use </span><span class="kw">crate</span>::sync::busy_wait;
+<span class="kw">use </span><span class="kw">crate</span>::unbounded::Unbounded;
 
-<span class="kw">mod </span><a href="bounded.rs.html#1-343">bounded</a>;
-<span class="kw">mod </span><a href="single.rs.html#1-137">single</a>;
-<span class="kw">mod </span><a href="unbounded.rs.html#1-448">unbounded</a>;
+<span class="kw">mod </span>bounded;
+<span class="kw">mod </span>single;
+<span class="kw">mod </span>unbounded;
 
-<span class="kw">mod </span><a href="sync.rs.html#1-123">sync</a>;
+<span class="kw">mod </span>sync;
 
 <span class="doccomment">/// A concurrent queue.
 ///
@@ -595,13 +595,13 @@
 /// ```
 </span><span class="kw">pub struct </span>ConcurrentQueue&lt;T&gt;(Inner&lt;T&gt;);
 
-<span class="kw">unsafe impl</span>&lt;T: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="kw">for </span>ConcurrentQueue&lt;T&gt; {}
-<span class="kw">unsafe impl</span>&lt;T: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> <span class="kw">for </span>ConcurrentQueue&lt;T&gt; {}
+<span class="kw">unsafe impl</span>&lt;T: Send&gt; Send <span class="kw">for </span>ConcurrentQueue&lt;T&gt; {}
+<span class="kw">unsafe impl</span>&lt;T: Send&gt; Sync <span class="kw">for </span>ConcurrentQueue&lt;T&gt; {}
 
 <span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
-</span><span class="kw">impl</span>&lt;T&gt; <a href="https://doc.rust-lang.org/nightly/core/panic/unwind_safe/trait.UnwindSafe.html">UnwindSafe</a> <span class="kw">for </span>ConcurrentQueue&lt;T&gt; {}
+</span><span class="kw">impl</span>&lt;T&gt; UnwindSafe <span class="kw">for </span>ConcurrentQueue&lt;T&gt; {}
 <span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
-</span><span class="kw">impl</span>&lt;T&gt; <a href="https://doc.rust-lang.org/nightly/core/panic/unwind_safe/trait.RefUnwindSafe.html">RefUnwindSafe</a> <span class="kw">for </span>ConcurrentQueue&lt;T&gt; {}
+</span><span class="kw">impl</span>&lt;T&gt; RefUnwindSafe <span class="kw">for </span>ConcurrentQueue&lt;T&gt; {}
 
 <span class="kw">enum </span>Inner&lt;T&gt; {
     Single(Single&lt;T&gt;),
@@ -625,11 +625,11 @@
     ///
     /// let q = ConcurrentQueue::&lt;i32&gt;::bounded(100);
     /// ```
-    </span><span class="kw">pub fn </span>bounded(cap: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; ConcurrentQueue&lt;T&gt; {
+    </span><span class="kw">pub fn </span>bounded(cap: usize) -&gt; ConcurrentQueue&lt;T&gt; {
         <span class="kw">if </span>cap == <span class="number">1 </span>{
-            <a href="#91">ConcurrentQueue</a>(<a href="#102">Inner::Single</a>(Single::new()))
+            ConcurrentQueue(Inner::Single(Single::new()))
         } <span class="kw">else </span>{
-            <a href="#91">ConcurrentQueue</a>(<a href="#103">Inner::Bounded</a>(Box::new(Bounded::new(<a href="#123">cap</a>))))
+            ConcurrentQueue(Inner::Bounded(Box::new(Bounded::new(cap))))
         }
     }
 
@@ -643,7 +643,7 @@
     /// let q = ConcurrentQueue::&lt;i32&gt;::unbounded();
     /// ```
     </span><span class="kw">pub fn </span>unbounded() -&gt; ConcurrentQueue&lt;T&gt; {
-        <a href="#91">ConcurrentQueue</a>(<a href="#104">Inner::Unbounded</a>(Box::new(Unbounded::new())))
+        ConcurrentQueue(Inner::Unbounded(Box::new(Unbounded::new())))
     }
 
     <span class="doccomment">/// Attempts to push an item into the queue.
@@ -676,10 +676,10 @@
     /// assert_eq!(q.push(20), Err(PushError::Closed(20)));
     /// ```
     </span><span class="kw">pub fn </span>push(<span class="kw-2">&amp;</span><span class="self">self</span>, value: T) -&gt; <span class="prelude-ty">Result</span>&lt;(), PushError&lt;T&gt;&gt; {
-        <span class="kw">match </span><span class="kw-2">&amp;</span><a class="self" href="#173">self</a>.<span class="number">0 </span>{
-            <a href="#102">Inner::Single</a>(q) =&gt; <a href="#175">q</a>.<a href="single.rs.html#29">push</a>(<a href="#173">value</a>),
-            <a href="#103">Inner::Bounded</a>(q) =&gt; <a href="#176">q</a>.<a href="bounded.rs.html#85">push</a>(<a href="#173">value</a>),
-            <a href="#104">Inner::Unbounded</a>(q) =&gt; <a href="#177">q</a>.<a href="unbounded.rs.html#166">push</a>(<a href="#173">value</a>),
+        <span class="kw">match </span><span class="kw-2">&amp;</span><span class="self">self</span>.<span class="number">0 </span>{
+            Inner::Single(q) =&gt; q.push(value),
+            Inner::Bounded(q) =&gt; q.push(value),
+            Inner::Unbounded(q) =&gt; q.push(value),
         }
     }
 
@@ -708,11 +708,11 @@
     /// // but now also indicates that the queue is closed.
     /// assert_eq!(q.pop(), Err(PopError::Closed));
     /// ```
-    </span><span class="kw">pub fn </span>pop(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;T, <a href="#374">PopError</a>&gt; {
-        <span class="kw">match </span><span class="kw-2">&amp;</span><a class="self" href="#206">self</a>.<span class="number">0 </span>{
-            <a href="#102">Inner::Single</a>(q) =&gt; <a href="#208">q</a>.<a href="single.rs.html#51">pop</a>(),
-            <a href="#103">Inner::Bounded</a>(q) =&gt; <a href="#209">q</a>.<a href="bounded.rs.html#157">pop</a>(),
-            <a href="#104">Inner::Unbounded</a>(q) =&gt; <a href="#210">q</a>.<a href="unbounded.rs.html#250">pop</a>(),
+    </span><span class="kw">pub fn </span>pop(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;T, PopError&gt; {
+        <span class="kw">match </span><span class="kw-2">&amp;</span><span class="self">self</span>.<span class="number">0 </span>{
+            Inner::Single(q) =&gt; q.pop(),
+            Inner::Bounded(q) =&gt; q.pop(),
+            Inner::Unbounded(q) =&gt; q.pop(),
         }
     }
 
@@ -729,11 +729,11 @@
     /// q.push(1).unwrap();
     /// assert!(!q.is_empty());
     /// ```
-    </span><span class="kw">pub fn </span>is_empty(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">match </span><span class="kw-2">&amp;</span><a class="self" href="#227">self</a>.<span class="number">0 </span>{
-            <a href="#102">Inner::Single</a>(q) =&gt; <a href="#229">q</a>.<a href="single.rs.html#101">is_empty</a>(),
-            <a href="#103">Inner::Bounded</a>(q) =&gt; <a href="#230">q</a>.<a href="bounded.rs.html#254">is_empty</a>(),
-            <a href="#104">Inner::Unbounded</a>(q) =&gt; <a href="#231">q</a>.<a href="unbounded.rs.html#376">is_empty</a>(),
+    </span><span class="kw">pub fn </span>is_empty(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="kw">match </span><span class="kw-2">&amp;</span><span class="self">self</span>.<span class="number">0 </span>{
+            Inner::Single(q) =&gt; q.is_empty(),
+            Inner::Bounded(q) =&gt; q.is_empty(),
+            Inner::Unbounded(q) =&gt; q.is_empty(),
         }
     }
 
@@ -752,11 +752,11 @@
     /// q.push(1).unwrap();
     /// assert!(q.is_full());
     /// ```
-    </span><span class="kw">pub fn </span>is_full(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">match </span><span class="kw-2">&amp;</span><a class="self" href="#250">self</a>.<span class="number">0 </span>{
-            <a href="#102">Inner::Single</a>(q) =&gt; <a href="#252">q</a>.<a href="single.rs.html#106">is_full</a>(),
-            <a href="#103">Inner::Bounded</a>(q) =&gt; <a href="#253">q</a>.<a href="bounded.rs.html#266">is_full</a>(),
-            <a href="#104">Inner::Unbounded</a>(q) =&gt; <a href="#254">q</a>.<a href="unbounded.rs.html#383">is_full</a>(),
+    </span><span class="kw">pub fn </span>is_full(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="kw">match </span><span class="kw-2">&amp;</span><span class="self">self</span>.<span class="number">0 </span>{
+            Inner::Single(q) =&gt; q.is_full(),
+            Inner::Bounded(q) =&gt; q.is_full(),
+            Inner::Unbounded(q) =&gt; q.is_full(),
         }
     }
 
@@ -776,11 +776,11 @@
     /// assert_eq!(q.push(20), Ok(()));
     /// assert_eq!(q.len(), 2);
     /// ```
-    </span><span class="kw">pub fn </span>len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <span class="kw">match </span><span class="kw-2">&amp;</span><a class="self" href="#274">self</a>.<span class="number">0 </span>{
-            <a href="#102">Inner::Single</a>(q) =&gt; <a href="#276">q</a>.<a href="single.rs.html#92">len</a>(),
-            <a href="#103">Inner::Bounded</a>(q) =&gt; <a href="#277">q</a>.<a href="bounded.rs.html#229">len</a>(),
-            <a href="#104">Inner::Unbounded</a>(q) =&gt; <a href="#278">q</a>.<a href="unbounded.rs.html#340">len</a>(),
+    </span><span class="kw">pub fn </span>len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+        <span class="kw">match </span><span class="kw-2">&amp;</span><span class="self">self</span>.<span class="number">0 </span>{
+            Inner::Single(q) =&gt; q.len(),
+            Inner::Bounded(q) =&gt; q.len(),
+            Inner::Unbounded(q) =&gt; q.len(),
         }
     }
 
@@ -799,11 +799,11 @@
     /// let q = ConcurrentQueue::&lt;i32&gt;::unbounded();
     /// assert_eq!(q.capacity(), None);
     /// ```
-    </span><span class="kw">pub fn </span>capacity(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
-        <span class="kw">match </span><span class="kw-2">&amp;</span><a class="self" href="#297">self</a>.<span class="number">0 </span>{
-            <a href="#102">Inner::Single</a>(<span class="kw">_</span>) =&gt; <span class="prelude-val">Some</span>(<span class="number">1</span>),
-            <a href="#103">Inner::Bounded</a>(q) =&gt; <span class="prelude-val">Some</span>(<a href="#300">q</a>.<a href="bounded.rs.html#278">capacity</a>()),
-            <a href="#104">Inner::Unbounded</a>(<span class="kw">_</span>) =&gt; <span class="prelude-val">None</span>,
+    </span><span class="kw">pub fn </span>capacity(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;usize&gt; {
+        <span class="kw">match </span><span class="kw-2">&amp;</span><span class="self">self</span>.<span class="number">0 </span>{
+            Inner::Single(<span class="kw">_</span>) =&gt; <span class="prelude-val">Some</span>(<span class="number">1</span>),
+            Inner::Bounded(q) =&gt; <span class="prelude-val">Some</span>(q.capacity()),
+            Inner::Unbounded(<span class="kw">_</span>) =&gt; <span class="prelude-val">None</span>,
         }
     }
 
@@ -834,11 +834,11 @@
     /// // When no more items are present, the error is `Closed`.
     /// assert_eq!(q.pop(), Err(PopError::Closed));
     /// ```
-    </span><span class="kw">pub fn </span>close(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">match </span><span class="kw-2">&amp;</span><a class="self" href="#332">self</a>.<span class="number">0 </span>{
-            <a href="#102">Inner::Single</a>(q) =&gt; <a href="#334">q</a>.<a href="single.rs.html#113">close</a>(),
-            <a href="#103">Inner::Bounded</a>(q) =&gt; <a href="#335">q</a>.<a href="bounded.rs.html#285">close</a>(),
-            <a href="#104">Inner::Unbounded</a>(q) =&gt; <a href="#336">q</a>.<a href="unbounded.rs.html#390">close</a>(),
+    </span><span class="kw">pub fn </span>close(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="kw">match </span><span class="kw-2">&amp;</span><span class="self">self</span>.<span class="number">0 </span>{
+            Inner::Single(q) =&gt; q.close(),
+            Inner::Bounded(q) =&gt; q.close(),
+            Inner::Unbounded(q) =&gt; q.close(),
         }
     }
 
@@ -855,21 +855,21 @@
     /// q.close();
     /// assert!(q.is_closed());
     /// ```
-    </span><span class="kw">pub fn </span>is_closed(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">match </span><span class="kw-2">&amp;</span><a class="self" href="#353">self</a>.<span class="number">0 </span>{
-            <a href="#102">Inner::Single</a>(q) =&gt; <a href="#355">q</a>.<a href="single.rs.html#119">is_closed</a>(),
-            <a href="#103">Inner::Bounded</a>(q) =&gt; <a href="#356">q</a>.<a href="bounded.rs.html#291">is_closed</a>(),
-            <a href="#104">Inner::Unbounded</a>(q) =&gt; <a href="#357">q</a>.<a href="unbounded.rs.html#396">is_closed</a>(),
+    </span><span class="kw">pub fn </span>is_closed(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="kw">match </span><span class="kw-2">&amp;</span><span class="self">self</span>.<span class="number">0 </span>{
+            Inner::Single(q) =&gt; q.is_closed(),
+            Inner::Bounded(q) =&gt; q.is_closed(),
+            Inner::Unbounded(q) =&gt; q.is_closed(),
         }
     }
 }
 
-<span class="kw">impl</span>&lt;T&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span>ConcurrentQueue&lt;T&gt; {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a href="#363">f</a>.debug_struct(<span class="string">&quot;ConcurrentQueue&quot;</span>)
-            .field(<span class="string">&quot;len&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="#363">self</a>.<a href="#274">len</a>())
-            .field(<span class="string">&quot;capacity&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="#363">self</a>.<a href="#297">capacity</a>())
-            .field(<span class="string">&quot;is_closed&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="#363">self</a>.<a href="#353">is_closed</a>())
+<span class="kw">impl</span>&lt;T&gt; fmt::Debug <span class="kw">for </span>ConcurrentQueue&lt;T&gt; {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        f.debug_struct(<span class="string">&quot;ConcurrentQueue&quot;</span>)
+            .field(<span class="string">&quot;len&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.len())
+            .field(<span class="string">&quot;capacity&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.capacity())
+            .field(<span class="string">&quot;is_closed&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.is_closed())
             .finish()
     }
 }
@@ -884,41 +884,41 @@
     </span>Closed,
 }
 
-<span class="kw">impl </span><a href="#374">PopError</a> {
+<span class="kw">impl </span>PopError {
     <span class="doccomment">/// Returns `true` if the queue is empty but not closed.
-    </span><span class="kw">pub fn </span>is_empty(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">match </span><span class="self"><a href="#384">self</a> </span>{
-            <a href="#376">PopError::Empty</a> =&gt; <span class="bool-val">true</span>,
-            <a href="#379">PopError::Closed</a> =&gt; <span class="bool-val">false</span>,
+    </span><span class="kw">pub fn </span>is_empty(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="kw">match </span><span class="self">self </span>{
+            PopError::Empty =&gt; <span class="bool-val">true</span>,
+            PopError::Closed =&gt; <span class="bool-val">false</span>,
         }
     }
 
     <span class="doccomment">/// Returns `true` if the queue is empty and closed.
-    </span><span class="kw">pub fn </span>is_closed(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">match </span><span class="self"><a href="#392">self</a> </span>{
-            <a href="#376">PopError::Empty</a> =&gt; <span class="bool-val">false</span>,
-            <a href="#379">PopError::Closed</a> =&gt; <span class="bool-val">true</span>,
+    </span><span class="kw">pub fn </span>is_closed(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="kw">match </span><span class="self">self </span>{
+            PopError::Empty =&gt; <span class="bool-val">false</span>,
+            PopError::Closed =&gt; <span class="bool-val">true</span>,
         }
     }
 }
 
 <span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
-</span><span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">error::Error</a> <span class="kw">for </span><a href="#374">PopError</a> {}
+</span><span class="kw">impl </span>error::Error <span class="kw">for </span>PopError {}
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="#374">PopError</a> {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <span class="kw">match </span><span class="self"><a href="#404">self</a> </span>{
-            <a href="#376">PopError::Empty</a> =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#404">f</a>, <span class="string">&quot;Empty&quot;</span>),
-            <a href="#379">PopError::Closed</a> =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#404">f</a>, <span class="string">&quot;Closed&quot;</span>),
+<span class="kw">impl </span>fmt::Debug <span class="kw">for </span>PopError {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        <span class="kw">match </span><span class="self">self </span>{
+            PopError::Empty =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;Empty&quot;</span>),
+            PopError::Closed =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;Closed&quot;</span>),
         }
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for </span><a href="#374">PopError</a> {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <span class="kw">match </span><span class="self"><a href="#413">self</a> </span>{
-            <a href="#376">PopError::Empty</a> =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#413">f</a>, <span class="string">&quot;Empty&quot;</span>),
-            <a href="#379">PopError::Closed</a> =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#413">f</a>, <span class="string">&quot;Closed&quot;</span>),
+<span class="kw">impl </span>fmt::Display <span class="kw">for </span>PopError {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        <span class="kw">match </span><span class="self">self </span>{
+            PopError::Empty =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;Empty&quot;</span>),
+            PopError::Closed =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;Closed&quot;</span>),
         }
     }
 }
@@ -936,46 +936,46 @@
 <span class="kw">impl</span>&lt;T&gt; PushError&lt;T&gt; {
     <span class="doccomment">/// Unwraps the item that couldn&#39;t be pushed.
     </span><span class="kw">pub fn </span>into_inner(<span class="self">self</span>) -&gt; T {
-        <span class="kw">match </span><span class="self"><a href="#433">self</a> </span>{
-            <a href="#425">PushError::Full</a>(t) =&gt; <a href="#435">t</a>,
-            <a href="#428">PushError::Closed</a>(t) =&gt; <a href="#436">t</a>,
+        <span class="kw">match </span><span class="self">self </span>{
+            PushError::Full(t) =&gt; t,
+            PushError::Closed(t) =&gt; t,
         }
     }
 
     <span class="doccomment">/// Returns `true` if the queue is full but not closed.
-    </span><span class="kw">pub fn </span>is_full(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">match </span><span class="self"><a href="#441">self</a> </span>{
-            <a href="#425">PushError::Full</a>(<span class="kw">_</span>) =&gt; <span class="bool-val">true</span>,
-            <a href="#428">PushError::Closed</a>(<span class="kw">_</span>) =&gt; <span class="bool-val">false</span>,
+    </span><span class="kw">pub fn </span>is_full(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="kw">match </span><span class="self">self </span>{
+            PushError::Full(<span class="kw">_</span>) =&gt; <span class="bool-val">true</span>,
+            PushError::Closed(<span class="kw">_</span>) =&gt; <span class="bool-val">false</span>,
         }
     }
 
     <span class="doccomment">/// Returns `true` if the queue is closed.
-    </span><span class="kw">pub fn </span>is_closed(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">match </span><span class="self"><a href="#449">self</a> </span>{
-            <a href="#425">PushError::Full</a>(<span class="kw">_</span>) =&gt; <span class="bool-val">false</span>,
-            <a href="#428">PushError::Closed</a>(<span class="kw">_</span>) =&gt; <span class="bool-val">true</span>,
+    </span><span class="kw">pub fn </span>is_closed(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="kw">match </span><span class="self">self </span>{
+            PushError::Full(<span class="kw">_</span>) =&gt; <span class="bool-val">false</span>,
+            PushError::Closed(<span class="kw">_</span>) =&gt; <span class="bool-val">true</span>,
         }
     }
 }
 
 <span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
-</span><span class="kw">impl</span>&lt;T: <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">error::Error</a> <span class="kw">for </span>PushError&lt;T&gt; {}
+</span><span class="kw">impl</span>&lt;T: fmt::Debug&gt; error::Error <span class="kw">for </span>PushError&lt;T&gt; {}
 
-<span class="kw">impl</span>&lt;T: <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span>PushError&lt;T&gt; {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <span class="kw">match </span><span class="self"><a href="#461">self</a> </span>{
-            <a href="#425">PushError::Full</a>(t) =&gt; <a href="#461">f</a>.debug_tuple(<span class="string">&quot;Full&quot;</span>).field(<a href="#463">t</a>).finish(),
-            <a href="#428">PushError::Closed</a>(t) =&gt; <a href="#461">f</a>.debug_tuple(<span class="string">&quot;Closed&quot;</span>).field(<a href="#464">t</a>).finish(),
+<span class="kw">impl</span>&lt;T: fmt::Debug&gt; fmt::Debug <span class="kw">for </span>PushError&lt;T&gt; {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        <span class="kw">match </span><span class="self">self </span>{
+            PushError::Full(t) =&gt; f.debug_tuple(<span class="string">&quot;Full&quot;</span>).field(t).finish(),
+            PushError::Closed(t) =&gt; f.debug_tuple(<span class="string">&quot;Closed&quot;</span>).field(t).finish(),
         }
     }
 }
 
-<span class="kw">impl</span>&lt;T&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for </span>PushError&lt;T&gt; {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <span class="kw">match </span><span class="self"><a href="#470">self</a> </span>{
-            <a href="#425">PushError::Full</a>(<span class="kw">_</span>) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#470">f</a>, <span class="string">&quot;Full&quot;</span>),
-            <a href="#428">PushError::Closed</a>(<span class="kw">_</span>) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#470">f</a>, <span class="string">&quot;Closed&quot;</span>),
+<span class="kw">impl</span>&lt;T&gt; fmt::Display <span class="kw">for </span>PushError&lt;T&gt; {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        <span class="kw">match </span><span class="self">self </span>{
+            PushError::Full(<span class="kw">_</span>) =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;Full&quot;</span>),
+            PushError::Closed(<span class="kw">_</span>) =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;Closed&quot;</span>),
         }
     }
 }
@@ -983,7 +983,7 @@
 <span class="doccomment">/// Equivalent to `atomic::fence(Ordering::SeqCst)`, but in some cases faster.
 </span><span class="attr">#[inline]
 </span><span class="kw">fn </span>full_fence() {
-    <span class="kw">if </span><a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.cfg.html">cfg!</a>(all(
+    <span class="kw">if </span><span class="macro">cfg!</span>(all(
         any(target_arch = <span class="string">&quot;x86&quot;</span>, target_arch = <span class="string">&quot;x86_64&quot;</span>),
         not(miri),
         not(loom)
@@ -1002,11 +1002,11 @@
         // x86 platforms is going to optimize this away.
         </span>atomic::compiler_fence(Ordering::SeqCst);
         <span class="kw">let </span>a = AtomicUsize::new(<span class="number">0</span>);
-        <span class="kw">let _ </span>= <a href="#499">a</a>.compare_exchange(<span class="number">0</span>, <span class="number">1</span>, Ordering::SeqCst, Ordering::SeqCst);
+        <span class="kw">let _ </span>= a.compare_exchange(<span class="number">0</span>, <span class="number">1</span>, Ordering::SeqCst, Ordering::SeqCst);
         atomic::compiler_fence(Ordering::SeqCst);
     } <span class="kw">else </span>{
         atomic::fence(Ordering::SeqCst);
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="concurrent_queue" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="concurrent_queue" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

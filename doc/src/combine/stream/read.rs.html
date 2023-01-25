@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/combine-4.6.6/src/stream/read.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>read.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../combine/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/combine-4.6.6/src/stream/read.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>read.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../combine/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -209,98 +209,98 @@
 <a href="#209" id="209">209</a>
 <a href="#210" id="210">210</a>
 </pre><pre class="rust"><code><span class="kw">use </span>std::{
-    <a href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">fmt</a>,
-    io::{<a class="self" href="https://doc.rust-lang.org/nightly/std/io/index.html">self</a>, <a href="https://doc.rust-lang.org/nightly/std/io/struct.Bytes.html">Bytes</a>, <a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a>},
+    fmt,
+    io::{<span class="self">self</span>, Bytes, Read},
 };
 
 <span class="kw">use crate</span>::{
-    error::{<a href="../error.rs.html#456">ParseError</a>, <a href="../error.rs.html#367">StreamError</a>, <a href="../error.rs.html#926">Tracked</a>},
-    stream::{<a href="mod.rs.html#109">StreamErrorFor</a>, <a href="mod.rs.html#116">StreamOnce</a>},
+    error::{ParseError, StreamError, Tracked},
+    stream::{StreamErrorFor, StreamOnce},
 };
 
 <span class="attr">#[derive(Debug)]
 </span><span class="kw">pub enum </span>Error {
     Unexpected,
     EndOfInput,
-    Io(<a href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a>),
+    Io(io::Error),
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for </span><a href="#12">Error</a> {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <span class="kw">match </span><span class="self"><a href="#19">self</a> </span>{
-            <a href="#13">Error::Unexpected</a> =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#19">f</a>, <span class="string">&quot;unexpected parse&quot;</span>),
-            <a href="#14">Error::EndOfInput</a> =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#19">f</a>, <span class="string">&quot;unexpected end of input&quot;</span>),
-            <a href="#15">Error::Io</a>(err) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#19">f</a>, <span class="string">&quot;{}&quot;</span>, err),
+<span class="kw">impl </span>fmt::Display <span class="kw">for </span>Error {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        <span class="kw">match </span><span class="self">self </span>{
+            Error::Unexpected =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;unexpected parse&quot;</span>),
+            Error::EndOfInput =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;unexpected end of input&quot;</span>),
+            Error::Io(err) =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;{}&quot;</span>, err),
         }
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/cmp/trait.PartialEq.html">PartialEq</a> <span class="kw">for </span><a href="#12">Error</a> {
-    <span class="kw">fn </span>eq(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">match </span>(<a class="self" href="#29">self</a>, <a href="#29">other</a>) {
-            (<a href="#13">Error::Unexpected</a>, <a href="#13">Error::Unexpected</a>) =&gt; <span class="bool-val">true</span>,
-            (<a href="#14">Error::EndOfInput</a>, <a href="#14">Error::EndOfInput</a>) =&gt; <span class="bool-val">true</span>,
+<span class="kw">impl </span>PartialEq <span class="kw">for </span>Error {
+    <span class="kw">fn </span>eq(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; bool {
+        <span class="kw">match </span>(<span class="self">self</span>, other) {
+            (Error::Unexpected, Error::Unexpected) =&gt; <span class="bool-val">true</span>,
+            (Error::EndOfInput, Error::EndOfInput) =&gt; <span class="bool-val">true</span>,
             <span class="kw">_ </span>=&gt; <span class="bool-val">false</span>,
         }
     }
 }
 
-<span class="kw">impl</span>&lt;Item, Range&gt; StreamError&lt;Item, Range&gt; <span class="kw">for </span><a href="#12">Error</a> {
+<span class="kw">impl</span>&lt;Item, Range&gt; StreamError&lt;Item, Range&gt; <span class="kw">for </span>Error {
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>unexpected_token(<span class="kw">_</span>: Item) -&gt; <span class="self">Self </span>{
-        <a href="#13">Error::Unexpected</a>
+        Error::Unexpected
     }
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>unexpected_range(<span class="kw">_</span>: Range) -&gt; <span class="self">Self </span>{
-        <a href="#13">Error::Unexpected</a>
+        Error::Unexpected
     }
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>unexpected_format&lt;T&gt;(<span class="kw">_</span>: T) -&gt; <span class="self">Self
     </span><span class="kw">where
-        </span>T: <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a>,
+        </span>T: fmt::Display,
     {
-        <a href="#13">Error::Unexpected</a>
+        Error::Unexpected
     }
 
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>expected_token(<span class="kw">_</span>: Item) -&gt; <span class="self">Self </span>{
-        <a href="#13">Error::Unexpected</a>
+        Error::Unexpected
     }
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>expected_range(<span class="kw">_</span>: Range) -&gt; <span class="self">Self </span>{
-        <a href="#13">Error::Unexpected</a>
+        Error::Unexpected
     }
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>expected_format&lt;T&gt;(<span class="kw">_</span>: T) -&gt; <span class="self">Self
     </span><span class="kw">where
-        </span>T: <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a>,
+        </span>T: fmt::Display,
     {
-        <a href="#13">Error::Unexpected</a>
+        Error::Unexpected
     }
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>message_format&lt;T&gt;(<span class="kw">_</span>: T) -&gt; <span class="self">Self
     </span><span class="kw">where
-        </span>T: <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a>,
+        </span>T: fmt::Display,
     {
-        <a href="#13">Error::Unexpected</a>
+        Error::Unexpected
     }
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>message_token(<span class="kw">_</span>: Item) -&gt; <span class="self">Self </span>{
-        <a href="#13">Error::Unexpected</a>
+        Error::Unexpected
     }
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>message_range(<span class="kw">_</span>: Range) -&gt; <span class="self">Self </span>{
-        <a href="#13">Error::Unexpected</a>
+        Error::Unexpected
     }
 
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>end_of_input() -&gt; <span class="self">Self </span>{
-        <a href="#14">Error::EndOfInput</a>
+        Error::EndOfInput
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>is_unexpected_end_of_input(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw-2">*</span><span class="self"><a href="#92">self</a> </span>== <a href="#14">Error::EndOfInput</a>
+    </span><span class="kw">fn </span>is_unexpected_end_of_input(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="kw-2">*</span><span class="self">self </span>== Error::EndOfInput
     }
 
     <span class="attr">#[inline]
@@ -308,27 +308,27 @@
     <span class="kw">where
         </span>T: StreamError&lt;Item, Range&gt;,
     {
-        <span class="kw">match </span><span class="self"><a href="#97">self</a> </span>{
-            <a href="#13">Error::Unexpected</a> =&gt; T::unexpected_static_message(<span class="string">&quot;parse&quot;</span>),
-            <a href="#14">Error::EndOfInput</a> =&gt; T::end_of_input(),
-            <a href="#15">Error::Io</a>(err) =&gt; T::other(<a href="#104">err</a>),
+        <span class="kw">match </span><span class="self">self </span>{
+            Error::Unexpected =&gt; T::unexpected_static_message(<span class="string">&quot;parse&quot;</span>),
+            Error::EndOfInput =&gt; T::end_of_input(),
+            Error::Io(err) =&gt; T::other(err),
         }
     }
 }
 
-<span class="kw">impl</span>&lt;Item, Range, Position&gt; ParseError&lt;Item, Range, Position&gt; <span class="kw">for </span><a href="#12">Error</a>
+<span class="kw">impl</span>&lt;Item, Range, Position&gt; ParseError&lt;Item, Range, Position&gt; <span class="kw">for </span>Error
 <span class="kw">where
-    </span>Position: <a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a>,
+    </span>Position: Default,
 {
     <span class="kw">type </span>StreamError = <span class="self">Self</span>;
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>empty(_position: Position) -&gt; <span class="self">Self </span>{
-        <a href="#13">Error::Unexpected</a>
+        Error::Unexpected
     }
 
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>from_error(<span class="kw">_</span>: Position, err: <span class="self">Self</span>::StreamError) -&gt; <span class="self">Self </span>{
-        <a href="#120">err</a>
+        err
     }
 
     <span class="attr">#[inline]
@@ -336,9 +336,9 @@
 
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>add(<span class="kw-2">&amp;mut </span><span class="self">self</span>, err: <span class="self">Self</span>::StreamError) {
-        <span class="kw-2">*</span><span class="self"><a href="#128">self</a> </span>= <span class="kw">match </span>(<span class="kw-2">&amp;*</span><a class="self" href="#128">self</a>, <a href="#128">err</a>) {
-            (<a href="#14">Error::EndOfInput</a>, <span class="kw">_</span>) =&gt; <a href="#14">Error::EndOfInput</a>,
-            (<span class="kw">_</span>, err) =&gt; <a href="#131">err</a>,
+        <span class="kw-2">*</span><span class="self">self </span>= <span class="kw">match </span>(<span class="kw-2">&amp;*</span><span class="self">self</span>, err) {
+            (Error::EndOfInput, <span class="kw">_</span>) =&gt; Error::EndOfInput,
+            (<span class="kw">_</span>, err) =&gt; err,
         };
     }
 
@@ -347,12 +347,12 @@
     <span class="kw">where
         </span>F: FnOnce(<span class="kw-2">&amp;mut </span>Tracked&lt;<span class="self">Self</span>&gt;),
     {
-        <a href="#136">f</a>(<a href="#136">self_</a>);
-        <a href="#136">self_</a>.error = <a href="#136">info</a>;
+        f(self_);
+        self_.error = info;
     }
 
-    <span class="kw">fn </span>is_unexpected_end_of_input(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw-2">*</span><span class="self"><a href="#144">self</a> </span>== <a href="#14">Error::EndOfInput</a>
+    <span class="kw">fn </span>is_unexpected_end_of_input(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="kw-2">*</span><span class="self">self </span>== Error::EndOfInput
     }
 
     <span class="attr">#[inline]
@@ -360,7 +360,7 @@
     <span class="kw">where
         </span>T: ParseError&lt;Item, Range, Position&gt;,
     {
-        T::from_error(Position::default(), <a href="../error.rs.html#447-449">StreamError::into_other</a>(<a class="self" href="#149">self</a>))
+        T::from_error(Position::default(), StreamError::into_other(<span class="self">self</span>))
     }
 }
 
@@ -368,25 +368,25 @@
     bytes: Bytes&lt;R&gt;,
 }
 
-<span class="kw">impl</span>&lt;R: <a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a>&gt; <a href="mod.rs.html#116">StreamOnce</a> <span class="kw">for </span>Stream&lt;R&gt; {
-    <span class="kw">type </span>Token = <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>;
-    <span class="kw">type </span>Range = <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>];
-    <span class="kw">type </span>Position = <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>;
-    <span class="kw">type </span>Error = <a href="#12">Error</a>;
+<span class="kw">impl</span>&lt;R: Read&gt; StreamOnce <span class="kw">for </span>Stream&lt;R&gt; {
+    <span class="kw">type </span>Token = u8;
+    <span class="kw">type </span>Range = <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>[u8];
+    <span class="kw">type </span>Position = usize;
+    <span class="kw">type </span>Error = Error;
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>uncons(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>, StreamErrorFor&lt;<span class="self">Self</span>&gt;&gt; {
-        <span class="kw">match </span><a class="self" href="#168">self</a>.bytes.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>() {
-            <span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(b)) =&gt; <span class="prelude-val">Ok</span>(<a href="#170">b</a>),
-            <span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(err)) =&gt; <span class="prelude-val">Err</span>(<a href="#15">Error::Io</a>(<a href="#171">err</a>)),
-            <span class="prelude-val">None </span>=&gt; <span class="prelude-val">Err</span>(<a href="#14">Error::EndOfInput</a>),
+    </span><span class="kw">fn </span>uncons(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;u8, StreamErrorFor&lt;<span class="self">Self</span>&gt;&gt; {
+        <span class="kw">match </span><span class="self">self</span>.bytes.next() {
+            <span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(b)) =&gt; <span class="prelude-val">Ok</span>(b),
+            <span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(err)) =&gt; <span class="prelude-val">Err</span>(Error::Io(err)),
+            <span class="prelude-val">None </span>=&gt; <span class="prelude-val">Err</span>(Error::EndOfInput),
         }
     }
 }
 
 <span class="kw">impl</span>&lt;R&gt; Stream&lt;R&gt;
 <span class="kw">where
-    </span>R: <a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a>,
+    </span>R: Read,
 {
     <span class="doccomment">/// Creates a `StreamOnce` instance from a value implementing `std::io::Read`.
     ///
@@ -413,10 +413,10 @@
     /// # }
     /// ```
     </span><span class="kw">pub fn </span>new(read: R) -&gt; Stream&lt;R&gt; {
-        <a href="#157">Stream</a> {
-            bytes: <a href="#205">read</a>.<a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">bytes</a>(),
+        Stream {
+            bytes: read.bytes(),
         }
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="combine" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="combine" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

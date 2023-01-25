@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/http-body-0.4.5/src/limited.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>limited.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../http_body/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/http-body-0.4.5/src/limited.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>limited.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../http_body/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -297,23 +297,23 @@
 <a href="#297" id="297">297</a>
 <a href="#298" id="298">298</a>
 <a href="#299" id="299">299</a>
-</pre><pre class="rust"><code><span class="kw">use crate</span>::{<a href="lib.rs.html#46">Body</a>, <a href="size_hint.rs.html#10">SizeHint</a>};
-<span class="kw">use </span><a href="../../bytes/buf/buf_impl/trait.Buf.html">bytes::Buf</a>;
-<span class="kw">use </span><a href="../../http/header/map/struct.HeaderMap.html">http::HeaderMap</a>;
-<span class="kw">use </span><a href="../../pin_project_lite/macro.pin_project.html">pin_project_lite::pin_project</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">std::error::Error</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">std::fmt</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/pin/struct.Pin.html">std::pin::Pin</a>;
-<span class="kw">use </span>std::task::{<a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>, <a href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">Poll</a>};
+</pre><pre class="rust"><code><span class="kw">use crate</span>::{Body, SizeHint};
+<span class="kw">use </span>bytes::Buf;
+<span class="kw">use </span>http::HeaderMap;
+<span class="kw">use </span>pin_project_lite::pin_project;
+<span class="kw">use </span>std::error::Error;
+<span class="kw">use </span>std::fmt;
+<span class="kw">use </span>std::pin::Pin;
+<span class="kw">use </span>std::task::{Context, Poll};
 
-<a class="macro" href="../../pin_project_lite/macro.pin_project.html">pin_project! </a>{
+<span class="macro">pin_project! </span>{
     <span class="doccomment">/// A length limited body.
     ///
     /// This body will return an error if more than the configured number
     /// of bytes are returned on polling the wrapped body.
     </span><span class="attr">#[derive(Clone, Copy, Debug)]
     </span><span class="kw">pub struct </span>Limited&lt;B&gt; {
-        remaining: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+        remaining: usize,
         <span class="attr">#[pin]
         </span>inner: B,
     }
@@ -321,78 +321,78 @@
 
 <span class="kw">impl</span>&lt;B&gt; Limited&lt;B&gt; {
     <span class="doccomment">/// Create a new `Limited`.
-    </span><span class="kw">pub fn </span>new(inner: B, limit: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub fn </span>new(inner: B, limit: usize) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
-            remaining: <a href="#25">limit</a>,
-            <a href="#25">inner</a>,
+            remaining: limit,
+            inner,
         }
     }
 }
 
-<span class="kw">impl</span>&lt;B&gt; <a href="lib.rs.html#46">Body</a> <span class="kw">for </span>Limited&lt;B&gt;
+<span class="kw">impl</span>&lt;B&gt; Body <span class="kw">for </span>Limited&lt;B&gt;
 <span class="kw">where
-    </span>B: <a href="lib.rs.html#46">Body</a>,
-    B::Error: Into&lt;Box&lt;<span class="kw">dyn </span><a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">Error</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a>&gt;&gt;,
+    </span>B: Body,
+    B::Error: Into&lt;Box&lt;<span class="kw">dyn </span>Error + Send + Sync&gt;&gt;,
 {
     <span class="kw">type </span>Data = B::Data;
-    <span class="kw">type </span>Error = Box&lt;<span class="kw">dyn </span><a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">Error</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a>&gt;;
+    <span class="kw">type </span>Error = Box&lt;<span class="kw">dyn </span>Error + Send + Sync&gt;;
 
     <span class="kw">fn </span>poll_data(
         <span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;,
         cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
     ) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;<span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Data, <span class="self">Self</span>::Error&gt;&gt;&gt; {
-        <span class="kw">let </span>this = <a class="self" href="#42">self</a>.<a href="#10-21">project</a>();
-        <span class="kw">let </span>res = <span class="kw">match </span><a href="#45">this</a>.inner.<a href="lib.rs.html#54-57">poll_data</a>(<a href="#43">cx</a>) {
+        <span class="kw">let </span>this = <span class="self">self</span>.project();
+        <span class="kw">let </span>res = <span class="kw">match </span>this.inner.poll_data(cx) {
             Poll::Pending =&gt; <span class="kw">return </span>Poll::Pending,
             Poll::Ready(<span class="prelude-val">None</span>) =&gt; <span class="prelude-val">None</span>,
             Poll::Ready(<span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(data))) =&gt; {
                 <span class="kw">if </span>data.remaining() &gt; <span class="kw-2">*</span>this.remaining {
-                    <span class="kw-2">*</span><a href="#45">this</a>.remaining = <span class="number">0</span>;
-                    <span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(<a href="#104">LengthLimitError</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()))
+                    <span class="kw-2">*</span>this.remaining = <span class="number">0</span>;
+                    <span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(LengthLimitError.into()))
                 } <span class="kw">else </span>{
-                    <span class="kw-2">*</span><a href="#45">this</a>.remaining -= <a href="#49">data</a>.<a href="../../bytes/buf/buf_impl/trait.Buf.html">remaining</a>();
-                    <span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(<a href="#49">data</a>))
+                    <span class="kw-2">*</span>this.remaining -= data.remaining();
+                    <span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(data))
                 }
             }
-            Poll::Ready(<span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(err))) =&gt; <span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(<a href="#58">err</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())),
+            Poll::Ready(<span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(err))) =&gt; <span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(err.into())),
         };
 
-        Poll::Ready(<a href="#46">res</a>)
+        Poll::Ready(res)
     }
 
     <span class="kw">fn </span>poll_trailers(
         <span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;,
         cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
-    ) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<a href="../../http/header/map/struct.HeaderMap.html">HeaderMap</a>&gt;, <span class="self">Self</span>::Error&gt;&gt; {
-        <span class="kw">let </span>this = <a class="self" href="#65">self</a>.<a href="#10-21">project</a>();
-        <span class="kw">let </span>res = <span class="kw">match </span><a href="#68">this</a>.inner.<a href="lib.rs.html#62-65">poll_trailers</a>(<a href="#66">cx</a>) {
+    ) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;HeaderMap&gt;, <span class="self">Self</span>::Error&gt;&gt; {
+        <span class="kw">let </span>this = <span class="self">self</span>.project();
+        <span class="kw">let </span>res = <span class="kw">match </span>this.inner.poll_trailers(cx) {
             Poll::Pending =&gt; <span class="kw">return </span>Poll::Pending,
-            Poll::Ready(<span class="prelude-val">Ok</span>(data)) =&gt; <span class="prelude-val">Ok</span>(<a href="#71">data</a>),
-            Poll::Ready(<span class="prelude-val">Err</span>(err)) =&gt; <span class="prelude-val">Err</span>(<a href="#72">err</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
+            Poll::Ready(<span class="prelude-val">Ok</span>(data)) =&gt; <span class="prelude-val">Ok</span>(data),
+            Poll::Ready(<span class="prelude-val">Err</span>(err)) =&gt; <span class="prelude-val">Err</span>(err.into()),
         };
 
-        Poll::Ready(<a href="#69">res</a>)
+        Poll::Ready(res)
     }
 
-    <span class="kw">fn </span>is_end_stream(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#78">self</a>.inner.<a href="lib.rs.html#74">is_end_stream</a>()
+    <span class="kw">fn </span>is_end_stream(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.inner.is_end_stream()
     }
 
-    <span class="kw">fn </span>size_hint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="size_hint.rs.html#10">SizeHint</a> {
-        <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/convert/trait.TryFrom.html">std::convert::TryFrom</a>;
-        <span class="kw">match </span>u64::try_from(<a class="self" href="#82">self</a>.remaining) {
+    <span class="kw">fn </span>size_hint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; SizeHint {
+        <span class="kw">use </span>std::convert::TryFrom;
+        <span class="kw">match </span>u64::try_from(<span class="self">self</span>.remaining) {
             <span class="prelude-val">Ok</span>(n) =&gt; {
-                <span class="kw">let </span><span class="kw-2">mut </span>hint = <a class="self" href="#82">self</a>.inner.<a href="lib.rs.html#82">size_hint</a>();
+                <span class="kw">let </span><span class="kw-2">mut </span>hint = <span class="self">self</span>.inner.size_hint();
                 <span class="kw">if </span>hint.lower() &gt;= n {
-                    <a href="#86">hint</a>.<a href="size_hint.rs.html#82">set_exact</a>(<a href="#85">n</a>)
-                } <span class="kw">else if let </span><span class="prelude-val">Some</span>(max) = <a href="#86">hint</a>.<a href="size_hint.rs.html#53">upper</a>() {
-                    <a href="#86">hint</a>.<a href="size_hint.rs.html#63">set_upper</a>(<a href="#85">n</a>.<a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Ord.html">min</a>(<a href="#89">max</a>))
+                    hint.set_exact(n)
+                } <span class="kw">else if let </span><span class="prelude-val">Some</span>(max) = hint.upper() {
+                    hint.set_upper(n.min(max))
                 } <span class="kw">else </span>{
-                    <a href="#86">hint</a>.<a href="size_hint.rs.html#63">set_upper</a>(<a href="#85">n</a>)
+                    hint.set_upper(n)
                 }
-                <a href="#86">hint</a>
+                hint
             }
-            <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; <a class="self" href="#82">self</a>.inner.<a href="lib.rs.html#82">size_hint</a>(),
+            <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; <span class="self">self</span>.inner.size_hint(),
         }
     }
 }
@@ -402,13 +402,13 @@
 #[non_exhaustive]
 </span><span class="kw">pub struct </span>LengthLimitError;
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for </span><a href="#104">LengthLimitError</a> {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a href="#107">f</a>.write_str(<span class="string">&quot;length limit exceeded&quot;</span>)
+<span class="kw">impl </span>fmt::Display <span class="kw">for </span>LengthLimitError {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter) -&gt; fmt::Result {
+        f.write_str(<span class="string">&quot;length limit exceeded&quot;</span>)
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">Error</a> <span class="kw">for </span><a href="#104">LengthLimitError</a> {}
+<span class="kw">impl </span>Error <span class="kw">for </span>LengthLimitError {}
 
 <span class="attr">#[cfg(test)]
 </span><span class="kw">mod </span>tests {
@@ -597,4 +597,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="http_body" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="http_body" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

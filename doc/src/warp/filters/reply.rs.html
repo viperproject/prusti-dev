@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/warp-0.3.3/src/filters/reply.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>reply.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../warp/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/warp-0.3.3/src/filters/reply.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>reply.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../warp/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -276,14 +276,14 @@
 //! Wrapping allows adding in conditional logic *before* the request enters
 //! the inner filter (though the `with::header` wrapper does not).
 
-</span><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/convert/trait.TryFrom.html">std::convert::TryFrom</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/sync/struct.Arc.html">std::sync::Arc</a>;
+</span><span class="kw">use </span>std::convert::TryFrom;
+<span class="kw">use </span>std::sync::Arc;
 
-<span class="kw">use </span>http::header::{<a href="../../../http/header/map/struct.HeaderMap.html">HeaderMap</a>, <a href="../../../http/header/name/struct.HeaderName.html">HeaderName</a>, <a href="../../../http/header/value/struct.HeaderValue.html">HeaderValue</a>};
+<span class="kw">use </span>http::header::{HeaderMap, HeaderName, HeaderValue};
 
-<span class="kw">use </span><span class="self">self</span>::sealed::{<a href="#241">WithDefaultHeader_</a>, <a href="#205">WithHeader_</a>, <a href="#223">WithHeaders_</a>};
-<span class="kw">use </span><span class="kw">crate</span>::filter::{<a href="../filter/mod.rs.html#93">Filter</a>, <a href="../filter/map.rs.html#11">Map</a>, <a href="../filter/wrap.rs.html#3">WrapSealed</a>};
-<span class="kw">use </span><a href="../reply.rs.html#228"><span class="kw">crate</span>::reply::Reply</a>;
+<span class="kw">use </span><span class="self">self</span>::sealed::{WithDefaultHeader_, WithHeader_, WithHeaders_};
+<span class="kw">use </span><span class="kw">crate</span>::filter::{Filter, Map, WrapSealed};
+<span class="kw">use </span><span class="kw">crate</span>::reply::Reply;
 
 <span class="doccomment">/// Wrap a [`Filter`](crate::Filter) that adds a header to the reply.
 ///
@@ -303,15 +303,15 @@
 ///     .map(warp::reply)
 ///     .with(warp::reply::with::header(&quot;foo&quot;, &quot;bar&quot;));
 /// ```
-</span><span class="kw">pub fn </span>header&lt;K, V&gt;(name: K, value: V) -&gt; <a href="#123">WithHeader</a>
+</span><span class="kw">pub fn </span>header&lt;K, V&gt;(name: K, value: V) -&gt; WithHeader
 <span class="kw">where
-    </span><a href="../../../http/header/name/struct.HeaderName.html">HeaderName</a>: TryFrom&lt;K&gt;,
-    &lt;<a href="../../../http/header/name/struct.HeaderName.html">HeaderName</a> <span class="kw">as </span>TryFrom&lt;K&gt;&gt;::Error: Into&lt;<a href="../../../http/error/struct.Error.html">http::Error</a>&gt;,
-    <a href="../../../http/header/value/struct.HeaderValue.html">HeaderValue</a>: TryFrom&lt;V&gt;,
-    &lt;<a href="../../../http/header/value/struct.HeaderValue.html">HeaderValue</a> <span class="kw">as </span>TryFrom&lt;V&gt;&gt;::Error: Into&lt;<a href="../../../http/error/struct.Error.html">http::Error</a>&gt;,
+    </span>HeaderName: TryFrom&lt;K&gt;,
+    &lt;HeaderName <span class="kw">as </span>TryFrom&lt;K&gt;&gt;::Error: Into&lt;http::Error&gt;,
+    HeaderValue: TryFrom&lt;V&gt;,
+    &lt;HeaderValue <span class="kw">as </span>TryFrom&lt;V&gt;&gt;::Error: Into&lt;http::Error&gt;,
 {
-    <span class="kw">let </span>(name, value) = <a href="#180-185">assert_name_and_value</a>(<a href="#49">name</a>, <a href="#49">value</a>);
-    <a href="#123">WithHeader</a> { <a href="#56">name</a>, <a href="#56">value</a> }
+    <span class="kw">let </span>(name, value) = assert_name_and_value(name, value);
+    WithHeader { name, value }
 }
 
 <span class="doccomment">/// Wrap a [`Filter`](crate::Filter) that adds multiple headers to the reply.
@@ -337,9 +337,9 @@
 ///     .map(warp::reply)
 ///     .with(warp::reply::with::headers(headers));
 /// ```
-</span><span class="kw">pub fn </span>headers(headers: <a href="../../../http/header/map/struct.HeaderMap.html">HeaderMap</a>) -&gt; <a href="#143">WithHeaders</a> {
-    <a href="#143">WithHeaders</a> {
-        headers: Arc::new(<a href="#83">headers</a>),
+</span><span class="kw">pub fn </span>headers(headers: HeaderMap) -&gt; WithHeaders {
+    WithHeaders {
+        headers: Arc::new(headers),
     }
 }
 
@@ -364,153 +364,153 @@
 ///     .map(warp::reply)
 ///     .with(warp::reply::with::default_header(&quot;server&quot;, &quot;warp&quot;));
 /// ```
-</span><span class="kw">pub fn </span>default_header&lt;K, V&gt;(name: K, value: V) -&gt; <a href="#162">WithDefaultHeader</a>
+</span><span class="kw">pub fn </span>default_header&lt;K, V&gt;(name: K, value: V) -&gt; WithDefaultHeader
 <span class="kw">where
-    </span><a href="../../../http/header/name/struct.HeaderName.html">HeaderName</a>: TryFrom&lt;K&gt;,
-    &lt;<a href="../../../http/header/name/struct.HeaderName.html">HeaderName</a> <span class="kw">as </span>TryFrom&lt;K&gt;&gt;::Error: Into&lt;<a href="../../../http/error/struct.Error.html">http::Error</a>&gt;,
-    <a href="../../../http/header/value/struct.HeaderValue.html">HeaderValue</a>: TryFrom&lt;V&gt;,
-    &lt;<a href="../../../http/header/value/struct.HeaderValue.html">HeaderValue</a> <span class="kw">as </span>TryFrom&lt;V&gt;&gt;::Error: Into&lt;<a href="../../../http/error/struct.Error.html">http::Error</a>&gt;,
+    </span>HeaderName: TryFrom&lt;K&gt;,
+    &lt;HeaderName <span class="kw">as </span>TryFrom&lt;K&gt;&gt;::Error: Into&lt;http::Error&gt;,
+    HeaderValue: TryFrom&lt;V&gt;,
+    &lt;HeaderValue <span class="kw">as </span>TryFrom&lt;V&gt;&gt;::Error: Into&lt;http::Error&gt;,
 {
-    <span class="kw">let </span>(name, value) = <a href="#180-185">assert_name_and_value</a>(<a href="#110">name</a>, <a href="#110">value</a>);
-    <a href="#162">WithDefaultHeader</a> { <a href="#117">name</a>, <a href="#117">value</a> }
+    <span class="kw">let </span>(name, value) = assert_name_and_value(name, value);
+    WithDefaultHeader { name, value }
 }
 
 <span class="doccomment">/// Wrap a `Filter` to always set a header.
 </span><span class="attr">#[derive(Clone, Debug)]
 </span><span class="kw">pub struct </span>WithHeader {
-    name: <a href="../../../http/header/name/struct.HeaderName.html">HeaderName</a>,
-    value: <a href="../../../http/header/value/struct.HeaderValue.html">HeaderValue</a>,
+    name: HeaderName,
+    value: HeaderValue,
 }
 
-<span class="kw">impl</span>&lt;F, R&gt; WrapSealed&lt;F&gt; <span class="kw">for </span><a href="#123">WithHeader</a>
+<span class="kw">impl</span>&lt;F, R&gt; WrapSealed&lt;F&gt; <span class="kw">for </span>WithHeader
 <span class="kw">where
     </span>F: Filter&lt;Extract = (R,)&gt;,
-    R: <a href="../reply.rs.html#228">Reply</a>,
+    R: Reply,
 {
-    <span class="kw">type </span>Wrapped = Map&lt;F, <a href="#205">WithHeader_</a>&gt;;
+    <span class="kw">type </span>Wrapped = Map&lt;F, WithHeader_&gt;;
 
     <span class="kw">fn </span>wrap(<span class="kw-2">&amp;</span><span class="self">self</span>, filter: F) -&gt; <span class="self">Self</span>::Wrapped {
-        <span class="kw">let </span>with = <a href="#205">WithHeader_</a> { with: <a class="self" href="#135">self</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>() };
-        <a href="#135">filter</a>.<a href="../filter/mod.rs.html#191-194">map</a>(<a href="#136">with</a>)
+        <span class="kw">let </span>with = WithHeader_ { with: <span class="self">self</span>.clone() };
+        filter.map(with)
     }
 }
 
 <span class="doccomment">/// Wrap a `Filter` to always set multiple headers.
 </span><span class="attr">#[derive(Clone, Debug)]
 </span><span class="kw">pub struct </span>WithHeaders {
-    headers: Arc&lt;<a href="../../../http/header/map/struct.HeaderMap.html">HeaderMap</a>&gt;,
+    headers: Arc&lt;HeaderMap&gt;,
 }
 
-<span class="kw">impl</span>&lt;F, R&gt; WrapSealed&lt;F&gt; <span class="kw">for </span><a href="#143">WithHeaders</a>
+<span class="kw">impl</span>&lt;F, R&gt; WrapSealed&lt;F&gt; <span class="kw">for </span>WithHeaders
 <span class="kw">where
     </span>F: Filter&lt;Extract = (R,)&gt;,
-    R: <a href="../reply.rs.html#228">Reply</a>,
+    R: Reply,
 {
-    <span class="kw">type </span>Wrapped = Map&lt;F, <a href="#223">WithHeaders_</a>&gt;;
+    <span class="kw">type </span>Wrapped = Map&lt;F, WithHeaders_&gt;;
 
     <span class="kw">fn </span>wrap(<span class="kw-2">&amp;</span><span class="self">self</span>, filter: F) -&gt; <span class="self">Self</span>::Wrapped {
-        <span class="kw">let </span>with = <a href="#223">WithHeaders_</a> { with: <a class="self" href="#154">self</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>() };
-        <a href="#154">filter</a>.<a href="../filter/mod.rs.html#191-194">map</a>(<a href="#155">with</a>)
+        <span class="kw">let </span>with = WithHeaders_ { with: <span class="self">self</span>.clone() };
+        filter.map(with)
     }
 }
 
 <span class="doccomment">/// Wrap a `Filter` to set a header if it is not already set.
 </span><span class="attr">#[derive(Clone, Debug)]
 </span><span class="kw">pub struct </span>WithDefaultHeader {
-    name: <a href="../../../http/header/name/struct.HeaderName.html">HeaderName</a>,
-    value: <a href="../../../http/header/value/struct.HeaderValue.html">HeaderValue</a>,
+    name: HeaderName,
+    value: HeaderValue,
 }
 
-<span class="kw">impl</span>&lt;F, R&gt; WrapSealed&lt;F&gt; <span class="kw">for </span><a href="#162">WithDefaultHeader</a>
+<span class="kw">impl</span>&lt;F, R&gt; WrapSealed&lt;F&gt; <span class="kw">for </span>WithDefaultHeader
 <span class="kw">where
     </span>F: Filter&lt;Extract = (R,)&gt;,
-    R: <a href="../reply.rs.html#228">Reply</a>,
+    R: Reply,
 {
-    <span class="kw">type </span>Wrapped = Map&lt;F, <a href="#241">WithDefaultHeader_</a>&gt;;
+    <span class="kw">type </span>Wrapped = Map&lt;F, WithDefaultHeader_&gt;;
 
     <span class="kw">fn </span>wrap(<span class="kw-2">&amp;</span><span class="self">self</span>, filter: F) -&gt; <span class="self">Self</span>::Wrapped {
-        <span class="kw">let </span>with = <a href="#241">WithDefaultHeader_</a> { with: <a class="self" href="#174">self</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>() };
-        <a href="#174">filter</a>.<a href="../filter/mod.rs.html#191-194">map</a>(<a href="#175">with</a>)
+        <span class="kw">let </span>with = WithDefaultHeader_ { with: <span class="self">self</span>.clone() };
+        filter.map(with)
     }
 }
 
-<span class="kw">fn </span>assert_name_and_value&lt;K, V&gt;(name: K, value: V) -&gt; (<a href="../../../http/header/name/struct.HeaderName.html">HeaderName</a>, <a href="../../../http/header/value/struct.HeaderValue.html">HeaderValue</a>)
+<span class="kw">fn </span>assert_name_and_value&lt;K, V&gt;(name: K, value: V) -&gt; (HeaderName, HeaderValue)
 <span class="kw">where
-    </span><a href="../../../http/header/name/struct.HeaderName.html">HeaderName</a>: TryFrom&lt;K&gt;,
-    &lt;<a href="../../../http/header/name/struct.HeaderName.html">HeaderName</a> <span class="kw">as </span>TryFrom&lt;K&gt;&gt;::Error: Into&lt;<a href="../../../http/error/struct.Error.html">http::Error</a>&gt;,
-    <a href="../../../http/header/value/struct.HeaderValue.html">HeaderValue</a>: TryFrom&lt;V&gt;,
-    &lt;<a href="../../../http/header/value/struct.HeaderValue.html">HeaderValue</a> <span class="kw">as </span>TryFrom&lt;V&gt;&gt;::Error: Into&lt;<a href="../../../http/error/struct.Error.html">http::Error</a>&gt;,
+    </span>HeaderName: TryFrom&lt;K&gt;,
+    &lt;HeaderName <span class="kw">as </span>TryFrom&lt;K&gt;&gt;::Error: Into&lt;http::Error&gt;,
+    HeaderValue: TryFrom&lt;V&gt;,
+    &lt;HeaderValue <span class="kw">as </span>TryFrom&lt;V&gt;&gt;::Error: Into&lt;http::Error&gt;,
 {
-    <span class="kw">let </span>name = &lt;<a href="../../../http/header/name/struct.HeaderName.html">HeaderName</a> <span class="kw">as </span>TryFrom&lt;K&gt;&gt;::try_from(<a href="#180">name</a>)
-        .map_err(<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">Into::into</a>)
-        .unwrap_or_else(|<span class="kw">_</span>| <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(<span class="string">&quot;invalid header name&quot;</span>));
+    <span class="kw">let </span>name = &lt;HeaderName <span class="kw">as </span>TryFrom&lt;K&gt;&gt;::try_from(name)
+        .map_err(Into::into)
+        .unwrap_or_else(|<span class="kw">_</span>| <span class="macro">panic!</span>(<span class="string">&quot;invalid header name&quot;</span>));
 
-    <span class="kw">let </span>value = &lt;<a href="../../../http/header/value/struct.HeaderValue.html">HeaderValue</a> <span class="kw">as </span>TryFrom&lt;V&gt;&gt;::try_from(<a href="#180">value</a>)
-        .map_err(<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">Into::into</a>)
-        .unwrap_or_else(|<span class="kw">_</span>| <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(<span class="string">&quot;invalid header value&quot;</span>));
+    <span class="kw">let </span>value = &lt;HeaderValue <span class="kw">as </span>TryFrom&lt;V&gt;&gt;::try_from(value)
+        .map_err(Into::into)
+        .unwrap_or_else(|<span class="kw">_</span>| <span class="macro">panic!</span>(<span class="string">&quot;invalid header value&quot;</span>));
 
-    (<a href="#187">name</a>, <a href="#191">value</a>)
+    (name, value)
 }
 
 <span class="kw">mod </span>sealed {
-    <span class="kw">use super</span>::{<a href="#162">WithDefaultHeader</a>, <a href="#123">WithHeader</a>, <a href="#143">WithHeaders</a>};
-    <span class="kw">use </span><span class="kw">crate</span>::generic::{<a href="../generic.rs.html#51">Func</a>, <a href="../generic.rs.html#4">One</a>};
-    <span class="kw">use </span><span class="kw">crate</span>::reply::{<a href="../reply.rs.html#228">Reply</a>, <a href="../reply.rs.html#525">Reply_</a>};
+    <span class="kw">use super</span>::{WithDefaultHeader, WithHeader, WithHeaders};
+    <span class="kw">use </span><span class="kw">crate</span>::generic::{Func, One};
+    <span class="kw">use </span><span class="kw">crate</span>::reply::{Reply, Reply_};
 
     <span class="attr">#[derive(Clone)]
     #[allow(missing_debug_implementations)]
     </span><span class="kw">pub struct </span>WithHeader_ {
-        <span class="kw">pub</span>(<span class="kw">super</span>) with: <a href="#123">WithHeader</a>,
+        <span class="kw">pub</span>(<span class="kw">super</span>) with: WithHeader,
     }
 
-    <span class="kw">impl</span>&lt;R: <a href="../reply.rs.html#228">Reply</a>&gt; Func&lt;One&lt;R&gt;&gt; <span class="kw">for </span><a href="#205">WithHeader_</a> {
-        <span class="kw">type </span>Output = <a href="../reply.rs.html#525">Reply_</a>;
+    <span class="kw">impl</span>&lt;R: Reply&gt; Func&lt;One&lt;R&gt;&gt; <span class="kw">for </span>WithHeader_ {
+        <span class="kw">type </span>Output = Reply_;
 
         <span class="kw">fn </span>call(<span class="kw-2">&amp;</span><span class="self">self</span>, args: One&lt;R&gt;) -&gt; <span class="self">Self</span>::Output {
-            <span class="kw">let </span><span class="kw-2">mut </span>resp = <a href="#212">args</a>.<span class="number">0</span>.<a href="../reply.rs.html#232">into_response</a>();
+            <span class="kw">let </span><span class="kw-2">mut </span>resp = args.<span class="number">0</span>.into_response();
             <span class="comment">// Use &quot;insert&quot; to replace any set header...
-            </span><a href="#213">resp</a>.headers_mut()
-                .insert(<span class="kw-2">&amp;</span><a class="self" href="#212">self</a>.with.name, <a class="self" href="#212">self</a>.with.value.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
-            <a href="../reply.rs.html#525">Reply_</a>(<a href="#213">resp</a>)
+            </span>resp.headers_mut()
+                .insert(<span class="kw-2">&amp;</span><span class="self">self</span>.with.name, <span class="self">self</span>.with.value.clone());
+            Reply_(resp)
         }
     }
 
     <span class="attr">#[derive(Clone)]
     #[allow(missing_debug_implementations)]
     </span><span class="kw">pub struct </span>WithHeaders_ {
-        <span class="kw">pub</span>(<span class="kw">super</span>) with: <a href="#143">WithHeaders</a>,
+        <span class="kw">pub</span>(<span class="kw">super</span>) with: WithHeaders,
     }
 
-    <span class="kw">impl</span>&lt;R: <a href="../reply.rs.html#228">Reply</a>&gt; Func&lt;One&lt;R&gt;&gt; <span class="kw">for </span><a href="#223">WithHeaders_</a> {
-        <span class="kw">type </span>Output = <a href="../reply.rs.html#525">Reply_</a>;
+    <span class="kw">impl</span>&lt;R: Reply&gt; Func&lt;One&lt;R&gt;&gt; <span class="kw">for </span>WithHeaders_ {
+        <span class="kw">type </span>Output = Reply_;
 
         <span class="kw">fn </span>call(<span class="kw-2">&amp;</span><span class="self">self</span>, args: One&lt;R&gt;) -&gt; <span class="self">Self</span>::Output {
-            <span class="kw">let </span><span class="kw-2">mut </span>resp = <a href="#230">args</a>.<span class="number">0</span>.<a href="../reply.rs.html#232">into_response</a>();
+            <span class="kw">let </span><span class="kw-2">mut </span>resp = args.<span class="number">0</span>.into_response();
             <span class="kw">for </span>(name, value) <span class="kw">in </span><span class="kw-2">&amp;*</span><span class="self">self</span>.with.headers {
                 resp.headers_mut().insert(name, value.clone());
             }
-            <a href="../reply.rs.html#525">Reply_</a>(<a href="#231">resp</a>)
+            Reply_(resp)
         }
     }
 
     <span class="attr">#[derive(Clone)]
     #[allow(missing_debug_implementations)]
     </span><span class="kw">pub struct </span>WithDefaultHeader_ {
-        <span class="kw">pub</span>(<span class="kw">super</span>) with: <a href="#162">WithDefaultHeader</a>,
+        <span class="kw">pub</span>(<span class="kw">super</span>) with: WithDefaultHeader,
     }
 
-    <span class="kw">impl</span>&lt;R: <a href="../reply.rs.html#228">Reply</a>&gt; Func&lt;One&lt;R&gt;&gt; <span class="kw">for </span><a href="#241">WithDefaultHeader_</a> {
-        <span class="kw">type </span>Output = <a href="../reply.rs.html#525">Reply_</a>;
+    <span class="kw">impl</span>&lt;R: Reply&gt; Func&lt;One&lt;R&gt;&gt; <span class="kw">for </span>WithDefaultHeader_ {
+        <span class="kw">type </span>Output = Reply_;
 
         <span class="kw">fn </span>call(<span class="kw-2">&amp;</span><span class="self">self</span>, args: One&lt;R&gt;) -&gt; <span class="self">Self</span>::Output {
-            <span class="kw">let </span><span class="kw-2">mut </span>resp = <a href="#248">args</a>.<span class="number">0</span>.<a href="../reply.rs.html#232">into_response</a>();
-            <a href="#249">resp</a>.headers_mut()
-                .entry(<span class="kw-2">&amp;</span><a class="self" href="#248">self</a>.with.name)
-                .or_insert_with(|| <a class="self" href="#248">self</a>.with.value.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
+            <span class="kw">let </span><span class="kw-2">mut </span>resp = args.<span class="number">0</span>.into_response();
+            resp.headers_mut()
+                .entry(<span class="kw-2">&amp;</span><span class="self">self</span>.with.name)
+                .or_insert_with(|| <span class="self">self</span>.with.value.clone());
 
-            <a href="../reply.rs.html#525">Reply_</a>(<a href="#249">resp</a>)
+            Reply_(resp)
         }
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="warp" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="warp" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>

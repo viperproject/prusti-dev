@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/nix-0.25.0/src/sys/resource.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>resource.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-3d4cb87af9468701.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-1469fca9efc07bcb.css"><link rel="stylesheet" disabled href="../../../static.files/dark-e9b7e5d8ba0dc980.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-0c1cf144240c9f40.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-799a64abec831f72.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../nix/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/nix-0.26.1/src/sys/resource.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>resource.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../nix/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -435,19 +435,26 @@
 <a href="#435" id="435">435</a>
 <a href="#436" id="436">436</a>
 <a href="#437" id="437">437</a>
+<a href="#438" id="438">438</a>
+<a href="#439" id="439">439</a>
+<a href="#440" id="440">440</a>
+<a href="#441" id="441">441</a>
+<a href="#442" id="442">442</a>
+<a href="#443" id="443">443</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Configure the process resource limits.
-</span><span class="kw">use </span><a href="../../../cfg_if/macro.cfg_if.html">cfg_if::cfg_if</a>;
-<span class="kw">use </span>libc::{<a href="../../../libc/unix/type.c_int.html">c_int</a>, <a href="../../../libc/unix/linux_like/linux/gnu/b64/x86_64/not_x32/type.c_long.html">c_long</a>, <a href="../../../libc/unix/struct.rusage.html">rusage</a>};
+</span><span class="kw">use </span>cfg_if::cfg_if;
+<span class="kw">use </span>libc::{c_int, c_long, rusage};
 
-<span class="kw">use </span><a href="../errno.rs.html#1163"><span class="kw">crate</span>::errno::Errno</a>;
-<span class="kw">use </span><a href="time.rs.html#451"><span class="kw">crate</span>::sys::time::TimeVal</a>;
-<span class="kw">use </span><a href="../lib.rs.html#167"><span class="kw">crate</span>::Result</a>;
-<span class="kw">pub use </span><a href="../../../nix/sys/resource/type.rlim_t.html">libc::rlim_t</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/mem/index.html">std::mem</a>;
+<span class="kw">use </span><span class="kw">crate</span>::errno::Errno;
+<span class="kw">use </span><span class="kw">crate</span>::sys::time::TimeVal;
+<span class="kw">use </span><span class="kw">crate</span>::Result;
+<span class="kw">pub use </span>libc::rlim_t;
+<span class="kw">pub use </span>libc::RLIM_INFINITY;
+<span class="kw">use </span>std::mem;
 
 <span class="macro">cfg_if! </span>{
     <span class="kw">if </span><span class="attr">#[cfg(all(target_os = <span class="string">&quot;linux&quot;</span>, any(target_env = <span class="string">&quot;gnu&quot;</span>, target_env = <span class="string">&quot;uclibc&quot;</span>)))]</span>{
-        <span class="kw">use </span>libc::{<a href="../../../libc/unix/linux_like/linux/gnu/type.__rlimit_resource_t.html">__rlimit_resource_t</a>, <a href="../../../libc/unix/struct.rlimit.html">rlimit</a>};
+        <span class="kw">use </span>libc::{__rlimit_resource_t, rlimit};
     } <span class="kw">else if </span><span class="attr">#[cfg(any(
         target_os = <span class="string">&quot;freebsd&quot;</span>,
         target_os = <span class="string">&quot;openbsd&quot;</span>,
@@ -462,7 +469,7 @@
     }
 }
 
-<a class="macro" href="../macros.rs.html#100-328">libc_enum! </a>{
+<span class="macro">libc_enum! </span>{
     <span class="doccomment">/// Types of process resources.
     ///
     /// The Resource enum is platform dependent. Check different platform
@@ -612,7 +619,7 @@
 
 <span class="doccomment">/// Get the current processes resource limits
 ///
-/// The special value `RLIM_INFINITY` indicates that no limit will be
+/// The special value [`RLIM_INFINITY`] indicates that no limit will be
 /// enforced.
 ///
 /// # Parameters
@@ -634,20 +641,20 @@
 /// [getrlimit(2)](https://pubs.opengroup.org/onlinepubs/9699919799/functions/getrlimit.html#tag_16_215)
 ///
 /// [`Resource`]: enum.Resource.html
-</span><span class="kw">pub fn </span>getrlimit(resource: <a href="#28-174">Resource</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(<a href="../../../nix/sys/resource/type.rlim_t.html">rlim_t</a>, <a href="../../../nix/sys/resource/type.rlim_t.html">rlim_t</a>)&gt; {
-    <span class="kw">let </span><span class="kw-2">mut </span>old_rlim = mem::MaybeUninit::&lt;<a href="../../../libc/unix/struct.rlimit.html">rlimit</a>&gt;::uninit();
+</span><span class="kw">pub fn </span>getrlimit(resource: Resource) -&gt; <span class="prelude-ty">Result</span>&lt;(rlim_t, rlim_t)&gt; {
+    <span class="kw">let </span><span class="kw-2">mut </span>old_rlim = mem::MaybeUninit::&lt;rlimit&gt;::uninit();
 
     <span class="macro">cfg_if! </span>{
         <span class="kw">if </span><span class="attr">#[cfg(all(target_os = <span class="string">&quot;linux&quot;</span>, any(target_env = <span class="string">&quot;gnu&quot;</span>, target_env = <span class="string">&quot;uclibc&quot;</span>)))]</span>{
-            <span class="kw">let </span>res = <span class="kw">unsafe </span>{ libc::getrlimit(<a href="#200">resource</a> <span class="kw">as </span><a href="../../../libc/unix/linux_like/linux/gnu/type.__rlimit_resource_t.html">__rlimit_resource_t</a>, <a href="#201">old_rlim</a>.as_mut_ptr()) };
+            <span class="kw">let </span>res = <span class="kw">unsafe </span>{ libc::getrlimit(resource <span class="kw">as </span>__rlimit_resource_t, old_rlim.as_mut_ptr()) };
         } <span class="kw">else </span>{
             <span class="kw">let </span>res = <span class="kw">unsafe </span>{ libc::getrlimit(resource <span class="kw">as </span>c_int, old_rlim.as_mut_ptr()) };
         }
     }
 
-    Errno::result(<a href="#205">res</a>).map(|<span class="kw">_</span>| {
-        <span class="kw">let </span><a href="../../../libc/unix/struct.rlimit.html">rlimit</a> { rlim_cur, rlim_max } = <span class="kw">unsafe </span>{ <a href="#201">old_rlim</a>.assume_init() };
-        (<a href="#212">rlim_cur</a>, <a href="#212">rlim_max</a>)
+    Errno::result(res).map(|<span class="kw">_</span>| {
+        <span class="kw">let </span>rlimit { rlim_cur, rlim_max } = <span class="kw">unsafe </span>{ old_rlim.assume_init() };
+        (rlim_cur, rlim_max)
     })
 }
 
@@ -661,7 +668,7 @@
 /// * `hard_limit`: The ceiling for the soft limit. Must be lower or equal to
 ///   the current hard limit for non-root users.
 ///
-/// The special value `RLIM_INFINITY` indicates that no limit will be
+/// The special value [`RLIM_INFINITY`] indicates that no limit will be
 /// enforced.
 ///
 /// # Examples
@@ -681,23 +688,27 @@
 /// [`Resource`]: enum.Resource.html
 ///
 /// Note: `setrlimit` provides a safe wrapper to libc&#39;s `setrlimit`.
-</span><span class="kw">pub fn </span>setrlimit(resource: <a href="#28-174">Resource</a>, soft_limit: <a href="../../../nix/sys/resource/type.rlim_t.html">rlim_t</a>, hard_limit: <a href="../../../nix/sys/resource/type.rlim_t.html">rlim_t</a>) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
-    <span class="kw">let </span>new_rlim = <a href="../../../libc/unix/struct.rlimit.html">rlimit</a> {
-        rlim_cur: <a href="#247">soft_limit</a>,
-        rlim_max: <a href="#247">hard_limit</a>,
+</span><span class="kw">pub fn </span>setrlimit(
+    resource: Resource,
+    soft_limit: rlim_t,
+    hard_limit: rlim_t,
+) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+    <span class="kw">let </span>new_rlim = rlimit {
+        rlim_cur: soft_limit,
+        rlim_max: hard_limit,
     };
     <span class="macro">cfg_if! </span>{
         <span class="kw">if </span><span class="attr">#[cfg(all(target_os = <span class="string">&quot;linux&quot;</span>, any(target_env = <span class="string">&quot;gnu&quot;</span>, target_env = <span class="string">&quot;uclibc&quot;</span>)))]</span>{
-            <span class="kw">let </span>res = <span class="kw">unsafe </span>{ libc::setrlimit(<a href="#247">resource</a> <span class="kw">as </span><a href="../../../libc/unix/linux_like/linux/gnu/type.__rlimit_resource_t.html">__rlimit_resource_t</a>, <span class="kw-2">&amp;</span><a href="#248">new_rlim</a> <span class="kw">as </span><span class="kw-2">*const </span><a href="../../../libc/unix/struct.rlimit.html">rlimit</a>) };
+            <span class="kw">let </span>res = <span class="kw">unsafe </span>{ libc::setrlimit(resource <span class="kw">as </span>__rlimit_resource_t, <span class="kw-2">&amp;</span>new_rlim <span class="kw">as </span><span class="kw-2">*const </span>rlimit) };
         }<span class="kw">else</span>{
             <span class="kw">let </span>res = <span class="kw">unsafe </span>{ libc::setrlimit(resource <span class="kw">as </span>c_int, <span class="kw-2">&amp;</span>new_rlim <span class="kw">as </span><span class="kw-2">*const </span>rlimit) };
         }
     }
 
-    Errno::result(<a href="#254">res</a>).map(<a href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>)
+    Errno::result(res).map(drop)
 }
 
-<a class="macro" href="../macros.rs.html#100-328">libc_enum! </a>{
+<span class="macro">libc_enum! </span>{
     <span class="doccomment">/// Whose resource usage should be returned by [`getrusage`].
     </span><span class="attr">#[repr(i32)]
     #[non_exhaustive]
@@ -720,104 +731,104 @@
 /// for details.
 </span><span class="attr">#[repr(transparent)]
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
-</span><span class="kw">pub struct </span>Usage(<a href="../../../libc/unix/struct.rusage.html">rusage</a>);
+</span><span class="kw">pub struct </span>Usage(rusage);
 
-<span class="kw">impl </span>AsRef&lt;<a href="../../../libc/unix/struct.rusage.html">rusage</a>&gt; <span class="kw">for </span><a href="#286">Usage</a> {
-    <span class="kw">fn </span>as_ref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="../../../libc/unix/struct.rusage.html">rusage</a> {
-        <span class="kw-2">&amp;</span><a class="self" href="#289">self</a>.<span class="number">0
+<span class="kw">impl </span>AsRef&lt;rusage&gt; <span class="kw">for </span>Usage {
+    <span class="kw">fn </span>as_ref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>rusage {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="number">0
     </span>}
 }
 
-<span class="kw">impl </span>AsMut&lt;<a href="../../../libc/unix/struct.rusage.html">rusage</a>&gt; <span class="kw">for </span><a href="#286">Usage</a> {
-    <span class="kw">fn </span>as_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span><a href="../../../libc/unix/struct.rusage.html">rusage</a> {
-        <span class="kw-2">&amp;mut </span><a class="self" href="#295">self</a>.<span class="number">0
+<span class="kw">impl </span>AsMut&lt;rusage&gt; <span class="kw">for </span>Usage {
+    <span class="kw">fn </span>as_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>rusage {
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>.<span class="number">0
     </span>}
 }
 
-<span class="kw">impl </span><a href="#286">Usage</a> {
+<span class="kw">impl </span>Usage {
     <span class="doccomment">/// Total amount of time spent executing in user mode.
-    </span><span class="kw">pub fn </span>user_time(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="time.rs.html#451">TimeVal</a> {
-        TimeVal::from(<a class="self" href="#302">self</a>.<span class="number">0</span>.ru_utime)
+    </span><span class="kw">pub fn </span>user_time(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; TimeVal {
+        TimeVal::from(<span class="self">self</span>.<span class="number">0</span>.ru_utime)
     }
 
     <span class="doccomment">/// Total amount of time spent executing in kernel mode.
-    </span><span class="kw">pub fn </span>system_time(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="time.rs.html#451">TimeVal</a> {
-        TimeVal::from(<a class="self" href="#307">self</a>.<span class="number">0</span>.ru_stime)
+    </span><span class="kw">pub fn </span>system_time(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; TimeVal {
+        TimeVal::from(<span class="self">self</span>.<span class="number">0</span>.ru_stime)
     }
 
     <span class="doccomment">/// The resident set size at its peak, in kilobytes.
-    </span><span class="kw">pub fn </span>max_rss(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../../../libc/unix/linux_like/linux/gnu/b64/x86_64/not_x32/type.c_long.html">c_long</a> {
-        <a class="self" href="#312">self</a>.<span class="number">0</span>.ru_maxrss
+    </span><span class="kw">pub fn </span>max_rss(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; c_long {
+        <span class="self">self</span>.<span class="number">0</span>.ru_maxrss
     }
 
     <span class="doccomment">/// Integral value expressed in kilobytes times ticks of execution indicating
     /// the amount of text memory shared with other processes.
-    </span><span class="kw">pub fn </span>shared_integral(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../../../libc/unix/linux_like/linux/gnu/b64/x86_64/not_x32/type.c_long.html">c_long</a> {
-        <a class="self" href="#318">self</a>.<span class="number">0</span>.ru_ixrss
+    </span><span class="kw">pub fn </span>shared_integral(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; c_long {
+        <span class="self">self</span>.<span class="number">0</span>.ru_ixrss
     }
 
     <span class="doccomment">/// Integral value expressed in kilobytes times ticks of execution indicating
     /// the amount of unshared memory used by data.
-    </span><span class="kw">pub fn </span>unshared_data_integral(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../../../libc/unix/linux_like/linux/gnu/b64/x86_64/not_x32/type.c_long.html">c_long</a> {
-        <a class="self" href="#324">self</a>.<span class="number">0</span>.ru_idrss
+    </span><span class="kw">pub fn </span>unshared_data_integral(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; c_long {
+        <span class="self">self</span>.<span class="number">0</span>.ru_idrss
     }
 
     <span class="doccomment">/// Integral value expressed in kilobytes times ticks of execution indicating
     /// the amount of unshared memory used for stack space.
-    </span><span class="kw">pub fn </span>unshared_stack_integral(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../../../libc/unix/linux_like/linux/gnu/b64/x86_64/not_x32/type.c_long.html">c_long</a> {
-        <a class="self" href="#330">self</a>.<span class="number">0</span>.ru_isrss
+    </span><span class="kw">pub fn </span>unshared_stack_integral(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; c_long {
+        <span class="self">self</span>.<span class="number">0</span>.ru_isrss
     }
 
     <span class="doccomment">/// Number of page faults that were served without resorting to I/O, with pages
     /// that have been allocated previously by the kernel.
-    </span><span class="kw">pub fn </span>minor_page_faults(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../../../libc/unix/linux_like/linux/gnu/b64/x86_64/not_x32/type.c_long.html">c_long</a> {
-        <a class="self" href="#336">self</a>.<span class="number">0</span>.ru_minflt
+    </span><span class="kw">pub fn </span>minor_page_faults(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; c_long {
+        <span class="self">self</span>.<span class="number">0</span>.ru_minflt
     }
 
     <span class="doccomment">/// Number of page faults that were served through I/O (i.e. swap).
-    </span><span class="kw">pub fn </span>major_page_faults(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../../../libc/unix/linux_like/linux/gnu/b64/x86_64/not_x32/type.c_long.html">c_long</a> {
-        <a class="self" href="#341">self</a>.<span class="number">0</span>.ru_majflt
+    </span><span class="kw">pub fn </span>major_page_faults(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; c_long {
+        <span class="self">self</span>.<span class="number">0</span>.ru_majflt
     }
 
     <span class="doccomment">/// Number of times all of the memory was fully swapped out.
-    </span><span class="kw">pub fn </span>full_swaps(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../../../libc/unix/linux_like/linux/gnu/b64/x86_64/not_x32/type.c_long.html">c_long</a> {
-        <a class="self" href="#346">self</a>.<span class="number">0</span>.ru_nswap
+    </span><span class="kw">pub fn </span>full_swaps(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; c_long {
+        <span class="self">self</span>.<span class="number">0</span>.ru_nswap
     }
 
     <span class="doccomment">/// Number of times a read was done from a block device.
-    </span><span class="kw">pub fn </span>block_reads(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../../../libc/unix/linux_like/linux/gnu/b64/x86_64/not_x32/type.c_long.html">c_long</a> {
-        <a class="self" href="#351">self</a>.<span class="number">0</span>.ru_inblock
+    </span><span class="kw">pub fn </span>block_reads(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; c_long {
+        <span class="self">self</span>.<span class="number">0</span>.ru_inblock
     }
 
     <span class="doccomment">/// Number of times a write was done to a block device.
-    </span><span class="kw">pub fn </span>block_writes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../../../libc/unix/linux_like/linux/gnu/b64/x86_64/not_x32/type.c_long.html">c_long</a> {
-        <a class="self" href="#356">self</a>.<span class="number">0</span>.ru_oublock
+    </span><span class="kw">pub fn </span>block_writes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; c_long {
+        <span class="self">self</span>.<span class="number">0</span>.ru_oublock
     }
 
     <span class="doccomment">/// Number of IPC messages sent.
-    </span><span class="kw">pub fn </span>ipc_sends(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../../../libc/unix/linux_like/linux/gnu/b64/x86_64/not_x32/type.c_long.html">c_long</a> {
-        <a class="self" href="#361">self</a>.<span class="number">0</span>.ru_msgsnd
+    </span><span class="kw">pub fn </span>ipc_sends(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; c_long {
+        <span class="self">self</span>.<span class="number">0</span>.ru_msgsnd
     }
 
     <span class="doccomment">/// Number of IPC messages received.
-    </span><span class="kw">pub fn </span>ipc_receives(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../../../libc/unix/linux_like/linux/gnu/b64/x86_64/not_x32/type.c_long.html">c_long</a> {
-        <a class="self" href="#366">self</a>.<span class="number">0</span>.ru_msgrcv
+    </span><span class="kw">pub fn </span>ipc_receives(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; c_long {
+        <span class="self">self</span>.<span class="number">0</span>.ru_msgrcv
     }
 
     <span class="doccomment">/// Number of signals received.
-    </span><span class="kw">pub fn </span>signals(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../../../libc/unix/linux_like/linux/gnu/b64/x86_64/not_x32/type.c_long.html">c_long</a> {
-        <a class="self" href="#371">self</a>.<span class="number">0</span>.ru_nsignals
+    </span><span class="kw">pub fn </span>signals(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; c_long {
+        <span class="self">self</span>.<span class="number">0</span>.ru_nsignals
     }
 
     <span class="doccomment">/// Number of times a context switch was voluntarily invoked.
-    </span><span class="kw">pub fn </span>voluntary_context_switches(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../../../libc/unix/linux_like/linux/gnu/b64/x86_64/not_x32/type.c_long.html">c_long</a> {
-        <a class="self" href="#376">self</a>.<span class="number">0</span>.ru_nvcsw
+    </span><span class="kw">pub fn </span>voluntary_context_switches(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; c_long {
+        <span class="self">self</span>.<span class="number">0</span>.ru_nvcsw
     }
 
     <span class="doccomment">/// Number of times a context switch was imposed by the kernel (usually due to
     /// time slice expiring or preemption by a higher priority process).
-    </span><span class="kw">pub fn </span>involuntary_context_switches(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../../../libc/unix/linux_like/linux/gnu/b64/x86_64/not_x32/type.c_long.html">c_long</a> {
-        <a class="self" href="#382">self</a>.<span class="number">0</span>.ru_nivcsw
+    </span><span class="kw">pub fn </span>involuntary_context_switches(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; c_long {
+        <span class="self">self</span>.<span class="number">0</span>.ru_nivcsw
     }
 }
 
@@ -841,11 +852,11 @@
 /// [`UsageWho`]: enum.UsageWho.html
 ///
 /// Note: `getrusage` provides a safe wrapper to libc&#39;s [`libc::getrusage`].
-</span><span class="kw">pub fn </span>getrusage(who: <a href="#263-279">UsageWho</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#286">Usage</a>&gt; {
+</span><span class="kw">pub fn </span>getrusage(who: UsageWho) -&gt; <span class="prelude-ty">Result</span>&lt;Usage&gt; {
     <span class="kw">unsafe </span>{
-        <span class="kw">let </span><span class="kw-2">mut </span>rusage = mem::MaybeUninit::&lt;<a href="../../../libc/unix/struct.rusage.html">rusage</a>&gt;::uninit();
-        <span class="kw">let </span>res = <a href="../../../libc/unix/fn.getrusage.html">libc::getrusage</a>(<a href="#407">who</a> <span class="kw">as </span><a href="../../../libc/unix/type.c_int.html">c_int</a>, <a href="#409">rusage</a>.as_mut_ptr());
-        Errno::result(<a href="#410">res</a>).map(|<span class="kw">_</span>| <a href="#286">Usage</a>(<a href="#409">rusage</a>.assume_init()))
+        <span class="kw">let </span><span class="kw-2">mut </span>rusage = mem::MaybeUninit::&lt;rusage&gt;::uninit();
+        <span class="kw">let </span>res = libc::getrusage(who <span class="kw">as </span>c_int, rusage.as_mut_ptr());
+        Errno::result(res).map(|<span class="kw">_</span>| Usage(rusage.assume_init()))
     }
 }
 
@@ -863,7 +874,8 @@
         // thing away. Replace the assert with test::black_box once stabilized.
         </span><span class="macro">assert_eq!</span>(numbers[<span class="number">100</span>..<span class="number">200</span>].iter().sum::&lt;i32&gt;(), <span class="number">30_100</span>);
 
-        <span class="kw">let </span>usage = getrusage(UsageWho::RUSAGE_SELF).expect(<span class="string">&quot;Failed to call getrusage for SELF&quot;</span>);
+        <span class="kw">let </span>usage = getrusage(UsageWho::RUSAGE_SELF)
+            .expect(<span class="string">&quot;Failed to call getrusage for SELF&quot;</span>);
         <span class="kw">let </span>rusage = usage.as_ref();
 
         <span class="kw">let </span>user = usage.user_time();
@@ -873,4 +885,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="nix" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (96ddd32c4 2022-11-14)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="nix" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>
